@@ -1,0 +1,185 @@
+{
+ "n_obs": 456,
+ "n_atletas": 27,
+ "A_resposta_aguda": [
+  {
+   "y": "PTH",
+   "b_pos": 3.474,
+   "p": 0.0,
+   "dz": 0.68,
+   "icc": 0.57,
+   "p_FDR": 0.0,
+   "signif_FDR": true
+  },
+  {
+   "y": "FadFis",
+   "b_pos": 1.652,
+   "p": 0.0,
+   "dz": 1.06,
+   "icc": 0.392,
+   "p_FDR": 0.0,
+   "signif_FDR": true
+  },
+  {
+   "y": "Fadiga",
+   "b_pos": 1.496,
+   "p": 0.0,
+   "dz": 0.62,
+   "icc": 0.565,
+   "p_FDR": 0.0,
+   "signif_FDR": true
+  },
+  {
+   "y": "Vigor",
+   "b_pos": -1.089,
+   "p": 0.0001,
+   "dz": -0.56,
+   "icc": 0.527,
+   "p_FDR": 0.0001,
+   "signif_FDR": true
+  },
+  {
+   "y": "FadMen",
+   "b_pos": 0.57,
+   "p": 0.003,
+   "dz": 0.44,
+   "icc": 0.694,
+   "p_FDR": 0.0054,
+   "signif_FDR": true
+  },
+  {
+   "y": "Tensão",
+   "b_pos": 0.2,
+   "p": 0.0983,
+   "dz": 0.42,
+   "icc": 0.721,
+   "p_FDR": 0.1263,
+   "signif_FDR": false
+  },
+  {
+   "y": "Depressão",
+   "b_pos": 0.363,
+   "p": 0.0442,
+   "dz": 0.36,
+   "icc": 0.622,
+   "p_FDR": 0.0663,
+   "signif_FDR": false
+  },
+  {
+   "y": "Raiva",
+   "b_pos": 0.37,
+   "p": 0.1945,
+   "dz": 0.2,
+   "icc": 0.0,
+   "p_FDR": 0.2189,
+   "signif_FDR": false
+  },
+  {
+   "y": "Confusão",
+   "b_pos": -0.044,
+   "p": 0.7156,
+   "dz": -0.1,
+   "icc": 0.0,
+   "p_FDR": 0.7156,
+   "signif_FDR": false
+  }
+ ],
+ "B_acumulo_microciclo": [
+  {
+   "y": "PTH",
+   "inclinacao_por_dia": 0.455,
+   "p": 0.0883,
+   "var_inclinacao_atleta": 1.126,
+   "icc": 0.546
+  },
+  {
+   "y": "FadFis",
+   "inclinacao_por_dia": 0.342,
+   "p": 0.0,
+   "var_inclinacao_atleta": 0.008,
+   "icc": 0.399
+  },
+  {
+   "y": "Fadiga",
+   "inclinacao_por_dia": 0.304,
+   "p": 0.0055,
+   "var_inclinacao_atleta": 0.191,
+   "icc": 0.485
+  },
+  {
+   "y": "Vigor",
+   "inclinacao_por_dia": -0.283,
+   "p": 0.0016,
+   "var_inclinacao_atleta": 0.123,
+   "icc": 0.663
+  }
+ ],
+ "C_efeito_HIIT_nivel_dia": [
+  {
+   "y": "PTH",
+   "efeito_HIIT": 2.432,
+   "p": 0.0033,
+   "icc": 0.717
+  },
+  {
+   "y": "FadFis",
+   "efeito_HIIT": 0.476,
+   "p": 0.0232,
+   "icc": 0.616
+  },
+  {
+   "y": "Fadiga",
+   "efeito_HIIT": 0.667,
+   "p": 0.0364,
+   "icc": 0.751
+  },
+  {
+   "y": "Vigor",
+   "efeito_HIIT": -0.612,
+   "p": 0.015,
+   "icc": 0.723
+  },
+  {
+   "y": "FadMen",
+   "efeito_HIIT": 0.195,
+   "p": 0.3176,
+   "icc": 0.812
+  }
+ ],
+ "D_interacao_condicao_momento": [
+  {
+   "y": "PTH",
+   "interacao": 0.183,
+   "p": 0.9101
+  },
+  {
+   "y": "FadFis",
+   "interacao": 0.933,
+   "p": 0.0346
+  },
+  {
+   "y": "Fadiga",
+   "interacao": 0.7,
+   "p": 0.2834
+  },
+  {
+   "y": "Vigor",
+   "interacao": 0.067,
+   "p": 0.9013
+  }
+ ],
+ "E_hotelling": {
+  "6_subescalas": {
+   "F": 2.52,
+   "df": "(6,21)",
+   "p": 0.054,
+   "D_mahalanobis": 0.83
+  },
+  "eixo_vigor_fadiga": {
+   "F": 5.59,
+   "df": "(2,25)",
+   "p": 0.01,
+   "D_mahalanobis": 0.66
+  }
+ }
+}
