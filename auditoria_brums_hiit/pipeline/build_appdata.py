@@ -132,7 +132,8 @@ def build_carga(M,amap):
     bysess=[]
     for s in SS:
         sub=bc[bc['Sessão']==s]; last=sub[sub['Fase']=='Série 4']
-        bysess.append({'sessao':s,'fcpos':msd(sub['FC Pós']),'pse':msd(sub['PSE']),'pse_final':msd(last['PSE']),'fcpico':msd(sub['FC Pós'])})
+        peak=sub.groupby('a')['FC Pós'].max()  # FC de pico = máximo por atleta na sessão (não a média das fases)
+        bysess.append({'sessao':s,'fcpos':msd(sub['FC Pós']),'pse':msd(sub['PSE']),'pse_final':msd(last['PSE']),'fcpico':msd(peak)})
     def paired(sub):
         p=sub.dropna(subset=['FC Pré','FC Pós'])
         if len(p)<3: return {}

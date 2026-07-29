@@ -134,7 +134,7 @@
       "status": "ok",
       "app": "Sistema_Analista_BRUMS_HIIT.html",
       "appdata": "appdata.json",
-      "bytes": 186247,
+      "bytes": 186239,
       "log": [
         "appdata.json: 456 obs, 27 atletas, 135 pares",
         "carga: n_ath=26 matched=25",

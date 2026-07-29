@@ -15,7 +15,7 @@
 - **export_excel** — OK — {"arquivo": "BRUMS_HIIT_resultados.xlsx", "abas": 17}
 - **export_pdf** — OK — {"arquivo": "BRUMS_HIIT_relatorio.pdf"}
 - **publish** — OK — {"arquivo": "relatorio.html"}
-- **app** — OK — {"status": "ok", "app": "Sistema_Analista_BRUMS_HIIT.html", "appdata": "appdata.json", "bytes": 186247, "log": ["appdata.json: 456 obs, 27 atletas, 135 pares", "carga: n_ath=26 matched=25", "HTML: /home/user/mdlucca/auditoria_brums_hiit/pipeline/pipe/Sistema_Analista_BRUMS_HIIT.html"]}
+- **app** — OK — {"status": "ok", "app": "Sistema_Analista_BRUMS_HIIT.html", "appdata": "appdata.json", "bytes": 186239, "log": ["appdata.json: 456 obs, 27 atletas, 135 pares", "carga: n_ath=26 matched=25", "HTML: /home/user/mdlucca/auditoria_brums_hiit/pipeline/pipe/Sistema_Analista_BRUMS_HIIT.html"]}
 
 ## Tabelas geradas
 - tables/00_base_limpa.csv
