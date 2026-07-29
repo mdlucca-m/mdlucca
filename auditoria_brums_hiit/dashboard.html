@@ -1,0 +1,424 @@
+<title>Auditoria BRUMS/HIIT — Painel Analítico</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#060910; --bg2:#0a1120; --panel:#0d1526; --panel2:#101a30;
+  --line:rgba(120,160,220,.12); --line2:rgba(120,160,220,.22);
+  --ink:#E9EEF8; --mut:#8494AE; --dim:#5C6A83;
+  --cy:#37E6D9; --cy2:#12b5ab; --ind:#7C9CFF; --vio:#B98BFF;
+  --ok:#3FE0A3; --warn:#F5C24E; --alert:#FF7E7E; --hiit:#FF7E9D;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+  line-height:1.55;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+#bg{position:fixed;inset:0;z-index:-1}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px}
+a{color:var(--cy)}
+h1,h2,h3{text-wrap:balance;margin:0;font-weight:650;letter-spacing:-.02em}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--cy);font-weight:600}
+.mut{color:var(--mut)} .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* header */
+header{position:relative;padding:64px 0 30px;border-bottom:1px solid var(--line)}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:6px 13px;border:1px solid var(--line2);
+  border-radius:100px;background:rgba(63,224,163,.07);font-family:var(--mono);font-size:12px;color:var(--ok)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 10px var(--ok)}
+header h1{font-size:clamp(30px,5.2vw,52px);line-height:1.04;margin:20px 0 14px;
+  background:linear-gradient(180deg,#fff, #b9c6dd);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+header p.lead{max-width:60ch;color:var(--mut);font-size:clamp(15px,1.7vw,18px)}
+.meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:20px;font-family:var(--mono);font-size:12.5px;color:var(--dim)}
+.meta b{color:var(--ink);font-weight:500}
+
+/* kpis */
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:26px 0 8px}
+@media(max-width:860px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:480px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);
+  border-radius:14px;padding:16px 15px;position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;left:0;top:0;height:2px;width:100%;
+  background:linear-gradient(90deg,var(--cy),transparent 70%);opacity:.8}
+.kpi .v{font-family:var(--mono);font-size:clamp(24px,3.2vw,32px);font-weight:600;letter-spacing:-.02em;line-height:1}
+.kpi .k{font-size:11.5px;color:var(--mut);margin-top:8px;letter-spacing:.02em}
+.kpi.good .v{color:var(--ok)} .kpi.accent .v{color:var(--cy)}
+
+/* sections */
+section{padding:44px 0;border-bottom:1px solid var(--line)}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.sec-head h2{font-size:clamp(20px,2.6vw,27px)}
+.sec-head .idx{font-family:var(--mono);color:var(--dim);font-size:13px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:820px){.g2,.g3{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,rgba(16,26,48,.55),rgba(13,21,38,.55));
+  border:1px solid var(--line);border-radius:16px;padding:20px 20px 18px;position:relative;backdrop-filter:blur(6px)}
+.card h3{font-size:15.5px;margin-bottom:4px}
+.card .cap{font-size:12.5px;color:var(--mut);margin:0 0 14px}
+.chart{width:100%;height:auto;display:block;overflow:visible}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-family:var(--mono);font-size:11.5px;color:var(--mut)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+
+/* insight cards */
+.ins{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:820px){.ins{grid-template-columns:1fr}}
+.ins .card{padding:18px}
+.ins .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--cy)}
+.ins h3{font-size:16px;margin:9px 0 7px}
+.ins p{margin:0;font-size:13.5px;color:var(--mut)}
+.ins .stat{font-family:var(--mono);font-size:13px;color:var(--ind);margin-top:11px;padding-top:11px;border-top:1px solid var(--line)}
+
+/* ledger */
+table.ledger{width:100%;border-collapse:collapse;font-size:13.5px}
+table.ledger th,table.ledger td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+table.ledger th{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:500}
+table.ledger td.n{font-family:var(--mono);white-space:nowrap;color:var(--ink)}
+.chip{display:inline-block;padding:2px 9px;border-radius:100px;font-family:var(--mono);font-size:11px;font-weight:600}
+.chip.fix{background:rgba(245,194,78,.12);color:var(--warn);border:1px solid rgba(245,194,78,.3)}
+.chip.ok{background:rgba(63,224,163,.12);color:var(--ok);border:1px solid rgba(63,224,163,.3)}
+.tbl-wrap{overflow-x:auto}
+
+/* pipeline */
+.pipe{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+@media(max-width:900px){.pipe{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.pipe{grid-template-columns:1fr}}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px}
+.step .no{font-family:var(--mono);font-size:12px;color:var(--cy);letter-spacing:.1em}
+.step h4{margin:8px 0 5px;font-size:14px;font-weight:600}
+.step p{margin:0;font-size:12px;color:var(--mut)}
+
+/* stat tiles multivar */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:820px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px}
+.tile .l{font-family:var(--mono);font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.1em}
+.tile .b{font-family:var(--mono);font-size:26px;font-weight:600;margin-top:8px;color:var(--cy)}
+.tile .s{font-size:12px;color:var(--dim);margin-top:4px}
+
+footer{padding:34px 0 60px;color:var(--dim);font-size:12.5px}
+footer .mono{font-family:var(--mono)}
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+</style>
+
+<canvas id="bg"></canvas>
+<div class="wrap">
+<header>
+  <span class="badge"><span class="dot"></span>AUDITORIA CONCLUÍDA · PR #1</span>
+  <h1>Auditoria &amp; Reprodução das Análises<br>BRUMS × HIIT no Handebol</h1>
+  <p class="lead">Reconstrução independente da base a partir da coleta bruta e recálculo de todas as
+  análises do manuscrito — verificação célula a célula, correções aplicadas e insights consolidados.</p>
+  <div class="meta">
+    <span>MICROCICLO <b>21–27/04/2024</b></span>
+    <span>DESENHO <b>Observacional longitudinal</b></span>
+    <span>INSTRUMENTO <b>BRUMS-24 + FC/PSE</b></span>
+    <span>MÉTODO <b>Python · reconstrução dos dados brutos</b></span>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi accent"><div class="v num" data-to="27">0</div><div class="k">Atletas de elite</div></div>
+    <div class="kpi accent"><div class="v num" data-to="456">0</div><div class="k">Observações válidas</div></div>
+    <div class="kpi accent"><div class="v num" data-to="135">0</div><div class="k">Pares pré→pós</div></div>
+    <div class="kpi"><div class="v num" data-to="58">0</div><div class="k">Tabelas auditadas</div></div>
+    <div class="kpi good"><div class="v num" data-to="84">0</div><div class="k">Checagens</div></div>
+    <div class="kpi good"><div class="v num" data-suffix="%" data-to="91.7" data-dec="1">0</div><div class="k">Reproduzem exato (77/84)</div></div>
+  </div>
+</header>
+
+<!-- REPRODUCIBILITY + TRAJECTORY -->
+<section class="reveal">
+  <div class="sec-head"><h2>Reprodutibilidade &amp; trajetória do microciclo</h2><span class="idx">01 / VERIFICAÇÃO</span></div>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Verificação célula a célula</h3>
+      <p class="cap">84 checagens contra as tabelas, o texto e o resumo do manuscrito.</p>
+      <svg class="chart" viewBox="0 0 320 200" id="donut" role="img" aria-label="77 de 84 checagens reproduzem exatamente"></svg>
+    </div>
+    <div class="card">
+      <h3>Eixo energia–fadiga ao longo dos 7 dias</h3>
+      <p class="cap">Médias diárias. Faixas verticais = dias de HIIT (2, 4, 7). Pico de perturbação no Dia 7.</p>
+      <svg class="chart" viewBox="0 0 520 260" id="traj" role="img" aria-label="Trajetória diária"></svg>
+      <div class="legend">
+        <span><i style="background:var(--alert)"></i>Fadiga física</span>
+        <span><i style="background:var(--warn)"></i>Fadiga (BRUMS)</span>
+        <span><i style="background:var(--cy)"></i>Vigor</span>
+        <span><i style="background:var(--vio)"></i>PTH (TMD)</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ACUTE + FLOOR -->
+<section class="reveal">
+  <div class="sec-head"><h2>Resposta ao treino &amp; efeito piso</h2><span class="idx">02 / ACHADOS</span></div>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Resposta aguda pré→pós (d<sub>z</sub>, IC 95%)</h3>
+      <p class="cap">Só o eixo energia–fadiga responde. ● sobrevive à correção FDR · ○ limítrofe/n.s.</p>
+      <svg class="chart" viewBox="0 0 520 300" id="acute" role="img" aria-label="Tamanhos de efeito da resposta aguda"></svg>
+    </div>
+    <div class="card">
+      <h3>Efeito piso × responsividade</h3>
+      <p class="cap">% no escore mínimo por subescala. Quanto maior o piso, menor a resposta — r = −0,93.</p>
+      <svg class="chart" viewBox="0 0 520 300" id="floor" role="img" aria-label="Efeito piso por subescala"></svg>
+    </div>
+  </div>
+</section>
+
+<!-- RELIABILITY + ICEBERG -->
+<section class="reveal">
+  <div class="sec-head"><h2>Confiabilidade &amp; perfil de humor</h2><span class="idx">03 / PSICOMETRIA</span></div>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Consistência interna (α de Cronbach)</h3>
+      <p class="cap">Linha = critério 0,70. Tensão frágil no escore bruto (piso); adequada como construto latente (ω = 0,79).</p>
+      <svg class="chart" viewBox="0 0 520 260" id="alpha" role="img" aria-label="Alfa de Cronbach por subescala"></svg>
+    </div>
+    <div class="card">
+      <h3>O “iceberg” derrete ao longo da semana</h3>
+      <p class="cap">% de atletas com perfil iceberg (vigor acima de todas as subescalas negativas).</p>
+      <svg class="chart" viewBox="0 0 520 260" id="ice" role="img" aria-label="Prevalência do perfil iceberg por dia"></svg>
+      <div class="legend"><span class="num" style="color:var(--cy)">71,4% → 32,6%</span><span>Dia 1 → Dia 7</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- MULTIVARIATE -->
+<section class="reveal">
+  <div class="sec-head"><h2>Confirmação multivariada</h2><span class="idx">04 / INFERÊNCIA</span></div>
+  <div class="tiles">
+    <div class="tile"><div class="l">Hotelling T² · 6 subescalas</div><div class="b">F=2,52</div><div class="s">p = 0,054 · D = 0,83 (limítrofe)</div></div>
+    <div class="tile"><div class="l">Eixo Vigor + Fadiga</div><div class="b">F=5,59</div><div class="s">p = 0,010 · D = 0,66 (robusto)</div></div>
+    <div class="tile"><div class="l">PERMANOVA pré vs pós</div><div class="b">p&lt;0,001</div><div class="s">permutação restrita ao atleta</div></div>
+    <div class="tile"><div class="l">HIIT · Δ PTH (nível do dia)</div><div class="b">+2,47</div><div class="s">fadiga ↑ · vigor ↓ (d = −0,44)</div></div>
+  </div>
+</section>
+
+<!-- INSIGHTS -->
+<section class="reveal">
+  <div class="sec-head"><h2>Insights principais</h2><span class="idx">05 / SÍNTESE</span></div>
+  <div class="ins">
+    <div class="card"><span class="tag">Sinal</span><h3>O eixo energia–fadiga carrega a resposta</h3><p>Fadiga sobe e vigor cai em espelho ao treino; as subescalas negativas permanecem silenciosas.</p><div class="stat">rmcorr PTH×fadiga = 0,73 · PTH×vigor = −0,61</div></div>
+    <div class="card"><span class="tag">Medida</span><h3>Não-resposta = limite de medida</h3><p>50–80% dos atletas no piso das negativas. A “calmaria” emocional é efeito piso, não ausência do fenômeno.</p><div class="stat">piso × |d<sub>z</sub>| : r = −0,93</div></div>
+    <div class="card"><span class="tag">Dinâmica</span><h3>Acúmulo, não choque agudo</h3><p>Pior estado no Dia 7. A recuperação noturna reverte ~67% da fadiga da sessão, mas o resíduo se soma.</p><div class="stat">recuperação noturna ≈ 67% · pico Dia 7</div></div>
+    <div class="card"><span class="tag">HIIT</span><h3>Pior no dia, não na sessão</h3><p>Dias de HIIT concentram pior humor, mas a resposta aguda intra-sessão não distingue HIIT de técnico-tático.</p><div class="stat">interação Condição×Momento p = 0,703</div></div>
+    <div class="card"><span class="tag">Perfil</span><h3>O iceberg de elite se achata</h3><p>Marcador clássico de bem-estar do atleta cai de 71% para 33% — governado pela reciprocidade vigor↔fadiga.</p><div class="stat">iceberg 71,4% → 32,6%</div></div>
+    <div class="card"><span class="tag">Prática</span><h3>Monitorar por tendência (5–7 dias)</h3><p>O erro típico da medida excede a menor mudança relevante numa coleta isolada. Fadiga física = variável-sentinela.</p><div class="stat">ETM fadiga física = 27% · ICC(1,7)=0,76–0,91</div></div>
+  </div>
+</section>
+
+<!-- CORRECTIONS -->
+<section class="reveal">
+  <div class="sec-head"><h2>Correções aplicadas ao manuscrito</h2><span class="idx">06 / RECONCILIAÇÃO</span></div>
+  <div class="card" style="padding:6px 6px 2px">
+  <div class="tbl-wrap"><table class="ledger">
+    <thead><tr><th>Local</th><th>Antes</th><th>Depois</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>Tab. 22 — resposta aguda</td><td class="n">d<sub>z</sub> 0,71</td><td class="n">0,76 [0,60–0,95]</td><td><span class="chip fix">reconciliado</span></td></tr>
+      <tr><td>Tab. 2 — % piso do PTH</td><td class="n">21,9</td><td class="n">—</td><td><span class="chip fix">corrigido</span></td></tr>
+      <tr><td>Tab. 46/47/53 — PSE final</td><td class="n">8,5 / 8,5 / 9,1</td><td class="n">9,3 / 9,3 / 9,6</td><td><span class="chip fix">corrigido</span></td></tr>
+      <tr><td>Tab. 53 — Friedman do PSE</td><td class="n">p = 0,004</td><td class="n">p = 0,45 (n.s.)</td><td><span class="chip fix">corrigido</span></td></tr>
+      <tr><td>Referências — Terry 2022 (BRUMS-LTU)</td><td class="n">duplicada</td><td class="n">removida</td><td><span class="chip fix">corrigido</span></td></tr>
+      <tr><td>Tab. 25 × 48 — agregação HIIT</td><td class="n">valores distintos</td><td class="n">nota de legenda</td><td><span class="chip ok">esclarecido</span></td></tr>
+      <tr><td>Apêndice B — reprodutibilidade</td><td class="n">—</td><td class="n">adicionado</td><td><span class="chip ok">novo</span></td></tr>
+    </tbody>
+  </table></div>
+  </div>
+  <p class="mut" style="font-size:13px;margin-top:14px">Integridade dos dados corrigida no pipeline: campo “Data” corrompido (datas de nascimento) → dia derivado do carimbo de data/hora · 37 grafias de nome → 27 atletas · 1 coleta em 29/04 fora da janela excluída (→ 456).</p>
+</section>
+
+<!-- PROCESS -->
+<section class="reveal">
+  <div class="sec-head"><h2>O que foi feito</h2><span class="idx">07 / PROCESSO</span></div>
+  <div class="pipe">
+    <div class="step"><div class="no">01</div><h4>Base bruta</h4><p>Reconstrução a partir de COLETAS/Diário: 456 obs, 27 atletas, 135 pares.</p></div>
+    <div class="step"><div class="no">02</div><h4>Recálculo</h4><p>58 tabelas reprocessadas em Python (scipy, statsmodels, factor_analyzer).</p></div>
+    <div class="step"><div class="no">03</div><h4>Verificação</h4><p>Comparação célula a célula — 84 checagens, 77 exatas.</p></div>
+    <div class="step"><div class="no">04</div><h4>Correções</h4><p>Reconciliações aplicadas + Apêndice B de reprodutibilidade.</p></div>
+    <div class="step"><div class="no">05</div><h4>Entregáveis</h4><p>Manuscrito auditado, workbook, relatório e scripts.</p></div>
+    <div class="step"><div class="no">06</div><h4>Pull Request</h4><p>PR #1 aberto na branch de auditoria.</p></div>
+  </div>
+</section>
+
+<footer>
+  <div class="mono">AUDITORIA DE REPRODUTIBILIDADE · 2026 · atletas anonimizados A01–A27</div>
+  <p class="mut" style="margin:8px 0 0">Requer replicação em R (lavaan/mirt/semTools): CFA, TRI/GRM, HTMT policórico, invariância e o fechamento bayesiano — internamente consistentes, marcados no Apêndice B. Nenhuma correção altera as conclusões do estudo.</p>
+</footer>
+</div>
+
+<script>
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const NS='http://www.w3.org/2000/svg';
+function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+
+/* KPI count-up */
+function countUp(){
+  document.querySelectorAll('.kpi .v[data-to]').forEach(n=>{
+    const to=parseFloat(n.dataset.to),dec=+(n.dataset.dec||0),suf=n.dataset.suffix||'';
+    if(RM){n.textContent=to.toLocaleString('pt-BR',{minimumFractionDigits:dec,maximumFractionDigits:dec})+suf;return;}
+    const t0=performance.now(),D=1100;
+    (function tick(t){let p=Math.min(1,(t-t0)/D);p=1-Math.pow(1-p,3);
+      n.textContent=(to*p).toLocaleString('pt-BR',{minimumFractionDigits:dec,maximumFractionDigits:dec})+suf;
+      if(p<1)requestAnimationFrame(tick);})(t0);
+  });
+}
+
+/* Donut 77/84 */
+function donut(){
+  const s=document.getElementById('donut'),cx=110,cy=100,r=66,w=22,tot=84,ex=77;
+  s.appendChild(el('circle',{cx,cy,r,fill:'none',stroke:'rgba(120,160,220,.14)','stroke-width':w}));
+  const frac=ex/tot,C=2*Math.PI*r;
+  const arc=el('circle',{cx,cy,r,fill:'none',stroke:css('--ok'),'stroke-width':w,'stroke-linecap':'round',
+    'stroke-dasharray':C,'stroke-dashoffset':C,transform:`rotate(-90 ${cx} ${cy})`});
+  s.appendChild(arc);
+  const t1=el('text',{x:cx,y:cy-4,'text-anchor':'middle',fill:css('--ink'),'font-family':css('--mono'),'font-size':'34','font-weight':'700'});t1.textContent='91,7%';s.appendChild(t1);
+  const t2=el('text',{x:cx,y:cy+20,'text-anchor':'middle',fill:css('--mut'),'font-family':css('--mono'),'font-size':'12'});t2.textContent='77 / 84 exato';s.appendChild(t2);
+  const rows=[['Reproduzem exato','77',css('--ok')],['Reconciliadas / corrigidas','7',css('--warn')]];
+  rows.forEach((rw,i)=>{const y=70+i*34;
+    s.appendChild(el('rect',{x:210,y:y-9,width:11,height:11,rx:3,fill:rw[2]}));
+    const a=el('text',{x:228,y,fill:css('--ink'),'font-size':'12.5','font-family':css('--sans')});a.textContent=rw[1]+'  '+rw[0];s.appendChild(a);
+  });
+  if(RM){arc.setAttribute('stroke-dashoffset',C*(1-frac));return;}
+  const t0=performance.now(),D=1300;
+  (function tk(t){let p=Math.min(1,(t-t0)/D);p=1-Math.pow(1-p,3);arc.setAttribute('stroke-dashoffset',C*(1-frac*p));if(p<1)requestAnimationFrame(tk);})(t0);
+}
+
+/* line chart trajectory */
+function traj(){
+  const s=document.getElementById('traj'),W=520,H=260,L=38,R=14,T=14,B=30;
+  const days=[1,2,3,4,5,6,7], hiit=[2,4,7];
+  const series=[
+    {d:[4.26,5.66,6.28,6.87,5.94,6.25,7.57],c:css('--alert')},
+    {d:[3.74,5.21,5.72,6.27,5.21,6.00,7.48],c:css('--warn')},
+    {d:[7.52,5.81,5.19,5.28,5.87,5.82,4.70],c:css('--cy')},
+    {d:[2.52,4.61,2.87,4.76,2.19,4.80,8.28],c:css('--vio')}
+  ];
+  const max=9,min=0;
+  const X=i=>L+(W-L-R)*i/6, Y=v=>T+(H-T-B)*(1-(v-min)/(max-min));
+  hiit.forEach(dn=>{const x=X(dn-1);s.appendChild(el('rect',{x:x-14,y:T,width:28,height:H-T-B,fill:'rgba(255,126,157,.07)'}));});
+  [0,3,6,9].forEach(g=>{const y=Y(g);s.appendChild(el('line',{x1:L,y1:y,x2:W-R,y2:y,stroke:'rgba(120,160,220,.10)'}));
+    const t=el('text',{x:L-6,y:y+3,'text-anchor':'end',fill:css('--dim'),'font-size':'9','font-family':css('--mono')});t.textContent=g;s.appendChild(t);});
+  days.forEach((d,i)=>{const t=el('text',{x:X(i),y:H-12,'text-anchor':'middle',fill:hiit.includes(d)?css('--hiit'):css('--dim'),'font-size':'10','font-family':css('--mono')});t.textContent='D'+d;s.appendChild(t);});
+  series.forEach(se=>{
+    let path='';se.d.forEach((v,i)=>path+=(i?'L':'M')+X(i)+' '+Y(v)+' ');
+    const p=el('path',{d:path,fill:'none',stroke:se.c,'stroke-width':2.4,'stroke-linejoin':'round','stroke-linecap':'round'});
+    s.appendChild(p);
+    if(!RM){const len=p.getTotalLength();p.setAttribute('stroke-dasharray',len);p.setAttribute('stroke-dashoffset',len);
+      p.animate([{strokeDashoffset:len},{strokeDashoffset:0}],{duration:1200,easing:'ease-out',fill:'forwards'});}
+    se.d.forEach((v,i)=>s.appendChild(el('circle',{cx:X(i),cy:Y(v),r:i===6?3.6:2.4,fill:se.c})));
+  });
+}
+
+/* acute dz bars with CI */
+function acute(){
+  const s=document.getElementById('acute'),W=520,H=300,L=118,R=24,T=10,B=8;
+  const data=[
+    ['Fadiga física',0.76,0.60,0.95,1,1],['Fadiga (BRUMS)',0.45,0.29,0.59,1,1],
+    ['PTH (TMD)',0.44,0.28,0.60,1,1],['Vigor',-0.39,-0.54,-0.23,1,0],
+    ['Fadiga mental',0.27,0.11,0.43,0,0],['Depressão',0.19,0.04,0.32,0,0],
+    ['Tensão',0.15,-0.02,0.31,0,0],['Raiva',0.14,-0.04,0.30,0,0],['Confusão',-0.04,-0.21,0.13,0,0]
+  ];
+  const lo=-0.6,hi=1.0, X=v=>L+(W-L-R)*(v-lo)/(hi-lo);
+  const rowH=(H-T-B)/data.length;
+  s.appendChild(el('line',{x1:X(0),y1:T,x2:X(0),y2:H-B,stroke:'rgba(120,160,220,.28)','stroke-dasharray':'3 3'}));
+  [0.2,0.5,0.8].forEach(g=>{const x=X(g);s.appendChild(el('line',{x1:x,y1:T,x2:x,y2:H-B,stroke:'rgba(120,160,220,.08)'}));
+    const t=el('text',{x,y:H-B+0,'text-anchor':'middle',fill:css('--dim'),'font-size':'8.5','font-family':css('--mono')});});
+  data.forEach((d,i)=>{
+    const y=T+rowH*i+rowH/2, axis=d[4], col=axis?(d[1]>=0?css('--alert'):css('--cy')):css('--dim');
+    const lab=el('text',{x:L-10,y:y+3.5,'text-anchor':'end',fill:axis?css('--ink'):css('--mut'),'font-size':'11','font-family':css('--sans')});lab.textContent=d[0];s.appendChild(lab);
+    s.appendChild(el('line',{x1:X(d[2]),y1:y,x2:X(d[3]),y2:y,stroke:col,'stroke-width':1.4,opacity:.5}));
+    const x0=X(0),x1=X(d[1]);
+    const bar=el('rect',{x:Math.min(x0,x1),y:y-6,width:Math.abs(x1-x0),height:12,rx:3,fill:col,opacity:axis?.92:.5});
+    s.appendChild(bar);
+    if(!RM)bar.animate([{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:800,easing:'cubic-bezier(.2,.7,.2,1)',fill:'both'}),bar.style.transformOrigin=x0+'px '+y+'px';
+    const mark=el('text',{x:X(d[3])+8,y:y+3.5,fill:col,'font-size':'10.5','font-family':css('--mono')});
+    mark.textContent=(d[1]>0?'+':'')+d[1].toFixed(2)+' '+(d[5]?'●':'○');s.appendChild(mark);
+  });
+}
+
+/* floor bars */
+function floor(){
+  const s=document.getElementById('floor'),W=520,H=300,L=118,R=54,T=8,B=8;
+  const data=[['Confusão',80.5],['Depressão',67.1],['Raiva',59.6],['Tensão',49.6],['Vigor',8.6],['Fadiga',7.7],['Fadiga física',0.7]];
+  const rowH=(H-T-B)/data.length, X=v=>L+(W-L-R)*v/100;
+  data.forEach((d,i)=>{
+    const y=T+rowH*i+rowH/2, hot=d[1]>=40, col=hot?css('--alert'):css('--ok');
+    const lab=el('text',{x:L-10,y:y+3.5,'text-anchor':'end',fill:css('--ink'),'font-size':'11','font-family':css('--sans')});lab.textContent=d[0];s.appendChild(lab);
+    s.appendChild(el('rect',{x:L,y:y-7,width:X(100)-L,height:14,rx:3,fill:'rgba(120,160,220,.07)'}));
+    const bar=el('rect',{x:L,y:y-7,width:Math.max(2,X(d[1])-L),height:14,rx:3,fill:col,opacity:.9});s.appendChild(bar);
+    if(!RM)bar.animate([{width:0},{width:Math.max(2,X(d[1])-L)+'px'}],{duration:850,easing:'cubic-bezier(.2,.7,.2,1)',fill:'both'});
+    const t=el('text',{x:X(d[1])+8,y:y+3.5,fill:col,'font-size':'10.5','font-family':css('--mono')});t.textContent=d[1].toFixed(1)+'%';s.appendChild(t);
+  });
+}
+
+/* alpha bars vertical */
+function alpha(){
+  const s=document.getElementById('alpha'),W=520,H=260,L=30,R=14,T=14,B=34;
+  const data=[['Raiva',0.87],['Depressão',0.85],['Fadiga',0.80],['Vigor',0.68],['Confusão',0.65],['Tensão',0.43]];
+  const bw=(W-L-R)/data.length, Y=v=>T+(H-T-B)*(1-v);
+  s.appendChild(el('line',{x1:L,y1:Y(0.70),x2:W-R,y2:Y(0.70),stroke:css('--warn'),'stroke-dasharray':'4 4',opacity:.7}));
+  const th=el('text',{x:W-R,y:Y(0.70)-5,'text-anchor':'end',fill:css('--warn'),'font-size':'10','font-family':css('--mono')});th.textContent='critério 0,70';s.appendChild(th);
+  data.forEach((d,i)=>{
+    const x=L+bw*i+bw*0.18,w=bw*0.64,y=Y(d[1]),h=(H-T-B)-(y-T),ok=d[1]>=0.70,col=ok?css('--cy'):css('--warn');
+    const bar=el('rect',{x,y,width:w,height:h,rx:4,fill:col,opacity:.9});s.appendChild(bar);
+    if(!RM){bar.animate([{height:0,y:H-B},{height:h,y}],{duration:800,easing:'cubic-bezier(.2,.7,.2,1)',fill:'both'});}
+    const v=el('text',{x:x+w/2,y:y-6,'text-anchor':'middle',fill:col,'font-size':'11','font-family':css('--mono')});v.textContent=d[1].toFixed(2).replace('.',',');s.appendChild(v);
+    const lb=el('text',{x:x+w/2,y:H-14,'text-anchor':'middle',fill:css('--mut'),'font-size':'10','font-family':css('--sans')});lb.textContent=d[0];s.appendChild(lb);
+  });
+}
+
+/* iceberg area */
+function ice(){
+  const s=document.getElementById('ice'),W=520,H=260,L=34,R=16,T=16,B=30;
+  const v=[71.4,48.9,44.0,41.7,53.5,47.1,32.6],hiit=[2,4,7];
+  const X=i=>L+(W-L-R)*i/6, Y=val=>T+(H-T-B)*(1-val/100);
+  [0,25,50,75,100].forEach(g=>{const y=Y(g);s.appendChild(el('line',{x1:L,y1:y,x2:W-R,y2:y,stroke:'rgba(120,160,220,.09)'}));
+    const t=el('text',{x:L-6,y:y+3,'text-anchor':'end',fill:css('--dim'),'font-size':'9','font-family':css('--mono')});t.textContent=g;s.appendChild(t);});
+  hiit.forEach(dn=>{const x=X(dn-1);s.appendChild(el('rect',{x:x-13,y:T,width:26,height:H-T-B,fill:'rgba(255,126,157,.07)'}));});
+  let line='',area='M'+X(0)+' '+Y(0)+' ';
+  v.forEach((val,i)=>{line+=(i?'L':'M')+X(i)+' '+Y(val)+' ';area+='L'+X(i)+' '+Y(val)+' ';});
+  area+='L'+X(6)+' '+Y(0)+' Z';
+  const grad=el('linearGradient',{id:'ig',x1:0,y1:0,x2:0,y2:1});
+  grad.appendChild(el('stop',{offset:'0%','stop-color':css('--cy'),'stop-opacity':.32}));
+  grad.appendChild(el('stop',{offset:'100%','stop-color':css('--cy'),'stop-opacity':0}));
+  const defs=el('defs',{});defs.appendChild(grad);s.appendChild(defs);
+  s.appendChild(el('path',{d:area,fill:'url(#ig)'}));
+  const p=el('path',{d:line,fill:'none',stroke:css('--cy'),'stroke-width':2.6,'stroke-linejoin':'round'});s.appendChild(p);
+  if(!RM){const len=p.getTotalLength();p.setAttribute('stroke-dasharray',len);p.setAttribute('stroke-dashoffset',len);p.animate([{strokeDashoffset:len},{strokeDashoffset:0}],{duration:1300,easing:'ease-out',fill:'forwards'});}
+  v.forEach((val,i)=>{s.appendChild(el('circle',{cx:X(i),cy:Y(val),r:i===0||i===6?4:2.6,fill:css('--cy')}));
+    const t=el('text',{x:X(i),y:H-12,'text-anchor':'middle',fill:hiit.includes(i+1)?css('--hiit'):css('--dim'),'font-size':'10','font-family':css('--mono')});t.textContent='D'+(i+1);s.appendChild(t);});
+}
+
+/* ambient background grid */
+function bg(){
+  const c=document.getElementById('bg'),x=c.getContext('2d');let w,h,dpr,stars;
+  function rs(){dpr=Math.min(2,devicePixelRatio||1);w=c.width=innerWidth*dpr;h=c.height=innerHeight*dpr;c.style.width=innerWidth+'px';c.style.height=innerHeight+'px';
+    stars=Array.from({length:70},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.3*dpr+.3,a:Math.random()*.5+.2,s:Math.random()*.02+.005}));}
+  rs();addEventListener('resize',rs);
+  let ph=0;
+  function draw(){
+    x.clearRect(0,0,w,h);
+    const g=x.createRadialGradient(w*0.8,-h*0.1,0,w*0.8,-h*0.1,h*1.1);
+    g.addColorStop(0,'rgba(55,230,217,.06)');g.addColorStop(1,'rgba(6,9,16,0)');x.fillStyle=g;x.fillRect(0,0,w,h);
+    x.strokeStyle='rgba(120,160,220,.04)';x.lineWidth=1;const gap=46*dpr;
+    for(let i=0;i<w;i+=gap){x.beginPath();x.moveTo(i,0);x.lineTo(i,h);x.stroke();}
+    for(let j=0;j<h;j+=gap){x.beginPath();x.moveTo(0,j);x.lineTo(w,j);x.stroke();}
+    ph+=0.01;
+    stars.forEach(s=>{const tw=s.a+Math.sin(ph+s.x)*0.15;x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fillStyle='rgba(180,210,255,'+Math.max(0,tw)+')';x.fill();});
+    if(!RM)requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* reveal on scroll */
+function reveals(){
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(s=>io.observe(s));
+}
+
+bg();countUp();donut();traj();acute();floor();alpha();ice();reveals();
+</script>
