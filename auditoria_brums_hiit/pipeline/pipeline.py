@@ -208,10 +208,61 @@ def node_report(ctx):
 def _patch_items():
     pass
 
+def node_export_excel(ctx):
+    import glob
+    xlsx=os.path.join(OUT,'BRUMS_HIIT_resultados.xlsx')
+    with pd.ExcelWriter(xlsx,engine='openpyxl') as w:
+        for f in sorted(glob.glob(os.path.join(TAB,'*.csv'))):
+            nm=os.path.splitext(os.path.basename(f))[0][:31]
+            pd.read_csv(f).to_excel(w,sheet_name=nm,index=False)
+    return dict(arquivo='BRUMS_HIIT_resultados.xlsx',abas=len(glob.glob(os.path.join(TAB,'*.csv'))))
+
+def node_export_pdf(ctx):
+    import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
+    from matplotlib.backends.backend_pdf import PdfPages; import glob, matplotlib.image as mpimg
+    pdf=os.path.join(OUT,'BRUMS_HIIT_relatorio.pdf'); man={m['node']:m['result'] for m in ctx['_manifest']}
+    with PdfPages(pdf) as pp:
+        fig=plt.figure(figsize=(8.27,11.69)); fig.patch.set_facecolor('white'); ax=fig.add_axes([0,0,1,1]); ax.axis('off')
+        ax.text(0.5,0.9,'BRUMS x HIIT no handebol',ha='center',fontsize=20,fontweight='bold',color='#122438')
+        ax.text(0.5,0.86,'Relatorio automatico do pipeline de analise',ha='center',fontsize=12,color='#5B6B82',style='italic')
+        ig=man.get('ingest',{})
+        kpis=['Atletas: %s'%ig.get('athletes','-'),'Observacoes: %s'%ig.get('rows','-'),'Pares pre-pos: %s'%ig.get('pairs','-'),
+              'Fadiga fisica dz (agudo): %s'%man.get('acute',{}).get('fadfis_dz','-'),'Delta PTH HIIT: %s'%man.get('hiit',{}).get('dPTH','-'),
+              'Hotelling F(6,21): %s (p=%s)'%(man.get('multivariate',{}).get('hotelling6_F','-'),man.get('multivariate',{}).get('hotelling6_p','-')),
+              'Iceberg D1->D7: %s%% -> %s%%'%(man.get('day_effect',{}).get('iceberg_D1','-'),man.get('day_effect',{}).get('iceberg_D7','-'))]
+        for i,k in enumerate(kpis): ax.text(0.12,0.72-i*0.045,'- '+str(k),fontsize=12,color='#14243A')
+        ax.text(0.5,0.06,'Elaboracao automatica - atletas anonimizados - 2026',ha='center',fontsize=9,color='#8798AE')
+        pp.savefig(fig); plt.close(fig)
+        for f in sorted(glob.glob(os.path.join(CH,'*.png'))):
+            fig=plt.figure(figsize=(8.27,11.69)); fig.patch.set_facecolor('white'); ax=fig.add_axes([0.06,0.1,0.88,0.8]); ax.axis('off')
+            ax.imshow(mpimg.imread(f)); fig.text(0.5,0.94,os.path.basename(f).replace('.png','').replace('_',' ').title(),ha='center',fontsize=14,fontweight='bold',color='#122438')
+            pp.savefig(fig); plt.close(fig)
+    return dict(arquivo='BRUMS_HIIT_relatorio.pdf')
+
+def node_publish(ctx):
+    import base64,glob
+    def b64(p): return 'data:image/png;base64,'+base64.b64encode(open(p,'rb').read()).decode()
+    man={m['node']:m['result'] for m in ctx['_manifest']}; ig=man.get('ingest',{})
+    charts=''.join('<figure><img src="%s"><figcaption>%s</figcaption></figure>'%(b64(f),os.path.basename(f).replace('.png','').replace('_',' ')) for f in sorted(glob.glob(os.path.join(CH,'*.png'))))
+    def tbl(csv):
+        try: return pd.read_csv(os.path.join(TAB,csv)).to_html(index=False,border=0)
+        except Exception: return ''
+    css="body{font-family:system-ui,Segoe UI,Roboto,sans-serif;color:#16273D;max-width:900px;margin:0 auto;padding:24px;line-height:1.6}h1,h2{font-family:Cambria,Georgia,serif}h2{margin-top:28px;border-bottom:1px solid #E1E8F0;padding-bottom:6px}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}.kpi{background:#F4F7FB;border:1px solid #E1E8F0;border-radius:10px;padding:12px}.kpi b{font-size:22px;color:#245C8B;font-family:Cambria,serif}.kpi span{display:block;font-size:11px;color:#5B6B82}figure{margin:14px 0;background:#F4F7FB;border:1px solid #E1E8F0;border-radius:12px;padding:12px}img{max-width:100%;border-radius:8px}figcaption{font-size:12px;color:#8798AE;font-style:italic;text-align:center;margin-top:8px}table{border-collapse:collapse;width:100%;font-size:13px;margin:8px 0}th,td{border-bottom:1px solid #E1E8F0;padding:6px 8px;text-align:left}th{color:#5B6B82}"
+    parts=[]
+    parts.append('<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatorio automatico</title>')
+    parts.append('<style>'+css+'</style>')
+    parts.append('<h1>Relatorio automatico &mdash; BRUMS x HIIT no handebol</h1>')
+    parts.append('<p style="color:#5B6B82">Gerado pelo pipeline de analise (estilo N8N). Atletas anonimizados.</p>')
+    parts.append('<div class="kpis"><div class="kpi"><b>%s</b><span>atletas</span></div><div class="kpi"><b>%s</b><span>observacoes</span></div><div class="kpi"><b>%s</b><span>pares pre-pos</span></div><div class="kpi"><b>%s</b><span>fadiga fisica dz</span></div></div>'%(ig.get('athletes','-'),ig.get('rows','-'),ig.get('pairs','-'),man.get('acute',{}).get('fadfis_dz','-')))
+    parts.append('<h2>Graficos</h2>'+charts)
+    for t,c in [('Descritivas','01_descritivas.csv'),('Confiabilidade','02_confiabilidade.csv'),('Resposta aguda','05_resposta_aguda.csv'),('HIIT vs tecnico-tatico','06_hiit_vs_sem.csv'),('Multivariada','07_multivariada.csv'),('Mudanca semanal (D1->D7)','09_mudanca_semanal.csv')]:
+        parts.append('<h2>%s</h2>%s'%(t,tbl(c)))
+    open(os.path.join(OUT,'relatorio.html'),'w').write(''.join(parts)); return dict(arquivo='relatorio.html')
+
 NODES=[('ingest',node_ingest),('descriptives',node_descriptives),('reliability',node_reliability),
 ('correlations',node_correlations),('day_effect',node_day_effect),('acute',node_acute),('hiit',node_hiit),
 ('multivariate',node_multivariate),('variance',node_variance),('complementary',node_complementary),
-('charts',node_charts),('report',node_report)]
+('charts',node_charts),('export_excel',node_export_excel),('export_pdf',node_export_pdf),('publish',node_publish),('report',node_report)]
 
 def _cols(s): return None
 def main():

@@ -92,6 +92,28 @@
     }
   },
   {
+    "node": "export_excel",
+    "status": "OK",
+    "result": {
+      "arquivo": "BRUMS_HIIT_resultados.xlsx",
+      "abas": 13
+    }
+  },
+  {
+    "node": "export_pdf",
+    "status": "OK",
+    "result": {
+      "arquivo": "BRUMS_HIIT_relatorio.pdf"
+    }
+  },
+  {
+    "node": "publish",
+    "status": "OK",
+    "result": {
+      "arquivo": "relatorio.html"
+    }
+  },
+  {
     "node": "report",
     "status": "OK",
     "result": {

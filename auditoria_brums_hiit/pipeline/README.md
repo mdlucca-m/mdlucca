@@ -20,6 +20,9 @@ reproduzível com **um comando**. Organizado em **nós encadeados** (como um flu
 | C | `variance` | decomposição traço/dia/estado (modelo misto) | `08_variancia.csv` |
 | C | `complementary` | mudança semanal D1→D7 (IC bootstrap), tipologia (k-médias), rede | `09–11_*.csv` |
 | out | `charts` | gera os gráficos (PNG) a partir dos resultados | `charts/*.png` |
+| exp | `export_excel` | consolida todas as tabelas em um único Excel (uma aba por tabela) | `BRUMS_HIIT_resultados.xlsx` |
+| exp | `export_pdf` | monta um relatório PDF (capa com KPIs + uma página por gráfico) | `BRUMS_HIIT_relatorio.pdf` |
+| exp | `publish` | gera um relatório HTML autocontido (gráficos + tabelas embutidos) | `relatorio.html` |
 | out | `report` | consolida `manifest.json` e `summary.md` | `manifest.json`, `summary.md` |
 
 ## Como rodar
@@ -37,11 +40,15 @@ Uma execução de exemplo está em `exemplo_saidas/`.
 
 ## Rodar no N8N
 
-Importe `workflow_n8n.json` (Menu → *Import from File*). O fluxo tem:
-**Início (manual) → Configuração** (define `BRUMS_DATA_DIR` e o diretório do repositório) **→ Setup
-(dependências) →** um nó *Execute Command* por etapa de análise **→ Notificar conclusão**.
-Cada nó de análise chama `python3 pipeline.py --only <etapa>`, de modo que o fluxo pode ser
-disparado manualmente, agendado (*Cron*) ou por *webhook*.
+Importe `workflow_n8n.json` (Menu → *Import from File*). O fluxo tem **dois gatilhos** ligados à mesma
+cadeia — **Início (manual)** e **Agendamento (Cron)** — seguidos de **Configuração** (define
+`BRUMS_DATA_DIR` e o diretório do repositório) **→ Setup (dependências) →** um nó *Execute Command*
+por etapa (análises → gráficos → **Exportar Excel/PDF → Publicar HTML**) **→ Relatório → Notificar/distribuir**.
+
+**Agendamento automático (a cada nova coleta):** o gatilho *Cron* vem configurado para `0 6 * * *`
+(diariamente às 06:00). Ajuste a expressão no nó *Agendamento* conforme a rotina de coletas — a cada
+disparo o pipeline reprocessa os dados e regenera tabelas, gráficos, Excel, PDF e o relatório HTML.
+No nó **Notificar/distribuir** você pode plugar e-mail/Slack/Drive para enviar os arquivos aos pares.
 
 > Os `.xlsx` originais não são versionados (dados identificáveis). Aponte `BRUMS_DATA_DIR` para
 > a pasta local com os arquivos; as saídas usam atletas anonimizados.

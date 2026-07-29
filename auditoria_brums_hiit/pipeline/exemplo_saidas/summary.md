@@ -11,6 +11,9 @@
 - **variance** — OK — {"ok": true}
 - **complementary** — OK — {"cluster_sizes": {"2": 6, "0": 20, "1": 1}, "weekly_fadfis_dz": 1.74}
 - **charts** — OK — {"charts": ["trajetoria", "efeito_piso", "resposta_aguda", "iceberg", "mudanca_semanal"]}
+- **export_excel** — OK — {"arquivo": "BRUMS_HIIT_resultados.xlsx", "abas": 13}
+- **export_pdf** — OK — {"arquivo": "BRUMS_HIIT_relatorio.pdf"}
+- **publish** — OK — {"arquivo": "relatorio.html"}
 
 ## Tabelas geradas
 - tables/00_base_limpa.csv

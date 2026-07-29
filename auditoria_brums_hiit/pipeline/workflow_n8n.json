@@ -1,5 +1,5 @@
 {
-  "name": "BRUMS × HIIT — Pipeline de análise (auto)",
+  "name": "BRUMS x HIIT — Pipeline de análise (auto, com Cron)",
   "nodes": [
     {
       "parameters": {},
@@ -8,8 +8,28 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        240,
-        300
+        220,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * *"
+            }
+          ]
+        }
+      },
+      "id": "agendamento_(cron_diário_06:00)",
+      "name": "Agendamento (Cron diário 06:00)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        220,
+        420
       ]
     },
     {
@@ -37,7 +57,7 @@
       "typeVersion": 3.4,
       "position": [
         460,
-        300
+        320
       ]
     },
     {
@@ -50,7 +70,7 @@
       "typeVersion": 1,
       "position": [
         680,
-        300
+        320
       ]
     },
     {
@@ -63,7 +83,7 @@
       "typeVersion": 1,
       "position": [
         900,
-        300
+        320
       ]
     },
     {
@@ -76,7 +96,7 @@
       "typeVersion": 1,
       "position": [
         1120,
-        300
+        320
       ]
     },
     {
@@ -89,7 +109,7 @@
       "typeVersion": 1,
       "position": [
         1340,
-        300
+        320
       ]
     },
     {
@@ -102,7 +122,7 @@
       "typeVersion": 1,
       "position": [
         1560,
-        300
+        320
       ]
     },
     {
@@ -115,7 +135,7 @@
       "typeVersion": 1,
       "position": [
         1780,
-        300
+        320
       ]
     },
     {
@@ -127,8 +147,8 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        2000,
-        300
+        1780,
+        490
       ]
     },
     {
@@ -140,8 +160,8 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        2000,
-        480
+        1560,
+        490
       ]
     },
     {
@@ -153,8 +173,8 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        1780,
-        480
+        1340,
+        490
       ]
     },
     {
@@ -166,8 +186,8 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        1560,
-        480
+        1120,
+        490
       ]
     },
     {
@@ -179,8 +199,8 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        1340,
-        480
+        900,
+        490
       ]
     },
     {
@@ -192,8 +212,47 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
+        900,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only export_excel"
+      },
+      "id": "exportar_excel",
+      "name": "Exportar Excel",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
         1120,
-        480
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only export_pdf"
+      },
+      "id": "exportar_pdf",
+      "name": "Exportar PDF",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only publish"
+      },
+      "id": "publicar_relatório",
+      "name": "Publicar relatório",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        660
       ]
     },
     {
@@ -205,24 +264,35 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        900,
-        480
+        1780,
+        660
       ]
     },
     {
       "parameters": {},
-      "id": "notificar_conclusão",
-      "name": "Notificar conclusão",
+      "id": "notificar__distribuir",
+      "name": "Notificar / distribuir",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        900,
-        660
+        1340,
+        1000
       ]
     }
   ],
   "connections": {
     "Início (manual)": {
+      "main": [
+        [
+          {
+            "node": "Configuração",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agendamento (Cron diário 06:00)": {
       "main": [
         [
           {
@@ -369,6 +439,39 @@
       "main": [
         [
           {
+            "node": "Exportar Excel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exportar Excel": {
+      "main": [
+        [
+          {
+            "node": "Exportar PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exportar PDF": {
+      "main": [
+        [
+          {
+            "node": "Publicar relatório",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publicar relatório": {
+      "main": [
+        [
+          {
             "node": "Relatório & manifesto",
             "type": "main",
             "index": 0
@@ -380,7 +483,7 @@
       "main": [
         [
           {
-            "node": "Notificar conclusão",
+            "node": "Notificar / distribuir",
             "type": "main",
             "index": 0
           }
