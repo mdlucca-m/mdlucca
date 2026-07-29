@@ -23,7 +23,10 @@ reproduzível com **um comando**. Organizado em **nós encadeados** (como um flu
 | exp | `export_excel` | consolida todas as tabelas em um único Excel (uma aba por tabela) | `BRUMS_HIIT_resultados.xlsx` |
 | exp | `export_pdf` | monta um relatório PDF (capa com KPIs + uma página por gráfico) | `BRUMS_HIIT_relatorio.pdf` |
 | exp | `publish` | gera um relatório HTML autocontido (gráficos + tabelas embutidos) | `relatorio.html` |
+| exp | `app` | **regenera o pacote de dados e o app analista interativo** a cada coleta (delega ao gerador canônico `build_appdata.py`) | `appdata.json`, `Sistema_Analista_BRUMS_HIIT.html` |
 | out | `report` | consolida `manifest.json` e `summary.md` | `manifest.json`, `summary.md` |
+
+O nó `app` recomputa da base bruta os **dados "ao vivo"** (records + meta que alimentam as abas Descritiva, Correlações, Inferência ao vivo e Segmentação) e a **carga interna FC/PSE** (aba *Carga interna*), e reaproveita a **camada de modelo** auditada (`precomp_seed.json` — dz/FDR, efeito do dia, Hotelling/PERMANOVA, Bayes, tipologia, RCI, rede). O resultado é o `Sistema_Analista_BRUMS_HIIT.html` autocontido, pronto para compartilhar — sempre atualizado com a coleta mais recente.
 
 ## Como rodar
 
@@ -43,11 +46,12 @@ Uma execução de exemplo está em `exemplo_saidas/`.
 Importe `workflow_n8n.json` (Menu → *Import from File*). O fluxo tem **dois gatilhos** ligados à mesma
 cadeia — **Início (manual)** e **Agendamento (Cron)** — seguidos de **Configuração** (define
 `BRUMS_DATA_DIR` e o diretório do repositório) **→ Setup (dependências) →** um nó *Execute Command*
-por etapa (análises → gráficos → **Exportar Excel/PDF → Publicar HTML**) **→ Relatório → Notificar/distribuir**.
+por etapa (análises → gráficos → **Exportar Excel/PDF → Publicar HTML → App analista (regenerar)**) **→ Relatório → Notificar/distribuir**.
 
 **Agendamento automático (a cada nova coleta):** o gatilho *Cron* vem configurado para `0 6 * * *`
 (diariamente às 06:00). Ajuste a expressão no nó *Agendamento* conforme a rotina de coletas — a cada
-disparo o pipeline reprocessa os dados e regenera tabelas, gráficos, Excel, PDF e o relatório HTML.
+disparo o pipeline reprocessa os dados e regenera tabelas, gráficos, Excel, PDF, o relatório HTML e o
+**app analista interativo** (`Sistema_Analista_BRUMS_HIIT.html`, sempre com a coleta mais recente).
 No nó **Notificar/distribuir** você pode plugar e-mail/Slack/Drive para enviar os arquivos aos pares.
 
 > Os `.xlsx` originais não são versionados (dados identificáveis). Aponte `BRUMS_DATA_DIR` para

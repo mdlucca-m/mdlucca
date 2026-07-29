@@ -257,6 +257,18 @@
     },
     {
       "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only app"
+      },
+      "name": "App analista (regenerar)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        660
+      ]
+    },
+    {
+      "parameters": {
         "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only report"
       },
       "id": "relatório_&_manifesto",
@@ -264,7 +276,7 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        1780,
+        2000,
         660
       ]
     },
@@ -275,7 +287,7 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        1340,
+        1560,
         1000
       ]
     }
@@ -472,7 +484,7 @@
       "main": [
         [
           {
-            "node": "Relatório & manifesto",
+            "node": "App analista (regenerar)",
             "type": "main",
             "index": 0
           }
@@ -484,6 +496,17 @@
         [
           {
             "node": "Notificar / distribuir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "App analista (regenerar)": {
+      "main": [
+        [
+          {
+            "node": "Relatório & manifesto",
             "type": "main",
             "index": 0
           }

@@ -259,16 +259,34 @@ def node_publish(ctx):
         parts.append('<h2>%s</h2>%s'%(t,tbl(c)))
     open(os.path.join(OUT,'relatorio.html'),'w').write(''.join(parts)); return dict(arquivo='relatorio.html')
 
+def node_app(ctx):
+    """Regenera o pacote de dados (appdata.json) e o app analista standalone a cada coleta.
+    Delega ao gerador canônico build_appdata.py (mesma fonte de verdade do app),
+    que recomputa os dados 'ao vivo' + a carga interna (FC/PSE) e injeta no template."""
+    import subprocess
+    builder=os.path.join(BASE,'build_appdata.py')
+    tpl=os.path.join(BASE,'analyst_template.html')
+    if not (os.path.exists(builder) and os.path.exists(tpl)):
+        return dict(status='ignorado', motivo='build_appdata.py/analyst_template.html ausentes')
+    env=dict(os.environ, BRUMS_DATA_DIR=DATA)
+    r=subprocess.run([sys.executable, builder, OUT], env=env, capture_output=True, text=True)
+    if r.returncode!=0:
+        return dict(status='erro', stderr=r.stderr.strip()[-400:])
+    app=os.path.join(OUT,'Sistema_Analista_BRUMS_HIIT.html')
+    size=os.path.getsize(app) if os.path.exists(app) else 0
+    return dict(status='ok', app='Sistema_Analista_BRUMS_HIIT.html', appdata='appdata.json', bytes=size, log=r.stdout.strip().split('\n')[-3:])
+
 NODES=[('ingest',node_ingest),('descriptives',node_descriptives),('reliability',node_reliability),
 ('correlations',node_correlations),('day_effect',node_day_effect),('acute',node_acute),('hiit',node_hiit),
 ('multivariate',node_multivariate),('variance',node_variance),('complementary',node_complementary),
-('charts',node_charts),('export_excel',node_export_excel),('export_pdf',node_export_pdf),('publish',node_publish),('report',node_report)]
+('charts',node_charts),('export_excel',node_export_excel),('export_pdf',node_export_pdf),('publish',node_publish),('app',node_app),('report',node_report)]
 
 def _cols(s): return None
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument('--only'); ap.add_argument('--list',action='store_true'); a=ap.parse_args()
     if a.list:
-        for n,_ in NODES: print(n); return
+        for n,_ in NODES: print(n)
+        return
     sel=set(a.only.split(',')) if a.only else None
     ctx={}; manifest=[]; ctx['_manifest']=manifest
     for name,fn in NODES:
