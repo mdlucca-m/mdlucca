@@ -163,6 +163,16 @@ html = f"""<style>{CSS}</style>
 </section>
 
 <section>
+ <div class="seclab">A espinha dorsal inferencial</div>
+ <h2>Modelagem completa — o atleta como unidade</h2>
+ <p class="sub">Todos os modelos ajustados com efeitos aleatórios por atleta (statsmodels), corrigindo a pseudorreplicação. É o que sustenta cada afirmação inferencial do estudo.</p>
+ <div class="finds">
+  <div class="find"><div class="n">Resposta aguda + acúmulo</div><h3>Efeito no eixo energia–fadiga</h3><p>No modelo misto pré→pós (com FDR) sobrevivem fadiga física (dz 1,06), PTH (0,68), fadiga (0,62), vigor (−0,56) e fadiga mental. No microciclo, a fadiga física acumula +0,34/dia (robusto); o PTH sobe em média mas com <b>inclinações individuais muito heterogêneas</b> (variância 1,13) — a média esconde trajetórias opostas.</p><span class="tag t-coral">misto · inclinação aleatória · FDR</span></div>
+  <div class="find"><div class="n">HIIT e multivariada</div><h3>Perturba o dia, não o salto agudo</h3><p>Nos dias de HIIT o PTH sobe +2,43 (p=0,003). Mas a interação Condição×Momento é nula para o PTH (p=0,910): o <b>salto agudo</b> não difere entre HIIT e técnico-tático — só a fadiga física é amplificada (p=0,035). Hotelling T² confirma o efeito concentrado no eixo vigor+fadiga (F(2,25)=5,59; p=0,010).</p><span class="tag t-gold">HIIT nível-do-dia · Hotelling T²</span></div>
+ </div>
+</section>
+
+<section>
  <div class="seclab">Confirmação psicométrica · análises avançadas</div>
  <h2>As análises "de ponta" também fecham</h2>
  <p class="sub">As etapas antes marcadas como "requer replicação em R" foram executadas em Python (motores independentes: semopy, girth, scipy) e <b>confirmam</b> o estudo. Um script R canônico (lavaan/mirt/semTools) acompanha para os estimadores de referência.</p>
@@ -210,6 +220,7 @@ html = f"""<style>{CSS}</style>
    {file(GH+'Auditoria_BRUMS_HIIT.xlsx','Auditoria_BRUMS_HIIT.xlsx','7 abas: verificação colorida + tabelas','XLSX')}
    {file(GH+'tese/Apresentacao_BRUMS_HIIT.pptx','Apresentação (PPTX)','25 slides','PPTX')}
    {file(GH+'analises_avancadas/RESULTADOS.md','Análises avançadas','CFA/HTMT/TRI/invariância/Bayes + script R','MD')}
+   {file(GH+'modelagem/MODELAGEM.md','Modelagem completa','modelos mistos, HIIT, interação, Hotelling','MD')}
   </div>
   <div class="cat">
    <h3><span class="dot" style="background:var(--violet)"></span>Automação</h3>
