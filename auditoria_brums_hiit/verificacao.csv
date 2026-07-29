@@ -66,14 +66,20 @@ Tab.25 HIIT vs sem (diferença),PTH,2.47,2.47,OK
 Tab.25 HIIT vs sem (diferença),Fadiga,0.66,0.66,OK
 Tab.25 HIIT vs sem (diferença),FadFis,0.27,0.27,OK
 Tab.25 HIIT vs sem (diferença),Vigor,-0.44,-0.44,OK
-Tab.22 Resposta aguda dz,FadFis,0.71,0.76,"≈ (resumo usa 0,76 p/ fadiga física)"
-Tab.22 Resposta aguda dz,Fadiga,0.42,0.45,"≈ (resumo usa 0,76 p/ fadiga física)"
-Tab.22 Resposta aguda dz,PTH,0.39,0.44,"≈ (resumo usa 0,76 p/ fadiga física)"
-Tab.22 Resposta aguda dz,Vigor,-0.33,-0.39,"≈ (resumo usa 0,76 p/ fadiga física)"
+Tab.22 Resposta aguda dz,FadFis,0.71,0.76,RECONCILIADO (adotado o dz recalculado; ver Apêndice B)
+Tab.22 Resposta aguda dz,Fadiga,0.42,0.45,RECONCILIADO (adotado o dz recalculado; ver Apêndice B)
+Tab.22 Resposta aguda dz,PTH,0.39,0.44,RECONCILIADO (adotado o dz recalculado; ver Apêndice B)
+Tab.22 Resposta aguda dz,Vigor,-0.33,-0.39,RECONCILIADO (adotado o dz recalculado; ver Apêndice B)
 Tab.23 Hotelling T² (6 sub.),"F(6,21)",2.52,2.52,OK
 Tab.23 Hotelling T² (6 sub.),p,0.054,0.054,OK
 Tab.23 Hotelling T² (6 sub.),D Mahalanobis,0.83,0.83,OK
 Tab.46/53 Carga interna,FC pico S1,184.0,183.8,OK
 Tab.46/53 Carga interna,FC pico S2,183.0,183.3,OK
 Tab.46/53 Carga interna,FC pico S3,181.0,180.8,OK
-Tab.46/53 Carga interna,PSE final S1,8.5,9.4,"DIVERGE (última série ~9,4)"
+Tab.46/53 Carga interna,PSE final S1,8.5,9.3,"CORRIGIDO → 9,3/9,3/9,6 (última série); Friedman n.s. (p=0,45)"
+Tab.48 HIIT (2 passos) dz,Vigor,-0.67,-0.67,OK
+Tab.48 HIIT (2 passos) dz,PTH,0.54,0.54,OK
+Tab.48 HIIT (2 passos) dz,Fadiga,0.48,0.48,OK
+Tab.48 HIIT (2 passos) dz,FadFis,0.29,0.29,OK
+Tab.47 Carga interna,"FC pico ICC(1,1)",0.56,0.56,OK
+Tab.53 Carga interna,PSE Friedman (entre sessões),0.004,0.447,CORRIGIDO (n.s.)
