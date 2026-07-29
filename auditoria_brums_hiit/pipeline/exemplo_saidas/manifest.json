@@ -79,6 +79,17 @@
     }
   },
   {
+    "node": "carga",
+    "status": "OK",
+    "result": {
+      "fases": 5,
+      "sessoes": 4,
+      "r_FC_PSE": 0.73,
+      "FC_pre_pos": "118.2->174.8",
+      "atletas_cruzados": 25
+    }
+  },
+  {
     "node": "charts",
     "status": "OK",
     "result": {
@@ -87,7 +98,10 @@
         "efeito_piso",
         "resposta_aguda",
         "iceberg",
-        "mudanca_semanal"
+        "mudanca_semanal",
+        "carga_fc_por_fase",
+        "carga_pse_fc_sessao",
+        "carga_x_humor"
       ]
     }
   },
@@ -96,7 +110,7 @@
     "status": "OK",
     "result": {
       "arquivo": "BRUMS_HIIT_resultados.xlsx",
-      "abas": 13
+      "abas": 17
     }
   },
   {
@@ -114,11 +128,26 @@
     }
   },
   {
+    "node": "app",
+    "status": "OK",
+    "result": {
+      "status": "ok",
+      "app": "Sistema_Analista_BRUMS_HIIT.html",
+      "appdata": "appdata.json",
+      "bytes": 186247,
+      "log": [
+        "appdata.json: 456 obs, 27 atletas, 135 pares",
+        "carga: n_ath=26 matched=25",
+        "HTML: /home/user/mdlucca/auditoria_brums_hiit/pipeline/pipe/Sistema_Analista_BRUMS_HIIT.html"
+      ]
+    }
+  },
+  {
     "node": "report",
     "status": "OK",
     "result": {
-      "tables": 13,
-      "charts": 5
+      "tables": 17,
+      "charts": 8
     }
   }
 ]

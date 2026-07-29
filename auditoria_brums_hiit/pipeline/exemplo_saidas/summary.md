@@ -10,10 +10,12 @@
 - **multivariate** — OK — {"hotelling6_F": 2.52, "hotelling6_p": 0.054}
 - **variance** — OK — {"ok": true}
 - **complementary** — OK — {"cluster_sizes": {"2": 6, "0": 20, "1": 1}, "weekly_fadfis_dz": 1.74}
-- **charts** — OK — {"charts": ["trajetoria", "efeito_piso", "resposta_aguda", "iceberg", "mudanca_semanal"]}
-- **export_excel** — OK — {"arquivo": "BRUMS_HIIT_resultados.xlsx", "abas": 13}
+- **carga** — OK — {"fases": 5, "sessoes": 4, "r_FC_PSE": 0.73, "FC_pre_pos": "118.2->174.8", "atletas_cruzados": 25}
+- **charts** — OK — {"charts": ["trajetoria", "efeito_piso", "resposta_aguda", "iceberg", "mudanca_semanal", "carga_fc_por_fase", "carga_pse_fc_sessao", "carga_x_humor"]}
+- **export_excel** — OK — {"arquivo": "BRUMS_HIIT_resultados.xlsx", "abas": 17}
 - **export_pdf** — OK — {"arquivo": "BRUMS_HIIT_relatorio.pdf"}
 - **publish** — OK — {"arquivo": "relatorio.html"}
+- **app** — OK — {"status": "ok", "app": "Sistema_Analista_BRUMS_HIIT.html", "appdata": "appdata.json", "bytes": 186247, "log": ["appdata.json: 456 obs, 27 atletas, 135 pares", "carga: n_ath=26 matched=25", "HTML: /home/user/mdlucca/auditoria_brums_hiit/pipeline/pipe/Sistema_Analista_BRUMS_HIIT.html"]}
 
 ## Tabelas geradas
 - tables/00_base_limpa.csv
@@ -29,8 +31,15 @@
 - tables/09_mudanca_semanal.csv
 - tables/10_tipologia.csv
 - tables/11_rede.csv
+- tables/12_carga_por_fase.csv
+- tables/13_carga_por_sessao.csv
+- tables/14_fc_pre_pos_fase.csv
+- tables/15_carga_x_humor.csv
 
 ## Gráficos gerados
+- charts/carga_fc_por_fase.png
+- charts/carga_pse_fc_sessao.png
+- charts/carga_x_humor.png
 - charts/efeito_piso.png
 - charts/iceberg.png
 - charts/mudanca_semanal.png

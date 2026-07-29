@@ -19,6 +19,7 @@ reproduzível com **um comando**. Organizado em **nós encadeados** (como um flu
 | B | `multivariate` | Hotelling T² (6 subescalas e eixo Vigor+Fadiga) | `07_multivariada.csv` |
 | C | `variance` | decomposição traço/dia/estado (modelo misto) | `08_variancia.csv` |
 | C | `complementary` | mudança semanal D1→D7 (IC bootstrap), tipologia (k-médias), rede | `09–11_*.csv` |
+| C | `carga` | carga interna do HIIT (FC & PSE): por fase, por sessão, FC pré→pós pareado e carga × humor | `12–15_*.csv` |
 | out | `charts` | gera os gráficos (PNG) a partir dos resultados | `charts/*.png` |
 | exp | `export_excel` | consolida todas as tabelas em um único Excel (uma aba por tabela) | `BRUMS_HIIT_resultados.xlsx` |
 | exp | `export_pdf` | monta um relatório PDF (capa com KPIs + uma página por gráfico) | `BRUMS_HIIT_relatorio.pdf` |
@@ -61,4 +62,5 @@ No nó **Notificar/distribuir** você pode plugar e-mail/Slack/Drive para enviar
 
 Os valores reproduzem a auditoria: 456 obs · 27 atletas · 135 pares · fadiga física dz aguda = 0,76 ·
 ΔPTH HIIT = +2,47 · Hotelling F(6,21)=2,52 (p=0,054) · iceberg 71,4%→32,6% · mudança semanal fadiga
-física dz = 1,74 · tipologia 20/6/1.
+física dz = 1,74 · tipologia 20/6/1 · carga interna FC pré→pós 118→175 bpm · r FC×PSE = 0,73 ·
+PSE final 9,3–9,6 (Friedman n.s.) · carga × humor r = −0,05 (n.s.).

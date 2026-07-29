@@ -153,6 +153,23 @@ def node_complementary(ctx):
     strg=np.abs(pc).sum(1); pd.DataFrame(dict(subescala=SUBS,forca=strg.round(2))).sort_values('forca',ascending=False).to_csv(os.path.join(TAB,'11_rede.csv'),index=False)
     ctx['weekly']=pd.DataFrame(rows); return dict(cluster_sizes={str(int(k)):int(v) for k,v in sz.items()},weekly_fadfis_dz=rows[0]["dz"])
 
+def node_carga(ctx):
+    """Carga interna do HIIT (FC & PSE): recomputa da planilha HIIT_FC_PSE e escreve
+    tabelas por fase, por sessão, pré→pós pareado e o cruzamento carga × humor."""
+    from build_appdata import build_carga
+    M=ctx['M']; order=list(dict.fromkeys(M.sort_values('ts')['aid'])); amap={a:'A%02d'%(i+1) for i,a in enumerate(order)}
+    c=build_carga(M,amap)
+    if not c: return dict(status='sem FC/PSE')
+    pd.DataFrame([{'fase':r['fase'],'FC_pre_media':r['fcpre'][0],'FC_pre_dp':r['fcpre'][1],'FC_pos_media':r['fcpos'][0],
+        'FC_pos_dp':r['fcpos'][1],'deltaFC_media':r['dfc'][0],'PSE_media':r['pse'][0],'n':r['fcpos'][2]} for r in c['byphase']]).to_csv(os.path.join(TAB,'12_carga_por_fase.csv'),index=False)
+    pd.DataFrame([{'sessao':r['sessao'],'FC_pico_media':r['fcpico'][0],'PSE_media':r['pse'][0],'PSE_final_media':r['pse_final'][0]} for r in c['bysession']]).to_csv(os.path.join(TAB,'13_carga_por_sessao.csv'),index=False)
+    pd.DataFrame([{k:r.get(k) for k in ['fase','n','pre','pos','delta','t','p','dz']} for r in c['paired_phase']]).to_csv(os.path.join(TAB,'14_fc_pre_pos_fase.csv'),index=False)
+    if c.get('link_humor'):
+        pd.DataFrame(c['link_humor']['pts'],columns=['PSE_medio','deltaPTH_agudo']).to_csv(os.path.join(TAB,'15_carga_x_humor.csv'),index=False)
+    ctx['carga']=c
+    return dict(fases=len(c['byphase']),sessoes=len(c['bysession']),r_FC_PSE=c['corr_fcpse']['r'],
+        FC_pre_pos='%s->%s'%(c['paired_all']['pre'],c['paired_all']['pos']),atletas_cruzados=c['n_matched'])
+
 def node_charts(ctx):
     import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
     M=ctx['M']; P=PALE; dd=list(range(1,8)); made=[]
@@ -191,6 +208,32 @@ def node_charts(ctx):
             c=P['RED'] if r['dz']>=0 else P['TEAL']; ax.plot([r['ic_lo'],r['ic_hi']],[yi,yi],color=c,lw=2.2,alpha=.5); ax.plot(r['dz'],yi,'o',color=c,ms=9)
         ax.set_yticks(y); ax.set_yticklabels(w['var']); ax.axvline(0,color=P['MUT']); ax.set_xlabel('dz D1→D7 (IC95%)')
         [ax.spines[s].set_visible(False) for s in['top','right','left']]; fig.tight_layout(); fig.savefig(f'{CH}/mudanca_semanal.png',facecolor='white'); plt.close(); made.append('mudanca_semanal')
+    # ---- carga interna (FC/PSE) ----
+    c=ctx.get('carga')
+    if c is not None:
+        # FC pré→pós por fase (barras agrupadas)
+        fig,ax=plt.subplots(figsize=(6.6,3.8),dpi=170); ph=c['byphase']; x=np.arange(len(ph)); wbar=0.38
+        ax.bar(x-wbar/2,[p['fcpre'][0] for p in ph],wbar,color='#9EC3E3',label='FC pré-fase')
+        ax.bar(x+wbar/2,[p['fcpos'][0] for p in ph],wbar,color=P['BLUE'],label='FC fim da fase')
+        ax.set_xticks(x); ax.set_xticklabels([p['fase'] for p in ph]); ax.set_ylabel('FC (bpm)'); sty(ax); ax.legend(frameon=False,fontsize=9)
+        fig.tight_layout(); fig.savefig(f'{CH}/carga_fc_por_fase.png',facecolor='white'); plt.close(); made.append('carga_fc_por_fase')
+        # PSE final e FC de pico por sessão
+        fig,ax=plt.subplots(figsize=(6.4,3.6),dpi=170); ss=c['bysession']; x=np.arange(len(ss))
+        ax2=ax.twinx()
+        ax.bar(x,[s['pse_final'][0] for s in ss],0.5,color=P['GOLD'],label='PSE final (0-10)')
+        ax2.plot(x,[s['fcpico'][0] for s in ss],'-o',color=P['RED'],lw=2.4,label='FC de pico (bpm)')
+        ax.set_xticks(x); ax.set_xticklabels([s['sessao'] for s in ss]); ax.set_ylabel('PSE final'); ax.set_ylim(0,10); ax2.set_ylabel('FC de pico (bpm)')
+        [ax.spines[s].set_visible(False) for s in['top']]; [ax2.spines[s].set_visible(False) for s in['top']]; ax.tick_params(colors=P['MUT']); ax2.tick_params(colors=P['MUT'])
+        fig.tight_layout(); fig.savefig(f'{CH}/carga_pse_fc_sessao.png',facecolor='white'); plt.close(); made.append('carga_pse_fc_sessao')
+        # carga interna × humor
+        lk=c.get('link_humor')
+        if lk:
+            fig,ax=plt.subplots(figsize=(6,3.8),dpi=170); pts=np.array(lk['pts'])
+            ax.scatter(pts[:,0],pts[:,1],s=42,color=P['TEAL'],alpha=.7,edgecolor='white',lw=.6)
+            b1,b0=np.polyfit(pts[:,0],pts[:,1],1); xs=np.array([pts[:,0].min(),pts[:,0].max()]); ax.plot(xs,b0+b1*xs,color=P['GOLD'],lw=2)
+            ax.axhline(0,color=P['MUT'],lw=1); ax.set_xlabel('PSE médio das sessões'); ax.set_ylabel('Δ PTH agudo (dias HIIT)')
+            ax.text(0.02,0.96,'r = %.2f (n.s.)'%lk['r'],transform=ax.transAxes,va='top',fontsize=10,color=P['MUT'])
+            sty(ax); fig.tight_layout(); fig.savefig(f'{CH}/carga_x_humor.png',facecolor='white'); plt.close(); made.append('carga_x_humor')
     return dict(charts=made)
 
 def node_report(ctx):
@@ -229,7 +272,8 @@ def node_export_pdf(ctx):
         kpis=['Atletas: %s'%ig.get('athletes','-'),'Observacoes: %s'%ig.get('rows','-'),'Pares pre-pos: %s'%ig.get('pairs','-'),
               'Fadiga fisica dz (agudo): %s'%man.get('acute',{}).get('fadfis_dz','-'),'Delta PTH HIIT: %s'%man.get('hiit',{}).get('dPTH','-'),
               'Hotelling F(6,21): %s (p=%s)'%(man.get('multivariate',{}).get('hotelling6_F','-'),man.get('multivariate',{}).get('hotelling6_p','-')),
-              'Iceberg D1->D7: %s%% -> %s%%'%(man.get('day_effect',{}).get('iceberg_D1','-'),man.get('day_effect',{}).get('iceberg_D7','-'))]
+              'Iceberg D1->D7: %s%% -> %s%%'%(man.get('day_effect',{}).get('iceberg_D1','-'),man.get('day_effect',{}).get('iceberg_D7','-')),
+              'Carga HIIT - FC pre->pos: %s bpm (r FCxPSE=%s)'%(man.get('carga',{}).get('FC_pre_pos','-'),man.get('carga',{}).get('r_FC_PSE','-'))]
         for i,k in enumerate(kpis): ax.text(0.12,0.72-i*0.045,'- '+str(k),fontsize=12,color='#14243A')
         ax.text(0.5,0.06,'Elaboracao automatica - atletas anonimizados - 2026',ha='center',fontsize=9,color='#8798AE')
         pp.savefig(fig); plt.close(fig)
@@ -255,7 +299,7 @@ def node_publish(ctx):
     parts.append('<p style="color:#5B6B82">Gerado pelo pipeline de analise (estilo N8N). Atletas anonimizados.</p>')
     parts.append('<div class="kpis"><div class="kpi"><b>%s</b><span>atletas</span></div><div class="kpi"><b>%s</b><span>observacoes</span></div><div class="kpi"><b>%s</b><span>pares pre-pos</span></div><div class="kpi"><b>%s</b><span>fadiga fisica dz</span></div></div>'%(ig.get('athletes','-'),ig.get('rows','-'),ig.get('pairs','-'),man.get('acute',{}).get('fadfis_dz','-')))
     parts.append('<h2>Graficos</h2>'+charts)
-    for t,c in [('Descritivas','01_descritivas.csv'),('Confiabilidade','02_confiabilidade.csv'),('Resposta aguda','05_resposta_aguda.csv'),('HIIT vs tecnico-tatico','06_hiit_vs_sem.csv'),('Multivariada','07_multivariada.csv'),('Mudanca semanal (D1->D7)','09_mudanca_semanal.csv')]:
+    for t,c in [('Descritivas','01_descritivas.csv'),('Confiabilidade','02_confiabilidade.csv'),('Resposta aguda','05_resposta_aguda.csv'),('HIIT vs tecnico-tatico','06_hiit_vs_sem.csv'),('Multivariada','07_multivariada.csv'),('Mudanca semanal (D1->D7)','09_mudanca_semanal.csv'),('Carga interna - FC pre-pos por fase','14_fc_pre_pos_fase.csv'),('Carga interna - por sessao','13_carga_por_sessao.csv')]:
         parts.append('<h2>%s</h2>%s'%(t,tbl(c)))
     open(os.path.join(OUT,'relatorio.html'),'w').write(''.join(parts)); return dict(arquivo='relatorio.html')
 
@@ -278,7 +322,7 @@ def node_app(ctx):
 
 NODES=[('ingest',node_ingest),('descriptives',node_descriptives),('reliability',node_reliability),
 ('correlations',node_correlations),('day_effect',node_day_effect),('acute',node_acute),('hiit',node_hiit),
-('multivariate',node_multivariate),('variance',node_variance),('complementary',node_complementary),
+('multivariate',node_multivariate),('variance',node_variance),('complementary',node_complementary),('carga',node_carga),
 ('charts',node_charts),('export_excel',node_export_excel),('export_pdf',node_export_pdf),('publish',node_publish),('app',node_app),('report',node_report)]
 
 def _cols(s): return None
