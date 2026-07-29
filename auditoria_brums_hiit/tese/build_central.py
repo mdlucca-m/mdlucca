@@ -163,6 +163,22 @@ html = f"""<style>{CSS}</style>
 </section>
 
 <section>
+ <div class="seclab">Confirmação psicométrica · análises avançadas</div>
+ <h2>As análises "de ponta" também fecham</h2>
+ <p class="sub">As etapas antes marcadas como "requer replicação em R" foram executadas em Python (motores independentes: semopy, girth, scipy) e <b>confirmam</b> o estudo. Um script R canônico (lavaan/mirt/semTools) acompanha para os estimadores de referência.</p>
+ <div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+  <div class="kpi"><b>0,921</b><span>CFI · CFA 6 fatores</span></div>
+  <div class="kpi"><b>0,055</b><span>RMSEA (≤0,06 bom)</span></div>
+  <div class="kpi"><b>0,846</b><span>HTMT máx (&lt;0,85)</span></div>
+  <div class="kpi"><b>0,985</b><span>φ invariância pré×pós</span></div>
+ </div>
+ <div class="finds" style="margin-top:16px">
+  <div class="find"><div class="n">Estrutura da medida</div><h3>Fatores e discriminância confirmados</h3><p>CFA de seis fatores com ajuste aceitável (CFI 0,921; RMSEA 0,055); o único ponto fraco é a tensão saturada de piso — a mesma fragilidade já auditada. HTMT máximo 0,846 sustenta a validade discriminante, e a invariância métrica pré→pós se mantém (Tucker φ 0,985).</p><span class="tag t-blue">CFA · HTMT policórico · invariância</span></div>
+  <div class="find"><div class="n">Fechamento bayesiano</div><h3>Efeito e equivalência quantificados</h3><p>Fator de Bayes exato (JZS): fadiga física BF₁₀ ≈ 2444, PTH ≈ 22, fadiga ≈ 11, vigor ≈ 6 — e confusão BF₁₀ ≈ 0,23, evidência positiva de equivalência. A TRI confirma itens majoritariamente informativos. Reproduz a leitura do manuscrito.</p><span class="tag t-teal">Bayes JZS · TRI/GRM</span></div>
+ </div>
+</section>
+
+<section>
  <div class="seclab">Reproduzível com um comando</div>
  <h2>Pipeline automatizado (estilo N8N)</h2>
  <p class="sub">Dezesseis nós encadeados levam da coleta bruta às tabelas, gráficos, Excel, PDF, relatório e à regeneração do próprio sistema analista. Um gatilho Cron reprocessa tudo a cada nova coleta.</p>
@@ -193,7 +209,7 @@ html = f"""<style>{CSS}</style>
    <p>Processos e dados limpos, auditáveis.</p>
    {file(GH+'Auditoria_BRUMS_HIIT.xlsx','Auditoria_BRUMS_HIIT.xlsx','7 abas: verificação colorida + tabelas','XLSX')}
    {file(GH+'tese/Apresentacao_BRUMS_HIIT.pptx','Apresentação (PPTX)','25 slides','PPTX')}
-   {file(GH+'tese/figuras','figuras/','figura-mestre, framework e gráficos','PNG')}
+   {file(GH+'analises_avancadas/RESULTADOS.md','Análises avançadas','CFA/HTMT/TRI/invariância/Bayes + script R','MD')}
   </div>
   <div class="cat">
    <h3><span class="dot" style="background:var(--violet)"></span>Automação</h3>
