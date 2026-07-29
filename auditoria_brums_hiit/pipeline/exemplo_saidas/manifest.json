@@ -1,0 +1,102 @@
+[
+  {
+    "node": "ingest",
+    "status": "OK",
+    "result": {
+      "rows": 456,
+      "athletes": 27,
+      "pairs": 135
+    }
+  },
+  {
+    "node": "descriptives",
+    "status": "OK",
+    "result": {
+      "vars": 9
+    }
+  },
+  {
+    "node": "reliability",
+    "status": "OK",
+    "result": {
+      "subs": 6
+    }
+  },
+  {
+    "node": "correlations",
+    "status": "OK",
+    "result": {
+      "ok": true
+    }
+  },
+  {
+    "node": "day_effect",
+    "status": "OK",
+    "result": {
+      "iceberg_D1": 71.4,
+      "iceberg_D7": 32.6
+    }
+  },
+  {
+    "node": "acute",
+    "status": "OK",
+    "result": {
+      "fadfis_dz": 0.76
+    }
+  },
+  {
+    "node": "hiit",
+    "status": "OK",
+    "result": {
+      "dPTH": 2.47
+    }
+  },
+  {
+    "node": "multivariate",
+    "status": "OK",
+    "result": {
+      "hotelling6_F": 2.52,
+      "hotelling6_p": 0.054
+    }
+  },
+  {
+    "node": "variance",
+    "status": "OK",
+    "result": {
+      "ok": true
+    }
+  },
+  {
+    "node": "complementary",
+    "status": "OK",
+    "result": {
+      "cluster_sizes": {
+        "2": 6,
+        "0": 20,
+        "1": 1
+      },
+      "weekly_fadfis_dz": 1.74
+    }
+  },
+  {
+    "node": "charts",
+    "status": "OK",
+    "result": {
+      "charts": [
+        "trajetoria",
+        "efeito_piso",
+        "resposta_aguda",
+        "iceberg",
+        "mudanca_semanal"
+      ]
+    }
+  },
+  {
+    "node": "report",
+    "status": "OK",
+    "result": {
+      "tables": 13,
+      "charts": 5
+    }
+  }
+]

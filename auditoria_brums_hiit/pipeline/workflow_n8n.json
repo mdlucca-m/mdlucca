@@ -1,0 +1,403 @@
+{
+  "name": "BRUMS × HIIT — Pipeline de análise (auto)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "início_(manual)",
+      "name": "Início (manual)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "BRUMS_DATA_DIR",
+              "type": "string",
+              "value": "/data/brums"
+            },
+            {
+              "id": "a2",
+              "name": "REPO",
+              "type": "string",
+              "value": "/opt/brums_pipeline"
+            }
+          ]
+        }
+      },
+      "id": "configuração",
+      "name": "Configuração",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "pip install -q pandas numpy scipy statsmodels scikit-learn matplotlib openpyxl"
+      },
+      "id": "setup_(dependências)",
+      "name": "Setup (dependências)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only ingest"
+      },
+      "id": "ingestão_de_dados",
+      "name": "Ingestão de dados",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only descriptives"
+      },
+      "id": "descritivas",
+      "name": "Descritivas",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only reliability"
+      },
+      "id": "confiabilidade",
+      "name": "Confiabilidade",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only correlations"
+      },
+      "id": "correlações",
+      "name": "Correlações",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only day_effect"
+      },
+      "id": "efeito_do_dia",
+      "name": "Efeito do dia",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only acute"
+      },
+      "id": "resposta_aguda",
+      "name": "Resposta aguda",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only hiit"
+      },
+      "id": "hiit_vs_técnico",
+      "name": "HIIT vs técnico",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only multivariate"
+      },
+      "id": "multivariada",
+      "name": "Multivariada",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only variance"
+      },
+      "id": "variância_traçoestado",
+      "name": "Variância traço/estado",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only complementary"
+      },
+      "id": "análises_complementares",
+      "name": "Análises complementares",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only charts"
+      },
+      "id": "gerar_gráficos",
+      "name": "Gerar gráficos",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only report"
+      },
+      "id": "relatório_&_manifesto",
+      "name": "Relatório & manifesto",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        900,
+        480
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "notificar_conclusão",
+      "name": "Notificar conclusão",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        900,
+        660
+      ]
+    }
+  ],
+  "connections": {
+    "Início (manual)": {
+      "main": [
+        [
+          {
+            "node": "Configuração",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuração": {
+      "main": [
+        [
+          {
+            "node": "Setup (dependências)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Setup (dependências)": {
+      "main": [
+        [
+          {
+            "node": "Ingestão de dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ingestão de dados": {
+      "main": [
+        [
+          {
+            "node": "Descritivas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descritivas": {
+      "main": [
+        [
+          {
+            "node": "Confiabilidade",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confiabilidade": {
+      "main": [
+        [
+          {
+            "node": "Correlações",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Correlações": {
+      "main": [
+        [
+          {
+            "node": "Efeito do dia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Efeito do dia": {
+      "main": [
+        [
+          {
+            "node": "Resposta aguda",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resposta aguda": {
+      "main": [
+        [
+          {
+            "node": "HIIT vs técnico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HIIT vs técnico": {
+      "main": [
+        [
+          {
+            "node": "Multivariada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Multivariada": {
+      "main": [
+        [
+          {
+            "node": "Variância traço/estado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Variância traço/estado": {
+      "main": [
+        [
+          {
+            "node": "Análises complementares",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Análises complementares": {
+      "main": [
+        [
+          {
+            "node": "Gerar gráficos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar gráficos": {
+      "main": [
+        [
+          {
+            "node": "Relatório & manifesto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Relatório & manifesto": {
+      "main": [
+        [
+          {
+            "node": "Notificar conclusão",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "BRUMS"
+    },
+    {
+      "name": "análise automática"
+    }
+  ]
+}
