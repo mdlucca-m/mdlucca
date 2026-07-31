@@ -234,6 +234,27 @@ const SEC=[]; function sec(id,title){const s=document.createElement('section');s
  dtable(c3,[{k:'sessao',label:'Sessão'},{k:'trimp_rel',label:'TRIMP rel.',num:true,render:v=>fmt(v)},{k:'foster',label:'Foster (ΣPSE)',num:true,render:v=>fmt(v,1)},{k:'hrr',label:'%HRR',num:true,render:v=>fmt(v)}],D.trimp.por_sessao);s.append(c3);
 })();
 
+/* PREDITIVA */
+(function(){const s=sec('pred','Preditiva');
+ const g=D.pred.ganho;
+ s.innerHTML='<h2>Análise preditiva — prever o estado pós-treino</h2><p class="sub">Validação <b>leave-one-athlete-out</b> ('+D.pred.n_atletas+' dobras, '+D.pred.n_pares+' pares pré→pós): o modelo nunca vê o atleta que prevê. O estado pós é modestamente previsível (R² ≈ 0,3–0,4) e o sinal vem do <b>baseline do próprio atleta</b> — adicionar o contexto da sessão (HIIT, dia) ao baseline muda o R² em ≈ 0 (Δ PTH '+fmt(g.PTH.delta_contexto)+' · fadiga física '+fmt(g.FadFis.delta_contexto)+' · vigor '+fmt(g.Vigor.delta_contexto)+'): confirmação preditiva do desacoplamento carga↔humor.</p>';
+ const c1=card('Regressão — R² fora-da-dobra por conjunto de preditores','LOAO · Ridge/RF');s.append(c1);
+ dtable(c1,[
+  {k:'alvo',label:'Alvo'},
+  {k:'preditores',label:'Preditores'},
+  {k:'R2',label:'R² (OOF)',num:true,render:v=>`<span class="${v>0.05?'neg':(v<0?'pos':'')}">${v>=0?'+':''}${fmt(v)}</span>`},
+  {k:'RMSE',label:'RMSE',num:true,render:v=>fmt(v)},
+  {k:'modelo',label:'Modelo'},
+ ],D.pred.reg);
+ const c2=card('Classificação — prever o dia perturbado','AUC · fadiga física pós ≥ 7');const d2=document.createElement('div');c2.append(d2);s.append(c2);
+ requestAnimationFrame(()=>{barChart(d2,[
+   {l:'Baseline (FadFis pré)',v:D.pred.clf.auc_baseline,c:'gold'},
+   {l:'Perfil pré (logística)',v:D.pred.clf.auc_log,c:'teal'},
+   {l:'Perfil pré (floresta)',v:D.pred.clf.auc_rf,c:'gold'},
+  ],{min:0.5,max:0.8,l:160,fmt:v=>fmt(v)});});
+ c2.insertAdjacentHTML('beforeend',`<p class="note">Prevalência do dia perturbado: ${fmt(D.pred.clf.prevalencia)}. Variáveis mais preditivas: ${D.pred.clf.importancia.slice(0,4).map(i=>i.feature).join(', ')} — HIIT entre as de menor importância.</p>`);
+})();
+
 /* CORRELAÇÕES & ACOPLAMENTO */
 (function(){const s=sec('corr','Correlações');
  s.innerHTML='<h2>Correlações repetidas e acoplamento carga×humor</h2><p class="sub">rm_corr (intra-sujeito) subescala × externos, e as correlações entre atletas dos marcadores de carga e humor.</p>';

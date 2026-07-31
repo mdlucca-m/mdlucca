@@ -6,6 +6,7 @@ def im(k):
 mod=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/modelagem/resultados_modelagem.json'))
 adv=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/analises_avancadas/resultados.json'))
 conf=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/confiabilidade_invariancia/resultados_confiabilidade.json'))
+pred=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/preditiva/resultados_preditiva.json'))
 
 CSS="""
 @page{size:A4;margin:18mm 16mm}
@@ -55,6 +56,15 @@ rowsRel=[[r['sub'],f"{r['alpha']:.2f}".replace('.',','),f"[{r['alpha_ic'][0]:.2f
 _inv=conf['B_invariancia']
 _tphi=str(round(_inv['tucker_phi'],3)).replace('.',',')
 _cfipre=str(_inv['CFI_pre']).replace('.',','); _cfipos=str(_inv['CFI_pos']).replace('.',',')
+_fnum=lambda v,d=3:(f"{v:+.{d}f}".replace('.',',') if v<0 else f"+{v:.{d}f}".replace('.',','))
+rowsPred=[]
+for _t,_o in pred['A_regressao'].items():
+    for _r in _o['resultados']:
+        rowsPred.append([_o['label'],_r['preditores'],_fnum(_r['R2']),f"{_r['RMSE']:.2f}".replace('.',','),_r['modelo']])
+_g=pred['ganho_contexto']; _cl=pred['B_classificacao']
+_dPTH=str(_g['PTH']['delta_contexto']).replace('.',','); _dFF=str(_g['FadFis']['delta_contexto']).replace('.',','); _dVI=str(_g['Vigor']['delta_contexto']).replace('.',',')
+_aucB=str(_cl['auc_baseline_fadfis_pre']).replace('.',','); _aucL=str(_cl['auc_perfil_logistica']).replace('.',',')
+_imp=', '.join(i['feature'] for i in _cl['importancia'][:4])
 
 def fig(k,cap): return f'<figure><img src="{im(k)}"><figcaption>{cap}</figcaption></figure>'
 
@@ -138,6 +148,14 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
  <p>Além do tamanho do efeito, quão bem cada variável <b>discrimina</b> estados? Para separar o pós do pré-treino, só a <b>fadiga física</b> alcança AUC moderada (0,70); PTH e fadiga ficam ~0,61 e as demais próximas de 0,5. Para separar um dia de HIIT de um dia sem HIIT, todas as AUC ficam entre 0,52 e 0,58 — o humor medido num único dia classifica mal o tipo de treino, porque a variabilidade individual domina. AUC com IC95% por bootstrap agrupado por atleta.</p>
  <div class="two">{fig('roc_prepos','<b>ROC pré vs pós.</b> Fadiga física AUC 0,70 — marcador sentinela do estado agudo.')}{fig('roc_hiit','<b>ROC HIIT vs sem.</b> Discriminação fraca (AUC ≤ 0,58) no nível do dia.')}</div>
  <p>A leitura prática reforça a recomendação do estudo: monitorar por <b>tendência</b>, com a fadiga física como sentinela e uma linha de base individual — não classificar um dia isolado por um escore de humor.</p>
+</section>
+
+<section>
+ <div class="eyebrow">Validação · fora da amostra</div><h2>Análise preditiva: prever o estado pós-treino</h2>
+ <p>Todas as análises anteriores são <i>in-sample</i>. Aqui a avaliação é <b>fora da amostra</b>, com validação <b>leave-one-athlete-out</b> ({pred['n_atletas']} dobras; o modelo nunca vê o atleta que prevê) sobre {pred['n_pares']} pares pré→pós — mede a generalização real para um atleta novo. Comparam-se conjuntos de preditores aninhados; o R² é calculado sobre as predições fora-da-dobra acumuladas.</p>
+ {tbl(['Alvo','Preditores','R² (fora-da-dobra)','RMSE','Modelo'],rowsPred)}
+ <p>O estado pós é <b>modestamente previsível</b> (R² ≈ 0,3–0,4) e o sinal vem quase inteiramente da <b>linha de base do próprio atleta</b>: acrescentar o contexto da sessão (HIIT, dia) ao baseline muda o R² em ≈ 0 (Δ PTH {_dPTH}; fadiga física {_dFF}; vigor {_dVI}). É a <b>confirmação preditiva</b> do desacoplamento carga↔humor — saber que o dia teve HIIT não ajuda a prever o humor pós além do que o estado pré do atleta já diz. Para classificar o "dia perturbado" (fadiga física pós ≥ 7), o perfil de humor pré alcança AUC {_aucL} (contra {_aucB} do baseline simples), com {_imp} entre os principais preditores e o HIIT entre os de menor importância.</p>
+ {fig('preditiva','<b>Análise preditiva.</b> A: R² fora-da-dobra por conjunto de preditores; B: AUC do dia perturbado; C: importância das variáveis (HIIT é a menor).')}
 </section>
 
 <section>

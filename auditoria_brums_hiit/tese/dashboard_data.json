@@ -1921,5 +1921,169 @@
    "tucker_phi": 0.987,
    "invariancia_metrica": true
   }
+ },
+ "pred": {
+  "n_pares": 135,
+  "n_atletas": 27,
+  "validacao": "LeaveOneGroupOut (atleta)",
+  "reg": [
+   {
+    "alvo": "PTH (TMD)",
+    "preditores": "Média global",
+    "R2": -0.072,
+    "RMSE": 10.778,
+    "modelo": "média"
+   },
+   {
+    "alvo": "PTH (TMD)",
+    "preditores": "Baseline (pré)",
+    "R2": 0.369,
+    "RMSE": 8.269,
+    "modelo": "Ridge"
+   },
+   {
+    "alvo": "PTH (TMD)",
+    "preditores": "Baseline + contexto",
+    "R2": 0.356,
+    "RMSE": 8.356,
+    "modelo": "Ridge"
+   },
+   {
+    "alvo": "PTH (TMD)",
+    "preditores": "Perfil pré completo",
+    "R2": 0.381,
+    "RMSE": 8.192,
+    "modelo": "Ridge"
+   },
+   {
+    "alvo": "Fadiga física",
+    "preditores": "Média global",
+    "R2": -0.044,
+    "RMSE": 2.315,
+    "modelo": "média"
+   },
+   {
+    "alvo": "Fadiga física",
+    "preditores": "Baseline (pré)",
+    "R2": 0.265,
+    "RMSE": 1.943,
+    "modelo": "Ridge"
+   },
+   {
+    "alvo": "Fadiga física",
+    "preditores": "Baseline + contexto",
+    "R2": 0.285,
+    "RMSE": 1.915,
+    "modelo": "Ridge"
+   },
+   {
+    "alvo": "Fadiga física",
+    "preditores": "Perfil pré completo",
+    "R2": 0.22,
+    "RMSE": 2.001,
+    "modelo": "RandomForest"
+   },
+   {
+    "alvo": "Vigor",
+    "preditores": "Média global",
+    "R2": -0.063,
+    "RMSE": 3.228,
+    "modelo": "média"
+   },
+   {
+    "alvo": "Vigor",
+    "preditores": "Baseline (pré)",
+    "R2": 0.364,
+    "RMSE": 2.498,
+    "modelo": "Ridge"
+   },
+   {
+    "alvo": "Vigor",
+    "preditores": "Baseline + contexto",
+    "R2": 0.349,
+    "RMSE": 2.526,
+    "modelo": "Ridge"
+   },
+   {
+    "alvo": "Vigor",
+    "preditores": "Perfil pré completo",
+    "R2": 0.294,
+    "RMSE": 2.631,
+    "modelo": "Ridge"
+   }
+  ],
+  "ganho": {
+   "PTH": {
+    "baseline": 0.369,
+    "com_contexto": 0.356,
+    "delta_contexto": -0.013,
+    "perfil_completo": 0.381
+   },
+   "FadFis": {
+    "baseline": 0.265,
+    "com_contexto": 0.285,
+    "delta_contexto": 0.02,
+    "perfil_completo": 0.22
+   },
+   "Vigor": {
+    "baseline": 0.364,
+    "com_contexto": 0.349,
+    "delta_contexto": -0.015,
+    "perfil_completo": 0.294
+   }
+  },
+  "clf": {
+   "alvo": "Fadiga física pós ≥ 7 (corte de Youden, módulo ROC)",
+   "prevalencia": 0.6,
+   "auc_baseline": 0.661,
+   "auc_log": 0.705,
+   "auc_rf": 0.66,
+   "importancia": [
+    {
+     "feature": "Fadiga",
+     "imp": 0.168
+    },
+    {
+     "feature": "EstFis",
+     "imp": 0.144
+    },
+    {
+     "feature": "FadMen",
+     "imp": 0.124
+    },
+    {
+     "feature": "Tensão",
+     "imp": 0.123
+    },
+    {
+     "feature": "Vigor",
+     "imp": 0.116
+    },
+    {
+     "feature": "dia",
+     "imp": 0.103
+    },
+    {
+     "feature": "EstMen",
+     "imp": 0.066
+    },
+    {
+     "feature": "HIIT",
+     "imp": 0.061
+    },
+    {
+     "feature": "Raiva",
+     "imp": 0.045
+    },
+    {
+     "feature": "Depressão",
+     "imp": 0.032
+    },
+    {
+     "feature": "Confusão",
+     "imp": 0.018
+    }
+   ]
+  }
  }
 }

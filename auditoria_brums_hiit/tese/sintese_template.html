@@ -177,6 +177,7 @@ const app=document.getElementById('app');
  ['violet','Segmentação','Resposta individual','Tipologia 20 resilientes / 6 perturbados / 1 extremo — a média esconde perfis opostos.'],
  ['teal','Carga interna','Desacoplada do humor','PSE, FC e TRIMP não predizem o humor entre atletas (todos n.s.).'],
  ['coral','Diagnóstico','Fadiga física é o sinal','Única com AUC moderada (0,70) para detectar o pós-treino — o marcador sentinela.'],
+ ['violet','Preditiva','Prevê pelo atleta, não pela carga','Fora da amostra (leave-one-athlete-out): o estado pós é previsível pelo baseline individual; o HIIT/dia não agrega (ΔR²≈0).'],
 ];
  const t=document.createElement('div');t.innerHTML='<h2>Principais achados</h2><p class="sub">Oito conclusões, todas reconciliadas com a reanálise (atleta como unidade, FDR).</p>';app.append(t);
  const g=document.createElement('div');g.className='finds';
@@ -187,7 +188,7 @@ const app=document.getElementById('app');
 app.insertAdjacentHTML('beforeend','<h2>Análises</h2><p class="sub">Segmentadas por tema — use os filtros. Cada tabela é ordenável (clique no cabeçalho) e filtrável.</p>');
 const segbar=document.createElement('div');segbar.className='segbar';app.append(segbar);
 const zone=document.createElement('div');app.append(zone);
-const SEGS=[['all','Todas'],['medida','Medida'],['descr','Descritiva'],['aguda','Resposta aguda'],['hiit','Acúmulo & HIIT'],['multi','Multivariada & Bayes'],['carga','Carga & diagnóstico'],['corr','Correlações']];
+const SEGS=[['all','Todas'],['medida','Medida'],['descr','Descritiva'],['aguda','Resposta aguda'],['hiit','Acúmulo & HIIT'],['multi','Multivariada & Bayes'],['carga','Carga & diagnóstico'],['pred','Preditiva'],['corr','Correlações']];
 segbar.innerHTML=SEGS.map(([id,t],i)=>`<button class="seg ${i===0?'on':''}" data-s="${id}">${t}</button>`).join('');
 
 function block(seg){const d=document.createElement('div');d.dataset.seg=seg;zone.append(d);return d;}
@@ -240,6 +241,11 @@ requestAnimationFrame(drawCharts);
  const c1=card(b,'ROC — separar pós de pré','AUC · IC95%','violet');dtable(c1,[{k:'label',label:'Variável'},{k:'AUC',label:'AUC',num:true,render:v=>fmt(v)},{k:'ic',label:'IC95%',render:v=>`[${fmt(v[0])}; ${fmt(v[1])}]`},{k:'sens',label:'Sens.',num:true,render:v=>fmt(v)},{k:'espec',label:'Espec.',num:true,render:v=>fmt(v)}],mk(D.roc.pre_vs_pos),'ROC pré×pós');
  const c2=card(b,'ROC — HIIT vs. sem HIIT','AUC','gold');dtable(c2,[{k:'label',label:'Variável'},{k:'AUC',label:'AUC',num:true,render:v=>fmt(v)},{k:'ic',label:'IC95%',render:v=>`[${fmt(v[0])}; ${fmt(v[1])}]`}],mk(D.roc.hiit_vs_sem),'ROC HIIT');
  const c3=card(b,'TRIMP e Foster por sessão','carga','teal');dtable(c3,[{k:'sessao',label:'Sessão'},{k:'trimp_rel',label:'TRIMP rel.',num:true,render:v=>fmt(v)},{k:'foster',label:'Foster (ΣPSE)',num:true,render:v=>fmt(v,1)},{k:'hrr',label:'%HRR',num:true,render:v=>fmt(v)}],D.trimp.por_sessao,'TRIMP');})();
+/* preditiva */
+(function(){const b=block('pred');const g=D.pred.ganho;
+ const c1=card(b,'Regressão — R² fora-da-dobra (leave-one-athlete-out)','LOAO','violet');
+ dtable(c1,[{k:'alvo',label:'Alvo'},{k:'preditores',label:'Preditores'},{k:'R2',label:'R² (OOF)',num:true,render:v=>`<span class="${v>0.05?'neg':(v<0?'pos':'')}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'RMSE',label:'RMSE',num:true,render:v=>fmt(v)},{k:'modelo',label:'Modelo'}],D.pred.reg,'Preditiva regressão');
+ c1.insertAdjacentHTML('beforeend',`<p class="sub" style="margin:8px 0 0;font-size:12px">Adicionar o contexto da sessão (HIIT, dia) ao baseline muda o R² em ≈ 0 (Δ PTH ${fmt(g.PTH.delta_contexto)} · fadiga física ${fmt(g.FadFis.delta_contexto)} · vigor ${fmt(g.Vigor.delta_contexto)}) — o preditor é a linha de base individual, não a carga. Classificar o dia perturbado (fadiga física pós ≥ 7): AUC ${fmt(D.pred.clf.auc_log)} (perfil pré, logística).</p>`);})();
 /* corr */
 (function(){const b=block('corr');const c1=card(b,'Correlações repetidas (rm_corr)','FDR','blue');
  dtable(c1,[{k:'sub',label:'Subescala'},{k:'ext',label:'Externo'},{k:'r',label:'r',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'ic',label:'IC95%',render:v=>`[${fmt(v[0])}; ${fmt(v[1])}]`},{k:'p_FDR',label:'p (FDR)',num:true,render:pf},{k:'sig',label:'Sig.',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'—'}</span>`}],D.inf.D_rmcorr,'rm_corr');

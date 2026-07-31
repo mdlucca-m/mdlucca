@@ -203,6 +203,7 @@ html = f"""<style>{CSS}</style>
  <div class="finds">
   <div class="find"><div class="n">Curva ROC</div><h3>Só a fadiga física discrimina o pós</h3><p>Para separar pós de pré-treino, a <b>fadiga física atinge AUC 0,70</b> (única moderada); PTH e fadiga ficam ~0,61 e as demais em ~0,5. Para separar dia de HIIT de dia sem HIIT, todas as AUC ficam em 0,52–0,58 — o humor de um dia isolado classifica mal o tipo de treino. Reforça: monitorar por tendência, com a fadiga física como sentinela.</p><span class="tag t-blue">AUC · IC bootstrap por atleta · Youden</span></div>
   <div class="find"><div class="n">TRIMP (Banister)</div><h3>Intensidade no teto; carga não prevê humor</h3><p>As sessões foram uniformemente quase-máximas (%HRR 0,87–0,91). A carga por FC (TRIMP) e por PSE (Foster) são <b>praticamente independentes</b> neste regime (r ≈ −0,05), e nenhuma prediz a resposta aguda do humor (TRIMP × ΔPTH r = −0,32, n.s.) — o humor responde a fatores além do custo fisiológico da sessão.</p><span class="tag t-gold">%HRR · Banister · Foster</span></div>
+  <div class="find"><div class="n">Validação preditiva</div><h3>Prevê pelo atleta, não pela carga</h3><p>Fora da amostra, com validação <b>leave-one-athlete-out</b> (o modelo nunca vê o atleta que prevê): o estado pós-treino é modestamente previsível (R² ≈ 0,3–0,4; AUC 0,70 para o dia perturbado), e o sinal vem do <b>baseline do próprio atleta</b>. Adicionar HIIT/dia ao baseline muda o R² em ≈ 0 — confirmação preditiva do desacoplamento carga↔humor.</p><span class="tag t-violet">LOAO · Ridge/RF · R² OOF</span></div>
  </div>
 </section>
 
@@ -246,6 +247,7 @@ html = f"""<style>{CSS}</style>
    {file(GH+'estatistica_inferencial/INFERENCIA.md','Estatística inferencial','t/Wilcoxon/Friedman, dz IC95%, rm_corr, ICC','MD')}
    {file(GH+'acoplamento/ACOPLAMENTO.md','Acoplamento carga×humor','PSE/FC/TRIMP × fadiga mental/TMD','MD')}
    {file(GH+'confiabilidade_invariancia/CONFIABILIDADE.md','Confiabilidade & invariância','α/ω por subescala, IC95%, Tucker φ','MD')}
+   {file(GH+'preditiva/PREDITIVA.md','Análise preditiva','leave-one-athlete-out; baseline vs. carga','MD')}
   </div>
   <div class="cat">
    <h3><span class="dot" style="background:var(--violet)"></span>Automação</h3>
