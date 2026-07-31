@@ -143,7 +143,8 @@ html = f"""<style>{CSS}</style>
  <div class="seclab">O desenho e a arquitetura analítica</div>
  <h2>Como o estudo foi montado</h2>
  <p class="sub">Do dado bruto à decisão de modelagem, com a etapa de correção da pseudorreplicação em destaque.</p>
- <figure><img src="{img('master')}" alt="Figura-mestre do desenho do estudo"><figcaption><b>Desenho do estudo.</b> Microciclo de 7 dias, coletas pré/pós, três sessões de HIIT (dias 2, 4 e 7) e as medidas de humor (BRUMS) e de carga interna (FC/PSE).</figcaption></figure>
+ <figure><img src="{img('infog')}" alt="Infográfico do desenho do estudo"><figcaption><b>Infográfico do desenho.</b> Amostra, instrumentos, microciclo de 7 dias (HIIT em D2/D4/D7), funil de coletas e cadeia analítica.</figcaption></figure>
+ <figure><img src="{img('master')}" alt="Figura-mestre do desenho do estudo"><figcaption><b>Esquema-mestre.</b> Microciclo, coletas pré/pós e o que aconteceu no estudo.</figcaption></figure>
  <div class="figrow">
   <figure><img src="{img('framework')}" alt="Framework analítico hierárquico"><figcaption><b>Framework analítico.</b> Encadeamento hierárquico: medida → resposta → modelagem robusta.</figcaption></figure>
   <figure><img src="{img('analog')}" alt="Analogia fitness-fadiga"><figcaption><b>Modelo fitness–fadiga.</b> Leitura analógica do balanço entre frescor (vigor) e custo (fadiga).</figcaption></figure>
@@ -159,6 +160,10 @@ html = f"""<style>{CSS}</style>
   <figure><img src="{img('weekly')}" alt="Mudança semanal"><figcaption><b>Acúmulo semanal.</b> Mudança D1→D7 com intervalos de confiança por bootstrap.</figcaption></figure>
   <figure><img src="{img('cluster')}" alt="Tipologia de atletas"><figcaption><b>Tipologia.</b> Perfis médios (z) dos grupos resiliente / perturbado / extremo.</figcaption></figure>
   <figure><img src="{img('network')}" alt="Rede de subescalas"><figcaption><b>Rede.</b> Centralidade das subescalas por correlação parcial.</figcaption></figure>
+ </div>
+ <div class="figrow" style="margin-top:16px">
+  <figure><img src="{img('dendro')}" alt="Dendrograma"><figcaption><b>Dendrograma (Ward).</b> Tipologia dos atletas — 21 / 5 / 1 (A06 extremo); cross-valida o k-médias.</figcaption></figure>
+  <figure><img src="{img('clustermap')}" alt="Clustermap"><figcaption><b>Clustermap.</b> Perfil z de humor por atleta, ordenado pelo agrupamento.</figcaption></figure>
  </div>
 </section>
 
