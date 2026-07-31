@@ -161,6 +161,24 @@ const SEC=[]; function sec(id,title){const s=document.createElement('section');s
  dtable(c2,[{k:'label',label:'Variável'},{k:'normalidade_dif',label:'Dif. normal?'},{k:'p_t',label:'t: p',num:true,render:pf},{k:'dz',label:'dz',num:true,render:v=>fmt(v)},{k:'wilcoxon_p',label:'Wilcoxon: p',num:true,render:pf},{k:'rbc',label:'RBC',num:true,render:v=>fmt(v)},{k:'concordam',label:'Concordam?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`}],D.descr.B_param_vs_naoparam);
 })();
 
+/* CONFIABILIDADE & INVARIÂNCIA */
+(function(){const s=sec('conf','Confiabilidade');
+ const inv=D.conf.B_invariancia;
+ s.innerHTML='<h2>Confiabilidade e invariância da medida</h2><p class="sub">Consistência interna por subescala (α de Cronbach com IC95%, ω de McDonald, r inter-item) e invariância métrica pré→pós — congruência de cargas de Tucker φ = '+fmt(inv.tucker_phi)+' (≥ 0,95): a escala mede o mesmo construto antes e depois do microciclo. Significância prática: onde o IC do α cruza 0,70, a subescala é limítrofe, não reprovada.</p>';
+ const c1=card('Confiabilidade por subescala','α · ω · IC95%');s.append(c1);
+ dtable(c1,[
+  {k:'sub',label:'Subescala'},
+  {k:'alpha',label:'α',num:true,render:v=>`<b>${fmt(v)}</b>`},
+  {k:'alpha_ic',label:'IC95% (α)',render:v=>`[${fmt(v[0])}; ${fmt(v[1])}]`},
+  {k:'omega',label:'ω',num:true,render:v=>fmt(v)},
+  {k:'r_inter_item',label:'r inter-item',num:true,render:v=>fmt(v)},
+  {k:'adequada',label:'α≥0,70?',render:(v,r)=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':(r.ic_atinge_070?'limítrofe':'não')}</span>`},
+ ],D.conf.A_confiabilidade);
+ const c2=card('α de Cronbach (IC95%) por subescala','Tucker φ '+fmt(inv.tucker_phi));const d2=document.createElement('div');c2.append(d2);s.append(c2);
+ requestAnimationFrame(()=>{barChart(d2,D.conf.A_confiabilidade.slice().sort((a,b)=>a.alpha-b.alpha).map(r=>({l:r.sub,v:r.alpha,lo:r.alpha_ic[0],hi:r.alpha_ic[1],c:r.adequada?'teal':'coral'})),{min:0,max:1});});
+ c2.insertAdjacentHTML('beforeend',`<p class="note">Linha prática em 0,70. CFI por grupo: pré ${fmt(inv.CFI_pre)} · pós ${fmt(inv.CFI_pos)}. Item excluído por variância degenerada: ${inv.itens_excluidos.join(', ')||'—'}. Invariância métrica ${inv.invariancia_metrica?'<b>sustentada</b>':'não sustentada'}.</p>`);
+})();
+
 /* RESPOSTA AGUDA */
 (function(){const s=sec('aguda','Resposta aguda');
  s.innerHTML='<h2>Resposta aguda pré→pós</h2><p class="sub">Teste pareado + Wilcoxon, tamanho de efeito dz com IC95% (bootstrap) e p corrigido por FDR. Clique nos cabeçalhos para ordenar; use o filtro para buscar.</p>';

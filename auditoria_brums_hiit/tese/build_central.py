@@ -182,7 +182,7 @@ html = f"""<style>{CSS}</style>
 <section>
  <div class="seclab">Confirmação psicométrica · análises avançadas</div>
  <h2>As análises "de ponta" também fecham</h2>
- <p class="sub">As etapas antes marcadas como "requer replicação em R" foram executadas em Python (motores independentes: semopy, girth, scipy) e <b>confirmam</b> o estudo. Um script R canônico (lavaan/mirt/semTools) acompanha para os estimadores de referência.</p>
+ <p class="sub">As etapas antes marcadas como "requer replicação em R" foram executadas em Python (motores independentes: semopy, girth, scipy) e <b>confirmam</b> o estudo — estrutura, discriminância, confiabilidade por subescala (α/ω), invariância métrica e fechamento bayesiano. Um script R canônico (lavaan/mirt/semTools) acompanha para os estimadores de referência.</p>
  <div class="kpis" style="grid-template-columns:repeat(4,1fr)">
   <div class="kpi"><b>0,921</b><span>CFI · CFA 6 fatores</span></div>
   <div class="kpi"><b>0,055</b><span>RMSEA (≤0,06 bom)</span></div>
@@ -192,6 +192,7 @@ html = f"""<style>{CSS}</style>
  <div class="finds" style="margin-top:16px">
   <div class="find"><div class="n">Estrutura da medida</div><h3>Fatores e discriminância confirmados</h3><p>CFA de seis fatores com ajuste aceitável (CFI 0,921; RMSEA 0,055); o único ponto fraco é a tensão saturada de piso — a mesma fragilidade já auditada. HTMT máximo 0,846 sustenta a validade discriminante, e a invariância métrica pré→pós se mantém (Tucker φ 0,985).</p><span class="tag t-blue">CFA · HTMT policórico · invariância</span></div>
   <div class="find"><div class="n">Fechamento bayesiano</div><h3>Efeito e equivalência quantificados</h3><p>Fator de Bayes exato (JZS): fadiga física BF₁₀ ≈ 2444, PTH ≈ 22, fadiga ≈ 11, vigor ≈ 6 — e confusão BF₁₀ ≈ 0,23, evidência positiva de equivalência. A TRI confirma itens majoritariamente informativos. Reproduz a leitura do manuscrito.</p><span class="tag t-teal">Bayes JZS · TRI/GRM</span></div>
+  <div class="find"><div class="n">Confiabilidade &amp; invariância</div><h3>Consistente — e mede o mesmo antes e depois</h3><p>Por subescala: raiva, depressão e fadiga com α e ω acima de 0,80; vigor e confusão limítrofes (o IC do α alcança 0,70); só a <b>tensão</b> é frágil (α 0,43), pelo efeito piso. O ω de McDonald resgata vigor (0,78) e fadiga (0,82). A <b>invariância métrica</b> pré→pós se sustenta (Tucker φ 0,987) — a mudança observada é de <b>estado</b>, não deriva do instrumento.</p><span class="tag t-violet">α de Cronbach · ω de McDonald · invariância</span></div>
  </div>
 </section>
 
@@ -222,6 +223,7 @@ html = f"""<style>{CSS}</style>
    <p>Documento padrão-ouro, revisão de literatura, objetivos e figuras.</p>
    {file(GH+'ARTIGO_AUDITADO.docx','ARTIGO_AUDITADO.docx','manuscrito corrigido + Apêndice B','DOCX')}
    {file(GH+'tese/TESE_REVISADA.docx','TESE_REVISADA.docx','tese com revisão de literatura integrada','DOCX')}
+   {file(GH+'tese/Resultados_e_Discussao_BRUMS_HIIT.docx','Resultados e Discussão','seção integrada das 8 camadas + referências','DOCX')}
    {file(GH+'RELATORIO_AUDITORIA.md','RELATORIO_AUDITORIA.md','relatório completo da auditoria','MD')}
   </div>
   <div class="cat">
@@ -243,6 +245,7 @@ html = f"""<style>{CSS}</style>
    {file(GH+'descritivas_testes/DESCRITIVAS.md','Descritivas & testes','normalidade · paramétrico vs não-paramétrico','MD')}
    {file(GH+'estatistica_inferencial/INFERENCIA.md','Estatística inferencial','t/Wilcoxon/Friedman, dz IC95%, rm_corr, ICC','MD')}
    {file(GH+'acoplamento/ACOPLAMENTO.md','Acoplamento carga×humor','PSE/FC/TRIMP × fadiga mental/TMD','MD')}
+   {file(GH+'confiabilidade_invariancia/CONFIABILIDADE.md','Confiabilidade & invariância','α/ω por subescala, IC95%, Tucker φ','MD')}
   </div>
   <div class="cat">
    <h3><span class="dot" style="background:var(--violet)"></span>Automação</h3>

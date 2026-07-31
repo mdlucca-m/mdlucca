@@ -169,7 +169,7 @@ const app=document.getElementById('app');
 
 /* ---- findings ---- */
 (function(){const F=[
- ['blue','Medida','Estrutura confirmada, metade com piso','CFA de 6 fatores com bom ajuste (CFI 0,92); tensão, raiva e confusão dominadas pelo efeito piso.'],
+ ['blue','Medida','Confiável e invariante — com um ponto fraco','Raiva, depressão e fadiga com α/ω > 0,80; tensão frágil (α 0,43, piso). Invariância métrica pré→pós (Tucker φ 0,99) e CFI 0,92.'],
  ['coral','Resposta aguda','Eixo energia–fadiga','Sobrevivem ao FDR: fadiga física (dz 1,06), PTH, fadiga e vigor. As demais, não.'],
  ['gold','Acúmulo','Carga sobe na semana','Fadiga física +0,34/dia; iceberg 71%→33%. PTH acumula de forma muito individual.'],
  ['violet','HIIT','Perturba o dia, não o salto','ΔPTH +2,43 nos dias de HIIT, mas a interação Condição×Momento é nula (p=0,91).'],
@@ -212,6 +212,10 @@ requestAnimationFrame(drawCharts);
  dtable(c2,[{k:'label',label:'Variável'},{k:'normalidade_dif',label:'Dif.?'},{k:'p_t',label:'t: p',num:true,render:pf},{k:'dz',label:'dz',num:true,render:v=>fmt(v)},{k:'wilcoxon_p',label:'Wilc: p',num:true,render:pf},{k:'rbc',label:'RBC',num:true,render:v=>fmt(v)},{k:'concordam',label:'=?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`}],D.descr.B_param_vs_naoparam,'Param vs não-param');})();
 /* medida */
 (function(){const b=block('medida');
+ const inv=D.conf.B_invariancia;
+ const c0=card(b,'Confiabilidade por subescala (α · ω)','Tucker φ '+fmt(inv.tucker_phi),'violet');
+ dtable(c0,[{k:'sub',label:'Subescala'},{k:'alpha',label:'α',num:true,render:v=>`<b>${fmt(v)}</b>`},{k:'alpha_ic',label:'IC95%',render:v=>`[${fmt(v[0])}; ${fmt(v[1])}]`},{k:'omega',label:'ω',num:true,render:v=>fmt(v)},{k:'r_inter_item',label:'r int.',num:true,render:v=>fmt(v)},{k:'adequada',label:'α≥0,70?',render:(v,r)=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':(r.ic_atinge_070?'limítrofe':'não')}</span>`}],D.conf.A_confiabilidade,'Confiabilidade');
+ c0.insertAdjacentHTML('beforeend',`<p class="sub" style="margin:8px 0 0;font-size:12px">Invariância métrica pré→pós ${inv.invariancia_metrica?'sustentada':'não sustentada'} (Tucker φ ${fmt(inv.tucker_phi)}; CFI pré ${fmt(inv.CFI_pre)} / pós ${fmt(inv.CFI_pos)}) — mudança pré→pós reflete estado, não deriva do instrumento.</p>`);
  const c1=card(b,'CFA — cargas padronizadas','DWLS','blue');dtable(c1,[{k:'item',label:'Item'},{k:'carga',label:'Carga',num:true,render:v=>fmt(v)}],Object.entries(D.adv.CFA_DWLS.loadings_std).map(([item,carga])=>({item,carga})),'CFA cargas');
  const grm=[];Object.entries(D.adv.GRM_discrimination).forEach(([sub,o])=>(o.a||[]).forEach((a,i)=>grm.push({sub,item:sub+'_'+(i+1),a})));
  const c2=card(b,'TRI/GRM — discriminação por item','a','teal');dtable(c2,[{k:'sub',label:'Subescala'},{k:'item',label:'Item'},{k:'a',label:'a',num:true,render:v=>fmt(v)}],grm,'GRM');

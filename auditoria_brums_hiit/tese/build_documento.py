@@ -5,6 +5,7 @@ def im(k):
     with open(IMG+k+'.jpg','rb') as f: return 'data:image/jpeg;base64,'+base64.b64encode(f.read()).decode()
 mod=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/modelagem/resultados_modelagem.json'))
 adv=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/analises_avancadas/resultados.json'))
+conf=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/confiabilidade_invariancia/resultados_confiabilidade.json'))
 
 CSS="""
 @page{size:A4;margin:18mm 16mm}
@@ -49,6 +50,11 @@ A=mod['A_resposta_aguda']; rowsA=[[LAB[r['y']],f"{r['b_pos']:+.2f}",f"{r['dz']:+
 C=mod['C_efeito_HIIT_nivel_dia']; rowsC=[[LAB[c['y']],f"{c['efeito_HIIT']:+.2f}",f"{c['p']:.3f}"] for c in C]
 bfname={'FadFis':'Fadiga física','esc_vigor':'Vigor','PTH':'PTH','esc_fadiga':'Fadiga','esc_confusao':'Confusão','esc_tensao':'Tensão','esc_depressao':'Depressão','esc_raiva':'Raiva','FadMen':'Fadiga mental'}
 bf=adv['bayes_JZS_agregado_por_atleta']; rowsBF=[[bfname.get(k,k),f"{v['t']:+.2f}",f"{v['BF10']:.2f}" if v['BF10']<100 else f"{v['BF10']:.0f}"] for k,v in sorted(bf.items(),key=lambda kv:-kv[1]['BF10'])]
+_vd=lambda r:('sim' if r['adequada'] else ('limítrofe' if r['ic_atinge_070'] else 'não'))
+rowsRel=[[r['sub'],f"{r['alpha']:.2f}".replace('.',','),f"[{r['alpha_ic'][0]:.2f}; {r['alpha_ic'][1]:.2f}]".replace('.',','),(f"{r['omega']:.2f}".replace('.',',') if r['omega'] else '—'),f"{r['r_inter_item']:.2f}".replace('.',','),_vd(r)] for r in sorted(conf['A_confiabilidade'],key=lambda r:-r['alpha'])]
+_inv=conf['B_invariancia']
+_tphi=str(round(_inv['tucker_phi'],3)).replace('.',',')
+_cfipre=str(_inv['CFI_pre']).replace('.',','); _cfipos=str(_inv['CFI_pos']).replace('.',',')
 
 def fig(k,cap): return f'<figure><img src="{im(k)}"><figcaption>{cap}</figcaption></figure>'
 
@@ -90,6 +96,9 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
  {fig('A1_cfa_cargas','<b>CFA (DWLS).</b> Cargas padronizadas por subescala; linha tracejada em 0,40.')}
  <p>A validade discriminante entre subescalas foi avaliada por <b>HTMT</b> sobre correlações policóricas: o máximo é <b>0,846</b> (tensão–confusão), abaixo do limiar de 0,85 — discriminância sustentada, com o par tensão–confusão no limite (proximidade conceitual e piso da tensão).</p>
  <div class="two">{fig('A2_htmt','<b>HTMT</b> (correlações policóricas).')}{fig('A3_grm','<b>TRI/GRM.</b> Discriminação (a) por item.')}</div>
+ <p>A <b>consistência interna</b> por subescala (α de Cronbach com IC95%, ω de McDonald e r inter-item) reproduz a tabela de confiabilidade do manuscrito: raiva, depressão e fadiga são confiáveis com folga (α e ω acima de 0,80); vigor e confusão ficam <i>limítrofes</i> (α &lt; 0,70 mas o IC alcança 0,70, e o ω sobe para 0,78 e 0,68); a <b>tensão</b> é a única frágil (α 0,43), reflexo do severo efeito piso. Onde o IC do α cruza 0,70 a subescala não é reprovada — apenas medida com menos precisão nesta amostra.</p>
+ {tbl(['Subescala','α','IC95% (α)','ω','r inter-item','α≥0,70?'],rowsRel)}
+ <p>A <b>invariância de medida</b> pré→pós foi verificada comparando as cargas fatoriais estimadas no pré e no pós: o coeficiente de congruência de Tucker φ = {_tphi} (≥ 0,95), com CFI por grupo de {_cfipre} e {_cfipos}. A escala mede o mesmo construto da mesma forma antes e depois do microciclo — condição para interpretar a mudança pré→pós como mudança de <b>estado</b>, e não deriva psicométrica do instrumento.</p>
  <p>As distribuições são majoritariamente <b>assimétricas e não-normais</b> (efeito piso nas subescalas negativas). Por isso, além dos testes paramétricos, reportam-se os não-paramétricos: as duas famílias <b>concordam em todas as variáveis</b>.</p>
  {fig('descr','<b>Descritivas e testes.</b> A: forma/normalidade (assimetria por variável); B: concordância entre t pareado (paramétrico) e Wilcoxon (não-paramétrico).')}
 </section>
