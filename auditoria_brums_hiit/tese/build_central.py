@@ -166,6 +166,7 @@ html = f"""<style>{CSS}</style>
   <figure><img src="{img('dendro')}" alt="Dendrograma"><figcaption><b>Dendrograma (Ward).</b> Tipologia dos atletas — 21 / 5 / 1 (A06 extremo); cross-valida o k-médias.</figcaption></figure>
   <figure><img src="{img('clustermap')}" alt="Clustermap"><figcaption><b>Clustermap.</b> Perfil z de humor por atleta, ordenado pelo agrupamento.</figcaption></figure>
  </div>
+ <figure style="margin-top:16px"><img src="{img('descr')}" alt="Descritivas e testes"><figcaption><b>Descritivas &amp; testes.</b> Forma/normalidade e a concordância entre testes paramétricos (t) e não-paramétricos (Wilcoxon) — as duas famílias decidem igual.</figcaption></figure>
 </section>
 
 <section>
@@ -239,6 +240,7 @@ html = f"""<style>{CSS}</style>
    {file(GH+'modelagem/MODELAGEM.md','Modelagem completa','modelos mistos, HIIT, interação, Hotelling','MD')}
    {file(GH+'roc/ROC.md','Análise ROC','AUC pré×pós e HIIT×sem','MD')}
    {file(GH+'trimp/TRIMP.md','Carga interna TRIMP','Banister %HRR + Foster','MD')}
+   {file(GH+'descritivas_testes/DESCRITIVAS.md','Descritivas & testes','normalidade · paramétrico vs não-paramétrico','MD')}
    {file(GH+'estatistica_inferencial/INFERENCIA.md','Estatística inferencial','t/Wilcoxon/Friedman, dz IC95%, rm_corr, ICC','MD')}
    {file(GH+'acoplamento/ACOPLAMENTO.md','Acoplamento carga×humor','PSE/FC/TRIMP × fadiga mental/TMD','MD')}
   </div>

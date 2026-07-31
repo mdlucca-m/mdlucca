@@ -152,6 +152,15 @@ const SEC=[]; function sec(id,title){const s=document.createElement('section');s
  });
 })();
 
+/* DESCRITIVA & NORMALIDADE */
+(function(){const s=sec('descr','Descritiva');
+ s.innerHTML='<h2>Descritiva e testes (paramétricos e não-paramétricos)</h2><p class="sub">Descritivas por variável com normalidade (Shapiro–Wilk) e a comparação pré→pós t pareado vs. Wilcoxon. As duas famílias concordam em todas as variáveis.</p>';
+ const c1=card('Descritivas + normalidade (amostra completa)','Shapiro');s.append(c1);
+ dtable(c1,[{k:'label',label:'Variável'},{k:'media',label:'M',num:true,render:v=>fmt(v)},{k:'dp',label:'DP',num:true,render:v=>fmt(v)},{k:'mediana',label:'Md',num:true,render:v=>fmt(v,1)},{k:'IQR',label:'IQR',num:true,render:v=>fmt(v,1)},{k:'assimetria',label:'Assim.',num:true,render:v=>fmt(v)},{k:'piso_pct',label:'% piso',num:true,render:v=>fmt(v,1)},{k:'shapiro_W',label:'Shapiro W',num:true,render:v=>fmt(v)},{k:'normal',label:'Normal?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`}],D.descr.A_descritivas);
+ const c2=card('Pré→pós: paramétrico (t) vs. não-paramétrico (Wilcoxon)','n=27');s.append(c2);
+ dtable(c2,[{k:'label',label:'Variável'},{k:'normalidade_dif',label:'Dif. normal?'},{k:'p_t',label:'t: p',num:true,render:pf},{k:'dz',label:'dz',num:true,render:v=>fmt(v)},{k:'wilcoxon_p',label:'Wilcoxon: p',num:true,render:pf},{k:'rbc',label:'RBC',num:true,render:v=>fmt(v)},{k:'concordam',label:'Concordam?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`}],D.descr.B_param_vs_naoparam);
+})();
+
 /* RESPOSTA AGUDA */
 (function(){const s=sec('aguda','Resposta aguda');
  s.innerHTML='<h2>Resposta aguda pré→pós</h2><p class="sub">Teste pareado + Wilcoxon, tamanho de efeito dz com IC95% (bootstrap) e p corrigido por FDR. Clique nos cabeçalhos para ordenar; use o filtro para buscar.</p>';

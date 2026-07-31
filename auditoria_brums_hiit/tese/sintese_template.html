@@ -187,7 +187,7 @@ const app=document.getElementById('app');
 app.insertAdjacentHTML('beforeend','<h2>Análises</h2><p class="sub">Segmentadas por tema — use os filtros. Cada tabela é ordenável (clique no cabeçalho) e filtrável.</p>');
 const segbar=document.createElement('div');segbar.className='segbar';app.append(segbar);
 const zone=document.createElement('div');app.append(zone);
-const SEGS=[['all','Todas'],['medida','Medida'],['aguda','Resposta aguda'],['hiit','Acúmulo & HIIT'],['multi','Multivariada & Bayes'],['carga','Carga & diagnóstico'],['corr','Correlações']];
+const SEGS=[['all','Todas'],['medida','Medida'],['descr','Descritiva'],['aguda','Resposta aguda'],['hiit','Acúmulo & HIIT'],['multi','Multivariada & Bayes'],['carga','Carga & diagnóstico'],['corr','Correlações']];
 segbar.innerHTML=SEGS.map(([id,t],i)=>`<button class="seg ${i===0?'on':''}" data-s="${id}">${t}</button>`).join('');
 
 function block(seg){const d=document.createElement('div');d.dataset.seg=seg;zone.append(d);return d;}
@@ -204,6 +204,12 @@ function drawCharts(){chartHosts.forEach(h=>h.innerHTML='');
  barChart(chartHosts[3],D.inf.E_icc_atleta.slice().sort((a,b)=>a.ICC_atleta-b.ICC_atleta).map(r=>({l:r.label,v:r.ICC_atleta})),{min:0,max:0.8,ramp:'blue'});}
 mkHost('Resposta aguda — dz (IC95%)','misto+FDR','coral');mkHost('Fator de Bayes (log BF₁₀)','JZS','teal');mkHost('ROC — AUC (pós vs pré)','diagnóstico','violet');mkHost('ICC do atleta','traço','blue');
 requestAnimationFrame(drawCharts);
+/* descritiva */
+(function(){const b=block('descr');
+ const c1=card(b,'Descritivas + normalidade','Shapiro','blue');
+ dtable(c1,[{k:'label',label:'Variável'},{k:'media',label:'M',num:true,render:v=>fmt(v)},{k:'dp',label:'DP',num:true,render:v=>fmt(v)},{k:'mediana',label:'Md',num:true,render:v=>fmt(v,1)},{k:'assimetria',label:'Assim.',num:true,render:v=>fmt(v)},{k:'piso_pct',label:'% piso',num:true,render:v=>fmt(v,1)},{k:'shapiro_W',label:'W',num:true,render:v=>fmt(v)},{k:'normal',label:'Normal?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`}],D.descr.A_descritivas,'Descritivas');
+ const c2=card(b,'Pré→pós: paramétrico vs. não-paramétrico','t × Wilcoxon','teal');
+ dtable(c2,[{k:'label',label:'Variável'},{k:'normalidade_dif',label:'Dif.?'},{k:'p_t',label:'t: p',num:true,render:pf},{k:'dz',label:'dz',num:true,render:v=>fmt(v)},{k:'wilcoxon_p',label:'Wilc: p',num:true,render:pf},{k:'rbc',label:'RBC',num:true,render:v=>fmt(v)},{k:'concordam',label:'=?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`}],D.descr.B_param_vs_naoparam,'Param vs não-param');})();
 /* medida */
 (function(){const b=block('medida');
  const c1=card(b,'CFA — cargas padronizadas','DWLS','blue');dtable(c1,[{k:'item',label:'Item'},{k:'carga',label:'Carga',num:true,render:v=>fmt(v)}],Object.entries(D.adv.CFA_DWLS.loadings_std).map(([item,carga])=>({item,carga})),'CFA cargas');
