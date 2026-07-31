@@ -8,6 +8,7 @@ adv=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/analises_avancadas/r
 conf=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/confiabilidade_invariancia/resultados_confiabilidade.json'))
 pred=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/preditiva/resultados_preditiva.json'))
 pv=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/perfil_variabilidade/resultados_perfil_variabilidade.json'))
+mt=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/modelo_teorico/resultados_modelo_teorico.json'))
 
 CSS="""
 @page{size:A4;margin:18mm 16mm}
@@ -70,6 +71,14 @@ rowsVar=[[v['var'],f"{v['pct_entre']:.1f}".replace('.',','),('—' if v['CV_intr
 _pf=pv['perfil']; _icb=_pf['iceberg_prev']
 _chi=f"χ²({_pf['quiquadrado']['df']}) = {_pf['quiquadrado']['chi2']:.2f}".replace('.',','); _pchi=str(_pf['quiquadrado']['p']).replace('.',','); _cv=str(_pf['quiquadrado']['cramer_V']).replace('.',',')
 _eta=str(pv['segmentacao']['eta2_PTH_entre_grupos']).replace('.',','); _ic0=f"{_icb['pre']*100:.0f}"; _ic1=f"{_icb['pos']*100:.0f}"
+def _mtfx(y,term): return next(f for f in mt['mistos_R2_SE'][y]['fixos'] if f['termo']==term)
+rowsMT=[]
+for _y in ['PTH','FadFis','Vigor','Fadiga']:
+    _o=mt['mistos_R2_SE'][_y]; _p=_mtfx(_y,'pos')
+    rowsMT.append([_o['label'],f"{_o['R2_marginal']:.3f}".replace('.',','),f"{_o['R2_condicional']:.3f}".replace('.',','),
+                   f"{_o['ICC']:.2f}".replace('.',','),f"{_p['beta']:+.2f}".replace('.',','),f"{_p['SE']:.2f}".replace('.',',')])
+_bp=mt['bayesiano_gibbs']['PTH']['posterior']['pos']; _bppth=f"{_bp['media']:.2f}".replace('.',','); _bpci=f"[{_bp['ICr95'][0]:.2f}; {_bp['ICr95'][1]:.2f}]".replace('.',',')
+_mv=mt['multivariada']; _pil=str(_mv['MANOVA']['pillai']).replace('.',','); _pilp=str(_mv['MANOVA']['p']).replace('.',','); _psf=str(_mv['PERMANOVA']['pseudo_F']).replace('.',','); _psr=str(_mv['PERMANOVA']['R2']).replace('.',','); _psp=str(_mv['PERMANOVA']['p']).replace('.',',')
 _permok='concordam com o teste t em todas as variáveis' if all(r['concordam'] for r in pv['permutacao']) else 'divergem em alguma variável'
 _logok='mantêm a decisão' if all(r['decisao_mantem'] for r in pv['sensibilidade']['log']) else 'alteram a decisão'
 _outok='mantêm a decisão' if all(r['decisao_mantem'] for r in pv['sensibilidade']['sem_outlier']) else 'alteram a decisão'
@@ -149,6 +158,16 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
  <p>O teste de Hotelling T² confirma o efeito multivariado concentrado no eixo vigor+fadiga (F(2,25)=5,59; p=0,010); as seis subescalas juntas ficam no limiar (F(6,21)=2,52; p=0,054). O fechamento bayesiano (fator de Bayes JZS exato) quantifica tanto os efeitos quanto a <b>ausência</b> deles: evidência extrema para a fadiga física (BF₁₀≈2444) e evidência positiva de <b>equivalência</b> para a confusão (BF₁₀≈0,23).</p>
  {tbl(['Desfecho','t','BF₁₀'],rowsBF)}
  {fig('A4_bayes','<b>Fator de Bayes JZS</b> — Δ agudo por desfecho (escala log; direita = efeito, esquerda = equivalência).')}
+</section>
+
+<section>
+ <div class="eyebrow">Modelo teórico · framework</div><h2>Modelo matemático, R², erro-padrão, bayesiano e multivariada</h2>
+ <p>A resposta de humor é formalizada como um balanço <b>fitness–fadiga</b> (Banister) — State(t)=p₀+k₁·g(t)−k₂·h(t) — cuja forma estimável, com o atleta como unidade, é o modelo misto Yᵢⱼₜ = β₀ + β₁·Pós + β₂·Dia + β₃·HIIT + uᵢ + εᵢⱼₜ (uᵢ~N(0,τ²), ε~N(0,σ²); ICC=τ²/(τ²+σ²)). O framework abaixo liga o modelo teórico às três vias de estimação.</p>
+ {fig('framework2','<b>Framework.</b> Do modelo teórico (fitness–fadiga) à forma estimável (mistos) e às três vias: R²/erro-padrão (frequentista), Gibbs (bayesiano) e multivariada (MANOVA/PERMANOVA).')}
+ <p>O <b>coeficiente de determinação</b> de Nakagawa &amp; Schielzeth separa a explicação dos efeitos fixos (marginal) da explicação total com o indivíduo (condicional). O R² marginal é pequeno (0,06–0,21) mas o condicional chega a 0,58–0,63: <b>a maior parte da variância explicável é individual</b> (ICC 0,47–0,60). Os erros-padrão determinam bem os efeitos do Pós e do HIIT.</p>
+ {tbl(['Desfecho','R² marginal','R² condicional','ICC','β(Pós)','SE'],rowsMT)}
+ <p>A estimação <b>bayesiana</b> (amostrador de Gibbs, modelo hierárquico conjugado) coincide com a frequentista — para o PTH, posterior β = {_bppth} com ICr95% {_bpci} e P(efeito&gt;0)=1,00 — e a análise <b>multivariada</b> confirma o deslocamento pré→pós do vetor das seis subescalas: MANOVA (Pillai {_pil}; p = {_pilp}) e PERMANOVA pareada (Anderson, 2001; pseudo-F {_psf}; R² {_psr}; p = {_psp}) concordam. Três vias independentes, o mesmo efeito no eixo energia–fadiga.</p>
+ {fig('modteo','<b>Modelo teórico — estimativas.</b> A: R² marginal×condicional (Nakagawa); B: efeitos fixos ± erro-padrão (PTH); C: posterior bayesiano vs. frequentista; D: PERMANOVA (nula de permutação).')}
 </section>
 
 <section>

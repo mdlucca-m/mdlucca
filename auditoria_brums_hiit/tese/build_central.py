@@ -180,6 +180,11 @@ html = f"""<style>{CSS}</style>
  <div class="finds">
   <div class="find"><div class="n">Resposta aguda + acúmulo</div><h3>Efeito no eixo energia–fadiga</h3><p>No modelo misto pré→pós (com FDR) sobrevivem fadiga física (dz 1,06), PTH (0,68), fadiga (0,62), vigor (−0,56) e fadiga mental. No microciclo, a fadiga física acumula +0,34/dia (robusto); o PTH sobe em média mas com <b>inclinações individuais muito heterogêneas</b> (variância 1,13) — a média esconde trajetórias opostas.</p><span class="tag t-coral">misto · inclinação aleatória · FDR</span></div>
   <div class="find"><div class="n">HIIT e multivariada</div><h3>Perturba o dia, não o salto agudo</h3><p>Nos dias de HIIT o PTH sobe +2,43 (p=0,003). Mas a interação Condição×Momento é nula para o PTH (p=0,910): o <b>salto agudo</b> não difere entre HIIT e técnico-tático — só a fadiga física é amplificada (p=0,035). Hotelling T² confirma o efeito concentrado no eixo vigor+fadiga (F(2,25)=5,59; p=0,010).</p><span class="tag t-gold">HIIT nível-do-dia · Hotelling T²</span></div>
+  <div class="find"><div class="n">Modelo teórico · três vias</div><h3>R² individual, Bayes e multivariada convergem</h3><p>Do modelo fitness–fadiga à forma estimável (mistos): o R² <b>marginal</b> (protocolo) é pequeno (0,06–0,21), mas o <b>condicional</b> (com o indivíduo) chega a 0,58–0,63 — a variância explicável é sobretudo individual (ICC 0,47–0,60). O Gibbs bayesiano coincide com o frequentista (P(efeito&gt;0)=1,00) e a MANOVA + PERMANOVA pareada (Anderson) confirmam o deslocamento multivariado (p≤0,016).</p><span class="tag t-violet">R² Nakagawa · Gibbs · MANOVA/PERMANOVA</span></div>
+ </div>
+ <div class="figrow" style="margin-top:20px">
+  <figure><img src="{img('framework2')}" alt="Framework do modelo teórico"><figcaption><b>Framework.</b> Do modelo teórico (fitness–fadiga) à forma estimável e às três vias de estimação (R²/erro-padrão, Gibbs bayesiano, multivariada).</figcaption></figure>
+  <figure><img src="{img('modteo')}" alt="Modelo teórico — estimativas"><figcaption><b>Estimativas.</b> R² marginal×condicional, efeitos fixos ± erro-padrão, posterior bayesiano vs. frequentista e PERMANOVA.</figcaption></figure>
  </div>
 </section>
 
@@ -253,6 +258,7 @@ html = f"""<style>{CSS}</style>
    {file(GH+'confiabilidade_invariancia/CONFIABILIDADE.md','Confiabilidade & invariância','α/ω por subescala, IC95%, Tucker φ','MD')}
    {file(GH+'preditiva/PREDITIVA.md','Análise preditiva','leave-one-athlete-out; baseline vs. carga','MD')}
    {file(GH+'perfil_variabilidade/PERFIL_VARIABILIDADE.md','Perfil & variabilidade','iceberg/χ², variância intra×entre, permutação, log, outlier','MD')}
+   {file(GH+'modelo_teorico/MODELO_TEORICO.md','Modelo teórico & framework','R² Nakagawa, erro-padrão, Gibbs bayesiano, MANOVA/PERMANOVA','MD')}
   </div>
   <div class="cat">
    <h3><span class="dot" style="background:var(--violet)"></span>Automação</h3>

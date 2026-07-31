@@ -2340,5 +2340,83 @@
     "A06"
    ]
   }
+ },
+ "mt": {
+  "R2": [
+   {
+    "desfecho": "PTH (TMD)",
+    "R2m": 0.058,
+    "R2c": 0.616,
+    "ICC": 0.592,
+    "beta_pos": 3.474,
+    "SE_pos": 0.76
+   },
+   {
+    "desfecho": "Fadiga física",
+    "R2m": 0.212,
+    "R2c": 0.584,
+    "ICC": 0.473,
+    "beta_pos": 1.652,
+    "SE_pos": 0.199
+   },
+   {
+    "desfecho": "Vigor",
+    "R2m": 0.063,
+    "R2c": 0.594,
+    "ICC": 0.567,
+    "beta_pos": -1.089,
+    "SE_pos": 0.26
+   },
+   {
+    "desfecho": "Fadiga",
+    "R2m": 0.079,
+    "R2c": 0.631,
+    "ICC": 0.599,
+    "beta_pos": 1.496,
+    "SE_pos": 0.301
+   }
+  ],
+  "bayes": {
+   "PTH": {
+    "label": "PTH (TMD)",
+    "media": 3.484,
+    "SE": 0.763,
+    "ICr": [
+     1.975,
+     4.994
+    ],
+    "P_pos": 1.0
+   },
+   "FadFis": {
+    "label": "Fadiga física",
+    "media": 1.65,
+    "SE": 0.201,
+    "ICr": [
+     1.252,
+     2.035
+    ],
+    "P_pos": 1.0
+   }
+  },
+  "multivariada": {
+   "MANOVA": {
+    "pillai": 0.057,
+    "wilks": 0.943,
+    "F": 2.67,
+    "p": 0.0156
+   },
+   "PERMANOVA": {
+    "pseudo_F": 10.93,
+    "R2": 0.174,
+    "p": 0.0011,
+    "nperm": 9999,
+    "permutacao": "restrita (troca pré/pós dentro do atleta)"
+   }
+  },
+  "teorico": {
+   "fitness_fadiga": "State(t)=p0 + k1·g(t) − k2·h(t); g,h = somas exponenciais das cargas (τ_fitness>τ_fatigue)",
+   "forma_estimavel": "Y_ijt = β0 + β1·Pós + β2·Dia + β3·HIIT + u_i + ε_ijt ; u_i~N(0,τ²), ε~N(0,σ²)",
+   "ICC": "τ²/(τ²+σ²)"
+  }
  }
 }

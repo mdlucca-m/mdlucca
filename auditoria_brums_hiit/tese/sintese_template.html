@@ -179,6 +179,7 @@ const app=document.getElementById('app');
  ['coral','Diagnóstico','Fadiga física é o sinal','Única com AUC moderada (0,70) para detectar o pós-treino — o marcador sentinela.'],
  ['violet','Preditiva','Prevê pelo atleta, não pela carga','Fora da amostra (leave-one-athlete-out): o estado pós é previsível pelo baseline individual; o HIIT/dia não agrega (ΔR²≈0).'],
  ['gold','Variabilidade & robustez','Individual e robusta','Maior parte da variância é entre atletas; iceberg 86%→75% (χ² p=0,03). Conclusões resistem a permutação, log e exclusão do outlier.'],
+ ['blue','Modelo teórico','Três vias convergem','R² condicional (0,58–0,63) ≫ marginal — variância individual. Bayes=frequentista (P>0=1,00); MANOVA e PERMANOVA confirmam o deslocamento multivariado.'],
 ];
  const t=document.createElement('div');t.innerHTML='<h2>Principais achados</h2><p class="sub">Oito conclusões, todas reconciliadas com a reanálise (atleta como unidade, FDR).</p>';app.append(t);
  const g=document.createElement('div');g.className='finds';
@@ -189,7 +190,7 @@ const app=document.getElementById('app');
 app.insertAdjacentHTML('beforeend','<h2>Análises</h2><p class="sub">Segmentadas por tema — use os filtros. Cada tabela é ordenável (clique no cabeçalho) e filtrável.</p>');
 const segbar=document.createElement('div');segbar.className='segbar';app.append(segbar);
 const zone=document.createElement('div');app.append(zone);
-const SEGS=[['all','Todas'],['medida','Medida'],['descr','Descritiva'],['aguda','Resposta aguda'],['hiit','Acúmulo & HIIT'],['multi','Multivariada & Bayes'],['carga','Carga & diagnóstico'],['pred','Preditiva'],['corr','Correlações'],['perfil','Perfil & variabilidade']];
+const SEGS=[['all','Todas'],['medida','Medida'],['descr','Descritiva'],['aguda','Resposta aguda'],['hiit','Acúmulo & HIIT'],['multi','Multivariada & Bayes'],['carga','Carga & diagnóstico'],['pred','Preditiva'],['corr','Correlações'],['perfil','Perfil & variabilidade'],['modelo','Modelo teórico']];
 segbar.innerHTML=SEGS.map(([id,t],i)=>`<button class="seg ${i===0?'on':''}" data-s="${id}">${t}</button>`).join('');
 
 function block(seg){const d=document.createElement('div');d.dataset.seg=seg;zone.append(d);return d;}
@@ -260,6 +261,15 @@ requestAnimationFrame(drawCharts);
  c1.insertAdjacentHTML('beforeend',`<p class="sub" style="margin:8px 0 0;font-size:12px">Perfil iceberg ${Math.round(pf.iceberg_pre*100)}%→${Math.round(pf.iceberg_pos*100)}% (pré→pós); χ²(${pf.df})=${fmt(pf.chi2)}, p=${pf.p.toFixed(3).replace('.',',')}, V=${fmt(pf.cramer_V)}. Segmentação explica η²=${fmt(pv.segmentacao.eta2_PTH)} da variação do PTH.</p>`);
  const c2=card(b,'Robustez — permutação vs. teste t','sign-flip','teal');
  dtable(c2,[{k:'var',label:'Variável'},{k:'delta',label:'Δ',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'p_perm',label:'p (perm.)',num:true,render:v=>v<0.001?'<0,001':fmt(v,3)},{k:'p_t',label:'p (t)',num:true,render:v=>v<0.001?'<0,001':fmt(v,3)},{k:'concordam',label:'=?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`}],pv.permutacao,'Permutação');})();
+/* modelo teórico */
+(function(){const b=block('modelo');const mt=D.mt, mv=mt.multivariada;
+ const c1=card(b,'R² (determinação), erro-padrão e ICC','Nakagawa · REML','blue');
+ dtable(c1,[{k:'desfecho',label:'Desfecho'},{k:'R2m',label:'R² marg.',num:true,render:v=>fmt(v)},{k:'R2c',label:'R² cond.',num:true,render:v=>`<b>${fmt(v)}</b>`},{k:'ICC',label:'ICC',num:true,render:v=>fmt(v)},{k:'beta_pos',label:'β(Pós)',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'SE_pos',label:'SE',num:true,render:v=>fmt(v)}],mt.R2,'R2 e erro-padrão');
+ c1.insertAdjacentHTML('beforeend','<p class="sub" style="margin:8px 0 0;font-size:12px">R² marginal (protocolo) 0,06–0,21 vs. condicional (com indivíduo) 0,58–0,63: a variância explicável é sobretudo individual. Modelo estimável: Yᵢⱼₜ = β₀ + β₁·Pós + β₂·Dia + β₃·HIIT + uᵢ + εᵢⱼₜ.</p>');
+ const c2=card(b,'Bayesiano (Gibbs) e multivariada','ICr95% · MANOVA/PERMANOVA','violet');
+ const brows=Object.values(mt.bayes).map(x=>({desfecho:x.label,media:x.media,ICr:x.ICr,P:x.P_pos}));
+ dtable(c2,[{k:'desfecho',label:'Desfecho'},{k:'media',label:'β posterior',num:true,render:v=>fmt(v)},{k:'ICr',label:'ICr95%',render:v=>`[${fmt(v[0])}; ${fmt(v[1])}]`},{k:'P',label:'P(>0)',num:true,render:v=>fmt(v)}],brows,'Bayesiano');
+ c2.insertAdjacentHTML('beforeend',`<p class="sub" style="margin:8px 0 0;font-size:12px">Bayes ≈ frequentista (P(efeito>0)=1,00). Multivariada: MANOVA Pillai ${fmt(mv.MANOVA.pillai)} (p=${mv.MANOVA.p.toFixed(3).replace('.',',')}) e PERMANOVA pareada pseudo-F ${fmt(mv.PERMANOVA.pseudo_F)}, R²=${fmt(mv.PERMANOVA.R2)} (p=${mv.PERMANOVA.p.toFixed(3).replace('.',',')}) concordam.</p>`);})();
 /* segment filter */
 segbar.querySelectorAll('.seg').forEach(bt=>bt.onclick=()=>{segbar.querySelectorAll('.seg').forEach(x=>x.classList.remove('on'));bt.classList.add('on');const s=bt.dataset.s;
  zone.querySelectorAll('[data-seg]').forEach(el=>el.style.display=(s==='all'||el.dataset.seg===s||el.dataset.seg==='all'&&s==='all')?'':'none');

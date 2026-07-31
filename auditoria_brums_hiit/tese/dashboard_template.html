@@ -282,6 +282,25 @@ const SEC=[]; function sec(id,title){const s=document.createElement('section');s
  dtable(c4,[{k:'var',label:'Variável'},{k:'p_log',label:'p (log)',num:true,render:v=>v==null?'—':(v<0.001?'<0,001':fmt(v,3))},{k:'log_ok',label:'log: mantém?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`},{k:'dz_com',label:'dz c/ A06',num:true,render:v=>fmt(v)},{k:'dz_sem',label:'dz s/ A06',num:true,render:v=>fmt(v)},{k:'out_ok',label:'outlier: mantém?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`}],sr);
 })();
 
+/* MODELO TEÓRICO · R² · BAYESIANO · MULTIVARIADA */
+(function(){const s=sec('modelo','Modelo teórico');
+ const mt=D.mt, mv=mt.multivariada;
+ s.innerHTML='<h2>Modelo teórico, R², bayesiano e multivariada</h2><p class="sub">Modelo fitness–fadiga → forma estimável Yᵢⱼₜ = β₀ + β₁·Pós + β₂·Dia + β₃·HIIT + uᵢ + εᵢⱼₜ. Três vias convergem: R² de determinação (marginal vs. condicional), Gibbs bayesiano e multivariada. Achado: o R² <b>marginal</b> (protocolo) é pequeno, mas o <b>condicional</b> (com o indivíduo) é grande — a variância explicável é sobretudo individual.</p>';
+ const c1=card('Coeficiente de determinação e erro-padrão','Nakagawa · REML');s.append(c1);
+ dtable(c1,[{k:'desfecho',label:'Desfecho'},{k:'R2m',label:'R² marginal',num:true,render:v=>fmt(v)},{k:'R2c',label:'R² condicional',num:true,render:v=>`<b>${fmt(v)}</b>`},{k:'ICC',label:'ICC',num:true,render:v=>fmt(v)},{k:'beta_pos',label:'β(Pós)',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'SE_pos',label:'SE',num:true,render:v=>fmt(v)}],mt.R2);
+ const c2=card('R² marginal vs. condicional','fixos vs. + individual');const d2=document.createElement('div');c2.append(d2);s.append(c2);
+ requestAnimationFrame(()=>{barChart(d2,mt.R2.slice().sort((a,b)=>a.R2c-b.R2c).map(r=>({l:r.desfecho,v:r.R2c,c:'violet'})),{min:0,max:1,fmt:v=>fmt(v)});});
+ c2.insertAdjacentHTML('beforeend','<p class="note">Barras = R² condicional (fixos+individual). O R² marginal (só protocolo) fica em 0,06–0,21: a maior parte do que se explica é individual.</p>');
+ const c3=card('Estimação bayesiana (Gibbs) vs. frequentista','ICr95% · P(efeito>0)');s.append(c3);
+ const brows=Object.values(mt.bayes).map(b=>({desfecho:b.label,media:b.media,SE:b.SE,ICr:b.ICr,P:b.P_pos}));
+ dtable(c3,[{k:'desfecho',label:'Desfecho'},{k:'media',label:'β posterior',num:true,render:v=>fmt(v)},{k:'SE',label:'SE bayes',num:true,render:v=>fmt(v)},{k:'ICr',label:'ICr95%',render:v=>`[${fmt(v[0])}; ${fmt(v[1])}]`},{k:'P',label:'P(efeito>0)',num:true,render:v=>fmt(v)}],brows);
+ const c4=card('Multivariada — MANOVA e PERMANOVA','vetor das 6 subescalas');s.append(c4);
+ const mrows=[{teste:'MANOVA (Pillai)',est:'traço '+fmt(mv.MANOVA.pillai)+' · F '+fmt(mv.MANOVA.F),p:mv.MANOVA.p},
+              {teste:'PERMANOVA pareada',est:'pseudo-F '+fmt(mv.PERMANOVA.pseudo_F)+' · R² '+fmt(mv.PERMANOVA.R2),p:mv.PERMANOVA.p}];
+ dtable(c4,[{k:'teste',label:'Teste'},{k:'est',label:'Estatística'},{k:'p',label:'p',num:true,render:v=>v<0.001?'<0,001':fmt(v,3)}],mrows);
+ c4.insertAdjacentHTML('beforeend','<p class="note">As duas vias concordam: a mudança pré→pós é um deslocamento multivariado significativo (Anderson, 2001; permutação restrita por atleta).</p>');
+})();
+
 document.getElementById('app').insertAdjacentHTML('beforeend','<footer>Dashboard analítico · BRUMS × HIIT no handebol · atletas anonimizados (A01–A27) · números reproduzidos por código · 2026.</footer>');
 
 /* nav */
