@@ -301,6 +301,22 @@ const SEC=[]; function sec(id,title){const s=document.createElement('section');s
  c4.insertAdjacentHTML('beforeend','<p class="note">As duas vias concordam: a mudança pré→pós é um deslocamento multivariado significativo (Anderson, 2001; permutação restrita por atleta).</p>');
 })();
 
+/* DIAS DO MICROCICLO */
+(function(){const s=sec('dias','Dias do microciclo');
+ const dh=D.dh;
+ s.innerHTML='<h2>Comparação entre os dias — HIIT entre si, sem-HIIT entre si e HIIT vs sem</h2><p class="sub">Resposta aguda (Δ = pós−pré) por atleta-dia. HIIT nos dias '+dh.dias_hiit.join('/')+'; técnico-tático nos dias '+dh.dias_sem.join('/')+'. As três sessões de HIIT são um estímulo agudo consistente (Friedman n.s.); os dias sem HIIT diferem só no PTH; e o salto agudo é semelhante entre HIIT e sem-HIIT — a assinatura do HIIT está no nível do dia e no acúmulo (pico no D7), não no salto.</p>';
+ const c1=card('A · Entre dias de HIIT (D2/D4/D7) — Δ agudo','Friedman');s.append(c1);
+ dtable(c1,[{k:'var',label:'Variável'},{k:'D2',label:'Δ D2',num:true,render:v=>fmt(v)},{k:'D4',label:'Δ D4',num:true,render:v=>fmt(v)},{k:'D7',label:'Δ D7',num:true,render:v=>fmt(v)},{k:'chi2',label:'χ²',num:true,render:v=>fmt(v)},{k:'p',label:'p',num:true,render:v=>v<0.001?'<0,001':fmt(v,3),},{k:'p',label:'Diferem?',render:v=>`<span class="chip ${v<0.05?'c-sim':'c-nao'}">${v<0.05?'sim':'não'}</span>`}],dh.A);
+ const c2=card('B · Entre dias SEM HIIT (D1/D3/D5/D6) — Δ agudo','Friedman');s.append(c2);
+ dtable(c2,[{k:'var',label:'Variável'},{k:'D1',label:'Δ D1',num:true,render:v=>fmt(v)},{k:'D3',label:'Δ D3',num:true,render:v=>fmt(v)},{k:'D5',label:'Δ D5',num:true,render:v=>fmt(v)},{k:'D6',label:'Δ D6',num:true,render:v=>fmt(v)},{k:'p',label:'p',num:true,render:v=>v<0.001?'<0,001':fmt(v,3)},{k:'p',label:'Diferem?',render:v=>`<span class="chip ${v<0.05?'c-sim':'c-nao'}">${v<0.05?'sim':'não'}</span>`}],dh.B);
+ const c3=card('C · HIIT vs sem HIIT — Δ agudo médio por atleta','Wilcoxon · FDR · n='+dh.n_C);s.append(c3);
+ dtable(c3,[{k:'var',label:'Variável'},{k:'media_HIIT',label:'Δ HIIT',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'media_SEM',label:'Δ SEM',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'dz',label:'dz',num:true,render:v=>fmt(v)},{k:'p_FDR',label:'p (FDR)',num:true,render:v=>v<0.001?'<0,001':fmt(v,3)},{k:'sig',label:'Difere?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`}],dh.C);
+ const c4=card('D · Nível médio de PTH por dia (D1→D7)','pico no D7');const d4=document.createElement('div');c4.append(d4);s.append(c4);
+ requestAnimationFrame(()=>{const days=Object.keys(dh.trajetoria).map(Number).sort((a,b)=>a-b);
+   barChart(d4,days.map(d=>({l:'Dia '+d+(dh.dias_hiit.includes(d)?' (HIIT)':''),v:dh.trajetoria[String(d)],c:dh.dias_hiit.includes(d)?'coral':'teal'})),{min:0,max:8.5,l:120,fmt:v=>fmt(v)});});
+ c4.insertAdjacentHTML('beforeend','<p class="note">Vermelho = dia de HIIT. O PTH acumula até o pico no D7 (o terceiro e último HIIT); vale no D5.</p>');
+})();
+
 document.getElementById('app').insertAdjacentHTML('beforeend','<footer>Dashboard analítico · BRUMS × HIIT no handebol · atletas anonimizados (A01–A27) · números reproduzidos por código · 2026.</footer>');
 
 /* nav */

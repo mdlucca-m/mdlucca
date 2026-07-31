@@ -166,6 +166,7 @@ html = f"""<style>{CSS}</style>
   <figure><img src="{img('dendro')}" alt="Dendrograma"><figcaption><b>Dendrograma (Ward).</b> Tipologia dos atletas — 21 / 5 / 1 (A06 extremo); cross-valida o k-médias.</figcaption></figure>
   <figure><img src="{img('clustermap')}" alt="Clustermap"><figcaption><b>Clustermap.</b> Perfil z de humor por atleta, ordenado pelo agrupamento.</figcaption></figure>
  </div>
+ <figure style="margin-top:16px"><img src="{img('diashiit')}" alt="Comparação entre os dias do microciclo"><figcaption><b>Dias do microciclo.</b> Δ agudo entre dias de HIIT (D2/D4/D7, equivalentes), entre dias sem HIIT (só o PTH difere), HIIT vs sem-HIIT (salto agudo semelhante) e o nível de PTH por dia (pico no D7).</figcaption></figure>
  <figure style="margin-top:16px"><img src="{img('descr')}" alt="Descritivas e testes"><figcaption><b>Descritivas &amp; testes.</b> Forma/normalidade e a concordância entre testes paramétricos (t) e não-paramétricos (Wilcoxon) — as duas famílias decidem igual.</figcaption></figure>
  <div class="figrow" style="margin-top:16px">
   <figure><img src="{img('perfil')}" alt="Perfil de humor e distribuições"><figcaption><b>Perfil &amp; distribuições.</b> Iceberg pré×pós (χ² significativo), box plot por subescala, histograma do PTH (com log) e dispersão vigor×fadiga por grupo.</figcaption></figure>
@@ -259,6 +260,7 @@ html = f"""<style>{CSS}</style>
    {file(GH+'preditiva/PREDITIVA.md','Análise preditiva','leave-one-athlete-out; baseline vs. carga','MD')}
    {file(GH+'perfil_variabilidade/PERFIL_VARIABILIDADE.md','Perfil & variabilidade','iceberg/χ², variância intra×entre, permutação, log, outlier','MD')}
    {file(GH+'modelo_teorico/MODELO_TEORICO.md','Modelo teórico & framework','R² Nakagawa, erro-padrão, Gibbs bayesiano, MANOVA/PERMANOVA','MD')}
+   {file(GH+'dias_hiit/DIAS_HIIT.md','Comparação entre dias','HIIT entre si · sem-HIIT entre si · HIIT vs sem','MD')}
   </div>
   <div class="cat">
    <h3><span class="dot" style="background:var(--violet)"></span>Automação</h3>

@@ -180,6 +180,7 @@ const app=document.getElementById('app');
  ['violet','Preditiva','Prevê pelo atleta, não pela carga','Fora da amostra (leave-one-athlete-out): o estado pós é previsível pelo baseline individual; o HIIT/dia não agrega (ΔR²≈0).'],
  ['gold','Variabilidade & robustez','Individual e robusta','Maior parte da variância é entre atletas; iceberg 86%→75% (χ² p=0,03). Conclusões resistem a permutação, log e exclusão do outlier.'],
  ['blue','Modelo teórico','Três vias convergem','R² condicional (0,58–0,63) ≫ marginal — variância individual. Bayes=frequentista (P>0=1,00); MANOVA e PERMANOVA confirmam o deslocamento multivariado.'],
+ ['gold','Dias do microciclo','O HIIT vive no nível, não no salto','As 3 sessões de HIIT são consistentes; o salto agudo é igual em HIIT e sem-HIIT. A assinatura do HIIT é o nível diário e o acúmulo (PTH pico no D7).'],
 ];
  const t=document.createElement('div');t.innerHTML='<h2>Principais achados</h2><p class="sub">Oito conclusões, todas reconciliadas com a reanálise (atleta como unidade, FDR).</p>';app.append(t);
  const g=document.createElement('div');g.className='finds';
@@ -190,7 +191,7 @@ const app=document.getElementById('app');
 app.insertAdjacentHTML('beforeend','<h2>Análises</h2><p class="sub">Segmentadas por tema — use os filtros. Cada tabela é ordenável (clique no cabeçalho) e filtrável.</p>');
 const segbar=document.createElement('div');segbar.className='segbar';app.append(segbar);
 const zone=document.createElement('div');app.append(zone);
-const SEGS=[['all','Todas'],['medida','Medida'],['descr','Descritiva'],['aguda','Resposta aguda'],['hiit','Acúmulo & HIIT'],['multi','Multivariada & Bayes'],['carga','Carga & diagnóstico'],['pred','Preditiva'],['corr','Correlações'],['perfil','Perfil & variabilidade'],['modelo','Modelo teórico']];
+const SEGS=[['all','Todas'],['medida','Medida'],['descr','Descritiva'],['aguda','Resposta aguda'],['hiit','Acúmulo & HIIT'],['multi','Multivariada & Bayes'],['carga','Carga & diagnóstico'],['pred','Preditiva'],['corr','Correlações'],['perfil','Perfil & variabilidade'],['modelo','Modelo teórico'],['dias','Dias do microciclo']];
 segbar.innerHTML=SEGS.map(([id,t],i)=>`<button class="seg ${i===0?'on':''}" data-s="${id}">${t}</button>`).join('');
 
 function block(seg){const d=document.createElement('div');d.dataset.seg=seg;zone.append(d);return d;}
@@ -270,6 +271,16 @@ requestAnimationFrame(drawCharts);
  const brows=Object.values(mt.bayes).map(x=>({desfecho:x.label,media:x.media,ICr:x.ICr,P:x.P_pos}));
  dtable(c2,[{k:'desfecho',label:'Desfecho'},{k:'media',label:'β posterior',num:true,render:v=>fmt(v)},{k:'ICr',label:'ICr95%',render:v=>`[${fmt(v[0])}; ${fmt(v[1])}]`},{k:'P',label:'P(>0)',num:true,render:v=>fmt(v)}],brows,'Bayesiano');
  c2.insertAdjacentHTML('beforeend',`<p class="sub" style="margin:8px 0 0;font-size:12px">Bayes ≈ frequentista (P(efeito>0)=1,00). Multivariada: MANOVA Pillai ${fmt(mv.MANOVA.pillai)} (p=${mv.MANOVA.p.toFixed(3).replace('.',',')}) e PERMANOVA pareada pseudo-F ${fmt(mv.PERMANOVA.pseudo_F)}, R²=${fmt(mv.PERMANOVA.R2)} (p=${mv.PERMANOVA.p.toFixed(3).replace('.',',')}) concordam.</p>`);})();
+/* dias do microciclo */
+(function(){const b=block('dias');const dh=D.dh;
+ const c1=card(b,'HIIT entre si (D2/D4/D7) e sem-HIIT entre si (D1/D3/D5/D6)','Friedman Δ agudo','gold');
+ const rowsAB=dh.A.map(a=>({var:a.var,hiit_p:a.p,hiit_dif:a.p<0.05}))
+   .map((x,i)=>({...x,sem_p:dh.B[i].p,sem_dif:dh.B[i].p<0.05}));
+ dtable(c1,[{k:'var',label:'Variável'},{k:'hiit_p',label:'HIIT: p',num:true,render:v=>v<0.001?'<0,001':fmt(v,3)},{k:'hiit_dif',label:'HIIT difere?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`},{k:'sem_p',label:'sem-HIIT: p',num:true,render:v=>v<0.001?'<0,001':fmt(v,3)},{k:'sem_dif',label:'sem difere?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`}],rowsAB,'Dias entre si');
+ c1.insertAdjacentHTML('beforeend','<p class="sub" style="margin:8px 0 0;font-size:12px">As três sessões de HIIT são um estímulo agudo consistente (todas n.s.); entre os dias sem HIIT, só o PTH difere (dias 1 e 6 mais perturbadores).</p>');
+ const c2=card(b,'HIIT vs sem HIIT — Δ agudo médio por atleta','Wilcoxon · FDR','teal');
+ dtable(c2,[{k:'var',label:'Variável'},{k:'media_HIIT',label:'Δ HIIT',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'media_SEM',label:'Δ SEM',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'dz',label:'dz',num:true,render:v=>fmt(v)},{k:'p_FDR',label:'p (FDR)',num:true,render:v=>fmt(v,3)},{k:'sig',label:'Difere?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`}],dh.C,'HIIT vs sem');
+ c2.insertAdjacentHTML('beforeend','<p class="sub" style="margin:8px 0 0;font-size:12px">O salto agudo pré→pós é semelhante entre HIIT e sem-HIIT — a assinatura do HIIT está no nível do dia e no acúmulo (PTH pico no D7), não no salto.</p>');})();
 /* segment filter */
 segbar.querySelectorAll('.seg').forEach(bt=>bt.onclick=()=>{segbar.querySelectorAll('.seg').forEach(x=>x.classList.remove('on'));bt.classList.add('on');const s=bt.dataset.s;
  zone.querySelectorAll('[data-seg]').forEach(el=>el.style.display=(s==='all'||el.dataset.seg===s||el.dataset.seg==='all'&&s==='all')?'':'none');

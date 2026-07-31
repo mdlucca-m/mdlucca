@@ -9,6 +9,7 @@ conf=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/confiabilidade_inva
 pred=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/preditiva/resultados_preditiva.json'))
 pv=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/perfil_variabilidade/resultados_perfil_variabilidade.json'))
 mt=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/modelo_teorico/resultados_modelo_teorico.json'))
+dh=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/dias_hiit/resultados_dias_hiit.json'))
 
 CSS="""
 @page{size:A4;margin:18mm 16mm}
@@ -71,6 +72,18 @@ rowsVar=[[v['var'],f"{v['pct_entre']:.1f}".replace('.',','),('—' if v['CV_intr
 _pf=pv['perfil']; _icb=_pf['iceberg_prev']
 _chi=f"χ²({_pf['quiquadrado']['df']}) = {_pf['quiquadrado']['chi2']:.2f}".replace('.',','); _pchi=str(_pf['quiquadrado']['p']).replace('.',','); _cv=str(_pf['quiquadrado']['cramer_V']).replace('.',',')
 _eta=str(pv['segmentacao']['eta2_PTH_entre_grupos']).replace('.',','); _ic0=f"{_icb['pre']*100:.0f}"; _ic1=f"{_icb['pos']*100:.0f}"
+_fnum2=lambda v:('—' if v is None else f"{v:+.2f}".replace('.',','))
+_pnum=lambda v:('<0,001' if v<0.001 else f"{v:.3f}".replace('.',','))
+rowsDA=[]  # entre dias de HIIT
+for _v,_o in dh['A_entre_HIIT'].items():
+    _m=_o['friedman']['medias']
+    rowsDA.append([_o['label'],_fnum2(_m.get('2')),_fnum2(_m.get('4')),_fnum2(_m.get('7')),_pnum(_o['friedman']['p']),'sim' if _o['friedman']['p']<0.05 else 'não'])
+rowsDB=[]  # entre dias sem HIIT
+for _v,_o in dh['B_entre_SEM'].items():
+    _m=_o['friedman']['medias']
+    rowsDB.append([_o['label'],_fnum2(_m.get('1')),_fnum2(_m.get('3')),_fnum2(_m.get('5')),_fnum2(_m.get('6')),_pnum(_o['friedman']['p']),'sim' if _o['friedman']['p']<0.05 else 'não'])
+rowsDC=[[c['var'],_fnum2(c['media_HIIT']),_fnum2(c['media_SEM']),f"{c['dz']:+.2f}".replace('.',','),_pnum(c['p_FDR']),'sim' if c['sig'] else 'não'] for c in dh['C_HIIT_vs_SEM']['resultados']]
+_nC=dh['C_HIIT_vs_SEM']['n_atletas']
 def _mtfx(y,term): return next(f for f in mt['mistos_R2_SE'][y]['fixos'] if f['termo']==term)
 rowsMT=[]
 for _y in ['PTH','FadFis','Vigor','Fadiga']:
@@ -151,6 +164,17 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
  <p>No nível do dia (modelo misto, dias 2–7), o HIIT eleva o PTH em <b>+2,43</b> (p=0,003) e mexe no eixo energia–fadiga. Porém a interação Condição×Momento é nula para o PTH (p=0,910): o <b>salto agudo</b> pré→pós não difere entre HIIT e técnico-tático — a perturbação vem do nível do dia, não do estímulo agudo específico. A única exceção é a fadiga física, amplificada agudamente pelo HIIT (p=0,035).</p>
  {tbl(['Desfecho','Δ HIIT − sem','p'],rowsC)}
  {fig('M3_efeito_hiit','<b>Efeito do HIIT</b> vs. técnico-tático por desfecho (nível do dia).')}
+</section>
+
+<section>
+ <div class="eyebrow">Comparação entre os dias</div><h2>Dias de HIIT entre si, dias sem HIIT entre si e HIIT vs sem</h2>
+ <p>Três contrastes sobre a resposta aguda (Δ = pós − pré) por atleta-dia. Entre os <b>dias de HIIT</b> (D2/D4/D7), o teste de Friedman é não significativo em todas as variáveis — as três sessões são um <b>estímulo agudo consistente</b>, sem habituação nem amplificação progressiva.</p>
+ {tbl(['Variável','Δ D2','Δ D4','Δ D7','Friedman p','Diferem?'],rowsDA)}
+ <p>Entre os <b>dias sem HIIT</b> (D1/D3/D5/D6), os dias técnico-táticos são equivalentes — <b>exceto no PTH</b> (p = 0,029): os dias 1 e 6 perturbam bem mais que os dias 3 e 5. Nem todo dia sem HIIT é igual.</p>
+ {tbl(['Variável','Δ D1','Δ D3','Δ D5','Δ D6','Friedman p','Diferem?'],rowsDB)}
+ <p>No contraste direto <b>HIIT vs sem HIIT</b> (média do Δ agudo por atleta, n = {_nC}; Wilcoxon + FDR), nenhuma variável difere — o <b>salto agudo pré→pós é semelhante</b> entre os tipos de dia (a fadiga física tende a subir mais no HIIT, dz = 0,38, n.s.). Coerente com a interação Condição×Momento nula (§6): a assinatura do HIIT está no <b>nível do dia</b> e no <b>acúmulo</b> (PTH com pico no D7), não na magnitude da resposta pré→pós.</p>
+ {tbl(['Variável','Δ HIIT','Δ SEM','dz','p (FDR)','Difere?'],rowsDC)}
+ {fig('diashiit','<b>Comparação entre os dias.</b> A: entre dias de HIIT (equivalentes); B: entre dias sem HIIT (só o PTH difere); C: HIIT vs sem (salto agudo semelhante); D: nível de PTH por dia D1→D7 (pico no D7).')}
 </section>
 
 <section>
