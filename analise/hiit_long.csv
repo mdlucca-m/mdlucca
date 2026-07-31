@@ -1,0 +1,649 @@
+sessao,data,atleta,bloco,fc_pre,fc_pos,pse
+1,2024-04-22,Luis Gustavo Garcia da Silva,Aquecimento,83.0,162.0,2.0
+1,2024-04-22,Luis Gustavo Garcia da Silva,Série 1,110.0,179.0,5.0
+1,2024-04-22,Luis Gustavo Garcia da Silva,Série 2,127.0,185.0,7.0
+1,2024-04-22,Luis Gustavo Garcia da Silva,Série 3,129.0,187.0,9.0
+1,2024-04-22,Luis Gustavo Garcia da Silva,Série 4,133.0,190.0,10.0
+1,2024-04-22,Luis Gustavo Garcia da Silva,Recuperação,160.0,,9.0
+1,2024-04-22,Luis Andre,Aquecimento,90.0,161.0,4.0
+1,2024-04-22,Luis Andre,Série 1,108.0,175.0,6.0
+1,2024-04-22,Luis Andre,Série 2,120.0,178.0,7.0
+1,2024-04-22,Luis Andre,Série 3,127.0,181.0,9.0
+1,2024-04-22,Luis Andre,Série 4,133.0,184.0,10.0
+1,2024-04-22,Luis Andre,Recuperação,157.0,,9.0
+1,2024-04-22,Felipe Cesar Coutinho,Aquecimento,103.0,151.0,4.0
+1,2024-04-22,Felipe Cesar Coutinho,Série 1,108.0,171.0,7.0
+1,2024-04-22,Felipe Cesar Coutinho,Série 2,127.0,175.0,8.0
+1,2024-04-22,Felipe Cesar Coutinho,Série 3,133.0,179.0,9.0
+1,2024-04-22,Felipe Cesar Coutinho,Série 4,137.0,182.0,10.0
+1,2024-04-22,Felipe Cesar Coutinho,Recuperação,156.0,,9.0
+1,2024-04-22,Ricardo Marreta,Aquecimento,102.0,169.0,1.0
+1,2024-04-22,Ricardo Marreta,Série 1,131.0,184.0,2.0
+1,2024-04-22,Ricardo Marreta,Série 2,142.0,185.0,3.0
+1,2024-04-22,Ricardo Marreta,Série 3,141.0,186.0,6.0
+1,2024-04-22,Ricardo Marreta,Série 4,137.0,188.0,7.0
+1,2024-04-22,Ricardo Marreta,Recuperação,167.0,,8.0
+1,2024-04-22,Lucas Oneda,Aquecimento,125.0,156.0,2.0
+1,2024-04-22,Lucas Oneda,Série 1,127.0,172.0,5.0
+1,2024-04-22,Lucas Oneda,Série 2,122.0,177.0,8.0
+1,2024-04-22,Lucas Oneda,Série 3,130.0,179.0,9.0
+1,2024-04-22,Lucas Oneda,Série 4,127.0,185.0,10.0
+1,2024-04-22,Lucas Oneda,Recuperação,149.0,,8.0
+1,2024-04-22,Lissandro Santos,Aquecimento,108.0,149.0,2.0
+1,2024-04-22,Lissandro Santos,Série 1,88.0,167.0,6.0
+1,2024-04-22,Lissandro Santos,Série 2,103.0,174.0,7.0
+1,2024-04-22,Lissandro Santos,Série 3,110.0,177.0,8.0
+1,2024-04-22,Lissandro Santos,Série 4,122.0,175.0,10.0
+1,2024-04-22,Lissandro Santos,Recuperação,147.0,,10.0
+1,2024-04-22,Álvaro Bruno,Aquecimento,90.0,159.0,1.0
+1,2024-04-22,Álvaro Bruno,Série 1,118.0,174.0,3.0
+1,2024-04-22,Álvaro Bruno,Série 2,123.0,176.0,5.0
+1,2024-04-22,Álvaro Bruno,Série 3,134.0,178.0,7.0
+1,2024-04-22,Álvaro Bruno,Série 4,135.0,180.0,8.0
+1,2024-04-22,Álvaro Bruno,Recuperação,158.0,,8.0
+1,2024-04-22,João Gomes,Aquecimento,91.0,158.0,2.0
+1,2024-04-22,João Gomes,Série 1,108.0,174.0,4.0
+1,2024-04-22,João Gomes,Série 2,115.0,178.0,6.0
+1,2024-04-22,João Gomes,Série 3,131.0,180.0,7.0
+1,2024-04-22,João Gomes,Série 4,139.0,180.0,8.0
+1,2024-04-22,João Gomes,Recuperação,157.0,,8.0
+1,2024-04-22,Luís Felipe Araújo,Aquecimento,120.0,165.0,4.0
+1,2024-04-22,Luís Felipe Araújo,Série 1,135.0,179.0,7.0
+1,2024-04-22,Luís Felipe Araújo,Série 2,140.0,181.0,8.0
+1,2024-04-22,Luís Felipe Araújo,Série 3,148.0,183.0,8.0
+1,2024-04-22,Luís Felipe Araújo,Série 4,151.0,183.0,9.0
+1,2024-04-22,Luís Felipe Araújo,Recuperação,166.0,,8.0
+1,2024-04-22,Matheus Vicente da Silva,Aquecimento,111.0,168.0,4.0
+1,2024-04-22,Matheus Vicente da Silva,Série 1,123.0,187.0,6.0
+1,2024-04-22,Matheus Vicente da Silva,Série 2,128.0,189.0,8.0
+1,2024-04-22,Matheus Vicente da Silva,Série 3,135.0,190.0,9.0
+1,2024-04-22,Matheus Vicente da Silva,Série 4,143.0,193.0,10.0
+1,2024-04-22,Matheus Vicente da Silva,Recuperação,168.0,,10.0
+1,2024-04-22,George Correia,Aquecimento,104.0,168.0,3.0
+1,2024-04-22,George Correia,Série 1,115.0,184.0,5.0
+1,2024-04-22,George Correia,Série 2,133.0,190.0,7.0
+1,2024-04-22,George Correia,Série 3,140.0,192.0,8.0
+1,2024-04-22,George Correia,Série 4,148.0,191.0,9.0
+1,2024-04-22,George Correia,Recuperação,166.0,,8.0
+1,2024-04-22,Isaac Anderson,Aquecimento,120.0,158.0,1.0
+1,2024-04-22,Isaac Anderson,Série 1,104.0,179.0,3.0
+1,2024-04-22,Isaac Anderson,Série 2,116.0,182.0,6.0
+1,2024-04-22,Isaac Anderson,Série 3,129.0,181.0,8.0
+1,2024-04-22,Isaac Anderson,Série 4,128.0,183.0,10.0
+1,2024-04-22,Isaac Anderson,Recuperação,160.0,,8.0
+1,2024-04-22,Sydclebson Aquino,Aquecimento,104.0,169.0,3.0
+1,2024-04-22,Sydclebson Aquino,Série 1,110.0,180.0,4.0
+1,2024-04-22,Sydclebson Aquino,Série 2,127.0,184.0,6.0
+1,2024-04-22,Sydclebson Aquino,Série 3,133.0,183.0,8.0
+1,2024-04-22,Sydclebson Aquino,Série 4,133.0,181.0,10.0
+1,2024-04-22,Sydclebson Aquino,Recuperação,163.0,,9.0
+1,2024-04-22,Octávio Paiva,Aquecimento,93.0,156.0,3.0
+1,2024-04-22,Octávio Paiva,Série 1,99.0,171.0,4.0
+1,2024-04-22,Octávio Paiva,Série 2,111.0,176.0,6.0
+1,2024-04-22,Octávio Paiva,Série 3,122.0,178.0,8.0
+1,2024-04-22,Octávio Paiva,Série 4,126.0,181.0,9.0
+1,2024-04-22,Octávio Paiva,Recuperação,154.0,,7.0
+1,2024-04-22,Gustavo Ferreira,Aquecimento,90.0,167.0,4.0
+1,2024-04-22,Gustavo Ferreira,Série 1,113.0,185.0,8.0
+1,2024-04-22,Gustavo Ferreira,Série 2,134.0,194.0,9.0
+1,2024-04-22,Gustavo Ferreira,Série 3,149.0,194.0,10.0
+1,2024-04-22,Gustavo Ferreira,Série 4,150.0,196.0,10.0
+1,2024-04-22,Gustavo Ferreira,Recuperação,170.0,,9.0
+1,2024-04-22,Nichollas Oliveira,Aquecimento,99.0,165.0,2.0
+1,2024-04-22,Nichollas Oliveira,Série 1,102.0,178.0,4.0
+1,2024-04-22,Nichollas Oliveira,Série 2,112.0,182.0,6.0
+1,2024-04-22,Nichollas Oliveira,Série 3,116.0,182.0,8.0
+1,2024-04-22,Nichollas Oliveira,Série 4,121.0,187.0,9.0
+1,2024-04-22,Nichollas Oliveira,Recuperação,152.0,,7.0
+1,2024-04-22,Enzo Adamo,Aquecimento,105.0,160.0,2.0
+1,2024-04-22,Enzo Adamo,Série 1,117.0,173.0,5.0
+1,2024-04-22,Enzo Adamo,Série 2,128.0,176.0,6.0
+1,2024-04-22,Enzo Adamo,Série 3,127.0,176.0,8.0
+1,2024-04-22,Enzo Adamo,Série 4,131.0,178.0,8.0
+1,2024-04-22,Enzo Adamo,Recuperação,154.0,,7.0
+1,2024-04-22,Lukas Cazarin,Aquecimento,96.0,154.0,2.0
+1,2024-04-22,Lukas Cazarin,Série 1,105.0,169.0,5.0
+1,2024-04-22,Lukas Cazarin,Série 2,123.0,176.0,7.0
+1,2024-04-22,Lukas Cazarin,Série 3,125.0,179.0,8.0
+1,2024-04-22,Lukas Cazarin,Série 4,130.0,183.0,8.0
+1,2024-04-22,Lukas Cazarin,Recuperação,155.0,,7.0
+1,2024-04-22,Guilherme Monteiro,Aquecimento,86.0,152.0,3.0
+1,2024-04-22,Guilherme Monteiro,Série 1,90.0,165.0,5.0
+1,2024-04-22,Guilherme Monteiro,Série 2,115.0,174.0,6.0
+1,2024-04-22,Guilherme Monteiro,Série 3,116.0,176.0,8.0
+1,2024-04-22,Guilherme Monteiro,Série 4,120.0,174.0,10.0
+1,2024-04-22,Guilherme Monteiro,Recuperação,145.0,,9.0
+1,2024-04-22,Kauan Pereira,Aquecimento,98.0,159.0,3.0
+1,2024-04-22,Kauan Pereira,Série 1,116.0,177.0,6.0
+1,2024-04-22,Kauan Pereira,Série 2,126.0,179.0,10.0
+1,2024-04-22,Kauan Pereira,Série 3,127.0,173.0,10.0
+1,2024-04-22,Kauan Pereira,Série 4,126.0,174.0,10.0
+1,2024-04-22,Kauan Pereira,Recuperação,154.0,,9.0
+1,2024-04-22,José Sena,Aquecimento,86.0,159.0,2.0
+1,2024-04-22,José Sena,Série 1,113.0,177.0,5.0
+1,2024-04-22,José Sena,Série 2,126.0,181.0,7.0
+1,2024-04-22,José Sena,Série 3,128.0,182.0,9.0
+1,2024-04-22,José Sena,Série 4,128.0,182.0,10.0
+1,2024-04-22,José Sena,Recuperação,155.0,,9.0
+1,2024-04-22,Enzo Remlinger Mattos,Aquecimento,107.0,164.0,2.0
+1,2024-04-22,Enzo Remlinger Mattos,Série 1,135.0,178.0,5.0
+1,2024-04-22,Enzo Remlinger Mattos,Série 2,143.0,181.0,7.0
+1,2024-04-22,Enzo Remlinger Mattos,Série 3,140.0,178.0,9.0
+1,2024-04-22,Enzo Remlinger Mattos,Série 4,142.0,178.0,10.0
+1,2024-04-22,Enzo Remlinger Mattos,Recuperação,161.0,,9.0
+1,2024-04-22,Lucas Silva,Aquecimento,101.0,151.0,2.0
+1,2024-04-22,Lucas Silva,Série 1,105.0,164.0,5.0
+1,2024-04-22,Lucas Silva,Série 2,128.0,167.0,7.0
+1,2024-04-22,Lucas Silva,Série 3,121.0,168.0,9.0
+1,2024-04-22,Lucas Silva,Série 4,125.0,172.0,10.0
+1,2024-04-22,Lucas Silva,Recuperação,142.0,,8.0
+1,2024-04-22,Gabriel Paixão,Aquecimento,86.0,162.0,4.0
+1,2024-04-22,Gabriel Paixão,Série 1,117.0,183.0,6.0
+1,2024-04-22,Gabriel Paixão,Série 2,140.0,186.0,7.0
+1,2024-04-22,Gabriel Paixão,Série 3,133.0,186.0,8.0
+1,2024-04-22,Gabriel Paixão,Série 4,131.0,188.0,9.0
+1,2024-04-22,Gabriel Paixão,Recuperação,162.0,,8.0
+1,2024-04-22,Abner Giovane Januário,Aquecimento,89.0,162.0,3.0
+1,2024-04-22,Abner Giovane Januário,Série 1,114.0,177.0,7.0
+1,2024-04-22,Abner Giovane Januário,Série 2,115.0,180.0,8.0
+1,2024-04-22,Abner Giovane Januário,Série 3,128.0,183.0,10.0
+1,2024-04-22,Abner Giovane Januário,Série 4,134.0,182.0,10.0
+1,2024-04-22,Abner Giovane Januário,Recuperação,158.0,,10.0
+1,2024-04-22,Roberto Weickert,Aquecimento,129.0,171.0,4.0
+1,2024-04-22,Roberto Weickert,Série 1,137.0,185.0,9.0
+1,2024-04-22,Roberto Weickert,Série 2,152.0,188.0,10.0
+1,2024-04-22,Roberto Weickert,Série 3,138.0,187.0,10.0
+1,2024-04-22,Roberto Weickert,Série 4,146.0,191.0,10.0
+1,2024-04-22,Roberto Weickert,Recuperação,170.0,,10.0
+1,2024-04-22,Cristiano Seben Rossa,Aquecimento,,,
+1,2024-04-22,Cristiano Seben Rossa,Série 1,,,
+1,2024-04-22,Cristiano Seben Rossa,Série 2,,,
+1,2024-04-22,Cristiano Seben Rossa,Série 3,,,
+1,2024-04-22,Cristiano Seben Rossa,Série 4,,,
+1,2024-04-22,Cristiano Seben Rossa,Recuperação,,,
+2,2024-04-24,Luis Gustavo Garcia da Silva,Aquecimento,122.0,164.0,3.0
+2,2024-04-24,Luis Gustavo Garcia da Silva,Série 1,110.0,182.0,6.0
+2,2024-04-24,Luis Gustavo Garcia da Silva,Série 2,128.0,189.0,8.0
+2,2024-04-24,Luis Gustavo Garcia da Silva,Série 3,136.0,193.0,10.0
+2,2024-04-24,Luis Gustavo Garcia da Silva,Série 4,149.0,195.0,10.0
+2,2024-04-24,Luis Gustavo Garcia da Silva,Recuperação,168.0,,10.0
+2,2024-04-24,Luis Andre,Aquecimento,124.0,166.0,3.0
+2,2024-04-24,Luis Andre,Série 1,119.0,177.0,5.0
+2,2024-04-24,Luis Andre,Série 2,134.0,181.0,7.0
+2,2024-04-24,Luis Andre,Série 3,140.0,183.0,8.0
+2,2024-04-24,Luis Andre,Série 4,145.0,186.0,10.0
+2,2024-04-24,Luis Andre,Recuperação,162.0,,8.0
+2,2024-04-24,Felipe Cesar Coutinho,Aquecimento,117.0,159.0,3.0
+2,2024-04-24,Felipe Cesar Coutinho,Série 1,118.0,174.0,6.0
+2,2024-04-24,Felipe Cesar Coutinho,Série 2,125.0,180.0,7.0
+2,2024-04-24,Felipe Cesar Coutinho,Série 3,139.0,182.0,8.0
+2,2024-04-24,Felipe Cesar Coutinho,Série 4,139.0,183.0,9.0
+2,2024-04-24,Felipe Cesar Coutinho,Recuperação,161.0,,9.0
+2,2024-04-24,Ricardo Marreta,Aquecimento,107.0,172.0,1.0
+2,2024-04-24,Ricardo Marreta,Série 1,115.0,183.0,3.0
+2,2024-04-24,Ricardo Marreta,Série 2,136.0,185.0,5.0
+2,2024-04-24,Ricardo Marreta,Série 3,141.0,187.0,7.0
+2,2024-04-24,Ricardo Marreta,Série 4,144.0,191.0,8.0
+2,2024-04-24,Ricardo Marreta,Recuperação,168.0,,8.0
+2,2024-04-24,Lucas Oneda,Aquecimento,108.0,160.0,3.0
+2,2024-04-24,Lucas Oneda,Série 1,121.0,173.0,7.0
+2,2024-04-24,Lucas Oneda,Série 2,119.0,174.0,9.0
+2,2024-04-24,Lucas Oneda,Série 3,118.0,176.0,10.0
+2,2024-04-24,Lucas Oneda,Série 4,124.0,182.0,10.0
+2,2024-04-24,Lucas Oneda,Recuperação,149.0,,10.0
+2,2024-04-24,Lissandro Santos,Aquecimento,113.0,152.0,2.0
+2,2024-04-24,Lissandro Santos,Série 1,103.0,171.0,6.0
+2,2024-04-24,Lissandro Santos,Série 2,104.0,176.0,7.0
+2,2024-04-24,Lissandro Santos,Série 3,117.0,179.0,9.0
+2,2024-04-24,Lissandro Santos,Série 4,126.0,182.0,10.0
+2,2024-04-24,Lissandro Santos,Recuperação,151.0,,10.0
+2,2024-04-24,Álvaro Bruno,Aquecimento,114.0,157.0,2.0
+2,2024-04-24,Álvaro Bruno,Série 1,122.0,172.0,3.0
+2,2024-04-24,Álvaro Bruno,Série 2,119.0,173.0,5.0
+2,2024-04-24,Álvaro Bruno,Série 3,133.0,178.0,6.0
+2,2024-04-24,Álvaro Bruno,Série 4,130.0,178.0,8.0
+2,2024-04-24,Álvaro Bruno,Recuperação,156.0,,8.0
+2,2024-04-24,João Gomes,Aquecimento,94.0,152.0,1.0
+2,2024-04-24,João Gomes,Série 1,98.0,165.0,3.0
+2,2024-04-24,João Gomes,Série 2,118.0,171.0,6.0
+2,2024-04-24,João Gomes,Série 3,124.0,174.0,8.0
+2,2024-04-24,João Gomes,Série 4,128.0,176.0,10.0
+2,2024-04-24,João Gomes,Recuperação,148.0,,9.0
+2,2024-04-24,Luís Felipe Araújo,Aquecimento,120.0,167.0,4.0
+2,2024-04-24,Luís Felipe Araújo,Série 1,130.0,178.0,7.0
+2,2024-04-24,Luís Felipe Araújo,Série 2,141.0,182.0,8.0
+2,2024-04-24,Luís Felipe Araújo,Série 3,145.0,182.0,8.0
+2,2024-04-24,Luís Felipe Araújo,Série 4,148.0,182.0,9.0
+2,2024-04-24,Luís Felipe Araújo,Recuperação,164.0,,8.0
+2,2024-04-24,Matheus Vicente da Silva,Aquecimento,98.0,162.0,3.0
+2,2024-04-24,Matheus Vicente da Silva,Série 1,112.0,178.0,6.0
+2,2024-04-24,Matheus Vicente da Silva,Série 2,125.0,182.0,7.0
+2,2024-04-24,Matheus Vicente da Silva,Série 3,130.0,185.0,9.0
+2,2024-04-24,Matheus Vicente da Silva,Série 4,131.0,186.0,10.0
+2,2024-04-24,Matheus Vicente da Silva,Recuperação,159.0,,9.0
+2,2024-04-24,George Correia,Aquecimento,87.0,157.0,2.0
+2,2024-04-24,George Correia,Série 1,106.0,175.0,5.0
+2,2024-04-24,George Correia,Série 2,117.0,179.0,7.0
+2,2024-04-24,George Correia,Série 3,120.0,180.0,9.0
+2,2024-04-24,George Correia,Série 4,122.0,181.0,9.0
+2,2024-04-24,George Correia,Recuperação,152.0,,8.0
+2,2024-04-24,Isaac Anderson,Aquecimento,127.0,170.0,2.0
+2,2024-04-24,Isaac Anderson,Série 1,122.0,179.0,5.0
+2,2024-04-24,Isaac Anderson,Série 2,131.0,181.0,8.0
+2,2024-04-24,Isaac Anderson,Série 3,135.0,182.0,10.0
+2,2024-04-24,Isaac Anderson,Série 4,141.0,186.0,10.0
+2,2024-04-24,Isaac Anderson,Recuperação,161.0,,9.0
+2,2024-04-24,Sydclebson Aquino,Aquecimento,103.0,162.0,2.0
+2,2024-04-24,Sydclebson Aquino,Série 1,116.0,179.0,4.0
+2,2024-04-24,Sydclebson Aquino,Série 2,131.0,182.0,6.0
+2,2024-04-24,Sydclebson Aquino,Série 3,126.0,183.0,8.0
+2,2024-04-24,Sydclebson Aquino,Série 4,134.0,182.0,10.0
+2,2024-04-24,Sydclebson Aquino,Recuperação,159.0,,8.0
+2,2024-04-24,Octávio Paiva,Aquecimento,99.0,155.0,2.0
+2,2024-04-24,Octávio Paiva,Série 1,113.0,172.0,4.0
+2,2024-04-24,Octávio Paiva,Série 2,121.0,177.0,6.0
+2,2024-04-24,Octávio Paiva,Série 3,122.0,179.0,7.0
+2,2024-04-24,Octávio Paiva,Série 4,132.0,183.0,9.0
+2,2024-04-24,Octávio Paiva,Recuperação,155.0,,7.0
+2,2024-04-24,Gustavo Ferreira,Aquecimento,96.0,157.0,2.0
+2,2024-04-24,Gustavo Ferreira,Série 1,113.0,177.0,5.0
+2,2024-04-24,Gustavo Ferreira,Série 2,126.0,184.0,6.0
+2,2024-04-24,Gustavo Ferreira,Série 3,131.0,188.0,7.0
+2,2024-04-24,Gustavo Ferreira,Série 4,139.0,188.0,8.0
+2,2024-04-24,Gustavo Ferreira,Recuperação,162.0,,7.0
+2,2024-04-24,Nichollas Oliveira,Aquecimento,83.0,161.0,2.0
+2,2024-04-24,Nichollas Oliveira,Série 1,105.0,182.0,4.0
+2,2024-04-24,Nichollas Oliveira,Série 2,106.0,187.0,7.0
+2,2024-04-24,Nichollas Oliveira,Série 3,123.0,192.0,8.0
+2,2024-04-24,Nichollas Oliveira,Série 4,124.0,195.0,10.0
+2,2024-04-24,Nichollas Oliveira,Recuperação,157.0,,8.0
+2,2024-04-24,Enzo Adamo,Aquecimento,103.0,158.0,3.0
+2,2024-04-24,Enzo Adamo,Série 1,116.0,168.0,5.0
+2,2024-04-24,Enzo Adamo,Série 2,121.0,168.0,7.0
+2,2024-04-24,Enzo Adamo,Série 3,123.0,171.0,7.0
+2,2024-04-24,Enzo Adamo,Série 4,125.0,173.0,8.0
+2,2024-04-24,Enzo Adamo,Recuperação,147.0,,8.0
+2,2024-04-24,Lukas Cazarin,Aquecimento,93.0,155.0,2.0
+2,2024-04-24,Lukas Cazarin,Série 1,113.0,173.0,5.0
+2,2024-04-24,Lukas Cazarin,Série 2,120.0,176.0,7.0
+2,2024-04-24,Lukas Cazarin,Série 3,123.0,182.0,7.0
+2,2024-04-24,Lukas Cazarin,Série 4,133.0,183.0,8.0
+2,2024-04-24,Lukas Cazarin,Recuperação,154.0,,7.0
+2,2024-04-24,Guilherme Monteiro,Aquecimento,85.0,147.0,3.0
+2,2024-04-24,Guilherme Monteiro,Série 1,97.0,162.0,5.0
+2,2024-04-24,Guilherme Monteiro,Série 2,107.0,168.0,7.0
+2,2024-04-24,Guilherme Monteiro,Série 3,107.0,171.0,9.0
+2,2024-04-24,Guilherme Monteiro,Série 4,114.0,172.0,10.0
+2,2024-04-24,Guilherme Monteiro,Recuperação,142.0,,9.0
+2,2024-04-24,Kauan Pereira,Aquecimento,94.0,156.0,5.0
+2,2024-04-24,Kauan Pereira,Série 1,110.0,180.0,7.0
+2,2024-04-24,Kauan Pereira,Série 2,119.0,182.0,9.0
+2,2024-04-24,Kauan Pereira,Série 3,129.0,181.0,10.0
+2,2024-04-24,Kauan Pereira,Série 4,129.0,187.0,10.0
+2,2024-04-24,Kauan Pereira,Recuperação,157.0,,9.0
+2,2024-04-24,José Sena,Aquecimento,105.0,150.0,2.0
+2,2024-04-24,José Sena,Série 1,111.0,169.0,4.0
+2,2024-04-24,José Sena,Série 2,117.0,172.0,6.0
+2,2024-04-24,José Sena,Série 3,120.0,174.0,7.0
+2,2024-04-24,José Sena,Série 4,128.0,181.0,9.0
+2,2024-04-24,José Sena,Recuperação,148.0,,8.0
+2,2024-04-24,Enzo Remlinger Mattos,Aquecimento,,,
+2,2024-04-24,Enzo Remlinger Mattos,Série 1,,,
+2,2024-04-24,Enzo Remlinger Mattos,Série 2,,,
+2,2024-04-24,Enzo Remlinger Mattos,Série 3,,,
+2,2024-04-24,Enzo Remlinger Mattos,Série 4,,,
+2,2024-04-24,Enzo Remlinger Mattos,Recuperação,,,
+2,2024-04-24,Lucas Silva,Aquecimento,99.0,150.0,2.0
+2,2024-04-24,Lucas Silva,Série 1,110.0,161.0,4.0
+2,2024-04-24,Lucas Silva,Série 2,113.0,167.0,6.0
+2,2024-04-24,Lucas Silva,Série 3,115.0,176.0,9.0
+2,2024-04-24,Lucas Silva,Série 4,119.0,176.0,9.0
+2,2024-04-24,Lucas Silva,Recuperação,143.0,,7.0
+2,2024-04-24,Gabriel Paixão,Aquecimento,99.0,157.0,4.0
+2,2024-04-24,Gabriel Paixão,Série 1,116.0,175.0,5.0
+2,2024-04-24,Gabriel Paixão,Série 2,122.0,177.0,6.0
+2,2024-04-24,Gabriel Paixão,Série 3,128.0,181.0,9.0
+2,2024-04-24,Gabriel Paixão,Série 4,135.0,185.0,9.0
+2,2024-04-24,Gabriel Paixão,Recuperação,153.0,,8.0
+2,2024-04-24,Abner Giovane Januário,Aquecimento,95.0,159.0,3.0
+2,2024-04-24,Abner Giovane Januário,Série 1,120.0,175.0,7.0
+2,2024-04-24,Abner Giovane Januário,Série 2,125.0,181.0,8.0
+2,2024-04-24,Abner Giovane Januário,Série 3,123.0,180.0,10.0
+2,2024-04-24,Abner Giovane Januário,Série 4,128.0,180.0,10.0
+2,2024-04-24,Abner Giovane Januário,Recuperação,155.0,,10.0
+2,2024-04-24,Roberto Weickert,Aquecimento,88.0,164.0,4.0
+2,2024-04-24,Roberto Weickert,Série 1,116.0,181.0,8.0
+2,2024-04-24,Roberto Weickert,Série 2,125.0,186.0,10.0
+2,2024-04-24,Roberto Weickert,Série 3,133.0,187.0,10.0
+2,2024-04-24,Roberto Weickert,Série 4,142.0,188.0,10.0
+2,2024-04-24,Roberto Weickert,Recuperação,164.0,,10.0
+2,2024-04-24,Cristiano Seben Rossa,Aquecimento,,,
+2,2024-04-24,Cristiano Seben Rossa,Série 1,,,
+2,2024-04-24,Cristiano Seben Rossa,Série 2,,,
+2,2024-04-24,Cristiano Seben Rossa,Série 3,,,
+2,2024-04-24,Cristiano Seben Rossa,Série 4,,,
+2,2024-04-24,Cristiano Seben Rossa,Recuperação,,,
+3,2024-04-27,Luis Gustavo Garcia da Silva,Aquecimento,83.0,164.0,4.0
+3,2024-04-27,Luis Gustavo Garcia da Silva,Série 1,115.0,182.0,8.0
+3,2024-04-27,Luis Gustavo Garcia da Silva,Série 2,130.0,184.0,10.0
+3,2024-04-27,Luis Gustavo Garcia da Silva,Série 3,135.0,189.0,10.0
+3,2024-04-27,Luis Gustavo Garcia da Silva,Série 4,139.0,187.0,10.0
+3,2024-04-27,Luis Gustavo Garcia da Silva,Recuperação,164.0,,10.0
+3,2024-04-27,Luis Andre,Aquecimento,98.0,166.0,5.0
+3,2024-04-27,Luis Andre,Série 1,124.0,178.0,7.0
+3,2024-04-27,Luis Andre,Série 2,130.0,181.0,9.0
+3,2024-04-27,Luis Andre,Série 3,139.0,183.0,10.0
+3,2024-04-27,Luis Andre,Série 4,142.0,185.0,10.0
+3,2024-04-27,Luis Andre,Recuperação,161.0,,10.0
+3,2024-04-27,Felipe Cesar Coutinho,Aquecimento,92.0,154.0,4.0
+3,2024-04-27,Felipe Cesar Coutinho,Série 1,112.0,169.0,7.0
+3,2024-04-27,Felipe Cesar Coutinho,Série 2,126.0,174.0,9.0
+3,2024-04-27,Felipe Cesar Coutinho,Série 3,127.0,178.0,9.0
+3,2024-04-27,Felipe Cesar Coutinho,Série 4,133.0,179.0,10.0
+3,2024-04-27,Felipe Cesar Coutinho,Recuperação,155.0,,10.0
+3,2024-04-27,Ricardo Marreta,Aquecimento,73.0,158.0,3.0
+3,2024-04-27,Ricardo Marreta,Série 1,104.0,172.0,6.0
+3,2024-04-27,Ricardo Marreta,Série 2,110.0,182.0,7.0
+3,2024-04-27,Ricardo Marreta,Série 3,133.0,187.0,8.0
+3,2024-04-27,Ricardo Marreta,Série 4,136.0,186.0,9.0
+3,2024-04-27,Ricardo Marreta,Recuperação,160.0,,9.0
+3,2024-04-27,Lucas Oneda,Aquecimento,101.0,164.0,4.0
+3,2024-04-27,Lucas Oneda,Série 1,124.0,184.0,7.0
+3,2024-04-27,Lucas Oneda,Série 2,135.0,179.0,9.0
+3,2024-04-27,Lucas Oneda,Série 3,133.0,177.0,10.0
+3,2024-04-27,Lucas Oneda,Série 4,137.0,180.0,10.0
+3,2024-04-27,Lucas Oneda,Recuperação,156.0,,10.0
+3,2024-04-27,Lissandro Santos,Aquecimento,72.0,146.0,5.0
+3,2024-04-27,Lissandro Santos,Série 1,84.0,163.0,7.0
+3,2024-04-27,Lissandro Santos,Série 2,99.0,168.0,9.0
+3,2024-04-27,Lissandro Santos,Série 3,104.0,172.0,10.0
+3,2024-04-27,Lissandro Santos,Série 4,115.0,169.0,10.0
+3,2024-04-27,Lissandro Santos,Recuperação,140.0,,10.0
+3,2024-04-27,Álvaro Bruno,Aquecimento,81.0,155.0,3.0
+3,2024-04-27,Álvaro Bruno,Série 1,108.0,169.0,5.0
+3,2024-04-27,Álvaro Bruno,Série 2,122.0,173.0,7.0
+3,2024-04-27,Álvaro Bruno,Série 3,125.0,176.0,9.0
+3,2024-04-27,Álvaro Bruno,Série 4,128.0,178.0,10.0
+3,2024-04-27,Álvaro Bruno,Recuperação,150.0,,10.0
+3,2024-04-27,João Gomes,Aquecimento,79.0,153.0,3.0
+3,2024-04-27,João Gomes,Série 1,102.0,168.0,6.0
+3,2024-04-27,João Gomes,Série 2,122.0,173.0,8.0
+3,2024-04-27,João Gomes,Série 3,120.0,176.0,9.0
+3,2024-04-27,João Gomes,Série 4,129.0,178.0,10.0
+3,2024-04-27,João Gomes,Recuperação,150.0,,9.0
+3,2024-04-27,Luís Felipe Araújo,Aquecimento,99.0,161.0,3.0
+3,2024-04-27,Luís Felipe Araújo,Série 1,127.0,176.0,7.0
+3,2024-04-27,Luís Felipe Araújo,Série 2,130.0,179.0,8.0
+3,2024-04-27,Luís Felipe Araújo,Série 3,137.0,182.0,8.0
+3,2024-04-27,Luís Felipe Araújo,Série 4,145.0,184.0,8.0
+3,2024-04-27,Luís Felipe Araújo,Recuperação,160.0,,8.0
+3,2024-04-27,Matheus Vicente da Silva,Aquecimento,102.0,167.0,4.0
+3,2024-04-27,Matheus Vicente da Silva,Série 1,114.0,181.0,6.0
+3,2024-04-27,Matheus Vicente da Silva,Série 2,119.0,184.0,8.0
+3,2024-04-27,Matheus Vicente da Silva,Série 3,128.0,187.0,9.0
+3,2024-04-27,Matheus Vicente da Silva,Série 4,134.0,188.0,10.0
+3,2024-04-27,Matheus Vicente da Silva,Recuperação,164.0,,10.0
+3,2024-04-27,George Correia,Aquecimento,67.0,151.0,4.0
+3,2024-04-27,George Correia,Série 1,105.0,167.0,7.0
+3,2024-04-27,George Correia,Série 2,117.0,169.0,9.0
+3,2024-04-27,George Correia,Série 3,117.0,172.0,10.0
+3,2024-04-27,George Correia,Série 4,118.0,174.0,10.0
+3,2024-04-27,George Correia,Recuperação,144.0,,9.0
+3,2024-04-27,Isaac Anderson,Aquecimento,97.0,162.0,4.0
+3,2024-04-27,Isaac Anderson,Série 1,111.0,179.0,7.0
+3,2024-04-27,Isaac Anderson,Série 2,124.0,180.0,9.0
+3,2024-04-27,Isaac Anderson,Série 3,128.0,184.0,10.0
+3,2024-04-27,Isaac Anderson,Série 4,132.0,184.0,10.0
+3,2024-04-27,Isaac Anderson,Recuperação,157.0,,10.0
+3,2024-04-27,Sydclebson Aquino,Aquecimento,87.0,157.0,2.0
+3,2024-04-27,Sydclebson Aquino,Série 1,107.0,170.0,4.0
+3,2024-04-27,Sydclebson Aquino,Série 2,114.0,176.0,5.0
+3,2024-04-27,Sydclebson Aquino,Série 3,118.0,178.0,7.0
+3,2024-04-27,Sydclebson Aquino,Série 4,129.0,180.0,9.0
+3,2024-04-27,Sydclebson Aquino,Recuperação,155.0,,8.0
+3,2024-04-27,Octávio Paiva,Aquecimento,93.0,148.0,3.0
+3,2024-04-27,Octávio Paiva,Série 1,106.0,166.0,5.0
+3,2024-04-27,Octávio Paiva,Série 2,106.0,169.0,7.0
+3,2024-04-27,Octávio Paiva,Série 3,110.0,171.0,9.0
+3,2024-04-27,Octávio Paiva,Série 4,125.0,175.0,10.0
+3,2024-04-27,Octávio Paiva,Recuperação,145.0,,9.0
+3,2024-04-27,Gustavo Ferreira,Aquecimento,82.0,149.0,2.0
+3,2024-04-27,Gustavo Ferreira,Série 1,93.0,172.0,5.0
+3,2024-04-27,Gustavo Ferreira,Série 2,108.0,179.0,7.0
+3,2024-04-27,Gustavo Ferreira,Série 3,128.0,182.0,7.0
+3,2024-04-27,Gustavo Ferreira,Série 4,128.0,185.0,8.0
+3,2024-04-27,Gustavo Ferreira,Recuperação,155.0,,7.0
+3,2024-04-27,Nichollas Oliveira,Aquecimento,68.0,150.0,3.0
+3,2024-04-27,Nichollas Oliveira,Série 1,95.0,168.0,4.0
+3,2024-04-27,Nichollas Oliveira,Série 2,100.0,177.0,6.0
+3,2024-04-27,Nichollas Oliveira,Série 3,113.0,179.0,9.0
+3,2024-04-27,Nichollas Oliveira,Série 4,113.0,184.0,10.0
+3,2024-04-27,Nichollas Oliveira,Recuperação,145.0,,10.0
+3,2024-04-27,Enzo Adamo,Aquecimento,91.0,151.0,3.0
+3,2024-04-27,Enzo Adamo,Série 1,105.0,167.0,5.0
+3,2024-04-27,Enzo Adamo,Série 2,106.0,167.0,6.0
+3,2024-04-27,Enzo Adamo,Série 3,113.0,168.0,8.0
+3,2024-04-27,Enzo Adamo,Série 4,123.0,173.0,8.0
+3,2024-04-27,Enzo Adamo,Recuperação,143.0,,8.0
+3,2024-04-27,Lukas Cazarin,Aquecimento,80.0,150.0,3.0
+3,2024-04-27,Lukas Cazarin,Série 1,99.0,168.0,7.0
+3,2024-04-27,Lukas Cazarin,Série 2,111.0,173.0,8.0
+3,2024-04-27,Lukas Cazarin,Série 3,120.0,179.0,9.0
+3,2024-04-27,Lukas Cazarin,Série 4,123.0,181.0,10.0
+3,2024-04-27,Lukas Cazarin,Recuperação,150.0,,8.0
+3,2024-04-27,Guilherme Monteiro,Aquecimento,65.0,144.0,3.0
+3,2024-04-27,Guilherme Monteiro,Série 1,94.0,161.0,5.0
+3,2024-04-27,Guilherme Monteiro,Série 2,92.0,167.0,7.0
+3,2024-04-27,Guilherme Monteiro,Série 3,107.0,170.0,9.0
+3,2024-04-27,Guilherme Monteiro,Série 4,111.0,176.0,9.0
+3,2024-04-27,Guilherme Monteiro,Recuperação,141.0,,8.0
+3,2024-04-27,Kauan Pereira,Aquecimento,74.0,158.0,2.0
+3,2024-04-27,Kauan Pereira,Série 1,127.0,177.0,4.0
+3,2024-04-27,Kauan Pereira,Série 2,110.0,176.0,7.0
+3,2024-04-27,Kauan Pereira,Série 3,122.0,175.0,9.0
+3,2024-04-27,Kauan Pereira,Série 4,116.0,177.0,10.0
+3,2024-04-27,Kauan Pereira,Recuperação,153.0,,10.0
+3,2024-04-27,José Sena,Aquecimento,79.0,153.0,2.0
+3,2024-04-27,José Sena,Série 1,104.0,169.0,5.0
+3,2024-04-27,José Sena,Série 2,113.0,173.0,7.0
+3,2024-04-27,José Sena,Série 3,121.0,177.0,9.0
+3,2024-04-27,José Sena,Série 4,122.0,177.0,10.0
+3,2024-04-27,José Sena,Recuperação,150.0,,9.0
+3,2024-04-27,Enzo Remlinger Mattos,Aquecimento,91.0,164.0,2.0
+3,2024-04-27,Enzo Remlinger Mattos,Série 1,130.0,178.0,5.0
+3,2024-04-27,Enzo Remlinger Mattos,Série 2,119.0,180.0,6.0
+3,2024-04-27,Enzo Remlinger Mattos,Série 3,140.0,186.0,8.0
+3,2024-04-27,Enzo Remlinger Mattos,Série 4,146.0,185.0,10.0
+3,2024-04-27,Enzo Remlinger Mattos,Recuperação,163.0,,8.0
+3,2024-04-27,Lucas Silva,Aquecimento,,,
+3,2024-04-27,Lucas Silva,Série 1,,,
+3,2024-04-27,Lucas Silva,Série 2,,,
+3,2024-04-27,Lucas Silva,Série 3,,,
+3,2024-04-27,Lucas Silva,Série 4,,,
+3,2024-04-27,Lucas Silva,Recuperação,,,
+3,2024-04-27,Gabriel Paixão,Aquecimento,79.0,154.0,3.0
+3,2024-04-27,Gabriel Paixão,Série 1,113.0,168.0,5.0
+3,2024-04-27,Gabriel Paixão,Série 2,100.0,174.0,7.0
+3,2024-04-27,Gabriel Paixão,Série 3,120.0,181.0,9.0
+3,2024-04-27,Gabriel Paixão,Série 4,124.0,183.0,10.0
+3,2024-04-27,Gabriel Paixão,Recuperação,149.0,,9.0
+3,2024-04-27,Abner Giovane Januário,Aquecimento,80.0,153.0,3.0
+3,2024-04-27,Abner Giovane Januário,Série 1,108.0,171.0,5.0
+3,2024-04-27,Abner Giovane Januário,Série 2,109.0,174.0,7.0
+3,2024-04-27,Abner Giovane Januário,Série 3,123.0,178.0,8.0
+3,2024-04-27,Abner Giovane Januário,Série 4,127.0,179.0,9.0
+3,2024-04-27,Abner Giovane Januário,Recuperação,150.0,,8.0
+3,2024-04-27,Roberto Weickert,Aquecimento,70.0,158.0,6.0
+3,2024-04-27,Roberto Weickert,Série 1,119.0,173.0,8.0
+3,2024-04-27,Roberto Weickert,Série 2,109.0,175.0,8.0
+3,2024-04-27,Roberto Weickert,Série 3,125.0,176.0,9.0
+3,2024-04-27,Roberto Weickert,Série 4,123.0,182.0,10.0
+3,2024-04-27,Roberto Weickert,Recuperação,153.0,,10.0
+3,2024-04-27,Cristiano Seben Rossa,Aquecimento,,,
+3,2024-04-27,Cristiano Seben Rossa,Série 1,,,
+3,2024-04-27,Cristiano Seben Rossa,Série 2,,,
+3,2024-04-27,Cristiano Seben Rossa,Série 3,,,
+3,2024-04-27,Cristiano Seben Rossa,Série 4,,,
+3,2024-04-27,Cristiano Seben Rossa,Recuperação,,,
+4,2024-04-29,Luis Gustavo Garcia da Silva,Aquecimento,90.0,165.0,4.0
+4,2024-04-29,Luis Gustavo Garcia da Silva,Série 1,113.0,184.0,6.0
+4,2024-04-29,Luis Gustavo Garcia da Silva,Série 2,131.0,189.0,9.0
+4,2024-04-29,Luis Gustavo Garcia da Silva,Série 3,136.0,193.0,10.0
+4,2024-04-29,Luis Gustavo Garcia da Silva,Série 4,142.0,192.0,10.0
+4,2024-04-29,Luis Gustavo Garcia da Silva,Recuperação,168.0,,10.0
+4,2024-04-29,Luis Andre,Aquecimento,105.0,169.0,3.0
+4,2024-04-29,Luis Andre,Série 1,125.0,180.0,6.0
+4,2024-04-29,Luis Andre,Série 2,136.0,183.0,9.0
+4,2024-04-29,Luis Andre,Série 3,137.0,185.0,10.0
+4,2024-04-29,Luis Andre,Série 4,143.0,186.0,10.0
+4,2024-04-29,Luis Andre,Recuperação,165.0,,9.0
+4,2024-04-29,Felipe Cesar Coutinho,Aquecimento,96.0,154.0,3.0
+4,2024-04-29,Felipe Cesar Coutinho,Série 1,111.0,169.0,6.0
+4,2024-04-29,Felipe Cesar Coutinho,Série 2,119.0,175.0,9.0
+4,2024-04-29,Felipe Cesar Coutinho,Série 3,129.0,176.0,10.0
+4,2024-04-29,Felipe Cesar Coutinho,Série 4,133.0,177.0,10.0
+4,2024-04-29,Felipe Cesar Coutinho,Recuperação,153.0,,10.0
+4,2024-04-29,Ricardo Marreta,Aquecimento,98.0,165.0,1.0
+4,2024-04-29,Ricardo Marreta,Série 1,122.0,184.0,4.0
+4,2024-04-29,Ricardo Marreta,Série 2,153.0,193.0,7.0
+4,2024-04-29,Ricardo Marreta,Série 3,149.0,194.0,9.0
+4,2024-04-29,Ricardo Marreta,Série 4,154.0,192.0,10.0
+4,2024-04-29,Ricardo Marreta,Recuperação,172.0,,9.0
+4,2024-04-29,Lucas Oneda,Aquecimento,117.0,162.0,3.0
+4,2024-04-29,Lucas Oneda,Série 1,115.0,176.0,5.0
+4,2024-04-29,Lucas Oneda,Série 2,126.0,180.0,8.0
+4,2024-04-29,Lucas Oneda,Série 3,126.0,178.0,10.0
+4,2024-04-29,Lucas Oneda,Série 4,127.0,175.0,10.0
+4,2024-04-29,Lucas Oneda,Recuperação,154.0,,9.0
+4,2024-04-29,Lissandro Santos,Aquecimento,100.0,150.0,2.0
+4,2024-04-29,Lissandro Santos,Série 1,110.0,170.0,4.0
+4,2024-04-29,Lissandro Santos,Série 2,110.0,176.0,6.0
+4,2024-04-29,Lissandro Santos,Série 3,123.0,180.0,8.0
+4,2024-04-29,Lissandro Santos,Série 4,127.0,183.0,10.0
+4,2024-04-29,Lissandro Santos,Recuperação,152.0,,10.0
+4,2024-04-29,Álvaro Bruno,Aquecimento,93.0,155.0,2.0
+4,2024-04-29,Álvaro Bruno,Série 1,103.0,172.0,3.0
+4,2024-04-29,Álvaro Bruno,Série 2,114.0,174.0,5.0
+4,2024-04-29,Álvaro Bruno,Série 3,123.0,176.0,7.0
+4,2024-04-29,Álvaro Bruno,Série 4,125.0,177.0,8.0
+4,2024-04-29,Álvaro Bruno,Recuperação,152.0,,8.0
+4,2024-04-29,João Gomes,Aquecimento,92.0,157.0,2.0
+4,2024-04-29,João Gomes,Série 1,98.0,174.0,4.0
+4,2024-04-29,João Gomes,Série 2,116.0,180.0,7.0
+4,2024-04-29,João Gomes,Série 3,127.0,179.0,9.0
+4,2024-04-29,João Gomes,Série 4,132.0,180.0,10.0
+4,2024-04-29,João Gomes,Recuperação,155.0,,9.0
+4,2024-04-29,Luís Felipe Araújo,Aquecimento,113.0,163.0,3.0
+4,2024-04-29,Luís Felipe Araújo,Série 1,134.0,179.0,6.0
+4,2024-04-29,Luís Felipe Araújo,Série 2,139.0,181.0,7.0
+4,2024-04-29,Luís Felipe Araújo,Série 3,148.0,185.0,6.0
+4,2024-04-29,Luís Felipe Araújo,Série 4,151.0,184.0,7.0
+4,2024-04-29,Luís Felipe Araújo,Recuperação,166.0,,6.0
+4,2024-04-29,Matheus Vicente da Silva,Aquecimento,100.0,160.0,2.0
+4,2024-04-29,Matheus Vicente da Silva,Série 1,116.0,178.0,5.0
+4,2024-04-29,Matheus Vicente da Silva,Série 2,125.0,183.0,7.0
+4,2024-04-29,Matheus Vicente da Silva,Série 3,129.0,184.0,9.0
+4,2024-04-29,Matheus Vicente da Silva,Série 4,133.0,185.0,9.0
+4,2024-04-29,Matheus Vicente da Silva,Recuperação,160.0,,9.0
+4,2024-04-29,George Correia,Aquecimento,88.0,153.0,3.0
+4,2024-04-29,George Correia,Série 1,107.0,173.0,6.0
+4,2024-04-29,George Correia,Série 2,132.0,179.0,8.0
+4,2024-04-29,George Correia,Série 3,127.0,181.0,9.0
+4,2024-04-29,George Correia,Série 4,129.0,182.0,10.0
+4,2024-04-29,George Correia,Recuperação,153.0,,9.0
+4,2024-04-29,Isaac Anderson,Aquecimento,83.0,158.0,2.0
+4,2024-04-29,Isaac Anderson,Série 1,122.0,176.0,4.0
+4,2024-04-29,Isaac Anderson,Série 2,121.0,177.0,6.0
+4,2024-04-29,Isaac Anderson,Série 3,126.0,182.0,8.0
+4,2024-04-29,Isaac Anderson,Série 4,124.0,185.0,9.0
+4,2024-04-29,Isaac Anderson,Recuperação,155.0,,9.0
+4,2024-04-29,Sydclebson Aquino,Aquecimento,122.0,164.0,2.0
+4,2024-04-29,Sydclebson Aquino,Série 1,122.0,181.0,4.0
+4,2024-04-29,Sydclebson Aquino,Série 2,143.0,180.0,7.0
+4,2024-04-29,Sydclebson Aquino,Série 3,126.0,183.0,8.0
+4,2024-04-29,Sydclebson Aquino,Série 4,131.0,184.0,9.0
+4,2024-04-29,Sydclebson Aquino,Recuperação,160.0,,8.0
+4,2024-04-29,Octávio Paiva,Aquecimento,,,2.0
+4,2024-04-29,Octávio Paiva,Série 1,,,4.0
+4,2024-04-29,Octávio Paiva,Série 2,,,5.0
+4,2024-04-29,Octávio Paiva,Série 3,,,6.0
+4,2024-04-29,Octávio Paiva,Série 4,,,8.0
+4,2024-04-29,Octávio Paiva,Recuperação,,,7.0
+4,2024-04-29,Gustavo Ferreira,Aquecimento,93.0,155.0,2.0
+4,2024-04-29,Gustavo Ferreira,Série 1,109.0,178.0,5.0
+4,2024-04-29,Gustavo Ferreira,Série 2,140.0,186.0,7.0
+4,2024-04-29,Gustavo Ferreira,Série 3,137.0,190.0,8.0
+4,2024-04-29,Gustavo Ferreira,Série 4,144.0,191.0,9.0
+4,2024-04-29,Gustavo Ferreira,Recuperação,165.0,,7.0
+4,2024-04-29,Nichollas Oliveira,Aquecimento,98.0,161.0,2.0
+4,2024-04-29,Nichollas Oliveira,Série 1,110.0,181.0,4.0
+4,2024-04-29,Nichollas Oliveira,Série 2,130.0,189.0,6.0
+4,2024-04-29,Nichollas Oliveira,Série 3,126.0,186.0,8.0
+4,2024-04-29,Nichollas Oliveira,Série 4,123.0,190.0,10.0
+4,2024-04-29,Nichollas Oliveira,Recuperação,158.0,,9.0
+4,2024-04-29,Enzo Adamo,Aquecimento,113.0,164.0,3.0
+4,2024-04-29,Enzo Adamo,Série 1,127.0,177.0,5.0
+4,2024-04-29,Enzo Adamo,Série 2,132.0,178.0,7.0
+4,2024-04-29,Enzo Adamo,Série 3,134.0,178.0,9.0
+4,2024-04-29,Enzo Adamo,Série 4,138.0,178.0,9.0
+4,2024-04-29,Enzo Adamo,Recuperação,159.0,,8.0
+4,2024-04-29,Lukas Cazarin,Aquecimento,85.0,150.0,1.0
+4,2024-04-29,Lukas Cazarin,Série 1,115.0,171.0,4.0
+4,2024-04-29,Lukas Cazarin,Série 2,147.0,181.0,7.0
+4,2024-04-29,Lukas Cazarin,Série 3,135.0,184.0,9.0
+4,2024-04-29,Lukas Cazarin,Série 4,135.0,187.0,10.0
+4,2024-04-29,Lukas Cazarin,Recuperação,157.0,,8.0
+4,2024-04-29,Guilherme Monteiro,Aquecimento,93.0,149.0,4.0
+4,2024-04-29,Guilherme Monteiro,Série 1,102.0,163.0,6.0
+4,2024-04-29,Guilherme Monteiro,Série 2,126.0,172.0,7.0
+4,2024-04-29,Guilherme Monteiro,Série 3,115.0,172.0,8.0
+4,2024-04-29,Guilherme Monteiro,Série 4,115.0,172.0,10.0
+4,2024-04-29,Guilherme Monteiro,Recuperação,145.0,,9.0
+4,2024-04-29,Kauan Pereira,Aquecimento,102.0,158.0,2.0
+4,2024-04-29,Kauan Pereira,Série 1,104.0,175.0,5.0
+4,2024-04-29,Kauan Pereira,Série 2,138.0,174.0,7.0
+4,2024-04-29,Kauan Pereira,Série 3,119.0,172.0,10.0
+4,2024-04-29,Kauan Pereira,Série 4,122.0,179.0,10.0
+4,2024-04-29,Kauan Pereira,Recuperação,151.0,,8.0
+4,2024-04-29,José Sena,Aquecimento,90.0,154.0,2.0
+4,2024-04-29,José Sena,Série 1,115.0,170.0,4.0
+4,2024-04-29,José Sena,Série 2,133.0,175.0,6.0
+4,2024-04-29,José Sena,Série 3,122.0,177.0,8.0
+4,2024-04-29,José Sena,Série 4,125.0,180.0,10.0
+4,2024-04-29,José Sena,Recuperação,150.0,,9.0
+4,2024-04-29,Enzo Remlinger Mattos,Aquecimento,98.0,160.0,2.0
+4,2024-04-29,Enzo Remlinger Mattos,Série 1,115.0,174.0,4.0
+4,2024-04-29,Enzo Remlinger Mattos,Série 2,149.0,180.0,6.0
+4,2024-04-29,Enzo Remlinger Mattos,Série 3,131.0,179.0,8.0
+4,2024-04-29,Enzo Remlinger Mattos,Série 4,135.0,182.0,9.0
+4,2024-04-29,Enzo Remlinger Mattos,Recuperação,159.0,,9.0
+4,2024-04-29,Lucas Silva,Aquecimento,83.0,143.0,3.0
+4,2024-04-29,Lucas Silva,Série 1,109.0,160.0,5.0
+4,2024-04-29,Lucas Silva,Série 2,113.0,162.0,6.0
+4,2024-04-29,Lucas Silva,Série 3,113.0,163.0,8.0
+4,2024-04-29,Lucas Silva,Série 4,112.0,164.0,8.0
+4,2024-04-29,Lucas Silva,Recuperação,138.0,,8.0
+4,2024-04-29,Gabriel Paixão,Aquecimento,95.0,158.0,3.0
+4,2024-04-29,Gabriel Paixão,Série 1,112.0,179.0,5.0
+4,2024-04-29,Gabriel Paixão,Série 2,145.0,184.0,6.0
+4,2024-04-29,Gabriel Paixão,Série 3,127.0,186.0,8.0
+4,2024-04-29,Gabriel Paixão,Série 4,134.0,195.0,8.0
+4,2024-04-29,Gabriel Paixão,Recuperação,159.0,,8.0
+4,2024-04-29,Abner Giovane Januário,Aquecimento,93.0,157.0,3.0
+4,2024-04-29,Abner Giovane Januário,Série 1,118.0,173.0,6.0
+4,2024-04-29,Abner Giovane Januário,Série 2,117.0,174.0,8.0
+4,2024-04-29,Abner Giovane Januário,Série 3,123.0,177.0,9.0
+4,2024-04-29,Abner Giovane Januário,Série 4,126.0,179.0,10.0
+4,2024-04-29,Abner Giovane Januário,Recuperação,150.0,,9.0
+4,2024-04-29,Roberto Weickert,Aquecimento,99.0,166.0,4.0
+4,2024-04-29,Roberto Weickert,Série 1,121.0,181.0,8.0
+4,2024-04-29,Roberto Weickert,Série 2,151.0,182.0,9.0
+4,2024-04-29,Roberto Weickert,Série 3,134.0,184.0,10.0
+4,2024-04-29,Roberto Weickert,Série 4,137.0,186.0,10.0
+4,2024-04-29,Roberto Weickert,Recuperação,162.0,,9.0
+4,2024-04-29,Cristiano Seben Rossa,Aquecimento,,,
+4,2024-04-29,Cristiano Seben Rossa,Série 1,,,
+4,2024-04-29,Cristiano Seben Rossa,Série 2,,,
+4,2024-04-29,Cristiano Seben Rossa,Série 3,,,
+4,2024-04-29,Cristiano Seben Rossa,Série 4,,,
+4,2024-04-29,Cristiano Seben Rossa,Recuperação,,,
