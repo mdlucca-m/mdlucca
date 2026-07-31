@@ -1,0 +1,350 @@
+{
+ "A_resposta_aguda": [
+  {
+   "inst": "Fadiga física",
+   "escala": "0–10",
+   "M": 6.12,
+   "DP": 2.34,
+   "M_pre": 4.95,
+   "M_pos": 6.69,
+   "delta": 1.74,
+   "dz": 1.06,
+   "t_p": 0.0,
+   "wilcoxon_p": 0.0,
+   "p_FDR": 0.0001,
+   "sig": true
+  },
+  {
+   "inst": "Fadiga mental",
+   "escala": "0–10",
+   "M": 4.59,
+   "DP": 2.81,
+   "M_pre": 4.59,
+   "M_pos": 5.12,
+   "delta": 0.53,
+   "dz": 0.44,
+   "t_p": 0.0306,
+   "wilcoxon_p": 0.0454,
+   "p_FDR": 0.0606,
+   "sig": false
+  },
+  {
+   "inst": "Estado físico",
+   "escala": "0–4",
+   "M": 1.83,
+   "DP": 1.02,
+   "M_pre": 2.26,
+   "M_pos": 1.64,
+   "delta": -0.62,
+   "dz": -0.93,
+   "t_p": 0.0,
+   "wilcoxon_p": 0.0003,
+   "p_FDR": 0.0006,
+   "sig": true
+  },
+  {
+   "inst": "Estado mental",
+   "escala": "0–4",
+   "M": 2.36,
+   "DP": 1.04,
+   "M_pre": 2.43,
+   "M_pos": 2.27,
+   "delta": -0.16,
+   "dz": -0.39,
+   "t_p": 0.0506,
+   "wilcoxon_p": 0.0663,
+   "p_FDR": 0.0663,
+   "sig": false
+  }
+ ],
+ "B_HIIT_vs_SEM": [
+  {
+   "inst": "Fadiga física",
+   "dHIIT": 2.0,
+   "dSEM": 1.35,
+   "wilcoxon_p": 0.0975,
+   "p_FDR": 0.3899,
+   "sig": false
+  },
+  {
+   "inst": "Fadiga mental",
+   "dHIIT": 0.58,
+   "dSEM": 0.52,
+   "wilcoxon_p": 0.9886,
+   "p_FDR": 0.9886,
+   "sig": false
+  },
+  {
+   "inst": "Estado físico",
+   "dHIIT": -0.62,
+   "dSEM": -0.58,
+   "wilcoxon_p": 0.8372,
+   "p_FDR": 0.9886,
+   "sig": false
+  },
+  {
+   "inst": "Estado mental",
+   "dHIIT": -0.13,
+   "dSEM": -0.21,
+   "wilcoxon_p": 0.4848,
+   "p_FDR": 0.9697,
+   "sig": false
+  }
+ ],
+ "C_convergencia_rmcorr": {
+  "matriz": {
+   "FadFis": {
+    "Tensão": -0.066,
+    "Depressão": 0.174,
+    "Raiva": 0.132,
+    "Vigor": -0.455,
+    "Fadiga": 0.642,
+    "Confusão": 0.028,
+    "PTH": 0.507
+   },
+   "FadMen": {
+    "Tensão": 0.044,
+    "Depressão": 0.166,
+    "Raiva": 0.29,
+    "Vigor": -0.316,
+    "Fadiga": 0.455,
+    "Confusão": 0.125,
+    "PTH": 0.47
+   },
+   "EstFis": {
+    "Tensão": 0.08,
+    "Depressão": -0.272,
+    "Raiva": -0.235,
+    "Vigor": 0.473,
+    "Fadiga": -0.654,
+    "Confusão": -0.023,
+    "PTH": -0.574
+   },
+   "EstMen": {
+    "Tensão": 0.022,
+    "Depressão": -0.319,
+    "Raiva": -0.43,
+    "Vigor": 0.372,
+    "Fadiga": -0.447,
+    "Confusão": -0.099,
+    "PTH": -0.556
+   }
+  },
+  "linhas": [
+   {
+    "externo": "Fadiga física",
+    "brums": "Tensão",
+    "r": -0.066,
+    "p": 0.1704,
+    "sig": false
+   },
+   {
+    "externo": "Fadiga física",
+    "brums": "Depressão",
+    "r": 0.174,
+    "p": 0.0003,
+    "sig": true
+   },
+   {
+    "externo": "Fadiga física",
+    "brums": "Raiva",
+    "r": 0.132,
+    "p": 0.006,
+    "sig": true
+   },
+   {
+    "externo": "Fadiga física",
+    "brums": "Vigor",
+    "r": -0.455,
+    "p": 0.0,
+    "sig": true
+   },
+   {
+    "externo": "Fadiga física",
+    "brums": "Fadiga",
+    "r": 0.642,
+    "p": 0.0,
+    "sig": true
+   },
+   {
+    "externo": "Fadiga física",
+    "brums": "Confusão",
+    "r": 0.028,
+    "p": 0.5662,
+    "sig": false
+   },
+   {
+    "externo": "Fadiga física",
+    "brums": "PTH",
+    "r": 0.507,
+    "p": 0.0,
+    "sig": true
+   },
+   {
+    "externo": "Fadiga mental",
+    "brums": "Tensão",
+    "r": 0.044,
+    "p": 0.3614,
+    "sig": false
+   },
+   {
+    "externo": "Fadiga mental",
+    "brums": "Depressão",
+    "r": 0.166,
+    "p": 0.0006,
+    "sig": true
+   },
+   {
+    "externo": "Fadiga mental",
+    "brums": "Raiva",
+    "r": 0.29,
+    "p": 0.0,
+    "sig": true
+   },
+   {
+    "externo": "Fadiga mental",
+    "brums": "Vigor",
+    "r": -0.316,
+    "p": 0.0,
+    "sig": true
+   },
+   {
+    "externo": "Fadiga mental",
+    "brums": "Fadiga",
+    "r": 0.455,
+    "p": 0.0,
+    "sig": true
+   },
+   {
+    "externo": "Fadiga mental",
+    "brums": "Confusão",
+    "r": 0.125,
+    "p": 0.0095,
+    "sig": true
+   },
+   {
+    "externo": "Fadiga mental",
+    "brums": "PTH",
+    "r": 0.47,
+    "p": 0.0,
+    "sig": true
+   },
+   {
+    "externo": "Estado físico",
+    "brums": "Tensão",
+    "r": 0.08,
+    "p": 0.096,
+    "sig": false
+   },
+   {
+    "externo": "Estado físico",
+    "brums": "Depressão",
+    "r": -0.272,
+    "p": 0.0,
+    "sig": true
+   },
+   {
+    "externo": "Estado físico",
+    "brums": "Raiva",
+    "r": -0.235,
+    "p": 0.0,
+    "sig": true
+   },
+   {
+    "externo": "Estado físico",
+    "brums": "Vigor",
+    "r": 0.473,
+    "p": 0.0,
+    "sig": true
+   },
+   {
+    "externo": "Estado físico",
+    "brums": "Fadiga",
+    "r": -0.654,
+    "p": 0.0,
+    "sig": true
+   },
+   {
+    "externo": "Estado físico",
+    "brums": "Confusão",
+    "r": -0.023,
+    "p": 0.6304,
+    "sig": false
+   },
+   {
+    "externo": "Estado físico",
+    "brums": "PTH",
+    "r": -0.574,
+    "p": 0.0,
+    "sig": true
+   },
+   {
+    "externo": "Estado mental",
+    "brums": "Tensão",
+    "r": 0.022,
+    "p": 0.6492,
+    "sig": false
+   },
+   {
+    "externo": "Estado mental",
+    "brums": "Depressão",
+    "r": -0.319,
+    "p": 0.0,
+    "sig": true
+   },
+   {
+    "externo": "Estado mental",
+    "brums": "Raiva",
+    "r": -0.43,
+    "p": 0.0,
+    "sig": true
+   },
+   {
+    "externo": "Estado mental",
+    "brums": "Vigor",
+    "r": 0.372,
+    "p": 0.0,
+    "sig": true
+   },
+   {
+    "externo": "Estado mental",
+    "brums": "Fadiga",
+    "r": -0.447,
+    "p": 0.0,
+    "sig": true
+   },
+   {
+    "externo": "Estado mental",
+    "brums": "Confusão",
+    "r": -0.099,
+    "p": 0.0407,
+    "sig": true
+   },
+   {
+    "externo": "Estado mental",
+    "brums": "PTH",
+    "r": -0.556,
+    "p": 0.0,
+    "sig": true
+   }
+  ]
+ },
+ "D_ICC": [
+  {
+   "inst": "Fadiga física",
+   "ICC": 0.405
+  },
+  {
+   "inst": "Fadiga mental",
+   "ICC": 0.702
+  },
+  {
+   "inst": "Estado físico",
+   "ICC": 0.391
+  },
+  {
+   "inst": "Estado mental",
+   "ICC": 0.601
+  }
+ ]
+}
