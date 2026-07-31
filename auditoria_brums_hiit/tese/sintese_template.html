@@ -181,6 +181,7 @@ const app=document.getElementById('app');
  ['gold','Variabilidade & robustez','Individual e robusta','Maior parte da variância é entre atletas; iceberg 86%→75% (χ² p=0,03). Conclusões resistem a permutação, log e exclusão do outlier.'],
  ['blue','Modelo teórico','Três vias convergem','R² condicional (0,58–0,63) ≫ marginal — variância individual. Bayes=frequentista (P>0=1,00); MANOVA e PERMANOVA confirmam o deslocamento multivariado.'],
  ['gold','Dias do microciclo','O HIIT vive no nível, não no salto','As 3 sessões de HIIT são consistentes; o salto agudo é igual em HIIT e sem-HIIT. A assinatura do HIIT é o nível diário e o acúmulo (PTH pico no D7).'],
+ ['teal','Outros questionários','Convergem com o BRUMS','Fadiga física e estado físico respondem forte (dz ~1) e convergem com a Fadiga do BRUMS (r 0,64/−0,65). Medidas complementares, não redundantes.'],
 ];
  const t=document.createElement('div');t.innerHTML='<h2>Principais achados</h2><p class="sub">Oito conclusões, todas reconciliadas com a reanálise (atleta como unidade, FDR).</p>';app.append(t);
  const g=document.createElement('div');g.className='finds';
@@ -191,7 +192,7 @@ const app=document.getElementById('app');
 app.insertAdjacentHTML('beforeend','<h2>Análises</h2><p class="sub">Segmentadas por tema — use os filtros. Cada tabela é ordenável (clique no cabeçalho) e filtrável.</p>');
 const segbar=document.createElement('div');segbar.className='segbar';app.append(segbar);
 const zone=document.createElement('div');app.append(zone);
-const SEGS=[['all','Todas'],['medida','Medida'],['descr','Descritiva'],['aguda','Resposta aguda'],['hiit','Acúmulo & HIIT'],['multi','Multivariada & Bayes'],['carga','Carga & diagnóstico'],['pred','Preditiva'],['corr','Correlações'],['perfil','Perfil & variabilidade'],['modelo','Modelo teórico'],['dias','Dias do microciclo']];
+const SEGS=[['all','Todas'],['medida','Medida'],['descr','Descritiva'],['aguda','Resposta aguda'],['hiit','Acúmulo & HIIT'],['multi','Multivariada & Bayes'],['carga','Carga & diagnóstico'],['pred','Preditiva'],['corr','Correlações'],['perfil','Perfil & variabilidade'],['modelo','Modelo teórico'],['dias','Dias do microciclo'],['outros','Outros questionários']];
 segbar.innerHTML=SEGS.map(([id,t],i)=>`<button class="seg ${i===0?'on':''}" data-s="${id}">${t}</button>`).join('');
 
 function block(seg){const d=document.createElement('div');d.dataset.seg=seg;zone.append(d);return d;}
@@ -281,6 +282,16 @@ requestAnimationFrame(drawCharts);
  const c2=card(b,'HIIT vs sem HIIT — Δ agudo médio por atleta','Wilcoxon · FDR','teal');
  dtable(c2,[{k:'var',label:'Variável'},{k:'media_HIIT',label:'Δ HIIT',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'media_SEM',label:'Δ SEM',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'dz',label:'dz',num:true,render:v=>fmt(v)},{k:'p_FDR',label:'p (FDR)',num:true,render:v=>fmt(v,3)},{k:'sig',label:'Difere?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`}],dh.C,'HIIT vs sem');
  c2.insertAdjacentHTML('beforeend','<p class="sub" style="margin:8px 0 0;font-size:12px">O salto agudo pré→pós é semelhante entre HIIT e sem-HIIT — a assinatura do HIIT está no nível do dia e no acúmulo (PTH pico no D7), não no salto.</p>');})();
+/* outros questionários */
+(function(){const b=block('outros');const oq=D.oq;
+ const c1=card(b,'Resposta aguda dos autorrelatos externos ao BRUMS','dz · FDR','blue');
+ dtable(c1,[{k:'inst',label:'Instrumento'},{k:'escala',label:'Escala'},{k:'delta',label:'Δ',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'dz',label:'dz',num:true,render:v=>`<b>${v>=0?'+':''}${fmt(v)}</b>`},{k:'p_FDR',label:'p (FDR)',num:true,render:v=>v<0.001?'<0,001':fmt(v,3)},{k:'sig',label:'Sig.?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'—'}</span>`}],oq.A,'Outros questionários — aguda');
+ c1.insertAdjacentHTML('beforeend','<p class="sub" style="margin:8px 0 0;font-size:12px">Os instrumentos físicos (fadiga física, estado físico) movem-se com dz ~1; os mentais só tendem — mesmo eixo físico/energético do BRUMS.</p>');
+ const c2=card(b,'Convergência com o BRUMS (rm_corr intra-atleta)','validade convergente','teal');
+ const crows=oq.ext_keys.map(k=>{const o={inst:oq.ext_labels[k]};oq.targets.forEach(t=>o[t]=oq.C_matriz[k][t]);return o;});
+ const rc=v=>v==null?'—':`<span class="${v>=0.3?'pos':(v<=-0.3?'neg':'')}">${v>=0?'+':''}${fmt(v)}</span>`;
+ dtable(c2,[{k:'inst',label:'Externo'}].concat(oq.targets.map(t=>({k:t,label:t,num:true,render:rc}))),crows,'Convergência BRUMS');
+ c2.insertAdjacentHTML('beforeend','<p class="sub" style="margin:8px 0 0;font-size:12px">Fadiga física↔Fadiga BRUMS +0,64; Estado físico↔Fadiga −0,65 / Vigor +0,47; os mentais ancoram no PTH. Os itens únicos medem as mesmas dimensões do BRUMS.</p>');})();
 /* segment filter */
 segbar.querySelectorAll('.seg').forEach(bt=>bt.onclick=()=>{segbar.querySelectorAll('.seg').forEach(x=>x.classList.remove('on'));bt.classList.add('on');const s=bt.dataset.s;
  zone.querySelectorAll('[data-seg]').forEach(el=>el.style.display=(s==='all'||el.dataset.seg===s||el.dataset.seg==='all'&&s==='all')?'':'none');

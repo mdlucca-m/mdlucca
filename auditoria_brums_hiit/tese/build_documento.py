@@ -10,6 +10,7 @@ pred=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/preditiva/resultado
 pv=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/perfil_variabilidade/resultados_perfil_variabilidade.json'))
 mt=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/modelo_teorico/resultados_modelo_teorico.json'))
 dh=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/dias_hiit/resultados_dias_hiit.json'))
+oq=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/outros_questionarios/resultados_outros_questionarios.json'))
 
 CSS="""
 @page{size:A4;margin:18mm 16mm}
@@ -73,6 +74,11 @@ _pf=pv['perfil']; _icb=_pf['iceberg_prev']
 _chi=f"χ²({_pf['quiquadrado']['df']}) = {_pf['quiquadrado']['chi2']:.2f}".replace('.',','); _pchi=str(_pf['quiquadrado']['p']).replace('.',','); _cv=str(_pf['quiquadrado']['cramer_V']).replace('.',',')
 _eta=str(pv['segmentacao']['eta2_PTH_entre_grupos']).replace('.',','); _ic0=f"{_icb['pre']*100:.0f}"; _ic1=f"{_icb['pos']*100:.0f}"
 _fnum2=lambda v:('—' if v is None else f"{v:+.2f}".replace('.',','))
+# outros questionários
+rowsOQ=[[r['inst'],r['escala'],f"{r['M_pre']:.2f}".replace('.',','),f"{r['M_pos']:.2f}".replace('.',','),f"{r['delta']:+.2f}".replace('.',','),f"{r['dz']:+.2f}".replace('.',','),('<0,001' if r['p_FDR']<0.001 else f"{r['p_FDR']:.3f}".replace('.',',')),('sim' if r['sig'] else '—')] for r in oq['A_resposta_aguda']]
+_oqtg=['Vigor','Fadiga','PTH']; _oqk=['FadFis','FadMen','EstFis','EstMen']; _oqlab={'FadFis':'Fadiga física','FadMen':'Fadiga mental','EstFis':'Estado físico','EstMen':'Estado mental'}
+rowsOQC=[[_oqlab[k]]+[f"{oq['C_convergencia_rmcorr']['matriz'][k][t]:+.2f}".replace('.',',') for t in _oqtg] for k in _oqk]
+rowsOQD=[[d['inst'],f"{d['ICC']:.2f}".replace('.',','),('traço' if d['ICC']>=0.5 else 'estado')] for d in oq['D_ICC']]
 _pnum=lambda v:('<0,001' if v<0.001 else f"{v:.3f}".replace('.',','))
 rowsDA=[]  # entre dias de HIIT
 for _v,_o in dh['A_entre_HIIT'].items():
@@ -237,6 +243,17 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
  {fig('trimp','<b>TRIMP.</b> Carga por sessão (TRIMP vs Foster), concordância entre as duas famílias e TRIMP × resposta do humor.')}
  <p>Reunindo os marcadores por atleta, o <b>acoplamento carga × humor</b> confirma o desacoplamento: nenhum par (PSE, FC, TRIMP × fadiga mental, TMD) é significativo, nem no nível do dia (tônico) nem no agudo — as únicas associações fortes são humor × humor.</p>
  {fig('acopl','<b>Acoplamento carga × humor.</b> Matrizes de correlação entre atletas — tônico (esq.) e agudo (dir.). * p&lt;0,05.')}
+</section>
+
+<section>
+ <div class="eyebrow">Outros questionários</div><h2>Autorrelatos externos ao BRUMS: resposta, convergência e estabilidade</h2>
+ <p>Além do BRUMS, a coleta incluiu quatro autorrelatos — fadiga física (0–10), fadiga mental (0–10), estado físico (0–4) e estado mental (0–4). Na resposta aguda, os instrumentos <b>físicos</b> movem-se forte e significativamente (fadiga física dz +1,06; estado físico dz −0,93), enquanto os <b>mentais</b> apenas tendem — o mesmo eixo físico/energético do BRUMS.</p>
+ {tbl(['Instrumento','Escala','Pré','Pós','Δ','dz','p (FDR)','Sig.?'],rowsOQ)}
+ <p>A <b>convergência</b> com o BRUMS foi medida por correlação de medidas repetidas (rm_corr, intra-atleta). Os autorrelatos externos medem as mesmas dimensões que o BRUMS: a fadiga física correlaciona-se fortemente com a subescala Fadiga (r = +0,64) e o estado físico é seu espelho (r = −0,65) e positivo com o vigor (r = +0,47); os instrumentos mentais ancoram-se no PTH. É <b>validade convergente</b> dentro do sujeito.</p>
+ {tbl(['Externo','r com Vigor','r com Fadiga','r com PTH'],rowsOQC)}
+ <p>Quanto à <b>estabilidade</b> (ICC), os instrumentos mentais são mais "de traço" (ICC 0,60–0,70) e os físicos mais "de estado" (ICC ≈ 0,40), espelhando o BRUMS. Nenhum externo distingue dias de HIIT de dias sem HIIT no salto agudo.</p>
+ {tbl(['Instrumento','ICC','Perfil'],rowsOQD)}
+ {fig('outrosq','<b>Outros questionários.</b> A: resposta aguda (dz); B: média pré×pós; C: convergência com o BRUMS (rm_corr intra-atleta); D: estabilidade (ICC).')}
 </section>
 
 <section>
