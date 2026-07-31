@@ -148,7 +148,7 @@ footer a{color:var(--mut)}
 <section>
  <div class="seclab">A espinha dorsal inferencial</div>
  <h2>Modelagem completa — o atleta como unidade</h2>
- <p class="sub">Todos os modelos ajustados com efeitos aleatórios por atleta (statsmodels), corrigindo a pseudorreplicação. É o que sustenta cada afirmação inferencial do estudo.</p>
+ <p class="sub">Todos os modelos ajustados com efeitos aleatórios por atleta (statsmodels), corrigindo a pseudorreplicação. É o que sustenta cada afirmação inferencial do estudo. Os <b>testes clássicos</b> (t pareado/Wilcoxon, Friedman/RM-ANOVA, dz com IC95% e correção FDR) confirmam o mesmo quadro.</p>
  <div class="finds">
   <div class="find"><div class="n">Resposta aguda + acúmulo</div><h3>Efeito no eixo energia–fadiga</h3><p>No modelo misto pré→pós (com FDR) sobrevivem fadiga física (dz 1,06), PTH (0,68), fadiga (0,62), vigor (−0,56) e fadiga mental. No microciclo, a fadiga física acumula +0,34/dia (robusto); o PTH sobe em média mas com <b>inclinações individuais muito heterogêneas</b> (variância 1,13) — a média esconde trajetórias opostas.</p><span class="tag t-coral">misto · inclinação aleatória · FDR</span></div>
   <div class="find"><div class="n">HIIT e multivariada</div><h3>Perturba o dia, não o salto agudo</h3><p>Nos dias de HIIT o PTH sobe +2,43 (p=0,003). Mas a interação Condição×Momento é nula para o PTH (p=0,910): o <b>salto agudo</b> não difere entre HIIT e técnico-tático — só a fadiga física é amplificada (p=0,035). Hotelling T² confirma o efeito concentrado no eixo vigor+fadiga (F(2,25)=5,59; p=0,010).</p><span class="tag t-gold">HIIT nível-do-dia · Hotelling T²</span></div>
@@ -174,7 +174,7 @@ footer a{color:var(--mut)}
 <section>
  <div class="seclab">Diagnóstico e carga interna</div>
  <h2>ROC e TRIMP — o que separa e quanto custa</h2>
- <p class="sub">Duas leituras complementares: a capacidade <b>diagnóstica</b> das variáveis (ROC/AUC) e a <b>carga interna</b> por FC (TRIMP de Banister). Convergem com o resto do estudo.</p>
+ <p class="sub">Duas leituras complementares: a capacidade <b>diagnóstica</b> das variáveis (ROC/AUC) e a <b>carga interna</b> por FC (TRIMP de Banister). Convergem com o resto do estudo. E, entre atletas, <b>nenhum</b> marcador de carga (PSE, FC, TRIMP) se acopla ao humor (fadiga mental, TMD) — todos os pares n.s.</p>
  <div class="finds">
   <div class="find"><div class="n">Curva ROC</div><h3>Só a fadiga física discrimina o pós</h3><p>Para separar pós de pré-treino, a <b>fadiga física atinge AUC 0,70</b> (única moderada); PTH e fadiga ficam ~0,61 e as demais em ~0,5. Para separar dia de HIIT de dia sem HIIT, todas as AUC ficam em 0,52–0,58 — o humor de um dia isolado classifica mal o tipo de treino. Reforça: monitorar por tendência, com a fadiga física como sentinela.</p><span class="tag t-blue">AUC · IC bootstrap por atleta · Youden</span></div>
   <div class="find"><div class="n">TRIMP (Banister)</div><h3>Intensidade no teto; carga não prevê humor</h3><p>As sessões foram uniformemente quase-máximas (%HRR 0,87–0,91). A carga por FC (TRIMP) e por PSE (Foster) são <b>praticamente independentes</b> neste regime (r ≈ −0,05), e nenhuma prediz a resposta aguda do humor (TRIMP × ΔPTH r = −0,32, n.s.) — o humor responde a fatores além do custo fisiológico da sessão.</p><span class="tag t-gold">%HRR · Banister · Foster</span></div>
@@ -216,6 +216,8 @@ footer a{color:var(--mut)}
    <a class="file" href="https://github.com/mdlucca-m/mdlucca/blob/claude/auditoria-analises-blz1fn/auditoria_brums_hiit/modelagem/MODELAGEM.md" target="_blank" rel="noopener"><span><span class="fn">Modelagem completa</span> <span class="fd">— modelos mistos, HIIT, interação, Hotelling</span></span><span class="ext">MD</span></a>
    <a class="file" href="https://github.com/mdlucca-m/mdlucca/blob/claude/auditoria-analises-blz1fn/auditoria_brums_hiit/roc/ROC.md" target="_blank" rel="noopener"><span><span class="fn">Análise ROC</span> <span class="fd">— AUC pré×pós e HIIT×sem</span></span><span class="ext">MD</span></a>
    <a class="file" href="https://github.com/mdlucca-m/mdlucca/blob/claude/auditoria-analises-blz1fn/auditoria_brums_hiit/trimp/TRIMP.md" target="_blank" rel="noopener"><span><span class="fn">Carga interna TRIMP</span> <span class="fd">— Banister %HRR + Foster</span></span><span class="ext">MD</span></a>
+   <a class="file" href="https://github.com/mdlucca-m/mdlucca/blob/claude/auditoria-analises-blz1fn/auditoria_brums_hiit/estatistica_inferencial/INFERENCIA.md" target="_blank" rel="noopener"><span><span class="fn">Estatística inferencial</span> <span class="fd">— t/Wilcoxon/Friedman, dz IC95%, rm_corr, ICC</span></span><span class="ext">MD</span></a>
+   <a class="file" href="https://github.com/mdlucca-m/mdlucca/blob/claude/auditoria-analises-blz1fn/auditoria_brums_hiit/acoplamento/ACOPLAMENTO.md" target="_blank" rel="noopener"><span><span class="fn">Acoplamento carga×humor</span> <span class="fd">— PSE/FC/TRIMP × fadiga mental/TMD</span></span><span class="ext">MD</span></a>
   </div>
   <div class="cat">
    <h3><span class="dot" style="background:var(--violet)"></span>Automação</h3>

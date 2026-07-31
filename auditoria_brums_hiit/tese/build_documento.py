@@ -94,6 +94,7 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
  <div class="eyebrow">4 · Resposta aguda</div><h2>O que muda do pré para o pós-treino</h2>
  <p>No modelo misto pré→pós (intercepto aleatório por atleta, correção FDR), sobrevivem exatamente as variáveis do <b>eixo energia–fadiga</b>: fadiga física, PTH, fadiga, vigor e fadiga mental. Tensão, depressão, raiva e confusão não sobrevivem à correção.</p>
  {tbl(['Desfecho','b(pós)','dz','p (FDR)','sobrevive'],rowsA)}
+ {fig('forest_dz','<b>Tamanho de efeito com IC95%.</b> Testes clássicos (t pareado/Wilcoxon, dz por bootstrap) confirmam o modelo misto — quatro variáveis do eixo energia–fadiga sobrevivem ao FDR.')}
  <div class="two">{fig('M1_resposta_aguda_dz','<b>Tamanhos de efeito (dz)</b> da resposta aguda; * sobrevive ao FDR.')}{fig('pipe_resposta_aguda','<b>Resposta aguda</b> (pipeline, verificação independente).')}</div>
  <figcaption style="margin-top:2pt">Nota: o <i>dz</i> da tabela é agregado por atleta; o <i>dz</i> por observação da Tabela 22 do manuscrito (fadiga física 0,76) usa a DP dos pares — mesmo sinal e significância, denominadores diferentes.</figcaption>
 </section>
@@ -140,6 +141,8 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
  {fig('pipe_carga_x_humor','<b>Carga interna × humor.</b> PSE médio × Δ PTH agudo por atleta (r≈−0,05, n.s.).')}
  <p>Pela carga por FC (<b>TRIMP</b> de Banister sobre a %HRR), a intensidade foi uniformemente alta (%HRR 0,87–0,91 nas quatro sessões). Sem duração registrada, reporta-se o TRIMP relativo por sessão. Duas leituras convergem com o resto: a carga por FC (TRIMP) e por PSE (Foster) são <b>praticamente independentes</b> neste regime de teto (r≈−0,05), e o TRIMP também <b>não</b> prediz a resposta aguda do humor (r=−0,32; p=0,12).</p>
  {fig('trimp','<b>TRIMP.</b> Carga por sessão (TRIMP vs Foster), concordância entre as duas famílias e TRIMP × resposta do humor.')}
+ <p>Reunindo os marcadores por atleta, o <b>acoplamento carga × humor</b> confirma o desacoplamento: nenhum par (PSE, FC, TRIMP × fadiga mental, TMD) é significativo, nem no nível do dia (tônico) nem no agudo — as únicas associações fortes são humor × humor.</p>
+ {fig('acopl','<b>Acoplamento carga × humor.</b> Matrizes de correlação entre atletas — tônico (esq.) e agudo (dir.). * p&lt;0,05.')}
 </section>
 
 <section>
