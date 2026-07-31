@@ -143,6 +143,7 @@ html = f"""<style>{CSS}</style>
  <div class="seclab">O desenho e a arquitetura analítica</div>
  <h2>Como o estudo foi montado</h2>
  <p class="sub">Do dado bruto à decisão de modelagem, com a etapa de correção da pseudorreplicação em destaque.</p>
+ <figure><img src="{img('desenho_analitico')}" alt="Desenho analítico do estudo"><figcaption><b>Desenho analítico.</b> Visual abstract: desenho + fluxo de dados + achado-chave de cada etapa do pipeline, com mini-gráficos reais.</figcaption></figure>
  <figure><img src="{img('infog')}" alt="Infográfico do desenho do estudo"><figcaption><b>Infográfico do desenho.</b> Amostra, instrumentos, microciclo de 7 dias (HIIT em D2/D4/D7), funil de coletas e cadeia analítica.</figcaption></figure>
  <figure><img src="{img('master')}" alt="Figura-mestre do desenho do estudo"><figcaption><b>Esquema-mestre.</b> Microciclo, coletas pré/pós e o que aconteceu no estudo.</figcaption></figure>
  <div class="figrow">

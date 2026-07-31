@@ -73,7 +73,8 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
 <section class="first">
  <div class="eyebrow">1 · Desenho</div><h2>O desenho do estudo</h2>
  <p>Estudo observacional longitudinal de medidas repetidas. Cada atleta foi avaliado em vários momentos (pré e pós-treino) ao longo de sete dias (21–27/04/2024), com o HIIT aplicado nos dias 2, 4 e 7. A unidade de análise é o atleta — coletas repetidas são aninhadas, e tratá-las como independentes (pseudorreplicação) inflaria a significância. Toda a inferência deste documento respeita essa estrutura.</p>
- {fig('infog','<b>Infográfico do desenho.</b> Amostra, instrumentos, microciclo de 7 dias (HIIT em D2/D4/D7, coletas pré/pós), funil de coletas e cadeia analítica.')}
+ {fig('desenho_analitico','<b>Desenho analítico (visual abstract).</b> Amostra, microciclo, instrumentos, fluxo de dados e o achado-chave de cada etapa do pipeline — com mini-gráficos reais (piso, dz, iceberg, ΔPTH, Bayes, tipologia).')}
+ {fig('infog','<b>Infográfico do desenho.</b> Versão condensada: amostra, instrumentos, microciclo e funil de coletas.')}
  {fig('fig_master_estudo','<b>Esquema-mestre.</b> Desenho, amostra, instrumentos e o que aconteceu no microciclo.')}
 </section>
 
