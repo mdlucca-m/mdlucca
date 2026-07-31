@@ -1,0 +1,56 @@
+{
+ "n_atletas": 26,
+ "sessoes_descartadas_fc_invalida": 3,
+ "formula": "w = %HRR*0.64*exp(1.92*%HRR); TRIMP_rel = sum(w das 5 fases)",
+ "por_sessao": [
+  {
+   "sessao": "S1",
+   "trimp_rel": 16.98,
+   "foster": 32.77,
+   "hrr": 0.91
+  },
+  {
+   "sessao": "S2",
+   "trimp_rel": 16.43,
+   "foster": 32.48,
+   "hrr": 0.89
+  },
+  {
+   "sessao": "S3",
+   "trimp_rel": 15.11,
+   "foster": 35.28,
+   "hrr": 0.87
+  },
+  {
+   "sessao": "S4",
+   "trimp_rel": 16.46,
+   "foster": 32.6,
+   "hrr": 0.89
+  }
+ ],
+ "concordancia_TRIMP_Foster": {
+  "pearson": -0.05,
+  "p": 0.6334588238805302,
+  "spearman": -0.04,
+  "n": 101
+ },
+ "semanal_resumo": {
+  "trimp_total": [
+   63.1,
+   7.4
+  ],
+  "trimp_monotonia": [
+   13.23,
+   6.72
+  ],
+  "trimp_strain": [
+   854.4,
+   489.6
+  ]
+ },
+ "TRIMP_x_humor": {
+  "r": -0.32,
+  "p": 0.11874356413430598,
+  "n": 25
+ }
+}
