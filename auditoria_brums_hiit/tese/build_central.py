@@ -189,6 +189,16 @@ html = f"""<style>{CSS}</style>
 </section>
 
 <section>
+ <div class="seclab">Diagnóstico e carga interna</div>
+ <h2>ROC e TRIMP — o que separa e quanto custa</h2>
+ <p class="sub">Duas leituras complementares: a capacidade <b>diagnóstica</b> das variáveis (ROC/AUC) e a <b>carga interna</b> por FC (TRIMP de Banister). Convergem com o resto do estudo.</p>
+ <div class="finds">
+  <div class="find"><div class="n">Curva ROC</div><h3>Só a fadiga física discrimina o pós</h3><p>Para separar pós de pré-treino, a <b>fadiga física atinge AUC 0,70</b> (única moderada); PTH e fadiga ficam ~0,61 e as demais em ~0,5. Para separar dia de HIIT de dia sem HIIT, todas as AUC ficam em 0,52–0,58 — o humor de um dia isolado classifica mal o tipo de treino. Reforça: monitorar por tendência, com a fadiga física como sentinela.</p><span class="tag t-blue">AUC · IC bootstrap por atleta · Youden</span></div>
+  <div class="find"><div class="n">TRIMP (Banister)</div><h3>Intensidade no teto; carga não prevê humor</h3><p>As sessões foram uniformemente quase-máximas (%HRR 0,87–0,91). A carga por FC (TRIMP) e por PSE (Foster) são <b>praticamente independentes</b> neste regime (r ≈ −0,05), e nenhuma prediz a resposta aguda do humor (TRIMP × ΔPTH r = −0,32, n.s.) — o humor responde a fatores além do custo fisiológico da sessão.</p><span class="tag t-gold">%HRR · Banister · Foster</span></div>
+ </div>
+</section>
+
+<section>
  <div class="seclab">Reproduzível com um comando</div>
  <h2>Pipeline automatizado (estilo N8N)</h2>
  <p class="sub">Dezesseis nós encadeados levam da coleta bruta às tabelas, gráficos, Excel, PDF, relatório e à regeneração do próprio sistema analista. Um gatilho Cron reprocessa tudo a cada nova coleta.</p>
@@ -221,6 +231,8 @@ html = f"""<style>{CSS}</style>
    {file(GH+'tese/Apresentacao_BRUMS_HIIT.pptx','Apresentação (PPTX)','25 slides','PPTX')}
    {file(GH+'analises_avancadas/RESULTADOS.md','Análises avançadas','CFA/HTMT/TRI/invariância/Bayes + script R','MD')}
    {file(GH+'modelagem/MODELAGEM.md','Modelagem completa','modelos mistos, HIIT, interação, Hotelling','MD')}
+   {file(GH+'roc/ROC.md','Análise ROC','AUC pré×pós e HIIT×sem','MD')}
+   {file(GH+'trimp/TRIMP.md','Carga interna TRIMP','Banister %HRR + Foster','MD')}
   </div>
   <div class="cat">
    <h3><span class="dot" style="background:var(--violet)"></span>Automação</h3>

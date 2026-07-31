@@ -120,21 +120,30 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
 </section>
 
 <section>
- <div class="eyebrow">8 · Segmentação</div><h2>A resposta é individual</h2>
+ <div class="eyebrow">8 · Capacidade diagnóstica</div><h2>Curvas ROC — o que cada variável separa</h2>
+ <p>Além do tamanho do efeito, quão bem cada variável <b>discrimina</b> estados? Para separar o pós do pré-treino, só a <b>fadiga física</b> alcança AUC moderada (0,70); PTH e fadiga ficam ~0,61 e as demais próximas de 0,5. Para separar um dia de HIIT de um dia sem HIIT, todas as AUC ficam entre 0,52 e 0,58 — o humor medido num único dia classifica mal o tipo de treino, porque a variabilidade individual domina. AUC com IC95% por bootstrap agrupado por atleta.</p>
+ <div class="two">{fig('roc_prepos','<b>ROC pré vs pós.</b> Fadiga física AUC 0,70 — marcador sentinela do estado agudo.')}{fig('roc_hiit','<b>ROC HIIT vs sem.</b> Discriminação fraca (AUC ≤ 0,58) no nível do dia.')}</div>
+ <p>A leitura prática reforça a recomendação do estudo: monitorar por <b>tendência</b>, com a fadiga física como sentinela e uma linha de base individual — não classificar um dia isolado por um escore de humor.</p>
+</section>
+
+<section>
+ <div class="eyebrow">9 · Segmentação</div><h2>A resposta é individual</h2>
  <p>A tipologia por agrupamento separa 20 atletas resilientes, 6 perturbados e 1 extremo — a média esconde perfis opostos. A rede de correlações parciais entre subescalas mostra a depressão como nó de maior centralidade.</p>
  <div class="two">{fig('chart_cluster','<b>Tipologia</b> — perfis médios (z) por grupo.')}{fig('chart_network','<b>Rede</b> de subescalas — centralidade.')}</div>
  {fig('chart_weekly','<b>Mudança semanal</b> D1→D7 com intervalos de confiança por bootstrap.')}
 </section>
 
 <section>
- <div class="eyebrow">9 · Carga interna</div><h2>Frequência cardíaca e esforço percebido</h2>
+ <div class="eyebrow">10 · Carga interna</div><h2>Frequência cardíaca, esforço percebido e TRIMP</h2>
  <p>As sessões de HIIT foram quase-máximas: a FC de pico atinge 184/183/181 bpm nos dias 2/4/7 e a FC sobe do aquecimento (~158 bpm) à quarta série (~182 bpm). O PSE final fica próximo do teto da escala (9,3–9,6), sem aumento significativo entre sessões (Friedman n.s.). E, de forma reveladora, a magnitude da carga <b>não</b> prediz a perturbação aguda do humor (r≈−0,05): o custo fisiológico e a resposta psicológica se desacoplam no agudo.</p>
  <div class="two">{fig('pipe_carga_fc_por_fase','<b>FC pré→pós por fase</b> (aquecimento → 4ª série).')}{fig('pipe_carga_pse_fc_sessao','<b>PSE final e FC de pico</b> por sessão.')}</div>
  {fig('pipe_carga_x_humor','<b>Carga interna × humor.</b> PSE médio × Δ PTH agudo por atleta (r≈−0,05, n.s.).')}
+ <p>Pela carga por FC (<b>TRIMP</b> de Banister sobre a %HRR), a intensidade foi uniformemente alta (%HRR 0,87–0,91 nas quatro sessões). Sem duração registrada, reporta-se o TRIMP relativo por sessão. Duas leituras convergem com o resto: a carga por FC (TRIMP) e por PSE (Foster) são <b>praticamente independentes</b> neste regime de teto (r≈−0,05), e o TRIMP também <b>não</b> prediz a resposta aguda do humor (r=−0,32; p=0,12).</p>
+ {fig('trimp','<b>TRIMP.</b> Carga por sessão (TRIMP vs Foster), concordância entre as duas famílias e TRIMP × resposta do humor.')}
 </section>
 
 <section>
- <div class="eyebrow">10 · Reprodutibilidade</div><h2>Pipeline automatizado</h2>
+ <div class="eyebrow">11 · Reprodutibilidade</div><h2>Pipeline automatizado</h2>
  <p>Todas as análises são reproduzíveis com um comando: dezesseis nós encadeados levam da coleta bruta às tabelas, gráficos, Excel, PDF, relatório e à regeneração do sistema analista interativo. Um gatilho Cron reprocessa tudo a cada nova coleta.</p>
  {fig('workflow','<b>Pipeline (estilo N8N).</b> Início/Cron → ingestão → análises → carga interna → gráficos → exportação → app analista → relatório.')}
  <h3>Conclusão</h3>
