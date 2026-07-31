@@ -182,6 +182,7 @@ const app=document.getElementById('app');
  ['blue','Modelo teórico','Três vias convergem','R² condicional (0,58–0,63) ≫ marginal — variância individual. Bayes=frequentista (P>0=1,00); MANOVA e PERMANOVA confirmam o deslocamento multivariado.'],
  ['gold','Dias do microciclo','O HIIT vive no nível, não no salto','As 3 sessões de HIIT são consistentes; o salto agudo é igual em HIIT e sem-HIIT. A assinatura do HIIT é o nível diário e o acúmulo (PTH pico no D7).'],
  ['teal','Outros questionários','Convergem com o BRUMS','Fadiga física e estado físico respondem forte (dz ~1) e convergem com a Fadiga do BRUMS (r 0,64/−0,65). Medidas complementares, não redundantes.'],
+ ['violet','Sonolência','Cansado ≠ com sono','A sonolência CAI pós-treino (dz −0,55) enquanto a exaustão sobe — o exercício desperta. Remover o item eleva o α da Fadiga de 0,80 para 0,90.'],
 ];
  const t=document.createElement('div');t.innerHTML='<h2>Principais achados</h2><p class="sub">Oito conclusões, todas reconciliadas com a reanálise (atleta como unidade, FDR).</p>';app.append(t);
  const g=document.createElement('div');g.className='finds';
@@ -192,7 +193,7 @@ const app=document.getElementById('app');
 app.insertAdjacentHTML('beforeend','<h2>Análises</h2><p class="sub">Segmentadas por tema — use os filtros. Cada tabela é ordenável (clique no cabeçalho) e filtrável.</p>');
 const segbar=document.createElement('div');segbar.className='segbar';app.append(segbar);
 const zone=document.createElement('div');app.append(zone);
-const SEGS=[['all','Todas'],['medida','Medida'],['descr','Descritiva'],['aguda','Resposta aguda'],['hiit','Acúmulo & HIIT'],['multi','Multivariada & Bayes'],['carga','Carga & diagnóstico'],['pred','Preditiva'],['corr','Correlações'],['perfil','Perfil & variabilidade'],['modelo','Modelo teórico'],['dias','Dias do microciclo'],['outros','Outros questionários']];
+const SEGS=[['all','Todas'],['medida','Medida'],['descr','Descritiva'],['aguda','Resposta aguda'],['hiit','Acúmulo & HIIT'],['multi','Multivariada & Bayes'],['carga','Carga & diagnóstico'],['pred','Preditiva'],['corr','Correlações'],['perfil','Perfil & variabilidade'],['modelo','Modelo teórico'],['dias','Dias do microciclo'],['outros','Outros questionários'],['sono','Sonolência']];
 segbar.innerHTML=SEGS.map(([id,t],i)=>`<button class="seg ${i===0?'on':''}" data-s="${id}">${t}</button>`).join('');
 
 function block(seg){const d=document.createElement('div');d.dataset.seg=seg;zone.append(d);return d;}
@@ -292,6 +293,11 @@ requestAnimationFrame(drawCharts);
  const rc=v=>v==null?'—':`<span class="${v>=0.3?'pos':(v<=-0.3?'neg':'')}">${v>=0?'+':''}${fmt(v)}</span>`;
  dtable(c2,[{k:'inst',label:'Externo'}].concat(oq.targets.map(t=>({k:t,label:t,num:true,render:rc}))),crows,'Convergência BRUMS');
  c2.insertAdjacentHTML('beforeend','<p class="sub" style="margin:8px 0 0;font-size:12px">Fadiga física↔Fadiga BRUMS +0,64; Estado físico↔Fadiga −0,65 / Vigor +0,47; os mentais ancoram no PTH. Os itens únicos medem as mesmas dimensões do BRUMS.</p>');})();
+/* sonolência */
+(function(){const b=block('sono');const sn=D.sn;
+ const c1=card(b,'Sonolência ("Sonolento") vs. os demais itens de Fadiga','pré→pós · dz','violet');
+ dtable(c1,[{k:'item',label:'Item'},{k:'delta',label:'Δ',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'dz',label:'dz',num:true,render:v=>`<b>${v>=0?'+':''}${fmt(v)}</b>`},{k:'wilcoxon_p',label:'p',num:true,render:v=>v<0.001?'<0,001':fmt(v,3)},{k:'direcao',label:'Direção',render:v=>`<span class="chip ${v==='cai'?'c-sim':'c-nao'}">${v}</span>`}],sn.A,'Sonolência — itens de fadiga');
+ c1.insertAdjacentHTML('beforeend',`<p class="sub" style="margin:8px 0 0;font-size:12px">A sonolência CAI pós-treino (dz −0,55) enquanto a exaustão SOBE — o exercício agudo desperta. Ortogonal aos outros itens (rm_corr ≈ 0); remover o item eleva o α da Fadiga de ${fmt(sn.D.com_sonolento)} para ${fmt(sn.D.sem_sonolento)} (carga CFA ${fmt(sn.carga_CFA)}). "Cansado" ≠ "com sono".</p>`);})();
 /* segment filter */
 segbar.querySelectorAll('.seg').forEach(bt=>bt.onclick=()=>{segbar.querySelectorAll('.seg').forEach(x=>x.classList.remove('on'));bt.classList.add('on');const s=bt.dataset.s;
  zone.querySelectorAll('[data-seg]').forEach(el=>el.style.display=(s==='all'||el.dataset.seg===s||el.dataset.seg==='all'&&s==='all')?'':'none');

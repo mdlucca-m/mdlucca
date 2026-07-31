@@ -333,6 +333,17 @@ const SEC=[]; function sec(id,title){const s=document.createElement('section');s
  dtable(c3,[{k:'inst',label:'Instrumento'},{k:'ICC',label:'ICC',num:true,render:v=>fmt(v)},{k:'perfil',label:'Perfil',render:v=>`<span class="chip ${v==='traço'?'c-nao':'c-sim'}">${v}</span>`},{k:'hiit_p',label:'HIIT vs sem: p',num:true,render:v=>v==null?'—':fmt(v,3)},{k:'hiit_dif',label:'Difere?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`}],drows);
 })();
 
+/* SONOLÊNCIA */
+(function(){const s=sec('sono','Sonolência');
+ const sn=D.sn;
+ s.innerHTML='<h2>Sonolência — o item "Sonolento" do BRUMS</h2><p class="sub">A sonolência é o item "Sonolento" (3º da subescala Fadiga). Ela anda na <b>contramão</b> dos demais: enquanto Esgotado/Exausto/Cansado sobem pós-treino, a sonolência <b>cai</b> (dz −0,55) — o exercício agudo ativa/desperta. É praticamente ortogonal aos outros itens de fadiga (rm_corr ≈ 0), e removê-la eleva o α da subescala de '+fmt(sn.D.com_sonolento)+' para '+fmt(sn.D.sem_sonolento)+'.</p>';
+ const c1=card('Resposta aguda dos 4 itens de Fadiga','pré→pós · dz');s.append(c1);
+ dtable(c1,[{k:'item',label:'Item'},{k:'M_pre',label:'Pré',num:true,render:v=>fmt(v)},{k:'M_pos',label:'Pós',num:true,render:v=>fmt(v)},{k:'delta',label:'Δ',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'dz',label:'dz',num:true,render:v=>`<b>${v>=0?'+':''}${fmt(v)}</b>`},{k:'wilcoxon_p',label:'p',num:true,render:v=>v<0.001?'<0,001':fmt(v,3)},{k:'direcao',label:'Direção',render:v=>`<span class="chip ${v==='cai'?'c-sim':'c-nao'}">${v}</span>`}],sn.A);
+ const c2=card('Confiabilidade e ortogonalidade do item Sonolento','α · rm_corr · carga');const d2=document.createElement('div');c2.append(d2);s.append(c2);
+ requestAnimationFrame(()=>{barChart(d2,sn.C.map(c=>({l:'× '+c.alvo,v:c.r,c:Math.abs(c.r)<0.2?'gold':'blue'})),{min:-0.35,max:0.35,l:96,fmt:v=>fmt(v)});});
+ c2.insertAdjacentHTML('beforeend',`<p class="note">rm_corr (intra-atleta) do Sonolento com os outros itens de fadiga e o vigor — descolado de todos. α da subescala Fadiga: <b>${fmt(sn.D.com_sonolento)}</b> com o item → <b>${fmt(sn.D.sem_sonolento)}</b> sem ele. Carga CFA do item = ${fmt(sn.carga_CFA)} (a mais baixa da subescala).</p>`);
+})();
+
 document.getElementById('app').insertAdjacentHTML('beforeend','<footer>Dashboard analítico · BRUMS × HIIT no handebol · atletas anonimizados (A01–A27) · números reproduzidos por código · 2026.</footer>');
 
 /* nav */

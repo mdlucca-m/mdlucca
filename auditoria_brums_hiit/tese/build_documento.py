@@ -11,6 +11,7 @@ pv=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/perfil_variabilidade/
 mt=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/modelo_teorico/resultados_modelo_teorico.json'))
 dh=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/dias_hiit/resultados_dias_hiit.json'))
 oq=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/outros_questionarios/resultados_outros_questionarios.json'))
+sn=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/sonolencia/resultados_sonolencia.json'))
 
 CSS="""
 @page{size:A4;margin:18mm 16mm}
@@ -79,6 +80,8 @@ rowsOQ=[[r['inst'],r['escala'],f"{r['M_pre']:.2f}".replace('.',','),f"{r['M_pos'
 _oqtg=['Vigor','Fadiga','PTH']; _oqk=['FadFis','FadMen','EstFis','EstMen']; _oqlab={'FadFis':'Fadiga física','FadMen':'Fadiga mental','EstFis':'Estado físico','EstMen':'Estado mental'}
 rowsOQC=[[_oqlab[k]]+[f"{oq['C_convergencia_rmcorr']['matriz'][k][t]:+.2f}".replace('.',',') for t in _oqtg] for k in _oqk]
 rowsOQD=[[d['inst'],f"{d['ICC']:.2f}".replace('.',','),('traço' if d['ICC']>=0.5 else 'estado')] for d in oq['D_ICC']]
+rowsSN=[[r['item'],f"{r['M_pre']:.2f}".replace('.',','),f"{r['M_pos']:.2f}".replace('.',','),f"{r['delta']:+.2f}".replace('.',','),f"{r['dz']:+.2f}".replace('.',','),('<0,001' if r['wilcoxon_p']<0.001 else f"{r['wilcoxon_p']:.3f}".replace('.',',')),r['direcao']] for r in sn['A_resposta_itens']]
+_snA=str(sn['D_alpha']['com_sonolento']).replace('.',','); _snA3=str(sn['D_alpha']['sem_sonolento']).replace('.',','); _snCFA=str(sn.get('carga_CFA_sonolento')).replace('.',',')
 _pnum=lambda v:('<0,001' if v<0.001 else f"{v:.3f}".replace('.',','))
 rowsDA=[]  # entre dias de HIIT
 for _v,_o in dh['A_entre_HIIT'].items():
@@ -254,6 +257,14 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
  <p>Quanto à <b>estabilidade</b> (ICC), os instrumentos mentais são mais "de traço" (ICC 0,60–0,70) e os físicos mais "de estado" (ICC ≈ 0,40), espelhando o BRUMS. Nenhum externo distingue dias de HIIT de dias sem HIIT no salto agudo.</p>
  {tbl(['Instrumento','ICC','Perfil'],rowsOQD)}
  {fig('outrosq','<b>Outros questionários.</b> A: resposta aguda (dz); B: média pré×pós; C: convergência com o BRUMS (rm_corr intra-atleta); D: estabilidade (ICC).')}
+</section>
+
+<section>
+ <div class="eyebrow">Sonolência</div><h2>O item "Sonolento": sonolência não é fadiga</h2>
+ <p>A sonolência foi medida como o item <b>"Sonolento"</b> (3º item da subescala Fadiga). Ele se comporta de forma <b>oposta</b> aos demais: enquanto Esgotado/Exausto/Cansado aumentam significativamente pós-treino, a sonolência <b>diminui</b> (dz −0,55; p = 0,007) — o exercício agudo é <b>ativador/despertador</b>, ainda que eleve a exaustão física. Sonolência e fadiga não são o mesmo construto no plano agudo.</p>
+ {tbl(['Item de Fadiga','Pré','Pós','Δ','dz','p','Direção'],rowsSN)}
+ <p>Dentro do atleta, o item Sonolento é praticamente <b>ortogonal</b> aos demais itens de fadiga (rm_corr 0,00–0,10) e levemente negativo com o vigor (−0,12). Consistentemente, a confiabilidade da subescala Fadiga <b>sobe de α = {_snA} para {_snA3}</b> quando o item é removido — confirmando a carga fatorial baixa ({_snCFA}) e a discriminação TRI baixa já observadas. Recomenda-se tratar a sonolência à parte da subescala Fadiga (eixo sono↔alerta). Não houve escala dedicada de sonolência/sono na coleta.</p>
+ {fig('sono','<b>Sonolência.</b> A: Δ pré→pós dos 4 itens de Fadiga (Sonolento na contramão); B: dz por item; C: rm_corr do Sonolento; D: α da Fadiga com vs sem o item.')}
 </section>
 
 <section>
