@@ -1,0 +1,350 @@
+{
+ "mistos_R2_SE": {
+  "PTH": {
+   "label": "PTH (TMD)",
+   "R2_marginal": 0.058,
+   "R2_condicional": 0.616,
+   "ICC": 0.592,
+   "var_entre": 56.62,
+   "var_intra": 39.02,
+   "fixos": [
+    {
+     "termo": "Intercept",
+     "beta": -0.66,
+     "SE": 1.778,
+     "IC": [
+      -4.145,
+      2.825
+     ],
+     "z": -0.37,
+     "p": 0.7106
+    },
+    {
+     "termo": "pos",
+     "beta": 3.474,
+     "SE": 0.76,
+     "IC": [
+      1.984,
+      4.964
+     ],
+     "z": 4.57,
+     "p": 0.0
+    },
+    {
+     "termo": "dia",
+     "beta": 0.511,
+     "SE": 0.208,
+     "IC": [
+      0.104,
+      0.919
+     ],
+     "z": 2.46,
+     "p": 0.0139
+    },
+    {
+     "termo": "hiit",
+     "beta": 2.72,
+     "SE": 0.78,
+     "IC": [
+      1.192,
+      4.248
+     ],
+     "z": 3.49,
+     "p": 0.0005
+    }
+   ]
+  },
+  "FadFis": {
+   "label": "Fadiga física",
+   "R2_marginal": 0.212,
+   "R2_condicional": 0.584,
+   "ICC": 0.473,
+   "var_entre": 2.39,
+   "var_intra": 2.67,
+   "fixos": [
+    {
+     "termo": "Intercept",
+     "beta": 3.243,
+     "SE": 0.401,
+     "IC": [
+      2.457,
+      4.03
+     ],
+     "z": 8.08,
+     "p": 0.0
+    },
+    {
+     "termo": "pos",
+     "beta": 1.652,
+     "SE": 0.199,
+     "IC": [
+      1.262,
+      2.042
+     ],
+     "z": 8.31,
+     "p": 0.0
+    },
+    {
+     "termo": "dia",
+     "beta": 0.375,
+     "SE": 0.054,
+     "IC": [
+      0.268,
+      0.481
+     ],
+     "z": 6.91,
+     "p": 0.0
+    },
+    {
+     "termo": "hiit",
+     "beta": 0.766,
+     "SE": 0.204,
+     "IC": [
+      0.367,
+      1.165
+     ],
+     "z": 3.76,
+     "p": 0.0002
+    }
+   ]
+  },
+  "Vigor": {
+   "label": "Vigor",
+   "R2_marginal": 0.063,
+   "R2_condicional": 0.594,
+   "ICC": 0.567,
+   "var_entre": 5.94,
+   "var_intra": 4.55,
+   "fixos": [
+    {
+     "termo": "Intercept",
+     "beta": 7.342,
+     "SE": 0.587,
+     "IC": [
+      6.192,
+      8.491
+     ],
+     "z": 12.52,
+     "p": 0.0
+    },
+    {
+     "termo": "pos",
+     "beta": -1.089,
+     "SE": 0.26,
+     "IC": [
+      -1.598,
+      -0.58
+     ],
+     "z": -4.2,
+     "p": 0.0
+    },
+    {
+     "termo": "dia",
+     "beta": -0.231,
+     "SE": 0.071,
+     "IC": [
+      -0.37,
+      -0.092
+     ],
+     "z": -3.26,
+     "p": 0.0011
+    },
+    {
+     "termo": "hiit",
+     "beta": -0.899,
+     "SE": 0.266,
+     "IC": [
+      -1.42,
+      -0.377
+     ],
+     "z": -3.38,
+     "p": 0.0007
+    }
+   ]
+  },
+  "Fadiga": {
+   "label": "Fadiga",
+   "R2_marginal": 0.079,
+   "R2_condicional": 0.631,
+   "ICC": 0.599,
+   "var_entre": 9.12,
+   "var_intra": 6.11,
+   "fixos": [
+    {
+     "termo": "Intercept",
+     "beta": 2.638,
+     "SE": 0.71,
+     "IC": [
+      1.246,
+      4.03
+     ],
+     "z": 3.71,
+     "p": 0.0002
+    },
+    {
+     "termo": "pos",
+     "beta": 1.496,
+     "SE": 0.301,
+     "IC": [
+      0.907,
+      2.086
+     ],
+     "z": 4.98,
+     "p": 0.0
+    },
+    {
+     "termo": "dia",
+     "beta": 0.365,
+     "SE": 0.082,
+     "IC": [
+      0.204,
+      0.526
+     ],
+     "z": 4.44,
+     "p": 0.0
+    },
+    {
+     "termo": "hiit",
+     "beta": 0.984,
+     "SE": 0.308,
+     "IC": [
+      0.38,
+      1.589
+     ],
+     "z": 3.19,
+     "p": 0.0014
+    }
+   ]
+  }
+ },
+ "bayesiano_gibbs": {
+  "PTH": {
+   "label": "PTH (TMD)",
+   "posterior": {
+    "b0": {
+     "media": -0.615,
+     "SE_bayes": 1.812,
+     "ICr95": [
+      -4.143,
+      3.005
+     ]
+    },
+    "pos": {
+     "media": 3.484,
+     "SE_bayes": 0.763,
+     "ICr95": [
+      1.975,
+      4.994
+     ]
+    },
+    "dia": {
+     "media": 0.513,
+     "SE_bayes": 0.207,
+     "ICr95": [
+      0.105,
+      0.918
+     ]
+    },
+    "hiit": {
+     "media": 2.716,
+     "SE_bayes": 0.774,
+     "ICr95": [
+      1.197,
+      4.255
+     ]
+    },
+    "tau(entre)": {
+     "media": 7.719,
+     "SE_bayes": 1.222,
+     "ICr95": [
+      5.742,
+      10.473
+     ]
+    },
+    "sigma(intra)": {
+     "media": 6.269,
+     "SE_bayes": 0.296,
+     "ICr95": [
+      5.722,
+      6.883
+     ]
+    },
+    "P(pos>0)": 1.0
+   }
+  },
+  "FadFis": {
+   "label": "Fadiga física",
+   "posterior": {
+    "b0": {
+     "media": 3.275,
+     "SE_bayes": 0.409,
+     "ICr95": [
+      2.453,
+      4.077
+     ]
+    },
+    "pos": {
+     "media": 1.65,
+     "SE_bayes": 0.201,
+     "ICr95": [
+      1.252,
+      2.035
+     ]
+    },
+    "dia": {
+     "media": 0.373,
+     "SE_bayes": 0.055,
+     "ICr95": [
+      0.268,
+      0.481
+     ]
+    },
+    "hiit": {
+     "media": 0.764,
+     "SE_bayes": 0.205,
+     "ICr95": [
+      0.364,
+      1.168
+     ]
+    },
+    "tau(entre)": {
+     "media": 1.585,
+     "SE_bayes": 0.258,
+     "ICr95": [
+      1.169,
+      2.161
+     ]
+    },
+    "sigma(intra)": {
+     "media": 1.641,
+     "SE_bayes": 0.076,
+     "ICr95": [
+      1.502,
+      1.802
+     ]
+    },
+    "P(pos>0)": 1.0
+   }
+  }
+ },
+ "multivariada": {
+  "MANOVA": {
+   "pillai": 0.057,
+   "wilks": 0.943,
+   "F": 2.67,
+   "p": 0.0156
+  },
+  "PERMANOVA": {
+   "pseudo_F": 10.93,
+   "R2": 0.174,
+   "p": 0.0011,
+   "nperm": 9999,
+   "permutacao": "restrita (troca pré/pós dentro do atleta)"
+  }
+ },
+ "modelo_teorico": {
+  "fitness_fadiga": "State(t)=p0 + k1·g(t) − k2·h(t); g,h = somas exponenciais das cargas (τ_fitness>τ_fatigue)",
+  "forma_estimavel": "Y_ijt = β0 + β1·Pós + β2·Dia + β3·HIIT + u_i + ε_ijt ; u_i~N(0,τ²), ε~N(0,σ²)",
+  "ICC": "τ²/(τ²+σ²)"
+ }
+}
