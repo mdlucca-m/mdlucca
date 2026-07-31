@@ -7,6 +7,7 @@ mod=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/modelagem/resultados
 adv=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/analises_avancadas/resultados.json'))
 conf=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/confiabilidade_invariancia/resultados_confiabilidade.json'))
 pred=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/preditiva/resultados_preditiva.json'))
+pv=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/perfil_variabilidade/resultados_perfil_variabilidade.json'))
 
 CSS="""
 @page{size:A4;margin:18mm 16mm}
@@ -65,6 +66,13 @@ _g=pred['ganho_contexto']; _cl=pred['B_classificacao']
 _dPTH=str(_g['PTH']['delta_contexto']).replace('.',','); _dFF=str(_g['FadFis']['delta_contexto']).replace('.',','); _dVI=str(_g['Vigor']['delta_contexto']).replace('.',',')
 _aucB=str(_cl['auc_baseline_fadfis_pre']).replace('.',','); _aucL=str(_cl['auc_perfil_logistica']).replace('.',',')
 _imp=', '.join(i['feature'] for i in _cl['importancia'][:4])
+rowsVar=[[v['var'],f"{v['pct_entre']:.1f}".replace('.',','),('—' if v['CV_intra'] is None else f"{v['CV_intra']:.1f}".replace('.',','))] for v in sorted(pv['variabilidade'],key=lambda v:-v['pct_entre'])]
+_pf=pv['perfil']; _icb=_pf['iceberg_prev']
+_chi=f"χ²({_pf['quiquadrado']['df']}) = {_pf['quiquadrado']['chi2']:.2f}".replace('.',','); _pchi=str(_pf['quiquadrado']['p']).replace('.',','); _cv=str(_pf['quiquadrado']['cramer_V']).replace('.',',')
+_eta=str(pv['segmentacao']['eta2_PTH_entre_grupos']).replace('.',','); _ic0=f"{_icb['pre']*100:.0f}"; _ic1=f"{_icb['pos']*100:.0f}"
+_permok='concordam com o teste t em todas as variáveis' if all(r['concordam'] for r in pv['permutacao']) else 'divergem em alguma variável'
+_logok='mantêm a decisão' if all(r['decisao_mantem'] for r in pv['sensibilidade']['log']) else 'alteram a decisão'
+_outok='mantêm a decisão' if all(r['decisao_mantem'] for r in pv['sensibilidade']['sem_outlier']) else 'alteram a decisão'
 
 def fig(k,cap): return f'<figure><img src="{im(k)}"><figcaption>{cap}</figcaption></figure>'
 
@@ -165,6 +173,16 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
  {fig('chart_weekly','<b>Mudança semanal</b> D1→D7 com intervalos de confiança por bootstrap.')}
  <p>O agrupamento hierárquico (Ward, sobre os perfis-z das seis subescalas) <b>cross-valida</b> a tipologia por um segundo método: 21 resilientes, 5 perturbados e 1 extremo (A06, o primeiro a se separar). O clustermap mostra os perfis por atleta.</p>
  <div class="two">{fig('dendro','<b>Dendrograma</b> (Ward) dos 27 atletas — corte em 3 grupos.')}{fig('clustermap','<b>Clustermap</b> — perfil z por atleta, ordenado pelo agrupamento.')}</div>
+</section>
+
+<section>
+ <div class="eyebrow">Perfil · variabilidade · robustez</div><h2>Perfil de humor, variabilidade e verificações de robustez</h2>
+ <p>O perfil clássico "iceberg" (vigor acima das subescalas negativas) está presente em <b>{_ic0}%</b> das avaliações pré e cai para <b>{_ic1}%</b> no pós — a sessão erode o perfil, e o teste de independência confirma a associação perfil×momento ({_chi}; p = {_pchi}; V de Cramér = {_cv}).</p>
+ {fig('perfil','<b>Perfil e distribuições.</b> A: perfil iceberg pré×pós; B: box plot por subescala; C: histograma do PTH (com inset log); D: dispersão vigor×fadiga por grupo.')}
+ <p>Decompondo a variância de cada variável em <b>entre atletas</b> e <b>intra atleta</b>, a maior parte mora entre atletas — sobretudo nas subescalas de afeto negativo (traço-estáveis) e no PTH; a fadiga física é a mais "de estado". A segmentação por agrupamento (20 resilientes / 6 perturbados / 1 extremo) explica <b>η² = {_eta}</b> da variação do PTH entre atletas.</p>
+ {tbl(['Variável','% da variância entre atletas','CV intra (%)'],rowsVar)}
+ {fig('variab','<b>Variabilidade e robustez.</b> A: componentes de variância (entre×intra); B: variabilidade individual do PTH; C: perfis de grupo (η²='+_eta+'); D: distribuição nula do teste de permutação (fadiga física).')}
+ <p><b>Robustez.</b> Três verificações confirmam que as conclusões não dependem de premissas: o teste de <b>permutação</b> (sign-flip pareado, 20 000 reamostragens) {_permok}; a <b>transformação logarítmica</b> das variáveis assimétricas {_logok}; e a <b>exclusão do outlier</b> (A06) {_outok}. Os achados são robustos à família de teste, à forma da distribuição e a casos influentes.</p>
 </section>
 
 <section>

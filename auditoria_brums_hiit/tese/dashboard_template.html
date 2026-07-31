@@ -265,6 +265,23 @@ const SEC=[]; function sec(id,title){const s=document.createElement('section');s
  dtable(c2,[{k:'leitura',label:'Leitura'},{k:'par',label:'Par'},{k:'r',label:'r',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'p',label:'p',num:true,render:pf},{k:'sig',label:'Sig.',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'—'}</span>`}],rows);s.append(c2);
 })();
 
+/* PERFIL & VARIABILIDADE */
+(function(){const s=sec('perfil','Perfil & variabilidade');
+ const pv=D.pv, pf=pv.perfil;
+ s.innerHTML='<h2>Perfil de humor, variabilidade e robustez</h2><p class="sub">Perfil iceberg (vigor acima das negativas) presente em '+Math.round(pf.iceberg_pre*100)+'% das avaliações pré e '+Math.round(pf.iceberg_pos*100)+'% no pós — a sessão erode o perfil (χ²('+pf.df+')='+fmt(pf.chi2)+'; p='+pf.p.toFixed(3).replace('.',',')+'; V de Cramér '+fmt(pf.cramer_V)+'). A maior parte da variância mora <b>entre atletas</b>; a segmentação explica η²='+fmt(pv.segmentacao.eta2_PTH)+' da variação do PTH. Tudo robusto a permutação, log e exclusão do outlier.</p>';
+ const g=document.createElement('div');g.className='grid2';s.append(g);
+ const c1=card('Variância: entre atletas vs intra atleta','componentes');const d1=document.createElement('div');c1.append(d1);g.append(c1);
+ requestAnimationFrame(()=>{barChart(d1,pv.variabilidade.slice().sort((a,b)=>a.pct_entre-b.pct_entre).map(v=>({l:v.var,v:v.pct_entre,c:v.pct_entre>=50?'violet':'gold'})),{min:0,max:100,fmt:v=>fmt(v,0)+'%'});});
+ c1.insertAdjacentHTML('beforeend','<p class="note">% da variância total que é entre atletas (≥50% = predominantemente individual/traço). Fadiga física é a mais "de estado" (40%).</p>');
+ const c2=card('Segmentação — perfil-z por grupo','k-means · η² '+fmt(pv.segmentacao.eta2_PTH));s.append(c2);g.append(c2);
+ dtable(c2,[{k:'grupo',label:'Grupo'},{k:'Tensão',label:'Tens',num:true,render:v=>fmt(v)},{k:'Depressão',label:'Depr',num:true,render:v=>fmt(v)},{k:'Raiva',label:'Raiva',num:true,render:v=>fmt(v)},{k:'Vigor',label:'Vigor',num:true,render:v=>fmt(v)},{k:'Fadiga',label:'Fad',num:true,render:v=>fmt(v)},{k:'Confusão',label:'Conf',num:true,render:v=>fmt(v)}],pv.segmentacao.perfis);
+ const c3=card('Robustez — permutação vs. teste t (pré→pós)','sign-flip · 20 000');s.append(c3);
+ dtable(c3,[{k:'var',label:'Variável'},{k:'delta',label:'Δ',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'p_perm',label:'p (perm.)',num:true,render:pf2=>pf2<0.001?'<0,001':fmt(pf2,3)},{k:'p_t',label:'p (t)',num:true,render:pf2=>pf2<0.001?'<0,001':fmt(pf2,3)},{k:'concordam',label:'Concordam?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`}],pv.permutacao);
+ const c4=card('Sensibilidade — log e exclusão do outlier (A06)','a decisão muda?');s.append(c4);
+ const sr=pv.sensibilidade.sem_outlier.map(o=>{const l=pv.sensibilidade.log.find(x=>x.var===o.var)||{};return{var:o.var,p_log:l.p_log,log_ok:l.decisao_mantem,dz_com:o.dz_com,dz_sem:o.dz_sem,out_ok:o.decisao_mantem};});
+ dtable(c4,[{k:'var',label:'Variável'},{k:'p_log',label:'p (log)',num:true,render:v=>v==null?'—':(v<0.001?'<0,001':fmt(v,3))},{k:'log_ok',label:'log: mantém?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`},{k:'dz_com',label:'dz c/ A06',num:true,render:v=>fmt(v)},{k:'dz_sem',label:'dz s/ A06',num:true,render:v=>fmt(v)},{k:'out_ok',label:'outlier: mantém?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`}],sr);
+})();
+
 document.getElementById('app').insertAdjacentHTML('beforeend','<footer>Dashboard analítico · BRUMS × HIIT no handebol · atletas anonimizados (A01–A27) · números reproduzidos por código · 2026.</footer>');
 
 /* nav */

@@ -167,6 +167,10 @@ html = f"""<style>{CSS}</style>
   <figure><img src="{img('clustermap')}" alt="Clustermap"><figcaption><b>Clustermap.</b> Perfil z de humor por atleta, ordenado pelo agrupamento.</figcaption></figure>
  </div>
  <figure style="margin-top:16px"><img src="{img('descr')}" alt="Descritivas e testes"><figcaption><b>Descritivas &amp; testes.</b> Forma/normalidade e a concordância entre testes paramétricos (t) e não-paramétricos (Wilcoxon) — as duas famílias decidem igual.</figcaption></figure>
+ <div class="figrow" style="margin-top:16px">
+  <figure><img src="{img('perfil')}" alt="Perfil de humor e distribuições"><figcaption><b>Perfil &amp; distribuições.</b> Iceberg pré×pós (χ² significativo), box plot por subescala, histograma do PTH (com log) e dispersão vigor×fadiga por grupo.</figcaption></figure>
+  <figure><img src="{img('variab')}" alt="Variabilidade e robustez"><figcaption><b>Variabilidade &amp; robustez.</b> Componentes de variância (entre×intra atleta), variabilidade individual do PTH, perfis de grupo (η²=0,70) e a nula de permutação da fadiga física.</figcaption></figure>
+ </div>
 </section>
 
 <section>
@@ -248,6 +252,7 @@ html = f"""<style>{CSS}</style>
    {file(GH+'acoplamento/ACOPLAMENTO.md','Acoplamento carga×humor','PSE/FC/TRIMP × fadiga mental/TMD','MD')}
    {file(GH+'confiabilidade_invariancia/CONFIABILIDADE.md','Confiabilidade & invariância','α/ω por subescala, IC95%, Tucker φ','MD')}
    {file(GH+'preditiva/PREDITIVA.md','Análise preditiva','leave-one-athlete-out; baseline vs. carga','MD')}
+   {file(GH+'perfil_variabilidade/PERFIL_VARIABILIDADE.md','Perfil & variabilidade','iceberg/χ², variância intra×entre, permutação, log, outlier','MD')}
   </div>
   <div class="cat">
    <h3><span class="dot" style="background:var(--violet)"></span>Automação</h3>

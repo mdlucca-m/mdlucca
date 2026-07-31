@@ -2085,5 +2085,260 @@
     }
    ]
   }
+ },
+ "pv": {
+  "perfil": {
+   "iceberg_pre": 0.859,
+   "iceberg_pos": 0.748,
+   "chi2": 4.601,
+   "df": 1,
+   "p": 0.0319,
+   "cramer_V": 0.131,
+   "medias": {
+    "pre": {
+     "Tensão": 1.28,
+     "Depressão": 0.95,
+     "Raiva": 1.5,
+     "Vigor": 6.2,
+     "Fadiga": 4.7,
+     "Confusão": 0.55
+    },
+    "pos": {
+     "Tensão": 1.48,
+     "Depressão": 1.31,
+     "Raiva": 1.87,
+     "Vigor": 5.11,
+     "Fadiga": 6.2,
+     "Confusão": 0.5
+    }
+   }
+  },
+  "variabilidade": [
+   {
+    "var": "Tensão",
+    "entre": 2.81,
+    "intra": 1.25,
+    "pct_entre": 69.2,
+    "CV_intra": 80.4
+   },
+   {
+    "var": "Depressão",
+    "entre": 3.69,
+    "intra": 1.53,
+    "pct_entre": 70.7,
+    "CV_intra": 123.7
+   },
+   {
+    "var": "Raiva",
+    "entre": 2.56,
+    "intra": 4.36,
+    "pct_entre": 37.0,
+    "CV_intra": 130.4
+   },
+   {
+    "var": "Vigor",
+    "entre": 6.3,
+    "intra": 4.65,
+    "pct_entre": 57.5,
+    "CV_intra": 37.9
+   },
+   {
+    "var": "Fadiga",
+    "entre": 9.6,
+    "intra": 7.01,
+    "pct_entre": 57.8,
+    "CV_intra": 46.9
+   },
+   {
+    "var": "Confusão",
+    "entre": 0.58,
+    "intra": 0.82,
+    "pct_entre": 41.4,
+    "CV_intra": 200.5
+   },
+   {
+    "var": "PTH",
+    "entre": 57.46,
+    "intra": 35.13,
+    "pct_entre": 62.1,
+    "CV_intra": 134.9
+   },
+   {
+    "var": "FadFis",
+    "entre": 2.59,
+    "intra": 3.8,
+    "pct_entre": 40.5,
+    "CV_intra": 31.9
+   }
+  ],
+  "segmentacao": {
+   "grupos": [
+    {
+     "grupo": "Resiliente",
+     "n": 20
+    },
+    {
+     "grupo": "Perturbado",
+     "n": 6
+    },
+    {
+     "grupo": "Extremo",
+     "n": 1
+    }
+   ],
+   "eta2_PTH": 0.696,
+   "perfis": [
+    {
+     "grupo": "Resiliente",
+     "Tensão": -0.38,
+     "Depressão": -0.38,
+     "Raiva": -0.41,
+     "Vigor": 0.03,
+     "Fadiga": -0.25,
+     "Confusão": -0.29
+    },
+    {
+     "grupo": "Perturbado",
+     "Tensão": 1.21,
+     "Depressão": 0.56,
+     "Raiva": 1.15,
+     "Vigor": 0.17,
+     "Fadiga": 0.42,
+     "Confusão": 0.36
+    },
+    {
+     "grupo": "Extremo",
+     "Tensão": 0.36,
+     "Depressão": 4.17,
+     "Raiva": 1.23,
+     "Vigor": -1.67,
+     "Fadiga": 2.42,
+     "Confusão": 3.72
+    }
+   ]
+  },
+  "permutacao": [
+   {
+    "var": "Fadiga física",
+    "delta": 1.741,
+    "p_perm": 0.0,
+    "p_t": 0.0,
+    "concordam": true
+   },
+   {
+    "var": "PTH (TMD)",
+    "delta": 3.509,
+    "p_perm": 0.0012,
+    "p_t": 0.0016,
+    "concordam": true
+   },
+   {
+    "var": "Vigor",
+    "delta": -0.958,
+    "p_perm": 0.007,
+    "p_t": 0.0076,
+    "concordam": true
+   },
+   {
+    "var": "Fadiga",
+    "delta": 1.718,
+    "p_perm": 0.0007,
+    "p_t": 0.0035,
+    "concordam": true
+   },
+   {
+    "var": "Tensão",
+    "delta": 0.275,
+    "p_perm": 0.0366,
+    "p_t": 0.0378,
+    "concordam": true
+   },
+   {
+    "var": "Depressão",
+    "delta": 0.331,
+    "p_perm": 0.0521,
+    "p_t": 0.0713,
+    "concordam": true
+   },
+   {
+    "var": "Raiva",
+    "delta": 0.271,
+    "p_perm": 0.3026,
+    "p_t": 0.2972,
+    "concordam": true
+   },
+   {
+    "var": "Confusão",
+    "delta": -0.043,
+    "p_perm": 0.6206,
+    "p_t": 0.6126,
+    "concordam": true
+   }
+  ],
+  "sensibilidade": {
+   "log": [
+    {
+     "var": "Fadiga física",
+     "p_raw": 0.0,
+     "p_log": 0.0002,
+     "decisao_mantem": true
+    },
+    {
+     "var": "PTH (TMD)",
+     "p_raw": 0.0016,
+     "p_log": 0.0022,
+     "decisao_mantem": true
+    },
+    {
+     "var": "Fadiga",
+     "p_raw": 0.0035,
+     "p_log": 0.0153,
+     "decisao_mantem": true
+    },
+    {
+     "var": "Vigor",
+     "p_raw": 0.0076,
+     "p_log": 0.0058,
+     "decisao_mantem": true
+    }
+   ],
+   "sem_outlier": [
+    {
+     "var": "Fadiga física",
+     "dz_com": 1.06,
+     "dz_sem": 1.06,
+     "p_com": 0.0,
+     "p_sem": 0.0,
+     "decisao_mantem": true
+    },
+    {
+     "var": "PTH (TMD)",
+     "dz_com": 0.68,
+     "dz_sem": 0.64,
+     "p_com": 0.0016,
+     "p_sem": 0.0032,
+     "decisao_mantem": true
+    },
+    {
+     "var": "Fadiga",
+     "dz_com": 0.62,
+     "dz_sem": 0.6,
+     "p_com": 0.0035,
+     "p_sem": 0.0054,
+     "decisao_mantem": true
+    },
+    {
+     "var": "Vigor",
+     "dz_com": -0.56,
+     "dz_sem": -0.53,
+     "p_com": 0.0076,
+     "p_sem": 0.0123,
+     "decisao_mantem": true
+    }
+   ],
+   "outlier_excluido": [
+    "A06"
+   ]
+  }
  }
 }
