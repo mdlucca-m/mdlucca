@@ -356,6 +356,19 @@ const SEC=[]; function sec(id,title){const s=document.createElement('section');s
  c2.insertAdjacentHTML('beforeend','<p class="note">Linha do acaso em 0,50. Só a fadiga física passa de 0,55 pela derivada; o PTH em nível (0,60) supera sua derivada (0,50).</p>');
 })();
 
+/* DERIVADAS POR VARIÁVEL / ATLETA */
+(function(){const s=sec('dvar','Derivadas');
+ const dv=D.dvar;
+ s.innerHTML='<h2>Derivadas por variável e por atleta — velocidade de mudança</h2><p class="sub">Derivada f'+String.fromCharCode(39)+'(t) da trajetória de cada variável (velocidade de acúmulo/dia) e a derivada <b>individual</b> de cada atleta. Mesma velocidade média esconde heterogeneidades opostas: o PTH acumula de forma idiossincrática (só 58% dos atletas), a fadiga física de forma homogênea (92%).</p>';
+ const c1=card('Derivada média da trajetória por variável','ajuste cúbico');s.append(c1);
+ dtable(c1,[{k:'var',label:'Variável'},{k:'vel_inicial',label:"f'(1)",num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'vel_final',label:"f'(7)",num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'inclinacao_media',label:'incl. média/dia',num:true,render:v=>`<b class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</b>`},{k:'direcao',label:'Direção',render:v=>`<span class="chip ${v==='cai'?'c-sim':'c-nao'}">${v}</span>`}],dv.B);
+ const c2=card('Derivada individual (dV/dia por atleta) — heterogeneidade','regressão por atleta');s.append(c2);
+ dtable(c2,[{k:'var',label:'Variável'},{k:'slope_medio',label:'média',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'slope_dp',label:'DP',num:true,render:v=>fmt(v)},{k:'pct_positivo',label:'% positivas',num:true,render:v=>fmt(v,0)+'%'},{k:'min',label:'mín',num:true,render:v=>fmt(v)},{k:'max',label:'máx',num:true,render:v=>fmt(v)}],dv.C);
+ const c3=card('Velocidade de acúmulo média por variável','pts/dia');const d3=document.createElement('div');c3.append(d3);s.append(c3);
+ requestAnimationFrame(()=>{barChart(d3,dv.B.slice().sort((a,b)=>a.inclinacao_media-b.inclinacao_media).map(r=>({l:r.var,v:r.inclinacao_media,c:r.inclinacao_media>=0?'coral':'teal'})),{min:-0.35,max:0.6,l:120,fmt:v=>fmt(v)});});
+ c3.insertAdjacentHTML('beforeend','<p class="note">PTH acumula mais rápido em média, mas é o mais heterogêneo entre atletas (DP 1,45); a fadiga física acumula em 92% dos atletas.</p>');
+})();
+
 document.getElementById('app').insertAdjacentHTML('beforeend','<footer>Dashboard analítico · BRUMS × HIIT no handebol · atletas anonimizados (A01–A27) · números reproduzidos por código · 2026.</footer>');
 
 /* nav */

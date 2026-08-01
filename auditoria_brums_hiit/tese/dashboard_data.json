@@ -3135,5 +3135,96 @@
     "ganho": -0.1
    }
   ]
+ },
+ "dvar": {
+  "B": [
+   {
+    "var": "PTH (TMD)",
+    "vel_inicial": 4.83,
+    "vel_final": 6.07,
+    "dia_vel_max": 7,
+    "inclinacao_media": 0.53,
+    "direcao": "acumula"
+   },
+   {
+    "var": "Fadiga física",
+    "vel_inicial": 2.44,
+    "vel_final": 1.72,
+    "dia_vel_max": 1,
+    "inclinacao_media": 0.38,
+    "direcao": "acumula"
+   },
+   {
+    "var": "Fadiga",
+    "vel_inicial": 2.49,
+    "vel_final": 2.23,
+    "dia_vel_max": 1,
+    "inclinacao_media": 0.44,
+    "direcao": "acumula"
+   },
+   {
+    "var": "Fadiga mental",
+    "vel_inicial": 0.16,
+    "vel_final": 0.67,
+    "dia_vel_max": 7,
+    "inclinacao_media": 0.03,
+    "direcao": "estável"
+   },
+   {
+    "var": "Vigor",
+    "vel_inicial": -2.72,
+    "vel_final": -1.75,
+    "dia_vel_max": 1,
+    "inclinacao_media": -0.28,
+    "direcao": "cai"
+   }
+  ],
+  "C": [
+   {
+    "var": "PTH (TMD)",
+    "slope_medio": 0.429,
+    "slope_dp": 1.445,
+    "pct_positivo": 58.0,
+    "n": 26,
+    "min": -1.43,
+    "max": 4.27
+   },
+   {
+    "var": "Fadiga física",
+    "slope_medio": 0.422,
+    "slope_dp": 0.398,
+    "pct_positivo": 92.0,
+    "n": 26,
+    "min": -0.13,
+    "max": 1.86
+   },
+   {
+    "var": "Fadiga",
+    "slope_medio": 0.295,
+    "slope_dp": 0.57,
+    "pct_positivo": 77.0,
+    "n": 26,
+    "min": -0.91,
+    "max": 1.64
+   },
+   {
+    "var": "Fadiga mental",
+    "slope_medio": 0.045,
+    "slope_dp": 0.495,
+    "pct_positivo": 69.0,
+    "n": 26,
+    "min": -2.0,
+    "max": 0.71
+   },
+   {
+    "var": "Vigor",
+    "slope_medio": -0.29,
+    "slope_dp": 0.498,
+    "pct_positivo": 27.0,
+    "n": 26,
+    "min": -1.45,
+    "max": 0.41
+   }
+  ]
  }
 }

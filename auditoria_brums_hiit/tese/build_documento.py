@@ -13,6 +13,7 @@ dh=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/dias_hiit/resultados_
 oq=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/outros_questionarios/resultados_outros_questionarios.json'))
 sn=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/sonolencia/resultados_sonolencia.json'))
 rocd=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/roc_derivadas/resultados_roc_derivadas.json'))
+dvar=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/derivadas_variaveis/resultados_derivadas_variaveis.json'))
 
 CSS="""
 @page{size:A4;margin:18mm 16mm}
@@ -84,6 +85,8 @@ rowsOQD=[[d['inst'],f"{d['ICC']:.2f}".replace('.',','),('traço' if d['ICC']>=0.
 rowsSN=[[r['item'],f"{r['M_pre']:.2f}".replace('.',','),f"{r['M_pos']:.2f}".replace('.',','),f"{r['delta']:+.2f}".replace('.',','),f"{r['dz']:+.2f}".replace('.',','),('<0,001' if r['wilcoxon_p']<0.001 else f"{r['wilcoxon_p']:.3f}".replace('.',',')),r['direcao']] for r in sn['A_resposta_itens']]
 _snA=str(sn['D_alpha']['com_sonolento']).replace('.',','); _snA3=str(sn['D_alpha']['sem_sonolento']).replace('.',','); _snCFA=str(sn.get('carga_CFA_sonolento')).replace('.',',')
 rowsRD=[[r['var'],f"{r['AUC_derivada']:.2f}".replace('.',','),f"[{r['IC_derivada'][0]:.2f}; {r['IC_derivada'][1]:.2f}]".replace('.',','),f"{r['AUC_nivel']:.2f}".replace('.',','),f"{r['ganho']:+.2f}".replace('.',',')] for r in rocd['resultados']]
+rowsDVb=[[r['var'],f"{r['inclinacao_media']:+.2f}".replace('.',','),f"{r['vel_inicial']:+.2f}".replace('.',','),f"{r['vel_final']:+.2f}".replace('.',','),r['direcao']] for r in dvar['B_derivadas_variaveis']]
+rowsDVc=[[r['var'],f"{r['slope_medio']:+.2f}".replace('.',','),f"{r['slope_dp']:.2f}".replace('.',','),f"{r['pct_positivo']:.0f}%"] for r in dvar['C_derivada_individual']]
 _pnum=lambda v:('<0,001' if v<0.001 else f"{v:.3f}".replace('.',','))
 rowsDA=[]  # entre dias de HIIT
 for _v,_o in dh['A_entre_HIIT'].items():
@@ -226,6 +229,16 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
  {tbl(['Variável','AUC derivada','IC95% (deriv.)','AUC nível','Ganho'],rowsRD)}
  <p>Confirma, por uma via diagnóstica, o que a interação Condição×Momento e a comparação entre dias já indicavam: o <b>salto agudo</b> (a derivada) é semelhante entre os tipos de dia — a assinatura do HIIT vive no <b>nível diário</b> e no <b>acúmulo</b>, não na velocidade de mudança pontual.</p>
  {fig('rocderiv','<b>ROC das derivadas.</b> A: curvas ROC da derivada aguda por variável; B: AUC da derivada vs. do nível, com IC95% por bootstrap agrupado por atleta.')}
+</section>
+
+<section>
+ <div class="eyebrow">Derivadas · variável e atleta</div><h2>Velocidade de mudança: derivadas por variável e por atleta</h2>
+ <p>Derivando a trajetória diária de cada variável (ajuste cúbico), a <b>velocidade de acúmulo</b> difere: o PTH acumula mais rápido (+0,53/dia), fadiga e fadiga física ~+0,4/dia, a fadiga mental é plana e o vigor cai (−0,28/dia).</p>
+ {tbl(['Variável','Inclinação média/dia',"f'(1)","f'(7)",'Direção'],rowsDVb)}
+ <p>A <b>derivada individual</b> (inclinação dV/dia de cada atleta) revela a heterogeneidade: a fadiga física acumula em <b>92 %</b> dos atletas com dispersão pequena (DP 0,40) — marcador consistente; o PTH acumula em apenas <b>58 %</b> e com dispersão enorme (DP 1,45) — idiossincrático; o vigor cai na maioria (27 % com derivada positiva).</p>
+ {tbl(['Variável','Inclinação média (dV/dia)','DP','% positivas'],rowsDVc)}
+ <p>No espaço das taxas de variação, isto reproduz a <b>variância de inclinação aleatória</b> do modelo de crescimento (≈ 1,13 para o PTH; ≈ 0,01 para a fadiga física) e reforça o monitoramento individualizado por tendência.</p>
+ {fig('dvar','<b>Derivadas por variável e por atleta.</b> A: trajetórias (z); B: velocidades f′(t); C: derivada média por variável; D: derivada individual por atleta (heterogeneidade).')}
 </section>
 
 <section>

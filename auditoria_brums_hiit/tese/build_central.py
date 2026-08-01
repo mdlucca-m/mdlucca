@@ -170,6 +170,7 @@ html = f"""<style>{CSS}</style>
  <figure style="margin-top:16px"><img src="{img('outrosq')}" alt="Outros questionários — externos ao BRUMS"><figcaption><b>Outros questionários.</b> Autorrelatos externos ao BRUMS (fadiga física/mental, estado físico/mental): resposta aguda, convergência com o BRUMS (rm_corr intra-atleta) e estabilidade (ICC). Os físicos respondem forte e convergem com a Fadiga do BRUMS.</figcaption></figure>
  <figure style="margin-top:16px"><img src="{img('sono')}" alt="Sonolência — item Sonolento do BRUMS"><figcaption><b>Sonolência.</b> O item "Sonolento" anda na contramão da fadiga: cai pós-treino (dz −0,55) enquanto a exaustão sobe — o exercício desperta. Ortogonal aos demais itens; remover eleva o α da Fadiga de 0,80 para 0,90.</figcaption></figure>
  <figure style="margin-top:16px"><img src="{img('rocderiv')}" alt="ROC das derivadas"><figcaption><b>ROC das derivadas.</b> A derivada aguda (Δ pós−pré) como escore do dia de HIIT é fraca (fadiga física AUC 0,59; demais ~0,5) e não supera o nível (PTH nível 0,60 vs derivada 0,50) — a assinatura do HIIT está no nível, não no salto.</figcaption></figure>
+ <figure style="margin-top:16px"><img src="{img('dvar')}" alt="Derivadas por variável e por atleta"><figcaption><b>Derivadas por variável/atleta.</b> Velocidade de acúmulo por variável (PTH +0,53/dia; vigor −0,28) e a derivada individual: fadiga física acumula em 92% dos atletas (homogêneo), o PTH em só 58% (idiossincrático, DP 1,45).</figcaption></figure>
  <figure style="margin-top:16px"><img src="{img('descr')}" alt="Descritivas e testes"><figcaption><b>Descritivas &amp; testes.</b> Forma/normalidade e a concordância entre testes paramétricos (t) e não-paramétricos (Wilcoxon) — as duas famílias decidem igual.</figcaption></figure>
  <div class="figrow" style="margin-top:16px">
   <figure><img src="{img('perfil')}" alt="Perfil de humor e distribuições"><figcaption><b>Perfil &amp; distribuições.</b> Iceberg pré×pós (χ² significativo), box plot por subescala, histograma do PTH (com log) e dispersão vigor×fadiga por grupo.</figcaption></figure>
@@ -267,6 +268,7 @@ html = f"""<style>{CSS}</style>
    {file(GH+'outros_questionarios/OUTROS_QUESTIONARIOS.md','Outros questionários','fadiga/estado físico e mental · convergência com o BRUMS','MD')}
    {file(GH+'sonolencia/SONOLENCIA.md','Sonolência','item "Sonolento": contramão da fadiga, α 0,80→0,90','MD')}
    {file(GH+'roc_derivadas/ROC_DERIVADAS.md','ROC das derivadas','Δ agudo vs nível como diagnóstico do dia de HIIT','MD')}
+   {file(GH+'derivadas_variaveis/DERIVADAS_VARIAVEIS.md','Derivadas por variável/atleta','velocidade de acúmulo e heterogeneidade individual','MD')}
   </div>
   <div class="cat">
    <h3><span class="dot" style="background:var(--violet)"></span>Automação</h3>

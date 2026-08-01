@@ -184,6 +184,7 @@ const app=document.getElementById('app');
  ['teal','Outros questionários','Convergem com o BRUMS','Fadiga física e estado físico respondem forte (dz ~1) e convergem com a Fadiga do BRUMS (r 0,64/−0,65). Medidas complementares, não redundantes.'],
  ['violet','Sonolência','Cansado ≠ com sono','A sonolência CAI pós-treino (dz −0,55) enquanto a exaustão sobe — o exercício desperta. Remover o item eleva o α da Fadiga de 0,80 para 0,90.'],
  ['coral','ROC das derivadas','O nível diagnostica mais que a taxa','Como escore do dia de HIIT, a derivada aguda é fraca (AUC≤0,59) e não supera o nível (PTH nível 0,60 vs derivada 0,50).'],
+ ['gold','Derivadas','Acúmulo homogêneo vs. idiossincrático','A fadiga física acumula em 92% dos atletas (derivada consistente); o PTH em só 58% (DP 1,45). O vigor cai (−0,28/dia).'],
 ];
  const t=document.createElement('div');t.innerHTML='<h2>Principais achados</h2><p class="sub">Oito conclusões, todas reconciliadas com a reanálise (atleta como unidade, FDR).</p>';app.append(t);
  const g=document.createElement('div');g.className='finds';
@@ -194,7 +195,7 @@ const app=document.getElementById('app');
 app.insertAdjacentHTML('beforeend','<h2>Análises</h2><p class="sub">Segmentadas por tema — use os filtros. Cada tabela é ordenável (clique no cabeçalho) e filtrável.</p>');
 const segbar=document.createElement('div');segbar.className='segbar';app.append(segbar);
 const zone=document.createElement('div');app.append(zone);
-const SEGS=[['all','Todas'],['medida','Medida'],['descr','Descritiva'],['aguda','Resposta aguda'],['hiit','Acúmulo & HIIT'],['multi','Multivariada & Bayes'],['carga','Carga & diagnóstico'],['pred','Preditiva'],['corr','Correlações'],['perfil','Perfil & variabilidade'],['modelo','Modelo teórico'],['dias','Dias do microciclo'],['outros','Outros questionários'],['sono','Sonolência'],['rocd','ROC das derivadas']];
+const SEGS=[['all','Todas'],['medida','Medida'],['descr','Descritiva'],['aguda','Resposta aguda'],['hiit','Acúmulo & HIIT'],['multi','Multivariada & Bayes'],['carga','Carga & diagnóstico'],['pred','Preditiva'],['corr','Correlações'],['perfil','Perfil & variabilidade'],['modelo','Modelo teórico'],['dias','Dias do microciclo'],['outros','Outros questionários'],['sono','Sonolência'],['rocd','ROC das derivadas'],['dvar','Derivadas']];
 segbar.innerHTML=SEGS.map(([id,t],i)=>`<button class="seg ${i===0?'on':''}" data-s="${id}">${t}</button>`).join('');
 
 function block(seg){const d=document.createElement('div');d.dataset.seg=seg;zone.append(d);return d;}
@@ -304,6 +305,13 @@ requestAnimationFrame(drawCharts);
  const c1=card(b,'ROC da derivada (Δ agudo) vs. nível — dia de HIIT','AUC · bootstrap por atleta','violet');
  dtable(c1,[{k:'var',label:'Variável'},{k:'AUC_derivada',label:'AUC derivada',num:true,render:v=>`<b>${fmt(v)}</b>`},{k:'IC_derivada',label:'IC95%',render:v=>`[${fmt(v[0])}; ${fmt(v[1])}]`},{k:'AUC_nivel',label:'AUC nível',num:true,render:v=>fmt(v)},{k:'ganho',label:'Ganho',num:true,render:v=>`<span class="${v>0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`}],rd.resultados,'ROC das derivadas');
  c1.insertAdjacentHTML('beforeend','<p class="sub" style="margin:8px 0 0;font-size:12px">A derivada aguda é um diagnóstico fraco do dia de HIIT (fadiga física AUC 0,59; demais ~0,50) e não supera o nível (PTH nível 0,60 vs derivada 0,50) — a assinatura do HIIT está no nível diário, não no salto agudo.</p>');})();
+/* derivadas por variável / atleta */
+(function(){const b=block('dvar');const dv=D.dvar;
+ const c1=card(b,'Derivada da trajetória por variável (velocidade)','ajuste cúbico','gold');
+ dtable(c1,[{k:'var',label:'Variável'},{k:'inclinacao_media',label:'incl. média/dia',num:true,render:v=>`<b class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</b>`},{k:'vel_inicial',label:"f'(1)",num:true,render:v=>fmt(v)},{k:'vel_final',label:"f'(7)",num:true,render:v=>fmt(v)},{k:'direcao',label:'Direção',render:v=>`<span class="chip ${v==='cai'?'c-sim':'c-nao'}">${v}</span>`}],dv.B,'Derivadas por variável');
+ const c2=card(b,'Derivada individual por atleta (heterogeneidade)','dV/dia','violet');
+ dtable(c2,[{k:'var',label:'Variável'},{k:'slope_medio',label:'média',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'slope_dp',label:'DP',num:true,render:v=>fmt(v)},{k:'pct_positivo',label:'% positivas',num:true,render:v=>fmt(v,0)+'%'}],dv.C,'Derivada individual');
+ c2.insertAdjacentHTML('beforeend','<p class="sub" style="margin:8px 0 0;font-size:12px">A fadiga física acumula em 92% dos atletas (DP 0,40 — homogêneo); o PTH em só 58% (DP 1,45 — idiossincrático). Reproduz a variância de inclinação aleatória da modelagem.</p>');})();
 /* segment filter */
 segbar.querySelectorAll('.seg').forEach(bt=>bt.onclick=()=>{segbar.querySelectorAll('.seg').forEach(x=>x.classList.remove('on'));bt.classList.add('on');const s=bt.dataset.s;
  zone.querySelectorAll('[data-seg]').forEach(el=>el.style.display=(s==='all'||el.dataset.seg===s||el.dataset.seg==='all'&&s==='all')?'':'none');
