@@ -344,6 +344,18 @@ const SEC=[]; function sec(id,title){const s=document.createElement('section');s
  c2.insertAdjacentHTML('beforeend',`<p class="note">rm_corr (intra-atleta) do Sonolento com os outros itens de fadiga e o vigor — descolado de todos. α da subescala Fadiga: <b>${fmt(sn.D.com_sonolento)}</b> com o item → <b>${fmt(sn.D.sem_sonolento)}</b> sem ele. Carga CFA do item = ${fmt(sn.carga_CFA)} (a mais baixa da subescala).</p>`);
 })();
 
+/* ROC DAS DERIVADAS */
+(function(){const s=sec('rocd','ROC das derivadas');
+ const rd=D.rocd;
+ s.innerHTML='<h2>Curva ROC das derivadas — taxa de variação como diagnóstico</h2><p class="sub">Usa a <b>derivada aguda</b> (Δ = pós−pré por atleta-dia) como escore, em vez do nível, para separar dia de HIIT (2/4/7) de sem HIIT (1/3/5/6). '+rd.n+' pares; IC95% por bootstrap agrupado por atleta. A derivada é um diagnóstico <b>fraco</b> e <b>não supera o nível</b> — a assinatura do HIIT está no nível diário, não no salto agudo.</p>';
+ const c1=card('AUC da derivada vs. nível para separar dia de HIIT','bootstrap por atleta');s.append(c1);
+ dtable(c1,[{k:'var',label:'Variável'},{k:'AUC_derivada',label:'AUC derivada',num:true,render:v=>`<b>${fmt(v)}</b>`},{k:'IC_derivada',label:'IC95% (deriv.)',render:v=>`[${fmt(v[0])}; ${fmt(v[1])}]`},{k:'AUC_nivel',label:'AUC nível',num:true,render:v=>fmt(v)},{k:'ganho',label:'Ganho',num:true,render:v=>`<span class="${v>0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`}],rd.resultados);
+ const c2=card('AUC derivada × nível','vermelho=derivada · azul=nível');const d2=document.createElement('div');c2.append(d2);s.append(c2);
+ requestAnimationFrame(()=>{const items=[];rd.resultados.slice().reverse().forEach(r=>{items.push({l:r.var+' (deriv.)',v:r.AUC_derivada,c:'coral'});items.push({l:r.var+' (nível)',v:r.AUC_nivel,c:'blue'});});
+   barChart(d2,items,{min:0.5,max:0.7,l:150,fmt:v=>fmt(v)});});
+ c2.insertAdjacentHTML('beforeend','<p class="note">Linha do acaso em 0,50. Só a fadiga física passa de 0,55 pela derivada; o PTH em nível (0,60) supera sua derivada (0,50).</p>');
+})();
+
 document.getElementById('app').insertAdjacentHTML('beforeend','<footer>Dashboard analítico · BRUMS × HIIT no handebol · atletas anonimizados (A01–A27) · números reproduzidos por código · 2026.</footer>');
 
 /* nav */

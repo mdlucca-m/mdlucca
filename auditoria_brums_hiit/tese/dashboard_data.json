@@ -3049,5 +3049,91 @@
   },
   "carga_CFA": 0.35,
   "discrim_GRM": 0.56
+ },
+ "rocd": {
+  "n": 135,
+  "alvo": "dia de HIIT (2/4/7) vs sem HIIT (1/3/5/6)",
+  "resultados": [
+   {
+    "var": "Fadiga física",
+    "AUC_derivada": 0.588,
+    "IC_derivada": [
+     0.512,
+     0.672
+    ],
+    "dir_derivada": "↑ no HIIT",
+    "AUC_nivel": 0.582,
+    "IC_nivel": [
+     0.507,
+     0.669
+    ],
+    "dir_nivel": "↑ no HIIT",
+    "ganho": 0.006
+   },
+   {
+    "var": "Fadiga",
+    "AUC_derivada": 0.548,
+    "IC_derivada": [
+     0.503,
+     0.64
+    ],
+    "dir_derivada": "↑ no HIIT",
+    "AUC_nivel": 0.567,
+    "IC_nivel": [
+     0.508,
+     0.641
+    ],
+    "dir_nivel": "↑ no HIIT",
+    "ganho": -0.018
+   },
+   {
+    "var": "Vigor",
+    "AUC_derivada": 0.54,
+    "IC_derivada": [
+     0.502,
+     0.628
+    ],
+    "dir_derivada": "↑ no HIIT",
+    "AUC_nivel": 0.576,
+    "IC_nivel": [
+     0.527,
+     0.628
+    ],
+    "dir_nivel": "↓ no HIIT",
+    "ganho": -0.036
+   },
+   {
+    "var": "Fadiga mental",
+    "AUC_derivada": 0.503,
+    "IC_derivada": [
+     0.501,
+     0.603
+    ],
+    "dir_derivada": "↓ no HIIT",
+    "AUC_nivel": 0.521,
+    "IC_nivel": [
+     0.501,
+     0.586
+    ],
+    "dir_nivel": "↑ no HIIT",
+    "ganho": -0.017
+   },
+   {
+    "var": "PTH (TMD)",
+    "AUC_derivada": 0.5,
+    "IC_derivada": [
+     0.501,
+     0.6
+    ],
+    "dir_derivada": "↑ no HIIT",
+    "AUC_nivel": 0.6,
+    "IC_nivel": [
+     0.551,
+     0.666
+    ],
+    "dir_nivel": "↑ no HIIT",
+    "ganho": -0.1
+   }
+  ]
  }
 }

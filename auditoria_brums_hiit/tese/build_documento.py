@@ -12,6 +12,7 @@ mt=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/modelo_teorico/result
 dh=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/dias_hiit/resultados_dias_hiit.json'))
 oq=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/outros_questionarios/resultados_outros_questionarios.json'))
 sn=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/sonolencia/resultados_sonolencia.json'))
+rocd=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/roc_derivadas/resultados_roc_derivadas.json'))
 
 CSS="""
 @page{size:A4;margin:18mm 16mm}
@@ -82,6 +83,7 @@ rowsOQC=[[_oqlab[k]]+[f"{oq['C_convergencia_rmcorr']['matriz'][k][t]:+.2f}".repl
 rowsOQD=[[d['inst'],f"{d['ICC']:.2f}".replace('.',','),('traço' if d['ICC']>=0.5 else 'estado')] for d in oq['D_ICC']]
 rowsSN=[[r['item'],f"{r['M_pre']:.2f}".replace('.',','),f"{r['M_pos']:.2f}".replace('.',','),f"{r['delta']:+.2f}".replace('.',','),f"{r['dz']:+.2f}".replace('.',','),('<0,001' if r['wilcoxon_p']<0.001 else f"{r['wilcoxon_p']:.3f}".replace('.',',')),r['direcao']] for r in sn['A_resposta_itens']]
 _snA=str(sn['D_alpha']['com_sonolento']).replace('.',','); _snA3=str(sn['D_alpha']['sem_sonolento']).replace('.',','); _snCFA=str(sn.get('carga_CFA_sonolento')).replace('.',',')
+rowsRD=[[r['var'],f"{r['AUC_derivada']:.2f}".replace('.',','),f"[{r['IC_derivada'][0]:.2f}; {r['IC_derivada'][1]:.2f}]".replace('.',','),f"{r['AUC_nivel']:.2f}".replace('.',','),f"{r['ganho']:+.2f}".replace('.',',')] for r in rocd['resultados']]
 _pnum=lambda v:('<0,001' if v<0.001 else f"{v:.3f}".replace('.',','))
 rowsDA=[]  # entre dias de HIIT
 for _v,_o in dh['A_entre_HIIT'].items():
@@ -216,6 +218,14 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
  {tbl(['Alvo','Preditores','R² (fora-da-dobra)','RMSE','Modelo'],rowsPred)}
  <p>O estado pós é <b>modestamente previsível</b> (R² ≈ 0,3–0,4) e o sinal vem quase inteiramente da <b>linha de base do próprio atleta</b>: acrescentar o contexto da sessão (HIIT, dia) ao baseline muda o R² em ≈ 0 (Δ PTH {_dPTH}; fadiga física {_dFF}; vigor {_dVI}). É a <b>confirmação preditiva</b> do desacoplamento carga↔humor — saber que o dia teve HIIT não ajuda a prever o humor pós além do que o estado pré do atleta já diz. Para classificar o "dia perturbado" (fadiga física pós ≥ 7), o perfil de humor pré alcança AUC {_aucL} (contra {_aucB} do baseline simples), com {_imp} entre os principais preditores e o HIIT entre os de menor importância.</p>
  {fig('preditiva','<b>Análise preditiva.</b> A: R² fora-da-dobra por conjunto de preditores; B: AUC do dia perturbado; C: importância das variáveis (HIIT é a menor).')}
+</section>
+
+<section>
+ <div class="eyebrow">Diagnóstico · derivadas</div><h2>Curva ROC das derivadas: a taxa de variação diagnostica menos que o nível</h2>
+ <p>Complementando a análise ROC sobre os níveis, testou-se a <b>derivada aguda</b> (Δ = pós − pré, por atleta-dia) como escore para separar dia de HIIT (2/4/7) de dia sem HIIT (1/3/5/6) — 135 pares, IC95% por bootstrap agrupado por atleta. A derivada é um <b>diagnóstico fraco</b> (a melhor é a fadiga física, AUC 0,59; as demais próximas do acaso) e <b>não supera o nível</b>: para o PTH, o nível do dia discrimina bem melhor (0,60) do que a sua derivada (0,50).</p>
+ {tbl(['Variável','AUC derivada','IC95% (deriv.)','AUC nível','Ganho'],rowsRD)}
+ <p>Confirma, por uma via diagnóstica, o que a interação Condição×Momento e a comparação entre dias já indicavam: o <b>salto agudo</b> (a derivada) é semelhante entre os tipos de dia — a assinatura do HIIT vive no <b>nível diário</b> e no <b>acúmulo</b>, não na velocidade de mudança pontual.</p>
+ {fig('rocderiv','<b>ROC das derivadas.</b> A: curvas ROC da derivada aguda por variável; B: AUC da derivada vs. do nível, com IC95% por bootstrap agrupado por atleta.')}
 </section>
 
 <section>
