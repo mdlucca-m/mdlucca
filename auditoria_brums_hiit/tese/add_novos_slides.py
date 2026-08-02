@@ -100,6 +100,28 @@ if not has_title(T2):
         'Para monitorar fadiga: fadiga física pela sensibilidade; fadiga mental e depressão pela confiabilidade. Reencontra-se o eixo energia–fadiga.')
     added.append(T2)
 
+T3='Estatística descritiva: distribuições e normalidade'
+if not has_title(T3):
+    fig_slide('RESULTADOS · ESTATÍSTICA DESCRITIVA', T3,
+        os.path.join(ROOT,'descritivas_testes','descritiva_completa_fig.png'),
+        [('Histogramas','distribuição da fadiga física pré vs. pós — deslocamento à direita no pós.',BLUE),
+         ('Box plots','pré×pós das variáveis-chave: fadiga sobe, vigor recua (eixo energia–fadiga).',CORAL),
+         ('Dispersão','vigor × fadiga com r≈−0,44 — a relação inversa que define o eixo.',GREEN),
+         ('Normalidade (Q–Q)','desvios da normal no pré e no pós (Shapiro–Wilk) — justifica permutação.',GOLD)],
+        'Distribuições assimétricas e não-normais (efeito piso nas negativas): as decisões são confirmadas por testes não-paramétricos e permutação.')
+    added.append(T3)
+
+T4='Protocolo de HIIT: 4 × 4 min a 104% da velocidade de pico'
+if not has_title(T4):
+    fig_slide('MÉTODO · PROTOCOLO DE HIIT', T4,
+        os.path.join(ROOT,'dias_hiit','hiit_protocolo_fig.png'),
+        [('Estímulo','4 séries de 4 min a 104% da velocidade de pico (teste de campo), 3 min de intervalo.',BLUE),
+         ('FC das séries','pico ~186 bpm; média das 4 séries ~179 bpm — próximo ao teto aeróbio.',CORAL),
+         ('Recuperação','FC de recuperação sobe ao longo da sessão (~124 bpm): deriva/recuperação incompleta.',GREEN),
+         ('PSE','esforço percebido final ~9,9 (quase o teto da escala 0–10).',GOLD)],
+        'Carga interna quase-máxima e progressiva — o regime de teto explica por que a carga não prediz a resposta de humor.')
+    added.append(T4)
+
 if added:
     prs.save(DECK)
     print('slides adicionados:',added,'| total:',len(prs.slides._sldIdLst))
