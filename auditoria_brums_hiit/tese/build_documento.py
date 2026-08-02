@@ -291,6 +291,12 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
 </section>
 
 <section>
+ <div class="eyebrow">Monitoramento · visualizações</div><h2>Painel de monitoramento: gauge, radar, monitoramento diário e bolhas 4D</h2>
+ <p>Uma leitura visual reúne as três conclusões-âncora num só painel. Os <b>medidores (gauge)</b> posicionam os indicadores-chave sobre zonas de referência — a fadiga física ancora o eixo (dz 1,06, efeito grande; AUC diagnóstica 0,70), o perfil iceberg recua ao pós (75% das avaliações) e o HTMT máximo (0,846) fica abaixo do corte 0,85. O <b>radar</b> mostra o perfil de humor pré×pós: o vigor achata e a fadiga sobe (erosão do iceberg), com as demais negativas quase paradas. O <b>monitoramento diário</b> segue a carga de humor do eixo energético ao longo do microciclo (D1→D7), com faixas de alerta e os dias de HIIT (2/4/7) marcados — o PTH e a fadiga sobem até o pico no D7, o vigor faz o caminho inverso. O <b>mapa 4D</b> cruza, por variável, resposta aguda (dz), acúmulo (inclinação/dia), individualidade (variância entre atletas) e consenso direcional (% de atletas que acumulam): a fadiga física combina grande resposta e acúmulo homogêneo (bolha pequena e coral), enquanto o PTH acumula de forma idiossincrática (bolha grande) e o vigor ocupa o quadrante negativo.</p>
+ {fig('monitoramento','<b>Monitoramento e visualizações.</b> A: medidores (gauge) dos indicadores-chave com zonas de referência; B: radar do perfil de humor pré×pós; C: monitoramento diário da carga de humor D1→D7 (faixas de alerta, dias de HIIT tracejados); D: mapa 4D por variável — resposta × acúmulo × individualidade × consenso direcional.')}
+</section>
+
+<section>
  <div class="eyebrow">11 · Reprodutibilidade</div><h2>Pipeline automatizado</h2>
  <p>Todas as análises são reproduzíveis com um comando: dezesseis nós encadeados levam da coleta bruta às tabelas, gráficos, Excel, PDF, relatório e à regeneração do sistema analista interativo. Um gatilho Cron reprocessa tudo a cada nova coleta.</p>
  {fig('workflow','<b>Pipeline (estilo N8N).</b> Início/Cron → ingestão → análises → carga interna → gráficos → exportação → app analista → relatório.')}

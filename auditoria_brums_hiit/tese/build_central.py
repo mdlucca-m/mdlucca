@@ -156,6 +156,7 @@ html = f"""<style>{CSS}</style>
  <div class="seclab">Evidência visual</div>
  <h2>Os gráficos-chave</h2>
  <p class="sub">Amostras da análise; a versão interativa e filtrável está no sistema analista.</p>
+ <figure style="margin-bottom:18px"><img src="{img('monitoramento')}" alt="Monitoramento e visualizações — gauge, radar, monitoramento diário e bolhas 4D"><figcaption><b>Monitoramento &amp; visualizações.</b> Painel das três conclusões-âncora: <b>medidores (gauge)</b> dos indicadores-chave (dz da fadiga física, AUC diagnóstica, perfil iceberg, HTMT); <b>radar</b> do perfil de humor pré×pós (erosão do iceberg); <b>monitoramento diário</b> da carga de humor D1→D7 com faixas de alerta e dias de HIIT; e o <b>mapa 4D</b> por variável (resposta aguda × acúmulo × individualidade × consenso direcional).</figcaption></figure>
  <div class="figrow">
   <figure><img src="{img('spaghetti')}" alt="Trajetórias de PTH por atleta"><figcaption><b>Heterogeneidade.</b> Trajetória do PTH por atleta ao longo da semana (média destacada).</figcaption></figure>
   <figure><img src="{img('weekly')}" alt="Mudança semanal"><figcaption><b>Acúmulo semanal.</b> Mudança D1→D7 com intervalos de confiança por bootstrap.</figcaption></figure>
