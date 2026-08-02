@@ -46,6 +46,23 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .cover{page-break-after:always;padding-top:40pt}
 .cover .rule{height:3px;background:#0E8C86;width:70pt;margin:14pt 0}
 .foot{color:#8798AE;font-size:8pt;margin-top:26pt}
+html{scroll-behavior:smooth}
+section{scroll-margin-top:12pt}
+.toolbar{display:flex;flex-wrap:wrap;gap:6pt;margin:0 0 12pt}
+.toolbar button{font-family:'Helvetica Neue',Arial,sans-serif;font-size:8.5pt;font-weight:700;color:#122438;background:#F4F7FB;border:1px solid #CBD6E4;border-radius:7px;padding:6pt 11pt;cursor:pointer}
+.toolbar button:hover{border-color:#0E8C86;color:#0E8C86}
+.toolbar .ok{color:#0E8C86;border-color:#0E8C86}
+.toc{background:#F7FAFD;border:1px solid #E1E8F0;border-radius:10px;padding:12pt 16pt;margin:0 0 8pt;page-break-after:always}
+.toc-h{font-family:Georgia,serif;font-size:14pt;color:#122438;margin-bottom:8pt}
+.toc ol{margin:0;padding:0;list-style:none;columns:2;column-gap:24pt}
+.toc li{margin:0 0 4pt;break-inside:avoid}
+.toc a{text-decoration:none;color:#16273D;display:flex;gap:7pt;align-items:baseline}
+.toc a:hover .toc-t{color:#0E8C86;text-decoration:underline}
+.toc-n{font-family:ui-monospace,monospace;font-size:8pt;color:#0E8C86;min-width:16pt}
+.toc-t{font-size:9.5pt}
+.toc-ey{font-family:ui-monospace,monospace;font-size:6.6pt;color:#8798AE;text-transform:uppercase;letter-spacing:.08em}
+.backtop{position:fixed;right:16px;bottom:16px;z-index:50;background:#0E8C86;color:#fff;border:none;border-radius:50%;width:42px;height:42px;font-size:18px;cursor:pointer;box-shadow:0 4px 14px -4px rgba(0,0,0,.45)}
+@media print{.toolbar,.backtop{display:none !important}}
 """
 
 def tbl(head, rows):
@@ -316,5 +333,64 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
 </section>
 
 </body></html>"""
+# ---- sumário navegável + botões automáticos (pós-processamento) ----
+import re as _re
+_toc=[]
+def _idsec(m):
+    attrs=m.group(1) or ''; inner=m.group(2)
+    h2=_re.search(r'<h2>(.*?)</h2>', inner, _re.S)
+    if not h2: return m.group(0)
+    ey=_re.search(r'<div class="eyebrow">(.*?)</div>', inner, _re.S)
+    sid='s%d'%(len(_toc)+1)
+    title=_re.sub('<.*?>','',h2.group(1)).strip()
+    eyt=_re.sub('<.*?>','',ey.group(1)).strip() if ey else ''
+    _toc.append((sid,eyt,title))
+    return '<section id="%s"%s>%s</section>'%(sid,attrs,inner)
+H=_re.sub(r'<section( class="first")?>(.*?)</section>', _idsec, H, flags=_re.S)
+
+_toc_items=''.join(
+  '<li><a href="#%s"><span class="toc-n">%d</span><span><span class="toc-ey">%s</span><br><span class="toc-t">%s</span></span></a></li>'
+  %(sid,i+1,ey,title) for i,(sid,ey,title) in enumerate(_toc))
+_toc_html='<nav class="toc" id="sumario"><div class="toc-h">Sumário</div><ol>%s</ol></nav>'%_toc_items
+
+# dados para os botões automáticos
+_csv='variavel,delta,dz,p_FDR,sobrevive_FDR\n'+'\n'.join(
+  '%s,%s,%s,%s,%s'%(r['y'],f"{r['b_pos']:.3f}",f"{r['dz']:.3f}",f"{r['p_FDR']:.4f}",('sim' if r['signif_FDR'] else 'nao'))
+  for r in A if 'dz' in r)
+_kpis={'atletas':27,'observacoes':456,'pares_pre_pos':135,'checagens_exatas':'77/84',
+ 'dz_fadiga_fisica':next((r['dz'] for r in A if r.get('y')=='FadFis' and 'dz' in r),None),
+ 'CFI_CFA':adv['CFA_DWLS']['CFI'],'HTMT_max':adv['HTMT_max'],'tucker_phi':conf['B_invariancia']['tucker_phi']}
+_cite=('[AUTOR]. Monitoramento psicométrico do humor e da fadiga em atletas de handebol durante um '
+ 'microciclo de treinamento de alta intensidade (HIIT). [Tese] — [Instituição], 2026.')
+import json as _json
+_payload=_json.dumps({'kpis':_kpis,'resposta_aguda_csv':_csv,'citacao':_cite}, ensure_ascii=False)
+
+_toolbar=('<div class="toolbar" role="toolbar" aria-label="Ações">'
+ '<button onclick="window.print()">🖨 Imprimir / Salvar PDF</button>'
+ '<button id="bJSON">⬇ Baixar dados (JSON)</button>'
+ '<button id="bCSV">⬇ Baixar tabela (CSV)</button>'
+ '<button id="bCite">❝ Copiar citação (ABNT)</button>'
+ '<a href="#sumario" style="margin-left:auto"><button>↑ Sumário</button></a>'
+ '</div>')
+
+_script=('<button class="backtop" title="Voltar ao topo" '
+ 'onclick="scrollTo({top:0,behavior:\'smooth\'})">↑</button>'
+ '<script>(function(){var D=%s;'
+ 'function dl(name,txt,mime){var b=new Blob([txt],{type:mime});var u=URL.createObjectURL(b);'
+ 'var a=document.createElement("a");a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);}'
+ 'function ok(btn){var t=btn.textContent;btn.textContent="✓ feito";btn.classList.add("ok");'
+ 'setTimeout(function(){btn.textContent=t;btn.classList.remove("ok");},1600);}'
+ 'var j=document.getElementById("bJSON");if(j)j.onclick=function(){'
+ 'dl("BRUMS_HIIT_dados.json",JSON.stringify({kpis:D.kpis,citacao:D.citacao},null,2),"application/json");ok(j);};'
+ 'var c=document.getElementById("bCSV");if(c)c.onclick=function(){'
+ 'dl("BRUMS_HIIT_resposta_aguda.csv",D.resposta_aguda_csv,"text/csv");ok(c);};'
+ 'var e=document.getElementById("bCite");if(e)e.onclick=function(){'
+ '(navigator.clipboard&&navigator.clipboard.writeText(D.citacao))?navigator.clipboard.writeText(D.citacao).then(function(){ok(e);}):ok(e);};'
+ '})();</script>')%_payload
+
+# injeta toolbar + sumário logo antes da primeira seção; script antes de </body>
+H=H.replace('<section id="s1"', _toolbar+_toc_html+'\n<section id="s1"', 1)
+H=H.replace('</body></html>', _script+'</body></html>', 1)
+
 open('/tmp/documento.html','w').write(H)
 print('documento.html:', os.path.getsize('/tmp/documento.html')//1024,'KB')
