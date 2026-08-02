@@ -243,8 +243,26 @@ children.push(table(
 children.push(caption('Tabela 9. Autorrelatos externos ao BRUMS — resposta aguda pré→pós.'));
 children.push(P(`Um achado específico e contraintuitivo: o item "Sonolento" (terceiro da subescala Fadiga) comporta-se na contramão dos demais — enquanto Esgotado/Exausto/Cansado sobem pós-treino, a sonolência cai (dz ${nf(D.sn.A.find(x=>x.item&&x.item.toLowerCase().includes('sonol'))?.dz ?? -0.55)}): o exercício agudo é ativador/despertador, ainda que eleve a exaustão física. O item é praticamente ortogonal aos demais itens de fadiga (rm_corr 0,00–0,10) e removê-lo eleva o α da subescala Fadiga de ${nf(D.sn.D.com_sonolento)} para ${nf(D.sn.D.sem_sonolento)} — recomendando tratar a sonolência à parte, no eixo sono↔alerta.`));
 
+// 3.11 Cálculo — limites e derivadas
+const lim = JSON.parse(fs.readFileSync(path.join(HERE, '..', 'limites_derivadas', 'resultados_limites_derivadas.json'), 'utf8'));
+children.push(H('3.11. Formalização em cálculo: limites e derivadas do acúmulo de fadiga', HeadingLevel.HEADING_2));
+children.push(P([
+  run('A trajetória de acúmulo descrita em 3.3 admite uma formalização em cálculo que torna explícitas as suas propriedades. Ajustando à fadiga física média diária um modelo saturante f(t) = L − (L − f₁)·e^(−k(t−1)) (L = '),
+  bold(nf(lim.ajuste.L)), run('; k = '), bold(nf(lim.ajuste.k)), run('; R² = '), bold(nf(lim.ajuste.R2)),
+  run(`), a derivada f′(t) é a velocidade de acúmulo por dia. Em t₀ = ${nf(lim.B_definicao_limite.t0,0)}, a razão incremental [f(t₀+h) − f(t₀)]/h converge para f′(t₀) = ${nf(lim.B_definicao_limite.f_linha_analitica)} à medida que h → 0 (${lim.B_definicao_limite.razoes_incrementais.map(r=>nf(r.quociente,3)).join(' → ')} para h = ${lim.B_definicao_limite.razoes_incrementais.map(r=>nf(r.h, r.h<0.01?3:2)).join(', ')}) — a definição de derivada por limite, verificada numericamente.`)
+]));
+children.push(P([
+  run('A derivada é positiva e decrescente, com segunda derivada negativa (f″ < 0): a fadiga acumula, mas cada vez mais devagar, saturando no '),
+  bold('limite'), run(` lim(t→∞) f(t) = L ≈ ${nf(lim.D_limites.lim_t_inf_ajuste)} — um estado estacionário do acúmulo. No modelo teórico fitness–fadiga, State(t) = k₁·e^(−t/τ₁) − k₂·e^(−t/τ₂), a derivada State′(t) = 0 define o ponto crítico t* = ${nf(lim.D_limites.modelo_teorico['ponto_critico_t*'])} — o nadir do estado (pico de fadiga aguda): antes dele o atleta ainda se recupera, depois relaxa de volta à linha de base (lim(t→∞) State(t) = 0). É a leitura em cálculo das três âncoras: acúmulo real, saturação e retorno individual.`)
+]));
+children.push(table(
+  ['Dia (t)', 'f(t)', "f′(t)", 'f″(t)'],
+  lim.C_derivadas.map(r => [String(r.dia), nf(r.f), sg(r.f_linha), sg(r.f_2linha)]),
+  [2340, 2340, 2340, 2340], ['l', 'r', 'r', 'r']));
+children.push(caption('Tabela 10. Função ajustada f(t), velocidade de acúmulo f′(t) e aceleração f″(t) por dia (fadiga física média diária). f′ positiva e decrescente; f″ negativa — acúmulo saturante.'));
+
 // Figura síntese
-children.push(H('3.11. Síntese visual', HeadingLevel.HEADING_2));
+children.push(H('3.12. Síntese visual', HeadingLevel.HEADING_2));
 children.push(...fig('figuras/monitoramento_viz.png',
   'Figura 1. Painel de monitoramento: medidores dos indicadores-chave (dz da fadiga física, AUC, perfil iceberg, HTMT); radar do perfil de humor pré vs. pós (erosão do iceberg); monitoramento diário da carga de humor (D1→D7) com faixas de alerta e dias de HIIT; e mapa 4D por variável (resposta aguda × acúmulo × individualidade × consenso direcional).', 640));
 

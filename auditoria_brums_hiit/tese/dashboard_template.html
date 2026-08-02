@@ -517,6 +517,23 @@ const SEC=[]; function sec(id,title){const s=document.createElement('section');s
  c3.insertAdjacentHTML('beforeend','<p class="note">PTH acumula mais rápido em média, mas é o mais heterogêneo entre atletas (DP 1,45); a fadiga física acumula em 92% dos atletas.</p>');
 })();
 
+/* CÁLCULO · LIMITES E DERIVADAS */
+(function(){const s=sec('calc','Cálculo');
+ const L=D.lim, aj=L.ajuste;
+ s.innerHTML='<h2>Cálculo — limites e derivadas da trajetória de fadiga</h2><p class="sub">Formaliza o acúmulo com o cálculo. Ajuste saturante f(t)=L−(L−f₁)·e^(−k(t−1)) à fadiga física média diária (L='+fmt(aj.L)+'; k='+fmt(aj.k)+'; R²='+fmt(aj.R2)+'). A <b>derivada</b> f′(t) é a velocidade de acúmulo/dia; a razão incremental converge para f′('+fmt(L.t0,0)+')='+fmt(L.f_linha_analitica)+' quando h→0 (definição por limite). A derivada é positiva e decrescente (f″<0): acumula cada vez mais devagar e satura no limite lim(t→∞) f(t)=L≈'+fmt(L.limite_L)+'. No modelo fitness–fadiga, a derivada zera no ponto crítico t*='+fmt(L.t_critico)+' (pico de fadiga aguda).</p>';
+ const g=document.createElement('div');g.className='grid2';s.append(g);
+ const c1=card('Definição por limite — razão incremental em t₀='+fmt(L.t0,0),'[f(t₀+h)−f(t₀)]/h → f′(t₀)');s.append(c1);g.append(c1);
+ dtable(c1,[{k:'h',label:'h (incremento)',num:true,render:v=>fmt(v,v<0.01?3:2)},{k:'quociente',label:'quociente',num:true,render:v=>fmt(v,4)}],
+   L.razoes.concat([{h:0,quociente:L.f_linha_analitica}]).map(r=>({h:r.h,quociente:r.quociente})));
+ c1.insertAdjacentHTML('beforeend','<p class="note">O quociente incremental converge para a derivada analítica f′('+fmt(L.t0,0)+')=<b>'+fmt(L.f_linha_analitica)+'</b> à medida que h→0 — a definição de derivada por limite, verificada numericamente.</p>');
+ const c2=card('Derivada f′(t) por dia — velocidade de acúmulo','ajuste saturante');const d2=document.createElement('div');c2.append(d2);s.append(c2);g.append(c2);
+ requestAnimationFrame(()=>{barChart(d2,L.derivadas.map(r=>({l:'Dia '+r.dia,v:r.f_linha,c:r.f_linha>=0?'coral':'teal'})),{min:0,max:2,l:70,fmt:v=>fmt(v)});});
+ c2.insertAdjacentHTML('beforeend','<p class="note">f′(t) positiva e decrescente: a fadiga acumula, mas cada vez mais devagar (f″<0), saturando em L≈'+fmt(L.limite_L)+'.</p>');
+ const c3=card('Função, 1ª e 2ª derivadas por dia','f · f′ · f″');s.append(c3);
+ dtable(c3,[{k:'dia',label:'Dia'},{k:'f',label:'f(t)',num:true,render:v=>fmt(v)},{k:'f_linha',label:"f′(t)",num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'f_2linha',label:'f″(t)',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`}],L.derivadas);
+ c3.insertAdjacentHTML('beforeend','<p class="note">Limite do acúmulo: lim(t→∞) f(t)=L≈'+fmt(L.limite_L)+'. Modelo fitness–fadiga: derivada zero em t*='+fmt(L.t_critico)+' (nadir do estado / pico de fadiga aguda); depois relaxa à linha de base.</p>');
+})();
+
 document.getElementById('app').insertAdjacentHTML('beforeend','<footer>Dashboard analítico · BRUMS × HIIT no handebol · atletas anonimizados (A01–A27) · números reproduzidos por código · 2026.</footer>');
 
 /* nav */
