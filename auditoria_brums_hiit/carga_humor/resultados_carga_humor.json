@@ -1,0 +1,549 @@
+{
+ "acoplamento": {
+  "tonico": {
+   "n": 25,
+   "pares": [
+    {
+     "carga": "PSE",
+     "humor": "Tensão",
+     "r": 0.19,
+     "p_bruto": 0.358,
+     "q_fdr": 0.714,
+     "sig_fdr": false
+    },
+    {
+     "carga": "PSE",
+     "humor": "Depressão",
+     "r": 0.18,
+     "p_bruto": 0.382,
+     "q_fdr": 0.714,
+     "sig_fdr": false
+    },
+    {
+     "carga": "PSE",
+     "humor": "Raiva",
+     "r": 0.11,
+     "p_bruto": 0.614,
+     "q_fdr": 0.843,
+     "sig_fdr": false
+    },
+    {
+     "carga": "PSE",
+     "humor": "Vigor",
+     "r": 0.12,
+     "p_bruto": 0.575,
+     "q_fdr": 0.843,
+     "sig_fdr": false
+    },
+    {
+     "carga": "PSE",
+     "humor": "Fadiga",
+     "r": 0.25,
+     "p_bruto": 0.232,
+     "q_fdr": 0.714,
+     "sig_fdr": false
+    },
+    {
+     "carga": "PSE",
+     "humor": "Confusão",
+     "r": 0.22,
+     "p_bruto": 0.298,
+     "q_fdr": 0.714,
+     "sig_fdr": false
+    },
+    {
+     "carga": "PSE",
+     "humor": "PTH",
+     "r": 0.2,
+     "p_bruto": 0.327,
+     "q_fdr": 0.714,
+     "sig_fdr": false
+    },
+    {
+     "carga": "PSE",
+     "humor": "FadFis",
+     "r": 0.23,
+     "p_bruto": 0.274,
+     "q_fdr": 0.714,
+     "sig_fdr": false
+    },
+    {
+     "carga": "PSE",
+     "humor": "FadMen",
+     "r": 0.03,
+     "p_bruto": 0.869,
+     "q_fdr": 0.869,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "Tensão",
+     "r": -0.26,
+     "p_bruto": 0.216,
+     "q_fdr": 0.714,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "Depressão",
+     "r": -0.05,
+     "p_bruto": 0.812,
+     "q_fdr": 0.843,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "Raiva",
+     "r": -0.23,
+     "p_bruto": 0.273,
+     "q_fdr": 0.714,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "Vigor",
+     "r": 0.06,
+     "p_bruto": 0.78,
+     "q_fdr": 0.843,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "Fadiga",
+     "r": -0.05,
+     "p_bruto": 0.801,
+     "q_fdr": 0.843,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "Confusão",
+     "r": -0.18,
+     "p_bruto": 0.377,
+     "q_fdr": 0.714,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "PTH",
+     "r": -0.18,
+     "p_bruto": 0.396,
+     "q_fdr": 0.714,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "FadFis",
+     "r": -0.2,
+     "p_bruto": 0.334,
+     "q_fdr": 0.714,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "FadMen",
+     "r": -0.3,
+     "p_bruto": 0.144,
+     "q_fdr": 0.714,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "Tensão",
+     "r": 0.11,
+     "p_bruto": 0.609,
+     "q_fdr": 0.843,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "Depressão",
+     "r": -0.28,
+     "p_bruto": 0.171,
+     "q_fdr": 0.714,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "Raiva",
+     "r": -0.2,
+     "p_bruto": 0.332,
+     "q_fdr": 0.714,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "Vigor",
+     "r": 0.06,
+     "p_bruto": 0.766,
+     "q_fdr": 0.843,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "Fadiga",
+     "r": 0.09,
+     "p_bruto": 0.674,
+     "q_fdr": 0.843,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "Confusão",
+     "r": -0.07,
+     "p_bruto": 0.725,
+     "q_fdr": 0.843,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "PTH",
+     "r": -0.09,
+     "p_bruto": 0.658,
+     "q_fdr": 0.843,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "FadFis",
+     "r": 0.08,
+     "p_bruto": 0.692,
+     "q_fdr": 0.843,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "FadMen",
+     "r": -0.29,
+     "p_bruto": 0.153,
+     "q_fdr": 0.714,
+     "sig_fdr": false
+    }
+   ]
+  },
+  "agudo": {
+   "n": 25,
+   "pares": [
+    {
+     "carga": "PSE",
+     "humor": "Tensão",
+     "r": 0.41,
+     "p_bruto": 0.044,
+     "q_fdr": 0.615,
+     "sig_fdr": false
+    },
+    {
+     "carga": "PSE",
+     "humor": "Depressão",
+     "r": -0.17,
+     "p_bruto": 0.426,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "PSE",
+     "humor": "Raiva",
+     "r": -0.18,
+     "p_bruto": 0.383,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "PSE",
+     "humor": "Vigor",
+     "r": 0.19,
+     "p_bruto": 0.352,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "PSE",
+     "humor": "Fadiga",
+     "r": -0.01,
+     "p_bruto": 0.967,
+     "q_fdr": 0.967,
+     "sig_fdr": false
+    },
+    {
+     "carga": "PSE",
+     "humor": "Confusão",
+     "r": 0.4,
+     "p_bruto": 0.046,
+     "q_fdr": 0.615,
+     "sig_fdr": false
+    },
+    {
+     "carga": "PSE",
+     "humor": "PTH",
+     "r": -0.02,
+     "p_bruto": 0.929,
+     "q_fdr": 0.965,
+     "sig_fdr": false
+    },
+    {
+     "carga": "PSE",
+     "humor": "FadFis",
+     "r": 0.16,
+     "p_bruto": 0.44,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "PSE",
+     "humor": "FadMen",
+     "r": -0.04,
+     "p_bruto": 0.86,
+     "q_fdr": 0.965,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "Tensão",
+     "r": 0.08,
+     "p_bruto": 0.707,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "Depressão",
+     "r": 0.08,
+     "p_bruto": 0.693,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "Raiva",
+     "r": 0.13,
+     "p_bruto": 0.543,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "Vigor",
+     "r": 0.02,
+     "p_bruto": 0.913,
+     "q_fdr": 0.965,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "Fadiga",
+     "r": 0.11,
+     "p_bruto": 0.596,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "Confusão",
+     "r": 0.05,
+     "p_bruto": 0.81,
+     "q_fdr": 0.951,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "PTH",
+     "r": 0.11,
+     "p_bruto": 0.588,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "FadFis",
+     "r": 0.16,
+     "p_bruto": 0.437,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "FC",
+     "humor": "FadMen",
+     "r": 0.08,
+     "p_bruto": 0.689,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "Tensão",
+     "r": -0.16,
+     "p_bruto": 0.453,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "Depressão",
+     "r": -0.11,
+     "p_bruto": 0.607,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "Raiva",
+     "r": -0.24,
+     "p_bruto": 0.254,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "Vigor",
+     "r": 0.29,
+     "p_bruto": 0.162,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "Fadiga",
+     "r": -0.17,
+     "p_bruto": 0.412,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "Confusão",
+     "r": -0.27,
+     "p_bruto": 0.186,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "PTH",
+     "r": -0.32,
+     "p_bruto": 0.119,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "FadFis",
+     "r": -0.25,
+     "p_bruto": 0.219,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    },
+    {
+     "carga": "TRIMP",
+     "humor": "FadMen",
+     "r": -0.11,
+     "p_bruto": 0.615,
+     "q_fdr": 0.868,
+     "sig_fdr": false
+    }
+   ]
+  }
+ },
+ "preditores_fadiga": {
+  "alvo": "Fadiga ALTA (tercil superior) vs BAIXA (tercil inferior) da subescala Fadiga",
+  "n_alta": 170,
+  "n_baixa": 163,
+  "corte_tercis": [
+   3.0,
+   7.0
+  ],
+  "validacao_AUC": "IC95% por bootstrap agrupado por atleta (2000)",
+  "preditores": [
+   {
+    "var": "FadFis",
+    "label": "Fadiga física",
+    "AUC": 0.899,
+    "IC95": [
+     0.844,
+     0.952
+    ],
+    "sensibilidade": 0.847,
+    "especificidade": 0.828,
+    "ICC21": 0.283,
+    "alpha": null
+   },
+   {
+    "var": "FadMen",
+    "label": "Fadiga mental",
+    "AUC": 0.76,
+    "IC95": [
+     0.564,
+     0.895
+    ],
+    "sensibilidade": 0.647,
+    "especificidade": 0.84,
+    "ICC21": 0.717,
+    "alpha": null
+   },
+   {
+    "var": "Vigor",
+    "label": "Vigor",
+    "AUC": 0.754,
+    "IC95": [
+     0.644,
+     0.848
+    ],
+    "sensibilidade": 0.847,
+    "especificidade": 0.558,
+    "ICC21": 0.478,
+    "alpha": 0.8
+   },
+   {
+    "var": "Depressão",
+    "label": "Depressão",
+    "AUC": 0.707,
+    "IC95": [
+     0.587,
+     0.804
+    ],
+    "sensibilidade": 0.541,
+    "especificidade": 0.853,
+    "ICC21": 0.787,
+    "alpha": 0.83
+   },
+   {
+    "var": "Raiva",
+    "label": "Raiva",
+    "AUC": 0.67,
+    "IC95": [
+     0.57,
+     0.769
+    ],
+    "sensibilidade": 0.553,
+    "especificidade": 0.761,
+    "ICC21": 0.188,
+    "alpha": 0.85
+   },
+   {
+    "var": "Confusão",
+    "label": "Confusão",
+    "AUC": 0.548,
+    "IC95": [
+     0.502,
+     0.658
+    ],
+    "sensibilidade": 0.247,
+    "especificidade": 0.84,
+    "ICC21": 0.405,
+    "alpha": 0.6
+   },
+   {
+    "var": "Tensão",
+    "label": "Tensão",
+    "AUC": 0.538,
+    "IC95": [
+     0.502,
+     0.684
+    ],
+    "sensibilidade": 0.518,
+    "especificidade": 0.571,
+    "ICC21": 0.826,
+    "alpha": 0.55
+   }
+  ]
+ }
+}

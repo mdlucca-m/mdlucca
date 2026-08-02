@@ -411,6 +411,11 @@ const SEC=[]; function sec(id,title){const s=document.createElement('section');s
  const rows=[];['tonico','agudo'].forEach(m=>{(D.acopl[m].pares_carga_humor||[]).forEach(p=>rows.push({leitura:m,par:p.x+' × '+p.y,r:p.r,p:p.p,sig:p.sig}));});
  const c2=card('Acoplamento carga × humor (entre atletas)','PSE/FC/TRIMP × FadMen/TMD');
  dtable(c2,[{k:'leitura',label:'Leitura'},{k:'par',label:'Par'},{k:'r',label:'r',num:true,render:v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${fmt(v)}</span>`},{k:'p',label:'p',num:true,render:pf},{k:'sig',label:'Sig.',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'—'}</span>`}],rows);s.append(c2);
+ if(D.chpred){const cp=D.chpred;
+  const c3=card('Preditores de fadiga ALTA vs. BAIXA — sensível e confiável','AUC · sens/spec (Youden) · ICC(2,1)');
+  dtable(c3,[{k:'label',label:'Preditor'},{k:'AUC',label:'AUC',num:true,render:v=>fmt(v)},{k:'IC',label:'IC95%',render:v=>`[${fmt(v[0])}; ${fmt(v[1])}]`},{k:'sens',label:'Sensib.',num:true,render:v=>fmt(v)},{k:'spec',label:'Especif.',num:true,render:v=>fmt(v)},{k:'icc',label:'ICC(2,1)',num:true,render:v=>v==null?'—':fmt(v)}],cp.preditores);s.append(c3);
+  c3.insertAdjacentHTML('beforeend',`<p class="note">Alvo = tercil superior vs. inferior da subescala Fadiga (n alta=${cp.n_alta} / baixa=${cp.n_baixa}); PTH excluído por conter aritmeticamente a Fadiga. A <b>fadiga física</b> é o marcador mais <b>sensível</b> (AUC ${fmt(cp.preditores[0].AUC)}); o ICC baixo é a assinatura de um bom marcador de estado (oscila com a carga). <b>Fadiga mental</b> e <b>depressão</b> são sensíveis <b>e</b> confiáveis; a <b>tensão</b>, apesar de a mais estável, é cega à fadiga. Reencontra-se o eixo energia–fadiga por classificação/ROC.</p>`);
+ }
 })();
 
 /* PERFIL & VARIABILIDADE */
