@@ -15,6 +15,7 @@ const HERE = __dirname, ROOT = path.dirname(HERE);
 const D = JSON.parse(fs.readFileSync(path.join(HERE, 'dashboard_data.json'), 'utf8'));
 const REFS = JSON.parse(fs.readFileSync(path.join(HERE, 'referencias.json'), 'utf8'));
 const lim = JSON.parse(fs.readFileSync(path.join(ROOT, 'limites_derivadas', 'resultados_limites_derivadas.json'), 'utf8'));
+const hp = JSON.parse(fs.readFileSync(path.join(ROOT, 'dias_hiit', 'resultados_hiit_protocolo.json'), 'utf8'));
 
 // ---------- helpers ----------
 const nf = (x, d = 2) => (x === null || x === undefined || isNaN(x)) ? '—' : Number(x).toFixed(d).replace('.', ',');
@@ -119,70 +120,97 @@ children.push(P(`Vinte e sete atletas de handebol de elite foram acompanhados du
 children.push(H('2.3. Instrumentos', HeadingLevel.HEADING_2));
 children.push(P([bold('Humor. '), run('Escala de Humor de Brunel (BRUMS), com as seis subescalas (tensão, depressão, raiva, vigor, fadiga e confusão) e o índice de Perturbação Total do Humor (PTH/TMD = soma das negativas − vigor). '), bold('Autorrelatos complementares. '), run('Fadiga física (0–10), fadiga mental (0–10), estado físico (0–4) e estado mental (0–4). '), bold('Carga interna. '), run('Esforço percebido da sessão (PSE; método de Foster) e carga por frequência cardíaca (TRIMP de Banister ponderado pela reserva de FC, %HRR).')]));
 children.push(H('2.4. Protocolo do microciclo e do HIIT', HeadingLevel.HEADING_2));
-children.push(P('Sete dias consecutivos, com sessões de HIIT nos dias 2, 4 e 7 e trabalho técnico-tático nos dias 1, 3, 5 e 6. Em cada dia, coletas pré e pós-treino permitiram separar a resposta aguda (pós − pré) do nível do dia e do acúmulo ao longo da semana. As sessões de HIIT foram quase-máximas (FC de pico 181–184 bpm; %HRR 0,87–0,91; PSE final 9,3–9,6).'));
+children.push(P('O microciclo teve sete dias consecutivos, com sessões de HIIT nos dias 2, 4 e 7 e trabalho técnico-tático nos dias 1, 3, 5 e 6. Em cada dia, coletas pré e pós-treino permitiram separar a resposta aguda (pós − pré) do nível do dia e do acúmulo ao longo da semana.'));
+children.push(P([bold('Modelo do HIIT. '), run('Cada sessão de HIIT consistiu em ' + hp.protocolo + '. A intensidade-alvo foi ancorada em ' + '104% da velocidade de pico obtida em um teste de campo incremental, isto é, um estímulo supramáximo em relação ao pico aeróbio, desenhado para manter o atleta em zona próxima ao VO₂máx durante os 4 minutos de esforço, com recuperação incompleta nos 3 minutos entre séries. A carga interna foi monitorada por frequência cardíaca em cada fase (aquecimento e quatro séries) e por PSE ao final, permitindo derivar a FC de recuperação (no início de cada série, após o intervalo), a FC média e a FC máxima das séries, além do humor (BRUMS) pré e pós-sessão.')]));
+children.push(P('A caracterização das sessões (Figura 1; Tabela 1) confirma a intensidade quase-máxima e progressiva: a FC ao fim das séries sobe do aquecimento (~158 bpm) ao pico (' + nf(hp.resumo.FC_maxima[0],0) + ' bpm), a FC média das quatro séries atinge ' + nf(hp.resumo.FC_media_series[0],0) + ' bpm e a FC de recuperação eleva-se ao longo da sessão (deriva cardiovascular, recuperação incompleta), enquanto a PSE chega a ' + nf(hp.resumo.PSE_final[0],1) + ' (quase o teto da escala 0–10).'));
+children.push(...figA('dias_hiit/hiit_protocolo_fig.png', 'Figura 1. Caracterização do protocolo de HIIT (4 × 4 min a 104% da velocidade de pico, 3 min de intervalo): A — FC ao início (recuperação) e ao fim (pico) de cada série; B — PSE por fase; C — resumo da carga interna (FC máxima, média, de recuperação e PSE).'));
+children.push(table(['Métrica da sessão de HIIT', 'Média ± DP'],
+  [['FC máxima (pico das séries)', nf(hp.resumo.FC_maxima[0],0) + ' ± ' + nf(hp.resumo.FC_maxima[1],0) + ' bpm'],
+   ['FC média das 4 séries', nf(hp.resumo.FC_media_series[0],0) + ' ± ' + nf(hp.resumo.FC_media_series[1],0) + ' bpm'],
+   ['FC de recuperação (início das séries)', nf(hp.resumo.FC_recuperacao[0],0) + ' ± ' + nf(hp.resumo.FC_recuperacao[1],0) + ' bpm'],
+   ['PSE final (0–10)', nf(hp.resumo.PSE_final[0],1) + ' ± ' + nf(hp.resumo.PSE_final[1],1)]],
+  [5680, 3680], ['l', 'r']));
+children.push(caption('Tabela 1. Carga interna das sessões de HIIT (n = ' + hp.resumo.n_atletas + ' atletas; 4 sessões).'));
 children.push(H('2.5. Procedimentos e integridade dos dados', HeadingLevel.HEADING_2));
 children.push(P('A base foi reconstruída do zero a partir da coleta bruta e recalculada em Python, comparada célula a célula às tabelas e ao texto originais (84 checagens; 77 exatas, 7 reconciliadas — nenhuma correção altera as conclusões). O dia foi derivado do carimbo temporal da coleta.'));
 children.push(H('2.6. Análise estatística', HeadingLevel.HEADING_2));
 children.push(P('A unidade de análise foi o atleta. Empregaram-se modelos de efeitos mistos (interceptos e, quando cabível, inclinações aleatórias por atleta); testes pareados clássicos (t de Student e Wilcoxon) com tamanho de efeito intra-sujeito (dz) e intervalos de confiança por bootstrap agrupado por atleta; correção de comparações múltiplas por FDR (Benjamini–Hochberg); análise de variância de Friedman/RM-ANOVA para o efeito do dia; e correlação de medidas repetidas (rm_corr) e coeficiente de correlação intraclasse (ICC) para acoplamento e estabilidade. A qualidade da medida foi avaliada por α de Cronbach (com IC95%), ω de McDonald, AFC (estimador DWLS), HTMT, teoria de resposta ao item (modelo de resposta gradual) e análise fatorial exploratória; a equivalência pré→pós, pela hierarquia de invariância configural → métrica → escalar → estrita/parcial (ΔCFI ≤ 0,01; congruência de Tucker φ ≥ 0,95). A capacidade diagnóstica foi quantificada por curvas ROC (AUC com IC95% por bootstrap agrupado por atleta) e a validação preditiva por regressão/classificação leave-one-athlete-out. Confirmação bayesiana (fator de Bayes JZS) e multivariada (Hotelling T², MANOVA/PERMANOVA) complementaram a inferência. Análises em Python (statsmodels, scipy, pingouin, semopy, factor_analyzer); α = 0,05.'));
-children.push(...figA('figuras/desenho_analitico.png', 'Figura 1. Desenho analítico do estudo: do microciclo (7 dias, HIIT nos dias 2/4/7) e das coletas pré/pós à cadeia de análises com o atleta como unidade.'));
+children.push(...figA('figuras/desenho_analitico.png', 'Figura 2. Desenho analítico do estudo: do microciclo (7 dias, HIIT nos dias 2/4/7) e das coletas pré/pós à cadeia de análises com o atleta como unidade.'));
 children.push(new Paragraph({ children: [new PageBreak()] }));
 
 // ===================== 3. RESULTADOS =====================
 children.push(H('3. Resultados', HeadingLevel.HEADING_1));
-children.push(P('A apresentação segue a ordem lógica do raciocínio e a cronologia do microciclo, da qualidade da medida à resposta, ao acúmulo, à confirmação multivariada, à invariância, ao diagnóstico, à individualidade e ao acoplamento com a carga interna.'));
+children.push(P('Os resultados são apresentados em blocos — estatística descritiva e estatística inferencial —, seguidos da qualidade da medida e da invariância, e do diagnóstico, predição e monitoramento.'));
 
-children.push(H('3.1. Qualidade da medida: distribuições, efeito piso e confiabilidade', HeadingLevel.HEADING_2));
-children.push(P('As subescalas negativas concentram grande parte das respostas no piso da escala — confusão (80,5%), depressão (67,1%) e raiva (59,6%) —, enquanto fadiga física, fadiga e vigor distribuem-se amplamente (Tabela 1). A não-normalidade é a regra (Shapiro–Wilk), mas testes paramétricos e não-paramétricos concordam nas 11 variáveis. A confiabilidade reproduz a estrutura esperada (Tabela 2): raiva, depressão e fadiga com α e ω acima de 0,80; vigor e confusão limítrofes; apenas a tensão frágil (α ' + nf(conf.find(c => c.sub === 'Tensão').alpha) + '), coerente com o forte efeito piso. A AFC de seis fatores ajusta bem (CFI ' + nf(adv.CFA_DWLS.CFI) + '; RMSEA ' + nf(adv.CFA_DWLS.RMSEA) + ') e o HTMT máximo (' + nf(adv.HTMT_max, 3) + ') fica abaixo de 0,85.'));
-children.push(table(['Variável', 'M', 'DP', '% piso', 'Normal?'],
-  D.descr.A_descritivas.map(r => [r.label, nf(r.media), nf(r.dp), nf(r.piso_pct, 1), r.normal ? 'sim' : 'não']),
-  [3360, 1500, 1500, 1500, 1500], ['l', 'r', 'r', 'r', 'r']));
-children.push(caption('Tabela 1. Descritivas (amostra completa), efeito piso e normalidade por variável.'));
-children.push(table(['Subescala', 'α', 'IC95% (α)', 'ω', 'Adequada?'],
-  conf.map(r => [r.sub, nf(r.alpha), `[${nf(r.alpha_ic[0])}; ${nf(r.alpha_ic[1])}]`, nf(r.omega), r.adequada ? 'sim' : (r.ic_atinge_070 ? 'limítrofe' : 'não')]),
-  [2760, 1400, 2400, 1400, 1400], ['l', 'r', 'l', 'r', 'r']));
-children.push(caption('Tabela 2. Confiabilidade por subescala (α de Cronbach com IC95%, ω de McDonald).'));
-children.push(...figA('figuras/A1_cfa_cargas.png', 'Figura 2. Análise fatorial confirmatória (DWLS): cargas padronizadas por item nas seis subescalas do BRUMS.'));
+// ---- 3.1 ESTATÍSTICA DESCRITIVA ----
+children.push(H('3.1. Estatística descritiva', HeadingLevel.HEADING_2));
+children.push(P('As subescalas negativas concentram grande parte das respostas no piso da escala — confusão (80,5%), depressão (67,1%) e raiva (59,6%) —, enquanto fadiga física, fadiga e vigor distribuem-se amplamente (Tabela 2). Os histogramas e box plots (Figura 3A–B) mostram o deslocamento pré→pós no eixo energia–fadiga; a dispersão Vigor × Fadiga (Figura 3C) evidencia a relação inversa (r ≈ −0,44). A não-normalidade é a regra: os gráficos Q–Q e o teste de Shapiro–Wilk (Figura 3D) indicam desvios da normal tanto no pré quanto no pós, o que justifica a confirmação por testes não-paramétricos e permutação.'));
+children.push(table(['Variável', 'M', 'DP', 'Mediana', 'IQR', '% piso', 'Normal?'],
+  D.descr.A_descritivas.map(r => [r.label, nf(r.media), nf(r.dp), nf(r.mediana), nf(r.IQR), nf(r.piso_pct,1), r.normal?'sim':'não']),
+  [2760, 1080, 1080, 1240, 1080, 1120, 1000], ['l','r','r','r','r','r','r']));
+children.push(caption('Tabela 2. Estatística descritiva por variável (amostra completa, n = ' + D.inf.n_obs + '): média, DP, mediana, IQR, efeito piso e normalidade (Shapiro–Wilk).'));
+children.push(...figA('descritivas_testes/descritiva_completa_fig.png', 'Figura 3. Estatística descritiva: A — histograma da fadiga física (pré vs. pós); B — box plots pré vs. pós das variáveis-chave; C — dispersão Vigor × Fadiga (eixo energia–fadiga); D — Q–Q de normalidade do PTH (pré vs. pós).'));
 
-children.push(H('3.2. Resposta aguda pré→pós', HeadingLevel.HEADING_2));
-children.push(P('A resposta aguda concentra-se no eixo energia–fadiga (Tabela 3): fadiga física com efeito grande (dz ' + nf(A.FadFis.dz) + '), seguida de PTH (dz ' + nf(A.PTH.dz) + '), fadiga (dz ' + nf(A.Fadiga.dz) + ') e queda de vigor (dz ' + nf(A.Vigor.dz) + '); todas sobrevivem à FDR. As subescalas negativas com efeito piso não se movem significativamente.'));
+// ---- 3.2 ESTATÍSTICA INFERENCIAL ----
+children.push(H('3.2. Estatística inferencial', HeadingLevel.HEADING_2));
+children.push(H('3.2.1. Resposta aguda pré→pós', HeadingLevel.HEADING_3));
+children.push(P('A resposta aguda concentra-se no eixo energia–fadiga (Tabela 3): fadiga física com efeito grande (dz ' + nf(A.FadFis.dz) + '), seguida de PTH (dz ' + nf(A.PTH.dz) + '), fadiga (dz ' + nf(A.Fadiga.dz) + ') e queda de vigor (dz ' + nf(A.Vigor.dz) + '); todas sobrevivem à FDR. As subescalas negativas com efeito piso não se movem significativamente. A robustez foi confirmada por permutação restrita (troca pré↔pós dentro de cada atleta), que concorda com o teste t (Tabela 4).'));
 children.push(table(['Variável', 'Δ (pós−pré)', 'dz', 'IC95% (dz)', 'p (FDR)', 'Sig.'],
   D.inf.A_aguda.map(r => [r.label, sg(r.delta), sg(r.dz), `[${nf(r.ic[0])}; ${nf(r.ic[1])}]`, pf(r.p_FDR), r.sig ? 'sim' : '—']),
   [3060, 1560, 1200, 2340, 1200, 900], ['l', 'r', 'r', 'l', 'r', 'r']));
-children.push(caption('Tabela 3. Resposta aguda pré→pós por variável (tamanho de efeito intra-sujeito dz; IC95% por bootstrap; p com FDR).'));
-children.push(P('A robustez desse resultado foi confirmada por teste de permutação restrita (troca pré↔pós dentro de cada atleta, respeitando a estrutura de medidas repetidas): o p permutacional concorda com o teste t em todas as variáveis testadas (Tabela 4).'));
+children.push(caption('Tabela 3. Resposta aguda pré→pós por variável (dz; IC95% por bootstrap; p com FDR).'));
 children.push(table(['Variável', 'Δ (pós−pré)', 'p (permutação)', 'p (t)', 'Concordam?'],
   D.pv.permutacao.map(r => [r.var, sg(r.delta), pf(r.p_perm), pf(r.p_t), r.concordam ? 'sim' : '—']),
   [3360, 1800, 1800, 1200, 1200], ['l', 'r', 'r', 'r', 'r']));
-children.push(caption('Tabela 4. Confirmação por permutação restrita (9999 permutações; troca pré↔pós intra-atleta) vs. teste t.'));
-children.push(...figA('figuras/M1_resposta_aguda_dz.png', 'Figura 3. Resposta aguda pré→pós (dz ± IC95%) por variável — a fadiga física ancora o eixo energia–fadiga.'));
+children.push(caption('Tabela 4. Confirmação por permutação restrita (9999 permutações, troca pré↔pós intra-atleta) vs. teste t.'));
+children.push(...figA('figuras/M1_resposta_aguda_dz.png', 'Figura 4. Resposta aguda pré→pós (dz ± IC95%) por variável — a fadiga física ancora o eixo energia–fadiga.'));
 
-children.push(H('3.3. Acúmulo semanal e efeito dos dias de HIIT', HeadingLevel.HEADING_2));
-children.push(P('No modelo misto de acúmulo, a fadiga física cresce ~0,34/dia e o PTH acumula de forma heterogênea entre atletas. O efeito do HIIT manifesta-se no nível do dia (Tabela 4): ΔPTH ' + sg(D.inf.C_hiit.find(x=>x.var==='PTH').delta_HIIT) + ' (dz ' + nf(D.inf.C_hiit.find(x=>x.var==='PTH').dz) + '); no plano estritamente agudo, apenas a fadiga física é amplificada pelo HIIT (interação Condição×Momento significativa só para ela). Os coeficientes do modelo (β do momento pós, R² marginal/condicional, ICC) constam da Tabela 4.'));
+children.push(H('3.2.2. Acúmulo semanal e efeito dos dias de HIIT', HeadingLevel.HEADING_3));
+children.push(P('No modelo misto de acúmulo, a fadiga física cresce ~0,34/dia e o PTH acumula de forma heterogênea entre atletas (Tabela 5). O efeito do HIIT manifesta-se no nível do dia (ΔPTH ' + sg(D.inf.C_hiit.find(x=>x.var==='PTH').delta_HIIT) + '; dz ' + nf(D.inf.C_hiit.find(x=>x.var==='PTH').dz) + '); no plano estritamente agudo, apenas a fadiga física é amplificada pelo HIIT. Comparando os três dias de HIIT entre si (Friedman), a resposta não difere entre as sessões 2, 4 e 7 (Tabela 6) — o estímulo é consistente e o que cresce é o acúmulo, não a resposta por sessão.'));
 children.push(table(['Desfecho', 'β (pós)', 'R²m', 'R²c', 'ICC'],
   mt.R2.map(r => [r.desfecho, sg(r.beta_pos), nf(r.R2m), nf(r.R2c), nf(r.ICC)]),
   [3360, 1650, 1450, 1450, 1450], ['l', 'r', 'r', 'r', 'r']));
-children.push(caption('Tabela 5. Modelos mistos por desfecho: efeito do momento pós (β), variância explicada marginal (R²m) e condicional (R²c) e ICC (proporção de variância entre atletas).'));
-children.push(P('Comparando os três dias de HIIT entre si (Friedman), a resposta não difere significativamente entre as sessões 2, 4 e 7 (Tabela 6) — o estímulo é consistente ao longo da semana, e o que cresce é o acúmulo, não a intensidade da resposta por sessão.'));
+children.push(caption('Tabela 5. Modelos mistos por desfecho: efeito do momento pós (β), R² marginal/condicional e ICC.'));
 children.push(table(['Variável', 'Δ dia 2', 'Δ dia 4', 'Δ dia 7', 'χ² (Friedman)', 'p'],
   D.dh.A.map(r => [r.var, sg(r.D2), sg(r.D4), sg(r.D7), nf(r.chi2), pf(r.p)]),
   [3060, 1420, 1420, 1420, 1900, 1140], ['l', 'r', 'r', 'r', 'r', 'r']));
 children.push(caption('Tabela 6. Resposta por dia de HIIT (dias 2, 4 e 7) e teste de Friedman entre os três dias.'));
-children.push(...figA('figuras/M2_acumulo_inclinacao.png', 'Figura 4. Acúmulo ao longo do microciclo com inclinações aleatórias por atleta — trajetórias individuais da fadiga física e do PTH.'));
+children.push(...figA('figuras/M2_acumulo_inclinacao.png', 'Figura 5. Acúmulo ao longo do microciclo com inclinações aleatórias por atleta — trajetórias individuais da fadiga física e do PTH.'));
 
-children.push(H('3.4. Confirmação multivariada e bayesiana', HeadingLevel.HEADING_2));
-children.push(P('No plano multivariado, o vetor de humor difere entre pré e pós (MANOVA) e a permutação multivariada restrita confirma o efeito (Tabela 7). A estimação bayesiana (amostrador de Gibbs) corrobora a magnitude e a direção dos principais efeitos, com intervalos de credibilidade que excluem o zero e probabilidade posterior de efeito positivo P(Δ>0) ≈ 1 (Tabela 8).'));
+children.push(H('3.2.3. Dias de HIIT vs. dias sem HIIT', HeadingLevel.HEADING_3));
+children.push(P('Comparando diretamente a resposta média nos dias de HIIT (2, 4, 7) com a dos dias técnico-táticos (1, 3, 5, 6) no nível do atleta (Tabela 7), a fadiga física tende a ser maior nos dias de HIIT (dz ' + nf(D.dh.C.find(x=>x.var==='Fadiga física').dz) + '), mas nenhuma diferença sobrevive à correção FDR — a assinatura do HIIT está no acúmulo diário e não num contraste agudo isolado, dominado pela variabilidade individual.'));
+children.push(table(['Variável', 'Média dias HIIT', 'Média dias sem', 'dif', 'dz', 'p (FDR)', 'Sig.'],
+  D.dh.C.map(r => [r.var, sg(r.media_HIIT), sg(r.media_SEM), sg(r.dif), sg(r.dz), pf(r.p_FDR), r.sig ? 'sim' : '—']),
+  [2760, 1760, 1760, 940, 940, 1200, 800], ['l', 'r', 'r', 'r', 'r', 'r', 'r']));
+children.push(caption('Tabela 7. Dias de HIIT vs. dias sem HIIT (resposta média por atleta; n = ' + D.dh.n_C + '; dz, RBC e p com FDR).'));
+
+children.push(H('3.2.4. Confirmação multivariada e bayesiana', HeadingLevel.HEADING_3));
+children.push(P('No plano multivariado, o vetor de humor difere entre pré e pós (MANOVA) e a permutação multivariada restrita confirma o efeito (Tabela 8). A estimação bayesiana corrobora a magnitude e a direção dos principais efeitos, com intervalos de credibilidade que excluem o zero e P(Δ>0) ≈ 1 (Tabela 9).'));
 children.push(table(['Teste multivariado', 'Estatística', 'p'],
   [['MANOVA (Momento)', 'Pillai ' + nf(mt.multivariada.MANOVA.pillai,3) + ' · Wilks ' + nf(mt.multivariada.MANOVA.wilks,3) + ' · F ' + nf(mt.multivariada.MANOVA.F), pf(mt.multivariada.MANOVA.p)],
    ['PERMANOVA (pré↔pós intra-atleta)', 'pseudo-F ' + nf(mt.multivariada.PERMANOVA.pseudo_F) + ' · R² ' + nf(mt.multivariada.PERMANOVA.R2,3) + ' · ' + mt.multivariada.PERMANOVA.nperm + ' perm.', pf(mt.multivariada.PERMANOVA.p)]],
   [4200, 4160, 1000], ['l', 'l', 'r']));
-children.push(caption('Tabela 7. Análises multivariadas do vetor de humor pré vs. pós (MANOVA e PERMANOVA restrita).'));
+children.push(caption('Tabela 8. Análises multivariadas do vetor de humor pré vs. pós (MANOVA e PERMANOVA restrita).'));
 children.push(table(['Desfecho', 'Média posterior', 'EP', 'IC credível 95%', 'P(Δ>0)'],
   Object.values(mt.bayes).map(b => [b.label, sg(b.media), nf(b.SE), `[${nf(b.ICr[0])}; ${nf(b.ICr[1])}]`, nf(b.P_pos, 2)]),
   [3060, 2100, 1100, 2300, 1200], ['l', 'r', 'r', 'l', 'r']));
-children.push(caption('Tabela 8. Estimação bayesiana (Gibbs) do efeito pós para os principais desfechos: média posterior, IC credível e probabilidade posterior de efeito positivo.'));
+children.push(caption('Tabela 9. Estimação bayesiana (Gibbs) do efeito pós: média posterior, IC credível e probabilidade posterior de efeito positivo.'));
 
-children.push(H('3.5. Confiabilidade da mudança: invariância de medida pré→pós', HeadingLevel.HEADING_2));
-children.push(P('A equivalência de medida entre pré e pós foi testada na hierarquia completa (Tabela 5). A invariância métrica sustenta-se (modelo conjunto ΔCFI ' + nf(iv.metrico_conjunto.dCFI,3) + '; Tucker φ ' + nf(iv.phi_global,3) + '); a escalar é aproximada (viés residual de intercepto RMS ' + nf(iv.escalar.rms,3) + '), com o deslocamento da média latente concentrado em fadiga (' + sg(iv.escalar.kappa.Fadiga) + ') e vigor (' + sg(iv.escalar.kappa.Vigor) + '); a estrita fica no limite (ΔCFI ' + nf(iv.estrita.dCFI,3) + '), com a não-invariância localizada em dois itens, cuja liberação (invariância parcial) reduz o viés de ' + nf(iv.parcial.rms_full,3) + ' para ' + nf(iv.parcial.rms_parcial,3) + '. A mudança pré→pós é, portanto, de estado, não artefato do instrumento.'));
+children.push(H('3.2.5. Correlações intra-sujeito e validade convergente', HeadingLevel.HEADING_3));
+children.push(P('As correlações de medidas repetidas (rm_corr; isolam a covariação intra-atleta) mostram que as subescalas do BRUMS covariam com os autorrelatos externos no sentido teoricamente esperado — validade convergente dentro do sujeito. Dos ' + D.inf.D_rmcorr.length + ' pares testados, ' + D.inf.D_rmcorr.filter(x=>x.sig).length + ' são significativos após FDR (Tabela 10).'));
+children.push(table(['Subescala', 'Autorrelato externo', 'r', 'IC95%', 'p (FDR)', 'Sig.'],
+  D.inf.D_rmcorr.filter(x=>x.sig).map(r => [r.sub, r.ext, sg(r.r), `[${nf(r.ic[0])}; ${nf(r.ic[1])}]`, pf(r.p_FDR), 'sim']),
+  [2360, 2600, 1000, 2000, 1200, 800], ['l', 'l', 'r', 'l', 'r', 'r']));
+children.push(caption('Tabela 10. Correlações de medidas repetidas (rm_corr) significativas entre subescalas do BRUMS e autorrelatos externos (validade convergente intra-sujeito; FDR).'));
+
+// ---- 3.3 QUALIDADE DA MEDIDA E INVARIÂNCIA ----
+children.push(H('3.3. Qualidade da medida e invariância', HeadingLevel.HEADING_2));
+children.push(P('A confiabilidade por subescala reproduz a estrutura esperada (Tabela 11): raiva, depressão e fadiga com α e ω acima de 0,80; vigor e confusão limítrofes; apenas a tensão frágil (α ' + nf(conf.find(c => c.sub === 'Tensão').alpha) + '), coerente com o efeito piso. A AFC de seis fatores ajusta bem (CFI ' + nf(adv.CFA_DWLS.CFI) + '; RMSEA ' + nf(adv.CFA_DWLS.RMSEA) + '; Figura 6) e o HTMT máximo (' + nf(adv.HTMT_max, 3) + ') fica abaixo de 0,85. A equivalência de medida pré→pós sustenta-se na hierarquia (Tabela 12; Figura 7): métrica sustentada (ΔCFI ' + nf(iv.metrico_conjunto.dCFI,3) + '; Tucker φ ' + nf(iv.phi_global,3) + '), escalar aproximada, estrita no limite, com a não-invariância localizada em dois itens cuja liberação (parcial) reduz o viés de ' + nf(iv.parcial.rms_full,3) + ' para ' + nf(iv.parcial.rms_parcial,3) + '. A mudança pré→pós é, portanto, de estado.'));
+children.push(table(['Subescala', 'α', 'IC95% (α)', 'ω', 'Adequada?'],
+  conf.map(r => [r.sub, nf(r.alpha), `[${nf(r.alpha_ic[0])}; ${nf(r.alpha_ic[1])}]`, nf(r.omega), r.adequada ? 'sim' : (r.ic_atinge_070 ? 'limítrofe' : 'não')]),
+  [2760, 1400, 2400, 1400, 1400], ['l', 'r', 'l', 'r', 'r']));
+children.push(caption('Tabela 11. Confiabilidade por subescala (α de Cronbach com IC95%, ω de McDonald).'));
+children.push(...figA('figuras/A1_cfa_cargas.png', 'Figura 6. Análise fatorial confirmatória (DWLS): cargas padronizadas por item nas seis subescalas do BRUMS.'));
 children.push(table(['Nível', 'Índice', 'Valor', 'Veredito'],
   [['Configural', 'CFI pré/pós', nf(iv.cfi_pre)+' / '+nf(iv.cfi_pos), 'equivalente'],
    ['Métrica (conjunta)', 'ΔCFI', nf(iv.metrico_conjunto.dCFI,3), iv.metrico_conjunto.ok?'sustentada':'limítrofe'],
@@ -191,42 +219,37 @@ children.push(table(['Nível', 'Índice', 'Valor', 'Veredito'],
    ['Estrita (resíduos)', 'ΔCFI', nf(iv.estrita.dCFI,3), iv.estrita.ok?'sustentada':'no limite'],
    ['Parcial', 'RMS (full→parcial)', nf(iv.parcial.rms_full,3)+' → '+nf(iv.parcial.rms_parcial,3), 'restabelece']],
   [2760, 2400, 2400, 1800], ['l', 'l', 'r', 'l']));
-children.push(caption('Tabela 9. Hierarquia de invariância de medida pré→pós (4 fatores confiáveis; tensão/confusão excluídas por variância degenerada).'));
-children.push(...figA('invariancia_multigrupo/invariancia_estrita_parcial_fig.png', 'Figura 5. Invariância estrita e parcial: diagnóstico de não-invariância por item (esq.) e CFI ao longo da hierarquia configural→estrita (dir.).'));
+children.push(caption('Tabela 12. Hierarquia de invariância de medida pré→pós (4 fatores confiáveis).'));
+children.push(...figA('invariancia_multigrupo/invariancia_estrita_parcial_fig.png', 'Figura 7. Invariância estrita e parcial: diagnóstico de não-invariância por item (esq.) e CFI ao longo da hierarquia (dir.).'));
 
-children.push(H('3.6. Correlações intra-sujeito e validade convergente', HeadingLevel.HEADING_2));
-children.push(P('As correlações de medidas repetidas (rm_corr; removem o traço e isolam a covariação intra-atleta) mostram que as subescalas do BRUMS covariam com os autorrelatos externos no sentido teoricamente esperado — validade convergente dentro do sujeito. A fadiga física externa acompanha a fadiga e a depressão e opõe-se ao vigor/estado físico (Tabela 10). Dos ' + D.inf.D_rmcorr.length + ' pares testados, ' + D.inf.D_rmcorr.filter(x=>x.sig).length + ' são significativos após FDR.'));
-children.push(table(['Subescala', 'Autorrelato externo', 'r', 'IC95%', 'p (FDR)', 'Sig.'],
-  D.inf.D_rmcorr.filter(x=>x.sig).map(r => [r.sub, r.ext, sg(r.r), `[${nf(r.ic[0])}; ${nf(r.ic[1])}]`, pf(r.p_FDR), 'sim']),
-  [2360, 2600, 1000, 2000, 1200, 800], ['l', 'l', 'r', 'l', 'r', 'r']));
-children.push(caption('Tabela 10. Correlações de medidas repetidas (rm_corr) significativas entre subescalas do BRUMS e autorrelatos externos (validade convergente intra-sujeito; FDR).'));
-
-children.push(H('3.7. Capacidade diagnóstica: ROC de níveis e de derivadas', HeadingLevel.HEADING_2));
-children.push(P('Para separar o pós do pré-treino, apenas a fadiga física alcança discriminação moderada (Tabela 11; AUC ' + nf(rocpp.find(r=>r.var==='FadFis').AUC) + '); as demais ficam próximas de 0,5. Para separar dia de HIIT de dia sem HIIT, nenhuma variável isolada supera AUC ≈ 0,58 — a variabilidade individual domina a classificação num único dia. Usando a derivada aguda (Δ pós−pré) em vez do nível, a discriminação não melhora (ganho ≈ 0 ou negativo; Tabela 12): a taxa de variação diagnostica menos que o nível.'));
+// ---- 3.4 DIAGNÓSTICO, PREDIÇÃO E MONITORAMENTO ----
+children.push(H('3.4. Diagnóstico, predição e monitoramento', HeadingLevel.HEADING_2));
+children.push(H('3.4.1. Capacidade diagnóstica: ROC de níveis e de derivadas', HeadingLevel.HEADING_3));
+children.push(P('Para separar o pós do pré-treino, apenas a fadiga física alcança discriminação moderada (Tabela 13; AUC ' + nf(rocpp.find(r=>r.var==='FadFis').AUC) + '); as demais ficam próximas de 0,5. Usando a derivada aguda (Δ pós−pré) em vez do nível, a discriminação não melhora (ganho ≈ 0 ou negativo; Tabela 14): a taxa de variação diagnostica menos que o nível.'));
 children.push(table(['Variável', 'AUC (pós vs. pré)', 'IC95%', 'Sensib.', 'Especif.'],
   rocpp.map(r => [r.label, nf(r.AUC), `[${nf(r.IC[0])}; ${nf(r.IC[1])}]`, nf(r.sens), nf(r.espec)]),
   [3060, 2100, 1900, 1150, 1150], ['l', 'r', 'l', 'r', 'r']));
-children.push(caption('Tabela 11. Capacidade diagnóstica (ROC) para separar pós de pré-treino (AUC com IC95% por bootstrap agrupado por atleta).'));
+children.push(caption('Tabela 13. Capacidade diagnóstica (ROC) para separar pós de pré-treino (IC95% por bootstrap agrupado por atleta).'));
 children.push(table(['Variável', 'AUC (nível)', 'AUC (derivada)', 'Ganho'],
   D.rocd.resultados.map(r => [r.var, nf(r.AUC_nivel), nf(r.AUC_derivada), sg(r.ganho)]),
   [3360, 2340, 2340, 1320], ['l', 'r', 'r', 'r']));
-children.push(caption('Tabela 12. ROC das derivadas (dia de HIIT vs. sem HIIT): a derivada não supera o nível (ganho ≤ 0).'));
-children.push(...figA('roc/curvas_roc_pre_pos.png', 'Figura 6. Curvas ROC para separar o estado pós do pré-treino por variável.'));
+children.push(caption('Tabela 14. ROC das derivadas (dia de HIIT vs. sem HIIT): a derivada não supera o nível (ganho ≤ 0).'));
+children.push(...figA('roc/curvas_roc_pre_pos.png', 'Figura 8. Curvas ROC para separar o estado pós do pré-treino por variável.'));
 
-children.push(H('3.8. Velocidade de mudança e formalização em cálculo', HeadingLevel.HEADING_2));
-children.push(P('A velocidade de mudança por variável (derivada discreta ao longo do microciclo) confirma o acúmulo: PTH, fadiga física e fadiga têm inclinação média positiva, o vigor negativa (Tabela 13). Formalizando a trajetória da fadiga física média diária por um modelo saturante f(t) = L − (L − f₁)·e^(−k(t−1)) (L = ' + nf(lim.ajuste.L) + '; k = ' + nf(lim.ajuste.k) + '; R² = ' + nf(lim.ajuste.R2) + '), a derivada f′(t) é a velocidade de acúmulo, f″(t) < 0 indica saturação e o limite lim(t→∞) f(t) = L formaliza o estado estacionário (Tabela 14).'));
+children.push(H('3.4.2. Velocidade de mudança e formalização em cálculo', HeadingLevel.HEADING_3));
+children.push(P('A velocidade de mudança por variável confirma o acúmulo (Tabela 15). Formalizando a trajetória da fadiga física média diária por um modelo saturante f(t) = L − (L − f₁)·e^(−k(t−1)) (L = ' + nf(lim.ajuste.L) + '; k = ' + nf(lim.ajuste.k) + '; R² = ' + nf(lim.ajuste.R2) + '), a derivada f′(t) é a velocidade de acúmulo, f″(t) < 0 indica saturação e o limite lim(t→∞) f(t) = L formaliza o estado estacionário (Tabela 16; Figura 9).'));
 children.push(table(['Variável', 'Vel. inicial', 'Vel. final', 'Dia vel. máx.', 'Inclinação média', 'Direção'],
   D.dvar.B.map(r => [r.var, sg(r.vel_inicial), sg(r.vel_final), String(r.dia_vel_max), sg(r.inclinacao_media), r.direcao]),
   [2760, 1560, 1560, 1560, 1920, 1440], ['l', 'r', 'r', 'r', 'r', 'l']));
-children.push(caption('Tabela 13. Velocidade de mudança por variável ao longo do microciclo (derivadas discretas).'));
+children.push(caption('Tabela 15. Velocidade de mudança por variável ao longo do microciclo (derivadas discretas).'));
 children.push(table(['Dia (t)', 'f(t)', "f′(t)", 'f″(t)'],
   lim.C_derivadas.map(r => [String(r.dia), nf(r.f), sg(r.f_linha), sg(r.f_2linha)]),
   [2340, 2340, 2340, 2340], ['l', 'r', 'r', 'r']));
-children.push(caption('Tabela 14. Função ajustada f(t), velocidade f′(t) e aceleração f″(t) por dia (fadiga física média diária).'));
-children.push(...figA('limites_derivadas/limites_derivadas_fig.png', 'Figura 7. Limites e derivadas da trajetória de fadiga: ajuste saturante, velocidade de acúmulo e limite estacionário.'));
+children.push(caption('Tabela 16. Função ajustada f(t), velocidade f′(t) e aceleração f″(t) por dia (fadiga física média diária).'));
+children.push(...figA('limites_derivadas/limites_derivadas_fig.png', 'Figura 9. Limites e derivadas da trajetória de fadiga: ajuste saturante, velocidade de acúmulo e limite estacionário.'));
 
-children.push(H('3.9. Predição fora da amostra (leave-one-athlete-out)', HeadingLevel.HEADING_2));
-children.push(P('Com validação leave-one-athlete-out (o modelo nunca vê o atleta que prevê), o estado pós é modestamente previsível e o sinal vem do baseline do próprio atleta; adicionar o contexto da sessão (HIIT, dia) ao baseline altera o R² em ≈ 0 — confirmação preditiva do desacoplamento carga↔humor (Tabela 15).'));
+children.push(H('3.4.3. Predição fora da amostra (leave-one-athlete-out)', HeadingLevel.HEADING_3));
+children.push(P('Com validação leave-one-athlete-out, o estado pós é modestamente previsível e o sinal vem do baseline do próprio atleta; adicionar o contexto da sessão ao baseline altera o R² em ≈ 0 — confirmação preditiva do desacoplamento carga↔humor (Tabela 17).'));
 {
   const key = ['PTH (TMD)','Fadiga física','Vigor'];
   const rows = D.pred.reg.filter(r => key.includes(r.alvo) && ['Baseline (pré)','Perfil pré completo'].includes(r.preditores))
@@ -234,45 +257,47 @@ children.push(P('Com validação leave-one-athlete-out (o modelo nunca vê o atl
   children.push(table(['Desfecho', 'Preditores', 'R² (OOF)', 'RMSE', 'Modelo'], rows,
     [2760, 2760, 1280, 1280, 1280], ['l', 'l', 'r', 'r', 'l']));
 }
-children.push(caption('Tabela 15. Validação preditiva leave-one-athlete-out: variância explicada fora da amostra (R² OOF) por desfecho.'));
+children.push(caption('Tabela 17. Validação preditiva leave-one-athlete-out: R² fora da amostra por desfecho.'));
 
-children.push(H('3.10. Carga interna × humor e preditores de estado de fadiga', HeadingLevel.HEADING_2));
-children.push(P('A carga interna (PSE, FC, TRIMP) mostra-se desacoplada do perfil de humor: nenhum par carga × humor sobrevive à FDR, nas leituras tônica e aguda. Entre as variáveis de humor, os preditores de um estado de fadiga alta vs. baixa (tercis; PTH excluído por circularidade) ordenam-se por sensibilidade e confiabilidade (Tabela 16; Figura 8): a fadiga física é a mais sensível (AUC ' + nf(chP[0].AUC) + '; ICC ' + nf(chP.find(x=>x.label==='Fadiga física').icc) + ' — estado-lábil), a fadiga mental e a depressão são sensíveis e estáveis, e a tensão, apesar de a mais confiável, é cega à fadiga.'));
+children.push(H('3.4.4. Carga interna × humor e preditores de estado de fadiga', HeadingLevel.HEADING_3));
+children.push(P('A carga interna (PSE, FC, TRIMP) mostra-se desacoplada do perfil de humor: nenhum par carga × humor sobrevive à FDR. Entre as variáveis de humor, os preditores de fadiga alta vs. baixa (Tabela 18; Figura 10): a fadiga física é a mais sensível (AUC ' + nf(chP[0].AUC) + '; ICC ' + nf(chP.find(x=>x.label==='Fadiga física').icc) + ' — estado-lábil), a fadiga mental e a depressão são sensíveis e estáveis, e a tensão é confiável mas cega à fadiga.'));
 children.push(table(['Preditor', 'AUC', 'IC95%', 'Sensib.', 'Especif.', 'ICC(2,1)'],
   chP.map(r => [r.label, nf(r.AUC), `[${nf(r.IC[0])}; ${nf(r.IC[1])}]`, nf(r.sens), nf(r.spec), r.icc == null ? '—' : nf(r.icc)]),
   [2960, 1180, 1900, 1080, 1080, 1160], ['l', 'r', 'l', 'r', 'r', 'r']));
-children.push(caption('Tabela 16. Preditores de estado de fadiga alta vs. baixa: sensibilidade (AUC, Youden) e confiabilidade (ICC 2,1).'));
-children.push(...figA('carga_humor/carga_humor_fig.png', 'Figura 8. Acoplamento carga × humor (tônico e agudo, com FDR) e preditores de estado de fadiga no plano sensibilidade (AUC) × confiabilidade (ICC).'));
+children.push(caption('Tabela 18. Preditores de estado de fadiga alta vs. baixa: sensibilidade (AUC, Youden) e confiabilidade (ICC 2,1).'));
+children.push(...figA('carga_humor/carga_humor_fig.png', 'Figura 10. Acoplamento carga × humor (tônico e agudo, com FDR) e preditores de estado de fadiga (sensibilidade × confiabilidade).'));
 
-children.push(H('3.11. Segmentação dos atletas e decomposição da variância', HeadingLevel.HEADING_2));
-children.push(P('A resposta é fortemente individual. Uma segmentação por agrupamento (k-means sobre o perfil-z) separa ' + D.pv.segmentacao.grupos.map(g => g.grupo.toLowerCase() + ' (n=' + g.n + ')').join(', ') + '; o grupo explica η² = ' + nf(D.pv.segmentacao.eta2_PTH,3) + ' da variância do PTH (Tabela 17). Coerentemente, a decomposição de variância mostra que a maior parte da variabilidade é entre atletas (traço) em quase todas as dimensões (Tabela 18) — o que torna frágil qualquer decisão baseada na média do grupo.'));
+children.push(H('3.4.5. Segmentação dos atletas e decomposição da variância', HeadingLevel.HEADING_3));
+children.push(P('A resposta é fortemente individual. Uma segmentação por k-means separa ' + D.pv.segmentacao.grupos.map(g => g.grupo.toLowerCase() + ' (n=' + g.n + ')').join(', ') + '; o grupo explica η² = ' + nf(D.pv.segmentacao.eta2_PTH,3) + ' da variância do PTH (Tabela 19). A decomposição de variância mostra que a maior parte é entre atletas (traço) em quase todas as dimensões (Tabela 20).'));
 {
   const subs = ['Tensão','Depressão','Raiva','Vigor','Fadiga','Confusão'];
   const rows = D.pv.segmentacao.perfis.map(p => { const g = D.pv.segmentacao.grupos.find(x=>x.grupo===p.grupo); return [p.grupo, String(g?g.n:''), ...subs.map(s=>sg(p[s]))]; });
   children.push(table(['Grupo','n',...subs], rows, [1900, 760, 1120, 1120, 1120, 1120, 1120, 1100], ['l','r','r','r','r','r','r','r']));
 }
-children.push(caption('Tabela 17. Segmentação dos atletas (k-means) por perfil de humor padronizado (escores-z por subescala); η²(PTH) = ' + nf(D.pv.segmentacao.eta2_PTH,3) + '.'));
+children.push(caption('Tabela 19. Segmentação (k-means) por perfil de humor padronizado (escores-z); η²(PTH) = ' + nf(D.pv.segmentacao.eta2_PTH,3) + '.'));
 children.push(table(['Variável','Var. entre','Var. intra','% entre atletas','CV intra (%)'],
   D.pv.variabilidade.map(r => [r.var, nf(r.entre), nf(r.intra), nf(r.pct_entre,1), nf(r.CV_intra,1)]),
   [3060, 1900, 1900, 1500, 1000], ['l','r','r','r','r']));
-children.push(caption('Tabela 18. Decomposição da variância em traço (entre atletas) e estado (intra-atleta) por variável.'));
+children.push(caption('Tabela 20. Decomposição da variância em traço (entre atletas) e estado (intra-atleta).'));
 
-children.push(H('3.12. Autorrelatos complementares e o item "Sonolento"', HeadingLevel.HEADING_2));
-children.push(P('Os autorrelatos externos ao BRUMS confirmam o eixo físico: fadiga física e estado físico movem-se forte e significativamente, os mentais apenas tendem (Tabela 19). Um achado específico e contraintuitivo: o item "Sonolento" (terceiro da subescala Fadiga) comporta-se na contramão — enquanto Esgotado/Exausto/Cansado sobem pós-treino, a sonolência cai (Tabela 20): o exercício agudo é ativador, ainda que eleve a exaustão física. Isso explica a não-invariância residual localizada nesse item (§3.5) e recomenda tratar a sonolência à parte, no eixo sono↔alerta.'));
+children.push(H('3.4.6. Autorrelatos complementares e o item "Sonolento"', HeadingLevel.HEADING_3));
+children.push(P('Os autorrelatos externos confirmam o eixo físico (Tabela 21). Um achado contraintuitivo: o item "Sonolento" move-se na contramão — enquanto Esgotado/Exausto/Cansado sobem, a sonolência cai (Tabela 22): o exercício agudo é ativador, o que explica a não-invariância residual localizada nesse item e recomenda tratá-lo à parte (eixo sono↔alerta).'));
 children.push(table(['Instrumento','Escala','Pré','Pós','dz','p (FDR)','Sig.'],
   D.oq.A.map(r => [r.inst, r.escala, nf(r.M_pre), nf(r.M_pos), sg(r.dz), pf(r.p_FDR), r.sig ? 'sim' : '—']),
   [2760, 1200, 1200, 1200, 1200, 1400, 900], ['l','l','r','r','r','r','r']));
-children.push(caption('Tabela 19. Autorrelatos externos ao BRUMS — resposta aguda pré→pós.'));
+children.push(caption('Tabela 21. Autorrelatos externos ao BRUMS — resposta aguda pré→pós.'));
 children.push(table(['Item de Fadiga','Pré','Pós','Δ','dz','Direção'],
   D.sn.A.map(r => [r.item, nf(r.M_pre), nf(r.M_pos), sg(r.delta), sg(r.dz), r.direcao]),
   [3060, 1500, 1500, 1300, 1300, 1700], ['l','r','r','r','r','l']));
-children.push(caption('Tabela 20. Itens da subescala Fadiga — o "Sonolento" move-se na contramão dos demais.'));
-children.push(...figA('figuras/monitoramento_viz.png', 'Figura 9. Painel de síntese: medidores dos indicadores-chave, radar do perfil pré×pós (erosão do iceberg), monitoramento diário D1→D7 e mapa 4D das variáveis.', HERE));
+children.push(caption('Tabela 22. Itens da subescala Fadiga — o "Sonolento" move-se na contramão dos demais.'));
+children.push(...figA('figuras/monitoramento_viz.png', 'Figura 11. Painel de síntese: medidores dos indicadores-chave, radar do perfil pré×pós, monitoramento diário D1→D7 e mapa 4D das variáveis.', HERE));
 children.push(new Paragraph({ children: [new PageBreak()] }));
 
 // ===================== 4. DISCUSSÃO =====================
 children.push(H('4. Discussão', HeadingLevel.HEADING_1));
 children.push(P('Este estudo caracterizou a resposta do humor de atletas de handebol de elite a um microciclo com HIIT e identificou os marcadores mais úteis ao monitoramento, mantendo o atleta como unidade em todas as camadas. Três achados principais emergem e convergem por métodos independentes.'));
+children.push(P([bold('A dose do estímulo e sua leitura fisiológica. '), run('O protocolo — 4 × 4 min a 104% da velocidade de pico com 3 min de intervalo — impôs uma carga interna quase-máxima e progressiva: a FC de pico atingiu ' + nf(hp.resumo.FC_maxima[0],0) + ' bpm, a FC média das séries ' + nf(hp.resumo.FC_media_series[0],0) + ' bpm e a PSE final ' + nf(hp.resumo.PSE_final[0],1) + '. A elevação da FC de recuperação ao longo das séries (deriva cardiovascular, recuperação incompleta) confirma que o estímulo operou próximo ao teto aeróbio, na zona associada a maiores adaptações centrais e periféricas (Buchheit & Laursen, 2013). É justamente esse regime de teto que explica o desacoplamento observado: quando todos treinam perto do máximo, a variância da carga interna se comprime e deixa de explicar a variância — bem maior — da resposta de humor.')]));
+children.push(P([bold('Descritivas, normalidade e escolha de métodos. '), run('As distribuições (histogramas, box plots e Q–Q) mostraram forte efeito piso nas subescalas negativas e não-normalidade generalizada (Shapiro–Wilk), o que poderia comprometer testes paramétricos. A concordância entre t e Wilcoxon, a confirmação por permutação restrita e a estimação bayesiana blindam as conclusões contra essa ameaça. O contraste direto entre dias de HIIT e dias sem HIIT não sobreviveu à correção — coerente com a leitura de que a assinatura do HIIT está no acúmulo diário ao longo do microciclo, e não num contraste agudo isolado, dominado pela variabilidade individual.')]));
 children.push(P([bold('A resposta mora no eixo energia–fadiga e é de estado. '), run('A mudança pré→pós é um deslocamento sobre o eixo energia–fadiga (vigor achata, fadiga sobe), com as dimensões negativas quase paradas — erosão do perfil iceberg. A hierarquia de invariância confirma que se trata de mudança de estado, não do significado do instrumento (métrica sustentada; escalar aproximada; estrita no limite, com quebra localizada no item "Sonolento"). O padrão é coerente com a literatura de resposta afetiva a exercício intervalado, em que tensão e depressão tendem a recuar e a resposta é modulada pela intensidade e pelo desenho da sessão (Marques et al., 2020; Patten et al., 2022), e com a validação do BRUMS, que reporta invariância de medida e maior fadiga em atletas (Terry et al., 2022; Zhang et al., 2014).')]));
 children.push(P([bold('A resposta é fortemente individual. '), run('A maior parte da variância é traço (ICC 0,42–0,71) e o acúmulo do PTH é idiossincrático, ao passo que a fadiga física acumula de forma homogênea. A predição fora da amostra confirma que o sinal vem do baseline do próprio atleta, não do contexto da sessão — o que desloca a inferência da média do grupo para a tendência individual.')]));
 children.push(P([bold('Carga alta não é humor pior. '), run('O custo cardiovascular quase-máximo não prediz a perturbação aguda do humor (desacoplamento robusto à FDR; TRIMP×ΔPTH r = ' + nf(D.trimp.TRIMP_x_humor.r) + '). Num regime de teto, a variação relevante do humor depende de tolerância e recuperação individuais, não da carga objetiva — o que fundamenta a superioridade das medidas subjetivas no monitoramento da resposta ao treino (Saw, Main & Gastin, 2016) e a validade da PSE como marcador de estímulo, não de resposta (Haddad et al., 2017).')]));
@@ -307,6 +332,8 @@ const doc = new Document({
         run: { font: 'Cambria', size: 30, bold: true, color: '122438' }, paragraph: { spacing: { before: 320, after: 140 }, outlineLevel: 0 } },
       { id: 'Heading2', name: 'Heading 2', basedOn: 'Normal', next: 'Normal', quickFormat: true,
         run: { font: 'Cambria', size: 24, bold: true, color: '245C8B' }, paragraph: { spacing: { before: 240, after: 100 }, outlineLevel: 1 } },
+      { id: 'Heading3', name: 'Heading 3', basedOn: 'Normal', next: 'Normal', quickFormat: true,
+        run: { font: 'Cambria', size: 21, bold: true, color: '0E8C86' }, paragraph: { spacing: { before: 180, after: 80 }, outlineLevel: 2 } },
     ] },
   sections: [{ properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1134, bottom: 1134, left: 1134, right: 1134 } } }, children }]
 });
