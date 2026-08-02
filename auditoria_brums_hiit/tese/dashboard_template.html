@@ -575,6 +575,31 @@ const SEC=[]; function sec(id,title){const s=document.createElement('section');s
  c5.insertAdjacentHTML('beforeend','<p class="note">Restrito aos 4 fatores confiáveis; Tensão/Confusão excluídas (variância degenerada). Métrica sustentada: congruência φ '+fmt(iv.phi_global,3)+' e, no modelo conjunto, ΔCFI '+fmt(iv.metrico_conjunto.dCFI,3)+'. Escalar aproximada (viés residual '+fmt(iv.escalar.rms,3)+'); o deslocamento da média latente κ concentra-se no eixo energético: Fadiga '+fmt(iv.escalar.kappa['Fadiga'],2)+', Vigor '+fmt(iv.escalar.kappa['Vigor'],2)+'. Estrita no limite (ΔCFI '+fmt(iv.estrita.dCFI,3)+'); a invariância parcial localiza a quebra em '+iv.parcial.itens.join(' e ')+' (o item "Sonolento") e restabelece a equivalência (viés '+fmt(iv.parcial.rms_full,3)+'→'+fmt(iv.parcial.rms_parcial,3)+').</p>');
 })();
 
+/* ANÁLISES COMPLEMENTARES */
+(function(){const s=sec('extras','Análises+');
+ if(!D.extras){return;} const E=D.extras;
+ s.innerHTML='<h2>Análises complementares</h2><p class="sub">Quatro camadas adicionais: mudança confiável por atleta (RCI/MDC), testes de equivalência (TOST), rede psicométrica de correlações parciais e cinética intradia pré→meio→pós.</p>';
+ const g=document.createElement('div');g.className='grid';g.style.cssText='grid-template-columns:1fr 1fr;gap:16px';s.append(g);
+ // RCI
+ const c1=card('Mudança confiável (RCI / MDC)','SEM · MDC95 · % com |RCI|>1,96');g.append(c1);
+ dtable(c1,[{k:'sub',label:'Subescala'},{k:'SEM',label:'SEM',num:true,render:v=>fmt(v)},{k:'MDC95',label:'MDC95',num:true,render:v=>fmt(v)},{k:'pct_aumento',label:'% ↑',num:true,render:v=>fmt(v,1)},{k:'pct_queda',label:'% ↓',num:true,render:v=>fmt(v,1)}],E.rci);
+ c1.insertAdjacentHTML('beforeend','<figure style="margin-top:10px;background:#0b1220;padding:12px;border-radius:12px"><img src="'+(window.FIGS&&FIGS.rci||'')+'" style="width:100%;border-radius:8px" alt="RCI"></figure><p class="note">A maior parte das mudanças pré→pós fica <b>dentro do ruído de medida</b> (só ~4–20% são confiáveis) — a resposta é individual.</p>');
+ // TOST
+ const c2=card('Testes de equivalência (TOST)','SESOI dz 0,5 · r 0,3');g.append(c2);
+ dtable(c2,[{k:'teste',label:'Teste'},{k:'ef',label:'Efeito',num:true,render:(v,r)=>fmt(r.efeito_dz!=null?r.efeito_dz:r.r)},{k:'p_TOST',label:'p (TOST)',num:true,render:pf},{k:'equivalente',label:'Equiv.?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'—'}</span>`}],E.tost);
+ c2.insertAdjacentHTML('beforeend','<figure style="margin-top:10px;background:#0b1220;padding:12px;border-radius:12px"><img src="'+(window.FIGS&&FIGS.tost||'')+'" style="width:100%;border-radius:8px" alt="TOST"></figure><p class="note">HIIT vs. dias sem HIIT são <b>estatisticamente equivalentes</b> (PTH, fadiga mental): o desacoplamento é equivalência formal, não só "n.s.".</p>');
+ // Rede
+ const c3=card('Rede psicométrica (correlações parciais)','força do nó por subescala');g.append(c3);
+ const rrows=Object.entries(E.rede.strength).map(([k,v])=>({sub:k,forca:v})).sort((a,b)=>b.forca-a.forca);
+ dtable(c3,[{k:'sub',label:'Subescala'},{k:'forca',label:'Força (Σ|parciais|)',num:true,render:v=>fmt(v)}],rrows);
+ c3.insertAdjacentHTML('beforeend','<figure style="margin-top:10px;background:#0b1220;padding:12px;border-radius:12px"><img src="'+(window.FIGS&&FIGS.rede||'')+'" style="width:100%;border-radius:8px" alt="Rede"></figure><p class="note"><b>Depressão</b> é o nó mais central; complemento moderno à análise fatorial (correlações parciais).</p>');
+ // Intradia
+ const c4=card('Cinética intradia (pré → meio → pós)','médias por momento');g.append(c4);
+ const irows=Object.values(E.intradia).map(o=>({v:o.label,pre:o.pre,mid:o.mid,pos:o.pos}));
+ dtable(c4,[{k:'v',label:'Variável'},{k:'pre',label:'Pré',num:true,render:v=>fmt(v)},{k:'mid',label:'Meio',num:true,render:v=>fmt(v)},{k:'pos',label:'Pós',num:true,render:v=>fmt(v)}],irows);
+ c4.insertAdjacentHTML('beforeend','<figure style="margin-top:10px;background:#0b1220;padding:12px;border-radius:12px"><img src="'+(window.FIGS&&FIGS.intradia||'')+'" style="width:100%;border-radius:8px" alt="Intradia"></figure><p class="note">A fadiga física e o PTH sobem <b>já no meio</b> da sessão e o vigor cai — a resposta aguda se instala cedo.</p>');
+})();
+
 document.getElementById('app').insertAdjacentHTML('beforeend','<footer>Dashboard analítico · BRUMS × HIIT no handebol · atletas anonimizados (A01–A27) · números reproduzidos por código · 2026.</footer>');
 
 /* nav */

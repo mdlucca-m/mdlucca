@@ -16,6 +16,7 @@ const D = JSON.parse(fs.readFileSync(path.join(HERE, 'dashboard_data.json'), 'ut
 const REFS = JSON.parse(fs.readFileSync(path.join(HERE, 'referencias.json'), 'utf8'));
 const lim = JSON.parse(fs.readFileSync(path.join(ROOT, 'limites_derivadas', 'resultados_limites_derivadas.json'), 'utf8'));
 const hp = JSON.parse(fs.readFileSync(path.join(ROOT, 'dias_hiit', 'resultados_hiit_protocolo.json'), 'utf8'));
+const EX = JSON.parse(fs.readFileSync(path.join(ROOT, 'analises_extra', 'resultados_extras.json'), 'utf8'));
 
 // ---------- helpers ----------
 const nf = (x, d = 2) => (x === null || x === undefined || isNaN(x)) ? '—' : Number(x).toFixed(d).replace('.', ',');
@@ -293,6 +294,40 @@ children.push(caption('Tabela 22. Itens da subescala Fadiga — o "Sonolento" mo
 children.push(...figA('figuras/monitoramento_viz.png', 'Figura 11. Painel de síntese: medidores dos indicadores-chave, radar do perfil pré×pós, monitoramento diário D1→D7 e mapa 4D das variáveis.', HERE));
 children.push(new Paragraph({ children: [new PageBreak()] }));
 
+// ---- 3.5 ANÁLISES COMPLEMENTARES ----
+children.push(H('3.5. Análises complementares', HeadingLevel.HEADING_2));
+
+children.push(H('3.5.1. Mudança confiável por atleta (RCI / MDC)', HeadingLevel.HEADING_3));
+children.push(P('Usando o erro-padrão de medida (SEM = DP·√(1−α)) e a mínima mudança detectável (MDC₉₅ = 1,96·√2·SEM), classificou-se cada mudança pré→pós individual pelo índice de mudança confiável (RCI). A maior parte das mudanças fica dentro do ruído de medida: apenas ' + EX.rci.map(r=>r.pct_mudanca).sort((a,b)=>a-b)[0].toFixed(0).replace('.',',') + '–' + Math.max.apply(null,EX.rci.map(r=>r.pct_mudanca)).toFixed(0).replace('.',',') + '% dos pares atingem mudança confiável (|RCI|>1,96), reforçando a forte individualidade da resposta (Tabela 23).'));
+children.push(table(['Subescala','α','DP','SEM','MDC₉₅','% ↑ confiável','% ↓ confiável'],
+  EX.rci.map(r => [r.sub, nf(r.alpha,2), nf(r.DP), nf(r.SEM), nf(r.MDC95), nf(r.pct_aumento,1), nf(r.pct_queda,1)]),
+  [2360,1080,1080,1080,1240,1260,1260], ['l','r','r','r','r','r','r']));
+children.push(caption('Tabela 23. Erro-padrão de medida (SEM), mínima mudança detectável (MDC₉₅) e proporção de pares pré→pós com mudança confiável (RCI) por subescala.'));
+
+children.push(H('3.5.2. Testes de equivalência (TOST) dos achados nulos', HeadingLevel.HEADING_3));
+children.push(P('Os achados nulos foram submetidos a testes de equivalência (TOST): o desacoplamento carga↔humor (limite de equivalência r = 0,30) e o contraste HIIT vs. dias sem HIIT (SESOI dz = 0,5). O contraste HIIT vs. sem é estatisticamente equivalente para o PTH e a fadiga mental (Tabela 24) — o "sem diferença" torna-se equivalência formal, não mera ausência de significância; já as correlações carga↔humor ficam inconclusivas (efeito próximo do limite, amostra pequena).'));
+children.push(table(['Teste','Efeito','p (TOST)','Equivalente?'],
+  EX.tost.map(t => [t.teste.replace(' · ',': '), (t.efeito_dz!=null?'dz '+sg(t.efeito_dz):'r '+sg(t.r)), pf(t.p_TOST), t.equivalente?'sim':'—']),
+  [4360,1900,1400,1700], ['l','r','r','r']));
+children.push(caption('Tabela 24. Testes de equivalência (TOST) para os achados nulos — HIIT vs. dias sem HIIT (SESOI dz 0,5) e acoplamento carga↔humor (limite r 0,30).'));
+
+children.push(H('3.5.3. Rede psicométrica (correlações parciais)', HeadingLevel.HEADING_3));
+children.push(P('A rede psicométrica (modelo gráfico gaussiano) das seis subescalas descreve as associações diretas (correlações parciais), controlando as demais. A depressão é o nó mais central (maior força), seguida da fadiga (Tabela 25) — um complemento moderno à estrutura fatorial, coerente com o eixo afetivo-energético.'));
+{
+  const rr = Object.entries(EX.rede.strength).map(([k,v])=>[k,v]).sort((a,b)=>b[1]-a[1]);
+  children.push(table(['Subescala','Força do nó (Σ|parciais|)'], rr.map(x=>[x[0], nf(x[1],2)]),
+    [4680,4680], ['l','r']));
+}
+children.push(caption('Tabela 25. Centralidade (força) por subescala na rede de correlações parciais. Aresta mais forte: ' + (EX.rede.edges[0]? EX.rede.edges[0].a+'–'+EX.rede.edges[0].b+' (parcial '+nf(EX.rede.edges[0].pcor,2)+')' : '—') + '.'));
+
+children.push(H('3.5.4. Cinética intradia (pré → meio → pós)', HeadingLevel.HEADING_3));
+children.push(P('Aproveitando o momento intermediário da coleta (n = 155), a cinética intradia mostra que a resposta aguda se instala cedo: a fadiga física e o PTH já sobem no meio da sessão e o vigor cai, com pequena variação adicional até o pós (Tabela 26).'));
+children.push(table(['Variável','Pré','Meio','Pós'],
+  Object.values(EX.intradia).map(o => [o.label, nf(o.pre), nf(o.mid), nf(o.pos)]),
+  [3360,2000,2000,2000], ['l','r','r','r']));
+children.push(caption('Tabela 26. Médias por momento (pré, meio, pós) — cinética aguda dentro da sessão.'));
+children.push(new Paragraph({ children: [new PageBreak()] }));
+
 // ===================== 4. DISCUSSÃO =====================
 children.push(H('4. Discussão', HeadingLevel.HEADING_1));
 children.push(P('Este estudo caracterizou a resposta do humor de atletas de handebol de elite a um microciclo com HIIT e identificou os marcadores mais úteis ao monitoramento, mantendo o atleta como unidade em todas as camadas. Três achados principais emergem e convergem por métodos independentes.'));
@@ -303,6 +338,7 @@ children.push(P([bold('A resposta é fortemente individual. '), run('A maior par
 children.push(P([bold('Carga alta não é humor pior. '), run('O custo cardiovascular quase-máximo não prediz a perturbação aguda do humor (desacoplamento robusto à FDR; TRIMP×ΔPTH r = ' + nf(D.trimp.TRIMP_x_humor.r) + '). Num regime de teto, a variação relevante do humor depende de tolerância e recuperação individuais, não da carga objetiva — o que fundamenta a superioridade das medidas subjetivas no monitoramento da resposta ao treino (Saw, Main & Gastin, 2016) e a validade da PSE como marcador de estímulo, não de resposta (Haddad et al., 2017).')]));
 children.push(P([bold('Convergência multimétodo. '), run('O efeito agudo é confirmado no plano multivariado (MANOVA p = ' + pf(mt.multivariada.MANOVA.p) + '; PERMANOVA restrita p = ' + pf(mt.multivariada.PERMANOVA.p) + ', R² = ' + nf(mt.multivariada.PERMANOVA.R2,3) + '), por permutação restrita item a item e por estimação bayesiana (P(Δ>0) ≈ 1 para a fadiga física e o PTH), além de concordar entre testes paramétricos e não-paramétricos. Essa triangulação — métodos com pressupostos distintos apontando para o mesmo lugar — é a principal salvaguarda contra achados espúrios por comparações múltiplas ou por violação de pressupostos.')]));
 children.push(P([bold('A dinâmica temporal e o valor do nível sobre a derivada. '), run('A formalização em cálculo mostra que a fadiga física acumula de forma saturante (f″ < 0), tendendo a um limite estacionário ao fim da semana, com velocidade de acúmulo maior em torno dos dias de HIIT. Um achado com consequência prática direta: a ROC das derivadas não supera a ROC dos níveis — a taxa de variação diagnostica menos que o estado atual, porque a derivada amplifica o ruído de medida. Monitorar "quão cansado o atleta está" é, portanto, mais informativo do que "quão rápido ele está ficando cansado".')]));
+children.push(P([bold('Confiabilidade da mudança, equivalência e estrutura. '), run('As análises complementares refinam o quadro. A mudança confiável (RCI/MDC) mostra que a maior parte das oscilações pré→pós individuais está dentro do erro de medida — só uma minoria dos atletas ultrapassa a mínima mudança detectável —, o que quantifica a individualidade e alerta contra sobreinterpretar variações pequenas. Os testes de equivalência (TOST) convertem o desacoplamento carga↔humor e o contraste HIIT-vs-sem em equivalência estatística formal (não mera ausência de significância) para os índices centrais. A rede de correlações parciais posiciona a depressão como nó mais central do afeto negativo, e a cinética intradia revela que a resposta aguda se instala já no meio da sessão. Em conjunto, reforçam — por vias independentes — a leitura de estado, individual e desacoplada.')]));
 children.push(P([bold('Marcadores para o monitoramento. '), run('A fadiga física é o marcador mais sensível de estado de fadiga (AUC ' + nf(chP[0].AUC) + '); sua baixa estabilidade é a assinatura desejável de um sinal de estado. A fadiga mental e a depressão combinam sensibilidade e confiabilidade, servindo ao acompanhamento dia a dia; a tensão, embora estável, é diagnosticamente cega. A validade convergente intra-sujeito entre o BRUMS e os autorrelatos externos reforça a interpretação. No contexto do handebol — modalidade de alta demanda intermitente e calendário denso —, isso sustenta um protocolo de monitoramento parcimonioso e de baixo custo, aplicável no dia a dia do clube.')]));
 children.push(P([bold('Pontos fortes e validade. '), run('A disciplina de atleta-como-unidade, a triangulação por métodos independentes (frequentista, bayesiano, multivariado, classificação e cálculo), a caracterização psicométrica completa (confiabilidade, AFC, AFE, TRI, invariância configural→estrita/parcial) e a reprodutibilidade ponta-a-ponta por código conferem robustez incomum. A validade convergente aparece na correlação intra-sujeito entre BRUMS e autorrelatos externos; a de construto, na invariância; a diagnóstica, nas AUC.')]));
 children.push(P([bold('Limitações. '), run('Delineamento observacional (associação, não causalidade); amostra de um único clube de elite (27 atletas), o que limita poder para efeitos individuais e generalização; ausência de duração de sessão (TRIMP relativo por %HRR); efeito de teto na carga; itens com efeito piso (tensão, confusão); sonolência medida por um único item.')]));

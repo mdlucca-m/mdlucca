@@ -19,5 +19,8 @@ import base64
 def _b64(p):
     with open(p,'rb') as f: return 'data:image/jpeg;base64,'+base64.b64encode(f.read()).decode()
 FIGS={'descr':_b64('/tmp/docimg/descrfig.jpg'),'hiit':_b64('/tmp/docimg/hiitprot.jpg')}
+for _k,_f in {'rci':'17_rci.png','tost':'18_tost.png','rede':'19_rede.png','intradia':'20_intradia.png'}.items():
+    _p=os.path.join(HERE,'showcase_figs',_f)
+    with open(_p,'rb') as _fh: FIGS[_k]='data:image/png;base64,'+base64.b64encode(_fh.read()).decode()
 build('dashboard_template.html','Dashboard_analitico_BRUMS_HIIT.html',{'%%DATA%%':dj,'%%FIGS%%':json.dumps(FIGS)})
 build('sintese_template.html','Sintese_achados_BRUMS_HIIT.html',{'%%DATA%%':dj,'%%REFS%%':rj})

@@ -4006,5 +4006,242 @@
     "icc": 0.826
    }
   ]
+ },
+ "extras": {
+  "rci": [
+   {
+    "sub": "Tensão",
+    "alpha": 0.427,
+    "DP": 1.84,
+    "SEM": 1.39,
+    "MDC95": 3.85,
+    "n": 135,
+    "pct_aumento": 3.7,
+    "pct_queda": 0.0,
+    "pct_mudanca": 3.7
+   },
+   {
+    "sub": "Depressão",
+    "alpha": 0.845,
+    "DP": 2.31,
+    "SEM": 0.91,
+    "MDC95": 2.53,
+    "n": 135,
+    "pct_aumento": 8.9,
+    "pct_queda": 2.2,
+    "pct_mudanca": 11.1
+   },
+   {
+    "sub": "Raiva",
+    "alpha": 0.868,
+    "DP": 2.73,
+    "SEM": 0.99,
+    "MDC95": 2.75,
+    "n": 135,
+    "pct_aumento": 11.9,
+    "pct_queda": 8.1,
+    "pct_mudanca": 20.0
+   },
+   {
+    "sub": "Vigor",
+    "alpha": 0.684,
+    "DP": 3.12,
+    "SEM": 1.75,
+    "MDC95": 4.86,
+    "n": 135,
+    "pct_aumento": 0.7,
+    "pct_queda": 12.6,
+    "pct_mudanca": 13.3
+   },
+   {
+    "sub": "Fadiga",
+    "alpha": 0.795,
+    "DP": 3.89,
+    "SEM": 1.76,
+    "MDC95": 4.88,
+    "n": 135,
+    "pct_aumento": 14.8,
+    "pct_queda": 2.2,
+    "pct_mudanca": 17.0
+   },
+   {
+    "sub": "Confusão",
+    "alpha": 0.653,
+    "DP": 1.19,
+    "SEM": 0.7,
+    "MDC95": 1.94,
+    "n": 135,
+    "pct_aumento": 5.2,
+    "pct_queda": 8.1,
+    "pct_mudanca": 13.3
+   }
+  ],
+  "tost": [
+   {
+    "efeito_dz": -0.09,
+    "n": 25,
+    "sesoi": 0.5,
+    "p_TOST": 0.026,
+    "equivalente": true,
+    "teste": "HIIT vs sem · PTH (TMD)",
+    "tipo": "dz"
+   },
+   {
+    "efeito_dz": 0.38,
+    "n": 25,
+    "sesoi": 0.5,
+    "p_TOST": 0.277,
+    "equivalente": false,
+    "teste": "HIIT vs sem · Fadiga física",
+    "tipo": "dz"
+   },
+   {
+    "efeito_dz": 0.18,
+    "n": 25,
+    "sesoi": 0.5,
+    "p_TOST": 0.061,
+    "equivalente": false,
+    "teste": "HIIT vs sem · Vigor",
+    "tipo": "dz"
+   },
+   {
+    "efeito_dz": 0.25,
+    "n": 25,
+    "sesoi": 0.5,
+    "p_TOST": 0.112,
+    "equivalente": false,
+    "teste": "HIIT vs sem · Fadiga",
+    "tipo": "dz"
+   },
+   {
+    "efeito_dz": 0.04,
+    "n": 25,
+    "sesoi": 0.5,
+    "p_TOST": 0.015,
+    "equivalente": true,
+    "teste": "HIIT vs sem · Fadiga mental",
+    "tipo": "dz"
+   },
+   {
+    "r": -0.32,
+    "n": 25,
+    "bound": 0.3,
+    "p_TOST": 0.541,
+    "equivalente": false,
+    "teste": "TRIMP × ΔPTH (desacoplamento)",
+    "tipo": "r"
+   },
+   {
+    "r": 0.25,
+    "n": 25,
+    "bound": 0.3,
+    "p_TOST": 0.4,
+    "equivalente": false,
+    "teste": "PSE × Fadiga (tônico)",
+    "tipo": "r"
+   },
+   {
+    "r": 0.03,
+    "n": 25,
+    "bound": 0.3,
+    "p_TOST": 0.095,
+    "equivalente": false,
+    "teste": "PSE × FadMen (tônico)",
+    "tipo": "r"
+   }
+  ],
+  "rede": {
+   "strength": {
+    "Tensão": 0.66,
+    "Depressão": 1.25,
+    "Raiva": 0.65,
+    "Vigor": 0.67,
+    "Fadiga": 0.96,
+    "Confusão": 0.7
+   },
+   "edges": [
+    {
+     "a": "Depressão",
+     "b": "Confusão",
+     "pcor": 0.47
+    },
+    {
+     "a": "Vigor",
+     "b": "Fadiga",
+     "pcor": -0.33
+    },
+    {
+     "a": "Depressão",
+     "b": "Fadiga",
+     "pcor": 0.29
+    },
+    {
+     "a": "Depressão",
+     "b": "Raiva",
+     "pcor": 0.25
+    },
+    {
+     "a": "Raiva",
+     "b": "Fadiga",
+     "pcor": 0.21
+    },
+    {
+     "a": "Tensão",
+     "b": "Vigor",
+     "pcor": 0.18
+    },
+    {
+     "a": "Tensão",
+     "b": "Confusão",
+     "pcor": 0.15
+    },
+    {
+     "a": "Depressão",
+     "b": "Vigor",
+     "pcor": -0.15
+    },
+    {
+     "a": "Tensão",
+     "b": "Raiva",
+     "pcor": 0.14
+    },
+    {
+     "a": "Tensão",
+     "b": "Depressão",
+     "pcor": 0.1
+    },
+    {
+     "a": "Tensão",
+     "b": "Fadiga",
+     "pcor": -0.1
+    }
+   ]
+  },
+  "intradia": {
+   "FadFis": {
+    "label": "Fadiga física",
+    "pre": 5.1,
+    "mid": 6.58,
+    "pos": 6.76
+   },
+   "Fadiga": {
+    "label": "Fadiga",
+    "pre": 4.7,
+    "mid": 6.1,
+    "pos": 6.2
+   },
+   "PTH": {
+    "label": "PTH (TMD)",
+    "pre": 2.78,
+    "mid": 4.39,
+    "pos": 6.25
+   },
+   "Vigor": {
+    "label": "Vigor",
+    "pre": 6.2,
+    "mid": 5.69,
+    "pos": 5.11
+   }
+  }
  }
 }
