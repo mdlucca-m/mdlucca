@@ -87,6 +87,9 @@ _snA=str(sn['D_alpha']['com_sonolento']).replace('.',','); _snA3=str(sn['D_alpha
 rowsRD=[[r['var'],f"{r['AUC_derivada']:.2f}".replace('.',','),f"[{r['IC_derivada'][0]:.2f}; {r['IC_derivada'][1]:.2f}]".replace('.',','),f"{r['AUC_nivel']:.2f}".replace('.',','),f"{r['ganho']:+.2f}".replace('.',',')] for r in rocd['resultados']]
 rowsDVb=[[r['var'],f"{r['inclinacao_media']:+.2f}".replace('.',','),f"{r['vel_inicial']:+.2f}".replace('.',','),f"{r['vel_final']:+.2f}".replace('.',','),r['direcao']] for r in dvar['B_derivadas_variaveis']]
 rowsDVc=[[r['var'],f"{r['slope_medio']:+.2f}".replace('.',','),f"{r['slope_dp']:.2f}".replace('.',','),f"{r['pct_positivo']:.0f}%"] for r in dvar['C_derivada_individual']]
+lim=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/limites_derivadas/resultados_limites_derivadas.json'))
+_limL=f"{lim['ajuste']['L']:.2f}".replace('.',','); _limk=f"{lim['ajuste']['k']:.2f}".replace('.',','); _limR2=f"{lim['ajuste']['R2']:.2f}".replace('.',',')
+_limD=f"{lim['B_definicao_limite']['f_linha_analitica']:.2f}".replace('.',','); _limTc=f"{lim['D_limites']['modelo_teorico']['ponto_critico_t*']:.2f}".replace('.',',')
 _pnum=lambda v:('<0,001' if v<0.001 else f"{v:.3f}".replace('.',','))
 rowsDA=[]  # entre dias de HIIT
 for _v,_o in dh['A_entre_HIIT'].items():
@@ -239,6 +242,13 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
  {tbl(['Variável','Inclinação média (dV/dia)','DP','% positivas'],rowsDVc)}
  <p>No espaço das taxas de variação, isto reproduz a <b>variância de inclinação aleatória</b> do modelo de crescimento (≈ 1,13 para o PTH; ≈ 0,01 para a fadiga física) e reforça o monitoramento individualizado por tendência.</p>
  {fig('dvar','<b>Derivadas por variável e por atleta.</b> A: trajetórias (z); B: velocidades f′(t); C: derivada média por variável; D: derivada individual por atleta (heterogeneidade).')}
+</section>
+
+<section>
+ <div class="eyebrow">Cálculo · limites e derivadas</div><h2>Limites e derivadas da trajetória de fadiga</h2>
+ <p>Formalizando a trajetória de acúmulo com o cálculo, ajusta-se à fadiga física média diária um modelo <b>saturante</b> f(t)=L−(L−f₁)·e^(−k(t−1)) (L={_limL}; k={_limk}; R²={_limR2}). A <b>derivada</b> f′(t) é a velocidade de acúmulo por dia: em t=2, a razão incremental [f(t₀+h)−f(t₀)]/h converge para f′(2)={_limD} à medida que h→0 — a definição de derivada por limite, verificada numericamente. A derivada é positiva e <b>decrescente</b> (segunda derivada negativa): a fadiga acumula, mas cada vez mais devagar, saturando no <b>limite</b> lim(t→∞) f(t)=L≈{_limL} — um estado estacionário do acúmulo.</p>
+ <p>No modelo teórico fitness–fadiga (State(t)=k₁·e^(−t/τ₁)−k₂·e^(−t/τ₂)), a derivada State′(t)=0 define o <b>ponto crítico</b> t*={_limTc} — o nadir do estado (pico de fadiga aguda): antes dele o atleta ainda se recupera, depois relaxa de volta à linha de base (lim(t→∞) State(t)=0). É a leitura em cálculo das três âncoras: acúmulo real, saturação e retorno individual.</p>
+ {fig('limites','<b>Limites e derivadas.</b> A: trajetória f(t) e a reta tangente (inclinação = derivada) em t=2; B: definição por limite — a razão incremental → f′(t₀) quando h→0; C: derivada f′(t) (velocidade de acúmulo), positiva e decrescente; D: modelo teórico fitness–fadiga com derivada zero no pico de fadiga (t*) e limite → linha de base.')}
 </section>
 
 <section>
