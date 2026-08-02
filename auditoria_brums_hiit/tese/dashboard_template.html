@@ -123,6 +123,119 @@ function barChart(host,items,opts){
 }
 function roundRect(x,a,b,w,h,r){r=Math.min(r,h/2,Math.abs(w)/2);x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath();}
 
+/* ---------- gauge dial (canvas) ---------- */
+function gauge(host,g){
+ const c=document.createElement('canvas');host.append(c);
+ const dpr=Math.min(2,devicePixelRatio||1),W=host.clientWidth,H=132;
+ c.width=W*dpr;c.height=H*dpr;c.style.height=H+'px';const x=c.getContext('2d');x.scale(dpr,dpr);
+ const cx=W/2,cy=H-18,R=Math.min(W/2-8,90),lw=15;
+ const A0=Math.PI*1.02,A1=Math.PI*1.98; // 180°+ arc
+ const T=v=>A0+(v-g.min)/(g.max-g.min||1)*(A1-A0);
+ // zone arcs
+ (g.zones||[]).forEach(z=>{x.strokeStyle=cv(z[2]);x.globalAlpha=.85;x.lineWidth=lw;x.lineCap='butt';
+  x.beginPath();x.arc(cx,cy,R,T(z[0]),T(z[1]));x.stroke();});
+ x.globalAlpha=1;
+ // needle
+ const vv=Math.max(g.min,Math.min(g.max,g.v)),a=T(vv);
+ x.strokeStyle=cv('ink');x.lineWidth=2.5;x.lineCap='round';
+ x.beginPath();x.moveTo(cx,cy);x.lineTo(cx+Math.cos(a)*(R-2),cy+Math.sin(a)*(R-2));x.stroke();
+ x.fillStyle=cv('ink');x.beginPath();x.arc(cx,cy,4.5,0,7);x.fill();
+ // value + label
+ const disp=g.fmt==='pct'?fmt(g.v,0)+'%':(g.fmt==='auc'?fmt(g.v):(g.fmt==='d3'?fmt(g.v,3):fmt(g.v)));
+ x.fillStyle=cv('ink');x.textAlign='center';x.font='700 27px '+cv('serif').replace(/,.*/,'');
+ x.fillText(disp,cx,cy-14);
+ x.fillStyle=cv('faint');x.font='9.5px '+cv('mono').replace(/,.*/,'');
+ x.fillText(fmt(g.min,g.min%1?1:0)+(g.fmt==='pct'?'':'')+'  …  '+fmt(g.max,g.max%1?1:0),cx,cy+14);
+}
+
+/* ---------- radar chart (canvas) ---------- */
+function radar(host,axes,series,opts){
+ opts=opts||{};const c=document.createElement('canvas');host.append(c);
+ const dpr=Math.min(2,devicePixelRatio||1),W=host.clientWidth,H=opts.h||300;
+ c.width=W*dpr;c.height=H*dpr;c.style.height=H+'px';const x=c.getContext('2d');x.scale(dpr,dpr);
+ const cx=W/2,cy=H/2+4,R=Math.min(W,H)/2-40,N=axes.length,mx=opts.max||10;
+ const ang=i=>-Math.PI/2+i/N*2*Math.PI;
+ const pt=(i,r)=>[cx+Math.cos(ang(i))*R*r/mx,cy+Math.sin(ang(i))*R*r/mx];
+ const line=cv('line'),mut=cv('mut'),faint=cv('faint');
+ // rings
+ x.strokeStyle=line;x.fillStyle=faint;x.lineWidth=1;
+ for(let g=1;g<=4;g++){const rr=mx*g/4;x.globalAlpha=.6;x.beginPath();
+  for(let i=0;i<=N;i++){const[px,py]=pt(i%N,rr);i?x.lineTo(px,py):x.moveTo(px,py);}x.stroke();}
+ x.globalAlpha=1;
+ // spokes + labels
+ for(let i=0;i<N;i++){const[px,py]=pt(i,mx);x.strokeStyle=line;x.globalAlpha=.6;x.beginPath();x.moveTo(cx,cy);x.lineTo(px,py);x.stroke();x.globalAlpha=1;
+  const[lx,ly]=pt(i,mx*1.14);x.fillStyle=mut;x.font='11px '+cv('sans').replace(/,.*/,'');
+  x.textAlign=Math.abs(lx-cx)<6?'center':(lx>cx?'left':'right');x.textBaseline='middle';x.fillText(axes[i],lx,ly);}
+ // series polygons
+ series.forEach(se=>{const col=cv(se.c);
+  x.beginPath();se.vals.forEach((v,i)=>{const[px,py]=pt(i,v);i?x.lineTo(px,py):x.moveTo(px,py);});x.closePath();
+  x.fillStyle=col;x.globalAlpha=.16;x.fill();x.globalAlpha=1;x.strokeStyle=col;x.lineWidth=2;x.stroke();
+  se.vals.forEach((v,i)=>{const[px,py]=pt(i,v);x.fillStyle=col;x.beginPath();x.arc(px,py,3,0,7);x.fill();});});
+}
+
+/* ---------- 4D bubble chart (canvas): x, y, size, colour ---------- */
+function bubble4d(host,pts,opts){
+ opts=opts||{};const c=document.createElement('canvas');host.append(c);
+ const dpr=Math.min(2,devicePixelRatio||1),W=host.clientWidth,H=opts.h||330;
+ c.width=W*dpr;c.height=H*dpr;c.style.height=H+'px';const x=c.getContext('2d');x.scale(dpr,dpr);
+ const padL=54,padR=18,padT=30,padB=44;
+ const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y),ss=pts.map(p=>p.s),gs=pts.map(p=>p.g);
+ let xmn=Math.min(...xs,opts.x0??0),xmx=Math.max(...xs);let ymn=Math.min(...ys,0),ymx=Math.max(...ys);
+ const pad=(a,b)=>{const d=(b-a)*0.12||1;return[a-d,b+d];};[xmn,xmx]=pad(xmn,xmx);[ymn,ymx]=pad(ymn,ymx);
+ const smx=Math.max(...ss),gmn=Math.min(...gs),gmx=Math.max(...gs);
+ const X=v=>padL+(v-xmn)/(xmx-xmn||1)*(W-padL-padR);
+ const Y=v=>H-padB-(v-ymn)/(ymx-ymn||1)*(H-padT-padB);
+ const Rr=s=>7+Math.sqrt(s/smx)*26;
+ const ink=cv('ink'),mut=cv('mut'),line=cv('line'),faint=cv('faint');
+ // grid + zero lines
+ x.strokeStyle=line;x.lineWidth=1;x.globalAlpha=.7;
+ if(xmn<0&&xmx>0){x.beginPath();x.moveTo(X(0),padT);x.lineTo(X(0),H-padB);x.stroke();}
+ if(ymn<0&&ymx>0){x.beginPath();x.moveTo(padL,Y(0));x.lineTo(W-padR,Y(0));x.stroke();}
+ x.globalAlpha=1;
+ // axes
+ x.strokeStyle=line;x.lineWidth=1.3;x.beginPath();x.moveTo(padL,padT);x.lineTo(padL,H-padB);x.lineTo(W-padR,H-padB);x.stroke();
+ x.fillStyle=mut;x.font='11px '+cv('sans').replace(/,.*/,'');
+ x.textAlign='center';x.fillText(opts.xlab||'x',padL+(W-padL-padR)/2,H-8);
+ x.save();x.translate(13,padT+(H-padT-padB)/2);x.rotate(-Math.PI/2);x.textAlign='center';x.fillText(opts.ylab||'y',0,0);x.restore();
+ // two-hue diverging colour by g (teal→coral)
+ function mix(t){const a=cv('teal').match(/\w\w/g).map(h=>parseInt(h,16)),b=cv('coral').match(/\w\w/g).map(h=>parseInt(h,16));
+  return'rgb('+a.map((v,i)=>Math.round(v+(b[i]-v)*t)).join(',')+')';}
+ pts.forEach(p=>{const px=X(p.x),py=Y(p.y),r=Rr(p.s),t=(p.g-gmn)/(gmx-gmn||1);
+  x.fillStyle=mix(t);x.globalAlpha=.55;x.beginPath();x.arc(px,py,r,0,7);x.fill();
+  x.globalAlpha=1;x.lineWidth=1.5;x.strokeStyle=mix(t);x.stroke();
+  x.fillStyle=ink;x.font='700 11px '+cv('sans').replace(/,.*/,'');x.textAlign='center';x.textBaseline='middle';
+  let ly=py-r-8;if(ly<padT+4)ly=py+r+12;x.fillText(p.l,px,ly);});
+}
+
+/* ---------- monitoring line chart (canvas): bands + series ---------- */
+function monitor(host,days,series,opts){
+ opts=opts||{};const c=document.createElement('canvas');host.append(c);
+ const dpr=Math.min(2,devicePixelRatio||1),W=host.clientWidth,H=opts.h||300;
+ c.width=W*dpr;c.height=H*dpr;c.style.height=H+'px';const x=c.getContext('2d');x.scale(dpr,dpr);
+ const padL=42,padR=66,padT=14,padB=42;
+ let mn=opts.min??0,mx=opts.max??10;
+ const X=i=>padL+i/(days.length-1||1)*(W-padL-padR);
+ const Y=v=>H-padB-(v-mn)/(mx-mn||1)*(H-padT-padB);
+ const ink=cv('ink'),mut=cv('mut'),line=cv('line'),faint=cv('faint');
+ // zone bands
+ (opts.bands||[]).forEach(b=>{x.fillStyle=cv(b[2]);x.globalAlpha=.10;x.fillRect(padL,Y(b[1]),W-padL-padR,Y(b[0])-Y(b[1]));});
+ x.globalAlpha=1;
+ // gridlines y
+ x.strokeStyle=line;x.fillStyle=faint;x.font='10px '+cv('mono').replace(/,.*/,'');x.textAlign='right';x.textBaseline='middle';
+ for(let g=0;g<=5;g++){const v=mn+(mx-mn)*g/5,yy=Y(v);x.globalAlpha=.5;x.beginPath();x.moveTo(padL,yy);x.lineTo(W-padR,yy);x.stroke();x.globalAlpha=1;x.fillText(fmt(v,0),padL-6,yy);}
+ // HIIT day markers
+ (opts.hiit||[]).forEach(d=>{const i=days.indexOf(d);if(i<0)return;x.strokeStyle=cv('coral');x.globalAlpha=.35;x.setLineDash([4,4]);x.beginPath();x.moveTo(X(i),padT);x.lineTo(X(i),H-padB);x.stroke();x.setLineDash([]);x.globalAlpha=1;});
+ // x labels
+ x.fillStyle=mut;x.font='10.5px '+cv('sans').replace(/,.*/,'');x.textAlign='center';x.textBaseline='top';
+ days.forEach((d,i)=>x.fillText('D'+d+((opts.hiit||[]).includes(d)?'▲':''),X(i),H-padB+7));
+ // series
+ series.forEach(se=>{const col=cv(se.c);x.strokeStyle=col;x.lineWidth=2.2;x.beginPath();
+  se.vals.forEach((v,i)=>{i?x.lineTo(X(i),Y(v)):x.moveTo(X(i),Y(v));});x.stroke();
+  se.vals.forEach((v,i)=>{x.fillStyle=col;x.beginPath();x.arc(X(i),Y(v),3.2,0,7);x.fill();});
+  // direct label at last point
+  const li=se.vals.length-1;x.fillStyle=col;x.font='700 11px '+cv('sans').replace(/,.*/,'');x.textAlign='left';x.textBaseline='middle';x.fillText(se.l,X(li)+6,Y(se.vals[li]));});
+}
+
 /* ---------- build sections ---------- */
 const SEC=[]; function sec(id,title){const s=document.createElement('section');s.id=id;const el=document.getElementById('app');el.append(s);SEC.push([id,title]);return s;}
 
@@ -149,6 +262,41 @@ const SEC=[]; function sec(id,title){const s=document.createElement('section');s
   barChart(d2,bf.sort((a,b)=>a.BF10-b.BF10).map(r=>({l:bn[r.k]||r.k,v:Math.log10(r.BF10),c:r.BF10>=3?'coral':(r.BF10<=1/3?'teal':'gold')})),{fmt:v=>fmt(Math.pow(10,v),Math.pow(10,v)<100?2:0),min:-1,max:3.6});
   barChart(d3,D.roc.pre_vs_pos.slice().sort((a,b)=>a.AUC-b.AUC).map(r=>({l:r.label,v:r.AUC,c:r.AUC>=0.7?'coral':'blue'})),{min:0.5,max:0.8});
   barChart(d4,D.inf.E_icc_atleta.slice().sort((a,b)=>a.ICC_atleta-b.ICC_atleta).map(r=>({l:r.label,v:r.ICC_atleta,c:'blue'})),{min:0,max:0.8});
+ });
+})();
+
+/* MONITORAMENTO & VISUALIZAÇÕES (gauge · radar · monitor · bolhas 4D) */
+(function(){const s=sec('viz','Monitoramento');
+ const V=D.viz;
+ s.innerHTML='<h2>Monitoramento e visualizações</h2><p class="sub">Painel visual das três conclusões-âncora: medidores dos indicadores-chave, perfil de humor em radar (pré vs. pós), monitoramento diário da carga interna de humor ao longo do microciclo e um mapa de bolhas 4D que cruza resposta aguda, acúmulo, individualidade e consenso direcional por variável.</p>';
+ // GAUGES row
+ const cg=card('Medidores dos indicadores-chave','gauge · zonas de referência');s.append(cg);
+ const gg=document.createElement('div');gg.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:12px';
+ cg.append(gg);
+ const gcells=V.gauges.map(g=>{const d=document.createElement('div');d.style.cssText='text-align:center';
+  d.innerHTML=`<div style="font:700 12px var(--sans);color:var(--ink)">${g.label}</div><div style="font:11px var(--mono);color:var(--faint);margin-bottom:2px">${g.sub}</div>`;
+  gg.append(d);return d;});
+ cg.insertAdjacentHTML('beforeend','<p class="note">Ponteiro sobre as zonas de referência (cinza→azul→âmbar→coral = fraco→forte). Fadiga física ancora o eixo (efeito grande, AUC 0,70); o perfil iceberg cai ao pós; HTMT abaixo de 0,85 (fatores discriminam).</p>');
+ // RADAR + MONITOR
+ const g1=document.createElement('div');g1.className='grid2';s.append(g1);
+ const cr=card('Perfil de humor (radar) — pré vs. pós','iceberg · 6 subescalas');const dr=document.createElement('div');cr.append(dr);g1.append(cr);
+ cr.insertAdjacentHTML('beforeend','<p class="note"><span style="color:var(--teal)">■</span> pré · <span style="color:var(--coral)">■</span> pós. O vigor recua e a fadiga sobe pós-treino — a "montanha" de vigor achata (erosão do iceberg); as demais negativas quase não se movem.</p>');
+ const cm=card('Monitoramento diário da carga de humor (D1→D7)','trajetória · zonas de alerta');const dm=document.createElement('div');cm.append(dm);g1.append(cm);
+ cm.insertAdjacentHTML('beforeend','<p class="note">Linhas tracejadas ▲ = dias de HIIT ('+V.hiit_days.join('/')+'). Faixas de alerta do PTH (verde/âmbar/coral). PTH e fadiga sobem até o pico no D7; o vigor faz o trajeto inverso.</p>');
+ // BUBBLE 4D
+ const cb=card('Mapa 4D das variáveis — resposta × acúmulo × individualidade × consenso','bolhas: x·y·tamanho·cor');const db=document.createElement('div');cb.append(db);s.append(cb);
+ cb.insertAdjacentHTML('beforeend','<p class="note"><b>x</b> = resposta aguda (dz pré→pós) · <b>y</b> = acúmulo no microciclo (inclinação/dia) · <b>tamanho</b> = % da variância que é entre atletas (individualidade/traço) · <b>cor</b> = % de atletas que acumulam (verde 27% → coral 92%). Fadiga física: grande resposta, acúmulo homogêneo (bolha pequena e coral). PTH: bolha grande (idiossincrático). Vigor: no quadrante negativo (cai e desacumula).</p>');
+ requestAnimationFrame(()=>{
+  V.gauges.forEach((g,i)=>gauge(gcells[i],g));
+  radar(dr,V.radar.subs,[{vals:V.radar.pre,c:'teal'},{vals:V.radar.pos,c:'coral'}],{max:V.radar.max,h:300});
+  const days=V.mon_vars&&V.mon.PTH?Object.keys(V.mon.PTH).map(Number).sort((a,b)=>a-b):[1,2,3,4,5,6,7];
+  const cols={PTH:'violet',FadFis:'coral',Fadiga:'gold',Vigor:'teal'};
+  const labs={PTH:'PTH',FadFis:'Fad.fís.',Fadiga:'Fadiga',Vigor:'Vigor'};
+  monitor(dm,days,V.mon_vars.map(v=>({l:labs[v],c:cols[v],vals:days.map(d=>V.mon[v][String(d)])})),
+   {min:0,max:10,hiit:V.hiit_days,bands:[[0,4,'teal'],[4,7,'gold'],[7,10,'coral']]});
+  bubble4d(db,V.bubble.map(b=>({l:b.var.split(' ')[0]==='Fadiga'&&b.var.includes('física')?'Fad.fís.':(b.var.split(' ')[0]==='Fadiga'&&b.var.includes('mental')?'Fad.men.':b.var.split(' ')[0]),
+    x:b.dz,y:b.slope,s:b.entre,g:b.pos})),
+   {xlab:'resposta aguda (dz) →',ylab:'acúmulo (incl./dia) →',h:340,x0:-0.7});
  });
 })();
 
