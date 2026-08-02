@@ -548,6 +548,16 @@ const SEC=[]; function sec(id,title){const s=document.createElement('section');s
  const c4=card('Bland–Altman — limites de concordância','viés · LoA95% (medidas repetidas)');s.append(c4);
  dtable(c4,[{k:'par',label:'Par de instrumentos'},{k:'n',label:'n',num:true},{k:'r',label:'r',num:true,render:v=>fmt(v)},{k:'bias',label:'Viés (%)',num:true,render:v=>fmt(v,1)},{k:'LoA',label:'LoA95% (%)',render:v=>`[${fmt(v[0],1)}; ${fmt(v[1],1)}]`}],R.ba);
  c4.insertAdjacentHTML('beforeend','<p class="note">Escala % do máximo. Os instrumentos correlacionam mas os limites de concordância são largos — convergentes, porém não intercambiáveis em valor absoluto.</p>');
+ const iv=R.invmg;
+ const c5=card('AFC multigrupo e invariância pré→pós (semopy)','configural · Tucker φ · ΔCFI');s.append(c5);
+ dtable(c5,[{k:'grupo',label:'Grupo/fator'},{k:'v',label:'Valor'},{k:'d',label:'Detalhe'}],[
+   {grupo:'Configural — pré',v:'CFI '+fmt(iv.cfi_pre),d:'RMSEA '+fmt(iv.rmsea_pre)+' · n='+iv.n_pre},
+   {grupo:'Configural — pós',v:'CFI '+fmt(iv.cfi_pos),d:'RMSEA '+fmt(iv.rmsea_pos)+' · n='+iv.n_pos},
+   {grupo:'Métrica — Tucker φ global',v:fmt(iv.phi_global,3),d:'≥ 0,95 → cargas congruentes'},
+ ].concat(Object.entries(iv.phi).map(([f,v])=>({grupo:'φ '+f,v:fmt(v,3),d:v>=0.95?'invariante':'limítrofe'}))).concat([
+   {grupo:'Métrica — ΔCFI (teste estrito)',v:fmt(iv.dCFI,3),d:'pós c/ cargas fixadas no pré · conservador'},
+ ]));
+ c5.insertAdjacentHTML('beforeend','<p class="note">Restrito aos 4 fatores confiáveis (Depressão, Raiva, Vigor, Fadiga); Tensão e Confusão excluídas por variância degenerada. A congruência (φ '+fmt(iv.phi_global,3)+') sustenta a invariância métrica; o ΔCFI estrito ('+fmt(iv.dCFI,3)+') indica pequeno custo de ajuste.</p>');
 })();
 
 document.getElementById('app').insertAdjacentHTML('beforeend','<footer>Dashboard analítico · BRUMS × HIIT no handebol · atletas anonimizados (A01–A27) · números reproduzidos por código · 2026.</footer>');

@@ -116,6 +116,10 @@ rowsResid=[[robj['coeficientes'][y]['label'],_f2(robj['coeficientes'][y]['ICC'])
 rowsPsi=[[n,_f2(o['alpha']),_f2(o['alpha_ordinal']),_f2(o['omega']),_f2(o['AVE']),_f2(o['CR']),_f2(o['item_total_medio'])] for n,o in robj['psicometria'].items()]
 rowsBA=[[b['par'],str(b['n']),_f2(b['r_pearson']),f"{b['bias']:.1f}".replace('.',','),f"[{b['LoA_rm'][0]:.1f}; {b['LoA_rm'][1]:.1f}]".replace('.',',')] for b in robj['bland_altman']]
 _afe=robj['afe']; _afeK=_f2(_afe['KMO']); _afeVar=f"{_afe['variancia_cum'][5]*100:.1f}".replace('.',','); _afeBart=_pnr(_afe['bartlett_p'])
+_ivj=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/invariancia_multigrupo/resultados.json')); _ivi=_ivj['invariancia']
+_ivCFIpre=_f2(_ivj['grupos']['pre']['CFI']); _ivCFIpos=_f2(_ivj['grupos']['pos']['CFI'])
+_ivPhi=f"{_ivi['tucker_phi_global']:.3f}".replace('.',','); _ivdCFI=f"{_ivi['delta_CFI']:+.3f}".replace('.',',')
+_ivPhiFat=', '.join(f"{k} {v:.3f}".replace('.',',') for k,v in _ivi['tucker_phi_fator'].items())
 _pnum=lambda v:('<0,001' if v<0.001 else f"{v:.3f}".replace('.',','))
 rowsDA=[]  # entre dias de HIIT
 for _v,_o in dh['A_entre_HIIT'].items():
@@ -252,6 +256,8 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
  <p>Por fim, a concordância de <b>Bland–Altman</b> entre instrumentos do mesmo construto (reescalados a % do máximo, com limites cientes de medidas repetidas) mostra que eles <b>correlacionam mas não são intercambiáveis</b>: há viés sistemático e limites de concordância largos — convergência de construto, não equivalência de valor absoluto.</p>
  {tbl(['Par de instrumentos','n','r','viés (%)','LoA95% (%)'],rowsBA)}
  {fig('blandaltman','<b>Bland–Altman.</b> Diferença vs. média (% do máximo) com viés e limites de concordância de 95% cientes de medidas repetidas, para pares de instrumentos do mesmo construto.')}
+ <p>Por fim, a <b>invariância de medida pré→pós</b> foi testada por AFC multigrupo (semopy) nos quatro fatores confiáveis (tensão e confusão excluídas por variância degenerada). A estrutura <b>configural</b> ajusta-se de forma equivalente nos dois momentos (CFI pré {_ivCFIpre} / pós {_ivCFIpos}); a <b>invariância métrica</b> é sustentada pela congruência das cargas (Tucker φ global {_ivPhi} ≥ 0,95; por fator {_ivPhiFat}), enquanto o teste ΔCFI estrito — com o grupo pós usando as cargas fixadas na solução do pré, mais conservador que o modelo métrico conjunto — fica em {_ivdCFI} (limiar −0,01), indicando apenas um pequeno custo de ajuste. Em conjunto, a mudança pré→pós observada é de <b>estado</b>, não um artefato do instrumento — o mesmo veredito da congruência de Tucker do módulo de confiabilidade.</p>
+ {fig('invmg','<b>AFC multigrupo e invariância (pré vs. pós).</b> Esquerda: cargas padronizadas por item nos dois momentos; direita: congruência de Tucker φ por fator (linha 0,95).')}
 </section>
 
 <section>
