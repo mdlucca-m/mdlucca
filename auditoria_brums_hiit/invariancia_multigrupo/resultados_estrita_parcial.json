@@ -1,0 +1,134 @@
+{
+ "estrita": {
+  "CFI_metrico": 0.913,
+  "CFI_estrito": 0.898,
+  "delta_CFI": -0.015,
+  "delta_RMSEA": 0.001,
+  "sustentada": false,
+  "nota": "variâncias de erro θ fixadas iguais entre grupos, além das cargas comuns."
+ },
+ "diagnostico_item": [
+  {
+   "item": "depressao_1",
+   "fator": "Depressao",
+   "dlambda": -0.103,
+   "residuo_intercepto": -0.009,
+   "theta_ratio": 2.76
+  },
+  {
+   "item": "depressao_2",
+   "fator": "Depressao",
+   "dlambda": 0.043,
+   "residuo_intercepto": 0.023,
+   "theta_ratio": 1.27
+  },
+  {
+   "item": "depressao_3",
+   "fator": "Depressao",
+   "dlambda": -0.011,
+   "residuo_intercepto": 0.062,
+   "theta_ratio": 2.05
+  },
+  {
+   "item": "depressao_4",
+   "fator": "Depressao",
+   "dlambda": 0.063,
+   "residuo_intercepto": -0.071,
+   "theta_ratio": 0.87
+  },
+  {
+   "item": "raiva_1",
+   "fator": "Raiva",
+   "dlambda": -0.062,
+   "residuo_intercepto": 0.006,
+   "theta_ratio": 2.21
+  },
+  {
+   "item": "raiva_2",
+   "fator": "Raiva",
+   "dlambda": -0.116,
+   "residuo_intercepto": 0.009,
+   "theta_ratio": 2.06
+  },
+  {
+   "item": "raiva_3",
+   "fator": "Raiva",
+   "dlambda": 0.058,
+   "residuo_intercepto": 0.095,
+   "theta_ratio": 1.26
+  },
+  {
+   "item": "raiva_4",
+   "fator": "Raiva",
+   "dlambda": -0.02,
+   "residuo_intercepto": -0.123,
+   "theta_ratio": 1.08
+  },
+  {
+   "item": "vigor_1",
+   "fator": "Vigor",
+   "dlambda": -0.089,
+   "residuo_intercepto": 0.021,
+   "theta_ratio": 1.35
+  },
+  {
+   "item": "vigor_2",
+   "fator": "Vigor",
+   "dlambda": 0.008,
+   "residuo_intercepto": -0.108,
+   "theta_ratio": 1.01
+  },
+  {
+   "item": "vigor_3",
+   "fator": "Vigor",
+   "dlambda": 0.043,
+   "residuo_intercepto": 0.077,
+   "theta_ratio": 0.74
+  },
+  {
+   "item": "vigor_4",
+   "fator": "Vigor",
+   "dlambda": -0.271,
+   "residuo_intercepto": 0.066,
+   "theta_ratio": 1.04
+  },
+  {
+   "item": "fadiga_1",
+   "fator": "Fadiga",
+   "dlambda": 0.043,
+   "residuo_intercepto": 0.066,
+   "theta_ratio": 0.85
+  },
+  {
+   "item": "fadiga_2",
+   "fator": "Fadiga",
+   "dlambda": 0.003,
+   "residuo_intercepto": 0.103,
+   "theta_ratio": 1.26
+  },
+  {
+   "item": "fadiga_3",
+   "fator": "Fadiga",
+   "dlambda": -0.195,
+   "residuo_intercepto": -0.469,
+   "theta_ratio": 1.18
+  },
+  {
+   "item": "fadiga_4",
+   "fator": "Fadiga",
+   "dlambda": 0.077,
+   "residuo_intercepto": -0.007,
+   "theta_ratio": 0.91
+  }
+ ],
+ "parcial": {
+  "itens_liberados": [
+   "fadiga_3",
+   "vigor_4"
+  ],
+  "rms_residuo_full": 0.135,
+  "rms_residuo_parcial": 0.064,
+  "sustentada": true,
+  "nota": "invariância parcial: liberando os itens não-invariantes, o viés residual de intercepto cai — a fonte é o item Sonolento (fadiga_3)."
+ }
+}
