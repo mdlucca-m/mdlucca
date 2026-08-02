@@ -107,6 +107,15 @@ rowsDVc=[[r['var'],f"{r['slope_medio']:+.2f}".replace('.',','),f"{r['slope_dp']:
 lim=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/limites_derivadas/resultados_limites_derivadas.json'))
 _limL=f"{lim['ajuste']['L']:.2f}".replace('.',','); _limk=f"{lim['ajuste']['k']:.2f}".replace('.',','); _limR2=f"{lim['ajuste']['R2']:.2f}".replace('.',',')
 _limD=f"{lim['B_definicao_limite']['f_linha_analitica']:.2f}".replace('.',','); _limTc=f"{lim['D_limites']['modelo_teorico']['ponto_critico_t*']:.2f}".replace('.',',')
+robj=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/residuos_coef_psicometria/resultados.json'))
+_pnr=lambda v:('<0,001' if v<0.001 else f"{v:.3f}".replace('.',','))
+_c2=lambda v:f"{v:+.2f}".replace('.',','); _f2=lambda v:f"{v:.2f}".replace('.',',')
+_termpt={'Intercept':'Intercepto','pos':'Pós','dia':'Dia','hiit':'HIIT'}
+rowsCoef=[[o['label'],_termpt[f['termo']],_c2(f['beta']),_f2(f['EP']),_f2(f['z']),_pnr(f['p']),f"[{f['ic'][0]:.2f}; {f['ic'][1]:.2f}]".replace('.',',')] for y,o in robj['coeficientes'].items() for f in o['fixos']]
+rowsResid=[[robj['coeficientes'][y]['label'],_f2(robj['coeficientes'][y]['ICC']),_pnr(o['shapiro_p']),'sim' if o['residuos_normais'] else 'não',_pnr(o['hetero_p']),'sim' if o['homocedastico'] else 'não'] for y,o in robj['residuos'].items()]
+rowsPsi=[[n,_f2(o['alpha']),_f2(o['alpha_ordinal']),_f2(o['omega']),_f2(o['AVE']),_f2(o['CR']),_f2(o['item_total_medio'])] for n,o in robj['psicometria'].items()]
+rowsBA=[[b['par'],str(b['n']),_f2(b['r_pearson']),f"{b['bias']:.1f}".replace('.',','),f"[{b['LoA_rm'][0]:.1f}; {b['LoA_rm'][1]:.1f}]".replace('.',',')] for b in robj['bland_altman']]
+_afe=robj['afe']; _afeK=_f2(_afe['KMO']); _afeVar=f"{_afe['variancia_cum'][5]*100:.1f}".replace('.',','); _afeBart=_pnr(_afe['bartlett_p'])
 _pnum=lambda v:('<0,001' if v<0.001 else f"{v:.3f}".replace('.',','))
 rowsDA=[]  # entre dias de HIIT
 for _v,_o in dh['A_entre_HIIT'].items():
@@ -226,6 +235,23 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
  {tbl(['Desfecho','R² marginal','R² condicional','ICC','β(Pós)','SE'],rowsMT)}
  <p>A estimação <b>bayesiana</b> (amostrador de Gibbs, modelo hierárquico conjugado) coincide com a frequentista — para o PTH, posterior β = {_bppth} com ICr95% {_bpci} e P(efeito&gt;0)=1,00 — e a análise <b>multivariada</b> confirma o deslocamento pré→pós do vetor das seis subescalas: MANOVA (Pillai {_pil}; p = {_pilp}) e PERMANOVA pareada (Anderson, 2001; pseudo-F {_psf}; R² {_psr}; p = {_psp}) concordam. Três vias independentes, o mesmo efeito no eixo energia–fadiga.</p>
  {fig('modteo','<b>Modelo teórico — estimativas.</b> A: R² marginal×condicional (Nakagawa); B: efeitos fixos ± erro-padrão (PTH); C: posterior bayesiano vs. frequentista; D: PERMANOVA (nula de permutação).')}
+</section>
+
+<section>
+ <div class="eyebrow">Robustez · verificações avançadas</div><h2>Resíduos, coeficientes, análise fatorial exploratória e concordância</h2>
+ <p>Uma camada final de robustez fecha a modelagem e a psicometria. Os <b>coeficientes</b> dos modelos mistos (y ~ Pós + Dia + HIIT + (1|atleta), REML) trazem β, erro-padrão, z, p e IC95% para cada desfecho — o efeito do pós é positivo e significativo no eixo energético e negativo para o vigor, com o HIIT elevando o nível do dia.</p>
+ {tbl(['Desfecho','Termo','β','EP','z','p','IC95%'],rowsCoef)}
+ <p>O <b>diagnóstico de resíduos condicionais</b> (y − Xβ − u_atleta) valida os modelos: para a fadiga física os resíduos são aproximadamente normais e sem heterocedasticidade forte; o PTH — assimétrico e com piso/limite — mostra resíduos não-normais e heterocedásticos, o que recomenda cautela e sustenta o uso paralelo de testes não-paramétricos e permutacionais. O ICC (0,47–0,60) confirma a forte componente entre atletas.</p>
+ {tbl(['Desfecho','ICC','Shapiro p','Resíduos normais?','Hetero p','Homocedástico?'],rowsResid)}
+ {fig('residuos','<b>Coeficientes e resíduos.</b> A: resíduos vs. ajustados; B: Q–Q; C: escala–locação (homocedasticidade); D: histograma; E: coeficiente β(Pós) ± IC95% por desfecho; F: interceptos aleatórios por atleta (BLUPs).')}
+ <p>Na <b>psicometria robusta</b>, cada subescala é avaliada por α de Cronbach, α ordinal (Spearman), ω de McDonald, variância média extraída (AVE) e confiabilidade composta (CR). Raiva, depressão e fadiga têm AVE ≥ 0,50 e CR ≥ 0,80 (validade convergente sólida); vigor no limiar; tensão e confusão ficam abaixo (efeito piso), coerente com todo o restante.</p>
+ {tbl(['Subescala','α','α ordinal','ω','AVE','CR','item-total'],rowsPsi)}
+ {fig('psicorob','<b>Psicometria robusta.</b> Confiabilidade (α, α ordinal, ω, CR) por subescala (linha prática 0,70) e variância média extraída (AVE ≥ 0,50).')}
+ <p>A <b>análise fatorial exploratória</b> (KMO {_afeK}; Bartlett p {_afeBart}) confirma a estrutura: por Kaiser retêm-se {_afe['n_fatores_kaiser']} fatores e pela análise paralela de Horn {_afe['n_fatores_paralela']}, com a solução de seis fatores (promax) explicando {_afeVar}% da variância. A matriz de cargas mostra <b>estrutura simples</b> — cada conjunto de quatro itens carrega no seu fator —, corroborando o modelo teórico do BRUMS.</p>
+ {fig('afe','<b>AFE e cargas.</b> Esquerda: scree + análise paralela (Horn) e critério de Kaiser; direita: matriz de cargas rotacionada (promax, 6 fatores) — estrutura simples por subescala.')}
+ <p>Por fim, a concordância de <b>Bland–Altman</b> entre instrumentos do mesmo construto (reescalados a % do máximo, com limites cientes de medidas repetidas) mostra que eles <b>correlacionam mas não são intercambiáveis</b>: há viés sistemático e limites de concordância largos — convergência de construto, não equivalência de valor absoluto.</p>
+ {tbl(['Par de instrumentos','n','r','viés (%)','LoA95% (%)'],rowsBA)}
+ {fig('blandaltman','<b>Bland–Altman.</b> Diferença vs. média (% do máximo) com viés e limites de concordância de 95% cientes de medidas repetidas, para pares de instrumentos do mesmo construto.')}
 </section>
 
 <section>

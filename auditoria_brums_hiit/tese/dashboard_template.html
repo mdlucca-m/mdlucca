@@ -534,6 +534,22 @@ const SEC=[]; function sec(id,title){const s=document.createElement('section');s
  c3.insertAdjacentHTML('beforeend','<p class="note">Limite do acúmulo: lim(t→∞) f(t)=L≈'+fmt(L.limite_L)+'. Modelo fitness–fadiga: derivada zero em t*='+fmt(L.t_critico)+' (nadir do estado / pico de fadiga aguda); depois relaxa à linha de base.</p>');
 })();
 
+/* ROBUSTEZ+ : coeficientes · resíduos · psicometria robusta · AFE · Bland-Altman */
+(function(){const s=sec('rob','Robustez+');
+ const R=D.rob, a=R.afe;
+ s.innerHTML='<h2>Robustez adicional — coeficientes, resíduos, psicometria e concordância</h2><p class="sub">Camada de verificação rigorosa: coeficientes dos modelos mistos (y ~ Pós + Dia + HIIT + (1|atleta)) com IC95%, diagnóstico de resíduos condicionais, psicometria robusta (α, α ordinal, ω, AVE, CR), análise fatorial exploratória (KMO '+fmt(a.KMO)+'; Kaiser '+a.kaiser+'/paralela '+a.paralela+' fatores; 6 fatores explicam '+fmt(a.var_cum_6,1)+'% da variância) e concordância de Bland–Altman.</p>';
+ const c1=card('Coeficientes dos modelos mistos (efeitos fixos)','β · EP · z · p · IC95%');s.append(c1);
+ dtable(c1,[{k:'desfecho',label:'Desfecho'},{k:'termo',label:'Termo'},{k:'beta',label:'β',num:true,render:v=>`<b>${v>=0?'+':''}${fmt(v)}</b>`},{k:'EP',label:'EP',num:true,render:v=>fmt(v)},{k:'z',label:'z',num:true,render:v=>fmt(v)},{k:'p',label:'p',num:true,render:pf},{k:'ic',label:'IC95%',render:v=>`[${fmt(v[0])}; ${fmt(v[1])}]`}],R.coef);
+ const c2=card('Diagnóstico de resíduos e variância','ICC · normalidade · homocedasticidade');s.append(c2);
+ dtable(c2,[{k:'desfecho',label:'Desfecho'},{k:'ICC',label:'ICC',num:true,render:v=>fmt(v)},{k:'var_atleta',label:'Var. atleta',num:true,render:v=>fmt(v)},{k:'var_residual',label:'Var. resíduo',num:true,render:v=>fmt(v)},{k:'shapiro_p',label:'Shapiro p',num:true,render:pf},{k:'normais',label:'Resíduos normais?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`},{k:'homoced',label:'Homocedástico?',render:v=>`<span class="chip ${v?'c-sim':'c-nao'}">${v?'sim':'não'}</span>`}],R.resid);
+ const c3=card('Psicometria robusta por subescala','α · α ordinal · ω · AVE · CR');s.append(c3);
+ dtable(c3,[{k:'sub',label:'Subescala'},{k:'alpha',label:'α',num:true,render:v=>fmt(v)},{k:'alpha_ord',label:'α ordinal',num:true,render:v=>fmt(v)},{k:'omega',label:'ω',num:true,render:v=>fmt(v)},{k:'AVE',label:'AVE',num:true,render:v=>`<span class="${v>=0.5?'neg':'pos'}">${fmt(v)}</span>`},{k:'CR',label:'CR',num:true,render:v=>fmt(v)},{k:'item_total',label:'item-total',num:true,render:v=>fmt(v)}],R.psico);
+ c3.insertAdjacentHTML('beforeend','<p class="note">AVE ≥ 0,50 (verde) e CR ≥ 0,70 indicam validade convergente adequada; raiva/depressão/fadiga/vigor cumprem, tensão e confusão não (efeito piso).</p>');
+ const c4=card('Bland–Altman — limites de concordância','viés · LoA95% (medidas repetidas)');s.append(c4);
+ dtable(c4,[{k:'par',label:'Par de instrumentos'},{k:'n',label:'n',num:true},{k:'r',label:'r',num:true,render:v=>fmt(v)},{k:'bias',label:'Viés (%)',num:true,render:v=>fmt(v,1)},{k:'LoA',label:'LoA95% (%)',render:v=>`[${fmt(v[0],1)}; ${fmt(v[1],1)}]`}],R.ba);
+ c4.insertAdjacentHTML('beforeend','<p class="note">Escala % do máximo. Os instrumentos correlacionam mas os limites de concordância são largos — convergentes, porém não intercambiáveis em valor absoluto.</p>');
+})();
+
 document.getElementById('app').insertAdjacentHTML('beforeend','<footer>Dashboard analítico · BRUMS × HIIT no handebol · atletas anonimizados (A01–A27) · números reproduzidos por código · 2026.</footer>');
 
 /* nav */
