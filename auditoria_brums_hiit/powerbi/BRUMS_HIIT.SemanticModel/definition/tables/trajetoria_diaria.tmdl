@@ -1,0 +1,41 @@
+table trajetoria_diaria
+	lineageTag: c44b81d6-bec2-48aa-a180-8a80f81564f7
+
+	column 'variavel'
+		dataType: string
+		sourceColumn: variavel
+		lineageTag: f1d42fd2-4ea9-4df4-839c-caa84e792c60
+
+	column 'codigo'
+		dataType: string
+		sourceColumn: codigo
+		lineageTag: 77682fcd-6c84-4a5f-a8f5-af33af83357a
+
+	column 'dia'
+		dataType: int64
+		sourceColumn: dia
+		lineageTag: 36bb1833-d787-4127-9b77-7eb205384107
+		summarizeBy: none
+
+	column 'valor'
+		dataType: double
+		sourceColumn: valor
+		lineageTag: d525f896-664f-4595-a6b7-ea4d1ba1855d
+		summarizeBy: none
+
+	column 'hiit_dia'
+		dataType: int64
+		sourceColumn: hiit_dia
+		lineageTag: 248fe1d2-61ee-4763-b16d-3e1d1bc220b5
+		summarizeBy: none
+
+	partition trajetoria_diaria = m
+		mode: import
+		source =
+			let
+			    Fonte = Excel.Workbook(File.Contents(PastaDados & "\BRUMS_HIIT_PowerBI.xlsx"), null, true),
+			    Nav = Fonte{[Item="trajetoria_diaria",Kind="Sheet"]}[Data],
+			    Cab = Table.PromoteHeaders(Nav, [PromoteAllScalars=true]),
+			    Tipos = Table.TransformColumnTypes(Cab, {{"variavel", type text}, {"codigo", type text}, {"dia", Int64.Type}, {"valor", type number}, {"hiit_dia", Int64.Type}})
+			in
+			    Tipos

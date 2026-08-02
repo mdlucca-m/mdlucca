@@ -1,0 +1,47 @@
+table dias_contraste
+	lineageTag: 7efbc52a-53b2-4274-8949-639acf643a9a
+
+	column 'variavel'
+		dataType: string
+		sourceColumn: variavel
+		lineageTag: f0415c7c-57e2-4b39-86f3-7c759085530f
+
+	column 'delta_HIIT'
+		dataType: double
+		sourceColumn: delta_HIIT
+		lineageTag: 2fb35b7f-fa8c-4f6e-8932-63f0acdc1831
+		summarizeBy: none
+
+	column 'delta_SEM'
+		dataType: double
+		sourceColumn: delta_SEM
+		lineageTag: f99154e6-5e59-4295-8da2-2b209ffda464
+		summarizeBy: none
+
+	column 'dz'
+		dataType: double
+		sourceColumn: dz
+		lineageTag: 7b782b30-d26d-44d4-962e-054d9589ff5e
+		summarizeBy: none
+
+	column 'p_FDR'
+		dataType: double
+		sourceColumn: p_FDR
+		lineageTag: 2c4da29a-dbaf-426a-95b1-4439922dee5d
+		summarizeBy: none
+
+	column 'difere'
+		dataType: boolean
+		sourceColumn: difere
+		lineageTag: f4684a85-b646-4d33-ab11-ca15b9850e15
+
+	partition dias_contraste = m
+		mode: import
+		source =
+			let
+			    Fonte = Excel.Workbook(File.Contents(PastaDados & "\BRUMS_HIIT_PowerBI.xlsx"), null, true),
+			    Nav = Fonte{[Item="dias_contraste",Kind="Sheet"]}[Data],
+			    Cab = Table.PromoteHeaders(Nav, [PromoteAllScalars=true]),
+			    Tipos = Table.TransformColumnTypes(Cab, {{"variavel", type text}, {"delta_HIIT", type number}, {"delta_SEM", type number}, {"dz", type number}, {"p_FDR", type number}, {"difere", type logical}})
+			in
+			    Tipos

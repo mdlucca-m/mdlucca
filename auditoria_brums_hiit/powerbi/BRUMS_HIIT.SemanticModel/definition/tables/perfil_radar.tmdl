@@ -1,0 +1,36 @@
+table perfil_radar
+	lineageTag: 583fb0cf-8df9-4d16-bd90-392b0cba5a50
+
+	column 'subescala'
+		dataType: string
+		sourceColumn: subescala
+		lineageTag: b7764766-ac77-4d20-b038-43b8a234bbd6
+
+	column 'pre'
+		dataType: double
+		sourceColumn: pre
+		lineageTag: 1fcf5133-6dfe-404f-a04c-d5a6e09097cb
+		summarizeBy: none
+
+	column 'pos'
+		dataType: double
+		sourceColumn: pos
+		lineageTag: a25f3f1e-a31d-4e83-8ce5-4fcdc6ee26ed
+		summarizeBy: none
+
+	column 'delta'
+		dataType: double
+		sourceColumn: delta
+		lineageTag: 7c759cb0-437b-4bc6-97f2-02cc2a6b8021
+		summarizeBy: none
+
+	partition perfil_radar = m
+		mode: import
+		source =
+			let
+			    Fonte = Excel.Workbook(File.Contents(PastaDados & "\BRUMS_HIIT_PowerBI.xlsx"), null, true),
+			    Nav = Fonte{[Item="perfil_radar",Kind="Sheet"]}[Data],
+			    Cab = Table.PromoteHeaders(Nav, [PromoteAllScalars=true]),
+			    Tipos = Table.TransformColumnTypes(Cab, {{"subescala", type text}, {"pre", type number}, {"pos", type number}, {"delta", type number}})
+			in
+			    Tipos

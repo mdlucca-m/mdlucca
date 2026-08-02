@@ -1,0 +1,47 @@
+table bolhas_4d
+	lineageTag: e7b0d042-ddd7-4820-b8bf-877baa67cfd1
+
+	column 'variavel'
+		dataType: string
+		sourceColumn: variavel
+		lineageTag: 34f7c6bd-5ee1-4232-8b12-297b84f11244
+
+	column 'code'
+		dataType: string
+		sourceColumn: code
+		lineageTag: 4afa99f6-f153-4c4a-8e7f-08c358706831
+
+	column 'resposta_dz'
+		dataType: double
+		sourceColumn: resposta_dz
+		lineageTag: f5d46349-336e-4171-b32c-41d1a6fff1b5
+		summarizeBy: none
+
+	column 'acumulo_dia'
+		dataType: double
+		sourceColumn: acumulo_dia
+		lineageTag: 34b9a80f-a262-4857-a602-d55db31477e7
+		summarizeBy: none
+
+	column 'pct_entre_atletas'
+		dataType: double
+		sourceColumn: pct_entre_atletas
+		lineageTag: 55b701a2-3e8e-4ab3-a90b-087e2fc20921
+		summarizeBy: none
+
+	column 'pct_atletas_positivos'
+		dataType: int64
+		sourceColumn: pct_atletas_positivos
+		lineageTag: 22690e3e-ca67-4bad-8a69-8bd14558a72e
+		summarizeBy: none
+
+	partition bolhas_4d = m
+		mode: import
+		source =
+			let
+			    Fonte = Excel.Workbook(File.Contents(PastaDados & "\BRUMS_HIIT_PowerBI.xlsx"), null, true),
+			    Nav = Fonte{[Item="bolhas_4d",Kind="Sheet"]}[Data],
+			    Cab = Table.PromoteHeaders(Nav, [PromoteAllScalars=true]),
+			    Tipos = Table.TransformColumnTypes(Cab, {{"variavel", type text}, {"code", type text}, {"resposta_dz", type number}, {"acumulo_dia", type number}, {"pct_entre_atletas", type number}, {"pct_atletas_positivos", Int64.Type}})
+			in
+			    Tipos

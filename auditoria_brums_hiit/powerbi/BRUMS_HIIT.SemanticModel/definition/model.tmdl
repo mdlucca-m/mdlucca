@@ -1,0 +1,22 @@
+model Model
+	culture: pt-BR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: pt-BR
+
+	annotation __PBI_Scaffold = gerado por build_pbip.py — abrir/validar no Power BI Desktop
+
+ref expression PastaDados
+ref table fato_humor
+ref table dim_dia
+ref table dim_momento
+ref table kpis
+ref table resposta_aguda
+ref table roc_prepos
+ref table variabilidade
+ref table derivadas_variavel
+ref table derivadas_atleta
+ref table dias_contraste
+ref table trajetoria_diaria
+ref table confiabilidade
+ref table perfil_radar
+ref table bolhas_4d

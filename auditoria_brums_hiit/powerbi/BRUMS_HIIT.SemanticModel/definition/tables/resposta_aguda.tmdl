@@ -1,0 +1,80 @@
+table resposta_aguda
+	lineageTag: 5e2151f3-6412-4362-84d4-8b9e4632e31b
+
+	measure 'dz Fadiga física' = CALCULATE ( SELECTEDVALUE ( resposta_aguda[dz] ), resposta_aguda[codigo] = "FadFis" )
+		formatString: 0.00
+		lineageTag: 493a0587-7989-43bc-aff9-8e16643ddf60
+
+	column 'variavel'
+		dataType: string
+		sourceColumn: variavel
+		lineageTag: 1d20c18f-aff2-4646-9a6e-5a91968ff251
+
+	column 'codigo'
+		dataType: string
+		sourceColumn: codigo
+		lineageTag: aadc12ab-78ae-4794-ae4e-27117692db4e
+
+	column 'delta'
+		dataType: double
+		sourceColumn: delta
+		lineageTag: 8afe38c3-f10e-4556-b7cb-07b67d54c274
+		summarizeBy: none
+
+	column 'dz'
+		dataType: double
+		sourceColumn: dz
+		lineageTag: e4486946-3aa5-4fa5-b6a8-b06613e31373
+		summarizeBy: none
+
+	column 'ic_inf'
+		dataType: double
+		sourceColumn: ic_inf
+		lineageTag: 3bb73d1e-fe61-4016-9d77-913082a2d298
+		summarizeBy: none
+
+	column 'ic_sup'
+		dataType: double
+		sourceColumn: ic_sup
+		lineageTag: cc05b6ba-ea1e-4404-8bf1-91fa704101aa
+		summarizeBy: none
+
+	column 't'
+		dataType: double
+		sourceColumn: t
+		lineageTag: bad4dd09-975a-4c4f-8ef2-b08037802df0
+		summarizeBy: none
+
+	column 'p'
+		dataType: double
+		sourceColumn: p
+		lineageTag: 11d6b4bd-c84f-402b-9d26-dc2b8536aeb6
+		summarizeBy: none
+
+	column 'wilcoxon_p'
+		dataType: double
+		sourceColumn: wilcoxon_p
+		lineageTag: 8df7f767-13e1-4b51-9973-6d828ed45331
+		summarizeBy: none
+
+	column 'p_FDR'
+		dataType: double
+		sourceColumn: p_FDR
+		lineageTag: 94d3f7d7-5372-45fc-a0a3-db0e0bab19e7
+		summarizeBy: none
+
+	column 'sobrevive_FDR'
+		dataType: boolean
+		sourceColumn: sobrevive_FDR
+		lineageTag: e5b78e94-73b2-48b8-9c97-637b9d00e8e1
+
+	partition resposta_aguda = m
+		mode: import
+		source =
+			let
+			    Fonte = Excel.Workbook(File.Contents(PastaDados & "\BRUMS_HIIT_PowerBI.xlsx"), null, true),
+			    Nav = Fonte{[Item="resposta_aguda",Kind="Sheet"]}[Data],
+			    Cab = Table.PromoteHeaders(Nav, [PromoteAllScalars=true]),
+			    Tipos = Table.TransformColumnTypes(Cab, {{"variavel", type text}, {"codigo", type text}, {"delta", type number}, {"dz", type number}, {"ic_inf", type number}, {"ic_sup", type number}, {"t", type number}, {"p", type number}, {"wilcoxon_p", type number}, {"p_FDR", type number}, {"sobrevive_FDR", type logical}})
+			in
+			    Tipos

@@ -1,0 +1,29 @@
+table dim_momento
+	lineageTag: d3484c93-6db1-4fa5-a934-adf3422bb869
+
+	column 'momento'
+		dataType: string
+		sourceColumn: momento
+		lineageTag: 7f3ab717-0905-4dbf-9b89-5f04f1293491
+
+	column 'ordem'
+		dataType: int64
+		sourceColumn: ordem
+		lineageTag: af53ca09-15b9-42ed-86ba-6ba52b4b769d
+		summarizeBy: none
+
+	column 'rotulo'
+		dataType: string
+		sourceColumn: rotulo
+		lineageTag: 9dfdb289-f475-4fe9-bd5c-13df18d1486e
+
+	partition dim_momento = m
+		mode: import
+		source =
+			let
+			    Fonte = Excel.Workbook(File.Contents(PastaDados & "\BRUMS_HIIT_PowerBI.xlsx"), null, true),
+			    Nav = Fonte{[Item="dim_momento",Kind="Sheet"]}[Data],
+			    Cab = Table.PromoteHeaders(Nav, [PromoteAllScalars=true]),
+			    Tipos = Table.TransformColumnTypes(Cab, {{"momento", type text}, {"ordem", Int64.Type}, {"rotulo", type text}})
+			in
+			    Tipos

@@ -1,0 +1,53 @@
+table confiabilidade
+	lineageTag: bbaeb908-55ec-464e-915b-0c1fec4d3753
+
+	column 'subescala'
+		dataType: string
+		sourceColumn: subescala
+		lineageTag: 1ab6ba08-3e74-441a-a127-d9c0cadf3133
+
+	column 'alpha'
+		dataType: double
+		sourceColumn: alpha
+		lineageTag: 98b483f8-ed73-444a-b6ca-6d3cc7686735
+		summarizeBy: none
+
+	column 'alpha_ic_inf'
+		dataType: double
+		sourceColumn: alpha_ic_inf
+		lineageTag: d8308f2b-b7fa-462b-b4d1-226c9df7c42f
+		summarizeBy: none
+
+	column 'alpha_ic_sup'
+		dataType: double
+		sourceColumn: alpha_ic_sup
+		lineageTag: 0732efd1-7d72-4bc2-80d7-d03f87c3e63e
+		summarizeBy: none
+
+	column 'omega'
+		dataType: double
+		sourceColumn: omega
+		lineageTag: adef5d93-019d-4a72-9c0f-d27337894df5
+		summarizeBy: none
+
+	column 'r_inter_item'
+		dataType: double
+		sourceColumn: r_inter_item
+		lineageTag: 4ce2f0ee-d55a-40c1-912b-3fd25aba4564
+		summarizeBy: none
+
+	column 'adequada'
+		dataType: boolean
+		sourceColumn: adequada
+		lineageTag: a1cede25-7579-4530-9ae4-d4e6ba0b59e8
+
+	partition confiabilidade = m
+		mode: import
+		source =
+			let
+			    Fonte = Excel.Workbook(File.Contents(PastaDados & "\BRUMS_HIIT_PowerBI.xlsx"), null, true),
+			    Nav = Fonte{[Item="confiabilidade",Kind="Sheet"]}[Data],
+			    Cab = Table.PromoteHeaders(Nav, [PromoteAllScalars=true]),
+			    Tipos = Table.TransformColumnTypes(Cab, {{"subescala", type text}, {"alpha", type number}, {"alpha_ic_inf", type number}, {"alpha_ic_sup", type number}, {"omega", type number}, {"r_inter_item", type number}, {"adequada", type logical}})
+			in
+			    Tipos
