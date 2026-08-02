@@ -556,8 +556,10 @@ const SEC=[]; function sec(id,title){const s=document.createElement('section');s
    {grupo:'Métrica — Tucker φ global',v:fmt(iv.phi_global,3),d:'≥ 0,95 → cargas congruentes'},
  ].concat(Object.entries(iv.phi).map(([f,v])=>({grupo:'φ '+f,v:fmt(v,3),d:v>=0.95?'invariante':'limítrofe'}))).concat([
    {grupo:'Métrica — ΔCFI (teste estrito)',v:fmt(iv.dCFI,3),d:'pós c/ cargas fixadas no pré · conservador'},
+   {grupo:'Métrica CONJUNTA — ΔCFI',v:fmt(iv.metrico_conjunto.dCFI,3),d:(iv.metrico_conjunto.ok?'sustentada':'limítrofe')+' · cargas comuns estimadas em conjunto'},
+   {grupo:'Escalar — viés residual RMS',v:fmt(iv.escalar.rms,3),d:(iv.escalar.ok?'invariância aproximada':'parcial')+' · interceptos (itens 0–4)'},
  ]));
- c5.insertAdjacentHTML('beforeend','<p class="note">Restrito aos 4 fatores confiáveis (Depressão, Raiva, Vigor, Fadiga); Tensão e Confusão excluídas por variância degenerada. A congruência (φ '+fmt(iv.phi_global,3)+') sustenta a invariância métrica; o ΔCFI estrito ('+fmt(iv.dCFI,3)+') indica pequeno custo de ajuste.</p>');
+ c5.insertAdjacentHTML('beforeend','<p class="note">Restrito aos 4 fatores confiáveis; Tensão/Confusão excluídas (variância degenerada). Métrica sustentada: congruência φ '+fmt(iv.phi_global,3)+' e, no modelo conjunto, ΔCFI '+fmt(iv.metrico_conjunto.dCFI,3)+'. Escalar aproximada (viés residual '+fmt(iv.escalar.rms,3)+'); o deslocamento da média latente κ concentra-se no eixo energético: Fadiga '+fmt(iv.escalar.kappa['Fadiga'],2)+', Vigor '+fmt(iv.escalar.kappa['Vigor'],2)+'.</p>');
 })();
 
 document.getElementById('app').insertAdjacentHTML('beforeend','<footer>Dashboard analítico · BRUMS × HIIT no handebol · atletas anonimizados (A01–A27) · números reproduzidos por código · 2026.</footer>');

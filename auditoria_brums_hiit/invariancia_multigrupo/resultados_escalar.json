@@ -1,0 +1,55 @@
+{
+ "metrico_conjunto": {
+  "CFI_configural": 0.916,
+  "CFI_metrico": 0.913,
+  "delta_CFI": -0.004,
+  "delta_RMSEA": -0.003,
+  "chi2_config": 407.4,
+  "df_config": 196,
+  "chi2_metrico": 440.3,
+  "df_metrico": 220,
+  "sustentada": true,
+  "nota": "cargas comuns estimadas em conjunto (dados centrados no grupo); menos conservador que fixar pós no pré."
+ },
+ "escalar": {
+  "kappa_pos": {
+   "Depressao": 0.061,
+   "Raiva": 0.113,
+   "Vigor": -0.258,
+   "Fadiga": 0.564
+  },
+  "residuo_intercepto_rms": {
+   "Depressao": 0.049,
+   "Raiva": 0.078,
+   "Vigor": 0.075,
+   "Fadiga": 0.243
+  },
+  "r2_explicado": {
+   "Depressao": 0.782,
+   "Raiva": 0.608,
+   "Vigor": 0.945,
+   "Fadiga": 0.794
+  },
+  "rms_global": 0.135,
+  "sustentada": true,
+  "delta_tau": {
+   "depressao_1": 0.052,
+   "depressao_2": 0.141,
+   "depressao_3": 0.141,
+   "depressao_4": 0.03,
+   "raiva_1": 0.119,
+   "raiva_2": 0.081,
+   "raiva_3": 0.2,
+   "raiva_4": -0.03,
+   "vigor_1": -0.237,
+   "vigor_2": -0.504,
+   "vigor_3": -0.304,
+   "vigor_4": -0.044,
+   "fadiga_1": 0.63,
+   "fadiga_2": 0.637,
+   "fadiga_3": -0.281,
+   "fadiga_4": 0.511
+  },
+  "nota": "Δτ (interceptos pós−pré) decomposto por fator em λ·Δκ; κ = deslocamento da média latente (efeito verdadeiro no traço); resíduo RMS = viés de intercepto (invariância escalar ≈ resíduo pequeno)."
+ }
+}

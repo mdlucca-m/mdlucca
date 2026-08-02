@@ -120,6 +120,9 @@ _ivj=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/invariancia_multigr
 _ivCFIpre=_f2(_ivj['grupos']['pre']['CFI']); _ivCFIpos=_f2(_ivj['grupos']['pos']['CFI'])
 _ivPhi=f"{_ivi['tucker_phi_global']:.3f}".replace('.',','); _ivdCFI=f"{_ivi['delta_CFI']:+.3f}".replace('.',',')
 _ivPhiFat=', '.join(f"{k} {v:.3f}".replace('.',',') for k,v in _ivi['tucker_phi_fator'].items())
+_ivesc=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/invariancia_multigrupo/resultados_escalar.json'))
+_mcCFI=f"{_ivesc['metrico_conjunto']['delta_CFI']:+.3f}".replace('.',','); _mcRMSEA=f"{_ivesc['metrico_conjunto']['delta_RMSEA']:+.3f}".replace('.',',')
+_escRMS=f"{_ivesc['escalar']['rms_global']:.3f}".replace('.',','); _kFad=f"{_ivesc['escalar']['kappa_pos']['Fadiga']:+.2f}".replace('.',','); _kVig=f"{_ivesc['escalar']['kappa_pos']['Vigor']:+.2f}".replace('.',',')
 _pnum=lambda v:('<0,001' if v<0.001 else f"{v:.3f}".replace('.',','))
 rowsDA=[]  # entre dias de HIIT
 for _v,_o in dh['A_entre_HIIT'].items():
@@ -258,6 +261,8 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
  {fig('blandaltman','<b>Bland–Altman.</b> Diferença vs. média (% do máximo) com viés e limites de concordância de 95% cientes de medidas repetidas, para pares de instrumentos do mesmo construto.')}
  <p>Por fim, a <b>invariância de medida pré→pós</b> foi testada por AFC multigrupo (semopy) nos quatro fatores confiáveis (tensão e confusão excluídas por variância degenerada). A estrutura <b>configural</b> ajusta-se de forma equivalente nos dois momentos (CFI pré {_ivCFIpre} / pós {_ivCFIpos}); a <b>invariância métrica</b> é sustentada pela congruência das cargas (Tucker φ global {_ivPhi} ≥ 0,95; por fator {_ivPhiFat}), enquanto o teste ΔCFI estrito — com o grupo pós usando as cargas fixadas na solução do pré, mais conservador que o modelo métrico conjunto — fica em {_ivdCFI} (limiar −0,01), indicando apenas um pequeno custo de ajuste. Em conjunto, a mudança pré→pós observada é de <b>estado</b>, não um artefato do instrumento — o mesmo veredito da congruência de Tucker do módulo de confiabilidade.</p>
  {fig('invmg','<b>AFC multigrupo e invariância (pré vs. pós).</b> Esquerda: cargas padronizadas por item nos dois momentos; direita: congruência de Tucker φ por fator (linha 0,95).')}
+ <p>Um <b>modelo métrico conjunto</b> (cargas comuns estimadas em conjunto a partir dos dados centrados no grupo, e não fixadas ao pré) confirma a invariância métrica de forma menos conservadora: ΔCFI {_mcCFI} e ΔRMSEA {_mcRMSEA} — bem dentro dos limiares. A <b>invariância escalar</b> foi avaliada decompondo as diferenças de intercepto Δτ = τ_pós − τ_pré em um único deslocamento da média latente por fator (Δτ ≈ λ·Δκ): o viés residual de intercepto é pequeno (RMS {_escRMS}, escala de item 0–4), indicando invariância escalar <b>aproximada</b>. O deslocamento da média latente κ recai exatamente sobre o eixo energético — <b>fadiga {_kFad}</b> e <b>vigor {_kVig}</b> —, ou seja, a mudança pré→pós é um deslocamento verdadeiro do traço, não viés de item; o maior resíduo aparece na fadiga, puxado pelo item "Sonolento" (que já se mostrou na contramão).</p>
+ {fig('invesc','<b>Invariância escalar.</b> Esquerda: interceptos por item (referência pré vs. pós); direita: deslocamento da média latente κ por fator (pós − pré) — concentrado em fadiga (↑) e vigor (↓).')}
 </section>
 
 <section>
