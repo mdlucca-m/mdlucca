@@ -146,4 +146,77 @@ ax.grid(axis='y',**GRID); ax.set_axisbelow(True); ax.set_ylabel('escore-z'); ax.
 ax.legend(frameon=False,labelcolor=INK,fontsize=9,ncol=3,loc='upper center',bbox_to_anchor=(.5,1.16)); clean(ax)
 save(fig,'11_segmentacao.png')
 
+# ---- dados extra ----
+import pandas as pd
+bm=pd.read_csv(os.path.join(ROOT,'modelagem','base_modelagem.csv'))
+LIM=json.load(open(os.path.join(ROOT,'limites_derivadas','resultados_limites_derivadas.json'),encoding='utf-8'))
+
+# 12 — curvas ROC (pós vs pré) por variável
+def roc_pts(y,x):
+    x=np.asarray(x,float); y=np.asarray(y,int); o=np.argsort(-x); y=y[o]
+    P=y.sum(); N=len(y)-P; tp=fp=0; xs=[0]; ys=[0]
+    for yi in y:
+        if yi: tp+=1
+        else: fp+=1
+        xs.append(fp/N if N else 0); ys.append(tp/P if P else 0)
+    trap=getattr(np,'trapezoid',None) or np.trapz
+    auc=trap(ys,xs); return xs,ys,auc
+pp=bm[bm.momento.isin(['pre','pos'])].dropna(subset=['FadFis','Fadiga','Vigor','PTH'])
+y=(pp['momento']=='pos').astype(int).values
+fig,ax=plt.subplots(figsize=(6.4,5.2),dpi=150)
+for var,c,inv3 in [('FadFis',CORAL,1),('PTH',VIOLET,1),('Fadiga','#ff8aa8',1),('Vigor',CYAN,-1)]:
+    xs,ys,auc=roc_pts(y,inv3*pp[var].values)
+    ax.plot(xs,ys,color=c,lw=2.4,label=f'{var}  AUC {auc:.2f}'.replace('.',','))
+ax.plot([0,1],[0,1],color=FAINT,ls='--',lw=1)
+ax.set_xlim(0,1); ax.set_ylim(0,1.02); ax.grid(**GRID); ax.set_axisbelow(True)
+ax.set_xlabel('1 − especificidade'); ax.set_ylabel('sensibilidade'); ax.set_title('Curvas ROC — separar pós de pré',loc='left')
+ax.legend(frameon=False,labelcolor=INK,fontsize=9.5,loc='lower right'); clean(ax)
+save(fig,'12_roc.png')
+
+# 13 — cálculo: f(t), f'(t), f''(t)
+cd=LIM['C_derivadas']; t=[r['dia'] for r in cd]; f=[r['f'] for r in cd]; f1=[r['f_linha'] for r in cd]; f2=[r['f_2linha'] for r in cd]
+fig,ax=plt.subplots(figsize=(7.4,4.4),dpi=150)
+ax.plot(t,f,'-o',color=CORAL,lw=2.6,ms=6,label="f(t) — fadiga física")
+ax.fill_between(t,f,min(f)-.2,color=CORAL,alpha=.08)
+ax2=ax.twinx(); ax2.plot(t,f1,'-o',color=CYAN,lw=2.2,ms=5,label="f′(t) — velocidade")
+ax2.plot(t,f2,'-o',color=VIOLET,lw=1.8,ms=4,label="f″(t) — aceleração"); ax2.axhline(0,color=FAINT,lw=.8)
+ax2.tick_params(colors=MUT); ax2.spines['top'].set_visible(False); ax2.set_ylabel("f′, f″",color=MUT)
+ax.set_xticks(t); ax.grid(axis='y',**GRID); ax.set_axisbelow(True); ax.set_xlabel('dia (t)'); ax.set_ylabel('f(t)',color=CORAL)
+ax.set_title('Cálculo — limites e derivadas do acúmulo',loc='left')
+l1,la1=ax.get_legend_handles_labels(); l2,la2=ax2.get_legend_handles_labels()
+ax.legend(l1+l2,la1+la2,frameon=False,labelcolor=INK,fontsize=9,loc='lower right'); clean(ax)
+save(fig,'13_calculo.png')
+
+# 14 — Bland–Altman (concordância BRUMS Fadiga × fadiga física externa, % do máx)
+d2=bm.dropna(subset=['Fadiga','FadFis']).copy()
+a=d2['Fadiga']/d2['Fadiga'].max()*100; b=d2['FadFis']/10*100
+mean=(a+b)/2; diff=a-b; bias=diff.mean(); sd=diff.std(); lo,hi=bias-1.96*sd,bias+1.96*sd
+fig,ax=plt.subplots(figsize=(7.0,4.6),dpi=150)
+ax.scatter(mean,diff,s=26,c=CYAN,alpha=.45,edgecolor='none')
+ax.axhline(bias,color=GOLD,lw=1.8,label=f'viés {bias:+.1f}%'.replace('.',','))
+ax.axhline(hi,color=CORAL,ls='--',lw=1.4); ax.axhline(lo,color=CORAL,ls='--',lw=1.4,label='LoA 95%')
+ax.grid(**GRID); ax.set_axisbelow(True); ax.set_xlabel('média dos dois métodos (% do máx)'); ax.set_ylabel('diferença (% do máx)')
+ax.set_title('Bland–Altman — convergência, não equivalência',loc='left'); ax.legend(frameon=False,labelcolor=INK,fontsize=9.5); clean(ax)
+save(fig,'14_bland.png')
+
+# 15 — predição fora da amostra (R² LOAO)
+reg=D['pred']['reg']; alvos=['PTH (TMD)','Fadiga física','Vigor']; preds=['Baseline (pré)','Baseline + contexto']
+fig,ax=plt.subplots(figsize=(7.4,4.4),dpi=150); xa=np.arange(len(alvos)); w=.36
+for k,pr in enumerate(preds):
+    vals=[next((r['R2'] for r in reg if r['alvo']==al and r['preditores']==pr),0) for al in alvos]
+    ax.bar(xa+(k-.5)*w,vals,w,color=[CYAN,VIOLET][k],edgecolor='none',label=pr)
+ax.axhline(0,color=FAINT,lw=1); ax.set_xticks(xa); ax.set_xticklabels(alvos,fontsize=10,color=INK)
+ax.grid(axis='y',**GRID); ax.set_axisbelow(True); ax.set_ylabel('R² fora da amostra')
+ax.set_title('Predição LOAO — o sinal vem do baseline',loc='left'); ax.legend(frameon=False,labelcolor=INK,fontsize=9); clean(ax)
+save(fig,'15_loao.png')
+
+# 16 — correlações rm_corr (intra-sujeito) significativas
+rc=[x for x in D['inf']['D_rmcorr'] if x['sig']]; rc=sorted(rc,key=lambda x:x['r'])[:10]
+labs2=[f"{x['sub']}×{x['ext']}" for x in rc]; rv=[x['r'] for x in rc]
+fig,ax=plt.subplots(figsize=(7.4,4.6),dpi=150)
+ax.barh(labs2,rv,color=[CORAL if v>=0 else CYAN for v in rv],edgecolor='none',height=.7); ax.axvline(0,color=FAINT,lw=1)
+ax.grid(axis='x',**GRID); ax.set_axisbelow(True); ax.set_xlabel('r (medidas repetidas, intra-atleta)')
+ax.set_title('Correlações intra-sujeito (validade convergente)',loc='left'); clean(ax)
+save(fig,'16_rmcorr.png')
+
 print('gerados', len(os.listdir(OUT)), 'gráficos em', OUT)
