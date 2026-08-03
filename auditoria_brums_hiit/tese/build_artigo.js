@@ -8,7 +8,8 @@ const fs = require('fs');
 const path = require('path');
 const {
   Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, PageBreak,
-  Table, TableRow, TableCell, WidthType, BorderStyle, ShadingType, ImageRun, TableOfContents
+  Table, TableRow, TableCell, WidthType, BorderStyle, ShadingType, ImageRun, TableOfContents,
+  VerticalAlign, HeightRule
 } = require('docx');
 
 const HERE = __dirname, ROOT = path.dirname(HERE);
@@ -24,6 +25,8 @@ const pf = (p) => p === null || p === undefined ? '—' : (p < 0.001 ? '< 0,001'
 const sg = (x, d = 2) => (x >= 0 ? '+' : '') + nf(x, d);
 const CW = 9360;
 const INK = '16273D', TEAL = '0E8C86', MUT = '5B6B82', HEADBG = 'EAF1F7', LINE = 'C9D4E0';
+// paleta da capa escura (padrão Showcase neon)
+const DARKBG = '0A1120', TEALN = '22D3EE', VIOLETN = '7C5CFF', CORALN = 'FF4D6D', GOLDN = 'FFD166', INKL = 'E8F1FF', MUTL = '9DB2D0', LINED = '2A3A55';
 
 function P(text, opts = {}) {
   const runs = Array.isArray(text) ? text : [new TextRun({ text, ...(opts.run || {}) })];
@@ -67,17 +70,68 @@ const rocpp = D.roc.pre_vs_pos;
 
 const children = [];
 
-// ===================== FOLHA DE ROSTO =====================
-children.push(
-  new Paragraph({ spacing: { before: 600, after: 60 }, children: [new TextRun({ text: 'ARTIGO ORIGINAL · CIÊNCIAS DO ESPORTE', bold: true, color: TEAL, size: 20, characterSpacing: 40 })] }),
-  new Paragraph({ spacing: { after: 160 }, children: [new TextRun({ text: 'Monitoramento psicométrico do humor e da fadiga em atletas de handebol de elite durante um microciclo com treinamento intervalado de alta intensidade (HIIT): resposta de estado, individualidade e desacoplamento da carga interna', bold: true, size: 34, color: INK })] }),
-  new Paragraph({ spacing: { after: 60 }, children: [new TextRun({ text: 'Psychometric monitoring of mood and fatigue in elite handball athletes across a high-intensity interval training (HIIT) microcycle: a state response, individuality, and internal-load decoupling', italics: true, size: 22, color: MUT })] }),
-  new Paragraph({ spacing: { before: 200, after: 60 }, children: [ run('Título resumido (running head): ', { bold: true, size: 20 }), run('Humor, fadiga e HIIT no handebol', { size: 20 }) ] }),
-  new Paragraph({ spacing: { after: 60 }, children: [ run('Autoria: ', { bold: true, size: 20 }), run('[Autor(es)] · [Afiliação(ões)] · [Autor correspondente e e-mail]', { size: 20, color: MUT }) ] }),
-  new Paragraph({ spacing: { after: 60 }, children: [ run('Financiamento e conflitos de interesse: ', { bold: true, size: 20 }), run('[a declarar]. ', { size: 20, color: MUT }), run('Aprovação ética: ', { bold: true, size: 20 }), run('[nº do parecer do CEP].', { size: 20, color: MUT }) ] }),
-  new Paragraph({ spacing: { after: 60 }, children: [ run('Dados e reprodutibilidade: ', { bold: true, size: 20 }), run('atletas anonimizados (A01–A27); todos os valores reproduzidos por código a partir da coleta bruta; bases identificáveis não versionadas.', { size: 20 }) ] }),
-  new Paragraph({ children: [new PageBreak()] })
-);
+// ===================== FOLHA DE ROSTO (capa escura, padrão Showcase) =====================
+// A capa vive numa seção própria, sem margens, com uma tabela de página inteira
+// em fundo escuro e tipografia neon. O miolo do artigo segue claro (impressão/leitura).
+function cvP(children, opts = {}) {
+  return new Paragraph({ alignment: opts.align ?? AlignmentType.CENTER, spacing: { after: opts.after ?? 120, before: opts.before ?? 0, line: opts.line ?? 300 }, children });
+}
+const coverCell = new TableCell({
+  width: { size: 11906, type: WidthType.DXA },
+  shading: { type: ShadingType.CLEAR, fill: DARKBG, color: 'auto' },
+  verticalAlign: VerticalAlign.CENTER,
+  margins: { top: 900, bottom: 900, left: 1000, right: 1000 },
+  borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } },
+  children: [
+    // motivo de três pontos neon
+    cvP([ run('●  ', { color: TEALN, size: 18 }), run('●  ', { color: VIOLETN, size: 18 }), run('●', { color: CORALN, size: 18 }) ], { after: 200 }),
+    // eyebrow mono
+    cvP([ run('ARTIGO ORIGINAL · CIÊNCIAS DO ESPORTE · ESTUDO REPRODUZÍVEL', { color: TEALN, bold: true, size: 18, font: 'Consolas', characterSpacing: 60 }) ], { after: 240 }),
+    // título PT com destaques neon (evoca o headline em gradiente)
+    cvP([
+      run('Monitoramento psicométrico do ', { color: INKL, bold: true, size: 36 }),
+      run('humor', { color: TEALN, bold: true, size: 36 }),
+      run(' e da ', { color: INKL, bold: true, size: 36 }),
+      run('fadiga', { color: GOLDN, bold: true, size: 36 }),
+      run(' em atletas de handebol de elite durante um microciclo com ', { color: INKL, bold: true, size: 36 }),
+      run('HIIT', { color: CORALN, bold: true, size: 36 }),
+      run(': resposta de estado, ', { color: INKL, bold: true, size: 36 }),
+      run('individualidade', { color: VIOLETN, bold: true, size: 36 }),
+      run(' e ', { color: INKL, bold: true, size: 36 }),
+      run('desacoplamento', { color: TEALN, bold: true, size: 36 }),
+      run(' da carga interna', { color: INKL, bold: true, size: 36 }),
+    ], { after: 160, line: 380 }),
+    // subtítulo EN
+    cvP([ run('Psychometric monitoring of mood and fatigue in elite handball athletes across a high-intensity interval training (HIIT) microcycle: a state response, individuality, and internal-load decoupling', { italics: true, color: MUTL, size: 22 }) ], { after: 240, line: 300 }),
+    // faixa de KPIs neon
+    cvP([
+      run('27', { color: TEALN, bold: true, size: 26, font: 'Consolas' }), run(' atletas      ', { color: MUTL, size: 18, font: 'Consolas' }),
+      run('456', { color: VIOLETN, bold: true, size: 26, font: 'Consolas' }), run(' observações      ', { color: MUTL, size: 18, font: 'Consolas' }),
+      run('135', { color: GOLDN, bold: true, size: 26, font: 'Consolas' }), run(' pares pré→pós', { color: MUTL, size: 18, font: 'Consolas' }),
+    ], { after: 40 }),
+    cvP([
+      run('7', { color: CORALN, bold: true, size: 26, font: 'Consolas' }), run(' dias de microciclo      ', { color: MUTL, size: 18, font: 'Consolas' }),
+      run('3', { color: TEALN, bold: true, size: 26, font: 'Consolas' }), run(' sessões de HIIT (D2·D4·D7)', { color: MUTL, size: 18, font: 'Consolas' }),
+    ], { after: 300 }),
+    // linha divisória sutil
+    cvP([ run('———————————————————————', { color: LINED, size: 16 }) ], { after: 220 }),
+    // metadados (rótulos claros, valores mut)
+    cvP([ run('Título resumido (running head): ', { bold: true, size: 19, color: INKL }), run('Humor, fadiga e HIIT no handebol', { size: 19, color: MUTL }) ], { after: 70 }),
+    cvP([ run('Autoria: ', { bold: true, size: 19, color: INKL }), run('[Autor(es)] · [Afiliação(ões)] · [Autor correspondente e e-mail]', { size: 19, color: MUTL }) ], { after: 70 }),
+    cvP([ run('Financiamento e conflitos de interesse: ', { bold: true, size: 19, color: INKL }), run('[a declarar].   ', { size: 19, color: MUTL }), run('Aprovação ética: ', { bold: true, size: 19, color: INKL }), run('[nº do parecer do CEP].', { size: 19, color: MUTL }) ], { after: 70 }),
+    cvP([ run('Dados e reprodutibilidade: ', { bold: true, size: 19, color: INKL }), run('atletas anonimizados (A01–A27); todos os valores reproduzidos por código a partir da coleta bruta; bases identificáveis não versionadas.', { size: 19, color: MUTL }) ], { after: 0 }),
+  ],
+});
+const cover = [
+  new Table({
+    width: { size: 11906, type: WidthType.DXA },
+    columnWidths: [11906],
+    borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, insideHorizontal: { style: BorderStyle.NONE }, insideVertical: { style: BorderStyle.NONE } },
+    rows: [ new TableRow({ height: { value: 16790, rule: HeightRule.EXACT }, children: [coverCell] }) ],
+  }),
+  // parágrafo-âncora minúsculo: impede que a quebra de seção crie uma 2ª página em branco
+  new Paragraph({ spacing: { before: 0, after: 0, line: 20, lineRule: 'exact' }, children: [run('', { size: 2 })] }),
+];
 
 // ===================== RESUMO / ABSTRACT =====================
 children.push(H('Resumo', HeadingLevel.HEADING_1));
@@ -108,7 +162,7 @@ children.push(H('1.1. Justificativa', HeadingLevel.HEADING_2));
 children.push(P('Apesar do uso disseminado do BRUMS no esporte, três lacunas persistem na literatura aplicada. Primeiro, poucos estudos separam explicitamente a limitação de mensuração (efeito piso das subescalas negativas) da ausência real de efeito, o que pode levar a subestimar a validade do instrumento no eixo em que ele efetivamente discrimina. Segundo, a relação entre a carga interna objetiva (PSE, FC, TRIMP) e a resposta de humor raramente é testada no nível do atleta com controle de multiplicidade. Terceiro, falta uma caracterização de quais dimensões são simultaneamente sensíveis e confiáveis para sinalizar um estado de fadiga — informação diretamente acionável na periodização. Este estudo enfrenta as três lacunas com uma reanálise completa, reprodutível e metodologicamente disciplinada.'));
 children.push(H('1.2. Objetivos e hipóteses', HeadingLevel.HEADING_2));
 children.push(P([bold('Objetivo geral. '), run('Caracterizar, respeitando a estrutura de medidas repetidas, como e em que magnitude o perfil de humor de atletas de handebol de elite responde a um microciclo com HIIT; determinar se essa resposta é uma mudança de estado confiável (e não artefato de medida nem ausência real de efeito por piso); e identificar os marcadores mais sensíveis e confiáveis para o monitoramento aplicado da fadiga.')]));
-children.push(P([bold('Objetivos específicos. '), run('(a) descrever distribuições, efeito piso e normalidade das variáveis; (b) quantificar a resposta aguda pré→pós por subescala (tamanho de efeito) e confirmá-la por permutação restrita; (c) modelar o acúmulo semanal com inclinações aleatórias por atleta e isolar o efeito dos dias de HIIT; (d) confirmar o achado no plano multivariado (Hotelling T², MANOVA, PERMANOVA) e bayesiano; (e) avaliar a qualidade da medida (confiabilidade α/ω, AFC, AFE, TRI, HTMT) e a invariância pré→pós (configural→estrita/parcial); (f) mapear as correlações intra-sujeito (rm_corr) e a convergência com autorrelatos externos; (g) mensurar a capacidade diagnóstica (ROC de níveis e derivadas) e a validação preditiva fora da amostra (leave-one-athlete-out); (h) caracterizar a velocidade de mudança e formalizá-la em cálculo (limites e derivadas); (i) segmentar os atletas por padrão de resposta e decompor a variância em traço vs. estado; (j) testar o acoplamento carga interna × humor e ranquear os preditores de fadiga por sensibilidade e confiabilidade; (k) quantificar, por atleta, a mudança confiável (RCI/MDC) — distinguindo resposta real de ruído de medida; e (l) submeter os achados nulos a testes de equivalência (TOST), estabelecendo equivalência formal quando cabível.')]));
+children.push(P([bold('Objetivos específicos. '), run('(a) descrever distribuições, efeito piso e normalidade das variáveis; (b) quantificar a resposta aguda pré→pós por subescala (tamanho de efeito) e confirmá-la por permutação restrita; (c) modelar o acúmulo semanal com inclinações aleatórias por atleta e isolar o efeito dos dias de HIIT; (d) confirmar o achado no plano multivariado (Hotelling T², MANOVA, PERMANOVA) e bayesiano; (e) avaliar a qualidade da medida (confiabilidade α/ω, AFC, AFE, TRI, HTMT) e a invariância pré→pós (configural→estrita/parcial); (f) mapear as correlações intra-sujeito (rm_corr) e a convergência com autorrelatos externos; (g) mensurar a capacidade diagnóstica (ROC de níveis e derivadas) e a validação preditiva fora da amostra (leave-one-athlete-out); (h) caracterizar a velocidade de mudança e formalizá-la em cálculo (limites e derivadas); (i) segmentar os atletas por padrão de resposta e decompor a variância em traço vs. estado; (j) testar o acoplamento carga interna × humor e ranquear os preditores de fadiga por sensibilidade e confiabilidade; (k) quantificar, por atleta, a mudança confiável (RCI/MDC) — distinguindo resposta real de ruído de medida; (l) submeter os achados nulos a testes de equivalência (TOST), estabelecendo equivalência formal quando cabível; (m) descrever a estrutura de dependência direta entre subescalas por rede psicométrica (modelo gráfico gaussiano) e a cinética intra-sessão (pré→meio→pós); e (n) assegurar a rastreabilidade e a coerência numérica dos achados entre todos os entregáveis do estudo, verificando que cada valor-âncora é reproduzido de forma idêntica em todas as peças.')]));
 children.push(P('Hipóteses: (H1) o humor deteriora ao longo da semana, no eixo energia–fadiga; (H2) os dias de HIIT associam-se a mais fadiga, menos vigor e maior perturbação; (H3) as subescalas negativas têm efeito piso e baixa sensibilidade — a "ausência de resposta" é, em parte, incapacidade de medir; (H4) a maior parte da variância é traço, e apenas uma minoria de atletas exibe mudança confiável (RCI), tornando frágil a decisão pela média do grupo; (H5) o BRUMS é válido e invariante no eixo energia–fadiga (mudança de estado, não do instrumento); (H6) a carga interna objetiva é estatisticamente equivalente a zero como preditora da resposta aguda de humor (desacoplamento).'));
 children.push(new Paragraph({ children: [new PageBreak()] }));
 
@@ -135,7 +189,7 @@ children.push(caption('Tabela 1. Carga interna das sessões de HIIT (n = ' + hp.
 children.push(H('2.5. Procedimentos e integridade dos dados', HeadingLevel.HEADING_2));
 children.push(P('A base foi reconstruída do zero a partir da coleta bruta e recalculada em Python, comparada célula a célula às tabelas e ao texto originais (84 checagens; 77 exatas, 7 reconciliadas — nenhuma correção altera as conclusões). O dia foi derivado do carimbo temporal da coleta.'));
 children.push(H('2.6. Análise estatística', HeadingLevel.HEADING_2));
-children.push(P('A unidade de análise foi o atleta. Empregaram-se modelos de efeitos mistos (interceptos e, quando cabível, inclinações aleatórias por atleta); testes pareados clássicos (t de Student e Wilcoxon) com tamanho de efeito intra-sujeito (dz) e intervalos de confiança por bootstrap agrupado por atleta; correção de comparações múltiplas por FDR (Benjamini–Hochberg); análise de variância de Friedman/RM-ANOVA para o efeito do dia; e correlação de medidas repetidas (rm_corr) e coeficiente de correlação intraclasse (ICC) para acoplamento e estabilidade. A qualidade da medida foi avaliada por α de Cronbach (com IC95%), ω de McDonald, AFC (estimador DWLS), HTMT, teoria de resposta ao item (modelo de resposta gradual) e análise fatorial exploratória; a equivalência pré→pós, pela hierarquia de invariância configural → métrica → escalar → estrita/parcial (ΔCFI ≤ 0,01; congruência de Tucker φ ≥ 0,95). A capacidade diagnóstica foi quantificada por curvas ROC (AUC com IC95% por bootstrap agrupado por atleta) e a validação preditiva por regressão/classificação leave-one-athlete-out. Confirmação bayesiana (fator de Bayes JZS) e multivariada (Hotelling T², MANOVA/PERMANOVA) complementaram a inferência. Análises em Python (statsmodels, scipy, pingouin, semopy, factor_analyzer); α = 0,05.'));
+children.push(P('A unidade de análise foi o atleta. Empregaram-se modelos de efeitos mistos (interceptos e, quando cabível, inclinações aleatórias por atleta); testes pareados clássicos (t de Student e Wilcoxon) com tamanho de efeito intra-sujeito (dz) e intervalos de confiança por bootstrap agrupado por atleta; correção de comparações múltiplas por FDR (Benjamini–Hochberg); análise de variância de Friedman/RM-ANOVA para o efeito do dia; e correlação de medidas repetidas (rm_corr) e coeficiente de correlação intraclasse (ICC) para acoplamento e estabilidade. A qualidade da medida foi avaliada por α de Cronbach (com IC95%), ω de McDonald, AFC (estimador DWLS), HTMT, teoria de resposta ao item (modelo de resposta gradual) e análise fatorial exploratória; a equivalência pré→pós, pela hierarquia de invariância configural → métrica → escalar → estrita/parcial (ΔCFI ≤ 0,01; congruência de Tucker φ ≥ 0,95). A capacidade diagnóstica foi quantificada por curvas ROC (AUC com IC95% por bootstrap agrupado por atleta) e a validação preditiva por regressão/classificação leave-one-athlete-out. Confirmação bayesiana (fator de Bayes JZS) e multivariada (Hotelling T², MANOVA/PERMANOVA) complementaram a inferência. Como análises complementares, estimaram-se a mudança confiável por atleta (RCI/MDC a partir do erro-padrão de medida), a equivalência dos achados nulos (TOST), a rede de correlações parciais (modelo gráfico gaussiano) e a cinética intra-sessão (pré→meio→pós). A coerência numérica foi auditada extraindo-se o texto renderizado de todos os entregáveis e verificando que cada valor-âncora é reproduzido de forma idêntica em cada peça. Análises em Python (statsmodels, scipy, pingouin, semopy, factor_analyzer); α = 0,05.'));
 children.push(...figA('figuras/desenho_analitico.png', 'Figura 2. Desenho analítico do estudo: do microciclo (7 dias, HIIT nos dias 2/4/7) e das coletas pré/pós à cadeia de análises com o atleta como unidade.'));
 children.push(new Paragraph({ children: [new PageBreak()] }));
 
@@ -326,6 +380,16 @@ children.push(table(['Variável','Pré','Meio','Pós'],
   Object.values(EX.intradia).map(o => [o.label, nf(o.pre), nf(o.mid), nf(o.pos)]),
   [3360,2000,2000,2000], ['l','r','r','r']));
 children.push(caption('Tabela 26. Médias por momento (pré, meio, pós) — cinética aguda dentro da sessão.'));
+
+children.push(H('3.6. Coerência e rastreabilidade entre entregáveis', HeadingLevel.HEADING_2));
+{
+  const co = D.coerencia, ent = co.entregaveis.length, met = co.metricas.length;
+  children.push(P('Para assegurar a integridade do estudo, cada valor-âncora foi rastreado entre os ' + ent + ' entregáveis (' + co.entregaveis.join(', ') + ') por extração do texto renderizado. Verificaram-se ' + met + ' métricas-âncora, com ' + co.total_ocorrencias + ' ocorrências consistentes e nenhuma divergência — ou seja, cada número aparece de forma idêntica em todas as peças em que consta (Tabela 27). ' + (co.nota || '') ));
+  children.push(table(['Métrica-âncora','Valor','Nº de entregáveis'],
+    co.metricas.map(m => [m.m, m.v, String(m.n)]),
+    [5760,1800,1800], ['l','r','r']));
+  children.push(caption('Tabela 27. Rastreabilidade dos valores-âncora entre os entregáveis do estudo (extração do texto renderizado); ' + co.total_ocorrencias + ' ocorrências consistentes, 0 divergências.'));
+}
 children.push(new Paragraph({ children: [new PageBreak()] }));
 
 // ===================== 4. DISCUSSÃO =====================
@@ -341,8 +405,13 @@ children.push(P([bold('A dinâmica temporal e o valor do nível sobre a derivada
 children.push(P([bold('Confiabilidade da mudança, equivalência e estrutura. '), run('As análises complementares refinam o quadro. A mudança confiável (RCI/MDC) mostra que a maior parte das oscilações pré→pós individuais está dentro do erro de medida — só uma minoria dos atletas ultrapassa a mínima mudança detectável —, o que quantifica a individualidade e alerta contra sobreinterpretar variações pequenas. Os testes de equivalência (TOST) convertem o desacoplamento carga↔humor e o contraste HIIT-vs-sem em equivalência estatística formal (não mera ausência de significância) para os índices centrais. A rede de correlações parciais posiciona a depressão como nó mais central do afeto negativo, e a cinética intradia revela que a resposta aguda se instala já no meio da sessão. Em conjunto, reforçam — por vias independentes — a leitura de estado, individual e desacoplada.')]));
 children.push(P([bold('Marcadores para o monitoramento. '), run('A fadiga física é o marcador mais sensível de estado de fadiga (AUC ' + nf(chP[0].AUC) + '); sua baixa estabilidade é a assinatura desejável de um sinal de estado. A fadiga mental e a depressão combinam sensibilidade e confiabilidade, servindo ao acompanhamento dia a dia; a tensão, embora estável, é diagnosticamente cega. A validade convergente intra-sujeito entre o BRUMS e os autorrelatos externos reforça a interpretação. A ênfase na fadiga — física e mental — não é arbitrária: revisões e meta-análises recentes mostram que a fadiga mental prejudica de forma consistente o desempenho técnico e físico em esportes coletivos (passe, chute, corrida intermitente), com efeitos pequenos a moderados (Yuan et al., 2023; Grgic, Mikulic & Mikulic, 2022) — de modo que um marcador sensível e confiável desse estado tem valor prático direto. No contexto do handebol — modalidade de alta demanda intermitente e calendário denso —, isso sustenta um protocolo de monitoramento parcimonioso e de baixo custo, aplicável no dia a dia do clube.')]));
 children.push(P([bold('Pontos fortes e validade. '), run('A disciplina de atleta-como-unidade, a triangulação por métodos independentes (frequentista, bayesiano, multivariado, classificação e cálculo), a caracterização psicométrica completa (confiabilidade, AFC, AFE, TRI, invariância configural→estrita/parcial) e a reprodutibilidade ponta-a-ponta por código conferem robustez incomum. A validade convergente aparece na correlação intra-sujeito entre BRUMS e autorrelatos externos; a de construto, na invariância; a diagnóstica, nas AUC.')]));
-children.push(P([bold('Limitações. '), run('Delineamento observacional (associação, não causalidade); amostra de um único clube de elite (27 atletas), o que limita poder para efeitos individuais e generalização; ausência de duração de sessão (TRIMP relativo por %HRR); efeito de teto na carga; itens com efeito piso (tensão, confusão); sonolência medida por um único item.')]));
-children.push(P([bold('Direções futuras. '), run('Desenhos com manipulação da carga (dias pareados de alta vs. baixa intensidade) para testar causalidade; séries temporais mais densas por atleta para modelos dinâmicos individuais e mapeamento de não-respondedores; escala de sono/alerta dedicada; integração de marcadores objetivos de recuperação (VFC, sono); e validação prospectiva do protocolo parcimonioso contra desfechos de desempenho e lesão.')]));
+children.push(P([bold('Reprodutibilidade e coerência interna. '), run('Todos os valores relatados são regenerados por código a partir da coleta bruta, e a auditoria de coerência entre os ' + D.coerencia.entregaveis.length + ' entregáveis confirmou ' + D.coerencia.total_ocorrencias + ' ocorrências consistentes dos valores-âncora, sem divergências. Essa rastreabilidade — incomum em estudos aplicados — garante que artigo, documento técnico, painéis e materiais de divulgação comunicam exatamente os mesmos números, reduzindo o risco de erro de transcrição e facilitando a verificação independente e a reanálise futura.')]));
+
+children.push(H('4.1. Limitações', HeadingLevel.HEADING_2));
+children.push(P('O estudo tem limitações que delimitam o alcance das conclusões. (1) O delineamento é observacional e longitudinal, sem manipulação experimental da carga: as associações descrevem covariação natural, não relações causais. (2) A amostra provém de um único clube de elite (27 atletas), o que restringe o poder estatístico para efeitos individuais finos e a generalização para outros níveis competitivos, sexos ou modalidades. (3) A carga interna foi indexada por %HRR e PSE sem a duração exata de cada sessão, de modo que o TRIMP é relativo; o forte efeito de teto (sessões uniformemente quase-máximas) comprime a variância da carga e, por construção, limita sua capacidade de explicar a variância do humor — o desacoplamento deve, portanto, ser lido dentro desse regime de intensidade elevada. (4) Duas subescalas (tensão e confusão) apresentam efeito piso acentuado, o que reduz sua sensibilidade e impede afirmar ausência de fenômeno a partir de ausência de resposta. (5) A sonolência foi captada por um único item, insuficiente para uma medida psicométrica robusta desse construto. (6) A invariância escalar é apenas aproximada e a estrita fica no limite, com quebra localizada; embora identificada e contornada por invariância parcial, recomenda replicação. (7) Por fim, ainda que a triangulação multimétodo mitigue o problema, o tamanho amostral limita a estabilidade de estimativas de rede e de modelos preditivos individuais.'));
+
+children.push(H('4.2. Direções futuras', HeadingLevel.HEADING_2));
+children.push(P('As lacunas acima sugerem uma agenda direta. (1) Desenhos com manipulação da carga — dias pareados de alta vs. baixa intensidade, ou blocos com volume/intensidade controlados — para testar causalidade e não apenas associação. (2) Séries temporais mais densas por atleta (várias semanas), permitindo modelos dinâmicos individuais, detecção de não-respondedores e estimativas estáveis de inclinação aleatória. (3) Amostras multicêntricas e de ambos os sexos, para invariância entre grupos e generalização. (4) Uma escala de sono/alerta dedicada, separando "cansaço" de "sonolência", à luz do comportamento paradoxal do item "Sonolento". (5) Integração de marcadores objetivos de recuperação (variabilidade da frequência cardíaca, actigrafia de sono, marcadores bioquímicos) para triangular o autorrelato com fisiologia. (6) Validação prospectiva do protocolo de monitoramento parcimonioso (fadiga física + fadiga mental/depressão, por tendência individual e com limiares de RCI/MDC) contra desfechos de desempenho, adaptação e risco de lesão. (7) Modelagem conjunta carga–resposta com defasagens (efeitos retardados e de acúmulo), para além do contraste agudo.'));
 
 // ===================== 5. CONCLUSÃO =====================
 children.push(H('5. Conclusão', HeadingLevel.HEADING_1));
@@ -351,8 +420,10 @@ children.push(P([bold('(1) Resposta específica no eixo energia–fadiga (H1, H2
 children.push(P([bold('(2) Mudança de estado, não de medida (H5). '), run('A escala é confiável e invariante pré→pós (métrica sustentada, ΔCFI −0,004; escalar aproximada; estrita no limite), com a única quebra localizada e identificada no item "Sonolento" — a leitura de estado é, portanto, legítima.')]));
 children.push(P([bold('(3) Resposta fortemente individual (H4). '), run('A maior parte da variância é traço e apenas uma minoria de atletas atinge mudança confiável (RCI acima da MDC); a média do grupo esconde trajetórias opostas, exigindo monitoramento por tendência individual.')]));
 children.push(P([bold('(4) Desacoplamento carga↔humor, agora formal (H6). '), run('A carga interna não determina a resposta aguda de humor: os testes de equivalência (TOST) mostram equivalência estatística a zero para os índices centrais — FC/TRIMP não substituem o autorrelato, convergindo com a literatura de monitoramento (Saw et al., 2016; Duignan et al., 2020).')]));
-children.push(P([bold('(5) Marcadores ótimos de monitoramento. '), run('A fadiga física é o marcador mais sensível de estado; a fadiga mental e a depressão somam sensibilidade e confiabilidade — relevantes porque a fadiga mental compromete o desempenho em esportes coletivos (Yuan et al., 2023; Grgic et al., 2022).')]));
-children.push(P([bold('Recomendação aplicada. '), run('Monitorar o humor por tendência individual, priorizando a fadiga física (sentinela sensível) somada à fadiga mental/depressão (âncoras confiáveis), num protocolo parcimonioso e reprodutível; interpretar variações abaixo da mínima mudança detectável como ruído e não substituir o autorrelato por marcadores de carga. A convergência de métodos independentes para a mesma conclusão é a melhor evidência de que ela descreve o fenômeno, e não o método.')]));
+children.push(P([bold('(5) Marcadores ótimos de monitoramento. '), run('A fadiga física é o marcador mais sensível de estado; a fadiga mental e a depressão somam sensibilidade e confiabilidade — relevantes porque a fadiga mental compromete o desempenho em esportes coletivos (Yuan et al., 2023; Grgic et al., 2022). A rede de correlações parciais posiciona a depressão como nó central do afeto negativo, e a cinética intra-sessão mostra que a resposta se instala já no meio do treino — dois refinamentos que apoiam o desenho do monitoramento.')]));
+children.push(P([bold('(6) Achados reprodutíveis e internamente coerentes. '), run('Todo o estudo é regenerado por código a partir da coleta bruta, e a auditoria de coerência entre os ' + D.coerencia.entregaveis.length + ' entregáveis confirmou ' + D.coerencia.total_ocorrencias + ' ocorrências consistentes dos valores-âncora, sem divergências — o mesmo número é comunicado de forma idêntica em cada peça, o que sustenta a verificação independente e a reanálise.')]));
+children.push(P('Em síntese, as seis conclusões convergem para uma única leitura: sob HIIT, o humor do atleta de handebol muda de estado no eixo energia–fadiga, de forma confiável de medir, marcadamente individual e não redutível ao custo cardiovascular da sessão. A força da evidência não está em um teste isolado, mas na concordância de métodos com pressupostos distintos — frequentista, bayesiano, multivariado, preditivo e de cálculo — apontando para o mesmo fenômeno.'));
+children.push(P([bold('Recomendação aplicada. '), run('Monitorar o humor por tendência individual, priorizando a fadiga física (sentinela sensível) somada à fadiga mental/depressão (âncoras confiáveis), num protocolo parcimonioso e reprodutível; interpretar variações abaixo da mínima mudança detectável (MDC) como ruído e não substituir o autorrelato por marcadores de carga. A convergência de métodos independentes para a mesma conclusão é a melhor evidência de que ela descreve o fenômeno, e não o método.')]));
 
 // ===================== REFERÊNCIAS =====================
 children.push(new Paragraph({ children: [new PageBreak()] }));
@@ -372,7 +443,12 @@ const doc = new Document({
       { id: 'Heading3', name: 'Heading 3', basedOn: 'Normal', next: 'Normal', quickFormat: true,
         run: { font: 'Cambria', size: 21, bold: true, color: '0E8C86' }, paragraph: { spacing: { before: 180, after: 80 }, outlineLevel: 2 } },
     ] },
-  sections: [{ properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1134, bottom: 1134, left: 1134, right: 1134 } } }, children }]
+  sections: [
+    // Seção 1 — capa escura, sem margens (full-bleed)
+    { properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 0, bottom: 0, left: 0, right: 0 } } }, children: cover },
+    // Seção 2 — miolo claro do artigo
+    { properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1134, bottom: 1134, left: 1134, right: 1134 } } }, children },
+  ]
 });
 Packer.toBuffer(doc).then(buf => {
   const out = path.join(HERE, 'Artigo_BRUMS_HIIT_A1.docx');
