@@ -598,6 +598,11 @@ const SEC=[]; function sec(id,title){const s=document.createElement('section');s
  const irows=Object.values(E.intradia).map(o=>({v:o.label,pre:o.pre,mid:o.mid,pos:o.pos}));
  dtable(c4,[{k:'v',label:'Variável'},{k:'pre',label:'Pré',num:true,render:v=>fmt(v)},{k:'mid',label:'Meio',num:true,render:v=>fmt(v)},{k:'pos',label:'Pós',num:true,render:v=>fmt(v)}],irows);
  c4.insertAdjacentHTML('beforeend','<figure style="margin-top:10px;background:#0b1220;padding:12px;border-radius:12px"><img src="'+(window.FIGS&&FIGS.intradia||'')+'" style="width:100%;border-radius:8px" alt="Intradia"></figure><p class="note">A fadiga física e o PTH sobem <b>já no meio</b> da sessão e o vigor cai — a resposta aguda se instala cedo.</p>');
+ if(D.coerencia){const C=D.coerencia;
+  const c5=card('Coerência entre entregáveis','rastreabilidade dos números-âncora');g.append(c5);c5.style.gridColumn='1 / -1';
+  dtable(c5,[{k:'m',label:'Métrica-âncora'},{k:'v',label:'Valor'},{k:'n',label:'Citam',num:true,render:v=>v+'/'+C.entregaveis.length},{k:'ent',label:'Entregáveis',render:v=>v.join(', ')}],C.metricas);
+  c5.insertAdjacentHTML('beforeend','<p class="note"><b>'+C.total_ocorrencias+' ocorrências consistentes</b> dos '+C.metricas.length+' números-âncora nos '+C.entregaveis.length+' entregáveis, sem divergências — as ausências são métricas não citadas naquele material, não valores conflitantes. Todos gerados por código a partir da mesma fonte.</p>');
+ }
 })();
 
 document.getElementById('app').insertAdjacentHTML('beforeend','<footer>Dashboard analítico · BRUMS × HIIT no handebol · atletas anonimizados (A01–A27) · números reproduzidos por código · 2026.</footer>');

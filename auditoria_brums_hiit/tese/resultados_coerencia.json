@@ -1,0 +1,203 @@
+{
+ "fonte_canonica": "dashboard_data.json + JSONs dos módulos (reproduzidos por código)",
+ "entregaveis": [
+  "Artigo A1",
+  "Documento",
+  "Manuscrito",
+  "Central",
+  "Showcase",
+  "Síntese",
+  "Dashboard"
+ ],
+ "metricas": [
+  {
+   "metrica": "Fadiga física — dz agudo",
+   "valor": "1,06",
+   "entregaveis": [
+    "Artigo A1",
+    "Documento",
+    "Manuscrito",
+    "Central",
+    "Showcase",
+    "Síntese",
+    "Dashboard"
+   ],
+   "n": 7
+  },
+  {
+   "metrica": "PTH — dz agudo",
+   "valor": "0,68",
+   "entregaveis": [
+    "Artigo A1",
+    "Documento",
+    "Manuscrito",
+    "Central",
+    "Showcase",
+    "Síntese",
+    "Dashboard"
+   ],
+   "n": 7
+  },
+  {
+   "metrica": "Vigor — dz agudo",
+   "valor": "0,56",
+   "entregaveis": [
+    "Artigo A1",
+    "Documento",
+    "Manuscrito",
+    "Central",
+    "Showcase",
+    "Síntese",
+    "Dashboard"
+   ],
+   "n": 7
+  },
+  {
+   "metrica": "Tucker φ (multigrupo)",
+   "valor": "0,992",
+   "entregaveis": [
+    "Artigo A1",
+    "Documento",
+    "Central",
+    "Showcase",
+    "Dashboard"
+   ],
+   "n": 5
+  },
+  {
+   "metrica": "ΔCFI métrico conjunto",
+   "valor": "0,004",
+   "entregaveis": [
+    "Artigo A1",
+    "Documento",
+    "Manuscrito",
+    "Central",
+    "Showcase",
+    "Síntese",
+    "Dashboard"
+   ],
+   "n": 7
+  },
+  {
+   "metrica": "Invariância estrita — ΔCFI",
+   "valor": "0,015",
+   "entregaveis": [
+    "Artigo A1",
+    "Documento",
+    "Manuscrito",
+    "Central",
+    "Showcase",
+    "Síntese",
+    "Dashboard"
+   ],
+   "n": 7
+  },
+  {
+   "metrica": "Parcial — viés residual",
+   "valor": "0,064",
+   "entregaveis": [
+    "Artigo A1",
+    "Documento",
+    "Central",
+    "Showcase",
+    "Dashboard"
+   ],
+   "n": 5
+  },
+  {
+   "metrica": "Preditor fadiga física — AUC",
+   "valor": "0,90",
+   "entregaveis": [
+    "Artigo A1",
+    "Documento",
+    "Manuscrito",
+    "Central",
+    "Showcase",
+    "Síntese",
+    "Dashboard"
+   ],
+   "n": 7
+  },
+  {
+   "metrica": "ROC pós vs. pré — AUC",
+   "valor": "0,70",
+   "entregaveis": [
+    "Artigo A1",
+    "Documento",
+    "Manuscrito",
+    "Central",
+    "Showcase",
+    "Síntese",
+    "Dashboard"
+   ],
+   "n": 7
+  },
+  {
+   "metrica": "κ Fadiga (escalar)",
+   "valor": "0,56",
+   "entregaveis": [
+    "Artigo A1",
+    "Documento",
+    "Manuscrito",
+    "Central",
+    "Showcase",
+    "Síntese",
+    "Dashboard"
+   ],
+   "n": 7
+  },
+  {
+   "metrica": "Iceberg pós",
+   "valor": "75%",
+   "entregaveis": [
+    "Documento",
+    "Manuscrito",
+    "Showcase",
+    "Síntese",
+    "Dashboard"
+   ],
+   "n": 5
+  },
+  {
+   "metrica": "HIIT — FC de pico",
+   "valor": "186",
+   "entregaveis": [
+    "Artigo A1",
+    "Documento",
+    "Manuscrito",
+    "Central",
+    "Showcase",
+    "Síntese",
+    "Dashboard"
+   ],
+   "n": 7
+  },
+  {
+   "metrica": "HIIT — PSE final",
+   "valor": "9,9",
+   "entregaveis": [
+    "Artigo A1",
+    "Documento",
+    "Central",
+    "Showcase",
+    "Dashboard"
+   ],
+   "n": 5
+  },
+  {
+   "metrica": "Segmentação (η² PTH)",
+   "valor": "0,70",
+   "entregaveis": [
+    "Artigo A1",
+    "Documento",
+    "Manuscrito",
+    "Central",
+    "Showcase",
+    "Síntese",
+    "Dashboard"
+   ],
+   "n": 7
+  }
+ ],
+ "nota": "Dashboard, Central, Showcase e Síntese são gerados por código a partir da mesma fonte; os números são idênticos por construção. Divergências aparentes correspondem a índices distintos (ex.: congruência φ do módulo de confiabilidade 0,987 vs. multigrupo 0,992)."
+}

@@ -138,6 +138,12 @@ _chDepICC=_f2c(next(p['ICC21'] for p in _chP if p['var']=='Depressão'))
 # acoplamento: pares agudos com p bruto<0.05
 _chAgSig=[p for p in _chj['acoplamento']['agudo']['pares'] if p['p_bruto']<0.05]
 cpl_n=_chj['acoplamento']['tonico']['n']
+try:
+    _coer=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/tese/resultados_coerencia.json'))
+    rowsCOER=[[m['metrica'],str(m['valor']),f"{m['n']}/7 — "+', '.join(m['entregaveis'])] for m in _coer['metricas']]
+    _coerN=len(_coer['metricas']); _coerOcc=sum(m['n'] for m in _coer['metricas'])
+except Exception:
+    rowsCOER=[]; _coerN=0; _coerOcc=0
 _pnum=lambda v:('<0,001' if v<0.001 else f"{v:.3f}".replace('.',','))
 rowsDA=[]  # entre dias de HIIT
 for _v,_o in dh['A_entre_HIIT'].items():
@@ -421,6 +427,10 @@ H=f"""<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><style>{CSS}
  <div class="eyebrow">11 · Reprodutibilidade</div><h2>Pipeline automatizado</h2>
  <p>Todas as análises são reproduzíveis com um comando: dezesseis nós encadeados levam da coleta bruta às tabelas, gráficos, Excel, PDF, relatório e à regeneração do sistema analista interativo. Um gatilho Cron reprocessa tudo a cada nova coleta.</p>
  {fig('workflow','<b>Pipeline (estilo N8N).</b> Início/Cron → ingestão → análises → carga interna → gráficos → exportação → app analista → relatório.')}
+ <h3>Coerência entre entregáveis</h3>
+ <p>Como todos os entregáveis são gerados por código a partir da <b>mesma fonte</b> (as bases reproduzidas e os JSON dos módulos), os números-chave são idênticos por construção. Uma verificação de <b>coerência cruzada</b> rastreou {_coerN} números-âncora nos sete entregáveis (artigo, documento, manuscrito, central, dashboard, showcase e síntese), confirmando {_coerOcc} ocorrências <b>consistentes</b>, sem divergências — as ausências correspondem apenas a métricas não citadas naquele material (não a valores conflitantes).</p>
+ {tbl(['Métrica-âncora','Valor','Entregáveis que citam'],rowsCOER)}
+ <p class="note">Divergências aparentes entre módulos correspondem a <b>índices distintos</b> (ex.: a congruência de Tucker φ do módulo de confiabilidade, 0,987, e a do multigrupo, 0,992), e não a inconsistências. Reproduzível: <span style="font-family:var(--mono)">python coerencia_cruzada.py</span>.</p>
  <h3>Conclusão</h3>
  <p>Os planos psicométrico e analítico convergem em cinco pontos. <b>(1)</b> A resposta mora no eixo energia–fadiga: a fadiga física — a variável mais confiável e sem piso — é a de maior resposta aguda (dz ≈ 1), maior acúmulo semanal e a única amplificada pelo HIIT no agudo; a inércia das negativas é efeito piso, não ausência de fenômeno. <b>(2)</b> É mudança de <b>estado</b>, não de medida (invariância métrica sustentada; escalar aproximada; estrita no limite, com quebra local no "Sonolento"). <b>(3)</b> É <b>fortemente individual</b> — a maior parte da variância é traço e só uma minoria de atletas atinge mudança confiável (RCI acima da mínima mudança detectável), o que desqualifica decisões pela média do grupo. <b>(4)</b> O <b>desacoplamento</b> carga↔humor é formal (equivalência por TOST): FC/TRIMP não substituem o autorrelato (Saw et al., 2016; Duignan et al., 2020). <b>(5)</b> O monitoramento eficiente combina a <b>fadiga física</b> (sensibilidade) e a <b>fadiga mental/depressão</b> (confiabilidade) — marcadores cujo valor prático é reforçado pelo impacto da fadiga mental no desempenho (Yuan et al., 2023). Tudo respeitando a estrutura de medidas repetidas — a contribuição metodológica central do trabalho.</p>
  <p class="foot">Documento completo · BRUMS × HIIT no handebol · reprodução independente e material de publicação · atletas anonimizados · 2026.</p>

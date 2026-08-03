@@ -4243,5 +4243,208 @@
     "pos": 5.11
    }
   }
+ },
+ "coerencia": {
+  "entregaveis": [
+   "Artigo A1",
+   "Documento",
+   "Manuscrito",
+   "Central",
+   "Showcase",
+   "Síntese",
+   "Dashboard"
+  ],
+  "metricas": [
+   {
+    "m": "Fadiga física — dz agudo",
+    "v": "1,06",
+    "n": 7,
+    "ent": [
+     "Artigo A1",
+     "Documento",
+     "Manuscrito",
+     "Central",
+     "Showcase",
+     "Síntese",
+     "Dashboard"
+    ]
+   },
+   {
+    "m": "PTH — dz agudo",
+    "v": "0,68",
+    "n": 7,
+    "ent": [
+     "Artigo A1",
+     "Documento",
+     "Manuscrito",
+     "Central",
+     "Showcase",
+     "Síntese",
+     "Dashboard"
+    ]
+   },
+   {
+    "m": "Vigor — dz agudo",
+    "v": "0,56",
+    "n": 7,
+    "ent": [
+     "Artigo A1",
+     "Documento",
+     "Manuscrito",
+     "Central",
+     "Showcase",
+     "Síntese",
+     "Dashboard"
+    ]
+   },
+   {
+    "m": "Tucker φ (multigrupo)",
+    "v": "0,992",
+    "n": 5,
+    "ent": [
+     "Artigo A1",
+     "Documento",
+     "Central",
+     "Showcase",
+     "Dashboard"
+    ]
+   },
+   {
+    "m": "ΔCFI métrico conjunto",
+    "v": "0,004",
+    "n": 7,
+    "ent": [
+     "Artigo A1",
+     "Documento",
+     "Manuscrito",
+     "Central",
+     "Showcase",
+     "Síntese",
+     "Dashboard"
+    ]
+   },
+   {
+    "m": "Invariância estrita — ΔCFI",
+    "v": "0,015",
+    "n": 7,
+    "ent": [
+     "Artigo A1",
+     "Documento",
+     "Manuscrito",
+     "Central",
+     "Showcase",
+     "Síntese",
+     "Dashboard"
+    ]
+   },
+   {
+    "m": "Parcial — viés residual",
+    "v": "0,064",
+    "n": 5,
+    "ent": [
+     "Artigo A1",
+     "Documento",
+     "Central",
+     "Showcase",
+     "Dashboard"
+    ]
+   },
+   {
+    "m": "Preditor fadiga física — AUC",
+    "v": "0,90",
+    "n": 7,
+    "ent": [
+     "Artigo A1",
+     "Documento",
+     "Manuscrito",
+     "Central",
+     "Showcase",
+     "Síntese",
+     "Dashboard"
+    ]
+   },
+   {
+    "m": "ROC pós vs. pré — AUC",
+    "v": "0,70",
+    "n": 7,
+    "ent": [
+     "Artigo A1",
+     "Documento",
+     "Manuscrito",
+     "Central",
+     "Showcase",
+     "Síntese",
+     "Dashboard"
+    ]
+   },
+   {
+    "m": "κ Fadiga (escalar)",
+    "v": "0,56",
+    "n": 7,
+    "ent": [
+     "Artigo A1",
+     "Documento",
+     "Manuscrito",
+     "Central",
+     "Showcase",
+     "Síntese",
+     "Dashboard"
+    ]
+   },
+   {
+    "m": "Iceberg pós",
+    "v": "75%",
+    "n": 5,
+    "ent": [
+     "Documento",
+     "Manuscrito",
+     "Showcase",
+     "Síntese",
+     "Dashboard"
+    ]
+   },
+   {
+    "m": "HIIT — FC de pico",
+    "v": "186",
+    "n": 7,
+    "ent": [
+     "Artigo A1",
+     "Documento",
+     "Manuscrito",
+     "Central",
+     "Showcase",
+     "Síntese",
+     "Dashboard"
+    ]
+   },
+   {
+    "m": "HIIT — PSE final",
+    "v": "9,9",
+    "n": 5,
+    "ent": [
+     "Artigo A1",
+     "Documento",
+     "Central",
+     "Showcase",
+     "Dashboard"
+    ]
+   },
+   {
+    "m": "Segmentação (η² PTH)",
+    "v": "0,70",
+    "n": 7,
+    "ent": [
+     "Artigo A1",
+     "Documento",
+     "Manuscrito",
+     "Central",
+     "Showcase",
+     "Síntese",
+     "Dashboard"
+    ]
+   }
+  ],
+  "total_ocorrencias": 90,
+  "nota": "Dashboard, Central, Showcase e Síntese são gerados por código a partir da mesma fonte; os números são idênticos por construção. Divergências aparentes correspondem a índices distintos (ex.: congruência φ do módulo de confiabilidade 0,987 vs. multigrupo 0,992)."
  }
 }
