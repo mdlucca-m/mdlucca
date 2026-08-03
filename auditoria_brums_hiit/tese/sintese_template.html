@@ -185,8 +185,12 @@ const app=document.getElementById('app');
  ['violet','Sonolência','Cansado ≠ com sono','A sonolência CAI pós-treino (dz −0,55) enquanto a exaustão sobe — o exercício desperta. Remover o item eleva o α da Fadiga de 0,80 para 0,90.'],
  ['coral','ROC das derivadas','O nível diagnostica mais que a taxa','Como escore do dia de HIIT, a derivada aguda é fraca (AUC≤0,59) e não supera o nível (PTH nível 0,60 vs derivada 0,50).'],
  ['gold','Derivadas','Acúmulo homogêneo vs. idiossincrático','A fadiga física acumula em 92% dos atletas (derivada consistente); o PTH em só 58% (DP 1,45). O vigor cai (−0,28/dia).'],
+ ['teal','Mudança confiável (RCI/MDC)','Poucos mudam de fato','Só ~4–20% dos pares pré→pós superam a mínima mudança detectável — a maioria fica no ruído de medida. Quantifica a individualidade e alerta contra sobreinterpretar variações pequenas.'],
+ ['blue','Equivalência (TOST)','Nulo que é mesmo nulo','O desacoplamento carga↔humor e o contraste HIIT-vs-sem são estatisticamente equivalentes a zero (PTH, fadiga mental) — não apenas "n.s.". Converge com Duignan et al. (2020).'],
+ ['violet','Rede psicométrica','Depressão é o nó central','Correlações parciais entre subescalas (modelo gráfico gaussiano): a depressão tem a maior força — complemento moderno à análise fatorial.'],
+ ['coral','Cinética intradia','A fadiga sobe já no meio','Pré→meio→pós (n=155): fadiga física e PTH sobem e o vigor cai já no meio da sessão — a resposta aguda se instala cedo.'],
 ];
- const t=document.createElement('div');t.innerHTML='<h2>Principais achados</h2><p class="sub">Oito conclusões, todas reconciliadas com a reanálise (atleta como unidade, FDR).</p>';app.append(t);
+ const t=document.createElement('div');t.innerHTML='<h2>Principais achados</h2><p class="sub">Conclusões reconciliadas com a reanálise (atleta como unidade, FDR), incluindo as análises complementares (RCI/MDC, equivalência TOST, rede psicométrica e cinética intradia).</p>';app.append(t);
  const g=document.createElement('div');g.className='finds';
  g.innerHTML=F.map(([ac,k,h,p])=>`<div class="find" style="--ac:${cvar(ac)}"><div class="k">${k}</div><h3>${h}</h3><p>${p}</p></div>`).join('');
  app.append(g);})();
