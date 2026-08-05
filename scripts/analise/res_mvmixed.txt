@@ -1,0 +1,39 @@
+============================================================================
+MODELO MISTO MULTIVARIADO — eixo energia-fadiga (respostas padronizadas z)
+============================================================================
+  n obs empilhadas=1824  (27 atletas x 4 tracos)
+
+### Modelo 1: resp ~ 0 + trait + trait:dia_c ;  RE nao-estruturado (trait | atleta)
+  Efeitos fixos (inclinacao/dia por traco):
+    Vigor      beta/dia=-0.086  p=0.0000
+    Fadiga     beta/dia=+0.088  p=0.0000
+    FadFisica  beta/dia=+0.144  p=0.0000
+    TMD        beta/dia=+0.041  p=0.0173
+  Correlacao ENTRE-ATLETAS (traco) — matriz dos efeitos aleatorios:
+        FadFisic    Fadiga       TMD     Vigor
+    FadFisic    +1.00     +0.77     +0.60     -0.46
+      Fadiga    +0.77     +1.00     +0.86     -0.41
+         TMD    +0.60     +0.86     +1.00     -0.65
+       Vigor    -0.46     -0.41     -0.65     +1.00
+
+### Modelo 2: resp ~ 0 + trait + trait:HIIT (dias de treino 2-7); RE nao-estruturado
+  Efeito do dia-HIIT por traco (vs tecnico-tatico):
+    Vigor      beta(HIIT)=-0.084  p=0.2030
+    Fadiga     beta(HIIT)=+0.124  p=0.0604
+    FadFisica  beta(HIIT)=+0.163  p=0.0136
+    TMD        beta(HIIT)=+0.204  p=0.0020
+
+### Teste multivariado conjunto do efeito do dia (LRT)
+    LRT (com vs sem trait:dia): chi2=118.92, gl=4, p=9.07e-25  -> deslocamento multivariado do perfil
+
+### Modelo 3: crescimento CUBICO multivariado (trait-especifico) — coef t^3 por traco
+    Vigor      coef t^3=-0.0252  p=0.0000
+    Fadiga     coef t^3=+0.0229  p=0.0001
+    FadFisica  coef t^3=+0.0355  p=0.0000
+    TMD        coef t^3=+0.0200  p=0.0005
+
+### Nota de escala: inclinacoes em z; multiplicar por DP do traco para escala bruta:
+    Vigor      DP=3.12
+    Fadiga     DP=3.89
+    FadFisica  DP=2.34
+    TMD        DP=9.64

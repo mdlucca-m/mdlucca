@@ -26,6 +26,7 @@ Além dos três artigos, dois relatórios aprofundam análises específicas dent
 - **[Análises robustas](Analises_Robustas_ROC_Derivadas_Alometria.md)** — tamanhos de efeito com IC bootstrap (dz D1→D7 fadiga física = +1,74; D de Mahalanobis = 1,55); derivadas (velocidade/aceleração da mudança); curvas não lineares (melhor ajuste cúbico); ajustes logísticos (OR aptidão = 0,50/km·h⁻¹); escalonamento alométrico; **ROC** (sessão de HIIT AUC ≈ 0,5 vs acúmulo D7–D1 AUC = 0,86).
 - **[Post hoc](Analise_PostHoc_Comparacoes.md)** — comparações par a par entre dias (EMM do modelo misto, Tukey/Holm) e entre sessões de HIIT: fadiga física e vigor diferem do baseline já no D2; TMD só no D7 (maior contraste D5→D7); queda da FC de pico concentrada em S2→S3.
 - **[Análise polinomial](Analise_Polinomial_Tendencia.md)** — tendências ortogonais (componentes **linear + cúbica** significativas; quadrática ausente); crescimento polinomial multinível (**cúbico** vence por AIC/LRT, *p* < 0,001, com inclinações aleatórias); contrastes HIIT×TT (só o D7 difere) e pré→pós por dia (fadiga física responde em todos os dias).
+- **[Modelos mistos multivariados](Analise_Modelos_Mistos_Multivariados.md)** — modelagem conjunta do eixo energia–fadiga (4 traços, efeitos aleatórios não estruturados): deslocamento multivariado do perfil (LRT *p* ≈ 9×10⁻²⁵); **correlação entre-atletas** confirmando o eixo como dimensão de traço (fadiga↔vigor = −0,65); efeito do dia-HIIT em TMD/fadiga física; crescimento cúbico multivariado.
 
 ## Divisão de responsabilidades analíticas
 
