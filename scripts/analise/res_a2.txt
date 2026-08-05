@@ -1,0 +1,47 @@
+=== EFEITO DO DIA (modelo misto, intercepto aleatorio atleta) ===
+  FadFisica  F~18.92 p=0.0000 p_FDR=0.0000 ICC_atleta=0.46
+  Fadiga     F~ 8.23 p=0.0000 p_FDR=0.0000 ICC_atleta=0.59
+  TMD        F~ 5.06 p=0.0000 p_FDR=0.0001 ICC_atleta=0.59
+  Vigor      F~ 8.38 p=0.0000 p_FDR=0.0000 ICC_atleta=0.57
+  FadMental  F~ 3.43 p=0.0022 p_FDR=0.0024 ICC_atleta=0.71
+  Tensao     F~ 3.69 p=0.0011 p_FDR=0.0017 ICC_atleta=0.70
+  Depressao  F~ 1.57 p=0.1503 p_FDR=0.1503 ICC_atleta=0.68
+  Raiva      F~ 3.84 p=0.0008 p_FDR=0.0014 ICC_atleta=0.30
+  Confusao   F~ 3.50 p=0.0018 p_FDR=0.0023 ICC_atleta=0.38
+
+=== RESPOSTA AGUDA PRE->POS (agregada por atleta, dias 2-7) ===
+  FadFisica  Δ=+1.81 dz=+0.97 [+0.69,+1.37] p=0.000 pW=0.000 pFDR=0.000 *
+  Fadiga     Δ=+1.76 dz=+0.59 [+0.36,+0.88] p=0.005 pW=0.003 pFDR=0.019 *
+  TMD        Δ=+3.14 dz=+0.57 [+0.29,+0.89] p=0.006 pW=0.009 pFDR=0.019 *
+  Vigor      Δ=-0.80 dz=-0.45 [-0.80,-0.12] p=0.027 pW=0.033 pFDR=0.061 ns
+  FadMental  Δ=+0.49 dz=+0.33 [-0.02,+0.67] p=0.101 pW=0.181 pFDR=0.151 ns
+  Tensao     Δ=+0.27 dz=+0.40 [+0.04,+0.72] p=0.050 pW=0.072 pFDR=0.090 ns
+  Depressao  Δ=+0.14 dz=+0.18 [-0.19,+0.53] p=0.364 pW=0.378 pFDR=0.468 ns
+  Raiva      Δ=+0.19 dz=+0.13 [-0.30,+0.44] p=0.504 pW=0.845 pFDR=0.567 ns
+  Confusao   Δ=-0.03 dz=-0.06 [-0.55,+0.31] p=0.757 pW=0.470 pFDR=0.757 ns
+
+=== INTERFACE PISO x RESPONSIVIDADE (subescalas) ===
+  Fadiga     %piso=  7.7  |dz|=0.59
+  Vigor      %piso=  8.5  |dz|=0.45
+  Tensao     %piso= 49.6  |dz|=0.40
+  Depressao  %piso= 67.1  |dz|=0.18
+  Raiva      %piso= 59.6  |dz|=0.13
+  Confusao   %piso= 80.5  |dz|=0.06
+  correlacao |dz| ~ %piso: r=-0.92  R2=0.85  |dz|=0.588-0.00630*piso
+
+=== HIIT vs TECNICO-TATICO (nivel do dia, pareado por atleta) ===
+  FadFisica  HIIT=6.25 nao=6.03 Δ=+0.22 dz=+0.18 p=0.382
+  Fadiga     HIIT=5.79 nao=5.27 Δ=+0.52 dz=+0.40 p=0.057
+  TMD        HIIT=5.26 nao=3.36 Δ=+1.90 dz=+0.48 p=0.023
+  Vigor      HIIT=5.16 nao=5.54 Δ=-0.39 dz=-0.39 p=0.064
+
+=== MULTIVARIADA (perfil 6 subescalas, pre->pos agregado por atleta) ===
+  Hotelling T2: F(6,21)=2.52 p=0.054  D_Mahalanobis=0.83
+  Eixo energia-fadiga: F(2,25)=5.59 p=0.010  D=0.66
+  PERMANOVA pre vs pos (perm restrita ao atleta): pseudo-F=1.75 p=0.0027
+  PERMANOVA HIIT vs nao: pseudo-F=2.71 p=0.0083
+
+=== APTIDAO PREVIA x FADIGA DA SEMANA (moderacao, entre atletas) ===
+  T-CAR PV x fadiga fisica (semana): rho=-0.54 p=0.005
+  T-CAR PV x TMD medio (semana):     rho=-0.28 p=0.181
+  Adaptacao: T-CAR ΔPV=0.93 dz=1.32; CMJ Δ=1.64 dz=0.85

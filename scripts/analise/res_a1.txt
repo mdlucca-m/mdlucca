@@ -1,0 +1,30 @@
+KMO=0.835  Bartlett chi2=5228 p=0.00e+00
+Parallel analysis (PCA): retains 5 factors; first7 eigen=[6.55 2.99 1.97 1.44 1.35 1.1  1.04]
+  random p95 first7=[1.51 1.42 1.36 1.31 1.26 1.22 1.19]  cum.var 6 fatores=64.1%
+Principal-factor 1: RMSR=0.131  commonvar=24.6%
+Principal-factor 2: RMSR=0.086  commonvar=35.0%
+Principal-factor 6: RMSR=0.028  commonvar=54.2%
+
+-- ICC(1,1) 1 coleta  vs  ICC(1,7) media 7 dias (Spearman-Brown) --
+  Tensao     ICC(1,1)=0.69  ICC(1,7)=0.94
+  Depressao  ICC(1,1)=0.70  ICC(1,7)=0.94
+  Raiva      ICC(1,1)=0.29  ICC(1,7)=0.74
+  Vigor      ICC(1,1)=0.52  ICC(1,7)=0.88
+  Fadiga     ICC(1,1)=0.57  ICC(1,7)=0.90
+  Confusao   ICC(1,1)=0.38  ICC(1,7)=0.81
+
+-- Decomposicao de variancia (traco / dia / estado) --
+  Tensao     traco=67.1%  dia=12.2%  estado=20.7%
+  Depressao  traco=67.4%  dia=11.8%  estado=20.8%
+  Raiva      traco=26.4%  dia=37.4%  estado=36.2%
+  Vigor      traco=52.7%  dia=13.2%  estado=34.1%
+  Fadiga     traco=56.3%  dia=12.2%  estado=31.4%
+  Confusao   traco=37.7%  dia=14.4%  estado=47.9%
+
+-- Generalizabilidade (TMD): dependabilidade Phi por n coletas --
+  k=1: Phi=0.57
+  k=2: Phi=0.73
+  k=3: Phi=0.80
+  k=5: Phi=0.87
+  k=7: Phi=0.90
+  var: atleta=54.2 dia=13.7 residual=26.8
