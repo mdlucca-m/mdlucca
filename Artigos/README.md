@@ -8,7 +8,7 @@ Conforme o parecer técnico (`../PARECER_TECNICO_Monitoramento_Humor_Handebol.md
 
 A reanálise foi reexecutada em Python (numpy, scipy, statsmodels) sobre os dados item a item (24 itens do BRUMS), a carga interna das três sessões de HIIT e os **demais questionários coletados na mesma janela** — recuperação percebida (TQR), sonolência (Epworth) e estresse percebido (PSS-14). Os valores recomputados **convergem com — e em vários pontos reproduzem exatamente** — os do relatório original, o que sustenta a fidedignidade dos resultados.
 
-**Cobertura de instrumentos (dentro da janela):** BRUMS (24 itens → 6 subescalas + TMD), fadiga física/mental (0–10), **TQR** (recuperação 6–20), **Epworth** (sonolência 0–18), **PSS-14** (estresse) e autoavaliações de estado físico/mental. Achado-chave: a TQR responde ao microciclo (aguda e cronicamente) e integra o eixo energia–fadiga; a Epworth capta acúmulo crônico; o PSS é traço estável e **não** rastreia o microciclo (Artigo 2, §3.6; Artigo 1, §4).
+**Cobertura de instrumentos (dentro da janela):** BRUMS (24 itens → 6 subescalas + TMD), fadiga física/mental (0–10), **TQR** (recuperação 6–20), **Epworth** (sonolência 0–18), **PSS-14** (estresse) e **autoavaliações de estado físico/mental** (item único, 1–5). Achados-chave: a TQR responde ao microciclo (aguda e cronicamente) e integra o eixo energia–fadiga; a Epworth capta acúmulo crônico; o PSS é traço estável e **não** rastreia o microciclo (Artigo 2, §3.6; Artigo 1, §4); e a **autoavaliação física de item único** é um proxy eficiente do eixo energia–fadiga (rmcorr = −0,70; AUC = 0,83 para dia de fadiga alta), sustentando um protocolo ultraenxuto (Artigo 3, §3.7).
 
 ## Os três artigos (todos dentro da janela 21–28/04)
 

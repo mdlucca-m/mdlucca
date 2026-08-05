@@ -97,7 +97,20 @@ As dimensões do eixo energia–fadiga são as que efetivamente **flutuam** dent
 
 Entre os demais instrumentos coletados na semana, a **recuperação percebida (TQR, 6–20)** destaca-se como um segundo marcador acionável no nível individual. Ela cai ao longo do microciclo (13,4 → 9,6; *p* < 0,001), **responde à sessão** (agudo dz = −0,64; *p* = 0,001) e acopla-se fortemente ao humor dentro do atleta (rmcorr com TMD = −0,65; fadiga = −0,64; vigor = +0,51) — comportando-se como um membro do eixo energia–fadiga. Por ser uma pergunta única, direta e de baixo custo, a TQR é candidata natural a compor, ao lado da fadiga física, um **par de sentinelas** para o monitoramento diário. Em contraste, a sonolência (Epworth) sinaliza acúmulo crônico mas não responde à sessão, e o estresse percebido (PSS) é traço estável, sem valor para a decisão intra-microciclo (Artigo 2, §3.6).
 
-### 3.7 Aptidão prévia como covariável de base
+### 3.7 Um item basta? Autoavaliação global de estado físico
+
+A coleta incluiu ainda duas perguntas de item único — "como você está se sentindo agora, fisicamente / mentalmente" (escala ordinal Péssimo 1 … Muito bem 5). A **autoavaliação física** revela-se um **proxy notavelmente eficiente** do eixo energia–fadiga (Tabela 6): deteriora-se ao longo da semana (3,67 → 2,28; *p* < 0,001), responde à sessão (agudo dz = −0,60; *p* = 0,004) e converge fortemente, dentro do atleta, com a fadiga física do BRUMS (rmcorr = **−0,70**), a fadiga (−0,66) e o TMD (−0,57). Sua acurácia para sinalizar um dia de fadiga elevada é **AUC = 0,83** — isto é, uma única pergunta captura quase toda a informação de fadiga do questionário completo. A **autoavaliação mental**, ao contrário, é mais **preservada** (só 18% de respostas baixas vs 33% na física) e menos responsiva (agudo dz = −0,33, n.s.; ICC de traço = 0,55) — o mesmo padrão iceberg das subescalas negativas do BRUMS: o custo do treino inscreve-se no corpo, não no afeto.
+
+**Tabela 6.** Autoavaliação de estado por item único (28 atletas, 456 obs).
+
+| Autoavaliação | D1 → D7 | Efeito do dia (*p*) | Agudo (dz) | rmcorr × fadiga física | AUC (dia de fadiga alta) |
+|---|---|---|---|---|---|
+| **Estado físico** | 3,67 → 2,28 | < 0,001 | **−0,60** | **−0,70** | **0,83** |
+| Estado mental | 3,60 → 3,20 | 0,002 | −0,33 (n.s.) | −0,29 | — |
+
+Do ponto de vista aplicado, isso sustenta um **protocolo ultraenxuto**: uma pergunta de estado físico (0–4 s de resposta) funciona como triagem diária de fadiga, a ser aprofundada pela fadiga física (0–10) e pela TQR quando o item único sinalizar alteração — reservando o BRUMS completo para momentos-chave. É a tradução operacional máxima do princípio de que o sinal do microciclo mora no eixo energia–fadiga.
+
+### 3.8 Aptidão prévia como covariável de base
 
 Usada apenas como covariável de base (medida em 15/04, imediatamente antes da semana), a aptidão aeróbia moderou a fadiga do microciclo: o atleta com maior velocidade de pico do T-CAR fadigou menos (T-CAR × fadiga física média da semana *ρ* = −0,54; *p* = 0,005; × TMD *ρ* = −0,28; n.s.). Como o estímulo foi prescrito a 104% da velocidade de pico individual, o custo interno é relativo e equalizado — de modo que a vulnerabilidade à fadiga da semana associa-se a um **traço de aptidão prévio**, e não à intensidade absoluta corrida.
 
