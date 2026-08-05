@@ -1,0 +1,49 @@
+======================================================================
+A. BASELINE (21/04 — dia 1, repouso/linha de base)
+======================================================================
+  n obs baseline = 42  (27 atletas)
+    Vigor          =  7.52 ± 3.60
+    Fadiga(BRUMS)  =  3.74 ± 3.19
+    Fadiga fisica  =  4.26 ± 2.22
+    Fadiga mental  =  4.81 ± 2.47
+    TMD            =  2.05 ± 9.15
+    Tensao         =  1.79 ± 2.03
+    Depressao      =  1.14 ± 2.48
+    Raiva          =  1.95 ± 3.29
+    Confusao       =  0.95 ± 1.65
+  % perfil iceberg (baseline) = 93%
+    TQR            = 13.36 (baseline)
+    Epworth        =  8.14 (baseline)
+    PSS            = 22.76 (baseline)
+
+======================================================================
+C. CARGA EXTERNA HIIT (4x4min @ 104% PV do T-CAR)
+======================================================================
+  n atletas com dado = 26
+  Protocolo: 4 series x 4 min (240s); esforco intermitente 12s corrida/6s pausa
+             13,3 reps/bloco; tempo efetivo de corrida = 4x13,3x12s = 640 s (~10,7 min)
+  Velocidade media (=104% PV): 16.48 km/h (4.58 m/s)  [14.4-19.2]
+    -> PV do T-CAR implicada (vel/1,04): 15.84 km/h
+  Distancia por esforco (12s): 55 m
+  Distancia por bloco (4 min): 732 m
+  Distancia por SESSAO: 2929 m  [2560-3413]
+  Distancia TOTAL (3 sessoes): 8788 m (~8.8 km)
+  NOTA: prescricao relativa (104% PV) => carga externa IGUAL nas 3 sessoes por atleta.
+
+======================================================================
+B. CARGA INTERNA HIIT por sessao (S1=22/04, S2=24/04, S3=27/04)
+======================================================================
+  S1: FC media=180.4  FC pico=183.8  PSE(media series)=7.53  TRIMP-Banister=50.6  sRPE=196
+  S2: FC media=179.3  FC pico=183.3  PSE(media series)=7.47  TRIMP-Banister=49.3  sRPE=194
+  S3: FC media=176.5  FC pico=180.8  PSE(media series)=7.99  TRIMP-Banister=46.4  sRPE=208
+  Tendencia S1->S3:  FC pico 183.8->180.8 (queda=3.0)  |  PSE 7.5->8.0 (sobe)  |  TRIMP 50.6->46.4 (queda)
+  => DISSOCIACAO: carga externa fixa; FC pico e TRIMP CAEM (supressao cardiaca sob fadiga),
+     enquanto PSE SOBE -> a fadiga acumulada e captada pela percepcao, nao pelo TRIMP cardiaco.
+
+======================================================================
+D. VARIAVEIS PSICOLOGICAS nos dias de HIIT (D2/D4/D7)
+======================================================================
+  S1 (D2): TMD=4.66  Vigor=5.81  Fadiga=5.21  FadFisica=5.66
+  S2 (D4): TMD=5.70  Vigor=5.28  Fadiga=6.27  FadFisica=6.87
+  S3 (D7): TMD=8.00  Vigor=4.70  Fadiga=7.48  FadFisica=7.57
+  Baseline (D1) p/ referencia: TMD=2.05 Vigor=7.52 FadFisica=4.26
