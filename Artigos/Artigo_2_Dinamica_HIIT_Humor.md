@@ -112,6 +112,8 @@ O achado mais informativo é a dissociação entre **nível do dia** e **respost
 
 A convergência das vias sustenta essa leitura: os quatro efeitos que sobrevivem à correção FDR são precisamente os do eixo energia–fadiga; o teste multivariado é significativo justamente nesse eixo; e o marcador fisiológico (FC de pico) move-se em espelho com o vigor, ao passo que a PSE acompanha a perturbação. A "estabilidade" das emoções negativas em dias de HIIT **não** deve tranquilizar a comissão técnica — é artefato do piso (Artigo 1), não ausência de estresse.
 
+Análises robustas complementares (relatório `Analises_Robustas_ROC_Derivadas_Alometria.md`) reforçam esta leitura por vias independentes: curvas **ROC** mostram que humor/fadiga quase não discriminam a sessão de HIIT (AUC ≈ 0,52–0,56), mas discriminam fortemente o **acúmulo** (D7 vs D1: fadiga física AUC = 0,86); a análise de **derivadas** e o melhor **ajuste cúbico** localizam a deterioração numa precipitação final (aceleração nos dias 5–6); a **regressão logística** quantifica a proteção da aptidão (OR = 0,50 por km/h de PV) e o **escalonamento alométrico** confirma que ela não é artefato de massa corporal.
+
 **Limitações.** Confundimento perfeito volume × modalidade (o efeito não é dose-resposta); "pré/pós" definido como primeira/última coleta do dia (mistura efeito de sessão e de hora do dia); amostra única, masculina, um microciclo; e a moderação entre atletas (n = 27) é exploratória e de baixa potência.
 
 ## 5. Conclusão

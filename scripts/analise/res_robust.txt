@@ -1,0 +1,61 @@
+========================================================================
+A. TAMANHOS DE EFEITO  D1(baseline) -> D7  (por atleta, IC bootstrap 95%)
+========================================================================
+  FadFisica  dz=+1.74 [+1.32,+2.62]  Hedges g=+1.74  (n=21)
+  Fadiga     dz=+0.72 [+0.31,+1.38]  Hedges g=+0.78  (n=21)
+  TMD        dz=+0.41 [-0.01,+0.87]  Hedges g=+0.44  (n=21)
+  Vigor      dz=-0.95 [-1.60,-0.56]  Hedges g=-1.03  (n=21)
+  Multivariada 6 subescalas: D de Mahalanobis=1.55  IC95%(percentil)=[1.24,4.25]
+
+========================================================================
+B. LIMITES E DERIVADAS da trajetoria (7 dias)
+========================================================================
+  TMD        y(D1..D7)=[2.  4.7 4.5 5.7 1.8 4.5 8. ]
+             velocidade/dia=[ 2.61  1.23  0.52 -1.37 -0.6   3.12  3.5 ]  -> |vel| max no dia 7
+             aceleracao   =[-1.38 -1.05 -1.3  -0.56  2.25  2.05  0.38]  -> |acel| max no dia 5
+  FadFisica  y(D1..D7)=[4.3 5.7 6.3 6.9 5.9 6.2 7.6]
+             velocidade/dia=[ 1.4   1.01  0.6  -0.17 -0.31  0.81  1.32]  -> |vel| max no dia 1
+             aceleracao   =[-0.39 -0.4  -0.59 -0.46  0.49  0.81  0.5 ]  -> |acel| max no dia 6
+  Vigor      y(D1..D7)=[7.5 5.8 5.2 5.3 5.9 5.8 4.7]
+             velocidade/dia=[-1.72 -1.17 -0.26  0.34  0.27 -0.59 -1.13]  -> |vel| max no dia 1
+             aceleracao   =[ 0.55  0.73  0.76  0.27 -0.47 -0.7  -0.54]  -> |acel| max no dia 3
+
+========================================================================
+C. CURVAS NAO LINEARES por dia (comparacao por AIC)
+========================================================================
+  TMD        AIC: linear=11.1  quadratico=12.8  cubico=6.2  exponencial=10.0  logistico=11.8  => melhor: cubico
+  FadFisica  AIC: linear=-3.9  quadratico=-2.9  cubico=-11.9  exponencial=-1.9  logistico=-2.7  => melhor: cubico
+
+========================================================================
+D. AJUSTES LOGISTICOS
+========================================================================
+  Crescimento logistico da prop. NAO-iceberg: L=0.18 k(inclinacao)=22.12 t0(ponto medio)=6.02 dia
+    prop. nao-iceberg observada D1..D7 = [0.07 0.16 0.23 0.18 0.1  0.22 0.33]
+  Logit P(fadiga fisica>=8): OR(dia)=1.31 (p=0.000); OR(PV base)=0.50 (p=0.000)
+  Dose-resposta logit P(TMD>mediana) ~ fadiga fisica: OR=1.59/ponto (p=0.0000)
+
+========================================================================
+E. ESCALONAMENTO ALOMETRICO (log-log: Y = a*massa^b)
+========================================================================
+  PV do T-CAR        ~ massa^-0.19  (r_loglog=-0.48, n=25)
+  veloc. 104%        ~ massa^-0.17  (r_loglog=-0.42, n=25)
+  distancia/sessao   ~ massa^-0.17  (r_loglog=-0.42, n=25)
+  Fadiga fisica semana ~ PV bruta: rho=-0.54 (p=0.005) | ~ PV/massa^0.5: rho=-0.52 (p=0.007)
+
+========================================================================
+F. CURVAS ROC (AUC, IC95% bootstrap, corte de Youden)
+========================================================================
+  [Tarefa 1] discriminar DIA de HIIT (obs, dias 2-7):
+     FadFisica  AUC=0.54 [0.48,0.60] sens=0.55 spec=0.52
+     TMD        AUC=0.56 [0.51,0.62] sens=0.67 spec=0.46
+     Vigor      AUC=0.52 [0.47,0.57] sens=0.27 spec=0.79
+     Fadiga     AUC=0.53 [0.47,0.58] sens=0.69 spec=0.37
+  [Tarefa 2] discriminar D7 (acumulo) vs D1 (baseline):
+     FadFisica  AUC=0.86 [0.77,0.92] sens=0.74 spec=0.83
+     TMD        AUC=0.68 [0.56,0.78] sens=0.83 spec=0.48
+     Vigor      AUC=0.72 [0.61,0.82] sens=0.76 spec=0.55
+     Fadiga     AUC=0.75 [0.65,0.84] sens=0.65 spec=0.81
+  [Tarefa 3] discriminar DIA de fadiga fisica alta (tercil sup.) por humor:
+     TMD        AUC=0.79 [0.74,0.83] sens=0.83 spec=0.63
+     Fadiga     AUC=0.84 [0.80,0.88] sens=0.77 spec=0.81
+     Vigor      AUC=0.72 [0.68,0.77] sens=0.81 spec=0.54

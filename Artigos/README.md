@@ -18,6 +18,13 @@ A reanálise foi reexecutada em Python (numpy, scipy, statsmodels) sobre os dado
 | **2** | [Dinâmica agudo–crônica do HIIT](Artigo_2_Dinamica_HIIT_Humor.md) | O HIIT piora o humor por choque agudo ou por acúmulo? | Separa **nível do dia** de **resposta aguda**; deterioração por acúmulo no eixo energia–fadiga; corroboração fisiológica (FC pico ↓, PSE →) dentro da semana. |
 | **3** | [Acoplamento psicofisiológico e resposta individual](Artigo_3_Acoplamento_Psicofisiologico_Individual.md) | Como a fadiga evolui entre as 3 sessões e quem responde? | Progressão S1→S2→S3 (a fadiga se precipita na 3ª sessão); acoplamento intra-atleta FC×humor (rmcorr +0,57); RCI, variabilidade e limiares individuais. |
 
+## Relatórios de análise dirigida (companion)
+
+Além dos três artigos, dois relatórios aprofundam análises específicas dentro da janela:
+
+- **[Carga interna/externa e baseline](Analise_Carga_Interna_Externa_HIIT.md)** — baseline 21/04; carga externa derivada do T-CAR (4×4 min @ 104% PV: velocidade 16,5 km/h, ~2.929 m/sessão); carga interna (FC, PSE, TRIMP) e a dissociação TRIMP↓ vs session-RPE↑; variáveis psicológicas por sessão.
+- **[Análises robustas](Analises_Robustas_ROC_Derivadas_Alometria.md)** — tamanhos de efeito com IC bootstrap (dz D1→D7 fadiga física = +1,74; D de Mahalanobis = 1,55); derivadas (velocidade/aceleração da mudança); curvas não lineares (melhor ajuste cúbico); ajustes logísticos (OR aptidão = 0,50/km·h⁻¹); escalonamento alométrico; **ROC** (sessão de HIIT AUC ≈ 0,5 vs acúmulo D7–D1 AUC = 0,86).
+
 ## Divisão de responsabilidades analíticas
 
 - **Artigo 1** possui os resultados psicométricos (fidedignidade, estrutura, erro de medida, generalizabilidade) e **fornece** ao Artigo 2 a interpretação da lei do piso.
