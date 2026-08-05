@@ -361,6 +361,7 @@ function viewCorrel(){
 }
 
 // ---------- NORMALIDADE ----------
+let NVAR='FadFisica';
 function viewNormalidade(){
   const N=D.norm,C=content();const s=N.summary;
   const pfmt=p=>p<0.001?p.toExponential(1):p.toFixed(3);
@@ -377,20 +378,51 @@ function viewNormalidade(){
    <div class="hl org"><div class="ic">🔁</div><div class="v">${s.nn_ch}/${s.tot_ch}</div><div class="l">Mudança por atleta NÃO normal</div><div class="d">subescalas negativas</div></div>
    <div class="hl grn"><div class="ic">✅</div><div class="v">Não paramétrica</div><div class="l">Rota adotada (humor/bem-estar)</div><div class="d">Spearman · Wilcoxon · Kruskal-Wallis · PERMANOVA · bootstrap</div></div>
   </div>
-  <h2 class="sec">Gráficos Q–Q (quantil–quantil) — desvio da reta = não normalidade</h2>
-  ${chart('n_qq','Q–Q das variáveis-chave','pontos sobre a diagonal = normal; curvatura/degraus = assimetria e efeito piso')}
+  <h2 class="sec">Inspeção visual por variável — histograma, curva normal, densidade e box plot</h2>
+  <div class="subnav" id="nvars">${Object.keys(N.raw).map(v=>`<button data-nv="${v}" class="${v===NVAR?'active':''}">${N.raw[v].lab}</button>`).join('')}</div>
+  <div class="row2">
+   ${chart('n_hist','Histograma + curva normal + densidade','barras = dados · linha branca = normal teórica (mesma média/DP) · linha colorida = densidade empírica')}
+   ${chart('n_box','Box plot (mediana, IQR, outliers)','pontos = observações')}
+  </div>
+  ${chart('n_qqv','Gráfico Q–Q (quantil–quantil)','desvio da diagonal = não normalidade (degraus/curvatura = piso e assimetria)')}
   <h2 class="sec">1 · Normalidade da distribuição (todas as variáveis)</h2>
   <div class="chart">${t1}</div>
   <h2 class="sec">2 · Normalidade dos escores de mudança (D7−D1) — base dos testes pareados</h2>
   <div class="chart"><p class="note">Aqui o eixo energia–fadiga tem mudança aproximadamente normal, mas as subescalas negativas não — por isso os contrastes pareados usam Wilcoxon/bootstrap.</p>${t2}</div>
   <div class="explain"><b>Conclusão da rota.</b> As variáveis de humor e bem-estar são não normais ⇒ descritivas por <b>mediana (IQR)</b>, associações por <b>Spearman</b>, contrastes por <b>Wilcoxon/Mann-Whitney</b>, comparação de grupos por <b>Kruskal-Wallis</b>, multivariada por <b>PERMANOVA</b> e intervalos por <b>bootstrap</b>. Variáveis contínuas normais (velocidade, distância, T-CAR PV, CMJ) admitem via paramétrica.</div>`;
-  // QQ plots
-  const qq=N.qq,keys=Object.keys(qq);const tr=[];
-  keys.forEach(k=>tr.push({x:qq[k].theo,y:qq[k].samp,mode:'markers',name:qq[k].lab,marker:{size:4,opacity:.6}}));
-  const lo=Math.min(...keys.flatMap(k=>qq[k].theo)),hi=Math.max(...keys.flatMap(k=>qq[k].theo));
-  tr.push({x:[lo,hi],y:[lo,hi],mode:'lines',line:{color:'#e6edf3',dash:'dash',width:2},name:'normal (referência)'});
-  Plotly.newPlot('n_qq',tr,Object.assign({},T,{height:460,xaxis:{title:'Quantis teóricos (normal)'},yaxis:{title:'Quantis da amostra (z)'},legend:{orientation:'h',y:1.13}}),cfg);
+  document.querySelectorAll('#nvars button').forEach(b=>b.onclick=()=>{NVAR=b.dataset.nv;viewNormalidade();window.scrollTo({top:120,behavior:'smooth'});});
+  renderNormVar();
 }
+function normpdf(x,m,s){return Math.exp(-0.5*((x-m)/s)**2)/(s*Math.sqrt(2*Math.PI));}
+function kde(vals,xs){const n=vals.length,m=avg(vals),sd=Math.sqrt(avg(vals.map(v=>(v-m)**2)));
+  const h=1.06*sd*Math.pow(n,-0.2)||1;return xs.map(x=>avg(vals.map(v=>normpdf(x,v,h))));}
+function renderNormVar(){
+  const R=D.norm.raw[NVAR];const v=R.vals;const m=R.mean,s=R.sd,cc=CC[NVAR]||'#4dabf7';
+  const lo=Math.min(...v),hi=Math.max(...v);const xs=lin(lo,hi,80);
+  const hist={x:v,type:'histogram',histnorm:'probability density',marker:{color:cc,opacity:.55},name:'dados',nbinsx:14};
+  const nrm={x:xs,y:xs.map(x=>normpdf(x,m,s)),mode:'lines',line:{color:'#ffffff',width:3,dash:'dash'},name:'normal teórica'};
+  const dens={x:xs,y:kde(v,xs),mode:'lines',line:{color:cc,width:3},name:'densidade empírica'};
+  Plotly.newPlot('n_hist',[hist,nrm,dens],Object.assign({},T,{height:420,barmode:'overlay',
+    xaxis:{title:R.lab},yaxis:{title:'densidade'},legend:{orientation:'h',y:1.13},
+    annotations:[{x:.98,y:.95,xref:'paper',yref:'paper',align:'right',showarrow:false,font:{size:12,color:'#9aa7b4'},
+      text:`média ${m} · mediana ${R.median} · DP ${s}<br>${R.normal?'<b style=color:#51cf66>normal</b>':'<b style=color:#f03e3e>não normal</b>'}`}]}),cfg);
+  Plotly.newPlot('n_box',[{y:v,type:'box',boxpoints:'all',jitter:.4,pointpos:0,marker:{color:cc,size:4,opacity:.5},line:{color:cc},name:R.lab,boxmean:'sd'}],
+    Object.assign({},T,{height:420,yaxis:{title:R.lab}}),cfg);
+  const sv=v.slice().sort((a,b)=>a-b),n=sv.length;const theo=sv.map((_,i)=>jstat_ppf((i+0.5)/n));
+  const ss=sv.map(x=>(x-m)/s);
+  Plotly.newPlot('n_qqv',[{x:theo,y:ss,mode:'markers',marker:{color:cc,size:5,opacity:.6},name:'amostra'},
+    {x:[Math.min(...theo),Math.max(...theo)],y:[Math.min(...theo),Math.max(...theo)],mode:'lines',line:{color:'#fff',dash:'dash',width:2},name:'normal'}],
+    Object.assign({},T,{height:420,xaxis:{title:'Quantis teóricos (normal)'},yaxis:{title:'Quantis da amostra (z)'},legend:{orientation:'h',y:1.13}}),cfg);
+}
+// inverse normal CDF (Acklam approximation) for QQ theoretical quantiles
+function jstat_ppf(p){const a=[-3.969683028665376e+01,2.209460984245205e+02,-2.759285104469687e+02,1.383577518672690e+02,-3.066479806614716e+01,2.506628277459239e+00];
+  const b=[-5.447609879822406e+01,1.615858368580409e+02,-1.556989798598866e+02,6.680131188771972e+01,-1.328068155288572e+01];
+  const c=[-7.784894002430293e-03,-3.223964580411365e-01,-2.400758277161838e+00,-2.549732539343734e+00,4.374664141464968e+00,2.938163982698783e+00];
+  const d=[7.784695709041462e-03,3.224671290700398e-01,2.445134137142996e+00,3.754408661907416e+00];
+  const pl=0.02425,ph=1-pl;let q,r;
+  if(p<pl){q=Math.sqrt(-2*Math.log(p));return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+  if(p<=ph){q=p-0.5;r=q*q;return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);}
+  q=Math.sqrt(-2*Math.log(1-p));return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
 
 // ---------- SEGMENTADO (comparação entre grupos) ----------
 let SEGV='FadFisica';
