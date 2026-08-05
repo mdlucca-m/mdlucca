@@ -13,6 +13,7 @@ APP=r'''<div id="app">
     <button data-v="brums">🧠 BRUMS</button>
     <button data-v="interna">❤️ Carga interna</button>
     <button data-v="externa">🏃 Carga externa</button>
+    <button data-v="normalidade">🔬 Normalidade</button>
     <button data-v="correl">🔗 Correlações</button>
     <button data-v="segmentado">🧩 Segmentado</button>
   </nav>
@@ -359,6 +360,38 @@ function viewCorrel(){
     text:D.corr.z,texttemplate:'%{text}',textfont:{size:12}}],Object.assign({},T,{height:560}),cfg);
 }
 
+// ---------- NORMALIDADE ----------
+function viewNormalidade(){
+  const N=D.norm,C=content();const s=N.summary;
+  const pfmt=p=>p<0.001?p.toExponential(1):p.toFixed(3);
+  let t1='<table class="tbl"><tr><th>Variável</th><th>nível</th><th>n</th><th>W</th><th>Shapiro p</th><th>Assim.</th><th>Curtose</th><th>Normal?</th><th>Família</th></tr>';
+  N.dist.forEach(r=>{t1+=`<tr><td>${r.lab}</td><td>${r.level}</td><td>${r.n}</td><td>${r.W}</td><td>${pfmt(r.p)}</td><td>${r.skew}</td><td>${r.kurt}</td><td style="color:${r.normal?'#51cf66':'#f03e3e'}">${r.normal?'sim':'NÃO'}</td><td>${r.normal?'paramétrica':'<b style="color:#ffd43b">não paramétrica</b>'}</td></tr>`;});
+  t1+='</table>';
+  let t2='<table class="tbl"><tr><th>Variável</th><th>n</th><th>W</th><th>Shapiro p</th><th>Assim.</th><th>Normal?</th><th>Teste pareado</th></tr>';
+  N.change.forEach(r=>{t2+=`<tr><td>${r.lab}</td><td>${r.n}</td><td>${r.W}</td><td>${pfmt(r.p)}</td><td>${r.skew}</td><td style="color:${r.normal?'#51cf66':'#f03e3e'}">${r.normal?'sim':'NÃO'}</td><td>${r.normal?'t pareado':'<b style="color:#ffd43b">Wilcoxon</b>'}</td></tr>`;});
+  t2+='</table>';
+  C.innerHTML=`
+  <div class="explain"><b>O que foi feito.</b> Teste de normalidade de todas as variáveis por Shapiro–Wilk (complementado por assimetria/curtose), em dois níveis: a <b>distribuição bruta</b> (base de descritivas e correlações) e os <b>escores de mudança por atleta</b> (base dos testes pareados). A decisão de via — paramétrica vs não paramétrica — segue diretamente destes resultados: onde a variável é não normal, adotam-se métodos não paramétricos e <b>os resultados paramétricos não são reportados</b>.</div>
+  <div class="hls">
+   <div class="hl red"><div class="ic">🔬</div><div class="v">${s.nn_obs}/${s.tot_obs}</div><div class="l">Variáveis NÃO normais (distribuição)</div><div class="d">Shapiro–Wilk p<0,05</div></div>
+   <div class="hl org"><div class="ic">🔁</div><div class="v">${s.nn_ch}/${s.tot_ch}</div><div class="l">Mudança por atleta NÃO normal</div><div class="d">subescalas negativas</div></div>
+   <div class="hl grn"><div class="ic">✅</div><div class="v">Não paramétrica</div><div class="l">Rota adotada (humor/bem-estar)</div><div class="d">Spearman · Wilcoxon · Kruskal-Wallis · PERMANOVA · bootstrap</div></div>
+  </div>
+  <h2 class="sec">Gráficos Q–Q (quantil–quantil) — desvio da reta = não normalidade</h2>
+  ${chart('n_qq','Q–Q das variáveis-chave','pontos sobre a diagonal = normal; curvatura/degraus = assimetria e efeito piso')}
+  <h2 class="sec">1 · Normalidade da distribuição (todas as variáveis)</h2>
+  <div class="chart">${t1}</div>
+  <h2 class="sec">2 · Normalidade dos escores de mudança (D7−D1) — base dos testes pareados</h2>
+  <div class="chart"><p class="note">Aqui o eixo energia–fadiga tem mudança aproximadamente normal, mas as subescalas negativas não — por isso os contrastes pareados usam Wilcoxon/bootstrap.</p>${t2}</div>
+  <div class="explain"><b>Conclusão da rota.</b> As variáveis de humor e bem-estar são não normais ⇒ descritivas por <b>mediana (IQR)</b>, associações por <b>Spearman</b>, contrastes por <b>Wilcoxon/Mann-Whitney</b>, comparação de grupos por <b>Kruskal-Wallis</b>, multivariada por <b>PERMANOVA</b> e intervalos por <b>bootstrap</b>. Variáveis contínuas normais (velocidade, distância, T-CAR PV, CMJ) admitem via paramétrica.</div>`;
+  // QQ plots
+  const qq=N.qq,keys=Object.keys(qq);const tr=[];
+  keys.forEach(k=>tr.push({x:qq[k].theo,y:qq[k].samp,mode:'markers',name:qq[k].lab,marker:{size:4,opacity:.6}}));
+  const lo=Math.min(...keys.flatMap(k=>qq[k].theo)),hi=Math.max(...keys.flatMap(k=>qq[k].theo));
+  tr.push({x:[lo,hi],y:[lo,hi],mode:'lines',line:{color:'#e6edf3',dash:'dash',width:2},name:'normal (referência)'});
+  Plotly.newPlot('n_qq',tr,Object.assign({},T,{height:460,xaxis:{title:'Quantis teóricos (normal)'},yaxis:{title:'Quantis da amostra (z)'},legend:{orientation:'h',y:1.13}}),cfg);
+}
+
 // ---------- SEGMENTADO (comparação entre grupos) ----------
 let SEGV='FadFisica';
 function idxOf(dim,grp){const arr=dim==='Aptidão'?D.seg.apt:D.seg.pos;return [...Array(arr.length).keys()].filter(i=>arr[i]===grp);}
@@ -399,7 +432,11 @@ function viewSegmentado(){
   if(a.length>1&&b.length>1){const ma=avg(a),mb=avg(b);const va=a.reduce((s,x)=>s+(x-ma)**2,0)/(a.length-1),vb=b.reduce((s,x)=>s+(x-mb)**2,0)/(b.length-1);
     const sp=Math.sqrt(((a.length-1)*va+(b.length-1)*vb)/(a.length+b.length-2));const g=(mb-ma)/sp;
     gtxt=`<p class="note">Tamanho de efeito no D7 entre <b>${groups[0]}</b> e <b>${groups[groups.length-1]}</b>: g = ${round(g,2)} (${Math.abs(g)<0.5?'pequeno':Math.abs(g)<0.8?'médio':'grande'}).</p>`;}
-  document.getElementById('s_tbl').innerHTML=h+'</table>'+gtxt;
+  // Kruskal-Wallis (não paramétrico) no D7 entre grupos
+  const kw=D.seg_kw?.[dim]?.[v];
+  let kwtxt='';
+  if(kw){const sig=kw.p<0.05;kwtxt=`<p class="note">🔬 <b>Kruskal–Wallis</b> (não paramétrico) no D7 entre os ${kw.k} grupos: H = ${kw.H}, p = ${kw.p<0.001?kw.p.toExponential(1):kw.p.toFixed(3)} — <b style="color:${sig?'#51cf66':'#ff922b'}">${sig?'diferença significativa':'sem diferença significativa'}</b>. (via não paramétrica, coerente com a não normalidade das variáveis de humor.)</p>`;}
+  document.getElementById('s_tbl').innerHTML=h+'</table>'+gtxt+kwtxt;
 }
 
 // ---------- router ----------
@@ -422,6 +459,7 @@ function route(v){
   else if(v==='brums'){setSub(CURV||'FadFisica');viewVar(CURV||'FadFisica');}
   else if(v==='interna'){sn.style.display='none';viewInterna();}
   else if(v==='externa'){sn.style.display='none';viewExterna();}
+  else if(v==='normalidade'){sn.style.display='none';viewNormalidade();}
   else if(v==='correl'){sn.style.display='none';viewCorrel();}
   else if(v==='segmentado'){sn.style.display='none';viewSegmentado();}
 }

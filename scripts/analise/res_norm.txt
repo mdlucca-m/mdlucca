@@ -1,0 +1,45 @@
+==========================================================================================
+NORMALIDADE — DISTRIBUIÇÃO BRUTA (nível de observação/atleta)
+==========================================================================================
+Variável                  n      W  Shapiro p  Assim.   Curt.   Normal?  Família
+Vigor                   456  0.974   2.83e-07    0.03   -0.24       NÃO  NÃO PARAMÉTRICA
+Fadiga (BRUMS)          456  0.949   2.16e-11    0.59   -0.40       NÃO  NÃO PARAMÉTRICA
+Fadiga física           456  0.961   1.10e-09   -0.37   -0.56       NÃO  NÃO PARAMÉTRICA
+Fadiga mental           456  0.955   1.24e-10    0.21   -0.94       NÃO  NÃO PARAMÉTRICA
+PTH/TMD                 456  0.895   4.20e-17    1.48    3.31       NÃO  NÃO PARAMÉTRICA
+Tensão                  456  0.766   5.48e-25    1.43    1.50       NÃO  NÃO PARAMÉTRICA
+Depressão               456  0.489   4.13e-34    3.63   14.93       NÃO  NÃO PARAMÉTRICA
+Raiva                   456  0.657   2.86e-29    2.06    4.22       NÃO  NÃO PARAMÉTRICA
+Confusão                456  0.440   2.76e-35    3.73   16.96       NÃO  NÃO PARAMÉTRICA
+Recuperação (TQR)       330  0.922   4.71e-12   -0.27   -0.91       NÃO  NÃO PARAMÉTRICA
+Sonolência (Epworth)    456  0.962   1.89e-09   -0.16   -0.62       NÃO  NÃO PARAMÉTRICA
+Estresse (PSS)          456  0.987   3.31e-04   -0.05    0.26       NÃO  NÃO PARAMÉTRICA
+Velocidade (104%PV)      26  0.956   3.18e-01    0.13   -0.18       sim  paramétrica
+Distância/sessão         26  0.956   3.18e-01    0.13   -0.18       sim  paramétrica
+T-CAR PV                 25  0.960   4.15e-01    0.60    0.04       sim  paramétrica
+CMJ                      27  0.974   7.06e-01   -0.24   -0.56       sim  paramétrica
+Massa                    25  0.912   3.32e-02    1.16    1.77       NÃO  NÃO PARAMÉTRICA
+Estatura                 25  0.907   2.61e-02    1.01    1.31       NÃO  NÃO PARAMÉTRICA
+
+==========================================================================================
+NORMALIDADE — ESCORES DE MUDANÇA POR ATLETA (D7−D1) — base dos testes pareados
+==========================================================================================
+Variável                  n      W  Shapiro p  Assim.   Normal?  Teste pareado recomendado
+Vigor                    21  0.969   7.06e-01   -0.14       sim  t pareado (ok)
+Fadiga (BRUMS)           21  0.985   9.78e-01    0.01       sim  t pareado (ok)
+Fadiga física            21  0.973   8.05e-01    0.30       sim  t pareado (ok)
+Fadiga mental            21  0.940   2.17e-01   -0.34       sim  t pareado (ok)
+PTH/TMD                  21  0.967   6.67e-01    0.42       sim  t pareado (ok)
+Tensão                   21  0.825   1.63e-03   -1.45       NÃO  Wilcoxon (não paramétrico)
+Depressão                21  0.725   5.78e-05    2.47       NÃO  Wilcoxon (não paramétrico)
+Raiva                    21  0.892   2.48e-02    0.81       NÃO  Wilcoxon (não paramétrico)
+Confusão                 21  0.826   1.71e-03   -1.01       NÃO  Wilcoxon (não paramétrico)
+
+==========================================================================================
+DECISÃO ANALÍTICA
+==========================================================================================
+Distribuição: 14/18 variáveis NÃO normais.
+Mudança por atleta: 4/9 variáveis NÃO normais.
+→ Rota adotada: NÃO PARAMÉTRICA para as variáveis de humor/bem-estar
+   (mediana/IQR; Spearman; Wilcoxon/Mann-Whitney; Kruskal-Wallis; PERMANOVA; bootstrap).
+   Variáveis contínuas normais (aptidão/antropometria) podem usar via paramétrica.
