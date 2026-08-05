@@ -130,7 +130,21 @@ EXTLOAD={'vel_mean':round(e.vel_kmh.mean(),2),'vel_vals':num(e.vel_kmh),
          'pv_dist':{'x':num(e.merge(phys[['ID','TCAR_PV_ini']],on='ID').TCAR_PV_ini),
                     'y':num(e.merge(phys[['ID','TCAR_PV_ini']],on='ID').dist_sessao)}}
 
-APP={'socio':SOCIO,'vars':VARDATA,'order':ALLV,'lab':LAB,'corr':CORRM,'intload':INTLOAD,'extload':EXTLOAD}
+# ---------- segmentation mapping (aligned to per-athlete pivot order) ----------
+ath_order=list(hum.pivot_table(index='ID',columns='dia',values='FadFisica',aggfunc='mean').index)
+pvq=phys.set_index('ID')['TCAR_PV_ini']; q1,q2=pvq.quantile([1/3,2/3])
+def tercil(a):
+    x=pvq.get(a,np.nan)
+    if pd.isna(x): return None
+    return 'Aptidão baixa' if x<=q1 else ('Aptidão alta' if x>q2 else 'Aptidão média')
+posd=soc.set_index('ID')['posg'].to_dict()
+SEG={'order_ids':[f'A{i+1:02d}' for i in range(len(ath_order))],
+     'apt':[tercil(a) for a in ath_order],
+     'pos':[posd.get(a) for a in ath_order],
+     'dims':{'Aptidão':['Aptidão baixa','Aptidão média','Aptidão alta'],
+             'Posição':['Armador','Ala','Pivô','Goleiro']}}
+
+APP={'socio':SOCIO,'vars':VARDATA,'order':ALLV,'lab':LAB,'corr':CORRM,'intload':INTLOAD,'extload':EXTLOAD,'seg':SEG}
 def conv(o):
     if isinstance(o,dict): return {k:conv(v) for k,v in o.items()}
     if isinstance(o,list): return [conv(x) for x in o]

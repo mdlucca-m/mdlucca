@@ -13,8 +13,15 @@ APP=r'''<div id="app">
     <button data-v="interna">❤️ Carga interna</button>
     <button data-v="externa">🏃 Carga externa</button>
     <button data-v="correl">🔗 Correlações</button>
+    <button data-v="segmentado">🧩 Segmentado</button>
   </nav>
   <div id="subnav" class="subnav" style="display:none"></div>
+  <div id="segbar" class="segbar" style="display:none">
+    <span>🧩 Segmento:</span>
+    <label>Dimensão <select id="segdim"><option value="">Nenhuma (todos)</option></select></label>
+    <label>Grupo <select id="segsel"></select></label>
+    <span id="segn" class="segn"></span>
+  </div>
 </header>
 <main id="content"></main>
 <footer>Atletas anonimizados (A01–A27). KPIs: dz D1→D7, dz agudo pré→pós, %piso, ICC de traço. Reprodutibilidade: <code>scripts/analise/</code>.</footer>
@@ -32,6 +39,10 @@ nav button.active{background:#1b3a5b;border-color:var(--blue);color:#fff}
 .subnav{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .subnav button{background:#0d1520;color:var(--mut);border:1px solid var(--bd);border-radius:20px;padding:8px 15px;font-size:.9rem;cursor:pointer}
 .subnav button.active{background:var(--pink);color:#fff;border-color:var(--pink)}
+.segbar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:12px;background:#0f1722;border:1px solid var(--bd);border-radius:10px;padding:10px 14px;font-size:.85rem;color:var(--mut)}
+.segbar label{display:flex;gap:6px;align-items:center;color:var(--mut);font-weight:600}
+.segbar select{background:#0b0f15;color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:6px 9px;font-size:.9rem}
+.segbar .segn{color:var(--grn);font-weight:600}
 main{margin-top:20px}
 .explain{background:linear-gradient(90deg,#16202e,#131a24);border-left:4px solid var(--blue);border-radius:10px;padding:14px 18px;margin:16px 0;color:#cdd8e3;line-height:1.55;font-size:.98rem}
 .explain b{color:#fff}
@@ -136,19 +147,48 @@ function descTable(){
   return h+'</table>';
 }
 const avg=a=>{const f=a.filter(x=>x!=null);return f.length?f.reduce((s,x)=>s+x,0)/f.length:null;};
+// ===== segmentation state + helpers (client-side recompute) =====
+let SEG={dim:'',grp:''};
+function segIdx(){ // indices of athlete rows matching current segment
+  const n=D.seg.order_ids.length; if(!SEG.dim||!SEG.grp) return [...Array(n).keys()];
+  const arr=SEG.dim==='Aptidão'?D.seg.apt:D.seg.pos;
+  return [...Array(n).keys()].filter(i=>arr[i]===SEG.grp);
+}
+function colVals(z,idx,c){return idx.map(i=>z[i][c]).filter(x=>x!=null);}
+function segTraj(V,idx){const m=[],se=[];for(let c=0;c<7;c++){const v=colVals(V.ath.z,idx,c);
+  const mu=avg(v);m.push(mu==null?null:round(mu,2));
+  se.push(v.length>1?round(Math.sqrt(v.reduce((s,x)=>s+(x-mu)**2,0)/(v.length-1))/Math.sqrt(v.length),2):0);}
+  return{mean:m,se};}
+function segDz(V,idx){const d=[];idx.forEach(i=>{const a=V.ath.z[i][0],b=V.ath.z[i][6];if(a!=null&&b!=null)d.push(b-a);});
+  if(d.length<3)return null;const mu=avg(d),sd=Math.sqrt(d.reduce((s,x)=>s+(x-mu)**2,0)/(d.length-1));return sd>0?round(mu/sd,2):null;}
+function segMeanD7(V,idx){return round(avg(colVals(V.ath.z,idx,6)),2);}
+const round=(x,n=2)=>x==null?null:Math.round(x*10**n)/10**n;
+function fillSegBar(){const dd=document.getElementById('segdim'),ss=document.getElementById('segsel');
+  if(dd.options.length<=1)Object.keys(D.seg.dims).forEach(d=>dd.add(new Option(d,d)));
+  dd.value=SEG.dim;
+  ss.innerHTML='';if(SEG.dim){D.seg.dims[SEG.dim].forEach(g=>ss.add(new Option(g,g)));ss.value=SEG.grp||D.seg.dims[SEG.dim][0];SEG.grp=ss.value;ss.disabled=false;}else{ss.add(new Option('—',''));ss.disabled=true;}
+  const idx=segIdx();document.getElementById('segn').textContent=(SEG.dim?`n=${idx.length} atletas`:`todos (n=${idx.length})`);
+}
+document.getElementById('segdim').onchange=e=>{SEG.dim=e.target.value;SEG.grp='';fillSegBar();rerender();};
+document.getElementById('segsel').onchange=e=>{SEG.grp=e.target.value;fillSegBar();rerender();};
+let CURV=null; // current BRUMS variable
+function rerender(){if(document.querySelector('#nav .active')?.dataset.v==='segmentado')viewSegmentado();else if(CURV)viewVar(CURV);}
 function ols(x,y){const n=x.length,mx=avg(x),my=avg(y);let sxy=0,sxx=0,syy=0;for(let i=0;i<n;i++){sxy+=(x[i]-mx)*(y[i]-my);sxx+=(x[i]-mx)**2;syy+=(y[i]-my)**2;}const b=sxy/sxx;return{a:my-b*mx,b,r:sxy/Math.sqrt(sxx*syy)};}
 const lin=(a,b,n)=>Array.from({length:n},(_,i)=>a+(b-a)*i/(n-1));
 
 // ---------- VARIABLE (BRUMS drill-down) ----------
 function viewVar(v){
-  const V=D.vars[v],k=V.kpi,C=content();
+  CURV=v;const V=D.vars[v],k=V.kpi,C=content();const idx=segIdx();
+  const segLbl=SEG.grp?` · <span style="color:#51cf66">${SEG.grp} (n=${idx.length})</span>`:' · todos os atletas';
   const contrib=V.corr_others['TMD']!=null?V.corr_others['TMD']:(V.corr_others['Fadiga']||0);
+  const dzw=segDz(V,idx), d7=segMeanD7(V,idx);
   C.innerHTML=`
-  <div class="explain"><b>${V.lab}.</b> Aqui reunimos <b>tudo</b> o que ocorreu com esta variável no microciclo e como ela se conecta às demais: como se comportou ao longo da semana (grupo e por atleta), quanto responde ao treino (agudo e acúmulo), quanto influencia a perturbação total do humor, e qual a relação com a carga interna (FC/PSE) e externa (velocidade/distância).</div>
+  <div class="explain"><b>${V.lab}${segLbl}.</b> Aqui reunimos <b>tudo</b> o que ocorreu com esta variável no microciclo e como ela se conecta às demais: como se comportou ao longo da semana (grupo e por atleta), quanto responde ao treino (agudo e acúmulo), quanto influencia a perturbação total do humor, e qual a relação com a carga interna (FC/PSE) e externa (velocidade/distância). Use a barra <b>🧩 Segmento</b> para recalcular por aptidão ou posição.</div>
   <div class="kpis">
-   ${kpi((k.dz_week>0?'+':'')+(k.dz_week??'–'),'Acúmulo D1→D7 (dz)','')}
-   ${kpi((k.dz_acute>0?'+':'')+(k.dz_acute??'–'),'Resposta aguda pré→pós (dz)','')}
-   ${kpi(k.floor+'%','Efeito piso','')}
+   ${kpi((dzw>0?'+':'')+(dzw??'–'),'Acúmulo D1→D7 (dz)',SEG.grp?'no segmento':'amostra total')}
+   ${kpi(d7??'–','Escore no D7 (média)',SEG.grp?'no segmento':'amostra total')}
+   ${kpi((k.dz_acute>0?'+':'')+(k.dz_acute??'–'),'Resposta aguda pré→pós (dz)','amostra total')}
+   ${kpi(k.floor+'%','Efeito piso','amostra total')}
    ${kpi(k.icc,'ICC de traço','fração entre-atletas')}
    ${kpi((contrib>0?'+':'')+contrib,'Associação com o PTH/TMD','ρ de Spearman')}
   </div>
@@ -162,17 +202,17 @@ function viewVar(v){
   </div>
   <h2 class="sec">3 · Associação com as outras variáveis</h2>
   ${chart('v_corr','Correlação com as demais variáveis do humor e fadiga','ρ de Spearman · destaque para o PTH/TMD')}`;
-  // trajectory group + spaghetti
-  const x=[1,2,3,4,5,6,7];const tr=V.traj;
+  // trajectory group + spaghetti (segment-aware)
+  const x=[1,2,3,4,5,6,7];const tr=segTraj(V,idx);
   const traces=[];
-  V.ath.z.forEach(row=>traces.push({x,y:row,mode:'lines',line:{color:CC[v],width:1},opacity:.18,showlegend:false,hoverinfo:'skip'}));
+  idx.forEach(i=>traces.push({x,y:V.ath.z[i],mode:'lines',line:{color:CC[v],width:1},opacity:.18,showlegend:false,hoverinfo:'skip'}));
   const up=tr.mean.map((m,i)=>m==null?null:m+tr.se[i]),lo=tr.mean.map((m,i)=>m==null?null:m-tr.se[i]);
   traces.push({x:x.concat(x.slice().reverse()),y:up.concat(lo.slice().reverse()),fill:'toself',fillcolor:CC[v],opacity:.25,line:{width:0},showlegend:false,hoverinfo:'skip'});
-  traces.push({x,y:tr.mean,mode:'lines+markers',line:{color:CC[v],width:4},marker:{size:10},name:'grupo'});
+  traces.push({x,y:tr.mean,mode:'lines+markers',line:{color:CC[v],width:4},marker:{size:10},name:SEG.grp||'grupo'});
   Plotly.newPlot('v_traj',traces,Object.assign({},T,{shapes:bands(),height:440,xaxis:{title:'Dia',dtick:1},yaxis:{title:V.lab}}),cfg);
-  // heatmap
-  Plotly.newPlot('v_heat',[{z:V.ath.z,x,y:V.ath.ids,type:'heatmap',colorscale:'Viridis',colorbar:{title:''}}],
-    Object.assign({},T,{height:Math.max(320,V.ath.ids.length*15+90),xaxis:{title:'Dia',dtick:1}}),cfg);
+  // heatmap (segment-aware)
+  Plotly.newPlot('v_heat',[{z:idx.map(i=>V.ath.z[i]),x,y:idx.map(i=>V.ath.ids[i]),type:'heatmap',colorscale:'Viridis',colorbar:{title:''}}],
+    Object.assign({},T,{height:Math.max(320,idx.length*15+90),xaxis:{title:'Dia',dtick:1}}),cfg);
   // vs FC
   scatterFit('v_fc',V.load.FC.x,V.load.FC.y,'FC de pico (bpm)',V.lab,CC[v]);
   scatterFit('v_pv',V.load.PV.x,V.load.PV.y,'PV do T-CAR (km/h)',V.lab+' (média semana)',CC[v]);
@@ -246,6 +286,49 @@ function viewCorrel(){
     text:D.corr.z,texttemplate:'%{text}',textfont:{size:12}}],Object.assign({},T,{height:560}),cfg);
 }
 
+// ---------- SEGMENTADO (comparação entre grupos) ----------
+let SEGV='FadFisica';
+function idxOf(dim,grp){const arr=dim==='Aptidão'?D.seg.apt:D.seg.pos;return [...Array(arr.length).keys()].filter(i=>arr[i]===grp);}
+function viewSegmentado(){
+  const dim=SEG.dim||'Aptidão';const groups=D.seg.dims[dim];const v=SEGV;const V=D.vars[v];const C=content();
+  const segcol=['#4dabf7','#ffd43b','#f03e3e','#51cf66','#e64980'];
+  C.innerHTML=`
+  <div class="explain"><b>Análise segmentada e automatizada.</b> Comparação dos grupos de <b>${dim.toLowerCase()}</b> na variável selecionada: trajetória semanal por grupo, acúmulo D1→D7 (dz) por grupo, escore no D7 e tamanho de efeito entre o grupo extremo e o de referência. Troque a <b>Dimensão</b> na barra 🧩 (Aptidão ou Posição) e a variável abaixo.</div>
+  <div class="subnav" id="segvars">${D.order.map(x=>`<button data-sgv="${x}" class="${x===v?'active':''}">${D.lab[x]}</button>`).join('')}</div>
+  ${chart('s_traj',`Trajetória semanal por grupo — ${V.lab}`,'faixas = dias de HIIT · uma linha por grupo (± EP)')}
+  <div class="row2">
+   ${chart('s_dz','Acúmulo D1→D7 (dz) por grupo','magnitude da resposta em cada grupo')}
+   ${chart('s_d7','Escore no D7 por grupo','estado no pior dia do microciclo')}
+  </div>
+  <div class="chart"><h3>Resumo estatístico por grupo (${dim})</h3><div id="s_tbl"></div></div>`;
+  document.querySelectorAll('#segvars button').forEach(b=>b.onclick=()=>{SEGV=b.dataset.sgv;viewSegmentado();});
+  const x=[1,2,3,4,5,6,7];
+  // trajectory overlay
+  const tr=[];
+  groups.forEach((g,gi)=>{const idx=idxOf(dim,g);if(!idx.length)return;const t=segTraj(V,idx);
+    const up=t.mean.map((m,i)=>m==null?null:m+t.se[i]),lo=t.mean.map((m,i)=>m==null?null:m-t.se[i]);
+    tr.push({x:x.concat(x.slice().reverse()),y:up.concat(lo.slice().reverse()),fill:'toself',fillcolor:segcol[gi],opacity:.12,line:{width:0},showlegend:false,hoverinfo:'skip'});
+    tr.push({x,y:t.mean,mode:'lines+markers',line:{color:segcol[gi],width:3},marker:{size:8},name:`${g} (n=${idx.length})`});});
+  Plotly.newPlot('s_traj',tr,Object.assign({},T,{shapes:bands(),height:440,xaxis:{title:'Dia',dtick:1},yaxis:{title:V.lab},legend:{orientation:'h',y:1.13}}),cfg);
+  // dz + d7 by group
+  const stats=groups.map(g=>{const idx=idxOf(dim,g);return{g,n:idx.length,dz:segDz(V,idx),d7:segMeanD7(V,idx),d1:round(avg(colVals(V.ath.z,idx,0)),2)};});
+  Plotly.newPlot('s_dz',[{x:stats.map(s=>s.g),y:stats.map(s=>s.dz),type:'bar',marker:{color:segcol}}],
+    Object.assign({},T,{height:340,yaxis:{title:'dz D1→D7'}}),cfg);
+  Plotly.newPlot('s_d7',[{x:stats.map(s=>s.g),y:stats.map(s=>s.d7),type:'bar',marker:{color:segcol}}],
+    Object.assign({},T,{height:340,yaxis:{title:V.lab+' (D7)'}}),cfg);
+  // table + between-group effect size (extreme vs first)
+  let h='<table class="tbl"><tr><th>Grupo</th><th>n</th><th>D1</th><th>D7</th><th>dz D1→D7</th></tr>';
+  stats.forEach(s=>h+=`<tr><td>${s.g}</td><td>${s.n}</td><td>${s.d1??'–'}</td><td>${s.d7??'–'}</td><td>${s.dz==null?'–':(s.dz>0?'+':'')+s.dz}</td></tr>`);
+  // Hedges-like g between extreme groups at D7
+  const gA=idxOf(dim,groups[0]),gB=idxOf(dim,groups[groups.length-1]);
+  const a=colVals(V.ath.z,gA,6),b=colVals(V.ath.z,gB,6);
+  let gtxt='';
+  if(a.length>1&&b.length>1){const ma=avg(a),mb=avg(b);const va=a.reduce((s,x)=>s+(x-ma)**2,0)/(a.length-1),vb=b.reduce((s,x)=>s+(x-mb)**2,0)/(b.length-1);
+    const sp=Math.sqrt(((a.length-1)*va+(b.length-1)*vb)/(a.length+b.length-2));const g=(mb-ma)/sp;
+    gtxt=`<p class="note">Tamanho de efeito no D7 entre <b>${groups[0]}</b> e <b>${groups[groups.length-1]}</b>: g = ${round(g,2)} (${Math.abs(g)<0.5?'pequeno':Math.abs(g)<0.8?'médio':'grande'}).</p>`;}
+  document.getElementById('s_tbl').innerHTML=h+'</table>'+gtxt;
+}
+
 // ---------- router ----------
 function content(){return document.getElementById('content');}
 const SUB=D.order;
@@ -256,12 +339,17 @@ function setSub(active){
 }
 function route(v){
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.v===v));
-  const sn=document.getElementById('subnav');
+  const sn=document.getElementById('subnav'),sb=document.getElementById('segbar');
+  const showSeg=(v==='brums'||v==='segmentado');
+  sb.style.display=showSeg?'flex':'none';
+  if(v==='segmentado'&&!SEG.dim){SEG.dim='Aptidão';SEG.grp='';}
+  if(showSeg)fillSegBar();
   if(v==='descritiva'){sn.style.display='none';viewDescritiva();}
-  else if(v==='brums'){setSub('FadFisica');viewVar('FadFisica');}
+  else if(v==='brums'){setSub(CURV||'FadFisica');viewVar(CURV||'FadFisica');}
   else if(v==='interna'){sn.style.display='none';viewInterna();}
   else if(v==='externa'){sn.style.display='none';viewExterna();}
   else if(v==='correl'){sn.style.display='none';viewCorrel();}
+  else if(v==='segmentado'){sn.style.display='none';viewSegmentado();}
 }
 document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>route(b.dataset.v));
 route('descritiva');
