@@ -1,0 +1,72 @@
+============================================================================
+1. ANALISE DE TENDENCIA POR POLINOMIOS ORTOGONAIS (efeito do dia, modelo misto)
+============================================================================
+   Cada termo testa uma componente da FORMA da trajetoria (7 dias -> ate 6a ordem)
+
+### Fadiga fisica
+    lin    beta= +2.128  p=0.0000 ***
+    quad   beta= -0.394  p=0.0886 
+    cub    beta= +1.250  p=0.0000 ***
+    quart  beta= +0.453  p=0.0229 *
+    quint  beta= +0.023  p=0.9050 
+    sext   beta= -0.508  p=0.0119 *
+    -> componentes significativas: ['lin', 'cub', 'quart', 'sext']
+
+### Vigor
+    lin    beta= -1.772  p=0.0000 ***
+    quad   beta= +0.629  p=0.0326 *
+    cub    beta= -1.173  p=0.0000 ***
+    quart  beta= -0.187  p=0.4589 
+    quint  beta= -0.208  p=0.3906 
+    sext   beta= +0.225  p=0.3809 
+    -> componentes significativas: ['lin', 'quad', 'cub']
+
+### Fadiga BRUMS
+    lin    beta= +2.076  p=0.0000 ***
+    quad   beta= +0.029  p=0.9346 
+    cub    beta= +1.337  p=0.0000 ***
+    quart  beta= +0.373  p=0.2131 
+    quint  beta= -0.063  p=0.8262 
+    sext   beta= -0.572  p=0.0601 
+    -> componentes significativas: ['lin', 'cub']
+
+### TMD
+    lin    beta= +2.907  p=0.0006 ***
+    quad   beta= +1.613  p=0.0582 
+    cub    beta= +2.827  p=0.0002 ***
+    quart  beta= +0.333  p=0.6490 
+    quint  beta= -0.336  p=0.6321 
+    sext   beta= -1.641  p=0.0273 *
+    -> componentes significativas: ['lin', 'cub', 'sext']
+
+============================================================================
+2. CRESCIMENTO POLINOMIAL MULTINIVEL (inclinacoes aleatorias; AIC e LRT)
+============================================================================
+   Compara ordens 1(linear)/2(quadratico)/3(cubico) com efeitos aleatorios por atleta
+
+### TMD
+    AIC: linear=3026.9  quadratico=3024.0  cubico=3006.6
+    LRT quad vs lin: chi2=4.81 p=0.0283 | cub vs quad: chi2=19.46 p=0.0000
+    -> melhor por AIC: cubico; coefs: t=-0.77(p=0.066), t2=+0.20(p=0.022), t3=+0.20(p=0.000)
+
+### Fadiga fisica
+    AIC: linear=1866.1  quadratico=1865.6  cubico=1833.7
+    LRT quad vs lin: chi2=2.49 p=0.1145 | cub vs quad: chi2=33.95 p=0.0000
+    -> melhor por AIC: cubico; coefs: t=-0.18(p=0.079), t2=-0.04(p=0.081), t3=+0.08(p=0.000)
+
+### Vigor
+    AIC: linear=2055.7  quadratico=2053.6  cubico=2035.2
+    LRT quad vs lin: chi2=4.07 p=0.0436 | cub vs quad: chi2=20.40 p=0.0000
+    -> melhor por AIC: cubico; coefs: t=+0.22(p=0.123), t2=+0.07(p=0.031), t3=-0.08(p=0.000)
+
+============================================================================
+3a. HIIT vs TECNICO-TATICO — pares de dias (por atleta, Holm)
+============================================================================
+  TMD         : 1/9 pares HIIT-TT significativos (Holm).  D2vD3:Δ=+1.0; D2vD5:Δ=+2.5; D2vD6:Δ=-0.1; D4vD3:Δ=+0.9; D4vD5:Δ=+2.1; D4vD6:Δ=+0.1; D7vD3:Δ=+5.0; D7vD5:Δ=+6.2*; D7vD6:Δ=+4.6
+  Fadiga fisica: 3/9 pares HIIT-TT significativos (Holm).  D2vD3:Δ=-0.4; D2vD5:Δ=-0.3; D2vD6:Δ=-0.7; D4vD3:Δ=+0.5; D4vD5:Δ=+0.7; D4vD6:Δ=+0.3; D7vD3:Δ=+1.6*; D7vD5:Δ=+1.8*; D7vD6:Δ=+1.6*
+  Vigor       : 3/9 pares HIIT-TT significativos (Holm).  D2vD3:Δ=+0.1; D2vD5:Δ=+0.1; D2vD6:Δ=-0.0; D4vD3:Δ=-0.4; D4vD5:Δ=-0.5; D4vD6:Δ=-0.6; D7vD3:Δ=-1.6*; D7vD5:Δ=-1.5*; D7vD6:Δ=-1.4*
+
+=== 3b. PRE->POS dentro de cada dia de treino (agregado por atleta, FDR) ===
+  Fadiga fisica: D2:dz=+0.97*  D3:dz=+0.47*  D4:dz=+0.79*  D5:dz=+0.73*  D6:dz=+0.51*  D7:dz=+0.73*
+  TMD         : D2:dz=+0.31  D3:dz=+0.16  D4:dz=+0.50  D5:dz=+0.17  D6:dz=+0.75*  D7:dz=+0.53
+  Vigor       : D2:dz=-0.39  D3:dz=-0.22  D4:dz=-0.26  D5:dz=-0.12  D6:dz=-0.64  D7:dz=-0.20
