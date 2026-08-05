@@ -124,11 +124,31 @@ INTLOAD={'sessions':S,'FCpico':num([hr[hr.sessao==x].HRpico.mean() for x in S]),
          'sRPE':num([hr[hr.sessao==x].PSE.mean()*26 for x in S])}
 # external load
 e=ext[ext.vel_kmh>0]
-EXTLOAD={'vel_mean':round(e.vel_kmh.mean(),2),'vel_vals':num(e.vel_kmh),
-         'dist_mean':round(e.dist_sessao.mean(),0),'dist_vals':num(e.dist_sessao),
-         'dist_total':round(e.dist_total3.mean(),0),
+EXTLOAD={'vel_mean':round(e.vel_kmh.mean(),2),'vel_sd':round(e.vel_kmh.std(),2),'vel_vals':num(e.vel_kmh),
+         'dist_mean':round(e.dist_sessao.mean(),0),'dist_sd':round(e.dist_sessao.std(),0),'dist_vals':num(e.dist_sessao),
+         'dist_total':round(e.dist_total3.mean(),0),'dist_total_sd':round(e.dist_total3.std(),0),
          'pv_dist':{'x':num(e.merge(phys[['ID','TCAR_PV_ini']],on='ID').TCAR_PV_ini),
                     'y':num(e.merge(phys[['ID','TCAR_PV_ini']],on='ID').dist_sessao)}}
+
+# ---------- wellness (within-window means) ----------
+wl=well.copy(); wl['date']=pd.to_datetime(wl['datadia'],errors='coerce')
+wl=wl[(wl['date']>=pd.Timestamp(2024,4,21))&(wl['date']<=pd.Timestamp(2024,4,27))]
+def ms(col): s=pd.to_numeric(wl[col],errors='coerce').dropna(); return {'mean':round(s.mean(),2),'sd':round(s.std(),2),'n':int(len(s))}
+WELL={'TQR':dict(ms('TQR'),lab='Recuperação (TQR 6–20)',icon='🛌',range='6–20'),
+      'Epworth':dict(ms('Epworth'),lab='Sonolência (Epworth 0–18)',icon='😴',range='0–18'),
+      'PSS':dict(ms('PSS'),lab='Estresse percebido (PSS)',icon='⚡',range='0–56')}
+# BRUMS week means (from desc) as overview + internal load summary
+BRUMS_MEANS={v:{'mean':VARDATA[v]['desc']['mean'],'sd':VARDATA[v]['desc']['sd'],'lab':LAB[v]} for v in ALLV}
+INT_SUMMARY={'FCpico':round(np.mean(INTLOAD['FCpico']),0),'PSE':round(np.mean(INTLOAD['PSE']),1),
+             'TRIMP':round(np.mean(INTLOAD['TRIMP']),0),'sRPE':round(np.mean(INTLOAD['sRPE']),0)}
+HIGHLIGHTS=[
+ {'icon':'📈','v':'+1,74','l':'Acúmulo de fadiga física D1→D7 (dz)','d':'efeito muito grande · IC95% [1,32; 2,62]','c':'red'},
+ {'icon':'📉','v':'−0,95','l':'Queda do vigor D1→D7 (dz)','d':'efeito grande','c':'blue'},
+ {'icon':'🧊','v':'93% → 67%','l':'Perfil iceberg (D1 → D7)','d':'achatamento do perfil de humor','c':'org'},
+ {'icon':'🎯','v':'AUC 0,86','l':'Discriminância do acúmulo (D7 vs D1)','d':'vs sessão de HIIT AUC≈0,50 → sinal na tendência','c':'grn'},
+ {'icon':'❤️','v':'184 → 181','l':'FC de pico entre sessões de HIIT (bpm)','d':'cai enquanto a PSE sobe = fadiga acumulada','c':'red'},
+ {'icon':'🔗','v':'ρ −0,54','l':'Aptidão (T-CAR) × fadiga da semana','d':'o mais apto fadiga menos (p=0,005)','c':'vio'},
+]
 
 # ---------- segmentation mapping (aligned to per-athlete pivot order) ----------
 ath_order=list(hum.pivot_table(index='ID',columns='dia',values='FadFisica',aggfunc='mean').index)
@@ -144,7 +164,8 @@ SEG={'order_ids':[f'A{i+1:02d}' for i in range(len(ath_order))],
      'dims':{'Aptidão':['Aptidão baixa','Aptidão média','Aptidão alta'],
              'Posição':['Armador','Ala','Pivô','Goleiro']}}
 
-APP={'socio':SOCIO,'vars':VARDATA,'order':ALLV,'lab':LAB,'corr':CORRM,'intload':INTLOAD,'extload':EXTLOAD,'seg':SEG}
+APP={'socio':SOCIO,'vars':VARDATA,'order':ALLV,'lab':LAB,'corr':CORRM,'intload':INTLOAD,'extload':EXTLOAD,'seg':SEG,
+     'well':WELL,'brums_means':BRUMS_MEANS,'int_summary':INT_SUMMARY,'highlights':HIGHLIGHTS}
 def conv(o):
     if isinstance(o,dict): return {k:conv(v) for k,v in o.items()}
     if isinstance(o,list): return [conv(x) for x in o]

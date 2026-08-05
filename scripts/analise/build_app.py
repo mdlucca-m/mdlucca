@@ -8,7 +8,8 @@ APP=r'''<div id="app">
   <h1>Central Analítica — Microciclo de choque de HIIT · Handebol de elite</h1>
   <p class="sub">21–28/04/2024 · 27 atletas · 456 observações · reanálise independente (Python). Clique nos botões para gerar cada bloco analítico automaticamente.</p>
   <nav id="nav">
-    <button data-v="descritiva" class="active">📊 Descritiva</button>
+    <button data-v="geral" class="active">📌 Visão Geral</button>
+    <button data-v="descritiva">📊 Descritiva</button>
     <button data-v="brums">🧠 BRUMS</button>
     <button data-v="interna">❤️ Carga interna</button>
     <button data-v="externa">🏃 Carga externa</button>
@@ -50,6 +51,13 @@ h2.sec{font-size:1.25rem;margin:26px 0 6px;color:#fff;border-bottom:1px solid va
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0}
 .kpi{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px}
 .kpi .v{font-size:1.6rem;font-weight:700}.kpi .l{color:var(--mut);font-size:.76rem;margin-top:3px}.kpi .ci{color:var(--mut);font-size:.7rem}
+.kpi .ic{font-size:1.15rem;float:right;opacity:.85}
+.hls{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px;margin:14px 0}
+.hl{border-radius:14px;padding:16px 18px;border:1px solid var(--bd);background:var(--card);position:relative;overflow:hidden}
+.hl .ic{font-size:1.7rem}.hl .v{font-size:1.75rem;font-weight:800;margin:6px 0 2px;color:#fff}
+.hl .l{font-size:.85rem;color:#dbe4ee;font-weight:600}.hl .d{font-size:.76rem;color:var(--mut);margin-top:4px}
+.hl.red{border-left:5px solid var(--red)}.hl.blue{border-left:5px solid var(--blue)}.hl.org{border-left:5px solid var(--org)}
+.hl.grn{border-left:5px solid var(--grn)}.hl.vio{border-left:5px solid var(--vio)}
 .chart{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px 16px;margin:16px 0}
 .chart h3{margin:0 0 4px;font-size:1.05rem;color:#eaf1f8}.chart .note{color:var(--mut);font-size:.84rem;margin:0 0 8px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -73,6 +81,71 @@ function bands(){return HIIT.map(d=>({type:'rect',xref:'x',yref:'paper',x0:d-0.1
 function el(h){const d=document.createElement('div');d.innerHTML=h;return d.firstElementChild;}
 function chart(id,title,note){return `<div class="chart"><h3>${title}</h3>${note?`<p class="note">${note}</p>`:''}<div id="${id}"></div></div>`;}
 function kpi(v,l,ci){return `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div>${ci?`<div class="ci">${ci}</div>`:''}</div>`;}
+
+// ---------- VISÃO GERAL ----------
+function tileI(ic,v,l,ci){return `<div class="kpi"><span class="ic">${ic}</span><div class="v">${v}</div><div class="l">${l}</div>${ci?`<div class="ci">${ci}</div>`:''}</div>`;}
+function viewGeral(){
+  const C=content(),bm=D.brums_means,w=D.well,e=D.extload,is=D.int_summary;
+  const H=D.highlights.map(h=>`<div class="hl ${h.c}"><div class="ic">${h.icon}</div><div class="v">${h.v}</div><div class="l">${h.l}</div><div class="d">${h.d}</div></div>`).join('');
+  C.innerHTML=`
+  <div class="explain"><b>Panorama do grupo.</b> Síntese dos dados gerais do microciclo (27 atletas, 456 observações): os resultados mais significativos em destaque e as médias da semana (± DP) de cada domínio — humor (BRUMS), fadiga, bem-estar (recuperação, sonolência, estresse) e carga externa/interna — com gráficos robustos. Cada ícone resume um indicador do grupo.</div>
+  <h2 class="sec">⭐ Resultados mais significativos</h2>
+  <div class="hls">${H}</div>
+  <h2 class="sec">🧠 Perfil BRUMS do grupo — média da semana (± DP)</h2>
+  <div class="kpis">
+   ${tileI('💪',bm.Vigor.mean+'±'+bm.Vigor.sd,'Vigor','')}
+   ${tileI('🔋',bm.Fadiga.mean+'±'+bm.Fadiga.sd,'Fadiga (BRUMS)','')}
+   ${tileI('🏋️',bm.FadFisica.mean+'±'+bm.FadFisica.sd,'Fadiga física (0–10)','')}
+   ${tileI('🧠',bm.FadMental.mean+'±'+bm.FadMental.sd,'Fadiga mental (0–10)','')}
+   ${tileI('🌀',bm.TMD.mean+'±'+bm.TMD.sd,'PTH/TMD','')}
+   ${tileI('😟',bm.Tensao.mean+'±'+bm.Tensao.sd,'Tensão','')}
+   ${tileI('😔',bm.Depressao.mean+'±'+bm.Depressao.sd,'Depressão','')}
+   ${tileI('😠',bm.Raiva.mean+'±'+bm.Raiva.sd,'Raiva','')}
+   ${tileI('😵',bm.Confusao.mean+'±'+bm.Confusao.sd,'Confusão','')}
+  </div>
+  ${chart('g_brums','Médias das subescalas na semana (barras com DP)','barra = média · haste = ± desvio-padrão do grupo')}
+  ${chart('g_radar','Perfil de humor do grupo (radar padronizado)','forma do perfil médio nas seis subescalas')}
+  <h2 class="sec">🛌 Bem-estar do grupo — média da semana (± DP)</h2>
+  <div class="kpis">
+   ${tileI(w.TQR.icon,w.TQR.mean+'±'+w.TQR.sd,w.TQR.lab,'alto = melhor recuperação')}
+   ${tileI(w.Epworth.icon,w.Epworth.mean+'±'+w.Epworth.sd,w.Epworth.lab,'alto = mais sono')}
+   ${tileI(w.PSS.icon,w.PSS.mean+'±'+w.PSS.sd,w.PSS.lab,'alto = mais estresse')}
+  </div>
+  ${chart('g_well','Bem-estar do grupo (média ± DP, padronizado para comparação)','')}
+  <h2 class="sec">🏃 Carga externa do grupo (4×4 min a 104% da PV)</h2>
+  <div class="kpis">
+   ${tileI('⚡',e.vel_mean+'±'+e.vel_sd,'Velocidade média (km/h)','= 104% da PV do T-CAR')}
+   ${tileI('📏',Math.round(e.dist_mean)+'±'+Math.round(e.dist_sd),'Distância média/sessão (m)','')}
+   ${tileI('🗺️',Math.round(e.dist_total)+'±'+Math.round(e.dist_total_sd),'Distância total 3 sessões (m)','~'+(e.dist_total/1000).toFixed(1)+' km')}
+  </div>
+  <h2 class="sec">❤️ Carga interna do grupo (sessões de HIIT)</h2>
+  <div class="kpis">
+   ${tileI('❤️',is.FCpico,'FC de pico média (bpm)','')}
+   ${tileI('🗣️',is.PSE,'PSE média (0–10)','')}
+   ${tileI('📊',is.TRIMP,'TRIMP (Banister)','')}
+   ${tileI('🔥',is.sRPE,'session-RPE','')}
+  </div>
+  ${chart('g_dist','Distribuição da distância percorrida por sessão (grupo)','')}`;
+  // BRUMS bar with error bars
+  const subs=['Vigor','Fadiga','FadFisica','FadMental','TMD','Tensao','Depressao','Raiva','Confusao'];
+  Plotly.newPlot('g_brums',[{x:subs.map(s=>D.lab[s]),y:subs.map(s=>bm[s].mean),type:'bar',
+    marker:{color:subs.map(s=>CC[s]||'#888')},error_y:{type:'data',array:subs.map(s=>bm[s].sd),color:'#aab',thickness:1.5}}],
+    Object.assign({},T,{height:400,yaxis:{title:'Escore médio (± DP)'}}),cfg);
+  // radar (6 subscales standardized within their scale range 0-16, vigor & fadiga fisica scaled)
+  const rs=['Tensao','Depressao','Raiva','Vigor','Fadiga','Confusao'];
+  const rv=rs.map(s=>bm[s].mean/16*100);
+  Plotly.newPlot('g_radar',[{type:'scatterpolar',r:rv.concat([rv[0]]),theta:rs.map(s=>D.lab[s]).concat([D.lab[rs[0]]]),
+    fill:'toself',fillcolor:'rgba(77,171,247,.25)',line:{color:'#4dabf7',width:2}}],
+    Object.assign({},T,{height:400,polar:{bgcolor:'rgba(0,0,0,0)',radialaxis:{visible:true,range:[0,40]}}}),cfg);
+  // wellness standardized bars
+  const wl=[['TQR',w.TQR],['Epworth',w.Epworth],['PSS',w.PSS]];
+  Plotly.newPlot('g_well',[{x:wl.map(a=>a[1].lab),y:wl.map(a=>a[1].mean),type:'bar',marker:{color:['#51cf66','#ffd43b','#e64980']},
+    error_y:{type:'data',array:wl.map(a=>a[1].sd),color:'#aab',thickness:1.5}}],
+    Object.assign({},T,{height:360,yaxis:{title:'média (± DP)'}}),cfg);
+  // distance distribution
+  Plotly.newPlot('g_dist',[{x:e.dist_vals,type:'histogram',marker:{color:'#51cf66'},nbinsx:12}],
+    Object.assign({},T,{height:340,xaxis:{title:'Distância/sessão (m)'},yaxis:{title:'nº atletas'}}),cfg);
+}
 
 // ---------- DESCRITIVA ----------
 function viewDescritiva(){
@@ -344,7 +417,8 @@ function route(v){
   sb.style.display=showSeg?'flex':'none';
   if(v==='segmentado'&&!SEG.dim){SEG.dim='Aptidão';SEG.grp='';}
   if(showSeg)fillSegBar();
-  if(v==='descritiva'){sn.style.display='none';viewDescritiva();}
+  if(v==='geral'){sn.style.display='none';viewGeral();}
+  else if(v==='descritiva'){sn.style.display='none';viewDescritiva();}
   else if(v==='brums'){setSub(CURV||'FadFisica');viewVar(CURV||'FadFisica');}
   else if(v==='interna'){sn.style.display='none';viewInterna();}
   else if(v==='externa'){sn.style.display='none';viewExterna();}
@@ -352,7 +426,7 @@ function route(v){
   else if(v==='segmentado'){sn.style.display='none';viewSegmentado();}
 }
 document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>route(b.dataset.v));
-route('descritiva');
+route('geral');
 </script>'''
 
 body='<script>'+plotlyjs+'</script>\n'+APP.replace('__DATA__',DATA)
