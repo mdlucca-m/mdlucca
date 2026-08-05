@@ -1,0 +1,44 @@
+=== PROGRESSAO DO HUMOR ENTRE AS 3 SESSOES DE HIIT (D2->D4->D7) ===
+  TMD        S1(D2)=4.61  S2(D4)=4.76  S3(D7)=8.28
+  Vigor      S1(D2)=5.66  S2(D4)=5.28  S3(D7)=4.49
+  Fadiga     S1(D2)=5.17  S2(D4)=5.76  S3(D7)=7.46
+  FadFisica  S1(D2)=5.59  S2(D4)=6.53  S3(D7)=7.56
+  slope/sessao TMD       =+1.89  p=0.0229
+  slope/sessao Vigor     =-0.74  p=0.0010
+  slope/sessao FadFisica =+0.99  p=0.0000
+
+=== CARGA INTERNA POR SESSAO (S1-S3, dentro da janela) ===
+  S1: FC pico=183.8 bpm  HRR1'=25.8  PSE=6.55
+  S2: FC pico=183.3 bpm  HRR1'=27.5  PSE=6.50
+  S3: FC pico=180.8 bpm  HRR1'=28.3  PSE=7.06
+  Friedman FC pico S1-S3: chi2=nan p=nan
+
+=== ACOPLAMENTO FC x HUMOR (intra-atleta, 3 sessoes) — rmcorr ===
+  FC pico x Vigor    : rmcorr=+0.57 (gl=41, n=68)
+  FC pico x TMD      : rmcorr=-0.48 (gl=41, n=68)
+  FC pico x FadFisica: rmcorr=-0.51 (gl=41, n=68)
+  PSE     x TMD      : rmcorr=+0.39 (gl=41, n=68)
+  PSE     x FadFisica: rmcorr=+0.21 (gl=41, n=68)
+
+=== MUDANCA INDIVIDUAL CONFIAVEL (RCI, D1->D7) ===
+  FadFisica  n=21 MDC95=2.34  aumento_confiavel=14  sem_mudanca=7  reducao=0
+  Fadiga     n=21 MDC95=3.89  aumento_confiavel=10  sem_mudanca=10  reducao=1
+  Vigor      n=21 MDC95=3.96  aumento_confiavel=0  sem_mudanca=14  reducao=7
+  TMD        n=21 MDC95=8.45  aumento_confiavel=8  sem_mudanca=11  reducao=2
+
+=== VARIABILIDADE INTRA-INDIVIDUAL (iSD, MSSD) ===
+  TMD        iSD=5.54  MSSD=48.1
+  Vigor      iSD=2.05  MSSD=6.9
+  Fadiga     iSD=2.45  MSSD=11.1
+  Tensao     iSD=0.94  MSSD=1.6
+  Confusao   iSD=0.65  MSSD=1.2
+
+=== ERRO TIPICO DA MEDIDA vs SWC (utilidade) ===
+  FadFisica  ETM=1.21 (20%)  SWC=0.32  marginal
+  Fadiga     ETM=1.66 (29%)  SWC=0.62  marginal
+  Vigor      ETM=1.46 (26%)  SWC=0.50  marginal
+  TMD        ETM=4.41 (100%)  SWC=1.52  marginal
+
+=== APTIDAO PRE-SEMANA (covariavel de base) x resposta da semana ===
+  T-CAR base x FadFisica (media semana): rho=-0.54 p=0.005
+  T-CAR base x TMD       (media semana): rho=-0.28 p=0.181
