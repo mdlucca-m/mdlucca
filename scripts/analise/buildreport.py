@@ -204,7 +204,8 @@ body=[]
 for name,txt in secoes:
     first=(name==secoes[0][0])
     body.append(f'<section><p class="cap">{txt}</p>{figdiv(figs[name],first)}</section>')
-html=f"""<div class="wrap">
+html=f"""<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Painel analítico — Microciclo HIIT</title></head><body>
+<div class="wrap">
 <header><h1>Monitoramento do microciclo de choque de HIIT — painel analítico</h1>
 <p class="sub">Handebol de elite · semana de 21–28/04/2024 · 27 atletas · 456 observações · reanálise independente (Python)</p>
 <p class="sub">Derivadas, curvas de carga–resposta, ajustes cúbicos, ROC e modelo multivariado. Figuras interativas (zoom, hover, exportação PNG 4K pelo ícone da câmera).</p></header>
@@ -220,7 +221,7 @@ section{{margin:34px 0;padding:18px;background:#131a24;border:1px solid #222c3a;
 .cap{{font-size:1.02rem;line-height:1.5;color:#c9d4df;margin:0 0 12px;border-left:3px solid #ff6b6b;padding-left:12px}}
 footer{{margin-top:40px;color:#7d8896;font-size:.85rem;border-top:1px solid #222c3a;padding-top:16px}}
 code{{background:#1c2530;padding:2px 6px;border-radius:5px}}
-</style>"""
+</style></body></html>"""
 open('/home/user/mdlucca/Artigos/Relatorio_Interativo.html','w',encoding='utf-8').write(html)
 print("HTML salvo: Artigos/Relatorio_Interativo.html")
 print("PNGs 4K em: Artigos/figuras/")
