@@ -1,0 +1,57 @@
+janela 21-27/04: 456 obs, 67 atletas
+
+=== DESCRITIVAS (instrumentos alem do BRUMS) ===
+  TQR        n=330 media=11.54 DP=3.27  [6,19]  recuperacao 6-20 (alto=melhor)
+  Epworth    n=456 media=9.70 DP=5.02  [0,18]  sonolencia 0-18 (alto=mais sono)
+  PSS        n=456 media=22.06 DP=4.85  [9,40]  estresse ~0-56 (alto=+estresse)
+  FadFisica  n=456 media=6.12 DP=2.34  [0,10]  0-10
+  FadMental  n=456 media=4.59 DP=2.81  [0,10]  0-10
+
+=== EFEITO DO DIA (modelo misto) ===
+  TQR        F~ 6.50 p=0.0000  ICC_atleta=0.42  D1=13.36->D7=9.61
+  Epworth    F~ 3.31 p=0.0029  ICC_atleta=0.67  D1=8.14->D7=11.20
+  PSS        F~ 1.42 p=0.2023  ICC_atleta=0.71  D1=22.76->D7=21.70
+  FadFisica  F~17.84 p=0.0000  ICC_atleta=0.47  D1=4.29->D7=7.57
+  FadMental  F~ 2.51 p=0.0199  ICC_atleta=0.70  D1=4.88->D7=5.00
+
+=== HIIT vs TECNICO-TATICO (nivel do dia, pareado) ===
+  TQR        HIIT=11.44 nao=11.95 dz=-0.20 p=0.314
+  Epworth    HIIT=10.04 nao=9.87 dz=+0.11 p=0.547
+  PSS        HIIT=22.00 nao=21.63 dz=+0.12 p=0.514
+  FadFisica  HIIT=6.40 nao=6.12 dz=+0.19 p=0.325
+  FadMental  HIIT=4.56 nao=4.66 dz=-0.06 p=0.737
+
+=== DECOMPOSICAO TRACO/ESTADO (ICC atleta) ===
+  TQR        ICC_atleta=0.39
+  Epworth    ICC_atleta=0.63
+  PSS        ICC_atleta=0.66
+  FadFisica  ICC_atleta=0.40
+  FadMental  ICC_atleta=0.74
+
+=== CONVERGENCIA COM HUMOR (rmcorr intra-atleta) ===
+  TQR        x TMD   : rmcorr=-0.65 (n=330)
+  TQR        x Vigor : rmcorr=+0.51 (n=330)
+  TQR        x Fadiga: rmcorr=-0.64 (n=330)
+
+  Epworth    x TMD   : rmcorr=+0.31 (n=456)
+  Epworth    x Vigor : rmcorr=-0.26 (n=456)
+  Epworth    x Fadiga: rmcorr=+0.35 (n=456)
+
+  PSS        x TMD   : rmcorr=+0.18 (n=456)
+  PSS        x Vigor : rmcorr=-0.09 (n=456)
+  PSS        x Fadiga: rmcorr=+0.11 (n=456)
+
+  FadFisica  x TMD   : rmcorr=+0.51 (n=456)
+  FadFisica  x Vigor : rmcorr=-0.48 (n=456)
+  FadFisica  x Fadiga: rmcorr=+0.64 (n=456)
+
+  FadMental  x TMD   : rmcorr=+0.48 (n=456)
+  FadMental  x Vigor : rmcorr=-0.31 (n=456)
+  FadMental  x Fadiga: rmcorr=+0.47 (n=456)
+
+=== RESPOSTA AGUDA PRE->POS (agregada por atleta) ===
+  TQR        Δ=-1.65 dz=-0.64 p=0.001 (n=30)
+  Epworth    Δ=+0.58 dz=+0.18 p=0.293 (n=34)
+  PSS        Δ=+0.38 dz=+0.17 p=0.340 (n=34)
+  FadFisica  Δ=+1.35 dz=+0.85 p=0.000 (n=34)
+  FadMental  Δ=+0.44 dz=+0.31 p=0.078 (n=34)

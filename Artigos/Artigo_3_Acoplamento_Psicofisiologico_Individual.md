@@ -93,7 +93,11 @@ As dimensões do eixo energia–fadiga são as que efetivamente **flutuam** dent
 | Tensão | 0,94 | 1,6 | — | — | — |
 | Confusão | 0,65 | 1,2 | — | — | — |
 
-### 3.6 Aptidão prévia como covariável de base
+### 3.6 A recuperação percebida (TQR) como segunda sentinela
+
+Entre os demais instrumentos coletados na semana, a **recuperação percebida (TQR, 6–20)** destaca-se como um segundo marcador acionável no nível individual. Ela cai ao longo do microciclo (13,4 → 9,6; *p* < 0,001), **responde à sessão** (agudo dz = −0,64; *p* = 0,001) e acopla-se fortemente ao humor dentro do atleta (rmcorr com TMD = −0,65; fadiga = −0,64; vigor = +0,51) — comportando-se como um membro do eixo energia–fadiga. Por ser uma pergunta única, direta e de baixo custo, a TQR é candidata natural a compor, ao lado da fadiga física, um **par de sentinelas** para o monitoramento diário. Em contraste, a sonolência (Epworth) sinaliza acúmulo crônico mas não responde à sessão, e o estresse percebido (PSS) é traço estável, sem valor para a decisão intra-microciclo (Artigo 2, §3.6).
+
+### 3.7 Aptidão prévia como covariável de base
 
 Usada apenas como covariável de base (medida em 15/04, imediatamente antes da semana), a aptidão aeróbia moderou a fadiga do microciclo: o atleta com maior velocidade de pico do T-CAR fadigou menos (T-CAR × fadiga física média da semana *ρ* = −0,54; *p* = 0,005; × TMD *ρ* = −0,28; n.s.). Como o estímulo foi prescrito a 104% da velocidade de pico individual, o custo interno é relativo e equalizado — de modo que a vulnerabilidade à fadiga da semana associa-se a um **traço de aptidão prévio**, e não à intensidade absoluta corrida.
 
