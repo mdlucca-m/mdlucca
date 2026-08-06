@@ -3893,6 +3893,7 @@ return Plotly;
     <button data-v="normalidade">🔬 Normalidade</button>
     <button data-v="correl">🔗 Correlações</button>
     <button data-v="segmentado">🧩 Segmentado</button>
+    <button data-v="modelos">📐 Modelos</button>
   </nav>
   <div id="subnav" class="subnav" style="display:none"></div>
   <div id="segbar" class="segbar" style="display:none">
@@ -4123,7 +4124,7 @@ function fillSegBar(){const dd=document.getElementById('segdim'),ss=document.get
 document.getElementById('segdim').onchange=e=>{SEG.dim=e.target.value;SEG.grp='';fillSegBar();rerender();};
 document.getElementById('segsel').onchange=e=>{SEG.grp=e.target.value;fillSegBar();rerender();};
 let CURV=null; // current BRUMS variable
-function rerender(){if(document.querySelector('#nav .active')?.dataset.v==='segmentado')viewSegmentado();else if(CURV)viewVar(CURV);}
+function rerender(){const a=document.querySelector('#nav .active')?.dataset.v;if(a==='segmentado')viewSegmentado();else if(a==='modelos')viewModelos();else if(CURV)viewVar(CURV);}
 function ols(x,y){const n=x.length,mx=avg(x),my=avg(y);let sxy=0,sxx=0,syy=0;for(let i=0;i<n;i++){sxy+=(x[i]-mx)*(y[i]-my);sxx+=(x[i]-mx)**2;syy+=(y[i]-my)**2;}const b=sxy/sxx;return{a:my-b*mx,b,r:sxy/Math.sqrt(sxx*syy)};}
 const lin=(a,b,n)=>Array.from({length:n},(_,i)=>a+(b-a)*i/(n-1));
 
@@ -4348,6 +4349,94 @@ function viewSegmentado(){
   document.getElementById('s_tbl').innerHTML=h+'</table>'+gtxt+kwtxt;
 }
 
+// ===== MODELOS: solvers estatísticos client-side =====
+function gauss(A,b){const n=b.length;for(let i=0;i<n;i++){let p=i;for(let r=i+1;r<n;r++)if(Math.abs(A[r][i])>Math.abs(A[p][i]))p=r;[A[i],A[p]]=[A[p],A[i]];[b[i],b[p]]=[b[p],b[i]];for(let r=i+1;r<n;r++){const f=A[r][i]/A[i][i];for(let c=i;c<n;c++)A[r][c]-=f*A[i][c];b[r]-=f*b[i];}}const x=new Array(n).fill(0);for(let i=n-1;i>=0;i--){let s=b[i];for(let c=i+1;c<n;c++)s-=A[i][c]*x[c];x[i]=s/A[i][i];}return x;}
+function polyfit(x,y,d){const m=d+1,A=[],b=[];for(let i=0;i<m;i++){b.push(0);A.push(new Array(m).fill(0));}for(let k=0;k<x.length;k++){for(let i=0;i<m;i++){for(let j=0;j<m;j++)A[i][j]+=Math.pow(x[k],i+j);b[i]+=y[k]*Math.pow(x[k],i);}}return gauss(A,b);}
+function polyval(c,x){let s=0;for(let i=c.length-1;i>=0;i--)s=s*x+c[i];return s;}
+function polyder(c){const d=[];for(let i=1;i<c.length;i++)d.push(i*c[i]);return d;}
+function aic(y,yh,k){const n=y.length;let rss=0;for(let i=0;i<n;i++)rss+=(y[i]-yh[i])**2;return n*Math.log(rss/n)+2*k;}
+function r2(y,yh){const my=avg(y);let ss=0,sr=0;for(let i=0;i<y.length;i++){ss+=(y[i]-my)**2;sr+=(y[i]-yh[i])**2;}return 1-sr/ss;}
+function betacf(a,b,x){const qab=a+b,qap=a+1,qam=a-1;let c=1,d=1-qab*x/qap;if(Math.abs(d)<1e-30)d=1e-30;d=1/d;let h=d;for(let m=1;m<200;m++){const m2=2*m;let aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<1e-30)d=1e-30;c=1+aa/c;if(Math.abs(c)<1e-30)c=1e-30;d=1/d;h*=d*c;aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<1e-30)d=1e-30;c=1+aa/c;if(Math.abs(c)<1e-30)c=1e-30;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<3e-7)break;}return h;}
+function gammln(x){const c=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];let y=x,t=x+5.5;t-=(x+0.5)*Math.log(t);let s=1.000000000190015;for(let j=0;j<6;j++){y++;s+=c[j]/y;}return -t+Math.log(2.5066282746310005*s/x);}
+function betai(a,b,x){if(x<=0)return 0;if(x>=1)return 1;const bt=Math.exp(gammln(a+b)-gammln(a)-gammln(b)+a*Math.log(x)+b*Math.log(1-x));return x<(a+1)/(a+b+2)?bt*betacf(a,b,x)/a:1-bt*betacf(b,a,1-x)/b;}
+function tpval2(t,df){if(df<=0)return NaN;return betai(df/2,0.5,df/(df+t*t));}  // two-sided
+function pairedT(a,b){const d=[];for(let i=0;i<a.length;i++)if(a[i]!=null&&b[i]!=null)d.push(a[i]-b[i]);const n=d.length;if(n<3)return null;const m=avg(d),sd=Math.sqrt(d.reduce((s,x)=>s+(x-m)**2,0)/(n-1));if(sd===0)return{t:0,p:1,n};const t=m/(sd/Math.sqrt(n));return{t,p:tpval2(t,n-1),n,mean:m};}
+function holm(ps){const idx=ps.map((p,i)=>[p,i]).sort((a,b)=>a[0]-b[0]);const adj=new Array(ps.length);let run=0;idx.forEach((pi,r)=>{run=Math.max(run,(ps.length-r)*pi[0]);adj[pi[1]]=Math.min(run,1);});return adj;}
+function rocCurve(scores,labels){const pairs=scores.map((s,i)=>[s,labels[i]]).filter(p=>p[0]!=null).sort((a,b)=>b[0]-a[0]);const P=pairs.filter(p=>p[1]===1).length,N=pairs.length-P;let tp=0,fp=0;const fpr=[0],tpr=[0];pairs.forEach(p=>{if(p[1]===1)tp++;else fp++;tpr.push(tp/P);fpr.push(fp/N);});let auc=0;for(let i=1;i<fpr.length;i++)auc+=(fpr[i]-fpr[i-1])*(tpr[i]+tpr[i-1])/2;return{fpr,tpr,auc};}
+function bfBIC(t,n){if(!isFinite(t)||n<3)return null;const bf01=Math.sqrt(n)*Math.pow(1+t*t/(n-1),-n/2);return 1/bf01;}
+function bfLabel(bf){if(bf==null)return'–';if(bf>100)return'extrema (H1)';if(bf>30)return'muito forte (H1)';if(bf>10)return'forte (H1)';if(bf>3)return'moderada (H1)';if(bf>1)return'anedótica (H1)';if(bf>1/3)return'anedótica (H0)';if(bf>1/10)return'moderada (H0)';return'forte (H0)';}
+
+// ---------- MODELOS (tudo, segmentado) ----------
+let MVAR='FadFisica';
+function viewModelos(){
+  const C=content();const idx=segIdx();const V=D.vars[MVAR];
+  const segLbl=SEG.grp?`<span style="color:#51cf66">${SEG.grp} (n=${idx.length})</span>`:'amostra total (n='+idx.length+')';
+  C.innerHTML=`
+  <div class="explain"><b>Modelos — tudo em um clique.</b> Para a variável selecionada e o segmento ativo (${segLbl}), gera: ajustes linear/quadrático/cúbico (AIC/R²), limites e derivadas (velocidade e aceleração), curva ROC, post-hoc par a par entre dias, análise bayesiana (fator de Bayes) e estrutura multivariada. Troque o segmento na barra 🧩 e a variável abaixo — tudo recalcula.</div>
+  <div class="subnav" id="mvars">${D.order.map(x=>`<button data-mv="${x}" class="${x===MVAR?'active':''}">${D.lab[x]}</button>`).join('')}</div>
+  <h2 class="sec">📈 Ajustes lineares e não lineares (polinomial)</h2>
+  ${chart('m_fit','Ajustes à trajetória diária — linear · quadrático · cúbico','melhor modelo por AIC destacado na legenda')}
+  <div class="chart"><div id="m_fittbl"></div></div>
+  <h2 class="sec">🧮 Limites e derivadas</h2>
+  ${chart('m_der','Velocidade (dy/dt) e aceleração (d²y/dt²) do ajuste cúbico','onde a mudança é mais rápida e onde acelera/desacelera')}
+  <h2 class="sec">🎯 Curva ROC — acúmulo D7 vs D1</h2>
+  <div class="row2">${chart('m_roc','ROC: a variável discrimina o dia de acúmulo (D7) do baseline (D1)?','')}
+  ${chart('m_roc2','ROC: discrimina dia de fadiga física alta?','')}</div>
+  <h2 class="sec">🔬 Post-hoc — comparações par a par entre dias</h2>
+  ${chart('m_post','Significância (−log₁₀ p, Holm) dos contrastes entre dias','quanto mais claro, mais significativo · pareado por atleta')}
+  <div class="chart"><div id="m_posttbl"></div></div>
+  <h2 class="sec">📊 Análise bayesiana (fator de Bayes, aproximação BIC)</h2>
+  ${chart('m_bayes','Evidência bayesiana da mudança D1→D7 por variável','BF₁₀>3 favorece efeito; <1/3 favorece nulo')}
+  <h2 class="sec">🔗 Estrutura multivariada</h2>
+  ${chart('m_mv','Correlação entre-atletas (segmento)','PERMANOVA/Hotelling na amostra total: ver relatório multivariado')}`;
+  document.querySelectorAll('#mvars button').forEach(b=>b.onclick=()=>{MVAR=b.dataset.mv;viewModelos();window.scrollTo({top:120,behavior:'smooth'});});
+  renderModelos(idx);
+}
+function renderModelos(idx){
+  const V=D.vars[MVAR];const x=[1,2,3,4,5,6,7];const t=segTraj(V,idx);
+  const xs=lin(1,7,120);const valid=x.filter((_,i)=>t.mean[i]!=null);const yv=t.mean.filter(m=>m!=null);
+  // fits
+  const fits={};['1','2','3'].forEach(d=>{const c=polyfit(valid,yv,+d);fits[d]={c,aic:aic(yv,valid.map(xx=>polyval(c,xx)),+d+1),r2:r2(yv,valid.map(xx=>polyval(c,xx)))};});
+  const best=['1','2','3'].reduce((a,b)=>fits[a].aic<fits[b].aic?a:b);const nm={'1':'linear','2':'quadrático','3':'cúbico'};
+  const ftr=[{x:valid,y:yv,mode:'markers',marker:{color:'#fff',size:9},name:'média diária'}];
+  const fcol={'1':'#4dabf7','2':'#ffd43b','3':'#f03e3e'};
+  ['1','2','3'].forEach(d=>ftr.push({x:xs,y:xs.map(v=>polyval(fits[d].c,v)),mode:'lines',line:{color:fcol[d],width:d===best?4:2,dash:d===best?'solid':'dot'},name:nm[d]+(d===best?' ✓ (melhor AIC)':'')}));
+  Plotly.newPlot('m_fit',ftr,Object.assign({},T,{shapes:bands(),height:420,xaxis:{title:'Dia',dtick:1},yaxis:{title:V.lab},legend:{orientation:'h',y:1.13}}),cfg);
+  document.getElementById('m_fittbl').innerHTML='<table class="tbl"><tr><th>Modelo</th><th>AIC</th><th>R²</th><th>Melhor?</th></tr>'+['1','2','3'].map(d=>`<tr><td>${nm[d]}</td><td>${round(fits[d].aic,1)}</td><td>${round(fits[d].r2,3)}</td><td>${d===best?'✓':''}</td></tr>`).join('')+'</table>';
+  // derivatives (cubic)
+  const c3=fits['3'].c,d1=polyder(c3),d2=polyder(d1);
+  Plotly.newPlot('m_der',[
+    {x:xs,y:xs.map(v=>polyval(d1,v)),mode:'lines',line:{color:'#4dabf7',width:3},name:'velocidade dy/dt'},
+    {x:xs,y:xs.map(v=>polyval(d2,v)),mode:'lines',line:{color:'#f03e3e',width:3},name:'aceleração d²y/dt²'}],
+    Object.assign({},T,{shapes:bands().concat([{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:'#666',dash:'dot'}}]),height:400,xaxis:{title:'Dia',dtick:1},legend:{orientation:'h',y:1.13}}),cfg);
+  // ROC accumulation D7 vs D1
+  const inv=(MVAR==='Vigor')?-1:1;
+  const sc=[],lb=[];idx.forEach(i=>{const a=V.ath.z[i][0],b=V.ath.z[i][6];if(a!=null){sc.push(inv*a);lb.push(0);}if(b!=null){sc.push(inv*b);lb.push(1);}});
+  const rc=rocCurve(sc,lb);
+  Plotly.newPlot('m_roc',[{x:rc.fpr,y:rc.tpr,mode:'lines',line:{color:'#f03e3e',width:3},name:`AUC = ${round(rc.auc,2)}`},{x:[0,1],y:[0,1],mode:'lines',line:{color:'#666',dash:'dash'},name:'acaso'}],Object.assign({},T,{height:360,xaxis:{title:'1−especificidade'},yaxis:{title:'sensibilidade'},legend:{orientation:'h',y:1.13}}),cfg);
+  // ROC high fatigue day (FadFisica top tertile) — using this var to discriminate
+  const ff=D.vars['FadFisica'].ath.z;const allf=[];idx.forEach(i=>ff[i].forEach(x2=>{if(x2!=null)allf.push(x2);}));allf.sort((a,b)=>a-b);const thr=allf[Math.floor(allf.length*2/3)]||7;
+  const sc2=[],lb2=[];idx.forEach(i=>{for(let c=0;c<7;c++){const val=V.ath.z[i][c],f=ff[i][c];if(val!=null&&f!=null){sc2.push(inv*val);lb2.push(f>=thr?1:0);}}});
+  const rc2=rocCurve(sc2,lb2);
+  Plotly.newPlot('m_roc2',[{x:rc2.fpr,y:rc2.tpr,mode:'lines',line:{color:'#ff922b',width:3},name:`AUC = ${round(rc2.auc,2)}`},{x:[0,1],y:[0,1],mode:'lines',line:{color:'#666',dash:'dash'},name:'acaso'}],Object.assign({},T,{height:360,xaxis:{title:'1−especificidade'},yaxis:{title:'sensibilidade'},legend:{orientation:'h',y:1.13}}),cfg);
+  // post-hoc pairwise days
+  const cols=[0,1,2,3,4,5,6];const raw=[],pairsL=[];
+  for(let i=0;i<7;i++)for(let j=i+1;j<7;j++){const a=idx.map(k=>V.ath.z[k][i]),b=idx.map(k=>V.ath.z[k][j]);const r=pairedT(a,b);if(r){raw.push(r.p);pairsL.push([i,j,r]);}}
+  const adj=holm(raw);const Z=Array.from({length:7},()=>new Array(7).fill(null));
+  pairsL.forEach((pl,q)=>{const val=-Math.log10(Math.max(adj[q],1e-6));Z[pl[0]][pl[1]]=val;Z[pl[1]][pl[0]]=val;});
+  Plotly.newPlot('m_post',[{z:Z,x:['D1','D2','D3','D4','D5','D6','D7'],y:['D1','D2','D3','D4','D5','D6','D7'],type:'heatmap',colorscale:'Viridis',colorbar:{title:'−log₁₀ p'}}],Object.assign({},T,{height:400}),cfg);
+  const sig=pairsL.map((pl,q)=>({d:`D${pl[0]+1}×D${pl[1]+1}`,dif:round(pl[2].mean,2),p:adj[q]})).filter(o=>o.p<0.05).sort((a,b)=>a.p-b.p);
+  document.getElementById('m_posttbl').innerHTML='<h3>Pares significativos (Holm p<0,05): '+sig.length+' de 21</h3><table class="tbl"><tr><th>Par</th><th>Δ</th><th>p (Holm)</th></tr>'+sig.slice(0,12).map(o=>`<tr><td>${o.d}</td><td>${o.dif>0?'+':''}${o.dif}</td><td>${o.p<0.001?o.p.toExponential(1):o.p.toFixed(3)}</td></tr>`).join('')+'</table>';
+  // bayesian: BF10 (BIC approx) for change D1->D7 per variable in segment
+  const bvars=D.order;const bf=bvars.map(v=>{const V2=D.vars[v];const d=[];idx.forEach(i=>{const a=V2.ath.z[i][0],b=V2.ath.z[i][6];if(a!=null&&b!=null)d.push(b-a);});if(d.length<3)return null;const m=avg(d),sd=Math.sqrt(d.reduce((s,x)=>s+(x-m)**2,0)/(d.length-1));if(sd===0)return null;const t=m/(sd/Math.sqrt(d.length));return bfBIC(t,d.length);});
+  Plotly.newPlot('m_bayes',[{x:bvars.map(v=>D.lab[v]),y:bf.map(b=>b==null?0:Math.log10(Math.max(b,1e-3))),type:'bar',marker:{color:bf.map(b=>b==null?'#555':b>3?'#f03e3e':b<1/3?'#4dabf7':'#ffd43b')},
+    text:bf.map(b=>b==null?'–':(b>=1?b.toFixed(1):'1/'+(1/b).toFixed(1))),textposition:'outside'}],
+    Object.assign({},T,{height:400,yaxis:{title:'log₁₀ BF₁₀'},shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:Math.log10(3),y1:Math.log10(3),line:{color:'#f03e3e',dash:'dot'}},{type:'line',xref:'paper',x0:0,x1:1,y0:Math.log10(1/3),y1:Math.log10(1/3),line:{color:'#4dabf7',dash:'dot'}}]}),cfg);
+  // multivariate corr in segment
+  const TR=['FadFisica','Fadiga','TMD','Vigor'];const M=TR.map(a=>TR.map(b=>{const xa=[],ya=[];idx.forEach(i=>{const va=avg(D.vars[a].ath.z[i].filter(z=>z!=null)),vb=avg(D.vars[b].ath.z[i].filter(z=>z!=null));if(va!=null&&vb!=null){xa.push(va);ya.push(vb);}});return round(ols(xa,ya).r,2);}));
+  Plotly.newPlot('m_mv',[{z:M,x:TR.map(v=>D.lab[v]),y:TR.map(v=>D.lab[v]),type:'heatmap',colorscale:'RdBu',zmid:0,zmin:-1,zmax:1,text:M,texttemplate:'%{text}'}],Object.assign({},T,{height:380}),cfg);
+}
+
 // ---------- router ----------
 function content(){return document.getElementById('content');}
 const SUB=D.order;
@@ -4359,7 +4448,7 @@ function setSub(active){
 function route(v){
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.v===v));
   const sn=document.getElementById('subnav'),sb=document.getElementById('segbar');
-  const showSeg=(v==='brums'||v==='segmentado');
+  const showSeg=(v==='brums'||v==='segmentado'||v==='modelos');
   sb.style.display=showSeg?'flex':'none';
   if(v==='segmentado'&&!SEG.dim){SEG.dim='Aptidão';SEG.grp='';}
   if(showSeg)fillSegBar();
@@ -4371,6 +4460,7 @@ function route(v){
   else if(v==='normalidade'){sn.style.display='none';viewNormalidade();}
   else if(v==='correl'){sn.style.display='none';viewCorrel();}
   else if(v==='segmentado'){sn.style.display='none';viewSegmentado();}
+  else if(v==='modelos'){sn.style.display='none';viewModelos();}
 }
 document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>route(b.dataset.v));
 route('geral');
