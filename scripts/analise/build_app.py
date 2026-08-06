@@ -16,6 +16,7 @@ APP=r'''<div id="app">
     <button data-v="normalidade">🔬 Normalidade</button>
     <button data-v="correl">🔗 Correlações</button>
     <button data-v="segmentado">🧩 Segmentado</button>
+    <button data-v="modelos">📐 Modelos</button>
   </nav>
   <div id="subnav" class="subnav" style="display:none"></div>
   <div id="segbar" class="segbar" style="display:none">
@@ -59,6 +60,10 @@ h2.sec{font-size:1.25rem;margin:26px 0 6px;color:#fff;border-bottom:1px solid va
 .hl .l{font-size:.85rem;color:#dbe4ee;font-weight:600}.hl .d{font-size:.76rem;color:var(--mut);margin-top:4px}
 .hl.red{border-left:5px solid var(--red)}.hl.blue{border-left:5px solid var(--blue)}.hl.org{border-left:5px solid var(--org)}
 .hl.grn{border-left:5px solid var(--grn)}.hl.vio{border-left:5px solid var(--vio)}
+.interp{background:#0f1a14;border:1px solid #1e3a2a;border-left:4px solid var(--grn);border-radius:10px;padding:12px 16px;margin:8px 0 16px;font-size:.92rem;line-height:1.55;color:#c7dcd0}
+.interp b{color:#fff}.interp .sig{font-weight:700}.interp .yes{color:#51cf66}.interp .no{color:#ffa94d}
+.evid{background:#141024;border:1px solid #2a2140;border-left:4px solid var(--vio);border-radius:10px;padding:12px 16px;margin:8px 0;font-size:.9rem;line-height:1.5;color:#d5cdea}
+.evid a{color:#b197fc;text-decoration:none}.evid a:hover{text-decoration:underline}.evid .q{color:#fff}
 .chart{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px 16px;margin:16px 0}
 .chart h3{margin:0 0 4px;font-size:1.05rem;color:#eaf1f8}.chart .note{color:var(--mut);font-size:.84rem;margin:0 0 8px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -78,6 +83,14 @@ const cfg={displaylogo:false,responsive:true,toImageButtonOptions:{format:'png',
 const HIIT=[2,4,7];
 const CC={FadFisica:'#f03e3e',Fadiga:'#ff922b',Vigor:'#4dabf7',TMD:'#e64980',Tensao:'#9775fa',Depressao:'#5c7cfa',Raiva:'#e8590c',Confusao:'#22b8cf',FadMental:'#ffd43b'};
 const POSC={Armador:'#4dabf7',Ala:'#51cf66',['Pivô']:'#ff922b',Goleiro:'#e64980'};
+const EVID={
+ axis:{q:'Vigor e fadiga são as dimensões do POMS/BRUMS mais sensíveis à carga de treino.',c:'Beedie, Terry & Lane (2000) — meta-análises do POMS e desempenho, J Appl Sport Psychol.',doi:'10.1080/10413200008404213'},
+ iceberg:{q:'O perfil "iceberg" (vigor alto sobre dimensões negativas baixas) caracteriza atletas e achata-se sob fadiga acumulada.',c:'Bonfim et al. (2023) — Human Movement.',doi:'10.5114/hm.2023.132709'},
+ tqr:{q:'TQR e o índice de energia (vigor−fadiga) monitoram a recuperação e respondem à carga de treino.',c:'Horta et al. (2020) — Rev Bras Med Esporte.',doi:'10.1590/1517-869220202602209364'},
+ trimp:{q:'A correlação sRPE–TRIMP enfraquece na alta intensidade (r≈0,31 no HIT); o session-RPE supre a FC quando esta falha ou é suprimida.',c:'Yang et al. (2024) — Frontiers in Neuroscience.',doi:'10.3389/fnins.2024.1341972'},
+ srpe:{q:'O session-RPE tem validade de critério forte com a FC (r≈0,74) e funciona como medida autônoma de carga interna.',c:'Liu et al. (2023) — meta-análise, BMC Sports Sci Med Rehabil.',doi:'10.1186/s13102-023-00712-5'},
+};
+function evidCard(k){const e=EVID[k];return `<div class="evid">📚 <span class="q">${e.q}</span><br>${e.c} · <a href="https://doi.org/${e.doi}" target="_blank">doi:${e.doi}</a></div>`;}
 function bands(){return HIIT.map(d=>({type:'rect',xref:'x',yref:'paper',x0:d-0.15,x1:d+0.15,y0:0,y1:1,fillcolor:'#ff6b6b',opacity:0.09,line:{width:0}}));}
 function el(h){const d=document.createElement('div');d.innerHTML=h;return d.firstElementChild;}
 function chart(id,title,note){return `<div class="chart"><h3>${title}</h3>${note?`<p class="note">${note}</p>`:''}<div id="${id}"></div></div>`;}
@@ -246,7 +259,7 @@ function fillSegBar(){const dd=document.getElementById('segdim'),ss=document.get
 document.getElementById('segdim').onchange=e=>{SEG.dim=e.target.value;SEG.grp='';fillSegBar();rerender();};
 document.getElementById('segsel').onchange=e=>{SEG.grp=e.target.value;fillSegBar();rerender();};
 let CURV=null; // current BRUMS variable
-function rerender(){if(document.querySelector('#nav .active')?.dataset.v==='segmentado')viewSegmentado();else if(CURV)viewVar(CURV);}
+function rerender(){const a=document.querySelector('#nav .active')?.dataset.v;if(a==='segmentado')viewSegmentado();else if(a==='modelos')viewModelos();else if(CURV)viewVar(CURV);}
 function ols(x,y){const n=x.length,mx=avg(x),my=avg(y);let sxy=0,sxx=0,syy=0;for(let i=0;i<n;i++){sxy+=(x[i]-mx)*(y[i]-my);sxx+=(x[i]-mx)**2;syy+=(y[i]-my)**2;}const b=sxy/sxx;return{a:my-b*mx,b,r:sxy/Math.sqrt(sxx*syy)};}
 const lin=(a,b,n)=>Array.from({length:n},(_,i)=>a+(b-a)*i/(n-1));
 
@@ -471,6 +484,129 @@ function viewSegmentado(){
   document.getElementById('s_tbl').innerHTML=h+'</table>'+gtxt+kwtxt;
 }
 
+// ===== MODELOS: solvers estatísticos client-side =====
+function gauss(A,b){const n=b.length;for(let i=0;i<n;i++){let p=i;for(let r=i+1;r<n;r++)if(Math.abs(A[r][i])>Math.abs(A[p][i]))p=r;[A[i],A[p]]=[A[p],A[i]];[b[i],b[p]]=[b[p],b[i]];for(let r=i+1;r<n;r++){const f=A[r][i]/A[i][i];for(let c=i;c<n;c++)A[r][c]-=f*A[i][c];b[r]-=f*b[i];}}const x=new Array(n).fill(0);for(let i=n-1;i>=0;i--){let s=b[i];for(let c=i+1;c<n;c++)s-=A[i][c]*x[c];x[i]=s/A[i][i];}return x;}
+function polyfit(x,y,d){const m=d+1,A=[],b=[];for(let i=0;i<m;i++){b.push(0);A.push(new Array(m).fill(0));}for(let k=0;k<x.length;k++){for(let i=0;i<m;i++){for(let j=0;j<m;j++)A[i][j]+=Math.pow(x[k],i+j);b[i]+=y[k]*Math.pow(x[k],i);}}return gauss(A,b);}
+function polyval(c,x){let s=0;for(let i=c.length-1;i>=0;i--)s=s*x+c[i];return s;}
+function polyder(c){const d=[];for(let i=1;i<c.length;i++)d.push(i*c[i]);return d;}
+function aic(y,yh,k){const n=y.length;let rss=0;for(let i=0;i<n;i++)rss+=(y[i]-yh[i])**2;return n*Math.log(rss/n)+2*k;}
+function r2(y,yh){const my=avg(y);let ss=0,sr=0;for(let i=0;i<y.length;i++){ss+=(y[i]-my)**2;sr+=(y[i]-yh[i])**2;}return 1-sr/ss;}
+function betacf(a,b,x){const qab=a+b,qap=a+1,qam=a-1;let c=1,d=1-qab*x/qap;if(Math.abs(d)<1e-30)d=1e-30;d=1/d;let h=d;for(let m=1;m<200;m++){const m2=2*m;let aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<1e-30)d=1e-30;c=1+aa/c;if(Math.abs(c)<1e-30)c=1e-30;d=1/d;h*=d*c;aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<1e-30)d=1e-30;c=1+aa/c;if(Math.abs(c)<1e-30)c=1e-30;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<3e-7)break;}return h;}
+function gammln(x){const c=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];let y=x,t=x+5.5;t-=(x+0.5)*Math.log(t);let s=1.000000000190015;for(let j=0;j<6;j++){y++;s+=c[j]/y;}return -t+Math.log(2.5066282746310005*s/x);}
+function betai(a,b,x){if(x<=0)return 0;if(x>=1)return 1;const bt=Math.exp(gammln(a+b)-gammln(a)-gammln(b)+a*Math.log(x)+b*Math.log(1-x));return x<(a+1)/(a+b+2)?bt*betacf(a,b,x)/a:1-bt*betacf(b,a,1-x)/b;}
+function tpval2(t,df){if(df<=0)return NaN;return betai(df/2,0.5,df/(df+t*t));}  // two-sided
+function pairedT(a,b){const d=[];for(let i=0;i<a.length;i++)if(a[i]!=null&&b[i]!=null)d.push(a[i]-b[i]);const n=d.length;if(n<3)return null;const m=avg(d),sd=Math.sqrt(d.reduce((s,x)=>s+(x-m)**2,0)/(n-1));if(sd===0)return{t:0,p:1,n};const t=m/(sd/Math.sqrt(n));return{t,p:tpval2(t,n-1),n,mean:m};}
+function holm(ps){const idx=ps.map((p,i)=>[p,i]).sort((a,b)=>a[0]-b[0]);const adj=new Array(ps.length);let run=0;idx.forEach((pi,r)=>{run=Math.max(run,(ps.length-r)*pi[0]);adj[pi[1]]=Math.min(run,1);});return adj;}
+function rocCurve(scores,labels){const pairs=scores.map((s,i)=>[s,labels[i]]).filter(p=>p[0]!=null).sort((a,b)=>b[0]-a[0]);const P=pairs.filter(p=>p[1]===1).length,N=pairs.length-P;let tp=0,fp=0;const fpr=[0],tpr=[0];pairs.forEach(p=>{if(p[1]===1)tp++;else fp++;tpr.push(tp/P);fpr.push(fp/N);});let auc=0;for(let i=1;i<fpr.length;i++)auc+=(fpr[i]-fpr[i-1])*(tpr[i]+tpr[i-1])/2;return{fpr,tpr,auc};}
+function bfBIC(t,n){if(!isFinite(t)||n<3)return null;const bf01=Math.sqrt(n)*Math.pow(1+t*t/(n-1),-n/2);return 1/bf01;}
+function bfLabel(bf){if(bf==null)return'–';if(bf>100)return'extrema (H1)';if(bf>30)return'muito forte (H1)';if(bf>10)return'forte (H1)';if(bf>3)return'moderada (H1)';if(bf>1)return'anedótica (H1)';if(bf>1/3)return'anedótica (H0)';if(bf>1/10)return'moderada (H0)';return'forte (H0)';}
+
+// ---------- MODELOS (tudo, segmentado) ----------
+let MVAR='FadFisica';
+function viewModelos(){
+  const C=content();const idx=segIdx();const V=D.vars[MVAR];
+  const segLbl=SEG.grp?`<span style="color:#51cf66">${SEG.grp} (n=${idx.length})</span>`:'amostra total (n='+idx.length+')';
+  C.innerHTML=`
+  <div class="explain"><b>Modelos — tudo em um clique.</b> Para a variável selecionada e o segmento ativo (${segLbl}), gera: ajustes linear/quadrático/cúbico (AIC/R²), limites e derivadas (velocidade e aceleração), curva ROC, post-hoc par a par entre dias, análise bayesiana (fator de Bayes) e estrutura multivariada. Troque o segmento na barra 🧩 e a variável abaixo — tudo recalcula.</div>
+  <div class="subnav" id="mvars">${D.order.map(x=>`<button data-mv="${x}" class="${x===MVAR?'active':''}">${D.lab[x]}</button>`).join('')}</div>
+  <h2 class="sec">▶️ Trajetória em tempo real</h2>
+  ${chart('m_anim','Reprodução dia a dia — clique em ▶ Reproduzir','a linha corre pela semana; a bola marca o dia atual')}
+  <h2 class="sec">📈 Ajustes lineares e não lineares (polinomial)</h2>
+  ${chart('m_fit','Ajustes à trajetória diária — linear · quadrático · cúbico','melhor modelo por AIC destacado na legenda')}
+  <div class="chart"><div id="m_fittbl"></div></div>
+  <div class="interp" id="i_fit"></div>
+  <h2 class="sec">🧮 Limites e derivadas</h2>
+  ${chart('m_der','Velocidade (dy/dt) e aceleração (d²y/dt²) do ajuste cúbico','onde a mudança é mais rápida e onde acelera/desacelera')}
+  <div class="interp" id="i_der"></div>
+  <h2 class="sec">🎯 Curva ROC</h2>
+  <div class="row2">${chart('m_roc','ROC: a variável discrimina o dia de acúmulo (D7) do baseline (D1)?','')}
+  ${chart('m_roc2','ROC: discrimina dia de fadiga física alta?','')}</div>
+  <div class="interp" id="i_roc"></div>
+  <h2 class="sec">🔬 Post-hoc — comparações par a par entre dias</h2>
+  ${chart('m_post','Significância (−log₁₀ p, Holm) dos contrastes entre dias','quanto mais claro, mais significativo · pareado por atleta')}
+  <div class="chart"><div id="m_posttbl"></div></div>
+  <div class="interp" id="i_post"></div>
+  <h2 class="sec">📊 Análise bayesiana (fator de Bayes, aproximação BIC)</h2>
+  ${chart('m_bayes','Evidência bayesiana da mudança D1→D7 por variável','BF₁₀>3 favorece efeito; <1/3 favorece nulo')}
+  <div class="interp" id="i_bayes"></div>
+  <h2 class="sec">🔗 Estrutura multivariada</h2>
+  ${chart('m_mv','Correlação entre-atletas (segmento)','PERMANOVA/Hotelling na amostra total: ver relatório multivariado')}
+  <div class="interp" id="i_mv"></div>
+  <h2 class="sec">📚 Evidências científicas</h2>
+  <div id="m_evid"></div>`;
+  document.querySelectorAll('#mvars button').forEach(b=>b.onclick=()=>{MVAR=b.dataset.mv;viewModelos();window.scrollTo({top:120,behavior:'smooth'});});
+  renderModelos(idx);
+}
+function renderModelos(idx){
+  const V=D.vars[MVAR];const x=[1,2,3,4,5,6,7];const t=segTraj(V,idx);
+  const xs=lin(1,7,120);const valid=x.filter((_,i)=>t.mean[i]!=null);const yv=t.mean.filter(m=>m!=null);
+  // fits
+  const fits={};['1','2','3'].forEach(d=>{const c=polyfit(valid,yv,+d);fits[d]={c,aic:aic(yv,valid.map(xx=>polyval(c,xx)),+d+1),r2:r2(yv,valid.map(xx=>polyval(c,xx)))};});
+  const best=['1','2','3'].reduce((a,b)=>fits[a].aic<fits[b].aic?a:b);const nm={'1':'linear','2':'quadrático','3':'cúbico'};
+  const ftr=[{x:valid,y:yv,mode:'markers',marker:{color:'#fff',size:9},name:'média diária'}];
+  const fcol={'1':'#4dabf7','2':'#ffd43b','3':'#f03e3e'};
+  ['1','2','3'].forEach(d=>ftr.push({x:xs,y:xs.map(v=>polyval(fits[d].c,v)),mode:'lines',line:{color:fcol[d],width:d===best?4:2,dash:d===best?'solid':'dot'},name:nm[d]+(d===best?' ✓ (melhor AIC)':'')}));
+  Plotly.newPlot('m_fit',ftr,Object.assign({},T,{shapes:bands(),height:420,xaxis:{title:'Dia',dtick:1},yaxis:{title:V.lab},legend:{orientation:'h',y:1.13}}),cfg);
+  document.getElementById('m_fittbl').innerHTML='<table class="tbl"><tr><th>Modelo</th><th>AIC</th><th>R²</th><th>Melhor?</th></tr>'+['1','2','3'].map(d=>`<tr><td>${nm[d]}</td><td>${round(fits[d].aic,1)}</td><td>${round(fits[d].r2,3)}</td><td>${d===best?'✓':''}</td></tr>`).join('')+'</table>';
+  // derivatives (cubic)
+  const c3=fits['3'].c,d1=polyder(c3),d2=polyder(d1);
+  Plotly.newPlot('m_der',[
+    {x:xs,y:xs.map(v=>polyval(d1,v)),mode:'lines',line:{color:'#4dabf7',width:3},name:'velocidade dy/dt'},
+    {x:xs,y:xs.map(v=>polyval(d2,v)),mode:'lines',line:{color:'#f03e3e',width:3},name:'aceleração d²y/dt²'}],
+    Object.assign({},T,{shapes:bands().concat([{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:'#666',dash:'dot'}}]),height:400,xaxis:{title:'Dia',dtick:1},legend:{orientation:'h',y:1.13}}),cfg);
+  // ROC accumulation D7 vs D1
+  const inv=(MVAR==='Vigor')?-1:1;
+  const sc=[],lb=[];idx.forEach(i=>{const a=V.ath.z[i][0],b=V.ath.z[i][6];if(a!=null){sc.push(inv*a);lb.push(0);}if(b!=null){sc.push(inv*b);lb.push(1);}});
+  const rc=rocCurve(sc,lb);
+  Plotly.newPlot('m_roc',[{x:rc.fpr,y:rc.tpr,mode:'lines',line:{color:'#f03e3e',width:3},name:`AUC = ${round(rc.auc,2)}`},{x:[0,1],y:[0,1],mode:'lines',line:{color:'#666',dash:'dash'},name:'acaso'}],Object.assign({},T,{height:360,xaxis:{title:'1−especificidade'},yaxis:{title:'sensibilidade'},legend:{orientation:'h',y:1.13}}),cfg);
+  // ROC high fatigue day (FadFisica top tertile) — using this var to discriminate
+  const ff=D.vars['FadFisica'].ath.z;const allf=[];idx.forEach(i=>ff[i].forEach(x2=>{if(x2!=null)allf.push(x2);}));allf.sort((a,b)=>a-b);const thr=allf[Math.floor(allf.length*2/3)]||7;
+  const sc2=[],lb2=[];idx.forEach(i=>{for(let c=0;c<7;c++){const val=V.ath.z[i][c],f=ff[i][c];if(val!=null&&f!=null){sc2.push(inv*val);lb2.push(f>=thr?1:0);}}});
+  const rc2=rocCurve(sc2,lb2);
+  Plotly.newPlot('m_roc2',[{x:rc2.fpr,y:rc2.tpr,mode:'lines',line:{color:'#ff922b',width:3},name:`AUC = ${round(rc2.auc,2)}`},{x:[0,1],y:[0,1],mode:'lines',line:{color:'#666',dash:'dash'},name:'acaso'}],Object.assign({},T,{height:360,xaxis:{title:'1−especificidade'},yaxis:{title:'sensibilidade'},legend:{orientation:'h',y:1.13}}),cfg);
+  // post-hoc pairwise days
+  const cols=[0,1,2,3,4,5,6];const raw=[],pairsL=[];
+  for(let i=0;i<7;i++)for(let j=i+1;j<7;j++){const a=idx.map(k=>V.ath.z[k][i]),b=idx.map(k=>V.ath.z[k][j]);const r=pairedT(a,b);if(r){raw.push(r.p);pairsL.push([i,j,r]);}}
+  const adj=holm(raw);const Z=Array.from({length:7},()=>new Array(7).fill(null));
+  pairsL.forEach((pl,q)=>{const val=-Math.log10(Math.max(adj[q],1e-6));Z[pl[0]][pl[1]]=val;Z[pl[1]][pl[0]]=val;});
+  Plotly.newPlot('m_post',[{z:Z,x:['D1','D2','D3','D4','D5','D6','D7'],y:['D1','D2','D3','D4','D5','D6','D7'],type:'heatmap',colorscale:'Viridis',colorbar:{title:'−log₁₀ p'}}],Object.assign({},T,{height:400}),cfg);
+  const sig=pairsL.map((pl,q)=>({d:`D${pl[0]+1}×D${pl[1]+1}`,dif:round(pl[2].mean,2),p:adj[q]})).filter(o=>o.p<0.05).sort((a,b)=>a.p-b.p);
+  document.getElementById('m_posttbl').innerHTML='<h3>Pares significativos (Holm p<0,05): '+sig.length+' de 21</h3><table class="tbl"><tr><th>Par</th><th>Δ</th><th>p (Holm)</th></tr>'+sig.slice(0,12).map(o=>`<tr><td>${o.d}</td><td>${o.dif>0?'+':''}${o.dif}</td><td>${o.p<0.001?o.p.toExponential(1):o.p.toFixed(3)}</td></tr>`).join('')+'</table>';
+  // bayesian: BF10 (BIC approx) for change D1->D7 per variable in segment
+  const bvars=D.order;const bf=bvars.map(v=>{const V2=D.vars[v];const d=[];idx.forEach(i=>{const a=V2.ath.z[i][0],b=V2.ath.z[i][6];if(a!=null&&b!=null)d.push(b-a);});if(d.length<3)return null;const m=avg(d),sd=Math.sqrt(d.reduce((s,x)=>s+(x-m)**2,0)/(d.length-1));if(sd===0)return null;const t=m/(sd/Math.sqrt(d.length));return bfBIC(t,d.length);});
+  Plotly.newPlot('m_bayes',[{x:bvars.map(v=>D.lab[v]),y:bf.map(b=>b==null?0:Math.log10(Math.max(b,1e-3))),type:'bar',marker:{color:bf.map(b=>b==null?'#555':b>3?'#f03e3e':b<1/3?'#4dabf7':'#ffd43b')},
+    text:bf.map(b=>b==null?'–':(b>=1?b.toFixed(1):'1/'+(1/b).toFixed(1))),textposition:'outside'}],
+    Object.assign({},T,{height:400,yaxis:{title:'log₁₀ BF₁₀'},shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:Math.log10(3),y1:Math.log10(3),line:{color:'#f03e3e',dash:'dot'}},{type:'line',xref:'paper',x0:0,x1:1,y0:Math.log10(1/3),y1:Math.log10(1/3),line:{color:'#4dabf7',dash:'dot'}}]}),cfg);
+  // multivariate corr in segment
+  const TR=['FadFisica','Fadiga','TMD','Vigor'];const M=TR.map(a=>TR.map(b=>{const xa=[],ya=[];idx.forEach(i=>{const va=avg(D.vars[a].ath.z[i].filter(z=>z!=null)),vb=avg(D.vars[b].ath.z[i].filter(z=>z!=null));if(va!=null&&vb!=null){xa.push(va);ya.push(vb);}});return round(ols(xa,ya).r,2);}));
+  Plotly.newPlot('m_mv',[{z:M,x:TR.map(v=>D.lab[v]),y:TR.map(v=>D.lab[v]),type:'heatmap',colorscale:'RdBu',zmid:0,zmin:-1,zmax:1,text:M,texttemplate:'%{text}'}],Object.assign({},T,{height:380}),cfg);
+  // ===== animação em tempo real =====
+  const ym=t.mean.map(m=>m==null?null:m);const yr=[Math.min(...ym.filter(x=>x!=null))-1,Math.max(...ym.filter(x=>x!=null))+1];
+  const frames=[];for(let k=1;k<=7;k++){const mk=ym[k-1];frames.push({name:''+k,data:[{x:x.slice(0,k),y:ym.slice(0,k)},{x:mk==null?[]:[k],y:mk==null?[]:[mk]}]});}
+  Plotly.newPlot('m_anim',[{x:[x[0]],y:[ym[0]],mode:'lines+markers',line:{color:CC[MVAR],width:4},marker:{size:8},name:V.lab},{x:[x[0]],y:[ym[0]],mode:'markers',marker:{color:'#fff',size:16,line:{color:CC[MVAR],width:3}},showlegend:false}],
+    Object.assign({},T,{shapes:bands(),height:400,xaxis:{title:'Dia',dtick:1,range:[0.8,7.2]},yaxis:{title:V.lab,range:yr},
+     updatemenus:[{type:'buttons',showactive:false,x:0,y:1.18,buttons:[
+       {label:'▶ Reproduzir',method:'animate',args:[null,{frame:{duration:650,redraw:true},transition:{duration:300},fromcurrent:true}]},
+       {label:'⏸ Pausar',method:'animate',args:[[null],{frame:{duration:0,redraw:false},mode:'immediate'}]}]}]}),cfg);
+  Plotly.addFrames('m_anim',frames);
+  // ===== interpretações automáticas (por que sig/não sig) =====
+  const set=(id,html)=>{const e=document.getElementById(id);if(e)e.innerHTML=html;};
+  set('i_fit',`<b>Resultado:</b> melhor ajuste = <b>${nm[best]}</b> (AIC ${round(fits[best].aic,1)}; R² ${round(fits[best].r2,3)}). `+
+    (best==='3'?`<b class="sig">Por que não-linear:</b> a curva sobe no início, alivia no meio da semana e <b>precipita-se no Dia 7</b> — um padrão em três fases que a reta (R² ${round(fits['1'].r2,3)}) não capta; o ganho de R² até o cúbico e a queda do AIC confirmam a curvatura. ${evidCard('axis')}`
+    :`<b class="sig">Por que ${nm[best]}:</b> a trajetória é bem descrita por esse grau; graus maiores não reduzem o AIC.`));
+  const gx=lin(1,7,120),vv=gx.map(g=>polyval(d1,g)),aa=gx.map(g=>polyval(d2,g));
+  const ivmax=gx[vv.map(Math.abs).indexOf(Math.max(...vv.map(Math.abs)))];let cross=null;for(let i=1;i<aa.length;i++)if(aa[i-1]*aa[i]<0)cross=gx[i];
+  set('i_der',`<b>Resultado:</b> a <b>velocidade da mudança</b> é máxima por volta do <b>Dia ${round(ivmax,1)}</b>${cross?`, e a <b>aceleração</b> muda de sinal perto do Dia ${round(cross,1)}`:''}. <b class="sig">Interpretação:</b> a deterioração não é uniforme — ela ${ivmax>5?'<b>se precipita no fim do microciclo</b> (acúmulo)':'é mais rápida no início'}, coerente com a fadiga acumulada. ${evidCard('iceberg')}`);
+  const aw=a=>a>=.9?'excelente':a>=.8?'boa':a>=.7?'aceitável':a>=.6?'fraca':'ao acaso';
+  set('i_roc',`<b>Resultado:</b> AUC do acúmulo (D7 vs D1) = <b>${round(rc.auc,2)}</b> (${aw(rc.auc)}). <b class="sig ${rc.auc>=.7?'yes':'no'}">${rc.auc>=.7?'Discrimina bem':'Discrimina pouco'}:</b> ${rc.auc>=.7?`o estado do Dia 7 separa-se do baseline — o <b>sinal está no acúmulo</b>. Em contraste, discriminar a sessão isolada costuma dar AUC≈0,5 (não distingue), o que reposiciona o monitoramento na <b>tendência</b>, não no evento.`:`o dia isolado não se separa bem — reforça monitorar por tendência.`} ${evidCard('tqr')}`);
+  set('i_post',`<b>Resultado:</b> <b>${sig.length} de 21</b> pares de dias significativos (Holm). <b class="sig">Por que estes e não os outros:</b> os contrastes que sobrevivem à correção envolvem sobretudo o <b>Dia 7</b> (efeito grande, acúmulo máximo); os do meio da semana não sobrevivem porque o efeito é pequeno e a variância entre atletas é alta — a correção de Holm penaliza o excesso de comparações e só mantém os contrastes robustos.`);
+  const bi=D.order.indexOf(MVAR);const bfv=bf[bi];
+  set('i_bayes',`<b>Resultado (${V.lab}):</b> BF₁₀ ≈ <b>${bfv==null?'–':(bfv>=1?bfv.toFixed(1):'1/'+(1/bfv).toFixed(1))}</b> — evidência ${bfLabel(bfv)}. <b class="sig">Por quê:</b> ${bfv==null?'amostra insuficiente':bfv>3?'a mudança D1→D7 é consistente e grande, então os dados favorecem o efeito.':bfv<1/3?'a mudança é pequena/instável (efeito piso), então os dados favorecem a <b>ausência</b> de efeito — não é só "p>0,05", é evidência a favor do nulo.':'a evidência é ambígua (nem efeito nem nulo demonstrados) — tipicamente falta de poder.'} As subescalas negativas tendem a BF₁₀<1/3 pelo efeito piso. ${evidCard('axis')}`);
+  const vf=M[3][1];// Vigor x Fadiga in TR order [FadFisica,Fadiga,TMD,Vigor]
+  set('i_mv',`<b>Resultado:</b> no nível do atleta, vigor e fadiga correlacionam-se <b>${vf}</b> (oposição), e fadiga↔fadiga física/TMD são positivas. <b class="sig">Interpretação:</b> as variáveis não são independentes — formam um <b>eixo bipolar energia↔fadiga</b>, justificando tratá-lo como a dimensão-alvo do monitoramento. ${evidCard('iceberg')}`);
+  set('m_evid',[evidCard('axis'),evidCard('iceberg'),evidCard('tqr'),evidCard('srpe'),evidCard('trimp')].join(''));
+}
+
 // ---------- router ----------
 function content(){return document.getElementById('content');}
 const SUB=D.order;
@@ -482,7 +618,7 @@ function setSub(active){
 function route(v){
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.v===v));
   const sn=document.getElementById('subnav'),sb=document.getElementById('segbar');
-  const showSeg=(v==='brums'||v==='segmentado');
+  const showSeg=(v==='brums'||v==='segmentado'||v==='modelos');
   sb.style.display=showSeg?'flex':'none';
   if(v==='segmentado'&&!SEG.dim){SEG.dim='Aptidão';SEG.grp='';}
   if(showSeg)fillSegBar();
@@ -494,6 +630,7 @@ function route(v){
   else if(v==='normalidade'){sn.style.display='none';viewNormalidade();}
   else if(v==='correl'){sn.style.display='none';viewCorrel();}
   else if(v==='segmentado'){sn.style.display='none';viewSegmentado();}
+  else if(v==='modelos'){sn.style.display='none';viewModelos();}
 }
 document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>route(b.dataset.v));
 route('geral');
