@@ -84,17 +84,24 @@ def main():
         ang = _ang_of(P[b] - P[a])
         segs[name] = (_smooth(np.gradient(_smooth(ang), dt)), col)
 
+    # aceleracao angular das ARTICULACOES (graus/s^2) = derivada da vel. angular
+    accels = {name: (_smooth(np.gradient(v, dt), 19), col)
+              for name, (v, col) in joints.items()}
+
     ymax_j = max(np.max(np.abs(v)) for v, _ in joints.values()) * 1.1
     ymax_s = max(np.max(np.abs(v)) for v, _ in segs.values()) * 1.1
+    ymax_a = max(np.max(np.abs(v)) for v, _ in accels.values()) * 1.1
 
     plt.rcParams.update({"figure.facecolor": "#0e1116", "axes.facecolor": "#0e1116",
                          "axes.edgecolor": "#39424d", "text.color": "#e6edf3",
                          "axes.labelcolor": "#e6edf3", "xtick.color": GRY,
                          "ytick.color": GRY, "font.size": 11})
-    fig = plt.figure(figsize=(12, 6.75), dpi=110)
-    gs = fig.add_gridspec(2, 2, width_ratios=[1, 1.7])
-    axSk = fig.add_subplot(gs[:, 0]); axJ = fig.add_subplot(gs[0, 1]); axS = fig.add_subplot(gs[1, 1])
-    fig.suptitle(f"{args.brand} — velocidade angular em tempo real (articulações e segmentos)",
+    fig = plt.figure(figsize=(12, 8.8), dpi=110)
+    gs = fig.add_gridspec(3, 2, width_ratios=[1, 1.7], hspace=0.42, right=0.985)
+    axSk = fig.add_subplot(gs[:, 0])
+    axJ = fig.add_subplot(gs[0, 1]); axS = fig.add_subplot(gs[1, 1]); axA = fig.add_subplot(gs[2, 1])
+    axJ.tick_params(labelbottom=False); axS.tick_params(labelbottom=False)
+    fig.suptitle(f"{args.brand} — vel. e aceleração angular em tempo real (articulações e segmentos)",
                  color=TEAL, fontweight="bold", fontsize=12)
 
     # esqueleto: pernas + tronco (esquerda em destaque)
@@ -114,11 +121,11 @@ def main():
         bone_lines[(a, b)] = ln
     joint_pts, = axSk.plot([], [], "o", color="#e6edf3", ms=5)
 
-    def setup(ax, series, ymax, title):
+    def setup(ax, series, ymax, title, unit="°/s"):
         ax.set_xlim(0, t[-1]); ax.set_ylim(-ymax, ymax)
         ax.axhline(0, color="#39424d", lw=.8)
-        ax.set_ylabel("°/s"); ax.set_title(title, color="#e6edf3", fontsize=11)
-        lines, txts = {}, {}
+        ax.set_ylabel(unit); ax.set_title(title, color="#e6edf3", fontsize=11)
+        lines = {}
         for name, (v, col) in series.items():
             (ln,) = ax.plot([], [], color=col, lw=1.8, label=name)
             lines[name] = ln
@@ -128,7 +135,8 @@ def main():
         return lines, cur
     jl, jc = setup(axJ, joints, ymax_j, "Articulações — vel. angular")
     sl, sc = setup(axS, segs, ymax_s, "Segmentos — vel. angular")
-    axS.set_xlabel("tempo (s)")
+    al, ac = setup(axA, accels, ymax_a, "Articulações — aceleração angular", unit="°/s²")
+    axA.set_xlabel("tempo (s)")
     val_txt = axSk.text(0.02, 0.02, "", color="#e6edf3", fontsize=9, va="top",
                         family="monospace", transform=axSk.transAxes)
 
@@ -149,10 +157,14 @@ def main():
             jl[name].set_data(t[:f + 1], v[:f + 1])
         for name, (v, _) in segs.items():
             sl[name].set_data(t[:f + 1], v[:f + 1])
-        jc.set_xdata([t[f], t[f]]); sc.set_xdata([t[f], t[f]])
+        for name, (v, _) in accels.items():
+            al[name].set_data(t[:f + 1], v[:f + 1])
+        jc.set_xdata([t[f], t[f]]); sc.set_xdata([t[f], t[f]]); ac.set_xdata([t[f], t[f]])
         lines_txt = "  ".join(f"{n[:4]}:{v[f]:>5.0f}" for n, (v, _) in joints.items())
         seg_txt = "  ".join(f"{n[:4]}:{v[f]:>5.0f}" for n, (v, _) in segs.items())
-        val_txt.set_text(f"t={t[f]:4.1f}s  graus/s\nartic {lines_txt}\nseg   {seg_txt}")
+        acc_txt = "  ".join(f"{n[:4]}:{v[f]:>6.0f}" for n, (v, _) in accels.items())
+        val_txt.set_text(f"t={t[f]:4.1f}s\nvel °/s   artic {lines_txt}\n"
+                         f"          seg   {seg_txt}\nacel °/s² artic {acc_txt}")
         fig.canvas.draw()
         buf = np.frombuffer(fig.canvas.buffer_rgba(), np.uint8).reshape(
             fig.canvas.get_width_height()[1], fig.canvas.get_width_height()[0], 4)
