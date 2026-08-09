@@ -79,16 +79,16 @@ def test_demo_seed_endpoint():
     r = c.post("/demo/seed", json={"athletes": 3, "reps": 4, "reset": True})
     assert r.status_code == 200
     d = r.json()
-    assert d["created"] == 4          # 3 atletas + 1 de teste de cargas
+    assert d["created"] == 5          # 3 atletas + teste de cargas + salto
     # cada sessao com relatorio veio com link absoluto, que renderiza
     with_url = [s for s in d["sessions"] if s.get("report_url")]
     url = with_url[0]["report_url"]
     assert "/r/" in url
     rep = c.get("/r/" + url.split("/r/")[1])
     assert rep.status_code == 200 and "<rect" in rep.text
-    # segundo seed com reset remove os 4 anteriores
+    # segundo seed com reset remove os 5 anteriores
     r2 = c.post("/demo/seed", json={"athletes": 2, "reps": 3, "reset": True})
-    assert r2.json()["removed"] == 4 and r2.json()["created"] == 3
+    assert r2.json()["removed"] == 5 and r2.json()["created"] == 4
 
 
 def test_seed_massa_de_teste_and_reports():
@@ -106,6 +106,8 @@ def test_seed_massa_de_teste_and_reports():
     assert len(regs) == 3 and all(r["reps"] == 4 for r in regs)
     lt = [r for r in recs if r.get("fvp")]
     assert len(lt) == 1               # atleta de teste de cargas
+    jp = [r for r in recs if r.get("samozino")]
+    assert len(jp) == 1               # atleta de salto (Samozino)
 
     os.environ["MDLUCCA_DB"] = dbp
     for m in list(sys.modules):
@@ -130,12 +132,19 @@ def test_seed_massa_de_teste_and_reports():
     body = fvp.json()
     assert body["n_pontos"] == 5 and body["perfil_forca_velocidade"]["F0_N"] > 0
 
-    # reset limpa toda a massa de teste (3 regulares + 1 teste de cargas)
+    # o atleta de salto rende o perfil de Samozino + FVimb
+    smz = c.get(jp[0]["samozino"])
+    assert smz.status_code == 200
+    sbody = smz.json()
+    assert sbody["FVimb"]["FVimb_pct"] is not None
+    assert sbody["perfil"]["Pmax_W"] > 0 and len(sbody["sessoes_usadas"]) == 4
+
+    # reset limpa toda a massa de teste (3 regulares + cargas + salto)
     con = sqlite3.connect(dbp)
     removed = seed_demo.clear_demo(con)
     left = con.execute("SELECT COUNT(*) FROM athlete").fetchone()[0]
     con.close()
-    assert removed == 4 and left == 0
+    assert removed == 5 and left == 0
 
 
 if __name__ == "__main__":

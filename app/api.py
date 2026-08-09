@@ -1149,6 +1149,83 @@ def post_samozino(b: SamozinoBody):
         raise HTTPException(422, str(exc))
 
 
+@app.get("/athletes/{athlete_id}/samozino", tags=["analises"])
+def athlete_samozino(athlete_id: int, exercise: Optional[str] = None,
+                     push_off_m: Optional[float] = None):
+    """Modo salto ligado ao atleta: monta o teste de Samozino a partir das
+    sessoes de salto (altura + push-off lidos das metricas armazenadas).
+
+    Altura do salto: jump.height (senao efficiency.delta_h).
+    Push-off: parametro; senao jump.push_off; senao cog.y_excursion (medias).
+    Carga adicionada: session.load_kg (NULL = 0). Massa = peso corporal + carga.
+    """
+    con = db.connect()
+    try:
+        ath = db.one(con, "SELECT * FROM athlete WHERE id=?", (athlete_id,))
+        if not ath:
+            raise HTTPException(404, "aluno nao encontrado")
+        if not ath["body_mass_kg"]:
+            raise HTTPException(422, "aluno sem massa corporal (necessaria p/ Samozino)")
+
+        sql = "SELECT id, exercise, load_kg FROM session WHERE athlete_id=?"
+        params: tuple = (athlete_id,)
+        if exercise:
+            sql += " AND exercise=?"
+            params += (exercise,)
+        sessions = db.rows(con, sql + " ORDER BY load_kg", params)
+
+        def best_metric(sub_ids, candidates):
+            q = ",".join("?" * len(sub_ids))
+            for ns, nm in candidates:
+                v = con.execute(
+                    f"SELECT AVG(value_num) FROM metric WHERE submovement_id IN ({q}) "
+                    f"AND analysis=? AND name=?", (*sub_ids, ns, nm)).fetchone()[0]
+                if v is not None:
+                    return float(v)
+            return None
+
+        masses, heights, pushoffs, used = [], [], [], []
+        for s in sessions:
+            subs = [r["id"] for r in con.execute(
+                "SELECT id FROM submovement WHERE session_id=?", (s["id"],))]
+            if not subs:
+                continue
+            h = best_metric(subs, [("jump", "height"), ("efficiency", "delta_h")])
+            if h is None or h <= 0:
+                continue
+            po = best_metric(subs, [("jump", "push_off"), ("cog", "y_excursion")])
+            added = float(s["load_kg"]) if s["load_kg"] is not None else 0.0
+            masses.append(float(ath["body_mass_kg"]) + added)
+            heights.append(h)
+            if po:
+                pushoffs.append(po)
+            used.append({"session_id": s["id"], "exercise": s["exercise"],
+                         "carga_adicionada_kg": added, "altura_m": round(h, 3),
+                         "push_off_m": round(po, 3) if po else None})
+
+        if len(masses) < 2:
+            raise HTTPException(
+                422, f"modo salto exige >= 2 sessoes de salto com altura; "
+                     f"encontradas {len(masses)}. Cadastre saltos em cargas diferentes "
+                     f"(altura em jump.height ou efficiency.delta_h).")
+        hPO = push_off_m if push_off_m else (
+            sum(pushoffs) / len(pushoffs) if pushoffs else None)
+        if not hPO or hPO <= 0:
+            raise HTTPException(
+                422, "sem distancia de push-off: informe push_off_m ou grave "
+                     "jump.push_off / cog.y_excursion nas sessoes.")
+        try:
+            prof = SMZ.profile_from_jumps(masses, heights, hPO,
+                                          bodyweight_kg=float(ath["body_mass_kg"]))
+        except ValueError as exc:
+            raise HTTPException(422, str(exc))
+        prof["atleta"] = ath["name"]
+        prof["sessoes_usadas"] = used
+        return prof
+    finally:
+        con.close()
+
+
 @app.get("/athletes/{athlete_id}/fvp", tags=["analises"])
 def athlete_fvp(athlete_id: int, exercise: Optional[str] = None,
                 velocity_metric: str = "vbt.MPV", v1rm: float = 0.30,

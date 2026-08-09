@@ -168,6 +168,36 @@ def seed(con: sqlite3.Connection, n_athletes: int = 4, n_reps: int = 5,
                 "session_id": None, "exercise": "Agachamento (5 cargas)", "reps": 5,
                 "fvp": f"/athletes/{lt_id}/fvp"})
 
+    # Atleta extra para MODO SALTO (Samozino): saltos com colete (cargas)
+    jp = con.execute(
+        "INSERT INTO athlete (ext_key,name,body_mass_kg,height_m,bmi,sex,notes) "
+        "VALUES (?,?,?,?,?,?,?)",
+        (f"{DEMO_KEY}-jp", "Salto Samozino - Demo", 70.0, 1.75,
+         _bmi(70.0, 1.75), "M", "massa de teste (saltos com carga)"))
+    jp_id = jp.lastrowid
+    push_off = 0.32
+    for added, h in [(0.0, 0.36), (10.0, 0.305), (20.0, 0.26), (30.0, 0.22)]:
+        cur = con.execute(
+            "INSERT INTO session (athlete_id,exercise,load_kg,pct_bodyweight,gravity,"
+            "pose_source,pose_model,n_submovements,captured_at,notes) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?)",
+            (jp_id, "Salto Vertical", added, round(100 * added / 70.0, 1), 9.81, "demo",
+             "massa de teste (sintetica)", 1, now, "salto com colete"))
+        sid = cur.lastrowid
+        sub = con.execute(
+            "INSERT INTO submovement (session_id,ordinal,label,kind,frame_start,"
+            "frame_end,n_frames,dt,is_slowmo_2x) VALUES (?,?,?,?,?,?,?,?,0)",
+            (sid, 1, f"+{added:.0f} kg", "composite", 0, 90, 90, 0.02))
+        sub_id = sub.lastrowid
+        for ns, nm, val, unit in [("jump", "height", h, "m"),
+                                  ("jump", "push_off", push_off, "m")]:
+            con.execute("INSERT INTO metric (session_id,submovement_id,analysis,name,"
+                        "value_num,unit) VALUES (?,?,?,?,?,?)",
+                        (sid, sub_id, ns, nm, val, unit))
+    out.append({"athlete_id": jp_id, "athlete": "Salto Samozino - Demo",
+                "session_id": None, "exercise": "Salto Vertical (4 cargas)", "reps": 4,
+                "samozino": f"/athletes/{jp_id}/samozino"})
+
     con.commit()
     return out
 
