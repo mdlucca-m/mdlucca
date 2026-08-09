@@ -1,0 +1,17 @@
+# Deploy na Render (https://render.com) — 1 clique a partir do repo.
+# IMPORTANTE: o disco persistente (/data) preserva os alunos/sessoes/links
+# entre deploys. Disco persistente exige plano pago (starter). No plano free
+# (sem disco) o banco e recriado a cada deploy — bom so para demonstracao.
+services:
+  - type: web
+    name: mdlucca-biomecanica
+    runtime: docker
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: MDLUCCA_DB
+        value: /data/db.sqlite
+    disk:
+      name: dados
+      mountPath: /data
+      sizeGB: 1

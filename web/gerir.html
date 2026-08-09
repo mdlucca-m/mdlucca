@@ -69,7 +69,11 @@
 
   <!-- Lista de alunos -->
   <div class="card">
-    <h2>Alunos cadastrados</h2>
+    <h2 style="display:flex;align-items:center;gap:10px">Alunos cadastrados
+      <button class="sec" style="margin-left:auto" onclick="seedDemo()"
+        title="Cria atletas/sessões fictícios para testar o sistema">⚙ Gerar massa de teste</button>
+    </h2>
+    <span id="seed_msg" class="muted" style="font-size:13px"></span>
     <table id="ath_tbl"><thead><tr>
       <th>#</th><th>Nome</th><th>Massa</th><th>Estatura</th><th>IMC</th><th>Sexo</th>
     </tr></thead><tbody></tbody></table>
@@ -181,6 +185,22 @@ function copyLink(){
   navigator.clipboard.writeText(el.value).then(
     ()=>$("copy_msg").textContent="✓ copiado — cole no WhatsApp",
     ()=>{ document.execCommand("copy"); $("copy_msg").textContent="✓ copiado"; });
+}
+async function seedDemo(){
+  if(!confirm("Gerar massa de teste? Isso remove a massa de teste anterior "+
+              "(atletas fictícios) e cria novos. Seus alunos reais não são afetados."))
+    return;
+  $("seed_msg").textContent = "gerando…";
+  try{
+    const r = await jpost("/demo/seed", {athletes:4, reps:5, reset:true});
+    $("seed_msg").innerHTML = `<span class="ok">✓ ${r.created} atletas de teste criados `+
+      `(${r.removed} anteriores removidos)</span>`;
+    await loadAthletes(); await loadSessions();
+    // mostra o 1o link gerado como exemplo
+    const first = (r.sessions||[]).find(s=>s.report_url);
+    if(first){ $("gen_url").value=first.report_url; $("gen_open").href=first.report_url;
+      $("linkcard").style.display="block"; }
+  }catch(e){ $("seed_msg").innerHTML=`<span class="err">${esc(String(e.message))}</span>`; }
 }
 function numOrNull(v){ v=(v||"").trim(); return v===""?null:parseFloat(v); }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }

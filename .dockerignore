@@ -1,0 +1,21 @@
+.git
+.gitignore
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+# artefatos pesados / gerados (o banco e reconstruido no start)
+data/*.sqlite
+data/*.sqlite.bak_*
+data/raw/
+data/frames/
+data/out/
+data/inbox/
+data/pose*.json
+data/overlay*.mp4
+*.mp4
+*.mkv
+*.task
+# docs de dev
+*.png

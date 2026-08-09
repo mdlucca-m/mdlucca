@@ -74,6 +74,22 @@ def test_bad_share_ref():
     assert r.status_code == 404
 
 
+def test_demo_seed_endpoint():
+    c = _client()
+    r = c.post("/demo/seed", json={"athletes": 3, "reps": 4, "reset": True})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["created"] == 3
+    # cada sessao veio com link absoluto de relatorio, que renderiza
+    url = d["sessions"][0]["report_url"]
+    assert "/r/" in url
+    rep = c.get("/r/" + url.split("/r/")[1])
+    assert rep.status_code == 200 and "<rect" in rep.text
+    # segundo seed com reset remove os 3 anteriores
+    r2 = c.post("/demo/seed", json={"athletes": 2, "reps": 3, "reset": True})
+    assert r2.json()["removed"] == 3 and r2.json()["created"] == 2
+
+
 def test_seed_massa_de_teste_and_reports():
     """Gera massa de teste (seed_demo) e valida o gerador de relatorio nela."""
     import importlib

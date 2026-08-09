@@ -168,6 +168,14 @@ pico e a MCV batem com os valores do dashboard.
 - Tela **`/app/checklist.html`** — checklist visual de tudo que o sistema
   analisa em tempo real (com contadores ao vivo da API).
 
+- Botão **"⚙ Gerar massa de teste"** na tela `/app/gerir.html` chama
+  `POST /demo/seed` (não precisa de terminal).
+
+**Deploy online** — ver **[DEPLOY.md](DEPLOY.md)**. `Dockerfile` + `render.yaml`
+prontos; `scripts/start.sh` cria o banco no **disco persistente** só na 1ª vez e
+**preserva** alunos/sessões/links nos deploys seguintes. O motor de análise é o
+mesmo local e online.
+
 **Massa de teste (dados fictícios)** — `make seed` (ou
 `python3 scripts/seed_demo.py --reset --athletes 4 --reps 5 --shares`) popula
 o banco com atletas/sessões/métricas sintéticas realistas e já imprime os

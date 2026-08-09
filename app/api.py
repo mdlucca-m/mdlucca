@@ -1240,6 +1240,34 @@ def list_shares():
         con.close()
 
 
+class DemoSeedIn(BaseModel):
+    athletes: int = Field(4, ge=1, le=6)
+    reps: int = Field(5, ge=1, le=12)
+    reset: bool = True
+
+
+@app.post("/demo/seed", tags=["cadastro"])
+def demo_seed(body: DemoSeedIn, request: Request):
+    """Gera MASSA DE TESTE (atletas/sessoes/metricas ficticias) e ja cria os
+    links de relatorio. Usa scripts/seed_demo.py."""
+    import importlib
+    scripts_dir = str(Path(__file__).resolve().parents[1] / "scripts")
+    if scripts_dir not in sys.path:
+        sys.path.insert(0, scripts_dir)
+    seed_demo = importlib.import_module("seed_demo")
+    con = db.connect_rw()
+    try:
+        removed = seed_demo.clear_demo(con) if body.reset else 0
+        recs = seed_demo.seed(con, body.athletes, body.reps, make_shares=True)
+        base = str(request.base_url).rstrip("/")
+        for r in recs:
+            if r.get("report_url"):
+                r["report_url"] = base + r["report_url"]
+        return {"removed": removed, "created": len(recs), "sessions": recs}
+    finally:
+        con.close()
+
+
 # --- Renderizacao do relatorio compartilhavel (HTML autossuficiente) --------
 # Cada coluna tenta uma lista de nomes candidatos (varia entre sessoes) e usa
 # o primeiro que existir. Robusto p/ sessoes de dashboard e de video.
