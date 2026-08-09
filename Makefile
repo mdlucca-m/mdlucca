@@ -49,6 +49,15 @@ overlay:
 	python3 scripts/render_overlay.py --frames $(FRAMES) --pose data/pose.json \
 	  --db "$(DB)" --session $(SESSION) --out data/overlay.mp4 --brand "$(BRAND)"
 
+# Pipeline completo num comando (automacao): VIDEO=.. MODEL=..
+pipeline:
+	python3 scripts/pipeline.py --video "$(VIDEO)" --model "$(MODEL)" \
+	  --athlete "$(BRAND)" --mass $(MASS) --out data/out --legs3d
+
+# Gatilho estilo n8n: observa data/inbox e processa cada video novo
+watch:
+	MDLUCCA_POSE_MODEL="$(MODEL)" python3 scripts/watch_inbox.py --inbox data/inbox --out data/out --legs3d
+
 api:
 	uvicorn app.api:app --reload
 

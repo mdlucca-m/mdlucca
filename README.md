@@ -201,6 +201,74 @@ o déficit de extensão), com identidade de marca.
 make overlay SESSION=2 BRAND="De Lucca Esporte"   # -> data/overlay.mp4
 ```
 
+## Automação (estilo n8n)
+
+Todo o fluxo — vídeo → pose → sessão → análises → overlays → dashboard — roda
+com **um comando** ou por **gatilho**, encadeando "nós" determinísticos
+(`scripts/pipeline.py`), cada um idempotente e com status/tempo no manifest.
+
+```
+ vídeo ──► [pose] ──► [session] ──► [overlay] ──► [dashboard] ──► [legs3d] ──► manifest.json
+           MediaPipe   SQLite        video          video           2 pernas
+```
+
+Três formas de disparar:
+
+```bash
+# 1) manual — um comando faz tudo
+make pipeline VIDEO=clip.mp4 MODEL=pose_landmarker_full.task
+
+# 2) API (para o n8n chamar via HTTP)
+export MDLUCCA_POSE_MODEL=/caminho/pose_landmarker_full.task
+make api
+curl -X POST localhost:8000/pipeline/run \
+     -H 'content-type: application/json' \
+     -d '{"video":"/abs/clip.mp4","athlete":"Atleta X","legs3d":true}'
+# -> {job_id}; acompanhe em GET /pipeline/jobs/{job_id} (devolve o manifest)
+
+# 3) watcher — solte vídeos numa pasta e ela processa sozinha
+make watch MODEL=pose_landmarker_full.task     # observa data/inbox/
+```
+
+O workflow do **n8n** já vem pronto em `n8n/delucca_pipeline.json` — importe no
+n8n e você tem: **Webhook (novo vídeo) → POST /pipeline/run → Aguardar →
+GET status (loop) → Responder com o manifest**. Troque a URL
+`host.docker.internal:8000` pela do seu backend. Para rodar tudo dentro do n8n
+sem a API, use um nó **Execute Command** chamando `python3 scripts/pipeline.py`.
+
+## O que falta para ficar "perfeito" (roadmap de qualidade)
+
+O pipeline é sólido, mas há gaps conhecidos — listados por honestidade e por
+ordem de impacto:
+
+**Qualidade do dado (maior impacto):**
+- **Calibração métrica real** — hoje a escala (cm) vem estimada do tronco e o
+  solo é inferido pela posição dos pés. Ideal: objeto de referência de tamanho
+  conhecido no quadro ou calibração de câmera. Enquanto isso, alturas/forças
+  são **estimativas**, não medidas.
+- **3D verdadeiro (multi-câmera)** — uma câmera dá profundidade aproximada
+  (world landmarks do modelo) e sofre com oclusão do lado afastado.
+- **Força/potência reais** exigem **plataforma de força**; hoje é método do
+  centro de massa com **massa assumida**.
+- **Taxa de amostragem** — 20–30 fps limita eventos rápidos (RFD, impacto);
+  o ideal para explosivos é 120–240 fps.
+
+**Robustez do pipeline:**
+- Interpolação de frames sem pose e rejeição de outliers de tracking.
+- **Classificação automática do exercício** e contagem de reps mais robusta.
+- **Validação contra ground-truth** (goniômetro/mocap) para reportar erro (±°).
+
+**Engenharia/produto:**
+- Fila de jobs real (Redis/RQ/Celery) + persistência/retry, no lugar do
+  subprocess em memória; storage de objetos; banco de produção (Postgres).
+- **Autenticação/multi-tenant** e **consentimento/LGPD** (atenção: imagem de
+  menores). Notificações (e-mail/WhatsApp) ao concluir; UI de upload+galeria.
+- Docker/compose, CI (GitHub Actions), versionamento de modelos, observabilidade.
+
+**Análise:**
+- Bandas de referência por modalidade/nível; **comparação temporal** (evolução
+  do atleta entre datas); relatório PDF automático e export dos dados.
+
 ## Roadmap — Etapa 2 (fonte de pose de alta qualidade)
 
 O ponto fraco da Etapa 1 **não é a análise, é o dado de entrada**. O próprio

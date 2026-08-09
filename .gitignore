@@ -3,8 +3,11 @@ data/*.sqlite
 data/*.sqlite.bak_*
 data/raw/
 data/pose.json
+data/pose_*.json
 data/frames/
 data/overlay*.mp4
+data/out/
+data/inbox/
 *.task
 
 # Python

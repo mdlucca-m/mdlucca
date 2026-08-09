@@ -13,6 +13,11 @@ Docs :  http://localhost:8000/docs   (OpenAPI gerado automaticamente)
 from __future__ import annotations
 
 import json
+import os
+import subprocess
+import sys
+import time
+import uuid
 from pathlib import Path
 from typing import Literal, Optional
 
@@ -778,6 +783,74 @@ def kinematics_cog(sub_id: int, aspect: str = "auto"):
         return {"submovement_id": sub_id, **Kin.center_of_mass(sk, asp)}
     finally:
         con.close()
+
+
+# ==========================================================================
+# Automacao (estilo n8n): dispara o pipeline video->analises via API
+# ==========================================================================
+_ROOT = Path(__file__).resolve().parents[1]
+_PIPELINE = _ROOT / "scripts" / "pipeline.py"
+_JOBS: dict[str, dict] = {}
+
+
+class PipelineReq(BaseModel):
+    video: str                                   # caminho do arquivo de video
+    athlete: str = "Atleta"
+    exercise: str = "Video"
+    mass: float = 80.0
+    model: Optional[str] = None                  # pose_landmarker_*.task (ou env MDLUCCA_POSE_MODEL)
+    legs3d: bool = False
+    key: Optional[str] = None
+
+
+@app.post("/pipeline/run", tags=["pipeline"])
+def pipeline_run(body: PipelineReq):
+    """Dispara o pipeline completo em background e devolve um job_id.
+    Node n8n: HTTP Request POST -> depois faz polling em /pipeline/jobs/{id}."""
+    video = Path(body.video)
+    if not video.exists():
+        raise HTTPException(422, f"video nao encontrado: {body.video}")
+    model = body.model or os.environ.get("MDLUCCA_POSE_MODEL")
+    if not model or not Path(model).exists():
+        raise HTTPException(422, "modelo de pose ausente (body.model ou env MDLUCCA_POSE_MODEL)")
+    job_id = uuid.uuid4().hex[:12]
+    key = body.key or video.stem.split("_")[0][:12]
+    out = _ROOT / "data" / "out"
+    cmd = [sys.executable, str(_PIPELINE), "--video", str(video), "--model", model,
+           "--athlete", body.athlete, "--exercise", body.exercise, "--mass", str(body.mass),
+           "--out", str(out), "--key", key, "--db", str(db.db_path())]
+    if body.legs3d:
+        cmd.append("--legs3d")
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    _JOBS[job_id] = {"proc": proc, "video": str(video), "key": key,
+                     "manifest": str(out / f"manifest_{key}.json"), "started": time.time()}
+    return {"job_id": job_id, "status": "running", "manifest": _JOBS[job_id]["manifest"]}
+
+
+@app.get("/pipeline/jobs", tags=["pipeline"])
+def pipeline_jobs():
+    res = []
+    for jid, j in _JOBS.items():
+        rc = j["proc"].poll()
+        res.append({"job_id": jid, "key": j["key"], "video": j["video"],
+                    "status": "running" if rc is None else ("done" if rc == 0 else "error"),
+                    "elapsed_s": round(time.time() - j["started"], 1)})
+    return res
+
+
+@app.get("/pipeline/jobs/{job_id}", tags=["pipeline"])
+def pipeline_job(job_id: str):
+    j = _JOBS.get(job_id)
+    if not j:
+        raise HTTPException(404, "job nao encontrado")
+    rc = j["proc"].poll()
+    status = "running" if rc is None else ("done" if rc == 0 else "error")
+    out = {"job_id": job_id, "status": status, "returncode": rc,
+           "elapsed_s": round(time.time() - j["started"], 1)}
+    mp = Path(j["manifest"])
+    if status != "running" and mp.exists():
+        out["manifest"] = json.loads(mp.read_text())
+    return out
 
 
 @app.post("/compute/cv", tags=["analises"])
