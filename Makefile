@@ -68,6 +68,11 @@ plots:
 	python3 scripts/plot_session.py --session $(SESSION) --pose "$(POSE)" \
 	  --mass $(MASS) --load $(LOAD) --out data/out/analise_$(SESSION)
 
+# Video de velocidade angular em tempo real (articulacoes + segmentos)
+# POSE=<pose json>  OUT=<mp4>
+angvel:
+	python3 scripts/render_angvel_video.py --pose "$(POSE)" --out $(OUT)
+
 api:
 	uvicorn app.api:app --reload
 
