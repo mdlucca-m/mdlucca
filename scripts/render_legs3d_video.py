@@ -51,6 +51,11 @@ def compute(P, fps):
         return smf(np.degrees(np.arccos(np.clip(cs, -1, 1))))
 
     kneeL = ang(L['hip_l'], L['kn_l'], L['an_l']); kneeR = ang(L['hip_r'], L['kn_r'], L['an_r'])
+    # angulo de abertura da passada (split): entre as duas pernas, no quadril
+    hipm = (Wd[:, L['hip_l']] + Wd[:, L['hip_r']]) / 2
+    vL = Wd[:, L['an_l']] - hipm; vR = Wd[:, L['an_r']] - hipm
+    cs = (vL * vR).sum(1) / (np.linalg.norm(vL, axis=1) * np.linalg.norm(vR, axis=1) + 1e-9)
+    split = smf(np.degrees(np.arccos(np.clip(cs, -1, 1))))
     def dd(a):
         v = np.gradient(a, t); ac = np.gradient(smf(v), t); return v, ac
     kvL, kaL = dd(kneeL); kvR, kaR = dd(kneeR)
@@ -68,7 +73,7 @@ def compute(P, fps):
     win = slice(int(fps * 3.5), int(fps * 8.5))
     apex = win.start + int(np.argmax(hHip[win]))
     return dict(N=N, Wd=Wd, L=L, t=t, kneeL=kneeL, kneeR=kneeR, kvL=kvL, kvR=kvR,
-                kaL=kaL, kaR=kaR, hFootL=hFootL, hFootR=hFootR, hHip=hHip,
+                kaL=kaL, kaR=kaR, hFootL=hFootL, hFootR=hFootR, hHip=hHip, split=split,
                 apex=apex, hip_stand=float(np.median(hHip[stand])))
 
 
@@ -130,9 +135,9 @@ def draw_2d(cv, lm, vx, vy, vw, vh):
         cv2.circle(cv, sp(lm[idx]), 4, (255, 255, 255), -1, cv2.LINE_AA)
 
 
-def draw_stick3d(cv, rect, W, theta_deg, ground_y_world):
+def draw_stick3d(cv, rect, W, theta_deg, ground_y_world, split_deg):
     x, y, w, h = rect; panel(cv, x, y, w, h)
-    cv2.putText(cv, "BONECO 3D  (E=ciano  D=magenta)", (x + 10, y + 18), F, 0.42, COL["dim"], 1, cv2.LINE_AA)
+    cv2.putText(cv, "BONECO 3D 360  (E=ciano  D=magenta)", (x + 10, y + 18), F, 0.42, COL["dim"], 1, cv2.LINE_AA)
     th = np.radians(theta_deg); ct, st = np.cos(th), np.sin(th)
     cx, cy = x + w // 2, y + int(h * 0.56)
     scale = h * 0.40
@@ -140,11 +145,18 @@ def draw_stick3d(cv, rect, W, theta_deg, ground_y_world):
         px, py, pz = W[idx]
         xr = px * ct + pz * st
         return int(cx + xr * scale), int(cy + py * scale)
-    # chao (grade simples)
+    # chao (grade que gira junto)
     for gz in np.linspace(-0.5, 0.5, 5):
-        p1 = (-0.6 * ct + gz * st, ground_y_world); p2 = (0.6 * ct + gz * st, ground_y_world)
-        cv2.line(cv, (int(cx + p1[0] * scale), int(cy + p1[1] * scale)),
-                 (int(cx + p2[0] * scale), int(cy + p1[1] * scale)), COL["grid"], 1)
+        x1 = -0.6 * ct + gz * st; x2 = 0.6 * ct + gz * st
+        cv2.line(cv, (int(cx + x1 * scale), int(cy + ground_y_world * scale)),
+                 (int(cx + x2 * scale), int(cy + ground_y_world * scale)), COL["grid"], 1)
+    # base do 'triangulo' da passada (tornozelo E - tornozelo D) + arco do angulo
+    aL, aR, hp = pj(27), pj(28), pj(23)
+    hm = ((aL[0] + aR[0]) // 2, (aL[1] + aR[1]) // 2)  # so p/ referencia visual
+    hipm = (int((pj(23)[0] + pj(24)[0]) / 2), int((pj(23)[1] + pj(24)[1]) / 2))
+    cv2.line(cv, aL, aR, (110, 110, 150), 1, cv2.LINE_AA)
+    cv2.line(cv, hipm, aL, (110, 110, 150), 1, cv2.LINE_AA)
+    cv2.line(cv, hipm, aR, (110, 110, 150), 1, cv2.LINE_AA)
     for a, b in TRUNK:
         cv2.line(cv, pj(a), pj(b), TR, 2, cv2.LINE_AA)
     for a, b in LEGS2D["L"]:
@@ -153,7 +165,8 @@ def draw_stick3d(cv, rect, W, theta_deg, ground_y_world):
         cv2.line(cv, pj(a), pj(b), RC, 3, cv2.LINE_AA)
     for idx, c in [(31, LC), (32, RC), (27, LC), (28, RC), (25, LC), (26, RC)]:
         cv2.circle(cv, pj(idx), 4, c, -1, cv2.LINE_AA)
-    cv2.putText(cv, f"giro {theta_deg:+.0f}", (x + w - 90, y + h - 10), F, 0.36, COL["dim"], 1, cv2.LINE_AA)
+    cv2.putText(cv, f"abertura {split_deg:.0f} deg", (hipm[0] - 40, hipm[1] - 8), F, 0.42, COL["accent"], 1, cv2.LINE_AA)
+    cv2.putText(cv, f"giro {theta_deg:03.0f}", (x + w - 90, y + h - 10), F, 0.36, COL["dim"], 1, cv2.LINE_AA)
 
 
 def main() -> int:
@@ -182,7 +195,8 @@ def main() -> int:
     dx = vx + vw + 20
     s3d = (dx, 60, 430, 430)
     mx0 = dx; my0 = 60 + 430 + 12
-    cx0 = dx + 448; cw = CW - cx0 - 18; chh = 232
+    cx0 = dx + 448; cw = CW - cx0 - 18; chh = 185; cgap = 10
+    rot_period_s = 6.0                                  # 1 volta a cada 6 s
 
     for i in range(n):
         ok, fr = cap.read()
@@ -196,8 +210,8 @@ def main() -> int:
         cv2.putText(cv, args.brand, (dx, 34), FD, 0.8, COL["accent"], 1, cv2.LINE_AA)
         cv2.putText(cv, f"Analise das 2 pernas  |  t={i/args.fps:4.1f}s", (dx, 52), F, 0.44, COL["dim"], 1, cv2.LINE_AA)
 
-        theta = 40 * np.sin(2 * np.pi * i / n)          # varredura -40..40
-        draw_stick3d(cv, s3d, Wd[i], theta, ground_world)
+        theta = (i * 360.0 / (rot_period_s * args.fps)) % 360   # rotacao continua 360
+        draw_stick3d(cv, s3d, Wd[i], theta, ground_world, D['split'][i])
 
         # metricas por perna
         panel(cv, mx0, my0, 430, CH - my0 - 18)
@@ -211,6 +225,7 @@ def main() -> int:
             ("Acel. joelho D", f"{rpkabs(D['kaR'],i):.0f} /s2", RC),
             ("Altura pe E (max)", f"{rpk(D['hFootL'],i):.0f} cm", LC),
             ("Altura pe D (max)", f"{rpk(D['hFootR'],i):.0f} cm", RC),
+            ("Abertura passada max", f"{rpk(D['split'],i):.0f} deg (def {180-rpk(D['split'],i):.0f})", COL["accent"]),
         ]
         ry = my0 + 50
         for lbl, val, c in rows:
@@ -229,13 +244,16 @@ def main() -> int:
         y = 60
         chart(cv, (cx0, y, cw, chh), [(D['kneeL'][:n], LC), (D['kneeR'][:n], RC)], i,
               "EXTENSAO DO JOELHO  E x D  (reta = 180)", "deg", hline=180)
-        y += chh + 12
+        y += chh + cgap
+        chart(cv, (cx0, y, cw, chh), [(D['split'][:n], COL["accent"])], i,
+              "ANGULO DE ABERTURA DA PASSADA (split)  (espacate = 180)", "deg", hline=180, marker=apex)
+        y += chh + cgap
         chart(cv, (cx0, y, cw, chh), [(D['kvL'][:n], LC), (D['kvR'][:n], RC)], i,
               "VELOCIDADE ANGULAR DO JOELHO  E x D", "deg/s")
-        y += chh + 12
+        y += chh + cgap
         chart(cv, (cx0, y, cw, chh), [(D['hFootL'][:n], LC), (D['hFootR'][:n], RC)], i,
-              "ALTURA DA PONTA DOS PES AO SOLO  E x D", "cm", fill=None)
-        y += chh + 12
+              "ALTURA DA PONTA DOS PES AO SOLO  E x D", "cm")
+        y += chh + cgap
         chart(cv, (cx0, y, cw, chh), [(D['hHip'][:n], (200, 140, 255))], i,
               "ALTURA DO QUADRIL AO SOLO", "cm", marker=apex, fill=True)
 
