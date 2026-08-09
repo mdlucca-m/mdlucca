@@ -53,6 +53,21 @@ def _ensure_product_tables(con: sqlite3.Connection) -> None:
             created_at  TEXT NOT NULL,
             views       INTEGER NOT NULL DEFAULT 0
         );
+        CREATE TABLE IF NOT EXISTS upload (
+            id          INTEGER PRIMARY KEY,
+            athlete_id  INTEGER NOT NULL,
+            filename    TEXT,
+            path        TEXT,
+            exercise    TEXT,
+            mass_kg     REAL,
+            stature_m   REAL,
+            load_kg     REAL,
+            status      TEXT NOT NULL DEFAULT 'queued',  /* queued|processing|done|error */
+            session_id  INTEGER,
+            error       TEXT,
+            created_at  TEXT NOT NULL,
+            analyzed_at TEXT
+        );
         """
     )
     con.commit()

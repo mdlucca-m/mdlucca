@@ -14,9 +14,12 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import secrets
+import shutil
 import subprocess
 import sys
+import threading
 import time
 import uuid
 from datetime import datetime, timezone
@@ -25,7 +28,7 @@ from pathlib import Path
 from typing import Literal, Optional
 
 import numpy as np
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -1499,6 +1502,191 @@ def demo_seed(body: DemoSeedIn, request: Request):
             if r.get("report_url"):
                 r["report_url"] = base + r["report_url"]
         return {"removed": removed, "created": len(recs), "sessions": recs}
+    finally:
+        con.close()
+
+
+# ==========================================================================
+# Upload de video pelo ATLETA + fila de analise (o treinador analisa)
+# ==========================================================================
+_ROOT = Path(__file__).resolve().parents[1]
+UPLOAD_DIR = _ROOT / "data" / "uploads"
+OUT_DIR = _ROOT / "data" / "out"
+
+
+def _pose_model() -> Optional[str]:
+    m = os.environ.get("MDLUCCA_POSE_MODEL")
+    return m if (m and Path(m).exists()) else None
+
+
+def _upload_row(con, uid):
+    r = con.execute("SELECT * FROM upload WHERE id=?", (uid,)).fetchone()
+    return dict(r) if r else None
+
+
+def _analyze_worker(upload_id: int):
+    """Roda pose->sessao para um upload e religa a sessao ao atleta dono."""
+    con = db.connect_rw()
+    row = _upload_row(con, upload_id)
+    if not row:
+        con.close(); return
+    ath = con.execute("SELECT name FROM athlete WHERE id=?", (row["athlete_id"],)).fetchone()
+    ath_name = ath["name"] if ath else f"Atleta {row['athlete_id']}"
+    before_ath = con.execute("SELECT COALESCE(MAX(id),0) FROM athlete").fetchone()[0]
+    before_ses = con.execute("SELECT COALESCE(MAX(id),0) FROM session").fetchone()[0]
+    con.close()
+    db_path = str(db.db_path())
+    now = datetime.now(timezone.utc).isoformat()
+    try:
+        model = _pose_model()
+        if not model:
+            raise RuntimeError("modelo de pose nao configurado (defina MDLUCCA_POSE_MODEL)")
+        OUT_DIR.mkdir(parents=True, exist_ok=True)
+        pose_json = OUT_DIR / f"pose_upload_{upload_id}.json"
+        subprocess.run([sys.executable, str(_ROOT / "scripts/pose_extract.py"),
+                        "--video", row["path"], model, "-o", str(pose_json)],
+                       check=True, capture_output=True, text=True, timeout=1800)
+        cmd = [sys.executable, str(_ROOT / "scripts/build_session_from_pose.py"),
+               "--pose", str(pose_json), "--db", db_path, "--athlete", ath_name,
+               "--exercise", row["exercise"] or "Vídeo",
+               "--mass", str(row["mass_kg"] or 80), "--append"]
+        if row["stature_m"]:
+            cmd += ["--stature", str(row["stature_m"])]
+        subprocess.run(cmd, check=True, capture_output=True, text=True, timeout=900)
+        con = db.connect_rw()
+        new_ses = con.execute("SELECT COALESCE(MAX(id),0) FROM session").fetchone()[0]
+        if new_ses > before_ses:
+            pct = None
+            am = con.execute("SELECT body_mass_kg FROM athlete WHERE id=?",
+                             (row["athlete_id"],)).fetchone()
+            if row["load_kg"] and am and am["body_mass_kg"]:
+                pct = round(100 * row["load_kg"] / am["body_mass_kg"], 1)
+            con.execute("UPDATE session SET athlete_id=?, load_kg=?, pct_bodyweight=? WHERE id=?",
+                        (row["athlete_id"], row["load_kg"], pct, new_ses))
+            con.execute("DELETE FROM athlete WHERE id>? AND id NOT IN "
+                        "(SELECT DISTINCT athlete_id FROM session)", (before_ath,))
+            con.execute("UPDATE upload SET status='done', session_id=?, analyzed_at=? WHERE id=?",
+                        (new_ses, now, upload_id))
+        else:
+            con.execute("UPDATE upload SET status='error', error='nenhuma sessao criada' WHERE id=?",
+                        (upload_id,))
+        con.commit(); con.close()
+    except subprocess.CalledProcessError as exc:
+        msg = (exc.stderr or exc.stdout or str(exc))[-500:]
+        con = db.connect_rw(); con.execute(
+            "UPDATE upload SET status='error', error=? WHERE id=?", (msg, upload_id))
+        con.commit(); con.close()
+    except Exception as exc:  # noqa: BLE001
+        con = db.connect_rw(); con.execute(
+            "UPDATE upload SET status='error', error=? WHERE id=?", (str(exc)[:500], upload_id))
+        con.commit(); con.close()
+
+
+@app.post("/athletes/{athlete_id}/uploads", tags=["upload"])
+async def create_upload(athlete_id: int, file: UploadFile = File(...),
+                        exercise: str = Form("Vídeo"),
+                        mass_kg: Optional[float] = Form(None),
+                        stature_m: Optional[float] = Form(None),
+                        load_kg: Optional[float] = Form(None)):
+    """O ATLETA envia o proprio video; entra na fila 'queued' para o treinador analisar."""
+    con = db.connect_rw()
+    try:
+        ath = con.execute("SELECT body_mass_kg, height_m FROM athlete WHERE id=?",
+                          (athlete_id,)).fetchone()
+        if not ath:
+            raise HTTPException(404, "aluno nao encontrado")
+        mass = mass_kg or ath["body_mass_kg"]
+        stat = stature_m or ath["height_m"]
+        cur = con.execute(
+            "INSERT INTO upload (athlete_id, filename, exercise, mass_kg, stature_m, "
+            "load_kg, status, created_at) VALUES (?,?,?,?,?,?,'queued',?)",
+            (athlete_id, file.filename, exercise, mass, stat, load_kg,
+             datetime.now(timezone.utc).isoformat()))
+        uid = cur.lastrowid
+        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+        safe = re.sub(r"[^A-Za-z0-9._-]", "_", file.filename or "video.mp4")
+        dest = UPLOAD_DIR / f"{uid}_{safe}"
+        with open(dest, "wb") as f:
+            shutil.copyfileobj(file.file, f)
+        con.execute("UPDATE upload SET path=? WHERE id=?", (str(dest), uid))
+        con.commit()
+        return _upload_row(con, uid)
+    finally:
+        con.close()
+
+
+@app.get("/uploads", tags=["upload"])
+def list_uploads(status: Optional[str] = None):
+    con = db.connect_rw()
+    try:
+        sql = ("SELECT u.*, a.name AS athlete_name FROM upload u "
+               "LEFT JOIN athlete a ON a.id=u.athlete_id")
+        params: tuple = ()
+        if status:
+            sql += " WHERE u.status=?"; params = (status,)
+        return db.rows(con, sql + " ORDER BY u.id DESC", params)
+    finally:
+        con.close()
+
+
+@app.get("/athletes/{athlete_id}/uploads", tags=["upload"])
+def athlete_uploads(athlete_id: int):
+    con = db.connect_rw()
+    try:
+        return db.rows(con, "SELECT * FROM upload WHERE athlete_id=? ORDER BY id DESC",
+                       (athlete_id,))
+    finally:
+        con.close()
+
+
+@app.get("/uploads/{uid}", tags=["upload"])
+def get_upload(uid: int):
+    con = db.connect_rw()
+    try:
+        row = _upload_row(con, uid)
+        if not row:
+            raise HTTPException(404, "upload nao encontrado")
+        return row
+    finally:
+        con.close()
+
+
+@app.post("/uploads/{uid}/analyze", tags=["upload"])
+def analyze_upload(uid: int):
+    """O TREINADOR dispara a analise do video enviado (pose -> sessao)."""
+    con = db.connect_rw()
+    try:
+        row = _upload_row(con, uid)
+        if not row:
+            raise HTTPException(404, "upload nao encontrado")
+        if row["status"] == "processing":
+            raise HTTPException(409, "ja esta em analise")
+        if not _pose_model():
+            raise HTTPException(
+                503, "modelo de pose nao configurado no servidor (MDLUCCA_POSE_MODEL)")
+        con.execute("UPDATE upload SET status='processing', error=NULL WHERE id=?", (uid,))
+        con.commit()
+    finally:
+        con.close()
+    threading.Thread(target=_analyze_worker, args=(uid,), daemon=True).start()
+    return {"upload_id": uid, "status": "processing"}
+
+
+@app.post("/uploads/{uid}/delete", tags=["upload"])
+def delete_upload(uid: int):
+    con = db.connect_rw()
+    try:
+        row = _upload_row(con, uid)
+        if not row:
+            raise HTTPException(404, "upload nao encontrado")
+        if row.get("path") and Path(row["path"]).exists():
+            try:
+                Path(row["path"]).unlink()
+            except OSError:
+                pass
+        con.execute("DELETE FROM upload WHERE id=?", (uid,))
+        con.commit()
+        return {"deleted": uid}
     finally:
         con.close()
 

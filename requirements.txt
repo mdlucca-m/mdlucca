@@ -4,6 +4,7 @@ scipy>=1.11
 fastapi>=0.110
 uvicorn[standard]>=0.27
 cryptography>=42.0    # licenciamento white-label (assinatura Ed25519)
+python-multipart>=0.0.9  # upload de video (multipart/form-data)
 # extract_dashboard.py tambem requer Node.js (normaliza literais JS -> JSON)
 # testes:
 pytest>=8.0

@@ -131,6 +131,16 @@ Documentação interativa (OpenAPI) em **`/docs`**.
 - `GET /metrics?analysis=&name=` · `GET /fits?analysis=` · `GET /variables`
 - `GET /literature` · `GET /consistency` · `GET /datasets/{kind}`
 
+**Upload pelo atleta + fila de análise (o treinador analisa)**
+- `POST /athletes/{id}/uploads` (multipart) — o **atleta envia o próprio vídeo**;
+  entra na fila `queued`. Tela do atleta em **`/app/enviar.html`**.
+- `GET /uploads` · `GET /uploads/{id}` · `GET /athletes/{id}/uploads` — status
+  (`queued|processing|done|error`).
+- `POST /uploads/{id}/analyze` — o **treinador dispara**: roda pose→sessão em
+  background e **liga a sessão ao atleta dono**. Fila na tela `/app/gerir.html`.
+- Requer no servidor: `mediapipe`, `opencv-python-headless` e a variável
+  **`MDLUCCA_POSE_MODEL`** apontando para o `pose_landmarker_*.task`.
+
 **Perfil Força-Velocidade-Potência (teste de cargas)**
 - `POST /compute/fvp` `{loads_kg, velocities, bodyweight_kg?, v1rm?}` — traça o
   perfil de um teste de cargas incremental: **componente gravitacional** (F=m·g),

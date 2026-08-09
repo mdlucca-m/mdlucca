@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Enviar vídeo — análise biomecânica</title>
+<style>
+  :root{--bg:#0e1116;--card:#171b22;--ink:#e6edf3;--mut:#8b98a6;--acc:#2a9d8f;
+        --acc2:#e63946;--line:#232a33;--warn:#e9c46a}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:560px;margin:0 auto;padding:22px 16px 80px}
+  .brand{font-weight:700;color:var(--acc);font-size:18px}
+  .sub{color:var(--mut);font-size:13px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0}
+  h2{font-size:16px;margin:0 0 12px}
+  label{display:block;font-size:12px;color:var(--mut);margin:10px 0 4px}
+  input,select{width:100%;background:#0e1116;border:1px solid var(--line);color:var(--ink);
+        border-radius:9px;padding:10px 12px;font-size:15px}
+  input[type=file]{padding:8px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}.row>div{flex:1;min-width:120px}
+  button{background:var(--acc);color:#04120f;border:0;border-radius:10px;padding:12px 18px;
+        font-weight:700;cursor:pointer;font-size:15px;width:100%;margin-top:16px}
+  button:disabled{opacity:.6}
+  .st{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px}
+  .queued{background:#0e1116;border:1px solid var(--warn);color:var(--warn)}
+  .processing{background:#0e1116;border:1px solid var(--acc);color:var(--acc)}
+  .done{background:#0e1116;border:1px solid var(--acc);color:var(--acc)}
+  .error{background:#0e1116;border:1px solid var(--acc2);color:var(--acc2)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  td,th{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--mut);font-size:11px}
+  .muted{color:var(--mut)} .ok{color:var(--acc)} .err{color:var(--acc2)}
+  .bar{height:6px;background:#0e1116;border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-top:6px}
+  .bar>div{height:100%;background:var(--acc);width:0}
+  a{color:var(--acc)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand" id="brand">De Lucca Esporte</div>
+  <div class="sub">Envie seu vídeo do exercício. Seu treinador recebe e faz a análise.</div>
+
+  <div class="card">
+    <h2>Enviar vídeo</h2>
+    <label>Atleta</label>
+    <select id="ath"></select>
+    <label>Exercício</label>
+    <input id="ex" value="Levantamento Terra" placeholder="ex: Agachamento">
+    <div class="row">
+      <div><label>Carga (kg, opcional)</label><input id="load" type="number" step="0.5" placeholder="90"></div>
+      <div><label>Massa (kg, opcional)</label><input id="mass" type="number" step="0.1" placeholder="usa cadastro"></div>
+      <div><label>Estatura (m, opcional)</label><input id="stat" type="number" step="0.01" placeholder="usa cadastro"></div>
+    </div>
+    <label>Vídeo (mp4/mov)</label>
+    <input id="file" type="file" accept="video/*">
+    <div class="bar" id="barwrap" style="display:none"><div id="bar"></div></div>
+    <button id="send" onclick="send()">Enviar vídeo</button>
+    <div id="msg" class="muted" style="margin-top:10px;font-size:13px"></div>
+  </div>
+
+  <div class="card">
+    <h2>Meus envios</h2>
+    <table id="ups"><thead><tr><th>#</th><th>Exercício</th><th>Status</th><th></th></tr></thead>
+      <tbody><tr><td colspan="4" class="muted">selecione o atleta</td></tr></tbody></table>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+async function boot(){
+  try{ const b=await fetch("/branding").then(r=>r.json()); $("brand").textContent=b.name; document.documentElement.style.setProperty("--acc", b.primary||"#2a9d8f"); }catch(e){}
+  try{ const a=await fetch("/athletes").then(r=>r.json());
+    $("ath").innerHTML=a.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("");
+    $("ath").onchange=loadMine; loadMine();
+  }catch(e){ $("ath").innerHTML='<option>API indisponível</option>'; }
+}
+async function loadMine(){
+  const id=$("ath").value; if(!id) return;
+  try{
+    const u=await fetch(`/athletes/${id}/uploads`).then(r=>r.json());
+    const tb=$("ups").querySelector("tbody");
+    tb.innerHTML = u.length ? u.map(x=>{
+      const link = x.status==="done" && x.session_id ? `<a href="./?session=${x.session_id}">ver</a>` : "";
+      return `<tr><td>${x.id}</td><td>${esc(x.exercise||"")}</td>
+        <td><span class="st ${x.status}">${x.status}</span></td><td>${link}</td></tr>`;
+    }).join("") : '<tr><td colspan="4" class="muted">nenhum envio ainda</td></tr>';
+  }catch(e){}
+}
+async function send(){
+  const id=$("ath").value, f=$("file").files[0];
+  if(!id){ $("msg").innerHTML='<span class="err">selecione o atleta</span>'; return; }
+  if(!f){ $("msg").innerHTML='<span class="err">escolha um vídeo</span>'; return; }
+  const fd=new FormData();
+  fd.append("file", f); fd.append("exercise", $("ex").value||"Vídeo");
+  if($("load").value) fd.append("load_kg", $("load").value);
+  if($("mass").value) fd.append("mass_kg", $("mass").value);
+  if($("stat").value) fd.append("stature_m", $("stat").value);
+  $("send").disabled=true; $("barwrap").style.display="block";
+  $("msg").textContent="enviando…";
+  const xhr=new XMLHttpRequest();
+  xhr.open("POST", `/athletes/${id}/uploads`);
+  xhr.upload.onprogress=e=>{ if(e.lengthComputable) $("bar").style.width=(100*e.loaded/e.total)+"%"; };
+  xhr.onload=()=>{ $("send").disabled=false;
+    if(xhr.status<300){ $("msg").innerHTML='<span class="ok">✓ vídeo enviado! Aguarde a análise do seu treinador.</span>';
+      $("file").value=""; $("bar").style.width="0"; loadMine(); }
+    else{ let d={}; try{d=JSON.parse(xhr.responseText)}catch(e){}
+      $("msg").innerHTML=`<span class="err">${esc(d.detail||("erro "+xhr.status))}</span>`; }
+  };
+  xhr.onerror=()=>{ $("send").disabled=false; $("msg").innerHTML='<span class="err">falha de rede</span>'; };
+  xhr.send(fd);
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+boot();
+</script>
+</body>
+</html>

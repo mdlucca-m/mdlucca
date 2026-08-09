@@ -26,3 +26,4 @@ venv/
 data/vendor_private.key
 data/license.key
 data/*.key
+data/uploads/

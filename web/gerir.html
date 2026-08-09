@@ -48,6 +48,7 @@
     <a href="./" >↗ Visualizador de sessões</a>
     <a href="checklist.html">↗ O que o sistema analisa</a>
     <a href="fvp.html">↗ Perfil Força-Velocidade (teste de cargas)</a>
+    <a href="enviar.html">↗ Página do atleta (enviar vídeo)</a>
     <a href="../docs" target="_blank">↗ API /docs</a>
     <span id="apihint" class="pill">API: mesma origem</span>
   </div>
@@ -77,6 +78,18 @@
     <span id="seed_msg" class="muted" style="font-size:13px"></span>
     <table id="ath_tbl"><thead><tr>
       <th>#</th><th>Nome</th><th>Massa</th><th>Estatura</th><th>IMC</th><th>Sexo</th>
+    </tr></thead><tbody></tbody></table>
+  </div>
+
+  <!-- Fila de vídeos enviados pelos atletas -->
+  <div class="card">
+    <h2 style="display:flex;align-items:center;gap:10px">Vídeos enviados pelos atletas (fila)
+      <button class="sec" style="margin-left:auto" onclick="loadUploads()">Atualizar</button>
+    </h2>
+    <p class="muted" style="font-size:13px;margin-top:0">O atleta envia pela
+      <a href="enviar.html">página do atleta</a>; aqui você dispara a análise.</p>
+    <table id="up_tbl"><thead><tr>
+      <th>#</th><th>Atleta</th><th>Exercício</th><th>Status</th><th>Sessão</th><th></th>
     </tr></thead><tbody></tbody></table>
   </div>
 
@@ -187,6 +200,37 @@ function copyLink(){
     ()=>$("copy_msg").textContent="✓ copiado — cole no WhatsApp",
     ()=>{ document.execCommand("copy"); $("copy_msg").textContent="✓ copiado"; });
 }
+let _upTimer=null;
+async function loadUploads(){
+  try{
+    const ups = await jget("/uploads");
+    const tb = $("up_tbl").querySelector("tbody"); tb.innerHTML="";
+    if(!ups.length){ tb.innerHTML='<tr><td colspan="6" class="muted">nenhum vídeo enviado</td></tr>'; }
+    let anyProcessing=false;
+    ups.forEach(u=>{
+      if(u.status==="processing") anyProcessing=true;
+      let action="";
+      if(u.status==="queued"||u.status==="error")
+        action=`<button class="sec" onclick="analyze(${u.id})">Analisar</button>`;
+      else if(u.status==="processing") action='<span class="muted">analisando…</span>';
+      const ses = (u.status==="done"&&u.session_id)
+        ? `<button class="sec" onclick="genLink(${u.session_id})">Gerar link</button> #${u.session_id}` : "—";
+      const err = u.error ? ` <span class="err" title="${esc(u.error)}">⚠</span>` : "";
+      tb.insertAdjacentHTML("beforeend",
+        `<tr><td>${u.id}</td><td>${esc(u.athlete_name||("#"+u.athlete_id))}</td>
+         <td>${esc(u.exercise||"")}</td>
+         <td><span class="pill">${u.status}</span>${err}</td>
+         <td>${ses}</td><td>${action}</td></tr>`);
+    });
+    // auto-atualiza enquanto houver algo processando
+    if(_upTimer) clearTimeout(_upTimer);
+    if(anyProcessing) _upTimer=setTimeout(loadUploads, 4000);
+  }catch(e){ /* sem licença/API */ }
+}
+async function analyze(id){
+  try{ await jpost(`/uploads/${id}/analyze`,{}); loadUploads(); }
+  catch(e){ alert("Erro ao analisar: "+e.message); }
+}
 async function seedDemo(){
   if(!confirm("Gerar massa de teste? Isso remove a massa de teste anterior "+
               "(atletas fictícios) e cria novos. Seus alunos reais não são afetados."))
@@ -206,7 +250,7 @@ async function seedDemo(){
 function numOrNull(v){ v=(v||"").trim(); return v===""?null:parseFloat(v); }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-(async()=>{ try{ await loadAthletes(); await loadSessions(); }
+(async()=>{ try{ await loadAthletes(); await loadSessions(); await loadUploads(); }
   catch(e){ $("apihint").innerHTML='<span class="err">API offline — rode: make api</span>'; } })();
 </script>
 </body>
