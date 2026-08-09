@@ -165,7 +165,6 @@ def main() -> int:
     con = sqlite3.connect(args.db); sm = load_series(con, args.session); con.close()
     ex = compute_extras(P, args.fps)
     n = min(len(norm), len(sm["t"]), len(ex["hand_L"]))
-    speed = sm["speed"]
     hip, knee, ankle = sm["hip_angle"], sm["knee_angle"], sm["ankle_angle"]
     hav, kav, aav = sm["hip_angvel"], sm["knee_angvel"], sm["ankle_angvel"]
     force, power = sm["force"], sm["power"]
