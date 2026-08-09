@@ -39,7 +39,7 @@ def smf(a):
     return _sig.savgol_filter(a, 11, 3, axis=0)
 
 
-def compute(P, fps):
+def compute(P, fps, stature_m=None):
     L = P["landmark_index"]; Wpx, Hpx = P["width"], P["height"]
     N = np.array([x if x is not None else P["norm"][0] for x in P["norm"]], float)
     Wd = np.array([w if w is not None else P["world"][0] for w in P["world"]], float)
@@ -65,6 +65,13 @@ def compute(P, fps):
     sh_y = (N[:, L['sh_l'], 1] + N[:, L['sh_r'], 1]) / 2 * Hpx
     hip_y = (N[:, L['hip_l'], 1] + N[:, L['hip_r'], 1]) / 2 * Hpx
     mpp = trunk_m / (np.median(np.abs(sh_y - hip_y)[stand]) or 1)
+    calib_src = "trunk_estimate"
+    if stature_m:                       # calibracao por estatura real (nariz->tornozelo)
+        nose_y = N[:, 0, 1] * Hpx
+        ank_y = (N[:, L['an_l'], 1] + N[:, L['an_r'], 1]) / 2 * Hpx
+        px = np.median(np.abs(ank_y - nose_y)[stand]) or 1
+        mpp = (stature_m * 0.936) / px
+        calib_src = f"stature {stature_m:.2f}m"
     footL_y = N[:, L['foot_l'], 1] * Hpx; footR_y = N[:, L['foot_r'], 1] * Hpx
     ground = np.median(np.maximum(footL_y, footR_y)[stand])
     hFootL = (ground - smf(footL_y)) * mpp * 100
@@ -75,7 +82,7 @@ def compute(P, fps):
     return dict(N=N, Wd=Wd, L=L, t=t, kneeL=kneeL, kneeR=kneeR, kvL=kvL, kvR=kvR,
                 kaL=kaL, kaR=kaR, hFootL=hFootL, hFootR=hFootR, hHip=hHip, split=split,
                 apex=apex, hip_stand=float(np.median(hHip[stand])),
-                ground_px=float(ground), Hpx=Hpx, Wpx=Wpx, mpp=mpp)
+                ground_px=float(ground), Hpx=Hpx, Wpx=Wpx, mpp=mpp, calib_src=calib_src)
 
 
 def panel(img, x, y, w, h, col=COL["panel"]):
@@ -211,9 +218,10 @@ def main() -> int:
     ap.add_argument("--video", required=True); ap.add_argument("--pose", required=True)
     ap.add_argument("--out", default="data/legs3d.mp4"); ap.add_argument("--fps", type=float, default=25.0)
     ap.add_argument("--brand", default="De Lucca Esporte")
+    ap.add_argument("--stature", type=float, default=None, help="estatura real do atleta (m) p/ calibrar")
     args = ap.parse_args()
 
-    P = json.loads(open(args.pose).read()); D = compute(P, args.fps)
+    P = json.loads(open(args.pose).read()); D = compute(P, args.fps, stature_m=args.stature)
     N = P["norm"]; Wd = D["Wd"]; L = D["L"]; n = len(D["t"])
     apex = D["apex"]
     # solo em coordenada world (para o chao do boneco): y do pe em pe (y aponta p/ baixo)
@@ -247,7 +255,8 @@ def main() -> int:
                     D['hFootL'][i], D['hFootR'][i], D['hHip'][i])
         cv2.rectangle(cv, (vx, vy), (vx + vw, vy + vh), COL["line"], 1)
         cv2.putText(cv, args.brand, (dx, 34), FD, 0.8, COL["accent"], 1, cv2.LINE_AA)
-        cv2.putText(cv, f"Analise das 2 pernas  |  t={i/args.fps:4.1f}s", (dx, 52), F, 0.44, COL["dim"], 1, cv2.LINE_AA)
+        cv2.putText(cv, f"Analise das 2 pernas  |  t={i/args.fps:4.1f}s  |  escala: {D['calib_src']}",
+                    (dx, 52), F, 0.44, COL["dim"], 1, cv2.LINE_AA)
 
         theta = (i * 360.0 / (rot_period_s * args.fps)) % 360   # rotacao continua 360
         draw_stick3d(cv, s3d, Wd[i], theta, ground_world, D['split'][i],

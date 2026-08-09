@@ -61,6 +61,7 @@ def main() -> int:
     ap.add_argument("--out", default=str(ROOT / "data" / "out"))
     ap.add_argument("--key", default=None, help="rotulo curto (default: nome do arquivo)")
     ap.add_argument("--legs3d", action="store_true", help="tambem gera a analise 3D das 2 pernas")
+    ap.add_argument("--stature", type=float, default=None, help="estatura real do atleta (m) p/ calibrar")
     ap.add_argument("--force", action="store_true")
     args = ap.parse_args()
 
@@ -104,10 +105,12 @@ def main() -> int:
 
     # 2. SESSION (sempre roda: insere nova sessao)
     before = max_session(args.db)
-    ok = node("session", py + [str(ROOT / "scripts/build_session_from_pose.py"),
-                               "--pose", str(pose_json), "--db", args.db, "--athlete", args.athlete,
-                               "--exercise", args.exercise, "--mass", str(args.mass), "--append"],
-              manifest_path, skip_if=False)  # skip_if=False -> sempre executa
+    session_cmd = py + [str(ROOT / "scripts/build_session_from_pose.py"),
+                        "--pose", str(pose_json), "--db", args.db, "--athlete", args.athlete,
+                        "--exercise", args.exercise, "--mass", str(args.mass), "--append"]
+    if args.stature:
+        session_cmd += ["--stature", str(args.stature)]
+    ok = node("session", session_cmd, manifest_path, skip_if=False)  # sempre executa
     if not ok:
         return _finish(manifest_path, steps, key, str(video), None, fps, error="session falhou")
     session_id = max_session(args.db)
@@ -126,9 +129,12 @@ def main() -> int:
 
     # 5. LEGS3D (opcional)
     if args.legs3d:
-        node("legs3d", py + [str(ROOT / "scripts/render_legs3d_video.py"), "--video", str(video),
-                             "--pose", str(pose_json), "--out", str(legs3d), "--fps", str(fps),
-                             "--brand", args.brand], legs3d)
+        legs_cmd = py + [str(ROOT / "scripts/render_legs3d_video.py"), "--video", str(video),
+                         "--pose", str(pose_json), "--out", str(legs3d), "--fps", str(fps),
+                         "--brand", args.brand]
+        if args.stature:
+            legs_cmd += ["--stature", str(args.stature)]
+        node("legs3d", legs_cmd, legs3d)
 
     return _finish(manifest_path, steps, key, str(video), session_id, fps,
                    outputs={"pose": str(pose_json), "overlay": str(overlay),

@@ -63,6 +63,7 @@ def main() -> int:
     ap.add_argument("--athlete", default="Atleta Vídeo")
     ap.add_argument("--exercise", default="Landmine Clean & Press (vídeo)")
     ap.add_argument("--mass", type=float, default=80.0, help="massa corporal assumida (kg)")
+    ap.add_argument("--stature", type=float, default=None, help="estatura real do atleta (m) p/ calibrar")
     ap.add_argument("--append", action="store_true", help="não recria o banco")
     args = ap.parse_args()
 
@@ -215,10 +216,22 @@ def main() -> int:
                 (ext_key, args.athlete, args.mass,
                  "massa corporal ASSUMIDA (sem balança); cinética estimada pelo método do CoM"))
     athlete_id = cur.lastrowid
+    calib = None
+    if args.stature:
+        from app import calibration as Cal
+        try:
+            c = Cal.stature_scale_from_pose(P, args.stature)
+            calib = {"source": c.source, "m_per_px": round(c.m_per_px, 6),
+                     "cm_per_px": round(c.m_per_px * 100, 4), "stature_m": args.stature,
+                     "ground_px": c.ground_px}
+            print(f"Calibracao por estatura: {calib['cm_per_px']} cm/px")
+        except Exception as exc:  # noqa: BLE001
+            print(f"Calibracao falhou: {exc}")
     meta = {"source_video": "VID_39550929_221256_717.mkv", "fps": fps,
             "resolution": f"{P['width']}x{P['height']}", "pose_detected_frames": P["detected"],
             "side_used": "left (maior visibilidade)", "kinetics": "estimada (metodo CoM, massa assumida)",
-            "is_calibrated": False, "coordinate_system": "metric_3d (world landmarks MediaPipe)"}
+            "is_calibrated": bool(calib), "calibration": calib,
+            "coordinate_system": "metric_3d (world landmarks MediaPipe)"}
     cur.execute("""INSERT INTO session(athlete_id,exercise,load_kg,gravity,pose_source,pose_model,
                      n_submovements,meta,notes) VALUES (?,?,?,?,?,?,?,?,?)""",
                 (athlete_id, args.exercise, None, G, "mediapipe",

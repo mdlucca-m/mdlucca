@@ -151,6 +151,30 @@ Correção de **quadros**: frames sem pose agora são **interpolados linearmente
 entre vizinhos (antes eram indevidamente preenchidos com o 1º quadro) — ver
 `app/signals.stack_frames` / `interpolate_gaps`.
 
+**Calibração integrada ao pipeline** — informe a **estatura real** do atleta e
+todas as alturas (cm) passam a usar a escala calibrada em vez da estimativa:
+```bash
+make pipeline VIDEO=clip.mp4 MODEL=pose.task           # + no comando:
+python3 scripts/pipeline.py --video clip.mp4 --model pose.task --stature 1.55 --legs3d
+```
+A sessão grava `meta.calibration` (fonte + cm/px) e o overlay 3D mostra a escala
+usada. Ex.: no salto de ginástica, a altura do quadril passa de 107 cm
+(estimado) para 128 cm (calibrado com estatura 1,55 m).
+
+**Padrões de literatura internacional e valores de referência**
+- `GET /standards` — os padrões metodológicos que o sistema segue, **com
+  citação**: Butterworth 6 Hz (Winter 2009), antropometria De Leva (1996),
+  ângulos ISB (Wu et al. 2002/2005), alometria (Jaric 2002), amostragem/Nyquist,
+  MPV/VBT (Sánchez-Medina & González-Badillo 2011), RFD (Maffiuletti et al. 2016).
+- `GET /reference-bands` · `POST /reference-check` — compara as medições às
+  faixas de referência (critério técnico/estatístico) e devolve **status por
+  métrica** com a fonte. Ex.: joelho 175° → *ótimo*; split 146° → *adequado*;
+  CV 4,3% → *ótimo* (Atkinson & Nevill 1998).
+
+> As referências **metodológicas** (como medir) são consolidadas e citadas.
+> Faixas de **desempenho** vêm como critério técnico (ex.: extensão = 180°) ou
+> indicativas — normas por modalidade/nível exigem base validada da população.
+
 Esta é a ponte **landmarks → biomecânica** que a Etapa 2 usa: a fonte de pose
 só fornece landmarks; este módulo produz as séries e o resto segue por cima.
 Os landmarks do MediaPipe vêm normalizados por largura/altura separadamente

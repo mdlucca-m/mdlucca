@@ -71,6 +71,20 @@ def test_calibration_stature_and_ground():
     assert h is not None and h > 0
 
 
+def test_reference_target_and_range():
+    from app import reference_values as Ref
+    # joelho quase reto -> otimo; longe do 180 -> abaixo
+    assert Ref.evaluate("knee_extension_deg", 176)["status"] == "otimo"
+    assert Ref.evaluate("knee_extension_deg", 140)["status"] == "abaixo"
+    # CV baixo otimo, alto fora
+    assert Ref.evaluate("cv_pct", 4)["status"] == "otimo"
+    assert Ref.evaluate("cv_pct", 30)["status"] == "fora"
+    # metrica desconhecida
+    assert Ref.evaluate("xyz", 1)["status"] == "sem_referencia"
+    # todo padrao tem citacao
+    assert all(s.get("citation") for s in Ref.STANDARDS)
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     fail = 0

@@ -60,3 +60,18 @@ def from_trunk_estimate(trunk_m: float, trunk_px: float, ground_px: float | None
     """Estimativa atual (fallback): comprimento do tronco em world x pixels."""
     return Calibration(m_per_px=trunk_m / (trunk_px or 1.0), source="trunk_estimate",
                        ground_px=ground_px, detail={"trunk_m": trunk_m, "trunk_px": trunk_px})
+
+
+def stature_scale_from_pose(pose: dict, height_m: float, stand_frames: int = 25) -> Calibration:
+    """Calibra pela estatura real usando os primeiros quadros (em pe) da pose:
+    mede nariz->tornozelo em pixels e resolve m/px. Tambem estima o solo pelos
+    pes. `pose` e o dict salvo por pose_extract (chaves norm/landmark_index)."""
+    L = pose["landmark_index"]; Hpx = pose["height"]
+    frames = [f for f in pose["norm"][:stand_frames] if f is not None]
+    if not frames:
+        raise ValueError("sem quadros com pose para calibrar")
+    N = np.array(frames, dtype=float)
+    nose_y = float(np.median(N[:, 0, 1])) * Hpx
+    ankle_y = float(np.median((N[:, L["an_l"], 1] + N[:, L["an_r"], 1]) / 2)) * Hpx
+    foot_y = float(np.median(np.maximum(N[:, L["foot_l"], 1], N[:, L["foot_r"], 1]))) * Hpx
+    return from_stature([0.0, nose_y], [0.0, ankle_y], height_m, ground_px=foot_y)

@@ -33,6 +33,7 @@ from app import biomech as Bio
 from app import calibration as Cal
 from app import db
 from app import kinematics as Kin
+from app import reference_values as Ref
 from app import signals as Sig
 
 app = FastAPI(
@@ -940,6 +941,32 @@ def session_allometric(session_id: int, b_force: float = 0.67, b_power: float = 
             A.allometric_scale(kpis["peak_power"], mass, b_power), 3)
     out["raw_peaks"] = {k: kpis.get(k) for k in ("peak_force", "peak_power", "peak_speed")}
     return out
+
+
+# ==========================================================================
+# Padroes de literatura e valores de referencia
+# ==========================================================================
+class RefCheckBody(BaseModel):
+    measurements: dict[str, float]           # {"knee_extension_deg": 175, "split_angle_deg": 146, ...}
+
+
+@app.get("/standards", tags=["referencia"])
+def standards():
+    """Padroes metodologicos de literatura internacional que o sistema segue
+    (filtragem, antropometria, angulos ISB, alometria, amostragem, VBT, RFD)."""
+    return {"standards": Ref.STANDARDS, "reference_bands": list(Ref.BANDS.keys())}
+
+
+@app.get("/reference-bands", tags=["referencia"])
+def reference_bands():
+    return Ref.BANDS
+
+
+@app.post("/reference-check", tags=["referencia"])
+def reference_check(body: RefCheckBody):
+    """Compara medicoes com as faixas de referencia (criterio tecnico/indicativo)
+    e devolve status por metrica com a fonte."""
+    return {"results": [Ref.evaluate(k, v) for k, v in body.measurements.items()]}
 
 
 @app.post("/compute/cv", tags=["analises"])
