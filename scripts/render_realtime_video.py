@@ -184,7 +184,9 @@ def main():
         return rs[y0:y0 + h, x0:x0 + w]
 
     def make_cover():
-        cap.set(cv2.CAP_PROP_POS_FRAMES, int(round(first_rep * (Nv - 1) / (N - 1))))
+        # frame de pe um pouco ANTES da 1a rep (evita o flash "REP 1" do overlay)
+        cover_src = max(0, first_rep - 14)
+        cap.set(cv2.CAP_PROP_POS_FRAMES, int(round(cover_src * (Nv - 1) / (N - 1))))
         ok, fr = cap.read()
         bg = _cover_fit(fr, W, Hc) if ok else np.full((Hc, W, 3), (14, 17, 22), np.uint8)
         bg = (bg * 0.32).astype(np.uint8)                # escurece
