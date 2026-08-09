@@ -73,6 +73,14 @@ plots:
 angvel:
 	python3 scripts/render_angvel_video.py --pose "$(POSE)" --out $(OUT)
 
+# Video explicativo em super slow (1 rep, fases + eventos + leituras ao vivo)
+# POSE=<pose json>  SESSION=<id>  REP=<auto|n>  OUT=<mp4>
+explainer:
+	python3 scripts/render_explainer_video.py --pose "$(POSE)" --session $(SESSION) \
+	  --rep $(REP) --interp 4 --out-fps 12 --out $(OUT)
+
+REP ?= auto
+
 api:
 	uvicorn app.api:app --reload
 
