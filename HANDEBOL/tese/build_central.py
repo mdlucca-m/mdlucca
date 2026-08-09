@@ -5,7 +5,7 @@ def img(k):
 
 ANALYST='https://claude.ai/code/artifact/9279ee5b-358f-49c5-8fad-3c05571079fb'
 PR='https://github.com/mdlucca-m/mdlucca/pull/1'
-GH='https://github.com/mdlucca-m/mdlucca/blob/claude/auditoria-analises-blz1fn/auditoria_brums_hiit/'
+GH='https://github.com/mdlucca-m/mdlucca/blob/claude/auditoria-analises-blz1fn/HANDEBOL/'
 
 CSS = """
 *{box-sizing:border-box}
@@ -279,7 +279,7 @@ html = f"""<style>{CSS}</style>
 <section>
  <div class="seclab">Todos os entregáveis</div>
  <h2>Índice do material</h2>
- <p class="sub">Tudo vive em <span style="font-family:var(--mono);font-size:13px">auditoria_brums_hiit/</span> na branch do PR. Os links abaixo abrem cada arquivo no GitHub.</p>
+ <p class="sub">Tudo vive em <span style="font-family:var(--mono);font-size:13px">HANDEBOL/</span> na branch do PR. Os links abaixo abrem cada arquivo no GitHub.</p>
  <div class="cats">
   <div class="cat">
    <h3><span class="dot" style="background:var(--blue)"></span>Manuscrito &amp; tese</h3>

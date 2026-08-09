@@ -1,2 +1,0 @@
-expression PastaDados = "/home/user/mdlucca/auditoria_brums_hiit/powerbi" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
-	lineageTag: 36f58c56-06f0-44d7-ab03-50e9cc057df9

@@ -5,13 +5,13 @@ from matplotlib import font_manager
 P=dict(BLUE='#245C8B',TEAL='#0E8C86',GOLD='#C7871B',RED='#C0392B',NAVY='#122438',MUT='#5B6B82',VIO='#7A5AA8',GRID='#E3E9F0')
 plt.rcParams.update({'font.family':'DejaVu Sans','axes.edgecolor':P['MUT'],'axes.labelcolor':P['NAVY'],
     'xtick.color':P['MUT'],'ytick.color':P['MUT'],'axes.titlecolor':P['NAVY']})
-FIG='/home/user/mdlucca/auditoria_brums_hiit/figuras/'
+FIG='/home/user/mdlucca/HANDEBOL/figuras/'
 def sty(ax):
     for s in ['top','right']: ax.spines[s].set_visible(False)
     ax.grid(axis='x',color=P['GRID'],lw=1); ax.set_axisbelow(True)
 
-mod=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/modelagem/resultados_modelagem.json'))
-adv=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/analises_avancadas/resultados.json'))
+mod=json.load(open('/home/user/mdlucca/HANDEBOL/modelagem/resultados_modelagem.json'))
+adv=json.load(open('/home/user/mdlucca/HANDEBOL/analises_avancadas/resultados.json'))
 LAB={'PTH':'PTH (TMD)','FadFis':'Fadiga física','Fadiga':'Fadiga','Vigor':'Vigor','FadMen':'Fadiga mental',
      'Tensão':'Tensão','Depressão':'Depressão','Raiva':'Raiva','Confusão':'Confusão'}
 

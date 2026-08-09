@@ -3,17 +3,17 @@ import base64, os, json
 IMG='/tmp/docimg/'
 def im(k):
     with open(IMG+k+'.jpg','rb') as f: return 'data:image/jpeg;base64,'+base64.b64encode(f.read()).decode()
-mod=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/modelagem/resultados_modelagem.json'))
-adv=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/analises_avancadas/resultados.json'))
-conf=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/confiabilidade_invariancia/resultados_confiabilidade.json'))
-pred=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/preditiva/resultados_preditiva.json'))
-pv=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/perfil_variabilidade/resultados_perfil_variabilidade.json'))
-mt=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/modelo_teorico/resultados_modelo_teorico.json'))
-dh=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/dias_hiit/resultados_dias_hiit.json'))
-oq=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/outros_questionarios/resultados_outros_questionarios.json'))
-sn=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/sonolencia/resultados_sonolencia.json'))
-rocd=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/roc_derivadas/resultados_roc_derivadas.json'))
-dvar=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/derivadas_variaveis/resultados_derivadas_variaveis.json'))
+mod=json.load(open('/home/user/mdlucca/HANDEBOL/modelagem/resultados_modelagem.json'))
+adv=json.load(open('/home/user/mdlucca/HANDEBOL/analises_avancadas/resultados.json'))
+conf=json.load(open('/home/user/mdlucca/HANDEBOL/confiabilidade_invariancia/resultados_confiabilidade.json'))
+pred=json.load(open('/home/user/mdlucca/HANDEBOL/preditiva/resultados_preditiva.json'))
+pv=json.load(open('/home/user/mdlucca/HANDEBOL/perfil_variabilidade/resultados_perfil_variabilidade.json'))
+mt=json.load(open('/home/user/mdlucca/HANDEBOL/modelo_teorico/resultados_modelo_teorico.json'))
+dh=json.load(open('/home/user/mdlucca/HANDEBOL/dias_hiit/resultados_dias_hiit.json'))
+oq=json.load(open('/home/user/mdlucca/HANDEBOL/outros_questionarios/resultados_outros_questionarios.json'))
+sn=json.load(open('/home/user/mdlucca/HANDEBOL/sonolencia/resultados_sonolencia.json'))
+rocd=json.load(open('/home/user/mdlucca/HANDEBOL/roc_derivadas/resultados_roc_derivadas.json'))
+dvar=json.load(open('/home/user/mdlucca/HANDEBOL/derivadas_variaveis/resultados_derivadas_variaveis.json'))
 
 CSS="""
 @page{size:A4;margin:14mm 12mm}
@@ -116,10 +116,10 @@ _snA=str(sn['D_alpha']['com_sonolento']).replace('.',','); _snA3=str(sn['D_alpha
 rowsRD=[[r['var'],f"{r['AUC_derivada']:.2f}".replace('.',','),f"[{r['IC_derivada'][0]:.2f}; {r['IC_derivada'][1]:.2f}]".replace('.',','),f"{r['AUC_nivel']:.2f}".replace('.',','),f"{r['ganho']:+.2f}".replace('.',',')] for r in rocd['resultados']]
 rowsDVb=[[r['var'],f"{r['inclinacao_media']:+.2f}".replace('.',','),f"{r['vel_inicial']:+.2f}".replace('.',','),f"{r['vel_final']:+.2f}".replace('.',','),r['direcao']] for r in dvar['B_derivadas_variaveis']]
 rowsDVc=[[r['var'],f"{r['slope_medio']:+.2f}".replace('.',','),f"{r['slope_dp']:.2f}".replace('.',','),f"{r['pct_positivo']:.0f}%"] for r in dvar['C_derivada_individual']]
-lim=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/limites_derivadas/resultados_limites_derivadas.json'))
+lim=json.load(open('/home/user/mdlucca/HANDEBOL/limites_derivadas/resultados_limites_derivadas.json'))
 _limL=f"{lim['ajuste']['L']:.2f}".replace('.',','); _limk=f"{lim['ajuste']['k']:.2f}".replace('.',','); _limR2=f"{lim['ajuste']['R2']:.2f}".replace('.',',')
 _limD=f"{lim['B_definicao_limite']['f_linha_analitica']:.2f}".replace('.',','); _limTc=f"{lim['D_limites']['modelo_teorico']['ponto_critico_t*']:.2f}".replace('.',',')
-robj=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/residuos_coef_psicometria/resultados.json'))
+robj=json.load(open('/home/user/mdlucca/HANDEBOL/residuos_coef_psicometria/resultados.json'))
 _pnr=lambda v:('<0,001' if v<0.001 else f"{v:.3f}".replace('.',','))
 _c2=lambda v:f"{v:+.2f}".replace('.',','); _f2=lambda v:f"{v:.2f}".replace('.',',')
 _termpt={'Intercept':'Intercepto','pos':'Pós','dia':'Dia','hiit':'HIIT'}
@@ -128,18 +128,18 @@ rowsResid=[[robj['coeficientes'][y]['label'],_f2(robj['coeficientes'][y]['ICC'])
 rowsPsi=[[n,_f2(o['alpha']),_f2(o['alpha_ordinal']),_f2(o['omega']),_f2(o['AVE']),_f2(o['CR']),_f2(o['item_total_medio'])] for n,o in robj['psicometria'].items()]
 rowsBA=[[b['par'],str(b['n']),_f2(b['r_pearson']),f"{b['bias']:.1f}".replace('.',','),f"[{b['LoA_rm'][0]:.1f}; {b['LoA_rm'][1]:.1f}]".replace('.',',')] for b in robj['bland_altman']]
 _afe=robj['afe']; _afeK=_f2(_afe['KMO']); _afeVar=f"{_afe['variancia_cum'][5]*100:.1f}".replace('.',','); _afeBart=_pnr(_afe['bartlett_p'])
-_ivj=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/invariancia_multigrupo/resultados.json')); _ivi=_ivj['invariancia']
+_ivj=json.load(open('/home/user/mdlucca/HANDEBOL/invariancia_multigrupo/resultados.json')); _ivi=_ivj['invariancia']
 _ivCFIpre=_f2(_ivj['grupos']['pre']['CFI']); _ivCFIpos=_f2(_ivj['grupos']['pos']['CFI'])
 _ivPhi=f"{_ivi['tucker_phi_global']:.3f}".replace('.',','); _ivdCFI=f"{_ivi['delta_CFI']:+.3f}".replace('.',',')
 _ivPhiFat=', '.join(f"{k} {v:.3f}".replace('.',',') for k,v in _ivi['tucker_phi_fator'].items())
-_ivesc=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/invariancia_multigrupo/resultados_escalar.json'))
+_ivesc=json.load(open('/home/user/mdlucca/HANDEBOL/invariancia_multigrupo/resultados_escalar.json'))
 _mcCFI=f"{_ivesc['metrico_conjunto']['delta_CFI']:+.3f}".replace('.',','); _mcRMSEA=f"{_ivesc['metrico_conjunto']['delta_RMSEA']:+.3f}".replace('.',',')
 _escRMS=f"{_ivesc['escalar']['rms_global']:.3f}".replace('.',','); _kFad=f"{_ivesc['escalar']['kappa_pos']['Fadiga']:+.2f}".replace('.',','); _kVig=f"{_ivesc['escalar']['kappa_pos']['Vigor']:+.2f}".replace('.',',')
-_ivep=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/invariancia_multigrupo/resultados_estrita_parcial.json'))
+_ivep=json.load(open('/home/user/mdlucca/HANDEBOL/invariancia_multigrupo/resultados_estrita_parcial.json'))
 _epCFIm=f"{_ivep['estrita']['CFI_metrico']:.3f}".replace('.',','); _epCFIe=f"{_ivep['estrita']['CFI_estrito']:.3f}".replace('.',',')
 _epdCFI=f"{_ivep['estrita']['delta_CFI']:+.3f}".replace('.',','); _epdRMSEA=f"{_ivep['estrita']['delta_RMSEA']:+.3f}".replace('.',',')
 _epLib=' e '.join(_ivep['parcial']['itens_liberados']); _epRMSf=f"{_ivep['parcial']['rms_residuo_full']:.3f}".replace('.',','); _epRMSp=f"{_ivep['parcial']['rms_residuo_parcial']:.3f}".replace('.',',')
-_chj=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/carga_humor/resultados_carga_humor.json'))
+_chj=json.load(open('/home/user/mdlucca/HANDEBOL/carga_humor/resultados_carga_humor.json'))
 _chP=_chj['preditores_fadiga']['preditores']
 _f2c=lambda v:('—' if v is None else f"{v:.2f}".replace('.',','))
 rowsCH=[[p['label'],f"{p['AUC']:.2f}".replace('.',','),f"[{p['IC95'][0]:.2f}; {p['IC95'][1]:.2f}]".replace('.',','),
@@ -151,7 +151,7 @@ _chDepICC=_f2c(next(p['ICC21'] for p in _chP if p['var']=='Depressão'))
 _chAgSig=[p for p in _chj['acoplamento']['agudo']['pares'] if p['p_bruto']<0.05]
 cpl_n=_chj['acoplamento']['tonico']['n']
 try:
-    _coer=json.load(open('/home/user/mdlucca/auditoria_brums_hiit/tese/resultados_coerencia.json'))
+    _coer=json.load(open('/home/user/mdlucca/HANDEBOL/tese/resultados_coerencia.json'))
     rowsCOER=[[m['metrica'],str(m['valor']),f"{m['n']}/7 — "+', '.join(m['entregaveis'])] for m in _coer['metricas']]
     _coerN=len(_coer['metricas']); _coerOcc=sum(m['n'] for m in _coer['metricas'])
 except Exception:
