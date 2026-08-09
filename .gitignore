@@ -2,6 +2,9 @@
 data/*.sqlite
 data/*.sqlite.bak_*
 data/raw/
+data/pose.json
+data/frames/
+*.task
 
 # Python
 __pycache__/

@@ -28,6 +28,19 @@ migrate:
 db ingest:
 	python3 scripts/ingest.py --db "$(DB)"
 
+# Pipeline de video: VIDEO=<arquivo> MODEL=<pose_landmarker.task>
+# Extrai frames -> pose (MediaPipe) -> sessao no banco. Requer:
+#   pip install mediapipe opencv-python-headless
+#   modelo: https://storage.googleapis.com/mediapipe-models/pose_landmarker/
+FRAMES ?= data/frames
+video:
+	@test -n "$(VIDEO)" || (echo "uso: make video VIDEO=arquivo.mkv MODEL=pose_landmarker_full.task"; exit 1)
+	mkdir -p $(FRAMES)
+	ffmpeg -loglevel error -i "$(VIDEO)" -vsync 0 "$(FRAMES)/f_%04d.png"
+	python3 scripts/pose_extract.py "$(FRAMES)" "$(MODEL)" -o data/pose.json --fps 25
+	python3 scripts/build_session_from_pose.py --pose data/pose.json --db "$(DB)" --mass $(MASS) --append
+MASS ?= 80
+
 api:
 	uvicorn app.api:app --reload
 

@@ -80,13 +80,16 @@ def _series_map(con, sub_id: int, names: Optional[list[str]] = None) -> dict[str
 
 
 def _session_constants(con, sub_id: int) -> tuple[float, float]:
-    """(massa da carga [kg], g) da sessao dona do submovimento."""
+    """(massa de referencia [kg], g) da sessao dona do submovimento. Usa a
+    carga (load_kg) quando existe; senao a massa corporal do atleta (ex.:
+    sessoes derivadas de video, cinetica pelo metodo do CoM)."""
     row = con.execute(
-        "SELECT s.load_kg, s.gravity FROM submovement sm JOIN session s ON s.id=sm.session_id "
-        "WHERE sm.id=?", (sub_id,)).fetchone()
+        "SELECT COALESCE(s.load_kg, a.body_mass_kg, 0) AS mass, s.gravity "
+        "FROM submovement sm JOIN session s ON s.id=sm.session_id "
+        "JOIN athlete a ON a.id=s.athlete_id WHERE sm.id=?", (sub_id,)).fetchone()
     if not row:
         raise HTTPException(404, "submovimento nao encontrado")
-    return float(row["load_kg"]), float(row["gravity"])
+    return float(row["mass"]), float(row["gravity"])
 
 
 def _require(sm: dict, *names: str):
@@ -265,6 +268,7 @@ def submovement_metrics(sub_id: int, analysis: Optional[str] = None):
 
 @app.get("/metrics", tags=["metricas"])
 def query_metrics(analysis: str = Query(...), name: Optional[str] = None,
+                  session_id: Optional[int] = None,
                   limit: int = Query(500, ge=1, le=5000), offset: int = Query(0, ge=0)):
     con = db.connect()
     try:
@@ -274,8 +278,12 @@ def query_metrics(analysis: str = Query(...), name: Optional[str] = None,
         if name:
             sql += " AND m.name=?"
             params += (name,)
-        total = con.execute("SELECT COUNT(*) FROM metric WHERE analysis=?"
-                            + (" AND name=?" if name else ""), params).fetchone()[0]
+        if session_id is not None:
+            sql += " AND m.session_id=?"
+            params += (session_id,)
+        cnt = "SELECT COUNT(*) FROM metric WHERE analysis=?" + (" AND name=?" if name else "") \
+            + (" AND session_id=?" if session_id is not None else "")
+        total = con.execute(cnt, params).fetchone()[0]
         data = db.rows(con, sql + " ORDER BY sm.ordinal, m.name LIMIT ? OFFSET ?",
                        params + (limit, offset))
         return {"total": total, "limit": limit, "offset": offset, "items": data}

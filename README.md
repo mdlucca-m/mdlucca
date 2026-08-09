@@ -162,6 +162,34 @@ os números que o dashboard reportava. Ex.: CV (5 seg) = 28,93%, power-law
 `F=a·v^b` com b=0,615 / R²=0,801 / p=0,040, e Grubbs G=1,625 — todos batem; a
 única divergência é a correção deliberada do valor crítico de Grubbs.
 
+## Pipeline de vídeo (pose → biomecânica) — exemplo real
+
+O backend não depende mais de dados pré-computados: dá para analisar um
+**vídeo novo** de ponta a ponta.
+
+```bash
+pip install mediapipe opencv-python-headless
+# baixe um modelo (ex.: pose_landmarker_full.task) de
+#   https://storage.googleapis.com/mediapipe-models/pose_landmarker/
+make video VIDEO=meu_video.mkv MODEL=pose_landmarker_full.task MASS=80
+make api    # abra /app?session=2
+```
+
+Etapas (`scripts/pose_extract.py` + `scripts/build_session_from_pose.py`):
+1. **ffmpeg** extrai os frames.
+2. **MediaPipe PoseLandmarker** produz os **world landmarks 3D (metros)** por frame.
+3. O construtor computa as séries a partir dos landmarks 3D (ângulos, velocidades
+   angulares, velocidade da barra, CoG por De Leva) e **estima a cinética pelo
+   método do centro de massa** (massa corporal assumida — sem plataforma de
+   força), segmenta as repetições pela altura da barra e insere como nova sessão.
+4. **Todas** as análises da API rodam sobre a nova sessão.
+
+Exemplo já processado (vídeo 720×720, 25 fps, 20 s → 3 reps detectados,
+pose em 502/502 frames): as análises cinemáticas (ROM, MPV/PPV, jerk, SSC,
+sequenciamento, consistência entre reps) são sólidas; as métricas de força/
+potência são **estimativas do método do CoM** (rótulo explícito) e viram
+medidas exatas quando houver massa/carga reais e calibração — o alvo da Etapa 2.
+
 ## Roadmap — Etapa 2 (fonte de pose de alta qualidade)
 
 O ponto fraco da Etapa 1 **não é a análise, é o dado de entrada**. O próprio

@@ -45,7 +45,7 @@
 <header>
   <h1 id="title">Dashboard Biomecânico</h1>
   <div class="sub" id="subtitle">carregando sessão da API…</div>
-  <div><span class="badge" id="src-badge">—</span></div>
+  <div style="margin-top:8px"><label>Sessão: </label><select id="session-select"></select> <span class="badge" id="src-badge">—</span></div>
   <div class="sub" style="margin-top:8px">Cliente 100% via <code>fetch()</code> — todos os números vêm da API (<code id="api-base"></code>), recomputados no servidor.</div>
 </header>
 
@@ -95,6 +95,7 @@ const API = location.origin;
 document.getElementById('api-base').textContent = API;
 const $ = (id) => document.getElementById(id);
 const SVGNS='http://www.w3.org/2000/svg';
+let SID = new URLSearchParams(location.search).get('session') || '1';
 let SESSION = null, SUBS = [], CUR_SUB = null, CUR_VAR = 'angles', VARS = {};
 
 const j = async (path) => {
@@ -105,14 +106,26 @@ const j = async (path) => {
 const fmt = (v, d=1) => (v===null||v===undefined) ? '—' :
   Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
 
-async function init(){
+async function populateSessionPicker(){
   try{
-    SESSION = await j('/sessions/1');
+    const all = await j('/sessions');
+    const sel = $('session-select'); sel.innerHTML='';
+    all.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=`#${s.id} — ${s.exercise}`; if(String(s.id)===String(SID)) o.selected=true; sel.appendChild(o); });
+    sel.onchange=()=>{ location.search='?session='+sel.value; };
+  }catch(e){}
+}
+
+async function init(){
+  await populateSessionPicker();
+  try{
+    SESSION = await j('/sessions/'+SID);
     SUBS = SESSION.submovements;
     CUR_SUB = SUBS[0].id;
     const a = SESSION.athlete;
     $('title').textContent = 'Dashboard Biomecânico — ' + SESSION.exercise;
-    $('subtitle').textContent = `${a.name} · ${a.body_mass_kg} kg · ${a.height_m} m · carga ${SESSION.load_kg} kg (${fmt(SESSION.pct_bodyweight)}% PC) · ${SUBS.length} submovimentos`;
+    const hgt = a.height_m ? a.height_m+' m · ' : '';
+    const load = SESSION.load_kg!=null ? `carga ${SESSION.load_kg} kg · ` : 'carga não informada · ';
+    $('subtitle').textContent = `${a.name} · ${a.body_mass_kg} kg · ${hgt}${load}${SUBS.length} submovimentos`;
     $('src-badge').textContent = 'pose: ' + SESSION.pose_source;
     $('foot-src').textContent = SESSION.pose_model;
     const varsList = await j('/variables');
@@ -126,8 +139,11 @@ async function init(){
   // Cada seção carrega de forma independente — uma falha não derruba as outras.
   renderKPIs().catch(x=>$('kpis').innerHTML='<span class="err">'+x.message+'</span>');
   refresh();
-  loadFV();
-  loadConsistency();
+  if(SID==='1'){ loadFV(); loadConsistency(); }
+  else {  // sessões derivadas de vídeo: F-V/consistência stored são da sessão 1
+    const fp=$('fv').closest('.panel'), cp=$('consistency').closest('.panel');
+    if(fp) fp.style.display='none'; if(cp) cp.style.display='none';
+  }
 }
 
 // Mini-gráfico de linhas em SVG (sem dependências externas).
@@ -158,7 +174,7 @@ function drawSVGChart(el, datasets, t, unit){
 }
 
 async function renderKPIs(){
-  const g = await j('/metrics?analysis=global_kpi');
+  const g = await j('/metrics?analysis=global_kpi&session_id='+SID);
   const items = (g.items||g);
   const wrap = $('kpis'); wrap.innerHTML='';
   const units = {peak_force:'N',peak_power:'W',peak_rfd:'N/s',peak_speed:'m/s',peak_tau_hip:'N·m',peak_tau_knee:'N·m'};
