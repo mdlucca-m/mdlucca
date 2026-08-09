@@ -78,6 +78,7 @@ def main() -> int:
     ap.add_argument("--session", type=int, default=2)
     ap.add_argument("--out", default="data/overlay.mp4")
     ap.add_argument("--brand", default="De Lucca Esporte")
+    ap.add_argument("--move", default="", help="nome do movimento exibido no HUD")
     ap.add_argument("--fps", type=float, default=25.0)
     args = ap.parse_args()
 
@@ -145,8 +146,8 @@ def main() -> int:
         # --- HUD superior ---
         panel(img, 12, 12, 300, 96)
         cv2.putText(img, args.brand, (24, 38), cv2.FONT_HERSHEY_DUPLEX, 0.7, C["accent"], 1, cv2.LINE_AA)
-        cv2.putText(img, "Analise biomecanica  |  pose 3D (MediaPipe)", (24, 60),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.42, C["dim"], 1, cv2.LINE_AA)
+        cv2.putText(img, (args.move or "Analise biomecanica | pose 3D"), (24, 60),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.44, C["dim"], 1, cv2.LINE_AA)
         rep_now = next((r for r in reps if r["start"] <= i <= r["end"]), None)
         rep_lbl = f"REP {rep_now['ordinal']}/{len(reps)}" if rep_now else "-"
         phase = "SUBIDA" if v_vert[i] > 0.001 else ("DESCIDA" if v_vert[i] < -0.001 else "PAUSA")
@@ -154,6 +155,19 @@ def main() -> int:
                     C["good"] if phase == "SUBIDA" else C["txt"], 1, cv2.LINE_AA)
         cv2.putText(img, f"t={i/args.fps:0.1f}s", (238, 88), cv2.FONT_HERSHEY_SIMPLEX, 0.44,
                     C["dim"], 1, cv2.LINE_AA)
+
+        # --- flash central de REP ao iniciar cada repeticao (~0.6s) ---
+        if rep_now:
+            df = i - rep_now["start"]
+            if 0 <= df < int(args.fps * 0.6):
+                a = 1.0 - df / (args.fps * 0.6)
+                fs = 1.7 + a * 1.3
+                txt = f"REP {rep_now['ordinal']}"
+                (tw, th2), _ = cv2.getTextSize(txt, cv2.FONT_HERSHEY_DUPLEX, fs, 3)
+                ov = img.copy()
+                cv2.putText(ov, txt, (W // 2 - tw // 2, int(H * 0.42)), cv2.FONT_HERSHEY_DUPLEX,
+                            fs, C["accent"], 3, cv2.LINE_AA)
+                cv2.addWeighted(ov, min(0.9, a + 0.25), img, 1 - min(0.9, a + 0.25), 0, img)
 
         # --- HUD angulos (referencia 180 graus) ---
         panel(img, 12, H - 150, 330, 138)
