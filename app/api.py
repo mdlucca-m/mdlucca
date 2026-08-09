@@ -34,6 +34,7 @@ from pydantic import BaseModel, Field
 from app import analyses as A
 from app import biomech as Bio
 from app import calibration as Cal
+from app import fvp as FVP
 from app import db
 from app import kinematics as Kin
 from app import phases as Ph
@@ -1100,6 +1101,101 @@ def post_logistic(body: LogisticBody):
 @app.post("/compute/bootstrap-slope", tags=["analises"])
 def post_bootstrap(body: BootstrapBody):
     return A.bootstrap_slope_ci(body.x, body.y, space=body.space, n_boot=body.n_boot)
+
+
+# ==========================================================================
+# Perfil Forca-Velocidade-Potencia (FVP) — teste de cargas
+# ==========================================================================
+class FVPBody(BaseModel):
+    loads_kg: list[float] = Field(..., min_length=2)
+    velocities: list[float] = Field(..., min_length=2)
+    g: float = 9.81
+    bodyweight_kg: Optional[float] = None
+    v1rm: float = 0.30
+    com_displacement_m: Optional[float] = None
+
+
+@app.post("/compute/fvp", tags=["analises"])
+def post_fvp(b: FVPBody):
+    """Perfil Forca-Velocidade-Potencia de um teste de cargas (pares carga/vel)."""
+    try:
+        return FVP.full_profile(b.loads_kg, b.velocities, g=b.g,
+                                bodyweight_kg=b.bodyweight_kg or 0.0, v1rm=b.v1rm,
+                                com_displacement_m=b.com_displacement_m or 0.0)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc))
+
+
+@app.get("/athletes/{athlete_id}/fvp", tags=["analises"])
+def athlete_fvp(athlete_id: int, exercise: Optional[str] = None,
+                velocity_metric: str = "vbt.MPV", v1rm: float = 0.30,
+                include_bodyweight: bool = False,
+                com_displacement_m: Optional[float] = None):
+    """Traca o perfil FVP a partir das SESSOES do atleta em cargas diferentes.
+
+    Cada sessao (com load_kg) vira um ponto; a velocidade e o melhor valor da
+    metrica escolhida entre as repeticoes (default vbt.MPV; senao peaks.v_peak).
+    """
+    con = db.connect()
+    try:
+        ath = db.one(con, "SELECT * FROM athlete WHERE id=?", (athlete_id,))
+        if not ath:
+            raise HTTPException(404, "aluno nao encontrado")
+        sql = "SELECT id, exercise, load_kg FROM session WHERE athlete_id=? AND load_kg IS NOT NULL"
+        params: tuple = (athlete_id,)
+        if exercise:
+            sql += " AND exercise=?"
+            params += (exercise,)
+        sessions = db.rows(con, sql + " ORDER BY load_kg", params)
+        ns, nm = (velocity_metric.split(".", 1) + ["MPV"])[:2] if "." in velocity_metric \
+            else ("vbt", velocity_metric)
+
+        loads, vels, used = [], [], []
+        for s in sessions:
+            subs = [r["id"] for r in con.execute(
+                "SELECT id FROM submovement WHERE session_id=?", (s["id"],))]
+            if not subs:
+                continue
+            q = ",".join("?" * len(subs))
+            best = con.execute(
+                f"SELECT MAX(value_num) FROM metric WHERE submovement_id IN ({q}) "
+                f"AND analysis=? AND name=?", (*subs, ns, nm)).fetchone()[0]
+            if best is None:      # fallback: pico de velocidade linear
+                best = con.execute(
+                    f"SELECT MAX(value_num) FROM metric WHERE submovement_id IN ({q}) "
+                    f"AND analysis='peaks' AND name='v_peak'", subs).fetchone()[0]
+            if best is None:
+                continue
+            loads.append(float(s["load_kg"]))
+            vels.append(float(best))
+            used.append({"session_id": s["id"], "exercise": s["exercise"],
+                         "load_kg": s["load_kg"], "velocity": round(float(best), 3)})
+
+        if len(loads) < 2:
+            raise HTTPException(
+                422, f"teste de cargas exige >= 2 sessoes com carga e velocidade; "
+                     f"encontradas {len(loads)}. Cadastre sessoes do mesmo exercicio "
+                     f"em cargas diferentes.")
+        bw = float(ath["body_mass_kg"]) if (include_bodyweight and ath["body_mass_kg"]) else 0.0
+        # deslocamento do centro de massa: usa o parametro; senao tenta o CoG
+        # armazenado (cog.y_excursion) medio das sessoes usadas.
+        com_d = com_displacement_m
+        if com_d is None:
+            sids = [u["session_id"] for u in used]
+            if sids:
+                qs = ",".join("?" * len(sids))
+                subq = (f"SELECT AVG(value_num) FROM metric WHERE analysis='cog' "
+                        f"AND name='y_excursion' AND session_id IN ({qs})")
+                v = con.execute(subq, sids).fetchone()[0]
+                com_d = float(v) if v else None
+        prof = FVP.full_profile(loads, vels, bodyweight_kg=bw, v1rm=v1rm,
+                                com_displacement_m=com_d or 0.0)
+        prof["atleta"] = ath["name"]
+        prof["metrica_velocidade"] = velocity_metric
+        prof["sessoes_usadas"] = used
+        return prof
+    finally:
+        con.close()
 
 
 # ==========================================================================

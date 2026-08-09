@@ -42,6 +42,7 @@
     trapezoidal + Savitzky-Golay/Butterworth). Nada é lido pré-pronto.</div>
   <div class="toolbar">
     <a href="gerir.html">↗ Gestão de atletas</a>
+    <a href="fvp.html">↗ Perfil F-V (teste de cargas)</a>
     <a href="./">↗ Visualizador</a>
     <a href="../docs" target="_blank">↗ API /docs</a>
   </div>
@@ -114,6 +115,22 @@
       <li>Jerk (3ª derivada) — pico e RMS<span class="ep">/compute/jerk</span></li>
       <li>Sequenciamento proximal→distal<span class="ep">/compute/sequencing</span></li>
       <li>Ciclo normalizado 0–100%<span class="ep">/compute/normalized-cycle</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>Perfil Força-Velocidade-Potência (teste de cargas)</h2>
+    <ul>
+      <li>Componente gravitacional (F = m·g) explícito<span class="ep">/compute/fvp</span></li>
+      <li>Regressão Carga-Velocidade + 1RM estimado (VBT)</li>
+      <li>Regressão Força-Velocidade — F0, V0, Sfv</li>
+      <li>Potência-Velocidade — Pmax, velocidade e carga ótimas</li>
+      <li>Ajuste quadrático (comparação de modelos)</li>
+      <li>Ajustes alométricos — Pmax/kg e Pmax/kg^0.67 (Jaric)</li>
+      <li>Deslocamento do centro de massa (push-off)</li>
+      <li>Equivalentes — trabalho (F·d), altura equiv. (v²/2g), pesos corporais</li>
+      <li>Interpretação automática (orientação força/velocidade)</li>
+      <li>Direto do atleta<span class="ep">/athletes/{id}/fvp</span> · tela <span class="ep">/app/fvp.html</span></li>
     </ul>
   </div>
 

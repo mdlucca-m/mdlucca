@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>De Lucca Esporte — Perfil Força-Velocidade-Potência</title>
+<style>
+  :root{--bg:#0e1116;--card:#171b22;--ink:#e6edf3;--mut:#8b98a6;--acc:#2a9d8f;
+        --acc2:#e63946;--acc3:#e9c46a;--line:#232a33}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:940px;margin:0 auto;padding:22px 16px 80px}
+  .brand{font-weight:700;letter-spacing:.3px;color:var(--acc);font-size:18px}
+  .sub{color:var(--mut);font-size:13px}
+  .toolbar{display:flex;gap:12px;flex-wrap:wrap;margin:6px 0}
+  .toolbar a{color:var(--acc);font-size:13px;text-decoration:none}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+        padding:16px 18px;margin:14px 0}
+  h2{font-size:15px;margin:0 0 10px}
+  label{font-size:12px;color:var(--mut)}
+  input,select{background:#0e1116;border:1px solid var(--line);color:var(--ink);
+        border-radius:9px;padding:8px 10px;font-size:14px}
+  button{background:var(--acc);color:#04120f;border:0;border-radius:9px;
+        padding:10px 16px;font-weight:600;cursor:pointer;font-size:14px}
+  button.sec{background:#0e1116;color:var(--acc);border:1px solid var(--acc);
+        padding:6px 12px;font-weight:600;font-size:13px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--mut);font-size:12px}
+  td input{width:110px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-top:8px}
+  .kpis{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0}
+  .kpi{background:#0e1116;border:1px solid var(--line);border-radius:10px;
+       padding:8px 12px;min-width:110px}
+  .kpi b{display:block;font-size:18px} .kpi span{color:var(--mut);font-size:11px}
+  .eq{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#0e1116;
+      border:1px dashed var(--line);border-radius:8px;padding:6px 10px;margin:4px 0;
+      font-size:13px;color:var(--acc3)}
+  .charts{display:flex;gap:16px;flex-wrap:wrap}
+  .charts>div{flex:1;min-width:300px}
+  svg{width:100%;height:auto;background:#0e1116;border:1px solid var(--line);border-radius:10px}
+  .muted{color:var(--mut)} .err{color:var(--acc2)}
+  .cap{font-size:12px;color:var(--mut);text-align:center;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">Perfil Força-Velocidade-Potência (FVP) — teste de cargas</div>
+  <div class="sub">Cargas crescentes → velocidade em cada carga. Traça F-v, P-v,
+    estima 1RM, potência máxima e carga ótima. Força = componente gravitacional (m·g).</div>
+  <div class="toolbar">
+    <a href="gerir.html">↗ Gestão</a>
+    <a href="checklist.html">↗ Checklist</a>
+    <a href="../docs" target="_blank">↗ /docs</a>
+  </div>
+
+  <div class="card">
+    <h2>1 · Dados do teste de cargas</h2>
+    <div class="row">
+      <div><label>Carregar de um atleta</label><br><select id="ath"></select></div>
+      <button class="sec" onclick="loadFromAthlete()">Carregar sessões do atleta</button>
+      <span id="ath_msg" class="muted"></span>
+    </div>
+    <table id="pts"><thead><tr><th>Carga (kg)</th><th>Velocidade (m/s)</th><th></th></tr></thead>
+      <tbody></tbody></table>
+    <div class="row">
+      <button class="sec" onclick="addRow()">+ linha</button>
+      <div><label>Massa corporal (kg, opcional)</label><br><input id="bw" type="number" step="0.1" placeholder="0"></div>
+      <div><label>Velocidade-alvo 1RM (m/s)</label><br><input id="v1rm" type="number" step="0.01" value="0.30"></div>
+      <div><label>Desloc. centro de massa (m, opcional)</label><br><input id="com" type="number" step="0.01" placeholder="ex: 0.40"></div>
+      <button onclick="trace()">Traçar perfil</button>
+    </div>
+    <span id="msg" class="muted" style="font-size:13px"></span>
+  </div>
+
+  <div class="card" id="result" style="display:none">
+    <h2>2 · Perfil</h2>
+    <div class="kpis" id="kpis"></div>
+    <div id="eqs"></div>
+    <div class="charts" style="margin-top:12px">
+      <div><div id="fv"></div><div class="cap">Força-Velocidade (pontos = medidas · linha = regressão)</div></div>
+      <div><div id="pv"></div><div class="cap">Potência-Velocidade (parábola · ● = Pmax)</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+function addRow(carga="",vel=""){
+  const tb=$("pts").querySelector("tbody");
+  const tr=document.createElement("tr");
+  tr.innerHTML=`<td><input type="number" step="0.5" class="c" value="${carga}"></td>
+    <td><input type="number" step="0.01" class="v" value="${vel}"></td>
+    <td><button class="sec" onclick="this.closest('tr').remove()">×</button></td>`;
+  tb.appendChild(tr);
+}
+function readPoints(){
+  const cs=[...document.querySelectorAll(".c")], vs=[...document.querySelectorAll(".v")];
+  const loads=[],vels=[];
+  cs.forEach((c,i)=>{ const l=parseFloat(c.value), v=parseFloat(vs[i].value);
+    if(!isNaN(l)&&!isNaN(v)){ loads.push(l); vels.push(v); } });
+  return {loads,vels};
+}
+async function trace(){
+  const {loads,vels}=readPoints();
+  if(loads.length<2){ $("msg").innerHTML='<span class="err">informe ao menos 2 cargas com velocidade</span>'; return; }
+  $("msg").textContent="calculando…";
+  try{
+    const body={loads_kg:loads, velocities:vels,
+      bodyweight_kg:parseFloat($("bw").value)||null, v1rm:parseFloat($("v1rm").value)||0.30,
+      com_displacement_m:parseFloat($("com").value)||null};
+    const r=await fetch("/compute/fvp",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(body)});
+    if(!r.ok){ throw new Error((await r.json()).detail||r.status); }
+    render(await r.json());
+    $("msg").textContent="";
+  }catch(e){ $("msg").innerHTML=`<span class="err">${e.message}</span>`; }
+}
+async function loadAthletes(){
+  try{ const a=await fetch("/athletes").then(r=>r.json());
+    $("ath").innerHTML=a.map(x=>`<option value="${x.id}">${x.name}</option>`).join("");
+  }catch(e){ $("ath").innerHTML='<option>API offline</option>'; }
+}
+async function loadFromAthlete(){
+  const id=$("ath").value;
+  $("ath_msg").textContent="buscando sessões…";
+  try{
+    const r=await fetch(`/athletes/${id}/fvp?include_bodyweight=false`);
+    if(!r.ok){ $("ath_msg").innerHTML=`<span class="err">${(await r.json()).detail}</span>`; return; }
+    const d=await r.json();
+    $("pts").querySelector("tbody").innerHTML="";
+    d.pontos.forEach(p=>addRow(p.carga_kg,p.velocidade_m_s));
+    $("ath_msg").innerHTML=`<span class="muted">${d.pontos.length} sessões carregadas</span>`;
+    render(d);
+  }catch(e){ $("ath_msg").innerHTML=`<span class="err">${e.message}</span>`; }
+}
+function kpi(v,l){ return `<div class="kpi"><b>${v}</b><span>${l}</span></div>`; }
+function render(d){
+  const fv=d.perfil_forca_velocidade, lv=d.perfil_carga_velocidade;
+  $("result").style.display="block";
+  $("kpis").innerHTML =
+    kpi(fv.F0_N+" N","F0 (força máx.)")+
+    kpi(fv.V0_m_s+" m/s","V0 (vel. máx.)")+
+    kpi(fv.Pmax_W+" W","Potência máx.")+
+    kpi(fv.v_otima_m_s+" m/s","vel. ótima")+
+    kpi(fv.carga_otima_kg+" kg","carga ótima")+
+    kpi((lv.carga_1RM_estimada_kg??"—")+" kg","1RM estimado")+
+    kpi("R²="+fv.r2,"ajuste F-v")+
+    (d.ajustes_alometricos&&d.ajustes_alometricos.disponivel ?
+      kpi(d.ajustes_alometricos.Pmax_por_kg_W+" W/kg","Pmax relativa")+
+      kpi(d.ajustes_alometricos.Pmax_alometrico_W_kg067+" W/kg^.67","Pmax alométrica") : "");
+  const interp = d.interpretacao ? `<div class="eq" style="color:#2a9d8f">▸ ${d.interpretacao.orientacao}`+
+    ` · ajuste ${d.interpretacao.qualidade_ajuste}</div>` : "";
+  const poly = (d.ajuste_quadratico_fv&&d.ajuste_quadratico_fv.disponivel) ?
+    `<div class="eq">${d.ajuste_quadratico_fv.equation}  (R²=${d.ajuste_quadratico_fv.r2}, quadrático)</div>` : "";
+  let equiv="";
+  if(d.equivalentes&&d.equivalentes.disponivel){
+    const e=d.equivalentes;
+    $("kpis").innerHTML +=
+      kpi(e.trabalho_carga_otima_J+" J","trabalho (carga ótima)")+
+      kpi(e.altura_equivalente_vopt_m+" m","altura equiv. (v ótima)");
+    equiv=`<div class="eq" style="color:#e9c46a">▸ deslocamento CoM ${e.deslocamento_com_m} m · `+
+      `trabalho médio ${e.trabalho_medio_J} J · altura equiv. V0 ${e.altura_equivalente_V0_m} m`+
+      (e.F0_em_pesos_corporais?` · F0 = ${e.F0_em_pesos_corporais} pesos corporais`:"")+`</div>`;
+  }
+  $("eqs").innerHTML = interp + equiv + d.equacoes_regressao.map(e=>`<div class="eq">${e}</div>`).join("") + poly;
+  drawFV(d); drawPV(d);
+}
+// --- desenho SVG ---
+function axes(W,H,pad){ return {x:v=>pad+ v, y:v=>H-pad- v, W,H,pad}; }
+function svgEl(W,H){ return `<svg viewBox="0 0 ${W} ${H}" role="img">`; }
+function drawFV(d){
+  const fv=d.perfil_forca_velocidade;
+  const V0=fv.V0_m_s, F0=fv.F0_N;
+  const W=380,H=280,pad=42;
+  const sx=v=>pad+(v/V0)*(W-2*pad), sy=f=>H-pad-(f/F0)*(H-2*pad);
+  let s=svgEl(W,H);
+  // grid/eixos
+  s+=`<line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="#333"/>`;
+  s+=`<line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H-pad}" stroke="#333"/>`;
+  s+=`<text x="${W/2}" y="${H-8}" fill="#8b98a6" font-size="11" text-anchor="middle">velocidade (m/s)</text>`;
+  s+=`<text x="12" y="${H/2}" fill="#8b98a6" font-size="11" text-anchor="middle" transform="rotate(-90 12 ${H/2})">força m·g (N)</text>`;
+  // linha de regressão (0,F0)->(V0,0)
+  s+=`<line x1="${sx(0)}" y1="${sy(F0)}" x2="${sx(V0)}" y2="${sy(0)}" stroke="#2a9d8f" stroke-width="2"/>`;
+  // pontos medidos
+  d.pontos.forEach(p=>{ s+=`<circle cx="${sx(p.velocidade_m_s)}" cy="${sy(p.forca_grav_N)}" r="4.5" fill="#e9c46a"/>`; });
+  // rótulos F0/V0
+  s+=`<text x="${sx(0)+4}" y="${sy(F0)-4}" fill="#e6edf3" font-size="10">F0=${F0}N</text>`;
+  s+=`<text x="${sx(V0)-40}" y="${sy(0)-6}" fill="#e6edf3" font-size="10">V0=${V0}</text>`;
+  s+="</svg>"; $("fv").innerHTML=s;
+}
+function drawPV(d){
+  const fv=d.perfil_forca_velocidade;
+  const V0=fv.V0_m_s, F0=fv.F0_N, Sfv=fv.Sfv_N_por_m_s, Pmax=fv.Pmax_W, vopt=fv.v_otima_m_s;
+  const W=380,H=280,pad=42, ymax=Pmax*1.15;
+  const sx=v=>pad+(v/V0)*(W-2*pad), sy=p=>H-pad-(p/ymax)*(H-2*pad);
+  let s=svgEl(W,H);
+  s+=`<line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="#333"/>`;
+  s+=`<line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H-pad}" stroke="#333"/>`;
+  s+=`<text x="${W/2}" y="${H-8}" fill="#8b98a6" font-size="11" text-anchor="middle">velocidade (m/s)</text>`;
+  s+=`<text x="12" y="${H/2}" fill="#8b98a6" font-size="11" text-anchor="middle" transform="rotate(-90 12 ${H/2})">potência (W)</text>`;
+  // parábola P(v)=F0*v - Sfv*v²
+  let pts=[];
+  for(let i=0;i<=40;i++){ const v=V0*i/40; const p=F0*v - Sfv*v*v; pts.push(`${sx(v)},${sy(Math.max(0,p))}`); }
+  s+=`<polyline points="${pts.join(' ')}" fill="none" stroke="#e63946" stroke-width="2"/>`;
+  // marca Pmax
+  s+=`<circle cx="${sx(vopt)}" cy="${sy(Pmax)}" r="5" fill="#e63946"/>`;
+  s+=`<text x="${sx(vopt)+6}" y="${sy(Pmax)+4}" fill="#e6edf3" font-size="10">Pmax=${Pmax}W @ ${vopt}m/s</text>`;
+  s+="</svg>"; $("pv").innerHTML=s;
+}
+
+// exemplo inicial
+addRow(40,1.15); addRow(60,0.85); addRow(80,0.55); addRow(100,0.28);
+loadAthletes();
+</script>
+</body>
+</html>

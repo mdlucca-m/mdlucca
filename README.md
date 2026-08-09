@@ -115,6 +115,22 @@ Documentação interativa (OpenAPI) em **`/docs`**.
 - `GET /metrics?analysis=&name=` · `GET /fits?analysis=` · `GET /variables`
 - `GET /literature` · `GET /consistency` · `GET /datasets/{kind}`
 
+**Perfil Força-Velocidade-Potência (teste de cargas)**
+- `POST /compute/fvp` `{loads_kg, velocities, bodyweight_kg?, v1rm?}` — traça o
+  perfil de um teste de cargas incremental: **componente gravitacional** (F=m·g),
+  regressão **Carga-Velocidade** (+1RM estimado), regressão **Força-Velocidade**
+  (F0, V0, Sfv), **Potência-Velocidade** (Pmax, velocidade e carga ótimas),
+  **ajuste quadrático** (comparação de modelos), **ajustes alométricos**
+  (Pmax/kg e Pmax/kg^0.67 — Jaric) e interpretação automática. Equações de
+  regressão retornadas como texto. Com **`com_displacement_m`** (deslocamento
+  vertical do centro de massa) adiciona os **equivalentes**: trabalho mecânico
+  (W=F·d), potência média na carga ótima, **altura equivalente** (h=v²/2g) e
+  F0 em pesos corporais.
+- `GET /athletes/{id}/fvp?exercise=&velocity_metric=vbt.MPV` — monta o teste de
+  cargas a partir das **sessões do atleta** em cargas diferentes.
+- Tela **`/app/fvp.html`** — insere cargas/velocidades (ou carrega do atleta) e
+  **traça F-v e P-v** (gráficos), com Pmax, carga ótima e 1RM.
+
 **Análises estatísticas padrão-ouro (recomputadas sob demanda)**
 - `GET /compute/cv?metric=&scope=` — CV% + **IC bootstrap**
 - `GET /compute/grubbs?metric=&scope=` — Grubbs **bilateral, valor crítico exato**

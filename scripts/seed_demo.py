@@ -139,6 +139,35 @@ def seed(con: sqlite3.Connection, n_athletes: int = 4, n_reps: int = 5,
                 (tok, "session", sid, exercise, "ambos", now))
             rec["report_url"] = f"/r/{tok}"
         out.append(rec)
+
+    # Atleta extra para TESTE DE CARGAS (varias cargas -> perfil F-V-P)
+    lt = con.execute(
+        "INSERT INTO athlete (ext_key,name,body_mass_kg,height_m,bmi,sex,notes) "
+        "VALUES (?,?,?,?,?,?,?)",
+        (f"{DEMO_KEY}-lt", "Teste de Cargas - Demo", 85.0, 1.80,
+         _bmi(85.0, 1.80), "M", "massa de teste (perfil F-V)"))
+    lt_id = lt.lastrowid
+    for k, load in enumerate([40.0, 55.0, 70.0, 85.0, 100.0]):
+        mpv = round(1.30 - 0.010 * load + rng.uniform(-0.02, 0.02), 3)   # cai com a carga
+        cur = con.execute(
+            "INSERT INTO session (athlete_id,exercise,load_kg,pct_bodyweight,gravity,"
+            "pose_source,pose_model,n_submovements,captured_at,notes) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?)",
+            (lt_id, "Agachamento", load, round(100 * load / 85.0, 1), 9.81, "demo",
+             "massa de teste (sintetica)", 1, now, "teste de cargas"))
+        sid = cur.lastrowid
+        sub = con.execute(
+            "INSERT INTO submovement (session_id,ordinal,label,kind,frame_start,"
+            "frame_end,n_frames,dt,is_slowmo_2x) VALUES (?,?,?,?,?,?,?,?,0)",
+            (sid, 1, f"{load:.0f} kg", "composite", 0, 120, 120, 0.02))
+        sub_id = sub.lastrowid
+        con.execute("INSERT INTO metric (session_id,submovement_id,analysis,name,"
+                    "value_num,unit) VALUES (?,?,?,?,?,?)",
+                    (sid, sub_id, "vbt", "MPV", mpv, "m/s"))
+    out.append({"athlete_id": lt_id, "athlete": "Teste de Cargas - Demo",
+                "session_id": None, "exercise": "Agachamento (5 cargas)", "reps": 5,
+                "fvp": f"/athletes/{lt_id}/fvp"})
+
     con.commit()
     return out
 

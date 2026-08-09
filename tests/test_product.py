@@ -79,15 +79,16 @@ def test_demo_seed_endpoint():
     r = c.post("/demo/seed", json={"athletes": 3, "reps": 4, "reset": True})
     assert r.status_code == 200
     d = r.json()
-    assert d["created"] == 3
-    # cada sessao veio com link absoluto de relatorio, que renderiza
-    url = d["sessions"][0]["report_url"]
+    assert d["created"] == 4          # 3 atletas + 1 de teste de cargas
+    # cada sessao com relatorio veio com link absoluto, que renderiza
+    with_url = [s for s in d["sessions"] if s.get("report_url")]
+    url = with_url[0]["report_url"]
     assert "/r/" in url
     rep = c.get("/r/" + url.split("/r/")[1])
     assert rep.status_code == 200 and "<rect" in rep.text
-    # segundo seed com reset remove os 3 anteriores
+    # segundo seed com reset remove os 4 anteriores
     r2 = c.post("/demo/seed", json={"athletes": 2, "reps": 3, "reset": True})
-    assert r2.json()["removed"] == 3 and r2.json()["created"] == 2
+    assert r2.json()["removed"] == 4 and r2.json()["created"] == 3
 
 
 def test_seed_massa_de_teste_and_reports():
@@ -101,7 +102,10 @@ def test_seed_massa_de_teste_and_reports():
     seed_demo = importlib.import_module("seed_demo")
     recs = seed_demo.seed(con, n_athletes=3, n_reps=4, make_shares=True)
     con.close()
-    assert len(recs) == 3 and all(r["reps"] == 4 for r in recs)
+    regs = [r for r in recs if r.get("report_url")]
+    assert len(regs) == 3 and all(r["reps"] == 4 for r in regs)
+    lt = [r for r in recs if r.get("fvp")]
+    assert len(lt) == 1               # atleta de teste de cargas
 
     os.environ["MDLUCCA_DB"] = dbp
     for m in list(sys.modules):
@@ -112,7 +116,7 @@ def test_seed_massa_de_teste_and_reports():
     c = TestClient(app)
 
     # cada sessao gerada rende um relatorio com grafico (rect) e potencia
-    for r in recs:
+    for r in regs:
         rep = c.get(r["report_url"])
         assert rep.status_code == 200
         html = rep.text
@@ -120,12 +124,18 @@ def test_seed_massa_de_teste_and_reports():
         assert html.count("<rect") == 4          # uma barra por repeticao
         assert "Potencia pico" in html
 
-    # reset limpa toda a massa de teste
+    # o atleta de teste de cargas rende o perfil F-V-P
+    fvp = c.get(lt[0]["fvp"])
+    assert fvp.status_code == 200
+    body = fvp.json()
+    assert body["n_pontos"] == 5 and body["perfil_forca_velocidade"]["F0_N"] > 0
+
+    # reset limpa toda a massa de teste (3 regulares + 1 teste de cargas)
     con = sqlite3.connect(dbp)
     removed = seed_demo.clear_demo(con)
     left = con.execute("SELECT COUNT(*) FROM athlete").fetchone()[0]
     con.close()
-    assert removed == 3 and left == 0
+    assert removed == 4 and left == 0
 
 
 if __name__ == "__main__":
