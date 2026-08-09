@@ -21,9 +21,15 @@ from __future__ import annotations
 import argparse
 import json
 
+import sys
+from pathlib import Path
+
 import cv2
 import numpy as np
 from scipy import signal as _sig
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from app import segments as Seg  # noqa: E402
 
 LC = (235, 206, 66)     # perna ESQUERDA (ciano-esverdeado) BGR
 RC = (206, 92, 230)     # perna DIREITA (magenta) BGR
@@ -129,17 +135,29 @@ def chart(img, rect, series, ci, title, unit, hline=None, marker=None, fill=None
 
 LEGS2D = {"L": [(23, 25), (25, 27), (27, 31)], "R": [(24, 26), (26, 28), (28, 32)]}
 TRUNK = [(11, 23), (12, 24), (11, 12), (23, 24), (7, 11), (8, 12)]
+SEG_COLOR = {"perna_E": LC, "perna_D": RC, "tronco": TR, "cabeca": TR,
+             "braco_E": (120, 200, 255), "braco_D": (200, 140, 255)}
 
 
-def draw_2d(cv, lm, vx, vy, vw, vh):
+def build_bones(spec):
+    """(bones_com_cor, pontos, tem_pernas) a partir da selecao de segmentos."""
+    sel = Seg.resolve(spec or "sem_bracos")
+    bones = []
+    for name in sel["segments"]:
+        col = SEG_COLOR.get(name, TR)
+        for (a, b) in Seg.SEGMENTS[name]["bones"]:
+            if a <= 32 and b <= 32:
+                bones.append(((a, b), col))
+    has_legs = ("perna_E" in sel["segments"]) or ("perna_D" in sel["segments"])
+    return bones, sel["points"], has_legs, sel["segments"]
+
+
+def draw_2d(cv, lm, vx, vy, vw, vh, bones, points):
     sp = lambda p: (int(vx + p[0] * vw), int(vy + p[1] * vh))
-    for a, b in TRUNK:
-        cv2.line(cv, sp(lm[a]), sp(lm[b]), TR, 2, cv2.LINE_AA)
-    for a, b in LEGS2D["L"]:
-        cv2.line(cv, sp(lm[a]), sp(lm[b]), LC, 4, cv2.LINE_AA)
-    for a, b in LEGS2D["R"]:
-        cv2.line(cv, sp(lm[a]), sp(lm[b]), RC, 4, cv2.LINE_AA)
-    for idx in (23, 25, 27, 31, 24, 26, 28, 32):
+    for (a, b), col in bones:
+        w = 4 if col in (LC, RC) else 2
+        cv2.line(cv, sp(lm[a]), sp(lm[b]), col, w, cv2.LINE_AA)
+    for idx in points:
         cv2.circle(cv, sp(lm[idx]), 4, (255, 255, 255), -1, cv2.LINE_AA)
 
 
@@ -164,7 +182,8 @@ def draw_rulers(cv, lm, vx, vy, vw, vh, ground_ny, hFL, hFR, hHip):
     cv2.putText(cv, f"quadril {hHip:.0f} cm", (hx + 8, hy - 4), FD, 0.55, (200, 140, 255), 1, cv2.LINE_AA)
 
 
-def draw_stick3d(cv, rect, W, theta_deg, ground_y_world, split_deg, hFootL, hFootR, elev_deg=20.0):
+def draw_stick3d(cv, rect, W, theta_deg, ground_y_world, split_deg, hFootL, hFootR,
+                 bones, points, has_legs, elev_deg=20.0):
     x, y, w, h = rect; panel(cv, x, y, w, h)
     cv2.putText(cv, "BONECO 3D 360  (E=ciano  D=magenta)", (x + 10, y + 18), F, 0.42, COL["dim"], 1, cv2.LINE_AA)
     th = np.radians(theta_deg); ct, st = np.cos(th), np.sin(th)
@@ -187,28 +206,24 @@ def draw_stick3d(cv, rect, W, theta_deg, ground_y_world, split_deg, hFootL, hFoo
     for gx in np.linspace(-0.5, 0.5, 5):
         p1 = proj(gx, ground_y_world, -0.5); p2 = proj(gx, ground_y_world, 0.5)
         cv2.line(cv, p1, p2, COL["grid"], 1)
-    # retas de altura (solo -> ponta do pe) no 3D, por perna
-    for idx, hc, col in [(31, hFootL, LC), (32, hFootR, RC)]:
-        fx, fy, fz = W[idx]
-        top = proj(fx, fy, fz); base = proj(fx, ground_y_world, fz)
-        cv2.line(cv, base, top, col, 1, cv2.LINE_AA)
-        cv2.circle(cv, base, 2, col, -1)
-        cv2.putText(cv, f"{hc:.0f}cm", (top[0] + 4, top[1] - 2), F, 0.34, col, 1, cv2.LINE_AA)
-    # base do 'triangulo' da passada (tornozelo E - tornozelo D) + arco do angulo
-    aL, aR = pj(27), pj(28)
     hipm = (int((pj(23)[0] + pj(24)[0]) / 2), int((pj(23)[1] + pj(24)[1]) / 2))
-    cv2.line(cv, aL, aR, (110, 110, 150), 1, cv2.LINE_AA)
-    cv2.line(cv, hipm, aL, (110, 110, 150), 1, cv2.LINE_AA)
-    cv2.line(cv, hipm, aR, (110, 110, 150), 1, cv2.LINE_AA)
-    for a, b in TRUNK:
-        cv2.line(cv, pj(a), pj(b), TR, 2, cv2.LINE_AA)
-    for a, b in LEGS2D["L"]:
-        cv2.line(cv, pj(a), pj(b), LC, 3, cv2.LINE_AA)
-    for a, b in LEGS2D["R"]:
-        cv2.line(cv, pj(a), pj(b), RC, 3, cv2.LINE_AA)
-    for idx, c in [(31, LC), (32, RC), (27, LC), (28, RC), (25, LC), (26, RC)]:
-        cv2.circle(cv, pj(idx), 4, c, -1, cv2.LINE_AA)
-    cv2.putText(cv, f"abertura {split_deg:.0f} deg", (hipm[0] - 40, hipm[1] - 8), F, 0.42, COL["accent"], 1, cv2.LINE_AA)
+    if has_legs:
+        # retas de altura (solo -> ponta do pe) no 3D, por perna
+        for idx, hc, col in [(31, hFootL, LC), (32, hFootR, RC)]:
+            fx, fy, fz = W[idx]
+            top = proj(fx, fy, fz); base = proj(fx, ground_y_world, fz)
+            cv2.line(cv, base, top, col, 1, cv2.LINE_AA)
+            cv2.putText(cv, f"{hc:.0f}cm", (top[0] + 4, top[1] - 2), F, 0.34, col, 1, cv2.LINE_AA)
+        # base do 'triangulo' da passada + abertura
+        aL, aR = pj(27), pj(28)
+        cv2.line(cv, aL, aR, (110, 110, 150), 1, cv2.LINE_AA)
+        cv2.line(cv, hipm, aL, (110, 110, 150), 1, cv2.LINE_AA)
+        cv2.line(cv, hipm, aR, (110, 110, 150), 1, cv2.LINE_AA)
+        cv2.putText(cv, f"abertura {split_deg:.0f} deg", (hipm[0] - 40, hipm[1] - 8), F, 0.42, COL["accent"], 1, cv2.LINE_AA)
+    for (a, b), col in bones:
+        cv2.line(cv, pj(a), pj(b), col, 3, cv2.LINE_AA)
+    for idx in points:
+        cv2.circle(cv, pj(idx), 4, (255, 255, 255), -1, cv2.LINE_AA)
     cv2.putText(cv, f"giro {theta_deg:03.0f}", (x + w - 90, y + h - 10), F, 0.36, COL["dim"], 1, cv2.LINE_AA)
 
 
@@ -218,8 +233,11 @@ def main() -> int:
     ap.add_argument("--out", default="data/legs3d.mp4"); ap.add_argument("--fps", type=float, default=25.0)
     ap.add_argument("--brand", default="De Lucca Esporte")
     ap.add_argument("--stature", type=float, default=None, help="estatura real do atleta (m) p/ calibrar")
+    ap.add_argument("--segments", default="sem_bracos",
+                    help="segmentos a desenhar: grupo (all|sem_bracos|pernas|bracos) ou lista")
     args = ap.parse_args()
 
+    bones, points, has_legs, seg_names = build_bones(args.segments)
     P = json.loads(open(args.pose).read()); D = compute(P, args.fps, stature_m=args.stature)
     N = P["norm"]; Wd = D["Wd"]; L = D["L"]; n = len(D["t"])
     apex = D["apex"]
@@ -249,7 +267,7 @@ def main() -> int:
         cv = np.full((CH, CW, 3), COL["bg"], np.uint8)
         cv[vy:vy + vh, vx:vx + vw] = cv2.resize(fr, (vw, vh))
         lm = N[i] if N[i] is not None else N[0]
-        draw_2d(cv, lm, vx, vy, vw, vh)
+        draw_2d(cv, lm, vx, vy, vw, vh, bones, points)
         draw_rulers(cv, lm, vx, vy, vw, vh, D['ground_px'] / D['Hpx'],
                     D['hFootL'][i], D['hFootR'][i], D['hHip'][i])
         cv2.rectangle(cv, (vx, vy), (vx + vw, vy + vh), COL["line"], 1)
@@ -259,7 +277,7 @@ def main() -> int:
 
         theta = (i * 360.0 / (rot_period_s * args.fps)) % 360   # rotacao continua 360
         draw_stick3d(cv, s3d, Wd[i], theta, ground_world, D['split'][i],
-                     D['hFootL'][i], D['hFootR'][i], elev_deg=20.0)
+                     D['hFootL'][i], D['hFootR'][i], bones, points, has_legs, elev_deg=20.0)
 
         # metricas por perna
         panel(cv, mx0, my0, 430, CH - my0 - 18)

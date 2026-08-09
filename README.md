@@ -134,6 +134,32 @@ pico e a MCV batem com os valores do dashboard.
   recalculados dos landmarks (`app/kinematics.py`)
 - `GET /submovements/{id}/kinematics/cog?aspect=auto` — centro de gravidade (De Leva 1996)
 
+**Configurável — escolha segmentos e o que medir**
+- `GET /segments` — vocabulário de segmentos/pontos anatômicos e grupos
+  (`all`, `sem_bracos`, `pernas`, `bracos`, ...). Base para incluir/excluir
+  braços, pontos, etc.
+- `POST /submovements/{id}/measure` — roda **apenas as medidas escolhidas**
+  sobre os **segmentos escolhidos**, num único endpoint:
+  ```json
+  {"include_segments":"sem_bracos",
+   "measures":["impulso_trabalho","velocidade_angular","fases","elastico"],
+   "joint":"hip","phase_series":"cog_y"}
+  ```
+  Medidas disponíveis: `impulso_trabalho`, `velocidade_angular`, `velocidade`,
+  `balistico`, `jerk`, `potencia_articular`, `ssc`, `fases`, `elastico`,
+  `sequenciamento`.
+- Nos vídeos: `render_legs3d_video.py --segments all|sem_bracos|pernas|bracos`
+  (ou lista) controla **quais segmentos são desenhados** (com/sem braços).
+
+**Fases e componente elástico (transições concêntrica↔excêntrica)**
+- `GET /submovements/{id}/phases?series=cog_y` — segmenta **todo** o movimento
+  em fases concêntrica/excêntrica/isométrica (robusto: suavização + histerese +
+  fusão de trechos curtos) e lista as **transições** (marca as SSC
+  excêntrica→concêntrica).
+- `GET /submovements/{id}/elastic?series=cog_y&power=power` — **componente
+  elástico** por transição: tempo de amortização, trabalho excêntrico
+  (absorvido) × concêntrico (gerado) e **EUR** (razão de utilização elástica).
+
 **Qualidade de sinal, calibração métrica e alometria**
 - `POST /calibrate/reference` — escala (m/px) por **objeto de tamanho conhecido**
   no quadro (régua/barra): dois pontos em px + comprimento real.

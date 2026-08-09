@@ -33,7 +33,9 @@ from app import biomech as Bio
 from app import calibration as Cal
 from app import db
 from app import kinematics as Kin
+from app import phases as Ph
 from app import reference_values as Ref
+from app import segments as Seg
 from app import signals as Sig
 
 app = FastAPI(
@@ -967,6 +969,109 @@ def reference_check(body: RefCheckBody):
     """Compara medicoes com as faixas de referencia (criterio tecnico/indicativo)
     e devolve status por metrica com a fonte."""
     return {"results": [Ref.evaluate(k, v) for k, v in body.measurements.items()]}
+
+
+# ==========================================================================
+# Configuravel: segmentos, fases (concentrica/excentrica), elastico, medir
+# ==========================================================================
+@app.get("/segments", tags=["configuravel"])
+def segments_catalog():
+    """Vocabulario de segmentos/pontos anatomicos e grupos (ex.: 'sem_bracos')
+    para escolher o que incluir na analise/desenho."""
+    return Seg.catalog()
+
+
+@app.get("/submovements/{sub_id}/phases", tags=["configuravel"])
+def submovement_phases(sub_id: int, series: str = "cog_y",
+                       vmin_frac: float = 0.08, min_dur: float = 0.10):
+    """Transicoes concentrica<->excentrica ao longo do movimento (robusto)."""
+    con = db.connect()
+    try:
+        sm = _series_map(con, sub_id, [series, "t"])
+    finally:
+        con.close()
+    _require(sm, series, "t")
+    return Ph.detect_phases(sm[series], sm["t"], vmin_frac=vmin_frac, min_dur=min_dur)
+
+
+@app.get("/submovements/{sub_id}/elastic", tags=["configuravel"])
+def submovement_elastic(sub_id: int, series: str = "cog_y", power: str = "power"):
+    """Componente elastico (SSC): amortizacao, trabalho excentrico x concentrico
+    e razao de utilizacao elastica (EUR) por transicao."""
+    con = db.connect()
+    try:
+        names = [series, "t"] + ([power] if power else [])
+        sm = _series_map(con, sub_id, names)
+    finally:
+        con.close()
+    _require(sm, series, "t")
+    ph = Ph.detect_phases(sm[series], sm["t"])
+    return {"phases": ph, "elastic": Ph.elastic_metrics(sm[series], sm["t"], ph, sm.get(power))}
+
+
+class MeasureBody(BaseModel):
+    include_segments: Optional[object] = None       # str (grupo) ou lista de segmentos
+    measures: list[str] = ["impulso_trabalho", "velocidade_angular", "fases", "elastico"]
+    joint: str = "hip"
+    phase_series: str = "cog_y"
+
+
+MEASURE_CATALOG = ["impulso_trabalho", "velocidade_angular", "velocidade", "balistico",
+                   "jerk", "potencia_articular", "ssc", "fases", "elastico", "sequenciamento"]
+
+
+@app.post("/submovements/{sub_id}/measure", tags=["configuravel"])
+def submovement_measure(sub_id: int, body: MeasureBody):
+    """Roda SOMENTE as medidas escolhidas, sobre os segmentos escolhidos.
+    'com ou sem bracos' + 'o que medir' como opcao, num unico endpoint."""
+    sel = Seg.resolve(body.include_segments)
+    con = db.connect()
+    try:
+        mass, g = _session_constants(con, sub_id)
+        sm = _series_map(con, sub_id)
+    finally:
+        con.close()
+    if not sm:
+        raise HTTPException(404, "submovimento sem series")
+    t = sm.get("t")
+    out = {"submovement_id": sub_id, "segmentos": sel["segments"],
+           "articulacoes_disponiveis": sel["joints"], "resultados": {}}
+    want = set(body.measures)
+
+    def has(*names):
+        return all(nm in sm for nm in names)
+
+    if "impulso_trabalho" in want and has("force", "speed", "power"):
+        out["resultados"]["impulso_trabalho"] = Bio.impulse_work(sm["force"], sm["speed"], sm["power"], t, mass, g)
+    if "velocidade_angular" in want:
+        out["resultados"]["velocidade_angular"] = {
+            j: round(float(np.nanmax(np.abs(sm[f"{j}_angvel"]))), 1)
+            for j in ("hip", "knee", "elbow", "ankle") if f"{j}_angvel" in sm}
+    if "velocidade" in want and has("speed", "tangential_accel"):
+        out["resultados"]["velocidade"] = Bio.velocity_metrics(sm["speed"], sm["tangential_accel"], t, g)
+    if "balistico" in want and has("tangential_accel", "force"):
+        out["resultados"]["balistico"] = Bio.ballistic(sm["tangential_accel"], sm["force"], t)
+    if "jerk" in want and has("accel"):
+        out["resultados"]["jerk"] = Bio.jerk(sm["accel"], t)
+    if "potencia_articular" in want:
+        j = body.joint
+        tau, angvel = f"tau_{j}", f"{j}_angvel"
+        if has(tau, angvel):
+            out["resultados"]["potencia_articular"] = {"joint": j, **Bio.joint_power(sm[tau], sm[angvel], t)}
+    if "ssc" in want and has(f"{body.joint}_angle", f"{body.joint}_angvel", "speed"):
+        j = body.joint
+        out["resultados"]["ssc"] = Bio.ssc(sm[f"{j}_angle"], sm[f"{j}_angvel"], sm["speed"], t)
+    if "fases" in want and body.phase_series in sm:
+        out["resultados"]["fases"] = Ph.detect_phases(sm[body.phase_series], t)
+    if "elastico" in want and body.phase_series in sm:
+        ph = Ph.detect_phases(sm[body.phase_series], t)
+        out["resultados"]["elastico"] = Ph.elastic_metrics(sm[body.phase_series], t, ph, sm.get("power"))
+    if "sequenciamento" in want:
+        joints = {j: sm[f"{j}_angvel"] for j in ("hip", "knee", "elbow", "ankle") if f"{j}_angvel" in sm}
+        if joints:
+            out["resultados"]["sequenciamento"] = Bio.sequencing(joints, t)
+    out["medidas_disponiveis"] = MEASURE_CATALOG
+    return out
 
 
 @app.post("/compute/cv", tags=["analises"])
