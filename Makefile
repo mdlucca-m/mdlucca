@@ -41,6 +41,14 @@ video:
 	python3 scripts/build_session_from_pose.py --pose data/pose.json --db "$(DB)" --mass $(MASS) --append
 MASS ?= 80
 
+# Video anotado (esqueleto + biomecanica ao vivo) pronto para postar.
+# SESSION=<id da sessao derivada de video>  BRAND="..."
+SESSION ?= 2
+BRAND ?= De Lucca Esporte
+overlay:
+	python3 scripts/render_overlay.py --frames $(FRAMES) --pose data/pose.json \
+	  --db "$(DB)" --session $(SESSION) --out data/overlay.mp4 --brand "$(BRAND)"
+
 api:
 	uvicorn app.api:app --reload
 

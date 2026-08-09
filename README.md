@@ -190,6 +190,17 @@ sequenciamento, consistência entre reps) são sólidas; as métricas de força/
 potência são **estimativas do método do CoM** (rótulo explícito) e viram
 medidas exatas quando houver massa/carga reais e calibração — o alvo da Etapa 2.
 
+### Vídeo anotado (pronto para postar)
+
+`scripts/render_overlay.py` gera um vídeo com o **esqueleto de pose** e a
+**biomecânica ao vivo** sobreposta: fase/repetição, velocidade das mãos e
+ângulos articulares referenciados ao **padrão de extensão de 180°** (mostrando
+o déficit de extensão), com identidade de marca.
+
+```bash
+make overlay SESSION=2 BRAND="De Lucca Esporte"   # -> data/overlay.mp4
+```
+
 ## Roadmap — Etapa 2 (fonte de pose de alta qualidade)
 
 O ponto fraco da Etapa 1 **não é a análise, é o dado de entrada**. O próprio

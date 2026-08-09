@@ -4,6 +4,7 @@ data/*.sqlite.bak_*
 data/raw/
 data/pose.json
 data/frames/
+data/overlay*.mp4
 *.task
 
 # Python
