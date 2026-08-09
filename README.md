@@ -69,11 +69,23 @@ perda). Mais: `variable`/`variable_series`, `sequencing_event`,
 
 ## Como rodar
 
+**Mais fácil (1 clique):** no **Windows** dê duplo-clique em **`iniciar.bat`**;
+no **Mac/Linux** rode **`bash iniciar.sh`**. Ele instala o necessário, prepara o
+banco e abre `http://127.0.0.1:8000/app/gerir.html` no navegador. Para parar,
+feche a janela.
+
+**Manual:**
 ```bash
 make install            # numpy, scipy, fastapi, uvicorn, pytest
 make db                 # cria data/db.sqlite a partir do JSON versionado
 make api                # sobe em http://localhost:8000
-make test               # valida as análises contra os dados (12 testes)
+make test               # valida as análises contra os dados
+```
+No Windows sem `make`:
+```powershell
+pip install -r requirements.txt
+python scripts\ingest.py --db data\db.sqlite
+python -m uvicorn app.api:app --port 8000
 ```
 
 Depois de `make api`, abra:
