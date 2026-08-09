@@ -46,8 +46,6 @@ def match_value(text: str, start: int) -> tuple[str, int]:
     A partir de `start` (posição de '{' ou '['), devolve (raw_value, end_index)
     fazendo balanceamento de chaves/colchetes ciente de strings JS.
     """
-    open_ch = text[start]
-    close_ch = {"{": "}", "[": "]"}[open_ch]
     depth = 0
     i = start
     n = len(text)

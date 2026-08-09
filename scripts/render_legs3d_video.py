@@ -195,8 +195,7 @@ def draw_stick3d(cv, rect, W, theta_deg, ground_y_world, split_deg, hFootL, hFoo
         cv2.circle(cv, base, 2, col, -1)
         cv2.putText(cv, f"{hc:.0f}cm", (top[0] + 4, top[1] - 2), F, 0.34, col, 1, cv2.LINE_AA)
     # base do 'triangulo' da passada (tornozelo E - tornozelo D) + arco do angulo
-    aL, aR, hp = pj(27), pj(28), pj(23)
-    hm = ((aL[0] + aR[0]) // 2, (aL[1] + aR[1]) // 2)  # so p/ referencia visual
+    aL, aR = pj(27), pj(28)
     hipm = (int((pj(23)[0] + pj(24)[0]) / 2), int((pj(23)[1] + pj(24)[1]) / 2))
     cv2.line(cv, aL, aR, (110, 110, 150), 1, cv2.LINE_AA)
     cv2.line(cv, hipm, aL, (110, 110, 150), 1, cv2.LINE_AA)

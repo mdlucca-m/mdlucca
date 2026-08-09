@@ -69,7 +69,6 @@ def main() -> int:
 
     P = json.loads(Path(args.pose).read_text())
     fps = P["fps"]
-    Lm = P["landmark_index"]
     world = P["world"]
     norm = P["norm"]
     vis = P["visibility"]

@@ -11,8 +11,6 @@ angulo [graus], velocidade angular [graus/s], torque [N.m], tempo [s].
 """
 from __future__ import annotations
 
-from typing import Sequence
-
 import numpy as np
 
 from app import signals as S
