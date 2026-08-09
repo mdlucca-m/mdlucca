@@ -189,7 +189,7 @@ async function assess(session_id){
   try{
     const a = await jpost(`/sessions/${session_id}/assessment`,{});
     const c=a.classification, q=a.quality;
-    $("gen_url").value = new URL(`/assessments/${a.analysis_run_id}/report.md`, location.href).href;
+    $("gen_url").value = new URL(`/assessments/${a.analysis_run_id}/report.html`, location.href).href;
     $("gen_open").href = $("gen_url").value; $("linkcard").style.display="block";
     $("copy_msg").innerHTML = `<span class="ok">✓ Avaliação: ${c.pattern} `+
       `(${Math.round(c.confidence*100)}%) · qualidade ${q.level} ${q.score}% · `+

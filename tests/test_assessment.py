@@ -104,6 +104,13 @@ def test_assessment_endpoint_and_persist():
     md = c.get(f"/assessments/{rid}/report.md").text
     assert "Relatório de Avaliação Biomecânica" in md and "Classificação" in md
 
+    # relatorio HTML e link compartilhavel da avaliacao
+    html = c.get(f"/assessments/{rid}/report.html")
+    assert html.status_code == 200 and "Avaliação Biomecânica" in html.text
+    sh = c.post("/shares", json={"kind": "assessment", "ref_id": rid}).json()
+    rep = c.get("/r/" + sh["token"])
+    assert rep.status_code == 200 and "Checagens de literatura" in rep.text
+
 
 if __name__ == "__main__":
     print("rode com pytest")

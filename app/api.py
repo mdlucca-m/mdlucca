@@ -894,9 +894,8 @@ def session_assessment(session_id: int, deep: bool = Query(False)):
     return _build_assessment(session_id, deep=deep)
 
 
-@app.post("/sessions/{session_id}/assessment", tags=["avaliacao"])
-def create_assessment(session_id: int):
-    """Gera e PERSISTE a avaliacao como um AnalysisRun (com proveniencia)."""
+def _persist_assessment(session_id: int) -> dict:
+    """Constroi e grava a avaliacao como AnalysisRun; devolve com o id."""
     a = _build_assessment(session_id, deep=False)
     con = db.connect_rw()
     try:
@@ -916,6 +915,12 @@ def create_assessment(session_id: int):
         return a
     finally:
         con.close()
+
+
+@app.post("/sessions/{session_id}/assessment", tags=["avaliacao"])
+def create_assessment(session_id: int):
+    """Gera e PERSISTE a avaliacao como um AnalysisRun (com proveniencia)."""
+    return _persist_assessment(session_id)
 
 
 @app.get("/assessments", tags=["avaliacao"])
@@ -962,6 +967,120 @@ def assessment_report_md(rid: int):
         return PlainTextResponse(_report_markdown(run, ses, ath))
     finally:
         con.close()
+
+
+@app.get("/assessments/{rid}/report.html", response_class=HTMLResponse, tags=["avaliacao"])
+def assessment_report_html(rid: int):
+    con = db.connect_rw()
+    try:
+        run = _run_row(con, rid)
+        ses = db.one(con, "SELECT * FROM session WHERE id=?", (run["session_id"],))
+        ath = db.one(con, "SELECT * FROM athlete WHERE id=?",
+                     (ses["athlete_id"],)) if ses else None
+        return HTMLResponse(_assessment_html(run, ses, ath))
+    finally:
+        con.close()
+
+
+def _status_color(status: str) -> str:
+    return {"otimo": "#2a9d8f", "adequado": "#e9c46a", "abaixo": "#e63946",
+            "acima": "#e63946", "excelente": "#2a9d8f", "bom": "#2a9d8f",
+            "aceitavel": "#e9c46a", "ruim": "#e63946"}.get(status, "#8b98a6")
+
+
+def _assessment_html(run: dict, ses: dict, ath: Optional[dict]) -> str:
+    b = Brand.brand()
+    acc = escape(b.get("primary") or "#2a9d8f")
+    name = escape(b["name"])
+    cl = run.get("classification") or {}
+    q_level = run.get("quality_level") or "—"
+    q_score = run.get("quality_score")
+    checks = run.get("literature_checks") or []
+    reps = run.get("metrics") or []
+    prov = run.get("provenance") or {}
+    warns = run.get("warnings") or []
+    ath_name = escape((ath or {}).get("name") or "Atleta")
+    ex = escape((ses or {}).get("exercise") or "")
+    load = (ses or {}).get("load_kg")
+
+    kpis = "".join(
+        f"<div class='kpi'><b>{v}</b><span>{escape(l)}</span></div>" for v, l in [
+            (f"{cl.get('confidence',0):.0%}", "confiança"),
+            (f"{q_score}%", f"qualidade · {escape(q_level)}"),
+            (cl.get("n_ciclos", "—"), "repetições"),
+            (f"{cl.get('rom_quadril_graus','—')}°", "ampl. quadril")])
+
+    def check_rows():
+        r = ""
+        for c in checks:
+            col = _status_color(c.get("status", ""))
+            r += (f"<tr><td>{escape(str(c.get('metric','')))}</td>"
+                  f"<td>{escape(str(c.get('value','')))} {escape(str(c.get('unit','')))}</td>"
+                  f"<td><span class='tag' style='color:{col};border-color:{col}'>"
+                  f"{escape(str(c.get('status','')))}</span></td>"
+                  f"<td class='muted'>{escape(str(c.get('source','')))}</td></tr>")
+        return r or "<tr><td colspan='4' class='muted'>—</td></tr>"
+
+    rep_cols = [k for k in reps[0].keys() if k != "rep"] if reps else []
+    rep_head = "".join(f"<th>{escape(c)}</th>" for c in rep_cols)
+    rep_body = ""
+    for r in reps:
+        rep_body += ("<tr><td class='lab'>" + escape(r.get("rep", "")) + "</td>"
+                     + "".join(f"<td>{escape(str(r.get(c,'—')))}</td>" for c in rep_cols) + "</tr>")
+    warn_html = ("".join(f"<li>{escape(w)}</li>" for w in warns)
+                 if warns else "<li class='muted'>Sem alertas de qualidade.</li>")
+    qcol = _status_color(q_level)
+    return f"""<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Avaliação — {ath_name}</title>
+<style>
+:root{{--bg:#0e1116;--card:#171b22;--ink:#e6edf3;--mut:#8b98a6;--acc:{acc};--line:#232a33}}
+*{{box-sizing:border-box}}
+body{{margin:0;background:var(--bg);color:var(--ink);
+font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}}
+.wrap{{max-width:820px;margin:0 auto;padding:22px 16px 60px}}
+.brand{{font-weight:700;color:var(--acc)}}
+.card{{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0}}
+h1{{font-size:22px;margin:.2em 0}} h2{{font-size:15px;margin:0 0 10px}}
+.meta{{color:var(--mut);font-size:13px}}
+.pattern{{display:inline-block;background:#0e1116;border:1px solid var(--acc);color:var(--acc);
+border-radius:999px;padding:3px 12px;font-weight:600;font-size:14px}}
+.grid{{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}}
+.kpi{{background:#0e1116;border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:110px}}
+.kpi b{{display:block;font-size:20px}} .kpi span{{color:var(--mut);font-size:12px}}
+table{{width:100%;border-collapse:collapse;font-size:13px;display:block;overflow-x:auto}}
+th,td{{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}}
+th{{color:var(--mut);font-size:12px}} td.lab{{font-weight:600}}
+.tag{{border:1px solid;border-radius:999px;padding:1px 8px;font-size:12px}}
+.muted{{color:var(--mut)}} ul{{margin:.3em 0;padding-left:1.1em}}
+.qbadge{{display:inline-block;border:1px solid {qcol};color:{qcol};border-radius:999px;
+padding:2px 10px;font-size:13px}}
+footer{{color:var(--mut);font-size:12px;text-align:center;margin-top:22px}}
+</style></head><body><div class="wrap">
+<div class="brand">{name} — Avaliação Biomecânica</div>
+<div class="card">
+  <h1>{ath_name}</h1>
+  <div class="meta">{ex}{(' • ' + str(load) + ' kg') if load else ''} •
+    qualidade <span class="qbadge">{escape(q_level)} · {q_score}%</span></div>
+  <div style="margin-top:10px"><span class="pattern">{escape(cl.get('pattern','—'))}</span>
+    <span class="meta"> — {escape(cl.get('description',''))}</span></div>
+  <div class="grid">{kpis}</div>
+</div>
+<div class="card"><h2>Checagens de literatura</h2>
+  <table><thead><tr><th>Métrica</th><th>Valor</th><th>Status</th><th>Referência</th></tr></thead>
+  <tbody>{check_rows()}</tbody></table></div>
+<div class="card"><h2>Métricas por repetição</h2>
+  <table><thead><tr><th>Rep</th>{rep_head}</tr></thead><tbody>{rep_body}</tbody></table></div>
+<div class="card"><h2>Qualidade &amp; procedência</h2>
+  <ul>{warn_html}</ul>
+  <div class="meta">Fonte: {escape(str(prov.get('data_source','—')))}
+    ({escape(str(prov.get('pose_model','—')))}) ·
+    {escape(str(prov.get('frame_count','—')))} quadros @ {escape(str(prov.get('fps','—')))} fps ·
+    calibrado: {'sim' if prov.get('calibrated') else 'não'}</div>
+  <div class="meta" style="margin-top:6px">Algoritmo: {escape(str(prov.get('algorithm_version','')))}</div>
+</div>
+<footer>Relatório de avaliação gerado por {name} • padrões internacionais de biomecânica</footer>
+</div></body></html>"""
 
 
 def _report_markdown(run: dict, ses: dict, ath: Optional[dict]) -> str:
@@ -1598,7 +1717,7 @@ class SessionIn(BaseModel):
 
 
 class ShareIn(BaseModel):
-    kind: Literal["session", "submovement"] = "session"
+    kind: Literal["session", "submovement", "assessment"] = "session"
     ref_id: int
     audience: Literal["atleta", "treinador", "ambos"] = "ambos"
     title: Optional[str] = None
@@ -1689,7 +1808,8 @@ def create_session(s: SessionIn):
 def create_share(s: ShareIn, request: Request):
     con = db.connect_rw()
     try:
-        tbl = "session" if s.kind == "session" else "submovement"
+        tbl = {"session": "session", "submovement": "submovement",
+               "assessment": "analysis_run"}[s.kind]
         if not con.execute(f"SELECT 1 FROM {tbl} WHERE id=?", (s.ref_id,)).fetchone():
             raise HTTPException(404, f"{s.kind} {s.ref_id} nao encontrado")
         token = secrets.token_urlsafe(8)
@@ -1809,6 +1929,11 @@ def _analyze_worker(upload_id: int):
             con.execute("UPDATE upload SET status='error', error='nenhuma sessao criada' WHERE id=?",
                         (upload_id,))
         con.commit(); con.close()
+        if new_ses > before_ses:
+            try:                       # avaliacao automatica ao concluir a analise
+                _persist_assessment(new_ses)
+            except Exception:          # noqa: BLE001 - nao quebra o upload
+                pass
     except subprocess.CalledProcessError as exc:
         msg = (exc.stderr or exc.stdout or str(exc))[-500:]
         con = db.connect_rw(); con.execute(
@@ -2107,6 +2232,12 @@ def view_report(token: str):
             raise HTTPException(404, "link invalido ou expirado")
         con.execute("UPDATE share SET views=views+1 WHERE token=?", (token,))
         con.commit()
+        if sh["kind"] == "assessment":
+            run = _run_row(con, sh["ref_id"])
+            ses = db.one(con, "SELECT * FROM session WHERE id=?", (run["session_id"],))
+            ath = db.one(con, "SELECT * FROM athlete WHERE id=?",
+                         (ses["athlete_id"],)) if ses else None
+            return HTMLResponse(_assessment_html(run, ses, ath))
         html = _report_html(con, sh["kind"], sh["ref_id"], sh["title"], sh["audience"])
         return HTMLResponse(html)
     finally:
