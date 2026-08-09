@@ -131,6 +131,16 @@ Documentação interativa (OpenAPI) em **`/docs`**.
 - `GET /metrics?analysis=&name=` · `GET /fits?analysis=` · `GET /variables`
 - `GET /literature` · `GET /consistency` · `GET /datasets/{kind}`
 
+**Avaliação completa (unificada — "gera tudo" numa chamada)**
+- `GET /sessions/{id}/assessment` (`?deep=true` inclui o painel completo por rep)
+  — devolve num só objeto: **classificação do movimento** (padrão + confiança),
+  **score de qualidade** (nível + avisos), **checagens de literatura** (ISB,
+  Atkinson & Nevill), **resumo por repetição** e **procedência** (fonte de pose,
+  fps, calibração, versão do algoritmo).
+- `POST /sessions/{id}/assessment` — **persiste** um `AnalysisRun` e devolve o id.
+- `GET /assessments` · `GET /assessments/{id}` · `GET /assessments/{id}/report.md`
+  — histórico e **relatório Markdown** pronto. Botão "Avaliar" em `/app/gerir.html`.
+
 **Upload pelo atleta + fila de análise (o treinador analisa)**
 - `POST /athletes/{id}/uploads` (multipart) — o **atleta envia o próprio vídeo**;
   entra na fila `queued`. Tela do atleta em **`/app/enviar.html`**.

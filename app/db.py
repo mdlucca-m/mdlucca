@@ -68,6 +68,19 @@ def _ensure_product_tables(con: sqlite3.Connection) -> None:
             created_at  TEXT NOT NULL,
             analyzed_at TEXT
         );
+        CREATE TABLE IF NOT EXISTS analysis_run (
+            id                INTEGER PRIMARY KEY,
+            session_id        INTEGER NOT NULL,
+            algorithm_version TEXT,
+            classification    TEXT,     /* JSON */
+            quality_score     REAL,
+            quality_level     TEXT,
+            warnings          TEXT,     /* JSON */
+            metrics           TEXT,     /* JSON (resumo por rep) */
+            literature_checks TEXT,     /* JSON */
+            provenance        TEXT,     /* JSON */
+            created_at        TEXT NOT NULL
+        );
         """
     )
     con.commit()

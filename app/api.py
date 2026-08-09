@@ -30,7 +30,7 @@ from typing import Literal, Optional
 import numpy as np
 from fastapi import FastAPI, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -47,6 +47,11 @@ from app import segments as Seg
 from app import signals as Sig
 from app import licensing as Lic
 from app import branding as Brand
+from app import classify as Clf
+from app import quality as Qual
+
+ALGO_VERSION = ("mdlucca-1.0 · De Leva 1996; Winter 2009; ISB Wu 2002/2005; "
+                "Sánchez-Medina 2011; Samozino 2012; Jaric 2002")
 
 app = FastAPI(
     title="mdlucca — API Biomecanica (Landmine Clean & Press)",
@@ -775,6 +780,239 @@ def session_panel(session_id: int):
         raise HTTPException(404, "sessao sem submovimentos")
     return {"session_id": session_id,
             "submovements": [{**s, "analysis": deep_panel(s["id"])} for s in subs]}
+
+
+# ==========================================================================
+# AVALIACAO COMPLETA (unifica: classificacao + qualidade + analises +
+# checagens de literatura + proveniencia) — "gera tudo" numa chamada
+# ==========================================================================
+def _full_series(con, sub_id, name):
+    r = con.execute("SELECT samples FROM series WHERE submovement_id=? AND name=?",
+                    (sub_id, name)).fetchone()
+    return json.loads(r["samples"]) if r else None
+
+
+def _build_assessment(session_id: int, deep: bool = False) -> dict:
+    con = db.connect()
+    try:
+        ses = db.one(con, "SELECT * FROM session WHERE id=?", (session_id,))
+        if not ses:
+            raise HTTPException(404, "sessao nao encontrada")
+        ses = db.parse_json_fields(ses, ["meta"])
+        ath = db.one(con, "SELECT * FROM athlete WHERE id=?", (ses["athlete_id"],))
+        subs = db.rows(con, "SELECT id,ordinal,label,n_frames,dt FROM submovement "
+                       "WHERE session_id=? ORDER BY ordinal", (session_id,))
+        if not subs:
+            raise HTTPException(404, "sessao sem submovimentos")
+        full = max(subs, key=lambda s: s["n_frames"] or 0)
+        hip = _full_series(con, full["id"], "hip_angle")
+        t = _full_series(con, full["id"], "t")
+        reps = [s for s in subs if s["id"] != full["id"]] or subs
+
+        meta = ses.get("meta") or {}
+        fps = meta.get("fps")
+        detected = meta.get("pose_detected_frames")
+        n_frames = full["n_frames"]
+        det_ratio = (detected / n_frames) if (detected and n_frames) else 1.0
+        is_cal = bool((meta.get("calibration")) or meta.get("is_calibrated"))
+
+        classification = (Clf.classify_movement(
+            hip, t, load_kg=ses.get("load_kg"),
+            body_mass_kg=(ath or {}).get("body_mass_kg"),
+            exercise_hint=ses.get("exercise")) if (hip and t) else
+            {"pattern": "indefinido", "confidence": 0.0,
+             "description": "Sem série de ângulo para classificar."})
+        quality = Qual.quality_report(n_frames=n_frames, fps=fps,
+                                      is_calibrated=is_cal, detected_ratio=det_ratio)
+
+        # checagens de literatura (extensao de quadril/joelho/cotovelo + CV entre reps)
+        checks = []
+        for sname, key in [("hip_angle", "hip_extension_deg"),
+                           ("knee_angle", "knee_extension_deg"),
+                           ("elbow_angle", "elbow_extension_deg")]:
+            s = _full_series(con, full["id"], sname)
+            if s:
+                checks.append(Ref.evaluate(key, round(float(max(s)), 1)))
+        # CV% do pico de potencia entre as reps
+        pk = []
+        for r in reps:
+            m = con.execute("SELECT value_num FROM metric WHERE submovement_id=? AND "
+                            "analysis='peaks' AND name IN ('power_peak','P_peak')",
+                            (r["id"],)).fetchone()
+            if m and m["value_num"]:
+                pk.append(float(m["value_num"]))
+        if len(pk) >= 2:
+            cv = A.coefficient_of_variation(pk).get("cv_pct")
+            if cv is not None:
+                checks.append(Ref.evaluate("cv_pct", round(cv, 1)))
+
+        # resumo de metricas por rep (headline)
+        HL = [("power_peak", "P_peak"), ("F_peak",), ("v_peak",),
+              ("RFD_peak",), ("hip_angvel_peak",)]
+        rep_summary = []
+        for r in reps:
+            vals = {}
+            for names in HL:
+                q = ",".join("?" * len(names))
+                row = con.execute(f"SELECT name,value_num FROM metric WHERE submovement_id=? "
+                                  f"AND analysis='peaks' AND name IN ({q})",
+                                  (r["id"], *names)).fetchone()
+                if row and row["value_num"] is not None:
+                    vals[names[0]] = round(float(row["value_num"]), 1)
+            rep_summary.append({"rep": r["label"], **vals})
+
+        provenance = {
+            "data_source": ses.get("pose_source"),
+            "pose_model": ses.get("pose_model"),
+            "algorithm_version": ALGO_VERSION,
+            "frame_count": n_frames, "fps": fps,
+            "detected_ratio": round(det_ratio, 3),
+            "calibrated": is_cal, "calibration": meta.get("calibration"),
+            "camera_view": meta.get("camera_view", "sagital"),
+        }
+        out = {
+            "session_id": session_id, "exercise": ses.get("exercise"),
+            "athlete": (ath or {}).get("name"), "load_kg": ses.get("load_kg"),
+            "algorithm_version": ALGO_VERSION,
+            "classification": classification, "quality": quality,
+            "literature_checks": checks, "reps": rep_summary,
+            "n_reps": len(reps), "provenance": provenance,
+        }
+        if deep:
+            out["deep"] = [{"rep": s["label"], "analysis": deep_panel(s["id"])}
+                           for s in reps]
+        return out
+    finally:
+        con.close()
+
+
+@app.get("/sessions/{session_id}/assessment", tags=["avaliacao"])
+def session_assessment(session_id: int, deep: bool = Query(False)):
+    """Avaliacao COMPLETA da sessao numa chamada: classificacao do movimento,
+    score de qualidade, checagens de literatura, resumo por rep e proveniencia.
+    `deep=true` inclui o painel biomecanico completo por repeticao."""
+    return _build_assessment(session_id, deep=deep)
+
+
+@app.post("/sessions/{session_id}/assessment", tags=["avaliacao"])
+def create_assessment(session_id: int):
+    """Gera e PERSISTE a avaliacao como um AnalysisRun (com proveniencia)."""
+    a = _build_assessment(session_id, deep=False)
+    con = db.connect_rw()
+    try:
+        cur = con.execute(
+            "INSERT INTO analysis_run (session_id, algorithm_version, classification, "
+            "quality_score, quality_level, warnings, metrics, literature_checks, "
+            "provenance, created_at) VALUES (?,?,?,?,?,?,?,?,?,?)",
+            (session_id, ALGO_VERSION, json.dumps(a["classification"], ensure_ascii=False),
+             a["quality"]["score"], a["quality"]["level"],
+             json.dumps(a["quality"]["warnings"], ensure_ascii=False),
+             json.dumps(a["reps"], ensure_ascii=False),
+             json.dumps(a["literature_checks"], ensure_ascii=False),
+             json.dumps(a["provenance"], ensure_ascii=False),
+             datetime.now(timezone.utc).isoformat()))
+        con.commit()
+        a["analysis_run_id"] = cur.lastrowid
+        return a
+    finally:
+        con.close()
+
+
+@app.get("/assessments", tags=["avaliacao"])
+def list_assessments(session_id: Optional[int] = None):
+    con = db.connect_rw()
+    try:
+        sql = "SELECT id,session_id,algorithm_version,quality_score,quality_level,created_at FROM analysis_run"
+        params: tuple = ()
+        if session_id is not None:
+            sql += " WHERE session_id=?"; params = (session_id,)
+        return db.rows(con, sql + " ORDER BY id DESC", params)
+    finally:
+        con.close()
+
+
+def _run_row(con, rid):
+    r = con.execute("SELECT * FROM analysis_run WHERE id=?", (rid,)).fetchone()
+    if not r:
+        raise HTTPException(404, "avaliacao nao encontrada")
+    d = dict(r)
+    for f in ("classification", "warnings", "metrics", "literature_checks", "provenance"):
+        if d.get(f):
+            d[f] = json.loads(d[f])
+    return d
+
+
+@app.get("/assessments/{rid}", tags=["avaliacao"])
+def get_assessment(rid: int):
+    con = db.connect_rw()
+    try:
+        return _run_row(con, rid)
+    finally:
+        con.close()
+
+
+@app.get("/assessments/{rid}/report.md", response_class=PlainTextResponse, tags=["avaliacao"])
+def assessment_report_md(rid: int):
+    con = db.connect_rw()
+    try:
+        run = _run_row(con, rid)
+        ses = db.one(con, "SELECT * FROM session WHERE id=?", (run["session_id"],))
+        ath = db.one(con, "SELECT * FROM athlete WHERE id=?",
+                     (ses["athlete_id"],)) if ses else None
+        return PlainTextResponse(_report_markdown(run, ses, ath))
+    finally:
+        con.close()
+
+
+def _report_markdown(run: dict, ses: dict, ath: Optional[dict]) -> str:
+    b = Brand.brand()
+    cl = run.get("classification") or {}
+    ch = run.get("literature_checks") or []
+    prov = run.get("provenance") or {}
+    lines = [
+        f"# {b['name']} — Relatório de Avaliação Biomecânica", "",
+        f"**Atleta:** {(ath or {}).get('name','—')}  ",
+        f"**Exercício:** {(ses or {}).get('exercise','—')}  ",
+        f"**Carga:** {(ses or {}).get('load_kg') or '—'} kg  ",
+        f"**Gerado:** {run.get('created_at','')[:19].replace('T',' ')}", "",
+        "## Classificação do movimento",
+        f"- Padrão: **{cl.get('pattern','—')}** (confiança {cl.get('confidence',0):.0%})",
+        f"- {cl.get('description','')}",
+        f"- Repetições: {cl.get('n_ciclos','—')} · Amplitude de quadril: "
+        f"{cl.get('rom_quadril_graus','—')}° · Duração/ciclo: {cl.get('duracao_ciclo_s','—')} s", "",
+        f"## Qualidade da análise: **{run.get('quality_level','—')}** "
+        f"({run.get('quality_score','—')}%)",
+    ]
+    for w in (run.get("warnings") or []):
+        lines.append(f"- ⚠ {w}")
+    if not run.get("warnings"):
+        lines.append("- Sem alertas de qualidade.")
+    lines += ["", "## Checagens de literatura"]
+    if ch:
+        lines.append("| Métrica | Valor | Status | Referência |")
+        lines.append("|---|---|---|---|")
+        for c in ch:
+            lines.append(f"| {c.get('metric','')} | {c.get('value','')} "
+                         f"{c.get('unit','')} | {c.get('status','')} | {c.get('source','')} |")
+    else:
+        lines.append("- Sem checagens disponíveis.")
+    lines += ["", "## Métricas por repetição"]
+    reps = run.get("metrics") or []
+    if reps:
+        cols = [k for k in reps[0].keys() if k != "rep"]
+        lines.append("| Rep | " + " | ".join(cols) + " |")
+        lines.append("|" + "---|" * (len(cols) + 1))
+        for r in reps:
+            lines.append("| " + r.get("rep", "") + " | "
+                         + " | ".join(str(r.get(c, "—")) for c in cols) + " |")
+    lines += ["", "## Procedência",
+              f"- Fonte de pose: {prov.get('data_source','—')} ({prov.get('pose_model','—')})",
+              f"- Quadros: {prov.get('frame_count','—')} @ {prov.get('fps','—')} fps "
+              f"(detecção {prov.get('detected_ratio','—')})",
+              f"- Calibrado: {'sim' if prov.get('calibrated') else 'não'}",
+              f"- Algoritmo: {prov.get('algorithm_version','')}", "",
+              f"_Relatório gerado por {b['name']} · padrões internacionais de biomecânica._"]
+    return "\n".join(lines)
 
 
 # ==========================================================================

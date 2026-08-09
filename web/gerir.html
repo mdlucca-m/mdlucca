@@ -156,7 +156,8 @@ async function loadSessions(){
       `<tr><td>${x.id}</td><td>${esc(nmeBy[x.athlete_id]||("#"+x.athlete_id))}</td>
        <td>${esc(x.exercise)}</td><td>${x.n_submovements??"—"}</td>
        <td><span class="pill">${esc(x.pose_source||"—")}</span></td>
-       <td><button class="sec" onclick="genLink(${x.id})">Gerar link</button></td></tr>`);
+       <td><button class="sec" onclick="assess(${x.id})">Avaliar</button>
+           <button class="sec" onclick="genLink(${x.id})">Gerar link</button></td></tr>`);
   });
 }
 async function createAthlete(){
@@ -183,6 +184,18 @@ async function createSession(){
     $("s_ex").value=""; $("s_load").value="";
     await loadSessions();
   }catch(e){ $("s_msg").innerHTML=`<span class="err">${esc(String(e.message))}</span>`; }
+}
+async function assess(session_id){
+  try{
+    const a = await jpost(`/sessions/${session_id}/assessment`,{});
+    const c=a.classification, q=a.quality;
+    $("gen_url").value = new URL(`/assessments/${a.analysis_run_id}/report.md`, location.href).href;
+    $("gen_open").href = $("gen_url").value; $("linkcard").style.display="block";
+    $("copy_msg").innerHTML = `<span class="ok">✓ Avaliação: ${c.pattern} `+
+      `(${Math.round(c.confidence*100)}%) · qualidade ${q.level} ${q.score}% · `+
+      `relatório .md ↓</span>`;
+    $("linkcard").scrollIntoView({behavior:"smooth"});
+  }catch(e){ alert("Erro na avaliação: "+e.message); }
 }
 async function genLink(session_id){
   try{
