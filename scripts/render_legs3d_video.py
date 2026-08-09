@@ -74,7 +74,8 @@ def compute(P, fps):
     apex = win.start + int(np.argmax(hHip[win]))
     return dict(N=N, Wd=Wd, L=L, t=t, kneeL=kneeL, kneeR=kneeR, kvL=kvL, kvR=kvR,
                 kaL=kaL, kaR=kaR, hFootL=hFootL, hFootR=hFootR, hHip=hHip, split=split,
-                apex=apex, hip_stand=float(np.median(hHip[stand])))
+                apex=apex, hip_stand=float(np.median(hHip[stand])),
+                ground_px=float(ground), Hpx=Hpx, Wpx=Wpx, mpp=mpp)
 
 
 def panel(img, x, y, w, h, col=COL["panel"]):
@@ -135,21 +136,57 @@ def draw_2d(cv, lm, vx, vy, vw, vh):
         cv2.circle(cv, sp(lm[idx]), 4, (255, 255, 255), -1, cv2.LINE_AA)
 
 
-def draw_stick3d(cv, rect, W, theta_deg, ground_y_world, split_deg):
+def draw_rulers(cv, lm, vx, vy, vw, vh, ground_ny, hFL, hFR, hHip):
+    """Reta que mede a altura em tempo real: solo -> ponta de cada pe (E/D)."""
+    sp = lambda p: (int(vx + p[0] * vw), int(vy + p[1] * vh))
+    gy = int(vy + ground_ny * vh)
+    cv2.line(cv, (vx, gy), (vx + vw, gy), (110, 110, 140), 1, cv2.LINE_AA)   # solo
+    cv2.putText(cv, "solo", (vx + 6, gy - 6), F, 0.42, (140, 140, 165), 1, cv2.LINE_AA)
+    for idx, val, col, tag in [(31, hFL, LC, "E"), (32, hFR, RC, "D")]:
+        fx, fy = sp(lm[idx]); fx = max(vx + 2, min(fx, vx + vw - 2))
+        cv2.line(cv, (fx, gy), (fx, fy), col, 2, cv2.LINE_AA)               # reta vertical
+        for yy in range(min(fy, gy), gy, 20):                               # tracinhos da regua
+            cv2.line(cv, (fx - 4, yy), (fx + 4, yy), col, 1, cv2.LINE_AA)
+        cv2.circle(cv, (fx, fy), 4, col, -1, cv2.LINE_AA)
+        lx = max(vx + 4, min(fx + 8, vx + vw - 118))                        # rotulo dentro do quadro
+        cv2.putText(cv, f"{tag} {val:.0f} cm", (lx, max(fy - 4, vy + 18)), FD, 0.6, col, 2, cv2.LINE_AA)
+    # altura do quadril (salto) — linha de referencia pontilhada
+    hx, hy = sp(lm[23])
+    for yy in range(min(hy, gy), gy, 12):
+        cv2.line(cv, (hx, yy), (hx, yy + 5), (200, 140, 255), 1, cv2.LINE_AA)
+    cv2.putText(cv, f"quadril {hHip:.0f} cm", (hx + 8, hy - 4), FD, 0.55, (200, 140, 255), 1, cv2.LINE_AA)
+
+
+def draw_stick3d(cv, rect, W, theta_deg, ground_y_world, split_deg, hFootL, hFootR, elev_deg=20.0):
     x, y, w, h = rect; panel(cv, x, y, w, h)
     cv2.putText(cv, "BONECO 3D 360  (E=ciano  D=magenta)", (x + 10, y + 18), F, 0.42, COL["dim"], 1, cv2.LINE_AA)
     th = np.radians(theta_deg); ct, st = np.cos(th), np.sin(th)
-    cx, cy = x + w // 2, y + int(h * 0.56)
+    ph = np.radians(elev_deg); cp, sp2 = np.cos(ph), np.sin(ph)
+    cx, cy = x + w // 2, y + int(h * 0.54)
     scale = h * 0.40
+
+    def proj(px, py, pz):
+        xr = px * ct + pz * st          # azimute (giro em torno da vertical)
+        zr = -px * st + pz * ct
+        yr = py * cp - zr * sp2         # elevacao (inclina p/ visao 3/4)
+        return int(cx + xr * scale), int(cy + yr * scale)
+
     def pj(idx):
-        px, py, pz = W[idx]
-        xr = px * ct + pz * st
-        return int(cx + xr * scale), int(cy + py * scale)
-    # chao (grade que gira junto)
+        return proj(*W[idx])
+    # chao (grade que gira junto, com elevacao)
     for gz in np.linspace(-0.5, 0.5, 5):
-        x1 = -0.6 * ct + gz * st; x2 = 0.6 * ct + gz * st
-        cv2.line(cv, (int(cx + x1 * scale), int(cy + ground_y_world * scale)),
-                 (int(cx + x2 * scale), int(cy + ground_y_world * scale)), COL["grid"], 1)
+        p1 = proj(-0.6, ground_y_world, gz); p2 = proj(0.6, ground_y_world, gz)
+        cv2.line(cv, p1, p2, COL["grid"], 1)
+    for gx in np.linspace(-0.5, 0.5, 5):
+        p1 = proj(gx, ground_y_world, -0.5); p2 = proj(gx, ground_y_world, 0.5)
+        cv2.line(cv, p1, p2, COL["grid"], 1)
+    # retas de altura (solo -> ponta do pe) no 3D, por perna
+    for idx, hc, col in [(31, hFootL, LC), (32, hFootR, RC)]:
+        fx, fy, fz = W[idx]
+        top = proj(fx, fy, fz); base = proj(fx, ground_y_world, fz)
+        cv2.line(cv, base, top, col, 1, cv2.LINE_AA)
+        cv2.circle(cv, base, 2, col, -1)
+        cv2.putText(cv, f"{hc:.0f}cm", (top[0] + 4, top[1] - 2), F, 0.34, col, 1, cv2.LINE_AA)
     # base do 'triangulo' da passada (tornozelo E - tornozelo D) + arco do angulo
     aL, aR, hp = pj(27), pj(28), pj(23)
     hm = ((aL[0] + aR[0]) // 2, (aL[1] + aR[1]) // 2)  # so p/ referencia visual
@@ -206,12 +243,15 @@ def main() -> int:
         cv[vy:vy + vh, vx:vx + vw] = cv2.resize(fr, (vw, vh))
         lm = N[i] if N[i] is not None else N[0]
         draw_2d(cv, lm, vx, vy, vw, vh)
+        draw_rulers(cv, lm, vx, vy, vw, vh, D['ground_px'] / D['Hpx'],
+                    D['hFootL'][i], D['hFootR'][i], D['hHip'][i])
         cv2.rectangle(cv, (vx, vy), (vx + vw, vy + vh), COL["line"], 1)
         cv2.putText(cv, args.brand, (dx, 34), FD, 0.8, COL["accent"], 1, cv2.LINE_AA)
         cv2.putText(cv, f"Analise das 2 pernas  |  t={i/args.fps:4.1f}s", (dx, 52), F, 0.44, COL["dim"], 1, cv2.LINE_AA)
 
         theta = (i * 360.0 / (rot_period_s * args.fps)) % 360   # rotacao continua 360
-        draw_stick3d(cv, s3d, Wd[i], theta, ground_world, D['split'][i])
+        draw_stick3d(cv, s3d, Wd[i], theta, ground_world, D['split'][i],
+                     D['hFootL'][i], D['hFootR'][i], elev_deg=20.0)
 
         # metricas por perna
         panel(cv, mx0, my0, 430, CH - my0 - 18)
