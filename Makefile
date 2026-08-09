@@ -90,7 +90,8 @@ realtime:
 # Versao vertical (Reels/Stories 9:16) do video real + graficos ao vivo
 reels:
 	python3 scripts/render_realtime_video.py --overlay "$(OVERLAY)" \
-	  --session $(SESSION) --layout vertical --out-fps 8 --out $(OUT)
+	  --session $(SESSION) --layout vertical --out-fps 8 --cover-secs 2.5 \
+	  $(if $(LOGO),--logo "$(LOGO)") --out $(OUT)
 
 api:
 	uvicorn app.api:app --reload

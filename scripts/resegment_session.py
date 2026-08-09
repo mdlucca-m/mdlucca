@@ -74,7 +74,7 @@ def main():
         cur = con.execute(
             "INSERT INTO submovement (session_id,ordinal,label,kind,frame_start,"
             "frame_end,n_frames,dt,is_slowmo_2x) VALUES (?,?,?,?,?,?,?,?,0)",
-            (args.session, base_ord + i, f"Rep {i}", "composite", a, b, nf, dt))
+            (args.session, base_ord + i, f"Rep {i}", "pull", a, b, nf, dt))
         sid = cur.lastrowid
         created.append((sid, i, a, b))
         for sname, mname in PEAKS:

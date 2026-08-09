@@ -52,6 +52,8 @@ def main():
     ap.add_argument("--out-fps", type=float, default=12.0)
     ap.add_argument("--height", type=int, default=720)
     ap.add_argument("--layout", choices=["horizontal", "vertical"], default="horizontal")
+    ap.add_argument("--logo", default=None, help="PNG do logo (opcional; senao usa marca em texto)")
+    ap.add_argument("--cover-secs", type=float, default=0.0, help="duracao da capa/title card (s)")
     ap.add_argument("--brand", default="De Lucca Esporte")
     args = ap.parse_args()
 
@@ -73,6 +75,35 @@ def main():
         rep_of[r[3]:r[4] + 1] = i
     first_rep = min((r[3] for r in reps), default=0)   # inicio da 1a rep contada
     last_rep = max((r[4] for r in reps), default=N - 1)
+    sinfo = con.execute("SELECT s.exercise, s.load_kg, a.name FROM session s "
+                        "JOIN athlete a ON a.id=s.athlete_id WHERE s.id=?",
+                        (args.session,)).fetchone()
+    ex_name = sinfo[0] if sinfo else "Sessão"
+    load_kg = sinfo[1] if sinfo else None
+    ath_name = sinfo[2] if sinfo else ""
+
+    logo_img = cv2.imread(args.logo, cv2.IMREAD_UNCHANGED) if args.logo else None
+
+    def draw_logo(img):
+        H, W = img.shape[:2]
+        if logo_img is not None:
+            lw = 140; lh = int(logo_img.shape[0] * lw / logo_img.shape[1])
+            lg = cv2.resize(logo_img, (lw, lh))
+            x, y = W - lw - 12, H - lh - 12
+            if lg.shape[2] == 4:
+                a = lg[:, :, 3:4] / 255.0
+                img[y:y + lh, x:x + lw] = (a * lg[:, :, :3] + (1 - a) * img[y:y + lh, x:x + lw]).astype(np.uint8)
+            else:
+                img[y:y + lh, x:x + lw] = lg
+            return
+        txt = "De Lucca Esporte"
+        (tw, th), _ = cv2.getTextSize(txt, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+        x2, y2 = W - 12, H - 12; x1, y1 = x2 - tw - 18, y2 - th - 16
+        ov = img.copy(); cv2.rectangle(ov, (x1, y1), (x2, y2), (14, 17, 22), -1)
+        cv2.addWeighted(ov, 0.6, img, 0.4, 0, img)
+        cv2.rectangle(img, (x1, y1), (x1 + 4, y2), (143, 157, 42), -1)
+        cv2.putText(img, txt, (x1 + 12, y2 - 9), cv2.FONT_HERSHEY_SIMPLEX, 0.6,
+                    (143, 157, 42), 2, cv2.LINE_AA)
     cmaxF = np.maximum.accumulate(np.abs(force))
     cmaxP = np.maximum.accumulate(np.clip(power, 0, None))
     cmaxV = np.maximum.accumulate(np.abs(speed))
@@ -145,6 +176,38 @@ def main():
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     vw = cv2.VideoWriter(args.out, cv2.VideoWriter_fourcc(*"mp4v"), args.out_fps, (W, Hc))
 
+    def _cover_fit(frame, w, h):
+        fh, fw = frame.shape[:2]
+        s = max(w / fw, h / fh)
+        rs = cv2.resize(frame, (int(fw * s) + 1, int(fh * s) + 1))
+        y0 = (rs.shape[0] - h) // 2; x0 = (rs.shape[1] - w) // 2
+        return rs[y0:y0 + h, x0:x0 + w]
+
+    def make_cover():
+        cap.set(cv2.CAP_PROP_POS_FRAMES, int(round(first_rep * (Nv - 1) / (N - 1))))
+        ok, fr = cap.read()
+        bg = _cover_fit(fr, W, Hc) if ok else np.full((Hc, W, 3), (14, 17, 22), np.uint8)
+        bg = (bg * 0.32).astype(np.uint8)                # escurece
+        cx = W // 2
+        FONT = cv2.FONT_HERSHEY_SIMPLEX
+        def ctext(txt, y, scale, color, thick):
+            (tw, _), _ = cv2.getTextSize(txt, FONT, scale, thick)
+            cv2.putText(bg, txt, (cx - tw // 2, y), FONT, scale, color, thick, cv2.LINE_AA)
+        yc = Hc // 2
+        ctext("DE LUCCA ESPORTE", yc - 120, 1.1 if vert else 1.3, (143, 157, 42), 3)
+        ctext(ex_name, yc - 40, 1.4 if vert else 1.6, (240, 240, 240), 4)
+        sub = f"{ath_name}" + (f"  •  {load_kg:.0f} kg" if load_kg else "")
+        ctext(sub, yc + 30, 0.95, (200, 210, 220), 2)
+        ctext("análise biomecânica em tempo real", yc + 90, 0.8, (143, 157, 42), 2)
+        ctext(f"{len(reps)} repetições", yc + 140, 0.75, (170, 180, 190), 2)
+        draw_logo(bg)
+        return bg
+
+    if args.cover_secs > 0:
+        cover = make_cover()
+        for _ in range(int(round(args.cover_secs * args.out_fps))):
+            vw.write(cover)
+
     def scoreboard(img, f, x=8, y=8):
         r = rep_of[f]
         if r:
@@ -186,6 +249,7 @@ def main():
         else:
             vpanel = cv2.resize(frame, (vw_w, Hc)); scoreboard(vpanel, f)
             comp = np.hstack([vpanel, gpanel])[:, :W]
+        draw_logo(comp)
         vw.write(comp)
     vw.release(); cap.release(); plt.close(fig)
     print(f"[ok] {args.out}  layout={args.layout}  {N} frames @ {args.out_fps} fps "
