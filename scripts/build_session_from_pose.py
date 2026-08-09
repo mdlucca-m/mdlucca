@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sqlite3
 import sys
 from pathlib import Path
@@ -202,8 +203,12 @@ def main() -> int:
         con.executescript(Path(args.schema).read_text())
     cur = con.cursor()
 
+    # ext_key unico por atleta de video (evita colisao ao anexar varios videos)
+    ext_key = "video_" + re.sub(r"[^a-z0-9]+", "_", args.athlete.lower()).strip("_")
+    if cur.execute("SELECT 1 FROM athlete WHERE ext_key=?", (ext_key,)).fetchone():
+        ext_key = f"{ext_key}_{Path(args.pose).stem}"
     cur.execute("INSERT INTO athlete(ext_key,name,body_mass_kg,notes) VALUES (?,?,?,?)",
-                (f"video_{dbp.stem}", args.athlete, args.mass,
+                (ext_key, args.athlete, args.mass,
                  "massa corporal ASSUMIDA (sem balança); cinética estimada pelo método do CoM"))
     athlete_id = cur.lastrowid
     meta = {"source_video": "VID_39550929_221256_717.mkv", "fps": fps,

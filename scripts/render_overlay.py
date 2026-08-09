@@ -71,7 +71,8 @@ def bar_meter(img, x, y, w, frac, color, label):
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--frames", required=True)
+    ap.add_argument("--frames", help="pasta de frames PNG (ou use --video)")
+    ap.add_argument("--video", help="le os frames direto de um arquivo de video (cv2)")
     ap.add_argument("--pose", default="data/pose.json")
     ap.add_argument("--db", default="data/db.sqlite")
     ap.add_argument("--session", type=int, default=2)
@@ -87,10 +88,27 @@ def main() -> int:
     sm, reps = load_series(con, args.session)
     con.close()
 
-    frames = sorted(glob.glob(os.path.join(args.frames, "*.png")))
-    if not frames:
-        raise SystemExit(f"sem frames em {args.frames}")
-    H, W = cv2.imread(frames[0]).shape[:2]
+    # fonte dos frames: video (cv2) ou pasta de PNGs
+    cap_in = None
+    if args.video:
+        cap_in = cv2.VideoCapture(args.video)
+        if not cap_in.isOpened():
+            raise SystemExit(f"nao consegui abrir o video {args.video}")
+        n_frames = int(cap_in.get(cv2.CAP_PROP_FRAME_COUNT))
+
+        def read_frame(_i):
+            ok, im = cap_in.read()
+            return im if ok else None
+        H = int(cap_in.get(4)); W = int(cap_in.get(3))
+    else:
+        files = sorted(glob.glob(os.path.join(args.frames, "*.png"))) if args.frames else []
+        if not files:
+            raise SystemExit("informe --video ou --frames")
+        n_frames = len(files)
+
+        def read_frame(i):
+            return cv2.imread(files[i])
+        H, W = cv2.imread(files[0]).shape[:2]
 
     def g(name, i):
         a = sm.get(name)
@@ -110,8 +128,10 @@ def main() -> int:
     def px(pt):
         return int(pt[0] * W), int(pt[1] * H)
 
-    for i, fp in enumerate(frames):
-        img = cv2.imread(fp)
+    for i in range(n_frames):
+        img = read_frame(i)
+        if img is None:
+            break
         lm = norm[i] if i < len(norm) and norm[i] is not None else None
         if lm is not None:
             for (a, b) in BONES_R:  # lado oposto esmaecido
@@ -167,10 +187,12 @@ def main() -> int:
 
         writer.write(img)
         if (i + 1) % 100 == 0:
-            print(f"  {i+1}/{len(frames)} frames anotados")
+            print(f"  {i+1}/{n_frames} frames anotados")
 
     writer.release()
-    print(f"video anotado: {args.out}  ({len(frames)} frames, {len(frames)/args.fps:0.1f}s)")
+    if cap_in is not None:
+        cap_in.release()
+    print(f"video anotado: {args.out}  ({n_frames} frames, {n_frames/args.fps:0.1f}s)")
     return 0
 
 
