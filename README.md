@@ -134,6 +134,23 @@ pico e a MCV batem com os valores do dashboard.
   recalculados dos landmarks (`app/kinematics.py`)
 - `GET /submovements/{id}/kinematics/cog?aspect=auto` — centro de gravidade (De Leva 1996)
 
+**Qualidade de sinal, calibração métrica e alometria**
+- `POST /calibrate/reference` — escala (m/px) por **objeto de tamanho conhecido**
+  no quadro (régua/barra): dois pontos em px + comprimento real.
+- `POST /calibrate/stature` — escala pela **estatura real** do atleta
+  (nariz→tornozelo em px). Converte as estimativas em medidas confiáveis.
+- `GET /submovements/{id}/filtered?series=&cutoff=` — série **bruta × filtrada**
+  (**Butterworth passa-baixa de fase zero**, padrão em biomecânica) + **métricas
+  de ruído** (SNR) e **análise de resíduo** (Winter) para escolher a frequência
+  de corte.
+- `GET /sessions/{id}/allometric?b_force=0.67&b_power=1.0` — **ajuste alométrico**
+  (Jaric, 2002): normaliza força/potência de pico pela massa^expoente, para
+  comparar atletas de tamanhos diferentes de forma justa.
+
+Correção de **quadros**: frames sem pose agora são **interpolados linearmente**
+entre vizinhos (antes eram indevidamente preenchidos com o 1º quadro) — ver
+`app/signals.stack_frames` / `interpolate_gaps`.
+
 Esta é a ponte **landmarks → biomecânica** que a Etapa 2 usa: a fonte de pose
 só fornece landmarks; este módulo produz as séries e o resto segue por cima.
 Os landmarks do MediaPipe vêm normalizados por largura/altura separadamente

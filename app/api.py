@@ -21,6 +21,7 @@ import uuid
 from pathlib import Path
 from typing import Literal, Optional
 
+import numpy as np
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -29,6 +30,7 @@ from pydantic import BaseModel, Field
 
 from app import analyses as A
 from app import biomech as Bio
+from app import calibration as Cal
 from app import db
 from app import kinematics as Kin
 from app import signals as Sig
@@ -850,6 +852,93 @@ def pipeline_job(job_id: str):
     mp = Path(j["manifest"])
     if status != "running" and mp.exists():
         out["manifest"] = json.loads(mp.read_text())
+    return out
+
+
+# ==========================================================================
+# Calibracao metrica, filtragem/ruido e ajuste alometrico
+# ==========================================================================
+class RefBody(BaseModel):
+    p1: list[float]; p2: list[float]; known_length_m: float; ground_px: Optional[float] = None
+
+
+class StatBody(BaseModel):
+    nose: list[float]; ankle: list[float]; stature_m: float; ground_px: Optional[float] = None
+
+
+def _cal_out(c: Cal.Calibration) -> dict:
+    return {"m_per_px": round(c.m_per_px, 6), "cm_per_px": round(c.m_per_px * 100, 4),
+            "source": c.source, "ground_px": c.ground_px, "detail": c.detail}
+
+
+@app.post("/calibrate/reference", tags=["calibracao"])
+def calibrate_reference(b: RefBody):
+    """Escala metrica por objeto de tamanho conhecido no quadro (regua/barra)."""
+    try:
+        return _cal_out(Cal.from_reference(b.p1, b.p2, b.known_length_m, b.ground_px))
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+
+
+@app.post("/calibrate/stature", tags=["calibracao"])
+def calibrate_stature(b: StatBody):
+    """Escala metrica pela estatura real do atleta (nariz->tornozelo em px)."""
+    try:
+        return _cal_out(Cal.from_stature(b.nose, b.ankle, b.stature_m, b.ground_px))
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+
+
+@app.get("/submovements/{sub_id}/filtered", tags=["sinais"])
+def filtered_series(sub_id: int, series: str = "hip_angle", cutoff: float = 6.0):
+    """Serie bruta x filtrada (Butterworth passa-baixa, fase zero) + metricas
+    de ruido e analise de residuo para escolher a frequencia de corte."""
+    con = db.connect()
+    try:
+        sm = _series_map(con, sub_id, [series, "t"])
+    finally:
+        con.close()
+    _require(sm, series, "t")
+    t = Sig.as_array(sm["t"]); raw = Sig.as_array(sm[series])
+    dt = float(np.median(np.diff(t))) if t.size > 1 else 0.033
+    fs = 1.0 / dt if dt > 0 else 30.0
+    filt = Sig.butter_lowpass(raw, fs, cutoff)
+    return {
+        "series": series, "fs_hz": round(fs, 2), "cutoff_hz": cutoff, "n": int(raw.size),
+        "raw": [round(float(x), 4) for x in raw],
+        "filtered": [round(float(x), 4) for x in filt],
+        "noise": Sig.noise_metrics(raw, fs, cutoff),
+        "residual_analysis": Sig.residual_analysis(raw, fs),
+    }
+
+
+@app.get("/sessions/{session_id}/allometric", tags=["analises"])
+def session_allometric(session_id: int, b_force: float = 0.67, b_power: float = 1.0):
+    """Ajuste alometrico (Jaric, 2002): normaliza forca e potencia de pico pela
+    massa corporal elevada ao expoente alometrico, permitindo comparar atletas
+    de tamanhos diferentes de forma justa."""
+    con = db.connect()
+    try:
+        s = db.one(con, "SELECT s.id, a.body_mass_kg, a.name FROM session s "
+                   "JOIN athlete a ON a.id=s.athlete_id WHERE s.id=?", (session_id,))
+        if not s:
+            raise HTTPException(404, "sessao nao encontrada")
+        kpis = {r["name"]: r["value_num"] for r in con.execute(
+            "SELECT name, value_num FROM metric WHERE session_id=? AND analysis='global_kpi'", (session_id,))}
+    finally:
+        con.close()
+    mass = s["body_mass_kg"]
+    if not mass:
+        raise HTTPException(422, "massa corporal do atleta desconhecida")
+    out = {"session_id": session_id, "athlete": s["name"], "body_mass_kg": mass,
+           "exponents": {"force": b_force, "power": b_power}, "normalized": {}}
+    if kpis.get("peak_force") is not None:
+        out["normalized"]["force_allo_N_per_kg^b"] = round(
+            A.allometric_scale(kpis["peak_force"], mass, b_force), 3)
+    if kpis.get("peak_power") is not None:
+        out["normalized"]["power_allo_W_per_kg^b"] = round(
+            A.allometric_scale(kpis["peak_power"], mass, b_power), 3)
+    out["raw_peaks"] = {k: kpis.get(k) for k in ("peak_force", "peak_power", "peak_speed")}
     return out
 
 

@@ -18,6 +18,79 @@ from scipy import signal as _sig
 DEG2RAD = np.pi / 180.0
 
 
+# --------------------------------------------------------------------------
+# Frames: interpolacao de quadros faltantes/ruins
+# --------------------------------------------------------------------------
+def interpolate_gaps(a: "np.ndarray") -> "np.ndarray":
+    """Interpola linearmente NaNs ao longo do eixo do tempo (eixo 0), por
+    coluna. Aceita 1D (serie) ou Nd (ex.: landmarks n x 33 x 3). Bordas sem
+    dado sao preenchidas com o vizinho valido mais proximo."""
+    a = np.asarray(a, dtype=float)
+    orig = a.shape
+    A = a.reshape(orig[0], -1).copy()
+    idx = np.arange(orig[0])
+    for c in range(A.shape[1]):
+        col = A[:, c]
+        m = ~np.isfinite(col)
+        if m.any() and (~m).sum() >= 2:
+            col[m] = np.interp(idx[m], idx[~m], col[~m])
+        elif m.any() and (~m).sum() == 1:
+            col[m] = col[~m][0]
+        A[:, c] = col
+    return A.reshape(orig)
+
+
+def stack_frames(frames: list, elem_shape: tuple) -> "np.ndarray":
+    """Empilha uma lista de quadros (cada um array ou None) preenchendo os
+    None com NaN e interpolando. Corrige o antigo bug de repetir o 1o quadro."""
+    filled = [np.asarray(f, float) if f is not None else np.full(elem_shape, np.nan)
+              for f in frames]
+    return interpolate_gaps(np.array(filled, dtype=float))
+
+
+# --------------------------------------------------------------------------
+# Filtro Butterworth passa-baixa de fase zero (padrao em biomecanica)
+# --------------------------------------------------------------------------
+def butter_lowpass(y, fs: float, cutoff: float = 6.0, order: int = 4) -> "np.ndarray":
+    """Butterworth passa-baixa aplicado com filtfilt (fase zero, sem atraso).
+    Cai para Savitzky-Golay quando a serie e curta demais para o filtfilt."""
+    a = as_array(y)
+    n = a.size
+    a = interpolate_gaps(a)
+    if fs <= 0 or cutoff <= 0 or cutoff >= fs / 2:
+        return a
+    padlen = 3 * (2 * order + 1)
+    if n <= padlen:
+        return savgol(a, min(n if n % 2 else n - 1, 11), 3)
+    b, aa = _sig.butter(order, cutoff / (fs / 2.0), btype="low")
+    return _sig.filtfilt(b, aa, a)
+
+
+def residual_analysis(y, fs: float, cutoffs=None) -> dict:
+    """Analise de residuo (Winter): RMS de (bruto - filtrado) por frequencia
+    de corte. Ajuda a escolher o corte que remove ruido sem destruir sinal."""
+    a = interpolate_gaps(as_array(y))
+    if cutoffs is None:
+        cutoffs = [c for c in (2, 3, 4, 5, 6, 8, 10, 12, 15) if c < fs / 2]
+    res = []
+    for c in cutoffs:
+        f = butter_lowpass(a, fs, c)
+        res.append({"cutoff_hz": c, "rms_residual": round(float(np.sqrt(np.mean((a - f) ** 2))), 4)})
+    return {"fs": fs, "n": int(a.size), "residuals": res}
+
+
+def noise_metrics(y, fs: float, cutoff: float = 6.0) -> dict:
+    """Estimativa de ruido: RMS do que o passa-baixa remove e SNR aproximada."""
+    a = interpolate_gaps(as_array(y))
+    f = butter_lowpass(a, fs, cutoff)
+    noise = a - f
+    sig_rms = float(np.sqrt(np.mean(f ** 2))) or 1e-9
+    noise_rms = float(np.sqrt(np.mean(noise ** 2)))
+    return {"cutoff_hz": cutoff, "signal_rms": round(sig_rms, 4),
+            "noise_rms": round(noise_rms, 4),
+            "snr_db": round(20 * np.log10(sig_rms / (noise_rms or 1e-9)), 1)}
+
+
 def as_array(x: Sequence[float]) -> np.ndarray:
     return np.asarray(x, dtype=float)
 

@@ -74,10 +74,14 @@ def main() -> int:
     vis = P["visibility"]
     n = len(world)
 
-    # interpola frames sem pose (aqui 0), monta arrays (n,33,3)/(n,33,2)
-    W = np.array([w if w is not None else world[0] for w in world], dtype=float)
-    N = np.array([x if x is not None else norm[0] for x in norm], dtype=float)
-    Vs = np.array([v if v is not None else vis[0] for v in vis], dtype=float)
+    # interpola frames sem pose (linear entre vizinhos) — corrige o antigo
+    # bug de repetir o 1o quadro em cada frame faltante.
+    n_missing = sum(1 for w in world if w is None)
+    W = S.stack_frames(world, (33, 3))
+    N = S.stack_frames(norm, (33, 2))
+    Vs = np.array([v if v is not None else [0.0] * 33 for v in vis], dtype=float)
+    if n_missing:
+        print(f"Quadros sem pose interpolados: {n_missing}/{n}")
     t = np.arange(n) / fps
 
     up = lambda idx: -W[:, idx, 1]                 # vertical (m), para cima positivo
