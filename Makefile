@@ -62,6 +62,12 @@ watch:
 seed:
 	python3 scripts/seed_demo.py --db "$(DB)" --reset --athletes 4 --reps 5 --shares
 
+# Figuras analiticas de uma sessao de video (forca-potencia, momentos, fadiga)
+# SESSION=<id>  POSE=<pose json>  MASS=<kg>  LOAD=<kg>
+plots:
+	python3 scripts/plot_session.py --session $(SESSION) --pose "$(POSE)" \
+	  --mass $(MASS) --load $(LOAD) --out data/out/analise_$(SESSION)
+
 api:
 	uvicorn app.api:app --reload
 

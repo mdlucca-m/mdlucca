@@ -325,6 +325,23 @@ sequenciamento, consistência entre reps) são sólidas; as métricas de força/
 potência são **estimativas do método do CoM** (rótulo explícito) e viram
 medidas exatas quando houver massa/carga reais e calibração — o alvo da Etapa 2.
 
+### Figuras analíticas (força, potência, momentos, fadiga)
+
+`scripts/plot_session.py` gera todas as figuras de uma sessão de vídeo e um
+`metrics.json`:
+```bash
+python3 scripts/plot_session.py --session 16 \
+  --pose data/out/pose_XXXX.json --mass 87 --load 90 --out data/out/analise_16
+# ou: make plots SESSION=16 POSE=data/out/pose_XXXX.json MASS=87 LOAD=90
+```
+Produz: **força-potência** (séries com raw vs filtrado Butterworth 6 Hz),
+**analítica** (F-v, potência×ângulo, picos/trabalho por rep), **momentos**
+(torque quadril/joelho/tornozelo por dinâmica inversa quase-estática De Leva +
+diagrama de aplicação de forças) e **fadiga** (pico de potência/velocidade,
+concêntrico×excêntrico "pico de queda", curvas normalizadas e **índice de
+fadiga**: perda de velocidade, queda de potência, FI). Filtros:
+Butterworth 6 Hz zero-fase (Winter) + Savitzky-Golay.
+
 ### Vídeo anotado (pronto para postar)
 
 `scripts/render_overlay.py` gera um vídeo com o **esqueleto de pose** e a
