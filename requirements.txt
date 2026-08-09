@@ -1,0 +1,8 @@
+# Backend biomecanico — Etapa 1
+numpy>=1.26
+scipy>=1.11
+fastapi>=0.110
+uvicorn[standard]>=0.27
+# extract_dashboard.py tambem requer Node.js (normaliza literais JS -> JSON)
+# testes:
+pytest>=8.0

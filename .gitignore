@@ -1,0 +1,16 @@
+# Artefatos gerados
+data/*.sqlite
+data/*.sqlite.bak_*
+data/raw/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
