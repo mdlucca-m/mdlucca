@@ -35,6 +35,7 @@ from app import analyses as A
 from app import biomech as Bio
 from app import calibration as Cal
 from app import fvp as FVP
+from app import samozino as SMZ
 from app import db
 from app import kinematics as Kin
 from app import phases as Ph
@@ -1122,6 +1123,28 @@ def post_fvp(b: FVPBody):
         return FVP.full_profile(b.loads_kg, b.velocities, g=b.g,
                                 bodyweight_kg=b.bodyweight_kg or 0.0, v1rm=b.v1rm,
                                 com_displacement_m=b.com_displacement_m or 0.0)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc))
+
+
+class SamozinoBody(BaseModel):
+    bodyweight_kg: float = Field(..., gt=0)
+    added_loads_kg: list[float] = Field(..., min_length=2)
+    jump_heights_m: list[float] = Field(..., min_length=2)
+    push_off_m: float = Field(..., gt=0)
+    g: float = 9.81
+
+
+@app.post("/compute/samozino", tags=["analises"])
+def post_samozino(b: SamozinoBody):
+    """Modelo balistico de Samozino: perfil F-V-P de saltos com cargas + FVimb
+    (desequilibrio forca-velocidade vs perfil otimo)."""
+    if len(b.added_loads_kg) != len(b.jump_heights_m):
+        raise HTTPException(422, "added_loads_kg e jump_heights_m com tamanhos diferentes")
+    masses = [b.bodyweight_kg + x for x in b.added_loads_kg]
+    try:
+        return SMZ.profile_from_jumps(masses, b.jump_heights_m, b.push_off_m,
+                                      g=b.g, bodyweight_kg=b.bodyweight_kg)
     except ValueError as exc:
         raise HTTPException(422, str(exc))
 

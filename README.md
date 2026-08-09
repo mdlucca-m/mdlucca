@@ -130,6 +130,14 @@ Documentação interativa (OpenAPI) em **`/docs`**.
   cargas a partir das **sessões do atleta** em cargas diferentes.
 - Tela **`/app/fvp.html`** — insere cargas/velocidades (ou carrega do atleta) e
   **traça F-v e P-v** (gráficos), com Pmax, carga ótima e 1RM.
+- `POST /compute/samozino` `{bodyweight_kg, added_loads_kg, jump_heights_m,
+  push_off_m}` — **modelo balístico de Samozino**: perfil F-V-P a partir de
+  saltos com cargas (F=m·g·(h/hPO+1); v=√(g·h/2)) e **FVimb** (desequilíbrio
+  força-velocidade vs perfil ótimo). Devolve F0/v0/Pmax (absolutos e relativos),
+  perfil ótimo (Sfv_opt), **déficit de força ou velocidade**, altura atual ×
+  ótima e ganho potencial. O perfil ótimo é obtido maximizando a altura no
+  próprio modelo de Samozino (m·g·(h/hPO+1)=F0−Sfv·√(g·h/2)), sem constantes de
+  memória. Painel "Modo salto" em `/app/fvp.html`.
 
 **Análises estatísticas padrão-ouro (recomputadas sob demanda)**
 - `GET /compute/cv?metric=&scope=` — CV% + **IC bootstrap**

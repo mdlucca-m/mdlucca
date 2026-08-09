@@ -74,8 +74,32 @@
     <span id="msg" class="muted" style="font-size:13px"></span>
   </div>
 
+  <div class="card">
+    <h2>2 · Modo salto — desequilíbrio F-v (Samozino / FVimb)</h2>
+    <p class="muted" style="font-size:13px;margin-top:0">Saltos com cargas +
+      distância de push-off → perfil ótimo e <b>FVimb</b> (déficit de força ou
+      velocidade), com o ganho de altura potencial.</p>
+    <div class="row">
+      <div><label>Massa corporal (kg)</label><br><input id="s_bw" type="number" step="0.1" value="75"></div>
+      <div><label>Push-off / desloc. CoM (m)</label><br><input id="s_po" type="number" step="0.01" value="0.40"></div>
+    </div>
+    <table id="jpts"><thead><tr><th>Carga adicionada (kg)</th><th>Altura do salto (m)</th><th></th></tr></thead>
+      <tbody></tbody></table>
+    <div class="row">
+      <button class="sec" onclick="addJump()">+ linha</button>
+      <button onclick="samozino()">Calcular FVimb</button>
+      <span id="s_msg" class="muted" style="font-size:13px"></span>
+    </div>
+    <div id="fvimb" style="display:none;margin-top:10px">
+      <div class="kpis" id="s_kpis"></div>
+      <div id="s_eqs"></div>
+      <div style="max-width:420px"><div id="s_chart"></div>
+        <div class="cap">altura atual × ótima (mesmo Pmax, perfil ótimo)</div></div>
+    </div>
+  </div>
+
   <div class="card" id="result" style="display:none">
-    <h2>2 · Perfil</h2>
+    <h2>3 · Perfil (teste de cargas)</h2>
     <div class="kpis" id="kpis"></div>
     <div id="eqs"></div>
     <div class="charts" style="margin-top:12px">
@@ -210,8 +234,60 @@ function drawPV(d){
   s+="</svg>"; $("pv").innerHTML=s;
 }
 
+// --- Samozino / FVimb ---
+function addJump(carga="",alt=""){
+  const tb=$("jpts").querySelector("tbody");
+  const tr=document.createElement("tr");
+  tr.innerHTML=`<td><input type="number" step="1" class="jc" value="${carga}"></td>
+    <td><input type="number" step="0.01" class="jh" value="${alt}"></td>
+    <td><button class="sec" onclick="this.closest('tr').remove()">×</button></td>`;
+  tb.appendChild(tr);
+}
+async function samozino(){
+  const cs=[...document.querySelectorAll(".jc")], hs=[...document.querySelectorAll(".jh")];
+  const loads=[],hh=[];
+  cs.forEach((c,i)=>{ const l=parseFloat(c.value), h=parseFloat(hs[i].value);
+    if(!isNaN(l)&&!isNaN(h)){ loads.push(l); hh.push(h); }});
+  if(loads.length<2){ $("s_msg").innerHTML='<span class="err">informe ≥2 saltos</span>'; return; }
+  $("s_msg").textContent="calculando…";
+  try{
+    const body={bodyweight_kg:parseFloat($("s_bw").value)||75,
+      added_loads_kg:loads, jump_heights_m:hh, push_off_m:parseFloat($("s_po").value)||0.40};
+    const r=await fetch("/compute/samozino",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(body)});
+    if(!r.ok){ throw new Error((await r.json()).detail||r.status); }
+    renderSamozino(await r.json()); $("s_msg").textContent="";
+  }catch(e){ $("s_msg").innerHTML=`<span class="err">${e.message}</span>`; }
+}
+function renderSamozino(d){
+  const p=d.perfil, o=d.perfil_otimo, f=d.FVimb;
+  $("fvimb").style.display="block";
+  $("s_kpis").innerHTML =
+    kpi(p.F0_rel_N_kg+" N/kg","F0 relativa")+
+    kpi(p.v0_m_s+" m/s","V0")+
+    kpi(p.Pmax_rel_W_kg+" W/kg","Pmax relativa")+
+    kpi(f.FVimb_pct+" %","FVimb")+
+    kpi(f.altura_atual_m+" m","altura atual")+
+    kpi(f.altura_otima_m+" m","altura ótima")+
+    kpi("+"+f.ganho_potencial_m+" m","ganho potencial");
+  const cor = f.tipo.indexOf("forca")>=0 ? "#e63946" : f.tipo.indexOf("velocidade")>=0 ? "#e9c46a" : "#2a9d8f";
+  $("s_eqs").innerHTML =
+    `<div class="eq" style="color:${cor}">▸ ${f.tipo} · FVimb ${f.FVimb_pct}%</div>`+
+    `<div class="eq">perfil: ${p.equation_fv}  (R²=${p.r2})</div>`+
+    `<div class="eq">ótimo: Sfv_opt=${o.Sfv_opt_N_por_m_s} · razão Sfv/Sfv_opt=${o.razao_Sfv_atual_sobre_otimo}</div>`;
+  // barras altura atual x otima
+  const W=380,H=180,pad=30, hmax=Math.max(f.altura_atual_m,f.altura_otima_m)*1.2||1;
+  const bar=(x,val,col,lab)=>{ const bh=(val/hmax)*120, y=150-bh;
+    return `<rect x="${x}" y="${y}" width="90" height="${bh}" rx="4" fill="${col}"/>`+
+      `<text x="${x+45}" y="${y-6}" text-anchor="middle" fill="#e6edf3" font-size="12">${val} m</text>`+
+      `<text x="${x+45}" y="168" text-anchor="middle" fill="#8b98a6" font-size="11">${lab}</text>`; };
+  $("s_chart").innerHTML=`<svg viewBox="0 0 ${W} ${H}">`+
+    bar(70,f.altura_atual_m,"#2a9d8f","atual")+bar(220,f.altura_otima_m,cor,"ótima")+`</svg>`;
+}
+
 // exemplo inicial
 addRow(40,1.15); addRow(60,0.85); addRow(80,0.55); addRow(100,0.28);
+addJump(0,0.40); addJump(20,0.31); addJump(40,0.24); addJump(60,0.185);
 loadAthletes();
 </script>
 </body>
