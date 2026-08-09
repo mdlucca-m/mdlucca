@@ -81,6 +81,12 @@ explainer:
 
 REP ?= auto
 
+# Video real (boneco) + graficos em tempo real, todas as reps, em slow
+# OVERLAY=<overlay mp4>  SESSION=<id>  OUT=<mp4>
+realtime:
+	python3 scripts/render_realtime_video.py --overlay "$(OVERLAY)" \
+	  --session $(SESSION) --out-fps 12 --out $(OUT)
+
 api:
 	uvicorn app.api:app --reload
 
