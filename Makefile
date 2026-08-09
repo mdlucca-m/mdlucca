@@ -93,6 +93,15 @@ reels:
 	  --session $(SESSION) --layout vertical --out-fps 8 --cover-secs 2.5 \
 	  $(if $(LOGO),--logo "$(LOGO)") --out $(OUT)
 
+# Licenciamento (white-label). Ver LICENSING.md
+license-genkey:
+	python3 scripts/make_license.py --genkey
+
+# LICENSEE=".." BRAND=".." DAYS=365 OUT=data/cliente.key
+license-issue:
+	python3 scripts/make_license.py issue --licensee "$(LICENSEE)" \
+	  $(if $(BRAND),--brand "$(BRAND)") --days $(or $(DAYS),365) --out $(or $(OUT),data/license.key)
+
 api:
 	uvicorn app.api:app --reload
 

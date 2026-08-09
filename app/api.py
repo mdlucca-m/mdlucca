@@ -42,6 +42,8 @@ from app import phases as Ph
 from app import reference_values as Ref
 from app import segments as Seg
 from app import signals as Sig
+from app import licensing as Lic
+from app import branding as Brand
 
 app = FastAPI(
     title="mdlucca — API Biomecanica (Landmine Clean & Press)",
@@ -63,6 +65,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ---- Gate de LICENCA -------------------------------------------------------
+# Sem licenca valida, so respondem os caminhos "abertos" (saude, licenca, marca,
+# docs e a interface web, que mostra o estado de licenca). Todo o resto exige
+# uma licenca emitida por voce. Em dev, MDLUCCA_DEV=1 libera tudo.
+_OPEN_EXACT = {"/", "/health", "/license", "/branding", "/openapi.json",
+               "/docs", "/redoc", "/favicon.ico"}
+_OPEN_PREFIX = ("/app", "/static", "/docs", "/redoc")
+
+
+@app.middleware("http")
+async def _license_gate(request: Request, call_next):
+    path = request.url.path
+    if request.method == "OPTIONS" or path in _OPEN_EXACT \
+            or any(path.startswith(p) for p in _OPEN_PREFIX):
+        return await call_next(request)
+    if Lic.is_valid():
+        return await call_next(request)
+    st = Lic.status()
+    return JSONResponse(status_code=402, content={
+        "detail": "Licenca necessaria para usar este recurso.",
+        "license": {"valid": False, "mode": st.get("mode"), "reason": st.get("reason")},
+        "como_ativar": "defina MDLUCCA_LICENSE (token) ou coloque o arquivo em "
+                       "data/license.key. Solicite uma licenca ao fornecedor.",
+    })
+
 JOINT_SERIES = {  # articulacao -> (torque, velocidade angular, angulo)
     "hip": ("tau_hip", "hip_angvel", "hip_angle"),
     "knee": ("tau_knee", "knee_angvel", "knee_angle"),
@@ -81,6 +108,18 @@ async def _unhandled(request: Request, exc: Exception):
         raise exc
     return JSONResponse(status_code=500,
                         content={"detail": f"{type(exc).__name__}: {exc}"})
+
+
+@app.get("/license", tags=["licenca"])
+def license_status():
+    """Estado da licenca de acesso (aberto, para a interface e diagnostico)."""
+    return Lic.status()
+
+
+@app.get("/branding", tags=["licenca"])
+def branding():
+    """Identidade visual do produto (white-label)."""
+    return Brand.brand()
 
 
 def _series_map(con, sub_id: int, names: Optional[list[str]] = None) -> dict[str, list]:
@@ -1572,11 +1611,14 @@ def _report_html(con, kind: str, ref_id: int, title, audience) -> str:
 
     header_cells = "".join(f"<th>{escape(l)}</th>" for l, _ in _HEADLINE)
     date = escape((ses["captured_at"] or "")[:10])
+    _b = Brand.brand()
+    brand_name = escape(_b["name"])
+    acc = escape(_b.get("primary") or "#2a9d8f")
     return f"""<!doctype html><html lang="pt-BR"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Relatorio — {ath_name}</title>
 <style>
-:root{{--bg:#0e1116;--card:#171b22;--ink:#e6edf3;--mut:#8b98a6;--acc:#2a9d8f;--line:#232a33}}
+:root{{--bg:#0e1116;--card:#171b22;--ink:#e6edf3;--mut:#8b98a6;--acc:{acc};--line:#232a33}}
 *{{box-sizing:border-box}}
 body{{margin:0;background:var(--bg);color:var(--ink);
 font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}}
@@ -1604,7 +1646,7 @@ color:var(--acc);border-radius:999px;padding:2px 10px;font-size:12px}}
 .muted{{color:var(--mut)}}
 footer{{color:var(--mut);font-size:12px;text-align:center;margin-top:26px}}
 </style></head><body><div class="wrap">
-<div class="brand">De Lucca Esporte — Relatorio Biomecanico</div>
+<div class="brand">{brand_name} — Relatorio Biomecanico</div>
 <div class="card">
   <h1>{ath_name}</h1>
   <div class="meta">{exercise}{(' • ' + str(load) + ' kg') if load else ''}
@@ -1625,7 +1667,7 @@ footer{{color:var(--mut);font-size:12px;text-align:center;margin-top:26px}}
   <table><thead><tr><th>Repeticao</th><th>Frames</th><th>Dur.</th>{header_cells}</tr></thead>
   <tbody>{''.join(rep_rows)}</tbody></table>
 </div>
-<footer>Gerado pelo sistema biomecanico De Lucca Esporte •
+<footer>Gerado pelo sistema biomecanico {brand_name} •
 analises padrao-ouro (De Leva, Winter, ISB) • fonte de pose: {escape(ses['pose_source'] or '')}</footer>
 </div></body></html>"""
 

@@ -21,3 +21,8 @@ venv/
 .Rhistory
 .RData
 .Rproj.user/
+
+# Licenciamento (segredos — NAO versionar)
+data/vendor_private.key
+data/license.key
+data/*.key

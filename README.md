@@ -67,6 +67,22 @@ perda). Mais: `variable`/`variable_series`, `sequencing_event`,
 `joint_confidence`, `phase`/`phase_segment`, `literature_reference`,
 `consistency_source`.
 
+## Licenciamento (white-label — vender acesso)
+
+O produto exige uma **licença** assinada por você (Ed25519). Você emite
+acesso para quem pagar — ou cortesias grátis — com validade a definir; sem
+licença válida a API responde **402** (exceto `/health`, `/license`,
+`/branding`, `/docs` e a interface web). Cada licenciado roda com a **marca**
+dele. Passo a passo em **[LICENSING.md](LICENSING.md)**.
+
+```bash
+make license-genkey                 # 1x: gera seu par (guarde a privada!)
+make license-issue LICENSEE="Academia X" BRAND="X Performance" DAYS=365 OUT=x.key
+# cliente ativa: MDLUCCA_LICENSE=<token>  (ou data/license.key)
+```
+Endpoints abertos: `GET /license` (estado) e `GET /branding` (marca). Em
+desenvolvimento, `MDLUCCA_DEV=1` libera tudo.
+
 ## Como rodar
 
 **Mais fácil (1 clique):** no **Windows** dê duplo-clique em **`iniciar.bat`**;
