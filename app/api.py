@@ -25,6 +25,7 @@ from pydantic import BaseModel, Field
 from app import analyses as A
 from app import biomech as Bio
 from app import db
+from app import kinematics as Kin
 from app import signals as Sig
 
 app = FastAPI(
@@ -129,6 +130,10 @@ def root():
             "/submovements/{id}/compute/ssc?joint=hip|knee|elbow",
             "/submovements/{id}/compute/sequencing",
             "/submovements/{id}/compute/normalized-cycle?series=hip_angle",
+        ],
+        "kinematics": [
+            "/submovements/{id}/kinematics/angles?aspect=auto  (recomputa dos landmarks)",
+            "/submovements/{id}/kinematics/cog?aspect=auto",
         ],
         "web_client": "/app",
     }
@@ -705,6 +710,66 @@ def session_panel(session_id: int):
         raise HTTPException(404, "sessao sem submovimentos")
     return {"session_id": session_id,
             "submovements": [{**s, "analysis": deep_panel(s["id"])} for s in subs]}
+
+
+# ==========================================================================
+# Cinematica: recomputa angulos/CoG a partir dos LANDMARKS (ponte Etapa 2)
+# ==========================================================================
+def _skeleton(con, sub_id: int) -> dict:
+    r = con.execute("SELECT payload FROM dataset WHERE submovement_id=? AND kind='skeleton'",
+                    (sub_id,)).fetchone()
+    if not r:
+        raise HTTPException(404, "esqueleto (landmarks) nao disponivel para este submovimento")
+    return json.loads(r["payload"])
+
+
+def _resolve_aspect(con, sub_id: int, aspect: str, skeleton: dict):
+    """aspect='auto' recupera o fator ajustando aos angulos armazenados;
+    caso contrario usa o float informado."""
+    if aspect != "auto":
+        try:
+            return float(aspect), None
+        except ValueError:
+            raise HTTPException(422, "aspect deve ser 'auto' ou um numero")
+    ref = {}
+    for j in ("hip", "knee", "elbow"):
+        row = con.execute("SELECT samples FROM series WHERE submovement_id=? AND name=?",
+                          (sub_id, f"{j}_angle")).fetchone()
+        if row:
+            ref[j] = json.loads(row["samples"])
+    fit = Kin.fit_aspect(skeleton, ref) if ref else {"aspect": 1.0}
+    return fit["aspect"], (ref or None)
+
+
+@app.get("/submovements/{sub_id}/kinematics/angles", tags=["cinematica"])
+def kinematics_angles(sub_id: int, aspect: str = "auto", validate: bool = True):
+    """Recomputa os angulos articulares a partir dos landmarks de pose.
+    aspect='auto' recupera o aspect ratio faltante (calibracao) ajustando aos
+    angulos armazenados; retorna correlacao/RMSE vs armazenado quando validate."""
+    con = db.connect()
+    try:
+        sk = _skeleton(con, sub_id)
+        asp, ref = _resolve_aspect(con, sub_id, aspect, sk)
+        angles = Kin.angles_from_landmarks(sk, asp)
+        out = {"submovement_id": sub_id, "aspect": asp, "source": "landmarks (MediaPipe)",
+               "angles": angles}
+        if validate and ref:
+            out["validation_vs_stored"] = Kin.validate_against(sk, ref, asp)
+        return out
+    finally:
+        con.close()
+
+
+@app.get("/submovements/{sub_id}/kinematics/cog", tags=["cinematica"])
+def kinematics_cog(sub_id: int, aspect: str = "auto"):
+    """Trajetoria do centro de gravidade (De Leva 1996) a partir dos landmarks."""
+    con = db.connect()
+    try:
+        sk = _skeleton(con, sub_id)
+        asp, _ = _resolve_aspect(con, sub_id, aspect, sk)
+        return {"submovement_id": sub_id, **Kin.center_of_mass(sk, asp)}
+    finally:
+        con.close()
 
 
 @app.post("/compute/cv", tags=["analises"])

@@ -129,6 +129,21 @@ não leem escalares pré-calculados. A validação (`tests/test_biomech.py`)
 confirma que o trabalho articular, o tempo de amortização do SSC, o jerk de
 pico e a MCV batem com os valores do dashboard.
 
+**Cinemática — recomputa ângulos/CoG a partir dos LANDMARKS de pose**
+- `GET /submovements/{id}/kinematics/angles?aspect=auto` — ângulos articulares
+  recalculados dos landmarks (`app/kinematics.py`)
+- `GET /submovements/{id}/kinematics/cog?aspect=auto` — centro de gravidade (De Leva 1996)
+
+Esta é a ponte **landmarks → biomecânica** que a Etapa 2 usa: a fonte de pose
+só fornece landmarks; este módulo produz as séries e o resto segue por cima.
+Os landmarks do MediaPipe vêm normalizados por largura/altura separadamente
+(distorce ângulos pelo aspect ratio, não gravado). `aspect=auto` **recupera**
+esse fator ajustando aos ângulos armazenados — e a validação
+(`tests/test_kinematics.py`) mostra **correlação > 0,98** entre os ângulos
+recomputados dos landmarks e as séries do dashboard (quadril, joelho,
+cotovelo). Sob a Etapa 2 (coordenadas métricas calibradas), o aspect vira 1
+e a defasagem residual desaparece.
+
 ## Análises padrão-ouro
 
 As funções em `app/analyses.py` recalculam as métricas de forma independente e
@@ -170,6 +185,11 @@ precisa implementar `bundle()` produzindo o formato canônico — todas as
 análises padrão-ouro são recomputadas automaticamente pela API. O stub
 `app/sources/highquality.py` documenta o contrato de entrada esperado.
 
+A camada **landmarks → biomecânica** (`app/kinematics.py`) já está construída
+e validada (corr > 0,98 vs. dashboard): a nova fonte fornece landmarks 3D
+métricos e o motor produz ângulos/CoG sem o ajuste de aspect ratio (que só
+existe por causa da pose normalizada não-calibrada da Etapa 1).
+
 > O **cliente web** (`web/index.html`) já foi refatorado nesta entrega:
 > consome 100% da API via `fetch()`, sem dados embutidos.
 
@@ -184,6 +204,7 @@ app/db.py                    acesso ao SQLite (read-only)
 app/signals.py               processamento de sinal (SG, integração, reamostragem)
 app/analyses.py              análises estatísticas (numpy/scipy)
 app/biomech.py               análises biomecânicas profundas (das séries)
+app/kinematics.py            ângulos/CoG a partir dos landmarks (ponte Etapa 2)
 app/api.py                   API REST (FastAPI) + mount do cliente web
 app/sources/                 adaptadores de fonte de pose (base/mediapipe/highquality)
 web/index.html               cliente que consome a API via fetch (gráfico SVG)
