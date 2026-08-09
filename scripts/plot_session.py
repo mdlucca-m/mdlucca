@@ -81,15 +81,21 @@ def _reps_and_full(con, session):
     return reps, full
 
 
-def fatigue_metrics(con, reps):
-    """Picos por rep + indices de fadiga (velocity loss, power drop, FI)."""
+def fatigue_metrics(con, full, reps):
+    """Picos por rep + indices de fadiga (velocity loss, power drop, FI).
+
+    Fatia as series da sessao COMPLETA pelos limites (frame_start/end) de cada
+    rep — funciona mesmo quando os submovimentos de rep nao tem series proprias.
+    """
+    Pf = _series(con, full[0], "power"); vf = _series(con, full[0], "speed")
+    tf = _series(con, full[0], "t")
     rows = []
     for sid, ordv, lab, fs, fe, nfr in reps:
-        P = _series(con, sid, "power"); v = _series(con, sid, "speed")
-        t = _series(con, sid, "t")
-        if P is None or v is None:
+        if Pf is None or vf is None:
             continue
-        P, v = _smooth(P), _smooth(v)
+        a, b = fs, (fe + 1)
+        P, v = _smooth(Pf[a:b]), _smooth(vf[a:b])
+        t = tf[a:b] if tf is not None else None
         dt = np.gradient(t) if t is not None else np.full_like(P, 1 / 30)
         rows.append({
             "rep": lab, "P_peak_W": float(np.max(P)),
@@ -105,8 +111,8 @@ def fatigue_metrics(con, reps):
         "power_drop_pct": round(100.0 * (Pp[0] - Pp[-1]) / Pp[0], 1) if Pp[0] else None,
         "fatigue_index_power_pct": round(fi(Pp), 1),
         "fatigue_index_velocity_pct": round(fi(Vp), 1),
-        "nota": "VL/queda = 1a vs ultima rep; FI = (max-min)/max. Rep 1 pode "
-                "incluir setup (VL superestimado).",
+        "nota": "VL/queda = 1a vs ultima rep; FI = (max-min)/max. Reps contadas "
+                "de-pe->de-pe (entrada/saida nao entram).",
     }
     return {"reps": rows, "fadiga": fad}
 
@@ -165,8 +171,9 @@ def fig_forca_potencia(con, full, reps, fs, out, title):
     fig.savefig(out, dpi=130, facecolor=fig.get_facecolor()); plt.close(fig)
 
 
-def fig_fadiga(con, reps, out, title):
-    data = fatigue_metrics(con, reps)
+def fig_fadiga(con, full, reps, out, title):
+    data = fatigue_metrics(con, full, reps)
+    Pfull = _series(con, full[0], "power")
     rows, fad = data["reps"], data["fadiga"]
     labels = [r["rep"] for r in rows]
     Pp = [r["P_peak_W"] for r in rows]; Pe = [-r["P_peak_ecc_W"] for r in rows]
@@ -190,13 +197,12 @@ def fig_fadiga(con, reps, out, title):
     b.set_xticks(x); b.set_xticklabels(labels); b.set_ylabel("Potência pico (W)")
     b.legend(fontsize=8, facecolor="#171b22", edgecolor="#39424d")
     b.set_title("Concêntrico × excêntrico (pico de queda)", color="#e6edf3", fontsize=11)
-    # C curvas de potencia normalizadas
+    # C curvas de potencia normalizadas (fatia da sessao completa por rep)
     c = ax[1, 0]
-    for i, (sid, ordv, lab, fsr, fe, nfr) in enumerate(reps):
-        P = _series(con, sid, "power")
-        if P is None:
+    for (sid, ordv, lab, fsr, fe, nfr) in reps:
+        if Pfull is None:
             continue
-        P = _smooth(P); xs = np.linspace(0, 100, len(P))
+        P = _smooth(Pfull[fsr:fe + 1]); xs = np.linspace(0, 100, len(P))
         c.plot(xs, P, lw=1.4, label=lab)
     c.axhline(0, color="#39424d", lw=.8); c.set_xlabel("% da repetição")
     c.set_ylabel("Potência (W)"); c.legend(fontsize=8, facecolor="#171b22", edgecolor="#39424d")
@@ -301,7 +307,7 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
 
     fig_forca_potencia(con, full, reps, fs, out / "forca_potencia.png", title)
-    fatiga = fig_fadiga(con, reps, out / "fadiga.png", title)
+    fatiga = fig_fadiga(con, full, reps, out / "fadiga.png", title)
     momentos = None
     if args.pose and Path(args.pose).exists():
         momentos = fig_momentos(args.pose, reps, args.mass, args.load, args.mpp,
