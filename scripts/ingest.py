@@ -18,6 +18,7 @@ import argparse
 import json
 import shutil
 import sqlite3
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -102,11 +103,26 @@ def add_metric(rows, session_id, sub_id, analysis, name, value):
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--json", default="data/dashboard_extracted.json")
+    ap.add_argument("--source", default=None,
+                    help="fonte de pose (mediapipe|highquality). Ignora --json quando dado.")
     ap.add_argument("--schema", default="sql/schema.sql")
     ap.add_argument("--db", default="data/db.sqlite")
     args = ap.parse_args()
 
-    d = json.loads(Path(args.json).read_text(encoding="utf-8"))
+    # Proveniencia: via adaptador de fonte (Etapa 2-ready) ou JSON extraido.
+    if args.source:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        from importlib import import_module
+        from app.sources.highquality import SOURCES
+        modpath, clsname = SOURCES[args.source].split(":")
+        Source = getattr(import_module(modpath), clsname)()
+        d = Source.bundle()
+        overrides = Source.session_overrides()
+    else:
+        d = json.loads(Path(args.json).read_text(encoding="utf-8"))
+        overrides = {"pose_source": "mediapipe",
+                     "pose_model": "MediaPipe Pose (BlazePose GHUM 3D, monocular)",
+                     "is_calibrated": False, "coordinate_system": "image_normalized"}
     schema = Path(args.schema).read_text(encoding="utf-8")
 
     db_path = Path(args.db)
@@ -144,6 +160,8 @@ def main() -> int:
         "phase_colors": DATA.get("phase_colors"),
         "n_movs": DATA.get("n_movs"),
         "barbell_weight_N": DATA.get("gravity_constant"),
+        "is_calibrated": overrides.get("is_calibrated"),
+        "coordinate_system": overrides.get("coordinate_system"),
     }
     cur.execute(
         """INSERT INTO session(athlete_id,exercise,load_kg,pct_bodyweight,load_per_height,
@@ -151,7 +169,7 @@ def main() -> int:
            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
         (athlete_id, "Landmine Clean & Press", LOADCTX.get("load_kg"),
          LOADCTX.get("pct_bw"), LOADCTX.get("load_per_height"), 9.81,
-         "mediapipe", "MediaPipe Pose (BlazePose GHUM 3D, monocular)",
+         overrides.get("pose_source"), overrides.get("pose_model"),
          len(DATA["efforts"]), None, json.dumps(session_meta, ensure_ascii=False),
          "Dados originados de pose monocular MediaPipe (Etapa 1). Fonte de pose de "
          "alta qualidade planejada para a Etapa 2 (ver README)."),

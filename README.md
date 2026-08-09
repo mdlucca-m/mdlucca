@@ -47,10 +47,14 @@ estatístico onde o JS aproximava (ver [Análises padrão-ouro](#análises-padr�
 | Extração      | `scripts/extract_dashboard.py` | Puxa as `const` JSON do HTML (ignora vídeos), normaliza via Node |
 | Schema        | `sql/schema.sql`               | Modelo relacional (16 tabelas). Compatível com `migrate.R` **e** `ingest.py` |
 | Migração (R)  | `scripts/migrate.R`            | Aplica só o schema num banco vazio (caminho R original) |
-| ETL           | `scripts/ingest.py`            | Aplica schema + popula o SQLite a partir do JSON |
-| Análises      | `app/analyses.py`              | CV, Grubbs, bootstrap, logística, lei de potência, alométrico — puras |
-| API           | `app/api.py`                   | REST (FastAPI), leitura de dados + recomputo das análises |
-| Testes        | `tests/test_analyses.py`       | Recomputam e comparam com os valores do dashboard |
+| ETL           | `scripts/ingest.py`            | Aplica schema + popula o SQLite (via `--json` ou `--source`) |
+| Fontes de pose| `app/sources/`                 | Interface `PoseSource` — MediaPipe (Etapa 1) + stub de alta qualidade (Etapa 2) |
+| Sinais        | `app/signals.py`               | Savitzky-Golay, integração trapezoidal, diferenciação, reamostragem 0-100% |
+| Análises estat.| `app/analyses.py`             | CV, Grubbs, bootstrap, logística, lei de potência, alométrico — puras |
+| Análises profundas | `app/biomech.py`          | Impulso, trabalho, eficiência, RFD/TDF, MPV, balístico, jerk, potência articular, SSC, sequenciamento — recomputadas das séries |
+| API           | `app/api.py`                   | REST (FastAPI), leitura de dados + recomputo das análises + cliente web |
+| Cliente web   | `web/index.html`               | Dashboard que consome a API via `fetch()` (gráfico SVG, sem dependências) |
+| Testes        | `tests/`                       | Recomputam e comparam com os valores do dashboard (12 testes) |
 
 ### Modelo de dados (resumo)
 
@@ -68,9 +72,17 @@ perda). Mais: `variable`/`variable_series`, `sequencing_event`,
 ```bash
 make install            # numpy, scipy, fastapi, uvicorn, pytest
 make db                 # cria data/db.sqlite a partir do JSON versionado
-make api                # sobe em http://localhost:8000  (docs em /docs)
-make test               # valida as análises contra os dados
+make api                # sobe em http://localhost:8000
+make test               # valida as análises contra os dados (12 testes)
 ```
+
+Depois de `make api`, abra:
+- **`/app`** — o dashboard refatorado (consome tudo via `fetch()`);
+- **`/docs`** — documentação interativa (OpenAPI) de todos os endpoints.
+
+O ETL aceita a fonte de pose explicitamente: `python3 scripts/ingest.py
+--source mediapipe` (equivalente ao default). A Etapa 2 usará `--source
+highquality` assim que o adaptador estiver implementado.
 
 > `data/dashboard_extracted.json` já vem versionado (é a entrada do ETL). Para
 > regenerá-lo a partir do HTML original (que **não** vai no repo por conter os
@@ -91,13 +103,31 @@ Documentação interativa (OpenAPI) em **`/docs`**.
 - `GET /metrics?analysis=&name=` · `GET /fits?analysis=` · `GET /variables`
 - `GET /literature` · `GET /consistency` · `GET /datasets/{kind}`
 
-**Análises padrão-ouro (recomputadas sob demanda)**
+**Análises estatísticas padrão-ouro (recomputadas sob demanda)**
 - `GET /compute/cv?metric=&scope=` — CV% + **IC bootstrap**
 - `GET /compute/grubbs?metric=&scope=` — Grubbs **bilateral, valor crítico exato**
 - `GET /compute/force-velocity` — perfil F-V: linear + lei de potência + IC bootstrap do expoente
 - `GET /submovements/{id}/logistic?series=hip_angle` — ajuste logístico (nls) da fase concêntrica
 - `GET /submovements/{id}/peak?series=force` — pico robusto (mediana de janela)
 - `POST /compute/{cv,grubbs,powerlaw,logistic,bootstrap-slope}` — genéricos (JSON no corpo)
+
+**Análises biomecânicas profundas (recomputadas das séries brutas)**
+- `GET /submovements/{id}/analysis` — **painel completo** (roda tudo abaixo de uma vez)
+- `GET /sessions/{id}/analysis` — painel agregado de todos os submovimentos
+- `.../compute/impulse-work` · `.../compute/efficiency` — impulso, trabalho, eficiência (mgh vs trabalho real)
+- `.../compute/rfd-tdf?onset=bottom` — RFD de pico + TDF em janelas fixas (0-50/100/150/200 ms)
+- `.../compute/velocity` — MPV/PPV/MCV (Sánchez-Medina) · `.../compute/ballistic`
+- `.../compute/jerk` — 3ª derivada com Savitzky-Golay reforçado
+- `.../compute/joint-power?joint=hip|knee|elbow` — potência articular (τ·ω), trabalho ±
+- `.../compute/ssc?joint=hip|knee|elbow` — tempo de amortização + RSI-mod
+- `.../compute/sequencing` — ordem dos picos de velocidade angular (proximal→distal)
+- `.../compute/normalized-cycle?series=hip_angle` — reamostragem 0-100% do ciclo
+
+Estes recomputam por **integração trapezoidal** (`scipy.integrate`) e
+**diferenciação com Savitzky-Golay** (`scipy.signal`) diretamente das séries,
+não leem escalares pré-calculados. A validação (`tests/test_biomech.py`)
+confirma que o trabalho articular, o tempo de amortização do SSC, o jerk de
+pico e a MCV batem com os valores do dashboard.
 
 ## Análises padrão-ouro
 
@@ -134,20 +164,31 @@ A Etapa 2 troca a fonte de pose mantendo schema e API intactos:
    força de reação do solo e o torque de joelho por método completo (hoje frágil).
 3. **Versionamento por fonte** — o schema já carrega `pose_source`/`pose_model`
    em `session`, permitindo comparar MediaPipe × nova fonte lado a lado.
-4. **Cliente** — refatorar o `Dashboard_Atleta2.html` para consumir a API via
-   `fetch()` em vez dos dados embutidos (item marcado como próximo passo).
+
+O ponto de extensão já existe: `app/sources/PoseSource`. A nova fonte só
+precisa implementar `bundle()` produzindo o formato canônico — todas as
+análises padrão-ouro são recomputadas automaticamente pela API. O stub
+`app/sources/highquality.py` documenta o contrato de entrada esperado.
+
+> O **cliente web** (`web/index.html`) já foi refatorado nesta entrega:
+> consome 100% da API via `fetch()`, sem dados embutidos.
 
 ## Estrutura do repositório
 
 ```
 sql/schema.sql               modelo relacional
 scripts/extract_dashboard.py extração HTML -> JSON
-scripts/ingest.py            ETL JSON -> SQLite
+scripts/ingest.py            ETL JSON/fonte -> SQLite
 scripts/migrate.R            aplicação do schema (caminho R)
 app/db.py                    acesso ao SQLite (read-only)
-app/analyses.py              análises padrão-ouro (numpy/scipy)
-app/api.py                   API REST (FastAPI)
-tests/test_analyses.py       validação contra os dados do dashboard
+app/signals.py               processamento de sinal (SG, integração, reamostragem)
+app/analyses.py              análises estatísticas (numpy/scipy)
+app/biomech.py               análises biomecânicas profundas (das séries)
+app/api.py                   API REST (FastAPI) + mount do cliente web
+app/sources/                 adaptadores de fonte de pose (base/mediapipe/highquality)
+web/index.html               cliente que consome a API via fetch (gráfico SVG)
+tests/test_analyses.py       validação estatística
+tests/test_biomech.py        validação das análises profundas
 data/dashboard_extracted.json entrada versionada do ETL
 Makefile · requirements.txt
 ```

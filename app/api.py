@@ -13,24 +13,85 @@ Docs :  http://localhost:8000/docs   (OpenAPI gerado automaticamente)
 from __future__ import annotations
 
 import json
-from typing import Optional
+from pathlib import Path
+from typing import Literal, Optional
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app import analyses as A
+from app import biomech as Bio
 from app import db
+from app import signals as Sig
 
 app = FastAPI(
     title="mdlucca — API Biomecanica (Landmine Clean & Press)",
-    version="1.0.0",
+    version="2.0.0",
     description=(
-        "Backend da Etapa 1: serve os dados de pose/analise antes embutidos no "
-        "dashboard HTML e recomputa as analises 'padrao-ouro' com rigor "
-        "estatistico (numpy/scipy). Fonte de pose atual: MediaPipe (monocular). "
-        "Etapa 2 (roadmap): fonte de pose de alta qualidade."
+        "Backend biomecanico: serve os dados de pose/analise antes embutidos no "
+        "dashboard HTML e **recomputa as analises padrao-ouro direto das series "
+        "brutas** com rigor numerico (numpy/scipy) — integracao trapezoidal, "
+        "Savitzky-Golay, bootstrap, nls. Fonte de pose atual: MediaPipe "
+        "(monocular). Etapa 2 (roadmap): fonte de pose de alta qualidade."
     ),
 )
+
+# CORS liberado para permitir que o cliente web (web/index.html) consuma a API.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
+
+JOINT_SERIES = {  # articulacao -> (torque, velocidade angular, angulo)
+    "hip": ("tau_hip", "hip_angvel", "hip_angle"),
+    "knee": ("tau_knee", "knee_angvel", "knee_angle"),
+    "elbow": ("tau_elbow", "elbow_angvel", "elbow_angle"),
+}
+
+
+@app.exception_handler(FileNotFoundError)
+async def _db_missing_handler(request: Request, exc: FileNotFoundError):
+    return JSONResponse(status_code=503, content={"detail": str(exc)})
+
+
+@app.exception_handler(Exception)
+async def _unhandled(request: Request, exc: Exception):
+    if isinstance(exc, HTTPException):
+        raise exc
+    return JSONResponse(status_code=500,
+                        content={"detail": f"{type(exc).__name__}: {exc}"})
+
+
+def _series_map(con, sub_id: int, names: Optional[list[str]] = None) -> dict[str, list]:
+    """Carrega as series de um submovimento como {nome: lista}."""
+    sql = "SELECT name, samples FROM series WHERE submovement_id=?"
+    params: tuple = (sub_id,)
+    if names:
+        placeholders = ",".join("?" * len(names))
+        sql += f" AND name IN ({placeholders})"
+        params += tuple(names)
+    return {r["name"]: json.loads(r["samples"]) for r in con.execute(sql, params)}
+
+
+def _session_constants(con, sub_id: int) -> tuple[float, float]:
+    """(massa da carga [kg], g) da sessao dona do submovimento."""
+    row = con.execute(
+        "SELECT s.load_kg, s.gravity FROM submovement sm JOIN session s ON s.id=sm.session_id "
+        "WHERE sm.id=?", (sub_id,)).fetchone()
+    if not row:
+        raise HTTPException(404, "submovimento nao encontrado")
+    return float(row["load_kg"]), float(row["gravity"])
+
+
+def _require(sm: dict, *names: str):
+    missing = [n for n in names if n not in sm]
+    if missing:
+        raise HTTPException(422, f"series ausentes para este submovimento: {missing}")
 
 
 # ==========================================================================
@@ -55,6 +116,21 @@ def root():
             "/compute/cv", "/compute/grubbs", "/compute/force-velocity",
             "/compute/logistic", "/compute/powerlaw", "/compute/bootstrap-slope",
         ],
+        "deep_analysis": [
+            "/submovements/{id}/analysis  (painel completo)",
+            "/sessions/{id}/analysis",
+            "/submovements/{id}/compute/impulse-work",
+            "/submovements/{id}/compute/efficiency",
+            "/submovements/{id}/compute/rfd-tdf",
+            "/submovements/{id}/compute/velocity",
+            "/submovements/{id}/compute/ballistic",
+            "/submovements/{id}/compute/jerk",
+            "/submovements/{id}/compute/joint-power?joint=hip|knee|elbow",
+            "/submovements/{id}/compute/ssc?joint=hip|knee|elbow",
+            "/submovements/{id}/compute/sequencing",
+            "/submovements/{id}/compute/normalized-cycle?series=hip_angle",
+        ],
+        "web_client": "/app",
     }
 
 
@@ -183,7 +259,8 @@ def submovement_metrics(sub_id: int, analysis: Optional[str] = None):
 
 
 @app.get("/metrics", tags=["metricas"])
-def query_metrics(analysis: str = Query(...), name: Optional[str] = None):
+def query_metrics(analysis: str = Query(...), name: Optional[str] = None,
+                  limit: int = Query(500, ge=1, le=5000), offset: int = Query(0, ge=0)):
     con = db.connect()
     try:
         sql = ("SELECT m.submovement_id, sm.label, m.analysis, m.name, m.value_num, m.value_text, m.unit "
@@ -192,7 +269,11 @@ def query_metrics(analysis: str = Query(...), name: Optional[str] = None):
         if name:
             sql += " AND m.name=?"
             params += (name,)
-        return db.rows(con, sql + " ORDER BY sm.ordinal, m.name", params)
+        total = con.execute("SELECT COUNT(*) FROM metric WHERE analysis=?"
+                            + (" AND name=?" if name else ""), params).fetchone()[0]
+        data = db.rows(con, sql + " ORDER BY sm.ordinal, m.name LIMIT ? OFFSET ?",
+                       params + (limit, offset))
+        return {"total": total, "limit": limit, "offset": offset, "items": data}
     finally:
         con.close()
 
@@ -429,6 +510,203 @@ def submovement_peak(sub_id: int, series: str = "force", half_window: int = 2):
     return res
 
 
+# ==========================================================================
+# Analises PROFUNDAS recomputadas a partir das series brutas
+# ==========================================================================
+@app.get("/submovements/{sub_id}/compute/impulse-work", tags=["analises-profundas"])
+def deep_impulse_work(sub_id: int):
+    con = db.connect()
+    try:
+        mass, g = _session_constants(con, sub_id)
+        sm = _series_map(con, sub_id, ["force", "speed", "power", "t"])
+    finally:
+        con.close()
+    _require(sm, "force", "speed", "power", "t")
+    return Bio.impulse_work(sm["force"], sm["speed"], sm["power"], sm["t"], mass, g)
+
+
+@app.get("/submovements/{sub_id}/compute/efficiency", tags=["analises-profundas"])
+def deep_efficiency(sub_id: int, height_series: str = "bar_height_rel_hip"):
+    con = db.connect()
+    try:
+        mass, g = _session_constants(con, sub_id)
+        sm = _series_map(con, sub_id, ["power", height_series, "t"])
+    finally:
+        con.close()
+    _require(sm, "power", height_series, "t")
+    return Bio.efficiency(sm["power"], sm[height_series], sm["t"], mass, g)
+
+
+@app.get("/submovements/{sub_id}/compute/rfd-tdf", tags=["analises-profundas"])
+def deep_rfd_tdf(sub_id: int, onset: Literal["bottom", "threshold"] = "bottom"):
+    """RFD de pico + TDF (0-50/100/150/200ms). onset='bottom' usa o fundo do
+    movimento (min do angulo de quadril) como inicio da fase concentrica."""
+    con = db.connect()
+    try:
+        sm = _series_map(con, sub_id, ["force", "hip_angle", "t"])
+    finally:
+        con.close()
+    _require(sm, "force", "t")
+    onset_idx = None
+    if onset == "bottom" and "hip_angle" in sm:
+        onset_idx = int(Sig.as_array(sm["hip_angle"]).argmin())
+    return Bio.rfd_tdf(sm["force"], sm["t"], onset_index=onset_idx)
+
+
+@app.get("/submovements/{sub_id}/compute/velocity", tags=["analises-profundas"])
+def deep_velocity(sub_id: int):
+    con = db.connect()
+    try:
+        _, g = _session_constants(con, sub_id)
+        sm = _series_map(con, sub_id, ["speed", "tangential_accel", "t"])
+    finally:
+        con.close()
+    _require(sm, "speed", "tangential_accel", "t")
+    return Bio.velocity_metrics(sm["speed"], sm["tangential_accel"], sm["t"], g)
+
+
+@app.get("/submovements/{sub_id}/compute/ballistic", tags=["analises-profundas"])
+def deep_ballistic(sub_id: int):
+    con = db.connect()
+    try:
+        sm = _series_map(con, sub_id, ["tangential_accel", "force", "t"])
+    finally:
+        con.close()
+    _require(sm, "tangential_accel", "force", "t")
+    return Bio.ballistic(sm["tangential_accel"], sm["force"], sm["t"])
+
+
+@app.get("/submovements/{sub_id}/compute/jerk", tags=["analises-profundas"])
+def deep_jerk(sub_id: int, smooth_window: int = 21):
+    con = db.connect()
+    try:
+        sm = _series_map(con, sub_id, ["accel", "t"])
+    finally:
+        con.close()
+    _require(sm, "accel", "t")
+    return Bio.jerk(sm["accel"], sm["t"], smooth_window=smooth_window)
+
+
+@app.get("/submovements/{sub_id}/compute/joint-power", tags=["analises-profundas"])
+def deep_joint_power(sub_id: int, joint: Literal["hip", "knee", "elbow"] = "hip"):
+    tau, angvel, _ = JOINT_SERIES[joint]
+    con = db.connect()
+    try:
+        sm = _series_map(con, sub_id, [tau, angvel, "t"])
+    finally:
+        con.close()
+    _require(sm, tau, angvel, "t")
+    return {"joint": joint, **Bio.joint_power(sm[tau], sm[angvel], sm["t"])}
+
+
+@app.get("/submovements/{sub_id}/compute/ssc", tags=["analises-profundas"])
+def deep_ssc(sub_id: int, joint: Literal["hip", "knee", "elbow"] = "hip"):
+    _, angvel, angle = JOINT_SERIES[joint]
+    con = db.connect()
+    try:
+        sm = _series_map(con, sub_id, [angle, angvel, "speed", "t"])
+    finally:
+        con.close()
+    _require(sm, angle, angvel, "speed", "t")
+    return {"joint": joint, **Bio.ssc(sm[angle], sm[angvel], sm["speed"], sm["t"])}
+
+
+@app.get("/submovements/{sub_id}/compute/sequencing", tags=["analises-profundas"])
+def deep_sequencing(sub_id: int):
+    con = db.connect()
+    try:
+        sm = _series_map(con, sub_id,
+                         ["hip_angvel", "knee_angvel", "elbow_angvel", "ankle_angvel",
+                          "wrist_angvel", "hip_angle", "t"])
+    finally:
+        con.close()
+    _require(sm, "hip_angvel", "t")
+    joints = {j: sm[f"{j}_angvel"] for j in ("hip", "knee", "elbow", "ankle", "wrist")
+              if f"{j}_angvel" in sm}
+    window = None
+    if "hip_angle" in sm:  # janela concentrica (fundo -> extensao)
+        window = Sig.concentric_window(sm["hip_angle"])
+    return {"concentric_window_index": window, **Bio.sequencing(joints, sm["t"], window)}
+
+
+@app.get("/submovements/{sub_id}/compute/normalized-cycle", tags=["analises-profundas"])
+def deep_normalized_cycle(sub_id: int, series: str = "hip_angle", n: int = 101):
+    con = db.connect()
+    try:
+        sm = _series_map(con, sub_id, [series])
+    finally:
+        con.close()
+    _require(sm, series)
+    return {"series": series, "n": n, "x_pct": [round(i * 100 / (n - 1), 2) for i in range(n)],
+            "y": Bio.normalized_cycle(sm[series], n)}
+
+
+@app.get("/submovements/{sub_id}/analysis", tags=["analises-profundas"])
+def deep_panel(sub_id: int):
+    """Painel completo: roda TODAS as analises profundas disponiveis para o
+    submovimento, recomputadas das series brutas."""
+    con = db.connect()
+    try:
+        mass, g = _session_constants(con, sub_id)
+        sm = _series_map(con, sub_id)
+        label = db.one(con, "SELECT label,kind FROM submovement WHERE id=?", (sub_id,))
+    finally:
+        con.close()
+    if not sm:
+        raise HTTPException(404, "submovimento sem series")
+    t = sm.get("t")
+    panel: dict = {"submovement_id": sub_id, **(label or {})}
+
+    def safe(name, fn):
+        try:
+            panel[name] = fn()
+        except Exception as exc:  # noqa: BLE001
+            panel[name] = {"error": f"{type(exc).__name__}: {exc}"}
+
+    if all(k in sm for k in ("force", "speed", "power")):
+        safe("impulse_work", lambda: Bio.impulse_work(sm["force"], sm["speed"], sm["power"], t, mass, g))
+    if "power" in sm and "bar_height_rel_hip" in sm:
+        safe("efficiency", lambda: Bio.efficiency(sm["power"], sm["bar_height_rel_hip"], t, mass, g))
+    if "force" in sm:
+        onset = int(Sig.as_array(sm["hip_angle"]).argmin()) if "hip_angle" in sm else None
+        safe("rfd_tdf", lambda: Bio.rfd_tdf(sm["force"], t, onset_index=onset))
+    if "speed" in sm and "tangential_accel" in sm:
+        safe("velocity", lambda: Bio.velocity_metrics(sm["speed"], sm["tangential_accel"], t, g))
+        safe("ballistic", lambda: Bio.ballistic(sm["tangential_accel"], sm["force"], t))
+    if "accel" in sm:
+        safe("jerk", lambda: Bio.jerk(sm["accel"], t))
+    panel["joint_power"] = {}
+    for j, (tau, angvel, _a) in JOINT_SERIES.items():
+        if tau in sm and angvel in sm:
+            try:
+                panel["joint_power"][j] = Bio.joint_power(sm[tau], sm[angvel], t)
+            except Exception as exc:  # noqa: BLE001
+                panel["joint_power"][j] = {"error": str(exc)}
+    if all(k in sm for k in ("hip_angle", "hip_angvel", "speed")):
+        safe("ssc_hip", lambda: Bio.ssc(sm["hip_angle"], sm["hip_angvel"], sm["speed"], t))
+    if "hip_angvel" in sm:
+        joints = {jj: sm[f"{jj}_angvel"] for jj in ("hip", "knee", "elbow", "ankle", "wrist")
+                  if f"{jj}_angvel" in sm}
+        win = Sig.concentric_window(sm["hip_angle"]) if "hip_angle" in sm else None
+        safe("sequencing", lambda: Bio.sequencing(joints, t, win))
+    return panel
+
+
+@app.get("/sessions/{session_id}/analysis", tags=["analises-profundas"])
+def session_panel(session_id: int):
+    """Agrega o painel profundo de todos os submovimentos da sessao."""
+    con = db.connect()
+    try:
+        subs = db.rows(con, "SELECT id,ordinal,label FROM submovement WHERE session_id=? ORDER BY ordinal",
+                       (session_id,))
+    finally:
+        con.close()
+    if not subs:
+        raise HTTPException(404, "sessao sem submovimentos")
+    return {"session_id": session_id,
+            "submovements": [{**s, "analysis": deep_panel(s["id"])} for s in subs]}
+
+
 @app.post("/compute/cv", tags=["analises"])
 def post_cv(body: ValuesBody):
     return A.coefficient_of_variation(body.values, alpha=body.alpha)
@@ -452,3 +730,11 @@ def post_logistic(body: LogisticBody):
 @app.post("/compute/bootstrap-slope", tags=["analises"])
 def post_bootstrap(body: BootstrapBody):
     return A.bootstrap_slope_ci(body.x, body.y, space=body.space, n_boot=body.n_boot)
+
+
+# ==========================================================================
+# Cliente web estatico (web/) — servido em /app quando presente
+# ==========================================================================
+_WEB_DIR = Path(__file__).resolve().parents[1] / "web"
+if _WEB_DIR.is_dir():
+    app.mount("/app", StaticFiles(directory=str(_WEB_DIR), html=True), name="web")

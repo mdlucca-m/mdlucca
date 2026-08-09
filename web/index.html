@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Biomecânico — cliente da API</title>
+<style>
+  :root{
+    --bg:#05070d; --card:#0c1220; --card2:#0f1626; --line:#1a2338;
+    --accent:#ffb703; --accent2:#00e5ff; --green:#43aa8b; --red:#e63946; --purple:#c77dff;
+    --text:#e8ecf4; --dim:#8b95ab; --radius:10px;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+    --body:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);padding:20px;max-width:1200px;margin:0 auto}
+  h1{font-family:var(--mono);font-size:20px;margin:0 0 4px}
+  h2{font-family:var(--mono);font-size:15px;color:var(--accent2);text-transform:uppercase;letter-spacing:1px;margin:0 0 12px}
+  .sub{color:var(--dim);font-size:13px;font-family:var(--mono)}
+  header{background:linear-gradient(180deg,#030509,#050810);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+  .badge{display:inline-block;background:#0d1a22;border:1px solid var(--accent2);color:var(--accent2);border-radius:20px;padding:4px 12px;font-family:var(--mono);font-size:11px;margin-top:8px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .kpi{background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+  .kpi .lbl{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;font-family:var(--mono)}
+  .kpi .val{font-size:24px;font-weight:700;font-family:var(--mono)}
+  .kpi .u{font-size:12px;color:var(--dim)}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  button,select{background:#0d1420;border:1px solid #1e2942;color:var(--text);padding:7px 12px;border-radius:6px;font-family:var(--mono);font-size:12px;cursor:pointer}
+  button.active{background:var(--accent);color:#1a1400;border-color:var(--accent);font-weight:700}
+  button.var.active{background:var(--accent2);color:#00232b}
+  label{font-size:11px;color:var(--dim);font-family:var(--mono);text-transform:uppercase}
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px}
+  th{text-align:left;color:var(--accent2);border-bottom:2px solid var(--line);padding:8px;font-size:11px;text-transform:uppercase}
+  td{padding:7px 8px;border-bottom:1px solid #131a2a}
+  .chart-wrap{position:relative;height:320px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:800px){.grid2{grid-template-columns:1fr}}
+  code{background:#0f1522;padding:1px 5px;border-radius:4px;color:var(--accent2)}
+  .err{color:var(--red);font-family:var(--mono);font-size:12px}
+  .tag{font-family:var(--mono);font-size:10px;color:var(--dim);border:1px solid var(--line);border-radius:4px;padding:2px 6px}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Dashboard Biomecânico</h1>
+  <div class="sub" id="subtitle">carregando sessão da API…</div>
+  <div><span class="badge" id="src-badge">—</span></div>
+  <div class="sub" style="margin-top:8px">Cliente 100% via <code>fetch()</code> — todos os números vêm da API (<code id="api-base"></code>), recomputados no servidor.</div>
+</header>
+
+<section class="panel">
+  <h2>KPIs da sessão</h2>
+  <div class="kpis" id="kpis"></div>
+</section>
+
+<section class="panel">
+  <h2>Séries temporais</h2>
+  <div class="controls">
+    <label>Repetição:</label><span id="rep-btns"></span>
+  </div>
+  <div class="controls">
+    <label>Variável:</label><span id="var-btns"></span>
+  </div>
+  <div class="chart-wrap"><div id="chart" style="width:100%;height:100%"></div></div>
+  <div id="chart-legend" class="controls" style="margin-top:8px"></div>
+</section>
+
+<section class="panel">
+  <h2>Análise padrão-ouro — recomputada das séries brutas</h2>
+  <div class="sub" style="margin-bottom:10px">Fonte: <code>GET /submovements/{id}/analysis</code>. Cada número abaixo é recalculado no servidor por integração trapezoidal / Savitzky-Golay, não lido de valores pré-computados.</div>
+  <div id="deep"></div>
+</section>
+
+<section class="panel">
+  <h2>Perfil Força-Velocidade (lei de potência + IC bootstrap)</h2>
+  <div class="sub" style="margin-bottom:10px">Fonte: <code>GET /compute/force-velocity</code>.</div>
+  <div id="fv"></div>
+</section>
+
+<section class="panel">
+  <h2>Consistência entre repetições — recompute ao vivo</h2>
+  <div class="sub" style="margin-bottom:10px">Clique numa métrica para recomputar CV (com IC bootstrap) e o teste de Grubbs no servidor.</div>
+  <div id="consistency"></div>
+  <div id="consistency-result" style="margin-top:12px"></div>
+</section>
+
+<footer class="sub" style="text-align:center;padding:20px 0">
+  mdlucca biomechanics API · <a href="/docs" style="color:var(--accent2)">/docs</a> ·
+  fonte de pose: <span id="foot-src">—</span>
+</footer>
+
+<script>
+const API = location.origin;
+document.getElementById('api-base').textContent = API;
+const $ = (id) => document.getElementById(id);
+const SVGNS='http://www.w3.org/2000/svg';
+let SESSION = null, SUBS = [], CUR_SUB = null, CUR_VAR = 'angles', VARS = {};
+
+const j = async (path) => {
+  const r = await fetch(API + path);
+  if (!r.ok) throw new Error(path + ' → ' + r.status);
+  return r.json();
+};
+const fmt = (v, d=1) => (v===null||v===undefined) ? '—' :
+  Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+
+async function init(){
+  try{
+    SESSION = await j('/sessions/1');
+    SUBS = SESSION.submovements;
+    CUR_SUB = SUBS[0].id;
+    const a = SESSION.athlete;
+    $('title').textContent = 'Dashboard Biomecânico — ' + SESSION.exercise;
+    $('subtitle').textContent = `${a.name} · ${a.body_mass_kg} kg · ${a.height_m} m · carga ${SESSION.load_kg} kg (${fmt(SESSION.pct_bodyweight)}% PC) · ${SUBS.length} submovimentos`;
+    $('src-badge').textContent = 'pose: ' + SESSION.pose_source;
+    $('foot-src').textContent = SESSION.pose_model;
+    const varsList = await j('/variables');
+    varsList.forEach(v => VARS[v.key] = v);
+    renderRepButtons();
+    renderVarButtons();
+  }catch(e){
+    $('subtitle').innerHTML = '<span class="err">Falha ao carregar API: '+e.message+'. A API está no ar? (uvicorn app.api:app)</span>';
+    return;
+  }
+  // Cada seção carrega de forma independente — uma falha não derruba as outras.
+  renderKPIs().catch(x=>$('kpis').innerHTML='<span class="err">'+x.message+'</span>');
+  refresh();
+  loadFV();
+  loadConsistency();
+}
+
+// Mini-gráfico de linhas em SVG (sem dependências externas).
+function drawSVGChart(el, datasets, t, unit){
+  el.innerHTML=''; const legend=$('chart-legend'); legend.innerHTML='';
+  const W=el.clientWidth||900, H=el.clientHeight||320, P={l:48,r:12,t:12,b:26};
+  const all=datasets.flatMap(d=>d.data).filter(x=>Number.isFinite(x));
+  if(!all.length){ el.innerHTML='<div class="sub" style="padding:20px">sem série para este submovimento</div>'; return; }
+  let ymin=Math.min(...all), ymax=Math.max(...all); if(ymin===ymax){ymax+=1;ymin-=1;}
+  const n=datasets[0].data.length, xmax=(t&&t.length)?t[t.length-1]:n-1;
+  const sx=i=>P.l+(W-P.l-P.r)*((t?t[i]:i)/(xmax||1));
+  const sy=v=>P.t+(H-P.t-P.b)*(1-(v-ymin)/(ymax-ymin));
+  const svg=document.createElementNS(SVGNS,'svg'); svg.setAttribute('width','100%'); svg.setAttribute('height','100%');
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  // grid + eixo Y
+  for(let g=0;g<=4;g++){ const yv=ymin+(ymax-ymin)*g/4, y=sy(yv);
+    const ln=document.createElementNS(SVGNS,'line'); ln.setAttribute('x1',P.l);ln.setAttribute('x2',W-P.r);ln.setAttribute('y1',y);ln.setAttribute('y2',y);ln.setAttribute('stroke','rgba(255,255,255,.06)'); svg.appendChild(ln);
+    const tx=document.createElementNS(SVGNS,'text'); tx.setAttribute('x',4);tx.setAttribute('y',y+3);tx.setAttribute('fill','#8b95ab');tx.setAttribute('font-size','10');tx.setAttribute('font-family','monospace');tx.textContent=fmt(yv,1); svg.appendChild(tx);
+  }
+  datasets.forEach(ds=>{
+    let d='';
+    ds.data.forEach((v,i)=>{ if(!Number.isFinite(v))return; d+=(d?'L':'M')+sx(i).toFixed(1)+' '+sy(v).toFixed(1)+' '; });
+    const path=document.createElementNS(SVGNS,'path'); path.setAttribute('d',d);path.setAttribute('fill','none');path.setAttribute('stroke',ds.color);path.setAttribute('stroke-width','1.6'); svg.appendChild(path);
+    legend.innerHTML+=`<span class="tag" style="border-color:${ds.color};color:${ds.color}">${ds.label}</span>`;
+  });
+  const ut=document.createElementNS(SVGNS,'text'); ut.setAttribute('x',P.l);ut.setAttribute('y',H-6);ut.setAttribute('fill','#8b95ab');ut.setAttribute('font-size','10');ut.setAttribute('font-family','monospace');ut.textContent='t (s) →   ['+unit+']'; svg.appendChild(ut);
+  el.appendChild(svg);
+}
+
+async function renderKPIs(){
+  const g = await j('/metrics?analysis=global_kpi');
+  const items = (g.items||g);
+  const wrap = $('kpis'); wrap.innerHTML='';
+  const units = {peak_force:'N',peak_power:'W',peak_rfd:'N/s',peak_speed:'m/s',peak_tau_hip:'N·m',peak_tau_knee:'N·m'};
+  items.filter(x=>units[x.name]).forEach(x=>{
+    wrap.innerHTML += `<div class="kpi"><div class="lbl">${x.name.replace('peak_','')}</div><div class="val">${fmt(x.value_num,0)} <span class="u">${units[x.name]}</span></div></div>`;
+  });
+}
+
+function renderRepButtons(){
+  const w = $('rep-btns'); w.innerHTML='';
+  SUBS.forEach(s=>{
+    const b=document.createElement('button');
+    b.textContent=s.label; b.className=(s.id===CUR_SUB?'active':'');
+    b.onclick=()=>{CUR_SUB=s.id; renderRepButtons(); refresh();};
+    w.appendChild(b);
+  });
+}
+function renderVarButtons(){
+  const w = $('var-btns'); w.innerHTML='';
+  Object.values(VARS).forEach(v=>{
+    const b=document.createElement('button');
+    b.textContent=v.title.slice(0,22); b.className='var'+(v.key===CUR_VAR?' active':'');
+    b.onclick=()=>{CUR_VAR=v.key; renderVarButtons(); drawChart();};
+    w.appendChild(b);
+  });
+}
+
+let SERIES_CACHE = {};
+async function refresh(){ await drawChart(); await loadDeep(); }
+
+async function drawChart(){
+  const cfg = VARS[CUR_VAR]; if(!cfg) return;
+  const colors=['#ffb703','#43aa8b','#c77dff','#4cc9f0','#e63946','#f4a261'];
+  const datasets=[]; let t=null;
+  for(let i=0;i<cfg.series.length;i++){
+    const sk=cfg.series[i].series_key;
+    try{
+      const key=CUR_SUB+':'+sk;
+      const d = SERIES_CACHE[key] || (SERIES_CACHE[key]=await j(`/submovements/${CUR_SUB}/series/${sk}`));
+      t = d.t || t;
+      datasets.push({label:cfg.series[i].label||sk,data:d.samples,color:cfg.series[i].color||colors[i%6]});
+    }catch(e){/* série ausente nesse submov */}
+  }
+  drawSVGChart($('chart'), datasets, t, cfg.unit);
+}
+
+async function loadDeep(){
+  const el=$('deep'); el.innerHTML='<span class="sub">recomputando…</span>';
+  try{
+    const p = await j(`/submovements/${CUR_SUB}/analysis`);
+    const card=(title,obj)=>{
+      if(!obj || obj.error) return `<div class="kpi"><div class="lbl">${title}</div><div class="err">${obj?obj.error:'n/d'}</div></div>`;
+      const rows=Object.entries(obj).map(([k,v])=>`<div style="display:flex;justify-content:space-between;gap:10px"><span class="sub">${k}</span><b style="font-family:var(--mono)">${typeof v==='number'?fmt(v,2):v}</b></div>`).join('');
+      return `<div class="kpi"><div class="lbl">${title}</div>${rows}</div>`;
+    };
+    let html='<div class="kpis">';
+    html+=card('Impulso & Trabalho',p.impulse_work);
+    html+=card('Eficiência energética',p.efficiency);
+    html+=card('Velocidade propulsiva',p.velocity);
+    html+=card('Balístico',p.ballistic);
+    html+=card('Jerk (3ª derivada)',p.jerk);
+    html+=card('SSC (quadril)',p.ssc_hip);
+    if(p.joint_power) for(const [jn,jp] of Object.entries(p.joint_power)) html+=card('Potência articular — '+jn,jp);
+    html+='</div>';
+    if(p.rfd_tdf){
+      html+='<div style="margin-top:14px"><b class="sub">RFD/TDF</b> — onset t='+fmt(p.rfd_tdf.t_onset_s,3)+'s · RFD pico='+fmt(p.rfd_tdf.RFD_peak_Ns,0)+' N/s';
+      html+='<table style="margin-top:6px"><tr><th>Janela</th><th>TDF (N/s)</th><th>Impulso (N·s)</th></tr>';
+      for(const [w,v] of Object.entries(p.rfd_tdf.windows)) html+=`<tr><td>${w}</td><td>${v?fmt(v.TDF_Ns,0):'—'}</td><td>${v?fmt(v.impulse_Ns,2):'—'}</td></tr>`;
+      html+='</table></div>';
+    }
+    if(p.sequencing) html+='<div style="margin-top:12px"><b class="sub">Sequenciamento cinético (subida):</b> <span class="tag">'+p.sequencing.order.join(' → ')+'</span></div>';
+    el.innerHTML=html;
+  }catch(e){ el.innerHTML='<span class="err">'+e.message+'</span>'; }
+}
+
+async function loadFV(){
+  const el=$('fv');
+  try{
+    const d=await j('/compute/force-velocity');
+    const pl=d.powerlaw, bs=d.bootstrap_slope_loglog;
+    let html=`<div class="kpis">
+      <div class="kpi"><div class="lbl">Lei de potência</div><div class="val" style="font-size:16px">F = ${fmt(pl.a,0)}·v<sup>${fmt(pl.b,3)}</sup></div><div class="sub">R²=${fmt(pl.r2,3)} · p=${fmt(pl.p_value,4)}</div></div>
+      <div class="kpi"><div class="lbl">Expoente b — IC95% bootstrap</div><div class="val" style="font-size:16px">[${fmt(bs.ci95_low,3)}, ${fmt(bs.ci95_high,3)}]</div><div class="sub">${bs.includes_zero?'inclui zero (não significativo)':'não inclui zero'}</div></div>
+      <div class="kpi"><div class="lbl">Regressão linear</div><div class="val" style="font-size:16px">R²=${fmt(d.linear.r2,3)}</div><div class="sub">slope=${fmt(d.linear.slope,1)}</div></div>
+    </div>
+    <table style="margin-top:12px"><tr><th>Rep</th><th>v (m/s)</th><th>F (N)</th></tr>`;
+    d.points.forEach(p=>html+=`<tr><td>${p.label}</td><td>${fmt(p.v,2)}</td><td>${fmt(p.f,0)}</td></tr>`);
+    html+='</table>';
+    el.innerHTML=html;
+  }catch(e){ el.innerHTML='<span class="err">'+e.message+'</span>'; }
+}
+
+async function loadConsistency(){
+  const el=$('consistency');
+  try{
+    const rows=await j('/consistency?analysis=cv');
+    const seen=new Set(); const metrics=[];
+    rows.forEach(r=>{ if(!seen.has(r.metric_name)){seen.add(r.metric_name);metrics.push(r);} });
+    let html='<div class="controls">';
+    metrics.forEach(m=> html+=`<button onclick="recompute('${m.metric_name.replace(/'/g,"")}','${m.scope}')">${m.metric_name}</button>`);
+    html+='</div>';
+    el.innerHTML=html;
+  }catch(e){ el.innerHTML='<span class="err">'+e.message+'</span>'; }
+}
+
+async function recompute(metric, scope){
+  const el=$('consistency-result'); el.innerHTML='<span class="sub">recomputando no servidor…</span>';
+  try{
+    const cv=await j(`/compute/cv?metric=${encodeURIComponent(metric)}&scope=${encodeURIComponent(scope)}`);
+    const r=cv.result;
+    let html=`<div class="kpis"><div class="kpi"><div class="lbl">CV — ${metric}</div><div class="val">${fmt(r.cv_pct,1)}%</div><div class="sub">${r.classification} · IC95% [${fmt(r.ci95?.[0],1)}, ${fmt(r.ci95?.[1],1)}]</div></div>`;
+    try{
+      const g=await j(`/compute/grubbs?metric=${encodeURIComponent(metric+' (N)')}&scope=grubbs_5seg`);
+      const gr=g.result; if(!gr.error)
+        html+=`<div class="kpi"><div class="lbl">Grubbs (outlier?)</div><div class="val" style="font-size:16px">${gr.is_outlier?'SIM':'não'}</div><div class="sub">G=${fmt(gr.G,3)} vs G*=${fmt(gr.G_critical,3)} · p=${fmt(gr.p_value,3)}</div></div>`;
+    }catch(_){}
+    html+='</div>';
+    el.innerHTML=html;
+  }catch(e){ el.innerHTML='<span class="err">'+e.message+'</span>'; }
+}
+
+init();
+</script>
+</body>
+</html>
