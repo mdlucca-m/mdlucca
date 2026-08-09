@@ -51,6 +51,7 @@ def main():
     ap.add_argument("--out", default="data/out/realtime_slow.mp4")
     ap.add_argument("--out-fps", type=float, default=12.0)
     ap.add_argument("--height", type=int, default=720)
+    ap.add_argument("--layout", choices=["horizontal", "vertical"], default="horizontal")
     ap.add_argument("--brand", default="De Lucca Esporte")
     args = ap.parse_args()
 
@@ -76,50 +77,81 @@ def main():
 
     cap = cv2.VideoCapture(args.overlay)
     Nv = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    Hc = args.height - args.height % 2
+    vert = args.layout == "vertical"
 
-    # figura dos graficos (lado direito), tamanho em pixels ~ (Wg, Hc)
     plt.rcParams.update({"figure.facecolor": "#0e1116", "axes.facecolor": "#0e1116",
                          "text.color": "#e6edf3", "axes.edgecolor": "#39424d",
                          "axes.labelcolor": "#e6edf3", "xtick.color": GRY, "ytick.color": GRY})
     dpi = 100
-    fig = plt.figure(figsize=(8.8, Hc / dpi), dpi=dpi)
-    gs = fig.add_gridspec(3, 1, hspace=0.32, left=0.11, right=0.985, top=0.95, bottom=0.08)
-    axA, axV, axF = (fig.add_subplot(gs[i]) for i in range(3))
     tr = [(t[r[3]], t[min(r[4], N - 1)], r[2]) for r in reps]
+    updates, curs = [], []                       # (linha, serie) e cursores
 
-    def prep(ax, ymin, ymax, ylabel):
+    def prep(ax, ymin, ymax, ylabel, fs=9):
         ax.set_xlim(0, t[-1]); ax.set_ylim(ymin, ymax); ax.grid(color="#20262e")
-        ax.set_ylabel(ylabel, fontsize=9); ax.tick_params(labelsize=8)
+        ax.set_ylabel(ylabel, fontsize=fs); ax.tick_params(labelsize=fs - 1)
         ax.axhline(0, color="#39424d", lw=.6)
         for s, e, _ in tr:
             ax.axvspan(s, e, color="#fff", alpha=0.03)
-    prep(axA, min(hip.min(), knee.min()) - 5, 190, "ângulo (°)")
-    axA.axhline(180, color=RED, ls=":", lw=.8, alpha=.6)
-    prep(axV, -max(np.abs(hipw).max(), np.abs(kneew).max()) * 1.1,
-         max(np.abs(hipw).max(), np.abs(kneew).max()) * 1.1, "vel.ang (°/s)")
-    fpm = max(np.abs(force).max(), np.abs(power).max()) * 1.1
-    prep(axF, -fpm, fpm, "F(N)/P(W)"); axF.set_xlabel("tempo (s)", fontsize=9)
-    lah, = axA.plot([], [], color=TEAL, lw=1.8, label="quadril")
-    lak, = axA.plot([], [], color=YEL, lw=1.8, label="joelho")
-    laa, = axA.plot([], [], color=BLU, lw=1.4, label="tornozelo")
-    axA.legend(loc="lower right", fontsize=7, ncol=3, facecolor="#171b22", edgecolor="#39424d")
-    lvh, = axV.plot([], [], color=TEAL, lw=1.8, label="quadril")
-    lvk, = axV.plot([], [], color=YEL, lw=1.8, label="joelho")
-    axV.legend(loc="upper right", fontsize=7, ncol=2, facecolor="#171b22", edgecolor="#39424d")
-    lf, = axF.plot([], [], color=ORG, lw=1.8, label="força")
-    lp, = axF.plot([], [], color=TEAL, lw=1.8, label="potência")
-    axF.legend(loc="upper right", fontsize=7, ncol=2, facecolor="#171b22", edgecolor="#39424d")
-    curs = [ax.axvline(0, color="#e6edf3", lw=.7, alpha=.4) for ax in (axA, axV, axF)]
-    fig.suptitle(f"{args.brand} — resultados em tempo real", color=TEAL,
-                 fontweight="bold", fontsize=12)
-    fig.canvas.draw()
-    Wg = fig.canvas.get_width_height()[0]
+        curs.append(ax.axvline(0, color="#e6edf3", lw=.7, alpha=.4))
 
-    vw_w = int(Hc * 1080 / 1920)                 # painel do video (retrato)
-    W = (vw_w + Wg); W -= W % 2
+    def line(ax, y, color, label, lw=1.8):
+        (ln,) = ax.plot([], [], color=color, lw=lw, label=label); updates.append((ln, y))
+
+    fpm = max(np.abs(force).max(), np.abs(power).max()) * 1.1
+    vmax = max(np.abs(hipw).max(), np.abs(kneew).max()) * 1.1
+
+    if vert:                                     # ---- Reels/Stories 9:16 ----
+        CW, CH = 720, 1280
+        strip_h = 470
+        fig = plt.figure(figsize=(CW / dpi, strip_h / dpi), dpi=dpi)
+        gs = fig.add_gridspec(1, 2, wspace=0.28, left=0.09, right=0.99, top=0.88, bottom=0.13)
+        axA = fig.add_subplot(gs[0]); axF = fig.add_subplot(gs[1])
+        prep(axA, min(hip.min(), knee.min()) - 5, 190, "ângulo (°)", 8)
+        axA.axhline(180, color=RED, ls=":", lw=.8, alpha=.6)
+        line(axA, hip, TEAL, "quadril"); line(axA, knee, YEL, "joelho")
+        axA.legend(loc="lower right", fontsize=7, facecolor="#171b22", edgecolor="#39424d")
+        prep(axF, -fpm, fpm, "F(N)/P(W)", 8)
+        line(axF, force, ORG, "força"); line(axF, power, TEAL, "potência")
+        axF.legend(loc="upper right", fontsize=7, facecolor="#171b22", edgecolor="#39424d")
+        axA.set_xlabel("t (s)", fontsize=8); axF.set_xlabel("t (s)", fontsize=8)
+        fig.suptitle(f"{args.brand} — em tempo real", color=TEAL, fontweight="bold", fontsize=12)
+        top_h = CH - strip_h
+        sc = min(720 / 1080, top_h / 1920); vw_w, vh = int(1080 * sc), int(1920 * sc)
+        vx = (CW - vw_w) // 2
+        W, Hc = CW, CH
+    else:                                        # ---- horizontal 16:9 ----
+        Hc = args.height - args.height % 2
+        fig = plt.figure(figsize=(8.8, Hc / dpi), dpi=dpi)
+        gs = fig.add_gridspec(3, 1, hspace=0.32, left=0.11, right=0.985, top=0.95, bottom=0.08)
+        axA, axV, axF = (fig.add_subplot(gs[i]) for i in range(3))
+        prep(axA, min(hip.min(), knee.min()) - 5, 190, "ângulo (°)")
+        axA.axhline(180, color=RED, ls=":", lw=.8, alpha=.6)
+        line(axA, hip, TEAL, "quadril"); line(axA, knee, YEL, "joelho"); line(axA, ank, BLU, "tornozelo", 1.4)
+        axA.legend(loc="lower right", fontsize=7, ncol=3, facecolor="#171b22", edgecolor="#39424d")
+        prep(axV, -vmax, vmax, "vel.ang (°/s)")
+        line(axV, hipw, TEAL, "quadril"); line(axV, kneew, YEL, "joelho")
+        axV.legend(loc="upper right", fontsize=7, ncol=2, facecolor="#171b22", edgecolor="#39424d")
+        prep(axF, -fpm, fpm, "F(N)/P(W)"); axF.set_xlabel("tempo (s)", fontsize=9)
+        line(axF, force, ORG, "força"); line(axF, power, TEAL, "potência")
+        axF.legend(loc="upper right", fontsize=7, ncol=2, facecolor="#171b22", edgecolor="#39424d")
+        fig.suptitle(f"{args.brand} — resultados em tempo real", color=TEAL, fontweight="bold", fontsize=12)
+        vw_w = int(Hc * 1080 / 1920)
+        W = (vw_w + fig.canvas.get_width_height()[0]); W -= W % 2
+
+    fig.canvas.draw()
+    Wg, Hg = fig.canvas.get_width_height()
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     vw = cv2.VideoWriter(args.out, cv2.VideoWriter_fourcc(*"mp4v"), args.out_fps, (W, Hc))
+
+    def scoreboard(img, f, x=8, y=8):
+        r = rep_of[f]
+        rows = [f"Rep {r}/{len(reps)}" if r else "setup",
+                f"F pico: {cmaxF[f]:5.0f} N", f"P pico: {cmaxP[f]:5.0f} W",
+                f"V pico: {cmaxV[f]:4.2f} m/s"]
+        cv2.rectangle(img, (x, y), (x + 210, y + 18 + 24 * len(rows)), (14, 17, 22), -1)
+        for i, ln in enumerate(rows):
+            cv2.putText(img, ln, (x + 8, y + 22 * i + 22), cv2.FONT_HERSHEY_SIMPLEX,
+                        0.6, (230, 237, 243), 1, cv2.LINE_AA)
 
     for f in range(N):
         vf = int(round(f * (Nv - 1) / (N - 1)))
@@ -127,33 +159,26 @@ def main():
         ok, frame = cap.read()
         if not ok:
             continue
-        vpanel = cv2.resize(frame, (vw_w, Hc))
-        # placar de resultados (gerando os resultados ao vivo)
-        r = rep_of[f]
-        lines = [f"Rep {r}/{len(reps)}" if r else "setup",
-                 f"F pico:  {cmaxF[f]:6.0f} N",
-                 f"P pico:  {cmaxP[f]:6.0f} W",
-                 f"V pico:  {cmaxV[f]:5.2f} m/s"]
-        y0 = 26
-        cv2.rectangle(vpanel, (8, 8), (vw_w - 8, y0 + 4 + 24 * len(lines)), (14, 17, 22), -1)
-        for i, ln in enumerate(lines):
-            cv2.putText(vpanel, ln, (16, y0 + 22 * i + 8), cv2.FONT_HERSHEY_SIMPLEX,
-                        0.6, (230, 237, 243), 1, cv2.LINE_AA)
-        # graficos ao vivo
-        lah.set_data(t[:f + 1], hip[:f + 1]); lak.set_data(t[:f + 1], knee[:f + 1])
-        laa.set_data(t[:f + 1], ank[:f + 1])
-        lvh.set_data(t[:f + 1], hipw[:f + 1]); lvk.set_data(t[:f + 1], kneew[:f + 1])
-        lf.set_data(t[:f + 1], force[:f + 1]); lp.set_data(t[:f + 1], power[:f + 1])
+        for ln, y in updates:
+            ln.set_data(t[:f + 1], y[:f + 1])
         for c in curs:
             c.set_xdata([t[f], t[f]])
         fig.canvas.draw()
-        buf = np.frombuffer(fig.canvas.buffer_rgba(), np.uint8).reshape(
-            fig.canvas.get_width_height()[1], fig.canvas.get_width_height()[0], 4)
-        gpanel = cv2.cvtColor(buf[:Hc, :Wg, :3], cv2.COLOR_RGB2BGR)
-        comp = np.hstack([vpanel, gpanel])[:, :W]
+        buf = np.frombuffer(fig.canvas.buffer_rgba(), np.uint8).reshape(Hg, Wg, 4)
+        gpanel = cv2.cvtColor(buf[:, :, :3], cv2.COLOR_RGB2BGR)
+        if vert:
+            comp = np.full((Hc, W, 3), (14, 17, 22), np.uint8)
+            vpanel = cv2.resize(frame, (vw_w, vh))
+            comp[0:vh, vx:vx + vw_w] = vpanel
+            gh = min(Hg, Hc - top_h)
+            comp[top_h:top_h + gh, 0:min(Wg, W)] = gpanel[:gh, :min(Wg, W)]
+            scoreboard(comp, f, x=vx + 6, y=10)
+        else:
+            vpanel = cv2.resize(frame, (vw_w, Hc)); scoreboard(vpanel, f)
+            comp = np.hstack([vpanel, gpanel])[:, :W]
         vw.write(comp)
     vw.release(); cap.release(); plt.close(fig)
-    print(f"[ok] {args.out}  {N} frames @ {args.out_fps} fps "
+    print(f"[ok] {args.out}  layout={args.layout}  {N} frames @ {args.out_fps} fps "
           f"({30/args.out_fps:.1f}x mais lento)  {W}x{Hc}")
 
 

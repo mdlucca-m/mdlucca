@@ -87,6 +87,11 @@ realtime:
 	python3 scripts/render_realtime_video.py --overlay "$(OVERLAY)" \
 	  --session $(SESSION) --out-fps 12 --out $(OUT)
 
+# Versao vertical (Reels/Stories 9:16) do video real + graficos ao vivo
+reels:
+	python3 scripts/render_realtime_video.py --overlay "$(OVERLAY)" \
+	  --session $(SESSION) --layout vertical --out-fps 8 --out $(OUT)
+
 api:
 	uvicorn app.api:app --reload
 
