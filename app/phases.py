@@ -13,8 +13,47 @@ curtos (< min_dur) para eliminar jitter.
 from __future__ import annotations
 
 import numpy as np
+from scipy.signal import find_peaks
 
 from app import signals as S
+
+
+def segment_cycles(primary, stand_frac: float = 0.85, bottom_frac: float = 0.60,
+                   min_sep: int = 15, smooth_window: int = 13) -> dict:
+    """Segmenta ciclos EXTENSAO->flexao->EXTENSAO a partir de um angulo primario.
+
+    Pensado para contar repeticoes DE PE -> DE PE (ex.: agachamento, terra): uma
+    repeticao vai de uma posicao de extensao (pico do angulo, ~ em pe) ate a
+    proxima, passando por um fundo real. A subida inicial (chao/agachado ate a
+    1a extensao) vira "entrada" e a descida final vira "saida" — nenhuma delas e
+    contada como repeticao.
+
+    Parametros (fracoes do pico do angulo):
+      stand_frac  — altura minima de um pico para contar como "em pe" (0..1)
+      bottom_frac — o angulo precisa cair abaixo disso entre dois picos para que
+                    eles sejam posicoes de pe distintas (senao sao fundidos)
+      min_sep     — distancia minima entre picos (frames)
+
+    Retorna {"peaks":[...], "reps":[(a,b),...], "entry":(0,p0)|None,
+             "exit":(p_last,N-1)|None}.
+    """
+    y = S.savgol(np.asarray(primary, float), window=smooth_window)
+    n = y.size
+    if n < 3:
+        return {"peaks": [], "reps": [], "entry": None, "exit": None}
+    hi = float(np.max(y))
+    peaks, _ = find_peaks(y, height=stand_frac * hi, distance=max(1, min_sep))
+    merged: list[int] = []
+    for p in peaks:
+        if merged and float(np.min(y[merged[-1]:p + 1])) > bottom_frac * hi:
+            if y[p] > y[merged[-1]]:
+                merged[-1] = int(p)      # mesma posicao de pe: fica com o maior
+            continue
+        merged.append(int(p))
+    reps = [(merged[i], merged[i + 1]) for i in range(len(merged) - 1)]
+    entry = (0, merged[0]) if merged and merged[0] > 0 else None
+    exit_ = (merged[-1], n - 1) if merged and merged[-1] < n - 1 else None
+    return {"peaks": merged, "reps": reps, "entry": entry, "exit": exit_}
 
 
 def _labels(primary, t, smooth_window: int, vmin_frac: float):

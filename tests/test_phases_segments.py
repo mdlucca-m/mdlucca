@@ -62,6 +62,21 @@ def test_segments_resolve():
     assert r["bones"] and len(r["points"]) == len(set(r["points"]))
 
 
+def test_segment_cycles_standing_to_standing():
+    """Conta reps DE PE -> DE PE: subida inicial e descida final nao contam."""
+    # angulo do quadril sintetico: entrada (35->175), 3 picos de pe com 2 fundos,
+    # saida (175->35). Espera 3 picos -> 2 reps, com entrada e saida.
+    seg_up = np.linspace(35, 175, 40)
+    down_up = np.concatenate([np.linspace(175, 55, 25), np.linspace(55, 175, 25)])
+    seg_down = np.linspace(175, 35, 40)
+    y = np.concatenate([seg_up, down_up, down_up, seg_down])
+    r = Ph.segment_cycles(y, min_sep=10)
+    assert len(r["peaks"]) == 3 and len(r["reps"]) == 2
+    assert r["entry"] is not None and r["exit"] is not None
+    # a 1a rep comeca no 1o pico (em pe), nao no inicio do sinal
+    assert r["reps"][0][0] == r["peaks"][0] > 0
+
+
 def test_segments_catalog_has_groups():
     c = Seg.catalog()
     assert "sem_bracos" in c["groups"] and "all" in c["groups"]

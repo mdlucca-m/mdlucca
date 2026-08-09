@@ -71,6 +71,8 @@ def main():
     rep_of = np.zeros(N, int)
     for i, r in enumerate(reps, 1):
         rep_of[r[3]:r[4] + 1] = i
+    first_rep = min((r[3] for r in reps), default=0)   # inicio da 1a rep contada
+    last_rep = max((r[4] for r in reps), default=N - 1)
     cmaxF = np.maximum.accumulate(np.abs(force))
     cmaxP = np.maximum.accumulate(np.clip(power, 0, None))
     cmaxV = np.maximum.accumulate(np.abs(speed))
@@ -145,7 +147,15 @@ def main():
 
     def scoreboard(img, f, x=8, y=8):
         r = rep_of[f]
-        rows = [f"Rep {r}/{len(reps)}" if r else "setup",
+        if r:
+            head = f"Rep {r}/{len(reps)}"
+        elif f < first_rep:
+            head = "Entrada (setup)"
+        elif f > last_rep:
+            head = "Saida"
+        else:
+            head = "transicao"
+        rows = [head,
                 f"F pico: {cmaxF[f]:5.0f} N", f"P pico: {cmaxP[f]:5.0f} W",
                 f"V pico: {cmaxV[f]:4.2f} m/s"]
         cv2.rectangle(img, (x, y), (x + 210, y + 18 + 24 * len(rows)), (14, 17, 22), -1)
