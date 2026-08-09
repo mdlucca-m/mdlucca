@@ -26,6 +26,38 @@ def connect() -> sqlite3.Connection:
     return con
 
 
+def connect_rw() -> sqlite3.Connection:
+    """Conexao de LEITURA/ESCRITA (cadastro de alunos, sessoes, links).
+
+    Diferente de connect() (somente leitura), usada apenas pelos endpoints
+    que gravam no banco. Garante as tabelas auxiliares de produto (share).
+    """
+    p = db_path()
+    con = sqlite3.connect(str(p))
+    con.row_factory = sqlite3.Row
+    con.execute("PRAGMA foreign_keys=ON")
+    _ensure_product_tables(con)
+    return con
+
+
+def _ensure_product_tables(con: sqlite3.Connection) -> None:
+    """Cria (idempotente) as tabelas da camada de produto sem re-ingestao."""
+    con.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS share (
+            token       TEXT PRIMARY KEY,
+            kind        TEXT NOT NULL,      /* session | submovement */
+            ref_id      INTEGER NOT NULL,
+            title       TEXT,
+            audience    TEXT,               /* atleta | treinador | ambos */
+            created_at  TEXT NOT NULL,
+            views       INTEGER NOT NULL DEFAULT 0
+        );
+        """
+    )
+    con.commit()
+
+
 def rows(con: sqlite3.Connection, sql: str, params: tuple = ()) -> list[dict]:
     return [dict(r) for r in con.execute(sql, params).fetchall()]
 

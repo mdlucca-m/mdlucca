@@ -14,17 +14,20 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
 import subprocess
 import sys
 import time
 import uuid
+from datetime import datetime, timezone
+from html import escape
 from pathlib import Path
 from typing import Literal, Optional
 
 import numpy as np
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -1097,6 +1100,325 @@ def post_logistic(body: LogisticBody):
 @app.post("/compute/bootstrap-slope", tags=["analises"])
 def post_bootstrap(body: BootstrapBody):
     return A.bootstrap_slope_ci(body.x, body.y, space=body.space, n_boot=body.n_boot)
+
+
+# ==========================================================================
+# Camada de PRODUTO: cadastro de alunos, sessoes e links compartilhaveis
+# (escrita no banco via db.connect_rw). Nao altera o motor de analise.
+# ==========================================================================
+class AthleteIn(BaseModel):
+    name: str = Field(..., min_length=1)
+    body_mass_kg: Optional[float] = None
+    height_m: Optional[float] = None
+    sex: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class SessionIn(BaseModel):
+    athlete_id: int
+    exercise: str = Field(..., min_length=1)
+    load_kg: Optional[float] = None
+    notes: Optional[str] = None
+
+
+class ShareIn(BaseModel):
+    kind: Literal["session", "submovement"] = "session"
+    ref_id: int
+    audience: Literal["atleta", "treinador", "ambos"] = "ambos"
+    title: Optional[str] = None
+
+
+def _bmi(mass: Optional[float], height: Optional[float]) -> Optional[float]:
+    if mass and height and height > 0:
+        return round(mass / (height * height), 1)
+    return None
+
+
+@app.post("/athletes", tags=["cadastro"])
+def create_athlete(a: AthleteIn):
+    con = db.connect_rw()
+    try:
+        cur = con.execute(
+            "INSERT INTO athlete (name, body_mass_kg, height_m, bmi, sex, notes) "
+            "VALUES (?,?,?,?,?,?)",
+            (a.name, a.body_mass_kg, a.height_m, _bmi(a.body_mass_kg, a.height_m),
+             a.sex, a.notes),
+        )
+        con.commit()
+        new_id = cur.lastrowid
+        return dict(con.execute("SELECT * FROM athlete WHERE id=?", (new_id,)).fetchone())
+    finally:
+        con.close()
+
+
+@app.post("/athletes/{athlete_id}/update", tags=["cadastro"])
+def update_athlete(athlete_id: int, a: AthleteIn):
+    con = db.connect_rw()
+    try:
+        if not con.execute("SELECT 1 FROM athlete WHERE id=?", (athlete_id,)).fetchone():
+            raise HTTPException(404, "aluno nao encontrado")
+        con.execute(
+            "UPDATE athlete SET name=?, body_mass_kg=?, height_m=?, bmi=?, sex=?, notes=? "
+            "WHERE id=?",
+            (a.name, a.body_mass_kg, a.height_m, _bmi(a.body_mass_kg, a.height_m),
+             a.sex, a.notes, athlete_id),
+        )
+        con.commit()
+        return dict(con.execute("SELECT * FROM athlete WHERE id=?", (athlete_id,)).fetchone())
+    finally:
+        con.close()
+
+
+@app.post("/athletes/{athlete_id}/delete", tags=["cadastro"])
+def delete_athlete(athlete_id: int):
+    con = db.connect_rw()
+    try:
+        n = con.execute("SELECT COUNT(*) FROM session WHERE athlete_id=?",
+                        (athlete_id,)).fetchone()[0]
+        if n:
+            raise HTTPException(409, f"aluno tem {n} sessao(oes); remova-as antes")
+        con.execute("DELETE FROM athlete WHERE id=?", (athlete_id,))
+        con.commit()
+        return {"deleted": athlete_id}
+    finally:
+        con.close()
+
+
+@app.post("/sessions", tags=["cadastro"])
+def create_session(s: SessionIn):
+    con = db.connect_rw()
+    try:
+        ath = con.execute("SELECT body_mass_kg FROM athlete WHERE id=?",
+                          (s.athlete_id,)).fetchone()
+        if not ath:
+            raise HTTPException(404, "aluno nao encontrado")
+        pct = None
+        if s.load_kg and ath["body_mass_kg"]:
+            pct = round(100.0 * s.load_kg / ath["body_mass_kg"], 1)
+        cur = con.execute(
+            "INSERT INTO session (athlete_id, exercise, load_kg, pct_bodyweight, "
+            "gravity, pose_source, n_submovements, captured_at, notes) "
+            "VALUES (?,?,?,?,?,?,?,?,?)",
+            (s.athlete_id, s.exercise, s.load_kg, pct, 9.81, "manual", 0,
+             datetime.now(timezone.utc).isoformat(), s.notes),
+        )
+        con.commit()
+        return dict(con.execute("SELECT * FROM session WHERE id=?",
+                                (cur.lastrowid,)).fetchone())
+    finally:
+        con.close()
+
+
+@app.post("/shares", tags=["compartilhar"])
+def create_share(s: ShareIn, request: Request):
+    con = db.connect_rw()
+    try:
+        tbl = "session" if s.kind == "session" else "submovement"
+        if not con.execute(f"SELECT 1 FROM {tbl} WHERE id=?", (s.ref_id,)).fetchone():
+            raise HTTPException(404, f"{s.kind} {s.ref_id} nao encontrado")
+        token = secrets.token_urlsafe(8)
+        con.execute(
+            "INSERT INTO share (token, kind, ref_id, title, audience, created_at, views) "
+            "VALUES (?,?,?,?,?,?,0)",
+            (token, s.kind, s.ref_id, s.title, s.audience,
+             datetime.now(timezone.utc).isoformat()),
+        )
+        con.commit()
+        base = str(request.base_url).rstrip("/")
+        return {"token": token, "url": f"{base}/r/{token}",
+                "kind": s.kind, "ref_id": s.ref_id, "audience": s.audience}
+    finally:
+        con.close()
+
+
+@app.get("/shares", tags=["compartilhar"])
+def list_shares():
+    con = db.connect_rw()
+    try:
+        return db.rows(con, "SELECT * FROM share ORDER BY created_at DESC")
+    finally:
+        con.close()
+
+
+# --- Renderizacao do relatorio compartilhavel (HTML autossuficiente) --------
+# Cada coluna tenta uma lista de nomes candidatos (varia entre sessoes) e usa
+# o primeiro que existir. Robusto p/ sessoes de dashboard e de video.
+_HEADLINE = [
+    ("Potencia pico", [("peaks", "power_peak"), ("peaks", "P_peak")]),
+    ("Forca pico", [("peaks", "F_peak"), ("peaks", "force_dynamic_peak")]),
+    ("Velocidade pico", [("peaks", "v_peak"), ("derivatives", "v_peak")]),
+    ("RFD pico", [("peaks", "RFD_peak")]),
+    ("Vel.ang. quadril", [("peaks", "hip_angvel_peak"), ("angular_velocity", "hip")]),
+    ("Impulso prop.", [("ballistic", "impulso_propulsivo"), ("tdf", "impulse_200ms")]),
+]
+_POWER_CANDIDATES = [("peaks", "power_peak"), ("peaks", "P_peak")]
+
+
+def _fmt(v):
+    try:
+        return f"{float(v):.1f}"
+    except (TypeError, ValueError):
+        return str(v)
+
+
+def _report_html(con, kind: str, ref_id: int, title, audience) -> str:
+    if kind == "submovement":
+        srow = con.execute("SELECT session_id FROM submovement WHERE id=?",
+                           (ref_id,)).fetchone()
+        if not srow:
+            raise HTTPException(404, "submovimento nao encontrado")
+        session_id = srow["session_id"]
+        sub_filter = " AND id=?"
+        sub_params = (session_id, ref_id)
+    else:
+        session_id = ref_id
+        sub_filter = ""
+        sub_params = (session_id,)
+    ses = con.execute("SELECT * FROM session WHERE id=?", (session_id,)).fetchone()
+    if not ses:
+        raise HTTPException(404, "sessao nao encontrada")
+    ath = con.execute("SELECT * FROM athlete WHERE id=?", (ses["athlete_id"],)).fetchone()
+    subs = con.execute(
+        "SELECT * FROM submovement WHERE session_id=?" + sub_filter +
+        " ORDER BY ordinal", sub_params).fetchall()
+
+    def metrics_for(sub_id):
+        out = {}
+        for r in con.execute(
+                "SELECT analysis,name,value_num,unit FROM metric WHERE submovement_id=?",
+                (sub_id,)):
+            out[(r["analysis"], r["name"])] = (r["value_num"], r["unit"])
+        return out
+
+    ath_name = escape(ath["name"] if ath else "Atleta")
+    exercise = escape(ses["exercise"] or "")
+    load = ses["load_kg"]
+    mass = ath["body_mass_kg"] if ath else None
+    height = ath["height_m"] if ath else None
+    bmi = ath["bmi"] if ath else None
+    aud_label = {"atleta": "Atleta", "treinador": "Treinador",
+                 "ambos": "Atleta e Treinador"}.get(audience, "")
+
+    def pick(m, candidates):
+        for key in candidates:
+            if key in m and m[key][0] is not None:
+                return m[key]
+        return None
+
+    rep_rows = []
+    powers = []
+    for sub in subs:
+        m = metrics_for(sub["id"])
+        cells = []
+        for _lab, candidates in _HEADLINE:
+            val = pick(m, candidates)
+            cells.append(f"<td>{_fmt(val[0])}"
+                         f"<span class='u'>{escape(val[1]) if val[1] else ''}</span></td>"
+                         if val else "<td>—</td>")
+        pk = pick(m, _POWER_CANDIDATES)
+        powers.append((escape(sub["label"]), float(pk[0]) if pk and pk[0] else 0.0))
+        dur = (sub["n_frames"] * sub["dt"]) if (sub["n_frames"] and sub["dt"]) else None
+        rep_rows.append(
+            f"<tr><td class='lab'>{escape(sub['label'])}</td>"
+            f"<td>{sub['n_frames'] or '—'}</td>"
+            f"<td>{_fmt(dur) if dur else '—'}s</td>" + "".join(cells) + "</tr>")
+
+    # mini bar chart (SVG inline) — potencia pico por repeticao
+    bars = ""
+    if powers:
+        pmax = max(p for _, p in powers) or 1.0
+        bw = 46
+        gap = 18
+        w = len(powers) * (bw + gap) + gap
+        h = 180
+        for i, (lab, p) in enumerate(powers):
+            bh = (p / pmax) * 120
+            x = gap + i * (bw + gap)
+            y = 150 - bh
+            bars += (f"<rect x='{x}' y='{y:.0f}' width='{bw}' height='{bh:.0f}' rx='4' "
+                     f"fill='#2a9d8f'/>"
+                     f"<text x='{x + bw/2:.0f}' y='{y-6:.0f}' text-anchor='middle' "
+                     f"class='bv'>{p:.0f}</text>"
+                     f"<text x='{x + bw/2:.0f}' y='168' text-anchor='middle' "
+                     f"class='bx'>{lab[:8]}</text>")
+        chart = (f"<svg viewBox='0 0 {w} {h}' class='chart' role='img' "
+                 f"aria-label='Potencia pico por repeticao'>{bars}</svg>")
+    else:
+        chart = "<p class='muted'>Sem repeticoes.</p>"
+
+    header_cells = "".join(f"<th>{escape(l)}</th>" for l, _ in _HEADLINE)
+    date = escape((ses["captured_at"] or "")[:10])
+    return f"""<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relatorio — {ath_name}</title>
+<style>
+:root{{--bg:#0e1116;--card:#171b22;--ink:#e6edf3;--mut:#8b98a6;--acc:#2a9d8f;--line:#232a33}}
+*{{box-sizing:border-box}}
+body{{margin:0;background:var(--bg);color:var(--ink);
+font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}}
+.wrap{{max-width:820px;margin:0 auto;padding:22px 16px 60px}}
+.brand{{font-weight:700;letter-spacing:.3px;color:var(--acc)}}
+.card{{background:var(--card);border:1px solid var(--line);border-radius:14px;
+padding:18px 18px;margin:14px 0}}
+h1{{font-size:22px;margin:.2em 0}}
+.meta{{color:var(--mut);font-size:13px}}
+.grid{{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}}
+.kv{{background:#0e1116;border:1px solid var(--line);border-radius:10px;
+padding:8px 12px;min-width:120px}}
+.kv b{{display:block;font-size:18px}}
+.kv span{{color:var(--mut);font-size:12px}}
+table{{width:100%;border-collapse:collapse;font-size:13px;overflow-x:auto;display:block}}
+th,td{{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}}
+th:first-child,td.lab,td:first-child{{text-align:left}}
+th{{color:var(--mut);font-weight:600;font-size:12px}}
+td.lab{{font-weight:600}}
+.u{{color:var(--mut);font-size:10px;margin-left:2px}}
+.chart{{width:100%;height:auto;max-width:100%}}
+.bv{{fill:var(--ink);font-size:11px}} .bx{{fill:var(--mut);font-size:10px}}
+.badge{{display:inline-block;background:#0e1116;border:1px solid var(--acc);
+color:var(--acc);border-radius:999px;padding:2px 10px;font-size:12px}}
+.muted{{color:var(--mut)}}
+footer{{color:var(--mut);font-size:12px;text-align:center;margin-top:26px}}
+</style></head><body><div class="wrap">
+<div class="brand">De Lucca Esporte — Relatorio Biomecanico</div>
+<div class="card">
+  <h1>{ath_name}</h1>
+  <div class="meta">{exercise}{(' • ' + str(load) + ' kg') if load else ''}
+    {(' • ' + date) if date else ''} • <span class="badge">{aud_label}</span></div>
+  <div class="grid">
+    <div class="kv"><b>{_fmt(mass) if mass else '—'}</b><span>massa (kg)</span></div>
+    <div class="kv"><b>{_fmt(height) if height else '—'}</b><span>estatura (m)</span></div>
+    <div class="kv"><b>{_fmt(bmi) if bmi else '—'}</b><span>IMC</span></div>
+    <div class="kv"><b>{len(subs)}</b><span>repeticoes</span></div>
+  </div>
+</div>
+<div class="card">
+  <h1 style="font-size:16px">Potencia pico por repeticao (W)</h1>
+  {chart}
+</div>
+<div class="card">
+  <h1 style="font-size:16px">Metricas por repeticao</h1>
+  <table><thead><tr><th>Repeticao</th><th>Frames</th><th>Dur.</th>{header_cells}</tr></thead>
+  <tbody>{''.join(rep_rows)}</tbody></table>
+</div>
+<footer>Gerado pelo sistema biomecanico De Lucca Esporte •
+analises padrao-ouro (De Leva, Winter, ISB) • fonte de pose: {escape(ses['pose_source'] or '')}</footer>
+</div></body></html>"""
+
+
+@app.get("/r/{token}", response_class=HTMLResponse, tags=["compartilhar"])
+def view_report(token: str):
+    con = db.connect_rw()
+    try:
+        sh = con.execute("SELECT * FROM share WHERE token=?", (token,)).fetchone()
+        if not sh:
+            raise HTTPException(404, "link invalido ou expirado")
+        con.execute("UPDATE share SET views=views+1 WHERE token=?", (token,))
+        con.commit()
+        html = _report_html(con, sh["kind"], sh["ref_id"], sh["title"], sh["audience"])
+        return HTMLResponse(html)
+    finally:
+        con.close()
 
 
 # ==========================================================================

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>De Lucca Esporte — Gestão de Atletas</title>
+<style>
+  :root{--bg:#0e1116;--card:#171b22;--ink:#e6edf3;--mut:#8b98a6;--acc:#2a9d8f;
+        --acc2:#e63946;--line:#232a33}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:960px;margin:0 auto;padding:22px 16px 80px}
+  .brand{font-weight:700;letter-spacing:.3px;color:var(--acc);font-size:18px}
+  .sub{color:var(--mut);font-size:13px;margin-bottom:8px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+        padding:18px;margin:14px 0}
+  h2{font-size:16px;margin:0 0 12px}
+  label{display:block;font-size:12px;color:var(--mut);margin:8px 0 3px}
+  input,select{width:100%;background:#0e1116;border:1px solid var(--line);
+        color:var(--ink);border-radius:9px;padding:9px 11px;font-size:14px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .row>div{flex:1;min-width:130px}
+  button{background:var(--acc);color:#04120f;border:0;border-radius:9px;
+        padding:10px 16px;font-weight:600;cursor:pointer;font-size:14px;margin-top:12px}
+  button.sec{background:#0e1116;color:var(--acc);border:1px solid var(--acc);
+        margin-top:0;padding:6px 12px;font-weight:600;font-size:13px}
+  button:active{transform:translateY(1px)}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+  th,td{padding:8px 8px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--mut);font-size:12px;font-weight:600}
+  .muted{color:var(--mut)}
+  .pill{display:inline-block;background:#0e1116;border:1px solid var(--line);
+        border-radius:999px;padding:1px 9px;font-size:12px;color:var(--mut)}
+  .linkbox{display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap}
+  .linkbox input{flex:1;min-width:200px}
+  .ok{color:var(--acc)} .err{color:var(--acc2)}
+  a{color:var(--acc)}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .toolbar a{font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">De Lucca Esporte — Gestão de Atletas</div>
+  <div class="sub">Cadastre alunos, gere análises e crie o link para enviar ao atleta ou treinador.</div>
+  <div class="toolbar">
+    <a href="./" >↗ Visualizador de sessões</a>
+    <a href="../docs" target="_blank">↗ API /docs</a>
+    <span id="apihint" class="pill">API: mesma origem</span>
+  </div>
+
+  <!-- Cadastro de aluno -->
+  <div class="card">
+    <h2>1 · Cadastrar aluno</h2>
+    <div class="row">
+      <div><label>Nome *</label><input id="a_name" placeholder="Nome do atleta"></div>
+      <div><label>Massa (kg)</label><input id="a_mass" type="number" step="0.1" placeholder="78"></div>
+      <div><label>Estatura (m)</label><input id="a_height" type="number" step="0.01" placeholder="1.80"></div>
+      <div><label>Sexo</label>
+        <select id="a_sex"><option value="">—</option><option>M</option><option>F</option></select>
+      </div>
+    </div>
+    <label>Observações</label><input id="a_notes" placeholder="opcional">
+    <button onclick="createAthlete()">Cadastrar aluno</button>
+    <span id="a_msg" class="muted" style="margin-left:10px"></span>
+  </div>
+
+  <!-- Lista de alunos -->
+  <div class="card">
+    <h2>Alunos cadastrados</h2>
+    <table id="ath_tbl"><thead><tr>
+      <th>#</th><th>Nome</th><th>Massa</th><th>Estatura</th><th>IMC</th><th>Sexo</th>
+    </tr></thead><tbody></tbody></table>
+  </div>
+
+  <!-- Análises / sessões -->
+  <div class="card">
+    <h2>2 · Análises (sessões) &amp; link compartilhável</h2>
+    <p class="muted" style="font-size:13px;margin-top:0">
+      Cada sessão é uma análise. Gere um link para enviar por WhatsApp — abre o
+      relatório no navegador, sem precisar de senha.</p>
+    <table id="ses_tbl"><thead><tr>
+      <th>#</th><th>Aluno</th><th>Exercício</th><th>Reps</th><th>Fonte</th><th></th>
+    </tr></thead><tbody></tbody></table>
+
+    <h2 style="margin-top:20px">Criar sessão manual (registro)</h2>
+    <div class="row">
+      <div><label>Aluno</label><select id="s_ath"></select></div>
+      <div><label>Exercício</label><input id="s_ex" placeholder="Agachamento"></div>
+      <div><label>Carga (kg)</label><input id="s_load" type="number" step="0.5" placeholder="100"></div>
+    </div>
+    <button onclick="createSession()">Criar sessão</button>
+    <span id="s_msg" class="muted" style="margin-left:10px"></span>
+    <p class="muted" style="font-size:12px">Para análise a partir de vídeo (pose + biomecânica),
+      use o pipeline: <code>make pipeline VIDEO=... MODEL=...</code></p>
+  </div>
+
+  <!-- Link gerado -->
+  <div class="card" id="linkcard" style="display:none">
+    <h2>Link do relatório</h2>
+    <div class="linkbox">
+      <input id="gen_url" readonly>
+      <button class="sec" onclick="copyLink()">Copiar</button>
+      <a id="gen_open" target="_blank">Abrir</a>
+    </div>
+    <span id="copy_msg" class="ok" style="font-size:13px"></span>
+  </div>
+</div>
+
+<script>
+const API = ""; // mesma origem
+const $ = id => document.getElementById(id);
+async function jget(p){ const r = await fetch(API+p); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+async function jpost(p,b){ const r = await fetch(API+p,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)});
+  if(!r.ok) throw new Error((await r.json()).detail || r.status); return r.json(); }
+
+let ATHLETES = [];
+
+async function loadAthletes(){
+  ATHLETES = await jget("/athletes");
+  const tb = $("ath_tbl").querySelector("tbody"); tb.innerHTML="";
+  const sel = $("s_ath"); sel.innerHTML="";
+  ATHLETES.forEach(a=>{
+    tb.insertAdjacentHTML("beforeend",
+      `<tr><td>${a.id}</td><td>${esc(a.name)}</td><td>${a.body_mass_kg??"—"}</td>
+       <td>${a.height_m??"—"}</td><td>${a.bmi??"—"}</td><td>${a.sex||"—"}</td></tr>`);
+    sel.insertAdjacentHTML("beforeend",`<option value="${a.id}">${esc(a.name)}</option>`);
+  });
+}
+async function loadSessions(){
+  const s = await jget("/sessions");
+  const nmeBy = Object.fromEntries(ATHLETES.map(a=>[a.id,a.name]));
+  const tb = $("ses_tbl").querySelector("tbody"); tb.innerHTML="";
+  s.forEach(x=>{
+    tb.insertAdjacentHTML("beforeend",
+      `<tr><td>${x.id}</td><td>${esc(nmeBy[x.athlete_id]||("#"+x.athlete_id))}</td>
+       <td>${esc(x.exercise)}</td><td>${x.n_submovements??"—"}</td>
+       <td><span class="pill">${esc(x.pose_source||"—")}</span></td>
+       <td><button class="sec" onclick="genLink(${x.id})">Gerar link</button></td></tr>`);
+  });
+}
+async function createAthlete(){
+  const name = $("a_name").value.trim();
+  if(!name){ $("a_msg").innerHTML='<span class="err">informe o nome</span>'; return; }
+  try{
+    const body = { name,
+      body_mass_kg: numOrNull($("a_mass").value),
+      height_m: numOrNull($("a_height").value),
+      sex: $("a_sex").value||null, notes: $("a_notes").value||null };
+    const a = await jpost("/athletes", body);
+    $("a_msg").innerHTML = `<span class="ok">✓ cadastrado (#${a.id}, IMC ${a.bmi??"—"})</span>`;
+    ["a_name","a_mass","a_height","a_notes"].forEach(i=>$(i).value="");
+    await loadAthletes();
+  }catch(e){ $("a_msg").innerHTML = `<span class="err">${esc(String(e.message))}</span>`; }
+}
+async function createSession(){
+  const athlete_id = parseInt($("s_ath").value);
+  const exercise = $("s_ex").value.trim();
+  if(!athlete_id||!exercise){ $("s_msg").innerHTML='<span class="err">aluno e exercício obrigatórios</span>'; return; }
+  try{
+    await jpost("/sessions",{athlete_id, exercise, load_kg:numOrNull($("s_load").value)});
+    $("s_msg").innerHTML='<span class="ok">✓ sessão criada</span>';
+    $("s_ex").value=""; $("s_load").value="";
+    await loadSessions();
+  }catch(e){ $("s_msg").innerHTML=`<span class="err">${esc(String(e.message))}</span>`; }
+}
+async function genLink(session_id){
+  try{
+    const r = await jpost("/shares",{kind:"session", ref_id:session_id, audience:"ambos"});
+    const url = new URL(r.url, location.href).href;
+    $("gen_url").value = url; $("gen_open").href = url;
+    $("linkcard").style.display="block";
+    $("copy_msg").textContent="";
+    $("linkcard").scrollIntoView({behavior:"smooth"});
+  }catch(e){ alert("Erro ao gerar link: "+e.message); }
+}
+function copyLink(){
+  const el = $("gen_url"); el.select();
+  navigator.clipboard.writeText(el.value).then(
+    ()=>$("copy_msg").textContent="✓ copiado — cole no WhatsApp",
+    ()=>{ document.execCommand("copy"); $("copy_msg").textContent="✓ copiado"; });
+}
+function numOrNull(v){ v=(v||"").trim(); return v===""?null:parseFloat(v); }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+(async()=>{ try{ await loadAthletes(); await loadSessions(); }
+  catch(e){ $("apihint").innerHTML='<span class="err">API offline — rode: make api</span>'; } })();
+</script>
+</body>
+</html>

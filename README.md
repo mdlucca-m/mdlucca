@@ -151,6 +151,21 @@ pico e a MCV batem com os valores do dashboard.
 - Nos vídeos: `render_legs3d_video.py --segments all|sem_bracos|pernas|bracos`
   (ou lista) controla **quais segmentos são desenhados** (com/sem braços).
 
+**Produto — cadastro de alunos e link compartilhável** (escrita no banco)
+- Tela web: **`/app/gerir.html`** — cadastrar aluno, listar alunos/sessões e
+  gerar o **link do relatório** com um clique (para enviar por WhatsApp).
+- `POST /athletes` — cadastra aluno (IMC calculado automaticamente).
+  `POST /athletes/{id}/update` · `POST /athletes/{id}/delete`.
+- `POST /sessions` — cria uma sessão manual (registro) para um aluno
+  (`%peso corporal` calculado a partir da massa).
+- `POST /shares` `{kind:"session",ref_id,audience}` → devolve `{token,url}`.
+  `GET /r/{token}` — **relatório HTML autossuficiente** (gráfico de potência
+  por repetição + tabela de métricas), sem senha, abre em qualquer celular.
+  `GET /shares` lista os links criados (com contador de visualizações).
+- A tabela `share` é criada automaticamente na 1ª escrita (idempotente); o
+  motor de análise não muda. Escrita usa `db.connect_rw()`; leitura segue
+  em modo somente-leitura.
+
 **Fases e componente elástico (transições concêntrica↔excêntrica)**
 - `GET /submovements/{id}/phases?series=cog_y` — segmenta **todo** o movimento
   em fases concêntrica/excêntrica/isométrica (robusto: suavização + histerese +

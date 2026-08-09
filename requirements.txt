@@ -6,3 +6,4 @@ uvicorn[standard]>=0.27
 # extract_dashboard.py tambem requer Node.js (normaliza literais JS -> JSON)
 # testes:
 pytest>=8.0
+httpx>=0.27      # TestClient (endpoints de cadastro/compartilhamento)
