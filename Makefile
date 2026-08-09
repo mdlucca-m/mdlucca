@@ -58,6 +58,10 @@ pipeline:
 watch:
 	MDLUCCA_POSE_MODEL="$(MODEL)" python3 scripts/watch_inbox.py --inbox data/inbox --out data/out --legs3d
 
+# Massa de teste (dados ficticios) para testar cadastro + gerador de relatorio
+seed:
+	python3 scripts/seed_demo.py --db "$(DB)" --reset --athletes 4 --reps 5 --shares
+
 api:
 	uvicorn app.api:app --reload
 

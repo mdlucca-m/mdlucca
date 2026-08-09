@@ -74,6 +74,44 @@ def test_bad_share_ref():
     assert r.status_code == 404
 
 
+def test_seed_massa_de_teste_and_reports():
+    """Gera massa de teste (seed_demo) e valida o gerador de relatorio nela."""
+    import importlib
+    tmp = tempfile.mkdtemp()
+    dbp = os.path.join(tmp, "seed.sqlite")
+    con = sqlite3.connect(dbp)
+    con.executescript((ROOT / "sql" / "schema.sql").read_text())
+    sys.path.insert(0, str(ROOT / "scripts"))
+    seed_demo = importlib.import_module("seed_demo")
+    recs = seed_demo.seed(con, n_athletes=3, n_reps=4, make_shares=True)
+    con.close()
+    assert len(recs) == 3 and all(r["reps"] == 4 for r in recs)
+
+    os.environ["MDLUCCA_DB"] = dbp
+    for m in list(sys.modules):
+        if m.startswith("app."):
+            del sys.modules[m]
+    from fastapi.testclient import TestClient
+    from app.api import app
+    c = TestClient(app)
+
+    # cada sessao gerada rende um relatorio com grafico (rect) e potencia
+    for r in recs:
+        rep = c.get(r["report_url"])
+        assert rep.status_code == 200
+        html = rep.text
+        assert r["athlete"] in html
+        assert html.count("<rect") == 4          # uma barra por repeticao
+        assert "Potencia pico" in html
+
+    # reset limpa toda a massa de teste
+    con = sqlite3.connect(dbp)
+    removed = seed_demo.clear_demo(con)
+    left = con.execute("SELECT COUNT(*) FROM athlete").fetchone()[0]
+    con.close()
+    assert removed == 3 and left == 0
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     fail = 0

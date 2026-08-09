@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>De Lucca Esporte — O que o sistema analisa</title>
+<style>
+  :root{--bg:#0e1116;--card:#171b22;--ink:#e6edf3;--mut:#8b98a6;--acc:#2a9d8f;
+        --acc2:#e63946;--line:#232a33}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:900px;margin:0 auto;padding:22px 16px 80px}
+  .brand{font-weight:700;letter-spacing:.3px;color:var(--acc);font-size:18px}
+  .sub{color:var(--mut);font-size:13px}
+  .toolbar{display:flex;gap:12px;flex-wrap:wrap;margin:6px 0 4px}
+  .toolbar a{color:var(--acc);font-size:13px;text-decoration:none}
+  .stats{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;
+        padding:8px 14px;min-width:96px}
+  .stat b{display:block;font-size:20px} .stat span{color:var(--mut);font-size:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+        padding:16px 18px;margin:14px 0}
+  h2{font-size:15px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+  h2 .dot{width:9px;height:9px;border-radius:50%;background:var(--acc);display:inline-block}
+  ul{list-style:none;margin:0;padding:0;columns:2;column-gap:26px}
+  @media(max-width:620px){ul{columns:1}}
+  li{break-inside:avoid;padding:5px 0 5px 26px;position:relative;font-size:14px}
+  li::before{content:"✓";position:absolute;left:0;top:5px;color:var(--acc);
+        font-weight:700}
+  li .ep{display:block;color:var(--mut);font-size:11px;font-family:ui-monospace,
+        SFMono-Regular,Menlo,monospace}
+  .foot{color:var(--mut);font-size:12px;text-align:center;margin-top:24px}
+  .ref{background:#0e1116;border:1px dashed var(--line);border-radius:12px;
+       padding:12px 16px;color:var(--mut);font-size:13px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">De Lucca Esporte — O que o sistema analisa em tempo real</div>
+  <div class="sub">Tudo recomputado das séries brutas por requisição (integração
+    trapezoidal + Savitzky-Golay/Butterworth). Nada é lido pré-pronto.</div>
+  <div class="toolbar">
+    <a href="gerir.html">↗ Gestão de atletas</a>
+    <a href="./">↗ Visualizador</a>
+    <a href="../docs" target="_blank">↗ API /docs</a>
+  </div>
+
+  <div class="stats" id="stats">
+    <div class="stat"><b id="n_ath">—</b><span>atletas</span></div>
+    <div class="stat"><b id="n_ses">—</b><span>sessões</span></div>
+    <div class="stat"><b id="n_ana">—</b><span>famílias de análise</span></div>
+    <div class="stat"><b>40+</b><span>variáveis</span></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>Cinemática (dos landmarks de pose)</h2>
+    <ul>
+      <li>Ângulos articulares — quadril, joelho, cotovelo, tornozelo<span class="ep">/kinematics/angles</span></li>
+      <li>Velocidade angular (°/s) por articulação</li>
+      <li>Aceleração angular (°/s²)</li>
+      <li>Centro de gravidade — De Leva 1996<span class="ep">/kinematics/cog</span></li>
+      <li>Ângulos nos instantes-chave (pico de F, τ, X, Y, Z)</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>Cinética — forças e torques</h2>
+    <ul>
+      <li>Força F = m(a+g), pico robusto</li>
+      <li>Decomposição de força — Fx, Fy, Fz e %</li>
+      <li>Torques articulares (dinâmica inversa) — quadril, joelho, cotovelo, ombro</li>
+      <li>Impulso (N·s) — integral força·tempo</li>
+      <li>RFD de pico</li>
+      <li>TDF em janelas fixas 50/100/150/200 ms<span class="ep">/compute/rfd-tdf</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>Potência e trabalho</h2>
+    <ul>
+      <li>Potência (W) de pico</li>
+      <li>Trabalho mecânico (J) positivo e negativo<span class="ep">/compute/impulse-work</span></li>
+      <li>Potência articular (τ·ω), trabalho ±, % concêntrico<span class="ep">/compute/joint-power</span></li>
+      <li>Eficiência mecânica — mgh vs trabalho real<span class="ep">/compute/efficiency</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>Velocidade (VBT — Sánchez-Medina)</h2>
+    <ul>
+      <li>MPV · PPV · MCV<span class="ep">/compute/velocity</span></li>
+      <li>Zona VBT (força/potência/velocidade)</li>
+      <li>Decomposição de velocidade — Vx, Vy, Vz e %</li>
+      <li>Velocidade linear e aceleração de pico</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>Fases, balística e componente elástico</h2>
+    <ul>
+      <li>Fases concêntrica / excêntrica / isométrica (detecção robusta)<span class="ep">/phases</span></li>
+      <li>Transições excêntrica→concêntrica (SSC) automáticas</li>
+      <li>Componente elástico — amortização + EUR + trabalho ecc/con<span class="ep">/elastic</span></li>
+      <li>SSC / RSI-modificado<span class="ep">/compute/ssc</span></li>
+      <li>Fase balística — impulso propulsivo vs frenagem<span class="ep">/compute/ballistic</span></li>
+      <li>Propulsão — MCV, MPV, PPV, % fase propulsiva</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>Suavidade e coordenação</h2>
+    <ul>
+      <li>Jerk (3ª derivada) — pico e RMS<span class="ep">/compute/jerk</span></li>
+      <li>Sequenciamento proximal→distal<span class="ep">/compute/sequencing</span></li>
+      <li>Ciclo normalizado 0–100%<span class="ep">/compute/normalized-cycle</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>Estatística padrão-ouro</h2>
+    <ul>
+      <li>CV% + IC bootstrap<span class="ep">/compute/cv</span></li>
+      <li>Teste de Grubbs (bilateral, crítico exato)<span class="ep">/compute/grubbs</span></li>
+      <li>Perfil Força-Velocidade + IC bootstrap<span class="ep">/compute/force-velocity</span></li>
+      <li>Ajuste logístico (nls) da fase concêntrica<span class="ep">/logistic</span></li>
+      <li>Ajuste alométrico (Jaric) — F, P, τ por massa^b</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>Processamento de sinal &amp; calibração</h2>
+    <ul>
+      <li>Filtro Butterworth 6 Hz zero-fase (Winter) + resíduos</li>
+      <li>Savitzky-Golay (janela adaptativa por SNR)</li>
+      <li>Métricas de ruído / SNR</li>
+      <li>Interpolação de gaps (frames perdidos)</li>
+      <li>Calibração métrica (m/px por estatura/referência)</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>Comparação com literatura</h2>
+    <ul>
+      <li>Valores de referência internacionais (com citação)<span class="ep">/standards</span></li>
+      <li>Verificação automática medido vs faixa<span class="ep">/reference-check</span></li>
+      <li>Configurável: escolha segmentos e o que medir<span class="ep">/segments · /measure</span></li>
+    </ul>
+    <div class="ref">Atalhos: <code>/submovements/{id}/analysis</code> roda o painel
+      inteiro de uma vez · <code>/sessions/{id}/analysis</code> agrega todas as
+      repetições · <code>POST /submovements/{id}/measure</code> roda só o que
+      você escolher, nos segmentos que escolher (com/sem braços).</div>
+  </div>
+
+  <div class="foot">De Lucca Esporte • padrões: De Leva (1996), Winter (2009),
+    ISB (Wu 2002/2005), Sánchez-Medina (2011), Jaric (2002)</div>
+</div>
+
+<script>
+(async()=>{
+  const g = id=>document.getElementById(id);
+  try{
+    const [ath,ses,ana] = await Promise.all([
+      fetch("/athletes").then(r=>r.json()),
+      fetch("/sessions").then(r=>r.json()),
+      fetch("/analyses").then(r=>r.json())
+    ]);
+    g("n_ath").textContent = ath.length;
+    g("n_ses").textContent = ses.length;
+    const fams = new Set([...(ana.metric_namespaces||[]), ...(ana.fit_namespaces||[])]);
+    g("n_ana").textContent = fams.size || "—";
+  }catch(e){ /* offline: mantém os traços */ }
+})();
+</script>
+</body>
+</html>

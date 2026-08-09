@@ -165,6 +165,15 @@ pico e a MCV batem com os valores do dashboard.
 - A tabela `share` é criada automaticamente na 1ª escrita (idempotente); o
   motor de análise não muda. Escrita usa `db.connect_rw()`; leitura segue
   em modo somente-leitura.
+- Tela **`/app/checklist.html`** — checklist visual de tudo que o sistema
+  analisa em tempo real (com contadores ao vivo da API).
+
+**Massa de teste (dados fictícios)** — `make seed` (ou
+`python3 scripts/seed_demo.py --reset --athletes 4 --reps 5 --shares`) popula
+o banco com atletas/sessões/métricas sintéticas realistas e já imprime os
+links dos relatórios, para testar o fluxo cadastro→análise→relatório de ponta
+a ponta sem precisar de vídeo. Remove a massa anterior com `--reset` (atletas
+`ext_key` `demo-*`). Coberto por `tests/test_product.py`.
 
 **Fases e componente elástico (transições concêntrica↔excêntrica)**
 - `GET /submovements/{id}/phases?series=cog_y` — segmenta **todo** o movimento
