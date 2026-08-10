@@ -8,6 +8,10 @@ echo
 echo " == De Lucca Esporte - iniciando o sistema =="
 echo
 
+# Modo DONO (uso local na sua maquina): libera todos os recursos sem precisar
+# de licenca. Para vender/hospedar, remova esta linha e use uma licenca (LICENSING.md).
+export MDLUCCA_DEV=1
+
 # 1) Python instalado?
 PY=python3
 command -v $PY >/dev/null 2>&1 || PY=python

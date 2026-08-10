@@ -10,6 +10,10 @@ echo.
 echo  == De Lucca Esporte - iniciando o sistema ==
 echo.
 
+REM Modo DONO (uso local na sua maquina): libera todos os recursos sem licenca.
+REM Para vender/hospedar, remova esta linha e use uma licenca (LICENSING.md).
+set MDLUCCA_DEV=1
+
 REM 1) Python instalado?
 where python >nul 2>nul
 if errorlevel 1 (
