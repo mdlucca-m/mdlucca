@@ -1,0 +1,30 @@
+table dim_dia
+	lineageTag: 520fe782-9301-469f-95e2-b0c3953424bc
+
+	column 'dia'
+		dataType: int64
+		sourceColumn: dia
+		lineageTag: bcad7844-b2e9-4f49-8423-0c4e6eee6e12
+		summarizeBy: none
+
+	column 'hiit_dia'
+		dataType: int64
+		sourceColumn: hiit_dia
+		lineageTag: f566f649-df34-41d0-9484-f7facc6ba863
+		summarizeBy: none
+
+	column 'tipo_dia'
+		dataType: string
+		sourceColumn: tipo_dia
+		lineageTag: f0c622ff-bd95-4921-aa4a-01bf5c4f8b59
+
+	partition dim_dia = m
+		mode: import
+		source =
+			let
+			    Fonte = Excel.Workbook(File.Contents(PastaDados & "\BRUMS_HIIT_PowerBI.xlsx"), null, true),
+			    Nav = Fonte{[Item="dim_dia",Kind="Sheet"]}[Data],
+			    Cab = Table.PromoteHeaders(Nav, [PromoteAllScalars=true]),
+			    Tipos = Table.TransformColumnTypes(Cab, {{"dia", Int64.Type}, {"hiit_dia", Int64.Type}, {"tipo_dia", type text}})
+			in
+			    Tipos

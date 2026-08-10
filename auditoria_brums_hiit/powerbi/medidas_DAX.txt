@@ -1,0 +1,80 @@
+/* =====================================================================
+   Medidas DAX — BRUMS × HIIT (Power BI)
+   Cole cada medida em Power BI Desktop (Modelagem ▸ Nova medida).
+   Tabelas de referência: fato_humor, resposta_aguda, roc_prepos,
+   variabilidade, confiabilidade, kpis, dim_dia, dim_momento.
+   Os tamanhos de efeito (dz), AUC, α, φ etc. vêm pré-calculados das
+   abas analíticas (exigem bootstrap/modelos que não se fazem em DAX);
+   as medidas abaixo os expõem e calculam os agregados diretos da base.
+   ===================================================================== */
+
+/* ---------- Contagens / amostra ---------- */
+Observações = COUNTROWS ( fato_humor )
+
+Atletas = DISTINCTCOUNT ( fato_humor[atleta] )
+
+Pares pré-pós =
+VAR pre = CALCULATE ( COUNTROWS ( fato_humor ), fato_humor[momento] = "pre" )
+VAR pos = CALCULATE ( COUNTROWS ( fato_humor ), fato_humor[momento] = "pos" )
+RETURN MIN ( pre, pos )
+
+/* ---------- Agregados diretos da base ----------
+   Troque PTH pela variável desejada (FadFis, Fadiga, Vigor, ...). */
+Média PTH = AVERAGE ( fato_humor[PTH] )
+
+PTH Pré = CALCULATE ( AVERAGE ( fato_humor[PTH] ), fato_humor[momento] = "pre" )
+
+PTH Pós = CALCULATE ( AVERAGE ( fato_humor[PTH] ), fato_humor[momento] = "pos" )
+
+Δ PTH (pré→pós) = [PTH Pós] - [PTH Pré]
+
+Média PTH (HIIT) = CALCULATE ( AVERAGE ( fato_humor[PTH] ), fato_humor[tipo_dia] = "HIIT" )
+
+Média PTH (Téc.-tático) =
+CALCULATE ( AVERAGE ( fato_humor[PTH] ), fato_humor[tipo_dia] = "Técnico-tático" )
+
+/* ---------- Perfil iceberg (vigor acima da média das negativas) ---------- */
+% Iceberg =
+VAR neg =
+    ( fato_humor[Tensão] + fato_humor[Depressão] + fato_humor[Raiva]
+      + fato_humor[Fadiga] + fato_humor[Confusão] ) / 5
+VAR tot = COUNTROWS ( fato_humor )
+VAR ice =
+    CALCULATE ( COUNTROWS ( fato_humor ), FILTER ( fato_humor, fato_humor[Vigor] > neg ) )
+RETURN DIVIDE ( ice, tot )
+
+/* ---------- KPIs vindos das abas analíticas (cards) ---------- */
+dz Fadiga física =
+CALCULATE ( SELECTEDVALUE ( resposta_aguda[dz] ), resposta_aguda[codigo] = "FadFis" )
+
+dz PTH =
+CALCULATE ( SELECTEDVALUE ( resposta_aguda[dz] ), resposta_aguda[codigo] = "PTH" )
+
+dz Vigor =
+CALCULATE ( SELECTEDVALUE ( resposta_aguda[dz] ), resposta_aguda[codigo] = "Vigor" )
+
+AUC Fadiga física =
+CALCULATE ( SELECTEDVALUE ( roc_prepos[AUC] ), roc_prepos[codigo] = "FadFis" )
+
+/* KPI genérico buscando a aba kpis por nome */
+KPI valor = SELECTEDVALUE ( kpis[valor] )
+
+/* ---------- Formatação de rótulo do dz com IC95% (para tooltip/rótulo) ---------- */
+Rótulo dz (IC95%) =
+VAR d = SELECTEDVALUE ( resposta_aguda[dz] )
+VAR li = SELECTEDVALUE ( resposta_aguda[ic_inf] )
+VAR ls = SELECTEDVALUE ( resposta_aguda[ic_sup] )
+RETURN
+    FORMAT ( d, "0.00" ) & " [" & FORMAT ( li, "0.00" ) & "; " & FORMAT ( ls, "0.00" ) & "]"
+
+/* ---------- Semáforo de sensibilidade (para formatação condicional) ----------
+   1 = sentinela (dz≥0,8 e sobrevive FDR); 0 = demais. */
+Flag sentinela =
+IF (
+    SELECTEDVALUE ( resposta_aguda[sobrevive_FDR] ) = TRUE ()
+        && ABS ( SELECTEDVALUE ( resposta_aguda[dz] ) ) >= 0.8,
+    1, 0
+)
+
+/* ---------- % da variância entre atletas (traço) ---------- */
+% Entre atletas = SELECTEDVALUE ( variabilidade[pct_entre_atletas] )

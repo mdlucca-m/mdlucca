@@ -1,0 +1,584 @@
+{
+ "n_obs": 456,
+ "n_atletas": 27,
+ "A_aguda": [
+  {
+   "var": "FadFis",
+   "label": "Fadiga física",
+   "n": 27,
+   "delta": 1.74,
+   "dz": 1.06,
+   "ic": [
+    0.75,
+    1.54
+   ],
+   "t": 5.52,
+   "p": 0.0,
+   "wilcoxon_p": 0.0,
+   "p_FDR": 0.0001,
+   "sig": true
+  },
+  {
+   "var": "PTH",
+   "label": "PTH (TMD)",
+   "n": 27,
+   "delta": 3.51,
+   "dz": 0.68,
+   "ic": [
+    0.39,
+    1.04
+   ],
+   "t": 3.52,
+   "p": 0.0016,
+   "wilcoxon_p": 0.0043,
+   "p_FDR": 0.0072,
+   "sig": true
+  },
+  {
+   "var": "Fadiga",
+   "label": "Fadiga",
+   "n": 27,
+   "delta": 1.72,
+   "dz": 0.62,
+   "ic": [
+    0.4,
+    0.92
+   ],
+   "t": 3.21,
+   "p": 0.0035,
+   "wilcoxon_p": 0.0026,
+   "p_FDR": 0.0106,
+   "sig": true
+  },
+  {
+   "var": "Vigor",
+   "label": "Vigor",
+   "n": 27,
+   "delta": -0.96,
+   "dz": -0.56,
+   "ic": [
+    -0.97,
+    -0.22
+   ],
+   "t": -2.89,
+   "p": 0.0076,
+   "wilcoxon_p": 0.0103,
+   "p_FDR": 0.0172,
+   "sig": true
+  },
+  {
+   "var": "FadMen",
+   "label": "Fadiga mental",
+   "n": 27,
+   "delta": 0.53,
+   "dz": 0.44,
+   "ic": [
+    0.1,
+    0.78
+   ],
+   "t": 2.29,
+   "p": 0.0306,
+   "wilcoxon_p": 0.0454,
+   "p_FDR": 0.0551,
+   "sig": false
+  },
+  {
+   "var": "Tensão",
+   "label": "Tensão",
+   "n": 27,
+   "delta": 0.27,
+   "dz": 0.42,
+   "ic": [
+    0.09,
+    0.76
+   ],
+   "t": 2.19,
+   "p": 0.0378,
+   "wilcoxon_p": 0.0474,
+   "p_FDR": 0.0567,
+   "sig": false
+  },
+  {
+   "var": "Depressão",
+   "label": "Depressão",
+   "n": 27,
+   "delta": 0.33,
+   "dz": 0.36,
+   "ic": [
+    0.07,
+    0.64
+   ],
+   "t": 1.88,
+   "p": 0.0713,
+   "wilcoxon_p": 0.1116,
+   "p_FDR": 0.0916,
+   "sig": false
+  },
+  {
+   "var": "Raiva",
+   "label": "Raiva",
+   "n": 27,
+   "delta": 0.27,
+   "dz": 0.2,
+   "ic": [
+    -0.18,
+    0.54
+   ],
+   "t": 1.06,
+   "p": 0.2972,
+   "wilcoxon_p": 0.4289,
+   "p_FDR": 0.3344,
+   "sig": false
+  },
+  {
+   "var": "Confusão",
+   "label": "Confusão",
+   "n": 27,
+   "delta": -0.04,
+   "dz": -0.1,
+   "ic": [
+    -0.53,
+    0.28
+   ],
+   "t": -0.51,
+   "p": 0.6126,
+   "wilcoxon_p": 0.6046,
+   "p_FDR": 0.6126,
+   "sig": false
+  }
+ ],
+ "B_efeito_dia": {
+  "FadFis": {
+   "friedman_casos_completos": {
+    "chi2": 48.77,
+    "p": 8.305853181009726e-09,
+    "n": 19,
+    "k": 7
+   },
+   "rm_anova": {
+    "F": 13.0,
+    "p_GG": 5.006232931012931e-07
+   }
+  },
+  "PTH": {
+   "friedman_casos_completos": {
+    "chi2": 7.6,
+    "p": 0.26859062185964616,
+    "n": 19,
+    "k": 7
+   },
+   "rm_anova": {
+    "F": 2.17,
+    "p_GG": 0.09437001864853399
+   }
+  },
+  "Fadiga": {
+   "friedman_casos_completos": {
+    "chi2": 13.19,
+    "p": 0.04008778344859501,
+    "n": 19,
+    "k": 7
+   },
+   "rm_anova": {
+    "F": 3.1,
+    "p_GG": 0.022844195077638966
+   }
+  },
+  "Vigor": {
+   "friedman_casos_completos": {
+    "chi2": 14.74,
+    "p": 0.02238676969597991,
+    "n": 19,
+    "k": 7
+   },
+   "rm_anova": {
+    "F": 6.34,
+    "p_GG": 0.0006586258911482965
+   }
+  }
+ },
+ "C_hiit": [
+  {
+   "var": "PTH",
+   "label": "PTH (TMD)",
+   "delta_HIIT": 1.9,
+   "dz": 0.48,
+   "t": 2.42,
+   "p": 0.0234,
+   "n": 25
+  },
+  {
+   "var": "FadFis",
+   "label": "Fadiga física",
+   "delta_HIIT": 0.22,
+   "dz": 0.18,
+   "t": 0.89,
+   "p": 0.3816,
+   "n": 25
+  },
+  {
+   "var": "Fadiga",
+   "label": "Fadiga",
+   "delta_HIIT": 0.52,
+   "dz": 0.4,
+   "t": 2.0,
+   "p": 0.057,
+   "n": 25
+  },
+  {
+   "var": "Vigor",
+   "label": "Vigor",
+   "delta_HIIT": -0.39,
+   "dz": -0.39,
+   "t": -1.94,
+   "p": 0.0639,
+   "n": 25
+  },
+  {
+   "var": "FadMen",
+   "label": "Fadiga mental",
+   "delta_HIIT": 0.17,
+   "dz": 0.13,
+   "t": 0.67,
+   "p": 0.5066,
+   "n": 25
+  }
+ ],
+ "D_rmcorr": [
+  {
+   "sub": "Tensão",
+   "ext": "FadFis",
+   "r": -0.07,
+   "ic": [
+    -0.16,
+    0.03
+   ],
+   "p": 0.1704,
+   "p_FDR": 0.2045,
+   "sig": false
+  },
+  {
+   "sub": "Tensão",
+   "ext": "FadMen",
+   "r": 0.04,
+   "ic": [
+    -0.05,
+    0.14
+   ],
+   "p": 0.3614,
+   "p_FDR": 0.413,
+   "sig": false
+  },
+  {
+   "sub": "Tensão",
+   "ext": "EstFis",
+   "r": 0.08,
+   "ic": [
+    -0.01,
+    0.17
+   ],
+   "p": 0.096,
+   "p_FDR": 0.1212,
+   "sig": false
+  },
+  {
+   "sub": "Tensão",
+   "ext": "EstMen",
+   "r": 0.02,
+   "ic": [
+    -0.07,
+    0.12
+   ],
+   "p": 0.6492,
+   "p_FDR": 0.6492,
+   "sig": false
+  },
+  {
+   "sub": "Depressão",
+   "ext": "FadFis",
+   "r": 0.17,
+   "ic": [
+    0.08,
+    0.26
+   ],
+   "p": 0.0003,
+   "p_FDR": 0.0005,
+   "sig": true
+  },
+  {
+   "sub": "Depressão",
+   "ext": "FadMen",
+   "r": 0.17,
+   "ic": [
+    0.07,
+    0.26
+   ],
+   "p": 0.0006,
+   "p_FDR": 0.0009,
+   "sig": true
+  },
+  {
+   "sub": "Depressão",
+   "ext": "EstFis",
+   "r": -0.27,
+   "ic": [
+    -0.36,
+    -0.18
+   ],
+   "p": 0.0,
+   "p_FDR": 0.0,
+   "sig": true
+  },
+  {
+   "sub": "Depressão",
+   "ext": "EstMen",
+   "r": -0.32,
+   "ic": [
+    -0.4,
+    -0.23
+   ],
+   "p": 0.0,
+   "p_FDR": 0.0,
+   "sig": true
+  },
+  {
+   "sub": "Raiva",
+   "ext": "FadFis",
+   "r": 0.13,
+   "ic": [
+    0.04,
+    0.22
+   ],
+   "p": 0.006,
+   "p_FDR": 0.0089,
+   "sig": true
+  },
+  {
+   "sub": "Raiva",
+   "ext": "FadMen",
+   "r": 0.29,
+   "ic": [
+    0.2,
+    0.37
+   ],
+   "p": 0.0,
+   "p_FDR": 0.0,
+   "sig": true
+  },
+  {
+   "sub": "Raiva",
+   "ext": "EstFis",
+   "r": -0.23,
+   "ic": [
+    -0.32,
+    -0.14
+   ],
+   "p": 0.0,
+   "p_FDR": 0.0,
+   "sig": true
+  },
+  {
+   "sub": "Raiva",
+   "ext": "EstMen",
+   "r": -0.43,
+   "ic": [
+    -0.5,
+    -0.35
+   ],
+   "p": 0.0,
+   "p_FDR": 0.0,
+   "sig": true
+  },
+  {
+   "sub": "Vigor",
+   "ext": "FadFis",
+   "r": -0.46,
+   "ic": [
+    -0.53,
+    -0.38
+   ],
+   "p": 0.0,
+   "p_FDR": 0.0,
+   "sig": true
+  },
+  {
+   "sub": "Vigor",
+   "ext": "FadMen",
+   "r": -0.32,
+   "ic": [
+    -0.4,
+    -0.23
+   ],
+   "p": 0.0,
+   "p_FDR": 0.0,
+   "sig": true
+  },
+  {
+   "sub": "Vigor",
+   "ext": "EstFis",
+   "r": 0.47,
+   "ic": [
+    0.4,
+    0.54
+   ],
+   "p": 0.0,
+   "p_FDR": 0.0,
+   "sig": true
+  },
+  {
+   "sub": "Vigor",
+   "ext": "EstMen",
+   "r": 0.37,
+   "ic": [
+    0.29,
+    0.45
+   ],
+   "p": 0.0,
+   "p_FDR": 0.0,
+   "sig": true
+  },
+  {
+   "sub": "Fadiga",
+   "ext": "FadFis",
+   "r": 0.64,
+   "ic": [
+    0.58,
+    0.69
+   ],
+   "p": 0.0,
+   "p_FDR": 0.0,
+   "sig": true
+  },
+  {
+   "sub": "Fadiga",
+   "ext": "FadMen",
+   "r": 0.45,
+   "ic": [
+    0.38,
+    0.53
+   ],
+   "p": 0.0,
+   "p_FDR": 0.0,
+   "sig": true
+  },
+  {
+   "sub": "Fadiga",
+   "ext": "EstFis",
+   "r": -0.65,
+   "ic": [
+    -0.7,
+    -0.6
+   ],
+   "p": 0.0,
+   "p_FDR": 0.0,
+   "sig": true
+  },
+  {
+   "sub": "Fadiga",
+   "ext": "EstMen",
+   "r": -0.45,
+   "ic": [
+    -0.52,
+    -0.37
+   ],
+   "p": 0.0,
+   "p_FDR": 0.0,
+   "sig": true
+  },
+  {
+   "sub": "Confusão",
+   "ext": "FadFis",
+   "r": 0.03,
+   "ic": [
+    -0.07,
+    0.12
+   ],
+   "p": 0.5662,
+   "p_FDR": 0.6177,
+   "sig": false
+  },
+  {
+   "sub": "Confusão",
+   "ext": "FadMen",
+   "r": 0.12,
+   "ic": [
+    0.03,
+    0.22
+   ],
+   "p": 0.0095,
+   "p_FDR": 0.0134,
+   "sig": true
+  },
+  {
+   "sub": "Confusão",
+   "ext": "EstFis",
+   "r": -0.02,
+   "ic": [
+    -0.12,
+    0.07
+   ],
+   "p": 0.6304,
+   "p_FDR": 0.6492,
+   "sig": false
+  },
+  {
+   "sub": "Confusão",
+   "ext": "EstMen",
+   "r": -0.1,
+   "ic": [
+    -0.19,
+    -0.0
+   ],
+   "p": 0.0407,
+   "p_FDR": 0.0543,
+   "sig": false
+  }
+ ],
+ "E_icc_atleta": [
+  {
+   "var": "Tensão",
+   "label": "Tensão",
+   "ICC_atleta": 0.71
+  },
+  {
+   "var": "FadMen",
+   "label": "Fadiga mental",
+   "ICC_atleta": 0.7
+  },
+  {
+   "var": "Depressão",
+   "label": "Depressão",
+   "ICC_atleta": 0.68
+  },
+  {
+   "var": "PTH",
+   "label": "PTH (TMD)",
+   "ICC_atleta": 0.59
+  },
+  {
+   "var": "Fadiga",
+   "label": "Fadiga",
+   "ICC_atleta": 0.58
+  },
+  {
+   "var": "Vigor",
+   "label": "Vigor",
+   "ICC_atleta": 0.55
+  },
+  {
+   "var": "FadFis",
+   "label": "Fadiga física",
+   "ICC_atleta": 0.42
+  },
+  {
+   "var": "Raiva",
+   "label": "Raiva",
+   "ICC_atleta": 0.0
+  },
+  {
+   "var": "Confusão",
+   "label": "Confusão",
+   "ICC_atleta": 0.0
+  }
+ ]
+}

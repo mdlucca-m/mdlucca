@@ -1,0 +1,7 @@
+relationship 30410a45-a319-463d-932e-7f605469850a
+	fromColumn: fato_humor.dia
+	toColumn: dim_dia.dia
+
+relationship 3c16b8d3-d5ae-41ed-9cda-8ec05e435d59
+	fromColumn: fato_humor.momento
+	toColumn: dim_momento.momento

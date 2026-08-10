@@ -1,0 +1,130 @@
+{
+ "variavel": "Fadiga física (média diária)",
+ "t": [
+  1.0,
+  2.0,
+  3.0,
+  4.0,
+  5.0,
+  6.0,
+  7.0
+ ],
+ "y": [
+  4.262,
+  5.66,
+  6.28,
+  6.867,
+  5.944,
+  6.25,
+  7.565
+ ],
+ "ajuste": {
+  "forma": "f(t)=L-(L-f1)·e^{-k(t-1)}",
+  "L": 6.784,
+  "f1": 4.288,
+  "k": 0.761,
+  "R2": 0.762
+ },
+ "B_definicao_limite": {
+  "t0": 2.0,
+  "f_linha_analitica": 0.8874,
+  "razoes_incrementais": [
+   {
+    "h": 1,
+    "quociente": 0.6214
+   },
+   {
+    "h": 0.5,
+    "quociente": 0.7382
+   },
+   {
+    "h": 0.25,
+    "quociente": 0.8082
+   },
+   {
+    "h": 0.1,
+    "quociente": 0.8545
+   },
+   {
+    "h": 0.05,
+    "quociente": 0.8708
+   },
+   {
+    "h": 0.01,
+    "quociente": 0.8841
+   },
+   {
+    "h": 0.001,
+    "quociente": 0.8871
+   }
+  ]
+ },
+ "C_derivadas": [
+  {
+   "dia": 1,
+   "f": 4.29,
+   "f_linha": 1.899,
+   "f_2linha": -1.444,
+   "dif_central_empirica": 1.398
+  },
+  {
+   "dia": 2,
+   "f": 5.62,
+   "f_linha": 0.887,
+   "f_2linha": -0.675,
+   "dif_central_empirica": 1.009
+  },
+  {
+   "dia": 3,
+   "f": 6.24,
+   "f_linha": 0.415,
+   "f_2linha": -0.315,
+   "dif_central_empirica": 0.604
+  },
+  {
+   "dia": 4,
+   "f": 6.53,
+   "f_linha": 0.194,
+   "f_2linha": -0.147,
+   "dif_central_empirica": -0.168
+  },
+  {
+   "dia": 5,
+   "f": 6.67,
+   "f_linha": 0.091,
+   "f_2linha": -0.069,
+   "dif_central_empirica": -0.308
+  },
+  {
+   "dia": 6,
+   "f": 6.73,
+   "f_linha": 0.042,
+   "f_2linha": -0.032,
+   "dif_central_empirica": 0.811
+  },
+  {
+   "dia": 7,
+   "f": 6.76,
+   "f_linha": 0.02,
+   "f_2linha": -0.015,
+   "dif_central_empirica": 1.315
+  }
+ ],
+ "D_limites": {
+  "lim_t_inf_ajuste": 6.784,
+  "interpretacao_lim": "a fadiga física satura em ~L (estado estacionário do acúmulo)",
+  "modelo_teorico": {
+   "State(t)=k1·e^{-t/τ1}-k2·e^{-t/τ2}": true,
+   "derivada": "State'(t)=-(k1/τ1)e^{-t/τ1}+(k2/τ2)e^{-t/τ2}",
+   "params_ilustrativos": {
+    "k1": 3.0,
+    "k2": 6.0,
+    "tau1": 3.0,
+    "tau2": 1.0
+   },
+   "ponto_critico_t*": 2.688,
+   "nota_ponto_critico": "State'(t*)=0 → nadir do estado (pico de fadiga aguda); antes recupera, depois relaxa",
+   "lim_t_inf": "State(t)→0 (retorno à linha de base p0)"
+  }
+ }
+}

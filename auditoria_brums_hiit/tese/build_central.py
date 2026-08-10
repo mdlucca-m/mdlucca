@@ -1,0 +1,340 @@
+import base64, os
+def img(k):
+    with open(f'/tmp/hubimg/{k}.jpg','rb') as f:
+        return 'data:image/jpeg;base64,'+base64.b64encode(f.read()).decode()
+
+ANALYST='https://claude.ai/code/artifact/9279ee5b-358f-49c5-8fad-3c05571079fb'
+PR='https://github.com/mdlucca-m/mdlucca/pull/1'
+GH='https://github.com/mdlucca-m/mdlucca/blob/claude/auditoria-analises-blz1fn/auditoria_brums_hiit/'
+
+CSS = """
+*{box-sizing:border-box}
+:root{
+ --bg:#070b16; --bg2:#0a1120; --panel:rgba(14,26,46,.55); --panel2:rgba(14,26,46,.62); --line:rgba(120,160,220,.16);
+ --ink:#e8f1ff; --mut:#8aa0c0; --faint:#5a6b86;
+ --teal:#22d3ee; --coral:#ff4d6d; --gold:#ffd166; --blue:#4da3ff; --violet:#7c5cff;
+ --serif:Georgia,'Iowan Old Style','Palatino Linotype','Times New Roman',serif;
+ --sans:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+ --mono:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;
+ --maxw:1120px;
+}
+/* padrão Showcase: tema neon-escuro único (independe da preferência do sistema/tema) */
+@media (prefers-color-scheme:light){:root{
+ --bg:#070b16; --bg2:#0a1120; --panel:rgba(14,26,46,.55); --panel2:rgba(14,26,46,.62); --line:rgba(120,160,220,.16);
+ --ink:#e8f1ff; --mut:#8aa0c0; --faint:#5a6b86;
+ --teal:#22d3ee; --coral:#ff4d6d; --gold:#ffd166; --blue:#4da3ff; --violet:#7c5cff;
+}}
+:root[data-theme="dark"],:root[data-theme="light"]{
+ --bg:#070b16; --bg2:#0a1120; --panel:rgba(14,26,46,.55); --panel2:rgba(14,26,46,.62); --line:rgba(120,160,220,.16);
+ --ink:#e8f1ff; --mut:#8aa0c0; --faint:#5a6b86;
+ --teal:#22d3ee; --coral:#ff4d6d; --gold:#ffd166; --blue:#4da3ff; --violet:#7c5cff;
+}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+/* camadas de ambiente do padrão Showcase */
+canvas#rain{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;opacity:.5}
+.mesh{position:fixed;inset:-20%;z-index:0;pointer-events:none;filter:blur(90px);opacity:.5;
+ background:radial-gradient(38vw 38vw at 16% 10%,#1a6fb022 0,transparent 60%),radial-gradient(34vw 34vw at 84% 8%,#7c5cff2e 0,transparent 60%),radial-gradient(42vw 42vw at 72% 90%,#ff4d6d22 0,transparent 62%),radial-gradient(40vw 40vw at 8% 84%,#22d3ee22 0,transparent 60%);
+ animation:mesh 26s ease-in-out infinite alternate}
+@keyframes mesh{0%{transform:translate3d(0,0,0) scale(1)}100%{transform:translate3d(0,-3%,0) scale(1.08)}}
+.cur,.cur-ring{position:fixed;top:0;left:0;z-index:60;pointer-events:none;border-radius:50%;mix-blend-mode:screen;transform:translate(-50%,-50%)}
+.cur{width:9px;height:9px;background:var(--teal);box-shadow:0 0 14px 3px #22d3eeaa}
+.cur-ring{width:36px;height:36px;border:1.5px solid #7c5cffaa;transition:width .18s,height .18s,border-color .18s,background .18s}
+.cur-ring.hot{width:58px;height:58px;border-color:var(--coral);background:#ff4d6d18}
+@media (hover:none){.cur,.cur-ring{display:none}}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px;position:relative;z-index:1}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--teal)}
+h1,h2,h3{font-family:var(--serif);font-weight:700;text-wrap:balance;line-height:1.15}
+a{color:inherit}
+/* hero */
+.hero{position:relative;z-index:1;padding:74px 0 40px;background:radial-gradient(1100px 460px at 78% -8%,rgba(34,211,238,.10),transparent 60%),linear-gradient(180deg,rgba(10,17,32,.6),transparent)}
+.hero h1{font-size:clamp(30px,5vw,52px);margin:14px 0 0;letter-spacing:-.02em;background:linear-gradient(102deg,#eaf4ff 8%,var(--teal) 46%,var(--violet) 92%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .accent{-webkit-text-fill-color:var(--coral);color:var(--coral)}
+.lede{color:var(--mut);font-size:clamp(15px,2vw,18.5px);max-width:60ch;margin:18px 0 0}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:36px 0 0}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px 14px;backdrop-filter:blur(14px)}
+.kpi b{display:block;font-family:var(--mono);font-size:25px;font-variant-numeric:tabular-nums;letter-spacing:-.02em;background:linear-gradient(180deg,#fff,var(--teal));-webkit-background-clip:text;background-clip:text;color:transparent}
+.kpi span{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+@media(max-width:820px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:460px){.kpis{grid-template-columns:repeat(2,1fr)}}
+/* cta band */
+.cta{display:flex;flex-wrap:wrap;align-items:center;gap:18px;justify-content:space-between;margin:34px 0 0;background:linear-gradient(120deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:22px 24px;backdrop-filter:blur(16px)}
+.cta .txt{min-width:260px;flex:1}
+.cta h3{margin:0 0 4px;font-size:20px;font-family:var(--sans);font-weight:800}
+.cta p{margin:0;color:var(--mut);font-size:13.5px}
+.btn{display:inline-flex;align-items:center;gap:9px;background:linear-gradient(135deg,var(--teal),#2dd4bf);color:#04121a;font-weight:800;font-family:var(--sans);text-decoration:none;padding:13px 20px;border-radius:11px;font-size:14.5px;white-space:nowrap;border:1px solid transparent;transition:transform .12s ease,box-shadow .12s ease;box-shadow:0 8px 26px -14px rgba(34,211,238,.9)}
+.btn:hover{transform:translateY(-1px);box-shadow:0 14px 34px -12px rgba(34,211,238,.8)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line);font-weight:600}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+/* sections */
+section{padding:52px 0;position:relative;z-index:1}
+.seclab{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal)}
+section h2{font-size:clamp(22px,3vw,30px);margin:8px 0 4px;letter-spacing:-.025em;background:linear-gradient(102deg,#eaf4ff 10%,var(--teal) 48%,var(--violet) 90%);-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-block}
+.sub{color:var(--mut);max-width:64ch;margin:0 0 26px}
+/* findings */
+.finds{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media(max-width:760px){.finds{grid-template-columns:1fr}}
+.find{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 20px 18px;position:relative;backdrop-filter:blur(16px);transition:transform .18s ease,border-color .3s,box-shadow .3s;transform-style:preserve-3d}
+.find:hover{border-color:rgba(34,211,238,.4);box-shadow:0 18px 50px -26px rgba(34,211,238,.5)}
+.find .n{font-family:var(--mono);font-size:12px;color:var(--faint)}
+.find h3{font-size:17.5px;margin:6px 0 7px;font-family:var(--sans);font-weight:800}
+.find p{margin:0;color:var(--mut);font-size:14px}
+.find .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;padding:3px 8px;border-radius:999px;margin-top:12px;display:inline-block}
+.t-teal{background:rgba(34,211,238,.14);color:var(--teal)} .t-coral{background:rgba(255,77,109,.16);color:var(--coral)}
+.t-gold{background:rgba(255,209,102,.16);color:var(--gold)} .t-blue{background:rgba(77,163,255,.15);color:var(--blue)}
+.t-violet{background:rgba(124,92,255,.18);color:var(--violet)}
+/* figures */
+figure{margin:0 0 26px;background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden;backdrop-filter:blur(14px)}
+figure img{display:block;width:100%;height:auto}
+figcaption{padding:13px 18px;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
+figcaption b{color:var(--ink);font-weight:700}
+.figrow{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.figrow{grid-template-columns:1fr}}
+/* deliverables */
+.cats{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media(max-width:760px){.cats{grid-template-columns:1fr}}
+.cat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 20px 8px;backdrop-filter:blur(16px);transition:transform .18s ease,border-color .3s,box-shadow .3s;transform-style:preserve-3d}
+.cat:hover{border-color:rgba(124,92,255,.4);box-shadow:0 18px 50px -26px rgba(124,92,255,.5)}
+.cat h3{font-family:var(--sans);font-size:15px;font-weight:800;margin:0 0 4px;display:flex;align-items:center;gap:9px}
+.cat h3 .dot{width:9px;height:9px;border-radius:3px;flex:none;box-shadow:0 0 10px 1px currentColor}
+.cat>p{color:var(--faint);font-size:12.5px;margin:0 0 12px}
+.file{display:flex;align-items:baseline;gap:10px;padding:10px 0;border-top:1px solid var(--line);text-decoration:none}
+.file:hover .fn{color:var(--teal)}
+.file .fn{font-size:14px;font-weight:600}
+.file .fd{color:var(--mut);font-size:12.5px}
+.file .ext{font-family:var(--mono);font-size:10px;color:var(--faint);border:1px solid var(--line);padding:2px 6px;border-radius:6px;margin-left:auto;white-space:nowrap}
+/* footer */
+footer{border-top:1px solid var(--line);padding:34px 0 60px;color:var(--faint);font-size:13px;position:relative;z-index:1}
+footer a{color:var(--teal)}
+.note{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:12px;padding:14px 18px;color:var(--mut);font-size:13.5px;margin-top:22px;backdrop-filter:blur(14px)}
+@media(prefers-reduced-motion:reduce){.mesh{animation:none}.find,.cat{transition:none}}
+"""
+
+def find(n, title, body, tag, tclass):
+    return f'<div class="find"><div class="n">Achado {n}</div><h3>{title}</h3><p>{body}</p><span class="tag {tclass}">{tag}</span></div>'
+
+def file(href, fn, fd, ext):
+    return f'<a class="file" href="{href}" target="_blank" rel="noopener"><span><span class="fn">{fn}</span> <span class="fd">— {fd}</span></span><span class="ext">{ext}</span></a>'
+
+RAIN_JS = """
+<script>
+/* padrão Showcase: chuva neon + cursor de alta definição + tilt 3D */
+(function(){
+ var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches, fine=matchMedia('(hover:hover) and (pointer:fine)').matches;
+ var cv=document.getElementById('rain'),ctx=cv&&cv.getContext('2d'),drops=[],DPR=Math.min(devicePixelRatio||1,2);
+ function size(){cv.width=innerWidth*DPR;cv.height=innerHeight*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);var n=Math.round(innerWidth/10);drops=[];for(var i=0;i<n;i++)drops.push(mk());}
+ function mk(){return{x:Math.random()*innerWidth,y:Math.random()*innerHeight,l:12+Math.random()*24,v:3+Math.random()*5,c:Math.random()<.5?'#22d3ee':(Math.random()<.5?'#7c5cff':'#ff4d6d'),a:.1+Math.random()*.3};}
+ function draw(){ctx.clearRect(0,0,innerWidth,innerHeight);ctx.lineWidth=1.3;for(var i=0;i<drops.length;i++){var d=drops[i];ctx.strokeStyle=d.c;ctx.globalAlpha=d.a;ctx.beginPath();ctx.moveTo(d.x,d.y);ctx.lineTo(d.x,d.y+d.l);ctx.stroke();d.y+=d.v;if(d.y>innerHeight){d.y=-d.l;d.x=Math.random()*innerWidth;}}ctx.globalAlpha=1;requestAnimationFrame(draw);}
+ if(cv&&!reduce){size();addEventListener('resize',size);draw();}else if(cv){cv.style.display='none';}
+ if(fine){var dot=document.querySelector('.cur'),ring=document.querySelector('.cur-ring');document.body.style.cursor='none';
+  var mx=innerWidth/2,my=innerHeight/2,rx=mx,ry=my;
+  addEventListener('pointermove',function(e){mx=e.clientX;my=e.clientY;dot.style.left=mx+'px';dot.style.top=my+'px';if(reduce){ring.style.left=mx+'px';ring.style.top=my+'px';}});
+  if(!reduce){(function loop(){rx+=(mx-rx)*.18;ry+=(my-ry)*.18;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(loop);})();}
+  var hot='a,button,.find,.cat,.kpi,.cta,figure';
+  document.addEventListener('pointerover',function(e){if(e.target.closest(hot))ring.classList.add('hot');});
+  document.addEventListener('pointerout',function(e){if(e.target.closest(hot))ring.classList.remove('hot');});
+ }
+ if(fine&&!reduce){setTimeout(function(){document.querySelectorAll('.find,.cat').forEach(function(c){
+  c.addEventListener('pointermove',function(e){var r=c.getBoundingClientRect();var px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;c.style.transform='perspective(1100px) rotateX('+((.5-py)*3).toFixed(2)+'deg) rotateY('+((px-.5)*4).toFixed(2)+'deg)';});
+  c.addEventListener('pointerleave',function(){c.style.transform='';});});},400);}
+})();
+</script>
+"""
+
+html = f"""<style>{CSS}</style>
+<canvas id="rain"></canvas><div class="mesh"></div><div class="cur"></div><div class="cur-ring"></div>
+<div class="hero"><div class="wrap">
+ <div class="eyebrow">Estudo · Humor &amp; carga interna · Handebol</div>
+ <h1>BRUMS <span class="accent">×</span> HIIT: como o humor responde a um microciclo de alta intensidade — e o quão bem conseguimos medi&#8209;lo</h1>
+ <p class="lede">27 atletas, 7 dias, três sessões de HIIT. Auditoria independente das análises, manuscrito padrão&#8209;ouro, sistema analista interativo e um pipeline que reprocessa tudo a cada nova coleta. Esta é a central para ver tudo em um só lugar.</p>
+ <div class="kpis">
+  <div class="kpi"><b>27</b><span>atletas</span></div>
+  <div class="kpi"><b>456</b><span>observações</span></div>
+  <div class="kpi"><b>135</b><span>pares pré/pós</span></div>
+  <div class="kpi"><b>77<span style="color:var(--faint)">/84</span></b><span>checagens exatas</span></div>
+  <div class="kpi"><b>3</b><span>sessões HIIT</span></div>
+  <div class="kpi"><b>~183</b><span>FC pico (bpm)</span></div>
+ </div>
+ <div class="cta">
+  <div class="txt"><h3>Sistema Analista — ao vivo</h3><p>Explore os dados com filtros que recalculam tudo: descritiva, inferência, segmentação e carga interna (FC/PSE).</p></div>
+  <a class="btn" href="{ANALYST}" target="_blank" rel="noopener">Abrir o sistema interativo →</a>
+ </div>
+</div></div>
+
+<div class="wrap">
+
+<section>
+ <div class="seclab">O que o estudo mostrou</div>
+ <h2>Cinco achados</h2>
+ <p class="sub">Todos reconciliados com a reanálise estatística (modelo misto, correção de pseudorreplicação por atleta e FDR).</p>
+ <div class="finds">
+  {find(1,'A medida é heterogênea','A fadiga física é a variável mais confiável e sem efeito piso; já confusão (80% no piso) e depressão (67%) têm variância pequena demais para detectar mudança. Medir bem vem antes de concluir.','qualidade da medida','t-blue')}
+  {find(2,'A resposta mora no eixo energia–fadiga','No agudo, o HIIT eleva a fadiga física (dz = 0,76) e reduz o vigor. Três variáveis desse eixo sobrevivem à correção por pseudorreplicação e ao FDR — o resto é ruído ou piso.','resposta aguda','t-coral')}
+  {find(3,'O microciclo acumula carga','Há efeito do dia real (modelo misto): o "perfil iceberg" cai de 71% no Dia 1 para 33% no Dia 7. A perturbação total cresce ~0,53 ponto/dia ao longo da semana.','efeito do dia','t-gold')}
+  {find(4,'Carga alta ≠ humor pior','As sessões foram quase-máximas (FC de pico 184/183/181 bpm; PSE final 9,3–9,6), mas a magnitude da carga não prediz a perturbação aguda do humor (r ≈ −0,05). O custo fisiológico e a resposta psicológica se desacoplam no agudo.','carga interna','t-teal')}
+  {find(5,'A resposta é individual','A tipologia separa 20 atletas resilientes, 6 perturbados e 1 extremo. A média esconde perfis opostos — daí o drill-down por atleta no sistema analista.','segmentação','t-violet')}
+ </div>
+</section>
+
+<section>
+ <div class="seclab">O desenho e a arquitetura analítica</div>
+ <h2>Como o estudo foi montado</h2>
+ <p class="sub">Do dado bruto à decisão de modelagem, com a etapa de correção da pseudorreplicação em destaque.</p>
+ <figure><img src="{img('desenho_analitico')}" alt="Desenho analítico do estudo"><figcaption><b>Desenho analítico.</b> Visual abstract: desenho + fluxo de dados + achado-chave de cada etapa do pipeline, com mini-gráficos reais.</figcaption></figure>
+ <figure><img src="{img('infog')}" alt="Infográfico do desenho do estudo"><figcaption><b>Infográfico do desenho.</b> Amostra, instrumentos, microciclo de 7 dias (HIIT em D2/D4/D7), funil de coletas e cadeia analítica.</figcaption></figure>
+ <figure><img src="{img('master')}" alt="Figura-mestre do desenho do estudo"><figcaption><b>Esquema-mestre.</b> Microciclo, coletas pré/pós e o que aconteceu no estudo.</figcaption></figure>
+ <div class="figrow">
+  <figure><img src="{img('framework')}" alt="Framework analítico hierárquico"><figcaption><b>Framework analítico.</b> Encadeamento hierárquico: medida → resposta → modelagem robusta.</figcaption></figure>
+  <figure><img src="{img('analog')}" alt="Analogia fitness-fadiga"><figcaption><b>Modelo fitness–fadiga.</b> Leitura analógica do balanço entre frescor (vigor) e custo (fadiga).</figcaption></figure>
+ </div>
+</section>
+
+<section>
+ <div class="seclab">Evidência visual</div>
+ <h2>Os gráficos-chave</h2>
+ <p class="sub">Amostras da análise; a versão interativa e filtrável está no sistema analista.</p>
+ <figure style="margin-bottom:18px"><img src="{img('monitoramento')}" alt="Monitoramento e visualizações — gauge, radar, monitoramento diário e bolhas 4D"><figcaption><b>Monitoramento &amp; visualizações.</b> Painel das três conclusões-âncora: <b>medidores (gauge)</b> dos indicadores-chave (dz da fadiga física, AUC diagnóstica, perfil iceberg, HTMT); <b>radar</b> do perfil de humor pré×pós (erosão do iceberg); <b>monitoramento diário</b> da carga de humor D1→D7 com faixas de alerta e dias de HIIT; e o <b>mapa 4D</b> por variável (resposta aguda × acúmulo × individualidade × consenso direcional).</figcaption></figure>
+ <div class="figrow">
+  <figure><img src="{img('spaghetti')}" alt="Trajetórias de PTH por atleta"><figcaption><b>Heterogeneidade.</b> Trajetória do PTH por atleta ao longo da semana (média destacada).</figcaption></figure>
+  <figure><img src="{img('weekly')}" alt="Mudança semanal"><figcaption><b>Acúmulo semanal.</b> Mudança D1→D7 com intervalos de confiança por bootstrap.</figcaption></figure>
+  <figure><img src="{img('cluster')}" alt="Tipologia de atletas"><figcaption><b>Tipologia.</b> Perfis médios (z) dos grupos resiliente / perturbado / extremo.</figcaption></figure>
+  <figure><img src="{img('network')}" alt="Rede de subescalas"><figcaption><b>Rede.</b> Centralidade das subescalas por correlação parcial.</figcaption></figure>
+ </div>
+ <div class="figrow" style="margin-top:16px">
+  <figure><img src="{img('dendro')}" alt="Dendrograma"><figcaption><b>Dendrograma (Ward).</b> Tipologia dos atletas — 21 / 5 / 1 (A06 extremo); cross-valida o k-médias.</figcaption></figure>
+  <figure><img src="{img('clustermap')}" alt="Clustermap"><figcaption><b>Clustermap.</b> Perfil z de humor por atleta, ordenado pelo agrupamento.</figcaption></figure>
+ </div>
+ <figure style="margin-top:16px"><img src="{img('diashiit')}" alt="Comparação entre os dias do microciclo"><figcaption><b>Dias do microciclo.</b> Δ agudo entre dias de HIIT (D2/D4/D7, equivalentes), entre dias sem HIIT (só o PTH difere), HIIT vs sem-HIIT (salto agudo semelhante) e o nível de PTH por dia (pico no D7).</figcaption></figure>
+ <figure style="margin-top:16px"><img src="{img('outrosq')}" alt="Outros questionários — externos ao BRUMS"><figcaption><b>Outros questionários.</b> Autorrelatos externos ao BRUMS (fadiga física/mental, estado físico/mental): resposta aguda, convergência com o BRUMS (rm_corr intra-atleta) e estabilidade (ICC). Os físicos respondem forte e convergem com a Fadiga do BRUMS.</figcaption></figure>
+ <figure style="margin-top:16px"><img src="{img('sono')}" alt="Sonolência — item Sonolento do BRUMS"><figcaption><b>Sonolência.</b> O item "Sonolento" anda na contramão da fadiga: cai pós-treino (dz −0,55) enquanto a exaustão sobe — o exercício desperta. Ortogonal aos demais itens; remover eleva o α da Fadiga de 0,80 para 0,90.</figcaption></figure>
+ <figure style="margin-top:16px"><img src="{img('rocderiv')}" alt="ROC das derivadas"><figcaption><b>ROC das derivadas.</b> A derivada aguda (Δ pós−pré) como escore do dia de HIIT é fraca (fadiga física AUC 0,59; demais ~0,5) e não supera o nível (PTH nível 0,60 vs derivada 0,50) — a assinatura do HIIT está no nível, não no salto.</figcaption></figure>
+ <figure style="margin-top:16px"><img src="{img('dvar')}" alt="Derivadas por variável e por atleta"><figcaption><b>Derivadas por variável/atleta.</b> Velocidade de acúmulo por variável (PTH +0,53/dia; vigor −0,28) e a derivada individual: fadiga física acumula em 92% dos atletas (homogêneo), o PTH em só 58% (idiossincrático, DP 1,45).</figcaption></figure>
+ <figure style="margin-top:16px"><img src="{img('limites')}" alt="Limites e derivadas da trajetória de fadiga"><figcaption><b>Limites &amp; derivadas (cálculo).</b> Ajuste saturante f(t)=L−(L−f₁)e^(−k(t−1)) (L≈6,8; R²=0,76); a razão incremental converge para f′(2)=0,89 (definição de derivada por limite); derivada positiva e decrescente (satura em L); e o modelo fitness–fadiga com derivada zero no pico de fadiga (t*≈2,69) e limite → linha de base.</figcaption></figure>
+ <figure style="margin-top:16px"><img src="{img('residuos')}" alt="Coeficientes e resíduos dos modelos mistos"><figcaption><b>Coeficientes &amp; resíduos.</b> Efeitos fixos dos modelos mistos (β±IC95%), diagnóstico de resíduos condicionais (resíduo×ajustado, Q–Q, escala–locação, histograma) e interceptos aleatórios por atleta (BLUPs) — fadiga física com resíduos normais; PTH assimétrico (usa-se também não-paramétrico/permutação).</figcaption></figure>
+ <figure style="margin-top:16px"><img src="{img('psicorob')}" alt="Psicometria robusta por subescala"><figcaption><b>Psicometria robusta.</b> α de Cronbach, α ordinal, ω de McDonald, AVE e confiabilidade composta (CR) por subescala; raiva/depressão/fadiga com AVE≥0,50 e CR≥0,80, tensão e confusão abaixo (efeito piso).</figcaption></figure>
+ <figure style="margin-top:16px"><img src="{img('afe')}" alt="Análise fatorial exploratória e cargas"><figcaption><b>AFE &amp; cargas.</b> KMO 0,83; Bartlett p&lt;0,001; Kaiser 7 / análise paralela 5 fatores; a solução de 6 fatores (promax) explica 55,8% da variância com estrutura simples — cada subescala carrega no seu fator.</figcaption></figure>
+ <figure style="margin-top:16px"><img src="{img('blandaltman')}" alt="Bland-Altman - limites de concordância"><figcaption><b>Bland–Altman.</b> Concordância entre instrumentos do mesmo construto (% do máximo, limites cientes de medidas repetidas): correlacionam mas têm viés e limites largos — convergentes, não intercambiáveis.</figcaption></figure>
+ <figure style="margin-top:16px"><img src="{img('invmg')}" alt="AFC multigrupo e invariância pré-pós"><figcaption><b>AFC multigrupo &amp; invariância (pré→pós).</b> Configural CFI pré 0,92 / pós 0,91; invariância métrica sustentada pela congruência das cargas (Tucker φ global 0,992 ≥ 0,95); ΔCFI estrito −0,03 (teste conservador). Restrito aos 4 fatores confiáveis (tensão/confusão excluídas por efeito piso).</figcaption></figure>
+ <figure style="margin-top:16px"><img src="{img('invesc')}" alt="Invariância métrica conjunta e escalar"><figcaption><b>Invariância métrica conjunta &amp; escalar.</b> Modelo métrico conjunto (cargas comuns estimadas em conjunto): ΔCFI −0,004 — invariância métrica sustentada. Escalar aproximada (viés residual de intercepto RMS 0,135); o deslocamento da média latente κ concentra-se no eixo energético (fadiga +0,56; vigor −0,26) — mudança verdadeira do traço, não viés de item.</figcaption></figure>
+ <figure style="margin-top:16px"><img src="{img('investrita')}" alt="Invariância estrita e parcial"><figcaption><b>Invariância estrita &amp; parcial.</b> Nível residual (cargas + variâncias de erro θ fixas): CFI 0,913→0,898, ΔCFI −0,015 — no limite. O diagnóstico por item aponta a fonte: "Sonolento" (fadiga_3) e vigor_4. A invariância parcial, liberando esses dois itens, reduz o viés residual de intercepto de 0,135 para 0,064 — a quebra é local e identificada, não global.</figcaption></figure>
+ <figure style="margin-top:16px"><img src="{img('descrfig')}" alt="Estatística descritiva — histogramas, box plots, dispersão e normalidade"><figcaption><b>Estatística descritiva.</b> Histograma da fadiga física (pré vs. pós), box plots pré×pós das variáveis-chave, dispersão vigor × fadiga (r≈−0,44) e Q–Q de normalidade do PTH (pré vs. pós) — o deslocamento no eixo energia–fadiga e a não-normalidade que justifica a permutação.</figcaption></figure>
+ <figure style="margin-top:16px"><img src="{img('descr')}" alt="Descritivas e testes"><figcaption><b>Descritivas &amp; testes.</b> Forma/normalidade e a concordância entre testes paramétricos (t) e não-paramétricos (Wilcoxon) — as duas famílias decidem igual.</figcaption></figure>
+ <div class="figrow" style="margin-top:16px">
+  <figure><img src="{img('perfil')}" alt="Perfil de humor e distribuições"><figcaption><b>Perfil &amp; distribuições.</b> Iceberg pré×pós (χ² significativo), box plot por subescala, histograma do PTH (com log) e dispersão vigor×fadiga por grupo.</figcaption></figure>
+  <figure><img src="{img('variab')}" alt="Variabilidade e robustez"><figcaption><b>Variabilidade &amp; robustez.</b> Componentes de variância (entre×intra atleta), variabilidade individual do PTH, perfis de grupo (η²=0,70) e a nula de permutação da fadiga física.</figcaption></figure>
+ </div>
+</section>
+
+<section>
+ <div class="seclab">A espinha dorsal inferencial</div>
+ <h2>Modelagem completa — o atleta como unidade</h2>
+ <p class="sub">Todos os modelos ajustados com efeitos aleatórios por atleta (statsmodels), corrigindo a pseudorreplicação. É o que sustenta cada afirmação inferencial do estudo. Os <b>testes clássicos</b> (t pareado/Wilcoxon, Friedman/RM-ANOVA, dz com IC95% e correção FDR) confirmam o mesmo quadro.</p>
+ <div class="finds">
+  <div class="find"><div class="n">Resposta aguda + acúmulo</div><h3>Efeito no eixo energia–fadiga</h3><p>No modelo misto pré→pós (com FDR) sobrevivem fadiga física (dz 1,06), PTH (0,68), fadiga (0,62), vigor (−0,56) e fadiga mental. No microciclo, a fadiga física acumula +0,34/dia (robusto); o PTH sobe em média mas com <b>inclinações individuais muito heterogêneas</b> (variância 1,13) — a média esconde trajetórias opostas.</p><span class="tag t-coral">misto · inclinação aleatória · FDR</span></div>
+  <div class="find"><div class="n">HIIT e multivariada</div><h3>Perturba o dia, não o salto agudo</h3><p>Nos dias de HIIT o PTH sobe +2,43 (p=0,003). Mas a interação Condição×Momento é nula para o PTH (p=0,910): o <b>salto agudo</b> não difere entre HIIT e técnico-tático — só a fadiga física é amplificada (p=0,035). Hotelling T² confirma o efeito concentrado no eixo vigor+fadiga (F(2,25)=5,59; p=0,010).</p><span class="tag t-gold">HIIT nível-do-dia · Hotelling T²</span></div>
+  <div class="find"><div class="n">Modelo teórico · três vias</div><h3>R² individual, Bayes e multivariada convergem</h3><p>Do modelo fitness–fadiga à forma estimável (mistos): o R² <b>marginal</b> (protocolo) é pequeno (0,06–0,21), mas o <b>condicional</b> (com o indivíduo) chega a 0,58–0,63 — a variância explicável é sobretudo individual (ICC 0,47–0,60). O Gibbs bayesiano coincide com o frequentista (P(efeito&gt;0)=1,00) e a MANOVA + PERMANOVA pareada (Anderson) confirmam o deslocamento multivariado (p≤0,016).</p><span class="tag t-violet">R² Nakagawa · Gibbs · MANOVA/PERMANOVA</span></div>
+ </div>
+ <div class="figrow" style="margin-top:20px">
+  <figure><img src="{img('framework2')}" alt="Framework do modelo teórico"><figcaption><b>Framework.</b> Do modelo teórico (fitness–fadiga) à forma estimável e às três vias de estimação (R²/erro-padrão, Gibbs bayesiano, multivariada).</figcaption></figure>
+  <figure><img src="{img('modteo')}" alt="Modelo teórico — estimativas"><figcaption><b>Estimativas.</b> R² marginal×condicional, efeitos fixos ± erro-padrão, posterior bayesiano vs. frequentista e PERMANOVA.</figcaption></figure>
+ </div>
+</section>
+
+<section>
+ <div class="seclab">Confirmação psicométrica · análises avançadas</div>
+ <h2>As análises "de ponta" também fecham</h2>
+ <p class="sub">As etapas antes marcadas como "requer replicação em R" foram executadas em Python (motores independentes: semopy, girth, scipy) e <b>confirmam</b> o estudo — estrutura, discriminância, confiabilidade por subescala (α/ω), invariância métrica e fechamento bayesiano. Um script R canônico (lavaan/mirt/semTools) acompanha para os estimadores de referência.</p>
+ <div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+  <div class="kpi"><b>0,921</b><span>CFI · CFA 6 fatores</span></div>
+  <div class="kpi"><b>0,055</b><span>RMSEA (≤0,06 bom)</span></div>
+  <div class="kpi"><b>0,846</b><span>HTMT máx (&lt;0,85)</span></div>
+  <div class="kpi"><b>0,985</b><span>φ invariância pré×pós</span></div>
+ </div>
+ <div class="finds" style="margin-top:16px">
+  <div class="find"><div class="n">Estrutura da medida</div><h3>Fatores e discriminância confirmados</h3><p>CFA de seis fatores com ajuste aceitável (CFI 0,921; RMSEA 0,055); o único ponto fraco é a tensão saturada de piso — a mesma fragilidade já auditada. HTMT máximo 0,846 sustenta a validade discriminante, e a invariância métrica pré→pós se mantém (Tucker φ 0,985).</p><span class="tag t-blue">CFA · HTMT policórico · invariância</span></div>
+  <div class="find"><div class="n">Fechamento bayesiano</div><h3>Efeito e equivalência quantificados</h3><p>Fator de Bayes exato (JZS): fadiga física BF₁₀ ≈ 2444, PTH ≈ 22, fadiga ≈ 11, vigor ≈ 6 — e confusão BF₁₀ ≈ 0,23, evidência positiva de equivalência. A TRI confirma itens majoritariamente informativos. Reproduz a leitura do manuscrito.</p><span class="tag t-teal">Bayes JZS · TRI/GRM</span></div>
+  <div class="find"><div class="n">Confiabilidade &amp; invariância</div><h3>Consistente — e mede o mesmo antes e depois</h3><p>Por subescala: raiva, depressão e fadiga com α e ω acima de 0,80; vigor e confusão limítrofes (o IC do α alcança 0,70); só a <b>tensão</b> é frágil (α 0,43), pelo efeito piso. O ω de McDonald resgata vigor (0,78) e fadiga (0,82). A <b>invariância métrica</b> pré→pós se sustenta (Tucker φ 0,987) — a mudança observada é de <b>estado</b>, não deriva do instrumento.</p><span class="tag t-violet">α de Cronbach · ω de McDonald · invariância</span></div>
+ </div>
+</section>
+
+<section>
+ <div class="seclab">Diagnóstico e carga interna</div>
+ <h2>ROC e TRIMP — o que separa e quanto custa</h2>
+ <p class="sub">Duas leituras complementares: a capacidade <b>diagnóstica</b> das variáveis (ROC/AUC) e a <b>carga interna</b> por FC (TRIMP de Banister). Convergem com o resto do estudo. E, entre atletas, <b>nenhum</b> marcador de carga (PSE, FC, TRIMP) se acopla ao humor (fadiga mental, TMD) — todos os pares n.s.</p>
+ <div class="finds">
+  <div class="find"><div class="n">Curva ROC</div><h3>Só a fadiga física discrimina o pós</h3><p>Para separar pós de pré-treino, a <b>fadiga física atinge AUC 0,70</b> (única moderada); PTH e fadiga ficam ~0,61 e as demais em ~0,5. Para separar dia de HIIT de dia sem HIIT, todas as AUC ficam em 0,52–0,58 — o humor de um dia isolado classifica mal o tipo de treino. Reforça: monitorar por tendência, com a fadiga física como sentinela.</p><span class="tag t-blue">AUC · IC bootstrap por atleta · Youden</span></div>
+  <div class="find"><div class="n">TRIMP (Banister)</div><h3>Intensidade no teto; carga não prevê humor</h3><p>As sessões foram uniformemente quase-máximas (%HRR 0,87–0,91). A carga por FC (TRIMP) e por PSE (Foster) são <b>praticamente independentes</b> neste regime (r ≈ −0,05), e nenhuma prediz a resposta aguda do humor (TRIMP × ΔPTH r = −0,32, n.s.) — o humor responde a fatores além do custo fisiológico da sessão.</p><span class="tag t-gold">%HRR · Banister · Foster</span></div>
+  <div class="find"><div class="n">Validação preditiva</div><h3>Prevê pelo atleta, não pela carga</h3><p>Fora da amostra, com validação <b>leave-one-athlete-out</b> (o modelo nunca vê o atleta que prevê): o estado pós-treino é modestamente previsível (R² ≈ 0,3–0,4; AUC 0,70 para o dia perturbado), e o sinal vem do <b>baseline do próprio atleta</b>. Adicionar HIIT/dia ao baseline muda o R² em ≈ 0 — confirmação preditiva do desacoplamento carga↔humor.</p><span class="tag t-violet">LOAO · Ridge/RF · R² OOF</span></div>
+ </div>
+ <figure style="margin-top:16px"><img src="{img('hiitprot')}" alt="Protocolo de HIIT — FC por série, recuperação e PSE"><figcaption><b>Protocolo de HIIT (4 × 4 min a 104% da velocidade de pico, 3 min de intervalo).</b> FC ao início (recuperação) e ao fim (pico) de cada série, PSE por fase e resumo da carga interna: FC máxima ~186 bpm, média das séries ~179 bpm, FC de recuperação ~124 bpm (recuperação incompleta), PSE final ~9,9.</figcaption></figure>
+ <figure style="margin-top:16px"><img src="{img('cargahumor')}" alt="Carga interna × perfil de humor e preditores de estado de fadiga"><figcaption><b>Carga × humor &amp; preditores de fadiga.</b> Esquerda/centro: acoplamento carga (PSE/FC/TRIMP) × todo o perfil de humor, tônico e agudo — desacoplamento (nada sobrevive à FDR). Direita: sensibilidade (AUC, fadiga alta vs. baixa) × confiabilidade (ICC 2,1) de cada preditor — a <b>fadiga física</b> é a mais sensível (AUC 0,90; estado-lábil), a <b>fadiga mental</b> e a <b>depressão</b> são sensíveis e estáveis, a <b>tensão</b> é confiável mas cega à fadiga.</figcaption></figure>
+</section>
+
+<section>
+ <div class="seclab">Reproduzível com um comando</div>
+ <h2>Pipeline automatizado (estilo N8N)</h2>
+ <p class="sub">Dezesseis nós encadeados levam da coleta bruta às tabelas, gráficos, Excel, PDF, relatório e à regeneração do próprio sistema analista. Um gatilho Cron reprocessa tudo a cada nova coleta.</p>
+ <figure><img src="{img('workflow')}" alt="Diagrama do pipeline N8N"><figcaption><b>Fluxo.</b> Início/Cron → ingestão → análises → carga interna → gráficos → Excel/PDF/HTML → app analista → relatório.</figcaption></figure>
+</section>
+
+<section>
+ <div class="seclab">Todos os entregáveis</div>
+ <h2>Índice do material</h2>
+ <p class="sub">Tudo vive em <span style="font-family:var(--mono);font-size:13px">auditoria_brums_hiit/</span> na branch do PR. Os links abaixo abrem cada arquivo no GitHub.</p>
+ <div class="cats">
+  <div class="cat">
+   <h3><span class="dot" style="background:var(--blue)"></span>Manuscrito &amp; tese</h3>
+   <p>Documento padrão-ouro, revisão de literatura, objetivos e figuras.</p>
+   {file(GH+'ARTIGO_AUDITADO.docx','ARTIGO_AUDITADO.docx','manuscrito corrigido + Apêndice B','DOCX')}
+   {file(GH+'tese/TESE_REVISADA.docx','TESE_REVISADA.docx','tese com revisão de literatura integrada','DOCX')}
+   {file(GH+'tese/Resultados_e_Discussao_BRUMS_HIIT.docx','Resultados e Discussão','seção integrada das 8 camadas + referências','DOCX')}
+   {file(GH+'RELATORIO_AUDITORIA.md','RELATORIO_AUDITORIA.md','relatório completo da auditoria','MD')}
+  </div>
+  <div class="cat">
+   <h3><span class="dot" style="background:var(--teal)"></span>Análise interativa</h3>
+   <p>Para explorar e compartilhar com os pares.</p>
+   <a class="file" href="{ANALYST}" target="_blank" rel="noopener"><span><span class="fn">Sistema Analista</span> <span class="fd">— app ao vivo (6 abas)</span></span><span class="ext">LINK</span></a>
+   {file(GH+'tese/Apresentacao_BRUMS_HIIT.html','Apresentação (HTML)','30 slides segmentados','HTML')}
+   {file(GH+'dashboard.html','Dashboard','KPIs, achados e insights','HTML')}
+  </div>
+  <div class="cat">
+   <h3><span class="dot" style="background:var(--gold)"></span>Apoio ao orientador</h3>
+   <p>Processos e dados limpos, auditáveis.</p>
+   {file(GH+'Auditoria_BRUMS_HIIT.xlsx','Auditoria_BRUMS_HIIT.xlsx','7 abas: verificação colorida + tabelas','XLSX')}
+   {file(GH+'tese/Apresentacao_BRUMS_HIIT.pptx','Apresentação (PPTX)','25 slides','PPTX')}
+   {file(GH+'analises_avancadas/RESULTADOS.md','Análises avançadas','CFA/HTMT/TRI/invariância/Bayes + script R','MD')}
+   {file(GH+'modelagem/MODELAGEM.md','Modelagem completa','modelos mistos, HIIT, interação, Hotelling','MD')}
+   {file(GH+'roc/ROC.md','Análise ROC','AUC pré×pós e HIIT×sem','MD')}
+   {file(GH+'trimp/TRIMP.md','Carga interna TRIMP','Banister %HRR + Foster','MD')}
+   {file(GH+'descritivas_testes/DESCRITIVAS.md','Descritivas & testes','normalidade · paramétrico vs não-paramétrico','MD')}
+   {file(GH+'estatistica_inferencial/INFERENCIA.md','Estatística inferencial','t/Wilcoxon/Friedman, dz IC95%, rm_corr, ICC','MD')}
+   {file(GH+'acoplamento/ACOPLAMENTO.md','Acoplamento carga×humor','PSE/FC/TRIMP × fadiga mental/TMD','MD')}
+   {file(GH+'confiabilidade_invariancia/CONFIABILIDADE.md','Confiabilidade & invariância','α/ω por subescala, IC95%, Tucker φ','MD')}
+   {file(GH+'preditiva/PREDITIVA.md','Análise preditiva','leave-one-athlete-out; baseline vs. carga','MD')}
+   {file(GH+'perfil_variabilidade/PERFIL_VARIABILIDADE.md','Perfil & variabilidade','iceberg/χ², variância intra×entre, permutação, log, outlier','MD')}
+   {file(GH+'modelo_teorico/MODELO_TEORICO.md','Modelo teórico & framework','R² Nakagawa, erro-padrão, Gibbs bayesiano, MANOVA/PERMANOVA','MD')}
+   {file(GH+'dias_hiit/DIAS_HIIT.md','Comparação entre dias','HIIT entre si · sem-HIIT entre si · HIIT vs sem','MD')}
+   {file(GH+'outros_questionarios/OUTROS_QUESTIONARIOS.md','Outros questionários','fadiga/estado físico e mental · convergência com o BRUMS','MD')}
+   {file(GH+'sonolencia/SONOLENCIA.md','Sonolência','item "Sonolento": contramão da fadiga, α 0,80→0,90','MD')}
+   {file(GH+'roc_derivadas/ROC_DERIVADAS.md','ROC das derivadas','Δ agudo vs nível como diagnóstico do dia de HIIT','MD')}
+   {file(GH+'derivadas_variaveis/DERIVADAS_VARIAVEIS.md','Derivadas por variável/atleta','velocidade de acúmulo e heterogeneidade individual','MD')}
+  </div>
+  <div class="cat">
+   <h3><span class="dot" style="background:var(--violet)"></span>Automação</h3>
+   <p>Pipeline reproduzível e importável no N8N.</p>
+   {file(GH+'pipeline/README.md','pipeline/','16 nós · um comando','DIR')}
+   {file(GH+'pipeline/workflow_n8n.json','workflow_n8n.json','fluxo importável (Manual + Cron)','JSON')}
+   {file(GH+'pipeline/build_appdata.py','build_appdata.py','gerador canônico dos dados','PY')}
+  </div>
+ </div>
+ <div class="note"><b>Privacidade.</b> As bases originais não são versionadas (dados identificáveis); todas as saídas usam atletas anonimizados (A01–A27). Restam para replicação em R (lavaan/mirt/semTools): CFA/WLSMV, TRI/GRM, HTMT policórico e o BF bayesiano exato — internamente consistentes e marcados no Apêndice B.</div>
+</section>
+
+</div>
+<footer><div class="wrap">
+ Central do estudo BRUMS × HIIT no handebol · reprodução independente e material de publicação.<br>
+ <a href="{PR}" target="_blank" rel="noopener">Pull request #1 no GitHub →</a> &nbsp;·&nbsp; atletas anonimizados · elaboração do autor · 2026.
+</div></footer>
+{RAIN_JS}
+"""
+open('/tmp/hub.html','w').write(html)
+print('hub.html:', os.path.getsize('/tmp/hub.html')//1024,'KB')

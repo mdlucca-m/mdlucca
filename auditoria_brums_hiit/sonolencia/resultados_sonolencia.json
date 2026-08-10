@@ -1,0 +1,89 @@
+{
+ "item": "fadiga_3 = \"Sonolento\" (3º item da subescala Fadiga do BRUMS)",
+ "A_resposta_itens": [
+  {
+   "item": "Esgotado",
+   "key": "fadiga_1",
+   "M_pre": 0.92,
+   "M_pos": 1.68,
+   "delta": 0.76,
+   "dz": 0.74,
+   "t_p": 0.0007,
+   "wilcoxon_p": 0.0002,
+   "sig": true,
+   "direcao": "sobe"
+  },
+  {
+   "item": "Exausto",
+   "key": "fadiga_2",
+   "M_pre": 1.01,
+   "M_pos": 1.66,
+   "delta": 0.65,
+   "dz": 0.84,
+   "t_p": 0.0002,
+   "wilcoxon_p": 0.0001,
+   "sig": true,
+   "direcao": "sobe"
+  },
+  {
+   "item": "Sonolento",
+   "key": "fadiga_3",
+   "M_pre": 1.09,
+   "M_pos": 0.82,
+   "delta": -0.27,
+   "dz": -0.55,
+   "t_p": 0.0085,
+   "wilcoxon_p": 0.0071,
+   "sig": true,
+   "direcao": "cai"
+  },
+  {
+   "item": "Cansado",
+   "key": "fadiga_4",
+   "M_pre": 1.29,
+   "M_pos": 1.87,
+   "delta": 0.58,
+   "dz": 0.54,
+   "t_p": 0.0092,
+   "wilcoxon_p": 0.0065,
+   "sig": true,
+   "direcao": "sobe"
+  }
+ ],
+ "C_rmcorr_sonolento": [
+  {
+   "alvo": "Esgotado",
+   "r": 0.0,
+   "p": 0.9904
+  },
+  {
+   "alvo": "Exausto",
+   "r": 0.025,
+   "p": 0.5296
+  },
+  {
+   "alvo": "Cansado",
+   "r": 0.1,
+   "p": 0.0115
+  },
+  {
+   "alvo": "Vigor",
+   "r": -0.115,
+   "p": 0.0034
+  }
+ ],
+ "D_alpha": {
+  "com_sonolento": 0.795,
+  "ic_com": [
+   0.763,
+   0.824
+  ],
+  "sem_sonolento": 0.897,
+  "ic_sem": [
+   0.88,
+   0.912
+  ]
+ },
+ "carga_CFA_sonolento": 0.35,
+ "discrim_GRM_sonolento": 0.56
+}

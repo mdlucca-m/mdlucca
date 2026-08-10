@@ -1,0 +1,16 @@
+{
+  "config": "{\"version\": \"5.43\", \"themeCollection\": {\"baseTheme\": {\"name\": \"CY24SU10\"}}}",
+  "layoutOptimization": 0,
+  "sections": [
+    {
+      "name": "f8a47241-d288-4d2a-8aeb-1495afdbbc2a",
+      "displayName": "Visão geral",
+      "displayOption": 1,
+      "width": 1280,
+      "height": 720,
+      "visualContainers": []
+    }
+  ],
+  "publicCustomVisuals": [],
+  "resourcePackages": []
+}

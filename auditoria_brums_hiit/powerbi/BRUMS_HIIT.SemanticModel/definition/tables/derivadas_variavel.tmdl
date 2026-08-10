@@ -1,0 +1,47 @@
+table derivadas_variavel
+	lineageTag: fe730864-b87f-4292-baff-e5d38fde8191
+
+	column 'variavel'
+		dataType: string
+		sourceColumn: variavel
+		lineageTag: a91f9642-181b-4008-9ab7-9450966bbaac
+
+	column 'f_linha_1'
+		dataType: double
+		sourceColumn: f_linha_1
+		lineageTag: 67843454-32ab-47ca-9e7f-8fe52347042f
+		summarizeBy: none
+
+	column 'f_linha_7'
+		dataType: double
+		sourceColumn: f_linha_7
+		lineageTag: e48054d9-49f7-4258-8c81-aa039282d0bc
+		summarizeBy: none
+
+	column 'dia_vel_max'
+		dataType: int64
+		sourceColumn: dia_vel_max
+		lineageTag: fa289952-cbb2-4128-874f-9f54cf29fea5
+		summarizeBy: none
+
+	column 'inclinacao_media_dia'
+		dataType: double
+		sourceColumn: inclinacao_media_dia
+		lineageTag: 412f032b-7c59-480b-8ffe-98a138fd86dd
+		summarizeBy: none
+
+	column 'direcao'
+		dataType: string
+		sourceColumn: direcao
+		lineageTag: be19eedc-d71f-445f-81e2-5d80d679c71c
+
+	partition derivadas_variavel = m
+		mode: import
+		source =
+			let
+			    Fonte = Excel.Workbook(File.Contents(PastaDados & "\BRUMS_HIIT_PowerBI.xlsx"), null, true),
+			    Nav = Fonte{[Item="derivadas_variavel",Kind="Sheet"]}[Data],
+			    Cab = Table.PromoteHeaders(Nav, [PromoteAllScalars=true]),
+			    Tipos = Table.TransformColumnTypes(Cab, {{"variavel", type text}, {"f_linha_1", type number}, {"f_linha_7", type number}, {"dia_vel_max", Int64.Type}, {"inclinacao_media_dia", type number}, {"direcao", type text}})
+			in
+			    Tipos

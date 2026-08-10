@@ -1,0 +1,85 @@
+Tabela,Item,Reportado,Recalculado,Status
+Amostra,N atletas,27.0,27.0,OK
+Amostra,Observações válidas (dias 1-7),456.0,456.0,OK
+Amostra,Pares pré→pós,135.0,135.0,OK
+Tab.2 Descritivas,PTH média,4.39,4.39,OK
+Tab.2 Descritivas,PTH DP,9.64,9.64,OK
+Tab.2 Descritivas,PTH % piso,21.9,6.6,"DIVERGE (PTH não tem piso em 0; ==0→6,6%, ≤0→41,1%)"
+Tab.2 Descritivas,Vigor média,5.7,5.7,OK
+Tab.2 Descritivas,Vigor DP,3.12,3.12,OK
+Tab.2 Descritivas,Vigor % piso,8.6,8.6,OK
+Tab.2 Descritivas,Fadiga média,5.65,5.64,OK
+Tab.2 Descritivas,Fadiga DP,3.89,3.89,OK
+Tab.2 Descritivas,Fadiga % piso,7.7,7.7,OK
+Tab.2 Descritivas,Tensão média,1.39,1.39,OK
+Tab.2 Descritivas,Tensão DP,1.84,1.84,OK
+Tab.2 Descritivas,Tensão % piso,49.6,49.6,OK
+Tab.2 Descritivas,Depressão média,1.0,1.0,OK
+Tab.2 Descritivas,Depressão DP,2.31,2.31,OK
+Tab.2 Descritivas,Depressão % piso,67.1,67.1,OK
+Tab.2 Descritivas,Raiva média,1.6,1.6,OK
+Tab.2 Descritivas,Raiva DP,2.73,2.73,OK
+Tab.2 Descritivas,Raiva % piso,59.6,59.6,OK
+Tab.2 Descritivas,Confusão média,0.45,0.45,OK
+Tab.2 Descritivas,Confusão DP,1.19,1.19,OK
+Tab.2 Descritivas,Confusão % piso,80.5,80.5,OK
+Tab.2 Descritivas,Fadiga física média,6.12,6.12,OK
+Tab.2 Descritivas,Fadiga física DP,2.34,2.34,OK
+Tab.2 Descritivas,Fadiga física % piso,0.7,0.7,OK
+Tab.2 Descritivas,Fadiga mental média,4.59,4.59,OK
+Tab.2 Descritivas,Fadiga mental DP,2.81,2.81,OK
+Tab.2 Descritivas,Fadiga mental % piso,5.3,5.3,OK
+Tab.3 Confiabilidade,Raiva α,0.87,0.868,OK
+Tab.3 Confiabilidade,Depressão α,0.85,0.845,OK
+Tab.3 Confiabilidade,Fadiga α,0.8,0.795,OK
+Tab.3 Confiabilidade,Vigor α,0.68,0.684,OK
+Tab.3 Confiabilidade,Confusão α,0.65,0.653,OK
+Tab.3 Confiabilidade,Tensão α,0.43,0.427,OK
+Tab.11/45 Correlações,Fadiga×FadFis,0.67,0.67,OK
+Tab.11/45 Correlações,Vigor×EstFis,0.54,0.54,OK
+Tab.11/45 Correlações,PTH×EstMen,-0.68,-0.68,OK
+Tab.11/45 Correlações,PTH×Fadiga,0.79,0.79,OK
+Tab.11/45 Correlações,PTH×Vigor,-0.62,-0.62,OK
+Tab.11/45 Correlações,Depressão×PSS,0.29,0.29,OK
+Tab.11/45 Correlações,Confusão×FadMen,0.31,0.31,OK
+Tab.37 Var. (traço/dia/estado),Tensão % atleta,67.1,67.1,OK
+Tab.37 Var. (traço/dia/estado),Depressão % atleta,67.4,67.4,OK
+Tab.37 Var. (traço/dia/estado),Raiva % atleta,26.4,26.4,OK
+Tab.37 Var. (traço/dia/estado),Vigor % atleta,52.7,52.7,OK
+Tab.37 Var. (traço/dia/estado),Fadiga % atleta,56.3,56.3,OK
+Tab.37 Var. (traço/dia/estado),Confusão % atleta,37.7,37.7,OK
+Tab.19 Média diária PTH (2 passos),Dia 1,2.52,2.52,OK
+Tab.19 Média diária PTH (2 passos),Dia 2,4.61,4.61,OK
+Tab.19 Média diária PTH (2 passos),Dia 3,2.87,2.87,OK
+Tab.19 Média diária PTH (2 passos),Dia 4,4.76,4.76,OK
+Tab.19 Média diária PTH (2 passos),Dia 5,2.19,2.19,OK
+Tab.19 Média diária PTH (2 passos),Dia 6,4.8,4.8,OK
+Tab.19 Média diária PTH (2 passos),Dia 7,8.28,8.28,OK
+Tab.20 Iceberg %,Dia 1,71.4,71.4,OK
+Tab.20 Iceberg %,Dia 2,48.9,48.9,OK
+Tab.20 Iceberg %,Dia 3,44.0,44.0,OK
+Tab.20 Iceberg %,Dia 4,41.7,41.7,OK
+Tab.20 Iceberg %,Dia 5,53.5,53.5,OK
+Tab.20 Iceberg %,Dia 6,47.1,47.1,OK
+Tab.20 Iceberg %,Dia 7,32.6,32.6,OK
+Tab.25 HIIT vs sem (diferença),PTH,2.47,2.47,OK
+Tab.25 HIIT vs sem (diferença),Fadiga,0.66,0.66,OK
+Tab.25 HIIT vs sem (diferença),FadFis,0.27,0.27,OK
+Tab.25 HIIT vs sem (diferença),Vigor,-0.44,-0.44,OK
+Tab.22 Resposta aguda dz,FadFis,0.71,0.76,RECONCILIADO (adotado o dz recalculado; ver Apêndice B)
+Tab.22 Resposta aguda dz,Fadiga,0.42,0.45,RECONCILIADO (adotado o dz recalculado; ver Apêndice B)
+Tab.22 Resposta aguda dz,PTH,0.39,0.44,RECONCILIADO (adotado o dz recalculado; ver Apêndice B)
+Tab.22 Resposta aguda dz,Vigor,-0.33,-0.39,RECONCILIADO (adotado o dz recalculado; ver Apêndice B)
+Tab.23 Hotelling T² (6 sub.),"F(6,21)",2.52,2.52,OK
+Tab.23 Hotelling T² (6 sub.),p,0.054,0.054,OK
+Tab.23 Hotelling T² (6 sub.),D Mahalanobis,0.83,0.83,OK
+Tab.46/53 Carga interna,FC pico S1,184.0,183.8,OK
+Tab.46/53 Carga interna,FC pico S2,183.0,183.3,OK
+Tab.46/53 Carga interna,FC pico S3,181.0,180.8,OK
+Tab.46/53 Carga interna,PSE final S1,8.5,9.3,"CORRIGIDO → 9,3/9,3/9,6 (última série); Friedman n.s. (p=0,45)"
+Tab.48 HIIT (2 passos) dz,Vigor,-0.67,-0.67,OK
+Tab.48 HIIT (2 passos) dz,PTH,0.54,0.54,OK
+Tab.48 HIIT (2 passos) dz,Fadiga,0.48,0.48,OK
+Tab.48 HIIT (2 passos) dz,FadFis,0.29,0.29,OK
+Tab.47 Carga interna,"FC pico ICC(1,1)",0.56,0.56,OK
+Tab.53 Carga interna,PSE Friedman (entre sessões),0.004,0.447,CORRIGIDO (n.s.)

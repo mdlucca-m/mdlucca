@@ -1,0 +1,34 @@
+table kpis
+	lineageTag: e6d3bbad-f888-4a55-99cb-34882087d838
+
+	column 'kpi'
+		dataType: string
+		sourceColumn: kpi
+		lineageTag: 2933053f-d456-4efc-8caf-a461ebb5b9fd
+
+	column 'valor'
+		dataType: double
+		sourceColumn: valor
+		lineageTag: d828cc7d-b889-4996-ba71-2163d82cfa2a
+		summarizeBy: none
+
+	column 'unidade'
+		dataType: string
+		sourceColumn: unidade
+		lineageTag: b46e2a98-4dc4-4b95-b355-298af0695f84
+
+	column 'grupo'
+		dataType: string
+		sourceColumn: grupo
+		lineageTag: db17109c-f391-423f-8200-b8a64abd1370
+
+	partition kpis = m
+		mode: import
+		source =
+			let
+			    Fonte = Excel.Workbook(File.Contents(PastaDados & "\BRUMS_HIIT_PowerBI.xlsx"), null, true),
+			    Nav = Fonte{[Item="kpis",Kind="Sheet"]}[Data],
+			    Cab = Table.PromoteHeaders(Nav, [PromoteAllScalars=true]),
+			    Tipos = Table.TransformColumnTypes(Cab, {{"kpi", type text}, {"valor", type number}, {"unidade", type text}, {"grupo", type text}})
+			in
+			    Tipos

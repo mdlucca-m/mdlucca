@@ -1,0 +1,69 @@
+{
+ "por_fase": [
+  {
+   "fase": "aquec",
+   "fc_pre_m": 96.4,
+   "fc_pre_sd": 14.0,
+   "fc_pos_m": 158.3,
+   "fc_pos_sd": 6.4,
+   "pse_m": 2.8,
+   "pse_sd": 1.0
+  },
+  {
+   "fase": "se1",
+   "fc_pre_m": 112.8,
+   "fc_pre_sd": 10.4,
+   "fc_pos_m": 174.3,
+   "fc_pos_sd": 6.2,
+   "pse_m": 5.3,
+   "pse_sd": 1.4
+  },
+  {
+   "fase": "se2",
+   "fc_pre_m": 123.4,
+   "fc_pre_sd": 12.6,
+   "fc_pos_m": 178.2,
+   "fc_pos_sd": 6.0,
+   "pse_m": 7.1,
+   "pse_sd": 1.3
+  },
+  {
+   "fase": "se3",
+   "fc_pre_m": 127.2,
+   "fc_pre_sd": 9.3,
+   "fc_pos_m": 180.2,
+   "fc_pos_sd": 5.8,
+   "pse_m": 8.6,
+   "pse_sd": 1.1
+  },
+  {
+   "fase": "se4",
+   "fc_pre_m": 131.1,
+   "fc_pre_sd": 9.4,
+   "fc_pos_m": 182.0,
+   "fc_pos_sd": 5.9,
+   "pse_m": 9.4,
+   "pse_sd": 0.8
+  }
+ ],
+ "resumo": {
+  "FC_maxima": [
+   185.8,
+   5.8
+  ],
+  "FC_media_series": [
+   178.5,
+   5.0
+  ],
+  "FC_recuperacao": [
+   123.6,
+   7.8
+  ],
+  "PSE_final": [
+   9.9,
+   0.3
+  ],
+  "n_atletas": 25
+ },
+ "protocolo": "4 × 4 min a 104% da velocidade de pico (teste de campo), 3 min de intervalo"
+}

@@ -1,0 +1,177 @@
+{
+ "n": 456,
+ "A_confiabilidade": [
+  {
+   "sub": "Tensão",
+   "k": 4,
+   "alpha": 0.427,
+   "alpha_ic": [
+    0.337,
+    0.509
+   ],
+   "omega": 0.474,
+   "r_inter_item": 0.163,
+   "adequada": false,
+   "ic_atinge_070": false
+  },
+  {
+   "sub": "Depressão",
+   "k": 4,
+   "alpha": 0.845,
+   "alpha_ic": [
+    0.821,
+    0.867
+   ],
+   "omega": 0.872,
+   "r_inter_item": 0.627,
+   "adequada": true,
+   "ic_atinge_070": true
+  },
+  {
+   "sub": "Raiva",
+   "k": 4,
+   "alpha": 0.868,
+   "alpha_ic": [
+    0.847,
+    0.887
+   ],
+   "omega": 0.871,
+   "r_inter_item": 0.624,
+   "adequada": true,
+   "ic_atinge_070": true
+  },
+  {
+   "sub": "Vigor",
+   "k": 4,
+   "alpha": 0.684,
+   "alpha_ic": [
+    0.633,
+    0.728
+   ],
+   "omega": 0.775,
+   "r_inter_item": 0.383,
+   "adequada": false,
+   "ic_atinge_070": true
+  },
+  {
+   "sub": "Fadiga",
+   "k": 4,
+   "alpha": 0.795,
+   "alpha_ic": [
+    0.763,
+    0.824
+   ],
+   "omega": 0.824,
+   "r_inter_item": 0.473,
+   "adequada": true,
+   "ic_atinge_070": true
+  },
+  {
+   "sub": "Confusão",
+   "k": 4,
+   "alpha": 0.653,
+   "alpha_ic": [
+    0.598,
+    0.702
+   ],
+   "omega": 0.682,
+   "r_inter_item": 0.32,
+   "adequada": false,
+   "ic_atinge_070": true
+  }
+ ],
+ "B_invariancia": {
+  "itens_excluidos": [
+   "tensao_1"
+  ],
+  "n_pre": 135,
+  "n_pos": 135,
+  "CFI_pre": 1.01,
+  "CFI_pos": 1.024,
+  "tucker_phi": 0.987,
+  "invariancia_metrica": true,
+  "cargas": {
+   "depressao_1": {
+    "pre": -0.834,
+    "pos": -0.723
+   },
+   "depressao_2": {
+    "pre": -0.752,
+    "pos": -0.785
+   },
+   "depressao_3": {
+    "pre": -0.828,
+    "pos": -0.808
+   },
+   "depressao_4": {
+    "pre": -0.834,
+    "pos": -0.919
+   },
+   "raiva_1": {
+    "pre": -0.909,
+    "pos": -0.819
+   },
+   "raiva_2": {
+    "pre": -0.771,
+    "pos": -0.666
+   },
+   "raiva_3": {
+    "pre": -0.854,
+    "pos": -0.916
+   },
+   "raiva_4": {
+    "pre": -0.795,
+    "pos": -0.788
+   },
+   "vigor_1": {
+    "pre": -0.663,
+    "pos": -0.589
+   },
+   "vigor_2": {
+    "pre": -0.941,
+    "pos": -0.928
+   },
+   "vigor_3": {
+    "pre": -0.828,
+    "pos": -0.886
+   },
+   "vigor_4": {
+    "pre": -0.346,
+    "pos": -0.082
+   },
+   "fadiga_1": {
+    "pre": -0.854,
+    "pos": -0.898
+   },
+   "fadiga_2": {
+    "pre": -0.866,
+    "pos": -0.891
+   },
+   "fadiga_3": {
+    "pre": -0.437,
+    "pos": -0.23
+   },
+   "fadiga_4": {
+    "pre": -0.778,
+    "pos": -0.837
+   },
+   "confusao_1": {
+    "pre": -0.765,
+    "pos": -0.597
+   },
+   "confusao_2": {
+    "pre": -0.27,
+    "pos": -0.318
+   },
+   "confusao_3": {
+    "pre": -0.572,
+    "pos": -0.867
+   },
+   "confusao_4": {
+    "pre": -0.868,
+    "pos": -0.77
+   }
+  },
+  "nota": "cargas de 1 fator por subescala (factor_analyzer); CFI por grupo do módulo analises_avancadas; ΔCFI formal (configural→métrico→escalar) requer lavaan/R"
+ }
+}

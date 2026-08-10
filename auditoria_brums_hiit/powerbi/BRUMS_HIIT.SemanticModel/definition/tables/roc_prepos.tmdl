@@ -1,0 +1,57 @@
+table roc_prepos
+	lineageTag: 689a7f96-9905-4e7c-8fd0-deb4bc507d32
+
+	measure 'AUC Fadiga física' = CALCULATE ( SELECTEDVALUE ( roc_prepos[AUC] ), roc_prepos[codigo] = "FadFis" )
+		formatString: 0.00
+		lineageTag: f1969b14-53ff-434a-953c-d8e644a06a69
+
+	column 'variavel'
+		dataType: string
+		sourceColumn: variavel
+		lineageTag: ff4bf2f4-ceb5-4845-8380-a86a1b4c2c9b
+
+	column 'codigo'
+		dataType: string
+		sourceColumn: codigo
+		lineageTag: c10f8951-faf9-4dec-a6ad-ddf0f8898ee9
+
+	column 'AUC'
+		dataType: double
+		sourceColumn: AUC
+		lineageTag: b6ae3160-7739-4d42-8ee1-05e4bb0a57e2
+		summarizeBy: none
+
+	column 'ic_inf'
+		dataType: double
+		sourceColumn: ic_inf
+		lineageTag: 697d4163-40f6-45a5-8d5b-88c2e9d16000
+		summarizeBy: none
+
+	column 'ic_sup'
+		dataType: double
+		sourceColumn: ic_sup
+		lineageTag: fb08b43c-6287-46c6-a3e6-866c0e428df3
+		summarizeBy: none
+
+	column 'sens'
+		dataType: double
+		sourceColumn: sens
+		lineageTag: a630be0b-307d-47b5-854e-c998b85a093d
+		summarizeBy: none
+
+	column 'espec'
+		dataType: double
+		sourceColumn: espec
+		lineageTag: a5e6a4d2-7cc8-4e73-b6b6-f88b350fa88d
+		summarizeBy: none
+
+	partition roc_prepos = m
+		mode: import
+		source =
+			let
+			    Fonte = Excel.Workbook(File.Contents(PastaDados & "\BRUMS_HIIT_PowerBI.xlsx"), null, true),
+			    Nav = Fonte{[Item="roc_prepos",Kind="Sheet"]}[Data],
+			    Cab = Table.PromoteHeaders(Nav, [PromoteAllScalars=true]),
+			    Tipos = Table.TransformColumnTypes(Cab, {{"variavel", type text}, {"codigo", type text}, {"AUC", type number}, {"ic_inf", type number}, {"ic_sup", type number}, {"sens", type number}, {"espec", type number}})
+			in
+			    Tipos

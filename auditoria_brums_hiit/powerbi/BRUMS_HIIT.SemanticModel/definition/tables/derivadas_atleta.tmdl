@@ -1,0 +1,54 @@
+table derivadas_atleta
+	lineageTag: b48b33f2-4b35-41c8-936b-401062355851
+
+	column 'variavel'
+		dataType: string
+		sourceColumn: variavel
+		lineageTag: 6887d928-105b-4320-ab6e-4f887b0cc1d9
+
+	column 'slope_medio_dia'
+		dataType: double
+		sourceColumn: slope_medio_dia
+		lineageTag: 3b1d6529-8e3d-426a-82d3-8fd1bcfcb169
+		summarizeBy: none
+
+	column 'slope_dp'
+		dataType: double
+		sourceColumn: slope_dp
+		lineageTag: 778d7ae1-66a6-459c-b093-d612f8af35cc
+		summarizeBy: none
+
+	column 'pct_atletas_positivos'
+		dataType: int64
+		sourceColumn: pct_atletas_positivos
+		lineageTag: e1765dff-3d22-4985-b146-d76b5927770f
+		summarizeBy: none
+
+	column 'n'
+		dataType: int64
+		sourceColumn: n
+		lineageTag: 39807027-d82f-44b1-a8aa-48ede0601d01
+		summarizeBy: none
+
+	column 'min'
+		dataType: double
+		sourceColumn: min
+		lineageTag: cce9c0ba-e3e3-4a6a-ba41-d8fb53eed77f
+		summarizeBy: none
+
+	column 'max'
+		dataType: double
+		sourceColumn: max
+		lineageTag: 89bf5024-e619-49ec-8904-8607894fe3f8
+		summarizeBy: none
+
+	partition derivadas_atleta = m
+		mode: import
+		source =
+			let
+			    Fonte = Excel.Workbook(File.Contents(PastaDados & "\BRUMS_HIIT_PowerBI.xlsx"), null, true),
+			    Nav = Fonte{[Item="derivadas_atleta",Kind="Sheet"]}[Data],
+			    Cab = Table.PromoteHeaders(Nav, [PromoteAllScalars=true]),
+			    Tipos = Table.TransformColumnTypes(Cab, {{"variavel", type text}, {"slope_medio_dia", type number}, {"slope_dp", type number}, {"pct_atletas_positivos", Int64.Type}, {"n", Int64.Type}, {"min", type number}, {"max", type number}})
+			in
+			    Tipos

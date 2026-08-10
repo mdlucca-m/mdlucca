@@ -1,0 +1,124 @@
+table fato_humor
+	lineageTag: 037b9a3f-b25b-428f-9112-6f6dac6ec9c1
+
+	measure 'Observações' = COUNTROWS ( fato_humor )
+		formatString: #,0
+		lineageTag: 6587cbfa-97b2-4284-afb9-17540bc25dbd
+
+	measure 'Atletas' = DISTINCTCOUNT ( fato_humor[atleta] )
+		formatString: #,0
+		lineageTag: 00ad0c25-2c08-435c-985f-ab0598d88065
+
+	measure 'Média PTH' = AVERAGE ( fato_humor[PTH] )
+		formatString: 0.00
+		lineageTag: 0528257b-33b6-44fb-8b9f-6fa43d2cbc00
+
+	column 'atleta'
+		dataType: string
+		sourceColumn: atleta
+		lineageTag: 7c402840-2e95-4a92-9666-d843a01363cd
+
+	column 'dia'
+		dataType: int64
+		sourceColumn: dia
+		lineageTag: 07241e83-b06b-43a1-bd86-5bd0f5d65b9d
+		summarizeBy: none
+
+	column 'momento'
+		dataType: string
+		sourceColumn: momento
+		lineageTag: 2486c50e-8682-4942-8bc5-17af4cc83dcb
+
+	column 'hiit'
+		dataType: int64
+		sourceColumn: hiit
+		lineageTag: 5110bd4d-d96d-4dd8-a309-19bc420a17ce
+		summarizeBy: none
+
+	column 'Tensão'
+		dataType: int64
+		sourceColumn: Tensão
+		lineageTag: df619430-bacc-4634-8233-8f6e56bb880d
+		summarizeBy: none
+
+	column 'Depressão'
+		dataType: int64
+		sourceColumn: Depressão
+		lineageTag: 8798045d-ace2-42a3-832e-6adfeee71877
+		summarizeBy: none
+
+	column 'Raiva'
+		dataType: int64
+		sourceColumn: Raiva
+		lineageTag: 0bc80bef-ee3a-4acc-9da2-783fe5e23322
+		summarizeBy: none
+
+	column 'Vigor'
+		dataType: int64
+		sourceColumn: Vigor
+		lineageTag: b3d38e59-ab9c-4b67-9969-138013a9d249
+		summarizeBy: none
+
+	column 'Fadiga'
+		dataType: int64
+		sourceColumn: Fadiga
+		lineageTag: fe7bd913-efdf-4114-a75f-c23ae2d14ccd
+		summarizeBy: none
+
+	column 'Confusão'
+		dataType: int64
+		sourceColumn: Confusão
+		lineageTag: b776849e-d271-4a6a-b16c-37b9c7671608
+		summarizeBy: none
+
+	column 'PTH'
+		dataType: int64
+		sourceColumn: PTH
+		lineageTag: 972cfa1f-dc80-4bda-acd4-8897cb15815b
+		summarizeBy: none
+
+	column 'FadFis'
+		dataType: int64
+		sourceColumn: FadFis
+		lineageTag: a5ce0ac9-2932-48a5-b46d-a5084a99bd26
+		summarizeBy: none
+
+	column 'FadMen'
+		dataType: int64
+		sourceColumn: FadMen
+		lineageTag: 270203a5-e40d-4fdd-a330-7f6d3990994f
+		summarizeBy: none
+
+	column 'EstFis'
+		dataType: int64
+		sourceColumn: EstFis
+		lineageTag: 679d5548-e628-466f-8b45-76c17642353a
+		summarizeBy: none
+
+	column 'EstMen'
+		dataType: int64
+		sourceColumn: EstMen
+		lineageTag: 0f6b52af-c36e-4c26-abca-c0dd9ae3306a
+		summarizeBy: none
+
+	column 'hiit_dia'
+		dataType: int64
+		sourceColumn: hiit_dia
+		lineageTag: 4cf8fc12-cac1-4ce8-802a-64dd38cdba2e
+		summarizeBy: none
+
+	column 'tipo_dia'
+		dataType: string
+		sourceColumn: tipo_dia
+		lineageTag: f4c2cc22-6d9e-4d32-af8f-5a0d14eda59b
+
+	partition fato_humor = m
+		mode: import
+		source =
+			let
+			    Fonte = Excel.Workbook(File.Contents(PastaDados & "\BRUMS_HIIT_PowerBI.xlsx"), null, true),
+			    Nav = Fonte{[Item="fato_humor",Kind="Sheet"]}[Data],
+			    Cab = Table.PromoteHeaders(Nav, [PromoteAllScalars=true]),
+			    Tipos = Table.TransformColumnTypes(Cab, {{"atleta", type text}, {"dia", Int64.Type}, {"momento", type text}, {"hiit", Int64.Type}, {"Tensão", Int64.Type}, {"Depressão", Int64.Type}, {"Raiva", Int64.Type}, {"Vigor", Int64.Type}, {"Fadiga", Int64.Type}, {"Confusão", Int64.Type}, {"PTH", Int64.Type}, {"FadFis", Int64.Type}, {"FadMen", Int64.Type}, {"EstFis", Int64.Type}, {"EstMen", Int64.Type}, {"hiit_dia", Int64.Type}, {"tipo_dia", type text}})
+			in
+			    Tipos

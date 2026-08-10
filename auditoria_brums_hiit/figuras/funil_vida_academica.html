@@ -1,0 +1,102 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--blue:#2f7bd6;--green:#2a9d5c;--amber:#e8a020;--orange:#e56b1f;--red:#d63a2f;--gold:#f2c14e}
+html,body{width:1080px;height:1500px;background:#0a0a0f;font-family:'Arial Black',Arial,Helvetica,sans-serif;overflow:hidden}
+.stage{position:relative;width:1080px;height:1500px;
+ background:radial-gradient(900px 520px at 50% 46%,rgba(230,120,30,.16),transparent 62%),radial-gradient(1200px 700px at 50% 0%,#141420,#07070c 70%)}
+/* title */
+.title{position:absolute;top:56px;width:100%;text-align:center}
+.kick{display:inline-flex;align-items:center;gap:14px;color:#c9cfda;font:700 20px Arial;letter-spacing:.32em}
+.kick .ln{width:70px;height:2px;background:#3a4152}
+.kick .dot{width:9px;height:9px;border-radius:50%;background:#c9cfda}
+.t1{font-size:74px;color:#fff;letter-spacing:2px;line-height:.98;margin-top:12px;text-shadow:0 4px 18px rgba(0,0,0,.6)}
+.t2{font-size:80px;line-height:.98;letter-spacing:1px}
+.t2 .a{color:var(--red)} .t2 .b{color:var(--gold)}
+.sub{margin-top:16px;color:#aeb6c4;font:600 24px/1 Arial;letter-spacing:.02em}
+.sub b{color:var(--gold)}
+.rule{width:520px;height:3px;margin:14px auto 0;background:linear-gradient(90deg,transparent,var(--red),var(--gold),transparent)}
+/* funnel */
+svg{position:absolute;top:300px;left:0}
+.lab{font:800 30px 'Arial Black',Arial;fill:#fff;letter-spacing:.06em}
+.val{font:900 46px 'Arial Black',Arial;fill:#fff}
+.valbox{fill:rgba(0,0,0,.34)}
+.ic{font-size:46px}
+.icbg{fill:#fff}
+.icbg2{fill:rgba(255,255,255,.14)}
+.chev{fill:#fff;opacity:.9}
+/* footer */
+.foot{position:absolute;bottom:66px;left:60px;right:60px;display:flex;align-items:center;gap:22px;
+ background:linear-gradient(120deg,#15151f,#0d0d15);border:2px solid #2a2a38;border-left:6px solid var(--gold);
+ border-radius:18px;padding:22px 26px}
+.star{flex:none;width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffe08a,var(--gold));
+ display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 6px 20px -6px rgba(242,193,78,.7)}
+.foot p{color:#e7ebf2;font:700 27px/1.28 Arial}
+.foot p b{color:var(--gold)}
+.note{position:absolute;left:0;right:0;bottom:26px;text-align:center;color:#6b7280;font:600 17px Arial;letter-spacing:.03em}
+</style></head>
+<body>
+<div class="stage">
+ <div class="title">
+  <div class="kick"><span class="dot"></span><span class="ln"></span>&nbsp;INFOGRÁFICO&nbsp;<span class="ln"></span><span class="dot"></span></div>
+  <div class="t1">O FUNIL DA</div>
+  <div class="t2"><span class="a">VIDA</span> <span class="b">ACADÊMICA</span></div>
+  <div class="sub">Muitos começam. <b>Poucos</b> chegam ao fim.</div>
+  <div class="rule"></div>
+ </div>
+
+ <svg width="1080" height="1080" viewBox="0 0 1080 1080">
+  <defs>
+   <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a93e8"/><stop offset="1" stop-color="#2f7bd6"/></linearGradient>
+   <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#37b56d"/><stop offset="1" stop-color="#2a9d5c"/></linearGradient>
+   <linearGradient id="g3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4b53a"/><stop offset="1" stop-color="#e8a020"/></linearGradient>
+   <linearGradient id="g4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f5813a"/><stop offset="1" stop-color="#e56b1f"/></linearGradient>
+   <linearGradient id="g5" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8503f"/><stop offset="1" stop-color="#c92f26"/></linearGradient>
+   <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.45"/></filter>
+  </defs>
+  <!-- bands: generated -->
+  <g id="bands"></g>
+ </svg>
+
+ <div class="foot">
+  <div class="star">★</div>
+  <p>A cada degrau, o grupo diminui. Chegar ao fundo é <b>raro</b> — e se constrói com constância, dia após dia.</p>
+ </div>
+ <div class="note">Proporções aproximadas da população brasileira · o funil ilustra a raridade crescente a cada etapa da formação.</div>
+</div>
+
+<script>
+const cx=540, bands=[
+ {top:980,bot:812,y:0,  h:196,g:'g1',ic:'👥',lab:'POPULAÇÃO DO BRASIL',val:'~203 milhões'},
+ {top:812,bot:648,y:196,h:190,g:'g2',ic:'📖',lab:'ALFABETIZADOS',val:'~93%'},
+ {top:648,bot:492,y:386,h:186,g:'g3',ic:'🎓',lab:'CONCLUÍRAM A GRADUAÇÃO',val:'~18%'},
+ {top:492,bot:344,y:572,h:184,g:'g4',ic:'📚',lab:'FIZERAM PÓS-GRADUAÇÃO',val:'~1%'},
+ {top:344,bot:210,y:756,h:196,g:'g5',ic:'🔬',lab:'TÍTULO DE DOUTOR',val:'~0,1%'},
+];
+const NS='http://www.w3.org/2000/svg', root=document.getElementById('bands');
+function el(n,a){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;}
+bands.forEach((b,i)=>{
+ const yt=b.y, yb=b.y+b.h;
+ const p=`M ${cx-b.top/2} ${yt} L ${cx+b.top/2} ${yt} L ${cx+b.bot/2} ${yb} L ${cx-b.bot/2} ${yb} Z`;
+ root.appendChild(el('path',{d:p,fill:`url(#${b.g})`,filter:'url(#sh)'}));
+ // top highlight edge
+ root.appendChild(el('path',{d:`M ${cx-b.top/2} ${yt} L ${cx+b.top/2} ${yt}`,stroke:'rgba(255,255,255,.28)','stroke-width':4}));
+ const ymid=yt+b.h/2;
+ // icon circle
+ const icx=cx-b.top/2+130;
+ root.appendChild(el('circle',{cx:icx,cy:ymid,r:60,class:'icbg2'}));
+ root.appendChild(el('circle',{cx:icx,cy:ymid,r:50,class:'icbg'}));
+ const t=el('text',{x:icx,y:ymid+17,'text-anchor':'middle',class:'ic'}); t.textContent=b.ic; root.appendChild(t);
+ // label + value to the right
+ const tx=icx+92;
+ const l=el('text',{x:tx,y:ymid-14,class:'lab'}); l.textContent=b.lab; root.appendChild(l);
+ // value box
+ const vw=b.val.length*26+40;
+ root.appendChild(el('rect',{x:tx-6,y:ymid+4,width:vw,height:56,rx:10,class:'valbox'}));
+ const v=el('text',{x:tx+14,y:ymid+46,class:'val'}); v.textContent=b.val; root.appendChild(v);
+ // chevron between bands
+ if(i<bands.length-1){const yc=yb-6;
+  root.appendChild(el('path',{d:`M ${cx-22} ${yc} L ${cx} ${yc+22} L ${cx+22} ${yc}`,class:'chev',fill:'none',stroke:'#fff','stroke-width':7,'stroke-linecap':'round','stroke-linejoin':'round',opacity:.9}));}
+});
+</script>
+</body></html>

@@ -1,0 +1,42 @@
+table variabilidade
+	lineageTag: ce41e9fc-a46b-407d-ba6f-62e5a06b7a5c
+
+	column 'variavel'
+		dataType: string
+		sourceColumn: variavel
+		lineageTag: bd2d7b2b-e0b3-4766-88c9-4e400d721f9c
+
+	column 'var_entre'
+		dataType: double
+		sourceColumn: var_entre
+		lineageTag: 926736d3-b076-4e5c-aa63-ca4a2edf3b33
+		summarizeBy: none
+
+	column 'var_intra'
+		dataType: double
+		sourceColumn: var_intra
+		lineageTag: ee79af6e-6b04-4ef1-aa7c-980c0f999413
+		summarizeBy: none
+
+	column 'pct_entre_atletas'
+		dataType: double
+		sourceColumn: pct_entre_atletas
+		lineageTag: 7b4db79d-3b2e-4949-95d8-2234dd33aae7
+		summarizeBy: none
+
+	column 'cv_intra'
+		dataType: double
+		sourceColumn: cv_intra
+		lineageTag: 55b12482-0650-4c94-8dc7-bc0aa425b6db
+		summarizeBy: none
+
+	partition variabilidade = m
+		mode: import
+		source =
+			let
+			    Fonte = Excel.Workbook(File.Contents(PastaDados & "\BRUMS_HIIT_PowerBI.xlsx"), null, true),
+			    Nav = Fonte{[Item="variabilidade",Kind="Sheet"]}[Data],
+			    Cab = Table.PromoteHeaders(Nav, [PromoteAllScalars=true]),
+			    Tipos = Table.TransformColumnTypes(Cab, {{"variavel", type text}, {"var_entre", type number}, {"var_intra", type number}, {"pct_entre_atletas", type number}, {"cv_intra", type number}})
+			in
+			    Tipos

@@ -1,0 +1,552 @@
+{
+  "name": "BRUMS x HIIT — Pipeline de análise (auto, com Cron)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "início_(manual)",
+      "name": "Início (manual)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * *"
+            }
+          ]
+        }
+      },
+      "id": "agendamento_(cron_diário_06:00)",
+      "name": "Agendamento (Cron diário 06:00)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        220,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "BRUMS_DATA_DIR",
+              "type": "string",
+              "value": "/data/brums"
+            },
+            {
+              "id": "a2",
+              "name": "REPO",
+              "type": "string",
+              "value": "/opt/brums_pipeline"
+            }
+          ]
+        }
+      },
+      "id": "configuração",
+      "name": "Configuração",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        460,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "command": "pip install -q pandas numpy scipy statsmodels scikit-learn matplotlib openpyxl"
+      },
+      "id": "setup_(dependências)",
+      "name": "Setup (dependências)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        680,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only ingest"
+      },
+      "id": "ingestão_de_dados",
+      "name": "Ingestão de dados",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only descriptives"
+      },
+      "id": "descritivas",
+      "name": "Descritivas",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only reliability"
+      },
+      "id": "confiabilidade",
+      "name": "Confiabilidade",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only correlations"
+      },
+      "id": "correlações",
+      "name": "Correlações",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only day_effect"
+      },
+      "id": "efeito_do_dia",
+      "name": "Efeito do dia",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only acute"
+      },
+      "id": "resposta_aguda",
+      "name": "Resposta aguda",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        490
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only hiit"
+      },
+      "id": "hiit_vs_técnico",
+      "name": "HIIT vs técnico",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        490
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only multivariate"
+      },
+      "id": "multivariada",
+      "name": "Multivariada",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        490
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only variance"
+      },
+      "id": "variância_traçoestado",
+      "name": "Variância traço/estado",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        490
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only complementary"
+      },
+      "id": "análises_complementares",
+      "name": "Análises complementares",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        900,
+        490
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only carga"
+      },
+      "name": "Carga interna (FC/PSE)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        900,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only charts"
+      },
+      "id": "gerar_gráficos",
+      "name": "Gerar gráficos",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only export_excel"
+      },
+      "id": "exportar_excel",
+      "name": "Exportar Excel",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only export_pdf"
+      },
+      "id": "exportar_pdf",
+      "name": "Exportar PDF",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only publish"
+      },
+      "id": "publicar_relatório",
+      "name": "Publicar relatório",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only app"
+      },
+      "name": "App analista (regenerar)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd $REPO && BRUMS_DATA_DIR=$BRUMS_DATA_DIR python3 pipeline.py --only report"
+      },
+      "id": "relatório_&_manifesto",
+      "name": "Relatório & manifesto",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2220,
+        660
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "notificar__distribuir",
+      "name": "Notificar / distribuir",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        1000
+      ]
+    }
+  ],
+  "connections": {
+    "Início (manual)": {
+      "main": [
+        [
+          {
+            "node": "Configuração",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agendamento (Cron diário 06:00)": {
+      "main": [
+        [
+          {
+            "node": "Configuração",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuração": {
+      "main": [
+        [
+          {
+            "node": "Setup (dependências)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Setup (dependências)": {
+      "main": [
+        [
+          {
+            "node": "Ingestão de dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ingestão de dados": {
+      "main": [
+        [
+          {
+            "node": "Descritivas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descritivas": {
+      "main": [
+        [
+          {
+            "node": "Confiabilidade",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confiabilidade": {
+      "main": [
+        [
+          {
+            "node": "Correlações",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Correlações": {
+      "main": [
+        [
+          {
+            "node": "Efeito do dia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Efeito do dia": {
+      "main": [
+        [
+          {
+            "node": "Resposta aguda",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resposta aguda": {
+      "main": [
+        [
+          {
+            "node": "HIIT vs técnico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HIIT vs técnico": {
+      "main": [
+        [
+          {
+            "node": "Multivariada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Multivariada": {
+      "main": [
+        [
+          {
+            "node": "Variância traço/estado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Variância traço/estado": {
+      "main": [
+        [
+          {
+            "node": "Análises complementares",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Análises complementares": {
+      "main": [
+        [
+          {
+            "node": "Carga interna (FC/PSE)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar gráficos": {
+      "main": [
+        [
+          {
+            "node": "Exportar Excel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exportar Excel": {
+      "main": [
+        [
+          {
+            "node": "Exportar PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exportar PDF": {
+      "main": [
+        [
+          {
+            "node": "Publicar relatório",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publicar relatório": {
+      "main": [
+        [
+          {
+            "node": "App analista (regenerar)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Relatório & manifesto": {
+      "main": [
+        [
+          {
+            "node": "Notificar / distribuir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "App analista (regenerar)": {
+      "main": [
+        [
+          {
+            "node": "Relatório & manifesto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Carga interna (FC/PSE)": {
+      "main": [
+        [
+          {
+            "node": "Gerar gráficos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "BRUMS"
+    },
+    {
+      "name": "análise automática"
+    }
+  ]
+}
