@@ -157,6 +157,7 @@ async function loadSessions(){
        <td>${esc(x.exercise)}</td><td>${x.n_submovements??"—"}</td>
        <td><span class="pill">${esc(x.pose_source||"—")}</span></td>
        <td><button class="sec" onclick="assess(${x.id})">Avaliar</button>
+           <button class="sec" onclick="abrirLaudo(${x.id})">Laudo</button>
            <button class="sec" onclick="genLink(${x.id})">Gerar link</button></td></tr>`);
   });
 }
@@ -184,6 +185,15 @@ async function createSession(){
     $("s_ex").value=""; $("s_load").value="";
     await loadSessions();
   }catch(e){ $("s_msg").innerHTML=`<span class="err">${esc(String(e.message))}</span>`; }
+}
+async function abrirLaudo(session_id){
+  // Gera e persiste a avaliacao padronizada e abre o laudo (formato unico) numa nova aba.
+  const tab = window.open("", "_blank");
+  try{
+    const a = await jpost(`/sessions/${session_id}/assessment`,{});
+    const url = new URL(`/assessments/${a.analysis_run_id}/report.html`, location.href).href;
+    if(tab){ tab.location = url; } else { location.href = url; }
+  }catch(e){ if(tab) tab.close(); alert("Erro ao gerar o laudo: "+e.message); }
 }
 async function assess(session_id){
   try{

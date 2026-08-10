@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import json
 import sqlite3
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -27,6 +28,11 @@ import matplotlib.pyplot as plt  # noqa: E402
 from scipy.signal import savgol_filter  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+try:
+    from app.protocol import PROTOCOL_VERSION as PROTO_VER
+except Exception:
+    PROTO_VER = "padrao-1.0"
 TEAL, RED, YEL, BLU, ORG, GRY = "#2a9d8f", "#e63946", "#e9c46a", "#4aa8ff", "#f4a261", "#8b98a6"
 
 
@@ -252,6 +258,9 @@ def main():
             vpanel = cv2.resize(frame, (vw_w, Hc)); scoreboard(vpanel, f)
             comp = np.hstack([vpanel, gpanel])[:, :W]
         draw_logo(comp)
+        # carimbo do padrao de analise (canto inferior esquerdo)
+        cv2.putText(comp, f"Protocolo {PROTO_VER}", (10, Hc - 12),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.42, (139, 152, 166), 1, cv2.LINE_AA)
         vw.write(comp)
     vw.release(); cap.release(); plt.close(fig)
     print(f"[ok] {args.out}  layout={args.layout}  {N} frames @ {args.out_fps} fps "
