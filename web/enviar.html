@@ -82,11 +82,23 @@ async function loadMine(){
     const u=await fetch(`/athletes/${id}/uploads`).then(r=>r.json());
     const tb=$("ups").querySelector("tbody");
     tb.innerHTML = u.length ? u.map(x=>{
-      const link = x.status==="done" && x.session_id ? `<a href="./?session=${x.session_id}">ver</a>` : "";
+      const link = x.status==="done" && x.session_id
+        ? `<a href="#" onclick="verLaudo(${x.session_id});return false">ver laudo</a>` : "";
       return `<tr><td>${x.id}</td><td>${esc(x.exercise||"")}</td>
         <td><span class="st ${x.status}">${x.status}</span></td><td>${link}</td></tr>`;
     }).join("") : '<tr><td colspan="4" class="muted">nenhum envio ainda</td></tr>';
   }catch(e){}
+}
+async function verLaudo(session_id){
+  // Gera a avaliacao padronizada e abre o laudo (formato unico) do atleta.
+  const tab = window.open("", "_blank");
+  try{
+    const r = await fetch(`/sessions/${session_id}/assessment`, {method:"POST"});
+    if(!r.ok) throw new Error("erro "+r.status);
+    const a = await r.json();
+    const url = new URL(`/assessments/${a.analysis_run_id}/report.html`, location.href).href;
+    if(tab){ tab.location = url; } else { location.href = url; }
+  }catch(e){ if(tab) tab.close(); $("msg").innerHTML=`<span class="err">não foi possível abrir o laudo: ${esc(e.message)}</span>`; }
 }
 async function send(){
   const id=$("ath").value, f=$("file").files[0];
@@ -113,6 +125,9 @@ async function send(){
 }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 boot();
+// deep-link: ?session=N abre o laudo padronizado direto
+(function(){ const sid=new URLSearchParams(location.search).get("session");
+  if(sid) verLaudo(parseInt(sid)); })();
 </script>
 </body>
 </html>
