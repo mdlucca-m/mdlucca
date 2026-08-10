@@ -50,6 +50,7 @@ from app import branding as Brand
 from app import classify as Clf
 from app import quality as Qual
 from app import protocol as Proto
+from app import multicam as MC
 
 ALGO_VERSION = ("mdlucca-1.0 · De Leva 1996; Winter 2009; ISB Wu 2002/2005; "
                 "Sánchez-Medina 2011; Samozino 2012; Jaric 2002")
@@ -1614,6 +1615,17 @@ def standards():
     """Padroes metodologicos de literatura internacional que o sistema segue
     (filtragem, antropometria, angulos ISB, alometria, amostragem, VBT, RFD)."""
     return {"standards": Ref.STANDARDS, "reference_bands": list(Ref.BANDS.keys())}
+
+
+@app.get("/roadmap/multicam", tags=["referencia"])
+def roadmap_multicam():
+    """Protocolo de captura 3D com multiplas cameras (Etapa 3): arranjo,
+    sincronizacao, calibracao e como alimenta o mesmo pipeline. O nucleo de
+    triangulacao (DLT) ja esta implementado em app/multicam.py."""
+    return {"capture_protocol": MC.CAPTURE_PROTOCOL,
+            "core_ready": ["Camera.from_krt", "triangulate_point",
+                           "triangulate_landmarks", "reprojection_error"],
+            "status": "nucleo pronto e testado; falta calibracao/sync/orquestracao"}
 
 
 @app.get("/reference-bands", tags=["referencia"])
