@@ -343,7 +343,7 @@ function expCSV(){let out='';ALLT.forEach(t=>{out+='# '+t.title+'\n'+t.cols.map(
   dl('BRUMS_HIIT_tabelas.csv',out,'text/csv');toast('CSV exportado ('+ALLT.length+' tabelas)');}
 function expJSON(){dl('BRUMS_HIIT_resultados.json',JSON.stringify(D,null,1),'application/json');toast('JSON exportado');}
 function copyCite(){const c='Auditoria, modelagem e síntese do estudo BRUMS × HIIT no handebol (27 atletas, microciclo de 7 dias). Achados: resposta aguda no eixo energia–fadiga (fadiga física dz=1,06), efeito do dia, ΔPTH HIIT +2,43, e desacoplamento carga interna–humor. 2026.';navigator.clipboard?.writeText(c).then(()=>toast('Citação copiada'),()=>toast('Copie manualmente'));}
-function copyCmd(){navigator.clipboard?.writeText('BRUMS_DATA_DIR=/caminho/xlsx python3 HANDEBOL/pipeline/pipeline.py').then(()=>toast('Comando copiado'),()=>toast('Copie manualmente'));}
+function copyCmd(){navigator.clipboard?.writeText('BRUMS_DATA_DIR=/caminho/xlsx python3 auditoria_brums_hiit/pipeline/pipeline.py').then(()=>toast('Comando copiado'),()=>toast('Copie manualmente'));}
 function toggleTheme(){const cur=root.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');root.setAttribute('data-theme',cur==='dark'?'light':'dark');
  try{drawCharts();}catch(e){}}
 window.expCSV=expCSV;window.expJSON=expJSON;window.copyCite=copyCite;window.copyCmd=copyCmd;window.toggleTheme=toggleTheme;

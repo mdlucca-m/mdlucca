@@ -84,5 +84,5 @@ plt.title('')
 ax.text(0.4,TOP-0.5,'PIPELINE AUTOMATIZADO — BRUMS × HIIT (estilo N8N, com Cron)',fontsize=20,fontweight='bold',color=C['ink'],ha='left')
 ax.text(0.4,TOP-0.92,'dispara manual ou por agendamento → ingestão → análises → carga interna → gráficos → exportação (Excel/PDF/HTML) → app analista → relatório',
         fontsize=12.5,color=C['mut'],style='italic',ha='left')
-fig.savefig('/home/user/mdlucca/HANDEBOL/pipeline/workflow_diagram.png',facecolor=C['bg'],bbox_inches='tight',pad_inches=0.25)
+fig.savefig('/home/user/mdlucca/auditoria_brums_hiit/pipeline/workflow_diagram.png',facecolor=C['bg'],bbox_inches='tight',pad_inches=0.25)
 print('diagram written')

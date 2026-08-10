@@ -1,7 +1,7 @@
 const fs=require('fs');
 const {Document,Packer,Paragraph,TextRun,HeadingLevel,AlignmentType,Table,TableRow,TableCell,WidthType,BorderStyle,ShadingType,PageBreak}=require('docx');
 const NAVY='122438',TEAL='0E8C86',MUT='5B6B82',F='Calibri',SERIF='Cambria';
-const OUT='/home/user/mdlucca/HANDEBOL/submissao/';
+const OUT='/home/user/mdlucca/auditoria_brums_hiit/submissao/';
 
 function P(runs,o={}){return new Paragraph({alignment:AlignmentType.JUSTIFIED,spacing:{after:160,line:276},...o,children:(Array.isArray(runs)?runs:[runs]).map(r=>typeof r==='string'?new TextRun({text:r,font:F,size:22}):r)});}
 function T(t,o={}){return new TextRun({text:t,font:F,size:22,...o});}

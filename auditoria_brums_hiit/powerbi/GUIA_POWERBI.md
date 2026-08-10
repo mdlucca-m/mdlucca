@@ -22,7 +22,7 @@ análises reproduzíveis — nada é inventado.
 
 1. Instale/atualize o **Power BI Desktop** e, em *Arquivo ▸ Opções ▸ Recursos de visualização*, habilite **Power BI Project (.pbip)** e **TMDL**.
 2. Abra `BRUMS_HIIT.pbip`.
-3. Em *Transformar dados ▸ Gerenciar parâmetros*, ajuste **`PastaDados`** para o caminho **desta pasta** na sua máquina (ex.: `C:\...\HANDEBOL\powerbi`). Clique em **Atualizar**.
+3. Em *Transformar dados ▸ Gerenciar parâmetros*, ajuste **`PastaDados`** para o caminho **desta pasta** na sua máquina (ex.: `C:\...\auditoria_brums_hiit\powerbi`). Clique em **Atualizar**.
 4. O modelo carrega as 14 tabelas com as relações já definidas. Monte os visuais como no Caminho B (passo 3 em diante).
 
 > Integridade: o PBIP é um *scaffold* gerado por código e **não foi testado no Power BI Desktop**. Se alguma parte do relatório/modelo precisar de ajuste ao abrir, use o Caminho B — é 100% confiável.
