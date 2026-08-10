@@ -77,7 +77,7 @@
     </h2>
     <span id="seed_msg" class="muted" style="font-size:13px"></span>
     <table id="ath_tbl"><thead><tr>
-      <th>#</th><th>Nome</th><th>Massa</th><th>Estatura</th><th>IMC</th><th>Sexo</th>
+      <th>#</th><th>Nome</th><th>Massa</th><th>Estatura</th><th>IMC</th><th>Sexo</th><th></th>
     </tr></thead><tbody></tbody></table>
   </div>
 
@@ -143,7 +143,8 @@ async function loadAthletes(){
   ATHLETES.forEach(a=>{
     tb.insertAdjacentHTML("beforeend",
       `<tr><td>${a.id}</td><td>${esc(a.name)}</td><td>${a.body_mass_kg??"—"}</td>
-       <td>${a.height_m??"—"}</td><td>${a.bmi??"—"}</td><td>${a.sex||"—"}</td></tr>`);
+       <td>${a.height_m??"—"}</td><td>${a.bmi??"—"}</td><td>${a.sex||"—"}</td>
+       <td><button class="sec" onclick="verEvolucao(${a.id})">Evolução</button></td></tr>`);
     sel.insertAdjacentHTML("beforeend",`<option value="${a.id}">${esc(a.name)}</option>`);
   });
 }
@@ -185,6 +186,10 @@ async function createSession(){
     $("s_ex").value=""; $("s_load").value="";
     await loadSessions();
   }catch(e){ $("s_msg").innerHTML=`<span class="err">${esc(String(e.message))}</span>`; }
+}
+function verEvolucao(athlete_id){
+  // Abre a pagina de evolucao do atleta (progresso entre sessoes, metricas padronizadas).
+  window.open(new URL(`/athletes/${athlete_id}/evolution.html`, location.href).href, "_blank");
 }
 async function abrirLaudo(session_id){
   // Gera e persiste a avaliacao padronizada e abre o laudo (formato unico) numa nova aba.

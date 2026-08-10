@@ -1038,6 +1038,152 @@ def assessment_report_html(rid: int):
         con.close()
 
 
+# ==========================================================================
+# EVOLUCAO DO ATLETA: progresso entre sessoes (mesmas metricas padronizadas)
+# ==========================================================================
+def _best_rep(reps: list, key: str):
+    """Melhor valor (maximo) de uma metrica canonica entre as reps da sessao."""
+    vals = [r.get(key) for r in reps if r.get(key) is not None]
+    return round(max(vals), 2) if vals else None
+
+
+def _evolution(athlete_id: int) -> dict:
+    con = db.connect()
+    try:
+        ath = db.one(con, "SELECT * FROM athlete WHERE id=?", (athlete_id,))
+        if not ath:
+            raise HTTPException(404, "atleta nao encontrado")
+        rows = db.rows(con, "SELECT id,exercise,load_kg,captured_at FROM session "
+                       "WHERE athlete_id=? ORDER BY COALESCE(captured_at,''), id",
+                       (athlete_id,))
+    finally:
+        con.close()
+    points = []
+    for s in rows:
+        try:
+            a = _build_assessment(s["id"], deep=False)
+        except HTTPException:
+            continue
+        reps = a.get("reps") or []
+        fat = a.get("fatigue") or {}
+        points.append({
+            "session_id": s["id"], "exercise": s.get("exercise"),
+            "load_kg": s.get("load_kg"), "date": s.get("captured_at"),
+            "n_reps": a.get("n_reps"),
+            "pattern": (a.get("classification") or {}).get("pattern"),
+            "quality_score": (a.get("quality") or {}).get("score"),
+            "F_peak": _best_rep(reps, "F_peak"),
+            "P_peak": _best_rep(reps, "P_peak"),
+            "v_peak": _best_rep(reps, "v_peak"),
+            "F_allo": _best_rep(reps, "F_allo"),
+            "power_drop_pct": fat.get("power_drop_pct"),
+            "velocity_loss_pct": fat.get("velocity_loss_pct"),
+            "cv_pct": fat.get("cv_pct"),
+        })
+    return {"athlete_id": athlete_id, "athlete": ath["name"],
+            "n_sessions": len(points), "protocol_version": Proto.PROTOCOL_VERSION,
+            "points": points}
+
+
+@app.get("/athletes/{athlete_id}/evolution", tags=["evolucao"])
+def athlete_evolution(athlete_id: int):
+    """Progresso do atleta entre sessoes: melhor F/P/v por sessao, fadiga,
+    qualidade e ajuste alometrico — as mesmas metricas do laudo padronizado."""
+    return _evolution(athlete_id)
+
+
+@app.get("/athletes/{athlete_id}/evolution.html", response_class=HTMLResponse,
+         tags=["evolucao"])
+def athlete_evolution_html(athlete_id: int):
+    return HTMLResponse(_evolution_html(_evolution(athlete_id)))
+
+
+def _spark(vals, w=520, h=90, pad=10, color="#2a9d8f"):
+    """Mini-grafico de linha (SVG) para uma serie de valores (None vira gap)."""
+    xs = [v for v in vals if v is not None]
+    if len(xs) < 1:
+        return "<div class='muted' style='font-size:12px'>sem dados</div>"
+    mn, mx = min(xs), max(xs)
+    rng = (mx - mn) or 1.0
+    n = len(vals)
+    def X(i):
+        return pad + (i / (n - 1) * (w - 2 * pad) if n > 1 else (w - 2 * pad) / 2)
+    def Y(v):
+        return h - pad - (v - mn) / rng * (h - 2 * pad)
+    pts, dots = [], ""
+    for i, v in enumerate(vals):
+        if v is None:
+            continue
+        pts.append(f"{X(i):.1f},{Y(v):.1f}")
+        dots += f"<circle cx='{X(i):.1f}' cy='{Y(v):.1f}' r='3' fill='{color}'/>"
+    line = (f"<polyline points='{' '.join(pts)}' fill='none' stroke='{color}' "
+            f"stroke-width='2.2'/>") if len(pts) > 1 else ""
+    return (f"<svg viewBox='0 0 {w} {h}' style='width:100%;height:{h}px'>"
+            f"{line}{dots}</svg>")
+
+
+def _evolution_html(ev: dict) -> str:
+    b = Brand.brand()
+    acc = escape(b.get("primary") or "#2a9d8f")
+    name = escape(b["name"])
+    ath = escape(ev.get("athlete") or "Atleta")
+    pts = ev.get("points") or []
+    labels = [escape(str(p.get("date") or ("#" + str(p["session_id"])))) for p in pts]
+
+    def series(key):
+        return [p.get(key) for p in pts]
+
+    charts = ""
+    for key, lab, col in [("P_peak", "Potência pico (W)", acc),
+                          ("F_peak", "Força pico (N)", "#f4a261"),
+                          ("v_peak", "Velocidade pico (m/s)", "#4aa8ff"),
+                          ("velocity_loss_pct", "Perda de velocidade (%) — fadiga", "#e63946")]:
+        charts += (f"<div class='card'><h2>{escape(lab)}</h2>"
+                   f"{_spark(series(key), color=col)}</div>")
+
+    head = ("<tr><th>Sessão</th><th>Data</th><th>Exercício</th><th>Reps</th>"
+            "<th>F pico (N)</th><th>P pico (W)</th><th>v pico (m/s)</th>"
+            "<th>F alom.</th><th>Perda vel. (%)</th><th>Qual.</th></tr>")
+    body = ""
+    for p in pts:
+        def c(v, f=0):
+            return Proto.fmt_value(v, f)
+        body += (f"<tr><td>#{p['session_id']}</td><td>{escape(str(p.get('date') or '—'))}</td>"
+                 f"<td>{escape(str(p.get('exercise') or '—'))}</td><td>{p.get('n_reps','—')}</td>"
+                 f"<td>{c(p.get('F_peak'))}</td><td>{c(p.get('P_peak'))}</td>"
+                 f"<td>{c(p.get('v_peak'),2)}</td><td>{c(p.get('F_allo'),1)}</td>"
+                 f"<td>{c(p.get('velocity_loss_pct'),1)}</td><td>{c(p.get('quality_score'))}</td></tr>")
+    if not pts:
+        body = "<tr><td colspan='10' class='muted'>sem sessões avaliáveis</td></tr>"
+
+    return f"""<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evolução — {ath}</title><style>
+:root{{--bg:#0e1116;--card:#171b22;--ink:#e6edf3;--mut:#8b98a6;--acc:{acc};--line:#232a33}}
+*{{box-sizing:border-box}}body{{margin:0;background:var(--bg);color:var(--ink);
+font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}}
+.wrap{{max-width:900px;margin:0 auto;padding:22px 16px 60px}}
+.brand{{font-weight:700;color:var(--acc)}}
+.card{{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}}
+h1{{font-size:22px;margin:.2em 0}} h2{{font-size:14px;margin:0 0 10px;color:var(--acc)}}
+.grid{{display:grid;grid-template-columns:1fr 1fr;gap:12px}}
+@media(max-width:680px){{.grid{{grid-template-columns:1fr}}}}
+table{{width:100%;border-collapse:collapse;font-size:13px;display:block;overflow-x:auto}}
+th,td{{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}}
+th{{color:var(--mut);font-size:12px}} .muted{{color:var(--mut)}}
+footer{{color:var(--mut);font-size:12px;text-align:center;margin-top:22px}}
+</style></head><body><div class="wrap">
+<div class="brand">{name} — Evolução do atleta</div>
+<div class="card"><h1>{ath}</h1>
+  <div class="muted">{ev.get('n_sessions',0)} sessões avaliadas · mesmas métricas do laudo padronizado
+  ({escape(ev.get('protocol_version',''))})</div></div>
+<div class="grid">{charts}</div>
+<div class="card"><h2>Histórico de sessões</h2>
+  <table><thead>{head}</thead><tbody>{body}</tbody></table></div>
+<footer>Evolução gerada por {name} · pontos = sessões em ordem cronológica</footer>
+</div></body></html>"""
+
+
 def _status_color(status: str) -> str:
     return {"otimo": "#2a9d8f", "adequado": "#e9c46a", "abaixo": "#e63946",
             "acima": "#e63946", "excelente": "#2a9d8f", "bom": "#2a9d8f",
