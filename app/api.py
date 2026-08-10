@@ -49,6 +49,7 @@ from app import licensing as Lic
 from app import branding as Brand
 from app import classify as Clf
 from app import quality as Qual
+from app import protocol as Proto
 
 ALGO_VERSION = ("mdlucca-1.0 · De Leva 1996; Winter 2009; ISB Wu 2002/2005; "
                 "Sánchez-Medina 2011; Samozino 2012; Jaric 2002")
@@ -825,57 +826,79 @@ def _build_assessment(session_id: int, deep: bool = False) -> dict:
         quality = Qual.quality_report(n_frames=n_frames, fps=fps,
                                       is_calibrated=is_cal, detected_ratio=det_ratio)
 
-        # checagens de literatura (extensao de quadril/joelho/cotovelo + CV entre reps)
-        checks = []
-        for sname, key in [("hip_angle", "hip_extension_deg"),
-                           ("knee_angle", "knee_extension_deg"),
-                           ("elbow_angle", "elbow_extension_deg")]:
-            s = _full_series(con, full["id"], sname)
-            if s:
-                checks.append(Ref.evaluate(key, round(float(max(s)), 1)))
-        # CV% do pico de potencia entre as reps
-        pk = []
-        for r in reps:
-            m = con.execute("SELECT value_num FROM metric WHERE submovement_id=? AND "
-                            "analysis='peaks' AND name IN ('power_peak','P_peak')",
-                            (r["id"],)).fetchone()
-            if m and m["value_num"]:
-                pk.append(float(m["value_num"]))
-        if len(pk) >= 2:
-            cv = A.coefficient_of_variation(pk).get("cv_pct")
-            if cv is not None:
-                checks.append(Ref.evaluate("cv_pct", round(cv, 1)))
+        # ---- PADRAO DE ANALISE: resumo canonico por repeticao -------------
+        # Toda avaliacao emite as MESMAS metricas-chave (protocol.CANONICAL_METRICS),
+        # nesta ordem; ausentes viram None -> 'N/D' no laudo (comparavel entre sessoes).
+        def _rep_metric(sub_id, spec):
+            for analysis, name in spec["sources"]:
+                row = con.execute(
+                    "SELECT value_num FROM metric WHERE submovement_id=? AND "
+                    "analysis=? AND name=?", (sub_id, analysis, name)).fetchone()
+                if row and row["value_num"] is not None:
+                    return round(float(row["value_num"]), 4)
+            return None
 
-        # resumo de metricas por rep (headline)
-        HL = [("power_peak", "P_peak"), ("F_peak",), ("v_peak",),
-              ("RFD_peak",), ("hip_angvel_peak",)]
         rep_summary = []
         for r in reps:
-            vals = {}
-            for names in HL:
-                q = ",".join("?" * len(names))
-                row = con.execute(f"SELECT name,value_num FROM metric WHERE submovement_id=? "
-                                  f"AND analysis='peaks' AND name IN ({q})",
-                                  (r["id"], *names)).fetchone()
-                if row and row["value_num"] is not None:
-                    vals[names[0]] = round(float(row["value_num"]), 1)
+            vals = {m["key"]: _rep_metric(r["id"], m) for m in Proto.CANONICAL_METRICS}
             rep_summary.append({"rep": r["label"], **vals})
+
+        # ---- PADRAO DE ANALISE: indice de fadiga / variabilidade ----------
+        fatigue = {}
+        for fm in Proto.FATIGUE_METRICS:
+            series = [row.get(fm["key"]) for row in rep_summary]
+            fatigue[fm["out"]] = Proto.drop_pct(series)
+        cv_pct = None
+        pk = [row.get("P_peak") for row in rep_summary if row.get("P_peak") is not None]
+        if len(pk) >= 2:
+            cv_pct = A.coefficient_of_variation(pk).get("cv_pct")
+            if cv_pct is not None:
+                cv_pct = round(cv_pct, 1)
+        fatigue["cv_pct"] = cv_pct
+        fatigue["n_reps"] = len(reps)
+
+        # ---- PADRAO DE ANALISE: checagens de literatura canonicas ---------
+        # Sempre as MESMAS linhas, nesta ordem; sem valor -> status 'N/D'.
+        checks = []
+        for spec in Proto.CANONICAL_CHECKS:
+            ref_key = spec["ref"]
+            band = Ref.BANDS.get(ref_key, {})
+            value = None
+            if spec["agg"] == "max":
+                s = _full_series(con, full["id"], spec["series"])
+                if s:
+                    value = round(float(max(s)), 1)
+            elif spec["agg"] == "cv":
+                value = cv_pct
+            if value is not None:
+                ev = Ref.evaluate(ref_key, value)
+            else:
+                ev = {"metric": ref_key, "value": None, "status": Proto.NA,
+                      "unit": band.get("unit", ""), "kind": band.get("kind", ""),
+                      "note": band.get("note", ""), "source": band.get("source", "")}
+            ev["label"] = spec["label"]
+            checks.append(ev)
 
         provenance = {
             "data_source": ses.get("pose_source"),
             "pose_model": ses.get("pose_model"),
             "algorithm_version": ALGO_VERSION,
+            "protocol_version": Proto.PROTOCOL_VERSION,
             "frame_count": n_frames, "fps": fps,
             "detected_ratio": round(det_ratio, 3),
             "calibrated": is_cal, "calibration": meta.get("calibration"),
             "camera_view": meta.get("camera_view", "sagital"),
+            "fatigue": fatigue,
         }
         out = {
             "session_id": session_id, "exercise": ses.get("exercise"),
             "athlete": (ath or {}).get("name"), "load_kg": ses.get("load_kg"),
+            "athlete_id": ses.get("athlete_id"),
             "algorithm_version": ALGO_VERSION,
+            "protocol_version": Proto.PROTOCOL_VERSION,
             "classification": classification, "quality": quality,
             "literature_checks": checks, "reps": rep_summary,
+            "fatigue": fatigue,
             "n_reps": len(reps), "provenance": provenance,
         }
         if deep:
@@ -1014,19 +1037,40 @@ def _assessment_html(run: dict, ses: dict, ath: Optional[dict]) -> str:
         r = ""
         for c in checks:
             col = _status_color(c.get("status", ""))
-            r += (f"<tr><td>{escape(str(c.get('metric','')))}</td>"
-                  f"<td>{escape(str(c.get('value','')))} {escape(str(c.get('unit','')))}</td>"
+            label = c.get("label") or c.get("metric", "")
+            val = c.get("value")
+            val_s = (f"{val} {c.get('unit','')}".strip()) if val is not None else Proto.NA
+            r += (f"<tr><td>{escape(str(label))}</td>"
+                  f"<td>{escape(val_s)}</td>"
                   f"<td><span class='tag' style='color:{col};border-color:{col}'>"
                   f"{escape(str(c.get('status','')))}</span></td>"
                   f"<td class='muted'>{escape(str(c.get('source','')))}</td></tr>")
         return r or "<tr><td colspan='4' class='muted'>—</td></tr>"
 
-    rep_cols = [k for k in reps[0].keys() if k != "rep"] if reps else []
-    rep_head = "".join(f"<th>{escape(c)}</th>" for c in rep_cols)
+    # Colunas canonicas fixas (mesmas metricas em toda avaliacao)
+    rep_head = "".join(f"<th>{escape(m['label'])}<br><span class='u'>{escape(m['unit'])}</span></th>"
+                       for m in Proto.CANONICAL_METRICS)
     rep_body = ""
     for r in reps:
         rep_body += ("<tr><td class='lab'>" + escape(r.get("rep", "")) + "</td>"
-                     + "".join(f"<td>{escape(str(r.get(c,'—')))}</td>" for c in rep_cols) + "</tr>")
+                     + "".join(f"<td>{escape(Proto.fmt_value(r.get(m['key']), m['fmt']))}</td>"
+                               for m in Proto.CANONICAL_METRICS) + "</tr>")
+    if not reps:
+        rep_body = ("<tr><td class='lab muted'>—</td>"
+                    + "".join("<td class='muted'>N/D</td>" for _ in Proto.CANONICAL_METRICS)
+                    + "</tr>")
+    fat = prov.get("fatigue") or {}
+
+    def _fchip(v, label):
+        col = _status_color("otimo" if (v is not None and v <= 10)
+                            else "adequado" if (v is not None and v <= 20)
+                            else "abaixo" if v is not None else "")
+        return (f"<div class='kpi'><b style='color:{col}'>{Proto.fmt_value(v,1)}%</b>"
+                f"<span>{escape(label)}</span></div>")
+
+    fatigue_html = (_fchip(fat.get("power_drop_pct"), "queda de potência")
+                    + _fchip(fat.get("velocity_loss_pct"), "perda de velocidade")
+                    + _fchip(fat.get("cv_pct"), "CV entre reps"))
     warn_html = ("".join(f"<li>{escape(w)}</li>" for w in warns)
                  if warns else "<li class='muted'>Sem alertas de qualidade.</li>")
     qcol = _status_color(q_level)
@@ -1051,6 +1095,7 @@ border-radius:999px;padding:3px 12px;font-weight:600;font-size:14px}}
 table{{width:100%;border-collapse:collapse;font-size:13px;display:block;overflow-x:auto}}
 th,td{{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}}
 th{{color:var(--mut);font-size:12px}} td.lab{{font-weight:600}}
+.u{{color:var(--mut);font-weight:400;font-size:11px}}
 .tag{{border:1px solid;border-radius:999px;padding:1px 8px;font-size:12px}}
 .muted{{color:var(--mut)}} ul{{margin:.3em 0;padding-left:1.1em}}
 .qbadge{{display:inline-block;border:1px solid {qcol};color:{qcol};border-radius:999px;
@@ -1069,15 +1114,20 @@ footer{{color:var(--mut);font-size:12px;text-align:center;margin-top:22px}}
 <div class="card"><h2>Checagens de literatura</h2>
   <table><thead><tr><th>Métrica</th><th>Valor</th><th>Status</th><th>Referência</th></tr></thead>
   <tbody>{check_rows()}</tbody></table></div>
-<div class="card"><h2>Métricas por repetição</h2>
-  <table><thead><tr><th>Rep</th>{rep_head}</tr></thead><tbody>{rep_body}</tbody></table></div>
+<div class="card"><h2>Métricas-chave por repetição</h2>
+  <table><thead><tr><th>Rep</th>{rep_head}</tr></thead><tbody>{rep_body}</tbody></table>
+  <div class="meta" style="margin-top:8px">Protocolo padronizado — mesmas métricas em toda avaliação · N/D = não disponível</div></div>
+<div class="card"><h2>Índice de fadiga e variabilidade</h2>
+  <div class="grid">{fatigue_html}</div>
+  <div class="meta" style="margin-top:8px">Fadiga = queda do melhor ao pior valor da série (Sánchez-Medina &amp; González-Badillo, 2011).</div></div>
 <div class="card"><h2>Qualidade &amp; procedência</h2>
   <ul>{warn_html}</ul>
   <div class="meta">Fonte: {escape(str(prov.get('data_source','—')))}
     ({escape(str(prov.get('pose_model','—')))}) ·
     {escape(str(prov.get('frame_count','—')))} quadros @ {escape(str(prov.get('fps','—')))} fps ·
     calibrado: {'sim' if prov.get('calibrated') else 'não'}</div>
-  <div class="meta" style="margin-top:6px">Algoritmo: {escape(str(prov.get('algorithm_version','')))}</div>
+  <div class="meta" style="margin-top:6px">Algoritmo: {escape(str(prov.get('algorithm_version','')))}
+    · Protocolo: {escape(str(prov.get('protocol_version', Proto.PROTOCOL_VERSION)))}</div>
 </div>
 <footer>Relatório de avaliação gerado por {name} • padrões internacionais de biomecânica</footer>
 </div></body></html>"""
@@ -1106,31 +1156,48 @@ def _report_markdown(run: dict, ses: dict, ath: Optional[dict]) -> str:
         lines.append(f"- ⚠ {w}")
     if not run.get("warnings"):
         lines.append("- Sem alertas de qualidade.")
-    lines += ["", "## Checagens de literatura"]
-    if ch:
-        lines.append("| Métrica | Valor | Status | Referência |")
-        lines.append("|---|---|---|---|")
-        for c in ch:
-            lines.append(f"| {c.get('metric','')} | {c.get('value','')} "
-                         f"{c.get('unit','')} | {c.get('status','')} | {c.get('source','')} |")
-    else:
-        lines.append("- Sem checagens disponíveis.")
-    lines += ["", "## Métricas por repetição"]
+    # ---- Metricas-chave por repeticao (colunas canonicas fixas) ----------
     reps = run.get("metrics") or []
-    if reps:
-        cols = [k for k in reps[0].keys() if k != "rep"]
-        lines.append("| Rep | " + " | ".join(cols) + " |")
-        lines.append("|" + "---|" * (len(cols) + 1))
-        for r in reps:
-            lines.append("| " + r.get("rep", "") + " | "
-                         + " | ".join(str(r.get(c, "—")) for c in cols) + " |")
+    lines += ["", "## Métricas-chave por repetição",
+              "_Protocolo padronizado — mesmas métricas em toda avaliação (N/D = não disponível)._"]
+    hdr = ["Rep"] + [f"{m['label']} ({m['unit']})" for m in Proto.CANONICAL_METRICS]
+    lines.append("| " + " | ".join(hdr) + " |")
+    lines.append("|" + "---|" * len(hdr))
+    for r in reps:
+        cells = [r.get("rep", "")]
+        for m in Proto.CANONICAL_METRICS:
+            cells.append(Proto.fmt_value(r.get(m["key"]), m["fmt"]))
+        lines.append("| " + " | ".join(cells) + " |")
+    if not reps:
+        lines.append("| — |" + " N/D |" * len(Proto.CANONICAL_METRICS))
+
+    # ---- Indice de fadiga e variabilidade --------------------------------
+    fat = (run.get("provenance") or {}).get("fatigue") or run.get("fatigue") or {}
+    lines += ["", "## Índice de fadiga e variabilidade",
+              f"- Queda de potência intra-série: **{Proto.fmt_value(fat.get('power_drop_pct'),1)}%**",
+              f"- Perda de velocidade intra-série: **{Proto.fmt_value(fat.get('velocity_loss_pct'),1)}%**",
+              f"- Variabilidade entre repetições (CV): **{Proto.fmt_value(fat.get('cv_pct'),1)}%**",
+              "_Fadiga = queda do melhor ao pior valor da série "
+              "(Sánchez-Medina & González-Badillo, 2011)._"]
+
+    # ---- Checagens de literatura (linhas canonicas fixas) ----------------
+    lines += ["", "## Checagens de literatura"]
+    lines.append("| Métrica | Valor | Status | Referência |")
+    lines.append("|---|---|---|---|")
+    for c in (ch or []):
+        label = c.get("label") or c.get("metric", "")
+        val = c.get("value")
+        val_s = (f"{val} {c.get('unit','')}".strip()) if val is not None else Proto.NA
+        lines.append(f"| {label} | {val_s} | {c.get('status','')} | {c.get('source','')} |")
     lines += ["", "## Procedência",
               f"- Fonte de pose: {prov.get('data_source','—')} ({prov.get('pose_model','—')})",
               f"- Quadros: {prov.get('frame_count','—')} @ {prov.get('fps','—')} fps "
               f"(detecção {prov.get('detected_ratio','—')})",
               f"- Calibrado: {'sim' if prov.get('calibrated') else 'não'}",
-              f"- Algoritmo: {prov.get('algorithm_version','')}", "",
-              f"_Relatório gerado por {b['name']} · padrões internacionais de biomecânica._"]
+              f"- Algoritmo: {prov.get('algorithm_version','')} · "
+              f"Protocolo: {prov.get('protocol_version', Proto.PROTOCOL_VERSION)}", "",
+              f"_Relatório gerado por {b['name']} · padrões internacionais de biomecânica "
+              f"(De Leva 1996; Winter 2009; Wu et al. 2002; Sánchez-Medina & González-Badillo 2011)._"]
     return "\n".join(lines)
 
 
