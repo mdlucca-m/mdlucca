@@ -801,8 +801,8 @@ def _build_assessment(session_id: int, deep: bool = False) -> dict:
             raise HTTPException(404, "sessao nao encontrada")
         ses = db.parse_json_fields(ses, ["meta"])
         ath = db.one(con, "SELECT * FROM athlete WHERE id=?", (ses["athlete_id"],))
-        subs = db.rows(con, "SELECT id,ordinal,label,n_frames,dt FROM submovement "
-                       "WHERE session_id=? ORDER BY ordinal", (session_id,))
+        subs = db.rows(con, "SELECT id,ordinal,label,n_frames,dt,frame_start,frame_end "
+                       "FROM submovement WHERE session_id=? ORDER BY ordinal", (session_id,))
         if not subs:
             raise HTTPException(404, "sessao sem submovimentos")
         full = max(subs, key=lambda s: s["n_frames"] or 0)
@@ -828,20 +828,53 @@ def _build_assessment(session_id: int, deep: bool = False) -> dict:
 
         # ---- PADRAO DE ANALISE: resumo canonico por repeticao -------------
         # Toda avaliacao emite as MESMAS metricas-chave (protocol.CANONICAL_METRICS),
-        # nesta ordem; ausentes viram None -> 'N/D' no laudo (comparavel entre sessoes).
-        def _rep_metric(sub_id, spec):
-            for analysis, name in spec["sources"]:
+        # nesta ordem, resolvidas em cascata: metrica gravada -> fatia da serie
+        # do full-session na janela da rep -> derivacao alometrica. Ausente =
+        # None -> 'N/D' no laudo (comparavel entre sessoes).
+        mass = (ath or {}).get("body_mass_kg")
+        _series_cache: dict = {}
+
+        def _fs(name):
+            if name not in _series_cache:
+                _series_cache[name] = _full_series(con, full["id"], name) or []
+            return _series_cache[name]
+
+        def _resolve(sub_id, fstart, fend, spec, acc):
+            # 1) valor gravado no banco
+            for analysis, name in spec.get("db", []):
                 row = con.execute(
                     "SELECT value_num FROM metric WHERE submovement_id=? AND "
                     "analysis=? AND name=?", (sub_id, analysis, name)).fetchone()
                 if row and row["value_num"] is not None:
                     return round(float(row["value_num"]), 4)
+            # 2) fatia da serie do full-session na janela da rep
+            ser = spec.get("series")
+            if ser:
+                name, how = ser
+                arr = _fs(name)
+                if arr:
+                    if fstart is not None and fend is not None:
+                        seg = arr[int(fstart):int(fend) + 1] or arr
+                    else:
+                        seg = arr
+                    v = Proto.agg_series(seg, how)
+                    if v is not None:
+                        return round(float(v), 4)
+            # 3) derivacao alometrica a partir de outra metrica ja resolvida
+            der = spec.get("derive")
+            if der and mass:
+                kind, base = der
+                if kind == "allo" and acc.get(base) is not None and mass > 0:
+                    return round(acc[base] / (mass ** Proto.ALLOMETRIC_EXPONENT), 4)
             return None
 
         rep_summary = []
         for r in reps:
-            vals = {m["key"]: _rep_metric(r["id"], m) for m in Proto.CANONICAL_METRICS}
-            rep_summary.append({"rep": r["label"], **vals})
+            acc: dict = {}
+            for m in Proto.CANONICAL_METRICS:
+                acc[m["key"]] = _resolve(r["id"], r.get("frame_start"),
+                                         r.get("frame_end"), m, acc)
+            rep_summary.append({"rep": r["label"], **acc})
 
         # ---- PADRAO DE ANALISE: indice de fadiga / variabilidade ----------
         fatigue = {}
@@ -1047,18 +1080,22 @@ def _assessment_html(run: dict, ses: dict, ath: Optional[dict]) -> str:
                   f"<td class='muted'>{escape(str(c.get('source','')))}</td></tr>")
         return r or "<tr><td colspan='4' class='muted'>—</td></tr>"
 
-    # Colunas canonicas fixas (mesmas metricas em toda avaliacao)
-    rep_head = "".join(f"<th>{escape(m['label'])}<br><span class='u'>{escape(m['unit'])}</span></th>"
-                       for m in Proto.CANONICAL_METRICS)
-    rep_body = ""
-    for r in reps:
-        rep_body += ("<tr><td class='lab'>" + escape(r.get("rep", "")) + "</td>"
+    # Tabelas canonicas por GRUPO (mesmas metricas em toda avaliacao)
+    def _group_table(g):
+        head = "".join(
+            f"<th>{escape(m['label'])}<br><span class='u'>{escape(m['unit'])}</span></th>"
+            for m in g["metrics"])
+        rows_iter = reps or [{"rep": "—"}]
+        body = ""
+        for r in rows_iter:
+            body += ("<tr><td class='lab'>" + escape(str(r.get("rep", "—"))) + "</td>"
                      + "".join(f"<td>{escape(Proto.fmt_value(r.get(m['key']), m['fmt']))}</td>"
-                               for m in Proto.CANONICAL_METRICS) + "</tr>")
-    if not reps:
-        rep_body = ("<tr><td class='lab muted'>—</td>"
-                    + "".join("<td class='muted'>N/D</td>" for _ in Proto.CANONICAL_METRICS)
-                    + "</tr>")
+                               for m in g["metrics"]) + "</tr>")
+        return (f"<h3>{escape(g['title'])}</h3>"
+                f"<table><thead><tr><th>Rep</th>{head}</tr></thead>"
+                f"<tbody>{body}</tbody></table>")
+
+    groups_html = "".join(_group_table(g) for g in Proto.METRIC_GROUPS)
     fat = prov.get("fatigue") or {}
 
     def _fchip(v, label):
@@ -1086,6 +1123,7 @@ font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}}
 .brand{{font-weight:700;color:var(--acc)}}
 .card{{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0}}
 h1{{font-size:22px;margin:.2em 0}} h2{{font-size:15px;margin:0 0 10px}}
+h3{{font-size:13px;margin:16px 0 6px;color:var(--acc)}}
 .meta{{color:var(--mut);font-size:13px}}
 .pattern{{display:inline-block;background:#0e1116;border:1px solid var(--acc);color:var(--acc);
 border-radius:999px;padding:3px 12px;font-weight:600;font-size:14px}}
@@ -1115,8 +1153,8 @@ footer{{color:var(--mut);font-size:12px;text-align:center;margin-top:22px}}
   <table><thead><tr><th>Métrica</th><th>Valor</th><th>Status</th><th>Referência</th></tr></thead>
   <tbody>{check_rows()}</tbody></table></div>
 <div class="card"><h2>Métricas-chave por repetição</h2>
-  <table><thead><tr><th>Rep</th>{rep_head}</tr></thead><tbody>{rep_body}</tbody></table>
-  <div class="meta" style="margin-top:8px">Protocolo padronizado — mesmas métricas em toda avaliação · N/D = não disponível</div></div>
+  {groups_html}
+  <div class="meta" style="margin-top:8px">Protocolo padronizado — mesmos grupos e métricas em toda avaliação · N/D = não disponível nesta captura</div></div>
 <div class="card"><h2>Índice de fadiga e variabilidade</h2>
   <div class="grid">{fatigue_html}</div>
   <div class="meta" style="margin-top:8px">Fadiga = queda do melhor ao pior valor da série (Sánchez-Medina &amp; González-Badillo, 2011).</div></div>
@@ -1156,20 +1194,22 @@ def _report_markdown(run: dict, ses: dict, ath: Optional[dict]) -> str:
         lines.append(f"- ⚠ {w}")
     if not run.get("warnings"):
         lines.append("- Sem alertas de qualidade.")
-    # ---- Metricas-chave por repeticao (colunas canonicas fixas) ----------
+    # ---- Metricas-chave por repeticao, agrupadas (colunas canonicas fixas) --
     reps = run.get("metrics") or []
     lines += ["", "## Métricas-chave por repetição",
-              "_Protocolo padronizado — mesmas métricas em toda avaliação (N/D = não disponível)._"]
-    hdr = ["Rep"] + [f"{m['label']} ({m['unit']})" for m in Proto.CANONICAL_METRICS]
-    lines.append("| " + " | ".join(hdr) + " |")
-    lines.append("|" + "---|" * len(hdr))
-    for r in reps:
-        cells = [r.get("rep", "")]
-        for m in Proto.CANONICAL_METRICS:
-            cells.append(Proto.fmt_value(r.get(m["key"]), m["fmt"]))
-        lines.append("| " + " | ".join(cells) + " |")
-    if not reps:
-        lines.append("| — |" + " N/D |" * len(Proto.CANONICAL_METRICS))
+              "_Protocolo padronizado — mesmos grupos e métricas em toda avaliação "
+              "(N/D = não disponível nesta captura)._"]
+    for g in Proto.METRIC_GROUPS:
+        lines += ["", f"### {g['title']}"]
+        hdr = ["Rep"] + [f"{m['label']} ({m['unit']})" for m in g["metrics"]]
+        lines.append("| " + " | ".join(hdr) + " |")
+        lines.append("|" + "---|" * len(hdr))
+        rows_iter = reps or [{"rep": "—"}]
+        for r in rows_iter:
+            cells = [r.get("rep", "")]
+            for m in g["metrics"]:
+                cells.append(Proto.fmt_value(r.get(m["key"]), m["fmt"]))
+            lines.append("| " + " | ".join(cells) + " |")
 
     # ---- Indice de fadiga e variabilidade --------------------------------
     fat = (run.get("provenance") or {}).get("fatigue") or run.get("fatigue") or {}

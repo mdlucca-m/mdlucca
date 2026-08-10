@@ -21,7 +21,7 @@ def test_drop_pct_and_fmt():
     assert Proto.drop_pct([None, None]) is None
     assert Proto.fmt_value(None) == Proto.NA
     assert Proto.fmt_value(1.239, 2) == "1.24"
-    assert Proto.fmt_value(1028.0, 0) in ("1.028", "1028")
+    assert Proto.fmt_value(1028.0, 0) == "1028"     # inteiro sem separador de milhar
 
 
 def _seed(dbp):
