@@ -19,7 +19,14 @@ num **disco persistente** para não apagar os alunos cadastrados a cada deploy.
 1. Suba este repo no GitHub (já está).
 2. Em https://render.com → **New → Blueprint** e aponte para o repo. O
    `render.yaml` já configura tudo (Docker, `/health`, disco `/data`).
-3. Deploy. A URL pública sai pronta (ex.: `https://mdlucca-biomecanica.onrender.com`).
+3. **Licença (obrigatório para os endpoints do produto).** `data/license.key`
+   não vai no build (é segredo). No painel da Render → **Environment**, defina:
+   - `MDLUCCA_LICENSE` = o token assinado (gere com
+     `python3 scripts/make_license.py issue --licensee "..." --plan owner`), **ou**
+   - `MDLUCCA_DEV` = `1` na SUA instância dona (libera tudo, sem checagem).
+   Sem um dos dois, cadastro/upload/laudo respondem **402** (só `/health`,
+   `/license`, `/docs` e `/app` ficam abertos).
+4. Deploy. A URL pública sai pronta (ex.: `https://mdlucca-biomecanica.onrender.com`).
 
 Abra:
 - `…/app/gerir.html` — cadastro + gerar link

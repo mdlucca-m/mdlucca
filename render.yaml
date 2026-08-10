@@ -11,6 +11,15 @@ services:
     envVars:
       - key: MDLUCCA_DB
         value: /data/db.sqlite
+      # Licenca white-label: cole o token assinado (scripts/make_license.py issue)
+      # no painel da Render (marcado sync:false = segredo, nao vai pro repo).
+      # Sem isto, endpoints do produto respondem 402. Alternativa p/ a SUA
+      # instancia dona: MDLUCCA_DEV=1 (libera tudo, sem checagem de licenca).
+      - key: MDLUCCA_LICENSE
+        sync: false
+      # Marca branca opcional (JSON): nome, cor, logo. Ex.: {"name":"Studio X"}
+      - key: MDLUCCA_BRAND
+        sync: false
     disk:
       name: dados
       mountPath: /data
