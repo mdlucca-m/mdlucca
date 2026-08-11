@@ -340,6 +340,54 @@ body{
 .rk .it:last-child{border-bottom:0}
 .rk .it b{color:var(--hi);font-weight:600}
 .rk .it .doi{font-family:var(--cond);font-style:normal;font-size:.92em;color:var(--low);letter-spacing:.02em}
+
+/* ---- esportes estéticos: adaptação ---- */
+.change{display:flex;flex-direction:column;gap:2.6cqw;margin-top:1cqw}
+.change .cg{display:grid;grid-template-columns:auto 1fr;gap:3.2cqw;align-items:start}
+.change .cg .ci{font-family:var(--disp);font-size:4.4cqw;line-height:.9;color:var(--gold);width:8cqw;flex:none;text-align:center}
+.change .cg .cv b{display:block;font-family:var(--sans);font-weight:600;font-size:3cqw;color:var(--hi);margin-bottom:.4cqw}
+.change .cg .cv span{font-size:2.7cqw;color:var(--mid);line-height:1.4}
+/* barras de peso das capacidades */
+.weights{display:flex;flex-direction:column;gap:2.2cqw;margin-top:1cqw}
+.wrow{display:grid;grid-template-columns:30cqw 1fr;gap:3cqw;align-items:center}
+.wrow .wl{font-family:var(--cond);font-weight:500;font-size:2.5cqw;letter-spacing:.06em;text-transform:uppercase;color:var(--mid);text-align:right}
+.wrow .wt{height:3.4cqw;background:#1c2231;border-radius:99px;overflow:hidden}
+.wrow .wf{height:100%;border-radius:99px;background:var(--c,var(--gold))}
+
+/* ---- segmentação: tira estroboscópica ---- */
+.strobo{display:grid;grid-template-columns:repeat(5,1fr);gap:1.4cqw;margin-top:1cqw}
+.ph{display:flex;flex-direction:column;align-items:center;gap:1.4cqw;text-align:center}
+.ph .disc{width:100%;aspect-ratio:1;border-radius:12px;background:radial-gradient(circle at 50% 34%,#1a2130,#0f131d);
+  border:1px solid #ffffff10;display:grid;place-items:center;position:relative;overflow:hidden}
+.ph .disc::before{content:"";position:absolute;left:0;top:0;right:0;height:3px;background:var(--c)}
+.ph .disc svg{width:74%;height:74%}
+.ph .disc .fig{fill:none;stroke:#f1eee4;stroke-width:6;stroke-linecap:round;stroke-linejoin:round}
+.ph .disc .fig.head{fill:#f1eee4;stroke:none}
+.ph .ph-n{position:absolute;left:1.4cqw;bottom:1cqw;font-family:var(--disp);font-size:3.4cqw;color:var(--c);opacity:.9}
+.ph .ph-name{font-family:var(--cond);font-weight:600;font-size:2.2cqw;letter-spacing:.05em;text-transform:uppercase;color:var(--hi);line-height:1.1}
+.ph .ph-t{font-size:2cqw;color:var(--low);font-family:var(--cond);letter-spacing:.04em}
+/* linha do tempo contato/voo */
+.timeline{margin:3cqw 0 0}
+.tl-bar{display:flex;height:4cqw;border-radius:99px;overflow:hidden;border:1px solid #ffffff10}
+.tl-bar span{display:flex;align-items:center;justify-content:center;font-family:var(--cond);font-weight:600;
+  font-size:2cqw;letter-spacing:.1em;text-transform:uppercase;color:#0e1017}
+.tl-contact{background:#2b3346;color:#9fb0c8 !important}
+.tl-flight{background:linear-gradient(90deg,var(--gold-2),var(--gold-soft))}
+.tl-legend{display:flex;gap:5cqw;margin-top:1.8cqw}
+.tl-legend .lg{font-family:var(--cond);font-weight:500;font-size:2.4cqw;letter-spacing:.06em;text-transform:uppercase;color:var(--mid);display:flex;align-items:center;gap:1.6cqw}
+.tl-legend i{width:3cqw;height:2cqw;border-radius:3px}
+
+/* grade de análise por fase */
+.seg-rows{display:flex;flex-direction:column;gap:0;margin-top:1cqw}
+.seg{display:grid;grid-template-columns:auto 1fr;gap:3.4cqw;padding:2.8cqw 0;border-bottom:1px solid var(--line)}
+.seg:last-child{border-bottom:0}
+.seg .sg-n{font-family:var(--disp);font-size:4.4cqw;line-height:.9;color:var(--c)}
+.seg .sg-name{font-family:var(--sans);font-weight:600;font-size:3cqw;color:var(--hi);text-transform:uppercase;letter-spacing:.01em;margin:0 0 1.4cqw}
+.seg .sg-tags{display:flex;flex-direction:column;gap:1cqw}
+.seg .sg-tag{font-size:2.6cqw;line-height:1.34;color:var(--mid)}
+.seg .sg-tag b{font-family:var(--cond);font-weight:600;font-size:.86em;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--gold-soft);margin-right:1.4cqw;display:inline-block;min-width:15cqw}
+.seg .sg-tag.err b{color:#e2853a}
 </style>
 </head>
 <body>
