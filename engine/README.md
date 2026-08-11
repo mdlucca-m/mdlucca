@@ -86,3 +86,11 @@ Ver `automation/README.md`.
 > Nota: em redes que bloqueiam `api.crossref.org` (ex.: sandbox com proxy restrito),
 > a verificação retorna "não verificado" sem quebrar o pipeline — rode em um ambiente
 > com saída para o Crossref para obter os ✓.
+
+## 6. Decks incluídos
+- `content/caminho.json` — do geral ao específico (metodologia).
+- `content/neuromuscular.json` — RFD, força reativa, pliometria e capacidade neuromuscular (`stage_type: construct`).
+
+```bash
+python -m engine.pipeline --content content/neuromuscular.json --out dist/neuromuscular
+```

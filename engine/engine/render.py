@@ -46,7 +46,26 @@ def _funnel(f: dict) -> str:
   <header class="s-head"><h2 class="display sm">{esc(f["title"])}</h2>
     <p class="serif s-sub">{esc(f["sub"])}</p></header>
   <div class="funnel">{rows}</div>
-  <p class="src">Especificidade crescente (1→5): o foco estreita da base à competição.</p>
+  <p class="src">{esc(f.get("note", "Especificidade crescente (1→5): o foco estreita da base à competição."))}</p>
+  <span class="pg">{{PG}} / {{TOTAL}}</span>
+</section>'''
+
+
+def _construct(s: dict) -> str:
+    """Lâmina de construto (RFD, força reativa, etc.) — sem medidor de especificidade."""
+    tag = f'<span class="spec-lbl" style="color:var(--{s["c"]})">{esc(s["tag"])}</span>' if s.get("tag") else ""
+    return f'''<section class="slide">
+  <div class="stage" style="--c:var(--{s["c"]})">
+    <div class="disc"><b>{esc(s["n"])}</b></div>
+    <div>
+      <h3 class="st-name">{esc(s["name"])}</h3>
+      <div class="kv"><b>O que é</b><span>{esc(s["goal"])}</span></div>
+      <div class="kv"><b>Como treinar</b><span>{esc(s["do"])}</span></div>
+      <div class="kv why"><b>Por que importa</b><span>{esc(s["why"])}</span></div>
+      {tag}
+      <p class="src">{esc(s["ref"])} <span class="doi">doi:{esc(s["doi"])}</span></p>
+    </div>
+  </div>
   <span class="pg">{{PG}} / {{TOTAL}}</span>
 </section>'''
 
@@ -111,9 +130,13 @@ def _refs(d: dict, verified: dict | None) -> str:
 
 def build_html(content: dict, verified: dict | None = None) -> str:
     """Monta o HTML completo do carrossel a partir do modelo de conteúdo."""
-    slides = [_cover(content["cover"]), _funnel(content["funnel"])]
-    slides += [_stage(s) for s in content["stages"]]
-    slides.append(_periodization(content["periodization"]))
+    slides = [_cover(content["cover"])]
+    if content.get("funnel"):
+        slides.append(_funnel(content["funnel"]))
+    stage_renderer = _construct if content.get("stage_type") == "construct" else _stage
+    slides += [stage_renderer(s) for s in content["stages"]]
+    if content.get("periodization"):
+        slides.append(_periodization(content["periodization"]))
     slides.append(_refs(content, verified))
 
     total = len(slides)

@@ -1,0 +1,64 @@
+{
+  "id": "conversao-neuromuscular",
+  "title": "Conversão Neuromuscular — RFD, Força Reativa e Pliometria",
+  "favicon": "⚡",
+  "stage_type": "construct",
+  "author": { "name": "Prof. Me. Mateus de Lucca", "role": "Doutorando CEFID/UDESC · 20+ anos em performance esportiva", "wordmark": "DE LUCCA" },
+  "cover": {
+    "eyebrow": "Ciência do Treinamento · Capacidade Neuromuscular",
+    "lead": "Onde a força vira velocidade —",
+    "title": ["A sala de máquinas", "neuromuscular"],
+    "sub": "RFD, força reativa e pliometria: como o sistema nervoso decide sua potência.",
+    "chips": [ {"b": "04", "s": "construtos"}, {"b": "ms", "s": "escala de tempo"}, {"b": "DOI", "s": "conferido"} ]
+  },
+  "funnel": {
+    "title": "A cadeia da conversão",
+    "sub": "cada elo transforma o anterior em força útil e rápida.",
+    "note": "Da força máxima à potência aplicada: velocidade de ativação cresce a cada elo.",
+    "stages": [ ["Força máxima (base)", 1], ["Taxa de força (RFD)", 2], ["Força reativa (SSC)", 3], ["Potência aplicada", 4] ]
+  },
+  "stages": [
+    { "n": "01", "name": "Taxa de desenvolvimento de força", "c": "p2", "tag": "Fase precoce: 0–50 ms",
+      "goal": "Quão rápido você produz força — a inclinação inicial da curva força-tempo.",
+      "do": "Força pesada (eleva o teto) + contrações com intenção explosiva máxima.",
+      "why": "Sprint, salto e mudança de direção duram 50–250 ms: não há tempo para o 1RM.",
+      "ref": "Maffiuletti et al., 2016 · Eur. J. Appl. Physiol.", "doi": "10.1007/s00421-016-3346-6" },
+    { "n": "02", "name": "Força reativa (ciclo SSC)", "c": "p3", "tag": "SSC rápido: contato < 250 ms",
+      "goal": "Trocar do freio (excêntrico) ao impulso (concêntrico) em milissegundos.",
+      "do": "Drop jumps e saltos com contato curto e rígido; meça o RSI (altura ÷ tempo de contato).",
+      "why": "Reflete a função do ciclo alongamento-encurtamento; associa-se a sprint e agilidade.",
+      "ref": "Ramirez-Campillo et al., 2023 · Sports Medicine", "doi": "10.1007/s40279-023-01825-0" },
+    { "n": "03", "name": "Pliometria", "c": "p4", "tag": "Dose: > 7 sem · 3×/sem",
+      "goal": "O método que treina RFD e força reativa via saltos.",
+      "do": "Some à força pesada (treino de contraste); dose mínima eficaz já em ~4 semanas.",
+      "why": "Eleva salto (ES 0,69), sprint (−0,50 a −0,57) e RSI (0,80) com segurança.",
+      "ref": "Sun et al., 2025 · Scientific Reports", "doi": "10.1038/s41598-025-10652-4" },
+    { "n": "04", "name": "Capacidade neuromuscular", "c": "p1", "tag": "Primeiros ganhos: neurais",
+      "goal": "O drive do sistema nervoso: recrutamento e frequência de disparo das unidades motoras.",
+      "do": "Priorize estímulo neural nas primeiras semanas; monitore prontidão com o CMJ em plataforma.",
+      "why": "Sustenta força, RFD e força reativa — e é o que mais responde cedo ao treino.",
+      "ref": "Del Vecchio et al., 2019 · The Journal of Physiology", "doi": "10.1113/JP277250" }
+  ],
+  "periodization": {
+    "title": "Como treinar a conversão",
+    "sub": "combine as cargas por fase da curva força-tempo.",
+    "models": [
+      { "tag": "Pesado + explosivo", "c": "p2", "def": "Força máxima eleva a RFD tardia; a intenção de acelerar (mesmo com carga alta) treina a RFD precoce via drive neural.", "best": "Base de força e potência." },
+      { "tag": "Pliometria / SSC", "c": "p4", "def": "Contatos curtos e rígidos (drop jumps, bounding) treinam a força reativa; treino de contraste multiplica o efeito.", "best": "Velocidade, salto e agilidade." }
+    ],
+    "note": "Dose para RSI: > 7 semanas, 3 sessões/semana, > 14 sessões; qualidade do contato acima do número de saltos.",
+    "ref": "Ramirez-Campillo et al., 2023 · Thapa et al., 2024", "doi": "10.1080/02640414.2024.2391657"
+  },
+  "refs": [
+    { "who": "Maffiuletti et al., 2016", "src": "Eur. J. Appl. Physiol.", "note": "RFD precoce = drive neural; tardia = força máxima", "doi": "10.1007/s00421-016-3346-6" },
+    { "who": "Del Vecchio et al., 2019", "src": "J. Physiology", "note": "velocidade de recrutamento e rate coding explicam a RFD máxima", "doi": "10.1113/JP277396" },
+    { "who": "Aagaard et al., 2002", "src": "J. Applied Physiology", "note": "14 sem de força pesada elevam a RFD via maior drive neural (EMG)", "doi": "10.1152/japplphysiol.00283.2002" },
+    { "who": "Ramirez-Campillo et al., 2023", "src": "Sports Medicine", "note": "pliometria melhora o RSI (ES 0,54); dose > 7 sem, 3×/sem", "doi": "10.1007/s40279-023-01825-0" },
+    { "who": "McMahon et al., 2021", "src": "J. Strength Cond. Res.", "note": "RSI e RSImod indexam SSC rápido, mas não são intercambiáveis", "doi": "10.1519/JSC.0000000000002462" },
+    { "who": "Fukutani, Isaka & Herzog, 2021", "src": "Frontiers in Physiology", "note": "mecanismos do SSC além do reflexo e da energia elástica", "doi": "10.3389/fphys.2020.609553" },
+    { "who": "Sun et al., 2025", "src": "Scientific Reports", "note": "pliometria melhora salto, sprint, agilidade, RSI e 1RM (70 RCTs)", "doi": "10.1038/s41598-025-10652-4" },
+    { "who": "Thapa et al., 2024", "src": "J. Sports Sciences", "note": "treino de contraste (pesado + pliometria) supera a força isolada", "doi": "10.1080/02640414.2024.2391657" },
+    { "who": "Del Vecchio et al., 2019", "src": "J. Physiology", "note": "ganho de força em 4 semanas: recrutamento + rate coding", "doi": "10.1113/JP277250" },
+    { "who": "Merrigan et al., 2020", "src": "IJERPH", "note": "CMJ em plataforma: marcador válido de prontidão neuromuscular", "doi": "10.3390/ijerph17239147" }
+  ]
+}
