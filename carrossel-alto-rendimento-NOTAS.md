@@ -81,3 +81,34 @@ conteúdo crescem para conter tudo sem cortes.
 
 ## Nota de interpretação — "piramidal"
 Tratado aqui como **distribuição de intensidade** (piramidal ↔ polarizada), leitura dominante quando contrastada com bloco e com a distinção cíclico/acíclico. Se o sentido pretendido for *pirâmide de cargas* na musculação (reps/carga crescente-decrescente), a lâmina 4/5 pode ser reorientada.
+
+---
+
+# Adaptação — esportes estéticos + esquema de segmentação (lâminas 8–9)
+
+**Sobre o vídeo enviado:** o clipe é H.264 e o ambiente (Chromium open-source + ffmpeg mínimo) não tem decodificador H.264, então não foi possível extrair frames aqui. A segmentação foi construída a partir do **modelo canônico de fases** do salto (aplicável tanto ao salto de patinação quanto ao grand jeté/split leap da rítmica). Para calibrar ao elemento exato do vídeo, exportar 3–4 frames como imagem (JPG/PNG).
+
+## Esquema de segmentação visual (método)
+Ancorado em **Lees (2002)** · *J. Sports Sciences* · `10.1080/026404102320675657` — análise qualitativa por **fases**, **análise temporal** e **critical-feature analysis** (modelo determinístico). 5 fases (aproximação → impulsão → voo → aterrissagem → saída), cada uma com KPI biomecânico e erro comum; linha do tempo contato/voo.
+
+## Referências verificadas — esportes estéticos (DOI conferido)
+**Patinação artística (biomecânica do salto)**
+- **King (2005)** · *Can. J. Appl. Physiol.* 30(6):743-53 · `10.1139/h05-153` — velocidade vertical vem da extensão das pernas; a rotação é controlada minimizando o momento de inércia **após** a propulsão.
+- **Gansukh, Ando & Sakurai (2025)** · *Sports Biomech* · `10.1080/14763141.2025.2586761` — momento angular no gelo é gerado sobretudo pelos membros inferiores.
+- **Lockwood, Gervais & McCreary (2006)** · *Sports Biomech* 5(2):231-41 · `10.1080/14763140608522876` — aterrissagens biomecanicamente ótimas coincidem com a percepção dos juízes.
+- **Spiegl et al. (2022)** · *Sports Biomech* · `10.1080/14763141.2022.2063757` — lâmina amortecedora reduz o pico de força de aterrissagem ~10–14%.
+
+**Ginástica rítmica**
+- **Akkari-Ghazouani et al. (2022)** · *Sports Biomech* 22(2):222-34 · `10.1080/14763141.2022.2087535` — arremesso durante o salto eleva força vertical, TDF e velocidades.
+- **Milas et al. (2025)** · *Res. Sports Med.* 34(2):111-26 · `10.1080/15438627.2025.2528860` — rítmica ~0,96 lesões/carreira vs 2,95 na artística.
+- **Gulati et al. (2022)** · *Phys. Sportsmed.* 50(5):454-60 · `10.1080/00913847.2022.2040890` — 76,7% das lesões são por sobrecarga; membros inferiores e lombar.
+- **Gram, Fagerland & Bø (2025)** · *Scand. J. Med. Sci. Sports* 35(2):e70022 · `10.1111/sms.70022` — programa de prevenção isolado NÃO reduziu lesões por sobrecarga → gestão de carga é a alavanca.
+
+**Esporte julgado (execução × dificuldade)**
+- **Hirosawa, Watanabe & Aoki (2021)** · *J. Sports Sciences* 40(4):470-81 · `10.1080/02640414.2021.1997407` — GOE do duplo Axel: maior **distância horizontal** (não altura) eleva a nota de execução.
+- **Leandro et al. (2017)** · *J. Human Kinetics* 60:159-65 · `10.1515/hukin-2017-0099` — confiabilidade do julgamento depende do nível do desempenho.
+
+## Fases canônicas (resumo)
+- **Salto de patinação (4 fases, King 2005; Lockwood 2006):** aproximação/entrada (fio/edge) · impulsão (extensão → altura + momento angular) · voo/rotação (momento de inércia mínimo) · aterrissagem (absorção coordenada, check-out).
+- **Grand jeté / split leap na rítmica (4 fases, Akkari-Ghazouani 2022):** corrida/passo preparatório (assemblé, alta TDF) · impulsão (velocidade vertical) · voo/suspensão (espacate ≥180°, domínio do aparelho) · aterrissagem (controle excêntrico, continuidade).
+- Na lâmina, acrescentamos **Saída/Ligação** (5ª fase) pela sua importância no componente artístico/execução (Hirosawa 2021).

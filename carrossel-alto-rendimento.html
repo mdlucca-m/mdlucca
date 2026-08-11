@@ -352,7 +352,7 @@ body{
 .wrow{display:grid;grid-template-columns:30cqw 1fr;gap:3cqw;align-items:center}
 .wrow .wl{font-family:var(--cond);font-weight:500;font-size:2.5cqw;letter-spacing:.06em;text-transform:uppercase;color:var(--mid);text-align:right}
 .wrow .wt{height:3.4cqw;background:#1c2231;border-radius:99px;overflow:hidden}
-.wrow .wf{height:100%;border-radius:99px;background:var(--c,var(--gold))}
+.wrow .wf{display:block;height:100%;border-radius:99px;background:var(--c,var(--gold))}
 
 /* ---- segmentação: tira estroboscópica ---- */
 .strobo{display:grid;grid-template-columns:repeat(5,1fr);gap:1.4cqw;margin-top:1cqw}
@@ -384,9 +384,9 @@ body{
 .seg .sg-n{font-family:var(--disp);font-size:4.4cqw;line-height:.9;color:var(--c)}
 .seg .sg-name{font-family:var(--sans);font-weight:600;font-size:3cqw;color:var(--hi);text-transform:uppercase;letter-spacing:.01em;margin:0 0 1.4cqw}
 .seg .sg-tags{display:flex;flex-direction:column;gap:1cqw}
-.seg .sg-tag{font-size:2.6cqw;line-height:1.34;color:var(--mid)}
+.seg .sg-tag{display:flex;gap:2.4cqw;font-size:2.6cqw;line-height:1.34;color:var(--mid);margin:0}
 .seg .sg-tag b{font-family:var(--cond);font-weight:600;font-size:.86em;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--gold-soft);margin-right:1.4cqw;display:inline-block;min-width:15cqw}
+  color:var(--gold-soft);flex:none;width:11cqw;padding-top:.2cqw}
 .seg .sg-tag.err b{color:#e2853a}
 </style>
 </head>
@@ -437,7 +437,7 @@ body{
         <div class="stat"><span class="stat-num">20+</span><span class="stat-lbl">Anos de prática aplicada</span></div>
       </div>
       <div class="cover-foot">
-        <span class="pg">1 / 9</span>
+        <span class="pg">1 / 11</span>
         <span class="drag">arraste para ver os 5 pilares →</span>
       </div>
     </div>
@@ -507,7 +507,7 @@ body{
           <span class="p-scale">Especificidade 5/5</span></div>
       </li>
     </ol>
-    <span class="pg br">2 / 9</span>
+    <span class="pg br">2 / 11</span>
   </section>
 
   <!-- ============ SLIDE 3 — PAINEL ============ -->
@@ -606,7 +606,7 @@ body{
     </div>
 
     <p class="foot-note serif">Gráficos ilustrativos de um modelo conceitual de periodização — o valor 82 é uma síntese didática dos critérios de correspondência dinâmica, não uma medida empírica.</p>
-    <span class="pg br">3 / 9</span>
+    <span class="pg br">3 / 11</span>
   </section>
 
   <!-- ============ SLIDE 4 — MODELOS DE PERIODIZAÇÃO ============ -->
@@ -649,7 +649,7 @@ body{
     </div>
 
     <p class="src" style="display:block;margin-top:4cqw">Periodizar supera não periodizar para força (Williams et al., 2017, ES 0,43; Moesgaard et al., 2022). <span class="doi">doi:10.1007/s40279-017-0734-y · 10.1007/s40279-021-01636-1</span></p>
-    <span class="pg br">4 / 9</span>
+    <span class="pg br">4 / 11</span>
   </section>
 
   <!-- ============ SLIDE 5 — QUAL E COMO ESCOLHER ============ -->
@@ -698,7 +698,7 @@ body{
       <div class="ck"><span class="k">3</span><span class="v"><b>Qualidade-alvo</b><span>uma → concentrado; várias → multialvo/DUP.</span></span></div>
       <div class="ck"><span class="k">4</span><span class="v"><b>Tempo até a prova</b><span>curto → realização/polarizada; longo → base.</span></span></div>
     </div>
-    <span class="pg br">5 / 9</span>
+    <span class="pg br">5 / 11</span>
   </section>
 
   <!-- ============ SLIDE 6 — CAPACIDADES BIOMOTORAS ============ -->
@@ -738,7 +738,7 @@ body{
       </div>
       <p class="src">Maior força máxima → melhor salto, sprint e mudança de direção (Suchomel et al., 2016; 2018). Construir força, depois convertê-la em potência (Hartmann et al., 2015). <span class="doi">doi:10.1007/s40279-016-0486-0 · 10.1007/s40279-018-0862-z · 10.1007/s40279-015-0355-2</span></p>
     </div>
-    <span class="pg br">6 / 9</span>
+    <span class="pg br">6 / 11</span>
   </section>
 
   <!-- ============ SLIDE 7 — NEUROFISIOLOGIA APLICADA ============ -->
@@ -784,10 +784,107 @@ body{
     </div>
 
     <p class="src" style="display:block;margin-top:3.4cqw">Del Vecchio et al., 2019 · Maffiuletti et al., 2016 · Blazevich &amp; Babault, 2019 · Enoka &amp; Duchateau, 2008. <span class="doi">doi:10.1113/JP277250 · 10.1007/s00421-016-3346-6 · 10.3389/fphys.2019.01359</span></p>
-    <span class="pg br">7 / 9</span>
+    <span class="pg br">7 / 11</span>
   </section>
 
-  <!-- ============ SLIDE 8 — BASE CIENTÍFICA ============ -->
+  <!-- ============ SLIDE 8 — ESPORTES ESTÉTICOS (ADAPTAÇÃO) ============ -->
+  <section class="slide panel" aria-label="Adaptação para esportes estéticos">
+    <header class="s-head col">
+      <p class="eyebrow"><span class="eb-text">Adaptação · Esportes Estéticos</span><span class="eb-rule"></span></p>
+      <h2 class="display sm">A régua muda</h2>
+      <p class="serif s-sub">ginástica rítmica e patinação artística — onde o gesto é a própria nota.</p>
+    </header>
+
+    <div class="change">
+      <div class="cg"><span class="ci">01</span><span class="cv"><b>Nota = Dificuldade + Execução + Componentes</b><span>a execução — não só a dificuldade — separa os campeões.</span></span></div>
+      <div class="cg"><span class="ci">02</span><span class="cv"><b>Especificidade = correspondência ao modelo ideal</b><span>a forma do gesto vira critério; não basta o vetor de força.</span></span></div>
+      <div class="cg"><span class="ci">03</span><span class="cv"><b>Dominam amplitude e controle</b><span>flexibilidade ativa, equilíbrio, coordenação com o aparelho.</span></span></div>
+      <div class="cg"><span class="ci">04</span><span class="cv"><b>Carga estética exige gestão</b><span>lesões por sobrecarga dominam; prevenir isolado não basta.</span></span></div>
+    </div>
+
+    <div class="card" style="margin-top:4cqw">
+      <h3 class="card-t">Peso das capacidades — perfil estético</h3>
+      <p class="card-s">ênfase ilustrativa, relativa ao gesto competitivo julgado</p>
+      <div class="weights">
+        <div class="wrow" style="--c:var(--p3)"><span class="wl">Técnica / forma</span><span class="wt"><span class="wf" style="width:100%"></span></span></div>
+        <div class="wrow" style="--c:var(--p2)"><span class="wl">Flexibilidade ativa</span><span class="wt"><span class="wf" style="width:92%"></span></span></div>
+        <div class="wrow" style="--c:var(--p4)"><span class="wl">Controle / equilíbrio</span><span class="wt"><span class="wf" style="width:86%"></span></span></div>
+        <div class="wrow" style="--c:var(--gold)"><span class="wl">Coordenação c/ aparelho</span><span class="wt"><span class="wf" style="width:80%"></span></span></div>
+        <div class="wrow" style="--c:var(--p5)"><span class="wl">Potência relativa</span><span class="wt"><span class="wf" style="width:70%"></span></span></div>
+        <div class="wrow" style="--c:var(--p1)"><span class="wl">Resistência</span><span class="wt"><span class="wf" style="width:45%"></span></span></div>
+      </div>
+      <p class="src">Execução discrimina o desempenho (Hirosawa et al., 2021); lesões por sobrecarga dominam e prevenção isolada não basta (Gulati et al., 2022; Gram et al., 2025). <span class="doi">doi:10.1080/02640414.2021.1997407 · 10.1080/00913847.2022.2040890 · 10.1111/sms.70022</span></p>
+    </div>
+    <span class="pg br">8 / 11</span>
+  </section>
+
+  <!-- ============ SLIDE 9 — ESQUEMA DE SEGMENTAÇÃO VISUAL ============ -->
+  <section class="slide panel" aria-label="Esquema de segmentação visual do gesto">
+    <header class="s-head col">
+      <h2 class="display sm">Segmentação do gesto</h2>
+      <p class="serif s-sub">decompor o salto em fases — para treinar (e pontuar) cada uma.</p>
+    </header>
+
+    <div class="strobo">
+      <div class="ph" style="--c:var(--p1)">
+        <div class="disc"><svg viewBox="0 0 100 100"><circle class="fig head" cx="42" cy="24" r="7.5"/><path class="fig" d="M43 31 L50 58"/><path class="fig" d="M46 37 L30 47"/><path class="fig" d="M46 37 L32 55"/><path class="fig" d="M50 58 L44 76 L39 92"/><path class="fig" d="M50 58 L64 70 L78 80"/></svg><span class="ph-n">1</span></div>
+        <span class="ph-name">Aproximação</span><span class="ph-t">contato</span>
+      </div>
+      <div class="ph" style="--c:var(--p2)">
+        <div class="disc"><svg viewBox="0 0 100 100"><circle class="fig head" cx="50" cy="16" r="7.5"/><path class="fig" d="M50 23 L50 54"/><path class="fig" d="M50 28 L37 13"/><path class="fig" d="M50 28 L63 13"/><path class="fig" d="M50 54 L52 74 L52 93"/><path class="fig" d="M50 54 L61 64 L54 76"/></svg><span class="ph-n">2</span></div>
+        <span class="ph-name">Impulsão</span><span class="ph-t">decolagem</span>
+      </div>
+      <div class="ph" style="--c:var(--p3)">
+        <div class="disc"><svg viewBox="0 0 100 100"><circle class="fig head" cx="50" cy="30" r="7.5"/><path class="fig" d="M50 37 L50 55"/><path class="fig" d="M50 55 L26 50 L9 47"/><path class="fig" d="M50 55 L74 60 L92 66"/><path class="fig" d="M50 43 L33 34"/><path class="fig" d="M50 43 L67 34"/></svg><span class="ph-n">3</span></div>
+        <span class="ph-name">Voo</span><span class="ph-t">forma aérea</span>
+      </div>
+      <div class="ph" style="--c:var(--p4)">
+        <div class="disc"><svg viewBox="0 0 100 100"><circle class="fig head" cx="52" cy="22" r="7.5"/><path class="fig" d="M52 29 L49 57"/><path class="fig" d="M49 57 L46 76 L48 93"/><path class="fig" d="M49 57 L66 60 L83 51"/><path class="fig" d="M50 36 L32 44"/><path class="fig" d="M50 36 L68 40"/></svg><span class="ph-n">4</span></div>
+        <span class="ph-name">Aterrissagem</span><span class="ph-t">contato</span>
+      </div>
+      <div class="ph" style="--c:var(--p5)">
+        <div class="disc"><svg viewBox="0 0 100 100"><circle class="fig head" cx="49" cy="21" r="7.5"/><path class="fig" d="M49 28 L55 57"/><path class="fig" d="M55 57 L61 77 L67 93"/><path class="fig" d="M55 57 L42 70 L31 79"/><path class="fig" d="M51 34 L39 19"/><path class="fig" d="M51 36 L68 45"/></svg><span class="ph-n">5</span></div>
+        <span class="ph-name">Saída</span><span class="ph-t">ligação</span>
+      </div>
+    </div>
+
+    <div class="timeline">
+      <div class="tl-bar">
+        <span class="tl-contact" style="width:24%">Aprox.</span>
+        <span class="tl-contact" style="width:16%;background:#38414f;color:#cdd8e6">Impulso</span>
+        <span class="tl-flight" style="width:26%">Voo</span>
+        <span class="tl-contact" style="width:16%">Aterr.</span>
+        <span class="tl-contact" style="width:18%">Saída</span>
+      </div>
+      <div class="tl-legend">
+        <span class="lg"><i style="background:#2b3346"></i>contato com solo/gelo</span>
+        <span class="lg"><i style="background:var(--gold)"></i>fase aérea (voo)</span>
+      </div>
+    </div>
+
+    <div class="seg-rows">
+      <div class="seg" style="--c:var(--p1)"><span class="sg-n">1</span><div><h3 class="sg-name">Aproximação</h3><div class="sg-tags">
+        <p class="sg-tag"><b>KPI</b>velocidade de entrada e timing do passo preparatório (fio/edge; assemblé).</p>
+        <p class="sg-tag err"><b>Erro</b>pré-rotar no solo ou aproximação lenta/dessincronizada.</p></div></div></div>
+      <div class="seg" style="--c:var(--p2)"><span class="sg-n">2</span><div><h3 class="sg-name">Impulsão</h3><div class="sg-tags">
+        <p class="sg-tag"><b>KPI</b>extensão explosiva das pernas → velocidade vertical; rotação gerada no solo.</p>
+        <p class="sg-tag err"><b>Erro</b>extensão incompleta ou “roubar” a rotação antes de sair.</p></div></div></div>
+      <div class="seg" style="--c:var(--p3)"><span class="sg-n">3</span><div><h3 class="sg-name">Voo · forma aérea</h3><div class="sg-tags">
+        <p class="sg-tag"><b>KPI</b>split ≥180° e pico do centro de massa; ou massa junto ao eixo para girar.</p>
+        <p class="sg-tag err"><b>Erro</b>espacate incompleto ou eixo de rotação inclinado.</p></div></div></div>
+      <div class="seg" style="--c:var(--p4)"><span class="sg-n">4</span><div><h3 class="sg-name">Aterrissagem</h3><div class="sg-tags">
+        <p class="sg-tag"><b>KPI</b>absorção excêntrica coordenada (quadril-joelho-tornozelo) e alinhamento.</p>
+        <p class="sg-tag err"><b>Erro</b>aterrissagem rígida, duplo apoio ou desalinhada.</p></div></div></div>
+      <div class="seg" style="--c:var(--p5)"><span class="sg-n">5</span><div><h3 class="sg-name">Saída · ligação</h3><div class="sg-tags">
+        <p class="sg-tag"><b>KPI</b>continuidade fluida e projeção horizontal na saída (ganha execução/GOE).</p>
+        <p class="sg-tag err"><b>Erro</b>pausa ou “quebra” que interrompe a série.</p></div></div></div>
+    </div>
+
+    <p class="src" style="display:block;margin-top:3cqw">Método de análise por fases (Lees, 2002); biomecânica do salto e da aterrissagem (King, 2005; Lockwood et al., 2006; Akkari-Ghazouani et al., 2022). <span class="doi">doi:10.1080/026404102320675657 · 10.1139/h05-153 · 10.1080/14763140608522876</span></p>
+    <span class="pg br">9 / 11</span>
+  </section>
+
+  <!-- ============ SLIDE 10 — BASE CIENTÍFICA ============ -->
   <section class="slide base" aria-label="Base científica">
     <header class="s-head col">
       <h2 class="display sm"><span class="tick">●</span> Base científica</h2>
@@ -839,7 +936,7 @@ body{
     </ol>
 
     <p class="method"><b>Nota metodológica.</b> O monitoramento sustenta a decisão individualizada e a disponibilidade do atleta, ligada ao desempenho da equipe (Calleja-González et al., 2023); o uso da razão agudo:crônico (ACWR) como preditor de lesão, porém, segue sob crítica metodológica (Impellizzeri et al., 2020) — por isso evitamos “números mágicos”.</p>
-    <span class="pg br light">8 / 9</span>
+    <span class="pg br light">10 / 11</span>
   </section>
 
   <!-- ============ SLIDE 9 — REFERÊNCIAS-CHAVE + FECHO ============ -->
@@ -876,6 +973,13 @@ body{
         <p class="it"><b>Maffiuletti et al., 2016</b> · Eur. J. Appl. Physiol. — RFD inicial é neural. <span class="doi">10.1007/s00421-016-3346-6</span></p>
         <p class="it"><b>Blazevich &amp; Babault, 2019</b> · Frontiers in Physiology — PAP × PAPE. <span class="doi">10.3389/fphys.2019.01359</span></p>
       </div>
+      <div class="rk">
+        <h4>Esportes estéticos</h4>
+        <p class="it"><b>Lees, 2002</b> · J. Sports Sciences — análise por fases / critical-feature (método). <span class="doi">10.1080/026404102320675657</span></p>
+        <p class="it"><b>King, 2005</b> · Can. J. Appl. Physiol. — salto no gelo: extensão gera altura; inércia mínima gira. <span class="doi">10.1139/h05-153</span></p>
+        <p class="it"><b>Hirosawa et al., 2021</b> · J. Sports Sciences — GOE do duplo Axel: distância horizontal. <span class="doi">10.1080/02640414.2021.1997407</span></p>
+        <p class="it"><b>Gram et al., 2025</b> · Scand. J. Med. Sci. Sports — prevenção isolada não reduz sobrecarga. <span class="doi">10.1111/sms.70022</span></p>
+      </div>
     </div>
 
     <p class="closing">A ponte só atravessa porque o que a sustenta está fora de vista.</p>
@@ -887,7 +991,7 @@ body{
       </div>
       <span class="wordmark">DE LUCCA</span>
     </footer>
-    <span class="pg br light">9 / 9</span>
+    <span class="pg br light">11 / 11</span>
   </section>
 
 </main>
