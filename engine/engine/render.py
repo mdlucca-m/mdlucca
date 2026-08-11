@@ -14,6 +14,13 @@ def esc(s: str) -> str:
     return html.escape(str(s), quote=True)
 
 
+def _chips(items) -> str:
+    """Linha de chips (ex.: construtos integrados numa etapa)."""
+    if not items:
+        return ""
+    return '<div class="chips-mini">' + "".join(f"<span>{esc(x)}</span>" for x in items) + "</div>"
+
+
 def _cover(c: dict) -> str:
     chips = "".join(
         f'<div class="chip"><b>{esc(x["b"])}</b><span>{esc(x["s"])}</span></div>' for x in c["chips"]
@@ -82,6 +89,7 @@ def _stage(s: dict) -> str:
       <div class="kv why"><b>Por quê</b><span>{esc(s["why"])}</span></div>
       <div class="meter">{meter}</div>
       <span class="spec-lbl">Especificidade {s["spec"]}/5</span>
+      {_chips(s.get("constructs"))}
       <p class="src">{esc(s["ref"])} <span class="doi">doi:{esc(s["doi"])}</span></p>
     </div>
   </div>
@@ -118,7 +126,7 @@ def _refs(d: dict, verified: dict | None) -> str:
     a = d["author"]
     return f'''<section class="slide">
   <header class="s-head"><h2 class="display sm"><span class="gold">●</span> Base científica</h2>
-    <p class="serif s-sub">uma referência por etapa — DOI conferido.</p></header>
+    <p class="serif s-sub">referências verificadas — DOI conferido.</p></header>
   <div class="rule"></div>
   <ul class="reflist">{items}</ul>
   <p class="closing">A base é invisível — mas é ela que sustenta a especificidade.</p>

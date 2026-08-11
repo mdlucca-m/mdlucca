@@ -69,6 +69,9 @@ body{margin:0;background:radial-gradient(1200px 800px at 50% -8%,#12151f 0%,tran
 .meter i{width:5cqw;height:2cqw;border-radius:3px;background:#2b3346}
 .meter i.on{background:var(--c)}
 .spec-lbl{font-family:var(--cond);font-weight:600;font-size:2.5cqw;letter-spacing:.12em;text-transform:uppercase;color:var(--low);margin-top:1.6cqw;display:block}
+.chips-mini{display:flex;flex-wrap:wrap;gap:1.4cqw;margin-top:2.4cqw}
+.chips-mini span{font-family:var(--cond);font-weight:600;font-size:2.3cqw;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--gold-soft);background:#e3a9420f;border:1px solid #e3a94238;border-radius:99px;padding:1cqw 2.4cqw}
 
 /* modelos (periodização) */
 .models{display:grid;grid-template-columns:1fr 1fr;gap:3cqw;margin-top:1cqw}
