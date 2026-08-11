@@ -163,6 +163,32 @@ body{margin:0;background:radial-gradient(1200px 800px at 50% -8%,#12151f 0%,tran
 .author .role{font-size:2.5cqw;color:var(--low);margin:.6cqw 0 0}
 .wordmark{font-family:var(--disp);font-size:5cqw;letter-spacing:.02em;color:var(--gold);flex:none}
 @media (max-width:380px){ body{padding:14px 8px 40px} }
+
+/* ============================================================
+   UPGRADE VISUAL · 3D · SOMBRAS AO REDOR · CONTORNOS
+   ============================================================ */
+.card,.lever,.step,.oc,.mp,.fs .col,.offer .ostep,.map .mp{
+  box-shadow:0 1px 0 #ffffff14 inset,0 20px 38px -20px #000d,0 7px 16px -9px #0009;
+}
+.lever,.mp,.oc{border-color:#ffffff18}
+/* discos das alavancas: esfera 3D + sombra ao redor */
+.lever .ico{
+  background:radial-gradient(circle at 34% 27%,color-mix(in srgb,#fff 58%,var(--c)) 0%,var(--c) 44%,color-mix(in srgb,#000 36%,var(--c)) 100%)!important;
+  box-shadow:0 .8cqw 2.4cqw #0000006e,0 4cqw 9cqw -3cqw color-mix(in srgb,#000 22%,var(--c)),inset 0 0 0 .35cqw #ffffff33,inset -.6cqw -1cqw 2cqw #00000047;
+}
+.lever .ico svg{filter:drop-shadow(0 .4cqw .6cqw #0000005e)}
+.oc .ok{box-shadow:0 1px 0 #ffffff1f inset,0 6px 12px -6px #000a}
+/* dançarina da capa com sombra projetada */
+.dancer .fig{filter:drop-shadow(0 4px 8px #000000aa)}
+/* números e títulos: relevo / contorno */
+.display{text-shadow:0 2px 0 #0000004d,0 6px 18px #00000073}
+.chip b,.sn,.ostep .k,.step .sn{text-shadow:0 1px 0 #0000005e,0 3px 7px #00000052}
+/* capa: profundidade cinematográfica + chips 3D */
+.cover .display{text-shadow:0 3px 0 #00000063,0 12px 34px #000000bb}
+.chip{box-shadow:0 1px 0 #ffffff24 inset,0 18px 32px -17px #000e,0 7px 13px -6px #000a}
+/* CTA botão 3D */
+.cta{box-shadow:0 1px 0 #ffffff12 inset,0 22px 44px -22px #000e,0 8px 18px -10px #000b}
+.cta .btn{box-shadow:0 1px 0 #ffffff80 inset,0 8px 16px -6px #e3a94266,0 3px 6px #0007;text-shadow:0 1px 0 #ffffff55}
 </style>
 </head>
 <body>
