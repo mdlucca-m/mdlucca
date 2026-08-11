@@ -301,7 +301,8 @@ body{
 .bio{display:grid;grid-template-columns:auto 1fr;gap:3.4cqw;align-items:start;
   background:var(--ink-2);border:1px solid #ffffff0d;border-radius:10px;padding:3cqw 3.6cqw;border-left:3px solid var(--c)}
 .bio .b-name{font-family:var(--sans);font-weight:600;font-size:3.1cqw;letter-spacing:.01em;color:var(--hi);white-space:nowrap}
-.bio .b-sub{font-size:2.5cqw;color:var(--low);margin-top:.4cqw;line-height:1.3}
+.bio .b-name{display:flex;flex-direction:column}
+.bio .b-sub{display:block;font-family:var(--sans);font-weight:400;font-size:2.4cqw;color:var(--low);margin-top:.4cqw;line-height:1.25}
 .bio .tags{display:flex;flex-wrap:wrap;gap:1.4cqw}
 .bio .tag{font-family:var(--cond);font-weight:500;font-size:2.3cqw;letter-spacing:.05em;text-transform:uppercase;
   color:var(--mid);background:#0e1220;border:1px solid #2a3242;border-radius:99px;padding:.9cqw 2.2cqw}
@@ -325,6 +326,20 @@ body{
 
 /* nota de rodapé de seção com fonte */
 .card .src{display:block;margin-top:2.4cqw;padding-top:2cqw;border-top:1px solid var(--line)}
+
+/* curva força-tempo (neuro) */
+.ftcurve{width:100%;margin:1cqw 0 0}
+.ftcurve svg{width:100%;height:auto;display:block;overflow:visible}
+
+/* referências-chave (lâmina final) */
+.rk-grid{display:flex;flex-direction:column;gap:3.4cqw;margin-top:1cqw}
+.rk h4{font-family:var(--cond);font-weight:600;font-size:2.7cqw;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold);margin:0 0 1.4cqw;display:flex;align-items:center;gap:2.4cqw}
+.rk h4::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#3a2f17,transparent)}
+.rk .it{font-size:2.55cqw;line-height:1.4;color:var(--mid);padding:1.1cqw 0;border-bottom:1px solid #1b2130}
+.rk .it:last-child{border-bottom:0}
+.rk .it b{color:var(--hi);font-weight:600}
+.rk .it .doi{font-family:var(--cond);font-style:normal;font-size:.92em;color:var(--low);letter-spacing:.02em}
 </style>
 </head>
 <body>
@@ -374,7 +389,7 @@ body{
         <div class="stat"><span class="stat-num">20+</span><span class="stat-lbl">Anos de prática aplicada</span></div>
       </div>
       <div class="cover-foot">
-        <span class="pg">1 / 4</span>
+        <span class="pg">1 / 9</span>
         <span class="drag">arraste para ver os 5 pilares →</span>
       </div>
     </div>
@@ -444,7 +459,7 @@ body{
           <span class="p-scale">Especificidade 5/5</span></div>
       </li>
     </ol>
-    <span class="pg br">2 / 4</span>
+    <span class="pg br">2 / 9</span>
   </section>
 
   <!-- ============ SLIDE 3 — PAINEL ============ -->
@@ -543,10 +558,188 @@ body{
     </div>
 
     <p class="foot-note serif">Gráficos ilustrativos de um modelo conceitual de periodização — o valor 82 é uma síntese didática dos critérios de correspondência dinâmica, não uma medida empírica.</p>
-    <span class="pg br">3 / 4</span>
+    <span class="pg br">3 / 9</span>
   </section>
 
-  <!-- ============ SLIDE 4 — BASE CIENTÍFICA ============ -->
+  <!-- ============ SLIDE 4 — MODELOS DE PERIODIZAÇÃO ============ -->
+  <section class="slide panel" aria-label="Modelos de periodização">
+    <header class="s-head col">
+      <p class="eyebrow"><span class="eb-text">Ciência do Treinamento</span><span class="eb-rule"></span></p>
+      <h2 class="display sm">Modelos de periodização</h2>
+      <p class="serif s-sub">estruturar o tempo é estruturar a adaptação.</p>
+    </header>
+
+    <div class="model-grid">
+      <div class="model" style="--c:var(--p1)">
+        <span class="m-tag">Tradicional</span>
+        <h3 class="m-name">Linear (Matveyev)</h3>
+        <p class="m-def">Volume alto que cede lugar à intensidade de forma progressiva; uma qualidade por vez, rumo a um pico.</p>
+        <div class="meso"><i style="height:35%"></i><i style="height:48%"></i><i style="height:60%"></i><i style="height:72%"></i><i style="height:85%"></i><i style="height:100%"></i></div>
+        <span class="m-best">Melhor p/ <b>iniciantes · um pico</b></span>
+      </div>
+      <div class="model" style="--c:var(--p2)">
+        <span class="m-tag">Ondulatória</span>
+        <h3 class="m-name">DUP (diária)</h3>
+        <p class="m-def">Volume e intensidade variam dentro da semana; várias qualidades treinadas em paralelo.</p>
+        <div class="meso"><i style="height:80%"></i><i style="height:40%"></i><i style="height:95%"></i><i style="height:50%"></i><i style="height:70%"></i><i style="height:45%"></i></div>
+        <span class="m-best">Melhor p/ <b>treinados · força máx.</b></span>
+      </div>
+      <div class="model" style="--c:var(--p3)">
+        <span class="m-tag">Bloco</span>
+        <h3 class="m-name">Issurin / Verkhoshansky</h3>
+        <p class="m-def">Cargas concentradas e sequenciais — acúmulo → transmutação → realização — explorando efeitos residuais.</p>
+        <div class="meso"><i style="height:95%"></i><i style="height:95%"></i><i style="height:55%"></i><i style="height:55%"></i><i style="height:75%"></i><i style="height:75%"></i></div>
+        <span class="m-best">Melhor p/ <b>calendário denso · vários picos</b></span>
+      </div>
+      <div class="model" style="--c:var(--gold)">
+        <span class="m-tag">Distribuição de intensidade</span>
+        <h3 class="m-name">Piramidal ↔ Polarizada</h3>
+        <p class="m-def">Como o volume se reparte por zonas: muita Z1 (piramidal) na base; fração polarizada cresce perto da prova.</p>
+        <div class="meso"><i style="height:100%"></i><i style="height:62%"></i><i style="height:40%"></i><i style="height:30%"></i><i style="height:52%"></i></div>
+        <span class="m-best">Melhor p/ <b>esportes cíclicos / endurance</b></span>
+      </div>
+    </div>
+
+    <p class="src" style="display:block;margin-top:4cqw">Periodizar supera não periodizar para força (Williams et al., 2017, ES 0,43; Moesgaard et al., 2022). <span class="doi">doi:10.1007/s40279-017-0734-y · 10.1007/s40279-021-01636-1</span></p>
+    <span class="pg br">4 / 9</span>
+  </section>
+
+  <!-- ============ SLIDE 5 — QUAL E COMO ESCOLHER ============ -->
+  <section class="slide panel" aria-label="Bloco versus piramidal — qual e como escolher">
+    <header class="s-head col">
+      <h2 class="display sm">Bloco × Piramidal</h2>
+      <p class="serif s-sub">qual escolher — e como escolher.</p>
+    </header>
+
+    <div class="card">
+      <table class="compare">
+        <thead><tr><th></th><th class="h-a">Bloco</th><th class="h-b">Piramidal (TID)</th></tr></thead>
+        <tbody>
+          <tr><th>Lógica</th><td class="c-a">Cargas concentradas e sequenciais; efeitos residuais.</td><td class="c-b">Distribuição do volume por zonas de intensidade.</td></tr>
+          <tr><th>Domínio</th><td class="c-a">Força-potência e esportes acíclicos.</td><td class="c-b">Endurance e esportes cíclicos.</td></tr>
+          <tr><th>Evidência</th><td class="c-a">Bloco &gt; tradicional em hóquei (ES 0,83–0,89).</td><td class="c-b">Piramidal ≈ polarizada na maioria dos treinados.</td></tr>
+        </tbody>
+      </table>
+      <p class="src">Rønnestad et al., 2019 · Issurin, 2016 · Rosenblat et al., 2025 (meta-análise em rede). <span class="doi">doi:10.1111/sms.13326 · 10.1007/s40279-015-0425-5 · 10.1007/s40279-024-02149-3</span></p>
+    </div>
+
+    <div class="matrix">
+      <div class="mx" style="--c:var(--p4)">
+        <h4>Esportes acíclicos</h4>
+        <p class="mx-sub">coletivos, força-potência, combate</p>
+        <ul>
+          <li><b>Bloco multialvo</b> ou <b>ondulatória</b> p/ picar várias vezes na temporada.</li>
+          <li><b>Bloco concentrado</b> p/ eventos de qualidade única (salto, arremesso).</li>
+          <li>Reduz a <b>interferência</b> do treino concorrente.</li>
+        </ul>
+      </div>
+      <div class="mx" style="--c:var(--p1)">
+        <h4>Esportes cíclicos</h4>
+        <p class="mx-sub">corrida, ciclismo, natação, remo</p>
+        <ul>
+          <li><b>Base piramidal</b> (alto volume Z1); polariza perto da prova.</li>
+          <li><b>Blocos de HIT</b> quebram platôs de VO₂máx (Rønnestad, 2014).</li>
+          <li>Elite com muito Z1: vantagem da polarizada diminui.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="choose">
+      <div class="ck"><span class="k">1</span><span class="v"><b>Nível do atleta</b><span>iniciante → linear; treinado → ondulatória/bloco.</span></span></div>
+      <div class="ck"><span class="k">2</span><span class="v"><b>Calendário</b><span>um pico → linear; vários picos → bloco.</span></span></div>
+      <div class="ck"><span class="k">3</span><span class="v"><b>Qualidade-alvo</b><span>uma → concentrado; várias → multialvo/DUP.</span></span></div>
+      <div class="ck"><span class="k">4</span><span class="v"><b>Tempo até a prova</b><span>curto → realização/polarizada; longo → base.</span></span></div>
+    </div>
+    <span class="pg br">5 / 9</span>
+  </section>
+
+  <!-- ============ SLIDE 6 — CAPACIDADES BIOMOTORAS ============ -->
+  <section class="slide panel" aria-label="Capacidades físicas e biomotoras">
+    <header class="s-head col">
+      <p class="eyebrow"><span class="eb-text">Ciência do Treinamento</span><span class="eb-rule"></span></p>
+      <h2 class="display sm">Capacidades biomotoras</h2>
+      <p class="serif s-sub">a matéria-prima que a periodização organiza.</p>
+    </header>
+
+    <div class="bio-grid">
+      <div class="bio" style="--c:var(--p5)">
+        <span class="b-name">Força<span class="b-sub">a base de quase tudo</span></span>
+        <span class="tags"><span class="tag">Máxima</span><span class="tag">Explosiva · TDF</span><span class="tag">Potência</span><span class="tag">Reativa · CAE</span></span>
+      </div>
+      <div class="bio" style="--c:var(--p4)">
+        <span class="b-name">Velocidade<span class="b-sub">expressa a força no tempo</span></span>
+        <span class="tags"><span class="tag">Aceleração</span><span class="tag">Vel. máxima</span><span class="tag">Agilidade · COD</span></span>
+      </div>
+      <div class="bio" style="--c:var(--p1)">
+        <span class="b-name">Resistência<span class="b-sub">sustenta e recupera</span></span>
+        <span class="tags"><span class="tag">Aeróbia</span><span class="tag">Anaeróbia</span><span class="tag">Sprints repetidos</span></span>
+      </div>
+      <div class="bio" style="--c:var(--p2)">
+        <span class="b-name">Mobilidade &amp; coordenação<span class="b-sub">qualidade do movimento</span></span>
+        <span class="tags"><span class="tag">Flexibilidade útil</span><span class="tag">Ritmo · equilíbrio</span><span class="tag">Acoplamento</span></span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:4cqw">
+      <h3 class="card-t">Interdependência — a força na base</h3>
+      <div class="pyramid">
+        <div class="pyr-row pyr-1">Potência específica</div>
+        <div class="pyr-row pyr-2">Velocidade · agilidade</div>
+        <div class="pyr-row pyr-3">Força explosiva · TDF</div>
+        <div class="pyr-row pyr-4">Força máxima</div>
+      </div>
+      <p class="src">Maior força máxima → melhor salto, sprint e mudança de direção (Suchomel et al., 2016; 2018). Construir força, depois convertê-la em potência (Hartmann et al., 2015). <span class="doi">doi:10.1007/s40279-016-0486-0 · 10.1007/s40279-018-0862-z · 10.1007/s40279-015-0355-2</span></p>
+    </div>
+    <span class="pg br">6 / 9</span>
+  </section>
+
+  <!-- ============ SLIDE 7 — NEUROFISIOLOGIA APLICADA ============ -->
+  <section class="slide panel" aria-label="Neurofisiologia aplicada">
+    <header class="s-head col">
+      <p class="eyebrow"><span class="eb-text">Ciência do Treinamento</span><span class="eb-rule"></span></p>
+      <h2 class="display sm">Neurofisiologia aplicada</h2>
+      <p class="serif s-sub">por trás da força, o sistema nervoso.</p>
+    </header>
+
+    <div class="card">
+      <h3 class="card-t">RFD — a curva força-tempo</h3>
+      <p class="card-s">a inclinação inicial (fase neural) define quão rápido a força aparece</p>
+      <div class="ftcurve">
+        <svg viewBox="0 0 320 150" role="img" aria-label="Curva força-tempo: fase neural inicial e fase muscular tardia">
+          <line x1="40" y1="120" x2="308" y2="120" stroke="#252c3b"/>
+          <line x1="40" y1="18" x2="40" y2="120" stroke="#252c3b"/>
+          <!-- região neural 0-75ms -->
+          <rect x="40" y="18" width="70" height="102" fill="#e3a9420f"/>
+          <line x1="110" y1="18" x2="110" y2="120" stroke="#3a3320" stroke-dasharray="3 3"/>
+          <!-- curva -->
+          <path d="M40 120 C70 84 92 44 110 36 C150 20 230 16 300 14" fill="none" stroke="#e3a942" stroke-width="2.6" stroke-linecap="round"/>
+          <!-- tangente inicial (RFD) -->
+          <line x1="40" y1="120" x2="104" y2="44" stroke="#4f93d6" stroke-width="1.8" stroke-dasharray="4 3"/>
+          <g font-family="Oswald, sans-serif" font-size="8" letter-spacing=".4">
+            <text x="46" y="32" fill="#efc471">fase neural</text>
+            <text x="46" y="42" fill="#6b7486">0–75 ms</text>
+            <text x="150" y="52" fill="#a7b0c0">fase muscular</text>
+            <text x="300" y="134" fill="#6b7486" text-anchor="end">tempo (ms)</text>
+            <text x="30" y="24" fill="#6b7486" text-anchor="end" transform="rotate(-90 30 24)" style="transform-box:fill-box"></text>
+            <text x="14" y="70" fill="#6b7486" transform="rotate(-90 14 70)">força</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="points">
+      <div class="pt"><span class="pt-k">Princípio do tamanho</span><span class="pt-v">O recrutamento é ordenado (pequenas → grandes). Só <b>carga pesada ou intenção explosiva</b> acessa as unidades de alto limiar.</span></div>
+      <div class="pt"><span class="pt-k">RFD precoce</span><span class="pt-v">Os primeiros ~50–75 ms dependem do <b>drive neural</b> — treine com intenção balística; só aumentar a força máxima não basta.</span></div>
+      <div class="pt"><span class="pt-k">Semanas iniciais</span><span class="pt-v">O ganho de força começa <b>neural</b> — mais frequência de disparo e menor limiar de recrutamento, antes da hipertrofia.</span></div>
+      <div class="pt"><span class="pt-k">PAPE</span><span class="pt-v">Um estímulo condicionante pesado <b>3–8 min</b> antes do gesto potencializa via temperatura e ativação — respeite a recuperação.</span></div>
+      <div class="pt"><span class="pt-k">Fadiga</span><span class="pt-v">Central (queda do drive) × periférica (metabólitos): sessões de potência exigem <b>baixa fadiga central</b>.</span></div>
+    </div>
+
+    <p class="src" style="display:block;margin-top:3.4cqw">Del Vecchio et al., 2019 · Maffiuletti et al., 2016 · Blazevich &amp; Babault, 2019 · Enoka &amp; Duchateau, 2008. <span class="doi">doi:10.1113/JP277250 · 10.1007/s00421-016-3346-6 · 10.3389/fphys.2019.01359</span></p>
+    <span class="pg br">7 / 9</span>
+  </section>
+
+  <!-- ============ SLIDE 8 — BASE CIENTÍFICA ============ -->
   <section class="slide base" aria-label="Base científica">
     <header class="s-head col">
       <h2 class="display sm"><span class="tick">●</span> Base científica</h2>
@@ -598,6 +791,44 @@ body{
     </ol>
 
     <p class="method"><b>Nota metodológica.</b> O monitoramento sustenta a decisão individualizada e a disponibilidade do atleta, ligada ao desempenho da equipe (Calleja-González et al., 2023); o uso da razão agudo:crônico (ACWR) como preditor de lesão, porém, segue sob crítica metodológica (Impellizzeri et al., 2020) — por isso evitamos “números mágicos”.</p>
+    <span class="pg br light">8 / 9</span>
+  </section>
+
+  <!-- ============ SLIDE 9 — REFERÊNCIAS-CHAVE + FECHO ============ -->
+  <section class="slide base" aria-label="Referências-chave e assinatura">
+    <header class="s-head col">
+      <h2 class="display sm"><span class="tick">●</span> Referências-chave</h2>
+      <p class="serif s-sub">periodização · endurance · capacidades · neurofisiologia</p>
+    </header>
+    <div class="rule"></div>
+
+    <div class="rk-grid">
+      <div class="rk">
+        <h4>Periodização</h4>
+        <p class="it"><b>Williams et al., 2017</b> · Sports Medicine — periodizar &gt; não periodizar (ES 0,43). <span class="doi">10.1007/s40279-017-0734-y</span></p>
+        <p class="it"><b>Moesgaard et al., 2022</b> · Sports Medicine — ondulatória &gt; linear em treinados. <span class="doi">10.1007/s40279-021-01636-1</span></p>
+        <p class="it"><b>Issurin, 2016</b> · Sports Medicine — bloco multialvo &gt; tradicional. <span class="doi">10.1007/s40279-015-0425-5</span></p>
+        <p class="it"><b>Rønnestad et al., 2019</b> · Scand. J. Med. Sci. Sports — bloco &gt; tradicional (acíclico). <span class="doi">10.1111/sms.13326</span></p>
+      </div>
+      <div class="rk">
+        <h4>Endurance · distribuição de intensidade</h4>
+        <p class="it"><b>Rosenblat et al., 2025</b> · Sports Medicine — piramidal ≈ polarizada (meta-análise em rede). <span class="doi">10.1007/s40279-024-02149-3</span></p>
+        <p class="it"><b>Rønnestad et al., 2014</b> · Scand. J. Med. Sci. Sports — bloco de HIT ↑ VO₂máx +4,6%. <span class="doi">10.1111/j.1600-0838.2012.01485.x</span></p>
+        <p class="it"><b>Stöggl &amp; Sperlich, 2015</b> · Frontiers in Physiology — base piramidal, prova polarizada. <span class="doi">10.3389/fphys.2015.00295</span></p>
+      </div>
+      <div class="rk">
+        <h4>Capacidades biomotoras</h4>
+        <p class="it"><b>Suchomel et al., 2016</b> · Sports Medicine — força máxima sustenta salto/sprint/COD. <span class="doi">10.1007/s40279-016-0486-0</span></p>
+        <p class="it"><b>Hartmann et al., 2015</b> · Sports Medicine — sequência hipertrofia → força → potência. <span class="doi">10.1007/s40279-015-0355-2</span></p>
+        <p class="it"><b>Oliver et al., 2024</b> · Sports Medicine — força/pliometria ↑ potência e velocidade. <span class="doi">10.1007/s40279-023-01944-8</span></p>
+      </div>
+      <div class="rk">
+        <h4>Neurofisiologia</h4>
+        <p class="it"><b>Del Vecchio et al., 2019</b> · J. Physiology — ganho precoce = recrutamento + rate coding. <span class="doi">10.1113/JP277250</span></p>
+        <p class="it"><b>Maffiuletti et al., 2016</b> · Eur. J. Appl. Physiol. — RFD inicial é neural. <span class="doi">10.1007/s00421-016-3346-6</span></p>
+        <p class="it"><b>Blazevich &amp; Babault, 2019</b> · Frontiers in Physiology — PAP × PAPE. <span class="doi">10.3389/fphys.2019.01359</span></p>
+      </div>
+    </div>
 
     <p class="closing">A ponte só atravessa porque o que a sustenta está fora de vista.</p>
 
@@ -608,7 +839,7 @@ body{
       </div>
       <span class="wordmark">DE LUCCA</span>
     </footer>
-    <span class="pg br light">4 / 4</span>
+    <span class="pg br light">9 / 9</span>
   </section>
 
 </main>
