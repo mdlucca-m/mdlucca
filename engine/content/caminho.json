@@ -1,0 +1,65 @@
+{
+  "id": "caminho-geral-especifico",
+  "title": "O Caminho — do Geral ao Específico",
+  "favicon": "🧭",
+  "author": { "name": "Prof. Me. Mateus de Lucca", "role": "Doutorando CEFID/UDESC · 20+ anos em performance esportiva", "wordmark": "DE LUCCA" },
+  "cover": {
+    "eyebrow": "Ciência do Treinamento · Metodologia",
+    "lead": "Toda especificidade nasce de uma base —",
+    "title": ["O caminho do", "geral ao específico"],
+    "sub": "a progressão lógica que transforma capacidade geral em performance competitiva.",
+    "chips": [ {"b": "05", "s": "etapas"}, {"b": "1→5", "s": "especificidade"}, {"b": "DOI", "s": "conferido"} ]
+  },
+  "funnel": {
+    "title": "O funil da preparação",
+    "sub": "cada etapa estreita o foco e eleva a especificidade.",
+    "stages": [ ["Aptidão geral", 1], ["Força de base", 2], ["Conversão", 3], ["Específico", 4], ["Competição", 5] ]
+  },
+  "stages": [
+    { "n": "01", "name": "Aptidão física geral", "c": "p1", "spec": 1,
+      "goal": "Construir a base aeróbia e neuromuscular.",
+      "do": "Alto volume e baixa intensidade; capacidade de trabalho, mobilidade e core.",
+      "why": "Sustenta todas as adaptações específicas seguintes.",
+      "ref": "Sperlich, Matzka & Holmberg, 2023 · Front. Sports Act. Living", "doi": "10.3389/fspor.2023.1258585" },
+    { "n": "02", "name": "Força de base", "c": "p2", "spec": 2,
+      "goal": "Elevar a força máxima relativa.",
+      "do": "Força máxima, hipertrofia funcional e estabilidade — força por quilo.",
+      "why": "Força máxima sustenta salto, sprint, mudança de direção e potência.",
+      "ref": "Suchomel, Nimphius & Stone, 2016 · Sports Medicine", "doi": "10.1007/s40279-016-0486-0" },
+    { "n": "03", "name": "Conversão em potência", "c": "p3", "spec": 3,
+      "goal": "Transformar força em potência e RFD.",
+      "do": "Pliometria, saltos, trabalho balístico e levantamento olímpico.",
+      "why": "A sequência força → potência maximiza a força veloz.",
+      "ref": "Hartmann et al., 2015 · Sports Medicine", "doi": "10.1007/s40279-015-0355-2" },
+    { "n": "04", "name": "Preparação específica", "c": "p4", "spec": 4,
+      "goal": "Direcionar ao gesto competitivo.",
+      "do": "Correspondência dinâmica: amplitude, direção e velocidade do gesto; vetor de força.",
+      "why": "Especificidade de vetor transfere mais para aceleração e mudança de direção.",
+      "ref": "Junge, Jørgensen & Nybo, 2023 · Sports Medicine", "doi": "10.1007/s40279-023-01902-4" },
+    { "n": "05", "name": "Competição e pico", "c": "p5", "spec": 5,
+      "goal": "Afinar e sustentar o desempenho sob pressão.",
+      "do": "Tática e decisão em ambientes representativos; gestão de carga e prontidão.",
+      "why": "Monitoramento individualizado protege a disponibilidade — e disponibilidade é desempenho.",
+      "ref": "Woods et al., 2020 · Gabbett & Oetter, 2024", "doi": "10.1186/s40798-020-00268-5" }
+  ],
+  "periodization": {
+    "title": "A estrutura que organiza o caminho",
+    "sub": "como distribuir as etapas no tempo.",
+    "models": [
+      { "tag": "Bloco", "c": "p4", "def": "Cargas concentradas em blocos sequenciais: acumulação → transmutação → realização.", "best": "Acíclicos; calendário com poucos picos." },
+      { "tag": "Piramidal", "c": "p2", "def": "Muito volume de baixa intensidade na base; a intensidade sobe rumo à competição.", "best": "Cíclicos / endurance; fase de base." }
+    ],
+    "note": "Piramidal e polarizada são equivalentes para a maioria dos atletas treinados; escolha por nível e fase.",
+    "ref": "Rosenblat et al., 2025 · Sports Medicine", "doi": "10.1007/s40279-024-02149-3"
+  },
+  "refs": [
+    { "who": "Sperlich, Matzka & Holmberg, 2023", "src": "Front. Sports Act. Living", "note": "base de baixa intensidade domina a fase preparatória", "doi": "10.3389/fspor.2023.1258585" },
+    { "who": "Suchomel, Nimphius & Stone, 2016", "src": "Sports Medicine", "note": "força máxima sustenta salto, sprint e potência", "doi": "10.1007/s40279-016-0486-0" },
+    { "who": "Hartmann et al., 2015", "src": "Sports Medicine", "note": "sequência força → potência maximiza a força veloz", "doi": "10.1007/s40279-015-0355-2" },
+    { "who": "Junge, Jørgensen & Nybo, 2023", "src": "Sports Medicine", "note": "vetor horizontal transfere mais para sprint curto e COD", "doi": "10.1007/s40279-023-01902-4" },
+    { "who": "Stone, Hornsby, Suarez et al., 2022", "src": "J. Funct. Morphol. Kinesiol.", "note": "correspondência dinâmica define a transferência", "doi": "10.3390/jfmk7040102" },
+    { "who": "Woods, McKeown, O'Sullivan et al., 2020", "src": "Sports Medicine – Open", "note": "ambientes representativos → transferência da decisão", "doi": "10.1186/s40798-020-00268-5" },
+    { "who": "Gabbett & Oetter, 2024", "src": "Sports Medicine", "note": "resposta à carga é individual; monitorar carga e prontidão", "doi": "10.1007/s40279-024-02126-w" },
+    { "who": "Rosenblat et al., 2025", "src": "Sports Medicine", "note": "piramidal ≈ polarizada; escolha por nível e fase", "doi": "10.1007/s40279-024-02149-3" }
+  ]
+}

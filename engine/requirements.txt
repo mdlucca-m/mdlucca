@@ -1,0 +1,5 @@
+# De Lucca Content Engine
+# Núcleo (render/verify) usa só a biblioteca padrão do Python.
+# Exportação de imagens/PDF:
+playwright>=1.44      # renderização das lâminas (PNG/4K)  -> npx playwright install chromium
+pillow>=10.0          # montagem do PDF

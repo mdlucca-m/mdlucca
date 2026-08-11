@@ -1,0 +1,97 @@
+{
+  "name": "De Lucca — Pipeline de Carrosséis",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [ { "field": "weeks", "weeksInterval": 1, "triggerAtDay": [ 1 ], "triggerAtHour": 8 } ] }
+      },
+      "id": "trigger",
+      "name": "1 · Agenda (semanal)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [ 240, 300 ]
+    },
+    {
+      "parameters": {
+        "assignments": { "assignments": [
+          { "id": "a1", "name": "deck", "value": "caminho", "type": "string" },
+          { "id": "a2", "name": "content", "value": "engine/content/caminho.json", "type": "string" },
+          { "id": "a3", "name": "out", "value": "engine/dist/caminho", "type": "string" }
+        ] }
+      },
+      "id": "cfg",
+      "name": "2 · Config do deck",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [ 460, 300 ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.crossref.org/works/{{ $json.doi }}",
+        "options": { "timeout": 8000 }
+      },
+      "id": "verify",
+      "name": "3 · Verificar DOIs (Crossref)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [ 680, 180 ],
+      "notes": "Opcional — o pipeline Python já verifica; este nó serve para gatilhar alerta se algum DOI falhar."
+    },
+    {
+      "parameters": {
+        "command": "=cd /opt/delucca && python -m engine.pipeline --content {{ $json.content }} --out {{ $json.out }}"
+      },
+      "id": "build",
+      "name": "4 · Gerar (render + PNG/4K + PDF)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [ 900, 300 ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "=engine/dist/caminho/png-1080/slide-*.png",
+        "options": {}
+      },
+      "id": "read",
+      "name": "5 · Ler lâminas (PNG)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [ 1120, 300 ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v20.0/{{ $env.IG_USER_ID }}/media",
+        "sendBody": true,
+        "bodyParameters": { "parameters": [
+          { "name": "image_url", "value": "={{ $json.public_url }}" },
+          { "name": "is_carousel_item", "value": "true" },
+          { "name": "access_token", "value": "={{ $env.IG_TOKEN }}" }
+        ] }
+      },
+      "id": "publish",
+      "name": "6 · Publicar/Agendar (Instagram Graph API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [ 1340, 300 ],
+      "notes": "Requer IG_USER_ID e IG_TOKEN (Meta Graph API). Alternativa: enviar por e-mail/Telegram para aprovação manual."
+    },
+    {
+      "parameters": { "content": "Carrossel gerado e enviado para publicação.", "options": {} },
+      "id": "done",
+      "name": "7 · Notificar",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [ 1560, 300 ]
+    }
+  ],
+  "connections": {
+    "1 · Agenda (semanal)": { "main": [ [ { "node": "2 · Config do deck", "type": "main", "index": 0 } ] ] },
+    "2 · Config do deck": { "main": [ [ { "node": "3 · Verificar DOIs (Crossref)", "type": "main", "index": 0 }, { "node": "4 · Gerar (render + PNG/4K + PDF)", "type": "main", "index": 0 } ] ] },
+    "4 · Gerar (render + PNG/4K + PDF)": { "main": [ [ { "node": "5 · Ler lâminas (PNG)", "type": "main", "index": 0 } ] ] },
+    "5 · Ler lâminas (PNG)": { "main": [ [ { "node": "6 · Publicar/Agendar (Instagram Graph API)", "type": "main", "index": 0 } ] ] },
+    "6 · Publicar/Agendar (Instagram Graph API)": { "main": [ [ { "node": "7 · Notificar", "type": "main", "index": 0 } ] ] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": { "description": "Do agendamento à publicação: config → verificação de DOIs → geração (Python) → leitura das lâminas → publicação no Instagram → notificação." }
+}
