@@ -242,6 +242,89 @@ body{
 .wordmark{font-family:var(--disp);font-size:5cqw;letter-spacing:.02em;color:var(--gold);flex:none}
 
 @media (max-width:380px){ body{padding:14px 8px 40px} }
+
+/* ============================================================
+   COMPONENTES — periodização, biomotor, neurofisiologia
+   ============================================================ */
+/* chip de citação inline */
+.src{display:inline-block;font-family:var(--serif);font-style:italic;font-size:2.35cqw;
+  color:var(--gold-soft);margin-top:1cqw;line-height:1.35}
+.src .doi{font-family:var(--cond);font-style:normal;font-size:.9em;color:var(--low);letter-spacing:.02em}
+
+/* grade de cartões de modelo */
+.model-grid{display:grid;grid-template-columns:1fr 1fr;gap:3cqw;margin-top:1cqw}
+.model{background:var(--ink-2);border:1px solid #ffffff0d;border-radius:10px;padding:3.6cqw;
+  position:relative;overflow:hidden;display:flex;flex-direction:column;gap:1.6cqw}
+.model::before{content:"";position:absolute;left:0;top:0;bottom:0;width:1.2cqw;background:var(--c,var(--gold))}
+.model .m-tag{font-family:var(--cond);font-weight:600;font-size:2.2cqw;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--c,var(--gold))}
+.model .m-name{font-family:var(--sans);font-weight:600;font-size:3.5cqw;color:var(--hi);margin:.2cqw 0 0;line-height:1.05}
+.model .m-def{font-size:2.6cqw;line-height:1.4;color:var(--mid);margin:0}
+.model .m-best{font-family:var(--cond);font-weight:500;font-size:2.4cqw;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--low);margin-top:auto;padding-top:1.4cqw}
+.model .m-best b{color:var(--gold-soft);font-weight:600}
+/* mini mesociclo (barras) */
+.meso{display:flex;align-items:flex-end;gap:1cqw;height:9cqw;margin-top:.6cqw}
+.meso i{flex:1;background:var(--c,var(--gold));border-radius:2px 2px 0 0;opacity:.9}
+
+/* tabela comparativa */
+.compare{width:100%;border-collapse:collapse;margin-top:2cqw;font-size:2.7cqw}
+.compare th,.compare td{text-align:left;padding:2.4cqw 2.2cqw;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.35}
+.compare thead th{font-family:var(--cond);font-weight:600;font-size:2.5cqw;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--hi);border-bottom:1px solid #38414f}
+.compare tbody th{font-family:var(--cond);font-weight:500;font-size:2.5cqw;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--low);white-space:nowrap;width:24cqw}
+.compare td{color:var(--mid)}
+.compare .c-a{color:#cdd8e6}.compare .c-b{color:#e8dcc4}
+.compare thead .h-a{color:var(--p1)}.compare thead .h-b{color:var(--gold)}
+
+/* matriz de decisão (esporte -> modelo) */
+.matrix{display:grid;grid-template-columns:1fr 1fr;gap:3cqw;margin-top:1cqw}
+.mx{background:var(--ink-2);border:1px solid #ffffff0d;border-radius:10px;padding:3.4cqw;border-top:3px solid var(--c)}
+.mx h4{font-family:var(--cond);font-weight:600;font-size:2.9cqw;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--hi);margin:0 0 .6cqw}
+.mx .mx-sub{font-size:2.4cqw;color:var(--low);margin:0 0 2cqw}
+.mx ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1.4cqw}
+.mx li{font-size:2.6cqw;line-height:1.34;color:var(--mid);padding-left:3.4cqw;position:relative}
+.mx li::before{content:"▸";position:absolute;left:0;color:var(--c);font-size:2.4cqw}
+.mx li b{color:var(--hi);font-weight:600}
+
+/* como escolher — checklist */
+.choose{display:grid;grid-template-columns:1fr 1fr;gap:2.2cqw 4cqw;margin-top:2cqw}
+.choose .ck{display:flex;gap:2cqw;align-items:flex-start}
+.choose .ck .k{font-family:var(--disp);font-size:4cqw;color:var(--gold);line-height:.9;flex:none;width:7cqw}
+.choose .ck .v b{display:block;font-family:var(--sans);font-weight:600;font-size:2.75cqw;color:var(--hi);letter-spacing:.01em}
+.choose .ck .v span{font-size:2.5cqw;color:var(--mid);line-height:1.32}
+
+/* lista de capacidades biomotoras */
+.bio-grid{display:flex;flex-direction:column;gap:2.6cqw;margin-top:1cqw}
+.bio{display:grid;grid-template-columns:auto 1fr;gap:3.4cqw;align-items:start;
+  background:var(--ink-2);border:1px solid #ffffff0d;border-radius:10px;padding:3cqw 3.6cqw;border-left:3px solid var(--c)}
+.bio .b-name{font-family:var(--sans);font-weight:600;font-size:3.1cqw;letter-spacing:.01em;color:var(--hi);white-space:nowrap}
+.bio .b-sub{font-size:2.5cqw;color:var(--low);margin-top:.4cqw;line-height:1.3}
+.bio .tags{display:flex;flex-wrap:wrap;gap:1.4cqw}
+.bio .tag{font-family:var(--cond);font-weight:500;font-size:2.3cqw;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--mid);background:#0e1220;border:1px solid #2a3242;border-radius:99px;padding:.9cqw 2.2cqw}
+
+/* pirâmide de dependência */
+.pyramid{display:flex;flex-direction:column;align-items:center;gap:1.2cqw;margin:1cqw 0}
+.pyr-row{display:flex;align-items:center;justify-content:center;color:#0e1017;
+  font-family:var(--cond);font-weight:600;font-size:2.7cqw;letter-spacing:.08em;text-transform:uppercase;
+  border-radius:5px;height:8cqw}
+.pyr-1{width:40%;background:var(--p5)}.pyr-2{width:60%;background:var(--p4)}
+.pyr-3{width:80%;background:var(--p3)}.pyr-4{width:100%;background:var(--p2)}
+
+/* pontos aplicados (neuro) */
+.points{display:flex;flex-direction:column;gap:2.8cqw;margin-top:1cqw}
+.pt{display:grid;grid-template-columns:auto 1fr;gap:3.4cqw;align-items:start}
+.pt .pt-k{font-family:var(--cond);font-weight:600;font-size:2.4cqw;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--gold);background:#e3a9420f;border:1px solid #e3a94233;border-radius:6px;padding:1.2cqw 2cqw;
+  white-space:nowrap;text-align:center}
+.pt .pt-v{font-size:2.85cqw;line-height:1.42;color:var(--mid)}
+.pt .pt-v b{color:var(--hi);font-weight:600}
+
+/* nota de rodapé de seção com fonte */
+.card .src{display:block;margin-top:2.4cqw;padding-top:2cqw;border-top:1px solid var(--line)}
 </style>
 </head>
 <body>
