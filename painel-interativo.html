@@ -153,8 +153,19 @@ h1 .g{color:var(--gold)}
 .ctrg.ctrpop{animation:ctrpop .45s ease}
 @keyframes ctrpop{0%{opacity:.25;transform:scale(.62)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
 
+/* funil — separar ao tocar */
+.frow{position:relative;overflow:hidden}
+.funnel.hassel .frow:not(.act){opacity:.55;filter:saturate(.85)}
+.frow.act{transform:translateX(10px) scale(1.025)!important;box-shadow:0 10px 22px -8px var(--rc),0 1px 0 #ffffff66 inset!important;z-index:2}
+.frow.act::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 40%,#ffffff9c 50%,transparent 60%);background-size:250% 100%;animation:swipe .8s ease}
+@keyframes swipe{0%{background-position:130% 0}100%{background-position:-130% 0}}
+/* barras neuromusculares — preenchimento animado */
+.seg .bar i{transform-origin:left}
+.seg .bar i.fill{animation:fillbar .42s cubic-bezier(.2,.8,.2,1) both}
+@keyframes fillbar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
 @media(prefers-reduced-motion:reduce){ .rain,.spark{display:none}
-  .view,.view.on>*,.tab,.tab[aria-selected="true"]::after,.ctrg,.flash,.spk{animation:none!important} .dseg{transition:none} }
+  .view,.view.on>*,.tab,.tab[aria-selected="true"]::after,.ctrg,.flash,.spk,.frow.act::after,.seg .bar i.fill{animation:none!important} .dseg{transition:none} }
 </style>
 </head>
 <body>
@@ -239,8 +250,11 @@ const cvar=i=>getComputedStyle(document.documentElement).getPropertyValue(PAL[i]
 const funnel=document.getElementById('funnel'),fdetail=document.getElementById('fdetail');
 STAGES.forEach((s,i)=>{const w=100-i*13;const row=document.createElement('div');row.className='frow';
   row.style.width=w+'%';row.style.background=`linear-gradient(180deg,${shade(PAL[i],18)},${PAL[i]})`;
+  row.style.setProperty('--rc',PAL[i]);
   row.innerHTML=`<span>${s.n}</span><b>${i+1}</b>`;row.onclick=()=>selStage(i,row);funnel.appendChild(row);});
-function selStage(i,row){document.querySelectorAll('.frow').forEach(r=>r.classList.remove('act'));row&&row.classList.add('act');
+function selStage(i,row){document.querySelectorAll('.frow').forEach(r=>r.classList.remove('act'));
+  funnel.classList.add('hassel');
+  if(row){void row.offsetWidth;row.classList.add('act');}
   const s=STAGES[i];fdetail.innerHTML=`<b>${i+1} · ${s.n}.</b> ${s.d}<span class="cite">${s.r}</span>`;}
 selStage(2,funnel.children[2]);
 
@@ -328,7 +342,9 @@ NM.forEach((m,i)=>{const el=document.createElement('div');el.className='seg';el.
     <div class="bar">${Array.from({length:5},(_,k)=>`<i class="${k<m.lv?'on':''}"></i>`).join('')}</div>`;
   el.onclick=el.onmouseenter=()=>selNM(i,el);segs.appendChild(el);});
 function selNM(i,el){document.querySelectorAll('.seg').forEach(s=>s.classList.remove('act'));el.classList.add('act');
-  const m=NM[i];segdetail.innerHTML=`${m.d} <span class="cite">${m.r}</span>`;}
+  const m=NM[i];segdetail.innerHTML=`${m.d} <span class="cite">${m.r}</span>`;animateBars(el);}
+function animateBars(el){el.querySelectorAll('.bar i.on').forEach((b,k)=>{b.classList.remove('fill');void b.offsetWidth;
+  b.style.animationDelay=(k*0.06)+'s';b.classList.add('fill');});}
 selNM(0,segs.children[0]);
 
 /* ABAS — troca com ripple + entrada em cascata */
@@ -337,6 +353,7 @@ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',e=>{
   document.querySelectorAll('.view').forEach(v=>{const on=v.dataset.view===t.dataset.v;
     v.classList.toggle('on',on);
     if(on)v.querySelectorAll(':scope>*').forEach(c=>{c.style.animation='none';void c.offsetWidth;c.style.animation='';});});
+  if(t.dataset.v==='neuro'){const a=document.querySelector('.seg.act');if(a)setTimeout(()=>animateBars(a),120);}
   const r=document.createElement('span');r.className='rip';const b=t.getBoundingClientRect();
   r.style.left=((e.clientX||b.left+b.width/2)-b.left)+'px';r.style.top=((e.clientY||b.top+b.height/2)-b.top)+'px';
   t.appendChild(r);setTimeout(()=>r.remove(),620);
