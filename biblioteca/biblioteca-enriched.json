@@ -1,5 +1,37 @@
 [
  {
+  "authors": "Tietzen MA, Geminiani E, Stein CJ, Sarafin S, D'Ambrosi G, Holtzman B, Hunt D, Saville GH",
+  "year": 2026,
+  "title": "Eating Disorders and Disordered Eating in Figure Skaters: Prevalence, Associations, and Athlete Experiences",
+  "journal": "Clinical Journal of Sport Medicine",
+  "doi": "10.1097/jsm.0000000000001447",
+  "citations": "n/d",
+  "sport": "Patinação artística (75,4% mulheres)",
+  "topic": "disordered-eating",
+  "finding": "35,1% dos patinadores tiveram triagem positiva para transtorno/comportamento alimentar transtornado; receber comentários sobre peso ou forma corporal (51,8%) associou-se significativamente à triagem positiva.",
+  "design": "Transversal (survey)",
+  "design_conf": "alta",
+  "subvar": "Prevalência de TA/DE e comentários sobre o corpo",
+  "n": 57,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Prevalência e testes de associação (comentários × triagem)",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Patinação artística"
+  ],
+  "n_modalities": 1
+ },
+ {
   "authors": "Veit J, Brinkschulte M, Vogt T",
   "year": 2026,
   "title": "Effects of instruction-guided attentional focus on jump performance in women's artistic gymnastics",
@@ -622,6 +654,38 @@
   "n_modalities": 1
  },
  {
+  "authors": "Di Tella C, Santarcangelo EL",
+  "year": 2025,
+  "title": "Motor Imagery Training Improves Interoception and Satisfaction with Performance",
+  "journal": "Medicina (Kaunas)",
+  "doi": "10.3390/medicina61040734",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "imagery",
+  "finding": "Jovens ginastas artísticas apresentaram maior consciência interoceptiva que sedentárias e, após um mês de treino de imagética motora, aumentaram interocepção e satisfação com o desempenho.",
+  "design": "Quase-experimental (pré-pós com grupo-controle)",
+  "design_conf": "alta",
+  "subvar": "Treino de imagética motora, interocepção e satisfação",
+  "n": 54,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "ANOVA/MMRM"
+  ],
+  "stats_approach": "ANCOVA/ANOVA entre grupos e pré-pós (covariáveis: anos de prática, absorção)",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1
+ },
+ {
   "authors": "Jo I, Hong EJ, Yoon HW, Ma Y, Lee SY, Lee HD",
   "year": 2025,
   "title": "Neuromuscular strategies in dominant and non-dominant legs in dancers during dynamic balance tasks",
@@ -915,6 +979,38 @@
   ],
   "modalities": [
    "Ginástica artística"
+  ],
+  "n_modalities": 1
+ },
+ {
+  "authors": "Nuñez BP, Sanchez-Lastra MA, Diz JC, Pérez CA",
+  "year": 2024,
+  "title": "Body Dissatisfaction among Young Girls in Recreational Rhythmic Gymnastics",
+  "journal": "Children (Basel)",
+  "doi": "10.3390/children11060696",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "body-image",
+  "finding": "Meninas em GR recreativa (6–11 anos) não apresentaram maior insatisfação corporal (pictograma de Stunkard) que controles pareadas por idade, sugerindo que a prática recreativa precoce não se associa a insatisfação corporal.",
+  "design": "Transversal caso-controle",
+  "design_conf": "alta",
+  "subvar": "Insatisfação corporal (nível recreativo)",
+  "n": 176,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Mann-Whitney U (GR vs controle)",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
   ],
   "n_modalities": 1
  },
@@ -1669,6 +1765,37 @@
   "n_modalities": 1
  },
  {
+  "authors": "Kovács K, Kéringer J, Rácz J, Gyömbér N, Németh K",
+  "year": 2022,
+  "title": "In the pitfall of expectations: An exploratory analysis of stressors in elite rhythmic gymnastics",
+  "journal": "Frontiers in Psychology",
+  "doi": "10.3389/fpsyg.2022.955232",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "stress-coping",
+  "finding": "Entrevistas com ginastas, treinadores e pais revelaram metas de evitação (mastery/performance-avoidance), atmosfera prejudicial e a crença de que corpo magro está ligado ao sucesso como principais estressores do ambiente competitivo.",
+  "design": "Qualitativo (entrevistas semiestruturadas, análise temática reflexiva)",
+  "design_conf": "alta",
+  "subvar": "Estressores no ambiente competitivo",
+  "n": 12,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Análise temática reflexiva (qualitativa)",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1
+ },
+ {
   "authors": "Santos-Rosa FJ, Montero-Carretero C, Gómez-Landero LA, Torregrossa M, Cervelló E",
   "year": 2022,
   "title": "Positive and negative spontaneous self-talk and performance in gymnastics",
@@ -1796,6 +1923,39 @@
    "Patinação artística"
   ],
   "n_modalities": 1
+ },
+ {
+  "authors": "Amato A, Proia P, Caldara GF, Alongi A, Ferrantelli V, Baldassano S",
+  "year": 2021,
+  "title": "Analysis of Body Perception, Preworkout Meal Habits and Bone Resorption in Child Gymnasts",
+  "journal": "International Journal of Environmental Research and Public Health",
+  "doi": "10.3390/ijerph18042184",
+  "citations": "n/d",
+  "sport": "Ginástica infantil feminina (rítmica/artística)",
+  "topic": "body-image",
+  "finding": "Ginastas pré-adolescentes relataram maior satisfação com a aparência corporal (autoestima) que pares sedentárias, contrariando a expectativa de maior insatisfação corporal na modalidade.",
+  "design": "Transversal (ginastas vs sedentárias)",
+  "design_conf": "média",
+  "subvar": "Percepção corporal e autoestima",
+  "n": 28,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Comparação entre grupos (testes de autoestima/percepção corporal)",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica rítmica",
+   "Ginástica artística"
+  ],
+  "n_modalities": 2
  },
  {
   "authors": "Straker R, Exell TA, Farana R, Hamill J, Irwin G",
@@ -2154,6 +2314,38 @@
   "n_modalities": 1
  },
  {
+  "authors": "Martínez-Rodríguez A, Reche-García C, Martínez-Fernández MDC, Martínez-Sanz JM",
+  "year": 2020,
+  "title": "Assessment of nutritional-dietary status, body composition, eating behavior, and perceived image in rhythmic gymnastics athletes",
+  "journal": "Nutrición Hospitalaria",
+  "doi": "10.20960/nh.03141",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "body-image",
+  "finding": "Ginastas rítmicas subelite tinham dieta deficiente e preocupação com a imagem corporal (BSQ/EAT-26), com dois casos em risco de transtorno alimentar apesar de peso corporal normal.",
+  "design": "Transversal descritivo",
+  "design_conf": "média",
+  "subvar": "Imagem corporal percebida e risco de TA",
+  "n": 33,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Descritivo e correlações (EAT-26, BSQ, antropometria)",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1
+ },
+ {
   "authors": "Kulshreshtha M, Babu N, Goel NJ, Chandel S",
   "year": 2020,
   "title": "Disordered eating attitudes and body shape concerns among North Indian Kathak dancers",
@@ -2218,6 +2410,38 @@
   "n_modalities": 1
  },
  {
+  "authors": "González-Valero G, Zurita-Ortega F, Ubago-Jiménez JL, Puertas-Molero P",
+  "year": 2020,
+  "title": "Motivation, Self-Concept and Discipline in Young Adolescents Who Practice Rhythmic Gymnastics. An Intervention",
+  "journal": "Children (Basel)",
+  "doi": "10.3390/children7090135",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "motivation",
+  "finding": "Intervenção com estratégias TARGET aumentou o clima-tarefa, o autoconceito físico e a disciplina no grupo experimental, ao passo que no grupo-controle cresceram o clima-ego e a desmotivação.",
+  "design": "Quase-experimental longitudinal (GE vs GC)",
+  "design_conf": "alta",
+  "subvar": "Clima TARGET, motivação e autoconceito",
+  "n": 104,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "ANOVA/MMRM"
+  ],
+  "stats_approach": "ANOVA de medidas repetidas (grupo × tempo)",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1
+ },
+ {
   "authors": "Gorwa J, Kabaciński J, Murawa M, Fryzowicz A",
   "year": 2020,
   "title": "On the track of the ideal turnout: EMG and kinematic analysis of the five classical ballet positions",
@@ -2249,6 +2473,40 @@
    "Balé/dança"
   ],
   "n_modalities": 1
+ },
+ {
+  "authors": "Kipp LE, Bolter ND, Phillips Reichter A",
+  "year": 2019,
+  "title": "Motivational Climate Profiles, Pubertal Status, and Well-Being Among Female Adolescent Aesthetic Sport Athletes",
+  "journal": "Pediatric Exercise Science",
+  "doi": "10.1123/pes.2018-0182",
+  "citations": "n/d",
+  "sport": "Esportes estéticos femininos (amostra mista: ginastas, saltadoras ornamentais e patinadoras artísticas)",
+  "topic": "motivational-climate",
+  "finding": "Perfis do clima motivacional criado pelo treinador diferenciaram autonomia e vínculo com treinador/colegas, enquanto autoestima e dieta variaram pelo estágio puberal — meninas pós-púberes relataram menor autoestima e mais dieta.",
+  "design": "Transversal (análise de perfis + MANOVA)",
+  "design_conf": "alta",
+  "subvar": "Perfis de clima motivacional e bem-estar",
+  "n": 183,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "ANOVA/MMRM",
+   "PCA"
+  ],
+  "stats_approach": "Análise de perfis latentes + MANOVA 3×2 (perfil × puberdade)",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica artística",
+   "Patinação artística"
+  ],
+  "n_modalities": 2
  },
  {
   "authors": "Schärer C, Lehmann T, Naundorf F, Taube W, Hübner K",
@@ -2639,6 +2897,39 @@
   ],
   "modalities": [
    "Patinação artística"
+  ],
+  "n_modalities": 1
+ },
+ {
+  "authors": "Battaglia C, D'Artibale E, Fiorilli G, Piazza M, Tsopani D, Giombini A, Calcagno G, di Cagno A",
+  "year": 2014,
+  "title": "Use of video observation and motor imagery on jumping performance in national rhythmic gymnastics athletes",
+  "journal": "Human Movement Science",
+  "doi": "10.1016/j.humov.2014.10.001",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "imagery",
+  "finding": "Protocolo de observação de vídeo + imagética motora (PETTLEP) associado à prática física melhorou o desempenho de salto mais do que a prática física isolada, com correlações entre capacidade de imagética e resultados pós-treino.",
+  "design": "Experimental randomizado (GE vs GC, medidas repetidas)",
+  "design_conf": "alta",
+  "subvar": "Imagética motora (PETTLEP) e desempenho de salto",
+  "n": 72,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "ANOVA/MMRM",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "ANOVA de medidas repetidas + correlações imagética–desempenho",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
   ],
   "n_modalities": 1
  },

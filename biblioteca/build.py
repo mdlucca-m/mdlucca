@@ -51,6 +51,18 @@ def canon_modalities(sport):
     if 'estéticos' in s or 'esteticos' in s: [add(x) for x in ('Patinação artística','Balé/dança','Ginástica artística')]
     if not out: add('Outro')
     return out
+CANON_MODS = {'Ginástica rítmica','Ginástica artística','Patinação artística','Nado artístico',
+              'Balé/dança','Cheerleading','Ginástica acrobática','Proxy não-estético','Outro'}
+CANON_VARS = {'Neuro','Psico','Performance','Fadiga'}
+def canonize_mods(mods, sport):
+    out = []
+    for m in (mods or []):
+        for c in ([m] if m in CANON_MODS else canon_modalities(m)):
+            if c not in out:
+                out.append(c)
+    if not out:
+        out = canon_modalities(sport)
+    return out
 for d in data:
     d.setdefault("design", "—")
     d.setdefault("design_conf", "média")
@@ -63,10 +75,13 @@ for d in data:
     d.setdefault("es_note", "")
     d.setdefault("roc", False)
     d.setdefault("derivatives", False)
-    if not d.get("variables"):
-        d["variables"] = [PYTHEME.get(d.get("topic", ""), "Performance")]
-    if not d.get("modalities"):
-        d["modalities"] = canon_modalities(d.get("sport", ""))
+    # canonicalize variables to the 4 themes (drop stray predictor names)
+    vs = [v for v in (d.get("variables") or []) if v in CANON_VARS]
+    seen = []
+    [seen.append(v) for v in vs if v not in seen]
+    d["variables"] = seen or [PYTHEME.get(d.get("topic", ""), "Performance")]
+    # canonicalize modalities to the fixed set
+    d["modalities"] = canonize_mods(d.get("modalities"), d.get("sport", ""))
     d["n_modalities"] = len(d["modalities"])
 
 # metodologia defaults (graceful if agent file missing)

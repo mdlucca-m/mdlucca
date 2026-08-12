@@ -8,6 +8,43 @@ import glob, json, os
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 BASE_FIELDS = ["authors", "year", "title", "journal", "doi", "citations", "sport", "topic", "finding"]
+CANON_MODS = {'Ginástica rítmica', 'Ginástica artística', 'Patinação artística', 'Nado artístico',
+              'Balé/dança', 'Cheerleading', 'Ginástica acrobática', 'Proxy não-estético', 'Outro'}
+CANON_VARS = {'Neuro', 'Psico', 'Performance', 'Fadiga'}
+PYTHEME = {'motor-pattern': 'Neuro', 'emg-activation': 'Neuro', 'motor-unit': 'Neuro', 'firing-rate': 'Neuro', 'rfd-neural': 'Neuro', 'motor-learning': 'Neuro',
+    'anxiety': 'Psico', 'perfectionism': 'Psico', 'body-image': 'Psico', 'disordered-eating': 'Psico', 'motivation': 'Psico', 'self-confidence': 'Psico',
+    'stress-coping': 'Psico', 'burnout': 'Psico', 'mental-toughness': 'Psico', 'flow': 'Psico', 'attentional-focus': 'Psico',
+    'self-talk': 'Psico', 'motivational-climate': 'Psico', 'resilience': 'Psico', 'well-being': 'Psico', 'passion': 'Psico', 'emotion-regulation': 'Psico', 'coping': 'Psico', 'mental-health': 'Psico', 'self-esteem': 'Psico', 'fear-of-failure': 'Psico', 'imagery': 'Psico',
+    'physical-determinants': 'Performance', 'biomechanics-technique': 'Performance', 'anthropometry-maturation': 'Performance', 'talent-prediction': 'Performance', 'judging-scoring': 'Performance',
+    'neuromuscular-fatigue': 'Fadiga', 'training-load': 'Fadiga', 'overtraining': 'Fadiga', 'recovery-readiness': 'Fadiga', 'red-s': 'Fadiga', 'menstrual-hormonal': 'Fadiga', 'perceived-fatigue': 'Fadiga'}
+
+def canon_modalities(sport):
+    s = (sport or "").lower(); out = []
+    def add(x):
+        if x not in out: out.append(x)
+    if 'rítmica' in s or 'ritmica' in s: add('Ginástica rítmica')
+    if 'artística' in s or 'artistica' in s: add('Nado artístico' if 'nado' in s else 'Ginástica artística')
+    if 'acrobática' in s or 'acrobatica' in s: add('Ginástica acrobática')
+    if 'patinação' in s or 'patinacao' in s: add('Patinação artística')
+    if 'nado' in s or 'sincronizado' in s: add('Nado artístico')
+    if 'balé' in s or 'bale' in s or 'dança' in s or 'danca' in s: add('Balé/dança')
+    if 'cheer' in s: add('Cheerleading')
+    if 'proxy' in s or 'saudáveis' in s or 'master' in s: add('Proxy não-estético')
+    if 'estéticos' in s or 'esteticos' in s: [add(x) for x in ('Patinação artística', 'Balé/dança', 'Ginástica artística')]
+    if not out: add('Ginástica artística' if 'ginástica' in s or 'ginastica' in s else 'Outro')
+    return out
+
+def canonize(e):
+    mods = []
+    for m in (e.get("modalities") or []):
+        for c in ([m] if m in CANON_MODS else canon_modalities(m)):
+            if c not in mods: mods.append(c)
+    e["modalities"] = mods or canon_modalities(e.get("sport", ""))
+    e["n_modalities"] = len(e["modalities"])
+    vs, seen = [v for v in (e.get("variables") or []) if v in CANON_VARS], []
+    [seen.append(v) for v in vs if v not in seen]
+    e["variables"] = seen or [PYTHEME.get(e.get("topic", ""), "Performance")]
+    return e
 
 def norm_doi(d):
     return (d or "").strip().lower().rstrip(".")
@@ -34,6 +71,8 @@ def main():
             seen.add(dk)
             enriched.append(e)
             added.append((e.get("year"), e.get("doi"), e.get("sport"), e.get("title", "")[:60]))
+    # canonicalize modalities/variables across all entries (idempotent)
+    enriched = [canonize(e) for e in enriched]
     # sort by year desc, then title
     enriched.sort(key=lambda x: (-(x.get("year") or 0), str(x.get("title", ""))))
     # write enriched (full)
