@@ -1,5 +1,16 @@
 [
  {
+  "authors": "Veit J, Brinkschulte M, Vogt T",
+  "year": 2026,
+  "title": "Effects of instruction-guided attentional focus on jump performance in women's artistic gymnastics",
+  "journal": "Eur. J. Sport Science",
+  "doi": "10.1002/ejsc.70112",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "attentional-focus",
+  "finding": "Direcionar o foco (interno ou externo) num giro de 450° piorou várias variáveis vs baseline — atenção consciente atrapalha o gesto automatizado."
+ },
+ {
   "authors": "Leiva Fernández Cordero, Marchena-Giráldez C, Cruz Corbella A, Ruiz-Sancho E",
   "year": 2026,
   "title": "Indirect effect of perfectionism between anxiety, self-esteem, aesthetic pressure and eating disorder risk in figure skaters",
@@ -9,6 +20,17 @@
   "sport": "Patinação artística",
   "topic": "perfectionism",
   "finding": "Perfeccionismo medeia ansiedade/autoestima/pressão do uniforme → risco de transtorno alimentar."
+ },
+ {
+  "authors": "Chandran A, Boltz AJ, Rao N, Felix W, Powers H, Bandaru A, Campbell KR, Collins CL",
+  "year": 2026,
+  "title": "Injury incidence in NCAA women's sports during 2019/20-2021/22: findings from injury surveillance during the COVID-19 pandemic",
+  "journal": "Research in Sports Medicine",
+  "doi": "10.1080/15438627.2026.2693552",
+  "citations": "n/d",
+  "sport": "NCAA feminino (multiesporte; ginástica em destaque)",
+  "topic": "training-load",
+  "finding": "Modelo bayesiano binomial negativo estimou na ginástica a maior incidência de lesões entre os esportes femininos da NCAA (média posterior 7,9/1.000 AEs; ICr 95% 3,8-14,1)."
  },
  {
   "authors": "Mayer MA, Hamilton CJ, Jamil S, Vazquez O",
@@ -22,6 +44,17 @@
   "finding": "~29 mil atletas (96,5% mulheres): predominam entorses/estiramentos, depois tornozelo e cabeça/pescoço; falta padronização de registro."
  },
  {
+  "authors": "Lamarre MA, King EL, Jones MT, Acuña SA",
+  "year": 2026,
+  "title": "Jump-specific mechanical load and perceived exertion during collegiate dance training",
+  "journal": "Journal of Biomechanics",
+  "doi": "10.1016/j.jbiomech.2026.113478",
+  "citations": 0,
+  "sport": "Dança universitária",
+  "topic": "biomechanics-technique",
+  "finding": "Em 18 dançarinas universitárias, o impacto de aterrissagem e a altura do salto (ICC 0,75-0,98) mediram a carga mecânica externa, com a dança moderna gerando maior impacto e altura que o balé, dissociados da percepção subjetiva de esforço."
+ },
+ {
   "authors": "Seifert Gonzales A, Galdamez I",
   "year": 2026,
   "title": "Menstrual dysfunction, eating behaviors and injury prevalence in collegiate dancers",
@@ -33,15 +66,26 @@
   "finding": "50,4% com disfunção menstrual, ligada a menor energia disponível, mais transtorno alimentar e mais lesões."
  },
  {
-  "authors": "Veit J, Brinkschulte M, Vogt T",
+  "authors": "Kiss JL, Critchley ML, Gabel L, Galarneau JM, Doyle-Baker PK, Ballinger K, Lun V, Emery CA",
   "year": 2026,
-  "title": "Effects of instruction-guided attentional focus on jump performance in women's artistic gymnastics",
-  "journal": "Eur. J. Sport Science",
-  "doi": "10.1002/ejsc.70112",
+  "title": "Relative Energy Deficiency in Sport (REDs) and site-specific bone mineral density in female adolescent artistic athletes",
+  "journal": "Applied Physiology, Nutrition, and Metabolism",
+  "doi": "10.1139/apnm-2025-0330",
   "citations": "n/d",
-  "sport": "Ginástica artística feminina",
-  "topic": "attentional-focus",
-  "finding": "Direcionar o foco (interno ou externo) num giro de 450° piorou várias variáveis vs baseline — atenção consciente atrapalha o gesto automatizado."
+  "sport": "Estéticos (nado artístico/dança/patinação)",
+  "topic": "red-s",
+  "finding": "Regressão logística penalizada de Firth e modelos multivariáveis compararam risco de RED-S e densidade óssea entre nadadoras artísticas, bailarinas e patinadoras adolescentes (45,9% com ≥1 indicador de RED-S)."
+ },
+ {
+  "authors": "Gaspari V, Bogdanis GC, Panidi I, Kanna DA, Salagas A, Donti A, Terzis G, Donti O",
+  "year": 2026,
+  "title": "Sport-Specific Muscle Architectural Adaptations and Jump Performance in Preadolescent Rhythmic Gymnasts",
+  "journal": "Children (Basel)",
+  "doi": "10.3390/children13030357",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "physical-determinants",
+  "finding": "Modelos de regressão preditiva mostraram que a massa corporal prediz a força máxima e a área de secção do gastrocnêmio prediz a potência do salto (CMJ) em ginastas rítmicas pré-adolescentes vs controles."
  },
  {
   "authors": "Deng C, Yu Q",
@@ -55,92 +99,15 @@
   "finding": "Stunts = 53,2% das lesões e flips 67,9% de taxa; tornozelos/punhos mais vulneráveis; concussões subindo 44%/ano."
  },
  {
-  "authors": "Donti A, Maraki MI, Psychountaki M, Donti O",
+  "authors": "Zhou L, Stefan L",
   "year": 2025,
-  "title": "Eating disorder symptoms and energy deficiency awareness in adolescent artistic gymnasts",
-  "journal": "Nutrients",
-  "doi": "10.3390/nu17101699",
-  "citations": "n/d",
-  "sport": "Ginástica artística",
-  "topic": "disordered-eating",
-  "finding": "Alto nível teve sintomas mais severos (20% acima do corte EDE-Q) e pouca consciência de RED-S."
- },
- {
-  "authors": "Fukuyama H, Maeo S, Kusagawa Y, Isaka T",
-  "year": 2025,
-  "title": "Plantar intrinsic foot muscle activity during single-legged and bipedal tiptoe standing in ballet dancers",
-  "journal": "Scientific Reports",
-  "doi": "10.1038/s41598-025-02917-9",
+  "title": "Associations between physical fitness and mental toughness in adolescent competitive ballet dancers",
+  "journal": "Annals of Human Biology",
+  "doi": "10.1080/03014460.2025.2558933",
   "citations": "n/d",
   "sport": "Balé",
-  "topic": "emg-activation",
-  "finding": "Ativação plantar e sua variabilidade sobem 2–2,5× e se acoplam à oscilação postural no apoio unipodal em meia-ponta."
- },
- {
-  "authors": "Gómez-Landero LA, Santos-Rosa FJ, Reguera-López-de-la-Osa X, Cervelló E",
-  "year": 2025,
-  "title": "Interdependence, motivational climate, self-talk, positivity and precompetitive anxiety",
-  "journal": "J. Human Kinetics",
-  "doi": "10.5114/jhk/204776",
-  "citations": 0,
-  "sport": "Ginástica rítmica (individual vs equipe)",
-  "topic": "anxiety",
-  "finding": "Autofalar negativo e positividade predizem ansiedade pré-competitiva; individuais têm menor autoconfiança que equipes."
- },
- {
-  "authors": "Jo I, Hong EJ, Yoon HW, Ma Y, Lee SY, Lee HD",
-  "year": 2025,
-  "title": "Neuromuscular strategies in dominant and non-dominant legs in dancers during dynamic balance tasks",
-  "journal": "J. Dance Medicine & Science",
-  "doi": "10.1177/1089313X241309781",
-  "citations": "n/d",
-  "sport": "Dança/balé",
-  "topic": "emg-activation",
-  "finding": "EMG: maior pré/pós-ativação de fibular longo e tibial anterior na perna não dominante — assimetria neuromuscular interlados."
- },
- {
-  "authors": "Jun H, Zhang M, Zhang L, Montez de Oca J",
-  "year": 2025,
-  "title": "The impact of vault group on performance scores in women's artistic gymnastics at the Olympic Games",
-  "journal": "J. Sports Sciences",
-  "doi": "10.1080/02640414.2025.2589693",
-  "citations": "n/d",
-  "sport": "Ginástica artística feminina",
-  "topic": "judging-scoring",
-  "finding": "Saltos Yurchenko recebem execução sistematicamente maior (d=0,57–1,21): viés estrutural de pontuação."
- },
- {
-  "authors": "Koga A, Bai X, Jia Y, Liu J",
-  "year": 2025,
-  "title": "Lower limb biomechanical differences between jumps with different number of rotations in youth figure skaters",
-  "journal": "Front. Bioeng. Biotechnol.",
-  "doi": "10.3389/fbioe.2025.1606817",
-  "citations": "n/d",
-  "sport": "Patinação artística",
-  "topic": "emg-activation",
-  "finding": "iEMG de gastrocnêmio e tibial anterior cresce com a dificuldade do Axel; isquiotibiais/reto femoral têm maior pré-ativação."
- },
- {
-  "authors": "Sprenger HML, van Biljouw T, Bentley DJ",
-  "year": 2025,
-  "title": "Feasibility of sodium bicarbonate ingestion in artistic swimming performances",
-  "journal": "Nutrients",
-  "doi": "10.3390/nu17193029",
-  "citations": "n/d",
-  "sport": "Nado artístico",
-  "topic": "physical-determinants",
-  "finding": "Bicarbonato individualizado ↑ tamponamento e ↓ RPE, preservando execução técnica e melhorando a propulsão (RCT)."
- },
- {
-  "authors": "Steinberg N, Elbaz L, Dar G, Nemet D, Eliakim A",
-  "year": 2025,
-  "title": "Physiological characteristics of young and adolescent rhythmic, acrobatic and artistic female gymnasts",
-  "journal": "Sports Health",
-  "doi": "10.1177/19417381251314077",
-  "citations": 5,
-  "sport": "Ginástica rítmica/artística/acrobática",
-  "topic": "anthropometry-maturation",
-  "finding": "Maturação específica por disciplina; artísticas mais baixas e com menor força óssea; idade óssea atrasada."
+  "topic": "mental-toughness",
+  "finding": "Força mental correlaciona com aptidão cardiorrespiratória, muscular e flexibilidade e (negativamente) com % de gordura."
  },
  {
   "authors": "Yu J, Li M, Chen Z",
@@ -154,15 +121,191 @@
   "finding": "Elite usa menos sinergias (5 vs 6), com ativação mais precoce e concentrada — organização neuromuscular mais eficiente."
  },
  {
-  "authors": "Zhou L, Stefan L",
+  "authors": "Donti A, Maraki MI, Psychountaki M, Donti O",
   "year": 2025,
-  "title": "Associations between physical fitness and mental toughness in adolescent competitive ballet dancers",
-  "journal": "Annals of Human Biology",
-  "doi": "10.1080/03014460.2025.2558933",
+  "title": "Eating disorder symptoms and energy deficiency awareness in adolescent artistic gymnasts",
+  "journal": "Nutrients",
+  "doi": "10.3390/nu17101699",
+  "citations": "n/d",
+  "sport": "Ginástica artística",
+  "topic": "disordered-eating",
+  "finding": "Alto nível teve sintomas mais severos (20% acima do corte EDE-Q) e pouca consciência de RED-S."
+ },
+ {
+  "authors": "Correia E, Dos Santos LHCC, Dias MS, Romero RC, Souza LP, et al.",
+  "year": 2025,
+  "title": "Effect of Foot Orientation on Landing Impact Forces Following a Drop Jump in Ballet Dancers",
+  "journal": "Journal of Dance Medicine & Science",
+  "doi": "10.1177/1089313X251359423",
+  "citations": 0,
+  "sport": "Balé",
+  "topic": "biomechanics-technique",
+  "finding": "Em 17 bailarinas e 15 controles, o tempo até o pico de FRS vertical foi menor na 5ª posição (en dehors) que em paralelo, e as bailarinas saltaram mais alto após a aterrissagem, aproveitando melhor o impacto para o ressalto."
+ },
+ {
+  "authors": "Pritchard NS, Brandt KM, Peluso AG, Kruse DW, Hart E, et al.",
+  "year": 2025,
+  "title": "Evaluation of head kinematics experienced during common skill progression pathways in Women's Artistic Gymnastics",
+  "journal": "Sports Biomechanics",
+  "doi": "10.1080/14763141.2025.2481154",
+  "citations": 0,
+  "sport": "Ginástica artística feminina",
+  "topic": "biomechanics-technique",
+  "finding": "Em 12 ginastas com sensores bucais, as acelerações linear e rotacional e a velocidade rotacional da cabeça aumentaram progressivamente ao longo das progressões de tumbling, subsidiando protocolos de retorno pós-concussão."
+ },
+ {
+  "authors": "Sprenger HML, van Biljouw T, Bentley DJ",
+  "year": 2025,
+  "title": "Feasibility of sodium bicarbonate ingestion in artistic swimming performances",
+  "journal": "Nutrients",
+  "doi": "10.3390/nu17193029",
+  "citations": "n/d",
+  "sport": "Nado artístico",
+  "topic": "physical-determinants",
+  "finding": "Bicarbonato individualizado ↑ tamponamento e ↓ RPE, preservando execução técnica e melhorando a propulsão (RCT)."
+ },
+ {
+  "authors": "Chandran A, Boltz AJ, Rao N, Campbell KR, DiPietro L, Kliethermes S",
+  "year": 2025,
+  "title": "Fracture incidence in NCAA Women's Sports during 2009/10-2018/19",
+  "journal": "Journal of Athletic Training",
+  "doi": "10.4085/1062-6050-0013.25",
+  "citations": "n/d",
+  "sport": "NCAA feminino (multiesporte; ginástica em destaque)",
+  "topic": "training-load",
+  "finding": "Modelo bayesiano (intervalos de credibilidade) estimou na ginástica a maior taxa de fraturas entre os esportes femininos da NCAA (média posterior 6,29/10.000 AEs; ICr 95% 3,70-10,31)."
+ },
+ {
+  "authors": "Gómez-Landero LA, Santos-Rosa FJ, Reguera-López-de-la-Osa X, Cervelló E",
+  "year": 2025,
+  "title": "Interdependence, motivational climate, self-talk, positivity and precompetitive anxiety",
+  "journal": "J. Human Kinetics",
+  "doi": "10.5114/jhk/204776",
+  "citations": 0,
+  "sport": "Ginástica rítmica (individual vs equipe)",
+  "topic": "anxiety",
+  "finding": "Autofalar negativo e positividade predizem ansiedade pré-competitiva; individuais têm menor autoconfiança que equipes."
+ },
+ {
+  "authors": "Williams LE, Dennis JD, Pamukoff DN",
+  "year": 2025,
+  "title": "Knee coordination during landing in ballet-trained female dancers and non-dancers",
+  "journal": "Journal of Biomechanics",
+  "doi": "10.1016/j.jbiomech.2025.112684",
+  "citations": 0,
+  "sport": "Balé",
+  "topic": "biomechanics-technique",
+  "finding": "Bailarinas (n=18) aterrissaram de um drop vertical jump com maior flexão e menor abdução do joelho, menor FRS vertical de pico e menos acoplamento em fase que não-dançarinas (d=0,68-1,15), padrão possivelmente protetor do joelho."
+ },
+ {
+  "authors": "Koga A, Bai X, Jia Y, Liu J",
+  "year": 2025,
+  "title": "Lower limb biomechanical differences between jumps with different number of rotations in youth figure skaters",
+  "journal": "Front. Bioeng. Biotechnol.",
+  "doi": "10.3389/fbioe.2025.1606817",
+  "citations": "n/d",
+  "sport": "Patinação artística",
+  "topic": "emg-activation",
+  "finding": "iEMG de gastrocnêmio e tibial anterior cresce com a dificuldade do Axel; isquiotibiais/reto femoral têm maior pré-ativação."
+ },
+ {
+  "authors": "Jo I, Hong EJ, Yoon HW, Ma Y, Lee SY, Lee HD",
+  "year": 2025,
+  "title": "Neuromuscular strategies in dominant and non-dominant legs in dancers during dynamic balance tasks",
+  "journal": "J. Dance Medicine & Science",
+  "doi": "10.1177/1089313X241309781",
+  "citations": "n/d",
+  "sport": "Dança/balé",
+  "topic": "emg-activation",
+  "finding": "EMG: maior pré/pós-ativação de fibular longo e tibial anterior na perna não dominante — assimetria neuromuscular interlados."
+ },
+ {
+  "authors": "Tsutsui T, Tsukahara Y, Mori J, Sakamaki W, Honma Y, Yamamoto R, Fukuda N, Hatsukari A, Ikegami N, Higuchi A, Ikei T, Akiyama E, Torii S",
+  "year": 2025,
+  "title": "Physical Characteristics Associated With Low Back Pain in Japanese Collegiate Female Rhythmic Gymnasts",
+  "journal": "Sports Health",
+  "doi": "10.1177/19417381251328663",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "physical-determinants",
+  "finding": "Regressão logística multivariada associou lombalgia em ginastas rítmicas universitárias a histórico de dor (OR 6,33), déficit de força de flexão de quadril e menor ADM de rotação externa do quadril no lado não dominante."
+ },
+ {
+  "authors": "Steinberg N, Elbaz L, Dar G, Nemet D, Eliakim A",
+  "year": 2025,
+  "title": "Physiological characteristics of young and adolescent rhythmic, acrobatic and artistic female gymnasts",
+  "journal": "Sports Health",
+  "doi": "10.1177/19417381251314077",
+  "citations": 5,
+  "sport": "Ginástica rítmica/artística/acrobática",
+  "topic": "anthropometry-maturation",
+  "finding": "Maturação específica por disciplina; artísticas mais baixas e com menor força óssea; idade óssea atrasada."
+ },
+ {
+  "authors": "Fukuyama H, Maeo S, Kusagawa Y, Isaka T",
+  "year": 2025,
+  "title": "Plantar intrinsic foot muscle activity during single-legged and bipedal tiptoe standing in ballet dancers",
+  "journal": "Scientific Reports",
+  "doi": "10.1038/s41598-025-02917-9",
   "citations": "n/d",
   "sport": "Balé",
-  "topic": "mental-toughness",
-  "finding": "Força mental correlaciona com aptidão cardiorrespiratória, muscular e flexibilidade e (negativamente) com % de gordura."
+  "topic": "emg-activation",
+  "finding": "Ativação plantar e sua variabilidade sobem 2–2,5× e se acoplam à oscilação postural no apoio unipodal em meia-ponta."
+ },
+ {
+  "authors": "Steinberg N, Elbaz L, Eliakim A, Nemet D, Bar-Sella S, Peleg S, Dar G",
+  "year": 2025,
+  "title": "Prevalence and physical features associated with tendon, bone, and joint pain in young artistic, acrobatic, and rhythmic female gymnasts",
+  "journal": "Physical Therapy in Sport",
+  "doi": "10.1016/j.ptsp.2025.05.007",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica/artística/acrobática",
+  "topic": "physical-determinants",
+  "finding": "Regressão logística identificou preditores físicos específicos (BMI%, força, ADM, menarca) para dor em tendão/osso/articulação em 274 jovens ginastas, com maior risco na ginástica artística."
+ },
+ {
+  "authors": "Gansukh ME, Ando Y, Sakurai S",
+  "year": 2025,
+  "title": "Quantitative analysis of angular momentum generation in the triple loop in figure skating",
+  "journal": "Sports Biomechanics",
+  "doi": "10.1080/14763141.2025.2586761",
+  "citations": 0,
+  "sport": "Patinação artística",
+  "topic": "biomechanics-technique",
+  "finding": "Em 10 patinadoras, o momento angular do triple loop foi gerado sobretudo pelos membros inferiores (perna livre) na fase de transição, sem correlação significativa com altura, velocidade rotacional ou tempo de voo."
+ },
+ {
+  "authors": "Nguyen AV, Slavens BA, Cobb SC, O'Connor KM",
+  "year": 2025,
+  "title": "The Effects of Cheerleading Surfaces on Ankle Landing Characteristics During Vertical and Flip Landings",
+  "journal": "Journal of Applied Biomechanics",
+  "doi": "10.1123/jab.2025-0017",
+  "citations": 0,
+  "sport": "Cheerleading (predominantemente feminino; amostra mista)",
+  "topic": "biomechanics-technique",
+  "finding": "Em 12 cheerleaders universitárias(os), aterrissagens de flip geraram FRS de pico 84% maior e taxa de carga 148% maior que aterrissagens verticais, com superfícies duras elevando ainda mais a taxa de carga e a inversão do tornozelo."
+ },
+ {
+  "authors": "Jun H, Zhang M, Zhang L, Montez de Oca J",
+  "year": 2025,
+  "title": "The impact of vault group on performance scores in women's artistic gymnastics at the Olympic Games",
+  "journal": "J. Sports Sciences",
+  "doi": "10.1080/02640414.2025.2589693",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "judging-scoring",
+  "finding": "Saltos Yurchenko recebem execução sistematicamente maior (d=0,57–1,21): viés estrutural de pontuação."
+ },
+ {
+  "authors": "Leupold O, Cheng J, Wimberly A, Nguyen J, Tilley D, Gabbett TJ, Casey E",
+  "year": 2024,
+  "title": "A novel approach for monitoring training load and wellness in women's college gymnastics",
+  "journal": "Sports Health",
+  "doi": "10.1177/19417381241296855",
+  "citations": 4,
+  "sport": "Ginástica artística feminina",
+  "topic": "recovery-readiness",
+  "finding": "Modelo duração×RPE×complexidade + ACWR acompanha a temporada; bem-estar correlaciona com a carga."
  },
  {
   "authors": "Critchley ML, Toomey C, Gabel L, Kenny SJ, Emery CA",
@@ -187,48 +330,26 @@
   "finding": "Velocidade de nado e preensão manual correlacionam com a execução das figuras (body boost, barracuda)."
  },
  {
-  "authors": "Leupold O, Cheng J, Wimberly A, Nguyen J, Tilley D, Gabbett TJ, Casey E",
+  "authors": "MacSweeney NDH, Shaw JW, Simkin GP, Pedlar CR, Price PDB, et al.",
   "year": 2024,
-  "title": "A novel approach for monitoring training load and wellness in women's college gymnastics",
-  "journal": "Sports Health",
-  "doi": "10.1177/19417381241296855",
-  "citations": 4,
-  "sport": "Ginástica artística feminina",
-  "topic": "recovery-readiness",
-  "finding": "Modelo duração×RPE×complexidade + ACWR acompanha a temporada; bem-estar correlaciona com a carga."
+  "title": "Jumping Asymmetries and Risk of Injuries in Preprofessional Ballet",
+  "journal": "The American Journal of Sports Medicine",
+  "doi": "10.1177/03635465231218258",
+  "citations": 0,
+  "sport": "Balé pré-profissional (amostra mista; efeitos específicos por sexo)",
+  "topic": "biomechanics-technique",
+  "finding": "Em 242 bailarinas(os) pré-profissionais, maiores assimetrias cinéticas no CMJ de duplo apoio e na altura do salto unipodal associaram-se a maior risco de lesão (RR 1,28-1,69), com efeitos mais evidentes nas meninas."
  },
  {
-  "authors": "Lundqvist C",
+  "authors": "Yamaguchi AC, Trejo LH, Shih HS, Ortiz-Weissberg D, Kulig K",
   "year": 2024,
-  "title": "Prevalence of harassment, abuse and mental health among current and retired senior Swedish cheerleaders",
-  "journal": "J. Sports Sciences",
-  "doi": "10.1080/02640414.2024.2405791",
-  "citations": "n/d",
-  "sport": "Cheerleading",
-  "topic": "mental-toughness",
-  "finding": "Em 284 atletas (278 mulheres), resiliência protegeu a saúde mental; abuso psicológico foi o assédio mais comum, ligado a lesão."
- },
- {
-  "authors": "Nishikawa Y, Watanabe K, Holobar A, Kitamura R, Maeda N, Hyngstrom AS",
-  "year": 2024,
-  "title": "Sex differences in laterality of motor unit firing behavior of the first dorsal interosseous",
-  "journal": "Eur. J. Applied Physiology",
-  "doi": "10.1007/s00421-024-05420-7",
-  "citations": "n/d",
-  "sport": "Adultas saudáveis · proxy — não estético",
-  "topic": "firing-rate",
-  "finding": "HD-sEMG: mulheres têm maior taxa de disparo e limiar de recrutamento e sem assimetria interlados — controle neuromuscular distinto."
- },
- {
-  "authors": "Proietti G, Borozan M, Chaigneau A, Cannito L, Palumbo R, Thouvarecq R, Iodice P",
-  "year": 2024,
-  "title": "Self-regulation training improves stress resilience in elite pre-pubescent female gymnasts",
-  "journal": "Frontiers in Psychology",
-  "doi": "10.3389/fpsyg.2024.1341437",
-  "citations": "n/d",
-  "sport": "Ginástica",
-  "topic": "stress-coping",
-  "finding": "4 sem de biofeedback ↑ autorregulação fisiológica e consciência interoceptiva sob estresse e ↓ sensibilidade ao estresse do esporte."
+  "title": "Lower-Extremity Energetic Distribution During Rate-Controlled Ballet Jumps (Sautés) in Healthy Dancers",
+  "journal": "Journal of Applied Biomechanics",
+  "doi": "10.1123/jab.2023-0042",
+  "citations": 0,
+  "sport": "Balé/dança",
+  "topic": "motor-pattern",
+  "finding": "Em 14 bailarinas, após 3 min de coreografia os sautés mantiveram o gasto energético total do membro, mas houve redistribuição distal-para-proximal (menor contribuição do joelho e maior do quadril)."
  },
  {
   "authors": "St-Cyr J, Gavrila A, Tanguay-Sela M, Vallerand RJ",
@@ -242,15 +363,37 @@
   "finding": "Perfeccionismo socialmente prescrito → transtorno alimentar via paixão obsessiva; paixão harmoniosa protege."
  },
  {
-  "authors": "Trongjitpituk R, Homma M",
+  "authors": "Yang C, Shi L, Lu Y, Wu H, Yu D",
   "year": 2024,
-  "title": "Sensorimotor synchronization abilities for polyrhythmic tasks in artistic swimming",
-  "journal": "Perceptual and Motor Skills",
-  "doi": "10.1177/00315125241293907",
+  "title": "Post-activation Performance Enhancement of Countermovement Jump after Drop Jump versus Squat Jump Exercises in Elite Rhythmic Gymnasts",
+  "journal": "Journal of Sports Science & Medicine",
+  "doi": "10.52082/jssm.2024.611",
+  "citations": 0,
+  "sport": "Ginástica rítmica",
+  "topic": "rfd-neural",
+  "finding": "Em 20 ginastas rítmicas, o drop jump potenciou a altura do CMJ aos 30 s (ES=0,25) e o squat jump aos 9 min (ES=0,36), com maior benefício nas atletas de maior nível de força."
+ },
+ {
+  "authors": "Lundqvist C",
+  "year": 2024,
+  "title": "Prevalence of harassment, abuse and mental health among current and retired senior Swedish cheerleaders",
+  "journal": "J. Sports Sciences",
+  "doi": "10.1080/02640414.2024.2405791",
   "citations": "n/d",
-  "sport": "Nado artístico",
-  "topic": "motor-pattern",
-  "finding": "Nadadoras de elite superaram novatas em tarefas polirrítmicas de tapping — superioridade específica de controle temporal."
+  "sport": "Cheerleading",
+  "topic": "mental-toughness",
+  "finding": "Em 284 atletas (278 mulheres), resiliência protegeu a saúde mental; abuso psicológico foi o assédio mais comum, ligado a lesão."
+ },
+ {
+  "authors": "Zhitao L, Junlong D, Rui Y, Leijiao Y, Cheng G, Jun Y",
+  "year": 2024,
+  "title": "Relationships Between Functional Movement Quality and Sports Performance in Elite Figure Skating Athletes of China",
+  "journal": "Journal of Strength and Conditioning Research",
+  "doi": "10.1519/JSC.0000000000004881",
+  "citations": "n/d",
+  "sport": "Patinação artística (duplas; F+M)",
+  "topic": "physical-determinants",
+  "finding": "Escore de corte do Functional Movement Screen (FMS) discriminou risco de lesão e correlacionou-se ao desempenho em patinadores de duplas de elite (amostra mista F+M)."
  },
  {
   "authors": "Williams SM, Baez SE, Derrico D, Robinson H, Coyne K, Settle H, Jochimsen KN",
@@ -264,6 +407,50 @@
   "finding": "Resiliência e bem-estar estáveis na temporada; maior resiliência associou-se a maior bem-estar no início e no pós-temporada."
  },
  {
+  "authors": "Zhao Y, Guo J, Yao X, Tan Z, Ma Y, et al.",
+  "year": 2024,
+  "title": "Run-up velocity and jumping ground reaction force of Chinese female gymnasts",
+  "journal": "Scientific Reports",
+  "doi": "10.1038/s41598-024-76889-7",
+  "citations": 0,
+  "sport": "Ginástica artística feminina",
+  "topic": "biomechanics-technique",
+  "finding": "Em 16 ginastas de elite chinesas, a velocidade de corrida nos últimos 5 m correlacionou-se negativamente (ρ=-0,60) com a força de reação do solo no salto, com diferenças de ritmo e comprimento de passos entre saltos de handspring e Tsukahara."
+ },
+ {
+  "authors": "Proietti G, Borozan M, Chaigneau A, Cannito L, Palumbo R, Thouvarecq R, Iodice P",
+  "year": 2024,
+  "title": "Self-regulation training improves stress resilience in elite pre-pubescent female gymnasts",
+  "journal": "Frontiers in Psychology",
+  "doi": "10.3389/fpsyg.2024.1341437",
+  "citations": "n/d",
+  "sport": "Ginástica",
+  "topic": "stress-coping",
+  "finding": "4 sem de biofeedback ↑ autorregulação fisiológica e consciência interoceptiva sob estresse e ↓ sensibilidade ao estresse do esporte."
+ },
+ {
+  "authors": "Trongjitpituk R, Homma M",
+  "year": 2024,
+  "title": "Sensorimotor synchronization abilities for polyrhythmic tasks in artistic swimming",
+  "journal": "Perceptual and Motor Skills",
+  "doi": "10.1177/00315125241293907",
+  "citations": "n/d",
+  "sport": "Nado artístico",
+  "topic": "motor-pattern",
+  "finding": "Nadadoras de elite superaram novatas em tarefas polirrítmicas de tapping — superioridade específica de controle temporal."
+ },
+ {
+  "authors": "Nishikawa Y, Watanabe K, Holobar A, Kitamura R, Maeda N, Hyngstrom AS",
+  "year": 2024,
+  "title": "Sex differences in laterality of motor unit firing behavior of the first dorsal interosseous",
+  "journal": "Eur. J. Applied Physiology",
+  "doi": "10.1007/s00421-024-05420-7",
+  "citations": "n/d",
+  "sport": "Adultas saudáveis · proxy — não estético",
+  "topic": "firing-rate",
+  "finding": "HD-sEMG: mulheres têm maior taxa de disparo e limiar de recrutamento e sem assimetria interlados — controle neuromuscular distinto."
+ },
+ {
   "authors": "de Freitas EG, Debien PB, Silva CD, Carrara PDS, Bara Filho MG",
   "year": 2024,
   "title": "Training-load monitoring in elite youth women's artistic gymnasts: a pilot study",
@@ -273,28 +460,6 @@
   "sport": "Ginástica artística feminina",
   "topic": "training-load",
   "finding": "Carga interna/externa flutua no microciclo e correlaciona com volume de elementos/barras — gerir por aparelho."
- },
- {
-  "authors": "Dondin M, Baeza-Velasco C",
-  "year": 2023,
-  "title": "Joint hypermobility and fatigue are associated with injuries in pre-professional ballet dancers",
-  "journal": "J. Dance Medicine & Science",
-  "doi": "10.1177/1089313X231177173",
-  "citations": "n/d",
-  "sport": "Balé/dança",
-  "topic": "perceived-fatigue",
-  "finding": "Fadiga autorrelatada e hipermobilidade predizem lesão; 61,6% lesionadas (sobrecarga de MMII)."
- },
- {
-  "authors": "Fukuyama H, Maeo S, Kusagawa Y, Ono M, Watanabe K, Isaka T",
-  "year": 2023,
-  "title": "Plantar intrinsic foot muscle activity and postural sway during tiptoe standing in ballet dancers",
-  "journal": "Gait & Posture",
-  "doi": "10.1016/j.gaitpost.2023.11.023",
-  "citations": "n/d",
-  "sport": "Balé",
-  "topic": "emg-activation",
-  "finding": "HD-EMG (64 canais): bailarinas estabilizam a meia-ponta com ativação plantar baixa e estável (baixa variabilidade), não alta."
  },
  {
   "authors": "Jederström M, Agnafors S, Ekegren CL, Fagher K, et al.",
@@ -319,15 +484,37 @@
   "finding": "0,95 lesão/temporada/atleta; predominam tendinopatia do manguito, lombalgia aguda e dor patelofemoral — sobe com o volume."
  },
  {
-  "authors": "Debien PB, Timoteo TF, Gabbett TJ, Bara Filho MG",
-  "year": 2022,
-  "title": "Training-load management in rhythmic gymnastics: practices and perceptions",
-  "journal": "Int. J. Sports Physiology and Performance",
-  "doi": "10.1123/ijspp.2021-0279",
-  "citations": 15,
-  "sport": "Ginástica rítmica",
-  "topic": "training-load",
-  "finding": "Carga/fadiga monitoradas sobretudo pela percepção subjetiva do treinador; ferramentas validadas (sRPE/ACWR) raras."
+  "authors": "Rebelo A, Pereira JR, Martinho DV, Valente-Dos-Santos J",
+  "year": 2023,
+  "title": "Effects of a Velocity-Based Complex Training Program in Young Female Artistic Roller Skating Athletes",
+  "journal": "Journal of Human Kinetics",
+  "doi": "10.5114/jhk/159654",
+  "citations": 0,
+  "sport": "Patinação artística sobre rodas (roller)",
+  "topic": "rfd-neural",
+  "finding": "Em 18 patinadoras artísticas sobre rodas, 6 semanas do French Contrast Method baseado em velocidade aumentaram a força máxima, a velocidade concêntrica do hip thrust e o índice de força reativa."
+ },
+ {
+  "authors": "Dondin M, Baeza-Velasco C",
+  "year": 2023,
+  "title": "Joint hypermobility and fatigue are associated with injuries in pre-professional ballet dancers",
+  "journal": "J. Dance Medicine & Science",
+  "doi": "10.1177/1089313X231177173",
+  "citations": "n/d",
+  "sport": "Balé/dança",
+  "topic": "perceived-fatigue",
+  "finding": "Fadiga autorrelatada e hipermobilidade predizem lesão; 61,6% lesionadas (sobrecarga de MMII)."
+ },
+ {
+  "authors": "Fukuyama H, Maeo S, Kusagawa Y, Ono M, Watanabe K, Isaka T",
+  "year": 2023,
+  "title": "Plantar intrinsic foot muscle activity and postural sway during tiptoe standing in ballet dancers",
+  "journal": "Gait & Posture",
+  "doi": "10.1016/j.gaitpost.2023.11.023",
+  "citations": "n/d",
+  "sport": "Balé",
+  "topic": "emg-activation",
+  "finding": "HD-EMG (64 canais): bailarinas estabilizam a meia-ponta com ativação plantar baixa e estável (baixa variabilidade), não alta."
  },
  {
   "authors": "Deng C, Yu Q, Luo G, Lu S",
@@ -339,39 +526,6 @@
   "sport": "Cheerleading",
   "topic": "body-image",
   "finding": "16 sem de cheerleading ↑ autoestima física e ↓ sintomas SCL-90 (depressão, ansiedade, alimentação desordenada)."
- },
- {
-  "authors": "Fernandes I, Gomes JH, Oliveira L, Almeida M, Claudino JG, Resende C, et al.",
-  "year": 2022,
-  "title": "Training load and well-being of elite rhythmic gymnasts over 25 weeks: starters vs reserves",
-  "journal": "Sports (Basel)",
-  "doi": "10.3390/sports10120192",
-  "citations": 6,
-  "sport": "Ginástica rítmica",
-  "topic": "recovery-readiness",
-  "finding": "Carga interna, monotonia e strain pico no pré-competitivo e maiores nas titulares; bem-estar varia pouco."
- },
- {
-  "authors": "Ridge ST, McLean D, Bruening D, Richards J",
-  "year": 2022,
-  "title": "Up in the air: the efficacy of weighted gloves in figure skating jumps",
-  "journal": "Sports Biomechanics",
-  "doi": "10.1080/14763141.2022.2046844",
-  "citations": "n/d",
-  "sport": "Patinação artística",
-  "topic": "biomechanics-technique",
-  "finding": "Altura, momento angular e momento de inércia governam o salto; braços junto ao eixo permitem multi-rotações."
- },
- {
-  "authors": "Santos-Rosa FJ, Montero-Carretero C, Gómez-Landero LA, Torregrossa M, Cervelló E",
-  "year": 2022,
-  "title": "Positive and negative spontaneous self-talk and performance in gymnastics",
-  "journal": "PLoS ONE",
-  "doi": "10.1371/journal.pone.0265809",
-  "citations": "n/d",
-  "sport": "Ginástica rítmica",
-  "topic": "anxiety",
-  "finding": "Autofalar negativo prediz ansiedade e pior desempenho; clima de tarefa e positividade alimentam a autoconfiança."
  },
  {
   "authors": "Wang L, Zhang H, Xu T, Zhang J, Liu Y, Qu Y",
@@ -396,59 +550,70 @@
   "finding": "Fadiga dos plantiflexores ↑ oscilação postural mediolateral; a expert usa estratégia de ativação EMG distinta."
  },
  {
-  "authors": "Dall'Acqua F, Cristina-Souza G, Santos-Mariano AC, Bertuzzi R, Rodacki C, Lima-Silva AE",
-  "year": 2021,
-  "title": "Caffeine ingestion improves specific artistic swimming tasks",
-  "journal": "Braz. J. Medical and Biological Research",
-  "doi": "10.1590/1414-431X202010346",
-  "citations": "n/d",
-  "sport": "Nado artístico",
-  "topic": "physical-determinants",
-  "finding": "5 mg/kg de cafeína melhorou amplitude, altura (Boost/Barracuda) e duração de sculling em atletas experientes."
+  "authors": "Wyon MA, Horsburgh R, Brown D",
+  "year": 2022,
+  "title": "Impact Attenuation and Deformation Characteristics of Dance Floors on Jump Kinematics",
+  "journal": "International Journal of Sports Medicine",
+  "doi": "10.1055/a-1766-0056",
+  "citations": 0,
+  "sport": "Balé/dança",
+  "topic": "biomechanics-technique",
+  "finding": "Com 18 bailarinas executando 70 saltos, os pisos de dança especializados não superaram o vinil sobre concreto; a amplitude articular diminuiu e a aceleração vertical da pelve aumentou ao longo da série de saltos."
  },
  {
-  "authors": "Esteban-García P, Jiménez-Díaz JF, Abián-Vicén J, Bravo-Sánchez A, Rubio-Arias JÁ",
-  "year": 2021,
-  "title": "Effect of 12 weeks core training on core muscle performance in rhythmic gymnastics",
-  "journal": "Biology (Basel)",
-  "doi": "10.3390/biology10111210",
+  "authors": "Santos-Rosa FJ, Montero-Carretero C, Gómez-Landero LA, Torregrossa M, Cervelló E",
+  "year": 2022,
+  "title": "Positive and negative spontaneous self-talk and performance in gymnastics",
+  "journal": "PLoS ONE",
+  "doi": "10.1371/journal.pone.0265809",
   "citations": "n/d",
   "sport": "Ginástica rítmica",
-  "topic": "emg-activation",
-  "finding": "12 sem de core ↑ força/resistência do tronco e amplitude EMG na prancha — ativação neuromuscular treinável."
+  "topic": "anxiety",
+  "finding": "Autofalar negativo prediz ansiedade e pior desempenho; clima de tarefa e positividade alimentam a autoconfiança."
  },
  {
-  "authors": "Molnar DS, Blackburn M, Zinga D, Spadafora N, Methot-Jones T, Connolly M",
-  "year": 2021,
-  "title": "Trait perfectionism and dance goals among young female dancers: the 2x2 model",
-  "journal": "J. Sport & Exercise Psychology",
-  "doi": "10.1123/jsep.2020-0118",
-  "citations": "n/d",
-  "sport": "Dança competitiva",
-  "topic": "motivation",
-  "finding": "Perfeccionismo de preocupação avaliativa → metas menos intrínsecas/mais extrínsecas; padrões pessoais → motivação mais autodeterminada."
+  "authors": "Fernandes I, Gomes JH, Oliveira L, Almeida M, Claudino JG, Resende C, et al.",
+  "year": 2022,
+  "title": "Training load and well-being of elite rhythmic gymnasts over 25 weeks: starters vs reserves",
+  "journal": "Sports (Basel)",
+  "doi": "10.3390/sports10120192",
+  "citations": 6,
+  "sport": "Ginástica rítmica",
+  "topic": "recovery-readiness",
+  "finding": "Carga interna, monotonia e strain pico no pré-competitivo e maiores nas titulares; bem-estar varia pouco."
  },
  {
-  "authors": "Pentith R, Moss SL, Lamb K, Edwards C",
-  "year": 2021,
-  "title": "Perfectionism among young female competitive Irish dancers: prevalence and relationship with injury responses",
-  "journal": "J. Dance Medicine & Science",
-  "doi": "10.12678/1089-313X.061521k",
-  "citations": "n/d",
-  "sport": "Dança (irlandesa competitiva)",
-  "topic": "stress-coping",
-  "finding": "79% com tendências perfeccionistas; perfeccionismo associou-se a estratégias de coping ao lidar com lesão."
- },
- {
-  "authors": "Podrihalo O, Podrigalo L, Jagiełło W, Iermakov S, Yermakova T",
-  "year": 2021,
-  "title": "Substantiation of methods for predicting success in artistic swimming",
-  "journal": "IJERPH",
-  "doi": "10.3390/ijerph18168739",
+  "authors": "Debien PB, Timoteo TF, Gabbett TJ, Bara Filho MG",
+  "year": 2022,
+  "title": "Training-load management in rhythmic gymnastics: practices and perceptions",
+  "journal": "Int. J. Sports Physiology and Performance",
+  "doi": "10.1123/ijspp.2021-0279",
   "citations": 15,
-  "sport": "Nado artístico",
-  "topic": "talent-prediction",
-  "finding": "Modelo morfofuncional de 9 critérios prediz sucesso; flexibilidade e índices respiratórios/hipóxia são os mais informativos."
+  "sport": "Ginástica rítmica",
+  "topic": "training-load",
+  "finding": "Carga/fadiga monitoradas sobretudo pela percepção subjetiva do treinador; ferramentas validadas (sRPE/ACWR) raras."
+ },
+ {
+  "authors": "Ridge ST, McLean D, Bruening D, Richards J",
+  "year": 2022,
+  "title": "Up in the air: the efficacy of weighted gloves in figure skating jumps",
+  "journal": "Sports Biomechanics",
+  "doi": "10.1080/14763141.2022.2046844",
+  "citations": "n/d",
+  "sport": "Patinação artística",
+  "topic": "biomechanics-technique",
+  "finding": "Altura, momento angular e momento de inércia governam o salto; braços junto ao eixo permitem multi-rotações."
+ },
+ {
+  "authors": "Straker R, Exell TA, Farana R, Hamill J, Irwin G",
+  "year": 2021,
+  "title": "Biomechanical responses to landing strategies of female artistic gymnasts",
+  "journal": "European Journal of Sport Science",
+  "doi": "10.1080/17461391.2021.1976842",
+  "citations": 0,
+  "sport": "Ginástica artística feminina",
+  "topic": "biomechanics-technique",
+  "finding": "Em 7 ginastas universitárias, a estratégia de aterrissagem masculina gerou maior amplitude de flexão de joelho e quadril na desaceleração do impacto, com marcada variabilidade individual, questionando a norma de aterrissagem feminina da FIG."
  },
  {
   "authors": "Remmel L, Jürimäe J, Tamm A-L, Purge P, Tillmann V",
@@ -462,15 +627,114 @@
   "finding": "Atitude de imagem corporal correlaciona com resistina sérica (via gordura) só nas rítmicas — elo biológico."
  },
  {
-  "authors": "Gorwa J, Kabaciński J, Murawa M, Fryzowicz A",
-  "year": 2020,
-  "title": "On the track of the ideal turnout: EMG and kinematic analysis of the five classical ballet positions",
-  "journal": "PLoS ONE",
-  "doi": "10.1371/journal.pone.0230654",
-  "citations": 19,
-  "sport": "Balé clássico",
+  "authors": "Dall'Acqua F, Cristina-Souza G, Santos-Mariano AC, Bertuzzi R, Rodacki C, Lima-Silva AE",
+  "year": 2021,
+  "title": "Caffeine ingestion improves specific artistic swimming tasks",
+  "journal": "Braz. J. Medical and Biological Research",
+  "doi": "10.1590/1414-431X202010346",
+  "citations": "n/d",
+  "sport": "Nado artístico",
+  "topic": "physical-determinants",
+  "finding": "5 mg/kg de cafeína melhorou amplitude, altura (Boost/Barracuda) e duração de sculling em atletas experientes."
+ },
+ {
+  "authors": "Hirosawa S, Watanabe M, Aoki Y",
+  "year": 2021,
+  "title": "Determinant analysis and developing evaluation indicators of grade of execution score of double axel jump in figure skating",
+  "journal": "Journal of Sports Sciences",
+  "doi": "10.1080/02640414.2021.1997407",
+  "citations": 0,
+  "sport": "Patinação artística",
+  "topic": "biomechanics-technique",
+  "finding": "Na análise do duplo axel do Short Program feminino do Mundial 2019, maior distância horizontal (vs altura vertical) e maior velocidade de aterrissagem contribuíram para GOE mais alto, via regressão por componentes principais."
+ },
+ {
+  "authors": "Esteban-García P, Jiménez-Díaz JF, Abián-Vicén J, Bravo-Sánchez A, Rubio-Arias JÁ",
+  "year": 2021,
+  "title": "Effect of 12 weeks core training on core muscle performance in rhythmic gymnastics",
+  "journal": "Biology (Basel)",
+  "doi": "10.3390/biology10111210",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
   "topic": "emg-activation",
-  "finding": "Menos rotação externa de quadril → padrão EMG compensatório de turnout forçado (mais tornozelo/dorso, menos abdome/quadril)."
+  "finding": "12 sem de core ↑ força/resistência do tronco e amplitude EMG na prancha — ativação neuromuscular treinável."
+ },
+ {
+  "authors": "Pentith R, Moss SL, Lamb K, Edwards C",
+  "year": 2021,
+  "title": "Perfectionism among young female competitive Irish dancers: prevalence and relationship with injury responses",
+  "journal": "J. Dance Medicine & Science",
+  "doi": "10.12678/1089-313X.061521k",
+  "citations": "n/d",
+  "sport": "Dança (irlandesa competitiva)",
+  "topic": "stress-coping",
+  "finding": "79% com tendências perfeccionistas; perfeccionismo associou-se a estratégias de coping ao lidar com lesão."
+ },
+ {
+  "authors": "Campos-Pérez J, Páscoa RNMJ, Lopes JA, Cámara-Martos F",
+  "year": 2021,
+  "title": "Relationship Between Gymnastic Rhythmic Practice and Body Composition, Physical Performance, and Trace Element Status in Young Girls",
+  "journal": "Biological Trace Element Research",
+  "doi": "10.1007/s12011-021-02651-z",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "physical-determinants",
+  "finding": "Análise multivariada (PCA + PLS-DA) classificou meninas em ginastas de competição vs sedentárias com ~95% de predições corretas a partir de composição corporal, desempenho e oligoelementos."
+ },
+ {
+  "authors": "Langham-Walsh E, Gottwald V, Hardy J",
+  "year": 2021,
+  "title": "Relative age effect? No \"flipping\" way! Apparatus dependent inverse relative age effects in elite, women's artistic gymnastics",
+  "journal": "PLOS ONE",
+  "doi": "10.1371/journal.pone.0253656",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "talent-prediction",
+  "finding": "Regressão de Poisson e Índice de Discriminação revelaram efeito de idade relativa inverso dependente do aparelho (trave/salto) em 806 ginastas artísticas de elite internacional."
+ },
+ {
+  "authors": "Cejudo A, Gómez-Lozano S, Sainz de Baranda P, Vargas-Macías A, Santonja-Medina F",
+  "year": 2021,
+  "title": "Sagittal Integral Morphotype of Female Classical Ballet Dancers and Predictors of Sciatica and Low Back Pain",
+  "journal": "International Journal of Environmental Research and Public Health",
+  "doi": "10.3390/ijerph18095039",
+  "citations": "n/d",
+  "sport": "Balé clássico",
+  "topic": "biomechanics-technique",
+  "finding": "Regressão logística e curvas ROC definiram valores de corte das curvaturas sagitais da coluna que predizem alto risco de ciática/lombalgia em bailarinas clássicas profissionais."
+ },
+ {
+  "authors": "Podrihalo O, Podrigalo L, Jagiełło W, Iermakov S, Yermakova T",
+  "year": 2021,
+  "title": "Substantiation of methods for predicting success in artistic swimming",
+  "journal": "IJERPH",
+  "doi": "10.3390/ijerph18168739",
+  "citations": 15,
+  "sport": "Nado artístico",
+  "topic": "talent-prediction",
+  "finding": "Modelo morfofuncional de 9 critérios prediz sucesso; flexibilidade e índices respiratórios/hipóxia são os mais informativos."
+ },
+ {
+  "authors": "Molnar DS, Blackburn M, Zinga D, Spadafora N, Methot-Jones T, Connolly M",
+  "year": 2021,
+  "title": "Trait perfectionism and dance goals among young female dancers: the 2x2 model",
+  "journal": "J. Sport & Exercise Psychology",
+  "doi": "10.1123/jsep.2020-0118",
+  "citations": "n/d",
+  "sport": "Dança competitiva",
+  "topic": "motivation",
+  "finding": "Perfeccionismo de preocupação avaliativa → metas menos intrínsecas/mais extrínsecas; padrões pessoais → motivação mais autodeterminada."
+ },
+ {
+  "authors": "Kulshreshtha M, Babu N, Goel NJ, Chandel S",
+  "year": 2020,
+  "title": "Disordered eating attitudes and body shape concerns among North Indian Kathak dancers",
+  "journal": "International Journal of Eating Disorders",
+  "doi": "10.1002/eat.23425",
+  "citations": "n/d",
+  "sport": "Dança (Kathak)",
+  "topic": "disordered-eating",
+  "finding": "Regressão logística binária indicou que bailarinas Kathak com elevada preocupação com a forma corporal têm ~5x mais chance de atitudes alimentares disfuncionais (caso-controle, 206 bailarinas vs 235 controles)."
  },
  {
   "authors": "Piasecki J, Inns TB, Bass JJ, Scott R, Stashuk DW, Phillips BE, Atherton PJ, Piasecki M",
@@ -482,6 +746,17 @@
   "sport": "Atletas master (F+M) · proxy — não estético",
   "topic": "motor-unit",
   "finding": "EMG intramuscular: remodelação de unidades motoras com a idade; a frequência de disparo caiu só nas mulheres (fenótipo mais lento)."
+ },
+ {
+  "authors": "Gorwa J, Kabaciński J, Murawa M, Fryzowicz A",
+  "year": 2020,
+  "title": "On the track of the ideal turnout: EMG and kinematic analysis of the five classical ballet positions",
+  "journal": "PLoS ONE",
+  "doi": "10.1371/journal.pone.0230654",
+  "citations": 19,
+  "sport": "Balé clássico",
+  "topic": "emg-activation",
+  "finding": "Menos rotação externa de quadril → padrão EMG compensatório de turnout forçado (mais tornozelo/dorso, menos abdome/quadril)."
  },
  {
   "authors": "Schärer C, Lehmann T, Naundorf F, Taube W, Hübner K",
@@ -517,28 +792,6 @@
   "finding": "Amenorreia hipotalâmica comum; com baixa energia e baixa DMO (Tríade) ↑ risco de fratura por estresse."
  },
  {
-  "authors": "Donti O, Bogdanis GC, Kritikou M, Donti A, Theodorakou K",
-  "year": 2016,
-  "title": "The relative contribution of physical fitness to the technical execution score in youth rhythmic gymnastics",
-  "journal": "J. Human Kinetics",
-  "doi": "10.1515/hukin-2015-0183",
-  "citations": "n/d",
-  "sport": "Ginástica rítmica",
-  "topic": "judging-scoring",
-  "finding": "Flexibilidade e gordura discriminam classificadas; a aptidão física explica 62,9% da nota de execução no nível baixo."
- },
- {
-  "authors": "Lin CF, Lee WC, Chen YA, Hsue BJ",
-  "year": 2016,
-  "title": "Fatigue-induced changes in movement pattern and muscle activity during ballet relevé on demi-pointe",
-  "journal": "J. Applied Biomechanics",
-  "doi": "10.1123/jab.2014-0263",
-  "citations": "n/d",
-  "sport": "Balé clássico",
-  "topic": "motor-pattern",
-  "finding": "Fadiga reduz isquiotibiais/tibial anterior e aumenta sóleo; controle migra para quadril/tronco e piora no tornozelo."
- },
- {
   "authors": "Neves CM, Meireles JFF, Carvalho PHB, Schubring A, Barker-Ruchti N, Ferreira MEC",
   "year": 2016,
   "title": "Body dissatisfaction in women's artistic gymnastics: a longitudinal study of psychosocial indicators",
@@ -561,15 +814,15 @@
   "finding": "+27% de gasto energético em 4 sem baixou a energia disponível, com sinais endócrinos de conservação e mais fadiga percebida."
  },
  {
-  "authors": "Tan JOA, Calitri R, Bloodworth A, McNamee MJ",
+  "authors": "Lin CF, Lee WC, Chen YA, Hsue BJ",
   "year": 2016,
-  "title": "Understanding eating disorders in elite gymnastics: ethical and conceptual challenges",
-  "journal": "Clinics in Sports Medicine",
-  "doi": "10.1016/j.csm.2015.10.002",
+  "title": "Fatigue-induced changes in movement pattern and muscle activity during ballet relevé on demi-pointe",
+  "journal": "J. Applied Biomechanics",
+  "doi": "10.1123/jab.2014-0263",
   "citations": "n/d",
-  "sport": "Ginástica rítmica/acrobática",
-  "topic": "disordered-eating",
-  "finding": "Ginastas de elite: mais sintomas alimentares e depressivos e menor autoestima; diagnóstico é conceitualmente complexo."
+  "sport": "Balé clássico",
+  "topic": "motor-pattern",
+  "finding": "Fadiga reduz isquiotibiais/tibial anterior e aumenta sóleo; controle migra para quadril/tronco e piora no tornozelo."
  },
  {
   "authors": "Tanabe H, Fujii K, Kouzaki M",
@@ -583,6 +836,28 @@
   "finding": "Na meia-ponta, coerência EMG-EMG até ~50 Hz indica drive neural comum aos estabilizadores (proxy de rate coding)."
  },
  {
+  "authors": "Donti O, Bogdanis GC, Kritikou M, Donti A, Theodorakou K",
+  "year": 2016,
+  "title": "The relative contribution of physical fitness to the technical execution score in youth rhythmic gymnastics",
+  "journal": "J. Human Kinetics",
+  "doi": "10.1515/hukin-2015-0183",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "judging-scoring",
+  "finding": "Flexibilidade e gordura discriminam classificadas; a aptidão física explica 62,9% da nota de execução no nível baixo."
+ },
+ {
+  "authors": "Tan JOA, Calitri R, Bloodworth A, McNamee MJ",
+  "year": 2016,
+  "title": "Understanding eating disorders in elite gymnastics: ethical and conceptual challenges",
+  "journal": "Clinics in Sports Medicine",
+  "doi": "10.1016/j.csm.2015.10.002",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica/acrobática",
+  "topic": "disordered-eating",
+  "finding": "Ginastas de elite: mais sintomas alimentares e depressivos e menor autoestima; diagnóstico é conceitualmente complexo."
+ },
+ {
   "authors": "Sawers A, Allen JL, Ting LH",
   "year": 2015,
   "title": "Long-term training modifies the modular structure and organization of walking balance control",
@@ -594,17 +869,6 @@
   "finding": "Experts recrutam mais módulos/sinergias com menos coativação e maior generalização — reorganização neural do controle do equilíbrio."
  },
  {
-  "authors": "Pantoja PD, Mello A, Liedtke GV, Kanitz AC, Cadore EL, Pinto SS, Alberton CL, Kruel LFM",
-  "year": 2014,
-  "title": "Neuromuscular responses of elite skaters during different roller figure skating jumps",
-  "journal": "J. Human Kinetics",
-  "doi": "10.2478/hukin-2014-0029",
-  "citations": "n/d",
-  "sport": "Patinação artística",
-  "topic": "emg-activation",
-  "finding": "Ativação sobe com o nº de rotações; mulheres ativam mais tibial anterior, vastos e glúteo máximo na aterrissagem do triplo."
- },
- {
   "authors": "Saito S, Obata H, Endoh T, Kuno-Mizumura M, Nakazawa K",
   "year": 2014,
   "title": "Corticospinal excitability of the ankle extensor muscles is enhanced in ballet dancers",
@@ -614,6 +878,17 @@
   "sport": "Balé",
   "topic": "rfd-neural",
   "finding": "MEP por TMS mais íngreme nas bailarinas — adaptação corticoespinhal do sóleo por plantiflexão repetida a longo prazo."
+ },
+ {
+  "authors": "Pantoja PD, Mello A, Liedtke GV, Kanitz AC, Cadore EL, Pinto SS, Alberton CL, Kruel LFM",
+  "year": 2014,
+  "title": "Neuromuscular responses of elite skaters during different roller figure skating jumps",
+  "journal": "J. Human Kinetics",
+  "doi": "10.2478/hukin-2014-0029",
+  "citations": "n/d",
+  "sport": "Patinação artística",
+  "topic": "emg-activation",
+  "finding": "Ativação sobe com o nº de rotações; mulheres ativam mais tibial anterior, vastos e glúteo máximo na aterrissagem do triplo."
  },
  {
   "authors": "Tsopani D, Dallas G, Skordilis EK",
