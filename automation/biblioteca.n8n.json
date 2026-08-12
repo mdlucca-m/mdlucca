@@ -14,7 +14,8 @@
     {
       "parameters": {
         "assignments": { "assignments": [
-          { "id": "g", "name": "gaps", "value": "biomecânica / cinemática / mecânica; RFD e derivadas (velocidade/aceleração angular, impulso); estatística bayesiana; curva ROC / AUC; tamanho de efeito; unidades motoras / taxa de disparo; flow; burnout", "type": "string" },
+          { "id": "g", "name": "gaps", "value": "variáveis psicológicas (flow, burnout, clima motivacional, autofala, resiliência, regulação emocional, paixão, coping, saúde mental, ansiedade, perfeccionismo, imagem corporal, transtorno alimentar); biomecânica / derivadas (RFD); estatística bayesiana; curva ROC; tamanho de efeito", "type": "string" },
+          { "id": "m", "name": "modalidades", "value": "Ginástica rítmica; Ginástica artística; Patinação artística; Nado artístico; Balé/dança; Cheerleading; Ginástica acrobática", "type": "string" },
           { "id": "r", "name": "repo", "value": "/opt/delucca", "type": "string" }
         ] }
       },
@@ -26,10 +27,10 @@
     },
     {
       "parameters": {
-        "command": "=cd {{ $json.repo }} && REPO_DIR={{ $json.repo }} bash automation/atualizar-biblioteca.sh \"{{ $json.gaps }}\""
+        "command": "=cd {{ $json.repo }} && REPO_DIR={{ $json.repo }} MODALIDADES=\"{{ $json.modalidades }}\" bash automation/atualizar-biblioteca.sh \"{{ $json.gaps }}\""
       },
       "id": "run",
-      "name": "3 · Agente busca + verifica DOI + cataloga",
+      "name": "3 · Agente busca por modalidade + verifica DOI + cataloga",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [ 700, 300 ],
@@ -80,8 +81,8 @@
   ],
   "connections": {
     "1 · Agenda (semanal)": { "main": [ [ { "node": "2 · Lacunas a buscar", "type": "main", "index": 0 } ] ] },
-    "2 · Lacunas a buscar": { "main": [ [ { "node": "3 · Agente busca + verifica DOI + cataloga", "type": "main", "index": 0 } ] ] },
-    "3 · Agente busca + verifica DOI + cataloga": { "main": [ [ { "node": "4 · Quantos artigos novos?", "type": "main", "index": 0 } ] ] },
+    "2 · Lacunas a buscar": { "main": [ [ { "node": "3 · Agente busca por modalidade + verifica DOI + cataloga", "type": "main", "index": 0 } ] ] },
+    "3 · Agente busca por modalidade + verifica DOI + cataloga": { "main": [ [ { "node": "4 · Quantos artigos novos?", "type": "main", "index": 0 } ] ] },
     "4 · Quantos artigos novos?": { "main": [ [ { "node": "5 · Houve novidade?", "type": "main", "index": 0 } ] ] },
     "5 · Houve novidade?": { "main": [ [ { "node": "6a · Digest por e-mail", "type": "main", "index": 0 } ], [ { "node": "6b · Nada novo", "type": "main", "index": 0 } ] ] }
   },

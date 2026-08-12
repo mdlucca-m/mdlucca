@@ -30,6 +30,7 @@ PYTHEME = {  # topic -> variable
     'motor-pattern':'Neuro','emg-activation':'Neuro','motor-unit':'Neuro','firing-rate':'Neuro','rfd-neural':'Neuro','motor-learning':'Neuro',
     'anxiety':'Psico','perfectionism':'Psico','body-image':'Psico','disordered-eating':'Psico','motivation':'Psico','self-confidence':'Psico',
     'stress-coping':'Psico','burnout':'Psico','mental-toughness':'Psico','flow':'Psico','attentional-focus':'Psico',
+    'self-talk':'Psico','motivational-climate':'Psico','resilience':'Psico','well-being':'Psico','passion':'Psico','emotion-regulation':'Psico','coping':'Psico','mental-health':'Psico','self-esteem':'Psico','fear-of-failure':'Psico','imagery':'Psico',
     'physical-determinants':'Performance','biomechanics-technique':'Performance','anthropometry-maturation':'Performance','talent-prediction':'Performance','judging-scoring':'Performance',
     'neuromuscular-fatigue':'Fadiga','training-load':'Fadiga','overtraining':'Fadiga','recovery-readiness':'Fadiga','red-s':'Fadiga','menstrual-hormonal':'Fadiga','perceived-fatigue':'Fadiga',
 }
@@ -246,6 +247,16 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);display
 .stack span{height:100%;width:0;transition:width .85s cubic-bezier(.2,.8,.2,1)}
 .subtop{display:flex;flex-wrap:wrap;gap:6px}
 .subtop span{font-size:11px;color:var(--mid);background:#ffffff0c;border:1px solid var(--line);border-radius:99px;padding:3px 9px}
+/* ---- psicologia ---- */
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:820px){.pgrid{grid-template-columns:1fr}}
+.pcard{background:linear-gradient(180deg,var(--ink-2),var(--ink-1));border:1px solid #ffffff0e;border-left:3px solid var(--t-psico);border-radius:14px;padding:16px 18px;box-shadow:0 22px 50px -40px #000}
+.pcard .ph{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.pcard h3{font-family:var(--cond);font-weight:700;letter-spacing:.02em;margin:0;color:var(--t-psico);font-size:16px}
+.pcard .tot{font-family:var(--disp);font-size:24px;color:var(--hi);line-height:1}
+.pcard .pv{cursor:pointer}
+.pcard .pv:hover .nm{color:var(--hi)}
+.pcard .empty0{color:var(--low);font-size:12.5px;font-style:italic;margin:10px 0 0}
 """
 
 BODY = r"""
@@ -260,7 +271,7 @@ BODY = r"""
     <a href="#setores">Setores</a>
     <a href="#tipos">Tipos de estudo</a>
     <a href="#analises">Análises</a>
-    <a href="#permanova">PERMANOVA</a>
+    <a href="#psico">Psicologia</a>
     <a href="#revisao">Base p/ revisão</a>
     <a href="#sintese">Síntese</a>
     <a href="#acervo">Acervo</a>
@@ -329,17 +340,15 @@ BODY = r"""
     </div>
   </section>
 
-  <!-- PERMANOVA -->
-  <section class="block" id="permanova">
-    <h2 class="sec">Quantos estudos de PERMANOVA?</h2>
-    <p class="sub">Resposta honesta com base no acervo e na literatura</p>
-    <div class="card perm">
-      <div class="big" id="permbig">0</div>
-      <div class="txt">
-        <h3 id="permhead"></h3>
-        <p id="permverdict"></p>
-        <div class="chips2" id="permmethods"></div>
-      </div>
+  <!-- VARIÁVEIS PSICOLÓGICAS -->
+  <section class="block" id="psico">
+    <h2 class="sec">Variáveis psicológicas</h2>
+    <p class="sub">Subcategorias · por modalidade</p>
+    <div class="pgrid" id="psicocards"></div>
+    <div class="card" style="margin-top:18px">
+      <h3 style="font-family:var(--cond);font-weight:700;margin:0 0 4px;font-size:16px">Subcategoria psicológica × modalidade</h3>
+      <p class="hint">Onde a pesquisa psicológica se concentra. Clique numa célula para filtrar o acervo.</p>
+      <div class="matx"><table class="mx" id="psicomatrix"></table></div>
     </div>
   </section>
 
@@ -433,6 +442,7 @@ const THEME={
   'anxiety':['Psico','--t-psico'],'perfectionism':['Psico','--t-psico'],'body-image':['Psico','--t-psico'],
   'disordered-eating':['Psico','--t-psico'],'motivation':['Psico','--t-psico'],'self-confidence':['Psico','--t-psico'],
   'stress-coping':['Psico','--t-psico'],'burnout':['Psico','--t-psico'],'mental-toughness':['Psico','--t-psico'],'flow':['Psico','--t-psico'],'attentional-focus':['Psico','--t-psico'],
+  'self-talk':['Psico','--t-psico'],'motivational-climate':['Psico','--t-psico'],'resilience':['Psico','--t-psico'],'well-being':['Psico','--t-psico'],'passion':['Psico','--t-psico'],'emotion-regulation':['Psico','--t-psico'],'coping':['Psico','--t-psico'],'mental-health':['Psico','--t-psico'],'self-esteem':['Psico','--t-psico'],'fear-of-failure':['Psico','--t-psico'],'imagery':['Psico','--t-psico'],
   'physical-determinants':['Performance','--t-perf'],'biomechanics-technique':['Performance','--t-perf'],
   'anthropometry-maturation':['Performance','--t-perf'],'talent-prediction':['Performance','--t-perf'],'judging-scoring':['Performance','--t-perf'],
   'neuromuscular-fatigue':['Fadiga','--t-fadiga'],'training-load':['Fadiga','--t-fadiga'],'overtraining':['Fadiga','--t-fadiga'],
@@ -444,7 +454,7 @@ const cssvar=v=>getComputedStyle(document.documentElement).getPropertyValue(v).t
 const theme=t=>THEME[t]?THEME[t][0]:'—';
 const tcolor=t=>THEME[t]?cssvar(THEME[t][1]):'#888';
 const num=v=>{const n=parseInt(String(v).replace(/\D/g,''));return isNaN(n)?-1:n;};
-const state={q:'',sport:'',design:'',sort:'year',themes:new Set(),subvar:'',analysis:'',modality:'',methodcol:''};
+const state={q:'',sport:'',design:'',sort:'year',themes:new Set(),subvar:'',analysis:'',modality:'',methodcol:'',topic:'',psicogroup:''};
 
 // shade a base color by index (lighter/darker variants for subvariables)
 function shade(hex,f){const c=hex.replace('#','');const r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16);
@@ -455,12 +465,12 @@ function shade(hex,f){const c=hex.replace('#','');const r=parseInt(c.substr(0,2)
 function buildStats(){
   const themes={};DATA.forEach(d=>{const th=theme(d.topic);themes[th]=(themes[th]||0)+1;});
   const st=document.getElementById('stats');
-  const perm=META.permanova?META.permanova.in_library??0:0;
+  const bio=DATA.filter(d=>d.biomech).length;
   st.innerHTML=`<div class="stat"><b data-count="${DATA.length}">0</b><span>artigos</span></div>`+
     TEMAS.map(k=>`<div class="stat"><b data-count="${themes[k]||0}">0</b><span>${k}</span></div>`).join('')+
     `<div class="stat"><b data-count="${new Set(DATA.map(d=>d.sport)).size}">0</b><span>esportes</span></div>`+
     `<div class="stat"><b data-count="${new Set(DATA.map(d=>d.subvar)).size}">0</b><span>subvariáveis</span></div>`+
-    `<div class="stat"><b data-count="${perm}">0</b><span>PERMANOVA</span></div>`;
+    `<div class="stat"><b data-count="${bio}">0</b><span>biomecânica</span></div>`;
 }
 /* count-up when visible */
 function countUp(el){const tgt=+el.dataset.count;if(el._done)return;el._done=1;const t0=performance.now();const dur=900;
@@ -535,16 +545,53 @@ function buildDesign(){
 }
 function animDesign(){document.querySelectorAll('#dchart .df').forEach(f=>f.style.width=f.dataset.w+'%');}
 
-/* ---------- PERMANOVA ---------- */
-function buildPerm(){
-  const p=META.permanova||{};
-  document.getElementById('permbig').dataset.count=p.in_library??0;
-  document.getElementById('permhead').textContent=
-    `${p.in_library??0} no acervo · ${p.count_found??0} localizados na literatura de esportes estéticos femininos`;
-  document.getElementById('permverdict').textContent=p.verdict||'';
-  document.getElementById('permmethods').innerHTML='<span style="color:var(--gold)">Métodos que dominam:</span>'+
-    (p.dominant_methods||[]).map(m=>`<span>${m}</span>`).join('');
+/* ---------- VARIÁVEIS PSICOLÓGICAS ---------- */
+const PSICO_GROUPS=[
+  {key:'corpo',label:'Pressão estética & corpo',topics:['body-image','disordered-eating','perfectionism','self-esteem','fear-of-failure']},
+  {key:'ansiedade',label:'Ansiedade & autoconfiança',topics:['anxiety','self-confidence','self-talk','imagery']},
+  {key:'motivacao',label:'Motivação & engajamento',topics:['motivation','motivational-climate','passion','attentional-focus']},
+  {key:'resiliencia',label:'Resiliência & saúde mental',topics:['mental-toughness','resilience','stress-coping','coping','burnout','flow','well-being','emotion-regulation','mental-health']}
+];
+const PSUB={anxiety:'Ansiedade competitiva',perfectionism:'Perfeccionismo',
+  'body-image':'Imagem corporal','disordered-eating':'Transtorno alimentar',motivation:'Motivação',
+  'self-confidence':'Autoconfiança','stress-coping':'Estresse & coping',burnout:'Burnout',
+  'mental-toughness':'Resiliência mental',flow:'Flow','attentional-focus':'Foco atencional',
+  'self-talk':'Autofala','motivational-climate':'Clima motivacional',resilience:'Resiliência',
+  'well-being':'Bem-estar',passion:'Paixão','emotion-regulation':'Regulação emocional',
+  coping:'Coping','mental-health':'Saúde mental','self-esteem':'Autoestima','fear-of-failure':'Medo de falhar',imagery:'Imagética'};
+const plabel=t=>PSUB[t]||t;
+function clearAllFilters(){state.analysis='';state.modality='';state.methodcol='';state.subvar='';state.topic='';state.psicogroup='';state.themes.clear();state.sport='';state.design='';
+  const sp=document.getElementById('sport'),dg=document.getElementById('design');if(sp)sp.value='';if(dg)dg.value='';
+  syncAnbar();document.querySelectorAll('#chips .chip[data-t]').forEach(x=>x.setAttribute('aria-pressed','false'));
+  const all=document.querySelector('#chips .all');if(all)all.setAttribute('aria-pressed','true');applyKPI();}
+function buildPsico(){
+  const ps=DATA.filter(d=>theme(d.topic)==='Psico');const col=cssvar('--t-psico');
+  document.getElementById('psicocards').innerHTML=PSICO_GROUPS.map(g=>{
+    const gs=ps.filter(d=>g.topics.includes(d.topic));
+    const byT={};gs.forEach(d=>byT[d.topic]=(byT[d.topic]||0)+1);
+    const items=Object.entries(byT).sort((a,b)=>b[1]-a[1]);const maxT=items.length?items[0][1]:1;
+    const mods=[...new Set(gs.flatMap(d=>modsOf(d)))];
+    const body=items.length?`<div class="mini" style="margin-top:10px">`+items.map(([t,v])=>`<div class="r pv" data-topic="${t}" style="grid-template-columns:150px 1fr 30px"><div class="nm" title="${plabel(t)}">${plabel(t)}</div>
+      <div class="bar" data-w="${(v/maxT*100).toFixed(0)}" style="background:${col}"></div><div class="v">${v}</div></div>`).join('')+`</div>
+      <div class="subtop" style="margin-top:10px">${mods.map(m=>`<span style="color:${modColor(m)}">${m}</span>`).join('')}</div>`
+      :`<p class="empty0">Sem estudos ainda — alvo prioritário da busca automatizada.</p>`;
+    return `<div class="pcard"><div class="ph"><h3>${g.label}</h3><span class="tot">${gs.length}</span></div>${body}</div>`;
+  }).join('');
+  document.querySelectorAll('#psicocards .pv').forEach(r=>r.onclick=()=>{clearAllFilters();state.topic=r.dataset.topic;render();scrollAcervo();});
+  buildPsicoMatrix(ps);
 }
+function buildPsicoMatrix(ps){
+  const mods=modalityList().filter(m=>ps.some(d=>inMod(d,m)));
+  const tbl=document.getElementById('psicomatrix');let max=0;const grid={};
+  PSICO_GROUPS.forEach(g=>{grid[g.key]={};mods.forEach(m=>{const n=ps.filter(d=>g.topics.includes(d.topic)&&inMod(d,m)).length;grid[g.key][m]=n;if(n>max)max=n;});});
+  let html='<thead><tr><th class="rh">Subcategoria \\ Modalidade</th>'+mods.map(m=>`<th style="color:${modColor(m)}">${m}</th>`).join('')+'</tr></thead><tbody>';
+  PSICO_GROUPS.forEach(g=>{html+=`<tr><th class="rh">${g.label}</th>`+mods.map(m=>{const n=grid[g.key][m];
+    return `<td data-grp="${g.key}" data-mod="${m}" data-c="${n}"><div class="cell" data-fill="${n?(0.3+0.7*n/max).toFixed(2):0}" style="background:${n?cssvar('--t-psico'):'transparent'}">${n||''}</div></td>`;}).join('')+'</tr>';});
+  html+='</tbody>';tbl.innerHTML=html;
+  tbl.querySelectorAll('td').forEach(td=>{if(+td.dataset.c>0)td.onclick=()=>{clearAllFilters();state.psicogroup=td.dataset.grp;state.modality=td.dataset.mod;render();scrollAcervo();};});
+}
+function animPsico(){document.querySelectorAll('#psicomatrix .cell').forEach((c,i)=>{const f=+c.dataset.fill;setTimeout(()=>{c.style.opacity=f>0?f:0;c.style.transform='scale(1)';},i*18);});
+  document.querySelectorAll('#psicocards .mini .bar').forEach(b=>b.style.width=b.dataset.w+'%');}
 
 /* ---------- PRISMA ---------- */
 function buildPrisma(){
@@ -738,6 +785,8 @@ function render(){
     if(state.sport && d.sport!==state.sport)return false;
     if(state.design && d.design!==state.design)return false;
     if(state.subvar && d.subvar!==state.subvar)return false;
+    if(state.topic && d.topic!==state.topic)return false;
+    if(state.psicogroup){const g=PSICO_GROUPS.find(x=>x.key===state.psicogroup);if(g&&!g.topics.includes(d.topic))return false;}
     if(state.analysis){const a=ANALYSES.find(x=>x.k===state.analysis);if(a&&!a.test(d))return false;}
     if(state.modality && !inMod(d,state.modality))return false;
     if(state.methodcol){const c=METHODCOLS.find(x=>x.k===state.methodcol);if(c&&!c.test(d))return false;}
@@ -756,7 +805,7 @@ function render(){
     <td><a class="doi" href="https://doi.org/${d.doi}" target="_blank" rel="noopener">DOI ↗</a></td>
   </tr>`).join('');
   document.getElementById('empty').hidden=rows.length>0;
-  const flt=[state.analysis&&(ANALYSES.find(x=>x.k===state.analysis)||{}).lab,state.modality,state.methodcol,state.subvar,state.design,state.sport,[...state.themes].join('+')].filter(Boolean).join(' · ');
+  const flt=[state.analysis&&(ANALYSES.find(x=>x.k===state.analysis)||{}).lab,state.topic&&(PSUB[state.topic]||state.topic),state.psicogroup&&(PSICO_GROUPS.find(x=>x.key===state.psicogroup)||{}).label,state.modality,state.methodcol,state.subvar,state.design,state.sport,[...state.themes].join('+')].filter(Boolean).join(' · ');
   document.getElementById('note').textContent=`Exibindo ${rows.length} de ${DATA.length} artigos`+(flt?` · filtro: ${flt}`:'')+` · DOI verificado.`;
 }
 
@@ -770,21 +819,18 @@ document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.d
   document.getElementById('sort').value=state.sort;render();});
 
 /* ---------- init + reveal-on-scroll (real-time plotting) ---------- */
-buildStats();buildSeg();buildSport();buildDesign();buildAnbar();buildCrosstab();buildUniao();buildDrill();applyKPI();buildPerm();buildPrisma();buildMatrix();buildReviewMeta();buildSynth();buildControls();render();
-const REVEAL={setores:()=>{animSeg();animSport();},tipos:animDesign,analises:()=>{animCrosstab();animDrill();},revisao:animMatrix};
+buildStats();buildSeg();buildSport();buildDesign();buildAnbar();buildCrosstab();buildUniao();buildDrill();applyKPI();buildPsico();buildPrisma();buildMatrix();buildReviewMeta();buildSynth();buildControls();render();
+const REVEAL={setores:()=>{animSeg();animSport();},tipos:animDesign,analises:()=>{animCrosstab();animDrill();},psico:animPsico,revisao:animMatrix};
 const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){
   if(REVEAL[e.target.id]){REVEAL[e.target.id]();}
-  e.target.querySelectorAll?e.target.querySelectorAll('.stat b[data-count],#permbig').forEach(countUp):0;
+  e.target.querySelectorAll?e.target.querySelectorAll('.stat b[data-count]').forEach(countUp):0;
   }});},{threshold:.25});
-['setores','tipos','analises','revisao'].forEach(id=>io.observe(document.getElementById(id)));
+['setores','tipos','analises','psico','revisao'].forEach(id=>io.observe(document.getElementById(id)));
 document.querySelectorAll('.stat b[data-count]').forEach(el=>io.observe(el.closest('.stats')||el));
 // stats + permanova count-up
 const io2=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){
-  e.target.querySelectorAll('b[data-count]').forEach(countUp);
-  const pb=e.target.querySelector?document.getElementById('permbig'):null;}}),{threshold:.3});
+  e.target.querySelectorAll('b[data-count]').forEach(countUp);}}),{threshold:.3});
 io2.observe(document.getElementById('stats'));
-const permObs=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting)countUp(document.getElementById('permbig'));}),{threshold:.4});
-permObs.observe(document.getElementById('permanova'));
 """
 
 def build():
