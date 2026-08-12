@@ -1,0 +1,22 @@
+[
+ {
+  "title": "Neurofisiologia & controle motor",
+  "color": "--t-neuro",
+  "text": "A pesquisa concentra-se em <b>ativação (sEMG) e sinergias</b>, não em unidades motoras. Padrão: <b>coativação alta e específica</b> dos estabilizadores distais e do core, escalonando com a dificuldade do gesto; a elite usa <b>menos sinergias</b>, com ativação mais precoce (gesto aprendido). <b>Lacuna crítica</b>: não há estudos de recrutamento / taxa de disparo / rate coding nessa população — o dado mais próximo é a coerência EMG-EMG (~50 Hz) em bailarinas."
+ },
+ {
+  "title": "Variáveis psicológicas",
+  "color": "--t-psico",
+  "text": "Eixo dominante: <b>imagem corporal → perfeccionismo → transtorno alimentar</b>, sob pressão estética. Segundo bloco (desempenho): <b>ansiedade competitiva</b> e <b>autoconfiança</b> — esta prediz a performance melhor que a própria ansiedade. Motivação/clima e estresse-coping-burnout são moduladores emergentes, sub-representados em nado artístico, dança e cheerleading."
+ },
+ {
+  "title": "Como a performance é explicada",
+  "color": "--t-perf",
+  "text": "Cadeia <b>física → técnica → artística</b>. Antropometria/maturação criam o potencial (≈45% da variância na rítmica); <b>flexibilidade, força reativa e potência</b> sustentam; a biomecânica (altura/velocidade de voo, momento angular) materializa em execução; o julgamento (D×E×artístico) é o filtro final — a <b>execução</b> é o que mais discrimina os melhores."
+ },
+ {
+  "title": "Como é a fadiga",
+  "color": "--t-fadiga",
+  "text": "Multifatorial: a <b>neuromuscular</b> (periférica + central) degrada equilíbrio e postura; o principal motor é a <b>carga</b> (monotonia/strain no pré-competitivo). <b>Baixa energia disponível (RED-S)</b> e fatores femininos (disfunção menstrual, amenorreia) amplificam fadiga e lesão. Monitoramento ainda subjetivo — recomenda-se <b>sRPE/ACWR + bem-estar</b>."
+ }
+]

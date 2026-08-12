@@ -1,0 +1,94 @@
+{
+  "_meta": {
+    "generated": "2026-08-12",
+    "scope": "Esportes estéticos femininos (ginástica rítmica/artística/acrobática, patinação artística, nado artístico/sincronizado, balé/dança, cheerleading)",
+    "databases_queried": ["PubMed (E-utilities)"],
+    "databases_unavailable_this_session": ["Scite (limite mensal de chamadas atingido)", "Consensus (limite mensal atingido)"],
+    "search_note": "Buscas PERMANOVA combinadas com ginástica/patinação/nado/balé/dança/cheerleading e com EMG/cinemática/sinergia muscular/motor unit. Ver verdict."
+  },
+  "permanova": {
+    "count_found": 0,
+    "in_library": 0,
+    "studies": [
+      {
+        "doi": "10.23736/S0022-4707.26.17374-5",
+        "title": "From talented junior to World Tour cyclist: significance of physiological and psychological characteristics",
+        "year": 2026,
+        "note": "PERMANOVA em dados multivariados de talento (antropometria/fisiologia/psicologia) em ciclistas juniores. NAO e esporte estetico e a amostra e mista. Recuperado no PubMed como exemplo de PERMANOVA em ciencia do esporte."
+      },
+      {
+        "doi": "10.1016/j.jbiomech.2024.112151",
+        "title": "Lower extremity inter-joint coupling angles and variability during gait in pediatric hypermobility spectrum disorder",
+        "year": 2024,
+        "note": "Usa PERMANOVA + statistical non-parametric mapping para comparar padroes de coordenacao inter-articular na marcha. Biomecanica, mas populacao clinica pediatrica, NAO esporte estetico. Exemplo de PERMANOVA aplicada a acoplamento articular."
+      },
+      {
+        "doi": "10.3390/nu17142307",
+        "title": "Exploring the Co-Structure of Physical Activity and Dietary Patterns in Relation to Emotional Well-Being (tanglegram/PERMANOVA)",
+        "year": 2025,
+        "note": "PERMANOVA sobre estrutura conjunta atividade fisica-dieta em universitarios. NAO esporte estetico."
+      },
+      {
+        "doi": "10.3390/diagnostics16040508",
+        "title": "Motion-Informed, Patient-Specific Femoral Localization for MPFL Reconstruction Using 4D-CT",
+        "year": 2026,
+        "note": "PERMANOVA (pseudo-F) para distribuicao espacial de ponto femoral em cinematica 4D-CT do joelho. Cirurgia ortopedica, NAO esporte estetico."
+      }
+    ],
+    "verdict": "Nao foi encontrado NENHUM estudo de PERMANOVA em esportes esteticos femininos (ginastica, patinacao artistica, nado artistico, bale/danca, cheerleading). No PubMed, a busca 'PERMANOVA + (ginastica OR patinacao OR nado artistico OR bale OR danca OR cheerleading)' retorna zero resultados, assim como 'PERMANOVA + ginastica ritmica'. Ampliando para todo o esporte/exercicio, ha ~56 registros com PERMANOVA, mas eles sao esmagadoramente de microbioma intestinal (beta-diversidade 16S rRNA, distancias Bray-Curtis/UniFrac) e de ecologia — nao de biomecanica de atletas. Apenas um punhado aplica PERMANOVA a dados multivariados humanos, e nenhum a esporte estetico: talento em ciclismo (Roete et al., 2026), coordenacao inter-articular na marcha de criancas com hipermobilidade (Jeong et al., 2024), padroes AF-dieta em universitarios (Domaradzki & Slowinska-Lisowska, 2025) e localizacao femoral em cinematica 4D-CT (Wei et al., 2026). Cruzando com a biblioteca de 59 DOIs, o candidato mais provavel — o estudo de sinergias musculares do salto Axel na patinacao (10.3389/fbioe.2025.1639807) — usa Non-negative Matrix Factorization (NMF) e ANOVA/F, NAO PERMANOVA; os demais artigos de EMG/cinematica/sinergia da biblioteca usam SPM (statistical parametric mapping), NMF/NNMF com K-means e ANOVA. Conclusao honesta: PERMANOVA e um metodo tipico de ecologia/microbioma; em biomecanica de esportes esteticos femininos ele e essencialmente ausente na literatura indexada. Se o objetivo for uma revisao sistematica sobre 'PERMANOVA em esportes esteticos', o achado central sera a LACUNA (n=0), o que e um resultado legitimo e reportavel."
+    ,
+    "dominant_methods": [
+      "Statistical Parametric Mapping / SPM1d e Statistical Non-Parametric Mapping (comparacao de curvas cinematicas/EMG ao longo do ciclo do movimento)",
+      "Non-negative Matrix Factorization (NMF/NNMF) para extracao de sinergias musculares, frequentemente com K-means e coeficiente de Pearson para classificacao",
+      "ANOVA de medidas repetidas / ANOVA fatorial com tamanho de efeito (eta-quadrado parcial) e post-hoc",
+      "Modelos mistos lineares (efeitos aleatorios) para dados longitudinais de carga/bem-estar",
+      "PCA para reducao de dimensionalidade de variaveis antropometricas/fisiologicas",
+      "Correlacao e regressao (linear/logistica) para determinantes de desempenho",
+      "SEM / analise de mediacao e moderacao para desfechos psicologicos (perfeccionismo, ansiedade, imagem corporal)"
+    ]
+  },
+  "designs_field": [
+    {"design": "Transversal (survey/observacional e laboratorio transversal)", "share": "~55-65%", "note": "Predominante: psicometria (perfeccionismo, ansiedade, imagem corporal, mental toughness) e caracterizacao antropometrica/fisiologica/biomecanica em corte unico. Ferramenta de RoB adequada: AXIS."},
+    {"design": "Experimental / quase-experimental de laboratorio (biomecanica, EMG, intervencao aguda)", "share": "~15-20%", "note": "Coleta cinematica+sEMG, cafeina/bicarbonato, treino de core; amostras pequenas (n=7-22). Poucos sao randomizados; a maioria e quase-experimental intra-sujeitos."},
+    {"design": "Longitudinal / coorte (monitoramento de carga de treino, temporada, bem-estar, densidade ossea)", "share": "~12-15%", "note": "Seguimento de semanas a anos (ex.: temporada NCAA, 25 semanas de carga, follow-up de 11 anos de lesoes). RoB: Newcastle-Ottawa / ROBINS-I."},
+    {"design": "Revisao sistematica / narrativa", "share": "~5-8%", "note": "Ex.: revisoes de lesoes em cheerleading. RoB/qualidade: AMSTAR-2 / ROBIS; relato PRISMA 2020."},
+    {"design": "Ensaio clinico randomizado (ECR)", "share": "<5%", "note": "Muito raro neste campo; quando existe, intervencao psicologica (self-regulation) ou de treino. RoB: RoB2."},
+    {"design": "Estudo de caso / serie de casos", "share": "~3-5%", "note": "Ex.: coativacao muscular na ginastica ritmica (two-case study). Valor exploratorio, baixa evidencia."}
+  ],
+  "gaps": [
+    "Comportamento de unidades motoras (motor unit firing rate, recrutamento, decomposicao de EMG de alta densidade) em atletas de esportes esteticos FEMININAS — a evidencia existente e proxy em populacoes nao-esteticas ou mistas (ex.: primeiro interosseo dorsal, atletas master).",
+    "Uso de metodos estatisticos multivariados robustos (PERMANOVA, MANOVA por permutacao, machine learning) sobre dados biomecanicos/EMG de esportes esteticos — praticamente inexplorado.",
+    "Flow / estados otimos de desempenho e sua relacao com carga e bem-estar em ginastas, patinadoras e nadadoras artisticas.",
+    "Burnout, assedio/abuso e saude mental de longo prazo com desenhos LONGITUDINAIS (a maioria e transversal).",
+    "Trade-offs energia-disponibilidade (RED-S), funcao menstrual e saude ossea com coortes prospectivas e mediadores mecanicos.",
+    "Estudos de intervencao (ECR) para prevencao de lesoes de aterrissagem (cheerleading, ginastica) e para disturbios alimentares.",
+    "Padronizacao de sinergias musculares (numero de sinergias, criterio VAF, normalizacao) entre estudos para permitir meta-analise.",
+    "Amostras pequenas e ausencia de calculo de poder; poucos estudos multicentricos e internacionais com atletas de elite feminino."
+  ],
+  "prisma": {
+    "databases": [
+      "PubMed / MEDLINE",
+      "Scopus",
+      "Web of Science Core Collection",
+      "SPORTDiscus (EBSCO)",
+      "Embase",
+      "Cochrane CENTRAL (para ensaios)",
+      "PsycINFO (para desfechos psicologicos)",
+      "Literatura cinzenta: registros de ensaios (ClinicalTrials.gov), teses (ProQuest), e busca manual de referencias"
+    ],
+    "pico": {
+      "P": "Atletas do sexo feminino de esportes esteticos (ginastica ritmica/artistica/acrobatica, patinacao artistica, nado artistico/sincronizado, bale/danca, cheerleading), qualquer nivel competitivo; incluir subgrupos por faixa etaria/maturacao quando relevante.",
+      "I": "Exposicao/metodo de interesse conforme a pergunta — ex.: analise por PERMANOVA (ou, de forma mais ampla, metodo estatistico multivariado aplicado a dados de EMG/cinematica/sinergia muscular); ou uma intervencao de treino/psicologica.",
+      "C": "Comparador conforme desenho: nivel de habilidade (elite vs amador), grupo controle nao-atleta, membro dominante vs nao-dominante, pre vs pos-intervencao, ou outro metodo estatistico (ANOVA/SPM/NMF).",
+      "O": "Desfechos primarios biomecanicos/neuromusculares (sinergias, ativacao, cinematica, forcas de reacao), de desempenho (escores tecnicos), de carga/bem-estar, psicologicos (perfeccionismo, ansiedade, imagem corporal) ou de saude (RED-S, lesoes).",
+      "S": "Desenhos: transversal, longitudinal/coorte, quase-experimental, ECR e estudos de caso; excluir editoriais e resumos de congresso sem dados. Idiomas: definir a priori (ex.: ingles/portugues/espanhol). Peer-reviewed internacional."
+    },
+    "risk_of_bias": {
+      "ECR": "RoB2",
+      "Coorte/Longitudinal": "Newcastle-Ottawa / ROBINS-I",
+      "Transversal": "AXIS",
+      "Revisão": "AMSTAR-2 / ROBIS"
+    },
+    "synthesis": "Sintese predominantemente NARRATIVA e estruturada (tabelas de extracao por desenho, esporte, metodo estatistico e desfecho), dada a heterogeneidade de populacoes, protocolos biomecanicos e metricas. Meta-analise quantitativa apenas em subgrupos homogeneos (ex.: forcas de reacao de aterrissagem, prevalencia de disturbios alimentares) com modelos de efeitos aleatorios e I2; avaliar vies de publicacao (funnel/Egger) se >=10 estudos. Para a pergunta PERMANOVA especificamente, a sintese sera um MAPEAMENTO DE EVIDENCIA (evidence gap map) documentando a ausencia do metodo no campo e os metodos alternativos dominantes (SPM/SPM1d, NMF, ANOVA de medidas repetidas, modelos mistos). Classificar certeza global com GRADE quando aplicavel. Reportar conforme PRISMA 2020 (checklist + fluxograma) e registrar o protocolo no PROSPERO."
+  }
+}
