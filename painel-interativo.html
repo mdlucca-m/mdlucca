@@ -129,7 +129,32 @@ h1 .g{color:var(--gold)}
 .foot .wm{font-family:var(--disp);font-size:4.2cqw;color:var(--gold)}
 .hint{position:absolute;right:6cqw;bottom:2cqw;z-index:3;font-family:var(--cond);font-size:2.2cqw;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-mut)}
 
-@media(prefers-reduced-motion:reduce){ .rain,.spark{display:none} .view{animation:none} }
+/* ==== efeitos: abas + pizza explodida ==== */
+.tab{position:relative;overflow:hidden}
+.tab .rip{position:absolute;width:16px;height:16px;border-radius:50%;background:#ffffff9c;transform:translate(-50%,-50%) scale(0);pointer-events:none;animation:rip .62s ease-out forwards}
+@keyframes rip{to{transform:translate(-50%,-50%) scale(11);opacity:0}}
+.tab[aria-selected="true"]{animation:tabpop .42s ease}
+@keyframes tabpop{0%{transform:scale(.93)}55%{transform:scale(1.06)}100%{transform:scale(1)}}
+.tab[aria-selected="true"]::after{content:"";position:absolute;inset:0;border-radius:99px;pointer-events:none;
+  background:linear-gradient(110deg,transparent 38%,#ffffffb0 50%,transparent 62%);background-size:250% 100%;animation:sheen 2.6s linear infinite}
+@keyframes sheen{0%{background-position:130% 0}100%{background-position:-130% 0}}
+.view.on>*{animation:rise .52s cubic-bezier(.2,.8,.2,1) both}
+.view.on>*:nth-child(2){animation-delay:.09s}
+@keyframes rise{from{opacity:0;transform:translateY(12px) scale(.985);filter:blur(5px)}to{opacity:1;transform:none;filter:none}}
+.pie svg{overflow:visible}
+.dseg{transition:transform .5s cubic-bezier(.2,.9,.25,1),opacity .3s;cursor:pointer}
+.dseg.dim{opacity:.3}
+.dseg.sel path{filter:drop-shadow(0 0 4px var(--c)) drop-shadow(0 2px 5px #0005)}
+.flash{animation:flash .62s ease-out forwards}
+@keyframes flash{0%{opacity:.7;transform:scale(.25)}100%{opacity:0;transform:scale(1.95)}}
+.spk{animation:spkf .62s ease-out forwards}
+@keyframes spkf{0%{opacity:1}100%{opacity:0}}
+.ctrg{transform-box:fill-box;transform-origin:center}
+.ctrg.ctrpop{animation:ctrpop .45s ease}
+@keyframes ctrpop{0%{opacity:.25;transform:scale(.62)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+@media(prefers-reduced-motion:reduce){ .rain,.spark{display:none}
+  .view,.view.on>*,.tab,.tab[aria-selected="true"]::after,.ctrg,.flash,.spk{animation:none!important} .dseg{transition:none} }
 </style>
 </head>
 <body>
@@ -234,25 +259,46 @@ selStage(2,funnel.children[2]);
    <text x="100" y="100" text-anchor="middle" font-family="Oswald" font-size="9" letter-spacing="2" fill="var(--ink-mut)">ALTA</text>`;
 })();
 
-/* DONUT — peso por especificidade (1..5) */
+/* DONUT — pizza explodida com efeitos */
 (function(){const d=document.getElementById('donut'),leg=document.getElementById('legend');
-  const vals=[1,2,3,4,5],tot=vals.reduce((a,b)=>a+b),R=42,C=2*Math.PI*R;let off=0;
-  const segs=vals.map((v,i)=>{const frac=v/tot;const el=document.createElementNS('http://www.w3.org/2000/svg','circle');
-    el.setAttribute('cx',60);el.setAttribute('cy',60);el.setAttribute('r',R);el.setAttribute('fill','none');
-    el.setAttribute('stroke',PAL[i]);el.setAttribute('stroke-width',15);el.setAttribute('stroke-dasharray',`${C*frac} ${C}`);
-    el.setAttribute('stroke-dashoffset',-off);el.setAttribute('transform','rotate(-90 60 60)');el.style.transition='.2s';
-    off+=C*frac;return el;});
-  d.innerHTML='<g id="dg"></g><text x="60" y="58" text-anchor="middle" class="ctr" font-size="15">5</text><text x="60" y="72" text-anchor="middle" class="ctrs" font-size="6" letter-spacing="1">PILARES</text>';
-  const dg=d.querySelector('#dg');segs.forEach(s=>dg.appendChild(s));
+  const NS='http://www.w3.org/2000/svg';
+  const vals=[1,2,3,4,5],tot=vals.reduce((a,b)=>a+b);
+  const cx=60,cy=60,ri=27,ro=46,gap=0.03;
+  const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  const pt=(r,a)=>[cx+r*Math.cos(a),cy+r*Math.sin(a)];
+  const sector=(a0,a1)=>{const lg=(a1-a0)>Math.PI?1:0;
+    const[x0,y0]=pt(ro,a0),[x1,y1]=pt(ro,a1),[x2,y2]=pt(ri,a1),[x3,y3]=pt(ri,a0);
+    return `M${x0} ${y0} A${ro} ${ro} 0 ${lg} 1 ${x1} ${y1} L${x2} ${y2} A${ri} ${ri} 0 ${lg} 0 ${x3} ${y3} Z`;};
+  const dg=mk('g',{}),fx=mk('g',{class:'fx'}),ctrg=mk('g',{class:'ctrg'});
+  const paths=[],mids=[];let a=-Math.PI/2;
+  vals.forEach((v,i)=>{const sp=2*Math.PI*v/tot,a0=a+gap/2,a1=a+sp-gap/2;
+    const g=mk('g',{class:'dseg'});g.style.setProperty('--c',PAL[i]);
+    g.appendChild(mk('path',{d:sector(a0,a1),fill:PAL[i]}));
+    dg.appendChild(g);paths.push(g);mids.push((a0+a1)/2);a+=sp;});
+  ctrg.appendChild(mk('text',{x:60,y:59,'text-anchor':'middle',class:'ctr','font-size':16}));
+  ctrg.appendChild(mk('text',{x:60,y:71,'text-anchor':'middle',class:'ctrs','font-size':6,'letter-spacing':1}));
+  d.appendChild(dg);d.appendChild(fx);d.appendChild(ctrg);
+  const ctr=ctrg.children[0],ctrs=ctrg.children[1],legItems=[];
+  const setCtr=(x,y)=>{ctr.textContent=x;ctrs.textContent=y;ctrg.classList.remove('ctrpop');requestAnimationFrame(()=>ctrg.classList.add('ctrpop'));};
+  function burst(i){const mr=(ri+ro)/2,[mx,my]=pt(mr,mids[i]);
+    const fl=mk('circle',{cx:mx,cy:my,r:6,fill:PAL[i],class:'flash'});fl.style.transformBox='fill-box';fl.style.transformOrigin='center';
+    fx.appendChild(fl);setTimeout(()=>fl.remove(),640);
+    for(let k=0;k<7;k++){const ang=mids[i]+(Math.random()-.5)*1.7,dist=7+Math.random()*8;
+      const s=mk('circle',{cx:mx,cy:my,r:(1+Math.random()*0.8).toFixed(2),fill:k%2?'var(--gold-b)':'#ffffff',class:'spk'});
+      s.style.transition='transform .6s ease-out';fx.appendChild(s);
+      requestAnimationFrame(()=>{s.style.transform=`translate(${Math.cos(ang)*dist}px,${Math.sin(ang)*dist}px)`;});
+      setTimeout(()=>s.remove(),640);}}
+  function sel(i){paths.forEach((g,j)=>{g.classList.toggle('sel',j===i);g.classList.toggle('dim',j!==i);
+      g.style.transform=j===i?`translate(${(Math.cos(mids[i])*5).toFixed(2)}px,${(Math.sin(mids[i])*5).toFixed(2)}px)`:'translate(0,0)';});
+    legItems.forEach((x,j)=>x.classList.toggle('dim',j!==i));setCtr(i+1,STAGES[i].n.toUpperCase().slice(0,11));burst(i);}
+  function reset(){paths.forEach(g=>{g.classList.remove('sel','dim');g.style.transform='translate(0,0)';});
+    legItems.forEach(x=>x.classList.remove('dim'));setCtr('5','PILARES');}
+  paths.forEach((g,i)=>{g.onmouseenter=()=>sel(i);g.onclick=()=>sel(i);});
   STAGES.forEach((s,i)=>{const l=document.createElement('div');l.className='lg';
     l.innerHTML=`<i style="background:${PAL[i]}"></i><span><b>${s.n}</b> · ${i+1}/5</span>`;
-    l.onmouseenter=l.onclick=()=>{segs.forEach((sg,j)=>sg.setAttribute('stroke-width',j===i?19:15));
-      document.querySelectorAll('.legend .lg').forEach((x,j)=>x.classList.toggle('dim',j!==i));
-      d.querySelector('.ctr').textContent=i+1;d.querySelector('.ctrs').textContent=s.n.toUpperCase().slice(0,11);};
-    l.onmouseleave=()=>{segs.forEach(sg=>sg.setAttribute('stroke-width',15));
-      document.querySelectorAll('.legend .lg').forEach(x=>x.classList.remove('dim'));
-      d.querySelector('.ctr').textContent='5';d.querySelector('.ctrs').textContent='PILARES';};
-    leg.appendChild(l);});
+    l.onmouseenter=l.onclick=()=>sel(i);leg.appendChild(l);legItems.push(l);});
+  const pieBox=d.closest('.pie');if(pieBox)pieBox.addEventListener('mouseleave',reset);
+  setCtr('5','PILARES');
 })();
 
 /* ÊNFASE geral x específica (mini) */
@@ -285,11 +331,16 @@ function selNM(i,el){document.querySelectorAll('.seg').forEach(s=>s.classList.re
   const m=NM[i];segdetail.innerHTML=`${m.d} <span class="cite">${m.r}</span>`;}
 selNM(0,segs.children[0]);
 
-/* ABAS */
-document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+/* ABAS — troca com ripple + entrada em cascata */
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',e=>{
   document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x===t));
-  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.dataset.view===t.dataset.v));
-});
+  document.querySelectorAll('.view').forEach(v=>{const on=v.dataset.view===t.dataset.v;
+    v.classList.toggle('on',on);
+    if(on)v.querySelectorAll(':scope>*').forEach(c=>{c.style.animation='none';void c.offsetWidth;c.style.animation='';});});
+  const r=document.createElement('span');r.className='rip';const b=t.getBoundingClientRect();
+  r.style.left=((e.clientX||b.left+b.width/2)-b.left)+'px';r.style.top=((e.clientY||b.top+b.height/2)-b.top)+'px';
+  t.appendChild(r);setTimeout(()=>r.remove(),620);
+}));
 
 /* util: clarear cor p/ topo 3D das barras do funil */
 function shade(hex,p){const c=hex.replace('#','');const n=parseInt(c,16);let r=(n>>16)+p,g=(n>>8&255)+p,b=(n&255)+p;
