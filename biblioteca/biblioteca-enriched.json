@@ -29,7 +29,12 @@
   "modalities": [
    "Patinação artística"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "57 patinadores artísticos competitivos, 75,4% do sexo feminino; faixa etária não especificada no registro.",
+  "resumo": "Survey transversal que rastreou transtornos/comportamentos alimentares em patinadores artísticos: 35,1% tiveram triagem positiva, associada de forma significativa a ter recebido comentários sobre peso ou forma corporal.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "n/d (análise descritiva e testes de associação bivariada entre triagem positiva e fatores como comentários sobre o corpo).",
+  "sintese": "Rastreio psicológico rotineiro e cuidado com comentários de treinadores sobre peso/forma devem integrar a preparação da patinadora."
  },
  {
   "authors": "Veit J, Brinkschulte M, Vogt T",
@@ -157,7 +162,12 @@
   "modalities": [
    "Cheerleading"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "Revisão sistemática cobrindo ~29 mil atletas de cheerleading dos EUA (96,5% do sexo feminino).",
+  "resumo": "Revisão sistemática dos padrões de lesão no cheerleading norte-americano: predominam entorses/estiramentos, seguidos por lesões de tornozelo e de cabeça/pescoço, com forte lacuna na padronização do registro de lesões.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "n/d (síntese descritiva/agregada de dados epidemiológicos de vigilância de lesões).",
+  "sintese": "Priorizar prevenção de entorses de tornozelo e proteção de cabeça/pescoço e padronizar o registro de lesões para orientar a periodização."
  },
  {
   "authors": "Lamarre MA, King EL, Jones MT, Acuña SA",
@@ -287,7 +297,12 @@
   "modalities": [
    "Ginástica rítmica"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "89 meninas de 9 anos: 43 ginastas rítmicas e 46 controles recreativamente ativas.",
+  "resumo": "Estudo transversal comparou arquitetura muscular (ultrassonografia) e desempenho no salto contramovimento entre ginastas rítmicas pré-adolescentes e controles: a massa corporal foi o principal preditor da força máxima e a área de secção do gastrocnêmio o melhor preditor da potência do CMJ nas ginastas.",
+  "variaveis_biodinamicas": "Arquitetura muscular por ultrassom (comprimento de fascículo, ângulo de penação, espessura e área de secção anatômica de VL, GM, GL e BF); parâmetros força-tempo do CMJ: força máxima (Fmax), taxa de desenvolvimento de força (RFD), altura do salto e potência de pico.",
+  "analise_estatistica": "Testes t de amostras independentes + modelos de regressão preditiva (preditores de Fmax e de potência do CMJ).",
+  "sintese": "No desenvolvimento da jovem ginasta, ganhos de força associam-se à massa corporal e a potência de salto à hipertrofia do gastrocnêmio, orientando o treino de arquitetura muscular específica."
  },
  {
   "authors": "Deng C, Yu Q",
@@ -418,7 +433,12 @@
   "modalities": [
    "Ginástica artística"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "Ginastas artísticas adolescentes do sexo feminino de diferentes níveis competitivos (n não informado no registro).",
+  "resumo": "Estudo transversal avaliou sintomas de transtorno alimentar (EDE-Q) e consciência de deficiência energética: o alto nível competitivo apresentou sintomas mais severos (20% acima do ponto de corte) e baixa consciência de RED-S.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "n/d (comparações entre grupos com escores do EDE-Q; análise descritiva).",
+  "sintese": "Educação sobre RED-S e rastreio de sintomas alimentares devem ser reforçados especialmente nas ginastas de alto nível."
  },
  {
   "authors": "Correia E, Dos Santos LHCC, Dias MS, Romero RC, Souza LP, et al.",
@@ -551,7 +571,12 @@
   "modalities": [
    "Ginástica artística"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "Atletas universitárias da NCAA (multiesporte, com ginástica em destaque); dados de vigilância de lesões de 2009/10 a 2018/19.",
+  "resumo": "Estudo longitudinal com modelagem bayesiana estimou a incidência de fraturas nos esportes femininos da NCAA, apontando a ginástica com a maior taxa (média posterior 6,29/10.000 exposições atléticas; ICr 95% 3,70-10,31).",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Modelo bayesiano com estimativa de intervalos de credibilidade de 95%.",
+  "sintese": "A alta incidência de fraturas na ginástica reforça o monitoramento de carga, saúde óssea e disponibilidade energética das atletas."
  },
  {
   "authors": "Gómez-Landero LA, Santos-Rosa FJ, Reguera-López-de-la-Osa X, Cervelló E",
@@ -683,7 +708,12 @@
   "modalities": [
    "Ginástica artística"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "54 participantes do sexo feminino: jovens ginastas artísticas comparadas a sedentárias (delineamento quase-experimental pré-pós com grupo-controle).",
+  "resumo": "Estudo quase-experimental mostrou que jovens ginastas têm maior consciência interoceptiva que sedentárias e que um mês de treino de imagética motora aumentou a interocepção e a satisfação com o desempenho.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "ANOVA/MMRM de medidas repetidas (tempo × grupo) sobre escores psicométricos.",
+  "sintese": "Incorporar treino de imagética motora à preparação psicológica pode melhorar a consciência corporal e a satisfação da ginasta com sua performance."
  },
  {
   "authors": "Jo I, Hong EJ, Yoon HW, Ma Y, Lee SY, Lee HD",
@@ -813,7 +843,12 @@
   "modalities": [
    "Balé/dança"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "11 bailarinas de balé do sexo feminino (adultas jovens).",
+  "resumo": "Estudo transversal comparou a atividade dos músculos intrínsecos plantares entre apoio unipodal e bipodal em meia-ponta: a ativação e a velocidade do COP foram 2-2,5x maiores no apoio unipodal, com a atividade muscular correlacionada à oscilação postural somente na tarefa unipodal.",
+  "variaveis_biodinamicas": "Amplitude EMG (alta densidade) dos músculos intrínsecos plantares normalizada pela contração voluntária máxima e seu coeficiente de variação temporal (EMG-CV); centro de pressão (COP): desvios-padrão ântero-posterior e mediolateral, velocidade e área.",
+  "analise_estatistica": "Comparações pareadas (unipodal vs bipodal) + correlação de Pearson (EMG vs oscilação do COP).",
+  "sintese": "Fortalecer a musculatura intrínseca do pé é chave para o controle postural da bailarina no apoio unipodal em meia-ponta."
  },
  {
   "authors": "Steinberg N, Elbaz L, Eliakim A, Nemet D, Bar-Sella S, Peleg S, Dar G",
@@ -947,7 +982,12 @@
   "modalities": [
    "Ginástica artística"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "Saltos de ginástica artística feminina em Jogos Olímpicos, analisados por grupo de salto (n de atletas não informado no registro).",
+  "resumo": "Análise transversal de pontuações olímpicas mostrou que saltos Yurchenko recebem notas de execução sistematicamente maiores (d=0,57-1,21), evidenciando viés estrutural de pontuação entre grupos de salto.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "ANOVA/MMRM + tamanho de efeito (d de Cohen); estatística descritiva.",
+  "sintese": "A escolha do grupo de salto influencia a nota de execução esperada; treinadores devem considerar esse viés no planejamento competitivo."
  },
  {
   "authors": "Leupold O, Cheng J, Wimberly A, Nguyen J, Tilley D, Gabbett TJ, Casey E",
@@ -1076,7 +1116,12 @@
   "modalities": [
    "Nado artístico"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "Atletas de nado artístico do sexo feminino (n e nível não detalhados no registro).",
+  "resumo": "Estudo transversal correlacionou capacidades físicas e a execução de elementos obrigatórios: velocidade de nado e força de preensão manual associaram-se ao desempenho em figuras como body boost e barracuda.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Análise de correlação (Pearson/Spearman) + estatística descritiva.",
+  "sintese": "Desenvolver velocidade de nado e força de preensão manual pode melhorar a execução de figuras técnicas no nado artístico."
  },
  {
   "authors": "MacSweeney NDH, Shaw JW, Simkin GP, Pedlar CR, Price PDB, et al.",
@@ -1209,7 +1254,12 @@
   "modalities": [
    "Ginástica rítmica"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "20 ginastas rítmicas de elite do sexo feminino.",
+  "resumo": "Ensaio controlado randomizado (crossover) comparou a potenciação do CMJ após drop jump vs squat jump: o drop jump elevou a altura do salto precocemente (30 s; ES=0,25) e o squat jump tardiamente (9 min; ES=0,36), com maior benefício nas atletas mais fortes.",
+  "variaveis_biodinamicas": "Altura do salto contramovimento (CMJ) em baseline e aos 30 s, 3, 6 e 9 min pós-exercício; 1RM de agachamento como índice de nível de força.",
+  "analise_estatistica": "ANOVA de medidas repetidas + tamanho de efeito (ES) + correlação de Pearson (altura vs 1RM).",
+  "sintese": "Escolher drop jump para potenciação imediata e squat jump para efeito tardio, priorizando essa estratégia em ginastas com maior nível de força."
  },
  {
   "authors": "Lundqvist C",
@@ -1340,7 +1390,12 @@
   "modalities": [
    "Ginástica artística"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "16 ginastas de elite chinesas do sexo feminino.",
+  "resumo": "Estudo transversal analisou velocidade de corrida e força de reação do solo em diferentes saltos sobre a mesa: a velocidade nos últimos metros correlacionou-se negativamente com a FRS (ρ=-0,60 nos últimos 5 m), com diferenças de ritmo e comprimento de passos entre saltos handspring e Tsukahara.",
+  "variaveis_biodinamicas": "Velocidade da corrida de aproximação por intervalos (25 m, últimos 10 m e 5 m); força de reação do solo (FRS) na impulsão; comprimentos dos passos (penúltimo, último e hurdle); ângulos de quadril, tronco-solo, aterrissagem e decolagem.",
+  "analise_estatistica": "Estatística descritiva + regressão logística binária + correlação de Spearman (ρ).",
+  "sintese": "Refinar o ritmo da corrida e a técnica de impulsão (pedalada) favorece a execução de saltos de maior dificuldade."
  },
  {
   "authors": "Proietti G, Borozan M, Chaigneau A, Cannito L, Palumbo R, Thouvarecq R, Iodice P",
@@ -1468,7 +1523,12 @@
   "modalities": [
    "Ginástica artística"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "7 ginastas artísticas juvenis de elite do sexo feminino (estudo-piloto longitudinal).",
+  "resumo": "Estudo-piloto longitudinal monitorou carga interna e externa ao longo do microciclo: a carga flutuou e correlacionou-se com o volume de elementos e de séries por aparelho.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Análise de correlação (carga interna/externa vs volume) + estatística descritiva.",
+  "sintese": "A carga deve ser gerida por aparelho, ajustando volume de elementos ao longo do microciclo."
  },
  {
   "authors": "Jederström M, Agnafors S, Ekegren CL, Fagher K, et al.",
@@ -1599,7 +1659,12 @@
   "modalities": [
    "Balé/dança"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "Bailarinas pré-profissionais de balé/dança do sexo feminino (n não informado); 61,6% relataram lesão.",
+  "resumo": "Estudo transversal identificou fadiga autorrelatada e hipermobilidade articular como preditores de lesão, com predomínio de sobrecarga de membros inferiores.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Análise de regressão/associação (preditores de lesão) + estatística descritiva.",
+  "sintese": "Triar hipermobilidade e monitorar fadiga percebida ajuda a prevenir lesões de sobrecarga em bailarinas."
  },
  {
   "authors": "Fukuyama H, Maeo S, Kusagawa Y, Ono M, Watanabe K, Isaka T",
@@ -1729,7 +1794,12 @@
   "modalities": [
    "Ginástica acrobática"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "28 mulheres de 11 a 24 anos: 14 ginastas acrobáticas experientes e 14 controles não treinadas.",
+  "resumo": "Estudo experimental avaliou apoio unipodal antes/após fadiga dos plantiflexores: a fadiga aumentou a oscilação postural mediolateral em ambos os grupos, mas as ginastas expert usaram uma estratégia de ativação EMG distinta para manter o equilíbrio.",
+  "variaveis_biodinamicas": "Parâmetros do centro de pressão (COP) em plataforma de força (área, RMS, velocidade média, espectro de potência em baixa e alta frequência); EMG de superfície (domínios do tempo e da frequência) dos músculos da perna durante apoio unipodal.",
+  "analise_estatistica": "ANOVA de medidas repetidas (grupo × condição de fadiga).",
+  "sintese": "O treino deve visar músculos plantiflexores específicos e o controle neuromuscular, pois a expertise altera a estratégia de ativação, não a magnitude da oscilação."
  },
  {
   "authors": "Wyon MA, Horsburgh R, Brown D",
@@ -1857,7 +1927,12 @@
   "modalities": [
    "Ginástica rítmica"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "Ginastas rítmicas de elite do sexo feminino (titulares vs reservas; n não informado); acompanhamento de 25 semanas.",
+  "resumo": "Estudo longitudinal mostrou que carga interna, monotonia e strain atingem pico no período pré-competitivo e são maiores nas titulares, enquanto o bem-estar varia pouco.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Comparações entre grupos (titulares vs reservas) + correlação; estatística descritiva.",
+  "sintese": "Individualizar a carga conforme o status de titular e vigiar monotonia/strain no pré-competitivo protege a atleta do sobretreino."
  },
  {
   "authors": "Debien PB, Timoteo TF, Gabbett TJ, Bara Filho MG",
@@ -1988,7 +2063,12 @@
   "modalities": [
    "Ginástica artística"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "7 ginastas artísticas universitárias do sexo feminino (20,5 ± 1,2 anos; 1,64 m; 60,4 kg).",
+  "resumo": "Estudo transversal com delineamento de sujeito único comparou as estratégias de aterrissagem masculina e feminina (FIG): a estratégia masculina gerou maior amplitude sagital de flexão de joelho e quadril na desaceleração do impacto, com grande variabilidade individual.",
+  "variaveis_biodinamicas": "Cinemática e cinética de membro inferior em drop landing: amplitude de movimento sagital de joelho e quadril e variáveis-chave de risco de lesão do impacto, comparando as estratégias de aterrissagem masculina vs feminina.",
+  "analise_estatistica": "Comparações intra-sujeito e de grupo entre estratégias (α = 0,05); delineamento de sujeito único.",
+  "sintese": "Adotar o estilo de aterrissagem masculino (maior flexão de joelho/quadril), respeitando a estratégia individual, pode reduzir a carga de impacto na ginasta."
  },
  {
   "authors": "Remmel L, Jürimäe J, Tamm A-L, Purge P, Tillmann V",
@@ -2119,7 +2199,12 @@
   "modalities": [
    "Ginástica rítmica"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "24 ginastas rítmicas do sexo feminino: grupo controle (13,5 ± 3,2 anos) e grupo treino (14,4 ± 2,4 anos).",
+  "resumo": "Ensaio controlado randomizado mostrou que 12 semanas de treino de core aumentaram força e resistência do tronco, a amplitude EMG na prancha e melhoraram a composição corporal.",
+  "variaveis_biodinamicas": "Força isométrica do tronco (testes de flexão e extensão); resistência do core (prone bridge); atividade EMG da musculatura do tronco; composição corporal (massa magra do tronco e massa óssea).",
+  "analise_estatistica": "Testes t de amostras independentes (baseline) + ANOVA de medidas repetidas de dois fatores (tempo × grupo).",
+  "sintese": "Programas de 12 semanas de core melhoram força, resistência e ativação neuromuscular do tronco, sustentando os elementos técnicos da ginasta rítmica."
  },
  {
   "authors": "Pentith R, Moss SL, Lamb K, Edwards C",
@@ -2247,7 +2332,12 @@
   "modalities": [
    "Balé/dança"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "33 bailarinas clássicas profissionais do sexo feminino (coorte retrospectiva).",
+  "resumo": "Estudo retrospectivo definiu o morfótipo sagital da coluna e, por regressão logística e curvas ROC, estabeleceu pontos de corte (estatura ≤161 cm; ≥14 anos de experiência) que predizem alto risco de ciática/lombalgia.",
+  "variaveis_biodinamicas": "Morfótipo sagital integral da coluna: curvaturas torácica e lombar avaliadas em posição em pé, sentada relaxada e flexão anterior do tronco (inclinometria); estatura e anos de experiência como preditores.",
+  "analise_estatistica": "Regressão logística binária + análise de curva ROC (valores de corte).",
+  "sintese": "Monitorar o alinhamento sagital da coluna e sinalizar bailarinas de baixa estatura ou muitos anos de prática permite prevenir ciática e lombalgia."
  },
  {
   "authors": "Podrihalo O, Podrigalo L, Jagiełło W, Iermakov S, Yermakova T",
@@ -2374,7 +2464,12 @@
   "modalities": [
    "Balé/dança"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "206 bailarinas de Kathak do norte da Índia do sexo feminino vs 235 controles (caso-controle).",
+  "resumo": "Estudo caso-controle mostrou que bailarinas Kathak com elevada preocupação com a forma corporal têm cerca de 5x mais chance de apresentar atitudes alimentares disfuncionais.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Regressão logística binária.",
+  "sintese": "A preocupação com a forma corporal é alvo prioritário de intervenção psicológica para prevenir atitudes alimentares disfuncionais em bailarinas."
  },
  {
   "authors": "Piasecki J, Inns TB, Bass JJ, Scott R, Stashuk DW, Phillips BE, Atherton PJ, Piasecki M",
@@ -2506,7 +2601,12 @@
    "Ginástica artística",
    "Patinação artística"
   ],
-  "n_modalities": 2
+  "n_modalities": 2,
+  "amostra": "183 atletas adolescentes do sexo feminino de esportes estéticos (ginastas, saltadoras ornamentais e patinadoras artísticas).",
+  "resumo": "Estudo transversal com análise de perfis do clima motivacional criado pelo treinador: os perfis diferenciaram autonomia e vínculo com treinador/colegas, enquanto autoestima e dieta variaram pelo estágio puberal (meninas pós-púberes com menor autoestima e mais dieta).",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Análise de perfis (clusters, com PCA) + MANOVA.",
+  "sintese": "Ajustar o clima motivacional do treinador e apoiar meninas pós-púberes protege autoestima e reduz comportamentos de dieta."
  },
  {
   "authors": "Schärer C, Lehmann T, Naundorf F, Taube W, Hübner K",
@@ -2636,7 +2736,12 @@
   "modalities": [
    "Ginástica artística"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "Ginastas artísticas do sexo feminino (n não informado); acompanhamento longitudinal ao longo da temporada.",
+  "resumo": "Estudo longitudinal identificou que a insatisfação corporal atinge o pico na fase competitiva e que a alimentação desordenada é o maior preditor psicossocial ao longo do ano.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Análise de regressão (preditores psicossociais da insatisfação corporal ao longo do tempo).",
+  "sintese": "Reforçar o acompanhamento psicológico na fase competitiva e monitorar a alimentação desordenada, principal preditor da insatisfação corporal."
  },
  {
   "authors": "Schaal K, Tiollier E, Le Meur Y, Casazza G, Hausswirth C",
@@ -2769,7 +2874,12 @@
   "modalities": [
    "Ginástica rítmica"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "Ginastas rítmicas jovens do sexo feminino de níveis alto e baixo (n não informado).",
+  "resumo": "Estudo transversal mostrou que flexibilidade e percentual de gordura discriminam as atletas classificadas e que a aptidão física explica 62,9% da nota de execução técnica no nível baixo.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Análise de regressão múltipla + antropometria; estatística descritiva.",
+  "sintese": "Desenvolver flexibilidade e otimizar a composição corporal favorece a nota de execução, sobretudo em ginastas de nível inicial."
  },
  {
   "authors": "Tan JOA, Calitri R, Bloodworth A, McNamee MJ",
@@ -2898,7 +3008,12 @@
   "modalities": [
    "Patinação artística"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "4 patinadores de patins artísticos de elite (comparação entre sexos, com destaque para as skaters femininas).",
+  "resumo": "Estudo transversal com EMG mostrou que a ativação muscular cresce com o número de rotações do salto e que as mulheres ativam mais tibial anterior, vastos e glúteo máximo na aterrissagem do triplo Mapes.",
+  "variaveis_biodinamicas": "Atividade EMG de sete músculos (bíceps femoral, gastrocnêmio lateral, tibial anterior, reto femoral, vasto lateral, vasto medial e glúteo máximo) nas fases de propulsão, voo e aterrissagem de saltos com diferentes rotações.",
+  "analise_estatistica": "n/d (análise descritiva dos padrões de ativação EMG por fase e por sexo).",
+  "sintese": "O treino deve fortalecer tibial anterior, vastos e glúteo máximo para suportar a aterrissagem de saltos com mais rotações nas patinadoras."
  },
  {
   "authors": "Battaglia C, D'Artibale E, Fiorilli G, Piazza M, Tsopani D, Giombini A, Calcagno G, di Cagno A",
@@ -3029,6 +3144,11 @@
   "modalities": [
    "Ginástica rítmica"
   ],
-  "n_modalities": 1
+  "n_modalities": 1,
+  "amostra": "Ginastas rítmicas do sexo feminino de diferentes níveis competitivos (n não informado).",
+  "resumo": "Estudo transversal com preditores fisiológicos e antropométricos: a antropometria explicou 45% da variância do desempenho e, na elite, VO2máx, envergadura, comprimento de coxa e baixa massa corporal explicaram 92,5%.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Análise de regressão múltipla (stepwise) + antropometria; estatística descritiva.",
+  "sintese": "Na elite, capacidade aeróbia e um perfil antropométrico específico são determinantes centrais a considerar na seleção e no treino."
  }
 ]
