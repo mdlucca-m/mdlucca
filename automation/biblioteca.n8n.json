@@ -1,0 +1,90 @@
+{
+  "name": "De Lucca — Biblioteca (atualização automática)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [ { "field": "weeks", "weeksInterval": 1, "triggerAtDay": [ 1 ], "triggerAtHour": 7 } ] }
+      },
+      "id": "trigger",
+      "name": "1 · Agenda (semanal)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [ 240, 300 ]
+    },
+    {
+      "parameters": {
+        "assignments": { "assignments": [
+          { "id": "g", "name": "gaps", "value": "nado artístico; cheerleading; unidades motoras / taxa de disparo; flow; burnout; mental toughness", "type": "string" },
+          { "id": "r", "name": "repo", "value": "/opt/delucca", "type": "string" }
+        ] }
+      },
+      "id": "cfg",
+      "name": "2 · Lacunas a buscar",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [ 460, 300 ]
+    },
+    {
+      "parameters": {
+        "command": "=cd {{ $json.repo }} && REPO_DIR={{ $json.repo }} bash automation/atualizar-biblioteca.sh \"{{ $json.gaps }}\""
+      },
+      "id": "run",
+      "name": "3 · Agente busca + verifica DOI + cataloga",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [ 700, 300 ],
+      "notes": "Roda o subagente biblioteca-delucca (Claude Code headless): busca internacional, verifica DOI, faz append sem duplicar em biblioteca.json, reinjeta no HTML, commita e dá push. Imprime NOVOS=<n>."
+    },
+    {
+      "parameters": {
+        "jsCode": "const out = ($json.stdout || '') + '';\nconst m = out.match(/NOVOS=(\\d+)/);\nconst novos = m ? parseInt(m[1], 10) : 0;\nreturn [{ json: { novos, log: out.slice(-1200) } }];"
+      },
+      "id": "parse",
+      "name": "4 · Quantos artigos novos?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [ 940, 300 ]
+    },
+    {
+      "parameters": {
+        "conditions": { "options": { "caseSensitive": true }, "combinator": "and",
+          "conditions": [ { "leftValue": "={{ $json.novos }}", "rightValue": 0, "operator": { "type": "number", "operation": "gt" } } ] }
+      },
+      "id": "if",
+      "name": "5 · Houve novidade?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [ 1160, 300 ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $env.DIGEST_EMAIL }}",
+        "subject": "=Biblioteca De Lucca — {{ $json.novos }} artigo(s) novo(s)",
+        "message": "=A atualização semanal adicionou {{ $json.novos }} artigo(s) internacional(is) com DOI verificado à biblioteca.\n\nLog:\n{{ $json.log }}"
+      },
+      "id": "mail",
+      "name": "6a · Digest por e-mail",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [ 1400, 220 ],
+      "notes": "Requer credencial SMTP no n8n e a env DIGEST_EMAIL. Alternativa: Telegram/Slack."
+    },
+    {
+      "parameters": { "content": "Sem novidades esta semana — biblioteca já atualizada.", "options": {} },
+      "id": "noop",
+      "name": "6b · Nada novo",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [ 1400, 400 ]
+    }
+  ],
+  "connections": {
+    "1 · Agenda (semanal)": { "main": [ [ { "node": "2 · Lacunas a buscar", "type": "main", "index": 0 } ] ] },
+    "2 · Lacunas a buscar": { "main": [ [ { "node": "3 · Agente busca + verifica DOI + cataloga", "type": "main", "index": 0 } ] ] },
+    "3 · Agente busca + verifica DOI + cataloga": { "main": [ [ { "node": "4 · Quantos artigos novos?", "type": "main", "index": 0 } ] ] },
+    "4 · Quantos artigos novos?": { "main": [ [ { "node": "5 · Houve novidade?", "type": "main", "index": 0 } ] ] },
+    "5 · Houve novidade?": { "main": [ [ { "node": "6a · Digest por e-mail", "type": "main", "index": 0 } ], [ { "node": "6b · Nada novo", "type": "main", "index": 0 } ] ] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "meta": { "description": "Agenda semanal → define lacunas → agente (Claude Code headless) busca artigos internacionais, verifica DOI e cataloga na biblioteca → commit/push → digest por e-mail se houver novidades." }
+}
