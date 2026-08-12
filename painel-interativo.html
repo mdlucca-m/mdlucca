@@ -215,7 +215,7 @@ h1 .g{color:var(--gold)}
     </div>
 
     <div class="foot">
-      <div><p class="n">Prof. Me. Mateus de Lucca</p><p class="r">Doutorando CEFID/UDESC · referências com DOI conferido</p></div>
+      <div><p class="n">Prof. Me. Mateus de Lucca</p><p class="r">Doutorando CEFID/UDESC · 20+ anos em performance esportiva</p></div>
       <span class="wm">DE LUCCA</span>
     </div>
   </div>
@@ -255,7 +255,7 @@ STAGES.forEach((s,i)=>{const w=100-i*13;const row=document.createElement('div');
 function selStage(i,row){document.querySelectorAll('.frow').forEach(r=>r.classList.remove('act'));
   funnel.classList.add('hassel');
   if(row){void row.offsetWidth;row.classList.add('act');}
-  const s=STAGES[i];fdetail.innerHTML=`<b>${i+1} · ${s.n}.</b> ${s.d}<span class="cite">${s.r}</span>`;}
+  const s=STAGES[i];fdetail.innerHTML=`<b>${i+1} · ${s.n}.</b> ${s.d}`;}
 selStage(2,funnel.children[2]);
 
 /* GAUGE 82 (opcional) */
@@ -342,7 +342,7 @@ NM.forEach((m,i)=>{const el=document.createElement('div');el.className='seg';el.
     <div class="bar">${Array.from({length:5},(_,k)=>`<i class="${k<m.lv?'on':''}"></i>`).join('')}</div>`;
   el.onclick=el.onmouseenter=()=>selNM(i,el);segs.appendChild(el);});
 function selNM(i,el){document.querySelectorAll('.seg').forEach(s=>s.classList.remove('act'));el.classList.add('act');
-  const m=NM[i];segdetail.innerHTML=`${m.d} <span class="cite">${m.r}</span>`;animateBars(el);}
+  const m=NM[i];segdetail.innerHTML=`${m.d}`;animateBars(el);}
 function animateBars(el){el.querySelectorAll('.bar i.on').forEach((b,k)=>{b.classList.remove('fill');void b.offsetWidth;
   b.style.animationDelay=(k*0.06)+'s';b.classList.add('fill');});}
 selNM(0,segs.children[0]);
