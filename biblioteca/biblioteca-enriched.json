@@ -89,11 +89,7 @@
   "roc": false,
   "derivatives": false,
   "variables": [
-   "taxa de lesão",
-   "tipo de evento",
-   "divisão NCAA",
-   "ano acadêmico",
-   "segmento corporal"
+   "Fadiga"
   ],
   "modalities": [
    "Ginástica artística"
@@ -221,11 +217,7 @@
   "roc": false,
   "derivatives": false,
   "variables": [
-   "indicadores de RED-S",
-   "DMO por sítio (DXA)",
-   "EDE-Q",
-   "horas de treino",
-   "especialização esportiva"
+   "Fadiga"
   ],
   "modalities": [
    "Nado artístico",
@@ -258,12 +250,7 @@
   "roc": false,
   "derivatives": true,
   "variables": [
-   "comprimento do fascículo",
-   "espessura muscular",
-   "CSA",
-   "altura do CMJ",
-   "RFD",
-   "potência"
+   "Performance"
   ],
   "modalities": [
    "Ginástica rítmica"
@@ -527,10 +514,7 @@
   "roc": false,
   "derivatives": false,
   "variables": [
-   "taxa de fratura",
-   "mecanismo de lesão",
-   "segmento corporal",
-   "recorrência"
+   "Fadiga"
   ],
   "modalities": [
    "Ginástica artística"
@@ -693,11 +677,7 @@
   "roc": false,
   "derivatives": false,
   "variables": [
-   "força de quadril",
-   "ADM de quadril",
-   "DMO/massa magra troncal (DXA)",
-   "escoliose",
-   "histórico de lombalgia"
+   "Performance"
   ],
   "modalities": [
    "Ginástica rítmica"
@@ -795,12 +775,7 @@
   "roc": false,
   "derivatives": false,
   "variables": [
-   "BMI%",
-   "força muscular",
-   "propriedades ósseas",
-   "ADM",
-   "menarca",
-   "impacto do treino"
+   "Performance"
   ],
   "modalities": [
    "Ginástica artística",
@@ -1197,9 +1172,7 @@
   "roc": true,
   "derivatives": false,
   "variables": [
-   "FMS",
-   "desempenho esportivo",
-   "histórico de lesão"
+   "Performance"
   ],
   "modalities": [
    "Patinação artística"
@@ -2045,10 +2018,7 @@
   "roc": false,
   "derivatives": false,
   "variables": [
-   "composição corporal",
-   "força",
-   "flexibilidade",
-   "oligoelementos (cabelo/urina)"
+   "Performance"
   ],
   "modalities": [
    "Ginástica rítmica"
@@ -2080,9 +2050,7 @@
   "roc": false,
   "derivatives": false,
   "variables": [
-   "quartil de nascimento",
-   "aparelho",
-   "nível competitivo"
+   "Performance"
   ],
   "modalities": [
    "Ginástica artística"
@@ -2114,11 +2082,7 @@
   "roc": true,
   "derivatives": false,
   "variables": [
-   "cifose torácica",
-   "lordose lombar",
-   "disposição sagital",
-   "experiência de dança",
-   "ciática/lombalgia"
+   "Performance"
   ],
   "modalities": [
    "Balé/dança"
@@ -2213,10 +2177,7 @@
   "roc": false,
   "derivatives": false,
   "variables": [
-   "atitudes alimentares (EAT)",
-   "insatisfação corporal",
-   "dieta",
-   "compulsão alimentar"
+   "Psico"
   ],
   "modalities": [
    "Balé/dança"
