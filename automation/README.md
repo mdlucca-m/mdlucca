@@ -44,8 +44,8 @@ subagente `biblioteca-delucca`.
 | # | Nó | O que faz |
 |---|----|-----------|
 | 1 | **Agenda (semanal)** | dispara toda segunda 07:00. |
-| 2 | **Lacunas a buscar** | define os temas/lacunas (ex.: nado artístico, cheerleading, unidades motoras, flow, burnout). |
-| 3 | **Agente busca + verifica DOI + cataloga** | `Execute Command` roda `automation/atualizar-biblioteca.sh`, que chama o agente (Claude Code headless): busca internacional → verifica DOI → **append sem duplicar** em `biblioteca.json` → reinjeta no HTML → commit/push. Imprime `NOVOS=<n>`. |
+| 2 | **Lacunas a buscar** | define os temas/lacunas (ex.: biomecânica/cinemática, RFD e derivadas, estatística bayesiana, curva ROC, tamanho de efeito, unidades motoras, flow, burnout). |
+| 3 | **Agente busca + verifica DOI + cataloga** | `Execute Command` roda `automation/atualizar-biblioteca.sh`, que chama o agente (Claude Code headless): busca internacional → verifica DOI → **append sem duplicar** em `biblioteca.json` **e** `biblioteca-enriched.json` (schema completo com `design`, `biomech`, `methods`, `stats_approach`, `effect_size`, `roc`, `derivatives`, `variables`, `modalities`) → `python3 biblioteca/build.py` regenera o HTML → commit/push. Imprime `NOVOS=<n>`. |
 | 4 | **Quantos novos?** | extrai `NOVOS=<n>` do log. |
 | 5 | **Houve novidade?** | ramifica se `n > 0`. |
 | 6a/6b | **Digest / Nada novo** | e-mail com o resumo dos novos artigos, ou no-op. |

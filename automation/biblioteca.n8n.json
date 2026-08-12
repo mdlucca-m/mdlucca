@@ -14,7 +14,7 @@
     {
       "parameters": {
         "assignments": { "assignments": [
-          { "id": "g", "name": "gaps", "value": "nado artístico; cheerleading; unidades motoras / taxa de disparo; flow; burnout; mental toughness", "type": "string" },
+          { "id": "g", "name": "gaps", "value": "biomecânica / cinemática / mecânica; RFD e derivadas (velocidade/aceleração angular, impulso); estatística bayesiana; curva ROC / AUC; tamanho de efeito; unidades motoras / taxa de disparo; flow; burnout", "type": "string" },
           { "id": "r", "name": "repo", "value": "/opt/delucca", "type": "string" }
         ] }
       },

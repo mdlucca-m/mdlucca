@@ -25,12 +25,48 @@ data = json.load(open(enriched, encoding="utf-8")) if os.path.exists(enriched) e
 synth = load("synth.json", [])
 meto = load("metodologia.json", {})
 
-# --- normalize: ensure every entry has design/subvar even if enrichment absent ---
+# --- normalize: ensure every entry has all fields even if enrichment absent ---
+PYTHEME = {  # topic -> variable
+    'motor-pattern':'Neuro','emg-activation':'Neuro','motor-unit':'Neuro','firing-rate':'Neuro','rfd-neural':'Neuro','motor-learning':'Neuro',
+    'anxiety':'Psico','perfectionism':'Psico','body-image':'Psico','disordered-eating':'Psico','motivation':'Psico','self-confidence':'Psico',
+    'stress-coping':'Psico','burnout':'Psico','mental-toughness':'Psico','flow':'Psico','attentional-focus':'Psico',
+    'physical-determinants':'Performance','biomechanics-technique':'Performance','anthropometry-maturation':'Performance','talent-prediction':'Performance','judging-scoring':'Performance',
+    'neuromuscular-fatigue':'Fadiga','training-load':'Fadiga','overtraining':'Fadiga','recovery-readiness':'Fadiga','red-s':'Fadiga','menstrual-hormonal':'Fadiga','perceived-fatigue':'Fadiga',
+}
+def canon_modalities(sport):
+    s = (sport or "").lower()
+    out = []
+    def add(x):
+        if x not in out: out.append(x)
+    if 'rítmica' in s or 'ritmica' in s: add('Ginástica rítmica')
+    if 'artística' in s or 'artistica' in s:
+        add('Nado artístico' if 'nado' in s else 'Ginástica artística')
+    if 'acrobática' in s or 'acrobatica' in s: add('Ginástica acrobática')
+    if 'patinação' in s or 'patinacao' in s: add('Patinação artística')
+    if 'nado' in s or 'sincronizado' in s: add('Nado artístico')
+    if 'balé' in s or 'bale' in s or 'dança' in s or 'danca' in s: add('Balé/dança')
+    if 'cheer' in s: add('Cheerleading')
+    if 'proxy' in s or 'saudáveis' in s or 'master' in s: add('Proxy não-estético')
+    if 'estéticos' in s or 'esteticos' in s: [add(x) for x in ('Patinação artística','Balé/dança','Ginástica artística')]
+    if not out: add('Outro')
+    return out
 for d in data:
     d.setdefault("design", "—")
     d.setdefault("design_conf", "média")
     d.setdefault("subvar", d.get("topic", "—"))
     d.setdefault("n", None)
+    d.setdefault("biomech", False)
+    d.setdefault("methods", [])
+    d.setdefault("stats_approach", "n/d")
+    d.setdefault("effect_size", False)
+    d.setdefault("es_note", "")
+    d.setdefault("roc", False)
+    d.setdefault("derivatives", False)
+    if not d.get("variables"):
+        d["variables"] = [PYTHEME.get(d.get("topic", ""), "Performance")]
+    if not d.get("modalities"):
+        d["modalities"] = canon_modalities(d.get("sport", ""))
+    d["n_modalities"] = len(d["modalities"])
 
 # metodologia defaults (graceful if agent file missing)
 meto.setdefault("permanova", {"count_found": 0, "in_library": 0, "studies": [],
@@ -173,6 +209,43 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);display
 .role{margin:2px 0 0;color:var(--low);font-size:12.5px}
 .wm{font-family:var(--disp);font-size:clamp(28px,7vw,64px);color:#ffffff08;letter-spacing:.04em;line-height:1}
 .hint{color:var(--low);font-size:12px;margin:8px 0 0;font-style:italic}
+/* ---- analytics (KPIs + botões) ---- */
+.anbar{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 16px}
+.anbtn{font-family:var(--cond);font-weight:600;font-size:12.5px;letter-spacing:.04em;color:var(--mid);background:var(--ink-2);border:1px solid var(--line);border-radius:99px;padding:9px 14px;cursor:pointer;transition:.18s;display:flex;align-items:center;gap:8px}
+.anbtn:hover{color:var(--hi);border-color:var(--gold)}
+.anbtn[aria-pressed=true]{color:#0a0b10;background:var(--gold);border-color:var(--gold)}
+.anbtn .k{font-family:var(--disp);font-size:13px;opacity:.85}
+.anbtn[aria-pressed=true] .k{opacity:1}
+.anbtn.clr{color:var(--low)}
+.kpi{display:flex;flex-direction:column;gap:14px}
+.kpi .top{display:flex;align-items:baseline;gap:16px}
+.kpi .num{font-family:var(--disp);font-size:clamp(46px,9vw,74px);line-height:.82;color:var(--gold);text-shadow:0 3px 0 #0006}
+.kpi .pct{font-family:var(--disp);font-size:26px;color:var(--hi);line-height:1}
+.kpi .cap{font-family:var(--cond);font-weight:600;font-size:12.5px;letter-spacing:.05em;color:var(--mid);text-transform:uppercase;margin-top:3px}
+.kpi .desc{color:var(--mid);font-size:13.5px;margin:0}
+.mini{display:flex;flex-direction:column;gap:8px}
+.mini .r{display:grid;grid-template-columns:100px 1fr 34px;align-items:center;gap:10px}
+.mini .r .nm{font-size:12px;color:var(--mid);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mini .r .bar{height:14px;border-radius:5px;width:0;transition:width .85s cubic-bezier(.2,.8,.2,1)}
+.mini .r .v{font-family:var(--disp);font-size:13px;color:var(--hi)}
+.uni{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:720px){.uni{grid-template-columns:1fr}}
+.uni h4{font-family:var(--cond);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin:0 0 10px}
+.uni ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+.uni li{font-size:12.5px;color:var(--mid);border-bottom:1px dashed var(--line);padding-bottom:8px;line-height:1.35}
+.uni li b{color:var(--hi);font-family:var(--cond);font-weight:600}
+.uni .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.uni .tag{font-size:10px;letter-spacing:.02em;color:#0a0b10;border-radius:5px;padding:2px 7px;font-weight:600}
+.drillrow{border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-bottom:10px;background:var(--ink-2);cursor:pointer;transition:.15s}
+.drillrow:hover{border-color:#e3a94255}
+.drillrow .h{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.drillrow .h .mn{font-family:var(--cond);font-weight:700;font-size:15px;color:var(--hi)}
+.drillrow .h .meta{font-size:12px;color:var(--mid)}
+.drillrow .h .bio{font-family:var(--disp);font-size:15px;color:var(--gold)}
+.stack{display:flex;height:15px;border-radius:5px;overflow:hidden;margin:10px 0 7px;background:#ffffff08}
+.stack span{height:100%;width:0;transition:width .85s cubic-bezier(.2,.8,.2,1)}
+.subtop{display:flex;flex-wrap:wrap;gap:6px}
+.subtop span{font-size:11px;color:var(--mid);background:#ffffff0c;border:1px solid var(--line);border-radius:99px;padding:3px 9px}
 """
 
 BODY = r"""
@@ -186,6 +259,7 @@ BODY = r"""
   <nav class="jump">
     <a href="#setores">Setores</a>
     <a href="#tipos">Tipos de estudo</a>
+    <a href="#analises">Análises</a>
     <a href="#permanova">PERMANOVA</a>
     <a href="#revisao">Base p/ revisão</a>
     <a href="#sintese">Síntese</a>
@@ -221,6 +295,37 @@ BODY = r"""
         <h3 style="font-family:var(--cond);font-weight:700;margin:0 0 8px;font-size:16px">O que isso diz para a revisão</h3>
         <div class="rob" id="designnotes"></div>
       </div>
+    </div>
+  </section>
+
+  <!-- ANÁLISES ESTATÍSTICAS -->
+  <section class="block" id="analises">
+    <h2 class="sec">Análises estatísticas</h2>
+    <p class="sub">Botões · KPIs segmentados · mineração da biblioteca</p>
+    <div class="anbar" id="anbar"></div>
+    <div class="grid2">
+      <div class="card kpi" id="kpi"></div>
+      <div class="card">
+        <h3 style="font-family:var(--cond);font-weight:700;margin:0 0 4px;font-size:16px">Segmentação por subvariável</h3>
+        <p class="hint">Percentuais do recorte selecionado — clique um botão acima.</p>
+        <div id="anseg"></div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:18px">
+      <div class="card">
+        <h3 style="font-family:var(--cond);font-weight:700;margin:0 0 4px;font-size:16px">Cruzamento modalidade × método</h3>
+        <p class="hint">Quantos estudos de cada modalidade usam cada método. Clique para filtrar.</p>
+        <div class="matx"><table class="mx" id="crosstab"></table></div>
+      </div>
+      <div class="card">
+        <h3 style="font-family:var(--cond);font-weight:700;margin:0 0 10px;font-size:16px">Estudos que unem mais modalidades / variáveis</h3>
+        <div id="uniao"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <h3 style="font-family:var(--cond);font-weight:700;margin:0 0 4px;font-size:16px">Por modalidade — quanto é biomecânica e as variáveis (%)</h3>
+      <p class="hint">Ex.: dos estudos de ginástica rítmica, quantos são de biomecânica e como se distribuem as variáveis/subvariáveis. Clique para filtrar o acervo.</p>
+      <div id="drill"></div>
     </div>
   </section>
 
@@ -339,7 +444,7 @@ const cssvar=v=>getComputedStyle(document.documentElement).getPropertyValue(v).t
 const theme=t=>THEME[t]?THEME[t][0]:'—';
 const tcolor=t=>THEME[t]?cssvar(THEME[t][1]):'#888';
 const num=v=>{const n=parseInt(String(v).replace(/\D/g,''));return isNaN(n)?-1:n;};
-const state={q:'',sport:'',design:'',sort:'year',themes:new Set(),subvar:'',cell:null};
+const state={q:'',sport:'',design:'',sort:'year',themes:new Set(),subvar:'',analysis:'',modality:'',methodcol:''};
 
 // shade a base color by index (lighter/darker variants for subvariables)
 function shade(hex,f){const c=hex.replace('#','');const r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16);
@@ -491,6 +596,116 @@ function buildReviewMeta(){
 function buildSynth(){document.getElementById('synth').innerHTML=SYNTH.map(s=>
   `<div class="scard" style="--c:${cssvar(s.color)}"><h3>${s.title}</h3><p>${s.text}</p></div>`).join('');}
 
+/* ---------- ANÁLISES ESTATÍSTICAS ---------- */
+const ANALYSES=[
+  {k:'biomech',lab:'Biomecânica / Cinemática',test:d=>!!d.biomech,desc:'estudos que medem cinemática, cinética, EMG ou sinergias musculares'},
+  {k:'derivatives',lab:'Derivadas & RFD',test:d=>!!d.derivatives,desc:'medidas de taxa/derivada: RFD, velocidade e aceleração angular, impulso, taxa de carga'},
+  {k:'effect',lab:'Tamanho de efeito',test:d=>!!d.effect_size,desc:'reportam tamanho de efeito padronizado (d, g, η², r)'},
+  {k:'roc',lab:'ROC / curva',test:d=>!!d.roc,desc:'classificação por curva ROC / AUC / sensibilidade-especificidade'},
+  {k:'bayes',lab:'Bayesiano',test:d=>d.stats_approach==='Bayesiano'||d.stats_approach==='Misto'||(d.methods||[]).includes('Bayesiano'),desc:'estatística bayesiana'},
+  {k:'multimod',lab:'Multimodalidade',test:d=>modsOf(d).length>=2,desc:'unem 2+ modalidades estéticas'},
+  {k:'multivar',lab:'Multivariável',test:d=>(d.variables||[]).length>=2,desc:'cobrem 2+ variáveis (Neuro/Psico/Performance/Fadiga)'}
+];
+const METHODCOLS=[
+  {k:'Biomecânica',test:d=>!!d.biomech},
+  {k:'Derivadas',test:d=>!!d.derivatives},
+  {k:'Efeito',test:d=>!!d.effect_size},
+  {k:'ROC',test:d=>!!d.roc},
+  {k:'Bayesiano',test:d=>d.stats_approach==='Bayesiano'||(d.methods||[]).includes('Bayesiano')}
+];
+const MODCOLOR={'Ginástica rítmica':'#e8c24a','Ginástica artística':'#33b98a','Patinação artística':'#4f93d6','Nado artístico':'#4fb0c8','Balé/dança':'#b06de0','Cheerleading':'#e2853a','Ginástica acrobática':'#e0a24a','Proxy não-estético':'#7a8698','Outro':'#7a8698'};
+const modColor=m=>MODCOLOR[m]||'#8a94a6';
+const modsOf=d=>(Array.isArray(d.modalities)&&d.modalities.length)?d.modalities:[d.sport];
+const inMod=(d,m)=>modsOf(d).includes(m);
+const varsOf=d=>(d.variables&&d.variables.length)?d.variables:[theme(d.topic)];
+const shortAuth=a=>String(a).split(',')[0];
+function modalityList(){const c={};DATA.forEach(d=>modsOf(d).forEach(m=>c[m]=(c[m]||0)+1));
+  return Object.entries(c).sort((a,b)=>b[1]-a[1]).map(x=>x[0]);}
+
+function buildAnbar(){
+  const bar=document.getElementById('anbar');
+  bar.innerHTML=ANALYSES.map(a=>{const n=DATA.filter(a.test).length;
+    return `<button class="anbtn" data-k="${a.k}" aria-pressed="false"><span class="k">${n}</span>${a.lab}</button>`;}).join('')+
+    `<button class="anbtn clr" data-k="__clr">Limpar</button>`;
+  bar.querySelectorAll('.anbtn').forEach(b=>b.onclick=()=>{
+    if(b.dataset.k==='__clr'){clearAnalysis();return;}
+    state.analysis=(state.analysis===b.dataset.k)?'':b.dataset.k;state.modality='';state.methodcol='';
+    syncAnbar();applyKPI();render();});
+}
+function syncAnbar(){document.querySelectorAll('#anbar .anbtn[data-k]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===state.analysis&&state.analysis!==''));}
+function clearAnalysis(){state.analysis='';state.modality='';state.methodcol='';syncAnbar();applyKPI();render();}
+
+function applyKPI(){
+  let set,label;
+  if(state.modality||state.methodcol){set=DATA.filter(d=>(!state.modality||inMod(d,state.modality))&&(!state.methodcol||(METHODCOLS.find(c=>c.k===state.methodcol)||{test:()=>true}).test(d)));
+    label={lab:[state.modality,state.methodcol].filter(Boolean).join(' · '),desc:'recorte do cruzamento modalidade × método'};}
+  else if(state.analysis){const a=ANALYSES.find(x=>x.k===state.analysis);set=DATA.filter(a.test);label=a;}
+  else {set=DATA;label=null;}
+  renderKPI(label,set);
+}
+function renderKPI(a,set){
+  const pct=Math.round(set.length/DATA.length*100);
+  const byVar={};TEMAS.forEach(t=>byVar[t]=0);
+  set.forEach(d=>varsOf(d).forEach(v=>{if(byVar[v]!=null)byVar[v]++;}));
+  const maxV=Math.max(1,...Object.values(byVar));
+  const kpi=document.getElementById('kpi');
+  kpi.innerHTML=`<div class="top"><div class="num" data-count="${set.length}">0</div>
+    <div><div class="pct">${pct}%</div><div class="cap">${a?a.lab:'Biblioteca completa'}</div></div></div>
+    <p class="desc">${a?a.desc:'todos os estudos catalogados'} — <b style="color:var(--hi)">${set.length}</b> de ${DATA.length} estudos.</p>
+    <div class="mini">`+TEMAS.map(t=>`<div class="r"><div class="nm" style="color:${cssvar(TCOLOR[t])}">${t}</div>
+      <div class="bar" data-w="${(byVar[t]/maxV*100).toFixed(1)}" style="background:${cssvar(TCOLOR[t])}"></div>
+      <div class="v">${byVar[t]}</div></div>`).join('')+`</div>`;
+  countUp(kpi.querySelector('.num'));
+  requestAnimationFrame(()=>kpi.querySelectorAll('.mini .bar').forEach(b=>b.style.width=b.dataset.w+'%'));
+  // subvariáveis
+  const bySub={};set.forEach(d=>bySub[d.subvar]=(bySub[d.subvar]||0)+1);
+  const subs=Object.entries(bySub).sort((a,b)=>b[1]-a[1]).slice(0,10);const maxS=subs.length?subs[0][1]:1;
+  const seg=document.getElementById('anseg');
+  seg.innerHTML=`<div class="mini">`+subs.map(([s,v])=>`<div class="r" style="grid-template-columns:160px 1fr 34px"><div class="nm" title="${s}">${s}</div>
+    <div class="bar" data-w="${(v/maxS*100).toFixed(1)}" style="background:var(--gold)"></div><div class="v">${v}</div></div>`).join('')+`</div>`+
+    `<p class="hint">${subs.length} subvariável(is) no recorte · ${pct}% do acervo.</p>`;
+  requestAnimationFrame(()=>seg.querySelectorAll('.bar').forEach(b=>b.style.width=b.dataset.w+'%'));
+}
+function buildCrosstab(){
+  const mods=modalityList();const tbl=document.getElementById('crosstab');let max=0;const grid={};
+  mods.forEach(m=>{grid[m]={};METHODCOLS.forEach(c=>{const n=DATA.filter(d=>inMod(d,m)&&c.test(d)).length;grid[m][c.k]=n;if(n>max)max=n;});});
+  let html='<thead><tr><th class="rh">Modalidade \\ Método</th>'+METHODCOLS.map(c=>`<th>${c.k}</th>`).join('')+'</tr></thead><tbody>';
+  mods.forEach(m=>{html+=`<tr><th class="rh" style="color:${modColor(m)}">${m}</th>`+METHODCOLS.map(c=>{const n=grid[m][c.k];
+    return `<td data-mod="${m}" data-method="${c.k}" data-c="${n}"><div class="cell" data-fill="${n?(0.3+0.7*n/max).toFixed(2):0}" style="background:${n?cssvar('--gold'):'transparent'}">${n||''}</div></td>`;}).join('')+'</tr>';});
+  html+='</tbody>';tbl.innerHTML=html;
+  tbl.querySelectorAll('td').forEach(td=>{if(+td.dataset.c>0)td.onclick=()=>{state.analysis='';state.modality=td.dataset.mod;state.methodcol=td.dataset.method;syncAnbar();applyKPI();render();scrollAcervo();};});
+}
+function animCrosstab(){document.querySelectorAll('#crosstab .cell').forEach((c,i)=>{const f=+c.dataset.fill;
+  setTimeout(()=>{c.style.opacity=f>0?f:0;c.style.transform='scale(1)';},i*20);});}
+function buildUniao(){
+  const mm=DATA.filter(d=>modsOf(d).length>=2).sort((a,b)=>modsOf(b).length-modsOf(a).length);
+  const mv=DATA.filter(d=>varsOf(d).length>=2).sort((a,b)=>varsOf(b).length-varsOf(a).length);
+  const li=(d,tags)=>`<li><b>${d.year} · ${shortAuth(d.authors)}</b> — ${d.title}<div class="tags">${tags}</div></li>`;
+  const modTag=m=>`<span class="tag" style="background:${modColor(m)}">${m}</span>`;
+  const varTag=v=>`<span class="tag" style="background:${cssvar(TCOLOR[v])}">${v}</span>`;
+  document.getElementById('uniao').innerHTML=`<div class="uni">
+    <div><h4>+ modalidades (${mm.length})</h4><ol>${mm.length?mm.slice(0,6).map(d=>li(d,modsOf(d).map(modTag).join(''))).join(''):'<li>Nenhum estudo multimodalidade.</li>'}</ol></div>
+    <div><h4>+ variáveis (${mv.length})</h4><ol>${mv.length?mv.slice(0,6).map(d=>li(d,varsOf(d).map(varTag).join(''))).join(''):'<li>Nenhum estudo multivariável.</li>'}</ol></div></div>`;
+}
+function buildDrill(){
+  const mods=modalityList();const host=document.getElementById('drill');
+  host.innerHTML=mods.map(m=>{
+    const set=DATA.filter(d=>inMod(d,m));const bio=set.filter(d=>d.biomech).length;
+    const byVar={};TEMAS.forEach(t=>byVar[t]=0);set.forEach(d=>varsOf(d).forEach(v=>{if(byVar[v]!=null)byVar[v]++;}));
+    const totV=Object.values(byVar).reduce((a,b)=>a+b,0)||1;
+    const bySub={};set.forEach(d=>bySub[d.subvar]=(bySub[d.subvar]||0)+1);
+    const subs=Object.entries(bySub).sort((a,b)=>b[1]-a[1]).slice(0,4);
+    const stack=TEMAS.filter(t=>byVar[t]>0).map(t=>`<span data-w="${(byVar[t]/totV*100).toFixed(1)}" style="background:${cssvar(TCOLOR[t])}" title="${t}: ${byVar[t]} (${Math.round(byVar[t]/totV*100)}%)"></span>`).join('');
+    return `<div class="drillrow" data-mod="${m}"><div class="h"><span class="mn" style="color:${modColor(m)}">${m}</span>
+      <span class="meta">${set.length} estudo(s) · biomecânica <span class="bio">${bio}</span> (${set.length?Math.round(bio/set.length*100):0}%)</span></div>
+      <div class="stack">${stack}</div>
+      <div class="subtop">`+TEMAS.filter(t=>byVar[t]>0).map(t=>`<span style="color:${cssvar(TCOLOR[t])}">${t} ${Math.round(byVar[t]/totV*100)}%</span>`).join('')+`</div>
+      <div class="subtop" style="margin-top:6px">${subs.map(([s,v])=>`<span>${s} · ${v}</span>`).join('')}</div></div>`;
+  }).join('');
+  host.querySelectorAll('.drillrow').forEach(r=>r.onclick=()=>{state.analysis='';state.methodcol='';state.modality=r.dataset.mod;syncAnbar();applyKPI();render();scrollAcervo();});
+}
+function animDrill(){document.querySelectorAll('#drill .stack span').forEach(s=>s.style.width=s.dataset.w+'%');}
+
 /* ---------- filters wiring from charts ---------- */
 function scrollAcervo(){document.getElementById('acervo').scrollIntoView({behavior:'smooth'});}
 function syncChips(){document.querySelector('#chips .all').setAttribute('aria-pressed',state.themes.size===0);
@@ -523,7 +738,10 @@ function render(){
     if(state.sport && d.sport!==state.sport)return false;
     if(state.design && d.design!==state.design)return false;
     if(state.subvar && d.subvar!==state.subvar)return false;
-    if(state.q){const s=(d.authors+' '+d.title+' '+d.journal+' '+d.finding+' '+d.doi+' '+d.subvar).toLowerCase();if(!s.includes(state.q))return false;}
+    if(state.analysis){const a=ANALYSES.find(x=>x.k===state.analysis);if(a&&!a.test(d))return false;}
+    if(state.modality && !inMod(d,state.modality))return false;
+    if(state.methodcol){const c=METHODCOLS.find(x=>x.k===state.methodcol);if(c&&!c.test(d))return false;}
+    if(state.q){const s=(d.authors+' '+d.title+' '+d.journal+' '+d.finding+' '+d.doi+' '+d.subvar+' '+(d.methods||[]).join(' ')).toLowerCase();if(!s.includes(state.q))return false;}
     return true;});
   rows.sort((a,b)=> state.sort==='cit'?(num(b.citations)-num(a.citations)):state.sort==='auth'?a.authors.localeCompare(b.authors):(b.year-a.year));
   document.getElementById('rows').innerHTML=rows.map(d=>`<tr>
@@ -538,7 +756,7 @@ function render(){
     <td><a class="doi" href="https://doi.org/${d.doi}" target="_blank" rel="noopener">DOI ↗</a></td>
   </tr>`).join('');
   document.getElementById('empty').hidden=rows.length>0;
-  const flt=[state.subvar,state.design,state.sport,[...state.themes].join('+')].filter(Boolean).join(' · ');
+  const flt=[state.analysis&&(ANALYSES.find(x=>x.k===state.analysis)||{}).lab,state.modality,state.methodcol,state.subvar,state.design,state.sport,[...state.themes].join('+')].filter(Boolean).join(' · ');
   document.getElementById('note').textContent=`Exibindo ${rows.length} de ${DATA.length} artigos`+(flt?` · filtro: ${flt}`:'')+` · DOI verificado.`;
 }
 
@@ -552,13 +770,13 @@ document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.d
   document.getElementById('sort').value=state.sort;render();});
 
 /* ---------- init + reveal-on-scroll (real-time plotting) ---------- */
-buildStats();buildSeg();buildSport();buildDesign();buildPerm();buildPrisma();buildMatrix();buildReviewMeta();buildSynth();buildControls();render();
-const REVEAL={setores:()=>{animSeg();animSport();},tipos:animDesign,revisao:animMatrix};
+buildStats();buildSeg();buildSport();buildDesign();buildAnbar();buildCrosstab();buildUniao();buildDrill();applyKPI();buildPerm();buildPrisma();buildMatrix();buildReviewMeta();buildSynth();buildControls();render();
+const REVEAL={setores:()=>{animSeg();animSport();},tipos:animDesign,analises:()=>{animCrosstab();animDrill();},revisao:animMatrix};
 const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){
   if(REVEAL[e.target.id]){REVEAL[e.target.id]();}
   e.target.querySelectorAll?e.target.querySelectorAll('.stat b[data-count],#permbig').forEach(countUp):0;
   }});},{threshold:.25});
-['setores','tipos','revisao'].forEach(id=>io.observe(document.getElementById(id)));
+['setores','tipos','analises','revisao'].forEach(id=>io.observe(document.getElementById(id)));
 document.querySelectorAll('.stat b[data-count]').forEach(el=>io.observe(el.closest('.stats')||el));
 // stats + permanova count-up
 const io2=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){

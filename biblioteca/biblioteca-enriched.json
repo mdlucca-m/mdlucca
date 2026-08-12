@@ -12,7 +12,24 @@
   "design": "Transversal",
   "design_conf": "média",
   "subvar": "Perfeccionismo e TCA",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "SEM/mediação",
+   "Psicometria"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Patinação artística"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Mayer MA, Hamilton CJ, Jamil S, Vazquez O",
@@ -27,7 +44,23 @@
   "design": "Revisão sistemática",
   "design_conf": "alta",
   "subvar": "Epidemiologia de lesões",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "n/d",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Cheerleading"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Seifert Gonzales A, Galdamez I",
@@ -42,7 +75,25 @@
   "design": "Transversal",
   "design_conf": "média",
   "subvar": "Disfunção menstrual",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Balé/dança"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Veit J, Brinkschulte M, Vogt T",
@@ -57,7 +108,25 @@
   "design": "Experimental",
   "design_conf": "alta",
   "subvar": "Foco atencional",
-  "n": 29
+  "n": 29,
+  "biomech": true,
+  "methods": [
+   "Cinemática",
+   "ANOVA/MMRM"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico",
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Deng C, Yu Q",
@@ -72,7 +141,23 @@
   "design": "Revisão sistemática",
   "design_conf": "alta",
   "subvar": "Epidemiologia de lesões",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "n/d",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Cheerleading"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Donti A, Maraki MI, Psychountaki M, Donti O",
@@ -87,7 +172,24 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Sintomas de TCA",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Fukuyama H, Maeo S, Kusagawa Y, Isaka T",
@@ -102,7 +204,25 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Ativação intrínseca do pé",
-  "n": null
+  "n": null,
+  "biomech": true,
+  "methods": [
+   "EMG",
+   "Cinética/mecânica",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro"
+  ],
+  "modalities": [
+   "Balé/dança"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Gómez-Landero LA, Santos-Rosa FJ, Reguera-López-de-la-Osa X, Cervelló E",
@@ -117,7 +237,24 @@
   "design": "Transversal",
   "design_conf": "média",
   "subvar": "Ansiedade pré-competitiva",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Jo I, Hong EJ, Yoon HW, Ma Y, Lee SY, Lee HD",
@@ -132,7 +269,24 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Assimetria neuromuscular",
-  "n": null
+  "n": null,
+  "biomech": true,
+  "methods": [
+   "EMG",
+   "ANOVA/MMRM"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro"
+  ],
+  "modalities": [
+   "Balé/dança"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Jun H, Zhang M, Zhang L, Montez de Oca J",
@@ -147,7 +301,25 @@
   "design": "Transversal",
   "design_conf": "média",
   "subvar": "Viés de pontuação",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "ANOVA/MMRM",
+   "Tamanho de efeito",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": true,
+  "es_note": "d=0,57–1,21",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Koga A, Bai X, Jia Y, Liu J",
@@ -162,7 +334,26 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Biomecânica do salto",
-  "n": null
+  "n": null,
+  "biomech": true,
+  "methods": [
+   "Cinemática",
+   "EMG",
+   "ANOVA/MMRM",
+   "Derivadas/taxa"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": true,
+  "variables": [
+   "Neuro"
+  ],
+  "modalities": [
+   "Patinação artística"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Sprenger HML, van Biljouw T, Bentley DJ",
@@ -177,7 +368,25 @@
   "design": "ECR",
   "design_conf": "alta",
   "subvar": "Suplementação ergogênica",
-  "n": 17
+  "n": 17,
+  "biomech": false,
+  "methods": [
+   "ANOVA/MMRM",
+   "Tamanho de efeito",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": true,
+  "es_note": "d=-2,14 (RPE); d=0,85 (propulsão)",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Steinberg N, Elbaz L, Dar G, Nemet D, Eliakim A",
@@ -192,7 +401,26 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Maturação por disciplina",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Antropometria",
+   "ANOVA/MMRM"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica rítmica",
+   "Ginástica artística",
+   "Ginástica acrobática"
+  ],
+  "n_modalities": 3
  },
  {
   "authors": "Yu J, Li M, Chen Z",
@@ -207,7 +435,26 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Sinergias musculares",
-  "n": null
+  "n": null,
+  "biomech": true,
+  "methods": [
+   "Cinemática",
+   "EMG",
+   "NMF/sinergias",
+   "ANOVA/MMRM"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro"
+  ],
+  "modalities": [
+   "Patinação artística"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Zhou L, Stefan L",
@@ -222,7 +469,26 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Força mental e aptidão",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação",
+   "Antropometria"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico",
+   "Performance"
+  ],
+  "modalities": [
+   "Balé/dança"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Critchley ML, Toomey C, Gabel L, Kenny SJ, Emery CA",
@@ -237,7 +503,24 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Densidade óssea",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Antropometria",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Balé/dança"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Laski V, Ureczky D, Wilhelm M",
@@ -252,7 +535,24 @@
   "design": "Transversal",
   "design_conf": "média",
   "subvar": "Determinantes da execução",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Leupold O, Cheng J, Wimberly A, Nguyen J, Tilley D, Gabbett TJ, Casey E",
@@ -267,7 +567,25 @@
   "design": "Longitudinal",
   "design_conf": "alta",
   "subvar": "Monitorização de carga",
-  "n": 30
+  "n": 30,
+  "biomech": false,
+  "methods": [
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Fadiga",
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Lundqvist C",
@@ -282,7 +600,24 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Assédio e saúde mental",
-  "n": 284
+  "n": 284,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Cheerleading"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Nishikawa Y, Watanabe K, Holobar A, Kitamura R, Maeda N, Hyngstrom AS",
@@ -297,7 +632,24 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Taxa de disparo (proxy)",
-  "n": null
+  "n": null,
+  "biomech": true,
+  "methods": [
+   "EMG",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro"
+  ],
+  "modalities": [
+   "Proxy não-estético"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Proietti G, Borozan M, Chaigneau A, Cannito L, Palumbo R, Thouvarecq R, Iodice P",
@@ -312,7 +664,24 @@
   "design": "Experimental",
   "design_conf": "alta",
   "subvar": "Biofeedback/autorregulação",
-  "n": 8
+  "n": 8,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "St-Cyr J, Gavrila A, Tanguay-Sela M, Vallerand RJ",
@@ -327,7 +696,25 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Perfeccionismo e TCA",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "SEM/mediação",
+   "Psicometria"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica artística",
+   "Nado artístico"
+  ],
+  "n_modalities": 2
  },
  {
   "authors": "Trongjitpituk R, Homma M",
@@ -342,7 +729,24 @@
   "design": "Transversal",
   "design_conf": "média",
   "subvar": "Sincronização sensório-motora",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Descritivo",
+   "ANOVA/MMRM"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Williams SM, Baez SE, Derrico D, Robinson H, Coyne K, Settle H, Jochimsen KN",
@@ -357,7 +761,24 @@
   "design": "Longitudinal",
   "design_conf": "alta",
   "subvar": "Resiliência na temporada",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "de Freitas EG, Debien PB, Silva CD, Carrara PDS, Bara Filho MG",
@@ -372,7 +793,24 @@
   "design": "Longitudinal",
   "design_conf": "alta",
   "subvar": "Monitorização de carga",
-  "n": 7
+  "n": 7,
+  "biomech": false,
+  "methods": [
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Dondin M, Baeza-Velasco C",
@@ -387,7 +825,24 @@
   "design": "Transversal",
   "design_conf": "média",
   "subvar": "Fadiga e lesão",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Fadiga"
+  ],
+  "modalities": [
+   "Balé/dança"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Fukuyama H, Maeo S, Kusagawa Y, Ono M, Watanabe K, Isaka T",
@@ -402,7 +857,24 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Ativação intrínseca do pé",
-  "n": null
+  "n": null,
+  "biomech": true,
+  "methods": [
+   "EMG",
+   "Cinética/mecânica"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro"
+  ],
+  "modalities": [
+   "Balé/dança"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Jederström M, Agnafors S, Ekegren CL, Fagher K, et al.",
@@ -417,7 +889,24 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Ansiedade e depressão",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Patinação artística"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Vignaud E, Menu P, Daley P, Grondin J, Dauty M, Fouasson-Chailloux A",
@@ -432,7 +921,23 @@
   "design": "Longitudinal",
   "design_conf": "alta",
   "subvar": "Epidemiologia de lesões",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Debien PB, Timoteo TF, Gabbett TJ, Bara Filho MG",
@@ -447,7 +952,23 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Monitorização de carga",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Deng C, Yu Q, Luo G, Lu S",
@@ -462,7 +983,24 @@
   "design": "Experimental",
   "design_conf": "alta",
   "subvar": "Autoestima e saúde mental",
-  "n": 63
+  "n": 63,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "ANOVA/MMRM"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Cheerleading"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Fernandes I, Gomes JH, Oliveira L, Almeida M, Claudino JG, Resende C, et al.",
@@ -477,7 +1015,24 @@
   "design": "Longitudinal",
   "design_conf": "alta",
   "subvar": "Monitorização de carga",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Descritivo",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Fadiga"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Ridge ST, McLean D, Bruening D, Richards J",
@@ -492,7 +1047,26 @@
   "design": "Experimental",
   "design_conf": "média",
   "subvar": "Biomecânica do salto",
-  "n": null
+  "n": null,
+  "biomech": true,
+  "methods": [
+   "Cinemática",
+   "Cinética/mecânica",
+   "ANOVA/MMRM",
+   "Derivadas/taxa"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": true,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Patinação artística"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Santos-Rosa FJ, Montero-Carretero C, Gómez-Landero LA, Torregrossa M, Cervelló E",
@@ -507,7 +1081,24 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Autofala e ansiedade",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Wang L, Zhang H, Xu T, Zhang J, Liu Y, Qu Y",
@@ -522,7 +1113,24 @@
   "design": "Experimental",
   "design_conf": "alta",
   "subvar": "Densidade óssea",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Antropometria",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Cheerleading"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "da Silva MC, da Silva CR, de Lima FF, Lara JR, Gustavson JP, Magalhães FH",
@@ -537,7 +1145,26 @@
   "design": "Experimental",
   "design_conf": "alta",
   "subvar": "Fadiga e controle postural",
-  "n": 28
+  "n": 28,
+  "biomech": true,
+  "methods": [
+   "EMG",
+   "Cinética/mecânica",
+   "ANOVA/MMRM"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro",
+   "Fadiga"
+  ],
+  "modalities": [
+   "Ginástica acrobática"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Dall'Acqua F, Cristina-Souza G, Santos-Mariano AC, Bertuzzi R, Rodacki C, Lima-Silva AE",
@@ -552,7 +1179,24 @@
   "design": "Experimental",
   "design_conf": "alta",
   "subvar": "Suplementação ergogênica",
-  "n": 16
+  "n": 16,
+  "biomech": false,
+  "methods": [
+   "ANOVA/MMRM",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Esteban-García P, Jiménez-Díaz JF, Abián-Vicén J, Bravo-Sánchez A, Rubio-Arias JÁ",
@@ -567,7 +1211,24 @@
   "design": "ECR",
   "design_conf": "alta",
   "subvar": "Treino de core",
-  "n": 24
+  "n": 24,
+  "biomech": true,
+  "methods": [
+   "EMG",
+   "ANOVA/MMRM"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Molnar DS, Blackburn M, Zinga D, Spadafora N, Methot-Jones T, Connolly M",
@@ -582,7 +1243,24 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Perfeccionismo e motivação",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Balé/dança"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Pentith R, Moss SL, Lamb K, Edwards C",
@@ -597,7 +1275,24 @@
   "design": "Transversal",
   "design_conf": "média",
   "subvar": "Perfeccionismo e coping",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Balé/dança"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Podrihalo O, Podrigalo L, Jagiełło W, Iermakov S, Yermakova T",
@@ -612,7 +1307,24 @@
   "design": "Transversal",
   "design_conf": "média",
   "subvar": "Predição de talento",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Antropometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Remmel L, Jürimäe J, Tamm A-L, Purge P, Tillmann V",
@@ -627,7 +1339,25 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Imagem corporal",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação",
+   "Antropometria"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Gorwa J, Kabaciński J, Murawa M, Fryzowicz A",
@@ -642,7 +1372,25 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Turnout e compensação",
-  "n": null
+  "n": null,
+  "biomech": true,
+  "methods": [
+   "EMG",
+   "Cinemática",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro"
+  ],
+  "modalities": [
+   "Balé/dança"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Piasecki J, Inns TB, Bass JJ, Scott R, Stashuk DW, Phillips BE, Atherton PJ, Piasecki M",
@@ -657,7 +1405,25 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Unidades motoras (proxy)",
-  "n": null
+  "n": null,
+  "biomech": true,
+  "methods": [
+   "EMG",
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro"
+  ],
+  "modalities": [
+   "Proxy não-estético"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Schärer C, Lehmann T, Naundorf F, Taube W, Hübner K",
@@ -672,7 +1438,25 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Velocidade e D-score",
-  "n": null
+  "n": null,
+  "biomech": true,
+  "methods": [
+   "Cinemática",
+   "Regressão/correlação",
+   "Derivadas/taxa"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": true,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Rutkowska-Kucharska A, Szpala A, Jaroszczuk S, Sobera M",
@@ -687,7 +1471,24 @@
   "design": "Estudo de caso",
   "design_conf": "alta",
   "subvar": "Coativação muscular",
-  "n": 2
+  "n": 2,
+  "biomech": true,
+  "methods": [
+   "EMG",
+   "Descritivo"
+  ],
+  "stats_approach": "n/d",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Berz K, McCambridge T",
@@ -702,7 +1503,25 @@
   "design": "Revisão narrativa",
   "design_conf": "alta",
   "subvar": "Amenorreia/Tríade",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "n/d",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Patinação artística",
+   "Balé/dança",
+   "Ginástica artística"
+  ],
+  "n_modalities": 3
  },
  {
   "authors": "Donti O, Bogdanis GC, Kritikou M, Donti A, Theodorakou K",
@@ -717,7 +1536,25 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Aptidão e execução",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Regressão/correlação",
+   "Antropometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Lin CF, Lee WC, Chen YA, Hsue BJ",
@@ -732,7 +1569,26 @@
   "design": "Experimental",
   "design_conf": "alta",
   "subvar": "Fadiga e padrão motor",
-  "n": null
+  "n": null,
+  "biomech": true,
+  "methods": [
+   "EMG",
+   "Cinemática",
+   "ANOVA/MMRM"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro",
+   "Fadiga"
+  ],
+  "modalities": [
+   "Balé/dança"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Neves CM, Meireles JFF, Carvalho PHB, Schubring A, Barker-Ruchti N, Ferreira MEC",
@@ -747,7 +1603,24 @@
   "design": "Longitudinal",
   "design_conf": "alta",
   "subvar": "Insatisfação corporal",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Schaal K, Tiollier E, Le Meur Y, Casazza G, Hausswirth C",
@@ -762,7 +1635,25 @@
   "design": "Longitudinal",
   "design_conf": "média",
   "subvar": "Disponibilidade energética",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Descritivo",
+   "ANOVA/MMRM"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance",
+   "Fadiga"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Tan JOA, Calitri R, Bloodworth A, McNamee MJ",
@@ -777,7 +1668,25 @@
   "design": "Revisão narrativa",
   "design_conf": "média",
   "subvar": "TCA na elite",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Descritivo",
+   "Psicometria"
+  ],
+  "stats_approach": "n/d",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica rítmica",
+   "Ginástica acrobática"
+  ],
+  "n_modalities": 2
  },
  {
   "authors": "Tanabe H, Fujii K, Kouzaki M",
@@ -792,7 +1701,25 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Drive neural comum",
-  "n": null
+  "n": null,
+  "biomech": true,
+  "methods": [
+   "EMG",
+   "Cinemática",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro"
+  ],
+  "modalities": [
+   "Balé/dança"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Sawers A, Allen JL, Ting LH",
@@ -807,7 +1734,25 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Sinergias musculares",
-  "n": null
+  "n": null,
+  "biomech": true,
+  "methods": [
+   "EMG",
+   "NMF/sinergias",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro"
+  ],
+  "modalities": [
+   "Balé/dança"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Pantoja PD, Mello A, Liedtke GV, Kanitz AC, Cadore EL, Pinto SS, Alberton CL, Kruel LFM",
@@ -822,7 +1767,24 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Ativação por rotações",
-  "n": null
+  "n": null,
+  "biomech": true,
+  "methods": [
+   "EMG",
+   "Descritivo"
+  ],
+  "stats_approach": "n/d",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro"
+  ],
+  "modalities": [
+   "Patinação artística"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Saito S, Obata H, Endoh T, Kuno-Mizumura M, Nakazawa K",
@@ -837,7 +1799,23 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Excitabilidade corticoespinhal",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro"
+  ],
+  "modalities": [
+   "Balé/dança"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Tsopani D, Dallas G, Skordilis EK",
@@ -852,7 +1830,24 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Autoconfiança e desempenho",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Di Cagno A, Baldari C, Battaglia C, Monteiro MD, Pappalardo A, Piazza M, Guidetti L",
@@ -867,7 +1862,25 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Determinantes do salto",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Regressão/correlação",
+   "Antropometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1
  },
  {
   "authors": "Douda HT, Toubekis AG, Avloniti AA, Tokmakidis SP",
@@ -882,6 +1895,24 @@
   "design": "Transversal",
   "design_conf": "alta",
   "subvar": "Determinantes antropométricos",
-  "n": null
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Regressão/correlação",
+   "Antropometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1
  }
 ]
