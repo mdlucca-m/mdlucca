@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biblioteca Virtual — Esportes Estéticos Femininos · De Lucca</title>
+<style>
+/*FONTFACE*/
+:root{
+  --ink-0:#0a0b10;--ink-1:#0d0f16;--ink-2:#141824;--ink-3:#1b2130;--line:#252c3b;
+  --gold:#e3a942;--gold-b:#efc471;--hi:#f4f2ea;--mid:#a7b0c0;--low:#6b7486;
+  --t-neuro:#4f93d6;--t-psico:#33b98a;--t-perf:#e8c24a;--t-fadiga:#e2853a;
+  --sans:'Barlow',system-ui,sans-serif;--cond:'Oswald',var(--sans);--disp:'Anton',var(--cond);--serif:'Playfair Display',Georgia,serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 700px at 50% -10%,#12151f,transparent 60%),var(--ink-0);
+  color:var(--hi);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:40px 20px 80px}
+.eyebrow{font-family:var(--cond);font-weight:600;font-size:13px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin:0 0 10px;display:flex;align-items:center;gap:14px}
+.eyebrow::after{content:"";height:1px;flex:1;background:linear-gradient(90deg,var(--gold),transparent)}
+h1{font-family:var(--disp);font-weight:400;text-transform:uppercase;letter-spacing:.01em;font-size:clamp(32px,6vw,60px);line-height:.95;margin:0 0 10px;text-shadow:0 2px 0 #0006}
+.lede{font-family:var(--serif);font-style:italic;color:var(--mid);font-size:clamp(15px,2vw,19px);max-width:70ch;margin:0}
+.stats{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0 8px}
+.stat{background:var(--ink-2);border:1px solid #ffffff10;border-radius:10px;padding:12px 18px;box-shadow:0 12px 26px -18px #000}
+.stat b{font-family:var(--disp);font-size:26px;color:var(--gold);display:block;line-height:1}
+.stat span{font-family:var(--cond);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mid)}
+
+/* sínteses por tema */
+.synth{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:26px 0 8px}
+@media(max-width:760px){.synth{grid-template-columns:1fr}}
+.scard{background:var(--ink-2);border:1px solid #ffffff10;border-radius:12px;padding:18px 20px;border-left:4px solid var(--c);
+  box-shadow:0 16px 34px -22px #000}
+.scard h3{font-family:var(--cond);font-weight:600;font-size:14px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px;color:var(--c)}
+.scard p{font-size:14px;color:var(--mid);margin:0;line-height:1.5}
+.scard p b{color:var(--hi);font-weight:600}
+
+/* controles */
+.controls{position:sticky;top:0;z-index:5;background:linear-gradient(180deg,var(--ink-0),#0a0b10ee);padding:16px 0 12px;margin-top:24px;border-bottom:1px solid var(--line)}
+.searchrow{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.search{flex:1;min-width:220px;display:flex;align-items:center;gap:10px;background:var(--ink-2);border:1px solid #ffffff14;border-radius:10px;padding:10px 14px}
+.search input{flex:1;background:none;border:0;color:var(--hi);font-family:var(--sans);font-size:15px;outline:none}
+.search input::placeholder{color:var(--low)}
+select{background:var(--ink-2);border:1px solid #ffffff14;color:var(--hi);border-radius:10px;padding:10px 12px;font-family:var(--cond);font-size:13px;letter-spacing:.04em}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{font-family:var(--cond);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mid);
+  background:var(--ink-2);border:1px solid #ffffff14;border-radius:99px;padding:7px 14px;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:7px}
+.chip i{width:9px;height:9px;border-radius:50%;background:var(--c)}
+.chip[aria-pressed="true"]{color:#0e1017;background:var(--c);border-color:transparent}
+.chip.all[aria-pressed="true"]{background:var(--gold);color:#0e1017}
+
+/* tabela */
+.tablewrap{overflow-x:auto;margin-top:6px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{position:sticky;top:0;text-align:left;font-family:var(--cond);font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mid);padding:12px 12px;border-bottom:1px solid #38414f;cursor:pointer;white-space:nowrap;background:var(--ink-1)}
+th .ar{color:var(--gold);font-size:.9em}
+td{padding:13px 12px;border-bottom:1px solid #171d2a;vertical-align:top;color:var(--mid)}
+tr:hover td{background:#ffffff05}
+.t-title{color:var(--hi);font-weight:600;max-width:420px}
+.t-find{display:block;font-weight:400;color:var(--low);font-size:12.5px;margin-top:3px;line-height:1.4}
+.t-auth{white-space:nowrap;color:var(--mid)}
+.t-year{font-family:var(--cond);font-weight:600;color:var(--hi);text-align:center}
+.t-cit{font-family:var(--cond);font-weight:600;color:var(--gold-b);text-align:center;font-variant-numeric:tabular-nums}
+.badge{font-family:var(--cond);font-weight:600;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#0e1017;
+  background:var(--c);border-radius:99px;padding:3px 10px;white-space:nowrap;display:inline-block}
+.doi{font-family:var(--cond);color:var(--gold);text-decoration:none;font-size:12.5px;letter-spacing:.01em;border-bottom:1px dashed #e3a94255}
+.doi:hover{color:var(--gold-b)}
+.sport{font-size:12.5px;color:var(--mid)}
+.empty{padding:40px;text-align:center;color:var(--low);font-family:var(--serif);font-style:italic}
+footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+footer .name{font-family:var(--sans);font-weight:600;color:var(--hi);margin:0}
+footer .role{color:var(--low);font-size:13px;margin:4px 0 0}
+footer .wm{font-family:var(--disp);font-size:26px;color:var(--gold)}
+.note{font-size:12px;color:var(--low);margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Base Científica · Biblioteca Virtual</p>
+  <h1>Esportes estéticos<br>femininos</h1>
+  <p class="lede">Acervo internacional, com DOI verificado — neurofisiologia e controle motor, variáveis psicológicas, determinantes de performance e fadiga.</p>
+
+  <div class="stats" id="stats"></div>
+
+  <section class="synth" id="synth"></section>
+
+  <div class="controls">
+    <div class="searchrow">
+      <label class="search">🔎<input id="q" type="search" placeholder="Buscar por autor, título, periódico, achado…"></label>
+      <select id="sport"><option value="">Todos os esportes</option></select>
+      <select id="sort">
+        <option value="year">Ordenar: ano ↓</option>
+        <option value="cit">Ordenar: citações ↓</option>
+        <option value="auth">Ordenar: autor A–Z</option>
+      </select>
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr>
+        <th data-k="authors">Autores</th>
+        <th data-k="year">Ano <span class="ar"></span></th>
+        <th data-k="title">Título · achado</th>
+        <th data-k="journal">Periódico</th>
+        <th data-k="topic">Tema</th>
+        <th data-k="sport">Esporte</th>
+        <th data-k="citations">Cit. <span class="ar"></span></th>
+        <th data-k="doi">DOI</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="empty" id="empty" hidden>Nenhum artigo corresponde ao filtro.</div>
+  </div>
+  <p class="note" id="note"></p>
+
+  <footer>
+    <div><p class="name">Prof. Me. Mateus de Lucca</p><p class="role">Doutorando CEFID/UDESC · biblioteca curada pelo agente <b>biblioteca-delucca</b></p></div>
+    <span class="wm">DE LUCCA</span>
+  </footer>
+</div>
+
+<script>
+const DATA = /*DATA*/[];
+const SYNTH = /*SYNTH*/[];
+
+const THEME={ // topic -> {tema, cor}
+  'motor-pattern':['Neuro','--t-neuro'],'emg-activation':['Neuro','--t-neuro'],'motor-unit':['Neuro','--t-neuro'],
+  'firing-rate':['Neuro','--t-neuro'],'rfd-neural':['Neuro','--t-neuro'],'motor-learning':['Neuro','--t-neuro'],
+  'anxiety':['Psico','--t-psico'],'perfectionism':['Psico','--t-psico'],'body-image':['Psico','--t-psico'],
+  'disordered-eating':['Psico','--t-psico'],'motivation':['Psico','--t-psico'],'self-confidence':['Psico','--t-psico'],
+  'stress-coping':['Psico','--t-psico'],'burnout':['Psico','--t-psico'],'mental-toughness':['Psico','--t-psico'],'flow':['Psico','--t-psico'],
+  'physical-determinants':['Performance','--t-perf'],'biomechanics-technique':['Performance','--t-perf'],
+  'anthropometry-maturation':['Performance','--t-perf'],'talent-prediction':['Performance','--t-perf'],'judging-scoring':['Performance','--t-perf'],
+  'neuromuscular-fatigue':['Fadiga','--t-fadiga'],'training-load':['Fadiga','--t-fadiga'],'overtraining':['Fadiga','--t-fadiga'],
+  'recovery-readiness':['Fadiga','--t-fadiga'],'red-s':['Fadiga','--t-fadiga'],'menstrual-hormonal':['Fadiga','--t-fadiga'],'perceived-fatigue':['Fadiga','--t-fadiga']
+};
+const cssvar=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const state={q:'',sport:'',sort:'year',themes:new Set()};
+
+function theme(t){return THEME[t]?THEME[t][0]:'—';}
+function color(t){return THEME[t]?cssvar(THEME[t][1]):'#888';}
+
+function buildStatic(){
+  // stats
+  const themes={};DATA.forEach(d=>{const th=theme(d.topic);themes[th]=(themes[th]||0)+1;});
+  const st=document.getElementById('stats');
+  st.innerHTML=`<div class="stat"><b>${DATA.length}</b><span>artigos</span></div>`+
+    Object.entries(themes).map(([k,v])=>`<div class="stat"><b>${v}</b><span>${k}</span></div>`).join('')+
+    `<div class="stat"><b>${new Set(DATA.map(d=>d.doi)).size}</b><span>DOI únicos</span></div>`;
+  // sínteses
+  document.getElementById('synth').innerHTML=SYNTH.map(s=>
+    `<div class="scard" style="--c:${cssvar(s.color)}"><h3>${s.title}</h3><p>${s.text}</p></div>`).join('');
+  // filtros de tema
+  const chips=document.getElementById('chips');const temas=['Neuro','Psico','Performance','Fadiga'];
+  const colors={Neuro:'--t-neuro',Psico:'--t-psico',Performance:'--t-perf',Fadiga:'--t-fadiga'};
+  chips.innerHTML=`<button class="chip all" aria-pressed="true">Todos</button>`+
+    temas.map(t=>`<button class="chip" data-t="${t}" aria-pressed="false" style="--c:${cssvar(colors[t])}"><i></i>${t}</button>`).join('');
+  chips.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
+    if(c.classList.contains('all')){state.themes.clear();}
+    else{const t=c.dataset.t;state.themes.has(t)?state.themes.delete(t):state.themes.add(t);}
+    chips.querySelector('.all').setAttribute('aria-pressed',state.themes.size===0);
+    chips.querySelectorAll('.chip[data-t]').forEach(x=>x.setAttribute('aria-pressed',state.themes.has(x.dataset.t)));
+    render();});
+  // esportes
+  const sports=[...new Set(DATA.map(d=>d.sport))].sort();
+  document.getElementById('sport').insertAdjacentHTML('beforeend',sports.map(s=>`<option>${s}</option>`).join(''));
+}
+
+function render(){
+  let rows=DATA.filter(d=>{
+    if(state.themes.size && !state.themes.has(theme(d.topic)))return false;
+    if(state.sport && d.sport!==state.sport)return false;
+    if(state.q){const s=(d.authors+' '+d.title+' '+d.journal+' '+d.finding+' '+d.doi).toLowerCase();if(!s.includes(state.q))return false;}
+    return true;});
+  rows.sort((a,b)=> state.sort==='cit'? (num(b.citations)-num(a.citations))
+    : state.sort==='auth'? a.authors.localeCompare(b.authors) : (b.year-a.year));
+  const tb=document.getElementById('rows');
+  tb.innerHTML=rows.map(d=>`<tr>
+    <td class="t-auth">${d.authors}</td>
+    <td class="t-year">${d.year}</td>
+    <td><span class="t-title">${d.title}</span><span class="t-find">${d.finding||''}</span></td>
+    <td>${d.journal}</td>
+    <td><span class="badge" style="--c:${color(d.topic)}">${theme(d.topic)}</span></td>
+    <td class="sport">${d.sport}</td>
+    <td class="t-cit">${d.citations??'n/d'}</td>
+    <td><a class="doi" href="https://doi.org/${d.doi}" target="_blank" rel="noopener">${d.doi}</a></td>
+  </tr>`).join('');
+  document.getElementById('empty').hidden=rows.length>0;
+  document.getElementById('note').textContent=`Exibindo ${rows.length} de ${DATA.length} artigos · fontes internacionais · DOI verificado.`;
+}
+const num=v=>{const n=parseInt(String(v).replace(/\D/g,''));return isNaN(n)?-1:n;};
+
+document.getElementById('q').oninput=e=>{state.q=e.target.value.toLowerCase().trim();render();};
+document.getElementById('sport').onchange=e=>{state.sport=e.target.value;render();};
+document.getElementById('sort').onchange=e=>{state.sort=e.target.value;render();};
+document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;
+  if(k==='citations')state.sort='cit';else if(k==='authors')state.sort='auth';else if(k==='year')state.sort='year';
+  document.getElementById('sort').value=state.sort;render();});
+
+buildStatic();render();
+</script>
+</body>
+</html>
