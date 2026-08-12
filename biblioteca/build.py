@@ -272,6 +272,30 @@ footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--line);display
 .pcard .pv{cursor:pointer}
 .pcard .pv:hover .nm{color:var(--hi)}
 .pcard .empty0{color:var(--low);font-size:12.5px;font-style:italic;margin:10px 0 0}
+/* ---- linha do tempo ---- */
+.tlwrap{position:relative;width:100%;overflow-x:auto}
+svg.tl{display:block;width:100%;min-width:680px;height:auto}
+.tl .axis{stroke:var(--line);stroke-width:1}
+.tl .grid{stroke:#ffffff08;stroke-width:1}
+.tl text{fill:var(--mid);font-family:var(--sans)}
+.tl .lbl{fill:var(--low);font-size:10px}
+.tl path.series{fill:none;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 3px 6px #0006)}
+.tl circle.dot{stroke:var(--ink-1);stroke-width:1.4}
+.tllegend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
+.tllegend .it{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--mid)}
+.tllegend .sw{width:16px;height:3px;border-radius:2px}
+/* ---- ficha (detalhe do artigo) ---- */
+tr.arow{cursor:pointer}
+tr.arow.open{background:#e3a9420d}
+tr.detail td{background:var(--ink-1);border-bottom:1px solid var(--line);padding:4px 14px 14px}
+.ficha{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 22px;padding:8px 2px}
+@media(max-width:820px){.ficha{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.ficha{grid-template-columns:1fr}}
+.ficha .f{border-left:2px solid var(--line);padding-left:12px}
+.ficha .f.full{grid-column:1/-1}
+.ficha .k{font-family:var(--cond);font-weight:600;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin:0 0 3px}
+.ficha .v{font-size:13px;color:var(--hi);margin:0;line-height:1.45}
+.ficha .v.mut{color:var(--low)}
 """
 
 BODY = r"""
@@ -284,6 +308,7 @@ BODY = r"""
 
   <nav class="jump">
     <a href="#setores">Setores</a>
+    <a href="#linha">Linha do tempo</a>
     <a href="#tipos">Tipos de estudo</a>
     <a href="#analises">Análises</a>
     <a href="#psico">Psicologia</a>
@@ -307,6 +332,18 @@ BODY = r"""
         <p class="hint">Volume de evidência por modalidade estética. Clique para filtrar.</p>
         <div id="sportbars"></div>
       </div>
+    </div>
+  </section>
+
+  <!-- LINHA DO TEMPO -->
+  <section class="block" id="linha">
+    <h2 class="sec">Linha do tempo</h2>
+    <p class="sub">Evolução espaço-temporal · clique para plotar</p>
+    <div class="anbar" id="tlbar"></div>
+    <div class="card">
+      <div class="tlwrap"><svg class="tl" id="tlsvg" viewBox="0 0 1000 380" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <div class="tllegend" id="tllegend"></div>
+      <p class="hint" id="tlhint"></p>
     </div>
   </section>
 
@@ -420,6 +457,7 @@ BODY = r"""
       </div>
       <div class="chips" id="chips"></div>
     </div>
+    <p class="hint">Clique numa linha para abrir a <b>ficha completa</b>: amostra, resumo, variáveis biodinâmicas, delineamento, análise estatística e síntese.</p>
     <div class="tablewrap">
       <table class="lib">
         <thead><tr>
@@ -768,6 +806,94 @@ function buildDrill(){
 }
 function animDrill(){document.querySelectorAll('#drill .stack span').forEach(s=>s.style.width=s.dataset.w+'%');}
 
+/* ---------- LINHA DO TEMPO (espaço-temporal) ---------- */
+const TL_VIEWS=[
+  {k:'modalidade',lab:'Por modalidade',series:()=>modalityList().map(m=>({name:m,color:modColor(m),test:d=>inMod(d,m)}))},
+  {k:'variavel',lab:'Por variável',series:()=>TEMAS.map(t=>({name:t,color:cssvar(TCOLOR[t]),test:d=>varsOf(d).includes(t)}))},
+  {k:'desenho',lab:'Por delineamento',series:()=>[
+    {name:'Observacional',color:cssvar('--t-neuro'),test:d=>['Transversal','Longitudinal'].includes(d.design)},
+    {name:'Experimental/ECR',color:cssvar('--t-psico'),test:d=>['Experimental','ECR'].includes(d.design)},
+    {name:'Revisão',color:'#b06de0',test:d=>String(d.design).startsWith('Revis')||d.design==='Meta-análise'}]},
+  {k:'biopsi',lab:'Biomecânica vs Psicologia',series:()=>[
+    {name:'Biomecânica',color:cssvar('--t-neuro'),test:d=>d.biomech},
+    {name:'Psicologia',color:cssvar('--t-psico'),test:d=>theme(d.topic)==='Psico'}]},
+  {k:'total',lab:'Acumulado total',series:()=>[{name:'Todos os estudos',color:cssvar('--gold'),test:d=>true}]}
+];
+let TL_ACTIVE='modalidade';
+function yearsRange(){const ys=DATA.map(d=>+d.year).filter(Boolean);return [Math.min(...ys),Math.max(...ys)];}
+function buildTimeline(){
+  const bar=document.getElementById('tlbar');
+  bar.innerHTML=TL_VIEWS.map((v,i)=>`<button class="anbtn" data-k="${v.k}" aria-pressed="${i===0}">${v.lab}</button>`).join('');
+  bar.querySelectorAll('.anbtn').forEach(b=>b.onclick=()=>{bar.querySelectorAll('.anbtn').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');TL_ACTIVE=b.dataset.k;plotTimeline(b.dataset.k);});
+  plotTimeline('modalidade');
+}
+function plotTimeline(k){
+  const view=TL_VIEWS.find(v=>v.k===k)||TL_VIEWS[0];const series=view.series();
+  const [y0,y1]=yearsRange();const W=1000,H=380,ML=44,MR=16,MT=18,MB=34;
+  const yrs=[];for(let y=y0;y<=y1;y++)yrs.push(y);
+  const data=series.map(s=>{let c=0;return yrs.map(y=>{c+=DATA.filter(d=>+d.year===y&&s.test(d)).length;return c;});});
+  const maxY=Math.max(1,...data.flat());
+  const X=i=>ML+(W-ML-MR)*(yrs.length<=1?0.5:i/(yrs.length-1));
+  const Y=v=>H-MB-(H-MT-MB)*(v/maxY);
+  let g='';const ticks=4;
+  for(let t=0;t<=ticks;t++){const val=Math.round(maxY*t/ticks);const yy=Y(val);
+    g+=`<line class="grid" x1="${ML}" y1="${yy}" x2="${W-MR}" y2="${yy}"/><text class="lbl" x="${ML-6}" y="${yy+3}" text-anchor="end">${val}</text>`;}
+  const step=Math.max(1,Math.ceil(yrs.length/10));
+  yrs.forEach((y,i)=>{if(i%step===0||i===yrs.length-1)g+=`<text class="lbl" x="${X(i)}" y="${H-MB+16}" text-anchor="middle">${y}</text>`;});
+  g+=`<line class="axis" x1="${ML}" y1="${H-MB}" x2="${W-MR}" y2="${H-MB}"/><line class="axis" x1="${ML}" y1="${MT}" x2="${ML}" y2="${H-MB}"/>`;
+  series.forEach((s,si)=>{
+    const pts=data[si].map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`);
+    g+=`<path class="series" data-si="${si}" d="M${pts.join(' L')}" style="stroke:${s.color}"/>`;
+    data[si].forEach((v,i)=>{g+=`<circle class="dot" data-si="${si}" cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="2.6" style="fill:${s.color};opacity:0"><title>${s.name} · ${yrs[i]}: ${v}</title></circle>`;});
+  });
+  document.getElementById('tlsvg').innerHTML=g;
+  document.getElementById('tllegend').innerHTML=series.map(s=>`<div class="it"><span class="sw" style="background:${s.color}"></span>${s.name}</div>`).join('');
+  document.getElementById('tlhint').textContent=`Contagem acumulada de ${y0} a ${y1} · ${series.length} série(s) · ${DATA.length} estudos.`;
+  animTimeline();
+}
+function animTimeline(){
+  document.querySelectorAll('#tlsvg path.series').forEach((p,i)=>{const L=p.getTotalLength();
+    p.style.transition='none';p.style.strokeDasharray=L;p.style.strokeDashoffset=L;p.getBoundingClientRect();
+    setTimeout(()=>{p.style.transition='stroke-dashoffset 1.2s cubic-bezier(.4,.1,.2,1)';p.style.strokeDashoffset=0;},i*130);});
+  document.querySelectorAll('#tlsvg circle.dot').forEach(c=>{const si=+c.dataset.si;c.style.opacity=0;
+    setTimeout(()=>{c.style.transition='opacity .4s ease';c.style.opacity=1;},520+si*130);});
+}
+
+/* ---------- FICHA (análise completa por artigo) ---------- */
+function fichaHTML(d){
+  const F=(k,v,full)=>`<div class="f${full?' full':''}"><p class="k">${k}</p><p class="v${(v&&v!=='—'&&v!=='n/d')?'':' mut'}">${v||'—'}</p></div>`;
+  const amostra=d.amostra||(d.n?`${d.n} participantes`:'n/d');
+  const resumo=d.resumo||d.finding||'—';
+  const bio=d.variaveis_biodinamicas||(d.biomech?((d.methods||[]).join(', ')||'—'):'—');
+  const ana=d.analise_estatistica||((d.methods||[]).filter(m=>/ANOVA|Regress|SPM|NMF|PCA|Bayes|ROC|SEM|Descritivo/.test(m)).join(', ')||d.stats_approach||'n/d');
+  const sint=d.sintese||d.subvar||'—';
+  return `<div class="ficha">
+    ${F('Modalidade',modsOf(d).join(' · '))}
+    ${F('Tipo de estudo · ano',`${d.design} · ${d.year}`)}
+    ${F('Amostra',amostra)}
+    ${F('Delineamento',`${d.design}${d.design_conf?' ('+d.design_conf+')':''}`)}
+    ${F('Análise estatística',ana)}
+    ${F('Abordagem',d.stats_approach||'n/d')}
+    ${F('Variáveis biodinâmicas',bio,true)}
+    ${F('Resumo',resumo,true)}
+    ${F('Síntese',sint,true)}
+  </div>`;
+}
+function wireRows(){
+  document.querySelectorAll('#rows tr.arow').forEach(tr=>tr.onclick=e=>{
+    if(e.target.closest('a'))return;
+    const next=tr.nextElementSibling;
+    const isOpen=next&&next.classList.contains('detail');
+    document.querySelectorAll('#rows tr.detail').forEach(x=>x.remove());
+    document.querySelectorAll('#rows tr.arow.open').forEach(x=>x.classList.remove('open'));
+    if(isOpen)return;
+    const d=DATA.find(x=>x.doi===tr.dataset.doi);if(!d)return;
+    tr.classList.add('open');
+    const det=document.createElement('tr');det.className='detail';
+    det.innerHTML=`<td colspan="9">${fichaHTML(d)}</td>`;tr.after(det);
+  });
+}
+
 /* ---------- filters wiring from charts ---------- */
 function scrollAcervo(){document.getElementById('acervo').scrollIntoView({behavior:'smooth'});}
 function syncChips(){document.querySelector('#chips .all').setAttribute('aria-pressed',state.themes.size===0);
@@ -808,7 +934,7 @@ function render(){
     if(state.q){const s=(d.authors+' '+d.title+' '+d.journal+' '+d.finding+' '+d.doi+' '+d.subvar+' '+(d.methods||[]).join(' ')).toLowerCase();if(!s.includes(state.q))return false;}
     return true;});
   rows.sort((a,b)=> state.sort==='cit'?(num(b.citations)-num(a.citations)):state.sort==='auth'?a.authors.localeCompare(b.authors):(b.year-a.year));
-  document.getElementById('rows').innerHTML=rows.map(d=>`<tr>
+  document.getElementById('rows').innerHTML=rows.map(d=>`<tr class="arow" data-doi="${d.doi}">
     <td class="t-auth">${d.authors}</td>
     <td class="t-year">${d.year}</td>
     <td><span class="t-title">${d.title}</span><span class="t-find">${d.finding||''}</span></td>
@@ -820,6 +946,7 @@ function render(){
     <td><a class="doi" href="https://doi.org/${d.doi}" target="_blank" rel="noopener">DOI ↗</a></td>
   </tr>`).join('');
   document.getElementById('empty').hidden=rows.length>0;
+  wireRows();
   const flt=[state.analysis&&(ANALYSES.find(x=>x.k===state.analysis)||{}).lab,state.topic&&(PSUB[state.topic]||state.topic),state.psicogroup&&(PSICO_GROUPS.find(x=>x.key===state.psicogroup)||{}).label,state.modality,state.methodcol,state.subvar,state.design,state.sport,[...state.themes].join('+')].filter(Boolean).join(' · ');
   document.getElementById('note').textContent=`Exibindo ${rows.length} de ${DATA.length} artigos`+(flt?` · filtro: ${flt}`:'')+` · DOI verificado.`;
 }
@@ -834,13 +961,13 @@ document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.d
   document.getElementById('sort').value=state.sort;render();});
 
 /* ---------- init + reveal-on-scroll (real-time plotting) ---------- */
-buildStats();buildSeg();buildSport();buildDesign();buildAnbar();buildCrosstab();buildUniao();buildDrill();applyKPI();buildPsico();buildPrisma();buildMatrix();buildReviewMeta();buildSynth();buildControls();render();
-const REVEAL={setores:()=>{animSeg();animSport();},tipos:animDesign,analises:()=>{animCrosstab();animDrill();},psico:animPsico,revisao:animMatrix};
+buildStats();buildSeg();buildSport();buildTimeline();buildDesign();buildAnbar();buildCrosstab();buildUniao();buildDrill();applyKPI();buildPsico();buildPrisma();buildMatrix();buildReviewMeta();buildSynth();buildControls();render();
+const REVEAL={setores:()=>{animSeg();animSport();},linha:()=>plotTimeline(TL_ACTIVE),tipos:animDesign,analises:()=>{animCrosstab();animDrill();},psico:animPsico,revisao:animMatrix};
 const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){
   if(REVEAL[e.target.id]){REVEAL[e.target.id]();}
   e.target.querySelectorAll?e.target.querySelectorAll('.stat b[data-count]').forEach(countUp):0;
   }});},{threshold:.25});
-['setores','tipos','analises','psico','revisao'].forEach(id=>io.observe(document.getElementById(id)));
+['setores','linha','tipos','analises','psico','revisao'].forEach(id=>io.observe(document.getElementById(id)));
 document.querySelectorAll('.stat b[data-count]').forEach(el=>io.observe(el.closest('.stats')||el));
 // stats + permanova count-up
 const io2=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){
