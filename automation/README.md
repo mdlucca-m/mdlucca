@@ -56,6 +56,17 @@ subagente `biblioteca-delucca`.
 - `repo` (nó 2) apontando para o clone do projeto; credencial SMTP + env `DIGEST_EMAIL`
   para o e-mail (troque por Telegram/Slack se preferir).
 
+## 3º agente — `metodos-pmc` (texto completo)
+O agente **`metodos-pmc`** (`.claude/agents/metodos-pmc.md`) aprofunda entradas já
+catalogadas lendo o **texto completo open-access no PubMed Central**: resolve DOI→PMCID,
+confere licença, baixa o full text, localiza a seção de **Métodos** e re-processa
+**instrumentos, variáveis analisadas, amostra, população e análise estatística** (o
+abstract costuma omitir). Os patches (`biblioteca/_pmc-*.json`) são aplicados por
+`python3 biblioteca/apply_pmc.py` e o HTML é regenerado por `build.py`. As fichas ganham
+os campos **População / Instrumentos / Variáveis analisadas** e o selo *“texto completo PMC”*.
+> Rodar na mão (headless): `claude -p "Use o agente metodos-pmc nos DOIs open-access do acervo…"`,
+> depois `python3 biblioteca/apply_pmc.py && python3 biblioteca/build.py`.
+
 ## Rodar na mão
 ```bash
 # gaps no 1º argumento; modalidades via env MODALIDADES (o script itera cada uma)
