@@ -6759,6 +6759,44 @@
   "sintese": "Observação de vídeo + imagética PETTLEP associada à prática física potencializa o salto, preservando energia da atleta para outras tarefas."
  },
  {
+  "authors": "Vanderlei FM, Vanderlei LCM, Netto Júnior J, Pastre CM",
+  "year": 2013,
+  "title": "Características das lesões desportivas e fatores associados com lesão em iniciantes de ginástica artística do sexo feminino",
+  "journal": "Fisioterapia e Pesquisa",
+  "doi": "10.1590/S1809-29502013000200015",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "training-load",
+  "finding": "As características das lesões dependeram do nível de competitividade das ginastas; lesões concentraram-se em articulações e membros inferiores em iniciantes de ginástica artística.",
+  "design": "Transversal",
+  "design_conf": "Alta",
+  "subvar": "Frequência, tipo e fatores associados às lesões desportivas",
+  "n": 46,
+  "biomech": false,
+  "methods": [
+   "Descritivo",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Inquérito de morbidade referida; associação com nível competitivo",
+  "effect_size": false,
+  "es_note": "Sem tamanho de efeito relatado.",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "46 ginastas do sexo feminino (idade média 10,1±2,0 anos), classificadas em níveis de iniciação e treinamento.",
+  "resumo": "Estudo transversal que aplicou inquérito de morbidade referida adaptado para descrever características e fatores associados às lesões em iniciantes de ginástica artística feminina.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Estatística descritiva e análise de fatores associados.",
+  "sintese": "Aporta dados de epidemiologia de lesões em ginástica artística feminina jovem, dependente do nível competitivo.",
+  "idioma": "pt"
+ },
+ {
   "authors": "Oliveira TAC, et al.",
   "year": 2012,
   "title": "A postura de atletas de ginástica rítmica: análise através da fotometria",
@@ -6906,6 +6944,44 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Comparações entre grupos (alto vs baixo desempenho; finalistas vs não finalistas) e análise de regressão para predizer o desempenho.",
   "sintese": "A autoconfiança, e não a ansiedade, prediz o desempenho competitivo, indicando o valor de estratégias para reforçá-la em jovens ginastas rítmicas."
+ },
+ {
+  "authors": "Vieira JLL, Amorim HZ, Vieira LF, Amorim AC, Rocha PGM",
+  "year": 2009,
+  "title": "Distúrbios de atitudes alimentares e distorção da imagem corporal no contexto competitivo da ginástica rítmica",
+  "journal": "Revista Brasileira de Medicina do Esporte",
+  "doi": "10.1590/S1517-86922009000700001",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "disordered-eating",
+  "finding": "Ginastas rítmicas competitivas apresentaram distúrbios de atitudes alimentares associados à distorção da imagem corporal, reforçando o risco do contexto estético-competitivo.",
+  "design": "Transversal",
+  "design_conf": "Alta",
+  "subvar": "Atitudes alimentares (EAT) e distorção da imagem corporal",
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Análise da relação atitudes alimentares x distorção corporal",
+  "effect_size": false,
+  "es_note": "Sem tamanho de efeito relatado no resumo disponível.",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1,
+  "amostra": "Atletas femininas de ginástica rítmica em contexto competitivo (n não especificado no resumo obtido).",
+  "resumo": "Estudo transversal que investigou comportamentos sugestivos de transtornos alimentares e o grau de distorção da imagem corporal em ginastas rítmicas competitivas.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Estatística descritiva e análise de associação.",
+  "sintese": "Confirma a ginástica rítmica competitiva como contexto de risco para atitudes alimentares disfuncionais e distorção corporal em mulheres.",
+  "idioma": "pt"
  },
  {
   "authors": "Di Cagno A, Baldari C, Battaglia C, Monteiro MD, Pappalardo A, Piazza M, Guidetti L",
