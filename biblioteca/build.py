@@ -76,6 +76,7 @@ for d in data:
     d.setdefault("es_note", "")
     d.setdefault("roc", False)
     d.setdefault("derivatives", False)
+    d.setdefault("idioma", "en")
     # canonicalize variables to the 4 themes (drop stray predictor names)
     vs = [v for v in (d.get("variables") or []) if v in CANON_VARS]
     seen = []
@@ -456,6 +457,7 @@ BODY = r"""
         <label class="search">🔎<input id="q" type="search" placeholder="Buscar por autor, título, periódico, achado, subvariável…"></label>
         <select id="sport"><option value="">Todas as modalidades</option></select>
         <select id="design"><option value="">Todos os desenhos</option></select>
+        <select id="idioma"><option value="">Todos os idiomas</option></select>
         <select id="sort">
           <option value="year">Ordenar: ano ↓</option>
           <option value="cit">Ordenar: citações ↓</option>
@@ -511,11 +513,12 @@ const THEME={
 };
 const TEMAS=['Neuro','Psico','Performance','Fadiga'];
 const TCOLOR={Neuro:'--t-neuro',Psico:'--t-psico',Performance:'--t-perf',Fadiga:'--t-fadiga'};
+const LANG={en:'Inglês',pt:'Português',es:'Espanhol'};
 const cssvar=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const theme=t=>THEME[t]?THEME[t][0]:'—';
 const tcolor=t=>THEME[t]?cssvar(THEME[t][1]):'#888';
 const num=v=>{const n=parseInt(String(v).replace(/\D/g,''));return isNaN(n)?-1:n;};
-const state={q:'',sport:'',design:'',sort:'year',themes:new Set(),subvar:'',analysis:'',modality:'',methodcol:'',topic:'',psicogroup:'',reviewsOnly:false};
+const state={q:'',sport:'',design:'',idioma:'',sort:'year',themes:new Set(),subvar:'',analysis:'',modality:'',methodcol:'',topic:'',psicogroup:'',reviewsOnly:false};
 
 // shade a base color by index (lighter/darker variants for subvariables)
 function shade(hex,f){const c=hex.replace('#','');const r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16);
@@ -652,8 +655,8 @@ const PSUB={anxiety:'Ansiedade competitiva',perfectionism:'Perfeccionismo',
   'well-being':'Bem-estar',passion:'Paixão','emotion-regulation':'Regulação emocional',
   coping:'Coping','mental-health':'Saúde mental','self-esteem':'Autoestima','fear-of-failure':'Medo de falhar',imagery:'Imagética'};
 const plabel=t=>PSUB[t]||t;
-function clearAllFilters(){state.analysis='';state.modality='';state.methodcol='';state.subvar='';state.topic='';state.psicogroup='';state.themes.clear();state.sport='';state.design='';state.reviewsOnly=false;
-  const sp=document.getElementById('sport'),dg=document.getElementById('design');if(sp)sp.value='';if(dg)dg.value='';
+function clearAllFilters(){state.analysis='';state.modality='';state.methodcol='';state.subvar='';state.topic='';state.psicogroup='';state.themes.clear();state.sport='';state.design='';state.idioma='';state.reviewsOnly=false;
+  const sp=document.getElementById('sport'),dg=document.getElementById('design'),ln=document.getElementById('idioma');if(sp)sp.value='';if(dg)dg.value='';if(ln)ln.value='';
   syncAnbar();document.querySelectorAll('#chips .chip[data-t]').forEach(x=>x.setAttribute('aria-pressed','false'));
   const all=document.querySelector('#chips .all');if(all)all.setAttribute('aria-pressed','true');applyKPI();}
 function buildPsico(){
@@ -912,7 +915,7 @@ function fichaHTML(d){
     ${F('Amostra',amostra)}
     ${F('Delineamento',`${d.design}${d.design_conf?' ('+d.design_conf+')':''}`)}
     ${F('Análise estatística',ana)}
-    ${F('Abordagem',d.stats_approach||'n/d')}
+    ${F('Idioma',LANG[d.idioma]||d.idioma||'—')}
     ${F('Variáveis biodinâmicas',bio,true)}
     ${F('Resumo',resumo,true)}
     ${F('Síntese',sint,true)}
@@ -956,12 +959,15 @@ function buildControls(){
   document.getElementById('sport').insertAdjacentHTML('beforeend',modalityList().map(s=>`<option>${s}</option>`).join(''));
   const designs=[...new Set(DATA.map(d=>d.design))].filter(d=>d&&d!=='—').sort();
   document.getElementById('design').insertAdjacentHTML('beforeend',designs.map(s=>`<option>${s}</option>`).join(''));
+  const langs=[...new Set(DATA.map(d=>d.idioma||'en'))];
+  document.getElementById('idioma').insertAdjacentHTML('beforeend',langs.map(l=>`<option value="${l}">${LANG[l]||l}</option>`).join(''));
 }
 function render(){
   let rows=DATA.filter(d=>{
     if(state.themes.size && !state.themes.has(theme(d.topic)))return false;
     if(state.reviewsOnly && !REVIEW_KINDS.includes(d.design))return false;
     if(state.design && d.design!==state.design)return false;
+    if(state.idioma && (d.idioma||'en')!==state.idioma)return false;
     if(state.subvar && d.subvar!==state.subvar)return false;
     if(state.topic && d.topic!==state.topic)return false;
     if(state.psicogroup){const g=PSICO_GROUPS.find(x=>x.key===state.psicogroup);if(g&&!g.topics.includes(d.topic))return false;}
@@ -992,6 +998,7 @@ function render(){
 document.getElementById('q').oninput=e=>{state.q=e.target.value.toLowerCase().trim();render();};
 document.getElementById('sport').onchange=e=>{state.modality=e.target.value;render();};
 document.getElementById('design').onchange=e=>{state.design=e.target.value;render();};
+document.getElementById('idioma').onchange=e=>{state.idioma=e.target.value;render();};
 document.getElementById('sort').onchange=e=>{state.sort=e.target.value;render();};
 document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;
   if(k==='citations')state.sort='cit';else if(k==='authors')state.sort='auth';else if(k==='year')state.sort='year';

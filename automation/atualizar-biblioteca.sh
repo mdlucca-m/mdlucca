@@ -30,7 +30,8 @@ for MOD in "${MODS[@]}"; do
   i=$((i+1))
   echo "[biblioteca] ($i) modalidade: $MOD"
   claude -p --permission-mode acceptEdits \
-    "Use o subagente biblioteca-delucca. Busque NOVOS artigos peer-reviewed com DOI verificável,
+    "Use o subagente biblioteca-delucca. Busque NOVOS artigos peer-reviewed com DOI verificável
+     em VÁRIAS BASES (PubMed, Consensus, Scite e SciELO/LILACS via web),
      publicados APENAS em inglês, português ou espanhol,
      SOMENTE da modalidade estética feminina '${MOD}', sobre: ${GAPS}.
      NÃO duplique DOIs já presentes em biblioteca/biblioteca.json (leia o campo doi).
