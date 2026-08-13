@@ -4220,6 +4220,45 @@
   "sintese": "A capacidade aeróbia (VO2máx) é determinante do desempenho no nado artístico."
  },
  {
+  "authors": "Romero-Lorca A, de la Calle L, Novillo A, Gaibar M, et al.",
+  "year": 2022,
+  "title": "Natación artística en niñas: antropometría, genotipo y rendimiento deportivo",
+  "journal": "Revista Internacional de Medicina y Ciencias de la Actividad Física y del Deporte (RIMCAFD)",
+  "doi": "10.15366/rimcafd2022.85.014",
+  "citations": "n/d",
+  "sport": "Nado artístico",
+  "topic": "anthropometry-maturation",
+  "finding": "Em nadadoras artísticas de 9-17 anos, as medidas antropométricas tiveram pouca relação com o desempenho competitivo; nadadoras mais velhas tenderam ao genótipo heterozigoto RX do ACTN3.",
+  "design": "Transversal",
+  "design_conf": "Alta",
+  "subvar": "Antropometria, idade da menarca, genótipo ACTN3 e resultado competitivo",
+  "n": 60,
+  "biomech": false,
+  "methods": [
+   "Antropometria",
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Associação entre antropometria/genótipo e desempenho por faixa etária",
+  "effect_size": false,
+  "es_note": "Sem relato de tamanho de efeito no resumo disponível.",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1,
+  "amostra": "60 nadadoras artísticas de 9-17 anos, em três grupos etários (≤12, 13-15 e 16-17 anos).",
+  "resumo": "Estudo transversal que relacionou antropometria (ISAK), idade da menarca, genótipo ACTN3 R577X e resultado esportivo em nadadoras artísticas jovens.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Análise descritiva e de associação antropometria-genótipo-desempenho.",
+  "sintese": "Aporta dados de maturação e antropometria em nado artístico feminino ibero-americano, sugerindo baixa relação antropometria-resultado nessa faixa etária.",
+  "idioma": "es"
+ },
+ {
   "authors": "Kolokythas, Metsios, Galloway, Allen, Wyon",
   "year": 2022,
   "title": "Neuromuscular Training in Pre-Professional Ballet Dancers: A Feasibility Randomized Controlled Trial",
@@ -5502,6 +5541,123 @@
   "idioma": "en"
  },
  {
+  "authors": "Costa C, Teixeira Z",
+  "year": 2019,
+  "title": "A experiência da dor em bailarinas de dança clássica: significados a partir de um estudo qualitativo",
+  "journal": "Ciência & Saúde Coletiva",
+  "doi": "10.1590/1413-81232018245.04302019",
+  "citations": "n/d",
+  "sport": "Dança",
+  "topic": "coping",
+  "finding": "A dor é naturalizada e ocultada pelas bailarinas em nome da perfeição e da permanência na carreira, associada ao medo da lesão e ao fim da carreira, exigindo estratégias variadas de enfrentamento.",
+  "design": "Qualitativo",
+  "design_conf": "Alta",
+  "subvar": "Significados da dor e estratégias de enfrentamento",
+  "n": 10,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Análise qualitativa (Grounded Analysis)",
+  "effect_size": false,
+  "es_note": "Estudo qualitativo; não aplicável.",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "10 bailarinas de dança clássica com seis ou mais anos de treino.",
+  "resumo": "Estudo qualitativo, com entrevistas semiestruturadas e análise fundamentada nos dados, sobre o significado da dor na rotina de bailarinas clássicas.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "n/d",
+  "sintese": "Aprofunda a dimensão psicossocial da dor e do enfrentamento em bailarinas, tema pouco coberto na literatura quantitativa.",
+  "idioma": "pt"
+ },
+ {
+  "authors": "Delgado-Floody P, Reyes D, Martínez-Salazar C, García-Pinillos F",
+  "year": 2019,
+  "title": "Calidad de vida relacionada con la salud, variables psicosociales y rendimiento académico en niñas practicantes de danza: estudio comparativo",
+  "journal": "Nutrición Hospitalaria",
+  "doi": "10.20960/nh.02639",
+  "citations": "n/d",
+  "sport": "Dança",
+  "topic": "self-confidence",
+  "finding": "Meninas praticantes de dança apresentaram maior autoestima global, melhor qualidade de vida relacionada à saúde e melhor bem-estar físico e escolar do que praticantes de esporte e sedentárias.",
+  "design": "Transversal",
+  "design_conf": "Alta",
+  "subvar": "Autoestima, insatisfação corporal, QVRS e rendimento acadêmico",
+  "n": 252,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Antropometria",
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Regressão múltipla e comparação entre grupos",
+  "effect_size": false,
+  "es_note": "Coeficientes B relatados; sem d/eta² padronizado.",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "252 meninas de 9 a 14 anos: sem atividade física (n=99), esporte (n=82) e dança (n=71).",
+  "resumo": "Estudo comparativo transversal chileno que avaliou autoestima, imagem corporal, qualidade de vida e desempenho acadêmico entre meninas praticantes de dança, esporte e sedentárias.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Estatística descritiva, comparação entre grupos e regressão linear múltipla.",
+  "sintese": "Sugere benefícios psicossociais da dança para meninas, contrapondo o foco usual em risco corporal.",
+  "idioma": "es"
+ },
+ {
+  "authors": "Cardoso AA, Reis NM, Silva J, Borgatto A, Folle A, Guimarães ACA, Resende R",
+  "year": 2019,
+  "title": "Fadiga e qualidade de vida em bailarinos profissionais de dança de salão no Brasil",
+  "journal": "Ciência & Saúde Coletiva",
+  "doi": "10.1590/1413-81232021262.08542019",
+  "citations": "n/d",
+  "sport": "Dança (dança de salão; amostra mista F+M)",
+  "topic": "perceived-fatigue",
+  "finding": "Maior fadiga associou-se a pior qualidade de vida em todos os domínios (físico, psicológico, social e ambiental); incidência e intensidade de lesões não se associaram à qualidade de vida.",
+  "design": "Transversal",
+  "design_conf": "Alta",
+  "subvar": "Fadiga (Yoshitake), qualidade de vida (WHOQOL-bref) e lesões",
+  "n": 320,
+  "biomech": false,
+  "methods": [
+   "Regressão/correlação",
+   "Psicometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Regressão linear múltipla",
+  "effect_size": true,
+  "es_note": "Coeficientes de regressão relatados (ex.: -0,218 a -0,420 por incremento de fadiga).",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Fadiga",
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "320 bailarinos profissionais de dança de salão das cinco regiões do Brasil (amostra mista, ambos os sexos).",
+  "resumo": "Estudo transversal online que relacionou qualidade de vida, fadiga e lesões em bailarinos profissionais de dança de salão, usando WHOQOL-bref e questionários de fadiga e de lesões.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Estatística descritiva e regressão linear múltipla.",
+  "sintese": "Mostra impacto da fadiga sobre a qualidade de vida no contexto da dança profissional (amostra mista).",
+  "idioma": "pt"
+ },
+ {
   "authors": "Solana-Tramunt, Morales, Buscà, Carbonell, Rodríguez-Zamora",
   "year": 2019,
   "title": "Heart-Rate Variability in Elite Synchronized Swimmers",
@@ -5730,6 +5886,45 @@
   "sintese": "Equilíbrios sobre meia-ponta sobrecarregam os gastrocnêmios, sugerindo limitar certos exercícios em crianças por risco articular no tornozelo/joelho."
  },
  {
+  "authors": "Kazarez M, Vaquero-Cristóbal R, Esparza-Ros F",
+  "year": 2018,
+  "title": "Percepción y distorsión de la imagen corporal en mujeres bailarinas españolas según curso académico y edad",
+  "journal": "Nutrición Hospitalaria",
+  "doi": "10.20960/nh.1388",
+  "citations": "n/d",
+  "sport": "Dança",
+  "topic": "body-image",
+  "finding": "Bailarinas dos cursos iniciais e mais jovens apresentaram maiores índices de distorção; todas desejavam ser mais magras, e dez mostraram alto risco de transtorno alimentar.",
+  "design": "Transversal",
+  "design_conf": "Alta",
+  "subvar": "Percepção e distorção da imagem corporal por curso/idade",
+  "n": 298,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Antropometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Comparação por curso académico e idade",
+  "effect_size": false,
+  "es_note": "Significância (p<0,001); sem tamanho de efeito.",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "298 mulheres bailarinas de 11 a 24 anos, do 1º ao 6º ano do programa profissional.",
+  "resumo": "Estudo transversal com escala de silhuetas que analisou percepção, distorção, insatisfação e índice real-ideal da imagem corporal em bailarinas segundo curso e idade.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Estatística descritiva e comparações por curso/idade.",
+  "sintese": "Aponta maior vulnerabilidade à distorção corporal nas bailarinas mais jovens e iniciantes.",
+  "idioma": "es"
+ },
+ {
   "authors": "Codonhato R, Rubio V, Oliveira PMP, Resende CF, Fiorese L",
   "year": 2018,
   "title": "Resilience, stress and injuries in the context of the Brazilian elite rhythmic gymnastics",
@@ -5765,6 +5960,45 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Correlação (Spearman) entre resiliência, estresse-recuperação e lesões.",
   "sintese": "Monitorar resiliência e equilíbrio estresse-recuperação na periodização ajuda a antecipar risco de lesão."
+ },
+ {
+  "authors": "Vaquero-Cristóbal R, Kazarez M, Esparza-Ros F",
+  "year": 2017,
+  "title": "Influencia de la disciplina de danza en la distorsión y la insatisfacción de la imagen corporal en preadolescentes, adolescentes y jóvenes bailarinas",
+  "journal": "Nutrición Hospitalaria",
+  "doi": "10.20960/nh.1091",
+  "citations": "n/d",
+  "sport": "Dança",
+  "topic": "body-image",
+  "finding": "Bailarinas clássicas e contemporâneas percebiam-se com IMC maior do que o real, enquanto a dança espanhola mostrou tendência oposta; todas desejavam ser mais magras e dez apresentaram alto risco de transtorno alimentar.",
+  "design": "Transversal",
+  "design_conf": "Alta",
+  "subvar": "Índices de distorção, insatisfação e imagem real-ideal",
+  "n": 298,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Antropometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Comparação entre disciplinas de dança",
+  "effect_size": false,
+  "es_note": "Significância entre grupos (p<0,017); sem tamanho de efeito.",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "298 bailarinas (pré-adolescentes, adolescentes e jovens) de dança clássica, contemporânea e espanhola.",
+  "resumo": "Estudo transversal com a escala de silhuetas para adolescentes e IMC, analisando distorção e insatisfação da imagem corporal segundo a disciplina de dança.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Estatística descritiva e comparações entre disciplinas.",
+  "sintese": "Indica que a disciplina de dança modula a distorção da imagem corporal e o risco de transtorno alimentar em bailarinas.",
+  "idioma": "es"
  },
  {
   "authors": "Berz K, McCambridge T",
@@ -6372,6 +6606,45 @@
   "sintese": "A sobrecarga do punho altera a variância ulnar de forma multifatorial, reforçando a vigilância do 'punho do ginasta' durante o crescimento."
  },
  {
+  "authors": "Rezende ALG, et al.",
+  "year": 2014,
+  "title": "Efeito do treinamento proprioceptivo no equilíbrio de atletas de ginástica rítmica",
+  "journal": "Revista Brasileira de Medicina do Esporte",
+  "doi": "10.1590/1517-86922014200502056",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "physical-determinants",
+  "finding": "Um programa de treinamento proprioceptivo de dois meses melhorou o equilíbrio postural das ginastas, com ganhos significativos na fase de maior complexidade dos exercícios.",
+  "design": "Experimental",
+  "design_conf": "Média",
+  "subvar": "Equilíbrio postural após treinamento proprioceptivo",
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "ANOVA/MMRM",
+   "Descritivo"
+  ],
+  "stats_approach": "Comparação pré/pós entre fases de treinamento",
+  "effect_size": false,
+  "es_note": "Sem tamanho de efeito relatado no resumo disponível.",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro",
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1,
+  "amostra": "Atletas de ginástica rítmica de alto rendimento (n não especificado no resumo obtido); intervenção de 2 meses em três fases progressivas.",
+  "resumo": "Estudo de intervenção que avaliou o efeito de treinamento proprioceptivo progressivo sobre o equilíbrio postural em ginastas rítmicas, modalidade com predomínio de apoios unipodais.",
+  "variaveis_biodinamicas": "Medidas de equilíbrio/oscilação postural.",
+  "analise_estatistica": "Comparação entre fases do protocolo (pré/pós).",
+  "sintese": "Sugere que protocolos proprioceptivos intensos beneficiam o controle postural na ginástica rítmica feminina.",
+  "idioma": "pt"
+ },
+ {
   "authors": "Camargo CTA, Gómez-Campos RA, Cossio-Bolaños MA, Barbeta VJO, Arruda M, Guerra-Júnior G",
   "year": 2014,
   "title": "Growth and body composition in Brazilian female rhythmic gymnastics athletes",
@@ -6484,6 +6757,44 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "ANOVA de medidas repetidas (grupo × tempo) e correlações entre capacidade de imagética (MIQ-R) e desempenho de salto pós-treino.",
   "sintese": "Observação de vídeo + imagética PETTLEP associada à prática física potencializa o salto, preservando energia da atleta para outras tarefas."
+ },
+ {
+  "authors": "Oliveira TAC, et al.",
+  "year": 2012,
+  "title": "A postura de atletas de ginástica rítmica: análise através da fotometria",
+  "journal": "Revista Brasileira de Medicina do Esporte",
+  "doi": "10.1590/S1517-86922012000500010",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "biomechanics-technique",
+  "finding": "Todas as ginastas apresentaram alterações posturais, algumas acentuadas, atribuíveis às características específicas da modalidade.",
+  "design": "Transversal",
+  "design_conf": "Alta",
+  "subvar": "Alinhamento e alterações posturais (fotometria/SAPO)",
+  "n": 27,
+  "biomech": true,
+  "methods": [
+   "Cinemática",
+   "Descritivo"
+  ],
+  "stats_approach": "Descrição de ângulos/desvios posturais",
+  "effect_size": false,
+  "es_note": "Estudo descritivo, sem tamanho de efeito.",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1,
+  "amostra": "27 atletas do sexo feminino de 7 a 15 anos de uma equipe de ginástica rítmica de Maringá-PR.",
+  "resumo": "Estudo transversal que avaliou a postura por fotometria (software SAPO) a partir de pontos anatômicos marcados, identificando alterações posturais associadas à prática da ginástica rítmica.",
+  "variaveis_biodinamicas": "Ângulos e desvios posturais medidos por fotogrametria (SAPO).",
+  "analise_estatistica": "Análise descritiva dos parâmetros posturais.",
+  "sintese": "Evidencia adaptações/alterações posturais precoces em ginastas rítmicas femininas, relevante para prevenção e técnica.",
+  "idioma": "pt"
  },
  {
   "authors": "Menezes LS, Novaes J, Fernandes-Filho J",
@@ -6635,6 +6946,82 @@
   "sintese": "Elasticidade das pernas e baixa adiposidade são determinantes-chave do salto na ginástica rítmica, orientando seleção e treino."
  },
  {
+  "authors": "Román Fuentes E, Ronda Pérez E, Carrasco Portiño M",
+  "year": 2009,
+  "title": "La danza profesional: una revisión desde la salud laboral",
+  "journal": "Revista Española de Salud Pública",
+  "doi": "10.1590/s1135-57272009000400004",
+  "citations": "n/d",
+  "sport": "Dança (bailarinos profissionais; foco em mulheres)",
+  "topic": "red-s",
+  "finding": "A produção científica descreve lesões (70% em membros inferiores), baixo peso em metade das bailarinas, menarca tardia/distúrbios menstruais em 58% e efeitos sobre a massa óssea, mas é predominantemente descritiva.",
+  "design": "Revisão sistemática",
+  "design_conf": "Média",
+  "subvar": "Lesões, distúrbios alimentares, menstruais e ósseos na dança profissional",
+  "n": 76,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Síntese qualitativa de 76 artigos",
+  "effect_size": false,
+  "es_note": "Revisão; não aplicável.",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "Revisão bibliográfica de 76 artigos (de 893 identificados) sobre saúde da dança profissional.",
+  "resumo": "Revisão da literatura (Medline, Embase, Cochrane, Lilacs, Cinahl, IME) sobre riscos ocupacionais e condições de saúde de bailarinos profissionais, com ênfase em lesões e distúrbios alimentares, menstruais e ósseos.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Síntese descritiva dos estudos incluídos.",
+  "sintese": "Sintetiza a tríade/RED-S e lesões na dança profissional feminina, relevante para a agenda ibero-americana de saúde do artista.",
+  "idioma": "es"
+ },
+ {
+  "authors": "Ferreira dos Reis JA, Ferreira dos Reis Filho A, et al.",
+  "year": 2009,
+  "title": "Transtorno do comportamento alimentar em atletas de elite de nado sincronizado",
+  "journal": "Revista Brasileira de Medicina do Esporte",
+  "doi": "10.1590/S1517-86922009000100012",
+  "citations": "n/d",
+  "sport": "Nado artístico",
+  "topic": "disordered-eating",
+  "finding": "Atletas de elite de nado sincronizado apresentaram maior distorção da imagem corporal e sinais de transtorno do comportamento alimentar do que adolescentes não atletas.",
+  "design": "Transversal",
+  "design_conf": "Alta",
+  "subvar": "Distorção da imagem corporal e risco de TCA (EAT/BSQ)",
+  "n": 27,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Antropometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Comparação atletas vs. controle (testes de grupo)",
+  "effect_size": false,
+  "es_note": "Não relatado tamanho de efeito no resumo disponível.",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1,
+  "amostra": "27 atletas de elite de nado sincronizado (19 juvenis 15,6±0,8 anos; 8 seniores 19,0±1,3 anos) comparadas a 32 adolescentes não atletas.",
+  "resumo": "Estudo transversal que investigou a presença de transtorno do comportamento alimentar e o grau de distorção da imagem corporal em nadadoras de elite de nado sincronizado, esporte de risco por valorizar leveza e baixa massa corporal.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Estatística descritiva e comparação entre grupos atletas/controle.",
+  "sintese": "Reforça o nado artístico como modalidade estética de risco para insatisfação/distorção corporal e comportamento alimentar disfuncional em mulheres jovens.",
+  "idioma": "pt"
+ },
+ {
   "authors": "Douda HT, Toubekis AG, Avloniti AA, Tokmakidis SP",
   "year": 2008,
   "title": "Physiological and anthropometric determinants of rhythmic gymnastics performance",
@@ -6671,6 +7058,43 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Análise de regressão múltipla (stepwise) + antropometria; estatística descritiva.",
   "sintese": "Na elite, capacidade aeróbia e um perfil antropométrico específico são determinantes centrais a considerar na seleção e no treino."
+ },
+ {
+  "authors": "Abrão ACP, Pedrão LJ",
+  "year": 2005,
+  "title": "A contribuição da dança do ventre para a educação corporal, saúde física e mental de mulheres",
+  "journal": "Revista Latino-Americana de Enfermagem",
+  "doi": "10.1590/s0104-11692005000200017",
+  "citations": "n/d",
+  "sport": "Dança",
+  "topic": "body-image",
+  "finding": "A dança do ventre foi percebida como benéfica para a educação corporal integral, imagem corporal e saúde física e mental das mulheres praticantes.",
+  "design": "Qualitativo",
+  "design_conf": "Média",
+  "subvar": "Educação corporal, imagem corporal e saúde mental percebidas",
+  "n": 12,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Análise qualitativa de questionário aberto",
+  "effect_size": false,
+  "es_note": "Estudo qualitativo; não aplicável.",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "12 mulheres de 16 a 40 anos praticantes de dança do ventre há mais de três meses, em academia do interior de São Paulo.",
+  "resumo": "Estudo qualitativo sobre os benefícios percebidos da dança do ventre para a educação corporal e a saúde física e mental de mulheres.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "n/d",
+  "sintese": "Amplia o olhar sobre a dança feminina como prática de saúde e imagem corporal positiva, na literatura de enfermagem brasileira.",
+  "idioma": "pt"
  },
  {
   "authors": "Poudevigne MS, O'Connor PJ, Laing EM, Wilson AMR, Modlesky CM",
