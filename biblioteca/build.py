@@ -40,19 +40,19 @@ def canon_modalities(sport):
     def add(x):
         if x not in out: out.append(x)
     if 'rítmica' in s or 'ritmica' in s: add('Ginástica rítmica')
+    if 'aeróbic' in s or 'aerobic' in s: add('Ginástica aeróbica')
     if 'artística' in s or 'artistica' in s:
         add('Nado artístico' if 'nado' in s else 'Ginástica artística')
     if 'acrobática' in s or 'acrobatica' in s: add('Ginástica acrobática')
     if 'patinação' in s or 'patinacao' in s: add('Patinação artística')
     if 'nado' in s or 'sincronizado' in s: add('Nado artístico')
-    if 'balé' in s or 'bale' in s or 'dança' in s or 'danca' in s: add('Balé/dança')
-    if 'cheer' in s: add('Cheerleading')
+    if 'balé' in s or 'bale' in s or 'dança' in s or 'danca' in s or 'cheer' in s: add('Dança')
     if 'proxy' in s or 'saudáveis' in s or 'master' in s: add('Proxy não-estético')
-    if 'estéticos' in s or 'esteticos' in s: [add(x) for x in ('Patinação artística','Balé/dança','Ginástica artística')]
+    if 'estéticos' in s or 'esteticos' in s: [add(x) for x in ('Patinação artística','Dança','Ginástica artística')]
     if not out: add('Outro')
     return out
-CANON_MODS = {'Ginástica rítmica','Ginástica artística','Patinação artística','Nado artístico',
-              'Balé/dança','Cheerleading','Ginástica acrobática','Proxy não-estético','Outro'}
+CANON_MODS = {'Ginástica rítmica','Ginástica artística','Ginástica aeróbica','Patinação artística','Nado artístico',
+              'Dança','Ginástica acrobática','Proxy não-estético','Outro'}
 CANON_VARS = {'Neuro','Psico','Performance','Fadiga'}
 def canonize_mods(mods, sport):
     out = []
@@ -328,8 +328,8 @@ BODY = r"""
         <div class="segwrap" id="segvar"></div>
       </div>
       <div class="card">
-        <h3 style="font-family:var(--cond);font-weight:700;margin:0 0 4px;font-size:16px">Por esporte</h3>
-        <p class="hint">Volume de evidência por modalidade estética. Clique para filtrar.</p>
+        <h3 style="font-family:var(--cond);font-weight:700;margin:0 0 4px;font-size:16px">Por modalidade</h3>
+        <p class="hint">Volume de evidência por modalidade estética (dança unificada). Clique para filtrar.</p>
         <div id="sportbars"></div>
       </div>
     </div>
@@ -447,7 +447,7 @@ BODY = r"""
     <div class="controls">
       <div class="searchrow">
         <label class="search">🔎<input id="q" type="search" placeholder="Buscar por autor, título, periódico, achado, subvariável…"></label>
-        <select id="sport"><option value="">Todos os esportes</option></select>
+        <select id="sport"><option value="">Todas as modalidades</option></select>
         <select id="design"><option value="">Todos os desenhos</option></select>
         <select id="sort">
           <option value="year">Ordenar: ano ↓</option>
@@ -557,19 +557,14 @@ function animSeg(){document.querySelectorAll('#segvar .track').forEach(tr=>{
 
 /* ---------- sport bars ---------- */
 function buildSport(){
-  const c={};DATA.forEach(d=>c[d.sport]=(c[d.sport]||0)+1);
+  const mods=modalityList();const c={};mods.forEach(m=>c[m]=DATA.filter(d=>inMod(d,m)).length);
   const arr=Object.entries(c).sort((a,b)=>b[1]-a[1]);const max=arr[0][1];
   const host=document.getElementById('sportbars');
-  host.innerHTML=arr.map(([s,v])=>{
-    // color by dominant theme of that sport
-    const th=domTheme(s);const col=cssvar(TCOLOR[th]||'--gold');
-    return `<div class="hbar"><div class="nm" title="${s}">${s}</div>
-      <div class="bar" data-w="${(v/max*100).toFixed(1)}" data-sport="${s}" style="background:${col}"></div>
-      <div class="c">${v}</div></div>`;}).join('');
-  host.querySelectorAll('.bar').forEach(b=>b.onclick=()=>{filterToSport(b.dataset.sport);});
+  host.innerHTML=arr.map(([m,v])=>`<div class="hbar"><div class="nm" title="${m}">${m}</div>
+      <div class="bar" data-w="${(v/max*100).toFixed(1)}" data-mod="${m}" style="background:${modColor(m)}"></div>
+      <div class="c">${v}</div></div>`).join('');
+  host.querySelectorAll('.bar').forEach(b=>b.onclick=()=>{clearAllFilters();state.modality=b.dataset.mod;applyKPI();render();scrollAcervo();});
 }
-function domTheme(sport){const c={};DATA.filter(d=>d.sport===sport).forEach(d=>{const t=theme(d.topic);c[t]=(c[t]||0)+1;});
-  return Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0];}
 function animSport(){document.querySelectorAll('#sportbars .bar').forEach(b=>b.style.width=b.dataset.w+'%');}
 
 /* ---------- design chart ---------- */
@@ -713,7 +708,7 @@ const METHODCOLS=[
   {k:'ROC',test:d=>!!d.roc},
   {k:'Bayesiano',test:d=>d.stats_approach==='Bayesiano'||(d.methods||[]).includes('Bayesiano')}
 ];
-const MODCOLOR={'Ginástica rítmica':'#e8c24a','Ginástica artística':'#33b98a','Patinação artística':'#4f93d6','Nado artístico':'#4fb0c8','Balé/dança':'#b06de0','Cheerleading':'#e2853a','Ginástica acrobática':'#e0a24a','Proxy não-estético':'#7a8698','Outro':'#7a8698'};
+const MODCOLOR={'Ginástica rítmica':'#e8c24a','Ginástica artística':'#33b98a','Ginástica aeróbica':'#e2853a','Patinação artística':'#4f93d6','Nado artístico':'#4fb0c8','Dança':'#b06de0','Ginástica acrobática':'#e0a24a','Proxy não-estético':'#7a8698','Outro':'#7a8698'};
 const modColor=m=>MODCOLOR[m]||'#8a94a6';
 const modsOf=d=>(Array.isArray(d.modalities)&&d.modalities.length)?d.modalities:[d.sport];
 const inMod=(d,m)=>modsOf(d).includes(m);
@@ -898,11 +893,10 @@ function wireRows(){
 function scrollAcervo(){document.getElementById('acervo').scrollIntoView({behavior:'smooth'});}
 function syncChips(){document.querySelector('#chips .all').setAttribute('aria-pressed',state.themes.size===0);
   document.querySelectorAll('#chips .chip[data-t]').forEach(x=>x.setAttribute('aria-pressed',state.themes.has(x.dataset.t)));}
-function filterToSub(tema,sub){state.themes=new Set([tema]);state.subvar=sub;state.sport='';state.design='';
+function filterToSub(tema,sub){state.themes=new Set([tema]);state.subvar=sub;state.modality='';state.design='';
   document.getElementById('sport').value='';document.getElementById('design').value='';syncChips();render();scrollAcervo();}
-function filterToSport(sport){state.sport=sport;state.subvar='';document.getElementById('sport').value=sport;render();scrollAcervo();}
 function filterToDesign(d){state.design=d;state.subvar='';document.getElementById('design').value=d;render();scrollAcervo();}
-function filterToCell(d,tema){state.design=d;state.themes=new Set([tema]);state.subvar='';state.sport='';
+function filterToCell(d,tema){state.design=d;state.themes=new Set([tema]);state.subvar='';state.modality='';
   document.getElementById('design').value=d;document.getElementById('sport').value='';syncChips();render();scrollAcervo();}
 
 /* ---------- table ---------- */
@@ -915,15 +909,13 @@ function buildControls(){
     if(c.classList.contains('all')){state.themes.clear();}
     else{const t=c.dataset.t;state.themes.has(t)?state.themes.delete(t):state.themes.add(t);}
     syncChips();render();});
-  const sports=[...new Set(DATA.map(d=>d.sport))].sort();
-  document.getElementById('sport').insertAdjacentHTML('beforeend',sports.map(s=>`<option>${s}</option>`).join(''));
+  document.getElementById('sport').insertAdjacentHTML('beforeend',modalityList().map(s=>`<option>${s}</option>`).join(''));
   const designs=[...new Set(DATA.map(d=>d.design))].filter(d=>d&&d!=='—').sort();
   document.getElementById('design').insertAdjacentHTML('beforeend',designs.map(s=>`<option>${s}</option>`).join(''));
 }
 function render(){
   let rows=DATA.filter(d=>{
     if(state.themes.size && !state.themes.has(theme(d.topic)))return false;
-    if(state.sport && d.sport!==state.sport)return false;
     if(state.design && d.design!==state.design)return false;
     if(state.subvar && d.subvar!==state.subvar)return false;
     if(state.topic && d.topic!==state.topic)return false;
@@ -947,13 +939,13 @@ function render(){
   </tr>`).join('');
   document.getElementById('empty').hidden=rows.length>0;
   wireRows();
-  const flt=[state.analysis&&(ANALYSES.find(x=>x.k===state.analysis)||{}).lab,state.topic&&(PSUB[state.topic]||state.topic),state.psicogroup&&(PSICO_GROUPS.find(x=>x.key===state.psicogroup)||{}).label,state.modality,state.methodcol,state.subvar,state.design,state.sport,[...state.themes].join('+')].filter(Boolean).join(' · ');
+  const flt=[state.analysis&&(ANALYSES.find(x=>x.k===state.analysis)||{}).lab,state.topic&&(PSUB[state.topic]||state.topic),state.psicogroup&&(PSICO_GROUPS.find(x=>x.key===state.psicogroup)||{}).label,state.modality,state.methodcol,state.subvar,state.design,[...state.themes].join('+')].filter(Boolean).join(' · ');
   document.getElementById('note').textContent=`Exibindo ${rows.length} de ${DATA.length} artigos`+(flt?` · filtro: ${flt}`:'')+` · DOI verificado.`;
 }
 
 /* ---------- events ---------- */
 document.getElementById('q').oninput=e=>{state.q=e.target.value.toLowerCase().trim();render();};
-document.getElementById('sport').onchange=e=>{state.sport=e.target.value;render();};
+document.getElementById('sport').onchange=e=>{state.modality=e.target.value;render();};
 document.getElementById('design').onchange=e=>{state.design=e.target.value;render();};
 document.getElementById('sort').onchange=e=>{state.sort=e.target.value;render();};
 document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;

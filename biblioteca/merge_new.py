@@ -8,8 +8,8 @@ import glob, json, os
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 BASE_FIELDS = ["authors", "year", "title", "journal", "doi", "citations", "sport", "topic", "finding"]
-CANON_MODS = {'Ginástica rítmica', 'Ginástica artística', 'Patinação artística', 'Nado artístico',
-              'Balé/dança', 'Cheerleading', 'Ginástica acrobática', 'Proxy não-estético', 'Outro'}
+CANON_MODS = {'Ginástica rítmica', 'Ginástica artística', 'Ginástica aeróbica', 'Patinação artística', 'Nado artístico',
+              'Dança', 'Ginástica acrobática', 'Proxy não-estético', 'Outro'}
 CANON_VARS = {'Neuro', 'Psico', 'Performance', 'Fadiga'}
 PYTHEME = {'motor-pattern': 'Neuro', 'emg-activation': 'Neuro', 'motor-unit': 'Neuro', 'firing-rate': 'Neuro', 'rfd-neural': 'Neuro', 'motor-learning': 'Neuro',
     'anxiety': 'Psico', 'perfectionism': 'Psico', 'body-image': 'Psico', 'disordered-eating': 'Psico', 'motivation': 'Psico', 'self-confidence': 'Psico',
@@ -23,14 +23,14 @@ def canon_modalities(sport):
     def add(x):
         if x not in out: out.append(x)
     if 'rítmica' in s or 'ritmica' in s: add('Ginástica rítmica')
+    if 'aeróbic' in s or 'aerobic' in s: add('Ginástica aeróbica')
     if 'artística' in s or 'artistica' in s: add('Nado artístico' if 'nado' in s else 'Ginástica artística')
     if 'acrobática' in s or 'acrobatica' in s: add('Ginástica acrobática')
     if 'patinação' in s or 'patinacao' in s: add('Patinação artística')
     if 'nado' in s or 'sincronizado' in s: add('Nado artístico')
-    if 'balé' in s or 'bale' in s or 'dança' in s or 'danca' in s: add('Balé/dança')
-    if 'cheer' in s: add('Cheerleading')
+    if 'balé' in s or 'bale' in s or 'dança' in s or 'danca' in s or 'cheer' in s: add('Dança')
     if 'proxy' in s or 'saudáveis' in s or 'master' in s: add('Proxy não-estético')
-    if 'estéticos' in s or 'esteticos' in s: [add(x) for x in ('Patinação artística', 'Balé/dança', 'Ginástica artística')]
+    if 'estéticos' in s or 'esteticos' in s: [add(x) for x in ('Patinação artística', 'Dança', 'Ginástica artística')]
     if not out: add('Ginástica artística' if 'ginástica' in s or 'ginastica' in s else 'Outro')
     return out
 

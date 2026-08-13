@@ -175,7 +175,7 @@
    "Performance"
   ],
   "modalities": [
-   "Cheerleading"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "Revisão sistemática cobrindo ~29 mil atletas de cheerleading dos EUA (96,5% do sexo feminino).",
@@ -213,7 +213,7 @@
    "Performance"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "18 dançarinas universitárias (feminino) avaliadas em três aulas padronizadas de ballet e dança moderna.",
@@ -251,7 +251,7 @@
    "Performance"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "232 bailarinas universitárias (mulheres); questionário online autoaplicado.",
@@ -288,7 +288,7 @@
   ],
   "modalities": [
    "Nado artístico",
-   "Balé/dança",
+   "Dança",
    "Patinação artística"
   ],
   "n_modalities": 3,
@@ -327,7 +327,7 @@
    "Psico"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "302 dançarinos pré-profissionais e profissionais de uma universidade estadual (predominância feminina; sexo não detalhado)",
@@ -399,7 +399,7 @@
    "Performance"
   ],
   "modalities": [
-   "Cheerleading"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "Revisão sistemática (PRISMA) de 27 estudos publicados entre 1991 e 2025; dados epidemiológicos centrados em mulheres de 12-17 anos.",
@@ -438,7 +438,7 @@
    "Performance"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "114 crianças e adolescentes bailarinos de nível nacional (14,3±0,9 anos; 73,7% meninas).",
@@ -553,7 +553,7 @@
    "Performance"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "17 bailarinas experientes (18-31 anos, ~13 anos de prática) e 15 controles não dançarinas fisicamente inativas (20-32 anos).",
@@ -743,7 +743,7 @@
    "Performance"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "36 mulheres adultas jovens — 18 bailarinas treinadas em balé e 18 não dançarinas.",
@@ -856,7 +856,7 @@
    "Neuro"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "13 dançarinas (feminino, 22,2 ± 2,8 anos) sem histórico de lesão de tornozelo no último ano.",
@@ -969,7 +969,7 @@
    "Neuro"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "11 bailarinas de balé do sexo feminino (adultas jovens).",
@@ -1043,7 +1043,7 @@
    "Psico"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "Revisão sistemática de 11 estudos de intervenção com dançarinos (populações majoritariamente femininas)",
@@ -1121,7 +1121,7 @@
    "Performance"
   ],
   "modalities": [
-   "Cheerleading"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "12 cheerleaders universitárias(os) (amostra mista, predominantemente feminina); nível universitário.",
@@ -1271,7 +1271,7 @@
    "Psico"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "17 bailarinos profissionais de uma companhia colombiana (maioria <30 anos; predominância feminina)",
@@ -1308,7 +1308,7 @@
    "Performance"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "Bailarinas/dançarinas comparadas a outras atletas femininas; n não informado no registro.",
@@ -1383,7 +1383,7 @@
    "Performance"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "242 bailarinas(os) pré-profissionais adolescentes (de 255 avaliados) em screening anual; amostra mista com análise específica por sexo (efeitos mais evidentes nas meninas).",
@@ -1420,7 +1420,7 @@
    "Performance"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "14 bailarinas saudáveis (mulheres).",
@@ -1457,7 +1457,7 @@
    "Psico"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "118 dançarinos profissionais e pré-profissionais na linha de base (88 no seguimento; predominância feminina), temporada de 38 semanas",
@@ -1572,7 +1572,7 @@
    "Psico"
   ],
   "modalities": [
-   "Cheerleading"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "284 cheerleaders suecos (278 mulheres, 5 homens, 1 não informado; 211 ativos e 73 aposentados).",
@@ -1834,7 +1834,7 @@
    "Psico"
   ],
   "modalities": [
-   "Cheerleading"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "82 duplas de cheerleading universitário (uma base e uma flyer por dupla; sexo não detalhado, amostra provavelmente mista) antes de competição nacional",
@@ -2022,7 +2022,7 @@
    "Psico"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "Dançarinos avaliados em contexto de palco e de aulas online durante a pandemia de COVID-19 (sexo não detalhado)",
@@ -2097,7 +2097,7 @@
    "Fadiga"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "Bailarinas pré-profissionais de balé/dança do sexo feminino (n não informado); 61,6% relataram lesão.",
@@ -2135,7 +2135,7 @@
    "Psico"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "147 estudantes de dança (75,5% mulheres; idade média 28,3±11,4 anos) com >3 anos de prática",
@@ -2172,7 +2172,7 @@
    "Neuro"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "14 bailarinas e 13 não dançarinas, todas do sexo feminino.",
@@ -2209,7 +2209,7 @@
    "Psico"
   ],
   "modalities": [
-   "Cheerleading"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "63 universitárias (mulheres) de uma universidade chinesa, submetidas a intervenção de 16 semanas de cheerleading.",
@@ -2246,7 +2246,7 @@
    "Performance"
   ],
   "modalities": [
-   "Cheerleading"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "46 adolescentes femininas (idade 19,52 ± 1,21 anos; IMC 20,15 ± 2,47), randomizadas em grupo cheerleading (n=21) e controle (n=25).",
@@ -2323,7 +2323,7 @@
    "Performance"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "18 dançarinas treinadas do sexo feminino; 70 saltos contínuos de ballet em 4 superfícies distintas usando traje inercial XSENS.",
@@ -2398,7 +2398,7 @@
    "Psico"
   ],
   "modalities": [
-   "Cheerleading"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "268 cheerleaders mulheres (All-Star, universitárias e escolares), idade média 17,9±2,7 anos",
@@ -2849,7 +2849,7 @@
    "Psico"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "189 bailarinos (26,7±7,9 anos; 130 profissionais; amostra internacional mista), lesões autorreferidas dos 2 anos prévios",
@@ -2886,7 +2886,7 @@
    "Psico"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "68 dançarinas irlandesas competitivas do sexo feminino (idade média 14 ± 2,3 anos); 189 lesões relatadas ao longo das carreiras.",
@@ -2997,7 +2997,7 @@
    "Performance"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "33 bailarinas clássicas profissionais do sexo feminino (coorte retrospectiva).",
@@ -3071,7 +3071,7 @@
    "Psico"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "Bailarinas jovens de dança competitiva (n, nível e idade não disponíveis; artigo não indexado no PubMed).",
@@ -3144,7 +3144,7 @@
    "Psico"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "206 bailarinas de Kathak do norte da Índia do sexo feminino vs 235 controles (caso-controle).",
@@ -3257,7 +3257,7 @@
    "Neuro"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "14 bailarinas pré-profissionais femininas, 11-16 anos, divididas por rotação externa passiva de quadril (maior rotação n=7; menor rotação n=7).",
@@ -3295,10 +3295,9 @@
    "Psico"
   ],
   "modalities": [
-   "Cheerleading",
-   "Balé/dança"
+   "Dança"
   ],
-  "n_modalities": 2,
+  "n_modalities": 1,
   "amostra": "166 atletas mulheres (52 de elite; 114 recreacionais) de trampolim, ginástica rítmica, aeróbica, dança esportiva, cheerleading e dança, ~20 anos",
   "resumo": "Em esportes estéticos femininos chineses (incluindo cheerleading e dança), o risco de transtorno alimentar e de baixa disponibilidade energética é alto e mais prevalente na elite.",
   "variaveis_biodinamicas": "—",
@@ -3373,7 +3372,7 @@
    "Psico"
   ],
   "modalities": [
-   "Cheerleading"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "74 duplas de cheerleading (mulheres e homens); crenças de eficácia e desempenho avaliados em 5 tentativas sucessivas",
@@ -3522,7 +3521,7 @@
   ],
   "modalities": [
    "Patinação artística",
-   "Balé/dança",
+   "Dança",
    "Ginástica artística"
   ],
   "n_modalities": 3,
@@ -3674,7 +3673,7 @@
    "Fadiga"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "20 bailarinas saudáveis (mulheres).",
@@ -3712,7 +3711,7 @@
    "Neuro"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "7 bailarinas femininas; realizaram apoio em meia-ponta em seis posições de perna (cinco clássicas + uma moderna); adultas jovens.",
@@ -3826,7 +3825,7 @@
    "Neuro"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "Bailarinos profissionais (experts) vs novatos não treinados (sexo não restrito; n não especificado no resumo).",
@@ -3862,7 +3861,7 @@
    "Neuro"
   ],
   "modalities": [
-   "Balé/dança"
+   "Dança"
   ],
   "n_modalities": 1,
   "amostra": "Bailarinas comparadas a controles não dançarinos; n não informado no registro.",
