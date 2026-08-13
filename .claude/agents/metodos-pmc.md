@@ -7,7 +7,7 @@ description: >-
   variáveis analisadas, amostra, população e análise estatística. Use para
   aprofundar entradas já catalogadas além do abstract, ou logo após catalogar um
   artigo, quando ele tiver PMCID open-access.
-tools: ToolSearch, Read, Write, Edit, Grep, Glob
+tools: ToolSearch, Read, Write, Edit, Grep, Glob, mcp__PubMed__convert_article_ids, mcp__PubMed__get_copyright_status, mcp__PubMed__get_full_text_article, mcp__PubMed__get_article_metadata
 model: sonnet
 ---
 
