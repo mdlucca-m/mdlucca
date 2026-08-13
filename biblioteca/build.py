@@ -77,6 +77,11 @@ for d in data:
     d.setdefault("roc", False)
     d.setdefault("derivatives", False)
     d.setdefault("idioma", "en")
+    d.setdefault("populacao", "")
+    d.setdefault("instrumentos", "")
+    d.setdefault("variaveis_analisadas", "")
+    d.setdefault("pmcid", "")
+    d.setdefault("fulltext", "")
     # canonicalize variables to the 4 themes (drop stray predictor names)
     vs = [v for v in (d.get("variables") or []) if v in CANON_VARS]
     seen = []
@@ -298,6 +303,7 @@ tr.detail td{background:var(--ink-1);border-bottom:1px solid var(--line);padding
 .ficha .k{font-family:var(--cond);font-weight:600;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin:0 0 3px}
 .ficha .v{font-size:13px;color:var(--hi);margin:0;line-height:1.45}
 .ficha .v.mut{color:var(--low)}
+.pmctag{display:inline-block;font-family:var(--cond);font-size:10.5px;letter-spacing:.05em;color:#33b98a;border:1px solid #33b98a55;background:#33b98a12;border-radius:99px;padding:3px 10px}
 """
 
 BODY = r"""
@@ -906,20 +912,23 @@ function fichaHTML(d){
   const F=(k,v,full)=>`<div class="f${full?' full':''}"><p class="k">${k}</p><p class="v${(v&&v!=='—'&&v!=='n/d')?'':' mut'}">${v||'—'}</p></div>`;
   const amostra=d.amostra||(d.n?`${d.n} participantes`:'n/d');
   const resumo=d.resumo||d.finding||'—';
-  const bio=d.variaveis_biodinamicas||(d.biomech?((d.methods||[]).join(', ')||'—'):'—');
+  const vars=d.variaveis_analisadas||d.variaveis_biodinamicas||(d.biomech?((d.methods||[]).join(', ')||'—'):'—');
   const ana=d.analise_estatistica||((d.methods||[]).filter(m=>/ANOVA|Regress|SPM|NMF|PCA|Bayes|ROC|SEM|Descritivo/.test(m)).join(', ')||d.stats_approach||'n/d');
   const sint=d.sintese||d.subvar||'—';
+  const pmc=d.fulltext==='PMC'?`<span class="pmctag" title="Métodos re-processados do texto completo (PMC${d.pmcid?' · '+d.pmcid:''})">📄 texto completo PMC</span>`:'';
   return `<div class="ficha">
     ${F('Modalidade',modsOf(d).join(' · '))}
     ${F('Tipo de estudo · ano',`${d.design} · ${d.year}`)}
+    ${F('População',d.populacao)}
     ${F('Amostra',amostra)}
-    ${F('Delineamento',`${d.design}${d.design_conf?' ('+d.design_conf+')':''}`)}
+    ${F('Instrumentos',d.instrumentos,true)}
+    ${F('Variáveis analisadas',vars,true)}
     ${F('Análise estatística',ana)}
+    ${F('Delineamento',`${d.design}${d.design_conf?' ('+d.design_conf+')':''}`)}
     ${F('Idioma',LANG[d.idioma]||d.idioma||'—')}
-    ${F('Variáveis biodinâmicas',bio,true)}
     ${F('Resumo',resumo,true)}
     ${F('Síntese',sint,true)}
-  </div>`;
+  </div>${pmc?`<div style="padding:2px 4px 6px">${pmc}</div>`:''}`;
 }
 function wireRows(){
   document.querySelectorAll('#rows tr.arow').forEach(tr=>tr.onclick=e=>{
