@@ -3,3 +3,7 @@ __pycache__/
 dist/
 engine/dist/
 exports/
+biblioteca/_recover.json
+biblioteca/_new-*.json
+biblioteca/_pmc-*.json
+biblioteca/__pycache__/
