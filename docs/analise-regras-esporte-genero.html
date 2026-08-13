@@ -1,0 +1,587 @@
+<title>A Regra Não é Neutra</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    /* ---- Light palette (paper / regulation) ---- */
+    --bg: #EDEFEA;
+    --surface: #F7F8F4;
+    --surface-2: #E3E8DE;
+    --ink: #172420;
+    --muted: #57635B;
+    --faint: #8791899a;
+    --line: #D3D9CF;
+    --line-strong: #BCC5B9;
+    --accent: #0F7A5A;          /* emerald = the rule / the adaptation */
+    --accent-ink: #0B5C44;
+    --accent-soft: rgba(15,122,90,0.12);
+    --flag: #B4531F;            /* clay = the outlier (football) / emphasis */
+    --flag-soft: rgba(180,83,31,0.12);
+    --data-ref: #3D4A45;        /* graphite = male / current standard */
+    --data-alt: #0F7A5A;        /* emerald = female / adapted-proportional */
+    --shadow: 0 1px 2px rgba(23,36,32,.05), 0 8px 30px -18px rgba(23,36,32,.30);
+
+    --font-display: Georgia, "Times New Roman", serif;
+    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+
+    --measure: 68ch;
+    --gutter: clamp(1.1rem, 4vw, 2.4rem);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0F1512;
+      --surface: #161D18;
+      --surface-2: #1E2721;
+      --ink: #ECEFE7;
+      --muted: #9FA99F;
+      --faint: #6d776e;
+      --line: #29332C;
+      --line-strong: #38443A;
+      --accent: #37BE90;
+      --accent-ink: #6FD6B0;
+      --accent-soft: rgba(55,190,144,0.15);
+      --flag: #E28B50;
+      --flag-soft: rgba(226,139,80,0.16);
+      --data-ref: #8A968D;
+      --data-alt: #37BE90;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 34px -20px rgba(0,0,0,.8);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0F1512;
+    --surface: #161D18;
+    --surface-2: #1E2721;
+    --ink: #ECEFE7;
+    --muted: #9FA99F;
+    --faint: #6d776e;
+    --line: #29332C;
+    --line-strong: #38443A;
+    --accent: #37BE90;
+    --accent-ink: #6FD6B0;
+    --accent-soft: rgba(55,190,144,0.15);
+    --flag: #E28B50;
+    --flag-soft: rgba(226,139,80,0.16);
+    --data-ref: #8A968D;
+    --data-alt: #37BE90;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 34px -20px rgba(0,0,0,.8);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: clamp(1rem, 0.96rem + 0.2vw, 1.12rem);
+    line-height: 1.66;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .wrap { max-width: 76rem; margin: 0 auto; padding: 0 var(--gutter); }
+  .col { max-width: var(--measure); }
+
+  a { color: var(--accent-ink); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+  .mono { font-family: var(--font-mono); }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: .72rem; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    backdrop-filter: saturate(1.2) blur(8px);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar .wrap { display: flex; align-items: center; justify-content: space-between; height: 52px; gap: 1rem; }
+  .brand { font-family: var(--font-mono); font-size: .74rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .brand b { color: var(--ink); font-weight: 600; }
+  .toggle {
+    font-family: var(--font-mono); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase;
+    background: transparent; color: var(--muted); border: 1px solid var(--line-strong);
+    padding: .4rem .7rem; border-radius: 999px; cursor: pointer; transition: color .2s, border-color .2s;
+  }
+  .toggle:hover { color: var(--ink); border-color: var(--accent); }
+
+  /* ---------- Hero ---------- */
+  .hero { padding: clamp(3rem, 9vh, 6.5rem) 0 clamp(2rem, 5vh, 3.5rem); border-bottom: 1px solid var(--line); }
+  .hero .kicker { color: var(--accent-ink); }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2.5rem, 1.4rem + 5.6vw, 5.4rem);
+    line-height: 0.98; letter-spacing: -0.02em;
+    text-wrap: balance;
+    margin: .5rem 0 0;
+  }
+  .hero h1 em { font-style: italic; color: var(--accent); }
+  .hero .dek {
+    font-family: var(--font-display); font-size: clamp(1.15rem, 1rem + 0.7vw, 1.5rem);
+    line-height: 1.5; color: var(--muted); margin-top: 1.5rem; max-width: 44ch;
+  }
+  .hero .byline { margin-top: 2rem; display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; }
+  .hero .byline span { font-family: var(--font-mono); font-size: .74rem; color: var(--faint); letter-spacing: .04em; }
+  .hero .byline b { color: var(--muted); font-weight: 600; }
+
+  /* ---------- Section scaffolding ---------- */
+  section { padding: clamp(2.6rem, 7vh, 5rem) 0; border-bottom: 1px solid var(--line); }
+  .sec-head { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.6rem; }
+  .sec-num { font-family: var(--font-mono); font-size: .8rem; color: var(--accent); font-weight: 600; letter-spacing: .05em; padding-top: .4rem; }
+  h2 {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: clamp(1.7rem, 1.2rem + 2vw, 2.8rem); line-height: 1.06; letter-spacing: -.015em;
+    text-wrap: balance; margin: 0;
+  }
+  h3 {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: clamp(1.2rem, 1.05rem + .7vw, 1.6rem); line-height: 1.15; letter-spacing: -.01em;
+    margin: 2.4rem 0 .5rem;
+  }
+  p { margin: 0 0 1.1rem; }
+  p .lead-in { font-variant-caps: small-caps; letter-spacing: .03em; font-weight: 600; }
+  strong { font-weight: 650; }
+  .muted { color: var(--muted); }
+
+  .drop::first-letter {
+    font-family: var(--font-display); font-weight: 700;
+    float: left; font-size: 3.4em; line-height: .72; padding: .06em .12em .04em 0; color: var(--flag);
+  }
+
+  /* ---------- Callouts / quotes ---------- */
+  blockquote {
+    margin: 2rem 0; padding: 1.2rem 0 1.2rem 1.6rem;
+    border-left: 3px solid var(--accent);
+    font-family: var(--font-display); font-size: clamp(1.2rem,1.05rem + .7vw,1.55rem);
+    line-height: 1.4; color: var(--ink); font-style: italic;
+  }
+  blockquote cite { display: block; margin-top: .8rem; font-family: var(--font-mono); font-style: normal;
+    font-size: .74rem; letter-spacing: .04em; color: var(--muted); }
+
+  .note {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 1.1rem 1.3rem; margin: 1.8rem 0; box-shadow: var(--shadow);
+  }
+  .note .tag { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); }
+  .note.flag { border-color: color-mix(in srgb, var(--flag) 45%, var(--line)); background: var(--flag-soft); }
+  .note.flag .tag { color: var(--flag); }
+  .note p:last-child { margin-bottom: 0; }
+
+  /* ---------- Stat row ---------- */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin: 2rem 0; }
+  .stat { background: var(--surface); padding: 1.1rem 1.2rem; }
+  .stat .n { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.7rem,1.3rem+1.4vw,2.4rem); line-height: 1; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .stat .n small { font-size: .5em; color: var(--muted); font-weight: 400; }
+  .stat .l { margin-top: .5rem; font-size: .82rem; line-height: 1.35; color: var(--muted); }
+
+  /* ---------- Bar chart (performance gap) ---------- */
+  .chart { margin: 2rem 0; }
+  .chart .row { display: grid; grid-template-columns: minmax(9rem, 14rem) 1fr auto; align-items: center; gap: .8rem; padding: .5rem 0; }
+  .chart .row + .row { border-top: 1px dashed var(--line); }
+  .chart .name { font-size: .9rem; }
+  .chart .name small { display: block; color: var(--faint); font-family: var(--font-mono); font-size: .68rem; letter-spacing: .03em; }
+  .chart .track { position: relative; height: 12px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+  .chart .fill { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 70%, var(--flag))); border-radius: 999px; }
+  .chart .val { font-family: var(--font-mono); font-size: .82rem; font-variant-numeric: tabular-nums; color: var(--ink); min-width: 3.4rem; text-align: right; }
+  .chart .scale { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: .64rem; color: var(--faint); margin-top: .4rem; padding-left: calc(min(14rem,40%) + .8rem); }
+
+  /* ---------- Comparative table ---------- */
+  .tablewrap { overflow-x: auto; margin: 1.8rem 0; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: .9rem; background: var(--surface); }
+  caption { text-align: left; caption-side: bottom; padding: .8rem 1rem 0; font-size: .76rem; color: var(--muted); font-family: var(--font-mono); }
+  th, td { padding: .8rem 1rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+  thead th { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--surface-2); position: sticky; top: 0; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.sport { font-weight: 650; }
+  td .u { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: .84rem; }
+  .delta { font-family: var(--font-mono); font-size: .78rem; color: var(--accent-ink); white-space: nowrap; }
+  .row-flag td { background: var(--flag-soft); }
+  .row-flag td.sport { color: var(--flag); }
+
+  /* ---------- Scaling compare (football) ---------- */
+  .scale-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(230px,1fr)); gap: 1rem; margin: 2rem 0; }
+  .scard { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 1.2rem 1.3rem; box-shadow: var(--shadow); }
+  .scard h4 { margin: 0 0 .9rem; font-family: var(--font-body); font-size: .82rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 650; }
+  .scard .pair { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; padding: .55rem 0; border-top: 1px solid var(--line); }
+  .scard .pair:first-of-type { border-top: none; }
+  .scard .k { font-size: .82rem; color: var(--muted); }
+  .scard .v { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 600; }
+  .scard .v.ref { color: var(--data-ref); }
+  .scard .v.alt { color: var(--accent); }
+
+  /* ---------- TOC ---------- */
+  .toc { display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: .8rem; margin: 2.2rem 0 .4rem; }
+  .toc a { display: block; text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: .9rem 1rem; transition: border-color .2s, transform .2s; }
+  .toc a:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .toc a b { font-family: var(--font-mono); color: var(--accent); font-size: .78rem; display: block; margin-bottom: .25rem; }
+  .toc a span { font-family: var(--font-display); font-size: 1.02rem; }
+
+  /* ---------- References ---------- */
+  .refs { padding-bottom: 4rem; }
+  ol.reflist { padding-left: 0; list-style: none; counter-reset: r; }
+  ol.reflist li { counter-increment: r; position: relative; padding: .9rem 0 .9rem 2.6rem; border-top: 1px solid var(--line); font-size: .9rem; line-height: 1.5; }
+  ol.reflist li::before { content: counter(r); position: absolute; left: 0; top: .95rem; font-family: var(--font-mono); font-size: .74rem; color: var(--accent); border: 1px solid var(--line-strong); border-radius: 6px; width: 1.7rem; height: 1.7rem; display: grid; place-items: center; }
+  ol.reflist li i { color: var(--muted); }
+  .srcgroup + .srcgroup { margin-top: 1.4rem; }
+  .srcgroup h4 { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 .3rem; }
+
+  footer.end { padding: 3rem 0 4rem; color: var(--faint); font-family: var(--font-mono); font-size: .74rem; line-height: 1.7; }
+
+  hr.rule { border: none; border-top: 1px solid var(--line); margin: 2.4rem 0; }
+  .pill { display: inline-block; font-family: var(--font-mono); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; padding: .2rem .5rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
+  sup.cite a { text-decoration: none; font-family: var(--font-mono); font-size: .7em; color: var(--accent); padding: 0 .1em; }
+</style>
+
+<div class="topbar">
+  <div class="wrap">
+    <span class="brand"><b>Dossiê</b> · Ciência do esporte &amp; regras de gênero</span>
+    <button class="toggle" id="themeToggle" type="button" aria-label="Alternar tema claro e escuro">Tema</button>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="col">
+      <p class="eyebrow kicker">Análise comparativa · fisiologia · regulamento</p>
+      <h1>A regra <em>não</em> é neutra</h1>
+      <p class="dek">Quase todo esporte de elite reescreveu suas medidas para o corpo feminino — rede, bola, peso, distância. O futebol é a grande exceção. Isto é o que a ciência diz sobre por quê, e o que isso custa.</p>
+      <div class="byline">
+        <span><b>Formato:</b> ensaio baseado em evidências</span>
+        <span><b>Base:</b> 7 estudos revisados por pares + normas FIVB, FIBA, IHF, World Athletics, IFAB</span>
+        <span><b>Atualizado:</b> ago. 2026</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Índice">
+    <a href="#s1"><b>01</b><span>O corpo que a regra pressupõe</span></a>
+    <a href="#s2"><b>02</b><span>Por que a diferença aparece</span></a>
+    <a href="#s3"><b>03</b><span>Como cada esporte se adapta</span></a>
+    <a href="#s4"><b>04</b><span>As duas faces da adaptação</span></a>
+    <a href="#s5"><b>05</b><span>O outlier: futebol</span></a>
+    <a href="#s6"><b>06</b><span>A tese, sob crítica</span></a>
+    <a href="#refs"><b>—</b><span>Referências</span></a>
+  </nav>
+</div>
+
+<main>
+
+<!-- ======================= 01 ======================= -->
+<section id="s1">
+  <div class="wrap"><div class="col">
+    <div class="sec-head"><span class="sec-num">01</span><h2>O corpo que a regra pressupõe</h2></div>
+
+    <p class="drop">Toda regra esportiva é escrita para um corpo. Quando a Federação Internacional de Voleibol fixa a rede a <strong>2,43&nbsp;m</strong>, ela não está descrevendo uma constante da física — está descrevendo a altura de salto de um homem de elite. Quando a FIBA especifica uma bola de <strong>75–78&nbsp;cm</strong> de circunferência, ela está descrevendo a envergadura de uma mão masculina adulta. As medidas do esporte parecem neutras, universais, dadas. Não são. São decisões antropométricas — e, quase sempre, tomadas a partir do corpo masculino como padrão.</p>
+
+    <p>A prova disso está no próprio livro de regras: quando o esporte passa a ser praticado por mulheres em alto nível, essas medidas mudam. A rede desce. A bola encolhe. O peso do arremesso cai pela metade. O obstáculo abaixa. Isso não é cortesia nem condescendência regulatória — é o reconhecimento explícito, escrito em normas oficiais, de que <strong>competir de forma justa exige calibrar o equipamento e o campo ao corpo do atleta</strong>.</p>
+
+    <p>Este dossiê faz três coisas, nesta ordem. Primeiro, mede a diferença fisiológica entre homens e mulheres de elite — o que a ciência estabeleceu, e o que ela não estabeleceu. Segundo, cataloga como cada grande modalidade traduziu essa diferença em regras. Terceiro, examina a única grande exceção — o futebol — e a pergunta incômoda que ela levanta: se todos os outros esportes reescreveram suas medidas para as mulheres, por que o futebol insiste em fazê-las jogar com as medidas dos homens?</p>
+
+    <div class="note">
+      <span class="tag">Nota de método</span>
+      <p>Este texto trata de <strong>médias populacionais de atletas de elite</strong>, não de indivíduos. Existem mulheres mais fortes e rápidas que a maioria dos homens. A distribuição, porém, é o que fundamenta uma regra — e é sobre a distribuição, e a mediana dela, que federações legislam. Distinguimos ao longo do texto o que é <em>consenso fisiológico robusto</em> (a diferença de desempenho e sua origem) do que é <em>proposta debatida</em> (como o futebol deveria responder a isso).</p>
+    </div>
+  </div></div>
+</section>
+
+<!-- ======================= 02 ======================= -->
+<section id="s2">
+  <div class="wrap"><div class="col">
+    <div class="sec-head"><span class="sec-num">02</span><h2>Por que a diferença aparece — e quando</h2></div>
+
+    <p>Até a puberdade, <strong>não há diferença</strong> relevante de desempenho atlético entre meninos e meninas. Isso é decisivo e frequentemente esquecido. A vantagem masculina não é uma propriedade permanente do sexo; ela <em>emerge</em>, e emerge num momento datável.<sup class="cite"><a href="#r3">3</a></sup></p>
+
+    <p>Num estudo com os 50 melhores jovens atletas dos EUA em pista e campo, a diferença de desempenho entre os sexos era de cerca de <strong>5%</strong> antes dos 12 anos — e disparava depois. Aos 18 anos chegava a <strong>12,6%</strong> nas corridas, <strong>22,7%</strong> no salto em distância e <strong>18,4%</strong> no salto em altura.<sup class="cite"><a href="#r4">4</a></sup> O gatilho é a puberdade masculina.</p>
+
+    <p><span class="lead-in">O mecanismo é hormonal.</span> A partir da puberdade, os testículos passam a produzir cerca de 30 vezes mais testosterona do que antes, e a concentração circulante em homens adultos fica <strong>15 vezes maior</strong> que a de mulheres em qualquer idade.<sup class="cite"><a href="#r1">1</a></sup> Essa diferença hormonal, isolada em experimentos com dose-resposta, é a causa dominante de três vantagens físicas encadeadas:</p>
+
+    <div class="stats">
+      <div class="stat"><div class="n">+12<small>&nbsp;kg</small></div><div class="l">Massa muscular esquelética a mais em homens jovens, no mesmo peso corporal<sup class="cite"><a href="#r1">1</a></sup></div></div>
+      <div class="stat"><div class="n">15×</div><div class="l">Testosterona circulante em homens vs. mulheres, após a puberdade<sup class="cite"><a href="#r1">1</a></sup></div></div>
+      <div class="stat"><div class="n">↑</div><div class="l">Hemoglobina, débito cardíaco, capacidade pulmonar e densidade óssea maiores<sup class="cite"><a href="#r5">5</a></sup></div></div>
+      <div class="stat"><div class="n">10–30<small>%</small></div><div class="l">Vantagem de desempenho de homens de elite, conforme a modalidade<sup class="cite"><a href="#r2">2</a></sup></div></div>
+    </div>
+
+    <p>O <em>Consensus Statement</em> do American College of Sports Medicine (2023) sintetiza a literatura: em provas que dependem de força, velocidade, potência ou resistência, homens de elite superam mulheres de elite por <strong>10% a 30%</strong>, a depender das exigências do evento.<sup class="cite"><a href="#r2">2</a></sup> A dispersão não é ruído — ela é o mapa. Quanto mais a prova depende de potência e força de membros superiores, maior a diferença.</p>
+
+    <h3>O tamanho da vantagem, por tipo de gesto</h3>
+    <p class="muted" style="margin-top:-.3rem">Diferença típica de desempenho entre atletas de elite (homens acima de mulheres). Valores representativos compilados da literatura de consenso.<sup class="cite"><a href="#r1">1</a></sup><sup class="cite"><a href="#r2">2</a></sup></p>
+
+    <div class="chart" role="img" aria-label="Gráfico de barras: diferença de desempenho por gesto esportivo, de cerca de 10% em corridas a cerca de 30% em força de membros superiores.">
+      <div class="row"><div class="name">Corrida de velocidade <small>100 m – 800 m</small></div><div class="track"><div class="fill" style="width:37%"></div></div><div class="val">~11%</div></div>
+      <div class="row"><div class="name">Natação <small>estilo livre</small></div><div class="track"><div class="fill" style="width:37%"></div></div><div class="val">~11%</div></div>
+      <div class="row"><div class="name">Salto <small>vertical / distância</small></div><div class="track"><div class="fill" style="width:63%"></div></div><div class="val">~19–23%</div></div>
+      <div class="row"><div class="name">Arremesso / potência <small>membros superiores</small></div><div class="track"><div class="fill" style="width:83%"></div></div><div class="val">~25–30%</div></div>
+      <div class="scale"><span>0%</span><span>15%</span><span>30%</span></div>
+    </div>
+
+    <blockquote>
+      A testosterona é o determinante primário das diferenças sexuais no desempenho atlético — mais do que qualquer outro fator conhecido.
+      <cite>Nokoff et al., <i>Exercise and Sport Sciences Reviews</i>, 2023<sup class="cite"><a href="#r5">5</a></sup></cite>
+    </blockquote>
+
+    <p>Repare no que este consenso <strong>não</strong> diz. Não diz que mulheres são “piores” atletas — a comparação absoluta é uma armadilha. Diz que, num mesmo campo de regras calibrado para o corpo masculino, o corpo feminino opera com uma margem física menor. É exatamente por isso que o esporte, quando quer competição justa e legível, <em>recalibra as regras</em>. É o que veremos a seguir.</p>
+  </div></div>
+</section>
+
+<!-- ======================= 03 ======================= -->
+<section id="s3">
+  <div class="wrap"><div class="col">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Como cada esporte se adapta</h2></div>
+    <p>Não é um esporte, nem dois. É o padrão dominante do esporte mundial. Abaixo, o que as normas oficiais das confederações efetivamente determinam — e, em cada caso, <strong>qual diferença fisiológica a adaptação compensa</strong>.</p>
+  </div></div>
+
+  <div class="wrap">
+    <div class="tablewrap">
+      <table>
+        <caption>Fontes: regulamentos oficiais FIVB (vôlei), FIBA (basquete), IHF (handebol), World Athletics (atletismo), ITF (tênis). Valores de elite/adulto.</caption>
+        <thead>
+          <tr><th>Modalidade</th><th>Parâmetro</th><th>Masculino</th><th>Feminino</th><th>Adaptação compensa…</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="sport">Voleibol</td>
+            <td>Altura da rede</td>
+            <td><span class="u">2,43 m</span></td>
+            <td><span class="u">2,24 m</span> <span class="delta">−19 cm</span></td>
+            <td>Menor alcance de ataque e bloqueio (altura + salto vertical)</td>
+          </tr>
+          <tr>
+            <td class="sport">Basquete</td>
+            <td>Bola (circunf. / peso)</td>
+            <td><span class="u">tam. 7 · 75–78 cm · 600–650 g</span></td>
+            <td><span class="u">tam. 6 · 72–74 cm · 510–567 g</span> <span class="delta">−~40 g</span></td>
+            <td>Menor tamanho da mão e força de preensão/arremesso</td>
+          </tr>
+          <tr>
+            <td class="sport">Handebol</td>
+            <td>Bola (circunf. / peso)</td>
+            <td><span class="u">H3 · 58–60 cm · 425–475 g</span></td>
+            <td><span class="u">H2 · 54–56 cm · 325–375 g</span> <span class="delta">−100 g</span></td>
+            <td>Menor mão (pegar/dominar a bola) e força de lançamento</td>
+          </tr>
+          <tr>
+            <td class="sport">Atletismo</td>
+            <td>Arremesso de peso</td>
+            <td><span class="u">7,26 kg</span></td>
+            <td><span class="u">4,00 kg</span> <span class="delta">−45%</span></td>
+            <td>Diferença de força/potência de membros superiores</td>
+          </tr>
+          <tr>
+            <td class="sport">Atletismo</td>
+            <td>Dardo (peso mín.)</td>
+            <td><span class="u">800 g</span></td>
+            <td><span class="u">600 g</span> <span class="delta">−25%</span></td>
+            <td>Velocidade e força de lançamento</td>
+          </tr>
+          <tr>
+            <td class="sport">Atletismo</td>
+            <td>Barreiras (400 m)</td>
+            <td><span class="u">91,4 cm</span></td>
+            <td><span class="u">76,2 cm</span> <span class="delta">−15 cm</span></td>
+            <td>Menor estatura e altura de passada/salto</td>
+          </tr>
+          <tr>
+            <td class="sport">Tênis</td>
+            <td>Formato (Grand Slam)</td>
+            <td><span class="u">melhor de 5 sets</span></td>
+            <td><span class="u">melhor de 3 sets</span></td>
+            <td>Historicamente, “resistência” — ver ressalva na seção 04</td>
+          </tr>
+          <tr class="row-flag">
+            <td class="sport">Futebol</td>
+            <td>Gol · bola · campo</td>
+            <td><span class="u">7,32 × 2,44 m · nº 5 · 105 × 68 m</span></td>
+            <td><span class="u">idêntico</span> <span class="delta">Δ 0</span></td>
+            <td><strong>Nada. Não há adaptação.</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="wrap"><div class="col">
+    <p style="margin-top:1.8rem">Há uma lógica visível na coluna da direita. As adaptações se agrupam em três famílias fisiológicas:</p>
+    <p><strong>1. Antropometria da mão →</strong> tamanho da bola. Basquete e handebol reduzem a bola porque uma bola grande demais para a mão compromete o domínio, o passe e o arremesso — o gesto técnico deixa de ser executável no padrão de elite.</p>
+    <p><strong>2. Alcance vertical →</strong> altura do obstáculo. Vôlei baixa a rede e o atletismo baixa as barreiras porque o gesto (atacar por cima da rede, transpor o obstáculo em velocidade) depende de estatura e salto — variáveis em que a diferença sexual é grande.</p>
+    <p><strong>3. Força/potência →</strong> massa do implemento. Peso e dardo são aliviados porque a diferença de força de membros superiores é a maior de todas (~25–30%); manter a massa masculina tornaria a prova feminina um gesto qualitativamente diferente.</p>
+    <p class="muted">Em todos os casos, o princípio é o mesmo: <strong>preservar o gesto técnico e a legibilidade da disputa</strong>, ajustando o parâmetro físico para que a mediana do corpo feminino execute o mesmo esporte — não uma versão empobrecida dele.</p>
+  </div></div>
+</section>
+
+<!-- ======================= 04 ======================= -->
+<section id="s4">
+  <div class="wrap"><div class="col">
+    <div class="sec-head"><span class="sec-num">04</span><h2>As duas faces da adaptação</h2></div>
+
+    <p>Antes de acusar o futebol, é preciso honestidade intelectual: <strong>adaptar a regra nem sempre foi um ato de justiça</strong>. Às vezes foi paternalismo disfarçado de cuidado. O caso do tênis é o exemplo-controle.</p>
+
+    <p>Entre 1891 e 1901, as mulheres disputavam o campeonato nacional dos EUA em <strong>melhor de cinco sets</strong> — o mesmo formato masculino. Em 1901, um conselho da associação nacional, <strong>composto inteiramente por homens</strong>, encurtou a prova feminina para melhor de três, sob a justificativa de que cinco sets seriam esforço excessivo para “o sexo frágil”.<sup class="cite"><a href="#r7b">A</a></sup> Não houve medição fisiológica; houve uma crença sobre fragilidade. O formato sobrevive até hoje nos Grand Slams — hoje defendido por logística e tradição, não mais por biologia.</p>
+
+    <div class="note flag">
+      <span class="tag">A distinção que importa</span>
+      <p>Há dois tipos de regra diferenciada. A <strong>adaptação de equidade</strong> parte de uma diferença física mensurável e ajusta o parâmetro para igualar a exigência técnica (bola de handebol, rede de vôlei, peso do arremesso). A <strong>diferenciação paternalista</strong> parte de uma crença sobre o que a mulher “aguenta” e reduz a prova sem base empírica (o tênis de 1901). A primeira dá poder; a segunda tutela. Confundi-las é o erro que trava o debate.</p>
+    </div>
+
+    <p>Essa distinção é o teste que qualquer proposta de mudança precisa passar. “Mudar a regra para mulheres” não é automaticamente progressista nem automaticamente ofensivo — depende inteiramente de <em>por quê</em>. É com esse critério — equidade mensurável, não tutela — que devemos olhar para o futebol.</p>
+  </div></div>
+</section>
+
+<!-- ======================= 05 ======================= -->
+<section id="s5">
+  <div class="wrap"><div class="col">
+    <div class="sec-head"><span class="sec-num">05</span><h2>O outlier: o futebol joga contra tudo</h2></div>
+
+    <p class="drop">Voleibol, basquete, handebol, atletismo, boxe, halterofilismo, ciclismo, tênis — todos reconhecem, na letra da regra, que o corpo feminino compete melhor sob parâmetros próprios. O futebol, não. A trave mede <strong>7,32 × 2,44 m</strong> para todo mundo. A bola é a mesma nº&nbsp;5, de 410–450&nbsp;g. O campo tem as mesmas dimensões. A regra é, orgulhosamente, cega ao sexo — e é justamente aí que ela deixa de ser neutra.</p>
+
+    <p>O argumento não é retórico; é acadêmico e publicado. Em 2019, na <i>Frontiers in Psychology</i>, Pedersen, Aksdal e Stalsberg formularam a tese com dados: <strong>a maior parte das diferenças entre o futebol masculino e o feminino não é intrínseca ao futebol das mulheres — é consequência de fazê-las jogar com regras dimensionadas para homens.</strong><sup class="cite"><a href="#r6">6</a></sup> Em outras palavras, o futebol feminino é o único grande esporte jogado, na prática, com equipamento “grande demais”.</p>
+
+    <blockquote>
+      A maioria das diferenças entre o futebol masculino e o feminino pode ser explicada pelo fato de as mulheres terem de se adaptar a regras e regulamentos pensados para homens e seus atributos físicos. Assim, o jogo é muito mais exigente para elas.
+      <cite>Pedersen, Aksdal &amp; Stalsberg, <i>Frontiers in Psychology</i>, 2019<sup class="cite"><a href="#r6">6</a></sup></cite>
+    </blockquote>
+
+    <h3>O gol que não cabe na goleira</h3>
+    <p>A comparação justa do tamanho do gol não é em metros absolutos — é <strong>relativa à altura da goleira</strong>. Um homem de estatura média cobre cerca de 75% da altura da trave; goleiros, mais altos que a média, chegam a ~78%. Nas Copas do Mundo recentes, a goleira média mediu <strong>173,5 cm</strong>, contra <strong>188,9 cm</strong> do goleiro médio.<sup class="cite"><a href="#r6">6</a></sup> Resultado: a mesma trave de 2,44 m é, <em>proporcionalmente</em>, muito maior para ela. Ela defende um gol relativamente ampliado, com menor alcance de salto — e depois é acusada de “falha” quando um chute de longe entra no ângulo.</p>
+
+    <p>Há um detalhe histórico quase irônico. As dimensões do gol foram fixadas em <strong>1886</strong>. A estatura média do homem britânico adulto da época era de cerca de <strong>166 cm</strong> — praticamente a estatura média da mulher de hoje.<sup class="cite"><a href="#r6">6</a></sup> O futebol feminino atual joga, literalmente, com a trave calibrada para o corpo masculino do século XIX.</p>
+
+    <h3>O que uma escala justa produziria</h3>
+    <p class="muted" style="margin-top:-.3rem">Estimativas de Pedersen et al. (2019), escalonando cada parâmetro pela diferença fisiológica relevante (estatura da goleira; VO₂máx e força de membros inferiores; força para velocidade da bola).<sup class="cite"><a href="#r6">6</a></sup></p>
+
+    <div class="scale-grid">
+      <div class="scard">
+        <h4>Gol · escala pela estatura</h4>
+        <div class="pair"><span class="k">Regra atual (masc.)</span><span class="v ref">7,32 × 2,44 m</span></div>
+        <div class="pair"><span class="k">Escalonado p/ goleira</span><span class="v alt">6,76 × 2,25 m</span></div>
+        <div class="pair"><span class="k">Redução de área</span><span class="v alt">≈ −15%</span></div>
+      </div>
+      <div class="scard">
+        <h4>Campo · escala fisiológica</h4>
+        <div class="pair"><span class="k">Por VO₂máx</span><span class="v alt">77% da área</span></div>
+        <div class="pair"><span class="k">Por força de pernas</span><span class="v alt">66% da área</span></div>
+        <div class="pair"><span class="k">Largura (cruzamentos)</span><span class="v alt">~45 m (vs 68)</span></div>
+      </div>
+      <div class="scard">
+        <h4>Bola · escala pela força</h4>
+        <div class="pair"><span class="k">Regra atual (nº 5)</span><span class="v ref">410–450 g</span></div>
+        <div class="pair"><span class="k">Peso “justo” teórico</span><span class="v alt">~287 g*</span></div>
+        <div class="pair"><span class="k">Efeito em testes reais</span><span class="v alt">chute +5–6 m</span></div>
+      </div>
+    </div>
+    <p class="muted" style="font-size:.82rem">* Valor teórico pela razão de força de membros inferiores (~66%). Os próprios autores ressalvam que uma bola tão leve teria aerodinâmica inadequada; experimentos usam bolas moderadamente mais leves — que, medidas, aumentam o alcance do chute em 5–6&nbsp;m sem degradar o jogo.<sup class="cite"><a href="#r6">6</a></sup></p>
+
+    <h3>A distorção aparece nos dados do jogo</h3>
+    <p>Se a tese estivesse errada, o futebol feminino jogaria igual ao masculino, só que “pior”. Não é o que os dados mostram — ele joga <strong>diferente</strong>, e de um jeito coerente com equipamento superdimensionado:</p>
+    <ul>
+      <li>Mais gols vêm de <strong>chutes de longa distância</strong> (de fora da área) no futebol feminino do que no masculino — porque a goleira, relativamente menor, tem mais dificuldade de cobrir o gol amplo.<sup class="cite"><a href="#r6">6</a></sup></li>
+      <li>Mais gols de <strong>cabeça e de ângulo baixo</strong>; a barreira defensiva, formada por jogadoras mais baixas, é proporcionalmente menos eficaz.<sup class="cite"><a href="#r7">7</a></sup></li>
+      <li>Cada passe consome <strong>uma fração maior da força máxima</strong> da jogadora — o que, pelo trade-off força × precisão, aumenta a taxa de erro e a perda de posse. Não é “técnica pior”; é física desfavorável imposta pela escala.<sup class="cite"><a href="#r6">6</a></sup></li>
+      <li>A goleira é <strong>sistematicamente mais penalizada</strong>: defende gol relativamente maior, salta menos longe, e ainda assim carrega a fama de “ponto fraco” do futebol feminino.<sup class="cite"><a href="#r6">6</a></sup></li>
+    </ul>
+
+    <p>Esse é o coração do argumento do usuário deste dossiê, e ele é defensável: <strong>enquanto o futebol feminino for medido dentro de um molde masculino, ele será lido como uma cópia inferior — nunca como um esporte com identidade própria.</strong> A comparação depreciativa (“é mais lento”, “a goleira falha muito”) não mede a atleta; mede o desajuste entre a atleta e uma regra que não foi feita para ela. Os outros esportes resolveram isso mudando a régua. O futebol mantém a régua e culpa quem mede.</p>
+  </div></div>
+</section>
+
+<!-- ======================= 06 ======================= -->
+<section id="s6">
+  <div class="wrap"><div class="col">
+    <div class="sec-head"><span class="sec-num">06</span><h2>A tese, sob crítica</h2></div>
+
+    <p>Uma reflexão baseada em evidências não pode terminar só no lado que agrada. A proposta de escalonar o futebol feminino é forte, mas é <strong>minoritária e contestada</strong> — e as objeções são sérias. Colocá-las de pé torna a tese melhor, não pior.</p>
+
+    <h3>O que joga a favor</h3>
+    <p>É consenso fisiológico que a diferença de desempenho existe, é grande e é sistemática (seções 02–03). É fato normativo que praticamente todo esporte de elite já respondeu a ela com regras próprias. E há um artigo revisado por pares mostrando, com números, que o futebol feminino sofre distorções mensuráveis por jogar sem essa adaptação.<sup class="cite"><a href="#r6">6</a></sup> A coerência é do lado da mudança: <em>ou</em> o futebol explica por que é fisiologicamente especial, <em>ou</em> ele é simplesmente o esporte que ainda não fez a lição que os outros fizeram.</p>
+
+    <h3>O que joga contra</h3>
+    <p><strong>Risco de percepção “versão light”.</strong> Bola menor e gol menor podem ser lidos pelo público como “futebol reduzido”, reforçando — em vez de dissolver — a hierarquia simbólica. O basquete e o handebol convivem bem com isso; o futebol, com sua carga cultural, talvez não convivesse do mesmo modo. A mudança precisaria vir com narrativa, não só com norma.</p>
+    <p><strong>Autonomia e identidade.</strong> Muitas atletas e dirigentes rejeitam a ideia por princípio: querem o <em>mesmo</em> jogo, disputando a igualdade simbólica de campo e trave idênticos. Impor adaptação “para o bem delas” pode recair no paternalismo da seção 04 — a regra certa pela razão errada. A decisão é, legitimamente, também político-cultural, não só biomecânica.</p>
+    <p><strong>Evidência ainda escassa.</strong> Os próprios autores reconhecem que os dados comparativos entre os sexos são poucos e nem sempre escalonados; experimentos com bola mais leve mostraram ganho de alcance, mas <em>não</em> uma transformação clara do estilo de jogo. A direção da evidência favorece a tese; a sua magnitude ainda não está fechada.</p>
+    <p><strong>As federações mantêm o padrão.</strong> FIFA, UEFA e IFAB conservam gol, bola e campo idênticos, e o debate sobre reduzir a trave — reacendido após goleadas como o 13×0 sobre a Tailândia na Copa de 2019 — segue oficialmente rejeitado. A mudança, hoje, não tem apoio institucional.</p>
+
+    <hr class="rule" />
+
+    <p><span class="lead-in">Conclusão.</span> A afirmação de que “o futebol feminino só será visto como esporte feminino quando a regra for adaptada” não é um slogan — é uma <strong>hipótese com lastro científico</strong>, sustentada pela fisiologia do dimorfismo sexual, pelo comportamento normativo de quase todos os outros esportes e por um estudo revisado por pares que quantifica a distorção. Ela não está <em>provada</em> como política ideal, e tem contra-argumentos legítimos de identidade e percepção. Mas o ônus da prova virou de lado: depois que vôlei, basquete, handebol e atletismo calibraram suas medidas ao corpo feminino, <strong>é o futebol que precisa justificar por que continua a fazer o contrário</strong> — e, por ora, ele não tem uma justificativa fisiológica para isso. Tem apenas a inércia de uma trave desenhada em 1886.</p>
+
+    <div class="note">
+      <span class="tag">Em uma frase</span>
+      <p>Todo esporte de elite adaptou a régua ao corpo feminino porque a diferença física é real e mensurável; o futebol é a exceção — e enquanto medir mulheres com a régua dos homens, colherá um jogo distorcido e uma comparação injusta que confunde <em>desajuste de regra</em> com <em>inferioridade de atleta</em>.</p>
+    </div>
+  </div></div>
+</section>
+
+<!-- ======================= REFS ======================= -->
+<section id="refs" class="refs">
+  <div class="wrap"><div class="col">
+    <div class="sec-head"><span class="sec-num">—</span><h2>Referências &amp; fontes</h2></div>
+
+    <div class="srcgroup">
+      <h4>Literatura revisada por pares</h4>
+      <ol class="reflist">
+        <li id="r1">Handelsman, D. J., Hirschberg, A. L., &amp; Bermon, S. (2018). Circulating Testosterone as the Hormonal Basis of Sex Differences in Athletic Performance. <i>Endocrine Reviews, 39</i>(5), 803–829. <a href="https://doi.org/10.1210/er.2018-00020">doi.org/10.1210/er.2018-00020</a></li>
+        <li id="r2">Hunter, S. K., Angadi, S. S., Bhargava, A., et al. (2023). The Biological Basis of Sex Differences in Athletic Performance: Consensus Statement for the American College of Sports Medicine. <i>Medicine &amp; Science in Sports &amp; Exercise, 55</i>(12), 2328–2360. <a href="https://doi.org/10.1249/mss.0000000000003300">doi.org/10.1249/mss.0000000000003300</a></li>
+        <li id="r3">Handelsman, D. J. (2017). Sex differences in athletic performance emerge coinciding with the onset of male puberty. <i>Clinical Endocrinology, 87</i>(1), 68–72. <a href="https://doi.org/10.1111/cen.13350">doi.org/10.1111/cen.13350</a></li>
+        <li id="r4">Atkinson, M. A., James, J. J., Quinn, M., et al. (2024). Sex Differences in Track and Field Elite Youth. <i>Medicine &amp; Science in Sports &amp; Exercise, 56</i>(8), 1390–1397. <a href="https://doi.org/10.1249/mss.0000000000003423">doi.org/10.1249/mss.0000000000003423</a></li>
+        <li id="r5">Nokoff, N., Senefeld, J. W., Krausz, C., et al. (2023). Sex Differences in Athletic Performance: Perspectives on Transgender Athletes. <i>Exercise and Sport Sciences Reviews, 51</i>(3), 85–95. <a href="https://doi.org/10.1249/jes.0000000000000317">doi.org/10.1249/jes.0000000000000317</a></li>
+        <li id="r6">Pedersen, A. V., Aksdal, I. M., &amp; Stalsberg, R. (2019). Scaling Demands of Soccer According to Anthropometric and Physiological Sex Differences: A Fairer Comparison of Men's and Women's Soccer. <i>Frontiers in Psychology, 10</i>, 762. <a href="https://doi.org/10.3389/fpsyg.2019.00762">doi.org/10.3389/fpsyg.2019.00762</a></li>
+        <li id="r7">Sanmiguel Codina, J., Ballester Lengua, R., &amp; Casal, C. A. (2025). Analysis of goal scoring patterns in the UEFA Women's EURO 2022. <i>Biology of Sport.</i> <a href="https://doi.org/10.5114/biolsport.2025.142646">doi.org/10.5114/biolsport.2025.142646</a></li>
+      </ol>
+    </div>
+
+    <div class="srcgroup">
+      <h4>Fontes normativas &amp; institucionais</h4>
+      <ol class="reflist">
+        <li id="r7b"><b>A —</b> The Conversation (2024). <i>Game, set, debate: why do women only play 3 sets in tennis?</i> — histórico do formato e da decisão de 1901. <a href="https://theconversation.com/game-set-debate-why-do-women-only-play-3-sets-in-tennis-241245">theconversation.com</a></li>
+        <li>FIVB — <i>Official Volleyball Rules</i> (altura da rede: 2,43 m masc. / 2,24 m fem.).</li>
+        <li>FIBA — <i>Official Basketball Rules / Equipment</i> (bola tam. 7 masc. / tam. 6 fem.).</li>
+        <li>IHF — <i>Ball Regulations</i> (handebol H3 masc. / H2 fem.). <a href="https://www.ihf.info/sites/default/files/2019-08/Ball_Regulations_E.pdf">ihf.info</a></li>
+        <li>World Athletics — <i>Technical Rules</i> (peso 7,26/4,00 kg; dardo 800/600 g; barreiras 91,4/76,2 cm). <a href="https://worldathletics.org/disciplines/throws/shot-put">worldathletics.org</a></li>
+        <li>IFAB / FIFA — <i>Laws of the Game</i> (gol 7,32 × 2,44 m; bola nº 5; campo — idênticos para ambos os sexos).</li>
+      </ol>
+    </div>
+
+    <div class="note" style="margin-top:2rem">
+      <span class="tag">Transparência</span>
+      <p>As diferenças fisiológicas (seções 02–03) refletem <strong>consenso científico robusto</strong>. A proposta de escalonar o futebol feminino (seções 05–06) é uma <strong>posição publicada, porém debatida e minoritária</strong>, apresentada aqui com seus contra-argumentos. Faixas de valores de equipamento seguem os regulamentos vigentes das confederações; pequenas variações de edição podem existir entre temporadas.</p>
+    </div>
+  </div></div>
+</section>
+
+</main>
+
+<footer class="end">
+  <div class="wrap">
+    <div class="col">
+      DOSSIÊ · A REGRA NÃO É NEUTRA — CIÊNCIA DO ESPORTE &amp; REGRAS DE GÊNERO<br />
+      Compilado de literatura revisada por pares e normas de confederações · agosto de 2026
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var btn = document.getElementById('themeToggle');
+    if (!btn) return;
+    function current() {
+      var t = document.documentElement.getAttribute('data-theme');
+      if (t) return t;
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    btn.addEventListener('click', function () {
+      var next = current() === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      btn.textContent = next === 'dark' ? 'Claro' : 'Escuro';
+    });
+  })();
+</script>
