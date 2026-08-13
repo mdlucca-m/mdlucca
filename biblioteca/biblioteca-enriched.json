@@ -1,5 +1,42 @@
 [
  {
+  "authors": "Lucia JH, Daniels N",
+  "year": 2026,
+  "title": "\"It Feels Kind of Like a Feather\": Perceptions of Well-Being Among Adolescent Ballet Dancers",
+  "journal": "Journal of Dance Medicine & Science",
+  "doi": "10.1177/1089313X261426641",
+  "citations": "n/d",
+  "sport": "Balé (adolescentes; feminino)",
+  "topic": "well-being",
+  "finding": "Onze bailarinas adolescentes definiram bem-estar como integração de saúde emocional, física e mental; identificaram quatro aspectos-chave (Suportes Externos, Resolução Pessoal, Motivação e Barreiras): professores que cuidam além da técnica e amigos foram suportes centrais, força mental foi aspecto pessoal importante e sentimentos de julgamento foram barreiras.",
+  "design": "Qualitativo",
+  "design_conf": "alta",
+  "subvar": "Bem-estar percebido; força mental; motivação; suporte social",
+  "n": 11,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Análise temática reflexiva",
+  "effect_size": false,
+  "es_note": "Estudo qualitativo, sem estatística",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "11 bailarinas na adolescência média (14-17 anos), de 2 estúdios de dança na Irlanda.",
+  "resumo": "Explorou, por entrevistas, como bailarinas adolescentes percebem e vivenciam bem-estar e o que o apoia ou dificulta.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Análise temática reflexiva das entrevistas semiestruturadas.",
+  "sintese": "As vozes das bailarinas adolescentes revelam determinantes relacionais e emocionais do bem-estar, com implicações para ambientes clínicos e educacionais de apoio.",
+  "idioma": "en"
+ },
+ {
   "authors": "Li D, Liu Y, Liu Y",
   "year": 2026,
   "title": "A global evaluation of musculoskeletal injuries and associated risk factors in competitive aerobic and artistic gymnasts: a systematic review and meta-analysis.",
@@ -78,6 +115,80 @@
   "variaveis_biodinamicas": "Força vertical de pico, tempo até o pico, taxa média de carga; cinemática articular do tornozelo",
   "analise_estatistica": "ANOVA de medidas repetidas",
   "sintese": "A dominância eleva a FRS de pico e a complexidade da tarefa molda a demanda mecânica das aterrissagens no balé.",
+  "idioma": "en"
+ },
+ {
+  "authors": "Gao X, Kim H, Bae M",
+  "year": 2026,
+  "title": "Biopsychosocial experiences of Chinese university dancers during injury rehabilitation: a qualitative study",
+  "journal": "Frontiers in Psychology",
+  "doi": "10.3389/fpsyg.2026.1856362",
+  "citations": "n/d",
+  "sport": "Dança (universitária; sexo não especificado, predomínio feminino)",
+  "topic": "coping",
+  "finding": "Entrevistas com 7 dançarinos universitários revelaram experiências multidimensionais de reabilitação de lesão: no nível psicológico emergiram ansiedade, frustração, raiva e culpa, mas também resiliência baseada em mentalidade positiva; suporte de pais, professores e pares foi fator protetor, enquanto pressão para retornar e críticas foram fatores de risco, tudo situado em contexto cultural.",
+  "design": "Qualitativo",
+  "design_conf": "alta",
+  "subvar": "Enfrentamento; resiliência; emoções negativas; suporte social (modelo biopsicossocial)",
+  "n": 7,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Análise temática",
+  "effect_size": false,
+  "es_note": "Estudo qualitativo, sem estatística",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "7 dançarinos universitários chineses com experiência de reabilitação de lesão.",
+  "resumo": "Explorou as experiências biopsicossociais de dançarinos universitários durante a reabilitação de lesões por meio de entrevistas semiestruturadas.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Análise temática das entrevistas em domínios biopsicossociais.",
+  "sintese": "A reabilitação de dançarinos deve ser compreendida em um marco biopsicossocial ampliado e culturalmente sensível, dado o peso de emoções negativas, resiliência e suporte social.",
+  "idioma": "en"
+ },
+ {
+  "authors": "Hadley M, Popper HR, Ty J, Su AW",
+  "year": 2026,
+  "title": "Common Injuries and Their Management Among Youth to Elite Artistic Male and Female Gymnasts.",
+  "journal": "The Journal of the American Academy of Orthopaedic Surgeons",
+  "doi": "10.5435/JAAOS-D-25-00615",
+  "citations": "n/d",
+  "sport": "Ginástica artística (juvenil a elite; misto)",
+  "topic": "overuse-injury",
+  "finding": "Revisão clínica: as demandas específicas da ginástica artística expõem os atletas a risco único de lesões na coluna e nos membros; a especialização precoce aumenta o risco de sobreuso, com espondilólise, lesões mediais do cotovelo, 'punho do ginasta', lesões ligamentares do joelho e rupturas do tendão de Aquiles entre as mais comuns.",
+  "design": "Revisão narrativa",
+  "design_conf": "Média",
+  "subvar": "Padrões de lesão comuns e seu manejo",
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Revisão narrativa"
+  ],
+  "stats_approach": "Síntese qualitativa",
+  "effect_size": false,
+  "es_note": "Revisão narrativa; sem estimativas de efeito.",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "Revisão clínica das lesões comuns em ginastas artísticos, do nível juvenil ao de elite (masculino e feminino).",
+  "resumo": "Revisão que descreve os padrões de lesão comuns e o manejo na ginástica artística, considerando as mudanças de regras/pontuação e a especialização esportiva precoce como fatores de risco.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Síntese qualitativa da literatura clínica.",
+  "sintese": "Sintetiza os principais padrões lesionais da ginástica artística (espondilólise, punho do ginasta, cotovelo, joelho, Aquiles) para orientar prevenção, tratamento e retorno seguro ao esporte.",
   "idioma": "en"
  },
  {
@@ -647,6 +758,47 @@
   "sintese": "A disfunção menstrual sinaliza baixa disponibilidade energética e maior risco de lesão em bailarinas universitárias, reforçando a necessidade de educação e monitoramento."
  },
  {
+  "authors": "Yang W",
+  "year": 2026,
+  "title": "Mental imagery and performance in aerobic, artistic, acrobatics, trampoline and tumbling, and rhythmic gymnasts: a systematic review",
+  "journal": "Frontiers in Psychology",
+  "doi": "10.3389/fpsyg.2026.1803261",
+  "citations": "n/d",
+  "sport": "Ginástica (aeróbica, artística, acrobática, trampolim e tumbling, rítmica; ambos os sexos)",
+  "topic": "imagery",
+  "finding": "Revisão de 16 estudos: a imagética mental (roteiro, PETTLEP, observação de vídeo + imagética, THP multicomponente) melhorou desfechos de desempenho em vários estudos controlados, mas os efeitos foram inconsistentes e moderados por nível de expertise, dose/sequência e escolha do desfecho; parte dos estudos não mostrou ganho de desempenho apesar de melhora em variáveis psicológicas (ex.: autoconfiança).",
+  "design": "Revisão sistemática",
+  "design_conf": "alta",
+  "subvar": "Imagética mental; autoconfiança; desempenho técnico julgado",
+  "n": 16,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Síntese narrativa; RoB 2 e ROBINS-I",
+  "effect_size": false,
+  "es_note": "Sem metanálise; efeitos relatados de forma narrativa",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica rítmica",
+   "Ginástica artística",
+   "Ginástica acrobática",
+   "Ginástica aeróbica",
+   "Outro"
+  ],
+  "n_modalities": 5,
+  "amostra": "16 estudos com ginastas competitivos de disciplinas FIG (busca em PubMed, Scopus e Web of Science; 258 registros triados).",
+  "resumo": "Revisão sistemática que sintetizou evidências sobre imagética mental em ginastas competitivos, avaliando efeitos no desempenho e correlatos psicológicos e a qualidade metodológica (RoB 2/ROBINS-I).",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Síntese narrativa por delineamento, abordagem de imagética e domínio de desfecho; risco de viés por RoB 2 e ROBINS-I.",
+  "sintese": "A imagética é adjuvante potencialmente útil ao treino de ginástica, porém com efeitos dependentes de implementação e do atleta; faltam ensaios de maior qualidade com desfechos padronizados.",
+  "idioma": "en"
+ },
+ {
   "authors": "López LR, Corti JF, Vallejos L, Rosas A, Maturano K, Raimundi MJ",
   "year": 2026,
   "title": "Perfil de habilidades psicológicas en patinadores/as artísticos/as de Sudamérica y su relación con el compromiso y la intención de abandono del deporte",
@@ -913,6 +1065,45 @@
   "sintese": "No desenvolvimento da jovem ginasta, ganhos de força associam-se à massa corporal e a potência de salto à hipertrofia do gastrocnêmio, orientando o treino de arquitetura muscular específica."
  },
  {
+  "authors": "Donti A, Panidi I, Bogdanis GC, Kanna DA, Gaspari V, Donti O",
+  "year": 2026,
+  "title": "Striving to Be Thin: Weight Pressures and Eating Disorder Symptoms in Professional Young Female Modern Dancers",
+  "journal": "Nutrients",
+  "doi": "10.3390/nu18121910",
+  "citations": "n/d",
+  "sport": "Dança moderna (profissional; feminino)",
+  "topic": "disordered-eating",
+  "finding": "Entre 86 dançarinas profissionais, 29,1% pontuaram >=20 no EAT-26; pressões de peso (WPS-F) associaram-se positivamente aos sintomas alimentares, e pressões quanto a aparência/desempenho, idade e experiência explicaram 38,3% da variância do EAT-26 (idade e experiência com coeficiente negativo), com a experiência moderando a relação pressão-sintomas.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "Pressões de peso no esporte (WPS-F); sintomas de transtorno alimentar (EAT-26)",
+  "n": 86,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "SEM/mediação",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Regressão múltipla e análise de moderação",
+  "effect_size": true,
+  "es_note": "R2=38,3%; interação de moderação (b=-0,329)",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "86 dançarinas profissionais de dança moderna (20,7±2,5 anos; 14,2±4,4 anos de prática).",
+  "resumo": "Examinou pressões de peso e sintomas de transtornos alimentares em dançarinas profissionais de dança moderna.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Correlações, regressão múltipla e análise de moderação (experiência de dança).",
+  "sintese": "Dançarinas profissionais têm risco elevado de comportamento alimentar transtornado, associado a pressões de aparência/desempenho, que a experiência parece atenuar.",
+  "idioma": "en"
+ },
+ {
   "authors": "Pavlasová K, Bizovská L, Rupčík L, Farana R, Janura M",
   "year": 2026,
   "title": "The Assessment of the Effect of Gaze Direction Instruction on the Stabilisation During Artistic Gymnastic Landing",
@@ -951,6 +1142,45 @@
   "variaveis_biodinamicas": "EMG de 6 músculos dos MMII, índices de estabilidade dinâmica, tempo até estabilização",
   "analise_estatistica": "ANOVA de medidas repetidas (tarefa motora × direção do olhar)",
   "sintese": "O treino de aterrissagens deve priorizar a complexidade da tarefa; instruções sobre o olhar têm efeito mínimo na ativação muscular e na estabilização."
+ },
+ {
+  "authors": "Chatar I, Robert P, Saumade C, Lewton-Brain P, van Rijn RM, Stubbe JH, Soubelet A, Manera V",
+  "year": 2026,
+  "title": "The association between passion, disordered eating attitudes, and self-reported injuries among pre-professional contemporary and ballet dancers",
+  "journal": "Acta Psychologica",
+  "doi": "10.1016/j.actpsy.2026.107290",
+  "citations": "n/d",
+  "sport": "Dança (contemporânea e balé pré-profissional; ambos os sexos)",
+  "topic": "passion",
+  "finding": "Em 62 dançarinos pré-profissionais (23 homens), escores mais altos no EAT-26 associaram-se a mais lesões, a paixão harmoniosa associou-se negativamente à ocorrência de lesões, e houve efeito indireto da paixão obsessiva sobre lesões via atitudes alimentares transtornadas (mediação, b=0,045).",
+  "design": "Longitudinal",
+  "design_conf": "alta",
+  "subvar": "Paixão harmoniosa/obsessiva; atitudes alimentares (EAT-26); lesões (OSTRC-H)",
+  "n": 62,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "SEM/mediação",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Análise de mediação",
+  "effect_size": false,
+  "es_note": "Efeito indireto b=0,045 (mediação via DEA)",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "62 dançarinos pré-profissionais de balé e contemporâneo (>=15 anos; 23 homens), seguimento mensal de out/2023 a mai/2024.",
+  "resumo": "Examinou como paixão harmoniosa/obsessiva e atitudes alimentares transtornadas se relacionam ao risco de lesão em dançarinos pré-profissionais.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Modelos prospectivos com análise de mediação entre paixão, DEA e lesões.",
+  "sintese": "Paixão obsessiva e atitudes alimentares transtornadas elevam o risco de lesão; promover engajamento autônomo e equilibrado pode reduzi-lo.",
+  "idioma": "en"
  },
  {
   "authors": "Pavlasová K, Bizovská L, Rupcik L, Farana R, Janura M",
@@ -1073,6 +1303,81 @@
   "idioma": "en"
  },
  {
+  "authors": "Yang Y, Deng N, Yang X",
+  "year": 2025,
+  "title": "A meta-analysis of the effects of strength training on physical fitness in dancers",
+  "journal": "Frontiers in Physiology",
+  "doi": "10.3389/fphys.2025.1511833",
+  "citations": "n/d",
+  "sport": "Dança (351 dançarinos; amostra mista)",
+  "topic": "muscular-power",
+  "finding": "Meta-análise de 15 estudos (351 dançarinos): o treino de força teve efeitos moderados a grandes sobre a força muscular (ES=1,84) e a potência muscular (ES=0,64), sem efeitos significativos sobre massa corporal, %gordura, resistência cardiorrespiratória ou flexibilidade.",
+  "design": "Meta-análise",
+  "design_conf": "moderada",
+  "subvar": "15 estudos, 351 dançarinos; treino de força/resistência/pliométrico/combinado vs controle; modelo de efeitos aleatórios",
+  "n": 351,
+  "biomech": false,
+  "methods": [
+   "Tamanho de efeito",
+   "Descritivo"
+  ],
+  "stats_approach": "Meta-análise de efeitos aleatórios (Hedges' g), risco de viés Cochrane",
+  "effect_size": true,
+  "es_note": "ES força=1,84; potência=0,64",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "351 dançarinos (15 estudos)",
+  "resumo": "Meta-análise dos efeitos do treino de força sobre componentes da aptidão física em dançarinos.",
+  "variaveis_biodinamicas": "Força muscular, potência muscular, massa corporal, %gordura, resistência cardiorrespiratória, flexibilidade",
+  "analise_estatistica": "Meta-análise de efeitos aleatórios",
+  "sintese": "O treino de força eleva força e potência em dançarinos, mas isoladamente não altera composição corporal, aptidão aeróbia ou flexibilidade.",
+  "idioma": "en"
+ },
+ {
+  "authors": "Ahadi ND, Harris EA, Walton CC",
+  "year": 2025,
+  "title": "A qualitative study of body image among competitive women pole dancers",
+  "journal": "Psychology of Sport and Exercise",
+  "doi": "10.1016/j.psychsport.2025.102920",
+  "citations": "n/d",
+  "sport": "Pole dance (competitivo; feminino)",
+  "topic": "body-image",
+  "finding": "Com 20 mulheres praticantes de pole competitivo, a análise temática construiu três temas (funcionalidade corporal como primordial; comunidade como fonte de acolhimento e tensões de pertencimento; empoderamento pela autonomia): apesar de o ambiente competitivo gerar comparações e inseguranças, valorizar a funcionalidade do corpo permitiu percepções corporais positivas dentro e fora da competição.",
+  "design": "Qualitativo",
+  "design_conf": "alta",
+  "subvar": "Imagem corporal; funcionalidade corporal; autoobjetificação; pertencimento",
+  "n": 20,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Análise temática reflexiva",
+  "effect_size": false,
+  "es_note": "Estudo qualitativo, sem estatística",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Outro"
+  ],
+  "n_modalities": 1,
+  "amostra": "20 mulheres praticantes de pole dance competitivo na Austrália.",
+  "resumo": "Explorou como o pole dance competitivo contribui para as percepções corporais de mulheres dentro e fora dos ambientes de competição.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Análise temática reflexiva de entrevistas semiestruturadas.",
+  "sintese": "Priorizar a funcionalidade corporal permite às praticantes de pole competitivo manter percepções positivas do corpo, apesar das pressões de comparação.",
+  "idioma": "en"
+ },
+ {
   "authors": "Deng C, Yu Q",
   "year": 2025,
   "title": "A systematic review of cheerleading injuries: epidemiology, biomechanical mechanisms and prevention",
@@ -1107,6 +1412,83 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "n/d (síntese sistemática/narrativa de taxas e proporções de lesão).",
   "sintese": "A prevenção exige estratégia multidimensional: treino excêntrico de cadeia fechada, otimização técnica, restrições de regras e certificação de treinadores."
+ },
+ {
+  "authors": "Copeland CG, Welsh TM, Chuhak R, Munoz I, Neibert S, Moses A, Bailey JS",
+  "year": 2025,
+  "title": "Assessing and Improving Mental Resilience in University Dancers: A Pilot Study",
+  "journal": "Journal of Dance Medicine & Science",
+  "doi": "10.1177/1089313X251390010",
+  "citations": "n/d",
+  "sport": "Dança (universitária; sexo não especificado, predomínio feminino)",
+  "topic": "resilience",
+  "finding": "Com 4 dançarinas universitárias, 6 semanas de treino de resiliência melhoraram significativamente indicadores comportamentais de função positiva (contato visual, autodesaprovação, 'branco' na coreografia; melhora média de 61%) e produziram melhoras clinicamente importantes de ansiedade em todas e de depressão em uma.",
+  "design": "Transversal",
+  "design_conf": "média",
+  "subvar": "Resiliência; ansiedade (GAD-7); depressão (PHQ-9); saúde mental (RAND MHI)",
+  "n": 4,
+  "biomech": false,
+  "methods": [
+   "Descritivo",
+   "Tamanho de efeito"
+  ],
+  "stats_approach": "Delineamento de linha de base múltipla entre participantes",
+  "effect_size": true,
+  "es_note": "Melhora média de 61%; mudanças clinicamente importantes",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "4 estudantes universitárias de dança (18-20 anos).",
+  "resumo": "Avaliou os efeitos de um treino de resiliência (6 módulos online com coach) sobre comportamentos específicos da dança e saúde mental.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Delineamento de linha de base múltipla entre participantes e comparação pré-pós.",
+  "sintese": "O treino de resiliência melhora tanto indicadores comportamentais de função positiva quanto a saúde mental de dançarinas universitárias.",
+  "idioma": "en"
+ },
+ {
+  "authors": "de Souza JBD, Oliveira Motta BA, Berti Zanella P",
+  "year": 2025,
+  "title": "Association Between Body Image Dissatisfaction and Anthropometric Variables Among Adolescent Ballet Dancers: A Pilot Study",
+  "journal": "Journal of Dance Medicine & Science",
+  "doi": "10.1177/1089313X251406347",
+  "citations": "n/d",
+  "sport": "Balé (adolescentes; feminino)",
+  "topic": "body-image",
+  "finding": "Entre 26 bailarinas adolescentes, a insatisfação com a imagem corporal foi de 65,3% (26,9% leve, 19,2% moderada, 19,2% grave) e correlacionou-se inversamente com a autoestima (Rosenberg); insatisfação grave associou-se a maior peso, IMC, circunferência de cintura e gordura corporal.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "Insatisfação de imagem corporal (BSQ); autoestima (Rosenberg); variáveis antropométricas",
+  "n": 26,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Correlação e associação",
+  "effect_size": false,
+  "es_note": "Correlação inversa imagem-autoestima (p<0,05)",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "26 bailarinas adolescentes de uma escola privada de balé.",
+  "resumo": "Determinou a prevalência de insatisfação de imagem corporal e sua correlação com variáveis antropométricas e autoestima em bailarinas adolescentes.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Análise de correlação entre imagem corporal, autoestima e medidas antropométricas.",
+  "sintese": "A insatisfação corporal é alta em bailarinas adolescentes e associa-se a menor autoestima e a maiores índices antropométricos.",
+  "idioma": "en"
  },
  {
   "authors": "Zhou L, Stefan L",
@@ -1187,6 +1569,45 @@
   "sintese": "A maior eficiência neuromuscular da elite (menos sinergias, ativação mais precoce) sugere focar o treino no controle e na ativação antecipada de músculos-chave nas fases de aproximação e impulsão."
  },
  {
+  "authors": "Haber C, Schärli A",
+  "year": 2025,
+  "title": "Biomechanical Validation of a Dance-specific Heel Raise to Jump Progression",
+  "journal": "Medical Problems of Performing Artists",
+  "doi": "10.21091/mppa.2025.03010",
+  "citations": "n/d",
+  "sport": "Dança (18 dançarinos saudáveis; sexo não especificado)",
+  "topic": "biomechanics-technique",
+  "finding": "Em 18 dançarinos, a carga mecânica (FRS vertical de pico) e as características de impacto (taxa de atenuação de força na decolagem e taxa de desenvolvimento de força na aterrissagem) aumentaram progressivamente com o tipo de movimento (relevé→relevé explosivo→sauté) e o apoio unipodal, com influência desprezível do apoio na barra.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "18 dançarinos saudáveis; progressão relevé→relevé explosivo→sauté, apoio duplo/unipodal, barra (2/1/0 mãos); modelos lineares mistos",
+  "n": 18,
+  "biomech": true,
+  "methods": [
+   "Cinética/mecânica",
+   "Derivadas/taxa",
+   "Descritivo"
+  ],
+  "stats_approach": "Modelos lineares mistos para vGRF de pico, RFA e RFD com contribuições incrementais",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": true,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "18 dançarinos saudáveis",
+  "resumo": "Validou biomecanicamente uma progressão dança-específica de elevação de calcanhar a salto, quantificando carga e impacto por fator.",
+  "variaveis_biodinamicas": "FRS vertical de pico, taxa de atenuação de força (decolagem), taxa de desenvolvimento de força (aterrissagem), perfis de sustentação de peso",
+  "analise_estatistica": "Modelos lineares mistos",
+  "sintese": "O tipo de movimento e o apoio unipodal escalonam a carga; o relevé explosivo é etapa intermediária útil na progressão de reabilitação/treino.",
+  "idioma": "en"
+ },
+ {
   "authors": "Zhou Y, Yang L",
   "year": 2025,
   "title": "Can mechanical load and physiological intensity during gymnastics training explain physical adaptations? An observational study",
@@ -1224,6 +1645,45 @@
   "variaveis_biodinamicas": "TRIMP, RPE, volume de saltos, força isométrica (IMTP), CMJ, teste aeróbio de Léger",
   "analise_estatistica": "Correlações de Pearson entre cargas de treino e adaptações físicas",
   "sintese": "Integrar carga mecânica (saltos) e carga fisiológica no monitoramento otimiza qualidades físicas específicas das ginastas."
+ },
+ {
+  "authors": "Zafeiroudi A, Karagiorgos T, Tsartsapakis I, Grivas GV, Kouthouris C, Goulimaris D",
+  "year": 2025,
+  "title": "Choreographing Well-Being: The Predictive Role of Self-Compassion on Life Satisfaction - A Therapeutic-Based Art Pedagogy Perspective in Recreational Dance",
+  "journal": "Sports (Basel)",
+  "doi": "10.3390/sports13070223",
+  "citations": "n/d",
+  "sport": "Dança (recreativa; feminino-majoritário)",
+  "topic": "well-being",
+  "finding": "Em 912 dançarinos recreativos (80% mulheres), a autobondade previu positivamente a satisfação com a vida (β=0,258), enquanto isolamento (β=-0,307) e autojulgamento (β=-0,083) previram negativamente; o modelo explicou 21,7% da variância, com bailarinos mostrando leve aumento de autojulgamento e isolamento.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "Autocompaixão (Self-Compassion Scale); satisfação com a vida (SWLS)",
+  "n": 912,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "SEM/mediação",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "CFA e regressão múltipla",
+  "effect_size": true,
+  "es_note": "R2=0,217; betas por dimensão de autocompaixão",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "912 dançarinos recreativos na Grécia (80% mulheres, 20% homens).",
+  "resumo": "Examinou a relação entre autocompaixão e satisfação com a vida em dançarinos recreativos, sob perspectiva de pedagogia da arte de base terapêutica.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Análise fatorial confirmatória do modelo de cinco fatores e regressão para preditores de satisfação com a vida.",
+  "sintese": "Integrar treino de autocompaixão à educação em dança pode favorecer resiliência emocional, conexão social e saúde mental.",
+  "idioma": "en"
  },
  {
   "authors": "Milas M, Milenković E, Milčić L, Radaš J",
@@ -1343,6 +1803,82 @@
   "idioma": "en"
  },
  {
+  "authors": "Picard M, Gaetz M",
+  "year": 2025,
+  "title": "Cyclic patterns of high-risk behaviours within ballet culture",
+  "journal": "BMC Psychology",
+  "doi": "10.1186/s40359-025-02653-9",
+  "citations": "n/d",
+  "sport": "Balé (pré-profissional, profissional e aposentado; feminino)",
+  "topic": "perfectionism",
+  "finding": "Entrevistas com 10 bailarinas (18-25 anos) revelaram tema central de trauma cíclico com dois eixos (falta de controle/instabilidade e perfeccionismo); 80% deram respostas consistentes com perfeccionismo e todas relataram dismorfia corporal/transtornos alimentares, saúde mental e violência sexual como problemáticos na cultura do balé, com C-PTSD emergindo inesperadamente.",
+  "design": "Qualitativo",
+  "design_conf": "alta",
+  "subvar": "Perfeccionismo; dismorfia/transtornos alimentares; saúde mental; abuso (cultura do balé)",
+  "n": 10,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Análise temática (Exercise Science Thematic Analysis Model)",
+  "effect_size": false,
+  "es_note": "Estudo qualitativo, sem estatística",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "10 bailarinas (18-25 anos) pré-profissionais, profissionais e aposentadas.",
+  "resumo": "Investigou, por entrevistas estruturadas, se bailarinas vivenciaram dismorfia corporal, transtornos alimentares, perfeccionismo, TOC, ansiedade, depressão, uso de substâncias, abuso sexual e lesões na cultura do balé.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Análise temática dedutiva com foco semântico das entrevistas.",
+  "sintese": "Ambientes de balé expõem bailarinas a múltiplos fatores de risco à saúde (perfeccionismo, transtornos alimentares, violência sexual), indicando necessidade de medidas de redução de dano.",
+  "idioma": "en"
+ },
+ {
+  "authors": "Romero Agudelo GA, Pritchard NS, Brandt KM, Bullock GS, Peluso AG, Kruse DW, et al.",
+  "year": 2025,
+  "title": "Differences in Head Kinematics Experienced by Women's and Men's Artistic Gymnasts During Common Skills.",
+  "journal": "Journal of Applied Biomechanics",
+  "doi": "10.1123/jab.2024-0162",
+  "citations": "n/d",
+  "sport": "Ginástica artística (feminina e masculina; misto)",
+  "topic": "biomechanics-technique",
+  "finding": "Em 12 ginastas femininas e 8 masculinos (11-18 anos) com sensores bucais, a ginástica artística feminina apresentou maior velocidade rotacional de pico em habilidades sem contato (giant, clear hip), enquanto a masculina teve maior aceleração rotacional (1,7×) nas fases de contato.",
+  "design": "Transversal",
+  "design_conf": "Alta",
+  "subvar": "Diferenças de cinemática de cabeça entre GAF e GAM",
+  "n": 20,
+  "biomech": true,
+  "methods": [
+   "Sensor bucal (mouthpiece)",
+   "Vídeo sincronizado",
+   "Modelo de efeitos mistos"
+  ],
+  "stats_approach": "Modelos de efeitos mistos entre sexos/habilidades",
+  "effect_size": false,
+  "es_note": "Diferenças por modelo misto; razão de 1,7× relatada para PRA sem tamanho de efeito padronizado.",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "20 ginastas artísticos (12 mulheres, 8 homens; 11-18 anos) instrumentados com sensores bucais em habilidades comuns.",
+  "resumo": "Estudo biomecânico que caracterizou diferenças na cinemática de cabeça entre a ginástica artística feminina e masculina em habilidades semelhantes, para informar prevenção específica por sexo.",
+  "variaveis_biodinamicas": "Aceleração linear e rotacional de pico da cabeça, variação e velocidade rotacional por sensor bucal.",
+  "analise_estatistica": "Modelos de efeitos mistos comparando métricas cinemáticas entre GAF e GAM por fase.",
+  "sintese": "Mostra diferenças sexo-específicas de exposição da cabeça na ginástica artística, relevantes para tolerância pós-concussão e prevenção específica por sexo.",
+  "idioma": "en"
+ },
+ {
   "authors": "Passacantando E, Marinelli S, La Greca S, Farina F, Cariati I, Cifelli P, Di Giminiani R",
   "year": 2025,
   "title": "Drop vertical jump performance and asymmetries in young rhythmic gymnasts",
@@ -1380,6 +1916,45 @@
   "variaveis_biodinamicas": "Tempo de voo e de contato, índice de força reativa (RSI), potência, picos da força vertical de reação do solo (vGRF) por fase",
   "analise_estatistica": "Comparação entre membros dos parâmetros de vGRF e desempenho",
   "sintese": "Monitorar e corrigir assimetrias de força no salto pode preservar a saúde musculoesquelética de ginastas rítmicas jovens."
+ },
+ {
+  "authors": "Foscolou A, Koutoulogenis K, Amerikanou C, Chatzistamatiou C, Stergiou EM, Katsari R, Perrea A, Panoutsopoulos GI",
+  "year": 2025,
+  "title": "Eating Attitudes and Anthropometric Indices of Adult Women in Performance Dance: A Case-Control Study in Greece",
+  "journal": "European Eating Disorders Review",
+  "doi": "10.1002/erv.70069",
+  "citations": "n/d",
+  "sport": "Dança de performance (adultas; feminino)",
+  "topic": "disordered-eating",
+  "finding": "Em 170 mulheres (68 dançarinas, 102 controles), as dançarinas apresentaram melhor composição corporal e menor ingestão energética/gordura, e após ajustes tiveram escore 5% maior de restrição no EDE-Q, enquanto não dançarinas relataram maiores preocupações alimentares quando considerada a ingestão energética.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "Atitudes alimentares (EAT-26, EDE-Q); ingestão dietética; antropometria",
+  "n": 170,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Comparação caso-controle ajustada",
+  "effect_size": false,
+  "es_note": "EDE-Q-Restrição 5% maior em dançarinas",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "170 mulheres: 68 dançarinas profissionais e 102 não dançarinas pareadas por idade/sexo.",
+  "resumo": "Comparou ingestão dietética, antropometria e atitudes alimentares entre dançarinas profissionais adultas e controles não dançarinas.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Comparações caso-controle com ajustes para ingestão energética.",
+  "sintese": "Dançarinas exibem comportamentos alimentares restritivos, reforçando a necessidade de estratégias de prevenção de transtornos alimentares.",
+  "idioma": "en"
  },
  {
   "authors": "Donti A, Maraki MI, Psychountaki M, Donti O",
@@ -1841,6 +2416,45 @@
   "idioma": "en"
  },
  {
+  "authors": "Yoshitani-Kuwabara K, Yumen Y, Takayama Y, Kitayama N, Nagai N",
+  "year": 2025,
+  "title": "High Proportions of Low Body Mass Index and Menstrual Dysfunction among Rhythmic Gymnasts: Association with Body Image Distortion and Eating Behaviors and Attitudes",
+  "journal": "Journal of Nutritional Science and Vitaminology",
+  "doi": "10.3177/jnsv.71.519",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica (feminino)",
+  "topic": "body-image",
+  "finding": "Ginastas rítmicas tiveram maiores taxas de baixo IMC e disfunção menstrual, maior distorção de imagem corporal e maiores escores no EAT-26 que jogadoras de voleibol e não atletas; ser ginasta rítmica e a distorção (superestimação) associaram-se independentemente ao baixo IMC, e escores altos no EAT-26 associaram-se à disfunção menstrual.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "Distorção de imagem corporal; atitudes alimentares (EAT-26); comportamentos alimentares",
+  "n": 194,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Regressão logística",
+  "effect_size": false,
+  "es_note": "Odds/associações independentes; sem d/ES formal",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1,
+  "amostra": "40 ginastas rítmicas, 46 jogadoras de voleibol e 108 não atletas (mulheres pareadas por idade).",
+  "resumo": "Estudo comparou IMC, condição menstrual, distorção de imagem corporal, EAT-26 e comportamentos alimentares entre ginastas rítmicas, atletas de esporte não estético e não atletas.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Comparação entre grupos e regressão logística para fatores de risco de baixo IMC e disfunção menstrual.",
+  "sintese": "Baixo IMC e disfunção menstrual são prevalentes em ginastas rítmicas e associam-se a distorção de imagem corporal e atitudes alimentares não saudáveis.",
+  "idioma": "en"
+ },
+ {
   "authors": "Naylor TA",
   "year": 2025,
   "title": "Identifying training factors for injury risk reduction in UK elite figure skaters - A pilot study.",
@@ -1952,6 +2566,43 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Síntese qualitativa de incidência, localização, mecanismos e associações moleculares/genéticas.",
   "sintese": "Propõe uma abordagem multidisciplinar e personalizada de prevenção na ginástica artística, integrando dados biomecânicos, clínicos, moleculares e genéticos.",
+  "idioma": "en"
+ },
+ {
+  "authors": "Wood S, Turner MJ",
+  "year": 2025,
+  "title": "Integrating Acceptance and Commitment Therapy (ACT) with Psychological Skills Training (PST): a case study",
+  "journal": "Frontiers in Psychology",
+  "doi": "10.3389/fpsyg.2025.1617548",
+  "citations": "n/d",
+  "sport": "Patinação artística (feminino)",
+  "topic": "anxiety",
+  "finding": "Estudo de caso de uma patinadora artística competitiva de 11 anos com ansiedade de desempenho: intervenção integrando ACT (desfusão, valores, ação comprometida, presença) com treino de habilidades psicológicas (metas, imagética, perfil de desempenho, autofala) buscou reduzir a ansiedade, com reflexões de cliente e praticante avaliando a entrega do serviço.",
+  "design": "Estudo de caso",
+  "design_conf": "média",
+  "subvar": "Ansiedade de desempenho; ACT + habilidades psicológicas (imagética, autofala, metas)",
+  "n": 1,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Relato de caso reflexivo",
+  "effect_size": false,
+  "es_note": "Estudo de caso único, sem estatística",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Patinação artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "1 patinadora artística competitiva do sexo feminino, 11 anos.",
+  "resumo": "Caso de intervenção de psicologia do esporte integrando ACT e treino de habilidades psicológicas para reduzir ansiedade de desempenho em jovem patinadora.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "n/d",
+  "sintese": "Demonstra a integração prática de ACT com treino de habilidades psicológicas para manejar ansiedade de desempenho em atleta jovem de esporte estético.",
   "idioma": "en"
  },
  {
@@ -2152,6 +2803,82 @@
   "sintese": "O aumento da dificuldade rotacional eleva as demandas neuromusculares da decolagem, indicando priorizar força da perna de impulsão e coordenação multiarticular no treino juvenil."
  },
  {
+  "authors": "Dwarika MS, Quinton ML, Nordin-Bates S, Cumming J",
+  "year": 2025,
+  "title": "Mapping characteristics of mental skills training interventions in dance using TIDieR: a mixed-methods systematic review",
+  "journal": "BMJ Open",
+  "doi": "10.1136/bmjopen-2025-104552",
+  "citations": "n/d",
+  "sport": "Dança (ambos os sexos; síntese de estudos)",
+  "topic": "mental-toughness",
+  "finding": "Revisão de métodos mistos de 21 estudos: a efetividade das intervenções de treino de habilidades mentais em dança dependeu de características dos participantes e dos aplicadores; os itens do TIDieR sobre conteúdo foram os mais relatados, mas poucos estudos descreveram fidelidade da intervenção.",
+  "design": "Revisão sistemática",
+  "design_conf": "alta",
+  "subvar": "Treino de habilidades mentais; relato de intervenção (TIDieR)",
+  "n": 21,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Síntese integrada convergente",
+  "effect_size": false,
+  "es_note": "Sem metanálise; síntese convergente",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "21 estudos de intervenção de treino de habilidades mentais em dançarinos (busca até ago/2024).",
+  "resumo": "Mapeou intervenções de treino de habilidades mentais em dança e examinou características de efetividade e o alinhamento do relato com os 12 itens do TIDieR.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Extração guiada pelo TIDieR e síntese integrada convergente.",
+  "sintese": "Intervenções de habilidades mentais em dança devem considerar múltiplos aspectos de efetividade e envolver dançarinos e aplicadores; ferramentas como o TIDieR melhoram a clareza e a replicabilidade.",
+  "idioma": "en"
+ },
+ {
+  "authors": "Christensen JF, Wesseldijk LW, Mosing MA, Ullén F",
+  "year": 2025,
+  "title": "Mental health in recreational and professional dancers: a genetically informed study in Sweden",
+  "journal": "SSM - Population Health",
+  "doi": "10.1016/j.ssmph.2025.101894",
+  "citations": "n/d",
+  "sport": "Dança (recreativa e profissional; ambos os sexos)",
+  "topic": "mental-health",
+  "finding": "Em 6610 gêmeos suecos, dançarinos profissionais tiveram maior risco de problemas de saúde mental que recreativos e não dançarinos, mas as associações tornaram-se não significativas após ajuste por confusão familiar (desenho co-gêmeo), sugerindo que fatores familiares compartilhados explicam o risco elevado; não houve efeito protetor da dança recreativa.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "Sintomas depressivos/exaustão; diagnósticos psiquiátricos (depressão, ansiedade, estresse); herdabilidade",
+  "n": 6610,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Modelo genético-informado (co-gêmeo)",
+  "effect_size": false,
+  "es_note": "Herdabilidade: 60% (mulheres), 29% (homens)",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "6610 gêmeos suecos com informação de engajamento/realização em dança.",
+  "resumo": "Estudo genético-informado que testou associações entre nível de realização em dança e desfechos de saúde mental, controlando confusão familiar.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Estimativas de herdabilidade e desenho co-gêmeo para testar causalidade.",
+  "sintese": "O maior risco de problemas de saúde mental em dançarinos profissionais reflete fatores familiares/genéticos compartilhados, não a prática em si.",
+  "idioma": "en"
+ },
+ {
   "authors": "Rebelo A, Martinho DV, Pires IG, Lima R, Nakamura FY",
   "year": 2025,
   "title": "Monitoring Internal and External Training Loads in Female Artistic Roller Skating: A Longitudinal Study.",
@@ -2264,6 +2991,44 @@
   "variaveis_biodinamicas": "EMG de superfície (tibial anterior, gastrocnêmio medial, fibular longo, glúteo médio), cinemática articular, força de reação do solo, deslocamento do centro de pressão (COP) e índice dinâmico de estabilidade postural (DPSI).",
   "analise_estatistica": "Comparações perna dominante vs. não dominante nas tarefas de equilíbrio/aterrissagem (n/d o teste específico; provável t pareado/medidas repetidas).",
   "sintese": "A dominância de perna gera assimetria de estratégia neuromuscular em dançarinas e deve ser considerada no treino e na prevenção."
+ },
+ {
+  "authors": "Rosa ECS, Meira CM",
+  "year": 2025,
+  "title": "Neuroticism Predicts Pain Catastrophizing in Professional Ballet Dancers: A Gender-Based Study",
+  "journal": "Journal of Dance Medicine & Science",
+  "doi": "10.1177/1089313X251389257",
+  "citations": "n/d",
+  "sport": "Balé (profissional; feminino-majoritário)",
+  "topic": "coping",
+  "finding": "Em 82 bailarinos profissionais brasileiros (59 mulheres, 23 homens), o neuroticismo correlacionou-se positivamente com a catastrofização da dor e foi seu único preditor significativo na regressão; a relação foi mais forte em homens, que também relataram maiores escores de catastrofização.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "Neuroticismo/traços de personalidade (EPQ); catastrofização da dor (B-PCS)",
+  "n": 82,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Correlação e regressão linear (estratificada por sexo)",
+  "effect_size": false,
+  "es_note": "Neuroticismo único preditor significativo",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "82 bailarinos profissionais brasileiros (59 mulheres, 23 homens; 26,8±8,1 anos).",
+  "resumo": "Investigou associações entre catastrofização da dor e traços de personalidade em bailarinos profissionais, estratificando por sexo.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Correlações e regressão linear (método Enter) entre traços de personalidade e catastrofização, por sexo.",
+  "sintese": "O neuroticismo é fator psicológico-chave associado à catastrofização da dor em bailarinos, sugerindo avaliações de rastreio e estratégias cognitivo-comportamentais sensíveis ao sexo.",
+  "idioma": "en"
  },
  {
   "authors": "Tsutsui T, Tsukahara Y, Mori J, Sakamaki W, Honma Y, Yamamoto R, Fukuda N, Hatsukari A, Ikegami N, Higuchi A, Ikei T, Akiyama E, Torii S",
@@ -2415,6 +3180,44 @@
   "sintese": "Fortalecer a musculatura intrínseca do pé é chave para o controle postural da bailarina no apoio unipodal em meia-ponta."
  },
  {
+  "authors": "Barker-Ruchti N",
+  "year": 2025,
+  "title": "Potential outcomes of interpersonal violence for women's artistic gymnasts: a qualitative analysis",
+  "journal": "British Journal of Sports Medicine",
+  "doi": "10.1136/bjsports-2025-110089",
+  "citations": "n/d",
+  "sport": "Ginástica artística (feminino)",
+  "topic": "maltreatment",
+  "finding": "Entrevistas de história de vida com 19 ex-ginastas de elite revelaram politivimização por treinadores nos anos formativos, associada a 54 desfechos potencialmente negativos e 7 não categoricamente negativos, interligando consequências psicológicas, comportamentais, físicas e de desempenho de longa duração.",
+  "design": "Qualitativo",
+  "design_conf": "alta",
+  "subvar": "Violência interpessoal; desfechos psicológicos e comportamentais",
+  "n": 19,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Análise temática híbrida (indutiva/dedutiva)",
+  "effect_size": false,
+  "es_note": "Estudo qualitativo, sem estatística inferencial",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica artística",
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 2,
+  "amostra": "18 ex-ginastas artísticas e 1 ex-ginasta rítmica de elite (20-53 anos, 12 países), abordagem informada por trauma.",
+  "resumo": "Estudo qualitativo mapeou os desfechos que ex-ginastas de elite associam à sua história de violência interpessoal no esporte.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Análise temática híbrida de transcrições de entrevistas online.",
+  "sintese": "A violência interpessoal na ginástica feminina gera impacto psicológico duradouro e complexo, informando educação, pesquisa e protocolos de cuidado a vítimas.",
+  "idioma": "en"
+ },
+ {
   "authors": "Steinberg N, Elbaz L, Eliakim A, Nemet D, Bar-Sella S, Peleg S, Dar G",
   "year": 2025,
   "title": "Prevalence and physical features associated with tendon, bone, and joint pain in young artistic, acrobatic, and rhythmic female gymnasts",
@@ -2451,6 +3254,44 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Regressão logística (preditores físicos de dor tendínea, óssea e articular).",
   "sintese": "Características físicas (BMI%, força, ADM, menarca) são preditores específicos por tipo de dor e disciplina; rastrear rotineiramente jovens ginastas, sobretudo artísticas."
+ },
+ {
+  "authors": "Lopes CP, Poussel M, Albuisson E, Temperelli M, Hily O, Chenuel B, Allado E",
+  "year": 2025,
+  "title": "Prevalence of alexithymia and depression among professional contemporary French dancers",
+  "journal": "Frontiers in Sports and Active Living",
+  "doi": "10.3389/fspor.2025.1515051",
+  "citations": "n/d",
+  "sport": "Dança contemporânea (profissional; ambos os sexos - predomínio a confirmar)",
+  "topic": "mental-health",
+  "finding": "Entre 22 dançarinos profissionais de uma companhia de dança contemporânea, a prevalência de alexitimia foi 9,1%, a de ansiedade 9,1% e 7 dançarinos apresentaram indícios de depressão menor - prevalências menores que as relatadas em populações geral e atlética, possivelmente por um efeito protetor da intenção artística.",
+  "design": "Transversal",
+  "design_conf": "média",
+  "subvar": "Alexitimia (TAS-20); depressão (BDI-13); ansiedade-traço (STAI-Y)",
+  "n": 22,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Estimativa de prevalência",
+  "effect_size": false,
+  "es_note": "Prevalências: alexitimia e ansiedade 9,1%",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "22 dançarinos profissionais da companhia 'Ballet de Lorraine'.",
+  "resumo": "Avaliou a prevalência de alexitimia, depressão e ansiedade em dançarinos profissionais de dança contemporânea.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Cálculo de prevalências a partir de questionários (TAS-20, BDI-13, STAI-Y).",
+  "sintese": "A dança contemporânea profissional apresentou baixas prevalências de alexitimia, depressão e ansiedade, sugerindo possível papel protetor da expressão artística.",
+  "idioma": "en"
  },
  {
   "authors": "Portas-Núñez B, Blanco-Martínez N, Sánchez-Lastra MA, Diz-Gómez JC, Ayán-Pérez C",
@@ -2682,6 +3523,44 @@
   "sintese": "Aterrissagens de flip e superfícies duras aumentam a carga e o risco lesional no tornozelo, alertando contra generalizar aterrissagens verticais para esportes acrobáticos."
  },
  {
+  "authors": "Chatar I, Robert P, Saumade C, Lewton-Brain P, van Rijn RM, Stubbe JH, Soubelet A, Manera V",
+  "year": 2025,
+  "title": "The Impact of Coping Strategies and Trait Anxiety on Self-Reported Injuries Among Pre-professional Contemporary and Ballet Dancers: A Prospective Study",
+  "journal": "Journal of Dance Medicine & Science",
+  "doi": "10.1177/1089313X251389074",
+  "citations": "n/d",
+  "sport": "Dança (contemporânea e balé pré-profissional; ambos os sexos)",
+  "topic": "coping",
+  "finding": "Em coorte prospectiva de dançarinos pré-profissionais (31 analisados), o uso de 'humor' como estratégia de enfrentamento associou-se a menor risco de lesão substancial (OR=0,485), sem associações entre ansiedade-traço, dados demográficos ou volume de treino e os desfechos de lesão.",
+  "design": "Longitudinal",
+  "design_conf": "alta",
+  "subvar": "Estratégias de enfrentamento (Brief COPE); ansiedade-traço (STAI-Y); lesões (OSTRC-H)",
+  "n": 31,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Regressão logística binomial",
+  "effect_size": true,
+  "es_note": "OR=0,485 (IC95% 0,25-0,96) para humor",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "31 dançarinos pré-profissionais analisados (de 82 consentidos; média 17,4±1,36 anos), seguimento mensal.",
+  "resumo": "Examinou a associação entre estratégias de enfrentamento, ansiedade-traço e risco de lesão em dançarinos pré-profissionais de balé e contemporâneo.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Regressão logística binomial entre enfrentamento/ansiedade e ocorrência de lesões.",
+  "sintese": "O humor como estratégia de enfrentamento pode reduzir lesões substanciais em dançarinos pré-profissionais, apoiando a prevenção.",
+  "idioma": "en"
+ },
+ {
   "authors": "Jun H, Zhang M, Zhang L, Montez de Oca J",
   "year": 2025,
   "title": "The impact of vault group on performance scores in women's artistic gymnastics at the Olympic Games",
@@ -2759,6 +3638,45 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Regressão logística dos atributos físicos associados à dor patelofemoral e interação dor×disciplina para horas de treino.",
   "sintese": "Aponta fatores de risco modificáveis (força, carga, densidade óssea) para dor no joelho em ginastas femininas jovens, com maior risco nas artísticas.",
+  "idioma": "en"
+ },
+ {
+  "authors": "Yan R, Lin G, Peng W, Chen Y, Sun P, Sun J, Li D",
+  "year": 2025,
+  "title": "Time-dependent effects of acute stretching on power, balance, and flexibility in contemporary dancers: a randomized crossover trial",
+  "journal": "Scientific Reports",
+  "doi": "10.1038/s41598-025-00027-0",
+  "citations": "n/d",
+  "sport": "Dança (24 dançarinos contemporâneos universitários; sexo não especificado)",
+  "topic": "physical-determinants",
+  "finding": "Em 24 dançarinos contemporâneos, PNF, alongamento estático e dinâmico melhoraram a flexibilidade (sentar-e-alcançar) por até 15 min, sem prejudicar o CMJ nem o equilíbrio Y; PNF e dinâmico foram mais eficazes que o controle.",
+  "design": "ECR",
+  "design_conf": "alta",
+  "subvar": "24 dançarinos universitários; ensaio cruzado randomizado: PNF vs estático vs dinâmico vs controle; sentar-e-alcançar, CMJ, Y-balance (imediato e 5/10/15 min)",
+  "n": 24,
+  "biomech": false,
+  "methods": [
+   "ANOVA/MMRM",
+   "Tamanho de efeito",
+   "Descritivo"
+  ],
+  "stats_approach": "Ensaio cruzado com ES; medidas temporais pós-alongamento",
+  "effect_size": true,
+  "es_note": "ES de flexibilidade 0,26–0,39 conforme modalidade de alongamento",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "24 dançarinos contemporâneos de nível universitário",
+  "resumo": "Avaliou os efeitos agudos e temporais de PNF, alongamento estático e dinâmico sobre flexibilidade, potência e equilíbrio em dançarinos contemporâneos.",
+  "variaveis_biodinamicas": "Sentar-e-alcançar, altura do CMJ, teste de equilíbrio Y",
+  "analise_estatistica": "ANOVA de medidas repetidas (crossover)",
+  "sintese": "Todas as técnicas de alongamento aumentam a flexibilidade por até 15 min sem comprometer potência ou equilíbrio.",
   "idioma": "en"
  },
  {
@@ -3063,6 +3981,46 @@
   "sintese": "Programas de manejo da dor no balé devem incorporar estratégias psicológicas de coping além do tratamento físico."
  },
  {
+  "authors": "Feng D, Yang W, Li L",
+  "year": 2024,
+  "title": "Countermovement jump and reactive strength index of artistic gymnasts improve more with cluster-based plyometric training than with traditional methods",
+  "journal": "Scientific Reports",
+  "doi": "10.1038/s41598-024-76150-1",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina (54 ginastas)",
+  "topic": "plyometrics",
+  "finding": "Em 54 ginastas artísticas (15,4 anos), 8 semanas de pliometria em clusters superaram o método tradicional e o controle em CMJ (+1,3 cm vs tradicional) e índice de força reativa (RSI +0,07), maximizando o ciclo alongamento-encurtamento; ambos melhoraram o SJ vs controle.",
+  "design": "ECR",
+  "design_conf": "alta",
+  "subvar": "54 ginastas femininas: pliometria em cluster (PLYct) vs tradicional (PLYtr) vs controle; 8 semanas; SJ, CMJ, RSI em drop jump",
+  "n": 54,
+  "biomech": true,
+  "methods": [
+   "Cinética/mecânica",
+   "ANOVA/MMRM",
+   "Tamanho de efeito",
+   "Descritivo"
+  ],
+  "stats_approach": "ANOVA mista tempo × grupo; eta parcial",
+  "effect_size": true,
+  "es_note": "Interações tempo×grupo com η² até 0,505",
+  "roc": false,
+  "derivatives": true,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "54 ginastas artísticas femininas (15,4 anos)",
+  "resumo": "Comparou pliometria em cluster vs tradicional sobre salto vertical/horizontal e índice de força reativa em ginastas artísticas.",
+  "variaveis_biodinamicas": "SJ, CMJ, índice de força reativa (RSI) em drop jump",
+  "analise_estatistica": "ANOVA de medidas repetidas",
+  "sintese": "A organização em clusters potencializa mais o ciclo alongamento-encurtamento e a força reativa que a pliometria tradicional.",
+  "idioma": "en"
+ },
+ {
   "authors": "Critchley ML, Toomey C, Gabel L, Kenny SJ, Emery CA",
   "year": 2024,
   "title": "Differences in bone mineral density and associated factors in dancers and other female athletes",
@@ -3176,6 +4134,44 @@
   "sintese": "A dança moderna melhora a aptidão física relacionada à saúde em meninas."
  },
  {
+  "authors": "Yu W, Feng D, Zhong Y, Luo X, Xu Q, Yu J",
+  "year": 2024,
+  "title": "Examining the Influence of Warm-Up Static and Dynamic Stretching, as well as Post-Activation Potentiation Effects, on the Acute Enhancement of Gymnastic Performance: A Systematic Review with Meta-Analysis",
+  "journal": "Journal of Sports Science & Medicine",
+  "doi": "10.52082/jssm.2024.156",
+  "citations": "n/d",
+  "sport": "Ginástica (ginastas; amostra mista/sexo não especificado)",
+  "topic": "rfd-neural",
+  "finding": "Meta-análise de 19 estudos: o alongamento estático não prejudicou a potência de MMII (SJ, CMJ) nem o desempenho técnico de ginastas e melhorou elementos dependentes de flexibilidade, enquanto o alongamento dinâmico e as plataformas de vibração foram mais eficazes para potência e desempenho dinâmico.",
+  "design": "Meta-análise",
+  "design_conf": "moderada",
+  "subvar": "19 estudos; estratégias de aquecimento (alongamento estático/dinâmico, plataformas de vibração, pós-ativação) vs controle; métricas técnicas e físicas (SJ, CMJ, drop jump, equilíbrio, ADM)",
+  "n": 19,
+  "biomech": false,
+  "methods": [
+   "Tamanho de efeito",
+   "Descritivo"
+  ],
+  "stats_approach": "Meta-análise PRISMA; Downs & Black",
+  "effect_size": true,
+  "es_note": "Diferenças não significativas entre alongamento estático e controle para SJ/CMJ",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "19 estudos sobre aquecimento e desempenho de ginastas",
+  "resumo": "Meta-análise comparando alongamento estático/dinâmico e potenciação pós-ativação sobre o desempenho agudo de ginastas.",
+  "variaveis_biodinamicas": "SJ, CMJ, drop jump, equilíbrio, amplitude de movimento, desempenho técnico (espacate, saltos)",
+  "analise_estatistica": "Meta-análise; Downs & Black",
+  "sintese": "Alongamento dinâmico e vibração favorecem a potência aguda; o alongamento estático não prejudica a força e beneficia elementos de flexibilidade.",
+  "idioma": "en"
+ },
+ {
   "authors": "Laski V, Ureczky D, Wilhelm M",
   "year": 2024,
   "title": "Factors related to sport-specific compulsory element execution in artistic swimming",
@@ -3247,6 +4243,46 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Síntese qualitativa da literatura.",
   "sintese": "Aponta volume de treino, dificuldade técnica e capacidade funcional como contribuintes emergentes, recomendando monitoramento de carga e força/condicionamento na prevenção.",
+  "idioma": "en"
+ },
+ {
+  "authors": "Müller A, Rockenfeller R, Aiyangar AK",
+  "year": 2024,
+  "title": "Individual factors determine landing impacts in rested and fatigued cheerleaders.",
+  "journal": "Frontiers in Sports and Active Living",
+  "doi": "10.3389/fspor.2024.1419783",
+  "citations": "n/d",
+  "sport": "Cheerleading (flyers femininas; proxy estético, misto)",
+  "topic": "neuromuscular-fatigue",
+  "finding": "Em 15 cheerleaders (7 flyers femininas, 8 bases masculinos), nem a força de reação do solo média nem os perfis individuais das flyers mudaram significativamente após a fadiga; a capacidade individual de aterrissar da flyer — e não a de recepção da base — determinou os impactos máximos.",
+  "design": "Transversal",
+  "design_conf": "Alta",
+  "subvar": "Força de reação do solo em aterrissagens em estado descansado vs. fadigado",
+  "n": 15,
+  "biomech": true,
+  "methods": [
+   "Plataforma de força",
+   "Protocolo de fadiga",
+   "Descritivo"
+  ],
+  "stats_approach": "Comparação descansado vs. fadigado e entre indivíduos",
+  "effect_size": false,
+  "es_note": "Sem diferença significativa pós-fadiga; sem tamanho de efeito padronizado.",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Fadiga",
+   "Neuro"
+  ],
+  "modalities": [
+   "Proxy não-estético"
+  ],
+  "n_modalities": 1,
+  "amostra": "15 cheerleaders alemães (7 flyers do sexo feminino, 8 bases do sexo masculino) em dismounts pop-off descansados e fadigados.",
+  "resumo": "Estudo biomecânico que avaliou a força de reação do solo em aterrissagens de flyers de cheerleading em estado descansado e fadigado, examinando fatores individuais de risco de impacto.",
+  "variaveis_biodinamicas": "Força de reação do solo vertical (BW) e curvas força-tempo nas aterrissagens.",
+  "analise_estatistica": "Comparação da VGRF média e das curvas individuais entre estados descansado e fadigado.",
+  "sintese": "Indica que a competência individual de aterrissagem, mais que a fadiga aguda, governa os impactos e o risco de lesão em modalidade acrobática-estética feminina.",
   "idioma": "en"
  },
  {
@@ -3513,6 +4549,44 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Modelagem de equações estruturais (SEM) com análise de mediação; instrumentos psicométricos.",
   "sintese": "Intervir sobre o tipo de paixão pode mitigar o impacto do perfeccionismo na alimentação e no bem-estar de atletas de esportes estéticos."
+ },
+ {
+  "authors": "Seifert Gonzales AM, Stenson MC",
+  "year": 2024,
+  "title": "Physiological Demands of Competitive Collegiate Dance",
+  "journal": "Journal of Strength and Conditioning Research",
+  "doi": "10.1519/JSC.0000000000004833",
+  "citations": "n/d",
+  "sport": "Dança (14 dançarinas universitárias)",
+  "topic": "physiological",
+  "finding": "Em 14 dançarinas universitárias, uma rotina de jazz de 120 s levou todas a ultrapassar o limiar de lactato aos 90 s, com correlações moderada FC–PSE (rs=0,53) e forte lactato–PSE (rs=0,70), indicando que a dança competitiva é fisiologicamente exigente e altamente anaeróbia.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "14 dançarinas bem treinadas; teste em esteira para limiar de lactato + rotina de jazz coreografada de 120 s em segmentos de 30 s",
+  "n": 14,
+  "biomech": false,
+  "methods": [
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Correlações de Spearman entre FC, lactato e PSE",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "14 dançarinas universitárias de equipe competitiva",
+  "resumo": "Caracterizou as demandas fisiológicas (lactato, FC, PSE) da dança competitiva universitária.",
+  "variaveis_biodinamicas": "Lactato sanguíneo, frequência cardíaca, PSE, limiar de lactato",
+  "analise_estatistica": "Correlações de Spearman",
+  "sintese": "A dança competitiva opera acima do limiar de lactato, exigindo condicionamento anaeróbio específico.",
+  "idioma": "en"
  },
  {
   "authors": "Yang C, Shi L, Lu Y, Wu H, Yu D",
@@ -4046,6 +5120,45 @@
   "sintese": "Modificações de segurança são eficazes para reduzir o movimento da cabeça e podem apoiar protocolos de retorno pós-concussão na ginástica."
  },
  {
+  "authors": "Liang F, Hongfeng H, Ying Z",
+  "year": 2024,
+  "title": "The effects of eccentric training on hamstring flexibility and strength in young dance students",
+  "journal": "Scientific Reports",
+  "doi": "10.1038/s41598-024-53987-0",
+  "citations": "n/d",
+  "sport": "Dança (24 estudantes de dança mulheres)",
+  "topic": "physical-determinants",
+  "finding": "Em 24 estudantes de dança, 6 semanas de treino excêntrico (Nordic + stiff-leg) aumentaram a força concêntrica e excêntrica dos isquiotibiais e a flexibilidade (elevação ativa da perna reta), superando o alongamento tradicional em ganhos combinados de força e flexibilidade.",
+  "design": "ECR",
+  "design_conf": "média",
+  "subvar": "24 estudantes de dança (2º ano); NHE&SLD vs FBE&SLL vs controle; 6 semanas; dinamômetro isocinético e goniometria",
+  "n": 24,
+  "biomech": true,
+  "methods": [
+   "Cinética/mecânica",
+   "ANOVA/MMRM",
+   "Descritivo"
+  ],
+  "stats_approach": "Teste t pareado intragrupo e ANCOVA entre grupos",
+  "effect_size": true,
+  "es_note": "η parcial relatado (até 0,84)",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "24 estudantes de dança do 2º ano (mulheres)",
+  "resumo": "Comparou treino excêntrico vs alongamento tradicional sobre força e flexibilidade dos isquiotibiais em estudantes de dança.",
+  "variaveis_biodinamicas": "Força concêntrica/excêntrica de flexores do joelho (isocinético), ângulo de elevação ativa da perna reta",
+  "analise_estatistica": "t pareado; ANCOVA",
+  "sintese": "O treino excêntrico supera o alongamento tradicional ao melhorar simultaneamente força e flexibilidade dos isquiotibiais.",
+  "idioma": "en"
+ },
+ {
   "authors": "de Freitas EG, Debien PB, Silva CD, Carrara PDS, Bara Filho MG",
   "year": 2024,
   "title": "Training-load monitoring in elite youth women's artistic gymnasts: a pilot study",
@@ -4081,6 +5194,43 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Análise de correlação (carga interna/externa vs volume) + estatística descritiva.",
   "sintese": "A carga deve ser gerida por aparelho, ajustando volume de elementos ao longo do microciclo."
+ },
+ {
+  "authors": "Butulis MN, Fedor BJ, McGaver RS",
+  "year": 2023,
+  "title": "Adolescent Dance Team Fitness: Initial Quantitative Normative Values",
+  "journal": "Journal of Dance Medicine & Science",
+  "doi": "10.1177/1089313X231177159",
+  "citations": "n/d",
+  "sport": "Dança (115 dançarinas de equipe adolescentes)",
+  "topic": "physical-determinants",
+  "finding": "Em 115 dançarinas de equipe (12–17 anos), estabeleceram-se valores normativos iniciais de aptidão: VO2máx estimado ~29,5 mL/kg/min, 35 flexões, 51 agachamentos/min, salto horizontal 190 cm e triple hop ~445–450 cm por perna.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "115 dançarinas de equipe (12–17 anos); bateria de campo de 90 min: aptidão cardiorrespiratória, resistência muscular e potência de MMII",
+  "n": 115,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Estatística descritiva (média, DP, IQR) para valores normativos",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "115 dançarinas de equipe adolescentes (12–17 anos)",
+  "resumo": "Gerou valores normativos de aptidão física para a população de dançarinas de equipe adolescentes.",
+  "variaveis_biodinamicas": "VO2máx estimado, flexões, sit-ups, agachamentos/min, salto horizontal, triple hop",
+  "analise_estatistica": "Descritiva",
+  "sintese": "Fornece referências de aptidão para monitorar desempenho e prevenir lesões em dançarinas de equipe jovens.",
+  "idioma": "en"
  },
  {
   "authors": "Schärer C, Reinhart L, Hübner K",
@@ -4191,6 +5341,44 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Comparação da incidência de lesões entre categorias competitivas (valores de p; teste específico não detalhado, n/d).",
   "sintese": "Ombro e joelho são os focos prioritários de prevenção no nado artístico, com risco crescente conforme aumenta o volume de treino."
+ },
+ {
+  "authors": "Mangum LC, Skibski A, Devorski L, Slater L",
+  "year": 2023,
+  "title": "Balance Error Scoring System Performance Differences in Figure Skaters Based on Discipline.",
+  "journal": "International Journal of Sports Physical Therapy",
+  "doi": "10.26603/001c.81598",
+  "citations": "n/d",
+  "sport": "Patinação artística (misto)",
+  "topic": "injury-monitoring",
+  "finding": "Em 358 patinadores (213 mulheres, 145 homens) avaliados pelo BESS, os dançarinos no gelo cometeram mais erros que individuais e duplas no apoio bipodal em espuma, mas menos que individuais no apoio unipodal; houve fraca correlação negativa entre idade e erros.",
+  "design": "Transversal",
+  "design_conf": "Alta",
+  "subvar": "Estabilidade postural (BESS) por disciplina e idade",
+  "n": 358,
+  "biomech": false,
+  "methods": [
+   "BESS",
+   "Descritivo"
+  ],
+  "stats_approach": "ANOVA 3×6 e correlação de Spearman",
+  "effect_size": false,
+  "es_note": "Correlações fracas (ρ=-0,14 a -0,23); sem tamanho de efeito padronizado.",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Patinação artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "358 patinadores artísticos (213 mulheres, 145 homens; 15,4±3,3 anos) de múltiplas disciplinas avaliados no combine S.T.A.R.S.",
+  "resumo": "Estudo transversal que comparou o desempenho no Balance Error Scoring System entre disciplinas da patinação artística e sua relação com a idade.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "ANOVA 3×6 para diferenças de BESS por disciplina e correlação de Spearman entre erros e idade.",
+  "sintese": "Mostra que a estabilidade postural estática varia por disciplina na patinação, com o BESS como ferramenta de triagem para identificar patinadores em risco de lesão.",
+  "idioma": "en"
  },
  {
   "authors": "Kobayashi JK, Kobayashi EF, Tomasevich KM, Lorens KL, Aoki SK",
@@ -4500,6 +5688,44 @@
   "sintese": "Triar hipermobilidade e monitorar fadiga percebida ajuda a prevenir lesões de sobrecarga em bailarinas."
  },
  {
+  "authors": "Maloney BM, Mattiussi AM, Cleather DJ, Price P, Shaw JW",
+  "year": 2023,
+  "title": "Jumping demands during classical ballet class",
+  "journal": "Scandinavian Journal of Medicine & Science in Sports",
+  "doi": "10.1111/sms.14502",
+  "citations": "n/d",
+  "sport": "Dança (balé; 11 mulheres, 8 homens; amostra mista, resultados por sexo)",
+  "topic": "training-load",
+  "finding": "Em 109 aulas de balé, homens saltaram mais que mulheres (153 vs 119 saltos/aula) e juniores mais que sêniores; 73% dos saltos ficaram abaixo de 50% da altura máxima de CMJ bipodal, mostrando que a aula permite autorregular a carga de saltos.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "11 bailarinas e 8 bailarinos de elite em 109 aulas com 12 professores; contagem e altura de saltos por sexo e rank",
+  "n": 19,
+  "biomech": false,
+  "methods": [
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Modelo linear misto de Poisson para contagem de saltos por sexo e rank",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Fadiga"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "19 bailarinos profissionais de elite (11 mulheres, 8 homens)",
+  "resumo": "Mediu as demandas de salto da aula de balé por sexo e rank.",
+  "variaveis_biodinamicas": "Contagem de saltos, altura de saltos, taxa de saltos por minuto (% do CMJ máximo)",
+  "analise_estatistica": "GLMM de Poisson",
+  "sintese": "A aula de balé é uma sessão de carga de saltos autorregulável, útil para manejo de carga e retorno gradual.",
+  "idioma": "en"
+ },
+ {
   "authors": "Yue L, Zhang J, Cui W, Yang R, Yin J",
   "year": 2023,
   "title": "Maximizing choreography and performance in artistic swimming team free routines: the role of hybrid figures",
@@ -4653,6 +5879,45 @@
   "sintese": "Treinadores devem incluir treino integrado de core e pliometria para elevar a força explosiva e o desempenho específico de saltos na ginástica rítmica."
  },
  {
+  "authors": "Shaw JW, Maloney B, Mattiussi AM, Brown DD, Springham M, Pedlar CR, Tallent J",
+  "year": 2023,
+  "title": "The development and validation of an open-source accelerometery algorithm for measuring jump height and frequency in ballet",
+  "journal": "Journal of Sports Sciences",
+  "doi": "10.1080/02640414.2023.2223048",
+  "citations": "n/d",
+  "sport": "Dança (balé; 9 dançarinos profissionais; sexo não especificado)",
+  "topic": "biomechanics-technique",
+  "finding": "Um algoritmo de acelerometria de código aberto detectou saltos em aula de balé com sensibilidade 0,98 e precisão 0,95 (1.371 verdadeiros positivos de 1.440) e estimou a altura do salto com erro médio de 2,6 cm (r=0,97) vs plataforma de força.",
+  "design": "Validação/Psicométrico",
+  "design_conf": "alta",
+  "subvar": "9 dançarinos profissionais com acelerômetro na cintura; análise tempo-movimento como referência; validação de altura em plataforma de força",
+  "n": 9,
+  "biomech": true,
+  "methods": [
+   "Cinética/mecânica",
+   "Derivadas/taxa",
+   "Descritivo"
+  ],
+  "stats_approach": "Concordância (Bland-Altman, LoA), sensibilidade/precisão, coeficiente de correlação repetido",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": true,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "9 dançarinos profissionais de balé",
+  "resumo": "Validou um algoritmo de acelerometria de código aberto para medir altura e frequência de saltos no balé.",
+  "variaveis_biodinamicas": "Altura e frequência de saltos; contagem de saltos; concordância com plataforma de força",
+  "analise_estatistica": "Bland-Altman; sensibilidade/precisão; rmcorr",
+  "sintese": "Acelerometria portátil quantifica com validade a carga de saltos no balé para monitorar e periodizar.",
+  "idioma": "en"
+ },
+ {
   "authors": "Polak E, Gardzińska A, Zadarko-Domaradzka M",
   "year": 2022,
   "title": "Anorexic Readiness Syndrome in Elite Female Acrobatic Gymnasts-International Study",
@@ -4690,6 +5955,46 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Testes de associação",
   "sintese": "Parte das ginastas acrobáticas de elite mostra prontidão anoréxica elevada, sinalizando risco de transtorno alimentar.",
+  "idioma": "en"
+ },
+ {
+  "authors": "García-Ceberino JM, Feu S, Gamero MG, Villafaina S",
+  "year": 2022,
+  "title": "Creativity in Recreational Figure Roller-Skating: A Pilot Study on the Psychological Benefits in School-Age Girls",
+  "journal": "International Journal of Environmental Research and Public Health",
+  "doi": "10.3390/ijerph191811407",
+  "citations": "n/d",
+  "sport": "Patinação artística sobre rodas (recreativa; feminino)",
+  "topic": "motivation",
+  "finding": "Em 12 patinadoras escolares, a sessão criativa (coreografia própria) gerou maior satisfação das necessidades de competência percebida (ES=0,59) e de relações sociais (ES=0,62) e maior aderência à patinação (ES=0,69) que a sessão tradicional, com mais humor e menos surpresa.",
+  "design": "Experimental",
+  "design_conf": "média",
+  "subvar": "Necessidades psicológicas básicas; intencionalidade/aderência; emoções",
+  "n": 12,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Tamanho de efeito",
+   "Descritivo"
+  ],
+  "stats_approach": "Comparação intra-sujeitos com tamanho de efeito",
+  "effect_size": true,
+  "es_note": "ES relatados (0,59-0,69) favorecendo a sessão criativa",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica artística",
+   "Patinação artística"
+  ],
+  "n_modalities": 2,
+  "amostra": "12 patinadoras escolares (9,00±1,09 anos).",
+  "resumo": "Comparou variáveis psicológicas após sessões criativa e tradicional de patinação artística recreativa em meninas em idade escolar.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Comparação entre condições (criativa vs. tradicional) com estimativas de tamanho de efeito.",
+  "sintese": "Estratégias criativas aumentam competência percebida, relações sociais e aderência, sugerindo maior motivação autônoma na patinação recreativa infantil.",
   "idioma": "en"
  },
  {
@@ -4808,6 +6113,44 @@
   "sintese": "O cheerleading melhora autoestima física e saúde mental de universitárias, com potencial como intervenção de bem-estar."
  },
  {
+  "authors": "Ramirez-Campillo R, Perez-Castilla A, Thapa RK, Afonso J, Clemente FM, Colado JC, de Villarreal ES, Chaabene H",
+  "year": 2022,
+  "title": "Effects of Plyometric Jump Training on Measures of Physical Fitness and Sport-Specific Performance of Water Sports Athletes: A Systematic Review with Meta-analysis",
+  "journal": "Sports Medicine - Open",
+  "doi": "10.1186/s40798-022-00502-2",
+  "citations": "n/d",
+  "sport": "Esportes aquáticos (inclui nado artístico; ambos os sexos)",
+  "topic": "plyometrics",
+  "finding": "Meta-análise de 26 estudos (618 atletas de esportes aquáticos, incl. nado artístico): o treino pliométrico melhorou força no agachamento (1RM), saltos horizontal, SJ e CMJ (ES 0,67–1,47) e velocidade em prova (ES 0,42), sem efeito sobre salto/agilidade na água ou composição corporal.",
+  "design": "Meta-análise",
+  "design_conf": "moderada",
+  "subvar": "26 estudos, 618 atletas de natação, triatlo, remo, nado artístico e polo aquático (10–26 anos); PJT ≥3 semanas vs controles ativos",
+  "n": 618,
+  "biomech": false,
+  "methods": [
+   "Tamanho de efeito",
+   "Descritivo"
+  ],
+  "stats_approach": "Modelo de efeitos aleatórios (Hedges' g), IC95%, GRADE",
+  "effect_size": true,
+  "es_note": "Hedges' g 0,67–1,47 a favor do PJT para força e saltos",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1,
+  "amostra": "618 atletas de esportes aquáticos (26 estudos)",
+  "resumo": "Meta-análise dos efeitos do treino pliométrico sobre aptidão física e desempenho específico em atletas de esportes aquáticos, incluindo nado artístico.",
+  "variaveis_biodinamicas": "1RM agachamento, altura de SJ/CMJ, distância de salto horizontal, salto e agilidade na água, tempo de prova",
+  "analise_estatistica": "Meta-análise de efeitos aleatórios; GRADE",
+  "sintese": "O treino pliométrico melhora força e potência de salto em terra em atletas aquáticos, com transferência limitada ao desempenho na água.",
+  "idioma": "en"
+ },
+ {
   "authors": "Wang L, Zhang H, Xu T, Zhang J, Liu Y, Qu Y",
   "year": 2022,
   "title": "Effects of cheerleading on advanced glycation end products, bone mineral density and physical fitness in female adolescents",
@@ -4882,6 +6225,45 @@
   "variaveis_biodinamicas": "Parâmetros do centro de pressão (COP) em plataforma de força (área, RMS, velocidade média, espectro de potência em baixa e alta frequência); EMG de superfície (domínios do tempo e da frequência) dos músculos da perna durante apoio unipodal.",
   "analise_estatistica": "ANOVA de medidas repetidas (grupo × condição de fadiga).",
   "sintese": "O treino deve visar músculos plantiflexores específicos e o controle neuromuscular, pois a expertise altera a estratégia de ativação, não a magnitude da oscilação."
+ },
+ {
+  "authors": "Kaufmann S, Ziegler M, Werner J, Noe C, Latzel R, Witzany S, Beneke R, Hoos O",
+  "year": 2022,
+  "title": "Energetics of Floor Gymnastics: Aerobic and Anaerobic Share in Male and Female Sub-elite Gymnasts",
+  "journal": "Sports Medicine - Open",
+  "doi": "10.1186/s40798-021-00396-6",
+  "citations": "n/d",
+  "sport": "Ginástica artística (9 homens, 8 mulheres; amostra mista)",
+  "topic": "physiological",
+  "finding": "O perfil metabólico do solo simulado foi predominantemente aeróbio (58,9%), seguido de anaeróbio alático (24,2%) e lático (16,9%); mulheres tiveram maior participação aeróbia que homens (64,0 vs 54,4%); nenhum compartilhamento energético correlacionou-se ao desempenho.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "17 ginastas sub-elite (9H/8M); consumo de O2 durante e 15 min pós, lactato, método PCr-LA-O2; testes de Bosco 30 s, CMJ e drop jump",
+  "n": 17,
+  "biomech": false,
+  "methods": [
+   "Regressão/correlação",
+   "Tamanho de efeito",
+   "Descritivo"
+  ],
+  "stats_approach": "Comparação por sexo com tamanhos de efeito (d de Cohen) e correlações",
+  "effect_size": true,
+  "es_note": "d de Cohen para efeitos de sexo (d=1,21 e 1,74)",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "17 ginastas artísticos sub-elite (9 homens, 8 mulheres, 22,5 anos)",
+  "resumo": "Quantificou as contribuições energéticas aeróbia e anaeróbia de uma rotina de solo simulada em ginastas artísticos.",
+  "variaveis_biodinamicas": "Consumo de O2, lactato sanguíneo, energia metabólica (PCr-LA-O2); CMJ, drop jump, teste de Bosco 30 s",
+  "analise_estatistica": "Comparações por sexo; correlações",
+  "sintese": "O solo é predominantemente aeróbio com contribuição anaeróbia relevante, justificando condicionamento aeróbio específico e diferenciado por sexo.",
+  "idioma": "en"
  },
  {
   "authors": "Wyon MA, Horsburgh R, Brown D",
@@ -5227,6 +6609,45 @@
   "sintese": "Promover clima de tarefa e autofala positiva favorece autoconfiança e desempenho, ao passo que autofala negativa e ansiedade o prejudicam."
  },
  {
+  "authors": "Smith D, Noorbhai H",
+  "year": 2022,
+  "title": "Prevalence of muscle imbalance and its potential influence on injury among female acrobatic dancers",
+  "journal": "BMJ Open Sport & Exercise Medicine",
+  "doi": "10.1136/bmjsem-2022-001322",
+  "citations": "n/d",
+  "sport": "Dança acrobática/acrobatas (15 mulheres)",
+  "topic": "physical-determinants",
+  "finding": "Em 15 jovens acrobatas, houve correlações significativas de pico de torque isocinético entre quadríceps-isquiotibiais e flexores-dorsiflexores plantares, com dominância dos flexores plantares; a flexibilidade foi muito alta e o tornozelo foi o local de lesão mais comum, sugerindo que desequilíbrios musculares podem elevar o risco.",
+  "design": "Transversal",
+  "design_conf": "média",
+  "subvar": "15 acrobatas adolescentes; força isocinética de MMII, força isométrica de tronco, flexibilidade de tronco e MMII",
+  "n": 15,
+  "biomech": true,
+  "methods": [
+   "Cinética/mecânica",
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Correlações de Pearson e qui-quadrado",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica acrobática"
+  ],
+  "n_modalities": 1,
+  "amostra": "15 acrobatas femininas jovens",
+  "resumo": "Determinou a prevalência de desequilíbrio muscular e sua possível ligação a lesões em dançarinas acrobáticas.",
+  "variaveis_biodinamicas": "Pico de torque isocinético de MMII, força isométrica de tronco, flexibilidade",
+  "analise_estatistica": "Correlação de Pearson; qui-quadrado",
+  "sintese": "Desequilíbrios musculares e alta flexibilidade coexistem com risco de lesão no tornozelo em acrobatas.",
+  "idioma": "en"
+ },
+ {
   "authors": "Leonkiewicz M, Wawrzyniak A",
   "year": 2022,
   "title": "The relationship between rigorous perception of one's own body and self, unhealthy eating behavior and a high risk of anorexic readiness: a predictor of eating disorders in the group of female ballet dancers and artistic gymnasts at the beginning of their career",
@@ -5377,6 +6798,43 @@
   "variaveis_biodinamicas": "Momento angular de corpo inteiro na decolagem (L_Body), momento de inércia total do corpo (I_Body), altura do salto e distância dos punhos ao eixo de rotação (cinemática).",
   "analise_estatistica": "ANOVA de medidas repetidas de um fator (PreNW vs PostNW vs PostW), com simulação post hoc.",
   "sintese": "Luvas ponderadas não beneficiam saltos já consolidados por compensação postural, sendo potencialmente úteis apenas na fase de aprendizagem de novos saltos."
+ },
+ {
+  "authors": "Đorđević D, Paunović M, Čular D, Vlahović T, Franić M, Sajković D, Petrović T, Sporiš G",
+  "year": 2022,
+  "title": "Whole-Body Vibration Effects on Flexibility in Artistic Gymnastics-A Systematic Review",
+  "journal": "Medicina (Kaunas)",
+  "doi": "10.3390/medicina58050595",
+  "citations": "n/d",
+  "sport": "Ginástica artística (revisão; atletas de ambos os sexos)",
+  "topic": "physical-determinants",
+  "finding": "Revisão de 9 estudos (210 participantes) indica que a vibração de corpo inteiro (30 Hz, amplitude 2 mm) melhora a flexibilidade (espacate frontal 9,1–39,1%; sentar-e-alcançar; ponte) em ginastas artísticos, sobretudo combinada ao alongamento estático.",
+  "design": "Revisão sistemática",
+  "design_conf": "moderada",
+  "subvar": "9 estudos (2005–2022), 210 participantes de ambos os sexos; protocolo de VCI 30 Hz/2 mm; testes de espacate, sentar-e-alcançar e ponte",
+  "n": 210,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Síntese sistemática PRISMA",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "9 estudos, 210 ginastas artísticos (ambos os sexos)",
+  "resumo": "Revisou os efeitos da vibração de corpo inteiro sobre a flexibilidade na ginástica artística.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Síntese narrativa/PRISMA",
+  "sintese": "A VCI melhora a flexibilidade em ginastas, potencializada quando combinada ao alongamento estático.",
+  "idioma": "en"
  },
  {
   "authors": "Amato A, Proia P, Caldara GF, Alongi A, Ferrantelli V, Baldassano S",
@@ -5798,6 +7256,45 @@
   "sintese": "Usar alongamento dinâmico no aquecimento para potência de salto e reservar o alongamento estático ao final da sessão para ganho de amplitude."
  },
  {
+  "authors": "Bellver M, Drobnic F, Jovell E, Ferrer-Roca V, Abalos X, Del Rio L, Trilla A",
+  "year": 2021,
+  "title": "Jumping rope and whole-body vibration program effects on bone values in Olympic artistic swimmers",
+  "journal": "Journal of Bone and Mineral Metabolism",
+  "doi": "10.1007/s00774-021-01224-3",
+  "citations": "n/d",
+  "sport": "Nado artístico (16 nadadoras olímpicas)",
+  "topic": "plyometrics",
+  "finding": "Em 16 nadadoras olímpicas, adicionar 22 semanas de corda + vibração de corpo inteiro (2×/sem, 20 min) aumentou a DMO na coluna lombar (2,10%), quadril total (2,07%) e colo femoral (2,39%) e reduziu a gordura dos MMII.",
+  "design": "Experimental",
+  "design_conf": "média",
+  "subvar": "16 mulheres (17–21 anos, 30 h/sem) seguidas por 2 temporadas; 1ª sem intervenção, 2ª com corda + WBV por 22 semanas",
+  "n": 16,
+  "biomech": false,
+  "methods": [
+   "Antropometria",
+   "ANOVA/MMRM",
+   "Descritivo"
+  ],
+  "stats_approach": "Comparação pré-pós intra-sujeitos por temporada",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1,
+  "amostra": "16 nadadoras artísticas olímpicas (17–21 anos)",
+  "resumo": "Avaliou o efeito de programa de corda e vibração de corpo inteiro sobre densidade óssea e composição corporal em nadadoras artísticas de elite.",
+  "variaveis_biodinamicas": "DMO e conteúdo mineral ósseo (coluna, quadril, colo femoral) por DEXA; massa gorda de MMII",
+  "analise_estatistica": "Comparações pré-pós",
+  "sintese": "Impacto por corda e vibração eleva a DMO e mitiga o risco ósseo do nado artístico.",
+  "idioma": "en"
+ },
+ {
   "authors": "Aguiló A, Lozano L, Tauler P, Nafría M, Colom M, Martínez S",
   "year": 2021,
   "title": "Nutritional Status and Implementation of a Nutritional Education Program in Young Female Artistic Gymnasts",
@@ -6021,6 +7518,45 @@
   "sintese": "Monitorar o alinhamento sagital da coluna e sinalizar bailarinas de baixa estatura ou muitos anos de prática permite prevenir ciática e lombalgia."
  },
  {
+  "authors": "Rice PE, Nishikawa K, Zwetsloot KA, Bruce AS, Guthrie CD, Nimphius S",
+  "year": 2021,
+  "title": "Stretch-Shortening Cycle Performance and Muscle-Tendon Properties in Dancers and Runners",
+  "journal": "Journal of Applied Biomechanics",
+  "doi": "10.1123/jab.2021-0094",
+  "citations": "n/d",
+  "sport": "Dança (dançarinos vs corredores e controles; amostra mista, sexo não especificado)",
+  "topic": "plyometrics",
+  "finding": "Dançarinos alongaram mais o tendão de Aquiles e saltaram mais alto em hopping que corredores e controles, com maior potência relativa de pico e impulso, e foram mais fortes que controles nas contrações isométricas — a dança exige e potencia o ciclo alongamento-encurtamento e a elongação tendínea.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "Dançarinos, corredores de endurance e controles não treinados; força isométrica/isocinética de flexão plantar, força e elongação do tendão de Aquiles (ultrassom), hopping e drop-hopping de 30 cm",
+  "n": 0,
+  "biomech": true,
+  "methods": [
+   "Cinética/mecânica",
+   "Derivadas/taxa",
+   "Descritivo"
+  ],
+  "stats_approach": "Comparação entre grupos (dançarinos vs corredores vs controles)",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": true,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "Dançarinos, corredores de endurance e controles não treinados (n total não informado)",
+  "resumo": "Comparou desempenho do ciclo alongamento-encurtamento do tornozelo, força de flexão plantar e propriedades do tendão de Aquiles entre dançarinos, corredores e controles.",
+  "variaveis_biodinamicas": "Força e elongação do tendão de Aquiles (ultrassom), força isométrica/isocinética de flexão plantar, altura/potência/impulso em hopping e drop-hopping",
+  "analise_estatistica": "Comparações entre grupos",
+  "sintese": "A dança exige e aprimora o ciclo alongamento-encurtamento e a complacência tendínea, superando corredores em saltos reativos.",
+  "idioma": "en"
+ },
+ {
   "authors": "Podrihalo O, Podrigalo L, Jagiełło W, Iermakov S, Yermakova T",
   "year": 2021,
   "title": "Substantiation of methods for predicting success in artistic swimming",
@@ -6133,6 +7669,45 @@
   "sintese": "O controle neuromuscular lombopélvico difere por sexo em patinadores artísticos."
  },
  {
+  "authors": "St-Cyr J, Vallerand RJ, Chénard-Poirier LA",
+  "year": 2021,
+  "title": "The Role of Passion and Achievement Goals in Optimal Functioning in Sports",
+  "journal": "International Journal of Environmental Research and Public Health",
+  "doi": "10.3390/ijerph18179023",
+  "citations": "n/d",
+  "sport": "Nado artístico e polo aquático (ambos os sexos; amostra mista)",
+  "topic": "passion",
+  "finding": "Em 184 atletas de polo aquático e nado sincronizado, a análise de trajetórias apoiou o modelo: a paixão harmoniosa levou a engajamento cognitivo mais adaptativo (metas de maestria) que, por sua vez, favoreceu maior funcionamento ótimo (bem-estar subjetivo, relação com o treinador, desempenho e intenção de continuar), enquanto a paixão obsessiva teve relações menos adaptativas.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "Paixão harmoniosa/obsessiva; metas de realização; funcionamento ótimo (bem-estar)",
+  "n": 184,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "SEM/mediação"
+  ],
+  "stats_approach": "Análise de trajetórias (path analysis)",
+  "effect_size": false,
+  "es_note": "Modelo de trajetórias amplamente suportado",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Nado artístico",
+   "Outro"
+  ],
+  "n_modalities": 2,
+  "amostra": "184 atletas competitivos de polo aquático e nado sincronizado.",
+  "resumo": "Testou o papel da paixão nas metas cognitivas do esporte e no nível de funcionamento ótimo derivado desse engajamento.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Path analysis do modelo paixão -> metas -> funcionamento ótimo.",
+  "sintese": "A paixão harmoniosa promove metas de maestria e funcionamento ótimo, ao passo que a paixão obsessiva se associa a padrões menos adaptativos.",
+  "idioma": "en"
+ },
+ {
   "authors": "Molnar DS, Blackburn M, Zinga D, Spadafora N, Methot-Jones T, Connolly M",
   "year": 2021,
   "title": "Trait perfectionism and dance goals among young female dancers: the 2x2 model",
@@ -6207,6 +7782,44 @@
   "analise_estatistica": "Comparação de médias entre grupos",
   "sintese": "A patinação artística desenvolve potência e explosividade de MMII sem aumentar a força média concêntrica.",
   "idioma": "es"
+ },
+ {
+  "authors": "Escobar Álvarez JA, Jiménez-Reyes P, Pérez Sousa MÁ, Conceição F, Fuentes García JP",
+  "year": 2020,
+  "title": "Analysis of the Force-Velocity Profile in Female Ballet Dancers",
+  "journal": "Journal of Dance Medicine & Science",
+  "doi": "10.12678/1089-313X.24.2.59",
+  "citations": "n/d",
+  "sport": "Dança (balé profissional; bailarinas)",
+  "topic": "muscular-power",
+  "finding": "87 bailarinas profissionais apresentaram déficits de força (>40% ou 10–40%) independentemente do rank na companhia, sugerindo que a dança desenvolve sobretudo capacidades de velocidade e que treino de força individualizado pode beneficiar o salto.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "87 bailarinas profissionais de diferentes ranks; perfil força-velocidade em saltos carregados",
+  "n": 87,
+  "biomech": true,
+  "methods": [
+   "Cinética/mecânica",
+   "Descritivo"
+  ],
+  "stats_approach": "Comparação do perfil F-V entre ranks de companhia",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": true,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "87 bailarinas profissionais (18,9 anos)",
+  "resumo": "Comparou variáveis mecânicas do perfil força-velocidade no salto entre ranks de bailarinas profissionais.",
+  "variaveis_biodinamicas": "Força, velocidade e potência teóricas máximas; déficit de força no perfil F-V",
+  "analise_estatistica": "Estatística comparativa entre grupos",
+  "sintese": "Bailarinas têm déficit de força predominante; o treino de força individualizado pode elevar a altura do salto.",
+  "idioma": "en"
  },
  {
   "authors": "Martínez-Rodríguez A, Reche-García C, Martínez-Fernández MDC, Martínez-Sanz JM",
@@ -6318,6 +7931,46 @@
   "variaveis_biodinamicas": "EMG intramuscular (agulha) do tibial anterior — potenciais de unidade motora (MUP) e near-fibre MUP: frequência de disparo, variabilidade, tamanho, complexidade e estabilidade; força isométrica (25% da CVM), equilíbrio e controle motor.",
   "analise_estatistica": "Modelos de regressão linear de efeitos mistos multiníveis (efeitos de idade e sexo, interação idade × sexo).",
   "sintese": "A remodelação de unidades motoras com a idade é semelhante entre sexos, mas o disparo desacelera só nas mulheres — dimorfismo no envelhecimento neuromuscular."
+ },
+ {
+  "authors": "Nagy P, Brogden C, Greig M",
+  "year": 2020,
+  "title": "Isokinetic ankle eversion and inversion strength profiling of female ballet dancers",
+  "journal": "Journal of Sports Sciences",
+  "doi": "10.1080/02640414.2020.1803185",
+  "citations": "n/d",
+  "sport": "Dança (balé; bailarinas)",
+  "topic": "physical-determinants",
+  "finding": "Em 14 bailarinas, o perfil isocinético do tornozelo não mostrou assimetria bilateral, mas revelou dominância excêntrica da inversão em velocidades >60°/s, com implicações de risco de lesão e treino específicas de modo e velocidade.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "14 bailarinas; teste isocinético de eversão/inversão concêntrica e excêntrica em 4 velocidades angulares, membros dominante e não dominante",
+  "n": 14,
+  "biomech": true,
+  "methods": [
+   "Cinética/mecânica",
+   "ANOVA/MMRM",
+   "Derivadas/taxa",
+   "Descritivo"
+  ],
+  "stats_approach": "ANOVA de medidas repetidas (membro × modo × velocidade)",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": true,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "14 bailarinas (19,3 anos)",
+  "resumo": "Perfilou a força isocinética de eversão/inversão do tornozelo em bailarinas para avaliar assimetrias e risco lesional.",
+  "variaveis_biodinamicas": "Pico de torque, razões de controle dinâmico, derivadas ângulo-específicas de força, amplitude funcional",
+  "analise_estatistica": "ANOVA de medidas repetidas",
+  "sintese": "Bailarinas são excêntrico-dominantes na inversão sem assimetria bilateral, com assimetrias ipsilaterais modo/velocidade relevantes para lesão.",
+  "idioma": "en"
  },
  {
   "authors": "González-Valero G, Zurita-Ortega F, Ubago-Jiménez JL, Puertas-Molero P",
@@ -6627,6 +8280,47 @@
   "sintese": "O reflexo de mergulho limita a interpretação da HRV como marcador de carga no nado sincronizado."
  },
  {
+  "authors": "Escobar Álvarez JA, Fuentes García JP, Da Conceição FA, Jiménez-Reyes P",
+  "year": 2019,
+  "title": "Individualized Training Based on Force-Velocity Profiling During Jumping in Ballet Dancers",
+  "journal": "International Journal of Sports Physiology and Performance",
+  "doi": "10.1123/ijspp.2019-0492",
+  "citations": "n/d",
+  "sport": "Dança (balé; bailarinas)",
+  "topic": "muscular-power",
+  "finding": "Em 46 bailarinas, 9 semanas de treino individualizado pelo perfil força-velocidade (2 sessões) elevaram a altura do CMJ (29,3→33,5 cm), a força e velocidade teóricas máximas e reduziram o desequilíbrio F-V (43,8→24,9%), com efeitos grandes vs controle.",
+  "design": "ECR",
+  "design_conf": "alta",
+  "subvar": "46 bailarinas: experimental (n=36) treino baseado no perfil F-V por 9 sem vs controle (n=10) treino padrão sem musculação",
+  "n": 46,
+  "biomech": true,
+  "methods": [
+   "Cinética/mecânica",
+   "ANOVA/MMRM",
+   "Tamanho de efeito",
+   "Derivadas/taxa",
+   "Descritivo"
+  ],
+  "stats_approach": "Comparação pré-pós entre grupos com tamanhos de efeito",
+  "effect_size": true,
+  "es_note": "Efeitos grandes a muito grandes em altura do CMJ, F0, V0 e desequilíbrio F-V",
+  "roc": false,
+  "derivatives": true,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "46 bailarinas (18,9 anos)",
+  "resumo": "Testou os efeitos de treino individualizado pelo perfil força-velocidade no salto vertical de bailarinas.",
+  "variaveis_biodinamicas": "Altura do CMJ, força teórica máxima (F0), velocidade teórica máxima (V0), potência máxima, desequilíbrio força-velocidade (F-VIMB)",
+  "analise_estatistica": "Comparações pré-pós (ANOVA)",
+  "sintese": "Corrigir o desequilíbrio força-velocidade melhora eficazmente o salto de bailarinas.",
+  "idioma": "en"
+ },
+ {
   "authors": "Kipp LE, Bolter ND, Phillips Reichter A",
   "year": 2019,
   "title": "Motivational Climate Profiles, Pubertal Status, and Well-Being Among Female Adolescent Aesthetic Sport Athletes",
@@ -6664,6 +8358,45 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Análise de perfis (clusters, com PCA) + MANOVA.",
   "sintese": "Ajustar o clima motivacional do treinador e apoiar meninas pós-púberes protege autoestima e reduz comportamentos de dieta."
+ },
+ {
+  "authors": "Costa PB, Richmond SR, Smith CR, Currier B, Stecker RA, Gieske BT, Kemp K, Witherbee KE, Kerksick CM",
+  "year": 2019,
+  "title": "Physiologic, Metabolic, and Nutritional Attributes of Collegiate Synchronized Swimmers",
+  "journal": "International Journal of Sports Physiology and Performance",
+  "doi": "10.1123/ijspp.2018-0547",
+  "citations": "n/d",
+  "sport": "Nado sincronizado (21 universitárias)",
+  "topic": "physiological",
+  "finding": "Em 21 nadadoras universitárias, a taxa metabólica de repouso correlacionou-se com a disponibilidade energética; a %gordura por DEXA (28,7%) superou a de dobras cutâneas; os registros alimentares revelaram baixa disponibilidade energética e macronutrientes abaixo do recomendado.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "21 nadadoras universitárias; taxa metabólica de repouso, composição corporal (dobras 4/7 sítios e DEXA), registro alimentar de 4 dias",
+  "n": 21,
+  "biomech": false,
+  "methods": [
+   "Antropometria",
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Correlações entre taxa metabólica, composição corporal e ingestão",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1,
+  "amostra": "21 nadadoras sincronizadas universitárias",
+  "resumo": "Caracterizou atributos fisiológicos, metabólicos e nutricionais de nadadoras sincronizadas universitárias.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Correlações de Pearson",
+  "sintese": "Nadadoras sincronizadas apresentam baixa disponibilidade energética apesar de composição corporal similar à de outras atletas aquáticas.",
+  "idioma": "en"
  },
  {
   "authors": "Isacco L, Ennequin G, Cassirame J, Tordi N",
@@ -6932,6 +8665,82 @@
   "idioma": "es"
  },
  {
+  "authors": "Tanner AV, Day S",
+  "year": 2017,
+  "title": "The Effects of a 4-Week, Intensified Training, and Competition Period on Salivary Hormones, Immunoglobulin A, Illness Symptoms, and Mood State in Elite Synchronised Swimmers",
+  "journal": "Sports (Basel)",
+  "doi": "10.3390/sports5030064",
+  "citations": "n/d",
+  "sport": "Nado artístico (elite; feminino)",
+  "topic": "stress",
+  "finding": "Em 10 nadadoras artísticas de elite, um período intensificado de treino e competição não prejudicou a imunidade mucosa, mas o cortisol salivar elevou-se durante a competição (93%) e os sintomas de estresse aumentaram, com os escores 'a' do DALDA correlacionando-se com o cortisol.",
+  "design": "Longitudinal",
+  "design_conf": "média",
+  "subvar": "Estado de humor; sintomas de estresse (DALDA); cortisol salivar; carga de treino",
+  "n": 10,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Monitoramento longitudinal e correlação",
+  "effect_size": false,
+  "es_note": "Cortisol +93% na competição vs. base",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1,
+  "amostra": "10 nadadoras artísticas de elite do sexo feminino, monitoradas em base, camp, competição e recuperação.",
+  "resumo": "Analisou a relação entre carga de treino, estresse, episódios de doença e biomarcadores salivares em nadadoras artísticas de elite ao longo de treino e competição.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Comparações entre fases e correlação entre DALDA e cortisol salivar.",
+  "sintese": "A competição eleva o cortisol e os sintomas de estresse em nadadoras artísticas de elite, sem comprometer a imunidade mucosa.",
+  "idioma": "en"
+ },
+ {
+  "authors": "Moita JP, Nunes A, Esteves J, Oliveira R, Xarez L",
+  "year": 2017,
+  "title": "The Relationship Between Muscular Strength and Dance Injuries: A Systematic Review",
+  "journal": "Medical Problems of Performing Artists",
+  "doi": "10.21091/mppa.2017.1002",
+  "citations": "n/d",
+  "sport": "Dança (bailarinos; revisão)",
+  "topic": "physical-determinants",
+  "finding": "Revisão de 8 estudos sugere (evidência nível 2b) que bailarinos pré-profissionais lesionados exibem menor força global de MMII e que ganhos de potência de MMII associam-se a menor dor corporal, mas não a menor taxa de lesão; a relação força–lesão permanece incerta.",
+  "design": "Revisão sistemática",
+  "design_conf": "moderada",
+  "subvar": "8 estudos elegíveis (de 186); qualidade Downs & Black 18,7–75%; níveis OCEBM 2b–4",
+  "n": 8,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Síntese qualitativa (meta-análise inviável por heterogeneidade)",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "8 estudos sobre força muscular e lesões em bailarinos",
+  "resumo": "Revisão sistemática do papel protetor da força muscular contra lesões na dança.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Síntese narrativa; Downs & Black; OCEBM",
+  "sintese": "Há tendência de associação entre baixa força e lesão, mas a evidência é insuficiente para prescrever intervenções preventivas.",
+  "idioma": "en"
+ },
+ {
   "authors": "Berz K, McCambridge T",
   "year": 2016,
   "title": "Amenorrhea in the female athlete: what to do and when to worry",
@@ -7042,6 +8851,83 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Análise de regressão (preditores psicossociais da insatisfação corporal ao longo do tempo).",
   "sintese": "Reforçar o acompanhamento psicológico na fase competitiva e monitorar a alimentação desordenada, principal preditor da insatisfação corporal."
+ },
+ {
+  "authors": "Tinto A, Campanella M, Fasano M",
+  "year": 2016,
+  "title": "Core strengthening and synchronized swimming: TRX suspension training in young female athletes",
+  "journal": "The Journal of Sports Medicine and Physical Fitness",
+  "doi": "10.23736/S0022-4707.16.06338-6",
+  "citations": "n/d",
+  "sport": "Nado sincronizado (nadadoras jovens)",
+  "topic": "physical-determinants",
+  "finding": "Seis meses de treino suspenso TRX (2×/semana, ~15 min) em solo aumentaram significativamente a força do oblíquo e do transverso do abdome e a resistência isotônica do core (McGill) no grupo experimental vs controle em jovens nadadoras.",
+  "design": "Experimental",
+  "design_conf": "média",
+  "subvar": "20 nadadoras (categoria Beginners A, ~10 anos): EG (n=10) TRX 2×/sem por 6 meses vs CG (n=10) treino convencional em solo",
+  "n": 20,
+  "biomech": false,
+  "methods": [
+   "ANOVA/MMRM",
+   "Descritivo"
+  ],
+  "stats_approach": "Análise não-paramétrica pré-pós entre grupos",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1,
+  "amostra": "20 nadadoras sincronizadas iniciantes (~10 anos)",
+  "resumo": "Avaliou o efeito de 6 meses de treino suspenso TRX em solo sobre força e estabilidade do core em jovens nadadoras sincronizadas.",
+  "variaveis_biodinamicas": "Força do oblíquo e transverso abdominal (Stabilizer Pressure Biofeedback), resistência isotônica (McGill Test)",
+  "analise_estatistica": "Testes não-paramétricos",
+  "sintese": "O treino de suspensão fortalece o core e favorece estabilidade e qualidade do movimento no nado sincronizado.",
+  "idioma": "en"
+ },
+ {
+  "authors": "Slater LV, Vriner M, Zapalo P, Arbour K, Hart JM",
+  "year": 2016,
+  "title": "Difference in Agility, Strength, and Flexibility in Competitive Figure Skaters Based on Level of Expertise and Skating Discipline",
+  "journal": "Journal of Strength and Conditioning Research",
+  "doi": "10.1519/JSC.0000000000001452",
+  "citations": "n/d",
+  "sport": "Patinação artística (343 patinadores; amostra mista F+M, 4 disciplinas)",
+  "topic": "physical-determinants",
+  "finding": "Patinadores sêniores e juniores foram mais rápidos e fortes que noviços; individual, dança e duplas foram mais ágeis, fortes e flexíveis que a patinação sincronizada, indicando que disciplina e nível devem orientar o condicionamento.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "343 patinadores de 4 disciplinas (individual, dança, duplas, sincronizada) e 3 níveis; bateria off-ice (agilidade, salto vertical, triple bound, força)",
+  "n": 343,
+  "biomech": false,
+  "methods": [
+   "ANOVA/MMRM",
+   "Tamanho de efeito",
+   "Descritivo"
+  ],
+  "stats_approach": "MANOVA com post-hoc de Scheffé; d de Cohen e IC95%",
+  "effect_size": true,
+  "es_note": "d de Cohen relatado para diferenças entre disciplinas e níveis",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Patinação artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "343 patinadores artísticos (individual, dança, duplas e sincronizada; níveis noviço, júnior e sênior)",
+  "resumo": "Comparou agilidade, força e flexibilidade off-ice segundo disciplina e nível competitivo em patinadores artísticos.",
+  "variaveis_biodinamicas": "Salto vertical, triple bound, testes de agilidade (hexágono, teste-t), força (flexões, v-ups, preensão manual)",
+  "analise_estatistica": "MANOVA + Scheffé",
+  "sintese": "Nível e disciplina modulam as capacidades físicas; o condicionamento deve ser específico por disciplina.",
+  "idioma": "en"
  },
  {
   "authors": "Schaal K, Tiollier E, Le Meur Y, Casazza G, Hausswirth C",
@@ -7612,6 +9498,45 @@
   "variaveis_biodinamicas": "Massa, estatura, estatura sentada, massa livre de gordura, %gordura, idade do PVC",
   "analise_estatistica": "z-scores; descritivo",
   "sintese": "Ginastas rítmicas brasileiras apresentam baixo peso e maturação/menarca tardias em relação às referências.",
+  "idioma": "en"
+ },
+ {
+  "authors": "Saunders NW, Hanson N, Koutakis P, Chaudhari AM, Devor ST",
+  "year": 2014,
+  "title": "Landing ground reaction forces in figure skaters and non-skaters",
+  "journal": "Journal of Sports Sciences",
+  "doi": "10.1080/02640414.2013.877593",
+  "citations": "n/d",
+  "sport": "Patinação artística (patinadores freestyle; sexo não especificado — amostra possivelmente mista)",
+  "topic": "biomechanics-technique",
+  "finding": "Patinadores (n=26) apresentaram maior FRS vertical de pico normalizada (3,50 vs 3,13 × peso corporal), menor tempo até o pico e maior tempo até estabilização que não-patinadores em aterrissagem unipodal de 20 cm, confinando o centro de pressão à região médio-anterior do pé.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "26 patinadores freestyle vs 18 não-patinadores; aterrissagem unipodal descalça de plataforma de 20 cm sobre plataforma de força",
+  "n": 44,
+  "biomech": true,
+  "methods": [
+   "Cinética/mecânica",
+   "Derivadas/taxa",
+   "Descritivo"
+  ],
+  "stats_approach": "Comparação entre grupos das FRS verticais e do controle do centro de pressão",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": true,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Patinação artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "26 patinadores artísticos freestyle e 18 não-patinadores",
+  "resumo": "Comparou forças de reação do solo e controle do centro de pressão em aterrissagens unipodais entre patinadores e não-patinadores para caracterizar a estratégia de aterrissagem do patinador.",
+  "variaveis_biodinamicas": "FRS vertical de pico normalizada, tempo até o pico, tempo até estabilização, amplitude médio-lateral e ântero-posterior do centro de pressão",
+  "analise_estatistica": "Testes de comparação entre grupos",
+  "sintese": "A técnica de aterrissagem do patinador concentra e acelera o impacto vertical, o que pode contribuir para lesões por sobrecarga.",
   "idioma": "en"
  },
  {
