@@ -1199,6 +1199,17 @@
   "finding": "Saltos Yurchenko recebem execução sistematicamente maior (d=0,57–1,21): viés estrutural de pontuação."
  },
  {
+  "authors": "Leite I, Gómez-Landero LA, Vilas-Boas JP, Goethel M, Mochizuki L, Conceição F",
+  "year": 2025,
+  "title": "The interplay between individual capacities and pair performance according to the experience in Acrobatic Gymnastics",
+  "journal": "Sports Biomechanics",
+  "doi": "10.1080/14763141.2025.2458483",
+  "citations": "n/d",
+  "sport": "Ginástica acrobática (pares; sexo não especificado — possível misto)",
+  "topic": "biomechanics-technique",
+  "finding": "Em 12 pares de nível nacional/elite, a experiência do par influenciou a eficiência mecânica na tarefa de dupla e as capacidades individuais, e ambas contribuíram para o desempenho no voo assistido."
+ },
+ {
   "authors": "Steinberg N, Elbaz L, Bar-Sela S, Peleg S, Eliakim A, Nemet D, et al.",
   "year": 2025,
   "title": "The relationship between physical features and patellofemoral-pain in young female gymnasts.",
@@ -1450,6 +1461,17 @@
   "sport": "Ginástica rítmica, balé e dança (esportes estéticos femininos)",
   "topic": "menstrual-hormonal",
   "finding": "63% das atletas relataram falta de conhecimento sobre a influência do ciclo menstrual no desempenho e apenas 32% discutiam o tema com treinadores."
+ },
+ {
+  "authors": "Liu Z, Gong Y, Nagamoto H, Okunuki T, Yamaguchi R, Kobayashi Y, Li Y, Maemichi T, Kumai T",
+  "year": 2024,
+  "title": "Low Body Fat Percentage and Menstrual Cycle Disorders in Female Elite Adolescent Dancers",
+  "journal": "Journal of Dance Medicine & Science",
+  "doi": "10.1177/1089313X241227282",
+  "citations": "n/d",
+  "sport": "Dança (bailarinas de elite adolescentes)",
+  "topic": "menstrual-hormonal",
+  "finding": "Em 131 bailarinas de elite adolescentes (15,9±1,5 anos), menor percentual de gordura corporal associou-se a maior ocorrência de distúrbios do ciclo menstrual."
  },
  {
   "authors": "Yamaguchi AC, Trejo LH, Shih HS, Ortiz-Weissberg D, Kulig K",
@@ -1771,6 +1793,17 @@
   "finding": "Em 358 patinadores (213 mulheres, 145 homens) avaliados pelo BESS, os dançarinos no gelo cometeram mais erros que individuais e duplas no apoio bipodal em espuma, mas menos que individuais no apoio unipodal; houve fraca correlação negativa entre idade e erros."
  },
  {
+  "authors": "Chaikali P, Kontele I, Grammatikopoulou MG, Oikonomou E, Sergentanis TN, Vassilakou T",
+  "year": 2023,
+  "title": "Body Composition, Eating Habits, and Disordered Eating Behaviors among Adolescent Classical Ballet Dancers and Controls",
+  "journal": "Children",
+  "doi": "10.3390/children10020379",
+  "citations": "n/d",
+  "sport": "Dança (balé clássico; bailarinas adolescentes)",
+  "topic": "anthropometry-maturation",
+  "finding": "Estudo caso-controle comparou composição corporal, hábitos alimentares e comportamentos alimentares desordenados entre bailarinas clássicas adolescentes e pares não dançarinas, apontando vulnerabilidade nutricional das bailarinas."
+ },
+ {
   "authors": "Kobayashi JK, Kobayashi EF, Tomasevich KM, Lorens KL, Aoki SK",
   "year": 2023,
   "title": "Characterization of Achilles Tendon Ruptures in Collegiate Women's Gymnastics",
@@ -1914,6 +1947,17 @@
   "finding": "Cinco variáveis de figuras híbridas (frequência de movimento, índice de altura da perna, desvio de ângulo da perna, duração média do padrão e frequência de rotação) predisseram a pontuação total; coreografias híbridas excessivamente longas/complexas reduziram o desempenho."
  },
  {
+  "authors": "Barreto J, Henriques R, Cabral S, Pedro B, Peixoto C, Veloso A",
+  "year": 2023,
+  "title": "Movement Prototypes in a Complex Teamgym Gymnastics Technique on the Vaulting Table and Their Relationship with Judges' Scores",
+  "journal": "Sensors",
+  "doi": "10.3390/s23063240",
+  "citations": "n/d",
+  "sport": "Ginástica (TeamGym; ginastas de ambos os sexos — misto)",
+  "topic": "judging-scoring",
+  "finding": "Em 50 tentativas do salto handspring tucked com meio giro em mini-trampolim com mesa, identificaram-se protótipos de movimento (ângulos articulares por IMU) relacionados às notas dos juízes."
+ },
+ {
   "authors": "Jiménez-Casquet MJ, Conde-Pipó J, Valenzuela-Barranco I, Rienda-Contreras R, Olea-Serrano F, Bouzas C, et al.",
   "year": 2023,
   "title": "Nutrition Status of Female Winter Sports Athletes",
@@ -2024,6 +2068,17 @@
   "finding": "Em 12 patinadoras escolares, a sessão criativa (coreografia própria) gerou maior satisfação das necessidades de competência percebida (ES=0,59) e de relações sociais (ES=0,62) e maior aderência à patinação (ES=0,69) que a sessão tradicional, com mais humor e menos surpresa."
  },
  {
+  "authors": "Hough-Coles K, Wyon M",
+  "year": 2022,
+  "title": "Determining Pointe Readiness in Young Adolescent Female Dancers: A Systematic Review",
+  "journal": "Journal of Dance Medicine & Science",
+  "doi": "10.12678/1089-313X.121522b",
+  "citations": "n/d",
+  "sport": "Dança (balé; bailarinas jovens adolescentes)",
+  "topic": "physical-determinants",
+  "finding": "Revisão sistemática dos testes de triagem para prontidão em ponta em bailarinas de 8-20 anos indica ausência de testes padronizados e validados, com risco de lesão quando o trabalho en pointe é iniciado precocemente."
+ },
+ {
   "authors": "Attwell C, Dugan C, McKay AKA, Nicholas J, Hopper L, Peeling P",
   "year": 2022,
   "title": "Dietary Iron and the Elite Dancer",
@@ -2121,6 +2176,28 @@
   "sport": "Ginástica artística (9 homens, 8 mulheres; amostra mista)",
   "topic": "physiological",
   "finding": "O perfil metabólico do solo simulado foi predominantemente aeróbio (58,9%), seguido de anaeróbio alático (24,2%) e lático (16,9%); mulheres tiveram maior participação aeróbia que homens (64,0 vs 54,4%); nenhum compartilhamento energético correlacionou-se ao desempenho."
+ },
+ {
+  "authors": "Rauer T, Pape HC, Knobe M, Pohlemann T, Ganse B",
+  "year": 2022,
+  "title": "Figure skating: Increasing numbers of revolutions in jumps at the European and World Championships",
+  "journal": "PLoS ONE",
+  "doi": "10.1371/journal.pone.0265343",
+  "citations": "n/d",
+  "sport": "Patinação artística (simples feminino e masculino — misto)",
+  "topic": "judging-scoring",
+  "finding": "Análise de regressão dos Mundiais/Europeus desde 2004/05 mostrou aumento significativo de saltos com mais rotações; as mulheres passaram a executar saltos quádruplos apenas em 2019, com tendências de idade divergentes entre sexos."
+ },
+ {
+  "authors": "Kumagai H, Kaneko T, Shintake Y, Miyamoto-Mikami E, Tomita H, Fukuo M, Kawai W, Harada M, Kikuchi N, Kamiya N, Hirata K, Zempo H, Maeda S, Miyamoto N, Fuku N",
+  "year": 2022,
+  "title": "Genetic polymorphisms related to muscular strength and flexibility are associated with artistic gymnastic performance in the Japanese population",
+  "journal": "European Journal of Sport Science",
+  "doi": "10.1080/17461391.2022.2078741",
+  "citations": "n/d",
+  "sport": "Ginástica artística (ginastas japoneses; amostra mista)",
+  "topic": "talent-prediction",
+  "finding": "Polimorfismos ligados a força e flexibilidade (incluindo aromatase rs936306) associaram-se ao desempenho na ginástica artística (D-score), identificando novo polimorfismo relacionado à flexibilidade."
  },
  {
   "authors": "Wyon MA, Horsburgh R, Brown D",
@@ -2352,6 +2429,17 @@
   "sport": "Ginástica rítmica (elite espanhola)",
   "topic": "red-s",
   "finding": "Ginastas adolescentes apresentaram baixa disponibilidade energética (34,7 kcal/FFM/dia), com carboidratos abaixo e gorduras acima do recomendado e baixa ingestão de cálcio/vitamina D."
+ },
+ {
+  "authors": "Rosselli M, Sofi F, Rizzo M, Stefani L",
+  "year": 2021,
+  "title": "Body composition and eating behavior in non-professional adolescent female dancers",
+  "journal": "The Journal of Sports Medicine and Physical Fitness",
+  "doi": "10.23736/S0022-4707.21.11817-1",
+  "citations": "n/d",
+  "sport": "Dança (bailarinas adolescentes; estilo clássico e moderno)",
+  "topic": "anthropometry-maturation",
+  "finding": "Em dois grupos de 10 bailarinas adolescentes pré-púberes, avaliaram-se composição corporal, hidratação, hábitos alimentares, ciclo menstrual e risco da tríade, evidenciando o impacto do regime esportivo no período pré-púbere."
  },
  {
   "authors": "Remmel L, Jürimäe J, Tamm A-L, Purge P, Tillmann V",
@@ -2695,6 +2783,28 @@
   "finding": "Em 112 bailarinos de elite (57 mulheres), as bailarinas tiveram DMO espinhal e pélvica reduzidas; DMO baixa e fraturas por estresse foram mais prevalentes em quem tinha maior risco de transtorno alimentar (EAT-26), e medidas antropométricas predisseram a DMO."
  },
  {
+  "authors": "Nassib SH, Mkaouer B, Riahi SH, Wali SM, Nassib S",
+  "year": 2020,
+  "title": "Prediction of Gymnastics Physical Profile Through an International Program Evaluation in Women Artistic Gymnastics",
+  "journal": "Journal of Strength and Conditioning Research",
+  "doi": "10.1519/JSC.0000000000001902",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina (equipe provincial, ~11 anos)",
+  "topic": "talent-prediction",
+  "finding": "Em 48 ginastas artísticas femininas (11,1±1,2 anos), medidas antropométricas e a bateria física da FIG permitiram identificar o perfil físico de talento para resultados de topo."
+ },
+ {
+  "authors": "Viana E, Bentley DJ, Logan-Sprenger HM",
+  "year": 2020,
+  "title": "Relationship between VO2 Under Water Swim Testing and Artistic Swim Solo Performance",
+  "journal": "Sports Medicine International Open",
+  "doi": "10.1055/a-1089-5051",
+  "citations": "n/d",
+  "sport": "Nado artístico (nadadoras treinadas)",
+  "topic": "physical-determinants",
+  "finding": "Em 15 nadadoras artísticas, o VO2pico no ciclismo correlacionou-se com o desempenho no teste subaquático (UWST) e com a pontuação do solo simulado avaliado por juízes FINA."
+ },
+ {
   "authors": "Meng K, Qiu J, Benardot D, Carr A, Yi L, Wang J, Liang Y",
   "year": 2020,
   "title": "The risk of low energy availability in Chinese elite and recreational female aesthetic sports athletes",
@@ -2715,6 +2825,17 @@
   "sport": "Ginástica rítmica (seleção brasileira de conjunto)",
   "topic": "training-load",
   "finding": "Ao longo de 43 semanas, cada período competitivo apresentou aumento da carga interna semanal; carga e recuperação variaram conforme a periodização pré-olímpica."
+ },
+ {
+  "authors": "Viana E, Bentley DJ, Logan-Sprenger HM",
+  "year": 2019,
+  "title": "A Physiological Overview of the Demands, Characteristics, and Adaptations of Highly Trained Artistic Swimmers: a Literature Review",
+  "journal": "Sports Medicine - Open",
+  "doi": "10.1186/s40798-019-0190-3",
+  "citations": "n/d",
+  "sport": "Nado artístico (atletas altamente treinadas)",
+  "topic": "physiological",
+  "finding": "Revisão das demandas fisiológicas do nado artístico, destacando a resposta bradicárdica a longos períodos de apneia como adaptação mais marcante e os determinantes fisiológicos do desempenho."
  },
  {
   "authors": "Costa C, Teixeira Z",
@@ -2783,6 +2904,17 @@
   "finding": "A variabilidade da frequência cardíaca isolada pode ser ambígua para monitorar a carga em nadadoras sincronizadas de elite; o lactato (6,8 mmol/L) correlacionou-se com variações de LnRMSSD e cortisol."
  },
  {
+  "authors": "Exupério IN, Agostinete RR, Werneck AO, Maillane-Vanegas S, Luiz-de-Marco R, Mesquita EDL, Kemper HCG, Fernandes RA",
+  "year": 2019,
+  "title": "Impact of Artistic Gymnastics on Bone Formation Marker, Density and Geometry in Female Adolescents: ABCD-Growth Study",
+  "journal": "Journal of Bone Metabolism",
+  "doi": "10.11005/jbm.2019.26.2.75",
+  "citations": "n/d",
+  "sport": "Ginástica artística (adolescentes femininas)",
+  "topic": "anthropometry-maturation",
+  "finding": "Em estudo longitudinal de 12 meses com 20 adolescentes (10 ginastas, 10 controles, 11-16 anos), a ginástica artística associou-se a maior densidade e melhores propriedades geométricas ósseas do fêmur."
+ },
+ {
   "authors": "Escobar Álvarez JA, Fuentes García JP, Da Conceição FA, Jiménez-Reyes P",
   "year": 2019,
   "title": "Individualized Training Based on Force-Velocity Profiling During Jumping in Ballet Dancers",
@@ -2792,6 +2924,17 @@
   "sport": "Dança (balé; bailarinas)",
   "topic": "muscular-power",
   "finding": "Em 46 bailarinas, 9 semanas de treino individualizado pelo perfil força-velocidade (2 sessões) elevaram a altura do CMJ (29,3→33,5 cm), a força e velocidade teóricas máximas e reduziram o desequilíbrio F-V (43,8→24,9%), com efeitos grandes vs controle."
+ },
+ {
+  "authors": "Sierra-Palmeiro E, Bobo-Arce M, Pérez-Ferreirós A, Fernández-Villarino MA",
+  "year": 2019,
+  "title": "Longitudinal Study of Individual Exercises in Elite Rhythmic Gymnastics",
+  "journal": "Frontiers in Psychology",
+  "doi": "10.3389/fpsyg.2019.01496",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica (exercícios individuais de elite; 13 mundiais)",
+  "topic": "judging-scoring",
+  "finding": "Análise de 416 exercícios de cinco aparelhos ao longo de 13 mundiais mostrou que mudanças no código de pontuação alteraram o número de elementos técnicos e a nota final, com relação entre número de elementos e escore."
  },
  {
   "authors": "Czajkowska M, Plinta R, Rutkowska M, Brzęk A, Skrzypulec-Plinta V, Drosdzol-Cop A",
@@ -2957,6 +3100,17 @@
   "sport": "Dança",
   "topic": "body-image",
   "finding": "Bailarinas clássicas e contemporâneas percebiam-se com IMC maior do que o real, enquanto a dança espanhola mostrou tendência oposta; todas desejavam ser mais magras e dez apresentaram alto risco de transtorno alimentar."
+ },
+ {
+  "authors": "Leandro C, Ávila-Carvalho L, Sierra-Palmeiro E, Bobo-Arce M",
+  "year": 2017,
+  "title": "Judging in Rhythmic Gymnastics at Different Levels of Performance",
+  "journal": "Journal of Human Kinetics",
+  "doi": "10.1515/hukin-2017-0099",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica (Campeonato Mundial 2013)",
+  "topic": "judging-scoring",
+  "finding": "Em 1152 notas de dificuldade de 288 rotinas individuais do Mundial 2013, a consistência e a confiabilidade do julgamento de dificuldade foram altas (alfa de Cronbach >0,90), com validade variando conforme o nível de desempenho."
  },
  {
   "authors": "Tanner AV, Day S",
@@ -3135,6 +3289,17 @@
   "finding": "O SAGAT é um teste de campo válido, confiável e sensível para avaliar o desempenho anaeróbio específico de ginastas aeróbicas de elite, correlacionando-se com a potência no Wingate."
  },
  {
+  "authors": "Flessas K, Mylonas D, Panagiotaropoulou G, Tsopani D, Korda A, Siettos C, Di Cagno A, Evdokimidis I, Smyrnis N",
+  "year": 2015,
+  "title": "Judging the judges' performance in rhythmic gymnastics",
+  "journal": "Medicine & Science in Sports & Exercise",
+  "doi": "10.1249/MSS.0000000000000425",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica (rotina de conjunto de cinco ginastas)",
+  "topic": "judging-scoring",
+  "finding": "Sob paradigma perito-novato (10 juízes internacionais, 10 nacionais, 10 novatos), registros de movimentos oculares revelaram diferenças no comportamento visual de avaliação de uma rotina de conjunto de ginástica rítmica."
+ },
+ {
   "authors": "Sawers A, Allen JL, Ting LH",
   "year": 2015,
   "title": "Long-term training modifies the modular structure and organization of walking balance control",
@@ -3256,6 +3421,28 @@
   "finding": "Revisão destaca que, pela natureza estética que prioriza a leveza, atletas de nado artístico têm risco significativo de deficiência energética e de macronutrientes, RED-S e transtornos alimentares; micronutrientes de preocupação incluem ferro, cálcio e vitamina D."
  },
  {
+  "authors": "Tringali C, Brivio I, Stucchi B, Silvestri I, Scurati R, Michielon G, Alberti G, Venerando B",
+  "year": 2014,
+  "title": "Prevalence of a characteristic gene profile in high-level rhythmic gymnasts",
+  "journal": "Journal of Sports Sciences",
+  "doi": "10.1080/02640414.2014.893371",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica (ginastas de nível nacional/internacional)",
+  "topic": "talent-prediction",
+  "finding": "Ginastas rítmicas de alto nível (n=42) constituíram população geneticamente selecionada, com maior frequência de alelos ADRB2/FTO ligados a baixo IMC e baixa massa gorda em relação a controles."
+ },
+ {
+  "authors": "Purenović-Ivanović T, Popović R",
+  "year": 2014,
+  "title": "Somatotype of top-level Serbian rhythmic gymnasts",
+  "journal": "Journal of Human Kinetics",
+  "doi": "10.2478/hukin-2014-0020",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica (ginastas de elite sérvias)",
+  "topic": "anthropometry-maturation",
+  "finding": "Em 40 ginastas rítmicas sérvias de elite (13,0±2,8 anos), o somatotipo dominante foi o ectomorfo balanceado (~3,5-3,2-4,5), com aumento do componente endomórfico conforme a idade."
+ },
+ {
   "authors": "Melin A, Tornberg ÅB, Skouby S, Faber J, Ritz C, Sjödin A, et al.",
   "year": 2014,
   "title": "The LEAF questionnaire: a screening tool for the identification of female athletes at risk for the female athlete triad",
@@ -3287,6 +3474,17 @@
   "sport": "Ginástica artística feminina",
   "topic": "training-load",
   "finding": "As características das lesões dependeram do nível de competitividade das ginastas; lesões concentraram-se em articulações e membros inferiores em iniciantes de ginástica artística."
+ },
+ {
+  "authors": "Pajek MB, Cuk I, Pajek J, Kovač M, Leskošek B",
+  "year": 2013,
+  "title": "Is the quality of judging in women artistic gymnastics equivalent at major competitions of different levels?",
+  "journal": "Journal of Human Kinetics",
+  "doi": "10.2478/hukin-2013-0038",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina (Europeu 2011 vs Universíada 2009)",
+  "topic": "judging-scoring",
+  "finding": "No Europeu de Berlim 2011, a confiabilidade e a validade do julgamento de execução foram altas (alfa >0,95; ICC elevados), comparáveis às de competição de nível diferente (Universíada 2009)."
  },
  {
   "authors": "Oliveira TAC, et al.",
