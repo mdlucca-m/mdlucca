@@ -75,6 +75,81 @@
   "sintese": "Focar a atenção de forma consciente atrapalha o gesto já automatizado; instruções de foco devem ser usadas com cautela em habilidades consolidadas."
  },
  {
+  "authors": "Grompanopoulou A, Kypraiou A, Milosis DC, Chourdakis M, Petridou A",
+  "year": 2026,
+  "title": "Energy Availability, Body Composition, and Phase Angle Among Adolescent Artistic Gymnasts During a Competitive Season",
+  "journal": "Nutrients",
+  "doi": "10.3390/nu18030519",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "red-s",
+  "finding": "Ginastas artísticas adolescentes não elite não mostraram sinais claros de baixa disponibilidade energética, exibindo composição corporal e ângulo de fase normais ao longo da temporada.",
+  "design": "Transversal",
+  "design_conf": "média",
+  "subvar": "Disponibilidade energética, BIVA e ângulo de fase na temporada competitiva",
+  "n": 30,
+  "biomech": false,
+  "methods": [
+   "Antropometria",
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Fadiga"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "30 ginastas artísticas não elite do sexo feminino de 11-14 anos.",
+  "resumo": "Avaliou-se disponibilidade energética, composição corporal por bioimpedância (BIVA) e ângulo de fase durante a temporada competitiva de ginastas adolescentes.",
+  "variaveis_biodinamicas": "Disponibilidade energética, gasto energético total, massa livre de gordura, ângulo de fase",
+  "analise_estatistica": "Teste T² de Hotelling (vetores de impedância) e correlações de Pearson/Spearman",
+  "sintese": "Ginastas não elite podem manter disponibilidade energética e composição corporal adequadas, contrastando com o maior risco de RED-S em atletas de elite."
+ },
+ {
+  "authors": "Ishikawa M, Yasu Y, Koizumi K, Yanagiya T, Hata K, Tomita H, Kozachenko O, Hisanaga S, Nonomura S, Sun Z, Oda T, Waki H, Harada M",
+  "year": 2026,
+  "title": "Improving the approval of jumping techniques on the balance beam focusing on the 'switch leap to ring position'",
+  "journal": "Frontiers in Sports and Active Living",
+  "doi": "10.3389/fspor.2026.1798778",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "judging-scoring",
+  "finding": "Saltos reconhecidos tanto pelo sistema de IA quanto pelos juízes tinham maiores ângulos de abertura e ápice do pé traseiro mais alto, com o joelho traseiro acima do quadril; a coerência postural ('gestalt') influencia o reconhecimento.",
+  "design": "Transversal",
+  "design_conf": "baixa",
+  "subvar": "Comparação sistema de arbitragem por IA vs juízes certificados em 46 tentativas-limite",
+  "n": 4,
+  "biomech": true,
+  "methods": [
+   "Cinemática",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "4 ginastas universitárias do sexo feminino (46 tentativas-limite do 'switch leap to ring').",
+  "resumo": "Comparou-se o reconhecimento do 'switch leap to ring position' entre um sistema de suporte à arbitragem por IA e juízes certificados, identificando características técnicas associadas ao reconhecimento.",
+  "variaveis_biodinamicas": "Ângulo de abertura das pernas, altura do ápice do pé traseiro, elevação do joelho traseiro",
+  "analise_estatistica": "Comparação descritiva IA vs juízes (tentativas reconhecidas vs não reconhecidas)",
+  "sintese": "O reconhecimento de elementos depende não só de limiares numéricos, mas da coerência visual da postura, orientando a preparação técnica e a arbitragem assistida."
+ },
+ {
   "authors": "Leiva Fernández Cordero, Marchena-Giráldez C, Cruz Corbella A, Ruiz-Sancho E",
   "year": 2026,
   "title": "Indirect effect of perfectionism between anxiety, self-esteem, aesthetic pressure and eating disorder risk in figure skaters",
@@ -488,6 +563,86 @@
   "sintese": "No desenvolvimento da jovem ginasta, ganhos de força associam-se à massa corporal e a potência de salto à hipertrofia do gastrocnêmio, orientando o treino de arquitetura muscular específica."
  },
  {
+  "authors": "Pavlasová K, Bizovská L, Rupčík L, Farana R, Janura M",
+  "year": 2026,
+  "title": "The Assessment of the Effect of Gaze Direction Instruction on the Stabilisation During Artistic Gymnastic Landing",
+  "journal": "European Journal of Sport Science",
+  "doi": "10.1002/ejsc.70137",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "emg-activation",
+  "finding": "A complexidade da tarefa motora, e não a direção do olhar, determinou a atividade muscular dos membros inferiores e a estabilização postural nas aterrissagens ginásticas.",
+  "design": "Experimental",
+  "design_conf": "média",
+  "subvar": "Instrução de direção do olhar (para baixo vs à frente) em 4 aterrissagens",
+  "n": 18,
+  "biomech": true,
+  "methods": [
+   "EMG",
+   "Cinética/mecânica",
+   "ANOVA/MMRM",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro",
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "18 ginastas artísticas do sexo feminino (14,0 ± 2,7 anos).",
+  "resumo": "Ginastas realizaram aterrissagens (drop landing, mortais para frente/trás e série acrobática) com o olhar dirigido para baixo ou à frente, medindo-se EMG de seis músculos dos MMII e índices de estabilidade dinâmica.",
+  "variaveis_biodinamicas": "EMG de 6 músculos dos MMII, índices de estabilidade dinâmica, tempo até estabilização",
+  "analise_estatistica": "ANOVA de medidas repetidas (tarefa motora × direção do olhar)",
+  "sintese": "O treino de aterrissagens deve priorizar a complexidade da tarefa; instruções sobre o olhar têm efeito mínimo na ativação muscular e na estabilização."
+ },
+ {
+  "authors": "Firmansyah H, Martini T, Mudjihartono",
+  "year": 2026,
+  "title": "The role of concentration the young gymnast performance",
+  "journal": "Frontiers in Sports and Active Living",
+  "doi": "10.3389/fspor.2026.1836404",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "attentional-focus",
+  "finding": "A concentração influenciou significativamente o desempenho das ginastas, sobretudo no solo — a prontidão cognitiva sustenta a precisão técnica e a estabilidade mental.",
+  "design": "Transversal",
+  "design_conf": "baixa",
+  "subvar": "Correlação entre teste de grade de concentração e desempenho no solo",
+  "n": 17,
+  "biomech": false,
+  "methods": [
+   "Regressão/correlação",
+   "Psicometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro",
+   "Psico",
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "17 jovens ginastas artísticas do sexo feminino em treino regular.",
+  "resumo": "Estudo correlacional relacionou a capacidade de concentração (concentration grid test) ao desempenho no exercício de solo em jovens ginastas.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Análise correlacional (concentração × desempenho no solo)",
+  "sintese": "Incluir treino cognitivo e de concentração pode melhorar a consistência e a precisão técnica das ginastas."
+ },
+ {
   "authors": "Deng C, Yu Q",
   "year": 2025,
   "title": "A systematic review of cheerleading injuries: epidemiology, biomechanical mechanisms and prevention",
@@ -600,6 +755,45 @@
   "variaveis_biodinamicas": "Cinemática articular 3D de membros inferiores (ângulos de flexão/extensão, abdução/adução e rotação de quadril, joelho, tornozelo e subtalar via OpenSim); sEMG; sinergias musculares por fatoração de matriz não-negativa (NMF) — número de sinergias, pesos musculares e coeficientes de ativação.",
   "analise_estatistica": "NMF para extração de sinergias e testes de comparação entre grupos (ANOVA/estatística F; p<0,05).",
   "sintese": "A maior eficiência neuromuscular da elite (menos sinergias, ativação mais precoce) sugere focar o treino no controle e na ativação antecipada de músculos-chave nas fases de aproximação e impulsão."
+ },
+ {
+  "authors": "Zhou Y, Yang L",
+  "year": 2025,
+  "title": "Can mechanical load and physiological intensity during gymnastics training explain physical adaptations? An observational study",
+  "journal": "Frontiers in Physiology",
+  "doi": "10.3389/fphys.2025.1645514",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "training-load",
+  "finding": "O volume de saltos correlacionou-se fortemente com ganhos de força (IMTP, CMJ) e as cargas fisiológicas (RPE, TRIMP) com a melhora aeróbia, ao longo de 12 semanas.",
+  "design": "Longitudinal",
+  "design_conf": "média",
+  "subvar": "Coorte prospectiva de 12 semanas; carga mecânica vs fisiológica",
+  "n": 40,
+  "biomech": false,
+  "methods": [
+   "Regressão/correlação",
+   "Tamanho de efeito",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": true,
+  "es_note": "melhoras com grandes tamanhos de efeito (IMTP +19,2%, CMJ +2,7%, MSAFT +8,6%)",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance",
+   "Fadiga"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "40 ginastas artísticas do sexo feminino de nível local (16,5 ± 1,1 anos).",
+  "resumo": "Monitorou-se carga interna (TRIMP, RPE) e externa (número de saltos) por 12 semanas, relacionando-as a ganhos de força (IMTP, CMJ) e aptidão aeróbia (teste de Léger).",
+  "variaveis_biodinamicas": "TRIMP, RPE, volume de saltos, força isométrica (IMTP), CMJ, teste aeróbio de Léger",
+  "analise_estatistica": "Correlações de Pearson entre cargas de treino e adaptações físicas",
+  "sintese": "Integrar carga mecânica (saltos) e carga fisiológica no monitoramento otimiza qualidades físicas específicas das ginastas."
  },
  {
   "authors": "Passacantando E, Marinelli S, La Greca S, Farina F, Cariati I, Cifelli P, Di Giminiani R",
@@ -717,6 +911,44 @@
   "sintese": "A prática prolongada de ballet não gera aterrissagens de menor impacto no en dehors; bailarinas convertem melhor o impacto em ressalto vertical."
  },
  {
+  "authors": "Niżnikowski T, Arnista P, Sadowski J, Mastalerz A, Romero-Ramos O, Fernández-Rodríguez E, Łuba-Arnista W, Biegajło M, Różański P, Niżnikowska E, Karaś A, Kuśmierczyk P, Nogal M",
+  "year": 2025,
+  "title": "Enhancing the learning of sports skills through verbal feedback",
+  "journal": "Frontiers in Sports and Active Living",
+  "doi": "10.3389/fspor.2025.1519365",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "motor-learning",
+  "finding": "Feedback verbal restrito aos elementos-chave do erro gerou escores de juízes superiores ao feedback sobre todos os erros na aprendizagem da rondada-mortal para trás com aterrissagem estável na trave.",
+  "design": "ECR",
+  "design_conf": "média",
+  "subvar": "Grupo com feedback nos elementos-chave vs feedback em todos os erros",
+  "n": 16,
+  "biomech": false,
+  "methods": [
+   "ANOVA/MMRM",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance",
+   "Neuro"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "16 ginastas do sexo feminino alocadas aleatoriamente a dois grupos de feedback (n=8 cada).",
+  "resumo": "Comparou-se a eficácia do feedback sobre elementos-chave vs sobre todos os erros na aprendizagem da rondada-mortal para trás com aterrissagem estável na trave.",
+  "variaveis_biodinamicas": "Escores dos juízes na execução do elemento (fases preparatória, principal e final)",
+  "analise_estatistica": "ANOVA mista (grupo × tempo) e teste t de Welch",
+  "sintese": "Direcionar o feedback aos erros-chave, reduzindo sua frequência, otimiza a aprendizagem motora mais do que corrigir todos os erros."
+ },
+ {
   "authors": "Pritchard NS, Brandt KM, Peluso AG, Kruse DW, Hart E, et al.",
   "year": 2025,
   "title": "Evaluation of head kinematics experienced during common skill progression pathways in Women's Artistic Gymnastics",
@@ -829,6 +1061,45 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Modelo bayesiano com estimativa de intervalos de credibilidade de 95%.",
   "sintese": "A alta incidência de fraturas na ginástica reforça o monitoramento de carga, saúde óssea e disponibilidade energética das atletas."
+ },
+ {
+  "authors": "Merker S, Pastel S, Bürger D, Witte K",
+  "year": 2025,
+  "title": "Influence of wearing a head-mounted display on the movement execution of basic elements on the balance beam in women's artistic gymnastics",
+  "journal": "Human Movement Science",
+  "doi": "10.1016/j.humov.2025.103417",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "motor-learning",
+  "finding": "A execução na trave foi mais prejudicada pela visão restrita do óculos de realidade virtual do que pelo peso adicional, sobretudo em elementos com rotação em eixo longitudinal.",
+  "design": "Experimental",
+  "design_conf": "alta",
+  "subvar": "Trave baixa com/sem HMD e com capacete-controle; execução avaliada por juízes",
+  "n": 36,
+  "biomech": false,
+  "methods": [
+   "ANOVA/MMRM",
+   "Psicometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance",
+   "Neuro"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "36 ginastas competitivas do sexo feminino (16,5 ± 6,6 anos).",
+  "resumo": "Doze elementos básicos foram executados na trave baixa com e sem head-mounted display (RV) e com um capacete-controle de peso similar, com juízes avaliando reconhecimento e execução.",
+  "variaveis_biodinamicas": "Qualidade de execução e reconhecimento dos elementos (pontuação de juízes licenciados)",
+  "analise_estatistica": "Comparações entre condições (com/sem HMD e capacete) por característica de movimento",
+  "sintese": "Elementos sem rotação longitudinal são adequados ao treino com HMD; deve-se priorizar resolução óptica e campo de visão sobre baixo peso do equipamento."
  },
  {
   "authors": "Gómez-Landero LA, Santos-Rosa FJ, Reguera-López-de-la-Osa X, Cervelló E",
@@ -2263,6 +2534,45 @@
   "sintese": "Alinhar as percepções de confiança entre parceiros de dupla pode elevar o desempenho no cheerleading acrobático."
  },
  {
+  "authors": "Pritchard NS, Brandt KM, Bullock GS, Kruse DW, Miles CM, Moore JB, Stitzel JD, Urban JE",
+  "year": 2024,
+  "title": "The effect of safety modifications on head kinematics experienced during common skills in women's artistic gymnastics",
+  "journal": "Journal of Sports Sciences",
+  "doi": "10.1080/02640414.2024.2394747",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "biomechanics-technique",
+  "finding": "Modificações de segurança reduziram significativamente a cinemática da cabeça nas fases de contato de timers, solo, saídas de barra e salto, embora as ginastas atinjam magnitudes comparáveis às de esportes de contato juvenis.",
+  "design": "Experimental",
+  "design_conf": "média",
+  "subvar": "Skills executados com progressões de modificação de segurança; sensores bucais",
+  "n": 9,
+  "biomech": true,
+  "methods": [
+   "Cinemática",
+   "ANOVA/MMRM",
+   "Derivadas/taxa",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": true,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "9 ginastas artísticas do sexo feminino (4 iniciantes e 5 avançadas).",
+  "resumo": "Sensores bucais registraram acelerações lineares e rotacionais da cabeça durante skills e suas modificações progressivas de segurança em cinco categorias (timers, solo, barra, salto).",
+  "variaveis_biodinamicas": "Aceleração linear e rotacional pico-a-pico, velocidade rotacional de pico da cabeça",
+  "analise_estatistica": "Modelo de efeitos mistos (status de modificação aninhado em categoria de skill)",
+  "sintese": "Modificações de segurança são eficazes para reduzir o movimento da cabeça e podem apoiar protocolos de retorno pós-concussão na ginástica."
+ },
+ {
   "authors": "de Freitas EG, Debien PB, Silva CD, Carrara PDS, Bara Filho MG",
   "year": 2024,
   "title": "Training-load monitoring in elite youth women's artistic gymnasts: a pilot study",
@@ -2408,6 +2718,42 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Comparação da incidência de lesões entre categorias competitivas (valores de p; teste específico não detalhado, n/d).",
   "sintese": "Ombro e joelho são os focos prioritários de prevenção no nado artístico, com risco crescente conforme aumenta o volume de treino."
+ },
+ {
+  "authors": "Kobayashi JK, Kobayashi EF, Tomasevich KM, Lorens KL, Aoki SK",
+  "year": 2023,
+  "title": "Characterization of Achilles Tendon Ruptures in Collegiate Women's Gymnastics",
+  "journal": "Orthopedics",
+  "doi": "10.3928/01477447-20230224-01",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "training-load",
+  "finding": "95% das rupturas do tendão de Aquiles ocorreram no solo e 98% na fase de impulsão do tumbling, com 46% relatando dor prévia à lesão.",
+  "design": "Transversal",
+  "design_conf": "baixa",
+  "subvar": "Levantamento retrospectivo (survey a preparadores) das equipes femininas da NCAA, 2013-2018",
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "n/d",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Fadiga"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "Ginastas universitárias do sexo feminino de 42 programas da NCAA; 71 rupturas do tendão de Aquiles registradas (2013-2018).",
+  "resumo": "Survey retrospectivo aos preparadores físicos das equipes femininas de ginástica da NCAA caracterizou incidência, dor prévia e habilidades associadas às rupturas do tendão de Aquiles.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "n/d (estatística descritiva de frequências)",
+  "sintese": "As rupturas de Aquiles concentram-se na impulsão do tumbling no solo, indicando alvo prioritário para prevenção e triagem de dor prévia."
  },
  {
   "authors": "Rebelo A, Pereira JR, Martinho DV, Valente-Dos-Santos J",
@@ -3429,6 +3775,45 @@
   "sintese": "A suplementação com cafeína pode potencializar tarefas técnicas específicas do nado artístico, justificando sua consideração em planos de suplementação."
  },
  {
+  "authors": "Opala-Berdzik A, Głowacka M, Słomka KJ",
+  "year": 2021,
+  "title": "Characteristics of Functional Stability in Young Adolescent Female Artistic Gymnasts",
+  "journal": "Journal of Human Kinetics",
+  "doi": "10.2478/hukin-2021-0051",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "motor-pattern",
+  "finding": "Jovens ginastas apresentaram menor 'trembling' (tremor) do centro de pressão que não atletas, sugerindo menor ruído no controle postural, possivelmente por controle superior em nível espinhal.",
+  "design": "Transversal",
+  "design_conf": "média",
+  "subvar": "Teste de limite de estabilidade de 30 s em plataforma de força; ginastas vs não atletas",
+  "n": 22,
+  "biomech": true,
+  "methods": [
+   "Cinética/mecânica",
+   "Derivadas/taxa",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": true,
+  "variables": [
+   "Neuro",
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "22 meninas do sexo feminino de 10-13 anos (10 ginastas artísticas de nível nacional e 12 não atletas).",
+  "resumo": "Comparou-se o controle postural anteroposterior por decomposição rambling-trembling e os limites de estabilidade entre ginastas e não atletas durante inclinação máxima à frente.",
+  "variaveis_biodinamicas": "RMS e velocidade média do centro de pressão, deslocamentos rambling-trembling, limite anterior de estabilidade",
+  "analise_estatistica": "Comparações entre grupos dos subcomponentes direcionais do COP",
+  "sintese": "A prática precoce da ginástica reduz o ruído do controle postural, reforçando o papel do treino no refinamento do controle espinhal do equilíbrio."
+ },
+ {
   "authors": "Hirosawa S, Watanabe M, Aoki Y",
   "year": 2021,
   "title": "Determinant analysis and developing evaluation indicators of grade of execution score of double axel jump in figure skating",
@@ -3503,6 +3888,83 @@
   "variaveis_biodinamicas": "Força isométrica do tronco (testes de flexão e extensão); resistência do core (prone bridge); atividade EMG da musculatura do tronco; composição corporal (massa magra do tronco e massa óssea).",
   "analise_estatistica": "Testes t de amostras independentes (baseline) + ANOVA de medidas repetidas de dois fatores (tempo × grupo).",
   "sintese": "Programas de 12 semanas de core melhoram força, resistência e ativação neuromuscular do tronco, sustentando os elementos técnicos da ginasta rítmica."
+ },
+ {
+  "authors": "Melocchi I, Filipas L, Lovecchio N, De Nardi M, La Torre A, Codella R",
+  "year": 2021,
+  "title": "Effects of different stretching methods on vertical jump ability and range of motion in young female artistic gymnastics athletes",
+  "journal": "The Journal of Sports Medicine and Physical Fitness",
+  "doi": "10.23736/S0022-4707.20.11386-0",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "plyometrics",
+  "finding": "O alongamento dinâmico melhorou o salto vertical (SJ e CMJ), enquanto o alongamento estático aumentou a amplitude de movimento sem prejudicar o salto.",
+  "design": "Experimental",
+  "design_conf": "média",
+  "subvar": "Delineamento cruzado: alongamento dinâmico vs estático vs controle",
+  "n": 8,
+  "biomech": true,
+  "methods": [
+   "Cinética/mecânica",
+   "ANOVA/MMRM",
+   "Tamanho de efeito",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": true,
+  "es_note": "efeito muito grande da condição de alongamento (ANOVA de medidas repetidas)",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "8 ginastas artísticas competitivas do sexo feminino (14 ± 2 anos; IMC 18,8 ± 1,4).",
+  "resumo": "Delineamento cruzado comparou alongamento dinâmico, estático e controle quanto ao salto agachado, CMJ, salto acrobático e amplitude do espacate frontal (oversplit).",
+  "variaveis_biodinamicas": "Altura de salto (SJ, CMJ, salto acrobático) e amplitude do oversplit frontal",
+  "analise_estatistica": "ANOVA de medidas repetidas de uma via com comparações pós-hoc",
+  "sintese": "Usar alongamento dinâmico no aquecimento para potência de salto e reservar o alongamento estático ao final da sessão para ganho de amplitude."
+ },
+ {
+  "authors": "Aguiló A, Lozano L, Tauler P, Nafría M, Colom M, Martínez S",
+  "year": 2021,
+  "title": "Nutritional Status and Implementation of a Nutritional Education Program in Young Female Artistic Gymnasts",
+  "journal": "Nutrients",
+  "doi": "10.3390/nu13051399",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "red-s",
+  "finding": "As ginastas relataram baixa ingestão energética e de carboidratos; um programa educativo de oito meses não melhorou hábitos nem conhecimento nutricional, apesar de marcadores sanguíneos dentro da normalidade.",
+  "design": "Experimental",
+  "design_conf": "baixa",
+  "subvar": "Intervenção quase-experimental de educação nutricional (8 meses, sem grupo-controle)",
+  "n": 24,
+  "biomech": false,
+  "methods": [
+   "Antropometria",
+   "ANOVA/MMRM",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Fadiga"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "24 ginastas artísticas do sexo feminino (14,1 ± 2,3 anos) de centro de tecnificação.",
+  "resumo": "Programa de educação nutricional de sete sessões ao longo de oito meses avaliou ingestão, conhecimento nutricional, antropometria e parâmetros hematológicos/bioquímicos.",
+  "variaveis_biodinamicas": "Ingestão energética e de macronutrientes, medidas antropométricas, hemoglobina, ferritina, vitaminas C e E",
+  "analise_estatistica": "Comparações intra-sujeitos pré vs pós-intervenção",
+  "sintese": "A educação nutricional isolada pode ser insuficiente para corrigir a baixa ingestão energética em ginastas jovens, exigindo abordagens complementares."
  },
  {
   "authors": "Kaufmann JE, Nelissen RGHH, Appleton PR, Gademan MGJ",
@@ -4138,6 +4600,44 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Análise de perfis (clusters, com PCA) + MANOVA.",
   "sintese": "Ajustar o clima motivacional do treinador e apoiar meninas pós-púberes protege autoestima e reduz comportamentos de dieta."
+ },
+ {
+  "authors": "Isacco L, Ennequin G, Cassirame J, Tordi N",
+  "year": 2019,
+  "title": "Physiological Pattern Changes in Response to a Simulated Competition in Elite Women's Artistic Gymnasts",
+  "journal": "Journal of Strength and Conditioning Research",
+  "doi": "10.1519/JSC.0000000000002184",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "physiological",
+  "finding": "As maiores respostas de frequência cardíaca e lactato ocorreram no solo e nas barras assimétricas, e a resistência/potência anaeróbia caiu ao longo da competição simulada.",
+  "design": "Transversal",
+  "design_conf": "média",
+  "subvar": "Competição simulada de 4 aparelhos com medidas fisiológicas por aparelho",
+  "n": 14,
+  "biomech": false,
+  "methods": [
+   "Descritivo",
+   "ANOVA/MMRM"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance",
+   "Fadiga"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "14 ginastas artísticas de elite francesas do sexo feminino.",
+  "resumo": "Mediram-se frequência cardíaca contínua, lactato sanguíneo, preensão manual e desempenho anaeróbio durante uma competição simulada de quatro aparelhos.",
+  "variaveis_biodinamicas": "Frequência cardíaca, lactato sanguíneo, força de preensão, potência e resistência anaeróbia",
+  "analise_estatistica": "Comparações por aparelho e ao longo da competição (medidas repetidas)",
+  "sintese": "As demandas cardiorrespiratórias e anaeróbias são dependentes do aparelho; estratégias de recuperação entre aparelhos ajudam a minimizar a fadiga."
  },
  {
   "authors": "Habeeb CM, Eklund RC, Coffee P",
@@ -4776,6 +5276,45 @@
   "variaveis_biodinamicas": "Potencial evocado motor (MEP) por TMS e inclinação da curva de recrutamento dos músculos extensores/plantiflexores do tornozelo (sóleo).",
   "analise_estatistica": "Comparação entre bailarinas e controles (curvas de recrutamento do MEP); teste específico não detalhado (n/d).",
   "sintese": "O treino de balé promove adaptação corticoespinhal dos plantiflexores, contribuindo para o controle fino do tornozelo na meia-ponta."
+ },
+ {
+  "authors": "Amaral L, Claessens AL, Ferreirinha J, Maia J, Santos P",
+  "year": 2014,
+  "title": "Does ulnar variance change with age and what is the influence of training and biological characteristics in this change? A short-term longitudinal study in Portuguese artistic gymnasts",
+  "journal": "Clinical Journal of Sport Medicine",
+  "doi": "10.1097/JSM.0000000000000070",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "anthropometry-maturation",
+  "finding": "Ao longo de 18 meses, a variância ulnar tornou-se menos negativa nas ginastas, sem correlação consistente com a maioria das variáveis biológicas e de treino.",
+  "design": "Longitudinal",
+  "design_conf": "média",
+  "subvar": "Coorte prospectiva de 18 meses; variância ulnar e maturação",
+  "n": 25,
+  "biomech": false,
+  "methods": [
+   "Antropometria",
+   "ANOVA/MMRM",
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Fadiga"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "25 ginastas artísticas portuguesas do sexo feminino, esqueleticamente imaturas, de nível nacional.",
+  "resumo": "Estudo longitudinal de 18 meses avaliou mudanças na variância ulnar e sua relação com idade óssea, antropometria, preensão manual e volume de treino.",
+  "variaveis_biodinamicas": "Variância ulnar, idade esquelética, estatura, massa corporal, IMC, massa livre de gordura, preensão manual",
+  "analise_estatistica": "ANCOVA (interação idade × tempo) e correlações",
+  "sintese": "A sobrecarga do punho altera a variância ulnar de forma multifatorial, reforçando a vigilância do 'punho do ginasta' durante o crescimento."
  },
  {
   "authors": "Pantoja PD, Mello A, Liedtke GV, Kanitz AC, Cadore EL, Pinto SS, Alberton CL, Kruel LFM",
