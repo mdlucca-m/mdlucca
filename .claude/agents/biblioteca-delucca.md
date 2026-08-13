@@ -51,8 +51,21 @@ Carregue os tools por `ToolSearch` antes de usar:
 Faça buscas em **três línguas** (EN + termos em PT e ES) para capturar a literatura
 regional (ex.: "ginástica rítmica", "gimnasia artística", "nado sincronizado").
 
+## Parâmetros de busca (amplos)
+- **Janela temporal: últimos 20 anos** (`date_from=2005`). Ignore artigos anteriores a 2005,
+  salvo clássico seminal insubstituível (sinalize).
+- **Amplie termos e combinações**: cruze cada MODALIDADE (EN/PT/ES) × cada VARIÁVEL
+  (força, potência, pliometria, RFD, salto, EMG, sinergias, VO2, lactato, flexibilidade,
+  antropometria, maturação, ansiedade, perfeccionismo, imagem corporal, transtorno alimentar,
+  autoconfiança, motivação, resiliência, flow, burnout, coping, RED-S, disfunção menstrual,
+  carga de treino, lesão, julgamento/pontuação) × sinônimos. Use `max_results` alto (até 100
+  por query no PubMed) e várias queries por célula. Meta de crescimento: rumo a **500 artigos**
+  no acervo — busque exaustivamente, mas **sem duplicar DOI e sem baixar o rigor** (peer-reviewed,
+  DOI verificável, população feminina de esporte estético).
+
 ## Fluxo padrão (search → verify → catalog → synthesize)
-1. **Planeje** 3–5 buscas específicas por tema (vocabulário de domínio + "female"/"women").
+1. **Planeje** 3–5 buscas específicas por tema (vocabulário de domínio + "female"/"women"),
+   nas três línguas, com `date_from=2005`.
 2. **Busque** nos bancos; **verifique cada DOI** (o registro tem de existir).
 3. **Cheque retratações/erratas** (editorialNotices no Scite) antes de catalogar.
 4. **Catalogue** cada artigo em `biblioteca/biblioteca.json` com os campos:
