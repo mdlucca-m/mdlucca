@@ -1771,6 +1771,46 @@
   "idioma": "en"
  },
  {
+  "authors": "Eberhardt HK, Ormsbee MJ, Saracino PG",
+  "year": 2025,
+  "title": "A comparison of dietary habits and sleep in adolescent female gymnasts with and without low energy availability",
+  "journal": "Journal of the International Society of Sports Nutrition",
+  "doi": "10.1080/15502783.2025.2550155",
+  "citations": "n/d",
+  "sport": "Ginástica artística (adolescentes femininas)",
+  "topic": "red-s",
+  "finding": "Em 12 ginastas artísticas adolescentes, 50% apresentaram baixa disponibilidade energética (LEA); as ginastas com LEA consumiram significativamente menos calorias (1451±447 vs 2388±458 kcal), proteína (0,8±0,2 vs 1,5±0,4 g/kg) e carboidrato (3,1±0,8 vs 4,8±0,8 g/kg), além de apresentarem prejuízo do sono.",
+  "design": "Transversal",
+  "design_conf": "confirmado",
+  "subvar": "disponibilidade energética, ingestão dietética, qualidade do sono",
+  "n": 12,
+  "biomech": false,
+  "methods": [
+   "recordatório/registro alimentar",
+   "avaliação de sono (questionário/actigrafia)",
+   "cálculo de disponibilidade energética"
+  ],
+  "stats_approach": "comparação entre subgrupos (LEA vs não-LEA)",
+  "effect_size": "diferença de médias substancial entre grupos (~937 kcal/dia na ingestão calórica)",
+  "es_note": "amostra pequena (n=12); resultados devem ser interpretados como preliminares",
+  "roc": "n/d",
+  "derivatives": "disponibilidade energética (kcal/kg massa livre de gordura/dia)",
+  "variables": [
+   "Fadiga"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "12 ginastas artísticas adolescentes",
+  "resumo": "Estudo comparou hábitos alimentares e sono entre ginastas artísticas adolescentes com e sem baixa disponibilidade energética; metade da amostra estava em LEA, com ingestão calórica e de macronutrientes marcadamente reduzida e comprometimento do sono nesse subgrupo.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "estatística descritiva/comparativa entre subgrupos (amostra pequena)",
+  "sintese": "Confirma que a LEA é prevalente mesmo em amostras pequenas de ginastas adolescentes e está associada a pior ingestão nutricional e sono prejudicado, reforçando a interconexão entre RED-S e recovery-readiness.",
+  "idioma": "inglês",
+  "pmcid": "PMC12445184"
+ },
+ {
   "authors": "Yang Y, Deng N, Yang X",
   "year": 2025,
   "title": "A meta-analysis of the effects of strength training on physical fitness in dancers",
@@ -4569,6 +4609,47 @@
   "idioma": "en"
  },
  {
+  "authors": "Besor O, Redlich N, Constantini N, Weiler-Sagie M, Monsonego Ornan E, Lieberman S, Bentur L, Bar-Yoseph R",
+  "year": 2024,
+  "title": "Assessment of Relative Energy Deficiency in Sport (REDs) Risk among Adolescent Acrobatic Gymnasts",
+  "journal": "Journal of Personalized Medicine",
+  "doi": "10.3390/jpm14040363",
+  "citations": "n/d",
+  "sport": "Ginástica acrobática (adolescentes; amostra mista, maioria feminina — 12 de 18)",
+  "topic": "red-s",
+  "finding": "Em 18 ginastas acrobáticos adolescentes (6 meninos, 14,3±1,2 anos), avaliação com DXA, diário alimentar de 3 dias e questionário de risco identificou sinais de REDs em parte da amostra, incluindo indicadores de baixa disponibilidade energética e comprometimento potencial da densidade óssea.",
+  "design": "Transversal",
+  "design_conf": "confirmado",
+  "subvar": "risco de REDs, densidade mineral óssea, disponibilidade energética",
+  "n": 18,
+  "biomech": false,
+  "methods": [
+   "DXA (absorciometria de raios-X de dupla energia)",
+   "diário alimentar de 3 dias",
+   "questionário de risco de REDs",
+   "monitorização de atividade"
+  ],
+  "stats_approach": "estatística descritiva",
+  "effect_size": "n/d",
+  "es_note": "amostra pequena e mista (6 meninos de 18); resultados devem ser generalizados com cautela",
+  "roc": "n/d",
+  "derivatives": "disponibilidade energética estimada",
+  "variables": [
+   "Fadiga"
+  ],
+  "modalities": [
+   "Ginástica acrobática"
+  ],
+  "n_modalities": 1,
+  "amostra": "18 ginastas acrobáticos adolescentes competitivos (6 meninos; 14,3±1,2 anos)",
+  "resumo": "Primeiro estudo a avaliar sistematicamente o risco de REDs em ginastas acrobáticos adolescentes, combinando DXA, diário alimentar e questionário validado, identificando sinais de risco em parcela relevante da amostra.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "estatística descritiva",
+  "sintese": "Preenche lacuna importante na ginástica acrobática — modalidade pouco estudada — mostrando que o risco de REDs também está presente nessa disciplina, não apenas na rítmica e artística.",
+  "idioma": "inglês",
+  "pmcid": "PMC11051467"
+ },
+ {
   "authors": "Everaert J, Fierens B, Steinberg N, Mahaudens P, Balagué F, Gielen P, et al.",
   "year": 2024,
   "title": "Association Between Bone Maturation, Menstrual Cycle, Hypermobility, Scoliosis, and Low Back Pain in Pre-Professional Female Adolescent Dancers",
@@ -4986,6 +5067,47 @@
   "idioma": "en"
  },
  {
+  "authors": "Duboff LA, DiPasquale S, Ives SJ",
+  "year": 2024,
+  "title": "Investigating the Effects of Visual Feedback on Muscle Activity, Heart Rate, RPE, and Perceptions of Performance in Ballet Dancers",
+  "journal": "International Journal of Exercise Science",
+  "doi": "10.70252/XQXM1028",
+  "citations": "n/d",
+  "sport": "Dança (balé; predomínio feminino)",
+  "topic": "perceived-fatigue",
+  "finding": "O uso de feedback visual durante tarefas de balé influenciou a percepção subjetiva de esforço (RPE) e a percepção de desempenho das bailarinas, com respostas concomitantes de frequência cardíaca e atividade muscular (EMG) registradas durante a execução das tarefas.",
+  "design": "Experimental",
+  "design_conf": "confirmado",
+  "subvar": "feedback visual, RPE, frequência cardíaca, atividade muscular",
+  "n": "n/d",
+  "biomech": true,
+  "methods": [
+   "eletromiografia de superfície",
+   "monitorização de frequência cardíaca",
+   "escala de RPE",
+   "manipulação de feedback visual"
+  ],
+  "stats_approach": "comparação intra-sujeito entre condições com/sem feedback visual",
+  "effect_size": "n/d",
+  "es_note": "n/d",
+  "roc": "n/d",
+  "derivatives": "n/d",
+  "variables": [
+   "Fadiga"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "Bailarinas/bailarinos avaliados em condições experimentais com e sem feedback visual (amostra não detalhada nas fontes disponíveis)",
+  "resumo": "Investigou como o feedback visual durante a execução de movimentos de balé afeta a atividade muscular, a frequência cardíaca, o RPE e a percepção subjetiva de desempenho dos bailarinos.",
+  "variaveis_biodinamicas": "atividade eletromiográfica de membros inferiores",
+  "analise_estatistica": "comparação intra-sujeito entre condições experimentais",
+  "sintese": "Fornece evidência inicial de que manipulações de feedback visual podem modular tanto respostas fisiológicas (FC, EMG) quanto perceptuais (RPE) em bailarinos, com implicações para o desenho de treino e ensaio.",
+  "idioma": "inglês",
+  "pmcid": "PMC11385289"
+ },
+ {
   "authors": "MacSweeney NDH, Shaw JW, Simkin GP, Pedlar CR, Price PDB, et al.",
   "year": 2024,
   "title": "Jumping Asymmetries and Risk of Injuries in Preprofessional Ballet",
@@ -5213,6 +5335,46 @@
   "variaveis_biodinamicas": "CMJ e SJ (potência de pico, força de pico na aterrissagem, deslocamento negativo), teste de aterrissagem (tempo de estabilização, força de queda) em plataforma de força",
   "analise_estatistica": "ANOVA de medidas repetidas (interação tempo × grupo)",
   "sintese": "Períodos congestionados de treino comprometem a potência e a absorção de forças de aterrissagem, elevando o risco de lesão em ginastas aeróbicas."
+ },
+ {
+  "authors": "Pessali-Marques B, Burden AM, Morse CI, Onambélé-Pearson GL",
+  "year": 2024,
+  "title": "Musculoskeletal Morphology and Joint Flexibility-Associated Functional Characteristics across Three Time Points during the Menstrual Cycle in Female Contemporary Dancers",
+  "journal": "Journal of Functional Morphology and Kinesiology",
+  "doi": "10.3390/jfmk9010038",
+  "citations": "n/d",
+  "sport": "Dança contemporânea (feminino)",
+  "topic": "menstrual-hormonal",
+  "finding": "Avaliação em três pontos do ciclo menstrual de dançarinas contemporâneas não encontrou mudanças significativas em nível de grupo na morfologia musculoesquelética nem na flexibilidade articular associadas às fases hormonais do ciclo, sugerindo relativa estabilidade funcional ao longo do ciclo nesta população.",
+  "design": "Longitudinal",
+  "design_conf": "confirmado; artigo possui errata publicada posteriormente (correção de dados, sem alteração das conclusões principais)",
+  "subvar": "morfologia musculoesquelética, flexibilidade articular, fase do ciclo menstrual",
+  "n": "n/d (amostra pequena de dançarinas contemporâneas)",
+  "biomech": true,
+  "methods": [
+   "ultrassonografia musculoesquelética",
+   "goniometria/teste de amplitude articular",
+   "monitorização do ciclo menstrual"
+  ],
+  "stats_approach": "comparação intra-sujeito entre três pontos do ciclo",
+  "effect_size": "n/d",
+  "es_note": "ausência de mudanças significativas em nível de grupo — não descarta variabilidade individual",
+  "roc": "n/d",
+  "derivatives": "n/d",
+  "variables": [
+   "Fadiga"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "Dançarinas contemporâneas avaliadas em três pontos do ciclo menstrual (amostra pequena)",
+  "resumo": "Investigou se a morfologia musculoesquelética e a flexibilidade articular de dançarinas contemporâneas variam ao longo do ciclo menstrual, não encontrando alterações significativas de grupo entre as três fases avaliadas.",
+  "variaveis_biodinamicas": "morfologia muscular/tendínea (ultrassom), amplitude de movimento articular",
+  "analise_estatistica": "comparação intra-sujeito entre fases do ciclo menstrual",
+  "sintese": "Contribui para a discussão sobre se flutuações hormonais do ciclo menstrual afetam parâmetros musculoesqueléticos relevantes para dança, com achado de estabilidade relativa que contrasta com preocupações sobre maior risco de lesão em certas fases.",
+  "idioma": "inglês",
+  "pmcid": "PMC10971599"
  },
  {
   "authors": "Benoit-Piau J, Gaudreault N, Vallerand RJ, Fortin S, Guptill C, Morin M",
@@ -5669,6 +5831,46 @@
   "sintese": "Mulheres exibem estratégia neuromuscular distinta (maior rate coding, sem assimetria interlados), relevante como base do controle motor fino feminino."
  },
  {
+  "authors": "Junge A, van Rijn RM, Stubbe JH, Hauschild A",
+  "year": 2024,
+  "title": "Sleeping Beauty? A Prospective Study on the Prevalence of Sleep Problems and Their Potential Determinants in Professional Dancers",
+  "journal": "Sports Medicine - Open",
+  "doi": "10.1186/s40798-024-00798-2",
+  "citations": "n/d",
+  "sport": "Dança profissional (amostra mista, 55,8% feminino)",
+  "topic": "recovery-readiness",
+  "finding": "Em 147 dançarinos profissionais de seis companhias de ópera/teatro europeias (104 completaram acompanhamento semanal), 53% relataram problemas de sono no início da temporada (34,0% leve, 13,6% moderado, 5,4% grave); a qualidade do sono ao longo da temporada relacionou-se à saúde física/mental e à carga de trabalho semanal autorreportada.",
+  "design": "Longitudinal",
+  "design_conf": "confirmado",
+  "subvar": "problemas de sono, saúde física/mental, carga de trabalho semanal",
+  "n": 147,
+  "biomech": false,
+  "methods": [
+   "questionário de linha de base",
+   "relatos de saúde semanais (weekly health reports)",
+   "monitorização prospectiva durante uma temporada"
+  ],
+  "stats_approach": "análise prospectiva longitudinal (correlações semana a semana)",
+  "effect_size": "n/d",
+  "es_note": "amostra mista (55,8% feminino, 44,2% masculino) — incluída com sinalização de composição mista, maioria feminina",
+  "roc": "n/d",
+  "derivatives": "n/d",
+  "variables": [
+   "Fadiga"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "147 dançarinos profissionais de 6 companhias europeias (82 mulheres, 65 homens); 104 completaram o seguimento semanal",
+  "resumo": "Estudo prospectivo acompanhou semanalmente dançarinos profissionais de companhias europeias ao longo de uma temporada, encontrando alta prevalência de problemas de sono no início da temporada e associação da qualidade do sono com saúde física/mental e carga de trabalho.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "análise longitudinal prospectiva com relatos semanais",
+  "sintese": "Amplia a compreensão sobre recovery-readiness em dança profissional, mostrando que problemas de sono são prevalentes e dinamicamente relacionados à carga de trabalho e à saúde geral ao longo da temporada — dado relevante mesmo com amostra mista de gênero.",
+  "idioma": "inglês",
+  "pmcid": "PMC11662107"
+ },
+ {
   "authors": "Eyssartier C, Billard P, Thoreux P, Sauret C",
   "year": 2024,
   "title": "Spine Kinematics Behavior During the Handstand Posture: A Biplanar Radiographic Analysis",
@@ -5858,6 +6060,46 @@
   "idioma": "en"
  },
  {
+  "authors": "Saenz C, Sanders DJ, Brooks SJ, Bracken L, Jordan A, Stoner J, Vatne E, Wahler M, Brown AF",
+  "year": 2024,
+  "title": "The Relationship Between Dance Training Volume, Body Composition, and Habitual Diet in Female Collegiate Dancers: The Intercollegiate Artistic Athlete Research Assessment (TIAARA) Study",
+  "journal": "Nutrients",
+  "doi": "10.3390/nu16213733",
+  "citations": "n/d",
+  "sport": "Dança universitária (feminino)",
+  "topic": "red-s",
+  "finding": "Em 33 dançarinas universitárias, a dieta habitual refletiu baixa ingestão calórica (1399±648 kcal/d; ~20% consumindo ≤1000 kcal/d) e subconsumo de proteína (54,3±26,2 g) e carboidrato (171,8±77,8 g), com composição corporal média de 24,4±6,8% de gordura.",
+  "design": "Transversal",
+  "design_conf": "confirmado",
+  "subvar": "volume de treino em dança, composição corporal, dieta habitual",
+  "n": 33,
+  "biomech": false,
+  "methods": [
+   "registro alimentar",
+   "avaliação de composição corporal (bioimpedância)",
+   "questionário de carga de treino/créditos acadêmicos"
+  ],
+  "stats_approach": "estatística descritiva e correlacional",
+  "effect_size": "n/d",
+  "es_note": "n/d",
+  "roc": "n/d",
+  "derivatives": "ingestão calórica relativa; percentual de gordura corporal",
+  "variables": [
+   "Fadiga"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "33 dançarinas universitárias de três programas (20,4±1,05 anos; IMC 21,3±3,4 kg/m²)",
+  "resumo": "O estudo TIAARA caracterizou volume de treino, composição corporal e dieta habitual de dançarinas universitárias, revelando ingestão calórica frequentemente muito abaixo das necessidades e subconsumo de macronutrientes-chave (proteína e carboidrato).",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "estatística descritiva com análises correlacionais entre volume de treino, composição corporal e dieta",
+  "sintese": "Amplia a evidência de que dançarinas universitárias enfrentam risco nutricional elevado mesmo fora de companhias profissionais, sustentando a necessidade de vigilância de RED-S no ambiente universitário.",
+  "idioma": "inglês",
+  "pmcid": "PMC11547662"
+ },
+ {
   "authors": "Pritchard NS, Brandt KM, Bullock GS, Kruse DW, Miles CM, Moore JB, Stitzel JD, Urban JE",
   "year": 2024,
   "title": "The effect of safety modifications on head kinematics experienced during common skills in women's artistic gymnastics",
@@ -5895,6 +6137,46 @@
   "variaveis_biodinamicas": "Aceleração linear e rotacional pico-a-pico, velocidade rotacional de pico da cabeça",
   "analise_estatistica": "Modelo de efeitos mistos (status de modificação aninhado em categoria de skill)",
   "sintese": "Modificações de segurança são eficazes para reduzir o movimento da cabeça e podem apoiar protocolos de retorno pós-concussão na ginástica."
+ },
+ {
+  "authors": "Kyselovičová O, Zemková E",
+  "year": 2024,
+  "title": "The effects of aerobic gymnastics training on performance-related variables in an elite athlete: a 2-year follow-up study",
+  "journal": "Frontiers in Physiology",
+  "doi": "10.3389/fphys.2024.1380024",
+  "citations": "n/d",
+  "sport": "Ginástica aeróbica (atleta de elite feminina; estudo de caso)",
+  "topic": "physiological",
+  "finding": "Estudo de caso de 24 meses (set/2021-set/2023) com uma ginasta aeróbica de elite mostrou melhora do equilíbrio postural dinâmico (Y-Balance: +6,3% anterior, +2% posteromedial, +4,8% posterolateral), redução do índice de fadiga no teste de saltos repetidos de 60s (de 42% para 22%) e aumento da potência média em extensão/flexão de joelho ao longo do acompanhamento.",
+  "design": "Estudo de caso",
+  "design_conf": "confirmado",
+  "subvar": "equilíbrio postural, resistência muscular de membros inferiores, potência muscular",
+  "n": 1,
+  "biomech": false,
+  "methods": [
+   "Y-Balance Test",
+   "teste de saltos repetidos de 60s",
+   "dinamometria isocinética"
+  ],
+  "stats_approach": "análise descritiva longitudinal de caso único (T0, T1, T2)",
+  "effect_size": "redução do índice de fadiga de 42% para 22% ao longo de 2 anos",
+  "es_note": "estudo de caso único — não generalizável, mas relevante pela escassez de dados em ginástica aeróbica",
+  "roc": "n/d",
+  "derivatives": "índice de fadiga (teste de saltos repetidos)",
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica aeróbica"
+  ],
+  "n_modalities": 1,
+  "amostra": "1 ginasta aeróbica de elite (estudo de caso, acompanhamento de 2 anos)",
+  "resumo": "Acompanhou por 2 anos as adaptações fisiológicas e neuromusculares de uma ginasta aeróbica de elite, mostrando melhora consistente de equilíbrio, resistência à fadiga e potência muscular ao longo do período de treinamento.",
+  "variaveis_biodinamicas": "equilíbrio dinâmico (Y-Balance), potência isocinética de joelho",
+  "analise_estatistica": "descritiva longitudinal (estudo de caso único)",
+  "sintese": "Contribui com dados fisiológicos raros sobre ginástica aeróbica — modalidade sub-representada na literatura — documentando trajetória de adaptação ao treino de alto rendimento ao longo de dois anos.",
+  "idioma": "inglês",
+  "pmcid": "PMC11228265"
  },
  {
   "authors": "Liang F, Hongfeng H, Ying Z",
@@ -6388,6 +6670,47 @@
   "variaveis_biodinamicas": "Perfil carga-velocidade (velocidade concêntrica média do agachamento e do hip thrust de 10-90% de 1-RM), 1-RM back squat e hip thrust, tempo de contato e índice de força reativa (CMJ e drop jump, com e sem balanço de braços).",
   "analise_estatistica": "Comparações intra e entre grupos ao longo do tempo (ANOVA de medidas repetidas/mista); estatística descritiva.",
   "sintese": "O French Contrast Method baseado em velocidade melhora força máxima e potência reativa, apoiando sua inclusão no preparo físico de patinadoras sobre rodas."
+ },
+ {
+  "authors": "Melo X, Arrais I, Marôco JL, Ribeiro PN, Nabais S, Coelho R, Reis J, Angarten V, Fernhall B, Santa-Clara H",
+  "year": 2023,
+  "title": "Effects of kettlebell swing training on cardiorespiratory and metabolic demand to a simulated competition in young female artistic gymnasts",
+  "journal": "PLOS ONE",
+  "doi": "10.1371/journal.pone.0283228",
+  "citations": "n/d",
+  "sport": "Ginástica artística (jovens; feminino)",
+  "topic": "physiological",
+  "finding": "Em 18 ginastas artísticas jovens (13±2 anos), 4 semanas de treino de kettlebell swing (3x/semana, 12x30\"/30\" descanso, ¼ do peso corporal) melhoraram o consumo máximo de oxigênio, enquanto tanto o protocolo de kettlebell quanto o treino habitual reduziram a frequência cardíaca de pico e o lactato sanguíneo durante uma competição simulada.",
+  "design": "Experimental",
+  "design_conf": "confirmado",
+  "subvar": "VO2máx, frequência cardíaca de pico, lactato sanguíneo",
+  "n": 18,
+  "biomech": false,
+  "methods": [
+   "ergoespirometria (VO2máx)",
+   "monitorização de frequência cardíaca",
+   "dosagem de lactato sanguíneo",
+   "competição simulada"
+  ],
+  "stats_approach": "comparação entre grupo experimental (kettlebell) e grupo controle",
+  "effect_size": "n/d",
+  "es_note": "n/d",
+  "roc": "n/d",
+  "derivatives": "VO2máx, lactato de pico",
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "18 ginastas artísticas jovens (13±2 anos), 9 no grupo kettlebell e 9 no grupo comparação",
+  "resumo": "Testou os efeitos de um programa de treino de kettlebell swing sobre a demanda cardiorrespiratória e metabólica de ginastas artísticas jovens durante competição simulada, mostrando melhora do VO2máx apenas no grupo de intervenção, com redução de FC de pico e lactato em ambos os grupos.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "comparação entre grupos (pré/pós-intervenção)",
+  "sintese": "Fornece evidência de que treino complementar de força/potência (kettlebell) pode melhorar especificamente a capacidade aeróbia de ginastas artísticas jovens, contribuindo para o corpo de evidências sobre a demanda fisiológica da modalidade.",
+  "idioma": "inglês",
+  "pmcid": "PMC10124852"
  },
  {
   "authors": "Liu X, Liao Y, Tan J, Duan J, Gao R",
@@ -7082,6 +7405,46 @@
   "idioma": "en"
  },
  {
+  "authors": "Prus D, Mijatovic D, Hadzic V, Ostojic D, Versic S, Zenic N, Jezdimirovic T, Drid P, Zaletel P",
+  "year": 2022,
+  "title": "(Low) Energy Availability and Its Association with Injury Occurrence in Competitive Dance: Cross-Sectional Analysis in Female Dancers",
+  "journal": "Medicina (Kaunas)",
+  "doi": "10.3390/medicina58070853",
+  "citations": "n/d",
+  "sport": "Dança competitiva (feminino)",
+  "topic": "red-s",
+  "finding": "Em 50 dançarinas competitivas (19,8±4,1 anos), regressões multivariadas mostraram maior probabilidade de lesões em tecidos moles em dançarinas mais velhas e naquelas com menor escore de disponibilidade energética, enquanto maior tempo de exposição ao treino associou-se a maior probabilidade de lesões ósseas.",
+  "design": "Transversal",
+  "design_conf": "confirmado",
+  "subvar": "disponibilidade energética, ocorrência de lesões (tecidos moles vs. ósseas)",
+  "n": 50,
+  "biomech": false,
+  "methods": [
+   "questionário de disponibilidade energética (LEAF-Q ou similar)",
+   "antropometria",
+   "registro retrospectivo de lesões"
+  ],
+  "stats_approach": "regressão logística multivariada",
+  "effect_size": "razões de chance reportadas para preditores de lesão (valores específicos não detalhados nas fontes consultadas)",
+  "es_note": "n/d",
+  "roc": "n/d",
+  "derivatives": "escore de disponibilidade energética",
+  "variables": [
+   "Fadiga"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "50 dançarinas competitivas (19,8±4,1 anos)",
+  "resumo": "Analisou a associação entre disponibilidade energética e ocorrência de lesões em dançarinas competitivas, encontrando que menor disponibilidade energética e idade mais avançada se relacionam a lesões de tecidos moles, enquanto maior exposição ao treino se relaciona a lesões ósseas.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "regressão logística multivariada",
+  "sintese": "Fortalece a ligação causal plausível entre baixa disponibilidade energética (componente central do RED-S) e risco aumentado de lesão em dançarinas, distinguindo padrões de risco para tecidos moles versus osso.",
+  "idioma": "inglês",
+  "pmcid": "PMC9319529"
+ },
+ {
   "authors": "Polak E, Gardzińska A, Zadarko-Domaradzka M",
   "year": 2022,
   "title": "Anorexic Readiness Syndrome in Elite Female Acrobatic Gymnasts-International Study",
@@ -7581,6 +7944,48 @@
   "analise_estatistica": "Comparações por sexo; correlações",
   "sintese": "O solo é predominantemente aeróbio com contribuição anaeróbia relevante, justificando condicionamento aeróbio específico e diferenciado por sexo.",
   "idioma": "en"
+ },
+ {
+  "authors": "Smith AB, Gay JL, Arent SM, Sarzynski MA, Emerson DM",
+  "year": 2022,
+  "title": "Examination of the Prevalence of Female Athlete Triad Components among Competitive Cheerleaders",
+  "journal": "International Journal of Environmental Research and Public Health",
+  "doi": "10.3390/ijerph19031375",
+  "citations": "n/d",
+  "sport": "Cheerleading (feminino)",
+  "topic": "red-s",
+  "finding": "Em 19 cheerleaders universitárias (20,3±1,2 anos), 100% apresentaram baixa disponibilidade energética (LEA) nos dias de prática (52,6% com risco de transtorno alimentar concomitante, 47,4% sem); 52,6% relataram disfunção menstrual autorreferida e 14% por avaliação hormonal; nenhuma atleta apresentou baixa densidade mineral óssea.",
+  "design": "Transversal",
+  "design_conf": "confirmado",
+  "subvar": "disponibilidade energética, disfunção menstrual, densidade mineral óssea",
+  "n": 19,
+  "biomech": false,
+  "methods": [
+   "registro alimentar e de exercício de 7 dias com monitorização de FC",
+   "testes metabólicos",
+   "triagem de transtorno alimentar",
+   "avaliação hormonal",
+   "densitometria óssea (DXA)"
+  ],
+  "stats_approach": "estatística descritiva (prevalência dos três componentes da tríade)",
+  "effect_size": "n/d",
+  "es_note": "n/d",
+  "roc": "n/d",
+  "derivatives": "disponibilidade energética (kcal/kg massa livre de gordura/dia)",
+  "variables": [
+   "Fadiga"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "19 cheerleaders universitárias competitivas (20,3±1,2 anos)",
+  "resumo": "Avaliou a prevalência dos três componentes da Tríade da Atleta Feminina em cheerleaders competitivas, encontrando LEA em toda a amostra nos dias de treino e disfunção menstrual em mais da metade, mas sem casos de baixa densidade óssea.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "estatística descritiva de prevalência",
+  "sintese": "Cheerleading emerge como modalidade de alto risco para componentes da Tríade/RED-S, comparável a balé, natação artística, patinação e ginástica — reforçando a necessidade de incluir essa modalidade no rastreamento sistemático de saúde da atleta.",
+  "idioma": "inglês",
+  "pmcid": "PMC8835590"
  },
  {
   "authors": "Rauer T, Pape HC, Knobe M, Pohlemann T, Ganse B",
@@ -8803,6 +9208,46 @@
   "sintese": "Usar alongamento dinâmico no aquecimento para potência de salto e reservar o alongamento estático ao final da sessão para ganho de amplitude."
  },
  {
+  "authors": "Torres-McGehee TM, Emerson DM, Pritchett K, Moore EM, Smith AB, Uriegas NA",
+  "year": 2021,
+  "title": "Energy Availability With or Without Eating Disorder Risk in Collegiate Female Athletes and Performing Artists",
+  "journal": "Journal of Athletic Training",
+  "doi": "10.4085/jat0502-20",
+  "citations": "n/d",
+  "sport": "Multiesportivo universitário incluindo dança/artes performáticas (feminino)",
+  "topic": "red-s",
+  "finding": "Atletas e artistas performáticas universitárias femininas (incluindo dançarinas) apresentaram baixa disponibilidade energética de magnitude semelhante independentemente do risco de transtorno alimentar concomitante, sugerindo que a restrição energética pode ocorrer sem intenção consciente de restringir a ingestão.",
+  "design": "Transversal",
+  "design_conf": "confirmado",
+  "subvar": "disponibilidade energética, risco de transtorno alimentar",
+  "n": "n/d",
+  "biomech": false,
+  "methods": [
+   "cálculo de disponibilidade energética",
+   "triagem de risco de transtorno alimentar"
+  ],
+  "stats_approach": "comparação entre grupos com/sem risco de transtorno alimentar",
+  "effect_size": "n/d",
+  "es_note": "n/d",
+  "roc": "n/d",
+  "derivatives": "disponibilidade energética (kcal/kg massa livre de gordura/dia)",
+  "variables": [
+   "Fadiga"
+  ],
+  "modalities": [
+   "Dança",
+   "Outro"
+  ],
+  "n_modalities": 2,
+  "amostra": "Atletas universitárias femininas e artistas performáticas (incluindo dançarinas); amostra multiesportiva",
+  "resumo": "Comparou a disponibilidade energética de atletas e artistas performáticas universitárias femininas com e sem risco de transtorno alimentar, encontrando LEA similar em ambos os grupos.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "comparação entre grupos (com/sem risco de TA)",
+  "sintese": "Sugere que a baixa disponibilidade energética em dançarinas e atletas universitárias pode ocorrer de forma não intencional, reforçando a necessidade de triagem de RED-S independentemente da presença de sintomas de transtorno alimentar evidentes.",
+  "idioma": "inglês",
+  "pmcid": "PMC8448477"
+ },
+ {
   "authors": "Bellver M, Drobnic F, Jovell E, Ferrer-Roca V, Abalos X, Del Rio L, Trilla A",
   "year": 2021,
   "title": "Jumping rope and whole-body vibration program effects on bone values in Olympic artistic swimmers",
@@ -8840,6 +9285,45 @@
   "analise_estatistica": "Comparações pré-pós",
   "sintese": "Impacto por corda e vibração eleva a DMO e mitiga o risco ósseo do nado artístico.",
   "idioma": "en"
+ },
+ {
+  "authors": "Kontele I, Grammatikopoulou MG, Vassilakou T",
+  "year": 2021,
+  "title": "Level of Adherence to the Mediterranean Diet and Weight Status among Adolescent Female Gymnasts: A Cross-Sectional Study",
+  "journal": "Children (Basel)",
+  "doi": "10.3390/children8121135",
+  "citations": "n/d",
+  "sport": "Ginástica (adolescentes femininas; modalidade não especificada)",
+  "topic": "red-s",
+  "finding": "Em 269 ginastas adolescentes (11-18 anos), 34,9% apresentaram alta adesão à dieta mediterrânea (KIDMED), associada a IMC mais saudável; cerca de 10% estavam abaixo do peso e 5,6% acima do peso, com hábitos específicos (consumo de castanhas, baixo fast-food) relacionados ao IMC.",
+  "design": "Transversal",
+  "design_conf": "confirmado",
+  "subvar": "adesão à dieta mediterrânea, status de peso",
+  "n": 269,
+  "biomech": false,
+  "methods": [
+   "questionário KIDMED",
+   "medidas antropométricas autorreferidas (peso/altura)"
+  ],
+  "stats_approach": "estatística descritiva e associativa",
+  "effect_size": "n/d",
+  "es_note": "n/d",
+  "roc": "n/d",
+  "derivatives": "IMC calculado a partir de peso/altura autorreferidos",
+  "variables": [
+   "Fadiga"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "269 ginastas adolescentes femininas (11-18 anos)",
+  "resumo": "Estudo transversal avaliou adesão à dieta mediterrânea e status de peso em ginastas adolescentes, encontrando associação entre maior adesão dietética e IMC mais saudável, com subgrupo relevante de baixo peso.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "estatística descritiva e testes de associação (KIDMED × IMC)",
+  "sintese": "Contribui para o mapeamento nutricional de ginastas jovens, mostrando que padrão dietético de qualidade se associa a peso mais saudável, mas mantendo preocupação com subgrupo de baixo peso característico de esportes estéticos.",
+  "idioma": "inglês",
+  "pmcid": "PMC8700392"
  },
  {
   "authors": "Aguiló A, Lozano L, Tauler P, Nafría M, Colom M, Martínez S",
