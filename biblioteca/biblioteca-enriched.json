@@ -941,6 +941,42 @@
   "sintese": "Perfis maturacionais e ósseos diferem por disciplina, sugerindo 'normas' etárias específicas para individualizar o treino e prevenir lesões musculoesqueléticas."
  },
  {
+  "authors": "Iglesias, Rodríguez-Zamora, Carrasco-Marginet, Irurtia, Rodríguez, Fernández-Jarillo, Chaverri",
+  "year": 2025,
+  "title": "Physiological responses to full and segmented duet routines in elite artistic swimmers",
+  "journal": "PLoS ONE",
+  "doi": "10.1371/journal.pone.0333791",
+  "citations": "n/d",
+  "sport": "Nado artístico",
+  "topic": "physiological",
+  "finding": "Durante rotinas de dueto livre, o VO2 atingiu ~90% do pico em 67 s e o lactato chegou a 5,93 mmol/L, com resposta bradicárdica nas apneias; apneias curtas (<20 s) isoladas não alteraram VO2/lactato.",
+  "design": "Transversal experimental (protocolo segmentado)",
+  "design_conf": "moderada",
+  "subvar": "VO2, lactato, FC",
+  "n": 16,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Comparações entre pontos de medida (pré/pós-apneia)",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1,
+  "amostra": "16 nadadoras artísticas de elite",
+  "resumo": "Análise das respostas fisiológicas agudas (VO2 por retroextrapolação, lactato, FC) em rotinas de dueto livre de nado artístico de elite.",
+  "variaveis_biodinamicas": "VO2, concentração de lactato sanguíneo, frequência cardíaca",
+  "analise_estatistica": "Comparações entre pontos de medida",
+  "sintese": "Rotinas de nado artístico impõem elevada demanda aeróbia e láctica com bradicardia por apneia."
+ },
+ {
   "authors": "Fukuyama H, Maeo S, Kusagawa Y, Isaka T",
   "year": 2025,
   "title": "Plantar intrinsic foot muscle activity during single-legged and bipedal tiptoe standing in ballet dancers",
@@ -1316,6 +1352,44 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Regressão/correlação (modelos de associação da DMO com idade e IMC).",
   "sintese": "A baixa DMO das bailarinas reforça a necessidade de vigilância de RED-S e de fatores de risco ósseo na dança."
+ },
+ {
+  "authors": "Ilić, Marinković, Herodek, Vlašić, Jovanović",
+  "year": 2024,
+  "title": "Effects of modern dance programs on improving health-related physical fitness in girls",
+  "journal": "Frontiers in Public Health",
+  "doi": "10.3389/fpubh.2024.1425974",
+  "citations": "n/d",
+  "sport": "Dança",
+  "topic": "physical-determinants",
+  "finding": "Programas de dança moderna (6 meses) melhoraram a aptidão física relacionada à saúde de meninas de 7-11 anos, aumentando massa muscular, força, resistência muscular e aptidão aeróbia.",
+  "design": "Longitudinal com grupos experimentais e controle",
+  "design_conf": "moderada",
+  "subvar": "Força, resistência, aptidão aeróbia",
+  "n": 203,
+  "biomech": false,
+  "methods": [
+   "ANOVA/MMRM",
+   "Antropometria",
+   "Descritivo"
+  ],
+  "stats_approach": "Comparações inicial-final (bateria ALPHA)",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "203 meninas de 7-11 anos (102 controle, 101 em programa de dança moderna)",
+  "resumo": "Estudo longitudinal com bateria ALPHA mostrando que a dança moderna melhora a aptidão física relacionada à saúde (composição corporal, força, resistência, aeróbio) em meninas escolares.",
+  "variaveis_biodinamicas": "Força muscular, resistência muscular, aptidão aeróbia, composição corporal",
+  "analise_estatistica": "ANOVA (medidas inicial vs final)",
+  "sintese": "A dança moderna melhora a aptidão física relacionada à saúde em meninas."
  },
  {
   "authors": "Laski V, Ureczky D, Wilhelm M",
@@ -1807,6 +1881,43 @@
   "sintese": "Mulheres exibem estratégia neuromuscular distinta (maior rate coding, sem assimetria interlados), relevante como base do controle motor fino feminino."
  },
  {
+  "authors": "Ngo, Lu, Cloak, Wong, Devonport, Wyon",
+  "year": 2024,
+  "title": "Strength and conditioning in dance: A systematic review and meta-analysis",
+  "journal": "European Journal of Sport Science",
+  "doi": "10.1002/ejsc.12111",
+  "citations": "n/d",
+  "sport": "Dança (misto)",
+  "topic": "muscular-power",
+  "finding": "Treinamento de força e condicionamento melhorou significativamente a potência de MMII (g=0,90), a força de MMII (g=1,59), a força de MMSS (g=0,98) e a flexibilidade em bailarinos.",
+  "design": "Revisão sistemática com meta-análise",
+  "design_conf": "alta",
+  "subvar": "Potência MMII, força, flexibilidade",
+  "n": 36,
+  "biomech": false,
+  "methods": [
+   "Tamanho de efeito",
+   "Descritivo"
+  ],
+  "stats_approach": "Meta-análise de tamanhos de efeito (Hedges g) com forest plots; QualSyst",
+  "effect_size": true,
+  "es_note": "Hedges g 0,86-1,59 para potência, força e flexibilidade",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "36 estudos com bailarinos (>16 anos), ambos os sexos",
+  "resumo": "Meta-análise de 36 estudos mostrando que intervenções de força e condicionamento melhoram qualidades físicas (potência, força, flexibilidade) em bailarinos.",
+  "variaveis_biodinamicas": "Potência de membros inferiores, força de MMSS/MMII, flexibilidade",
+  "analise_estatistica": "Meta-análise de efeitos (Hedges g)",
+  "sintese": "Força e condicionamento suplementar melhora qualidades físicas em bailarinos."
+ },
+ {
   "authors": "Habeeb CM, Stephen SA, Eklund RC",
   "year": 2024,
   "title": "Team Efficacy Profiles: Congruence Predicts Objective Performance of Athlete Pairs",
@@ -2070,6 +2181,43 @@
   "sintese": "Cultura de treino empoderadora protege a saúde mental — reduz a violência psicológica percebida."
  },
  {
+  "authors": "Ambegaonkar, Hansen-Honeycutt, Wiese, Cavanagh, Caswell, Ambegaonkar, Martin",
+  "year": 2023,
+  "title": "Female Collegiate Dancers' Physical Fitness across Their Four-Year Programs: A Prospective Analysis",
+  "journal": "Journal of Functional Morphology and Kinesiology",
+  "doi": "10.3390/jfmk8030098",
+  "citations": "n/d",
+  "sport": "Dança",
+  "topic": "physical-determinants",
+  "finding": "A aptidão física de bailarinas universitárias (potência de MMII por salto unipodal, força-resistência de core/MMSS, equilíbrio) manteve-se inalterada do 1º ao 4º ano, exceto melhora na simetria de equilíbrio.",
+  "design": "Coorte prospectiva longitudinal (calouro→formando)",
+  "design_conf": "moderada",
+  "subvar": "Salto unipodal, prancha, equilíbrio",
+  "n": 23,
+  "biomech": false,
+  "methods": [
+   "ANOVA/MMRM",
+   "Descritivo"
+  ],
+  "stats_approach": "ANOVA de medidas repetidas",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "23 bailarinas universitárias (calouras ~18,2 anos), avaliadas do 1º ao 4º ano",
+  "resumo": "Estudo prospectivo mostrando estabilidade da aptidão física de bailarinas ao longo da graduação, sugerindo o valor de base como referência para reabilitação/retorno.",
+  "variaveis_biodinamicas": "Distância do salto unipodal (%estatura, LSI), tempos de prancha, alcance de equilíbrio",
+  "analise_estatistica": "ANOVA de medidas repetidas",
+  "sintese": "A aptidão física de bailarinas universitárias permanece estável ao longo do curso."
+ },
+ {
   "authors": "Dondin M, Baeza-Velasco C",
   "year": 2023,
   "title": "Joint hypermobility and fatigue are associated with injuries in pre-professional ballet dancers",
@@ -2180,6 +2328,44 @@
   "variaveis_biodinamicas": "EMG de alta densidade (64 canais) dos músculos intrínsecos plantares — nível de ativação e coeficiente de variação temporal (EMG-CV) — e variáveis do centro de pressão (desvios ântero-posterior/médio-lateral, velocidade, área) a 20°, 40° e 60° de flexão plantar.",
   "analise_estatistica": "Comparações dançarinas vs. não dançarinas (n/d o teste específico) e correlações entre variáveis de COP e EMG (r = 0,468-0,807).",
   "sintese": "A estabilidade na meia-ponta depende de ativação plantar baixa e estável, não elevada — variabilidade temporal reduzida é a chave."
+ },
+ {
+  "authors": "Escobar-Álvarez, Jiménez-Reyes, Da Conceição, Fuentes-García",
+  "year": 2022,
+  "title": "Effect of Supplementary Physical Training on Vertical Jump Height in Professional Ballet Dancers",
+  "journal": "International Journal of Sports Physiology and Performance",
+  "doi": "10.1123/ijspp.2021-0513",
+  "citations": "n/d",
+  "sport": "Dança (misto)",
+  "topic": "plyometrics",
+  "finding": "Nove semanas de treino pliométrico ou combinado aumentaram a altura de CMJ, SJ e do sauté, com forte transferência para o salto específico do balé.",
+  "design": "Ensaio controlado com grupos experimentais e controle (pré-pós)",
+  "design_conf": "alta",
+  "subvar": "CMJ, SJ, sauté",
+  "n": 81,
+  "biomech": false,
+  "methods": [
+   "ANOVA/MMRM",
+   "Regressão/correlação",
+   "Tamanho de efeito"
+  ],
+  "stats_approach": "Comparações pré-pós com tamanho de efeito e correlações",
+  "effect_size": true,
+  "es_note": "Aumentos de efeito médio a grande em CMJ, SJ e sauté",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "81 bailarinos clássicos profissionais (41 mulheres, 40 homens), ~23 anos",
+  "resumo": "Treino pliométrico e combinado adicionado à rotina por 9 semanas elevou a capacidade de salto (CMJ, SJ, sauté) em bailarinos profissionais.",
+  "variaveis_biodinamicas": "Altura de CMJ, SJ e sauté",
+  "analise_estatistica": "ANOVA pré-pós; correlações; tamanho de efeito",
+  "sintese": "Treino pliométrico/combinado melhora o salto vertical e específico no balé."
  },
  {
   "authors": "Deng C, Yu Q, Luo G, Lu S",
@@ -2369,6 +2555,44 @@
   "sintese": "O ambiente competitivo da GR carrega estressores relacionais e de imagem corporal, apontando a necessidade de melhorar comunicação e clima entre atleta, treinador e família."
  },
  {
+  "authors": "Bartol, Vauhnik, Rugelj",
+  "year": 2022,
+  "title": "Influence of the sport specific training background on the symmetry of the single legged vertical counter movement jump among female ballet dancers and volleyball players",
+  "journal": "Heliyon",
+  "doi": "10.1016/j.heliyon.2022.e10669",
+  "citations": "n/d",
+  "sport": "Dança",
+  "topic": "muscular-power",
+  "finding": "Bailarinas apresentaram CMJ unilateral mais simétrico (altura, potência, energia) que jogadoras de voleibol, embora estas saltassem mais alto no CMJ bilateral.",
+  "design": "Transversal comparativo (plataforma de força)",
+  "design_conf": "moderada",
+  "subvar": "CMJ unilateral, assimetria",
+  "n": 30,
+  "biomech": true,
+  "methods": [
+   "Cinética/mecânica",
+   "ANOVA/MMRM"
+  ],
+  "stats_approach": "ANOVA de medidas repetidas 2×2 (esporte × perna)",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance",
+   "Neuro"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "15 bailarinas e 15 jogadoras de voleibol (18-24 anos)",
+  "resumo": "Comparação em plataforma de força mostrou CMJ unilateral mais simétrico nas bailarinas; o background de treino explicaria o déficit contralateral.",
+  "variaveis_biodinamicas": "Altura do salto, potência, energia, tempo de voo, tempo até força máxima na aterrissagem",
+  "analise_estatistica": "ANOVA de medidas repetidas 2×2",
+  "sintese": "O treino de balé associa-se a maior simetria de potência no CMJ unilateral."
+ },
+ {
   "authors": "Smith AB, Gay JL, Monsma EV, Arent SM, Sarzynski MA, Emerson DM, Torres-McGehee TM",
   "year": 2022,
   "title": "Investigation of Eating Disorder Risk and Body Image Dissatisfaction among Female Competitive Cheerleaders",
@@ -2406,6 +2630,81 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "EAT-26, silhuetas figurais específicas por sexo, ANOVA com eta-quadrado e testes de qui-quadrado",
   "sintese": "Reforça a necessidade de vigilância de transtornos alimentares e de repensar uniformes e o discurso do treinador sobre o corpo no cheerleading."
+ },
+ {
+  "authors": "Bentley, Viana, Logan-Sprenger",
+  "year": 2022,
+  "title": "Metabolic and Performance Responses to a Simulated Routine in Elite Artistic Swimmers",
+  "journal": "Sports (Basel)",
+  "doi": "10.3390/sports10120190",
+  "citations": "n/d",
+  "sport": "Nado artístico",
+  "topic": "physiological",
+  "finding": "Mais da metade da rotina foi realizada submersa; o VO2máx correlacionou-se fortemente ao tempo total submerso (r=-0,93), indicando a capacidade aeróbia como variável de desempenho-chave.",
+  "design": "Transversal (rotina simulada)",
+  "design_conf": "moderada",
+  "subvar": "VO2máx, equilíbrio ácido-base, lactato",
+  "n": 6,
+  "biomech": false,
+  "methods": [
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Correlações de Pearson",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1,
+  "amostra": "6 nadadoras artísticas de elite",
+  "resumo": "Investigação da relação entre tempo submerso, frequência de movimentos e equilíbrio ácido-base em rotina simulada, evidenciando o VO2máx como variável de desempenho.",
+  "variaveis_biodinamicas": "pH, pCO2, pO2, HCO3-, K+, lactato, VO2máx",
+  "analise_estatistica": "Correlação de Pearson",
+  "sintese": "A capacidade aeróbia (VO2máx) é determinante do desempenho no nado artístico."
+ },
+ {
+  "authors": "Kolokythas, Metsios, Galloway, Allen, Wyon",
+  "year": 2022,
+  "title": "Neuromuscular Training in Pre-Professional Ballet Dancers: A Feasibility Randomized Controlled Trial",
+  "journal": "Journal of Dance Medicine & Science",
+  "doi": "10.12678/1089-313X.091522e",
+  "citations": "n/d",
+  "sport": "Dança (sexo n/e)",
+  "topic": "neuromuscular-capacity",
+  "finding": "ECR de viabilidade do treino neuromuscular '11+ Dance' em bailarinos pré-profissionais: baixa adesão (38%) e sem diferenças significativas em CMJ, índice de força reativa e IMTP.",
+  "design": "Ensaio controlado randomizado de viabilidade",
+  "design_conf": "moderada",
+  "subvar": "CMJ, RSI, IMTP",
+  "n": 22,
+  "biomech": false,
+  "methods": [
+   "ANOVA/MMRM",
+   "Descritivo"
+  ],
+  "stats_approach": "ANOVA de medidas repetidas; métricas de viabilidade (adesão/fidelidade)",
+  "effect_size": true,
+  "es_note": "η² pequenos e não significativos para CMJ, RSI e IMTP",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro",
+   "Performance"
+  ],
+  "modalities": [
+   "Dança"
+  ],
+  "n_modalities": 1,
+  "amostra": "22 bailarinos pré-profissionais randomizados (intervenção vs controle)",
+  "resumo": "ECR de viabilidade do treino neuromuscular 11+ Dance; adesão baixa e ausência de mudanças significativas em CMJ, RSI e IMTP, com recomendações de ajuste de protocolo.",
+  "variaveis_biodinamicas": "CMJ, índice de força reativa (RSI), pico de força isométrica (IMTP)",
+  "analise_estatistica": "ANOVA de medidas repetidas",
+  "sintese": "A viabilidade do treino neuromuscular no balé exige ajustes; sem efeito neuromuscular detectável."
  },
  {
   "authors": "Santos-Rosa FJ, Montero-Carretero C, Gómez-Landero LA, Torregrossa M, Cervelló E",
@@ -3044,6 +3343,81 @@
   "sintese": "Um modelo morfofuncional de 9 critérios prediz sucesso no nado artístico; flexibilidade e índices respiratórios/hipóxicos são os mais informativos."
  },
  {
+  "authors": "Badau, Szabo-Csifo, Ciulea, Alexandrescu, Badau",
+  "year": 2021,
+  "title": "The Effects Induced by a Specific Program on the Development of Segmental Flexibility in Athletes Aged 7-14 in Synchronized Swimming",
+  "journal": "Children (Basel)",
+  "doi": "10.3390/children9010017",
+  "citations": "n/d",
+  "sport": "Nado artístico",
+  "topic": "physical-determinants",
+  "finding": "A flexibilidade segmentar (tronco, quadril, ombro) de meninas de 7-14 anos no nado sincronizado evoluiu com a idade e com o tempo de prática, com maiores ganhos nos grupos de 13-14 anos.",
+  "design": "Transversal por grupos etários e tempo de prática",
+  "design_conf": "moderada",
+  "subvar": "Flexibilidade de tronco, quadril, ombro",
+  "n": 112,
+  "biomech": false,
+  "methods": [
+   "ANOVA/MMRM",
+   "Descritivo"
+  ],
+  "stats_approach": "ANOVA multifatorial (teste F); Kolmogorov-Smirnov",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1,
+  "amostra": "112 meninas de 7-14 anos praticantes de nado sincronizado",
+  "resumo": "Avaliação da flexibilidade segmentar em jovens praticantes de nado sincronizado, mostrando aumento com a idade e o tempo de treino.",
+  "variaveis_biodinamicas": "Amplitude de flexão de tronco, ombro e quadril (5 testes)",
+  "analise_estatistica": "ANOVA multifatorial (teste F)",
+  "sintese": "A flexibilidade segmentar no nado sincronizado aumenta com idade e tempo de prática."
+ },
+ {
+  "authors": "Webb, Kenning, Guzman, Slater, Mangum",
+  "year": 2021,
+  "title": "The Lumbopelvic-Hip Complex Contribution During Lower Extremity Screening Tests in Elite Figure Skaters",
+  "journal": "Journal of Athletic Training",
+  "doi": "10.4085/1062-6050-0373.21",
+  "citations": "n/d",
+  "sport": "Patinação artística (misto)",
+  "topic": "neuromuscular-capacity",
+  "finding": "Em patinadores artísticos de elite, mulheres tiveram melhor escore Y-balance e resistência de ponte de quadril; o deslocamento medial do joelho no agachamento/salto unipodal sugeriu fraqueza de abdutores do quadril.",
+  "design": "Transversal",
+  "design_conf": "moderada",
+  "subvar": "Y-balance, ponte de quadril, SLSJ",
+  "n": 40,
+  "biomech": false,
+  "methods": [
+   "ANOVA/MMRM",
+   "Descritivo"
+  ],
+  "stats_approach": "MANOVA com post-hoc t; t pareado entre membros",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro",
+   "Performance"
+  ],
+  "modalities": [
+   "Patinação artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "40 patinadores artísticos de elite (20 mulheres, 20 homens; ~23 anos)",
+  "resumo": "Estudo transversal comparando controle neuromuscular lombopélvico-quadril por sexo e membro em patinadores de elite; mulheres tiveram melhor equilíbrio e resistência de quadril.",
+  "variaveis_biodinamicas": "Y-balance (alcance normalizado), tempo de ponte de quadril, deslocamento medial do joelho no SLS/SLSJ",
+  "analise_estatistica": "MANOVA; testes t independentes e pareados",
+  "sintese": "O controle neuromuscular lombopélvico difere por sexo em patinadores artísticos."
+ },
+ {
   "authors": "Molnar DS, Blackburn M, Zinga D, Spadafora N, Methot-Jones T, Connolly M",
   "year": 2021,
   "title": "Trait perfectionism and dance goals among young female dancers: the 2x2 model",
@@ -3303,6 +3677,44 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "EDI-3 RF, LEAF-Q, qui-quadrado e correlação de Pearson",
   "sintese": "Indica necessidade de triagem de comportamento alimentar e de energia disponível em cheerleaders e dançarinas de elite."
+ },
+ {
+  "authors": "Solana-Tramunt, Morales, Buscà, Carbonell, Rodríguez-Zamora",
+  "year": 2019,
+  "title": "Heart-Rate Variability in Elite Synchronized Swimmers",
+  "journal": "International Journal of Sports Physiology and Performance",
+  "doi": "10.1123/ijspp.2018-0538",
+  "citations": "n/d",
+  "sport": "Nado artístico",
+  "topic": "physiological",
+  "finding": "A variabilidade da frequência cardíaca isolada pode ser ambígua para monitorar a carga em nadadoras sincronizadas de elite; o lactato (6,8 mmol/L) correlacionou-se com variações de LnRMSSD e cortisol.",
+  "design": "Transversal observacional (monitoramento de carga)",
+  "design_conf": "moderada",
+  "subvar": "HRV, lactato, cortisol",
+  "n": 12,
+  "biomech": false,
+  "methods": [
+   "Regressão/correlação",
+   "Descritivo"
+  ],
+  "stats_approach": "Correlações; inferências baseadas em magnitude; menor mudança relevante",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Neuro",
+   "Performance"
+  ],
+  "modalities": [
+   "Nado artístico"
+  ],
+  "n_modalities": 1,
+  "amostra": "12 nadadoras sincronizadas de elite (~21,5 anos)",
+  "resumo": "Monitoramento de HRV, lactato, cortisol e PSE em nadadoras sincronizadas antes do Mundial 2015; a HRV isolada mostrou-se ambígua devido ao reflexo de mergulho.",
+  "variaveis_biodinamicas": "LnRMSSD (HRV), lactato, cortisol salivar, PSE, frequência cardíaca",
+  "analise_estatistica": "Correlações; inferências baseadas em magnitude",
+  "sintese": "O reflexo de mergulho limita a interpretação da HRV como marcador de carga no nado sincronizado."
  },
  {
   "authors": "Kipp LE, Bolter ND, Phillips Reichter A",
@@ -3795,6 +4207,43 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "n/d (revisão narrativa).",
   "sintese": "Transtornos alimentares em ginastas de elite exigem abordagem sensível ao contexto, dada a complexidade conceitual e ética do diagnóstico."
+ },
+ {
+  "authors": "Outevsky, Martin",
+  "year": 2015,
+  "title": "Conditioning Methodologies for DanceSport: Lessons from Gymnastics, Figure Skating, and Concert Dance Research",
+  "journal": "Medical Problems of Performing Artists",
+  "doi": "10.21091/mppa.2015.4043",
+  "citations": "n/d",
+  "sport": "Dança (misto)",
+  "topic": "physical-determinants",
+  "finding": "Revisão que identifica metodologias de condicionamento da ginástica, patinação artística e dança de concerto (periodização, condicionamento aeróbio/anaeróbio, amplitude de movimento) transferíveis ao dancesport.",
+  "design": "Revisão sistemática (PRISMA)",
+  "design_conf": "moderada",
+  "subvar": "Condicionamento, periodização, ADM",
+  "n": 41,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "Síntese qualitativa (PRISMA)",
+  "effect_size": false,
+  "es_note": "—",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Performance"
+  ],
+  "modalities": [
+   "Dança",
+   "Patinação artística"
+  ],
+  "n_modalities": 2,
+  "amostra": "41 artigos incluídos (ginástica, patinação artística, dança)",
+  "resumo": "Revisão sistemática que adapta metodologias de condicionamento de esportes estéticos (incluindo patinação artística) ao dancesport.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "n/d",
+  "sintese": "Estratégias de condicionamento de esportes estéticos são transferíveis entre modalidades."
  },
  {
   "authors": "Sawers A, Allen JL, Ting LH",
