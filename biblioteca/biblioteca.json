@@ -594,6 +594,17 @@
   "finding": "Entre dançarinos, as estratégias de trabalho emocional (sobretudo a expressão de emoções naturalmente sentidas) mediaram os efeitos da autoconsciência privada e pública sobre a experiência de flow, tanto no palco quanto em aulas online."
  },
  {
+  "authors": "Greither T, Ohlert J",
+  "year": 2023,
+  "title": "Empowering and disempowering climate and experiences of psychological violence in artistic gymnastics",
+  "journal": "Ger J Exerc Sport Res",
+  "doi": "10.1007/s12662-023-00886-7",
+  "citations": "n/d",
+  "sport": "Ginástica artística (amostra mista, sexo não detalhado)",
+  "topic": "motivational-climate",
+  "finding": "Clima motivacional empoderador associa-se a menor percepção de violência psicológica na ginástica artística."
+ },
+ {
   "authors": "Dondin M, Baeza-Velasco C",
   "year": 2023,
   "title": "Joint hypermobility and fatigue are associated with injuries in pre-professional ballet dancers",
@@ -746,6 +757,17 @@
   "sport": "Ginástica infantil feminina (rítmica/artística)",
   "topic": "body-image",
   "finding": "Ginastas pré-adolescentes relataram maior satisfação com a aparência corporal (autoestima) que pares sedentárias, contrariando a expectativa de maior insatisfação corporal na modalidade."
+ },
+ {
+  "authors": "Donti O, Donti A, Gaspari V, Pleksida P, Psychountaki M",
+  "year": 2021,
+  "title": "Are they too perfect to eat healthy? Association between eating disorder symptoms and perfectionism in adolescent rhythmic gymnasts",
+  "journal": "Eat Behav",
+  "doi": "10.1016/j.eatbeh.2021.101514",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "perfectionism",
+  "finding": "Perfeccionismo elevado acompanha mais sintomas de transtorno alimentar em ginastas rítmicas adolescentes, sobretudo de elite."
  },
  {
   "authors": "Straker R, Exell TA, Farana R, Hamill J, Irwin G",
@@ -990,6 +1012,17 @@
   "finding": "Equilíbrios em meia-ponta → alta coativação dos gastrocnêmios; a estratégia muda com idade/treino."
  },
  {
+  "authors": "Codonhato R, Rubio V, Oliveira PMP, Resende CF, Fiorese L",
+  "year": 2018,
+  "title": "Resilience, stress and injuries in the context of the Brazilian elite rhythmic gymnastics",
+  "journal": "PLoS One",
+  "doi": "10.1371/journal.pone.0210174",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "resilience",
+  "finding": "Maior resiliência e melhor equilíbrio estresse-recuperação associam-se a menor vulnerabilidade a lesões na ginástica rítmica de elite."
+ },
+ {
   "authors": "Berz K, McCambridge T",
   "year": 2016,
   "title": "Amenorrhea in the female athlete: what to do and when to worry",
@@ -999,6 +1032,17 @@
   "sport": "Estéticos (patinação/balé/ginástica)",
   "topic": "red-s",
   "finding": "Amenorreia hipotalâmica comum; com baixa energia e baixa DMO (Tríade) ↑ risco de fratura por estresse."
+ },
+ {
+  "authors": "Boldizsár D, Soós I, Whyte I, Hamar P",
+  "year": 2016,
+  "title": "An investigation into the relationship between pre-competition mood states, age, gender and a national ranking in artistic gymnastics",
+  "journal": "J Hum Kinet",
+  "doi": "10.1515/hukin-2015-0188",
+  "citations": "n/d",
+  "sport": "Ginástica artística (amostra mista, 67F/49M)",
+  "topic": "anxiety",
+  "finding": "Estados de humor pré-competição associam-se a ranking nacional, idade e sexo em ginástica artística."
  },
  {
   "authors": "Neves CM, Meireles JFF, Carvalho PHB, Schubring A, Barker-Ruchti N, Ferreira MEC",
@@ -1111,6 +1155,17 @@
   "finding": "Protocolo de observação de vídeo + imagética motora (PETTLEP) associado à prática física melhorou o desempenho de salto mais do que a prática física isolada, com correlações entre capacidade de imagética e resultados pós-treino."
  },
  {
+  "authors": "Day MC, Schubert N",
+  "year": 2012,
+  "title": "The impact of witnessing athletic injury: a qualitative examination of vicarious trauma in artistic gymnastics",
+  "journal": "J Sports Sci",
+  "doi": "10.1080/02640414.2012.671530",
+  "citations": "n/d",
+  "sport": "Ginástica artística",
+  "topic": "coping",
+  "finding": "Testemunhar lesão grave de colega gera trauma vicário e mobiliza estratégias de coping (evitação, reavaliação) em ginastas artísticas."
+ },
+ {
   "authors": "Tsopani D, Dallas G, Skordilis EK",
   "year": 2011,
   "title": "Competitive state anxiety and performance in young female rhythmic gymnasts",
@@ -1142,5 +1197,16 @@
   "sport": "Ginástica rítmica",
   "topic": "physical-determinants",
   "finding": "Antropometria explica 45% da variância; em elite, VO2máx+envergadura+coxa+baixa massa explicam 92,5%."
+ },
+ {
+  "authors": "Poudevigne MS, O'Connor PJ, Laing EM, Wilson AMR, Modlesky CM",
+  "year": 2003,
+  "title": "Body images of 4-8-year-old girls at the outset of their first artistic gymnastics class",
+  "journal": "Int J Eat Disord",
+  "doi": "10.1002/eat.10157",
+  "citations": "n/d",
+  "sport": "Ginástica artística",
+  "topic": "body-image",
+  "finding": "Meninas iniciantes na ginástica artística não diferem de controles em imagem corporal no início — a insatisfação é construída com a exposição ao esporte."
  }
 ]

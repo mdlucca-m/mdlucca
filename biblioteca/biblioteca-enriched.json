@@ -2032,6 +2032,44 @@
   "sintese": "Treinar a expressão autêntica de emoções pode ampliar o flow de dançarinos em diferentes contextos de performance."
  },
  {
+  "authors": "Greither T, Ohlert J",
+  "year": 2023,
+  "title": "Empowering and disempowering climate and experiences of psychological violence in artistic gymnastics",
+  "journal": "Ger J Exerc Sport Res",
+  "doi": "10.1007/s12662-023-00886-7",
+  "citations": "n/d",
+  "sport": "Ginástica artística (amostra mista, sexo não detalhado)",
+  "topic": "motivational-climate",
+  "finding": "Clima motivacional empoderador associa-se a menor percepção de violência psicológica na ginástica artística.",
+  "design": "Transversal",
+  "design_conf": "média",
+  "subvar": "Clima motivacional & violência psicológica",
+  "n": null,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação",
+   "SEM/mediação"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "Ginastas artísticos (clima motivacional × violência psicológica percebida); proporção por sexo não detalhada no resumo.",
+  "resumo": "Estudo transversal investigou associações entre climas motivacionais (empoderador/desempoderador) e experiências de violência psicológica percebida na ginástica artística.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Regressão / modelagem de associações (clima × violência).",
+  "sintese": "Cultura de treino empoderadora protege a saúde mental — reduz a violência psicológica percebida."
+ },
+ {
   "authors": "Dondin M, Baeza-Velasco C",
   "year": 2023,
   "title": "Joint hypermobility and fatigue are associated with injuries in pre-professional ballet dancers",
@@ -2555,6 +2593,44 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Comparações descritivas entre grupos e condições de refeição (CTX urinário) e testes de autoestima (psicometria); teste específico não detalhado (n/d).",
   "sintese": "A prática de ginástica infantil associou-se a autopercepção corporal positiva, e a refeição pré-treino rica em carboidratos protege o osso agudamente."
+ },
+ {
+  "authors": "Donti O, Donti A, Gaspari V, Pleksida P, Psychountaki M",
+  "year": 2021,
+  "title": "Are they too perfect to eat healthy? Association between eating disorder symptoms and perfectionism in adolescent rhythmic gymnasts",
+  "journal": "Eat Behav",
+  "doi": "10.1016/j.eatbeh.2021.101514",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "perfectionism",
+  "finding": "Perfeccionismo elevado acompanha mais sintomas de transtorno alimentar em ginastas rítmicas adolescentes, sobretudo de elite.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "Perfeccionismo & TCA",
+  "n": 89,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação",
+   "ANOVA/MMRM"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1,
+  "amostra": "89 ginastas rítmicas do sexo feminino, 13-15 anos (41 de nível internacional, 48 recreacional).",
+  "resumo": "Estudo transversal comparou sintomas de transtorno alimentar (EAT-26) e perfeccionismo entre ginastas rítmicas adolescentes internacionais e recreacionais.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Comparação entre grupos (ANOVA/MANOVA) + correlação EAT-26 × perfeccionismo.",
+  "sintese": "Rastrear perfeccionismo já na adolescência sinaliza risco precoce de transtorno alimentar."
  },
  {
   "authors": "Straker R, Exell TA, Farana R, Hamill J, Irwin G",
@@ -3382,6 +3458,43 @@
   "sintese": "Equilíbrios sobre meia-ponta sobrecarregam os gastrocnêmios, sugerindo limitar certos exercícios em crianças por risco articular no tornozelo/joelho."
  },
  {
+  "authors": "Codonhato R, Rubio V, Oliveira PMP, Resende CF, Fiorese L",
+  "year": 2018,
+  "title": "Resilience, stress and injuries in the context of the Brazilian elite rhythmic gymnastics",
+  "journal": "PLoS One",
+  "doi": "10.1371/journal.pone.0210174",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "resilience",
+  "finding": "Maior resiliência e melhor equilíbrio estresse-recuperação associam-se a menor vulnerabilidade a lesões na ginástica rítmica de elite.",
+  "design": "Transversal",
+  "design_conf": "média",
+  "subvar": "Resiliência (estresse-lesão)",
+  "n": 8,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "Regressão/correlação"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica rítmica"
+  ],
+  "n_modalities": 1,
+  "amostra": "8 ginastas de elite do sexo feminino (seleção brasileira de ginástica rítmica), idade 20,4±2,5 anos.",
+  "resumo": "Estudo transversal relacionou resiliência (CD-RISC 10) e estresse-recuperação (RESTQ-76 Sport) com registros de lesão na seleção brasileira de ginástica rítmica ao longo do ciclo olímpico 2015-2016.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Correlação (Spearman) entre resiliência, estresse-recuperação e lesões.",
+  "sintese": "Monitorar resiliência e equilíbrio estresse-recuperação na periodização ajuda a antecipar risco de lesão."
+ },
+ {
   "authors": "Berz K, McCambridge T",
   "year": 2016,
   "title": "Amenorrhea in the female athlete: what to do and when to worry",
@@ -3418,6 +3531,43 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "n/d (revisão narrativa, sem análise estatística primária).",
   "sintese": "A amenorreia em esportes estéticos sinaliza deficiência energética e risco ósseo, exigindo investigação e manejo precoces."
+ },
+ {
+  "authors": "Boldizsár D, Soós I, Whyte I, Hamar P",
+  "year": 2016,
+  "title": "An investigation into the relationship between pre-competition mood states, age, gender and a national ranking in artistic gymnastics",
+  "journal": "J Hum Kinet",
+  "doi": "10.1515/hukin-2015-0188",
+  "citations": "n/d",
+  "sport": "Ginástica artística (amostra mista, 67F/49M)",
+  "topic": "anxiety",
+  "finding": "Estados de humor pré-competição associam-se a ranking nacional, idade e sexo em ginástica artística.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "Humor pré-competição",
+  "n": 116,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "ANOVA/MMRM"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "116 ginastas artísticos (67 do sexo feminino, 49 masculino) avaliados um dia antes da principal competição (BRUMS).",
+  "resumo": "Estudo transversal relacionou estados de humor pré-competição (Brunel Mood Scale) com sexo, idade e ranking nacional em ginástica artística.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "ANOVA / comparações por sexo, idade e ranking.",
+  "sintese": "Monitorar o humor às vésperas da competição ajuda a ajustar a ativação conforme idade e nível."
  },
  {
   "authors": "Neves CM, Meireles JFF, Carvalho PHB, Schubring A, Barker-Ruchti N, Ferreira MEC",
@@ -3797,6 +3947,42 @@
   "sintese": "Observação de vídeo + imagética PETTLEP associada à prática física potencializa o salto, preservando energia da atleta para outras tarefas."
  },
  {
+  "authors": "Day MC, Schubert N",
+  "year": 2012,
+  "title": "The impact of witnessing athletic injury: a qualitative examination of vicarious trauma in artistic gymnastics",
+  "journal": "J Sports Sci",
+  "doi": "10.1080/02640414.2012.671530",
+  "citations": "n/d",
+  "sport": "Ginástica artística",
+  "topic": "coping",
+  "finding": "Testemunhar lesão grave de colega gera trauma vicário e mobiliza estratégias de coping (evitação, reavaliação) em ginastas artísticas.",
+  "design": "Qualitativo",
+  "design_conf": "alta",
+  "subvar": "Trauma vicário & coping",
+  "n": 8,
+  "biomech": false,
+  "methods": [
+   "Descritivo"
+  ],
+  "stats_approach": "n/d",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "8 ginastas artísticas do sexo feminino, 21-25 anos, que testemunharam lesão grave de outra ginasta.",
+  "resumo": "Estudo qualitativo (entrevistas semiestruturadas + análise temática) examinou respostas e coping após testemunhar lesão grave de colega no mesmo esporte.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "Análise temática (qualitativa).",
+  "sintese": "O suporte psicológico deve alcançar também quem observa a lesão, não apenas a atleta lesionada."
+ },
+ {
   "authors": "Tsopani D, Dallas G, Skordilis EK",
   "year": 2011,
   "title": "Competitive state anxiety and performance in young female rhythmic gymnasts",
@@ -3908,5 +4094,42 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Análise de regressão múltipla (stepwise) + antropometria; estatística descritiva.",
   "sintese": "Na elite, capacidade aeróbia e um perfil antropométrico específico são determinantes centrais a considerar na seleção e no treino."
+ },
+ {
+  "authors": "Poudevigne MS, O'Connor PJ, Laing EM, Wilson AMR, Modlesky CM",
+  "year": 2003,
+  "title": "Body images of 4-8-year-old girls at the outset of their first artistic gymnastics class",
+  "journal": "Int J Eat Disord",
+  "doi": "10.1002/eat.10157",
+  "citations": "n/d",
+  "sport": "Ginástica artística",
+  "topic": "body-image",
+  "finding": "Meninas iniciantes na ginástica artística não diferem de controles em imagem corporal no início — a insatisfação é construída com a exposição ao esporte.",
+  "design": "Transversal",
+  "design_conf": "alta",
+  "subvar": "Imagem corporal (infância)",
+  "n": 108,
+  "biomech": false,
+  "methods": [
+   "Psicometria",
+   "ANOVA/MMRM"
+  ],
+  "stats_approach": "Frequentista",
+  "effect_size": false,
+  "es_note": "",
+  "roc": false,
+  "derivatives": false,
+  "variables": [
+   "Psico"
+  ],
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "n_modalities": 1,
+  "amostra": "54 meninas de 4-8 anos iniciando ginástica artística vs 54 controles pareadas por idade e % de gordura (n=108).",
+  "resumo": "Estudo transversal (caso-controle) comparou imagem corporal (tamanho real, ideal e insatisfação) de meninas iniciantes na ginástica com controles pareadas.",
+  "variaveis_biodinamicas": "—",
+  "analise_estatistica": "ANOVA/t-test entre grupos (insatisfação = real − ideal).",
+  "sintese": "A pressão estética se constrói ao longo da prática — a fase inicial é janela de prevenção da insatisfação corporal."
  }
 ]
