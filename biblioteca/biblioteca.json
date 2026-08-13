@@ -1,5 +1,16 @@
 [
  {
+  "authors": "Li D, Liu Y, Liu Y",
+  "year": 2026,
+  "title": "A global evaluation of musculoskeletal injuries and associated risk factors in competitive aerobic and artistic gymnasts: a systematic review and meta-analysis.",
+  "journal": "The Journal of Sports Medicine and Physical Fitness",
+  "doi": "10.23736/S0022-4707.25.17452-5",
+  "citations": "n/d",
+  "sport": "Ginástica aeróbica e artística (misto)",
+  "topic": "injury-epidemiology",
+  "finding": "Meta-análise de 40 estudos: tornozelo (45%), joelho (42,5%), punho (37,5%) e coluna (35%) foram as regiões mais acometidas; prevalência combinada de lesão de punho de 13,15% (IC95% 10,65-15,64), maior em ginastas mais velhas, com maior IMC e maior duração de treino."
+ },
+ {
   "authors": "Nagy PA, Brogden CM, Greig MP",
   "year": 2026,
   "title": "An Investigation of Bilateral 3D Kinematic and Kinetic Responses to Ballet Specific Movements",
@@ -55,6 +66,17 @@
   "finding": "Ginastas artísticas adolescentes não elite não mostraram sinais claros de baixa disponibilidade energética, exibindo composição corporal e ângulo de fase normais ao longo da temporada."
  },
  {
+  "authors": "DiLeo SDF, Noori A, Day E, Burkhart TA, Paul RA, Chan AHW",
+  "year": 2026,
+  "title": "Epidemiology and Risk Factors of Wrist Pain and Injury in Adolescent Artistic Gymnasts: A Systematic Review and Meta-analysis.",
+  "journal": "Orthopaedic Journal of Sports Medicine",
+  "doi": "10.1177/23259671251395329",
+  "citations": "n/d",
+  "sport": "Ginástica artística (adolescentes; misto)",
+  "topic": "overuse-injury",
+  "finding": "Meta-análise de 25 estudos (185.107 ginastas): prevalência combinada de dor no punho de 53% (IC95% 39-66%), lesão crônica de punho de 36% e variância ulnar positiva de 4%; dor no punho associou-se a idade 10-14 anos, intensidade e horas de treino e IMC."
+ },
+ {
   "authors": "Valverde MG, Venâncio da Silva A, de Matos BP, Oliveira NCF, Campos PF, Chaves BS, Neves CM",
   "year": 2026,
   "title": "Female Athlete Triad's Components in Practitioners of Dance: A Systematic Review",
@@ -64,6 +86,17 @@
   "sport": "Dança (bailarinas)",
   "topic": "red-s",
   "finding": "Onze estudos (906 bailarinas): alta prevalência de comportamento alimentar transtornado e baixa disponibilidade energética (28-74%), disfunção menstrual (40-66%) e baixa DMO (15-40%), sobretudo no balé; fatores associados foram exigências estéticas, volume de treino e insatisfação corporal."
+ },
+ {
+  "authors": "Liles-Henry Z, Dande V, Ganti L, Viswanath O",
+  "year": 2026,
+  "title": "Growth Plate Injuries, Skeletal Maturity, and Bone Health in Young Dancers: A Bibliometric Analysis.",
+  "journal": "Orthopedic Reviews",
+  "doi": "10.52965/001c.165228",
+  "citations": "n/d",
+  "sport": "Dança (jovens bailarinas)",
+  "topic": "overuse-injury",
+  "finding": "Análise bibliométrica (1973-2026) sobre lesões de placa de crescimento e maturidade esquelética em jovens dançarinos: literatura limitada porém crescente desde os anos 2000, majoritariamente sobre balé clássico e de países ocidentais, com temas de tríade da atleta e carga de treino sobre a saúde óssea."
  },
  {
   "authors": "Ishikawa M, Yasu Y, Koizumi K, Yanagiya T, Hata K, Tomita H, Kozachenko O, Hisanaga S, Nonomura S, Sun Z, Oda T, Waki H, Harada M",
@@ -130,6 +163,17 @@
   "sport": "Dança universitária",
   "topic": "biomechanics-technique",
   "finding": "Em 18 dançarinas universitárias, o impacto de aterrissagem e a altura do salto (ICC 0,75-0,98) mediram a carga mecânica externa, com a dança moderna gerando maior impacto e altura que o balé, dissociados da percepção subjetiva de esforço."
+ },
+ {
+  "authors": "Kim J, Ha S, Kim MJ, Lee SY",
+  "year": 2026,
+  "title": "Lower-Extremity Alignment Asymmetry Between Supporting and Gesturing Legs in Ballet Dancers.",
+  "journal": "Journal of Dance Medicine & Science",
+  "doi": "10.1177/1089313X261458026",
+  "citations": "n/d",
+  "sport": "Dança (balé; bailarinas)",
+  "topic": "biomechanics-technique",
+  "finding": "Em 22 bailarinas sem história de lesão, a assimetria de alinhamento de membros inferiores foi mais evidente nos segmentos distais (retropé mais invertido na perna de apoio; maior queda navicular na perna de gesto), variando com o papel do membro e a condição de carga."
  },
  {
   "authors": "Seifert Gonzales A, Galdamez I",
@@ -231,6 +275,17 @@
   "finding": "A complexidade da tarefa motora, e não a direção do olhar, determinou a atividade muscular dos membros inferiores e a estabilização postural nas aterrissagens ginásticas."
  },
  {
+  "authors": "Pavlasová K, Bizovská L, Rupcik L, Farana R, Janura M",
+  "year": 2026,
+  "title": "The influence of lower limb muscle activity on postural stabilisation during landing in female artistic gymnasts.",
+  "journal": "Sports Biomechanics",
+  "doi": "10.1080/14763141.2025.2608309",
+  "citations": "n/d",
+  "sport": "Ginástica artística (feminino)",
+  "topic": "biomechanics-technique",
+  "finding": "Em 17 ginastas artísticas (13,7 anos), a atividade muscular de MMII na aterrissagem variou com a dificuldade e a direção da tarefa; a ativação de flexores do joelho e plantiflexores mostrou-se mais benéfica para a estabilização postural após tarefas para frente e para trás."
+ },
+ {
   "authors": "Firmansyah H, Martini T, Mudjihartono",
   "year": 2026,
   "title": "The role of concentration the young gymnast performance",
@@ -297,6 +352,17 @@
   "finding": "O volume de saltos correlacionou-se fortemente com ganhos de força (IMTP, CMJ) e as cargas fisiológicas (RPE, TRIMP) com a melhora aeróbia, ao longo de 12 semanas."
  },
  {
+  "authors": "Milas M, Milenković E, Milčić L, Radaš J",
+  "year": 2025,
+  "title": "Comparative analysis of injury profiles in artistic and rhythmic gymnastics.",
+  "journal": "Research in Sports Medicine",
+  "doi": "10.1080/15438627.2025.2528860",
+  "citations": "n/d",
+  "sport": "Ginástica artística e rítmica (feminino)",
+  "topic": "injury-epidemiology",
+  "finding": "Em 92 ginastas femininas (39 artísticas, 53 rítmicas, 7-24 anos), as artísticas tiveram taxa de lesão significativamente maior (2,95/carreira vs. 0,96), mais lesões de ombro, punho, cotovelo e tornozelo, tratamentos mais intensivos e recuperação mais longa."
+ },
+ {
   "authors": "Yamaguchi M, Sakurai S",
   "year": 2025,
   "title": "Comparisons of angular momentum at takeoff in six types of jumps in women's figure skating",
@@ -306,6 +372,17 @@
   "sport": "Patinação artística feminina",
   "topic": "biomechanics-technique",
   "finding": "O momento angular total do corpo na decolagem foi semelhante entre os seis saltos duplos; o tronco gerou um grande termo local constante, enquanto braços e perna livre geraram termos de transferência com padrões distintos por tipo de salto."
+ },
+ {
+  "authors": "Boylen AM, Campbell RA, Drinkwater EJ, Bradshaw EJ",
+  "year": 2025,
+  "title": "Current biomechanical methods and practices of physical training load monitoring in women's artistic gymnastics: A scoping review.",
+  "journal": "Journal of Sports Sciences",
+  "doi": "10.1080/02640414.2025.2528442",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina",
+  "topic": "training-load",
+  "finding": "Revisão de escopo de 16 estudos: a carga biomecânica na ginástica artística feminina é medida por plataformas de força e/ou IMUs (apenas três estudos com IMU); existem assimetrias de MMSS em habilidades comuns e nenhum estudo investigou a carga nas barras assimétricas."
  },
  {
   "authors": "Passacantando E, Marinelli S, La Greca S, Farina F, Cariati I, Cifelli P, Di Giminiani R",
@@ -352,6 +429,17 @@
   "finding": "Em 57 bailarinas, 7 semanas de alongamento dos isquiotibiais (4 sessões/semana) aumentaram a extensibilidade (SLR, sit-and-reach) e a inclinação pélvica anterior; os ganhos mantiveram-se após 18 dias de descanso e ampliaram-se no re-treino."
  },
  {
+  "authors": "Gram MCD, Fagerland MW, Bø K",
+  "year": 2025,
+  "title": "Efficacy of a Rhythmic Gymnastics-Specific Injury Prevention Program: An Assessor-Blinded Cluster-Randomized Controlled Trial.",
+  "journal": "Scandinavian Journal of Medicine & Science in Sports",
+  "doi": "10.1111/sms.70022",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica (competitiva)",
+  "topic": "injury-prevention",
+  "finding": "Em ECR por clusters com 23 clubes (205 ginastas), um programa de prevenção de 8 meses direcionado a joelhos, lombar e quadril/virilha não reduziu a prevalência de lesões por sobreuso frente ao treino usual (OR 0,86; IC95% 0,32-2,29), sugerindo que exercícios isolados são insuficientes."
+ },
+ {
   "authors": "Niżnikowski T, Arnista P, Sadowski J, Mastalerz A, Romero-Ramos O, Fernández-Rodríguez E, Łuba-Arnista W, Biegajło M, Różański P, Niżnikowska E, Karaś A, Kuśmierczyk P, Nogal M",
   "year": 2025,
   "title": "Enhancing the learning of sports skills through verbal feedback",
@@ -374,6 +462,17 @@
   "finding": "Onze estudos evidenciaram tendência a lesões ligamentares/musculotendíneas em ombros, costas e joelhos; limitações metodológicas impedem conclusões firmes e comparações por sexo/idade."
  },
  {
+  "authors": "Schmidt NT, Janse van Rensburg DC, Schoeman M, Besomi M, Jansen van Rensburg A, Garnett D, et al.",
+  "year": 2025,
+  "title": "Epidemiology and associated injury risk factors in figure skating: A systematic review.",
+  "journal": "Journal of Science and Medicine in Sport",
+  "doi": "10.1016/j.jsams.2025.01.012",
+  "citations": "n/d",
+  "sport": "Patinação artística (revisão)",
+  "topic": "injury-epidemiology",
+  "finding": "Revisão sistemática de 29 estudos (4202 patinadores): prevalência de lesão de 2,1% a 34% e incidência de 1,37 lesões/1000 h; fatores de risco incluíram idade avançada, história de fratura por estresse, maior massa corporal, treino >12 sessões/semana, pular refeições e indicadores de RED-s."
+ },
+ {
   "authors": "Pritchard NS, Brandt KM, Peluso AG, Kruse DW, Hart E, et al.",
   "year": 2025,
   "title": "Evaluation of head kinematics experienced during common skill progression pathways in Women's Artistic Gymnastics",
@@ -383,6 +482,17 @@
   "sport": "Ginástica artística feminina",
   "topic": "biomechanics-technique",
   "finding": "Em 12 ginastas com sensores bucais, as acelerações linear e rotacional e a velocidade rotacional da cabeça aumentaram progressivamente ao longo das progressões de tumbling, subsidiando protocolos de retorno pós-concussão."
+ },
+ {
+  "authors": "Steinberg N, Elbaz L, Nemet D, Eliakim A, Dar G",
+  "year": 2025,
+  "title": "Exploration of clinical diagnosis for tendinopathy, tendon structure, and muscle strength in young elite female gymnasts: A 12-month follow-up study.",
+  "journal": "Journal of Sports Sciences",
+  "doi": "10.1080/02640414.2025.2517543",
+  "citations": "n/d",
+  "sport": "Ginástica (rítmica, acrobática e artística; feminino)",
+  "topic": "overuse-injury",
+  "finding": "Em 207 ginastas de elite (11,9 anos), a prevalência de tendinopatia clínica patelar/de Aquiles foi alta (26,6% e 31,4% na linha de base) com baixa chance de recuperação; ginastas sem tendinopatia tinham maior força muscular e menos fibras tendíneas desorganizadas."
  },
  {
   "authors": "Sprenger HML, van Biljouw T, Bentley DJ",
@@ -407,6 +517,28 @@
   "finding": "Modelo bayesiano (intervalos de credibilidade) estimou na ginástica a maior taxa de fraturas entre os esportes femininos da NCAA (média posterior 6,29/10.000 AEs; ICr 95% 3,70-10,31)."
  },
  {
+  "authors": "Goldstein S, Ruse S",
+  "year": 2025,
+  "title": "Gymnastics-Related Injuries for the Female Athlete.",
+  "journal": "Clinics in Sports Medicine",
+  "doi": "10.1016/j.csm.2025.10.004",
+  "citations": "n/d",
+  "sport": "Ginástica artística (atleta feminina)",
+  "topic": "overuse-injury",
+  "finding": "Revisão clínica: a ginástica artística impõe estressores únicos à atleta feminina, predispondo a osteocondrite dissecante do capítulo e lesões da fise radial distal (por apoio repetitivo de MMSS) e a espondilólise (por hiperextensão e rotação lombar repetidas)."
+ },
+ {
+  "authors": "Naylor TA",
+  "year": 2025,
+  "title": "Identifying training factors for injury risk reduction in UK elite figure skaters - A pilot study.",
+  "journal": "JSAMS Plus",
+  "doi": "10.1016/j.jsampl.2025.100112",
+  "citations": "n/d",
+  "sport": "Patinação artística (elite do Reino Unido; misto)",
+  "topic": "injury-monitoring",
+  "finding": "Em survey com 16 patinadores de elite do Reino Unido, 81% relataram lesão maior prévia e 13% fraturas por estresse; 100% usavam dias de descanso mas nenhum monitorava a carga de saltos, e todos desejavam melhor educação em prevenção."
+ },
+ {
   "authors": "Merker S, Pastel S, Bürger D, Witte K",
   "year": 2025,
   "title": "Influence of wearing a head-mounted display on the movement execution of basic elements on the balance beam in women's artistic gymnastics",
@@ -418,6 +550,17 @@
   "finding": "A execução na trave foi mais prejudicada pela visão restrita do óculos de realidade virtual do que pelo peso adicional, sobretudo em elementos com rotação em eixo longitudinal."
  },
  {
+  "authors": "Mekić R, Milić V, Radenković O, Čaprić I, Veličković S, Mujanović R, et al.",
+  "year": 2025,
+  "title": "Injuries in Artistic Gymnastics: Etiology, Prevention Strategies, and Multifactorial Perspectives-A Systematic Review.",
+  "journal": "International Journal of Molecular Sciences",
+  "doi": "10.3390/ijms262210929",
+  "citations": "n/d",
+  "sport": "Ginástica artística (revisão; misto)",
+  "topic": "injury-prevention",
+  "finding": "Revisão sistemática de 19 estudos: a maioria das lesões localiza-se em articulações de MMSS e MMII, especialmente na puberdade e em níveis competitivos altos; carga repetitiva, técnica inadequada e recuperação insuficiente foram os principais fatores etiológicos, com biomarcadores (IL-6, TNF-α, miRNAs) e polimorfismos genéticos associados ao risco."
+ },
+ {
   "authors": "Gómez-Landero LA, Santos-Rosa FJ, Reguera-López-de-la-Osa X, Cervelló E",
   "year": 2025,
   "title": "Interdependence, motivational climate, self-talk, positivity and precompetitive anxiety",
@@ -427,6 +570,17 @@
   "sport": "Ginástica rítmica (individual vs equipe)",
   "topic": "anxiety",
   "finding": "Autofalar negativo e positividade predizem ansiedade pré-competitiva; individuais têm menor autoconfiança que equipes."
+ },
+ {
+  "authors": "Steinberg N, Elbaz L, Bar-Sela S, Dar G",
+  "year": 2025,
+  "title": "Is Hip and Lumbar-Spine Pain Related to Physiological Characteristics in Young Elite Gymnasts?",
+  "journal": "International Journal of Sports Physiology and Performance",
+  "doi": "10.1123/ijspp.2024-0523",
+  "citations": "n/d",
+  "sport": "Ginástica (rítmica, acrobática e artística; jovens do sexo feminino)",
+  "topic": "overuse-injury",
+  "finding": "Em 274 ginastas jovens (9-16 anos), 18,2% tinham dor no quadril, 14,6% dor lombar e 20,3% ambas; ginastas com dor eram mais velhas, mais pesadas, com menor força muscular e maior ADM articular que as sem dor."
  },
  {
   "authors": "Stehlin Z, Klingebiel FK, Pape HC, Ganse B, Rauer T",
@@ -460,6 +614,17 @@
   "sport": "Patinação artística",
   "topic": "emg-activation",
   "finding": "iEMG de gastrocnêmio e tibial anterior cresce com a dificuldade do Axel; isquiotibiais/reto femoral têm maior pré-ativação."
+ },
+ {
+  "authors": "Rebelo A, Martinho DV, Pires IG, Lima R, Nakamura FY",
+  "year": 2025,
+  "title": "Monitoring Internal and External Training Loads in Female Artistic Roller Skating: A Longitudinal Study.",
+  "journal": "Sports Health",
+  "doi": "10.1177/19417381251334641",
+  "citations": "n/d",
+  "sport": "Patinação artística sobre rodas (feminino)",
+  "topic": "training-load",
+  "finding": "Em 15 patinadoras artísticas monitoradas por um mesociclo de 4 semanas, houve correlações significativas entre carga interna (sRPE) e externa (saltos/energia por IMU), com maior PSE e carga interna diária associadas a mais saltos, além de flutuações de monotonia e strain próximas à competição."
  },
  {
   "authors": "Di Tella C, Santarcangelo EL",
@@ -539,6 +704,17 @@
   "finding": "Regressão logística identificou preditores físicos específicos (BMI%, força, ADM, menarca) para dor em tendão/osso/articulação em 274 jovens ginastas, com maior risco na ginástica artística."
  },
  {
+  "authors": "Portas-Núñez B, Blanco-Martínez N, Sánchez-Lastra MA, Diz-Gómez JC, Ayán-Pérez C",
+  "year": 2025,
+  "title": "Prevalence of eating disorder, body image dissatisfaction and musculoskeletal complaints among former spanish rhythmic gymnasts: a retrospective study.",
+  "journal": "The Physician and Sportsmedicine",
+  "doi": "10.1080/00913847.2025.2597180",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica (ex-atletas espanholas)",
+  "topic": "overuse-injury",
+  "finding": "Entre 216 ex-ginastas rítmicas espanholas, 10,6% pontuaram acima do limiar no EAT-26 e 68,1% relataram insatisfação corporal; a dor lombar foi a queixa musculoesquelética mais prevalente (83,3%), seguida de dor cervical (74,5%)."
+ },
+ {
   "authors": "Zhang Y, Noh YE, Liu S",
   "year": 2025,
   "title": "Psychological interventions for dancers' mental health: a systematic review",
@@ -572,6 +748,17 @@
   "finding": "Em 10 patinadoras, o momento angular do triple loop foi gerado sobretudo pelos membros inferiores (perna livre) na fase de transição, sem correlação significativa com altura, velocidade rotacional ou tempo de voo."
  },
  {
+  "authors": "Nakai S, Shibayama R, Kisara K, Hashizume M, Nagano Y",
+  "year": 2025,
+  "title": "The Association Between Flexibility and Injury Incidence Among Female Collegiate Rhythmic Gymnasts.",
+  "journal": "Cureus",
+  "doi": "10.7759/cureus.97926",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica (universitárias)",
+  "topic": "overuse-injury",
+  "finding": "Em 44 ginastas rítmicas universitárias acompanhadas por 14 semanas (61,2% relataram queixas), tanto flexibilidade reduzida quanto excessiva associaram-se a queixas: dor lombar com menor flexibilidade de ponte, e queixas de tornozelo com maior flexibilidade de ponte e menor abertura lateral."
+ },
+ {
   "authors": "Nguyen AV, Slavens BA, Cobb SC, O'Connor KM",
   "year": 2025,
   "title": "The Effects of Cheerleading Surfaces on Ankle Landing Characteristics During Vertical and Flip Landings",
@@ -592,6 +779,28 @@
   "sport": "Ginástica artística feminina",
   "topic": "judging-scoring",
   "finding": "Saltos Yurchenko recebem execução sistematicamente maior (d=0,57–1,21): viés estrutural de pontuação."
+ },
+ {
+  "authors": "Steinberg N, Elbaz L, Bar-Sela S, Peleg S, Eliakim A, Nemet D, et al.",
+  "year": 2025,
+  "title": "The relationship between physical features and patellofemoral-pain in young female gymnasts.",
+  "journal": "The Physician and Sportsmedicine",
+  "doi": "10.1080/00913847.2025.2472741",
+  "citations": "n/d",
+  "sport": "Ginástica (rítmica, acrobática e artística; feminino)",
+  "topic": "overuse-injury",
+  "finding": "Em 274 ginastas jovens, 21,5% tinham dor patelofemoral, com maior prevalência nas artísticas (33,3%); menor densidade óssea tibial, maior ADM de ponta e menor força de extensores do joelho e abdutores do quadril associaram-se à dor."
+ },
+ {
+  "authors": "Tan F, Luo B, Gao Y, Shi Y, Ma L",
+  "year": 2025,
+  "title": "Validated tools used to assess musculoskeletal injuries in competitive rhythmic gymnasts: A systematic review.",
+  "journal": "Medicine",
+  "doi": "10.1097/MD.0000000000043672",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica (revisão)",
+  "topic": "injury-monitoring",
+  "finding": "Revisão sistemática de 21 estudos: 11 usavam questionários autorreportados de lesão, 3 exames de imagem e 7 registros médicos; 13 instrumentos foram validados para GR, mas há carência geral de ferramentas válidas, confiáveis e específicas."
  },
  {
   "authors": "Wiese KR, Ambegaonkar JP, Martin J, Kenny SJ, Hansen-Honeycutt J, Pisay P, Miller A",
@@ -625,6 +834,28 @@
   "sport": "Ginástica artística feminina",
   "topic": "recovery-readiness",
   "finding": "Modelo duração×RPE×complexidade + ACWR acompanha a temporada; bem-estar correlaciona com a carga."
+ },
+ {
+  "authors": "Aleksić Veljković AZ, Marković AS, Vukadinović Jurišić MD, Obradović JM, Katanić BD",
+  "year": 2024,
+  "title": "Age-related differences in postural stability and asymmetries among female rhythmic gymnasts: implications for injury prevention and performance enhancement.",
+  "journal": "The Journal of Sports Medicine and Physical Fitness",
+  "doi": "10.23736/S0022-4707.24.16136-1",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica (feminino)",
+  "topic": "injury-prevention",
+  "finding": "Em 126 ginastas rítmicas (6-12 anos), as mais jovens (6-8 anos) cometeram mais erros posturais (BESS e apoios em espuma) que as categorias mais velhas, sem diferenças significativas de assimetria de alcance entre faixas etárias."
+ },
+ {
+  "authors": "Casey E, Patel TS, Almedia JF, Binder J, Bucke J, Duffy K, et al.",
+  "year": 2024,
+  "title": "Artistic gymnastics-specific extension of the IOC 2020 consensus statement: methods for recording and reporting of epidemiological data on injury and illness in sport.",
+  "journal": "BMJ Open Sport & Exercise Medicine",
+  "doi": "10.1136/bmjsem-2024-002040",
+  "citations": "n/d",
+  "sport": "Ginástica artística (consenso)",
+  "topic": "injury-monitoring",
+  "finding": "Declaração de consenso de médicos internacionais que estende as recomendações do COI 2020 à ginástica artística, definindo padrões para definição, registro e relato de lesões e doenças e para descrever a carga de lesão no esporte."
  },
  {
   "authors": "Nuñez BP, Sanchez-Lastra MA, Diz JC, Pérez CA",
@@ -691,6 +922,17 @@
   "sport": "Nado artístico",
   "topic": "physical-determinants",
   "finding": "Velocidade de nado e preensão manual correlacionam com a execução das figuras (body boost, barracuda)."
+ },
+ {
+  "authors": "Madsen A, Alfonso K, Vincent HK",
+  "year": 2024,
+  "title": "Figure Skating Musculoskeletal Injury: Evidence across Disciplines, Mechanisms, and Future Directions.",
+  "journal": "Current Sports Medicine Reports",
+  "doi": "10.1249/JSR.0000000000001198",
+  "citations": "n/d",
+  "sport": "Patinação artística (revisão)",
+  "topic": "injury-epidemiology",
+  "finding": "Revisão narrativa: prevalência de lesão ao longo da vida estimada em 79,5%, com coluna e membros inferiores mais acometidos; patinadores individuais desenvolvem mais lesões crônicas (68,9%) e a prevenção deve incluir monitoramento de volume, técnica e condicionamento."
  },
  {
   "authors": "MacSweeney NDH, Shaw JW, Simkin GP, Pedlar CR, Price PDB, et al.",
@@ -1010,6 +1252,17 @@
   "sport": "Ginástica artística (amostra mista, sexo não detalhado)",
   "topic": "motivational-climate",
   "finding": "Clima motivacional empoderador associa-se a menor percepção de violência psicológica na ginástica artística."
+ },
+ {
+  "authors": "Charpy S, Billard P, Dandrieux PE, Chapon J, Edouard P",
+  "year": 2023,
+  "title": "Epidemiology of injuries in elite Women's Artistic Gymnastics: a retrospective analysis of six seasons.",
+  "journal": "BMJ Open Sport & Exercise Medicine",
+  "doi": "10.1136/bmjsem-2023-001721",
+  "citations": "n/d",
+  "sport": "Ginástica artística feminina (elite)",
+  "topic": "injury-epidemiology",
+  "finding": "Em 43 ginastas de elite francesas (111 temporadas-ginasta) ao longo de seis temporadas, foram registradas 285 lesões (média 2,6/ginasta/temporada); 91,4% tiveram ao menos uma lesão por temporada e a taxa de incidência foi de 1,8 lesões/1000 h, com joelho, cotovelo e tornozelo mais acometidos."
  },
  {
   "authors": "Ambegaonkar, Hansen-Honeycutt, Wiese, Cavanagh, Caswell, Ambegaonkar, Martin",
@@ -1384,6 +1637,17 @@
   "sport": "Patinação artística",
   "topic": "biomechanics-technique",
   "finding": "Na análise do duplo axel do Short Program feminino do Mundial 2019, maior distância horizontal (vs altura vertical) e maior velocidade de aterrissagem contribuíram para GOE mais alto, via regressão por componentes principais."
+ },
+ {
+  "authors": "Andrew Naylor T, Naylor S",
+  "year": 2021,
+  "title": "Distribution and risk factors for stress fractures in competitive figure skaters and association with acute fractures.",
+  "journal": "The Physician and Sportsmedicine",
+  "doi": "10.1080/00913847.2021.1981748",
+  "citations": "n/d",
+  "sport": "Patinação artística (competitiva; misto)",
+  "topic": "overuse-injury",
+  "finding": "Em 164 patinadores (nível novato a olímpico), a prevalência de fratura por estresse na carreira foi de 24,4% (mais comum em tíbia e tornozelo), com risco aumentado em quem treinava >=12 vezes/semana e associação com fraturas agudas."
  },
  {
   "authors": "Esteban-García P, Jiménez-Díaz JF, Abián-Vicén J, Bravo-Sánchez A, Rubio-Arias JÁ",
