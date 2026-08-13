@@ -11,7 +11,7 @@ set -euo pipefail
 
 REPO_DIR="${REPO_DIR:-$(git rev-parse --show-toplevel)}"
 cd "$REPO_DIR"
-GAPS="${1:-capacidades físicas e variáveis fisiológicas; capacidade neuromuscular; potência muscular; pliometria; força reativa (RFD); variáveis psicológicas (flow, burnout, clima motivacional, autofala, resiliência, coping); biomecânica / derivadas}"
+GAPS="${1:-REVISÕES (sistemática, integrativa, narrativa, meta-análise) por modalidade; capacidades físicas e variáveis fisiológicas; capacidade neuromuscular; potência muscular; pliometria; força reativa (RFD); variáveis psicológicas (flow, burnout, clima motivacional, coping)}"
 MODALIDADES="${MODALIDADES:-Ginástica rítmica; Ginástica artística; Ginástica aeróbica; Ginástica acrobática; Patinação artística; Nado artístico; Dança}"
 BRANCH="${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}"
 

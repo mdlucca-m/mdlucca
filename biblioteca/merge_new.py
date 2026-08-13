@@ -35,7 +35,30 @@ def canon_modalities(sport):
     if not out: add('Ginástica artística' if 'ginástica' in s or 'ginastica' in s else 'Outro')
     return out
 
+def canon_design(d):
+    s = (d or "").strip().lower()
+    if not s: return "—"
+    if "meta-anál" in s or "meta-anal" in s or "meta-analy" in s: return "Meta-análise"
+    if "sistemátic" in s or "sistematic" in s or "systematic" in s: return "Revisão sistemática"
+    if "integrativ" in s: return "Revisão integrativa"
+    if "narrativ" in s or "scoping" in s: return "Revisão narrativa"
+    if "revis" in s or "review" in s: return "Revisão narrativa"
+    if "randomiz" in s or s == "ecr" or "ecr " in s or "rct" in s: return "ECR"
+    if "caso-control" in s or "caso control" in s or "case-control" in s: return "Transversal"
+    if "estudo de caso" in s or "case study" in s or "case series" in s or "caso único" in s or "single-athlete" in s or "single athlete" in s: return "Estudo de caso"
+    if "quase-experimental" in s or "quasi" in s or "ensaio controlado" in s or "experimental" in s or "pré-pós" in s or "pre-post" in s or "intervenç" in s: return "Experimental"
+    if "coorte" in s or "cohort" in s or "longitudinal" in s or "prospectiv" in s or "follow" in s or "seguimento" in s: return "Longitudinal"
+    if "qualitativ" in s or "fenomenológic" in s or "qualitative" in s: return "Qualitativo"
+    if "validaç" in s or "psicométric" in s or "validation" in s or "psychometric" in s: return "Validação/Psicométrico"
+    if "transversal" in s or "cross-sectional" in s or "survey" in s or "observacional" in s or "mediaç" in s or "comparativ" in s or "intra-sujeito" in s or "descritiv" in s: return "Transversal"
+    # fallback: keep canonical first token
+    return d.split(" (")[0].strip() if d.split(" (")[0].strip() in DESIGN_CANON else "Transversal"
+
+DESIGN_CANON = {"Revisão sistemática","Meta-análise","Revisão narrativa","Revisão integrativa","ECR",
+                "Experimental","Longitudinal","Transversal","Estudo de caso","Validação/Psicométrico","Qualitativo"}
+
 def canonize(e):
+    e["design"] = canon_design(e.get("design"))
     mods = []
     for m in (e.get("modalities") or []):
         for c in ([m] if m in CANON_MODS else canon_modalities(m)):

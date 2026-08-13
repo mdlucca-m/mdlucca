@@ -55,6 +55,17 @@
   "finding": "~29 mil atletas (96,5% mulheres): predominam entorses/estiramentos, depois tornozelo e cabeça/pescoço; falta padronização de registro."
  },
  {
+  "authors": "Racil G, Vando S, Padulo J, Martone D",
+  "year": 2026,
+  "title": "Integrating Plyometric and Flexibility Exercises via Traditional Games in Youth Rhythmic Gymnastics: A Randomized Controlled Trial",
+  "journal": "Children (Basel)",
+  "doi": "10.3390/children13070884",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "plyometrics",
+  "finding": "Jogos tradicionais com conteúdo pliométrico melhoraram salto (SJ, CMJ), agilidade e equilíbrio dinâmico, enquanto jogos de flexibilidade ampliaram a amplitude de movimento em ginastas rítmicas jovens."
+ },
+ {
   "authors": "Lamarre MA, King EL, Jones MT, Acuña SA",
   "year": 2026,
   "title": "Jump-specific mechanical load and perceived exertion during collegiate dance training",
@@ -75,6 +86,28 @@
   "sport": "Dança universitária",
   "topic": "menstrual-hormonal",
   "finding": "50,4% com disfunção menstrual, ligada a menor energia disponível, mais transtorno alimentar e mais lesões."
+ },
+ {
+  "authors": "Yang W",
+  "year": 2026,
+  "title": "Physical fitness and training factors associated with injury risk in aerobic gymnastics: a systematic review",
+  "journal": "Frontiers in Public Health",
+  "doi": "10.3389/fpubh.2026.1803284",
+  "citations": "n/d",
+  "sport": "Ginástica aeróbica (ambos os sexos)",
+  "topic": "physical-determinants",
+  "finding": "Maior volume/densidade de treino e medidas de alinhamento/distribuição de carga em membros inferiores associam-se recorrentemente ao risco de lesão em ginastas aeróbicos."
+ },
+ {
+  "authors": "Papacharalampus K, Dallas CG, Karampatsos G, Terzis G, Dallas GC",
+  "year": 2026,
+  "title": "Relationship between muscle strength and muscle power of female artistic gymnasts on balance beam performance",
+  "journal": "The Journal of Sports Medicine and Physical Fitness",
+  "doi": "10.23736/S0022-4707.25.17463-X",
+  "citations": "n/d",
+  "sport": "Ginástica artística",
+  "topic": "rfd-neural",
+  "finding": "O desempenho na trave não se correlacionou com força/potência/RFD dos membros inferiores, mas a massa magra e a densidade óssea correlacionaram-se fortemente com potência e RFD no CMJ em ginastas artísticas femininas."
  },
  {
   "authors": "Kiss JL, Critchley ML, Gabel L, Galarneau JM, Doyle-Baker PK, Ballinger K, Lun V, Emery CA",
@@ -141,6 +174,17 @@
   "sport": "Patinação artística",
   "topic": "motor-learning",
   "finding": "Elite usa menos sinergias (5 vs 6), com ativação mais precoce e concentrada — organização neuromuscular mais eficiente."
+ },
+ {
+  "authors": "Passacantando E, Marinelli S, La Greca S, Farina F, Cariati I, Cifelli P, Di Giminiani R",
+  "year": 2025,
+  "title": "Drop vertical jump performance and asymmetries in young rhythmic gymnasts",
+  "journal": "Sports Biomechanics",
+  "doi": "10.1080/14763141.2025.2539705",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "plyometrics",
+  "finding": "Ginastas rítmicas jovens apresentam assimetrias entre membros nas forças de reação do solo durante o drop vertical jump, com geração de força concêntrica maior no membro preferido e absorção maior no não preferido."
  },
  {
   "authors": "Donti A, Maraki MI, Psychountaki M, Donti O",
@@ -352,6 +396,17 @@
   "finding": "Saltos Yurchenko recebem execução sistematicamente maior (d=0,57–1,21): viés estrutural de pontuação."
  },
  {
+  "authors": "Ma D, Wang K, Silva RM, Xu Q, Zhao Z",
+  "year": 2024,
+  "title": "A Weekly Session of Jumping Interval Training Effectively Enhances Aerobic, Anaerobic, and Jumping Performance in Aerobic Gymnastics",
+  "journal": "Journal of Human Kinetics",
+  "doi": "10.5114/jhk/193536",
+  "citations": "n/d",
+  "sport": "Ginástica aeróbica",
+  "topic": "physiological",
+  "finding": "O treino intervalado de saltos, sobretudo duas vezes por semana, melhora o desempenho aeróbio, anaeróbio (SAGAT) e o salto vertical (CMJ) em ginastas aeróbicas jovens."
+ },
+ {
   "authors": "Leupold O, Cheng J, Wimberly A, Nguyen J, Tilley D, Gabbett TJ, Casey E",
   "year": 2024,
   "title": "A novel approach for monitoring training load and wellness in women's college gymnastics",
@@ -429,6 +484,17 @@
   "finding": "Em 242 bailarinas(os) pré-profissionais, maiores assimetrias cinéticas no CMJ de duplo apoio e na altura do salto unipodal associaram-se a maior risco de lesão (RR 1,28-1,69), com efeitos mais evidentes nas meninas."
  },
  {
+  "authors": "Ma D, Silva RM, Xu Q, Wang K, Zhao Z",
+  "year": 2024,
+  "title": "Jumping Interval Training: An Effective Training Method for Enhancing Anaerobic, Aerobic, and Jumping Performances in Aerobic Gymnastics",
+  "journal": "Journal of Sports Science & Medicine",
+  "doi": "10.52082/jssm.2024.410",
+  "citations": "n/d",
+  "sport": "Ginástica aeróbica",
+  "topic": "physiological",
+  "finding": "Tanto o treino intervalado de saltos (JIT) quanto o HIIT em corrida melhoram o desempenho aeróbio e anaeróbio, mas o JIT proporciona ganho adicional no salto vertical (CMJ)."
+ },
+ {
   "authors": "Yamaguchi AC, Trejo LH, Shih HS, Ortiz-Weissberg D, Kulig K",
   "year": 2024,
   "title": "Lower-Extremity Energetic Distribution During Rate-Controlled Ballet Jumps (Sautés) in Healthy Dancers",
@@ -438,6 +504,17 @@
   "sport": "Balé/dança",
   "topic": "motor-pattern",
   "finding": "Em 14 bailarinas, após 3 min de coreografia os sautés mantiveram o gasto energético total do membro, mas houve redistribuição distal-para-proximal (menor contribuição do joelho e maior do quadril)."
+ },
+ {
+  "authors": "Ma D, Zhao K, Silva RM, Wang K, Xu Q, Zhao Z",
+  "year": 2024,
+  "title": "Monitoring the detrimental impact of congested training periods on the strength levels and landing forces of young female aerobic gymnastics",
+  "journal": "Heliyon",
+  "doi": "10.1016/j.heliyon.2024.e34609",
+  "citations": "n/d",
+  "sport": "Ginástica aeróbica",
+  "topic": "training-load",
+  "finding": "Duas semanas de treino congestionado (6 sessões/semana) reduziram a potência neuromuscular (CMJ/SJ) e aumentaram as forças de pico na aterrissagem, sinalizando maior risco lesional."
  },
  {
   "authors": "Benoit-Piau J, Gaudreault N, Vallerand RJ, Fortin S, Guptill C, Morin M",
@@ -550,6 +627,17 @@
   "finding": "HD-sEMG: mulheres têm maior taxa de disparo e limiar de recrutamento e sem assimetria interlados — controle neuromuscular distinto."
  },
  {
+  "authors": "Gómez-Dolader I, Martínez-Cruces A, Leal-Del-Ojo P, Gómez-Landero LA",
+  "year": 2024,
+  "title": "Strength Proxies Explain Balance Task Performance by Proximity to Peak Height Velocity in Young Acrobatic Gymnasts",
+  "journal": "Journal of Functional Morphology and Kinesiology",
+  "doi": "10.3390/jfmk9040255",
+  "citations": "n/d",
+  "sport": "Ginástica acrobática",
+  "topic": "neuromuscular-capacity",
+  "finding": "Força isométrica máxima e potência no CMJ foram os melhores preditores do equilíbrio estático em ginastas acrobáticas, com maior poder preditivo no grupo circa-PHV, evidenciando o papel da maturação."
+ },
+ {
   "authors": "Ngo, Lu, Cloak, Wong, Devonport, Wyon",
   "year": 2024,
   "title": "Strength and conditioning in dance: A systematic review and meta-analysis",
@@ -581,6 +669,17 @@
   "sport": "Ginástica artística feminina",
   "topic": "training-load",
   "finding": "Carga interna/externa flutua no microciclo e correlaciona com volume de elementos/barras — gerir por aparelho."
+ },
+ {
+  "authors": "Schärer C, Reinhart L, Hübner K",
+  "year": 2023,
+  "title": "Age-Related Differences between Maximum Flight Height of Basic Skills on Floor, Beam and Vault and Physical Condition of Youth Female Artistic Gymnasts",
+  "journal": "Sports (Basel)",
+  "doi": "10.3390/sports11050100",
+  "citations": "n/d",
+  "sport": "Ginástica artística",
+  "topic": "physical-determinants",
+  "finding": "A potência de MMII, a força reativa e a altura de voo dos elementos aumentam com a idade em ginastas artísticas jovens, e a associação entre condição física e altura de voo é fortemente dependente da faixa etária."
  },
  {
   "authors": "Jederström M, Agnafors S, Ekegren CL, Fagher K, et al.",
@@ -680,6 +779,17 @@
   "sport": "Balé",
   "topic": "emg-activation",
   "finding": "HD-EMG (64 canais): bailarinas estabilizam a meia-ponta com ativação plantar baixa e estável (baixa variabilidade), não alta."
+ },
+ {
+  "authors": "Cabrejas C, Solana-Tramunt M, Morales J, Nieto A, Bofill A, Carballeira E, Pierantozzi E",
+  "year": 2023,
+  "title": "The Effects of an Eight-Week Integrated Functional Core and Plyometric Training Program on Young Rhythmic Gymnasts' Explosive Strength",
+  "journal": "International Journal of Environmental Research and Public Health",
+  "doi": "10.3390/ijerph20021041",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "plyometrics",
+  "finding": "Um programa integrado de core funcional e pliometria de 8 semanas melhorou a força explosiva (CMJ e CMJ unipodal) e o desempenho específico de saltos/leaps em ginastas rítmicas jovens."
  },
  {
   "authors": "Escobar-Álvarez, Jiménez-Reyes, Da Conceição, Fuentes-García",
@@ -1243,6 +1353,17 @@
   "finding": "Revisão que identifica metodologias de condicionamento da ginástica, patinação artística e dança de concerto (periodização, condicionamento aeróbio/anaeróbio, amplitude de movimento) transferíveis ao dancesport."
  },
  {
+  "authors": "Alves CRR, Borelli MTC, Paineli VS, Azevedo RA, Borelli CCG, Lancha Junior AH, Gualano B, Artioli GG",
+  "year": 2015,
+  "title": "Development of a specific anaerobic field test for aerobic gymnastics",
+  "journal": "PLoS One",
+  "doi": "10.1371/journal.pone.0123115",
+  "citations": "n/d",
+  "sport": "Ginástica aeróbica",
+  "topic": "physiological",
+  "finding": "O SAGAT é um teste de campo válido, confiável e sensível para avaliar o desempenho anaeróbio específico de ginastas aeróbicas de elite, correlacionando-se com a potência no Wingate."
+ },
+ {
   "authors": "Sawers A, Allen JL, Ting LH",
   "year": 2015,
   "title": "Long-term training modifies the modular structure and organization of walking balance control",
@@ -1252,6 +1373,17 @@
   "sport": "Balé profissional (sexo não restrito)",
   "topic": "motor-pattern",
   "finding": "Experts recrutam mais módulos/sinergias com menos coativação e maior generalização — reorganização neural do controle do equilíbrio."
+ },
+ {
+  "authors": "Aleksandraviciene R, Zaicenkoviene K, Stasiule L, Stasiulis A",
+  "year": 2015,
+  "title": "Physiological Responses and Energetics of Competitive Group Exercise in Female Aerobic Gymnasts With Different Levels of Performance",
+  "journal": "Perceptual and Motor Skills",
+  "doi": "10.2466/29.26.PMS.120v15x7",
+  "citations": "n/d",
+  "sport": "Ginástica aeróbica",
+  "topic": "physiological",
+  "finding": "A aptidão aeróbia (VO2pico ~45 ml·kg⁻¹·min⁻¹) e as respostas energéticas absolutas não diferiram entre ginastas aeróbicas internacionais e nacionais, mas a contribuição anaeróbia relativa foi maior nas de elite."
  },
  {
   "authors": "Saito S, Obata H, Endoh T, Kuno-Mizumura M, Nakazawa K",

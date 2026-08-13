@@ -360,6 +360,12 @@ BODY = r"""
         <div class="rob" id="designnotes"></div>
       </div>
     </div>
+    <div class="card" style="margin-top:18px">
+      <h3 style="font-family:var(--cond);font-weight:700;margin:0 0 4px;font-size:16px">Revisões por modalidade</h3>
+      <p class="hint">Segmente por tipo de revisão (sistemática · integrativa · narrativa · meta-análise). Clique numa barra para filtrar o acervo.</p>
+      <div class="anbar" id="revbar"></div>
+      <div id="revchart"></div>
+    </div>
   </section>
 
   <!-- ANÁLISES ESTATÍSTICAS -->
@@ -509,7 +515,7 @@ const cssvar=v=>getComputedStyle(document.documentElement).getPropertyValue(v).t
 const theme=t=>THEME[t]?THEME[t][0]:'—';
 const tcolor=t=>THEME[t]?cssvar(THEME[t][1]):'#888';
 const num=v=>{const n=parseInt(String(v).replace(/\D/g,''));return isNaN(n)?-1:n;};
-const state={q:'',sport:'',design:'',sort:'year',themes:new Set(),subvar:'',analysis:'',modality:'',methodcol:'',topic:'',psicogroup:''};
+const state={q:'',sport:'',design:'',sort:'year',themes:new Set(),subvar:'',analysis:'',modality:'',methodcol:'',topic:'',psicogroup:'',reviewsOnly:false};
 
 // shade a base color by index (lighter/darker variants for subvariables)
 function shade(hex,f){const c=hex.replace('#','');const r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16);
@@ -570,7 +576,7 @@ function buildSport(){
 function animSport(){document.querySelectorAll('#sportbars .bar').forEach(b=>b.style.width=b.dataset.w+'%');}
 
 /* ---------- design chart ---------- */
-const DCOLOR={'Revisão sistemática':'#8a7bd8','Meta-análise':'#b06de0','Revisão narrativa':'#6d8ce0',
+const DCOLOR={'Revisão sistemática':'#8a7bd8','Meta-análise':'#b06de0','Revisão narrativa':'#6d8ce0','Revisão integrativa':'#7d8ae0',
   'ECR':'#33b98a','Experimental':'#3fb0a6','Longitudinal':'#e8c24a','Transversal':'#4f93d6',
   'Estudo de caso':'#e2853a','Validação/Psicométrico':'#d86d9a','Qualitativo':'#7a8698','—':'#4a5468'};
 function buildDesign(){
@@ -595,6 +601,42 @@ function buildDesign(){
 }
 function animDesign(){document.querySelectorAll('#dchart .df').forEach(f=>f.style.width=f.dataset.w+'%');}
 
+/* ---------- REVISÕES por modalidade ---------- */
+const REVIEW_KINDS=['Revisão sistemática','Revisão integrativa','Revisão narrativa','Meta-análise'];
+const REVIEW_TYPES=[
+  {k:'all',lab:'Todas as revisões',test:d=>REVIEW_KINDS.includes(d.design)},
+  {k:'Revisão sistemática',lab:'Sistemática',test:d=>d.design==='Revisão sistemática'},
+  {k:'Revisão integrativa',lab:'Integrativa',test:d=>d.design==='Revisão integrativa'},
+  {k:'Revisão narrativa',lab:'Narrativa',test:d=>d.design==='Revisão narrativa'},
+  {k:'Meta-análise',lab:'Meta-análise',test:d=>d.design==='Meta-análise'}
+];
+let REV_ACTIVE='all';
+function buildReviews(){
+  const bar=document.getElementById('revbar');
+  bar.innerHTML=REVIEW_TYPES.map((r,i)=>`<button class="anbtn" data-k="${r.k}" aria-pressed="${i===0}"><span class="k">${DATA.filter(r.test).length}</span>${r.lab}</button>`).join('');
+  bar.querySelectorAll('.anbtn').forEach(b=>b.onclick=()=>{
+    bar.querySelectorAll('.anbtn').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');
+    REV_ACTIVE=b.dataset.k;plotReviews(b.dataset.k);
+    clearAllFilters();
+    if(b.dataset.k==='all')state.reviewsOnly=true; else state.design=b.dataset.k;
+    render();scrollAcervo();});
+  plotReviews('all');
+}
+function plotReviews(k){
+  const r=REVIEW_TYPES.find(x=>x.k===k)||REVIEW_TYPES[0];const set=DATA.filter(r.test);
+  const mods=modalityList();const c={};mods.forEach(m=>c[m]=set.filter(d=>inMod(d,m)).length);
+  const arr=Object.entries(c).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);const max=arr.length?arr[0][1]:1;
+  const host=document.getElementById('revchart');
+  if(!arr.length){host.innerHTML=`<p class="hint">Nenhuma revisão deste tipo no acervo ainda — alvo de busca automatizada.</p>`;return;}
+  host.innerHTML=arr.map(([m,v])=>`<div class="hbar"><div class="nm" title="${m}">${m}</div>
+    <div class="bar" data-w="${(v/max*100).toFixed(1)}" data-mod="${m}" style="background:${modColor(m)}"></div>
+    <div class="c">${v}</div></div>`).join('')+`<p class="hint">${set.length} revisão(ões) · ${arr.length} modalidade(s).</p>`;
+  requestAnimationFrame(()=>host.querySelectorAll('.bar').forEach(b=>b.style.width=b.dataset.w+'%'));
+  host.querySelectorAll('.bar').forEach(b=>b.onclick=()=>{clearAllFilters();
+    if(k==='all')state.reviewsOnly=true; else state.design=k;
+    state.modality=b.dataset.mod;render();scrollAcervo();});
+}
+
 /* ---------- VARIÁVEIS PSICOLÓGICAS ---------- */
 const PSICO_GROUPS=[
   {key:'corpo',label:'Pressão estética & corpo',topics:['body-image','disordered-eating','perfectionism','self-esteem','fear-of-failure']},
@@ -610,7 +652,7 @@ const PSUB={anxiety:'Ansiedade competitiva',perfectionism:'Perfeccionismo',
   'well-being':'Bem-estar',passion:'Paixão','emotion-regulation':'Regulação emocional',
   coping:'Coping','mental-health':'Saúde mental','self-esteem':'Autoestima','fear-of-failure':'Medo de falhar',imagery:'Imagética'};
 const plabel=t=>PSUB[t]||t;
-function clearAllFilters(){state.analysis='';state.modality='';state.methodcol='';state.subvar='';state.topic='';state.psicogroup='';state.themes.clear();state.sport='';state.design='';
+function clearAllFilters(){state.analysis='';state.modality='';state.methodcol='';state.subvar='';state.topic='';state.psicogroup='';state.themes.clear();state.sport='';state.design='';state.reviewsOnly=false;
   const sp=document.getElementById('sport'),dg=document.getElementById('design');if(sp)sp.value='';if(dg)dg.value='';
   syncAnbar();document.querySelectorAll('#chips .chip[data-t]').forEach(x=>x.setAttribute('aria-pressed','false'));
   const all=document.querySelector('#chips .all');if(all)all.setAttribute('aria-pressed','true');applyKPI();}
@@ -918,6 +960,7 @@ function buildControls(){
 function render(){
   let rows=DATA.filter(d=>{
     if(state.themes.size && !state.themes.has(theme(d.topic)))return false;
+    if(state.reviewsOnly && !REVIEW_KINDS.includes(d.design))return false;
     if(state.design && d.design!==state.design)return false;
     if(state.subvar && d.subvar!==state.subvar)return false;
     if(state.topic && d.topic!==state.topic)return false;
@@ -941,7 +984,7 @@ function render(){
   </tr>`).join('');
   document.getElementById('empty').hidden=rows.length>0;
   wireRows();
-  const flt=[state.analysis&&(ANALYSES.find(x=>x.k===state.analysis)||{}).lab,state.topic&&(PSUB[state.topic]||state.topic),state.psicogroup&&(PSICO_GROUPS.find(x=>x.key===state.psicogroup)||{}).label,state.modality,state.methodcol,state.subvar,state.design,[...state.themes].join('+')].filter(Boolean).join(' · ');
+  const flt=[state.analysis&&(ANALYSES.find(x=>x.k===state.analysis)||{}).lab,state.reviewsOnly&&'Revisões',state.topic&&(PSUB[state.topic]||state.topic),state.psicogroup&&(PSICO_GROUPS.find(x=>x.key===state.psicogroup)||{}).label,state.modality,state.methodcol,state.subvar,state.design,[...state.themes].join('+')].filter(Boolean).join(' · ');
   document.getElementById('note').textContent=`Exibindo ${rows.length} de ${DATA.length} artigos`+(flt?` · filtro: ${flt}`:'')+` · DOI verificado.`;
 }
 
@@ -955,8 +998,8 @@ document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.d
   document.getElementById('sort').value=state.sort;render();});
 
 /* ---------- init + reveal-on-scroll (real-time plotting) ---------- */
-buildStats();buildSeg();buildSport();buildTimeline();buildDesign();buildAnbar();buildCrosstab();buildUniao();buildDrill();applyKPI();buildPsico();buildPrisma();buildMatrix();buildReviewMeta();buildSynth();buildControls();render();
-const REVEAL={setores:()=>{animSeg();animSport();},linha:()=>plotTimeline(TL_ACTIVE),tipos:animDesign,analises:()=>{animCrosstab();animDrill();},psico:animPsico,revisao:animMatrix};
+buildStats();buildSeg();buildSport();buildTimeline();buildDesign();buildReviews();buildAnbar();buildCrosstab();buildUniao();buildDrill();applyKPI();buildPsico();buildPrisma();buildMatrix();buildReviewMeta();buildSynth();buildControls();render();
+const REVEAL={setores:()=>{animSeg();animSport();},linha:()=>plotTimeline(TL_ACTIVE),tipos:()=>{animDesign();plotReviews(REV_ACTIVE);},analises:()=>{animCrosstab();animDrill();},psico:animPsico,revisao:animMatrix};
 const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){
   if(REVEAL[e.target.id]){REVEAL[e.target.id]();}
   e.target.querySelectorAll?e.target.querySelectorAll('.stat b[data-count]').forEach(countUp):0;
