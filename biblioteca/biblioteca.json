@@ -11,6 +11,17 @@
   "finding": "Em 14 bailarinas universitárias, a FRS vertical de pico foi maior no membro dominante em todas as tarefas de salto-aterrissagem, sem assimetria nas variáveis cinemáticas do tornozelo; a variação de tarefa afetou fortemente cinemática e cinética."
  },
  {
+  "authors": "González-Devesa D, González-Devesa E, Prieto-Prieto J, Portas-Núñez B, Ayán-Pérez C, Regal López P",
+  "year": 2026,
+  "title": "Dietary habits and body composition in amateur rhythmic gymnastics",
+  "journal": "Nutrición Hospitalaria",
+  "doi": "10.20960/nh.05963",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica (amadoras espanholas)",
+  "topic": "red-s",
+  "finding": "Pré-adolescentes tinham z-scores, %gordura e dobras menores e maior carga de treino que as adolescentes; a ingestão energética foi inferior à recomendada."
+ },
+ {
   "authors": "Tietzen MA, Geminiani E, Stein CJ, Sarafin S, D'Ambrosi G, Holtzman B, Hunt D, Saville GH",
   "year": 2026,
   "title": "Eating Disorders and Disordered Eating in Figure Skaters: Prevalence, Associations, and Athlete Experiences",
@@ -704,6 +715,17 @@
   "finding": "Tanto o treino intervalado de saltos (JIT) quanto o HIIT em corrida melhoram o desempenho aeróbio e anaeróbio, mas o JIT proporciona ganho adicional no salto vertical (CMJ)."
  },
  {
+  "authors": "Schulz M, Bø K, Dobbertin Gram MC",
+  "year": 2024,
+  "title": "Knowledge and Communication About the Menstrual Cycle Among Rhythmic Gymnasts, Ballerinas, and Dancers",
+  "journal": "International Journal of Environmental Research and Public Health",
+  "doi": "10.3390/ijerph22010013",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica, balé e dança (esportes estéticos femininos)",
+  "topic": "menstrual-hormonal",
+  "finding": "63% das atletas relataram falta de conhecimento sobre a influência do ciclo menstrual no desempenho e apenas 32% discutiam o tema com treinadores."
+ },
+ {
   "authors": "Yamaguchi AC, Trejo LH, Shih HS, Ortiz-Weissberg D, Kulig K",
   "year": 2024,
   "title": "Lower-Extremity Energetic Distribution During Rate-Controlled Ballet Jumps (Sautés) in Healthy Dancers",
@@ -757,6 +779,17 @@
   "sport": "Ginástica rítmica",
   "topic": "rfd-neural",
   "finding": "Em 20 ginastas rítmicas, o drop jump potenciou a altura do CMJ aos 30 s (ES=0,25) e o squat jump aos 9 min (ES=0,36), com maior benefício nas atletas de maior nível de força."
+ },
+ {
+  "authors": "Chen J, Kwok APK, Li Y",
+  "year": 2024,
+  "title": "Postural control and cognitive flexibility in skilled athletes: Insights from dual-task performance and event-related potentials",
+  "journal": "Brain Research Bulletin",
+  "doi": "10.1016/j.brainresbull.2024.110957",
+  "citations": "n/d",
+  "sport": "Ginástica artística/rítmica (atletas habilidosos; sexo não especificado — possivelmente misto)",
+  "topic": "attentional-focus",
+  "finding": "Atletas habilidosos (ginastas) mostraram maior estabilidade postural e desempenho em dupla tarefa, com maior ativação frontal (N1/N2, banda teta) indicando alocação atencional mais eficiente."
  },
  {
   "authors": "Lundqvist C",
@@ -869,6 +902,17 @@
   "finding": "Em 82 duplas de cheerleading, a congruência das crenças de eficácia coletiva entre base e flyer (e entre a autoeficácia da base e a outra-eficácia da flyer) predisse melhor desempenho objetivo, sobretudo em níveis moderados a altos de eficácia."
  },
  {
+  "authors": "Gaspari V, Bogdanis GC, Panidi I, Konrad A, Terzis G, Donti A, Donti O",
+  "year": 2024,
+  "title": "The Importance of Physical Fitness Parameters in Rhythmic Gymnastics: A Scoping Review",
+  "journal": "Sports",
+  "doi": "10.3390/sports12090248",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "physical-determinants",
+  "finding": "Flexibilidade, capacidade aeróbia e potência de membros inferiores associaram-se ao desempenho e ao nível competitivo desde idades jovens."
+ },
+ {
   "authors": "Pritchard NS, Brandt KM, Bullock GS, Kruse DW, Miles CM, Moore JB, Stitzel JD, Urban JE",
   "year": 2024,
   "title": "The effect of safety modifications on head kinematics experienced during common skills in women's artistic gymnastics",
@@ -979,6 +1023,17 @@
   "finding": "A aptidão física de bailarinas universitárias (potência de MMII por salto unipodal, força-resistência de core/MMSS, equilíbrio) manteve-se inalterada do 1º ao 4º ano, exceto melhora na simetria de equilíbrio."
  },
  {
+  "authors": "Kyselovičová O, Zemková E, Péliová K, Matejová L",
+  "year": 2023,
+  "title": "Isokinetic leg muscle strength relationship to dynamic balance reflects gymnast-specific differences in adolescent females",
+  "journal": "Frontiers in Physiology",
+  "doi": "10.3389/fphys.2022.1084019",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica, artística e aeróbica (adolescentes femininas)",
+  "topic": "neuromuscular-capacity",
+  "finding": "Ginastas de diferentes modalidades diferiram no escore composto do Y-balance e na potência isocinética de joelho; a força isocinética relacionou-se à estabilidade postural dinâmica."
+ },
+ {
   "authors": "Dondin M, Baeza-Velasco C",
   "year": 2023,
   "title": "Joint hypermobility and fatigue are associated with injuries in pre-professional ballet dancers",
@@ -1032,6 +1087,28 @@
   "sport": "Ginástica rítmica",
   "topic": "plyometrics",
   "finding": "Um programa integrado de core funcional e pliometria de 8 semanas melhorou a força explosiva (CMJ e CMJ unipodal) e o desempenho específico de saltos/leaps em ginastas rítmicas jovens."
+ },
+ {
+  "authors": "Polak E, Gardzińska A, Zadarko-Domaradzka M",
+  "year": 2022,
+  "title": "Anorexic Readiness Syndrome in Elite Female Acrobatic Gymnasts-International Study",
+  "journal": "International Journal of Environmental Research and Public Health",
+  "doi": "10.3390/ijerph192013181",
+  "citations": "n/d",
+  "sport": "Ginástica acrobática (elite feminina)",
+  "topic": "disordered-eating",
+  "finding": "9,8% das acrobatas de elite apresentaram alto nível de síndrome de prontidão anoréxica, com atitudes e comportamentos indicativos de tendências anoréxicas."
+ },
+ {
+  "authors": "Cabrejas C, Morales J, Solana-Tramunt M, Nieto-Guisado A, Badiola-Zabala A, Campos-Rius J",
+  "year": 2022,
+  "title": "Does 8 Weeks of Integrated Functional Core and Plyometric Training Improve Postural Control Performance in Young Rhythmic Gymnasts?",
+  "journal": "Motor Control",
+  "doi": "10.1123/mc.2022-0046",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica",
+  "topic": "plyometrics",
+  "finding": "Um programa funcional integrado de core e pliometria de 8 semanas melhorou o controle postural unipodal e equilíbrios específicos da GR em jovens ginastas."
  },
  {
   "authors": "Escobar-Álvarez, Jiménez-Reyes, Da Conceição, Fuentes-García",
@@ -1122,6 +1199,17 @@
   "finding": "34,4% das cheerleaders apresentaram risco de transtorno alimentar; universitárias e equipes coed tiveram maior risco, e a insatisfação corporal foi máxima com o uniforme de barriga de fora, sobretudo pela meta-percepção do que o treinador deseja."
  },
  {
+  "authors": "Leal Del Ojo P, Floría P, Walker C, Gómez-Landero LA",
+  "year": 2022,
+  "title": "Is acrobatic pyramid performance determined by the individual balance of the gymnasts?",
+  "journal": "Sports Biomechanics",
+  "doi": "10.1080/14763141.2022.2092546",
+  "citations": "n/d",
+  "sport": "Ginástica acrobática",
+  "topic": "biomechanics-technique",
+  "finding": "A capacidade de equilíbrio em apoio de cabeça (headstand) das ginastas do topo (PCA2) foi preditor significativo do desempenho na pirâmide acrobática."
+ },
+ {
   "authors": "Bentley, Viana, Logan-Sprenger",
   "year": 2022,
   "title": "Metabolic and Performance Responses to a Simulated Routine in Elite Artistic Swimmers",
@@ -1153,6 +1241,17 @@
   "sport": "Ginástica rítmica",
   "topic": "anxiety",
   "finding": "Autofalar negativo prediz ansiedade e pior desempenho; clima de tarefa e positividade alimentam a autoconfiança."
+ },
+ {
+  "authors": "Leonkiewicz M, Wawrzyniak A",
+  "year": 2022,
+  "title": "The relationship between rigorous perception of one's own body and self, unhealthy eating behavior and a high risk of anorexic readiness: a predictor of eating disorders in the group of female ballet dancers and artistic gymnasts at the beginning of their career",
+  "journal": "Journal of Eating Disorders",
+  "doi": "10.1186/s40337-022-00574-1",
+  "citations": "n/d",
+  "sport": "Balé e ginástica artística feminina (10-12 anos)",
+  "topic": "disordered-eating",
+  "finding": "Meninas de balé/ginástica artística apresentaram menor gordura corporal, superestimação do tamanho corporal e maior restrição de gorduras/carboidratos, indicando risco de prontidão anoréxica."
  },
  {
   "authors": "Fernandes I, Gomes JH, Oliveira L, Almeida M, Claudino JG, Resende C, et al.",
@@ -1219,6 +1318,17 @@
   "sport": "Ginástica artística feminina",
   "topic": "biomechanics-technique",
   "finding": "Em 7 ginastas universitárias, a estratégia de aterrissagem masculina gerou maior amplitude de flexão de joelho e quadril na desaceleração do impacto, com marcada variabilidade individual, questionando a norma de aterrissagem feminina da FIG."
+ },
+ {
+  "authors": "Villa M, Villa-Vicente JG, Seco-Calvo J, Mielgo-Ayuso J, Collado PS",
+  "year": 2021,
+  "title": "Body Composition, Dietary Intake and the Risk of Low Energy Availability in Elite-Level Competitive Rhythmic Gymnasts",
+  "journal": "Nutrients",
+  "doi": "10.3390/nu13062083",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica (elite espanhola)",
+  "topic": "red-s",
+  "finding": "Ginastas adolescentes apresentaram baixa disponibilidade energética (34,7 kcal/FFM/dia), com carboidratos abaixo e gorduras acima do recomendado e baixa ingestão de cálcio/vitamina D."
  },
  {
   "authors": "Remmel L, Jürimäe J, Tamm A-L, Purge P, Tillmann V",
@@ -1474,6 +1584,17 @@
   "finding": "57,2% das atletas estéticas foram classificadas como alto risco de transtorno alimentar (EDI-3 RF) e 41,6% em risco de baixa disponibilidade energética, com prevalência significativamente maior nas atletas de elite do que nas recreacionais."
  },
  {
+  "authors": "Debien PB, Miloski B, Werneck FZ, Timoteo TF, Ferezin C, Bara Filho MG, Gabbett TJ",
+  "year": 2020,
+  "title": "Training Load and Recovery During a Pre-Olympic Season in Professional Rhythmic Gymnasts",
+  "journal": "Journal of Athletic Training",
+  "doi": "10.4085/1062-6050-402.19",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica (seleção brasileira de conjunto)",
+  "topic": "training-load",
+  "finding": "Ao longo de 43 semanas, cada período competitivo apresentou aumento da carga interna semanal; carga e recuperação variaram conforme a periodização pré-olímpica."
+ },
+ {
   "authors": "Solana-Tramunt, Morales, Buscà, Carbonell, Rodríguez-Zamora",
   "year": 2019,
   "title": "Heart-Rate Variability in Elite Synchronized Swimmers",
@@ -1639,6 +1760,17 @@
   "finding": "Ginastas de elite: mais sintomas alimentares e depressivos e menor autoestima; diagnóstico é conceitualmente complexo."
  },
  {
+  "authors": "San Mauro Martín I, Cevallos V, Pina Ordúñez D, Garicano Vilar E",
+  "year": 2016,
+  "title": "Valoración nutricional, antropométrica y de la percepción del peso corporal en niñas que practican gimnasia rítmica frente a un grupo control",
+  "journal": "Nutrición Hospitalaria",
+  "doi": "10.20960/nh.383",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica (meninas)",
+  "topic": "body-image",
+  "finding": "As ginastas tinham menor percentual de gordura e dobras cutâneas que o controle, ingestão energética abaixo do recomendado, e 32% desejavam pesar menos."
+ },
+ {
   "authors": "Vila MH, Manchado C, Ferragut C",
   "year": 2015,
   "title": "Antropometría, Composición Corporal y Somatotipo de las Patinadoras de Elite en Patinaje Artístico sobre Ruedas: Análisis por Disciplinas",
@@ -1716,6 +1848,17 @@
   "finding": "Ao longo de 18 meses, a variância ulnar tornou-se menos negativa nas ginastas, sem correlação consistente com a maioria das variáveis biológicas e de treino."
  },
  {
+  "authors": "Camargo CTA, Gómez-Campos RA, Cossio-Bolaños MA, Barbeta VJO, Arruda M, Guerra-Júnior G",
+  "year": 2014,
+  "title": "Growth and body composition in Brazilian female rhythmic gymnastics athletes",
+  "journal": "Journal of Sports Sciences",
+  "doi": "10.1080/02640414.2014.926381",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica (atletas brasileiras)",
+  "topic": "anthropometry-maturation",
+  "finding": "As ginastas apresentaram massa abaixo das referências nacionais, PVC médio aos 12,1 anos e menarca em apenas 26% (média 13,2 anos), com recuperação tardia de massa/estatura na puberdade."
+ },
+ {
   "authors": "Pantoja PD, Mello A, Liedtke GV, Kanitz AC, Cadore EL, Pinto SS, Alberton CL, Kruel LFM",
   "year": 2014,
   "title": "Neuromuscular responses of elite skaters during different roller figure skating jumps",
@@ -1736,6 +1879,17 @@
   "sport": "Ginástica rítmica",
   "topic": "imagery",
   "finding": "Protocolo de observação de vídeo + imagética motora (PETTLEP) associado à prática física melhorou o desempenho de salto mais do que a prática física isolada, com correlações entre capacidade de imagética e resultados pós-treino."
+ },
+ {
+  "authors": "Menezes LS, Novaes J, Fernandes-Filho J",
+  "year": 2012,
+  "title": "Qualidades físicas de atletas e praticantes de ginástica rítmica pré-púberes e pós-púberes",
+  "journal": "Revista de Salud Pública",
+  "doi": "10.1590/s0124-00642012000200005",
+  "citations": "n/d",
+  "sport": "Ginástica rítmica (atletas brasileiras)",
+  "topic": "physical-determinants",
+  "finding": "Ginastas de nível internacional apresentaram melhor coordenação (Burpee) e salto vertical; as qualidades físicas aumentaram do estágio pré para o pós-menarca."
  },
  {
   "authors": "Day MC, Schubert N",
