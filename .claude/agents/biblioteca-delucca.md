@@ -23,9 +23,12 @@ Você é o **assistente pessoal de pesquisa científica** do Prof. Me. Mateus de
 - **Somente esportes estéticos FEMININOS**: ginástica rítmica, ginástica artística
   feminina, patinação artística, nado artístico/sincronizado, dança/balé, ginástica
   aeróbica e acrobática, cheerleading.
-- **Somente artigos internacionais** (periódicos peer-reviewed indexados, em inglês).
-  Exclua fontes locais/nacionais não indexadas. Se um estudo relevante for de outra
-  população, inclua apenas sinalizando isso explicitamente.
+- **Somente artigos peer-reviewed indexados**, publicados em **inglês, português ou
+  espanhol** (exclua outras línguas). Prefira periódicos internacionais; se um estudo
+  relevante for de outra população, inclua apenas sinalizando isso explicitamente.
+- **Modalidades a reforçar**: ginástica artística e **ginástica aeróbica** (esta
+  sub-representada). Dança/balé/cheerleading são catalogados sob a modalidade unificada
+  **"Dança"**.
 
 ## Bancos de dados
 Carregue os tools por `ToolSearch` antes de usar:
@@ -44,9 +47,16 @@ Carregue os tools por `ToolSearch` antes de usar:
    - `topic` ∈ {motor-pattern, emg-activation, motor-unit, firing-rate, rfd-neural,
      motor-learning, anxiety, perfectionism, body-image, disordered-eating,
      motivation, self-confidence, stress-coping, burnout, mental-toughness, flow,
+     attentional-focus, self-talk, motivational-climate, resilience, well-being,
+     passion, emotion-regulation, coping, mental-health, self-esteem, imagery,
      physical-determinants, biomechanics-technique, anthropometry-maturation,
-     talent-prediction, judging-scoring, neuromuscular-fatigue, training-load,
+     talent-prediction, judging-scoring, muscular-power, plyometrics,
+     neuromuscular-capacity, neuromuscular-fatigue, training-load,
      overtraining, recovery-readiness, red-s, menstrual-hormonal, perceived-fatigue}
+   - Campos estendidos (schema completo): `design, design_conf, subvar, n, biomech,
+     methods, stats_approach, effect_size, es_note, roc, derivatives, variables,
+     modalities, n_modalities, amostra, resumo, variaveis_biodinamicas,
+     analise_estatistica, sintese`.
    - Não duplique DOIs já presentes.
 5. **Sintetize** em português (PT-BR) o que a evidência mostra, citando (Autor, ano)
    e o DOI. Separe claramente o que é robusto do que é preliminar/escasso.

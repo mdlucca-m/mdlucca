@@ -16,6 +16,7 @@ PYTHEME = {'motor-pattern': 'Neuro', 'emg-activation': 'Neuro', 'motor-unit': 'N
     'stress-coping': 'Psico', 'burnout': 'Psico', 'mental-toughness': 'Psico', 'flow': 'Psico', 'attentional-focus': 'Psico',
     'self-talk': 'Psico', 'motivational-climate': 'Psico', 'resilience': 'Psico', 'well-being': 'Psico', 'passion': 'Psico', 'emotion-regulation': 'Psico', 'coping': 'Psico', 'mental-health': 'Psico', 'self-esteem': 'Psico', 'fear-of-failure': 'Psico', 'imagery': 'Psico',
     'physical-determinants': 'Performance', 'biomechanics-technique': 'Performance', 'anthropometry-maturation': 'Performance', 'talent-prediction': 'Performance', 'judging-scoring': 'Performance',
+    'muscular-power': 'Performance', 'plyometrics': 'Performance', 'physiological': 'Performance', 'physical-capacities': 'Performance', 'neuromuscular-capacity': 'Neuro',
     'neuromuscular-fatigue': 'Fadiga', 'training-load': 'Fadiga', 'overtraining': 'Fadiga', 'recovery-readiness': 'Fadiga', 'red-s': 'Fadiga', 'menstrual-hormonal': 'Fadiga', 'perceived-fatigue': 'Fadiga'}
 
 def canon_modalities(sport):

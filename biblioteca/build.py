@@ -32,6 +32,7 @@ PYTHEME = {  # topic -> variable
     'stress-coping':'Psico','burnout':'Psico','mental-toughness':'Psico','flow':'Psico','attentional-focus':'Psico',
     'self-talk':'Psico','motivational-climate':'Psico','resilience':'Psico','well-being':'Psico','passion':'Psico','emotion-regulation':'Psico','coping':'Psico','mental-health':'Psico','self-esteem':'Psico','fear-of-failure':'Psico','imagery':'Psico',
     'physical-determinants':'Performance','biomechanics-technique':'Performance','anthropometry-maturation':'Performance','talent-prediction':'Performance','judging-scoring':'Performance',
+    'muscular-power':'Performance','plyometrics':'Performance','physiological':'Performance','physical-capacities':'Performance','neuromuscular-capacity':'Neuro',
     'neuromuscular-fatigue':'Fadiga','training-load':'Fadiga','overtraining':'Fadiga','recovery-readiness':'Fadiga','red-s':'Fadiga','menstrual-hormonal':'Fadiga','perceived-fatigue':'Fadiga',
 }
 def canon_modalities(sport):
@@ -498,6 +499,7 @@ const THEME={
   'self-talk':['Psico','--t-psico'],'motivational-climate':['Psico','--t-psico'],'resilience':['Psico','--t-psico'],'well-being':['Psico','--t-psico'],'passion':['Psico','--t-psico'],'emotion-regulation':['Psico','--t-psico'],'coping':['Psico','--t-psico'],'mental-health':['Psico','--t-psico'],'self-esteem':['Psico','--t-psico'],'fear-of-failure':['Psico','--t-psico'],'imagery':['Psico','--t-psico'],
   'physical-determinants':['Performance','--t-perf'],'biomechanics-technique':['Performance','--t-perf'],
   'anthropometry-maturation':['Performance','--t-perf'],'talent-prediction':['Performance','--t-perf'],'judging-scoring':['Performance','--t-perf'],
+  'muscular-power':['Performance','--t-perf'],'plyometrics':['Performance','--t-perf'],'physiological':['Performance','--t-perf'],'physical-capacities':['Performance','--t-perf'],'neuromuscular-capacity':['Neuro','--t-neuro'],
   'neuromuscular-fatigue':['Fadiga','--t-fadiga'],'training-load':['Fadiga','--t-fadiga'],'overtraining':['Fadiga','--t-fadiga'],
   'recovery-readiness':['Fadiga','--t-fadiga'],'red-s':['Fadiga','--t-fadiga'],'menstrual-hormonal':['Fadiga','--t-fadiga'],'perceived-fatigue':['Fadiga','--t-fadiga']
 };

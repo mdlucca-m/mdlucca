@@ -14,8 +14,9 @@
     {
       "parameters": {
         "assignments": { "assignments": [
-          { "id": "g", "name": "gaps", "value": "variáveis psicológicas (flow, burnout, clima motivacional, autofala, resiliência, regulação emocional, paixão, coping, saúde mental, ansiedade, perfeccionismo, imagem corporal, transtorno alimentar); biomecânica / derivadas (RFD); estatística bayesiana; curva ROC; tamanho de efeito", "type": "string" },
-          { "id": "m", "name": "modalidades", "value": "Ginástica rítmica; Ginástica artística; Patinação artística; Nado artístico; Balé/dança; Cheerleading; Ginástica acrobática", "type": "string" },
+          { "id": "g", "name": "gaps", "value": "capacidades físicas e variáveis fisiológicas; capacidade neuromuscular; potência muscular; pliometria; força reativa (RFD); variáveis psicológicas (flow, burnout, clima motivacional, coping, resiliência)", "type": "string" },
+          { "id": "m", "name": "modalidades", "value": "Ginástica rítmica; Ginástica artística; Ginástica aeróbica; Ginástica acrobática; Patinação artística; Nado artístico; Dança", "type": "string" },
+          { "id": "l", "name": "idiomas", "value": "inglês, português ou espanhol", "type": "string" },
           { "id": "r", "name": "repo", "value": "/opt/delucca", "type": "string" }
         ] }
       },

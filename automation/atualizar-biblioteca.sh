@@ -11,8 +11,8 @@ set -euo pipefail
 
 REPO_DIR="${REPO_DIR:-$(git rev-parse --show-toplevel)}"
 cd "$REPO_DIR"
-GAPS="${1:-variáveis psicológicas (flow, burnout, clima motivacional, autofala, resiliência, regulação emocional, paixão, coping, saúde mental, ansiedade, perfeccionismo, imagem corporal); biomecânica / derivadas (RFD); estatística bayesiana; curva ROC; tamanho de efeito}"
-MODALIDADES="${MODALIDADES:-Ginástica rítmica; Ginástica artística; Patinação artística; Nado artístico; Balé/dança; Cheerleading; Ginástica acrobática}"
+GAPS="${1:-capacidades físicas e variáveis fisiológicas; capacidade neuromuscular; potência muscular; pliometria; força reativa (RFD); variáveis psicológicas (flow, burnout, clima motivacional, autofala, resiliência, coping); biomecânica / derivadas}"
+MODALIDADES="${MODALIDADES:-Ginástica rítmica; Ginástica artística; Ginástica aeróbica; Ginástica acrobática; Patinação artística; Nado artístico; Dança}"
 BRANCH="${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}"
 
 echo "[biblioteca] lacunas: $GAPS"
@@ -30,7 +30,8 @@ for MOD in "${MODS[@]}"; do
   i=$((i+1))
   echo "[biblioteca] ($i) modalidade: $MOD"
   claude -p --permission-mode acceptEdits \
-    "Use o subagente biblioteca-delucca. Busque NOVOS artigos internacionais (peer-reviewed, DOI verificável)
+    "Use o subagente biblioteca-delucca. Busque NOVOS artigos peer-reviewed com DOI verificável,
+     publicados APENAS em inglês, português ou espanhol,
      SOMENTE da modalidade estética feminina '${MOD}', sobre: ${GAPS}.
      NÃO duplique DOIs já presentes em biblioteca/biblioteca.json (leia o campo doi).
      Grave APENAS os novos como um array JSON em biblioteca/_new-auto-${i}.json, no schema COMPLETO:
