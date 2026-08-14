@@ -1,0 +1,60 @@
+================================================================================
+DISTRIBUIÇÃO DOS 6 PERFIS DE HUMOR — global e por dia (%)
+================================================================================
+Global: {'Iceberg': 31.6, 'Superfície': 31.1, 'Submerso': 10.3, 'Everest invertido': 9.2, 'Barbatana tubarão': 9.2, 'Iceberg invertido': 8.6}
+
+Por dia (%):
+perfil  Barbatana tubarão  Everest invertido  Iceberg  Iceberg invertido  Submerso  Superfície
+dia                                                                                           
+1                     2.4               14.3     40.5                9.5       7.1        26.2
+2                     5.3               11.7     28.7               10.6       7.4        36.2
+3                     4.0                6.7     32.0               14.7      16.0        26.7
+4                     8.3                8.3     30.0               10.0       8.3        35.0
+5                    14.1                4.2     39.4                1.4      14.1        26.8
+6                     7.4               11.8     32.4                5.9       7.4        35.3
+7                    28.3                8.7     17.4                6.5      10.9        28.3
+
+================================================================================
+COMO O GRUPO COMEÇA vs TERMINA A SEMANA
+================================================================================
+  Dia 1: iceberg=40%  barbatana=2%  iceberg invertido=10%  índice-iceberg(z) médio=+0.52
+  Dia 7: iceberg=17%  barbatana=28%  iceberg invertido=7%  índice-iceberg(z) médio=-0.47
+  Mann-Whitney índice-iceberg D1 vs D7: U p=1.48e-03
+
+================================================================================
+QUAL DIA TEM MAIS VARIAÇÃO? (dispersão entre atletas e intra-dia pré→pós)
+================================================================================
+Dia DP(ice_idx)  IQR TMD  |Δ pré→pós| médio TMD
+  1        1.40      9.0                   7.60
+  2        1.32     10.8                   7.65
+  3        1.37     11.0                   5.43
+  4        1.43      9.2                   6.00
+  5        0.98      9.5                   4.21
+  6        1.43     10.0                   7.75
+  7        1.39     11.8                   5.06
+  => Maior dispersão ENTRE atletas: Dia 6  |  Maior variação INTRA-dia (pré→pós): Dia 6
+  Fligner-Killeen (variância do índice-iceberg difere entre dias?): stat=7.71 p=0.260
+
+================================================================================
+PRÉ vs PÓS — geral do grupo (perfis e índice)
+================================================================================
+  pre: índice-iceberg(z)=+0.20  iceberg=37%  superfície=25%
+  pos: índice-iceberg(z)=-0.28  iceberg=24%  superfície=33%
+  Wilcoxon pré vs pós (índice-iceberg agregado por atleta): p=0.0005
+
+================================================================================
+RELAÇÃO FADIGA FÍSICA × FADIGA MENTAL × FADIGA (BRUMS)
+================================================================================
+  FadFisica × Fadiga: Spearman ρ=+0.68 | rmcorr (intra-atleta)=+0.64
+  FadFisica × FadMental: Spearman ρ=+0.50 | rmcorr (intra-atleta)=+0.44
+  FadMental × Fadiga: Spearman ρ=+0.46 | rmcorr (intra-atleta)=+0.45
+  Médias por dia:
+     FadFisica  FadMental  Fadiga
+dia                              
+1         4.26       4.81    3.74
+2         5.66       4.29    5.21
+3         6.28       4.80    5.72
+4         6.87       4.78    6.27
+5         5.94       4.21    5.21
+6         6.25       4.50    6.00
+7         7.57       5.13    7.48
