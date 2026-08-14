@@ -131,19 +131,59 @@ table(['Variável','Ampl. do sinal','MDC95 individual','> MDC ind.?','MDC95 grup
       'Tabela 10 — A oscilação semanal supera o ruído?')
 P('No grupo, a oscilação semanal das três variáveis responsivas (Vigor, Fadiga, TMD) supera o MDC95 do grupo por 4–8×: o efeito do microciclo é sinal real e robusto na média. No indivíduo, a mesma oscilação fica abaixo do MDC95 individual de uma única coleta — não é contradição, é o ganho √n da média de 27 atletas. Consequência prática: para "ler" o microciclo no grupo, uma coleta/dia basta; para decidir sobre UM atleta com confiança de MDC individual, use médias de ≥3 coletas (Φ ≥ 0,80). A Fadiga mental não atinge o limiar nem no grupo em unidades de sinal apreciável (SNR < 1): não deve ser monitorada como marcador de carga aguda.')
 
-# ===== 6. Síntese =====
-H('7. Síntese')
+# ===== 7. Removendo o ruído =====
+DN=json.load(open(f'{SC}/denoise.json'))
+keys=['Vigor','Fadiga','TMD','FadMental']; labn={'Vigor':'Vigor','Fadiga':'Fadiga BRUMS','TMD':'PTH/TMD','FadMental':'Fadiga mental'}
+H('7. E se removermos o ruído? Como ficam as análises')
+P('"Remover o ruído" significa reter apenas a parte sistemática (sinal + traço) e descartar o resíduo. Isso pode ser feito de três formas equivalentes: (a) agregar (a média diária do grupo ou de ≥k coletas por atleta reduz o ruído por √n); (b) suavizar a trajetória (LOWESS); (c) corrigir estatísticas pela confiabilidade (desatenuação). O efeito é sempre o mesmo: as relações reais aparecem mais fortes e nítidas — mas o ruído removido NÃO se transforma em sinal onde não havia.')
+
+H('7.1. As associações ficam muito mais fortes',2)
+Robs=pd.DataFrame(DN['Robs']).loc[keys,keys]; Rden=pd.DataFrame(DN['Rden']).loc[keys,keys]
+rows=[]
+for x,y in [('Vigor','Fadiga'),('Fadiga','TMD'),('Vigor','TMD'),('FadMental','Fadiga')]:
+    rows.append([f"{labn[x]} × {labn[y]}",f"{Robs.loc[x,y]:+.2f}",f"{Rden.loc[x,y]:+.2f}"])
+table(['Par de variáveis','r observado (com ruído)','r denoised (nível-grupo)'],rows,
+      'Tabela 11 — Correlações antes e depois de remover o ruído')
+P('Removido o ruído, o eixo energia–fadiga aproxima-se de uma dimensão bipolar quase perfeita: Vigor × Fadiga passa de −0,44 (bruto) para −0,93 (denoised); Fadiga × TMD de +0,79 para +0,88. As correlações brutas eram atenuadas pelo ruído de medida — não porque as relações fossem fracas, mas porque cada medida individual é imprecisa. (A correção por desatenuação leva Fadiga × TMD acima de 1,0 — um caso Heywood esperado, pois o TMD contém a própria subescala Fadiga; por isso a estimativa limpa preferida é a de nível-grupo, sempre ≤ 1.)')
+fig('den1_corr','Fig 7 — Matriz de correlações do eixo energia–fadiga: observada (com ruído) vs denoised (nível-grupo). Sem o ruído, Vigor e Fadiga tornam-se quase espelhos (r = −0,93).')
+
+H('7.2. Os tamanhos de efeito crescem',2)
+dzo={'Vigor':-0.95,'Fadiga':0.72,'TMD':0.41,'FadMental':0.33}; dzc={'Vigor':-1.25,'Fadiga':0.91,'TMD':0.51,'FadMental':0.38}
+rows=[[labn[k],f"{dzo[k]:+.2f}",f"{dzc[k]:+.2f}",f"{DN['rel'][k]:.2f}"] for k in keys]
+table(['Variável','dz observado','dz corrigido (ruído removido)','Confiab. (1 medida)'],rows,
+      'Tabela 12 — Efeito D1→D7 corrigido pela atenuação do ruído')
+P('Corrigido pela confiabilidade de uma medida (r_xx = 0,59–0,74), o efeito acumulado da semana cresce: o Vigor passa de dz = −0,95 (grande) para −1,25 (muito grande) e a Fadiga BRUMS de +0,72 para +0,91. O ruído estava encolhendo os efeitos observados; a magnitude verdadeira do "pedágio" do microciclo é maior do que a leitura bruta sugere.')
+fig('den2_effect','Fig 8 — |dz| D1→D7 observado vs corrigido pela confiabilidade. O ruído atenua todos os efeitos; removê-lo revela a magnitude real.')
+
+H('7.3. A decisão individual torna-se viável — com coletas repetidas',2)
+km=DN['kmdc']; sig=DN['sigamp']
+rows=[]
+for k in keys:
+    emg=next((kk for kk in [1,2,3,5,7] if sig[k]>km[k][str(kk)]),None)
+    rows.append([labn[k],f"{sig[k]:.2f}",f"{km[k]['1']:.2f}",f"{km[k]['3']:.2f}",f"{km[k]['5']:.2f}",f"{km[k]['7']:.2f}",
+                 (f"k≥{emg}" if emg else "não emerge")])
+table(['Variável','Ampl. sinal','MDC k=1','MDC k=3','MDC k=5','MDC k=7','Sinal supera o ruído em'],rows,
+      'Tabela 13 — MDC95 individual cai com k coletas (ruído/√k)')
+P('Para um único atleta, o ruído de uma coleta é grande demais (MDC k=1 > amplitude do sinal). Mas o ruído cai por √k com médias de k coletas: para o Vigor e a Fadiga BRUMS, a partir de ~5 coletas a oscilação semanal supera o MDC individual — a decisão individual passa a ser confiável. O PTH/TMD (muito ruído em unidades brutas) e a Fadiga mental (sem sinal) não emergem nem com 7 coletas: a leitura individual deles deve apoiar-se na Fadiga física/BRUMS, não no TMD isolado.')
+fig('den3_mdc_k','Fig 9 — MDC95 individual em função do número de coletas (k). A linha branca é a amplitude do sinal semanal: onde a curva do MDC cruza abaixo dela, a mudança individual torna-se detectável.')
+
+H('7.4. Ressalva: remover ruído não inventa sinal',2)
+P('Denoising esclarece o que existe; não cria o que não existe. As subescalas negativas com efeito de piso permanecem planas mesmo sem ruído: Tensão amplitude 0,60 (50% no zero), Depressão 0,84 (67%), Raiva 1,81 (60%), Confusão 0,80 (80%). Não há trajetória escondida sob o ruído nessas variáveis — a ausência de resposta é real (efeito piso), confirmada pelo fator de Bayes favorável ao nulo na Confusão. Portanto: removido o ruído, as conclusões do estudo não mudam de direção — ficam mais nítidas. O eixo energia–fadiga é um sistema bipolar forte e responsivo; as negativas continuam silenciosas.')
+
+# ===== 8. Síntese =====
+H('8. Síntese')
 for t in [
  'Amplitude — grupo: o sinal semanal move o Vigor 2,8, a Fadiga 3,7 e o PTH/TMD 6,2 pontos; a Fadiga mental quase não se move (0,9).',
  'Amplitude — atleta: cada atleta oscila 2–3× mais que a trajetória do grupo, porque carrega o próprio ruído; a heterogeneidade entre atletas é alta e persistente em toda a semana.',
  'Ruído vs análise: só 1–5% da variância é o sinal do microciclo; 54–73% é traço estável e 26–41% é ruído. A Fadiga BRUMS tem o melhor sinal semanal; a Fadiga mental é quase pura estrutura de traço.',
  'Entre dias: o maior passo da trajetória (Fadiga, TMD) é o D6→D7 — a precipitação do Dia 7; nenhum dia domina a dispersão entre atletas.',
  'Decisão: interprete a média do grupo livremente (sinal 4–8× o ruído da média); para o indivíduo, exija mudança acima do MDC95 individual ou use médias de ≥3 coletas. A Fadiga mental não serve de marcador de carga aguda.',
+ 'Removendo o ruído: as associações fortalecem-se (Vigor × Fadiga −0,44 → −0,93) e os efeitos crescem (Vigor dz −0,95 → −1,25); a decisão individual torna-se viável a partir de ~5 coletas (Vigor, Fadiga). Mas o ruído removido não vira sinal: as subescalas de piso continuam planas — as conclusões ficam mais nítidas, não diferentes.',
 ]:
     p=doc.add_paragraph(style='List Bullet'); p.add_run(t)
 
 doc.add_paragraph()
-P('Reprodutibilidade: scripts/analise/amplitude.py, amp_docx_compute.py, build_amp_docx.py. Consistente com Analise_Amplitude_Ruido_Sinal.md e Analise_Estatistica_Consolidada.md. Atletas anonimizados; nenhum dado bruto com nomes é distribuído.',it=True)
+P('Reprodutibilidade: scripts/analise/amplitude.py, amp_docx_compute.py, prepost_compute.py, denoise.py, build_amp_docx.py. Consistente com Analise_Amplitude_Ruido_Sinal.md e Analise_Estatistica_Consolidada.md. Atletas anonimizados; nenhum dado bruto com nomes é distribuído.',it=True)
 
 OUTP='/home/user/mdlucca/Artigos/Amplitude_Ruido_Sinal_Vigor_Fadiga_TMD.docx'
 doc.save(OUTP)
