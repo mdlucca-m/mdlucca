@@ -103,21 +103,23 @@ fig('adx4_amp_atleta_box','Fig 4 — Amplitude por atleta (caixa + pontos) vs am
 fig('adx5_atletas_exemplo','Fig 5 — Trajetórias individuais (z) dos 3 atletas mais estáveis (topo) e 3 mais oscilantes (base). Ilustra a heterogeneidade: para uns a semana é quase plana; para outros, todas as curvas se movem.')
 
 # ===== 5. Pré e pós por dia =====
-H('5. Pré e pós por dia — cada variável')
-P('Resposta aguda dentro de cada dia: média ± DP de pré e pós, variação Δ (pós−pré), tamanho de efeito pareado dz e Wilcoxon pareado por atleta. Dias de HIIT: 2, 4 e 7. Valores em negrito de p indicam significância (p<0,05).')
+H('5. Pré → mid → pós por dia — cada variável')
+P('Resposta aguda dentro de cada dia, agora com a fase intermediária (mid, medida intra-sessão entre pré e pós): média ± DP de pré, mid e pós, variação Δ (pós−pré), tamanho de efeito pareado dz, Wilcoxon pareado pré×pós e Friedman pré/mid/pós (quando há mid). Dias de HIIT: 2, 4 e 7. O Dia 1 (baseline) não tem coleta mid. * indica p<0,05.')
 for v,lab in VARS:
     rows=[]
     for d in range(1,8):
         r=PP[v][str(d)]
         pstr='—' if r['p'] is None else (f"{r['p']:.3f}"+(' *' if r['p']<0.05 else ''))
+        fstr='—' if r['pfried'] is None else (f"{r['pfried']:.3f}"+(' *' if r['pfried']<0.05 else ''))
         dzs='—' if r['dz'] is None else f"{r['dz']:+.2f}"
+        mids='—' if r['mid_m'] is None else (f"{r['mid_m']:.2f} ± {r['mid_sd']:.2f}" if r['mid_sd'] is not None else f"{r['mid_m']:.2f}")
         rows.append([f"D{d}"+(" (HIIT)" if r['hiit'] else ""),
-                     f"{r['pre_m']:.2f} ± {r['pre_sd']:.2f}",f"{r['pos_m']:.2f} ± {r['pos_sd']:.2f}",
-                     f"{r['delta']:+.2f}",dzs,pstr,r['npair']])
-    table(['Dia','Pré (m ± DP)','Pós (m ± DP)','Δ (pós−pré)','dz','p (Wilcoxon)','n pares'],rows,
-          f'Tabela {6+VARS.index((v,lab))} — {lab}: pré vs pós por dia')
-P('Padrão comum às quatro variáveis: a maior resposta aguda pré→pós ocorre no Dia 1 (a primeira sessão, efeito de novidade/choque inicial) e reaparece na segunda metade da semana (D6–D7). O Vigor cai (Δ negativo) e Fadiga/TMD/Fadiga mental sobem (Δ positivo) após o treino. Nem todo dia atinge significância pareada — a resposta aguda isolada é modesta; o sinal robusto está no acúmulo semanal (§2) e não na sessão isolada, coerente com a AUC ≈ 0,5 para discriminar a sessão de HIIT vs 0,86 para o acúmulo.')
-fig('adx6_prepos_dia','Fig 6 — Pré (azul) vs pós por dia, média ± DP, para cada variável. * marca os dias com Wilcoxon pareado p<0,05. O Vigor diminui e Fadiga/TMD/Fadiga mental aumentam pós-treino; a resposta é mais nítida no D1 e no fim da semana.')
+                     f"{r['pre_m']:.2f} ± {r['pre_sd']:.2f}",mids,f"{r['pos_m']:.2f} ± {r['pos_sd']:.2f}",
+                     f"{r['delta']:+.2f}",dzs,pstr,fstr])
+    table(['Dia','Pré (m ± DP)','Mid (m ± DP)','Pós (m ± DP)','Δ (pós−pré)','dz','p pré×pós','p Friedman'],rows,
+          f'Tabela {6+VARS.index((v,lab))} — {lab}: pré → mid → pós por dia')
+P('A fase mid (intra-sessão) mostra que a resposta não é sempre monotônica pré→pós. Em várias variáveis o mid já é mais alto que o pré (a fadiga sobe durante a sessão) e por vezes supera o pós — sinal de um pico intra-sessão com recuperação parcial ao final (p.ex. Fadiga BRUMS no D7: pré 6,8 → mid 8,6 → pós 7,8; TMD no D4: pré 3,1 → mid 7,1 → pós 7,2). O padrão geral persiste: a maior resposta aguda ocorre no Dia 1 (choque inicial) e reaparece no fim da semana (D6–D7); o Vigor cai e Fadiga/TMD/Fadiga mental sobem. Nem todo dia atinge significância — o sinal robusto está no acúmulo semanal (§2), não na sessão isolada (AUC ≈ 0,5 para a sessão vs 0,86 para o acúmulo).')
+fig('adx6_prepos_dia','Fig 6 — Pré (azul) → mid (cinza, intra-sessão) → pós por dia, para cada variável. * marca os dias com Wilcoxon pareado pré×pós p<0,05. O mid revela o curso intra-sessão: a fadiga frequentemente pica no meio e recua um pouco ao final.')
 
 # ===== 6. Veredito dois níveis =====
 H('6. Veredito em dois níveis — grupo vs indivíduo')
