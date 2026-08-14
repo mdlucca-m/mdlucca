@@ -20,13 +20,16 @@ A reanálise foi reexecutada em Python (numpy, scipy, statsmodels) sobre os dado
 
 ## Relatórios de análise dirigida (companion)
 
-Além dos três artigos, dois relatórios aprofundam análises específicas dentro da janela:
+Além dos três artigos, os relatórios abaixo aprofundam análises específicas dentro da janela:
 
 - **[Carga interna/externa e baseline](Analise_Carga_Interna_Externa_HIIT.md)** — baseline 21/04; carga externa derivada do T-CAR (4×4 min @ 104% PV: velocidade 16,5 km/h, ~2.929 m/sessão); carga interna (FC, PSE, TRIMP) e a dissociação TRIMP↓ vs session-RPE↑; variáveis psicológicas por sessão.
 - **[Análises robustas](Analises_Robustas_ROC_Derivadas_Alometria.md)** — tamanhos de efeito com IC bootstrap (dz D1→D7 fadiga física = +1,74; D de Mahalanobis = 1,55); derivadas (velocidade/aceleração da mudança); curvas não lineares (melhor ajuste cúbico); ajustes logísticos (OR aptidão = 0,50/km·h⁻¹); escalonamento alométrico; **ROC** (sessão de HIIT AUC ≈ 0,5 vs acúmulo D7–D1 AUC = 0,86).
 - **[Post hoc](Analise_PostHoc_Comparacoes.md)** — comparações par a par entre dias (EMM do modelo misto, Tukey/Holm) e entre sessões de HIIT: fadiga física e vigor diferem do baseline já no D2; TMD só no D7 (maior contraste D5→D7); queda da FC de pico concentrada em S2→S3.
 - **[Análise polinomial](Analise_Polinomial_Tendencia.md)** — tendências ortogonais (componentes **linear + cúbica** significativas; quadrática ausente); crescimento polinomial multinível (**cúbico** vence por AIC/LRT, *p* < 0,001, com inclinações aleatórias); contrastes HIIT×TT (só o D7 difere) e pré→pós por dia (fadiga física responde em todos os dias).
 - **[Modelos mistos multivariados](Analise_Modelos_Mistos_Multivariados.md)** — modelagem conjunta do eixo energia–fadiga (4 traços, efeitos aleatórios não estruturados): deslocamento multivariado do perfil (LRT *p* ≈ 9×10⁻²⁵); **correlação entre-atletas** confirmando o eixo como dimensão de traço (fadiga↔vigor = −0,65); efeito do dia-HIIT em TMD/fadiga física; crescimento cúbico multivariado.
+- **[Perfis de humor (transversal)](Analise_Perfis_Humor.md)** — classificação nos seis perfis de Parsons-Smith ao longo da semana: iceberg cai (40%→17%), barbatana de tubarão explode (2%→28%); dissociação fadiga física/BRUMS × fadiga mental preservada; forma do perfil achata do D1 ao D7.
+- **[Amplitude, ruído e sinal](Analise_Amplitude_Ruido_Sinal.md)** — amplitude (range total, intra-atleta e do sinal) e **decomposição de variância em sinal-do-microciclo / traço / ruído**: só 1–12% da variância é sinal do dia; ETM, MDC95 e SWC; veredito em dois níveis (a oscilação é sinal no grupo, mas ruído no indivíduo → exige médias de ≥3 coletas); deriva/ruído da fadiga física = 2,1.
+- **[Análise estatística consolidada](Analise_Estatistica_Consolidada.md)** — documento-síntese que costura pressupostos, descritivas não paramétricas, psicometria, efeito do dia, resposta aguda, post-hoc, multivariada, bayesiano, ROC e carga.
 
 ## Divisão de responsabilidades analíticas
 
