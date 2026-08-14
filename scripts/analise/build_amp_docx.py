@@ -7,6 +7,7 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 SC='/tmp/claude-0/-home-user-mdlucca/e1dba24c-b1d7-5908-9106-f2f4aaf3f56a/scratchpad'
 FIG='/home/user/mdlucca/Artigos/figuras'
 R=json.load(open(f'{SC}/amp_docx.json'))
+PP=json.load(open(f'{SC}/prepost.json'))
 grp,btw,per=R['grp'],R['btw'],R['per']
 VARS=[('Vigor','Vigor (0–20)'),('Fadiga','Fadiga BRUMS (0–20)'),('TMD','PTH/TMD'),('FadMental','Fadiga mental (0–10)')]
 pcsv={v:pd.read_csv(f'{SC}/peratlheta_{v}.csv') for v,_ in VARS}
@@ -101,18 +102,35 @@ fig('adx3_heatmap_atleta','Fig 3 — Amplitude semanal por atleta (z por variáv
 fig('adx4_amp_atleta_box','Fig 4 — Amplitude por atleta (caixa + pontos) vs amplitude do sinal do grupo (losango branco). A caixa inteira fica acima do losango: qualquer atleta oscila mais que o microciclo médio.')
 fig('adx5_atletas_exemplo','Fig 5 — Trajetórias individuais (z) dos 3 atletas mais estáveis (topo) e 3 mais oscilantes (base). Ilustra a heterogeneidade: para uns a semana é quase plana; para outros, todas as curvas se movem.')
 
-# ===== 5. Veredito dois níveis =====
-H('5. Veredito em dois níveis — grupo vs indivíduo')
+# ===== 5. Pré e pós por dia =====
+H('5. Pré e pós por dia — cada variável')
+P('Resposta aguda dentro de cada dia: média ± DP de pré e pós, variação Δ (pós−pré), tamanho de efeito pareado dz e Wilcoxon pareado por atleta. Dias de HIIT: 2, 4 e 7. Valores em negrito de p indicam significância (p<0,05).')
+for v,lab in VARS:
+    rows=[]
+    for d in range(1,8):
+        r=PP[v][str(d)]
+        pstr='—' if r['p'] is None else (f"{r['p']:.3f}"+(' *' if r['p']<0.05 else ''))
+        dzs='—' if r['dz'] is None else f"{r['dz']:+.2f}"
+        rows.append([f"D{d}"+(" (HIIT)" if r['hiit'] else ""),
+                     f"{r['pre_m']:.2f} ± {r['pre_sd']:.2f}",f"{r['pos_m']:.2f} ± {r['pos_sd']:.2f}",
+                     f"{r['delta']:+.2f}",dzs,pstr,r['npair']])
+    table(['Dia','Pré (m ± DP)','Pós (m ± DP)','Δ (pós−pré)','dz','p (Wilcoxon)','n pares'],rows,
+          f'Tabela {6+VARS.index((v,lab))} — {lab}: pré vs pós por dia')
+P('Padrão comum às quatro variáveis: a maior resposta aguda pré→pós ocorre no Dia 1 (a primeira sessão, efeito de novidade/choque inicial) e reaparece na segunda metade da semana (D6–D7). O Vigor cai (Δ negativo) e Fadiga/TMD/Fadiga mental sobem (Δ positivo) após o treino. Nem todo dia atinge significância pareada — a resposta aguda isolada é modesta; o sinal robusto está no acúmulo semanal (§2) e não na sessão isolada, coerente com a AUC ≈ 0,5 para discriminar a sessão de HIIT vs 0,86 para o acúmulo.')
+fig('adx6_prepos_dia','Fig 6 — Pré (azul) vs pós por dia, média ± DP, para cada variável. * marca os dias com Wilcoxon pareado p<0,05. O Vigor diminui e Fadiga/TMD/Fadiga mental aumentam pós-treino; a resposta é mais nítida no D1 e no fim da semana.')
+
+# ===== 6. Veredito dois níveis =====
+H('6. Veredito em dois níveis — grupo vs indivíduo')
 rows=[]
 for v,lab in VARS:
     g=grp[v]; di='SIM' if g['detect_ind'] else 'NÃO'; dg='SIM' if g['detect_grp'] else 'NÃO'
     rows.append([lab,f"{g['sig']:.2f}",f"{g['mdc']:.2f}",di,f"{g['mdc_g']:.2f}",dg])
 table(['Variável','Ampl. do sinal','MDC95 individual','> MDC ind.?','MDC95 grupo (÷√n)','> MDC grupo?'],rows,
-      'Tabela 6 — A oscilação semanal supera o ruído?')
+      'Tabela 10 — A oscilação semanal supera o ruído?')
 P('No grupo, a oscilação semanal das três variáveis responsivas (Vigor, Fadiga, TMD) supera o MDC95 do grupo por 4–8×: o efeito do microciclo é sinal real e robusto na média. No indivíduo, a mesma oscilação fica abaixo do MDC95 individual de uma única coleta — não é contradição, é o ganho √n da média de 27 atletas. Consequência prática: para "ler" o microciclo no grupo, uma coleta/dia basta; para decidir sobre UM atleta com confiança de MDC individual, use médias de ≥3 coletas (Φ ≥ 0,80). A Fadiga mental não atinge o limiar nem no grupo em unidades de sinal apreciável (SNR < 1): não deve ser monitorada como marcador de carga aguda.')
 
 # ===== 6. Síntese =====
-H('6. Síntese')
+H('7. Síntese')
 for t in [
  'Amplitude — grupo: o sinal semanal move o Vigor 2,8, a Fadiga 3,7 e o PTH/TMD 6,2 pontos; a Fadiga mental quase não se move (0,9).',
  'Amplitude — atleta: cada atleta oscila 2–3× mais que a trajetória do grupo, porque carrega o próprio ruído; a heterogeneidade entre atletas é alta e persistente em toda a semana.',
