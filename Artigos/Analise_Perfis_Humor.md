@@ -68,8 +68,23 @@ O microciclo monitorado **é** a semana final pré-competitiva de choque. Seu de
 - **Dissociação da fadiga:** física e BRUMS convergem (ρ = 0,68) e respondem; a mental é preservada — sustenta a leitura de custo somático, não afetivo.
 - **Cautela metodológica:** os seis perfis dependem do critério de centroide sobre z **dentro da amostra** (sem normas de escore-T); o predomínio de "superfície/iceberg" é sensível a essa padronização e deve ser lido como **descrição transversal**, não norma populacional.
 
+## 7. Ponto de inflexão da trajetória do perfil (com e sem ruído)
+
+A trajetória do **índice-iceberg** (vigor − negativas, z) é cúbica: cai no início, **alivia no meio da semana** (pontos de virada — velocidade zero — em ≈ dias 3 e 5) e **precipita-se no Dia 7**. O **ponto de inflexão** — onde a *aceleração* troca de sinal, dividindo a fase de desaceleração da fase de aprofundamento — foi localizado por quatro caminhos convergentes:
+
+| Método | Ponto de inflexão |
+|---|---|
+| Cubic sobre médias diárias brutas (**com ruído**) | dia **4,05** |
+| Cubic sobre trajetória suavizada (**sem ruído**) | dia **4,04** |
+| LOWESS — 2ª derivada = 0 (**sem ruído**) | dia **3,96** |
+| Cubic sobre a % de perfil iceberg | dia **3,81** |
+
+**Bootstrap (resample de atletas, 2000×):** com ruído, inflexão no dia **4,05** [IC95% 3,74; 4,42]; sem ruído (LOWESS), dia **4,07** [IC95% 3,05; 4,87]. O **ponto estimado é praticamente idêntico** com e sem ruído — a inflexão é **robusta ao tratamento do ruído**. O IC do LOWESS é mais largo por ser um estimador flexível (trade-off viés-variância), não por conter mais ruído. Mesmo a aceleração por diferenças finitas sobre os dados brutos cruza zero **uma só vez**, entre os dias 4 e 5.
+
+> **Integração:** o **dia ≈ 4** é o divisor de águas do microciclo — até ele a deterioração do perfil desacelera (alívio); a partir dele acelera rumo ao colapso do Dia 7 (barbatana de tubarão 28%). É a janela para intervir na recuperação antes da precipitação. Detalhamento e figuras: **`Perfis_Humor_Ponto_Inflexao.docx`** (Figs. infl_a–infl_d).
+
 ---
 
 **Referência do método de perfis:** Parsons-Smith, R. L., Terry, P. C., & Machin, M. A. (2017). Identification and description of novel mood profile clusters. *Frontiers in Psychology, 8*, 1958. https://doi.org/10.3389/fpsyg.2017.01958
 
-*Reprodutibilidade: `scripts/analise/profiles.py` · figuras 4K em `Artigos/figuras/perfil_*.png` · página interativa `Artigos/Perfis_Humor.html`.*
+*Reprodutibilidade: `scripts/analise/profiles.py`, `inflexao_perfis.py` · figuras 4K em `Artigos/figuras/perfil_*.png` e `infl_*.png` · página interativa `Artigos/Perfis_Humor.html` · DOCX `Perfis_Humor_Ponto_Inflexao.docx`.*
