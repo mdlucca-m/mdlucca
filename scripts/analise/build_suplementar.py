@@ -99,6 +99,19 @@ P('A normalização alométrica ajusta cada variável pela covariável elevada a
 fig('x_allo','Ajuste alométrico da trajetória de fadiga (linear e log-log)',w=5.2)
 fig('x_allonorm','Relações alométricas (log-log) com a massa corporal (esq.) e com o pico de velocidade (dir.)',w=5.6)
 
+WELL=json.load(open(f'{SC}/wellness.json')); BZ=json.load(open(f'{SC}/bayes.json'))
+sec('S9. Outros indicadores de monitoramento coletados na semana (TQR, Epworth, PSS)')
+rows=[[WELL[k]['lab'],c2(f"{WELL[k]['d1']:.1f}"),c2(f"{WELL[k]['d7']:.1f}"),c2(f"{WELL[k]['slope']:+.2f}"),(c2(f"{WELL[k]['p_slope']:.3f}") if WELL[k]['p_slope']>=0.001 else '<0,001'),c2(f"{WELL[k]['rho_fad']:+.2f}")] for k in ['TQR','Epworth','PSS']]
+table('Comportamento na semana da recuperação percebida (TQR), sonolência (Epworth) e estresse percebido (PSS)',['Indicador','Dia 1','Dia 7','Coef./dia','p','ρ × fadiga física'],rows)
+P('A recuperação percebida (TQR) deteriorou-se (b = −0,23/dia; p = 0,017) e correlacionou-se inversamente com a fadiga física (ρ = −0,69), integrando o eixo energia–fadiga; a sonolência (Epworth) aumentou (acúmulo crônico); o estresse (PSS) permaneceu estável e independente da fadiga (traço). Dados da TQR extraídos em nível de grupo da base de wellness (sem identificação).')
+fig('x_wellness','Comportamento semanal da TQR, Epworth e PSS (reta tracejada = tendência)',w=5.8)
+
+sec('S10. Análise bayesiana e de equivalência (mudança D1→D7)')
+rows=[[BZ[v]['lab'],(c2(f"{BZ[v]['bf10']:.2f}") if BZ[v]['bf10']<1000 else c2(f"{BZ[v]['bf10']:.0f}")),{'efeito':'evidência de efeito','equivalência/nulo':'evidência de ausência','indeterminado':'indeterminado'}[BZ[v]['verd']]] for v in ['FadFisica','Vigor','Fadiga','TMD','FadMental','Tensao','Depressao','Raiva','Confusao']]
+table('Fatores de Bayes (BF₁₀) para a mudança D1→D7 e classificação da evidência (BF > 3 = efeito; BF < 1/3 = ausência)',['Variável','BF₁₀','Evidência'],rows)
+P('Há evidência extrema a forte de efeito na fadiga física (BF₁₀ ≈ 4,6×10⁵), vigor (≈ 1.081), fadiga do BRUMS (14,2) e tensão (5,9); evidência de ausência de efeito na depressão (0,25) e na raiva (0,22), sustentando o custo somático e não afetivo; fadiga mental, PTH e confusão indeterminadas (poder amostral). O teste de equivalência (TOST, ROPE ±0,2 DP) não estabeleceu equivalência formal, dada a amostra de 25–27 atletas.')
+fig('x_bayes','Fatores de Bayes (BF₁₀, escala logarítmica) para a mudança D1→D7',w=5.6)
+
 P('Reprodutibilidade: todas as análises são reproduzíveis pelos scripts em Python do repositório; atletas anonimizados (A01–A27); nenhum dado bruto com identificação é distribuído.',indent=False,size=9,it=True)
 
 OUTP='/home/user/mdlucca/Artigos/Material_Suplementar_Periodico.docx'
