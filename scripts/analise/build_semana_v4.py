@@ -9,6 +9,7 @@ from docx.oxml import OxmlElement
 SC='/tmp/claude-0/-home-user-mdlucca/e1dba24c-b1d7-5908-9106-f2f4aaf3f56a/scratchpad'
 FIG='/home/user/mdlucca/Artigos/figuras'
 R=json.load(open(f'{SC}/semana2.json')); REG=json.load(open(f'{SC}/reg.json')); BF=json.load(open(f'{SC}/baseline_final.json'))
+DX=json.load(open(f'{SC}/decomp_extra.json'))
 socio=R['socio']; desc=R['desc']; cron=R['cron']; agu=R['agu']; dec=R['dec']; der=R['der']; rank=R['rank']
 CORE=[('Vigor','Vigor'),('Fadiga','Fadiga (BRUMS)'),('FadFisica','Fadiga física'),('FadMental','Fadiga mental'),('TMD','PTH/TMD')]
 def c2(x): return str(x).replace('.',',')
@@ -142,6 +143,23 @@ sub('4.8','Comportamento individual entre atletas')
 P('No nível individual, a heterogeneidade é marcante. A variação da linha de base ao último dia difere amplamente entre atletas (Gráfico 8): quase todos reduzem o vigor e elevam a fadiga física, mas em magnitudes distintas, havendo atletas com variação modesta e outros com grande deterioração. As trajetórias individuais e a resposta pré→pós (Figura 5) confirmam a direção compartilhada com dispersão substancial: escores idênticos podem representar estados de recuperação distintos conforme a referência de cada atleta. Esses achados desaconselham pontos de corte normativos únicos e sustentam o referenciamento de cada atleta à sua própria linha de base, com decisões apoiadas em médias de coletas.')
 graf('v_delta','Variação individual da linha de base ao último dia (Δ D7 − D1) por atleta, para o vigor e a fadiga física')
 fig('v_individual','Comportamento individual: trajetórias semanais (superior) e resposta pré→pós (inferior) do vigor e da fadiga física (linha em destaque = média do grupo)',w=5.8)
+
+sub('4.9','Decomposição avançada: generalizabilidade, heterogeneidade e dimensionalidade')
+fc=DX['facet']
+rows=[[fc[v]['lab'],c2(f"{fc[v]['ptrait']:.0f}%"),c2(f"{fc[v]['pstate']:.0f}%"),c2(f"{fc[v]['pnoise']:.0f}%"),c2(f"{fc[v]['icc1']:.2f}"),c2(f"{fc[v]['phi']:.2f}")] for v,_ in CORE]
+table('Decomposição em três facetas (traço, estado e ruído), fidedignidade de uma medida (ICC) e dependabilidade (Φ, k = 14 coletas)',['Variável','% Traço (atleta)','% Estado (dia)','% Ruído (intra-dia)','ICC₁','Φ'],rows)
+P('A teoria da generalizabilidade permite separar o que o modelo de dois fatores agregava: além do traço (diferenças estáveis entre atletas) e do ruído (erro intra-dia), isola-se o estado — a variância atribuível ao dia, isto é, ao sinal do microciclo. Essa fatia de estado é pequena em todas as variáveis (3–9%), confirmando que a oscilação semanal, embora real, é modesta frente ao traço e ao ruído (Gráfico 9). A fidedignidade de uma única medida (ICC₁) é moderada (0,33–0,67), mas a dependabilidade da média das coletas da semana é excelente (Φ = 0,86–0,96), o que fundamenta, de forma quantitativa, a recomendação de decidir por médias e não por registros isolados.')
+graf('x_facet','Decomposição da variância em três facetas: estado (sinal do microciclo), traço e ruído',w=5.4)
+sl=DX['slope']; ac=DX['acf']
+rows=[[fc[v]['lab'],c2(f"{sl[v]['mean']:+.3f}") if sl[v]['mean'] is not None else '—',c2(f"{sl[v]['sd']:.3f}") if sl[v]['sd'] is not None else '—',c2(f"{ac[v]:+.2f}"),('branco' if abs(ac[v])<0.2 else 'estruturado')] for v,_ in CORE]
+table('Heterogeneidade do declínio (inclinação individual) e natureza do ruído (autocorrelação de lag-1 dos resíduos)',['Variável','Inclinação média/dia','DP entre atletas','ACF(1)','Ruído'],rows)
+P('O modelo de inclinação aleatória revela quão uniformemente os atletas se deterioram: a fadiga física apresenta a menor dispersão de inclinações (DP = 0,09/dia) — todos pioram praticamente no mesmo ritmo, o que a torna previsível —, ao passo que a PTH tem inclinações muito heterogêneas (DP = 1,29/dia), com atletas melhorando e outros piorando (Figura 6). A autocorrelação de lag-1 dos resíduos é próxima de zero na maioria das variáveis, indicando ruído essencialmente branco (erro de medida puro), o que valida a decomposição; a fadiga física é a exceção (ACF = −0,27), sugerindo leve reversão à média — parte de seu resíduo é flutuação lenta, não apenas erro.')
+fig('x_slopes','Distribuição das inclinações individuais (unidade por dia) por variável — heterogeneidade do declínio entre atletas',w=5.4)
+rc=DX['rci']
+rows=[[fc[v]['lab'],c2(f"{rc[v]['etm']:.2f}"),c2(f"{rc[v]['mdc']:.2f}"),f"{rc[v]['pct']:.0f}%"] for v,_ in CORE]
+table('Mudança confiável por atleta (RCI): erro típico, mudança mínima detectável e proporção de atletas com mudança individual confiável (D1→D7)',['Variável','ETM','MDC95','% atletas com mudança confiável'],rows)
+P('No nível individual, a proporção de atletas cuja mudança da linha de base ao último dia supera o limiar de ruído (|RCI| > 1,96) é baixa — fadiga do BRUMS 19%, vigor e PTH 14%, fadiga física 10% e fadiga mental 0% —, o que confirma, por um índice per capita, que uma única coleta é insuficiente para a decisão individual confiável, reforçando o uso de médias de coletas. Por fim, a análise de componentes principais das seis subescalas (Gráfico 10) mostra que o humor é essencialmente bidimensional: o primeiro componente explica 40% e o segundo 23% da variância (63% acumulados), correspondendo ao eixo energia–fadiga e a um eixo de afeto negativo — ou seja, o "sinal" do humor concentra-se em poucas dimensões, e o monitoramento pode focar-se nelas.')
+graf('x_pca','Variância explicada pelos componentes principais das seis subescalas do BRUMS (barras) e variância acumulada (linha)',w=5.0)
 
 # 5 CONSIDERAÇÕES
 sec('5','Considerações Finais')
