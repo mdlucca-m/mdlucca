@@ -10,6 +10,7 @@ SC='/tmp/claude-0/-home-user-mdlucca/e1dba24c-b1d7-5908-9106-f2f4aaf3f56a/scratc
 FIG='/home/user/mdlucca/Artigos/figuras'
 R=json.load(open(f'{SC}/semana2.json')); REG=json.load(open(f'{SC}/reg.json')); BF=json.load(open(f'{SC}/baseline_final.json'))
 DX=json.load(open(f'{SC}/decomp_extra.json')); REL=json.load(open(f'{SC}/reliab.json')); MV=json.load(open(f'{SC}/mv.json'))
+RMC=json.load(open(f'{SC}/rmcorr.json')); CFA=json.load(open(f'{SC}/cfa.json'))
 socio=R['socio']; desc=R['desc']; cron=R['cron']; agu=R['agu']; dec=R['dec']; der=R['der']; rank=R['rank']
 CORE=[('Vigor','Vigor'),('Fadiga','Fadiga (BRUMS)'),('FadFisica','Fadiga física'),('FadMental','Fadiga mental'),('TMD','PTH/TMD')]
 def c2(x): return str(x).replace('.',',')
@@ -176,6 +177,21 @@ rows=[
 ]
 table('Testes multivariados do efeito do microciclo sobre o eixo energia–fadiga (quatro variáveis conjuntas)',['Teste','Estatística','p'],rows)
 P('O modelo misto multivariado — que ajusta as quatro variáveis conjuntamente, com efeitos aleatórios de atleta — indica um efeito do dia altamente significativo sobre o perfil como um todo (razão de verossimilhança χ²(4) = 109,1; p ≈ 10⁻²²), confirmando que a deterioração é um deslocamento coordenado do vetor de humor, e não fruto de uma variável isolada. A comparação multivariada da linha de base ao último dia (Hotelling T²) é igualmente significativa (F(4,17) = 18,17; p < 0,001), com tamanho de efeito multivariado muito grande (D de Mahalanobis = 2,02) — magnitude que integra, num único índice, o afastamento conjunto do vigor e das fadigas entre o início e o fim da semana.')
+
+sub('4.12','Acoplamento intra-atleta das variáveis (correlação de medidas repetidas, rmcorr)')
+P('Enquanto a correlação entre-atletas (Figura 7) descreve como os atletas se ordenam entre si, a correlação de medidas repetidas (rmcorr) descreve como as variáveis co-variam dentro de cada atleta ao longo da semana, removendo as diferenças de nível entre indivíduos. A matriz rmcorr (Figura 8) confirma o eixo energia–fadiga também no nível intraindividual: quando um atleta piora, o vigor cai e as fadigas sobem de forma acoplada — o vigor correlaciona-se negativamente com a fadiga do BRUMS (rmcorr = −0,48), a fadiga física (−0,50) e a PTH (−0,59), enquanto a fadiga do BRUMS e a fadiga física sobem juntas (rmcorr = +0,65) e ambas acompanham a PTH (+0,72 e +0,51). Esse acoplamento intraindividual reforça que o monitoramento de qualquer marcador do eixo captura, em boa parte, a mesma informação de estado.')
+fig('x_rmcorr','Matriz de correlação intra-atleta (rmcorr) entre as variáveis do eixo energia–fadiga',w=4.8)
+
+sub('4.13','Análise fatorial confirmatória da estrutura de seis fatores do BRUMS')
+rows=[
+ ['χ² (df)',f"{CFA['chi2']:.0f} ({CFA['df']})",'—'],
+ ['CFI',c2(f"{CFA['cfi']:.3f}"),'≥ 0,90 (aceitável); ≥ 0,95 (bom)'],
+ ['TLI',c2(f"{CFA['tli']:.3f}"),'≥ 0,90'],
+ ['RMSEA',c2(f"{CFA['rmsea']:.3f}"),'≤ 0,08 (aceitável); ≤ 0,06 (bom)'],
+ ['SRMR',c2(f"{CFA['srmr']:.3f}"),'≤ 0,08'],
+]
+table('Índices de ajuste da análise fatorial confirmatória do modelo de seis fatores do BRUMS (24 itens; estimação por máxima verossimilhança)',['Índice','Valor','Referência'],rows)
+P('A análise fatorial confirmatória testou a estrutura hipotetizada de seis fatores correlacionados (cada subescala com quatro itens). O ajuste foi aceitável, ainda que limítrofe: RMSEA = 0,080 e SRMR = 0,084 nos limiares de aceitação, com CFI = 0,86 e TLI = 0,84 pouco abaixo do valor de referência de 0,90. As cargas padronizadas foram, em geral, elevadas (depressão 0,71–0,87; raiva 0,71–0,85; fadiga até 0,91), com exceção de itens isolados ancorados no piso (na tensão, no vigor e na confusão), que apresentaram cargas baixas e explicam a parte do desajuste — coerente com a menor confiabilidade da tensão (Tabela 12). As correlações entre fatores reproduzem a estrutura afetiva esperada (vigor × fadiga = −0,55; depressão × confusão = +0,72). Cabe a ressalva metodológica de que as 457 observações são medidas repetidas aninhadas em 27 atletas — não independentes —, de modo que os índices devem ser lidos como aproximação confirmatória; ainda assim, sustentam a validade de construto do instrumento neste contexto, com a tensão como a dimensão mais frágil.')
 
 # 5 CONSIDERAÇÕES
 sec('5','Considerações Finais')
