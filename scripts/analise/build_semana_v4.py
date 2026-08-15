@@ -12,6 +12,7 @@ R=json.load(open(f'{SC}/semana2.json')); REG=json.load(open(f'{SC}/reg.json')); 
 DX=json.load(open(f'{SC}/decomp_extra.json')); REL=json.load(open(f'{SC}/reliab.json')); MV=json.load(open(f'{SC}/mv.json'))
 RMC=json.load(open(f'{SC}/rmcorr.json')); CFA=json.load(open(f'{SC}/cfa.json'))
 DE=json.load(open(f'{SC}/deriv_exp.json')); ROC=json.load(open(f'{SC}/roc.json')); ALLO=json.load(open(f'{SC}/allo.json'))
+ANORM=json.load(open(f'{SC}/allonorm.json'))
 socio=R['socio']; desc=R['desc']; cron=R['cron']; agu=R['agu']; dec=R['dec']; der=R['der']; rank=R['rank']
 CORE=[('Vigor','Vigor'),('Fadiga','Fadiga (BRUMS)'),('FadFisica','Fadiga física'),('FadMental','Fadiga mental'),('TMD','PTH/TMD')]
 def c2(x): return str(x).replace('.',',')
@@ -210,6 +211,16 @@ rows=[[ALLO[v]['lab'],c2(f"{ALLO[v]['a']:.2f}"),c2(f"{ALLO[v]['b']:.2f}"),c2(f"{
 table('Ajuste alométrico (potência) da trajetória de fadiga, Y = a · diaᵇ, e comparação de AIC (potência / linear)',['Variável','a','b (expoente)','R²','AIC pot./lin.'],rows)
 P('A acumulação da fadiga ao longo da semana foi modelada por uma função de potência (alométrica) Y = a·diaᵇ, cujo expoente b resume a forma do crescimento (b > 1 acelera; b < 1 desacelera/satura). Para a fadiga física, o ajuste é bom (a = 4,34; b = 0,24; R² = 0,88) e supera o linear por AIC, indicando um crescimento sublinear em média — rápido no início e mais lento no miolo da semana (Figura 10, escala log-log) —, sobre o qual se sobrepõe a precipitação do Dia 7 que apenas o modelo cúbico captura integralmente. Complementarmente, a aptidão aeróbia foi escalonada alometricamente pela massa corporal (pico de velocidade do T-CAR = a·massa^(−0,19)); a aptidão bruta associa-se negativamente à fadiga média da semana (ρ = −0,49; p = 0,014) — atletas mais aptos fatigam menos —, mas essa associação enfraquece após o escalonamento alométrico (ρ = −0,31; p = 0,135), sugerindo que parte do efeito protetor da aptidão é explicada pelo porte corporal.')
 fig('x_allo','Ajuste alométrico (potência) da trajetória de fadiga em escala linear e log-log',w=5.4)
+
+sub('4.16','Normalização alométrica por massa corporal e por pico de velocidade')
+order=['FadFisica','Fadiga','TMD','Vigor']
+def star(p): return '*' if p<0.05 else ''
+rows=[[ANORM[v]['lab'],c2(f"{ANORM[v]['b_mass']:+.2f}"),c2(f"{ANORM[v]['rho_mass']:+.2f}")+star(ANORM[v]['p_rho_mass']),c2(f"{ANORM[v]['b_pv']:+.2f}"),c2(f"{ANORM[v]['rho_pv']:+.2f}")+star(ANORM[v]['p_rho_pv'])] for v in order]
+table('Normalização alométrica: expoentes (b) da relação de potência com a massa corporal e com o pico de velocidade do T-CAR, e correlação bruta (Spearman ρ) com cada covariável (* p < 0,05)',['Variável','b (massa)','ρ massa','b (PV)','ρ PV'],rows)
+rows=[[ANORM[v]['lab'],c2(f"{ANORM[v]['raw_m']:.2f} ± {ANORM[v]['raw_sd']:.2f}"),c2(f"{ANORM[v]['norm_mass_m']:.3f} ± {ANORM[v]['norm_mass_sd']:.3f}"),c2(f"{ANORM[v]['norm_pv_m']:.3f} ± {ANORM[v]['norm_pv_sd']:.3f}")] for v in order]
+table('Valores brutos e alometricamente normalizados (por massaᵇ e por PVᵇ) da média semanal por atleta',['Variável','Bruto (M ± DP)','Normalizado /massaᵇ','Normalizado /PVᵇ'],rows)
+P('A normalização alométrica ajusta cada variável pela covariável elevada a um expoente estimado (Y/massaᵇ e Y/PVᵇ), removendo a dependência de tamanho ou de aptidão. Pela massa corporal, os expoentes não atingiram significância e as correlações brutas foram fracas (fadiga física ρ = +0,35; demais ≤ 0,34), indicando que as variáveis de humor e fadiga são essencialmente independentes do porte corporal — a normalização por massa, portanto, é dispensável neste contexto. Já pela aptidão aeróbia (pico de velocidade do T-CAR), evidenciou-se um gradiente claro: atletas mais aptos apresentaram menor fadiga física (ρ = −0,52; p < 0,05) e maior vigor (ρ = +0,48; p < 0,05), com expoentes alométricos negativos para as fadigas e positivo para o vigor (Figura 11). Isso indica que a aptidão é protetora contra a fadiga do microciclo, e que o pico de velocidade — não a massa — é a covariável relevante para individualizar a interpretação das cargas psicométricas. A normalização por PVᵇ produz, assim, um índice de fadiga ajustado à aptidão, útil para comparar atletas de capacidades distintas.')
+fig('x_allonorm','Relações alométricas (log-log) das variáveis com a massa corporal (esquerda) e com o pico de velocidade (direita)',w=5.6)
 
 # 5 CONSIDERAÇÕES
 sec('5','Considerações Finais')
