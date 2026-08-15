@@ -12,7 +12,7 @@ R=json.load(open(f'{SC}/semana2.json')); REG=json.load(open(f'{SC}/reg.json')); 
 DX=json.load(open(f'{SC}/decomp_extra.json')); REL=json.load(open(f'{SC}/reliab.json')); MV=json.load(open(f'{SC}/mv.json'))
 RMC=json.load(open(f'{SC}/rmcorr.json')); CFA=json.load(open(f'{SC}/cfa.json'))
 DE=json.load(open(f'{SC}/deriv_exp.json')); ROC=json.load(open(f'{SC}/roc.json')); ALLO=json.load(open(f'{SC}/allo.json'))
-ANORM=json.load(open(f'{SC}/allonorm.json'))
+ANORM=json.load(open(f'{SC}/allonorm.json')); PVL=json.load(open(f'{SC}/pvlimiar.json'))
 socio=R['socio']; desc=R['desc']; cron=R['cron']; agu=R['agu']; dec=R['dec']; der=R['der']; rank=R['rank']
 CORE=[('Vigor','Vigor'),('Fadiga','Fadiga (BRUMS)'),('FadFisica','Fadiga física'),('FadMental','Fadiga mental'),('TMD','PTH/TMD')]
 def c2(x): return str(x).replace('.',',')
@@ -221,6 +221,21 @@ rows=[[ANORM[v]['lab'],c2(f"{ANORM[v]['rho_mass']:+.2f}"),c2(f"{ANORM[v]['rho_af
 table('Correlação (Spearman ρ) das variáveis com a massa corporal e o pico de velocidade, antes e depois da normalização alométrica (a queda para ≈ 0 confirma a remoção da dependência)',['Variável','ρ massa (bruto)','ρ massa (norm.)','ρ PV (bruto)','ρ PV (norm.)'],rows)
 P('A normalização alométrica ajusta cada variável pela covariável elevada a um expoente estimado (Y/massaᵇ e Y/PVᵇ), removendo a dependência de tamanho ou de aptidão — o que se confirma pela queda das correlações para próximo de zero após a normalização. Pela massa corporal, os expoentes não atingiram significância e as correlações brutas foram fracas (fadiga física ρ = +0,35; demais ≤ 0,34), indicando que as variáveis de humor e fadiga são essencialmente independentes do porte corporal — a normalização por massa, portanto, é dispensável neste contexto. Já pela aptidão aeróbia (pico de velocidade do T-CAR), evidenciou-se um gradiente claro: atletas mais aptos apresentaram menor fadiga física (ρ = −0,52; p < 0,05) e maior vigor (ρ = +0,48; p < 0,05), com expoentes alométricos negativos para as fadigas e positivo para o vigor (Figura 11). Isso indica que a aptidão é protetora contra a fadiga do microciclo, e que o pico de velocidade — não a massa — é a covariável relevante para individualizar a interpretação das cargas psicométricas. A normalização por PVᵇ produz, assim, um índice de fadiga ajustado à aptidão, útil para comparar atletas de capacidades distintas.')
 fig('x_allonorm','Relações alométricas (log-log) das variáveis com a massa corporal (esquerda) e com o pico de velocidade (direita)',w=5.6)
+
+sub('4.17','Limiar de aptidão (pico de velocidade) e proteção contra a fadiga')
+t=PVL
+rows=[
+ ['Regressão fadiga da semana × PV',f"b = {t['slope']:.2f} ponto/(km·h⁻¹)".replace('.',','),c2(f"R² = {t['r2']:.2f}; p = {t['p']:.3f}")],
+ ['Correlação (Spearman)',c2(f"ρ = {t['rho']:.2f}"),'p < 0,05'],
+ ['Discriminação (AUC) do PV p/ alta fadiga',c2(f"AUC = {t['auc']:.2f}"),'—'],
+ ['Limiar (logística, P = 50%)',c2(f"PV = {t['thr']:.1f} km/h"),c2(f"OR = {t['OR']:.2f}/km·h⁻¹; p = {t['p_or']:.3f}")],
+ ['Tercis de PV (fadiga média)',c2(f"Baixo {t['terc']['Baixo'][0]:.2f} · Médio {t['terc']['Médio'][0]:.2f} · Alto {t['terc']['Alto'][0]:.2f}"),c2(f"Kruskal-Wallis p = {t['kw_p']:.3f}")],
+]
+table('Relação entre o pico de velocidade (aptidão aeróbia) e a fadiga física média da semana: regressão, limiar e comparação por tercis',['Análise','Resultado','Estatística'],rows)
+_sl=c2('%.2f'%abs(t['slope'])); _r2=c2('%.2f'%t['r2']); _pp=c2('%.3f'%t['p']); _rho=c2('%.2f'%t['rho']); _auc=c2('%.2f'%t['auc'])
+_thr=c2('%.1f'%t['thr']); _or=c2('%.2f'%t['OR']); _tb=c2('%.1f'%t['terc']['Baixo'][0]); _ta=c2('%.1f'%t['terc']['Alto'][0]); _kw=c2('%.3f'%t['kw_p'])
+P(f"A resposta é afirmativa e quantificável: atletas com maior pico de velocidade no T-CAR fatigam menos ao longo da semana. A fadiga física média decresce {_sl} ponto a cada 1 km/h de pico de velocidade (R² = {_r2}; p = {_pp}; ρ = {_rho}), e o pico de velocidade discrimina bem os atletas de alta fadiga (AUC = {_auc}). O limiar de aptidão que melhor separa os grupos situa-se em torno de {_thr} km/h (regressão logística, com razão de chances de {_or} por km/h): abaixo dele predomina a alta fadiga; acima, a baixa (Figura 12). Na comparação por tercis, o grupo de baixa aptidão apresentou fadiga média de {_tb}, contra {_ta} no grupo de alta aptidão (Kruskal-Wallis p = {_kw}). Cabe uma distinção importante: o pico de velocidade prediz o nível de fadiga, mas não a taxa de acúmulo (a inclinação de D1 a D7 é semelhante entre atletas; ver Seção 4.9) — os mais aptos não deterioram mais devagar, e sim partem e permanecem em um patamar de fadiga mais baixo. Já a experiência de treino (anos) não se associou à fadiga (ρ = +0,29; p = 0,151), indicando que a proteção decorre da aptidão aeróbia atual, não do tempo de prática.")
+fig('x_pvlimiar','Relação entre o pico de velocidade e a fadiga física da semana: regressão com limiar (esquerda) e fadiga por tercil de aptidão (direita)',w=5.6)
 
 # 5 CONSIDERAÇÕES
 sec('5','Considerações Finais')
