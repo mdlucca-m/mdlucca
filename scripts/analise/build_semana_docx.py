@@ -8,7 +8,7 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 SC='/tmp/claude-0/-home-user-mdlucca/e1dba24c-b1d7-5908-9106-f2f4aaf3f56a/scratchpad'
 FIG='/home/user/mdlucca/Artigos/figuras'
-R=json.load(open(f'{SC}/semana.json')); APP=json.load(open(f'{SC}/app_data.json'))
+R=json.load(open(f'{SC}/semana.json')); APP=json.load(open(f'{SC}/app_data.json')); REG=json.load(open(f'{SC}/reg.json'))
 desc=R['desc']; cron=R['cron']; agu=R['agu']; agu_day=R['agu_day']; dec=R['dec']; der=R['der']; rank=R['rank']
 def br(x): return str(x).replace('.',',')
 CORE=[('Vigor','Vigor'),('Fadiga','Fadiga (BRUMS)'),('FadFisica','Fadiga física'),('FadMental','Fadiga mental')]
@@ -27,7 +27,9 @@ def P(t,indent=True,size=12,it=False,just=True):
     p=doc.add_paragraph(); _set(p.add_run(t),size,it=it); p.paragraph_format.line_spacing=1.5
     if indent: p.paragraph_format.first_line_indent=Cm(1.25)
     p.alignment=WD_ALIGN_PARAGRAPH.JUSTIFY if just else WD_ALIGN_PARAGRAPH.LEFT
-def fig(name,num,titulo,w=6.0,fonte='Elaborado pelos autores (2026).'):
+_FN=[0]
+def fig(name,titulo,w=6.0,fonte='Elaborado pelos autores (2026).'):
+    _FN[0]+=1; num=_FN[0]
     cap=doc.add_paragraph(); cap.alignment=WD_ALIGN_PARAGRAPH.CENTER; cap.paragraph_format.space_before=Pt(8); cap.paragraph_format.line_spacing=1.0
     _set(cap.add_run(f'Figura {num} – {titulo}'),10)
     p=f'{FIG}/{name}.png'
@@ -42,7 +44,9 @@ def _bd(t):
     for e in ('left','right','insideV'):
         x=OxmlElement(f'w:{e}'); x.set(qn('w:val'),'none'); b.append(x)
     tblPr.append(b)
-def table(num,titulo,headers,rows,fonte='Dados da pesquisa (2026).',fs=10):
+_TN=[0]
+def table(titulo,headers,rows,fonte='Dados da pesquisa (2026).',fs=10):
+    _TN[0]+=1; num=_TN[0]
     cap=doc.add_paragraph(); cap.alignment=WD_ALIGN_PARAGRAPH.LEFT; cap.paragraph_format.space_before=Pt(8); cap.paragraph_format.line_spacing=1.0
     _set(cap.add_run(f'Tabela {num} – {titulo}'),10)
     t=doc.add_table(rows=1,cols=len(headers)); t.alignment=WD_TABLE_ALIGNMENT.CENTER; _bd(t)
@@ -92,7 +96,7 @@ sec('4','Resultados')
 
 sub('4.1','Caracterização sociodemográfica e antropométrica')
 pc=APP['socio']['pos_counts']
-table('1','Caracterização sociodemográfica e antropométrica da amostra (n = 27)',['Variável','Média ± DP (amplitude)'],[
+table('Caracterização sociodemográfica e antropométrica da amostra (n = 27)',['Variável','Média ± DP (amplitude)'],[
  ['Idade (anos)',f"{ag['idade'][0]:.0f} ± {ag['idade'][1]:.0f} ({ag['idade'][2]}–{ag['idade'][3]})"],
  ['Experiência (anos)',f"{ag['exp'][0]:.1f} ± {ag['exp'][1]:.1f}".replace('.',',')],
  ['Estatura (cm)',f"{ag['estatura'][0]:.1f} ± {ag['estatura'][1]:.1f}".replace('.',',')],
@@ -106,27 +110,37 @@ sub('4.2','Perfil de humor geral do grupo e limites')
 rows=[]
 for v,lab in [('Vigor','Vigor'),('Fadiga','Fadiga (BRUMS)'),('FadFisica','Fadiga física'),('FadMental','Fadiga mental'),('TMD','PTH/TMD'),('Tensao','Tensão'),('Depressao','Depressão'),('Raiva','Raiva'),('Confusao','Confusão')]:
     d=desc[v]; rows.append([lab,f"{d['mean']:.2f} ± {d['sd']:.2f}".replace('.',','),f"{d['med']:.1f} [{d['iqr']:.1f}]".replace('.',','),f"{d['mn']:.0f}–{d['mx']:.0f}",f"{d['amp']:.0f}".replace('.',',')])
-table('2','Estatística descritiva e limites (amplitude) do humor e da fadiga na semana',['Variável','M ± DP','Mediana [IIQ]','Mín.–Máx.','Amplitude'],rows)
+table('Estatística descritiva e limites (amplitude) do humor e da fadiga na semana',['Variável','M ± DP','Mediana [IIQ]','Mín.–Máx.','Amplitude'],rows)
 P('No conjunto da semana, o grupo preservou, em média, a configuração do perfil iceberg, com o vigor posicionando-se acima das subescalas negativas, que se mantiveram próximas ao piso (tensão, depressão, raiva e confusão com medianas baixas). A fadiga destacou-se como a dimensão negativa mais expressiva, e a elevada amplitude da PTH revela marcada heterogeneidade interindividual. Os limites (amplitude) indicam que as variáveis do eixo energia–fadiga percorrem quase toda a escala, ao passo que as negativas concentram-se no piso.')
-fig('sem_f_radar','1','Forma do perfil de humor (escores z) no Dia 1 e no Dia 7',w=5.2)
+fig('sem_f_radar','Forma do perfil de humor (escores z) no Dia 1 e no Dia 7',w=5.2)
+P('A distribuição das variáveis (Figura 2, histogramas) mostra o vigor e a fadiga física aproximadamente simétricos e bem dispersos por toda a escala, ao passo que as subescalas negativas concentram-se no piso — padrão que fundamenta o uso de estatísticas não paramétricas. Os diagramas de caixa por dia (Figura 3) resumem, para cada variável, a mediana, a dispersão interquartílica e os valores extremos ao longo da semana, evidenciando o deslocamento progressivo das caixas do vigor (para baixo) e das fadigas (para cima).')
+fig('sem_f_hist','Histogramas de distribuição das quatro variáveis na semana (linha tracejada = média)')
+fig('sem_f_boxplot','Diagramas de caixa (boxplots) das quatro variáveis por dia')
 
 sub('4.3','Comportamento das variáveis ao longo da semana')
-P('A leitura conjunta das trajetórias (Figura 2) evidencia que o sinal temporal se concentra no eixo energia–fadiga: o vigor declina e a fadiga — física e do BRUMS — eleva-se de modo progressivo rumo ao Dia 7, ao passo que a fadiga mental e as subescalas negativas permanecem estáveis. As bandas de desvio-padrão amplas em todos os dias confirmam a heterogeneidade entre atletas.')
-fig('sem_f_trajetoria','2','Comportamento semanal das quatro variáveis (M ± DP; curva suavizada por LOWESS pontilhada)')
+P('A leitura conjunta das trajetórias (Figura 4) evidencia que o sinal temporal se concentra no eixo energia–fadiga: o vigor declina e a fadiga — física e do BRUMS — eleva-se de modo progressivo rumo ao Dia 7, ao passo que a fadiga mental e as subescalas negativas permanecem estáveis. As bandas de desvio-padrão amplas em todos os dias confirmam a heterogeneidade entre atletas.')
+fig('sem_f_trajetoria','Comportamento semanal das quatro variáveis (M ± DP; curva suavizada por LOWESS pontilhada)')
+rows=[]
+for v,lab in CORE:
+    r=REG[v]; rows.append([lab,f"{r['slope']:+.3f}".replace('.',','),f"{r['r2']:.3f}".replace('.',','),(f"{r['p']:.4f}".replace('.',',') if r['p']>=0.001 else '<0,001')])
+table('Regressão linear do humor ao longo da semana (coeficiente por dia, R² e p)',['Variável','Coef./dia (b)','R²','p'],rows)
+P('A regressão linear confirma a direção e a significância das tendências: a fadiga física apresenta a inclinação mais acentuada e o melhor ajuste (b = +0,39/dia; R² = 0,10; p < 0,001), seguida da fadiga do BRUMS (b = +0,41/dia; p < 0,001) e do vigor (b = −0,27/dia; p = 0,005); a fadiga mental não exibe tendência (b = +0,04/dia; p = 0,60). Os valores de R² são baixos porque a regressão é computada no nível da observação individual, em que a maior parte da variância é atribuível às diferenças entre atletas e ao ruído de medida, e não à tendência semanal — o que reforça a necessidade de interpretar a tendência do grupo, e não a leitura isolada de um atleta. A Figura 5 apresenta as retas de regressão sobre as observações, e a Figura 6 sobrepõe, em escores padronizados, a deterioração conjunta do eixo energia–fadiga.')
+fig('sem_f_regressao','Regressão linear de cada variável ao longo da semana (pontos = observações; reta = ajuste; b e R² indicados)')
+fig('sem_f_deterioracao','Deterioração do eixo energia–fadiga em escores padronizados (z): vigor declina, fadiga e fadiga física ascendem (retas de regressão)',w=5.6)
 
 sub('4.4','Do início ao fim da semana: Dia 1 (linha de base) versus Dia 7')
 rows=[]
 for v,lab in CORE:
     c=cron[v]; rows.append([lab,f"{c['d1']:.2f}".replace('.',','),f"{c['d7']:.2f}".replace('.',','),f"{c['delta']:+.2f}".replace('.',','),f"{c['pct']:+.0f}%",f"{c['dz']:+.2f}".replace('.',','),(f"{c['p']:.3f}".replace('.',',') if c['p']>=0.001 else '<0,001'),f"{c['worse']:.0f}%"])
-table('3','Humor no Dia 1 (linha de base) e no Dia 7; comparação pareada (Wilcoxon)',['Variável','Dia 1','Dia 7','Δ','% mudança','dz','p','% que piora'],rows)
+table('Humor no Dia 1 (linha de base) e no Dia 7; comparação pareada (Wilcoxon)',['Variável','Dia 1','Dia 7','Δ','% mudança','dz','p','% que piora'],rows)
 P('Da linha de base ao último dia, o vigor caiu acentuadamente (−44%; dz = −1,09; p < 0,001) e a fadiga física (+80%; dz = +1,69) e a fadiga do BRUMS (+73%; dz = +0,68) aumentaram de forma expressiva; a fadiga mental variou pouco e sem significância (+14%; dz = +0,33; p = 0,111). A proporção de atletas que pioraram foi máxima na fadiga física (95%) e no vigor (86%), confirmando que a deterioração é generalizada no grupo e restrita ao eixo energia–fadiga.')
 
 sub('4.5','Resposta pré versus pós: intra-grupo e por dia')
 rows=[]
 for v,lab in CORE:
     a=agu[v]; rows.append([lab,f"{a['pre']:.2f}".replace('.',','),f"{a['pos']:.2f}".replace('.',','),f"{a['delta']:+.2f}".replace('.',','),f"{a['dz']:+.2f}".replace('.',','),(f"{a['p']:.4f}".replace('.',',') if a['p']>=0.001 else '<0,001')])
-table('4','Resposta aguda pré→pós agregada na semana (intra-grupo, por atleta)',['Variável','Pré','Pós','Δ','dz','p'],rows)
-P('Dentro dos dias, do primeiro ao último registro, o vigor caiu e a fadiga (física, do BRUMS e mental) aumentou, todos de forma significativa — a fadiga física com o maior efeito agudo (dz = +1,08). Esse padrão, de mesma direção que o observado na escala semanal, indica que a resposta aguda a cada dia é um análogo, em menor amplitude, do processo de acúmulo. As Tabelas 5 a 8 detalham a resposta pré→pós dia a dia para cada variável, e a Figura 3 a representa graficamente.')
+table('Resposta aguda pré→pós agregada na semana (intra-grupo, por atleta)',['Variável','Pré','Pós','Δ','dz','p'],rows)
+P('Dentro dos dias, do primeiro ao último registro, o vigor caiu e a fadiga (física, do BRUMS e mental) aumentou, todos de forma significativa — a fadiga física com o maior efeito agudo (dz = +1,08). Esse padrão, de mesma direção que o observado na escala semanal, indica que a resposta aguda a cada dia é um análogo, em menor amplitude, do processo de acúmulo. As Tabelas 6 a 9 detalham a resposta pré→pós dia a dia para cada variável, e a Figura 7 a representa graficamente.')
 for i,(v,lab) in enumerate(CORE):
     byd=agu_day[v]; rows=[]
     for dd in range(1,8):
@@ -135,16 +149,16 @@ for i,(v,lab) in enumerate(CORE):
         dzs='—' if r['dz'] is None else f"{r['dz']:+.2f}".replace('.',',')
         ps='—' if r['p'] is None else ((f"{r['p']:.3f}".replace('.',',')+('*' if r['p']<0.05 else '')) if r['p']>=0.001 else '<0,001*')
         rows.append([f"Dia {dd}",f"{r['pre']:.2f}".replace('.',','),f"{r['pos']:.2f}".replace('.',','),f"{r['delta']:+.2f}".replace('.',','),dzs,ps])
-    table(str(5+i),f'{lab}: resposta pré→pós por dia (* p < 0,05)',['Dia','Pré','Pós','Δ (pós−pré)','dz','p'],rows,fs=9)
-fig('sem_f_prepos','3','Média pré e pós por dia para as quatro variáveis')
+    table(f'{lab}: resposta pré→pós por dia (* p < 0,05)',['Dia','Pré','Pós','Δ (pós−pré)','dz','p'],rows,fs=9)
+fig('sem_f_prepos','Média pré e pós por dia para as quatro variáveis')
 
 sub('4.6','Percentuais, variação e sensibilidade das variáveis')
 rows=[]
 for r in sorted(rank,key=lambda x:-x['dz_cr']):
     rows.append([r['lab'],f"{r['dz_ag']:.2f}".replace('.',','),f"{r['dz_cr']:.2f}".replace('.',','),f"{r['snr']:.2f}".replace('.',','),f"{r['pday']:.0f}%"])
-table('9','Sensibilidade/responsividade das variáveis (ordenado pelo efeito crônico)',['Variável','|dz| agudo','|dz| crônico','SNR','% sinal'],rows)
+table('Sensibilidade/responsividade das variáveis (ordenado pelo efeito crônico)',['Variável','|dz| agudo','|dz| crônico','SNR','% sinal'],rows)
 P('A ordenação por magnitude de efeito revela uma hierarquia clara de responsividade: a fadiga física é a variável mais sensível, tanto no efeito agudo (|dz| = 1,08) quanto no crônico (|dz| = 1,69), seguida do vigor; a fadiga do BRUMS ocupa posição intermediária e a fadiga mental é a menos responsiva (|dz| crônico = 0,33; SNR < 1). A fadiga física reúne também a maior fração de sinal da semana (13%) e a melhor relação sinal-ruído (1,82), qualificando-a como o marcador de eleição para o monitoramento neste período.')
-fig('sem_f_agudo_cronico','4','Tamanho de efeito (|dz|) agudo (pré→pós) versus crônico (Dia 1→Dia 7)',w=5.4)
+fig('sem_f_agudo_cronico','Tamanho de efeito (|dz|) agudo (pré→pós) versus crônico (Dia 1→Dia 7)',w=5.4)
 
 sub('4.7','Limites, derivadas e pontos de inflexão')
 rows=[]
@@ -152,29 +166,31 @@ for v,lab in CORE+[('TMD','PTH/TMD')]:
     e=der[v]; d=desc[v]; infl=(f"dia {e['infl']:.1f}".replace('.',',') if e['infl'] else 'n/d')
     turn=', '.join(f"{x:.1f}".replace('.',',') for x in e['turn']) if e['turn'] else '—'
     rows.append([lab,f"{d['mn']:.0f}–{d['mx']:.0f}",f"{d['amp']:.0f}",f"{e['vel_d1']:+.2f}".replace('.',','),f"{e['vel_d7']:+.2f}".replace('.',','),infl,turn])
-table('10','Limites, derivadas (velocidade no D1 e D7) e ponto de inflexão por variável',['Variável','Mín.–Máx.','Amplitude','Vel. D1','Vel. D7','Inflexão','Viradas (vel = 0)'],rows)
-P('As derivadas descrevem a forma da mudança. A velocidade da fadiga física e da fadiga do BRUMS é máxima nas extremidades (início e Dia 7), com um mínimo de deterioração no meio da semana; a aceleração troca de sinal uma única vez — o ponto de inflexão —, situado em torno do Dia 4 para o vigor, a fadiga física e a fadiga do BRUMS. A fadiga mental, por ser praticamente estável, não apresenta inflexão definida. O Dia 4 marca, assim, a transição da fase de acomodação para a fase de aprofundamento da fadiga rumo ao Dia 7 (Figura 5).')
-fig('sem_f_derivadas','5','Velocidade (linha cheia) e aceleração (tracejada) da trajetória de cada variável; linha vertical = ponto de inflexão')
+table('Limites, derivadas (velocidade no D1 e D7) e ponto de inflexão por variável',['Variável','Mín.–Máx.','Amplitude','Vel. D1','Vel. D7','Inflexão','Viradas (vel = 0)'],rows)
+P('As derivadas descrevem a forma da mudança. A velocidade da fadiga física e da fadiga do BRUMS é máxima nas extremidades (início e Dia 7), com um mínimo de deterioração no meio da semana; a aceleração troca de sinal uma única vez — o ponto de inflexão —, situado em torno do Dia 4 para o vigor, a fadiga física e a fadiga do BRUMS. A fadiga mental, por ser praticamente estável, não apresenta inflexão definida. O Dia 4 marca, assim, a transição da fase de acomodação para a fase de aprofundamento da fadiga rumo ao Dia 7 (Figura 9).')
+fig('sem_f_derivadas','Velocidade (linha cheia) e aceleração (tracejada) da trajetória de cada variável; linha vertical = ponto de inflexão')
 
 sub('4.8','Decomposição com e sem ruído; filtros e suavização')
 rows=[]
 for v,lab in CORE:
     d=dec[v]; rows.append([lab,f"{d['pday']:.0f}%",f"{d['ptrait']:.0f}%",f"{d['pnoise']:.0f}%",f"{d['etm']:.2f}".replace('.',','),f"{d['mdc']:.2f}".replace('.',','),f"{d['snr']:.2f}".replace('.',',')])
-table('11','Decomposição da variância (sinal da semana, traço e ruído) e limiares de medida',['Variável','% Sinal','% Traço','% Ruído','ETM','MDC95','SNR'],rows)
-P('A decomposição da variância mostra que o sinal da semana é a menor fração (1–13%); o grosso é traço estável (entre atletas) e ruído de medida. Removendo o ruído por suavização (LOWESS), a tendência subjacente torna-se nítida: a Figura 6 apresenta a partição da variância e a Figura 7 contrasta o índice-iceberg bruto (com ruído) com a curva suavizada (sem ruído), sobre a qual o ponto de inflexão (≈ Dia 4) é inequívoco. Em termos práticos, a leitura do grupo é robusta, mas a decisão individual exige médias de várias coletas, pois a oscilação de um único registro é dominada pelo ruído.')
-fig('sem_f_decomp','6','Decomposição da variância por variável: sinal da semana, traço e ruído',w=5.4)
-fig('sem_f_ruido','7','Índice-iceberg com ruído (observações e média diária) e sem ruído (LOWESS); linha vertical = inflexão',w=5.8)
+table('Decomposição da variância (sinal da semana, traço e ruído) e limiares de medida',['Variável','% Sinal','% Traço','% Ruído','ETM','MDC95','SNR'],rows)
+P('A decomposição da variância mostra que o sinal da semana é a menor fração (1–13%); o grosso é traço estável (entre atletas) e ruído de medida. Removendo o ruído por suavização (LOWESS), a tendência subjacente torna-se nítida: a Figura 10 apresenta a partição da variância e a Figura 11 contrasta o índice-iceberg bruto (com ruído) com a curva suavizada (sem ruído), sobre a qual o ponto de inflexão (≈ Dia 4) é inequívoco. Em termos práticos, a leitura do grupo é robusta, mas a decisão individual exige médias de várias coletas, pois a oscilação de um único registro é dominada pelo ruído.')
+fig('sem_f_decomp','Decomposição da variância por variável: sinal da semana, traço e ruído',w=5.4)
+fig('sem_f_ruido','Índice-iceberg com ruído (observações e média diária) e sem ruído (LOWESS); linha vertical = inflexão',w=5.8)
 
 sub('4.9','Perfis de humor ao longo da semana')
 tab=R['perfil_tab']
 rows=[[f"Dia {dd}",f"{tab['Iceberg'][str(dd)]:.0f}",f"{tab['Barbatana tubarão'][str(dd)]:.0f}",f"{tab['Superfície'][str(dd)]:.0f}",f"{tab['Iceberg invertido'][str(dd)]:.0f}",f"{tab['Everest invertido'][str(dd)]:.0f}"] for dd in [1,4,7]]
-table('12','Distribuição dos seis perfis de humor (%) em dias-chave',['Dia','Iceberg','Barbatana','Superfície','Iceberg inv.','Everest inv.'],rows)
-P('A classificação nos seis perfis mostra a migração do perfil saudável para o de fadiga: o iceberg cai do Dia 1 ao Dia 7, enquanto a barbatana de tubarão — fadiga em pico com vigor ainda preservado — cresce expressivamente. Os perfis de colapso afetivo permanecem raros, reforçando que o custo do período é somático, e não afetivo (Figura 8).')
-fig('sem_f_perfis','8','Distribuição dos seis perfis de humor ao longo da semana',w=5.8)
+table('Distribuição dos seis perfis de humor (%) em dias-chave',['Dia','Iceberg','Barbatana','Superfície','Iceberg inv.','Everest inv.'],rows)
+P('A classificação nos seis perfis mostra a migração do perfil saudável para o de fadiga: o iceberg cai do Dia 1 ao Dia 7, enquanto a barbatana de tubarão — fadiga em pico com vigor ainda preservado — cresce expressivamente. Os perfis de colapso afetivo permanecem raros, reforçando que o custo do período é somático, e não afetivo (Figura 12).')
+fig('sem_f_perfis','Distribuição dos seis perfis de humor ao longo da semana',w=5.8)
+P('A dinâmica do perfil iceberg — o índice de saúde do humor — é sintetizada na Figura seguinte, que sobrepõe o percentual de atletas em perfil iceberg (barras) à trajetória do índice-iceberg (linha) e à sua regressão linear. Ambos declinam ao longo da semana, com queda acentuada no Dia 7, retratando a deterioração progressiva do perfil de humor do grupo.')
+fig('sem_f_iceberg','Perfil iceberg ao longo da semana: percentual em perfil iceberg (barras), índice-iceberg (linha) e regressão',w=5.8)
 
 sub('4.10','Efeito agudo e efeito crônico: comportamento individual')
-P('A integração das escalas temporais distingue dois efeitos convergentes. O efeito agudo (pré→pós) reflete a resposta imediata ao esforço diário; o efeito crônico (Dia 1→Dia 7) reflete o acúmulo ao longo da semana. Para a fadiga física e o vigor, o efeito crônico supera o agudo (dz crônico 1,69 e 1,09 versus agudo 1,08 e 0,74), indicando acúmulo progressivo; para a fadiga mental, o efeito agudo (0,53) supera o crônico (0,33), sugerindo uma resposta pontual ao dia que não se consolida ao longo da semana. As trajetórias individuais (Figura 9) revelam ampla dispersão em torno da tendência coletiva: embora a direção seja compartilhada, a magnitude e o ponto de partida variam entre atletas, o que desaconselha pontos de corte normativos únicos e sustenta o referenciamento à linha de base individual.')
-fig('sem_f_individual','9','Trajetórias individuais do vigor e da fadiga física ao longo da semana (linha em destaque = média do grupo)')
+P('A integração das escalas temporais distingue dois efeitos convergentes. O efeito agudo (pré→pós) reflete a resposta imediata ao esforço diário; o efeito crônico (Dia 1→Dia 7) reflete o acúmulo ao longo da semana. Para a fadiga física e o vigor, o efeito crônico supera o agudo (dz crônico 1,69 e 1,09 versus agudo 1,08 e 0,74), indicando acúmulo progressivo; para a fadiga mental, o efeito agudo (0,53) supera o crônico (0,33), sugerindo uma resposta pontual ao dia que não se consolida ao longo da semana. As trajetórias individuais (Figura 14) revelam ampla dispersão em torno da tendência coletiva: embora a direção seja compartilhada, a magnitude e o ponto de partida variam entre atletas, o que desaconselha pontos de corte normativos únicos e sustenta o referenciamento à linha de base individual.')
+fig('sem_f_individual','Trajetórias individuais do vigor e da fadiga física ao longo da semana (linha em destaque = média do grupo)')
 
 # 5 CONSIDERAÇÕES
 sec('5','Considerações Finais')
