@@ -13,6 +13,7 @@ DX=json.load(open(f'{SC}/decomp_extra.json')); REL=json.load(open(f'{SC}/reliab.
 RMC=json.load(open(f'{SC}/rmcorr.json')); CFA=json.load(open(f'{SC}/cfa.json'))
 DE=json.load(open(f'{SC}/deriv_exp.json')); ROC=json.load(open(f'{SC}/roc.json')); ALLO=json.load(open(f'{SC}/allo.json'))
 ANORM=json.load(open(f'{SC}/allonorm.json')); PVL=json.load(open(f'{SC}/pvlimiar.json'))
+WELL=json.load(open(f'{SC}/wellness.json')); BZ=json.load(open(f'{SC}/bayes.json'))
 socio=R['socio']; desc=R['desc']; cron=R['cron']; agu=R['agu']; dec=R['dec']; der=R['der']; rank=R['rank']
 CORE=[('Vigor','Vigor'),('Fadiga','Fadiga (BRUMS)'),('FadFisica','Fadiga física'),('FadMental','Fadiga mental'),('TMD','PTH/TMD')]
 def c2(x): return str(x).replace('.',',')
@@ -236,6 +237,22 @@ _sl=c2('%.2f'%abs(t['slope'])); _r2=c2('%.2f'%t['r2']); _pp=c2('%.3f'%t['p']); _
 _thr=c2('%.1f'%t['thr']); _or=c2('%.2f'%t['OR']); _tb=c2('%.1f'%t['terc']['Baixo'][0]); _ta=c2('%.1f'%t['terc']['Alto'][0]); _kw=c2('%.3f'%t['kw_p'])
 P(f"A resposta é afirmativa e quantificável: atletas com maior pico de velocidade no T-CAR fatigam menos ao longo da semana. A fadiga física média decresce {_sl} ponto a cada 1 km/h de pico de velocidade (R² = {_r2}; p = {_pp}; ρ = {_rho}), e o pico de velocidade discrimina bem os atletas de alta fadiga (AUC = {_auc}). O limiar de aptidão que melhor separa os grupos situa-se em torno de {_thr} km/h (regressão logística, com razão de chances de {_or} por km/h): abaixo dele predomina a alta fadiga; acima, a baixa (Figura 12). Na comparação por tercis, o grupo de baixa aptidão apresentou fadiga média de {_tb}, contra {_ta} no grupo de alta aptidão (Kruskal-Wallis p = {_kw}). Cabe uma distinção importante: o pico de velocidade prediz o nível de fadiga, mas não a taxa de acúmulo (a inclinação de D1 a D7 é semelhante entre atletas; ver Seção 4.9) — os mais aptos não deterioram mais devagar, e sim partem e permanecem em um patamar de fadiga mais baixo. Já a experiência de treino (anos) não se associou à fadiga (ρ = +0,29; p = 0,151), indicando que a proteção decorre da aptidão aeróbia atual, não do tempo de prática.")
 fig('x_pvlimiar','Relação entre o pico de velocidade e a fadiga física da semana: regressão com limiar (esquerda) e fadiga por tercil de aptidão (direita)',w=5.6)
+
+sub('4.18','Outros indicadores de monitoramento coletados na semana (TQR, Epworth, PSS)')
+rows=[
+ [WELL['TQR']['lab'],c2(f"{WELL['TQR']['d1']:.1f}"),c2(f"{WELL['TQR']['d7']:.1f}"),c2(f"{WELL['TQR']['slope']:+.2f}"),(c2(f"{WELL['TQR']['p_slope']:.3f}") if WELL['TQR']['p_slope']>=0.001 else '<0,001'),c2(f"{WELL['TQR']['rho_fad']:+.2f}")],
+ [WELL['Epworth']['lab'],c2(f"{WELL['Epworth']['d1']:.1f}"),c2(f"{WELL['Epworth']['d7']:.1f}"),c2(f"{WELL['Epworth']['slope']:+.2f}"),(c2(f"{WELL['Epworth']['p_slope']:.3f}")),c2(f"{WELL['Epworth']['rho_fad']:+.2f}")],
+ [WELL['PSS']['lab'],c2(f"{WELL['PSS']['d1']:.1f}"),c2(f"{WELL['PSS']['d7']:.1f}"),c2(f"{WELL['PSS']['slope']:+.2f}"),(c2(f"{WELL['PSS']['p_slope']:.3f}")),c2(f"{WELL['PSS']['rho_fad']:+.2f}")],
+]
+table('Comportamento na semana dos demais indicadores de monitoramento: recuperação percebida (TQR), sonolência (Epworth) e estresse percebido (PSS)',['Indicador','Dia 1','Dia 7','Coef./dia','p','ρ × fadiga física'],rows)
+P('Além do humor e da fadiga, três indicadores foram coletados na mesma janela e completam o retrato do monitoramento (Figura 13). A recuperação percebida (TQR) deteriorou-se progressivamente (13,4 → 9,6; b = −0,23/dia; p = 0,017) e correlacionou-se fortemente e de forma inversa com a fadiga física (ρ = −0,69), integrando o mesmo eixo energia–fadiga — quanto mais fadiga, menos recuperação. A sonolência (Epworth) aumentou ao longo da semana (9,1 → 11,5; b = +0,33/dia; p = 0,036), sinalizando acúmulo crônico, com associação fraca à fadiga aguda (ρ = +0,22). Já o estresse percebido (PSS) permaneceu estável (22,6 → 21,7; b = −0,17/dia; p = 0,369) e independente da fadiga (ρ = +0,05), comportando-se como um traço que não rastreia o microciclo. Assim, a TQR é o indicador complementar mais informativo; a Epworth capta o acúmulo; e o PSS não serve para monitorar cargas agudas neste contexto.')
+fig('x_wellness','Comportamento semanal da recuperação (TQR), sonolência (Epworth) e estresse (PSS); reta tracejada = tendência linear',w=5.8)
+
+sub('4.19','Análise bayesiana e de equivalência: afirmando o efeito e o nulo')
+rows=[[BZ[v]['lab'],(c2(f"{BZ[v]['bf10']:.2f}") if BZ[v]['bf10']<1000 else c2(f"{BZ[v]['bf10']:.0f}")),{'efeito':'evidência de efeito','equivalência/nulo':'evidência de ausência','indeterminado':'indeterminado'}[BZ[v]['verd']]] for v in ['FadFisica','Vigor','Fadiga','TMD','FadMental','Tensao','Depressao','Raiva','Confusao']]
+table('Fatores de Bayes (BF₁₀) para a mudança da linha de base ao último dia e classificação da evidência (BF > 3 = efeito; BF < 1/3 = ausência)',['Variável','BF₁₀','Evidência'],rows)
+P('A abordagem bayesiana qualifica a natureza da (não) resposta de cada variável, distinguindo evidência de efeito de mera ausência de significância. Há evidência extrema a forte a favor de um efeito da linha de base ao último dia na fadiga física (BF₁₀ ≈ 4,6×10⁵), no vigor (≈ 1.081), na fadiga do BRUMS (14,2) e — por redução — na tensão (5,9). Por outro lado, há evidência a favor da AUSÊNCIA de efeito na depressão (BF₁₀ = 0,25) e na raiva (0,22), sustentando quantitativamente a leitura de custo somático, e não afetivo. A fadiga mental, a PTH e a confusão permaneceram indeterminadas (1/3 < BF₁₀ < 3), refletindo poder amostral insuficiente para afirmar o nulo — o teste de equivalência (TOST, ROPE ±0,2 DP) tampouco estabeleceu equivalência formal, dada a amostra de 25–27 atletas. A Figura 14 resume os fatores de Bayes em escala logarítmica.')
+fig('x_bayes','Fatores de Bayes (BF₁₀, escala logarítmica) para a mudança D1→D7; verde = evidência de efeito, vermelho = evidência de ausência, cinza = indeterminado',w=5.6)
 
 # 5 CONSIDERAÇÕES
 sec('5','Considerações Finais')
