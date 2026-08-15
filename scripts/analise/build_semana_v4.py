@@ -9,7 +9,7 @@ from docx.oxml import OxmlElement
 SC='/tmp/claude-0/-home-user-mdlucca/e1dba24c-b1d7-5908-9106-f2f4aaf3f56a/scratchpad'
 FIG='/home/user/mdlucca/Artigos/figuras'
 R=json.load(open(f'{SC}/semana2.json')); REG=json.load(open(f'{SC}/reg.json')); BF=json.load(open(f'{SC}/baseline_final.json'))
-DX=json.load(open(f'{SC}/decomp_extra.json'))
+DX=json.load(open(f'{SC}/decomp_extra.json')); REL=json.load(open(f'{SC}/reliab.json')); MV=json.load(open(f'{SC}/mv.json'))
 socio=R['socio']; desc=R['desc']; cron=R['cron']; agu=R['agu']; dec=R['dec']; der=R['der']; rank=R['rank']
 CORE=[('Vigor','Vigor'),('Fadiga','Fadiga (BRUMS)'),('FadFisica','Fadiga física'),('FadMental','Fadiga mental'),('TMD','PTH/TMD')]
 def c2(x): return str(x).replace('.',',')
@@ -160,6 +160,22 @@ rows=[[fc[v]['lab'],c2(f"{rc[v]['etm']:.2f}"),c2(f"{rc[v]['mdc']:.2f}"),f"{rc[v]
 table('Mudança confiável por atleta (RCI): erro típico, mudança mínima detectável e proporção de atletas com mudança individual confiável (D1→D7)',['Variável','ETM','MDC95','% atletas com mudança confiável'],rows)
 P('No nível individual, a proporção de atletas cuja mudança da linha de base ao último dia supera o limiar de ruído (|RCI| > 1,96) é baixa — fadiga do BRUMS 19%, vigor e PTH 14%, fadiga física 10% e fadiga mental 0% —, o que confirma, por um índice per capita, que uma única coleta é insuficiente para a decisão individual confiável, reforçando o uso de médias de coletas. Por fim, a análise de componentes principais das seis subescalas (Gráfico 10) mostra que o humor é essencialmente bidimensional: o primeiro componente explica 40% e o segundo 23% da variância (63% acumulados), correspondendo ao eixo energia–fadiga e a um eixo de afeto negativo — ou seja, o "sinal" do humor concentra-se em poucas dimensões, e o monitoramento pode focar-se nelas.')
 graf('x_pca','Variância explicada pelos componentes principais das seis subescalas do BRUMS (barras) e variância acumulada (linha)',w=5.0)
+
+sub('4.10','Confiabilidade interna das subescalas (α de Cronbach e ω de McDonald)')
+rows=[[sub,str(REL[sub]['k']),c2(f"{REL[sub]['alpha']:.2f}"),c2(f"{REL[sub]['omega']:.2f}"),c2(f"{REL[sub]['mic']:.2f}")] for sub in ['Tensão','Depressão','Raiva','Vigor','Fadiga','Confusão']]
+table('Confiabilidade (consistência interna) das seis subescalas do BRUMS',['Subescala','Nº itens','α de Cronbach','ω de McDonald','r̄ inter-itens'],rows)
+P('A consistência interna das subescalas foi, em geral, adequada a boa, com o ω de McDonald — estimador menos enviesado que o α para poucos itens — variando de 0,69 a 0,91: excelente para depressão (0,91), raiva (0,91) e fadiga (0,87), e boa para vigor (0,83), confusão (0,79) e mesmo tensão (0,69). O α de Cronbach acompanha esse padrão, exceto na tensão (α = 0,43), cujo valor é rebaixado não por falha do construto, mas pelo forte efeito de piso (baixa variância e baixa correlação média inter-itens, r̄ = 0,16), como se vê ao contrastá-lo com o ω. Em conjunto, os escores das subescalas são suficientemente fidedignos para o monitoramento, com a ressalva de que a tensão deve ser lida com cautela neste contexto.')
+
+sub('4.11','Modelo misto multivariado do eixo energia–fadiga')
+P('O eixo energia–fadiga foi modelado conjuntamente (vigor, fadiga do BRUMS, fadiga física e fadiga mental; a PTH foi excluída por ser derivada dessas dimensões). A estrutura entre-atletas (Figura 7) confirma o eixo como dimensão de traço: o vigor correlaciona-se negativamente com as três fadigas (r = −0,27 a −0,38), enquanto a fadiga do BRUMS e a fadiga física correlacionam-se fortemente entre si (r = +0,74) — atletas mais fatigados numa dimensão tendem a sê-lo nas demais.')
+fig('x_trait_corr','Correlações entre-atletas (nível de traço) das quatro variáveis do eixo energia–fadiga',w=4.8)
+rows=[
+ ['Modelo misto multivariado — efeito conjunto do dia (LRT)',f"χ²({MV['dfd']}) = {MV['lr']:.1f}".replace('.',','),('p < 0,001' if MV['pjoint']<0.001 else c2(f"p = {MV['pjoint']:.3f}"))],
+ ['Hotelling T² — Dia 1 vs Dia 7 (multivariado pareado)',f"F({MV['dfn']},{MV['dfden']}) = {MV['F']:.2f}".replace('.',','),('p < 0,001' if MV['pF']<0.001 else c2(f"p = {MV['pF']:.3f}"))],
+ ['Tamanho de efeito multivariado — D de Mahalanobis (D1→D7)',c2(f"D = {MV['mahal']:.2f}"),'—'],
+]
+table('Testes multivariados do efeito do microciclo sobre o eixo energia–fadiga (quatro variáveis conjuntas)',['Teste','Estatística','p'],rows)
+P('O modelo misto multivariado — que ajusta as quatro variáveis conjuntamente, com efeitos aleatórios de atleta — indica um efeito do dia altamente significativo sobre o perfil como um todo (razão de verossimilhança χ²(4) = 109,1; p ≈ 10⁻²²), confirmando que a deterioração é um deslocamento coordenado do vetor de humor, e não fruto de uma variável isolada. A comparação multivariada da linha de base ao último dia (Hotelling T²) é igualmente significativa (F(4,17) = 18,17; p < 0,001), com tamanho de efeito multivariado muito grande (D de Mahalanobis = 2,02) — magnitude que integra, num único índice, o afastamento conjunto do vigor e das fadigas entre o início e o fim da semana.')
 
 # 5 CONSIDERAÇÕES
 sec('5','Considerações Finais')
