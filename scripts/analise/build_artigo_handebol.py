@@ -63,7 +63,7 @@ def figure(path,cap,w=15.0):
     pc=doc.add_paragraph(); pc.alignment=WD_ALIGN_PARAGRAPH.CENTER; rc=pc.add_run('Figura %d – %s'%(_FN[0],cap)); rc.font.size=Pt(11)
     pf=doc.add_paragraph(); pf.alignment=WD_ALIGN_PARAGRAPH.CENTER; rf=pf.add_run('Fonte: elaboração dos autores (2026).'); rf.font.size=Pt(9); pf.paragraph_format.space_after=Pt(6)
     return _FN[0]
-def pstr(p): return '< 0,001' if p<0.001 else c2('%.3f'%p)
+def pstr(p): return '< 0,001' if p<0.001 else '= '+c2('%.3f'%p)
 mvv=lambda tab,k,f: next(x[f] for x in MV[tab]['rows'] if x['k']==k)
 pr=R['prepos']; d17=R['d1d7']; prof=R['profiles']; sm=R['sample']; desc=R['desc']; PREV=MS['prev']
 SH=STAT['shapiro']; IC=STAT['icc']; LP=LIM['LIM']['PVini']; FR=S4['friedman']; SENS=S4['sens']
@@ -79,16 +79,18 @@ H('RESUMO',before=2)
 RUN([('Objetivo: ',True),('caracterizar e analisar o perfil de humor de atletas de handebol de elite ao longo da última '
  'semana de pré-temporada, comparando cada dimensão do BRUMS entre todos os dias e identificando os dias de maior e menor '
  'expressão de cada estado de humor, com a aptidão aeróbia intermitente como parâmetro fisiológico. ',False),
- ('Método: ',True),('%d atletas do sexo masculino responderam ao BRUMS-24 duas vezes ao dia por sete dias (%d '
- 'observações). Empregaram-se estatística descritiva, Shapiro-Wilk, Wilcoxon com tamanho de efeito, Friedman com W de '
+ ('Método: ',True),('%d atletas do sexo masculino responderam ao BRUMS-24 ao longo de sete dias (uma coleta de linha '
+ 'de base no primeiro dia e duas coletas diárias — pré e pós-treino — nos seis dias de treino), totalizando %d '
+ 'observações. Empregaram-se estatística descritiva, Shapiro-Wilk, Wilcoxon com tamanho de efeito, Friedman com W de '
  'Kendall, pós-teste (Tukey), ICC, MANOVA em escores T e regressão do pico de velocidade do T-CAR, com limiar por índice '
  'de Youden. '%(sm['n'],sm['n_obs']),False),
  ('Resultados: ',True),('a deterioração concentrou-se no eixo energia–fadiga — o vigor caiu (d = %s) e a fadiga subiu '
- '(d = %s), confirmado por MANOVA (Wilks λ = %s; p = %s). O vigor foi máximo no Dia %d e a fadiga no Dia %d. Os seis '
+ '(d = %s), confirmado por MANOVA (Wilks λ = %s; p %s). O vigor foi máximo no Dia %d e a fadiga no Dia %d. Os seis '
  'perfis de humor descritos por Terry e Parsons-Smith (iceberg, iceberg invertido, submerso, superfície, Everest '
- 'invertido e barbatana de tubarão) estiveram representados, e o perfil predominante migrou do iceberg (%s%% no Dia 1) '
- 'para a barbatana de tubarão (%s%% no Dia 7; χ² = %s; p = %s), sem instalação dos perfis de maior risco à saúde mental '
- '(Everest invertido, submerso e iceberg invertido). Maior aptidão associou-se a menos fadiga (ρ = %s), com limiar de '
+ 'invertido e barbatana de tubarão) estiveram representados, e a prevalência deslocou-se do perfil iceberg (%s%% no '
+ 'baseline) para a barbatana de tubarão (%s%% no Dia 7), sem instalação dos perfis de maior risco à saúde mental '
+ '(Everest invertido, submerso e iceberg invertido), embora a diferença categórica não tenha alcançado significância '
+ '(χ² = %s; p %s). Maior aptidão associou-se a menos fadiga (ρ = %s), com limiar de '
  '%s km/h. '%(
    c2('%+.2f'%mvv('d1d7','Vigor','d')),c2('%+.2f'%mvv('d1d7','Fadiga','d')),c2('%.3f'%MV['d1d7']['wilks']),pstr(MV['d1d7']['p_mv']),
    PK['Vigor']['max_day'],PK['Fadiga']['max_day'],
@@ -180,8 +182,17 @@ P('O humor foi avaliado pela BRUMS-24, com 24 itens em escala de 0 (“nada”) 
  'foi aplicado em 15 de abril de 2024, quatro dias de treino antes do início do microciclo, de modo a servir como '
  'parâmetro fisiológico de linha de base das análises.')
 H('2.3 Procedimentos',12,before=6)
-P('O BRUMS foi autoaplicado por formulário eletrônico com registro de data e hora, duas vezes por dia de treino — a '
- 'primeira resposta tomada como pré e a última como pós —, ao longo de sete dias, totalizando %d observações válidas.'%sm['n_obs'])
+P('O BRUMS foi autoaplicado por formulário eletrônico ao longo de sete dias consecutivos (21 a 27 de abril de 2024). '
+ 'A data e o horário de cada resposta foram definidos pelo carimbo automático de registro do formulário — e não pela '
+ 'data informada pelo respondente —, garantindo a alocação correta de cada observação ao dia e ao momento de coleta. '
+ 'O primeiro dia (21/04) constituiu a avaliação de linha de base (baseline), com uma única coleta por atleta; nos seis '
+ 'dias de treino subsequentes (22 a 27/04) previram-se duas coletas diárias — uma ao início (pré) e outra ao final '
+ '(pós) do treino. Em cada dia de treino, a primeira resposta de cada atleta foi tomada como pré e a última como pós. '
+ 'Por se tratar de registro em condições ecológicas, houve adesão irregular: nem todos os atletas responderam em todos '
+ 'os dias ou nas duas janelas, e eventuais respostas repetidas dentro de uma mesma janela foram reduzidas a um único '
+ 'valor (a primeira, no baseline; a primeira e a última, como pré e pós, nos dias de treino). Após essa padronização e '
+ 'a exclusão de um registro isolado fora da janela (29/04), o conjunto analítico totalizou %d observações válidas dos '
+ '%d atletas (uma no baseline e até duas por dia de treino).'%(sm['n_obs'],sm['n']))
 H('2.4 Análise estatística',12,before=6)
 P('A análise seguiu uma sequência do descritivo ao inferencial. Inicialmente, empregou-se estatística descritiva (média, '
  'desvio-padrão, mediana e amplitude) para caracterizar as variáveis, e o teste de Shapiro-Wilk para verificar a '
@@ -248,8 +259,8 @@ tdd=table('Médias diárias das dimensões do BRUMS e teste de Friedman com W de
     ['Dimensão','D1','D2','D3','D4','D5','D6','D7','χ²','p','W de Kendall'],[ddrow(k,l) for k,l in ORD],
     note='W de Kendall = tamanho de efeito do teste de Friedman (0,1 pequeno; 0,3 moderado; 0,5 grande).',fs=8)
 P('As médias diárias, o teste de Friedman e o W de Kendall constam na Tabela %d (Figuras %d e %d): houve diferença '
- 'significativa entre os dias para o vigor (p = %s; W = %s), a fadiga (p = %s; W = %s), a tensão (p = %s) e a confusão '
- '(p = %s), sempre com magnitude pequena a moderada, coerente com um microciclo de acúmulo dentro da faixa funcional.'%(
+ 'significativa entre os dias para o vigor (p %s; W = %s), a fadiga (p %s; W = %s), a tensão (p %s) e a confusão '
+ '(p %s), sempre com magnitude pequena a moderada, coerente com um microciclo de acúmulo dentro da faixa funcional.'%(
    tdd,f_traj,f_box,pstr(FR['Vigor']['p']),c2('%.2f'%FR['Vigor']['W']),pstr(FR['Fadiga']['p']),c2('%.2f'%FR['Fadiga']['W']),pstr(FR['Tensao']['p']),pstr(FR['Confusao']['p'])))
 def icrow(k,lab):
     i=IC[k]; return [lab,c2('%.2f'%i['icc1']),c2('%.2f'%i['icck']),i['cls']]
@@ -276,12 +287,12 @@ def mvrow(x):
 mv=MV['d1d7']
 tmv=table('Comparação Dia 1 → Dia 7 das seis dimensões em escores T (MANOVA de medidas repetidas; n = %d).'%mv['n'],
     ['Dimensão','D1 M','D1 DP','D7 M','D7 DP','F','p','d','η²ₚ'],[mvrow(x) for x in mv['rows']],
-    note='Wilks λ = %s; F(%d,%d) = %s; p = %s; η²ₚ = %s. * p < 0,008 (α ajustado por Bonferroni para as seis dimensões).'%(c2('%.3f'%mv['wilks']),mv['df1'],mv['df2'],c2('%.2f'%mv['Fmv']),pstr(mv['p_mv']),c2('%.2f'%mv['eta_mv'])),fs=8.5)
-P('A análise multivariada confirmou a diferença entre o Dia 1 e o Dia 7 (Wilks λ = %s; F(%d,%d) = %s; p = %s; η²ₚ = %s). '
+    note='Wilks λ = %s; F(%d,%d) = %s; p %s; η²ₚ = %s. * p < 0,008 (α ajustado por Bonferroni para as seis dimensões).'%(c2('%.3f'%mv['wilks']),mv['df1'],mv['df2'],c2('%.2f'%mv['Fmv']),pstr(mv['p_mv']),c2('%.2f'%mv['eta_mv'])),fs=8.5)
+P('A análise multivariada confirmou a diferença entre o Dia 1 e o Dia 7 (Wilks λ = %s; F(%d,%d) = %s; p %s; η²ₚ = %s). '
  'Nos testes univariados com o critério corrigido de Bonferroni (α = 0,008), apenas o vigor (d = %s) e a fadiga (d = %s) '
  'permaneceram significativos — evidenciando que o efeito se concentra no eixo energia–fadiga —, enquanto a tensão '
- '(p = %s) e a confusão (p = %s), significativas apenas sob α = 0,05, não resistiram à correção (Tabela %d; Figura %d). A '
- 'resposta aguda pré → pós também foi multivariadamente significativa (Wilks λ = %s; p = %s), reforçando o achado.'%(
+ '(p %s) e a confusão (p %s), significativas apenas sob α = 0,05, não resistiram à correção (Tabela %d; Figura %d). A '
+ 'resposta aguda pré → pós também foi multivariadamente significativa (Wilks λ = %s; p %s), reforçando o achado.'%(
    c2('%.3f'%mv['wilks']),mv['df1'],mv['df2'],c2('%.2f'%mv['Fmv']),pstr(mv['p_mv']),c2('%.2f'%mv['eta_mv']),
    c2('%+.2f'%mvv('d1d7','Vigor','d')),c2('%+.2f'%mvv('d1d7','Fadiga','d')),pstr(mvv('d1d7','Tensao','p')),pstr(mvv('d1d7','Confusao','p')),tmv,f_prof,c2('%.3f'%MV['prepos']['wilks']),pstr(MV['prepos']['p_mv'])))
 H('3.7 Dias de maior expressão de cada estado de humor',12,before=6)
@@ -308,17 +319,21 @@ P('Quanto às relações entre as dimensões (Tabela %d), as dimensões negativa
    tcorr,c2('%+.2f'%FP['D1']['Depressao']['rho_fad']),c2('%+.2f'%FP['D7']['Depressao']['rho_fad'])))
 H('3.9 Classificação dos perfis de humor',12,before=6)
 P('A classificação de cada observação em um dos seis perfis de humor oferece uma leitura integrada e visual do estado '
- 'psicológico da equipe. Ao longo do microciclo, os seis perfis estiveram representados na amostra, mas com nítida '
- 'reorganização entre o primeiro e o último dia de treino.')
-f_prev=figure(f'{FG}/xb5_prev.png','Distribuição (%) dos seis perfis de humor no Dia 1 e no Dia 7.',w=13.5)
+ 'psicológico da equipe. Ao longo do microciclo, os seis perfis estiveram representados na amostra, com reorganização '
+ 'de prevalência entre o baseline e o último dia de treino.')
+f_prev=figure(f'{FG}/xb5_prev.png','Distribuição (%) dos seis perfis de humor no baseline (Dia 1) e no Dia 7.',w=13.5)
 PROFR=[('Iceberg','Iceberg'),('Everest invertido','Everest invertido'),('Iceberg invertido','Iceberg invertido'),('Submerso','Submerso'),('Barbatana tubarão','Barbatana de tubarão'),('Superfície','Superfície')]
 def prow(p,lab):
     d1=PREV['D1'][p]; d7=PREV['D7'][p]; return [lab,'%d (%s)'%(d1,c2('%.1f'%(100*d1/PREV['n_d1']))),'%d (%s)'%(d7,c2('%.1f'%(100*d7/PREV['n_d7'])))]
-tprev=table('Distribuição dos perfis de humor no primeiro e no último dia da semana: n (%).',
-    ['Perfil','Dia 1 n (%)','Dia 7 n (%)'],[prow(p,lab) for p,lab in PROFR],fs=9)
-P('O perfil migrou do iceberg (%s%% no Dia 1) para a barbatana de tubarão (%s%% no Dia 7), com o iceberg caindo para '
- '%s%% (Figura %d; Tabela %d).'%(
-   c2('%.0f'%(100*PREV['D1']['Iceberg']/PREV['n_d1'])),c2('%.0f'%(100*PREV['D7']['Barbatana tubarão']/PREV['n_d7'])),c2('%.0f'%(100*PREV['D7']['Iceberg']/PREV['n_d7'])),f_prev,tprev))
+tprev=table('Distribuição dos perfis de humor no baseline e no último dia de treino: n (%).',
+    ['Perfil','Baseline n (%)','Dia 7 n (%)'],[prow(p,lab) for p,lab in PROFR],fs=9)
+P('A prevalência deslocou-se do iceberg (%s%% no baseline) para a barbatana de tubarão (%s%% no Dia 7), com o iceberg '
+ 'recuando para %s%% (Figura %d; Tabela %d). Essa reorganização categórica, contudo, não alcançou significância '
+ 'estatística (χ² = %s; p %s) — resultado esperado dado o pequeno número de observações distribuído por seis perfis, '
+ 'que reduz a contagem esperada por célula e a potência do teste qui-quadrado; a mudança é, portanto, uma tendência '
+ 'descritiva, coerente com a queda multivariada do vigor e a elevação da fadiga.'%(
+   c2('%.0f'%(100*PREV['D1']['Iceberg']/PREV['n_d1'])),c2('%.0f'%(100*PREV['D7']['Barbatana tubarão']/PREV['n_d7'])),c2('%.0f'%(100*PREV['D7']['Iceberg']/PREV['n_d7'])),f_prev,tprev,
+   c2('%.2f'%PREV['chi']),pstr(PREV['p'])))
 f_clu=figure(f'{FG}/xb6_clusters.png','Perfis de humor (clusters) identificados na amostra, representados em escores T (M = 50; DP = 10) nas seis dimensões; percentuais entre parênteses.',w=14.5)
 P('A forma de cada cluster identificado na amostra (Figura %d) reproduz a taxonomia consagrada dos seis perfis de humor '
  '(PARSONS-SMITH; TERRY; MACHIN, 2017): o iceberg, com vigor elevado sobre dimensões negativas baixas; a barbatana de '
@@ -341,7 +356,7 @@ ttc=table('Estatística descritiva do desempenho no Teste de Carminatti (T-CAR).
     note='PV = pico de velocidade; FC = frequência cardíaca; TRIMP = training impulse.',fs=8.5)
 f_pv=figure(f'{FG}/pv7_scatter.png','Dispersão e reta de regressão (com banda de IC95%) entre o pico de velocidade do T-CAR e as médias semanais de vigor, fadiga, PTH e fadiga física.',w=15.0)
 P('O desempenho no T-CAR consta na Tabela %d. A regressão mostrou que atletas com maior pico de velocidade reportaram '
- 'menos fadiga física (ρ = %s; p = %s) e mais vigor (ρ = %s; p = %s) ao longo da semana (Figura %d). A partir de um '
+ 'menos fadiga física (ρ = %s; p %s) e mais vigor (ρ = %s; p %s) ao longo da semana (Figura %d). A partir de um '
  'modelo que estima a probabilidade de um dia de fadiga elevada em função do pico de velocidade, identificou-se um limiar '
  'de aproximadamente %s km/h (área sob a curva = %s; sensibilidade = %s; especificidade = %s): abaixo desse valor, os '
  'atletas apresentaram maior probabilidade de dias de fadiga elevada, o que fornece uma referência objetiva para '
@@ -357,7 +372,7 @@ P('O presente estudo caracterizou o comportamento do humor de handebolistas de e
  'fadiga subiu de forma consistente, tanto na resposta aguda a cada treino (pré → pós: vigor −%s%%, d = %s; fadiga +%s%%, '
  'd = %s) quanto na comparação do primeiro ao último dia (vigor d = %s; fadiga d = %s). A robustez desse achado é '
  'sustentada por três abordagens convergentes — o pós-teste do modelo misto comparando todos os dias, o teste de Friedman '
- 'e a análise multivariada em escores T (Wilks λ = %s; F(%d,%d) = %s; p = %s; η²ₚ = %s). Sob o critério conservador de '
+ 'e a análise multivariada em escores T (Wilks λ = %s; F(%d,%d) = %s; p %s; η²ₚ = %s). Sob o critério conservador de '
  'Bonferroni, apenas o vigor (η²ₚ = %s) e a fadiga (η²ₚ = %s) permaneceram significativos, enquanto as dimensões negativas '
  'de valência não fadiga, próximas do piso, mantiveram-se estáveis. Confirma-se, assim, que o vigor e a fadiga são as '
  'dimensões subjetivas mais sensíveis à carga de treino, em consonância com a literatura de monitoramento (SAW; MAIN; '
@@ -396,8 +411,9 @@ P('Um achado de particular interesse foi a natureza dependente da carga na rela�
  'desajuste.'%(
    c2('%+.2f'%FP['D1']['Depressao']['rho_fad']),c2('%+.2f'%FP['D1']['Raiva']['rho_fad']),
    c2('%+.2f'%FP['D7']['Depressao']['rho_fad']),c2('%+.2f'%FP['D7']['Raiva']['rho_fad'])))
-P('No plano dos perfis de humor, a migração do iceberg (prontidão) para a barbatana de tubarão (fadiga funcional) ao '
- 'longo da semana reproduz, em um microciclo de handebol, o “derretimento do iceberg” descrito na literatura de '
+P('No plano dos perfis de humor, o deslocamento de prevalência do iceberg (prontidão) para a barbatana de tubarão '
+ '(fadiga funcional) ao longo da semana — uma tendência descritiva, já que a diferença categórica não atingiu '
+ 'significância — reproduz, em um microciclo de handebol, o “derretimento do iceberg” descrito na literatura de '
  'sobrecarga (MORGAN, 1985; HAN; PARSONS-SMITH; TERRY, 2020). É relevante que, mesmo sob o acúmulo de carga da '
  'pré-temporada, os perfis associados a maior risco à saúde mental (Everest invertido, submerso e iceberg invertido) não '
  'se tornaram prevalentes: a deterioração restringiu-se ao perfil de fadiga, cuja prevalência no último dia (%s%%) '
@@ -410,8 +426,8 @@ P('No plano dos perfis de humor, a migração do iceberg (prontidão) para a bar
  'associação com desfechos como a lesão (DE MIRANDA ROHLFS et al., 2025).'%(
    c2('%.0f'%(100*PREV['D7']['Barbatana tubarão']/PREV['n_d7'])),))
 P('A inclusão do pico de velocidade do T-CAR como parâmetro fisiológico acrescentou uma leitura interindividual à '
- 'resposta afetiva. Atletas com maior aptidão aeróbia intermitente reportaram mais vigor (ρ = %s; p = %s) e menos fadiga '
- 'física (ρ = %s; p = %s) ao longo da semana, e um limiar de pico de velocidade de aproximadamente %s km/h discriminou os '
+ 'resposta afetiva. Atletas com maior aptidão aeróbia intermitente reportaram mais vigor (ρ = %s; p %s) e menos fadiga '
+ 'física (ρ = %s; p %s) ao longo da semana, e um limiar de pico de velocidade de aproximadamente %s km/h discriminou os '
  'dias de maior fadiga (área sob a curva = %s). Esse resultado é coerente com o papel da capacidade aeróbia intermitente '
  'em sustentar e repetir esforços de alta intensidade — acelerando a recuperação entre ações e retardando a fadiga — e, '
  'portanto, em modular a tolerância à carga do handebol, e com a validade do pico de velocidade do T-CAR como marcador '
