@@ -335,12 +335,29 @@ P('O desempenho no T-CAR consta na Tabela %d. A regressão mostrou que atletas c
 
 # ===== 4 DISCUSSÃO =====
 H('4 DISCUSSÃO')
-P('A resposta do humor concentrou-se no eixo energia–fadiga, confirmada tanto pela comparação entre todos os dias '
- '(pós-teste) quanto pela análise multivariada em escores T: o vigor caiu com efeito grande e a fadiga subiu com efeito '
- 'médio, enquanto as dimensões negativas de valência não fadiga permaneceram estáveis. Os dias de pico esclarecem a '
- 'dinâmica — maior prontidão no início (vigor máximo no Dia %d) e maior fadiga e raiva no final (Dia %d) —, padrão '
- 'coerente com o acúmulo de carga da pré-temporada e com a literatura de monitoramento (SAW; MAIN; GASTIN, 2016; '
- 'KELLMANN et al., 2018).'%(PK['Vigor']['max_day'],PK['Fadiga']['max_day']))
+P('O presente estudo caracterizou o comportamento do humor de handebolistas de elite ao longo da última semana de '
+ 'pré-temporada, e o achado central é inequívoco: a deterioração concentrou-se no eixo energia–fadiga. O vigor caiu e a '
+ 'fadiga subiu de forma consistente, tanto na resposta aguda a cada treino (pré → pós: vigor −%s%%, d = %s; fadiga +%s%%, '
+ 'd = %s) quanto na comparação do primeiro ao último dia (vigor d = %s; fadiga d = %s). A robustez desse achado é '
+ 'sustentada por três abordagens convergentes — o pós-teste do modelo misto comparando todos os dias, o teste de Friedman '
+ 'e a análise multivariada em escores T (Wilks λ = %s; F(%d,%d) = %s; p = %s; η²ₚ = %s). Sob o critério conservador de '
+ 'Bonferroni, apenas o vigor (η²ₚ = %s) e a fadiga (η²ₚ = %s) permaneceram significativos, enquanto as dimensões negativas '
+ 'de valência não fadiga, próximas do piso, mantiveram-se estáveis. Confirma-se, assim, que o vigor e a fadiga são as '
+ 'dimensões subjetivas mais sensíveis à carga de treino, em consonância com a literatura de monitoramento (SAW; MAIN; '
+ 'GASTIN, 2016; THORPE et al., 2017; KELLMANN et al., 2018).'%(
+   c2('%.0f'%abs(pr['Vigor']['pct'])),c2('%+.2f'%pr['Vigor']['dz']),c2('%.0f'%pr['Fadiga']['pct']),c2('%+.2f'%pr['Fadiga']['dz']),
+   c2('%+.2f'%mvv('d1d7','Vigor','d')),c2('%+.2f'%mvv('d1d7','Fadiga','d')),
+   c2('%.3f'%MV['d1d7']['wilks']),MV['d1d7']['df1'],MV['d1d7']['df2'],c2('%.2f'%MV['d1d7']['Fmv']),pstr(MV['d1d7']['p_mv']),c2('%.2f'%MV['d1d7']['eta_mv']),
+   c2('%.2f'%mvv('d1d7','Vigor','eta')),c2('%.2f'%mvv('d1d7','Fadiga','eta'))))
+P('Para além de confirmar a deterioração, os resultados detalham a sua dinâmica temporal — o “quando”, tão relevante para '
+ 'a prática. O humor mais positivo concentrou-se no início da semana (vigor máximo no Dia %d) e a fadiga acumulou-se '
+ 'progressivamente até o pico no último dia (Dia %d), acompanhada da raiva e da Perturbação Total do Humor. Sobrepõem-se '
+ 'dois processos: um choque agudo intra-sessão, em que o vigor cai e a fadiga sobe do pré ao pós a cada treino, e um '
+ 'acúmulo ao longo da semana, que desloca o eixo energia–fadiga rumo ao final do microciclo — como evidenciado pelo '
+ 'pós-teste, em que os dias finais diferem significativamente do Dia 1. Essa leitura temporal é diretamente acionável: '
+ 'sinaliza que o reforço da recuperação deve concentrar-se na transição do início da semana (choque de carga) e no '
+ 'encerramento do microciclo (fadiga acumulada), pontos em que o estado psicofisiológico é mais desfavorável.'%(
+   PK['Vigor']['max_day'],PK['Fadiga']['max_day']))
 P('O caráter do handebol ajuda a contextualizar a magnitude dessa resposta. Trata-se de uma modalidade coletiva de '
  'invasão, marcadamente intermitente, na qual ações de alta intensidade — sprints, saltos, arremessos, bloqueios, '
  'mudanças de direção e contatos — alternam-se com períodos de recuperação incompleta, exigindo simultaneamente potência '
@@ -351,28 +368,51 @@ P('O caráter do handebol ajuda a contextualizar a magnitude dessa resposta. Tra
  'menor intensidade (VACCARO-BENET et al., 2024). Nesse contexto, o acúmulo de carga da última semana de pré-temporada '
  'explica tanto a deterioração do eixo energia–fadiga quanto a migração do perfil de humor observadas, reforçando por que '
  'o vigor e a fadiga foram as dimensões mais sensíveis do painel.')
-P('Os achados também reforçam o valor da BRUMS como ferramenta de monitoramento no esporte coletivo de rendimento. Em '
- 'modalidades de equipe, o humor responde de forma sensível a fatores como carga, sono e resultados competitivos: em '
- 'atletas brasileiros de elite, a BRUMS já discriminou respostas ligadas ao sono e ao desempenho (ANDRADE et al., 2016; '
- 'BRANDT; BEVILACQUA; ANDRADE, 2017) e, mais recentemente, respostas psicológicas agudas a resultados de partida em '
- 'atletas jovens de modalidades coletivas (DO NASCIMENTO et al., 2026), além de associar-se à ocorrência de lesão em '
- 'coortes de alto rendimento (DE MIRANDA ROHLFS et al., 2025). A rapidez de aplicação e a leitura por perfis tornam a '
- 'BRUMS especialmente adequada ao acompanhamento longitudinal de equipes, permitindo à comissão técnica identificar '
- 'precocemente os atletas em deterioração e individualizar as estratégias de recuperação.')
+P('Um achado de particular interesse foi a natureza dependente da carga na relação entre o afeto negativo e a fadiga. No '
+ 'dia de maior vigor (Dia 1, grupo descansado), as dimensões negativas mostraram-se praticamente independentes da fadiga '
+ '(depressão × fadiga ρ = %s; raiva × fadiga ρ = %s); no dia de maior fadiga (Dia 7), esse acoplamento tornou-se forte '
+ '(depressão × fadiga ρ = %s; raiva × fadiga ρ = %s). Em outras palavras, quando a equipe está recuperada, o atleta mais '
+ 'irritado ou abatido não é necessariamente o mais cansado; sob carga acumulada, porém, a irritabilidade e o abatimento '
+ 'organizam-se em torno da exaustão e o perfil de humor “fecha”. Esse padrão indica que a interpretação das dimensões '
+ 'negativas deve considerar o estado de fadiga do grupo, e que a elevação conjunta de afeto negativo e fadiga ao fim de '
+ 'um microciclo intenso é, em atletas de elite, uma resposta esperada à carga, e não necessariamente sinal de '
+ 'desajuste.'%(
+   c2('%+.2f'%FP['D1']['Depressao']['rho_fad']),c2('%+.2f'%FP['D1']['Raiva']['rho_fad']),
+   c2('%+.2f'%FP['D7']['Depressao']['rho_fad']),c2('%+.2f'%FP['D7']['Raiva']['rho_fad'])))
 P('No plano dos perfis de humor, a migração do iceberg (prontidão) para a barbatana de tubarão (fadiga funcional) ao '
  'longo da semana reproduz, em um microciclo de handebol, o “derretimento do iceberg” descrito na literatura de '
  'sobrecarga (MORGAN, 1985; HAN; PARSONS-SMITH; TERRY, 2020). É relevante que, mesmo sob o acúmulo de carga da '
  'pré-temporada, os perfis associados a maior risco à saúde mental (Everest invertido, submerso e iceberg invertido) não '
- 'se tornaram prevalentes: a deterioração restringiu-se ao perfil de fadiga, cuja prevalência no último dia superou '
- 'nitidamente o patamar de referência de atletas do mesmo contexto brasileiro (DE MIRANDA ROHLFS et al., 2024). Esse '
- 'contraste sugere que, em handebolistas de elite bem condicionados, a resposta ao acúmulo de carga é funcional e '
- 'transitória — uma fadiga esperada — e não um sinal de risco psicológico, o que respalda o uso do perfilamento do humor '
- 'como triagem de prontidão e de bem-estar na modalidade (TERRY et al., 2021). A relação entre a aptidão aeróbia '
- 'intermitente e a fadiga — sintetizada no limiar de pico de velocidade — reforça, ainda, a utilidade de integrar um '
- 'parâmetro fisiológico simples ao monitoramento, individualizando a interpretação da resposta à carga '
- '(FERNANDES-DA-SILVA et al., 2016). Como limitações, destacam-se o tamanho amostral e o desenho observacional de fase '
- 'única, que não permite inferência causal, e a conversão dos escores T referenciada à própria amostra, e não a tabelas '
- 'normativas nacionais, o que recomenda cautela na comparação absoluta de prevalências entre estudos.')
+ 'se tornaram prevalentes: a deterioração restringiu-se ao perfil de fadiga, cuja prevalência no último dia (%s%%) '
+ 'superou nitidamente o patamar de referência de atletas do mesmo contexto brasileiro (11,6%% em avaliação momentânea; '
+ 'DE MIRANDA ROHLFS et al., 2024). Esse contraste sugere que, em handebolistas de elite bem condicionados, a resposta ao '
+ 'acúmulo de carga é funcional e transitória — uma fadiga esperada — e não um sinal de risco psicológico. Tal leitura '
+ 'respalda o emprego do perfilamento do humor como triagem de prontidão e de bem-estar em modalidades coletivas de '
+ 'rendimento (TERRY et al., 2021), no qual a BRUMS já demonstrou sensibilidade a fatores como sono, desempenho e '
+ 'resultados de partida (ANDRADE et al., 2016; BRANDT; BEVILACQUA; ANDRADE, 2017; DO NASCIMENTO et al., 2026) e '
+ 'associação com desfechos como a lesão (DE MIRANDA ROHLFS et al., 2025).'%(
+   c2('%.0f'%(100*PREV['D7']['Barbatana tubarão']/PREV['n_d7'])),))
+P('A inclusão do pico de velocidade do T-CAR como parâmetro fisiológico acrescentou uma leitura interindividual à '
+ 'resposta afetiva. Atletas com maior aptidão aeróbia intermitente reportaram mais vigor (ρ = %s; p = %s) e menos fadiga '
+ 'física (ρ = %s; p = %s) ao longo da semana, e um limiar de pico de velocidade de aproximadamente %s km/h discriminou os '
+ 'dias de maior fadiga (área sob a curva = %s). Esse resultado é coerente com o papel da capacidade intermitente na '
+ 'tolerância ao esforço repetido do handebol e com a validade do pico de velocidade do T-CAR como marcador de desempenho '
+ 'físico em modalidades intermitentes (FERNANDES-DA-SILVA et al., 2016). Do ponto de vista aplicado, normalizar a '
+ 'resposta de humor pela aptidão física ajuda a distinguir a fadiga esperada — de atletas menos aptos sob a mesma carga '
+ '— daquela que possa sinalizar sobrecarga, e o limiar identificado oferece à comissão técnica uma referência objetiva '
+ 'para individualizar a prescrição da carga e o reforço da recuperação.'%(
+   c2('%+.2f'%PV['pv']['wk_Vigor']['TCAR1']['rho']),pstr(PV['pv']['wk_Vigor']['TCAR1']['rho_p']),
+   c2('%+.2f'%PV['pv']['wk_FadFisica']['TCAR1']['rho']),pstr(PV['pv']['wk_FadFisica']['TCAR1']['rho_p']),
+   c2('%.1f'%LP['thr']),c2('%.2f'%LP['auc'])))
+P('Algumas limitações devem ser consideradas na interpretação dos achados. O tamanho amostral (%d atletas) e o desenho '
+ 'observacional de fase única não permitem inferência causal sobre a carga, e as dimensões negativas, próximas do piso, '
+ 'apresentam variância e fidedignidade reduzidas, o que limita a leitura de suas pequenas variações. A conversão dos '
+ 'escores T foi referenciada à própria amostra — e não a tabelas normativas nacionais de atletas —, o que recomenda '
+ 'cautela na comparação absoluta de prevalências entre estudos e na classificação estrita dos perfis. Como direções '
+ 'futuras, recomenda-se ampliar a amostra e acompanhar múltiplos microciclos, integrar o humor a marcadores de carga '
+ 'externa e interna mensurados continuamente, adotar tabelas normativas e agrupamento semeado (seeded k-means) para a '
+ 'classificação de perfis e testar o valor preditivo dos perfis negativos para desfechos como lesão e sobrecarga '
+ '(DE MIRANDA ROHLFS et al., 2024, 2025).'%sm['n'])
 
 # ===== 5 CONCLUSÕES =====
 H('5 CONCLUSÕES')
