@@ -9,6 +9,8 @@ from docx.oxml import OxmlElement
 R=json.load(open('brums_desc2.json')); RC=json.load(open('rci6.json')); STAT=json.load(open('brums_stats3.json'))
 S4=json.load(open('brums_stats4.json')); MS=json.load(open('model_stats.json')); MV=json.load(open('manova.json'))
 PV=json.load(open('pv_stats.json')); LIM=json.load(open('tcar_limiar.json'))
+PHJ=json.load(open('posthoc.json')); ALLO=json.load(open('allo.json')); ROC=json.load(open('roc.json'))
+DEN=json.load(open('denoise.json')); DERIV=json.load(open('deriv_exp.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
 doc=Document()
@@ -442,6 +444,64 @@ P('A estratificação em tercis de aptidão confirma o padrão (Figura %d): a fa
 f_pvterc=figure(f'{FG}/pv8_tercis.png','Fadiga semanal (BRUMS e física) por tercil de aptidão intermitente (T-CAR1).',w=12.5)
 f_pvlim=figure(f'{FG}/pv9_limiar.png','Pico de velocidade do T-CAR1 e fadiga física semanal, com reta de regressão, IC95%% e limiar discriminante.',w=13.5)
 
+H('3.7 Análises complementares: pós-teste, ajustes e decomposição sinal–ruído',12,before=6)
+KD=PHJ['keydays']
+def emmc(v,d): return c2('%.2f'%PHJ[v]['emm'][str(d)])
+def sig1(v,d):
+    if d==1: return ''
+    return '*' if PHJ[v]['pairs']['1_%d'%d]['ptukey']<0.05 else ''
+P('O pós-teste das médias marginais estimadas por modelo misto localiza no tempo a deterioração e identifica os dias '
+ 'críticos (Tabela %d; Figura %d). A queda do vigor é mais acentuada logo no início do microciclo — Dia %d → Dia %d '
+ '(Δ = %s) — refletindo o choque de carga, ao passo que a fadiga (física e do BRUMS) sobe de forma mais intensa no final '
+ '— Dia %d → Dia %d (Δ = %s na fadiga física; Δ = %s na fadiga do BRUMS). Ambas culminam no Dia 7, onde o vigor atinge o '
+ 'mínimo e a fadiga o máximo, com todas as comparações Dia 1 vs. Dia 2–7 significativas para o vigor e para a fadiga '
+ 'física (Tukey p < 0,05).'%(
+   _TN[0]+1,_FN[0]+1,KD['vigor_maxdrop_day']-1,KD['vigor_maxdrop_day'],c2('%+.2f'%KD['vigor_maxdrop']),
+   KD['fadfis_maxrise_day']-1,KD['fadfis_maxrise_day'],c2('%+.2f'%KD['fadfis_maxrise']),c2('%+.2f'%KD['fadbrums_maxrise'])))
+def phrow(d):
+    return ['Dia %d'%d,emmc('Vigor',d)+sig1('Vigor',d),emmc('Fadiga',d)+sig1('Fadiga',d),emmc('FadFisica',d)+sig1('FadFisica',d)]
+t_ph=table('Médias marginais estimadas (modelo misto) por dia e pós-teste em relação ao Dia 1.',
+    ['Dia','Vigor','Fadiga (BRUMS)','Fadiga física'],[phrow(d) for d in range(1,8)],
+    note='* diferença significativa vs. Dia 1 (Tukey, p < 0,05).',fs=9)
+f_ph=figure(f'{FG}/ph_emm.png','Trajetória diária (médias marginais do modelo misto) de vigor e fadiga, com pós-teste vs. Dia 1 e destaque dos dias de maior variação.')
+P('O ajuste alométrico da trajetória (Y = a · dia^b) descreve o curso temporal da fadiga como um processo saturante '
+ '(b < 1): a fadiga física ajusta-se com b = %s (R² = %s) e a fadiga do BRUMS com b = %s (R² = %s), indicando subida '
+ 'rápida no início e desaceleração ao longo da semana (Tabela %d; Figura %d). No plano interindividual, o escalonamento '
+ 'alométrico da aptidão (PV = a · massa^%s) mostrou que parte da associação bruta entre pico de velocidade e fadiga '
+ 'reflete o tamanho corporal: a correlação aptidão × fadiga física caiu de ρ = %s (p = %s) para ρ = %s (p = %s) após '
+ 'normalizar o PV pela massa, sugerindo que a proteção contra a fadiga é, em parte, um efeito de dimensão corporal.'%(
+   c2('%.2f'%ALLO['FadFisica']['b']),c2('%.2f'%ALLO['FadFisica']['r2']),c2('%.2f'%ALLO['Fadiga']['b']),c2('%.2f'%ALLO['Fadiga']['r2']),
+   _TN[0]+1,_FN[0]+1,c2('%.2f'%ALLO['fitness']['b']),
+   c2('%+.2f'%ALLO['fitness']['rho_raw']),pstr(ALLO['fitness']['p_raw']),c2('%+.2f'%ALLO['fitness']['rho_allo']),pstr(ALLO['fitness']['p_allo'])))
+def allorow(k,lab):
+    v=ALLO[k]; return [lab,c2('%.2f'%v['a']),c2('%.2f'%v['b']),c2('%.2f'%v['r2']),pstr(v['p'])]
+t_allo=table('Ajuste alométrico da trajetória diária (Y = a · dia^b) das variáveis de fadiga.',
+    ['Variável','a','b','R²','p'],
+    [allorow('FadFisica','Fadiga física'),allorow('Fadiga','Fadiga (BRUMS)'),allorow('TMD','PTH')],
+    note='b < 1 = processo saturante (subida rápida seguida de desaceleração).',fs=9)
+f_allo=figure(f'{FG}/x_allo.png','Ajuste alométrico (lei de potência) da trajetória de fadiga em escala linear e log-log.',w=15.0)
+P('Por fim, a decomposição sinal–ruído quantifica a confiabilidade de uma medida isolada e a detectabilidade da mudança '
+ '(Tabela %d; Figuras %d e %d). A confiabilidade de uma única aferição foi moderada (r = %s para o vigor; %s para a '
+ 'fadiga do BRUMS), e a razão sinal–ruído favoreceu o eixo energia–fadiga (RSR = %s no vigor; %s na fadiga). '
+ 'Consequentemente, a discriminação entre o Dia 7 e o Dia 1 melhora ao remover o ruído (médias diárias): a área sob a '
+ 'curva ROC da fadiga física passa de %s para %s, sendo a variável mais discriminante do microciclo. No nível '
+ 'individual, a mínima mudança detectável de uma medida (MDC95 = %s pontos de vigor) reduz-se com o número de coletas, o '
+ 'que fundamenta a agregação de múltiplas aferições por dia adotada neste estudo. Ressalva importante: a remoção de ruído '
+ 'não cria sinal onde não há — as subescalas negativas, próximas do piso, permanecem sem amplitude relevante mesmo após '
+ 'a filtragem.'%(
+   _TN[0]+1,_FN[0]+1,_FN[0]+2,c2('%.2f'%DEN['rel']['Vigor']),c2('%.2f'%DEN['rel']['Fadiga']),
+   c2('%.2f'%DEN['snr_raw']['Vigor']),c2('%.2f'%DEN['snr_raw']['Fadiga']),
+   c2('%.2f'%ROC['FadFisica']['raw'][0]),c2('%.2f'%ROC['FadFisica']['filt'][0]),c2('%.1f'%DEN['kmdc']['Vigor']['1'])))
+def snrow(k,lab):
+    return [lab,c2('%.2f'%DEN['rel'][k]),c2('%.2f'%DEN['etm'][k]),c2('%.2f'%DEN['snr_raw'][k]),
+        c2('%.2f'%ROC[k]['raw'][0]),c2('%.2f'%ROC[k]['filt'][0]),c2('%.1f'%DEN['kmdc'][k]['1']),c2('%.1f'%DEN['kmdc'][k]['2'])]
+t_snr=table('Decomposição sinal–ruído: confiabilidade, erro típico, razão sinal–ruído, discriminação (ROC) e mudança detectável.',
+    ['Variável','r (1 medida)','ETM','RSR','AUC c/ ruído','AUC s/ ruído','MDC95 (1)','MDC95 (2)'],
+    [snrow('Vigor','Vigor'),snrow('Fadiga','Fadiga (BRUMS)'),snrow('TMD','PTH'),snrow('FadMental','Fadiga mental')],
+    note='ETM = erro típico de medida; RSR = razão sinal–ruído; AUC = área sob a curva ROC (Dia 7 vs. Dia 1); MDC95 (k) = mínima mudança detectável com k coletas.',fs=8.5)
+f_roc=figure(f'{FG}/x_roc.png','Curvas ROC (Dia 7 vs. Dia 1) com e sem ruído (medidas brutas vs. médias diárias).',w=14.0)
+f_deriv=figure(f'{FG}/x_deriv_exp.png','Velocidade (barras) e aceleração (linha) diárias da trajetória de cada variável, evidenciando os dias de maior taxa de variação.',w=15.5)
+
 # ===================== 4 DISCUSSÃO =====================
 H('4 DISCUSSÃO')
 H('4.1 O eixo energia–fadiga como marcador central da carga (H1)',12,before=6)
@@ -484,7 +544,19 @@ P('A inclusão do pico de velocidade do T-CAR como parâmetro fisiológico agreg
  'individualização do monitoramento; o limiar de pico de velocidade identificado oferece uma referência objetiva para '
  'sinalizar atletas sob maior risco de dias de fadiga elevada.'%(
    c2('%+.2f'%PV['pv']['wk_Vigor']['TCAR1']['rho']),c2('%+.2f'%PV['pv']['wk_FadFisica']['TCAR1']['rho']),pstr(PV['terc_kruskal_fadfis']['p'])))
-H('4.6 Limitações e direções futuras',12,before=6)
+H('4.6 Robustez: pós-teste, ajustes e razão sinal–ruído',12,before=6)
+P('O conjunto de análises complementares reforça e refina os achados centrais. O pós-teste do modelo misto confirma que '
+ 'a deterioração do vigor se concentra no choque inicial de carga (Dia 1 → Dia 2), enquanto a fadiga se acumula '
+ 'progressivamente e atinge o máximo no Dia 7 — informação diretamente acionável para escalonar a recuperação nesses '
+ 'pontos do microciclo. O ajuste alométrico da trajetória (b < 1) descreve a fadiga como um processo saturante, coerente '
+ 'com a acomodação fisiológica ao longo da semana, e o escalonamento alométrico da aptidão evidencia que parte da '
+ 'proteção contra a fadiga atribuída ao pico de velocidade decorre do tamanho corporal — um cuidado interpretativo '
+ 'relevante ao normalizar respostas por marcadores de aptidão (NEVILL; LANE, 2007). Por fim, a decomposição sinal–ruído '
+ 'demonstra que a agregação de múltiplas coletas melhora a confiabilidade e a detecção da mudança (HOPKINS, 2000): a '
+ 'discriminação entre o início e o fim do microciclo é máxima para a fadiga física e aumenta ao filtrar o ruído, ao passo '
+ 'que as subescalas negativas de piso permanecem sem sinal — o que delimita, de forma honesta, onde o monitoramento do '
+ 'humor é informativo.')
+H('4.7 Limitações e direções futuras',12,before=6)
 P('Como limitações, destacam-se o tamanho amostral (n = %d) e o efeito de piso das dimensões negativas, que reduz a '
  'variância e a confiabilidade da tensão e da confusão e infla seus coeficientes de variação, e o caráter observacional '
  'de fase única, que não permite inferência causal sobre a carga. A conversão em escores T foi referenciada à própria '
@@ -511,6 +583,7 @@ refs=[
  'DE MIRANDA ROHLFS, I. C. P. et al. Mood states, injury status, and countermovement jump performance in Brazilian high-level sports. Sports, v. 13, n. 9, 303, 2025. DOI: 10.3390/sports13090303.',
  'FERNANDES-DA-SILVA, J. et al. The peak velocity derived from the Carminatti Test is related to physical match performance in young soccer players. Journal of Sports Sciences, v. 34, n. 24, p. 2238–2245, 2016. DOI: 10.1080/02640414.2015.1093646.',
  'HAN, C.; PARSONS-SMITH, R. L.; TERRY, P. C. Mood profiling in Singapore: cross-cultural validation and potential applications of mood profile clusters. Frontiers in Psychology, v. 11, 665, 2020. DOI: 10.3389/fpsyg.2020.00665.',
+ 'HOPKINS, W. G. Measures of reliability in sports medicine and science. Sports Medicine, v. 30, n. 1, p. 1–15, 2000. DOI: 10.2165/00007256-200030010-00001.',
  'JACOBSON, N. S.; TRUAX, P. Clinical significance: a statistical approach to defining meaningful change in psychotherapy research. Journal of Consulting and Clinical Psychology, v. 59, n. 1, p. 12–19, 1991. DOI: 10.1037/0022-006X.59.1.12.',
  'KARCHER, C.; BUCHHEIT, M. On-court demands of elite handball, with special reference to playing positions. Sports Medicine, v. 44, n. 6, p. 797–814, 2014. DOI: 10.1007/s40279-014-0164-z.',
  'KELLMANN, M. et al. Recovery and performance in sport: consensus statement. International Journal of Sports Physiology and Performance, v. 13, n. 2, p. 240–245, 2018. DOI: 10.1123/ijspp.2017-0759.',
