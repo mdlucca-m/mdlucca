@@ -11,6 +11,7 @@ S4=json.load(open('brums_stats4.json')); MS=json.load(open('model_stats.json'));
 PV=json.load(open('pv_stats.json')); LIM=json.load(open('tcar_limiar.json'))
 PHJ=json.load(open('posthoc.json')); ALLO=json.load(open('allo.json')); ROC=json.load(open('roc.json'))
 DEN=json.load(open('denoise.json')); DERIV=json.load(open('deriv_exp.json'))
+CRS=json.load(open('cross.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
 doc=Document()
@@ -501,6 +502,35 @@ t_snr=table('Decomposição sinal–ruído: confiabilidade, erro típico, razão
     note='ETM = erro típico de medida; RSR = razão sinal–ruído; AUC = área sob a curva ROC (Dia 7 vs. Dia 1); MDC95 (k) = mínima mudança detectável com k coletas.',fs=8.5)
 f_roc=figure(f'{FG}/x_roc.png','Curvas ROC (Dia 7 vs. Dia 1) com e sem ruído (medidas brutas vs. médias diárias).',w=14.0)
 f_deriv=figure(f'{FG}/x_deriv_exp.png','Velocidade (barras) e aceleração (linha) diárias da trajetória de cada variável, evidenciando os dias de maior taxa de variação.',w=15.5)
+
+H('3.8 Limites, derivadas e cruzamento vigor–fadiga (dia e momento)',12,before=6)
+dV=CRS['dec']['Vigor']; dF=CRS['dec']['Fadiga']; ac=CRS['acute']; xc=CRS['cross_pp'][0]
+P('A leitura conjunta de limites, derivadas e decomposição precisa o “onde” e o “quando” da resposta (Tabela %d; Figuras '
+ '%d e %d). Em cada dia de treino, o vigor cai e a fadiga sobe da coleta pré para a pós (variação aguda média de %s no '
+ 'vigor e %s na fadiga), configurando um padrão em dente de serra. Ao longo da semana, a maior taxa de variação (derivada) '
+ 'ocorre logo no Dia %d — o choque de carga —, quando o vigor decresce a %s pontos/dia e a fadiga cresce a %s '
+ 'pontos/dia. O vigor supera a fadiga no Dia 1; as duas curvas cruzam-se pela primeira vez já no Dia 2 (entre as coletas '
+ 'pré e pós), oscilam próximas ao longo da semana e a fadiga passa a superar definitivamente o vigor no Dia 7, no qual o '
+ 'vigor atinge o mínimo (pós-treino) e a fadiga o máximo.'%(
+   _TN[0]+1,_FN[0]+1,_FN[0]+2,c2('%+.2f'%ac['Vigor']['delta']),c2('%+.2f'%ac['Fadiga']['delta']),
+   dV['pkvel_day'],c2('%.2f'%dV['pkvel_val']),c2('%+.2f'%dF['pkvel_val'])))
+f_cross=figure(f'{FG}/x_cross.png','Cruzamento vigor × fadiga por dia e momento (pré → pós dentro de cada dia); linhas pontilhadas = cruzamentos.',w=15.0)
+P('A decomposição da variância mostra que o humor é dominado pela diferença entre atletas (%s%%–%s%% da variância total), '
+ 'com componente sistemática de dia (o sinal do microciclo) pequena mas presente no vigor (%s%%) e na fadiga (%s%%) e '
+ 'praticamente nula nas subescalas negativas de piso; o restante é ruído de medida (Figura %d). Isso reforça, do ponto de '
+ 'vista da variância, por que o monitoramento deve ser individualizado e por que o eixo energia–fadiga é o único a '
+ 'carregar sinal semanal aproveitável.'%(
+   c2('%.0f'%min(CRS['dec'][k]['vc']['ath'] for k in ['Vigor','Fadiga','TMD','Tensao','Depressao'])),
+   c2('%.0f'%max(CRS['dec'][k]['vc']['ath'] for k in ['Vigor','Fadiga','TMD','Tensao','Depressao'])),
+   c2('%.0f'%dV['vc']['day']),c2('%.0f'%dF['vc']['day']),_FN[0]+1))
+f_vd=figure(f'{FG}/x_vardecomp.png','Decomposição da variância de cada variável do humor em componentes entre atletas, dia (microciclo) e resíduo.',w=13.5)
+def ldrow(k,lab):
+    d=CRS['dec'][k]; return [lab,c2('%.2f'%d['amp_sig']),c2('%.2f'%d['amp_intra']),'D%d'%d['pkvel_day'],c2('%+.2f'%d['pkvel_val']),
+        c2('%.0f'%d['vc']['ath']),c2('%.0f'%d['vc']['day']),c2('%.0f'%d['vc']['res'])]
+t_ld=table('Limites (amplitude), derivada máxima e decomposição da variância por variável do humor.',
+    ['Variável','Amplitude do sinal','Amplitude intra-atleta','Dia de maior taxa','Taxa (pontos/dia)','Var. entre atletas (%)','Var. dia (%)','Var. resíduo (%)'],
+    [ldrow(k,l) for k,l in [('Vigor','Vigor'),('Fadiga','Fadiga'),('TMD','PTH'),('Tensao','Tensão'),('Depressao','Depressão'),('Raiva','Raiva'),('Confusao','Confusão')]],
+    note='Amplitude do sinal = variação da média diária; amplitude intra-atleta = variação média intraindividual na semana; derivada por ajuste cúbico.',fs=8)
 
 # ===================== 4 DISCUSSÃO =====================
 H('4 DISCUSSÃO')
