@@ -84,14 +84,20 @@ RUN([('Objetivo: ',True),('caracterizar e analisar o perfil de humor de atletas 
  'Kendall, pós-teste (Tukey), ICC, MANOVA em escores T e regressão do pico de velocidade do T-CAR, com limiar por índice '
  'de Youden. '%(sm['n'],sm['n_obs']),False),
  ('Resultados: ',True),('a deterioração concentrou-se no eixo energia–fadiga — o vigor caiu (d = %s) e a fadiga subiu '
- '(d = %s), confirmado por MANOVA (Wilks λ = %s; p = %s). O vigor foi máximo no Dia %d e a fadiga no Dia %d; o perfil '
- 'iceberg caiu e o de fadiga subiu (χ² = %s; p = %s). Maior aptidão associou-se a menos fadiga (ρ = %s), com limiar de '
+ '(d = %s), confirmado por MANOVA (Wilks λ = %s; p = %s). O vigor foi máximo no Dia %d e a fadiga no Dia %d. Os seis '
+ 'perfis de humor descritos por Terry e Parsons-Smith (iceberg, iceberg invertido, submerso, superfície, Everest '
+ 'invertido e barbatana de tubarão) estiveram representados, e o perfil predominante migrou do iceberg (%s%% no Dia 1) '
+ 'para a barbatana de tubarão (%s%% no Dia 7; χ² = %s; p = %s), sem instalação dos perfis de maior risco à saúde mental '
+ '(Everest invertido, submerso e iceberg invertido). Maior aptidão associou-se a menos fadiga (ρ = %s), com limiar de '
  '%s km/h. '%(
    c2('%+.2f'%mvv('d1d7','Vigor','d')),c2('%+.2f'%mvv('d1d7','Fadiga','d')),c2('%.3f'%MV['d1d7']['wilks']),pstr(MV['d1d7']['p_mv']),
-   PK['Vigor']['max_day'],PK['Fadiga']['max_day'],c2('%.2f'%PREV['chi']),pstr(PREV['p']),
+   PK['Vigor']['max_day'],PK['Fadiga']['max_day'],
+   c2('%.0f'%(100*PREV['D1']['Iceberg']/PREV['n_d1'])),c2('%.0f'%(100*PREV['D7']['Barbatana tubarão']/PREV['n_d7'])),
+   c2('%.2f'%PREV['chi']),pstr(PREV['p']),
    c2('%+.2f'%PV['pv']['wk_FadFisica']['TCAR1']['rho']),c2('%.1f'%LP['thr'])),False),
- ('Conclusão: ',True),('o humor migrou da prontidão para a fadiga funcional; o vigor e a fadiga foram as dimensões mais '
- 'sensíveis, e a aptidão intermitente ajudou a explicar a resposta, fundamentando o monitoramento individualizado.',False)],after=6)
+ ('Conclusão: ',True),('o humor migrou da prontidão (perfil iceberg) para a fadiga funcional (perfil barbatana de '
+ 'tubarão); o vigor e a fadiga foram as dimensões mais sensíveis, e a aptidão intermitente ajudou a explicar a resposta, '
+ 'fundamentando o monitoramento individualizado.',False)],after=6)
 P('Palavras-chave: humor; BRUMS; handebol; monitoramento do atleta; fadiga; aptidão intermitente.',size=11,after=8,ind=False)
 
 # ===== 1 INTRODUÇÃO =====
