@@ -8,6 +8,7 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 R=json.load(open('brums_desc2.json')); RC=json.load(open('rci6.json')); STAT=json.load(open('brums_stats3.json'))
 S4=json.load(open('brums_stats4.json')); MS=json.load(open('model_stats.json')); MV=json.load(open('manova.json'))
+PV=json.load(open('pv_stats.json')); LIM=json.load(open('tcar_limiar.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
 doc=Document()
@@ -126,6 +127,15 @@ P('O handebol de quadra é uma modalidade coletiva de caráter marcadamente inte
  'microciclos de acúmulo e repercute no estado afetivo: em handebolistas de elite, o humor e o estresse associam-se a '
  'indicadores de sobrecarga fisiológica e psicossomática (RATZ-SULYOK et al., 2026). O caráter intermitente e de contato '
  'do handebol torna o acompanhamento subjetivo do humor particularmente informativo para a individualização da carga.')
+P('A tolerância a esse padrão de esforço depende diretamente das capacidades físicas do atleta, em especial da aptidão '
+ 'aeróbia intermitente, que sustenta a reposição energética e a recuperação entre os esforços de alta intensidade e, '
+ 'assim, atenua a instalação da fadiga ao longo do jogo e do microciclo (KARCHER; BUCHHEIT, 2014; MICHALSIK; AAGAARD, '
+ '2015). Um marcador de campo válido dessa capacidade é o pico de velocidade obtido no Teste de Carminatti (T-CAR), um '
+ 'teste intermitente progressivo cujo pico de velocidade se associa ao desempenho físico em partida e discrimina níveis '
+ 'de aptidão em modalidades intermitentes (FERNANDES-DA-SILVA et al., 2016). Integrar esse parâmetro fisiológico ao '
+ 'monitoramento do humor permite verificar se a aptidão intermitente modula (e, portanto, ajuda a normalizar '
+ 'interindividualmente) a resposta afetiva de vigor e fadiga à carga do microciclo — hipótese ainda pouco explorada em '
+ 'handebolistas de elite.')
 H('1.3 Perfis de humor e a lacuna do monitoramento em microciclos',12,before=6)
 P('Para além dos escores isolados, Morgan (1985) descreveu o “perfil iceberg” — vigor elevado sobre dimensões negativas '
  'baixas — como assinatura de prontidão e saúde mental positiva. Abordagens recentes formalizaram seis perfis '
@@ -175,12 +185,23 @@ P('O humor foi avaliado pela BRUMS-24, composta por 24 itens respondidos em esca
  '(tensão) a %s (raiva) nesta amostra (Tabela 4). Para a interpretação normativa e a classificação de perfis, os escores '
  'brutos foram convertidos em escores T (M = 50; DP = 10).'%(
    c2('%.2f'%RC['Tensao']['alpha']),c2('%.2f'%RC['Raiva']['alpha'])))
-H('2.3 Procedimentos',12,before=6)
+H('2.3 Medida da aptidão intermitente (T-CAR)',12,before=6)
+P('A aptidão aeróbia intermitente foi avaliada pelo Teste de Carminatti (T-CAR), teste de campo progressivo e '
+ 'intermitente composto por repetições de 12 s de corrida em vaivém (ida e volta) intercaladas por 6 s de recuperação, '
+ 'com incrementos sucessivos de velocidade guiados por sinal sonoro até a exaustão voluntária. O desfecho analisado foi o '
+ 'pico de velocidade (PV), tomado como marcador da capacidade intermitente e do limiar de esforço (FERNANDES-DA-SILVA et '
+ 'al., 2016). O teste foi aplicado no início da pré-temporada (T-CAR1; PV = %s ± %s km/h) e reaplicado ao final '
+ '(T-CAR2; PV = %s ± %s km/h), permitindo caracterizar a aptidão inicial de cada atleta e sua variação (ΔPV = %s ± %s '
+ 'km/h). O PV inicial (T-CAR1) foi utilizado como parâmetro fisiológico de referência para normalizar e interpretar '
+ 'interindividualmente a resposta de humor–fadiga ao microciclo.'%(
+   c2('%.1f'%PV['desc']['pvini_m']),c2('%.1f'%PV['desc']['pvini_sd']),c2('%.1f'%PV['desc']['pv_m']),c2('%.1f'%PV['desc']['pv_sd']),
+   c2('%.1f'%PV['desc']['dpv_m']),c2('%.1f'%PV['desc']['dpv_sd'])))
+H('2.4 Procedimentos',12,before=6)
 P('O BRUMS foi autoaplicado por formulário eletrônico com carimbo de data/hora, duas vezes por dia de treino — a primeira '
  'resposta tomada como pré e a última como pós —, ao longo de sete dias, totalizando %d observações válidas. A Figura 1 '
  'sintetiza o framework das coletas.'%sm['n_obs'])
 figure(f'{FG}/xb2_framework.png','Framework das coletas: da amostra e do microciclo às observações do BRUMS, às subescalas e à classificação de perfis.',w=11.0)
-H('2.4 Análise de dados',12,before=6)
+H('2.5 Análise de dados',12,before=6)
 P('A normalidade foi verificada pelo teste de Shapiro-Wilk e pela inspeção de histogramas, diagramas de caixa e gráficos '
  'de dispersão. Como todas as dimensões violaram a normalidade (Shapiro-Wilk p < 0,001), com forte assimetria positiva e '
  'efeito de piso nas dimensões negativas, os dados não foram transformados (NEVILL; LANE, 2007) e adotaram-se '
@@ -195,8 +216,13 @@ P('A normalidade foi verificada pelo teste de Shapiro-Wilk e pela inspeção de 
  'grande) e por η²ₚ (0,01 = pequeno; 0,06 = médio; 0,14 = grande). No nível do sujeito, calculou-se o Índice de Mudança '
  'Confiável (RCI = (D7 − D1)/EP_dif; EP_dif = DP_D1·√[2(1 − α)]), com mudança confiável quando |RCI| ≥ 1,96 (JACOBSON; '
  'TRUAX, 1991). Cada observação foi classificada nos seis perfis de humor por proximidade aos protótipos em escores T, e '
- 'a mudança de prevalência entre dias foi testada pelo qui-quadrado. Adotou-se α = 0,05, com as análises conduzidas em '
- 'Python (bibliotecas pandas, SciPy e statsmodels).')
+ 'a mudança de prevalência entre dias foi testada pelo qui-quadrado. A relação entre o pico de velocidade do T-CAR e as '
+ 'respostas de humor–fadiga (médias semanais de vigor, fadiga, PTH e fadiga física) foi examinada por regressão linear '
+ '(coeficiente β, R² e ρ de Spearman) com reta de ajuste, banda de confiança de 95%% e gráfico de dispersão; os atletas '
+ 'foram ainda estratificados em tercis de aptidão (T-CAR1), comparados por Kruskal-Wallis, e determinou-se um limiar de '
+ 'PV que melhor discrimina os dias de maior fadiga (índice de Youden, com área sob a curva ROC e intervalo de confiança '
+ 'por reamostragem bootstrap). Adotou-se α = 0,05, com as análises conduzidas em Python (bibliotecas pandas, SciPy e '
+ 'statsmodels).')
 
 # ===================== 3 RESULTADOS =====================
 H('3 RESULTADOS')
@@ -386,6 +412,36 @@ rows_tr=[[aid,ABBR.get(PT[aid]['D1'],PT[aid]['D1']),ABBR.get(PT[aid]['D7'],PT[ai
 t_trans=table('Perfil de humor de cada atleta no Dia 1 e no Dia 7 e classificação da transição (n = %d).'%PCNT['n'],
     ['Atleta','Perfil no Dia 1','Perfil no Dia 7','Transição'],rows_tr,fs=8.5)
 
+H('3.6 Aptidão intermitente (T-CAR) e resposta de humor–fadiga',12,before=6)
+LP=LIM['LIM']['PVini']; TC=LIM['TERC']
+def preg(col,tab='TCAR1'):
+    v=PV['pv']['wk_'+col][tab]; return v
+P('O pico de velocidade inicial (T-CAR1) relacionou-se de forma coerente com a resposta de humor–fadiga da semana '
+ '(Figura %d; Tabela %d): atletas com maior aptidão intermitente reportaram mais vigor (β = %s; R² = %s; ρ = %s; p = %s) '
+ 'e menos fadiga física (β = %s; R² = %s; ρ = %s; p = %s), com tendência semelhante para a fadiga do BRUMS (ρ = %s; p = '
+ '%s). A dispersão com reta de regressão evidencia esse gradiente, no qual o eixo energia–fadiga se organiza ao longo da '
+ 'capacidade física do atleta.'%(
+   _FN[0]+1,_TN[0]+1,
+   c2('%+.2f'%preg('Vigor')['slope']),c2('%.2f'%preg('Vigor')['r2']),c2('%+.2f'%preg('Vigor')['rho']),pstr(preg('Vigor')['rho_p']),
+   c2('%+.2f'%preg('FadFisica')['slope']),c2('%.2f'%preg('FadFisica')['r2']),c2('%+.2f'%preg('FadFisica')['rho']),pstr(preg('FadFisica')['rho_p']),
+   c2('%+.2f'%preg('Fadiga')['rho']),pstr(preg('Fadiga')['rho_p'])))
+f_pvsc=figure(f'{FG}/pv7_scatter.png','Dispersão e reta de regressão entre o pico de velocidade do T-CAR1 e as médias semanais de vigor, fadiga (BRUMS), PTH e fadiga física (linha tracejada = limiar de %s km/h; faixa sombreada = IC95%%).'%c2('%.1f'%LP['thr']),w=15.0)
+def pregrow(col,lab):
+    v=preg(col); return [lab,c2('%+.2f'%v['slope']),c2('%.2f'%v['r2']),c2('%+.2f'%v['rho']),pstr(v['rho_p'])]
+t_pv=table('Regressão do pico de velocidade do T-CAR1 sobre as médias semanais de humor e fadiga (n = %d atletas).'%preg('Vigor')['n'],
+    ['Desfecho semanal','β','R²','ρ','p'],
+    [pregrow('Vigor','Vigor (BRUMS)'),pregrow('Fadiga','Fadiga (BRUMS)'),pregrow('TMD','PTH'),pregrow('FadFisica','Fadiga física')],
+    note='β = inclinação por km/h; ρ = correlação de Spearman.',fs=9)
+P('A estratificação em tercis de aptidão confirma o padrão (Figura %d): a fadiga física decresce do tercil de menor para '
+ 'o de maior pico de velocidade (%s → %s; Kruskal-Wallis p = %s). Por fim, um limiar de PV ≈ %s km/h discriminou os dias '
+ 'de maior fadiga com desempenho aceitável (AUC = %s [IC95%% %s–%s]; sensibilidade = %s; especificidade = %s), indicando '
+ 'que abaixo desse pico de velocidade cresce a probabilidade de dias de fadiga elevada — uma referência prática para '
+ 'individualizar a carga (Figura %d).'%(
+   _FN[0]+1,c2('%.1f'%TC['Baixa']['FadFis']),c2('%.1f'%TC['Alta']['FadFis']),pstr(PV['terc_kruskal_fadfis']['p']),
+   c2('%.1f'%LP['thr']),c2('%.2f'%LP['auc']),c2('%.2f'%LP['lo']),c2('%.2f'%LP['hi']),c2('%.2f'%LP['sens']),c2('%.2f'%LP['spec']),_FN[0]+2))
+f_pvterc=figure(f'{FG}/pv8_tercis.png','Fadiga semanal (BRUMS e física) por tercil de aptidão intermitente (T-CAR1).',w=12.5)
+f_pvlim=figure(f'{FG}/pv9_limiar.png','Pico de velocidade do T-CAR1 e fadiga física semanal, com reta de regressão, IC95%% e limiar discriminante.',w=13.5)
+
 # ===================== 4 DISCUSSÃO =====================
 H('4 DISCUSSÃO')
 H('4.1 O eixo energia–fadiga como marcador central da carga (H1)',12,before=6)
@@ -417,7 +473,18 @@ P('A resposta foi heterogênea entre atletas (H4): a fadiga foi a única dimens�
  '2018). Do ponto de vista aplicado, recomenda-se acompanhar o eixo energia–fadiga com atenção redobrada ao início do '
  'microciclo (choque de carga) e ao último dia (fadiga acumulada), sinalizando para avaliação complementar os atletas que '
  'reportem os perfis mais negativos.'%RC['Fadiga']['pct_piora'])
-H('4.5 Limitações e direções futuras',12,before=6)
+H('4.5 Aptidão intermitente como moderador da resposta de humor–fadiga',12,before=6)
+P('A inclusão do pico de velocidade do T-CAR como parâmetro fisiológico agregou uma leitura interindividual à resposta '
+ 'afetiva: a maior aptidão aeróbia intermitente associou-se a mais vigor (ρ = %s) e a menos fadiga física (ρ = %s) ao '
+ 'longo da semana, com gradiente confirmado entre tercis de aptidão (p = %s). Esse achado é coerente com o papel da '
+ 'capacidade intermitente na tolerância ao esforço repetido do handebol (KARCHER; BUCHHEIT, 2014; MICHALSIK; AAGAARD, '
+ '2015) e com a validade do pico de velocidade do T-CAR como marcador de desempenho físico em modalidades intermitentes '
+ '(FERNANDES-DA-SILVA et al., 2016). Na prática, normalizar a resposta de humor pela aptidão física ajuda a distinguir a '
+ 'fadiga esperada — de atletas menos aptos sob a mesma carga — daquela que sinaliza sobrecarga, refinando a '
+ 'individualização do monitoramento; o limiar de pico de velocidade identificado oferece uma referência objetiva para '
+ 'sinalizar atletas sob maior risco de dias de fadiga elevada.'%(
+   c2('%+.2f'%PV['pv']['wk_Vigor']['TCAR1']['rho']),c2('%+.2f'%PV['pv']['wk_FadFisica']['TCAR1']['rho']),pstr(PV['terc_kruskal_fadfis']['p'])))
+H('4.6 Limitações e direções futuras',12,before=6)
 P('Como limitações, destacam-se o tamanho amostral (n = %d) e o efeito de piso das dimensões negativas, que reduz a '
  'variância e a confiabilidade da tensão e da confusão e infla seus coeficientes de variação, e o caráter observacional '
  'de fase única, que não permite inferência causal sobre a carga. A conversão em escores T foi referenciada à própria '
@@ -442,12 +509,14 @@ refs=[
  'ANDRADE, A. et al. Effect of practice exergames on the mood states and self-esteem of elementary school boys and girls during physical education classes: a cluster-randomized controlled trial. PLoS ONE, v. 15, n. 6, e0232392, 2020. DOI: 10.1371/journal.pone.0232392.',
  'BRANDT, R.; BEVILACQUA, G. G.; ANDRADE, A. Perceived sleep quality, mood states, and their relationship with performance among Brazilian elite athletes during a competitive period. Journal of Strength and Conditioning Research, v. 31, n. 4, p. 1033–1039, 2017.',
  'DE MIRANDA ROHLFS, I. C. P. et al. Mood states, injury status, and countermovement jump performance in Brazilian high-level sports. Sports, v. 13, n. 9, 303, 2025. DOI: 10.3390/sports13090303.',
+ 'FERNANDES-DA-SILVA, J. et al. The peak velocity derived from the Carminatti Test is related to physical match performance in young soccer players. Journal of Sports Sciences, v. 34, n. 24, p. 2238–2245, 2016. DOI: 10.1080/02640414.2015.1093646.',
  'HAN, C.; PARSONS-SMITH, R. L.; TERRY, P. C. Mood profiling in Singapore: cross-cultural validation and potential applications of mood profile clusters. Frontiers in Psychology, v. 11, 665, 2020. DOI: 10.3389/fpsyg.2020.00665.',
  'JACOBSON, N. S.; TRUAX, P. Clinical significance: a statistical approach to defining meaningful change in psychotherapy research. Journal of Consulting and Clinical Psychology, v. 59, n. 1, p. 12–19, 1991. DOI: 10.1037/0022-006X.59.1.12.',
  'KARCHER, C.; BUCHHEIT, M. On-court demands of elite handball, with special reference to playing positions. Sports Medicine, v. 44, n. 6, p. 797–814, 2014. DOI: 10.1007/s40279-014-0164-z.',
  'KELLMANN, M. et al. Recovery and performance in sport: consensus statement. International Journal of Sports Physiology and Performance, v. 13, n. 2, p. 240–245, 2018. DOI: 10.1123/ijspp.2017-0759.',
  'LEW, P. C. F. et al. Cross-cultural validation of the Malaysian Mood Scale and tests of between-group mood differences. International Journal of Environmental Research and Public Health, v. 20, n. 4, 3348, 2023. DOI: 10.3390/ijerph20043348.',
  'LOCHBAUM, M. et al. The Profile of Mood States and athletic performance: a meta-analysis of published studies. European Journal of Investigation in Health, Psychology and Education, v. 11, n. 1, p. 50–70, 2021. DOI: 10.3390/ejihpe11010005.',
+ 'MICHALSIK, L. B.; AAGAARD, P. Physical demands in elite team handball: comparisons between male and female players. Journal of Sports Medicine and Physical Fitness, v. 55, n. 9, p. 878–891, 2015.',
  'MICHALSIK, L. B.; MADSEN, K.; AAGAARD, P. Match performance and physiological capacity of female elite team handball players. International Journal of Sports Medicine, v. 35, n. 7, p. 595–607, 2013. DOI: 10.1055/s-0033-1358713.',
  'MORGAN, W. P. Selected psychological factors limiting performance: a mental health model. In: CLARKE, D. H.; ECKERT, H. M. (Ed.). Limits of human performance. Champaign: Human Kinetics, 1985. p. 70–80.',
  'NEVILL, A. M.; LANE, A. M. Why self-report “Likert” scale data should not be log-transformed. Journal of Sports Sciences, v. 25, n. 1, p. 1–2, 2007. DOI: 10.1080/02640410601111183.',
