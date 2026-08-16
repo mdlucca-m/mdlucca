@@ -284,6 +284,18 @@ tprev=table('Distribuição dos perfis de humor no primeiro e no último dia da 
 P('O perfil migrou do iceberg (%s%% no Dia 1) para a barbatana de tubarão (%s%% no Dia 7), com o iceberg caindo para '
  '%s%% (Figura %d; Tabela %d).'%(
    c2('%.0f'%(100*PREV['D1']['Iceberg']/PREV['n_d1'])),c2('%.0f'%(100*PREV['D7']['Barbatana tubarão']/PREV['n_d7'])),c2('%.0f'%(100*PREV['D7']['Iceberg']/PREV['n_d7'])),f_prev,tprev))
+f_clu=figure(f'{FG}/xb6_clusters.png','Perfis de humor (clusters) identificados na amostra, representados em escores T (M = 50; DP = 10) nas seis dimensões; percentuais entre parênteses.',w=14.5)
+P('A forma de cada cluster identificado na amostra (Figura %d) reproduz a taxonomia consagrada dos seis perfis de humor '
+ '(PARSONS-SMITH; TERRY; MACHIN, 2017): o iceberg, com vigor elevado sobre dimensões negativas baixas; a barbatana de '
+ 'tubarão, com pico isolado de fadiga; o submerso, com todas as dimensões abaixo da média; e o Everest invertido, com '
+ 'todas as negativas elevadas. Comparada à distribuição de referência de uma grande amostra do mesmo contexto brasileiro '
+ '(898 atletas de elite e de base; DE MIRANDA ROHLFS et al., 2024) — na qual, em avaliação momentânea, o iceberg foi o '
+ 'perfil mais prevalente (34,3%%) e os perfis de risco os menos prevalentes (barbatana de tubarão 11,6%%; iceberg '
+ 'invertido 6,2%%; Everest invertido 2,7%%) —, a nossa amostra parte de um predomínio de iceberg semelhante no Dia 1 '
+ '(%s%%), mas, ao final do microciclo, eleva marcadamente a barbatana de tubarão (%s%% no Dia 7), muito acima do patamar '
+ 'de referência. Isso evidencia o efeito específico do acúmulo de carga da última semana de pré-temporada sobre o perfil '
+ 'de fadiga, sem instalação relevante dos perfis de maior risco à saúde mental (Everest invertido e submerso).'%(
+   f_clu,c2('%.0f'%(100*PREV['D1']['Iceberg']/PREV['n_d1'])),c2('%.0f'%(100*PREV['D7']['Barbatana tubarão']/PREV['n_d7']))))
 H('3.10 Aptidão intermitente (T-CAR) e limiar de pico de velocidade',12,before=6)
 def tcrow(o):
     lab='Pico de velocidade — T-CAR (km/h)' if o['k']=='PVini' else o['lab']
@@ -349,6 +361,7 @@ refs=[
  'ANDRADE, A. et al. Sleep quality, mood and performance: a study of elite Brazilian volleyball athletes. Journal of Sports Science and Medicine, v. 15, n. 4, p. 601–605, 2016.',
  'ANDRADE, A. et al. Effect of practice exergames on the mood states and self-esteem of elementary school boys and girls during physical education classes: a cluster-randomized controlled trial. PLoS ONE, v. 15, n. 6, e0232392, 2020. DOI: 10.1371/journal.pone.0232392.',
  'BRANDT, R.; BEVILACQUA, G. G.; ANDRADE, A. Perceived sleep quality, mood states, and their relationship with performance among Brazilian elite athletes during a competitive period. Journal of Strength and Conditioning Research, v. 31, n. 4, p. 1033–1039, 2017.',
+ 'DE MIRANDA ROHLFS, I. C. P. et al. Prevalence of specific mood profile clusters among elite and youth athletes at a Brazilian sports club. Sports, v. 12, n. 7, 195, 2024. DOI: 10.3390/sports12070195.',
  'DE MIRANDA ROHLFS, I. C. P. et al. Mood states, injury status, and countermovement jump performance in Brazilian high-level sports. Sports, v. 13, n. 9, 303, 2025. DOI: 10.3390/sports13090303.',
  'DO NASCIMENTO, M. H. et al. Acute psychological responses to official match outcomes in male youth volleyball: an observational repeated-measures study within a single national-level team. Frontiers in Psychology, v. 17, 1826372, 2026. DOI: 10.3389/fpsyg.2026.1826372.',
  'FERNANDES-DA-SILVA, J. et al. The peak velocity derived from the Carminatti Test is related to physical match performance in young soccer players. Journal of Sports Sciences, v. 34, n. 24, p. 2238–2245, 2016. DOI: 10.1080/02640414.2015.1093646.',
