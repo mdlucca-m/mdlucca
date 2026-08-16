@@ -11,7 +11,7 @@ S4=json.load(open('brums_stats4.json')); MS=json.load(open('model_stats.json'));
 PV=json.load(open('pv_stats.json')); LIM=json.load(open('tcar_limiar.json'))
 PHJ=json.load(open('posthoc.json')); ALLO=json.load(open('allo.json')); ROC=json.load(open('roc.json'))
 DEN=json.load(open('denoise.json')); DERIV=json.load(open('deriv_exp.json'))
-CRS=json.load(open('cross.json'))
+CRS=json.load(open('cross.json')); EX=json.load(open('extra.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
 doc=Document()
@@ -201,8 +201,10 @@ P('A aptidão aeróbia intermitente foi avaliada pelo Teste de Carminatti (T-CAR
    c2('%.1f'%PV['desc']['dpv_m']),c2('%.1f'%PV['desc']['dpv_sd'])))
 H('2.4 Procedimentos',12,before=6)
 P('O BRUMS foi autoaplicado por formulário eletrônico com carimbo de data/hora, duas vezes por dia de treino — a primeira '
- 'resposta tomada como pré e a última como pós —, ao longo de sete dias, totalizando %d observações válidas. A Figura 1 '
- 'sintetiza o framework das coletas.'%sm['n_obs'])
+ 'resposta tomada como pré e a última como pós —, ao longo de sete dias, totalizando %d observações válidas. Em conjunto, '
+ 'foram registradas a sonolência diurna (Escala de Sonolência de Epworth; JOHNS, 1991), o estresse percebido (Escala de '
+ 'Estresse Percebido — PSS; COHEN; KAMARCK; MERMELSTEIN, 1983) e a realização de sessão de treino intervalado de alta '
+ 'intensidade (HIIT) em cada dia (Dias 2, 4 e 7). A Figura 1 sintetiza o framework das coletas.'%sm['n_obs'])
 figure(f'{FG}/xb2_framework.png','Framework das coletas: da amostra e do microciclo às observações do BRUMS, às subescalas e à classificação de perfis.',w=11.0)
 H('2.5 Análise de dados',12,before=6)
 P('A normalidade foi verificada pelo teste de Shapiro-Wilk e pela inspeção de histogramas, diagramas de caixa e gráficos '
@@ -532,6 +534,47 @@ t_ld=table('Limites (amplitude), derivada máxima e decomposição da variância
     [ldrow(k,l) for k,l in [('Vigor','Vigor'),('Fadiga','Fadiga'),('TMD','PTH'),('Tensao','Tensão'),('Depressao','Depressão'),('Raiva','Raiva'),('Confusao','Confusão')]],
     note='Amplitude do sinal = variação da média diária; amplitude intra-atleta = variação média intraindividual na semana; derivada por ajuste cúbico.',fs=8)
 
+H('3.9 Sono, estresse percebido e humor',12,before=6)
+ep=EX['epw']; ps=EX['pss']; sc=EX['sleepy_cmp']
+def cx(c): return '%s (p = %s)'%(c2('%+.2f'%c['rho']),pstr(c['p']))
+P('A sonolência diurna (Epworth = %s ± %s; %d dos %d atletas com sonolência excessiva, escore > 10) associou-se ao pior '
+ 'humor: correlacionou-se positivamente com a fadiga (ρ = %s; p = %s) e com a PTH (ρ = %s; p = %s) e negativamente, em '
+ 'tendência, com o vigor (ρ = %s; p = %s) no nível entre atletas (Tabela %d; Figura %d). Consistentemente, os atletas '
+ 'mais sonolentos apresentaram fadiga semanal marcadamente maior do que os menos sonolentos (%s vs. %s; p = %s). O '
+ 'estresse percebido (PSS = %s ± %s), por sua vez, não se relacionou de forma significativa com nenhuma dimensão do humor '
+ '(todos p > 0,05), indicando que, nesta amostra e janela, a fadiga do microciclo é mais acompanhada pela sonolência do '
+ 'que pelo estresse psicológico geral.'%(
+   c2('%.1f'%ep['m']),c2('%.1f'%ep['sd']),ep['hi'],ep['n'],
+   c2('%+.2f'%ep['corr']['Fadiga']['rho']),pstr(ep['corr']['Fadiga']['p']),c2('%+.2f'%ep['corr']['TMD']['rho']),pstr(ep['corr']['TMD']['p']),
+   c2('%+.2f'%ep['corr']['Vigor']['rho']),pstr(ep['corr']['Vigor']['p']),_TN[0]+1,_FN[0]+1,
+   c2('%.2f'%sc['Fadiga']['hi']),c2('%.2f'%sc['Fadiga']['lo']),pstr(sc['Fadiga']['p']),c2('%.1f'%ps['m']),c2('%.1f'%ps['sd'])))
+def sprow(k,lab):
+    e=ep['corr'][k]; p=ps['corr'][k]; return [lab,cx(e),cx(p)]
+t_sono=table('Correlação de Spearman da sonolência (Epworth) e do estresse percebido (PSS) com o humor (nível entre atletas, n = %d).'%ep['n'],
+    ['Desfecho semanal','Epworth ρ (p)','PSS ρ (p)'],
+    [sprow('Vigor','Vigor'),sprow('Fadiga','Fadiga'),sprow('TMD','PTH'),sprow('FadFisica','Fadiga física')],fs=9)
+f_sono=figure(f'{FG}/x_sono.png','Sonolência (Epworth) e fadiga: dispersão com reta de regressão (linha tracejada = ponto de corte 10) e comparação do humor entre atletas sonolentos e não sonolentos.',w=15.0)
+
+H('3.10 Resposta ao estímulo: dias com vs. sem HIIT',12,before=6)
+hi=EX['hiit']; ha=EX['hiit_acute']
+P('Os dias com sessão de treino intervalado de alta intensidade (HIIT: Dias 2, 4 e 7) apresentaram pior humor do que os '
+ 'dias sem HIIT (Dias 1, 3, 5 e 6): menor vigor (%s vs. %s; p = %s; dz = %s), maior fadiga (%s vs. %s; p = %s; dz = %s), '
+ 'maior PTH (p = %s) e maior fadiga física (p = %s) (Tabela %d; Figura %d). Contudo, a resposta aguda pré → pós não foi '
+ 'maior nos dias de HIIT (variação do vigor %s vs. %s; da fadiga %s vs. %s; ambos p > 0,05), sugerindo que a diferença '
+ 'reflete sobretudo o posicionamento das sessões no microciclo — inclusive o Dia 7, de fadiga acumulada — e não uma '
+ 'resposta intra-sessão específica ao HIIT.'%(
+   c2('%.2f'%hi['Vigor']['hiit']),c2('%.2f'%hi['Vigor']['nohiit']),pstr(hi['Vigor']['p']),c2('%+.2f'%hi['Vigor']['dz']),
+   c2('%.2f'%hi['Fadiga']['hiit']),c2('%.2f'%hi['Fadiga']['nohiit']),pstr(hi['Fadiga']['p']),c2('%+.2f'%hi['Fadiga']['dz']),
+   pstr(hi['TMD']['p']),pstr(hi['FadFisica']['p']),_TN[0]+1,_FN[0]+1,
+   c2('%+.2f'%ha['Vigor']['hiit']),c2('%+.2f'%ha['Vigor']['nohiit']),c2('%+.2f'%ha['Fadiga']['hiit']),c2('%+.2f'%ha['Fadiga']['nohiit'])))
+def hrow(k,lab):
+    v=hi[k]; return [lab,c2('%.2f'%v['hiit']),c2('%.2f'%v['nohiit']),c2('%+.2f'%(v['hiit']-v['nohiit'])),pstr(v['p']),c2('%+.2f'%v['dz'])]
+t_hiit=table('Humor e fadiga nos dias com vs. sem HIIT (média por atleta; Wilcoxon pareado, n = %d).'%hi['Vigor']['n'],
+    ['Variável','Dias com HIIT','Dias sem HIIT','Δ','p','dz'],
+    [hrow('Vigor','Vigor'),hrow('Fadiga','Fadiga'),hrow('TMD','PTH'),hrow('FadFisica','Fadiga física')],
+    note='Dias com HIIT = 2, 4 e 7; dias sem HIIT = 1, 3, 5 e 6.',fs=9)
+f_hiit=figure(f'{FG}/x_hiit.png','Humor e fadiga nos dias com vs. sem HIIT (* p < 0,05, Wilcoxon pareado).',w=12.5)
+
 # ===================== 4 DISCUSSÃO =====================
 H('4 DISCUSSÃO')
 H('4.1 O eixo energia–fadiga como marcador central da carga (H1)',12,before=6)
@@ -586,7 +629,16 @@ P('O conjunto de análises complementares reforça e refina os achados centrais.
  'discriminação entre o início e o fim do microciclo é máxima para a fadiga física e aumenta ao filtrar o ruído, ao passo '
  'que as subescalas negativas de piso permanecem sem sinal — o que delimita, de forma honesta, onde o monitoramento do '
  'humor é informativo.')
-H('4.7 Limitações e direções futuras',12,before=6)
+H('4.7 Sono, estresse e o estímulo de HIIT',12,before=6)
+P('A associação da sonolência (Epworth) com a fadiga e a PTH, e a ausência de relação do estresse percebido (PSS) com o '
+ 'humor, reforçam que, neste microciclo, a deterioração afetiva acompanha marcadores de recuperação insuficiente (sono) '
+ 'mais do que a carga psicológica geral — achado convergente com a literatura que liga qualidade de sono e humor em '
+ 'atletas de elite (ANDRADE et al., 2016). Que quase metade dos atletas tenha reportado sonolência excessiva sublinha o '
+ 'valor de monitorar o sono em conjunto com o humor. Os dias de HIIT concentraram o pior humor, mas a resposta aguda '
+ 'pré → pós não diferiu dos demais dias, indicando que o efeito é de acúmulo ao longo do microciclo (com o Dia 7 somando '
+ 'HIIT e fadiga terminal) e não de um choque intra-sessão exclusivo do HIIT — leitura coerente com o caráter intermitente '
+ 'e progressivo da carga.')
+H('4.8 Limitações e direções futuras',12,before=6)
 P('Como limitações, destacam-se o tamanho amostral (n = %d) e o efeito de piso das dimensões negativas, que reduz a '
  'variância e a confiabilidade da tensão e da confusão e infla seus coeficientes de variação, e o caráter observacional '
  'de fase única, que não permite inferência causal sobre a carga. A conversão em escores T foi referenciada à própria '
@@ -610,11 +662,13 @@ refs=[
  'ANDRADE, A. et al. Sleep quality, mood and performance: a study of elite Brazilian volleyball athletes. Journal of Sports Science and Medicine, v. 15, n. 4, p. 601–605, 2016.',
  'ANDRADE, A. et al. Effect of practice exergames on the mood states and self-esteem of elementary school boys and girls during physical education classes: a cluster-randomized controlled trial. PLoS ONE, v. 15, n. 6, e0232392, 2020. DOI: 10.1371/journal.pone.0232392.',
  'BRANDT, R.; BEVILACQUA, G. G.; ANDRADE, A. Perceived sleep quality, mood states, and their relationship with performance among Brazilian elite athletes during a competitive period. Journal of Strength and Conditioning Research, v. 31, n. 4, p. 1033–1039, 2017.',
+ 'COHEN, S.; KAMARCK, T.; MERMELSTEIN, R. A global measure of perceived stress. Journal of Health and Social Behavior, v. 24, n. 4, p. 385–396, 1983. DOI: 10.2307/2136404.',
  'DE MIRANDA ROHLFS, I. C. P. et al. Mood states, injury status, and countermovement jump performance in Brazilian high-level sports. Sports, v. 13, n. 9, 303, 2025. DOI: 10.3390/sports13090303.',
  'FERNANDES-DA-SILVA, J. et al. The peak velocity derived from the Carminatti Test is related to physical match performance in young soccer players. Journal of Sports Sciences, v. 34, n. 24, p. 2238–2245, 2016. DOI: 10.1080/02640414.2015.1093646.',
  'HAN, C.; PARSONS-SMITH, R. L.; TERRY, P. C. Mood profiling in Singapore: cross-cultural validation and potential applications of mood profile clusters. Frontiers in Psychology, v. 11, 665, 2020. DOI: 10.3389/fpsyg.2020.00665.',
  'HOPKINS, W. G. Measures of reliability in sports medicine and science. Sports Medicine, v. 30, n. 1, p. 1–15, 2000. DOI: 10.2165/00007256-200030010-00001.',
  'JACOBSON, N. S.; TRUAX, P. Clinical significance: a statistical approach to defining meaningful change in psychotherapy research. Journal of Consulting and Clinical Psychology, v. 59, n. 1, p. 12–19, 1991. DOI: 10.1037/0022-006X.59.1.12.',
+ 'JOHNS, M. W. A new method for measuring daytime sleepiness: the Epworth Sleepiness Scale. Sleep, v. 14, n. 6, p. 540–545, 1991. DOI: 10.1093/sleep/14.6.540.',
  'KARCHER, C.; BUCHHEIT, M. On-court demands of elite handball, with special reference to playing positions. Sports Medicine, v. 44, n. 6, p. 797–814, 2014. DOI: 10.1007/s40279-014-0164-z.',
  'KELLMANN, M. et al. Recovery and performance in sport: consensus statement. International Journal of Sports Physiology and Performance, v. 13, n. 2, p. 240–245, 2018. DOI: 10.1123/ijspp.2017-0759.',
  'LEW, P. C. F. et al. Cross-cultural validation of the Malaysian Mood Scale and tests of between-group mood differences. International Journal of Environmental Research and Public Health, v. 20, n. 4, 3348, 2023. DOI: 10.3390/ijerph20043348.',
