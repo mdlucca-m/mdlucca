@@ -52,10 +52,22 @@ MANOVA Wilks λ = 0,181 (p < 0,001); migração de perfis iceberg 48% → 22% e
 barbatana de tubarão 4% → 22% (χ² não significativo); sonolência ↔ fadiga
 ρ = 0,52.
 
-## Observações honestas
+## Regressão do T-CAR (seção 10 de `01`)
+
+Reproduz integralmente o bloco fisiológico do artigo:
+- **regressão linear** das médias semanais de cada variável (vigor, fadiga, PTH,
+  fadiga física) sobre o pico de velocidade (PV) — coeficiente β, R² e p;
+- **regressão da mudança** D1→D7 sobre o PV;
+- **tercis de aptidão** (PV) × fadiga semanal (Kruskal-Wallis);
+- **limiar por regressão logística** para "dia de fadiga física elevada",
+  com razão de chances (OR), AUC com IC95% por bootstrap (semente fixa) e
+  ponto de corte pelo índice de Youden.
+
+Valores esperados (T-CAR de linha de base): vigor β=+1,00 (R²=0,17; p=0,038);
+fadiga física β=−0,65 (R²=0,19; p=0,028); limiar ≈ **14,9 km/h**
+(OR=0,55; AUC=0,67 [IC95% 0,51–0,77]).
+
+## Observação honesta
 
 - O Epworth aqui é a **versão de 6 itens** (0–18) constante do formulário — sem
   ponto de corte clínico padrão.
-- O limiar do T-CAR em `01` é uma versão simplificada em nível de atleta; o valor
-  (~14,9 km/h) coincide com o artigo, mas a AUC exata usa o modelo logístico em
-  nível de dia descrito no texto.

@@ -216,36 +216,90 @@ except Exception as e:
     print('  [pulei o modelo misto: %s]' % e)
 
 # =============================================================================
-# 10) T-CAR — regressão do humor semanal ~ pico de velocidade e limiar (Youden)
-#     Nota: as correlações PV x humor reproduzem exatamente o artigo. O limiar
-#     é calculado aqui numa versão simplificada em NÍVEL DE ATLETA (mediana da
-#     fadiga semanal); o valor do limiar (~14,9 km/h) coincide com o artigo,
-#     enquanto a AUC pode diferir levemente da versão do artigo, que usa um
-#     modelo logístico em nível de dia (ROC dia a dia).
+# 10) T-CAR — REGRESSÃO do humor ~ pico de velocidade (PV) e LIMIAR (logística)
+#     PVini = PV do T-CAR de linha de base (T-CAR1); PV = T-CAR final (T-CAR2).
+#     (a) Regressão linear das médias semanais de cada variável sobre o PV.
+#     (b) Regressão da MUDANÇA D1->D7 sobre o PV.
+#     (c) Tercis de aptidão (PVini) -> fadiga semanal (Kruskal-Wallis).
+#     (d) Limiar de PV por regressão LOGÍSTICA para "dia de fadiga física
+#         elevada" (fadiga do dia >= tercil superior), com AUC, OR e Youden.
 # =============================================================================
-titulo('10) T-CAR — pico de velocidade (PV), regressão e limiar de fadiga')
+titulo('10) T-CAR — REGRESSÃO do humor ~ PV e LIMIAR (regressão logística)')
 try:
-    F = pd.read_csv('tcar2_features.csv')[['ID','PVini']]   # PVini = PV do T-CAR de linha de base
-    W = wk[['Fadiga','FadFisica','Vigor']].reset_index().merge(F, on='ID', how='inner').dropna()
-    for y in ['Fadiga','FadFisica','Vigor']:
-        rho, p = stats.spearmanr(W[y], W['PVini'])
-        print('  PV x %-10s (semanal): rho=%+.2f  p=%.3f' % (LAB.get(y,y), rho, p))
-    # Limiar de PV que separa atletas com "fadiga elevada" (acima da mediana) — índice de Youden
-    W['alta_fad'] = (W['Fadiga'] > W['Fadiga'].median()).astype(int)
-    thr_grid = np.linspace(W.PVini.min(), W.PVini.max(), 200)
-    def youden(t):
-        pred = (W.PVini < t).astype(int)      # abaixo do limiar -> risco de fadiga alta
-        tp = ((pred==1)&(W.alta_fad==1)).sum(); fn = ((pred==0)&(W.alta_fad==1)).sum()
-        tn = ((pred==0)&(W.alta_fad==0)).sum(); fp = ((pred==1)&(W.alta_fad==0)).sum()
-        se = tp/(tp+fn) if tp+fn else 0; sp = tn/(tn+fp) if tn+fp else 0
-        return se + sp - 1, se, sp
-    J = [(t,)+youden(t) for t in thr_grid]
-    best = max(J, key=lambda r: r[1])
-    # AUC (Mann-Whitney)
-    pos = W[W.alta_fad==1].PVini; neg = W[W.alta_fad==0].PVini
-    U = stats.mannwhitneyu(neg, pos).statistic; auc = U/(len(pos)*len(neg))
-    print('  Limiar de PV (Youden) ~ %.1f km/h | sensibilidade=%.2f especificidade=%.2f | AUC=%.2f'
-          % (best[0], best[2], best[3], auc))
+    F = pd.read_csv('tcar2_features.csv')[['ID','PV','PVini']]   # PVini=T-CAR1, PV=T-CAR2
+
+    def reg_lin(x, y):
+        """Regressão linear simples (mínimos quadrados): retorna β, R², ρ, p."""
+        m = pd.DataFrame({'x': x, 'y': y}).dropna()
+        lr = stats.linregress(m.x, m.y); rho, pr = stats.spearmanr(m.x, m.y)
+        return lr.slope, lr.rvalue**2, lr.pvalue, rho, pr, len(m)
+
+    # (a) Regressão das MÉDIAS SEMANAIS sobre o PV do T-CAR de linha de base
+    W = wk[['Vigor','Fadiga','TMD','FadFisica']].reset_index().merge(F, on='ID', how='left')
+    print('  (a) Regressão linear — média semanal ~ PV do T-CAR1 (PVini):')
+    for y in ['Vigor','Fadiga','TMD','FadFisica']:
+        b, r2, p, rho, rp, n = reg_lin(W['PVini'], W[y])
+        print('      %-10s β=%+.2f  R²=%.2f  p=%.3f   (Spearman ρ=%+.2f, p=%.3f)' % (LAB.get(y,y), b, r2, p, rho, rp))
+
+    # (b) Regressão da MUDANÇA D1->D7 sobre o PV
+    print('  (b) Regressão linear — mudança D1->D7 ~ PVini:')
+    for y in ['Vigor','Fadiga']:
+        piv = dm.pivot(index='ID', columns='dia', values=y)
+        chg = (piv[7] - piv[1]).rename('chg').reset_index().merge(F, on='ID', how='left')
+        b, r2, p, rho, rp, n = reg_lin(chg['PVini'], chg['chg'])
+        print('      Δ%-9s β=%+.2f  R²=%.2f  p=%.3f   (ρ=%+.2f, p=%.3f)' % (LAB.get(y,y), b, r2, p, rho, rp))
+
+    # (c) Tercis de aptidão -> fadiga semanal (Kruskal-Wallis)
+    W['terc'] = pd.qcut(W['PVini'], 3, labels=['Baixa','Média','Alta'])
+    med = {str(k): g['Fadiga'].mean() for k, g in W.groupby('terc')}
+    Hk, pk = stats.kruskal(*[W[W.terc==k]['Fadiga'].values for k in ['Baixa','Média','Alta']])
+    print('  (c) Fadiga semanal por tercil de aptidão (PVini): %s | Kruskal-Wallis H=%.2f p=%.3f'
+          % ({k: round(v,2) for k,v in med.items()}, Hk, pk))
+
+    # (d) LIMIAR por regressão logística sobre a fadiga FÍSICA em nível de atleta-dia
+    dd = dm[['ID','dia','FadFisica']].merge(F, on='ID', how='left').dropna(subset=['FadFisica','PVini'])
+    cut = dd['FadFisica'].quantile(2/3)                  # "fadiga elevada" = tercil superior
+    dd['hi'] = (dd['FadFisica'] >= cut).astype(int)
+
+    def logit_nr(x, y):
+        """Regressão logística por Newton-Raphson (sem dependências externas)."""
+        x = np.asarray(x, float); y = np.asarray(y, float); b0 = b1 = 0.0
+        for _ in range(300):
+            pr = 1/(1+np.exp(-(b0+b1*x))); Wt = pr*(1-pr)+1e-9
+            g0 = np.sum(y-pr); g1 = np.sum((y-pr)*x)
+            h00 = -np.sum(Wt); h01 = -np.sum(Wt*x); h11 = -np.sum(Wt*x*x)
+            det = h00*h11 - h01*h01
+            b0 -= (h11*g0 - h01*g1)/det; b1 -= (-h01*g0 + h00*g1)/det
+        return b0, b1
+
+    def auc_mw(score, label):
+        s = np.asarray(score, float); y = np.asarray(label)
+        pos, neg = s[y==1], s[y==0]
+        return float(stats.mannwhitneyu(pos, neg).statistic/(len(pos)*len(neg)))
+
+    def youden(x, y):
+        x = np.asarray(x, float); y = np.asarray(y); best = None
+        for t in np.unique(x):
+            pred = (x <= t).astype(int)                  # PV baixo -> risco de fadiga
+            tp = np.sum((pred==1)&(y==1)); fn = np.sum((pred==0)&(y==1))
+            tn = np.sum((pred==0)&(y==0)); fp = np.sum((pred==1)&(y==0))
+            se = tp/(tp+fn+1e-9); sp = tn/(tn+fp+1e-9); j = se+sp-1
+            if best is None or j > best[1]: best = (float(t), j, se, sp)
+        return best
+
+    b0, b1 = logit_nr(dd['PVini'], dd['hi'])
+    A = auc_mw(-dd['PVini'], dd['hi'])                    # -PV: menor PV -> maior risco
+    t, j, se, sp = youden(dd['PVini'], dd['hi'])
+    # IC95% da AUC por bootstrap por atleta (semente fixa p/ reprodutibilidade)
+    ids = dd.ID.unique(); rng = np.random.default_rng(2024); boot = []
+    for _ in range(500):
+        s = rng.choice(ids, len(ids), True)
+        g = pd.concat([dd[dd.ID==i] for i in s])
+        boot.append(auc_mw(-g['PVini'], g['hi']))
+    lo, hi = np.nanpercentile(boot, [2.5, 97.5])
+    print('  (d) Limiar logístico (fadiga física elevada ~ PV do T-CAR1):')
+    print('      OR=%.2f por km/h | AUC=%.2f [IC95%% %.2f–%.2f] | limiar (Youden)=%.1f km/h (sens=%.2f, esp=%.2f)'
+          % (np.exp(b1), A, lo, hi, t, se, sp))
 except FileNotFoundError:
     print('  [tcar2_features.csv não encontrado — pulei o bloco T-CAR]')
 
