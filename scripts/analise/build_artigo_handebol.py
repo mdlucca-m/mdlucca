@@ -9,7 +9,7 @@ from docx.oxml import OxmlElement
 R=json.load(open('brums_desc2.json')); STAT=json.load(open('brums_stats3.json')); S4=json.load(open('brums_stats4.json'))
 MS=json.load(open('model_stats.json')); MV=json.load(open('manova.json')); PHJ=json.load(open('posthoc.json'))
 PV=json.load(open('pv_stats.json')); LIM=json.load(open('tcar_limiar.json')); TCD=json.load(open('tcar_desc.json'))
-CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json'))
+CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
 doc=Document()
@@ -91,7 +91,8 @@ RUN([('Objetivo: ',True),('caracterizar e analisar o perfil de humor de atletas 
  'baseline) para a barbatana de tubarão (%s%% no Dia 7), sem instalação dos perfis de maior risco à saúde mental '
  '(Everest invertido, submerso e iceberg invertido), embora a diferença categórica não tenha alcançado significância '
  '(χ² = %s; p %s). Maior aptidão associou-se a menos fadiga (ρ = %s), com limiar de '
- '%s km/h. '%(
+ '%s km/h. A sonolência (Epworth) elevou-se ao longo da semana e associou-se a mais fadiga e pior humor, enquanto o '
+ 'estresse percebido (PSS-14) manteve-se estável, indicando que a resposta afetiva foi específica da carga de treino. '%(
    c2('%+.2f'%mvv('d1d7','Vigor','d')),c2('%+.2f'%mvv('d1d7','Fadiga','d')),c2('%.3f'%MV['d1d7']['wilks']),pstr(MV['d1d7']['p_mv']),
    PK['Vigor']['max_day'],PK['Fadiga']['max_day'],
    c2('%.0f'%(100*PREV['D1']['Iceberg']/PREV['n_d1'])),c2('%.0f'%(100*PREV['D7']['Barbatana tubarão']/PREV['n_d7'])),
@@ -159,7 +160,8 @@ P('Diante da ampla adoção da BRUMS, mas da escassez de descrições detalhadas
  '(iii) descrever a resposta aguda pré → pós com tamanho de efeito; (iv) comparar as dimensões entre todos os dias; (v) '
  'confirmar as diferenças por análise multivariada (escores T); (vi) descrever o comportamento individual de cada '
  'variável e suas relações; (vii) identificar os dias de maior fadiga, vigor, tensão, raiva e depressão; (viii) '
- 'classificar a evolução dos perfis de humor; e (ix) analisar o T-CAR e o limiar de pico de velocidade. Hipotetizou-se '
+ 'classificar a evolução dos perfis de humor; (ix) analisar o T-CAR e o limiar de pico de velocidade; e (x) caracterizar '
+ 'a sonolência e o estresse percebido e sua relação com o humor. Hipotetizou-se '
  'que a deterioração se concentraria no eixo energia–fadiga, com migração do perfil iceberg para o de fadiga, e que a '
  'aptidão intermitente modularia a resposta.')
 
@@ -180,7 +182,10 @@ P('O humor foi avaliado pela BRUMS-24, com 24 itens em escala de 0 (“nada”) 
  'a capacidade aeróbia de sustentar e repetir esforços de alta intensidade — e não apenas a intensidade máxima isolada '
  '—, o que o qualifica como marcador fisiológico específico para esta amostra. O T-CAR '
  'foi aplicado em 15 de abril de 2024, quatro dias de treino antes do início do microciclo, de modo a servir como '
- 'parâmetro fisiológico de linha de base das análises.')
+ 'parâmetro fisiológico de linha de base das análises. No mesmo diário eletrônico, registraram-se ainda a sonolência, '
+ 'pela Escala de Sonolência de Epworth em versão de 6 itens (probabilidade de cochilar em seis situações; 0–18), e o '
+ 'estresse percebido, pela Escala de Estresse Percebido de 14 itens (PSS-14; 0–56, com sete itens de pontuação '
+ 'invertida), tomados como marcadores de recuperação e de carga psicossocial.')
 H('2.3 Procedimentos',12,before=6)
 P('O BRUMS foi autoaplicado por formulário eletrônico ao longo de sete dias consecutivos (21 a 27 de abril de 2024). '
  'A data e o horário de cada resposta foram definidos pelo carimbo automático de registro do formulário — e não pela '
@@ -365,6 +370,33 @@ P('O desempenho no T-CAR consta na Tabela %d. A regressão mostrou que atletas c
    c2('%+.2f'%PV['pv']['wk_Vigor']['TCAR1']['rho']),pstr(PV['pv']['wk_Vigor']['TCAR1']['rho_p']),f_pv,
    c2('%.1f'%LP['thr']),c2('%.2f'%LP['auc']),c2('%.2f'%LP['sens']),c2('%.2f'%LP['spec'])))
 
+# ----- 3.11 Sonolência e estresse percebido -----
+H('3.11 Sonolência (Epworth) e estresse percebido (PSS-14)',12,before=6)
+def ssrow(v,lab):
+    dd=SS['desc'][v]; pp=SS['perath'][v]
+    return [lab,'%s ± %s'%(c2('%.1f'%dd['M']),c2('%.1f'%dd['SD'])),'%s (%s–%s)'%(c2('%.0f'%dd['Md']),c2('%.0f'%dd['mn']),c2('%.0f'%dd['mx'])),
+            '%s ± %s'%(c2('%.1f'%pp['M']),c2('%.1f'%pp['SD'])),pstr(SS['traj'][v]['p']).replace('= ','')]
+tss=table('Sonolência (Epworth, 6 itens, 0–18) e estresse percebido (PSS-14, 0–56) no microciclo: descritivos por observação e por atleta, e variação entre os dias.',
+    ['Variável','M ± DP (obs.)','Mediana (mín–máx)','M ± DP (atleta)','Friedman p'],
+    [ssrow('Epworth','Sonolência (Epworth)'),ssrow('PSS','Estresse (PSS-14)')],
+    note='Friedman: teste da variação entre os sete dias. Epworth em versão de 6 itens (sem ponto de corte clínico padrão).',fs=9)
+f_ss=figure(f'{FG}/sono_traj.png','Trajetória diária (média ± IC95%) da sonolência (Epworth) e do estresse percebido (PSS-14) ao longo do microciclo.',w=15.0)
+ec=SS['corr']['Epworth']; pc=SS['corr']['PSS']
+P('A sonolência e o estresse percebido, coletados no mesmo diário, tiveram comportamentos distintos ao longo do '
+ 'microciclo (Tabela %d; Figura %d). A sonolência (Epworth) elevou-se progressivamente do primeiro ao último dia '
+ '(Friedman p %s; W = %s), padrão compatível com o acúmulo de fadiga e de débito de sono ao fim da semana de carga. No '
+ 'plano interindividual (média semanal por atleta), atletas mais sonolentos reportaram mais fadiga (ρ = %s; p %s) e pior '
+ 'humor global (PTH; ρ = %s; p %s), o que posiciona a sonolência como um marcador de recuperação que acompanha a '
+ 'resposta afetiva à carga. O estresse percebido (PSS-14), ao contrário, manteve-se estável entre os dias (Friedman p '
+ '%s) e em patamar moderado, sem associação significativa com o vigor (ρ = %s; p %s) ou com a fadiga (ρ = %s; p %s); '
+ 'nenhuma das duas variáveis diferiu entre pré e pós-treino (Epworth p %s; PSS p %s), coerente com a natureza mais '
+ 'estável desses instrumentos. A estabilidade do estresse indica que a deterioração do humor no eixo energia–fadiga foi '
+ 'específica da carga de treino, e não reflexo de um aumento concomitante do estresse percebido.'%(
+   tss,f_ss,pstr(SS['traj']['Epworth']['p']),c2('%.2f'%SS['traj']['Epworth']['W']),
+   c2('%+.2f'%ec['Fadiga']['rho']),pstr(ec['Fadiga']['p']),c2('%+.2f'%ec['TMD']['rho']),pstr(ec['TMD']['p']),
+   pstr(SS['traj']['PSS']['p']),c2('%+.2f'%pc['Vigor']['rho']),pstr(pc['Vigor']['p']),c2('%+.2f'%pc['Fadiga']['rho']),pstr(pc['Fadiga']['p']),
+   pstr(SS['prepos']['Epworth']['p']),pstr(SS['prepos']['PSS']['p'])))
+
 # ===== 4 DISCUSSÃO =====
 H('4 DISCUSSÃO')
 P('O presente estudo caracterizou o comportamento do humor de handebolistas de elite ao longo da última semana de '
@@ -447,11 +479,21 @@ P('A inclusão do pico de velocidade do T-CAR como parâmetro fisiológico acres
    c2('%+.2f'%PV['pv']['wk_Vigor']['TCAR1']['rho']),pstr(PV['pv']['wk_Vigor']['TCAR1']['rho_p']),
    c2('%+.2f'%PV['pv']['wk_FadFisica']['TCAR1']['rho']),pstr(PV['pv']['wk_FadFisica']['TCAR1']['rho_p']),
    c2('%.1f'%LP['thr']),c2('%.2f'%LP['auc'])))
+P('A sonolência e o estresse percebido acrescentaram duas leituras convergentes com o padrão central. A sonolência '
+ '(Epworth) acompanhou a semana de carga, elevando-se rumo ao último dia e associando-se, entre atletas, a mais fadiga '
+ 'e pior humor global — um marcador de recuperação/sono que corrobora, no plano comportamental, a deterioração do eixo '
+ 'energia–fadiga e reforça a recomendação de vigiar o sono na fase de acumulação (KELLMANN et al., 2018). Já o estresse '
+ 'percebido (PSS-14) permaneceu estável e moderado, sem se relacionar à oscilação do humor; essa ausência de variação '
+ 'é informativa, pois indica que a resposta afetiva ao microciclo teve origem na carga de treino, e não em um aumento '
+ 'concomitante do estresse psicossocial percebido — um argumento a favor da especificidade do achado.')
 P('Algumas limitações devem ser consideradas na interpretação dos achados. O tamanho amostral (%d atletas) e o desenho '
  'observacional de fase única não permitem inferência causal sobre a carga, e as dimensões negativas, próximas do piso, '
  'apresentam variância e fidedignidade reduzidas, o que limita a leitura de suas pequenas variações. A conversão dos '
  'escores T foi referenciada à própria amostra — e não a tabelas normativas nacionais de atletas —, o que recomenda '
- 'cautela na comparação absoluta de prevalências entre estudos e na classificação estrita dos perfis. Como direções '
+ 'cautela na comparação absoluta de prevalências entre estudos e na classificação estrita dos perfis. A sonolência foi '
+ 'medida por uma versão de 6 itens do Epworth (sem ponto de corte clínico validado) e o estresse, pela PSS-14, cujo '
+ 'horizonte de referência é mais amplo que o microciclo; por isso, essas variáveis foram interpretadas por sua média '
+ 'semanal por atleta, e não por flutuações diárias. Como direções '
  'futuras, recomenda-se ampliar a amostra e acompanhar múltiplos microciclos, integrar o humor a marcadores de carga '
  'externa e interna mensurados continuamente, adotar tabelas normativas e agrupamento semeado (seeded k-means) para a '
  'classificação de perfis e testar o valor preditivo dos perfis negativos para desfechos como lesão e sobrecarga '
