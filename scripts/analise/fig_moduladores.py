@@ -17,7 +17,7 @@ f=make_subplots(rows=1,cols=2,horizontal_spacing=0.11,column_widths=[0.56,0.44],
 
 # --- Painel A: R² de cada moderador sobre a inclinação de Vigor e Fadiga ---
 short={'PVini':'Aptidão<br>(PV)','pGordura':'% gordura','massa':'Massa','CMJ_mai':'Potência<br>(CMJ)',
-       'Baker_mai':'Potência<br>(Baker)','Epworth':'Sono<br>(Epworth)','PSS':'Estresse<br>(PSS)','TRIMP':'Carga<br>(TRIMP)'}
+       'Baker_mai':'Sprints rep.<br>(Baker)','Epworth':'Sono<br>(Epworth)','PSS':'Estresse<br>(PSS)','TRIMP':'Carga<br>(TRIMP)'}
 xlab=[short[m] for m in MODS]
 for v in ['Vigor','Fadiga']:
     r2s=[R['chronic']['matrix'][v][m]['r2'] if R['chronic']['matrix'][v][m] else 0 for m in MODS]

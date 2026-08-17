@@ -222,10 +222,10 @@ tinv=table('Inventário dos instrumentos: domínio avaliado, estrutura, amplitud
      ['PSS-14 (Escala de Estresse Percebido)','Estresse percebido','14 itens (7 de pontuação invertida), 0–56','Diária'],
      ['Teste de Carminatti (T-CAR)','Aptidão aeróbia intermitente','Teste de campo progressivo e intermitente; pico de velocidade (km/h)','Linha de base e final'],
      ['Salto vertical (CMJ)','Potência de membros inferiores','Altura do salto (cm)','Linha de base e final'],
-     ['Arremesso (medicine ball, Baker)','Potência de membros superiores','Distância do arremesso (m)','Linha de base e final'],
+     ['Sprints repetidos (Baker)','Capacidade de sprints repetidos (componente anaeróbio)','8 sprints; melhor tempo (s) e índice de fadiga %F; menor = melhor','Linha de base e final'],
      ['Antropometria e dobras cutâneas','Composição corporal','Massa (kg), estatura (cm), gordura (%)','Linha de base'],
      ['Monitoramento de carga','Carga interna','Frequência cardíaca, TRIMP e percepção de esforço (PSE)','Sessões de treino']],
-    note='Autorrelato: BRUMS-24, fadiga física/mental, Epworth e PSS-14. Avaliações físicas: T-CAR, CMJ, arremesso e antropometria. PTH = Perturbação Total do Humor; PSE = percepção subjetiva de esforço; TRIMP = training impulse.',fs=8.5)
+    note='Autorrelato: BRUMS-24, fadiga física/mental, Epworth e PSS-14. Avaliações físicas: T-CAR, CMJ, sprints repetidos (Baker) e antropometria. PTH = Perturbação Total do Humor; PSE = percepção subjetiva de esforço; TRIMP = training impulse.',fs=8.5)
 P('A Tabela %d sintetiza os instrumentos empregados, o domínio de cada um, a sua estrutura e o momento de coleta.'%tinv)
 H('2.3 Procedimentos',12,before=6)
 P('O BRUMS foi autoaplicado por formulário eletrônico ao longo de sete dias consecutivos (21 a 27 de abril de 2024). '
@@ -286,7 +286,7 @@ P('Como confirmação robusta, as comparações Dia 1 → Dia 7 e pré → pós 
  'suavizada das curvas. Para identificar os moduladores da magnitude dos efeitos, definiu-se o efeito agudo como a '
  'variação intrassessão (pós − pré) por atleta-dia e o efeito crônico como a inclinação semanal (taxa por dia) da média '
  'diária de cada dimensão; a associação de cada efeito com as características do atleta — aptidão aeróbia intermitente '
- '(PV), composição corporal, potência de membros inferiores (salto e arremesso), sonolência, estresse e carga interna '
+ '(PV), composição corporal, potência de membros inferiores (salto CMJ), sprints repetidos (Baker), sonolência, estresse e carga interna '
  '(TRIMP) — foi quantificada pela correlação de Pearson e pelo coeficiente de determinação (R²), além de modelos de '
  'regressão múltipla com coeficientes padronizados (β*); dado o número de testes, aplicou-se a correção de Holm para '
  'comparações múltiplas. Adotou-se nível de significância de 5% '
@@ -739,7 +739,7 @@ def modcell(s): return ('%s (%s)%s'%(c2('%+.2f'%s['r']),c2('%.2f'%s['r2']),'*' i
 def modrow(mk): return [MOD['modlab'][mk],modcell(MODm['Vigor'][mk]),modcell(MODm['Fadiga'][mk])]
 tmod=table('Moduladores da magnitude do efeito crônico (inclinação semanal): correlação (r) e coeficiente de determinação (R²) entre cada característica do atleta e a taxa de variação do vigor e da fadiga.',
     ['Moderador','Vigor — r (R²)','Fadiga — r (R²)'],[modrow(m) for m in MOD['mods']],
-    note='r = correlação de Pearson; R² = coeficiente de determinação (variância explicada); * p < 0,05 sem correção. Nenhuma associação sobrevive à correção de Holm para %d testes. CMJ = salto vertical; Baker = arremesso de medicine ball; TRIMP = carga interna.'%MOD['n_tests'],fs=8.5)
+    note='r = correlação de Pearson; R² = coeficiente de determinação (variância explicada); * p < 0,05 sem correção. Nenhuma associação sobrevive à correção de Holm para %d testes. CMJ = salto vertical; Baker = melhor tempo em sprints repetidos (menor = melhor); TRIMP = carga interna.'%MOD['n_tests'],fs=8.5)
 f_mod=figure(f'{FG}/moduladores.png','Modulação da taxa semanal pelo perfil do atleta: à esquerda, o coeficiente de determinação (R²) de cada característica sobre a taxa do vigor (verde) e da fadiga (laranja) — a fadiga é praticamente não modulada; à direita, a taxa de queda do vigor decresce com a potência de membros inferiores (salto CMJ).',w=15.5)
 _acp=min(MOD['acute']['day_trend'][v]['p'] for v in MOD['vars'])
 _acR=max(s['r2'] for v in MOD['vars'] for s in (MOD['acute_matrix'][v][m] for m in MOD['mods']) if s)

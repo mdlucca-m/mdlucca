@@ -6,7 +6,7 @@ Efeito CRÔNICO = inclinação semanal (taxa por dia) da média diária, por atl
 
 Para cada efeito, testa-se quanto as características do atleta modulam a sua magnitude
 — aptidão aeróbia intermitente (PV do T-CAR), composição corporal (massa, % de gordura),
-potência de membros inferiores (salto CMJ, arremesso Baker), sono (Epworth), estresse
+potência de membros inferiores (salto CMJ), sprints repetidos (Baker, melhor tempo), sono (Epworth), estresse
 (PSS-14) e carga interna (TRIMP) — por correlação de Pearson e pelo COEFICIENTE DE
 DETERMINAÇÃO (R²) de cada relação, além de modelos de regressão múltipla (R², R²
 ajustado e coeficientes padronizados β*). Reporta-se também o controle de comparações
@@ -22,7 +22,7 @@ F = pd.read_csv('tcar2_features.csv')[['ID', 'PVini', 'TRIMP']]
 VARS = ['Vigor', 'Fadiga', 'TMD']
 MODS = ['PVini', 'pGordura', 'massa', 'CMJ_mai', 'Baker_mai', 'Epworth', 'PSS', 'TRIMP']
 MODLAB = {'PVini': 'Aptidão (PV T-CAR)', 'pGordura': '% de gordura', 'massa': 'Massa corporal',
-          'CMJ_mai': 'Potência (CMJ)', 'Baker_mai': 'Potência (Baker)', 'Epworth': 'Sonolência (Epworth)',
+          'CMJ_mai': 'Potência (CMJ)', 'Baker_mai': 'Sprints repetidos (Baker)', 'Epworth': 'Sonolência (Epworth)',
           'PSS': 'Estresse (PSS-14)', 'TRIMP': 'Carga interna (TRIMP)'}
 
 # ---------- efeito AGUDO (pós − pré por atleta-dia) ----------
