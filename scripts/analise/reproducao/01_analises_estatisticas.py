@@ -387,6 +387,36 @@ except FileNotFoundError:
     print('  [tcar2_features.csv não encontrado — pulei as logísticas adicionais]')
 
 # =============================================================================
+# 10c) DOIS LIMIARES DE PV -> TRÊS FAIXAS DE APTIDÃO
+#      t1, t2 = tercis da distribuição do PV(T-CAR1). Prevalência de dias de
+#      fadiga elevada (tercil sup.) e de baixo vigor (tercil inf.) por faixa,
+#      com teste de tendência linear (Cochran-Armitage).
+# =============================================================================
+titulo('10c) DOIS LIMIARES DE PV -> TRÊS FAIXAS DE APTIDÃO')
+def cochran_armitage(y, g):
+    y = np.asarray(y); g = np.asarray(g); N = len(y); R = y.sum()
+    n_k = np.array([np.sum(g == k) for k in (0, 1, 2)]); r_k = np.array([np.sum(y[g == k]) for k in (0, 1, 2)])
+    s = np.array([0., 1., 2.]); T = np.sum(s * (r_k - n_k * R / N)); pbar = R / N
+    var = pbar * (1 - pbar) * (np.sum(n_k * s**2) - (np.sum(n_k * s)**2) / N)
+    z = T / np.sqrt(var) if var > 0 else float('nan')
+    return z, 2 * (1 - stats.norm.cdf(abs(z)))
+try:
+    Ff = pd.read_csv('tcar2_features.csv')[['ID','PVini']]
+    bs = h.groupby(['ID','dia']).agg(Fad=('FadFisica','mean'), Vig=('Vigor','mean')).reset_index().merge(Ff, on='ID').dropna(subset=['PVini'])
+    t1, t2 = np.quantile(bs.PVini.values, [1/3, 2/3])
+    g = np.where(bs.PVini.values < t1, 0, np.where(bs.PVini.values <= t2, 1, 2))
+    print('  Limiares (tercis): t1=%.1f km/h | t2=%.1f km/h' % (t1, t2))
+    for col, q, d, nm in [('Fad', 2/3, 'hi', 'Fadiga física elevada'), ('Vig', 1/3, 'lo', 'Baixo vigor')]:
+        v = bs[col].values
+        y = (v >= np.quantile(v, q)).astype(int) if d == 'hi' else (v <= np.quantile(v, q)).astype(int)
+        z, p = cochran_armitage(y, g)
+        prevs = [100 * y[g == k].mean() for k in (0, 1, 2)]
+        print('  %-22s Baixa=%.0f%% Média=%.0f%% Alta=%.0f%%  (tendência z=%.2f p=%.3f)'
+              % (nm, prevs[0], prevs[1], prevs[2], z, p))
+except FileNotFoundError:
+    print('  [tcar2_features.csv não encontrado — pulei as faixas de aptidão]')
+
+# =============================================================================
 # 11) SONOLÊNCIA (Epworth) e ESTRESSE (PSS-14)
 # =============================================================================
 titulo('11) SONOLÊNCIA (Epworth, 0-18) e ESTRESSE (PSS-14, 0-56)')

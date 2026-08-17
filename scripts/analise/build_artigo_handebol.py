@@ -11,6 +11,7 @@ MS=json.load(open('model_stats.json')); MV=json.load(open('manova.json')); PHJ=j
 PV=json.load(open('pv_stats.json')); LIM=json.load(open('tcar_limiar.json')); TCD=json.load(open('tcar_desc.json'))
 TCV=json.load(open('tcar_curvas.json'))
 LOG=json.load(open('logistica.json'))
+L2=json.load(open('limiar2.json'))
 CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json')); SM=json.load(open('smooth.json')); IND=json.load(open('indiv.json')); AUD=json.load(open('audit.json')); CP=json.load(open('cross_pt.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
@@ -250,7 +251,9 @@ P('Como confirmação robusta, as comparações Dia 1 → Dia 7 e pré → pós 
  'perfil (iceberg e barbatana de tubarão) em função do dia do microciclo, e modelou-se também a probabilidade de um dia '
  'de baixo vigor (tercil inferior) e a de exibir o perfil iceberg em função do pico de velocidade; os intervalos de '
  'confiança das razões de chances e das áreas sob a curva foram obtidos por reamostragem (bootstrap, 1000 repetições) '
- 'de atletas, para acomodar a estrutura de medidas repetidas. '
+ 'de atletas, para acomodar a estrutura de medidas repetidas. Além do ponto de corte único, o pico de velocidade foi '
+ 'estratificado por dois limiares — os tercis de sua distribuição — em três faixas de aptidão, comparando-se a '
+ 'prevalência de dias críticos entre as faixas ordenadas pelo teste de tendência linear de Cochran-Armitage. '
  'Para separar o efeito da aptidão do efeito do tamanho corporal, o pico de velocidade foi '
  'ainda submetido a ajuste alométrico: estimou-se o expoente da relação alométrica pela regressão log(PV)–log(massa) e '
  'normalizou-se o PV pela massa elevada a esse expoente, comparando-se as associações do PV bruto e do PV normalizado '
@@ -471,6 +474,28 @@ P('Duas regressões logísticas complementares fecham a leitura da aptidão. Sim
    c2('%.2f'%BV['OR_kmh']),c2('%.1f'%BV['thr']),c2('%.2f'%BV['sens']),c2('%.2f'%BV['spec']),
    c2('%.2f'%BV['auc']),c2('%.2f'%BV['auc_lo']),c2('%.2f'%BV['auc_hi']),
    c2('%.2f'%BPV['OR_pv']),c2('%.2f'%BPV['auc']),c2('%.2f'%BPV['OR_lo']),c2('%.2f'%BPV['OR_hi'])))
+# --- dois limiares de PV: três faixas de aptidão ---
+BND=L2['fadiga']['bands']
+tl2=table('Estratificação do pico de velocidade do T-CAR em três faixas de aptidão por dois limiares (tercis da distribuição): prevalência de dias de fadiga elevada e de baixo vigor em cada faixa.',
+    ['Faixa de aptidão','PV (km/h)','n (atleta-dia)','Fadiga elevada','Baixo vigor'],
+    [[BND[k]['lab'],c2(BND[k]['rng']),str(BND[k]['n']),c2('%.0f'%L2['fadiga']['bands'][k]['prev'])+'%',c2('%.0f'%L2['vigor']['bands'][k]['prev'])+'%'] for k in range(3)],
+    note='Dois limiares (t₁ = %s km/h; t₂ = %s km/h) definem três faixas. Dia de fadiga elevada = fadiga física no tercil superior; dia de baixo vigor = vigor no tercil inferior. Tendência linear da prevalência (Cochran-Armitage): fadiga p = %s; baixo vigor p = %s.'%(
+        c2('%.1f'%L2['t1']),c2('%.1f'%L2['t2']),c2('%.3f'%L2['fadiga']['trend_p']),c2('%.3f'%L2['vigor']['trend_p'])),fs=8.5)
+f_l2=figure(f'{FG}/limiar2_faixas.png','Dois limiares do pico de velocidade do T-CAR (%s e %s km/h) definindo três faixas de aptidão (esquerda) e a prevalência de dias de fadiga elevada e de baixo vigor em cada faixa (direita).'%(c2('%.1f'%L2['t1']),c2('%.1f'%L2['t2'])),w=15.5)
+P('Em vez de um único ponto de corte, o pico de velocidade foi ainda estratificado por dois limiares — os tercis de sua '
+ 'distribuição (t₁ = %s km/h; t₂ = %s km/h) —, criando três faixas de aptidão com valor de decisão direto (Tabela %d; '
+ 'Figura %d). A prevalência de dias críticos caiu de forma consistente da faixa de baixa para a de alta aptidão, tanto '
+ 'para a fadiga elevada (%s%% → %s%% → %s%%; tendência p = %s) quanto para o baixo vigor (%s%% → %s%% → %s%%; tendência '
+ 'p = %s). O ganho da estratificação dupla é sobretudo prático: enquanto o limiar único de Youden (≈ %s km/h) traça uma '
+ 'só linha, os dois limiares isolam uma faixa superior de aptidão (PV > %s km/h) em que o risco de dias críticos cai '
+ 'para cerca de um quinto das observações, e uma faixa inferior (PV < %s km/h) que concentra o maior risco — oferecendo '
+ 'à comissão técnica uma referência graduada, e não binária, para individualizar a carga e priorizar a recuperação dos '
+ 'atletas menos aptos.'%(
+   c2('%.1f'%L2['t1']),c2('%.1f'%L2['t2']),tl2,f_l2,
+   c2('%.0f'%L2['fadiga']['bands'][0]['prev']),
+   c2('%.0f'%L2['fadiga']['bands'][1]['prev']),c2('%.0f'%L2['fadiga']['bands'][2]['prev']),c2('%.3f'%L2['fadiga']['trend_p']),
+   c2('%.0f'%L2['vigor']['bands'][0]['prev']),c2('%.0f'%L2['vigor']['bands'][1]['prev']),c2('%.0f'%L2['vigor']['bands'][2]['prev']),c2('%.3f'%L2['vigor']['trend_p']),
+   c2('%.1f'%L2['fadiga']['youden']),c2('%.1f'%L2['t2']),c2('%.1f'%L2['t1'])))
 
 # ----- 3.11 Sonolência e estresse percebido -----
 H('3.11 Sonolência (Epworth) e estresse percebido (PSS-14)',12,before=6)
@@ -774,7 +799,12 @@ P('A inclusão do pico de velocidade do T-CAR como parâmetro fisiológico acres
  'de desempenho físico em modalidades intermitentes (FERNANDES-DA-SILVA et al., 2016). Do ponto de vista aplicado, normalizar a '
  'resposta de humor pela aptidão física ajuda a distinguir a fadiga esperada — de atletas menos aptos sob a mesma carga '
  '— daquela que possa sinalizar sobrecarga, e o limiar identificado oferece à comissão técnica uma referência objetiva '
- 'para individualizar a prescrição da carga e o reforço da recuperação. O ajuste alométrico refinou essa leitura: como '
+ 'para individualizar a prescrição da carga e o reforço da recuperação. A estratificação por dois limiares refina essa '
+ 'referência ao substituir a linha única por três faixas de aptidão: a prevalência de dias críticos caiu de modo '
+ 'ordenado da faixa inferior para a superior (tendência significativa para fadiga e para baixo vigor), e a faixa de alta '
+ 'aptidão isolou atletas com risco de dias críticos reduzido a cerca de um quinto — uma leitura graduada, e não binária, '
+ 'mais aderente à decisão prática de dosar carga e recuperação atleta a atleta. O ajuste alométrico refinou essa '
+ 'leitura: como '
  'o pico de velocidade escala negativamente com a massa (expoente %s), parte da relação entre aptidão e fadiga física '
  'reflete o porte corporal e não apenas a capacidade aeróbia — ao normalizar o PV pela massa, essa associação se '
  'atenua. Já a relação entre aptidão e vigor resistiu ao ajuste, evidenciando um efeito genuíno de capacidade aeróbia '
