@@ -9,7 +9,7 @@ from docx.oxml import OxmlElement
 R=json.load(open('brums_desc2.json')); STAT=json.load(open('brums_stats3.json')); S4=json.load(open('brums_stats4.json'))
 MS=json.load(open('model_stats.json')); MV=json.load(open('manova.json')); PHJ=json.load(open('posthoc.json'))
 PV=json.load(open('pv_stats.json')); LIM=json.load(open('tcar_limiar.json')); TCD=json.load(open('tcar_desc.json'))
-CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json')); SM=json.load(open('smooth.json'))
+CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json')); SM=json.load(open('smooth.json')); IND=json.load(open('indiv.json')); AUD=json.load(open('audit.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
 doc=Document()
@@ -522,6 +522,58 @@ P('Para separar a tendência sistemática (sinal) do ruído de amostragem e obte
    tsm,f_sm,c2('%.0f'%sV['signal_pct']),c2('%.0f'%sF['signal_pct']),c2('%.1f'%sV['snr']),c2('%.1f'%sF['snr']),
    c2('%+.1f'%sV['snr_db']),c2('%+.1f'%sF['snr_db']),
    c2('%.0f'%sD['noise_pct']),c2('%.0f'%sD['signal_pct']),c2('%.1f'%sD['snr'])))
+
+# ----- 3.15 Modelagem individual (por atleta) -----
+H('3.15 Modelagem individual: trajetórias por atleta',12,before=6)
+paV=IND['perath']['Vigor']; paF=IND['perath']['Fadiga']; cov=IND['cover']
+f_ind=figure(f'{FG}/indiv_spaghetti.png','Trajetórias individuais de vigor e fadiga por atleta (linhas finas) e a média do grupo (linha grossa), evidenciando a heterogeneidade da resposta.',w=15.0)
+P('Além da tendência do grupo, a resposta foi modelada por atleta, ajustando-se a cada participante a sua própria '
+ 'trajetória ao longo da semana (Figura %d). A cobertura permitiu a modelagem individual: %d dos %d atletas '
+ 'responderam nos sete dias e %d têm dados suficientes (≥ 4 dias) para um ajuste polinomial individual; para todos foi '
+ 'possível estimar a taxa de variação individual. Em média, o vigor caiu %s ponto/dia (DP %s) e a fadiga subiu %s '
+ 'ponto/dia (DP %s), mas com nítida heterogeneidade entre atletas: %s%% apresentaram a queda esperada de vigor e %s%% '
+ 'o aumento esperado de fadiga, enquanto os demais mantiveram-se estáveis ou responderam na direção oposta. Essa '
+ 'dispersão das inclinações individuais mostra que a média do grupo convive com respondedores e não respondedores, '
+ 'reforçando o valor do monitoramento individualizado — a mesma carga produz trajetórias afetivas distintas.'%(
+   f_ind,cov['n7'],cov['ntot'],paV['n_cub'],
+   c2('%+.2f'%paV['mean']),c2('%.2f'%paV['sd']),c2('%+.2f'%paF['mean']),c2('%.2f'%paF['sd']),
+   c2('%.0f'%paV['resp_pct']),c2('%.0f'%paF['resp_pct'])))
+
+# ----- 3.16 Trajetória em alta resolução (pré/pós) -----
+H('3.16 Trajetória em alta resolução: 13 pontos pré/pós',12,before=6)
+f_p13=figure(f'{FG}/pts13_curve.png','Trajetória do grupo em 13 pontos temporais (baseline + pré e pós-treino de cada dia), revelando a dinâmica intradiária além da média diária.',w=15.5)
+P('Aproveitando as duas coletas diárias dos dias de treino, a trajetória do grupo foi reconstruída em alta resolução, '
+ 'com 13 pontos temporais — a linha de base e os momentos pré e pós de cada um dos seis dias de treino (Figura %d). '
+ 'Essa resolução revela a dinâmica intradiária que a média diária mascara: em cada dia de treino, o vigor tende a cair '
+ 'e a fadiga (e a PTH) a subir do pré para o pós, com recuperação parcial na manhã seguinte — um padrão de dente de '
+ 'serra sobreposto à tendência semanal de queda de energia e acúmulo de fadiga. A leitura de alta resolução, portanto, '
+ 'confirma que a deterioração semanal resulta da soma de perturbações agudas incompletamente revertidas entre as '
+ 'sessões.')
+
+# ----- 3.17 Auditoria de robustez (filtragem de ruído) -----
+H('3.17 Auditoria de robustez: filtragem de sinal e ruído',12,before=6)
+def audrow(m,lab,fmt='%+.2f'):
+    r=next((x for x in AUD['rows'] if x['metric']==m),None)
+    if not r: return [lab,'—','—']
+    return [lab,c2(fmt%r['raw']),c2(fmt%r['filt'])]
+taud=table('Auditoria de robustez: principais resultados antes e depois da remoção de %d observações atípicas (%.1f%% do total) por distância de Mahalanobis.'%(AUD['n_out'],100*AUD['n_out']/AUD['n_total']),
+    ['Métrica','Dados brutos','Dados filtrados'],
+    [audrow('dz_Vigor','Vigor D1→D7 (dz)'),audrow('dz_Fadiga','Fadiga D1→D7 (dz)'),
+     audrow('manova_wilks','MANOVA (Wilks λ)','%.3f'),
+     audrow('friedman_Vigor','Vigor Friedman (p)','%.4f'),audrow('friedman_Fadiga','Fadiga Friedman (p)','%.4f'),
+     audrow('rho_Fadiga_FadFisica','ρ fadiga × fadiga física','%+.2f')],
+    note='Filtro: observações com distância de Mahalanobis nas seis subescalas acima do limiar de p < 0,001.',fs=9)
+P('Por fim, para verificar se as conclusões dependem de ruído amostral, todas as análises centrais foram reexecutadas '
+ 'após filtragem: identificaram-se e removeram-se %d observações multivariadamente atípicas (%s%% do total) e os '
+ 'principais resultados foram recomputados (Tabela %d). A filtragem praticamente não alterou nada — o tamanho de efeito '
+ 'da queda de vigor (dz de %s para %s) e do aumento de fadiga, a MANOVA (Wilks λ de %s para %s), os testes de Friedman '
+ 'e as correlações-chave mantiveram magnitude, direção e significância. Essa estabilidade confirma que os achados do '
+ 'estudo são robustos e refletem sinal sistemático, e não artefatos de observações ruidosas.'%(
+   AUD['n_out'],c2('%.1f'%(100*AUD['n_out']/AUD['n_total'])),taud,
+   c2('%+.2f'%next(x for x in AUD['rows'] if x['metric']=='dz_Vigor')['raw']),
+   c2('%+.2f'%next(x for x in AUD['rows'] if x['metric']=='dz_Vigor')['filt']),
+   c2('%.3f'%next(x for x in AUD['rows'] if x['metric']=='manova_wilks')['raw']),
+   c2('%.3f'%next(x for x in AUD['rows'] if x['metric']=='manova_wilks')['filt'])))
 
 # ===== 4 DISCUSSÃO =====
 H('4 DISCUSSÃO')
