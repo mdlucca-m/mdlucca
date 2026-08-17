@@ -375,4 +375,20 @@ print('  Acoplamento (correlação das curvas P\'):')
 for a, b in [('Vigor','Fadiga'), ('Fadiga','TMD'), ('Vigor','TMD')]:
     print('    %-8s x %-8s r=%+.2f' % (LAB.get(a,a), LAB.get(b,b), np.corrcoef(dcur[a], dcur[b])[0,1]))
 
+# =============================================================================
+# 14) DECOMPOSIÇÃO SINAL–RUÍDO e SUAVIZAÇÃO
+#     Sinal = componente suave (polinômio grau 3); ruído = resíduo.
+#     SNR = variância(sinal) / variância(ruído).
+# =============================================================================
+titulo('14) DECOMPOSIÇÃO SINAL–RUÍDO (suavização das trajetórias)')
+print('  %-10s %8s %8s %8s %9s' % ('Dimensão','sinal%','ruído%','SNR','SNR(dB)'))
+for k in CANON:
+    y = h.groupby('dia')[k].mean().reindex(range(1,8)).values
+    t = np.arange(1, 8)
+    P = np.poly1d(np.polyfit(t, y, GR)); sig = P(t); noise = y - sig
+    r2 = 1 - (noise**2).sum()/((y-y.mean())**2).sum()
+    snr = np.var(sig)/np.var(noise) if np.var(noise) > 1e-9 else np.inf
+    snr_db = 10*np.log10(snr) if np.isfinite(snr) and snr > 0 else np.inf
+    print('  %-10s %7.0f%% %7.0f%% %8.1f %9.1f' % (LAB.get(k,k), 100*r2, 100*(1-r2), snr, snr_db))
+
 print('\n' + '='*72 + '\nFIM — todos os resultados acima reproduzem os valores do artigo.\n' + '='*72)

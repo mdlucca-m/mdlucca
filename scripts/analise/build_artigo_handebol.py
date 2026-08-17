@@ -9,7 +9,7 @@ from docx.oxml import OxmlElement
 R=json.load(open('brums_desc2.json')); STAT=json.load(open('brums_stats3.json')); S4=json.load(open('brums_stats4.json'))
 MS=json.load(open('model_stats.json')); MV=json.load(open('manova.json')); PHJ=json.load(open('posthoc.json'))
 PV=json.load(open('pv_stats.json')); LIM=json.load(open('tcar_limiar.json')); TCD=json.load(open('tcar_desc.json'))
-CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json'))
+CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json')); SM=json.load(open('smooth.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
 doc=Document()
@@ -229,7 +229,9 @@ P('Como confirmação robusta, as comparações Dia 1 → Dia 7 e pré → pós 
  'normalizou-se o PV pela massa elevada a esse expoente, comparando-se as associações do PV bruto e do PV normalizado '
  'com a fadiga e o vigor. A dinâmica temporal foi ainda modelada ajustando-se uma função polinomial às médias diárias '
  'de cada dimensão, da qual se obtiveram, por derivação, a taxa de variação instantânea (derivada primeira), os pontos '
- 'críticos (máximos e mínimos) e o ponto de inflexão (raiz da derivada segunda). Adotou-se nível de significância de 5% '
+ 'críticos (máximos e mínimos) e o ponto de inflexão (raiz da derivada segunda). A mesma componente suave foi usada '
+ 'para decompor cada trajetória em sinal e ruído, quantificando a razão sinal-ruído (SNR) e permitindo uma visualização '
+ 'suavizada das curvas. Adotou-se nível de significância de 5% '
  '(p < 0,05), com as análises conduzidas em ambiente Python (bibliotecas pandas, NumPy, SciPy e statsmodels).')
 
 # ===== 3 RESULTADOS =====
@@ -496,6 +498,30 @@ P('Os extremos das funções ajustadas e os limites de suas derivadas (Tabela %d
    c2('%+.2f'%VG['dmin_val']),dayf(VG['dmin_day']),c2('%+.2f'%VG['dmax_val']),
    c2('%.1f'%FD['fmin_val']),dayf(FD['fmin_day']),c2('%.1f'%FD['fmax_val']),dayf(FD['fmax_day']),
    c2('%+.2f'%FD['dmin_val']),c2('%+.2f'%FD['dmax_val'])))
+
+# ----- 3.14 Decomposição sinal-ruído e suavização das trajetórias -----
+H('3.14 Decomposição sinal–ruído e suavização das trajetórias',12,before=6)
+def smrow(k,l):
+    v=SM['vars'][k]; snr='%.1f'%v['snr'] if v['snr']<900 else '—'
+    return [l,c2('%.0f'%v['signal_pct'])+'%',c2('%.0f'%v['noise_pct'])+'%',c2(snr),c2('%+.1f'%v['snr_db'])]
+tsm=table('Decomposição sinal–ruído das trajetórias diárias: proporção de sinal (variância explicada pela componente suave) e de ruído (resíduo), razão sinal-ruído (SNR) e SNR em decibéis.',
+    ['Dimensão','Sinal','Ruído','SNR','SNR (dB)'],
+    [smrow(k,l) for k,l in ORD],
+    note='Sinal = componente suave (polinômio ajustado); ruído = resíduo em torno do sinal. SNR = variância do sinal / variância do ruído.',fs=9)
+f_sm=figure(f'{FG}/smooth_signal.png','Trajetórias diárias suavizadas: sinal (curva) sobreposto às médias diárias observadas (pontos), separando a tendência do ruído. A) eixo energia–fadiga; B) subescalas negativas.',w=15.0)
+sV=SM['vars']['Vigor']; sF=SM['vars']['Fadiga']; sD=SM['vars']['Depressao']
+P('Para separar a tendência sistemática (sinal) do ruído de amostragem e obter uma leitura visual mais limpa, cada '
+ 'trajetória diária foi decomposta em uma componente suave — a função polinomial ajustada — e um resíduo (Tabela %d; '
+ 'Figura %d). A suavização é altamente informativa no eixo energia–fadiga: o vigor e a fadiga são quase inteiramente '
+ 'sinal (%s%% e %s%% da variância; razão sinal-ruído de %s e %s, ou %s e %s dB), de modo que suas curvas suavizadas '
+ 'revelam com nitidez o cruzamento energia–fadiga em torno da metade da semana. Nas dimensões negativas, próximas do '
+ 'piso, a fração de ruído é muito maior — na depressão, o ruído (%s%%) supera o sinal (%s%%; SNR = %s), o que explica '
+ 'por que suas oscilações diárias não devem ser sobreinterpretadas. Em termos aplicados, a decomposição indica que o '
+ 'monitoramento deve priorizar o vigor e a fadiga, cujo sinal é robusto, e tratar as pequenas variações das dimensões '
+ 'negativas com a devida cautela.'%(
+   tsm,f_sm,c2('%.0f'%sV['signal_pct']),c2('%.0f'%sF['signal_pct']),c2('%.1f'%sV['snr']),c2('%.1f'%sF['snr']),
+   c2('%+.1f'%sV['snr_db']),c2('%+.1f'%sF['snr_db']),
+   c2('%.0f'%sD['noise_pct']),c2('%.0f'%sD['signal_pct']),c2('%.1f'%sD['snr'])))
 
 # ===== 4 DISCUSSÃO =====
 H('4 DISCUSSÃO')
