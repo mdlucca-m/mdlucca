@@ -318,4 +318,31 @@ for v, lab in [('Epworth','Sonolência'), ('PSS','Estresse')]:
         rho, pp = stats.spearmanr(wk[v], wk[y])
         print('     %s x %-8s (atleta): rho=%+.2f p=%.3f %s' % (lab, LAB.get(y,y), rho, pp, '*' if pp<0.05 else ''))
 
+# =============================================================================
+# 12) COMPOSIÇÃO CORPORAL e AJUSTE ALOMÉTRICO do pico de velocidade
+#     Separa o efeito da aptidão do efeito do tamanho corporal:
+#     expoente da relação log(PV)~log(massa) e PV normalizado (PV/massa^b).
+#     Requer phys.csv (ID, massa, estatura, pGordura) — anonimizado.
+# =============================================================================
+titulo('12) COMPOSIÇÃO CORPORAL e AJUSTE ALOMÉTRICO')
+try:
+    phys = pd.read_csv('phys.csv')[['ID','massa','estatura','pGordura']]
+    Fp = pd.read_csv('tcar2_features.csv')[['ID','PVini']]
+    A = wk[['Vigor','Fadiga','FadFisica']].reset_index().merge(phys, on='ID').merge(Fp, on='ID').dropna()
+    print('  Composição corporal (n=%d): massa=%.1f±%.1f kg | estatura=%.1f±%.1f cm | %%gordura=%.1f±%.1f'
+          % (len(A), A.massa.mean(), A.massa.std(), A.estatura.mean(), A.estatura.std(), A.pGordura.mean(), A.pGordura.std()))
+    for x in ['massa','pGordura']:
+        r, p = stats.spearmanr(A[x], A['FadFisica'])
+        print('  %-9s x FadFísica: rho=%+.2f p=%.3f' % (x, r, p))
+    # expoente alométrico e PV normalizado
+    b = np.polyfit(np.log(A.massa), np.log(A.PVini), 1)[0]
+    rr, pp = stats.pearsonr(np.log(A.massa), np.log(A.PVini))
+    A['PV_alom'] = A.PVini / (A.massa**b)
+    print('  Expoente alométrico log(PV)~log(massa): b=%.2f (r=%.2f, p=%.3f)' % (b, rr, pp))
+    for lab, col in [('PV bruto', 'PVini'), ('PV alométrico', 'PV_alom')]:
+        rf, pf = stats.spearmanr(A[col], A['FadFisica']); rv, pv = stats.spearmanr(A[col], A['Vigor'])
+        print('  %-14s × FadFísica rho=%+.2f (p=%.3f) | × Vigor rho=%+.2f (p=%.3f)' % (lab, rf, pf, rv, pv))
+except FileNotFoundError:
+    print('  [phys.csv não encontrado — pulei o bloco de composição corporal]')
+
 print('\n' + '='*72 + '\nFIM — todos os resultados acima reproduzem os valores do artigo.\n' + '='*72)

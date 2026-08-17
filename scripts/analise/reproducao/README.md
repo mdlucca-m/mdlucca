@@ -31,6 +31,7 @@ Coloque na mesma pasta dos scripts (⚠️ **não versione/compartilhe** os dois
 - `COLETAS_original.xlsx` — export original do formulário (aba `Diario`). **Contém nomes reais.**
 - `key.csv` — **chave privada** `code,name` (A01–A27 ↔ nome). **Mantenha em sigilo.**
 - `tcar2_features.csv` — desempenho no T-CAR por atleta (já anonimizado, `ID = A01..A27`).
+- `phys.csv` — composição corporal e desempenho físico por atleta (anonimizado); usado na seção 12 (ajuste alométrico).
 
 A saída `humor_anon.csv` **não contém nomes** e é a única base que pode ser compartilhada.
 

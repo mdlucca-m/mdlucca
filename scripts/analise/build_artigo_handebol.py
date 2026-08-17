@@ -9,7 +9,7 @@ from docx.oxml import OxmlElement
 R=json.load(open('brums_desc2.json')); STAT=json.load(open('brums_stats3.json')); S4=json.load(open('brums_stats4.json'))
 MS=json.load(open('model_stats.json')); MV=json.load(open('manova.json')); PHJ=json.load(open('posthoc.json'))
 PV=json.load(open('pv_stats.json')); LIM=json.load(open('tcar_limiar.json')); TCD=json.load(open('tcar_desc.json'))
-CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json'))
+CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
 doc=Document()
@@ -185,7 +185,9 @@ P('O humor foi avaliado pela BRUMS-24, com 24 itens em escala de 0 (“nada”) 
  'parâmetro fisiológico de linha de base das análises. No mesmo diário eletrônico, registraram-se ainda a sonolência, '
  'pela Escala de Sonolência de Epworth em versão de 6 itens (probabilidade de cochilar em seis situações; 0–18), e o '
  'estresse percebido, pela Escala de Estresse Percebido de 14 itens (PSS-14; 0–56, com sete itens de pontuação '
- 'invertida), tomados como marcadores de recuperação e de carga psicossocial.')
+ 'invertida), tomados como marcadores de recuperação e de carga psicossocial. A composição corporal foi avaliada por '
+ 'antropometria (massa e estatura) e por dobras cutâneas (percentual de gordura), servindo à caracterização da amostra '
+ 'e ao ajuste alométrico do desempenho no T-CAR.')
 H('2.3 Procedimentos',12,before=6)
 P('O BRUMS foi autoaplicado por formulário eletrônico ao longo de sete dias consecutivos (21 a 27 de abril de 2024). '
  'A data e o horário de cada resposta foram definidos pelo carimbo automático de registro do formulário — e não pela '
@@ -221,7 +223,10 @@ P('Como confirmação robusta, as comparações Dia 1 → Dia 7 e pré → pós 
  'associação entre as dimensões foi quantificada pela correlação de Spearman (ρ). Por fim, a relação entre o pico de '
  'velocidade do T-CAR e a fadiga foi analisada por regressão, e um limiar de pico de velocidade foi estabelecido pelo '
  'índice de Youden — que maximiza a soma de sensibilidade e especificidade —, com a qualidade de discriminação avaliada '
- 'pela área sob a curva ROC. Adotou-se nível de significância de 5% (p < 0,05), com as análises conduzidas em ambiente '
+ 'pela área sob a curva ROC. Para separar o efeito da aptidão do efeito do tamanho corporal, o pico de velocidade foi '
+ 'ainda submetido a ajuste alométrico: estimou-se o expoente da relação alométrica pela regressão log(PV)–log(massa) e '
+ 'normalizou-se o PV pela massa elevada a esse expoente, comparando-se as associações do PV bruto e do PV normalizado '
+ 'com a fadiga e o vigor. Adotou-se nível de significância de 5% (p < 0,05), com as análises conduzidas em ambiente '
  'Python (bibliotecas pandas, SciPy e statsmodels).')
 
 # ===== 3 RESULTADOS =====
@@ -397,6 +402,32 @@ P('A sonolência e o estresse percebido, coletados no mesmo diário, tiveram com
    pstr(SS['traj']['PSS']['p']),c2('%+.2f'%pc['Vigor']['rho']),pstr(pc['Vigor']['p']),c2('%+.2f'%pc['Fadiga']['rho']),pstr(pc['Fadiga']['p']),
    pstr(SS['prepos']['Epworth']['p']),pstr(SS['prepos']['PSS']['p'])))
 
+# ----- 3.12 Composição corporal e ajuste alométrico -----
+H('3.12 Composição corporal e ajuste alométrico do pico de velocidade',12,before=6)
+def alr(c,lab,un):
+    dd=AL['desc'][c]; return [lab,'%s ± %s'%(c2('%.1f'%dd['M']),c2('%.1f'%dd['SD'])),'%s–%s %s'%(c2('%.1f'%dd['mn']),c2('%.1f'%dd['mx']),un)]
+talom=table('Composição corporal da amostra (n = %d) e associação com a fadiga.'%AL['n'],
+    ['Variável','M ± DP','Amplitude'],
+    [alr('massa','Massa corporal','kg'),alr('estatura','Estatura','cm'),alr('pGordura','Gordura corporal','%')],
+    note='Massa e estatura por antropometria; gordura corporal por dobras cutâneas.',fs=9)
+AB=AL['pv_adj']
+P('A caracterização da composição corporal (Tabela %d) mostrou massa de %s kg e gordura corporal de %s%%. Nem a massa '
+ '(ρ = %s com a fadiga física; p %s) nem o percentual de gordura (ρ = %s; p %s) associaram-se significativamente à '
+ 'fadiga, embora com tendência positiva. Como o pico de velocidade do T-CAR depende do porte corporal, examinou-se sua '
+ 'escala alométrica: o expoente da relação log(PV)–log(massa) foi de %s (r = %s; p %s), confirmando que atletas mais '
+ 'pesados atingem menor PV. Ao normalizar o PV pela massa elevada a esse expoente (PV·massa^%s), a associação com o '
+ 'vigor manteve-se praticamente inalterada (ρ = %s; p %s), ao passo que a associação com a fadiga física atenuou-se e '
+ 'perdeu significância (de ρ = %s para ρ = %s; p %s). Ou seja, o vínculo entre aptidão e vigor é um efeito genuíno de '
+ 'capacidade aeróbia, independente do tamanho corporal, enquanto parte da relação entre aptidão e fadiga física é '
+ 'atribuível ao porte do atleta.'%(
+   talom,c2('%.1f'%AL['desc']['massa']['M']),c2('%.1f'%AL['desc']['pGordura']['M']),
+   c2('%+.2f'%AL['corr']['massa']['FadFisica']['rho']),pstr(AL['corr']['massa']['FadFisica']['p']),
+   c2('%+.2f'%AL['corr']['pGordura']['Fadiga']['rho']),pstr(AL['corr']['pGordura']['Fadiga']['p']),
+   c2('%.2f'%AL['alom']['b']),c2('%.2f'%AL['alom']['loglog_r']),pstr(AL['alom']['loglog_p']),
+   c2('%.2f'%(-AL['alom']['b'])),
+   c2('%+.2f'%AB['alom']['vigor_rho']),pstr(AB['alom']['vigor_p']),
+   c2('%+.2f'%AB['bruto']['fadfis_rho']),c2('%+.2f'%AB['alom']['fadfis_rho']),pstr(AB['alom']['fadfis_p'])))
+
 # ===== 4 DISCUSSÃO =====
 H('4 DISCUSSÃO')
 P('O presente estudo caracterizou o comportamento do humor de handebolistas de elite ao longo da última semana de '
@@ -475,10 +506,14 @@ P('A inclusão do pico de velocidade do T-CAR como parâmetro fisiológico acres
  'de desempenho físico em modalidades intermitentes (FERNANDES-DA-SILVA et al., 2016). Do ponto de vista aplicado, normalizar a '
  'resposta de humor pela aptidão física ajuda a distinguir a fadiga esperada — de atletas menos aptos sob a mesma carga '
  '— daquela que possa sinalizar sobrecarga, e o limiar identificado oferece à comissão técnica uma referência objetiva '
- 'para individualizar a prescrição da carga e o reforço da recuperação.'%(
+ 'para individualizar a prescrição da carga e o reforço da recuperação. O ajuste alométrico refinou essa leitura: como '
+ 'o pico de velocidade escala negativamente com a massa (expoente %s), parte da relação entre aptidão e fadiga física '
+ 'reflete o porte corporal e não apenas a capacidade aeróbia — ao normalizar o PV pela massa, essa associação se '
+ 'atenua. Já a relação entre aptidão e vigor resistiu ao ajuste, evidenciando um efeito genuíno de capacidade aeróbia '
+ 'sobre o estado de energia, independentemente do tamanho do atleta.'%(
    c2('%+.2f'%PV['pv']['wk_Vigor']['TCAR1']['rho']),pstr(PV['pv']['wk_Vigor']['TCAR1']['rho_p']),
    c2('%+.2f'%PV['pv']['wk_FadFisica']['TCAR1']['rho']),pstr(PV['pv']['wk_FadFisica']['TCAR1']['rho_p']),
-   c2('%.1f'%LP['thr']),c2('%.2f'%LP['auc'])))
+   c2('%.1f'%LP['thr']),c2('%.2f'%LP['auc']),c2('%.2f'%AL['alom']['b'])))
 P('A sonolência e o estresse percebido acrescentaram duas leituras convergentes com o padrão central. A sonolência '
  '(Epworth) acompanhou a semana de carga, elevando-se rumo ao último dia e associando-se, entre atletas, a mais fadiga '
  'e pior humor global — um marcador de recuperação/sono que corrobora, no plano comportamental, a deterioração do eixo '
