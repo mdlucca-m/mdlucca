@@ -9,7 +9,7 @@ from docx.oxml import OxmlElement
 R=json.load(open('brums_desc2.json')); STAT=json.load(open('brums_stats3.json')); S4=json.load(open('brums_stats4.json'))
 MS=json.load(open('model_stats.json')); MV=json.load(open('manova.json')); PHJ=json.load(open('posthoc.json'))
 PV=json.load(open('pv_stats.json')); LIM=json.load(open('tcar_limiar.json')); TCD=json.load(open('tcar_desc.json'))
-CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json'))
+CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
 doc=Document()
@@ -226,8 +226,10 @@ P('Como confirmação robusta, as comparações Dia 1 → Dia 7 e pré → pós 
  'pela área sob a curva ROC. Para separar o efeito da aptidão do efeito do tamanho corporal, o pico de velocidade foi '
  'ainda submetido a ajuste alométrico: estimou-se o expoente da relação alométrica pela regressão log(PV)–log(massa) e '
  'normalizou-se o PV pela massa elevada a esse expoente, comparando-se as associações do PV bruto e do PV normalizado '
- 'com a fadiga e o vigor. Adotou-se nível de significância de 5% (p < 0,05), com as análises conduzidas em ambiente '
- 'Python (bibliotecas pandas, SciPy e statsmodels).')
+ 'com a fadiga e o vigor. A dinâmica temporal foi ainda modelada ajustando-se uma função polinomial às médias diárias '
+ 'de cada dimensão, da qual se obtiveram, por derivação, a taxa de variação instantânea (derivada primeira), os pontos '
+ 'críticos (máximos e mínimos) e o ponto de inflexão (raiz da derivada segunda). Adotou-se nível de significância de 5% '
+ '(p < 0,05), com as análises conduzidas em ambiente Python (bibliotecas pandas, NumPy, SciPy e statsmodels).')
 
 # ===== 3 RESULTADOS =====
 H('3 RESULTADOS')
@@ -429,6 +431,31 @@ P('A caracterização da composição corporal (Tabela %d) mostrou massa de %s k
    c2('%.2f'%(-AL['alom']['b'])),
    c2('%+.2f'%AB['alom']['vigor_rho']),pstr(AB['alom']['vigor_p']),
    c2('%+.2f'%AB['bruto']['fadfis_rho']),c2('%+.2f'%AB['alom']['fadfis_rho']),pstr(AB['alom']['fadfis_p'])))
+
+# ----- 3.13 Modelagem polinomial: derivadas e taxa de variação -----
+H('3.13 Modelagem polinomial das trajetórias: derivadas e taxa de variação',12,before=6)
+def dvrow(k,l):
+    v=DV['vars'][k]
+    infl=', '.join('%s'%c2('%.1f'%x) for x in v['infl']) or '—'
+    return [l,c2('%.2f'%v['r2']),c2('%+.2f'%v['taxa_media']),c2('%+.2f'%v['dP1']),c2('%+.2f'%v['dP7']),infl]
+tdv=table('Modelagem polinomial (grau %d) das médias diárias: qualidade do ajuste (R²), taxa de variação média (pontos/dia), taxa instantânea nas bordas (P′ no Dia 1 e no Dia 7) e ponto de inflexão.'%DV['grau'],
+    ['Dimensão','R²','Taxa média/dia','P′(Dia 1)','P′(Dia 7)','Inflexão (dia)'],
+    [dvrow(k,l) for k,l in ORD],
+    note='P′ = derivada primeira (taxa de variação instantânea); inflexão = raiz da derivada segunda (P″ = 0) no intervalo.',fs=9)
+f_dv=figure(f'{FG}/deriv_poly.png','Ajuste polinomial P(t) das médias diárias de vigor e fadiga, com a derivada P′(t) (taxa de variação) e o ponto de inflexão.',w=15.0)
+VG=DV['vars']['Vigor']; FD=DV['vars']['Fadiga']
+P('Para caracterizar formalmente a dinâmica temporal, ajustou-se uma função polinomial de grau %d às médias diárias de '
+ 'cada dimensão e derivaram-se as respectivas taxas de variação (Tabela %d; Figura %d). Os ajustes foram excelentes '
+ 'para as variáveis do eixo energia–fadiga (vigor R² = %s; fadiga R² = %s) e mais fracos para as dimensões negativas '
+ 'próximas do piso (p. ex., depressão R² = %s), cuja variância reduzida limita a modelagem. O vigor caiu a uma taxa '
+ 'média de %s ponto/dia, com a maior velocidade de queda no início da semana (P′ no Dia 1 = %s ponto/dia) e '
+ 'desaceleração progressiva, ao passo que a fadiga subiu em espelho (taxa média = %s ponto/dia; P′ no Dia 1 = %s). A '
+ 'derivada segunda localizou um ponto de inflexão em torno do dia %s para ambas — o momento em que a taxa de '
+ 'deterioração deixa de acelerar —, o que fornece uma leitura quantitativa do ritmo do desgaste e sinaliza a metade do '
+ 'microciclo como o marco a partir do qual a resposta afetiva muda de regime.'%(
+   DV['grau'],tdv,f_dv,c2('%.2f'%VG['r2']),c2('%.2f'%FD['r2']),c2('%.2f'%DV['vars']['Depressao']['r2']),
+   c2('%.2f'%VG['taxa_media']),c2('%+.2f'%VG['dP1']),c2('%+.2f'%FD['taxa_media']),c2('%+.2f'%FD['dP1']),
+   c2('%.1f'%VG['infl'][0])))
 
 # ===== 4 DISCUSSÃO =====
 H('4 DISCUSSÃO')

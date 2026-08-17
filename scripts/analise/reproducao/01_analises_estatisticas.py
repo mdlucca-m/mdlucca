@@ -345,4 +345,22 @@ try:
 except FileNotFoundError:
     print('  [phys.csv não encontrado — pulei o bloco de composição corporal]')
 
+# =============================================================================
+# 13) MODELAGEM POLINOMIAL das trajetórias: derivadas e taxa de variação
+#     Ajusta P(t) (grau 3) às médias diárias e deriva: taxa de variação
+#     instantânea P'(t), pontos críticos (P'=0) e inflexão (P''=0).
+# =============================================================================
+titulo('13) MODELAGEM POLINOMIAL — derivadas e taxa de variação')
+GR = 3
+print('  Ajuste polinomial grau %d (médias diárias):' % GR)
+for k in ['Vigor','Fadiga','TMD','Tensao','Depressao','Raiva','Confusao']:
+    y = h.groupby('dia')[k].mean().reindex(range(1,8)).values   # média por observação (como no artigo)
+    t = np.arange(1, 8)
+    c = np.polyfit(t, y, GR); P = np.poly1d(c); dP = P.deriv(1); d2P = P.deriv(2)
+    r2 = 1 - ((y-P(t))**2).sum()/((y-y.mean())**2).sum()
+    crit = sorted(round(float(r.real),1) for r in dP.roots if abs(r.imag)<1e-6 and 1<=r.real<=7)
+    infl = sorted(round(float(r.real),1) for r in d2P.roots if abs(r.imag)<1e-6 and 1<=r.real<=7)
+    print('    %-10s R²=%.2f | taxa média=%+.2f/dia | P\'(1)=%+.2f P\'(7)=%+.2f | crítico=%s | inflexão=%s'
+          % (LAB.get(k,k), r2, (y[-1]-y[0])/6, dP(1), dP(7), crit, infl))
+
 print('\n' + '='*72 + '\nFIM — todos os resultados acima reproduzem os valores do artigo.\n' + '='*72)
