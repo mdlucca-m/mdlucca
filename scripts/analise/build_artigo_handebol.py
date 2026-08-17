@@ -214,6 +214,19 @@ P('O humor foi avaliado pela BRUMS-24, com 24 itens em escala de 0 (“nada”) 
  'invertida), tomados como marcadores de recuperação e de carga psicossocial. A composição corporal foi avaliada por '
  'antropometria (massa e estatura) e por dobras cutâneas (percentual de gordura), de utilidade para a caracterização da amostra '
  'e ao ajuste alométrico do desempenho no T-CAR.')
+tinv=table('Inventário dos instrumentos: domínio avaliado, estrutura, amplitude e momento de coleta.',
+    ['Instrumento','Domínio avaliado','Estrutura e amplitude','Coleta'],
+    [['BRUMS-24 (Escala de Humor de Brunel)','Humor: tensão, depressão, raiva, vigor, fadiga, confusão (+ PTH)','24 itens (4 por subescala), 0–4 por item; subescalas 0–16','Baseline (1×) e pré/pós de cada treino'],
+     ['Fadiga física e mental','Fadiga percebida (física e mental)','2 itens únicos, 0–10 cada','Junto ao diário eletrônico'],
+     ['Epworth (versão de 6 itens)','Sonolência diurna','6 itens, 0–18','Diária'],
+     ['PSS-14 (Escala de Estresse Percebido)','Estresse percebido','14 itens (7 de pontuação invertida), 0–56','Diária'],
+     ['Teste de Carminatti (T-CAR)','Aptidão aeróbia intermitente','Teste de campo progressivo e intermitente; pico de velocidade (km/h)','Linha de base e final'],
+     ['Salto vertical (CMJ)','Potência de membros inferiores','Altura do salto (cm)','Linha de base e final'],
+     ['Arremesso (medicine ball, Baker)','Potência de membros superiores','Distância do arremesso (m)','Linha de base e final'],
+     ['Antropometria e dobras cutâneas','Composição corporal','Massa (kg), estatura (cm), gordura (%)','Linha de base'],
+     ['Monitoramento de carga','Carga interna','Frequência cardíaca, TRIMP e percepção de esforço (PSE)','Sessões de treino']],
+    note='Autorrelato: BRUMS-24, fadiga física/mental, Epworth e PSS-14. Avaliações físicas: T-CAR, CMJ, arremesso e antropometria. PTH = Perturbação Total do Humor; PSE = percepção subjetiva de esforço; TRIMP = training impulse.',fs=8.5)
+P('A Tabela %d sintetiza os instrumentos empregados, o domínio de cada um, a sua estrutura e o momento de coleta.'%tinv)
 H('2.3 Procedimentos',12,before=6)
 P('O BRUMS foi autoaplicado por formulário eletrônico ao longo de sete dias consecutivos (21 a 27 de abril de 2024). '
  'A data e o horário de cada resposta foram definidos pelo carimbo automático de registro do formulário — e não pela '
