@@ -129,8 +129,12 @@ P('Entre esses instrumentos, a Escala de Humor de Brunel (BRUMS), versão abrevi
  'elevada demanda física, emocional e interpessoal: a BRUMS tem sido empregada para monitorar o humor de atletas de '
  'elite ao longo de períodos competitivos e sua relação com o sono, o desempenho, os resultados de partida e o risco de '
  'lesão (ANDRADE et al., 2016; BRANDT; BEVILACQUA; ANDRADE, 2017; ANDRADE et al., 2020; DE MIRANDA ROHLFS et al., 2025; '
- 'DO NASCIMENTO et al., 2026); firma-se, assim, como um indicador de baixo custo e alta sensibilidade para a triagem do '
- 'bem-estar psicológico e do risco de saúde mental em contextos de rendimento.')
+ 'DO NASCIMENTO et al., 2026). Nas modalidades coletivas, em particular, a escala acompanhou o humor de seleções e '
+ 'equipes de elite ao longo de competições internacionais no basquetebol (BIRD et al., 2025), subsidiou a triagem do '
+ 'excesso de treinamento e da recuperação em atletas dessa mesma modalidade (BATTAGLINI et al., 2022) e captou a queda '
+ 'de vigor e a elevação de fadiga sob treino intensificado no futebol (FERREIRA et al., 2026); firma-se, assim, como um '
+ 'indicador de baixo custo e alta sensibilidade para a triagem do bem-estar psicológico e do risco de saúde mental em '
+ 'contextos de rendimento.')
 P('Na prática, a escala tem sido empregada sobretudo em dois momentos: como um retrato pontual em torno da competição, '
  'associado à probabilidade de vitória e ao estado pré-jogo (BRANDT et al., 2019; DO NASCIMENTO et al., 2026), e em '
  'comparações entre fases de treino separadas por semanas ou meses, muitas vezes em paralelo a marcadores hormonais e '
@@ -627,7 +631,10 @@ P('Sob a ótica psicofisiológica, o eixo energia–fadiga funciona como um leit
  'a capacidade de recuperação. Em uma semana de acumulação, esse equilíbrio inclina-se transitoriamente para o polo da '
  'sobrecarga, e a queda do vigor com a ascensão da fadiga exprime, no plano afetivo, a resposta integrada do organismo '
  'ao esforço acumulado — uma cascata de ajustes metabólicos, hormonais e neurais que visam restaurar a homeostase e '
- 'poupar energia (WOODS et al., 2018; VRIJKOTTE et al., 2019). A elevação da sonolência ao término da semana, sem '
+ 'poupar energia (WOODS et al., 2018; VRIJKOTTE et al., 2019). No próprio handebol, blocos de treino que elevam '
+ 'marcadores de dano muscular e de estresse oxidativo fazem-se acompanhar de perturbação do humor, o que ancora a '
+ 'resposta afetiva a um substrato fisiológico de sobrecarga (ASSUNÇÃO CARVALHO et al., 2018). A elevação da sonolência '
+ 'ao término da semana, sem '
  'alteração do estresse percebido, respalda essa leitura: a perturbação nasceu da carga física e da restauração '
  'incompleta entre as sessões, não de um estressor psicossocial concomitante. O acoplamento crescente entre o afeto '
  'negativo e a fadiga, do primeiro ao último dia, acompanha essa transição de um estado diferenciado para um estado '
@@ -723,7 +730,11 @@ P('A comparação a posteriori de modelos de curva reforça a leitura dessa rela
 P('A sonolência e o estresse percebido acrescentaram duas leituras convergentes com o padrão central. A sonolência '
  '(Epworth) acompanhou a semana de carga: elevou-se rumo ao último dia e associou-se, entre os atletas, a mais fadiga '
  'e a um pior humor global — um marcador de recuperação/sono que corrobora, no plano comportamental, a deterioração do eixo '
- 'energia–fadiga e reforça a recomendação de vigiar o sono na fase de acumulação (KELLMANN et al., 2018). Já o estresse '
+ 'energia–fadiga e reforça a recomendação de vigiar o sono na fase de acumulação (KELLMANN et al., 2018). Esse vínculo '
+ 'entre sono e humor sob carga encontra paralelo direto no futebol de base: em jovens jogadores submetidos a treino '
+ 'intensificado, a restrição de sono precipitou a queda do vigor e a elevação da fadiga, ao passo que a preservação do '
+ 'sono, sob a mesma carga, manteve o humor estável (FERREIRA et al., 2026) — o que credencia o sono como um moderador '
+ 'da resposta afetiva ao acúmulo, e não mero acompanhante dela. Já o estresse '
  'percebido (PSS-14) permaneceu estável e moderado, sem se relacionar à oscilação do humor; essa ausência de variação '
  'é informativa, pois indica que a resposta afetiva ao microciclo teve origem na carga de treino, e não em um aumento '
  'concomitante do estresse psicossocial percebido — um argumento a favor da especificidade do achado.')
@@ -783,6 +794,9 @@ refs=[
  'ANDRADE, A. et al. Sleep quality, mood and performance: a study of elite Brazilian volleyball athletes. Journal of Sports Science and Medicine, v. 15, n. 4, p. 601–605, 2016.',
  'ANDRADE, A. et al. Sleep quality associated with mood in elite athletes. The Physician and Sportsmedicine, v. 47, n. 3, p. 312–317, 2019. DOI: 10.1080/00913847.2018.1553467.',
  'ANDRADE, A. et al. Effect of practice exergames on the mood states and self-esteem of elementary school boys and girls during physical education classes: a cluster-randomized controlled trial. PLoS ONE, v. 15, n. 6, e0232392, 2020. DOI: 10.1371/journal.pone.0232392.',
+ 'ASSUNÇÃO CARVALHO, L. C. S. et al. Nectar supplementation reduced biomarkers of oxidative stress, muscle damage, and improved psychological response in highly trained young handball players. Frontiers in Physiology, v. 9, 1508, 2018. DOI: 10.3389/fphys.2018.01508.',
+ 'BATTAGLINI, M. P. et al. Analysis of progressive muscle relaxation on psychophysiological variables in basketball athletes. International Journal of Environmental Research and Public Health, v. 19, n. 24, 17065, 2022. DOI: 10.3390/ijerph192417065.',
+ 'BIRD, S. P. et al. Wellness, mood, sleep, and performance in a women’s national basketball team during international competition. Journal of Human Kinetics, v. 96, p. 163–175, 2025. DOI: 10.5114/jhk/200117.',
  'BRANDT, R.; BEVILACQUA, G. G.; ANDRADE, A. Perceived sleep quality, mood states, and their relationship with performance among Brazilian elite athletes during a competitive period. Journal of Strength and Conditioning Research, v. 31, n. 4, p. 1033–1039, 2017.',
  'BRANDT, R. et al. Comparisons of mood states associated with outcomes achieved by female and male athletes in high-level judo and Brazilian jiu-jitsu championships: psychological factors associated with the probability of success. Journal of Strength and Conditioning Research, v. 35, n. 9, p. 2518–2524, 2019. DOI: 10.1519/JSC.0000000000003218.',
  'CAMPBELL, P. G. et al. The effect of overreaching on neuromuscular performance and wellness responses in Australian rules football athletes. Journal of Strength and Conditioning Research, v. 34, n. 6, p. 1530–1538, 2020. DOI: 10.1519/JSC.0000000000003603.',
@@ -790,8 +804,9 @@ refs=[
  'DE MIRANDA ROHLFS, I. C. P. et al. Mood states, injury status, and countermovement jump performance in Brazilian high-level sports. Sports, v. 13, n. 9, 303, 2025. DOI: 10.3390/sports13090303.',
  'DO NASCIMENTO, M. H. et al. Acute psychological responses to official match outcomes in male youth volleyball: an observational repeated-measures study within a single national-level team. Frontiers in Psychology, v. 17, 1826372, 2026. DOI: 10.3389/fpsyg.2026.1826372.',
  'FERNANDES-DA-SILVA, J. et al. The peak velocity derived from the Carminatti Test is related to physical match performance in young soccer players. Journal of Sports Sciences, v. 34, n. 24, p. 2238–2245, 2016. DOI: 10.1080/02640414.2015.1093646.',
- 'HAN, C.; PARSONS-SMITH, R. L.; TERRY, P. C. Mood profiling in Singapore: cross-cultural validation and potential applications of mood profile clusters. Frontiers in Psychology, v. 11, 665, 2020. DOI: 10.3389/fpsyg.2020.00665.',
+ 'FERREIRA, A. B. M. et al. Impact of sleep restriction and intensified training on mucosal immunity and psychological responses in young soccer players. Journal of Strength and Conditioning Research, v. 40, n. 7, p. e703–e713, 2026. DOI: 10.1519/JSC.0000000000005416.',
  'GLAISTER, M. et al. The reliability and validity of fatigue measures during multiple-sprint work: an issue revisited. Journal of Strength and Conditioning Research, v. 22, n. 5, p. 1597–1601, 2008. DOI: 10.1519/JSC.0b013e318181ab80.',
+ 'HAN, C.; PARSONS-SMITH, R. L.; TERRY, P. C. Mood profiling in Singapore: cross-cultural validation and potential applications of mood profile clusters. Frontiers in Psychology, v. 11, 665, 2020. DOI: 10.3389/fpsyg.2020.00665.',
  'KARCHER, C.; BUCHHEIT, M. On-court demands of elite handball, with special reference to playing positions. Sports Medicine, v. 44, n. 6, p. 797–814, 2014. DOI: 10.1007/s40279-014-0164-z.',
  'KELLMANN, M. et al. Recovery and performance in sport: consensus statement. International Journal of Sports Physiology and Performance, v. 13, n. 2, p. 240–245, 2018. DOI: 10.1123/ijspp.2017-0759.',
  'LOCHBAUM, M. et al. The Profile of Mood States and athletic performance: a meta-analysis of published studies. European Journal of Investigation in Health, Psychology and Education, v. 11, n. 1, p. 50–70, 2021. DOI: 10.3390/ejihpe11010005.',
