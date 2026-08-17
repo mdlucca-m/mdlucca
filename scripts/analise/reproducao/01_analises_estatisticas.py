@@ -548,4 +548,51 @@ for k in ['Vigor','Fadiga']:
     print('    %-7s D1->D7 dz: bruto=%+.2f | filtrado=%+.2f' % (LAB.get(k,k), _dz(h,k), _dz(HF,k)))
 print('    => conclusão: efeitos estáveis; resultados robustos à filtragem de ruído.')
 
+# =============================================================================
+# 17) MODULADORES DA MAGNITUDE DOS EFEITOS AGUDO E CRÔNICO
+#     Agudo = pós−pré por atleta-dia; Crônico = inclinação semanal por atleta.
+#     Correlação e R² (coef. de determinação) com aptidão/composição/potência/
+#     sono/estresse/carga; regressão múltipla (β*); correção de Holm.
+# =============================================================================
+titulo('17) MODULADORES DA MAGNITUDE (efeito agudo e crônico)')
+try:
+    phys = pd.read_csv('phys.csv'); Fm = pd.read_csv('tcar2_features.csv')[['ID','PVini','TRIMP']]
+    VARS = ['Vigor','Fadiga','TMD']; MODS = ['PVini','pGordura','massa','CMJ_mai','Baker_mai','Epworth','PSS','TRIMP']
+    # agudo
+    piv = h[h.momento.isin(['pre','pos'])].pivot_table(index=['ID','dia'], columns='momento', values=VARS)
+    ac = pd.DataFrame({v: piv[(v,'pos')]-piv[(v,'pre')] for v in VARS}).dropna().reset_index()
+    print('  AGUDO (pós−pré): n=%d obs' % len(ac))
+    for v in VARS:
+        lr = stats.linregress(ac.dia, ac[v])
+        print('    Δ%-6s média=%+.2f | ~dia slope=%+.3f p=%.3f' % (v, ac[v].mean(), lr.slope, lr.pvalue))
+    # crônico (inclinação semanal)
+    dmm = h.groupby(['ID','dia']).mean(numeric_only=True).reset_index()
+    def wsl(g,v):
+        gg=g.dropna(subset=[v]); return stats.linregress(gg.dia,gg[v]).slope if gg.dia.nunique()>=4 else np.nan
+    S = pd.DataFrame({'sl_'+v: dmm.groupby('ID').apply(lambda g: wsl(g,v)) for v in VARS})
+    epw = h.groupby('ID').agg(Epworth=('Epworth','mean'), PSS=('PSS','mean'))
+    Mx = S.join(phys.set_index('ID')[['massa','pGordura','CMJ_mai','Baker_mai']]).join(Fm.set_index('ID')).join(epw)
+    print('  CRÔNICO (inclinação/dia) — moduladores por R² (r; p):')
+    allp = []
+    for v in VARS:
+        best = []
+        for m in MODS:
+            d = Mx[['sl_'+v, m]].dropna()
+            if len(d) < 8: continue
+            r,p = stats.pearsonr(d['sl_'+v], d[m]); best.append((m,r,r*r,p)); allp.append(p)
+        best.sort(key=lambda t: -t[2])
+        print('    %-7s:' % v, ' | '.join('%s R²=%.2f(p=%.2f)'%(m,r2,p) for m,r,r2,p in best[:3]))
+    # Holm
+    mtot = len(allp); allp.sort()
+    surv = sum(1 for k,p in enumerate(allp) if p <= 0.05/(mtot-k)) if mtot else 0
+    print('    comparações múltiplas: %d testes | sobreviventes a Holm: %d' % (mtot, surv))
+    # regressão múltipla padronizada
+    d = Mx[['sl_Vigor','PVini','CMJ_mai']].dropna()
+    Z = lambda s: (s-s.mean())/s.std()
+    X = np.column_stack([np.ones(len(d)), Z(d.PVini), Z(d.CMJ_mai)]); y = Z(d.sl_Vigor).values
+    b,*_ = np.linalg.lstsq(X,y,rcond=None); r2 = 1-np.sum((y-X@b)**2)/np.sum((y-y.mean())**2)
+    print('    MLR sl_Vigor ~ PVini+CMJ: R²=%.2f | β* PV=%.2f CMJ=%.2f (n=%d)' % (r2, b[1], b[2], len(d)))
+except FileNotFoundError:
+    print('    [phys.csv/tcar2_features.csv não encontrados — pulei os moduladores]')
+
 print('\n' + '='*72 + '\nFIM — todos os resultados acima reproduzem os valores do artigo.\n' + '='*72)

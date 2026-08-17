@@ -12,6 +12,7 @@ PV=json.load(open('pv_stats.json')); LIM=json.load(open('tcar_limiar.json')); TC
 TCV=json.load(open('tcar_curvas.json'))
 LOG=json.load(open('logistica.json'))
 L2=json.load(open('limiar2.json'))
+MOD=json.load(open('moduladores.json'))
 CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json')); SM=json.load(open('smooth.json')); IND=json.load(open('indiv.json')); AUD=json.load(open('audit.json')); CP=json.load(open('cross_pt.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
@@ -124,6 +125,12 @@ P('Entre esses instrumentos, a Escala de Humor de Brunel (BRUMS), versão abrevi
  'lesão (ANDRADE et al., 2016; BRANDT; BEVILACQUA; ANDRADE, 2017; ANDRADE et al., 2020; DE MIRANDA ROHLFS et al., 2025; '
  'DO NASCIMENTO et al., 2026); firma-se, assim, como um indicador de baixo custo e alta sensibilidade para a triagem do '
  'bem-estar psicológico e do risco de saúde mental em contextos de rendimento.')
+P('Na prática, a escala tem sido empregada sobretudo em dois momentos: como um retrato pontual em torno da competição, '
+ 'associado à probabilidade de vitória e ao estado pré-jogo (BRANDT et al., 2019; DO NASCIMENTO et al., 2026), e em '
+ 'comparações entre fases de treino separadas por semanas ou meses, muitas vezes em paralelo a marcadores hormonais e '
+ 'de sono (ROUVEIX et al., 2006; ANDRADE et al., 2019). Permanece menos explorada, contudo, a dinâmica fina do humor no '
+ 'interior de um único microciclo — aquela que distingue a oscilação aguda de cada sessão do acúmulo ao longo dos dias '
+ '—, sobretudo quando acompanhada de forma contínua e articulada à aptidão física em uma modalidade coletiva.')
 H('1.2 Perfis de humor e sua aplicação em atletas de elite',12,before=6)
 P('Para além dos escores isolados de cada subescala, a leitura do humor evoluiu para a identificação de perfis '
  'prototípicos. Morgan (1985) descreveu o clássico “perfil iceberg” — vigor elevado sobre dimensões negativas baixas — '
@@ -263,7 +270,13 @@ P('Como confirmação robusta, as comparações Dia 1 → Dia 7 e pré → pós 
  'de cada dimensão, da qual se obtiveram, por derivação, a taxa de variação instantânea (derivada primeira), os pontos '
  'críticos (máximos e mínimos) e o ponto de inflexão (raiz da derivada segunda). A mesma componente suave foi usada '
  'para decompor cada trajetória em sinal e ruído, com a quantificação da razão sinal-ruído (SNR) e uma visualização '
- 'suavizada das curvas. Adotou-se nível de significância de 5% '
+ 'suavizada das curvas. Para identificar os moduladores da magnitude dos efeitos, definiu-se o efeito agudo como a '
+ 'variação intrassessão (pós − pré) por atleta-dia e o efeito crônico como a inclinação semanal (taxa por dia) da média '
+ 'diária de cada dimensão; a associação de cada efeito com as características do atleta — aptidão aeróbia intermitente '
+ '(PV), composição corporal, potência de membros inferiores (salto e arremesso), sonolência, estresse e carga interna '
+ '(TRIMP) — foi quantificada pela correlação de Pearson e pelo coeficiente de determinação (R²), além de modelos de '
+ 'regressão múltipla com coeficientes padronizados (β*); dado o número de testes, aplicou-se a correção de Holm para '
+ 'comparações múltiplas. Adotou-se nível de significância de 5% '
  '(p < 0,05), com as análises conduzidas em ambiente Python (bibliotecas pandas, NumPy, SciPy e statsmodels).')
 
 # ===== 3 RESULTADOS =====
@@ -283,7 +296,7 @@ P('Participaram %d atletas do sexo masculino (idade %s ± %s anos; estatura %s �
 H('3.2 Normalidade das distribuições',12,before=6)
 tn=table('Teste de normalidade (Shapiro-Wilk) das dimensões do BRUMS.',['Dimensão','Estatística (W)','p'],
     [[lab,c2('%.3f'%SH[k]['W']),'< 0,001' if SH[k]['p']<0.001 else c2('%.3f'%SH[k]['p'])] for k,lab in [('Vigor','Vigor'),('Fadiga','Fadiga'),('Tensao','Tensão'),('Depressao','Depressão'),('Raiva','Raiva'),('Confusao','Confusão')]],fs=9)
-P('As seis dimensões não seguem distribuição normal (p < 0,001; Tabela %d), justificando os testes não paramétricos.'%tn)
+P('As seis dimensões não seguem distribuição normal (p < 0,001; Tabela %d), o que justifica os testes não paramétricos.'%tn)
 H('3.3 Estatística descritiva das dimensões',12,before=6)
 def drow(k,lab):
     v=desc[k]; return [lab,c2('%.2f'%v['mean']),c2('%.1f'%v['md']),c2('%.2f'%v['sd']),'%s–%s'%(c2('%.0f'%v['mn']),c2('%.0f'%v['mx']))]
@@ -324,7 +337,7 @@ te=table('Pós-teste (médias marginais do modelo misto) por dia, com comparaç�
     note='* diferença significativa em relação ao Dia 1 (Tukey, p < 0,05).',fs=9)
 f_ph=figure(f'{FG}/ph_emm.png','Trajetória diária (médias marginais) com comparação de todos os dias ao Dia 1 (* p < 0,05).')
 def npairs(v): return sum(1 for kk,pp in PHJ[v]['pairs'].items() if pp['ptukey']<0.05)
-P('Comparando todos os dias entre si (pós-teste de Tukey; Tabela %d; Figura %d), o vigor diferiu significativamente em '
+P('Na comparação de todos os dias entre si (pós-teste de Tukey; Tabela %d; Figura %d), o vigor diferiu significativamente em '
  '%d dos 21 pares de dias e a fadiga em %d — sempre no sentido de piora em relação aos primeiros dias —, com a confirmação da '
  'deterioração progressiva do eixo energia–fadiga.'%(te,f_ph,npairs('Vigor'),npairs('Fadiga')))
 H('3.6 Confirmação por análise multivariada (MANOVA em escores T)',12,before=6)
@@ -483,7 +496,7 @@ tl2=table('Estratificação do pico de velocidade do T-CAR em três faixas de ap
     [[BND[k]['lab'],c2(BND[k]['rng']),str(BND[k]['n']),c2('%.0f'%L2['fadiga']['bands'][k]['prev'])+'%',c2('%.0f'%L2['vigor']['bands'][k]['prev'])+'%'] for k in range(3)],
     note='Dois limiares (t₁ = %s km/h; t₂ = %s km/h) definem três faixas. Dia de fadiga elevada = fadiga física no tercil superior; dia de baixo vigor = vigor no tercil inferior. Tendência linear da prevalência (Cochran-Armitage): fadiga p = %s; baixo vigor p = %s.'%(
         c2('%.1f'%L2['t1']),c2('%.1f'%L2['t2']),c2('%.3f'%L2['fadiga']['trend_p']),c2('%.3f'%L2['vigor']['trend_p'])),fs=8.5)
-f_l2=figure(f'{FG}/limiar2_faixas.png','Dois limiares do pico de velocidade do T-CAR (%s e %s km/h) definindo três faixas de aptidão (esquerda) e a prevalência de dias de fadiga elevada e de baixo vigor em cada faixa (direita).'%(c2('%.1f'%L2['t1']),c2('%.1f'%L2['t2'])),w=15.5)
+f_l2=figure(f'{FG}/limiar2_faixas.png','Dois limiares do pico de velocidade do T-CAR (%s e %s km/h) que delimitam três faixas de aptidão (esquerda) e a prevalênciade dias de fadiga elevada e de baixo vigor em cada faixa (direita).'%(c2('%.1f'%L2['t1']),c2('%.1f'%L2['t2'])),w=15.5)
 P('Em vez de um único ponto de corte, o pico de velocidade foi ainda estratificado por dois limiares — os tercis de sua '
  'distribuição (t₁ = %s km/h; t₂ = %s km/h) —, criando três faixas de aptidão com valor de decisão direto (Tabela %d; '
  'Figura %d). A prevalência de dias críticos caiu de forma consistente da faixa de baixa para a de alta aptidão, tanto '
@@ -498,6 +511,10 @@ P('Em vez de um único ponto de corte, o pico de velocidade foi ainda estratific
    c2('%.0f'%L2['fadiga']['bands'][1]['prev']),c2('%.0f'%L2['fadiga']['bands'][2]['prev']),c2('%.3f'%L2['fadiga']['trend_p']),
    c2('%.0f'%L2['vigor']['bands'][0]['prev']),c2('%.0f'%L2['vigor']['bands'][1]['prev']),c2('%.0f'%L2['vigor']['bands'][2]['prev']),c2('%.3f'%L2['vigor']['trend_p']),
    c2('%.1f'%L2['fadiga']['youden']),c2('%.1f'%L2['t2']),c2('%.1f'%L2['t1'])))
+f_lc=figure(f'{FG}/logistic_curvas.png','Curvas logísticas ajustadas: à esquerda, a probabilidade de um dia de fadiga elevada decresce com o pico de velocidade do T-CAR (pontos = proporção observada por faixa, tamanho proporcional ao n); à direita, a probabilidade do perfil barbatana de tubarão cresce ao longo do microciclo.',w=15.5)
+P('As curvas logísticas ajustadas sintetizam, em forma gráfica, os dois modelos de probabilidade discutidos: a queda '
+ 'monotônica da chance de um dia de fadiga elevada à medida que aumenta o pico de velocidade e a elevação da chance do '
+ 'perfil de barbatana de tubarão ao longo dos dias (Figura %d).'%f_lc)
 
 # ----- 3.11 Sonolência e estresse percebido -----
 H('3.11 Sonolência (Epworth) e estresse percebido (PSS-14)',12,before=6)
@@ -635,7 +652,7 @@ tsm=table('Decomposição sinal–ruído das trajetórias diárias: proporção 
     ['Dimensão','Sinal','Ruído','SNR','SNR (dB)'],
     [smrow(k,l) for k,l in ORD],
     note='Sinal = componente suave (polinômio ajustado); ruído = resíduo em torno do sinal. SNR = variância do sinal / variância do ruído.',fs=9)
-f_sm=figure(f'{FG}/smooth_signal.png','Trajetórias diárias suavizadas: sinal (curva) sobreposto às médias diárias observadas (pontos), separando a tendência do ruído. A) eixo energia–fadiga; B) subescalas negativas.',w=15.0)
+f_sm=figure(f'{FG}/smooth_signal.png','Trajetórias diárias suavizadas: sinal (curva) sobreposto às médias diárias observadas (pontos), com separação entre a tendência e oruído. A) eixo energia–fadiga; B) subescalas negativas.',w=15.0)
 sV=SM['vars']['Vigor']; sF=SM['vars']['Fadiga']; sD=SM['vars']['Depressao']
 P('Para separar a tendência sistemática (sinal) do ruído de amostragem e obter uma leitura visual mais limpa, cada '
  'trajetória diária foi decomposta em uma componente suave — a função polinomial ajustada — e um resíduo (Tabela %d; '
@@ -653,8 +670,8 @@ P('Para separar a tendência sistemática (sinal) do ruído de amostragem e obte
 # ----- 3.15 Modelagem individual (por atleta) -----
 H('3.15 Modelagem individual: trajetórias por atleta',12,before=6)
 paV=IND['perath']['Vigor']; paF=IND['perath']['Fadiga']; cov=IND['cover']
-f_ind=figure(f'{FG}/indiv_spaghetti.png','Trajetórias individuais de vigor e fadiga por atleta (linhas finas) e a média do grupo (linha grossa), evidenciando a heterogeneidade da resposta.',w=15.0)
-P('Além da tendência do grupo, a resposta foi modelada por atleta, ajustando-se a cada participante a sua própria '
+f_ind=figure(f'{FG}/indiv_spaghetti.png','Trajetórias individuais de vigor e fadiga por atleta (linhas finas) e a média do grupo (linha grossa), que expõem aheterogeneidade da resposta.',w=15.0)
+P('Além da tendência do grupo, a resposta foi modelada por atleta, com o ajuste, para cada participante, de sua própria '
  'trajetória ao longo da semana (Figura %d). A cobertura permitiu a modelagem individual: %d dos %d atletas '
  'responderam nos sete dias e %d têm dados suficientes (≥ 4 dias) para um ajuste polinomial individual; para todos foi '
  'possível estimar a taxa de variação individual. Em média, o vigor caiu %s ponto/dia (DP %s) e a fadiga subiu %s '
@@ -668,8 +685,8 @@ P('Além da tendência do grupo, a resposta foi modelada por atleta, ajustando-s
 
 # ----- 3.16 Trajetória em alta resolução (pré/pós) -----
 H('3.16 Trajetória em alta resolução: 13 pontos pré/pós',12,before=6)
-f_p13=figure(f'{FG}/pts13_curve.png','Trajetória do grupo em 13 pontos temporais (baseline + pré e pós-treino de cada dia), revelando a dinâmica intradiária além da média diária.',w=15.5)
-P('Aproveitando as duas coletas diárias dos dias de treino, a trajetória do grupo foi reconstruída em alta resolução, '
+f_p13=figure(f'{FG}/pts13_curve.png','Trajetória do grupo em 13 pontos temporais (baseline + pré e pós-treino de cada dia), com a dinâmica intradiária além da média diária.',w=15.5)
+P('Com base nas duas coletas diárias dos dias de treino, a trajetória do grupo foi reconstruída em alta resolução, '
  'com 13 pontos temporais — a linha de base e os momentos pré e pós de cada um dos seis dias de treino (Figura %d). '
  'Essa resolução revela a dinâmica intradiária que a média diária mascara: em cada dia de treino, o vigor tende a cair '
  'e a fadiga (e a PTH) a subir do pré para o pós, com recuperação parcial na manhã seguinte — um padrão de dente de '
@@ -701,6 +718,41 @@ P('Por fim, para verificar se as conclusões dependem de ruído amostral, todas 
    c2('%+.2f'%next(x for x in AUD['rows'] if x['metric']=='dz_Vigor')['filt']),
    c2('%.3f'%next(x for x in AUD['rows'] if x['metric']=='manova_wilks')['raw']),
    c2('%.3f'%next(x for x in AUD['rows'] if x['metric']=='manova_wilks')['filt'])))
+
+# ----- 3.18 Moduladores da magnitude dos efeitos -----
+H('3.18 Moduladores da magnitude dos efeitos agudo e crônico',12,before=6)
+MODm=MOD['chronic']['matrix']
+def modcell(s): return ('%s (%s)%s'%(c2('%+.2f'%s['r']),c2('%.2f'%s['r2']),'*' if s['p']<0.05 else '')) if s else '—'
+def modrow(mk): return [MOD['modlab'][mk],modcell(MODm['Vigor'][mk]),modcell(MODm['Fadiga'][mk])]
+tmod=table('Moduladores da magnitude do efeito crônico (inclinação semanal): correlação (r) e coeficiente de determinação (R²) entre cada característica do atleta e a taxa de variação do vigor e da fadiga.',
+    ['Moderador','Vigor — r (R²)','Fadiga — r (R²)'],[modrow(m) for m in MOD['mods']],
+    note='r = correlação de Pearson; R² = coeficiente de determinação (variância explicada); * p < 0,05 sem correção. Nenhuma associação sobrevive à correção de Holm para %d testes. CMJ = salto vertical; Baker = arremesso de medicine ball; TRIMP = carga interna.'%MOD['n_tests'],fs=8.5)
+f_mod=figure(f'{FG}/moduladores.png','Modulação da taxa semanal pelo perfil do atleta: à esquerda, o coeficiente de determinação (R²) de cada característica sobre a taxa do vigor (verde) e da fadiga (laranja) — a fadiga é praticamente não modulada; à direita, a taxa de queda do vigor decresce com a potência de membros inferiores (salto CMJ).',w=15.5)
+_acp=min(MOD['acute']['day_trend'][v]['p'] for v in MOD['vars'])
+_acR=max(s['r2'] for v in MOD['vars'] for s in (MOD['acute_matrix'][v][m] for m in MOD['mods']) if s)
+_fdR=max(s['r2'] for s in (MODm['Fadiga'][m] for m in MOD['mods']) if s)
+mlv=MOD['mlr']['sl_Vigor~PVini+CMJ_mai']
+P('Uma questão aplicada relevante é saber quais características do atleta modulam a intensidade da resposta — e em que '
+ 'medida. A magnitude do efeito agudo (variação pré → pós) revelou-se estável e independente do perfil individual: a '
+ 'queda média do vigor (%s ponto por sessão), a elevação da fadiga (+%s) e a da PTH (+%s) não se acentuaram ao longo da '
+ 'semana (tendência por dia: p ≥ %s) nem se vincularam de modo consistente à aptidão, à composição corporal, à potência, '
+ 'ao sono ou à carga interna — todos os coeficientes de determinação foram baixos (R² < %s). O choque afetivo '
+ 'intrassessão comporta-se, portanto, como uma resposta estereotipada, compartilhada pelo grupo.'%(
+   c2('%.2f'%MOD['acute']['mean']['Vigor']),c2('%.2f'%MOD['acute']['mean']['Fadiga']),c2('%.2f'%MOD['acute']['mean']['TMD']),
+   c2('%.2f'%_acp),c2('%.2f'%(_acR+0.005))))
+P('O efeito crônico (inclinação semanal) exibiu modulação apenas parcial, restrita ao vigor (Tabela %d; Figura %d). A '
+ 'taxa de acúmulo de fadiga foi praticamente idêntica entre os atletas — nenhum moderador explicou fração relevante de '
+ 'sua variância (R² ≤ %s) —, ao passo que a taxa de queda do vigor associou-se à potência de membros inferiores (salto '
+ 'CMJ: r = %s; R² = %s) e, em menor grau, à sonolência: os atletas mais explosivos perderam vigor mais depressa. Um '
+ 'modelo de regressão múltipla com aptidão e potência explicou cerca de %s%% da variância da taxa do vigor (R² = %s; R² '
+ 'ajustado = %s), com o maior peso padronizado atribuído à potência (β* = %s). Impõe-se, porém, cautela: entre os %d '
+ 'testes de moderação, nenhuma associação resistiu à correção de Holm para comparações múltiplas, de sorte que esses '
+ 'vínculos permanecem exploratórios. Predomina, assim, uma resposta de humor amplamente independente das características '
+ 'individuais mensuradas — sobretudo no eixo da fadiga —, o que reforça o caráter geral e esperado da reação à carga da '
+ 'pré-temporada.'%(
+   tmod,f_mod,c2('%.2f'%_fdR),
+   c2('%+.2f'%MODm['Vigor']['CMJ_mai']['r']),c2('%.2f'%MODm['Vigor']['CMJ_mai']['r2']),
+   c2('%.0f'%(100*mlv['r2'])),c2('%.2f'%mlv['r2']),c2('%.2f'%mlv['adj']),c2('%.2f'%mlv['beta']['CMJ_mai']),MOD['n_tests']))
 
 # ===== 4 DISCUSSÃO =====
 H('4 DISCUSSÃO')
@@ -815,6 +867,28 @@ P('Esse conjunto de sinais delineia a assinatura de um sobre-esforço funcional 
  'choque intrassessão quanto a deriva ao longo dos dias. A preservação das dimensões de valência não fadiga e a '
  'ausência dos perfis de risco à saúde mental completam o quadro de uma adaptação esperada, e não de um processo '
  'patológico.')
+P('A análise dos moduladores refina esse entendimento e traz uma mensagem de utilidade prática. A magnitude tanto do '
+ 'choque agudo quanto da deriva crônica mostrou-se, em larga medida, independente do perfil do atleta: nenhum dos '
+ 'preditores — aptidão, composição corporal, potência, sono, estresse ou carga interna — explicou parcela expressiva da '
+ 'variância, e nenhuma associação resistiu à correção para comparações múltiplas. A taxa de acúmulo de fadiga, em '
+ 'especial, revelou-se homogênea entre os atletas, o que sugere uma resposta obrigatória e comum à carga da '
+ 'pré-temporada — coerente com a leitura de um sobre-esforço funcional que atinge o grupo de maneira relativamente '
+ 'uniforme. A única modulação digna de nota, ainda que exploratória, recaiu sobre a taxa de queda do vigor, associada à '
+ 'potência de membros inferiores: os atletas mais explosivos perderam energia mais depressa, padrão compatível com a '
+ 'hipótese de que perfis de maior demanda neuromuscular acumulam fadiga central e periférica com maior rapidez sob um '
+ 'bloco de acumulação aeróbia. Do ponto de vista aplicado, a baixa modulação reforça que a vigilância do humor deve ser '
+ 'universal na equipe — e não reservada a subgrupos supostamente mais vulneráveis —, embora o eixo do vigor mereça '
+ 'atenção adicional nos atletas de perfil mais potente.')
+P('Situados no conjunto da literatura, esses achados ocupam uma lacuna específica. A BRUMS tem sido aplicada, '
+ 'predominantemente, como um retrato pontual em torno da competição (BRANDT et al., 2019; DO NASCIMENTO et al., '
+ '2026) ou em comparações entre fases de treino distantes semanas ou meses entre si (ROUVEIX et al., 2006), quase '
+ 'sempre associada ao sono, ao desempenho ou a marcadores hormonais (ANDRADE et al., 2019; ROUVEIX et al., 2006). São '
+ 'escassas, contudo, as descrições que acompanham o humor em alta resolução dentro de um único microciclo — com '
+ 'medidas duas vezes ao dia que separam a resposta aguda do acúmulo crônico —, que modelam a trajetória de forma '
+ 'contínua e que a articulam à aptidão aeróbia intermitente em uma modalidade coletiva de invasão. É precisamente esse '
+ 'o nicho do presente estudo, cuja abordagem temporal e multivariada oferece um retrato mais fino da dinâmica afetiva '
+ 'do que o instantâneo pré-competitivo predominante, e sinaliza um caminho para o monitoramento intramicrociclo em '
+ 'esportes de rendimento.')
 P('A inclusão do pico de velocidade do T-CAR como parâmetro fisiológico acrescentou uma leitura interindividual à '
  'resposta afetiva. Atletas com maior aptidão aeróbia intermitente reportaram mais vigor (ρ = %s; p %s) e menos fadiga '
  'física (ρ = %s; p %s) ao longo da semana, e um limiar de pico de velocidade de aproximadamente %s km/h discriminou os '
@@ -885,9 +959,11 @@ P('Na última semana de pré-temporada, o humor dos handebolistas transitou da p
 H('REFERÊNCIAS')
 refs=[
  'ANDRADE, A. et al. Sleep quality, mood and performance: a study of elite Brazilian volleyball athletes. Journal of Sports Science and Medicine, v. 15, n. 4, p. 601–605, 2016.',
+ 'ANDRADE, A. et al. Sleep quality associated with mood in elite athletes. The Physician and Sportsmedicine, v. 47, n. 3, p. 312–317, 2019. DOI: 10.1080/00913847.2018.1553467.',
  'ANDRADE, A. et al. Effect of practice exergames on the mood states and self-esteem of elementary school boys and girls during physical education classes: a cluster-randomized controlled trial. PLoS ONE, v. 15, n. 6, e0232392, 2020. DOI: 10.1371/journal.pone.0232392.',
  'ALFONSO, C.; CAPDEVILA, L. Heart rate variability, mood and performance: a pilot study on the interrelation of these variables in amateur road cyclists. PeerJ, v. 10, e13094, 2022. DOI: 10.7717/peerj.13094.',
  'BRANDT, R.; BEVILACQUA, G. G.; ANDRADE, A. Perceived sleep quality, mood states, and their relationship with performance among Brazilian elite athletes during a competitive period. Journal of Strength and Conditioning Research, v. 31, n. 4, p. 1033–1039, 2017.',
+ 'BRANDT, R. et al. Comparisons of mood states associated with outcomes achieved by female and male athletes in high-level judo and Brazilian jiu-jitsu championships: psychological factors associated with the probability of success. Journal of Strength and Conditioning Research, v. 35, n. 9, p. 2518–2524, 2019. DOI: 10.1519/JSC.0000000000003218.',
  'CAMPBELL, P. G. et al. The effect of overreaching on neuromuscular performance and wellness responses in Australian rules football athletes. Journal of Strength and Conditioning Research, v. 34, n. 6, p. 1530–1538, 2020. DOI: 10.1519/JSC.0000000000003603.',
  'COCKERILL, I. M.; NEVILL, A. M.; LYONS, N. Modelling mood states in athletic performance. Journal of Sports Sciences, v. 9, n. 2, p. 205–212, 1991. DOI: 10.1080/02640419108729881.',
  'DE MIRANDA ROHLFS, I. C. P. et al. Prevalence of specific mood profile clusters among elite and youth athletes at a Brazilian sports club. Sports, v. 12, n. 7, 195, 2024. DOI: 10.3390/sports12070195.',
@@ -910,6 +986,7 @@ refs=[
  'ROETE, A. J. et al. A systematic review on markers of functional overreaching in endurance athletes. International Journal of Sports Physiology and Performance, v. 16, n. 8, p. 1065–1073, 2021. DOI: 10.1123/ijspp.2021-0024.',
  'ROHLFS, I. C. P. M. et al. A Escala de Humor de Brunel (Brums): instrumento para detecção precoce da síndrome do excesso de treinamento. Revista Brasileira de Medicina do Esporte, v. 14, n. 3, p. 176–181, 2008.',
  'ROHLFS, I. C. P. M. et al. Psychometric characteristics of the Brazil Mood Scale among youth and elite athletes using two response time frames. Sports, v. 11, n. 12, 244, 2023. DOI: 10.3390/sports11120244.',
+ 'ROUVEIX, M. et al. The 24 h urinary cortisol/cortisone ratio and epinephrine/norepinephrine ratio for monitoring training in young female tennis players. International Journal of Sports Medicine, v. 27, n. 11, p. 856–863, 2006. DOI: 10.1055/s-2006-923778.',
  'SAW, A. E.; MAIN, L. C.; GASTIN, P. B. Monitoring the athlete training response: subjective self-reported measures trump commonly used objective measures: a systematic review. British Journal of Sports Medicine, v. 50, n. 5, p. 281–291, 2016. DOI: 10.1136/bjsports-2015-094758.',
  'TERRY, P. C.; LANE, A. M.; FOGARTY, G. J. Construct validity of the Profile of Mood States — Adolescents for use with adults. Psychology of Sport and Exercise, v. 4, n. 2, p. 125–139, 2003. DOI: 10.1016/S1469-0292(02)00035-8.',
  'TERRY, P. C. et al. Mood profiling for sustainable mental health among athletes. Sustainability, v. 13, n. 11, 6116, 2021. DOI: 10.3390/su13116116.',
