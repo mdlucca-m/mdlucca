@@ -425,6 +425,15 @@ P('No plano dos perfis de humor, o deslocamento de prevalência do iceberg (pron
  'resultados de partida (ANDRADE et al., 2016; BRANDT; BEVILACQUA; ANDRADE, 2017; DO NASCIMENTO et al., 2026) e '
  'associação com desfechos como a lesão (DE MIRANDA ROHLFS et al., 2025).'%(
    c2('%.0f'%(100*PREV['D7']['Barbatana tubarão']/PREV['n_d7'])),))
+P('O caráter transitório dessa resposta deve ser lido à luz da posição do microciclo no planejamento. A última semana '
+ 'de pré-temporada corresponde a uma fase de acumulação de carga, que antecede o afinamento (tapering) e a competição. '
+ 'Nesse enquadramento, a queda de vigor e a elevação de fadiga aqui documentadas configuram a assinatura afetiva '
+ 'esperada do acúmulo, e não um estado estável: o modelo de equilíbrio entre estresse e recuperação prevê que, com a '
+ 'redução da carga e o reforço da recuperação nos dias subsequentes, o vigor tende a ser restaurado e o perfil de '
+ 'prontidão (iceberg) a se reinstalar (KELLMANN et al., 2018). Interpretar a fadiga do fim do microciclo como um vale '
+ 'programado — e não como deterioração — é justamente o que habilita a comissão técnica a distinguir a resposta '
+ 'funcional daquela que exigiria intervenção, e reforça o valor de manter o monitoramento do humor na transição para o '
+ 'afinamento, quando a recuperação do estado afetivo é esperada e verificável.')
 P('A inclusão do pico de velocidade do T-CAR como parâmetro fisiológico acrescentou uma leitura interindividual à '
  'resposta afetiva. Atletas com maior aptidão aeróbia intermitente reportaram mais vigor (ρ = %s; p %s) e menos fadiga '
  'física (ρ = %s; p %s) ao longo da semana, e um limiar de pico de velocidade de aproximadamente %s km/h discriminou os '
