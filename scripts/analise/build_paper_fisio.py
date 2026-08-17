@@ -737,6 +737,29 @@ P('Na última semana de pré-temporada, a deterioração do humor concentrou-se 
  'monitoramento multidomínio — que combine o humor, a aptidão aeróbia e marcadores de recuperação — centrado no eixo '
  'energia–fadiga.'%c2('%.1f'%LP['thr']))
 
+# ===== DECLARAÇÕES (back-matter) =====
+H('Contribuições dos autores',12,before=10)
+P('[Autor 1] e [Autor 2] conceberam o estudo e o delineamento. [Autor 1] conduziu a coleta de dados. [Autor 1] e '
+ '[Autor 3] realizaram as análises estatísticas. [Autor 1] redigiu a primeira versão do manuscrito. Todos os autores '
+ 'revisaram criticamente o texto e aprovaram a versão final.',ind=False)
+H('Financiamento',12,before=6)
+P('[Esta pesquisa não recebeu financiamento externo. / Esta pesquisa foi financiada por [agência], processo nº '
+ '[placeholder].]',ind=False)
+H('Aprovação ética',12,before=6)
+P('O estudo foi conduzido de acordo com a Declaração de Helsinque e aprovado pelo Comitê de Ética em Pesquisa de '
+ '[instituição] (parecer nº / CAAE [placeholder]).',ind=False)
+H('Consentimento informado',12,before=6)
+P('Todos os participantes assinaram o termo de consentimento livre e esclarecido antes da coleta de dados.',ind=False)
+H('Disponibilidade dos dados',12,before=6)
+P('Os dados que sustentam os achados deste estudo, em forma anonimizada, e os scripts de análise estão disponíveis '
+ 'mediante solicitação razoável ao autor correspondente.',ind=False)
+H('Conflitos de interesse',12,before=6)
+P('Os autores declaram não haver conflitos de interesse.',ind=False)
+H('Artigo companheiro',12,before=6)
+P('Este manuscrito integra um par de estudos-companheiros que compartilham a mesma amostra e o mesmo microciclo, com '
+ 'desfechos primários distintos. O artigo companheiro — sobre a dinâmica do humor e a modelagem das trajetórias — foi '
+ 'submetido a outro periódico; ambos se citam mutuamente.',ind=False)
+
 # ===== REFERÊNCIAS =====
 H('REFERÊNCIAS')
 refs=[
