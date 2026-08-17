@@ -35,7 +35,7 @@ for i,c in enumerate(cols):
     f.add_vline(x=thr,line=dict(color='#adb5bd',dash='dash',width=1.5),row=r,col=cc)
     txt='ρ = %s · R² = %s · p = %s'%(('%+.2f'%rho).replace('.',','),('%.2f'%lr.rvalue**2).replace('.',','),(('%.3f'%pr).replace('.',',') if pr>=0.001 else '< 0,001'))
     f.add_annotation(x=WK.PVini.max(),y=WK[c].max(),xref='x%d'%(i+1),yref='y%d'%(i+1),text=txt,showarrow=False,xanchor='right',font=dict(size=12,color='#333'))
-    f.update_xaxes(title='T-CAR1 – pico de velocidade (km/h)' if r==2 else '',row=r,col=cc,**GRID)
+    f.update_xaxes(title='Pico de velocidade do T-CAR (km/h)' if r==2 else '',row=r,col=cc,**GRID)
     f.update_yaxes(title='Escore',row=r,col=cc,**GRID)
 f.update_layout(**base(height=760,width=1200))
 f.write_image(f'{OUT}/pv7_scatter.png',width=1300,height=820,scale=3)
@@ -45,7 +45,7 @@ terc=PS['terc']; order=['Baixa','Média','Alta']
 f=go.Figure()
 f.add_trace(go.Bar(x=order,y=[terc[k]['Fadiga'] for k in order],name='Fadiga (BRUMS)',marker=dict(color='#e8590c',line=dict(color='white',width=1))))
 f.add_trace(go.Bar(x=order,y=[terc[k]['FadFisica'] for k in order],name='Fadiga física',marker=dict(color='#0c8599',line=dict(color='white',width=1))))
-f.update_layout(**base(height=520,width=920,barmode='group',title=dict(text='<b>Fadiga semanal por tercil de aptidão (T-CAR1)</b>',x=0.5,font=dict(size=17)),
+f.update_layout(**base(height=520,width=920,barmode='group',title=dict(text='<b>Fadiga semanal por tercil de aptidão (T-CAR)</b>',x=0.5,font=dict(size=17)),
     legend=dict(orientation='h',y=1.1,x=0.5,xanchor='center',font=dict(size=13))))
 f.update_yaxes(title='Escore médio semanal',**GRID); f.update_xaxes(title='Tercil de pico de velocidade',**GRID)
 f.write_image(f'{OUT}/pv8_tercis.png',width=1000,height=560,scale=3)
@@ -60,7 +60,7 @@ f.add_trace(go.Scatter(x=WK.PVini,y=WK[c],mode='markers',marker=dict(color=HEX[c
 f.add_trace(go.Scatter(x=xs,y=ys,mode='lines',line=dict(color=HEX[c],width=3.5),showlegend=False))
 f.add_vline(x=thr,line=dict(color='#495057',dash='dash',width=2))
 f.add_annotation(x=WK.PVini.max(),y=WK[c].max(),text='ρ = %s · R² = %s · p = %s'%(('%+.2f'%rho).replace('.',','),('%.2f'%lr.rvalue**2).replace('.',','),('%.3f'%pr).replace('.',',')),showarrow=False,xanchor='right',font=dict(size=14,color='#333'))
-f.update_layout(**base(height=560,width=1000,title=dict(text='<b>Aptidão intermitente (T-CAR1) e fadiga física semanal</b>',x=0.5,font=dict(size=17))))
-f.update_xaxes(title='T-CAR1 – pico de velocidade (km/h)',**GRID); f.update_yaxes(title='Fadiga física (escore semanal)',**GRID)
+f.update_layout(**base(height=560,width=1000,title=dict(text='<b>Aptidão intermitente (T-CAR) e fadiga física semanal</b>',x=0.5,font=dict(size=17))))
+f.update_xaxes(title='Pico de velocidade do T-CAR (km/h)',**GRID); f.update_yaxes(title='Fadiga física (escore semanal)',**GRID)
 f.write_image(f'{OUT}/pv9_limiar.png',width=1100,height=620,scale=3)
 print('PV figs OK: pv7_scatter, pv8_tercis, pv9_limiar')

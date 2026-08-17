@@ -317,7 +317,9 @@ P('A Tabela %d sintetiza os dias de pico: o vigor foi máximo no Dia %d e mínim
 H('3.8 Comportamento individual de cada variável e suas relações',12,before=6)
 P('As Figuras %d a %d apresentam, para cada dimensão, o comportamento ao longo da semana com a média diária, a banda de '
  'confiança de 95%% (área sombreada), os diagramas de caixa por dia e o efeito do microciclo, permitindo visualizar '
- 'individualmente como cada estado de humor evolui.'%(_FN[0]+1,_FN[0]+6))
+ 'individualmente como cada estado de humor evolui. Nessas figuras, o efeito Dia 1 → Dia 7 é expresso pelo dz (mudança '
+ 'padronizada intraindividual), numericamente idêntico ao d relatado na análise multivariada (Tabela 9), e o valor de p '
+ 'é o do teste de Friedman apresentado na Tabela 6.'%(_FN[0]+1,_FN[0]+6))
 for k,fn,lab in [('Vigor','xb4_v_Vigor.png','Vigor'),('Fadiga','xb4_v_Fadiga.png','Fadiga'),('Tensao','xb4_v_Tensao.png','Tensão'),('Depressao','xb4_v_Depressao.png','Depressão'),('Raiva','xb4_v_Raiva.png','Raiva'),('Confusao','xb4_v_Confusao.png','Confusão')]:
     figure(f'{FG}/{fn}','%s ao longo da semana: média diária (banda = IC95%%), diagramas de caixa por dia e efeito Dia 1 → Dia 7.'%lab,w=12.5)
 PA=STAT['pairs']; FP=STAT['focusp']; sig=[x for x in PA if x['p']<0.05]

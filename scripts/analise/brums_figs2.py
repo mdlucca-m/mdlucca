@@ -11,7 +11,7 @@ PAL={'Vigor':('#2f9e44','rgba(47,158,68,0.16)'),'Fadiga':('#e8590c','rgba(232,89
      'TMD':('#6741d9','rgba(103,65,217,0.15)'),'Tensao':('#1971c2','rgba(25,113,194,0.15)'),
      'Depressao':('#9c36b5','rgba(156,54,181,0.15)'),'Raiva':('#e03131','rgba(224,49,49,0.15)'),
      'Confusao':('#f08c00','rgba(240,140,0,0.15)')}
-NM={'Vigor':'Vigor','Fadiga':'Fadiga','TMD':'PTH/TMD','Tensao':'Tensão','Depressao':'Depressão','Raiva':'Raiva','Confusao':'Confusão'}
+NM={'Vigor':'Vigor','Fadiga':'Fadiga','TMD':'PTH','Tensao':'Tensão','Depressao':'Depressão','Raiva':'Raiva','Confusao':'Confusão'}
 def base(**k):
     b=dict(template='plotly_white',font=dict(color='#1a1a1a',size=16,family='Arial'),paper_bgcolor='white',plot_bgcolor='white',
         margin=dict(l=64,r=24,t=54,b=54)); b.update(k); return b
@@ -97,7 +97,7 @@ f.update_layout(**base(height=520,width=1440,barmode='group',legend=dict(font=di
 f.write_image(f'{OUT}/xb2_corrfocus.png',width=1500,height=560,scale=3)
 
 # ============ FIG 6: INTRA-DIA pré/pós (energia-fadiga + negativas) ============
-f=make_subplots(rows=1,cols=4,horizontal_spacing=0.055,subplot_titles=['<b>Vigor</b>','<b>Fadiga</b>','<b>PTH/TMD</b>','<b>Negativas (Δ pós−pré)</b>'])
+f=make_subplots(rows=1,cols=4,horizontal_spacing=0.055,subplot_titles=['<b>Vigor</b>','<b>Fadiga</b>','<b>PTH</b>','<b>Negativas (Δ pós−pré)</b>'])
 for j,k in enumerate(['Vigor','Fadiga','TMD'],1):
     pre=[R['byday'][k][str(d)]['pre'] for d in days]; pos=[R['byday'][k][str(d)]['pos'] for d in days]
     f.add_trace(go.Bar(x=days,y=pre,name='pré',marker=dict(color='#a5d8ff',line=dict(color='#1971c2',width=1)),showlegend=(j==1)),1,j)
