@@ -115,12 +115,15 @@ P('O acompanhamento do estado psicológico dos atletas consolidou-se como parte 
  'esporte de rendimento. Instrumentos de autorrelato do humor são práticos, econômicos e sensíveis às variações da carga '
  'de treino, com utilidade preditiva para o bem-estar e o desempenho esportivo (SAW; MAIN; GASTIN, 2016; LOCHBAUM et al., '
  '2021), razão pela qual documentos de consenso recomendam seu uso rotineiro para monitorar a fadiga e orientar decisões '
- 'de treino e recuperação (KELLMANN et al., 2018).')
+ 'de treino e recuperação (KELLMANN et al., 2018). O valor desse autorrelato não se esgota na conveniência: sob treino '
+ 'intensificado, a perturbação do humor pode persistir mesmo depois de marcadores bioquímicos de fadiga terem regredido, '
+ 'assincronia entre a recuperação psicológica e a fisiológica que fundamenta a integração das duas leituras num '
+ 'monitoramento multidomínio (OSTAPIUK-KAROLCZUK et al., 2025).')
 P('Entre esses instrumentos, a Escala de Humor de Brunel (BRUMS), versão abreviada e adaptada do Profile of Mood States '
  '(POMS), destaca-se pela rapidez de aplicação e pela solidez psicométrica, com sucessivas validações transculturais, '
  'entre elas a versão brasileira (BRAMS) (TERRY; LANE; FOGARTY, 2003; ROHLFS et al., 2008, 2023). Sua aplicação tem-se '
  'mostrado particularmente informativa em modalidades esportivas coletivas e no esporte de rendimento, contextos de '
- 'elevada demanda física, emocional e interpessoal: a BRUMS vem sendo empregada para monitorar o humor de atletas de '
+ 'elevada demanda física, emocional e interpessoal: a BRUMS tem sido empregada para monitorar o humor de atletas de '
  'elite ao longo de períodos competitivos e sua relação com o sono, o desempenho, os resultados de partida e o risco de '
  'lesão (ANDRADE et al., 2016; BRANDT; BEVILACQUA; ANDRADE, 2017; ANDRADE et al., 2020; DE MIRANDA ROHLFS et al., 2025; '
  'DO NASCIMENTO et al., 2026); firma-se, assim, como um indicador de baixo custo e alta sensibilidade para a triagem do '
@@ -137,7 +140,7 @@ P('Para além dos escores isolados de cada subescala, a leitura do humor evoluiu
  'como assinatura de prontidão e de saúde mental positiva. Mais recentemente, análises de agrupamento (cluster) em '
  'grandes amostras formalizaram seis perfis de humor — iceberg, superfície, submerso, barbatana de tubarão, iceberg '
  'invertido e Everest invertido —, dos quais os três últimos se associam a maior risco à saúde mental e à subperformance '
- '(PARSONS-SMITH; TERRY; MACHIN, 2017; HAN; PARSONS-SMITH; TERRY, 2020). Esses perfis vêm sendo replicados em diferentes '
+ '(PARSONS-SMITH; TERRY; MACHIN, 2017; HAN; PARSONS-SMITH; TERRY, 2020). Esses perfis têm sido replicados em diferentes '
  'culturas e aplicados ao rastreamento da prontidão e do bem-estar de atletas de elite, inclusive no contexto brasileiro: '
  'em uma grande amostra de um clube de rendimento do Rio de Janeiro (898 atletas), o perfil iceberg foi o mais prevalente '
  'em avaliação momentânea, ao passo que os perfis de risco foram os menos frequentes (DE MIRANDA ROHLFS et al., 2024). A '
@@ -146,8 +149,8 @@ P('Para além dos escores isolados de cada subescala, a leitura do humor evoluiu
  'para desfechos como lesão (TERRY et al., 2021; DE MIRANDA ROHLFS et al., 2025).')
 P('Dois desses perfis são especialmente informativos para a leitura de um microciclo de carga. O iceberg — vigor '
  'elevado sobrepondo-se a dimensões negativas baixas — é a assinatura da prontidão e do bem-estar e associa-se a melhor '
- 'desempenho esportivo, tendo a perturbação total do humor predito o rendimento em meta-análise de estudos com atletas '
- 'competitivos (efeito médio; LOCHBAUM et al., 2021). A barbatana de tubarão (shark fin), por sua vez, descreve o atleta '
+ 'desempenho esportivo; em meta-análise de estudos com atletas competitivos, a perturbação total do humor predisse o '
+ 'rendimento (efeito médio; LOCHBAUM et al., 2021). A barbatana de tubarão (shark fin), por sua vez, descreve o atleta '
  'ainda energizado, porém com a fadiga já elevada acima do vigor — e, em graus variados, com tensão e raiva acentuadas —, '
  'e configura a assinatura afetiva típica do acúmulo de treino. Como o humor é um estado transitório e sensível à carga, '
  'é de se esperar que, ao longo de uma semana intensa de treinamento, a prevalência se desloque do iceberg para a '
@@ -199,7 +202,7 @@ P('O humor foi avaliado pela BRUMS-24, com 24 itens em escala de 0 (“nada”) 
  'resume o perfil (soma das negativas menos o vigor). Para a classificação de perfis e a análise multivariada, os escores '
  'foram convertidos em escores T (M = 50; DP = 10). A aptidão aeróbia intermitente foi avaliada pelo Teste de Carminatti '
  '(T-CAR), teste de campo progressivo e intermitente (repetições de 12 s de corrida em vaivém intercaladas por 6 s de '
- 'recuperação, até a exaustão), tendo o pico de velocidade (PV) como desfecho (FERNANDES-DA-SILVA et al., 2016). A '
+ 'recuperação, até a exaustão), que adota o pico de velocidade (PV) como desfecho (FERNANDES-DA-SILVA et al., 2016). A '
  'estrutura de esforço e pausa do T-CAR reproduz o padrão intermitente das ações do handebol, de modo que o PV expressa '
  'a capacidade aeróbia de sustentar e repetir esforços de alta intensidade — e não apenas a intensidade máxima isolada '
  '—, o que o qualifica como marcador fisiológico específico para esta amostra. O T-CAR '
@@ -334,7 +337,7 @@ def icrow(k,lab):
 tic=table('Consistência das medidas repetidas ao longo da semana (coeficiente de correlação intraclasse, ICC).',
     ['Dimensão','ICC(2,1)','ICC(2,k)','Consistência'],
     [icrow(k,l) for k,l in [('Vigor','Vigor'),('Fadiga','Fadiga'),('Tensao','Tensão'),('Depressao','Depressão'),('Raiva','Raiva'),('Confusao','Confusão')]],fs=9)
-P('A consistência das medidas repetidas (Tabela %d) foi moderada a boa, sendo mais baixa para a raiva e a confusão — '
+P('A consistência das medidas repetidas (Tabela %d) foi moderada a boa, com os valores mais baixos na raiva e na confusão — '
  'dimensões mais reativas dia a dia.'%tic)
 def emmc(v,d): return c2('%.2f'%PHJ[v]['emm'][str(d)])
 def sig1(v,d): return '' if d==1 or PHJ[v]['pairs']['1_%d'%d]['ptukey']>=0.05 else '*'
@@ -431,7 +434,7 @@ tl2=table('Estratificação do pico de velocidade do T-CAR em três faixas de ap
         c2('%.1f'%L2['t1']),c2('%.1f'%L2['t2']),c2('%.3f'%L2['fadiga']['trend_p']),c2('%.3f'%L2['vigor']['trend_p'])),fs=8.5)
 f_l2=figure(f'{FG}/limiar2_faixas.png','Dois limiares do pico de velocidade do T-CAR (%s e %s km/h) que delimitam três faixas de aptidão (esquerda) e a prevalênciade dias de fadiga elevada e de baixo vigor em cada faixa (direita).'%(c2('%.1f'%L2['t1']),c2('%.1f'%L2['t2'])),w=15.5)
 P('Em vez de um único ponto de corte, o pico de velocidade foi ainda estratificado por dois limiares — os tercis de sua '
- 'distribuição (t₁ = %s km/h; t₂ = %s km/h) —, criando três faixas de aptidão com valor de decisão direto (Tabela %d; '
+ 'distribuição (t₁ = %s km/h; t₂ = %s km/h) —, que definem três faixas de aptidão com valor de decisão direto (Tabela %d; '
  'Figura %d). A prevalência de dias críticos caiu de forma consistente da faixa de baixa para a de alta aptidão, tanto '
  'para a fadiga elevada (%s%% → %s%% → %s%%; tendência p = %s) quanto para o baixo vigor (%s%% → %s%% → %s%%; tendência '
  'p = %s). O ganho da estratificação dupla é sobretudo prático: enquanto o limiar único de Youden (≈ %s km/h) traça uma '
@@ -579,7 +582,10 @@ P('O presente estudo examinou os correlatos fisiológicos e de bem-estar da resp
  'Bonferroni, apenas o vigor (η²ₚ = %s) e a fadiga (η²ₚ = %s) permaneceram significativos, enquanto as dimensões negativas '
  'de valência não fadiga, próximas do piso, mantiveram-se estáveis. Confirma-se, assim, que o vigor e a fadiga são as '
  'dimensões subjetivas mais sensíveis à carga de treino, em consonância com a literatura de monitoramento (SAW; MAIN; '
- 'GASTIN, 2016; THORPE et al., 2017; KELLMANN et al., 2018).'%(
+ 'GASTIN, 2016; THORPE et al., 2017; KELLMANN et al., 2018). Tal seletividade replica um padrão já descrito noutras '
+ 'modalidades: em nadadores acompanhados por 24 semanas, o vigor e a fadiga acompanharam o volume de treino '
+ '(r = −0,54 e r = +0,53), ao passo que tensão, depressão e confusão permaneceram inertes (PIERCE, 2002) — o que sustenta '
+ 'centrar a leitura fisiológica subsequente no par vigor–fadiga.'%(
    c2('%.0f'%abs(pr['Vigor']['pct'])),c2('%+.2f'%pr['Vigor']['dz']),c2('%.0f'%pr['Fadiga']['pct']),c2('%+.2f'%pr['Fadiga']['dz']),
    c2('%+.2f'%mvv('d1d7','Vigor','d')),c2('%+.2f'%mvv('d1d7','Fadiga','d')),
    c2('%.3f'%MV['d1d7']['wilks']),MV['d1d7']['df1'],MV['d1d7']['df2'],c2('%.2f'%MV['d1d7']['Fmv']),pstr(MV['d1d7']['p_mv']),c2('%.2f'%MV['d1d7']['eta_mv']),
@@ -624,7 +630,10 @@ P('Sob a ótica psicofisiológica, o eixo energia–fadiga funciona como um leit
  'negativo e a fadiga, do primeiro ao último dia, acompanha essa transição de um estado diferenciado para um estado '
  'integrado de estresse, no qual as respostas afetivas convergem sob um substrato central comum — leitura que o próprio '
  'delineamento sustenta, uma vez que os marcadores medidos (humor, sono e estresse) apontam para a mesma origem na '
- 'carga de treino.')
+ 'carga de treino. Essa via afetiva, contudo, guarda autonomia em relação aos índices periféricos: sob treino '
+ 'intensificado, a perturbação do humor pode subsistir mesmo quando marcadores bioquímicos de fadiga já regrediram '
+ '(OSTAPIUK-KAROLCZUK et al., 2025), assincronia que credencia o eixo energia–fadiga como sentinela complementar — e '
+ 'não redundante — em relação à leitura fisiológica.')
 P('Esse conjunto de sinais delineia a assinatura de um sobre-esforço funcional (functional overreaching) — a fadiga '
  'planejada e reversível que precede a supercompensação — e não a de um estado disfuncional. A literatura recente '
  'ampara tal distinção: períodos de treino intensificado agravam a perturbação do humor e comprometem o desempenho, '
@@ -689,7 +698,12 @@ P('A contraposição com a capacidade anaeróbia delimita a especificidade dessa
  'qualidades físicas distintas; e é a aptidão aeróbia — não a anaeróbia — que rastreia a fadiga afetiva do acúmulo de '
  'pré-temporada. Esse contraste é coerente com a natureza predominantemente aeróbia da carga de uma semana de '
  'acumulação e com a recomendação de sistemas de monitoramento multidomínio, que combinam marcadores neuromusculares, '
- 'cardioautonômicos e de autorrelato de humor, sono e estresse (NAUGHTON et al., 2023; TAVARES et al., 2017). Convém, '
+ 'cardioautonômicos e de autorrelato de humor, sono e estresse (NAUGHTON et al., 2023; TAVARES et al., 2017). A '
+ 'pertinência dessa moldura no próprio handebol de elite encontra respaldo em investigação de larga escala com centenas '
+ 'de jogadores de alto nível, na qual o estado de humor, a percepção de estresse e marcadores endócrinos foram '
+ 'articulados num arcabouço multidomínio de acompanhamento (RATZ-SULYOK et al., 2026) — quadro em que o presente '
+ 'contraste entre aptidão aeróbia e anaeróbia especifica qual componente físico efetivamente rastreia a resposta '
+ 'afetiva. Convém, '
  'ainda, a cautela metodológica de que o índice de fadiga do teste de sprints repetidos, por derivar de uma pequena '
  'queda de desempenho, tem confiabilidade limitada e deve ser lido com reservas (OLIVER, 2007; GLAISTER et al., 2008).')
 P('A comparação a posteriori de modelos de curva reforça a leitura dessa relação e agrega parcimônia à sua '
@@ -781,11 +795,14 @@ refs=[
  'MICHALSIK, L. B.; AAGAARD, P. Physical demands in elite team handball: comparisons between male and female players. Journal of Sports Medicine and Physical Fitness, v. 55, n. 9, p. 878–891, 2015.',
  'MORGAN, W. P. Selected psychological factors limiting performance: a mental health model. In: CLARKE, D. H.; ECKERT, H. M. (Ed.). Limits of human performance. Champaign: Human Kinetics, 1985. p. 70–80.',
  'NAUGHTON, M. et al. Defining and quantifying fatigue in the rugby codes. PLoS ONE, v. 18, n. 3, e0282390, 2023. DOI: 10.1371/journal.pone.0282390.',
- 'OLIVER, J. L. Is a fatigue index a worthwhile measure of repeated sprint ability? Journal of Science and Medicine in Sport, v. 12, n. 1, p. 20–23, 2007. DOI: 10.1016/j.jsams.2007.10.010.',
  'NEVILL, A. M.; LANE, A. M. Why self-report “Likert” scale data should not be log-transformed. Journal of Sports Sciences, v. 25, n. 1, p. 1–2, 2007. DOI: 10.1080/02640410601111183.',
+ 'OLIVER, J. L. Is a fatigue index a worthwhile measure of repeated sprint ability? Journal of Science and Medicine in Sport, v. 12, n. 1, p. 20–23, 2007. DOI: 10.1016/j.jsams.2007.10.010.',
+ 'OSTAPIUK-KAROLCZUK, J. et al. Biochemical and psychological markers of fatigue and recovery in mixed martial arts athletes during strength and conditioning training. Scientific Reports, v. 15, n. 1, 24234, 2025. DOI: 10.1038/s41598-025-09719-z.',
  'PARSONS-SMITH, R. L.; TERRY, P. C.; MACHIN, M. A. Identification and description of novel mood profile clusters. Frontiers in Psychology, v. 8, 1958, 2017. DOI: 10.3389/fpsyg.2017.01958.',
  'PEREIRA, R. et al. Exercise intensity and reliability during recreational team handball training for 50–77-year-old unexperienced women. Biology of Sport, v. 41, n. 4, p. 253–261, 2024. DOI: 10.5114/biolsport.2024.132995.',
  'PIACENTINI, M. F. et al. Effect of intensive training on mood with no effect on brain-derived neurotrophic factor. International Journal of Sports Physiology and Performance, v. 11, n. 6, p. 824–830, 2016. DOI: 10.1123/ijspp.2015-0279.',
+ 'PIERCE, E. F. Relationship between training volume and mood states in competitive swimmers during a 24-week season. Perceptual and Motor Skills, v. 94, n. 3, p. 1009–1012, 2002. DOI: 10.2466/pms.2002.94.3.1009.',
+ 'RATZ-SULYOK, F. Z. et al. Associations between endocrine status and stress, mood and psychosomatic status in elite handball players. Sports, v. 14, n. 7, 289, 2026. DOI: 10.3390/sports14070289.',
  'ROETE, A. J. et al. A systematic review on markers of functional overreaching in endurance athletes. International Journal of Sports Physiology and Performance, v. 16, n. 8, p. 1065–1073, 2021. DOI: 10.1123/ijspp.2021-0024.',
  'ROHLFS, I. C. P. M. et al. A Escala de Humor de Brunel (Brums): instrumento para detecção precoce da síndrome do excesso de treinamento. Revista Brasileira de Medicina do Esporte, v. 14, n. 3, p. 176–181, 2008.',
  'ROHLFS, I. C. P. M. et al. Psychometric characteristics of the Brazil Mood Scale among youth and elite athletes using two response time frames. Sports, v. 11, n. 12, 244, 2023. DOI: 10.3390/sports11120244.',
