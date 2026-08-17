@@ -53,7 +53,15 @@ f.update_layout(**base(height=520,width=1100,legend=dict(font=dict(size=13),x=0.
 f.update_xaxes(title='Escore',**GRID); f.update_yaxes(**GRID)
 f.write_image(f'{OUT}/xb4_dumbbell.png',width=1200,height=560,scale=3)
 
-# ===== 4) SIX per-variable figures (shaded band + box per day + effect) =====
+# ===== 4) SIX per-variable figures (escala ajustada à caixa; outliers extremos clipados) =====
+def ycap4(k):
+    caps=[]
+    for d in days:
+        yv=h[h.dia==d][k].dropna()
+        if len(yv)<3: continue
+        q1,q3=yv.quantile([.25,.75]); caps.append(q3+1.5*(q3-q1))
+    cap=max(caps) if caps else float(h[k].max())
+    return [-0.4, float(min(16.5, np.ceil(cap)+1))]
 for k in SUB:
     m,se=dstat(k)
     f=go.Figure()
@@ -61,13 +69,16 @@ for k in SUB:
     f.add_trace(go.Scatter(x=list(days)+list(days[::-1]),y=list(up)+list(lo[::-1]),fill='toself',fillcolor=RGBA[k],mode='lines',line=dict(width=0),showlegend=False,hoverinfo='skip'))
     for d in days:
         yv=h[h.dia==d][k].dropna()
-        f.add_trace(go.Box(x=[d]*len(yv),y=yv,marker=dict(color=HEX[k],size=3),line=dict(width=1),fillcolor=RGBA[k],opacity=0.5,boxpoints='outliers',showlegend=False,width=0.5))
-    f.add_trace(go.Scatter(x=days,y=m,mode='lines+markers',line=dict(color=HEX[k],width=5.5),marker=dict(size=12,line=dict(color='white',width=1.5)),showlegend=False))
+        f.add_trace(go.Box(x=[d]*len(yv),y=yv,marker=dict(color=HEX[k],size=5,opacity=0.6),line=dict(width=2.4,color=HEX[k]),fillcolor=RGBA[k],opacity=0.5,boxpoints='outliers',showlegend=False,width=0.55))
+    f.add_trace(go.Scatter(x=days,y=m,mode='lines+markers',line=dict(color=HEX[k],width=6),marker=dict(size=13,line=dict(color='white',width=1.8)),showlegend=False))
+    rng=ycap4(k)
     dz=S4['sens'][k]['dz']; fr=S4['friedman'][k]
-    f.add_annotation(x=1,y=max(up)*1.02,xanchor='left',showarrow=False,font=dict(size=13,color='#333'),
-        text='Δ D1→D7: dz = %s · Friedman p = %s'%(('%+.2f'%dz).replace('.',','),(('%.3f'%fr['p']).replace('.',','))))
-    f.update_layout(**base(height=470,width=900,title=dict(text='<b>%s</b>'%NM[k],x=0.5,font=dict(size=18))))
-    f.update_xaxes(title='Dia',dtick=1,**GRID); f.update_yaxes(title='Escore (0–16)',**GRID)
+    f.add_annotation(x=0.02,y=0.97,xref='paper',yref='paper',xanchor='left',yanchor='top',showarrow=False,
+        font=dict(size=14,color='#333'),bgcolor='rgba(255,255,255,0.75)',
+        text='Δ Dia 1→Dia 7: dz = %s · Friedman p = %s'%(('%+.2f'%dz).replace('.',','),(('%.3f'%fr['p']).replace('.',','))))
+    f.update_layout(**base(height=470,width=900,title=dict(text='<b>%s</b>'%NM[k],x=0.5,font=dict(size=19))))
+    f.update_xaxes(title='Dia do microciclo',dtick=1,**GRID)
+    f.update_yaxes(title='Escore',range=rng,dtick=(1 if rng[1]<=8 else 2),**GRID)
     f.write_image(f'{OUT}/xb4_v_{k}.png',width=1000,height=520,scale=3)
 
 # ===== 5) INDIVIDUAL spaghetti (Vigor, Fadiga) =====

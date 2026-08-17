@@ -29,17 +29,27 @@ for idx,k in enumerate(ORDER):
 f.update_layout(**base(height=620,width=1400))
 f.write_image(f'{OUT}/xb3_hist.png',width=1500,height=680,scale=3)
 
-# ============ BOXPLOTS by day (2x3) ============
+# ============ BOXPLOTS by day (2x3) — escala ajustada à caixa (outliers extremos clipados) ============
+def ycap(k):
+    caps=[]
+    for d in days:
+        yv=h[h.dia==d][k].dropna()
+        if len(yv)<3: continue
+        q1,q3=yv.quantile([.25,.75]); caps.append(q3+1.5*(q3-q1))
+    cap=max(caps) if caps else float(h[k].max())
+    return [-0.4, float(min(16.5, np.ceil(cap)+1))]
 f=make_subplots(rows=2,cols=3,vertical_spacing=0.13,horizontal_spacing=0.07,
     subplot_titles=['<b>%s</b>'%NM[k] for k in ORDER])
 for idx,k in enumerate(ORDER):
     r,c=divmod(idx,3); r+=1; c+=1
     for d in days:
         yv=h[h.dia==d][k].dropna()
-        f.add_trace(go.Box(y=yv,name=str(d),marker=dict(color=PAL[k]),line=dict(width=1.5),
-            fillcolor=PAL[k],opacity=0.55,boxpoints='outliers',marker_size=4,showlegend=False,width=0.6),r,c)
-    f.update_xaxes(title='Dia' if r==2 else '',row=r,col=c,**GRID)
-    f.update_yaxes(title='Escore (0–16)' if c==1 else '',row=r,col=c,**GRID)
-f.update_layout(**base(height=680,width=1420,boxgap=0.25))
-f.write_image(f'{OUT}/xb3_box.png',width=1520,height=740,scale=3)
+        f.add_trace(go.Box(y=yv,name=str(d),marker=dict(color=PAL[k]),line=dict(width=2.6,color=PAL[k]),
+            fillcolor=PAL[k],opacity=0.45,boxpoints='outliers',marker_size=5,marker_opacity=0.6,
+            showlegend=False,width=0.62),r,c)
+    rng=ycap(k)
+    f.update_xaxes(title='Dia' if r==2 else '',dtick=1,row=r,col=c,**GRID)
+    f.update_yaxes(title='Escore' if c==1 else '',range=rng,dtick=(1 if rng[1]<=8 else 2),row=r,col=c,**GRID)
+f.update_layout(**base(height=700,width=1440,boxgap=0.25))
+f.write_image(f'{OUT}/xb3_box.png',width=1560,height=760,scale=3)
 print('figs OK: xb3_hist, xb3_box')
