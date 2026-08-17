@@ -329,6 +329,64 @@ except FileNotFoundError:
     print('  [tcar2_features.csv não encontrado — pulei o bloco T-CAR]')
 
 # =============================================================================
+# 10b) REGRESSÕES LOGÍSTICAS ADICIONAIS (alinhadas aos objetivos)
+#      A) Migração de perfil ~ dia (P(iceberg) e P(barbatana de tubarão) por dia)
+#      B) Aptidão -> prontidão: P(iceberg) ~ PV(T-CAR1)
+#      C) Limiar de baixo vigor (tercil inferior) ~ PV(T-CAR1)
+#      IC das razões de chances por bootstrap de ATLETAS (semente 2024).
+# =============================================================================
+titulo('10b) REGRESSÕES LOGÍSTICAS ADICIONAIS (perfil~dia; iceberg~PV; baixo vigor~PV)')
+def logit_glm(X, y):
+    """Newton-Raphson multivariado. X sem intercepto. Retorna b, McFadden, AIC, BIC, AUC."""
+    X = np.asarray(X, float); y = np.asarray(y, float); n = len(y)
+    if X.ndim == 1: X = X[:, None]
+    Xd = np.column_stack([np.ones(n), X]); p = Xd.shape[1]; b = np.zeros(p)
+    for _ in range(400):
+        pr = 1/(1+np.exp(-(Xd@b))); W = pr*(1-pr)+1e-9
+        b -= np.linalg.solve(-(Xd*W[:,None]).T@Xd, Xd.T@(y-pr))
+    pr = np.clip(1/(1+np.exp(-(Xd@b))), 1e-9, 1-1e-9)
+    ll = float(np.sum(y*np.log(pr)+(1-y)*np.log(1-pr)))
+    p0 = y.mean(); ll0 = float(np.sum(y*np.log(p0)+(1-y)*np.log(1-p0)))
+    pos, neg = pr[y==1], pr[y==0]
+    auc = float(stats.mannwhitneyu(pos,neg).statistic/(len(pos)*len(neg))) if len(pos) and len(neg) else float('nan')
+    return b, 1-ll/ll0, 2*p-2*ll, p*np.log(n)-2*ll, auc
+def boot_or1(sub, xcols, ycol, seed=2024, B=1000):
+    ids = sub['ID'].unique(); rng = np.random.default_rng(seed); ors = []
+    for _ in range(B):
+        g = pd.concat([sub[sub.ID==i] for i in rng.choice(ids, len(ids), True)])
+        try: ors.append(np.exp(logit_glm(g[xcols].values, g[ycol].values)[0][1]))
+        except Exception: pass
+    return tuple(np.nanpercentile(ors, [2.5, 97.5]))
+try:
+    Ff = pd.read_csv('tcar2_features.csv')[['ID','PVini']]
+    hp = h.merge(Ff, on='ID', how='left')
+    print('  A) Migração de perfil ~ dia (OR por dia):')
+    for perfil in ['Iceberg', 'Barbatana tubarão']:
+        s = hp.dropna(subset=['dia']).copy(); s['y'] = (s.perfil==perfil).astype(int)
+        b, mcf, aic, bic, auc = logit_glm(s['dia'].values, s['y'].values)
+        lo, hi = boot_or1(s, ['dia'], 'y')
+        pd1 = 1/(1+np.exp(-(b[0]+b[1]*1))); pd7 = 1/(1+np.exp(-(b[0]+b[1]*7)))
+        print('     %-20s OR=%.2f [%.2f-%.2f] P(D1)=%.2f P(D7)=%.2f McFadden=%.3f AUC=%.2f'
+              % (perfil, np.exp(b[1]), lo, hi, pd1, pd7, mcf, auc))
+    print('  B) P(iceberg) ~ PV(T-CAR1):')
+    s = hp.dropna(subset=['PVini']).copy(); s['y'] = (s.perfil=='Iceberg').astype(int)
+    b, mcf, aic, bic, auc = logit_glm(s['PVini'].values, s['y'].values); lo, hi = boot_or1(s, ['PVini'], 'y')
+    print('     OR=%.2f/km-h [%.2f-%.2f] McFadden=%.3f AUC=%.2f' % (np.exp(b[1]), lo, hi, mcf, auc))
+    print('  C) P(dia de baixo vigor: vigor<=tercil inferior) ~ PV(T-CAR1):')
+    dv = h.groupby(['ID','dia']).agg(Vigor=('Vigor','mean')).reset_index().merge(Ff, on='ID').dropna(subset=['PVini'])
+    cutv = dv.Vigor.quantile(1/3); dv['lo'] = (dv.Vigor<=cutv).astype(int)
+    b, mcf, aic, bic, auc = logit_glm(dv['PVini'].values, dv['lo'].values)
+    xv, yv = dv['PVini'].values, dv['lo'].values; best = None
+    for tt in np.unique(xv):
+        pred = (xv<=tt).astype(int)
+        se = np.sum((pred==1)&(yv==1))/(np.sum(yv==1)+1e-9); sp = np.sum((pred==0)&(yv==0))/(np.sum(yv==0)+1e-9)
+        if best is None or se+sp-1>best[1]: best = (float(tt), se+sp-1, se, sp)
+    print('     OR=%.2f/km-h limiar(Youden)=%.1f km/h (sens=%.2f esp=%.2f) McFadden=%.3f AUC=%.2f'
+          % (np.exp(b[1]), best[0], best[2], best[3], mcf, auc))
+except FileNotFoundError:
+    print('  [tcar2_features.csv não encontrado — pulei as logísticas adicionais]')
+
+# =============================================================================
 # 11) SONOLÊNCIA (Epworth) e ESTRESSE (PSS-14)
 # =============================================================================
 titulo('11) SONOLÊNCIA (Epworth, 0-18) e ESTRESSE (PSS-14, 0-56)')

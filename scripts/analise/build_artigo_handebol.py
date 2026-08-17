@@ -10,6 +10,7 @@ R=json.load(open('brums_desc2.json')); STAT=json.load(open('brums_stats3.json'))
 MS=json.load(open('model_stats.json')); MV=json.load(open('manova.json')); PHJ=json.load(open('posthoc.json'))
 PV=json.load(open('pv_stats.json')); LIM=json.load(open('tcar_limiar.json')); TCD=json.load(open('tcar_desc.json'))
 TCV=json.load(open('tcar_curvas.json'))
+LOG=json.load(open('logistica.json'))
 CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json')); SM=json.load(open('smooth.json')); IND=json.load(open('indiv.json')); AUD=json.load(open('audit.json')); CP=json.load(open('cross_pt.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
@@ -245,6 +246,11 @@ P('Como confirmação robusta, as comparações Dia 1 → Dia 7 e pré → pós 
  '(fadiga física e vigor) foi ajustada por três modelos concorrentes — linear, logarítmico (ln do pico de velocidade) e '
  'polinomial de 2º grau —, selecionando-se o de melhor compromisso entre ajuste e parcimônia pelo menor AIC/BIC, além do '
  'R² ajustado e do RMSE; para o modelo logístico, comparou-se ainda o preditor na escala bruta contra a logarítmica. '
+ 'A migração de perfil ao longo da semana foi testada como tendência por regressão logística da probabilidade de cada '
+ 'perfil (iceberg e barbatana de tubarão) em função do dia do microciclo, e modelou-se também a probabilidade de um dia '
+ 'de baixo vigor (tercil inferior) e a de exibir o perfil iceberg em função do pico de velocidade; os intervalos de '
+ 'confiança das razões de chances e das áreas sob a curva foram obtidos por reamostragem (bootstrap, 1000 repetições) '
+ 'de atletas, para acomodar a estrutura de medidas repetidas. '
  'Para separar o efeito da aptidão do efeito do tamanho corporal, o pico de velocidade foi '
  'ainda submetido a ajuste alométrico: estimou-se o expoente da relação alométrica pela regressão log(PV)–log(massa) e '
  'normalizou-se o PV pela massa elevada a esse expoente, comparando-se as associações do PV bruto e do PV normalizado '
@@ -384,6 +390,27 @@ P('A forma de cada cluster identificado na amostra (Figura %d) reproduz a taxono
  'de referência. Isso evidencia o efeito específico do acúmulo de carga da última semana de pré-temporada sobre o perfil '
  'de fadiga, sem instalação relevante dos perfis de maior risco à saúde mental (Everest invertido e submerso).'%(
    f_clu,c2('%.0f'%(100*PREV['D1']['Iceberg']/PREV['n_d1'])),c2('%.0f'%(100*PREV['D7']['Barbatana tubarão']/PREV['n_d7']))))
+# --- regressão logística: migração de perfil ~ dia (tendência) ---
+MIG=LOG['migracao']
+def migrow(key,lab):
+    f=MIG[key]; return [lab,'%s [%s–%s]'%(c2('%.2f'%f['OR_dia']),c2('%.2f'%f['OR_lo']),c2('%.2f'%f['OR_hi'])),
+        c2('%.2f'%f['p_d1']),c2('%.2f'%f['p_d7']),c2('%.2f'%f['auc']),c2('%.3f'%f['mcfadden'])]
+tmig=table('Regressão logística da probabilidade de perfil de humor em função do dia do microciclo (tendência): razão de chances por dia, probabilidade prevista no Dia 1 e no Dia 7, discriminação e ajuste.',
+    ['Perfil (desfecho)','OR por dia [IC95%]','P(Dia 1)','P(Dia 7)','AUC','Pseudo-R²'],
+    [migrow('iceberg','Iceberg'),migrow('barbatana','Barbatana de tubarão')],
+    note='OR = razão de chances (odds ratio) por incremento de um dia; IC95% por reamostragem (bootstrap) de atletas; Pseudo-R² de McFadden. OR > 1 indica aumento da chance do perfil ao longo da semana.',fs=8.5)
+mb=MIG['barbatana']; mi=MIG['iceberg']
+P('Para testar a migração de perfil como uma tendência ao longo da semana — e não pela via categórica de baixa potência '
+ 'do qui-quadrado —, ajustou-se uma regressão logística da probabilidade de cada perfil em função do dia do microciclo '
+ '(Tabela %d). A chance do perfil de barbatana de tubarão cresceu de forma consistente a cada dia (OR = %s por dia; '
+ 'IC95%% %s–%s), com a probabilidade prevista subindo de %s no Dia 1 para %s no Dia 7 — um aumento estatisticamente '
+ 'sustentado (o IC95%% do OR exclui 1), que dá suporte inferencial à migração que o teste categórico não captara. Em '
+ 'espelho, a chance do perfil iceberg declinou ao longo da semana, embora sem significância (OR = %s por dia; IC95%% '
+ '%s–%s). O contraste confirma, no plano dos perfis, o mesmo eixo energia–fadiga: à medida que a semana avança, a '
+ 'prontidão cede lugar à assinatura de fadiga.'%(
+   tmig,c2('%.2f'%mb['OR_dia']),c2('%.2f'%mb['OR_lo']),c2('%.2f'%mb['OR_hi']),
+   c2('%.2f'%mb['p_d1']),c2('%.2f'%mb['p_d7']),
+   c2('%.2f'%mi['OR_dia']),c2('%.2f'%mi['OR_lo']),c2('%.2f'%mi['OR_hi'])))
 H('3.10 Aptidão intermitente (T-CAR): regressão, comparação de modelos e limiar de pico de velocidade',12,before=6)
 def tcrow(o):
     lab='Pico de velocidade — T-CAR (km/h)' if o['k']=='PVini' else o['lab']
@@ -431,6 +458,19 @@ P('Para verificar se a relação entre a aptidão e a resposta de humor seria ma
  'limiar de pico de velocidade.'%(
    tcv,f_cv,c2('%.1f'%TCV['cont']['FadFisica']['linear']['aic']),c2('%.1f'%TCV['cont']['Vigor']['linear']['aic']),
    c2('%.1f'%dAIC),c2('%.3f'%LGa['mcfadden']),c2('%.2f'%LGa['auc']),c2('%.1f'%LGa['aic']),c2('%.1f'%LGb['aic'])))
+# --- logísticas complementares: baixo vigor ~ PV e iceberg ~ PV ---
+BV=LOG['baixo_vigor']; BPV=LOG['aptidao']['iceberg_pv']
+P('Duas regressões logísticas complementares fecham a leitura da aptidão. Simetricamente ao limiar de fadiga, modelou-se '
+ 'a probabilidade de um dia de baixo vigor (vigor no tercil inferior) em função do pico de velocidade: cada km/h a mais '
+ 'reduziu a chance de um dia de baixo vigor (OR = %s por km/h) e o índice de Youden localizou um limiar de '
+ 'aproximadamente %s km/h (sensibilidade = %s; especificidade = %s; área sob a curva = %s [IC95%% %s–%s]), próximo ao '
+ 'limiar de fadiga e reforçando o pico de velocidade como referência objetiva de prontidão. Por fim, a probabilidade de '
+ 'o atleta exibir o perfil iceberg tendeu a crescer com a aptidão (OR = %s por km/h; área sob a curva = %s), porém sem '
+ 'significância (IC95%% %s–%s) — direção coerente com o papel protetor da capacidade aeróbia, que esta amostra, contudo, '
+ 'não teve potência para confirmar.'%(
+   c2('%.2f'%BV['OR_kmh']),c2('%.1f'%BV['thr']),c2('%.2f'%BV['sens']),c2('%.2f'%BV['spec']),
+   c2('%.2f'%BV['auc']),c2('%.2f'%BV['auc_lo']),c2('%.2f'%BV['auc_hi']),
+   c2('%.2f'%BPV['OR_pv']),c2('%.2f'%BPV['auc']),c2('%.2f'%BPV['OR_lo']),c2('%.2f'%BPV['OR_hi'])))
 
 # ----- 3.11 Sonolência e estresse percebido -----
 H('3.11 Sonolência (Epworth) e estresse percebido (PSS-14)',12,before=6)
@@ -700,9 +740,12 @@ P('Um achado de particular interesse foi a natureza dependente da carga na rela�
    c2('%+.2f'%FP['D1']['Depressao']['rho_fad']),c2('%+.2f'%FP['D1']['Raiva']['rho_fad']),
    c2('%+.2f'%FP['D7']['Depressao']['rho_fad']),c2('%+.2f'%FP['D7']['Raiva']['rho_fad'])))
 P('No plano dos perfis de humor, o deslocamento de prevalência do iceberg (prontidão) para a barbatana de tubarão '
- '(fadiga funcional) ao longo da semana — uma tendência descritiva, já que a diferença categórica não atingiu '
- 'significância — reproduz, em um microciclo de handebol, o “derretimento do iceberg” descrito na literatura de '
- 'sobrecarga (MORGAN, 1985; HAN; PARSONS-SMITH; TERRY, 2020). É relevante que, mesmo sob o acúmulo de carga da '
+ '(fadiga funcional) ao longo da semana — que a regressão logística de tendência confirmou para o perfil de barbatana '
+ 'de tubarão, cuja chance cresceu cerca de %s%% por dia (OR = %s por dia; IC95%% exclui 1), ainda que a via categórica '
+ 'do qui-quadrado, de menor potência, não a tenha detectado — reproduz, em um microciclo de handebol, o “derretimento '
+ 'do iceberg” descrito na literatura de sobrecarga (MORGAN, 1985; HAN; PARSONS-SMITH; TERRY, 2020).'%(
+   c2('%.0f'%(100*(LOG['migracao']['barbatana']['OR_dia']-1))),c2('%.2f'%LOG['migracao']['barbatana']['OR_dia'])))
+P('É relevante que, mesmo sob o acúmulo de carga da '
  'pré-temporada, os perfis associados a maior risco à saúde mental (Everest invertido, submerso e iceberg invertido) não '
  'se tornaram prevalentes: a deterioração restringiu-se ao perfil de fadiga, cuja prevalência no último dia (%s%%) '
  'superou nitidamente o patamar de referência de atletas do mesmo contexto brasileiro (11,6%% em avaliação momentânea; '
