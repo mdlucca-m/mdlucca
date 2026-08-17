@@ -10,7 +10,7 @@ h=pd.read_csv('hum_prof.csv'); S4=json.load(open('brums_stats4.json'))
 days=np.arange(1,8)
 HEX={'Vigor':'#2f9e44','Fadiga':'#e8590c','TMD':'#6741d9','Tensao':'#1971c2','Depressao':'#9c36b5','Raiva':'#e03131','Confusao':'#f08c00'}
 RGBA={'Vigor':'rgba(47,158,68,.18)','Fadiga':'rgba(232,89,12,.18)','TMD':'rgba(103,65,217,.16)','Tensao':'rgba(25,113,194,.16)','Depressao':'rgba(156,54,181,.16)','Raiva':'rgba(224,49,49,.16)','Confusao':'rgba(240,140,0,.16)'}
-NM={'Vigor':'Vigor','Fadiga':'Fadiga','TMD':'PTH/TMD','Tensao':'Tensão','Depressao':'Depressão','Raiva':'Raiva','Confusao':'Confusão'}
+NM={'Vigor':'Vigor','Fadiga':'Fadiga','TMD':'PTH','Tensao':'Tensão','Depressao':'Depressão','Raiva':'Raiva','Confusao':'Confusão'}
 def base(**k):
     b=dict(template='mdpi',font=dict(color='#1a1a1a',size=15,family='Arial'),paper_bgcolor='white',plot_bgcolor='white',margin=dict(l=60,r=22,t=50,b=48)); b.update(k); return b
 GRID=dict(gridcolor='#eceef1',zeroline=False)
@@ -18,7 +18,7 @@ wk=h.groupby('ID')[list(HEX)].mean()
 def dstat(k): return h.groupby('dia')[k].mean().reindex(days).values, h.groupby('dia')[k].sem().reindex(days).values
 
 # ===== 1) SCATTER MATRIX (dispersão) 6 subescalas =====
-SUB=['Vigor','Fadiga','Tensao','Depressao','Raiva','Confusao']
+SUB=['Tensao','Depressao','Raiva','Vigor','Fadiga','Confusao']
 f=go.Figure(go.Splom(dimensions=[dict(label=NM[k],values=wk[k]) for k in SUB],
     marker=dict(color='#1c7ed6',size=6,opacity=0.7,line=dict(color='white',width=0.5)),diagonal=dict(visible=False),showupperhalf=False))
 f.update_layout(**base(height=900,width=980,margin=dict(l=70,r=20,t=30,b=40)))
@@ -26,7 +26,7 @@ f.write_image(f'{OUT}/xb4_splom.png',width=1080,height=1000,scale=3)
 
 # ===== 2) BIG all-variables by day (z-standardized) =====
 f=go.Figure()
-ORD=['Vigor','Fadiga','TMD','Tensao','Depressao','Raiva','Confusao']
+ORD=['Tensao','Depressao','Raiva','Vigor','Fadiga','Confusao','TMD']
 for k in ORD:
     mu=h[k].mean(); sd=h[k].std(ddof=1); z=(h.groupby('dia')[k].mean().reindex(days)-mu)/sd
     dash='solid' if k in ('Vigor','Fadiga','TMD') else 'dot'

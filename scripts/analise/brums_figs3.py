@@ -9,7 +9,7 @@ h=pd.read_csv('hum_prof.csv')
 days=np.arange(1,8)
 PAL={'Vigor':'#2f9e44','Fadiga':'#e8590c','Tensao':'#1971c2','Depressao':'#9c36b5','Raiva':'#e03131','Confusao':'#f08c00'}
 NM={'Vigor':'Vigor','Fadiga':'Fadiga','Tensao':'Tensão','Depressao':'Depressão','Raiva':'Raiva','Confusao':'Confusão'}
-ORDER=['Vigor','Fadiga','Tensao','Depressao','Raiva','Confusao']
+ORDER=['Tensao','Depressao','Raiva','Vigor','Fadiga','Confusao']
 def base(**k):
     b=dict(template='mdpi',font=dict(color='#1a1a1a',size=15,family='Arial'),paper_bgcolor='white',plot_bgcolor='white',
         margin=dict(l=58,r=20,t=48,b=48)); b.update(k); return b

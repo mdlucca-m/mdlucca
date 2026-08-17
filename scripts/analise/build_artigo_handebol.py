@@ -67,7 +67,8 @@ def pstr(p): return '< 0,001' if p<0.001 else '= '+c2('%.3f'%p)
 mvv=lambda tab,k,f: next(x[f] for x in MV[tab]['rows'] if x['k']==k)
 pr=R['prepos']; d17=R['d1d7']; prof=R['profiles']; sm=R['sample']; desc=R['desc']; PREV=MS['prev']
 SH=STAT['shapiro']; IC=STAT['icc']; LP=LIM['LIM']['PVini']; FR=S4['friedman']; SENS=S4['sens']
-ORD=[('Vigor','Vigor'),('Fadiga','Fadiga'),('TMD','PTH'),('Tensao','Tensão'),('Depressao','Depressão'),('Raiva','Raiva'),('Confusao','Confusão')]
+# ordem canônica POMS/BRUMS: Tensão–Depressão–Raiva–Vigor–Fadiga–Confusão–PTH
+ORD=[('Tensao','Tensão'),('Depressao','Depressão'),('Raiva','Raiva'),('Vigor','Vigor'),('Fadiga','Fadiga'),('Confusao','Confusão'),('TMD','PTH')]
 
 # ===== TÍTULO =====
 p=doc.add_paragraph(); p.alignment=WD_ALIGN_PARAGRAPH.CENTER
@@ -322,7 +323,7 @@ P('As Figuras %d a %d apresentam, para cada dimensão, o comportamento ao longo 
  'individualmente como cada estado de humor evolui. Nessas figuras, o efeito Dia 1 → Dia 7 é expresso pelo dz (mudança '
  'padronizada intraindividual), numericamente idêntico ao d relatado na análise multivariada (Tabela 9), e o valor de p '
  'é o do teste de Friedman apresentado na Tabela 6.'%(_FN[0]+1,_FN[0]+6))
-for k,fn,lab in [('Vigor','xb4_v_Vigor.png','Vigor'),('Fadiga','xb4_v_Fadiga.png','Fadiga'),('Tensao','xb4_v_Tensao.png','Tensão'),('Depressao','xb4_v_Depressao.png','Depressão'),('Raiva','xb4_v_Raiva.png','Raiva'),('Confusao','xb4_v_Confusao.png','Confusão')]:
+for k,fn,lab in [('Tensao','xb4_v_Tensao.png','Tensão'),('Depressao','xb4_v_Depressao.png','Depressão'),('Raiva','xb4_v_Raiva.png','Raiva'),('Vigor','xb4_v_Vigor.png','Vigor'),('Fadiga','xb4_v_Fadiga.png','Fadiga'),('Confusao','xb4_v_Confusao.png','Confusão')]:
     figure(f'{FG}/{fn}','%s ao longo da semana: média diária (banda = IC95%%), diagramas de caixa por dia e efeito Dia 1 → Dia 7.'%lab,w=12.5)
 PA=STAT['pairs']; FP=STAT['focusp']; sig=[x for x in PA if x['p']<0.05]
 tcorr=table('Correlação de Spearman entre as dimensões do BRUMS com associação significativa (n = %d atletas).'%sm['n'],
@@ -437,12 +438,13 @@ H('3.13 Modelagem polinomial das trajetórias: derivadas e taxa de variação',1
 def dvrow(k,l):
     v=DV['vars'][k]
     infl=', '.join('%s'%c2('%.1f'%x) for x in v['infl']) or '—'
-    return [l,c2('%.2f'%v['r2']),c2('%+.2f'%v['taxa_media']),c2('%+.2f'%v['dP1']),c2('%+.2f'%v['dP7']),infl]
+    return [l,c2('%.2f'%v['r2']),c2('%+.2f'%v['taxa_media']),c2('%+.2f'%v['dP1']),c2('%+.2f'%v['dP7']),
+            c2('%+.2f'%v['d2P1']),c2('%+.2f'%v['d2P7']),infl]
 DVORD=[('Vigor','Vigor'),('Fadiga','Fadiga'),('TMD','PTH')]   # eixo energia–fadiga (dimensões sem efeito de piso)
-tdv=table('Modelagem polinomial (grau %d) das médias diárias do eixo energia–fadiga: qualidade do ajuste (R²), taxa de variação média (pontos/dia), taxa instantânea nas bordas (P′ no Dia 1 e no Dia 7) e ponto de inflexão.'%DV['grau'],
-    ['Dimensão','R²','Taxa média/dia','P′(Dia 1)','P′(Dia 7)','Inflexão (dia)'],
+tdv=table('Modelagem polinomial (grau %d) das médias diárias do eixo energia–fadiga: qualidade do ajuste (R²), taxa de variação média, taxa instantânea (P′) e aceleração (P″) nas bordas, e ponto de inflexão.'%DV['grau'],
+    ['Dimensão','R²','Taxa média/dia','P′(D1)','P′(D7)','P″(D1)','P″(D7)','Inflexão (dia)'],
     [dvrow(k,l) for k,l in DVORD],
-    note='P′ = derivada primeira (taxa de variação instantânea); inflexão = raiz da derivada segunda (P″ = 0) no intervalo. As dimensões negativas, com forte efeito de piso e ajuste fraco, foram omitidas.',fs=9)
+    note='P′ = derivada primeira (taxa de variação); P″ = derivada segunda (aceleração/concavidade); inflexão = raiz de P″ = 0. As dimensões negativas, com efeito de piso e ajuste fraco, foram omitidas.',fs=8.5)
 f_dv=figure(f'{FG}/deriv_poly.png','Ajuste polinomial P(t) das médias diárias de vigor e fadiga, com a derivada P′(t) (taxa de variação) e o ponto de inflexão.',w=15.0)
 VG=DV['vars']['Vigor']; FD=DV['vars']['Fadiga']
 P('Para caracterizar formalmente a dinâmica temporal, ajustou-se uma função polinomial de grau %d às médias diárias de '
@@ -458,6 +460,18 @@ P('Para caracterizar formalmente a dinâmica temporal, ajustou-se uma função p
    DV['grau'],tdv,f_dv,c2('%.2f'%VG['r2']),c2('%.2f'%FD['r2']),
    c2('%.2f'%VG['taxa_media']),c2('%+.2f'%VG['dP1']),c2('%+.2f'%FD['taxa_media']),c2('%+.2f'%FD['dP1']),
    c2('%.1f'%VG['infl'][0])))
+cVF=DV['couple'].get('Vigor|Fadiga'); cFT=DV['couple'].get('Fadiga|TMD'); cVT=DV['couple'].get('Vigor|TMD')
+P('A derivada segunda (P″) descreve a aceleração da mudança e a concavidade da trajetória. No vigor, P″ é positiva no '
+ 'início (%s) — a queda, embora acentuada, desacelera rumo ao meio da semana — e torna-se negativa ao final (%s), quando '
+ 'a curva volta a se inclinar para o mínimo do Dia 7; a fadiga apresenta o padrão espelhado (P″ = %s no Dia 1; %s no Dia '
+ '7). A troca de sinal de P″ no dia ≈ 4 confirma, formalmente, a inflexão sincronizada das duas dimensões. Quanto ao '
+ 'comportamento conjunto, as curvas de taxa de variação (P′) do vigor e da fadiga são praticamente imagens especulares: '
+ 'a correlação entre elas é de %s, indicando que a perda de energia e o ganho de fadiga aceleram e desaceleram em '
+ 'uníssono ao longo do microciclo. Ambas acoplam-se fortemente à Perturbação Total do Humor (fadiga–PTH = %s; '
+ 'vigor–PTH = %s), o que confirma, no plano das derivadas, que energia e fadiga operam como um eixo único e integrado — '
+ 'o mesmo eixo que domina toda a resposta afetiva à carga.'%(
+   c2('%+.2f'%VG['d2P1']),c2('%+.2f'%VG['d2P7']),c2('%+.2f'%FD['d2P1']),c2('%+.2f'%FD['d2P7']),
+   c2('%+.2f'%cVF),c2('%+.2f'%cFT),c2('%+.2f'%cVT)))
 
 # ===== 4 DISCUSSÃO =====
 H('4 DISCUSSÃO')

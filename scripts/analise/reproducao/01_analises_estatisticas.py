@@ -350,17 +350,24 @@ except FileNotFoundError:
 #     Ajusta P(t) (grau 3) às médias diárias e deriva: taxa de variação
 #     instantânea P'(t), pontos críticos (P'=0) e inflexão (P''=0).
 # =============================================================================
-titulo('13) MODELAGEM POLINOMIAL — derivadas e taxa de variação')
+titulo('13) MODELAGEM POLINOMIAL — 1ª e 2ª derivadas, taxa de variação e acoplamento')
 GR = 3
+# ordem canônica POMS/BRUMS
+CANON = ['Tensao','Depressao','Raiva','Vigor','Fadiga','Confusao','TMD']
+tt = np.linspace(1, 7, 601); dcur = {}   # mesmo intervalo do artigo
 print('  Ajuste polinomial grau %d (médias diárias):' % GR)
-for k in ['Vigor','Fadiga','TMD','Tensao','Depressao','Raiva','Confusao']:
+for k in CANON:
     y = h.groupby('dia')[k].mean().reindex(range(1,8)).values   # média por observação (como no artigo)
     t = np.arange(1, 8)
     c = np.polyfit(t, y, GR); P = np.poly1d(c); dP = P.deriv(1); d2P = P.deriv(2)
     r2 = 1 - ((y-P(t))**2).sum()/((y-y.mean())**2).sum()
-    crit = sorted(round(float(r.real),1) for r in dP.roots if abs(r.imag)<1e-6 and 1<=r.real<=7)
     infl = sorted(round(float(r.real),1) for r in d2P.roots if abs(r.imag)<1e-6 and 1<=r.real<=7)
-    print('    %-10s R²=%.2f | taxa média=%+.2f/dia | P\'(1)=%+.2f P\'(7)=%+.2f | crítico=%s | inflexão=%s'
-          % (LAB.get(k,k), r2, (y[-1]-y[0])/6, dP(1), dP(7), crit, infl))
+    dcur[k] = dP(tt)
+    print('    %-10s R²=%.2f | P\'(1)=%+.2f P\'(7)=%+.2f | P"(1)=%+.2f P"(7)=%+.2f | inflexão=%s'
+          % (LAB.get(k,k), r2, dP(1), dP(7), d2P(1), d2P(7), infl))
+# acoplamento entre variáveis: correlação das curvas de 1ª derivada
+print('  Acoplamento (correlação das curvas P\'):')
+for a, b in [('Vigor','Fadiga'), ('Fadiga','TMD'), ('Vigor','TMD')]:
+    print('    %-8s x %-8s r=%+.2f' % (LAB.get(a,a), LAB.get(b,b), np.corrcoef(dcur[a], dcur[b])[0,1]))
 
 print('\n' + '='*72 + '\nFIM — todos os resultados acima reproduzem os valores do artigo.\n' + '='*72)
