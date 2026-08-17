@@ -3,6 +3,7 @@ import warnings; warnings.filterwarnings('ignore')
 import numpy as np, pandas as pd, json
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import mdpi_style  # estilo MDPI (registra template e torna padrão)
 OUT='/home/user/mdlucca/Artigos/figuras'
 h=pd.read_csv('hum_prof.csv')
 days=np.arange(1,8)
@@ -10,7 +11,7 @@ PAL={'Vigor':'#2f9e44','Fadiga':'#e8590c','Tensao':'#1971c2','Depressao':'#9c36b
 NM={'Vigor':'Vigor','Fadiga':'Fadiga','Tensao':'Tensão','Depressao':'Depressão','Raiva':'Raiva','Confusao':'Confusão'}
 ORDER=['Vigor','Fadiga','Tensao','Depressao','Raiva','Confusao']
 def base(**k):
-    b=dict(template='plotly_white',font=dict(color='#1a1a1a',size=15,family='Arial'),paper_bgcolor='white',plot_bgcolor='white',
+    b=dict(template='mdpi',font=dict(color='#1a1a1a',size=15,family='Arial'),paper_bgcolor='white',plot_bgcolor='white',
         margin=dict(l=58,r=20,t=48,b=48)); b.update(k); return b
 GRID=dict(gridcolor='#eceef1',zeroline=False)
 

@@ -438,22 +438,24 @@ def dvrow(k,l):
     v=DV['vars'][k]
     infl=', '.join('%s'%c2('%.1f'%x) for x in v['infl']) or '—'
     return [l,c2('%.2f'%v['r2']),c2('%+.2f'%v['taxa_media']),c2('%+.2f'%v['dP1']),c2('%+.2f'%v['dP7']),infl]
-tdv=table('Modelagem polinomial (grau %d) das médias diárias: qualidade do ajuste (R²), taxa de variação média (pontos/dia), taxa instantânea nas bordas (P′ no Dia 1 e no Dia 7) e ponto de inflexão.'%DV['grau'],
+DVORD=[('Vigor','Vigor'),('Fadiga','Fadiga'),('TMD','PTH')]   # eixo energia–fadiga (dimensões sem efeito de piso)
+tdv=table('Modelagem polinomial (grau %d) das médias diárias do eixo energia–fadiga: qualidade do ajuste (R²), taxa de variação média (pontos/dia), taxa instantânea nas bordas (P′ no Dia 1 e no Dia 7) e ponto de inflexão.'%DV['grau'],
     ['Dimensão','R²','Taxa média/dia','P′(Dia 1)','P′(Dia 7)','Inflexão (dia)'],
-    [dvrow(k,l) for k,l in ORD],
-    note='P′ = derivada primeira (taxa de variação instantânea); inflexão = raiz da derivada segunda (P″ = 0) no intervalo.',fs=9)
+    [dvrow(k,l) for k,l in DVORD],
+    note='P′ = derivada primeira (taxa de variação instantânea); inflexão = raiz da derivada segunda (P″ = 0) no intervalo. As dimensões negativas, com forte efeito de piso e ajuste fraco, foram omitidas.',fs=9)
 f_dv=figure(f'{FG}/deriv_poly.png','Ajuste polinomial P(t) das médias diárias de vigor e fadiga, com a derivada P′(t) (taxa de variação) e o ponto de inflexão.',w=15.0)
 VG=DV['vars']['Vigor']; FD=DV['vars']['Fadiga']
 P('Para caracterizar formalmente a dinâmica temporal, ajustou-se uma função polinomial de grau %d às médias diárias de '
- 'cada dimensão e derivaram-se as respectivas taxas de variação (Tabela %d; Figura %d). Os ajustes foram excelentes '
- 'para as variáveis do eixo energia–fadiga (vigor R² = %s; fadiga R² = %s) e mais fracos para as dimensões negativas '
- 'próximas do piso (p. ex., depressão R² = %s), cuja variância reduzida limita a modelagem. O vigor caiu a uma taxa '
+ 'cada dimensão e derivaram-se as respectivas taxas de variação (Tabela %d; Figura %d). A modelagem restringiu-se ao '
+ 'eixo energia–fadiga (vigor, fadiga e PTH), onde os ajustes foram excelentes (vigor R² = %s; fadiga R² = %s); as '
+ 'dimensões negativas, próximas do piso e com variância reduzida, ajustaram-se mal e foram omitidas da modelagem. O '
+ 'vigor caiu a uma taxa '
  'média de %s ponto/dia, com a maior velocidade de queda no início da semana (P′ no Dia 1 = %s ponto/dia) e '
  'desaceleração progressiva, ao passo que a fadiga subiu em espelho (taxa média = %s ponto/dia; P′ no Dia 1 = %s). A '
  'derivada segunda localizou um ponto de inflexão em torno do dia %s para ambas — o momento em que a taxa de '
  'deterioração deixa de acelerar —, o que fornece uma leitura quantitativa do ritmo do desgaste e sinaliza a metade do '
  'microciclo como o marco a partir do qual a resposta afetiva muda de regime.'%(
-   DV['grau'],tdv,f_dv,c2('%.2f'%VG['r2']),c2('%.2f'%FD['r2']),c2('%.2f'%DV['vars']['Depressao']['r2']),
+   DV['grau'],tdv,f_dv,c2('%.2f'%VG['r2']),c2('%.2f'%FD['r2']),
    c2('%.2f'%VG['taxa_media']),c2('%+.2f'%VG['dP1']),c2('%+.2f'%FD['taxa_media']),c2('%+.2f'%FD['dP1']),
    c2('%.1f'%VG['infl'][0])))
 

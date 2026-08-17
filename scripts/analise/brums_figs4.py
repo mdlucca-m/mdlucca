@@ -4,6 +4,7 @@ import numpy as np, pandas as pd, json
 from scipy import stats
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import mdpi_style  # estilo MDPI (registra template e torna padrão)
 OUT='/home/user/mdlucca/Artigos/figuras'
 h=pd.read_csv('hum_prof.csv'); S4=json.load(open('brums_stats4.json'))
 days=np.arange(1,8)
@@ -11,7 +12,7 @@ HEX={'Vigor':'#2f9e44','Fadiga':'#e8590c','TMD':'#6741d9','Tensao':'#1971c2','De
 RGBA={'Vigor':'rgba(47,158,68,.18)','Fadiga':'rgba(232,89,12,.18)','TMD':'rgba(103,65,217,.16)','Tensao':'rgba(25,113,194,.16)','Depressao':'rgba(156,54,181,.16)','Raiva':'rgba(224,49,49,.16)','Confusao':'rgba(240,140,0,.16)'}
 NM={'Vigor':'Vigor','Fadiga':'Fadiga','TMD':'PTH/TMD','Tensao':'Tensão','Depressao':'Depressão','Raiva':'Raiva','Confusao':'Confusão'}
 def base(**k):
-    b=dict(template='plotly_white',font=dict(color='#1a1a1a',size=15,family='Arial'),paper_bgcolor='white',plot_bgcolor='white',margin=dict(l=60,r=22,t=50,b=48)); b.update(k); return b
+    b=dict(template='mdpi',font=dict(color='#1a1a1a',size=15,family='Arial'),paper_bgcolor='white',plot_bgcolor='white',margin=dict(l=60,r=22,t=50,b=48)); b.update(k); return b
 GRID=dict(gridcolor='#eceef1',zeroline=False)
 wk=h.groupby('ID')[list(HEX)].mean()
 def dstat(k): return h.groupby('dia')[k].mean().reindex(days).values, h.groupby('dia')[k].sem().reindex(days).values

@@ -2,10 +2,11 @@ import os; os.environ['BROWSER_PATH']='/opt/pw-browsers/chromium-1194/chrome-lin
 import warnings; warnings.filterwarnings('ignore')
 import numpy as np, json
 import plotly.graph_objects as go
+import mdpi_style  # estilo MDPI (registra template e torna padrão)
 OUT='/home/user/mdlucca/Artigos/figuras'
 PH=json.load(open('posthoc.json')); days=list(range(1,8))
 def base(**k):
-    b=dict(template='plotly_white',font=dict(color='#1a1a1a',size=15,family='Arial'),paper_bgcolor='white',plot_bgcolor='white',margin=dict(l=60,r=25,t=60,b=96)); b.update(k); return b
+    b=dict(template='mdpi',font=dict(color='#1a1a1a',size=15,family='Arial'),paper_bgcolor='white',plot_bgcolor='white',margin=dict(l=60,r=25,t=60,b=96)); b.update(k); return b
 GRID=dict(gridcolor='#eceef1',zeroline=False)
 def emm(v): return [PH[v]['emm'][str(d)] for d in days]
 def star(v):  # sig vs D1 (Tukey)

@@ -4,13 +4,14 @@ import numpy as np, pandas as pd, json
 from scipy import stats
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import mdpi_style  # estilo MDPI (registra template e torna padrão)
 OUT='/home/user/mdlucca/Artigos/figuras'
 WK=pd.read_csv('pv_wk.csv'); PS=json.load(open('pv_stats.json'))
 HEX={'Vigor':'#2f9e44','Fadiga':'#e8590c','TMD':'#6741d9','FadFisica':'#0c8599'}
 RGBA={'Vigor':'rgba(47,158,68,.15)','Fadiga':'rgba(232,89,12,.15)','TMD':'rgba(103,65,217,.14)','FadFisica':'rgba(12,133,153,.15)'}
 NM={'Vigor':'Vigor (BRUMS)','Fadiga':'Fadiga (BRUMS)','TMD':'PTH','FadFisica':'Fadiga física'}
 def base(**k):
-    b=dict(template='plotly_white',font=dict(color='#1a1a1a',size=15,family='Arial'),paper_bgcolor='white',plot_bgcolor='white',margin=dict(l=60,r=22,t=52,b=50)); b.update(k); return b
+    b=dict(template='mdpi',font=dict(color='#1a1a1a',size=15,family='Arial'),paper_bgcolor='white',plot_bgcolor='white',margin=dict(l=60,r=22,t=52,b=50)); b.update(k); return b
 GRID=dict(gridcolor='#eceef1',zeroline=False)
 thr=14.9  # T-CAR1 Youden threshold
 def regband(ax,x,y,col):

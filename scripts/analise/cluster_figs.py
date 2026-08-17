@@ -3,6 +3,7 @@ import warnings; warnings.filterwarnings('ignore')
 import numpy as np, pandas as pd, json
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 import plotly.graph_objects as go
+import mdpi_style  # estilo MDPI (registra template e torna padrão)
 OUT='/home/user/mdlucca/Artigos/figuras'
 h=pd.read_csv('hum_prof.csv'); TS=json.load(open('tscore.json'))
 SUB=['Tensao','Depressao','Raiva','Vigor','Fadiga','Confusao']
@@ -14,7 +15,7 @@ CL=['Iceberg','Everest invertido','Iceberg invertido','Submerso','Barbatana tuba
 CLAB={'Iceberg':'Iceberg','Everest invertido':'Everest invertido','Iceberg invertido':'Iceberg invertido','Submerso':'Submerso','Barbatana tubarão':'Barbatana de tubarão','Superfície':'Superfície'}
 COL={'Iceberg':'#2f9e44','Everest invertido':'#e03131','Iceberg invertido':'#9c36b5','Submerso':'#1971c2','Barbatana tubarão':'#e8590c','Superfície':'#868e96'}
 def base(**k):
-    b=dict(template='plotly_white',font=dict(color='#1a1a1a',size=15,family='Arial'),paper_bgcolor='white',plot_bgcolor='white',margin=dict(l=62,r=22,t=58,b=92)); b.update(k); return b
+    b=dict(template='mdpi',font=dict(color='#1a1a1a',size=15,family='Arial'),paper_bgcolor='white',plot_bgcolor='white',margin=dict(l=62,r=22,t=58,b=92)); b.update(k); return b
 GRID=dict(gridcolor='#eceef1',zeroline=False)
 
 # ===== FIG A: six-cluster T-score profiles (like their Fig 2/3) =====

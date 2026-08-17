@@ -4,6 +4,7 @@ import numpy as np, pandas as pd, json
 from scipy import stats
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import mdpi_style  # estilo MDPI (registra template e torna padrão)
 OUT='/home/user/mdlucca/Artigos/figuras'
 h=pd.read_csv('hum_prof.csv'); R=json.load(open('brums_desc2.json'))
 days=np.arange(1,8)
@@ -13,7 +14,7 @@ PAL={'Vigor':('#2f9e44','rgba(47,158,68,0.16)'),'Fadiga':('#e8590c','rgba(232,89
      'Confusao':('#f08c00','rgba(240,140,0,0.15)')}
 NM={'Vigor':'Vigor','Fadiga':'Fadiga','TMD':'PTH','Tensao':'Tensão','Depressao':'Depressão','Raiva':'Raiva','Confusao':'Confusão'}
 def base(**k):
-    b=dict(template='plotly_white',font=dict(color='#1a1a1a',size=16,family='Arial'),paper_bgcolor='white',plot_bgcolor='white',
+    b=dict(template='mdpi',font=dict(color='#1a1a1a',size=16,family='Arial'),paper_bgcolor='white',plot_bgcolor='white',
         margin=dict(l=64,r=24,t=54,b=54)); b.update(k); return b
 def band(f,x,y,se,key,row,col,legend=True):
     col_,fill=PAL[key]; up=np.array(y)+1.96*np.array(se); lo=np.array(y)-1.96*np.array(se)
