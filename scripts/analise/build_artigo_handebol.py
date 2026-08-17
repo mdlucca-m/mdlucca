@@ -479,10 +479,12 @@ def exrow(k,l):
             '%s (Dia %s)'%(c2('%.1f'%v['fmin_val']),dayf(v['fmin_day'])),
             '%s (Dia %s)'%(c2('%+.2f'%v['dmax_val']),dayf(v['dmax_day'])),
             '%s (Dia %s)'%(c2('%+.2f'%v['dmin_val']),dayf(v['dmin_day']))]
-tex=table('Extremos da função ajustada e limites da derivada (eixo energia–fadiga): valor máximo e mínimo modelados (com o dia) e os limites da taxa de variação P′ — subida máxima e queda máxima.',
-    ['Dimensão','Valor máx. (dia)','Valor mín. (dia)','P′ máx./subida (dia)','P′ mín./queda (dia)'],
-    [exrow(k,l) for k,l in DVORD],
-    note='Valores e taxas extraídos da função polinomial P(t) no intervalo [Dia 1; Dia 7]. Os máximos/mínimos observados de todas as dimensões constam na Tabela de dias de pico (seção 3.7).',fs=8.5)
+def exrowr(k,l):
+    return exrow(k,l)+[c2('%.2f'%DV['vars'][k]['r2'])]
+tex=table('Extremos da função ajustada e limites da derivada, por dimensão: valor máximo e mínimo modelados (com o dia) e os limites da taxa de variação P′ — subida máxima e queda máxima.',
+    ['Dimensão','Valor máx. (dia)','Valor mín. (dia)','P′ máx./subida (dia)','P′ mín./queda (dia)','R²'],
+    [exrowr(k,l) for k,l in ORD],
+    note='Valores e taxas extraídos da função polinomial P(t) no intervalo [Dia 1; Dia 7]. Para as dimensões negativas (baixo R²; efeito de piso), os extremos modelados são apenas indicativos. Os máximos/mínimos observados constam na tabela de dias de pico (seção 3.7).',fs=8.5)
 P('Os extremos das funções ajustadas e os limites de suas derivadas (Tabela %d) delimitam quantitativamente a resposta. '
  'O vigor varia entre um máximo de %s pontos no Dia %s e um mínimo de %s no Dia %s, com a taxa de variação confinada '
  'entre %s ponto/dia (queda máxima, no Dia %s) e %s ponto/dia (leve recuperação em torno do meio da semana); a fadiga '
