@@ -104,7 +104,9 @@ RUN([('Objetivo: ',True),('caracterizar e modelar a dinâmica do humor de atleta
    c2('%.2f'%LOG['migracao']['barbatana']['OR_dia'])),False),
  ('Conclusão: ',True),('o humor migrou da prontidão (perfil iceberg) para a fadiga funcional (perfil barbatana de '
  'tubarão), em um padrão compatível com sobre-esforço funcional; o vigor e a fadiga foram as dimensões mais sensíveis e '
- 'sistemáticas, o que recomenda centrar o monitoramento do humor no eixo energia–fadiga.',False)],after=6)
+ 'sistemáticas — seletividade do eixo energia–fadiga que reproduz, num microciclo de handebol, o comportamento já '
+ 'documentado em outras modalidades sob carga —, o que recomenda centrar nele o monitoramento do humor, integrado a um '
+ 'acompanhamento multidomínio do estado do atleta.',False)],after=6)
 P('Palavras-chave: humor; BRUMS; handebol; monitoramento do atleta; fadiga; perfis de humor.',size=11,after=8,ind=False)
 
 # ===== 1 INTRODUÇÃO =====

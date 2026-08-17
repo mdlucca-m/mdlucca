@@ -105,7 +105,10 @@ RUN([('Objetivo: ',True),('examinar os correlatos fisiológicos e de bem-estar d
  ('Conclusão: ',True),('entre os parâmetros examinados, a aptidão aeróbia intermitente destacou-se como o correlato '
  'fisiológico genuíno da fadiga do humor, ao passo que a capacidade anaeróbia e o porte corporal não a explicaram; a '
  'sonolência acrescentou uma leitura de recuperação e o estresse percebido delimitou a especificidade da resposta à '
- 'carga de treino. Recomenda-se um monitoramento multidomínio centrado no eixo energia–fadiga.',False)],after=6)
+ 'carga de treino. Por captar uma dimensão subjetiva que os marcadores periféricos nem sempre revelam, o humor atua '
+ 'como sentinela complementar, e não redundante, à leitura fisiológica; recomenda-se, assim, um monitoramento '
+ 'multidomínio centrado no eixo energia–fadiga, no qual a aptidão aeróbia oferece a referência para individualizar a '
+ 'carga.',False)],after=6)
 P('Palavras-chave: aptidão aeróbia; Teste de Carminatti; humor; BRUMS; handebol; monitoramento do atleta.',size=11,after=8,ind=False)
 
 # ===== 1 INTRODUÇÃO =====
