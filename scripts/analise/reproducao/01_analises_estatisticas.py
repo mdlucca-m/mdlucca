@@ -363,8 +363,13 @@ for k in CANON:
     r2 = 1 - ((y-P(t))**2).sum()/((y-y.mean())**2).sum()
     infl = sorted(round(float(r.real),1) for r in d2P.roots if abs(r.imag)<1e-6 and 1<=r.real<=7)
     dcur[k] = dP(tt)
+    Pv, dPv = P(tt), dP(tt)
+    fmax_i, fmin_i = int(np.argmax(Pv)), int(np.argmin(Pv))
+    dmax_i, dmin_i = int(np.argmax(dPv)), int(np.argmin(dPv))
     print('    %-10s R²=%.2f | P\'(1)=%+.2f P\'(7)=%+.2f | P"(1)=%+.2f P"(7)=%+.2f | inflexão=%s'
           % (LAB.get(k,k), r2, dP(1), dP(7), d2P(1), d2P(7), infl))
+    print('                valor máx=%.1f (D%.1f)  mín=%.1f (D%.1f) | limites P\': subida máx=%+.2f (D%.1f)  queda máx=%+.2f (D%.1f)'
+          % (Pv[fmax_i], tt[fmax_i], Pv[fmin_i], tt[fmin_i], dPv[dmax_i], tt[dmax_i], dPv[dmin_i], tt[dmin_i]))
 # acoplamento entre variáveis: correlação das curvas de 1ª derivada
 print('  Acoplamento (correlação das curvas P\'):')
 for a, b in [('Vigor','Fadiga'), ('Fadiga','TMD'), ('Vigor','TMD')]:

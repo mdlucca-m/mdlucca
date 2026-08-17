@@ -472,6 +472,28 @@ P('A derivada segunda (P″) descreve a aceleração da mudança e a concavidade
  'o mesmo eixo que domina toda a resposta afetiva à carga.'%(
    c2('%+.2f'%VG['d2P1']),c2('%+.2f'%VG['d2P7']),c2('%+.2f'%FD['d2P1']),c2('%+.2f'%FD['d2P7']),
    c2('%+.2f'%cVF),c2('%+.2f'%cFT),c2('%+.2f'%cVT)))
+dayf=lambda x: '%d'%round(x) if abs(x-round(x))<0.05 else c2('%.1f'%x)
+def exrow(k,l):
+    v=DV['vars'][k]
+    return [l,'%s (Dia %s)'%(c2('%.1f'%v['fmax_val']),dayf(v['fmax_day'])),
+            '%s (Dia %s)'%(c2('%.1f'%v['fmin_val']),dayf(v['fmin_day'])),
+            '%s (Dia %s)'%(c2('%+.2f'%v['dmax_val']),dayf(v['dmax_day'])),
+            '%s (Dia %s)'%(c2('%+.2f'%v['dmin_val']),dayf(v['dmin_day']))]
+tex=table('Extremos da função ajustada e limites da derivada (eixo energia–fadiga): valor máximo e mínimo modelados (com o dia) e os limites da taxa de variação P′ — subida máxima e queda máxima.',
+    ['Dimensão','Valor máx. (dia)','Valor mín. (dia)','P′ máx./subida (dia)','P′ mín./queda (dia)'],
+    [exrow(k,l) for k,l in DVORD],
+    note='Valores e taxas extraídos da função polinomial P(t) no intervalo [Dia 1; Dia 7]. Os máximos/mínimos observados de todas as dimensões constam na Tabela de dias de pico (seção 3.7).',fs=8.5)
+P('Os extremos das funções ajustadas e os limites de suas derivadas (Tabela %d) delimitam quantitativamente a resposta. '
+ 'O vigor varia entre um máximo de %s pontos no Dia %s e um mínimo de %s no Dia %s, com a taxa de variação confinada '
+ 'entre %s ponto/dia (queda máxima, no Dia %s) e %s ponto/dia (leve recuperação em torno do meio da semana); a fadiga '
+ 'percorre o intervalo inverso (mínimo de %s no Dia %s; máximo de %s no Dia %s), com taxa entre %s e %s ponto/dia. Esses '
+ 'limites confirmam que a maior velocidade de mudança ocorre no início do microciclo e que o sistema afetivo opera '
+ 'dentro de uma faixa de variação bem definida.'%(
+   tex,
+   c2('%.1f'%VG['fmax_val']),dayf(VG['fmax_day']),c2('%.1f'%VG['fmin_val']),dayf(VG['fmin_day']),
+   c2('%+.2f'%VG['dmin_val']),dayf(VG['dmin_day']),c2('%+.2f'%VG['dmax_val']),
+   c2('%.1f'%FD['fmin_val']),dayf(FD['fmin_day']),c2('%.1f'%FD['fmax_val']),dayf(FD['fmax_day']),
+   c2('%+.2f'%FD['dmin_val']),c2('%+.2f'%FD['dmax_val'])))
 
 # ===== 4 DISCUSSÃO =====
 H('4 DISCUSSÃO')

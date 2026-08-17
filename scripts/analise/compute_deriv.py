@@ -16,8 +16,11 @@ for k,lab in ORD:
     yhat=P(days); r2=float(1-((y-yhat)**2).sum()/((y-y.mean())**2).sum())
     crit=sorted([float(r.real) for r in dP.roots if abs(r.imag)<1e-6 and 1<=r.real<=7])
     infl=sorted([float(r.real) for r in d2P.roots if abs(r.imag)<1e-6 and 1<=r.real<=7])
-    dmax_t=float(tt[np.argmax(np.abs(dP(tt)))])
     dcurves[k]=dP(tt)
+    # extremos da FUNÇÃO P(t) e limites da DERIVADA P'(t) no intervalo [1,7]
+    Pv=P(tt); dPv=dP(tt)
+    fmax_i=int(np.argmax(Pv)); fmin_i=int(np.argmin(Pv))
+    dmax_i=int(np.argmax(dPv)); dmin_i=int(np.argmin(dPv))
     R['vars'][k]=dict(lab=lab,coef=[float(x) for x in c],r2=r2,
         taxa_media=float((y[-1]-y[0])/6),
         dP1=float(dP(1)),dP7=float(dP(7)),
@@ -25,7 +28,12 @@ for k,lab in ORD:
         conc1=('convexa' if d2P(1)>0 else 'côncava'),  # concavidade no início
         P1=float(P(1)),P7=float(P(7)),
         crit=[round(x,1) for x in crit],infl=[round(x,1) for x in infl],
-        dmax_day=round(dmax_t,1),dmax_val=float(dP(dmax_t)))
+        # extremos da função (valor máx/mín e dia)
+        fmax_day=round(float(tt[fmax_i]),1),fmax_val=float(Pv[fmax_i]),
+        fmin_day=round(float(tt[fmin_i]),1),fmin_val=float(Pv[fmin_i]),
+        # limites da derivada (taxa máx de subida e de queda, e dia)
+        dmax_day=round(float(tt[dmax_i]),1),dmax_val=float(dPv[dmax_i]),
+        dmin_day=round(float(tt[dmin_i]),1),dmin_val=float(dPv[dmin_i]))
 # ---- acoplamento entre variáveis: correlação das curvas de 1ª derivada ----
 KS=[k for k,_ in ORD]
 R['couple']={}
