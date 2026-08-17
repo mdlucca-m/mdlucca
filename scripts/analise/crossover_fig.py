@@ -30,7 +30,7 @@ f.add_trace(go.Scatter(x=days,y=Fy,mode='markers',marker=dict(size=11,color=ORAN
 for c in cross:
     yv=float(V(c))
     f.add_trace(go.Scatter(x=[c],y=[yv],mode='markers',marker=dict(size=15,color='#212529',symbol='x-thin',line=dict(width=3,color='#212529')),showlegend=False,hoverinfo='skip'))
-    f.add_annotation(x=c,y=yv,text='<b>Dia %.1f</b>'%c,showarrow=True,arrowhead=2,arrowwidth=1.6,ax=0,ay=-42,font=dict(size=13,color='#212529'))
+    f.add_annotation(x=c,y=yv,text='<b>Dia %d</b>'%round(c),showarrow=True,arrowhead=2,arrowwidth=1.6,ax=0,ay=-42,font=dict(size=13,color='#212529'))
 # anotações da convergência (Dia 2) e da separação (Dia 7)
 f.add_annotation(x=1,y=(Vy[0]+Fy[0])/2,text='gap inicial<br>%.1f pts'%(Vy[0]-Fy[0]),showarrow=False,xanchor='left',font=dict(size=12,color='#495057'))
 f.add_annotation(x=7,y=(Vy[-1]+Fy[-1])/2,text='fadiga ><br>vigor',showarrow=False,xanchor='right',font=dict(size=12,color='#495057'))

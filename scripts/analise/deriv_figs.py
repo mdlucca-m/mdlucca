@@ -25,7 +25,7 @@ for j,(k,lab,col) in enumerate(PAN,1):
     f.add_hline(y=0,line=dict(color='#adb5bd',width=1),row=1,col=j,secondary_y=True)
     for x in infl:
         f.add_vline(x=x,line=dict(color='#868e96',width=1.5,dash='dot'),row=1,col=j)
-        f.add_annotation(x=x,y=P(x),text='inflexão (t=%.1f)'%x,showarrow=True,arrowhead=2,
+        f.add_annotation(x=x,y=P(x),text='inflexão (t=%d)'%round(x),showarrow=True,arrowhead=2,
             ax=30,ay=-30,font=dict(size=11,color='#495057'),row=1,col=j,secondary_y=False)
     f.update_yaxes(title_text='Escore (0–16)',row=1,col=j,secondary_y=False,gridcolor='#eceef1',zeroline=False)
     f.update_yaxes(title_text=LAB_TAX,row=1,col=j,secondary_y=True,gridcolor='rgba(0,0,0,0)',zeroline=False)

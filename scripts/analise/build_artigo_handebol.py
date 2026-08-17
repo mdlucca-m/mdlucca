@@ -439,7 +439,7 @@ P('A caracterização da composição corporal (Tabela %d) mostrou massa de %s k
 H('3.13 Modelagem polinomial das trajetórias: derivadas e taxa de variação',12,before=6)
 def dvrow(k,l):
     v=DV['vars'][k]
-    infl=', '.join('%s'%c2('%.1f'%x) for x in v['infl']) or '—'
+    infl=', '.join('%d'%round(x) for x in v['infl']) or '—'
     return [l,c2('%.2f'%v['r2']),c2('%+.2f'%v['taxa_media']),c2('%+.2f'%v['dP1']),c2('%+.2f'%v['dP7']),
             c2('%+.2f'%v['d2P1']),c2('%+.2f'%v['d2P7']),infl]
 DVORD=[('Vigor','Vigor'),('Fadiga','Fadiga'),('TMD','PTH')]   # eixo energia–fadiga (dimensões sem efeito de piso)
@@ -461,7 +461,7 @@ P('Para caracterizar formalmente a dinâmica temporal, ajustou-se uma função p
  'microciclo como o marco a partir do qual a resposta afetiva muda de regime.'%(
    DV['grau'],tdv,f_dv,c2('%.2f'%VG['r2']),c2('%.2f'%FD['r2']),
    c2('%.2f'%VG['taxa_media']),c2('%+.2f'%VG['dP1']),c2('%+.2f'%FD['taxa_media']),c2('%+.2f'%FD['dP1']),
-   c2('%.1f'%VG['infl'][0])))
+   ('%d'%round(VG['infl'][0]))))
 cVF=DV['couple'].get('Vigor|Fadiga'); cFT=DV['couple'].get('Fadiga|TMD'); cVT=DV['couple'].get('Vigor|TMD')
 P('A derivada segunda (P″) descreve a aceleração da mudança e a concavidade da trajetória. No vigor, P″ é positiva no '
  'início (%s) — a queda, embora acentuada, desacelera rumo ao meio da semana — e torna-se negativa ao final (%s), quando '
@@ -474,7 +474,7 @@ P('A derivada segunda (P″) descreve a aceleração da mudança e a concavidade
  'o mesmo eixo que domina toda a resposta afetiva à carga.'%(
    c2('%+.2f'%VG['d2P1']),c2('%+.2f'%VG['d2P7']),c2('%+.2f'%FD['d2P1']),c2('%+.2f'%FD['d2P7']),
    c2('%+.2f'%cVF),c2('%+.2f'%cFT),c2('%+.2f'%cVT)))
-dayf=lambda x: '%d'%round(x) if abs(x-round(x))<0.05 else c2('%.1f'%x)
+dayf=lambda x: '%d'%round(x)
 def exrow(k,l):
     v=DV['vars'][k]
     return [l,'%s (Dia %s)'%(c2('%.1f'%v['fmax_val']),dayf(v['fmax_day'])),
@@ -500,14 +500,14 @@ P('Os extremos das funções ajustadas e os limites de suas derivadas (Tabela %d
    c2('%+.2f'%FD['dmin_val']),c2('%+.2f'%FD['dmax_val'])))
 
 f_cx=figure(f'{FG}/crossover.png','Cruzamento energia–fadiga: curvas suavizadas de vigor e fadiga com os pontos exatos de interseção (× ) e a área entre elas. O vigor parte muito acima e a fadiga o ultrapassa ao longo da semana.',w=15.5)
-cds=CP['cross_days']; cd1='%s'%c2('%.1f'%cds[0]) if cds else '—'; cdl='%s'%c2('%.1f'%cds[-1]) if cds else '—'
+cds=CP['cross_days']; cd1=('%d'%round(cds[0])) if cds else '—'; cdl=('%d'%round(cds[-1])) if cds else '—'
 P('A sobreposição das curvas suavizadas de vigor e fadiga permite localizar o momento exato de sua inversão (Figura %d). '
  'No primeiro dia, o vigor supera a fadiga por ampla margem (%s pontos); essa vantagem colapsa já no Dia 2, e as duas '
  'dimensões passam a se cruzar repetidamente na região central da semana — os pontos de interseção das funções ocorrem '
  'nos dias %s — refletindo um período em que energia e fadiga ficam estatisticamente entrelaçadas. A partir do último '
  'cruzamento (Dia %s), a fadiga assume e se distancia do vigor, encerrando a semana %s pontos acima. Esse cruzamento '
  'energia–fadiga é a assinatura gráfica da migração do perfil de prontidão para o perfil de fadiga.'%(
-   f_cx,c2('%.1f'%CP['gap_d1']),', '.join(c2('%.1f'%x) for x in cds),cdl,c2('%.1f'%abs(CP['gap_d7']))))
+   f_cx,c2('%.1f'%CP['gap_d1']),', '.join('%d'%round(x) for x in cds),cdl,c2('%.1f'%abs(CP['gap_d7']))))
 
 # ----- 3.14 Decomposição sinal-ruído e suavização das trajetórias -----
 H('3.14 Decomposição sinal–ruído e suavização das trajetórias',12,before=6)
