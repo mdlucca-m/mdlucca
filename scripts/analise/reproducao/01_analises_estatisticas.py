@@ -300,6 +300,31 @@ try:
     print('  (d) Limiar logístico (fadiga física elevada ~ PV do T-CAR1):')
     print('      OR=%.2f por km/h | AUC=%.2f [IC95%% %.2f–%.2f] | limiar (Youden)=%.1f km/h (sens=%.2f, esp=%.2f)'
           % (np.exp(b1), A, lo, hi, t, se, sp))
+
+    # (e) COMPARAÇÃO A POSTERIORI DE MODELOS DE CURVA (linear x logarítmico x polinomial)
+    #     para a relação PV(T-CAR1) -> resposta semanal de humor, por R²aj / AIC / BIC / RMSE.
+    def ols_fit(X, y):
+        n = len(y); beta, *_ = np.linalg.lstsq(X, y, rcond=None); yhat = X @ beta
+        rss = float(np.sum((y - yhat)**2)); tss = float(np.sum((y - y.mean())**2))
+        r2 = 1 - rss/tss; p = X.shape[1] - 1
+        r2a = 1 - (1 - r2)*(n - 1)/(n - p - 1)
+        k = X.shape[1] + 1                                   # coefs + variância
+        ll = -0.5*n*(np.log(2*np.pi) + np.log(rss/n) + 1)    # log-verossimilhança gaussiana
+        return r2, r2a, 2*k - 2*ll, k*np.log(n) - 2*ll, float(np.sqrt(rss/n))
+    print('  (e) Comparação de modelos de curva (menor AIC = melhor):')
+    wkm = h.groupby('ID')['FadFisica'].mean().reset_index().merge(F, on='ID').dropna(subset=['PVini'])
+    wkv = h.groupby('ID')['Vigor'].mean().reset_index().merge(F, on='ID').dropna(subset=['PVini'])
+    for df_, resp, lab in [(wkm,'FadFisica','Fadiga física'), (wkv,'Vigor','Vigor')]:
+        xx = df_['PVini'].values.astype(float); yy = df_[resp].values.astype(float); one = np.ones_like(xx)
+        mods = {'Linear':      ols_fit(np.column_stack([one, xx]), yy),
+                'Logarítmica': ols_fit(np.column_stack([one, np.log(xx)]), yy),
+                'Polinomial²': ols_fit(np.column_stack([one, xx, xx**2]), yy)}
+        best = min(mods, key=lambda m_: mods[m_][2])
+        print('      %s ~ PV(T-CAR1):' % lab)
+        for m_ in mods:
+            r2, r2a, aic, bic, rmse = mods[m_]
+            print('        %-13s R²=%.3f R²aj=%.3f AIC=%.1f BIC=%.1f RMSE=%.3f%s'
+                  % (m_, r2, r2a, aic, bic, rmse, '  <- melhor' if m_ == best else ''))
 except FileNotFoundError:
     print('  [tcar2_features.csv não encontrado — pulei o bloco T-CAR]')
 

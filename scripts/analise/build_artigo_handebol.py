@@ -9,6 +9,7 @@ from docx.oxml import OxmlElement
 R=json.load(open('brums_desc2.json')); STAT=json.load(open('brums_stats3.json')); S4=json.load(open('brums_stats4.json'))
 MS=json.load(open('model_stats.json')); MV=json.load(open('manova.json')); PHJ=json.load(open('posthoc.json'))
 PV=json.load(open('pv_stats.json')); LIM=json.load(open('tcar_limiar.json')); TCD=json.load(open('tcar_desc.json'))
+TCV=json.load(open('tcar_curvas.json'))
 CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json')); SM=json.load(open('smooth.json')); IND=json.load(open('indiv.json')); AUD=json.load(open('audit.json')); CP=json.load(open('cross_pt.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
@@ -235,9 +236,16 @@ P('Como confirmação robusta, as comparações Dia 1 → Dia 7 e pré → pós 
  'testes univariados de acompanhamento da MANOVA, aplicou-se o ajuste de Bonferroni ao nível de significância, dividindo '
  '0,05 pelas seis dimensões (α = 0,008), para controlar o erro do tipo I. A '
  'associação entre as dimensões foi quantificada pela correlação de Spearman (ρ). Por fim, a relação entre o pico de '
- 'velocidade do T-CAR e a fadiga foi analisada por regressão, e um limiar de pico de velocidade foi estabelecido pelo '
- 'índice de Youden — que maximiza a soma de sensibilidade e especificidade —, com a qualidade de discriminação avaliada '
- 'pela área sob a curva ROC. Para separar o efeito da aptidão do efeito do tamanho corporal, o pico de velocidade foi '
+ 'velocidade do T-CAR e a fadiga foi analisada por regressão, e um limiar de pico de velocidade foi estabelecido por '
+ 'regressão logística (probabilidade de um dia de fadiga elevada em função do pico de velocidade), com o ponto de corte '
+ 'definido pelo índice de Youden — que maximiza a soma de sensibilidade e especificidade —, a discriminação avaliada '
+ 'pela área sob a curva ROC e a qualidade de ajuste do modelo logístico reportada pela log-verossimilhança, pelo '
+ 'pseudo-R² de McFadden e pelos critérios de informação de Akaike (AIC) e bayesiano (BIC). Como verificação a '
+ 'posteriori da forma funcional dessa relação, a associação entre o pico de velocidade e a resposta semanal de humor '
+ '(fadiga física e vigor) foi ajustada por três modelos concorrentes — linear, logarítmico (ln do pico de velocidade) e '
+ 'polinomial de 2º grau —, selecionando-se o de melhor compromisso entre ajuste e parcimônia pelo menor AIC/BIC, além do '
+ 'R² ajustado e do RMSE; para o modelo logístico, comparou-se ainda o preditor na escala bruta contra a logarítmica. '
+ 'Para separar o efeito da aptidão do efeito do tamanho corporal, o pico de velocidade foi '
  'ainda submetido a ajuste alométrico: estimou-se o expoente da relação alométrica pela regressão log(PV)–log(massa) e '
  'normalizou-se o PV pela massa elevada a esse expoente, comparando-se as associações do PV bruto e do PV normalizado '
  'com a fadiga e o vigor. A dinâmica temporal foi ainda modelada ajustando-se uma função polinomial às médias diárias '
@@ -376,7 +384,7 @@ P('A forma de cada cluster identificado na amostra (Figura %d) reproduz a taxono
  'de referência. Isso evidencia o efeito específico do acúmulo de carga da última semana de pré-temporada sobre o perfil '
  'de fadiga, sem instalação relevante dos perfis de maior risco à saúde mental (Everest invertido e submerso).'%(
    f_clu,c2('%.0f'%(100*PREV['D1']['Iceberg']/PREV['n_d1'])),c2('%.0f'%(100*PREV['D7']['Barbatana tubarão']/PREV['n_d7']))))
-H('3.10 Aptidão intermitente (T-CAR) e limiar de pico de velocidade',12,before=6)
+H('3.10 Aptidão intermitente (T-CAR): regressão, comparação de modelos e limiar de pico de velocidade',12,before=6)
 def tcrow(o):
     lab='Pico de velocidade — T-CAR (km/h)' if o['k']=='PVini' else o['lab']
     return [lab,o['n'],c2('%.1f'%o['m']),c2('%.1f'%o['sd']),'%s–%s'%(c2('%.1f'%o['mn']),c2('%.1f'%o['mx']))]
@@ -394,6 +402,35 @@ P('O desempenho no T-CAR consta na Tabela %d. A regressão mostrou que atletas c
    ttc,c2('%+.2f'%PV['pv']['wk_FadFisica']['TCAR1']['rho']),pstr(PV['pv']['wk_FadFisica']['TCAR1']['rho_p']),
    c2('%+.2f'%PV['pv']['wk_Vigor']['TCAR1']['rho']),pstr(PV['pv']['wk_Vigor']['TCAR1']['rho_p']),f_pv,
    c2('%.1f'%LP['thr']),c2('%.2f'%LP['auc']),c2('%.2f'%LP['sens']),c2('%.2f'%LP['spec'])))
+# --- comparação a posteriori de modelos de curva (linear x logarítmico x polinomial) ---
+NMC={'linear':'Linear','log':'Logarítmica','quad':'Polinomial (2º grau)'}
+def cvrow(resp):
+    rows=[]; C=TCV['cont'][resp]; best=C['best']
+    for i,mdl in enumerate(('linear','log','quad')):
+        v=C[mdl]; name=NMC[mdl]+(' †' if mdl==best else '')
+        rel=(C['lab']+' × T-CAR') if i==0 else ''
+        rows.append([rel,name,c2('%.3f'%v['r2']),c2('%.3f'%v['r2a']),c2('%.1f'%v['aic']),c2('%.1f'%v['bic']),c2('%.3f'%v['rmse'])])
+    return rows
+tcv=table('Comparação a posteriori de modelos de curva (linear, logarítmico e polinomial) para a relação entre o pico de velocidade do T-CAR e a resposta semanal de humor, por qualidade de ajuste.',
+    ['Relação','Modelo','R²','R² ajustado','AIC','BIC','RMSE'],
+    cvrow('FadFisica')+cvrow('Vigor'),
+    note='AIC = critério de informação de Akaike; BIC = critério bayesiano; RMSE = raiz do erro quadrático médio. † modelo de melhor ajuste (menor AIC). Valores menores de AIC/BIC indicam melhor compromisso entre ajuste e parcimônia.',fs=8.5)
+f_cv=figure(f'{FG}/tcar_curvas.png','Dispersão do pico de velocidade do T-CAR contra as médias semanais de fadiga física e de vigor, com os três modelos ajustados sobrepostos (o de menor AIC em linha cheia mais grossa).',w=15.0)
+LGa=TCV['logistic']['linear_pred']; LGb=TCV['logistic']['log_pred']
+dAIC=abs(TCV['cont']['FadFisica']['log']['aic']-TCV['cont']['FadFisica']['linear']['aic'])
+P('Para verificar se a relação entre a aptidão e a resposta de humor seria mais bem descrita por uma forma não linear, '
+ 'ajustaram-se a posteriori três modelos de curva à relação entre o pico de velocidade do T-CAR e as médias semanais de '
+ 'fadiga física e de vigor — linear, logarítmico (ln do pico de velocidade) e polinomial de 2º grau —, comparados por R² '
+ 'ajustado, AIC e BIC (Tabela %d; Figura %d). Em ambas as relações, o modelo linear ofereceu o melhor compromisso entre '
+ 'ajuste e parcimônia (fadiga física: AIC = %s; vigor: AIC = %s); o ajuste logarítmico foi praticamente equivalente '
+ '(ΔAIC ≈ %s) e o termo quadrático não compensou o parâmetro adicional (AIC maior, R² ajustado menor). Dentro da faixa '
+ 'de aptidão observada, portanto, a associação aptidão–humor é essencialmente linear, o que respalda descrevê-la pela '
+ 'reta de regressão. Para o desfecho binário — a probabilidade de um dia de fadiga elevada —, a regressão logística '
+ 'apresentou poder discriminativo moderado (pseudo-R² de McFadden = %s; AUC = %s), e a comparação do preditor na escala '
+ 'bruta contra a logarítmica favoreceu marginalmente a escala bruta (AIC %s vs. %s), mantida, assim, na definição do '
+ 'limiar de pico de velocidade.'%(
+   tcv,f_cv,c2('%.1f'%TCV['cont']['FadFisica']['linear']['aic']),c2('%.1f'%TCV['cont']['Vigor']['linear']['aic']),
+   c2('%.1f'%dAIC),c2('%.3f'%LGa['mcfadden']),c2('%.2f'%LGa['auc']),c2('%.1f'%LGa['aic']),c2('%.1f'%LGb['aic'])))
 
 # ----- 3.11 Sonolência e estresse percebido -----
 H('3.11 Sonolência (Epworth) e estresse percebido (PSS-14)',12,before=6)
@@ -702,6 +739,17 @@ P('A inclusão do pico de velocidade do T-CAR como parâmetro fisiológico acres
    c2('%+.2f'%PV['pv']['wk_Vigor']['TCAR1']['rho']),pstr(PV['pv']['wk_Vigor']['TCAR1']['rho_p']),
    c2('%+.2f'%PV['pv']['wk_FadFisica']['TCAR1']['rho']),pstr(PV['pv']['wk_FadFisica']['TCAR1']['rho_p']),
    c2('%.1f'%LP['thr']),c2('%.2f'%LP['auc']),c2('%.2f'%AL['alom']['b'])))
+P('A comparação a posteriori de modelos de curva reforça a leitura dessa relação e agrega parcimônia à sua '
+ 'interpretação. Testadas as formas linear, logarítmica e polinomial, o modelo linear mostrou o melhor compromisso entre '
+ 'ajuste e parcimônia para a fadiga física e para o vigor (menores AIC e BIC), com o ajuste logarítmico praticamente '
+ 'equivalente e sem ganho do termo quadrático — indicando que, na faixa de aptidão desta amostra, cada incremento de '
+ 'pico de velocidade se associa a uma variação aproximadamente constante da resposta de humor, sem evidência de '
+ 'saturação ou de limiar de rendimentos decrescentes. Esse resultado justifica descrever a associação pela reta de '
+ 'regressão e, ao mesmo tempo, delimita o alcance do modelo: uma relação linear estimada em uma faixa estreita de '
+ 'aptidão não deve ser extrapolada para além dela. Para o desfecho binário, a regressão logística — cuja qualidade de '
+ 'ajuste foi documentada pelo pseudo-R² de McFadden e pelos critérios de informação — sustentou o limiar de pico de '
+ 'velocidade como ferramenta prática de triagem, preferindo-se o preditor na escala bruta, de leitura mais direta para '
+ 'a comissão técnica.')
 P('A sonolência e o estresse percebido acrescentaram duas leituras convergentes com o padrão central. A sonolência '
  '(Epworth) acompanhou a semana de carga, elevando-se rumo ao último dia e associando-se, entre atletas, a mais fadiga '
  'e pior humor global — um marcador de recuperação/sono que corrobora, no plano comportamental, a deterioração do eixo '
