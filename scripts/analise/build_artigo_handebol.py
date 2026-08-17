@@ -134,6 +134,17 @@ P('Para além dos escores isolados de cada subescala, a leitura do humor evoluiu
  'abordagem por perfis oferece uma leitura integrada e visual do estado psicológico, sensível às variações de carga e '
  'útil para identificar precocemente atletas em deterioração, com valor documentado para a saúde mental sustentável e '
  'para desfechos como lesão (TERRY et al., 2021; DE MIRANDA ROHLFS et al., 2025).')
+P('Dois desses perfis são especialmente informativos para a leitura de um microciclo de carga. O iceberg — vigor '
+ 'elevado sobrepondo-se a dimensões negativas baixas — é a assinatura da prontidão e do bem-estar e associa-se a melhor '
+ 'desempenho esportivo, tendo a perturbação total do humor predito o rendimento em meta-análise de estudos com atletas '
+ 'competitivos (efeito médio; LOCHBAUM et al., 2021). A barbatana de tubarão (shark fin), por sua vez, descreve o atleta '
+ 'ainda energizado, porém com a fadiga já elevada acima do vigor — e, em graus variados, com tensão e raiva acentuadas —, '
+ 'configurando a assinatura afetiva típica do acúmulo de treino. Como o humor é um estado transitório e sensível à carga, '
+ 'é de se esperar que, ao longo de uma semana intensa de treinamento, a prevalência se desloque do iceberg para a '
+ 'barbatana de tubarão: um “derretimento do iceberg” que traduz, no plano dos perfis, a deterioração progressiva do eixo '
+ 'energia–fadiga (MORGAN, 1985; HAN; PARSONS-SMITH; TERRY, 2020). Descrever esse deslocamento ao longo dos dias — e não '
+ 'apenas em um instantâneo — é o que permite distinguir a fadiga funcional, esperada e reversível, de uma deterioração '
+ 'que exigiria intervenção, e constitui um dos focos centrais deste estudo.')
 H('1.3 Handebol: modalidade coletiva intermitente e de alta intensidade',12,before=6)
 P('O handebol de quadra é uma modalidade coletiva de invasão, de caráter marcadamente intermitente e de alta intensidade. '
  'Ao longo da partida, ações máximas e explosivas — sprints curtos, saltos, arremessos, bloqueios, mudanças de direção e '
@@ -161,10 +172,12 @@ P('Diante da ampla adoção da BRUMS, mas da escassez de descrições detalhadas
  '(iii) descrever a resposta aguda pré → pós com tamanho de efeito; (iv) comparar as dimensões entre todos os dias; (v) '
  'confirmar as diferenças por análise multivariada (escores T); (vi) descrever o comportamento individual de cada '
  'variável e suas relações; (vii) identificar os dias de maior fadiga, vigor, tensão, raiva e depressão; (viii) '
- 'classificar a evolução dos perfis de humor; (ix) analisar o T-CAR e o limiar de pico de velocidade; e (x) caracterizar '
- 'a sonolência e o estresse percebido e sua relação com o humor. Hipotetizou-se '
- 'que a deterioração se concentraria no eixo energia–fadiga, com migração do perfil iceberg para o de fadiga, e que a '
- 'aptidão intermitente modularia a resposta.')
+ 'classificar a evolução dos perfis de humor; (ix) analisar o T-CAR e o limiar de pico de velocidade; (x) caracterizar '
+ 'a sonolência e o estresse percebido e sua relação com o humor; e (xi) modelar a dinâmica temporal das trajetórias — '
+ 'taxa de variação, aceleração e o cruzamento energia–fadiga —, separando o sinal sistemático do ruído amostral. '
+ 'Hipotetizou-se que a deterioração se concentraria no eixo energia–fadiga, com migração do perfil iceberg (prontidão) '
+ 'para o de barbatana de tubarão (fadiga funcional) e um cruzamento entre as trajetórias de vigor e fadiga ao longo da '
+ 'semana, e que a aptidão aeróbia intermitente modularia a magnitude dessa resposta.')
 
 # ===== 2 MATERIAIS E MÉTODOS =====
 H('2 MATERIAIS E MÉTODOS')
@@ -558,7 +571,7 @@ P('Aproveitando as duas coletas diárias dos dias de treino, a trajetória do gr
  'e a fadiga (e a PTH) a subir do pré para o pós, com recuperação parcial na manhã seguinte — um padrão de dente de '
  'serra sobreposto à tendência semanal de queda de energia e acúmulo de fadiga. A leitura de alta resolução, portanto, '
  'confirma que a deterioração semanal resulta da soma de perturbações agudas incompletamente revertidas entre as '
- 'sessões.')
+ 'sessões.'%f_p13)
 
 # ----- 3.17 Auditoria de robustez (filtragem de ruído) -----
 H('3.17 Auditoria de robustez: filtragem de sinal e ruído',12,before=6)
@@ -610,6 +623,24 @@ P('Para além de confirmar a deterioração, os resultados detalham a sua dinâm
  'sinaliza que o reforço da recuperação deve concentrar-se na transição do início da semana (choque de carga) e no '
  'encerramento do microciclo (fadiga acumulada), pontos em que o estado psicofisiológico é mais desfavorável.'%(
    PK['Vigor']['max_day'],PK['Fadiga']['max_day']))
+P('Um aspecto metodológico distingue este estudo da tradição descritiva do perfilamento do humor. A literatura clássica '
+ 'caracteriza o humor de atletas por instantâneos — o perfil de um momento — ou, quando muito, por comparações de médias '
+ 'entre condições (LOCHBAUM et al., 2021). Aqui, ao ajustar uma função polinomial às trajetórias diárias e dela extrair '
+ 'as derivadas, passou-se de uma descrição estática para uma leitura dinâmica e quantitativa do humor, na linha do que '
+ 'Cockerill, Nevill e Lyons (1991) propuseram ao modelar estados de humor com finalidade prescritiva, e não apenas '
+ 'descritiva. A derivada primeira quantifica a velocidade da deterioração e a derivada segunda localiza o momento em que '
+ 'essa velocidade deixa de acelerar (inflexão em torno do Dia %s), fornecendo à comissão técnica não apenas o quanto, mas '
+ 'o ritmo e a aceleração do desgaste — informação alinhada ao papel do monitoramento do humor como indicador precoce de '
+ 'sobrecarga e de excesso de treinamento (FEIJEN et al., 2020; NEDERHOF et al., 2007) e à dinâmica dia-a-dia entre carga '
+ 'de treino e humor descrita em outras modalidades (HAMLIN et al., 2019; ALFONSO; CAPDEVILA, 2022). A decomposição '
+ 'sinal–ruído, por sua vez, agrega rigor à interpretação: ao mostrar que o vigor e a fadiga são quase inteiramente sinal, '
+ 'ao passo que as dimensões negativas próximas do piso são dominadas por ruído, ela fundamenta quantitativamente a '
+ 'decisão de centrar o monitoramento no eixo energia–fadiga e de não sobreinterpretar as pequenas oscilações das demais '
+ 'subescalas — uma resposta direta às conhecidas limitações de fidedignidade e de efeito de piso dessas dimensões em '
+ 'amostras de elite (TERRY; LANE; FOGARTY, 2003). Por fim, o cruzamento energia–fadiga, obtido das curvas suavizadas, '
+ 'condensa em um único marcador visual e objetivo o instante em que a fadiga supera o vigor — evento que o '
+ 'acompanhamento diário isolado dificilmente tornaria tão explícito.'%(
+   '%d'%round(DV['vars']['Vigor']['infl'][0])))
 P('O caráter do handebol ajuda a contextualizar a magnitude dessa resposta. Trata-se de uma modalidade coletiva de '
  'invasão, marcadamente intermitente, na qual ações de alta intensidade — sprints, saltos, arremessos, bloqueios, '
  'mudanças de direção e contatos — alternam-se com períodos de recuperação incompleta, exigindo simultaneamente potência '
@@ -704,17 +735,22 @@ H('REFERÊNCIAS')
 refs=[
  'ANDRADE, A. et al. Sleep quality, mood and performance: a study of elite Brazilian volleyball athletes. Journal of Sports Science and Medicine, v. 15, n. 4, p. 601–605, 2016.',
  'ANDRADE, A. et al. Effect of practice exergames on the mood states and self-esteem of elementary school boys and girls during physical education classes: a cluster-randomized controlled trial. PLoS ONE, v. 15, n. 6, e0232392, 2020. DOI: 10.1371/journal.pone.0232392.',
+ 'ALFONSO, C.; CAPDEVILA, L. Heart rate variability, mood and performance: a pilot study on the interrelation of these variables in amateur road cyclists. PeerJ, v. 10, e13094, 2022. DOI: 10.7717/peerj.13094.',
  'BRANDT, R.; BEVILACQUA, G. G.; ANDRADE, A. Perceived sleep quality, mood states, and their relationship with performance among Brazilian elite athletes during a competitive period. Journal of Strength and Conditioning Research, v. 31, n. 4, p. 1033–1039, 2017.',
+ 'COCKERILL, I. M.; NEVILL, A. M.; LYONS, N. Modelling mood states in athletic performance. Journal of Sports Sciences, v. 9, n. 2, p. 205–212, 1991. DOI: 10.1080/02640419108729881.',
  'DE MIRANDA ROHLFS, I. C. P. et al. Prevalence of specific mood profile clusters among elite and youth athletes at a Brazilian sports club. Sports, v. 12, n. 7, 195, 2024. DOI: 10.3390/sports12070195.',
  'DE MIRANDA ROHLFS, I. C. P. et al. Mood states, injury status, and countermovement jump performance in Brazilian high-level sports. Sports, v. 13, n. 9, 303, 2025. DOI: 10.3390/sports13090303.',
  'DO NASCIMENTO, M. H. et al. Acute psychological responses to official match outcomes in male youth volleyball: an observational repeated-measures study within a single national-level team. Frontiers in Psychology, v. 17, 1826372, 2026. DOI: 10.3389/fpsyg.2026.1826372.',
+ 'FEIJEN, S. et al. Monitoring the swimmer’s training load: a narrative review of monitoring strategies applied in research. Scandinavian Journal of Medicine & Science in Sports, v. 30, n. 11, p. 2037–2043, 2020. DOI: 10.1111/sms.13798.',
  'FERNANDES-DA-SILVA, J. et al. The peak velocity derived from the Carminatti Test is related to physical match performance in young soccer players. Journal of Sports Sciences, v. 34, n. 24, p. 2238–2245, 2016. DOI: 10.1080/02640414.2015.1093646.',
  'HAN, C.; PARSONS-SMITH, R. L.; TERRY, P. C. Mood profiling in Singapore: cross-cultural validation and potential applications of mood profile clusters. Frontiers in Psychology, v. 11, 665, 2020. DOI: 10.3389/fpsyg.2020.00665.',
+ 'HAMLIN, M. J. et al. Monitoring training loads and perceived stress in young elite university athletes. Frontiers in Physiology, v. 10, 34, 2019. DOI: 10.3389/fphys.2019.00034.',
  'KARCHER, C.; BUCHHEIT, M. On-court demands of elite handball, with special reference to playing positions. Sports Medicine, v. 44, n. 6, p. 797–814, 2014. DOI: 10.1007/s40279-014-0164-z.',
  'KELLMANN, M. et al. Recovery and performance in sport: consensus statement. International Journal of Sports Physiology and Performance, v. 13, n. 2, p. 240–245, 2018. DOI: 10.1123/ijspp.2017-0759.',
  'LOCHBAUM, M. et al. The Profile of Mood States and athletic performance: a meta-analysis of published studies. European Journal of Investigation in Health, Psychology and Education, v. 11, n. 1, p. 50–70, 2021. DOI: 10.3390/ejihpe11010005.',
  'MICHALSIK, L. B.; AAGAARD, P. Physical demands in elite team handball: comparisons between male and female players. Journal of Sports Medicine and Physical Fitness, v. 55, n. 9, p. 878–891, 2015.',
  'MORGAN, W. P. Selected psychological factors limiting performance: a mental health model. In: CLARKE, D. H.; ECKERT, H. M. (Ed.). Limits of human performance. Champaign: Human Kinetics, 1985. p. 70–80.',
+ 'NEDERHOF, E. et al. Different diagnostic tools in nonfunctional overreaching. International Journal of Sports Medicine, v. 29, n. 7, p. 590–597, 2007. DOI: 10.1055/s-2007-989264.',
  'NEVILL, A. M.; LANE, A. M. Why self-report “Likert” scale data should not be log-transformed. Journal of Sports Sciences, v. 25, n. 1, p. 1–2, 2007. DOI: 10.1080/02640410601111183.',
  'PARSONS-SMITH, R. L.; TERRY, P. C.; MACHIN, M. A. Identification and description of novel mood profile clusters. Frontiers in Psychology, v. 8, 1958, 2017. DOI: 10.3389/fpsyg.2017.01958.',
  'PEREIRA, R. et al. Exercise intensity and reliability during recreational team handball training for 50–77-year-old unexperienced women. Biology of Sport, v. 41, n. 4, p. 253–261, 2024. DOI: 10.5114/biolsport.2024.132995.',
