@@ -17,10 +17,10 @@ def draw(keys,col):
         y=h.groupby('dia')[k].mean().reindex(days).values
         c=np.polyfit(days,y,3); P=np.poly1d(c)
         # pontos brutos (média diária) — tênues
-        f.add_trace(go.Scatter(x=days,y=y,mode='markers',marker=dict(size=6,color=COL[k],opacity=0.45),
+        f.add_trace(go.Scatter(x=days,y=y,mode='markers',marker=dict(size=8,color=COL[k],opacity=0.45),
             showlegend=False,hoverinfo='skip'),1,col)
         # sinal suavizado (polinômio) — linha cheia
-        f.add_trace(go.Scatter(x=tt,y=P(tt),mode='lines',line=dict(color=COL[k],width=3.2),
+        f.add_trace(go.Scatter(x=tt,y=P(tt),mode='lines',line=dict(color=COL[k],width=4.6),
             name=NM[k],legendgroup=NM[k]),1,col)
 draw(PANA,1); draw(PANB,2)
 f.update_yaxes(title_text='Escore (0–16)',row=1,col=1,gridcolor='#e6e8eb',zeroline=False)

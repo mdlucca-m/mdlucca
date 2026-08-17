@@ -14,7 +14,7 @@ f=make_subplots(rows=1,cols=2,subplot_titles=('Sonolência (Epworth, 0–18)','E
 def panel(v,color,fill,c):
     m,se=ms(v); up=m+1.96*se; lo=m-1.96*se
     f.add_trace(go.Scatter(x=list(days)+list(days[::-1]),y=list(up)+list(lo[::-1]),fill='toself',fillcolor=fill,mode='lines',line=dict(width=0),showlegend=False,hoverinfo='skip'),1,c)
-    f.add_trace(go.Scatter(x=days,y=m,mode='lines+markers',line=dict(color=color,width=3.6),marker=dict(size=9,color=color,line=dict(color='white',width=1.5)),showlegend=False),1,c)
+    f.add_trace(go.Scatter(x=days,y=m,mode='lines+markers',line=dict(color=color,width=5.2),marker=dict(size=11,color=color,line=dict(color='white',width=1.5)),showlegend=False),1,c)
 panel('Epworth','#1c7ed6','rgba(28,126,214,0.16)',1)
 panel('PSS','#7048e8','rgba(112,72,232,0.15)',2)
 f.update_xaxes(title_text='Dia do microciclo',tickvals=list(days),gridcolor='#eceef1',zeroline=False)

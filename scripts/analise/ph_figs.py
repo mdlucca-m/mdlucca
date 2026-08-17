@@ -18,8 +18,8 @@ def star(v):  # sig vs D1 (Tukey)
 f=go.Figure()
 for v,col,nm in [('Vigor','#2f9e44','Vigor'),('Fadiga','#e8590c','Fadiga (BRUMS)'),('FadFisica','#0c8599','Fadiga física')]:
     y=emm(v); s=star(v)
-    f.add_trace(go.Scatter(x=days,y=y,mode='lines+markers+text',name=nm,line=dict(color=col,width=3.5),
-        marker=dict(size=10,line=dict(color='white',width=1.5)),text=s,textposition='top center',textfont=dict(size=16,color=col)))
+    f.add_trace(go.Scatter(x=days,y=y,mode='lines+markers+text',name=nm,line=dict(color=col,width=5.1),
+        marker=dict(size=12,line=dict(color='white',width=1.5)),text=s,textposition='top center',textfont=dict(size=16,color=col)))
 # highlight key days
 f.add_vrect(x0=1,x1=2,fillcolor='#2f9e44',opacity=0.06,line_width=0,annotation_text='queda de vigor mais forte (D1→D2)',annotation_position='top left',annotation_font_size=11)
 f.add_vrect(x0=6,x1=7,fillcolor='#e8590c',opacity=0.07,line_width=0,annotation_text='fadiga sobe mais forte (D6→D7)',annotation_position='bottom right',annotation_font_size=11)

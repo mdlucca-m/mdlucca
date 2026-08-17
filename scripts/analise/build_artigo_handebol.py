@@ -9,7 +9,7 @@ from docx.oxml import OxmlElement
 R=json.load(open('brums_desc2.json')); STAT=json.load(open('brums_stats3.json')); S4=json.load(open('brums_stats4.json'))
 MS=json.load(open('model_stats.json')); MV=json.load(open('manova.json')); PHJ=json.load(open('posthoc.json'))
 PV=json.load(open('pv_stats.json')); LIM=json.load(open('tcar_limiar.json')); TCD=json.load(open('tcar_desc.json'))
-CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json')); SM=json.load(open('smooth.json')); IND=json.load(open('indiv.json')); AUD=json.load(open('audit.json'))
+CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json')); SM=json.load(open('smooth.json')); IND=json.load(open('indiv.json')); AUD=json.load(open('audit.json')); CP=json.load(open('cross_pt.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
 doc=Document()
@@ -498,6 +498,16 @@ P('Os extremos das funções ajustadas e os limites de suas derivadas (Tabela %d
    c2('%+.2f'%VG['dmin_val']),dayf(VG['dmin_day']),c2('%+.2f'%VG['dmax_val']),
    c2('%.1f'%FD['fmin_val']),dayf(FD['fmin_day']),c2('%.1f'%FD['fmax_val']),dayf(FD['fmax_day']),
    c2('%+.2f'%FD['dmin_val']),c2('%+.2f'%FD['dmax_val'])))
+
+f_cx=figure(f'{FG}/crossover.png','Cruzamento energia–fadiga: curvas suavizadas de vigor e fadiga com os pontos exatos de interseção (× ) e a área entre elas. O vigor parte muito acima e a fadiga o ultrapassa ao longo da semana.',w=15.5)
+cds=CP['cross_days']; cd1='%s'%c2('%.1f'%cds[0]) if cds else '—'; cdl='%s'%c2('%.1f'%cds[-1]) if cds else '—'
+P('A sobreposição das curvas suavizadas de vigor e fadiga permite localizar o momento exato de sua inversão (Figura %d). '
+ 'No primeiro dia, o vigor supera a fadiga por ampla margem (%s pontos); essa vantagem colapsa já no Dia 2, e as duas '
+ 'dimensões passam a se cruzar repetidamente na região central da semana — os pontos de interseção das funções ocorrem '
+ 'nos dias %s — refletindo um período em que energia e fadiga ficam estatisticamente entrelaçadas. A partir do último '
+ 'cruzamento (Dia %s), a fadiga assume e se distancia do vigor, encerrando a semana %s pontos acima. Esse cruzamento '
+ 'energia–fadiga é a assinatura gráfica da migração do perfil de prontidão para o perfil de fadiga.'%(
+   f_cx,c2('%.1f'%CP['gap_d1']),', '.join(c2('%.1f'%x) for x in cds),cdl,c2('%.1f'%abs(CP['gap_d7']))))
 
 # ----- 3.14 Decomposição sinal-ruído e suavização das trajetórias -----
 H('3.14 Decomposição sinal–ruído e suavização das trajetórias',12,before=6)

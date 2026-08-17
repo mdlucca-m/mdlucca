@@ -19,7 +19,7 @@ def base(**k):
 def band(f,x,y,se,key,row,col,legend=True):
     col_,fill=PAL[key]; up=np.array(y)+1.96*np.array(se); lo=np.array(y)-1.96*np.array(se)
     f.add_trace(go.Scatter(x=list(x)+list(x[::-1]),y=list(up)+list(lo[::-1]),fill='toself',fillcolor=fill,mode='lines',line=dict(width=0),showlegend=False,hoverinfo='skip'),row,col)
-    f.add_trace(go.Scatter(x=x,y=y,mode='lines+markers',line=dict(color=col_,width=3.6),marker=dict(size=9,color=col_,line=dict(color='white',width=1.5)),name=NM[key],showlegend=legend),row,col)
+    f.add_trace(go.Scatter(x=x,y=y,mode='lines+markers',line=dict(color=col_,width=5.2),marker=dict(size=11,color=col_,line=dict(color='white',width=1.5)),name=NM[key],showlegend=legend),row,col)
 def dstat(k):
     m=h.groupby('dia')[k].mean().reindex(days).values; se=h.groupby('dia')[k].sem().reindex(days).values; return m,se
 GRID=dict(gridcolor='#eceef1',zeroline=False)
@@ -91,7 +91,7 @@ f.add_trace(go.Bar(x=labs,y=d7,name='D7 (maior fadiga)',marker=dict(color='#ff87
 f.update_yaxes(title='ρ com fadiga',range=[-0.4,0.95],row=1,col=1,**GRID)
 for k in negs:
     y=[R['perday_corr'][k]['fad'][str(d)] for d in days]
-    f.add_trace(go.Scatter(x=days,y=y,mode='lines+markers',name=NM[k],line=dict(color=PAL[k][0],width=3),marker=dict(size=8)),1,2)
+    f.add_trace(go.Scatter(x=days,y=y,mode='lines+markers',name=NM[k],line=dict(color=PAL[k][0],width=4.3),marker=dict(size=10)),1,2)
 f.add_hline(y=0,line=dict(color='#adb5bd'),row=1,col=2)
 f.update_xaxes(title='Dia',dtick=1,row=1,col=2,**GRID); f.update_yaxes(title='ρ (negativa × fadiga)',row=1,col=2,**GRID)
 f.update_layout(**base(height=520,width=1440,barmode='group',legend=dict(font=dict(size=12))))
@@ -106,7 +106,7 @@ for j,k in enumerate(['Vigor','Fadiga','TMD'],1):
     f.update_xaxes(title='Dia',dtick=1,row=1,col=j,**GRID)
 for k in ['Depressao','Raiva','Confusao']:
     dd=R['intraday_neg'][k]; y=[(dd[str(d)]['delta'] if dd.get(str(d)) and dd[str(d)]['delta'] is not None else None) for d in days]
-    f.add_trace(go.Scatter(x=days,y=y,mode='lines+markers',name=NM[k],line=dict(color=PAL[k][0],width=2.6),marker=dict(size=7)),1,4)
+    f.add_trace(go.Scatter(x=days,y=y,mode='lines+markers',name=NM[k],line=dict(color=PAL[k][0],width=3.8),marker=dict(size=9)),1,4)
 f.add_hline(y=0,line=dict(color='#adb5bd'),row=1,col=4)
 f.update_xaxes(title='Dia',dtick=1,row=1,col=4,**GRID); f.update_yaxes(title='Escore',row=1,col=1,**GRID)
 f.update_layout(**base(height=470,width=1500,barmode='group',legend=dict(orientation='h',y=1.14,x=0.35)))

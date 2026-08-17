@@ -18,7 +18,7 @@ f.add_hline(y=50,line=dict(color='#868e96',dash='dash',width=1.5),annotation_tex
 for name,col,mk in [('D1','#2f9e44','circle'),('D7','#e8590c','diamond')]:
     yv=[T[name][k] for k in ORD]
     f.add_trace(go.Scatter(x=[NM[k] for k in ORD],y=yv,mode='lines+markers',name='Dia %s'%name[1],
-        line=dict(color=col,width=4),marker=dict(size=13,symbol=mk,line=dict(color='white',width=1.5))))
+        line=dict(color=col,width=5.5),marker=dict(size=13,symbol=mk,line=dict(color='white',width=1.5))))
 f.update_layout(**base(height=560,width=1050,title=dict(text='<b>Perfil de humor (escores T) — Dia 1 vs Dia 7</b>',x=0.5,font=dict(size=18)),
     legend=dict(orientation='h',y=-0.14,x=0.5,xanchor='center',font=dict(size=14))))
 f.update_yaxes(title='Escore T (M = 50; DP = 10)',range=[38,62],dtick=5,**GRID); f.update_xaxes(**GRID)
@@ -30,7 +30,7 @@ f.add_hline(y=50,line=dict(color='#868e96',dash='dash',width=1.5))
 for name,col,mk in [('Pre','#1971c2','circle'),('Pos','#e8590c','diamond')]:
     yv=[T[name][k] for k in ORD]
     f.add_trace(go.Scatter(x=[NM[k] for k in ORD],y=yv,mode='lines+markers',name=('Pré' if name=='Pre' else 'Pós'),
-        line=dict(color=col,width=4),marker=dict(size=13,symbol=mk,line=dict(color='white',width=1.5))))
+        line=dict(color=col,width=5.5),marker=dict(size=13,symbol=mk,line=dict(color='white',width=1.5))))
 f.update_layout(**base(height=560,width=1050,title=dict(text='<b>Perfil de humor (escores T) — pré vs pós-treino</b>',x=0.5,font=dict(size=18)),
     legend=dict(orientation='h',y=-0.14,x=0.5,xanchor='center',font=dict(size=14))))
 f.update_yaxes(title='Escore T (M = 50; DP = 10)',range=[38,62],dtick=5,**GRID); f.update_xaxes(**GRID)

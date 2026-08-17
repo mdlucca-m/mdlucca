@@ -8,8 +8,8 @@ R=json.load(open('indiv.json'))['pts13']
 x=list(range(len(R['lab'])))
 f=go.Figure()
 for v,col,nm in [('Vigor','#2f9e44','Vigor'),('Fadiga','#e8590c','Fadiga'),('TMD','#7048e8','PTH')]:
-    f.add_trace(go.Scatter(x=x,y=R[v],mode='lines+markers',line=dict(color=col,width=3),
-        marker=dict(size=7,color=col,line=dict(color='white',width=1)),name=nm))
+    f.add_trace(go.Scatter(x=x,y=R[v],mode='lines+markers',line=dict(color=col,width=4.3),
+        marker=dict(size=9,color=col,line=dict(color='white',width=1)),name=nm))
 # faixas dos dias (sombreado alternado leve)
 for d in range(2,8):
     i0=1+(d-2)*2-0.5;

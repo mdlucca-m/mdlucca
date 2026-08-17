@@ -374,6 +374,11 @@ for k in CANON:
 print('  Acoplamento (correlação das curvas P\'):')
 for a, b in [('Vigor','Fadiga'), ('Fadiga','TMD'), ('Vigor','TMD')]:
     print('    %-8s x %-8s r=%+.2f' % (LAB.get(a,a), LAB.get(b,b), np.corrcoef(dcur[a], dcur[b])[0,1]))
+# ponto(s) exato(s) de cruzamento vigor = fadiga (raízes de P_vigor - P_fadiga em [1,7])
+Vp = np.poly1d(np.polyfit(np.arange(1,8), h.groupby('dia')['Vigor'].mean().reindex(range(1,8)).values, GR))
+Fp = np.poly1d(np.polyfit(np.arange(1,8), h.groupby('dia')['Fadiga'].mean().reindex(range(1,8)).values, GR))
+cx = sorted(round(float(r.real),2) for r in (Vp-Fp).roots if abs(r.imag)<1e-6 and 1<=r.real<=7)
+print('  Cruzamento Vigor=Fadiga nos dias:', cx)
 
 # =============================================================================
 # 14) DECOMPOSIÇÃO SINAL–RUÍDO e SUAVIZAÇÃO

@@ -16,9 +16,9 @@ for j,(k,lab,col) in enumerate(PAN,1):
     y=h.groupby('dia')[k].mean().reindex(days).values
     c=np.array(D['vars'][k]['coef']); P=np.poly1d(c); dP=P.deriv(1)
     infl=D['vars'][k]['infl']
-    f.add_trace(go.Scatter(x=days,y=y,mode='markers',marker=dict(size=10,color=col,line=dict(color='white',width=1.5)),
+    f.add_trace(go.Scatter(x=days,y=y,mode='markers',marker=dict(size=12,color=col,line=dict(color='white',width=1.5)),
         name='Média diária',showlegend=(j==1)),1,j,secondary_y=False)
-    f.add_trace(go.Scatter(x=tt,y=P(tt),mode='lines',line=dict(color=col,width=3),
+    f.add_trace(go.Scatter(x=tt,y=P(tt),mode='lines',line=dict(color=col,width=4.3),
         name='Ajuste P(t)',showlegend=(j==1)),1,j,secondary_y=False)
     f.add_trace(go.Scatter(x=tt,y=dP(tt),mode='lines',line=dict(color='#495057',width=2,dash='dash'),
         name=LAB_DER,showlegend=(j==1)),1,j,secondary_y=True)

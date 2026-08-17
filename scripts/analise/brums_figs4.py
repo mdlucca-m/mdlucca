@@ -31,7 +31,7 @@ for k in ORD:
     mu=h[k].mean(); sd=h[k].std(ddof=1); z=(h.groupby('dia')[k].mean().reindex(days)-mu)/sd
     dash='solid' if k in ('Vigor','Fadiga','TMD') else 'dot'
     wid=4 if k in ('Vigor','Fadiga') else (3 if k=='TMD' else 2.4)
-    f.add_trace(go.Scatter(x=days,y=z.values,mode='lines+markers',name=NM[k],line=dict(color=HEX[k],width=wid,dash=dash),marker=dict(size=8,line=dict(color='white',width=1))))
+    f.add_trace(go.Scatter(x=days,y=z.values,mode='lines+markers',name=NM[k],line=dict(color=HEX[k],width=wid,dash=dash),marker=dict(size=10,line=dict(color='white',width=1))))
 f.add_hline(y=0,line=dict(color='#adb5bd',dash='dash'))
 f.add_vrect(x0=0.6,x1=1.4,fillcolor='#2f9e44',opacity=0.06,line_width=0,annotation_text='D1 (+vigor)',annotation_position='top left',annotation_font_size=12)
 f.add_vrect(x0=6.6,x1=7.4,fillcolor='#e8590c',opacity=0.06,line_width=0,annotation_text='D7 (+fadiga)',annotation_position='top right',annotation_font_size=12)
@@ -62,7 +62,7 @@ for k in SUB:
     for d in days:
         yv=h[h.dia==d][k].dropna()
         f.add_trace(go.Box(x=[d]*len(yv),y=yv,marker=dict(color=HEX[k],size=3),line=dict(width=1),fillcolor=RGBA[k],opacity=0.5,boxpoints='outliers',showlegend=False,width=0.5))
-    f.add_trace(go.Scatter(x=days,y=m,mode='lines+markers',line=dict(color=HEX[k],width=4),marker=dict(size=10,line=dict(color='white',width=1.5)),showlegend=False))
+    f.add_trace(go.Scatter(x=days,y=m,mode='lines+markers',line=dict(color=HEX[k],width=5.5),marker=dict(size=12,line=dict(color='white',width=1.5)),showlegend=False))
     dz=S4['sens'][k]['dz']; fr=S4['friedman'][k]
     f.add_annotation(x=1,y=max(up)*1.02,xanchor='left',showarrow=False,font=dict(size=13,color='#333'),
         text='Δ D1→D7: dz = %s · Friedman p = %s'%(('%+.2f'%dz).replace('.',','),(('%.3f'%fr['p']).replace('.',','))))
@@ -78,7 +78,7 @@ for j,k in enumerate(['Vigor','Fadiga'],1):
         gg=g.set_index('dia')[k].reindex(days)
         f.add_trace(go.Scatter(x=days,y=gg.values,mode='lines',line=dict(color='#adb5bd',width=1),opacity=0.5,showlegend=False),1,j)
     m=dm.groupby('dia')[k].mean().reindex(days)
-    f.add_trace(go.Scatter(x=days,y=m.values,mode='lines+markers',line=dict(color=HEX[k],width=4.5),marker=dict(size=9,line=dict(color='white',width=1.5)),name='Média do grupo',showlegend=(j==1)),1,j)
+    f.add_trace(go.Scatter(x=days,y=m.values,mode='lines+markers',line=dict(color=HEX[k],width=5.5),marker=dict(size=11,line=dict(color='white',width=1.5)),name='Média do grupo',showlegend=(j==1)),1,j)
     f.update_xaxes(title='Dia',dtick=1,row=1,col=j,**GRID); f.update_yaxes(title='Escore (0–16)',row=1,col=j,**GRID)
 f.update_layout(**base(height=520,width=1400,legend=dict(font=dict(size=12),y=1.08,x=0.5,orientation='h')))
 f.write_image(f'{OUT}/xb4_spaghetti.png',width=1500,height=560,scale=3)

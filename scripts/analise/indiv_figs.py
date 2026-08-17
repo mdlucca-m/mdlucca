@@ -15,8 +15,8 @@ for j,(v,col) in enumerate(PAN,1):
         f.add_trace(go.Scatter(x=g['dia'],y=g[v],mode='lines',line=dict(color=col,width=1),opacity=0.28,
             showlegend=False,hoverinfo='skip'),1,j)
     gm=h.groupby('dia')[v].mean().reindex(days)
-    f.add_trace(go.Scatter(x=days,y=gm.values,mode='lines+markers',line=dict(color=col,width=4),
-        marker=dict(size=9,color=col,line=dict(color='white',width=1.5)),name='Média do grupo',showlegend=(j==1)),1,j)
+    f.add_trace(go.Scatter(x=days,y=gm.values,mode='lines+markers',line=dict(color=col,width=5.5),
+        marker=dict(size=11,color=col,line=dict(color='white',width=1.5)),name='Média do grupo',showlegend=(j==1)),1,j)
     f.update_yaxes(title_text='Escore (0–16)' if j==1 else None,row=1,col=j,gridcolor='#e6e8eb',zeroline=False,range=[0,16])
     f.update_xaxes(title_text='Dia do microciclo',tickvals=list(days),row=1,col=j,gridcolor='#e6e8eb',zeroline=False)
 f.update_layout(template='mdpi',font=dict(color='#1a1a1a',size=14,family='Arial'),
