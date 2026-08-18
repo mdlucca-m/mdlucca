@@ -14,7 +14,7 @@ LOG=json.load(open('logistica.json'))
 L2=json.load(open('limiar2.json'))
 MOD=json.load(open('moduladores.json'))
 RSA=json.load(open('rsa_stats.json'))
-COM=json.load(open('commonality.json')); SPC=json.load(open('speccurve.json')); MDC=json.load(open('mdc.json'))
+COM=json.load(open('commonality.json')); SPC=json.load(open('speccurve.json')); MDC=json.load(open('mdc.json')); PSY=json.load(open('psychometric.json'))
 CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json')); SM=json.load(open('smooth.json')); IND=json.load(open('indiv.json')); AUD=json.load(open('audit.json')); CP=json.load(open('cross_pt.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
@@ -263,7 +263,9 @@ P('Para descrever a resposta aguda ao treino, os momentos pré e pós foram comp
  '(0,1 pequeno; 0,3 moderado; 0,5 grande); quando significativo, aplicou-se o pós-teste das médias marginais de um modelo '
  'misto (correção de Tukey), que identifica entre quais dias, especificamente, houve diferença. A consistência das '
  'medidas repetidas ao longo da semana foi estimada pelo coeficiente de correlação intraclasse (ICC), interpretado como '
- 'pobre (< 0,50), moderado (0,50–0,75), bom (0,75–0,90) ou excelente (> 0,90). A partir do ICC e do desvio-padrão, '
+ 'pobre (< 0,50), moderado (0,50–0,75), bom (0,75–0,90) ou excelente (> 0,90). As propriedades psicométricas das '
+ 'subescalas foram descritas pela consistência interna (alfa de Cronbach), pela assimetria e pelo efeito de piso '
+ '(presente quando mais de 15% das observações no menor escore; TERWEE et al., 2007). A partir do ICC e do desvio-padrão, '
  'derivaram-se o erro-padrão de medida (SEM), a mudança mínima detectável (MDC = 1,96 × √2 × SEM) e a menor mudança '
  'relevante (SWC = 0,2 × desvio-padrão entre atletas), a fim de balizar a interpretação de mudanças individuais no '
  'humor e o uso prático do limiar de aptidão.')
@@ -330,12 +332,27 @@ H('3.2 Normalidade das distribuições',12,before=6)
 tn=table('Teste de normalidade (Shapiro-Wilk) das dimensões do BRUMS.',['Dimensão','Estatística (W)','p'],
     [[lab,c2('%.3f'%SH[k]['W']),'< 0,001' if SH[k]['p']<0.001 else c2('%.3f'%SH[k]['p'])] for k,lab in [('Vigor','Vigor'),('Fadiga','Fadiga'),('Tensao','Tensão'),('Depressao','Depressão'),('Raiva','Raiva'),('Confusao','Confusão')]],fs=9)
 P('As seis dimensões não seguem distribuição normal (p < 0,001; Tabela %d), o que justifica os testes não paramétricos.'%tn)
-H('3.3 Estatística descritiva das dimensões',12,before=6)
+H('3.3 Estatística descritiva e propriedades psicométricas das dimensões',12,before=6)
 def drow(k,lab):
     v=desc[k]; return [lab,c2('%.2f'%v['mean']),c2('%.1f'%v['md']),c2('%.2f'%v['sd']),'%s–%s'%(c2('%.0f'%v['mn']),c2('%.0f'%v['mx']))]
 td=table('Estatística descritiva das dimensões do BRUMS e da PTH (%d observações).'%sm['n_obs'],
     ['Dimensão','Média','Mediana','DP','Mín–Máx'],[drow(k,l) for k,l in ORD],fs=9)
 P('A descritiva geral consta na Tabela %d: o vigor e a fadiga concentram as maiores médias e variabilidade.'%td)
+def psyrow(k,lab):
+    o=PSY[k]; return [lab,c2('%.2f'%o['alpha']),c2('%.0f'%(100*o['floor0']))+'%',c2('%+.2f'%o['skew']),'sim' if o['floor_effect'] else 'não']
+tpsy=table('Propriedades psicométricas das subescalas do BRUMS: consistência interna, efeito de piso e assimetria (%d observações).'%sm['n_obs'],
+    ['Dimensão','α de Cronbach','% no piso (=0)','Assimetria','Efeito de piso'],
+    [psyrow(k,l) for k,l in [('Vigor','Vigor'),('Fadiga','Fadiga'),('Tensao','Tensão'),('Depressao','Depressão'),('Raiva','Raiva'),('Confusao','Confusão')]],
+    note='Efeito de piso presente quando > 15% das observações no menor escore (TERWEE et al., 2007).',fs=8.5)
+P('As propriedades psicométricas (Tabela %d) contextualizam a insensibilidade das dimensões negativas. O vigor e a '
+ 'fadiga distribuíram-se por toda a escala, sem efeito de piso (%s%% e %s%% no menor escore) e com consistência interna '
+ 'adequada a boa (α = %s e %s). As quatro dimensões negativas, ao contrário, apresentaram forte efeito de piso — de '
+ '%s%% (tensão) a %s%% (confusão) das observações no escore zero — e acentuada assimetria positiva, o que comprime a '
+ 'variância e limita, por construção, a sua responsividade à carga; trata-se de uma expressão do perfil mentalmente '
+ 'saudável (iceberg) do atleta de elite, e não de falha do instrumento (MORGAN, 1985; TERWEE et al., 2007).'%(
+   tpsy,c2('%.0f'%(100*PSY['Vigor']['floor0'])),c2('%.0f'%(100*PSY['Fadiga']['floor0'])),
+   c2('%.2f'%PSY['Vigor']['alpha']),c2('%.2f'%PSY['Fadiga']['alpha']),
+   c2('%.0f'%(100*PSY['Tensao']['floor0'])),c2('%.0f'%(100*PSY['Confusao']['floor0']))))
 H('3.4 Diferenças entre pré e pós-treino (com tamanho de efeito)',12,before=6)
 def ppr(k,lab):
     v=pr[k]; return [lab,c2('%.2f'%v['pre']),c2('%.2f'%v['pos']),c2('%+.0f'%v['pct'])+'%',pstr(v['p']),c2('%+.2f'%v['dz']),v['mag']]
@@ -932,6 +949,7 @@ refs=[
  'TAVARES, F. et al. Wellness, muscle soreness and neuromuscular performance during a training week in volleyball athletes. Journal of Sports Medicine and Physical Fitness, v. 58, n. 12, p. 1852–1858, 2017. DOI: 10.23736/S0022-4707.17.07818-5.',
  'TERRY, P. C.; LANE, A. M.; FOGARTY, G. J. Construct validity of the Profile of Mood States — Adolescents for use with adults. Psychology of Sport and Exercise, v. 4, n. 2, p. 125–139, 2003. DOI: 10.1016/S1469-0292(02)00035-8.',
  'TERRY, P. C. et al. Mood profiling for sustainable mental health among athletes. Sustainability, v. 13, n. 11, 6116, 2021. DOI: 10.3390/su13116116.',
+ 'TERWEE, C. B. et al. Quality criteria were proposed for measurement properties of health status questionnaires. Journal of Clinical Epidemiology, v. 60, n. 1, p. 34–42, 2007. DOI: 10.1016/j.jclinepi.2006.03.012.',
  'THORPE, R. T. et al. Monitoring fatigue status in elite team-sport athletes: implications for practice. International Journal of Sports Physiology and Performance, v. 12, n. S2, p. S227–S234, 2017. DOI: 10.1123/ijspp.2016-0434.',
  'VACCARO-BENET, P. et al. Internal and external load profile during beach invasion sports match-play by electronic performance and tracking systems: a systematic review. Sensors, v. 24, n. 12, 3738, 2024. DOI: 10.3390/s24123738.',
  'VRIJKOTTE, S. et al. The overtraining syndrome in soldiers: insights from the sports domain. Military Medicine, v. 184, n. 5-6, p. e192–e200, 2019. DOI: 10.1093/milmed/usy274.',
