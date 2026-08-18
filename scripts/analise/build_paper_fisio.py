@@ -716,7 +716,7 @@ P('O presente estudo examinou os correlatos fisiológicos e de bem-estar da resp
  'energia–fadiga: o vigor caiu e a '
  'fadiga subiu de forma consistente, tanto na resposta aguda a cada treino (pré → pós: vigor −%s%%, d = %s; fadiga +%s%%, '
  'd = %s) quanto na comparação do primeiro ao último dia (vigor d = %s; fadiga d = %s). A robustez desse achado é '
- 'sustentada por três abordagens convergentes, o pós-teste do modelo misto na comparação de todos os dias, o teste de Friedman '
+ 'sustentada por três abordagens convergentes: o pós-teste do modelo misto na comparação de todos os dias, o teste de Friedman '
  'e a análise multivariada em escores T (Wilks λ = %s; F(%d,%d) = %s; p %s; η²ₚ = %s). Sob o critério conservador de '
  'Bonferroni, apenas o vigor (η²ₚ = %s) e a fadiga (η²ₚ = %s) permaneceram significativos, enquanto as dimensões negativas '
  'de valência não fadiga, próximas do piso, mantiveram-se estáveis. Confirma-se, assim, que o vigor e a fadiga são as '
