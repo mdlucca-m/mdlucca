@@ -11,7 +11,7 @@ MS=json.load(open('model_stats.json')); MV=json.load(open('manova.json')); PHJ=j
 PV=json.load(open('pv_stats.json')); LIM=json.load(open('tcar_limiar.json')); TCD=json.load(open('tcar_desc.json'))
 TCV=json.load(open('tcar_curvas.json'))
 LOG=json.load(open('logistica.json'))
-BG=json.load(open('bayes_growth.json')); NET=json.load(open('network.json')); MDC=json.load(open('mdc.json')); PSY=json.load(open('psychometric.json'))
+BG=json.load(open('bayes_growth.json')); NET=json.load(open('network.json')); MDC=json.load(open('mdc.json')); PSY=json.load(open('psychometric.json')); PCA=json.load(open('pca.json'))
 L2=json.load(open('limiar2.json'))
 MOD=json.load(open('moduladores.json'))
 CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json')); SM=json.load(open('smooth.json')); IND=json.load(open('indiv.json')); AUD=json.load(open('audit.json')); CP=json.load(open('cross_pt.json'))
@@ -274,7 +274,9 @@ P('Para aprofundar a inferência sobre a dinâmica temporal, acrescentaram-se tr
  'maior carga, com a força global (soma das arestas absolutas) comparada por teste de permutação de 5 000 reamostragens '
  '(EPSKAMP; FRIED, 2018). Terceiro, como verificação de robustez que respeita a natureza ordinal e limitada das '
  'subescalas, ajustou-se um modelo de odds proporcionais (cumulative link) do dia e do momento pré/pós sobre o vigor e a '
- 'fadiga categorizados em tercis (LIDDELL; KRUSCHKE, 2018).')
+ 'fadiga categorizados em tercis (LIDDELL; KRUSCHKE, 2018). Em caráter exploratório, a estrutura dimensional do humor '
+ 'foi ainda descrita por análise de componentes principais das seis subescalas padronizadas, com retenção dos '
+ 'componentes de autovalor superior a 1 (critério de Kaiser) e interpretação pelas cargas de correlação.')
 P('Adotou-se nível de significância de 5% '
  '(p < 0,05), com as análises conduzidas em ambiente Python (bibliotecas pandas, NumPy, SciPy e statsmodels).')
 
@@ -706,6 +708,26 @@ P('A aplicação do critério de mudança confiável ao nível individual (Tabel
  'dispersão das inclinações estimada pelo modelo bayesiano — ilustra por que o monitoramento aplicado deve combinar a '
  'tendência coletiva com a leitura, atleta a atleta, das mudanças que excedem o erro de medida.'%(
    tmc,f_mc,MC['Vigor']['piora'],MC['n'],MC['Fadiga']['piora'],MC['n_piora_ambos']))
+
+H('3.17 Estrutura dimensional: análise de componentes principais (exploratória)',12,before=6)
+def pcrow(l): return [l,c2('%+.2f'%PCA['PC1'][l]),c2('%+.2f'%PCA['PC2'][l])]
+tpca=table('Análise de componentes principais das seis dimensões do BRUMS (padronizadas): variância explicada e cargas de correlação dos dois primeiros componentes.',
+    ['Dimensão','PC1 (%s%%)'%c2('%.0f'%(100*PCA['var_ratio'][0])),'PC2 (%s%%)'%c2('%.0f'%(100*PCA['var_ratio'][1]))],
+    [pcrow(l) for l in PCA['dims']],
+    note='Cargas de correlação (componente × √autovalor). Dois componentes com autovalor > 1 (critério de Kaiser) somam %s%% da variância. Análise exploratória: as %d observações estão aninhadas em atletas.'%(
+        c2('%.0f'%(100*(PCA['var_ratio'][0]+PCA['var_ratio'][1]))),PCA['n']),fs=8.5)
+f_pca=figure(f'{FG}/pca_biplot.png','Biplot da análise de componentes principais das seis dimensões do BRUMS. Pontos: observações, coloridas pela Perturbação Total do Humor (PTH); setas: cargas das dimensões (vigor em verde, fadiga em laranja). PC1 = eixo de perturbação geral; PC2 = eixo de ativação.',w=13.5)
+P('Como leitura exploratória da estrutura latente do humor, uma análise de componentes principais das seis dimensões '
+ 'padronizadas (Tabela %d; Figura %d) resumiu a resposta em dois eixos (autovalor > 1), que juntos explicam %s%% da '
+ 'variância. O primeiro componente (%s%% da variância) reúne, com o mesmo sinal, a depressão, a raiva, a fadiga e a '
+ 'confusão, e opõe-se ao vigor — eis um eixo de perturbação geral do humor, alinhado à Perturbação Total do '
+ 'Humor, cujo gradiente colore o biplot. O segundo (%s%%) contrasta a tensão e o vigor com a fadiga, à maneira de um '
+ 'eixo de ativação. Essa estrutura corrobora, por uma via independente, a concentração da resposta afetiva: a maior '
+ 'parte da informação do painel condensa-se em um eixo dominante de perturbação, coerente com a decomposição '
+ 'sinal–ruído e com o comportamento da PTH. Cabe, contudo, cautela — as observações estão aninhadas em atletas, de '
+ 'modo que a análise mistura a variância intra e a entre indivíduos e tem valor descritivo, não confirmatório.'%(
+   tpca,f_pca,c2('%.0f'%(100*(PCA['var_ratio'][0]+PCA['var_ratio'][1]))),
+   c2('%.0f'%(100*PCA['var_ratio'][0])),c2('%.0f'%(100*PCA['var_ratio'][1]))))
 
 # ===== 4 DISCUSSÃO =====
 H('4 DISCUSSÃO')
