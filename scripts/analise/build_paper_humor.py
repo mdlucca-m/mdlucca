@@ -264,7 +264,7 @@ P('Como confirmação robusta, as comparações Dia 1 → Dia 7 e pré → pós 
  'achados em relação a observações atípicas, todas as análises centrais foram reexecutadas após a remoção de valores '
  'multivariadamente atípicos (distância de Mahalanobis).')
 P('Para aprofundar a inferência sobre a dinâmica temporal, acrescentaram-se três abordagens complementares. Primeiro, '
- 'ajustou-se um modelo bayesiano multinível de curva de crescimento ao vigor e à fadiga, com o dia do microciclo '
+ 'ajustou-se um modelo bayesiano multinível de curva de crescimento ao vigor, à fadiga e à PTH, com o dia do microciclo '
  '(componente crônica) e o momento pré/pós (componente aguda) como efeitos fixos e interceptos e inclinações aleatórios '
  'por atleta; a estimação por amostrador de Gibbs com prioris conjugadas fracamente informativas (20 000 iterações, '
  'descarte inicial de 6 000, semente 2024) forneceu intervalos de credibilidade de 95%, a partição da variância entre '
@@ -630,13 +630,13 @@ P('Por fim, para verificar se as conclusões dependem de ruído amostral, todas 
 
 H('3.15 Modelagem bayesiana multinível: componentes aguda e crônica e heterogeneidade individual',12,before=6)
 def bg(v,k,f='%+.2f'): b=BG[v][k]; return c2(f%b['mean']),c2(f%b['lo']),c2(f%b['hi'])
-tbg=table('Modelo bayesiano multinível de curva de crescimento para o vigor e a fadiga: estimativas a posteriori (média e intervalo de credibilidade de 95%).',
-    ['Parâmetro','Vigor','Fadiga'],
-    [['Efeito agudo — pré→pós','%s [%s; %s]'%bg('Vigor','b_pos'),'%s [%s; %s]'%bg('Fadiga','b_pos')],
-     ['Efeito crônico — por dia','%s [%s; %s]'%bg('Vigor','b_dia'),'%s [%s; %s]'%bg('Fadiga','b_dia')],
-     ['Correlação intraclasse (ICC)','%s [%s; %s]'%bg('Vigor','icc','%.2f'),'%s [%s; %s]'%bg('Fadiga','icc','%.2f')],
-     ['DP das inclinações individuais','%s [%s; %s]'%bg('Vigor','sd_slope','%.2f'),'%s [%s; %s]'%bg('Fadiga','sd_slope','%.2f')]],
-    note='Estimação por amostrador de Gibbs (semente 2024); intervalos de credibilidade que excluem zero indicam efeito consistente. ICC = proporção da variância atribuível a diferenças entre atletas.',fs=9)
+tbg=table('Modelo bayesiano multinível de curva de crescimento para o vigor, a fadiga e a PTH: estimativas a posteriori (média e intervalo de credibilidade de 95%).',
+    ['Parâmetro','Vigor','Fadiga','PTH'],
+    [['Efeito agudo — pré→pós','%s [%s; %s]'%bg('Vigor','b_pos'),'%s [%s; %s]'%bg('Fadiga','b_pos'),'%s [%s; %s]'%bg('TMD','b_pos')],
+     ['Efeito crônico — por dia','%s [%s; %s]'%bg('Vigor','b_dia'),'%s [%s; %s]'%bg('Fadiga','b_dia'),'%s [%s; %s]'%bg('TMD','b_dia')],
+     ['Correlação intraclasse (ICC)','%s [%s; %s]'%bg('Vigor','icc','%.2f'),'%s [%s; %s]'%bg('Fadiga','icc','%.2f'),'%s [%s; %s]'%bg('TMD','icc','%.2f')],
+     ['DP das inclinações individuais','%s [%s; %s]'%bg('Vigor','sd_slope','%.2f'),'%s [%s; %s]'%bg('Fadiga','sd_slope','%.2f'),'%s [%s; %s]'%bg('TMD','sd_slope','%.2f')]],
+    note='Estimação por amostrador de Gibbs (semente 2024); intervalos de credibilidade que excluem zero indicam efeito consistente. ICC = proporção da variância atribuível a diferenças entre atletas. PTH em pontos do índice composto (escala distinta das subescalas).',fs=9)
 P('Um modelo bayesiano multinível de curva de crescimento decompôs formalmente a resposta em uma componente aguda '
  '(pré→pós, intrassessão) e uma componente crônica (deriva entre dias), com trajetórias específicas de cada atleta '
  '(Tabela %d). Ambas as componentes foram consistentes: para o vigor, o choque agudo (%s pontos por sessão; IC95%% %s a '
@@ -655,6 +655,17 @@ P('Um modelo bayesiano multinível de curva de crescimento decompôs formalmente
    bg('Fadiga','b_dia')[0],bg('Fadiga','b_dia')[1],bg('Fadiga','b_dia')[2],
    bg('Vigor','icc','%.2f')[0],bg('Fadiga','icc','%.2f')[0],
    bg('Vigor','sd_slope','%.2f')[0],bg('Fadiga','sd_slope','%.2f')[0]))
+P('Aplicado à Perturbação Total do Humor, o mesmo modelo esclarece a composição do seu movimento e ilustra o ganho de '
+ 'separar sinal e ruído. O choque agudo intrassessão foi robusto (%s ponto por sessão; IC95%% %s a %s, que exclui o '
+ 'zero), ao passo que a deriva crônica entre dias mostrou-se modesta e imprecisa (%s por dia; IC95%% %s a %s, que inclui '
+ 'o zero). Isto é, uma vez isolada a oscilação aguda, o acúmulo diário da PTH — embora presente na tendência das médias '
+ '— não se distingue com segurança do ruído, coerente com a sua razão sinal-ruído inferior à do vigor e da fadiga '
+ '(sinal de %s%% contra %s%% e %s%%, respectivamente). A PTH é, portanto, sensível sobretudo ao impacto agudo de cada '
+ 'sessão, e a sua leitura crônica exige cautela — um refinamento que apenas a modelagem multinível, ao depurar o sinal '
+ 'do ruído, torna explícito.'%(
+   bg('TMD','b_pos')[0],bg('TMD','b_pos')[1],bg('TMD','b_pos')[2],
+   bg('TMD','b_dia')[0],bg('TMD','b_dia')[1],bg('TMD','b_dia')[2],
+   c2('%.0f'%SM['vars']['TMD']['signal_pct']),c2('%.0f'%SM['vars']['Vigor']['signal_pct']),c2('%.0f'%SM['vars']['Fadiga']['signal_pct'])))
 f_rede=figure(f'{FG}/rede_humor.png','Redes de correlações parciais (modelo gráfico gaussiano) das seis dimensões do BRUMS no dia descansado (Dia 1) e no dia de maior carga (Dia 7). Arestas vermelhas: associação parcial positiva; azuis: negativa; a espessura é proporcional à magnitude. Vigor e fadiga destacados em laranja.',w=15.5)
 P('A rede psicométrica das seis dimensões (Figura %d) tornou explícita a reorganização do humor sob carga. A mudança '
  'foi seletiva, e não global: a força total da rede não aumentou do dia descansado ao dia de maior carga (%s → %s; '

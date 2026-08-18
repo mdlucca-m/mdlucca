@@ -87,7 +87,7 @@ def summ(a):
                p_dir=float(np.mean(a > 0) if np.mean(a) > 0 else np.mean(a < 0)))
 
 OUT = {}
-for var in ['Vigor', 'Fadiga']:
+for var in ['Vigor', 'Fadiga', 'TMD']:
     d = h.dropna(subset=[var]).copy()
     y = d[var].values.astype(float)
     post = gibbs(y, d['dia_c'].values.astype(float), d['pos'].values.astype(float),
