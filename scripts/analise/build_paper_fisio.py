@@ -24,13 +24,13 @@ stl.element.rPr.rFonts.set(qn('w:eastAsia'),'Times New Roman')
 stl.paragraph_format.line_spacing=1.5; stl.paragraph_format.space_after=Pt(0)
 sec=doc.sections[0]; sec.top_margin=Cm(3); sec.left_margin=Cm(3); sec.bottom_margin=Cm(2); sec.right_margin=Cm(2)
 _TN=[0]; _FN=[0]
-def P(t='',just=True,size=12,after=6,bold=False,ind=True):
+def P(t='',just=True,size=12,after=0,bold=False,ind=True):
     p=doc.add_paragraph(); r=p.add_run(t); r.font.size=Pt(size); r.bold=bold
     p.paragraph_format.line_spacing=1.5; p.paragraph_format.space_after=Pt(after)
     if just: p.alignment=WD_ALIGN_PARAGRAPH.JUSTIFY
     if just and ind: p.paragraph_format.first_line_indent=Cm(1.25)
     return p
-def RUN(pairs,after=6,ind=True):
+def RUN(pairs,after=0,ind=True):
     p=doc.add_paragraph(); p.paragraph_format.line_spacing=1.5; p.paragraph_format.space_after=Pt(after)
     p.alignment=WD_ALIGN_PARAGRAPH.JUSTIFY
     if ind: p.paragraph_format.first_line_indent=Cm(1.25)
@@ -84,10 +84,10 @@ r.bold=True; r.font.size=Pt(13); p.paragraph_format.space_after=Pt(10)
 # ===== RESUMO =====
 H('RESUMO',before=2)
 RUN([('Objetivo: ',True),('examinar os correlatos fisiológicos e de bem-estar da resposta de humor de handebolistas de '
- 'elite num microciclo pré-competitivo — aptidão aeróbia intermitente (pico de velocidade do Teste de Carminatti), '
+ 'elite num microciclo pré-competitivo, aptidão aeróbia intermitente (pico de velocidade do Teste de Carminatti), '
  'capacidade anaeróbia (sprints repetidos), composição corporal, sonolência e estresse percebido. ',False),
  ('Método: ',True),('%d atletas do sexo masculino responderam ao BRUMS-24 ao longo de sete dias (uma coleta de linha '
- 'de base no primeiro dia e duas coletas diárias — pré e pós-treino — nos seis dias de treino; %d observações) e foram '
+ 'de base no primeiro dia e duas coletas diárias, pré e pós-treino, nos seis dias de treino; %d observações) e foram '
  'avaliados por antropometria, salto vertical (CMJ), teste de sprints repetidos (Baker), Teste de Carminatti (T-CAR), '
  'Escala de Sonolência de Epworth e Escala de Estresse Percebido (PSS-14). Empregaram-se correlação de Spearman, '
  'regressão, limiares (índice de Youden e tercis), ajuste alométrico, correlação parcial e análise de moduladores da '
@@ -140,14 +140,14 @@ P('Na prática, a escala tem sido empregada sobretudo em dois momentos: como um 
  'associado à probabilidade de vitória e ao estado pré-jogo (BRANDT et al., 2019; DO NASCIMENTO et al., 2026), e em '
  'comparações entre fases de treino separadas por semanas ou meses, muitas vezes em paralelo a marcadores hormonais e '
  'de sono (ROUVEIX et al., 2006; ANDRADE et al., 2019). Permanece menos explorada, contudo, a dinâmica fina do humor no '
- 'interior de um único microciclo — aquela que distingue a oscilação aguda de cada sessão do acúmulo ao longo dos dias '
- '—, sobretudo quando acompanhada de forma contínua e articulada à aptidão física em uma modalidade coletiva.')
+ 'interior de um único microciclo, aquela que distingue a oscilação aguda de cada sessão do acúmulo ao longo dos dias'
+ ', sobretudo quando acompanhada de forma contínua e articulada à aptidão física em uma modalidade coletiva.')
 H('1.2 Perfis de humor e sua aplicação em atletas de elite',12,before=6)
 P('Para além dos escores isolados de cada subescala, a leitura do humor evoluiu para a identificação de perfis '
- 'prototípicos. Morgan (1985) descreveu o clássico “perfil iceberg” — vigor elevado sobre dimensões negativas baixas — '
+ 'prototípicos. Morgan (1985) descreveu o clássico “perfil iceberg”, vigor elevado sobre dimensões negativas baixas, '
  'como assinatura de prontidão e de saúde mental positiva. Mais recentemente, análises de agrupamento (cluster) em '
- 'grandes amostras formalizaram seis perfis de humor — iceberg, superfície, submerso, barbatana de tubarão, iceberg '
- 'invertido e Everest invertido —, dos quais os três últimos se associam a maior risco à saúde mental e à subperformance '
+ 'grandes amostras formalizaram seis perfis de humor (iceberg, superfície, submerso, barbatana de tubarão, iceberg '
+ 'invertido e Everest invertido), dos quais os três últimos se associam a maior risco à saúde mental e à subperformance '
  '(PARSONS-SMITH; TERRY; MACHIN, 2017; HAN; PARSONS-SMITH; TERRY, 2020). Esses perfis têm sido replicados em diferentes '
  'culturas e aplicados ao rastreamento da prontidão e do bem-estar de atletas de elite, inclusive no contexto brasileiro: '
  'em uma grande amostra de um clube de rendimento do Rio de Janeiro (898 atletas), o perfil iceberg foi o mais prevalente '
@@ -155,21 +155,21 @@ P('Para além dos escores isolados de cada subescala, a leitura do humor evoluiu
  'abordagem por perfis oferece uma leitura integrada e visual do estado psicológico, sensível às variações de carga e '
  'útil para identificar precocemente atletas em deterioração, com valor documentado para a saúde mental sustentável e '
  'para desfechos como lesão (TERRY et al., 2021; DE MIRANDA ROHLFS et al., 2025).')
-P('Dois desses perfis são especialmente informativos para a leitura de um microciclo de carga. O iceberg — vigor '
- 'elevado sobrepondo-se a dimensões negativas baixas — é a assinatura da prontidão e do bem-estar e associa-se a melhor '
+P('Dois desses perfis são especialmente informativos para a leitura de um microciclo de carga. O iceberg, vigor '
+ 'elevado sobrepondo-se a dimensões negativas baixas, é a assinatura da prontidão e do bem-estar e associa-se a melhor '
  'desempenho esportivo; em meta-análise de estudos com atletas competitivos, a perturbação total do humor predisse o '
  'rendimento (efeito médio; LOCHBAUM et al., 2021). A barbatana de tubarão (shark fin), por sua vez, descreve o atleta '
- 'ainda energizado, porém com a fadiga já elevada acima do vigor — e, em graus variados, com tensão e raiva acentuadas —, '
+ 'ainda energizado, porém com a fadiga já elevada acima do vigor, e, em graus variados, com tensão e raiva acentuadas, '
  'e configura a assinatura afetiva típica do acúmulo de treino. Como o humor é um estado transitório e sensível à carga, '
  'é de se esperar que, ao longo de uma semana intensa de treinamento, a prevalência se desloque do iceberg para a '
  'barbatana de tubarão: um “derretimento do iceberg” que traduz, no plano dos perfis, a deterioração progressiva do eixo '
- 'energia–fadiga (MORGAN, 1985; HAN; PARSONS-SMITH; TERRY, 2020). Descrever esse deslocamento ao longo dos dias — e não '
- 'apenas em um instantâneo — é o que permite distinguir a fadiga funcional, esperada e reversível, de uma deterioração '
+ 'energia–fadiga (MORGAN, 1985; HAN; PARSONS-SMITH; TERRY, 2020). Descrever esse deslocamento ao longo dos dias, e não '
+ 'apenas em um instantâneo, é o que permite distinguir a fadiga funcional, esperada e reversível, de uma deterioração '
  'que exigiria intervenção, e constitui um dos focos centrais deste estudo.')
 H('1.3 Handebol: modalidade coletiva intermitente e de alta intensidade',12,before=6)
 P('O handebol de quadra é uma modalidade coletiva de invasão, de caráter marcadamente intermitente e de alta intensidade. '
- 'Ao longo da partida, ações máximas e explosivas — sprints curtos, saltos, arremessos, bloqueios, mudanças de direção e '
- 'contatos físicos — alternam-se, de forma imprevisível, com períodos de recuperação incompleta, o que exige '
+ 'Ao longo da partida, ações máximas e explosivas, sprints curtos, saltos, arremessos, bloqueios, mudanças de direção e '
+ 'contatos físicos, alternam-se, de forma imprevisível, com períodos de recuperação incompleta, o que exige '
  'simultaneamente potência anaeróbia, capacidade aeróbia intermitente e elevada tolerância à fadiga (KARCHER; BUCHHEIT, '
  '2014; MICHALSIK; AAGAARD, 2015; WAGNER et al., 2014). É justamente a aptidão aeróbia que sustenta a capacidade de '
  'repetir e manter esforços de alta intensidade ao longo de uma partida: uma maior potência aeróbia acelera a '
@@ -183,14 +183,14 @@ P('O handebol de quadra é uma modalidade coletiva de invasão, de caráter marc
  'natureza (FERNANDES-DA-SILVA et al., 2016). Esse padrão de esforço eleva a carga interna nos microciclos de '
  'acúmulo e repercute no estado afetivo, sobretudo na última semana de pré-temporada, quando a carga que antecede a '
  'competição se concentra. Como a tolerância a essa carga depende da aptidão aeróbia intermitente, é plausível que o PV '
- 'do T-CAR module a magnitude da resposta de humor ao acúmulo de treino — hipótese que este estudo examina.')
+ 'do T-CAR module a magnitude da resposta de humor ao acúmulo de treino, hipótese que este estudo examina.')
 H('1.4 Objetivos e hipóteses',12,before=6)
 P('Embora a resposta de humor à carga de treino esteja bem documentada, permanece pouco esclarecido quais parâmetros '
- 'fisiológicos e de bem-estar rastreiam a sua magnitude num microciclo pré-competitivo de handebol de elite — questão '
+ 'fisiológicos e de bem-estar rastreiam a sua magnitude num microciclo pré-competitivo de handebol de elite, questão '
  'central para um monitoramento multidomínio, que combina marcadores neuromusculares, cardioautonômicos e de '
  'autorrelato (NAUGHTON et al., 2023). A lacuna vai além da simples ausência de dados: quando a aptidão física é '
- 'considerada, raramente se testa a especificidade do correlato — isto é, se é a capacidade aeróbia ou a anaeróbia que '
- 'de fato acompanha a fadiga afetiva —, e o porte corporal, um confundidor conhecido, poucas vezes é controlado. '
+ 'considerada, raramente se testa a especificidade do correlato, isto é, se é a capacidade aeróbia ou a anaeróbia que '
+ 'de fato acompanha a fadiga afetiva, e o porte corporal, um confundidor conhecido, poucas vezes é controlado. '
  'Diante dessa lacuna, o objetivo geral consistiu em examinar os correlatos '
  'fisiológicos e de bem-estar da resposta de humor desses atletas na última semana de pré-temporada. De modo '
  'específico, o estudo propôs-se a: (i) caracterizar a amostra e confirmar a deterioração do humor no eixo '
@@ -215,8 +215,8 @@ P('O humor foi avaliado pela BRUMS-24, com 24 itens em escala de 0 (“nada”) 
  '(T-CAR), teste de campo progressivo e intermitente (repetições de 12 s de corrida em vaivém intercaladas por 6 s de '
  'recuperação, até a exaustão), que adota o pico de velocidade (PV) como desfecho (FERNANDES-DA-SILVA et al., 2016). A '
  'estrutura de esforço e pausa do T-CAR reproduz o padrão intermitente das ações do handebol, de modo que o PV expressa '
- 'a capacidade aeróbia de sustentar e repetir esforços de alta intensidade — e não apenas a intensidade máxima isolada '
- '—, o que o qualifica como marcador fisiológico específico para esta amostra. O T-CAR '
+ 'a capacidade aeróbia de sustentar e repetir esforços de alta intensidade, e não apenas a intensidade máxima isolada'
+ ', o que o qualifica como marcador fisiológico específico para esta amostra. O T-CAR '
  'foi aplicado em 15 de abril de 2024, quatro dias de treino antes do início do microciclo, de modo a servir como '
  'parâmetro fisiológico de linha de base das análises. No mesmo diário eletrônico, registraram-se ainda a sonolência, '
  'pela Escala de Sonolência de Epworth em versão de 6 itens (probabilidade de cochilar em seis situações; 0–18), e o '
@@ -239,10 +239,10 @@ tinv=table('Inventário dos instrumentos: domínio avaliado, estrutura, amplitud
 P('A Tabela %d sintetiza os instrumentos empregados, o domínio de cada um, a sua estrutura e o momento de coleta.'%tinv)
 H('2.3 Procedimentos',12,before=6)
 P('O BRUMS foi autoaplicado por formulário eletrônico ao longo de sete dias consecutivos (21 a 27 de abril de 2024). '
- 'A data e o horário de cada resposta foram definidos pelo carimbo automático de registro do formulário — e não pela '
- 'data informada pelo respondente —, o que garante a alocação correta de cada observação ao dia e ao momento de coleta. '
+ 'A data e o horário de cada resposta foram definidos pelo carimbo automático de registro do formulário, e não pela '
+ 'data informada pelo respondente, o que garante a alocação correta de cada observação ao dia e ao momento de coleta. '
  'O primeiro dia (21/04) constituiu a avaliação de linha de base (baseline), com uma única coleta por atleta; nos seis '
- 'dias de treino subsequentes (22 a 27/04) previram-se duas coletas diárias — uma ao início (pré) e outra ao final '
+ 'dias de treino subsequentes (22 a 27/04) previram-se duas coletas diárias, uma ao início (pré) e outra ao final '
  '(pós) do treino. Em cada dia de treino, a primeira resposta de cada atleta foi tomada como pré e a última como pós. '
  'Por se tratar de registro em condições ecológicas, houve adesão irregular: nem todos os atletas responderam em todos '
  'os dias ou nas duas janelas, e eventuais respostas repetidas dentro de uma mesma janela foram reduzidas a um único '
@@ -252,14 +252,14 @@ P('O BRUMS foi autoaplicado por formulário eletrônico ao longo de sete dias co
 H('2.4 Análise estatística',12,before=6)
 P('A análise seguiu uma sequência do descritivo ao inferencial. Inicialmente, empregou-se estatística descritiva (média, '
  'desvio-padrão, mediana e amplitude) para caracterizar as variáveis, e o teste de Shapiro-Wilk para verificar a '
- 'normalidade — etapa que orienta a escolha entre testes paramétricos e não paramétricos. Como as distribuições violaram '
+ 'normalidade, etapa que orienta a escolha entre testes paramétricos e não paramétricos. Como as distribuições violaram '
  'a normalidade, com forte concentração de escores baixos nas dimensões negativas (efeito de piso), os dados não foram '
  'transformados (NEVILL; LANE, 2007) e privilegiaram-se testes não paramétricos.')
 P('Para descrever a resposta aguda ao treino, os momentos pré e pós foram comparados pelo teste de Wilcoxon para amostras '
  'pareadas, acompanhado do tamanho de efeito (d de Cohen), que expressa a magnitude da diferença independentemente do '
  'tamanho da amostra (trivial < 0,2; pequeno < 0,5; médio < 0,8; grande ≥ 0,8); a mesma lógica aplicou-se à comparação '
  'entre o primeiro e o último dia. Para verificar se cada dimensão variou ao longo dos sete dias, utilizou-se o teste de '
- 'Friedman — equivalente não paramétrico da ANOVA de medidas repetidas —, com o W de Kendall como tamanho de efeito '
+ 'Friedman, equivalente não paramétrico da ANOVA de medidas repetidas, com o W de Kendall como tamanho de efeito '
  '(0,1 pequeno; 0,3 moderado; 0,5 grande); quando significativo, aplicou-se o pós-teste das médias marginais de um modelo '
  'misto (correção de Tukey), que identifica entre quais dias, especificamente, houve diferença. A consistência das '
  'medidas repetidas ao longo da semana foi estimada pelo coeficiente de correlação intraclasse (ICC), interpretado como '
@@ -271,23 +271,23 @@ P('Para descrever a resposta aguda ao treino, os momentos pré e pós foram comp
  'humor e o uso prático do limiar de aptidão.')
 P('Como confirmação robusta, as comparações Dia 1 → Dia 7 e pré → pós foram reanalisadas por análise multivariada de '
  'variância (MANOVA) de medidas repetidas sobre os escores T, que testa as seis dimensões em conjunto e controla o erro '
- 'de múltiplas comparações (lambda de Wilks, F e eta-quadrado parcial — η²ₚ; 0,01 pequeno; 0,06 médio; 0,14 grande); nos '
+ 'de múltiplas comparações (lambda de Wilks, F e eta-quadrado parcial, η²ₚ; 0,01 pequeno; 0,06 médio; 0,14 grande); nos '
  'testes univariados de acompanhamento da MANOVA, aplicou-se o ajuste de Bonferroni ao nível de significância, com a divisão de '
  '0,05 pelas seis dimensões (α = 0,008), para controlar o erro do tipo I. A '
  'associação entre as dimensões foi quantificada pela correlação de Spearman (ρ). Por fim, a relação entre o pico de '
  'velocidade do T-CAR e a fadiga foi analisada por regressão, e um limiar de pico de velocidade foi estabelecido por '
  'regressão logística (probabilidade de um dia de fadiga elevada em função do pico de velocidade), com o ponto de corte '
- 'definido pelo índice de Youden — que maximiza a soma de sensibilidade e especificidade —, a discriminação avaliada '
+ 'definido pelo índice de Youden, que maximiza a soma de sensibilidade e especificidade, a discriminação avaliada '
  'pela área sob a curva ROC e a qualidade de ajuste do modelo logístico reportada pela log-verossimilhança, pelo '
  'pseudo-R² de McFadden e pelos critérios de informação de Akaike (AIC) e bayesiano (BIC). Como verificação a '
  'posteriori da forma funcional dessa relação, a associação entre o pico de velocidade e a resposta semanal de humor '
- '(fadiga física e vigor) foi ajustada por três modelos concorrentes — linear, logarítmico (ln do pico de velocidade) e '
- 'polinomial de 2º grau —, com a escolha daquele de melhor compromisso entre ajuste e parcimônia pelo menor AIC/BIC, além do '
+ '(fadiga física e vigor) foi ajustada por três modelos concorrentes, linear, logarítmico (ln do pico de velocidade) e '
+ 'polinomial de 2º grau, com a escolha daquele de melhor compromisso entre ajuste e parcimônia pelo menor AIC/BIC, além do '
  'R² ajustado e do RMSE; para o modelo logístico, comparou-se ainda o preditor na escala bruta contra a logarítmica. '
  'Modelou-se ainda a probabilidade de um dia de baixo vigor (tercil inferior) em função do pico de velocidade, com os '
  'intervalos de confiança das razões de chances e das áreas sob a curva obtidos por reamostragem (bootstrap, 1000 '
  'repetições) de atletas, para acomodar a estrutura de medidas repetidas. Além do ponto de corte único, o pico de velocidade foi '
- 'estratificado por dois limiares — os tercis de sua distribuição — em três faixas de aptidão, com a comparação da '
+ 'estratificado por dois limiares, os tercis de sua distribuição, em três faixas de aptidão, com a comparação da '
  'prevalência de dias críticos entre as faixas ordenadas pelo teste de tendência linear de Cochran-Armitage. '
  'Para separar o efeito da aptidão do efeito do tamanho corporal, o pico de velocidade foi '
  'ainda submetido a ajuste alométrico: estimou-se o expoente da relação alométrica pela regressão log(PV)–log(massa) e '
@@ -298,9 +298,9 @@ P('Como confirmação robusta, as comparações Dia 1 → Dia 7 e pré → pós 
  'por ajuste alométrico, de modo a separar o efeito da capacidade do efeito do porte corporal. '
  'Para identificar os moduladores da magnitude dos efeitos, definiu-se o efeito agudo como a '
  'variação intrassessão (pós − pré) por atleta-dia e o efeito crônico como a inclinação semanal (taxa por dia) da média '
- 'diária de cada dimensão; a associação de cada efeito com as características do atleta — aptidão aeróbia intermitente '
+ 'diária de cada dimensão; a associação de cada efeito com as características do atleta, aptidão aeróbia intermitente '
  '(PV), composição corporal, potência de membros inferiores (salto CMJ), sprints repetidos (Baker), sonolência, estresse e carga interna '
- '(TRIMP) — foi quantificada pela correlação de Pearson e pelo coeficiente de determinação (R²), além de modelos de '
+ '(TRIMP), foi quantificada pela correlação de Pearson e pelo coeficiente de determinação (R²), além de modelos de '
  'regressão múltipla com coeficientes padronizados (β*); dado o número de testes, aplicou-se a correção de Holm para '
  'comparações múltiplas.')
 P('Para quantificar de forma rigorosa a especificidade do correlato físico, empregou-se a análise de comunalidade e '
@@ -351,8 +351,8 @@ tpsy=table('Propriedades psicométricas das subescalas do BRUMS: consistência i
     note='Efeito de piso presente quando > 15% das observações no menor escore (TERWEE et al., 2007).',fs=8.5)
 P('As propriedades psicométricas (Tabela %d) contextualizam a insensibilidade das dimensões negativas. O vigor e a '
  'fadiga distribuíram-se por toda a escala, sem efeito de piso (%s%% e %s%% no menor escore) e com consistência interna '
- 'adequada a boa (α = %s e %s). As quatro dimensões negativas, ao contrário, apresentaram forte efeito de piso — de '
- '%s%% (tensão) a %s%% (confusão) das observações no escore zero — e acentuada assimetria positiva, o que comprime a '
+ 'adequada a boa (α = %s e %s). As quatro dimensões negativas, ao contrário, apresentaram forte efeito de piso, de '
+ '%s%% (tensão) a %s%% (confusão) das observações no escore zero, e acentuada assimetria positiva, o que comprime a '
  'variância e limita, por construção, a sua responsividade à carga; trata-se de uma expressão do perfil mentalmente '
  'saudável (iceberg) do atleta de elite, e não de falha do instrumento (MORGAN, 1985; TERWEE et al., 2007). A '
  'Perturbação Total do Humor, por ser composta, não sofreu efeito de piso e foi governada pelo eixo energia–fadiga '
@@ -385,11 +385,11 @@ def icrow(k,lab):
 tic=table('Consistência das medidas repetidas ao longo da semana (coeficiente de correlação intraclasse, ICC).',
     ['Dimensão','ICC(2,1)','ICC(2,k)','Consistência'],
     [icrow(k,l) for k,l in [('Vigor','Vigor'),('Fadiga','Fadiga'),('Tensao','Tensão'),('Depressao','Depressão'),('Raiva','Raiva'),('Confusao','Confusão')]],fs=9)
-P('A consistência das medidas repetidas (Tabela %d) foi moderada a boa, com os valores mais baixos na raiva e na confusão — '
+P('A consistência das medidas repetidas (Tabela %d) foi moderada a boa, com os valores mais baixos na raiva e na confusão, '
  'dimensões mais reativas dia a dia.'%tic)
 P('Os limiares de mudança do humor delimitam o alcance da leitura individual. O erro-padrão de medida foi de %s ponto '
- 'no vigor e %s na fadiga (escala 0–16), de modo que a mudança mínima detectável — a menor variação individual '
- 'distinguível do erro de medida — situou-se em torno de %s a %s pontos no vigor e %s a %s na fadiga (90%% e 95%% de '
+ 'no vigor e %s na fadiga (escala 0–16), de modo que a mudança mínima detectável, a menor variação individual '
+ 'distinguível do erro de medida, situou-se em torno de %s a %s pontos no vigor e %s a %s na fadiga (90%% e 95%% de '
  'confiança). Como esses valores superam largamente a menor mudança relevante (SWC = %s e %s), uma oscilação isolada de '
  'um único atleta só deve ser tomada como real quando ultrapassa a mudança mínima detectável; do contrário, a decisão '
  'ganha robustez ao apoiar-se na média semanal e na posição do atleta em relação ao limiar de pico de velocidade, e '
@@ -407,7 +407,7 @@ te=table('Pós-teste (médias marginais do modelo misto) por dia, com comparaç�
 f_ph=figure(f'{FG}/ph_emm.png','Trajetória diária (médias marginais) com comparação de todos os dias ao Dia 1 (* p < 0,05).')
 def npairs(v): return sum(1 for kk,pp in PHJ[v]['pairs'].items() if pp['ptukey']<0.05)
 P('Na comparação de todos os dias entre si (pós-teste de Tukey; Tabela %d; Figura %d), o vigor diferiu significativamente em '
- '%d dos 21 pares de dias e a fadiga em %d — sempre no sentido de piora em relação aos primeiros dias —, com a confirmação da '
+ '%d dos 21 pares de dias e a fadiga em %d, sempre no sentido de piora em relação aos primeiros dias, com a confirmação da '
  'deterioração progressiva do eixo energia–fadiga.'%(te,f_ph,npairs('Vigor'),npairs('Fadiga')))
 H('3.6 Confirmação por análise multivariada (MANOVA em escores T)',12,before=6)
 f_prof=figure(f'{FG}/xb5_profile_d1d7.png','Perfil de humor em escores T (M = 50; DP = 10) no Dia 1 e no Dia 7.',w=13.5)
@@ -419,14 +419,14 @@ tmv=table('Comparação Dia 1 → Dia 7 das seis dimensões em escores T (MANOVA
     note='Wilks λ = %s; F(%d,%d) = %s; p %s; η²ₚ = %s. * p < 0,008 (α ajustado por Bonferroni para as seis dimensões).'%(c2('%.3f'%mv['wilks']),mv['df1'],mv['df2'],c2('%.2f'%mv['Fmv']),pstr(mv['p_mv']),c2('%.2f'%mv['eta_mv'])),fs=8.5)
 P('A análise multivariada confirmou a diferença entre o Dia 1 e o Dia 7 (Wilks λ = %s; F(%d,%d) = %s; p %s; η²ₚ = %s). '
  'Nos testes univariados com o critério corrigido de Bonferroni (α = 0,008), apenas o vigor (d = %s) e a fadiga (d = %s) '
- 'permaneceram significativos — o que evidencia a concentração do efeito no eixo energia–fadiga —, enquanto a tensão '
+ 'permaneceram significativos, o que evidencia a concentração do efeito no eixo energia–fadiga, enquanto a tensão '
  '(p %s) e a confusão (p %s), significativas apenas sob α = 0,05, não resistiram à correção (Tabela %d; Figura %d). A '
  'resposta aguda pré → pós também foi multivariadamente significativa (Wilks λ = %s; p %s), o que reforça o achado.'%(
    c2('%.3f'%mv['wilks']),mv['df1'],mv['df2'],c2('%.2f'%mv['Fmv']),pstr(mv['p_mv']),c2('%.2f'%mv['eta_mv']),
    c2('%+.2f'%mvv('d1d7','Vigor','d')),c2('%+.2f'%mvv('d1d7','Fadiga','d')),pstr(mvv('d1d7','Tensao','p')),pstr(mvv('d1d7','Confusao','p')),tmv,f_prof,c2('%.3f'%MV['prepos']['wilks']),pstr(MV['prepos']['p_mv'])))
 H('3.7 Aptidão intermitente (T-CAR): regressão, comparação de modelos e limiar de pico de velocidade',12,before=6)
 def tcrow(o):
-    lab='Pico de velocidade — T-CAR (km/h)' if o['k']=='PVini' else o['lab']
+    lab='Pico de velocidade, T-CAR (km/h)' if o['k']=='PVini' else o['lab']
     return [lab,o['n'],c2('%.1f'%o['m']),c2('%.1f'%o['sd']),'%s–%s'%(c2('%.1f'%o['mn']),c2('%.1f'%o['mx']))]
 TCD2=[o for o in TCD if o['k'] not in ('PV','dPV')]
 ttc=table('Estatística descritiva do desempenho no Teste de Carminatti (T-CAR).',
@@ -460,12 +460,12 @@ LGa=TCV['logistic']['linear_pred']; LGb=TCV['logistic']['log_pred']
 dAIC=abs(TCV['cont']['FadFisica']['log']['aic']-TCV['cont']['FadFisica']['linear']['aic'])
 P('Para verificar se a relação entre a aptidão e a resposta de humor seria mais bem descrita por uma forma não linear, '
  'ajustaram-se a posteriori três modelos de curva à relação entre o pico de velocidade do T-CAR e as médias semanais de '
- 'fadiga física e de vigor — linear, logarítmico (ln do pico de velocidade) e polinomial de 2º grau —, comparados por R² '
+ 'fadiga física e de vigor, linear, logarítmico (ln do pico de velocidade) e polinomial de 2º grau, comparados por R² '
  'ajustado, AIC e BIC (Tabela %d; Figura %d). Em ambas as relações, o modelo linear ofereceu o melhor compromisso entre '
  'ajuste e parcimônia (fadiga física: AIC = %s; vigor: AIC = %s); o ajuste logarítmico foi praticamente equivalente '
  '(ΔAIC ≈ %s) e o termo quadrático não compensou o parâmetro adicional (AIC maior, R² ajustado menor). Dentro da faixa '
  'de aptidão observada, portanto, a associação aptidão–humor é essencialmente linear, o que respalda descrevê-la pela '
- 'reta de regressão. Para o desfecho binário — a probabilidade de um dia de fadiga elevada —, a regressão logística '
+ 'reta de regressão. Para o desfecho binário, a probabilidade de um dia de fadiga elevada, a regressão logística '
  'apresentou poder discriminativo moderado (pseudo-R² de McFadden = %s; AUC = %s), e a comparação do preditor na escala '
  'bruta contra a logarítmica favoreceu marginalmente a escala bruta (AIC %s vs. %s), mantida, assim, na definição do '
  'limiar de pico de velocidade.'%(
@@ -479,7 +479,7 @@ P('Duas regressões logísticas complementares fecham a leitura da aptidão. Sim
  'aproximadamente %s km/h (sensibilidade = %s; especificidade = %s; área sob a curva = %s [IC95%% %s–%s]), próximo ao '
  'limiar de fadiga e confirma o pico de velocidade como referência objetiva de prontidão. Por fim, a probabilidade de '
  'o atleta exibir o perfil iceberg tendeu a crescer com a aptidão (OR = %s por km/h; área sob a curva = %s), porém sem '
- 'significância (IC95%% %s–%s) — direção coerente com o papel protetor da capacidade aeróbia, que esta amostra, contudo, '
+ 'significância (IC95%% %s–%s), direção coerente com o papel protetor da capacidade aeróbia, que esta amostra, contudo, '
  'não teve potência para confirmar.'%(
    c2('%.2f'%BV['OR_kmh']),c2('%.1f'%BV['thr']),c2('%.2f'%BV['sens']),c2('%.2f'%BV['spec']),
    c2('%.2f'%BV['auc']),c2('%.2f'%BV['auc_lo']),c2('%.2f'%BV['auc_hi']),
@@ -492,17 +492,17 @@ tl2=table('Estratificação do pico de velocidade do T-CAR em três faixas de ap
     note='Dois limiares (t₁ = %s km/h; t₂ = %s km/h) definem três faixas. Dia de fadiga elevada = fadiga física no tercil superior; dia de baixo vigor = vigor no tercil inferior. Tendência linear da prevalência (Cochran-Armitage): fadiga p = %s; baixo vigor p = %s.'%(
         c2('%.1f'%L2['t1']),c2('%.1f'%L2['t2']),c2('%.3f'%L2['fadiga']['trend_p']),c2('%.3f'%L2['vigor']['trend_p'])),fs=8.5)
 f_l2=figure(f'{FG}/limiar2_faixas.png','Dois limiares do pico de velocidade do T-CAR (%s e %s km/h) que delimitam três faixas de aptidão (esquerda) e a prevalênciade dias de fadiga elevada e de baixo vigor em cada faixa (direita).'%(c2('%.1f'%L2['t1']),c2('%.1f'%L2['t2'])),w=15.5)
-P('Em vez de um único ponto de corte, o pico de velocidade foi ainda estratificado por dois limiares — os tercis de sua '
- 'distribuição (t₁ = %s km/h; t₂ = %s km/h) —, que definem três faixas de aptidão com valor de decisão direto (Tabela %d; '
+P('Em vez de um único ponto de corte, o pico de velocidade foi ainda estratificado por dois limiares, os tercis de sua '
+ 'distribuição (t₁ = %s km/h; t₂ = %s km/h), que definem três faixas de aptidão com valor de decisão direto (Tabela %d; '
  'Figura %d). A prevalência de dias críticos caiu de forma consistente da faixa de baixa para a de alta aptidão, tanto '
  'para a fadiga elevada (%s%% → %s%% → %s%%; tendência p = %s) quanto para o baixo vigor (%s%% → %s%% → %s%%; tendência '
  'p = %s). O ganho da estratificação dupla é sobretudo prático: enquanto o limiar único de Youden (≈ %s km/h) traça uma '
  'só linha, os dois limiares isolam uma faixa superior de aptidão (PV > %s km/h) em que o risco de dias críticos cai '
- 'para cerca de um quinto das observações, e uma faixa inferior (PV < %s km/h) que concentra o maior risco — e oferece '
+ 'para cerca de um quinto das observações, e uma faixa inferior (PV < %s km/h) que concentra o maior risco, e oferece '
  'à comissão técnica uma referência graduada, e não binária, para individualizar a carga e priorizar a recuperação dos '
  'atletas menos aptos. Em termos de escolha entre os dois esquemas, o limiar único é preferível quando se deseja uma '
  'decisão binária e parcimoniosa, mais estável em amostras pequenas; a estratificação dupla favorece a individualização '
- 'graduada, com a ressalva de que o seu ganho se concentra em isolar a faixa de alta aptidão (baixo risco) — nítido '
+ 'graduada, com a ressalva de que o seu ganho se concentra em isolar a faixa de alta aptidão (baixo risco), nítido '
  'para o vigor (%s%% de dias críticos) e mais modesto para a fadiga, cujas faixas inferior e intermediária pouco se '
  'distinguem (%s%% e %s%%). A curva de especificação, de todo modo, indica que a utilidade do limiar não depende do '
  'esquema adotado.'%(
@@ -522,8 +522,8 @@ P('Como um ponto de corte é, em si, uma decisão analítica arbitrária, submet
  'especificação (specification-curve): varreram-se %d especificações que combinam o valor do limiar, a definição de dia '
  'crítico (fadiga elevada, baixo vigor ou qualquer um) e a forma do pico de velocidade (bruto ou ajustado pela massa), '
  'e registrou-se, em cada uma, o risco relativo de dia crítico entre os atletas abaixo e acima do limiar (Figura %d). O '
- 'efeito mostrou-se notavelmente robusto: em %s%% das especificações o risco relativo excedeu 1 — ou seja, os atletas '
- 'menos aptos concentraram mais dias críticos —, com risco relativo mediano de %s (faixa de %s a %s). A robustez '
+ 'efeito mostrou-se notavelmente robusto: em %s%% das especificações o risco relativo excedeu 1, ou seja, os atletas '
+ 'menos aptos concentraram mais dias críticos, com risco relativo mediano de %s (faixa de %s a %s). A robustez '
  'sobreviveu, ademais, ao uso do pico de velocidade ajustado pela massa (RR mediano %s), o que reitera que o valor '
  'preditivo da aptidão não se reduz ao porte corporal. A conclusão prática é que a existência de um limiar útil de '
  'pico de velocidade não depende de uma escolha particular de corte, mas se sustenta ao longo de todo o espectro de '
@@ -607,7 +607,7 @@ P('A normalização pela massa corporal esclarece a natureza dessas associaçõe
  'lentos nos sprints (massa × melhor tempo: ρ = %s) e tenderam a relatar mais fadiga (massa × fadiga física: ρ = %s); '
  'ao controlar a massa, a fraca associação entre o melhor tempo e a fadiga física praticamente desaparece (bruto ρ = %s '
  '→ parcial ρ = %s), e o ajuste alométrico conduz à mesma conclusão (ρ ajustado = %s). Em contraste, a associação entre '
- 'o pico de velocidade aeróbio e a fadiga física — significativa (ρ = %s) — resiste ao ajuste. O padrão revela '
+ 'o pico de velocidade aeróbio e a fadiga física, significativa (ρ = %s), resiste ao ajuste. O padrão revela '
  'especificidade fisiológica: no acúmulo de pré-temporada, a fadiga do humor é rastreada pela aptidão aeróbia, e não '
  'pela capacidade anaeróbia de sprints repetidos nem pelo porte corporal.'%(
    c2('%+.2f'%RSA['mass_bkmel'][0]),c2('%+.2f'%RSA['mass_fad'][0]),
@@ -623,17 +623,17 @@ tcom=table('Análise de comunalidade e dominância: decomposição do R² da fad
     note='Dominância geral = contribuição média ao R² sobre todos os subconjuntos de preditores; variância única = ganho de R² do preditor sobre os demais (semiparcial²). R² total: fadiga %s; vigor %s. n = %d atletas.'%(
         c2('%.3f'%COM['FadFisica']['full']),c2('%.3f'%COM['Vigor']['full']),COM['n']),fs=8.5)
 P('Para além do contraste bivariado, uma análise de comunalidade e dominância decompôs a variância explicada da fadiga '
- 'e do vigor entre os três candidatos físicos — aptidão aeróbia, capacidade anaeróbia e massa corporal — e quantificou '
+ 'e do vigor entre os três candidatos físicos, aptidão aeróbia, capacidade anaeróbia e massa corporal, e quantificou '
  'o que cada um contribui de forma única e o que partilham entre si (Tabela %d). O resultado formaliza a '
  'especificidade. Na fadiga física, a aptidão aeróbia foi o preditor dominante (dominância geral %s) e reteve a maior '
  'variância única (%s); a massa, embora se associe à fadiga isoladamente (R² = %s), praticamente não acrescenta '
  'variância única (%s), pois a quase totalidade da sua contribuição é partilhada com a aptidão aeróbia (variância comum '
- 'aeróbia∩massa = %s) — isto é, o aparente vínculo do porte com a fadiga é, em grande parte, aptidão aeróbia disfarçada '
+ 'aeróbia∩massa = %s), isto é, o aparente vínculo do porte com a fadiga é, em grande parte, aptidão aeróbia disfarçada '
  'de massa. A capacidade anaeróbia contribui de forma única desprezível (%s). No vigor, o quadro é ainda mais nítido: a '
  'aptidão aeróbia domina (variância única %s) e a massa opera como supressora (comunalidade negativa, %s), o que '
- 'explica por que a relação aptidão–vigor se fortalece — e não se atenua — ao controlar o porte, em consonância com o '
+ 'explica por que a relação aptidão–vigor se fortalece, e não se atenua, ao controlar o porte, em consonância com o '
  'ajuste alométrico. A capacidade anaeróbia, novamente, é irrelevante (%s). A decomposição, portanto, sustenta '
- 'quantitativamente que é a aptidão aeróbia — e não a anaeróbia nem a massa — o correlato específico do humor sob '
+ 'quantitativamente que é a aptidão aeróbia, e não a anaeróbia nem a massa, o correlato específico do humor sob '
  'carga.'%(
    tcom,c2('%.3f'%COM['FadFisica']['dominance']['PVini']),c2('%.3f'%COM['FadFisica']['unique']['PVini']),
    c2('%.3f'%COM['FadFisica']['r_mass']),c2('%.3f'%COM['FadFisica']['unique']['massa']),
@@ -644,33 +644,33 @@ P('Para além do contraste bivariado, uma análise de comunalidade e dominância
 # ----- 3.11 Moduladores da magnitude dos efeitos -----
 H('3.11 Moduladores da magnitude dos efeitos agudo e crônico',12,before=6)
 MODm=MOD['chronic']['matrix']
-def modcell(s): return ('%s (%s)%s'%(c2('%+.2f'%s['r']),c2('%.2f'%s['r2']),'*' if s['p']<0.05 else '')) if s else '—'
+def modcell(s): return ('%s (%s)%s'%(c2('%+.2f'%s['r']),c2('%.2f'%s['r2']),'*' if s['p']<0.05 else '')) if s else '–'
 def modrow(mk): return [MOD['modlab'][mk],modcell(MODm['Vigor'][mk]),modcell(MODm['Fadiga'][mk])]
 tmod=table('Moduladores da magnitude do efeito crônico (inclinação semanal): correlação (r) e coeficiente de determinação (R²) entre cada característica do atleta e a taxa de variação do vigor e da fadiga.',
-    ['Moderador','Vigor — r (R²)','Fadiga — r (R²)'],[modrow(m) for m in MOD['mods']],
+    ['Moderador','Vigor, r (R²)','Fadiga, r (R²)'],[modrow(m) for m in MOD['mods']],
     note='r = correlação de Pearson; R² = coeficiente de determinação (variância explicada); * p < 0,05 sem correção. Nenhuma associação sobrevive à correção de Holm para %d testes. CMJ = salto vertical; Baker = melhor tempo em sprints repetidos (menor = melhor); TRIMP = carga interna.'%MOD['n_tests'],fs=8.5)
-f_mod=figure(f'{FG}/moduladores.png','Modulação da taxa semanal pelo perfil do atleta: à esquerda, o coeficiente de determinação (R²) de cada característica sobre a taxa do vigor (verde) e da fadiga (laranja) — a fadiga é praticamente não modulada; à direita, a taxa de queda do vigor decresce com a potência de membros inferiores (salto CMJ).',w=15.5)
+f_mod=figure(f'{FG}/moduladores.png','Modulação da taxa semanal pelo perfil do atleta: à esquerda, o coeficiente de determinação (R²) de cada característica sobre a taxa do vigor (verde) e da fadiga (laranja), a fadiga é praticamente não modulada; à direita, a taxa de queda do vigor decresce com a potência de membros inferiores (salto CMJ).',w=15.5)
 _acp=min(MOD['acute']['day_trend'][v]['p'] for v in MOD['vars'])
 _acR=max(s['r2'] for v in MOD['vars'] for s in (MOD['acute_matrix'][v][m] for m in MOD['mods']) if s)
 _fdR=max(s['r2'] for s in (MODm['Fadiga'][m] for m in MOD['mods']) if s)
 mlv=MOD['mlr']['sl_Vigor~PVini+CMJ_mai']
-P('Uma questão aplicada relevante é saber quais características do atleta modulam a intensidade da resposta — e em que '
+P('Uma questão aplicada relevante é saber quais características do atleta modulam a intensidade da resposta, e em que '
  'medida. A magnitude do efeito agudo (variação pré → pós) revelou-se estável e independente do perfil individual: a '
  'queda média do vigor (%s ponto por sessão), a elevação da fadiga (+%s) e a da PTH (+%s) não se acentuaram ao longo da '
  'semana (tendência por dia: p ≥ %s) nem se vincularam de modo consistente à aptidão, à composição corporal, à potência, '
- 'ao sono ou à carga interna — todos os coeficientes de determinação foram baixos (R² < %s). O choque afetivo '
+ 'ao sono ou à carga interna, todos os coeficientes de determinação foram baixos (R² < %s). O choque afetivo '
  'intrassessão comporta-se, portanto, como uma resposta estereotipada, compartilhada pelo grupo.'%(
    c2('%.2f'%MOD['acute']['mean']['Vigor']),c2('%.2f'%MOD['acute']['mean']['Fadiga']),c2('%.2f'%MOD['acute']['mean']['TMD']),
    c2('%.2f'%_acp),c2('%.2f'%(_acR+0.005))))
 P('O efeito crônico (inclinação semanal) exibiu modulação apenas parcial, restrita ao vigor (Tabela %d; Figura %d). A '
- 'taxa de acúmulo de fadiga foi praticamente idêntica entre os atletas — nenhum moderador explicou fração relevante de '
- 'sua variância (R² ≤ %s) —, ao passo que a taxa de queda do vigor associou-se à potência de membros inferiores (salto '
+ 'taxa de acúmulo de fadiga foi praticamente idêntica entre os atletas, nenhum moderador explicou fração relevante de '
+ 'sua variância (R² ≤ %s), ao passo que a taxa de queda do vigor associou-se à potência de membros inferiores (salto '
  'CMJ: r = %s; R² = %s) e, em menor grau, à sonolência: os atletas mais explosivos perderam vigor mais depressa. Um '
  'modelo de regressão múltipla com aptidão e potência explicou cerca de %s%% da variância da taxa do vigor (R² = %s; R² '
  'ajustado = %s), com o maior peso padronizado atribuído à potência (β* = %s). Impõe-se, porém, cautela: entre os %d '
  'testes de moderação, nenhuma associação resistiu à correção de Holm para comparações múltiplas, de sorte que esses '
  'vínculos permanecem exploratórios. Predomina, assim, uma resposta de humor amplamente independente das características '
- 'individuais mensuradas — sobretudo no eixo da fadiga —, o que reforça o caráter geral e esperado da reação à carga da '
+ 'individuais mensuradas, sobretudo no eixo da fadiga, o que reforça o caráter geral e esperado da reação à carga da '
  'pré-temporada.'%(
    tmod,f_mod,c2('%.2f'%_fdR),
    c2('%+.2f'%MODm['Vigor']['CMJ_mai']['r']),c2('%.2f'%MODm['Vigor']['CMJ_mai']['r2']),
@@ -687,12 +687,12 @@ tbp=table('Modelo bayesiano multinível do humor com a aptidão aeróbia (pico d
 P('Para integrar a aptidão fisiológica à trajetória do humor num único arcabouço, ajustou-se um modelo bayesiano '
  'multinível com o pico de velocidade como preditor de nível 2, com a separação entre o seu efeito sobre o nível do humor '
  '(intercepto) e o seu efeito sobre a taxa de mudança (interação com o dia) (Tabela %d). O padrão foi consistente entre '
- 'os desfechos: a aptidão deslocou o nível na direção esperada — mais apto, menos fadiga física (%s) e mais vigor '
- '(%s) —, embora os intervalos de credibilidade tocassem o zero, o que reflete a imprecisão de estimar um efeito de nível '
+ 'os desfechos: a aptidão deslocou o nível na direção esperada, mais apto, menos fadiga física (%s) e mais vigor '
+ '(%s), embora os intervalos de credibilidade tocassem o zero, o que reflete a imprecisão de estimar um efeito de nível '
  '2 com %d atletas. Já a interação aptidão × dia foi claramente nula em todos os desfechos (fadiga %s; vigor %s; PTH '
  '%s): a aptidão não modulou a taxa de acúmulo do humor ao longo do microciclo. A leitura que emerge, coerente com a '
- 'análise de moduladores, é que a aptidão aeróbia atua como um fator de nível — fixa a linha de base do estado afetivo '
- '—, e não como um fator de ritmo: a trajetória de deterioração desenrola-se em velocidade comum ao grupo, '
+ 'análise de moduladores, é que a aptidão aeróbia atua como um fator de nível, fixa a linha de base do estado afetivo'
+ ', e não como um fator de ritmo: a trajetória de deterioração desenrola-se em velocidade comum ao grupo, '
  'independentemente da aptidão (McELREATH, 2020).'%(
    tbp,bpc('FadFisica','b_pv'),bpc('Vigor','b_pv'),BP['FadFisica']['n_ath'],
    bpc('FadFisica','b_pvxdia'),bpc('Vigor','b_pvxdia'),bpc('TMD','b_pvxdia')))
@@ -704,22 +704,22 @@ P('O presente estudo examinou os correlatos fisiológicos e de bem-estar da resp
  'energia–fadiga: o vigor caiu e a '
  'fadiga subiu de forma consistente, tanto na resposta aguda a cada treino (pré → pós: vigor −%s%%, d = %s; fadiga +%s%%, '
  'd = %s) quanto na comparação do primeiro ao último dia (vigor d = %s; fadiga d = %s). A robustez desse achado é '
- 'sustentada por três abordagens convergentes — o pós-teste do modelo misto na comparação de todos os dias, o teste de Friedman '
+ 'sustentada por três abordagens convergentes, o pós-teste do modelo misto na comparação de todos os dias, o teste de Friedman '
  'e a análise multivariada em escores T (Wilks λ = %s; F(%d,%d) = %s; p %s; η²ₚ = %s). Sob o critério conservador de '
  'Bonferroni, apenas o vigor (η²ₚ = %s) e a fadiga (η²ₚ = %s) permaneceram significativos, enquanto as dimensões negativas '
  'de valência não fadiga, próximas do piso, mantiveram-se estáveis. Confirma-se, assim, que o vigor e a fadiga são as '
  'dimensões subjetivas mais sensíveis à carga de treino, em consonância com a literatura de monitoramento (SAW; MAIN; '
  'GASTIN, 2016; THORPE et al., 2017; KELLMANN et al., 2018). Tal seletividade replica um padrão já descrito noutras '
  'modalidades: em nadadores acompanhados por 24 semanas, o vigor e a fadiga acompanharam o volume de treino '
- '(r = −0,54 e r = +0,53), ao passo que tensão, depressão e confusão permaneceram inertes (PIERCE, 2002) — o que sustenta '
+ '(r = −0,54 e r = +0,53), ao passo que tensão, depressão e confusão permaneceram inertes (PIERCE, 2002), o que sustenta '
  'centrar a leitura fisiológica subsequente no par vigor–fadiga.'%(
    c2('%.0f'%abs(pr['Vigor']['pct'])),c2('%+.2f'%pr['Vigor']['dz']),c2('%.0f'%pr['Fadiga']['pct']),c2('%+.2f'%pr['Fadiga']['dz']),
    c2('%+.2f'%mvv('d1d7','Vigor','d')),c2('%+.2f'%mvv('d1d7','Fadiga','d')),
    c2('%.3f'%MV['d1d7']['wilks']),MV['d1d7']['df1'],MV['d1d7']['df2'],c2('%.2f'%MV['d1d7']['Fmv']),pstr(MV['d1d7']['p_mv']),c2('%.2f'%MV['d1d7']['eta_mv']),
    c2('%.2f'%mvv('d1d7','Vigor','eta')),c2('%.2f'%mvv('d1d7','Fadiga','eta'))))
 P('O caráter do handebol ajuda a contextualizar a magnitude dessa resposta. Trata-se de uma modalidade coletiva de '
- 'invasão, marcadamente intermitente, na qual ações de alta intensidade — sprints, saltos, arremessos, bloqueios, '
- 'mudanças de direção e contatos — alternam-se com períodos de recuperação incompleta e reclamam, a um só tempo, potência '
+ 'invasão, marcadamente intermitente, na qual ações de alta intensidade, sprints, saltos, arremessos, bloqueios, '
+ 'mudanças de direção e contatos, alternam-se com períodos de recuperação incompleta e reclamam, a um só tempo, potência '
  'anaeróbia e capacidade aeróbia intermitente para sustentar o esforço repetido e retardar a instalação da fadiga '
  '(KARCHER; BUCHHEIT, 2014; MICHALSIK; AAGAARD, 2015). Evidências atuais confirmam que o treino e o jogo de handebol '
  'constituem exercício de alta intensidade, com elevadas demandas aeróbias e anaeróbias (PEREIRA et al., 2024), e que os '
@@ -732,7 +732,7 @@ P('É relevante que, mesmo sob o acúmulo de carga da '
  'se tornaram prevalentes: a deterioração restringiu-se ao perfil de fadiga, cuja prevalência no último dia (%s%%) '
  'superou nitidamente o patamar de referência de atletas do mesmo contexto brasileiro (11,6%% em avaliação momentânea; '
  'DE MIRANDA ROHLFS et al., 2024). Esse contraste sugere que, em handebolistas de elite bem condicionados, a resposta ao '
- 'acúmulo de carga é funcional e transitória — uma fadiga esperada — e não um sinal de risco psicológico. Tal leitura '
+ 'acúmulo de carga é funcional e transitória, uma fadiga esperada, e não um sinal de risco psicológico. Tal leitura '
  'respalda o emprego do perfilamento do humor como triagem de prontidão e de bem-estar em modalidades coletivas de '
  'rendimento (TERRY et al., 2021), no qual a BRUMS já demonstrou sensibilidade a fatores como sono, desempenho e '
  'resultados de partida (ANDRADE et al., 2016; BRANDT; BEVILACQUA; ANDRADE, 2017; DO NASCIMENTO et al., 2026) e '
@@ -744,13 +744,13 @@ P('O caráter transitório dessa resposta deve ser lido à luz da posição do m
  'esperada do acúmulo, e não um estado estável: o modelo de equilíbrio entre estresse e recuperação prevê que, com a '
  'redução da carga e o reforço da recuperação nos dias subsequentes, o vigor tende a ser restaurado e o perfil de '
  'prontidão (iceberg) a se reinstalar (KELLMANN et al., 2018). Interpretar a fadiga do fim do microciclo como um vale '
- 'programado — e não como deterioração — é justamente o que habilita a comissão técnica a distinguir a resposta '
+ 'programado, e não como deterioração, é justamente o que habilita a comissão técnica a distinguir a resposta '
  'funcional daquela que exigiria intervenção, e reforça o valor de manter o monitoramento do humor na transição para o '
  'afinamento, quando a recuperação do estado afetivo é esperada e verificável.')
 P('Sob a ótica psicofisiológica, o eixo energia–fadiga funciona como um leitor do equilíbrio entre a carga de treino e '
  'a capacidade de recuperação. Em uma semana de acumulação, esse equilíbrio inclina-se transitoriamente para o polo da '
  'sobrecarga, e a queda do vigor com a ascensão da fadiga exprime, no plano afetivo, a resposta integrada do organismo '
- 'ao esforço acumulado — uma cascata de ajustes metabólicos, hormonais e neurais que visam restaurar a homeostase e '
+ 'ao esforço acumulado, uma cascata de ajustes metabólicos, hormonais e neurais que visam restaurar a homeostase e '
  'poupar energia (WOODS et al., 2018; VRIJKOTTE et al., 2019). No próprio handebol, blocos de treino que elevam '
  'marcadores de dano muscular e de estresse oxidativo fazem-se acompanhar de perturbação do humor, o que ancora a '
  'resposta afetiva a um substrato fisiológico de sobrecarga (ASSUNÇÃO CARVALHO et al., 2018). A elevação da sonolência '
@@ -758,35 +758,35 @@ P('Sob a ótica psicofisiológica, o eixo energia–fadiga funciona como um leit
  'alteração do estresse percebido, respalda essa leitura: a perturbação nasceu da carga física e da restauração '
  'incompleta entre as sessões, não de um estressor psicossocial concomitante. O acoplamento crescente entre o afeto '
  'negativo e a fadiga, do primeiro ao último dia, acompanha essa transição de um estado diferenciado para um estado '
- 'integrado de estresse, no qual as respostas afetivas convergem sob um substrato central comum — leitura que o próprio '
+ 'integrado de estresse, no qual as respostas afetivas convergem sob um substrato central comum, leitura que o próprio '
  'delineamento sustenta, uma vez que os marcadores medidos (humor, sono e estresse) apontam para a mesma origem na '
  'carga de treino. Essa via afetiva, contudo, guarda autonomia em relação aos índices periféricos: sob treino '
  'intensificado, a perturbação do humor pode subsistir mesmo quando marcadores bioquímicos de fadiga já regrediram '
- '(OSTAPIUK-KAROLCZUK et al., 2025), assincronia que credencia o eixo energia–fadiga como sentinela complementar — e '
- 'não redundante — em relação à leitura fisiológica.')
-P('Esse conjunto de sinais delineia a assinatura de um sobre-esforço funcional (functional overreaching) — a fadiga '
- 'planejada e reversível que precede a supercompensação — e não a de um estado disfuncional. A literatura recente '
+ '(OSTAPIUK-KAROLCZUK et al., 2025), assincronia que credencia o eixo energia–fadiga como sentinela complementar, e '
+ 'não redundante, em relação à leitura fisiológica.')
+P('Esse conjunto de sinais delineia a assinatura de um sobre-esforço funcional (functional overreaching), a fadiga '
+ 'planejada e reversível que precede a supercompensação, e não a de um estado disfuncional. A literatura recente '
  'ampara tal distinção: períodos de treino intensificado agravam a perturbação do humor e comprometem o desempenho, '
  'com plena recuperação após dias de afinamento, tanto em esportes coletivos (CAMPBELL et al., 2020) quanto em '
  'modalidades de resistência (PIACENTINI et al., 2016; WOODS et al., 2018), padrão que revisões sistemáticas reconhecem '
  'como um marcador do sobre-esforço funcional (ROETE et al., 2021). Cabe, todavia, a cautela metodológica que essas '
  'mesmas revisões assinalam: os instrumentos de humor sinalizam o sobre-esforço, porém nem sempre separam a fadiga '
- 'aguda do acúmulo funcional (ROETE et al., 2021) — limitação que o presente desenho amortece ao dissociar a resposta '
+ 'aguda do acúmulo funcional (ROETE et al., 2021), limitação que o presente desenho amortece ao dissociar a resposta '
  'aguda (pré → pós de cada sessão) do acúmulo semanal e ao modelar a trajetória temporal, o que torna visíveis tanto o '
  'choque intrassessão quanto a deriva ao longo dos dias. A preservação das dimensões de valência não fadiga e a '
  'ausência dos perfis de risco à saúde mental completam o quadro de uma adaptação esperada, e não de um processo '
  'patológico.')
 P('A análise dos moduladores refina esse entendimento e traz uma mensagem de utilidade prática. A magnitude tanto do '
  'choque agudo quanto da deriva crônica mostrou-se, em larga medida, independente do perfil do atleta: nenhum dos '
- 'preditores — aptidão, composição corporal, potência, sono, estresse ou carga interna — explicou parcela expressiva da '
+ 'preditores, aptidão, composição corporal, potência, sono, estresse ou carga interna, explicou parcela expressiva da '
  'variância, e nenhuma associação resistiu à correção para comparações múltiplas. A taxa de acúmulo de fadiga, em '
  'especial, revelou-se homogênea entre os atletas, o que sugere uma resposta obrigatória e comum à carga da '
- 'pré-temporada — coerente com a leitura de um sobre-esforço funcional que atinge o grupo de maneira relativamente '
+ 'pré-temporada, coerente com a leitura de um sobre-esforço funcional que atinge o grupo de maneira relativamente '
  'uniforme. A única modulação digna de nota, ainda que exploratória, recaiu sobre a taxa de queda do vigor, associada à '
  'potência de membros inferiores: os atletas mais explosivos perderam energia mais depressa, padrão compatível com a '
  'hipótese de que perfis de maior demanda neuromuscular acumulam fadiga central e periférica com maior rapidez sob um '
  'bloco de acumulação aeróbia. Do ponto de vista aplicado, a baixa modulação reforça que a vigilância do humor deve ser '
- 'universal na equipe — e não reservada a subgrupos supostamente mais vulneráveis —, embora o eixo do vigor mereça '
+ 'universal na equipe, e não reservada a subgrupos supostamente mais vulneráveis, embora o eixo do vigor mereça '
  'atenção adicional nos atletas de perfil mais potente.')
 P('Situados no conjunto da literatura, esses achados ocupam uma lacuna específica. A BRUMS tem sido aplicada, '
  'predominantemente, como um retrato pontual em torno da competição (BRANDT et al., 2019; DO NASCIMENTO et al., '
@@ -797,11 +797,11 @@ P('Situados no conjunto da literatura, esses achados ocupam uma lacuna específi
  'que se concentram as contribuições originais deste estudo, cada qual voltada a uma face da lacuna. Primeiro, a '
  'passagem do descritivo ao correlacional: em vez de apenas documentar a deterioração do humor, o estudo a vincula à '
  'aptidão física e mostra que a magnitude da resposta afetiva tem leitura interindividual. Segundo, e de forma central, '
- 'a demonstração de especificidade: entre as capacidades físicas, é a aptidão aeróbia intermitente — e não a anaeróbia '
- '— que rastreia a fadiga do humor, contraste raramente testado e que o presente desenho isola ao confrontar os dois '
+ 'a demonstração de especificidade: entre as capacidades físicas, é a aptidão aeróbia intermitente, e não a anaeróbia'
+ ', que rastreia a fadiga do humor, contraste raramente testado e que o presente desenho isola ao confrontar os dois '
  'sistemas na mesma amostra. Terceiro, o controle do porte corporal: por correlação parcial e ajuste alométrico, '
  'evidencia-se que o vínculo aparente da capacidade anaeróbia com a fadiga decorre da massa, e não da qualidade física '
- 'em si — uma depuração que a leitura bruta não permitiria. Quarto, a tradução do achado em decisão prática, com '
+ 'em si, uma depuração que a leitura bruta não permitiria. Quarto, a tradução do achado em decisão prática, com '
  'limiares de pico de velocidade (único e em faixas) que sinalizam atletas de maior risco. Em conjunto, essas frentes '
  'convertem a associação humor–aptidão de uma constatação genérica em um critério fisiológico específico e acionável, e '
  'sinalizam um caminho para o monitoramento multidomínio intramicrociclo em esportes de rendimento.')
@@ -809,36 +809,36 @@ P('A inclusão do pico de velocidade do T-CAR como parâmetro fisiológico acres
  'resposta afetiva. Atletas com maior aptidão aeróbia intermitente reportaram mais vigor (ρ = %s; p %s) e menos fadiga '
  'física (ρ = %s; p %s) ao longo da semana, e um limiar de pico de velocidade de aproximadamente %s km/h discriminou os '
  'dias de maior fadiga (área sob a curva = %s). Esse resultado é coerente com o papel da capacidade aeróbia intermitente '
- 'em sustentar e repetir esforços de alta intensidade — pois acelera a recuperação entre as ações e retarda a fadiga — e, '
+ 'em sustentar e repetir esforços de alta intensidade, pois acelera a recuperação entre as ações e retarda a fadiga, e, '
  'portanto, em modular a tolerância à carga do handebol, e com a validade do pico de velocidade do T-CAR como marcador '
  'de desempenho físico em modalidades intermitentes (FERNANDES-DA-SILVA et al., 2016). Do ponto de vista aplicado, normalizar a '
- 'resposta de humor pela aptidão física ajuda a distinguir a fadiga esperada — de atletas menos aptos sob a mesma carga '
- '— daquela que possa sinalizar sobrecarga, e o limiar identificado oferece à comissão técnica uma referência objetiva '
+ 'resposta de humor pela aptidão física ajuda a distinguir a fadiga esperada, de atletas menos aptos sob a mesma carga'
+ ', daquela que possa sinalizar sobrecarga, e o limiar identificado oferece à comissão técnica uma referência objetiva '
  'para individualizar a prescrição da carga e o reforço da recuperação. A estratificação por dois limiares refina essa '
  'referência ao substituir a linha única por três faixas de aptidão: a prevalência de dias críticos caiu de modo '
  'ordenado da faixa inferior para a superior (tendência significativa para fadiga e para baixo vigor), e a faixa de alta '
- 'aptidão isolou atletas com risco de dias críticos reduzido a cerca de um quinto — uma leitura graduada, e não binária, '
+ 'aptidão isolou atletas com risco de dias críticos reduzido a cerca de um quinto, uma leitura graduada, e não binária, '
  'mais aderente à decisão prática de dosar carga e recuperação atleta a atleta. O ajuste alométrico refinou essa '
  'leitura: como '
  'o pico de velocidade escala negativamente com a massa (expoente %s), parte da relação entre aptidão e fadiga física '
- 'reflete o porte corporal e não apenas a capacidade aeróbia — ao normalizar o PV pela massa, essa associação se '
+ 'reflete o porte corporal e não apenas a capacidade aeróbia, ao normalizar o PV pela massa, essa associação se '
  'atenua. Já a relação entre aptidão e vigor resistiu ao ajuste, o que evidencia um efeito genuíno de capacidade aeróbia '
  'sobre o estado de energia, independentemente do tamanho do atleta.'%(
    c2('%+.2f'%PV['pv']['wk_Vigor']['TCAR1']['rho']),pstr(PV['pv']['wk_Vigor']['TCAR1']['rho_p']),
    c2('%+.2f'%PV['pv']['wk_FadFisica']['TCAR1']['rho']),pstr(PV['pv']['wk_FadFisica']['TCAR1']['rho_p']),
    c2('%.1f'%LP['thr']),c2('%.2f'%LP['auc']),c2('%.2f'%AL['alom']['b'])))
 P('A contraposição com a capacidade anaeróbia delimita a especificidade dessa relação. O teste de sprints repetidos '
- '(Baker) — um marcador da capacidade de repetir esforços máximos de curta duração — não se associou de forma '
+ '(Baker), um marcador da capacidade de repetir esforços máximos de curta duração, não se associou de forma '
  'significativa à fadiga do humor em nenhuma de suas medidas, e a fraca associação bruta entre o melhor tempo e a '
  'fadiga física desapareceu ao controlar a massa corporal, o que a atribui ao porte do atleta, e não à capacidade '
  'anaeróbia em si. Como a capacidade anaeróbia se mostrou independente da aptidão aeróbia, os dois testes captam '
- 'qualidades físicas distintas; e é a aptidão aeróbia — não a anaeróbia — que rastreia a fadiga afetiva do acúmulo de '
+ 'qualidades físicas distintas; e é a aptidão aeróbia, não a anaeróbia, que rastreia a fadiga afetiva do acúmulo de '
  'pré-temporada. Esse contraste é coerente com a natureza predominantemente aeróbia da carga de uma semana de '
  'acumulação e com a recomendação de sistemas de monitoramento multidomínio, que combinam marcadores neuromusculares, '
  'cardioautonômicos e de autorrelato de humor, sono e estresse (NAUGHTON et al., 2023; TAVARES et al., 2017). A '
  'pertinência dessa moldura no próprio handebol de elite encontra respaldo em investigação de larga escala com centenas '
  'de jogadores de alto nível, na qual o estado de humor, a percepção de estresse e marcadores endócrinos foram '
- 'articulados num arcabouço multidomínio de acompanhamento (RATZ-SULYOK et al., 2026) — quadro em que o presente '
+ 'articulados num arcabouço multidomínio de acompanhamento (RATZ-SULYOK et al., 2026), quadro em que o presente '
  'contraste entre aptidão aeróbia e anaeróbia especifica qual componente físico efetivamente rastreia a resposta '
  'afetiva. Convém, '
  'ainda, a cautela metodológica de que o índice de fadiga do teste de sprints repetidos, por derivar de uma pequena '
@@ -846,12 +846,12 @@ P('A contraposição com a capacidade anaeróbia delimita a especificidade dessa
 P('Duas escolhas analíticas, incomuns na literatura de monitoramento, sustentam a força dessa conclusão. A primeira é a '
  'análise de comunalidade e dominância, que traduz a especificidade em números: a aptidão aeróbia não apenas dominou a '
  'variância explicada da fadiga como reteve a quase totalidade da contribuição única, ao passo que a variância da massa '
- 'se revelou, em grande parte, compartilhada com a própria aptidão — evidência direta de que o aparente vínculo do '
- 'porte com a fadiga é aptidão aeróbia sob outro nome — e a capacidade anaeróbia nada acrescentou de único. No vigor, a '
+ 'se revelou, em grande parte, compartilhada com a própria aptidão, evidência direta de que o aparente vínculo do '
+ 'porte com a fadiga é aptidão aeróbia sob outro nome, e a capacidade anaeróbia nada acrescentou de único. No vigor, a '
  'massa comportou-se como supressora, o que explica por que a associação aeróbia se robustece ao controlá-la. Esse tipo '
  'de partição, que decompõe o R² em frações única e compartilhada, evita as armadilhas de interpretar coeficientes de '
  'regressão isolados sob colinearidade (NIMON; OSWALD, 2013; AZEN; BUDESCU, 2003). A segunda é a curva de especificação: '
- 'em vez de defender um único ponto de corte — sempre discutível —, mostrou-se que a utilidade do limiar de pico de '
+ 'em vez de defender um único ponto de corte, sempre discutível, mostrou-se que a utilidade do limiar de pico de '
  'velocidade persiste ao longo de praticamente todo o espectro de decisões analíticas plausíveis, inclusive quando o '
  'preditor é ajustado pela massa, o que blinda o achado contra a crítica de seletividade de especificação e o torna '
  'mais crível como ferramenta de triagem (SIMONSOHN; SIMMONS; NELSON, 2020). Em conjunto, esses recursos elevam o rigor '
@@ -859,25 +859,25 @@ P('Duas escolhas analíticas, incomuns na literatura de monitoramento, sustentam
 P('A comparação a posteriori de modelos de curva reforça a leitura dessa relação e agrega parcimônia à sua '
  'interpretação. Testadas as formas linear, logarítmica e polinomial, o modelo linear mostrou o melhor compromisso entre '
  'ajuste e parcimônia para a fadiga física e para o vigor (menores AIC e BIC), com o ajuste logarítmico praticamente '
- 'equivalente e sem ganho do termo quadrático — o que revela que, na faixa de aptidão desta amostra, cada incremento de '
+ 'equivalente e sem ganho do termo quadrático, o que revela que, na faixa de aptidão desta amostra, cada incremento de '
  'pico de velocidade se associa a uma variação aproximadamente constante da resposta de humor, sem evidência de '
  'saturação ou de limiar de rendimentos decrescentes. Esse resultado justifica descrever a associação pela reta de '
  'regressão e, ao mesmo tempo, delimita o alcance do modelo: uma relação linear estimada em uma faixa estreita de '
- 'aptidão não deve ser extrapolada para além dela. Para o desfecho binário, a regressão logística — cuja qualidade de '
- 'ajuste foi documentada pelo pseudo-R² de McFadden e pelos critérios de informação — sustentou o limiar de pico de '
+ 'aptidão não deve ser extrapolada para além dela. Para o desfecho binário, a regressão logística, cuja qualidade de '
+ 'ajuste foi documentada pelo pseudo-R² de McFadden e pelos critérios de informação, sustentou o limiar de pico de '
  'velocidade como ferramenta prática de triagem, com preferência pelo preditor na escala bruta, de leitura mais direta para '
  'a comissão técnica.')
 P('A sonolência e o estresse percebido acrescentaram duas leituras convergentes com o padrão central. A sonolência '
  '(Epworth) acompanhou a semana de carga: elevou-se rumo ao último dia e associou-se, entre os atletas, a mais fadiga '
- 'e a um pior humor global — um marcador de recuperação/sono que corrobora, no plano comportamental, a deterioração do eixo '
+ 'e a um pior humor global, um marcador de recuperação/sono que corrobora, no plano comportamental, a deterioração do eixo '
  'energia–fadiga e reforça a recomendação de vigiar o sono na fase de acumulação (KELLMANN et al., 2018). Esse vínculo '
  'entre sono e humor sob carga encontra paralelo direto no futebol de base: em jovens jogadores submetidos a treino '
  'intensificado, a restrição de sono precipitou a queda do vigor e a elevação da fadiga, ao passo que a preservação do '
- 'sono, sob a mesma carga, manteve o humor estável (FERREIRA et al., 2026) — o que credencia o sono como um moderador '
+ 'sono, sob a mesma carga, manteve o humor estável (FERREIRA et al., 2026), o que credencia o sono como um moderador '
  'da resposta afetiva ao acúmulo, e não mero acompanhante dela. Já o estresse '
  'percebido (PSS-14) permaneceu estável e moderado, sem se relacionar à oscilação do humor; essa ausência de variação '
  'é informativa, pois indica que a resposta afetiva ao microciclo teve origem na carga de treino, e não em um aumento '
- 'concomitante do estresse psicossocial percebido — um argumento a favor da especificidade do achado.')
+ 'concomitante do estresse psicossocial percebido, um argumento a favor da especificidade do achado.')
 P('Algumas limitações delimitam o alcance dos achados. A primeira é o tamanho amostral (%d atletas), circunscrito a uma '
  'única equipe e a um único microciclo: o desenho observacional de fase única não autoriza inferência causal, e as '
  'associações entre aptidão e humor são, por natureza, transversais. A segunda é que o limiar de pico de velocidade foi '
@@ -888,18 +888,18 @@ P('Algumas limitações delimitam o alcance dos achados. A primeira é o tamanho
  'entre a carga diária e o humor, e a leitura da modulação fisiológica restringe-se ao gradiente de exposição pela '
  'aptidão (pico de velocidade). A essas somam-se limitações de mensuração já assinaladas: o efeito de piso das '
  'dimensões negativas, a referência dos escores T à própria amostra (e não a normas nacionais), a versão de 6 itens do '
- 'Epworth (sem ponto de corte clínico validado) e a PSS-14, cujo horizonte excede o microciclo — razão pela qual '
+ 'Epworth (sem ponto de corte clínico validado) e a PSS-14, cujo horizonte excede o microciclo, razão pela qual '
  'sonolência e estresse foram lidos por média semanal, e não por flutuação diária. Convém, ainda, a cautela já '
  'apontada quanto ao índice de fadiga do teste de sprints repetidos, de confiabilidade limitada.'%sm['n'])
 P('Essas limitações, porém, são atenuadas pela convergência das evidências, o que preserva a validade da conclusão '
- 'central sobre a especificidade aeróbia. Três abordagens independentes — correlação parcial com controle da massa, '
- 'ajuste alométrico e análise de comunalidade — apontam para o mesmo resultado, e a curva de especificação mostra que '
+ 'central sobre a especificidade aeróbia. Três abordagens independentes, correlação parcial com controle da massa, '
+ 'ajuste alométrico e análise de comunalidade, apontam para o mesmo resultado, e a curva de especificação mostra que '
  'ele não depende de uma escolha particular de corte; a própria ausência de gradiente entre a carga interna do teste e '
  'o humor foi reportada de forma transparente, sem sobreinterpretação. Assim, embora a magnitude dos coeficientes deva '
  'ser lida com a cautela que o tamanho amostral impõe, a direção e a especificidade do achado sustentam-se sob '
  'múltiplas lentes analíticas. Como direções '
  'futuras, recomenda-se ampliar a amostra e acompanhar múltiplos microciclos, integrar o humor a marcadores de carga '
- 'externa e interna mensurados continuamente — o que habilitaria o gradiente dose-resposta aqui inviável —, adotar '
+ 'externa e interna mensurados continuamente, o que habilitaria o gradiente dose-resposta aqui inviável, adotar '
  'tabelas normativas e agrupamento semeado (seeded k-means) para a classificação de perfis, validar externamente os '
  'limiares de pico de velocidade e testar o valor preditivo dos perfis negativos para desfechos como lesão e sobrecarga '
  '(DE MIRANDA ROHLFS et al., 2024, 2025).')
@@ -910,12 +910,12 @@ P('Na última semana de pré-temporada, a deterioração do humor concentrou-se 
  'associou-se de forma seletiva às capacidades físicas. Entre os parâmetros examinados, a aptidão aeróbia intermitente '
  '(pico de velocidade do T-CAR) foi o correlato fisiológico genuíno: os atletas mais aptos relataram mais vigor e menos '
  'fadiga física, com um limiar de aproximadamente %s km/h e dois cortes que delimitaram faixas de risco úteis à '
- 'individualização da carga. A capacidade anaeróbia de sprints repetidos, ao contrário, não explicou a fadiga do humor '
- '— e o seu vínculo aparente decorria do porte corporal —, o que revela especificidade aeróbia. A sonolência '
+ 'individualização da carga. A capacidade anaeróbia de sprints repetidos, ao contrário, não explicou a fadiga do humor'
+ ', e o seu vínculo aparente decorria do porte corporal, o que revela especificidade aeróbia. A sonolência '
  'acrescentou uma leitura de recuperação, ao acompanhar a fadiga e a perturbação do humor, enquanto o estresse '
  'percebido, estável, delimitou a origem da resposta na carga de treino. A magnitude dos efeitos foi, porém, pouco '
  'modulada pelo perfil individual, o que sugere uma resposta amplamente comum ao grupo. Recomenda-se, portanto, um '
- 'monitoramento multidomínio — que combine o humor, a aptidão aeróbia e marcadores de recuperação — centrado no eixo '
+ 'monitoramento multidomínio, que combine o humor, a aptidão aeróbia e marcadores de recuperação, centrado no eixo '
  'energia–fadiga.'%c2('%.1f'%LP['thr']))
 
 # ===== DECLARAÇÕES (back-matter) =====
@@ -938,7 +938,7 @@ H('Conflitos de interesse',12,before=6)
 P('Os autores declaram não haver conflitos de interesse.',ind=False)
 H('Artigo companheiro',12,before=6)
 P('Este manuscrito integra um par de estudos-companheiros que compartilham a mesma amostra e o mesmo microciclo, com '
- 'desfechos primários distintos. O artigo companheiro — sobre a dinâmica do humor e a modelagem das trajetórias — foi '
+ 'desfechos primários distintos. O artigo companheiro, sobre a dinâmica do humor e a modelagem das trajetórias, foi '
  'submetido a outro periódico; ambos se citam mutuamente.',ind=False)
 
 # ===== REFERÊNCIAS =====
@@ -984,7 +984,7 @@ refs=[
  'SAW, A. E.; MAIN, L. C.; GASTIN, P. B. Monitoring the athlete training response: subjective self-reported measures trump commonly used objective measures: a systematic review. British Journal of Sports Medicine, v. 50, n. 5, p. 281–291, 2016. DOI: 10.1136/bjsports-2015-094758.',
  'SIMONSOHN, U.; SIMMONS, J. P.; NELSON, L. D. Specification curve analysis. Nature Human Behaviour, v. 4, n. 11, p. 1208–1214, 2020. DOI: 10.1038/s41562-020-0912-z.',
  'TAVARES, F. et al. Wellness, muscle soreness and neuromuscular performance during a training week in volleyball athletes. Journal of Sports Medicine and Physical Fitness, v. 58, n. 12, p. 1852–1858, 2017. DOI: 10.23736/S0022-4707.17.07818-5.',
- 'TERRY, P. C.; LANE, A. M.; FOGARTY, G. J. Construct validity of the Profile of Mood States — Adolescents for use with adults. Psychology of Sport and Exercise, v. 4, n. 2, p. 125–139, 2003. DOI: 10.1016/S1469-0292(02)00035-8.',
+ 'TERRY, P. C.; LANE, A. M.; FOGARTY, G. J. Construct validity of the Profile of Mood States, Adolescents for use with adults. Psychology of Sport and Exercise, v. 4, n. 2, p. 125–139, 2003. DOI: 10.1016/S1469-0292(02)00035-8.',
  'TERRY, P. C. et al. Mood profiling for sustainable mental health among athletes. Sustainability, v. 13, n. 11, 6116, 2021. DOI: 10.3390/su13116116.',
  'TERWEE, C. B. et al. Quality criteria were proposed for measurement properties of health status questionnaires. Journal of Clinical Epidemiology, v. 60, n. 1, p. 34–42, 2007. DOI: 10.1016/j.jclinepi.2006.03.012.',
  'THORPE, R. T. et al. Monitoring fatigue status in elite team-sport athletes: implications for practice. International Journal of Sports Physiology and Performance, v. 12, n. S2, p. S227–S234, 2017. DOI: 10.1123/ijspp.2016-0434.',

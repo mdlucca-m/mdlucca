@@ -21,7 +21,7 @@ f=make_subplots(rows=1,cols=2,horizontal_spacing=0.11,
 dm=h.groupby(['ID','dia']).agg(Fad=('FadFisica','mean')).reset_index().merge(F,on='ID').dropna(subset=['PVini'])
 cut=dm.Fad.quantile(2/3); dm['hi']=(dm.Fad>=cut).astype(int)
 b0,b1=logit(dm.PVini,dm.hi); xx=np.linspace(dm.PVini.min(),dm.PVini.max(),200); pr=1/(1+np.exp(-(b0+b1*xx)))
-thr=-b0/b1
+thr=json.load(open('tcar_limiar.json'))['LIM']['PVini']['thr']   # limiar de Youden (mesmo do texto)
 # zonas sombreadas: risco (abaixo do limiar) vs baixo risco (acima)
 f.add_vrect(x0=xx.min(),x1=thr,fillcolor='#e8590c',opacity=0.09,line_width=0,row=1,col=1)
 f.add_vrect(x0=thr,x1=xx.max(),fillcolor='#2f9e44',opacity=0.09,line_width=0,row=1,col=1)
@@ -32,9 +32,8 @@ dm['bin']=pd.cut(dm.PVini,6); binp=dm.groupby('bin').agg(x=('PVini','mean'),p=('
 f.add_trace(go.Scatter(x=xx,y=pr,mode='lines',line=dict(color='#e8590c',width=5),name='Curva logística',showlegend=True),1,1)
 f.add_trace(go.Scatter(x=binp.x,y=binp.p,mode='markers',marker=dict(size=(binp.n*1.6+6),color='#e8590c',opacity=0.55,
     line=dict(color='white',width=1.2)),name='Proporção observada',showlegend=True),1,1)
-thr=-b0/b1
 f.add_vline(x=thr,line=dict(color='#212529',width=2.5,dash='dash'),row=1,col=1)
-f.add_annotation(x=thr,y=0.92,text='limiar 50%%<br>%.1f km/h'%thr,showarrow=False,font=dict(size=12,color='#212529'),row=1,col=1)
+f.add_annotation(x=thr,y=0.92,text='limiar<br>%.1f km/h'%thr,showarrow=False,font=dict(size=12,color='#212529'),row=1,col=1)
 f.update_xaxes(title='Pico de velocidade — T-CAR (km/h)',gridcolor='#eceef1',zeroline=False,row=1,col=1)
 f.update_yaxes(title='Probabilidade',range=[-0.03,1.03],gridcolor='#eceef1',zeroline=False,row=1,col=1)
 
