@@ -641,6 +641,25 @@ P('Como verificação de robustez que respeita a natureza ordinal e limitada das
    c2('%.2f'%ov['dia']['OR']),c2('%.2f'%ov['dia']['OR_lo']),c2('%.2f'%ov['dia']['OR_hi']),
    c2('%.2f'%ofa['dia']['OR']),pstr(ofa['dia']['p'])))
 
+H('3.16 Classificação individual por mudança confiável (MDC)',12,before=6)
+MC=json.load(open('mdc_class.json'))
+tmc=table('Classificação dos atletas pela mudança confiável (Δ Dia 1 → Dia 7 acima da MDC90) no vigor e na fadiga.',
+    ['Desfecho','Melhora','Estável','Piora','Com mudança confiável'],
+    [['Vigor',str(MC['Vigor']['melhora']),str(MC['Vigor']['estável']),str(MC['Vigor']['piora']),'%d/%d'%(MC['n_change_vigor'],MC['n'])],
+     ['Fadiga',str(MC['Fadiga']['melhora']),str(MC['Fadiga']['estável']),str(MC['Fadiga']['piora']),'%d/%d'%(MC['n_change_fadiga'],MC['n'])]],
+    note='Mudança confiável = |Δ| > MDC90 (vigor %s; fadiga %s pontos). Piora = queda de vigor ou elevação de fadiga acima da MDC. n = %d atletas com medidas completas no Dia 1 e no Dia 7.'%(
+        c2('%.1f'%MC['mdc90']['Vigor']),c2('%.1f'%MC['mdc90']['Fadiga']),MC['n']),fs=9)
+f_mc=figure(f'{FG}/mdc_individual.png','Mudança individual do vigor e da fadiga (Δ Dia 1 → Dia 7) por atleta, ordenada. A faixa cinza central corresponde à mudança mínima detectável (MDC90); barras fora dela indicam mudança confiável — verde: melhora; vermelho: piora; cinza: dentro do erro de medida.',w=15.5)
+P('A aplicação do critério de mudança confiável ao nível individual (Tabela %d; Figura %d) matiza o achado de grupo. '
+ 'Embora a equipe tenha derivado no eixo energia–fadiga, a maioria dos atletas manteve-se, individualmente, dentro do '
+ 'erro de medida: apenas %d dos %d apresentaram queda de vigor superior à MDC e %d, elevação de fadiga acima dela. Um '
+ 'subconjunto restrito — %d atletas — reuniu simultaneamente queda confiável de vigor e elevação confiável de fadiga, '
+ 'que representa a assinatura individual mais nítida de sobre-esforço e o grupo que mais claramente demandaria atenção da '
+ 'comissão técnica. Esse contraste entre a resposta média do grupo e a heterogeneidade individual — coerente com a '
+ 'dispersão das inclinações estimada pelo modelo bayesiano — ilustra por que o monitoramento aplicado deve combinar a '
+ 'tendência coletiva com a leitura, atleta a atleta, das mudanças que excedem o erro de medida.'%(
+   tmc,f_mc,MC['Vigor']['piora'],MC['n'],MC['Fadiga']['piora'],MC['n_piora_ambos']))
+
 # ===== 4 DISCUSSÃO =====
 H('4 DISCUSSÃO')
 P('O presente estudo caracterizou o comportamento do humor de handebolistas de elite ao longo da última semana de '
