@@ -9,6 +9,7 @@ from docx.oxml import OxmlElement
 R=json.load(open('brums_desc2.json')); MS=json.load(open('model_stats.json'))
 PSY=json.load(open('psychometric.json')); PK=json.load(open('peaks.json'))
 PCA=json.load(open('pca.json')); LOG=json.load(open('logistica.json')); MV=json.load(open('manova.json'))
+STAT=json.load(open('brums_stats3.json')); S4=json.load(open('brums_stats4.json')); CRS=json.load(open('cross.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
 doc=Document()
@@ -67,6 +68,9 @@ sm=R['sample']; desc=R['desc']; pr=R['prepos']; d17=R['d1d7']; PREV=MS['prev']
 # ---- valores pré-calculados (f-strings, sem armadilha de %) ----
 def num(x,d=1): return c2(f'{x:.{d}f}')
 def pv(p): return '< 0,001' if p<0.001 else '= '+c2(f'{p:.3f}')
+def pvt(p): return '< 0,001' if p<0.001 else c2(f'{p:.3f}')
+fr_vig_p=pv(S4['friedman']['Vigor']['p']); fr_vig_w=num(S4['friedman']['Vigor']['W'],2)
+fr_fad_p=pv(S4['friedman']['Fadiga']['p']); fr_fad_w=num(S4['friedman']['Fadiga']['W'],2)
 vig_dz=num(pr['Vigor']['dz'],2); fad_dz=num(pr['Fadiga']['dz'],2)
 vig_pct=num(abs(pr['Vigor']['pct']),0); fad_pct=num(pr['Fadiga']['pct'],0)
 d1d7_vig_dz=num(d17['Vigor']['dz'],2); d1d7_fad_dz=num(d17['Fadiga']['dz'],2)
@@ -151,12 +155,14 @@ P(f'Participaram {sm["n"]} atletas de handebol do sexo masculino, de nível de e
  f'quais se calculou também a perturbação total do humor (PTH). O delineamento cobriu sete dias de um microciclo '
  f'pré-competitivo, com uma coleta de linha de base no primeiro dia e duas coletas diárias, uma antes e outra depois do '
  f'treino, nos seis dias subsequentes, o que totalizou {sm["n_obs"]} observações.')
-P('Na análise, empregaram-se estatística descritiva das seis dimensões e da PTH, avaliação da consistência interna por '
- 'alfa de Cronbach, classificação de cada observação em um dos seis perfis de humor a partir dos escores padronizados, '
- 'comparação das dimensões entre o primeiro e o último dia e entre pré e pós-treino, com tamanho de efeito, e '
- 'confirmação multivariada por MANOVA em escores T. A tendência de migração do perfil de barbatana de tubarão foi '
- 'resumida por uma regressão logística ao longo dos dias, e a estrutura das seis dimensões foi explorada por análise de '
- 'componentes principais. Adotou-se nível de significância de 5%.')
+P('Na análise, empregaram-se estatística descritiva das seis dimensões e da PTH e avaliação da consistência interna por '
+ 'alfa de Cronbach. Como o teste de Shapiro-Wilk apontou desvios da normalidade em parte das dimensões, adotaram-se '
+ 'testes não paramétricos: o teste de Wilcoxon para a comparação entre pré e pós-treino, o teste de Friedman com o W de '
+ 'Kendall para a comparação entre os sete dias e a correlação de Spearman para as relações entre as dimensões, sempre com '
+ 'o cálculo do tamanho de efeito. Cada observação foi classificada em um dos seis perfis de humor a partir dos escores '
+ 'padronizados, e a distribuição dos perfis entre o primeiro e o último dia foi avaliada pelo teste do qui-quadrado, com '
+ 'a tendência de migração resumida por uma regressão logística ao longo dos dias. A estrutura das seis dimensões foi '
+ 'explorada por análise de componentes principais. Adotou-se nível de significância de 5%.')
 
 # ===== 4 RESULTADOS =====
 H('4 RESULTADOS')
@@ -180,44 +186,80 @@ P(f'A consistência interna foi adequada nas duas dimensões do eixo energia–f
  f'dimensões explicaram {pth_r2}% da sua variância, o que confirma o eixo energia–fadiga como o núcleo do sinal.')
 
 H('4.2 Perfis de humor e sua migração',12,before=6)
-P('Os seis perfis de humor descritos na literatura estiveram representados na amostra. A Figura 1 apresenta o esquema '
- 'de cada perfil em escores padronizados, o que facilita a leitura do estado do atleta como uma forma reconhecível. O '
- 'perfil iceberg exprime prontidão, com vigor acima da média e dimensões negativas abaixo, ao passo que a barbatana de '
- 'tubarão sinaliza fadiga elevada com vigor ainda preservado.')
-figure(f'{FG}/fig_perfis_esquema.png','Esquema dos seis perfis de humor em escores padronizados (z).',w=15.5)
+P(f'Os seis perfis de humor descritos na literatura estiveram representados na amostra. A Figura {_FN[0]+1} apresenta '
+ f'cada perfil identificado no estudo em escores T, com a respectiva prevalência, o que permite reconhecer a sua forma '
+ f'característica. O perfil iceberg exprime prontidão, com o vigor acima da média e as dimensões negativas abaixo, ao '
+ f'passo que a barbatana de tubarão sinaliza pico isolado de fadiga, o submerso reúne todas as dimensões abaixo da média '
+ f'e o Everest invertido eleva todas as dimensões negativas (PARSONS-SMITH; TERRY; MACHIN, 2017).')
+figure(f'{FG}/xb6_clusters.png','Perfis de humor identificados na amostra, em escores T (M = 50; DP = 10) nas seis dimensões; prevalência de cada perfil entre parênteses.',w=14.0)
 P(f'A comparação entre o primeiro e o último dia do microciclo revelou a reconfiguração do perfil médio do grupo. A '
- f'Figura 2 mostra que, no primeiro dia, o perfil apresentou o formato iceberg, com o vigor no topo e as dimensões '
- f'negativas abaixo da média populacional. No último dia, o perfil inverteu-se para a forma de barbatana de tubarão, '
- f'com a fadiga no topo e o vigor rebaixado, o que traduz a acumulação da carga ao longo da semana.')
-figure(f'{FG}/xb5_profile_d1d7.png','Perfil de humor em escores T no primeiro e no último dia do microciclo.',w=15.5)
-P(f'Essa mudança de forma correspondeu a um deslocamento da prevalência dos perfis. Conforme a Figura 3, o perfil iceberg '
+ f'Figura {_FN[0]+1} mostra que, no primeiro dia, o perfil assumiu o formato iceberg, com o vigor no topo e as dimensões '
+ f'negativas abaixo da média populacional. No último dia, o perfil inverteu-se para a forma de barbatana de tubarão, com '
+ f'a fadiga no topo e o vigor rebaixado, o que traduz a acumulação da carga ao longo da semana.')
+figure(f'{FG}/xb5_profile_d1d7.png','Perfil de humor em escores T no primeiro e no último dia do microciclo.',w=11.0)
+P(f'Essa mudança de forma correspondeu a um deslocamento da prevalência dos perfis (Tabela {_TN[0]+1}). O perfil iceberg '
  f'caiu de {ice_d1}% no primeiro dia para {ice_d7}% no último, enquanto a barbatana de tubarão subiu de {bar_d1}% para '
- f'{bar_d7}% e o perfil submerso passou de {sub_d1}% para {sub_d7}%. A regressão logística de tendência confirmou o '
- f'aumento da chance do perfil de barbatana de tubarão a cada dia (OR = {or_bar}), sem que os perfis de maior risco à '
- f'saúde mental se instalassem.')
-figure(f'{FG}/xb5_prev.png','Prevalência dos seis perfis de humor no primeiro e no último dia do microciclo.',w=15.5)
+ f'{bar_d7}% e o perfil submerso passou de {sub_d1}% para {sub_d7}%. A reorganização categórica não alcançou '
+ f'significância no teste do qui-quadrado (χ² = {num(PREV["chi"],2)}; p {pv(PREV["p"])}), resultado esperado pela baixa '
+ f'contagem por célula quando poucas observações se distribuem por seis perfis. A regressão logística de tendência, '
+ f'porém, confirmou o aumento da chance do perfil de barbatana de tubarão a cada dia (OR = {or_bar}), sem que os perfis '
+ f'de maior risco à saúde mental se instalassem.')
+PROFR=[('Iceberg','Iceberg'),('Everest invertido','Everest invertido'),('Iceberg invertido','Iceberg invertido'),('Submerso','Submerso'),('Barbatana tubarão','Barbatana de tubarão'),('Superfície','Superfície')]
+def prow(p,lab):
+    d1=PREV['D1'][p]; d7=PREV['D7'][p]
+    return [lab,f"{d1} ({num(100*d1/PREV['n_d1'],1)}%)",f"{d7} ({num(100*d7/PREV['n_d7'],1)}%)"]
+table('Distribuição dos seis perfis de humor no primeiro e no último dia do microciclo: n (%).',
+ ['Perfil','Dia 1 — n (%)','Dia 7 — n (%)'],[prow(p,l) for p,l in PROFR],
+ note='χ² = %s; p = %s. A migração é descritiva e converge com a queda do vigor e a elevação da fadiga.'%(num(PREV['chi'],2),num(PREV['p'],3)),fs=9)
 
-H('4.3 Mudança ao longo do microciclo e dentro do dia',12,before=6)
-P(f'O comportamento diário reforçou a seletividade do eixo energia–fadiga. A Figura 4 mostra que o vigor foi máximo no '
- f'Dia {vmaxd} e mínimo no Dia {vmind}, com queda de {d1d7_vig_pct}% entre os extremos, ao passo que a fadiga percorreu '
- f'o caminho inverso, com pico no Dia {fmaxd} e valor mais baixo no Dia {fmind}. A PTH acompanhou esse movimento e '
- f'atingiu o seu ponto mais alto no fim da semana, o que resume a deterioração global do humor sob carga.')
-figure(f'{FG}/abnt_f1_trajetoria.png','Trajetória de vigor, fadiga e perturbação total do humor ao longo dos sete dias.',w=15.5)
-P(f'A comparação entre pré e pós-treino evidenciou uma variação dentro do dia coerente com a resposta aguda ao esforço. '
- f'A Figura 5 indica que o vigor tendeu a cair e a fadiga a subir do momento pré para o pós-treino, com efeito de '
- f'magnitude pequena a moderada no conjunto do grupo (d = {vig_dz} para o vigor e d = {fad_dz} para a fadiga; quedas de '
- f'{vig_pct}% e elevações de {fad_pct}%, respectivamente). Essa oscilação intradiária somou-se à tendência semanal e '
- f'ajudou a compor o quadro de fadiga funcional observado no fim do microciclo.')
-figure(f'{FG}/abnt_f_prepos.png','Escores de vigor, fadiga e perturbação total do humor no pré e no pós-treino, por dia.',w=15.5)
+H('4.3 Comparação das dimensões entre os dias (Friedman)',12,before=6)
+P(f'A comparação das dimensões entre os sete dias pelo teste de Friedman (Tabela {_TN[0]+1}) apontou variação '
+ f'significativa no vigor (p {fr_vig_p}; W = {fr_vig_w}) e na fadiga (p {fr_fad_p}; W = {fr_fad_w}), com magnitude '
+ f'pequena a moderada, além de diferenças na tensão e na confusão. O vigor foi máximo no Dia {vmaxd} e mínimo no Dia '
+ f'{vmind}, enquanto a fadiga percorreu o caminho inverso, com pico no Dia {fmaxd}, um padrão coerente com o acúmulo de '
+ f'carga dentro da faixa funcional.')
+FR=S4['friedman']
+def ddrow(k,lab):
+    dm=CRS['dec'][k]['dm']; f=FR[k]
+    return [lab]+[num(dm[str(d)],1) for d in range(1,8)]+[num(f['chi'],1),pvt(f['p']),num(f['W'],2)]
+table('Médias diárias das dimensões do BRUMS e teste de Friedman com W de Kendall (comparação entre os sete dias).',
+ ['Dimensão','D1','D2','D3','D4','D5','D6','D7','χ²','p','W'],[ddrow(k,l) for k,l in ORD],
+ note='W de Kendall = tamanho de efeito do teste de Friedman (0,1 pequeno; 0,3 moderado; 0,5 grande). PTH: perturbação total do humor.',fs=8)
+P(f'A Figura {_FN[0]+1} ilustra a trajetória do vigor, da fadiga e da PTH ao longo da semana, com a queda progressiva do '
+ f'vigor e a elevação da fadiga e da PTH em direção ao fim do microciclo.')
+figure(f'{FG}/abnt_f1_trajetoria.png','Trajetória de vigor, fadiga e perturbação total do humor ao longo dos sete dias.',w=14.0)
 
-H('4.4 Estrutura das dimensões (exploratória)',12,before=6)
+H('4.4 Variação entre pré e pós-treino (Wilcoxon)',12,before=6)
+P(f'A comparação entre pré e pós-treino pelo teste de Wilcoxon (Tabela {_TN[0]+1}) evidenciou uma resposta aguda '
+ f'coerente com o esforço: o vigor caiu (d = {vig_dz}) e a fadiga e a PTH subiram do momento pré para o pós, com efeito '
+ f'de magnitude pequena a moderada. Essa oscilação dentro do dia somou-se à tendência semanal e ajudou a compor o quadro '
+ f'de fadiga funcional observado no fim do microciclo.')
+def wrow(k,lab):
+    v=pr[k]; return [lab,num(v['pre'],2),num(v['pos'],2),c2(f"{v['pct']:+.0f}")+'%',pvt(v['p']),c2(f"{v['dz']:+.2f}"),v['mag']]
+table('Comparação entre pré e pós-treino das dimensões do BRUMS e da PTH (teste de Wilcoxon e d de Cohen).',
+ ['Dimensão','Pré (M)','Pós (M)','Variação (%)','p','d','Magnitude'],[wrow(k,l) for k,l in ORD],
+ note='p do teste de Wilcoxon; d = tamanho de efeito de Cohen. PTH: perturbação total do humor.',fs=9)
+figure(f'{FG}/abnt_f_prepos.png','Escores de vigor, fadiga e perturbação total do humor no pré e no pós-treino, por dia.',w=14.0)
+
+H('4.5 Relações entre as dimensões (Spearman)',12,before=6)
+P(f'As correlações de Spearman entre as dimensões (Tabela {_TN[0]+1}) mostraram que as dimensões negativas se associam '
+ f'entre si, com destaque para os pares depressão–raiva e tensão–confusão, e que a fadiga se relaciona com a depressão e '
+ f'a raiva. O vigor manteve-se relativamente independente das demais dimensões, o que reforça a sua leitura como um polo '
+ f'próprio do eixo energia–fadiga.')
+sigpairs=[x for x in STAT['pairs'] if x['p']<0.05]
+def srow(x): return [f"{x['a']} × {x['b']}",c2(f"{x['rho']:+.2f}"),pvt(x['p'])]
+table('Correlações de Spearman significativas entre as dimensões do BRUMS (n = %d atletas).'%sm['n'],
+ ['Par de dimensões','ρ','p'],[srow(x) for x in sigpairs],
+ note='ρ = coeficiente de correlação de Spearman. Apresentam-se apenas os pares com p < 0,05.',fs=9)
+
+H('4.6 Estrutura das dimensões (exploratória)',12,before=6)
 P(f'A análise exploratória de componentes principais resumiu a estrutura das seis dimensões. O primeiro componente '
  f'concentrou {pc1}% da variância e opôs o vigor às dimensões negativas, o que o caracteriza como um eixo geral de '
  f'perturbação do humor, enquanto o segundo reuniu {pc2}% e separou a ativação. Os dois componentes juntos explicaram '
- f'{pc12}% da variância, e o critério de Kaiser reteve {nkaiser} componentes. A Figura 6 apresenta o biplot, no qual os '
+ f'{pc12}% da variância, e o critério de Kaiser reteve {nkaiser} componentes. A Figura {_FN[0]+1} apresenta o biplot, no qual os '
  f'vetores do vigor e da fadiga se projetam em sentidos opostos ao longo do primeiro componente, o que reforça, por via '
  f'independente, a centralidade do eixo energia–fadiga.')
-figure(f'{FG}/pca_biplot.png','Biplot da análise de componentes principais das seis dimensões do BRUMS.',w=13.5)
+figure(f'{FG}/pca_biplot.png','Biplot da análise de componentes principais das seis dimensões do BRUMS.',w=12.0)
 
 # ===== 5 DISCUSSÃO =====
 H('5 DISCUSSÃO')
@@ -260,7 +302,7 @@ refs=[
  'TERRY, P. C. et al. Mood profiling for sustainable mental health among athletes. Sustainability, v. 13, n. 11, 6116, 2021. DOI: 10.3390/su13116116.',
  'THORPE, R. T. et al. Monitoring fatigue status in elite team-sport athletes: implications for practice. International Journal of Sports Physiology and Performance, v. 12, n. S2, p. S227–S234, 2017. DOI: 10.1123/ijspp.2016-0434.']
 for rf in refs:
-    p=doc.add_paragraph(); r=p.add_run(rf); r.font.size=Pt(11); p.paragraph_format.line_spacing=1.5; p.paragraph_format.space_after=Pt(6); p.alignment=WD_ALIGN_PARAGRAPH.JUSTIFY
+    p=doc.add_paragraph(); r=p.add_run(rf); r.font.size=Pt(10.5); p.paragraph_format.line_spacing=1.15; p.paragraph_format.space_after=Pt(4); p.alignment=WD_ALIGN_PARAGRAPH.JUSTIFY
 
 OUTP='/home/user/mdlucca/Artigos/Paper1_Humor_resumido.docx'
 doc.save(OUTP); print('SAVED',OUTP,'| Tabelas',_TN[0],'Figuras',_FN[0])
