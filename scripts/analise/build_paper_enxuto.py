@@ -10,6 +10,7 @@ R=json.load(open('brums_desc2.json')); MS=json.load(open('model_stats.json'))
 PSY=json.load(open('psychometric.json')); PK=json.load(open('peaks.json'))
 PCA=json.load(open('pca.json')); LOG=json.load(open('logistica.json')); MV=json.load(open('manova.json'))
 STAT=json.load(open('brums_stats3.json')); S4=json.load(open('brums_stats4.json')); CRS=json.load(open('cross.json'))
+MDC=json.load(open('mdc.json')); PHJ=json.load(open('posthoc.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
 doc=Document()
@@ -218,6 +219,20 @@ table('Consistência das medidas repetidas ao longo da semana (coeficiente de co
 P(f'A consistência das medidas repetidas ao longo da semana (Tabela {_TN[0]}) foi moderada a boa, com os valores mais '
  f'baixos na raiva e na confusão, dimensões mais reativas de um dia para o outro, o que também recomenda cautela na '
  f'leitura isolada dessas dimensões.')
+P(f'A partir do ICC derivaram-se os limiares de mudança das duas dimensões do eixo energia–fadiga (Tabela {_TN[0]+1}), '
+ f'úteis para separar a variação real do ruído de medida. No vigor, o erro-padrão de medida foi de '
+ f'{num(MDC["Vigor"]["sem"],1)} ponto e a mudança mínima detectável, de {num(MDC["Vigor"]["mdc90"],1)} (90%) a '
+ f'{num(MDC["Vigor"]["mdc95"],1)} (95%) pontos; na fadiga, de {num(MDC["Fadiga"]["sem"],1)} e de '
+ f'{num(MDC["Fadiga"]["mdc90"],1)} a {num(MDC["Fadiga"]["mdc95"],1)} pontos, respectivamente. Esses valores superam a '
+ f'menor mudança relevante (SWC = {num(MDC["Vigor"]["swc"],1)} no vigor e {num(MDC["Fadiga"]["swc"],1)} na fadiga), o que '
+ f'indica que, no plano individual, apenas oscilações de cerca de {num(MDC["Vigor"]["mdc90"],1)} a '
+ f'{num(MDC["Fadiga"]["mdc90"],1)} pontos podem ser lidas como mudança real, ao passo que variações menores se confundem '
+ f'com o ruído. Por esse motivo, a interpretação deste estudo apoia-se nas tendências de grupo e não em leituras '
+ f'isoladas por atleta.')
+table('Erro de medida e limiares de mudança do vigor e da fadiga (escala 0–16): erro-padrão de medida (SEM), mudança mínima detectável (MDC) e menor mudança relevante (SWC).',
+ ['Dimensão','SEM','MDC90','MDC95','SWC'],
+ [[l,num(MDC[k]['sem'],1),num(MDC[k]['mdc90'],1),num(MDC[k]['mdc95'],1),num(MDC[k]['swc'],1)] for k,l in [('Vigor','Vigor'),('Fadiga','Fadiga')]],
+ note='SEM = DP × √(1 − ICC); MDC = 1,65 (90%) ou 1,96 (95%) × √2 × SEM; SWC = 0,2 × DP entre atletas. Uma mudança individual só é tomada como real quando excede a MDC.',fs=9)
 
 H('4.2 Perfis de humor e sua migração',12,before=6)
 P(f'Os seis perfis de humor descritos na literatura estiveram representados na amostra. A Figura {_FN[0]+1} apresenta '
@@ -278,8 +293,36 @@ table('Médias diárias das dimensões do BRUMS e teste de Friedman com W de Ken
 P(f'A Figura {_FN[0]+1} ilustra a trajetória do vigor, da fadiga e da PTH ao longo da semana, com a queda progressiva do '
  f'vigor e a elevação da fadiga e da PTH em direção ao fim do microciclo.')
 figure(f'{FG}/abnt_f1_trajetoria.png','Trajetória de vigor, fadiga e perturbação total do humor ao longo dos sete dias.',w=14.5)
+P(f'A Figura {_FN[0]+1} detalha, por meio de diagramas de caixa por dia, a distribuição de cada dimensão ao longo da '
+ f'semana. O deslocamento das caixas do vigor para baixo e das caixas da fadiga para cima, sobretudo na segunda metade do '
+ f'microciclo, torna visível a mesma deterioração do eixo energia–fadiga, ao passo que as dimensões negativas de menor '
+ f'expressão mantêm caixas comprimidas junto ao zero.')
+figure(f'{FG}/xb3_box.png','Diagramas de caixa das seis dimensões do BRUMS por dia do microciclo (áreas sombreadas: início e acúmulo da semana).',w=15.0)
 
-H('4.5 Variação entre pré e pós-treino (Wilcoxon)',12,before=6)
+H('4.5 Dias de pico e comparação de cada dia ao primeiro',12,before=6)
+P(f'A localização dos picos sintetiza a dinâmica semanal (Tabela {_TN[0]+1}). O vigor foi máximo no Dia {vmaxd} e mínimo '
+ f'no Dia {vmind}; a fadiga foi máxima no Dia {fmaxd}; a tensão, no Dia {PK["Tensao"]["max_day"]}; a raiva, no Dia '
+ f'{PK["Raiva"]["max_day"]}; e a depressão, no Dia {PK["Depressao"]["max_day"]}. Em síntese, o início da semana reúne '
+ f'maior prontidão, com vigor e tensão mais altos, ao passo que o final concentra a fadiga e a raiva.')
+def pkrow(k,lab):
+    p=PK[k]; return [lab,f'Dia {p["max_day"]}',num(p['max_val'],2),f'Dia {p["min_day"]}',num(p['min_val'],2)]
+table('Dia de maior e de menor expressão de cada dimensão do humor (médias diárias).',
+ ['Dimensão','Dia de maior valor','Valor','Dia de menor valor','Valor'],
+ [pkrow(k,l) for k,l in ORD[:6]],fs=9)
+def emm(v,d): return num(PHJ[v]['emm'][str(d)],2)
+def sig1(v,d): return '' if d==1 or PHJ[v]['pairs'].get('1_%d'%d,{}).get('ptukey',1)>=0.05 else '*'
+np_vig=sum(1 for k,pp in PHJ['Vigor']['pairs'].items() if pp['ptukey']<0.05)
+np_fad=sum(1 for k,pp in PHJ['Fadiga']['pairs'].items() if pp['ptukey']<0.05)
+P(f'No pós-teste que compara todos os dias entre si (Tabela {_TN[0]+1}; Figura {_FN[0]+1}), o vigor diferiu de forma '
+ f'significativa em {np_vig} dos 21 pares de dias e a fadiga em {np_fad}, sempre no sentido de piora em relação aos '
+ f'primeiros dias, o que confirma a deterioração progressiva do eixo energia–fadiga ao longo do microciclo.')
+table('Médias marginais estimadas por dia do vigor e da fadiga, com comparação de cada dia ao Dia 1 (pós-teste de Tukey).',
+ ['Dia','Vigor','Fadiga'],
+ [[f'Dia {d}',emm('Vigor',d)+sig1('Vigor',d),emm('Fadiga',d)+sig1('Fadiga',d)] for d in range(1,8)],
+ note='* diferença significativa em relação ao Dia 1 (Tukey, p < 0,05).',fs=9)
+figure(f'{FG}/ph_emm.png','Médias marginais diárias do vigor, da fadiga e da fadiga física, com comparação de todos os dias ao Dia 1 (* p < 0,05).',w=14.5)
+
+H('4.6 Variação entre pré e pós-treino (Wilcoxon)',12,before=6)
 P(f'A comparação entre pré e pós-treino pelo teste de Wilcoxon (Tabela {_TN[0]+1}) evidenciou uma resposta aguda '
  f'coerente com o esforço: o vigor caiu (d = {vig_dz}) e a fadiga e a PTH subiram do momento pré para o pós, com efeito '
  f'de magnitude pequena a moderada. Essa oscilação dentro do dia somou-se à tendência semanal e ajudou a compor o quadro '
@@ -291,7 +334,7 @@ table('Comparação entre pré e pós-treino das dimensões do BRUMS e da PTH (t
  note='p do teste de Wilcoxon; d = tamanho de efeito de Cohen. PTH: perturbação total do humor.',fs=9)
 figure(f'{FG}/abnt_f_prepos.png','Escores de vigor, fadiga e perturbação total do humor no pré e no pós-treino, por dia.',w=14.5)
 
-H('4.6 Relações entre as dimensões (Spearman)',12,before=6)
+H('4.7 Relações entre as dimensões (Spearman)',12,before=6)
 P(f'As correlações de Spearman entre as dimensões (Tabela {_TN[0]+1}) mostraram que as dimensões negativas se associam '
  f'entre si, com destaque para os pares depressão–raiva e tensão–confusão, e que a fadiga se relaciona com a depressão e '
  f'a raiva. O vigor manteve-se relativamente independente das demais dimensões, o que reforça a sua leitura como um polo '
