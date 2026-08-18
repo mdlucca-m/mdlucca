@@ -117,7 +117,12 @@ P('O acompanhamento do estado psicológico dos atletas consolidou-se como parte 
  'esporte de rendimento. Instrumentos de autorrelato do humor são práticos, econômicos e sensíveis às variações da carga '
  'de treino, com utilidade preditiva para o bem-estar e o desempenho esportivo (SAW; MAIN; GASTIN, 2016; LOCHBAUM et al., '
  '2021), razão pela qual documentos de consenso recomendam seu uso rotineiro para monitorar a fadiga e orientar decisões '
- 'de treino e recuperação (KELLMANN et al., 2018). O interesse por essa via de monitoramento sustenta-se em uma '
+ 'de treino e recuperação (KELLMANN et al., 2018). Dentre as dimensões do humor, o vigor e a fadiga formam o eixo mais '
+ 'sensível à carga de treino: quando a intensidade aumenta, o vigor recua e a fadiga se eleva de modo consistente, ao '
+ 'passo que as dimensões de valência negativa, como tensão, depressão e raiva, permanecem relativamente estáveis '
+ '(PIERCE, 2002; SAW; MAIN; GASTIN, 2016; THORPE et al., 2017). Esse eixo energia–fadiga opera como um termômetro '
+ 'afetivo do equilíbrio entre esforço e recuperação, o que sustenta o seu uso no monitoramento diário. O interesse por '
+ 'essa via de monitoramento sustenta-se em uma '
  'observação recorrente: o humor capta a dimensão subjetiva da fadiga que os marcadores biológicos nem sempre revelam. '
  'Em programas de treino intensificado, a perturbação do humor pode persistir mesmo depois de indicadores fisiológicos '
  'terem regredido, dissociação que reforça o valor de um monitoramento integrado do estado do atleta '
@@ -167,10 +172,14 @@ P('Dois desses perfis são especialmente informativos para a leitura de um micro
  'que exigiria intervenção, e constitui um dos focos centrais deste estudo.')
 H('1.3 Handebol: modalidade coletiva intermitente e de alta intensidade',12,before=6)
 P('O handebol de quadra é uma modalidade coletiva de invasão, de caráter marcadamente intermitente e de alta intensidade. '
- 'Ao longo da partida, ações máximas e explosivas, sprints curtos, saltos, arremessos, bloqueios, mudanças de direção e '
- 'contatos físicos, alternam-se, de forma imprevisível, com períodos de recuperação incompleta, o que exige '
+ 'Ao longo da partida, ações máximas e explosivas, como sprints curtos, saltos, arremessos, bloqueios, mudanças bruscas '
+ 'de direção e contatos físicos, alternam-se, de forma imprevisível, com períodos de recuperação incompleta, o que exige '
  'simultaneamente potência anaeróbia, capacidade aeróbia intermitente e elevada tolerância à fadiga (KARCHER; BUCHHEIT, '
- '2014; MICHALSIK; AAGAARD, 2015; WAGNER et al., 2014). É justamente a aptidão aeróbia que sustenta a capacidade de '
+ '2014; MICHALSIK; AAGAARD, 2015; WAGNER et al., 2014). Revisões sistemáticas das demandas de competição confirmam e '
+ 'quantificam esse perfil: o jogador de elite percorre, em média, cerca de 3,7 km por partida e executa dezenas de '
+ 'ações intensas de curta duração, com exigências que variam de forma acentuada conforme a posição de jogo '
+ '(GARCÍA-SÁNCHEZ et al., 2023), e as fases de transição concentram as maiores intensidades de deslocamento '
+ '(LEFÈVRE et al., 2023). É justamente a aptidão aeróbia que sustenta a capacidade de '
  'repetir e manter esforços de alta intensidade ao longo de uma partida: uma maior potência aeróbia acelera a '
  'ressíntese de fosfocreatina e a remoção de metabólitos nas pausas incompletas, atenua a queda de desempenho entre '
  'ações sucessivas e retarda a instalação da fadiga, com a preservação da qualidade das ações decisivas nos minutos finais '
@@ -974,10 +983,12 @@ refs=[
  'EPSKAMP, S.; FRIED, E. I. A tutorial on regularized partial correlation networks. Psychological Methods, v. 23, n. 4, p. 617–634, 2018. DOI: 10.1037/met0000167.',
  'FEIJEN, S. et al. Monitoring the swimmer’s training load: a narrative review of monitoring strategies applied in research. Scandinavian Journal of Medicine & Science in Sports, v. 30, n. 11, p. 2037–2043, 2020. DOI: 10.1111/sms.13798.',
  'FERREIRA, A. B. M. et al. Impact of sleep restriction and intensified training on mucosal immunity and psychological responses in young soccer players. Journal of Strength and Conditioning Research, v. 40, n. 7, p. e703–e713, 2026. DOI: 10.1519/JSC.0000000000005416.',
+ 'GARCÍA-SÁNCHEZ, C. et al. Physical demands during official competitions in elite handball: a systematic review. International Journal of Environmental Research and Public Health, v. 20, n. 4, 3353, 2023. DOI: 10.3390/ijerph20043353.',
  'HAMLIN, M. J. et al. Monitoring training loads and perceived stress in young elite university athletes. Frontiers in Physiology, v. 10, 34, 2019. DOI: 10.3389/fphys.2019.00034.',
  'HAN, C.; PARSONS-SMITH, R. L.; TERRY, P. C. Mood profiling in Singapore: cross-cultural validation and potential applications of mood profile clusters. Frontiers in Psychology, v. 11, 665, 2020. DOI: 10.3389/fpsyg.2020.00665.',
  'KARCHER, C.; BUCHHEIT, M. On-court demands of elite handball, with special reference to playing positions. Sports Medicine, v. 44, n. 6, p. 797–814, 2014. DOI: 10.1007/s40279-014-0164-z.',
  'KELLMANN, M. et al. Recovery and performance in sport: consensus statement. International Journal of Sports Physiology and Performance, v. 13, n. 2, p. 240–245, 2018. DOI: 10.1123/ijspp.2017-0759.',
+ 'LEFÈVRE, T. et al. A deep dive into the use of local positioning system in professional handball: automatic detection of players’ orientation, position and game phases to analyse specific physical demands. PLoS ONE, v. 18, n. 8, e0289752, 2023. DOI: 10.1371/journal.pone.0289752.',
  'LIDDELL, T. M.; KRUSCHKE, J. K. Analyzing ordinal data with metric models: what could possibly go wrong? Journal of Experimental Social Psychology, v. 79, p. 328–348, 2018. DOI: 10.1016/j.jesp.2018.08.009.',
  'LOCHBAUM, M. et al. The Profile of Mood States and athletic performance: a meta-analysis of published studies. European Journal of Investigation in Health, Psychology and Education, v. 11, n. 1, p. 50–70, 2021. DOI: 10.3390/ejihpe11010005.',
  'McELREATH, R. Statistical rethinking: a Bayesian course with examples in R and Stan. 2. ed. Boca Raton: CRC Press, 2020.',

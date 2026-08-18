@@ -119,7 +119,11 @@ P('O acompanhamento do estado psicológico dos atletas consolidou-se como parte 
  'esporte de rendimento. Instrumentos de autorrelato do humor são práticos, econômicos e sensíveis às variações da carga '
  'de treino, com utilidade preditiva para o bem-estar e o desempenho esportivo (SAW; MAIN; GASTIN, 2016; LOCHBAUM et al., '
  '2021), razão pela qual documentos de consenso recomendam seu uso rotineiro para monitorar a fadiga e orientar decisões '
- 'de treino e recuperação (KELLMANN et al., 2018). O valor desse autorrelato não se esgota na conveniência: sob treino '
+ 'de treino e recuperação (KELLMANN et al., 2018). Dentre as dimensões do humor, o vigor e a fadiga compõem o eixo mais '
+ 'sensível à carga: quando a intensidade do treino cresce, o vigor recua e a fadiga se eleva de modo consistente, ao '
+ 'passo que as dimensões de valência negativa, como tensão, depressão e raiva, pouco se alteram (PIERCE, 2002; SAW; '
+ 'MAIN; GASTIN, 2016; THORPE et al., 2017). Esse eixo energia–fadiga funciona, portanto, como um termômetro afetivo do '
+ 'equilíbrio entre esforço e recuperação. O valor desse autorrelato não se esgota na conveniência: sob treino '
  'intensificado, a perturbação do humor pode persistir mesmo depois de marcadores bioquímicos de fadiga terem regredido, '
  'assincronia entre a recuperação psicológica e a fisiológica que fundamenta a integração das duas leituras num '
  'monitoramento multidomínio (OSTAPIUK-KAROLCZUK et al., 2025).')
@@ -168,19 +172,27 @@ P('Dois desses perfis são especialmente informativos para a leitura de um micro
  'que exigiria intervenção, e constitui um dos focos centrais deste estudo.')
 H('1.3 Handebol: modalidade coletiva intermitente e de alta intensidade',12,before=6)
 P('O handebol de quadra é uma modalidade coletiva de invasão, de caráter marcadamente intermitente e de alta intensidade. '
- 'Ao longo da partida, ações máximas e explosivas, sprints curtos, saltos, arremessos, bloqueios, mudanças de direção e '
- 'contatos físicos, alternam-se, de forma imprevisível, com períodos de recuperação incompleta, o que exige '
+ 'Ao longo da partida, ações máximas e explosivas, como sprints curtos, saltos, arremessos, bloqueios, mudanças bruscas '
+ 'de direção e contatos físicos, alternam-se, de forma imprevisível, com períodos de recuperação incompleta, o que exige '
  'simultaneamente potência anaeróbia, capacidade aeróbia intermitente e elevada tolerância à fadiga (KARCHER; BUCHHEIT, '
- '2014; MICHALSIK; AAGAARD, 2015; WAGNER et al., 2014). É justamente a aptidão aeróbia que sustenta a capacidade de '
+ '2014; MICHALSIK; AAGAARD, 2015; WAGNER et al., 2014). Revisões sistemáticas das demandas de competição confirmam esse '
+ 'perfil e o quantificam: o jogador de elite percorre, em média, cerca de 3,7 km por partida, executa dezenas de ações '
+ 'intensas de curta duração e mostra exigências que variam de forma acentuada com a posição de jogo (GARCÍA-SÁNCHEZ et '
+ 'al., 2023). As fases de transição, tanto ofensiva quanto defensiva, concentram as maiores intensidades de '
+ 'deslocamento, o que reforça a natureza acíclica e imprevisível do esforço (LEFÈVRE et al., 2023). É justamente a '
+ 'aptidão aeróbia que sustenta a capacidade de '
  'repetir e manter esforços de alta intensidade ao longo de uma partida: uma maior potência aeróbia acelera a '
  'ressíntese de fosfocreatina e a remoção de metabólitos nas pausas incompletas, atenua a queda de desempenho entre '
  'ações sucessivas e retarda a instalação da fadiga, com a preservação da qualidade das ações decisivas nos minutos finais '
  '(KARCHER; BUCHHEIT, 2014; MICHALSIK; AAGAARD, 2015). Por atuar sobre a recuperação entre esforços, e não apenas sobre '
  'a intensidade máxima isolada, a aptidão aeróbia intermitente é determinante da capacidade de sustentar altas '
  'intensidades no jogo intermitente. Avaliá-la, contudo, exige um teste que reproduza esse mesmo padrão de esforço e '
- 'pausa: é o que faz o Teste de Carminatti (T-CAR), teste de campo progressivo e intermitente cujo pico de velocidade '
- '(PV) reflete a capacidade aeróbia intermitente e se associa ao desempenho físico e à aptidão em modalidades dessa '
- 'natureza (FERNANDES-DA-SILVA et al., 2016). Esse padrão de esforço eleva a carga interna nos microciclos de '
+ 'pausa: é o que faz o Teste de Carminatti (T-CAR), teste de campo progressivo e intermitente, em vaivém, cujo pico de '
+ 'velocidade (PV) corresponde à velocidade aeróbia máxima e expressa a potência aeróbia máxima do atleta, com validade '
+ 'consolidada como indicador de campo da aptidão aeróbia em modalidades intermitentes (CARMINATTI et al., 2013; '
+ 'FLORIANO et al., 2016). Em jogadores de esportes coletivos, um maior PV do T-CAR associa-se a mais ações de alta '
+ 'intensidade, mais corrida em alta velocidade e maior distância percorrida em jogo, o que atesta a sua validade '
+ 'ecológica como marcador de desempenho físico específico (FERNANDES-DA-SILVA et al., 2016). Esse padrão de esforço eleva a carga interna nos microciclos de '
  'acúmulo e repercute no estado afetivo, sobretudo na última semana de pré-temporada, quando a carga que antecede a '
  'competição se concentra. Como a tolerância a essa carga depende da aptidão aeróbia intermitente, é plausível que o PV '
  'do T-CAR module a magnitude da resposta de humor ao acúmulo de treino, hipótese que este estudo examina.')
@@ -954,15 +966,19 @@ refs=[
  'BRANDT, R.; BEVILACQUA, G. G.; ANDRADE, A. Perceived sleep quality, mood states, and their relationship with performance among Brazilian elite athletes during a competitive period. Journal of Strength and Conditioning Research, v. 31, n. 4, p. 1033–1039, 2017.',
  'BRANDT, R. et al. Comparisons of mood states associated with outcomes achieved by female and male athletes in high-level judo and Brazilian jiu-jitsu championships: psychological factors associated with the probability of success. Journal of Strength and Conditioning Research, v. 35, n. 9, p. 2518–2524, 2019. DOI: 10.1519/JSC.0000000000003218.',
  'CAMPBELL, P. G. et al. The effect of overreaching on neuromuscular performance and wellness responses in Australian rules football athletes. Journal of Strength and Conditioning Research, v. 34, n. 6, p. 1530–1538, 2020. DOI: 10.1519/JSC.0000000000003603.',
+ 'CARMINATTI, L. J. et al. Intermittent versus continuous incremental field tests: are maximal variables interchangeable? Journal of Sports Science & Medicine, v. 12, n. 1, p. 165–170, 2013.',
  'DE MIRANDA ROHLFS, I. C. P. et al. Prevalence of specific mood profile clusters among elite and youth athletes at a Brazilian sports club. Sports, v. 12, n. 7, 195, 2024. DOI: 10.3390/sports12070195.',
  'DE MIRANDA ROHLFS, I. C. P. et al. Mood states, injury status, and countermovement jump performance in Brazilian high-level sports. Sports, v. 13, n. 9, 303, 2025. DOI: 10.3390/sports13090303.',
  'DO NASCIMENTO, M. H. et al. Acute psychological responses to official match outcomes in male youth volleyball: an observational repeated-measures study within a single national-level team. Frontiers in Psychology, v. 17, 1826372, 2026. DOI: 10.3389/fpsyg.2026.1826372.',
  'FERNANDES-DA-SILVA, J. et al. The peak velocity derived from the Carminatti Test is related to physical match performance in young soccer players. Journal of Sports Sciences, v. 34, n. 24, p. 2238–2245, 2016. DOI: 10.1080/02640414.2015.1093646.',
  'FERREIRA, A. B. M. et al. Impact of sleep restriction and intensified training on mucosal immunity and psychological responses in young soccer players. Journal of Strength and Conditioning Research, v. 40, n. 7, p. e703–e713, 2026. DOI: 10.1519/JSC.0000000000005416.',
+ 'FLORIANO, L. T. et al. Physiological responses during the time limit at 100% of the peak velocity in the Carminatti’s test in futsal players. Journal of Human Kinetics, v. 54, p. 91–101, 2016. DOI: 10.1515/hukin-2016-0038.',
+ 'GARCÍA-SÁNCHEZ, C. et al. Physical demands during official competitions in elite handball: a systematic review. International Journal of Environmental Research and Public Health, v. 20, n. 4, 3353, 2023. DOI: 10.3390/ijerph20043353.',
  'GLAISTER, M. et al. The reliability and validity of fatigue measures during multiple-sprint work: an issue revisited. Journal of Strength and Conditioning Research, v. 22, n. 5, p. 1597–1601, 2008. DOI: 10.1519/JSC.0b013e318181ab80.',
  'HAN, C.; PARSONS-SMITH, R. L.; TERRY, P. C. Mood profiling in Singapore: cross-cultural validation and potential applications of mood profile clusters. Frontiers in Psychology, v. 11, 665, 2020. DOI: 10.3389/fpsyg.2020.00665.',
  'KARCHER, C.; BUCHHEIT, M. On-court demands of elite handball, with special reference to playing positions. Sports Medicine, v. 44, n. 6, p. 797–814, 2014. DOI: 10.1007/s40279-014-0164-z.',
  'KELLMANN, M. et al. Recovery and performance in sport: consensus statement. International Journal of Sports Physiology and Performance, v. 13, n. 2, p. 240–245, 2018. DOI: 10.1123/ijspp.2017-0759.',
+ 'LEFÈVRE, T. et al. A deep dive into the use of local positioning system in professional handball: automatic detection of players’ orientation, position and game phases to analyse specific physical demands. PLoS ONE, v. 18, n. 8, e0289752, 2023. DOI: 10.1371/journal.pone.0289752.',
  'LOCHBAUM, M. et al. The Profile of Mood States and athletic performance: a meta-analysis of published studies. European Journal of Investigation in Health, Psychology and Education, v. 11, n. 1, p. 50–70, 2021. DOI: 10.3390/ejihpe11010005.',
  'McELREATH, R. Statistical rethinking: a Bayesian course with examples in R and Stan. 2. ed. Boca Raton: CRC Press, 2020.',
  'MICHALSIK, L. B.; AAGAARD, P. Physical demands in elite team handball: comparisons between male and female players. Journal of Sports Medicine and Physical Fitness, v. 55, n. 9, p. 878–891, 2015.',
