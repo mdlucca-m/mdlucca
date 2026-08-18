@@ -14,6 +14,7 @@ LOG=json.load(open('logistica.json'))
 L2=json.load(open('limiar2.json'))
 MOD=json.load(open('moduladores.json'))
 RSA=json.load(open('rsa_stats.json'))
+COM=json.load(open('commonality.json')); SPC=json.load(open('speccurve.json'))
 CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json')); SM=json.load(open('smooth.json')); IND=json.load(open('indiv.json')); AUD=json.load(open('audit.json')); CP=json.load(open('cross_pt.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
@@ -296,7 +297,16 @@ P('Como confirmação robusta, as comparações Dia 1 → Dia 7 e pré → pós 
  '(PV), composição corporal, potência de membros inferiores (salto CMJ), sprints repetidos (Baker), sonolência, estresse e carga interna '
  '(TRIMP) — foi quantificada pela correlação de Pearson e pelo coeficiente de determinação (R²), além de modelos de '
  'regressão múltipla com coeficientes padronizados (β*); dado o número de testes, aplicou-se a correção de Holm para '
- 'comparações múltiplas. Adotou-se nível de significância de 5% '
+ 'comparações múltiplas.')
+P('Para quantificar de forma rigorosa a especificidade do correlato físico, empregou-se a análise de comunalidade e '
+ 'dominância: decompôs-se o R² da fadiga e do vigor entre a aptidão aeróbia, a capacidade anaeróbia e a massa corporal, '
+ 'com estimativa, para cada preditor, da variância única (ganho de R² sobre os demais) e da dominância geral (contribuição '
+ 'média sobre todos os subconjuntos de preditores), bem como a variância compartilhada entre aptidão e massa '
+ '(NIMON; OSWALD, 2013; AZEN; BUDESCU, 2003). A robustez do limiar de pico de velocidade foi ainda testada por análise '
+ 'de curva de especificação (specification-curve): enumeraram-se todas as combinações razoáveis de valor de limiar, '
+ 'definição de dia crítico e forma do preditor (bruto ou ajustado pela massa) e examinou-se a distribuição do tamanho '
+ 'de efeito sobre o conjunto das especificações, de modo a aferir se o achado depende de escolhas analíticas '
+ 'particulares (SIMONSOHN; SIMMONS; NELSON, 2020). Adotou-se nível de significância de 5% '
  '(p < 0,05), com as análises conduzidas em ambiente Python (bibliotecas pandas, NumPy, SciPy e statsmodels).')
 
 # ===== 3 RESULTADOS =====
@@ -461,6 +471,19 @@ f_lc=figure(f'{FG}/logistic_curvas.png','Curvas logísticas ajustadas: à esquer
 P('As curvas logísticas ajustadas sintetizam, em forma gráfica, os dois modelos de probabilidade discutidos: a queda '
  'monotônica da chance de um dia de fadiga elevada à medida que aumenta o pico de velocidade e a elevação da chance do '
  'perfil de barbatana de tubarão ao longo dos dias (Figura %d).'%f_lc)
+f_spc=figure(f'{FG}/spec_curve.png','Análise de curva de especificação (specification-curve) dos limiares de pico de velocidade: cada ponto é o risco relativo de um dia crítico (PV baixo vs alto) sob uma especificação analítica; o painel inferior indica a forma do PV (bruto ou ajustado pela massa). A quase totalidade das especificações situa-se acima de 1 (linha tracejada).',w=15.5)
+P('Como um ponto de corte é, em si, uma decisão analítica arbitrária, submeteu-se o achado a uma análise de curva de '
+ 'especificação (specification-curve): varreram-se %d especificações que combinam o valor do limiar, a definição de dia '
+ 'crítico (fadiga elevada, baixo vigor ou qualquer um) e a forma do pico de velocidade (bruto ou ajustado pela massa), '
+ 'e registrou-se, em cada uma, o risco relativo de dia crítico entre os atletas abaixo e acima do limiar (Figura %d). O '
+ 'efeito mostrou-se notavelmente robusto: em %s%% das especificações o risco relativo excedeu 1 — ou seja, os atletas '
+ 'menos aptos concentraram mais dias críticos —, com risco relativo mediano de %s (faixa de %s a %s). A robustez '
+ 'sobreviveu, ademais, ao uso do pico de velocidade ajustado pela massa (RR mediano %s), o que reitera que o valor '
+ 'preditivo da aptidão não se reduz ao porte corporal. A conclusão prática é que a existência de um limiar útil de '
+ 'pico de velocidade não depende de uma escolha particular de corte, mas se sustenta ao longo de todo o espectro de '
+ 'decisões razoáveis.'%(
+   SPC['n_specs'],f_spc,c2('%.0f'%(100*SPC['frac_rr_gt1'])),c2('%.2f'%SPC['median_rr']),
+   c2('%.2f'%SPC['rr_range'][0]),c2('%.2f'%SPC['rr_range'][1]),c2('%.2f'%SPC['by_form']['ajustado_massa'])))
 
 # ----- 3.11 Sonolência e estresse percebido -----
 H('3.8 Sonolência (Epworth) e estresse percebido (PSS-14)',12,before=6)
@@ -544,6 +567,33 @@ P('A normalização pela massa corporal esclarece a natureza dessas associaçõe
    c2('%+.2f'%RSA['mass_bkmel'][0]),c2('%+.2f'%RSA['mass_fad'][0]),
    c2('%+.2f'%RSA['assoc']['BkMel']['FadFisica']['raw_r']),c2('%+.2f'%RSA['assoc']['BkMel']['FadFisica']['par_r']),
    c2('%+.2f'%RSA['allo']['FadFisica']['adj']),c2('%+.2f'%RSA['pv_fad'][0])))
+def comrow(v,p):
+    o=COM[v]; return [COM['labels'][p],c2('%.3f'%o['dominance'][p]),c2('%.3f'%o['unique'][p])]
+tcom=table('Análise de comunalidade e dominância: decomposição do R² da fadiga física e do vigor semanais entre a aptidão aeróbia (PV do T-CAR), a capacidade anaeróbia (sprints repetidos) e a massa corporal.',
+    ['Preditor','Fadiga: dominância / única','Vigor: dominância / única'],
+    [[COM['labels'][p],
+      '%s / %s'%(c2('%.3f'%COM['FadFisica']['dominance'][p]),c2('%.3f'%COM['FadFisica']['unique'][p])),
+      '%s / %s'%(c2('%.3f'%COM['Vigor']['dominance'][p]),c2('%.3f'%COM['Vigor']['unique'][p]))] for p in COM['labels']],
+    note='Dominância geral = contribuição média ao R² sobre todos os subconjuntos de preditores; variância única = ganho de R² do preditor sobre os demais (semiparcial²). R² total: fadiga %s; vigor %s. n = %d atletas.'%(
+        c2('%.3f'%COM['FadFisica']['full']),c2('%.3f'%COM['Vigor']['full']),COM['n']),fs=8.5)
+P('Para além do contraste bivariado, uma análise de comunalidade e dominância decompôs a variância explicada da fadiga '
+ 'e do vigor entre os três candidatos físicos — aptidão aeróbia, capacidade anaeróbia e massa corporal — e quantificou '
+ 'o que cada um contribui de forma única e o que partilham entre si (Tabela %d). O resultado formaliza a '
+ 'especificidade. Na fadiga física, a aptidão aeróbia foi o preditor dominante (dominância geral %s) e reteve a maior '
+ 'variância única (%s); a massa, embora se associe à fadiga isoladamente (R² = %s), praticamente não acrescenta '
+ 'variância única (%s), pois a quase totalidade da sua contribuição é partilhada com a aptidão aeróbia (variância comum '
+ 'aeróbia∩massa = %s) — isto é, o aparente vínculo do porte com a fadiga é, em grande parte, aptidão aeróbia disfarçada '
+ 'de massa. A capacidade anaeróbia contribui de forma única desprezível (%s). No vigor, o quadro é ainda mais nítido: a '
+ 'aptidão aeróbia domina (variância única %s) e a massa opera como supressora (comunalidade negativa, %s), o que '
+ 'explica por que a relação aptidão–vigor se fortalece — e não se atenua — ao controlar o porte, em consonância com o '
+ 'ajuste alométrico. A capacidade anaeróbia, novamente, é irrelevante (%s). A decomposição, portanto, sustenta '
+ 'quantitativamente que é a aptidão aeróbia — e não a anaeróbia nem a massa — o correlato específico do humor sob '
+ 'carga.'%(
+   tcom,c2('%.3f'%COM['FadFisica']['dominance']['PVini']),c2('%.3f'%COM['FadFisica']['unique']['PVini']),
+   c2('%.3f'%COM['FadFisica']['r_mass']),c2('%.3f'%COM['FadFisica']['unique']['massa']),
+   c2('%.3f'%COM['FadFisica']['common_pv_mass']),c2('%.3f'%COM['FadFisica']['unique']['BkMel']),
+   c2('%.3f'%COM['Vigor']['unique']['PVini']),c2('%.3f'%COM['Vigor']['common_pv_mass']),
+   c2('%.3f'%COM['Vigor']['unique']['BkMel'])))
 
 # ----- 3.11 Moduladores da magnitude dos efeitos -----
 H('3.11 Moduladores da magnitude dos efeitos agudo e crônico',12,before=6)
@@ -726,6 +776,19 @@ P('A contraposição com a capacidade anaeróbia delimita a especificidade dessa
  'afetiva. Convém, '
  'ainda, a cautela metodológica de que o índice de fadiga do teste de sprints repetidos, por derivar de uma pequena '
  'queda de desempenho, tem confiabilidade limitada e deve ser lido com reservas (OLIVER, 2007; GLAISTER et al., 2008).')
+P('Duas escolhas analíticas, incomuns na literatura de monitoramento, sustentam a força dessa conclusão. A primeira é a '
+ 'análise de comunalidade e dominância, que traduz a especificidade em números: a aptidão aeróbia não apenas dominou a '
+ 'variância explicada da fadiga como reteve a quase totalidade da contribuição única, ao passo que a variância da massa '
+ 'se revelou, em grande parte, compartilhada com a própria aptidão — evidência direta de que o aparente vínculo do '
+ 'porte com a fadiga é aptidão aeróbia sob outro nome — e a capacidade anaeróbia nada acrescentou de único. No vigor, a '
+ 'massa comportou-se como supressora, o que explica por que a associação aeróbia se robustece ao controlá-la. Esse tipo '
+ 'de partição, que decompõe o R² em frações única e compartilhada, evita as armadilhas de interpretar coeficientes de '
+ 'regressão isolados sob colinearidade (NIMON; OSWALD, 2013; AZEN; BUDESCU, 2003). A segunda é a curva de especificação: '
+ 'em vez de defender um único ponto de corte — sempre discutível —, mostrou-se que a utilidade do limiar de pico de '
+ 'velocidade persiste ao longo de praticamente todo o espectro de decisões analíticas plausíveis, inclusive quando o '
+ 'preditor é ajustado pela massa, o que blinda o achado contra a crítica de seletividade de especificação e o torna '
+ 'mais crível como ferramenta de triagem (SIMONSOHN; SIMMONS; NELSON, 2020). Em conjunto, esses recursos elevam o rigor '
+ 'da inferência sobre a especificidade aeróbia para além do que a correlação parcial isolada permitiria.')
 P('A comparação a posteriori de modelos de curva reforça a leitura dessa relação e agrega parcimônia à sua '
  'interpretação. Testadas as formas linear, logarítmica e polinomial, o modelo linear mostrou o melhor compromisso entre '
  'ajuste e parcimônia para a fadiga física e para o vigor (menores AIC e BIC), com o ajuste logarítmico praticamente '
@@ -805,6 +868,7 @@ refs=[
  'ANDRADE, A. et al. Sleep quality associated with mood in elite athletes. The Physician and Sportsmedicine, v. 47, n. 3, p. 312–317, 2019. DOI: 10.1080/00913847.2018.1553467.',
  'ANDRADE, A. et al. Effect of practice exergames on the mood states and self-esteem of elementary school boys and girls during physical education classes: a cluster-randomized controlled trial. PLoS ONE, v. 15, n. 6, e0232392, 2020. DOI: 10.1371/journal.pone.0232392.',
  'ASSUNÇÃO CARVALHO, L. C. S. et al. Nectar supplementation reduced biomarkers of oxidative stress, muscle damage, and improved psychological response in highly trained young handball players. Frontiers in Physiology, v. 9, 1508, 2018. DOI: 10.3389/fphys.2018.01508.',
+ 'AZEN, R.; BUDESCU, D. V. The dominance analysis approach for comparing predictors in multiple regression. Psychological Methods, v. 8, n. 2, p. 129–148, 2003. DOI: 10.1037/1082-989X.8.2.129.',
  'BATTAGLINI, M. P. et al. Analysis of progressive muscle relaxation on psychophysiological variables in basketball athletes. International Journal of Environmental Research and Public Health, v. 19, n. 24, 17065, 2022. DOI: 10.3390/ijerph192417065.',
  'BIRD, S. P. et al. Wellness, mood, sleep, and performance in a women’s national basketball team during international competition. Journal of Human Kinetics, v. 96, p. 163–175, 2025. DOI: 10.5114/jhk/200117.',
  'BRANDT, R.; BEVILACQUA, G. G.; ANDRADE, A. Perceived sleep quality, mood states, and their relationship with performance among Brazilian elite athletes during a competitive period. Journal of Strength and Conditioning Research, v. 31, n. 4, p. 1033–1039, 2017.',
@@ -824,6 +888,7 @@ refs=[
  'MORGAN, W. P. Selected psychological factors limiting performance: a mental health model. In: CLARKE, D. H.; ECKERT, H. M. (Ed.). Limits of human performance. Champaign: Human Kinetics, 1985. p. 70–80.',
  'NAUGHTON, M. et al. Defining and quantifying fatigue in the rugby codes. PLoS ONE, v. 18, n. 3, e0282390, 2023. DOI: 10.1371/journal.pone.0282390.',
  'NEVILL, A. M.; LANE, A. M. Why self-report “Likert” scale data should not be log-transformed. Journal of Sports Sciences, v. 25, n. 1, p. 1–2, 2007. DOI: 10.1080/02640410601111183.',
+ 'NIMON, K. F.; OSWALD, F. L. Understanding the results of multiple linear regression: beyond standardized regression coefficients. Organizational Research Methods, v. 16, n. 4, p. 650–674, 2013. DOI: 10.1177/1094428113493929.',
  'OLIVER, J. L. Is a fatigue index a worthwhile measure of repeated sprint ability? Journal of Science and Medicine in Sport, v. 12, n. 1, p. 20–23, 2007. DOI: 10.1016/j.jsams.2007.10.010.',
  'OSTAPIUK-KAROLCZUK, J. et al. Biochemical and psychological markers of fatigue and recovery in mixed martial arts athletes during strength and conditioning training. Scientific Reports, v. 15, n. 1, 24234, 2025. DOI: 10.1038/s41598-025-09719-z.',
  'PARSONS-SMITH, R. L.; TERRY, P. C.; MACHIN, M. A. Identification and description of novel mood profile clusters. Frontiers in Psychology, v. 8, 1958, 2017. DOI: 10.3389/fpsyg.2017.01958.',
@@ -836,6 +901,7 @@ refs=[
  'ROHLFS, I. C. P. M. et al. Psychometric characteristics of the Brazil Mood Scale among youth and elite athletes using two response time frames. Sports, v. 11, n. 12, 244, 2023. DOI: 10.3390/sports11120244.',
  'ROUVEIX, M. et al. The 24 h urinary cortisol/cortisone ratio and epinephrine/norepinephrine ratio for monitoring training in young female tennis players. International Journal of Sports Medicine, v. 27, n. 11, p. 856–863, 2006. DOI: 10.1055/s-2006-923778.',
  'SAW, A. E.; MAIN, L. C.; GASTIN, P. B. Monitoring the athlete training response: subjective self-reported measures trump commonly used objective measures: a systematic review. British Journal of Sports Medicine, v. 50, n. 5, p. 281–291, 2016. DOI: 10.1136/bjsports-2015-094758.',
+ 'SIMONSOHN, U.; SIMMONS, J. P.; NELSON, L. D. Specification curve analysis. Nature Human Behaviour, v. 4, n. 11, p. 1208–1214, 2020. DOI: 10.1038/s41562-020-0912-z.',
  'TAVARES, F. et al. Wellness, muscle soreness and neuromuscular performance during a training week in volleyball athletes. Journal of Sports Medicine and Physical Fitness, v. 58, n. 12, p. 1852–1858, 2017. DOI: 10.23736/S0022-4707.17.07818-5.',
  'TERRY, P. C.; LANE, A. M.; FOGARTY, G. J. Construct validity of the Profile of Mood States — Adolescents for use with adults. Psychology of Sport and Exercise, v. 4, n. 2, p. 125–139, 2003. DOI: 10.1016/S1469-0292(02)00035-8.',
  'TERRY, P. C. et al. Mood profiling for sustainable mental health among athletes. Sustainability, v. 13, n. 11, 6116, 2021. DOI: 10.3390/su13116116.',

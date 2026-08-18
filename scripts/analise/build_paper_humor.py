@@ -11,6 +11,7 @@ MS=json.load(open('model_stats.json')); MV=json.load(open('manova.json')); PHJ=j
 PV=json.load(open('pv_stats.json')); LIM=json.load(open('tcar_limiar.json')); TCD=json.load(open('tcar_desc.json'))
 TCV=json.load(open('tcar_curvas.json'))
 LOG=json.load(open('logistica.json'))
+BG=json.load(open('bayes_growth.json')); NET=json.load(open('network.json'))
 L2=json.load(open('limiar2.json'))
 MOD=json.load(open('moduladores.json'))
 CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json')); SM=json.load(open('smooth.json')); IND=json.load(open('indiv.json')); AUD=json.load(open('audit.json')); CP=json.load(open('cross_pt.json'))
@@ -255,7 +256,20 @@ P('Como confirmação robusta, as comparações Dia 1 → Dia 7 e pré → pós 
  'A resposta foi ainda modelada por atleta (trajetórias individuais) e reconstruída em alta resolução com 13 pontos '
  'temporais (linha de base e momentos pré e pós de cada dia de treino). Por fim, para verificar a dependência dos '
  'achados em relação a observações atípicas, todas as análises centrais foram reexecutadas após a remoção de valores '
- 'multivariadamente atípicos (distância de Mahalanobis). Adotou-se nível de significância de 5% '
+ 'multivariadamente atípicos (distância de Mahalanobis).')
+P('Para aprofundar a inferência sobre a dinâmica temporal, acrescentaram-se três abordagens complementares. Primeiro, '
+ 'ajustou-se um modelo bayesiano multinível de curva de crescimento ao vigor e à fadiga, com o dia do microciclo '
+ '(componente crônica) e o momento pré/pós (componente aguda) como efeitos fixos e interceptos e inclinações aleatórios '
+ 'por atleta; a estimação por amostrador de Gibbs com prioris conjugadas fracamente informativas (20 000 iterações, '
+ 'descarte inicial de 6 000, semente 2024) forneceu intervalos de credibilidade de 95%, a partição da variância entre '
+ 'atletas (correlação intraclasse) e a dispersão das inclinações individuais, com as médias a posteriori confrontadas '
+ 'com um modelo misto de máxima verossimilhança restrita para validação (McELREATH, 2020). Segundo, estimou-se uma rede '
+ 'psicométrica (modelo gráfico gaussiano) das seis dimensões por correlações parciais, no dia descansado e no dia de '
+ 'maior carga, com a força global (soma das arestas absolutas) comparada por teste de permutação de 5 000 reamostragens '
+ '(EPSKAMP; FRIED, 2018). Terceiro, como verificação de robustez que respeita a natureza ordinal e limitada das '
+ 'subescalas, ajustou-se um modelo de odds proporcionais (cumulative link) do dia e do momento pré/pós sobre o vigor e a '
+ 'fadiga categorizados em tercis (LIDDELL; KRUSCHKE, 2018).')
+P('Adotou-se nível de significância de 5% '
  '(p < 0,05), com as análises conduzidas em ambiente Python (bibliotecas pandas, NumPy, SciPy e statsmodels).')
 
 # ===== 3 RESULTADOS =====
@@ -558,6 +572,55 @@ P('Por fim, para verificar se as conclusões dependem de ruído amostral, todas 
    c2('%.3f'%next(x for x in AUD['rows'] if x['metric']=='manova_wilks')['raw']),
    c2('%.3f'%next(x for x in AUD['rows'] if x['metric']=='manova_wilks')['filt'])))
 
+H('3.15 Modelagem bayesiana multinível: componentes aguda e crônica e heterogeneidade individual',12,before=6)
+def bg(v,k,f='%+.2f'): b=BG[v][k]; return c2(f%b['mean']),c2(f%b['lo']),c2(f%b['hi'])
+tbg=table('Modelo bayesiano multinível de curva de crescimento para o vigor e a fadiga: estimativas a posteriori (média e intervalo de credibilidade de 95%).',
+    ['Parâmetro','Vigor','Fadiga'],
+    [['Efeito agudo — pré→pós','%s [%s; %s]'%bg('Vigor','b_pos'),'%s [%s; %s]'%bg('Fadiga','b_pos')],
+     ['Efeito crônico — por dia','%s [%s; %s]'%bg('Vigor','b_dia'),'%s [%s; %s]'%bg('Fadiga','b_dia')],
+     ['Correlação intraclasse (ICC)','%s [%s; %s]'%bg('Vigor','icc','%.2f'),'%s [%s; %s]'%bg('Fadiga','icc','%.2f')],
+     ['DP das inclinações individuais','%s [%s; %s]'%bg('Vigor','sd_slope','%.2f'),'%s [%s; %s]'%bg('Fadiga','sd_slope','%.2f')]],
+    note='Estimação por amostrador de Gibbs (semente 2024); intervalos de credibilidade que excluem zero indicam efeito consistente. ICC = proporção da variância atribuível a diferenças entre atletas.',fs=9)
+P('Um modelo bayesiano multinível de curva de crescimento decompôs formalmente a resposta em uma componente aguda '
+ '(pré→pós, intrassessão) e uma componente crônica (deriva entre dias), com trajetórias específicas de cada atleta '
+ '(Tabela %d). Ambas as componentes foram consistentes: para o vigor, o choque agudo (%s pontos por sessão; IC95%% %s a '
+ '%s) superou em cerca de quatro vezes a deriva crônica (%s por dia; IC95%% %s a %s), e um padrão simétrico repetiu-se '
+ 'na fadiga (agudo %s; IC95%% %s a %s | crônico %s; IC95%% %s a %s) — todos os intervalos de credibilidade excluíram o '
+ 'zero. As médias a posteriori praticamente coincidiram com as do modelo misto de máxima verossimilhança restrita, o '
+ 'que confirma a estabilidade da estimação. A partição da variância revelou naturezas distintas: o vigor comportou-se '
+ 'como traço, com a maior parte da variância entre atletas (ICC = %s), ao passo que a fadiga foi mais um estado, com '
+ 'variância predominantemente intraindividual (ICC = %s). Sobretudo, a dispersão das inclinações individuais foi '
+ 'apreciável (DP = %s no vigor; %s na fadiga), da ordem da própria deriva média: embora o grupo derive na mesma '
+ 'direção, a velocidade da deterioração difere entre atletas — heterogeneidade que o modelo quantifica e que respalda '
+ 'a leitura individualizada do monitoramento.'%(
+   tbg,bg('Vigor','b_pos')[0],bg('Vigor','b_pos')[1],bg('Vigor','b_pos')[2],
+   bg('Vigor','b_dia')[0],bg('Vigor','b_dia')[1],bg('Vigor','b_dia')[2],
+   bg('Fadiga','b_pos')[0],bg('Fadiga','b_pos')[1],bg('Fadiga','b_pos')[2],
+   bg('Fadiga','b_dia')[0],bg('Fadiga','b_dia')[1],bg('Fadiga','b_dia')[2],
+   bg('Vigor','icc','%.2f')[0],bg('Fadiga','icc','%.2f')[0],
+   bg('Vigor','sd_slope','%.2f')[0],bg('Fadiga','sd_slope','%.2f')[0]))
+f_rede=figure(f'{FG}/rede_humor.png','Redes de correlações parciais (modelo gráfico gaussiano) das seis dimensões do BRUMS no dia descansado (Dia 1) e no dia de maior carga (Dia 7). Arestas vermelhas: associação parcial positiva; azuis: negativa; a espessura é proporcional à magnitude. Vigor e fadiga destacados em laranja.',w=15.5)
+P('A rede psicométrica das seis dimensões (Figura %d) tornou explícita a reorganização do humor sob carga. A mudança '
+ 'foi seletiva, e não global: a força total da rede não aumentou do dia descansado ao dia de maior carga (%s → %s; '
+ 'teste de permutação p = %s), mas a aresta entre fadiga e raiva, quase nula no início da semana, tornou-se a mais '
+ 'forte do painel ao final (correlação parcial %s → %s). Em outras palavras, sob carga acumulada, é especificamente a '
+ 'irritabilidade que se acopla à exaustão — refinamento que a leitura por correlações simples não isola e que traduz, '
+ 'no plano da rede, o “fechamento” do perfil de fadiga.'%(
+   f_rede,c2('%.2f'%NET['strength_d1']),c2('%.2f'%NET['strength_d7']),pstr(NET['p_strength']),
+   c2('%+.2f'%NET['edges']['Raiva']['dia1']),c2('%+.2f'%NET['edges']['Raiva']['dia7'])))
+ov=NET['ordinal']['Vigor']; ofa=NET['ordinal']['Fadiga']
+P('Como verificação de robustez que respeita a natureza ordinal e limitada das subescalas, um modelo de odds '
+ 'proporcionais reproduziu o padrão central sem pressupor normalidade. O efeito agudo pré→pós manteve-se nítido — a '
+ 'chance de estar num tercil superior de fadiga mais que dobrou do pré ao pós (OR = %s; IC95%% %s–%s), enquanto a de '
+ 'vigor caiu na mesma transição (OR = %s; IC95%% %s–%s) —, e o efeito crônico do dia permaneceu significativo para o '
+ 'vigor (OR = %s por dia; IC95%% %s–%s) e no limiar da significância para a fadiga (OR = %s; p = %s). A convergência '
+ 'entre o modelo contínuo, o bayesiano e o ordinal reforça que a deterioração do eixo energia–fadiga não é artefato da '
+ 'escala de medida.'%(
+   c2('%.2f'%ofa['pos']['OR']),c2('%.2f'%ofa['pos']['OR_lo']),c2('%.2f'%ofa['pos']['OR_hi']),
+   c2('%.2f'%ov['pos']['OR']),c2('%.2f'%ov['pos']['OR_lo']),c2('%.2f'%ov['pos']['OR_hi']),
+   c2('%.2f'%ov['dia']['OR']),c2('%.2f'%ov['dia']['OR_lo']),c2('%.2f'%ov['dia']['OR_hi']),
+   c2('%.2f'%ofa['dia']['OR']),pstr(ofa['dia']['p'])))
+
 # ===== 4 DISCUSSÃO =====
 H('4 DISCUSSÃO')
 P('O presente estudo caracterizou o comportamento do humor de handebolistas de elite ao longo da última semana de '
@@ -606,6 +669,23 @@ P('Um aspecto metodológico distingue este estudo da tradição descritiva do pe
  'condensa em um único marcador visual e objetivo o instante em que a fadiga supera o vigor — evento que o '
  'acompanhamento diário isolado dificilmente tornaria tão explícito.'%(
    '%d'%round(DV['vars']['Vigor']['infl'][0])))
+P('A esse arcabouço somam-se três recursos estatísticos que raramente comparecem à literatura de monitoramento do humor '
+ 'e que reforçam a solidez das conclusões. O modelo bayesiano multinível é o mais consequente: ao dissociar formalmente '
+ 'a componente aguda da crônica com trajetórias por atleta, ele confere intervalos de credibilidade estáveis mesmo com '
+ 'amostra reduzida — onde a máxima verossimilhança encontra dificuldade de convergência — e devolve duas leituras que a '
+ 'análise agregada oculta. A primeira é a partição da variância: o vigor mostrou-se mais um traço (elevada variância '
+ 'entre atletas) e a fadiga, mais um estado (variância sobretudo intraindividual), distinção com consequências diretas '
+ 'para o que cada dimensão sinaliza no monitoramento. A segunda é a heterogeneidade das inclinações: embora o grupo '
+ 'derive na mesma direção, a velocidade da deterioração varia de atleta para atleta, o que fundamenta '
+ 'quantitativamente a vigilância individualizada e dialoga com a recomendação de referências personalizadas no '
+ 'acompanhamento do atleta (McELREATH, 2020; SAW; MAIN; GASTIN, 2016). A rede psicométrica, por sua vez, precisa a '
+ 'natureza da reorganização afetiva: não houve adensamento global da rede, mas um acoplamento seletivo entre fadiga e '
+ 'irritabilidade ao fim da semana, leitura que as correlações par a par não isolam e que a análise de redes tornou '
+ 'central no estudo do afeto (EPSKAMP; FRIED, 2018). Por fim, a convergência com o modelo ordinal de odds '
+ 'proporcionais — que não pressupõe normalidade e respeita o efeito-piso das subescalas — afasta a hipótese de que a '
+ 'deterioração observada seja artefato da escala de medida (LIDDELL; KRUSCHKE, 2018). Em conjunto, essas abordagens '
+ 'elevam o rigor inferencial de um desenho de amostra pequena e ilustram um repertório analítico transferível ao '
+ 'monitoramento intramicrociclo em outros contextos de rendimento.')
 P('O caráter do handebol ajuda a contextualizar a magnitude dessa resposta. Trata-se de uma modalidade coletiva de '
  'invasão, marcadamente intermitente, na qual ações de alta intensidade — sprints, saltos, arremessos, bloqueios, '
  'mudanças de direção e contatos — alternam-se com períodos de recuperação incompleta e reclamam, a um só tempo, potência '
@@ -764,13 +844,16 @@ refs=[
  'DE MIRANDA ROHLFS, I. C. P. et al. Prevalence of specific mood profile clusters among elite and youth athletes at a Brazilian sports club. Sports, v. 12, n. 7, 195, 2024. DOI: 10.3390/sports12070195.',
  'DE MIRANDA ROHLFS, I. C. P. et al. Mood states, injury status, and countermovement jump performance in Brazilian high-level sports. Sports, v. 13, n. 9, 303, 2025. DOI: 10.3390/sports13090303.',
  'DO NASCIMENTO, M. H. et al. Acute psychological responses to official match outcomes in male youth volleyball: an observational repeated-measures study within a single national-level team. Frontiers in Psychology, v. 17, 1826372, 2026. DOI: 10.3389/fpsyg.2026.1826372.',
+ 'EPSKAMP, S.; FRIED, E. I. A tutorial on regularized partial correlation networks. Psychological Methods, v. 23, n. 4, p. 617–634, 2018. DOI: 10.1037/met0000167.',
  'FEIJEN, S. et al. Monitoring the swimmer’s training load: a narrative review of monitoring strategies applied in research. Scandinavian Journal of Medicine & Science in Sports, v. 30, n. 11, p. 2037–2043, 2020. DOI: 10.1111/sms.13798.',
  'FERREIRA, A. B. M. et al. Impact of sleep restriction and intensified training on mucosal immunity and psychological responses in young soccer players. Journal of Strength and Conditioning Research, v. 40, n. 7, p. e703–e713, 2026. DOI: 10.1519/JSC.0000000000005416.',
  'HAN, C.; PARSONS-SMITH, R. L.; TERRY, P. C. Mood profiling in Singapore: cross-cultural validation and potential applications of mood profile clusters. Frontiers in Psychology, v. 11, 665, 2020. DOI: 10.3389/fpsyg.2020.00665.',
  'HAMLIN, M. J. et al. Monitoring training loads and perceived stress in young elite university athletes. Frontiers in Physiology, v. 10, 34, 2019. DOI: 10.3389/fphys.2019.00034.',
  'KARCHER, C.; BUCHHEIT, M. On-court demands of elite handball, with special reference to playing positions. Sports Medicine, v. 44, n. 6, p. 797–814, 2014. DOI: 10.1007/s40279-014-0164-z.',
  'KELLMANN, M. et al. Recovery and performance in sport: consensus statement. International Journal of Sports Physiology and Performance, v. 13, n. 2, p. 240–245, 2018. DOI: 10.1123/ijspp.2017-0759.',
+ 'LIDDELL, T. M.; KRUSCHKE, J. K. Analyzing ordinal data with metric models: what could possibly go wrong? Journal of Experimental Social Psychology, v. 79, p. 328–348, 2018. DOI: 10.1016/j.jesp.2018.08.009.',
  'LOCHBAUM, M. et al. The Profile of Mood States and athletic performance: a meta-analysis of published studies. European Journal of Investigation in Health, Psychology and Education, v. 11, n. 1, p. 50–70, 2021. DOI: 10.3390/ejihpe11010005.',
+ 'McELREATH, R. Statistical rethinking: a Bayesian course with examples in R and Stan. 2. ed. Boca Raton: CRC Press, 2020.',
  'MICHALSIK, L. B.; AAGAARD, P. Physical demands in elite team handball: comparisons between male and female players. Journal of Sports Medicine and Physical Fitness, v. 55, n. 9, p. 878–891, 2015.',
  'MORGAN, W. P. Selected psychological factors limiting performance: a mental health model. In: CLARKE, D. H.; ECKERT, H. M. (Ed.). Limits of human performance. Champaign: Human Kinetics, 1985. p. 70–80.',
  'NEDERHOF, E. et al. Different diagnostic tools in nonfunctional overreaching. International Journal of Sports Medicine, v. 29, n. 7, p. 590–597, 2007. DOI: 10.1055/s-2007-989264.',
