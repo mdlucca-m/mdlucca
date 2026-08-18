@@ -484,7 +484,7 @@ tdv=table('Modelagem polinomial (grau %d) das médias diárias do eixo energia�
     ['Dimensão','R²','Taxa média/dia','P′(D1)','P′(D7)','P″(D1)','P″(D7)','Inflexão (dia)'],
     [dvrow(k,l) for k,l in DVORD],
     note='P′ = derivada primeira (taxa de variação); P″ = derivada segunda (aceleração/concavidade); inflexão = raiz de P″ = 0. As dimensões negativas, com efeito de piso e ajuste fraco, foram omitidas.',fs=8.5)
-f_dv=figure(f'{FG}/deriv_poly.png','Ajuste polinomial P(t) das médias diárias de vigor e fadiga, com a derivada P′(t) (taxa de variação) e o ponto de inflexão.',w=15.0)
+f_dv=figure(f'{FG}/deriv_poly.png','Ajuste polinomial P(t) das médias diárias do vigor, da fadiga e da Perturbação Total do Humor (PTH), com a derivada P′(t) (taxa de variação) e o ponto de inflexão de cada trajetória.',w=15.5)
 VG=DV['vars']['Vigor']; FD=DV['vars']['Fadiga']; TM=DV['vars']['TMD']
 P('Para caracterizar formalmente a dinâmica temporal, ajustou-se uma função polinomial de grau %d às médias diárias de '
  'cada dimensão e derivaram-se as respectivas taxas de variação (Tabela %d; Figura %d). A modelagem restringiu-se ao '

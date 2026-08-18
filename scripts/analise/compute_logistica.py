@@ -121,6 +121,16 @@ RES['baixo_vigor'] = dict(cut=float(cut), thr=yt[0], sens=yt[2], spec=yt[3],
                           mcfadden=fv_dir['mcfadden'], aic=fv_dir['aic'], bic=fv_dir['bic'],
                           ll=fv_dir['ll'], n=int(len(dd)), events=int(dd['lo'].sum()))
 
+# ================= D) Dia de PTH elevada ~ dia =================
+sub = h.dropna(subset=['dia', 'TMD']).copy()
+cutp = sub['TMD'].quantile(2 / 3)                      # tercil SUPERIOR de PTH = "PTH elevada"
+sub['y'] = (sub['TMD'] >= cutp).astype(int)
+fp = logit_fit(sub['dia'].values, sub['y'].values)
+lo, hi = boot_or(sub, ['dia'], 'y')
+fp['OR_dia'] = fp['OR'][0]; fp['OR_lo'], fp['OR_hi'] = lo, hi
+fp['p_d1'] = prob_at(fp, [1]); fp['p_d7'] = prob_at(fp, [7]); fp['cut'] = float(cutp)
+RES['pth_dia'] = fp
+
 json.dump(RES, open('logistica.json', 'w'), indent=1, ensure_ascii=False)
 
 # ---------------- relatório ----------------
@@ -139,3 +149,7 @@ c = RES['baixo_vigor']
 print('C) LIMIAR DE BAIXO VIGOR ~ PV')
 print('  OR/km-h=%.2f  limiar(Youden)=%.1f km/h (sens=%.2f esp=%.2f)  AUC=%.2f [%.2f-%.2f] McFadden=%.3f (ev=%d/%d)'
       % (c['OR_kmh'], c['thr'], c['sens'], c['spec'], c['auc'], c['auc_lo'], c['auc_hi'], c['mcfadden'], c['events'], c['n']))
+p = RES['pth_dia']
+print('D) DIA DE PTH ELEVADA ~ DIA')
+print('  OR/dia=%.2f [%.2f-%.2f]  P(D1)=%.2f P(D7)=%.2f  McFadden=%.3f AUC=%.2f (ev=%d/%d)'
+      % (p['OR_dia'], p['OR_lo'], p['OR_hi'], p['p_d1'], p['p_d7'], p['mcfadden'], p['auc'], p['events'], p['n']))
