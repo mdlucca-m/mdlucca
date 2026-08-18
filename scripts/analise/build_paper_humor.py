@@ -821,15 +821,28 @@ P('Situados no conjunto da literatura, esses achados ocupam uma lacuna específi
  'iceberg” até aqui descrito apenas qualitativamente. Em conjunto, essas quatro frentes convertem o monitoramento do '
  'humor de um retrato pontual em uma leitura dinâmica, quantitativa e acionável, e sinalizam um caminho para o '
  'acompanhamento intramicrociclo em esportes de rendimento.')
-P('Algumas limitações devem ser consideradas na interpretação dos achados. O tamanho amostral (%d atletas) e o desenho '
- 'observacional de fase única não permitem inferência causal sobre a carga, e as dimensões negativas, próximas do piso, '
- 'apresentam variância e fidedignidade reduzidas, o que limita a leitura de suas pequenas variações. A conversão dos '
- 'escores T foi referenciada à própria amostra — e não a tabelas normativas nacionais de atletas —, o que recomenda '
- 'cautela na comparação absoluta de prevalências entre estudos e na classificação estrita dos perfis. Como direções '
+P('Algumas limitações delimitam o alcance dos achados. A primeira, e mais importante, é o tamanho amostral (%d atletas), '
+ 'associado a uma única equipe e a um único microciclo: o desenho observacional de fase única não autoriza inferência '
+ 'causal sobre a carga, e a generalização a outras equipes, categorias, sexos e momentos da temporada permanece a '
+ 'confirmar. A segunda diz respeito às dimensões negativas do humor, próximas do piso, com variância e fidedignidade '
+ 'reduzidas — o que limita a leitura das suas pequenas oscilações e restringe a interpretação da parte da rede que as '
+ 'envolve. A terceira é que a conversão dos escores T foi referenciada à própria amostra, e não a tabelas normativas '
+ 'nacionais de atletas, o que recomenda cautela na comparação absoluta de prevalências entre estudos e na classificação '
+ 'estrita dos perfis. Some-se que a inferência no nível individual esbarra no erro de medida: como a mudança mínima '
+ 'detectável é ampla, apenas variações individuais expressivas podem ser afirmadas com segurança. Por fim, parte das '
+ 'análises — a rede psicométrica e o modelo ordinal — tem caráter exploratório e valor sobretudo gerador de hipóteses, '
+ 'dado o número de observações.'%sm['n'])
+P('Essas limitações, contudo, são atenuadas por características do desenho e da análise, o que preserva a validade dos '
+ 'achados centrais. A medição duas vezes ao dia gerou %d observações e permitiu dissociar a resposta aguda do acúmulo '
+ 'crônico; a auditoria de robustez (remoção de atípicos por distância de Mahalanobis) não alterou as conclusões; o '
+ 'modelo bayesiano forneceu intervalos de credibilidade estáveis justamente onde a máxima verossimilhança vacila em '
+ 'amostras pequenas; e a convergência entre o modelo contínuo, o bayesiano e o ordinal indica que a deterioração do '
+ 'eixo energia–fadiga não é artefato de uma escolha analítica particular. Em conjunto, o achado central sustenta-se '
+ 'apesar do tamanho amostral, ainda que a sua extensão a outros contextos dependa de replicação. Como direções '
  'futuras, recomenda-se ampliar a amostra e acompanhar múltiplos microciclos, integrar o humor a marcadores de carga '
  'externa e interna mensurados continuamente, adotar tabelas normativas e agrupamento semeado (seeded k-means) para a '
  'classificação de perfis e testar o valor preditivo dos perfis negativos para desfechos como lesão e sobrecarga '
- '(DE MIRANDA ROHLFS et al., 2024, 2025).'%sm['n'])
+ '(DE MIRANDA ROHLFS et al., 2024, 2025).'%sm['n_obs'])
 
 # ===== 5 CONCLUSÕES =====
 H('5 CONCLUSÕES')

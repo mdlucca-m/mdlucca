@@ -825,18 +825,31 @@ P('A sonolência e o estresse percebido acrescentaram duas leituras convergentes
  'percebido (PSS-14) permaneceu estável e moderado, sem se relacionar à oscilação do humor; essa ausência de variação '
  'é informativa, pois indica que a resposta afetiva ao microciclo teve origem na carga de treino, e não em um aumento '
  'concomitante do estresse psicossocial percebido — um argumento a favor da especificidade do achado.')
-P('Algumas limitações devem ser consideradas na interpretação dos achados. O tamanho amostral (%d atletas) e o desenho '
- 'observacional de fase única não permitem inferência causal sobre a carga, e as dimensões negativas, próximas do piso, '
- 'apresentam variância e fidedignidade reduzidas, o que limita a leitura de suas pequenas variações. A conversão dos '
- 'escores T foi referenciada à própria amostra — e não a tabelas normativas nacionais de atletas —, o que recomenda '
- 'cautela na comparação absoluta de prevalências entre estudos e na classificação estrita dos perfis. A sonolência foi '
- 'medida por uma versão de 6 itens do Epworth (sem ponto de corte clínico validado) e o estresse, pela PSS-14, cujo '
- 'horizonte de referência é mais amplo que o microciclo; por isso, essas variáveis foram interpretadas por sua média '
- 'semanal por atleta, e não por flutuações diárias. Como direções '
+P('Algumas limitações delimitam o alcance dos achados. A primeira é o tamanho amostral (%d atletas), circunscrito a uma '
+ 'única equipe e a um único microciclo: o desenho observacional de fase única não autoriza inferência causal, e as '
+ 'associações entre aptidão e humor são, por natureza, transversais. A segunda é que o limiar de pico de velocidade foi '
+ 'derivado na própria amostra; embora a curva de especificação ateste a sua robustez a escolhas analíticas, o seu '
+ 'desempenho preditivo ainda requer validação externa antes do uso clínico. A terceira, e relevante para a '
+ 'interpretação da dose-resposta, é que a carga interna foi registrada apenas no contexto do teste de campo, e não '
+ 'continuamente ao longo dos sete dias; por isso não foi possível modelar o gradiente dose-resposta intramicrociclo '
+ 'entre a carga diária e o humor, e a leitura da modulação fisiológica restringe-se ao gradiente de exposição pela '
+ 'aptidão (pico de velocidade). A essas somam-se limitações de mensuração já assinaladas: o efeito de piso das '
+ 'dimensões negativas, a referência dos escores T à própria amostra (e não a normas nacionais), a versão de 6 itens do '
+ 'Epworth (sem ponto de corte clínico validado) e a PSS-14, cujo horizonte excede o microciclo — razão pela qual '
+ 'sonolência e estresse foram lidos por média semanal, e não por flutuação diária. Convém, ainda, a cautela já '
+ 'apontada quanto ao índice de fadiga do teste de sprints repetidos, de confiabilidade limitada.'%sm['n'])
+P('Essas limitações, porém, são atenuadas pela convergência das evidências, o que preserva a validade da conclusão '
+ 'central sobre a especificidade aeróbia. Três abordagens independentes — correlação parcial com controle da massa, '
+ 'ajuste alométrico e análise de comunalidade — apontam para o mesmo resultado, e a curva de especificação mostra que '
+ 'ele não depende de uma escolha particular de corte; a própria ausência de gradiente entre a carga interna do teste e '
+ 'o humor foi reportada de forma transparente, sem sobreinterpretação. Assim, embora a magnitude dos coeficientes deva '
+ 'ser lida com a cautela que o tamanho amostral impõe, a direção e a especificidade do achado sustentam-se sob '
+ 'múltiplas lentes analíticas. Como direções '
  'futuras, recomenda-se ampliar a amostra e acompanhar múltiplos microciclos, integrar o humor a marcadores de carga '
- 'externa e interna mensurados continuamente, adotar tabelas normativas e agrupamento semeado (seeded k-means) para a '
- 'classificação de perfis e testar o valor preditivo dos perfis negativos para desfechos como lesão e sobrecarga '
- '(DE MIRANDA ROHLFS et al., 2024, 2025).'%sm['n'])
+ 'externa e interna mensurados continuamente — o que habilitaria o gradiente dose-resposta aqui inviável —, adotar '
+ 'tabelas normativas e agrupamento semeado (seeded k-means) para a classificação de perfis, validar externamente os '
+ 'limiares de pico de velocidade e testar o valor preditivo dos perfis negativos para desfechos como lesão e sobrecarga '
+ '(DE MIRANDA ROHLFS et al., 2024, 2025).')
 
 # ===== 5 CONCLUSÕES =====
 H('5 CONCLUSÕES')
