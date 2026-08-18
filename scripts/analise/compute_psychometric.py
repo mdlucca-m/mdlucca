@@ -37,7 +37,23 @@ for s, items in SUB.items():
                   mean=float(x.mean()), sd=float(x.std()),
                   cv=float(x.std() / x.mean()) if x.mean() else None,
                   skew=float(stats.skew(x)), floor_effect=bool((x == 0).mean() > 0.15))
+
+# --- Perturbacao Total do Humor (PTH/TMD): indice composto ---
+t = h['TMD'].dropna()
+d = h[['TMD', 'Vigor', 'Fadiga']].dropna()
+X = np.column_stack([np.ones(len(d)), d['Vigor'], d['Fadiga']])
+b, *_ = np.linalg.lstsq(X, d['TMD'], rcond=None); yh = X @ b
+r2_axis = float(1 - ((d['TMD'] - yh) ** 2).sum() / ((d['TMD'] - d['TMD'].mean()) ** 2).sum())
+OUT['PTH'] = dict(mean=float(t.mean()), sd=float(t.std()), mn=float(t.min()), mx=float(t.max()),
+                  skew=float(stats.skew(t)), floor0=float((t == t.min()).mean()),
+                  floor_effect=bool((t == t.min()).mean() > 0.15),
+                  rho_vigor=float(stats.spearmanr(d['TMD'], d['Vigor'])[0]),
+                  rho_fadiga=float(stats.spearmanr(d['TMD'], d['Fadiga'])[0]),
+                  r2_axis=r2_axis)
 json.dump(OUT, open('psychometric.json', 'w'), indent=1, ensure_ascii=False)
+print('PTH: media %.1f DP %.1f [%.0f, %.0f] | piso %.0f%% skew %+.2f | R2(vigor+fadiga)=%.2f' % (
+    OUT['PTH']['mean'], OUT['PTH']['sd'], OUT['PTH']['mn'], OUT['PTH']['mx'],
+    100 * OUT['PTH']['floor0'], OUT['PTH']['skew'], OUT['PTH']['r2_axis']))
 print('%-10s %6s %6s %7s %7s %6s' % ('Subescala', 'alpha', 'r_iic', 'floor%', 'skew', 'piso?'))
 for s in ['Vigor', 'Fadiga', 'Tensao', 'Raiva', 'Depressao', 'Confusao']:
     o = OUT[s]

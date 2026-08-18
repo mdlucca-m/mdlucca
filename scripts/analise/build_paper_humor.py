@@ -317,13 +317,18 @@ P('As propriedades psicométricas (Tabela %d) esclarecem por que a resposta se r
  'variância enfraquece a covariância entre itens, ao passo que a depressão e a raiva mantiveram alfa elevado '
  '(α = %s e %s) — quando de fato se elevam, os seus itens variam de forma coerente, ainda que isso ocorra em uma '
  'minoria das observações. Em suma, não é a fidedignidade da escala, mas o efeito de piso próprio de uma amostra de '
- 'elite mentalmente saudável, que limita a sensibilidade das dimensões negativas à carga.'%(
+ 'elite mentalmente saudável, que limita a sensibilidade das dimensões negativas à carga. A Perturbação Total do Humor '
+ '(PTH), por ser um índice composto, escapa a essa restrição: distribuiu-se de forma contínua (de %s a %s; sem efeito '
+ 'de piso) e, sobretudo, foi governada pelo eixo energia–fadiga — o vigor e a fadiga sozinhos explicam %s%% da sua '
+ 'variância (R²) —, o que a mantém sensível à carga e explica por que a PTH acompanhou a deterioração ao longo da '
+ 'semana, apesar do piso das dimensões negativas que a integram.'%(
    tpsy,c2('%+.2f'%PSY['Vigor']['skew']),c2('%+.2f'%PSY['Fadiga']['skew']),
    c2('%.0f'%(100*PSY['Vigor']['floor0'])),c2('%.0f'%(100*PSY['Fadiga']['floor0'])),
    c2('%.2f'%PSY['Vigor']['alpha']),c2('%.2f'%PSY['Fadiga']['alpha']),
    c2('%.0f'%(100*PSY['Tensao']['floor0'])),c2('%.0f'%(100*PSY['Confusao']['floor0'])),
    c2('%.2f'%PSY['Tensao']['alpha']),c2('%.2f'%PSY['Confusao']['alpha']),
-   c2('%.2f'%PSY['Depressao']['alpha']),c2('%.2f'%PSY['Raiva']['alpha'])))
+   c2('%.2f'%PSY['Depressao']['alpha']),c2('%.2f'%PSY['Raiva']['alpha']),
+   c2('%.0f'%PSY['PTH']['mn']),c2('%.0f'%PSY['PTH']['mx']),c2('%.0f'%(100*PSY['PTH']['r2_axis']))))
 H('3.4 Diferenças entre pré e pós-treino (com tamanho de efeito)',12,before=6)
 def ppr(k,lab):
     v=pr[k]; return [lab,c2('%.2f'%v['pre']),c2('%.2f'%v['pos']),c2('%+.0f'%v['pct'])+'%',pstr(v['p']),c2('%+.2f'%v['dz']),v['mag']]

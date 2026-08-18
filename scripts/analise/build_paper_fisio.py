@@ -349,10 +349,13 @@ P('As propriedades psicométricas (Tabela %d) contextualizam a insensibilidade d
  'adequada a boa (α = %s e %s). As quatro dimensões negativas, ao contrário, apresentaram forte efeito de piso — de '
  '%s%% (tensão) a %s%% (confusão) das observações no escore zero — e acentuada assimetria positiva, o que comprime a '
  'variância e limita, por construção, a sua responsividade à carga; trata-se de uma expressão do perfil mentalmente '
- 'saudável (iceberg) do atleta de elite, e não de falha do instrumento (MORGAN, 1985; TERWEE et al., 2007).'%(
+ 'saudável (iceberg) do atleta de elite, e não de falha do instrumento (MORGAN, 1985; TERWEE et al., 2007). A '
+ 'Perturbação Total do Humor, por ser composta, não sofreu efeito de piso e foi governada pelo eixo energia–fadiga '
+ '(o vigor e a fadiga explicam %s%% da sua variância), o que a mantém sensível à carga.'%(
    tpsy,c2('%.0f'%(100*PSY['Vigor']['floor0'])),c2('%.0f'%(100*PSY['Fadiga']['floor0'])),
    c2('%.2f'%PSY['Vigor']['alpha']),c2('%.2f'%PSY['Fadiga']['alpha']),
-   c2('%.0f'%(100*PSY['Tensao']['floor0'])),c2('%.0f'%(100*PSY['Confusao']['floor0']))))
+   c2('%.0f'%(100*PSY['Tensao']['floor0'])),c2('%.0f'%(100*PSY['Confusao']['floor0'])),
+   c2('%.0f'%(100*PSY['PTH']['r2_axis']))))
 H('3.4 Diferenças entre pré e pós-treino (com tamanho de efeito)',12,before=6)
 def ppr(k,lab):
     v=pr[k]; return [lab,c2('%.2f'%v['pre']),c2('%.2f'%v['pos']),c2('%+.0f'%v['pct'])+'%',pstr(v['p']),c2('%+.2f'%v['dz']),v['mag']]
