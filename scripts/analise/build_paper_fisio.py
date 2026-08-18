@@ -14,7 +14,7 @@ LOG=json.load(open('logistica.json'))
 L2=json.load(open('limiar2.json'))
 MOD=json.load(open('moduladores.json'))
 RSA=json.load(open('rsa_stats.json'))
-COM=json.load(open('commonality.json')); SPC=json.load(open('speccurve.json')); MDC=json.load(open('mdc.json')); PSY=json.load(open('psychometric.json'))
+COM=json.load(open('commonality.json')); SPC=json.load(open('speccurve.json')); MDC=json.load(open('mdc.json')); PSY=json.load(open('psychometric.json')); BP=json.load(open('bayes_phys.json'))
 CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json')); SM=json.load(open('smooth.json')); IND=json.load(open('indiv.json')); AUD=json.load(open('audit.json')); CP=json.load(open('cross_pt.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
@@ -311,7 +311,12 @@ P('Para quantificar de forma rigorosa a especificidade do correlato físico, emp
  'de curva de especificação (specification-curve): enumeraram-se todas as combinações razoáveis de valor de limiar, '
  'definição de dia crítico e forma do preditor (bruto ou ajustado pela massa) e examinou-se a distribuição do tamanho '
  'de efeito sobre o conjunto das especificações, de modo a aferir se o achado depende de escolhas analíticas '
- 'particulares (SIMONSOHN; SIMMONS; NELSON, 2020). Adotou-se nível de significância de 5% '
+ 'particulares (SIMONSOHN; SIMMONS; NELSON, 2020). Por fim, para integrar a aptidão à trajetória do humor num único '
+ 'modelo, ajustou-se uma regressão bayesiana multinível de curva de crescimento com o pico de velocidade como preditor '
+ 'de nível 2, com a separação entre o seu efeito sobre o nível do humor (intercepto) e o seu efeito sobre a taxa de '
+ 'mudança (interação com o dia), com interceptos e inclinações aleatórios por atleta e estimação por amostrador de Gibbs (prioris conjugadas '
+ 'fracamente informativas; semente 2024), validada contra um modelo misto de máxima verossimilhança restrita '
+ '(McELREATH, 2020). Adotou-se nível de significância de 5% '
  '(p < 0,05), com as análises conduzidas em ambiente Python (bibliotecas pandas, NumPy, SciPy e statsmodels).')
 
 # ===== 3 RESULTADOS =====
@@ -664,6 +669,27 @@ P('O efeito crônico (inclinação semanal) exibiu modulação apenas parcial, r
    c2('%+.2f'%MODm['Vigor']['CMJ_mai']['r']),c2('%.2f'%MODm['Vigor']['CMJ_mai']['r2']),
    c2('%.0f'%(100*mlv['r2'])),c2('%.2f'%mlv['r2']),c2('%.2f'%mlv['adj']),c2('%.2f'%mlv['beta']['CMJ_mai']),MOD['n_tests']))
 
+H('3.12 Modelo bayesiano multinível: a aptidão modula o nível, não a taxa',12,before=6)
+def bpc(v,k): b=BP[v][k]; return '%s [%s; %s]'%(c2('%+.2f'%b['mean']),c2('%+.2f'%b['lo']),c2('%+.2f'%b['hi']))
+tbp=table('Modelo bayesiano multinível do humor com a aptidão aeróbia (pico de velocidade) como preditor de nível 2: efeito sobre o nível (intercepto) e sobre a taxa (interação com o dia). Estimativas a posteriori (média e IC de credibilidade de 95%).',
+    ['Desfecho','Aptidão → nível','Aptidão → taxa (× dia)'],
+    [['Fadiga física',bpc('FadFisica','b_pv'),bpc('FadFisica','b_pvxdia')],
+     ['Vigor',bpc('Vigor','b_pv'),bpc('Vigor','b_pvxdia')],
+     ['PTH',bpc('TMD','b_pv'),bpc('TMD','b_pvxdia')]],
+    note='Modelo y = b0 + b1·dia + b2·(pré/pós) + b3·PV + b4·(PV×dia) + interceptos e inclinações aleatórios por atleta; amostrador de Gibbs (semente 2024). n = %d observações, %d atletas. IC que exclui zero indica efeito consistente.'%(BP['FadFisica']['n_obs'],BP['FadFisica']['n_ath']),fs=8.5)
+P('Para integrar a aptidão fisiológica à trajetória do humor num único arcabouço, ajustou-se um modelo bayesiano '
+ 'multinível com o pico de velocidade como preditor de nível 2, com a separação entre o seu efeito sobre o nível do humor '
+ '(intercepto) e o seu efeito sobre a taxa de mudança (interação com o dia) (Tabela %d). O padrão foi consistente entre '
+ 'os desfechos: a aptidão deslocou o nível na direção esperada — mais apto, menos fadiga física (%s) e mais vigor '
+ '(%s) —, embora os intervalos de credibilidade tocassem o zero, o que reflete a imprecisão de estimar um efeito de nível '
+ '2 com %d atletas. Já a interação aptidão × dia foi claramente nula em todos os desfechos (fadiga %s; vigor %s; PTH '
+ '%s): a aptidão não modulou a taxa de acúmulo do humor ao longo do microciclo. A leitura que emerge, coerente com a '
+ 'análise de moduladores, é que a aptidão aeróbia atua como um fator de nível — fixa a linha de base do estado afetivo '
+ '—, e não como um fator de ritmo: a trajetória de deterioração desenrola-se em velocidade comum ao grupo, '
+ 'independentemente da aptidão (McELREATH, 2020).'%(
+   tbp,bpc('FadFisica','b_pv'),bpc('Vigor','b_pv'),BP['FadFisica']['n_ath'],
+   bpc('FadFisica','b_pvxdia'),bpc('Vigor','b_pvxdia'),bpc('TMD','b_pvxdia')))
+
 # ===== 4 DISCUSSÃO =====
 H('4 DISCUSSÃO')
 P('O presente estudo examinou os correlatos fisiológicos e de bem-estar da resposta de humor de handebolistas de elite '
@@ -931,6 +957,7 @@ refs=[
  'KARCHER, C.; BUCHHEIT, M. On-court demands of elite handball, with special reference to playing positions. Sports Medicine, v. 44, n. 6, p. 797–814, 2014. DOI: 10.1007/s40279-014-0164-z.',
  'KELLMANN, M. et al. Recovery and performance in sport: consensus statement. International Journal of Sports Physiology and Performance, v. 13, n. 2, p. 240–245, 2018. DOI: 10.1123/ijspp.2017-0759.',
  'LOCHBAUM, M. et al. The Profile of Mood States and athletic performance: a meta-analysis of published studies. European Journal of Investigation in Health, Psychology and Education, v. 11, n. 1, p. 50–70, 2021. DOI: 10.3390/ejihpe11010005.',
+ 'McELREATH, R. Statistical rethinking: a Bayesian course with examples in R and Stan. 2. ed. Boca Raton: CRC Press, 2020.',
  'MICHALSIK, L. B.; AAGAARD, P. Physical demands in elite team handball: comparisons between male and female players. Journal of Sports Medicine and Physical Fitness, v. 55, n. 9, p. 878–891, 2015.',
  'MORGAN, W. P. Selected psychological factors limiting performance: a mental health model. In: CLARKE, D. H.; ECKERT, H. M. (Ed.). Limits of human performance. Champaign: Human Kinetics, 1985. p. 70–80.',
  'NAUGHTON, M. et al. Defining and quantifying fatigue in the rugby codes. PLoS ONE, v. 18, n. 3, e0282390, 2023. DOI: 10.1371/journal.pone.0282390.',
