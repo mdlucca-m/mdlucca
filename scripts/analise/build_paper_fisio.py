@@ -500,12 +500,19 @@ P('Em vez de um único ponto de corte, o pico de velocidade foi ainda estratific
  'só linha, os dois limiares isolam uma faixa superior de aptidão (PV > %s km/h) em que o risco de dias críticos cai '
  'para cerca de um quinto das observações, e uma faixa inferior (PV < %s km/h) que concentra o maior risco — e oferece '
  'à comissão técnica uma referência graduada, e não binária, para individualizar a carga e priorizar a recuperação dos '
- 'atletas menos aptos.'%(
+ 'atletas menos aptos. Em termos de escolha entre os dois esquemas, o limiar único é preferível quando se deseja uma '
+ 'decisão binária e parcimoniosa, mais estável em amostras pequenas; a estratificação dupla favorece a individualização '
+ 'graduada, com a ressalva de que o seu ganho se concentra em isolar a faixa de alta aptidão (baixo risco) — nítido '
+ 'para o vigor (%s%% de dias críticos) e mais modesto para a fadiga, cujas faixas inferior e intermediária pouco se '
+ 'distinguem (%s%% e %s%%). A curva de especificação, de todo modo, indica que a utilidade do limiar não depende do '
+ 'esquema adotado.'%(
    c2('%.1f'%L2['t1']),c2('%.1f'%L2['t2']),tl2,f_l2,
    c2('%.0f'%L2['fadiga']['bands'][0]['prev']),
    c2('%.0f'%L2['fadiga']['bands'][1]['prev']),c2('%.0f'%L2['fadiga']['bands'][2]['prev']),c2('%.3f'%L2['fadiga']['trend_p']),
    c2('%.0f'%L2['vigor']['bands'][0]['prev']),c2('%.0f'%L2['vigor']['bands'][1]['prev']),c2('%.0f'%L2['vigor']['bands'][2]['prev']),c2('%.3f'%L2['vigor']['trend_p']),
-   c2('%.1f'%L2['fadiga']['youden']),c2('%.1f'%L2['t2']),c2('%.1f'%L2['t1'])))
+   c2('%.1f'%L2['fadiga']['youden']),c2('%.1f'%L2['t2']),c2('%.1f'%L2['t1']),
+   c2('%.0f'%L2['vigor']['bands'][2]['prev']),
+   c2('%.0f'%L2['fadiga']['bands'][0]['prev']),c2('%.0f'%L2['fadiga']['bands'][1]['prev'])))
 f_lc=figure(f'{FG}/logistic_curvas.png','Curvas logísticas ajustadas: à esquerda, a probabilidade de um dia de fadiga elevada decresce com o pico de velocidade do T-CAR (pontos = proporção observada por faixa, tamanho proporcional ao n); à direita, a probabilidade do perfil barbatana de tubarão cresce ao longo do microciclo.',w=15.5)
 P('As curvas logísticas ajustadas sintetizam, em forma gráfica, os dois modelos de probabilidade discutidos: a queda '
  'monotônica da chance de um dia de fadiga elevada à medida que aumenta o pico de velocidade e a elevação da chance do '
