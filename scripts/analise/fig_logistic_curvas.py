@@ -21,6 +21,12 @@ f=make_subplots(rows=1,cols=2,horizontal_spacing=0.11,
 dm=h.groupby(['ID','dia']).agg(Fad=('FadFisica','mean')).reset_index().merge(F,on='ID').dropna(subset=['PVini'])
 cut=dm.Fad.quantile(2/3); dm['hi']=(dm.Fad>=cut).astype(int)
 b0,b1=logit(dm.PVini,dm.hi); xx=np.linspace(dm.PVini.min(),dm.PVini.max(),200); pr=1/(1+np.exp(-(b0+b1*xx)))
+thr=-b0/b1
+# zonas sombreadas: risco (abaixo do limiar) vs baixo risco (acima)
+f.add_vrect(x0=xx.min(),x1=thr,fillcolor='#e8590c',opacity=0.09,line_width=0,row=1,col=1)
+f.add_vrect(x0=thr,x1=xx.max(),fillcolor='#2f9e44',opacity=0.09,line_width=0,row=1,col=1)
+f.add_annotation(x=(xx.min()+thr)/2,y=0.06,text='zona de risco',showarrow=False,font=dict(size=11,color='#c0410b'),row=1,col=1)
+f.add_annotation(x=(thr+xx.max())/2,y=0.06,text='baixo risco',showarrow=False,font=dict(size=11,color='#2b8a3e'),row=1,col=1)
 # proporção observada por faixa (binned) para pontos
 dm['bin']=pd.cut(dm.PVini,6); binp=dm.groupby('bin').agg(x=('PVini','mean'),p=('hi','mean'),n=('hi','size')).dropna()
 f.add_trace(go.Scatter(x=xx,y=pr,mode='lines',line=dict(color='#e8590c',width=5),name='Curva logística',showlegend=True),1,1)
@@ -35,6 +41,11 @@ f.update_yaxes(title='Probabilidade',range=[-0.03,1.03],gridcolor='#eceef1',zero
 # --- B: P(barbatana) ~ dia ---
 h2=h.dropna(subset=['dia']).copy(); h2['y']=(h2.perfil=='Barbatana tubarão').astype(int)
 b0,b1=logit(h2.dia,h2.y); dd=np.linspace(1,7,200); pr2=1/(1+np.exp(-(b0+b1*dd)))
+# fases sombreadas do microciclo: inicial (recuperado) vs acumulacao (2a metade)
+f.add_vrect(x0=1,x1=4,fillcolor='#1971c2',opacity=0.06,line_width=0,row=1,col=2)
+f.add_vrect(x0=4,x1=7,fillcolor='#e8590c',opacity=0.08,line_width=0,row=1,col=2)
+f.add_annotation(x=2.5,y=0.46,text='início',showarrow=False,font=dict(size=11,color='#1864ab'),row=1,col=2)
+f.add_annotation(x=5.5,y=0.46,text='acúmulo',showarrow=False,font=dict(size=11,color='#c0410b'),row=1,col=2)
 obs=h2.groupby('dia').agg(p=('y','mean'),n=('y','size'))
 f.add_trace(go.Scatter(x=dd,y=pr2,mode='lines',line=dict(color='#1971c2',width=5),name='Curva logística',showlegend=False),1,2)
 f.add_trace(go.Scatter(x=obs.index,y=obs.p,mode='markers',marker=dict(size=13,color='#1971c2',opacity=0.7,

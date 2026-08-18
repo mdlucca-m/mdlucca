@@ -24,6 +24,11 @@ for j,(k,lab,col,ytit) in enumerate(PAN,1):
     f.add_trace(go.Scatter(x=tt,y=dP(tt),mode='lines',line=dict(color='#495057',width=2,dash='dash'),
         name=LAB_DER,showlegend=(j==1)),1,j,secondary_y=True)
     f.add_hline(y=0,line=dict(color='#adb5bd',width=1),row=1,col=j,secondary_y=True)
+    # sombreamento das fases: antes vs depois da inflexao (mudanca de regime)
+    if infl:
+        xi=infl[0]
+        f.add_vrect(x0=1,x1=xi,fillcolor='#1971c2',opacity=0.05,line_width=0,row=1,col=j,secondary_y=False)
+        f.add_vrect(x0=xi,x1=7,fillcolor='#e8590c',opacity=0.06,line_width=0,row=1,col=j,secondary_y=False)
     for x in infl:
         f.add_vline(x=x,line=dict(color='#868e96',width=1.5,dash='dot'),row=1,col=j)
         f.add_annotation(x=x,y=P(x),text='inflexão (t=%d)'%round(x),showarrow=True,arrowhead=2,

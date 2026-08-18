@@ -53,6 +53,10 @@ f.write_image(f'{OUT}/xb2_framework.png',width=1100,height=1060,scale=3)
 
 # ============ FIG 2: TRAJETÓRIAS com bandas (energia-fadiga + negativas) ============
 f=make_subplots(rows=1,cols=2,horizontal_spacing=0.10,subplot_titles=['<b>A) Eixo energia–fadiga</b>','<b>B) Subescalas negativas</b>'])
+# sombreamento das fases do microciclo: inicio (recuperado) vs acumulo (2a metade)
+for _c in (1,2):
+    f.add_vrect(x0=1,x1=4,fillcolor='#1971c2',opacity=0.05,line_width=0,row=1,col=_c)
+    f.add_vrect(x0=4,x1=7,fillcolor='#e8590c',opacity=0.06,line_width=0,row=1,col=_c)
 for k in ['Vigor','Fadiga','TMD']:
     m,se=dstat(k); band(f,days,m,se,k,1,1)
 for k in ['Tensao','Depressao','Raiva','Confusao']:
