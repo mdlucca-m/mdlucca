@@ -485,7 +485,7 @@ tdv=table('Modelagem polinomial (grau %d) das médias diárias do eixo energia�
     [dvrow(k,l) for k,l in DVORD],
     note='P′ = derivada primeira (taxa de variação); P″ = derivada segunda (aceleração/concavidade); inflexão = raiz de P″ = 0. As dimensões negativas, com efeito de piso e ajuste fraco, foram omitidas.',fs=8.5)
 f_dv=figure(f'{FG}/deriv_poly.png','Ajuste polinomial P(t) das médias diárias de vigor e fadiga, com a derivada P′(t) (taxa de variação) e o ponto de inflexão.',w=15.0)
-VG=DV['vars']['Vigor']; FD=DV['vars']['Fadiga']
+VG=DV['vars']['Vigor']; FD=DV['vars']['Fadiga']; TM=DV['vars']['TMD']
 P('Para caracterizar formalmente a dinâmica temporal, ajustou-se uma função polinomial de grau %d às médias diárias de '
  'cada dimensão e derivaram-se as respectivas taxas de variação (Tabela %d; Figura %d). A modelagem restringiu-se ao '
  'eixo energia–fadiga (vigor, fadiga e PTH), onde os ajustes foram excelentes (vigor R² = %s; fadiga R² = %s); as '
@@ -495,10 +495,16 @@ P('Para caracterizar formalmente a dinâmica temporal, ajustou-se uma função p
  'desaceleração progressiva, ao passo que a fadiga subiu em espelho (taxa média = %s ponto/dia; P′ no Dia 1 = %s). A '
  'derivada segunda localizou um ponto de inflexão em torno do dia %s para ambas — o momento em que a taxa de '
  'deterioração deixa de acelerar —, o que fornece uma leitura quantitativa do ritmo do desgaste e sinaliza a metade do '
- 'microciclo como o marco a partir do qual a resposta afetiva muda de regime.'%(
+ 'microciclo como o marco a partir do qual a resposta afetiva muda de regime. A Perturbação Total do Humor, submetida à '
+ 'mesma modelagem (R² = %s), acumulou-se a uma taxa média de %s ponto/dia, com inflexão no mesmo entorno (dia %s); '
+ 'diferentemente do vigor, porém, a sua taxa de variação não desacelerou até o encerramento do microciclo (P′ no Dia 1 '
+ '= %s; no Dia 7 = %s), o que revela uma perturbação global em ascensão contínua, sem plateau, até o último dia — '
+ 'coerente com o pico da PTH no Dia 7.'%(
    DV['grau'],tdv,f_dv,c2('%.2f'%VG['r2']),c2('%.2f'%FD['r2']),
    c2('%.2f'%VG['taxa_media']),c2('%+.2f'%VG['dP1']),c2('%+.2f'%FD['taxa_media']),c2('%+.2f'%FD['dP1']),
-   ('%d'%round(VG['infl'][0]))))
+   ('%d'%round(VG['infl'][0])),
+   c2('%.2f'%TM['r2']),c2('%.2f'%TM['taxa_media']),('%d'%round(TM['infl'][0])),
+   c2('%+.2f'%TM['dP1']),c2('%+.2f'%TM['dP7'])))
 cVF=DV['couple'].get('Vigor|Fadiga'); cFT=DV['couple'].get('Fadiga|TMD'); cVT=DV['couple'].get('Vigor|TMD')
 P('A derivada segunda (P″) descreve a aceleração da mudança e a concavidade da trajetória. No vigor, P″ é positiva no '
  'início (%s) — a queda, embora acentuada, desacelera rumo ao meio da semana — e torna-se negativa ao final (%s), quando '
