@@ -199,6 +199,11 @@ for k,lab in ORD:
 table('Estatística descritiva das dimensões do BRUMS e da perturbação total do humor (286 observações).',
  ['Dimensão','Média','DP','Mín.–Máx.'],rows1,
  note='DP: desvio-padrão. PTH: perturbação total do humor. Escores das dimensões variam de 0 a 16.')
+P(f'A Figura {_FN[0]+1} apresenta os diagramas de caixa das seis dimensões, em ordem canônica, com a mediana e a média '
+ f'de cada uma na mesma figura. O vigor e a fadiga ocupam a maior parte da escala e apresentam média e mediana próximas, '
+ f'sinal de distribuições razoavelmente simétricas, ao passo que as dimensões negativas se concentram junto ao zero, com '
+ f'a média acima da mediana, o que revela assimetria positiva e um efeito de piso.')
+figure(f'{FG}/box_humor.png','Diagramas de caixa das seis dimensões do BRUMS, em ordem canônica, com a mediana (linha sólida) e a média (linha tracejada e losango) de cada dimensão.',w=13.0)
 P(f'A consistência interna foi adequada nas duas dimensões do eixo energia–fadiga (alfa de {a_vig} para o vigor e {a_fad} '
  f'para a fadiga), o que reforça a confiança na sua medida. A PTH, por reunir as seis dimensões em um único índice, '
  f'associou-se de forma forte ao vigor e à fadiga (correlações de {pth_rv} e {pth_rf}, respectivamente), e essas duas '
@@ -220,12 +225,12 @@ P(f'Os seis perfis de humor descritos na literatura estiveram representados na a
  f'característica. O perfil iceberg exprime prontidão, com o vigor acima da média e as dimensões negativas abaixo, ao '
  f'passo que a barbatana de tubarão sinaliza pico isolado de fadiga, o submerso reúne todas as dimensões abaixo da média '
  f'e o Everest invertido eleva todas as dimensões negativas (PARSONS-SMITH; TERRY; MACHIN, 2017).')
-figure(f'{FG}/xb6_clusters.png','Perfis de humor identificados na amostra, em escores T (M = 50; DP = 10) nas seis dimensões; prevalência de cada perfil entre parênteses.',w=15.5)
+figure(f'{FG}/xb6_clusters.png','Perfis de humor identificados na amostra, em escores T (M = 50; DP = 10) nas seis dimensões; prevalência de cada perfil entre parênteses.',w=14.0)
 P(f'A comparação entre o primeiro e o último dia do microciclo revelou a reconfiguração do perfil médio do grupo. A '
  f'Figura {_FN[0]+1} mostra que, no primeiro dia, o perfil assumiu o formato iceberg, com o vigor no topo e as dimensões '
  f'negativas abaixo da média populacional. No último dia, o perfil inverteu-se para a forma de barbatana de tubarão, com '
  f'a fadiga no topo e o vigor rebaixado, o que traduz a acumulação da carga ao longo da semana.')
-figure(f'{FG}/xb5_profile_d1d7.png','Perfil de humor em escores T no primeiro e no último dia do microciclo.',w=13.5)
+figure(f'{FG}/xb5_profile_d1d7.png','Perfil de humor em escores T no primeiro e no último dia do microciclo.',w=13.0)
 P(f'Essa mudança de forma correspondeu a um deslocamento da prevalência dos perfis (Tabela {_TN[0]+1}). O perfil iceberg '
  f'caiu de {ice_d1}% no primeiro dia para {ice_d7}% no último, enquanto a barbatana de tubarão subiu de {bar_d1}% para '
  f'{bar_d7}% e o perfil submerso passou de {sub_d1}% para {sub_d7}%. A reorganização categórica não alcançou '
@@ -272,7 +277,7 @@ table('Médias diárias das dimensões do BRUMS e teste de Friedman com W de Ken
  note='W de Kendall = tamanho de efeito do teste de Friedman; magnitude: trivial (< 0,1); pequeno (0,1–0,3); moderado (0,3–0,5); grande (> 0,5). PTH: perturbação total do humor.',fs=8)
 P(f'A Figura {_FN[0]+1} ilustra a trajetória do vigor, da fadiga e da PTH ao longo da semana, com a queda progressiva do '
  f'vigor e a elevação da fadiga e da PTH em direção ao fim do microciclo.')
-figure(f'{FG}/abnt_f1_trajetoria.png','Trajetória de vigor, fadiga e perturbação total do humor ao longo dos sete dias.',w=15.5)
+figure(f'{FG}/abnt_f1_trajetoria.png','Trajetória de vigor, fadiga e perturbação total do humor ao longo dos sete dias.',w=14.5)
 
 H('4.5 Variação entre pré e pós-treino (Wilcoxon)',12,before=6)
 P(f'A comparação entre pré e pós-treino pelo teste de Wilcoxon (Tabela {_TN[0]+1}) evidenciou uma resposta aguda '
@@ -284,7 +289,7 @@ def wrow(k,lab):
 table('Comparação entre pré e pós-treino das dimensões do BRUMS e da PTH (teste de Wilcoxon e d de Cohen).',
  ['Dimensão','Pré (M)','Pós (M)','Variação (%)','p','d','Magnitude'],[wrow(k,l) for k,l in ORD],
  note='p do teste de Wilcoxon; d = tamanho de efeito de Cohen. PTH: perturbação total do humor.',fs=9)
-figure(f'{FG}/abnt_f_prepos.png','Escores de vigor, fadiga e perturbação total do humor no pré e no pós-treino, por dia.',w=15.5)
+figure(f'{FG}/abnt_f_prepos.png','Escores de vigor, fadiga e perturbação total do humor no pré e no pós-treino, por dia.',w=14.5)
 
 H('4.6 Relações entre as dimensões (Spearman)',12,before=6)
 P(f'As correlações de Spearman entre as dimensões (Tabela {_TN[0]+1}) mostraram que as dimensões negativas se associam '
@@ -336,7 +341,7 @@ P('O estudo tem limitações, entre as quais a amostra de um único clube, o rec
  'multidomínio do estado do atleta (KELLMANN et al., 2018; OSTAPIUK-KAROLCZUK et al., 2025).')
 
 # ===== REFERÊNCIAS =====
-H('REFERÊNCIAS')
+H('REFERÊNCIAS',before=6)
 refs=[
  'BIRD, S. P. et al. Wellness, mood, sleep, and performance in a women’s national basketball team during international competition. Journal of Human Kinetics, v. 96, p. 163–175, 2025. DOI: 10.5114/jhk/200117.',
  'DE MIRANDA ROHLFS, I. C. P. et al. Prevalence of specific mood profile clusters among elite and youth athletes at a Brazilian sports club. Sports, v. 12, n. 7, 195, 2024. DOI: 10.3390/sports12070195.',
@@ -360,7 +365,7 @@ refs=[
  'TERRY, P. C. et al. Mood profiling for sustainable mental health among athletes. Sustainability, v. 13, n. 11, 6116, 2021. DOI: 10.3390/su13116116.',
  'THORPE, R. T. et al. Monitoring fatigue status in elite team-sport athletes: implications for practice. International Journal of Sports Physiology and Performance, v. 12, n. S2, p. S227–S234, 2017. DOI: 10.1123/ijspp.2016-0434.']
 for rf in refs:
-    p=doc.add_paragraph(); r=p.add_run(rf); r.font.size=Pt(11); p.paragraph_format.line_spacing=1.5; p.paragraph_format.space_after=Pt(6); p.alignment=WD_ALIGN_PARAGRAPH.JUSTIFY
+    p=doc.add_paragraph(); r=p.add_run(rf); r.font.size=Pt(11); p.paragraph_format.line_spacing=1.3; p.paragraph_format.space_after=Pt(4); p.alignment=WD_ALIGN_PARAGRAPH.JUSTIFY
 
 OUTP='/home/user/mdlucca/Artigos/Paper1_Humor_resumido.docx'
 doc.save(OUTP); print('SAVED',OUTP,'| Tabelas',_TN[0],'Figuras',_FN[0])
