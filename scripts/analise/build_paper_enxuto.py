@@ -200,11 +200,13 @@ for k,lab in ORD:
 table('Estatística descritiva das dimensões do BRUMS e da perturbação total do humor (286 observações).',
  ['Dimensão','Média','DP','Mín.–Máx.'],rows1,
  note='DP: desvio-padrão. PTH: perturbação total do humor. Escores das dimensões variam de 0 a 16.')
-P(f'A Figura {_FN[0]+1} apresenta os diagramas de caixa das seis dimensões, em ordem canônica, com a mediana e a média '
- f'de cada uma na mesma figura. O vigor e a fadiga ocupam a maior parte da escala e apresentam média e mediana próximas, '
- f'sinal de distribuições razoavelmente simétricas, ao passo que as dimensões negativas se concentram junto ao zero, com '
- f'a média acima da mediana, o que revela assimetria positiva e um efeito de piso.')
-figure(f'{FG}/box_humor.png','Diagramas de caixa das seis dimensões do BRUMS, em ordem canônica, com a mediana (linha sólida) e a média (linha tracejada e losango) de cada dimensão.',w=13.0)
+P(f'A Figura {_FN[0]+1} apresenta os diagramas de caixa das seis dimensões, em ordem canônica e em painéis separados, '
+ f'com a mediana e a média de cada uma. Como as dimensões diferem muito em amplitude, cada painel usa a escala da própria '
+ f'variável, o que torna a distribuição de cada uma mais legível. O vigor e a fadiga percorrem a maior parte da escala e '
+ f'apresentam média e mediana próximas, sinal de distribuições razoavelmente simétricas, ao passo que as dimensões '
+ f'negativas concentram a caixa junto ao zero e exibem a média acima da mediana, o que revela assimetria positiva e um '
+ f'efeito de piso.')
+figure(f'{FG}/box_humor.png','Diagramas de caixa das seis dimensões do BRUMS, em painéis separados e ordem canônica; cada painel usa a escala da própria variável, com a mediana (linha sólida) e a média (linha tracejada e losango).',w=13.5)
 P(f'A consistência interna foi adequada nas duas dimensões do eixo energia–fadiga (alfa de {a_vig} para o vigor e {a_fad} '
  f'para a fadiga), o que reforça a confiança na sua medida. A PTH, por reunir as seis dimensões em um único índice, '
  f'associou-se de forma forte ao vigor e à fadiga (correlações de {pth_rv} e {pth_rf}, respectivamente), e essas duas '
@@ -215,7 +217,7 @@ def icrow(k,lab):
 table('Consistência das medidas repetidas ao longo da semana (coeficiente de correlação intraclasse, ICC).',
  ['Dimensão','ICC(2,1)','ICC(2,k)','Consistência'],
  [icrow(k,l) for k,l in [('Vigor','Vigor'),('Fadiga','Fadiga'),('Tensao','Tensão'),('Depressao','Depressão'),('Raiva','Raiva'),('Confusao','Confusão')]],
- note='ICC(2,1) = medida isolada; ICC(2,k) = média das medidas. Consistência: < 0,50 fraca; 0,50–0,75 moderada; > 0,75 boa.',fs=9)
+ note='ICC(2,1) = medida isolada; ICC(2,k) = média das medidas. Consistência: < 0,50 pobre; 0,50–0,75 moderada; > 0,75 boa.',fs=9)
 P(f'A consistência das medidas repetidas ao longo da semana (Tabela {_TN[0]}) foi moderada a boa, com os valores mais '
  f'baixos na raiva e na confusão, dimensões mais reativas de um dia para o outro, o que também recomenda cautela na '
  f'leitura isolada dessas dimensões.')
@@ -240,7 +242,7 @@ P(f'Os seis perfis de humor descritos na literatura estiveram representados na a
  f'característica. O perfil iceberg exprime prontidão, com o vigor acima da média e as dimensões negativas abaixo, ao '
  f'passo que a barbatana de tubarão sinaliza pico isolado de fadiga, o submerso reúne todas as dimensões abaixo da média '
  f'e o Everest invertido eleva todas as dimensões negativas (PARSONS-SMITH; TERRY; MACHIN, 2017).')
-figure(f'{FG}/xb6_clusters.png','Perfis de humor identificados na amostra, em escores T (M = 50; DP = 10) nas seis dimensões; prevalência de cada perfil entre parênteses.',w=14.0)
+figure(f'{FG}/xb6_clusters.png','Perfis de humor identificados na amostra, em escores T (M = 50; DP = 10) nas seis dimensões; prevalência de cada perfil entre parênteses.',w=12.5)
 P(f'A comparação entre o primeiro e o último dia do microciclo revelou a reconfiguração do perfil médio do grupo. A '
  f'Figura {_FN[0]+1} mostra que, no primeiro dia, o perfil assumiu o formato iceberg, com o vigor no topo e as dimensões '
  f'negativas abaixo da média populacional. No último dia, o perfil inverteu-se para a forma de barbatana de tubarão, com '
