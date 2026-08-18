@@ -340,14 +340,34 @@ P('As propriedades psicométricas (Tabela %d) esclarecem por que a resposta se r
    c2('%.2f'%PSY['Tensao']['alpha']),c2('%.2f'%PSY['Confusao']['alpha']),
    c2('%.2f'%PSY['Depressao']['alpha']),c2('%.2f'%PSY['Raiva']['alpha']),
    c2('%.0f'%PSY['PTH']['mn']),c2('%.0f'%PSY['PTH']['mx']),c2('%.0f'%(100*PSY['PTH']['r2_axis']))))
-H('3.4 Diferenças entre pré e pós-treino (com tamanho de efeito)',12,before=6)
+H('3.4 Estrutura dimensional: análise de componentes principais (exploratória)',12,before=6)
+def pcrow(l): return [l,c2('%+.2f'%PCA['PC1'][l]),c2('%+.2f'%PCA['PC2'][l])]
+tpca=table('Análise de componentes principais das seis dimensões do BRUMS (padronizadas): variância explicada e cargas de correlação dos dois primeiros componentes.',
+    ['Dimensão','PC1 (%s%%)'%c2('%.0f'%(100*PCA['var_ratio'][0])),'PC2 (%s%%)'%c2('%.0f'%(100*PCA['var_ratio'][1]))],
+    [pcrow(l) for l in PCA['dims']],
+    note='Cargas de correlação (componente × √autovalor). Dois componentes com autovalor > 1 (critério de Kaiser) somam %s%% da variância. Análise exploratória: as %d observações estão aninhadas em atletas.'%(
+        c2('%.0f'%(100*(PCA['var_ratio'][0]+PCA['var_ratio'][1]))),PCA['n']),fs=8.5)
+f_pca=figure(f'{FG}/pca_biplot.png','Biplot da análise de componentes principais das seis dimensões do BRUMS. Pontos: observações, coloridas pela Perturbação Total do Humor (PTH); setas: cargas das dimensões (vigor em verde, fadiga em laranja). PC1 = eixo de perturbação geral; PC2 = eixo de ativação.',w=13.5)
+P('Como leitura exploratória da estrutura latente do humor, uma análise de componentes principais das seis dimensões '
+ 'padronizadas (Tabela %d; Figura %d) resumiu a resposta em dois eixos (autovalor > 1), que juntos explicam %s%% da '
+ 'variância. O primeiro componente (%s%% da variância) reúne, com o mesmo sinal, a depressão, a raiva, a fadiga e a '
+ 'confusão, e opõe-se ao vigor, eis um eixo de perturbação geral do humor, alinhado à Perturbação Total do '
+ 'Humor, cujo gradiente colore o biplot. O segundo (%s%%) contrasta a tensão e o vigor com a fadiga, à maneira de um '
+ 'eixo de ativação. Essa estrutura corrobora, por uma via independente, a concentração da resposta afetiva: a maior '
+ 'parte da informação do painel condensa-se em um eixo dominante de perturbação, coerente com a decomposição '
+ 'sinal–ruído e com o comportamento da PTH. Cabe, contudo, cautela, as observações estão aninhadas em atletas, de '
+ 'modo que a análise mistura a variância intra e a entre indivíduos e tem valor descritivo, não confirmatório.'%(
+   tpca,f_pca,c2('%.0f'%(100*(PCA['var_ratio'][0]+PCA['var_ratio'][1]))),
+   c2('%.0f'%(100*PCA['var_ratio'][0])),c2('%.0f'%(100*PCA['var_ratio'][1]))))
+
+H('3.5 Diferenças entre pré e pós-treino (com tamanho de efeito)',12,before=6)
 def ppr(k,lab):
     v=pr[k]; return [lab,c2('%.2f'%v['pre']),c2('%.2f'%v['pos']),c2('%+.0f'%v['pct'])+'%',pstr(v['p']),c2('%+.2f'%v['dz']),v['mag']]
 tpp=table('Diferenças entre pré e pós-treino (agregado da semana; Wilcoxon e d de Cohen).',
     ['Dimensão','Pré (M)','Pós (M)','Variação (%)','p','d de Cohen','Magnitude'],[ppr(k,l) for k,l in ORD],fs=9)
 P('A resposta aguda foi consistente (Tabela %d): o vigor caiu (%s%%; d = %s) e a fadiga e a PTH subiram do pré para o '
  'pós, com efeito médio.'%(tpp,c2('%.0f'%abs(pr['Vigor']['pct'])),c2('%.2f'%pr['Vigor']['dz'])))
-H('3.5 Comportamento diário e comparação entre todos os dias',12,before=6)
+H('3.6 Comportamento diário e comparação entre todos os dias',12,before=6)
 f_traj=figure(f'{FG}/xb2_traj.png','Comportamento das dimensões do humor ao longo da semana (médias diárias; áreas sombreadas = IC95%).')
 f_box=figure(f'{FG}/xb3_box.png','Diagramas de caixa (box plot) das seis dimensões do BRUMS por dia da semana.')
 def ddrow(k,lab):
@@ -394,7 +414,7 @@ def npairs(v): return sum(1 for kk,pp in PHJ[v]['pairs'].items() if pp['ptukey']
 P('Na comparação de todos os dias entre si (pós-teste de Tukey; Tabela %d; Figura %d), o vigor diferiu significativamente em '
  '%d dos 21 pares de dias e a fadiga em %d, sempre no sentido de piora em relação aos primeiros dias, com a confirmação da '
  'deterioração progressiva do eixo energia–fadiga.'%(te,f_ph,npairs('Vigor'),npairs('Fadiga')))
-H('3.6 Confirmação por análise multivariada (MANOVA em escores T)',12,before=6)
+H('3.7 Confirmação por análise multivariada (MANOVA em escores T)',12,before=6)
 f_prof=figure(f'{FG}/xb5_profile_d1d7.png','Perfil de humor em escores T (M = 50; DP = 10) no Dia 1 e no Dia 7.',w=13.5)
 def mvrow(x):
     return [x['lab'],c2('%.1f'%x['m1']),c2('%.1f'%x['s1']),c2('%.1f'%x['m2']),c2('%.1f'%x['s2']),c2('%.2f'%x['F']),pstr(x['p'])+('*' if x['p']<0.008 else ''),c2('%+.2f'%x['d']),c2('%.3f'%x['eta'])]
@@ -409,7 +429,7 @@ P('A análise multivariada confirmou a diferença entre o Dia 1 e o Dia 7 (Wilks
  'resposta aguda pré → pós também foi multivariadamente significativa (Wilks λ = %s; p %s), o que reforça o achado.'%(
    c2('%.3f'%mv['wilks']),mv['df1'],mv['df2'],c2('%.2f'%mv['Fmv']),pstr(mv['p_mv']),c2('%.2f'%mv['eta_mv']),
    c2('%+.2f'%mvv('d1d7','Vigor','d')),c2('%+.2f'%mvv('d1d7','Fadiga','d')),pstr(mvv('d1d7','Tensao','p')),pstr(mvv('d1d7','Confusao','p')),tmv,f_prof,c2('%.3f'%MV['prepos']['wilks']),pstr(MV['prepos']['p_mv'])))
-H('3.7 Dias de maior expressão de cada estado de humor',12,before=6)
+H('3.8 Dias de maior expressão de cada estado de humor',12,before=6)
 def pkrow(k,lab):
     p=PK[k]; return [lab,'Dia %d'%p['max_day'],c2('%.2f'%p['max_val']),'Dia %d'%p['min_day'],c2('%.2f'%p['min_val'])]
 tpk=table('Dia de maior e de menor expressão de cada dimensão do humor (médias diárias).',
@@ -418,7 +438,7 @@ P('A Tabela %d sintetiza os dias de pico: o vigor foi máximo no Dia %d e mínim
  'a tensão, máxima no Dia %d; a raiva, máxima no Dia %d; e a depressão, máxima no Dia %d. Em síntese, o início da semana '
  'reúne maior prontidão (vigor, tensão e confusão mais altos) e o final concentra a fadiga e a raiva.'%(
    tpk,PK['Vigor']['max_day'],PK['Vigor']['min_day'],PK['Fadiga']['max_day'],PK['Tensao']['max_day'],PK['Raiva']['max_day'],PK['Depressao']['max_day']))
-H('3.8 Comportamento individual de cada variável e suas relações',12,before=6)
+H('3.9 Comportamento individual de cada variável e suas relações',12,before=6)
 P('As Figuras %d a %d apresentam, para cada dimensão, o comportamento ao longo da semana com a média diária, a banda de '
  'confiança de 95%% (área sombreada), os diagramas de caixa por dia e o efeito do microciclo, o que permite visualizar '
  'individualmente como cada estado de humor evolui. Nessas figuras, o efeito Dia 1 → Dia 7 é expresso pelo dz (mudança '
@@ -433,7 +453,7 @@ P('Quanto às relações entre as dimensões (Tabela %d), as dimensões negativa
  'com a depressão e a raiva; o vigor mantém-se relativamente independente. Esse acoplamento depende da carga: no dia de '
  'maior vigor a depressão é independente da fadiga (ρ = %s), mas no dia de maior fadiga torna-se forte (ρ = %s).'%(
    tcorr,c2('%+.2f'%FP['D1']['Depressao']['rho_fad']),c2('%+.2f'%FP['D7']['Depressao']['rho_fad'])))
-H('3.9 Classificação dos perfis de humor',12,before=6)
+H('3.10 Classificação dos perfis de humor',12,before=6)
 P('A classificação de cada observação em um dos seis perfis de humor oferece uma leitura integrada e visual do estado '
  'psicológico da equipe. Ao longo do microciclo, os seis perfis estiveram representados na amostra, com reorganização '
  'de prevalência entre o baseline e o último dia de treino.')
@@ -484,7 +504,7 @@ P('Para testar a migração de perfil como uma tendência ao longo da semana, e 
    c2('%.2f'%mb['p_d1']),c2('%.2f'%mb['p_d7']),
    c2('%.2f'%mi['OR_dia']),c2('%.2f'%mi['OR_lo']),c2('%.2f'%mi['OR_hi'])))
 # ----- 3.10 Modelagem polinomial: derivadas e taxa de variação -----
-H('3.10 Modelagem polinomial das trajetórias: derivadas e taxa de variação',12,before=6)
+H('3.11 Modelagem polinomial das trajetórias: derivadas e taxa de variação',12,before=6)
 def dvrow(k,l):
     v=DV['vars'][k]
     infl=', '.join('%d'%round(x) for x in v['infl']) or '–'
@@ -540,7 +560,7 @@ def exrowr(k,l):
 tex=table('Extremos da função ajustada e limites da derivada, por dimensão: valor máximo e mínimo modelados (com o dia) e os limites da taxa de variação P′, subida máxima e queda máxima.',
     ['Dimensão','Valor máx. (dia)','Valor mín. (dia)','P′ máx./subida (dia)','P′ mín./queda (dia)','R²'],
     [exrowr(k,l) for k,l in ORD],
-    note='Valores e taxas extraídos da função polinomial P(t) no intervalo [Dia 1; Dia 7]. Para as dimensões negativas (baixo R²; efeito de piso), os extremos modelados são apenas indicativos. Os máximos/mínimos observados constam na tabela de dias de pico (seção 3.7).',fs=8.5)
+    note='Valores e taxas extraídos da função polinomial P(t) no intervalo [Dia 1; Dia 7]. Para as dimensões negativas (baixo R²; efeito de piso), os extremos modelados são apenas indicativos. Os máximos/mínimos observados constam na tabela de dias de pico (seção 3.8).',fs=8.5)
 P('Os extremos das funções ajustadas e os limites de suas derivadas (Tabela %d) delimitam quantitativamente a resposta. '
  'O vigor varia entre um máximo de %s pontos no Dia %s e um mínimo de %s no Dia %s, com a taxa de variação confinada '
  'entre %s ponto/dia (queda máxima, no Dia %s) e %s ponto/dia (leve recuperação em torno do meio da semana); a fadiga '
@@ -564,7 +584,7 @@ P('A sobreposição das curvas suavizadas de vigor e fadiga permite localizar o 
    f_cx,c2('%.1f'%CP['gap_d1']),', '.join('%d'%round(x) for x in cds),cdl,c2('%.1f'%abs(CP['gap_d7']))))
 
 # ----- 3.11 Decomposição sinal-ruído e suavização das trajetórias -----
-H('3.11 Decomposição sinal–ruído e suavização das trajetórias',12,before=6)
+H('3.12 Decomposição sinal–ruído e suavização das trajetórias',12,before=6)
 def smrow(k,l):
     v=SM['vars'][k]; snr='%.1f'%v['snr'] if v['snr']<900 else '–'
     return [l,c2('%.0f'%v['signal_pct'])+'%',c2('%.0f'%v['noise_pct'])+'%',c2(snr),c2('%+.1f'%v['snr_db'])]
@@ -588,7 +608,7 @@ P('Para separar a tendência sistemática (sinal) do ruído de amostragem e obte
    c2('%.0f'%sD['noise_pct']),c2('%.0f'%sD['signal_pct']),c2('%.1f'%sD['snr'])))
 
 # ----- 3.12 Modelagem individual (por atleta) -----
-H('3.12 Modelagem individual: trajetórias por atleta',12,before=6)
+H('3.13 Modelagem individual: trajetórias por atleta',12,before=6)
 paV=IND['perath']['Vigor']; paF=IND['perath']['Fadiga']; cov=IND['cover']
 f_ind=figure(f'{FG}/indiv_spaghetti.png','Trajetórias individuais de vigor e fadiga por atleta (linhas finas) e a média do grupo (linha grossa), que expõem aheterogeneidade da resposta.',w=15.0)
 P('Além da tendência do grupo, a resposta foi modelada por atleta, com o ajuste, para cada participante, de sua própria '
@@ -604,7 +624,7 @@ P('Além da tendência do grupo, a resposta foi modelada por atleta, com o ajust
    c2('%.0f'%paV['resp_pct']),c2('%.0f'%paF['resp_pct'])))
 
 # ----- 3.13 Trajetória em alta resolução (pré/pós) -----
-H('3.13 Trajetória em alta resolução: 13 pontos pré/pós',12,before=6)
+H('3.14 Trajetória em alta resolução: 13 pontos pré/pós',12,before=6)
 f_p13=figure(f'{FG}/pts13_curve.png','Trajetória do grupo em 13 pontos temporais (baseline + pré e pós-treino de cada dia), com a dinâmica intradiária além da média diária.',w=15.5)
 P('Com base nas duas coletas diárias dos dias de treino, a trajetória do grupo foi reconstruída em alta resolução, '
  'com 13 pontos temporais, a linha de base e os momentos pré e pós de cada um dos seis dias de treino (Figura %d). '
@@ -615,7 +635,7 @@ P('Com base nas duas coletas diárias dos dias de treino, a trajetória do grupo
  'sessões.'%f_p13)
 
 # ----- 3.14 Auditoria de robustez (filtragem de ruído) -----
-H('3.14 Auditoria de robustez: filtragem de sinal e ruído',12,before=6)
+H('3.15 Auditoria de robustez: filtragem de sinal e ruído',12,before=6)
 def audrow(m,lab,fmt='%+.2f'):
     r=next((x for x in AUD['rows'] if x['metric']==m),None)
     if not r: return [lab,'–','–']
@@ -639,7 +659,7 @@ P('Por fim, para verificar se as conclusões dependem de ruído amostral, todas 
    c2('%.3f'%next(x for x in AUD['rows'] if x['metric']=='manova_wilks')['raw']),
    c2('%.3f'%next(x for x in AUD['rows'] if x['metric']=='manova_wilks')['filt'])))
 
-H('3.15 Modelagem bayesiana multinível: componentes aguda e crônica e heterogeneidade individual',12,before=6)
+H('3.16 Modelagem bayesiana multinível: componentes aguda e crônica e heterogeneidade individual',12,before=6)
 def bg(v,k,f='%+.2f'): b=BG[v][k]; return c2(f%b['mean']),c2(f%b['lo']),c2(f%b['hi'])
 tbg=table('Modelo bayesiano multinível de curva de crescimento para o vigor, a fadiga e a PTH: estimativas a posteriori (média e intervalo de credibilidade de 95%).',
     ['Parâmetro','Vigor','Fadiga','PTH'],
@@ -699,7 +719,7 @@ P('Como verificação de robustez que respeita a natureza ordinal e limitada das
    c2('%.2f'%ov['dia']['OR']),c2('%.2f'%ov['dia']['OR_lo']),c2('%.2f'%ov['dia']['OR_hi']),
    c2('%.2f'%ofa['dia']['OR']),pstr(ofa['dia']['p'])))
 
-H('3.16 Classificação individual por mudança confiável (MDC)',12,before=6)
+H('3.17 Classificação individual por mudança confiável (MDC)',12,before=6)
 MC=json.load(open('mdc_class.json'))
 tmc=table('Classificação dos atletas pela mudança confiável (Δ Dia 1 → Dia 7 acima da MDC90) no vigor e na fadiga.',
     ['Desfecho','Melhora','Estável','Piora','Com mudança confiável'],
@@ -717,26 +737,6 @@ P('A aplicação do critério de mudança confiável ao nível individual (Tabel
  'dispersão das inclinações estimada pelo modelo bayesiano, ilustra por que o monitoramento aplicado deve combinar a '
  'tendência coletiva com a leitura, atleta a atleta, das mudanças que excedem o erro de medida.'%(
    tmc,f_mc,MC['Vigor']['piora'],MC['n'],MC['Fadiga']['piora'],MC['n_piora_ambos']))
-
-H('3.17 Estrutura dimensional: análise de componentes principais (exploratória)',12,before=6)
-def pcrow(l): return [l,c2('%+.2f'%PCA['PC1'][l]),c2('%+.2f'%PCA['PC2'][l])]
-tpca=table('Análise de componentes principais das seis dimensões do BRUMS (padronizadas): variância explicada e cargas de correlação dos dois primeiros componentes.',
-    ['Dimensão','PC1 (%s%%)'%c2('%.0f'%(100*PCA['var_ratio'][0])),'PC2 (%s%%)'%c2('%.0f'%(100*PCA['var_ratio'][1]))],
-    [pcrow(l) for l in PCA['dims']],
-    note='Cargas de correlação (componente × √autovalor). Dois componentes com autovalor > 1 (critério de Kaiser) somam %s%% da variância. Análise exploratória: as %d observações estão aninhadas em atletas.'%(
-        c2('%.0f'%(100*(PCA['var_ratio'][0]+PCA['var_ratio'][1]))),PCA['n']),fs=8.5)
-f_pca=figure(f'{FG}/pca_biplot.png','Biplot da análise de componentes principais das seis dimensões do BRUMS. Pontos: observações, coloridas pela Perturbação Total do Humor (PTH); setas: cargas das dimensões (vigor em verde, fadiga em laranja). PC1 = eixo de perturbação geral; PC2 = eixo de ativação.',w=13.5)
-P('Como leitura exploratória da estrutura latente do humor, uma análise de componentes principais das seis dimensões '
- 'padronizadas (Tabela %d; Figura %d) resumiu a resposta em dois eixos (autovalor > 1), que juntos explicam %s%% da '
- 'variância. O primeiro componente (%s%% da variância) reúne, com o mesmo sinal, a depressão, a raiva, a fadiga e a '
- 'confusão, e opõe-se ao vigor, eis um eixo de perturbação geral do humor, alinhado à Perturbação Total do '
- 'Humor, cujo gradiente colore o biplot. O segundo (%s%%) contrasta a tensão e o vigor com a fadiga, à maneira de um '
- 'eixo de ativação. Essa estrutura corrobora, por uma via independente, a concentração da resposta afetiva: a maior '
- 'parte da informação do painel condensa-se em um eixo dominante de perturbação, coerente com a decomposição '
- 'sinal–ruído e com o comportamento da PTH. Cabe, contudo, cautela, as observações estão aninhadas em atletas, de '
- 'modo que a análise mistura a variância intra e a entre indivíduos e tem valor descritivo, não confirmatório.'%(
-   tpca,f_pca,c2('%.0f'%(100*(PCA['var_ratio'][0]+PCA['var_ratio'][1]))),
-   c2('%.0f'%(100*PCA['var_ratio'][0])),c2('%.0f'%(100*PCA['var_ratio'][1]))))
 
 # ===== 4 DISCUSSÃO =====
 H('4 DISCUSSÃO')
