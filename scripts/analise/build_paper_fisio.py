@@ -14,7 +14,7 @@ LOG=json.load(open('logistica.json'))
 L2=json.load(open('limiar2.json'))
 MOD=json.load(open('moduladores.json'))
 RSA=json.load(open('rsa_stats.json'))
-COM=json.load(open('commonality.json')); SPC=json.load(open('speccurve.json'))
+COM=json.load(open('commonality.json')); SPC=json.load(open('speccurve.json')); MDC=json.load(open('mdc.json'))
 CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json')); SM=json.load(open('smooth.json')); IND=json.load(open('indiv.json')); AUD=json.load(open('audit.json')); CP=json.load(open('cross_pt.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
@@ -263,7 +263,10 @@ P('Para descrever a resposta aguda ao treino, os momentos pré e pós foram comp
  '(0,1 pequeno; 0,3 moderado; 0,5 grande); quando significativo, aplicou-se o pós-teste das médias marginais de um modelo '
  'misto (correção de Tukey), que identifica entre quais dias, especificamente, houve diferença. A consistência das '
  'medidas repetidas ao longo da semana foi estimada pelo coeficiente de correlação intraclasse (ICC), interpretado como '
- 'pobre (< 0,50), moderado (0,50–0,75), bom (0,75–0,90) ou excelente (> 0,90).')
+ 'pobre (< 0,50), moderado (0,50–0,75), bom (0,75–0,90) ou excelente (> 0,90). A partir do ICC e do desvio-padrão, '
+ 'derivaram-se o erro-padrão de medida (SEM), a mudança mínima detectável (MDC = 1,96 × √2 × SEM) e a menor mudança '
+ 'relevante (SWC = 0,2 × desvio-padrão entre atletas), a fim de balizar a interpretação de mudanças individuais no '
+ 'humor e o uso prático do limiar de aptidão.')
 P('Como confirmação robusta, as comparações Dia 1 → Dia 7 e pré → pós foram reanalisadas por análise multivariada de '
  'variância (MANOVA) de medidas repetidas sobre os escores T, que testa as seis dimensões em conjunto e controla o erro '
  'de múltiplas comparações (lambda de Wilks, F e eta-quadrado parcial — η²ₚ; 0,01 pequeno; 0,06 médio; 0,14 grande); nos '
@@ -359,6 +362,17 @@ tic=table('Consistência das medidas repetidas ao longo da semana (coeficiente d
     [icrow(k,l) for k,l in [('Vigor','Vigor'),('Fadiga','Fadiga'),('Tensao','Tensão'),('Depressao','Depressão'),('Raiva','Raiva'),('Confusao','Confusão')]],fs=9)
 P('A consistência das medidas repetidas (Tabela %d) foi moderada a boa, com os valores mais baixos na raiva e na confusão — '
  'dimensões mais reativas dia a dia.'%tic)
+P('Os limiares de mudança do humor delimitam o alcance da leitura individual. O erro-padrão de medida foi de %s ponto '
+ 'no vigor e %s na fadiga (escala 0–16), de modo que a mudança mínima detectável — a menor variação individual '
+ 'distinguível do erro de medida — situou-se em torno de %s a %s pontos no vigor e %s a %s na fadiga (90%% e 95%% de '
+ 'confiança). Como esses valores superam largamente a menor mudança relevante (SWC = %s e %s), uma oscilação isolada de '
+ 'um único atleta só deve ser tomada como real quando ultrapassa a mudança mínima detectável; do contrário, a decisão '
+ 'ganha robustez ao apoiar-se na média semanal e na posição do atleta em relação ao limiar de pico de velocidade, e '
+ 'não em leituras pontuais.'%(
+   c2('%.1f'%MDC['Vigor']['sem']),c2('%.1f'%MDC['Fadiga']['sem']),
+   c2('%.1f'%MDC['Vigor']['mdc90']),c2('%.1f'%MDC['Vigor']['mdc95']),
+   c2('%.1f'%MDC['Fadiga']['mdc90']),c2('%.1f'%MDC['Fadiga']['mdc95']),
+   c2('%.1f'%MDC['Vigor']['swc']),c2('%.1f'%MDC['Fadiga']['swc'])))
 def emmc(v,d): return c2('%.2f'%PHJ[v]['emm'][str(d)])
 def sig1(v,d): return '' if d==1 or PHJ[v]['pairs']['1_%d'%d]['ptukey']>=0.05 else '*'
 te=table('Pós-teste (médias marginais do modelo misto) por dia, com comparação de cada dia ao Dia 1.',

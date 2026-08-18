@@ -11,7 +11,7 @@ MS=json.load(open('model_stats.json')); MV=json.load(open('manova.json')); PHJ=j
 PV=json.load(open('pv_stats.json')); LIM=json.load(open('tcar_limiar.json')); TCD=json.load(open('tcar_desc.json'))
 TCV=json.load(open('tcar_curvas.json'))
 LOG=json.load(open('logistica.json'))
-BG=json.load(open('bayes_growth.json')); NET=json.load(open('network.json'))
+BG=json.load(open('bayes_growth.json')); NET=json.load(open('network.json')); MDC=json.load(open('mdc.json'))
 L2=json.load(open('limiar2.json'))
 MOD=json.load(open('moduladores.json'))
 CRS=json.load(open('cross.json')); PK=json.load(open('peaks.json')); SS=json.load(open('sono_stress.json')); AL=json.load(open('alom.json')); DV=json.load(open('deriv.json')); SM=json.load(open('smooth.json')); IND=json.load(open('indiv.json')); AUD=json.load(open('audit.json')); CP=json.load(open('cross_pt.json'))
@@ -238,7 +238,10 @@ P('Para descrever a resposta aguda ao treino, os momentos pré e pós foram comp
  '(0,1 pequeno; 0,3 moderado; 0,5 grande); quando significativo, aplicou-se o pós-teste das médias marginais de um modelo '
  'misto (correção de Tukey), que identifica entre quais dias, especificamente, houve diferença. A consistência das '
  'medidas repetidas ao longo da semana foi estimada pelo coeficiente de correlação intraclasse (ICC), interpretado como '
- 'pobre (< 0,50), moderado (0,50–0,75), bom (0,75–0,90) ou excelente (> 0,90).')
+ 'pobre (< 0,50), moderado (0,50–0,75), bom (0,75–0,90) ou excelente (> 0,90). A partir do ICC e do desvio-padrão, '
+ 'derivaram-se o erro-padrão de medida (SEM = DP × √(1 − ICC)) e a mudança mínima detectável (MDC = 1,96 × √2 × SEM, a '
+ '90% e a 95% de confiança), que expressa a menor variação individual distinguível do erro de medida; como referência '
+ 'de relevância prática, computou-se ainda a menor mudança relevante (SWC = 0,2 × desvio-padrão entre atletas).')
 P('Como confirmação robusta, as comparações Dia 1 → Dia 7 e pré → pós foram reanalisadas por análise multivariada de '
  'variância (MANOVA) de medidas repetidas sobre os escores T, que testa as seis dimensões em conjunto e controla o erro '
  'de múltiplas comparações (lambda de Wilks, F e eta-quadrado parcial — η²ₚ; 0,01 pequeno; 0,06 médio; 0,14 grande); nos '
@@ -322,6 +325,23 @@ tic=table('Consistência das medidas repetidas ao longo da semana (coeficiente d
     [icrow(k,l) for k,l in [('Vigor','Vigor'),('Fadiga','Fadiga'),('Tensao','Tensão'),('Depressao','Depressão'),('Raiva','Raiva'),('Confusao','Confusão')]],fs=9)
 P('A consistência das medidas repetidas (Tabela %d) foi moderada a boa, com os valores mais baixos na raiva e na confusão — '
  'dimensões mais reativas dia a dia.'%tic)
+tmd=table('Erro de medida e limiares de mudança do vigor e da fadiga (escala 0–16): erro-padrão de medida (SEM), mudança mínima detectável (MDC) e menor mudança relevante (SWC).',
+    ['Dimensão','SEM','MDC90','MDC95','SWC'],
+    [[l,c2('%.1f'%MDC[k]['sem']),c2('%.1f'%MDC[k]['mdc90']),c2('%.1f'%MDC[k]['mdc95']),c2('%.1f'%MDC[k]['swc'])]
+     for k,l in [('Vigor','Vigor'),('Fadiga','Fadiga')]],
+    note='SEM = DP × √(1 − ICC); MDC = 1,65 (90%) ou 1,96 (95%) × √2 × SEM; SWC = 0,2 × DP entre atletas. Uma mudança individual só é interpretada como real quando excede a MDC.',fs=9)
+P('Para orientar a leitura individual, derivaram-se do ICC os limiares de mudança (Tabela %d). No vigor, o erro-padrão '
+ 'de medida foi de %s ponto e a mudança mínima detectável, de %s (90%%) a %s (95%%) pontos; na fadiga, %s e %s a %s '
+ 'pontos, respectivamente. Esses valores contrastam com a menor mudança relevante (SWC = %s no vigor; %s na fadiga): a '
+ 'menor variação que teria significado prático é bem inferior ao erro de medida de uma leitura isolada. A implicação é '
+ 'metodológica e direta — no plano individual, apenas oscilações de cerca de %s a %s pontos podem ser tomadas como '
+ 'mudança real, ao passo que variações menores, embora possivelmente relevantes, confundem-se com o ruído de medida; '
+ 'por isso a inferência deste estudo apoia-se nas tendências de grupo e nos limiares, e não em leituras isoladas por '
+ 'atleta.'%(
+   tmd,c2('%.1f'%MDC['Vigor']['sem']),c2('%.1f'%MDC['Vigor']['mdc90']),c2('%.1f'%MDC['Vigor']['mdc95']),
+   c2('%.1f'%MDC['Fadiga']['sem']),c2('%.1f'%MDC['Fadiga']['mdc90']),c2('%.1f'%MDC['Fadiga']['mdc95']),
+   c2('%.1f'%MDC['Vigor']['swc']),c2('%.1f'%MDC['Fadiga']['swc']),
+   c2('%.1f'%MDC['Vigor']['mdc90']),c2('%.1f'%MDC['Fadiga']['mdc90'])))
 def emmc(v,d): return c2('%.2f'%PHJ[v]['emm'][str(d)])
 def sig1(v,d): return '' if d==1 or PHJ[v]['pairs']['1_%d'%d]['ptukey']>=0.05 else '*'
 te=table('Pós-teste (médias marginais do modelo misto) por dia, com comparação de cada dia ao Dia 1.',
