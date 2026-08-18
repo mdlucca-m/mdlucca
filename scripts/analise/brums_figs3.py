@@ -47,6 +47,9 @@ for idx,k in enumerate(ORDER):
         f.add_trace(go.Box(y=yv,name=str(d),marker=dict(color=PAL[k]),line=dict(width=2.6,color=PAL[k]),
             fillcolor=PAL[k],opacity=0.45,boxpoints='outliers',marker_size=5,marker_opacity=0.6,
             showlegend=False,width=0.62),r,c)
+    # fases sombreadas: inicio (dias 1-4) vs acumulo (dias 4-7)
+    f.add_vrect(x0=-0.5,x1=3,fillcolor='#1971c2',opacity=0.05,line_width=0,layer='below',row=r,col=c)
+    f.add_vrect(x0=3,x1=6.5,fillcolor='#e8590c',opacity=0.06,line_width=0,layer='below',row=r,col=c)
     rng=ycap(k)
     f.update_xaxes(title='Dia' if r==2 else '',dtick=1,row=r,col=c,**GRID)
     f.update_yaxes(title='Escore' if c==1 else '',range=rng,dtick=(1 if rng[1]<=8 else 2),row=r,col=c,**GRID)

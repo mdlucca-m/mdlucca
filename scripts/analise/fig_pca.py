@@ -20,6 +20,15 @@ sy = 0.9 * np.abs(sc[:, 1]).max() / np.abs(load[:, 1]).max()
 s = min(sx, sy)
 
 f = go.Figure()
+# meias-áreas sombreadas: PC1<0 (baixa perturbação) vs PC1>0 (alta perturbação)
+xlo, xhi = sc[:, 0].min() * 1.15, sc[:, 0].max() * 1.15
+ylo, yhi = sc[:, 1].min() * 1.15, sc[:, 1].max() * 1.15
+f.add_vrect(x0=xlo, x1=0, fillcolor='#2f9e44', opacity=0.05, line_width=0, layer='below')
+f.add_vrect(x0=0, x1=xhi, fillcolor='#e8590c', opacity=0.05, line_width=0, layer='below')
+f.add_annotation(x=xlo * 0.62, y=yhi * 0.92, text='menor perturbação', showarrow=False,
+    font=dict(size=11, color='#2b8a3e'))
+f.add_annotation(x=xhi * 0.62, y=yhi * 0.92, text='maior perturbação', showarrow=False,
+    font=dict(size=11, color='#c0410b'))
 # escores coloridos pela PTH (perturbação total) -> mostra que PC1 = eixo de perturbação
 f.add_trace(go.Scatter(x=sc[:, 0], y=sc[:, 1], mode='markers',
     marker=dict(size=8, color=d['TMD'], colorscale='RdBu_r', showscale=True, opacity=0.72,
