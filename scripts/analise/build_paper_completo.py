@@ -11,7 +11,7 @@ PSY=json.load(open('psychometric.json')); PK=json.load(open('peaks.json'))
 PCA=json.load(open('pca.json')); LOG=json.load(open('logistica.json')); MV=json.load(open('manova.json'))
 STAT=json.load(open('brums_stats3.json')); S4=json.load(open('brums_stats4.json')); CRS=json.load(open('cross.json'))
 MDC=json.load(open('mdc.json')); PHJ=json.load(open('posthoc.json')); SMO=json.load(open('smooth_deriv.json'))
-POLY=json.load(open('poly_fit.json')); CRX=json.load(open('cross_pts.json'))
+POLY=json.load(open('poly_fit.json')); CRX=json.load(open('cross_pts.json')); ADV=json.load(open('adv.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 def c2(s): return str(s).replace('.',',')
 doc=Document()
@@ -433,6 +433,31 @@ P(f'Como o vigor e a fadiga compartilham a mesma escala, as suas trajetórias po
  f'fadiga (dia {num(fp[0][0],1)}; escore {num(fp[0][1],1)}), o que marca a deterioração conjunta do estado de humor no '
  f'fim do microciclo.')
 figure(f'{FG}/cross_traj.png','Cruzamentos exatos das trajetórias de vigor, fadiga e PTH ao longo do microciclo (curvas do ajuste polinomial sobre as médias diárias; losangos: pontos de cruzamento, com o dia e o escore). Áreas sombreadas: início e acúmulo da semana.',w=15.0)
+vfc=ADV['vf_cross']; vfl=ADV['vf_last']
+P(f'Para examinar o cruzamento decisivo do eixo energia–fadiga com maior detalhe, a Figura {_FN[0]+1} amplia a região '
+ f'do último cruzamento e representa a diferença suavizada entre o vigor e a fadiga com a área sombreada de acordo com o '
+ f'sinal: a área é positiva enquanto o vigor domina e negativa quando a fadiga passa a dominar. Sobre as treze coletas, '
+ f'o vigor e a fadiga cruzaram-se três vezes (dias {num(vfc[0]["x"],1)}, {num(vfc[1]["x"],1)} e {num(vfl["x"],1)}), o '
+ f'que confirma um longo trecho de quase equilíbrio no miolo da semana. O cruzamento do dia {num(vfl["x"],1)} é o '
+ f'definitivo: a partir dele a diferença torna-se cada vez mais negativa e alcança cerca de três pontos de vantagem da '
+ f'fadiga ao fim do microciclo, sem retorno.')
+figure(f'{FG}/deriv_zoom.png','Cruzamento vigor × fadiga. Painel superior: curvas suavizadas com a área sombreada entre elas e os três cruzamentos assinalados. Painel inferior: recorte ampliado da diferença suavizada (vigor - fadiga), com a área sombreada segundo o sinal (verde: vigor domina; laranja: fadiga domina) e o cruzamento definitivo destacado.',w=14.5)
+P(f'A análise por suavização e derivadas foi então estendida às seis dimensões e à PTH (Figura {_FN[0]+1}; '
+ f'Tabela {_TN[0]+1}). A separação entre sinal e ruído variou muito entre as dimensões. O vigor e a fadiga '
+ f'apresentaram a maior razão sinal/ruído (S/R de {num(ADV["snr"]["Vigor"]["snr_amp"],1)} e '
+ f'{num(ADV["snr"]["Fadiga"]["snr_amp"],1)}), com trajetórias limpas e um único ponto de inflexão na metade da semana. '
+ f'Já as dimensões negativas exibiram sinal fraco e forte ruído (S/R entre {num(min(ADV["snr"][k]["snr_amp"] for k in ["Tensao","Depressao","Raiva","Confusao"]),1)} '
+ f'e {num(max(ADV["snr"][k]["snr_amp"] for k in ["Tensao","Depressao","Raiva","Confusao"]),1)}), com trajetórias '
+ f'irregulares e de pequena amplitude, marcadas por um forte efeito de piso.')
+figure(f'{FG}/all_deriv.png','Suavização e derivadas das seis dimensões do BRUMS e da PTH, sobre as treze coletas. Marcadores: sinal bruto (ruído); linha grossa: sinal suavizado; linha pontilhada: inflexão (segunda derivada nula); triângulos: máximo e mínimo. S/R: razão sinal/ruído (amplitude); piso: percentual de escores nulos.',w=15.5)
+SNRV=[('Vigor','Vigor'),('Fadiga','Fadiga'),('TMD','PTH'),('Tensao','Tensão'),('Depressao','Depressão'),('Raiva','Raiva'),('Confusao','Confusão')]
+def snrow(k,lab):
+    s=ADV['snr'][k]; inf=('Dia '+num(s['infl'][0],1)) if s['infl'] else 'n/d'
+    return [lab,num(s['signal_amp'],1),num(s['noise_sd'],2),num(s['snr_amp'],1),c2(f"{s['floor0']:.0f}")+'%',inf]
+table('Separação entre sinal e ruído, efeito de piso e ponto de inflexão de cada dimensão (curvas suavizadas sobre as 13 coletas).',
+ ['Dimensão','Amplitude do sinal','Ruído (DP)','S/R','Piso (% de zeros)','Inflexão (1º dia)'],
+ [snrow(k,l) for k,l in SNRV],
+ note='Amplitude do sinal = máximo - mínimo da curva suavizada; ruído = desvio-padrão dos resíduos; S/R = razão sinal/ruído; piso = percentual de observações com escore zero.',fs=8.5)
 
 H('5.6 Dias de pico e comparação de cada dia ao primeiro',12,before=6)
 P(f'A localização dos picos sintetiza a dinâmica semanal (Tabela {_TN[0]+1}). O vigor foi máximo no Dia {vmaxd} e mínimo '
@@ -457,7 +482,7 @@ table('Médias marginais estimadas por dia do vigor e da fadiga, com comparaçã
  note='* diferença significativa em relação ao Dia 1 (Tukey, p < 0,05).',fs=9)
 sfig(f'{FG}/ph_emm.png','Médias marginais diárias do vigor, da fadiga e da fadiga física, com comparação de todos os dias ao Dia 1 (* p < 0,05).',w=14.5)
 
-H('5.7 Variação entre pré e pós-treino (Wilcoxon)',12,before=6)
+H('5.7 Variação entre Pré e Pós-treino e Efeito Agudo/Recuperação',12,before=6)
 P(f'A comparação entre pré e pós-treino pelo teste de Wilcoxon (Tabela {_TN[0]+1}) evidenciou uma resposta aguda '
  f'coerente com o esforço: o vigor caiu (d = {vig_dz}) e a fadiga e a PTH subiram do momento pré para o pós, com efeito '
  f'de magnitude pequena a moderada. Essa oscilação dentro do dia somou-se à tendência semanal e ajudou a compor o quadro '
@@ -469,6 +494,28 @@ table('Comparação entre pré e pós-treino das dimensões do BRUMS e da PTH (t
  ['Dimensão','Pré (M)','Pós (M)','Variação (%)','p','d','Magnitude'],[wrow(k,l) for k,l in ORD],
  note='p do teste de Wilcoxon; d = tamanho de efeito de Cohen. PTH: perturbação total do humor.',fs=9)
 sfig(f'{FG}/abnt_f_prepos.png','Escores de vigor, fadiga e perturbação total do humor no pré e no pós-treino, por dia.',w=12.5)
+P(f'Para descrever a resposta aguda com maior rigor, cada uma das treze coletas foi comparada à coleta imediatamente '
+ f'anterior por meio do teste de Wilcoxon pareado, o que separa o efeito agudo do treino (transição pré→pós, dentro do '
+ f'dia) do efeito de recuperação entre sessões (transição pós→pré do dia seguinte). A Figura {_FN[0]+1} representa esse '
+ f'percurso em forma de dente de serra e a Tabela {_TN[0]+1} reúne o tamanho de efeito de cada transição no eixo '
+ f'energia–fadiga.')
+figure(f'{FG}/sequential.png','Efeito agudo (pré→pós, segmentos laranja) e de recuperação (pós→pré do dia seguinte, segmentos azuis) da PTH ao longo das treze coletas, com o vigor e a fadiga como contexto. Os rótulos indicam o tamanho de efeito das transições significativas da PTH (* p < 0,05, Wilcoxon pareado).',w=15.5)
+def tz(v):
+    return (c2(f"{v['dz']:+.2f}")+('*' if v['sig'] else ''))
+TR=ADV['trans']
+table('Transições sequenciais entre coletas: efeito agudo (pré→pós) e de recuperação (pós→pré) no eixo energia–fadiga (tamanho de efeito dz; teste de Wilcoxon pareado).',
+ ['Transição','Tipo','Vigor (dz)','Fadiga (dz)','PTH (dz)'],
+ [[t['lab'],'Agudo' if t['tipo'].startswith('Agudo') else 'Recuperação',tz(t['vars']['Vigor']),tz(t['vars']['Fadiga']),tz(t['vars']['TMD'])] for t in TR],
+ note='dz = tamanho de efeito intraindividual; * transição significativa (p < 0,05). Agudo = pré→pós no mesmo dia; Recuperação = pós→pré do dia seguinte (base = coleta única do Dia 1). PTH: perturbação total do humor.',fs=8)
+n_ag=sum(1 for t in TR if t['tipo'].startswith('Agudo') and t['vars']['TMD']['sig'])
+n_rec=sum(1 for t in TR if t['tipo'].startswith('Recup') and t['vars']['TMD']['sig'])
+P(f'O padrão foi consistente com o de um sistema que oscila sob carga e se recupera de forma parcial. As transições '
+ f'agudas tenderam a elevar a fadiga e a PTH e a reduzir o vigor, com destaque para a sessão do Dia 6, na qual a PTH '
+ f'subiu com efeito grande (dz = {num(TR[9]["vars"]["TMD"]["dz"],2)}) e o vigor caiu (dz = {num(TR[9]["vars"]["Vigor"]["dz"],2)}). '
+ f'As transições de recuperação, entre o pós de um dia e o pré do seguinte, moveram-se no sentido inverso e devolveram '
+ f'parte do vigor e reduziram a fadiga e a PTH, com o episódio mais nítido entre o Dia 2 e o Dia 3 (PTH com '
+ f'dz = {num(TR[2]["vars"]["TMD"]["dz"],2)}). Ainda assim, a recuperação noturna não anulou por completo o efeito agudo '
+ f'acumulado, o que explica a deriva descendente do vigor e a subida líquida da fadiga ao longo da semana.')
 
 H('5.8 Relações entre as dimensões (Spearman)',12,before=6)
 P(f'As correlações de Spearman entre as dimensões (Tabela {_TN[0]+1}) mostraram que as dimensões negativas se associam '
@@ -513,6 +560,16 @@ P('A perturbação total do humor comportou-se como um integrador desse eixo. O 
  'baixos, contribuíram pouco para a variação. A consistência interna adequada do vigor e da fadiga e a sua correlação '
  'intraclasse de moderada a boa convergem para a mesma conclusão, a saber, que o núcleo do sinal do monitoramento reside '
  'no par energia–fadiga (LOCHBAUM et al., 2021; ROHLFS et al., 2023).')
+P(f'Do ponto de vista psicométrico, a concentração das dimensões negativas junto ao limite inferior da escala é '
+ f'informativa, e não um mero artefato. O forte efeito de piso, com percentuais de escores nulos que chegaram a '
+ f'{num(ADV["snr"]["Confusao"]["floor0"],0)}% na confusão e a {num(ADV["snr"]["Depressao"]["floor0"],0)}% na depressão, '
+ f'reduz a variância disponível dessas dimensões, comprime a sua distribuição e rebaixa a sua razão sinal/ruído, o que '
+ f'limita a capacidade de detectar mudança e ajuda a explicar a sua menor confiabilidade entre medidas repetidas. Em '
+ f'atletas saudáveis e bem ajustados, esse piso é esperado e, longe de invalidar o instrumento, delimita o seu uso: as '
+ f'dimensões negativas funcionam como sentinelas de estados clínicos raros, ao passo que o vigor e a fadiga, livres do '
+ f'piso e com sinal limpo, carregam a informação útil ao monitoramento da carga (TERRY et al., 2022; ROHLFS et al., '
+ f'2023). Esse raciocínio recomenda cautela ao interpretar médias e testes das dimensões de piso e favorece, para elas, '
+ f'a leitura por prevalência e por perfis em vez da leitura por escore contínuo.')
 H('6.2 Perfis de humor e sobre-esforço funcional',12,before=6)
 P('A leitura por perfis acrescentou clareza a essa descrição. O deslocamento do perfil iceberg para a barbatana de '
  'tubarão traduz, em uma única imagem, a acumulação da carga sem os sinais de comprometimento da saúde mental, uma vez '
@@ -552,6 +609,25 @@ P('O rigor deste conjunto de análises apoia-se na convergência de métodos ind
  'que caracteriza uma triangulação metodológica. Os limiares de mudança derivados do coeficiente de correlação '
  'intraclasse delimitam ainda o que pode ser lido no plano individual e o que só se sustenta como tendência de grupo, o '
  'que mantém a inferência dentro dos limites do delineamento.')
+P(f'A decomposição entre sinal e ruído acrescenta uma leitura reflexiva sobre a qualidade da informação de cada '
+ f'dimensão. Ao separar a tendência lenta (o sinal) das flutuações de alta frequência (o ruído de medida e a '
+ f'variabilidade biológica do dia a dia), a suavização mostrou que o vigor e a fadiga concentram a maior razão '
+ f'sinal/ruído (cerca de {num(ADV["snr"]["Vigor"]["snr_amp"],1)} e {num(ADV["snr"]["Fadiga"]["snr_amp"],1)}), enquanto '
+ f'as dimensões negativas, comprimidas pelo piso, mal ultrapassam o ruído. Esse resultado converge com a análise '
+ f'psicométrica e com a estrutura de componentes principais, e fundamenta, por um terceiro caminho, a decisão de centrar '
+ f'o monitoramento no eixo energia–fadiga, no qual o sinal é forte o bastante para sustentar inferências sobre a carga '
+ f'(SAW; MAIN; GASTIN, 2016; HELWIG et al., 2023).')
+P(f'A análise sequencial das treze coletas revelou, por fim, a microestrutura da fadiga funcional. A decomposição de '
+ f'cada dia em um efeito agudo (pré→pós) e um efeito de recuperação (pós→pré do dia seguinte) mostrou um sistema que '
+ f'oscila em dente de serra: a sessão eleva a perturbação e reduz o vigor, e o intervalo entre sessões devolve parte do '
+ f'estado, com destaque para a carga elevada do Dia 6 (PTH com dz = {num(ADV["trans"][9]["vars"]["TMD"]["dz"],2)}) e '
+ f'para a recuperação entre o Dia 2 e o Dia 3 (PTH com dz = {num(ADV["trans"][2]["vars"]["TMD"]["dz"],2)}). O ponto '
+ f'central é que a recuperação foi apenas parcial: como o retorno noturno não anulou o efeito agudo, o saldo acumulou-se '
+ f'e produziu a deriva descendente do vigor ao longo da semana. Essa leitura dá conteúdo operacional ao conceito de '
+ f'sobre-esforço funcional, no qual a fadiga é induzida de forma planejada e monitorada justamente pela relação entre a '
+ f'carga aguda e a recuperação entre sessões, e sugere que o desequilíbrio persistente entre esses dois termos seria o '
+ f'sinal de alerta para a transição ao sobre-esforço não funcional (KELLMANN et al., 2018; ROETE et al., 2021; '
+ f'MĂNESCU et al., 2026).')
 H('6.4 Aplicação prática e perspectivas',12,before=6)
 P('As características do handebol ajudam a explicar esse comportamento e orientam a aplicação. A modalidade impõe esforço '
  'intermitente de alta intensidade, com sprints curtos, mudanças de direção, saltos e contato, o que gera elevada '
