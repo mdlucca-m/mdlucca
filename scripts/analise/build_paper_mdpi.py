@@ -280,7 +280,7 @@ table('Médias diárias das dimensões do BRUMS e teste de Friedman com W de Ken
  note='W de Kendall: trivial (< 0,1); pequeno (0,1–0,3); moderado (0,3–0,5); grande (> 0,5). PTH: perturbação total do humor.',fs=8)
 P(f'A Figura {_FN[0]+1} ilustra a trajetória do vigor, da fadiga e da PTH, com a queda progressiva do vigor e a elevação '
  f'da fadiga em direção ao fim do microciclo, e a Figura {_FN[0]+2} detalha, por dia, a distribuição de cada dimensão.')
-figure(f'{FG}/abnt_f1_trajetoria.png','Trajetória de vigor, fadiga e perturbação total do humor ao longo dos sete dias.',w=14.5)
+figure(f'{FG}/abnt_f1_trajetoria.png','Trajetória de vigor, fadiga e perturbação total do humor ao longo dos sete dias (curvas suavizadas; ponto de inflexão e extremos sinalizados).',w=12.5)
 figure(f'{FG}/xb3_box.png','Diagramas de caixa das seis dimensões do BRUMS por dia do microciclo (áreas sombreadas: início e acúmulo da semana).',w=15.0)
 
 H('3.5. Suavização das Trajetórias e Limites das Segundas Derivadas',after=2)
@@ -292,7 +292,7 @@ P(f'Para separar o sinal do ruído, as trajetórias do vigor, da fadiga e da PTH
  f'fase inicial de prontidão e a fase de acúmulo de carga. A curva suavizada do vigor subiu até um máximo em torno do '
  f'Dia {num(SMO["V"]["ymax_x"],1)} e caiu para o seu mínimo ao fim da semana, enquanto a fadiga e a PTH percorreram o '
  f'caminho inverso e atingiram os seus máximos no último dia.')
-figure(f'{FG}/smooth_deriv.png','Trajetórias suavizadas do vigor, da fadiga e da PTH sobre os doze pontos pré e pós-treino. Marcadores translúcidos: sinal bruto; linha grossa: sinal suavizado; linha pontilhada: ponto de inflexão (segunda derivada nula); triângulos: máximo e mínimo. Áreas sombreadas: início e acúmulo da semana.',w=15.0)
+figure(f'{FG}/smooth_deriv.png','Trajetórias suavizadas do vigor, da fadiga e da PTH sobre os doze pontos pré e pós-treino. Marcadores translúcidos: sinal bruto; linha grossa: sinal suavizado; linha pontilhada: ponto de inflexão (segunda derivada nula); triângulos: máximo e mínimo. Áreas sombreadas: início e acúmulo da semana.',w=12.5)
 def smrow(k,lab):
     r=SMO[k]; inf=('Dia '+num(r['infl'][0],1)) if r['infl'] else 'n/d'
     return [lab,inf,f"Dia {num(r['ymax_x'],1)} ({num(r['ymax'],1)})",f"Dia {num(r['ymin_x'],1)} ({num(r['ymin'],1)})"]
@@ -328,7 +328,7 @@ table('Comparação entre pré e pós-treino das dimensões do BRUMS e da PTH (t
  ['Dimensão','Pré (M)','Pós (M)','Variação (%)','p','d','Magnitude'],
  [[l,num(pr[k]['pre'],2),num(pr[k]['pos'],2),c2(f"{pr[k]['pct']:+.0f}")+'%',pvt(pr[k]['p']),c2(f"{pr[k]['dz']:+.2f}"),pr[k]['mag']] for k,l in ORD],
  note='p do teste de Wilcoxon; d = tamanho de efeito de Cohen. PTH: perturbação total do humor.')
-figure(f'{FG}/abnt_f_prepos.png','Escores de vigor, fadiga e perturbação total do humor no pré e no pós-treino, por dia.',w=14.5)
+figure(f'{FG}/abnt_f_prepos.png','Escores de vigor, fadiga e perturbação total do humor no pré e no pós-treino, por dia.',w=12.5)
 
 H('3.8. Relações entre as Dimensões',after=2)
 P(f'As correlações de Spearman (Tabela {_TN[0]+1}) mostraram que as dimensões negativas se associam entre si, com '
