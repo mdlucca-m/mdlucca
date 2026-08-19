@@ -323,11 +323,14 @@ table('Ponto de inflexão (segunda derivada nula) e extremos das trajetórias su
  note='Curvas suavizadas por spline sobre os 12 pontos pré/pós; inflexão = raiz da segunda derivada. PTH: perturbação total do humor.')
 P(f'A mesma inflexão foi examinada por dois caminhos complementares, detalhados no material suplementar. O painel da '
  f'segunda derivada localiza o cruzamento por zero de cada curva e realça os extremos com o respectivo valor (Figura S7). '
- f'Em paralelo, um ajuste polinomial de grau três reproduz a inflexão de forma analítica, na raiz da segunda derivada '
- f'(x = -b/3a), e resume cada trajetória por uma equação (Figura S8): o R² foi de {num(POLY["V"]["r2"],2)} para o vigor, '
- f'{num(POLY["F"]["r2"],2)} para a fadiga e {num(POLY["P"]["r2"],2)} para a PTH, com inflexões em torno dos dias '
- f'{num(POLY["V"]["infl"],1)}, {num(POLY["F"]["infl"],1)} e {num(POLY["P"]["infl"],1)}, próximas das obtidas pela spline '
- f'e coerentes com a transição para a fase de acúmulo na metade da semana.')
+ f'Em paralelo, um ajuste polinomial de grau três resume cada trajetória por uma equação e reproduz a inflexão de forma '
+ f'analítica, na raiz da segunda derivada (x = -b/3a), em duas resoluções (Figura S8). Sobre as sete médias diárias, o '
+ f'ajuste foi forte, com R² de {num(POLY["V"]["d7"]["r2"],2)} para o vigor, {num(POLY["F"]["d7"]["r2"],2)} para a fadiga e '
+ f'{num(POLY["P"]["d7"]["r2"],2)} para a PTH, e inflexões nos dias {num(POLY["V"]["d7"]["infl"],1)}, '
+ f'{num(POLY["F"]["d7"]["infl"],1)} e {num(POLY["P"]["d7"]["infl"],1)}. Sobre os quatorze pontos pré e pós-treino, '
+ f'incluída a linha de base do primeiro dia, o R² foi de {num(POLY["V"]["d14"]["r2"],2)}, {num(POLY["F"]["d14"]["r2"],2)} '
+ f'e {num(POLY["P"]["d14"]["r2"],2)}, com inflexões praticamente idênticas. As duas resoluções convergem para a transição '
+ f'na metade da semana e reforçam, por via paramétrica, o achado da spline.')
 
 H('3.6. Dias de Pico e Comparação de Cada Dia ao Primeiro',after=2)
 P(f'A localização dos picos sintetiza a dinâmica semanal (Tabela {_TN[0]+1}): o vigor foi máximo no Dia {vmaxd} e mínimo '
@@ -468,7 +471,7 @@ for i,rf in enumerate(refs,1):
 
 # ===== MATERIAL SUPLEMENTAR (figuras diferidas) =====
 sfig(f'{FG}/deriv_impact.png','Análise por derivadas do eixo energia–fadiga. Em cada variável, o painel superior traz a curva suavizada com o máximo e o mínimo realçados em cápsulas de valor, e o painel inferior traz a segunda derivada (concavidade) com o cruzamento por zero destacado, que marca o ponto de inflexão da trajetória.',w=15.0)
-sfig(f'{FG}/poly_fit.png','Ajuste polinomial de grau três das trajetórias do vigor, da fadiga e da PTH sobre os doze pontos pré e pós-treino. Cada painel traz a equação ajustada, o coeficiente de determinação (R²) e a inflexão analítica (raiz da segunda derivada, x = -b/3a).',w=14.5)
+sfig(f'{FG}/poly_fit.png','Ajuste polinomial de grau três das trajetórias do vigor, da fadiga e da PTH em duas resoluções: sobre as sete médias diárias (marcadores quadrados e linha cheia) e sobre os quatorze pontos pré e pós-treino, incluída a linha de base do primeiro dia (pontos translúcidos e linha tracejada). Cada painel traz a equação do ajuste diário, o R² de cada resolução e a inflexão analítica (raiz da segunda derivada, x = -b/3a).',w=14.5)
 render_supp()
 
 OUTP='/home/user/mdlucca/Artigos/Paper1_Humor_MDPI.docx'
