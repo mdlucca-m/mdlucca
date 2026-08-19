@@ -18,7 +18,7 @@ stl=doc.styles['Normal']; stl.font.name='Times New Roman'; stl.font.size=Pt(12)
 stl.element.rPr.rFonts.set(qn('w:eastAsia'),'Times New Roman')
 stl.paragraph_format.line_spacing=1.5; stl.paragraph_format.space_after=Pt(0)
 sec=doc.sections[0]; sec.top_margin=Cm(3); sec.left_margin=Cm(3); sec.bottom_margin=Cm(2); sec.right_margin=Cm(2)
-_TN=[0]; _FN=[0]
+_TN=[0]; _FN=[0]; _SN=[0]; SUPP=[]
 def P(t='',just=True,size=12,after=0,bold=False,ind=True):
     p=doc.add_paragraph(); r=p.add_run(t); r.font.size=Pt(size); r.bold=bold
     p.paragraph_format.line_spacing=1.5; p.paragraph_format.space_after=Pt(after)
@@ -81,6 +81,18 @@ def figure(path,cap,w=15.0):
     pc=doc.add_paragraph(); pc.alignment=WD_ALIGN_PARAGRAPH.CENTER; rc=pc.add_run('Figura %d – %s'%(_FN[0],cap)); rc.font.size=Pt(11)
     pf=doc.add_paragraph(); pf.alignment=WD_ALIGN_PARAGRAPH.CENTER; rf=pf.add_run('Fonte: elaboração dos autores (2026).'); rf.font.size=Pt(9); pf.paragraph_format.space_after=Pt(6)
     return _FN[0]
+def sfig(path,cap,w=15.0):
+    # figura suplementar: registra para renderizacao diferida (bloco Material Suplementar)
+    _SN[0]+=1; SUPP.append((path,cap,w,_SN[0])); return _SN[0]
+def render_supp():
+    if not SUPP: return
+    H('MATERIAL SUPLEMENTAR',12,before=12)
+    P('As figuras a seguir complementam os resultados do corpo do artigo e detalham a distribuição diária das dimensões, '
+      'a resposta aguda pré e pós-treino e as comparações par a par.',after=4)
+    for path,cap,w,n in SUPP:
+        pp=doc.add_paragraph(); pp.alignment=WD_ALIGN_PARAGRAPH.CENTER; pp.add_run().add_picture(path,width=Cm(w)); pp.paragraph_format.space_before=Pt(6)
+        pc=doc.add_paragraph(); pc.alignment=WD_ALIGN_PARAGRAPH.CENTER; rc=pc.add_run('Figura S%d – %s'%(n,cap)); rc.font.size=Pt(11)
+        pf=doc.add_paragraph(); pf.alignment=WD_ALIGN_PARAGRAPH.CENTER; rf=pf.add_run('Fonte: elaboração dos autores (2026).'); rf.font.size=Pt(9); pf.paragraph_format.space_after=Pt(6)
 
 sm=R['sample']; desc=R['desc']; pr=R['prepos']; d17=R['d1d7']; PREV=MS['prev']
 # ---- valores pré-calculados (f-strings, sem armadilha de %) ----
@@ -234,7 +246,7 @@ P(f'A partir do ICC derivaram-se os limiares de mudança das duas dimensões do 
 table('Erro de medida e limiares de mudança do vigor e da fadiga (escala 0–16): erro-padrão de medida (SEM), mudança mínima detectável (MDC) e menor mudança relevante (SWC).',
  ['Dimensão','SEM','MDC90','MDC95','SWC'],
  [[l,num(MDC[k]['sem'],1),num(MDC[k]['mdc90'],1),num(MDC[k]['mdc95'],1),num(MDC[k]['swc'],1)] for k,l in [('Vigor','Vigor'),('Fadiga','Fadiga')]],
- note='SEM = DP × √(1 − ICC); MDC = 1,65 (90%) ou 1,96 (95%) × √2 × SEM; SWC = 0,2 × DP entre atletas. Uma mudança individual só é tomada como real quando excede a MDC.',fs=9)
+ note='SEM = DP × √(1 - ICC); MDC = 1,65 (90%) ou 1,96 (95%) × √2 × SEM; SWC = 0,2 × DP entre atletas. Uma mudança individual só é tomada como real quando excede a MDC.',fs=9)
 
 H('4.2 Perfis de humor e sua migração',12,before=6)
 P(f'Os seis perfis de humor descritos na literatura estiveram representados na amostra. A Figura {_FN[0]+1} apresenta '
@@ -295,18 +307,18 @@ table('Médias diárias das dimensões do BRUMS e teste de Friedman com W de Ken
 P(f'A Figura {_FN[0]+1} ilustra a trajetória do vigor, da fadiga e da PTH ao longo da semana, com a queda progressiva do '
  f'vigor e a elevação da fadiga e da PTH em direção ao fim do microciclo.')
 figure(f'{FG}/abnt_f1_trajetoria.png','Trajetória de vigor, fadiga e perturbação total do humor ao longo dos sete dias (curvas suavizadas; ponto de inflexão e extremos sinalizados).',w=12.5)
-P(f'A Figura {_FN[0]+1} detalha, por meio de diagramas de caixa por dia, a distribuição de cada dimensão ao longo da '
+P(f'A Figura S1 detalha, por meio de diagramas de caixa por dia, a distribuição de cada dimensão ao longo da '
  f'semana. O deslocamento das caixas do vigor para baixo e das caixas da fadiga para cima, sobretudo na segunda metade do '
  f'microciclo, torna visível a mesma deterioração do eixo energia–fadiga, ao passo que as dimensões negativas de menor '
  f'expressão mantêm caixas comprimidas junto ao zero.')
-figure(f'{FG}/xb3_box.png','Diagramas de caixa das seis dimensões do BRUMS por dia do microciclo (áreas sombreadas: início e acúmulo da semana).',w=15.0)
-P(f'A comparação direta da PTH entre três momentos do microciclo (Figura {_FN[0]+1}) ilustra a mesma tendência: a '
+sfig(f'{FG}/xb3_box.png','Diagramas de caixa das seis dimensões do BRUMS por dia do microciclo (áreas sombreadas: início e acúmulo da semana).',w=15.0)
+P(f'A comparação direta da PTH entre três momentos do microciclo (Figura S2) ilustra a mesma tendência: a '
  f'perturbação total do humor aumentou do primeiro para o último dia, e a diferença foi significativa entre o Dia 1 e o '
  f'Dia 7 (p = 0,008), ao passo que as comparações entre dias adjacentes não alcançaram significância.')
-figure(f'{FG}/box_signif.png','Perturbação total do humor (PTH) no Dia 1, no Dia 4 e no Dia 7, com as comparações par a par (teste de Mann-Whitney; * p < 0,05; ** p < 0,01; ns = não significativo).',w=11.5)
-P(f'A distribuição completa da PTH em cada dia (Figura {_FN[0]+1}) e a sua distribuição acumulada (Figura {_FN[0]+2}) confirmam o deslocamento ao longo da semana. Os diagramas de violino mostram a densidade da PTH a subir do Dia 1 ao Dia 7, e as curvas de distribuição acumulada revelam um deslocamento sistemático para a direita, com o Dia 7 situado acima do Dia 1 em praticamente toda a faixa de escores.')
-figure(f'{FG}/tec_violin.png','Distribuição da PTH por dia (diagramas de violino com caixa e média; a escala foi ajustada à faixa central da distribuição para facilitar a leitura).',w=13.0)
-figure(f'{FG}/tec_ecdf.png','Distribuição acumulada (ECDF) da PTH no Dia 1, no Dia 4 e no Dia 7; o deslocamento das curvas para a direita indica o aumento da perturbação ao longo do microciclo.',w=12.5)
+sfig(f'{FG}/box_signif.png','Perturbação total do humor (PTH) no Dia 1, no Dia 4 e no Dia 7, com as comparações par a par (teste de Mann-Whitney; * p < 0,05; ** p < 0,01; ns = não significativo).',w=11.5)
+P(f'A distribuição completa da PTH em cada dia (Figura S3) e a sua distribuição acumulada (Figura S4) confirmam o deslocamento ao longo da semana. Os diagramas de violino mostram a densidade da PTH a subir do Dia 1 ao Dia 7, e as curvas de distribuição acumulada revelam um deslocamento sistemático para a direita, com o Dia 7 situado acima do Dia 1 em praticamente toda a faixa de escores.')
+sfig(f'{FG}/tec_violin.png','Distribuição da PTH por dia (diagramas de violino com caixa e média; a escala foi ajustada à faixa central da distribuição para facilitar a leitura).',w=13.0)
+sfig(f'{FG}/tec_ecdf.png','Distribuição acumulada (ECDF) da PTH no Dia 1, no Dia 4 e no Dia 7; o deslocamento das curvas para a direita indica o aumento da perturbação ao longo do microciclo.',w=12.5)
 
 H('4.5 Suavização das trajetórias e limites das segundas derivadas',12,before=6)
 P(f'Para separar o sinal do ruído, as trajetórias do vigor, da fadiga e da PTH foram suavizadas sobre os doze pontos pré '
@@ -340,26 +352,27 @@ def emm(v,d): return num(PHJ[v]['emm'][str(d)],2)
 def sig1(v,d): return '' if d==1 or PHJ[v]['pairs'].get('1_%d'%d,{}).get('ptukey',1)>=0.05 else '*'
 np_vig=sum(1 for k,pp in PHJ['Vigor']['pairs'].items() if pp['ptukey']<0.05)
 np_fad=sum(1 for k,pp in PHJ['Fadiga']['pairs'].items() if pp['ptukey']<0.05)
-P(f'No pós-teste que compara todos os dias entre si (Tabela {_TN[0]+1}; Figura {_FN[0]+1}), o vigor diferiu de forma '
+P(f'No pós-teste que compara todos os dias entre si (Tabela {_TN[0]+1}; Figura S5), o vigor diferiu de forma '
  f'significativa em {np_vig} dos 21 pares de dias e a fadiga em {np_fad}, sempre no sentido de piora em relação aos '
  f'primeiros dias, o que confirma a deterioração progressiva do eixo energia–fadiga ao longo do microciclo.')
 table('Médias marginais estimadas por dia do vigor e da fadiga, com comparação de cada dia ao Dia 1 (pós-teste de Tukey).',
  ['Dia','Vigor','Fadiga'],
  [[f'Dia {d}',emm('Vigor',d)+sig1('Vigor',d),emm('Fadiga',d)+sig1('Fadiga',d)] for d in range(1,8)],
  note='* diferença significativa em relação ao Dia 1 (Tukey, p < 0,05).',fs=9)
-figure(f'{FG}/ph_emm.png','Médias marginais diárias do vigor, da fadiga e da fadiga física, com comparação de todos os dias ao Dia 1 (* p < 0,05).',w=14.5)
+sfig(f'{FG}/ph_emm.png','Médias marginais diárias do vigor, da fadiga e da fadiga física, com comparação de todos os dias ao Dia 1 (* p < 0,05).',w=14.5)
 
 H('4.7 Variação entre pré e pós-treino (Wilcoxon)',12,before=6)
 P(f'A comparação entre pré e pós-treino pelo teste de Wilcoxon (Tabela {_TN[0]+1}) evidenciou uma resposta aguda '
  f'coerente com o esforço: o vigor caiu (d = {vig_dz}) e a fadiga e a PTH subiram do momento pré para o pós, com efeito '
  f'de magnitude pequena a moderada. Essa oscilação dentro do dia somou-se à tendência semanal e ajudou a compor o quadro '
- f'de fadiga funcional observado no fim do microciclo.')
+ f'de fadiga funcional observado no fim do microciclo. A Figura S6 apresenta esses escores por dia e mostra que a '
+ f'diferença entre pré e pós-treino se mantém ao longo da semana.')
 def wrow(k,lab):
     v=pr[k]; return [lab,num(v['pre'],2),num(v['pos'],2),c2(f"{v['pct']:+.0f}")+'%',pvt(v['p']),c2(f"{v['dz']:+.2f}"),v['mag']]
 table('Comparação entre pré e pós-treino das dimensões do BRUMS e da PTH (teste de Wilcoxon e d de Cohen).',
  ['Dimensão','Pré (M)','Pós (M)','Variação (%)','p','d','Magnitude'],[wrow(k,l) for k,l in ORD],
  note='p do teste de Wilcoxon; d = tamanho de efeito de Cohen. PTH: perturbação total do humor.',fs=9)
-figure(f'{FG}/abnt_f_prepos.png','Escores de vigor, fadiga e perturbação total do humor no pré e no pós-treino, por dia.',w=12.5)
+sfig(f'{FG}/abnt_f_prepos.png','Escores de vigor, fadiga e perturbação total do humor no pré e no pós-treino, por dia.',w=12.5)
 
 H('4.8 Relações entre as dimensões (Spearman)',12,before=6)
 P(f'As correlações de Spearman entre as dimensões (Tabela {_TN[0]+1}) mostraram que as dimensões negativas se associam '
@@ -450,5 +463,8 @@ refs=[
 for rf in refs:
     p=doc.add_paragraph(); r=p.add_run(rf); r.font.size=Pt(11); p.paragraph_format.line_spacing=1.3; p.paragraph_format.space_after=Pt(4); p.alignment=WD_ALIGN_PARAGRAPH.JUSTIFY
 
+# ===== MATERIAL SUPLEMENTAR (figuras diferidas) =====
+render_supp()
+
 OUTP='/home/user/mdlucca/Artigos/Paper1_Humor_resumido.docx'
-doc.save(OUTP); print('SAVED',OUTP,'| Tabelas',_TN[0],'Figuras',_FN[0])
+doc.save(OUTP); print('SAVED',OUTP,'| Tabelas',_TN[0],'Figuras corpo',_FN[0],'Figuras supl.',_SN[0])
