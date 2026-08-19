@@ -12,7 +12,7 @@ R=json.load(open('brums_desc2.json')); MS=json.load(open('model_stats.json'))
 PSY=json.load(open('psychometric.json')); PK=json.load(open('peaks.json'))
 PCA=json.load(open('pca.json')); LOG=json.load(open('logistica.json')); MV=json.load(open('manova.json'))
 STAT=json.load(open('brums_stats3.json')); S4=json.load(open('brums_stats4.json')); CRS=json.load(open('cross.json'))
-MDC=json.load(open('mdc.json')); PHJ=json.load(open('posthoc.json'))
+MDC=json.load(open('mdc.json')); PHJ=json.load(open('posthoc.json')); SMO=json.load(open('smooth_deriv.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 BODY='Palatino Linotype'
 def c2(s): return str(s).replace('.',',')
@@ -283,7 +283,25 @@ P(f'A Figura {_FN[0]+1} ilustra a trajetória do vigor, da fadiga e da PTH, com 
 figure(f'{FG}/abnt_f1_trajetoria.png','Trajetória de vigor, fadiga e perturbação total do humor ao longo dos sete dias.',w=14.5)
 figure(f'{FG}/xb3_box.png','Diagramas de caixa das seis dimensões do BRUMS por dia do microciclo (áreas sombreadas: início e acúmulo da semana).',w=15.0)
 
-H('3.5. Dias de Pico e Comparação de Cada Dia ao Primeiro',after=2)
+H('3.5. Suavização das Trajetórias e Limites das Segundas Derivadas',after=2)
+P(f'Para separar o sinal do ruído, as trajetórias do vigor, da fadiga e da PTH foram suavizadas sobre os doze pontos '
+ f'pré e pós-treino por meio de uma spline, e a segunda derivada de cada curva localizou o seu ponto de inflexão, ou '
+ f'seja, o momento em que a concavidade muda e a taxa de variação atinge o seu limite (Figura {_FN[0]+1}; '
+ f'Tabela {_TN[0]+1}). Depois de removido o ruído, cada dimensão exibiu um único ponto de inflexão, situado na metade da '
+ f'semana (em torno do Dia {num(SMO["V"]["infl"][0],1) if SMO["V"]["infl"] else "n/d"}), o que marca a transição entre a '
+ f'fase inicial de prontidão e a fase de acúmulo de carga. A curva suavizada do vigor subiu até um máximo em torno do '
+ f'Dia {num(SMO["V"]["ymax_x"],1)} e caiu para o seu mínimo ao fim da semana, enquanto a fadiga e a PTH percorreram o '
+ f'caminho inverso e atingiram os seus máximos no último dia.')
+figure(f'{FG}/smooth_deriv.png','Trajetórias suavizadas do vigor, da fadiga e da PTH sobre os doze pontos pré e pós-treino. Marcadores translúcidos: sinal bruto; linha grossa: sinal suavizado; linha pontilhada: ponto de inflexão (segunda derivada nula); triângulos: máximo e mínimo. Áreas sombreadas: início e acúmulo da semana.',w=15.0)
+def smrow(k,lab):
+    r=SMO[k]; inf=('Dia '+num(r['infl'][0],1)) if r['infl'] else 'n/d'
+    return [lab,inf,f"Dia {num(r['ymax_x'],1)} ({num(r['ymax'],1)})",f"Dia {num(r['ymin_x'],1)} ({num(r['ymin'],1)})"]
+table('Ponto de inflexão (segunda derivada nula) e extremos das trajetórias suavizadas do eixo energia–fadiga.',
+ ['Dimensão','Inflexão (dia)','Máximo: dia (escore)','Mínimo: dia (escore)'],
+ [smrow('V','Vigor'),smrow('F','Fadiga'),smrow('P','PTH')],
+ note='Curvas suavizadas por spline sobre os 12 pontos pré/pós; inflexão = raiz da segunda derivada. PTH: perturbação total do humor.')
+
+H('3.6. Dias de Pico e Comparação de Cada Dia ao Primeiro',after=2)
 P(f'A localização dos picos sintetiza a dinâmica semanal (Tabela {_TN[0]+1}): o vigor foi máximo no Dia {vmaxd} e mínimo '
  f'no Dia {vmind}, ao passo que a fadiga foi máxima no Dia {fmaxd}. O início da semana reúne maior prontidão e o final '
  f'concentra a fadiga e a raiva.')
@@ -303,7 +321,7 @@ table('Médias marginais estimadas por dia do vigor e da fadiga, com comparaçã
  note='* diferença significativa em relação ao Dia 1 (Tukey, p < 0,05).')
 figure(f'{FG}/ph_emm.png','Médias marginais diárias do vigor, da fadiga e da fadiga física, com comparação de todos os dias ao Dia 1 (* p < 0,05).',w=14.5)
 
-H('3.6. Variação entre Pré e Pós-Treino',after=2)
+H('3.7. Variação entre Pré e Pós-Treino',after=2)
 P(f'O teste de Wilcoxon (Tabela {_TN[0]+1}) evidenciou uma resposta aguda coerente com o esforço: o vigor caiu '
  f'(d = {vig_dz}) e a fadiga e a PTH subiram do momento pré para o pós, com efeito de magnitude pequena a moderada.')
 table('Comparação entre pré e pós-treino das dimensões do BRUMS e da PTH (teste de Wilcoxon e d de Cohen).',
@@ -312,7 +330,7 @@ table('Comparação entre pré e pós-treino das dimensões do BRUMS e da PTH (t
  note='p do teste de Wilcoxon; d = tamanho de efeito de Cohen. PTH: perturbação total do humor.')
 figure(f'{FG}/abnt_f_prepos.png','Escores de vigor, fadiga e perturbação total do humor no pré e no pós-treino, por dia.',w=14.5)
 
-H('3.7. Relações entre as Dimensões',after=2)
+H('3.8. Relações entre as Dimensões',after=2)
 P(f'As correlações de Spearman (Tabela {_TN[0]+1}) mostraram que as dimensões negativas se associam entre si, com '
  f'destaque para os pares depressão–raiva e tensão–confusão, e que a fadiga se relaciona com a depressão e a raiva. O '
  f'vigor manteve-se relativamente independente, o que reforça a sua leitura como um polo próprio do eixo energia–fadiga.')
