@@ -13,7 +13,7 @@ PSY=json.load(open('psychometric.json')); PK=json.load(open('peaks.json'))
 PCA=json.load(open('pca.json')); LOG=json.load(open('logistica.json')); MV=json.load(open('manova.json'))
 STAT=json.load(open('brums_stats3.json')); S4=json.load(open('brums_stats4.json')); CRS=json.load(open('cross.json'))
 MDC=json.load(open('mdc.json')); PHJ=json.load(open('posthoc.json')); SMO=json.load(open('smooth_deriv.json'))
-POLY=json.load(open('poly_fit.json'))
+POLY=json.load(open('poly_fit.json')); CRX=json.load(open('cross_pts.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 BODY='Palatino Linotype'
 def c2(s): return str(s).replace('.',',')
@@ -304,7 +304,7 @@ P(f'A distribuição completa da PTH em cada dia (Figura S3) e a sua distribuiç
 sfig(f'{FG}/tec_violin.png','Distribuição da PTH por dia (diagramas de violino com caixa e média; a escala foi ajustada à faixa central da distribuição para facilitar a leitura).',w=13.5)
 sfig(f'{FG}/tec_ecdf.png','Distribuição acumulada (ECDF) da PTH no Dia 1, no Dia 4 e no Dia 7; o deslocamento das curvas para a direita indica o aumento da perturbação ao longo do microciclo.',w=13.0)
 
-H('3.5. Suavização das Trajetórias e Limites das Segundas Derivadas',after=2)
+H('3.5. Suavização, Derivadas e Cruzamento das Trajetórias',after=2)
 P(f'Para separar o sinal do ruído, as trajetórias do vigor, da fadiga e da PTH foram suavizadas sobre os doze pontos '
  f'pré e pós-treino por meio de uma spline, e a segunda derivada de cada curva localizou o seu ponto de inflexão, ou '
  f'seja, o momento em que a concavidade muda e a taxa de variação atinge o seu limite (Figura {_FN[0]+1}; '
@@ -331,6 +331,19 @@ P(f'A mesma inflexão foi examinada por dois caminhos complementares, detalhados
  f'incluída a linha de base do primeiro dia, o R² foi de {num(POLY["V"]["d14"]["r2"],2)}, {num(POLY["F"]["d14"]["r2"],2)} '
  f'e {num(POLY["P"]["d14"]["r2"],2)}, com inflexões praticamente idênticas. As duas resoluções convergem para a transição '
  f'na metade da semana e reforçam, por via paramétrica, o achado da spline.')
+vf=CRX['cross']['VF']; vp=CRX['cross']['VP']; fp=CRX['cross']['FP']
+P(f'Como o vigor e a fadiga compartilham a mesma escala, as suas trajetórias podem ser comparadas de forma direta e os '
+ f'seus cruzamentos exatos podem ser localizados (Figura {_FN[0]+1}). No primeiro dia, o vigor superou a fadiga por ampla '
+ f'margem (média de {num(d17["Vigor"]["d1"],1)} contra {num(d17["Fadiga"]["d1"],1)} pontos). O vigor caiu e a fadiga '
+ f'subiu até que as duas curvas se igualaram pela primeira vez em torno do dia {num(vf[0][0],1)} (escore '
+ f'{num(vf[0][1],1)}). A partir daí, o vigor e a fadiga percorreram uma faixa estreita e próxima e voltaram a cruzar-se '
+ f'nos dias {num(vf[1][0],1)} e {num(vf[-1][0],1)}, sinal de um equilíbrio instável entre energia e fadiga durante a '
+ f'maior parte da semana. Após o último cruzamento, no dia {num(vf[-1][0],1)} (escore {num(vf[-1][1],1)}), a fadiga '
+ f'afastou-se de forma definitiva acima do vigor. No mesmo trecho final, a perturbação total do humor, que vinha abaixo '
+ f'das duas dimensões, subiu e ultrapassou primeiro o vigor (dia {num(vp[0][0],1)}; escore {num(vp[0][1],1)}) e depois a '
+ f'fadiga (dia {num(fp[0][0],1)}; escore {num(fp[0][1],1)}), o que marca a deterioração conjunta do estado de humor no '
+ f'fim do microciclo.')
+figure(f'{FG}/cross_traj.png','Cruzamentos exatos das trajetórias de vigor, fadiga e PTH ao longo do microciclo (curvas do ajuste polinomial sobre as médias diárias; losangos: pontos de cruzamento, com o dia e o escore). Áreas sombreadas: início e acúmulo da semana.',w=15.0)
 
 H('3.6. Dias de Pico e Comparação de Cada Dia ao Primeiro',after=2)
 P(f'A localização dos picos sintetiza a dinâmica semanal (Tabela {_TN[0]+1}): o vigor foi máximo no Dia {vmaxd} e mínimo '
