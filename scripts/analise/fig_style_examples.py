@@ -21,8 +21,15 @@ def whisk(g):
 wlo=min(whisk(g)[0] for g in groups); whi=max(whisk(g)[1] for g in groups)
 f=go.Figure()
 for g,lab in zip(groups,LAB):
-    f.add_trace(go.Box(y=g,name=lab,marker=dict(color='#e03131',size=4,opacity=0.5),line=dict(color='#a51111',width=2.6),
+    f.add_trace(go.Box(y=g,name=lab,boxmean=True,marker=dict(color='#e03131',size=4,opacity=0.5),line=dict(color='#a51111',width=2.6),
         fillcolor='rgba(224,49,49,0.78)',boxpoints='outliers',width=0.55,showlegend=False))
+# média sinalizada em cada caixa (losango) + rótulo do valor
+for lab,g in zip(LAB,groups):
+    m=float(np.mean(g))
+    f.add_trace(go.Scatter(x=[lab],y=[m],mode='markers',marker=dict(symbol='diamond',size=13,color='white',
+        line=dict(color='#7b241c',width=2.4)),showlegend=False,hoverinfo='skip'))
+    f.add_annotation(x=lab,y=m,text='<b>média %.1f</b>'%m,showarrow=False,yshift=17,font=dict(size=11.5,color='#7b241c'),
+        bgcolor='rgba(255,255,255,0.82)',borderpad=1)
 rng=whi-wlo; base=whi+rng*0.06; step=rng*0.13
 order=sorted(pres,key=lambda t:(t[1]-t[0]))       # pares curtos embaixo, largos em cima
 for lvl,(i,j,p) in enumerate(order):

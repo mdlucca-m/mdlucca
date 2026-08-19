@@ -53,10 +53,10 @@ for i,(k,col_,lab,col) in enumerate(VARS):
         name='Média diária',showlegend=(r==1),legendgroup='m'),r,1)
     f.add_trace(go.Scatter(x=xx,y=ys,mode='lines',line=dict(color=col,width=LW),name='Curva suavizada',showlegend=(r==1),legendgroup='s'),r,1)
     sigmark(xx,ys,infl,f,r,col,yhi,pad)
-    f.update_yaxes(title='Escore',range=[ylo-pad*0.5,yhi+pad],gridcolor='#eceef1',zeroline=False,row=r,col=1)
-    f.update_xaxes(title='Dia do microciclo' if r==3 else '',dtick=1,range=[0.8,7.2],gridcolor='#eceef1',zeroline=False,row=r,col=1)
+    f.update_yaxes(title='Escore',range=[ylo-pad*0.5,yhi+pad],showgrid=False,zeroline=False,row=r,col=1)
+    f.update_xaxes(title='Dia do microciclo' if r==3 else '',dtick=1,range=[0.8,7.2],showgrid=False,zeroline=False,row=r,col=1)
 baselay(f,'')
-f.write_image(f'{OUT}/abnt_f1_trajetoria.png',width=1500,height=1180,scale=3)
+f.write_image(f'{OUT}/abnt_f1_trajetoria.png',width=1560,height=1000,scale=3)
 print('OK abnt_f1_trajetoria.png (padrão)')
 
 # ================= 2) PRÉ/PÓS POR DIA (abnt_f_prepos.png) =================
@@ -71,10 +71,10 @@ for i,(k,col_,lab,col) in enumerate(VARS):
         marker=dict(size=MK,color='white',line=dict(color=col,width=2)),name='Pré-treino',showlegend=(r==1),legendgroup='pre'),r,1)
     f.add_trace(go.Scatter(x=pos.dia,y=pos[k],mode='lines+markers',line=dict(color=col,width=LW),
         marker=dict(size=MK,color=col,line=dict(color='white',width=1)),name='Pós-treino',showlegend=(r==1),legendgroup='pos'),r,1)
-    f.update_yaxes(title='Escore',range=[ylo-pad*0.5,yhi+pad],gridcolor='#eceef1',zeroline=False,row=r,col=1)
-    f.update_xaxes(title='Dia do microciclo' if r==3 else '',dtick=1,range=[1.5,7.5],gridcolor='#eceef1',zeroline=False,row=r,col=1)
+    f.update_yaxes(title='Escore',range=[ylo-pad*0.5,yhi+pad],showgrid=False,zeroline=False,row=r,col=1)
+    f.update_xaxes(title='Dia do microciclo' if r==3 else '',dtick=1,range=[1.5,7.5],showgrid=False,zeroline=False,row=r,col=1)
 baselay(f,'')
-f.write_image(f'{OUT}/abnt_f_prepos.png',width=1500,height=1180,scale=3)
+f.write_image(f'{OUT}/abnt_f_prepos.png',width=1560,height=1000,scale=3)
 print('OK abnt_f_prepos.png (padrão)')
 
 # ================= 3) MÉDIAS MARGINAIS vs DIA 1 (ph_emm.png) =================
@@ -97,8 +97,8 @@ for k,lab,col in PHV:
     for d in days[1:]:
         if PHJ[k]['pairs'].get('1_%d'%d,{}).get('ptukey',1)<0.05:
             f.add_annotation(x=d,y=y[d-1],text='*',showarrow=False,yshift=13,font=dict(size=17,color=col))
-f.update_yaxes(title='Escore (média marginal estimada)',range=[ylo-pad*0.5,yhi+pad],gridcolor='#eceef1',zeroline=False)
-f.update_xaxes(title='Dia do microciclo',dtick=1,range=[0.8,7.2],gridcolor='#eceef1',zeroline=False)
+f.update_yaxes(title='Escore (média marginal estimada)',range=[ylo-pad*0.5,yhi+pad],showgrid=False,zeroline=False)
+f.update_xaxes(title='Dia do microciclo',dtick=1,range=[0.8,7.2],showgrid=False,zeroline=False)
 f.update_layout(template='mdpi',font=dict(color='#1a1a1a',size=15,family='Arial'),paper_bgcolor='white',plot_bgcolor='white',
     margin=dict(l=60,r=20,t=52,b=50),legend=dict(orientation='h',y=1.10,x=0.5,xanchor='center',font=dict(size=12),
         bgcolor='rgba(255,255,255,0.6)',bordercolor='#dee2e6',borderwidth=1))

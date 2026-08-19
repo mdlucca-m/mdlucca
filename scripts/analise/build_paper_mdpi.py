@@ -296,7 +296,7 @@ P(f'Para separar o sinal do ruído, as trajetórias do vigor, da fadiga e da PTH
  f'fase inicial de prontidão e a fase de acúmulo de carga. A curva suavizada do vigor subiu até um máximo em torno do '
  f'Dia {num(SMO["V"]["ymax_x"],1)} e caiu para o seu mínimo ao fim da semana, enquanto a fadiga e a PTH percorreram o '
  f'caminho inverso e atingiram os seus máximos no último dia.')
-figure(f'{FG}/smooth_deriv.png','Trajetórias suavizadas do vigor, da fadiga e da PTH sobre os doze pontos pré e pós-treino. Marcadores translúcidos: sinal bruto; linha grossa: sinal suavizado; linha pontilhada: ponto de inflexão (segunda derivada nula); triângulos: máximo e mínimo. Áreas sombreadas: início e acúmulo da semana.',w=12.5)
+figure(f'{FG}/smooth_deriv.png','Trajetórias suavizadas do vigor, da fadiga e da PTH sobre os doze pontos pré e pós-treino. Marcadores translúcidos: sinal bruto; linha grossa: sinal suavizado; linha pontilhada: ponto de inflexão (segunda derivada nula); triângulos: máximo e mínimo. Áreas sombreadas: início e acúmulo da semana.',w=10.5)
 def smrow(k,lab):
     r=SMO[k]; inf=('Dia '+num(r['infl'][0],1)) if r['infl'] else 'n/d'
     return [lab,inf,f"Dia {num(r['ymax_x'],1)} ({num(r['ymax'],1)})",f"Dia {num(r['ymin_x'],1)} ({num(r['ymin'],1)})"]

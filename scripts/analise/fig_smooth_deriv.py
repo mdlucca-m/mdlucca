@@ -61,13 +61,13 @@ for i,(k,lab,col) in enumerate(VARS):
         font=dict(size=9,color=col),row=r,col=1)
     f.add_annotation(x=RES[k]['ymin_x'],y=RES[k]['ymin'],text='mín',showarrow=True,arrowhead=0,ax=0,ay=16,
         font=dict(size=9,color=col),row=r,col=1)
-    f.update_yaxes(title='Escore',range=[ylo-pad*0.5,yhi+pad],gridcolor='#eceef1',zeroline=False,row=r,col=1)
+    f.update_yaxes(title='Escore',range=[ylo-pad*0.5,yhi+pad],showgrid=False,zeroline=False,row=r,col=1)
     f.update_xaxes(title='Dia do microciclo' if r==3 else '',range=[x.min()-0.2,x.max()+0.2],
-        dtick=1,gridcolor='#eceef1',zeroline=False,row=r,col=1)
+        dtick=1,showgrid=False,zeroline=False,row=r,col=1)
 f.update_layout(template='mdpi',font=dict(color='#1a1a1a',size=14,family='Arial'),
     paper_bgcolor='white',plot_bgcolor='white',margin=dict(l=58,r=20,t=58,b=48),
     legend=dict(orientation='h',y=1.10,x=0.5,xanchor='center',font=dict(size=12),
         bgcolor='rgba(255,255,255,0.6)',bordercolor='#dee2e6',borderwidth=1))
-f.write_image(f'{OUT}/smooth_deriv.png',width=1500,height=1180,scale=3)
+f.write_image(f'{OUT}/smooth_deriv.png',width=1560,height=1000,scale=3)
 json.dump(RES,open('smooth_deriv.json','w'),ensure_ascii=False,indent=1)
 print('OK smooth_deriv.png | inflexões:',{k:[round(v,2) for v in RES[k]['infl']] for k in RES})

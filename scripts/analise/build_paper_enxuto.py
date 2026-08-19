@@ -303,7 +303,7 @@ figure(f'{FG}/xb3_box.png','Diagramas de caixa das seis dimensões do BRUMS por 
 P(f'A comparação direta da PTH entre três momentos do microciclo (Figura {_FN[0]+1}) ilustra a mesma tendência: a '
  f'perturbação total do humor aumentou do primeiro para o último dia, e a diferença foi significativa entre o Dia 1 e o '
  f'Dia 7 (p = 0,008), ao passo que as comparações entre dias adjacentes não alcançaram significância.')
-figure(f'{FG}/box_signif.png','Perturbação total do humor (PTH) no Dia 1, no Dia 4 e no Dia 7, com as comparações par a par (teste de Mann-Whitney; * p < 0,05; ** p < 0,01; ns = não significativo).',w=13.0)
+figure(f'{FG}/box_signif.png','Perturbação total do humor (PTH) no Dia 1, no Dia 4 e no Dia 7, com as comparações par a par (teste de Mann-Whitney; * p < 0,05; ** p < 0,01; ns = não significativo).',w=11.5)
 
 H('4.5 Suavização das trajetórias e limites das segundas derivadas',12,before=6)
 P(f'Para separar o sinal do ruído, as trajetórias do vigor, da fadiga e da PTH foram suavizadas sobre os doze pontos pré '
