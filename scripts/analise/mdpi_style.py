@@ -13,8 +13,8 @@ t.layout.title = dict(font=dict(family='Arial, Helvetica, sans-serif', size=18, 
 t.layout.paper_bgcolor = 'white'
 t.layout.plot_bgcolor = 'white'
 
-# eixos: grade nítida + linha de eixo grossa com ticks maiores para fora (escalas visíveis)
-_axis = dict(showgrid=True, gridcolor='#dfe3e8', gridwidth=1.2,
+# eixos: SEM linha de grade (fundo branco limpo) + linha de eixo grossa com ticks para fora
+_axis = dict(showgrid=False, gridcolor='#dfe3e8', gridwidth=1.2,
              showline=True, linecolor='#4d5259', linewidth=2,
              ticks='outside', tickcolor='#4d5259', ticklen=7, tickwidth=1.6,
              tickfont=dict(size=15), zeroline=False, automargin=True)

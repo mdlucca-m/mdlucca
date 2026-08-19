@@ -133,13 +133,17 @@ RUN([('Objetivo: ',True),(f'descrever e caracterizar a dinâmica do humor de atl
  f'linha de base e duas coletas diárias (pré e pós-treino) nos seis dias de treino, e um total de {sm["n_obs"]} '
  f'observações. Além da estatística descritiva, da consistência interna e da classificação dos perfis, as comparações '
  f'entre dias e entre pré e pós-treino incluíram o tamanho e a magnitude do efeito, e as trajetórias foram analisadas '
- f'por suavização, segundas derivadas, ajuste polinomial e localização dos cruzamentos entre as dimensões. ',False),
+ f'por suavização, segundas derivadas, ajuste polinomial, localização dos cruzamentos entre as dimensões, separação '
+ f'entre sinal e ruído e comparação sequencial do efeito agudo (pré→pós) e de recuperação (pós→pré do dia seguinte) por '
+ f'teste de Wilcoxon pareado. ',False),
  ('Resultados: ',True),(f'a deterioração concentrou-se no eixo energia–fadiga: o vigor caiu e a fadiga subiu do primeiro '
  f'para o último dia, com efeito grande (d = {d1d7_vig_dz} e d = {d1d7_fad_dz}) e confirmação multivariada (Wilks λ = {wilks}; p {p_mv}). '
  f'As trajetórias suavizadas apresentaram um ponto de inflexão na metade da semana, e a fadiga ultrapassou o vigor de '
- f'forma definitiva no fim do microciclo, com a PTH a superar ambas as dimensões. A prevalência dos perfis deslocou-se '
- f'do iceberg ({ice_d1}% no primeiro dia) para a barbatana de tubarão ({bar_d7}% no último dia), com aumento da chance '
- f'desse perfil a cada dia (OR = {or_bar}). ',False),
+ f'forma definitiva no fim do microciclo, com a PTH a superar ambas as dimensões. O vigor e a fadiga concentraram a '
+ f'maior razão sinal/ruído, ao passo que as dimensões negativas mostraram forte efeito de piso. A análise sequencial '
+ f'revelou um padrão em dente de serra, com piora aguda no treino, sobretudo no Dia 6 (PTH com dz = {num(ADV["trans"][9]["vars"]["TMD"]["dz"],2)}), '
+ f'e recuperação apenas parcial entre as sessões. A prevalência dos perfis deslocou-se do iceberg ({ice_d1}% no primeiro '
+ f'dia) para a barbatana de tubarão ({bar_d7}% no último dia), com aumento da chance desse perfil a cada dia (OR = {or_bar}). ',False),
  ('Conclusão: ',True),(f'o humor migrou da prontidão para a fadiga funcional, em um padrão compatível com sobre-esforço '
  f'funcional, o que recomenda centrar o monitoramento no par vigor–fadiga e no cruzamento entre as suas curvas.',False)],after=6)
 P('Palavras-chave: humor; BRUMS; handebol; perfis de humor; fadiga; monitoramento do atleta.',size=11,after=8,ind=False)
@@ -269,6 +273,14 @@ P('A forma temporal das trajetórias foi analisada por três abordagens compleme
 
 # ===== 4 RESULTADOS =====
 H('5 RESULTADOS')
+P('Os resultados são apresentados em três níveis de profundidade, em ordem lógica. O primeiro nível, descritivo, resume '
+ 'as seis dimensões e a PTH, avalia a consistência interna e os limiares de mudança, e caracteriza os perfis de humor e '
+ 'a sua migração. O segundo nível, exploratório, compara os dias e os momentos pré e pós-treino com o cálculo do tamanho '
+ 'e da magnitude do efeito, e examina as relações entre as dimensões e a estrutura de componentes principais. O terceiro '
+ 'nível, avançado, modela a forma temporal das trajetórias por suavização, segundas derivadas, ajuste polinomial e '
+ 'localização dos cruzamentos, separa o sinal do ruído em cada dimensão e decompõe a resposta em efeito agudo e de '
+ 'recuperação ao longo das treze coletas. Cada análise é descrita e, em seguida, interpretada quanto ao seu significado '
+ 'para o monitoramento do atleta.')
 
 H('5.1 Descrição e consistência das dimensões',12,before=6)
 P('A Tabela 1 resume as seis dimensões do BRUMS e a PTH no conjunto das observações. O vigor apresentou a maior média '
@@ -543,6 +555,14 @@ figure(f'{FG}/pca_circulo.png','Círculo de correlação da análise de componen
 
 # ===== 5 DISCUSSÃO =====
 H('6 DISCUSSÃO')
+P('O conjunto dos resultados sustenta uma tese central: em um microciclo pré-competitivo de handebol de elite, o estado '
+ 'de humor comporta-se como um sistema dinâmico de um único eixo dominante, o eixo energia–fadiga, que se deteriora de '
+ 'modo ordenado sob a carga e cujo curso pode ser lido, datado e quantificado. Cada camada de análise, da descrição '
+ 'simples à modelagem das trajetórias, converge para esse mesmo núcleo por caminhos independentes, o que confere '
+ 'robustez à interpretação e afasta a leitura de achados isolados. A discussão a seguir organiza essa convergência em '
+ 'quatro eixos: o significado do padrão observado, a sua tradução por perfis de humor, a contribuição metodológica das '
+ 'análises de trajetória e a sua aplicação prática, com atenção reflexiva aos limites psicométricos do instrumento e à '
+ 'natureza dos dados.')
 H('6.1 Migração do humor e o eixo energia–fadiga',12,before=6)
 P('Os resultados descrevem, em um microciclo pré-competitivo de handebol de elite, a migração do humor da prontidão para '
  'a fadiga funcional. A queda do vigor e a elevação da fadiga entre o primeiro e o último dia alcançaram efeito grande e '

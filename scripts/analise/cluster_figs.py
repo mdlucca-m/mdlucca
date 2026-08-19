@@ -28,7 +28,7 @@ for c in CL:
     f.add_trace(go.Scatter(x=[NM[k] for k in SUB],y=yv,mode='lines+markers',
         name='%s (%.0f%%)'%(CLAB[c],100*len(sub)/len(h)),line=dict(color=COL[c],width=4.6),
         marker=dict(size=11,line=dict(color='white',width=1))))
-f.update_layout(**base(height=620,width=1150,title=dict(text='<b>Perfis de humor (clusters) em escores T — amostra do estudo</b>',x=0.5,font=dict(size=17)),
+f.update_layout(**base(height=620,width=1150,title=dict(text='<b>Perfis de humor (clusters) em escores T: amostra do estudo</b>',x=0.5,font=dict(size=17)),
     legend=dict(orientation='h',y=-0.16,x=0.5,xanchor='center',font=dict(size=12))))
 f.update_yaxes(title='Escore T (M = 50; DP = 10)',range=[30,80],dtick=5,**GRID); f.update_xaxes(**GRID)
 f.write_image(f'{OUT}/xb6_clusters.png',width=1250,height=680,scale=3)
