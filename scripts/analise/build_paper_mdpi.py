@@ -286,6 +286,9 @@ P(f'A comparação direta da PTH entre três momentos do microciclo (Figura {_FN
  f'perturbação total do humor aumentou do primeiro para o último dia, e a diferença foi significativa entre o Dia 1 e o '
  f'Dia 7 (p = 0,008), embora as comparações entre dias adjacentes não tenham alcançado significância.')
 figure(f'{FG}/box_signif.png','Perturbação total do humor (PTH) no Dia 1, no Dia 4 e no Dia 7, com as comparações par a par (teste de Mann-Whitney; * p < 0,05; ** p < 0,01; ns = não significativo).',w=13.0)
+P(f'A distribuição completa da PTH em cada dia (Figura {_FN[0]+1}) e a sua distribuição acumulada (Figura {_FN[0]+2}) confirmam o deslocamento ao longo da semana. Os diagramas de violino mostram a densidade da PTH a subir do Dia 1 ao Dia 7, e as curvas de distribuição acumulada revelam um deslocamento sistemático para a direita, com o Dia 7 situado acima do Dia 1 em praticamente toda a faixa de escores.')
+figure(f'{FG}/tec_violin.png','Distribuição da PTH por dia (diagramas de violino com caixa e média; a escala foi ajustada à faixa central da distribuição para facilitar a leitura).',w=13.5)
+figure(f'{FG}/tec_ecdf.png','Distribuição acumulada (ECDF) da PTH no Dia 1, no Dia 4 e no Dia 7; o deslocamento das curvas para a direita indica o aumento da perturbação ao longo do microciclo.',w=13.0)
 
 H('3.5. Suavização das Trajetórias e Limites das Segundas Derivadas',after=2)
 P(f'Para separar o sinal do ruído, as trajetórias do vigor, da fadiga e da PTH foram suavizadas sobre os doze pontos '
@@ -343,6 +346,11 @@ table('Correlações de Spearman significativas entre as dimensões do BRUMS (n 
  ['Par de dimensões','ρ','p'],
  [[f"{x['a']} × {x['b']}",c2(f"{x['rho']:+.2f}"),pvt(x['p'])] for x in sigpairs],
  note='ρ = coeficiente de correlação de Spearman. Apresentam-se apenas os pares com p < 0,05.')
+P(f'A relação entre o vigor e a fadiga, além de negativa, tornou-se mais estreita à medida que a carga se acumulou '
+ f'(Figura {_FN[0]+1}): a regressão por fase do microciclo mostrou um acoplamento fraco na fase inicial (r = -0,35) e '
+ f'mais forte na fase de acúmulo (r = -0,51), o que sugere que os dois polos do eixo energia–fadiga passam a variar de '
+ f'forma mais solidária sob fadiga acumulada.')
+figure(f'{FG}/tec_regr.png','Relação entre vigor e fadiga por fase do microciclo, com a reta de regressão de cada grupo (início: dias 1 a 4; acúmulo: dias 5 a 7).',w=12.5)
 
 H('3.9. Estrutura Dimensional (Análise de Componentes Principais)',after=2)
 P(f'Uma análise exploratória de componentes principais resumiu a estrutura das seis dimensões. Os dois primeiros '
