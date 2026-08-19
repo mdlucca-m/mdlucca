@@ -13,6 +13,7 @@ PSY=json.load(open('psychometric.json')); PK=json.load(open('peaks.json'))
 PCA=json.load(open('pca.json')); LOG=json.load(open('logistica.json')); MV=json.load(open('manova.json'))
 STAT=json.load(open('brums_stats3.json')); S4=json.load(open('brums_stats4.json')); CRS=json.load(open('cross.json'))
 MDC=json.load(open('mdc.json')); PHJ=json.load(open('posthoc.json')); SMO=json.load(open('smooth_deriv.json'))
+POLY=json.load(open('poly_fit.json'))
 FG='/home/user/mdlucca/Artigos/figuras'
 BODY='Palatino Linotype'
 def c2(s): return str(s).replace('.',',')
@@ -95,7 +96,7 @@ def render_supp():
     if not SUPP: return
     H('Material Suplementar',before=12)
     P('As figuras a seguir complementam os resultados do corpo do artigo e detalham a distribuição diária, a resposta '
-      'aguda pré e pós-treino e as comparações par a par.',after=4)
+      'aguda pré e pós-treino, as comparações par a par, a análise por derivadas e o ajuste polinomial das trajetórias.',after=4)
     for path,cap,w,n in SUPP:
         pp=doc.add_paragraph(); pp.alignment=WD_ALIGN_PARAGRAPH.CENTER; pp.add_run().add_picture(path,width=Cm(w)); pp.paragraph_format.space_before=Pt(6)
         pc=doc.add_paragraph(); pc.alignment=WD_ALIGN_PARAGRAPH.CENTER; pc.paragraph_format.space_after=Pt(6)
@@ -320,6 +321,13 @@ table('Ponto de inflexão (segunda derivada nula) e extremos das trajetórias su
  ['Dimensão','Inflexão (dia)','Máximo: dia (escore)','Mínimo: dia (escore)'],
  [smrow('V','Vigor'),smrow('F','Fadiga'),smrow('P','PTH')],
  note='Curvas suavizadas por spline sobre os 12 pontos pré/pós; inflexão = raiz da segunda derivada. PTH: perturbação total do humor.')
+P(f'A mesma inflexão foi examinada por dois caminhos complementares, detalhados no material suplementar. O painel da '
+ f'segunda derivada localiza o cruzamento por zero de cada curva e realça os extremos com o respectivo valor (Figura S7). '
+ f'Em paralelo, um ajuste polinomial de grau três reproduz a inflexão de forma analítica, na raiz da segunda derivada '
+ f'(x = -b/3a), e resume cada trajetória por uma equação (Figura S8): o R² foi de {num(POLY["V"]["r2"],2)} para o vigor, '
+ f'{num(POLY["F"]["r2"],2)} para a fadiga e {num(POLY["P"]["r2"],2)} para a PTH, com inflexões em torno dos dias '
+ f'{num(POLY["V"]["infl"],1)}, {num(POLY["F"]["infl"],1)} e {num(POLY["P"]["infl"],1)}, próximas das obtidas pela spline '
+ f'e coerentes com a transição para a fase de acúmulo na metade da semana.')
 
 H('3.6. Dias de Pico e Comparação de Cada Dia ao Primeiro',after=2)
 P(f'A localização dos picos sintetiza a dinâmica semanal (Tabela {_TN[0]+1}): o vigor foi máximo no Dia {vmaxd} e mínimo '
@@ -419,7 +427,7 @@ def bm(lbl,txt):
     p=doc.add_paragraph(); r=p.add_run(lbl+' '); r.bold=True; r.italic=True; r.font.size=Pt(9); r.font.name=BODY
     r2=p.add_run(txt); r2.font.size=Pt(9); r2.font.name=BODY; p.paragraph_format.space_before=Pt(4); p.paragraph_format.space_after=Pt(0); p.alignment=WD_ALIGN_PARAGRAPH.JUSTIFY
 doc.add_paragraph().paragraph_format.space_after=Pt(4)
-bm('Materiais Suplementares:','As figuras suplementares (Figuras S1 a S6) estão disponíveis ao fim deste documento e detalham a distribuição diária das dimensões, as comparações par a par da PTH, os diagramas de violino e a distribuição acumulada, as médias marginais diárias e a resposta pré e pós-treino.')
+bm('Materiais Suplementares:','As figuras suplementares (Figuras S1 a S8) estão disponíveis ao fim deste documento e detalham a distribuição diária das dimensões, as comparações par a par da PTH, os diagramas de violino e a distribuição acumulada, as médias marginais diárias, a resposta pré e pós-treino, a análise por derivadas e o ajuste polinomial das trajetórias.')
 bm('Contribuições dos Autores:','[conceituação; metodologia; análise formal; investigação; redação do rascunho original; redação, revisão e edição]. Todos os autores leram e concordaram com a versão publicada do manuscrito.')
 bm('Financiamento:','[Esta pesquisa não recebeu financiamento externo / nome da agência e número do processo].')
 bm('Declaração do Comitê de Ética:','O estudo foi conduzido de acordo com a Declaração de Helsinque e aprovado pelo Comitê de Ética em Pesquisa de [Instituição] (CAAE [número]; parecer [número], [data]).')
@@ -459,6 +467,8 @@ for i,rf in enumerate(refs,1):
     p.paragraph_format.left_indent=Cm(0.6); p.paragraph_format.first_line_indent=Cm(-0.6)
 
 # ===== MATERIAL SUPLEMENTAR (figuras diferidas) =====
+sfig(f'{FG}/deriv_impact.png','Análise por derivadas do eixo energia–fadiga. Em cada variável, o painel superior traz a curva suavizada com o máximo e o mínimo realçados em cápsulas de valor, e o painel inferior traz a segunda derivada (concavidade) com o cruzamento por zero destacado, que marca o ponto de inflexão da trajetória.',w=15.0)
+sfig(f'{FG}/poly_fit.png','Ajuste polinomial de grau três das trajetórias do vigor, da fadiga e da PTH sobre os doze pontos pré e pós-treino. Cada painel traz a equação ajustada, o coeficiente de determinação (R²) e a inflexão analítica (raiz da segunda derivada, x = -b/3a).',w=14.5)
 render_supp()
 
 OUTP='/home/user/mdlucca/Artigos/Paper1_Humor_MDPI.docx'
