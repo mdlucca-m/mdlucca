@@ -1,0 +1,470 @@
+<title>Dinâmica do Humor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg0:#080b11; --bg1:#0e1622; --bg2:#101a28;
+  --glass:rgba(18,27,40,.55); --glass2:rgba(24,34,50,.62); --stroke:rgba(120,150,190,.16);
+  --ink:#e9eef6; --muted:#93a3b8; --faint:#61748c;
+  --vigor:#33c2ad; --fadiga:#ff7a45; --pth:#8b7bf0;
+  --tensao:#4d9de0; --depressao:#c56bd6; --raiva:#e0525b; --confusao:#f0a848;
+  --good:#33c2ad; --warn:#f0a848; --crit:#e0525b;
+  --accent:#5ad3c4;
+  --shadow:0 18px 50px -20px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Manrope",system-ui,sans-serif; color:var(--ink);
+  background:
+    radial-gradient(1200px 700px at 78% -8%, rgba(139,123,240,.14), transparent 60%),
+    radial-gradient(1000px 640px at 8% 108%, rgba(51,194,173,.12), transparent 58%),
+    linear-gradient(160deg, var(--bg0), var(--bg1) 46%, var(--bg2));
+  min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
+}
+#rain{position:fixed; inset:0; z-index:0; pointer-events:none}
+.wrap{position:relative; z-index:2; max-width:1280px; margin:0 auto; padding:26px 22px 70px; perspective:1600px}
+header.top{display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-bottom:20px}
+.brand{display:flex; flex-direction:column; gap:6px}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.32em; text-transform:uppercase; color:var(--accent); opacity:.9}
+h1{font-family:"Sora",sans-serif; font-weight:800; font-size:clamp(26px,3.6vw,42px); margin:0; line-height:1.02; letter-spacing:-.015em; text-wrap:balance}
+.sub{color:var(--muted); font-size:14px; max-width:52ch}
+.meta{display:flex; gap:10px; flex-wrap:wrap}
+.chip{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.04em; color:var(--muted);
+  background:var(--glass); border:1px solid var(--stroke); border-radius:999px; padding:7px 12px; backdrop-filter:blur(9px)}
+.chip b{color:var(--ink)}
+
+nav.seg{display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 22px}
+nav.seg button{
+  font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.02em; color:var(--muted);
+  background:var(--glass); border:1px solid var(--stroke); border-radius:11px; padding:9px 13px; cursor:pointer;
+  backdrop-filter:blur(10px); transition:.22s; display:flex; align-items:center; gap:8px}
+nav.seg button .n{color:var(--faint); font-size:10.5px}
+nav.seg button:hover{color:var(--ink); border-color:rgba(120,150,190,.34); transform:translateY(-1px)}
+nav.seg button[aria-current="true"]{color:#04110f; background:linear-gradient(180deg,#67e0cf,#33c2ad); border-color:transparent; box-shadow:0 8px 22px -10px rgba(51,194,173,.7)}
+nav.seg button[aria-current="true"] .n{color:rgba(3,17,15,.55)}
+
+.panel{
+  background:var(--glass); border:1px solid var(--stroke); border-radius:20px; padding:22px;
+  backdrop-filter:blur(16px) saturate(1.15); -webkit-backdrop-filter:blur(16px) saturate(1.15);
+  box-shadow:var(--shadow); transform-style:preserve-3d}
+.section-head{display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:4px}
+.section-head h2{font-family:"Sora",sans-serif; font-weight:700; font-size:20px; margin:0; letter-spacing:-.01em}
+.section-head .tag{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--accent); letter-spacing:.1em; text-transform:uppercase}
+.lead{color:var(--muted); font-size:13.5px; line-height:1.6; max-width:74ch; margin:8px 0 18px}
+
+.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(155px,1fr)); gap:14px; margin-bottom:20px}
+.kpi{background:var(--glass2); border:1px solid var(--stroke); border-radius:16px; padding:15px 16px; position:relative; overflow:hidden;
+  transition:transform .3s; transform:translateZ(0)}
+.kpi:hover{transform:translateY(-3px) rotateX(4deg)}
+.kpi .lab{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
+.kpi .val{font-family:"Sora",sans-serif; font-weight:800; font-size:30px; line-height:1.05; margin-top:6px; letter-spacing:-.02em}
+.kpi .cap{font-size:11.5px; color:var(--faint); margin-top:3px}
+.kpi .stripe{position:absolute; left:0; top:0; bottom:0; width:4px; border-radius:4px}
+
+.grid2{display:grid; grid-template-columns:1fr; gap:18px}
+@media(min-width:900px){.grid2{grid-template-columns:1.15fr .85fr}}
+.card{background:var(--glass2); border:1px solid var(--stroke); border-radius:16px; padding:16px}
+.card h3{font-family:"Sora",sans-serif; font-weight:600; font-size:14.5px; margin:0 0 4px}
+.card .note{font-size:11.5px; color:var(--faint); margin:0 0 12px}
+.chartbox{position:relative; width:100%}
+canvas.chart{display:block; width:100%; height:auto}
+.legend{display:flex; gap:14px; flex-wrap:wrap; margin-top:12px}
+.legend .it{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); cursor:pointer; user-select:none; font-family:"IBM Plex Mono",monospace}
+.legend .it .dot{width:12px; height:12px; border-radius:4px}
+.legend .it.off{opacity:.35; text-decoration:line-through}
+
+table.dyn{width:100%; border-collapse:collapse; font-size:12.5px}
+table.dyn th,table.dyn td{padding:8px 10px; text-align:right; border-bottom:1px solid rgba(120,150,190,.1); font-variant-numeric:tabular-nums; font-family:"IBM Plex Mono",monospace}
+table.dyn th:first-child,table.dyn td:first-child{text-align:left; font-family:"Manrope",sans-serif}
+table.dyn thead th{color:var(--muted); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; position:sticky; top:0;
+  background:linear-gradient(180deg,rgba(24,34,50,.96),rgba(24,34,50,.72)); backdrop-filter:blur(4px); white-space:nowrap}
+table.dyn thead th:hover{color:var(--ink)}
+table.dyn thead th .ar{color:var(--accent); font-size:9px; margin-left:3px}
+table.dyn tbody tr{transition:background .15s}
+table.dyn tbody tr:hover{background:rgba(90,211,196,.06)}
+.pill{display:inline-block; padding:2px 9px; border-radius:999px; font-size:10.5px; font-family:"IBM Plex Mono",monospace; letter-spacing:.02em}
+.pill.grande{background:rgba(224,82,91,.16); color:#ff8a92}
+.pill.médio{background:rgba(240,168,72,.16); color:#ffc27a}
+.pill.pequeno{background:rgba(77,157,224,.16); color:#8fc4f2}
+.pill.trivial{background:rgba(120,150,190,.14); color:var(--muted)}
+.sig{color:var(--good); font-weight:600}
+.pos{color:#ff9166}.neg{color:#5ad3c4}
+.tablewrap{overflow-x:auto; margin-top:6px}
+.tip{position:fixed; z-index:50; pointer-events:none; background:rgba(10,16,24,.94); border:1px solid var(--stroke);
+  border-radius:10px; padding:9px 11px; font-size:12px; font-family:"IBM Plex Mono",monospace; color:var(--ink);
+  box-shadow:var(--shadow); opacity:0; transition:opacity .12s; backdrop-filter:blur(8px); max-width:240px}
+.foot{color:var(--faint); font-size:11.5px; text-align:center; margin-top:26px; font-family:"IBM Plex Mono",monospace; letter-spacing:.03em}
+.hidden{display:none}
+.split{display:grid; grid-template-columns:1fr; gap:18px}
+@media(min-width:900px){.split.tw{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+
+<canvas id="rain" aria-hidden="true"></canvas>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow">Handebol de elite · microciclo pré-competitivo</span>
+      <h1>Dinâmica do Humor</h1>
+      <span class="sub">Painel analítico interativo das seis dimensões do BRUMS, dos perfis de humor e das trajetórias do eixo energia-fadiga ao longo de sete dias.</span>
+    </div>
+    <div class="meta">
+      <span class="chip"><b>27</b> atletas</span>
+      <span class="chip"><b>286</b> observações</span>
+      <span class="chip"><b>13</b> coletas</span>
+      <span class="chip"><b>7</b> dias</span>
+    </div>
+  </header>
+
+  <nav class="seg" id="nav" aria-label="Segmentação por análise"></nav>
+  <main class="panel" id="stage" aria-live="polite"></main>
+  <p class="foot">Dados da pesquisa (2026) · escores BRUMS de 0 a 16 · testes não paramétricos, tamanho de efeito e modelagem das trajetórias.</p>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+"use strict";
+const $=(s,e=document)=>e.querySelector(s);
+const rm=window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+const C={vigor:"#33c2ad",fadiga:"#ff7a45",pth:"#8b7bf0",tensao:"#4d9de0",depressao:"#c56bd6",raiva:"#e0525b",confusao:"#f0a848",
+  ink:"#e9eef6",muted:"#93a3b8",faint:"#61748c",grid:"rgba(120,150,190,.13)",good:"#33c2ad",warn:"#f0a848",crit:"#e0525b"};
+
+/* ===================== DATA ===================== */
+const DAYS=[1,2,3,4,5,6,7];
+const DIM=[
+ {k:"vigor",lab:"Vigor",c:C.vigor,daily:[8.3,5.4,5.5,5.4,5.9,5.7,4.4]},
+ {k:"fadiga",lab:"Fadiga",c:C.fadiga,daily:[3.4,5.2,5.1,5.8,5.1,6.0,7.2]},
+ {k:"tensao",lab:"Tensão",c:C.tensao,daily:[2.1,1.8,1.1,1.4,1.2,1.5,1.1]},
+ {k:"depressao",lab:"Depressão",c:C.depressao,daily:[0.6,1.3,0.7,1.2,0.7,1.2,1.4]},
+ {k:"raiva",lab:"Raiva",c:C.raiva,daily:[1.7,1.7,1.6,1.6,0.6,1.8,2.5]},
+ {k:"confusao",lab:"Confusão",c:C.confusao,daily:[1.0,0.6,0.3,0.4,0.2,0.7,0.6]},
+ {k:"pth",lab:"PTH",c:C.pth,daily:[0.6,5.3,3.3,5.0,1.9,5.5,8.3]}
+];
+const DESC=[
+ ["Vigor",5.7,3.3,"0–15"],["Fadiga",5.5,4.1,"0–16"],["Tensão",1.4,1.8,"0–8"],
+ ["Depressão",1.0,2.4,"0–16"],["Raiva",1.6,2.8,"0–14"],["Confusão",0.5,1.3,"0–8"],["PTH",4.4,10.1,"−12–52"]
+];
+const ICC=[["Vigor",.53,.89,"moderada"],["Fadiga",.61,.92,"moderada"],["Tensão",.64,.93,"moderada"],
+ ["Depressão",.68,.94,"moderada"],["Raiva",.39,.82,"pobre"],["Confusão",.36,.80,"pobre"]];
+const LIM=[["Vigor",2.3,5.3,6.3,0.7],["Fadiga",2.6,5.9,7.0,0.8],["Tensão",1.1,2.5,3.0,0.4],
+ ["Depressão",1.4,3.2,3.8,0.5],["Raiva",2.2,5.1,6.1,0.6],["Confusão",1.0,2.4,2.9,0.3]];
+const PERFIS=[["Iceberg",13,8],["Superfície",6,10],["Everest invertido",4,4],
+ ["Iceberg invertido",2,2],["Submerso",1,5],["Barbatana de tubarão",1,8]];
+const D17=[
+ ["Vigor",8.43,4.29,-49,-1.33,"grande"],["Fadiga",3.43,7.36,115,0.78,"médio"],["Tensão",2.19,0.93,-58,-0.60,"médio"],
+ ["Depressão",0.52,1.29,145,0.22,"pequeno"],["Raiva",2.19,2.64,21,0.09,"trivial"],["Confusão",1.19,0.52,-56,-0.57,"médio"],
+ ["PTH",1.10,8.45,672,0.55,"médio"]];
+const FRIED=[["Vigor",23.6,"<0,001",.21,"pequeno"],["Fadiga",17.9,"0,007",.16,"pequeno"],["Tensão",14.5,"0,025",.13,"pequeno"],
+ ["Depressão",3.5,"0,751",.03,"trivial"],["Raiva",7.9,"0,247",.07,"trivial"],["Confusão",22.9,"<0,001",.20,"pequeno"],
+ ["PTH",13.8,"0,032",.12,"pequeno"]];
+const PREPOS=[["Tensão",1.30,1.60,23,"0,057",0.43],["Depressão",1.03,1.21,17,"0,687",0.24],["Raiva",1.31,1.51,15,"0,745",0.13],
+ ["Vigor",5.76,4.94,-14,"0,025",-0.47],["Fadiga",4.61,6.28,36,"0,005",0.57],["Confusão",0.41,0.41,-1,"0,706",-0.01],
+ ["PTH",2.91,6.06,108,"0,009",0.58]];
+const TRANS=[
+ ["D1→D2 pré","Recuperação",-0.69,0.20,0.49,true],["D2 pré→pós","Agudo",-0.39,0.64,0.31,false],
+ ["D2→D3 pré","Recuperação",0.49,-0.51,-0.56,true],["D3 pré→pós","Agudo",-0.22,0.28,0.16,false],
+ ["D3→D4 pré","Recuperação",0.19,-0.03,-0.20,false],["D4 pré→pós","Agudo",-0.26,0.23,0.50,false],
+ ["D4→D5 pré","Recuperação",0.43,-0.55,-0.63,true],["D5 pré→pós","Agudo",-0.12,0.38,0.17,false],
+ ["D5→D6 pré","Recuperação",0.36,-0.22,-0.23,false],["D6 pré→pós","Agudo",-0.64,0.36,0.75,true],
+ ["D6→D7 pré","Recuperação",-0.03,-0.07,-0.17,false],["D7 pré→pós","Agudo",-0.20,0.48,0.53,false]];
+const SPEAR=[["Vigor × Fadiga",-0.40,"0,037"],["Fadiga × Depressão",0.42,"0,028"],["Fadiga × Raiva",0.49,"0,010"],
+ ["Tensão × Confusão",0.45,"0,017"],["Depressão × Raiva",0.53,"0,005"],["Depressão × Confusão",0.43,"0,027"]];
+const SNR=[["Vigor",4.1,0.49,8.4,9,"Dia 3,8"],["Fadiga",4.5,0.67,6.7,10,"Dia 4,0"],["PTH",9.2,1.96,4.7,43,"Dia 3,5"],
+ ["Tensão",1.1,0.28,3.7,46,"Dia 4,8"],["Depressão",0.9,0.33,2.7,67,"Dia 3,2"],["Raiva",1.8,0.54,3.4,62,"Dia 3,0"],
+ ["Confusão",0.8,0.18,4.4,79,"Dia 5,4"]];
+const CROSS=[2.3,3.9,5.8];
+const cById=k=>(DIM.find(d=>d.k===k)||{}).c||C.muted;
+
+/* ===================== RAIN ===================== */
+(function rain(){
+  const cv=$("#rain"), x=cv.getContext("2d"); let W,H,dpr,drops=[],splashes=[];
+  function size(){dpr=Math.min(devicePixelRatio||1,2); W=cv.width=innerWidth*dpr; H=cv.height=innerHeight*dpr; cv.style.width=innerWidth+"px"; cv.style.height=innerHeight+"px";}
+  size(); addEventListener("resize",size);
+  const N=rm?0:110;
+  for(let i=0;i<N;i++)drops.push({x:Math.random()*W,y:Math.random()*H,l:(6+Math.random()*16)*dpr,v:(3+Math.random()*5)*dpr,o:.06+Math.random()*.16});
+  // static frosted droplets on the glass
+  let beads=[]; for(let i=0;i<46;i++)beads.push({x:Math.random()*W,y:Math.random()*H,r:(1.2+Math.random()*3.2)*dpr,o:.05+Math.random()*.12});
+  function frame(){
+    x.clearRect(0,0,W,H);
+    for(const b of beads){ x.beginPath(); x.arc(b.x,b.y,b.r,0,7); x.fillStyle="rgba(150,190,230,"+b.o+")"; x.fill();
+      x.beginPath(); x.arc(b.x-b.r*.3,b.y-b.r*.3,b.r*.4,0,7); x.fillStyle="rgba(220,240,255,"+(b.o*1.4)+")"; x.fill(); }
+    for(const d of drops){
+      x.strokeStyle="rgba(160,200,240,"+d.o+")"; x.lineWidth=1.1*dpr; x.beginPath(); x.moveTo(d.x,d.y); x.lineTo(d.x-0.6*dpr,d.y+d.l); x.stroke();
+      d.y+=d.v; if(d.y>H){ if(splashes.length<40)splashes.push({x:d.x,y:H-2*dpr,r:1,o:.5}); d.y=-d.l; d.x=Math.random()*W; }
+    }
+    for(let i=splashes.length-1;i>=0;i--){const s=splashes[i]; x.beginPath(); x.arc(s.x,s.y,s.r*dpr,0,7); x.strokeStyle="rgba(170,210,245,"+s.o+")"; x.lineWidth=1*dpr; x.stroke(); s.r+=.6; s.o-=.03; if(s.o<=0)splashes.splice(i,1);}
+    requestAnimationFrame(frame);
+  }
+  if(!rm)frame(); else {x.clearRect(0,0,W,H); for(const b of beads){x.beginPath();x.arc(b.x,b.y,b.r,0,7);x.fillStyle="rgba(150,190,230,"+b.o+")";x.fill();}}
+})();
+
+/* ===================== TOOLTIP ===================== */
+const tip=$("#tip");
+function showTip(html,ev){tip.innerHTML=html; tip.style.opacity=1; let x=ev.clientX+14,y=ev.clientY+14;
+  if(x+tip.offsetWidth>innerWidth)x=ev.clientX-tip.offsetWidth-14; if(y+tip.offsetHeight>innerHeight)y=ev.clientY-tip.offsetHeight-14;
+  tip.style.left=x+"px"; tip.style.top=y+"px";}
+function hideTip(){tip.style.opacity=0;}
+
+/* ===================== CANVAS HELPERS ===================== */
+function mk(host,h){const box=document.createElement("div"); box.className="chartbox";
+  const cv=document.createElement("canvas"); cv.className="chart"; box.appendChild(cv); host.appendChild(box);
+  const dpr=Math.min(devicePixelRatio||1,2); const w=host.clientWidth||760;
+  cv.width=w*dpr; cv.height=h*dpr; cv.style.height=h+"px"; const g=cv.getContext("2d"); g.scale(dpr,dpr);
+  cv._w=w; cv._h=h; cv._hits=[]; return {cv,g};
+}
+function anim(dur,step){ if(rm){step(1);return;} const t0=performance.now();
+  function fr(t){let p=Math.min(1,(t-t0)/dur); step(1-Math.pow(1-p,3)); if(p<1)requestAnimationFrame(fr);} requestAnimationFrame(fr);}
+function attachHits(cv){
+  cv.onmousemove=e=>{const r=cv.getBoundingClientRect(); const mx=e.clientX-r.left, my=e.clientY-r.top; let hit=null;
+    for(const h of cv._hits){ if(mx>=h.x&&mx<=h.x+h.w&&my>=h.y&&my<=h.y+h.h){hit=h;break;} }
+    if(hit){showTip(hit.tip,e); cv.style.cursor="pointer";} else {hideTip(); cv.style.cursor="default";}};
+  cv.onmouseleave=hideTip;
+}
+function axes(g,w,h,pad,ymin,ymax,xlabels,opt={}){
+  g.clearRect(0,0,w,h); const x0=pad.l,x1=w-pad.r,y0=h-pad.b,y1=pad.t;
+  const ticks=opt.ticks||5;
+  g.font='10px "IBM Plex Mono",monospace'; g.textBaseline="middle";
+  for(let i=0;i<=ticks;i++){const v=ymin+(ymax-ymin)*i/ticks; const y=y0+(y1-y0)*i/ticks;
+    g.strokeStyle=C.grid; g.lineWidth=1; g.beginPath(); g.moveTo(x0,y); g.lineTo(x1,y); g.stroke();
+    g.fillStyle=C.faint; g.textAlign="right"; g.fillText(opt.fmt?opt.fmt(v):v.toFixed(opt.dec??0),x0-7,y);}
+  if(xlabels){g.textAlign="center"; g.textBaseline="top";
+    xlabels.forEach((L,i)=>{const x=x0+(x1-x0)*(xlabels.length>1?i/(xlabels.length-1):.5); g.fillStyle=C.muted; g.fillText(L,x,y0+8);});}
+  return {x0,x1,y0,y1,X:v=>x0+(x1-x0)*v,Y:v=>y0+(y1-y0)*((v-ymin)/(ymax-ymin))};
+}
+
+/* ---- vertical bar chart ---- */
+function barChart(host,rows,{color,ymax,unit="",dec=1,h=300,fmt}={}){
+  const {cv,g}=mk(host,h); const w=cv._w; const pad={l:44,r:14,t:16,b:46};
+  const max=ymax||Math.max(...rows.map(r=>Math.abs(r.v)))*1.15;
+  const bw=(w-pad.l-pad.r)/rows.length*0.6, gap=(w-pad.l-pad.r)/rows.length;
+  anim(900,prog=>{ const A=axes(g,w,cv._h,pad,0,max,rows.map(r=>r.lab),{dec:0}); cv._hits=[];
+    rows.forEach((r,i)=>{ const cx=pad.l+gap*i+gap/2; const vv=r.v*prog; const y=A.Y(vv), y0=A.Y(0);
+      const col=color||r.c||C.vigor; const gr=g.createLinearGradient(0,y,0,y0); gr.addColorStop(0,col); gr.addColorStop(1,col+"55");
+      g.fillStyle=gr; rr(g,cx-bw/2,Math.min(y,y0),bw,Math.abs(y0-y),6); g.fill();
+      if(prog===1){ g.fillStyle=C.ink; g.font='600 11px "IBM Plex Mono",monospace'; g.textAlign="center"; g.textBaseline="bottom";
+        g.fillText((fmt?fmt(r.v):r.v.toFixed(dec))+unit,cx,y-5);
+        cv._hits.push({x:cx-bw/2,y:Math.min(y,y0),w:bw,h:Math.abs(y0-y),tip:`<b>${r.lab}</b><br>${(fmt?fmt(r.v):r.v.toFixed(dec))}${unit}`}); }
+    });
+  }); attachHits(cv);
+}
+function rr(g,x,y,w,h,r){r=Math.min(r,w/2,h/2); g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath();}
+
+/* ---- diverging horizontal bars (transitions) ---- */
+function divChart(host,rows,{h=420}={}){
+  const {cv,g}=mk(host,h); const w=cv._w; const pad={l:118,r:20,t:10,b:24};
+  const max=Math.max(...rows.map(r=>Math.abs(r.v)))*1.12; const rowh=(h-pad.t-pad.b)/rows.length;
+  const cx=pad.l+(w-pad.l-pad.r)/2;
+  anim(900,prog=>{ g.clearRect(0,0,w,h);
+    // zero line + scale
+    g.strokeStyle=C.grid; g.lineWidth=1;
+    for(let t=-1;t<=1;t+=.5){const x=cx+(w-pad.l-pad.r)/2*t*(1/1.12); g.beginPath(); g.moveTo(x,pad.t); g.lineTo(x,h-pad.b); g.stroke();
+      g.fillStyle=C.faint; g.font='9px "IBM Plex Mono",monospace'; g.textAlign="center"; g.textBaseline="top"; g.fillText((t*max/1.12*1).toFixed(1).replace(".",","),x,h-pad.b+5);}
+    cv._hits=[];
+    rows.forEach((r,i)=>{ const y=pad.t+rowh*i+rowh/2; const vv=r.v*prog; const x=cx+((w-pad.l-pad.r)/2)*(vv/max);
+      const col=r.tipo==="Agudo"?C.fadiga:C.tensao;
+      g.fillStyle=col+(r.sig?"":"aa"); rr(g,Math.min(cx,x),y-rowh*0.3,Math.abs(x-cx),rowh*0.6,5); g.fill();
+      g.fillStyle=C.muted; g.font='10px "IBM Plex Mono",monospace'; g.textAlign="right"; g.textBaseline="middle"; g.fillText(r.lab,pad.l-8,y);
+      if(prog===1){ if(r.sig){g.fillStyle=C.ink; g.font='700 11px "IBM Plex Mono",monospace'; g.textAlign=x>=cx?"left":"right"; g.fillText("★",x+(x>=cx?3:-3),y);}
+        cv._hits.push({x:Math.min(cx,x),y:y-rowh*.3,w:Math.abs(x-cx),h:rowh*.6,tip:`<b>${r.lab}</b><br>${r.tipo} · dz=${r.v.toFixed(2).replace(".",",")}${r.sig?" ★ p<0,05":""}`}); }
+    });
+  }); attachHits(cv);
+}
+
+/* ---- multi-line smooth trajectories ---- */
+function lineChart(host,series,{ymin=0,ymax=9,h=380,crosses=null,state}={}){
+  const {cv,g}=mk(host,h); const w=cv._w; const pad={l:40,r:16,t:16,b:34};
+  function draw(prog){ const A=axes(g,w,h,pad,ymin,ymax,DAYS.map(d=>"D"+d),{dec:0}); cv._hits=[];
+    // shaded phases
+    g.fillStyle="rgba(77,157,224,.05)"; g.fillRect(A.X(0),pad.t,(A.X(0.5)-A.X(0)),A.y0-pad.t);
+    series.forEach(s=>{ if(state && state[s.k]===false) return; const pts=smooth(s.daily.map((v,i)=>[A.x0+(A.x1-A.x0)*i/6,A.Y(v)]));
+      const cut=Math.floor(pts.length*prog);
+      g.strokeStyle=s.c; g.lineWidth=3; g.lineJoin="round"; g.beginPath();
+      pts.slice(0,Math.max(2,cut)).forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1])); g.stroke();
+      if(prog===1){ s.daily.forEach((v,i)=>{const x=A.x0+(A.x1-A.x0)*i/6,y=A.Y(v);
+        g.fillStyle=s.c; g.beginPath(); g.arc(x,y,3.4,0,7); g.fill();
+        cv._hits.push({x:x-8,y:y-8,w:16,h:16,tip:`<b>${s.lab}</b> · D${i+1}<br>escore ${v.toFixed(1).replace(".",",")}`});}); }
+    });
+    if(crosses&&prog===1){ crosses.forEach(cd=>{const x=A.x0+(A.x1-A.x0)*(cd-1)/6;
+      g.strokeStyle="rgba(233,238,246,.4)"; g.setLineDash([3,4]); g.beginPath(); g.moveTo(x,pad.t); g.lineTo(x,A.y0); g.stroke(); g.setLineDash([]);
+      g.fillStyle=C.ink; g.font='700 10px "IBM Plex Mono",monospace'; g.textAlign="center"; g.textBaseline="bottom";
+      g.fillText("✕ "+("dia "+cd).replace(".",","),x,pad.t+10);}); }
+  }
+  anim(1100,draw); attachHits(cv); cv._redraw=()=>draw(1); return cv;
+}
+function smooth(P){ // catmull-rom to polyline
+  if(P.length<3)return P; const out=[]; for(let i=0;i<P.length-1;i++){const p0=P[i-1]||P[i],p1=P[i],p2=P[i+1],p3=P[i+2]||P[i+1];
+    for(let t=0;t<1;t+=.08){const t2=t*t,t3=t2*t;
+      out.push([0.5*((2*p1[0])+(-p0[0]+p2[0])*t+(2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t2+(-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t3),
+                0.5*((2*p1[1])+(-p0[1]+p2[1])*t+(2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2+(-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3)]);}}
+  out.push(P[P.length-1]); return out;
+}
+
+/* ---- grouped bars (perfis, pre/pos) ---- */
+function groupChart(host,rows,groups,{ymax,h=340,dec=0,unit=""}={}){
+  const {cv,g}=mk(host,h); const w=cv._w; const pad={l:40,r:14,t:16,b:70};
+  const max=ymax||Math.max(...rows.flatMap(r=>r.vals))*1.15;
+  const gw=(w-pad.l-pad.r)/rows.length, bw=gw*0.34;
+  anim(900,prog=>{ const A=axes(g,w,h,pad,0,max,null,{dec:0}); cv._hits=[];
+    rows.forEach((r,i)=>{ const base=pad.l+gw*i+gw/2;
+      r.vals.forEach((v,j)=>{ const off=(j-(r.vals.length-1)/2)*(bw+4); const cx=base+off; const y=A.Y(v*prog),y0=A.Y(0);
+        const col=groups[j].c; g.fillStyle=col; rr(g,cx-bw/2,y,bw,y0-y,5); g.fill();
+        if(prog===1){cv._hits.push({x:cx-bw/2,y,w:bw,h:y0-y,tip:`<b>${r.lab}</b><br>${groups[j].lab}: ${v.toFixed(dec)}${unit}`});}
+      });
+      g.save(); g.translate(base,h-pad.b+8); g.rotate(-.5); g.fillStyle=C.muted; g.font='10px "IBM Plex Mono",monospace'; g.textAlign="right"; g.textBaseline="middle"; g.fillText(r.lab,0,0); g.restore();
+    });
+  }); attachHits(cv);
+  const lg=document.createElement("div"); lg.className="legend";
+  groups.forEach(gr=>lg.insertAdjacentHTML("beforeend",`<span class="it"><span class="dot" style="background:${gr.c}"></span>${gr.lab}</span>`));
+  host.appendChild(lg);
+}
+
+/* ---- lollipop (effect sizes) ---- */
+function lolliChart(host,rows,{h=340}={}){
+  const {cv,g}=mk(host,h); const w=cv._w; const pad={l:96,r:34,t:12,b:26};
+  const max=Math.max(...rows.map(r=>Math.abs(r.v)))*1.15; const rowh=(h-pad.t-pad.b)/rows.length; const cx=pad.l;
+  anim(900,prog=>{ g.clearRect(0,0,w,h);
+    g.strokeStyle=C.grid; for(let t=0;t<=1.5;t+=.5){const x=cx+(w-pad.l-pad.r)*(t/max)*(t<=max?1:1); if(x<w-pad.r){g.beginPath();g.moveTo(x,pad.t);g.lineTo(x,h-pad.b);g.stroke(); g.fillStyle=C.faint;g.font='9px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="top";g.fillText(t.toFixed(1).replace(".",","),x,h-pad.b+5);}}
+    g.beginPath(); g.moveTo(cx,pad.t); g.lineTo(cx,h-pad.b); g.strokeStyle="rgba(233,238,246,.25)"; g.stroke(); cv._hits=[];
+    rows.forEach((r,i)=>{ const y=pad.t+rowh*i+rowh/2; const val=Math.abs(r.v)*prog; const x=cx+(w-pad.l-pad.r)*(val/max);
+      const col=r.c||(r.v>=0?C.fadiga:C.vigor);
+      g.strokeStyle=col; g.lineWidth=2.5; g.beginPath(); g.moveTo(cx,y); g.lineTo(x,y); g.stroke();
+      g.fillStyle=col; g.beginPath(); g.arc(x,y,5.5,0,7); g.fill();
+      g.fillStyle=C.muted; g.font='10px "IBM Plex Mono",monospace'; g.textAlign="right"; g.textBaseline="middle"; g.fillText(r.lab,pad.l-10,y);
+      if(prog===1){g.fillStyle=C.ink; g.font='600 10px "IBM Plex Mono",monospace'; g.textAlign="left"; g.fillText(r.v.toFixed(2).replace(".",","),x+9,y);
+        cv._hits.push({x:cx,y:y-8,w:x-cx+12,h:16,tip:`<b>${r.lab}</b><br>dz=${r.v.toFixed(2).replace(".",",")} · ${r.mag||""}`});}
+    });
+  }); attachHits(cv);
+}
+
+/* ===================== TABLES ===================== */
+function dynTable(host,cols,rows,fmt){
+  const wrap=document.createElement("div"); wrap.className="tablewrap";
+  const t=document.createElement("table"); t.className="dyn"; let sortCol=-1,dir=1;
+  function render(){ const body=rows.map(r=>r.slice());
+    if(sortCol>=0)body.sort((a,b)=>{let x=a[sortCol],y=b[sortCol]; x=typeof x==="number"?x:parseFloat(String(x).replace(",","."))||String(x); y=typeof y==="number"?y:parseFloat(String(y).replace(",","."))||String(y);
+      return (x>y?1:x<y?-1:0)*dir;});
+    t.innerHTML="<thead><tr>"+cols.map((c,i)=>`<th data-i="${i}">${c}${sortCol===i?` <span class="ar">${dir>0?"▲":"▼"}</span>`:""}</th>`).join("")+"</tr></thead><tbody>"+
+      body.map(r=>"<tr>"+r.map((v,i)=>`<td>${fmt?fmt(i,v,r):v}</td>`).join("")+"</tr>").join("")+"</tbody>";
+    t.querySelectorAll("th").forEach(th=>th.onclick=()=>{const i=+th.dataset.i; if(sortCol===i)dir*=-1; else{sortCol=i;dir=1;} render();});
+  }
+  render(); wrap.appendChild(t); host.appendChild(wrap);
+}
+
+/* ===================== SECTIONS ===================== */
+const num=(v,d=1)=>v.toFixed(d).replace(".",",");
+function head(host,tag,title,lead){host.insertAdjacentHTML("beforeend",
+  `<div class="section-head"><h2>${title}</h2><span class="tag">${tag}</span></div><p class="lead">${lead}</p>`);}
+function cards(host,inner){const d=document.createElement("div"); d.className="grid2"; d.innerHTML=inner; host.appendChild(d); return d;}
+
+const SECTIONS=[
+{id:"visao",lab:"Visão geral",render(h){
+  head(h,"panorama","Panorama do microciclo","O humor deteriora-se de forma ordenada ao longo da semana e a mudança concentra-se no eixo energia-fadiga: o vigor cai e a fadiga sobe. Passe o cursor sobre os gráficos e ordene as tabelas clicando nos cabeçalhos.");
+  const kp=document.createElement("div"); kp.className="kpis"; h.appendChild(kp);
+  const K=[["Vigor D1→D7","8,4 → 4,3","dz = −1,33 · grande",C.vigor],
+    ["Fadiga D1→D7","3,4 → 7,4","dz = +0,78 · médio",C.fadiga],
+    ["MANOVA","λ = 0,181","p < 0,001",C.pth],
+    ["Perfil iceberg","48% → 22%","migra p/ barbatana",C.tensao],
+    ["Inflexão","Dia 3,8","metade da semana",C.confusao]];
+  K.forEach(k=>kp.insertAdjacentHTML("beforeend",
+    `<div class="kpi"><span class="stripe" style="background:${k[3]}"></span><div class="lab">${k[0]}</div><div class="val" style="color:${k[3]}">${k[1]}</div><div class="cap">${k[2]}</div></div>`));
+  const gr=cards(h,`<div class="card"><h3>Trajetórias do eixo energia-fadiga</h3><p class="note">Curvas suavizadas · cruzamentos vigor × fadiga assinalados</p><div class="host" id="h_traj"></div></div>
+    <div class="card"><h3>Deterioração D1 → D7</h3><p class="note">Tamanho de efeito (dz) por dimensão</p><div class="host" id="h_eff"></div></div>`);
+  lineChart($("#h_traj",gr),DIM.filter(d=>["vigor","fadiga","pth"].includes(d.k)),{ymax:9,crosses:CROSS});
+  lolliChart($("#h_eff",gr),D17.map(r=>({lab:r[0],v:r[4],mag:r[5]})));
+}},
+{id:"descr",lab:"Descritiva",render(h){
+  head(h,"nível 1","Estatística descritiva","O vigor tem a maior média e, junto da fadiga, ocupa a maior parte da escala. As dimensões negativas concentram-se em valores baixos, com forte efeito de piso.");
+  const gr=cards(h,`<div class="card"><h3>Médias das dimensões</h3><p class="note">Escore médio (0–16) · 286 observações</p><div class="host" id="h_desc"></div></div>
+    <div class="card"><h3>Tabela descritiva</h3><p class="note">Clique nos cabeçalhos para ordenar</p><div class="host" id="t_desc"></div></div>`);
+  barChart($("#h_desc",gr),DESC.map(r=>({lab:r[0],v:r[1],c:cById(kmap(r[0]))})),{ymax:10,dec:1});
+  dynTable($("#t_desc",gr),["Dimensão","Média","DP","Mín–Máx"],DESC,(i,v)=>i===1||i===2?num(v):v);
+}},
+{id:"conf",lab:"Confiabilidade",render(h){
+  head(h,"nível 2","Consistência e limiares","A confiabilidade entre dias (ICC) é moderada a boa, mais baixa na raiva e na confusão. Os limiares de mudança (MDC) separam a variação real do ruído de medida.");
+  const gr=cards(h,`<div class="card"><h3>ICC por dimensão</h3><p class="note">ICC(2,1) — medida isolada</p><div class="host" id="h_icc"></div></div>
+    <div class="card"><h3>Limiares de mudança</h3><p class="note">SEM · MDC90 · MDC95 · SWC (pontos)</p><div class="host" id="t_lim"></div></div>`);
+  barChart($("#h_icc",gr),ICC.map(r=>({lab:r[0],v:r[1],c:r[1]>=.5?C.good:C.warn})),{ymax:1,dec:2});
+  dynTable($("#t_lim",gr),["Dimensão","SEM","MDC90","MDC95","SWC"],LIM,(i,v)=>i?num(v):v);
+}},
+{id:"perfis",lab:"Perfis de humor",render(h){
+  head(h,"nível 1","Perfis e migração","No primeiro dia predomina o iceberg (vigor no topo). No último, a prevalência desloca-se para a barbatana de tubarão, sem instalação dos perfis de risco à saúde mental.");
+  const gr=cards(h,`<div class="card"><h3>Prevalência dos perfis</h3><p class="note">Contagem no Dia 1 vs Dia 7</p><div class="host" id="h_perf"></div></div>
+    <div class="card"><h3>Distribuição</h3><p class="note">n de atletas por perfil</p><div class="host" id="t_perf"></div></div>`);
+  groupChart($("#h_perf",gr),PERFIS.map(r=>({lab:r[0],vals:[r[1],r[2]]})),[{lab:"Dia 1",c:C.vigor},{lab:"Dia 7",c:C.fadiga}],{ymax:14});
+  dynTable($("#t_perf",gr),["Perfil","Dia 1","Dia 7","Δ"],PERFIS.map(r=>[r[0],r[1],r[2],r[2]-r[1]]),(i,v)=>i===3?(v>0?`<span class="pos">+${v}</span>`:v<0?`<span class="neg">${v}</span>`:v):v);
+}},
+{id:"d17",lab:"D1 → D7",render(h){
+  head(h,"nível 2","Diferença entre o primeiro e o último dia","O efeito é grande no vigor e na fadiga; a MANOVA confirma a diferença global (λ = 0,181; p < 0,001) e, sob Bonferroni, apenas vigor e fadiga permanecem significativos.");
+  const gr=cards(h,`<div class="card"><h3>Tamanho de efeito (dz)</h3><p class="note">Magnitude da mudança por dimensão</p><div class="host" id="h_d17"></div></div>
+    <div class="card"><h3>Médias e efeito</h3><p class="note">Dia 1, Dia 7, variação e magnitude</p><div class="host" id="t_d17"></div></div>`);
+  lolliChart($("#h_d17",gr),D17.map(r=>({lab:r[0],v:r[4],mag:r[5]})));
+  dynTable($("#t_d17",gr),["Dimensão","Dia 1","Dia 7","Δ%","dz","Magn."],D17,
+    (i,v,r)=>i===1||i===2?num(v):i===3?`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${v}%</span>`:i===4?num(v,2):i===5?`<span class="pill ${v}">${v}</span>`:v);
+}},
+{id:"dias",lab:"Entre dias",render(h){
+  head(h,"Friedman","Comparação entre os sete dias","Vigor, fadiga, tensão, confusão e PTH mudam de forma significativa ao longo da semana. O vigor é máximo no Dia 1 e mínimo no Dia 7; a fadiga percorre o caminho inverso.");
+  const st={}; DIM.forEach(d=>st[d.k]=["vigor","fadiga","pth"].includes(d.k));
+  const gr=cards(h,`<div class="card"><h3>Trajetórias diárias</h3><p class="note">Médias por dia · alterne as dimensões na legenda</p><div class="host" id="h_dias"></div></div>
+    <div class="card"><h3>Teste de Friedman</h3><p class="note">χ², p e W de Kendall</p><div class="host" id="t_dias"></div></div>`);
+  const cv=lineChart($("#h_dias",gr),DIM,{ymax:9,state:st});
+  const lg=document.createElement("div"); lg.className="legend"; $("#h_dias",gr).appendChild(lg);
+  DIM.forEach(d=>{const it=document.createElement("span"); it.className="it"+(st[d.k]?"":" off");
+    it.innerHTML=`<span class="dot" style="background:${d.c}"></span>${d.lab}`;
+    it.onclick=()=>{st[d.k]=!st[d.k]; it.classList.toggle("off"); cv._redraw();}; lg.appendChild(it);});
+  dynTable($("#t_dias",gr),["Dimensão","χ²","p","W","Magn."],FRIED,
+    (i,v)=>i===1?num(v):i===3?num(v,2):i===2?(String(v).includes("<")?`<span class="sig">${v}</span>`:v):i===4?`<span class="pill ${v}">${v}</span>`:v);
+}},
+{id:"traj",lab:"Trajetórias & cruzamentos",render(h){
+  head(h,"nível 3","Trajetórias das seis dimensões","Na mesma escala, apenas o par vigor-fadiga ocupa a faixa central e se cruza (dias 2,3, 3,9 e 5,8); as demais dimensões permanecem junto ao piso. É o que concentra o sinal do monitoramento.");
+  const st={}; DIM.forEach(d=>st[d.k]=d.k!=="pth");
+  const c=document.createElement("div"); c.className="card"; c.innerHTML=`<h3>Todas as dimensões · cruzamentos vigor × fadiga</h3><p class="note">Curvas suavizadas · clique na legenda para filtrar</p><div class="host" id="h_all"></div>`; h.appendChild(c);
+  const cv=lineChart($("#h_all",c),DIM.filter(d=>d.k!=="pth"),{ymax:9,crosses:CROSS,state:st});
+  const lg=document.createElement("div"); lg.className="legend"; $("#h_all",c).appendChild(lg);
+  DIM.filter(d=>d.k!=="pth").forEach(d=>{const it=document.createElement("span"); it.className="it";
+    it.innerHTML=`<span class="dot" style="background:${d.c}"></span>${d.lab}`;
+    it.onclick=()=>{st[d.k]=!st[d.k]; it.classList.toggle("off"); cv._redraw();}; lg.appendChild(it);});
+}},
+{id:"agudo",lab:"Pré/Pós & agudo",render(h){
+  head(h,"nível 3","Efeito agudo e recuperação","Do pré ao pós-treino, o vigor cai e a fadiga e a PTH sobem. As transições sequenciais mostram um padrão em dente de serra: a sessão piora o estado e a recuperação entre sessões é apenas parcial.");
+  const gr=cards(h,`<div class="card"><h3>Transições sequenciais (PTH)</h3><p class="note">Laranja = agudo (pré→pós) · azul = recuperação · ★ p<0,05</p><div class="host" id="h_tr"></div></div>
+    <div class="card"><h3>Pré vs Pós-treino</h3><p class="note">Wilcoxon e d de Cohen</p><div class="host" id="t_pp"></div></div>`);
+  divChart($("#h_tr",gr),TRANS.map(r=>({lab:r[0],tipo:r[1],v:r[4],sig:r[5]})));
+  dynTable($("#t_pp",gr),["Dimensão","Pré","Pós","Δ%","p","d"],PREPOS,
+    (i,v)=>i===1||i===2?num(v,2):i===3?`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${v}%</span>`:i===5?num(v,2):i===4?(parseFloat(String(v).replace(",","."))<0.05?`<span class="sig">${v}</span>`:v):v);
+  const c2=document.createElement("div"); c2.className="card"; c2.style.marginTop="18px";
+  c2.innerHTML=`<h3>Transições · vigor, fadiga e PTH</h3><p class="note">Tamanho de efeito dz por transição</p><div class="host" id="t_tr"></div>`; h.appendChild(c2);
+  dynTable($("#t_tr",c2),["Transição","Tipo","Vigor dz","Fadiga dz","PTH dz"],
+    TRANS.map(r=>[r[0],r[1],r[2],r[3],r[4]]),(i,v)=>i>=2?(`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${num(v,2)}</span>`):v);
+}},
+{id:"corr",lab:"Correlações",render(h){
+  head(h,"Spearman","Relações entre as dimensões","As dimensões negativas associam-se entre si; a fadiga relaciona-se com a depressão e a raiva. O vigor mantém-se relativamente independente, como um polo próprio do eixo energia-fadiga.");
+  const gr=cards(h,`<div class="card"><h3>Correlações significativas</h3><p class="note">Coeficiente de Spearman (ρ)</p><div class="host" id="h_sp"></div></div>
+    <div class="card"><h3>Pares (p < 0,05)</h3><p class="note">Ordene por ρ ou por p</p><div class="host" id="t_sp"></div></div>`);
+  lolliChart($("#h_sp",gr),SPEAR.map(r=>({lab:r[0],v:r[1],c:r[1]<0?C.vigor:C.fadiga})),{h:300});
+  dynTable($("#t_sp",gr),["Par de dimensões","ρ","p"],SPEAR,(i,v)=>i===1?(`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${num(v,2)}</span>`):v);
+}},
+{id:"snr",lab:"Sinal / Ruído",render(h){
+  head(h,"nível 3","Separação entre sinal e ruído","O vigor e a fadiga concentram a maior razão sinal/ruído (8,4 e 6,7): tendências limpas e confiáveis. As dimensões negativas, comprimidas pelo efeito de piso, mal ultrapassam o ruído.");
+  const gr=cards(h,`<div class="card"><h3>Razão sinal/ruído</h3><p class="note">Amplitude do sinal ÷ DP do ruído</p><div class="host" id="h_snr"></div></div>
+    <div class="card"><h3>Sinal, ruído e piso</h3><p class="note">Por dimensão · inflexão localizada</p><div class="host" id="t_snr"></div></div>`);
+  barChart($("#h_snr",gr),SNR.map(r=>({lab:r[0],v:r[3],c:r[3]>=5?C.good:r[3]>=3?C.warn:C.crit})),{ymax:9,dec:1});
+  dynTable($("#t_snr",gr),["Dimensão","Sinal","Ruído","S/R","Piso %","Inflexão"],SNR,(i,v)=>i>=1&&i<=3?num(v,i===2?2:1):i===4?v+"%":v);
+}}
+];
+function kmap(l){return {"Vigor":"vigor","Fadiga":"fadiga","Tensão":"tensao","Depressão":"depressao","Raiva":"raiva","Confusão":"confusao","PTH":"pth"}[l];}
+
+/* ===================== ROUTER ===================== */
+const nav=$("#nav"), stage=$("#stage");
+SECTIONS.forEach((s,i)=>{const b=document.createElement("button"); b.innerHTML=`<span class="n">${String(i+1).padStart(2,"0")}</span>${s.lab}`;
+  b.onclick=()=>go(s.id); b.dataset.id=s.id; nav.appendChild(b);});
+function go(id){ const s=SECTIONS.find(x=>x.id===id)||SECTIONS[0];
+  nav.querySelectorAll("button").forEach(b=>b.setAttribute("aria-current",b.dataset.id===id?"true":"false"));
+  stage.innerHTML=""; stage.style.opacity=0; stage.style.transform="translateY(8px)";
+  requestAnimationFrame(()=>{s.render(stage); stage.style.transition="opacity .35s, transform .35s"; stage.style.opacity=1; stage.style.transform="none";});
+  history.replaceState(null,"","#"+id);
+}
+go((location.hash||"").slice(1)||"visao");
+addEventListener("resize",()=>{const cur=nav.querySelector('[aria-current="true"]'); if(cur)clearTimeout(window._rz),window._rz=setTimeout(()=>go(cur.dataset.id),200);});
+</script>
