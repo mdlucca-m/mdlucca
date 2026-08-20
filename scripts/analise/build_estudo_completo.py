@@ -105,22 +105,29 @@ P('A pré-temporada é o período em que a equipe concentra as maiores cargas do
   'condicionamento antes da fase competitiva. É também o intervalo de maior risco de fadiga acumulada. Por isso, o '
   'monitoramento sistemático da resposta do atleta é parte central do trabalho da comissão técnica: ajustes feitos '
   'a tempo evitam que a fadiga se acumule além do desejado e reduzem o risco de excesso de treinamento (Duignan et '
-  'al., 2020).')
+  'al., 2020). No handebol, revisões recentes reforçam a necessidade de integrar carga externa, carga interna e '
+  'bem-estar em rotinas estruturadas de monitoramento, ainda pouco padronizadas na modalidade (Henze et al., '
+  '2025).')
 P('Entre as ferramentas de monitoramento, os estados de humor ocupam posição de destaque por serem sensíveis, '
   'rápidos e de baixo custo. O instrumento mais utilizado com atletas é a Escala de Humor de Brunel (BRUMS), '
   'derivada do Perfil de Estados de Humor (POMS) e composta por 24 itens que formam seis dimensões: vigor, fadiga, '
   'tensão, depressão, raiva e confusão (Terry, Lane & Fogarty, 2003). A escala tem propriedades psicométricas '
   'consistentes e foi validada em diversos idiomas e culturas, como o português (Rohlfs et al., 2008), o '
   'chinês (Zhang et al., 2014), o lituano (Terry et al., 2022) e o malaio (Lew et al., 2023). Em atletas bem '
-  'recuperados, o BRUMS descreve o chamado perfil de iceberg, no qual o vigor se sobrepõe às dimensões negativas; '
-  'a inversão desse perfil sinaliza fadiga e risco psicológico.')
+  'recuperados, o BRUMS descreve o chamado perfil de iceberg, no qual o vigor se sobrepõe às dimensões negativas e '
+  'que se associa a boa saúde mental e a melhor desempenho (Houison et al., 2024). Estudos recentes com análise de '
+  'agrupamento identificam de forma consistente seis perfis de humor distintos, do iceberg ao Everest invertido, '
+  'cuja prevalência informa o risco psicológico do atleta (Parsons-Smith et al., 2022); a inversão do perfil de '
+  'iceberg sinaliza fadiga e alerta de sobrecarga.')
 P('Em esportes coletivos, o acompanhamento do humor tem se mostrado útil para orientar decisões de treino. Revisões '
   'recentes indicam que os escores de humor variam de acordo com a carga, a intensidade e a modalidade das sessões, '
   'e que o monitoramento frequente ajuda a detectar sinais precoces de perturbação psicológica (Selmi et al., '
-  '2023). Medidas subjetivas de bem-estar, como o humor, apresentam relação predominantemente negativa com a '
-  'carga de treino em atletas de esportes coletivos (Duignan et al., 2020), e essa relação também aparece em '
-  'contextos de treinamento intensificado, como campos de treinamento e microciclos de alta exigência (Chen et '
-  'al., 2022).')
+  '2023; Rebelo et al., 2024). Medidas subjetivas de bem-estar, como o humor, apresentam relação predominantemente '
+  'negativa com a carga de treino em atletas de esportes coletivos (Duignan et al., 2020), e essa relação também '
+  'aparece em contextos de treinamento intensificado, como campos de treinamento e microciclos de alta exigência '
+  '(Chen et al., 2022). A pré-temporada é especialmente crítica: em basquetebol e em futebol profissionais, o '
+  'humor piora e o estresse aumenta à medida que a carga se acumula ao longo das semanas de preparação (Conte & '
+  'Kamarauskas, 2022; Martin-Garetxana et al., 2023).')
 P('Ao lado do humor, a aptidão aeróbia define quanto esforço o atleta suporta antes de fadigar e é determinante de '
   'desempenho em atletas de handebol de elite (Font et al., 2021; Fikenzer et al., 2020). Neste estudo, a aptidão '
   'foi medida pelo pico de velocidade no T-car, um teste de campo intermitente e progressivo. O pico de velocidade '
@@ -369,8 +376,10 @@ P('O achado mais robusto foi a combinação de queda do vigor e aumento da fadig
   'e com a natureza intermitente e de alta intensidade do handebol, que exige elevada solicitação aeróbia e '
   'neuromuscular (Pueo et al., 2017; Cartón-Llorente et al., 2023). A literatura de monitoramento em esportes '
   'coletivos descreve exatamente essa resposta: a carga de treino relaciona-se de forma negativa com o vigor e '
-  'positiva com a fadiga (Duignan et al., 2020; Selmi et al., 2023). A análise das derivadas mostrou que a queda '
-  'do vigor foi mais rápida no início da semana e apresentou ponto de inflexão na sua metade, sinal de '
+  'positiva com a fadiga (Duignan et al., 2020; Selmi et al., 2023). O mesmo padrão foi observado na pré-temporada '
+  'de outras modalidades coletivas, em que o humor piora e o estresse cresce conforme a carga se acumula ao longo '
+  'das semanas (Conte & Kamarauskas, 2022; Martin-Garetxana et al., 2023). A análise das derivadas mostrou que a '
+  'queda do vigor foi mais rápida no início da semana e apresentou ponto de inflexão na sua metade, sinal de '
   'estabilização da resposta. Do ponto de vista prático, o vigor se confirma como o indicador mais sensível para '
   'acompanhar o desgaste.')
 H2('O efeito é acumulado, não pontual','4.2')
@@ -386,7 +395,10 @@ P('A migração de perfis descreve, em linguagem intuitiva para a comissão téc
   'lugar a perfis de menor energia, como a barbatana de tubarão. A maior parte dos atletas mudou de perfil ao '
   'longo da semana, o que confirma a sensibilidade do humor à carga e sustenta o uso do perfil como recurso de '
   'comunicação rápida do estado do grupo, em linha com a proposta original da escala (Terry, Lane & Fogarty, 2003) '
-  'e com sua ampla aplicação em atletas (Terry et al., 2022; Lew et al., 2023).')
+  'e com sua ampla aplicação em atletas (Terry et al., 2022; Lew et al., 2023). O deslocamento do iceberg para '
+  'perfis de menor energia é justamente o sinal que a literatura de perfis de humor associa a maior fadiga e a '
+  'maior risco psicológico (Parsons-Smith et al., 2022; Houison et al., 2024), o que reforça o valor prático dessa '
+  'leitura na pré-temporada.')
 H2('Aptidão não é sinônimo de proteção','4.4')
 P('O resultado mais instigante é que a aptidão aeróbia não protegeu o atleta da deterioração do humor. As '
   'correlações entre o pico de velocidade e a variação do humor foram fracas e não significativas, e a comparação '
@@ -404,9 +416,11 @@ P('Em conjunto, os resultados mostram que a última semana de pré-temporada pro
   'vigor, e sem que a aptidão aeróbia oferecesse proteção contra essa deterioração. A principal contribuição do '
   'estudo é integrar, em um mesmo desenho, a descrição fina do humor por derivadas e limiares, a leitura por '
   'perfis e o cruzamento com a aptidão, para dar à comissão técnica um retrato claro de onde, quando e quanto o '
-  'humor muda. As limitações incluem o desenho de grupo único, sem grupo controle, e o tamanho da amostra, próprio '
-  'de uma equipe de elite. Estudos futuros podem acompanhar mais de um microciclo e incluir medidas objetivas de '
-  'recuperação para confirmar e ampliar estes achados.')
+  'humor muda. Esses resultados somam-se ao esforço recente de padronizar o monitoramento de carga e bem-estar em '
+  'esportes coletivos e, em especial, no handebol (Rebelo et al., 2024; Henze et al., 2025). As limitações incluem '
+  'o desenho de grupo único, sem grupo controle, e o tamanho da amostra, próprio de uma equipe de elite. Estudos '
+  'futuros podem acompanhar mais de um microciclo e incluir medidas objetivas de recuperação para confirmar e '
+  'ampliar estes achados.')
 
 # ============ 5 CONCLUSÃO ============
 H1('Conclusão','5')
@@ -429,6 +443,10 @@ refs=[
  'Chen, Y. S., Clemente, F. M., Pagaduan, J. C., Crowley-McHattan, Z. J., Lu, Y. X., Chien, C. H., Bezerra, P., '
  'Chiu, Y. W., & Kuo, C. D. (2022). Relationships between perceived measures of internal load and wellness status '
  'during overseas futsal training camps. PLoS ONE, 17(4), e0267227. https://doi.org/10.1371/journal.pone.0267227',
+ 'Conte, D., & Kamarauskas, P. (2022). Differences in weekly training load, well-being, and hormonal responses '
+ 'between European- and national-level professional male basketball players during the pre-season phase. '
+ 'International Journal of Environmental Research and Public Health, 19(22), 15310. '
+ 'https://doi.org/10.3390/ijerph192215310',
  'Da Silva, J. F., Guglielmo, L. G. A., Carminatti, L. J., De Oliveira, F. R., Dittrich, N., & Paton, C. D. '
  '(2011). Validity and reliability of a new field test (Carminatti’s test) for soccer players compared with '
  'laboratory-based measures. Journal of Sports Sciences, 29(15), 1621-1628. '
@@ -449,12 +467,28 @@ refs=[
  'Font, R., Irurtia, A., Gutierrez, J. A., Salas, S., Vila, E., & Carmona, G. (2021). The effects of COVID-19 '
  'lockdown on jumping performance and aerobic capacity in elite handball players. Biology of Sport, 38(4), '
  '753-759. https://doi.org/10.5114/biolsport.2021.109952',
+ 'Henze, A. S., Kirsten, J., Matits, L., Bizjak, D. A., & Schulz, S. V. W. (2025). Athlete monitoring in handball '
+ '(ATHMON HB): a systematic review protocol. Systematic Reviews, 14(1), 64. '
+ 'https://doi.org/10.1186/s13643-025-02806-2',
+ 'Houison, R. J., Lamont-Mills, A., Kotiw, M., & Terry, P. C. (2024). Strike 3 ... out! Investigating pre-game '
+ 'moods, performance, and mental health of softball umpires. Sports, 12(2), 50. '
+ 'https://doi.org/10.3390/sports12020050',
  'Lew, P. C. F., Parsons-Smith, R. L., Lamont-Mills, A., & Terry, P. C. (2023). Cross-cultural validation of the '
  'Malaysian Mood Scale and tests of between-group mood differences. International Journal of Environmental '
  'Research and Public Health, 20(4), 3348. https://doi.org/10.3390/ijerph20043348',
+ 'Martin-Garetxana, I., Ciaurri, J., Gil, S. M., Monasterio, X., Ugarte, A., Lekue, J. A., & Larruskain, J. '
+ '(2023). What are the load and wellness of young second-team football players when transitioning to the first '
+ 'team? A comparison of 2 consecutive preseasons. International Journal of Sports Physiology and Performance, '
+ '18(7), 726-733. https://doi.org/10.1123/ijspp.2022-0324',
+ 'Parsons-Smith, R. L., Barkase, S., Lovell, G. P., Vleck, V., & Terry, P. C. (2022). Mood profiles of amateur '
+ 'triathletes: implications for mental health and performance. Frontiers in Psychology, 13, 925992. '
+ 'https://doi.org/10.3389/fpsyg.2022.925992',
  'Pueo, B., Jimenez-Olmedo, J. M., Penichet-Tomas, A., Ortega Becerra, M., & Espina Agullo, J. J. (2017). '
  'Analysis of time-motion and heart rate in elite male and female beach handball. Journal of Sports Science and '
  'Medicine, 16(4), 450-458.',
+ 'Rebelo, A., Pereira, J. R., Cunha, P., Coelho-e-Silva, M. J., & Valente-dos-Santos, J. (2024). Training stress, '
+ 'neuromuscular fatigue and well-being in volleyball: a systematic review. BMC Sports Science, Medicine and '
+ 'Rehabilitation, 16(1), 17. https://doi.org/10.1186/s13102-024-00807-7',
  'Rohlfs, I. C. P. M., Rotta, T. M., Luft, C. D. B., Andrade, A., Krebs, R. J., & Carvalho, T. (2008). A Escala '
  'de Humor de Brunel (Brums): instrumento para deteccao precoce da sindrome do excesso de treinamento. Revista '
  'Brasileira de Medicina do Esporte, 14(3), 176-181.',
