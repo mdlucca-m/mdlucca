@@ -879,6 +879,9 @@ function momentos(k){const items=[],s=DERIV.stats[k];
 
 /* ===================== SIDEBAR + ROUTER ===================== */
 const nav=$("#nav"),stage=$("#stage"),varchips=$("#varchips");
+/* ordem por lógica: pontos de entrada primeiro (apresentação e fluxo), depois análises */
+const ORDER=["apresentacao","pipeline","visao","analise","descr","conf","perfis","dias","d17","agudo","agcron","intraentre","limites","traj","snr","distrib","corr","pca"];
+SECTIONS.sort((a,b)=>{const ia=ORDER.indexOf(a.id),ib=ORDER.indexOf(b.id);return (ia<0?99:ia)-(ib<0?99:ib);});
 SECTIONS.forEach((s,i)=>{const b=document.createElement("div");b.className="navitem";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.dataset.id=s.id;
   b.innerHTML=`<span class="ico">${ICONS[s.icon]||ICONS.grid}</span><span>${s.lab}</span><span class="navnum">${String(i+1).padStart(2,"0")}</span>`;
   b.onclick=()=>go(s.id);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go(s.id);}};nav.appendChild(b);});
@@ -895,6 +898,6 @@ function go(id){const s=SECTIONS.find(x=>x.id===id)||SECTIONS[0];CUR=s.id;
   stage.className="panel";stage.innerHTML="";requestAnimationFrame(()=>{s.render(stage);requestAnimationFrame(()=>stage.classList.add("in"));});
   try{window.scrollTo(0,0);}catch(e){}
   history.replaceState(null,"","#"+id);}
-go((location.hash||"").slice(1)||"visao");
+go((location.hash||"").slice(1)||"apresentacao");
 addEventListener("resize",()=>{clearTimeout(window._rz);window._rz=setTimeout(()=>go(CUR),220);});
 </script>
