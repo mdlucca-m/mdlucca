@@ -1,0 +1,312 @@
+<title>Guia da Análise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#f6f3ec; --paper:#fffdf8; --ink:#20262c; --soft:#4a545e; --muted:#77828d; --line:#e6e0d4;
+  --teal:#0e8c7d; --orange:#c85a2a; --violet:#6d5bd0; --gold:#b7791f;
+  --good:#0e8c7d; --warn:#b7791f; --crit:#c0392b;
+  --shadow:0 12px 34px -20px rgba(40,35,25,.34);
+}
+:root:not([data-theme="light"]){}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1417; --paper:#161d23; --ink:#e9eef2; --soft:#b7c1cc; --muted:#8593a0; --line:rgba(130,150,170,.16);
+  --teal:#33c2ad; --orange:#ff875a; --violet:#9c8cf0; --gold:#e0b34a;
+  --good:#33c2ad; --warn:#e0b34a; --crit:#ff6b6b; --shadow:0 20px 50px -26px rgba(0,0,0,.7);
+}}
+:root[data-theme="dark"]{
+  --bg:#0f1417; --paper:#161d23; --ink:#e9eef2; --soft:#b7c1cc; --muted:#8593a0; --line:rgba(130,150,170,.16);
+  --teal:#33c2ad; --orange:#ff875a; --violet:#9c8cf0; --gold:#e0b34a;
+  --good:#33c2ad; --warn:#e0b34a; --crit:#ff6b6b; --shadow:0 20px 50px -26px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:"Public Sans",system-ui,sans-serif; line-height:1.62; -webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px; margin:0 auto; padding:0 22px; display:grid; grid-template-columns:1fr; gap:0}
+@media(min-width:1000px){.wrap{grid-template-columns:250px 1fr; gap:40px; align-items:start}}
+/* TOC */
+.toc{display:none}
+@media(min-width:1000px){.toc{display:block; position:sticky; top:0; height:100vh; overflow-y:auto; padding:34px 0}}
+.toc .brand{font-family:"Fraunces",serif; font-weight:600; font-size:19px; margin-bottom:4px}
+.toc .sub{font-size:12px; color:var(--muted); margin-bottom:18px; font-family:"IBM Plex Mono",monospace; letter-spacing:.02em}
+.toc a{display:block; color:var(--soft); text-decoration:none; font-size:13.5px; padding:5px 12px; border-left:2px solid var(--line); transition:.15s}
+.toc a:hover{color:var(--ink); border-left-color:var(--teal)}
+.toc a.grp{margin-top:12px; font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); border:none; padding-left:12px}
+main{padding:34px 0 90px; min-width:0}
+.theme{position:fixed; top:14px; right:16px; z-index:20; font:600 12px/1 "IBM Plex Mono",monospace; color:var(--soft); background:var(--paper); border:1px solid var(--line); border-radius:999px; padding:8px 13px; cursor:pointer}
+header.hero{margin-bottom:8px}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.24em; text-transform:uppercase; color:var(--teal)}
+h1{font-family:"Fraunces",serif; font-weight:700; font-size:clamp(30px,5vw,46px); line-height:1.04; letter-spacing:-.01em; margin:.24em 0 .2em; text-wrap:balance}
+.dek{font-size:16.5px; color:var(--soft); max-width:64ch}
+h2{font-family:"Fraunces",serif; font-weight:600; font-size:26px; letter-spacing:-.01em; margin:44px 0 6px; scroll-margin-top:20px; padding-top:8px}
+h2 .no{font-family:"IBM Plex Mono",monospace; font-size:14px; color:var(--teal); margin-right:10px}
+h3{font-family:"Public Sans",sans-serif; font-weight:700; font-size:17px; margin:22px 0 4px}
+p{margin:.5em 0}
+.lead{font-size:15.5px; color:var(--soft)}
+strong{color:var(--ink)}
+code,.mono{font-family:"IBM Plex Mono",monospace; font-size:.92em; background:color-mix(in srgb,var(--teal) 12%,transparent); padding:1px 6px; border-radius:5px}
+:root[data-theme="dark"] code, :root:not([data-theme="light"]) code{background:rgba(51,194,173,.14)}
+.card{background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:20px 22px; margin:16px 0; box-shadow:var(--shadow)}
+.card h3{margin-top:0}
+.step{border-left:3px solid var(--teal)}
+.grid{display:grid; gap:10px; margin-top:12px}
+@media(min-width:640px){.grid.two{grid-template-columns:1fr 1fr}}
+.qa{border-left:3px solid var(--orange)}
+.field{margin:9px 0}
+.field .k{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); display:block; margin-bottom:1px}
+.tag{display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:10.5px; padding:3px 9px; border-radius:999px; letter-spacing:.03em}
+.tag.t{background:color-mix(in srgb,var(--teal) 16%,transparent); color:var(--teal)}
+.tag.o{background:color-mix(in srgb,var(--orange) 16%,transparent); color:var(--orange)}
+.tablewrap{overflow-x:auto; margin:14px 0}
+table{border-collapse:collapse; width:100%; font-size:13.5px; min-width:560px}
+th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+td .mono{background:none; padding:0}
+.callout{background:color-mix(in srgb,var(--teal) 9%,var(--paper)); border:1px solid color-mix(in srgb,var(--teal) 26%,var(--line)); border-radius:14px; padding:16px 20px; margin:18px 0}
+.callout .lab{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--teal); margin-bottom:4px}
+ul.tight{margin:.4em 0; padding-left:1.15em} ul.tight li{margin:.28em 0}
+.foot{color:var(--muted); font-size:12.5px; border-top:1px solid var(--line); margin-top:40px; padding-top:16px; font-family:"IBM Plex Mono",monospace}
+.kbd{font-family:"IBM Plex Mono",monospace; font-weight:600; color:var(--orange)}
+</style>
+
+<button class="theme" id="themebtn" aria-label="Alternar tema">☾ tema</button>
+<div class="wrap">
+  <nav class="toc" aria-label="Índice">
+    <div class="brand">Guia da Análise</div>
+    <div class="sub">defesa técnica · humor no microciclo</div>
+    <a class="grp">Fundamentos</a>
+    <a href="#objetivo">1 · Objetivo e desenho</a>
+    <a href="#mapa">2 · Mapa objetivo → análise</a>
+    <a class="grp">As decisões</a>
+    <a href="#normalidade">3 · Normalidade</a>
+    <a href="#naoparam">4 · Testes não paramétricos</a>
+    <a href="#efeito">5 · Tamanho de efeito</a>
+    <a href="#manova">6 · MANOVA e Bonferroni</a>
+    <a href="#icc">7 · ICC e limiares</a>
+    <a href="#perfis">8 · Perfis e migração</a>
+    <a href="#derivadas">9 · Suavização e derivadas</a>
+    <a href="#polinomio">10 · Ajuste polinomial</a>
+    <a href="#cruzamentos">11 · Cruzamentos</a>
+    <a href="#snr">12 · Sinal e ruído</a>
+    <a href="#agudocronico">13 · Agudo e crônico</a>
+    <a href="#pca">14 · PCA</a>
+    <a class="grp">Síntese</a>
+    <a href="#alcance">15 · Como os objetivos foram atingidos</a>
+    <a href="#tese">16 · A tese central</a>
+    <a href="#banca">17 · Perguntas da banca</a>
+    <a href="#glossario">18 · Glossário</a>
+    <a href="#checklist">19 · Checklist da defesa</a>
+  </nav>
+
+  <main>
+  <header class="hero">
+    <div class="eyebrow">Análise quantitativa · guia de defesa</div>
+    <h1>Entender e defender cada decisão da análise</h1>
+    <p class="dek">Este guia percorre, passo a passo, a análise de dados do estudo sobre a dinâmica do humor no microciclo de handebol de elite. Para cada etapa: <strong>o que é</strong>, <strong>por que foi escolhida</strong>, <strong>como se lê o resultado</strong>, <strong>o que ele significa</strong> e <strong>como atinge o objetivo</strong>. O objetivo é você saber justificar tecnicamente qualquer ponto.</p>
+  </header>
+
+  <h2 id="objetivo"><span class="no">1</span>Objetivo e desenho do estudo</h2>
+  <p>Antes de qualquer teste, a análise responde a uma pergunta. <strong>Objetivo geral:</strong> caracterizar as alterações do perfil de humor de atletas de handebol de elite ao longo de um microciclo pré-competitivo. A pergunta é <em>descritiva e de forma temporal</em>: como o humor se comporta, quando muda e quanto muda.</p>
+  <div class="card step">
+    <h3>Tipo de estudo e por que ele responde à pergunta</h3>
+    <div class="field"><span class="k">Classificação</span> Observacional, longitudinal, correlacional, de grupo único, com medidas repetidas.</div>
+    <div class="field"><span class="k">Justificativa de cada termo</span>
+    <ul class="tight">
+      <li><strong>Observacional:</strong> a rotina de treino não foi manipulada; descrevemos o que aconteceu. Adequado porque o objetivo é <em>descrever</em>, não testar uma intervenção.</li>
+      <li><strong>Longitudinal / medidas repetidas:</strong> os mesmos 27 atletas foram medidos 13 vezes (baseline + pré/pós de 6 dias = 286 observações). É o que permite falar de <em>trajetória</em> e de <em>efeito agudo</em>.</li>
+      <li><strong>Grupo único:</strong> não há grupo controle; cada atleta é referência de si mesmo. Isso obriga a usar testes <em>pareados</em> (intraindividuais).</li>
+      <li><strong>Correlacional:</strong> examinamos associações entre dimensões (Spearman), não relações de causa.</li>
+    </ul></div>
+    <div class="callout"><div class="lab">Como responder na banca</div>“É observacional porque o objetivo é descrever a dinâmica real do humor, não testar um tratamento; e é de medidas repetidas porque só medindo o mesmo atleta ao longo do tempo consigo separar o efeito agudo de cada sessão do acúmulo entre os dias.”</div>
+  </div>
+
+  <h2 id="mapa"><span class="no">2</span>Mapa: objetivo → decisão analítica → resultado → significado</h2>
+  <p class="lead">Cada análise existe para responder a um objetivo específico. Esta tabela é o esqueleto da defesa.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Objetivo específico</th><th>Decisão analítica</th><th>Resultado</th><th>Significado</th></tr></thead>
+    <tbody>
+      <tr><td>a) Descrever dimensões, consistência e limiares</td><td>Descritiva + alfa/ômega + ICC + MDC</td><td>Vigor e fadiga com sinal amplo; negativas com piso alto</td><td>O sinal útil está no par energia-fadiga</td></tr>
+      <tr><td>b) Caracterizar perfis e sua migração</td><td>Classificação em 6 perfis + qui-quadrado + regressão logística</td><td>Iceberg 48%→22%; barbatana 4%→22%; OR=1,37</td><td>Migração da prontidão para a fadiga funcional</td></tr>
+      <tr><td>c) Magnitude da mudança (D1→D7, entre dias, pré/pós)</td><td>Wilcoxon + dz, Friedman + W, MANOVA</td><td>Vigor dz=−1,33; Fadiga dz=+0,78; Wilks λ=0,181</td><td>Efeito grande e confirmado no eixo energia-fadiga</td></tr>
+      <tr><td>d) Forma temporal e inflexão</td><td>Spline + 2ª derivada</td><td>Inflexão ~dia 3,8</td><td>Transição prontidão → acúmulo na metade da semana</td></tr>
+      <tr><td>e) Ajuste polinomial e cruzamentos</td><td>Polinômio grau 3 (2 resoluções) + cruzamentos exatos</td><td>R²=0,96/0,95; cruzamentos dias 2,3 / 3,9 / 5,8</td><td>A inversão do eixo vira evento datado</td></tr>
+      <tr><td>f) Estrutura e relações entre dimensões</td><td>Spearman + PCA</td><td>1º componente = eixo de perturbação; vigor oposto</td><td>Centralidade do eixo confirmada por via independente</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 id="normalidade"><span class="no">3</span>Verificação de normalidade (Shapiro-Wilk)</h2>
+  <div class="card step">
+    <div class="field"><span class="k">O que é</span> Um teste que avalia se os dados de cada dimensão seguem uma distribuição normal (em forma de sino).</div>
+    <div class="field"><span class="k">Por que foi feito (a decisão que ele fundamenta)</span> É o <strong>ponto de bifurcação</strong> da análise: se os dados forem normais, usam-se testes paramétricos (t, ANOVA); se não, testes não paramétricos. Não se escolhe o teste por gosto — escolhe-se pela distribuição.</div>
+    <div class="field"><span class="k">Resultado</span> Vigor e fadiga aproximaram-se da normalidade; as dimensões negativas (tensão, depressão, raiva, confusão) foram <strong>não normais</strong>, com forte assimetria positiva e efeito de piso (muitos zeros).</div>
+    <div class="field"><span class="k">Decisão justificada</span> Como parte das variáveis viola a normalidade, adotou-se estatística <strong>não paramétrica</strong> para todas, mantendo a comparação coerente entre dimensões.</div>
+    <div class="callout"><div class="lab">O que isso significa</div>O efeito de piso das dimensões negativas não é um defeito do instrumento: em atletas saudáveis é <em>esperado</em> que quase não haja depressão ou confusão. Ele apenas delimita o que se pode medir nessas dimensões — por isso elas serão lidas por prevalência/perfil, e não por médias finas.</div>
+  </div>
+
+  <h2 id="naoparam"><span class="no">4</span>Testes não paramétricos: Friedman, Wilcoxon, Spearman</h2>
+  <div class="grid two">
+    <div class="card step"><h3>Friedman (+ W de Kendall)</h3>
+      <p><span class="tag t">entre os 7 dias</span></p>
+      <p><strong>O que é:</strong> a versão não paramétrica da ANOVA de medidas repetidas. Testa se uma dimensão muda ao longo dos 7 dias.</p>
+      <p><strong>Por quê:</strong> são medidas repetidas no mesmo grupo e os dados não são normais.</p>
+      <p><strong>Como se lê:</strong> <code>χ²</code> grande e <code>p&lt;0,05</code> = há mudança; o <code>W de Kendall</code> diz o tamanho (0=nada, 1=máximo).</p>
+      <p><strong>Resultado:</strong> Vigor χ²=23,6; p&lt;0,001; W=0,21. Fadiga p=0,007.</p>
+    </div>
+    <div class="card step"><h3>Wilcoxon (+ dz)</h3>
+      <p><span class="tag o">pares (D1×D7, pré×pós)</span></p>
+      <p><strong>O que é:</strong> compara dois momentos <em>pareados</em> do mesmo atleta (equivalente não paramétrico do teste t pareado).</p>
+      <p><strong>Por quê:</strong> grupo único = cada atleta é seu próprio controle; sem normalidade.</p>
+      <p><strong>Como se lê:</strong> <code>p</code> diz se mudou; <code>dz</code> diz o quanto (efeito).</p>
+      <p><strong>Resultado:</strong> D1→D7 Vigor dz=−1,33; pré→pós Vigor dz=−0,47.</p>
+    </div>
+  </div>
+  <div class="card step"><h3>Spearman</h3>
+    <p><strong>O que é / por quê:</strong> correlação de <em>postos</em> (não paramétrica), usada para medir a associação entre dimensões sem exigir normalidade nem relação linear. <strong>Significado:</strong> mostra que as dimensões negativas andam juntas e que o vigor é relativamente independente — um polo próprio do eixo.</p>
+  </div>
+
+  <h2 id="efeito"><span class="no">5</span>Tamanho de efeito (dz, d de Cohen, W)</h2>
+  <div class="card step">
+    <div class="field"><span class="k">O que é</span> Uma medida de <strong>quão grande</strong> é a mudança, independente do tamanho da amostra. O <code>dz</code> é a mudança média dividida pelo desvio-padrão das diferenças pareadas.</div>
+    <div class="field"><span class="k">Por que foi reportado sempre ao lado do p</span> Porque <strong>significância não é relevância</strong>. Um <code>p</code> pequeno diz que a mudança dificilmente é acaso; ele <em>não</em> diz se a mudança importa. Com n grande, coisas triviais ficam significativas; com n pequeno, efeitos reais podem não atingir significância. O tamanho de efeito resolve as duas armadilhas.</div>
+    <div class="field"><span class="k">Como se lê (régua)</span> dz/d: <span class="mono">0,2 pequeno · 0,5 médio · 0,8 grande</span>. W de Kendall: <span class="mono">0,1 pequeno · 0,3 moderado · 0,5 grande</span>.</div>
+    <div class="callout"><div class="lab">Aplicação ao estudo</div>O vigor caiu com <strong>dz=−1,33</strong> (grande) e a fadiga subiu com <strong>dz=+0,78</strong> (médio-grande). Ou seja: a mudança não é só “estatisticamente detectável”, é <em>substancial</em> na prática do atleta.</div>
+  </div>
+
+  <h2 id="manova"><span class="no">6</span>MANOVA e correção de Bonferroni</h2>
+  <div class="card step">
+    <div class="field"><span class="k">O que é a MANOVA</span> Uma análise que testa a diferença entre o primeiro e o último dia considerando <strong>todas as dimensões ao mesmo tempo</strong> (de forma multivariada), em escores padronizados.</div>
+    <div class="field"><span class="k">Por que fazer, se já há os Wilcoxon</span> Para <strong>confirmar de forma global</strong> que o estado de humor mudou como um todo, controlando o fato de as dimensões serem correlacionadas. É uma segunda via, mais conservadora, que blinda a conclusão.</div>
+    <div class="field"><span class="k">Como se lê</span> <code>Wilks λ</code> vai de 0 a 1; quanto <strong>menor</strong>, maior a separação entre os dois dias. Resultado: <strong>λ=0,181; p&lt;0,001</strong> (separação forte).</div>
+    <div class="field"><span class="k">Bonferroni</span> Ao testar várias dimensões, a chance de um “falso positivo” cresce. A correção de Bonferroni torna o critério mais rígido. <strong>Após a correção, só vigor e fadiga permaneceram significativos</strong> — o que concentra o efeito, de forma honesta, no eixo energia-fadiga.</div>
+  </div>
+
+  <h2 id="icc"><span class="no">7</span>Confiabilidade (ICC) e limiares de mudança (SEM, MDC, SWC)</h2>
+  <div class="card step">
+    <div class="field"><span class="k">ICC — o que é</span> O coeficiente de correlação intraclasse mede a <strong>consistência</strong> das medidas repetidas: o quanto o escore de um atleta é estável ao longo dos dias.</div>
+    <div class="field"><span class="k">Por quê</span> Antes de interpretar mudanças, precisamos saber quanto da variação é sinal e quanto é erro de medida. ICC baixo em raiva e confusão (0,36–0,39) avisa: essas dimensões oscilam muito de um dia para o outro, então leia-as com cautela.</div>
+    <div class="field"><span class="k">SEM · MDC · SWC — a decisão prática</span> A partir do ICC deriva-se o <strong>erro-padrão de medida (SEM)</strong> e a <strong>mudança mínima detectável (MDC)</strong>: só variações acima da MDC podem ser lidas como reais. No vigor, MDC95≈6,3 pontos. A <strong>menor mudança relevante (SWC)</strong> é o quanto conta na prática.</div>
+    <div class="callout"><div class="lab">Decisão que isso justifica</div>Como a MDC individual é alta, o estudo interpreta <strong>tendências de grupo</strong>, não leituras isoladas de um único atleta. Isso é rigor: reconhece o limite do que o dado sustenta.</div>
+  </div>
+
+  <h2 id="perfis"><span class="no">8</span>Perfis de humor, qui-quadrado e regressão logística</h2>
+  <div class="card step">
+    <div class="field"><span class="k">Por que categorizar em perfis</span> Além dos escores isolados, o modelo dos 6 perfis (iceberg, barbatana de tubarão, submerso, etc.) condensa as seis dimensões em uma imagem reconhecível — aproxima o dado da linguagem da comissão técnica.</div>
+    <div class="field"><span class="k">O paradoxo do qui-quadrado</span> O teste do qui-quadrado comparou a distribuição dos perfis no D1 vs D7 e <strong>não</strong> foi significativo (χ²=8,96; p=0,111). <strong>Isso não contradiz a conclusão.</strong> Com poucos atletas espalhados por 6 categorias, a contagem por célula fica baixa e o teste perde potência — é uma limitação conhecida do qui-quadrado, não ausência de fenômeno.</div>
+    <div class="field"><span class="k">Por que a regressão logística resolve</span> Modelando a <em>tendência</em> ao longo dos dias, ela mostra que a chance do perfil de barbatana de tubarão <strong>aumenta a cada dia (OR=1,37)</strong>. A migração iceberg (48%→22%) → barbatana (4%→22%) é descritiva e converge com a queda do vigor.</div>
+    <div class="callout"><div class="lab">Resposta pronta</div>“O qui-quadrado não deu significativo por baixa contagem por célula, não por ausência de migração. A tendência é confirmada pela regressão logística (OR=1,37) e converge com o efeito grande do vigor no D1→D7.”</div>
+  </div>
+
+  <h2 id="derivadas"><span class="no">9</span>Suavização por spline e derivadas (a forma temporal)</h2>
+  <div class="card step">
+    <div class="field"><span class="k">Por que suavizar</span> As médias diárias contêm sinal (a tendência real) e ruído (oscilação do dia a dia). A <strong>spline</strong> retém a tendência e descarta as flutuações abruptas, para que a forma da curva seja legível.</div>
+    <div class="field"><span class="k">1ª derivada</span> É a <strong>velocidade</strong> de mudança: onde a curva sobe ou desce mais rápido.</div>
+    <div class="field"><span class="k">2ª derivada e inflexão</span> É a <strong>aceleração</strong>. O ponto em que a 2ª derivada cruza o zero é o <strong>ponto de inflexão</strong> — onde a concavidade muda e a tendência inverte o sentido. No estudo, ~<strong>dia 3,8</strong>: a fronteira entre a fase de prontidão e a fase de acúmulo.</div>
+    <div class="callout"><div class="lab">Por que isso importa</div>Comparar só D1 com D7 diz que mudou; a derivada diz <em>quando</em> e <em>como</em> mudou. É informação que a comparação de médias não revela — e é uma das contribuições metodológicas do trabalho.</div>
+  </div>
+
+  <h2 id="polinomio"><span class="no">10</span>Ajuste polinomial de grau 3 (em duas resoluções)</h2>
+  <div class="card step">
+    <div class="field"><span class="k">O que é / por quê</span> Um polinômio de grau 3 resume cada trajetória em uma <strong>equação</strong>, com <code>R²</code> (quão bem o modelo explica os dados) e a inflexão analítica em <code>x = −b/3a</code>. Dá uma síntese paramétrica ao que a spline mostrou de forma não paramétrica.</div>
+    <div class="field"><span class="k">Duas resoluções = triangulação</span> Ajustou-se sobre as 7 médias diárias (R²=0,96 vigor; 0,95 fadiga) e sobre os 14 pontos pré/pós. As duas apontam a mesma inflexão. <strong>Quando um achado sobrevive a métodos diferentes, ele é robusto</strong> — não é artefato de uma técnica.</div>
+  </div>
+
+  <h2 id="cruzamentos"><span class="no">11</span>Cruzamentos exatos das trajetórias</h2>
+  <div class="card step">
+    <p>Como vigor e fadiga estão na mesma escala (0–16), dá para localizar <strong>onde as curvas se cruzam</strong>. O vigor começa muito acima (8,4 vs 3,4), é alcançado pela fadiga ainda na primeira metade e, ao fim, a fadiga se afasta em definitivo por cima (cruzamentos nos <strong>dias 2,3, 3,9 e 5,8</strong>). Depois a PTH ultrapassa vigor e fadiga.</p>
+    <div class="callout"><div class="lab">Significado</div>É a contribuição mais original: converte a ideia qualitativa de “inversão do eixo energia-fadiga” em um <strong>evento com dia e escore definidos</strong> — um candidato a marcador temporal do início do sobre-esforço funcional.</div>
+  </div>
+
+  <h2 id="snr"><span class="no">12</span>Separação entre sinal e ruído (razão S/R)</h2>
+  <div class="card step">
+    <div class="field"><span class="k">O que é</span> A razão entre a amplitude do sinal filtrado e o desvio-padrão do ruído (resíduo). Quanto maior, mais confiável é a leitura da tendência.</div>
+    <div class="field"><span class="k">Resultado e decisão</span> Vigor S/R=8,4 e fadiga 6,7 (sinal forte); dimensões negativas entre 2,7 e 4,4 (dominadas por ruído e piso). <strong>Isso fundamenta, por um terceiro caminho independente</strong> (junto da psicometria e do PCA), a decisão de centrar o monitoramento no par vigor-fadiga.</div>
+  </div>
+
+  <h2 id="agudocronico"><span class="no">13</span>Efeito agudo × crônico e transições sequenciais</h2>
+  <div class="card step">
+    <div class="field"><span class="k">A decomposição</span> Cada dia foi partido em um <strong>efeito agudo</strong> (pré→pós, dentro do dia) e um <strong>efeito de recuperação</strong> (pós→pré do dia seguinte), comparados por Wilcoxon pareado.</div>
+    <div class="field"><span class="k">O que revela</span> Um padrão em <strong>dente de serra</strong>: a sessão piora o estado (agudo) e o intervalo devolve parte (recuperação), com destaque para a carga do <strong>Dia 6</strong> (PTH dz=0,75). Como a recuperação é apenas <em>parcial</em>, o saldo acumula e produz a deriva descendente do vigor.</div>
+    <div class="callout"><div class="lab">Por que isso é a definição operacional de sobre-esforço funcional</div>Sobre-esforço funcional é fadiga induzida de propósito e monitorada pela relação entre carga aguda e recuperação. O dente de serra com recuperação parcial é exatamente esse mecanismo, medido.</div>
+  </div>
+
+  <h2 id="pca"><span class="no">14</span>Análise de componentes principais (PCA)</h2>
+  <div class="card step">
+    <p><strong>O que é / por quê:</strong> a PCA resume as seis dimensões em poucos eixos. Os dois primeiros componentes explicaram 64% da variância. O primeiro funciona como um <strong>eixo geral de perturbação</strong> (as negativas juntas), com o <strong>vigor apontando no sentido oposto</strong>. <strong>Significado:</strong> reforça, por uma via exploratória e independente, que o vigor é o contraponto do bloco negativo — a centralidade do eixo energia-fadiga não depende de uma única análise.</p>
+  </div>
+
+  <h2 id="alcance"><span class="no">15</span>Como os resultados alcançaram os objetivos</h2>
+  <div class="card">
+    <ul class="tight">
+      <li><strong>Descrever e classificar o humor (obj. geral, a, b):</strong> feito pela descritiva, pelos perfis e pela migração iceberg→barbatana — o humor foi caracterizado e sua mudança, quantificada.</li>
+      <li><strong>Magnitude da mudança (c):</strong> os efeitos (dz grande no vigor, médio na fadiga) e a MANOVA responderam “quanto” mudou, com confirmação multivariada.</li>
+      <li><strong>Forma temporal (d, e):</strong> spline, derivadas, polinômio e cruzamentos responderam “quando” e “como” — com inflexão datada e cruzamentos exatos.</li>
+      <li><strong>Estrutura e relações (f):</strong> Spearman, S/R e PCA convergiram para o mesmo núcleo, o eixo energia-fadiga.</li>
+    </ul>
+    <p class="lead">Ou seja: cada objetivo tem um resultado que o cumpre, e nenhum resultado ficou solto sem objetivo.</p>
+  </div>
+
+  <h2 id="tese"><span class="no">16</span>A tese central e o fio condutor</h2>
+  <div class="callout"><div class="lab">Frase-síntese para abrir a defesa</div>“Em um microciclo pré-competitivo de handebol de elite, o humor se comporta como um sistema de um eixo dominante — energia-fadiga — que se deteriora de modo ordenado sob a carga, e cujo curso pode ser <strong>lido, datado e quantificado</strong>. Cada camada de análise, da descrição simples à modelagem das trajetórias, chega a esse mesmo núcleo por caminhos independentes.”</div>
+  <p>O poder do argumento é a <strong>convergência</strong>: psicometria, ICC, S/R, PCA, MANOVA e derivadas apontam todos para o par vigor-fadiga. Quando métodos independentes concordam, a conclusão não depende de nenhum deles isoladamente — é isso que se chama triangulação metodológica.</p>
+
+  <h2 id="banca"><span class="no">17</span>Perguntas prováveis da banca (com respostas)</h2>
+  <div class="grid">
+    <div class="card qa"><h3>Por que não usou teste t / ANOVA?</h3><p>Porque o Shapiro-Wilk mostrou não normalidade e forte efeito de piso nas dimensões negativas. A escolha do teste segue a distribuição dos dados, não a preferência. Testes não paramétricos são a decisão correta e conservadora aqui.</p></div>
+    <div class="card qa"><h3>O qui-quadrado não deu significativo. Como conclui migração?</h3><p>A não significância vem da baixa contagem por célula (poucos atletas em 6 perfis), não da ausência de migração. A tendência é confirmada pela regressão logística (OR=1,37) e converge com o efeito grande do vigor no D1→D7.</p></div>
+    <div class="card qa"><h3>A amostra é pequena. Isso não fragiliza tudo?</h3><p>É a população possível (um elenco de elite). Por isso reporto <strong>tamanho de efeito</strong> junto de p, uso testes pareados (cada atleta é seu controle) e limito a inferência a tendências de grupo via MDC. O n pequeno é reconhecido nas limitações.</p></div>
+    <div class="card qa"><h3>O efeito de piso não invalida as dimensões negativas?</h3><p>Não. Em atletas saudáveis o piso é esperado e informativo: essas dimensões funcionam como sentinelas de estados raros. Por isso são lidas por prevalência/perfil, e o sinal quantitativo mora no vigor e na fadiga.</p></div>
+    <div class="card qa"><h3>ICC baixo em raiva/confusão não é um problema?</h3><p>É justamente um resultado: essas dimensões são reativas e menos confiáveis entre dias, o que recomenda cautela — e reforça a decisão de centrar a interpretação no eixo energia-fadiga, de ICC melhor.</p></div>
+    <div class="card qa"><h3>Por que MANOVA se já tinha os Wilcoxon?</h3><p>Para confirmar de forma global e multivariada, controlando a correlação entre dimensões. É uma segunda via mais conservadora; com Bonferroni, só vigor e fadiga sobrevivem, o que concentra o efeito honestamente.</p></div>
+    <div class="card qa"><h3>Por que spline e não uma reta?</h3><p>Uma reta impõe forma linear e esconde a inflexão. A spline deixa os dados mostrarem a forma; a 2ª derivada localiza objetivamente a virada na metade da semana. E o polinômio paramétrico reproduz a mesma inflexão — triangulação.</p></div>
+    <div class="card qa"><h3>O que é a razão sinal/ruído aqui?</h3><p>A amplitude da tendência dividida pela dispersão do ruído. Vigor (8,4) e fadiga (6,7) têm tendência limpa; as negativas mal ultrapassam o ruído. Fundamenta, por via independente, o foco no eixo.</p></div>
+    <div class="card qa"><h3>Como sabe que é sobre-esforço funcional e não overtraining?</h3><p>Porque os perfis de risco (iceberg invertido, submerso) não se instalaram e a recuperação entre sessões, embora parcial, existiu. O quadro é fadiga planejada e reversível — a definição de sobre-esforço funcional.</p></div>
+    <div class="card qa"><h3>Correlação não é causa — então o que você afirma?</h3><p>Afirmo <strong>associação</strong> e <strong>descrição temporal</strong>, não causalidade. O desenho observacional não permite causa; por isso a linguagem é de padrão, trajetória e magnitude, não de efeito causal.</p></div>
+    <div class="card qa"><h3>Por que coletar pré e pós, e não uma vez por dia?</h3><p>Para separar o efeito agudo da sessão (pré→pós) do acúmulo entre dias. Sem as duas coletas diárias, o dente de serra e a recuperação parcial seriam invisíveis.</p></div>
+    <div class="card qa"><h3>O que garante que os achados não são acaso?</h3><p>A convergência de métodos independentes (psicometria, ICC, S/R, PCA, MANOVA, derivadas) e o relato de tamanho de efeito ao lado de p. Nenhuma conclusão se apoia em um único teste.</p></div>
+  </div>
+
+  <h2 id="glossario"><span class="no">18</span>Glossário rápido</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Termo</th><th>Em uma frase</th></tr></thead>
+    <tbody>
+      <tr><td><span class="mono">p-valor</span></td><td>Probabilidade de ver este resultado se não houvesse efeito real; &lt;0,05 = improvável ser acaso.</td></tr>
+      <tr><td><span class="mono">dz / d de Cohen</span></td><td>Tamanho do efeito pareado; 0,2 pequeno, 0,5 médio, 0,8 grande.</td></tr>
+      <tr><td><span class="mono">W de Kendall</span></td><td>Tamanho de efeito do Friedman; 0 a 1.</td></tr>
+      <tr><td><span class="mono">Wilks λ</span></td><td>Separação multivariada entre dois grupos; menor = mais separação.</td></tr>
+      <tr><td><span class="mono">ICC</span></td><td>Consistência das medidas repetidas do mesmo atleta.</td></tr>
+      <tr><td><span class="mono">SEM / MDC / SWC</span></td><td>Erro de medida / mudança mínima detectável / menor mudança relevante.</td></tr>
+      <tr><td><span class="mono">Bonferroni</span></td><td>Correção que endurece o critério quando se fazem vários testes.</td></tr>
+      <tr><td><span class="mono">Spline</span></td><td>Curva suave que separa a tendência (sinal) das oscilações (ruído).</td></tr>
+      <tr><td><span class="mono">2ª derivada = 0</span></td><td>Ponto de inflexão: onde a tendência muda de sentido.</td></tr>
+      <tr><td><span class="mono">R²</span></td><td>Quanto do comportamento dos dados o modelo explica (0 a 1).</td></tr>
+      <tr><td><span class="mono">OR (odds ratio)</span></td><td>Quantas vezes muda a chance de um perfil a cada dia.</td></tr>
+      <tr><td><span class="mono">Efeito de piso</span></td><td>Muitos escores no valor mínimo (zero), comprimindo a variação.</td></tr>
+      <tr><td><span class="mono">PTH</span></td><td>Perturbação total do humor: soma das negativas menos o vigor.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 id="checklist"><span class="no">19</span>Checklist para a defesa</h2>
+  <div class="card">
+    <ul class="tight">
+      <li>Comece pela <strong>pergunta e pelo desenho</strong>: descrever a dinâmica do humor no microciclo, com medidas repetidas.</li>
+      <li>Justifique a <strong>estatística não paramétrica</strong> pela normalidade e pelo piso — decisão guiada pelos dados.</li>
+      <li>Sempre cite <strong>p e tamanho de efeito juntos</strong>: significância não é relevância.</li>
+      <li>Explique o <strong>eixo energia-fadiga</strong> como o núcleo, sustentado por 3 vias independentes (psicometria, S/R, PCA).</li>
+      <li>Apresente a <strong>forma temporal</strong> (inflexão datada, cruzamentos) como contribuição além da comparação de médias.</li>
+      <li>Trate o <strong>qui-quadrado não significativo</strong> com naturalidade: baixa contagem, tendência confirmada pela OR.</li>
+      <li>Feche com a <strong>convergência</strong>: métodos diferentes, mesma conclusão = robustez.</li>
+      <li>Delimite a <strong>inferência</strong>: associação e descrição, tendências de grupo, sem causa — e nomeie as limitações antes que perguntem.</li>
+    </ul>
+  </div>
+
+  <p class="foot">Guia de defesa técnica · baseado na análise do estudo sobre a dinâmica do humor no microciclo pré-competitivo de handebol de elite (2026). Valores conforme os resultados do trabalho.</p>
+  </main>
+</div>
+<script>
+(function(){const b=document.getElementById("themebtn");const root=document.documentElement;
+ function cur(){return root.getAttribute("data-theme")|| (matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light");}
+ function set(t){root.setAttribute("data-theme",t);b.textContent=t==="dark"?"☀ tema":"☾ tema";}
+ set(cur());b.onclick=()=>set(cur()==="dark"?"light":"dark");
+})();
+</script>
