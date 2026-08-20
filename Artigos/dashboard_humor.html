@@ -133,6 +133,18 @@ table.dyn tbody tr.hlrow{background:rgba(90,211,196,.1)}
 .dec .decision .ar{color:var(--accent); margin:0 6px}
 .dec .why{color:var(--muted); font-size:13px; line-height:1.56}
 .dec .why b{color:var(--ink)}
+.stepper{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:18px}
+.stepbtn{display:flex; align-items:center; gap:8px; font:600 12px "Manrope",sans-serif; color:var(--muted); background:var(--glass); border:1px solid var(--stroke); border-radius:11px; padding:8px 12px; cursor:pointer; transition:.18s}
+.stepbtn .sn{font-family:"IBM Plex Mono",monospace; font-size:10px; width:18px; height:18px; display:grid; place-items:center; border-radius:6px; background:rgba(120,150,190,.16); color:var(--muted)}
+.stepbtn:hover{color:var(--ink); border-color:rgba(120,150,190,.34)}
+.stepbtn[aria-current="true"]{color:#04120f; background:linear-gradient(180deg,#6ee3d2,#33c2ad); border-color:transparent; box-shadow:0 8px 20px -12px rgba(51,194,173,.7)}
+.stepbtn[aria-current="true"] .sn{background:rgba(4,18,15,.22); color:#04120f}
+.pathnav{display:flex; align-items:center; justify-content:space-between; margin-top:20px; gap:12px}
+.navbtn{font:600 13px "Manrope",sans-serif; color:var(--ink); background:var(--glass2); border:1px solid var(--stroke); border-radius:12px; padding:11px 18px; cursor:pointer; transition:.18s}
+.navbtn:hover:not([disabled]){border-color:rgba(120,150,190,.4); transform:translateY(-1px)}
+.navbtn[disabled]{opacity:.38; cursor:default}
+.navbtn.primary{color:#04120f; background:linear-gradient(180deg,#6ee3d2,#33c2ad); border-color:transparent}
+.pathpos{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted)}
 .split{display:grid; grid-template-columns:1fr; gap:18px}
 @media(min-width:1040px){.split.tw{grid-template-columns:1fr 1fr}}
 .tip{position:fixed; z-index:60; pointer-events:none; background:rgba(9,14,22,.95); border:1px solid var(--stroke); border-radius:10px; padding:9px 11px;
@@ -599,38 +611,71 @@ const SECTIONS=[
   const c=document.createElement("div");c.className="card";c.innerHTML=`<h3>Círculo de correlação · PC1 × PC2</h3><p class="note">o comprimento da seta reflete a contribuição da dimensão</p><div class="host" id="h_pca"></div>`;h.appendChild(c);
   pcaCircle($("#h_pca",c));
 }},
-{id:"decisoes",lab:"Decisões & porquês",icon:"flow",render(h){
-  head(h,"metodologia","Decisões e porquês da análise","O caminho das decisões, da distribuição dos dados até o fim dos resultados. Cada escolha vem com a sua justificativa técnica.");
-  const D=[
-   ["Distribuição dos dados","Shapiro-Wilk <span class='ar'>→</span> estatística não paramétrica",
-    "As dimensões negativas (tensão, depressão, raiva, confusão) foram <b>não normais</b>, com assimetria positiva e forte efeito de piso. A escolha do teste segue a distribuição dos dados, não a preferência: por isso, testes não paramétricos para todas as dimensões."],
-   ["Comparações","Wilcoxon (pareado) e Friedman (7 dias)",
-    "São <b>medidas repetidas em grupo único</b>: cada atleta é o seu próprio controle. Wilcoxon compara dois momentos pareados (D1×D7, pré×pós); Friedman testa a mudança ao longo dos sete dias, com o W de Kendall como tamanho de efeito."],
-   ["Relevância, não só significância","Reportar tamanho de efeito (dz, d, W) junto do p",
-    "Um <b>p</b> pequeno diz que a mudança dificilmente é acaso, mas não diz se ela importa. Com n grande, trivialidades ficam significativas; com n pequeno, efeitos reais podem não atingir significância. O <b>tamanho de efeito</b> resolve as duas armadilhas — por isso vem sempre ao lado do p."],
-   ["Confirmação global","MANOVA + correção de Bonferroni",
-    "A MANOVA confirma, de forma <b>multivariada e conservadora</b>, que o estado mudou como um todo (Wilks λ = 0,181; p < 0,001), controlando a correlação entre dimensões. Após Bonferroni, só vigor e fadiga permanecem significativos — o que concentra o efeito, de forma honesta, no eixo energia-fadiga."],
-   ["Confiabilidade e limiares","ICC + MDC <span class='ar'>→</span> interpretar tendências de grupo",
-    "O ICC mede a consistência das medidas repetidas; dele deriva a mudança mínima detectável (MDC). Como a MDC individual é alta (ex.: vigor ≈ 6,3 pontos), a interpretação apoia-se em <b>tendências de grupo</b>, e não em leituras isoladas de um atleta. Isso separa sinal de erro de medida."],
-   ["Perfis de humor","Classificação + qui-quadrado + regressão logística",
-    "O qui-quadrado da distribuição dos perfis <b>não</b> foi significativo (p = 0,111) por baixa contagem por célula (poucos atletas em 6 perfis), não por ausência de migração. A <b>regressão logística</b> confirma a tendência: a chance do perfil de barbatana de tubarão aumenta a cada dia (OR = 1,37). Iceberg 48% → 22%; barbatana 4% → 22%."],
-   ["Forma temporal","Suavização por spline + 2ª derivada",
-    "Comparar só D1 com D7 diz que mudou; a <b>derivada</b> diz quando e como. A spline separa a tendência (sinal) do ruído; a 2ª derivada localiza o <b>ponto de inflexão</b> (~dia 3,8), a fronteira entre a fase de prontidão e a de acúmulo."],
-   ["Síntese paramétrica","Ajuste polinomial de grau 3, em duas resoluções",
-    "O polinômio resume cada trajetória em uma equação (R² = 0,96 vigor; 0,95 fadiga) e reproduz a inflexão. Ajustado sobre 7 médias diárias e sobre 14 pontos pré/pós, aponta a <b>mesma</b> inflexão: quando um achado sobrevive a métodos diferentes, ele é robusto (triangulação)."],
-   ["Datar a inversão","Cruzamentos exatos das trajetórias",
-    "Como vigor e fadiga estão na mesma escala, localizam-se os cruzamentos (dias 2,3, 3,9 e 5,8). Isso converte a ideia qualitativa de <b>inversão do eixo energia-fadiga</b> em um evento com dia e escore definidos — um candidato a marcador temporal do sobre-esforço funcional."],
-   ["Qualidade do sinal","Razão sinal/ruído <span class='ar'>→</span> foco no eixo energia-fadiga",
-    "Vigor (S/R = 8,4) e fadiga (6,7) têm tendência limpa; as negativas (2,7–4,4) são dominadas por ruído e piso. Junto da psicometria e do PCA, essa é a <b>terceira via independente</b> que fundamenta centrar o monitoramento no par vigor-fadiga."],
-   ["Microestrutura da fadiga","Efeito agudo × crônico e transições sequenciais",
-    "Cada dia foi partido em efeito agudo (pré→pós) e de recuperação (pós→pré do dia seguinte). O padrão em <b>dente de serra</b>, com recuperação apenas parcial (destaque para o Dia 6, PTH dz = 0,75), é a definição operacional do sobre-esforço funcional: fadiga induzida e monitorada pela relação carga aguda/recuperação."],
-   ["Estrutura dimensional","Análise de componentes principais (PCA)",
-    "A PCA resume as seis dimensões: o 1º componente é um eixo geral de perturbação (as negativas juntas) e o <b>vigor aponta no sentido oposto</b>. Reforça, por uma via exploratória e independente, a centralidade do eixo energia-fadiga."]
+{id:"analise",lab:"Análise estatística",icon:"flow",render(h){
+  head(h,"passo a passo","Análise estatística — caminho guiado","Percorra a análise em ordem. A cada passo: a decisão e o seu porquê, com o resultado ao lado. Use a trilha numerada ou os botões Anterior / Próximo.");
+  const STEPS=[
+   {lab:"Normalidade",tag:"Distribuição dos dados",title:"Shapiro-Wilk <span class='ar'>→</span> estatística não paramétrica",
+    why:"As dimensões negativas foram <b>não normais</b>, com assimetria e forte efeito de piso (muitos zeros). A escolha do teste segue a distribuição, não a preferência: por isso, testes não paramétricos para todas as dimensões.",
+    reading:"Piso (% de escores nulos) por dimensão: quanto maior, menos a média informa.",
+    draw:host=>barChart(host,SNR.map(r=>({lab:r[0],v:r[4],c:r[4]>=50?C.crit:r[4]>=25?C.warn:C.good})),{ymax:100,dec:0,unit:"%"})},
+   {lab:"Comparações",tag:"Testes não paramétricos",title:"Wilcoxon (pareado) e Friedman (7 dias)",
+    why:"São <b>medidas repetidas em grupo único</b>: cada atleta é o seu próprio controle. Wilcoxon compara dois momentos pareados (D1×D7, pré×pós); Friedman testa a mudança ao longo dos sete dias.",
+    reading:"Trajetórias diárias: o vigor cai e a fadiga sobe ao longo da semana.",
+    draw:host=>lineChart(host,DIM.filter(d=>["vigor","fadiga","pth"].includes(d.k)),{ymax:9})},
+   {lab:"Efeito",tag:"Relevância, não só significância",title:"Tamanho de efeito (dz) ao lado do p",
+    why:"Um <b>p</b> pequeno diz que a mudança dificilmente é acaso, mas não diz se ela importa. O <b>tamanho de efeito</b> corrige as armadilhas do n grande e do n pequeno — por isso vem sempre ao lado do p.",
+    reading:"dz do D1→D7: efeito grande no vigor (−1,33) e médio na fadiga (+0,78).",
+    draw:host=>lolliChart(host,D17.map(r=>({lab:r[0],v:r[4],mag:r[5]})))},
+   {lab:"MANOVA",tag:"Confirmação global",title:"MANOVA + correção de Bonferroni",
+    why:"Confirma, de forma <b>multivariada e conservadora</b>, que o estado mudou como um todo, controlando a correlação entre dimensões. Após Bonferroni, só vigor e fadiga permanecem significativos — o que concentra o efeito no eixo energia-fadiga.",
+    reading:"Separação forte entre o primeiro e o último dia.",
+    draw:host=>{host.innerHTML=`<div class="kpis"><div class="kpi"><span class="stripe" style="background:${C.pth}"></span><div class="lab">Wilks λ</div><div class="val" style="color:${C.pth}">0,181</div><div class="cap">p < 0,001 · separação forte</div></div><div class="kpi"><span class="stripe" style="background:${C.vigor}"></span><div class="lab">Após Bonferroni</div><div class="val" style="font-size:20px">Vigor + Fadiga</div><div class="cap">só o eixo energia-fadiga resiste</div></div></div>`;}},
+   {lab:"ICC",tag:"Confiabilidade e limiares",title:"ICC + MDC <span class='ar'>→</span> tendências de grupo",
+    why:"O ICC mede a consistência das medidas repetidas; dele deriva a mudança mínima detectável (MDC). Como a MDC individual é alta, a interpretação apoia-se em <b>tendências de grupo</b>, não em leituras isoladas de um atleta.",
+    reading:"ICC(2,1) por dimensão: moderado a bom; mais baixo em raiva e confusão.",
+    draw:host=>barChart(host,ICC.map(r=>({lab:r[0],v:r[1],c:r[1]>=.5?C.good:C.warn})),{ymax:1,dec:2})},
+   {lab:"Perfis",tag:"Perfis de humor",title:"Classificação + qui-quadrado + regressão logística",
+    why:"O qui-quadrado <b>não</b> foi significativo (p = 0,111) por baixa contagem por célula (poucos atletas em 6 perfis), não por ausência de migração. A <b>regressão logística</b> confirma a tendência (OR = 1,37 por dia).",
+    reading:"Iceberg 48%→22%; barbatana de tubarão 4%→22% do D1 ao D7.",
+    draw:host=>groupChart(host,PERFIS.map(r=>({lab:r[0],vals:[r[1],r[2]]})),[{lab:"Dia 1",c:C.vigor},{lab:"Dia 7",c:C.fadiga}],{ymax:14})},
+   {lab:"Derivadas",tag:"Forma temporal",title:"Suavização por spline + 2ª derivada",
+    why:"Comparar só D1 com D7 diz que mudou; a <b>derivada</b> diz quando e como. A spline separa a tendência do ruído; a 2ª derivada localiza o <b>ponto de inflexão</b> (~dia 3,8), a fronteira entre prontidão e acúmulo.",
+    reading:"Vigor: trajetória, velocidade (1ª derivada) e aceleração (2ª derivada).",
+    draw:host=>drawDeriv(host,"vigor")},
+   {lab:"Cruzamentos",tag:"Ajuste polinomial e cruzamentos",title:"Polinômio de grau 3 (2 resoluções) + cruzamentos exatos",
+    why:"O polinômio resume a trajetória em uma equação (R² = 0,96 vigor) e reproduz a mesma inflexão em duas resoluções — quando um achado sobrevive a métodos diferentes, é robusto (triangulação). Os cruzamentos datam a inversão do eixo (dias 2,3, 3,9 e 5,8).",
+    reading:"Vigor e fadiga se cruzam; ao fim, a fadiga se afasta por cima.",
+    draw:host=>lineChart(host,DIM.filter(d=>["vigor","fadiga","pth"].includes(d.k)),{ymax:9,crosses:CROSS})},
+   {lab:"Sinal/ruído",tag:"Qualidade do sinal",title:"Razão sinal/ruído <span class='ar'>→</span> foco no eixo",
+    why:"Vigor (S/R = 8,4) e fadiga (6,7) têm tendência limpa; as negativas (2,7–4,4) são dominadas por ruído e piso. Junto da psicometria e do PCA, é a <b>terceira via independente</b> que fundamenta centrar o monitoramento no par vigor-fadiga.",
+    reading:"Razão sinal/ruído por dimensão (verde ≥ 5; vermelho < 3).",
+    draw:host=>barChart(host,SNR.map(r=>({lab:r[0],v:r[3],c:r[3]>=5?C.good:r[3]>=3?C.warn:C.crit})),{ymax:9,dec:1})},
+   {lab:"Agudo/crônico",tag:"Microestrutura da fadiga",title:"Efeito agudo × crônico e transições sequenciais",
+    why:"Cada dia foi partido em efeito agudo (pré→pós) e de recuperação (pós→pré do dia seguinte). O padrão em <b>dente de serra</b>, com recuperação apenas parcial, é a definição operacional do sobre-esforço funcional.",
+    reading:"Agudo (intradia) vs crônico (D1→D7): o desgaste é sobretudo crônico.",
+    draw:host=>groupSigned(host,DK.map(k=>({lab:DERIV.vars[k].lab,vals:[DERIV.ac[k].ag,DERIV.ac[k].cr],sig:DERIV.ac[k].sig})),[{lab:"Agudo (intradia)",c:C.fadiga},{lab:"Crônico (D1→D7)",c:C.pth}])},
+   {lab:"PCA",tag:"Estrutura dimensional",title:"Análise de componentes principais",
+    why:"A PCA resume as seis dimensões: o 1º componente é um eixo geral de perturbação (as negativas juntas) e o <b>vigor aponta no sentido oposto</b>. Reforça, por via exploratória e independente, a centralidade do eixo energia-fadiga.",
+    reading:"Círculo de correlação: o vigor se opõe ao bloco das dimensões negativas.",
+    draw:host=>pcaCircle(host)}
   ];
-  const flow=document.createElement("div");flow.className="decflow";
-  D.forEach((d,i)=>flow.insertAdjacentHTML("beforeend",`<div class="dec"><span class="num">${i+1}</span><div class="step">${d[0]}</div><div class="decision">${d[1]}</div><div class="why">${d[2]}</div></div>`));
-  h.appendChild(flow);
-  h.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><h3>Como as decisões alcançaram os objetivos</h3><p class="note" style="font-size:13px;line-height:1.6;color:var(--muted)">A descritiva e os perfis <b style="color:var(--ink)">caracterizaram e classificaram</b> o humor; os tamanhos de efeito e a MANOVA <b style="color:var(--ink)">quantificaram</b> a mudança; a spline, o polinômio e os cruzamentos descreveram a <b style="color:var(--ink)">forma temporal</b> (quando e como); e o Spearman, a razão sinal/ruído e o PCA <b style="color:var(--ink)">convergiram</b> para o mesmo núcleo, o eixo energia-fadiga. Cada objetivo tem um resultado que o cumpre, e a convergência de métodos independentes confere robustez à conclusão.</p></div>`);
+  let cur=0;
+  const path=document.createElement("div");path.className="stepper";h.appendChild(path);
+  const body=document.createElement("div");h.appendChild(body);
+  const nav=document.createElement("div");nav.className="pathnav";h.appendChild(nav);
+  STEPS.forEach((s,i)=>{const b=document.createElement("button");b.className="stepbtn";b.innerHTML=`<span class="sn">${i+1}</span>${s.lab}`;b.onclick=()=>{cur=i;renderStep();};path.appendChild(b);});
+  function renderStep(){
+    path.querySelectorAll(".stepbtn").forEach((b,i)=>b.setAttribute("aria-current",i===cur?"true":"false"));
+    const s=STEPS[cur];body.innerHTML="";
+    body.insertAdjacentHTML("beforeend",`<div class="dec" style="padding-left:58px"><span class="num">${cur+1}</span><div class="step">${s.tag}</div><div class="decision">${s.title}</div><div class="why">${s.why}</div></div>`);
+    const rc=document.createElement("div");rc.className="card";rc.innerHTML=`<h3>Resultado</h3><p class="note">${s.reading}</p>`;const rh=document.createElement("div");rh.className="host";rc.appendChild(rh);body.appendChild(rc);
+    s.draw(rh);
+    nav.innerHTML=`<button class="navbtn" ${cur===0?"disabled":""} data-a="p">← Anterior</button><span class="pathpos">${cur+1} / ${STEPS.length} · ${s.lab}</span><button class="navbtn primary" ${cur===STEPS.length-1?"disabled":""} data-a="n">Próximo →</button>`;
+    const pb=nav.querySelector('[data-a="p"]'),nb=nav.querySelector('[data-a="n"]');
+    if(pb)pb.onclick=()=>{if(cur>0){cur--;renderStep();}};
+    if(nb)nb.onclick=()=>{if(cur<STEPS.length-1){cur++;renderStep();}};
+  }
+  renderStep();
 }}
 ];
 
