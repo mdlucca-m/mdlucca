@@ -719,49 +719,65 @@ const SECTIONS=[
   renderStep();
 }},
 {id:"apresentacao",lab:"Apresentação guiada",icon:"present",render(h){
-  head(h,"para o orientador","Apresentação guiada do estudo","Um percurso didático em seis telas: contexto, organograma, framework, funil analítico, achados e síntese. Basta apertar Próximo. Passe o cursor sobre os elementos para ver os detalhes.");
+  head(h,"para o orientador","Apresentação guiada — por variável e por análise","Escolha a variável e percorra, apertando Próximo, quais análises foram feitas, os resultados e — em destaque — como as curvas se cruzam ao longo da semana e em que dia. As telas de análise acompanham a variável selecionada.");
   const box=(k,t,s)=>`<div class="fbox"><div class="fk">${k}</div><div class="ft">${t}</div><div class="fs">${s}</div></div>`;
   const arrow=`<div class="farrow">→</div>`;
-  const kpiRow=(arr)=>`<div class="kpis">`+arr.map(k=>`<div class="kpi"><span class="stripe" style="background:${k[3]}"></span><div class="lab">${k[0]}</div><div class="val" style="color:${k[3]}">${k[1]}</div><div class="cap">${k[2]}</div></div>`).join("")+`</div>`;
+  const kpiRow=(arr)=>`<div class="kpis">`+arr.map(k=>`<div class="kpi"><span class="stripe" style="background:${k[3]}"></span><div class="lab">${k[0]}</div><div class="val" style="color:${k[3]};font-size:22px">${k[1]}</div><div class="cap">${k[2]}</div></div>`).join("")+`</div>`;
+  let selK=HLK()||"vigor";
+  const sInfo=()=>DERIV.stats[selK], vLab=()=>DERIV.vars[selK].lab, vCol=()=>DERIV.vars[selK].c;
+  const dcomma=x=>("dia "+x.toFixed(1).replace(".",","));
+  function serFor(k){const dd=dailyFromRaw(DERIV.vars[k].raw);return {k,lab:DERIV.vars[k].lab,c:DERIV.vars[k].c,daily:dd.map(x=>x.mean)};}
+  function crossDaysK(a,b){const A=DERIV.vars[a].sig,B=DERIV.vars[b].sig,X=DERIV.x,out=[];for(let i=0;i<X.length-1;i++){const d1=A[i]-B[i],d2=A[i+1]-B[i+1];if(d1===0)out.push(X[i]);else if(d1*d2<0){const t=d1/(d1-d2);out.push(X[i]+(X[i+1]-X[i])*t);}}const keep=[];out.forEach(x=>{if(!keep.length||x-keep[keep.length-1]>0.5)keep.push(x);});return keep;}
+  const pv=v=>String(v).includes("<")||String(v).includes(">")?String(v):("p = "+String(v).replace(".",","));
   const SLIDES=[
-   {t:"Contexto e pergunta",s:"Estudo observacional e longitudinal da dinâmica do humor de 27 atletas de handebol de elite ao longo de um microciclo pré-competitivo. Pergunta: como o humor se comporta, quando muda e quanto muda.",
+   {t:()=>"Contexto e pergunta",s:()=>"Estudo observacional e longitudinal da dinâmica do humor de 27 atletas de handebol de elite ao longo de um microciclo pré-competitivo. Escolha a variável na barra abaixo e siga apertando Próximo.",
     draw:host=>{host.insertAdjacentHTML("beforeend",kpiRow([["Atletas","27","elenco de elite",C.vigor],["Observações","286","13 coletas · 7 dias",C.fadiga],["Instrumento","BRUMS","6 dimensões + PTH",C.pth],["Desenho","Grupo único","medidas repetidas",C.tensao]]));tilt(host);
      host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent);margin-top:8px"><p class="note" style="font-size:14px;line-height:1.6;color:var(--ink)">Tese central: o humor comporta-se como um sistema de <b>um eixo dominante — energia-fadiga —</b> que se deteriora de modo ordenado sob a carga, e cujo curso pode ser <b>lido, datado e quantificado</b>.</p></div>`);}},
-   {t:"Objetivos",s:"O que o estudo se propôs a responder.",
+   {t:()=>"Objetivos",s:()=>"O que o estudo se propôs a responder.",
     draw:host=>{host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><div class="fk" style="font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:4px">Objetivo geral</div><p class="note" style="font-size:15px;line-height:1.6;color:var(--ink);margin:0">Caracterizar as alterações do perfil de humor de atletas de handebol de elite ao longo de um microciclo pré-competitivo.</p></div>`);
      host.insertAdjacentHTML("beforeend",`<div class="card"><h3>Objetivos específicos</h3><div class="flowrow">${box("a","Descrição e limiares","descritiva, consistência e MDC das dimensões")}${box("b","Perfis e migração","caracterizar e quantificar a migração")}${box("c","Magnitude do efeito","D1→D7, entre dias e pré/pós")}</div><div class="flowrow">${box("d","Forma temporal","suavização e inflexão")}${box("e","Cruzamentos","ajuste polinomial e datação")}${box("f","Estrutura e relações","correlações e componentes principais")}</div></div>`);}},
-   {t:"Organograma do estudo",s:"Da amostra às análises: três etapas e os desfechos.",
-    draw:host=>{host.insertAdjacentHTML("beforeend",`<div class="card"><div class="fk" style="margin-bottom:8px;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">Fluxo</div><div class="flowrow">${box("Etapa 1","Amostra","27 atletas · 4 posições")}${arrow}${box("Etapa 2","Coletas","baseline + pré/pós · 286 obs")}${arrow}${box("Etapa 3","Análise","descritiva · exploratória · avançada")}${arrow}${box("Desfecho","Perfil e eixo","migração + energia-fadiga")}</div></div>`);
-     host.insertAdjacentHTML("beforeend",`<div class="card"><div class="fk" style="margin-bottom:8px;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">Coleta diária</div><div class="flowrow">${box("Manhã","Pré-treino","estado antes da sessão")}${arrow}${box("Sessão","Treino","HIIT nos dias 2, 4 e 7")}${arrow}${box("Fim do dia","Pós-treino","estado após a sessão")}</div></div>`);}},
-   {t:"Framework conceitual",s:"O modelo que liga a carga ao humor e às decisões de treino.",
-    draw:host=>{host.insertAdjacentHTML("beforeend",`<div class="card"><div class="flowrow">${box("Entrada","Carga do microciclo","acúmulo + HIIT")}${arrow}${box("Construto","Dimensões do humor","vigor ↓ · fadiga ↑ · PTH ↑")}${arrow}${box("Leitura","Migração de perfis","iceberg → barbatana")}${arrow}${box("Quadro","Sobre-esforço funcional","fadiga planejada e reversível")}${arrow}${box("Uso","Decisão de treino","ajuste de carga e recuperação")}</div></div>`);
-     host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><p class="note" style="font-size:13px;line-height:1.6;color:var(--muted)">A carga corrói o vigor e eleva a fadiga; o perfil migra do iceberg para a barbatana de tubarão, dentro da janela do <b style="color:var(--ink)">sobre-esforço funcional</b>, e isso retroalimenta as decisões da comissão técnica.</p></div>`);}},
-   {t:"Funil analítico",s:"Como a análise afunila das nove variáveis até um marcador temporal datado.",
-    draw:host=>{const c=document.createElement("div");c.className="card";c.innerHTML=`<h3>Do amplo ao específico</h3><p class="note">cada passo concentra o sinal útil do monitoramento</p><div class="host" id="h_fun"></div>`;host.appendChild(c);
-     funnelChart($("#h_fun",c),[
-      {lab:"9 variáveis monitoradas",sub:"6 dimensões + PTH + 2 complementares",c:C.tensao},
-      {lab:"6 dimensões do humor",sub:"foco no que efetivamente muda",c:C.confusao},
-      {lab:"Eixo energia-fadiga",sub:"onde o sinal é forte (S/R 8,4 e 6,7)",c:C.fadiga},
-      {lab:"Par vigor–fadiga",sub:"as únicas que cruzam na faixa central",c:C.vigor},
-      {lab:"Cruzamento datado",sub:"dias 2,3 · 3,9 · 5,8 → marcador temporal",c:C.pth}]);}},
-   {t:"Principais achados",s:"O que os dados mostraram, em números.",
-    draw:host=>{host.insertAdjacentHTML("beforeend",kpiRow([["Vigor D1→D7","8,4 → 4,3","dz = −1,33 · grande",C.vigor],["Fadiga D1→D7","3,4 → 7,4","dz = +0,78 · médio",C.fadiga],["MANOVA","λ = 0,181","p < 0,001",C.pth],["Perfil iceberg","48% → 22%","migra p/ barbatana",C.tensao]]));tilt(host);
-     const c=document.createElement("div");c.className="card";c.innerHTML=`<h3>Trajetória do eixo energia-fadiga</h3><p class="note">curvas suavizadas · cruzamentos vigor × fadiga (dias 2,3, 3,9 e 5,8)</p><div class="host" id="h_ap"></div>`;host.appendChild(c);
-     lineChart($("#h_ap",c),DIM.filter(d=>["vigor","fadiga","pth"].includes(d.k)),{ymax:9,crosses:CROSS});}},
-   {t:"Síntese e mensagem",s:"O que levar desta apresentação.",
-    draw:host=>{host.insertAdjacentHTML("beforeend",`<div class="card"><h3>Em uma frase</h3><p class="note" style="font-size:14px;line-height:1.65;color:var(--ink)">Na última semana de pré-temporada, o humor migrou da prontidão para a fadiga funcional, de forma ordenada e datável, concentrada no eixo energia-fadiga — sem sinais de comprometimento da saúde mental.</p></div>`);
-     host.insertAdjacentHTML("beforeend",`<div class="card"><h3>Por que a conclusão é sólida</h3><p class="note" style="font-size:13px;line-height:1.7;color:var(--muted)">A mesma conclusão é alcançada por <b style="color:var(--ink)">métodos independentes</b> — psicometria, ICC, razão sinal/ruído, PCA, MANOVA e derivadas. Quando técnicas diferentes concordam, a inferência não depende de nenhuma delas isoladamente: é a chamada <b style="color:var(--ink)">triangulação metodológica</b>. O relato de tamanho de efeito ao lado do p separa o que é significativo do que é relevante.</p></div>`);
-     host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><p class="note" style="font-size:13px;color:var(--muted)">Para explorar cada análise em detalhe, use a aba <b style="color:var(--ink)">Análise estatística</b> (caminho guiado passo a passo) e a aba <b style="color:var(--ink)">Por variável</b>.</p></div>`);}}
+   {t:()=>"Descritiva — "+vLab(),s:()=>"Como a variável se distribui na semana e quão confiável é a sua medida.",
+    draw:host=>{const s=sInfo(),c=vCol();host.insertAdjacentHTML("beforeend",kpiRow([["Média ± DP",num(s.m,1)+" ± "+num(s.sd,1),"escore 0–16",c],["Variação (CV)",num(s.cv,0)+"%","dispersão relativa",c],["Piso",num(s.floor,0)+"%","escores nulos",c],["ICC",num(s.icc,2),"confiab. entre dias",c],["MDC95",num(s.mdc95,1),"mudança mínima real",c]]));tilt(host);
+     const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Comportamento ao longo da semana</h3><p class="note">trajetória suavizada · picos rotulados · média diária</p><div class="host" id="h_pd"></div>`;host.appendChild(cc);weekChart($(".host",ensureHost(cc)),selK);}},
+   {t:()=>"Mudança na semana — "+vLab(),s:()=>"Se e quanto a variável mudou do primeiro ao último dia, e ao longo dos sete dias.",
+    draw:host=>{const s=sInfo(),c=vCol();host.insertAdjacentHTML("beforeend",kpiRow([["D1 → D7",num(s.d1,1)+" → "+num(s.d7,1),(s.delta>=0?"+":"")+num(s.delta,1)+" no total",c],["Tamanho de efeito","dz = "+(s.dz>=0?"+":"")+num(s.dz,2),(Math.abs(s.dz)>=.8?"grande":Math.abs(s.dz)>=.5?"médio":Math.abs(s.dz)>=.2?"pequeno":"trivial")+(s.sig17?" · p<0,05":""),c],["Friedman","χ² = "+num(s.chi,1),pv(s.fp)+" · W = "+num(s.W,2),c],["Efeito crônico",(s.cr>=0?"+":"")+num(s.cr,2),"acúmulo entre dias",c]]));tilt(host);
+     const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Trajetória diária de ${vLab()}</h3><p class="note">os pontos rosa marcam os picos (valor) da curva</p><div class="host" id="h_ms"></div>`;host.appendChild(cc);weekChart($(".host",ensureHost(cc)),selK);}},
+   {t:()=>"Efeito agudo (pré/pós) — "+vLab(),s:()=>"O que uma sessão de treino faz com a variável, do pré ao pós, em cada dia.",
+    draw:host=>{const s=sInfo(),c=vCol();host.insertAdjacentHTML("beforeend",kpiRow([["Pré-treino",num(s.pre,2),"média da manhã",c],["Pós-treino",num(s.pos,2),"média do fim do dia",c],["Efeito agudo","dz = "+(s.dzpp>=0?"+":"")+num(s.dzpp,2),(s.sigpp?"significativo":"não significativo"),c],["Agudo médio",(s.ag>=0?"+":"")+num(s.ag,2),"média intradia",c]]));tilt(host);
+     const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Pré → pós por dia</h3><p class="note">o ponto pós viaja a partir do pré em tempo real · ○ pré · ● pós</p><div class="host" id="h_ag"></div>`;host.appendChild(cc);dayChart($(".host",ensureHost(cc)),selK);}},
+   {t:()=>"Forma temporal — "+vLab(),s:()=>"Quando a tendência vira: ponto de inflexão, velocidade e aceleração da variável.",
+    draw:host=>{const s=sInfo();host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.6;color:var(--ink)">A 2ª derivada localiza a <b>inflexão</b> de ${vLab()} ${s.infl!=null?("por volta do <b>"+dcomma(s.infl)+"</b>"):"(não detectada)"}, e a velocidade de pico foi de <b>${(s.vpk>=0?"+":"")+num(s.vpk,1)}</b> ponto/dia, por volta do <b>${dcomma(s.vpkx)}</b>.</p></div>`);
+     const wrap=document.createElement("div");host.appendChild(wrap);drawDeriv(wrap,selK);}},
+   {t:()=>"Cruzamentos ao longo da semana — "+vLab(),s:()=>"Como as curvas se cruzam e em que dia: a inversão do eixo energia-fadiga.",
+    draw:host=>{const vf=crossDaysK("vigor","fadiga");
+     let txt=`O <b>vigor</b> e a <b>fadiga</b> cruzam-se em ${vf.map(dcomma).join(", ")} — após o último cruzamento a fadiga se afasta por cima, o que marca a <b>inversão do eixo energia-fadiga</b>.`;
+     if(selK!=="vigor"&&selK!=="fadiga"){const kv=crossDaysK(selK,"vigor"),kf=crossDaysK(selK,"fadiga");const s=sInfo();
+       txt+=` Quanto a <b>${vLab()}</b>: `+(kv.length?("cruza o vigor em "+kv.map(dcomma).join(", ")+(kf.length?"; ":". ")):("não cruza o vigor"+(kf.length?"; ":", permanecendo próxima ao piso. ")))+(kf.length?("cruza a fadiga em "+kf.map(dcomma).join(", ")+". "):"")+`Seu pico ocorre por volta do ${dcomma(s.vpkx)}.`;}
+     host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><h3>Onde e em que dia se cruzam</h3><p class="note" style="font-size:13.5px;line-height:1.65;color:var(--ink)">${txt}</p></div>`);
+     const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Trajetórias e cruzamentos</h3><p class="note">linhas ✕ marcam os cruzamentos vigor × fadiga; a variável selecionada aparece em destaque</p><div class="host" id="h_cr"></div>`;host.appendChild(cc);
+     const extra=(selK!=="vigor"&&selK!=="fadiga")?serFor(selK):serFor("pth");
+     lineChart($(".host",ensureHost(cc)),[serFor("vigor"),serFor("fadiga"),extra],{ymax:9,crosses:vf.map(x=>Math.round(x*10)/10),hlk:selK});}},
+   {t:()=>"Agudo × crônico — "+vLab(),s:()=>"O desgaste vem de cada sessão (agudo) ou do acúmulo entre os dias (crônico)?",
+    draw:host=>{const s=sInfo(),c=vCol();host.insertAdjacentHTML("beforeend",kpiRow([["Efeito agudo",(s.ag>=0?"+":"")+num(s.ag,2),"média intradia (pré→pós)",C.fadiga],["Efeito crônico",(s.cr>=0?"+":"")+num(s.cr,2),"acúmulo D1→D7",C.pth],["dz crônico",(s.crdz>=0?"+":"")+num(s.crdz,2),(s.crsig?"significativo":"não significativo"),c]]));tilt(host);
+     const dom=Math.abs(s.cr)>Math.abs(s.ag)*2?"predominantemente <b>crônica</b>, por acúmulo entre os dias":"resultante tanto do <b>estímulo agudo</b> quanto do <b>acúmulo</b>";
+     host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.6;color:var(--ink)">A mudança de ${vLab()} foi ${dom}.</p></div>`);}},
+   {t:()=>"Síntese — "+vLab(),s:()=>"O resumo automático da variável e a mensagem do estudo.",
+    draw:host=>{const s=sInfo();const dir=s.delta>0?"subiu":"caiu";const mag=Math.abs(s.dz)>=.8?"grande":Math.abs(s.dz)>=.5?"médio":Math.abs(s.dz)>=.2?"pequeno":"trivial";
+     host.insertAdjacentHTML("beforeend",`<div class="card"><h3>${vLab()} em uma frase</h3><p class="note" style="font-size:14px;line-height:1.65;color:var(--ink)">${vLab()} ${dir} de ${num(s.d1,1)} para ${num(s.d7,1)} do D1 ao D7 (efeito ${mag}, dz ${(s.dz>=0?"+":"")+num(s.dz,2)}), com inflexão ${s.infl!=null?"por volta do "+dcomma(s.infl):"não detectada"} e razão sinal/ruído de ${num(s.snr,1)} — ${s.snr>=5?"tendência limpa e confiável":s.snr>=3?"sinal moderado":"sinal fraco, dominado pelo piso"}.</p></div>`);
+     host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><h3>Mensagem do estudo</h3><p class="note" style="font-size:13.5px;line-height:1.65;color:var(--ink)">Na última semana de pré-temporada, o humor migrou da prontidão para a fadiga funcional, de forma ordenada e datável, concentrada no <b>eixo energia-fadiga</b> — confirmada por métodos independentes (triangulação) e sem sinais de comprometimento da saúde mental.</p></div>`);}}
   ];
+  const varsel=document.createElement("div");varsel.className="legend";varsel.style.marginBottom="16px";h.appendChild(varsel);
   let cur=0;
   const head2=document.createElement("div");h.appendChild(head2);
   const body=document.createElement("div");h.appendChild(body);
   const nav=document.createElement("div");nav.className="pathnav";h.appendChild(nav);
   const dots=document.createElement("div");dots.className="deckdots";h.appendChild(dots);
+  DK.forEach(k=>{const v=DERIV.vars[k];const b=document.createElement("span");b.className="it";b.dataset.k=k;b.style.cursor="pointer";b.innerHTML=`<span class="dot" style="background:${v.c}"></span>${v.lab}`;b.onclick=()=>{selK=k;GLOBAL.varKey=k;syncChips();render();};varsel.appendChild(b);});
   SLIDES.forEach((s,i)=>{const d=document.createElement("button");d.className="d2";d.setAttribute("aria-label","tela "+(i+1));d.onclick=()=>{cur=i;render();};dots.appendChild(d);});
   function render(){
+    varsel.querySelectorAll(".it").forEach(b=>b.classList.toggle("selon",b.dataset.k===selK));
     const s=SLIDES[cur];
-    head2.innerHTML=`<div class="slidehead">${s.t}</div><div class="slidesub">${s.s}</div>`;
+    head2.innerHTML=`<div class="slidehead">${s.t()}</div><div class="slidesub">${s.s()}</div>`;
     body.innerHTML="";s.draw(body);
     dots.querySelectorAll(".d2").forEach((d,i)=>d.setAttribute("aria-current",i===cur?"true":"false"));
     nav.innerHTML=`<button class="navbtn" ${cur===0?"disabled":""} data-a="p">← Anterior</button><span class="pathpos">${cur+1} / ${SLIDES.length}</span><button class="navbtn primary" ${cur===SLIDES.length-1?"disabled":""} data-a="n">Próximo →</button>`;
