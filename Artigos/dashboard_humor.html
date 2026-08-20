@@ -157,6 +157,16 @@ table.dyn tbody tr.hlrow{background:rgba(90,211,196,.1)}
 .d2[aria-current="true"]{background:linear-gradient(180deg,#6ee3d2,#33c2ad); transform:scale(1.3)}
 .slidehead{font-family:"Sora",sans-serif; font-weight:700; font-size:22px; margin:2px 0 4px; letter-spacing:-.01em}
 .slidesub{color:var(--muted); font-size:13.5px; margin-bottom:16px; max-width:72ch; line-height:1.55}
+.cta{display:flex; align-items:center; gap:16px; width:100%; text-align:left; cursor:pointer; margin-bottom:22px; font-family:inherit;
+  background:linear-gradient(120deg,rgba(51,194,173,.2),rgba(139,123,240,.17)); border:1px solid rgba(90,211,196,.42); border-radius:18px; padding:16px 20px; color:var(--ink); transition:.22s}
+.cta:hover{transform:translateY(-2px); border-color:rgba(90,211,196,.72); box-shadow:0 18px 44px -22px rgba(51,194,173,.6)}
+.cta .cicoBig{width:46px; height:46px; flex:0 0 46px; display:grid; place-items:center; border-radius:14px; color:#04120f; background:linear-gradient(180deg,#6ee3d2,#33c2ad)}
+.cta .cicoBig svg{width:25px; height:25px}
+.ctatext{display:flex; flex-direction:column; gap:2px; flex:1}
+.ctat{font-family:"Sora",sans-serif; font-weight:700; font-size:16px}
+.ctas{font-size:12.5px; color:var(--muted); line-height:1.4}
+.ctago{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:13px; color:#04120f; background:linear-gradient(180deg,#6ee3d2,#33c2ad); border-radius:10px; padding:9px 15px; white-space:nowrap}
+@media(max-width:640px){.cta{flex-wrap:wrap} .ctago{width:100%; text-align:center}}
 .split{display:grid; grid-template-columns:1fr; gap:18px}
 @media(min-width:1040px){.split.tw{grid-template-columns:1fr 1fr}}
 .tip{position:fixed; z-index:60; pointer-events:none; background:rgba(9,14,22,.95); border:1px solid var(--stroke); border-radius:10px; padding:9px 11px;
@@ -492,6 +502,8 @@ function ensureHost(card){if(!card.querySelector(".host")){const d=document.crea
 
 const SECTIONS=[
 {id:"visao",lab:"Visão geral",icon:"grid",render(h){
+  h.insertAdjacentHTML("beforeend",`<button class="cta" id="ctaAP"><span class="cicoBig">${ICONS.present}</span><span class="ctatext"><span class="ctat">Apresentação guiada para o orientador</span><span class="ctas">Percorra o estudo em telas: contexto, objetivos, organograma, framework, funil analítico e achados. Basta apertar Próximo.</span></span><span class="ctago">Começar →</span></button>`);
+  {const cta=h.querySelector("#ctaAP");if(cta)cta.onclick=()=>go("apresentacao");}
   head(h,"resumo automático","Resultados por variável","Clique numa variável (aqui ou na barra lateral): os KPIs analíticos, a descrição e os resultados gerais mudam automaticamente. Os cartões de KPI são interativos — clique num deles para abrir a análise correspondente.");
   const vsel=document.createElement("div");vsel.className="vsel";h.appendChild(vsel);
   const body=document.createElement("div");h.appendChild(body);
@@ -715,6 +727,9 @@ const SECTIONS=[
    {t:"Contexto e pergunta",s:"Estudo observacional e longitudinal da dinâmica do humor de 27 atletas de handebol de elite ao longo de um microciclo pré-competitivo. Pergunta: como o humor se comporta, quando muda e quanto muda.",
     draw:host=>{host.insertAdjacentHTML("beforeend",kpiRow([["Atletas","27","elenco de elite",C.vigor],["Observações","286","13 coletas · 7 dias",C.fadiga],["Instrumento","BRUMS","6 dimensões + PTH",C.pth],["Desenho","Grupo único","medidas repetidas",C.tensao]]));tilt(host);
      host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent);margin-top:8px"><p class="note" style="font-size:14px;line-height:1.6;color:var(--ink)">Tese central: o humor comporta-se como um sistema de <b>um eixo dominante — energia-fadiga —</b> que se deteriora de modo ordenado sob a carga, e cujo curso pode ser <b>lido, datado e quantificado</b>.</p></div>`);}},
+   {t:"Objetivos",s:"O que o estudo se propôs a responder.",
+    draw:host=>{host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><div class="fk" style="font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:4px">Objetivo geral</div><p class="note" style="font-size:15px;line-height:1.6;color:var(--ink);margin:0">Caracterizar as alterações do perfil de humor de atletas de handebol de elite ao longo de um microciclo pré-competitivo.</p></div>`);
+     host.insertAdjacentHTML("beforeend",`<div class="card"><h3>Objetivos específicos</h3><div class="flowrow">${box("a","Descrição e limiares","descritiva, consistência e MDC das dimensões")}${box("b","Perfis e migração","caracterizar e quantificar a migração")}${box("c","Magnitude do efeito","D1→D7, entre dias e pré/pós")}</div><div class="flowrow">${box("d","Forma temporal","suavização e inflexão")}${box("e","Cruzamentos","ajuste polinomial e datação")}${box("f","Estrutura e relações","correlações e componentes principais")}</div></div>`);}},
    {t:"Organograma do estudo",s:"Da amostra às análises: três etapas e os desfechos.",
     draw:host=>{host.insertAdjacentHTML("beforeend",`<div class="card"><div class="fk" style="margin-bottom:8px;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">Fluxo</div><div class="flowrow">${box("Etapa 1","Amostra","27 atletas · 4 posições")}${arrow}${box("Etapa 2","Coletas","baseline + pré/pós · 286 obs")}${arrow}${box("Etapa 3","Análise","descritiva · exploratória · avançada")}${arrow}${box("Desfecho","Perfil e eixo","migração + energia-fadiga")}</div></div>`);
      host.insertAdjacentHTML("beforeend",`<div class="card"><div class="fk" style="margin-bottom:8px;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">Coleta diária</div><div class="flowrow">${box("Manhã","Pré-treino","estado antes da sessão")}${arrow}${box("Sessão","Treino","HIIT nos dias 2, 4 e 7")}${arrow}${box("Fim do dia","Pós-treino","estado após a sessão")}</div></div>`);}},
