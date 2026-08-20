@@ -124,6 +124,15 @@ table.dyn tbody tr.hlrow{background:rgba(90,211,196,.1)}
 .pill.pequeno{background:rgba(77,157,224,.16); color:#8fc4f2}.pill.trivial{background:rgba(120,150,190,.14); color:var(--muted)}
 .sig{color:var(--good); font-weight:600}.pos{color:#ff9166}.neg{color:#5ad3c4}
 .tablewrap{overflow-x:auto; margin-top:6px}
+.decflow{display:flex; flex-direction:column; margin-top:6px}
+.dec{position:relative; padding:15px 18px 16px 58px; border:1px solid var(--stroke); border-radius:16px; background:var(--glass2); margin-bottom:12px; transition:transform .2s, border-color .2s}
+.dec:hover{transform:translateY(-2px); border-color:rgba(120,150,190,.3)}
+.dec .num{position:absolute; left:16px; top:15px; width:28px; height:28px; border-radius:9px; display:grid; place-items:center; font:700 12px "IBM Plex Mono",monospace; color:#04120f; background:linear-gradient(180deg,#6ee3d2,#33c2ad)}
+.dec .step{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent)}
+.dec .decision{font-family:"Sora",sans-serif; font-weight:700; font-size:15px; margin:2px 0 5px}
+.dec .decision .ar{color:var(--accent); margin:0 6px}
+.dec .why{color:var(--muted); font-size:13px; line-height:1.56}
+.dec .why b{color:var(--ink)}
 .split{display:grid; grid-template-columns:1fr; gap:18px}
 @media(min-width:1040px){.split.tw{grid-template-columns:1fr 1fr}}
 .tip{position:fixed; z-index:60; pointer-events:none; background:rgba(9,14,22,.95); border:1px solid var(--stroke); border-radius:10px; padding:9px 11px;
@@ -589,12 +598,46 @@ const SECTIONS=[
   head(h,"componentes principais","Estrutura dimensional (PCA)","Círculo de correlação das seis dimensões do BRUMS: setas próximas indicam dimensões correlacionadas; o vigor aponta em sentido oposto às dimensões negativas, o que reforça o eixo energia-fadiga. Os dois primeiros componentes explicam "+Math.round(DERIV.pca.ve[0]*100)+"% + "+Math.round(DERIV.pca.ve[1]*100)+"% da variância.");
   const c=document.createElement("div");c.className="card";c.innerHTML=`<h3>Círculo de correlação · PC1 × PC2</h3><p class="note">o comprimento da seta reflete a contribuição da dimensão</p><div class="host" id="h_pca"></div>`;h.appendChild(c);
   pcaCircle($("#h_pca",c));
+}},
+{id:"decisoes",lab:"Decisões & porquês",icon:"flow",render(h){
+  head(h,"metodologia","Decisões e porquês da análise","O caminho das decisões, da distribuição dos dados até o fim dos resultados. Cada escolha vem com a sua justificativa técnica.");
+  const D=[
+   ["Distribuição dos dados","Shapiro-Wilk <span class='ar'>→</span> estatística não paramétrica",
+    "As dimensões negativas (tensão, depressão, raiva, confusão) foram <b>não normais</b>, com assimetria positiva e forte efeito de piso. A escolha do teste segue a distribuição dos dados, não a preferência: por isso, testes não paramétricos para todas as dimensões."],
+   ["Comparações","Wilcoxon (pareado) e Friedman (7 dias)",
+    "São <b>medidas repetidas em grupo único</b>: cada atleta é o seu próprio controle. Wilcoxon compara dois momentos pareados (D1×D7, pré×pós); Friedman testa a mudança ao longo dos sete dias, com o W de Kendall como tamanho de efeito."],
+   ["Relevância, não só significância","Reportar tamanho de efeito (dz, d, W) junto do p",
+    "Um <b>p</b> pequeno diz que a mudança dificilmente é acaso, mas não diz se ela importa. Com n grande, trivialidades ficam significativas; com n pequeno, efeitos reais podem não atingir significância. O <b>tamanho de efeito</b> resolve as duas armadilhas — por isso vem sempre ao lado do p."],
+   ["Confirmação global","MANOVA + correção de Bonferroni",
+    "A MANOVA confirma, de forma <b>multivariada e conservadora</b>, que o estado mudou como um todo (Wilks λ = 0,181; p < 0,001), controlando a correlação entre dimensões. Após Bonferroni, só vigor e fadiga permanecem significativos — o que concentra o efeito, de forma honesta, no eixo energia-fadiga."],
+   ["Confiabilidade e limiares","ICC + MDC <span class='ar'>→</span> interpretar tendências de grupo",
+    "O ICC mede a consistência das medidas repetidas; dele deriva a mudança mínima detectável (MDC). Como a MDC individual é alta (ex.: vigor ≈ 6,3 pontos), a interpretação apoia-se em <b>tendências de grupo</b>, e não em leituras isoladas de um atleta. Isso separa sinal de erro de medida."],
+   ["Perfis de humor","Classificação + qui-quadrado + regressão logística",
+    "O qui-quadrado da distribuição dos perfis <b>não</b> foi significativo (p = 0,111) por baixa contagem por célula (poucos atletas em 6 perfis), não por ausência de migração. A <b>regressão logística</b> confirma a tendência: a chance do perfil de barbatana de tubarão aumenta a cada dia (OR = 1,37). Iceberg 48% → 22%; barbatana 4% → 22%."],
+   ["Forma temporal","Suavização por spline + 2ª derivada",
+    "Comparar só D1 com D7 diz que mudou; a <b>derivada</b> diz quando e como. A spline separa a tendência (sinal) do ruído; a 2ª derivada localiza o <b>ponto de inflexão</b> (~dia 3,8), a fronteira entre a fase de prontidão e a de acúmulo."],
+   ["Síntese paramétrica","Ajuste polinomial de grau 3, em duas resoluções",
+    "O polinômio resume cada trajetória em uma equação (R² = 0,96 vigor; 0,95 fadiga) e reproduz a inflexão. Ajustado sobre 7 médias diárias e sobre 14 pontos pré/pós, aponta a <b>mesma</b> inflexão: quando um achado sobrevive a métodos diferentes, ele é robusto (triangulação)."],
+   ["Datar a inversão","Cruzamentos exatos das trajetórias",
+    "Como vigor e fadiga estão na mesma escala, localizam-se os cruzamentos (dias 2,3, 3,9 e 5,8). Isso converte a ideia qualitativa de <b>inversão do eixo energia-fadiga</b> em um evento com dia e escore definidos — um candidato a marcador temporal do sobre-esforço funcional."],
+   ["Qualidade do sinal","Razão sinal/ruído <span class='ar'>→</span> foco no eixo energia-fadiga",
+    "Vigor (S/R = 8,4) e fadiga (6,7) têm tendência limpa; as negativas (2,7–4,4) são dominadas por ruído e piso. Junto da psicometria e do PCA, essa é a <b>terceira via independente</b> que fundamenta centrar o monitoramento no par vigor-fadiga."],
+   ["Microestrutura da fadiga","Efeito agudo × crônico e transições sequenciais",
+    "Cada dia foi partido em efeito agudo (pré→pós) e de recuperação (pós→pré do dia seguinte). O padrão em <b>dente de serra</b>, com recuperação apenas parcial (destaque para o Dia 6, PTH dz = 0,75), é a definição operacional do sobre-esforço funcional: fadiga induzida e monitorada pela relação carga aguda/recuperação."],
+   ["Estrutura dimensional","Análise de componentes principais (PCA)",
+    "A PCA resume as seis dimensões: o 1º componente é um eixo geral de perturbação (as negativas juntas) e o <b>vigor aponta no sentido oposto</b>. Reforça, por uma via exploratória e independente, a centralidade do eixo energia-fadiga."]
+  ];
+  const flow=document.createElement("div");flow.className="decflow";
+  D.forEach((d,i)=>flow.insertAdjacentHTML("beforeend",`<div class="dec"><span class="num">${i+1}</span><div class="step">${d[0]}</div><div class="decision">${d[1]}</div><div class="why">${d[2]}</div></div>`));
+  h.appendChild(flow);
+  h.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><h3>Como as decisões alcançaram os objetivos</h3><p class="note" style="font-size:13px;line-height:1.6;color:var(--muted)">A descritiva e os perfis <b style="color:var(--ink)">caracterizaram e classificaram</b> o humor; os tamanhos de efeito e a MANOVA <b style="color:var(--ink)">quantificaram</b> a mudança; a spline, o polinômio e os cruzamentos descreveram a <b style="color:var(--ink)">forma temporal</b> (quando e como); e o Spearman, a razão sinal/ruído e o PCA <b style="color:var(--ink)">convergiram</b> para o mesmo núcleo, o eixo energia-fadiga. Cada objetivo tem um resultado que o cumpre, e a convergência de métodos independentes confere robustez à conclusão.</p></div>`);
 }}
 ];
 
 /* ===================== ICONS ===================== */
 function ic(p){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;}
 const ICONS={
+ flow:ic('<circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="12" r="2"/><path d="M8 6h6a2 2 0 0 1 2 2v2"/><path d="M8 18h6a2 2 0 0 0 2-2v-2"/>'),
  grid:ic('<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'),
  bars:ic('<line x1="5" y1="20" x2="5" y2="11"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="19" y1="20" x2="19" y2="14"/>'),
  shield:ic('<path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/>'),
