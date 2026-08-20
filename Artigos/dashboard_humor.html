@@ -638,19 +638,6 @@ const SECTIONS=[
   const days=[2,3,4,5,6,7],cols2=days.map(d=>({lab:"Dia "+d}));
   heatMap($("#h_m2",c2),labs,cols2,(r,c)=>{const o=DERIV.prepos_dia[String(days[c])][DK[r]];return {v:o.dz,sig:o.sig};},(r,c,d)=>`<b>${labs[r]}</b><br>Dia ${days[c]} · pré→pós<br>dz=${num(d.v,2)}${d.sig?" * p<0,05":""}`,{h:labs.length*30+70,hlRow});
 }},
-{id:"porvar",lab:"Por variável",icon:"focus",render(h){
-  head(h,"segmentação por variável","Comportamento de cada variável","Escolha a variável (aqui ou na barra lateral): o comportamento é plotado em tempo real ao longo da semana (trajetória e média de cada dia) e por dia (movimento do pré ao pós-treino em cada sessão).");
-  const sel=document.createElement("div");sel.className="legend";sel.style.marginBottom="16px";h.appendChild(sel);const kp=document.createElement("div");kp.className="kpis";h.appendChild(kp);const ph=document.createElement("div");h.appendChild(ph);
-  function draw(key){GLOBAL.varKey=key;syncChips();sel.querySelectorAll(".it").forEach(b=>b.classList.toggle("selon",b.dataset.k===key));const v=DERIV.vars[key],col=v.c,dd=dailyFromRaw(v.raw),d1=dd[0].mean,d7=dd[dd.length-1].mean,delta=d7-d1,agu=DERIV.ac[key].ag,cro=DERIV.ac[key].cr;
-    kp.innerHTML="";[["D1 → D7",num(d1,1)+" → "+num(d7,1),(delta>=0?"+":"")+num(delta,1)+" no total"],["Efeito agudo",(agu>=0?"+":"")+num(agu,2),"média intradia"],["Efeito crônico",(cro>=0?"+":"")+num(cro,2),"acúmulo D1→D7"],["Amplitude",num(v.ymin,1)+" – "+num(v.ymax,1),"mín – máx suavizado"]].forEach(c=>kp.insertAdjacentHTML("beforeend",`<div class="kpi"><span class="stripe" style="background:${col}"></span><div class="lab">${c[0]}</div><div class="val" style="font-size:23px;color:${col}">${c[1]}</div><div class="cap">${c[2]}</div></div>`));tilt(kp);
-    ph.innerHTML="";const row=document.createElement("div");row.className="split tw";ph.appendChild(row);
-    const cW=card(row,"Ao longo da semana","trajetória suavizada · pontos pré/pós · média diária (○)");const cD=card(row,"Por dia · pré → pós","o ponto pós viaja do pré em tempo real · ○ pré · ● pós");
-    weekChart($(".host",ensureHost(cW)),key);dayChart($(".host",ensureHost(cD)),key);
-    const cT=document.createElement("div");cT.className="card";cT.style.marginTop="18px";cT.innerHTML=`<h3>Comportamento diário de ${v.lab}</h3><p class="note">média, pré, pós e variação intradia por dia</p><div class="host" id="t_pv"></div>`;ph.appendChild(cT);
-    dynTable($("#t_pv",cT),["Dia","Pré","Pós","Δ intradia","Média do dia"],dd.map(d=>[("D"+d.d),d.pre==null?"—":d.pre,d.pos==null?"—":d.pos,d.pre==null?"—":(d.pos-d.pre),d.mean]),(i,val)=>{if(val==="—")return val;if(i===3)return `<span class="${val>=0?'pos':'neg'}">${val>=0?'+':''}${num(val,1)}</span>`;if(i>=1)return num(val,1);return val;});}
-  DK.forEach(k=>{const v=DERIV.vars[k];const b=document.createElement("span");b.className="it";b.dataset.k=k;b.style.cursor="pointer";b.innerHTML=`<span class="dot" style="background:${v.c}"></span>${v.lab}`;b.onclick=()=>draw(k);sel.appendChild(b);});
-  draw(HLK()||"vigor");
-}},
 {id:"distrib",lab:"Distribuições",icon:"violin",render(h){
   head(h,"distribuições","Distribuição por dia e acumulada","Violino com caixa e média por dia (o ponto vermelho é a média, como nos boxplots com média), e distribuição acumulada (ECDF) do primeiro versus o último dia. Selecione a variável no botão de segmentação.");
   const sel=document.createElement("div");sel.className="vsel";h.appendChild(sel);const ph=document.createElement("div");h.appendChild(ph);
@@ -899,7 +886,7 @@ SECTIONS.forEach((s,i)=>{const b=document.createElement("div");b.className="navi
 function buildChips(){varchips.innerHTML="";const all=document.createElement("span");all.className="vchip";all.dataset.k="";all.innerHTML=`<span class="dot" style="background:linear-gradient(90deg,#33c2ad,#8b7bf0)"></span>Todas`;all.onclick=()=>setVar(null);varchips.appendChild(all);
   DK.forEach(k=>{const v=DERIV.vars[k];const c=document.createElement("span");c.className="vchip";c.dataset.k=k;c.innerHTML=`<span class="dot" style="background:${v.c}"></span>${v.lab}`;c.onclick=()=>setVar(k);varchips.appendChild(c);});syncChips();}
 function syncChips(){varchips.querySelectorAll(".vchip").forEach(c=>c.setAttribute("aria-pressed",(c.dataset.k||null)===GLOBAL.varKey?"true":"false"));}
-function setVar(k){GLOBAL.varKey=k;syncChips();go(k?"porvar":"visao");}
+function setVar(k){GLOBAL.varKey=k;syncChips();go("visao");}
 buildChips();
 let CUR="visao";
 function go(id){const s=SECTIONS.find(x=>x.id===id)||SECTIONS[0];CUR=s.id;
