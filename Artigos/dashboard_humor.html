@@ -1,3 +1,5 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dinâmica do Humor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -172,6 +174,16 @@ table.dyn tbody tr.hlrow{background:rgba(90,211,196,.1)}
 .wires{position:absolute; inset:0; z-index:1; pointer-events:none}
 .wire{fill:none; stroke:rgba(120,150,190,.34); stroke-width:2}
 .wire.flow{stroke:var(--accent); stroke-width:2; stroke-dasharray:6 9; animation:dashmove 1.5s linear infinite}
+/* mobile: fluxo como passo-a-passo vertical */
+.flowlist{display:flex; flex-direction:column; gap:0; padding:6px 0 4px}
+.fstep{position:relative; display:flex; align-items:center; gap:11px; width:100%; text-align:left; background:var(--glass2); border:1px solid var(--stroke);
+  border-radius:14px; padding:12px 13px; box-shadow:var(--shadow); cursor:pointer; opacity:0; transform:translateY(8px);
+  transition:opacity .4s, transform .4s, border-color .2s; color:inherit; font:inherit}
+.fstep.in{opacity:1; transform:none}
+.fstep:hover,.fstep:focus-visible{border-color:rgba(90,211,196,.6); outline:none}
+.fstep .fnum{position:absolute; left:-1px; top:-9px; font-family:"IBM Plex Mono",monospace; font-size:9.5px; color:var(--faint);
+  background:var(--bg1); border:1px solid var(--stroke); border-radius:7px; padding:1px 6px}
+.fconn{align-self:center; width:2px; height:16px; background:linear-gradient(var(--accent),transparent); opacity:.6; margin:2px 0}
 @keyframes dashmove{to{stroke-dashoffset:-30}}
 @media (prefers-reduced-motion:reduce){.wire.flow{animation:none}}
 .cta{display:flex; align-items:center; gap:16px; width:100%; text-align:left; cursor:pointer; margin-bottom:22px; font-family:inherit;
@@ -805,6 +817,18 @@ const SECTIONS=[
    {id:8,x:1262,y:250,t:"Saída",s:"painel + apresentação guiada",ic:"present",c:C.good,go:"apresentacao"}
   ];
   const E=[[1,2],[2,3],[3,4],[3,5],[3,6],[4,7],[5,7],[6,7],[7,8]];
+  if(window.innerWidth<760){
+    const list=document.createElement("div");list.className="flowlist";h.appendChild(list);
+    N.forEach((n,i)=>{
+      const b=document.createElement("button");b.className="fstep";b.type="button";b.title="Abrir: "+n.t;
+      b.innerHTML=`<span class="fnum">${i+1}</span><span class="fni" style="color:${n.c}">${ICONS[n.ic]||ICONS.grid}</span><div class="fnt"><div class="fntitle">${n.t}</div><div class="fnsub">${n.s}</div></div><span class="fngo">›</span>`;
+      b.onclick=()=>go(n.go);
+      list.appendChild(b);setTimeout(()=>b.classList.add("in"),120+i*90);
+      if(i<N.length-1){const c=document.createElement("div");c.className="fconn";list.appendChild(c);}
+    });
+    h.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent);margin-top:14px"><p class="note" style="font-size:13px;line-height:1.62;color:var(--muted)">Cada etapa alimenta a seguinte: a decisão de <b style="color:var(--ink)">estatística não paramétrica</b> vem do teste de normalidade; os testes, a MANOVA, os perfis e as derivadas convergem por <b style="color:var(--ink)">triangulação</b> (sinal/ruído e PCA) e desembocam no <b style="color:var(--ink)">painel interativo</b> e na apresentação guiada.</p></div>`);
+    return;
+  }
   const canvas=document.createElement("div");canvas.className="flowcanvas";const inner=document.createElement("div");inner.className="flowinner";canvas.appendChild(inner);h.appendChild(canvas);
   const maxX=Math.max(...N.map(n=>n.x))+W+8,maxY=Math.max(...N.map(n=>n.y))+H+10;
   inner.style.width=maxX+"px";inner.style.height=maxY+"px";
