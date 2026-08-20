@@ -543,7 +543,10 @@ P('À tendência semanal somou-se uma resposta aguda coerente com o esforço. En
   'vigor caiu e a fadiga e a PTH subiram, com magnitude de pequena a moderada, o que acrescenta uma camada de '
   'variação dentro do dia à deterioração observada entre dias. Esse comportamento converge com o de outros '
   'esportes coletivos, nos quais o humor responde de forma imediata ao evento esportivo, e reforça o valor de '
-  'coletas repetidas dentro do dia, e não apenas entre dias (DO NASCIMENTO et al., 2026).')
+  'coletas repetidas dentro do dia, e não apenas entre dias (DO NASCIMENTO et al., 2026). Estudos experimentais '
+  'com atletas de esportes coletivos confirmam esse curso: a fadiga percebida, medida pelo POMS, eleva-se logo '
+  'após o esforço e retorna à linha de base apenas 24 a 48 horas depois, o que dá base fisiológica à resposta '
+  'aguda e à recuperação apenas parcial entre sessões próximas (CROSS et al., 2022).')
 P('A perturbação total do humor comportou-se como um integrador desse eixo. O vigor e a fadiga associaram-se de '
   'forma forte à PTH e explicaram a maior parte da sua variância, ao passo que as dimensões negativas, '
   'concentradas em valores baixos, contribuíram pouco para a variação. A consistência interna adequada do vigor e '
@@ -620,7 +623,10 @@ P('A análise sequencial das treze coletas revelou, por fim, a microestrutura da
   'qual a fadiga é induzida de forma planejada e monitorada justamente pela relação entre a carga aguda e a '
   'recuperação entre sessões, e sugere que o desequilíbrio persistente entre esses dois termos seria o sinal de '
   'alerta para a transição ao sobre-esforço não funcional (KELLMANN et al., 2018; ROETE et al., 2021; MANESCU et '
-  'al., 2026).')
+  'al., 2026). Análises recentes de séries temporais em uma temporada completa de futebol profissional, com '
+  'aprendizagem de máquina e modelos de mediação, mostram que a recuperação subjetiva é determinada sobretudo pela '
+  'fadiga e que a carga do dia anterior atua por meio dela, o que confere plausibilidade empírica ao acoplamento '
+  'entre carga aguda e recuperação aqui descrito (SIMONELLI; FORMENTI; ROSSI, 2025).')
 H2('Aplicação prática e perspectivas','5.4')
 P('As características do handebol ajudam a explicar esse comportamento e orientam a aplicação. A modalidade impõe '
   'esforço intermitente de alta intensidade, com sprints curtos, mudanças de direção, saltos e contato, o que gera '
@@ -633,10 +639,13 @@ P('As características do handebol ajudam a explicar esse comportamento e orient
 P('O acompanhamento subjetivo do humor deve ser lido como parte de um monitoramento multidomínio, e não como '
   'medida isolada. A sua sensibilidade, o baixo custo e o caráter não invasivo tornam-no complementar aos '
   'marcadores fisiológicos, endócrinos e de bem-estar praticados em esportes coletivos (RATZ-SULYOK et al., 2026; '
-  'BIRD et al., 2025; HELWIG et al., 2023). Como agenda futura, recomenda-se integrar medidas objetivas de carga a '
-  'este delineamento, ampliar a amostra e testar se a datação do cruzamento do eixo energia-fadiga antecipa '
-  'desfechos de fadiga e de desempenho, de modo a validar o marcador temporal aqui proposto (KELLMANN et al., '
-  '2018; SAW; MAIN; GASTIN, 2016).')
+  'BIRD et al., 2025; HELWIG et al., 2023). Evidências recentes que combinam o POMS a sensores vestíveis em '
+  'atletas de elite reforçam que a integração de medidas subjetivas e objetivas, analisada de forma '
+  'individualizada, supera as médias de grupo na leitura do equilíbrio entre carga e recuperação, o que aponta o '
+  'caminho para o refinamento futuro do monitoramento do humor (SPETZ et al., 2025). Como agenda futura, '
+  'recomenda-se integrar medidas objetivas de carga a este delineamento, ampliar a amostra e testar se a datação '
+  'do cruzamento do eixo energia-fadiga antecipa desfechos de fadiga e de desempenho, de modo a validar o marcador '
+  'temporal aqui proposto (KELLMANN et al., 2018; SAW; MAIN; GASTIN, 2016).')
 H2('Limitações','5.5')
 P('O estudo tem limitações, entre as quais a amostra de um único clube, o recorte de um microciclo e a ausência '
   'de medidas objetivas de carga neste recorte, o que restringe a generalização e impede inferências de causa. O '
@@ -647,11 +656,36 @@ P('O estudo tem limitações, entre as quais a amostra de um único clube, o rec
   'longo da semana, integrado a um monitoramento multidomínio do estado do atleta (OSTAPIUK-KAROLCZUK et al., '
   '2025).')
 
+# ===== 6 CONCLUSÃO =====
+H1('CONCLUSÃO','6')
+P('Em um microciclo pré-competitivo de handebol de elite, o estado de humor, descrito nas suas seis dimensões, '
+  'deteriorou-se de forma ordenada ao longo da semana, e essa deterioração concentrou-se no eixo energia-fadiga. O '
+  'vigor caiu e a fadiga subiu com efeito grande entre o primeiro e o último dia, resultado confirmado pela '
+  'análise multivariada, ao passo que as dimensões negativas permaneceram junto ao piso e com baixa razão '
+  'sinal-ruído, o que delimita o valor informativo de cada dimensão.')
+P('A leitura por perfis traduziu esse percurso na migração do iceberg para a barbatana de tubarão, sem a '
+  'instalação dos perfis de risco à saúde mental, um quadro compatível com o sobre-esforço funcional buscado de '
+  'forma planejada na pré-temporada. A modelagem das trajetórias localizou um ponto de inflexão na metade da '
+  'semana e datou os cruzamentos entre o vigor, a fadiga e a perturbação total do humor, o que converte a inversão '
+  'qualitativa do eixo energia-fadiga em eventos com dia e escore definidos e oferece um marcador temporal '
+  'objetivo e visual. A decomposição da resposta em efeito agudo e de recuperação revelou um padrão em dente de '
+  'serra, com recuperação apenas parcial entre as sessões, mecanismo que explica a deriva descendente do vigor ao '
+  'longo do microciclo.')
+P('Como desfecho aplicado, os resultados recomendam centrar o monitoramento no par vigor-fadiga e no cruzamento '
+  'entre as suas curvas, um alerta simples e de baixo custo, integrado a um monitoramento multidomínio do estado '
+  'do atleta. Como desfecho científico, o estudo entrega um conjunto de marcadores temporais reprodutíveis, '
+  'obtidos por triangulação entre a suavização não paramétrica, o ajuste polinomial e a datação dos cruzamentos, '
+  'que ampliam a leitura tradicional por comparação de médias. As perspectivas incluem integrar medidas objetivas '
+  'de carga ao delineamento, ampliar a amostra e verificar se a datação do cruzamento do eixo energia-fadiga '
+  'antecipa desfechos de fadiga e de desempenho, o que permitiria validar o marcador temporal proposto e '
+  'incorporá-lo à rotina da comissão técnica.')
+
 # ===== REFERÊNCIAS =====
 H1('REFERÊNCIAS')
 refs=[
  'BIRD, S. P. et al. Wellness, mood, sleep, and performance in a women’s national basketball team during international competition. Journal of Human Kinetics, v. 96, p. 163-175, 2025. DOI: 10.5114/jhk/200117.',
  'CARTON-LLORENTE, A. et al. Worst-case scenario analysis of physical demands in elite men handball players by playing position through big data analytics. Biology of Sport, v. 40, n. 4, p. 1219-1227, 2023. DOI: 10.5114/biolsport.2023.126665.',
+ 'CROSS, R. et al. Acute neuromuscular response to team sports-specific running, resistance, and concurrent training: a crossover study. Medicine and Science in Sports and Exercise, v. 54, n. 3, p. 456-465, 2022. DOI: 10.1249/MSS.0000000000002804.',
  'DE MIRANDA ROHLFS, I. C. P. et al. Prevalence of specific mood profile clusters among elite and youth athletes at a Brazilian sports club. Sports, v. 12, n. 7, 195, 2024. DOI: 10.3390/sports12070195.',
  'DO NASCIMENTO, M. H. et al. Acute psychological responses to official match outcomes in male youth volleyball: an observational repeated-measures study within a single national-level team. Frontiers in Psychology, v. 17, 1826372, 2026. DOI: 10.3389/fpsyg.2026.1826372.',
  'FERREIRA, A. B. M. et al. Impact of sleep restriction and intensified training on mucosal immunity and psychological responses in young soccer players. Journal of Strength and Conditioning Research, v. 40, n. 7, p. e703-e713, 2026. DOI: 10.1519/JSC.0000000000005416.',
@@ -674,6 +708,8 @@ refs=[
  'ROHLFS, I. C. P. M. et al. A Escala de Humor de Brunel (Brums): instrumento para detecção precoce da síndrome do excesso de treinamento. Revista Brasileira de Medicina do Esporte, v. 14, n. 3, p. 176-181, 2008.',
  'ROHLFS, I. C. P. M. et al. Psychometric characteristics of the Brazil Mood Scale among youth and elite athletes using two response time frames. Sports, v. 11, n. 12, 244, 2023. DOI: 10.3390/sports11120244.',
  'SAW, A. E.; MAIN, L. C.; GASTIN, P. B. Monitoring the athlete training response: subjective self-reported measures trump commonly used objective measures: a systematic review. British Journal of Sports Medicine, v. 50, n. 5, p. 281-291, 2016. DOI: 10.1136/bjsports-2015-094758.',
+ 'SIMONELLI, C.; FORMENTI, D.; ROSSI, A. Subjective recovery in professional soccer players: a machine learning and mediation approach. Journal of Sports Sciences, v. 43, n. 5, p. 448-455, 2025. DOI: 10.1080/02640414.2025.2461932.',
+ 'SPETZ, L. et al. Validating subjective ratings with wearable data for a nuanced understanding of load-recovery status in elite endurance athletes. Sports Medicine - Open, v. 11, n. 1, 154, 2025. DOI: 10.1186/s40798-025-00958-y.',
  'STAIANO, W. et al. Overcoming mental fatigue through mindfulness: improving physical and cognitive performance in elite handball players. Journal of Science and Medicine in Sport, v. 29, n. 1, p. 91-99, 2025. DOI: 10.1016/j.jsams.2025.08.004.',
  'STRUZIK, A.; NADOBNIK, J.; STEPIEN-SLODKOWSKA, M. TRIMP and session-RPE monitoring in elite women’s handball: a full-season descriptive analysis. Scientific Reports, v. 16, n. 1, 2026. DOI: 10.1038/s41598-026-53134-x.',
  'TERRY, P. C.; LANE, A. M.; FOGARTY, G. J. Construct validity of the Profile of Mood States, Adolescents for use with adults. Psychology of Sport and Exercise, v. 4, n. 2, p. 125-139, 2003. DOI: 10.1016/S1469-0292(02)00035-8.',
