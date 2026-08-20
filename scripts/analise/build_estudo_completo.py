@@ -251,13 +251,22 @@ P('Nível 3, avançado. Como parte das dimensões não seguiu distribuição nor
   'o nível quanto a variação do humor. A dinâmica de cada dimensão foi descrita pela suavização das curvas diárias '
   'e por suas derivadas: a primeira derivada mostra a velocidade de mudança, e a segunda derivada mostra a '
   'aceleração e o ponto de inflexão, o momento em que a tendência muda de sentido.')
+P('Filtragem das curvas (sinal e ruído). As médias diárias de cada dimensão contêm dois componentes: um sinal, que '
+  'é a tendência real ao longo da semana, e um ruído, que é a oscilação de curto prazo causada por variabilidade '
+  'individual e erro de medida. Para separar os dois, a série de cada dimensão foi filtrada por uma função spline, '
+  'que retém a tendência suave e descarta as flutuações abruptas. O sinal filtrado é a própria curva suavizada; o '
+  'ruído é o resíduo, ou seja, a diferença entre o valor observado e o sinal filtrado. A qualidade da tendência foi '
+  'quantificada pela relação sinal-ruído (SNR), definida como a razão entre a amplitude do sinal e o desvio-padrão '
+  'do ruído: quanto maior a SNR, mais confiável é a leitura da tendência. Sobre as curvas filtradas foram '
+  'identificados também os pontos de cruzamento entre dimensões, isto é, os dias em que uma variável passa a '
+  'superar outra.')
 
 # ============ 3 RESULTADOS ============
 H1('Resultados','3')
-P('Os resultados são apresentados em cinco etapas: a descrição da aptidão aeróbia do grupo; a qualidade das '
+P('Os resultados são apresentados em seis etapas: a descrição da aptidão aeróbia do grupo; a qualidade das '
   'medidas de humor (normalidade e psicometria); o comportamento descritivo das dimensões; a variação ao longo da '
-  'semana e a migração de perfis; e a associação entre aptidão e humor. Ao final, as figuras individuais detalham '
-  'cada dimensão.')
+  'semana e a migração de perfis; a filtragem das curvas e os cruzamentos entre variáveis; e a associação entre '
+  'aptidão e humor. Ao final, as figuras individuais detalham cada dimensão.')
 
 H2('Etapa 1. Aptidão aeróbia do grupo (T-car)','3.1')
 P('A Tabela 3 descreve a aptidão aeróbia e a carga do teste para todo o grupo. O pico de velocidade médio no '
@@ -339,7 +348,24 @@ P('No primeiro dia predominou o perfil iceberg, típico de atletas bem recuperad
   'migração traduz, em linguagem de perfil, a mesma perda de energia observada nas análises anteriores.'
   %(AR['perfil_migracao_n'],AR['perfil_estavel_n']))
 
-H2('Etapa 5. Associação entre aptidão e humor','3.5')
+H2('Etapa 5. Filtragem das curvas e cruzamentos das variáveis','3.5')
+P('Antes de interpretar as tendências, é preciso garantir que elas representam sinal, e não ruído. A Figura 6 '
+  'mostra o processo de filtragem para as principais variáveis: os pontos são as médias diárias observadas, a '
+  'linha é o sinal filtrado pela spline e a faixa sombreada é a magnitude do ruído. O painel inferior apresenta o '
+  'ruído residual e a relação sinal-ruído (SNR) de cada dimensão. O vigor e a fadiga apresentaram as maiores SNR '
+  '(8,4 e 6,7), o que indica tendências claras e confiáveis; as dimensões com forte efeito de piso, como a '
+  'depressão, apresentaram SNR baixa, sinal de que sua variação ao longo da semana é dominada por ruído e deve ser '
+  'lida com cautela. Esse filtro justifica por que as conclusões se apoiam sobretudo no vigor e nas dimensões de '
+  'fadiga.')
+figure(f'{FG}/filtragem_sinal_ruido.png','Processo de filtragem das curvas. Painéis superiores: sinal observado (pontos), sinal filtrado (linha) e faixa de ruído para vigor, fadiga e PTH. Painel inferior esquerdo: ruído residual. Painel inferior direito: relação sinal-ruído (SNR) por dimensão.',w=17.0)
+P('A partir das curvas filtradas, a Figura 7 mostra onde as variáveis se cruzam ao longo da semana. No primeiro '
+  'dia, o vigor está bem acima da fadiga, configuração do perfil de iceberg. As curvas de vigor e fadiga se cruzam '
+  'por volta dos dias 2,3, 3,9 e 5,8, e no fim da semana a fadiga e a fadiga física passam a superar o vigor. Esse '
+  'cruzamento do eixo energia-fadiga é a expressão gráfica da transição do perfil de iceberg para o de barbatana '
+  'de tubarão, e localiza com precisão o momento em que o desgaste se sobrepõe à energia.')
+figure(f'{FG}/cruzamentos_semana.png','Cruzamentos das variáveis ao longo da semana. Curvas filtradas de vigor, fadiga e fadiga física; os círculos marcam os cruzamentos entre vigor e fadiga (dias 2,3, 3,9 e 5,8).',w=16.0)
+
+H2('Etapa 6. Associação entre aptidão e humor','3.6')
 rows=[]
 for k,lab in DIMS:
     base=P2['pv_base'].get(k); det=AR['pv_vs_deterioracao'].get(k)
@@ -357,7 +383,7 @@ P('A aptidão aeróbia relacionou-se de forma fraca e não significativa com o n
   'desgasta em uma semana de cargas elevadas.')
 figure(f'{FG}/temporal_aptidao.png','Deterioração do primeiro ao sétimo dia por dimensão, para atletas mais aptos versus menos aptos (divididos pela mediana do pico de velocidade). Não houve diferença significativa entre os grupos.',w=16.5)
 
-H2('Detalhamento por dimensão','3.6')
+H2('Detalhamento por dimensão','3.7')
 P('As figuras a seguir apresentam, para cada dimensão do humor, um painel completo com a trajetória diária e seus '
   'limites, a velocidade e a aceleração da mudança, as transições ao longo da semana, o efeito imediato por dia e '
   'uma síntese descritiva. A leitura conjunta permite identificar, para cada variável, em que dia a mudança foi '
