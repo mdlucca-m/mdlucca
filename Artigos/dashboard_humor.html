@@ -4,73 +4,89 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
 :root{
-  --bg0:#080b11; --bg1:#0e1622; --bg2:#101a28;
-  --glass:rgba(18,27,40,.55); --glass2:rgba(24,34,50,.62); --stroke:rgba(120,150,190,.16);
+  --bg0:#070a10; --bg1:#0c141f; --bg2:#0f1826;
+  --glass:rgba(17,26,39,.58); --glass2:rgba(23,33,49,.66); --stroke:rgba(120,150,190,.16);
   --ink:#e9eef6; --muted:#93a3b8; --faint:#61748c;
-  --vigor:#33c2ad; --fadiga:#ff7a45; --pth:#8b7bf0;
-  --tensao:#4d9de0; --depressao:#c56bd6; --raiva:#e0525b; --confusao:#f0a848;
-  --good:#33c2ad; --warn:#f0a848; --crit:#e0525b;
-  --accent:#5ad3c4;
-  --shadow:0 18px 50px -20px rgba(0,0,0,.7);
+  --vigor:#33c2ad; --fadiga:#ff7a45; --pth:#8b7bf0; --tensao:#4d9de0; --depressao:#c56bd6; --raiva:#e0525b; --confusao:#f0a848;
+  --good:#33c2ad; --warn:#f0a848; --crit:#e0525b; --accent:#5ad3c4;
+  --shadow:0 22px 60px -24px rgba(0,0,0,.78);
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{
-  font-family:"Manrope",system-ui,sans-serif; color:var(--ink);
-  background:
-    radial-gradient(1200px 700px at 78% -8%, rgba(139,123,240,.14), transparent 60%),
-    radial-gradient(1000px 640px at 8% 108%, rgba(51,194,173,.12), transparent 58%),
-    linear-gradient(160deg, var(--bg0), var(--bg1) 46%, var(--bg2));
-  min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
-}
+body{font-family:"Manrope",system-ui,sans-serif; color:var(--ink); min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
+  background:radial-gradient(1200px 720px at 82% -10%,rgba(139,123,240,.16),transparent 60%),
+    radial-gradient(1000px 640px at -6% 110%,rgba(51,194,173,.13),transparent 58%),
+    linear-gradient(158deg,var(--bg0),var(--bg1) 46%,var(--bg2));}
 #rain{position:fixed; inset:0; z-index:0; pointer-events:none}
-.wrap{position:relative; z-index:2; max-width:1280px; margin:0 auto; padding:26px 22px 70px; perspective:1600px}
-header.top{display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-bottom:20px}
-.brand{display:flex; flex-direction:column; gap:6px}
-.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.32em; text-transform:uppercase; color:var(--accent); opacity:.9}
-h1{font-family:"Sora",sans-serif; font-weight:800; font-size:clamp(26px,3.6vw,42px); margin:0; line-height:1.02; letter-spacing:-.015em; text-wrap:balance}
-.sub{color:var(--muted); font-size:14px; max-width:52ch}
-.meta{display:flex; gap:10px; flex-wrap:wrap}
-.chip{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.04em; color:var(--muted);
-  background:var(--glass); border:1px solid var(--stroke); border-radius:999px; padding:7px 12px; backdrop-filter:blur(9px)}
+.shell{position:relative; z-index:2; display:grid; grid-template-columns:262px 1fr; min-height:100vh}
+
+/* ---------- SIDEBAR ---------- */
+.side{position:sticky; top:0; align-self:start; height:100vh; display:flex; flex-direction:column; gap:14px; padding:20px 16px;
+  background:linear-gradient(180deg,rgba(15,23,36,.82),rgba(12,19,30,.62)); backdrop-filter:blur(20px) saturate(1.2);
+  border-right:1px solid var(--stroke); overflow-y:auto}
+.side::-webkit-scrollbar{width:7px}.side::-webkit-scrollbar-thumb{background:rgba(120,150,190,.2); border-radius:7px}
+.side-brand{display:flex; align-items:center; gap:12px; padding:4px 6px 10px}
+.logo{width:42px; height:42px; display:grid; place-items:center; font-size:22px; border-radius:13px;
+  background:linear-gradient(150deg,rgba(90,211,196,.28),rgba(139,123,240,.22)); border:1px solid var(--stroke); box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.side-brand .eyebrow{font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.24em; text-transform:uppercase; color:var(--accent)}
+.side-title{font-family:"Sora",sans-serif; font-weight:800; font-size:17px; letter-spacing:-.01em; line-height:1.1}
+.side-nav{display:flex; flex-direction:column; gap:3px}
+.navitem{display:flex; align-items:center; gap:11px; padding:9px 11px; border-radius:12px; cursor:pointer; color:var(--muted);
+  border:1px solid transparent; transition:.2s; font-size:13.5px; font-weight:500}
+.navitem .ico{width:20px; height:20px; flex:0 0 20px; display:grid; place-items:center; color:var(--faint); transition:.2s}
+.navitem .ico svg{width:20px; height:20px}
+.navitem .n,.navitem{}
+.navnum{margin-left:auto; font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--faint)}
+.navitem:hover{color:var(--ink); background:rgba(120,150,190,.08)}
+.navitem:hover .ico{color:var(--accent)}
+.navitem[aria-current="true"]{color:#04120f; background:linear-gradient(180deg,#6ee3d2,#33c2ad); border-color:transparent; box-shadow:0 10px 24px -12px rgba(51,194,173,.75); font-weight:600}
+.navitem[aria-current="true"] .ico,.navitem[aria-current="true"] .navnum{color:rgba(4,18,15,.6)}
+.side-seg{margin-top:auto; padding:12px 8px 4px; border-top:1px solid var(--stroke)}
+.seg-lab{font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:9px; display:flex; align-items:center; gap:7px}
+.var-chips{display:flex; flex-wrap:wrap; gap:6px}
+.vchip{display:flex; align-items:center; gap:6px; font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--muted);
+  padding:5px 9px; border-radius:9px; border:1px solid var(--stroke); background:var(--glass); cursor:pointer; transition:.18s}
+.vchip .dot{width:9px; height:9px; border-radius:50%}
+.vchip:hover{color:var(--ink); border-color:rgba(120,150,190,.34)}
+.vchip[aria-pressed="true"]{color:var(--ink); background:var(--glass2); border-color:rgba(90,211,196,.55); box-shadow:0 0 0 1px rgba(90,211,196,.25) inset}
+
+/* ---------- APP MAIN ---------- */
+.app{min-width:0; display:flex; flex-direction:column}
+.topbar{position:sticky; top:0; z-index:5; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+  padding:16px 26px; background:linear-gradient(180deg,rgba(10,16,25,.7),rgba(10,16,25,.15)); backdrop-filter:blur(12px); border-bottom:1px solid var(--stroke)}
+.crumb{display:flex; align-items:center; gap:11px}
+.crumb .cico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:var(--accent);background:var(--glass);border:1px solid var(--stroke)}
+.crumb .ct{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
+.crumb h1{font-family:"Sora",sans-serif; font-weight:700; font-size:19px; margin:0; letter-spacing:-.01em}
+.meta{display:flex; gap:8px; flex-wrap:wrap}
+.chip{font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--muted); background:var(--glass); border:1px solid var(--stroke); border-radius:999px; padding:6px 11px}
 .chip b{color:var(--ink)}
+.stage{padding:24px 26px 70px; perspective:1800px}
+.panel{background:var(--glass); border:1px solid var(--stroke); border-radius:22px; padding:24px; backdrop-filter:blur(18px) saturate(1.15);
+  box-shadow:var(--shadow); transform-style:preserve-3d; opacity:0; transform:translateY(14px) rotateX(7deg)}
+.panel.in{opacity:1; transform:none; transition:opacity .5s ease, transform .6s cubic-bezier(.2,.7,.2,1)}
 
-nav.seg{display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 22px}
-nav.seg button{
-  font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.02em; color:var(--muted);
-  background:var(--glass); border:1px solid var(--stroke); border-radius:11px; padding:9px 13px; cursor:pointer;
-  backdrop-filter:blur(10px); transition:.22s; display:flex; align-items:center; gap:8px}
-nav.seg button .n{color:var(--faint); font-size:10.5px}
-nav.seg button:hover{color:var(--ink); border-color:rgba(120,150,190,.34); transform:translateY(-1px)}
-nav.seg button[aria-current="true"]{color:#04110f; background:linear-gradient(180deg,#67e0cf,#33c2ad); border-color:transparent; box-shadow:0 8px 22px -10px rgba(51,194,173,.7)}
-nav.seg button[aria-current="true"] .n{color:rgba(3,17,15,.55)}
-
-.panel{
-  background:var(--glass); border:1px solid var(--stroke); border-radius:20px; padding:22px;
-  backdrop-filter:blur(16px) saturate(1.15); -webkit-backdrop-filter:blur(16px) saturate(1.15);
-  box-shadow:var(--shadow); transform-style:preserve-3d}
-.section-head{display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:4px}
-.section-head h2{font-family:"Sora",sans-serif; font-weight:700; font-size:20px; margin:0; letter-spacing:-.01em}
+.section-head{display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap}
+.section-head h2{font-family:"Sora",sans-serif; font-weight:700; font-size:21px; margin:0; letter-spacing:-.01em}
 .section-head .tag{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--accent); letter-spacing:.1em; text-transform:uppercase}
-.lead{color:var(--muted); font-size:13.5px; line-height:1.6; max-width:74ch; margin:8px 0 18px}
+.lead{color:var(--muted); font-size:13.5px; line-height:1.62; max-width:76ch; margin:9px 0 20px}
 
-.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(155px,1fr)); gap:14px; margin-bottom:20px}
-.kpi{background:var(--glass2); border:1px solid var(--stroke); border-radius:16px; padding:15px 16px; position:relative; overflow:hidden;
-  transition:transform .3s; transform:translateZ(0)}
-.kpi:hover{transform:translateY(-3px) rotateX(4deg)}
-.kpi .lab{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
-.kpi .val{font-family:"Sora",sans-serif; font-weight:800; font-size:30px; line-height:1.05; margin-top:6px; letter-spacing:-.02em}
+.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(158px,1fr)); gap:14px; margin-bottom:20px}
+.kpi{background:var(--glass2); border:1px solid var(--stroke); border-radius:16px; padding:15px 16px; position:relative; overflow:hidden; transition:transform .25s; transform-style:preserve-3d}
+.kpi .lab{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted)}
+.kpi .val{font-family:"Sora",sans-serif; font-weight:800; font-size:29px; line-height:1.05; margin-top:6px; letter-spacing:-.02em}
 .kpi .cap{font-size:11.5px; color:var(--faint); margin-top:3px}
-.kpi .stripe{position:absolute; left:0; top:0; bottom:0; width:4px; border-radius:4px}
+.kpi .stripe{position:absolute; left:0; top:0; bottom:0; width:4px}
 
 .grid2{display:grid; grid-template-columns:1fr; gap:18px}
-@media(min-width:900px){.grid2{grid-template-columns:1.15fr .85fr}}
-.card{background:var(--glass2); border:1px solid var(--stroke); border-radius:16px; padding:16px}
+@media(min-width:1040px){.grid2{grid-template-columns:1.12fr .88fr}}
+.card{background:var(--glass2); border:1px solid var(--stroke); border-radius:16px; padding:16px; transition:transform .25s, border-color .25s}
+.card:hover{border-color:rgba(120,150,190,.28); transform:translateY(-2px)}
 .card h3{font-family:"Sora",sans-serif; font-weight:600; font-size:14.5px; margin:0 0 4px}
 .card .note{font-size:11.5px; color:var(--faint); margin:0 0 12px}
-.chartbox{position:relative; width:100%}
+.host{position:relative; width:100%}
 canvas.chart{display:block; width:100%; height:auto}
-.legend{display:flex; gap:14px; flex-wrap:wrap; margin-top:12px}
+.legend{display:flex; gap:12px; flex-wrap:wrap; margin-top:12px}
 .legend .it{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); cursor:pointer; user-select:none; font-family:"IBM Plex Mono",monospace}
 .legend .it .dot{width:12px; height:12px; border-radius:4px}
 .legend .it.off{opacity:.35; text-decoration:line-through}
@@ -79,49 +95,46 @@ canvas.chart{display:block; width:100%; height:auto}
 table.dyn{width:100%; border-collapse:collapse; font-size:12.5px}
 table.dyn th,table.dyn td{padding:8px 10px; text-align:right; border-bottom:1px solid rgba(120,150,190,.1); font-variant-numeric:tabular-nums; font-family:"IBM Plex Mono",monospace}
 table.dyn th:first-child,table.dyn td:first-child{text-align:left; font-family:"Manrope",sans-serif}
-table.dyn thead th{color:var(--muted); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; position:sticky; top:0;
-  background:linear-gradient(180deg,rgba(24,34,50,.96),rgba(24,34,50,.72)); backdrop-filter:blur(4px); white-space:nowrap}
-table.dyn thead th:hover{color:var(--ink)}
-table.dyn thead th .ar{color:var(--accent); font-size:9px; margin-left:3px}
-table.dyn tbody tr{transition:background .15s}
-table.dyn tbody tr:hover{background:rgba(90,211,196,.06)}
-.pill{display:inline-block; padding:2px 9px; border-radius:999px; font-size:10.5px; font-family:"IBM Plex Mono",monospace; letter-spacing:.02em}
-.pill.grande{background:rgba(224,82,91,.16); color:#ff8a92}
-.pill.médio{background:rgba(240,168,72,.16); color:#ffc27a}
-.pill.pequeno{background:rgba(77,157,224,.16); color:#8fc4f2}
-.pill.trivial{background:rgba(120,150,190,.14); color:var(--muted)}
-.sig{color:var(--good); font-weight:600}
-.pos{color:#ff9166}.neg{color:#5ad3c4}
+table.dyn thead th{color:var(--muted); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; position:sticky; top:0; background:linear-gradient(180deg,rgba(23,33,49,.97),rgba(23,33,49,.74)); white-space:nowrap}
+table.dyn thead th:hover{color:var(--ink)} table.dyn thead th .ar{color:var(--accent); font-size:9px; margin-left:3px}
+table.dyn tbody tr{transition:background .15s} table.dyn tbody tr:hover{background:rgba(90,211,196,.06)}
+table.dyn tbody tr.hlrow{background:rgba(90,211,196,.1)}
+.pill{display:inline-block; padding:2px 9px; border-radius:999px; font-size:10.5px; font-family:"IBM Plex Mono",monospace}
+.pill.grande{background:rgba(224,82,91,.16); color:#ff8a92}.pill.médio{background:rgba(240,168,72,.16); color:#ffc27a}
+.pill.pequeno{background:rgba(77,157,224,.16); color:#8fc4f2}.pill.trivial{background:rgba(120,150,190,.14); color:var(--muted)}
+.sig{color:var(--good); font-weight:600}.pos{color:#ff9166}.neg{color:#5ad3c4}
 .tablewrap{overflow-x:auto; margin-top:6px}
-.tip{position:fixed; z-index:50; pointer-events:none; background:rgba(10,16,24,.94); border:1px solid var(--stroke);
-  border-radius:10px; padding:9px 11px; font-size:12px; font-family:"IBM Plex Mono",monospace; color:var(--ink);
-  box-shadow:var(--shadow); opacity:0; transition:opacity .12s; backdrop-filter:blur(8px); max-width:240px}
-.foot{color:var(--faint); font-size:11.5px; text-align:center; margin-top:26px; font-family:"IBM Plex Mono",monospace; letter-spacing:.03em}
-.hidden{display:none}
 .split{display:grid; grid-template-columns:1fr; gap:18px}
-@media(min-width:900px){.split.tw{grid-template-columns:1fr 1fr}}
+@media(min-width:1040px){.split.tw{grid-template-columns:1fr 1fr}}
+.tip{position:fixed; z-index:60; pointer-events:none; background:rgba(9,14,22,.95); border:1px solid var(--stroke); border-radius:10px; padding:9px 11px;
+  font-size:12px; font-family:"IBM Plex Mono",monospace; color:var(--ink); box-shadow:var(--shadow); opacity:0; transition:opacity .12s; backdrop-filter:blur(8px); max-width:250px}
+@media(max-width:980px){
+  .shell{grid-template-columns:1fr}
+  .side{position:sticky; height:auto; flex-direction:row; align-items:center; gap:12px; overflow-x:auto; overflow-y:hidden; border-right:none; border-bottom:1px solid var(--stroke)}
+  .side-brand{flex:0 0 auto; padding:0} .side-nav{flex-direction:row; gap:4px} .navitem{white-space:nowrap} .navitem .navnum{display:none}
+  .side-seg{margin:0; padding:0 0 0 10px; border-top:none; border-left:1px solid var(--stroke); flex:0 0 auto}
+  .seg-lab{display:none} .var-chips{flex-wrap:nowrap}
+}
 @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
 </style>
 
 <canvas id="rain" aria-hidden="true"></canvas>
-<div class="wrap">
-  <header class="top">
-    <div class="brand">
-      <span class="eyebrow">Handebol de elite · microciclo pré-competitivo</span>
-      <h1>Dinâmica do Humor</h1>
-      <span class="sub">Painel analítico interativo das seis dimensões do BRUMS, dos perfis de humor e das trajetórias do eixo energia-fadiga ao longo de sete dias.</span>
+<div class="shell">
+  <aside class="side">
+    <div class="side-brand"><span class="logo">🌧️</span><div><div class="eyebrow">BRUMS · Handebol</div><div class="side-title">Dinâmica do Humor</div></div></div>
+    <nav class="side-nav" id="nav" aria-label="Análises"></nav>
+    <div class="side-seg">
+      <div class="seg-lab">Segmentação por variável</div>
+      <div class="var-chips" id="varchips"></div>
     </div>
-    <div class="meta">
-      <span class="chip"><b>27</b> atletas</span>
-      <span class="chip"><b>286</b> observações</span>
-      <span class="chip"><b>13</b> coletas</span>
-      <span class="chip"><b>7</b> dias</span>
-    </div>
-  </header>
-
-  <nav class="seg" id="nav" aria-label="Segmentação por análise"></nav>
-  <main class="panel" id="stage" aria-live="polite"></main>
-  <p class="foot">Dados da pesquisa (2026) · escores BRUMS de 0 a 16 · testes não paramétricos, tamanho de efeito e modelagem das trajetórias.</p>
+  </aside>
+  <main class="app">
+    <header class="topbar">
+      <div class="crumb"><span class="cico" id="crumbico"></span><div><div class="ct" id="crumbtag">análise</div><h1 id="crumbtitle">Visão geral</h1></div></div>
+      <div class="meta"><span class="chip"><b>27</b> atletas</span><span class="chip"><b>286</b> observações</span><span class="chip"><b>13</b> coletas</span><span class="chip"><b>7</b> dias</span></div>
+    </header>
+    <section class="stage"><div class="panel" id="stage"></div></section>
+  </main>
 </div>
 <div class="tip" id="tip"></div>
 
@@ -130,7 +143,8 @@ table.dyn tbody tr:hover{background:rgba(90,211,196,.06)}
 const $=(s,e=document)=>e.querySelector(s);
 const rm=window.matchMedia("(prefers-reduced-motion:reduce)").matches;
 const C={vigor:"#33c2ad",fadiga:"#ff7a45",pth:"#8b7bf0",tensao:"#4d9de0",depressao:"#c56bd6",raiva:"#e0525b",confusao:"#f0a848",
-  ink:"#e9eef6",muted:"#93a3b8",faint:"#61748c",grid:"rgba(120,150,190,.13)",good:"#33c2ad",warn:"#f0a848",crit:"#e0525b"};
+  ink:"#e9eef6",muted:"#93a3b8",faint:"#61748c",good:"#33c2ad",warn:"#f0a848",crit:"#e0525b"};
+const GLOBAL={varKey:null};
 
 /* ===================== DATA ===================== */
 const DAYS=[1,2,3,4,5,6,7];
@@ -143,519 +157,353 @@ const DIM=[
  {k:"confusao",lab:"Confusão",c:C.confusao,daily:[1.0,0.6,0.3,0.4,0.2,0.7,0.6]},
  {k:"pth",lab:"PTH",c:C.pth,daily:[0.6,5.3,3.3,5.0,1.9,5.5,8.3]}
 ];
-const DESC=[
- ["Vigor",5.7,3.3,"0–15"],["Fadiga",5.5,4.1,"0–16"],["Tensão",1.4,1.8,"0–8"],
- ["Depressão",1.0,2.4,"0–16"],["Raiva",1.6,2.8,"0–14"],["Confusão",0.5,1.3,"0–8"],["PTH",4.4,10.1,"−12–52"]
-];
-const ICC=[["Vigor",.53,.89,"moderada"],["Fadiga",.61,.92,"moderada"],["Tensão",.64,.93,"moderada"],
- ["Depressão",.68,.94,"moderada"],["Raiva",.39,.82,"pobre"],["Confusão",.36,.80,"pobre"]];
-const LIM=[["Vigor",2.3,5.3,6.3,0.7],["Fadiga",2.6,5.9,7.0,0.8],["Tensão",1.1,2.5,3.0,0.4],
- ["Depressão",1.4,3.2,3.8,0.5],["Raiva",2.2,5.1,6.1,0.6],["Confusão",1.0,2.4,2.9,0.3]];
-const PERFIS=[["Iceberg",13,8],["Superfície",6,10],["Everest invertido",4,4],
- ["Iceberg invertido",2,2],["Submerso",1,5],["Barbatana de tubarão",1,8]];
-const D17=[
- ["Vigor",8.43,4.29,-49,-1.33,"grande"],["Fadiga",3.43,7.36,115,0.78,"médio"],["Tensão",2.19,0.93,-58,-0.60,"médio"],
- ["Depressão",0.52,1.29,145,0.22,"pequeno"],["Raiva",2.19,2.64,21,0.09,"trivial"],["Confusão",1.19,0.52,-56,-0.57,"médio"],
- ["PTH",1.10,8.45,672,0.55,"médio"]];
-const FRIED=[["Vigor",23.6,"<0,001",.21,"pequeno"],["Fadiga",17.9,"0,007",.16,"pequeno"],["Tensão",14.5,"0,025",.13,"pequeno"],
- ["Depressão",3.5,"0,751",.03,"trivial"],["Raiva",7.9,"0,247",.07,"trivial"],["Confusão",22.9,"<0,001",.20,"pequeno"],
- ["PTH",13.8,"0,032",.12,"pequeno"]];
-const PREPOS=[["Tensão",1.30,1.60,23,"0,057",0.43],["Depressão",1.03,1.21,17,"0,687",0.24],["Raiva",1.31,1.51,15,"0,745",0.13],
- ["Vigor",5.76,4.94,-14,"0,025",-0.47],["Fadiga",4.61,6.28,36,"0,005",0.57],["Confusão",0.41,0.41,-1,"0,706",-0.01],
- ["PTH",2.91,6.06,108,"0,009",0.58]];
-const TRANS=[
- ["D1→D2 pré","Recuperação",-0.69,0.20,0.49,true],["D2 pré→pós","Agudo",-0.39,0.64,0.31,false],
- ["D2→D3 pré","Recuperação",0.49,-0.51,-0.56,true],["D3 pré→pós","Agudo",-0.22,0.28,0.16,false],
- ["D3→D4 pré","Recuperação",0.19,-0.03,-0.20,false],["D4 pré→pós","Agudo",-0.26,0.23,0.50,false],
- ["D4→D5 pré","Recuperação",0.43,-0.55,-0.63,true],["D5 pré→pós","Agudo",-0.12,0.38,0.17,false],
- ["D5→D6 pré","Recuperação",0.36,-0.22,-0.23,false],["D6 pré→pós","Agudo",-0.64,0.36,0.75,true],
- ["D6→D7 pré","Recuperação",-0.03,-0.07,-0.17,false],["D7 pré→pós","Agudo",-0.20,0.48,0.53,false]];
-const SPEAR=[["Vigor × Fadiga",-0.40,"0,037"],["Fadiga × Depressão",0.42,"0,028"],["Fadiga × Raiva",0.49,"0,010"],
- ["Tensão × Confusão",0.45,"0,017"],["Depressão × Raiva",0.53,"0,005"],["Depressão × Confusão",0.43,"0,027"]];
-const SNR=[["Vigor",4.1,0.49,8.4,9,"Dia 3,8"],["Fadiga",4.5,0.67,6.7,10,"Dia 4,0"],["PTH",9.2,1.96,4.7,43,"Dia 3,5"],
- ["Tensão",1.1,0.28,3.7,46,"Dia 4,8"],["Depressão",0.9,0.33,2.7,67,"Dia 3,2"],["Raiva",1.8,0.54,3.4,62,"Dia 3,0"],
- ["Confusão",0.8,0.18,4.4,79,"Dia 5,4"]];
+const DESC=[["Vigor",5.7,3.3,"0–15"],["Fadiga",5.5,4.1,"0–16"],["Tensão",1.4,1.8,"0–8"],["Depressão",1.0,2.4,"0–16"],["Raiva",1.6,2.8,"0–14"],["Confusão",0.5,1.3,"0–8"],["PTH",4.4,10.1,"−12–52"]];
+const ICC=[["Vigor",.53,.89,"moderada"],["Fadiga",.61,.92,"moderada"],["Tensão",.64,.93,"moderada"],["Depressão",.68,.94,"moderada"],["Raiva",.39,.82,"pobre"],["Confusão",.36,.80,"pobre"]];
+const LIM=[["Vigor",2.3,5.3,6.3,0.7],["Fadiga",2.6,5.9,7.0,0.8],["Tensão",1.1,2.5,3.0,0.4],["Depressão",1.4,3.2,3.8,0.5],["Raiva",2.2,5.1,6.1,0.6],["Confusão",1.0,2.4,2.9,0.3]];
+const PERFIS=[["Iceberg",13,8],["Superfície",6,10],["Everest invertido",4,4],["Iceberg invertido",2,2],["Submerso",1,5],["Barbatana de tubarão",1,8]];
+const D17=[["Vigor",8.43,4.29,-49,-1.33,"grande"],["Fadiga",3.43,7.36,115,0.78,"médio"],["Tensão",2.19,0.93,-58,-0.60,"médio"],["Depressão",0.52,1.29,145,0.22,"pequeno"],["Raiva",2.19,2.64,21,0.09,"trivial"],["Confusão",1.19,0.52,-56,-0.57,"médio"],["PTH",1.10,8.45,672,0.55,"médio"]];
+const FRIED=[["Vigor",23.6,"<0,001",.21,"pequeno"],["Fadiga",17.9,"0,007",.16,"pequeno"],["Tensão",14.5,"0,025",.13,"pequeno"],["Depressão",3.5,"0,751",.03,"trivial"],["Raiva",7.9,"0,247",.07,"trivial"],["Confusão",22.9,"<0,001",.20,"pequeno"],["PTH",13.8,"0,032",.12,"pequeno"]];
+const PREPOS=[["Tensão",1.30,1.60,23,"0,057",0.43],["Depressão",1.03,1.21,17,"0,687",0.24],["Raiva",1.31,1.51,15,"0,745",0.13],["Vigor",5.76,4.94,-14,"0,025",-0.47],["Fadiga",4.61,6.28,36,"0,005",0.57],["Confusão",0.41,0.41,-1,"0,706",-0.01],["PTH",2.91,6.06,108,"0,009",0.58]];
+const TRANS=[["D1→D2 pré","Recuperação",-0.69,0.20,0.49,true],["D2 pré→pós","Agudo",-0.39,0.64,0.31,false],["D2→D3 pré","Recuperação",0.49,-0.51,-0.56,true],["D3 pré→pós","Agudo",-0.22,0.28,0.16,false],["D3→D4 pré","Recuperação",0.19,-0.03,-0.20,false],["D4 pré→pós","Agudo",-0.26,0.23,0.50,false],["D4→D5 pré","Recuperação",0.43,-0.55,-0.63,true],["D5 pré→pós","Agudo",-0.12,0.38,0.17,false],["D5→D6 pré","Recuperação",0.36,-0.22,-0.23,false],["D6 pré→pós","Agudo",-0.64,0.36,0.75,true],["D6→D7 pré","Recuperação",-0.03,-0.07,-0.17,false],["D7 pré→pós","Agudo",-0.20,0.48,0.53,false]];
+const SPEAR=[["Vigor × Fadiga",-0.40,"0,037"],["Fadiga × Depressão",0.42,"0,028"],["Fadiga × Raiva",0.49,"0,010"],["Tensão × Confusão",0.45,"0,017"],["Depressão × Raiva",0.53,"0,005"],["Depressão × Confusão",0.43,"0,027"]];
+const SNR=[["Vigor",4.1,0.49,8.4,9,"Dia 3,8"],["Fadiga",4.5,0.67,6.7,10,"Dia 4,0"],["PTH",9.2,1.96,4.7,43,"Dia 3,5"],["Tensão",1.1,0.28,3.7,46,"Dia 4,8"],["Depressão",0.9,0.33,2.7,67,"Dia 3,2"],["Raiva",1.8,0.54,3.4,62,"Dia 3,0"],["Confusão",0.8,0.18,4.4,79,"Dia 5,4"]];
 const CROSS=[2.3,3.9,5.8];
 const cById=k=>(DIM.find(d=>d.k===k)||{}).c||C.muted;
 const DERIV={"x":[1.0,1.057,1.114,1.171,1.228,1.284,1.341,1.398,1.455,1.512,1.569,1.626,1.683,1.739,1.796,1.853,1.91,1.967,2.024,2.081,2.138,2.194,2.251,2.308,2.365,2.422,2.479,2.536,2.593,2.65,2.706,2.763,2.82,2.877,2.934,2.991,3.048,3.105,3.161,3.218,3.275,3.332,3.389,3.446,3.503,3.56,3.617,3.673,3.73,3.787,3.844,3.901,3.958,4.015,4.072,4.128,4.185,4.242,4.299,4.356,4.413,4.47,4.527,4.583,4.64,4.697,4.754,4.811,4.868,4.925,4.982,5.039,5.095,5.152,5.209,5.266,5.323,5.38,5.437,5.494,5.55,5.607,5.664,5.721,5.778,5.835,5.892,5.949,6.006,6.062,6.119,6.176,6.233,6.29,6.347,6.404,6.461,6.517,6.574,6.631,6.688,6.745,6.802,6.859,6.916,6.972,7.029,7.086,7.143,7.2],"vars":{"vigor":{"lab":"Vigor","c":"#33c2ad","raw":[[1.0,8.296],[1.8,6.0],[2.2,4.731],[2.8,5.923],[3.2,4.905],[3.8,5.714],[4.2,5.056],[4.8,5.783],[5.2,6.105],[5.8,6.545],[6.2,4.75],[6.8,4.476],[7.2,4.375]],"sig":[8.294,8.041,7.801,7.575,7.361,7.16,6.971,6.793,6.627,6.471,6.326,6.19,6.065,5.949,5.842,5.743,5.653,5.571,5.497,5.43,5.37,5.317,5.271,5.23,5.196,5.167,5.143,5.124,5.11,5.101,5.095,5.094,5.096,5.102,5.111,5.123,5.137,5.155,5.174,5.195,5.219,5.243,5.27,5.297,5.326,5.355,5.385,5.416,5.446,5.477,5.508,5.539,5.569,5.599,5.628,5.657,5.684,5.711,5.736,5.76,5.783,5.804,5.823,5.841,5.857,5.871,5.883,5.893,5.901,5.907,5.911,5.912,5.911,5.907,5.901,5.893,5.881,5.868,5.852,5.833,5.811,5.787,5.761,5.731,5.7,5.665,5.628,5.588,5.546,5.501,5.454,5.405,5.353,5.299,5.242,5.183,5.122,5.059,4.995,4.928,4.859,4.789,4.717,4.643,4.568,4.492,4.415,4.336,4.257,4.177],"d1":[-4.567,-4.326,-4.092,-3.865,-3.645,-3.432,-3.226,-3.026,-2.832,-2.645,-2.465,-2.291,-2.123,-1.961,-1.805,-1.655,-1.511,-1.373,-1.24,-1.113,-0.991,-0.875,-0.764,-0.659,-0.558,-0.463,-0.372,-0.286,-0.206,-0.13,-0.058,0.009,0.072,0.13,0.184,0.234,0.279,0.321,0.359,0.393,0.424,0.45,0.473,0.493,0.509,0.522,0.532,0.539,0.543,0.544,0.542,0.537,0.529,0.519,0.507,0.492,0.475,0.455,0.434,0.41,0.385,0.357,0.328,0.297,0.265,0.231,0.196,0.159,0.121,0.082,0.042,0.0,-0.042,-0.085,-0.128,-0.172,-0.217,-0.262,-0.308,-0.354,-0.4,-0.446,-0.492,-0.538,-0.584,-0.629,-0.675,-0.719,-0.764,-0.807,-0.85,-0.893,-0.934,-0.974,-1.013,-1.052,-1.088,-1.124,-1.158,-1.191,-1.222,-1.251,-1.279,-1.305,-1.329,-1.351,-1.37,-1.388,-1.403,-1.416],"d2":[4.301,4.176,4.052,3.93,3.809,3.69,3.572,3.456,3.342,3.229,3.118,3.008,2.9,2.793,2.688,2.584,2.482,2.382,2.283,2.186,2.09,1.996,1.903,1.812,1.722,1.634,1.548,1.463,1.38,1.298,1.218,1.139,1.062,0.986,0.912,0.84,0.769,0.7,0.632,0.566,0.501,0.438,0.376,0.316,0.258,0.201,0.146,0.092,0.04,-0.011,-0.06,-0.107,-0.153,-0.198,-0.241,-0.282,-0.322,-0.36,-0.397,-0.432,-0.465,-0.497,-0.528,-0.557,-0.584,-0.61,-0.634,-0.657,-0.678,-0.697,-0.715,-0.732,-0.747,-0.76,-0.772,-0.782,-0.791,-0.798,-0.803,-0.808,-0.81,-0.811,-0.81,-0.808,-0.804,-0.799,-0.792,-0.784,-0.774,-0.762,-0.749,-0.734,-0.718,-0.7,-0.681,-0.66,-0.638,-0.614,-0.588,-0.561,-0.532,-0.502,-0.47,-0.437,-0.402,-0.366,-0.328,-0.288,-0.247,-0.204],"ymin":4.18,"ymax":8.29,"min_x":7.2,"max_x":1.0,"infl":[3.73],"vpk":-4.57,"vpk_x":1.0},"fadiga":{"lab":"Fadiga","c":"#ff7a45","raw":[[1.0,3.37],[1.8,3.962],[2.2,6.538],[2.8,4.423],[3.2,5.905],[3.8,5.333],[4.2,6.278],[4.8,4.826],[5.2,5.526],[5.8,5.318],[6.2,6.7],[6.8,6.762],[7.2,7.812]],"sig":[3.278,3.418,3.552,3.681,3.804,3.922,4.034,4.142,4.245,4.342,4.436,4.524,4.608,4.687,4.763,4.834,4.901,4.964,5.023,5.078,5.13,5.178,5.223,5.264,5.303,5.338,5.37,5.399,5.426,5.45,5.471,5.49,5.507,5.521,5.534,5.544,5.552,5.559,5.563,5.567,5.568,5.569,5.568,5.566,5.562,5.558,5.553,5.547,5.541,5.534,5.526,5.518,5.51,5.502,5.494,5.486,5.477,5.47,5.462,5.455,5.448,5.443,5.437,5.433,5.43,5.427,5.426,5.426,5.428,5.431,5.435,5.441,5.449,5.458,5.47,5.483,5.499,5.517,5.537,5.559,5.584,5.612,5.642,5.675,5.711,5.75,5.792,5.837,5.885,5.937,5.992,6.05,6.112,6.178,6.248,6.321,6.399,6.48,6.566,6.656,6.75,6.849,6.952,7.06,7.172,7.289,7.411,7.538,7.67,7.808],"d1":[2.508,2.408,2.31,2.213,2.119,2.027,1.936,1.848,1.762,1.677,1.595,1.515,1.436,1.36,1.285,1.212,1.142,1.073,1.006,0.941,0.878,0.817,0.758,0.701,0.646,0.593,0.541,0.492,0.444,0.398,0.354,0.312,0.272,0.234,0.197,0.163,0.13,0.099,0.07,0.043,0.018,-0.006,-0.027,-0.047,-0.065,-0.081,-0.096,-0.108,-0.119,-0.128,-0.135,-0.141,-0.144,-0.146,-0.146,-0.144,-0.141,-0.136,-0.129,-0.12,-0.109,-0.097,-0.083,-0.067,-0.05,-0.031,-0.01,0.013,0.037,0.063,0.091,0.121,0.152,0.185,0.219,0.255,0.293,0.333,0.374,0.417,0.462,0.508,0.556,0.605,0.657,0.709,0.764,0.82,0.878,0.937,0.998,1.06,1.125,1.19,1.258,1.327,1.397,1.469,1.543,1.618,1.695,1.774,1.854,1.935,2.018,2.103,2.189,2.277,2.366,2.457],"d2":[-1.781,-1.746,-1.711,-1.675,-1.64,-1.605,-1.57,-1.535,-1.501,-1.466,-1.431,-1.397,-1.362,-1.328,-1.294,-1.259,-1.225,-1.191,-1.157,-1.123,-1.089,-1.056,-1.022,-0.988,-0.955,-0.921,-0.888,-0.855,-0.821,-0.788,-0.755,-0.722,-0.689,-0.657,-0.624,-0.591,-0.559,-0.526,-0.494,-0.461,-0.429,-0.397,-0.365,-0.333,-0.301,-0.269,-0.237,-0.205,-0.173,-0.142,-0.11,-0.079,-0.048,-0.016,0.015,0.046,0.077,0.108,0.139,0.17,0.2,0.231,0.262,0.292,0.322,0.353,0.383,0.413,0.443,0.473,0.503,0.533,0.563,0.593,0.622,0.652,0.681,0.711,0.74,0.769,0.798,0.827,0.856,0.885,0.914,0.943,0.972,1.0,1.029,1.057,1.086,1.114,1.142,1.17,1.198,1.226,1.254,1.282,1.31,1.338,1.365,1.393,1.42,1.447,1.475,1.502,1.529,1.556,1.583,1.61],"ymin":3.28,"ymax":7.81,"min_x":1.0,"max_x":7.2,"infl":[4.01],"vpk":2.51,"vpk_x":1.0},"tensao":{"lab":"Tensão","c":"#4d9de0","raw":[[1.0,2.148],[1.8,1.808],[2.2,1.808],[2.8,0.962],[3.2,1.238],[3.8,1.095],[4.2,1.833],[4.8,1.13],[5.2,1.211],[5.8,1.409],[6.2,1.6],[6.8,0.81],[7.2,1.375]],"sig":[2.221,2.176,2.131,2.089,2.047,2.007,1.968,1.931,1.894,1.859,1.826,1.793,1.762,1.732,1.703,1.676,1.649,1.623,1.599,1.576,1.554,1.532,1.512,1.493,1.475,1.458,1.441,1.426,1.411,1.398,1.385,1.373,1.362,1.351,1.342,1.333,1.325,1.317,1.31,1.304,1.299,1.294,1.29,1.286,1.283,1.28,1.278,1.276,1.275,1.274,1.274,1.274,1.275,1.275,1.277,1.278,1.28,1.282,1.284,1.286,1.289,1.292,1.295,1.298,1.301,1.304,1.307,1.311,1.314,1.317,1.321,1.324,1.327,1.33,1.333,1.335,1.338,1.34,1.342,1.344,1.346,1.347,1.348,1.349,1.349,1.349,1.348,1.347,1.345,1.343,1.341,1.338,1.334,1.33,1.325,1.319,1.313,1.306,1.298,1.29,1.281,1.271,1.26,1.248,1.236,1.222,1.208,1.193,1.177,1.159],"d1":[-0.816,-0.791,-0.766,-0.742,-0.718,-0.694,-0.671,-0.648,-0.625,-0.603,-0.581,-0.56,-0.539,-0.518,-0.497,-0.477,-0.457,-0.438,-0.419,-0.4,-0.382,-0.364,-0.346,-0.329,-0.312,-0.295,-0.279,-0.263,-0.248,-0.233,-0.218,-0.203,-0.189,-0.176,-0.163,-0.15,-0.137,-0.125,-0.113,-0.102,-0.091,-0.08,-0.07,-0.06,-0.051,-0.042,-0.033,-0.025,-0.017,-0.009,-0.002,0.005,0.011,0.017,0.022,0.028,0.032,0.037,0.041,0.044,0.048,0.05,0.053,0.055,0.056,0.057,0.058,0.058,0.058,0.058,0.057,0.056,0.054,0.052,0.049,0.046,0.043,0.039,0.035,0.03,0.025,0.019,0.013,0.007,0.0,-0.007,-0.015,-0.023,-0.031,-0.04,-0.05,-0.06,-0.07,-0.081,-0.092,-0.103,-0.116,-0.128,-0.141,-0.154,-0.168,-0.182,-0.197,-0.212,-0.228,-0.244,-0.261,-0.278,-0.295,-0.313],"d2":[0.442,0.436,0.43,0.424,0.418,0.412,0.406,0.4,0.394,0.388,0.382,0.376,0.369,0.363,0.357,0.351,0.345,0.339,0.332,0.326,0.32,0.313,0.307,0.301,0.294,0.288,0.282,0.275,0.269,0.262,0.256,0.249,0.243,0.236,0.23,0.223,0.217,0.21,0.203,0.197,0.19,0.183,0.177,0.17,0.163,0.156,0.149,0.143,0.136,0.129,0.122,0.115,0.108,0.101,0.094,0.087,0.08,0.073,0.066,0.059,0.052,0.045,0.038,0.031,0.024,0.017,0.009,0.002,-0.005,-0.012,-0.02,-0.027,-0.034,-0.042,-0.049,-0.056,-0.064,-0.071,-0.079,-0.086,-0.093,-0.101,-0.108,-0.116,-0.124,-0.131,-0.139,-0.146,-0.154,-0.162,-0.169,-0.177,-0.185,-0.192,-0.2,-0.208,-0.216,-0.223,-0.231,-0.239,-0.247,-0.255,-0.263,-0.271,-0.279,-0.287,-0.295,-0.303,-0.311,-0.319],"ymin":1.16,"ymax":2.22,"min_x":7.2,"max_x":1.0,"infl":[4.81],"vpk":-0.82,"vpk_x":1.0},"depressao":{"lab":"Depressão","c":"#c56bd6","raw":[[1.0,0.593],[1.8,1.385],[2.2,1.231],[2.8,0.538],[3.2,0.81],[3.8,1.238],[4.2,1.167],[4.8,0.652],[5.2,0.737],[5.8,0.636],[6.2,1.75],[6.8,1.143],[7.2,1.625]],"sig":[0.683,0.733,0.779,0.822,0.861,0.897,0.93,0.96,0.987,1.011,1.033,1.052,1.069,1.084,1.096,1.106,1.115,1.121,1.126,1.129,1.13,1.13,1.129,1.126,1.123,1.118,1.112,1.105,1.098,1.089,1.08,1.071,1.061,1.05,1.039,1.028,1.017,1.005,0.993,0.982,0.97,0.958,0.947,0.936,0.924,0.914,0.903,0.893,0.883,0.874,0.865,0.857,0.85,0.843,0.836,0.831,0.826,0.822,0.818,0.815,0.813,0.812,0.812,0.812,0.814,0.816,0.819,0.823,0.828,0.834,0.84,0.848,0.856,0.865,0.875,0.886,0.898,0.91,0.924,0.938,0.953,0.968,0.984,1.001,1.019,1.037,1.056,1.076,1.096,1.116,1.137,1.159,1.18,1.202,1.225,1.247,1.27,1.293,1.315,1.338,1.361,1.384,1.406,1.428,1.45,1.472,1.493,1.513,1.533,1.552],"d1":[0.91,0.845,0.782,0.721,0.663,0.607,0.553,0.501,0.452,0.405,0.359,0.316,0.275,0.236,0.198,0.163,0.129,0.098,0.068,0.04,0.013,-0.011,-0.034,-0.056,-0.076,-0.094,-0.111,-0.126,-0.14,-0.152,-0.163,-0.173,-0.181,-0.188,-0.194,-0.199,-0.202,-0.205,-0.206,-0.206,-0.206,-0.204,-0.201,-0.197,-0.193,-0.187,-0.181,-0.174,-0.166,-0.158,-0.148,-0.139,-0.128,-0.117,-0.106,-0.094,-0.081,-0.068,-0.055,-0.041,-0.027,-0.013,0.002,0.017,0.032,0.047,0.062,0.077,0.093,0.108,0.123,0.139,0.154,0.169,0.184,0.199,0.213,0.227,0.241,0.255,0.268,0.281,0.293,0.305,0.316,0.327,0.337,0.347,0.356,0.364,0.372,0.379,0.385,0.39,0.394,0.397,0.4,0.401,0.402,0.401,0.4,0.397,0.393,0.388,0.382,0.374,0.365,0.355,0.344,0.331],"d2":[-1.168,-1.126,-1.085,-1.044,-1.004,-0.965,-0.926,-0.888,-0.851,-0.814,-0.778,-0.742,-0.707,-0.673,-0.639,-0.606,-0.573,-0.541,-0.51,-0.479,-0.449,-0.42,-0.391,-0.363,-0.335,-0.308,-0.282,-0.256,-0.231,-0.206,-0.182,-0.159,-0.136,-0.114,-0.093,-0.072,-0.051,-0.032,-0.013,0.006,0.023,0.04,0.057,0.073,0.088,0.103,0.117,0.13,0.143,0.155,0.167,0.178,0.188,0.198,0.207,0.216,0.224,0.231,0.238,0.244,0.249,0.254,0.258,0.262,0.265,0.267,0.269,0.27,0.271,0.27,0.27,0.268,0.266,0.264,0.261,0.257,0.252,0.247,0.242,0.236,0.229,0.221,0.213,0.204,0.195,0.185,0.174,0.163,0.151,0.139,0.126,0.112,0.098,0.083,0.068,0.051,0.035,0.017,-0.001,-0.019,-0.038,-0.058,-0.079,-0.1,-0.121,-0.144,-0.167,-0.19,-0.214,-0.239],"ymin":0.68,"ymax":1.55,"min_x":1.0,"max_x":7.2,"infl":[3.16,6.52],"vpk":0.91,"vpk_x":1.0},"raiva":{"lab":"Raiva","c":"#e0525b","raw":[[1.0,1.741],[1.8,2.115],[2.2,1.308],[2.8,1.577],[3.2,1.667],[3.8,0.952],[4.2,2.278],[4.8,0.652],[5.2,0.474],[5.8,1.045],[6.2,2.7],[6.8,2.381],[7.2,2.75]],"sig":[1.714,1.744,1.77,1.793,1.813,1.831,1.846,1.858,1.867,1.875,1.88,1.882,1.883,1.882,1.878,1.873,1.866,1.858,1.848,1.837,1.824,1.81,1.795,1.779,1.762,1.744,1.725,1.705,1.685,1.664,1.643,1.621,1.599,1.577,1.554,1.532,1.509,1.486,1.463,1.441,1.419,1.397,1.375,1.354,1.333,1.313,1.293,1.274,1.256,1.239,1.222,1.206,1.191,1.177,1.164,1.152,1.142,1.132,1.124,1.117,1.111,1.106,1.103,1.101,1.101,1.102,1.105,1.109,1.115,1.122,1.131,1.141,1.154,1.168,1.184,1.201,1.22,1.241,1.264,1.289,1.316,1.344,1.375,1.407,1.441,1.477,1.515,1.555,1.597,1.641,1.687,1.734,1.784,1.836,1.889,1.945,2.003,2.062,2.123,2.187,2.252,2.319,2.389,2.46,2.533,2.607,2.684,2.762,2.843,2.925],"d1":[0.546,0.49,0.435,0.382,0.332,0.283,0.236,0.191,0.148,0.107,0.067,0.029,-0.007,-0.041,-0.074,-0.104,-0.134,-0.161,-0.187,-0.211,-0.234,-0.255,-0.275,-0.293,-0.31,-0.325,-0.338,-0.351,-0.361,-0.371,-0.379,-0.386,-0.391,-0.395,-0.398,-0.399,-0.4,-0.399,-0.397,-0.393,-0.389,-0.383,-0.377,-0.369,-0.36,-0.35,-0.339,-0.327,-0.315,-0.301,-0.286,-0.27,-0.254,-0.236,-0.218,-0.199,-0.179,-0.158,-0.137,-0.115,-0.092,-0.068,-0.044,-0.019,0.007,0.033,0.06,0.087,0.115,0.143,0.172,0.202,0.231,0.262,0.292,0.324,0.355,0.387,0.419,0.451,0.484,0.517,0.55,0.584,0.617,0.651,0.685,0.719,0.754,0.788,0.822,0.857,0.891,0.926,0.96,0.995,1.029,1.063,1.097,1.131,1.165,1.199,1.232,1.266,1.299,1.332,1.364,1.396,1.428,1.46],"d2":[-1.012,-0.977,-0.942,-0.908,-0.874,-0.841,-0.808,-0.775,-0.743,-0.711,-0.68,-0.648,-0.618,-0.587,-0.557,-0.528,-0.499,-0.47,-0.441,-0.413,-0.386,-0.358,-0.331,-0.305,-0.279,-0.253,-0.227,-0.202,-0.178,-0.154,-0.13,-0.106,-0.083,-0.06,-0.038,-0.016,0.005,0.027,0.047,0.068,0.088,0.108,0.127,0.146,0.164,0.183,0.2,0.218,0.235,0.251,0.268,0.283,0.299,0.314,0.329,0.343,0.357,0.371,0.384,0.397,0.409,0.421,0.433,0.444,0.455,0.466,0.476,0.486,0.495,0.504,0.513,0.521,0.529,0.536,0.543,0.55,0.556,0.562,0.568,0.573,0.578,0.582,0.586,0.59,0.593,0.596,0.599,0.601,0.603,0.604,0.605,0.606,0.606,0.606,0.605,0.604,0.603,0.601,0.599,0.597,0.594,0.591,0.587,0.583,0.579,0.574,0.569,0.564,0.558,0.552],"ymin":1.1,"ymax":2.92,"min_x":4.64,"max_x":7.2,"infl":[2.99],"vpk":1.46,"vpk_x":7.2},"confusao":{"lab":"Confusão","c":"#f0a848","raw":[[1.0,1.037],[1.8,0.615],[2.2,0.538],[2.8,0.423],[3.2,0.095],[3.8,0.19],[4.2,0.667],[4.8,0.304],[5.2,0.105],[5.8,0.5],[6.2,0.85],[6.8,0.571],[7.2,0.562]],"sig":[1.025,0.997,0.969,0.941,0.913,0.886,0.859,0.832,0.806,0.78,0.755,0.73,0.706,0.682,0.658,0.635,0.613,0.591,0.57,0.549,0.529,0.51,0.491,0.473,0.456,0.439,0.423,0.408,0.393,0.379,0.366,0.353,0.342,0.331,0.32,0.311,0.302,0.293,0.286,0.279,0.273,0.268,0.264,0.26,0.257,0.254,0.252,0.251,0.251,0.251,0.252,0.254,0.256,0.259,0.262,0.266,0.271,0.276,0.281,0.288,0.294,0.301,0.309,0.317,0.325,0.334,0.343,0.353,0.362,0.372,0.383,0.393,0.404,0.415,0.426,0.437,0.448,0.459,0.47,0.481,0.492,0.503,0.514,0.524,0.535,0.545,0.554,0.564,0.573,0.581,0.589,0.596,0.603,0.609,0.615,0.62,0.624,0.627,0.629,0.63,0.631,0.63,0.628,0.625,0.621,0.615,0.608,0.6,0.59,0.579],"d1":[-0.5,-0.496,-0.492,-0.487,-0.482,-0.477,-0.471,-0.464,-0.457,-0.45,-0.442,-0.434,-0.425,-0.417,-0.407,-0.398,-0.388,-0.378,-0.367,-0.357,-0.346,-0.335,-0.323,-0.312,-0.3,-0.288,-0.276,-0.264,-0.251,-0.239,-0.226,-0.214,-0.201,-0.188,-0.176,-0.163,-0.15,-0.137,-0.124,-0.112,-0.099,-0.086,-0.074,-0.061,-0.049,-0.037,-0.025,-0.013,-0.001,0.011,0.022,0.033,0.044,0.055,0.065,0.075,0.085,0.094,0.104,0.112,0.121,0.129,0.137,0.144,0.151,0.157,0.163,0.169,0.174,0.179,0.183,0.186,0.189,0.192,0.194,0.195,0.196,0.196,0.195,0.194,0.193,0.19,0.187,0.183,0.179,0.173,0.167,0.16,0.153,0.145,0.135,0.125,0.115,0.103,0.09,0.077,0.063,0.047,0.031,0.014,-0.004,-0.023,-0.043,-0.064,-0.086,-0.109,-0.133,-0.159,-0.185,-0.212],"d2":[0.059,0.068,0.077,0.086,0.095,0.103,0.111,0.118,0.126,0.133,0.14,0.146,0.153,0.159,0.165,0.17,0.175,0.18,0.185,0.19,0.194,0.198,0.202,0.205,0.208,0.211,0.214,0.216,0.218,0.22,0.222,0.223,0.224,0.225,0.225,0.226,0.225,0.225,0.225,0.224,0.223,0.221,0.22,0.218,0.216,0.213,0.211,0.208,0.205,0.201,0.197,0.194,0.189,0.185,0.18,0.175,0.17,0.164,0.158,0.152,0.146,0.139,0.132,0.125,0.118,0.11,0.102,0.094,0.085,0.076,0.067,0.058,0.049,0.039,0.029,0.018,0.008,-0.003,-0.014,-0.026,-0.037,-0.049,-0.061,-0.074,-0.087,-0.1,-0.113,-0.126,-0.14,-0.154,-0.168,-0.183,-0.198,-0.213,-0.228,-0.244,-0.26,-0.276,-0.292,-0.309,-0.326,-0.343,-0.361,-0.379,-0.397,-0.415,-0.433,-0.452,-0.471,-0.491],"ymin":0.25,"ymax":1.03,"min_x":3.73,"max_x":1.0,"infl":[5.32],"vpk":-0.5,"vpk_x":1.0},"pth":{"lab":"PTH","c":"#8b7bf0","raw":[[1.0,0.593],[1.8,3.885],[2.2,6.692],[2.8,2.0],[3.2,4.81],[3.8,3.095],[4.2,7.167],[4.8,1.783],[5.2,1.947],[5.8,2.364],[6.2,8.85],[6.8,7.19],[7.2,9.75]],"sig":[0.628,1.026,1.4,1.75,2.077,2.382,2.666,2.93,3.173,3.398,3.604,3.792,3.963,4.118,4.257,4.381,4.49,4.586,4.669,4.739,4.797,4.844,4.88,4.906,4.922,4.93,4.929,4.92,4.903,4.88,4.85,4.815,4.774,4.728,4.678,4.624,4.566,4.506,4.443,4.378,4.311,4.242,4.173,4.103,4.034,3.964,3.895,3.827,3.76,3.695,3.632,3.571,3.513,3.457,3.405,3.356,3.311,3.27,3.233,3.201,3.173,3.15,3.132,3.12,3.113,3.112,3.117,3.128,3.145,3.169,3.199,3.235,3.279,3.329,3.386,3.45,3.521,3.6,3.686,3.779,3.879,3.987,4.102,4.225,4.355,4.493,4.638,4.79,4.95,5.117,5.291,5.473,5.661,5.857,6.06,6.269,6.485,6.708,6.938,7.174,7.416,7.664,7.918,8.178,8.443,8.714,8.99,9.271,9.556,9.846],"d1":[7.216,6.782,6.361,5.953,5.559,5.178,4.81,4.454,4.111,3.781,3.463,3.157,2.863,2.581,2.31,2.051,1.803,1.567,1.341,1.126,0.921,0.728,0.544,0.37,0.207,0.053,-0.091,-0.225,-0.351,-0.467,-0.574,-0.673,-0.762,-0.844,-0.917,-0.982,-1.039,-1.088,-1.129,-1.163,-1.19,-1.21,-1.222,-1.228,-1.227,-1.22,-1.206,-1.186,-1.16,-1.129,-1.091,-1.049,-1.001,-0.947,-0.889,-0.826,-0.759,-0.686,-0.61,-0.529,-0.445,-0.356,-0.264,-0.168,-0.069,0.033,0.138,0.246,0.356,0.469,0.585,0.702,0.822,0.943,1.066,1.191,1.317,1.444,1.572,1.701,1.831,1.961,2.091,2.222,2.353,2.483,2.614,2.743,2.872,3.001,3.128,3.254,3.379,3.502,3.624,3.744,3.861,3.977,4.091,4.202,4.31,4.415,4.518,4.617,4.713,4.806,4.895,4.98,5.061,5.138],"d2":[-7.761,-7.52,-7.282,-7.047,-6.815,-6.586,-6.36,-6.137,-5.917,-5.699,-5.485,-5.273,-5.064,-4.859,-4.656,-4.456,-4.259,-4.065,-3.874,-3.686,-3.5,-3.318,-3.138,-2.962,-2.788,-2.617,-2.45,-2.285,-2.123,-1.964,-1.807,-1.654,-1.504,-1.356,-1.212,-1.07,-0.932,-0.796,-0.663,-0.533,-0.406,-0.282,-0.161,-0.043,0.073,0.185,0.295,0.401,0.505,0.606,0.704,0.799,0.891,0.98,1.066,1.149,1.23,1.307,1.382,1.453,1.522,1.588,1.651,1.711,1.768,1.822,1.873,1.921,1.967,2.009,2.049,2.085,2.119,2.15,2.178,2.203,2.225,2.244,2.26,2.274,2.284,2.292,2.296,2.298,2.296,2.292,2.285,2.275,2.262,2.246,2.228,2.206,2.181,2.154,2.124,2.09,2.054,2.015,1.973,1.928,1.88,1.829,1.775,1.719,1.659,1.597,1.531,1.463,1.392,1.318],"ymin":0.63,"ymax":9.85,"min_x":1.0,"max_x":7.2,"infl":[3.45],"vpk":7.22,"vpk_x":1.0},"fadfisica":{"lab":"Fadiga física","c":"#2fb37a","raw":[[1.0,3.593],[1.8,4.192],[2.2,6.692],[2.8,5.423],[3.2,6.524],[3.8,5.571],[4.2,7.333],[4.8,5.261],[5.2,6.158],[5.8,5.864],[6.2,6.75],[6.8,6.81],[7.2,8.438]],"sig":[3.495,3.618,3.738,3.857,3.973,4.086,4.197,4.305,4.411,4.513,4.613,4.71,4.805,4.896,4.985,5.07,5.153,5.233,5.31,5.383,5.454,5.522,5.587,5.648,5.707,5.763,5.816,5.866,5.912,5.956,5.998,6.036,6.071,6.104,6.134,6.161,6.186,6.208,6.227,6.244,6.258,6.271,6.28,6.288,6.293,6.297,6.298,6.297,6.295,6.291,6.285,6.278,6.269,6.259,6.247,6.235,6.221,6.207,6.192,6.176,6.159,6.143,6.126,6.109,6.092,6.075,6.058,6.042,6.026,6.012,5.998,5.985,5.974,5.964,5.956,5.949,5.945,5.943,5.943,5.945,5.951,5.959,5.97,5.985,6.004,6.026,6.052,6.082,6.117,6.157,6.201,6.25,6.305,6.366,6.432,6.505,6.583,6.669,6.761,6.86,6.967,7.081,7.203,7.334,7.473,7.62,7.777,7.943,8.119,8.304],"d1":[2.185,2.144,2.102,2.06,2.016,1.971,1.925,1.878,1.83,1.782,1.733,1.683,1.633,1.582,1.531,1.48,1.428,1.375,1.323,1.27,1.218,1.165,1.112,1.059,1.007,0.955,0.902,0.851,0.799,0.748,0.698,0.648,0.599,0.55,0.502,0.455,0.409,0.363,0.319,0.276,0.233,0.192,0.152,0.114,0.077,0.041,0.006,-0.027,-0.058,-0.088,-0.116,-0.142,-0.167,-0.19,-0.21,-0.229,-0.246,-0.261,-0.273,-0.283,-0.291,-0.297,-0.3,-0.301,-0.299,-0.295,-0.288,-0.278,-0.266,-0.251,-0.233,-0.212,-0.188,-0.16,-0.13,-0.097,-0.06,-0.02,0.023,0.069,0.12,0.173,0.23,0.291,0.356,0.424,0.496,0.573,0.653,0.737,0.825,0.917,1.013,1.114,1.219,1.328,1.442,1.56,1.683,1.81,1.942,2.079,2.22,2.367,2.518,2.674,2.836,3.002,3.173,3.35],"d2":[-0.703,-0.724,-0.745,-0.764,-0.782,-0.799,-0.815,-0.829,-0.843,-0.856,-0.868,-0.878,-0.888,-0.897,-0.904,-0.911,-0.916,-0.921,-0.924,-0.926,-0.927,-0.928,-0.927,-0.925,-0.922,-0.918,-0.913,-0.907,-0.9,-0.892,-0.883,-0.872,-0.861,-0.849,-0.835,-0.821,-0.805,-0.789,-0.771,-0.753,-0.733,-0.712,-0.69,-0.668,-0.644,-0.619,-0.593,-0.566,-0.538,-0.509,-0.479,-0.448,-0.415,-0.382,-0.348,-0.312,-0.276,-0.238,-0.2,-0.16,-0.12,-0.078,-0.036,0.008,0.053,0.099,0.146,0.194,0.243,0.293,0.344,0.396,0.449,0.503,0.558,0.615,0.672,0.73,0.79,0.85,0.912,0.974,1.038,1.103,1.168,1.235,1.303,1.372,1.442,1.513,1.585,1.658,1.732,1.807,1.883,1.96,2.039,2.118,2.198,2.28,2.362,2.446,2.53,2.616,2.703,2.79,2.879,2.969,3.06,3.151],"ymin":3.49,"ymax":8.3,"min_x":1.0,"max_x":7.2,"infl":[4.53],"vpk":3.35,"vpk_x":7.2},"fadmental":{"lab":"Fadiga mental","c":"#d6537e","raw":[[1.0,4.259],[1.8,4.308],[2.2,4.731],[2.8,4.423],[3.2,4.19],[3.8,4.143],[4.2,5.222],[4.8,4.261],[5.2,4.368],[5.8,4.364],[6.2,5.2],[6.8,4.714],[7.2,5.562]],"sig":[4.278,4.287,4.296,4.305,4.314,4.323,4.332,4.34,4.348,4.356,4.364,4.372,4.379,4.387,4.393,4.4,4.407,4.413,4.419,4.425,4.43,4.435,4.44,4.444,4.449,4.453,4.456,4.46,4.463,4.465,4.468,4.47,4.472,4.474,4.475,4.476,4.477,4.478,4.478,4.479,4.479,4.478,4.478,4.477,4.477,4.476,4.475,4.474,4.473,4.471,4.47,4.469,4.467,4.466,4.465,4.463,4.462,4.461,4.46,4.459,4.459,4.458,4.458,4.458,4.458,4.459,4.46,4.462,4.464,4.466,4.469,4.472,4.476,4.481,4.486,4.492,4.498,4.505,4.514,4.523,4.533,4.543,4.555,4.568,4.582,4.597,4.613,4.63,4.649,4.669,4.69,4.713,4.737,4.763,4.79,4.819,4.85,4.882,4.916,4.952,4.99,5.03,5.072,5.116,5.162,5.211,5.262,5.315,5.37,5.428],"d1":[0.161,0.159,0.158,0.156,0.154,0.152,0.149,0.147,0.144,0.14,0.137,0.133,0.129,0.125,0.121,0.116,0.112,0.107,0.102,0.097,0.092,0.087,0.082,0.077,0.072,0.067,0.062,0.057,0.051,0.046,0.041,0.037,0.032,0.027,0.022,0.018,0.014,0.01,0.006,0.002,-0.002,-0.005,-0.008,-0.011,-0.014,-0.016,-0.018,-0.02,-0.022,-0.023,-0.023,-0.024,-0.024,-0.024,-0.023,-0.022,-0.02,-0.018,-0.016,-0.013,-0.009,-0.005,-0.001,0.004,0.009,0.015,0.022,0.029,0.037,0.045,0.054,0.064,0.074,0.085,0.097,0.109,0.122,0.136,0.151,0.166,0.182,0.199,0.216,0.235,0.254,0.274,0.295,0.316,0.339,0.363,0.387,0.412,0.439,0.466,0.494,0.523,0.553,0.585,0.617,0.65,0.684,0.719,0.756,0.793,0.832,0.872,0.912,0.954,0.997,1.042],"d2":[-0.016,-0.022,-0.027,-0.033,-0.038,-0.043,-0.048,-0.052,-0.056,-0.06,-0.064,-0.068,-0.071,-0.074,-0.077,-0.079,-0.081,-0.083,-0.085,-0.087,-0.088,-0.089,-0.09,-0.09,-0.09,-0.09,-0.09,-0.09,-0.089,-0.088,-0.087,-0.085,-0.084,-0.082,-0.08,-0.077,-0.074,-0.071,-0.068,-0.065,-0.061,-0.057,-0.053,-0.049,-0.044,-0.039,-0.034,-0.028,-0.023,-0.017,-0.011,-0.004,0.002,0.009,0.016,0.024,0.031,0.039,0.047,0.056,0.064,0.073,0.082,0.092,0.101,0.111,0.121,0.131,0.142,0.153,0.164,0.175,0.187,0.199,0.211,0.223,0.236,0.248,0.262,0.275,0.288,0.302,0.316,0.331,0.345,0.36,0.375,0.39,0.406,0.421,0.437,0.454,0.47,0.487,0.504,0.521,0.539,0.557,0.575,0.593,0.611,0.63,0.649,0.668,0.688,0.707,0.727,0.748,0.768,0.789],"ymin":4.28,"ymax":5.43,"min_x":1.0,"max_x":7.2,"infl":[3.9],"vpk":1.04,"vpk_x":7.2}},"ac":{"vigor":{"ag":-0.88,"cr":-4.143,"dz":-1.33,"sig":true},"fadiga":{"ag":1.356,"cr":3.929,"dz":0.779,"sig":true},"tensao":{"ag":0.234,"cr":-1.262,"dz":-0.601,"sig":true},"depressao":{"ag":0.223,"cr":0.762,"dz":0.224,"sig":false},"raiva":{"ag":0.393,"cr":0.452,"dz":0.092,"sig":false},"confusao":{"ag":-0.017,"cr":-0.667,"dz":-0.567,"sig":true},"pth":{"ag":3.068,"cr":7.357,"dz":0.552,"sig":true},"fadfisica":{"ag":1.55,"cr":3.929,"dz":1.882,"sig":true},"fadmental":{"ag":0.501,"cr":0.952,"dz":0.533,"sig":true}},"trans":[{"lab":"D1 base→D2 pré","tipo":"Recuperação","v":{"vigor":{"dz":-0.69,"sig":true},"fadiga":{"dz":0.202,"sig":false},"tensao":{"dz":-0.119,"sig":false},"depressao":{"dz":0.4,"sig":true},"raiva":{"dz":0.137,"sig":false},"confusao":{"dz":-0.264,"sig":false},"pth":{"dz":0.492,"sig":true},"fadfisica":{"dz":0.276,"sig":false},"fadmental":{"dz":0.07,"sig":false}}},{"lab":"D2 pré→D2 pós","tipo":"Agudo","v":{"vigor":{"dz":-0.39,"sig":false},"fadiga":{"dz":0.636,"sig":true},"tensao":{"dz":0.0,"sig":false},"depressao":{"dz":-0.112,"sig":false},"raiva":{"dz":-0.408,"sig":false},"confusao":{"dz":-0.047,"sig":false},"pth":{"dz":0.311,"sig":false},"fadfisica":{"dz":0.969,"sig":true},"fadmental":{"dz":0.196,"sig":false}}},{"lab":"D2 pós→D3 pré","tipo":"Recuperação","v":{"vigor":{"dz":0.488,"sig":true},"fadiga":{"dz":-0.506,"sig":true},"tensao":{"dz":-0.484,"sig":true},"depressao":{"dz":-0.412,"sig":true},"raiva":{"dz":0.144,"sig":false},"confusao":{"dz":-0.18,"sig":false},"pth":{"dz":-0.556,"sig":true},"fadfisica":{"dz":-0.465,"sig":true},"fadmental":{"dz":-0.116,"sig":false}}},{"lab":"D3 pré→D3 pós","tipo":"Agudo","v":{"vigor":{"dz":-0.221,"sig":false},"fadiga":{"dz":0.28,"sig":false},"tensao":{"dz":0.269,"sig":false},"depressao":{"dz":0.252,"sig":false},"raiva":{"dz":-0.065,"sig":false},"confusao":{"dz":-0.356,"sig":false},"pth":{"dz":0.156,"sig":false},"fadfisica":{"dz":0.47,"sig":true},"fadmental":{"dz":-0.164,"sig":false}}},{"lab":"D3 pós→D4 pré","tipo":"Recuperação","v":{"vigor":{"dz":0.186,"sig":false},"fadiga":{"dz":-0.027,"sig":false},"tensao":{"dz":-0.273,"sig":false},"depressao":{"dz":0.24,"sig":false},"raiva":{"dz":-0.548,"sig":true},"confusao":{"dz":0.1,"sig":false},"pth":{"dz":-0.2,"sig":false},"fadfisica":{"dz":-0.255,"sig":false},"fadmental":{"dz":0.127,"sig":false}}},{"lab":"D4 pré→D4 pós","tipo":"Agudo","v":{"vigor":{"dz":-0.26,"sig":false},"fadiga":{"dz":0.228,"sig":false},"tensao":{"dz":0.374,"sig":false},"depressao":{"dz":-0.236,"sig":false},"raiva":{"dz":0.418,"sig":false},"confusao":{"dz":0.288,"sig":false},"pth":{"dz":0.504,"sig":false},"fadfisica":{"dz":0.792,"sig":true},"fadmental":{"dz":0.293,"sig":false}}},{"lab":"D4 pós→D5 pré","tipo":"Recuperação","v":{"vigor":{"dz":0.429,"sig":false},"fadiga":{"dz":-0.547,"sig":false},"tensao":{"dz":-0.332,"sig":false},"depressao":{"dz":-0.127,"sig":false},"raiva":{"dz":-0.435,"sig":false},"confusao":{"dz":-0.07,"sig":false},"pth":{"dz":-0.634,"sig":true},"fadfisica":{"dz":-0.903,"sig":true},"fadmental":{"dz":-0.324,"sig":false}}},{"lab":"D5 pré→D5 pós","tipo":"Agudo","v":{"vigor":{"dz":-0.123,"sig":false},"fadiga":{"dz":0.378,"sig":false},"tensao":{"dz":-0.148,"sig":false},"depressao":{"dz":0.1,"sig":false},"raiva":{"dz":-0.047,"sig":false},"confusao":{"dz":-0.403,"sig":false},"pth":{"dz":0.169,"sig":false},"fadfisica":{"dz":0.728,"sig":true},"fadmental":{"dz":0.229,"sig":false}}},{"lab":"D5 pós→D6 pré","tipo":"Recuperação","v":{"vigor":{"dz":0.356,"sig":false},"fadiga":{"dz":-0.222,"sig":false},"tensao":{"dz":0.05,"sig":false},"depressao":{"dz":-0.13,"sig":false},"raiva":{"dz":0.099,"sig":false},"confusao":{"dz":0.344,"sig":false},"pth":{"dz":-0.229,"sig":false},"fadfisica":{"dz":-0.483,"sig":false},"fadmental":{"dz":-0.083,"sig":false}}},{"lab":"D6 pré→D6 pós","tipo":"Agudo","v":{"vigor":{"dz":-0.644,"sig":true},"fadiga":{"dz":0.363,"sig":false},"tensao":{"dz":0.259,"sig":false},"depressao":{"dz":0.568,"sig":true},"raiva":{"dz":0.619,"sig":true},"confusao":{"dz":0.23,"sig":false},"pth":{"dz":0.747,"sig":true},"fadfisica":{"dz":0.506,"sig":true},"fadmental":{"dz":0.373,"sig":false}}},{"lab":"D6 pós→D7 pré","tipo":"Recuperação","v":{"vigor":{"dz":-0.034,"sig":false},"fadiga":{"dz":-0.074,"sig":false},"tensao":{"dz":-0.404,"sig":true},"depressao":{"dz":-0.212,"sig":false},"raiva":{"dz":-0.208,"sig":false},"confusao":{"dz":-0.027,"sig":false},"pth":{"dz":-0.174,"sig":false},"fadfisica":{"dz":0.103,"sig":false},"fadmental":{"dz":-0.313,"sig":false}}},{"lab":"D7 pré→D7 pós","tipo":"Agudo","v":{"vigor":{"dz":-0.2,"sig":false},"fadiga":{"dz":0.482,"sig":false},"tensao":{"dz":0.394,"sig":false},"depressao":{"dz":0.225,"sig":false},"raiva":{"dz":0.267,"sig":false},"confusao":{"dz":-0.25,"sig":false},"pth":{"dz":0.527,"sig":false},"fadfisica":{"dz":0.73,"sig":true},"fadmental":{"dz":0.567,"sig":true}}}],"prepos_dia":{"2":{"vigor":{"dz":-0.39,"sig":false},"fadiga":{"dz":0.636,"sig":true},"tensao":{"dz":0.0,"sig":false},"depressao":{"dz":-0.112,"sig":false},"raiva":{"dz":-0.408,"sig":false},"confusao":{"dz":-0.047,"sig":false},"pth":{"dz":0.311,"sig":false},"fadfisica":{"dz":0.969,"sig":true},"fadmental":{"dz":0.196,"sig":false}},"3":{"vigor":{"dz":-0.221,"sig":false},"fadiga":{"dz":0.28,"sig":false},"tensao":{"dz":0.269,"sig":false},"depressao":{"dz":0.252,"sig":false},"raiva":{"dz":-0.065,"sig":false},"confusao":{"dz":-0.356,"sig":false},"pth":{"dz":0.156,"sig":false},"fadfisica":{"dz":0.47,"sig":true},"fadmental":{"dz":-0.164,"sig":false}},"4":{"vigor":{"dz":-0.26,"sig":false},"fadiga":{"dz":0.228,"sig":false},"tensao":{"dz":0.374,"sig":false},"depressao":{"dz":-0.236,"sig":false},"raiva":{"dz":0.418,"sig":false},"confusao":{"dz":0.288,"sig":false},"pth":{"dz":0.504,"sig":false},"fadfisica":{"dz":0.792,"sig":true},"fadmental":{"dz":0.293,"sig":false}},"5":{"vigor":{"dz":-0.123,"sig":false},"fadiga":{"dz":0.378,"sig":false},"tensao":{"dz":-0.148,"sig":false},"depressao":{"dz":0.1,"sig":false},"raiva":{"dz":-0.047,"sig":false},"confusao":{"dz":-0.403,"sig":false},"pth":{"dz":0.169,"sig":false},"fadfisica":{"dz":0.728,"sig":true},"fadmental":{"dz":0.229,"sig":false}},"6":{"vigor":{"dz":-0.644,"sig":true},"fadiga":{"dz":0.363,"sig":false},"tensao":{"dz":0.259,"sig":false},"depressao":{"dz":0.568,"sig":true},"raiva":{"dz":0.619,"sig":true},"confusao":{"dz":0.23,"sig":false},"pth":{"dz":0.747,"sig":true},"fadfisica":{"dz":0.506,"sig":true},"fadmental":{"dz":0.373,"sig":false}},"7":{"vigor":{"dz":-0.2,"sig":false},"fadiga":{"dz":0.482,"sig":false},"tensao":{"dz":0.394,"sig":false},"depressao":{"dz":0.225,"sig":false},"raiva":{"dz":0.267,"sig":false},"confusao":{"dz":-0.25,"sig":false},"pth":{"dz":0.527,"sig":false},"fadfisica":{"dz":0.73,"sig":true},"fadmental":{"dz":0.567,"sig":true}}},"order":["vigor","fadiga","tensao","depressao","raiva","confusao","pth","fadfisica","fadmental"]};
 const HIIT=[2,4,7];
+const kmap={"Vigor":"vigor","Fadiga":"fadiga","Tensão":"tensao","Depressão":"depressao","Raiva":"raiva","Confusão":"confusao","PTH":"pth"};
+const labOf=k=>(DERIV.vars[k]||{}).lab||"";
+const HLL=()=>GLOBAL.varKey?labOf(GLOBAL.varKey):null;   // highlight label
+const HLK=()=>GLOBAL.varKey;                              // highlight key
 
-/* ===================== RAIN ===================== */
+/* ===================== RAIN (hi-res) ===================== */
 (function rain(){
-  const cv=$("#rain"), x=cv.getContext("2d"); let W,H,dpr,drops=[],splashes=[];
-  function size(){dpr=Math.min(devicePixelRatio||1,2); W=cv.width=innerWidth*dpr; H=cv.height=innerHeight*dpr; cv.style.width=innerWidth+"px"; cv.style.height=innerHeight+"px";}
-  size(); addEventListener("resize",size);
-  const N=rm?0:110;
-  for(let i=0;i<N;i++)drops.push({x:Math.random()*W,y:Math.random()*H,l:(6+Math.random()*16)*dpr,v:(3+Math.random()*5)*dpr,o:.06+Math.random()*.16});
-  // static frosted droplets on the glass
-  let beads=[]; for(let i=0;i<46;i++)beads.push({x:Math.random()*W,y:Math.random()*H,r:(1.2+Math.random()*3.2)*dpr,o:.05+Math.random()*.12});
-  function frame(){
-    x.clearRect(0,0,W,H);
-    for(const b of beads){ x.beginPath(); x.arc(b.x,b.y,b.r,0,7); x.fillStyle="rgba(150,190,230,"+b.o+")"; x.fill();
-      x.beginPath(); x.arc(b.x-b.r*.3,b.y-b.r*.3,b.r*.4,0,7); x.fillStyle="rgba(220,240,255,"+(b.o*1.4)+")"; x.fill(); }
-    for(const d of drops){
-      x.strokeStyle="rgba(160,200,240,"+d.o+")"; x.lineWidth=1.1*dpr; x.beginPath(); x.moveTo(d.x,d.y); x.lineTo(d.x-0.6*dpr,d.y+d.l); x.stroke();
-      d.y+=d.v; if(d.y>H){ if(splashes.length<40)splashes.push({x:d.x,y:H-2*dpr,r:1,o:.5}); d.y=-d.l; d.x=Math.random()*W; }
-    }
-    for(let i=splashes.length-1;i>=0;i--){const s=splashes[i]; x.beginPath(); x.arc(s.x,s.y,s.r*dpr,0,7); x.strokeStyle="rgba(170,210,245,"+s.o+")"; x.lineWidth=1*dpr; x.stroke(); s.r+=.6; s.o-=.03; if(s.o<=0)splashes.splice(i,1);}
-    requestAnimationFrame(frame);
-  }
-  if(!rm)frame(); else {x.clearRect(0,0,W,H); for(const b of beads){x.beginPath();x.arc(b.x,b.y,b.r,0,7);x.fillStyle="rgba(150,190,230,"+b.o+")";x.fill();}}
+  const cv=$("#rain"),x=cv.getContext("2d");let W,H,dpr,drops=[],splashes=[],beads=[];
+  function size(){dpr=Math.min(devicePixelRatio||1,2);W=cv.width=innerWidth*dpr;H=cv.height=innerHeight*dpr;cv.style.width=innerWidth+"px";cv.style.height=innerHeight+"px";
+    beads=[];for(let i=0;i<52;i++)beads.push({x:Math.random()*W,y:Math.random()*H,r:(1.2+Math.random()*3.4)*dpr,o:.05+Math.random()*.12});}
+  size();addEventListener("resize",size);
+  const N=rm?0:120;for(let i=0;i<N;i++)drops.push({x:Math.random()*W,y:Math.random()*H,l:(6+Math.random()*17)*dpr,v:(3+Math.random()*5)*dpr,o:.06+Math.random()*.16});
+  function frame(){x.clearRect(0,0,W,H);
+    for(const b of beads){x.beginPath();x.arc(b.x,b.y,b.r,0,7);x.fillStyle="rgba(150,190,230,"+b.o+")";x.fill();x.beginPath();x.arc(b.x-b.r*.3,b.y-b.r*.3,b.r*.4,0,7);x.fillStyle="rgba(220,240,255,"+(b.o*1.4)+")";x.fill();}
+    for(const d of drops){x.strokeStyle="rgba(160,200,240,"+d.o+")";x.lineWidth=1.1*dpr;x.beginPath();x.moveTo(d.x,d.y);x.lineTo(d.x-.6*dpr,d.y+d.l);x.stroke();
+      d.y+=d.v;if(d.y>H){if(splashes.length<40)splashes.push({x:d.x,y:H-2*dpr,r:1,o:.5});d.y=-d.l;d.x=Math.random()*W;}}
+    for(let i=splashes.length-1;i>=0;i--){const s=splashes[i];x.beginPath();x.arc(s.x,s.y,s.r*dpr,0,7);x.strokeStyle="rgba(170,210,245,"+s.o+")";x.lineWidth=1*dpr;x.stroke();s.r+=.6;s.o-=.03;if(s.o<=0)splashes.splice(i,1);}
+    requestAnimationFrame(frame);}
+  if(!rm)frame();else{x.clearRect(0,0,W,H);for(const b of beads){x.beginPath();x.arc(b.x,b.y,b.r,0,7);x.fillStyle="rgba(150,190,230,"+b.o+")";x.fill();}}
 })();
 
-/* ===================== TOOLTIP ===================== */
+/* ===================== TIP / CANVAS CORE ===================== */
 const tip=$("#tip");
-function showTip(html,ev){tip.innerHTML=html; tip.style.opacity=1; let x=ev.clientX+14,y=ev.clientY+14;
-  if(x+tip.offsetWidth>innerWidth)x=ev.clientX-tip.offsetWidth-14; if(y+tip.offsetHeight>innerHeight)y=ev.clientY-tip.offsetHeight-14;
-  tip.style.left=x+"px"; tip.style.top=y+"px";}
+function showTip(html,ev){tip.innerHTML=html;tip.style.opacity=1;let x=ev.clientX+14,y=ev.clientY+14;if(x+tip.offsetWidth>innerWidth)x=ev.clientX-tip.offsetWidth-14;if(y+tip.offsetHeight>innerHeight)y=ev.clientY-tip.offsetHeight-14;tip.style.left=x+"px";tip.style.top=y+"px";}
 function hideTip(){tip.style.opacity=0;}
+function mk(host,h){const box=document.createElement("div");box.className="host";const cv=document.createElement("canvas");cv.className="chart";box.appendChild(cv);host.appendChild(box);
+  const dpr=Math.min(Math.max(devicePixelRatio||1,2),3);const w=host.clientWidth||760;cv.width=w*dpr;cv.height=h*dpr;cv.style.height=h+"px";const g=cv.getContext("2d");g.scale(dpr,dpr);cv._w=w;cv._h=h;cv._hits=[];return {cv,g};}
+function anim(dur,step){if(rm){step(1);return;}const t0=performance.now();function fr(t){let p=Math.min(1,(t-t0)/dur);step(1-Math.pow(1-p,3));if(p<1)requestAnimationFrame(fr);}requestAnimationFrame(fr);}
+function stag(prog,i,n,spread=0.55){const w=1-spread;const s=(n>1?i/(n-1):0)*spread;return Math.max(0,Math.min(1,(prog-s)/w));}
+function attachHits(cv){cv.onmousemove=e=>{const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;let hit=null;for(const h of cv._hits){if(mx>=h.x&&mx<=h.x+h.w&&my>=h.y&&my<=h.y+h.h){hit=h;break;}}if(hit){showTip(hit.tip,e);cv.style.cursor="pointer";}else{hideTip();cv.style.cursor="default";}};cv.onmouseleave=hideTip;}
+function rr(g,x,y,w,h,r){r=Math.min(r,w/2,h/2);g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
+/* axes WITHOUT gridlines: only tick numbers + optional zero line */
+function axY(g,w,h,pad,ymin,ymax,{ticks=4,zero=false}={}){g.clearRect(0,0,w,h);const x0=pad.l,x1=w-pad.r,y0=h-pad.b,y1=pad.t;
+  g.font='10px "IBM Plex Mono",monospace';g.textBaseline="middle";g.textAlign="right";
+  for(let i=0;i<=ticks;i++){const v=ymin+(ymax-ymin)*i/ticks,y=y0+(y1-y0)*i/ticks;g.fillStyle=C.faint;g.fillText(v.toFixed(1).replace(".",","),x0-7,y);}
+  const Y=v=>y0+(y1-y0)*((v-ymin)/(ymax-ymin));
+  if(zero){const yz=Y(0);g.strokeStyle="rgba(233,238,246,.22)";g.lineWidth=1;g.beginPath();g.moveTo(x0,yz);g.lineTo(x1,yz);g.stroke();}
+  return {x0,x1,y0,y1,Y,X:v=>x0+(x1-x0)*v};}
 
-/* ===================== CANVAS HELPERS ===================== */
-function mk(host,h){const box=document.createElement("div"); box.className="chartbox";
-  const cv=document.createElement("canvas"); cv.className="chart"; box.appendChild(cv); host.appendChild(box);
-  const dpr=Math.min(devicePixelRatio||1,2); const w=host.clientWidth||760;
-  cv.width=w*dpr; cv.height=h*dpr; cv.style.height=h+"px"; const g=cv.getContext("2d"); g.scale(dpr,dpr);
-  cv._w=w; cv._h=h; cv._hits=[]; return {cv,g};
+/* ---- vertical bars ---- */
+function barChart(host,rows,{color,ymax,unit="",dec=1,h=300,fmt,hl}={}){
+  const {cv,g}=mk(host,h),w=cv._w,pad={l:44,r:14,t:16,b:46};const max=ymax||Math.max(...rows.map(r=>Math.abs(r.v)))*1.15;
+  const gap=(w-pad.l-pad.r)/rows.length,bw=gap*0.6;const hasHl=hl&&rows.some(r=>r.lab===hl);
+  anim(1500,prog=>{const A=axY(g,w,cv._h,pad,0,max);cv._hits=[];
+    rows.forEach((r,i)=>{const pv=stag(prog,i,rows.length),cx=pad.l+gap*i+gap/2,vv=r.v*pv,y=A.Y(vv),y0=A.Y(0),col=color||r.c||C.vigor;
+      g.globalAlpha=hasHl&&r.lab!==hl?.24:1;const gr=g.createLinearGradient(0,y,0,y0);gr.addColorStop(0,col);gr.addColorStop(1,col+"55");g.fillStyle=gr;rr(g,cx-bw/2,Math.min(y,y0),bw,Math.abs(y0-y),6);g.fill();
+      g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="top";g.fillText(r.lab,cx,cv._h-pad.b+7);
+      if(pv>=1){g.fillStyle=C.ink;g.font='600 11px "IBM Plex Mono",monospace';g.textBaseline="bottom";g.fillText((fmt?fmt(r.v):r.v.toFixed(dec))+unit,cx,y-5);cv._hits.push({x:cx-bw/2,y:Math.min(y,y0),w:bw,h:Math.abs(y0-y),tip:`<b>${r.lab}</b><br>${(fmt?fmt(r.v):r.v.toFixed(dec))}${unit}`});}
+      g.globalAlpha=1;});
+  });attachHits(cv);
 }
-function anim(dur,step){ if(rm){step(1);return;} const t0=performance.now();
-  function fr(t){let p=Math.min(1,(t-t0)/dur); step(1-Math.pow(1-p,3)); if(p<1)requestAnimationFrame(fr);} requestAnimationFrame(fr);}
-function attachHits(cv){
-  cv.onmousemove=e=>{const r=cv.getBoundingClientRect(); const mx=e.clientX-r.left, my=e.clientY-r.top; let hit=null;
-    for(const h of cv._hits){ if(mx>=h.x&&mx<=h.x+h.w&&my>=h.y&&my<=h.y+h.h){hit=h;break;} }
-    if(hit){showTip(hit.tip,e); cv.style.cursor="pointer";} else {hideTip(); cv.style.cursor="default";}};
-  cv.onmouseleave=hideTip;
+/* ---- lollipop ---- */
+function lolliChart(host,rows,{h=340,hl}={}){
+  const {cv,g}=mk(host,h),w=cv._w,pad={l:96,r:40,t:12,b:16};const max=Math.max(...rows.map(r=>Math.abs(r.v)))*1.15,rowh=(h-pad.t-pad.b)/rows.length,cx=pad.l;const hasHl=hl&&rows.some(r=>r.lab===hl);
+  anim(1500,prog=>{g.clearRect(0,0,w,h);g.strokeStyle="rgba(233,238,246,.2)";g.beginPath();g.moveTo(cx,pad.t);g.lineTo(cx,h-pad.b);g.stroke();cv._hits=[];
+    rows.forEach((r,i)=>{const pv=stag(prog,i,rows.length),y=pad.t+rowh*i+rowh/2,val=Math.abs(r.v)*pv,x=cx+(w-pad.l-pad.r)*(val/max),col=r.c||(r.v>=0?C.fadiga:C.vigor);
+      g.globalAlpha=hasHl&&r.lab!==hl?.24:1;
+      g.strokeStyle=col;g.lineWidth=2.5;g.beginPath();g.moveTo(cx,y);g.lineTo(x,y);g.stroke();g.fillStyle=col;g.beginPath();g.arc(x,y,5.5,0,7);g.fill();
+      g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(r.lab,pad.l-10,y);
+      if(pv>=1){g.fillStyle=C.ink;g.font='600 10px "IBM Plex Mono",monospace';g.textAlign="left";g.fillText(r.v.toFixed(2).replace(".",","),x+9,y);cv._hits.push({x:cx,y:y-8,w:x-cx+14,h:16,tip:`<b>${r.lab}</b><br>dz=${r.v.toFixed(2).replace(".",",")} · ${r.mag||""}`});}
+      g.globalAlpha=1;});
+  });attachHits(cv);
 }
-function axes(g,w,h,pad,ymin,ymax,xlabels,opt={}){
-  g.clearRect(0,0,w,h); const x0=pad.l,x1=w-pad.r,y0=h-pad.b,y1=pad.t;
-  const ticks=opt.ticks||5;
-  g.font='10px "IBM Plex Mono",monospace'; g.textBaseline="middle";
-  for(let i=0;i<=ticks;i++){const v=ymin+(ymax-ymin)*i/ticks; const y=y0+(y1-y0)*i/ticks;
-    g.strokeStyle=C.grid; g.lineWidth=1; g.beginPath(); g.moveTo(x0,y); g.lineTo(x1,y); g.stroke();
-    g.fillStyle=C.faint; g.textAlign="right"; g.fillText(opt.fmt?opt.fmt(v):v.toFixed(opt.dec??0),x0-7,y);}
-  if(xlabels){g.textAlign="center"; g.textBaseline="top";
-    xlabels.forEach((L,i)=>{const x=x0+(x1-x0)*(xlabels.length>1?i/(xlabels.length-1):.5); g.fillStyle=C.muted; g.fillText(L,x,y0+8);});}
-  return {x0,x1,y0,y1,X:v=>x0+(x1-x0)*v,Y:v=>y0+(y1-y0)*((v-ymin)/(ymax-ymin))};
-}
-
-/* ---- vertical bar chart ---- */
-function barChart(host,rows,{color,ymax,unit="",dec=1,h=300,fmt}={}){
-  const {cv,g}=mk(host,h); const w=cv._w; const pad={l:44,r:14,t:16,b:46};
-  const max=ymax||Math.max(...rows.map(r=>Math.abs(r.v)))*1.15;
-  const bw=(w-pad.l-pad.r)/rows.length*0.6, gap=(w-pad.l-pad.r)/rows.length;
-  anim(900,prog=>{ const A=axes(g,w,cv._h,pad,0,max,rows.map(r=>r.lab),{dec:0}); cv._hits=[];
-    rows.forEach((r,i)=>{ const cx=pad.l+gap*i+gap/2; const vv=r.v*prog; const y=A.Y(vv), y0=A.Y(0);
-      const col=color||r.c||C.vigor; const gr=g.createLinearGradient(0,y,0,y0); gr.addColorStop(0,col); gr.addColorStop(1,col+"55");
-      g.fillStyle=gr; rr(g,cx-bw/2,Math.min(y,y0),bw,Math.abs(y0-y),6); g.fill();
-      if(prog===1){ g.fillStyle=C.ink; g.font='600 11px "IBM Plex Mono",monospace'; g.textAlign="center"; g.textBaseline="bottom";
-        g.fillText((fmt?fmt(r.v):r.v.toFixed(dec))+unit,cx,y-5);
-        cv._hits.push({x:cx-bw/2,y:Math.min(y,y0),w:bw,h:Math.abs(y0-y),tip:`<b>${r.lab}</b><br>${(fmt?fmt(r.v):r.v.toFixed(dec))}${unit}`}); }
-    });
-  }); attachHits(cv);
-}
-function rr(g,x,y,w,h,r){r=Math.min(r,w/2,h/2); g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath();}
-
-/* ---- diverging horizontal bars (transitions) ---- */
-function divChart(host,rows,{h=420}={}){
-  const {cv,g}=mk(host,h); const w=cv._w; const pad={l:118,r:20,t:10,b:24};
-  const max=Math.max(...rows.map(r=>Math.abs(r.v)))*1.12; const rowh=(h-pad.t-pad.b)/rows.length;
-  const cx=pad.l+(w-pad.l-pad.r)/2;
-  anim(900,prog=>{ g.clearRect(0,0,w,h);
-    // zero line + scale
-    g.strokeStyle=C.grid; g.lineWidth=1;
-    for(let t=-1;t<=1;t+=.5){const x=cx+(w-pad.l-pad.r)/2*t*(1/1.12); g.beginPath(); g.moveTo(x,pad.t); g.lineTo(x,h-pad.b); g.stroke();
-      g.fillStyle=C.faint; g.font='9px "IBM Plex Mono",monospace'; g.textAlign="center"; g.textBaseline="top"; g.fillText((t*max/1.12*1).toFixed(1).replace(".",","),x,h-pad.b+5);}
-    cv._hits=[];
-    rows.forEach((r,i)=>{ const y=pad.t+rowh*i+rowh/2; const vv=r.v*prog; const x=cx+((w-pad.l-pad.r)/2)*(vv/max);
-      const col=r.tipo==="Agudo"?C.fadiga:C.tensao;
-      g.fillStyle=col+(r.sig?"":"aa"); rr(g,Math.min(cx,x),y-rowh*0.3,Math.abs(x-cx),rowh*0.6,5); g.fill();
-      g.fillStyle=C.muted; g.font='10px "IBM Plex Mono",monospace'; g.textAlign="right"; g.textBaseline="middle"; g.fillText(r.lab,pad.l-8,y);
-      if(prog===1){ if(r.sig){g.fillStyle=C.ink; g.font='700 11px "IBM Plex Mono",monospace'; g.textAlign=x>=cx?"left":"right"; g.fillText("★",x+(x>=cx?3:-3),y);}
-        cv._hits.push({x:Math.min(cx,x),y:y-rowh*.3,w:Math.abs(x-cx),h:rowh*.6,tip:`<b>${r.lab}</b><br>${r.tipo} · dz=${r.v.toFixed(2).replace(".",",")}${r.sig?" ★ p<0,05":""}`}); }
-    });
-  }); attachHits(cv);
-}
-
-/* ---- multi-line smooth trajectories ---- */
-function lineChart(host,series,{ymin=0,ymax=9,h=380,crosses=null,state}={}){
-  const {cv,g}=mk(host,h); const w=cv._w; const pad={l:40,r:16,t:16,b:34};
-  function draw(prog){ const A=axes(g,w,h,pad,ymin,ymax,DAYS.map(d=>"D"+d),{dec:0}); cv._hits=[];
-    // shaded phases
-    g.fillStyle="rgba(77,157,224,.05)"; g.fillRect(A.X(0),pad.t,(A.X(0.5)-A.X(0)),A.y0-pad.t);
-    series.forEach(s=>{ if(state && state[s.k]===false) return; const pts=smooth(s.daily.map((v,i)=>[A.x0+(A.x1-A.x0)*i/6,A.Y(v)]));
-      const cut=Math.floor(pts.length*prog);
-      g.strokeStyle=s.c; g.lineWidth=3; g.lineJoin="round"; g.beginPath();
-      pts.slice(0,Math.max(2,cut)).forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1])); g.stroke();
-      if(prog===1){ s.daily.forEach((v,i)=>{const x=A.x0+(A.x1-A.x0)*i/6,y=A.Y(v);
-        g.fillStyle=s.c; g.beginPath(); g.arc(x,y,3.4,0,7); g.fill();
-        cv._hits.push({x:x-8,y:y-8,w:16,h:16,tip:`<b>${s.lab}</b> · D${i+1}<br>escore ${v.toFixed(1).replace(".",",")}`});}); }
-    });
-    if(crosses&&prog===1){ crosses.forEach(cd=>{const x=A.x0+(A.x1-A.x0)*(cd-1)/6;
-      g.strokeStyle="rgba(233,238,246,.4)"; g.setLineDash([3,4]); g.beginPath(); g.moveTo(x,pad.t); g.lineTo(x,A.y0); g.stroke(); g.setLineDash([]);
-      g.fillStyle=C.ink; g.font='700 10px "IBM Plex Mono",monospace'; g.textAlign="center"; g.textBaseline="bottom";
-      g.fillText("✕ "+("dia "+cd).replace(".",","),x,pad.t+10);}); }
+/* ---- multi-line (segmented draw) ---- */
+function lineChart(host,series,{ymin=0,ymax=9,h=380,crosses=null,state,hlk}={}){
+  const {cv,g}=mk(host,h),w=cv._w,pad={l:40,r:16,t:16,b:34};
+  const shown=series.filter(s=>!state||state[s.k]!==false);const hasHl=hlk&&shown.some(s=>s.k===hlk);
+  function draw(prog){const A=axY(g,w,h,pad,ymin,ymax);cv._hits=[];
+    g.textAlign="center";g.textBaseline="top";g.font='10px "IBM Plex Mono",monospace';DAYS.forEach((d,i)=>{g.fillStyle=C.muted;g.fillText("D"+d,A.x0+(A.x1-A.x0)*i/6,A.y0+8);});
+    shown.forEach((s,idx)=>{const pi=Math.max(0,Math.min(1,prog*shown.length-idx));const pts=smooth(s.daily.map((v,i)=>[A.x0+(A.x1-A.x0)*i/6,A.Y(v)]));const cut=Math.max(2,Math.floor(pts.length*pi));
+      g.globalAlpha=hasHl&&s.k!==hlk?.2:1;g.strokeStyle=s.c;g.lineWidth=hasHl&&s.k===hlk?4:3;g.lineJoin="round";g.beginPath();pts.slice(0,cut).forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.stroke();
+      if(pi>=1)s.daily.forEach((v,i)=>{const x=A.x0+(A.x1-A.x0)*i/6,y=A.Y(v);g.fillStyle=s.c;g.beginPath();g.arc(x,y,3.4,0,7);g.fill();cv._hits.push({x:x-8,y:y-8,w:16,h:16,tip:`<b>${s.lab}</b> · D${i+1}<br>escore ${v.toFixed(1).replace(".",",")}`});});
+      g.globalAlpha=1;});
+    if(crosses&&prog>=1)crosses.forEach(cd=>{const x=A.x0+(A.x1-A.x0)*(cd-1)/6;g.strokeStyle="rgba(233,238,246,.4)";g.setLineDash([3,4]);g.beginPath();g.moveTo(x,pad.t);g.lineTo(x,A.y0);g.stroke();g.setLineDash([]);g.fillStyle=C.ink;g.font='700 10px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="bottom";g.fillText("✕ dia "+String(cd).replace(".",","),x,pad.t+10);});
   }
-  anim(1100,draw); attachHits(cv); cv._redraw=()=>draw(1); return cv;
+  anim(2200,draw);attachHits(cv);cv._redraw=()=>draw(1);return cv;
 }
-function smooth(P){ // catmull-rom to polyline
-  if(P.length<3)return P; const out=[]; for(let i=0;i<P.length-1;i++){const p0=P[i-1]||P[i],p1=P[i],p2=P[i+1],p3=P[i+2]||P[i+1];
-    for(let t=0;t<1;t+=.08){const t2=t*t,t3=t2*t;
-      out.push([0.5*((2*p1[0])+(-p0[0]+p2[0])*t+(2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t2+(-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t3),
-                0.5*((2*p1[1])+(-p0[1]+p2[1])*t+(2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2+(-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3)]);}}
-  out.push(P[P.length-1]); return out;
-}
-
-/* ---- grouped bars (perfis, pre/pos) ---- */
+function smooth(P){if(P.length<3)return P;const out=[];for(let i=0;i<P.length-1;i++){const p0=P[i-1]||P[i],p1=P[i],p2=P[i+1],p3=P[i+2]||P[i+1];for(let t=0;t<1;t+=.08){const t2=t*t,t3=t2*t;out.push([0.5*((2*p1[0])+(-p0[0]+p2[0])*t+(2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t2+(-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t3),0.5*((2*p1[1])+(-p0[1]+p2[1])*t+(2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2+(-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3)]);}}out.push(P[P.length-1]);return out;}
+/* ---- grouped bars (perfis) ---- */
 function groupChart(host,rows,groups,{ymax,h=340,dec=0,unit=""}={}){
-  const {cv,g}=mk(host,h); const w=cv._w; const pad={l:40,r:14,t:16,b:70};
-  const max=ymax||Math.max(...rows.flatMap(r=>r.vals))*1.15;
-  const gw=(w-pad.l-pad.r)/rows.length, bw=gw*0.34;
-  anim(900,prog=>{ const A=axes(g,w,h,pad,0,max,null,{dec:0}); cv._hits=[];
-    rows.forEach((r,i)=>{ const base=pad.l+gw*i+gw/2;
-      r.vals.forEach((v,j)=>{ const off=(j-(r.vals.length-1)/2)*(bw+4); const cx=base+off; const y=A.Y(v*prog),y0=A.Y(0);
-        const col=groups[j].c; g.fillStyle=col; rr(g,cx-bw/2,y,bw,y0-y,5); g.fill();
-        if(prog===1){cv._hits.push({x:cx-bw/2,y,w:bw,h:y0-y,tip:`<b>${r.lab}</b><br>${groups[j].lab}: ${v.toFixed(dec)}${unit}`});}
-      });
-      g.save(); g.translate(base,h-pad.b+8); g.rotate(-.5); g.fillStyle=C.muted; g.font='10px "IBM Plex Mono",monospace'; g.textAlign="right"; g.textBaseline="middle"; g.fillText(r.lab,0,0); g.restore();
-    });
-  }); attachHits(cv);
-  const lg=document.createElement("div"); lg.className="legend";
-  groups.forEach(gr=>lg.insertAdjacentHTML("beforeend",`<span class="it"><span class="dot" style="background:${gr.c}"></span>${gr.lab}</span>`));
-  host.appendChild(lg);
+  const {cv,g}=mk(host,h),w=cv._w,pad={l:40,r:14,t:16,b:70};const max=ymax||Math.max(...rows.flatMap(r=>r.vals))*1.15,gw=(w-pad.l-pad.r)/rows.length,bw=gw*0.34;
+  anim(1500,prog=>{const A=axY(g,w,h,pad,0,max);cv._hits=[];
+    rows.forEach((r,i)=>{const pv=stag(prog,i,rows.length),base=pad.l+gw*i+gw/2;
+      r.vals.forEach((v,j)=>{const off=(j-(r.vals.length-1)/2)*(bw+4),cx=base+off,y=A.Y(v*pv),y0=A.Y(0);g.fillStyle=groups[j].c;rr(g,cx-bw/2,y,bw,y0-y,5);g.fill();if(pv>=1)cv._hits.push({x:cx-bw/2,y,w:bw,h:y0-y,tip:`<b>${r.lab}</b><br>${groups[j].lab}: ${v.toFixed(dec)}${unit}`});});
+      g.save();g.translate(base,h-pad.b+8);g.rotate(-.5);g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(r.lab,0,0);g.restore();});
+  });attachHits(cv);
+  const lg=document.createElement("div");lg.className="legend";groups.forEach(gr=>lg.insertAdjacentHTML("beforeend",`<span class="it"><span class="dot" style="background:${gr.c}"></span>${gr.lab}</span>`));host.appendChild(lg);
+}
+/* ---- diverging horizontal (transitions) ---- */
+function divChart(host,rows,{h=420}={}){
+  const {cv,g}=mk(host,h),w=cv._w,pad={l:118,r:20,t:10,b:24};const max=Math.max(...rows.map(r=>Math.abs(r.v)))*1.12,rowh=(h-pad.t-pad.b)/rows.length,cx=pad.l+(w-pad.l-pad.r)/2;
+  anim(1600,prog=>{g.clearRect(0,0,w,h);cv._hits=[];
+    rows.forEach((r,i)=>{const pv=stag(prog,i,rows.length),y=pad.t+rowh*i+rowh/2,vv=r.v*pv,x=cx+((w-pad.l-pad.r)/2)*(vv/max),col=r.tipo==="Agudo"?C.fadiga:C.tensao;
+      g.fillStyle=col+(r.sig?"":"aa");rr(g,Math.min(cx,x),y-rowh*0.3,Math.abs(x-cx),rowh*0.6,5);g.fill();
+      g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(r.lab,pad.l-8,y);
+      if(pv>=1){if(r.sig){g.fillStyle=C.ink;g.font='700 11px "IBM Plex Mono",monospace';g.textAlign=x>=cx?"left":"right";g.fillText("★",x+(x>=cx?3:-3),y);}cv._hits.push({x:Math.min(cx,x),y:y-rowh*.3,w:Math.abs(x-cx),h:rowh*.6,tip:`<b>${r.lab}</b><br>${r.tipo} · dz=${r.v.toFixed(2).replace(".",",")}${r.sig?" ★ p<0,05":""}`});}});
+    g.strokeStyle="rgba(233,238,246,.18)";g.beginPath();g.moveTo(cx,pad.t);g.lineTo(cx,h-pad.b);g.stroke();
+  });attachHits(cv);
+}
+/* ---- grouped signed ---- */
+function groupSigned(host,rows,groups,{h=380,dec=2,hl}={}){
+  const {cv,g}=mk(host,h),w=cv._w,pad={l:46,r:14,t:14,b:74};const mx=Math.max(...rows.flatMap(r=>r.vals.map(Math.abs)))*1.2,gw=(w-pad.l-pad.r)/rows.length,bw=gw*0.32;const hasHl=hl&&rows.some(r=>r.lab===hl);
+  anim(1600,prog=>{g.clearRect(0,0,w,h);const x0=pad.l,x1=w-pad.r,y0=h-pad.b,y1=pad.t,Y=vv=>y0+(y1-y0)*((vv+mx)/(2*mx));
+    g.font='9px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";for(let i=0;i<=4;i++){const val=-mx+2*mx*i/4,y=y0+(y1-y0)*i/4;g.fillStyle=C.faint;g.fillText(val.toFixed(1).replace(".",","),x0-6,y);}
+    const yz=Y(0);g.strokeStyle="rgba(233,238,246,.24)";g.beginPath();g.moveTo(x0,yz);g.lineTo(x1,yz);g.stroke();cv._hits=[];
+    rows.forEach((r,i)=>{const pv=stag(prog,i,rows.length),base=pad.l+gw*i+gw/2;g.globalAlpha=hasHl&&r.lab!==hl?.24:1;
+      r.vals.forEach((val,j)=>{const off=(j-(r.vals.length-1)/2)*(bw+5),cx=base+off,y=Y(val*pv);g.fillStyle=groups[j].c;rr(g,cx-bw/2,Math.min(y,yz),bw,Math.abs(y-yz),4);g.fill();
+        if(pv>=1){if(r.sig&&j===1){g.fillStyle=C.ink;g.font='700 11px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline=val>=0?"bottom":"top";g.fillText("★",cx,y+(val>=0?-3:3));}cv._hits.push({x:cx-bw/2,y:Math.min(y,yz),w:bw,h:Math.abs(y-yz),tip:`<b>${r.lab}</b><br>${groups[j].lab}: ${(val>=0?"+":"")+val.toFixed(dec).replace(".",",")}`});}});
+      g.globalAlpha=1;g.save();g.translate(base,h-pad.b+8);g.rotate(-.5);g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(r.lab,0,0);g.restore();});
+  });attachHits(cv);
+  const lg=document.createElement("div");lg.className="legend";groups.forEach(gr=>lg.insertAdjacentHTML("beforeend",`<span class="it"><span class="dot" style="background:${gr.c}"></span>${gr.lab}</span>`));host.appendChild(lg);
+}
+/* ---- heatmap (segmented by column) ---- */
+function dzColor(v){const t=Math.max(-1,Math.min(1,v/0.7)),neg=[51,194,173],pos=[255,122,69],base=[24,34,50];const mix=(a,b,f)=>a.map((x,k)=>Math.round(x+(b[k]-x)*f));const c=t>=0?mix(base,pos,t):mix(base,neg,-t);return `rgba(${c[0]},${c[1]},${c[2]},${0.4+Math.abs(t)*0.5})`;}
+function heatMap(host,rowLabs,colLabs,cell,cellTip,{h,hlRow=-1}={}){
+  const {cv,g}=mk(host,h||(rowLabs.length*30+72)),w=cv._w,pad={l:100,r:10,t:50,b:14};const cw=(w-pad.l-pad.r)/colLabs.length,ch=(cv._h-pad.t-pad.b)/rowLabs.length;
+  anim(1500,prog=>{g.clearRect(0,0,w,cv._h);cv._hits=[];
+    colLabs.forEach((cl,c)=>{g.save();g.translate(pad.l+cw*c+cw/2,pad.t-8);g.rotate(-.62);g.fillStyle=C.muted;g.font='9px "IBM Plex Mono",monospace';g.textAlign="left";g.textBaseline="middle";g.fillText(cl.lab,0,0);g.restore();if(cl.tag){g.fillStyle=cl.tag==="A"?C.fadiga:C.tensao;g.font='700 9px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="top";g.fillText(cl.tag,pad.l+cw*c+cw/2,2);}});
+    rowLabs.forEach((rl,r)=>{const pr=stag(prog,r,rowLabs.length,0.5);g.fillStyle=r===hlRow?C.ink:C.muted;g.font=(r===hlRow?'700 ':'')+'10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(rl,pad.l-8,pad.t+ch*r+ch/2);
+      colLabs.forEach((cl,c)=>{const d=cell(r,c),x=pad.l+cw*c+2,y=pad.t+ch*r+2,ww=cw-4,hh=ch-4;g.globalAlpha=(hlRow>=0&&r!==hlRow)?.32:1;g.fillStyle=dzColor(d.v*pr);rr(g,x,y,ww,hh,4);g.fill();
+        if(r===hlRow){g.globalAlpha=1;g.strokeStyle="rgba(90,211,196,.7)";g.lineWidth=1.4;rr(g,x,y,ww,hh,4);g.stroke();}
+        if(pr>=1){g.globalAlpha=(hlRow>=0&&r!==hlRow)?.5:1;g.fillStyle="rgba(240,246,252,.92)";g.font='9px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="middle";g.fillText(((d.v>=0?"+":"")+d.v.toFixed(2).replace(".",","))+(d.sig?"*":""),x+ww/2,y+hh/2);cv._hits.push({x,y,w:ww,h:hh,tip:cellTip(r,c,d)});}g.globalAlpha=1;});});
+  });attachHits(cv);
 }
 
-/* ---- lollipop (effect sizes) ---- */
-function lolliChart(host,rows,{h=340}={}){
-  const {cv,g}=mk(host,h); const w=cv._w; const pad={l:96,r:34,t:12,b:26};
-  const max=Math.max(...rows.map(r=>Math.abs(r.v)))*1.15; const rowh=(h-pad.t-pad.b)/rows.length; const cx=pad.l;
-  anim(900,prog=>{ g.clearRect(0,0,w,h);
-    g.strokeStyle=C.grid; for(let t=0;t<=1.5;t+=.5){const x=cx+(w-pad.l-pad.r)*(t/max)*(t<=max?1:1); if(x<w-pad.r){g.beginPath();g.moveTo(x,pad.t);g.lineTo(x,h-pad.b);g.stroke(); g.fillStyle=C.faint;g.font='9px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="top";g.fillText(t.toFixed(1).replace(".",","),x,h-pad.b+5);}}
-    g.beginPath(); g.moveTo(cx,pad.t); g.lineTo(cx,h-pad.b); g.strokeStyle="rgba(233,238,246,.25)"; g.stroke(); cv._hits=[];
-    rows.forEach((r,i)=>{ const y=pad.t+rowh*i+rowh/2; const val=Math.abs(r.v)*prog; const x=cx+(w-pad.l-pad.r)*(val/max);
-      const col=r.c||(r.v>=0?C.fadiga:C.vigor);
-      g.strokeStyle=col; g.lineWidth=2.5; g.beginPath(); g.moveTo(cx,y); g.lineTo(x,y); g.stroke();
-      g.fillStyle=col; g.beginPath(); g.arc(x,y,5.5,0,7); g.fill();
-      g.fillStyle=C.muted; g.font='10px "IBM Plex Mono",monospace'; g.textAlign="right"; g.textBaseline="middle"; g.fillText(r.lab,pad.l-10,y);
-      if(prog===1){g.fillStyle=C.ink; g.font='600 10px "IBM Plex Mono",monospace'; g.textAlign="left"; g.fillText(r.v.toFixed(2).replace(".",","),x+9,y);
-        cv._hits.push({x:cx,y:y-8,w:x-cx+12,h:16,tip:`<b>${r.lab}</b><br>dz=${r.v.toFixed(2).replace(".",",")} · ${r.mag||""}`});}
-    });
-  }); attachHits(cv);
-}
-
-/* ===================== TABLES ===================== */
-function dynTable(host,cols,rows,fmt){
-  const wrap=document.createElement("div"); wrap.className="tablewrap";
-  const t=document.createElement("table"); t.className="dyn"; let sortCol=-1,dir=1;
-  function render(){ const body=rows.map(r=>r.slice());
-    if(sortCol>=0)body.sort((a,b)=>{let x=a[sortCol],y=b[sortCol]; x=typeof x==="number"?x:parseFloat(String(x).replace(",","."))||String(x); y=typeof y==="number"?y:parseFloat(String(y).replace(",","."))||String(y);
-      return (x>y?1:x<y?-1:0)*dir;});
-    t.innerHTML="<thead><tr>"+cols.map((c,i)=>`<th data-i="${i}">${c}${sortCol===i?` <span class="ar">${dir>0?"▲":"▼"}</span>`:""}</th>`).join("")+"</tr></thead><tbody>"+
-      body.map(r=>"<tr>"+r.map((v,i)=>`<td>${fmt?fmt(i,v,r):v}</td>`).join("")+"</tr>").join("")+"</tbody>";
-    t.querySelectorAll("th").forEach(th=>th.onclick=()=>{const i=+th.dataset.i; if(sortCol===i)dir*=-1; else{sortCol=i;dir=1;} render();});
-  }
-  render(); wrap.appendChild(t); host.appendChild(wrap);
-}
-
-/* ---- derivative panels (real-time build) ---- */
+/* ---- derivative panels ---- */
 function card(host,title,note){const c=document.createElement("div");c.className="card";c.innerHTML=`<h3>${title}</h3><p class="note">${note}</p>`;host.appendChild(c);return c;}
-function paxes(g,w,h,pad,xmin,xmax,ymin,ymax,zero){g.clearRect(0,0,w,h);const x0=pad.l,x1=w-pad.r,y0=h-pad.b,y1=pad.t;
-  const X=d=>x0+(x1-x0)*(d-xmin)/(xmax-xmin),Y=v=>y0+(y1-y0)*((v-ymin)/(ymax-ymin));
-  g.font='9px "IBM Plex Mono",monospace';g.textBaseline="middle";
-  for(let i=0;i<=4;i++){const v=ymin+(ymax-ymin)*i/4,y=y0+(y1-y0)*i/4;g.strokeStyle=C.grid;g.lineWidth=1;g.beginPath();g.moveTo(x0,y);g.lineTo(x1,y);g.stroke();g.fillStyle=C.faint;g.textAlign="right";g.fillText(v.toFixed(1).replace(".",","),x0-6,y);}
-  g.textAlign="center";g.textBaseline="top";for(let d=1;d<=7;d++){const x=X(d);g.fillStyle=C.muted;g.fillText("D"+d,x,y0+6);}
-  if(zero){const yz=Y(0);g.strokeStyle="rgba(233,238,246,.32)";g.lineWidth=1;g.beginPath();g.moveTo(x0,yz);g.lineTo(x1,yz);g.stroke();}
-  return {X,Y,x0,x1,y0,y1};}
+function paxes(g,w,h,pad,xmin,xmax,ymin,ymax,zero){g.clearRect(0,0,w,h);const x0=pad.l,x1=w-pad.r,y0=h-pad.b,y1=pad.t;const X=d=>x0+(x1-x0)*(d-xmin)/(xmax-xmin),Y=v=>y0+(y1-y0)*((v-ymin)/(ymax-ymin));
+  g.font='9px "IBM Plex Mono",monospace';g.textBaseline="middle";g.textAlign="right";for(let i=0;i<=4;i++){const v=ymin+(ymax-ymin)*i/4,y=y0+(y1-y0)*i/4;g.fillStyle=C.faint;g.fillText(v.toFixed(1).replace(".",","),x0-6,y);}
+  g.textAlign="center";g.textBaseline="top";for(let d=1;d<=7;d++){g.fillStyle=C.muted;g.fillText("D"+d,X(d),y0+6);}
+  if(zero){const yz=Y(0);g.strokeStyle="rgba(233,238,246,.22)";g.lineWidth=1;g.beginPath();g.moveTo(x0,yz);g.lineTo(x1,yz);g.stroke();}return {X,Y,x0,x1,y0,y1};}
 function cprog(g,ax,xs,ys,prog,col,wd){const n=Math.max(2,Math.floor(xs.length*prog));g.strokeStyle=col;g.lineWidth=wd;g.lineJoin="round";g.beginPath();for(let i=0;i<n;i++){const X=ax.X(xs[i]),Y=ax.Y(ys[i]);i?g.lineTo(X,Y):g.moveTo(X,Y);}g.stroke();}
 function dline(g,ax,xmin,xmax,yv,col){g.strokeStyle=col;g.globalAlpha=.55;g.setLineDash([3,4]);g.lineWidth=1.4;g.beginPath();g.moveTo(ax.X(xmin),ax.Y(yv));g.lineTo(ax.X(xmax),ax.Y(yv));g.stroke();g.setLineDash([]);g.globalAlpha=1;}
 function vline(g,ax,d,col){g.strokeStyle=col;g.setLineDash([2,4]);g.lineWidth=1;g.beginPath();g.moveTo(ax.X(d),ax.y1);g.lineTo(ax.X(d),ax.y0);g.stroke();g.setLineDash([]);}
 function drawDeriv(host,key){
   const v=DERIV.vars[key],X=DERIV.x,col=v.c||cById(key)||"#7fb0c8";
-  const chips=document.createElement("div");chips.className="kpis";chips.style.marginBottom="16px";
-  const infl=v.infl.length?("dia "+String(v.infl[0]).replace(".",",")):"n/d";
-  [["Mínimo",num(v.ymin,1),"dia "+num(v.min_x,1)],["Máximo",num(v.ymax,1),"dia "+num(v.max_x,1)],
-   ["Inflexão",infl,"2ª derivada = 0"],["Velocidade de pico",(v.vpk>=0?"+":"")+num(v.vpk,1),"dia "+num(v.vpk_x,1)]]
-   .forEach(c=>chips.insertAdjacentHTML("beforeend",`<div class="kpi"><span class="stripe" style="background:${col}"></span><div class="lab">${c[0]}</div><div class="val" style="font-size:23px;color:${col}">${c[1]}</div><div class="cap">${c[2]}</div></div>`));
-  host.appendChild(chips);
+  const chips=document.createElement("div");chips.className="kpis";chips.style.marginBottom="16px";const infl=v.infl.length?("dia "+String(v.infl[0]).replace(".",",")):"n/d";
+  [["Mínimo",num(v.ymin,1),"dia "+num(v.min_x,1)],["Máximo",num(v.ymax,1),"dia "+num(v.max_x,1)],["Inflexão",infl,"2ª derivada = 0"],["Velocidade de pico",(v.vpk>=0?"+":"")+num(v.vpk,1),"dia "+num(v.vpk_x,1)]]
+   .forEach(c=>chips.insertAdjacentHTML("beforeend",`<div class="kpi"><span class="stripe" style="background:${col}"></span><div class="lab">${c[0]}</div><div class="val" style="font-size:23px;color:${col}">${c[1]}</div><div class="cap">${c[2]}</div></div>`));host.appendChild(chips);tilt(chips);
   const cA=card(host,"A · Trajetória e limites","pontos ligados em alta definição · min/max pontilhado · inflexão · dias de HIIT tracejados");
-  const row=document.createElement("div");row.className="split tw";row.style.marginTop="18px";host.appendChild(row);
-  const cB=card(row,"B · Velocidade (1ª derivada)","taxa de variação por dia");
-  const cC=card(row,"C · Aceleração (2ª derivada)","cruzamento por zero marca a inflexão");
-  const A=mk(cA,300),B=mk(cB,220),Cc=mk(cC,220);
-  const xmin=Math.min(...X),xmax=Math.max(...X);
-  const rawy=v.raw.map(p=>p[1]); const yA=[Math.min(v.ymin,...rawy)-0.6,Math.max(v.ymax,...rawy)+0.6];
-  const d1a=[Math.min(...v.d1),Math.max(...v.d1)],d2a=[Math.min(...v.d2),Math.max(...v.d2)];
-  const pad=()=>({l:42,r:14,t:14,b:26});
-  anim(1300,prog=>{
-    let ax=paxes(A.g,A.cv._w,A.cv._h,pad(),xmin,xmax,yA[0],yA[1]); A.cv._hits=[];
-    dline(A.g,ax,xmin,xmax,v.ymin,col);dline(A.g,ax,xmin,xmax,v.ymax,col);
-    HIIT.forEach(d=>vline(A.g,ax,d,"rgba(200,220,240,.16)"));
-    if(v.infl.length)vline(A.g,ax,v.infl[0],"rgba(233,238,246,.45)");
-    cprog(A.g,ax,X,v.sig,prog,col,3);
-    if(prog===1)v.raw.forEach((p,i)=>{A.g.fillStyle=col;A.g.beginPath();A.g.arc(ax.X(p[0]),ax.Y(p[1]),3,0,7);A.g.fill();A.cv._hits.push({x:ax.X(p[0])-7,y:ax.Y(p[1])-7,w:14,h:14,tip:`<b>${v.lab}</b> · dia ${num(p[0],1)}<br>escore ${num(p[1],1)}`});});
-    let bx=paxes(B.g,B.cv._w,B.cv._h,pad(),xmin,xmax,d1a[0],d1a[1],true);cprog(B.g,bx,X,v.d1,prog,col,2.4);
-    let cx=paxes(Cc.g,Cc.cv._w,Cc.cv._h,pad(),xmin,xmax,d2a[0],d2a[1],true);cprog(Cc.g,cx,X,v.d2,prog,col,2.4);
-  });
+  const rowc=document.createElement("div");rowc.className="split tw";rowc.style.marginTop="18px";host.appendChild(rowc);
+  const cB=card(rowc,"B · Velocidade (1ª derivada)","taxa de variação por dia");const cC=card(rowc,"C · Aceleração (2ª derivada)","cruzamento por zero marca a inflexão");
+  const A=mk(cA,300),B=mk(cB,220),Cc=mk(cC,220);const xmin=Math.min(...X),xmax=Math.max(...X);const rawy=v.raw.map(p=>p[1]);
+  const yA=[Math.min(v.ymin,...rawy)-0.6,Math.max(v.ymax,...rawy)+0.6],d1a=[Math.min(...v.d1),Math.max(...v.d1)],d2a=[Math.min(...v.d2),Math.max(...v.d2)],pad=()=>({l:42,r:14,t:14,b:26});
+  anim(2400,prog=>{const pA=Math.min(1,prog/0.5),pB=Math.max(0,Math.min(1,(prog-0.3)/0.5)),pC=Math.max(0,Math.min(1,(prog-0.55)/0.45));
+    let ax=paxes(A.g,A.cv._w,A.cv._h,pad(),xmin,xmax,yA[0],yA[1]);A.cv._hits=[];dline(A.g,ax,xmin,xmax,v.ymin,col);dline(A.g,ax,xmin,xmax,v.ymax,col);HIIT.forEach(d=>vline(A.g,ax,d,"rgba(200,220,240,.16)"));if(v.infl.length)vline(A.g,ax,v.infl[0],"rgba(233,238,246,.45)");cprog(A.g,ax,X,v.sig,pA,col,3);
+    if(pA>=1)v.raw.forEach(p=>{A.g.fillStyle=col;A.g.beginPath();A.g.arc(ax.X(p[0]),ax.Y(p[1]),3,0,7);A.g.fill();A.cv._hits.push({x:ax.X(p[0])-7,y:ax.Y(p[1])-7,w:14,h:14,tip:`<b>${v.lab}</b> · dia ${num(p[0],1)}<br>escore ${num(p[1],1)}`});});
+    let bx=paxes(B.g,B.cv._w,B.cv._h,pad(),xmin,xmax,d1a[0],d1a[1],true);cprog(B.g,bx,X,v.d1,pB,col,2.4);
+    let cx=paxes(Cc.g,Cc.cv._w,Cc.cv._h,pad(),xmin,xmax,d2a[0],d2a[1],true);cprog(Cc.g,cx,X,v.d2,pC,col,2.4);});
   attachHits(A.cv);
 }
-/* ---- grouped signed bars ---- */
-function groupSigned(host,rows,groups,{h=380,dec=2}={}){
-  const {cv,g}=mk(host,h);const w=cv._w;const pad={l:46,r:14,t:14,b:74};
-  const mx=Math.max(...rows.flatMap(r=>r.vals.map(Math.abs)))*1.2;
-  const gw=(w-pad.l-pad.r)/rows.length,bw=gw*0.32;
-  anim(900,prog=>{g.clearRect(0,0,w,h);const x0=pad.l,x1=w-pad.r,y0=h-pad.b,y1=pad.t;
-    const Y=vv=>y0+(y1-y0)*((vv+mx)/(2*mx));
-    for(let i=0;i<=4;i++){const val=-mx+2*mx*i/4,y=y0+(y1-y0)*i/4;g.strokeStyle=C.grid;g.beginPath();g.moveTo(x0,y);g.lineTo(x1,y);g.stroke();g.fillStyle=C.faint;g.font='9px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(val.toFixed(1).replace(".",","),x0-6,y);}
-    const yz=Y(0);g.strokeStyle="rgba(233,238,246,.3)";g.beginPath();g.moveTo(x0,yz);g.lineTo(x1,yz);g.stroke();cv._hits=[];
-    rows.forEach((r,i)=>{const base=pad.l+gw*i+gw/2;
-      r.vals.forEach((val,j)=>{const off=(j-(r.vals.length-1)/2)*(bw+5),cx=base+off,y=Y(val*prog),col=groups[j].c;
-        g.fillStyle=col;rr(g,cx-bw/2,Math.min(y,yz),bw,Math.abs(y-yz),4);g.fill();
-        if(prog===1){if(r.sig&&j===1){g.fillStyle=C.ink;g.font='700 11px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline=val>=0?"bottom":"top";g.fillText("★",cx,y+(val>=0?-3:3));}
-          cv._hits.push({x:cx-bw/2,y:Math.min(y,yz),w:bw,h:Math.abs(y-yz),tip:`<b>${r.lab}</b><br>${groups[j].lab}: ${(val>=0?"+":"")+val.toFixed(dec).replace(".",",")}`});}});
-      g.save();g.translate(base,h-pad.b+8);g.rotate(-.5);g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(r.lab,0,0);g.restore();});
+/* ---- per-variable behaviour ---- */
+function dailyFromRaw(raw){const days=[{d:1,pre:null,pos:null,base:raw[0][1],mean:raw[0][1]}];for(let d=2;d<=7;d++){const i=1+(d-2)*2,pre=raw[i][1],pos=raw[i+1][1];days.push({d,pre,pos,base:null,mean:(pre+pos)/2});}return days;}
+function weekChart(host,key,h=300){const v=DERIV.vars[key],X=DERIV.x,col=v.c;const {cv,g}=mk(host,h);const xmin=Math.min(...X),xmax=Math.max(...X),rawy=v.raw.map(p=>p[1]),ymax=Math.max(...rawy,v.ymax)+0.6,ymin=Math.max(0,Math.min(...rawy,v.ymin)-0.6),dd=dailyFromRaw(v.raw);
+  anim(2000,prog=>{const ax=paxes(g,cv._w,cv._h,{l:42,r:14,t:14,b:26},xmin,xmax,ymin,ymax);cv._hits=[];HIIT.forEach(d=>vline(g,ax,d,"rgba(200,220,240,.14)"));cprog(g,ax,X,v.sig,prog,col,3);
+    if(prog>=1){g.strokeStyle=col;g.globalAlpha=.5;g.setLineDash([5,4]);g.lineWidth=1.4;g.beginPath();dd.forEach((d,i)=>{const x=ax.X(d.d),y=ax.Y(d.mean);i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();g.setLineDash([]);g.globalAlpha=1;
+      v.raw.forEach(p=>{g.fillStyle=col;g.beginPath();g.arc(ax.X(p[0]),ax.Y(p[1]),3.2,0,7);g.fill();cv._hits.push({x:ax.X(p[0])-7,y:ax.Y(p[1])-7,w:14,h:14,tip:`<b>${v.lab}</b> · dia ${num(p[0],1)}<br>escore ${num(p[1],1)}`});});
+      dd.forEach(d=>{const x=ax.X(d.d),y=ax.Y(d.mean);g.fillStyle="#0e1622";g.strokeStyle=col;g.lineWidth=2;g.beginPath();g.arc(x,y,4,0,7);g.fill();g.stroke();cv._hits.push({x:x-7,y:y-7,w:14,h:14,tip:`<b>${v.lab}</b> · média D${d.d}<br>${num(d.mean,1)}`});});}
+  });attachHits(cv);}
+function dayChart(host,key,h=300){const v=DERIV.vars[key],col=v.c,days=dailyFromRaw(v.raw);const {cv,g}=mk(host,h);const vals=days.flatMap(d=>[d.pre,d.pos,d.base]).filter(x=>x!=null),ymax=Math.max(...vals)+0.6,ymin=Math.max(0,Math.min(...vals)-0.6),pad={l:42,r:14,t:14,b:26},n=days.length;
+  anim(1900,prog=>{g.clearRect(0,0,cv._w,cv._h);const x0=pad.l,x1=cv._w-pad.r,y0=cv._h-pad.b,y1=pad.t,Y=vv=>y0+(y1-y0)*((vv-ymin)/(ymax-ymin));
+    g.font='9px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";for(let i=0;i<=4;i++){const val=ymin+(ymax-ymin)*i/4,y=y0+(y1-y0)*i/4;g.fillStyle=C.faint;g.fillText(val.toFixed(1).replace(".",","),x0-6,y);}cv._hits=[];
+    days.forEach((d,i)=>{const cx=x0+(x1-x0)*(n>1?i/(n-1):.5);g.fillStyle=C.muted;g.font='9px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="top";g.fillText("D"+d.d,cx,y0+6);
+      const pv=stag(prog,i,n,0.5);
+      if(d.pre!=null){const yp=Y(d.pre),yq=Y(d.pre+(d.pos-d.pre)*pv);g.strokeStyle=col;g.globalAlpha=.45;g.lineWidth=3;g.beginPath();g.moveTo(cx,yp);g.lineTo(cx,yq);g.stroke();g.globalAlpha=1;g.fillStyle="#0e1622";g.strokeStyle=col;g.lineWidth=2;g.beginPath();g.arc(cx,yp,4.5,0,7);g.fill();g.stroke();g.fillStyle=col;g.beginPath();g.arc(cx,yq,5,0,7);g.fill();
+        if(pv>=1){cv._hits.push({x:cx-8,y:yp-8,w:16,h:16,tip:`<b>${v.lab}</b> · D${d.d} pré<br>${num(d.pre,1)}`});cv._hits.push({x:cx-8,y:Y(d.pos)-8,w:16,h:16,tip:`<b>${v.lab}</b> · D${d.d} pós<br>${num(d.pos,1)} (Δ ${(d.pos-d.pre>=0?"+":"")+num(d.pos-d.pre,1)})`});}}
+      else{const y=Y(d.base);g.fillStyle=col;g.globalAlpha=pv;g.save();g.translate(cx,y);g.rotate(Math.PI/4);g.fillRect(-4.5,-4.5,9,9);g.restore();g.globalAlpha=1;if(pv>=1)cv._hits.push({x:cx-8,y:y-8,w:16,h:16,tip:`<b>${v.lab}</b> · D1 baseline<br>${num(d.base,1)}`});}});
   });attachHits(cv);
-  const lg=document.createElement("div");lg.className="legend";groups.forEach(gr=>lg.insertAdjacentHTML("beforeend",`<span class="it"><span class="dot" style="background:${gr.c}"></span>${gr.lab}</span>`));host.appendChild(lg);
-}
-/* ---- heatmap ---- */
-function dzColor(v){const t=Math.max(-1,Math.min(1,v/0.7));const neg=[51,194,173],pos=[255,122,69],base=[26,36,52];
-  const mix=(a,b,f)=>a.map((x,k)=>Math.round(x+(b[k]-x)*f));const c=t>=0?mix(base,pos,t):mix(base,neg,-t);
-  return `rgba(${c[0]},${c[1]},${c[2]},${0.4+Math.abs(t)*0.5})`;}
-function heatMap(host,rowLabs,colLabs,cell,cellTip,{h}={}){
-  const {cv,g}=mk(host,h||(rowLabs.length*30+72));const w=cv._w;const pad={l:100,r:10,t:50,b:14};
-  const cw=(w-pad.l-pad.r)/colLabs.length,ch=(cv._h-pad.t-pad.b)/rowLabs.length;
-  anim(700,prog=>{g.clearRect(0,0,w,cv._h);cv._hits=[];
-    colLabs.forEach((cl,c)=>{g.save();g.translate(pad.l+cw*c+cw/2,pad.t-8);g.rotate(-.62);g.fillStyle=C.muted;g.font='9px "IBM Plex Mono",monospace';g.textAlign="left";g.textBaseline="middle";g.fillText(cl.lab,0,0);g.restore();
-      if(cl.tag){g.fillStyle=cl.tag==="A"?C.fadiga:C.tensao;g.font='700 9px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="top";g.fillText(cl.tag,pad.l+cw*c+cw/2,2);}});
-    rowLabs.forEach((rl,r)=>{g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(rl,pad.l-8,pad.t+ch*r+ch/2);
-      colLabs.forEach((cl,c)=>{const d=cell(r,c),x=pad.l+cw*c+2,y=pad.t+ch*r+2,ww=cw-4,hh=ch-4;
-        g.fillStyle=dzColor(d.v*prog);rr(g,x,y,ww,hh,4);g.fill();
-        if(prog===1){g.fillStyle="rgba(240,246,252,.92)";g.font='9px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="middle";
-          g.fillText(((d.v>=0?"+":"")+d.v.toFixed(2).replace(".",","))+(d.sig?"*":""),x+ww/2,y+hh/2);
-          cv._hits.push({x,y,w:ww,h:hh,tip:cellTip(r,c,d)});}});});
-  });attachHits(cv);
+  const lg=document.createElement("div");lg.className="legend";lg.innerHTML=`<span class="it"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:#0e1622;border:2px solid ${col}"></span>Pré-treino</span><span class="it"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:${col}"></span>Pós-treino</span>`;host.appendChild(lg);
 }
 
-/* ---- per-variable behaviour (by day + across week) ---- */
-function dailyFromRaw(raw){const days=[{d:1,pre:null,pos:null,base:raw[0][1],mean:raw[0][1]}];
-  for(let d=2;d<=7;d++){const i=1+(d-2)*2,pre=raw[i][1],pos=raw[i+1][1];days.push({d,pre,pos,base:null,mean:(pre+pos)/2});}return days;}
-function weekChart(host,key,h=300){
-  const v=DERIV.vars[key],X=DERIV.x,col=v.c;const {cv,g}=mk(host,h);
-  const xmin=Math.min(...X),xmax=Math.max(...X);const rawy=v.raw.map(p=>p[1]);
-  const ymax=Math.max(...rawy,v.ymax)+0.6,ymin=Math.max(0,Math.min(...rawy,v.ymin)-0.6);
-  const dd=dailyFromRaw(v.raw);
-  anim(1200,prog=>{const ax=paxes(g,cv._w,cv._h,{l:42,r:14,t:14,b:26},xmin,xmax,ymin,ymax);cv._hits=[];
-    HIIT.forEach(d=>vline(g,ax,d,"rgba(200,220,240,.14)"));
-    cprog(g,ax,X,v.sig,prog,col,3);
-    if(prog===1){ // daily-mean line
-      g.strokeStyle=col;g.globalAlpha=.5;g.setLineDash([5,4]);g.lineWidth=1.4;g.beginPath();
-      dd.forEach((d,i)=>{const x=ax.X(d.d),y=ax.Y(d.mean);i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();g.setLineDash([]);g.globalAlpha=1;
-      v.raw.forEach((p)=>{g.fillStyle=col;g.beginPath();g.arc(ax.X(p[0]),ax.Y(p[1]),3.2,0,7);g.fill();
-        cv._hits.push({x:ax.X(p[0])-7,y:ax.Y(p[1])-7,w:14,h:14,tip:`<b>${v.lab}</b> · dia ${num(p[0],1)}<br>escore ${num(p[1],1)}`});});
-      dd.forEach(d=>{const x=ax.X(d.d),y=ax.Y(d.mean);g.fillStyle="#0e1622";g.strokeStyle=col;g.lineWidth=2;g.beginPath();g.arc(x,y,4,0,7);g.fill();g.stroke();
-        cv._hits.push({x:x-7,y:y-7,w:14,h:14,tip:`<b>${v.lab}</b> · média D${d.d}<br>${num(d.mean,1)}`});});
-    }
-  });attachHits(cv);
+/* ===================== TABLES ===================== */
+function dynTable(host,cols,rows,fmt,hlRowLabel){
+  const wrap=document.createElement("div");wrap.className="tablewrap";const t=document.createElement("table");t.className="dyn";let sortCol=-1,dir=1;
+  function render(){const body=rows.map(r=>r.slice());if(sortCol>=0)body.sort((a,b)=>{let x=a[sortCol],y=b[sortCol];x=typeof x==="number"?x:parseFloat(String(x).replace(",","."))||String(x);y=typeof y==="number"?y:parseFloat(String(y).replace(",","."))||String(y);return (x>y?1:x<y?-1:0)*dir;});
+    t.innerHTML="<thead><tr>"+cols.map((c,i)=>`<th data-i="${i}">${c}${sortCol===i?` <span class="ar">${dir>0?"▲":"▼"}</span>`:""}</th>`).join("")+"</tr></thead><tbody>"+body.map(r=>`<tr class="${hlRowLabel&&r[0]===hlRowLabel?'hlrow':''}">`+r.map((v,i)=>`<td>${fmt?fmt(i,v,r):v}</td>`).join("")+"</tr>").join("")+"</tbody>";
+    t.querySelectorAll("th").forEach(th=>th.onclick=()=>{const i=+th.dataset.i;if(sortCol===i)dir*=-1;else{sortCol=i;dir=1;}render();});}
+  render();wrap.appendChild(t);host.appendChild(wrap);
 }
-function dayChart(host,key,h=300){
-  const v=DERIV.vars[key],col=v.c,days=dailyFromRaw(v.raw);const {cv,g}=mk(host,h);
-  const vals=days.flatMap(d=>[d.pre,d.pos,d.base]).filter(x=>x!=null);
-  const ymax=Math.max(...vals)+0.6,ymin=Math.max(0,Math.min(...vals)-0.6);
-  const pad={l:42,r:14,t:14,b:26},n=days.length;
-  anim(1100,prog=>{g.clearRect(0,0,cv._w,cv._h);const x0=pad.l,x1=cv._w-pad.r,y0=cv._h-pad.b,y1=pad.t;
-    const Y=vv=>y0+(y1-y0)*((vv-ymin)/(ymax-ymin));
-    for(let i=0;i<=4;i++){const val=ymin+(ymax-ymin)*i/4,y=y0+(y1-y0)*i/4;g.strokeStyle=C.grid;g.beginPath();g.moveTo(x0,y);g.lineTo(x1,y);g.stroke();g.fillStyle=C.faint;g.font='9px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(val.toFixed(1).replace(".",","),x0-6,y);}
-    cv._hits=[];
-    days.forEach((d,i)=>{const cx=x0+(x1-x0)*(n>1?i/(n-1):.5);
-      g.fillStyle=C.muted;g.font='9px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="top";g.fillText("D"+d.d,cx,y0+6);
-      if(d.pre!=null){const yp=Y(d.pre),yq=Y(d.pre+(d.pos-d.pre)*prog);
-        g.strokeStyle=col;g.globalAlpha=.45;g.lineWidth=3;g.beginPath();g.moveTo(cx,yp);g.lineTo(cx,yq);g.stroke();g.globalAlpha=1;
-        g.fillStyle="#0e1622";g.strokeStyle=col;g.lineWidth=2;g.beginPath();g.arc(cx,yp,4.5,0,7);g.fill();g.stroke();
-        g.fillStyle=col;g.beginPath();g.arc(cx,yq,5,0,7);g.fill();
-        if(prog===1){cv._hits.push({x:cx-8,y:yp-8,w:16,h:16,tip:`<b>${v.lab}</b> · D${d.d} pré<br>${num(d.pre,1)}`});
-          cv._hits.push({x:cx-8,y:Y(d.pos)-8,w:16,h:16,tip:`<b>${v.lab}</b> · D${d.d} pós<br>${num(d.pos,1)} (Δ ${(d.pos-d.pre>=0?"+":"")+num(d.pos-d.pre,1)})`});}
-      }else{const y=Y(d.base*prog+ymin*(1-prog));g.fillStyle=col;g.save();g.translate(cx,y);g.rotate(Math.PI/4);g.fillRect(-4.5,-4.5,9,9);g.restore();
-        if(prog===1)cv._hits.push({x:cx-8,y:y-8,w:16,h:16,tip:`<b>${v.lab}</b> · D1 baseline<br>${num(d.base,1)}`});}
-    });
-  });attachHits(cv);
-  const lg=document.createElement("div");lg.className="legend";
-  lg.innerHTML=`<span class="it"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:#0e1622;border:2px solid ${col}"></span>Pré-treino</span><span class="it"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:${col}"></span>Pós-treino</span>`;host.appendChild(lg);
-}
+
+/* ===================== 3D TILT ===================== */
+function tilt(el){if(rm)return;el.querySelectorAll(".kpi").forEach(k=>{k.addEventListener("mousemove",e=>{const r=k.getBoundingClientRect(),px=(e.clientX-r.left)/r.width-.5,py=(e.clientY-r.top)/r.height-.5;k.style.transform=`rotateX(${(-py*7).toFixed(2)}deg) rotateY(${(px*8).toFixed(2)}deg) translateZ(6px)`;});k.addEventListener("mouseleave",()=>k.style.transform="");});}
 
 /* ===================== SECTIONS ===================== */
 const num=(v,d=1)=>v.toFixed(d).replace(".",",");
 const DK=Object.keys(DERIV.vars);
-function head(host,tag,title,lead){host.insertAdjacentHTML("beforeend",
-  `<div class="section-head"><h2>${title}</h2><span class="tag">${tag}</span></div><p class="lead">${lead}</p>`);}
-function cards(host,inner){const d=document.createElement("div"); d.className="grid2"; d.innerHTML=inner; host.appendChild(d); return d;}
+function head(host,tag,title,lead){host.insertAdjacentHTML("beforeend",`<div class="section-head"><h2>${title}</h2><span class="tag">${tag}</span></div><p class="lead">${lead}</p>`);}
+function cards(host,inner){const d=document.createElement("div");d.className="grid2";d.innerHTML=inner;host.appendChild(d);return d;}
+function ensureHost(card){if(!card.querySelector(".host")){const d=document.createElement("div");d.className="host";card.appendChild(d);}return card;}
 
 const SECTIONS=[
-{id:"visao",lab:"Visão geral",render(h){
-  head(h,"panorama","Panorama do microciclo","O humor deteriora-se de forma ordenada ao longo da semana e a mudança concentra-se no eixo energia-fadiga: o vigor cai e a fadiga sobe. Passe o cursor sobre os gráficos e ordene as tabelas clicando nos cabeçalhos.");
-  const kp=document.createElement("div"); kp.className="kpis"; h.appendChild(kp);
-  const K=[["Vigor D1→D7","8,4 → 4,3","dz = −1,33 · grande",C.vigor],
-    ["Fadiga D1→D7","3,4 → 7,4","dz = +0,78 · médio",C.fadiga],
-    ["MANOVA","λ = 0,181","p < 0,001",C.pth],
-    ["Perfil iceberg","48% → 22%","migra p/ barbatana",C.tensao],
-    ["Inflexão","Dia 3,8","metade da semana",C.confusao]];
-  K.forEach(k=>kp.insertAdjacentHTML("beforeend",
-    `<div class="kpi"><span class="stripe" style="background:${k[3]}"></span><div class="lab">${k[0]}</div><div class="val" style="color:${k[3]}">${k[1]}</div><div class="cap">${k[2]}</div></div>`));
-  const gr=cards(h,`<div class="card"><h3>Trajetórias do eixo energia-fadiga</h3><p class="note">Curvas suavizadas · cruzamentos vigor × fadiga assinalados</p><div class="host" id="h_traj"></div></div>
-    <div class="card"><h3>Deterioração D1 → D7</h3><p class="note">Tamanho de efeito (dz) por dimensão</p><div class="host" id="h_eff"></div></div>`);
-  lineChart($("#h_traj",gr),DIM.filter(d=>["vigor","fadiga","pth"].includes(d.k)),{ymax:9,crosses:CROSS});
-  lolliChart($("#h_eff",gr),D17.map(r=>({lab:r[0],v:r[4],mag:r[5]})));
+{id:"visao",lab:"Visão geral",icon:"grid",render(h){
+  head(h,"panorama","Panorama do microciclo","O humor deteriora-se de forma ordenada ao longo da semana e a mudança concentra-se no eixo energia-fadiga: o vigor cai e a fadiga sobe. Selecione uma variável na barra lateral para realçá-la em todos os gráficos.");
+  const kp=document.createElement("div");kp.className="kpis";h.appendChild(kp);
+  [["Vigor D1→D7","8,4 → 4,3","dz = −1,33 · grande",C.vigor],["Fadiga D1→D7","3,4 → 7,4","dz = +0,78 · médio",C.fadiga],["MANOVA","λ = 0,181","p < 0,001",C.pth],["Perfil iceberg","48% → 22%","migra p/ barbatana",C.tensao],["Inflexão","Dia 3,8","metade da semana",C.confusao]]
+    .forEach(k=>kp.insertAdjacentHTML("beforeend",`<div class="kpi"><span class="stripe" style="background:${k[3]}"></span><div class="lab">${k[0]}</div><div class="val" style="color:${k[3]}">${k[1]}</div><div class="cap">${k[2]}</div></div>`));tilt(kp);
+  const gr=cards(h,`<div class="card"><h3>Trajetórias do eixo energia-fadiga</h3><p class="note">curvas suavizadas · cruzamentos vigor × fadiga</p><div class="host" id="h_traj"></div></div><div class="card"><h3>Deterioração D1 → D7</h3><p class="note">tamanho de efeito (dz) por dimensão</p><div class="host" id="h_eff"></div></div>`);
+  lineChart($("#h_traj",gr),DIM.filter(d=>["vigor","fadiga","pth"].includes(d.k)),{ymax:9,crosses:CROSS,hlk:HLK()});
+  lolliChart($("#h_eff",gr),D17.map(r=>({lab:r[0],v:r[4],mag:r[5]})),{hl:HLL()});
 }},
-{id:"descr",lab:"Descritiva",render(h){
+{id:"descr",lab:"Descritiva",icon:"bars",render(h){
   head(h,"nível 1","Estatística descritiva","O vigor tem a maior média e, junto da fadiga, ocupa a maior parte da escala. As dimensões negativas concentram-se em valores baixos, com forte efeito de piso.");
-  const gr=cards(h,`<div class="card"><h3>Médias das dimensões</h3><p class="note">Escore médio (0–16) · 286 observações</p><div class="host" id="h_desc"></div></div>
-    <div class="card"><h3>Tabela descritiva</h3><p class="note">Clique nos cabeçalhos para ordenar</p><div class="host" id="t_desc"></div></div>`);
-  barChart($("#h_desc",gr),DESC.map(r=>({lab:r[0],v:r[1],c:cById(kmap(r[0]))})),{ymax:10,dec:1});
-  dynTable($("#t_desc",gr),["Dimensão","Média","DP","Mín–Máx"],DESC,(i,v)=>i===1||i===2?num(v):v);
+  const gr=cards(h,`<div class="card"><h3>Médias das dimensões</h3><p class="note">escore médio (0–16) · 286 observações</p><div class="host" id="h_desc"></div></div><div class="card"><h3>Tabela descritiva</h3><p class="note">clique nos cabeçalhos para ordenar</p><div class="host" id="t_desc"></div></div>`);
+  barChart($("#h_desc",gr),DESC.map(r=>({lab:r[0],v:r[1],c:cById(kmap[r[0]])})),{ymax:10,dec:1,hl:HLL()});
+  dynTable($("#t_desc",gr),["Dimensão","Média","DP","Mín–Máx"],DESC,(i,v)=>i===1||i===2?num(v):v,HLL());
 }},
-{id:"conf",lab:"Confiabilidade",render(h){
+{id:"conf",lab:"Confiabilidade",icon:"shield",render(h){
   head(h,"nível 2","Consistência e limiares","A confiabilidade entre dias (ICC) é moderada a boa, mais baixa na raiva e na confusão. Os limiares de mudança (MDC) separam a variação real do ruído de medida.");
-  const gr=cards(h,`<div class="card"><h3>ICC por dimensão</h3><p class="note">ICC(2,1) — medida isolada</p><div class="host" id="h_icc"></div></div>
-    <div class="card"><h3>Limiares de mudança</h3><p class="note">SEM · MDC90 · MDC95 · SWC (pontos)</p><div class="host" id="t_lim"></div></div>`);
-  barChart($("#h_icc",gr),ICC.map(r=>({lab:r[0],v:r[1],c:r[1]>=.5?C.good:C.warn})),{ymax:1,dec:2});
-  dynTable($("#t_lim",gr),["Dimensão","SEM","MDC90","MDC95","SWC"],LIM,(i,v)=>i?num(v):v);
+  const gr=cards(h,`<div class="card"><h3>ICC por dimensão</h3><p class="note">ICC(2,1) — medida isolada</p><div class="host" id="h_icc"></div></div><div class="card"><h3>Limiares de mudança</h3><p class="note">SEM · MDC90 · MDC95 · SWC (pontos)</p><div class="host" id="t_lim"></div></div>`);
+  barChart($("#h_icc",gr),ICC.map(r=>({lab:r[0],v:r[1],c:r[1]>=.5?C.good:C.warn})),{ymax:1,dec:2,hl:HLL()});
+  dynTable($("#t_lim",gr),["Dimensão","SEM","MDC90","MDC95","SWC"],LIM,(i,v)=>i?num(v):v,HLL());
 }},
-{id:"perfis",lab:"Perfis de humor",render(h){
+{id:"perfis",lab:"Perfis de humor",icon:"layers",render(h){
   head(h,"nível 1","Perfis e migração","No primeiro dia predomina o iceberg (vigor no topo). No último, a prevalência desloca-se para a barbatana de tubarão, sem instalação dos perfis de risco à saúde mental.");
-  const gr=cards(h,`<div class="card"><h3>Prevalência dos perfis</h3><p class="note">Contagem no Dia 1 vs Dia 7</p><div class="host" id="h_perf"></div></div>
-    <div class="card"><h3>Distribuição</h3><p class="note">n de atletas por perfil</p><div class="host" id="t_perf"></div></div>`);
+  const gr=cards(h,`<div class="card"><h3>Prevalência dos perfis</h3><p class="note">contagem no Dia 1 vs Dia 7</p><div class="host" id="h_perf"></div></div><div class="card"><h3>Distribuição</h3><p class="note">n de atletas por perfil</p><div class="host" id="t_perf"></div></div>`);
   groupChart($("#h_perf",gr),PERFIS.map(r=>({lab:r[0],vals:[r[1],r[2]]})),[{lab:"Dia 1",c:C.vigor},{lab:"Dia 7",c:C.fadiga}],{ymax:14});
   dynTable($("#t_perf",gr),["Perfil","Dia 1","Dia 7","Δ"],PERFIS.map(r=>[r[0],r[1],r[2],r[2]-r[1]]),(i,v)=>i===3?(v>0?`<span class="pos">+${v}</span>`:v<0?`<span class="neg">${v}</span>`:v):v);
 }},
-{id:"d17",lab:"D1 → D7",render(h){
+{id:"d17",lab:"D1 → D7",icon:"trend",render(h){
   head(h,"nível 2","Diferença entre o primeiro e o último dia","O efeito é grande no vigor e na fadiga; a MANOVA confirma a diferença global (λ = 0,181; p < 0,001) e, sob Bonferroni, apenas vigor e fadiga permanecem significativos.");
-  const gr=cards(h,`<div class="card"><h3>Tamanho de efeito (dz)</h3><p class="note">Magnitude da mudança por dimensão</p><div class="host" id="h_d17"></div></div>
-    <div class="card"><h3>Médias e efeito</h3><p class="note">Dia 1, Dia 7, variação e magnitude</p><div class="host" id="t_d17"></div></div>`);
-  lolliChart($("#h_d17",gr),D17.map(r=>({lab:r[0],v:r[4],mag:r[5]})));
-  dynTable($("#t_d17",gr),["Dimensão","Dia 1","Dia 7","Δ%","dz","Magn."],D17,
-    (i,v,r)=>i===1||i===2?num(v):i===3?`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${v}%</span>`:i===4?num(v,2):i===5?`<span class="pill ${v}">${v}</span>`:v);
+  const gr=cards(h,`<div class="card"><h3>Tamanho de efeito (dz)</h3><p class="note">magnitude da mudança por dimensão</p><div class="host" id="h_d17"></div></div><div class="card"><h3>Médias e efeito</h3><p class="note">Dia 1, Dia 7, variação e magnitude</p><div class="host" id="t_d17"></div></div>`);
+  lolliChart($("#h_d17",gr),D17.map(r=>({lab:r[0],v:r[4],mag:r[5]})),{hl:HLL()});
+  dynTable($("#t_d17",gr),["Dimensão","Dia 1","Dia 7","Δ%","dz","Magn."],D17,(i,v)=>i===1||i===2?num(v):i===3?`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${v}%</span>`:i===4?num(v,2):i===5?`<span class="pill ${v}">${v}</span>`:v,HLL());
 }},
-{id:"dias",lab:"Entre dias",render(h){
+{id:"dias",lab:"Entre dias",icon:"cal",render(h){
   head(h,"Friedman","Comparação entre os sete dias","Vigor, fadiga, tensão, confusão e PTH mudam de forma significativa ao longo da semana. O vigor é máximo no Dia 1 e mínimo no Dia 7; a fadiga percorre o caminho inverso.");
-  const st={}; DIM.forEach(d=>st[d.k]=["vigor","fadiga","pth"].includes(d.k));
-  const gr=cards(h,`<div class="card"><h3>Trajetórias diárias</h3><p class="note">Médias por dia · alterne as dimensões na legenda</p><div class="host" id="h_dias"></div></div>
-    <div class="card"><h3>Teste de Friedman</h3><p class="note">χ², p e W de Kendall</p><div class="host" id="t_dias"></div></div>`);
-  const cv=lineChart($("#h_dias",gr),DIM,{ymax:9,state:st});
-  const lg=document.createElement("div"); lg.className="legend"; $("#h_dias",gr).appendChild(lg);
-  DIM.forEach(d=>{const it=document.createElement("span"); it.className="it"+(st[d.k]?"":" off");
-    it.innerHTML=`<span class="dot" style="background:${d.c}"></span>${d.lab}`;
-    it.onclick=()=>{st[d.k]=!st[d.k]; it.classList.toggle("off"); cv._redraw();}; lg.appendChild(it);});
-  dynTable($("#t_dias",gr),["Dimensão","χ²","p","W","Magn."],FRIED,
-    (i,v)=>i===1?num(v):i===3?num(v,2):i===2?(String(v).includes("<")?`<span class="sig">${v}</span>`:v):i===4?`<span class="pill ${v}">${v}</span>`:v);
+  const st={};DIM.forEach(d=>st[d.k]=["vigor","fadiga","pth"].includes(d.k)||d.k===HLK());
+  const gr=cards(h,`<div class="card"><h3>Trajetórias diárias</h3><p class="note">médias por dia · alterne as dimensões na legenda</p><div class="host" id="h_dias"></div></div><div class="card"><h3>Teste de Friedman</h3><p class="note">χ², p e W de Kendall</p><div class="host" id="t_dias"></div></div>`);
+  const cv=lineChart($("#h_dias",gr),DIM,{ymax:9,state:st,hlk:HLK()});const lg=document.createElement("div");lg.className="legend";$("#h_dias",gr).appendChild(lg);
+  DIM.forEach(d=>{const it=document.createElement("span");it.className="it"+(st[d.k]?"":" off");it.innerHTML=`<span class="dot" style="background:${d.c}"></span>${d.lab}`;it.onclick=()=>{st[d.k]=!st[d.k];it.classList.toggle("off");cv._redraw();};lg.appendChild(it);});
+  dynTable($("#t_dias",gr),["Dimensão","χ²","p","W","Magn."],FRIED,(i,v)=>i===1?num(v):i===3?num(v,2):i===2?(String(v).includes("<")?`<span class="sig">${v}</span>`:v):i===4?`<span class="pill ${v}">${v}</span>`:v,HLL());
 }},
-{id:"traj",lab:"Trajetórias & cruzamentos",render(h){
-  head(h,"nível 3","Trajetórias das seis dimensões","Na mesma escala, apenas o par vigor-fadiga ocupa a faixa central e se cruza (dias 2,3, 3,9 e 5,8); as demais dimensões permanecem junto ao piso. É o que concentra o sinal do monitoramento.");
-  const st={}; DIM.forEach(d=>st[d.k]=d.k!=="pth");
-  const c=document.createElement("div"); c.className="card"; c.innerHTML=`<h3>Todas as dimensões · cruzamentos vigor × fadiga</h3><p class="note">Curvas suavizadas · clique na legenda para filtrar</p><div class="host" id="h_all"></div>`; h.appendChild(c);
-  const cv=lineChart($("#h_all",c),DIM.filter(d=>d.k!=="pth"),{ymax:9,crosses:CROSS,state:st});
-  const lg=document.createElement("div"); lg.className="legend"; $("#h_all",c).appendChild(lg);
-  DIM.filter(d=>d.k!=="pth").forEach(d=>{const it=document.createElement("span"); it.className="it";
-    it.innerHTML=`<span class="dot" style="background:${d.c}"></span>${d.lab}`;
-    it.onclick=()=>{st[d.k]=!st[d.k]; it.classList.toggle("off"); cv._redraw();}; lg.appendChild(it);});
+{id:"traj",lab:"Trajetórias & cruzamentos",icon:"wave",render(h){
+  head(h,"nível 3","Trajetórias das seis dimensões","Na mesma escala, apenas o par vigor-fadiga ocupa a faixa central e se cruza (dias 2,3, 3,9 e 5,8); as demais dimensões permanecem junto ao piso.");
+  const st={};DIM.forEach(d=>st[d.k]=d.k!=="pth");
+  const c=document.createElement("div");c.className="card";c.innerHTML=`<h3>Todas as dimensões · cruzamentos vigor × fadiga</h3><p class="note">curvas suavizadas · clique na legenda para filtrar</p><div class="host" id="h_all"></div>`;h.appendChild(c);
+  const cv=lineChart($("#h_all",c),DIM.filter(d=>d.k!=="pth"),{ymax:9,crosses:CROSS,state:st,hlk:HLK()});const lg=document.createElement("div");lg.className="legend";$("#h_all",c).appendChild(lg);
+  DIM.filter(d=>d.k!=="pth").forEach(d=>{const it=document.createElement("span");it.className="it";it.innerHTML=`<span class="dot" style="background:${d.c}"></span>${d.lab}`;it.onclick=()=>{st[d.k]=!st[d.k];it.classList.toggle("off");cv._redraw();};lg.appendChild(it);});
 }},
-{id:"agudo",lab:"Pré/Pós & agudo",render(h){
+{id:"agudo",lab:"Pré/Pós & agudo",icon:"pulse",render(h){
   head(h,"nível 3","Efeito agudo e recuperação","Do pré ao pós-treino, o vigor cai e a fadiga e a PTH sobem. As transições sequenciais mostram um padrão em dente de serra: a sessão piora o estado e a recuperação entre sessões é apenas parcial.");
-  const gr=cards(h,`<div class="card"><h3>Transições sequenciais (PTH)</h3><p class="note">Laranja = agudo (pré→pós) · azul = recuperação · ★ p<0,05</p><div class="host" id="h_tr"></div></div>
-    <div class="card"><h3>Pré vs Pós-treino</h3><p class="note">Wilcoxon e d de Cohen</p><div class="host" id="t_pp"></div></div>`);
+  const gr=cards(h,`<div class="card"><h3>Transições sequenciais (PTH)</h3><p class="note">laranja = agudo (pré→pós) · azul = recuperação · ★ p<0,05</p><div class="host" id="h_tr"></div></div><div class="card"><h3>Pré vs Pós-treino</h3><p class="note">Wilcoxon e d de Cohen</p><div class="host" id="t_pp"></div></div>`);
   divChart($("#h_tr",gr),TRANS.map(r=>({lab:r[0],tipo:r[1],v:r[4],sig:r[5]})));
-  dynTable($("#t_pp",gr),["Dimensão","Pré","Pós","Δ%","p","d"],PREPOS,
-    (i,v)=>i===1||i===2?num(v,2):i===3?`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${v}%</span>`:i===5?num(v,2):i===4?(parseFloat(String(v).replace(",","."))<0.05?`<span class="sig">${v}</span>`:v):v);
-  const c2=document.createElement("div"); c2.className="card"; c2.style.marginTop="18px";
-  c2.innerHTML=`<h3>Transições · vigor, fadiga e PTH</h3><p class="note">Tamanho de efeito dz por transição</p><div class="host" id="t_tr"></div>`; h.appendChild(c2);
-  dynTable($("#t_tr",c2),["Transição","Tipo","Vigor dz","Fadiga dz","PTH dz"],
-    TRANS.map(r=>[r[0],r[1],r[2],r[3],r[4]]),(i,v)=>i>=2?(`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${num(v,2)}</span>`):v);
+  dynTable($("#t_pp",gr),["Dimensão","Pré","Pós","Δ%","p","d"],PREPOS,(i,v)=>i===1||i===2?num(v,2):i===3?`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${v}%</span>`:i===5?num(v,2):i===4?(parseFloat(String(v).replace(",","."))<0.05?`<span class="sig">${v}</span>`:v):v,HLL());
+  const c2=document.createElement("div");c2.className="card";c2.style.marginTop="18px";c2.innerHTML=`<h3>Transições · vigor, fadiga e PTH</h3><p class="note">tamanho de efeito dz por transição</p><div class="host" id="t_tr"></div>`;h.appendChild(c2);
+  dynTable($("#t_tr",c2),["Transição","Tipo","Vigor dz","Fadiga dz","PTH dz"],TRANS.map(r=>[r[0],r[1],r[2],r[3],r[4]]),(i,v)=>i>=2?(`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${num(v,2)}</span>`):v);
 }},
-{id:"corr",lab:"Correlações",render(h){
-  head(h,"Spearman","Relações entre as dimensões","As dimensões negativas associam-se entre si; a fadiga relaciona-se com a depressão e a raiva. O vigor mantém-se relativamente independente, como um polo próprio do eixo energia-fadiga.");
-  const gr=cards(h,`<div class="card"><h3>Correlações significativas</h3><p class="note">Coeficiente de Spearman (ρ)</p><div class="host" id="h_sp"></div></div>
-    <div class="card"><h3>Pares (p < 0,05)</h3><p class="note">Ordene por ρ ou por p</p><div class="host" id="t_sp"></div></div>`);
+{id:"corr",lab:"Correlações",icon:"scatter",render(h){
+  head(h,"Spearman","Relações entre as dimensões","As dimensões negativas associam-se entre si; a fadiga relaciona-se com a depressão e a raiva. O vigor mantém-se relativamente independente.");
+  const gr=cards(h,`<div class="card"><h3>Correlações significativas</h3><p class="note">coeficiente de Spearman (ρ)</p><div class="host" id="h_sp"></div></div><div class="card"><h3>Pares (p < 0,05)</h3><p class="note">ordene por ρ ou por p</p><div class="host" id="t_sp"></div></div>`);
   lolliChart($("#h_sp",gr),SPEAR.map(r=>({lab:r[0],v:r[1],c:r[1]<0?C.vigor:C.fadiga})),{h:300});
   dynTable($("#t_sp",gr),["Par de dimensões","ρ","p"],SPEAR,(i,v)=>i===1?(`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${num(v,2)}</span>`):v);
 }},
-{id:"snr",lab:"Sinal / Ruído",render(h){
+{id:"snr",lab:"Sinal / Ruído",icon:"signal",render(h){
   head(h,"nível 3","Separação entre sinal e ruído","O vigor e a fadiga concentram a maior razão sinal/ruído (8,4 e 6,7): tendências limpas e confiáveis. As dimensões negativas, comprimidas pelo efeito de piso, mal ultrapassam o ruído.");
-  const gr=cards(h,`<div class="card"><h3>Razão sinal/ruído</h3><p class="note">Amplitude do sinal ÷ DP do ruído</p><div class="host" id="h_snr"></div></div>
-    <div class="card"><h3>Sinal, ruído e piso</h3><p class="note">Por dimensão · inflexão localizada</p><div class="host" id="t_snr"></div></div>`);
-  barChart($("#h_snr",gr),SNR.map(r=>({lab:r[0],v:r[3],c:r[3]>=5?C.good:r[3]>=3?C.warn:C.crit})),{ymax:9,dec:1});
-  dynTable($("#t_snr",gr),["Dimensão","Sinal","Ruído","S/R","Piso %","Inflexão"],SNR,(i,v)=>i>=1&&i<=3?num(v,i===2?2:1):i===4?v+"%":v);
+  const gr=cards(h,`<div class="card"><h3>Razão sinal/ruído</h3><p class="note">amplitude do sinal ÷ DP do ruído</p><div class="host" id="h_snr"></div></div><div class="card"><h3>Sinal, ruído e piso</h3><p class="note">por dimensão · inflexão localizada</p><div class="host" id="t_snr"></div></div>`);
+  barChart($("#h_snr",gr),SNR.map(r=>({lab:r[0],v:r[3],c:r[3]>=5?C.good:r[3]>=3?C.warn:C.crit})),{ymax:9,dec:1,hl:HLL()});
+  dynTable($("#t_snr",gr),["Dimensão","Sinal","Ruído","S/R","Piso %","Inflexão"],SNR,(i,v)=>i>=1&&i<=3?num(v,i===2?2:1):i===4?v+"%":v,HLL());
 }},
-{id:"limites",lab:"Limites & derivadas",render(h){
-  head(h,"nível 3 · tempo real","Limites e derivadas por variável","Selecione a variável: a trajetória é montada ligando os pontos em alta definição, com os limites de mínimo e máximo, o ponto de inflexão e os dias de HIIT. Abaixo, as curvas de velocidade (1ª derivada) e de aceleração (2ª derivada) são plotadas em tempo real.");
-  const sel=document.createElement("div");sel.className="legend";sel.style.marginBottom="16px";h.appendChild(sel);
-  const ph=document.createElement("div");h.appendChild(ph);
-  function pick(key){sel.querySelectorAll(".it").forEach(b=>b.classList.toggle("selon",b.dataset.k===key));ph.innerHTML="";drawDeriv(ph,key);}
-  DK.forEach(k=>{const v=DERIV.vars[k];const b=document.createElement("span");b.className="it";b.dataset.k=k;b.style.cursor="pointer";
-    b.innerHTML=`<span class="dot" style="background:${v.c||cById(k)||'#7fb0c8'}"></span>${v.lab}`;b.onclick=()=>pick(k);sel.appendChild(b);});
-  pick("vigor");
+{id:"limites",lab:"Limites & derivadas",icon:"deriv",render(h){
+  head(h,"nível 3 · tempo real","Limites e derivadas por variável","Selecione a variável (aqui ou na barra lateral): a trajetória é montada ligando os pontos em alta definição, com os limites de mínimo e máximo, a inflexão e os dias de HIIT. Abaixo, as curvas de velocidade (1ª derivada) e de aceleração (2ª derivada) são plotadas em tempo real.");
+  const sel=document.createElement("div");sel.className="legend";sel.style.marginBottom="16px";h.appendChild(sel);const ph=document.createElement("div");h.appendChild(ph);
+  function pick(key){GLOBAL.varKey=key;syncChips();sel.querySelectorAll(".it").forEach(b=>b.classList.toggle("selon",b.dataset.k===key));ph.innerHTML="";drawDeriv(ph,key);}
+  DK.forEach(k=>{const v=DERIV.vars[k];const b=document.createElement("span");b.className="it";b.dataset.k=k;b.style.cursor="pointer";b.innerHTML=`<span class="dot" style="background:${v.c}"></span>${v.lab}`;b.onclick=()=>pick(k);sel.appendChild(b);});
+  pick(HLK()||"vigor");
 }},
-{id:"agcron",lab:"Agudo & crônico",render(h){
-  head(h,"nível 3 · todas as variáveis","Efeito agudo e efeito crônico","Para cada variável, o efeito agudo é a média das variações intradia (do pré ao pós-treino) e o efeito crônico é a mudança acumulada do primeiro ao último dia. A comparação mostra que o desgaste do vigor e da fadiga é sobretudo crônico, por acúmulo entre os dias.");
-  const ackeys=DK;
-  const gr=cards(h,`<div class="card"><h3>Agudo (intradia) vs crônico (D1→D7)</h3><p class="note">★ = efeito crônico significativo · escore</p><div class="host" id="h_ac"></div></div>
-    <div class="card"><h3>Tabela agudo × crônico</h3><p class="note">dz do efeito crônico</p><div class="host" id="t_ac"></div></div>`);
-  groupSigned($("#h_ac",gr),ackeys.map(k=>({lab:DERIV.vars[k].lab,vals:[DERIV.ac[k].ag,DERIV.ac[k].cr],sig:DERIV.ac[k].sig})),
-    [{lab:"Agudo (intradia)",c:C.fadiga},{lab:"Crônico (D1→D7)",c:C.pth}]);
-  dynTable($("#t_ac",gr),["Variável","Agudo","Crônico","dz crôn.","Sig."],
-    ackeys.map(k=>[DERIV.vars[k].lab,DERIV.ac[k].ag,DERIV.ac[k].cr,DERIV.ac[k].dz,DERIV.ac[k].sig?"★":"—"]),
-    (i,v)=>i>=1&&i<=3?(`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${num(v,2)}</span>`):i===4?(v==="★"?`<span class="sig">${v}</span>`:v):v);
+{id:"agcron",lab:"Agudo & crônico",icon:"split",render(h){
+  head(h,"nível 3 · todas as variáveis","Efeito agudo e efeito crônico","Para cada variável, o efeito agudo é a média das variações intradia (pré→pós) e o efeito crônico é a mudança acumulada do primeiro ao último dia. O desgaste do vigor e da fadiga é sobretudo crônico, por acúmulo entre os dias.");
+  const gr=cards(h,`<div class="card"><h3>Agudo (intradia) vs crônico (D1→D7)</h3><p class="note">★ = efeito crônico significativo</p><div class="host" id="h_ac"></div></div><div class="card"><h3>Tabela agudo × crônico</h3><p class="note">dz do efeito crônico</p><div class="host" id="t_ac"></div></div>`);
+  groupSigned($("#h_ac",gr),DK.map(k=>({lab:DERIV.vars[k].lab,vals:[DERIV.ac[k].ag,DERIV.ac[k].cr],sig:DERIV.ac[k].sig})),[{lab:"Agudo (intradia)",c:C.fadiga},{lab:"Crônico (D1→D7)",c:C.pth}],{hl:HLL()});
+  dynTable($("#t_ac",gr),["Variável","Agudo","Crônico","dz crôn.","Sig."],DK.map(k=>[DERIV.vars[k].lab,DERIV.ac[k].ag,DERIV.ac[k].cr,DERIV.ac[k].dz,DERIV.ac[k].sig?"★":"—"]),(i,v)=>i>=1&&i<=3?(`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${num(v,2)}</span>`):i===4?(v==="★"?`<span class="sig">${v}</span>`:v):v,HLL());
 }},
-{id:"intraentre",lab:"Intra & entre dia",render(h){
-  head(h,"nível 3 · pré/pós","Efeito intradia e entre dias","O mapa reúne todas as variáveis em cada transição da semana: as colunas de estímulo (A, agudo, do pré ao pós-treino) alternam com as de recuperação (R, do pós de um dia ao pré do seguinte). O segundo mapa isola o efeito agudo pré para pós em cada dia. As cores indicam a direção e a intensidade (dz); o asterisco marca a significância.");
-  const labs=DK.map(k=>DERIV.vars[k].lab);
+{id:"intraentre",lab:"Intra & entre dia",icon:"cells",render(h){
+  head(h,"nível 3 · pré/pós","Efeito intradia e entre dias","O mapa reúne todas as variáveis em cada transição da semana: colunas de estímulo (A, agudo) alternam com recuperação (R, entre dias). O segundo mapa isola o efeito agudo pré→pós por dia. Selecione uma variável para realçar a sua linha.");
+  const labs=DK.map(k=>DERIV.vars[k].lab),hlRow=HLK()?DK.indexOf(HLK()):-1;
   const c1=document.createElement("div");c1.className="card";c1.innerHTML=`<h3>Transições sequenciais · todas as variáveis</h3><p class="note">laranja = agudo (A) · azul = recuperação (R) · * p<0,05</p><div class="host" id="h_m1"></div>`;h.appendChild(c1);
   const cols1=DERIV.trans.map(t=>({lab:t.lab,tag:t.tipo==="Agudo"?"A":"R"}));
-  heatMap($("#h_m1",c1),labs,cols1,(r,c)=>{const o=DERIV.trans[c].v[DK[r]];return {v:o.dz,sig:o.sig};},(r,c,d)=>`<b>${labs[r]}</b><br>${DERIV.trans[c].lab} · ${DERIV.trans[c].tipo}<br>dz=${num(d.v,2)}${d.sig?" * p<0,05":""}`,{h:labs.length*30+80});
+  heatMap($("#h_m1",c1),labs,cols1,(r,c)=>{const o=DERIV.trans[c].v[DK[r]];return {v:o.dz,sig:o.sig};},(r,c,d)=>`<b>${labs[r]}</b><br>${DERIV.trans[c].lab} · ${DERIV.trans[c].tipo}<br>dz=${num(d.v,2)}${d.sig?" * p<0,05":""}`,{h:labs.length*30+80,hlRow});
   const c2=document.createElement("div");c2.className="card";c2.style.marginTop="18px";c2.innerHTML=`<h3>Efeito agudo por dia · pré para pós</h3><p class="note">variação intradia (dz) em cada dia de treino</p><div class="host" id="h_m2"></div>`;h.appendChild(c2);
-  const days=[2,3,4,5,6,7];const cols2=days.map(d=>({lab:"Dia "+d}));
-  heatMap($("#h_m2",c2),labs,cols2,(r,c)=>{const o=DERIV.prepos_dia[String(days[c])][DK[r]];return {v:o.dz,sig:o.sig};},(r,c,d)=>`<b>${labs[r]}</b><br>Dia ${days[c]} · pré→pós<br>dz=${num(d.v,2)}${d.sig?" * p<0,05":""}`,{h:labs.length*30+70});
+  const days=[2,3,4,5,6,7],cols2=days.map(d=>({lab:"Dia "+d}));
+  heatMap($("#h_m2",c2),labs,cols2,(r,c)=>{const o=DERIV.prepos_dia[String(days[c])][DK[r]];return {v:o.dz,sig:o.sig};},(r,c,d)=>`<b>${labs[r]}</b><br>Dia ${days[c]} · pré→pós<br>dz=${num(d.v,2)}${d.sig?" * p<0,05":""}`,{h:labs.length*30+70,hlRow});
 }},
-{id:"porvar",lab:"Por variável",render(h){
-  head(h,"segmentação por variável","Comportamento de cada variável","Escolha a variável no botão de segmentação: o comportamento é plotado em tempo real ao longo da semana (trajetória e média de cada dia) e por dia (movimento do pré ao pós-treino em cada sessão).");
-  const sel=document.createElement("div");sel.className="legend";sel.style.marginBottom="16px";h.appendChild(sel);
-  const kp=document.createElement("div");kp.className="kpis";h.appendChild(kp);
-  const ph=document.createElement("div");h.appendChild(ph);
-  function draw(key){
-    sel.querySelectorAll(".it").forEach(b=>b.classList.toggle("selon",b.dataset.k===key));
-    const v=DERIV.vars[key],col=v.c,dd=dailyFromRaw(v.raw);
-    const d1=dd[0].mean,d7=dd[dd.length-1].mean,delta=d7-d1;
-    const agu=DERIV.ac[key].ag,cro=DERIV.ac[key].cr;
-    kp.innerHTML="";
-    [["D1 → D7",num(d1,1)+" → "+num(d7,1),(delta>=0?"+":"")+num(delta,1)+" no total"],
-     ["Efeito agudo",(agu>=0?"+":"")+num(agu,2),"média intradia"],
-     ["Efeito crônico",(cro>=0?"+":"")+num(cro,2),"acúmulo D1→D7"],
-     ["Amplitude",num(v.ymin,1)+" – "+num(v.ymax,1),"mín – máx suavizado"]]
-     .forEach(c=>kp.insertAdjacentHTML("beforeend",`<div class="kpi"><span class="stripe" style="background:${col}"></span><div class="lab">${c[0]}</div><div class="val" style="font-size:23px;color:${col}">${c[1]}</div><div class="cap">${c[2]}</div></div>`));
-    ph.innerHTML="";
-    const row=document.createElement("div");row.className="split tw";ph.appendChild(row);
-    const cW=card(row,"Ao longo da semana","trajetória suavizada · pontos pré/pós · média diária (○)");
-    const cD=card(row,"Por dia · pré → pós","o ponto pós viaja do pré em tempo real · ○ pré · ● pós");
-    weekChart($(".host",ensureHost(cW)),key);
-    dayChart($(".host",ensureHost(cD)),key);
-    const cT=document.createElement("div");cT.className="card";cT.style.marginTop="18px";
-    cT.innerHTML=`<h3>Comportamento diário de ${v.lab}</h3><p class="note">média, pré, pós e variação intradia por dia</p><div class="host" id="t_pv"></div>`;ph.appendChild(cT);
-    dynTable($("#t_pv",cT),["Dia","Pré","Pós","Δ intradia","Média do dia"],
-      dd.map(d=>[("D"+d.d),d.pre==null?"—":d.pre,d.pos==null?"—":d.pos,d.pre==null?"—":(d.pos-d.pre),d.mean]),
-      (i,val)=>{if(val==="—")return val; if(i===3)return `<span class="${val>=0?'pos':'neg'}">${val>=0?'+':''}${num(val,1)}</span>`; if(i>=1)return num(val,1); return val;});
-  }
-  DK.forEach(k=>{const v=DERIV.vars[k];const b=document.createElement("span");b.className="it";b.dataset.k=k;b.style.cursor="pointer";
-    b.innerHTML=`<span class="dot" style="background:${v.c}"></span>${v.lab}`;b.onclick=()=>draw(k);sel.appendChild(b);});
-  draw("vigor");
+{id:"porvar",lab:"Por variável",icon:"focus",render(h){
+  head(h,"segmentação por variável","Comportamento de cada variável","Escolha a variável (aqui ou na barra lateral): o comportamento é plotado em tempo real ao longo da semana (trajetória e média de cada dia) e por dia (movimento do pré ao pós-treino em cada sessão).");
+  const sel=document.createElement("div");sel.className="legend";sel.style.marginBottom="16px";h.appendChild(sel);const kp=document.createElement("div");kp.className="kpis";h.appendChild(kp);const ph=document.createElement("div");h.appendChild(ph);
+  function draw(key){GLOBAL.varKey=key;syncChips();sel.querySelectorAll(".it").forEach(b=>b.classList.toggle("selon",b.dataset.k===key));const v=DERIV.vars[key],col=v.c,dd=dailyFromRaw(v.raw),d1=dd[0].mean,d7=dd[dd.length-1].mean,delta=d7-d1,agu=DERIV.ac[key].ag,cro=DERIV.ac[key].cr;
+    kp.innerHTML="";[["D1 → D7",num(d1,1)+" → "+num(d7,1),(delta>=0?"+":"")+num(delta,1)+" no total"],["Efeito agudo",(agu>=0?"+":"")+num(agu,2),"média intradia"],["Efeito crônico",(cro>=0?"+":"")+num(cro,2),"acúmulo D1→D7"],["Amplitude",num(v.ymin,1)+" – "+num(v.ymax,1),"mín – máx suavizado"]].forEach(c=>kp.insertAdjacentHTML("beforeend",`<div class="kpi"><span class="stripe" style="background:${col}"></span><div class="lab">${c[0]}</div><div class="val" style="font-size:23px;color:${col}">${c[1]}</div><div class="cap">${c[2]}</div></div>`));tilt(kp);
+    ph.innerHTML="";const row=document.createElement("div");row.className="split tw";ph.appendChild(row);
+    const cW=card(row,"Ao longo da semana","trajetória suavizada · pontos pré/pós · média diária (○)");const cD=card(row,"Por dia · pré → pós","o ponto pós viaja do pré em tempo real · ○ pré · ● pós");
+    weekChart($(".host",ensureHost(cW)),key);dayChart($(".host",ensureHost(cD)),key);
+    const cT=document.createElement("div");cT.className="card";cT.style.marginTop="18px";cT.innerHTML=`<h3>Comportamento diário de ${v.lab}</h3><p class="note">média, pré, pós e variação intradia por dia</p><div class="host" id="t_pv"></div>`;ph.appendChild(cT);
+    dynTable($("#t_pv",cT),["Dia","Pré","Pós","Δ intradia","Média do dia"],dd.map(d=>[("D"+d.d),d.pre==null?"—":d.pre,d.pos==null?"—":d.pos,d.pre==null?"—":(d.pos-d.pre),d.mean]),(i,val)=>{if(val==="—")return val;if(i===3)return `<span class="${val>=0?'pos':'neg'}">${val>=0?'+':''}${num(val,1)}</span>`;if(i>=1)return num(val,1);return val;});}
+  DK.forEach(k=>{const v=DERIV.vars[k];const b=document.createElement("span");b.className="it";b.dataset.k=k;b.style.cursor="pointer";b.innerHTML=`<span class="dot" style="background:${v.c}"></span>${v.lab}`;b.onclick=()=>draw(k);sel.appendChild(b);});
+  draw(HLK()||"vigor");
 }}
 ];
-function ensureHost(card){if(!card.querySelector(".host")){const d=document.createElement("div");d.className="host";card.appendChild(d);}return card;}
-function kmap(l){return {"Vigor":"vigor","Fadiga":"fadiga","Tensão":"tensao","Depressão":"depressao","Raiva":"raiva","Confusão":"confusao","PTH":"pth"}[l];}
 
-/* ===================== ROUTER ===================== */
-const nav=$("#nav"), stage=$("#stage");
-SECTIONS.forEach((s,i)=>{const b=document.createElement("button"); b.innerHTML=`<span class="n">${String(i+1).padStart(2,"0")}</span>${s.lab}`;
-  b.onclick=()=>go(s.id); b.dataset.id=s.id; nav.appendChild(b);});
-function go(id){ const s=SECTIONS.find(x=>x.id===id)||SECTIONS[0];
-  nav.querySelectorAll("button").forEach(b=>b.setAttribute("aria-current",b.dataset.id===id?"true":"false"));
-  stage.innerHTML=""; stage.style.opacity=0; stage.style.transform="translateY(8px)";
-  requestAnimationFrame(()=>{s.render(stage); stage.style.transition="opacity .35s, transform .35s"; stage.style.opacity=1; stage.style.transform="none";});
-  history.replaceState(null,"","#"+id);
-}
+/* ===================== ICONS ===================== */
+function ic(p){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;}
+const ICONS={
+ grid:ic('<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'),
+ bars:ic('<line x1="5" y1="20" x2="5" y2="11"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="19" y1="20" x2="19" y2="14"/>'),
+ shield:ic('<path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/>'),
+ layers:ic('<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>'),
+ trend:ic('<polyline points="3 7 9 13 13 9 21 17"/><polyline points="21 12 21 17 16 17"/>'),
+ cal:ic('<rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="3" x2="8" y2="6"/><line x1="16" y1="3" x2="16" y2="6"/>'),
+ wave:ic('<path d="M3 12c3 0 3-6 6-6s3 12 6 12 3-6 6-6"/>'),
+ pulse:ic('<polyline points="3 12 7 12 10 4 14 20 17 12 21 12"/>'),
+ scatter:ic('<circle cx="6" cy="16" r="1.6"/><circle cx="11" cy="9" r="1.6"/><circle cx="15" cy="14" r="1.6"/><circle cx="19" cy="6" r="1.6"/><line x1="3" y1="21" x2="21" y2="21"/><line x1="3" y1="3" x2="3" y2="21"/>'),
+ signal:ic('<line x1="5" y1="20" x2="5" y2="16"/><line x1="10" y1="20" x2="10" y2="12"/><line x1="15" y1="20" x2="15" y2="7"/><line x1="20" y1="20" x2="20" y2="4"/>'),
+ deriv:ic('<path d="M3 17c4 0 3-10 7-10s3 8 7 8"/><circle cx="7" cy="7" r="1.4"/><circle cx="17" cy="15" r="1.4"/>'),
+ split:ic('<line x1="12" y1="4" x2="12" y2="20"/><rect x="4" y="8" width="5" height="8" rx="1"/><rect x="15" y="6" width="5" height="12" rx="1"/>'),
+ cells:ic('<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/>'),
+ focus:ic('<circle cx="12" cy="12" r="3.2"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>')
+};
+
+/* ===================== SIDEBAR + ROUTER ===================== */
+const nav=$("#nav"),stage=$("#stage"),varchips=$("#varchips");
+SECTIONS.forEach((s,i)=>{const b=document.createElement("div");b.className="navitem";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.dataset.id=s.id;
+  b.innerHTML=`<span class="ico">${ICONS[s.icon]||ICONS.grid}</span><span>${s.lab}</span><span class="navnum">${String(i+1).padStart(2,"0")}</span>`;
+  b.onclick=()=>go(s.id);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go(s.id);}};nav.appendChild(b);});
+// variable chips (global segmentation)
+function buildChips(){varchips.innerHTML="";const all=document.createElement("span");all.className="vchip";all.dataset.k="";all.innerHTML=`<span class="dot" style="background:linear-gradient(90deg,#33c2ad,#8b7bf0)"></span>Todas`;all.onclick=()=>setVar(null);varchips.appendChild(all);
+  DK.forEach(k=>{const v=DERIV.vars[k];const c=document.createElement("span");c.className="vchip";c.dataset.k=k;c.innerHTML=`<span class="dot" style="background:${v.c}"></span>${v.lab}`;c.onclick=()=>setVar(k);varchips.appendChild(c);});syncChips();}
+function syncChips(){varchips.querySelectorAll(".vchip").forEach(c=>c.setAttribute("aria-pressed",(c.dataset.k||null)===GLOBAL.varKey?"true":"false"));}
+function setVar(k){GLOBAL.varKey=k;syncChips();const cur=nav.querySelector('[aria-current="true"]');go(cur?cur.dataset.id:"visao");}
+buildChips();
+let CUR="visao";
+function go(id){const s=SECTIONS.find(x=>x.id===id)||SECTIONS[0];CUR=s.id;
+  nav.querySelectorAll(".navitem").forEach(b=>b.setAttribute("aria-current",b.dataset.id===s.id?"true":"false"));
+  $("#crumbico").innerHTML=ICONS[s.icon]||ICONS.grid;$("#crumbtitle").textContent=s.lab;$("#crumbtag").textContent=(s.render.tag||"análise");
+  stage.className="panel";stage.innerHTML="";requestAnimationFrame(()=>{s.render(stage);requestAnimationFrame(()=>stage.classList.add("in"));});
+  history.replaceState(null,"","#"+id);}
 go((location.hash||"").slice(1)||"visao");
-addEventListener("resize",()=>{const cur=nav.querySelector('[aria-current="true"]'); if(cur)clearTimeout(window._rz),window._rz=setTimeout(()=>go(cur.dataset.id),200);});
+addEventListener("resize",()=>{clearTimeout(window._rz);window._rz=setTimeout(()=>go(CUR),220);});
 </script>
