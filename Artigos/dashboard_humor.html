@@ -157,6 +157,20 @@ table.dyn tbody tr.hlrow{background:rgba(90,211,196,.1)}
 .d2[aria-current="true"]{background:linear-gradient(180deg,#6ee3d2,#33c2ad); transform:scale(1.3)}
 .slidehead{font-family:"Sora",sans-serif; font-weight:700; font-size:22px; margin:2px 0 4px; letter-spacing:-.01em}
 .slidesub{color:var(--muted); font-size:13.5px; margin-bottom:16px; max-width:72ch; line-height:1.55}
+.flowcanvas{overflow-x:auto; padding:10px 2px 14px; -webkit-overflow-scrolling:touch}
+.flowinner{position:relative}
+.fnode{position:absolute; display:flex; align-items:center; gap:10px; background:var(--glass2); border:1px solid var(--stroke); border-radius:14px; padding:11px 13px; box-shadow:var(--shadow); z-index:2; opacity:0; transform:translateY(8px); transition:opacity .45s, transform .45s, border-color .2s}
+.fnode.in{opacity:1; transform:none}
+.fnode:hover{border-color:rgba(90,211,196,.55)}
+.fni{width:34px; height:34px; flex:0 0 34px; display:grid; place-items:center; border-radius:10px; background:rgba(120,150,190,.14)}
+.fni svg{width:19px; height:19px}
+.fntitle{font-family:"Sora",sans-serif; font-weight:700; font-size:12.5px; line-height:1.12}
+.fnsub{font-size:10.5px; color:var(--muted); margin-top:2px; line-height:1.25}
+.wires{position:absolute; inset:0; z-index:1; pointer-events:none}
+.wire{fill:none; stroke:rgba(120,150,190,.34); stroke-width:2}
+.wire.flow{stroke:var(--accent); stroke-width:2; stroke-dasharray:6 9; animation:dashmove 1.5s linear infinite}
+@keyframes dashmove{to{stroke-dashoffset:-30}}
+@media (prefers-reduced-motion:reduce){.wire.flow{animation:none}}
 .cta{display:flex; align-items:center; gap:16px; width:100%; text-align:left; cursor:pointer; margin-bottom:22px; font-family:inherit;
   background:linear-gradient(120deg,rgba(51,194,173,.2),rgba(139,123,240,.17)); border:1px solid rgba(90,211,196,.42); border-radius:18px; padding:16px 20px; color:var(--ink); transition:.22s}
 .cta:hover{transform:translateY(-2px); border-color:rgba(90,211,196,.72); box-shadow:0 18px 44px -22px rgba(51,194,173,.6)}
@@ -786,6 +800,29 @@ const SECTIONS=[
     if(nb)nb.onclick=()=>{if(cur<SLIDES.length-1){cur++;render();}};
   }
   render();
+}},
+{id:"pipeline",lab:"Fluxo (automação)",icon:"nodes",render(h){
+  head(h,"automação · estilo n8n","Fluxo automatizado da análise","O caminho dos dados, da coleta ao painel, como um fluxo de automação. Cada nó é uma etapa; os fios mostram a ordem e as dependências. As decisões (como a de estatística não paramétrica) nascem da etapa anterior.");
+  const W=196,H=64;
+  const N=[
+   {id:1,x:8,y:250,t:"Coleta BRUMS",s:"Google Forms · pré e pós-treino",ic:"cal",c:C.vigor},
+   {id:2,x:250,y:250,t:"Consolidação",s:"286 observações · 13 coletas",ic:"grid",c:C.tensao},
+   {id:3,x:492,y:250,t:"Normalidade",s:"Shapiro-Wilk → não paramétrica",ic:"shield",c:C.warn},
+   {id:4,x:748,y:104,t:"Testes + efeito",s:"Friedman · Wilcoxon · dz / W",ic:"bars",c:C.fadiga},
+   {id:5,x:748,y:250,t:"MANOVA · ICC · Perfis",s:"confirmação, limiares e migração",ic:"layers",c:C.pth},
+   {id:6,x:748,y:396,t:"Derivadas + cruzamentos",s:"inflexão · dias 2,3 / 3,9 / 5,8",ic:"deriv",c:C.confusao},
+   {id:7,x:1010,y:250,t:"Triangulação",s:"sinal/ruído · PCA",ic:"scatter",c:C.raiva},
+   {id:8,x:1262,y:250,t:"Saída",s:"painel + apresentação guiada",ic:"present",c:C.good}
+  ];
+  const E=[[1,2],[2,3],[3,4],[3,5],[3,6],[4,7],[5,7],[6,7],[7,8]];
+  const canvas=document.createElement("div");canvas.className="flowcanvas";const inner=document.createElement("div");inner.className="flowinner";canvas.appendChild(inner);h.appendChild(canvas);
+  const maxX=Math.max(...N.map(n=>n.x))+W+8,maxY=Math.max(...N.map(n=>n.y))+H+10;
+  inner.style.width=maxX+"px";inner.style.height=maxY+"px";
+  const NS="http://www.w3.org/2000/svg";const svg=document.createElementNS(NS,"svg");svg.setAttribute("class","wires");svg.setAttribute("width",maxX);svg.setAttribute("height",maxY);inner.appendChild(svg);
+  const map={};N.forEach(n=>map[n.id]=n);
+  E.forEach(([a,b],i)=>{const na=map[a],nb=map[b],x1=na.x+W,y1=na.y+H/2,x2=nb.x,y2=nb.y+H/2;const p=document.createElementNS(NS,"path");p.setAttribute("d",`M${x1} ${y1} C ${x1+48} ${y1}, ${x2-48} ${y2}, ${x2} ${y2}`);p.setAttribute("class","wire flow");p.style.animationDelay=(i*0.12)+"s";svg.appendChild(p);});
+  N.forEach((n,i)=>{const d=document.createElement("div");d.className="fnode";d.style.left=n.x+"px";d.style.top=n.y+"px";d.style.width=W+"px";d.innerHTML=`<span class="fni" style="color:${n.c}">${ICONS[n.ic]||ICONS.grid}</span><div class="fnt"><div class="fntitle">${n.t}</div><div class="fnsub">${n.s}</div></div>`;inner.appendChild(d);setTimeout(()=>d.classList.add("in"),140+i*95);});
+  h.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent);margin-top:14px"><p class="note" style="font-size:13px;line-height:1.62;color:var(--muted)">Cada etapa alimenta a seguinte: a decisão de <b style="color:var(--ink)">estatística não paramétrica</b> vem do teste de normalidade; os testes, a MANOVA, os perfis e as derivadas convergem por <b style="color:var(--ink)">triangulação</b> (sinal/ruído e PCA) e desembocam no <b style="color:var(--ink)">painel interativo</b> e na apresentação guiada.</p></div>`);
 }}
 ];
 
@@ -794,6 +831,7 @@ function ic(p){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 const ICONS={
  present:ic('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/><path d="M10 8l4 2-4 2z"/>'),
  flow:ic('<circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="12" r="2"/><path d="M8 6h6a2 2 0 0 1 2 2v2"/><path d="M8 18h6a2 2 0 0 0 2-2v-2"/>'),
+ nodes:ic('<rect x="2.5" y="4" width="6" height="5" rx="1.5"/><rect x="2.5" y="15" width="6" height="5" rx="1.5"/><rect x="15.5" y="9.5" width="6" height="5" rx="1.5"/><path d="M8.5 6.5h3a2 2 0 0 1 2 2v3.5"/><path d="M8.5 17.5h3a2 2 0 0 0 2-2v-3.5"/>'),
  grid:ic('<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'),
  bars:ic('<line x1="5" y1="20" x2="5" y2="11"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="19" y1="20" x2="19" y2="14"/>'),
  shield:ic('<path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/>'),
