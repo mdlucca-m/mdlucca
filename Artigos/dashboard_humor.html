@@ -145,6 +145,18 @@ table.dyn tbody tr.hlrow{background:rgba(90,211,196,.1)}
 .navbtn[disabled]{opacity:.38; cursor:default}
 .navbtn.primary{color:#04120f; background:linear-gradient(180deg,#6ee3d2,#33c2ad); border-color:transparent}
 .pathpos{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted)}
+.flowrow{display:flex; flex-wrap:wrap; align-items:center; margin:6px -6px}
+.fbox{flex:1 1 150px; min-width:135px; background:var(--glass2); border:1px solid var(--stroke); border-radius:14px; padding:14px 15px; margin:6px; transition:transform .25s}
+.fbox:hover{transform:translateY(-3px) rotateX(4deg)}
+.fbox .fk{font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); margin-bottom:3px}
+.fbox .ft{font-family:"Sora",sans-serif; font-weight:700; font-size:13.5px}
+.fbox .fs{font-size:11.5px; color:var(--muted); margin-top:3px; line-height:1.42}
+.farrow{color:var(--accent); font-size:20px; padding:0 1px; flex:0 0 auto}
+.deckdots{display:flex; gap:7px; justify-content:center; margin-top:16px}
+.d2{width:9px; height:9px; border-radius:50%; background:rgba(120,150,190,.3); cursor:pointer; transition:.2s; border:none; padding:0}
+.d2[aria-current="true"]{background:linear-gradient(180deg,#6ee3d2,#33c2ad); transform:scale(1.3)}
+.slidehead{font-family:"Sora",sans-serif; font-weight:700; font-size:22px; margin:2px 0 4px; letter-spacing:-.01em}
+.slidesub{color:var(--muted); font-size:13.5px; margin-bottom:16px; max-width:72ch; line-height:1.55}
 .split{display:grid; grid-template-columns:1fr; gap:18px}
 @media(min-width:1040px){.split.tw{grid-template-columns:1fr 1fr}}
 .tip{position:fixed; z-index:60; pointer-events:none; background:rgba(9,14,22,.95); border:1px solid var(--stroke); border-radius:10px; padding:9px 11px;
@@ -379,6 +391,22 @@ function drawDeriv(host,key){
     let cx=paxes(Cc.g,Cc.cv._w,Cc.cv._h,pad(),xmin,xmax,d2a[0],d2a[1],true);cprog(Cc.g,cx,X,v.d2,pC,col,2.4);});
   attachHits(A.cv);
 }
+/* ---- funnel ---- */
+function funnelChart(host,stages,{h=360}={}){
+  const {cv,g}=mk(host,h),w=cv._w,pad={t:14,b:14},n=stages.length,rowh=(cv._h-pad.t-pad.b)/n;
+  const maxw=w*0.9,minw=w*0.26,cxc=w/2;
+  const wAt=i=>maxw-(maxw-minw)*i/n;
+  anim(1700,prog=>{g.clearRect(0,0,w,cv._h);cv._hits=[];
+    stages.forEach((s,i)=>{const pv=stag(prog,i,n,0.5),y=pad.t+rowh*i,yt=y+rowh*0.12,yb=y+rowh*0.9;
+      const wt=wAt(i)*pv,wb=wAt(i+1)*pv,col=s.c||C.vigor;
+      const gr=g.createLinearGradient(cxc-wt/2,0,cxc+wt/2,0);gr.addColorStop(0,col);gr.addColorStop(1,col+"cc");
+      g.fillStyle=gr;g.beginPath();g.moveTo(cxc-wt/2,yt);g.lineTo(cxc+wt/2,yt);g.lineTo(cxc+wb/2,yb);g.lineTo(cxc-wb/2,yb);g.closePath();g.fill();
+      if(pv>=1){g.fillStyle="#06130f";g.textAlign="center";g.font='700 14px "Sora",sans-serif';g.textBaseline="alphabetic";g.fillText(s.lab,cxc,(yt+yb)/2-1);
+        g.font='500 10.5px "IBM Plex Mono",monospace';g.fillStyle="rgba(6,19,15,.82)";g.fillText(s.sub,cxc,(yt+yb)/2+15);
+        cv._hits.push({x:cxc-wt/2,y:yt,w:wt,h:yb-yt,tip:`<b>${s.lab}</b><br>${s.sub}`});}
+    });
+  });attachHits(cv);
+}
 /* ---- per-variable behaviour ---- */
 function dailyFromRaw(raw){const days=[{d:1,pre:null,pos:null,base:raw[0][1],mean:raw[0][1]}];for(let d=2;d<=7;d++){const i=1+(d-2)*2,pre=raw[i][1],pos=raw[i+1][1];days.push({d,pre,pos,base:null,mean:(pre+pos)/2});}return days;}
 function weekChart(host,key,h=300){const v=DERIV.vars[key],X=DERIV.x,col=v.c;const {cv,g}=mk(host,h);const xmin=Math.min(...X),xmax=Math.max(...X),rawy=v.raw.map(p=>p[1]),ymax=Math.max(...rawy,v.ymax)+0.6,ymin=Math.max(0,Math.min(...rawy,v.ymin)-0.6),dd=dailyFromRaw(v.raw);
@@ -612,7 +640,8 @@ const SECTIONS=[
   pcaCircle($("#h_pca",c));
 }},
 {id:"analise",lab:"Análise estatística",icon:"flow",render(h){
-  head(h,"passo a passo","Análise estatística — caminho guiado","Percorra a análise em ordem. A cada passo: a decisão e o seu porquê, com o resultado ao lado. Use a trilha numerada ou os botões Anterior / Próximo.");
+  head(h,"passo a passo","Análise estatística — caminho guiado","Percorra a análise em ordem. A cada passo: a decisão e o seu porquê, com o resultado ao lado. Use a trilha numerada ou os botões Anterior / Próximo. Os passos de derivadas e cruzamentos usam a variável escolhida na segmentação lateral.");
+  const selK=HLK()||"vigor",selLab=DERIV.vars[selK].lab;
   const STEPS=[
    {lab:"Normalidade",tag:"Distribuição dos dados",title:"Shapiro-Wilk <span class='ar'>→</span> estatística não paramétrica",
     why:"As dimensões negativas foram <b>não normais</b>, com assimetria e forte efeito de piso (muitos zeros). A escolha do teste segue a distribuição, não a preferência: por isso, testes não paramétricos para todas as dimensões.",
@@ -640,12 +669,12 @@ const SECTIONS=[
     draw:host=>groupChart(host,PERFIS.map(r=>({lab:r[0],vals:[r[1],r[2]]})),[{lab:"Dia 1",c:C.vigor},{lab:"Dia 7",c:C.fadiga}],{ymax:14})},
    {lab:"Derivadas",tag:"Forma temporal",title:"Suavização por spline + 2ª derivada",
     why:"Comparar só D1 com D7 diz que mudou; a <b>derivada</b> diz quando e como. A spline separa a tendência do ruído; a 2ª derivada localiza o <b>ponto de inflexão</b> (~dia 3,8), a fronteira entre prontidão e acúmulo.",
-    reading:"Vigor: trajetória, velocidade (1ª derivada) e aceleração (2ª derivada).",
-    draw:host=>drawDeriv(host,"vigor")},
+    reading:selLab+": trajetória, velocidade (1ª derivada) e aceleração (2ª derivada).",
+    draw:host=>drawDeriv(host,selK)},
    {lab:"Cruzamentos",tag:"Ajuste polinomial e cruzamentos",title:"Polinômio de grau 3 (2 resoluções) + cruzamentos exatos",
     why:"O polinômio resume a trajetória em uma equação (R² = 0,96 vigor) e reproduz a mesma inflexão em duas resoluções — quando um achado sobrevive a métodos diferentes, é robusto (triangulação). Os cruzamentos datam a inversão do eixo (dias 2,3, 3,9 e 5,8).",
-    reading:"Vigor e fadiga se cruzam; ao fim, a fadiga se afasta por cima.",
-    draw:host=>lineChart(host,DIM.filter(d=>["vigor","fadiga","pth"].includes(d.k)),{ymax:9,crosses:CROSS})},
+    reading:"Vigor e fadiga se cruzam (dias 2,3, 3,9 e 5,8); a linha em destaque é "+selLab+".",
+    draw:host=>{let series=DIM.filter(d=>d.k==="vigor"||d.k==="fadiga");let ex=DIM.filter(d=>d.k===selK&&d.k!=="vigor"&&d.k!=="fadiga");if(!ex.length)ex=DIM.filter(d=>d.k==="pth");lineChart(host,series.concat(ex),{ymax:9,crosses:CROSS,hlk:selK});}},
    {lab:"Sinal/ruído",tag:"Qualidade do sinal",title:"Razão sinal/ruído <span class='ar'>→</span> foco no eixo",
     why:"Vigor (S/R = 8,4) e fadiga (6,7) têm tendência limpa; as negativas (2,7–4,4) são dominadas por ruído e piso. Junto da psicometria e do PCA, é a <b>terceira via independente</b> que fundamenta centrar o monitoramento no par vigor-fadiga.",
     reading:"Razão sinal/ruído por dimensão (verde ≥ 5; vermelho < 3).",
@@ -676,12 +705,63 @@ const SECTIONS=[
     if(nb)nb.onclick=()=>{if(cur<STEPS.length-1){cur++;renderStep();}};
   }
   renderStep();
+}},
+{id:"apresentacao",lab:"Apresentação guiada",icon:"present",render(h){
+  head(h,"para o orientador","Apresentação guiada do estudo","Um percurso didático em seis telas: contexto, organograma, framework, funil analítico, achados e síntese. Basta apertar Próximo. Passe o cursor sobre os elementos para ver os detalhes.");
+  const box=(k,t,s)=>`<div class="fbox"><div class="fk">${k}</div><div class="ft">${t}</div><div class="fs">${s}</div></div>`;
+  const arrow=`<div class="farrow">→</div>`;
+  const kpiRow=(arr)=>`<div class="kpis">`+arr.map(k=>`<div class="kpi"><span class="stripe" style="background:${k[3]}"></span><div class="lab">${k[0]}</div><div class="val" style="color:${k[3]}">${k[1]}</div><div class="cap">${k[2]}</div></div>`).join("")+`</div>`;
+  const SLIDES=[
+   {t:"Contexto e pergunta",s:"Estudo observacional e longitudinal da dinâmica do humor de 27 atletas de handebol de elite ao longo de um microciclo pré-competitivo. Pergunta: como o humor se comporta, quando muda e quanto muda.",
+    draw:host=>{host.insertAdjacentHTML("beforeend",kpiRow([["Atletas","27","elenco de elite",C.vigor],["Observações","286","13 coletas · 7 dias",C.fadiga],["Instrumento","BRUMS","6 dimensões + PTH",C.pth],["Desenho","Grupo único","medidas repetidas",C.tensao]]));tilt(host);
+     host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent);margin-top:8px"><p class="note" style="font-size:14px;line-height:1.6;color:var(--ink)">Tese central: o humor comporta-se como um sistema de <b>um eixo dominante — energia-fadiga —</b> que se deteriora de modo ordenado sob a carga, e cujo curso pode ser <b>lido, datado e quantificado</b>.</p></div>`);}},
+   {t:"Organograma do estudo",s:"Da amostra às análises: três etapas e os desfechos.",
+    draw:host=>{host.insertAdjacentHTML("beforeend",`<div class="card"><div class="fk" style="margin-bottom:8px;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">Fluxo</div><div class="flowrow">${box("Etapa 1","Amostra","27 atletas · 4 posições")}${arrow}${box("Etapa 2","Coletas","baseline + pré/pós · 286 obs")}${arrow}${box("Etapa 3","Análise","descritiva · exploratória · avançada")}${arrow}${box("Desfecho","Perfil e eixo","migração + energia-fadiga")}</div></div>`);
+     host.insertAdjacentHTML("beforeend",`<div class="card"><div class="fk" style="margin-bottom:8px;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)">Coleta diária</div><div class="flowrow">${box("Manhã","Pré-treino","estado antes da sessão")}${arrow}${box("Sessão","Treino","HIIT nos dias 2, 4 e 7")}${arrow}${box("Fim do dia","Pós-treino","estado após a sessão")}</div></div>`);}},
+   {t:"Framework conceitual",s:"O modelo que liga a carga ao humor e às decisões de treino.",
+    draw:host=>{host.insertAdjacentHTML("beforeend",`<div class="card"><div class="flowrow">${box("Entrada","Carga do microciclo","acúmulo + HIIT")}${arrow}${box("Construto","Dimensões do humor","vigor ↓ · fadiga ↑ · PTH ↑")}${arrow}${box("Leitura","Migração de perfis","iceberg → barbatana")}${arrow}${box("Quadro","Sobre-esforço funcional","fadiga planejada e reversível")}${arrow}${box("Uso","Decisão de treino","ajuste de carga e recuperação")}</div></div>`);
+     host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><p class="note" style="font-size:13px;line-height:1.6;color:var(--muted)">A carga corrói o vigor e eleva a fadiga; o perfil migra do iceberg para a barbatana de tubarão, dentro da janela do <b style="color:var(--ink)">sobre-esforço funcional</b>, e isso retroalimenta as decisões da comissão técnica.</p></div>`);}},
+   {t:"Funil analítico",s:"Como a análise afunila das nove variáveis até um marcador temporal datado.",
+    draw:host=>{const c=document.createElement("div");c.className="card";c.innerHTML=`<h3>Do amplo ao específico</h3><p class="note">cada passo concentra o sinal útil do monitoramento</p><div class="host" id="h_fun"></div>`;host.appendChild(c);
+     funnelChart($("#h_fun",c),[
+      {lab:"9 variáveis monitoradas",sub:"6 dimensões + PTH + 2 complementares",c:C.tensao},
+      {lab:"6 dimensões do humor",sub:"foco no que efetivamente muda",c:C.confusao},
+      {lab:"Eixo energia-fadiga",sub:"onde o sinal é forte (S/R 8,4 e 6,7)",c:C.fadiga},
+      {lab:"Par vigor–fadiga",sub:"as únicas que cruzam na faixa central",c:C.vigor},
+      {lab:"Cruzamento datado",sub:"dias 2,3 · 3,9 · 5,8 → marcador temporal",c:C.pth}]);}},
+   {t:"Principais achados",s:"O que os dados mostraram, em números.",
+    draw:host=>{host.insertAdjacentHTML("beforeend",kpiRow([["Vigor D1→D7","8,4 → 4,3","dz = −1,33 · grande",C.vigor],["Fadiga D1→D7","3,4 → 7,4","dz = +0,78 · médio",C.fadiga],["MANOVA","λ = 0,181","p < 0,001",C.pth],["Perfil iceberg","48% → 22%","migra p/ barbatana",C.tensao]]));tilt(host);
+     const c=document.createElement("div");c.className="card";c.innerHTML=`<h3>Trajetória do eixo energia-fadiga</h3><p class="note">curvas suavizadas · cruzamentos vigor × fadiga (dias 2,3, 3,9 e 5,8)</p><div class="host" id="h_ap"></div>`;host.appendChild(c);
+     lineChart($("#h_ap",c),DIM.filter(d=>["vigor","fadiga","pth"].includes(d.k)),{ymax:9,crosses:CROSS});}},
+   {t:"Síntese e mensagem",s:"O que levar desta apresentação.",
+    draw:host=>{host.insertAdjacentHTML("beforeend",`<div class="card"><h3>Em uma frase</h3><p class="note" style="font-size:14px;line-height:1.65;color:var(--ink)">Na última semana de pré-temporada, o humor migrou da prontidão para a fadiga funcional, de forma ordenada e datável, concentrada no eixo energia-fadiga — sem sinais de comprometimento da saúde mental.</p></div>`);
+     host.insertAdjacentHTML("beforeend",`<div class="card"><h3>Por que a conclusão é sólida</h3><p class="note" style="font-size:13px;line-height:1.7;color:var(--muted)">A mesma conclusão é alcançada por <b style="color:var(--ink)">métodos independentes</b> — psicometria, ICC, razão sinal/ruído, PCA, MANOVA e derivadas. Quando técnicas diferentes concordam, a inferência não depende de nenhuma delas isoladamente: é a chamada <b style="color:var(--ink)">triangulação metodológica</b>. O relato de tamanho de efeito ao lado do p separa o que é significativo do que é relevante.</p></div>`);
+     host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><p class="note" style="font-size:13px;color:var(--muted)">Para explorar cada análise em detalhe, use a aba <b style="color:var(--ink)">Análise estatística</b> (caminho guiado passo a passo) e a aba <b style="color:var(--ink)">Por variável</b>.</p></div>`);}}
+  ];
+  let cur=0;
+  const head2=document.createElement("div");h.appendChild(head2);
+  const body=document.createElement("div");h.appendChild(body);
+  const nav=document.createElement("div");nav.className="pathnav";h.appendChild(nav);
+  const dots=document.createElement("div");dots.className="deckdots";h.appendChild(dots);
+  SLIDES.forEach((s,i)=>{const d=document.createElement("button");d.className="d2";d.setAttribute("aria-label","tela "+(i+1));d.onclick=()=>{cur=i;render();};dots.appendChild(d);});
+  function render(){
+    const s=SLIDES[cur];
+    head2.innerHTML=`<div class="slidehead">${s.t}</div><div class="slidesub">${s.s}</div>`;
+    body.innerHTML="";s.draw(body);
+    dots.querySelectorAll(".d2").forEach((d,i)=>d.setAttribute("aria-current",i===cur?"true":"false"));
+    nav.innerHTML=`<button class="navbtn" ${cur===0?"disabled":""} data-a="p">← Anterior</button><span class="pathpos">${cur+1} / ${SLIDES.length}</span><button class="navbtn primary" ${cur===SLIDES.length-1?"disabled":""} data-a="n">Próximo →</button>`;
+    const pb=nav.querySelector('[data-a="p"]'),nb=nav.querySelector('[data-a="n"]');
+    if(pb)pb.onclick=()=>{if(cur>0){cur--;render();}};
+    if(nb)nb.onclick=()=>{if(cur<SLIDES.length-1){cur++;render();}};
+  }
+  render();
 }}
 ];
 
 /* ===================== ICONS ===================== */
 function ic(p){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;}
 const ICONS={
+ present:ic('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/><path d="M10 8l4 2-4 2z"/>'),
  flow:ic('<circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="12" r="2"/><path d="M8 6h6a2 2 0 0 1 2 2v2"/><path d="M8 18h6a2 2 0 0 0 2-2v-2"/>'),
  grid:ic('<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'),
  bars:ic('<line x1="5" y1="20" x2="5" y2="11"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="19" y1="20" x2="19" y2="14"/>'),
