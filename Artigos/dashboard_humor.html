@@ -191,6 +191,34 @@ table.dyn tbody tr.hlrow{background:rgba(90,211,196,.1)}
 .wires{position:absolute; inset:0; z-index:1; pointer-events:none}
 .wire{fill:none; stroke:rgba(120,150,190,.34); stroke-width:2}
 .wire.flow{stroke:var(--accent); stroke-width:2; stroke-dasharray:6 9; animation:dashmove 1.5s linear infinite}
+/* ---------- ÁRVORE DE DECISÕES ---------- */
+.dtree{margin-top:6px}
+.dnode{position:relative}
+.dq{display:flex; align-items:center; gap:12px; background:var(--glass2); border:1px solid var(--stroke); border-left:3px solid var(--accent); border-radius:14px; padding:12px 15px; box-shadow:var(--shadow)}
+.dq .di{width:30px; height:30px; flex:0 0 30px; display:grid; place-items:center; border-radius:9px; background:rgba(90,211,196,.14); color:var(--accent)}
+.dq .di svg{width:18px; height:18px}
+.dq .dqt{font-family:"Sora",sans-serif; font-weight:700; font-size:14px; line-height:1.2}
+.dq .dqs{font-size:11.5px; color:var(--muted); margin-top:2px; line-height:1.35}
+.dchildren{margin:0 0 0 27px; padding-left:22px; border-left:2px dashed var(--stroke)}
+.dbranch{position:relative; margin-top:14px}
+.dbranch::before{content:""; position:absolute; left:-22px; top:13px; width:20px; height:2px; background:var(--stroke)}
+.dlabel{display:inline-flex; align-items:center; font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.06em; text-transform:uppercase; padding:3px 10px; border-radius:999px; margin-bottom:8px; border:1px solid var(--stroke); color:var(--muted)}
+.dlabel.yes{color:#7ee3c6; border-color:rgba(90,211,196,.4); background:rgba(90,211,196,.08)}
+.dlabel.no{color:#f0a878; border-color:rgba(240,138,72,.35); background:rgba(240,138,72,.08)}
+.dleaf{display:flex; align-items:flex-start; gap:12px; background:var(--glass); border:1px solid var(--stroke); border-radius:13px; padding:11px 14px; transition:transform .2s, border-color .2s}
+.dleaf.link{cursor:pointer}
+.dleaf.link:hover{border-color:rgba(90,211,196,.5); transform:translateY(-1px)}
+.dleaf .li{width:28px; height:28px; flex:0 0 28px; display:grid; place-items:center; border-radius:8px}
+.dleaf .li svg{width:16px; height:16px}
+.dleaf .lt{font-family:"Sora",sans-serif; font-weight:600; font-size:13px; line-height:1.2}
+.dleaf .ld{font-size:11.5px; color:var(--muted); margin-top:3px; line-height:1.45}
+.dleaf .lex{font-size:10.5px; color:var(--faint); margin-top:4px; font-style:italic}
+.dleaf .dgo{margin-left:auto; color:var(--faint); font-size:18px; font-weight:700; align-self:center}
+.dleaf.link:hover .dgo{color:var(--accent)}
+.dqgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px}
+.drules{margin:8px 0 0; padding-left:18px; color:var(--muted); font-size:12.5px; line-height:1.7}
+.drules b{color:var(--ink)}
+@media(max-width:640px){.dchildren{margin-left:13px; padding-left:12px} .dbranch::before{left:-12px; width:10px} .dqgrid{grid-template-columns:1fr}}
 /* mobile: fluxo como passo-a-passo vertical */
 .flowlist{display:flex; flex-direction:column; gap:0; padding:6px 0 4px}
 .fstep{position:relative; display:flex; align-items:center; gap:11px; width:100%; text-align:left; background:var(--glass2); border:1px solid var(--stroke);
@@ -771,6 +799,41 @@ const SECTIONS=[
   }
   renderStep();
 }},
+{id:"arvore",lab:"Árvore de decisões",icon:"tree",render(h){
+  head(h,"lógica do método","Árvore de decisões analíticas","Como cada método foi escolhido, ramificando pelas propriedades dos dados. As caixas com <span style='color:var(--accent)'>›</span> abrem a análise correspondente.");
+  const L=(t,d,o={})=>({leaf:1,t,d,ex:o.ex,color:o.color||C.muted,go:o.go,icon:o.icon||"grid"});
+  const TREE={q:"Distribuição da variável?",sub:"teste de Shapiro-Wilk (distribuição bruta e escores de mudança)",icon:"shield",branches:[
+    {label:"Normal",cls:"yes",child:L("Via paramétrica","t de Student · ANOVA · Pearson",{ex:"variáveis de aptidão: T-CAR, CMJ, antropometria",color:C.good,icon:"bars"})},
+    {label:"Não normal (humor / BRUMS)",cls:"no",child:{q:"Efeito de piso?",sub:"proporção de escores nulos por dimensão",icon:"deriv",branches:[
+      {label:"Severo (≥ 50% zeros)",cls:"no",child:L("Leitura por prevalência e perfil + cautela","dimensões negativas (depressão, raiva, tensão, confusão): sinal fraco (S/R < 4); lidas por perfil e migração, não pela média",{ex:"sentinelas de estados raros",color:C.crit,go:"perfis",icon:"layers"})},
+      {label:"Baixo (vigor, fadiga)",cls:"yes",child:{q:"Qual comparação?",sub:"sinal forte (S/R 8,4 e 6,7) → análise quantitativa completa",icon:"flow",branches:[
+        {label:"2 momentos pareados",cls:"opt",child:L("Wilcoxon + dz","pré×pós e D1×D7; cada atleta é o seu próprio controle",{color:C.fadiga,go:"agudo",icon:"pulse"})},
+        {label:"7 dias (medidas repetidas)",cls:"opt",child:L("Friedman + W de Kendall","mudança ao longo da semana",{color:C.tensao,go:"dias",icon:"cal"})},
+        {label:"Associação entre dimensões",cls:"opt",child:L("Spearman (ρ)","correlação de postos",{color:C.confusao,go:"corr",icon:"scatter"})},
+        {label:"Forma temporal",cls:"opt",child:L("Spline + 1ª/2ª derivada · polinômio grau 3","inflexão (2ª derivada = 0, ~dia 4); grau escolhido por R² ajustado; cruzamentos exatos",{ex:"velocidade e aceleração do desgaste",color:C.confusao,go:"limites",icon:"deriv"})},
+        {label:"Perfil multivariado (6 dimensões)",cls:"opt",child:{q:"Pressupostos multivariados?",sub:"normalidade multivariada e homogeneidade das covariâncias",icon:"split",branches:[
+          {label:"Atendidos",cls:"yes",child:L("MANOVA / Hotelling T² + Bonferroni","confirmação paramétrica global (Wilks λ = 0,181)",{color:C.pth,go:"d17",icon:"layers"})},
+          {label:"Violados (Henze-Zirkler p<0,001; M de Box p<0,001)",cls:"no",child:L("PERMANOVA + PERMDISP","permutação restrita ao atleta (respeita medidas repetidas); pré×pós p=0,002; PERMDISP separa locação de dispersão",{ex:"a peça coerente com a rota não paramétrica",color:C.raiva,go:"analise",icon:"flow"})}
+        ]}}
+      ]}}
+    ]}}
+  ]};
+  function renderTree(n){
+    if(n.leaf){const lk=n.go?" link":"";return `<div class="dleaf${lk}"${n.go?` data-go="${n.go}"`:""}><span class="li" style="background:${n.color}22;color:${n.color}">${ICONS[n.icon]||ICONS.grid}</span><div><div class="lt">${n.t}</div><div class="ld">${n.d}</div>${n.ex?`<div class="lex">${n.ex}</div>`:""}</div>${n.go?`<span class="dgo">›</span>`:""}</div>`;}
+    const kids=n.branches.map(b=>`<div class="dbranch"><span class="dlabel ${b.cls}">${b.label}</span>${renderTree(b.child)}</div>`).join("");
+    return `<div class="dnode"><div class="dq"><span class="di">${ICONS[n.icon]||ICONS.grid}</span><div><div class="dqt">${n.q}</div>${n.sub?`<div class="dqs">${n.sub}</div>`:""}</div></div><div class="dchildren">${kids}</div></div>`;
+  }
+  const wrap=document.createElement("div");wrap.className="dtree";wrap.innerHTML=renderTree(TREE);h.appendChild(wrap);
+  h.insertAdjacentHTML("beforeend",
+   `<div class="card" style="margin-top:20px;border-left:3px solid ${C.tensao}"><h3>Trilha paralela · qualidade das medidas</h3><p class="note">aplicada a todas as dimensões, antes da interpretação — clique para abrir</p><div class="dqgrid">`
+   +`<div class="dleaf link" data-go="conf"><span class="li" style="background:${C.tensao}22;color:${C.tensao}">${ICONS.shield}</span><div><div class="lt">ICC + MDC / SWC</div><div class="ld">confiabilidade entre dias → limiares de mudança → tendências de grupo</div></div><span class="dgo">›</span></div>`
+   +`<div class="dleaf link" data-go="conf"><span class="li" style="background:${C.good}22;color:${C.good}">${ICONS.shield}</span><div><div class="lt">α de Cronbach + ω de McDonald</div><div class="ld">consistência interna: alta no eixo energia-fadiga</div></div><span class="dgo">›</span></div>`
+   +`<div class="dleaf link" data-go="conf"><span class="li" style="background:${C.vigor}22;color:${C.vigor}">${ICONS.grid}</span><div><div class="lt">AFC (6 fatores, 23 itens)</div><div class="ld">estrutura confirmada; item de piso tensao_1 excluído (CFI 0,87)</div></div><span class="dgo">›</span></div>`
+   +`<div class="dleaf link" data-go="analise"><span class="li" style="background:${C.pth}22;color:${C.pth}">${ICONS.flow}</span><div><div class="lt">TRI (resposta gradual)</div><div class="ld">funcionamento dos itens; discriminação alta na fadiga e no vigor</div></div><span class="dgo">›</span></div>`
+   +`</div></div>`
+   +`<div class="card" style="margin-top:16px;border-left:3px solid var(--accent)"><h3>Regras transversais (sempre aplicadas)</h3><ul class="drules"><li><b>Tamanho de efeito ao lado do p</b> — relevância, não só significância.</li><li><b>Unidade amostral = o atleta</b> — a agregação por atleta corrige a pseudorreplicação das medidas repetidas.</li><li><b>Triangulação</b> — cada conclusão é sustentada por métodos independentes (multivariado, dinâmico e de sinal/ruído).</li><li><b>α = 5%</b>, com correção de multiplicidade quando aplicável (Bonferroni).</li></ul></div>`);
+  h.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
+}},
 {id:"apresentacao",lab:"Apresentação guiada",icon:"present",render(h){
   head(h,"para o orientador","Apresentação guiada — por variável e por análise","Escolha a variável e percorra, apertando Próximo, quais análises foram feitas, os resultados e — em destaque — como as curvas se cruzam ao longo da semana e em que dia. As telas de análise acompanham a variável selecionada.");
   const box=(k,t,s)=>`<div class="fbox"><div class="fk">${k}</div><div class="ft">${t}</div><div class="fs">${s}</div></div>`;
@@ -885,6 +948,7 @@ const SECTIONS=[
 function ic(p){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;}
 const ICONS={
  present:ic('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/><path d="M10 8l4 2-4 2z"/>'),
+ tree:ic('<circle cx="12" cy="4.5" r="2"/><circle cx="5" cy="15" r="2"/><circle cx="12" cy="15" r="2"/><circle cx="19" cy="15" r="2"/><path d="M12 6.5v3.5M12 10H5v3M12 10v3M12 10h7v3"/>'),
  flow:ic('<circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="12" r="2"/><path d="M8 6h6a2 2 0 0 1 2 2v2"/><path d="M8 18h6a2 2 0 0 0 2-2v-2"/>'),
  nodes:ic('<rect x="2.5" y="4" width="6" height="5" rx="1.5"/><rect x="2.5" y="15" width="6" height="5" rx="1.5"/><rect x="15.5" y="9.5" width="6" height="5" rx="1.5"/><path d="M8.5 6.5h3a2 2 0 0 1 2 2v3.5"/><path d="M8.5 17.5h3a2 2 0 0 0 2-2v-3.5"/>'),
  grid:ic('<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'),
@@ -944,7 +1008,7 @@ const nav=$("#nav"),stage=$("#stage"),varchips=$("#varchips");
    NAVGROUPS é a única fonte de verdade — dela derivam a ordem, a numeração e a navegação anterior/próximo. */
 const NAVGROUPS=[
   {lab:"Comece por aqui", ids:["apresentacao","pipeline"]},
-  {lab:"Panorama",        ids:["visao","analise"]},
+  {lab:"Panorama",        ids:["visao","analise","arvore"]},
   {lab:"Resultados",      ids:["descr","conf","perfis","dias","d17","agudo"]},
   {lab:"Aprofundar",      ids:["agcron","intraentre","limites","traj","snr","distrib","corr","pca"]}
 ];
