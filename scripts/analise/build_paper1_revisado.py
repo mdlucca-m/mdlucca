@@ -480,6 +480,18 @@ table('Separação entre sinal e ruído, efeito de piso e ponto de inflexão de 
    ['Depressão','0,9','0,33','2,7','67%','Dia 3,2'],['Raiva','1,8','0,54','3,4','62%','Dia 3,0'],
    ['Confusão','0,8','0,18','4,4','79%','Dia 5,4']],fs=8.6,
   note='Amplitude do sinal = máximo - mínimo da curva suavizada; ruído = desvio-padrão dos resíduos; S/R = razão sinal/ruído; piso = percentual de observações com escore zero.')
+P('A leitura das trajetórias como um sistema em movimento é sintetizada a seguir. Sobre a curva suavizada — que '
+  'atua como um filtro que retém a tendência lenta (o sinal) e descarta a oscilação de curto prazo (o ruído) —, a '
+  'primeira derivada mede a velocidade de desgaste e a segunda, a sua aceleração; para a fadiga e a PTH, o ponto de '
+  'inflexão em que a segunda derivada se anula, em torno do dia 4, marca a passagem da desaceleração para a '
+  'aceleração da fadiga (Figura da leitura cinemática). Estendida a todas as dimensões, a análise só se sustenta '
+  'onde a razão sinal/ruído é suficiente: no eixo energia-fadiga o ajuste é confiável (R² ajustado de 0,88 no vigor '
+  'e na fadiga e de 0,60 na PTH), e é apenas moderado na confusão (0,70); já nas dimensões negativas comprimidas '
+  'pelo piso o polinômio ajusta sobretudo ruído — no caso da depressão, com R² ajustado negativo —, o que '
+  'desautoriza a leitura de derivadas nessas dimensões e delimita, de forma honesta, o alcance do método ao par '
+  'energia-fadiga.')
+figure('deriv_cinematica.png','Leitura cinemática do eixo energia-fadiga. Para a fadiga e a PTH, à esquerda a trajetória das médias diárias com o ajuste cúbico e o ponto de inflexão; à direita, a velocidade (primeira derivada) e a aceleração (segunda derivada), com o cruzamento por zero da aceleração (segunda derivada nula) na inflexão de meia-semana.',w=15.0)
+figure('deriv_dimensoes.png','Trajetória e derivadas das seis dimensões do BRUMS e da PTH ao longo dos sete dias, com o R² ajustado do ajuste cúbico de cada dimensão. A inflexão é assinalada apenas quando o ajuste é confiável (R² ajustado maior ou igual a 0,5); as dimensões negativas travadas no efeito de piso não apresentam trajetória modelável e são apresentadas em cinza.',w=16.0)
 
 H2('Dias de pico e comparação de cada dia ao primeiro','4.6')
 P('A localização dos picos sintetiza a dinâmica semanal (Tabela 9). O vigor foi máximo no Dia 1 e mínimo no Dia '
@@ -633,6 +645,16 @@ P('Lidas como um sistema em movimento, essas trajetórias admitem uma interpreta
   'moderada — coerente com um estímulo que não atua como um degrau estático, e sim alterando a velocidade da '
   'trajetória de fadiga nos dias subsequentes. Assim, o achado dinâmico e o multivariado convergem: o efeito '
   'relevante é crônico e acumulado, e a sua datação objetiva reside na inflexão de meia-semana.')
+P('Essa convergência de métodos é o que confere robustez ao achado temporal. A PERMANOVA estabelece, sem pressupor '
+  'normalidade e respeitando o delineamento de medidas repetidas, que o perfil multivariado de humor de fato se '
+  'desloca ao longo da semana (p = 0,002); a suavização por spline atua como um filtro que separa a tendência lenta '
+  'do ruído de alta frequência, e as derivadas datam objetivamente esse deslocamento na inflexão de meia-semana; e '
+  'a razão sinal/ruído funciona como o critério de referência para distinguir sinal de ruído, qualificando em quais '
+  'dimensões a informação é forte o bastante para sustentar inferência — o eixo energia-fadiga, com razão de 8,4 e '
+  '6,7, ante as dimensões negativas que mal ultrapassam o ruído. Assim, a via multivariada (PERMANOVA), a via '
+  'dinâmica (limites e derivadas sobre as curvas filtradas) e a via de qualidade de sinal (sinal/ruído) apontam '
+  'para o mesmo núcleo por caminhos independentes, o que afasta a dependência de qualquer método isolado e sustenta '
+  'a conclusão sobre um alicerce triangulado.')
 P('O ajuste polinomial de grau três acrescentou uma síntese paramétrica a essa análise. O modelo reproduziu a '
   'inflexão de forma analítica, na raiz da segunda derivada, e resumiu cada trajetória por uma equação, com ajuste '
   'forte sobre as médias diárias (R² de 0,96 a 0,95 no eixo energia-fadiga). As duas resoluções, sobre sete médias '
