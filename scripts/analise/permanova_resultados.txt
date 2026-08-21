@@ -1,0 +1,17 @@
+N(dias 2-7) = 414 | atletas = 27 | subescalas = 6
+
+[Pre vs pos (momento pre/pos)]  N=259, grupos=2
+  PERMANOVA : pseudo-F = 2.517 | R2 = 0.010 (1.0% da variancia) | p = 0.0017
+  PERMDISP  : F = 0.801 | p = 0.3418 | dispersoes medias = pos=2.182, pre=2.046
+  Leitura   : dispersoes homogeneas -> efeito de LOCACAO (centroide)
+
+[Momento pre/mid/pos]  N=414, grupos=3
+  PERMANOVA : pseudo-F = 1.749 | R2 = 0.008 (0.8% da variancia) | p = 0.0018
+  PERMDISP  : F = 2.656 | p = 0.0235 | dispersoes medias = mid=1.934, pos=2.274, pre=2.134
+  Leitura   : dispersoes DIFEREM -> parte do efeito e de dispersao (reportar)
+
+[HIIT vs nao-HIIT]  N=414, grupos=2
+  PERMANOVA : pseudo-F = 2.712 | R2 = 0.007 (0.7% da variancia) | p = 0.0069
+  PERMDISP  : F = 9.272 | p = 0.0030 | dispersoes medias = 0=1.926, 1=2.292
+  Leitura   : dispersoes DIFEREM -> parte do efeito e de dispersao (reportar)
+

@@ -82,7 +82,7 @@ ul.tight{margin:.4em 0; padding-left:1.15em} ul.tight li{margin:.28em 0}
     <a href="#normalidade">3 · Normalidade</a>
     <a href="#naoparam">4 · Testes não paramétricos</a>
     <a href="#efeito">5 · Tamanho de efeito</a>
-    <a href="#manova">6 · MANOVA e Bonferroni</a>
+    <a href="#manova">6 · MANOVA, PERMANOVA e Bonferroni</a>
     <a href="#icc">7 · ICC e limiares</a>
     <a href="#perfis">8 · Perfis e migração</a>
     <a href="#derivadas">9 · Suavização e derivadas</a>
@@ -128,7 +128,7 @@ ul.tight{margin:.4em 0; padding-left:1.15em} ul.tight li{margin:.28em 0}
     <tbody>
       <tr><td>a) Descrever dimensões, consistência e limiares</td><td>Descritiva + alfa/ômega + ICC + MDC</td><td>Vigor e fadiga com sinal amplo; negativas com piso alto</td><td>O sinal útil está no par energia-fadiga</td></tr>
       <tr><td>b) Caracterizar perfis e sua migração</td><td>Classificação em 6 perfis + qui-quadrado + regressão logística</td><td>Iceberg 48%→22%; barbatana 4%→22%; OR=1,37</td><td>Migração da prontidão para a fadiga funcional</td></tr>
-      <tr><td>c) Magnitude da mudança (D1→D7, entre dias, pré/pós)</td><td>Wilcoxon + dz, Friedman + W, MANOVA</td><td>Vigor dz=−1,33; Fadiga dz=+0,78; Wilks λ=0,181</td><td>Efeito grande e confirmado no eixo energia-fadiga</td></tr>
+      <tr><td>c) Magnitude da mudança (D1→D7, entre dias, pré/pós)</td><td>Wilcoxon + dz, Friedman + W, MANOVA/PERMANOVA</td><td>Vigor dz=−1,33; Fadiga dz=+0,78; Wilks λ=0,181; PERMANOVA pré×pós p=0,002</td><td>Efeito grande e confirmado no eixo energia-fadiga</td></tr>
       <tr><td>d) Forma temporal e inflexão</td><td>Spline + 2ª derivada</td><td>Inflexão ~dia 3,8</td><td>Transição prontidão → acúmulo na metade da semana</td></tr>
       <tr><td>e) Ajuste polinomial e cruzamentos</td><td>Polinômio grau 3 (2 resoluções) + cruzamentos exatos</td><td>R²=0,96/0,95; cruzamentos dias 2,3 / 3,9 / 5,8</td><td>A inversão do eixo vira evento datado</td></tr>
       <tr><td>f) Estrutura e relações entre dimensões</td><td>Spearman + PCA</td><td>1º componente = eixo de perturbação; vigor oposto</td><td>Centralidade do eixo confirmada por via independente</td></tr>
@@ -173,12 +173,21 @@ ul.tight{margin:.4em 0; padding-left:1.15em} ul.tight li{margin:.28em 0}
     <div class="callout"><div class="lab">Aplicação ao estudo</div>O vigor caiu com <strong>dz=−1,33</strong> (grande) e a fadiga subiu com <strong>dz=+0,78</strong> (médio-grande). Ou seja: a mudança não é só “estatisticamente detectável”, é <em>substancial</em> na prática do atleta.</div>
   </div>
 
-  <h2 id="manova"><span class="no">6</span>MANOVA e correção de Bonferroni</h2>
+  <h2 id="manova"><span class="no">6</span>MANOVA, PERMANOVA e correção de Bonferroni</h2>
   <div class="card step">
     <div class="field"><span class="k">O que é a MANOVA</span> Uma análise que testa a diferença entre o primeiro e o último dia considerando <strong>todas as dimensões ao mesmo tempo</strong> (de forma multivariada), em escores padronizados.</div>
     <div class="field"><span class="k">Por que fazer, se já há os Wilcoxon</span> Para <strong>confirmar de forma global</strong> que o estado de humor mudou como um todo, controlando o fato de as dimensões serem correlacionadas. É uma segunda via, mais conservadora, que blinda a conclusão.</div>
     <div class="field"><span class="k">Como se lê</span> <code>Wilks λ</code> vai de 0 a 1; quanto <strong>menor</strong>, maior a separação entre os dois dias. Resultado: <strong>λ=0,181; p&lt;0,001</strong> (separação forte).</div>
     <div class="field"><span class="k">Bonferroni</span> Ao testar várias dimensões, a chance de um “falso positivo” cresce. A correção de Bonferroni torna o critério mais rígido. <strong>Após a correção, só vigor e fadiga permaneceram significativos</strong> — o que concentra o efeito, de forma honesta, no eixo energia-fadiga.</div>
+  </div>
+
+  <div class="card step">
+    <h3>PERMANOVA — a multivariada que não pressupõe normalidade</h3>
+    <div class="field"><span class="k">Por que existe</span> A MANOVA e o Hotelling clássicos <strong>assumem normalidade multivariada</strong>. Como todo o estudo adotou a rota não paramétrica (por causa do efeito de piso e da não normalidade), a peça multivariada <strong>coerente</strong> é a PERMANOVA: ela testa o deslocamento do <strong>perfil das 6 subescalas ao mesmo tempo</strong> por <strong>permutação</strong>, sem exigir normalidade.</div>
+    <div class="field"><span class="k">Como foi feita (o detalhe que blinda)</span> Distância euclidiana sobre escores padronizados e <strong>permutação restrita ao atleta</strong>. Essa restrição é decisiva: como cada atleta é medido várias vezes (medidas repetidas), embaralhar os rótulos livremente inflaria o erro por pseudorreplicação. Permutar só <em>dentro</em> de cada atleta constrói a hipótese nula correta para um fator intra-sujeito.</div>
+    <div class="field"><span class="k">Resultados (dados reconstruídos)</span> O perfil difere <strong>pré vs pós-treino</strong> (pseudo-F=2,52; R²=1,0%; <strong>p=0,002</strong>) e entre dias <strong>HIIT vs não-HIIT</strong> (pseudo-F=2,71; R²=0,7%; <strong>p=0,007</strong>). O R² pequeno mostra que o deslocamento, embora <strong>nítido e direcional</strong>, ocupa uma fração pequena da variância total — coerente com a leitura sinal/ruído. Converge com o modelo misto multivariado (χ²(4)=118,9; p≈9×10⁻²⁵).</div>
+    <div class="field"><span class="k">Locação vs dispersão (PERMDISP)</span> Uma PERMANOVA pode ser significativa por diferença de <strong>dispersão</strong>, não só de posição — por isso acompanha-se o PERMDISP. No contraste <strong>pré×pós as dispersões são homogêneas</strong> (PERMDISP p=0,34): a diferença é limpa, de deslocamento do centroide. Já nos dias <strong>HIIT o PERMDISP é significativo</strong> (p=0,003): além de deslocar o perfil, o estímulo intenso <strong>aumenta a dispersão multivariada</strong> — a resposta é mais heterogênea entre atletas. Reportar isso é o que separa uma leitura honesta de um p inflado por dispersão.</div>
+    <div class="field"><span class="k">E o Hotelling limítrofe (p=0,054)?</span> Não é contradição. O Hotelling nas 6 dimensões trabalha com um vetor de mudança agregado por atleta (n=27), tem <strong>baixo poder</strong> e sofre com o desvio da normalidade — daí o valor limítrofe, que reflete <strong>poder</strong>, não ausência de efeito. A PERMANOVA, livre de distribuição, é a leitura mais apropriada; o Hotelling fica como verificação paramétrica de sensibilidade.</div>
   </div>
 
   <h2 id="icc"><span class="no">7</span>Confiabilidade (ICC) e limiares de mudança (SEM, MDC, SWC)</h2>
@@ -248,7 +257,7 @@ ul.tight{margin:.4em 0; padding-left:1.15em} ul.tight li{margin:.28em 0}
 
   <h2 id="tese"><span class="no">16</span>A tese central e o fio condutor</h2>
   <div class="callout"><div class="lab">Frase-síntese para abrir a defesa</div>“Em um microciclo pré-competitivo de handebol de elite, o humor se comporta como um sistema de um eixo dominante — energia-fadiga — que se deteriora de modo ordenado sob a carga, e cujo curso pode ser <strong>lido, datado e quantificado</strong>. Cada camada de análise, da descrição simples à modelagem das trajetórias, chega a esse mesmo núcleo por caminhos independentes.”</div>
-  <p>O poder do argumento é a <strong>convergência</strong>: psicometria, ICC, S/R, PCA, MANOVA e derivadas apontam todos para o par vigor-fadiga. Quando métodos independentes concordam, a conclusão não depende de nenhum deles isoladamente — é isso que se chama triangulação metodológica.</p>
+  <p>O poder do argumento é a <strong>convergência</strong>: psicometria, ICC, S/R, PCA, MANOVA/PERMANOVA e derivadas apontam todos para o par vigor-fadiga. Quando métodos independentes concordam, a conclusão não depende de nenhum deles isoladamente — é isso que se chama triangulação metodológica.</p>
 
   <h2 id="banca"><span class="no">17</span>Perguntas prováveis da banca (com respostas)</h2>
   <div class="grid">
@@ -258,6 +267,7 @@ ul.tight{margin:.4em 0; padding-left:1.15em} ul.tight li{margin:.28em 0}
     <div class="card qa"><h3>O efeito de piso não invalida as dimensões negativas?</h3><p>Não. Em atletas saudáveis o piso é esperado e informativo: essas dimensões funcionam como sentinelas de estados raros. Por isso são lidas por prevalência/perfil, e o sinal quantitativo mora no vigor e na fadiga.</p></div>
     <div class="card qa"><h3>ICC baixo em raiva/confusão não é um problema?</h3><p>É justamente um resultado: essas dimensões são reativas e menos confiáveis entre dias, o que recomenda cautela — e reforça a decisão de centrar a interpretação no eixo energia-fadiga, de ICC melhor.</p></div>
     <div class="card qa"><h3>Por que MANOVA se já tinha os Wilcoxon?</h3><p>Para confirmar de forma global e multivariada, controlando a correlação entre dimensões. É uma segunda via mais conservadora; com Bonferroni, só vigor e fadiga sobrevivem, o que concentra o efeito honestamente.</p></div>
+    <div class="card qa"><h3>Por que PERMANOVA além da MANOVA/Hotelling?</h3><p>Por coerência: a MANOVA e o Hotelling assumem normalidade multivariada, que os dados não têm. A PERMANOVA testa o mesmo deslocamento de perfil por permutação, sem esse pressuposto, e com permutação <strong>restrita ao atleta</strong> respeita as medidas repetidas. É por isso que ela é o teste multivariado principal (pré×pós pseudo-F=2,52, p=0,002; HIIT pseudo-F=2,71, p=0,007), com o Hotelling como verificação de sensibilidade. O PERMDISP mostra que, no pré×pós, a diferença é de posição do centroide (dispersões homogêneas, p=0,34); nos dias HIIT, há também aumento de dispersão (p=0,003) — a resposta é mais heterogênea, e isso é reportado.</p></div>
     <div class="card qa"><h3>Por que spline e não uma reta?</h3><p>Uma reta impõe forma linear e esconde a inflexão. A spline deixa os dados mostrarem a forma; a 2ª derivada localiza objetivamente a virada na metade da semana. E o polinômio paramétrico reproduz a mesma inflexão — triangulação.</p></div>
     <div class="card qa"><h3>O que é a razão sinal/ruído aqui?</h3><p>A amplitude da tendência dividida pela dispersão do ruído. Vigor (8,4) e fadiga (6,7) têm tendência limpa; as negativas mal ultrapassam o ruído. Fundamenta, por via independente, o foco no eixo.</p></div>
     <div class="card qa"><h3>Como sabe que é sobre-esforço funcional e não overtraining?</h3><p>Porque os perfis de risco (iceberg invertido, submerso) não se instalaram e a recuperação entre sessões, embora parcial, existiu. O quadro é fadiga planejada e reversível — a definição de sobre-esforço funcional.</p></div>
