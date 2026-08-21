@@ -275,6 +275,8 @@ const DIM=[
 ];
 const DESC=[["Vigor",5.7,3.3,"0–15"],["Fadiga",5.5,4.1,"0–16"],["Tensão",1.4,1.8,"0–8"],["Depressão",1.0,2.4,"0–16"],["Raiva",1.6,2.8,"0–14"],["Confusão",0.5,1.3,"0–8"],["PTH",4.4,10.1,"−12–52"]];
 const ICC=[["Vigor",.53,.89,"moderada"],["Fadiga",.61,.92,"moderada"],["Tensão",.64,.93,"moderada"],["Depressão",.68,.94,"moderada"],["Raiva",.39,.82,"pobre"],["Confusão",.36,.80,"pobre"]];
+const OMEGA=[["Vigor",.77],["Fadiga",.83],["Tensão",.54],["Depressão",.87],["Raiva",.87],["Confusão",.68]];
+const TRIA=[["Esgotado",2.18],["Disposição",2.15],["Exausto",1.85],["Energia",1.74],["Cansado",1.35],["Animado",0.94],["Sonolento",0.25],["Alerta",0.11]];
 const LIM=[["Vigor",2.3,5.3,6.3,0.7],["Fadiga",2.6,5.9,7.0,0.8],["Tensão",1.1,2.5,3.0,0.4],["Depressão",1.4,3.2,3.8,0.5],["Raiva",2.2,5.1,6.1,0.6],["Confusão",1.0,2.4,2.9,0.3]];
 const PERFIS=[["Iceberg",13,8],["Superfície",6,10],["Everest invertido",4,4],["Iceberg invertido",2,2],["Submerso",1,5],["Barbatana de tubarão",1,8]];
 const D17=[["Vigor",8.43,4.29,-49,-1.33,"grande"],["Fadiga",3.43,7.36,115,0.78,"médio"],["Tensão",2.19,0.93,-58,-0.60,"médio"],["Depressão",0.52,1.29,145,0.22,"pequeno"],["Raiva",2.19,2.64,21,0.09,"trivial"],["Confusão",1.19,0.52,-56,-0.57,"médio"],["PTH",1.10,8.45,672,0.55,"médio"]];
@@ -597,6 +599,11 @@ const SECTIONS=[
   const gr=cards(h,`<div class="card"><h3>ICC por dimensão</h3><p class="note">ICC(2,1) — medida isolada</p><div class="host" id="h_icc"></div></div><div class="card"><h3>Limiares de mudança</h3><p class="note">SEM · MDC90 · MDC95 · SWC (pontos)</p><div class="host" id="t_lim"></div></div>`);
   barChart($("#h_icc",gr),ICC.map(r=>({lab:r[0],v:r[1],c:r[1]>=.5?C.good:C.warn})),{ymax:1,dec:2,hl:HLL()});
   dynTable($("#t_lim",gr),["Dimensão","SEM","MDC90","MDC95","SWC"],LIM,(i,v)=>i?num(v):v,HLL());
+  const gr2=document.createElement("div");gr2.className="grid2";gr2.style.marginTop="18px";
+  gr2.innerHTML=`<div class="card"><h3>Consistência interna (ômega)</h3><p class="note">ω de McDonald por dimensão · estrutura de 6 fatores</p><div class="host" id="h_om"></div></div><div class="card"><h3>Estrutura fatorial (AFC)</h3><p class="note">ajuste do modelo de 6 fatores · 23 itens (tensao_1 excluído)</p><div class="host" id="afc_k"></div></div>`;
+  h.appendChild(gr2);
+  barChart($("#h_om",gr2),OMEGA.map(r=>({lab:r[0],v:r[1],c:r[1]>=.7?C.good:r[1]>=.5?C.warn:C.crit})),{ymax:1,dec:2,hl:HLL()});
+  $("#afc_k",gr2).innerHTML=`<div class="kpis"><div class="kpi"><span class="stripe" style="background:${C.vigor}"></span><div class="lab">CFI / TLI</div><div class="val" style="color:${C.vigor};font-size:22px">0,87 / 0,85</div><div class="cap">ajuste aceitável</div></div><div class="kpi"><span class="stripe" style="background:${C.fadiga}"></span><div class="lab">RMSEA / SRMR</div><div class="val" style="color:${C.fadiga};font-size:22px">0,08 / 0,09</div><div class="cap">item de piso (tensao_1) excluído</div></div></div>`;
 }},
 {id:"perfis",lab:"Perfis de humor",icon:"layers",render(h){
   head(h,"nível 1","Perfis e migração","No primeiro dia predomina o iceberg (vigor no topo). No último, a prevalência desloca-se para a barbatana de tubarão, sem instalação dos perfis de risco à saúde mental.");
@@ -713,6 +720,14 @@ const SECTIONS=[
     why:"O ICC mede a consistência das medidas repetidas; dele deriva a mudança mínima detectável (MDC). Como a MDC individual é alta, a interpretação apoia-se em <b>tendências de grupo</b>, não em leituras isoladas de um atleta.",
     reading:"ICC(2,1) por dimensão: moderado a bom; mais baixo em raiva e confusão.",
     draw:host=>barChart(host,ICC.map(r=>({lab:r[0],v:r[1],c:r[1]>=.5?C.good:C.warn})),{ymax:1,dec:2})},
+   {lab:"AFC",tag:"Estrutura das medidas",title:"Análise fatorial confirmatória (6 fatores)",
+    why:"Antes de interpretar, confirma-se que os itens do BRUMS medem as <b>seis dimensões</b> esperadas. O item invariante <b>tensao_1</b> (“Apavorado”, 99,6% no piso) foi excluído por inviabilizar a estimação; o modelo de <b>23 itens</b> manteve ajuste aceitável. A consistência interna (<b>ômega de McDonald</b>) é alta no eixo energia-fadiga e nas dimensões negativas mais endossadas.",
+    reading:"Ajuste: CFI 0,87 · TLI 0,85 · RMSEA 0,08 · SRMR 0,09. Barras: ômega (ω) por dimensão.",
+    draw:host=>{host.insertAdjacentHTML("beforeend",`<div class="kpis"><div class="kpi"><span class="stripe" style="background:${C.vigor}"></span><div class="lab">CFI / TLI</div><div class="val" style="color:${C.vigor}">0,87 / 0,85</div><div class="cap">ajuste aceitável · 6 fatores, 23 itens</div></div><div class="kpi"><span class="stripe" style="background:${C.fadiga}"></span><div class="lab">RMSEA / SRMR</div><div class="val" style="color:${C.fadiga}">0,08 / 0,09</div><div class="cap">item tensao_1 (99,6% piso) excluído</div></div></div>`);const dv=document.createElement("div");dv.className="host";host.appendChild(dv);barChart(dv,OMEGA.map(r=>({lab:r[0],v:r[1],c:r[1]>=.7?C.good:r[1]>=.5?C.warn:C.crit})),{ymax:1,dec:2});}},
+   {lab:"TRI",tag:"Resposta ao item",title:"Modelo de resposta gradual (Samejima)",
+    why:"Detalha o funcionamento de cada item no contínuo do traço: a <b>discriminação (a)</b> mostra quais itens separam melhor os níveis. Os itens do <b>eixo energia-fadiga</b> são os mais discriminativos; itens travados no piso (<b>Sonolento</b>, <b>Alerta</b>) têm discriminação próxima de zero — degenerescência amostral, não falha do item.",
+    reading:"Discriminação (a) por item: alta na fadiga (Esgotado 2,2) e no vigor (Disposição 2,2); baixa nos itens de piso.",
+    draw:host=>barChart(host,TRIA.map(r=>({lab:r[0],v:r[1],c:r[1]>=1?C.good:r[1]>=.5?C.warn:C.crit})),{ymax:2.4,dec:2})},
    {lab:"Perfis",tag:"Perfis de humor",title:"Classificação + qui-quadrado + regressão logística",
     why:"O qui-quadrado <b>não</b> foi significativo (p = 0,111) por baixa contagem por célula (poucos atletas em 6 perfis), não por ausência de migração. A <b>regressão logística</b> confirma a tendência (OR = 1,37 por dia).",
     reading:"Iceberg 48%→22%; barbatana de tubarão 4%→22% do D1 ao D7.",
