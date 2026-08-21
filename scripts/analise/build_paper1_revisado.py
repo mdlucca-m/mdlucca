@@ -249,7 +249,12 @@ P('A forma temporal das trajetórias foi analisada por três abordagens compleme
   'restrita ao estrato do atleta, de modo a respeitar o delineamento de medidas repetidas — restrição que os '
   'procedimentos de uma via dos pacotes genéricos não contemplam. As figuras foram geradas com Plotly e Matplotlib. '
   'Adotou-se o nível de significância de 5%. O fluxo de decisão que orientou a escolha de cada método, segundo as '
-  'propriedades dos dados, está resumido na Figura 26.')
+  'propriedades dos dados, está resumido na Figura 29.')
+P('Como modelagem complementar, a trajetória de cada dimensão foi ajustada por modelos lineares mistos de '
+  'crescimento, com intercepto e inclinação aleatórios por atleta, e a capacidade preditiva do perfil de humor foi '
+  'avaliada por regressão logística — distinguindo a fase tardia da inicial do microciclo — com validação cruzada '
+  'agrupada por atleta (para evitar vazamento entre treino e teste) e curva de aprendizado, usando a biblioteca '
+  'scikit-learn.')
 P('A adequação da via multivariada paramétrica foi verificada antes de sua interpretação. A normalidade '
   'multivariada das seis dimensões foi rejeitada em todos os subgrupos comparados (teste de Henze-Zirkler, '
   'p < 0,001; assimetria e curtose multivariadas de Mardia, p < 0,001), e a homogeneidade das matrizes de '
@@ -599,7 +604,25 @@ table('Discriminação (parâmetro a) dos itens do eixo energia-fadiga no modelo
   note='a = parâmetro de discriminação (métrica logística); itens degenerados apresentam poucas categorias endossadas e limiares fora da faixa observável, efeito da concentração de respostas no piso.')
 figure('tri_informacao.png','Função de informação do teste (modelo de resposta gradual de Samejima) para as escalas de vigor e de fadiga, calculada sobre os itens estáveis. O eixo horizontal é o traço latente em desvios-padrão; a linha tracejada assinala o ponto de máxima informação.',w=15.0)
 
-H2('Síntese dos principais achados','4.11')
+H2('Modelos de crescimento e capacidade preditiva','4.11')
+P('A dinâmica descrita pelas médias e derivadas foi formalizada por modelos mistos de crescimento, com intercepto e '
+  'inclinação aleatórios por atleta (Figura 26). O vigor decresceu de forma significativa ao longo da semana (efeito '
+  'do dia, p = 0,003), a fadiga acumulou-se de modo aproximadamente linear (cerca de 0,3 ponto por dia) e a '
+  'perturbação total do humor descreveu uma curva em U — coerentes, no nível populacional, com as trajetórias '
+  'suavizadas, agora estimadas respeitando a variação entre atletas.')
+P('A capacidade de o perfil de humor prever a fase do microciclo foi avaliada por regressão logística (fase tardia, '
+  'dias 5 a 7, versus inicial, dias 1 a 3), com validação cruzada agrupada por atleta para evitar vazamento entre '
+  'treino e teste. A discriminação foi apenas modesta (AUC = 0,58; Figura 27), com a fadiga como principal preditor. '
+  'A curva de aprendizado (Figura 28) manteve-se plana e próxima do acaso, com pequena distância entre treino e '
+  'validação: o desempenho limitado não decorre de sobreajuste nem de falta de dados, e sim de um sinal individual '
+  'intrinsecamente baixo, pois o efeito de piso comprime a informação disponível em uma coleta isolada. Esse '
+  'resultado é, ele próprio, um achado: a leitura do humor é robusta como tendência de grupo, mas não sustenta, '
+  'isoladamente, a predição no nível do atleta — o que reforça a recomendação de interpretar o indivíduo apenas '
+  'acima da mudança mínima detectável.')
+figure('curvas_crescimento.png','Curvas de crescimento do humor (modelos mistos): trajetórias individuais (linhas finas) e curva populacional (linha grossa) para o vigor, a fadiga e a perturbação total do humor.',w=16.0)
+figure('roc_preditivo.png','Curva ROC do modelo preditivo (regressão logística) para a fase do microciclo (tardia versus inicial) a partir do perfil de humor, com validação cruzada agrupada por atleta.',w=10.5)
+figure('curva_aprendizado.png','Curva de aprendizado do modelo preditivo: AUC de treino e de validação cruzada em função do tamanho do conjunto de treino.',w=13.0)
+H2('Síntese dos principais achados','4.12')
 P('Tomados em conjunto, os resultados desenham uma história coerente do microciclo pré-competitivo. No plano das '
   'medidas, o BRUMS mostrou estrutura de seis fatores com ajuste aceitável e boa confiabilidade no eixo '
   'energia-fadiga, onde também se concentra a maior informação psicométrica; as dimensões negativas, comprimidas '
