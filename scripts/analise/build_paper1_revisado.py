@@ -638,7 +638,11 @@ P('O ajuste polinomial de grau três acrescentou uma síntese paramétrica a ess
   'forte sobre as médias diárias (R² de 0,96 a 0,95 no eixo energia-fadiga). As duas resoluções, sobre sete médias '
   'diárias e sobre quatorze pontos pré e pós-treino, apontaram inflexões quase idênticas, o que indica que o '
   'achado da transição na metade da semana não depende do método nem da granularidade da medida. A convergência '
-  'entre a spline não paramétrica e o polinômio paramétrico reforça a robustez do resultado.')
+  'entre a spline não paramétrica e o polinômio paramétrico reforça a robustez do resultado. A opção pelo grau '
+  'três, e não por um polinômio de grau superior, apoiou-se no coeficiente de determinação ajustado: o grau quatro '
+  'elevava apenas marginalmente o R² bruto, mas reduzia o R² ajustado (de 0,88 para 0,86 na fadiga e de 0,60 para '
+  '0,43 na PTH) e introduzia inflexões espúrias — sinal de sobreajuste com apenas sete médias diárias —, de modo '
+  'que a cúbica, com um único ponto de inflexão, é a descrição mais parcimoniosa e estável da forma temporal.')
 P('A localização dos cruzamentos exatos representa a contribuição mais original desta abordagem. Quando todas as '
   'dimensões são postas na mesma escala, apenas o par vigor-fadiga ocupa a faixa central e se cruza, ao passo que '
   'as demais permanecem junto ao piso, o que dá base empírica à escolha desse par como foco do monitoramento. O '
