@@ -254,7 +254,7 @@ P('A adequação da via multivariada paramétrica foi verificada antes de sua in
   'multivariada das seis dimensões foi rejeitada em todos os subgrupos comparados (teste de Henze-Zirkler, '
   'p < 0,001; assimetria e curtose multivariadas de Mardia, p < 0,001), e a homogeneidade das matrizes de '
   'covariância não se sustentou (teste M de Box: dia 1 vs. dia 7, χ²(21) = 71,8, p < 0,001; pré vs. pós, '
-  'χ²(21) = 38,3, p = 0,012; dias de HIIT vs. demais dias, χ²(21) = 105,8, p < 0,001). Como esses são justamente '
+  'χ²(21) = 38,3, p = 0,012). Como esses são justamente '
   'os dois pressupostos da MANOVA e do Hotelling T², e ambos foram violados — em coerência, ademais, com o efeito '
   'de piso e com a rota não paramétrica já adotada nas análises univariadas —, o deslocamento multivariado do '
   'perfil de humor foi testado por análise de variância multivariada permutacional (PERMANOVA; Anderson, 2001), '
@@ -377,21 +377,17 @@ table('Diferença das dimensões do BRUMS e da PTH entre o primeiro e o último 
   note='dz = tamanho de efeito intraindividual; magnitude: trivial (< 0,2); pequeno (0,2-0,5); médio (0,5-0,8); grande (> 0,8). PTH: perturbação total do humor.')
 P('A análise multivariada permutacional, livre do pressuposto de normalidade, corroborou o deslocamento do perfil '
   'de humor (Tabela 6). O perfil das seis dimensões diferiu entre o pré e o pós-treino (PERMANOVA: pseudo-F = 2,52; '
-  'R² = 0,010; p = 0,002) e entre os dias de HIIT e os demais (pseudo-F = 2,71; R² = 0,007; p = 0,007). Os tamanhos '
-  'de efeito, embora pequenos em fração de variância (0,7 a 1,0%), são direcionais e coerentes com a leitura de '
-  'sinal/ruído: a mudança é real, porém ocupa parcela reduzida de uma variância total dominada pelo efeito de piso '
-  'das dimensões negativas. O teste PERMDISP indicou que, no contraste pré vs. pós, as dispersões multivariadas são '
-  'homogêneas (F = 0,80; p = 0,342), de modo que a diferença reflete deslocamento do centroide, e não '
-  'heterogeneidade de variância; já nos dias de HIIT observou-se, além do deslocamento, aumento significativo da '
-  'dispersão multivariada (PERMDISP F = 9,27; p = 0,003), indicando resposta mais heterogênea entre atletas ao '
-  'estímulo intenso. A conclusão mostrou-se robusta à inclusão das coletas intermediárias (fator momento com três '
+  'R² = 0,010; p = 0,002). O tamanho de efeito, embora pequeno em fração de variância (1,0%), é direcional e '
+  'coerente com a leitura de sinal/ruído: a mudança é real, porém ocupa parcela reduzida de uma variância total '
+  'dominada pelo efeito de piso das dimensões negativas. O teste PERMDISP indicou que as dispersões multivariadas '
+  'são homogêneas (F = 0,80; p = 0,342), de modo que a diferença reflete deslocamento do centroide, e não '
+  'heterogeneidade de variância. A conclusão mostrou-se robusta à inclusão das coletas intermediárias (fator momento com três '
   'níveis: pseudo-F = 1,75; p = 0,002) e convergiu com o eixo energia-fadiga do Hotelling T² (D de Mahalanobis = '
   '0,66; p = 0,010); o Hotelling nas seis dimensões foi limítrofe (p = 0,054), o que decorre do menor poder do '
   'teste paramétrico sob não normalidade, e não de ausência de efeito.')
 table('Análise multivariada permutacional (PERMANOVA) do perfil de humor e teste de homogeneidade das dispersões (PERMDISP).',
   ['Fator','pseudo-F','R²','p','PERMDISP (p)','Interpretação'],
   [['Momento (pré vs. pós)','2,52','0,010','0,002','0,342','deslocamento de centroide (dispersões homogêneas)'],
-   ['Carga do dia (HIIT vs. não-HIIT)','2,71','0,007','0,007','0,003','deslocamento + maior dispersão nos dias de HIIT'],
    ['Momento (pré/intermediário/pós)†','1,75','0,008','0,002','0,024','robustez à inclusão das coletas intermediárias']],fs=8.6,
   note='Distância euclidiana sobre escores padronizados; 9 999 permutações restritas ao atleta. R² = fração da variância multivariada explicada pelo fator. †Análise de robustez.')
 
@@ -521,7 +517,7 @@ table('Médias marginais estimadas por dia do vigor e da fadiga, com comparaçã
   [['Dia 1','8,30','3,37'],['Dia 2','5,45*','5,18'],['Dia 3','5,65*','4,84'],['Dia 4','5,31*','5,70*'],
    ['Dia 5','5,80*','5,01'],['Dia 6','5,63*','5,72*'],['Dia 7','4,10*','6,93*']],
   note='* diferença significativa em relação ao Dia 1 (Tukey, p < 0,05).')
-figure('fig17.png','Médias marginais diárias do vigor, da fadiga e da fadiga física, com comparação de todos os dias ao Dia 1 (* p < 0,05).')
+figure('fig17.png','Médias marginais diárias do vigor e da fadiga, com comparação de todos os dias ao Dia 1 (* p < 0,05).')
 
 H2('Variação entre pré e pós-treino e efeito agudo/recuperação','4.7')
 P('A comparação entre pré e pós-treino pelo teste de Wilcoxon (Tabela 11) evidenciou uma resposta aguda coerente '
@@ -688,8 +684,8 @@ P('Lidas como um sistema em movimento, essas trajetórias admitem uma interpreta
   'inflexão, no qual a segunda derivada se anula em torno da metade da semana (dias 4,0 a 4,2 no eixo energia-fadiga), '
   'marca a passagem de uma fase de desaceleração para uma fase de aceleração da fadiga e funciona como um sinal de '
   'alerta precoce que a comparação entre o primeiro e o último dia não capta. Essa leitura articula-se com o '
-  'resultado multivariado: o deslocamento do perfil de humor foi significativo ao longo da semana e sob a carga de '
-  'HIIT (PERMANOVA, p = 0,002 e p = 0,007), enquanto a resposta aguda isolada teve magnitude apenas pequena a '
+  'resultado multivariado: o deslocamento do perfil de humor foi significativo ao longo da semana '
+  '(PERMANOVA, p = 0,002), enquanto a resposta aguda isolada teve magnitude apenas pequena a '
   'moderada — coerente com um estímulo que não atua como um degrau estático, e sim alterando a velocidade da '
   'trajetória de fadiga nos dias subsequentes. Assim, o achado dinâmico e o multivariado convergem: o efeito '
   'relevante é crônico e acumulado, e a sua datação objetiva reside na inflexão de meia-semana.')
