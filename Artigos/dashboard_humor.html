@@ -720,6 +720,16 @@ const SECTIONS=[
   const c=document.createElement("div");c.className="card";c.innerHTML=`<h3>Círculo de correlação · PC1 × PC2</h3><p class="note">o comprimento da seta reflete a contribuição da dimensão</p><div class="host" id="h_pca"></div>`;h.appendChild(c);
   pcaCircle($("#h_pca",c));
 }},
+{id:"preditivo",lab:"Modelos preditivos",icon:"trend",render(h){
+  head(h,"modelagem avançada","Modelos preditivos, de crescimento e de aprendizado","Curvas de crescimento (modelos mistos), um modelo preditivo do humor e a curva de aprendizado. A leitura é honesta: <b>tendência clara no grupo</b>, <b>previsão individual limitada</b> — o que reforça a interpretação por tendências, não por leitura isolada de um atleta.");
+  const g1=cards(h,`<div class="card"><h3>Curvas de crescimento (modelos mistos)</h3><p class="note">trajetória populacional do eixo energia-fadiga · intercepto e inclinação por atleta</p><div class="host" id="h_grow"></div></div><div class="card"><h3>Efeito do dia (termo fixo)</h3><p class="note">modelo misto por dimensão</p><div class="host" id="k_grow"></div></div>`);
+  lineChart($("#h_grow",g1),DIM.filter(d=>["vigor","fadiga","pth"].includes(d.k)),{ymax:9});
+  $("#k_grow",g1).innerHTML=`<div class="kpis"><div class="kpi"><span class="stripe" style="background:${C.vigor}"></span><div class="lab">Vigor</div><div class="val" style="color:${C.vigor};font-size:22px">cai</div><div class="cap">dia p = 0,003 · desacelera</div></div><div class="kpi"><span class="stripe" style="background:${C.fadiga}"></span><div class="lab">Fadiga</div><div class="val" style="color:${C.fadiga};font-size:22px">+0,3/dia</div><div class="cap">acúmulo linear</div></div><div class="kpi"><span class="stripe" style="background:${C.pth}"></span><div class="lab">PTH</div><div class="val" style="color:${C.pth};font-size:22px">em U</div><div class="cap">cai e volta a subir</div></div></div>`;
+  const g2=cards(h,`<div class="card"><h3>Modelo preditivo (regressão logística)</h3><p class="note">fase tardia (D5–7) vs inicial (D1–3) a partir do perfil de humor · validação cruzada por atleta</p><div class="host" id="k_pred"></div></div><div class="card"><h3>Curva de aprendizado</h3><p class="note">AUC de validação cruzada por tamanho do conjunto de treino</p><div class="host" id="h_learn"></div></div>`);
+  $("#k_pred",g2).innerHTML=`<div class="kpis"><div class="kpi"><span class="stripe" style="background:${C.warn}"></span><div class="lab">AUC (CV)</div><div class="val" style="color:${C.warn};font-size:22px">0,58</div><div class="cap">± 0,04 · previsão individual fraca</div></div><div class="kpi"><span class="stripe" style="background:${C.fadiga}"></span><div class="lab">Maior preditor</div><div class="val" style="color:${C.fadiga};font-size:20px">Fadiga</div><div class="cap">coef. padronizado +0,39</div></div></div><p class="note" style="margin-top:12px;font-size:12.5px;color:var(--muted)">O perfil de humor de uma coleta isolada discrimina mal a fase da semana — coerente com o efeito de piso e o sinal individual limitado.</p>`;
+  barChart($("#h_learn",g2),[["n=63",.605],["n=114",.576],["n=165",.569],["n=216",.556],["n=267",.566],["n=318",.583]].map(r=>({lab:r[0],v:r[1],c:C.warn})),{ymax:1,dec:2});
+  h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:18px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13px;line-height:1.62;color:var(--muted)">A curva de aprendizado fica <b style="color:var(--ink)">plana e baixa</b> (~0,58, pouco acima do acaso 0,50), com pequena distância entre treino e validação: não é <i>overfitting</i>, é <b style="color:var(--ink)">sinal individual limitado</b>. Os modelos mistos, ao contrário, mostram uma <b style="color:var(--ink)">tendência populacional clara</b> — a mensagem prática é ler o grupo, e o indivíduo apenas acima da mudança mínima detectável (MDC).</p></div>`);
+}},
 {id:"analise",lab:"Análise estatística",icon:"flow",render(h){
   head(h,"passo a passo","Análise estatística — caminho guiado","Percorra a análise em ordem. A cada passo: a decisão e o seu porquê, com o resultado ao lado. Use a trilha numerada ou os botões Anterior / Próximo. Os passos de derivadas e cruzamentos usam a variável escolhida na segmentação lateral.");
   const selK=HLK()||"vigor",selLab=DERIV.vars[selK].lab;
@@ -1010,7 +1020,7 @@ const NAVGROUPS=[
   {lab:"Comece por aqui", ids:["apresentacao","pipeline"]},
   {lab:"Panorama",        ids:["visao","analise","arvore"]},
   {lab:"Resultados",      ids:["descr","conf","perfis","dias","d17","agudo"]},
-  {lab:"Aprofundar",      ids:["agcron","intraentre","limites","traj","snr","distrib","corr","pca"]}
+  {lab:"Aprofundar",      ids:["agcron","intraentre","limites","traj","snr","distrib","corr","pca","preditivo"]}
 ];
 const ORDER=NAVGROUPS.flatMap(g=>g.ids);
 SECTIONS.sort((a,b)=>{const ia=ORDER.indexOf(a.id),ib=ORDER.indexOf(b.id);return (ia<0?99:ia)-(ib<0?99:ib);});
