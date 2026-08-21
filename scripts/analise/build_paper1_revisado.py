@@ -221,7 +221,9 @@ P('O humor foi avaliado pela Escala de Humor de Brunel na versão de 24 itens (B
   'al., 2023).')
 H2('Análise estatística','3.6')
 P('Na análise, empregaram-se estatística descritiva das seis dimensões e da PTH e avaliação da consistência '
-  'interna por alfa de Cronbach. Como o teste de Shapiro-Wilk apontou desvios da normalidade em parte das '
+  'interna por alfa de Cronbach e por ômega de McDonald, a estrutura dimensional por análise fatorial confirmatória '
+  'de seis fatores correlacionados (com a exclusão do item invariante tensao_1) e o funcionamento dos itens por um '
+  'modelo de resposta gradual de Samejima. Como o teste de Shapiro-Wilk apontou desvios da normalidade em parte das '
   'dimensões, adotaram-se testes não paramétricos: o teste de Wilcoxon para a comparação entre pré e pós-treino, o '
   'teste de Friedman com o W de Kendall para a comparação entre os sete dias e a correlação de Spearman para as '
   'relações entre as dimensões, sempre com o cálculo do tamanho do efeito, classificado por magnitude (trivial, '
@@ -297,6 +299,13 @@ P('A consistência interna foi adequada nas duas dimensões do eixo energia-fadi
   'índice, associou-se de forma forte ao vigor e à fadiga (correlações de 0,67 e 0,77, respectivamente), e essas '
   'duas dimensões explicaram 70% da sua variância, o que confirma o eixo energia-fadiga como o núcleo do sinal '
   'dentro do conjunto das seis dimensões.')
+P('A estrutura de seis fatores correlacionados do BRUMS, ajustada por análise fatorial confirmatória sobre os 23 '
+  'itens — após a exclusão do item tensao_1, com 99,6% das respostas no piso e variância praticamente nula —, '
+  'apresentou ajuste aceitável (CFI = 0,87; TLI = 0,85; RMSEA = 0,08; SRMR = 0,09), coerente com a literatura de '
+  'validação da escala. A consistência interna, avaliada também pelo ômega de McDonald, foi de boa a alta na raiva, '
+  'na depressão e na fadiga (ômega de 0,83 a 0,87) e moderada no vigor e na confusão (0,77 e 0,68), reduzindo-se na '
+  'tensão (0,54), limitada a três itens após a exclusão. A estrutura e a fidedignidade das medidas são, portanto, '
+  'sólidas, e o eixo energia-fadiga reúne, ao lado de boa consistência, a maior parte do sinal interpretável.')
 table('Consistência das medidas repetidas ao longo da semana (coeficiente de correlação intraclasse, ICC).',
   ['Dimensão','ICC(2,1)','ICC(2,k)','Consistência'],
   [['Vigor','0,53','0,89','moderada'],['Fadiga','0,61','0,92','moderada'],['Tensão','0,64','0,93','moderada'],
@@ -574,6 +583,43 @@ P('Uma análise exploratória de componentes principais resumiu a estrutura das 
   'oposto. Essa oposição reforça, por via independente, a centralidade do eixo energia-fadiga dentro da estrutura '
   'das seis dimensões.')
 figure('fig21.png','Círculo de correlação da análise de componentes principais das seis dimensões do BRUMS. A espessura de cada seta é proporcional à contribuição da variável ao plano dos dois primeiros componentes.',w=13.0)
+
+H2('Funcionamento dos itens (teoria de resposta ao item)','4.10')
+P('O modelo de resposta gradual de Samejima detalhou o funcionamento de cada item ao longo do contínuo do traço '
+  '(Tabela 15; Figura 25). Os itens do eixo energia-fadiga foram os mais discriminativos (parâmetro de discriminação '
+  'a entre 1,3 e 2,2 na fadiga e no vigor), ao passo que alguns itens travados no piso — os relativos a sonolência, '
+  'a estado de alerta e à tensão extrema — exibiram discriminação próxima de zero e limiares fora da faixa '
+  'observável, sinal de degenerescência amostral sob o efeito de piso, e não de falha do item em populações sem '
+  'esse teto de resposta. A função de informação do teste confirma essa leitura: a escala de vigor informa numa '
+  'faixa ampla do traço, com pico próximo à média, ao passo que a de fadiga informa melhor em níveis acima da '
+  'média — ou seja, discrimina com mais precisão justamente quando a fadiga se eleva, que é a condição de interesse '
+  'no monitoramento da carga.')
+table('Discriminação (parâmetro a) dos itens do eixo energia-fadiga no modelo de resposta gradual.',
+  ['Item','Dimensão','Discriminação (a)','Leitura'],
+  [['Animado','Vigor','0,94','adequado'],['Com disposição','Vigor','2,15','alto'],['Com energia','Vigor','1,74','alto'],
+   ['Alerta','Vigor','0,11','degenerado (piso)'],['Esgotado','Fadiga','2,18','alto'],['Exausto','Fadiga','1,85','alto'],
+   ['Cansado','Fadiga','1,35','adequado'],['Sonolento','Fadiga','0,25','degenerado (piso)']],fs=8.6,
+  note='a = parâmetro de discriminação (métrica logística); itens degenerados apresentam poucas categorias endossadas e limiares fora da faixa observável, efeito da concentração de respostas no piso.')
+figure('tri_informacao.png','Função de informação do teste (modelo de resposta gradual de Samejima) para as escalas de vigor e de fadiga, calculada sobre os itens estáveis. O eixo horizontal é o traço latente em desvios-padrão; a linha tracejada assinala o ponto de máxima informação.',w=15.0)
+
+H2('Síntese dos principais achados','4.11')
+P('Tomados em conjunto, os resultados desenham uma história coerente do microciclo pré-competitivo. No plano das '
+  'medidas, o BRUMS mostrou estrutura de seis fatores com ajuste aceitável e boa confiabilidade no eixo '
+  'energia-fadiga, onde também se concentra a maior informação psicométrica; as dimensões negativas, comprimidas '
+  'pelo efeito de piso, funcionam como sentinelas de estados raros, e não como termômetros graduais. No plano do '
+  'comportamento, a semana produziu uma deterioração ordenada do humor: o vigor caiu e a fadiga subiu com efeito '
+  'grande entre o primeiro e o último dia, a maioria dos atletas migrou do perfil iceberg para perfis de menor '
+  'energia, e a análise multivariada por permutação (PERMANOVA), livre do pressuposto de normalidade e respeitando '
+  'as medidas repetidas, confirmou que o perfil de humor se deslocou de fato ao longo da semana (p = 0,002). No '
+  'plano da forma temporal, a suavização das curvas — um filtro que separa a tendência lenta do ruído — e as '
+  'derivadas dataram esse deslocamento: a fadiga e a PTH desaceleram até a metade da semana e voltam a acelerar a '
+  'partir de um ponto de inflexão em torno do dia 4, marcador objetivo do momento em que o desgaste passa a se '
+  'acumular. E a razão sinal/ruído, ao qualificar onde a informação é forte o bastante para sustentar inferência, '
+  'fecha a triangulação: as vias multivariada, dinâmica e psicométrica apontam para o mesmo núcleo — o par '
+  'vigor-fadiga como o eixo dominante do estado do atleta —, o que confere ao achado um alicerce que não depende de '
+  'nenhum método isolado. A recuperação apenas parcial entre sessões, revelada pela decomposição do efeito agudo e '
+  'da recuperação, dá a esse quadro o seu conteúdo prático: uma fadiga funcional, induzida de forma planejada, que '
+  'deve ser monitorada justamente na relação entre a carga aguda e a recuperação entre as sessões.')
 
 # ===== 5 DISCUSSÃO =====
 H1('DISCUSSÃO','5')
