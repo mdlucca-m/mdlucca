@@ -241,6 +241,22 @@ P('A forma temporal das trajetórias foi analisada por três abordagens compleme
   'sinal/ruído de cada dimensão, definida como a razão entre a amplitude do sinal filtrado e o desvio-padrão do '
   'resíduo. As análises foram conduzidas em Python (pacotes NumPy, SciPy, pandas, statsmodels e Plotly), com nível '
   'de significância de 5%.')
+P('A adequação da via multivariada paramétrica foi verificada antes de sua interpretação. A normalidade '
+  'multivariada das seis dimensões foi rejeitada em todos os subgrupos comparados (teste de Henze-Zirkler, '
+  'p < 0,001; assimetria e curtose multivariadas de Mardia, p < 0,001), e a homogeneidade das matrizes de '
+  'covariância não se sustentou (teste M de Box: dia 1 vs. dia 7, χ²(21) = 71,8, p < 0,001; pré vs. pós, '
+  'χ²(21) = 38,3, p = 0,012; dias de HIIT vs. demais dias, χ²(21) = 105,8, p < 0,001). Como esses são justamente '
+  'os dois pressupostos da MANOVA e do Hotelling T², e ambos foram violados — em coerência, ademais, com o efeito '
+  'de piso e com a rota não paramétrica já adotada nas análises univariadas —, o deslocamento multivariado do '
+  'perfil de humor foi testado por análise de variância multivariada permutacional (PERMANOVA; Anderson, 2001), '
+  'sobre uma matriz de distâncias euclidianas calculada a partir de escores padronizados. Para respeitar o '
+  'delineamento de medidas repetidas, a significância foi obtida por 9 999 permutações restritas ao atleta — '
+  'esquema que constrói a hipótese nula correta para fatores intraindividuais e evita a inflação do erro por '
+  'pseudorreplicação —, e o tamanho de efeito foi expresso pelo R² (fração da variância multivariada explicada '
+  'pelo fator). Como a PERMANOVA é sensível a diferenças de dispersão, aplicou-se o teste de homogeneidade das '
+  'dispersões multivariadas (PERMDISP; Anderson, 2006), também com permutação restrita ao atleta, para distinguir '
+  'deslocamento de centroide de heterogeneidade de dispersão. A MANOVA em escores T e o Hotelling T² foram '
+  'mantidos como verificações paramétricas de sensibilidade.')
 
 # ===== 4 RESULTADOS =====
 H1('RESULTADOS','4')
@@ -343,6 +359,25 @@ table('Diferença das dimensões do BRUMS e da PTH entre o primeiro e o último 
    ['Raiva','2,19','2,64','+21%','0,875','+0,09','trivial'],['Confusão','1,19','0,52','-56%','0,020','-0,57','médio'],
    ['PTH','1,10','8,45','+672%','0,018','+0,55','médio']],fs=8.6,
   note='dz = tamanho de efeito intraindividual; magnitude: trivial (< 0,2); pequeno (0,2-0,5); médio (0,5-0,8); grande (> 0,8). PTH: perturbação total do humor.')
+P('A análise multivariada permutacional, livre do pressuposto de normalidade, corroborou o deslocamento do perfil '
+  'de humor (Tabela 6). O perfil das seis dimensões diferiu entre o pré e o pós-treino (PERMANOVA: pseudo-F = 2,52; '
+  'R² = 0,010; p = 0,002) e entre os dias de HIIT e os demais (pseudo-F = 2,71; R² = 0,007; p = 0,007). Os tamanhos '
+  'de efeito, embora pequenos em fração de variância (0,7 a 1,0%), são direcionais e coerentes com a leitura de '
+  'sinal/ruído: a mudança é real, porém ocupa parcela reduzida de uma variância total dominada pelo efeito de piso '
+  'das dimensões negativas. O teste PERMDISP indicou que, no contraste pré vs. pós, as dispersões multivariadas são '
+  'homogêneas (F = 0,80; p = 0,342), de modo que a diferença reflete deslocamento do centroide, e não '
+  'heterogeneidade de variância; já nos dias de HIIT observou-se, além do deslocamento, aumento significativo da '
+  'dispersão multivariada (PERMDISP F = 9,27; p = 0,003), indicando resposta mais heterogênea entre atletas ao '
+  'estímulo intenso. A conclusão mostrou-se robusta à inclusão das coletas intermediárias (fator momento com três '
+  'níveis: pseudo-F = 1,75; p = 0,002) e convergiu com o eixo energia-fadiga do Hotelling T² (D de Mahalanobis = '
+  '0,66; p = 0,010); o Hotelling nas seis dimensões foi limítrofe (p = 0,054), o que decorre do menor poder do '
+  'teste paramétrico sob não normalidade, e não de ausência de efeito.')
+table('Análise multivariada permutacional (PERMANOVA) do perfil de humor e teste de homogeneidade das dispersões (PERMDISP).',
+  ['Fator','pseudo-F','R²','p','PERMDISP (p)','Interpretação'],
+  [['Momento (pré vs. pós)','2,52','0,010','0,002','0,342','deslocamento de centroide (dispersões homogêneas)'],
+   ['Carga do dia (HIIT vs. não-HIIT)','2,71','0,007','0,007','0,003','deslocamento + maior dispersão nos dias de HIIT'],
+   ['Momento (pré/intermediário/pós)†','1,75','0,008','0,002','0,024','robustez à inclusão das coletas intermediárias']],fs=8.6,
+  note='Distância euclidiana sobre escores padronizados; 9 999 permutações restritas ao atleta. R² = fração da variância multivariada explicada pelo fator. †Análise de robustez.')
 
 H2('Comparação das dimensões entre os dias (Friedman)','4.4')
 P('A comparação das dimensões entre os sete dias pelo teste de Friedman (Tabela 6) apontou variação significativa '
@@ -683,6 +718,8 @@ P('Como desfecho aplicado, os resultados recomendam centrar o monitoramento no p
 # ===== REFERÊNCIAS =====
 H1('REFERÊNCIAS')
 refs=[
+ 'ANDERSON, M. J. A new method for non-parametric multivariate analysis of variance. Austral Ecology, v. 26, n. 1, p. 32-46, 2001. DOI: 10.1111/j.1442-9993.2001.01070.pp.x.',
+ 'ANDERSON, M. J. Distance-based tests for homogeneity of multivariate dispersions. Biometrics, v. 62, n. 1, p. 245-253, 2006. DOI: 10.1111/j.1541-0420.2005.00440.x.',
  'BIRD, S. P. et al. Wellness, mood, sleep, and performance in a women’s national basketball team during international competition. Journal of Human Kinetics, v. 96, p. 163-175, 2025. DOI: 10.5114/jhk/200117.',
  'CARTON-LLORENTE, A. et al. Worst-case scenario analysis of physical demands in elite men handball players by playing position through big data analytics. Biology of Sport, v. 40, n. 4, p. 1219-1227, 2023. DOI: 10.5114/biolsport.2023.126665.',
  'CROSS, R. et al. Acute neuromuscular response to team sports-specific running, resistance, and concurrent training: a crossover study. Medicine and Science in Sports and Exercise, v. 54, n. 3, p. 456-465, 2022. DOI: 10.1249/MSS.0000000000002804.',
