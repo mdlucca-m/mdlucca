@@ -51,6 +51,23 @@ body{font-family:"Manrope",system-ui,sans-serif; color:var(--ink); min-height:10
 .vchip .dot{width:9px; height:9px; border-radius:50%}
 .vchip:hover{color:var(--ink); border-color:rgba(120,150,190,.34)}
 .vchip[aria-pressed="true"]{color:var(--ink); background:var(--glass2); border-color:rgba(90,211,196,.55); box-shadow:0 0 0 1px rgba(90,211,196,.25) inset}
+.nav-group{font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:var(--faint);
+  padding:14px 11px 6px; display:flex; align-items:center; gap:8px}
+.nav-group::after{content:""; flex:1; height:1px; background:var(--stroke)}
+.nav-group.first{padding-top:2px}
+
+/* ---------- STEP NAV (guia: anterior / próximo) ---------- */
+.stepnav{display:flex; gap:12px; margin-top:28px; padding-top:20px; border-top:1px solid var(--stroke); flex-wrap:wrap}
+.stepbtn{flex:1 1 200px; min-width:0; display:flex; align-items:center; gap:13px; padding:13px 16px; border-radius:15px;
+  border:1px solid var(--stroke); background:var(--glass2); cursor:pointer; text-align:left; color:inherit; font:inherit;
+  transition:transform .2s, border-color .2s, background .2s}
+.stepbtn:hover{border-color:rgba(90,211,196,.5); transform:translateY(-1px); background:var(--glass)}
+.stepbtn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.stepbtn.next{flex-direction:row-reverse; text-align:right}
+.stepbtn .sarr{font-size:22px; font-weight:700; color:var(--accent); line-height:1; flex:0 0 auto}
+.stepbtn .slab{display:block; font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint)}
+.stepbtn .stt{display:block; font-family:"Sora",sans-serif; font-weight:600; font-size:14px; margin-top:3px; letter-spacing:-.01em}
+.stepbtn.ghost{visibility:hidden}
 
 /* ---------- APP MAIN ---------- */
 .app{min-width:0; display:flex; flex-direction:column; overflow-x:hidden}
@@ -205,6 +222,7 @@ table.dyn tbody tr.hlrow{background:rgba(90,211,196,.1)}
   .side{position:static; height:auto; border-right:none; border-bottom:1px solid var(--stroke); padding:12px 12px 14px; gap:10px}
   .side-brand{padding:0 2px}
   .side-nav{flex-direction:row; flex-wrap:wrap; gap:6px}
+  .nav-group{flex:1 1 100%; padding:8px 3px 1px; font-size:8.5px}
   .navitem{padding:9px; gap:0; border:1px solid var(--stroke); border-radius:11px} .navitem>span:not(.ico){display:none} .navitem .navnum{display:none}
   .navitem[aria-current="true"]{border-color:transparent}
   .side-seg{margin-top:2px; padding-top:10px}
@@ -903,12 +921,29 @@ function momentos(k){const items=[],s=DERIV.stats[k];
 
 /* ===================== SIDEBAR + ROUTER ===================== */
 const nav=$("#nav"),stage=$("#stage"),varchips=$("#varchips");
-/* ordem por lógica: pontos de entrada primeiro (apresentação e fluxo), depois análises */
-const ORDER=["apresentacao","pipeline","visao","analise","descr","conf","perfis","dias","d17","agudo","agcron","intraentre","limites","traj","snr","distrib","corr","pca"];
+/* ordem por lógica, agrupada: pontos de entrada primeiro, depois panorama, resultados e aprofundamento.
+   NAVGROUPS é a única fonte de verdade — dela derivam a ordem, a numeração e a navegação anterior/próximo. */
+const NAVGROUPS=[
+  {lab:"Comece por aqui", ids:["apresentacao","pipeline"]},
+  {lab:"Panorama",        ids:["visao","analise"]},
+  {lab:"Resultados",      ids:["descr","conf","perfis","dias","d17","agudo"]},
+  {lab:"Aprofundar",      ids:["agcron","intraentre","limites","traj","snr","distrib","corr","pca"]}
+];
+const ORDER=NAVGROUPS.flatMap(g=>g.ids);
 SECTIONS.sort((a,b)=>{const ia=ORDER.indexOf(a.id),ib=ORDER.indexOf(b.id);return (ia<0?99:ia)-(ib<0?99:ib);});
-SECTIONS.forEach((s,i)=>{const b=document.createElement("div");b.className="navitem";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.dataset.id=s.id;
-  b.innerHTML=`<span class="ico">${ICONS[s.icon]||ICONS.grid}</span><span>${s.lab}</span><span class="navnum">${String(i+1).padStart(2,"0")}</span>`;
-  b.onclick=()=>go(s.id);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go(s.id);}};nav.appendChild(b);});
+const secById=id=>SECTIONS.find(x=>x.id===id);
+let _ni=0;
+NAVGROUPS.forEach((gp,gi)=>{const gl=document.createElement("div");gl.className="nav-group"+(gi===0?" first":"");gl.textContent=gp.lab;nav.appendChild(gl);
+  gp.ids.forEach(id=>{const s=secById(id);if(!s)return;_ni++;
+    const b=document.createElement("div");b.className="navitem";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.dataset.id=s.id;b.title=s.lab;
+    b.innerHTML=`<span class="ico">${ICONS[s.icon]||ICONS.grid}</span><span>${s.lab}</span><span class="navnum">${String(_ni).padStart(2,"0")}</span>`;
+    b.onclick=()=>go(s.id);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go(s.id);}};nav.appendChild(b);});});
+function addStepNav(host,id){const i=ORDER.indexOf(id);if(i<0)return;
+  const prev=i>0?secById(ORDER[i-1]):null,next=i<ORDER.length-1?secById(ORDER[i+1]):null;
+  const foot=document.createElement("div");foot.className="stepnav";
+  const cell=(s,kind)=>s?`<button class="stepbtn ${kind}" type="button" data-go="${s.id}"><span class="sarr">${kind==="prev"?"‹":"›"}</span><span class="stx"><span class="slab">${kind==="prev"?"Anterior":"Próximo"}</span><span class="stt">${s.lab}</span></span></button>`:`<span class="stepbtn ghost"></span>`;
+  foot.innerHTML=cell(prev,"prev")+cell(next,"next");host.appendChild(foot);
+  foot.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));}
 // variable chips (global segmentation)
 function buildChips(){varchips.innerHTML="";const all=document.createElement("span");all.className="vchip";all.dataset.k="";all.innerHTML=`<span class="dot" style="background:linear-gradient(90deg,#33c2ad,#8b7bf0)"></span>Todas`;all.onclick=()=>setVar(null);varchips.appendChild(all);
   DK.forEach(k=>{const v=DERIV.vars[k];const c=document.createElement("span");c.className="vchip";c.dataset.k=k;c.innerHTML=`<span class="dot" style="background:${v.c}"></span>${v.lab}`;c.onclick=()=>setVar(k);varchips.appendChild(c);});syncChips();}
@@ -919,7 +954,7 @@ let CUR="visao";
 function go(id){const s=SECTIONS.find(x=>x.id===id)||SECTIONS[0];CUR=s.id;
   nav.querySelectorAll(".navitem").forEach(b=>b.setAttribute("aria-current",b.dataset.id===s.id?"true":"false"));
   $("#crumbico").innerHTML=ICONS[s.icon]||ICONS.grid;$("#crumbtitle").textContent=s.lab;$("#crumbtag").textContent=(s.render.tag||"análise");
-  stage.className="panel";stage.innerHTML="";requestAnimationFrame(()=>{s.render(stage);requestAnimationFrame(()=>stage.classList.add("in"));});
+  stage.className="panel";stage.innerHTML="";requestAnimationFrame(()=>{s.render(stage);addStepNav(stage,s.id);requestAnimationFrame(()=>stage.classList.add("in"));});
   try{window.scrollTo(0,0);}catch(e){}
   history.replaceState(null,"","#"+id);}
 go((location.hash||"").slice(1)||"apresentacao");
