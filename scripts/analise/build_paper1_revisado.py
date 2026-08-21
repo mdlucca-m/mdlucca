@@ -248,7 +248,8 @@ P('A forma temporal das trajetórias foi analisada por três abordagens compleme
   'implementados especificamente para este estudo, com distância euclidiana sobre escores padronizados e permutação '
   'restrita ao estrato do atleta, de modo a respeitar o delineamento de medidas repetidas — restrição que os '
   'procedimentos de uma via dos pacotes genéricos não contemplam. As figuras foram geradas com Plotly e Matplotlib. '
-  'Adotou-se o nível de significância de 5%.')
+  'Adotou-se o nível de significância de 5%. O fluxo de decisão que orientou a escolha de cada método, segundo as '
+  'propriedades dos dados, está resumido na Figura 26.')
 P('A adequação da via multivariada paramétrica foi verificada antes de sua interpretação. A normalidade '
   'multivariada das seis dimensões foi rejeitada em todos os subgrupos comparados (teste de Henze-Zirkler, '
   'p < 0,001; assimetria e curtose multivariadas de Mardia, p < 0,001), e a homogeneidade das matrizes de '
@@ -620,6 +621,7 @@ P('Tomados em conjunto, os resultados desenham uma história coerente do microci
   'nenhum método isolado. A recuperação apenas parcial entre sessões, revelada pela decomposição do efeito agudo e '
   'da recuperação, dá a esse quadro o seu conteúdo prático: uma fadiga funcional, induzida de forma planejada, que '
   'deve ser monitorada justamente na relação entre a carga aguda e a recuperação entre as sessões.')
+figure('arvore_decisoes.png','Árvore de decisões analíticas do estudo: a escolha de cada método estatístico segundo as propriedades dos dados (normalidade, efeito de piso, tipo de comparação e pressupostos multivariados), com a trilha paralela de qualidade das medidas (ICC, α/ω, AFC e TRI) e as regras transversais aplicadas em toda a análise.',w=15.5)
 
 # ===== 5 DISCUSSÃO =====
 H1('DISCUSSÃO','5')
