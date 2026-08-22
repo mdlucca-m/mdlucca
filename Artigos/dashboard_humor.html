@@ -607,6 +607,27 @@ function drawHiitBars(host){const {cv,g}=mk(host,300);const w=cv._w,h=cv._h,pad=
     if(prog>0.9){g.textAlign="left";g.fillStyle=C.faint;g.fillText("■ sem HIIT",ax.x0+4,ax.y1+12);g.fillStyle="#ff7a45";g.fillText("■ dias de HIIT",ax.x0+90,ax.y1+12);}});}
 const HDL={"velG": {"Vigor": {"2": -1.9485653235653233, "3": 0.04642857142857171, "4": -0.43119658119658144, "5": 0.27946859903381593, "6": 0.1851778656126486, "7": -1.254329004329004}, "Fadiga": {"2": 1.203062678062678, "3": -0.16153846153846096, "4": 0.7558302808302804, "5": -0.49075224292615616, "6": 0.4834650856389988, "7": 1.7033189033189036}}, "rowsA": [{"dim": "Vigor", "lab": "Vigor", "vh": -1.17, "vr": 0.06, "dz": -0.84, "p": 0.001}, {"dim": "Fadiga", "lab": "Fadiga", "vh": 1.17, "vr": 0.02, "dz": 0.5, "p": 0.026}, {"dim": "TMD", "lab": "PTH", "vh": 2.55, "vr": -0.43, "dz": 0.52, "p": 0.034}, {"dim": "FadFisica", "lab": "Fadiga f\u00edsica", "vh": 1.31, "vr": 0.1, "dz": 0.77, "p": 0.003}], "hiit": [2, 4, 7], "bands": {"Vigor": [3.84, 5.02, 7.09], "Fadiga": [7.41, 5.24, 4.26], "FadFisica": [6.95, 6.09, 5.24]}, "band_n": [6, 10, 9], "median": 14.9, "limr": [{"dim": "Vigor", "lab": "Vigor", "hi": 6.34, "lo": 4.55, "dz": 0.76, "p": 0.061}, {"dim": "Fadiga", "lab": "Fadiga", "hi": 4.26, "lo": 6.65, "dz": -0.8, "p": 0.068}, {"dim": "FadFisica", "lab": "Fadiga f\u00edsica", "hi": 5.42, "lo": 6.6, "dz": -0.77, "p": 0.036}, {"dim": "TMD", "lab": "PTH", "hi": 4.11, "lo": 5.26, "dz": -0.48, "p": 0.183}]};
 
+const VM={"vc": [{"lab": "Vigor", "dim": "Vigor", "atleta": 52.7, "dia": 13.2, "momento": 34.1, "icc": 0.527}, {"lab": "Fadiga", "dim": "Fadiga", "atleta": 56.3, "dia": 12.2, "momento": 31.4, "icc": 0.563}, {"lab": "PTH", "dim": "TMD", "atleta": 57.2, "dia": 14.4, "momento": 28.3, "icc": 0.572}, {"lab": "Fadiga f\u00edsica", "dim": "FadFisica", "atleta": 38.7, "dia": 17.2, "momento": 44.1, "icc": 0.387}], "eff": {"Vigor": {"ag": -1.09, "agdz": -0.39, "rec": 0.79, "recdz": 0.27}, "Fadiga": {"ag": 1.5, "agdz": 0.45, "rec": -0.94, "recdz": -0.27}, "TMD": {"ag": 3.47, "agdz": 0.44, "rec": -2.75, "recdz": -0.35}, "FadFisica": {"ag": 1.65, "agdz": 0.76, "rec": -0.98, "recdz": -0.4}}, "curves": {"Vigor": {"x": [0.8, 1.2, 1.8, 2.2, 2.8, 3.2, 3.8, 4.2, 4.8, 5.2, 5.8, 6.2, 6.8, 7.2], "y": [8.3, 6.13, 6.0, 4.73, 5.92, 4.9, 5.71, 5.06, 5.78, 6.11, 6.55, 4.75, 4.48, 4.38]}, "Fadiga": {"x": [0.8, 1.2, 1.8, 2.2, 2.8, 3.2, 3.8, 4.2, 4.8, 5.2, 5.8, 6.2, 6.8, 7.2], "y": [3.37, 4.4, 3.96, 6.54, 4.42, 5.9, 5.33, 6.28, 4.83, 5.53, 5.32, 6.7, 6.76, 7.81]}, "TMD": {"x": [0.8, 1.2, 1.8, 2.2, 2.8, 3.2, 3.8, 4.2, 4.8, 5.2, 5.8, 6.2, 6.8, 7.2], "y": [0.59, 4.67, 3.88, 6.69, 2.0, 4.81, 3.1, 7.17, 1.78, 1.95, 2.36, 8.85, 7.19, 9.75]}, "FadFisica": {"x": [0.8, 1.2, 1.8, 2.2, 2.8, 3.2, 3.8, 4.2, 4.8, 5.2, 5.8, 6.2, 6.8, 7.2], "y": [3.59, 5.47, 4.19, 6.69, 5.42, 6.52, 5.57, 7.33, 5.26, 6.16, 5.86, 6.75, 6.81, 8.44]}}};
+
+function drawVarBars(host){const {cv,g}=mk(host,300);const w=cv._w,h=cv._h,pad={l:96,r:16,t:14,b:38};
+  const A=VM.vc;const cols=["#1971c2","#e8590c","#adb5bd"];
+  anim(1200,prog=>{const ax=gaxes(g,w,h,pad,0,100,0,A.length,v=>v.toFixed(0),()=>"",5,0);
+    A.forEach((r,i)=>{const y=ax.Y(i+0.5),bh=13;let acc=0;
+      [r.atleta,r.dia,r.momento].forEach((val,j)=>{const vv=val*prog;g.fillStyle=cols[j];g.fillRect(ax.X(acc),y-bh,ax.X(acc+vv)-ax.X(acc),bh*2);acc+=vv;});
+      g.fillStyle=C.ink;g.font='11px "Sora",sans-serif';g.textAlign="right";g.textBaseline="middle";g.fillText(r.lab,ax.x0-8,y);});
+    g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="alphabetic";g.fillText("% da variância total",(ax.x0+ax.x1)/2,h-8);
+    if(prog>0.9){const lg=[["entre atletas",cols[0]],["entre dias",cols[1]],["intra-dia",cols[2]]];g.textAlign="left";lg.forEach((l,i)=>{g.fillStyle=l[1];g.fillText("■ "+l[0],ax.x0+6+i*118,ax.y1+12);});}});}
+function drawMomCurve(host){const {cv,g}=mk(host,320);const w=cv._w,h=cv._h,pad={l:42,r:14,t:14,b:42};
+  const keys=[["Vigor",C.vigor],["Fadiga",C.fadiga]];
+  const allY=keys.flatMap(([k])=>VM.curves[k].y);const ymin=Math.min(...allY)-.4,ymax=Math.max(...allY)+.4;
+  anim(1500,prog=>{const ax=gaxes(g,w,h,pad,0.5,7.5,ymin,ymax,v=>v.toFixed(0),v=>v.toFixed(0),7,5);
+    [2,4,7].forEach(d=>{g.fillStyle="rgba(255,122,69,.09)";g.fillRect(ax.X(d-0.35),ax.y1,ax.X(d+0.35)-ax.X(d-0.35),ax.y0-ax.y1);});
+    keys.forEach(([k,col])=>{const X=VM.curves[k].x,Y=VM.curves[k].y,n=Math.max(2,Math.floor(X.length*prog));
+      g.strokeStyle=col;g.lineWidth=2.4;g.lineJoin="round";g.beginPath();for(let i=0;i<n;i++){const px=ax.X(X[i]),py=ax.Y(Y[i]);i?g.lineTo(px,py):g.moveTo(px,py);}g.stroke();
+      for(let i=0;i<n;i++){const isPos=Math.round((X[i]%1)*10)/10>0;g.fillStyle=isPos?col:"#0b1220";g.strokeStyle=col;g.lineWidth=1.6;g.beginPath();g.arc(ax.X(X[i]),ax.Y(Y[i]),3.4,0,7);g.fill();if(!isPos)g.stroke();}});
+    g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="alphabetic";g.fillText("dia · ○ pré → ● pós (agudo) · pós→pré (recuperação) · faixas HIIT",(ax.x0+ax.x1)/2,h-8);
+    if(prog>0.9){g.textAlign="left";g.fillStyle=C.vigor;g.fillText("● vigor",ax.x0+6,ax.y1+12);g.fillStyle=C.fadiga;g.fillText("● fadiga",ax.x0+64,ax.y1+12);}});}
+
 function drawHiitVel(host){const {cv,g}=mk(host,300);const w=cv._w,h=cv._h,pad={l:46,r:14,t:14,b:40};
   const days=[2,3,4,5,6,7];const V=days.map(d=>HDL.velG.Vigor[d]),F=days.map(d=>HDL.velG.Fadiga[d]);
   const all=V.concat(F);const ymin=Math.min(...all)-.3,ymax=Math.max(...all)+.3;
@@ -941,6 +962,15 @@ const SECTIONS=[
   drawLOAO($("#h_loao",g2));
   $("#k_sa",g2).innerHTML=`<p class="note" style="font-size:13px;line-height:1.6;color:var(--muted)"><b>LOAO:</b> nenhum atleta isolado sustenta o efeito — vigor, fadiga e PTH mantêm sinal e magnitude ao remover qualquer um. <b>Janela:</b> D1→D7 ≈ D2→D7 (mesma conclusão com ou sem baseline). <b>Suavização:</b> a inflexão da fadiga fica em <b style="color:${C.fadiga}">~dia 4,07 em todos os filtros</b> (polinômio e splines); a da PTH é mais sensível ao método. As conclusões centrais não dependem de uma escolha analítica particular.</p>`;
 }},
+{id:"variancia",lab:"Variância & momentos",icon:"pulse",render(h){
+  head(h,"invariância vs variação","Variância (intra-grupo, intra-sujeito, intra-dia) e curva agudo × recuperação","Onde mora a variância do humor: entre atletas (traço, <b>invariante</b>), entre dias (estado) e dentro do dia (agudo). E as <b>curvas no nível dos momentos</b>: o efeito agudo (pré→pós) e a recuperação noturna (pós do dia anterior → pré do seguinte).");
+  const vg=VM.vc.find(r=>r.dim==="Vigor"),ff=VM.vc.find(r=>r.dim==="FadFisica"),e=VM.eff.FadFisica;
+  h.insertAdjacentHTML("beforeend",`<div class="kpis"><div class="kpi"><span class="stripe" style="background:#1971c2"></span><div class="lab">Vigor · entre atletas</div><div class="val" style="color:#1971c2;font-size:22px">${String(vg.atleta).replace(".",",")}%</div><div class="cap">traço estável · ICC ${String(vg.icc).replace(".",",")}</div></div><div class="kpi"><span class="stripe" style="background:${C.faint}"></span><div class="lab">Fadiga física · intra-dia</div><div class="val" style="color:${C.fadiga};font-size:22px">${String(ff.momento).replace(".",",")}%</div><div class="cap">a mais reativa no dia</div></div><div class="kpi"><span class="stripe" style="background:${C.fadiga}"></span><div class="lab">Agudo → recuperação</div><div class="val" style="color:${C.fadiga};font-size:19px">+${String(e.ag).replace(".",",")} / ${String(e.rec).replace(".",",")}</div><div class="cap">fad. física · recuperação parcial</div></div></div>`);
+  tilt(h);
+  const g1=cards(h,`<div class="card"><h3>Onde está a variância</h3><p class="note">entre atletas (traço) · entre dias (estado) · intra-dia (agudo)</p><div class="host" id="h_var"></div></div><div class="card"><h3>Curva no nível dos momentos</h3><p class="note">○ pré → ● pós (agudo) e pós→pré (recuperação) · faixas = HIIT</p><div class="host" id="h_mom"></div></div>`);
+  drawVarBars($("#h_var",g1)); drawMomCurve($("#h_mom",g1));
+  h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:16px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.62;color:var(--ink)">Para vigor, fadiga e PTH, <b>mais da metade da variância é entre atletas</b> — diferenças interindividuais estáveis (traço), o que exige <b style="color:var(--ink)">baseline por atleta</b> na leitura individual. A <b>fadiga física</b> é a mais reativa dentro do dia (${String(ff.momento).replace(".",",")}% intra-dia). Na curva de momentos, o treino sobe a fadiga (agudo +${String(VM.eff.Fadiga.ag).replace(".",",")}) e a noite recupera apenas parte (${String(VM.eff.Fadiga.rec).replace(".",",")}): <b style="color:var(--ink)">recuperação incompleta → acúmulo ao longo da semana</b>.</p></div>`);
+}},
 {id:"hiit",lab:"Dias com/sem HIIT",icon:"pulse",render(h){
   head(h,"carga do dia","Dias com HIIT versus sem HIIT","Comparação do humor nos dias com sessão de HIIT (dias 2, 4 e 7) e nos demais dias (1, 3, 5 e 6), pareada por atleta. O custo aparece no <b>eixo energia–fadiga</b>: nos dias de HIIT o vigor cai e a fadiga sobe; as dimensões negativas não mudam.");
   const vg=HIITD.rows.find(r=>r.dim==="Vigor"),fd=HIITD.rows.find(r=>r.dim==="Fadiga");
@@ -1267,7 +1297,7 @@ const NAVGROUPS=[
   {lab:"3 · Variação & perfis",    ids:["d17","dias","perfis"]},
   {lab:"4 · Estrutura multivariada",ids:["pca","multivar"]},
   {lab:"5 · Dinâmica temporal",    ids:["limites","traj","snr"]},
-  {lab:"6 · Resposta aguda",       ids:["agudo","agcron","intraentre","hiit"]},
+  {lab:"6 · Resposta aguda",       ids:["agudo","agcron","intraentre","variancia","hiit"]},
   {lab:"7 · Relações & predição",  ids:["corr","preditivo"]},
   {lab:"8 · Aptidão física",       ids:["fisico"]}
 ];
