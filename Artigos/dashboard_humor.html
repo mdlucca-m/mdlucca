@@ -662,6 +662,25 @@ function drawAllo(host){const {cv,g}=mk(host,300);const w=cv._w,h=cv._h,pad={l:4
     g.save();g.translate(11,(ax.y0+ax.y1)/2);g.rotate(-Math.PI/2);g.textBaseline="top";g.fillText("Fadiga física",0,0);g.restore();
     if(prog>0.85){g.textAlign="right";g.fillStyle="#e8590c";g.font='700 12px "Sora"';g.fillText("fadiga ∝ PV^"+String(rr.b).replace(".",","),ax.x1-4,ax.y1+14);}});}
 
+const PVMODEL={"FadFisica": {"vals": [1.48, 1.49, 1.52, 1.92, 1.59], "base": 1.57, "best": "Linear"}, "Vigor": {"vals": [2.43, 2.44, 2.26, 2.58, 2.23], "base": 2.42, "best": "LightGBM"}, "names": ["Linear", "Logar\u00edtmico", "Alom\u00e9trico", "XGBoost", "LightGBM"]};
+
+function drawPVModel(host){const {cv,g}=mk(host,320);const w=cv._w,h=cv._h,pad={l:44,r:14,t:16,b:52};
+  const N=PVMODEL.names,cols=["#1971c2","#4dabf7","#adb5bd","#e8590c","#2f9e44"];
+  const groups=[["FadFisica","Fadiga física"],["Vigor","Vigor"]];
+  const allv=groups.flatMap(([k])=>PVMODEL[k].vals.concat([PVMODEL[k].base]));
+  const ymax=Math.max(...allv)*1.12;
+  anim(1300,prog=>{const ax=gaxes(g,w,h,pad,0,groups.length,0,ymax,()=>"",v=>v.toFixed(1).replace(".",","),0,5);
+    const gw=(ax.x1-ax.x0)/groups.length;
+    groups.forEach(([k,lab],gi)=>{const x0=ax.x0+gw*gi+gw*0.08,bw=(gw*0.84)/N.length,o=PVMODEL[k];
+      N.forEach((nm,i)=>{const val=o.vals[i]*prog,x=x0+bw*i;
+        g.fillStyle=cols[i];g.globalAlpha=.92;g.fillRect(x,ax.Y(val),bw*0.82,ax.Y(0)-ax.Y(val));g.globalAlpha=1;
+        if(prog>0.92){g.fillStyle=C.muted;g.font='8.5px "IBM Plex Mono"';g.textAlign="center";g.textBaseline="alphabetic";g.save();g.translate(x+bw*0.41,ax.Y(0)+11);g.rotate(-Math.PI/2.6);g.textAlign="right";g.fillText(nm,0,0);g.restore();}});
+      // baseline
+      g.strokeStyle=C.crit;g.setLineDash([5,4]);g.lineWidth=1.4;g.beginPath();g.moveTo(x0-gw*0.02,ax.Y(o.base));g.lineTo(x0+gw*0.86,ax.Y(o.base));g.stroke();g.setLineDash([]);
+      g.fillStyle=C.ink;g.font='700 11px "Sora",sans-serif';g.textAlign="center";g.textBaseline="alphabetic";g.fillText(lab,x0+gw*0.42,h-6);});
+    if(prog>0.9){g.fillStyle=C.crit;g.font='9.5px "IBM Plex Mono"';g.textAlign="left";g.textBaseline="alphabetic";g.fillText("--- baseline (prever a média)",ax.x0+6,ax.y1+11);}
+    g.save();g.translate(11,(ax.y0+ax.y1)/2);g.rotate(-Math.PI/2);g.fillStyle=C.muted;g.font='10px "IBM Plex Mono"';g.textAlign="center";g.textBaseline="top";g.fillText("RMSE (LOO, escala orig.)",0,0);g.restore();});}
+
 function drawHiitVel(host){const {cv,g}=mk(host,300);const w=cv._w,h=cv._h,pad={l:46,r:14,t:14,b:40};
   const days=[2,3,4,5,6,7];const V=days.map(d=>HDL.velG.Vigor[d]),F=days.map(d=>HDL.velG.Fadiga[d]);
   const all=V.concat(F);const ymin=Math.min(...all)-.3,ymax=Math.max(...all)+.3;
@@ -988,6 +1007,9 @@ const SECTIONS=[
   const g4=cards(h,`<div class="card"><h3>Ajuste alométrico pelo pico de velocidade</h3><p class="note">lei de potência (log-log): humor = a · PV<sup>b</sup> · fadiga física</p><div class="host" id="h_allo"></div></div><div class="card"><h3>Expoentes de escala (b)</h3><p class="note">quanto o humor escala com a aptidão</p><div id="k_allo"></div></div>`);
   drawAllo($("#h_allo",g4));
   $("#k_allo",g4).innerHTML=`<div class="kpis" style="margin-bottom:8px"><div class="kpi"><span class="stripe" style="background:${C.fadiga}"></span><div class="lab">Fadiga física · b</div><div class="val" style="color:${C.fadiga};font-size:22px">${String(af.b).replace(".",",")}</div><div class="cap">IC95 [${String(af.lo).replace(".",",")}, ${String(af.hi).replace(".",",")}] · R²=${String(af.r2).replace(".",",")}</div></div><div class="kpi"><span class="stripe" style="background:${C.vigor}"></span><div class="lab">Vigor · b</div><div class="val" style="color:${C.vigor};font-size:22px">+${String(av.b).replace(".",",")}</div><div class="cap">R²=${String(av.r2).replace(".",",")}</div></div></div><p class="note" style="font-size:12.5px;line-height:1.6;color:var(--muted)">No modelo alométrico, a <b style="color:var(--ink)">fadiga física decresce com a aptidão</b> (expoente negativo, b≈${String(af.b).replace(".",",")}) e o <b style="color:var(--ink)">vigor cresce</b> (b≈+${String(av.b).replace(".",",")}). Os expoentes têm IC amplo (n=25), mas a direção é consistente com o eixo energia–fadiga.</p>`;
+  const g5=cards(h,`<div class="card"><h3>PV → humor: qual modelo?</h3><p class="note">erro de previsão por validação cruzada (LOO) · ajustes vs gradient boosting · linha = prever a média</p><div class="host" id="h_pvmodel"></div></div><div class="card"><h3>Leitura</h3><p class="note">o que a comparação de modelos revela</p><div id="k_pvmodel"></div></div>`);
+  drawPVModel($("#h_pvmodel",g5));
+  $("#k_pvmodel",g5).innerHTML=`<p class="note" style="font-size:13px;line-height:1.6;color:var(--muted)">Prevendo o humor só pelo <b style="color:var(--ink)">pico de velocidade</b>, os <b style="color:var(--ink)">ajustes simples</b> (linear/log) são os melhores ou empatam, enquanto o <b style="color:${C.fadiga}">XGBoost fica pior que prever a média</b> (sobreajuste) e o LightGBM apenas empata com o baseline. Ou seja: a relação PV→humor é <b style="color:var(--ink)">fraca e essencialmente linear</b> — nenhum modelo flexível a melhora. Prático: reporta-se o <b style="color:var(--ink)">ρ de Spearman (−0,54)</b> como efeito, sem prometer previsão individual.</p>`;
   $("#k_lim",g3).innerHTML=`<div class="kpis" style="margin-bottom:8px"><div class="kpi"><span class="stripe" style="background:${C.fadiga}"></span><div class="lab">Fadiga física</div><div class="val" style="color:${C.fadiga};font-size:20px">${String(fl.lo).replace(".",",")} → ${String(fl.hi).replace(".",",")}</div><div class="cap">abaixo → acima · dz ${String(fl.dz).replace(".",",")} · p=${String(fl.p).replace(".",",")}</div></div><div class="kpi"><span class="stripe" style="background:${C.vigor}"></span><div class="lab">Vigor</div><div class="val" style="color:${C.vigor};font-size:20px">${String(vl.lo).replace(".",",")} → ${String(vl.hi).replace(".",",")}</div><div class="cap">abaixo → acima · dz +${String(vl.dz).replace(".",",")}</div></div></div><p class="note" style="font-size:12.5px;line-height:1.6;color:var(--muted)">Cruzar o limiar de <b style="color:var(--ink)">~${String(HDL.median).replace(".",",")} km/h</b> no T-CAR separa dois perfis: abaixo dele, mais fadiga e menos vigor; acima, o inverso — a aptidão aeróbia como <b style="color:var(--ink)">amortecedor da fadiga</b>.</p>`;
   h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:16px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.62;color:var(--ink)">A capacidade aeróbia funciona como <b>moderador da fadiga do microciclo</b>: o atleta mais apto tolera melhor a carga, fadigando menos e preservando o vigor — efeito específico do <b>eixo energia–fadiga</b>, ausente nas dimensões afetivas negativas (piso). Detalhes no artigo separado (T-CAR × humor).</p></div>`);
 }},
