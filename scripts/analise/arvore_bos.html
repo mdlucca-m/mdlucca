@@ -1,0 +1,117 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<style>
+  :root{
+    --ink:#000; --mut:#3f3f3f; --faint:#6b6b6b;
+    --line:#9a9a9a; --box:#ffffff; --qbox:#f1f1f1;
+    --bar-q:#1a1a1a; --bar-leaf:#555; --bar-strong:#111;
+  }
+  *{box-sizing:border-box; -webkit-font-smoothing:antialiased}
+  body{margin:0; background:#fff; font-family:"Arial","Helvetica",sans-serif; color:var(--ink)}
+  .page{width:1000px; padding:26px 30px 30px; background:#fff}
+  .node{position:relative; margin:0}
+  .qbox{background:var(--qbox); border:1px solid var(--line); border-left:7px solid var(--bar-q);
+        border-radius:8px; padding:11px 15px; margin:6px 0}
+  .qt{font-weight:700; font-size:16px; letter-spacing:.1px}
+  .qs{font-size:12.5px; color:var(--mut); margin-top:2px}
+  .children{margin-left:34px; border-left:1.5px dashed var(--line); padding-left:0}
+  .branch{position:relative; margin:2px 0 2px 0; padding-left:26px}
+  .branch::before{content:""; position:absolute; left:0; top:19px; width:22px; height:1.5px;
+        background:var(--line)}
+  .label{display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:.7px;
+        text-transform:uppercase; color:var(--mut); background:#fff; border:1px solid var(--line);
+        border-radius:11px; padding:3px 11px; margin:6px 0 3px}
+  .leaf{display:flex; gap:11px; align-items:flex-start; background:var(--box);
+        border:1px solid var(--line); border-left:6px solid var(--bar-leaf);
+        border-radius:8px; padding:10px 14px; margin:2px 0 4px}
+  .leaf.strong{border-left:6px solid var(--bar-strong)}
+  .leaf .body{flex:1}
+  .lt{font-weight:700; font-size:14.5px}
+  .ld{font-size:12.5px; color:var(--mut); margin-top:2px; line-height:1.42}
+  .lex{font-size:11.5px; color:var(--faint); font-style:italic; margin-top:3px}
+  .foot{display:flex; gap:16px; margin-top:20px}
+  .fcard{flex:1; border:1px solid var(--line); border-left:4px solid var(--bar-strong);
+        border-radius:8px; padding:12px 15px}
+  .fh{font-weight:700; font-size:13.5px; margin-bottom:6px}
+  .fp{font-size:12px; color:var(--mut); line-height:1.5}
+  ul.rules{margin:4px 0 0; padding-left:16px} ul.rules li{font-size:12px; color:var(--mut); margin:3px 0; line-height:1.42}
+  b{color:var(--ink)}
+</style></head>
+<body><div class="page" id="page">
+
+  <div class="node">
+    <div class="qbox"><div class="qt">Variable distribution?</div><div class="qs">Shapiro–Wilk test (raw scores and change scores)</div></div>
+    <div class="children">
+
+      <div class="branch"><span class="label">Normal</span>
+        <div class="leaf"><div class="body"><div class="lt">Parametric route (not applicable)</div><div class="ld">none of the six BRUMS dimensions was normally distributed; the adopted route is entirely non-parametric</div></div></div>
+      </div>
+
+      <div class="branch"><span class="label">Non-normal (mood / BRUMS)</span>
+        <div class="node">
+          <div class="qbox"><div class="qt">Floor effect?</div><div class="qs">proportion of zero scores per dimension</div></div>
+          <div class="children">
+
+            <div class="branch"><span class="label">Severe (≥ 50% zeros)</span>
+              <div class="leaf strong"><div class="body"><div class="lt">Prevalence &amp; profile reading + caution</div><div class="ld">negative dimensions (depression, anger, tension, confusion): weak signal (S/N &lt; 4); read via profile and migration, not the mean</div><div class="lex">sentinels of rare states</div></div></div>
+            </div>
+
+            <div class="branch"><span class="label">Low (vigour, fatigue)</span>
+              <div class="node">
+                <div class="qbox"><div class="qt">Which comparison?</div><div class="qs">strong signal (S/N 8.4 and 6.7) → full quantitative analysis</div></div>
+                <div class="children">
+
+                  <div class="branch"><span class="label">2 paired time points</span>
+                    <div class="leaf"><div class="body"><div class="lt">Wilcoxon + dz</div><div class="ld">pre×post and D1×D7; each athlete is their own control</div></div></div>
+                  </div>
+                  <div class="branch"><span class="label">7 days (repeated measures)</span>
+                    <div class="leaf"><div class="body"><div class="lt">Friedman + Kendall's W</div><div class="ld">change across the week</div></div></div>
+                  </div>
+                  <div class="branch"><span class="label">Association between dimensions</span>
+                    <div class="leaf"><div class="body"><div class="lt">Spearman (ρ)</div><div class="ld">rank correlation</div></div></div>
+                  </div>
+                  <div class="branch"><span class="label">Temporal shape</span>
+                    <div class="leaf"><div class="body"><div class="lt">Spline + 1st/2nd derivative · cubic polynomial</div><div class="ld">inflection (2nd derivative = 0, ~day 4); degree chosen by adjusted R²; exact crossings</div><div class="lex">velocity and acceleration of the accumulating strain</div></div></div>
+                  </div>
+
+                  <div class="branch"><span class="label">Multivariate profile (6 dimensions)</span>
+                    <div class="node">
+                      <div class="qbox"><div class="qt">Multivariate assumptions?</div><div class="qs">multivariate normality and homogeneity of covariances</div></div>
+                      <div class="children">
+                        <div class="branch"><span class="label">Met</span>
+                          <div class="leaf"><div class="body"><div class="lt">MANOVA / Hotelling's T² + Bonferroni</div><div class="ld">global parametric confirmation (Wilks λ = 0.181)</div></div></div>
+                        </div>
+                        <div class="branch"><span class="label">Violated (Henze–Zirkler p&lt;0.001; Box's M p&lt;0.001)</span>
+                          <div class="leaf strong"><div class="body"><div class="lt">PERMANOVA + PERMDISP</div><div class="ld">permutation restricted to the athlete (respects repeated measures); pre×post p = 0.002; PERMDISP separates location from dispersion</div><div class="lex">the piece consistent with the non-parametric route</div></div></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="fcard">
+      <div class="fh">Parallel track · measurement quality</div>
+      <div class="fp"><b>ICC + MDC/SWC</b> (between-day reliability → group-level change thresholds) · <b>Cronbach's α + McDonald's ω</b> (internal consistency) · <b>CFA</b> (6 factors, 23 items; floor item <i>tension_1</i> excluded; CFI 0.87) · <b>IRT</b> — graded response model (item functioning).</div>
+    </div>
+    <div class="fcard">
+      <div class="fh">Cross-cutting rules (always applied)</div>
+      <ul class="rules">
+        <li><b>Effect size alongside p</b> — relevance, not only significance.</li>
+        <li><b>Sampling unit = the athlete</b> — corrects pseudoreplication of repeated measures.</li>
+        <li><b>Triangulation</b> — each conclusion supported by independent methods.</li>
+        <li><b>α = 5%</b>, with multiplicity correction where applicable (Bonferroni).</li>
+      </ul>
+    </div>
+  </div>
+
+</div></body></html>

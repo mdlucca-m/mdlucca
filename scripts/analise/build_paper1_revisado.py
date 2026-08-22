@@ -52,6 +52,12 @@ def table(cap,header,rows,fs=9,note=None,src=True):
         pn=doc.add_paragraph(); rn=pn.add_run(note); rn.font.size=Pt(9); rn.font.name='Times New Roman'; pn.paragraph_format.space_after=Pt(0)
     if src:
         ps=doc.add_paragraph(); rs=ps.add_run('Fonte: dados da pesquisa (2026).'); rs.font.size=Pt(9); rs.font.name='Times New Roman'; ps.paragraph_format.space_after=Pt(6)
+def figure_bos(fn,cap,w=13.5):
+    # figura no formato Biology of Sport: legenda "Figure N." em ingles, sem linha de fonte
+    _FN[0]+=1
+    pp=doc.add_paragraph(); pp.alignment=WD_ALIGN_PARAGRAPH.CENTER; pp.add_run().add_picture(f'{FG}/{fn}',width=Cm(w)); pp.paragraph_format.space_before=Pt(6)
+    pc=doc.add_paragraph(); pc.alignment=WD_ALIGN_PARAGRAPH.CENTER; rc=pc.add_run('Figure %d. %s'%(_FN[0],cap)); rc.font.size=Pt(10.5); rc.font.name='Times New Roman'
+    pc.paragraph_format.space_after=Pt(6)
 def figure(fn,cap,w=15.5):
     _FN[0]+=1
     pp=doc.add_paragraph(); pp.alignment=WD_ALIGN_PARAGRAPH.CENTER; pp.add_run().add_picture(f'{FG}/{fn}',width=Cm(w)); pp.paragraph_format.space_before=Pt(6)
@@ -648,7 +654,7 @@ P('Tomados em conjunto, os resultados desenham uma história coerente do microci
   'nenhum método isolado. A recuperação apenas parcial entre sessões, revelada pela decomposição do efeito agudo e '
   'da recuperação, dá a esse quadro o seu conteúdo prático: uma fadiga funcional, induzida de forma planejada, que '
   'deve ser monitorada justamente na relação entre a carga aguda e a recuperação entre as sessões.')
-figure('arvore_decisoes.png','Árvore de decisões analíticas do estudo: a escolha de cada método estatístico segundo as propriedades dos dados (normalidade, efeito de piso, tipo de comparação e pressupostos multivariados), com a trilha paralela de qualidade das medidas (ICC, α/ω, AFC e TRI) e as regras transversais aplicadas em toda a análise.',w=15.5)
+figure_bos('arvore_decisoes_bos.png','Analytical decision tree of the study: the choice of each statistical method according to the properties of the data (distribution, floor effect, type of comparison and multivariate assumptions), with the parallel measurement-quality track (ICC, α/ω, CFA and IRT) and the cross-cutting rules applied throughout the analysis.',w=13.5)
 
 # ===== 5 DISCUSSÃO =====
 H1('DISCUSSÃO','5')
