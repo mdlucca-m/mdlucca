@@ -780,7 +780,37 @@ P('A análise sequencial das treze coletas revelou, por fim, a microestrutura da
   'aprendizagem de máquina e modelos de mediação, mostram que a recuperação subjetiva é determinada sobretudo pela '
   'fadiga e que a carga do dia anterior atua por meio dela, o que confere plausibilidade empírica ao acoplamento '
   'entre carga aguda e recuperação aqui descrito (SIMONELLI; FORMENTI; ROSSI, 2025).')
-H2('Aplicação prática e perspectivas','5.4')
+H2('Por que este modelo supera a abordagem clássica e onde está a inovação','5.4')
+P('O monitoramento do humor no esporte consolidou-se, ao longo das últimas décadas, em torno de uma rotina de '
+  'análise de variância de medidas repetidas e testes t conduzida em pacotes de uso corrente, como o SPSS. Essa '
+  'tradição responde bem a uma pergunta — houve diferença entre os dias? —, mas o faz sob pressupostos que os '
+  'dados de humor de atletas com frequência violam: a normalidade e a esfericidade são exigidas justamente onde a '
+  'compressão pelo efeito de piso produz assimetria e inflação de zeros, e o tempo é tratado como fator '
+  'categórico, o que reduz uma trajetória contínua a uma sequência de médias e descarta a forma da mudança. Ao '
+  'assumir os atletas como intercambiáveis, essa rotina também ignora a variação individual de trajetória. O '
+  'produto é uma leitura que informa se o humor mudou, sem informar quando, com que velocidade, para quem e com '
+  'que confiabilidade — precisamente as perguntas que orientam a decisão de ajuste de carga.')
+P('O modelo analítico proposto neste estudo troca essa pergunta única por um encadeamento de métodos escolhidos '
+  'em função das propriedades dos dados e resumido em uma árvore de decisões (Figura 30). Nenhuma de suas peças é, '
+  'isoladamente, inédita: a suavização e a razão sinal/ruído provêm do processamento de sinais; a PERMANOVA, da '
+  'ecologia de comunidades; a teoria de resposta ao item, da psicometria; os modelos mistos, da estatística '
+  'longitudinal. A contribuição está em integrá-las em um único fluxo aplicado ao monitoramento diário do humor no '
+  'esporte coletivo — um domínio que, historicamente, se acomodou à ANOVA e ao teste t sobre amostras pequenas e '
+  'distribuições dominadas pelo piso, ou seja, nas condições em que esses testes clássicos são menos confiáveis. '
+  'Importar o cálculo (derivadas, limites e ponto de inflexão) e a teoria de sinais (filtragem e razão '
+  'sinal/ruído) para a leitura de estados psicológicos, e amarrar a seleção de cada método a uma regra explícita '
+  'sobre a natureza dos dados, é o que distingue esta abordagem da prática consolidada e o que, até onde se pôde '
+  'verificar, ainda não havia sido reunido dessa forma para a dinâmica do humor em uma pré-temporada de handebol '
+  'de elite.')
+P('O ganho é, ao mesmo tempo, estatístico e prático. Ao dispensar pressupostos que os dados não cumprem, ao '
+  'descrever a forma da mudança e não apenas a sua presença, ao separar o sinal do ruído e ao respeitar a '
+  'dependência das medidas repetidas, o modelo produz inferências mais defensáveis sobre os mesmos dados. E, ao '
+  'delimitar honestamente o teto de previsibilidade individual — a regressão logística alcançou AUC de apenas 0,58 '
+  'e os modelos flexíveis de gradient boosting (XGBoost e LightGBM) não a superaram —, evita a promessa exagerada '
+  'de predição individual que a leitura clássica, silenciosa quanto à confiabilidade, não teria como sustentar. O '
+  'resultado é um retrato acionável para a comissão técnica: onde, quando, quanto e com que segurança o humor se '
+  'altera ao longo do microciclo.')
+H2('Aplicação prática e perspectivas','5.5')
 P('As características do handebol ajudam a explicar esse comportamento e orientam a aplicação. A modalidade impõe '
   'esforço intermitente de alta intensidade, com sprints curtos, mudanças de direção, saltos e contato, o que gera '
   'elevada demanda neuromuscular e psicofisiológica ao longo da semana e sustenta tanto a tendência de acúmulo '
@@ -799,7 +829,7 @@ P('O acompanhamento subjetivo do humor deve ser lido como parte de um monitorame
   'recomenda-se integrar medidas objetivas de carga a este delineamento, ampliar a amostra e testar se a datação '
   'do cruzamento do eixo energia-fadiga antecipa desfechos de fadiga e de desempenho, de modo a validar o marcador '
   'temporal aqui proposto (KELLMANN et al., 2018; SAW; MAIN; GASTIN, 2016).')
-H2('Limitações','5.5')
+H2('Limitações','5.6')
 P('O estudo tem limitações, entre as quais a amostra de um único clube, o recorte de um microciclo e a ausência '
   'de medidas objetivas de carga neste recorte, o que restringe a generalização e impede inferências de causa. O '
   'pequeno número de observações distribuído por seis perfis reduz a potência do teste categórico, e o erro de '
