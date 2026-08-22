@@ -249,7 +249,7 @@ P('A forma temporal das trajetórias foi analisada por três abordagens compleme
   'restrita ao estrato do atleta, de modo a respeitar o delineamento de medidas repetidas — restrição que os '
   'procedimentos de uma via dos pacotes genéricos não contemplam. As figuras foram geradas com Plotly e Matplotlib. '
   'Adotou-se o nível de significância de 5%. O fluxo de decisão que orientou a escolha de cada método, segundo as '
-  'propriedades dos dados, está resumido na Figura 29.')
+  'propriedades dos dados, está resumido na Figura 30.')
 P('Como modelagem complementar, a trajetória de cada dimensão foi ajustada por modelos lineares mistos de '
   'crescimento, com intercepto e inclinação aleatórios por atleta, e a capacidade preditiva do perfil de humor foi '
   'avaliada por regressão logística — distinguindo a fase tardia da inicial do microciclo — com validação cruzada '
@@ -619,9 +619,17 @@ P('A capacidade de o perfil de humor prever a fase do microciclo foi avaliada po
   'resultado é, ele próprio, um achado: a leitura do humor é robusta como tendência de grupo, mas não sustenta, '
   'isoladamente, a predição no nível do atleta — o que reforça a recomendação de interpretar o indivíduo apenas '
   'acima da mudança mínima detectável.')
+P('Como verificação de robustez, a mesma tarefa e o mesmo esquema de validação agrupado por atleta foram '
+  'reaplicados a dois algoritmos flexíveis de gradient boosting — XGBoost e LightGBM —, capazes de captar '
+  'interações e não linearidades. Ambos ficaram no nível do acaso (AUC = 0,50 nos dois casos) e, portanto, abaixo '
+  'do teto obtido pela regressão logística (AUC = 0,58; Figura 29). O fato de modelos mais expressivos não '
+  'superarem — e sequer igualarem — um modelo linear simples indica que o limite de predição não decorre da forma '
+  'funcional escolhida, mas da ausência de estrutura individual explorável no perfil de humor, em convergência com '
+  'a curva de aprendizado plana e com o efeito de piso.')
 figure('curvas_crescimento.png','Curvas de crescimento do humor (modelos mistos): trajetórias individuais (linhas finas) e curva populacional (linha grossa) para o vigor, a fadiga e a perturbação total do humor.',w=16.0)
 figure('roc_preditivo.png','Curva ROC do modelo preditivo (regressão logística) para a fase do microciclo (tardia versus inicial) a partir do perfil de humor, com validação cruzada agrupada por atleta.',w=10.5)
 figure('curva_aprendizado.png','Curva de aprendizado do modelo preditivo: AUC de treino e de validação cruzada em função do tamanho do conjunto de treino.',w=13.0)
+figure('comparacao_modelos_auc.png','Comparação da capacidade preditiva (AUC, validação cruzada por atleta) entre a regressão logística e os modelos de gradient boosting (XGBoost e LightGBM) na classificação da fase do microciclo; a linha tracejada indica o nível do acaso.',w=11.5)
 H2('Síntese dos principais achados','4.12')
 P('Tomados em conjunto, os resultados desenham uma história coerente do microciclo pré-competitivo. No plano das '
   'medidas, o BRUMS mostrou estrutura de seis fatores com ajuste aceitável e boa confiabilidade no eixo '

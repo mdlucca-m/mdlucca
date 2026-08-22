@@ -482,6 +482,18 @@ function drawLearn(host){const {cv,g}=mk(host,300);const w=cv._w,h=cv._h,pad={l:
     for(let i=0;i<n;i++){g.fillStyle=C.tensao;g.beginPath();g.arc(ax.X(LC_X[i]),ax.Y(LC_TR[i]),3.4,0,7);g.fill();g.fillStyle=C.fadiga;g.beginPath();g.arc(ax.X(LC_X[i]),ax.Y(LC_CV[i]),3.4,0,7);g.fill();}
     g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="alphabetic";g.fillText("tamanho do conjunto de treino",(ax.x0+ax.x1)/2,h-8);
     if(prog>0.9){g.textAlign="left";g.fillStyle=C.tensao;g.fillText("● treino",ax.x0+8,ax.y1+12);g.fillStyle=C.fadiga;g.fillText("● validação",ax.x0+8,ax.y1+26);}});}
+/* comparacao de modelos (AUC) — barras plotadas em tempo real */
+const MODELS=[{lab:"Logística",auc:0.583,col:C.tensao},{lab:"XGBoost",auc:0.498,col:C.fadiga},{lab:"LightGBM",auc:0.495,col:C.vigor}];
+function drawModelBars(host){const {cv,g}=mk(host,300);const w=cv._w,h=cv._h,pad={l:44,r:14,t:18,b:40};const ymin=0.4,ymax=0.72;
+  anim(1400,prog=>{const ax=gaxes(g,w,h,pad,0,MODELS.length,ymin,ymax,()=>"",v=>v.toFixed(2).replace(".",","),0,4);
+    dline(g,ax,0,MODELS.length,0.5,C.faint);
+    const bw=(ax.x1-ax.x0)/MODELS.length;
+    MODELS.forEach((m,i)=>{const cx=ax.x0+bw*(i+0.5),bh=(ax.Y(ymin)-ax.Y(m.auc))*prog,x=cx-bw*0.32,y=ax.Y(ymin)-bh;
+      g.fillStyle=m.col;g.globalAlpha=.9;g.beginPath();g.rect(x,y,bw*0.64,bh);g.fill();g.globalAlpha=1;
+      g.fillStyle=C.ink;g.font='700 13px "Sora",sans-serif';g.textAlign="center";g.textBaseline="alphabetic";
+      if(prog>0.85)g.fillText(m.auc.toFixed(2).replace(".",","),cx,y-6);
+      g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.fillText(m.lab,cx,h-24);});
+    if(prog>0.9){g.fillStyle=C.faint;g.font='9.5px "IBM Plex Mono",monospace';g.textAlign="left";g.fillText("acaso 0,50",ax.x0+6,ax.Y(0.5)-5);}});}
 function vline(g,ax,d,col){g.strokeStyle=col;g.setLineDash([2,4]);g.lineWidth=1;g.beginPath();g.moveTo(ax.X(d),ax.y1);g.lineTo(ax.X(d),ax.y0);g.stroke();g.setLineDash([]);}
 function drawDeriv(host,key){
   const v=DERIV.vars[key],X=DERIV.x,col=v.c||cById(key)||"#7fb0c8";
@@ -751,6 +763,9 @@ const SECTIONS=[
   $("#k_pred",g2).innerHTML=`<div class="kpis" style="margin-bottom:4px"><div class="kpi"><span class="stripe" style="background:${C.warn}"></span><div class="lab">AUC (CV)</div><div class="val" style="color:${C.warn};font-size:22px">0,58</div><div class="cap">± 0,04 · previsão individual fraca</div></div><div class="kpi"><span class="stripe" style="background:${C.fadiga}"></span><div class="lab">Maior preditor</div><div class="val" style="color:${C.fadiga};font-size:20px">Fadiga</div><div class="cap">coef. padronizado +0,39</div></div></div>`;
   drawROC($("#h_roc",g2));
   drawLearn($("#h_learn",g2));
+  const g3=cards(h,`<div class="card"><h3>Comparação de modelos · AUC</h3><p class="note">mesma tarefa e validação por atleta · logística vs gradient boosting (XGBoost, LightGBM)</p><div class="host" id="h_mbars"></div></div><div class="card"><h3>Leitura do teste de robustez</h3><p class="note">o que a comparação revela</p><div id="k_mbars"></div></div>`);
+  drawModelBars($("#h_mbars",g3));
+  $("#k_mbars",g3).innerHTML=`<div class="kpis" style="margin-bottom:8px"><div class="kpi"><span class="stripe" style="background:${C.tensao}"></span><div class="lab">Logística</div><div class="val" style="color:${C.tensao};font-size:22px">0,58</div><div class="cap">teto</div></div><div class="kpi"><span class="stripe" style="background:${C.fadiga}"></span><div class="lab">XGBoost</div><div class="val" style="color:${C.fadiga};font-size:22px">0,50</div><div class="cap">no acaso</div></div><div class="kpi"><span class="stripe" style="background:${C.vigor}"></span><div class="lab">LightGBM</div><div class="val" style="color:${C.vigor};font-size:22px">0,50</div><div class="cap">no acaso</div></div></div><p class="note" style="font-size:12.5px;line-height:1.6;color:var(--muted)">Modelos flexíveis (captam interações e não linearidades) <b style="color:var(--ink)">não superam</b> — nem igualam — a logística simples. O limite não é a forma do modelo, é a <b style="color:var(--ink)">ausência de sinal individual</b> explorável. Confirma a curva de aprendizado.</p>`;
   h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:18px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13px;line-height:1.62;color:var(--muted)">A curva de aprendizado fica <b style="color:var(--ink)">plana e baixa</b> (~0,58, pouco acima do acaso 0,50), com pequena distância entre treino e validação: não é <i>overfitting</i>, é <b style="color:var(--ink)">sinal individual limitado</b>. Os modelos mistos, ao contrário, mostram uma <b style="color:var(--ink)">tendência populacional clara</b> — a mensagem prática é ler o grupo, e o indivíduo apenas acima da mudança mínima detectável (MDC).</p></div>`);
 }},
 {id:"analise",lab:"Análise estatística",icon:"flow",render(h){
