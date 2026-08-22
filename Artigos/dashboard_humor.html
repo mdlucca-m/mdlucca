@@ -533,16 +533,15 @@ const SENSA={"loao": {"Vigor": {"full": -0.95, "min": -1.13, "max": -0.91, "rang
 const DCOL={Tensao:"#4d9de0",Depressao:"#c56bd6",Raiva:"#e0525b",Vigor:"#33c2ad",Fadiga:"#ff7a45",Confusao:"#f0a848",FadFisica:"#ff7a45",FadMental:"#e8590c",TMD:"#8b7bf0"};
 function _num(s){return parseFloat(String(s).split(" ")[0]);}
 function drawPVadapt(host){const {cv,g}=mk(host,300);const w=cv._w,h=cv._h,pad={l:52,r:14,t:16,b:40};
-  const G=AERO.tcarpv.by_group,gs=[["Experimental","#1971c2"],["Controle","#adb5bd"]];
-  const vals=[G.Experimental.pre,G.Experimental.pos,G.Controle.pre,G.Controle.pos];
-  const ymin=Math.min(...vals)-0.4,ymax=Math.max(...vals)+0.4;
+  const G=AERO.tcarpv.by_group,pre0=(G.Experimental.pre+G.Controle.pre)/2,pos0=(G.Experimental.pos+G.Controle.pos)/2;
+  const ymin=Math.min(pre0,pos0)-0.5,ymax=Math.max(pre0,pos0)+0.5;
   anim(1300,prog=>{const ax=gaxes(g,w,h,pad,0,1,ymin,ymax,()=>"",v=>v.toFixed(1).replace(".",","),0,5);
     g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="alphabetic";
     g.fillText("Pré",ax.X(0),h-20);g.fillText("Pós",ax.X(1),h-20);
-    gs.forEach(([gr,col],i)=>{const pre=G[gr].pre,pos=G[gr].pre+(G[gr].pos-G[gr].pre)*prog;
-      g.strokeStyle=col;g.lineWidth=3;g.beginPath();g.moveTo(ax.X(0),ax.Y(pre));g.lineTo(ax.X(1),ax.Y(pos));g.stroke();
-      g.fillStyle=col;g.beginPath();g.arc(ax.X(0),ax.Y(pre),5,0,7);g.fill();g.beginPath();g.arc(ax.X(1),ax.Y(pos),5,0,7);g.fill();
-      if(prog>0.9){g.textAlign="right";g.font='700 11px "Sora",sans-serif';g.fillText(gr+" (dz "+(G[gr].dz>=0?"+":"")+String(G[gr].dz).replace(".",",")+")",ax.X(1)-8,ax.Y(G[gr].pos)+(gr==="Experimental"?-10:16));}});
+    const pos=pre0+(pos0-pre0)*prog;const col="#1971c2";
+    g.strokeStyle=col;g.lineWidth=3.4;g.beginPath();g.moveTo(ax.X(0),ax.Y(pre0));g.lineTo(ax.X(1),ax.Y(pos));g.stroke();
+    g.fillStyle=col;g.beginPath();g.arc(ax.X(0),ax.Y(pre0),6,0,7);g.fill();g.beginPath();g.arc(ax.X(1),ax.Y(pos),6,0,7);g.fill();
+    if(prog>0.9){g.textAlign="right";g.font='700 12px "Sora",sans-serif';g.fillText("amostra (dz +"+String(AERO.tcarpv.dz).replace(".",",")+")",ax.X(1)-8,ax.Y(pos0)-12);}
     g.save();g.translate(12,(ax.y0+ax.y1)/2);g.rotate(-Math.PI/2);g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="top";g.fillText("T-CAR PV (km/h)",0,0);g.restore();});}
 function drawForest(host,arr,xlab){const {cv,g}=mk(host,Math.max(240,arr.length*30+70));const w=cv._w,h=cv._h,pad={l:96,r:20,t:12,b:36};
   const A=arr.slice().sort((a,b)=>a.r-b.r);
@@ -920,9 +919,9 @@ const SECTIONS=[
 {id:"fisico",lab:"Teste físico & aptidão",icon:"pulse",render(h){
   head(h,"aptidão aeróbia × humor","Teste físico — T-CAR e o perfil de humor","A capacidade aeróbia máxima (pico de velocidade no T-CAR) e sua relação com o humor. À medida que a aptidão sobe, a <b>fadiga física cai</b> e o <b>vigor sobe</b>; as dimensões negativas não se associam. Base física: "+AERO.n_ph+" atletas; associação com humor: "+AERO.n_pm+".");
   const fa=AERO.assoc.find(a=>a.dim==="FadFisica"),vi=AERO.assoc.find(a=>a.dim==="Vigor");
-  h.insertAdjacentHTML("beforeend",`<div class="kpis"><div class="kpi"><span class="stripe" style="background:${C.tensao}"></span><div class="lab">Adaptação T-CAR PV</div><div class="val" style="color:${C.tensao};font-size:22px">dz +${String(AERO.tcarpv.dz).replace(".",",")}</div><div class="cap">pré→pós · Exp dz +${String(AERO.tcarpv.by_group.Experimental.dz).replace(".",",")}</div></div><div class="kpi"><span class="stripe" style="background:${C.fadiga}"></span><div class="lab">PV × Fadiga física</div><div class="val" style="color:${C.fadiga};font-size:22px">ρ ${String(fa.r.toFixed(2)).replace(".",",")}</div><div class="cap">p=${String(fa.p.toFixed(3)).replace(".",",")} · sobrevive ao FDR</div></div><div class="kpi"><span class="stripe" style="background:${C.vigor}"></span><div class="lab">PV × Vigor</div><div class="val" style="color:${C.vigor};font-size:22px">ρ +${String(vi.r.toFixed(2)).replace(".",",")}</div><div class="cap">p=${String(vi.p.toFixed(3)).replace(".",",")}</div></div></div>`);
+  h.insertAdjacentHTML("beforeend",`<div class="kpis"><div class="kpi"><span class="stripe" style="background:${C.tensao}"></span><div class="lab">Adaptação T-CAR PV</div><div class="val" style="color:${C.tensao};font-size:22px">dz +${String(AERO.tcarpv.dz).replace(".",",")}</div><div class="cap">pré→pós · grupo único (n=${AERO.n_ph})</div></div><div class="kpi"><span class="stripe" style="background:${C.fadiga}"></span><div class="lab">PV × Fadiga física</div><div class="val" style="color:${C.fadiga};font-size:22px">ρ ${String(fa.r.toFixed(2)).replace(".",",")}</div><div class="cap">p=${String(fa.p.toFixed(3)).replace(".",",")} · sobrevive ao FDR</div></div><div class="kpi"><span class="stripe" style="background:${C.vigor}"></span><div class="lab">PV × Vigor</div><div class="val" style="color:${C.vigor};font-size:22px">ρ +${String(vi.r.toFixed(2)).replace(".",",")}</div><div class="cap">p=${String(vi.p.toFixed(3)).replace(".",",")}</div></div></div>`);
   tilt(h);
-  const g1=cards(h,`<div class="card"><h3>Adaptação da capacidade aeróbia</h3><p class="note">T-CAR pico de velocidade, pré→pós, por grupo</p><div class="host" id="h_pvad"></div></div><div class="card"><h3>T-CAR PV × humor · ρ de Spearman</h3><p class="note">IC95% bootstrap · * FDR<0,05 · † p<0,05</p><div class="host" id="h_forest"></div></div>`);
+  const g1=cards(h,`<div class="card"><h3>Adaptação da capacidade aeróbia</h3><p class="note">T-CAR pico de velocidade, pré→pós · grupo único, sem grupo controle</p><div class="host" id="h_pvad"></div></div><div class="card"><h3>T-CAR PV × humor · ρ de Spearman</h3><p class="note">IC95% bootstrap · * FDR<0,05 · † p<0,05</p><div class="host" id="h_forest"></div></div>`);
   drawPVadapt($("#h_pvad",g1)); drawForest($("#h_forest",g1),AERO.assoc,"ρ de Spearman (IC95%)");
   const g2=cards(h,`<div class="card"><h3>Mais apto → menos fadiga física</h3><p class="note">cada ponto é um atleta</p><div class="host" id="h_sc1"></div></div><div class="card"><h3>Mais apto → mais vigor</h3><p class="note">cada ponto é um atleta</p><div class="host" id="h_sc2"></div></div>`);
   drawScatter($("#h_sc1",g2),AERO.pv,AERO.mood.FadFisica,C.fadiga,"T-CAR PV (km/h)","Fadiga física");

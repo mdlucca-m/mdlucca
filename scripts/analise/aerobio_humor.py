@@ -42,8 +42,9 @@ for v,lab in [('TCARpv','T-CAR pico de velocidade (km/h)'),('CMJ','CMJ (cm)'),
         mm=(anon.Grupo==gr)&anon[f'{v}_pre'].notna()&anon[f'{v}_pos'].notna()
         aa=anon.loc[mm,f'{v}_pre'].astype(float).values; bb=anon.loc[mm,f'{v}_pos'].astype(float).values
         g[gr]={'pre':round(float(aa.mean()),2),'pos':round(float(bb.mean()),2),'dz':round(dz_paired(aa,bb),2)}
-    phys[v]={'lab':lab,'pre':summ(a),'pos':summ(b),'dz':round(dz,2),'p':round(float(p),4),'by_group':g}
-    print(f"  {lab:34s} {a.mean():.2f} -> {b.mean():.2f}  dz={dz:+.2f} p={p:.4f} | Exp dz={g['Experimental']['dz']:+.2f} Ctrl dz={g['Controle']['dz']:+.2f}")
+    phys[v]={'lab':lab,'pre':summ(a),'pos':summ(b),'pre_n':round(float(a.mean()),2),'pos_n':round(float(b.mean()),2),
+             'dz':round(dz,2),'p':round(float(p),4)}
+    print(f"  {lab:34s} {a.mean():.2f} -> {b.mean():.2f}  dz={dz:+.2f} p={p:.4f} (grupo único, n={m.sum()})")
 
 phys['desc']={'n':int(len(anon)),
     'TCARpv_pre':summ(anon.TCARpv_pre.astype(float)),
@@ -84,17 +85,13 @@ print('\n[salvo aerobio_humor.json + phys_anon.csv]')
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 OUT='/home/user/mdlucca/Artigos/figuras'
 plt.rcParams.update({'font.family':'DejaVu Sans','font.size':11,'axes.spines.top':False,'axes.spines.right':False})
-# Fig A: adaptacao T-CAR PV por grupo (pre->pos), pontos pareados
+# Fig A: adaptacao T-CAR PV (pre->pos), grupo unico (SEM grupo controle)
 fig,ax=plt.subplots(figsize=(6.6,4.8),dpi=200)
-colg={'Experimental':'#1971c2','Controle':'#adb5bd'}
-for gr in ['Experimental','Controle']:
-    mm=anon.Grupo==gr
-    a=anon.loc[mm,'TCARpv_pre'].astype(float).values; b=anon.loc[mm,'TCARpv_pos'].astype(float).values
-    for i in range(len(a)): ax.plot([0,1],[a[i],b[i]],'-',color=colg[gr],alpha=.28,lw=1)
-    ax.plot([0,1],[a.mean(),b.mean()],'-o',color=colg[gr],lw=3,ms=8,
-            label=f'{gr} (dz={dz_paired(a,b):+.2f})')
+a=anon['TCARpv_pre'].astype(float).values; b=anon['TCARpv_pos'].astype(float).values
+for i in range(len(a)): ax.plot([0,1],[a[i],b[i]],'-',color='#74c0fc',alpha=.30,lw=1)
+ax.plot([0,1],[a.mean(),b.mean()],'-o',color='#1971c2',lw=3.2,ms=9,label=f'média (dz={dz_paired(a,b):+.2f})')
 ax.set_xticks([0,1]); ax.set_xticklabels(['Pré','Pós']); ax.set_ylabel('T-CAR pico de velocidade (km/h)')
-ax.set_title('Adaptação da capacidade aeróbia máxima ao microciclo\n(pico de velocidade no T-CAR, pré vs pós)',fontweight='bold',fontsize=11.5,loc='left')
+ax.set_title('Adaptação da capacidade aeróbia máxima ao microciclo\n(pico de velocidade no T-CAR, pré vs pós · grupo único)',fontweight='bold',fontsize=11.5,loc='left')
 ax.legend(frameon=False,loc='lower right',fontsize=9.5)
 fig.tight_layout(); fig.savefig(f'{OUT}/aerobio_adaptacao.png',bbox_inches='tight',facecolor='white')
 

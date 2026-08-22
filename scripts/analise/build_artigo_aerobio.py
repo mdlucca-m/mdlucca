@@ -49,7 +49,7 @@ P(f'Objetivo: examinar a relação entre a capacidade aeróbia máxima, indexada
   f'por correlação de Spearman, com intervalos de confiança por reamostragem (bootstrap) e correção de '
   f'multiplicidade por taxa de falsas descobertas (BH-FDR). Resultados: a capacidade aeróbia aumentou ao longo '
   f'do microciclo (PV {cm(ph["TCARpv"]["pre"].split(" ")[0])} → {cm(ph["TCARpv"]["pos"].split(" ")[0])} km/h; '
-  f'dz = {cm(ph["TCARpv"]["dz"])}), com efeito grande no grupo experimental (dz = {cm(ph["TCARpv"]["by_group"]["Experimental"]["dz"])}). '
+  f'dz = {cm(ph["TCARpv"]["dz"])}, efeito grande). '
   f'Atletas com maior PV apresentaram menor fadiga física (ρ = {cm(pv["FadFisica"]["r"]):.5}; p = {cm(round(pv["FadFisica"]["p"],3))}; '
   f'sobrevivente à correção FDR) e maior vigor (ρ = +{cm(round(pv["Vigor"]["r"],2))}; p = {cm(round(pv["Vigor"]["p"],3))}); '
   f'as dimensões afetivas negativas não se associaram à aptidão. Conclusão: a capacidade aeróbia máxima comporta-se '
@@ -111,12 +111,12 @@ H1('RESULTADOS','3')
 H2('Adaptação da aptidão ao microciclo','3.1')
 P(f'A capacidade aeróbia máxima aumentou ao longo do microciclo: o PV passou de '
   f'{cm(ph["TCARpv"]["pre"].split(" ")[0])} para {cm(ph["TCARpv"]["pos"].split(" ")[0])} km/h '
-  f'(dz = {cm(ph["TCARpv"]["dz"])}; Figura 1), com efeito grande no grupo experimental '
-  f'(dz = {cm(ph["TCARpv"]["by_group"]["Experimental"]["dz"])}) e trivial no controle '
-  f'(dz = {cm(ph["TCARpv"]["by_group"]["Controle"]["dz"])}). Também houve melhora do salto vertical '
-  f'(CMJ, dz = {cm(ph["CMJ"]["dz"])}) e da capacidade de sprints repetidos (Baker soma, '
-  f'dz = {cm(ph["BkSoma"]["dz"])}), o que confirma que o período induziu adaptação, sobretudo aeróbia.')
-figure('aerobio_adaptacao.png','Adaptação da capacidade aeróbia máxima (pico de velocidade no T-CAR) do pré ao pós-microciclo, por grupo. Linhas finas: atletas; linhas grossas: média do grupo.',w=11.0)
+  f'(dz = {cm(ph["TCARpv"]["dz"])}, efeito grande; Figura 1), na amostra como um todo. Também houve melhora do '
+  f'salto vertical (CMJ, dz = {cm(ph["CMJ"]["dz"])}) e da capacidade de sprints repetidos (Baker soma, '
+  f'dz = {cm(ph["BkSoma"]["dz"])}), o que indica que o período foi acompanhado de adaptação, sobretudo aeróbia. '
+  f'Por se tratar de um desenho de grupo único, sem grupo controle, essa evolução é descrita como uma mudança '
+  f'observada no período, sem atribuição causal exclusiva ao treinamento.')
+figure('aerobio_adaptacao.png','Adaptação da capacidade aeróbia máxima (pico de velocidade no T-CAR) do pré ao pós-microciclo (grupo único). Linhas finas: atletas; linha grossa: média da amostra.',w=11.0)
 H2('Capacidade aeróbia e perfil de humor','3.2')
 P(f'A capacidade aeróbia máxima associou-se ao eixo energia–fadiga do humor (Tabela 1; Figura 2). Atletas com '
   f'maior PV apresentaram menor fadiga física (ρ = {cm(round(pv["FadFisica"]["r"],2))}; IC95% '
@@ -163,7 +163,8 @@ P('Do ponto de vista aplicado, o pico de velocidade no T-CAR — medida de campo
   'recuperação. Como o estímulo intervalado costuma ser prescrito em relação à velocidade de pico individual, o '
   'custo interno é relativo à aptidão de cada atleta, o que ajuda a explicar por que a vulnerabilidade à fadiga '
   'da semana se associa a um traço aeróbio prévio, e não à intensidade absoluta corrida. As principais limitações '
-  'são o tamanho amostral, próprio de um elenco de elite, e o desenho observacional, que impõe cautela causal; a '
+  'são o tamanho amostral, próprio de um elenco de elite, e o desenho observacional de grupo único, sem grupo '
+  'controle, que impõe cautela causal; a '
   'convergência com a adaptação aeróbia objetiva do período, contudo, dá plausibilidade à interpretação.')
 
 # ===== 5 conclusao =====
