@@ -8,6 +8,7 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 
 carga=json.load(open('/home/user/mdlucca/scripts/analise/hiit_carga_dia.json'))
 perf=json.load(open('/home/user/mdlucca/scripts/analise/perfil_por_dia.json'))
+estado=json.load(open('/home/user/mdlucca/scripts/analise/estado_diario.json'))
 PROF=['Iceberg','Superfície','Submerso','Barbatana de tubarão','Everest invertido','Iceberg invertido']
 DATAS={1:'21/04',2:'22/04',3:'23/04',4:'24/04',5:'25/04',6:'26/04',7:'27/04'}
 TIPO={1:'Técnico-tática',2:'HIIT (TIAI)',3:'Técnico-tática',4:'HIIT (TIAI)',5:'Técnico-tática',6:'Técnico-tática',7:'HIIT (TIAI)'}
@@ -26,24 +27,28 @@ def setcell(c,txt,bold=False,align='center',size=9.5):
 
 # ---------------- Tabela 1 ----------------
 cap('Tabela 1. Caracterização do microciclo de pré-temporada: sessões de treinamento, carga interna e perfil de humor predominante ao longo dos sete dias.')
-hdr=['Dia','Data','Sessão','%FCmáx','TRIMP (u.a.)','PSE (0–10)','sPSE (u.a.)','Perfil predominante','Iceberg (%)']
+hdr=['Dia','Data','Sessão','%FCmáx','TRIMP','PSE','sPSE','Fad. física (0–10)','TQR (6–20)','Perfil predominante','Iceberg (%)']
 t=doc.add_table(rows=1,cols=len(hdr)); t.style='Table Grid'; t.alignment=WD_TABLE_ALIGNMENT.CENTER
-for j,hh in enumerate(hdr): setcell(t.rows[0].cells[j],hh,bold=True)
+for j,hh in enumerate(hdr): setcell(t.rows[0].cells[j],hh,bold=True,size=9)
 for dia in range(1,8):
     c=t.add_row().cells
     cg=carga.get(str(dia))
     load=[f"{cg['pFC']:.1f}".replace('.',','),f"{cg['TRIMP']:.1f}".replace('.',','),
           f"{cg['PSE']:.1f}".replace('.',','),f"{cg['sPSE']:.1f}".replace('.',',')] if cg else ['—','—','—','—']
+    es=estado[str(dia)]
+    load+=[f"{es['ff']:.1f}".replace('.',','),f"{es['tqr']:.1f}".replace('.',',')]
     pr=perf[str(dia)]
     vals=[f'D{dia}',DATAS[dia],TIPO[dia]]+load+[pr['pred'],str(pr['ice'])]
-    for j,v in enumerate(vals): setcell(c[j],v,align='left' if j in(2,7) else 'center')
-note('HIIT (TIAI): treinamento intervalado de alta intensidade. %FCmáx: percentual da '
-     'frequência cardíaca máxima; TRIMP: impulso de treino (Banister); PSE: percepção subjetiva de esforço da sessão '
-     '(0–10); sPSE: PSE da sessão × duração (u.a.). Sessões de HIIT em D2, D4 e D7. A carga interna foi quantificada apenas nas sessões de HIIT; nos '
-     'dias técnico-táticos (—) não houve monitoramento fisiológico. Perfil predominante: perfil de humor mais '
-     'frequente entre os atletas no dia, classificado nos seis perfis de Terry/Parsons-Smith a partir das seis '
-     'dimensões do BRUMS. Iceberg (%): proporção de atletas com perfil iceberg no dia. Note a assinatura de fadiga '
-     'acumulada nas sessões de HIIT: o %FCmáx e o TRIMP declinam (84,0 → 75,2) enquanto a PSE aumenta (8,3 → 8,9).')
+    for j,v in enumerate(vals): setcell(c[j],v,align='left' if j in(2,9) else 'center',size=9)
+note('HIIT (TIAI): treinamento intervalado de alta intensidade (D2, D4 e D7). Carga interna da sessão (só quantificada '
+     'no HIIT): %FCmáx (percentual da frequência cardíaca máxima), TRIMP (impulso de treino de Banister), PSE '
+     '(percepção de esforço da sessão, 0–10) e sPSE (PSE × duração, u.a.); nos dias técnico-táticos (—) não houve '
+     'monitoramento fisiológico da sessão. Carga percebida/recuperação (registrada em todos os dias): Fad. física '
+     '(fadiga física percebida, 0–10) e TQR (qualidade total de recuperação, 6–20; valores mais altos = mais '
+     'recuperado). Perfil predominante: perfil de humor mais frequente no dia, classificado nos seis perfis de '
+     'Terry/Parsons-Smith a partir das seis dimensões do BRUMS; Iceberg (%): proporção de atletas em perfil iceberg. '
+     'Nas sessões de HIIT, o %FCmáx e o TRIMP declinam (84,0 → 75,2) enquanto a PSE aumenta (8,3 → 8,9); em paralelo, '
+     'a fadiga física percebida sobe (4,7 → 7,6) e a recuperação cai (TQR 13,5 → 9,0) ao longo da semana.')
 
 # ---------------- Tabela 2 ----------------
 cap('Tabela 2. Distribuição dos seis perfis de humor dos atletas ao longo dos sete dias do microciclo (número de atletas em cada perfil).')
