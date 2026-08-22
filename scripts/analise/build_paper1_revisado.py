@@ -816,6 +816,17 @@ P('O ganho é, ao mesmo tempo, estatístico e prático. Ao dispensar pressuposto
   'de predição individual que a leitura clássica, silenciosa quanto à confiabilidade, não teria como sustentar. O '
   'resultado é um retrato acionável para a comissão técnica: onde, quando, quanto e com que segurança o humor se '
   'altera ao longo do microciclo.')
+P('A robustez desses achados foi examinada por duas análises de sensibilidade. Na sensibilidade das variáveis, '
+  'três lentes independentes — a contribuição multivariada (PERMANOVA univariada), a importância preditiva (por '
+  'permutação) e a responsividade (tamanho de efeito e razão sinal/ruído) — convergiram sobre a fadiga como a '
+  'dimensão de que os resultados mais dependem, seguida do vigor, o mais responsivo, porém de menor poder '
+  'discriminativo isolado; as dimensões afetivas negativas contribuíram pouco (Figura 31). Na sensibilidade '
+  'analítica, o efeito da semana permaneceu estável ao remover cada atleta (leave-one-athlete-out), à troca da '
+  'janela de dias e à variação do suavizador, com a inflexão da fadiga fixada em torno do dia 4 em todos os '
+  'filtros (Figura 32). Assim, as conclusões centrais não dependem de nenhuma variável isolada nem de uma '
+  'escolha analítica particular.')
+figure('sensibilidade_variaveis.png','Sensibilidade das variáveis: contribuição multivariada (pseudo-F univariado), importância preditiva (queda de AUC por permutação) e responsividade (|dz| do D1 ao D7) de cada dimensão do BRUMS.',w=16.0)
+figure('sensibilidade_analitica.png','Sensibilidade analítica: (A) leave-one-athlete-out do efeito D1→D7; (B) janela de dias (com e sem baseline); (C) estabilidade do ponto de inflexão sob diferentes suavizadores.',w=16.0)
 H2('Aplicação prática e perspectivas','5.5')
 P('As características do handebol ajudam a explicar esse comportamento e orientam a aplicação. A modalidade impõe '
   'esforço intermitente de alta intensidade, com sprints curtos, mudanças de direção, saltos e contato, o que gera '
