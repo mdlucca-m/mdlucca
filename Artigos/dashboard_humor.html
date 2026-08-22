@@ -606,6 +606,42 @@ function drawHiitBars(host){const {cv,g}=mk(host,300);const w=cv._w,h=cv._h,pad=
         g.fillStyle=col;g.globalAlpha=f==="hiit"?.95:.6;g.fillRect(s<0?x-bwi:x,ax.Y(val),bwi,ax.Y(0)-ax.Y(val));g.globalAlpha=1;});
       g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="alphabetic";g.fillText(r.lab,cx,h-24);});
     if(prog>0.9){g.textAlign="left";g.fillStyle=C.faint;g.fillText("■ sem HIIT",ax.x0+4,ax.y1+12);g.fillStyle="#ff7a45";g.fillText("■ dias de HIIT",ax.x0+90,ax.y1+12);}});}
+const HDL={"velG": {"Vigor": {"2": -1.9485653235653233, "3": 0.04642857142857171, "4": -0.43119658119658144, "5": 0.27946859903381593, "6": 0.1851778656126486, "7": -1.254329004329004}, "Fadiga": {"2": 1.203062678062678, "3": -0.16153846153846096, "4": 0.7558302808302804, "5": -0.49075224292615616, "6": 0.4834650856389988, "7": 1.7033189033189036}}, "rowsA": [{"dim": "Vigor", "lab": "Vigor", "vh": -1.17, "vr": 0.06, "dz": -0.84, "p": 0.001}, {"dim": "Fadiga", "lab": "Fadiga", "vh": 1.17, "vr": 0.02, "dz": 0.5, "p": 0.026}, {"dim": "TMD", "lab": "PTH", "vh": 2.55, "vr": -0.43, "dz": 0.52, "p": 0.034}, {"dim": "FadFisica", "lab": "Fadiga f\u00edsica", "vh": 1.31, "vr": 0.1, "dz": 0.77, "p": 0.003}], "hiit": [2, 4, 7], "bands": {"Vigor": [3.84, 5.02, 7.09], "Fadiga": [7.41, 5.24, 4.26], "FadFisica": [6.95, 6.09, 5.24]}, "band_n": [6, 10, 9], "median": 14.9, "limr": [{"dim": "Vigor", "lab": "Vigor", "hi": 6.34, "lo": 4.55, "dz": 0.76, "p": 0.061}, {"dim": "Fadiga", "lab": "Fadiga", "hi": 4.26, "lo": 6.65, "dz": -0.8, "p": 0.068}, {"dim": "FadFisica", "lab": "Fadiga f\u00edsica", "hi": 5.42, "lo": 6.6, "dz": -0.77, "p": 0.036}, {"dim": "TMD", "lab": "PTH", "hi": 4.11, "lo": 5.26, "dz": -0.48, "p": 0.183}]};
+
+function drawHiitVel(host){const {cv,g}=mk(host,300);const w=cv._w,h=cv._h,pad={l:46,r:14,t:14,b:40};
+  const days=[2,3,4,5,6,7];const V=days.map(d=>HDL.velG.Vigor[d]),F=days.map(d=>HDL.velG.Fadiga[d]);
+  const all=V.concat(F);const ymin=Math.min(...all)-.3,ymax=Math.max(...all)+.3;
+  anim(1300,prog=>{const ax=gaxes(g,w,h,pad,1.5,7.5,ymin,ymax,v=>v.toFixed(0),v=>v.toFixed(1).replace(".",","),6,5);
+    HDL.hiit.forEach(d=>{g.fillStyle="rgba(255,122,69,.10)";g.fillRect(ax.X(d-0.5),ax.y1,ax.X(d+0.5)-ax.X(d-0.5),ax.y0-ax.y1);});
+    dline(g,ax,1.5,7.5,0,C.faint);
+    cprog(g,ax,days,V,prog,C.vigor,2.6);cprog(g,ax,days,F,prog,C.fadiga,2.6);
+    const n=Math.max(1,Math.floor(days.length*prog));
+    for(let i=0;i<n;i++){g.fillStyle=C.vigor;g.beginPath();g.arc(ax.X(days[i]),ax.Y(V[i]),3.6,0,7);g.fill();g.fillStyle=C.fadiga;g.beginPath();g.arc(ax.X(days[i]),ax.Y(F[i]),3.6,0,7);g.fill();}
+    g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="alphabetic";g.fillText("dia (transição d−1 → d) · faixas = HIIT",(ax.x0+ax.x1)/2,h-8);
+    g.save();g.translate(11,(ax.y0+ax.y1)/2);g.rotate(-Math.PI/2);g.textBaseline="top";g.fillText("velocidade (Δ/dia)",0,0);g.restore();
+    if(prog>0.9){g.textAlign="left";g.fillStyle=C.vigor;g.fillText("● vigor",ax.x0+6,ax.y1+12);g.fillStyle=C.fadiga;g.fillText("● fadiga",ax.x0+64,ax.y1+12);}});}
+function drawHiitVelBars(host){const {cv,g}=mk(host,300);const w=cv._w,h=cv._h,pad={l:46,r:14,t:16,b:42};
+  const R=HDL.rowsA;const all=R.flatMap(r=>[r.vh,r.vr]);const ymin=Math.min(...all,0)-.2,ymax=Math.max(...all,0)+.3;
+  anim(1200,prog=>{const ax=gaxes(g,w,h,pad,0,R.length,ymin,ymax,()=>"",v=>v.toFixed(1).replace(".",","),0,5);
+    dline(g,ax,0,R.length,0,C.faint);const bw=(ax.x1-ax.x0)/R.length;
+    R.forEach((r,i)=>{const cx=ax.x0+bw*(i+0.5);
+      [["vr",C.faint,-1],["vh","#ff7a45",1]].forEach(([f,col,s])=>{const val=r[f]*prog,bwi=bw*0.32,x=cx+s*0.02*bw;
+        g.fillStyle=col;g.globalAlpha=f==="vh"?.95:.6;const y0=ax.Y(0),y1=ax.Y(val);g.fillRect(s<0?x-bwi:x,Math.min(y0,y1),bwi,Math.abs(y1-y0));g.globalAlpha=1;});
+      g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="alphabetic";g.fillText(r.lab,cx,h-24);
+      if(prog>0.9&&r.p<0.05){g.fillStyle="#ff7a45";g.font='700 13px "Sora"';g.fillText("†",cx+bw*0.18,ax.Y(r.vh)+(r.vh>=0?-4:14));}});
+    if(prog>0.9){g.textAlign="left";g.fillStyle=C.faint;g.font='10px "IBM Plex Mono"';g.fillText("■ recuperação",ax.x0+4,ax.y1+12);g.fillStyle="#ff7a45";g.fillText("■ entra no HIIT",ax.x0+108,ax.y1+12);}});}
+function drawPVband(host){const {cv,g}=mk(host,300);const w=cv._w,h=cv._h,pad={l:44,r:14,t:14,b:44};
+  const keys=[["Vigor",C.vigor],["Fadiga",C.fadiga],["FadFisica","#d9480f"]];
+  const all=keys.flatMap(([k])=>HDL.bands[k]);const ymin=Math.min(...all)-.4,ymax=Math.max(...all)+.4;
+  anim(1200,prog=>{const ax=gaxes(g,w,h,pad,-0.3,2.3,ymin,ymax,()=>"",v=>v.toFixed(0),0,5);
+    keys.forEach(([k,col])=>{const ys=HDL.bands[k];const n=Math.max(2,Math.floor(3*prog));
+      g.strokeStyle=col;g.lineWidth=2.6;g.beginPath();for(let i=0;i<n;i++){const X=ax.X(i),Y=ax.Y(ys[i]);i?g.lineTo(X,Y):g.moveTo(X,Y);}g.stroke();
+      for(let i=0;i<n;i++){g.fillStyle=col;g.beginPath();g.arc(ax.X(i),ax.Y(ys[i]),4,0,7);g.fill();}});
+    const labs=["baixo","médio","alto"];g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="alphabetic";
+    for(let i=0;i<3;i++)g.fillText(labs[i]+" (n="+HDL.band_n[i]+")",ax.X(i),h-24);
+    g.fillText("faixa de pico de velocidade (T-CAR)",(ax.x0+ax.x1)/2,h-8);
+    if(prog>0.9){g.textAlign="left";g.fillStyle=C.vigor;g.fillText("● vigor",ax.x0+6,ax.y1+12);g.fillStyle=C.fadiga;g.fillText("● fadiga",ax.x0+64,ax.y1+12);g.fillStyle="#d9480f";g.fillText("● fad. física",ax.x0+128,ax.y1+12);}});}
+
 
 
 function vline(g,ax,d,col){g.strokeStyle=col;g.setLineDash([2,4]);g.lineWidth=1;g.beginPath();g.moveTo(ax.X(d),ax.y1);g.lineTo(ax.X(d),ax.y0);g.stroke();g.setLineDash([]);}
@@ -891,6 +927,10 @@ const SECTIONS=[
   const g2=cards(h,`<div class="card"><h3>Mais apto → menos fadiga física</h3><p class="note">cada ponto é um atleta</p><div class="host" id="h_sc1"></div></div><div class="card"><h3>Mais apto → mais vigor</h3><p class="note">cada ponto é um atleta</p><div class="host" id="h_sc2"></div></div>`);
   drawScatter($("#h_sc1",g2),AERO.pv,AERO.mood.FadFisica,C.fadiga,"T-CAR PV (km/h)","Fadiga física");
   drawScatter($("#h_sc2",g2),AERO.pv,AERO.mood.Vigor,C.vigor,"T-CAR PV (km/h)","Vigor");
+  const fl=HDL.limr.find(r=>r.dim==="FadFisica"),vl=HDL.limr.find(r=>r.dim==="Vigor");
+  const g3=cards(h,`<div class="card"><h3>Limiar do pico de velocidade × humor</h3><p class="note">perfil semanal por faixa de aptidão (tercis do T-CAR PV) · limiar da mediana ≈ ${String(HDL.median).replace(".",",")} km/h</p><div class="host" id="h_pvband"></div></div><div class="card"><h3>Acima vs abaixo do limiar (mediana)</h3><p class="note">escore semanal médio</p><div id="k_lim"></div></div>`);
+  drawPVband($("#h_pvband",g3));
+  $("#k_lim",g3).innerHTML=`<div class="kpis" style="margin-bottom:8px"><div class="kpi"><span class="stripe" style="background:${C.fadiga}"></span><div class="lab">Fadiga física</div><div class="val" style="color:${C.fadiga};font-size:20px">${String(fl.lo).replace(".",",")} → ${String(fl.hi).replace(".",",")}</div><div class="cap">abaixo → acima · dz ${String(fl.dz).replace(".",",")} · p=${String(fl.p).replace(".",",")}</div></div><div class="kpi"><span class="stripe" style="background:${C.vigor}"></span><div class="lab">Vigor</div><div class="val" style="color:${C.vigor};font-size:20px">${String(vl.lo).replace(".",",")} → ${String(vl.hi).replace(".",",")}</div><div class="cap">abaixo → acima · dz +${String(vl.dz).replace(".",",")}</div></div></div><p class="note" style="font-size:12.5px;line-height:1.6;color:var(--muted)">Cruzar o limiar de <b style="color:var(--ink)">~${String(HDL.median).replace(".",",")} km/h</b> no T-CAR separa dois perfis: abaixo dele, mais fadiga e menos vigor; acima, o inverso — a aptidão aeróbia como <b style="color:var(--ink)">amortecedor da fadiga</b>.</p>`;
   h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:16px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.62;color:var(--ink)">A capacidade aeróbia funciona como <b>moderador da fadiga do microciclo</b>: o atleta mais apto tolera melhor a carga, fadigando menos e preservando o vigor — efeito específico do <b>eixo energia–fadiga</b>, ausente nas dimensões afetivas negativas (piso). Detalhes no artigo separado (T-CAR × humor).</p></div>`);
 }},
 {id:"robustez",lab:"Sensibilidade & robustez",icon:"shield",render(h){
@@ -909,7 +949,10 @@ const SECTIONS=[
   tilt(h);
   const g1=cards(h,`<div class="card"><h3>Diferença por dimensão (dz)</h3><p class="note">HIIT − sem HIIT, pareado por atleta · * FDR<0,05 · † p<0,05</p><div class="host" id="h_hdz"></div></div><div class="card"><h3>Estados: HIIT vs demais dias</h3><p class="note">escore médio das principais dimensões</p><div class="host" id="h_hbar"></div></div>`);
   drawHiitDz($("#h_hdz",g1)); drawHiitBars($("#h_hbar",g1));
-  h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:16px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.62;color:var(--ink)">O HIIT deixa uma assinatura clara e específica: <b style="color:${C.vigor}">menos vigor</b> (dz ${String(vg.dz).replace(".",",")}) e <b style="color:${C.fadiga}">mais fadiga</b> (dz +${String(fd.dz).replace(".",",")}) nos dias de sessão, sem tocar nas dimensões afetivas negativas — o mesmo eixo energia–fadiga que domina todo o estudo. <b>Ressalva:</b> os dias de HIIT (2, 4 e 7) incluem o último dia do microciclo, de modo que parte da diferença reflete também o acúmulo ao longo da semana, não apenas o efeito agudo isolado.</p></div>`);
+  const gd=cards(h,`<div class="card"><h3>Derivada (velocidade) do humor na semana</h3><p class="note">Δ/dia · faixas sombreadas = dias de HIIT (2, 4, 7)</p><div class="host" id="h_hvel"></div></div><div class="card"><h3>Entrar no HIIT vs recuperar</h3><p class="note">velocidade média ao entrar em dia de HIIT vs em dia sem HIIT · † p<0,05</p><div class="host" id="h_hvb"></div></div>`);
+  drawHiitVel($("#h_hvel",gd)); drawHiitVelBars($("#h_hvb",gd));
+  h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:12px;border-left:3px solid var(--warn)"><p class="note" style="font-size:13px;line-height:1.6;color:var(--muted)"><b>Limites e derivadas:</b> a velocidade descreve o padrão <i>dente de serra</i> — ao <b style="color:var(--ink)">entrar</b> num dia de HIIT o vigor cai (Δ ${String(HDL.rowsA.find(r=>r.dim==="Vigor").vh).replace(".",",")}/dia) e a fadiga acelera (Δ +${String(HDL.rowsA.find(r=>r.dim==="Fadiga").vh).replace(".",",")}/dia), enquanto nos dias sem HIIT o sistema recupera (velocidade próxima de zero ou negativa). A diferença é significativa para vigor, fadiga, PTH e fadiga física.</p></div>`);
+  h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:12px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.62;color:var(--ink)">O HIIT deixa uma assinatura clara e específica: <b style="color:${C.vigor}">menos vigor</b> (dz ${String(vg.dz).replace(".",",")}) e <b style="color:${C.fadiga}">mais fadiga</b> (dz +${String(fd.dz).replace(".",",")}) nos dias de sessão, sem tocar nas dimensões afetivas negativas — o mesmo eixo energia–fadiga que domina todo o estudo. <b>Ressalva:</b> os dias de HIIT (2, 4 e 7) incluem o último dia do microciclo, de modo que parte da diferença reflete também o acúmulo ao longo da semana, não apenas o efeito agudo isolado.</p></div>`);
 }},
 {id:"preditivo",lab:"Modelos preditivos",icon:"trend",render(h){
   head(h,"modelagem avançada","Modelos preditivos, de crescimento e de aprendizado","Curvas de crescimento (modelos mistos), um modelo preditivo do humor e a curva de aprendizado. A leitura é honesta: <b>tendência clara no grupo</b>, <b>previsão individual limitada</b> — o que reforça a interpretação por tendências, não por leitura isolada de um atleta.");
