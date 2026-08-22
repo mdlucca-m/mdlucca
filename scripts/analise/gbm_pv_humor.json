@@ -1,0 +1,1 @@
+{"FadFisica": {"baseline(m\u00e9dia)": 1.57, "Linear": 1.48, "Logar\u00edtmico": 1.49, "Alom\u00e9trico": 1.52, "XGBoost": 1.92, "LightGBM": 1.59, "best": "Linear"}, "Vigor": {"baseline(m\u00e9dia)": 2.42, "Linear": 2.43, "Logar\u00edtmico": 2.44, "Alom\u00e9trico": 2.26, "XGBoost": 2.58, "LightGBM": 2.23, "best": "LightGBM"}}
