@@ -135,6 +135,29 @@ def test_pv_threshold_e_bandas():
     vig = bd[bd.dim == "Vigor"].sort_values("band")["mean"].tolist()
     assert vig[2] > vig[0], "vigor cresce do tercil baixo para o alto de aptidão"
 
+def test_painel_desc_prepos_perfis():
+    d = lh.read_delta("gold", "an_desc")
+    assert len(d) == 7 and set(d["var"]) >= {"vigor", "fadiga", "pth"}
+    _near(_row(d, "var", "vigor")["media"], 5.7, 0.1)
+    pp = lh.read_delta("gold", "an_prepos_dim").set_index("var")
+    assert len(pp) == 7
+    assert pp.loc["fadiga", "dz"] > 0 and pp.loc["vigor", "dz"] < 0, "agudo: fadiga↑ vigor↓"
+    assert pp.loc["pth", "pct"] > 0, "PTH sobe pré→pós"
+    pf = lh.read_delta("gold", "an_perfis_byday_count")
+    assert int(pf["d1"].sum()) == 27, "27 atletas classificados no D1"
+    ice = _row(pf, "perfil", "Iceberg")
+    assert ice["d1"] > ice["d7"], "Iceberg predomina no D1 e erode até o D7"
+
+def test_painel_wellbeing_gold():
+    byd = lh.read_delta("gold", "an_wellbeing_byday").sort_values("dia")
+    assert len(byd) == 7
+    assert byd.iloc[6]["epworth"] > byd.iloc[0]["epworth"], "sonolência sobe D1→D7"
+    byt = lh.read_delta("gold", "an_wellbeing_bytype").set_index("cat")
+    assert byt.loc["HIIT", "epworth"] >= byt.loc["Outro", "epworth"], "mais sonolento em dia de HIIT"
+    cor = lh.read_delta("gold", "an_wellbeing_corr").set_index("par")
+    assert cor.loc["epworth × fadiga", "rho"] > 0, "sonolência acompanha a fadiga"
+    assert cor.loc["epworth × vigor", "rho"] < 0, "sonolência inversa ao vigor"
+
 # ---------------- C. Consistência interna entre camadas ----------------
 def test_daily_group_deriva_de_athlete_day():
     ad = lh.read_delta("gold", "athlete_day")

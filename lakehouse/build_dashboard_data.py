@@ -123,6 +123,54 @@ def gen_AERO():
                 n_pm=len(PV), n_ph=int(ad.loc["tcarpv", "n"]))
     return "const AERO=" + json.dumps(aero)
 
+def gen_DESC():
+    """DESC ← gold.an_desc: [lab, média, DP, "min–max"] por dimensão."""
+    d = lh.read_delta("gold", "an_desc").set_index("var")
+    def rng(k):
+        mn = int(d.loc[k, "minimo"]); mx = int(d.loc[k, "maximo"])
+        return (f"−{abs(mn)}" if mn < 0 else f"{mn}") + "–" + str(mx)
+    rows = [f'["{lab}",{_n(d.loc[k,"media"],1)},{_n(d.loc[k,"dp"],1)},"{rng(k)}"]' for k, lab in ORDER]
+    return "const DESC=[" + ",".join(rows) + "]"
+
+PREPOS_ORDER = [("tensao", "Tensão"), ("depressao", "Depressão"), ("raiva", "Raiva"),
+                ("vigor", "Vigor"), ("fadiga", "Fadiga"), ("confusao", "Confusão"), ("pth", "PTH")]
+
+def gen_PREPOS():
+    """PREPOS ← gold.an_prepos_dim: [lab, pré, pós, %, "p", dz] (pré=1ª do dia, pós=última)."""
+    d = lh.read_delta("gold", "an_prepos_dim").set_index("var")
+    rows = [f'["{lab}",{d.loc[k,"pre"]:.2f},{d.loc[k,"pos"]:.2f},{int(d.loc[k,"pct"])},'
+            f'{_pstr(d.loc[k,"p"])},{_n(d.loc[k,"dz"],2)}]' for k, lab in PREPOS_ORDER]
+    return "const PREPOS=[" + ",".join(rows) + "]"
+
+PERFIS_ORDER = ["Iceberg", "Superficie", "Submerso", "Barbatana de tubarao",
+                "Everest invertido", "Iceberg invertido"]
+
+def gen_PERFIS():
+    """PERFIS ← gold.an_perfis_byday_count: [perfil, n_D1, n_D7]."""
+    d = lh.read_delta("gold", "an_perfis_byday_count").set_index("perfil")
+    rows = [f'["{ACC[nm]}",{int(d.loc[nm,"d1"])},{int(d.loc[nm,"d7"])}]' for nm in PERFIS_ORDER]
+    return "const PERFIS=[" + ",".join(rows) + "]"
+
+def gen_SONO():
+    """SONO ← gold: an_wellbeing(d17) · an_wellbeing_byday · an_wellbeing_corr(atleta-dia) · an_wellbeing_bytype."""
+    d17 = lh.read_delta("gold", "an_wellbeing").set_index("var")
+    byd = lh.read_delta("gold", "an_wellbeing_byday").sort_values("dia")
+    cor = lh.read_delta("gold", "an_wellbeing_corr").set_index("par")
+    byt = lh.read_delta("gold", "an_wellbeing_bytype").set_index("cat")
+    ck = {"Epworth_Fadiga": "epworth × fadiga", "Epworth_Vigor": "epworth × vigor",
+          "Epworth_TMD": "epworth × pth", "PSS_TMD": "pss × pth", "PSS_Vigor": "pss × vigor"}
+    corr = {k: {"rho": float(cor.loc[v, "rho"]), "p": float(cor.loc[v, "p"])} for k, v in ck.items()}
+    sono = {
+        "byday": {"Epworth": [float(x) for x in byd["epworth"]], "PSS": [float(x) for x in byd["pss"]]},
+        "d17": {"Epworth": {"d1": float(d17.loc["epworth", "d1"]), "d7": float(d17.loc["epworth", "d7"]),
+                            "dz": float(d17.loc["epworth", "dz"]), "p": float(d17.loc["epworth", "p"])},
+                "PSS": {"d1": float(d17.loc["pss", "d1"]), "d7": float(d17.loc["pss", "d7"]),
+                        "dz": float(d17.loc["pss", "dz"]), "p": float(d17.loc["pss", "p"])}},
+        "corr": corr,
+        "bytype": {"Epworth": {c: float(byt.loc[c, "epworth"]) for c in ["Outro", "HIIT", "Amistoso"]},
+                   "PSS": {c: float(byt.loc[c, "pss"]) for c in ["Outro", "HIIT", "Amistoso"]}}}
+    return "const SONO=" + json.dumps(sono)
+
 def gen_ATLETAV():
     """ATLETAV ← gold.athlete_day: trajetória individual por atleta-dia,
     ordem [Vigor,Fadiga,Tensão,Depressão,Raiva,Confusão,PTH], 1 casa.
@@ -181,7 +229,8 @@ def run():
     gens = {"DIM": gen_DIM(), "D17": gen_D17(), "FRIED": gen_FRIED(),
             "SNR": gen_SNR(html), "SPEAR": gen_SPEAR(),
             "PROFATL": gen_PROFATL(), "PROFGRP": gen_PROFGRP(),
-            "AERO": gen_AERO(), "HDL": gen_HDL(html), "ATLETAV": gen_ATLETAV()}
+            "AERO": gen_AERO(), "HDL": gen_HDL(html), "ATLETAV": gen_ATLETAV(),
+            "DESC": gen_DESC(), "PREPOS": gen_PREPOS(), "PERFIS": gen_PERFIS(), "SONO": gen_SONO()}
     for name, rhs in gens.items():
         html = replace_const(html, name, rhs)
         print(f"[painel←gold] const {name} regenerada do gold")
