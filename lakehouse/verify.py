@@ -19,7 +19,7 @@ GOLD = ["athlete_day", "daily_group", "acute_prepos", "risk_features",
         "an_profile_athlete", "an_tcar_adapt", "an_pv_mood", "an_pv_threshold",
         "an_pv_bands", "an_desc", "an_prepos_dim", "an_perfis_byday_count",
         "an_wellbeing_byday", "an_wellbeing_bytype", "an_wellbeing_corr",
-        "an_models", "an_roc", "an_negatives_bydaytype", "an_negatives_mix", "an_icc", "an_omega", "an_thresholds", "an_variance", "an_variance_curves", "an_transitions", "an_risk_profiles", "an_allometry", "an_pvmodel", "an_athlete_profiles", "an_learning", "an_pca", "risk_features"]
+        "an_models", "an_roc", "an_negatives_bydaytype", "an_negatives_mix", "an_icc", "an_omega", "an_thresholds", "an_variance", "an_variance_curves", "an_transitions", "an_risk_profiles", "an_allometry", "an_pvmodel", "an_athlete_profiles", "an_learning", "an_pca", "an_sensitivity", "an_recovery", "an_sensitivity_robust", "an_iot", "risk_features"]
 
 def _sig(layer, table):
     df = lh.read_delta(layer, table).reindex(sorted(lh.read_delta(layer, table).columns), axis=1)

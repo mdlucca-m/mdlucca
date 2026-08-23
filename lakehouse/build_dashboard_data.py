@@ -194,6 +194,21 @@ def _curve_label(dz, pw, pf, piso):
     if piso >= 65: return "piso · sem tendência"
     return "sem tendência clara"
 
+def _payload(table):
+    return lh.read_delta("gold", table).iloc[0]["payload"]
+
+def gen_SENSV():
+    return "const SENSV=" + _payload("an_sensitivity")
+
+def gen_HVS():
+    return "const HVS=" + _payload("an_recovery")
+
+def gen_SENSA():
+    return "const SENSA=" + _payload("an_sensitivity_robust")
+
+def gen_IOTPRED():
+    return "const IOTPRED=" + _payload("an_iot")
+
 def gen_MV():
     """MV ← gold.an_pca: dispersão PCA + clusters + cargas + variância (estrutura multivariada)."""
     return "const MV=" + lh.read_delta("gold", "an_pca").iloc[0]["payload"]
@@ -409,7 +424,7 @@ def run():
             "LIM": gen_LIM(), "VM": gen_VM(), "TRANS": gen_TRANS(), "PRISCO": gen_PRISCO(),
             "ALO": gen_ALO(), "PVMODEL": gen_PVMODEL(), "ATLETA": gen_ATLETA(),
             "CURVE": gen_CURVE(), "LC_X": gen_LC(),
-            "CROSS": f"const CROSS={gen_CROSS()}", "CURVE_CROSS": f"const CURVE_CROSS={gen_CROSS()}", "MV": gen_MV()}
+            "CROSS": f"const CROSS={gen_CROSS()}", "CURVE_CROSS": f"const CURVE_CROSS={gen_CROSS()}", "MV": gen_MV(), "SENSV": gen_SENSV(), "HVS": gen_HVS(), "SENSA": gen_SENSA(), "IOTPRED": gen_IOTPRED()}
     for name, rhs in gens.items():
         html = replace_const(html, name, rhs)
         print(f"[painel←gold] const {name} regenerada do gold")

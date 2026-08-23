@@ -71,6 +71,37 @@ def run_models():
     return an_models
 
 
+def run_iot():
+    """IOTPRED: alerta precoce do dia seguinte com marcadores ricos (humor+sono).
+    AUC multivariado (logística, GroupKFold por atleta), AUC de persistência (marcador
+    de hoje), e AUC univariado DIRECIONAL por marcador (valor bruto → risco)."""
+    ad = lh.read_delta("gold", "risk_features")
+    extra = lh.read_delta("gold", "athlete_day")[["ID", "dia", "tensao", "depressao"]]
+    wb = lh.read_delta("silver", "wellbeing")[["ID", "dia", "epworth"]]
+    d = ad.merge(extra, on=["ID", "dia"]).merge(wb, on=["ID", "dia"], how="left").dropna(subset=["risco_amanha"])
+    d["epworth"] = d["epworth"].fillna(d["epworth"].mean())
+    y = d["risco_amanha"].astype(int).values; g = d["ID"].values
+    cv = GroupKFold(n_splits=5)
+    mark = [("TMD", "pth"), ("Fadiga", "fadiga"), ("Depressao", "depressao"),
+            ("Epworth", "epworth"), ("Tensao", "tensao"), ("Vigor", "vigor")]
+    uni = {}
+    for lab, col in mark:
+        uni[lab] = round(float(roc_auc_score(y, d[col].values)), 2)  # direcional (bruto)
+    Xm = d[[c for _, c in mark]].values
+    pm = cross_val_predict(LogisticRegression(max_iter=1000, class_weight="balanced"),
+                           Xm, y, cv=cv, groups=g, method="predict_proba")[:, 1]
+    auc_multi = round(float(roc_auc_score(y, pm)), 2)
+    # persistência = repetir o estado de HOJE: perfil de risco/atenção de hoje prevê amanhã
+    prof = lh.read_delta("gold", "an_athlete_profiles")[["ID", "dia", "risco"]]
+    dp = d.merge(prof, on=["ID", "dia"], how="left")
+    today_bad = (dp["risco"].fillna(0) >= 1).astype(int).values
+    auc_persist = round(float(roc_auc_score(y, today_bad)), 2)
+    payload = {"n": int(len(y)), "prev": round(100 * float(y.mean()), 1),
+               "auc_multi": auc_multi, "auc_persist": auc_persist, "uni": uni}
+    lh.write_delta("gold", "an_iot", pd.DataFrame([dict(payload=json.dumps(payload))]))
+    print(f"[gold] an_iot (multi AUC={auc_multi})")
+
+
 def _learning_curve(X, y, g):
     """Curva de aprendizado (AUC de treino × validação por tamanho do conjunto),
     Random Forest na tarefa fase tardia×inicial, GroupKFold por atleta. Determinístico."""
@@ -108,6 +139,7 @@ def run():
         json.dump(metrics, f, ensure_ascii=False, indent=2)
     print(f"[ml] AUC (GroupKFold por atleta) = {auc:.3f} · n={len(y)} · modelo salvo em ml/risk_model.pkl")
     run_models()
+    run_iot()
     return metrics
 
 if __name__ == "__main__":

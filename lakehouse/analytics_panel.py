@@ -300,12 +300,124 @@ def an_pca(m):
     return payload
 
 
+SENS_DIMS = ["Tensao", "Depressao", "Raiva", "Vigor", "Fadiga", "Confusao"]
+HIITD = [2, 4, 7]
+
+def _snr_one(series7):
+    """Decomposição de variância (tendência+HIIT+ruído) de uma série diária (7 pts)."""
+    x = np.arange(1, 8); y = series7 - series7.mean()
+    Xt = np.column_stack([x - 4, (x - 4) ** 2]); bt, *_ = np.linalg.lstsq(Xt, y, rcond=None); tr = Xt @ bt
+    det = y - tr; isH = np.isin(x, HIITD).astype(float)
+    hc = (isH - isH.mean()) * (det[isH == 1].mean() - det[isH == 0].mean()); no = det - hc
+    ss = lambda a: float((a ** 2).sum()); tot = ss(y) or 1
+    snr = (ss(tr) + ss(hc)) / ss(no) if ss(no) else 999
+    return round(ss(tr) / tot * 100, 1), round(ss(hc) / tot * 100, 1), round(ss(no) / tot * 100, 1), round(float(snr), 1)
+
+
+def an_sensitivity(m):
+    """SENSV: robustez do achado por dimensão — dz(D1→D7), SNR, F/p da ANOVA de
+    medidas repetidas (dia) e importância de permutação (RF fase tardia×inicial)."""
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.inspection import permutation_importance
+    ad = m.groupby(["ID", "dia"])[SENS_DIMS].mean().reset_index()
+    rows = []
+    for c in SENS_DIMS:
+        w = ad.pivot_table(index="ID", columns="dia", values=c).dropna()
+        # ANOVA de medidas repetidas (efeito dia), cálculo manual sobre casos completos
+        M = w.values; n, k = M.shape; grand = M.mean()
+        ss_day = n * ((M.mean(0) - grand) ** 2).sum()
+        ss_subj = k * ((M.mean(1) - grand) ** 2).sum()
+        ss_err = ((M - M.mean(0) - M.mean(1)[:, None] + grand) ** 2).sum()
+        df_day, df_err = k - 1, (n - 1) * (k - 1)
+        F = round(float((ss_day / df_day) / (ss_err / df_err)), 2)
+        p = round(float(stats.f.sf(F, df_day, df_err)), 4)
+        j = pd.concat([w[1], w[7]], axis=1).dropna(); d = j.iloc[:, 1] - j.iloc[:, 0]
+        dz = round(float(d.mean() / d.std(ddof=1)), 2)
+        _, _, _, snr = _snr_one(m.groupby("dia")[c].mean().reindex(range(1, 8)).values)
+        rows.append(dict(dim=c, dz17=dz, snr=snr, F_uni=F, p_uni=p))
+    dfp = pd.DataFrame(rows).set_index("dim")
+    # importância de permutação (RF, tarefa fase tardia×inicial)
+    adg = lh.read_delta("gold", "athlete_day").sort_values(["ID", "dia"])  # ordem estável (RF determinístico)
+    sub = adg[adg.dia.isin([1, 2, 3, 5, 6, 7])]
+    y = (sub["dia"] >= 5).astype(int).values
+    FE = ["vigor", "fadiga", "tensao", "depressao", "raiva", "confusao"]
+    rf = RandomForestClassifier(n_estimators=300, max_depth=4, random_state=SEED, n_jobs=1,
+                                class_weight="balanced").fit(sub[FE].values, y)
+    imp = permutation_importance(rf, sub[FE].values, y, n_repeats=20, random_state=SEED, n_jobs=1)
+    impd = dict(zip([f.capitalize() for f in FE], np.round(imp.importances_mean, 3)))
+    keymap = {"Tensao": "Tensao", "Depressao": "Depressao", "Raiva": "Raiva", "Vigor": "Vigor",
+              "Fadiga": "Fadiga", "Confusao": "Confusao"}
+    perm = [float(impd[keymap[c]]) for c in SENS_DIMS]
+    return {"lab": ["Tensão", "Depressão", "Raiva", "Vigor", "Fadiga", "Confusão"], "dims": SENS_DIMS,
+            "F_uni": [float(dfp.loc[c, "F_uni"]) for c in SENS_DIMS],
+            "perm_imp": perm, "dz17": [float(dfp.loc[c, "dz17"]) for c in SENS_DIMS],
+            "snr": [float(dfp.loc[c, "snr"]) for c in SENS_DIMS],
+            "p_uni": [float(dfp.loc[c, "p_uni"]) for c in SENS_DIMS]}
+
+
+REC_DIMS = [("Vigor", "Vigor", "Vigor"), ("Fadiga", "Fadiga", "Fadiga"),
+            ("PTH", "TMD", "PTH"), ("FadFisica", "FadFisica", "Fadiga física")]
+
+def an_recovery(m):
+    """HVS: recuperação noturna (pós Dk → pré Dk+1) entrando em noite de HIIT (ph) vs
+    fora (pn) + Wilcoxon; variação intra-dia por HIIT/fora; e SNR (inclui fadiga física)."""
+    pre = m[m.is_pre].groupby(["ID", "dia"]); pos = m[m.is_pos].groupby(["ID", "dia"])
+    rec, intra, snr = [], {}, []
+    for col, key, lab in REC_DIMS:
+        prem = pre[col].mean(); posm = pos[col].mean()
+        # recuperação: pós(d) → pré(d+1); noite "HIIT" se d+1 é dia de HIIT
+        ov = []
+        for d in range(1, 7):
+            a = posm.xs(d, level="dia") if d in posm.index.get_level_values("dia") else None
+            b = prem.xs(d + 1, level="dia") if (d + 1) in prem.index.get_level_values("dia") else None
+            if a is None or b is None: continue
+            j = pd.concat([a, b], axis=1).dropna(); j.columns = ["a", "b"]
+            for ath, r in j.iterrows():
+                ov.append((ath, d + 1, r["b"] - r["a"]))
+        ovd = pd.DataFrame(ov, columns=["ID", "dia", "delta"])
+        hh = ovd[ovd.dia.isin(HIITD)].groupby("ID")["delta"].mean()
+        nn = ovd[~ovd.dia.isin(HIITD)].groupby("ID")["delta"].mean()
+        jj = pd.concat([hh, nn], axis=1).dropna(); jj.columns = ["h", "n"]
+        p = float(stats.wilcoxon(jj["h"], jj["n"]).pvalue) if len(jj) >= 5 else 1.0
+        rec.append(dict(dim=key, lab=lab, ph=round(float(hh.mean()), 2), pn=round(float(nn.mean()), 2), p=round(p, 3)))
+        # intra-dia: |pós-pré| médio por atleta-dia, HIIT vs fora, como % do escore médio
+        dd = (posm - prem).dropna().reset_index(); dd.columns = ["ID", "dia", "delta"]
+        dh = dd[dd.dia.isin(HIITD)]["delta"].abs().mean(); dn = dd[~dd.dia.isin(HIITD)]["delta"].abs().mean()
+        base = m[col].mean()
+        intra[key] = {"h": round(100 * dh / base, 1), "n": round(100 * dn / base, 1)}
+        t, hi, no, sr = _snr_one(m.groupby("dia")[col].mean().reindex(range(1, 8)).values)
+        snr.append(dict(dim=key, lab=lab, trend=t, hiit=hi, noise=no, snr=sr))
+    return {"rec": rec, "intra": intra, "snr": snr}
+
+
+def an_sensitivity_robust(m):
+    """SENSA: robustez do dz(D1→D7) — deixa-um-atleta-de-fora (min/max/amplitude) e
+    janela (D1→D7 vs D2→D7), para Vigor/Fadiga/PTH. n de atletas."""
+    ad = m.groupby(["ID", "dia"])[["Vigor", "Fadiga", "PTH"]].mean().reset_index()
+    loao, window = {}, {}
+    labmap = {"Vigor": "Vigor", "Fadiga": "Fadiga", "PTH": "TMD"}
+    for col in ["Vigor", "Fadiga", "PTH"]:
+        w = ad.pivot_table(index="ID", columns="dia", values=col)
+        j = w[[1, 7]].dropna(); d = j[7] - j[1]; full = d.mean() / d.std(ddof=1)
+        loos = []
+        for ath in j.index:
+            dd = d.drop(ath); loos.append(dd.mean() / dd.std(ddof=1))
+        j2 = w[[2, 7]].dropna(); d2 = j2[7] - j2[2]; dz2 = d2.mean() / d2.std(ddof=1)
+        loao[labmap[col]] = {"full": round(float(full), 2), "min": round(float(min(loos)), 2),
+                             "max": round(float(max(loos)), 2), "range": round(float(max(loos) - min(loos)), 3)}
+        window[labmap[col]] = {"D1_D7": round(float(full), 2), "D2_D7": round(float(dz2), 2)}
+    return {"loao": loao, "window": window, "n_ath": int(ad["ID"].nunique())}
+
+
 def run():
     m = lh.read_delta("silver", "mood")
     wb = lh.read_delta("silver", "wellbeing")
     it = lh.read_delta("silver", "brums_items")
     lh.write_delta("gold", "an_athlete_profiles", an_athlete_profiles(m)); print("[gold] an_athlete_profiles")
     lh.write_delta("gold", "an_pca", pd.DataFrame([dict(payload=json.dumps(an_pca(m)))])); print("[gold] an_pca")
+    lh.write_delta("gold", "an_sensitivity", pd.DataFrame([dict(payload=json.dumps(an_sensitivity(m)))])); print("[gold] an_sensitivity")
+    lh.write_delta("gold", "an_recovery", pd.DataFrame([dict(payload=json.dumps(an_recovery(m)))])); print("[gold] an_recovery")
+    lh.write_delta("gold", "an_sensitivity_robust", pd.DataFrame([dict(payload=json.dumps(an_sensitivity_robust(m)))])); print("[gold] an_sensitivity_robust")
     vc, vcurve = an_variance(m)
     lh.write_delta("gold", "an_variance", vc); lh.write_delta("gold", "an_variance_curves", vcurve); print("[gold] an_variance (+curves)")
     lh.write_delta("gold", "an_transitions", an_transitions(m)); print("[gold] an_transitions")
