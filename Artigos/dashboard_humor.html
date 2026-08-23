@@ -358,7 +358,8 @@ function showTip(html,ev){tip.innerHTML=html;tip.style.opacity=1;let x=ev.client
 function hideTip(){tip.style.opacity=0;}
 function mk(host,h){const box=document.createElement("div");box.className="host";const cv=document.createElement("canvas");cv.className="chart";box.appendChild(cv);host.appendChild(box);
   const dpr=Math.min(Math.max(devicePixelRatio||1,2),3);const w=host.clientWidth||760;cv.width=w*dpr;cv.height=h*dpr;cv.style.height=h+"px";const g=cv.getContext("2d");g.scale(dpr,dpr);cv._w=w;cv._h=h;cv._hits=[];return {cv,g};}
-function anim(dur,step){if(rm){step(1);return;}const t0=performance.now();function fr(t){let p=Math.min(1,(t-t0)/dur);step(1-Math.pow(1-p,3));if(p<1)requestAnimationFrame(fr);}requestAnimationFrame(fr);}
+const ANIM_MULT=2.1; /* animações mais lentas e didáticas */
+function anim(dur,step){if(rm){step(1);return;}dur*=ANIM_MULT;const t0=performance.now();function fr(t){let p=Math.min(1,(t-t0)/dur);step(1-Math.pow(1-p,2.2));if(p<1)requestAnimationFrame(fr);}requestAnimationFrame(fr);}
 function stag(prog,i,n,spread=0.55){const w=1-spread;const s=(n>1?i/(n-1):0)*spread;return Math.max(0,Math.min(1,(prog-s)/w));}
 function attachHits(cv){cv.onmousemove=e=>{const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;let hit=null;for(const h of cv._hits){if(mx>=h.x&&mx<=h.x+h.w&&my>=h.y&&my<=h.y+h.h){hit=h;break;}}if(hit){showTip(hit.tip,e);cv.style.cursor="pointer";}else{hideTip();cv.style.cursor="default";}};cv.onmouseleave=hideTip;}
 function rr(g,x,y,w,h,r){r=Math.min(r,w/2,h/2);g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
@@ -482,7 +483,10 @@ function cprogA(g,ax,xs,ys,prog,col,wd){const n=Math.max(2,Math.floor(xs.length*
   const gr=g.createLinearGradient(0,ax.y1,0,baseY);gr.addColorStop(0,rgba(col,.30));gr.addColorStop(1,rgba(col,0));
   g.beginPath();g.moveTo(ax.X(xs[0]),baseY);for(let i=0;i<n;i++)g.lineTo(ax.X(xs[i]),ax.Y(ys[i]));g.lineTo(ax.X(xs[n-1]),baseY);g.closePath();g.fillStyle=gr;g.fill();
   g.shadowColor=rgba(col,.45);g.shadowBlur=8;cprog(g,ax,xs,ys,prog,col,wd);g.shadowBlur=0;
-  const lx=ax.X(xs[n-1]),ly=ax.Y(ys[n-1]);g.fillStyle=col;g.beginPath();g.arc(lx,ly,wd*1.15+1.5,0,7);g.fill();g.fillStyle="#0b1220";g.beginPath();g.arc(lx,ly,wd*0.55,0,7);g.fill();}
+  const lx=ax.X(xs[n-1]),ly=ax.Y(ys[n-1]);g.fillStyle=col;g.beginPath();g.arc(lx,ly,wd*1.15+1.5,0,7);g.fill();g.fillStyle="#0b1220";g.beginPath();g.arc(lx,ly,wd*0.55,0,7);g.fill();
+  // valor plotado junto ao ponto móvel (didático)
+  const vtxt=ys[n-1].toFixed(1).replace(".",",");g.font='700 12px "IBM Plex Mono",monospace';const tw=g.measureText(vtxt).width;const bx=Math.min(lx+9,ax.x1-tw-8);
+  g.fillStyle="rgba(9,14,22,.9)";rr(g,bx-4,ly-9,tw+8,18,5);g.fill();g.strokeStyle=rgba(col,.6);g.lineWidth=1;g.stroke();g.fillStyle=col;g.textAlign="left";g.textBaseline="middle";g.fillText(vtxt,bx,ly);}
 /* pontos-marcadores nos vértices (anel colorido + miolo escuro) */
 function dots(g,ax,xs,ys,col,r=4.2){for(let i=0;i<xs.length;i++){const x=ax.X(xs[i]),y=ax.Y(ys[i]);g.fillStyle=col;g.beginPath();g.arc(x,y,r,0,7);g.fill();g.fillStyle="#0b1220";g.beginPath();g.arc(x,y,r*0.42,0,7);g.fill();}}
 function dline(g,ax,xmin,xmax,yv,col){g.strokeStyle=col;g.globalAlpha=.55;g.setLineDash([3,4]);g.lineWidth=1.4;g.beginPath();g.moveTo(ax.X(xmin),ax.Y(yv));g.lineTo(ax.X(xmax),ax.Y(yv));g.stroke();g.setLineDash([]);g.globalAlpha=1;}
@@ -745,6 +749,25 @@ function drawSono(host){const {cv,g}=mk(host,320);const w=cv._w,h=cv._h,pad={l:4
       if(prog>=1)ys.forEach((v,i)=>{const x=ax.X(X[i]),y=ax.Y(v);g.fillStyle=col;g.beginPath();g.arc(x,y,4.4,0,7);g.fill();g.fillStyle="#0b1220";g.beginPath();g.arc(x,y,1.9,0,7);g.fill();cv._hits.push({x:x-8,y:y-8,w:16,h:16,tip:`<b>${k}</b> \u00b7 D${i+1}<br>${num(v,1)}`});});});
   });attachHits(cv);
   const lg=document.createElement("div");lg.className="legend";lg.innerHTML=`<span class="it"><span class="dot" style="background:${C.pth}"></span>Sonol\u00eancia (Epworth 0\u201324)</span><span class="it"><span class="dot" style="background:${C.tensao}"></span>Estresse (PSS)</span><span class="it"><span class="dot" style="background:rgba(232,89,12,.5)"></span>HIIT</span><span class="it"><span class="dot" style="background:rgba(60,182,255,.5)"></span>jogo</span>`;host.appendChild(lg);}
+/* trajet\u00f3ria individual do atleta (vigor/fadiga) \u2014 plotada lenta, com valores e faixas de tipo de dia */
+function drawIndTraj(host,a){const g0=ATLETA.g[a];const days=[];for(let d=1;d<=7;d++)if(g0[d])days.push(d);
+  if(days.length<1){host.innerHTML='<p class="note">sem dados suficientes</p>';return;}
+  const {cv,g}=mk(host,340);const w=cv._w,h=cv._h,pad={l:40,r:16,t:20,b:34};const xmin=1,xmax=7;
+  const vig=days.map(d=>g0[d][3]),fad=days.map(d=>g0[d][4]);
+  const ymax=Math.max(...vig,...fad,8)+2.5,ymin=0;const HII=[2,4,7],AMI=[3,5];
+  anim(2600,prog=>{const ax=paxes(g,w,h,pad,xmin,xmax,ymin,ymax);cv._hits=[];
+    HII.forEach(d=>{const x=ax.X(d);g.fillStyle="rgba(232,89,12,.09)";g.fillRect(x-14,ax.y1,28,ax.y0-ax.y1);});
+    AMI.forEach(d=>{const x=ax.X(d);g.fillStyle="rgba(60,182,255,.09)";g.fillRect(x-14,ax.y1,28,ax.y0-ax.y1);});
+    [["Vigor",vig,C.vigor,"bottom"],["Fadiga",fad,C.fadiga,"top"]].forEach(([lab,ys,col,base])=>{
+      const n=Math.max(1,Math.floor(days.length*prog+0.001));
+      g.strokeStyle=col;g.lineWidth=4.8;g.lineJoin="round";g.lineCap="round";g.shadowColor=rgba(col,.55);g.shadowBlur=8;g.beginPath();
+      for(let i=0;i<n;i++){const x=ax.X(days[i]),y=ax.Y(ys[i]);i?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();g.shadowBlur=0;
+      for(let i=0;i<n;i++){const x=ax.X(days[i]),y=ax.Y(ys[i]);g.fillStyle=col;g.beginPath();g.arc(x,y,5.2,0,7);g.fill();g.fillStyle="#0b1220";g.beginPath();g.arc(x,y,2.2,0,7);g.fill();
+        const t=ys[i].toFixed(1).replace(".",",");g.font='700 11.5px "IBM Plex Mono",monospace';const tw=g.measureText(t).width;g.fillStyle="rgba(9,14,22,.85)";rr(g,x-tw/2-3,base==="bottom"?y-22:y+8,tw+6,15,4);g.fill();g.fillStyle=col;g.textAlign="center";g.textBaseline="middle";g.fillText(t,x,base==="bottom"?y-14:y+15);
+        if(prog>=1)cv._hits.push({x:x-8,y:y-8,w:16,h:16,tip:`<b>${lab}</b> \u00b7 D${days[i]}<br>${t}`});}
+    });
+  });attachHits(cv);
+  const lg=document.createElement("div");lg.className="legend";lg.innerHTML=`<span class="it"><span class="dot" style="background:${C.vigor}"></span>Vigor</span><span class="it"><span class="dot" style="background:${C.fadiga}"></span>Fadiga</span><span class="it"><span class="dot" style="background:rgba(232,89,12,.5)"></span>HIIT</span><span class="it"><span class="dot" style="background:rgba(60,182,255,.5)"></span>jogo</span>`;host.appendChild(lg);}
 /* tabela do microciclo de treino, sess\u00e3o a sess\u00e3o (estrutura real fornecida pela comiss\u00e3o t\u00e9cnica) */
 function hiitTrainTable(host){const c=document.createElement("div");c.className="card";c.style.marginTop="16px";
   let rows="",tot=0;
@@ -860,9 +883,20 @@ function drawDeriv(host,key){
   const yA=[Math.min(v.ymin,...rawy)-0.6,Math.max(v.ymax,...rawy)+0.6],d1a=[Math.min(...v.d1),Math.max(...v.d1)],d2a=[Math.min(...v.d2),Math.max(...v.d2)],pad=()=>({l:42,r:14,t:14,b:26});
   anim(2400,prog=>{const pA=Math.min(1,prog/0.5),pB=Math.max(0,Math.min(1,(prog-0.3)/0.5)),pC=Math.max(0,Math.min(1,(prog-0.55)/0.45));
     let ax=paxes(A.g,A.cv._w,A.cv._h,pad(),xmin,xmax,yA[0],yA[1]);A.cv._hits=[];dline(A.g,ax,xmin,xmax,v.ymin,col);dline(A.g,ax,xmin,xmax,v.ymax,col);HIIT.forEach(d=>vline(A.g,ax,d,"rgba(200,220,240,.16)"));if(v.infl.length)vline(A.g,ax,v.infl[0],"rgba(233,238,246,.45)");cprogA(A.g,ax,X,v.sig,pA,col,4.4);
-    if(pA>=1){v.raw.forEach(p=>{A.g.fillStyle=col;A.g.beginPath();A.g.arc(ax.X(p[0]),ax.Y(p[1]),3,0,7);A.g.fill();A.cv._hits.push({x:ax.X(p[0])-7,y:ax.Y(p[1])-7,w:14,h:14,tip:`<b>${v.lab}</b> · dia ${num(p[0],1)}<br>escore ${num(p[1],1)}`});});markExtrema(A.g,ax,X,v.sig,col);}
-    let bx=paxes(B.g,B.cv._w,B.cv._h,pad(),xmin,xmax,d1a[0],d1a[1],true);cprog(B.g,bx,X,v.d1,pB,col,3.4);if(pB>=1)dots(B.g,bx,DAYS,DAYS.map(d=>v.d1[Math.round((d-xmin)/(xmax-xmin)*(X.length-1))]),col,3.4);
-    let cx=paxes(Cc.g,Cc.cv._w,Cc.cv._h,pad(),xmin,xmax,d2a[0],d2a[1],true);cprog(Cc.g,cx,X,v.d2,pC,col,3.4);});
+    if(pA>=1){v.raw.forEach(p=>{A.g.fillStyle=col;A.g.beginPath();A.g.arc(ax.X(p[0]),ax.Y(p[1]),3,0,7);A.g.fill();A.cv._hits.push({x:ax.X(p[0])-7,y:ax.Y(p[1])-7,w:14,h:14,tip:`<b>${v.lab}</b> · dia ${num(p[0],1)}<br>escore ${num(p[1],1)}`});});markExtrema(A.g,ax,X,v.sig,col);
+      if(v.infl.length){const ix=v.infl[0];let ii=0;for(let i=0;i<X.length;i++)if(Math.abs(X[i]-ix)<Math.abs(X[ii]-ix))ii=i;const px=ax.X(ix),py=ax.Y(v.sig[ii]);
+        A.g.save();A.g.translate(px,py);A.g.rotate(Math.PI/4);A.g.fillStyle="#ffd43b";A.g.strokeStyle="#0b1220";A.g.lineWidth=2;A.g.fillRect(-6,-6,12,12);A.g.strokeRect(-6,-6,12,12);A.g.restore();
+        A.g.font='700 10px "IBM Plex Mono",monospace';A.g.textAlign="center";A.g.textBaseline="bottom";const t="◆ inflexão · dia "+num(ix,1),tw=A.g.measureText(t).width;A.g.fillStyle="rgba(9,14,22,.9)";rr(A.g,px-tw/2-4,py-30,tw+8,16,4);A.g.fill();A.g.fillStyle="#ffd43b";A.g.fillText(t,px,py-16);}}
+    let bx=paxes(B.g,B.cv._w,B.cv._h,pad(),xmin,xmax,d1a[0],d1a[1],true);cprog(B.g,bx,X,v.d1,pB,col,3.4);
+    if(pB>=1){dots(B.g,bx,DAYS,DAYS.map(d=>v.d1[Math.round((d-xmin)/(xmax-xmin)*(X.length-1))]),col,3.4);
+      let pk=0;for(let i=0;i<v.d1.length;i++)if(Math.abs(v.d1[i])>Math.abs(v.d1[pk]))pk=i;const px=bx.X(X[pk]),py=bx.Y(v.d1[pk]);
+      B.g.fillStyle="#ff5c7a";B.g.beginPath();B.g.arc(px,py,5,0,7);B.g.fill();B.g.strokeStyle="#0b1220";B.g.lineWidth=1.5;B.g.stroke();
+      B.g.font='700 9px "IBM Plex Mono",monospace';B.g.fillStyle="#ffc2cd";B.g.textAlign="center";B.g.textBaseline=v.d1[pk]>=0?"bottom":"top";B.g.fillText("vel. pico "+(v.d1[pk]>=0?"+":"")+num(v.d1[pk],1),px,py+(v.d1[pk]>=0?-9:9));}
+    let cx=paxes(Cc.g,Cc.cv._w,Cc.cv._h,pad(),xmin,xmax,d2a[0],d2a[1],true);cprog(Cc.g,cx,X,v.d2,pC,col,3.4);
+    if(pC>=1){for(let i=0;i<v.d2.length-1;i++){if(v.d2[i]===0||v.d2[i]*v.d2[i+1]<0){const t=v.d2[i]/(v.d2[i]-v.d2[i+1]||1),xz=X[i]+(X[i+1]-X[i])*t,px=cx.X(xz),yz=cx.Y(0);
+      Cc.g.strokeStyle="#ffd43b";Cc.g.setLineDash([3,3]);Cc.g.lineWidth=1.5;Cc.g.beginPath();Cc.g.moveTo(px,cx.y1);Cc.g.lineTo(px,cx.y0);Cc.g.stroke();Cc.g.setLineDash([]);
+      Cc.g.fillStyle="#ffd43b";Cc.g.beginPath();Cc.g.arc(px,yz,5,0,7);Cc.g.fill();Cc.g.strokeStyle="#0b1220";Cc.g.lineWidth=1.5;Cc.g.stroke();
+      Cc.g.font='700 9px "IBM Plex Mono",monospace';Cc.g.textAlign="center";Cc.g.textBaseline="top";Cc.g.fillText("inflexão",px,cx.y1+2);break;}}}});
   attachHits(A.cv);
 }
 /* ---- funnel ---- */
@@ -1108,7 +1142,38 @@ const SECTIONS=[
   ctr.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{filter=b.dataset.f;ctr.querySelectorAll("[data-f]").forEach(x=>x.classList.toggle("selon",x===b));build();});
   ctr.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{mode=b.dataset.m;ctr.querySelectorAll("[data-m]").forEach(x=>x.classList.toggle("selon",x===b));build();});
   build();
-  h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:14px"><h3>Legenda dos perfis</h3><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">${[["IC","Iceberg",C.good],["SU","Superfície",C.good],["SB","Submerso",C.warn],["BT","Barbatana de tubarão",C.warn],["II","Iceberg invertido",C.crit],["EI","Everest invertido",C.crit]].map(x=>`<span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);border:1px solid ${x[2]}44;border-radius:20px;padding:2px 10px"><b style="color:${x[2]};font-family:'IBM Plex Mono'">${x[0]}</b> ${x[1]}</span>`).join("")}</div><p class="note" style="margin-top:8px">Verde = favorável (iceberg/superfície) · Amarelo = atenção (submerso/barbatana) · Vermelho = risco (invertidos). <b>13 dos 27</b> atletas tiveram ≥1 dia em vermelho; <b>6</b> tiveram ≥2 — a lista de acompanhamento.</p></div>`);
+  h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:14px"><h3>Legenda dos perfis</h3><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">${[["IC","Iceberg",C.good],["SU","Superfície",C.good],["SB","Submerso",C.warn],["BT","Barbatana de tubarão",C.warn],["II","Iceberg invertido",C.crit],["EI","Everest invertido",C.crit]].map(x=>`<span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);border:1px solid ${x[2]}44;border-radius:20px;padding:2px 10px"><b style="color:${x[2]};font-family:'IBM Plex Mono'">${x[0]}</b> ${x[1]}</span>`).join("")}</div><p class="note" style="margin-top:8px">Verde = favorável (iceberg/superfície) · Amarelo = atenção (submerso/barbatana) · Vermelho = risco (invertidos). <b>13 dos 27</b> atletas tiveram ≥1 dia em vermelho; <b>6</b> tiveram ≥2 — a lista de acompanhamento. <b>Clique num atleta na aba “Visão individual”</b> para ver a semana inteira dele.</p></div>`);
+}},
+{id:"individual",lab:"Visão individual do atleta",icon:"focus",render(h){
+  head(h,"um atleta por vez · navegue","Visão individual do atleta","A semana completa de cada atleta: o <b>perfil classificado dia a dia</b> em ícones coloridos, o <b>semáforo de risco</b> e a <b>trajetória dinâmica</b> de vigor e fadiga, plotada em tempo real. Use ◀ ▶ para trocar de atleta.");
+  const ids=ATLETA.ids;let idx=0;
+  const nav=document.createElement("div");nav.style.cssText="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap";h.appendChild(nav);
+  const host=document.createElement("div");h.appendChild(host);
+  const TC={0:C.good,1:C.warn,2:C.crit};const AB={IC:"Iceberg",SU:"Superfície",SB:"Submerso",BT:"Barbatana",II:"Iceberg inv.",EI:"Everest inv."};
+  function render(){const a=ids[idx];const g=ATLETA.g[a];const nred=Object.values(g).filter(v=>v[0]===2).length;const rc=nred>=2?C.crit:nred===1?C.warn:C.good;
+    nav.innerHTML=`<button class="navbtn" data-p style="cursor:pointer">◀ Anterior</button>
+      <div style="display:flex;align-items:center;gap:10px"><span style="font-family:'IBM Plex Mono';font-weight:800;font-size:22px;color:var(--ink)">${a}</span><span style="font-size:11px;color:${rc};border:1px solid ${rc}66;border-radius:20px;padding:2px 10px">${nred===0?"sem dias de risco":nred+" dia(s) em risco"}</span><span style="font-size:11px;color:var(--muted)">${idx+1}/${ids.length}</span></div>
+      <button class="navbtn" data-n style="cursor:pointer">Próximo ▶</button>
+      <div class="legend" style="margin-left:auto">${ids.map((x,i)=>`<span class="it${i===idx?' selon':''}" data-i="${i}" style="cursor:pointer;font-size:10px;padding:2px 6px">${x}</span>`).join("")}</div>`;
+    nav.querySelector("[data-p]").onclick=()=>{idx=(idx-1+ids.length)%ids.length;render();};
+    nav.querySelector("[data-n]").onclick=()=>{idx=(idx+1)%ids.length;render();};
+    nav.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{idx=+b.dataset.i;render();});
+    host.innerHTML="";
+    // linha de ícones de perfil por dia
+    const HII={2:1,4:1,7:1},AMI={3:1,5:1};
+    const icc=document.createElement("div");icc.className="card";
+    let cells="";for(let d=1;d<=7;d++){const v=g[d];const col=v?TC[v[0]]:C.faint;const ab=v?v[1]:"—";const nm=v?AB[v[1]]:"sem dado";
+      cells+=`<div style="flex:1 1 90px;min-width:84px;text-align:center;border:1px solid var(--stroke);border-top:3px solid ${col};border-radius:12px;padding:10px 6px;background:var(--glass)">
+        <div style="font-family:'IBM Plex Mono';font-size:10px;color:var(--muted)">D${d}${HII[d]?` · <span style="color:${C.fadiga}">HIIT</span>`:AMI[d]?` · <span style="color:${C.tensao}">jogo</span>`:""}</div>
+        <div style="width:40px;height:40px;margin:7px auto 4px;border-radius:12px;display:grid;place-items:center;background:${col}22;border:1px solid ${col}66;color:${col};font-weight:800;font-family:'IBM Plex Mono';font-size:15px;box-shadow:0 0 12px ${col}33">${ab}</div>
+        <div style="font-size:9.5px;color:${col}">${nm}</div>
+        ${v?`<div style="font-size:9px;color:var(--muted);margin-top:3px">PTH ${num(v[2],1)}</div>`:""}</div>`;}
+    icc.innerHTML=`<h3>Perfil de humor dia a dia — ${a}</h3><p class="note">ícone colorido = perfil classificado · verde favorável · amarelo atenção · vermelho risco</p><div style="display:flex;flex-wrap:wrap;gap:8px">${cells}</div>`;host.appendChild(icc);
+    // gráfico dinâmico vigor/fadiga
+    const gc=document.createElement("div");gc.className="card";gc.style.marginTop="14px";gc.innerHTML=`<h3>Trajetória de vigor e fadiga — ${a}</h3><p class="note">plotada em tempo real · valores marcados em cada dia · faixas = HIIT (laranja) e jogo (azul)</p><div class="host" id="h_ind"></div>`;host.appendChild(gc);
+    drawIndTraj($("#h_ind",gc),a);
+  }
+  render();
 }},
 {id:"resultados",lab:"Resultados & Discussão",icon:"present",render(h){
   head(h,"leitura guiada para qualquer pessoa","Resultados e Discussão — de onde tudo vem e o que significa","Uma leitura didática de ponta a ponta: de <b>onde vieram os dados</b>, <b>por que</b> cada análise foi feita, <b>o que</b> encontramos e <b>o que significa</b>. Cada bloco tem um botão para abrir a análise detalhada.");
@@ -1712,7 +1777,7 @@ const NAVGROUPS=[
   {lab:"4 · Estrutura multivariada",ids:["pca","multivar"]},
   {lab:"5 · Dinâmica temporal",    ids:["limites","curvas","traj","snr"]},
   {lab:"6 · Resposta aguda",       ids:["agudo","agcron","intraentre","variancia","hiit","negdia","sono"]},
-  {lab:"7 · Relações & predição",  ids:["corr","preditivo","iot","atletas"]},
+  {lab:"7 · Relações & predição",  ids:["corr","preditivo","iot","atletas","individual"]},
   {lab:"8 · Aptidão física",       ids:["fisico"]}
 ];
 const ORDER=NAVGROUPS.flatMap(g=>g.ids);
