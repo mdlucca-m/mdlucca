@@ -128,10 +128,12 @@ def an_profile_athlete(m):
     rows = []
     for aid, sub in g.groupby("ID"):
         zmean = [(sub[c].mean() - mu[c]) / sd[c] for c in SUB]
-        vc = sub["perfil"].value_counts()
+        # modal com desempate DETERMINÍSTICO: mais frequente e, em empate, nome asc
+        vc = (sub["perfil"].value_counts().rename_axis("perfil").reset_index(name="n")
+              .sort_values(["n", "perfil"], ascending=[False, True]).reset_index(drop=True))
         rows.append(dict(ID=aid, n_obs=int(len(sub)),
                          perfil_medio=_nearest(zmean, names, CM),
-                         perfil_modal=vc.index[0], modal_freq=int(vc.iloc[0]),
+                         perfil_modal=vc.loc[0, "perfil"], modal_freq=int(vc.loc[0, "n"]),
                          **{KEY[c]: round(float(sub[c + "_T"].mean()), 1) for c in SUB},
                          risco=bool(sub["perfil"].isin(["Everest invertido", "Iceberg invertido"]).any())))
     return pd.DataFrame(rows).sort_values("ID").reset_index(drop=True)
