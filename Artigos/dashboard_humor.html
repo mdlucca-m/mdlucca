@@ -297,27 +297,27 @@ const GLOBAL={varKey:null};
 /* ===================== DATA ===================== */
 const DAYS=[1,2,3,4,5,6,7];
 const DIM=[
- {k:"vigor",lab:"Vigor",c:C.vigor,daily:[8.3,5.4,5.5,5.4,5.9,5.7,4.4]},
- {k:"fadiga",lab:"Fadiga",c:C.fadiga,daily:[3.4,5.2,5.1,5.8,5.1,6.0,7.2]},
- {k:"tensao",lab:"Tensão",c:C.tensao,daily:[2.1,1.8,1.1,1.4,1.2,1.5,1.1]},
- {k:"depressao",lab:"Depressão",c:C.depressao,daily:[0.6,1.3,0.7,1.2,0.7,1.2,1.4]},
- {k:"raiva",lab:"Raiva",c:C.raiva,daily:[1.7,1.7,1.6,1.6,0.6,1.8,2.5]},
- {k:"confusao",lab:"Confusão",c:C.confusao,daily:[1.0,0.6,0.3,0.4,0.2,0.7,0.6]},
- {k:"pth",lab:"PTH",c:C.pth,daily:[0.6,5.3,3.3,5.0,1.9,5.5,8.3]}
+ {k:"vigor",lab:"Vigor",c:C.vigor,daily:[7.6,5.7,5.7,5.3,5.6,5.7,4.5]},
+ {k:"fadiga",lab:"Fadiga",c:C.fadiga,daily:[4.0,5.2,5.0,5.8,5.3,5.8,7.5]},
+ {k:"tensao",lab:"Tensão",c:C.tensao,daily:[2.2,1.6,1.1,1.4,1.0,1.5,0.9]},
+ {k:"depressao",lab:"Depressão",c:C.depressao,daily:[1.0,1.2,0.7,1.1,0.7,1.1,1.3]},
+ {k:"raiva",lab:"Raiva",c:C.raiva,daily:[2.0,1.7,1.4,1.4,0.6,1.7,2.6]},
+ {k:"confusao",lab:"Confusão",c:C.confusao,daily:[1.0,0.5,0.3,0.4,0.2,0.6,0.5]},
+ {k:"pth",lab:"PTH",c:C.pth,daily:[2.5,4.6,2.9,4.8,2.2,4.8,8.3]}
 ];
 const DESC=[["Vigor",5.7,3.3,"0–15"],["Fadiga",5.5,4.1,"0–16"],["Tensão",1.4,1.8,"0–8"],["Depressão",1.0,2.4,"0–16"],["Raiva",1.6,2.8,"0–14"],["Confusão",0.5,1.3,"0–8"],["PTH",4.4,10.1,"−12–52"]];
 const ICC=[["Vigor",.53,.89,"moderada"],["Fadiga",.61,.92,"moderada"],["Tensão",.64,.93,"moderada"],["Depressão",.68,.94,"moderada"],["Raiva",.39,.82,"pobre"],["Confusão",.36,.80,"pobre"]];
 const OMEGA=[["Vigor",.77],["Fadiga",.83],["Tensão",.54],["Depressão",.87],["Raiva",.87],["Confusão",.68]];
 const TRIA=[["Esgotado",2.18],["Disposição",2.15],["Exausto",1.85],["Energia",1.74],["Cansado",1.35],["Animado",0.94],["Sonolento",0.25],["Alerta",0.11]];
 const LIM=[["Vigor",2.3,5.3,6.3,0.7],["Fadiga",2.6,5.9,7.0,0.8],["Tensão",1.1,2.5,3.0,0.4],["Depressão",1.4,3.2,3.8,0.5],["Raiva",2.2,5.1,6.1,0.6],["Confusão",1.0,2.4,2.9,0.3]];
-const PERFIS=[["Iceberg",13,8],["Superfície",6,10],["Everest invertido",4,4],["Iceberg invertido",2,2],["Submerso",1,5],["Barbatana de tubarão",1,8]];
-const D17=[["Vigor",8.43,4.29,-49,-1.33,"grande"],["Fadiga",3.43,7.36,115,0.78,"médio"],["Tensão",2.19,0.93,-58,-0.60,"médio"],["Depressão",0.52,1.29,145,0.22,"pequeno"],["Raiva",2.19,2.64,21,0.09,"trivial"],["Confusão",1.19,0.52,-56,-0.57,"médio"],["PTH",1.10,8.45,672,0.55,"médio"]];
-const FRIED=[["Vigor",23.6,"<0,001",.21,"pequeno"],["Fadiga",17.9,"0,007",.16,"pequeno"],["Tensão",14.5,"0,025",.13,"pequeno"],["Depressão",3.5,"0,751",.03,"trivial"],["Raiva",7.9,"0,247",.07,"trivial"],["Confusão",22.9,"<0,001",.20,"pequeno"],["PTH",13.8,"0,032",.12,"pequeno"]];
+const PERFIS=[["Iceberg",11,2],["Superfície",3,8],["Submerso",3,5],["Barbatana de tubarão",2,3],["Everest invertido",5,2],["Iceberg invertido",3,1]];
+const D17=[["Vigor",7.64,4.49,-41,-0.95,"grande"],["Fadiga",4.26,7.46,75,0.72,"médio"],["Tensão",2.14,0.94,-56,-0.59,"médio"],["Depressão",1.02,1.27,24,0.10,"trivial"],["Raiva",2.48,2.59,5,0.02,"trivial"],["Confusão",1.10,0.51,-53,-0.46,"pequeno"],["PTH",3.36,8.28,147,0.41,"pequeno"]];
+const FRIED=[["Vigor",14.7,"0,022",.13,"pequeno"],["Fadiga",13.2,"0,040",.12,"pequeno"],["Tensão",13.2,"0,039",.12,"pequeno"],["Depressão",1.8,"0,936",.02,"trivial"],["Raiva",12.3,"0,056",.11,"pequeno"],["Confusão",25.8,"<0,001",.23,"pequeno"],["PTH",7.6,"0,269",.07,"trivial"]];
 const PREPOS=[["Tensão",1.30,1.60,23,"0,057",0.43],["Depressão",1.03,1.21,17,"0,687",0.24],["Raiva",1.31,1.51,15,"0,745",0.13],["Vigor",5.76,4.94,-14,"0,025",-0.47],["Fadiga",4.61,6.28,36,"0,005",0.57],["Confusão",0.41,0.41,-1,"0,706",-0.01],["PTH",2.91,6.06,108,"0,009",0.58]];
 const TRANS=[["D1→D2 pré","Recuperação",-0.69,0.20,0.49,true],["D2 pré→pós","Agudo",-0.39,0.64,0.31,false],["D2→D3 pré","Recuperação",0.49,-0.51,-0.56,true],["D3 pré→pós","Agudo",-0.22,0.28,0.16,false],["D3→D4 pré","Recuperação",0.19,-0.03,-0.20,false],["D4 pré→pós","Agudo",-0.26,0.23,0.50,false],["D4→D5 pré","Recuperação",0.43,-0.55,-0.63,true],["D5 pré→pós","Agudo",-0.12,0.38,0.17,false],["D5→D6 pré","Recuperação",0.36,-0.22,-0.23,false],["D6 pré→pós","Agudo",-0.64,0.36,0.75,true],["D6→D7 pré","Recuperação",-0.03,-0.07,-0.17,false],["D7 pré→pós","Agudo",-0.20,0.48,0.53,false]];
 const SPEAR=[["Vigor × Fadiga",-0.40,"0,037"],["Fadiga × Depressão",0.42,"0,028"],["Fadiga × Raiva",0.49,"0,010"],["Tensão × Confusão",0.45,"0,017"],["Depressão × Raiva",0.53,"0,005"],["Depressão × Confusão",0.43,"0,027"]];
 const SNR=[["Vigor",4.1,0.49,8.4,9,"Dia 3,8"],["Fadiga",4.5,0.67,6.7,10,"Dia 4,0"],["PTH",9.2,1.96,4.7,43,"Dia 3,5"],["Tensão",1.1,0.28,3.7,46,"Dia 4,8"],["Depressão",0.9,0.33,2.7,67,"Dia 3,2"],["Raiva",1.8,0.54,3.4,62,"Dia 3,0"],["Confusão",0.8,0.18,4.4,79,"Dia 5,4"]];
-const CROSS=[2.3,3.9,5.8];
+const CROSS=[2.9,3.6,5.7];
 /* comportamento de cada variável ao longo da semana (médias atleta-dia; Friedman diário + Wilcoxon D1→D7) */
 const CURVE=[
  ["Vigor",7.6,4.5,-3.1,-0.95,"0,001","0,022",4.3,"queda robusta"],
@@ -661,13 +661,13 @@ const PER={M:"manh\u00e3",V:"tarde",N:"noite"};
 const STY={TT:{lab:"T\u00e9cnico/t\u00e1tico",abbr:"TT",c:C.tensao},HIIT:{lab:"F\u00edsico \u2013 HIIT",abbr:"HIIT",c:C.fadiga},
            TF:{lab:"F\u00edsico \u2013 for\u00e7a",abbr:"TF",c:C.pth},AM:{lab:"Amistoso",abbr:"AM",c:C.confusao}};
 const MICRO=[
- {d:"D1",data:"21/04",hiit:false,vol:7, base:true, ff:4.7,tqr:13.5,vig:8.3,fad:3.4,perfil:"Iceberg",ice:41,   ses:[["N","TT",90,7]]},
- {d:"D2",data:"22/04",hiit:true,  vol:11,ff:6.0,tqr:11.4,vig:5.4,fad:5.2,perfil:"Superf\u00edcie",ice:27,           ses:[["V","HIIT",60,4],["V","TT",90,7]]},
- {d:"D3",data:"23/04",hiit:false, vol:20,ff:6.4,tqr:11.4,vig:5.5,fad:5.1,perfil:"Iceberg",ice:38,               ses:[["M","TT",90,7],["V","TF",60,4],["V","AM",120,9]]},
- {d:"D4",data:"24/04",hiit:true,  vol:11,ff:7.1,tqr:11.1,vig:5.4,fad:5.8,perfil:"Iceberg",ice:33,               ses:[["V","HIIT",60,4],["V","TT",90,7]]},
- {d:"D5",data:"25/04",hiit:false, vol:22,ff:6.0,tqr:11.6,vig:5.9,fad:5.1,perfil:"Iceberg",ice:35,               ses:[["M","TT",90,7],["V","TF",90,7],["V","AM",120,9]]},
- {d:"D6",data:"26/04",hiit:false, vol:22,ff:6.4,tqr:11.7,vig:5.7,fad:6.0,perfil:"Superf\u00edcie",ice:27,            ses:[["M","TT",120,9],["V","TF",90,7],["V","TT",90,7]]},
- {d:"D7",data:"27/04",hiit:true,  vol:9, ff:7.6,tqr:9.0,vig:4.4,fad:7.2,perfil:"Superf\u00edcie",ice:10,             ses:[["M","HIIT",30,2],["M","TT",90,7]]}
+ {d:"D1",data:"21/04",hiit:false,vol:7, base:true, ff:4.7,tqr:13.5,vig:7.6,fad:4.0,perfil:"Iceberg",ice:41,   ses:[["N","TT",90,7]]},
+ {d:"D2",data:"22/04",hiit:true,  vol:11,ff:6.0,tqr:11.4,vig:5.7,fad:5.2,perfil:"Superf\u00edcie",ice:27,           ses:[["V","HIIT",60,4],["V","TT",90,7]]},
+ {d:"D3",data:"23/04",hiit:false, vol:20,ff:6.4,tqr:11.4,vig:5.7,fad:5.0,perfil:"Iceberg",ice:38,               ses:[["M","TT",90,7],["V","TF",60,4],["V","AM",120,9]]},
+ {d:"D4",data:"24/04",hiit:true,  vol:11,ff:7.1,tqr:11.1,vig:5.3,fad:5.8,perfil:"Iceberg",ice:33,               ses:[["V","HIIT",60,4],["V","TT",90,7]]},
+ {d:"D5",data:"25/04",hiit:false, vol:22,ff:6.0,tqr:11.6,vig:5.6,fad:5.3,perfil:"Iceberg",ice:35,               ses:[["M","TT",90,7],["V","TF",90,7],["V","AM",120,9]]},
+ {d:"D6",data:"26/04",hiit:false, vol:22,ff:6.4,tqr:11.7,vig:5.7,fad:5.8,perfil:"Superf\u00edcie",ice:27,            ses:[["M","TT",120,9],["V","TF",90,7],["V","TT",90,7]]},
+ {d:"D7",data:"27/04",hiit:true,  vol:9, ff:7.6,tqr:9.0,vig:4.5,fad:7.5,perfil:"Superf\u00edcie",ice:10,             ses:[["M","HIIT",30,2],["M","TT",90,7]]}
 ];
 /* organograma do microciclo: linha do tempo de 7 dias com/sem HIIT */
 function hiitOrg(host){const c=document.createElement("div");c.className="card";
@@ -982,19 +982,19 @@ const SECTIONS=[
   $("#afc_k",gr2).innerHTML=`<div class="kpis"><div class="kpi"><span class="stripe" style="background:${C.vigor}"></span><div class="lab">CFI / TLI</div><div class="val" style="color:${C.vigor};font-size:22px">0,87 / 0,85</div><div class="cap">ajuste aceitável</div></div><div class="kpi"><span class="stripe" style="background:${C.fadiga}"></span><div class="lab">RMSEA / SRMR</div><div class="val" style="color:${C.fadiga};font-size:22px">0,08 / 0,09</div><div class="cap">item de piso (tensao_1) excluído</div></div></div>`;
 }},
 {id:"perfis",lab:"Perfis de humor",icon:"layers",render(h){
-  head(h,"nível 1","Perfis e migração","No primeiro dia predomina o iceberg (vigor no topo). No último, a prevalência desloca-se para a barbatana de tubarão, sem instalação dos perfis de risco à saúde mental.");
-  const gr=cards(h,`<div class="card"><h3>Prevalência dos perfis</h3><p class="note">contagem no Dia 1 vs Dia 7</p><div class="host" id="h_perf"></div></div><div class="card"><h3>Distribuição</h3><p class="note">n de atletas por perfil</p><div class="host" id="t_perf"></div></div>`);
+  head(h,"nível 1","Perfis e migração","No primeiro dia predomina o iceberg (vigor no topo; 41%). No último, o iceberg praticamente desaparece (10%) e a prevalência se distribui entre superfície, submerso e barbatana de tubarão — sem instalação dos perfis de risco à saúde mental (everest/iceberg invertido).");
+  const gr=cards(h,`<div class="card"><h3>Prevalência dos perfis</h3><p class="note">contagem no Dia 1 (n=27) vs Dia 7 (n=21)</p><div class="host" id="h_perf"></div></div><div class="card"><h3>Distribuição</h3><p class="note">n de atletas por perfil · Δ na contagem</p><div class="host" id="t_perf"></div></div>`);
   groupChart($("#h_perf",gr),PERFIS.map(r=>({lab:r[0],vals:[r[1],r[2]]})),[{lab:"Dia 1",c:C.vigor},{lab:"Dia 7",c:C.fadiga}],{ymax:14});
   dynTable($("#t_perf",gr),["Perfil","Dia 1","Dia 7","Δ"],PERFIS.map(r=>[r[0],r[1],r[2],r[2]-r[1]]),(i,v)=>i===3?(v>0?`<span class="pos">+${v}</span>`:v<0?`<span class="neg">${v}</span>`:v):v);
 }},
 {id:"d17",lab:"D1 → D7",icon:"trend",render(h){
-  head(h,"nível 2","Diferença entre o primeiro e o último dia","O efeito é grande no vigor e na fadiga; a MANOVA confirma a diferença global (λ = 0,181; p < 0,001) e, sob Bonferroni, apenas vigor e fadiga permanecem significativos. A PERMANOVA (permutação, sem pressupor normalidade) corrobora o deslocamento multivariado — ver o passo dedicado em Análise estatística.");
+  head(h,"nível 2","Diferença entre o primeiro e o último dia","O efeito é grande no vigor (dz −0,95) e médio na fadiga (dz +0,72); a MANOVA confirma a diferença global (λ = 0,181; p < 0,001) e, sob Bonferroni, apenas vigor e fadiga permanecem significativos. A PERMANOVA (permutação, sem pressupor normalidade) corrobora o deslocamento multivariado — ver o passo dedicado em Análise estatística.");
   const gr=cards(h,`<div class="card"><h3>Tamanho de efeito (dz)</h3><p class="note">magnitude da mudança por dimensão</p><div class="host" id="h_d17"></div></div><div class="card"><h3>Médias e efeito</h3><p class="note">Dia 1, Dia 7, variação e magnitude</p><div class="host" id="t_d17"></div></div>`);
   lolliChart($("#h_d17",gr),D17.map(r=>({lab:r[0],v:r[4],mag:r[5]})),{hl:HLL()});
   dynTable($("#t_d17",gr),["Dimensão","Dia 1","Dia 7","Δ%","dz","Magn."],D17,(i,v)=>i===1||i===2?num(v):i===3?`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${v}%</span>`:i===4?num(v,2):i===5?`<span class="pill ${v}">${v}</span>`:v,HLL());
 }},
 {id:"dias",lab:"Entre dias",icon:"cal",render(h){
-  head(h,"Friedman","Comparação entre os sete dias","Vigor, fadiga, tensão, confusão e PTH mudam de forma significativa ao longo da semana. O vigor é máximo no Dia 1 e mínimo no Dia 7; a fadiga percorre o caminho inverso.");
+  head(h,"Friedman · casos completos (n=19)","Comparação entre os sete dias","Vigor, fadiga, tensão e confusão mudam de forma significativa ao longo da semana; a raiva fica no limite (p=0,056) e a depressão e a PTH não atingem significância no teste dos sete dias (a PTH oscila e só dispara no D7). O vigor é máximo no Dia 1 e mínimo no Dia 7; a fadiga percorre o caminho inverso.");
   const st={};DIM.forEach(d=>st[d.k]=["vigor","fadiga","pth"].includes(d.k)||d.k===HLK());
   const gr=cards(h,`<div class="card"><h3>Trajetórias diárias</h3><p class="note">médias por dia · alterne as dimensões na legenda</p><div class="host" id="h_dias"></div></div><div class="card"><h3>Teste de Friedman</h3><p class="note">χ², p e W de Kendall</p><div class="host" id="t_dias"></div></div>`);
   const cv=lineChart($("#h_dias",gr),DIM,{ymax:9,state:st,hlk:HLK()});const lg=document.createElement("div");lg.className="legend";$("#h_dias",gr).appendChild(lg);
@@ -1002,7 +1002,7 @@ const SECTIONS=[
   dynTable($("#t_dias",gr),["Dimensão","χ²","p","W","Magn."],FRIED,(i,v)=>i===1?num(v):i===3?num(v,2):i===2?(String(v).includes("<")?`<span class="sig">${v}</span>`:v):i===4?`<span class="pill ${v}">${v}</span>`:v,HLL());
 }},
 {id:"traj",lab:"Trajetórias & cruzamentos",icon:"wave",render(h){
-  head(h,"nível 3","Trajetórias das seis dimensões","Na mesma escala, apenas o par vigor-fadiga ocupa a faixa central e se cruza (dias 2,3, 3,9 e 5,8); as demais dimensões permanecem junto ao piso.");
+  head(h,"nível 3","Trajetórias das seis dimensões","Na mesma escala, apenas o par vigor-fadiga ocupa a faixa central e se cruza (dias 2,9, 3,6 e 5,7); as demais dimensões permanecem junto ao piso.");
   const st={};DIM.forEach(d=>st[d.k]=d.k!=="pth");
   const c=document.createElement("div");c.className="card";c.innerHTML=`<h3>Todas as dimensões · cruzamentos vigor × fadiga</h3><p class="note">curvas suavizadas · clique na legenda para filtrar</p><div class="host" id="h_all"></div>`;h.appendChild(c);
   const cv=lineChart($("#h_all",c),DIM.filter(d=>d.k!=="pth"),{ymax:9,crosses:CROSS,state:st,hlk:HLK()});const lg=document.createElement("div");lg.className="legend";$("#h_all",c).appendChild(lg);
@@ -1192,7 +1192,7 @@ const SECTIONS=[
     draw:host=>lineChart(host,DIM.filter(d=>["vigor","fadiga","pth"].includes(d.k)),{ymax:9})},
    {lab:"Efeito",tag:"Relevância, não só significância",title:"Tamanho de efeito (dz) ao lado do p",
     why:"Um <b>p</b> pequeno diz que a mudança dificilmente é acaso, mas não diz se ela importa. O <b>tamanho de efeito</b> corrige as armadilhas do n grande e do n pequeno — por isso vem sempre ao lado do p.",
-    reading:"dz do D1→D7: efeito grande no vigor (−1,33) e médio na fadiga (+0,78).",
+    reading:"dz do D1→D7: efeito grande no vigor (−0,95) e médio na fadiga (+0,72).",
     draw:host=>lolliChart(host,D17.map(r=>({lab:r[0],v:r[4],mag:r[5]})))},
    {lab:"MANOVA",tag:"Confirmação global",title:"MANOVA + correção de Bonferroni",
     why:"Confirma, de forma <b>multivariada e conservadora</b>, que o estado mudou como um todo, controlando a correlação entre dimensões. Após Bonferroni, só vigor e fadiga permanecem significativos — o que concentra o efeito no eixo energia-fadiga.",
@@ -1216,15 +1216,15 @@ const SECTIONS=[
     draw:host=>barChart(host,TRIA.map(r=>({lab:r[0],v:r[1],c:r[1]>=1?C.good:r[1]>=.5?C.warn:C.crit})),{ymax:2.4,dec:2})},
    {lab:"Perfis",tag:"Perfis de humor",title:"Classificação + qui-quadrado + regressão logística",
     why:"O qui-quadrado <b>não</b> foi significativo (p = 0,111) por baixa contagem por célula (poucos atletas em 6 perfis), não por ausência de migração. A <b>regressão logística</b> confirma a tendência (OR = 1,37 por dia).",
-    reading:"Iceberg 48%→22%; barbatana de tubarão 4%→22% do D1 ao D7.",
+    reading:"Iceberg 41%→10%; barbatana de tubarão 7%→14% do D1 ao D7 (n=27→21).",
     draw:host=>groupChart(host,PERFIS.map(r=>({lab:r[0],vals:[r[1],r[2]]})),[{lab:"Dia 1",c:C.vigor},{lab:"Dia 7",c:C.fadiga}],{ymax:14})},
    {lab:"Derivadas",tag:"Forma temporal",title:"Suavização por spline + 2ª derivada",
     why:"Comparar só D1 com D7 diz que mudou; a <b>derivada</b> diz quando e como. A spline separa a tendência do ruído; a 2ª derivada localiza o <b>ponto de inflexão</b> (~dia 3,8), a fronteira entre prontidão e acúmulo.",
     reading:selLab+": trajetória, velocidade (1ª derivada) e aceleração (2ª derivada).",
     draw:host=>drawDeriv(host,selK)},
    {lab:"Cruzamentos",tag:"Ajuste polinomial e cruzamentos",title:"Polinômio de grau 3 (2 resoluções) + cruzamentos exatos",
-    why:"O polinômio resume a trajetória em uma equação (R² = 0,96 vigor) e reproduz a mesma inflexão em duas resoluções — quando um achado sobrevive a métodos diferentes, é robusto (triangulação). Os cruzamentos datam a inversão do eixo (dias 2,3, 3,9 e 5,8).",
-    reading:"Vigor e fadiga se cruzam (dias 2,3, 3,9 e 5,8); a linha em destaque é "+selLab+".",
+    why:"O polinômio resume a trajetória em uma equação (R² = 0,96 vigor) e reproduz a mesma inflexão em duas resoluções — quando um achado sobrevive a métodos diferentes, é robusto (triangulação). Os cruzamentos datam a inversão do eixo (dias 2,9, 3,6 e 5,7).",
+    reading:"Vigor e fadiga se cruzam (dias 2,9, 3,6 e 5,7); a linha em destaque é "+selLab+".",
     draw:host=>{let series=DIM.filter(d=>d.k==="vigor"||d.k==="fadiga");let ex=DIM.filter(d=>d.k===selK&&d.k!=="vigor"&&d.k!=="fadiga");if(!ex.length)ex=DIM.filter(d=>d.k==="pth");lineChart(host,series.concat(ex),{ymax:9,crosses:CROSS,hlk:selK});}},
    {lab:"Sinal/ruído",tag:"Qualidade do sinal",title:"Razão sinal/ruído <span class='ar'>→</span> foco no eixo",
     why:"Vigor (S/R = 8,4) e fadiga (6,7) têm tendência limpa; as negativas (2,7–4,4) são dominadas por ruído e piso. Junto da psicometria e do PCA, é a <b>terceira via independente</b> que fundamenta centrar o monitoramento no par vigor-fadiga.",
