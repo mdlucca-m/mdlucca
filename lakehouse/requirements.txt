@@ -8,6 +8,7 @@ dbt-duckdb>=1.9       # silver/gold como modelos SQL (lineage + testes + docs); 
 statsmodels>=0.14   # modelos mistos (negativas por tipo de dia)
 xgboost>=2.0        # comparação de modelos preditivos
 lightgbm>=4.0
+pingouin>=0.5        # ICC de confiabilidade
 
 # Ingestão IoT / tempo real (opcional) — para ingestion_api.py
 # fastapi>=0.110
