@@ -6,15 +6,19 @@ ou dbt-duckdb (silver/gold como modelos SQL versionados). Aqui, um runner linear
 mantém tudo executável com um só comando e zero dependências extras.
 """
 import time
-import ingest, transform, ml_risk, lh
+import ingest, transform, ml_risk, export_dashboard, lh
 
 def main():
     t0 = time.time()
-    print("== 1/4 BRONZE (ingestão bruta) ==");   ingest.run()
-    print("== 2/4 SILVER (conformar/dedup) ==");   transform.build_silver()
-    print("== 3/4 GOLD (analítico/features) =="); transform.build_gold()
-    print("== 4/4 ML (risco do dia seguinte) =="); ml_risk.run()
+    print("== 1/5 BRONZE (ingestão bruta) ==");   ingest.run()
+    print("== 2/5 SILVER (conformar/dedup) ==");   transform.build_silver()
+    print("== 3/5 GOLD (analítico/features) =="); transform.build_gold()
+    print("== 4/5 ML (risco do dia seguinte) =="); ml_risk.run()
+    print("== 5/5 PONTE painel (export + reconciliação) ==")
+    consistent = export_dashboard.run()
     print(f"\nlakehouse construído em {time.time()-t0:.1f}s. Tabelas Delta em warehouse/.")
+    if not consistent:
+        print("ATENÇÃO: painel divergiu do lakehouse — regenerar os dados do painel.")
     # amostra de governança: histórico (time-travel) da bronze
     try:
         h = lh.history("bronze", "brums_raw")

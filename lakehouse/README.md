@@ -65,8 +65,22 @@ GOLD    pronto p/ análise, painel, ML  warehouse/gold/{athlete_day, daily_group
 
 ```bash
 pip install -r requirements.txt
-python run_pipeline.py          # bronze → silver → gold → ML (constrói warehouse/)
+python run_pipeline.py          # bronze → silver → gold → ML → ponte/reconciliação
 ```
+
+## Painel + lakehouse: manter os dois em sincronia
+
+O lakehouse é a **fonte única da verdade** dos números; o painel os apresenta.
+`export_dashboard.py` (rodado no fim do `run_pipeline.py`) faz duas coisas:
+
+1. **Exporta** a trajetória diária de `gold.daily_group` para
+   `exports/dashboard_daily.json` (o painel pode consumir daí).
+2. **Reconcilia** o gold contra a constante `DIM` embutida no
+   `dashboard_humor.html` e falha se divergirem (guarda de deriva).
+
+Fluxo de manutenção: chegou dado novo → `python run_pipeline.py` → se a
+reconciliação apontar diferença, os dados do painel são regenerados a partir do
+gold. Hoje os dois estão **consistentes** (as 7 variáveis batem, tolerância 0,1).
 
 Consultar em SQL:
 
