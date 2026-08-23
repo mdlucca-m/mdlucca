@@ -11,7 +11,7 @@ perf=json.load(open('/home/user/mdlucca/scripts/analise/perfil_por_dia.json'))
 estado=json.load(open('/home/user/mdlucca/scripts/analise/estado_diario.json'))
 PROF=['Iceberg','Superfície','Submerso','Barbatana de tubarão','Everest invertido','Iceberg invertido']
 DATAS={1:'21/04',2:'22/04',3:'23/04',4:'24/04',5:'25/04',6:'26/04',7:'27/04'}
-TIPO={1:'Baseline (sem treino)',2:'HIIT (TIAI)',3:'Técnico-tática',4:'HIIT (TIAI)',5:'Técnico-tática',6:'Técnico-tática',7:'HIIT (TIAI)'}
+TIPO={1:'Técnico-tática (baseline)',2:'HIIT (TIAI)',3:'Técnico-tática',4:'HIIT (TIAI)',5:'Técnico-tática',6:'Técnico-tática',7:'HIIT (TIAI)'}
 
 doc=Document()
 st=doc.styles['Normal']; st.font.name='Times New Roman'; st.font.size=Pt(11)
@@ -40,8 +40,9 @@ for dia in range(1,8):
     pr=perf[str(dia)]
     vals=[f'D{dia}',DATAS[dia],TIPO[dia]]+load+[pr['pred'],str(pr['ice'])]
     for j,v in enumerate(vals): setcell(c[j],v,align='left' if j in(2,9) else 'center',size=9)
-note('D1 (21/04): dia de baseline, sem treino — medida de referência do humor antes do início do microciclo; '
-     'D2 (22/04) foi a primeira sessão de treino. '
+note('D1 (21/04): serviu de baseline do BRUMS (medida de referência do humor), com uma sessão técnico-tática à noite. '
+     'O microciclo é misto: além do HIIT, inclui sessões de força e amistosos; o pico de volume ocorre em D5–D6 '
+     '(ver a tabela de estrutura de treino sessão a sessão). '
      'HIIT (TIAI): treinamento intervalado de alta intensidade (D2, D4 e D7). Carga interna da sessão (só quantificada '
      'no HIIT): %FCmáx (percentual da frequência cardíaca máxima), TRIMP (impulso de treino de Banister), PSE '
      '(percepção de esforço da sessão, 0–10) e sPSE (PSE × duração, u.a.); nos dias técnico-táticos (—) não houve '
