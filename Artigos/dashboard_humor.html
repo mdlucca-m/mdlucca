@@ -1409,14 +1409,9 @@ const SECTIONS=[
   const ph=document.createElement("div");cc.appendChild(ph);
   function pick(key){GLOBAL.varKey=key;syncChips();sel.querySelectorAll(".it").forEach(b=>b.classList.toggle("selon",b.dataset.k===key));
     ttl.textContent="Curva selecionada · sem filtro (pontos + tracejado) vs com filtro (linha cheia)";note.textContent="círculo aberto = média diária · linha cheia = sinal suavizado · ▲ extremos rotulados";ph.innerHTML="";weekChart(ph,key,320);}
-  function pickAll(){GLOBAL.varKey=null;syncChips();sel.querySelectorAll(".it").forEach(b=>b.classList.toggle("selon",b.dataset.k==="__all"));
-    ttl.textContent="Todas as dimensões — curvas suavizadas se cruzando";note.textContent="mesma escala (0–9) · ✕ = cruzamentos vigor × fadiga (dias 2,9 / 3,6 / 5,7) · clique na legenda para incluir/excluir uma dimensão";
-    ph.innerHTML="";const st={};DIM.forEach(d=>st[d.k]=d.k!=="pth");
-    const cv=lineChart(ph,DIM.filter(d=>d.k!=="pth"),{ymax:9,crosses:CROSS,state:st});
-    const lg=document.createElement("div");lg.className="legend";ph.appendChild(lg);
-    DIM.filter(d=>d.k!=="pth").forEach(d=>{const it=document.createElement("span");it.className="it";it.innerHTML=`<span class="dot" style="background:${d.c}"></span>${d.lab}`;it.onclick=()=>{st[d.k]=!st[d.k];it.classList.toggle("off");cv._redraw();};lg.appendChild(it);});}
-  const ball=document.createElement("span");ball.className="it";ball.dataset.k="__all";ball.style.cursor="pointer";ball.innerHTML=`<span class="dot" style="background:linear-gradient(90deg,${C.vigor},${C.fadiga})"></span><b>Todas se cruzando</b>`;ball.onclick=()=>pickAll();sel.appendChild(ball);
+  const hint=document.createElement("span");hint.className="note";hint.style.cssText="align-self:center;margin-left:2px";hint.innerHTML=`para ver <b>todas as dimensões se cruzando</b>, use a aba <span class="jlink" data-go="traj" style="cursor:pointer;color:${C.vigor}">Trajetórias & cruzamentos ›</span>`;
   DK.forEach(k=>{const v=DERIV.vars[k];const b=document.createElement("span");b.className="it";b.dataset.k=k;b.style.cursor="pointer";b.innerHTML=`<span class="dot" style="background:${v.c}"></span>${v.lab}`;b.onclick=()=>pick(k);sel.appendChild(b);});
+  sel.appendChild(hint);sel.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
   const ct=document.createElement("div");ct.className="card";ct.style.marginTop="18px";ct.innerHTML=`<h3>Comportamento de cada variável na semana</h3><p class="note">Δ e dz de D1→D7 · Wilcoxon (par D1×D7) · Friedman (7 dias, n=19) · ★ p&lt;0,05</p><div class="host" id="t_cv"></div>`;h.appendChild(ct);
   const sigp=v=>{const n=parseFloat(String(v).replace("<","").replace(",","."));return n<0.05?`<span class="sig">${v}</span>`:v;};
   dynTable($("#t_cv",ct),["Dimensão","D1","D7","Δ","dz","p Wilcoxon","p Friedman","Inflexão","Leitura"],CURVE,
@@ -1483,11 +1478,6 @@ const SECTIONS=[
   DK.forEach(k=>{const v=DERIV.vars[k];const b=document.createElement("span");b.className="vs";b.dataset.k=k;b.innerHTML=`<span class="dot" style="background:${v.c}"></span>${v.lab}`;b.onclick=()=>draw(k);sel.appendChild(b);});
   draw(HLK()||"vigor");
 }},
-{id:"pca",lab:"Estrutura (PCA)",icon:"pca",render(h){
-  head(h,"componentes principais","Estrutura dimensional (PCA)","Círculo de correlação das seis dimensões do BRUMS: setas próximas indicam dimensões correlacionadas; o vigor aponta em sentido oposto às dimensões negativas, o que reforça o eixo energia-fadiga. Os dois primeiros componentes explicam "+Math.round(DERIV.pca.ve[0]*100)+"% + "+Math.round(DERIV.pca.ve[1]*100)+"% da variância.");
-  const c=document.createElement("div");c.className="card";c.innerHTML=`<h3>Círculo de correlação · PC1 × PC2</h3><p class="note">o comprimento da seta reflete a contribuição da dimensão</p><div class="host" id="h_pca"></div>`;h.appendChild(c);
-  pcaCircle($("#h_pca",c));
-}},
 {id:"multivar",lab:"Estrutura multivariada",icon:"scatter",render(h){
   head(h,"o algoritmo busca a estrutura","Modelos multivariados & multidimensionais","Sem rótulos prévios, o algoritmo reduz as seis dimensões a um mapa (<b>PCoA</b>, mesma distância da PERMANOVA) e procura agrupamentos (<b>k-means</b>, com o número de grupos escolhido pela silhueta). O que ele encontra confirma, por um caminho independente, o <b>eixo energia–perturbação</b> e a <b>migração de perfis</b>.");
   const kp=Math.round((MV.var[0]+MV.var[1])*100);
@@ -1496,6 +1486,8 @@ const SECTIONS=[
   const g1=cards(h,`<div class="card"><h3>Ordenação PCoA + agrupamento não supervisionado</h3><p class="note">cada ponto é uma observação (atleta×dia); o algoritmo separou dois perfis · ● centroides</p><div class="host" id="h_ord"></div></div><div class="card"><h3>Trajetória semanal do centroide do perfil</h3><p class="note">D1 → D7 no mesmo mapa (zoom): o perfil médio desloca-se rumo à perturbação</p><div class="host" id="h_traj"></div></div>`);
   drawOrd($("#h_ord",g1));
   drawTraj($("#h_traj",g1));
+  const cpca=document.createElement("div");cpca.className="card";cpca.style.marginTop="16px";cpca.innerHTML=`<h3>Círculo de correlação (PCA) · PC1 × PC2</h3><p class="note">as seis dimensões como vetores: setas próximas = dimensões correlacionadas; o vigor aponta em sentido oposto às negativas (o eixo energia–perturbação). PC1 explica ${Math.round(DERIV.pca.ve[0]*100)}% e PC2 ${Math.round(DERIV.pca.ve[1]*100)}% da variância.</p><div class="host" id="h_pca"></div>`;h.appendChild(cpca);
+  pcaCircle($("#h_pca",cpca));
   const L=MV.load.PCo1,D=["Tensão","Depressão","Raiva","Vigor","Fadiga","Confusão"];
   const strong=D.map((d,i)=>[d,L[i]]).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]));
   h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:16px;border-left:3px solid var(--accent)"><h3>O que o algoritmo encontrou</h3><p class="note" style="font-size:13.5px;line-height:1.62;color:var(--ink)"><b>O eixo dominante (PCo1, ${Math.round(MV.var[0]*100)}%) é o de energia ↔ perturbação:</b> o vigor (${String(L[3].toFixed(2)).replace(".",",")}) puxa para um lado; depressão (${String(L[1].toFixed(2)).replace(".",",")}), fadiga (${String(L[4].toFixed(2)).replace(".",",")}), raiva (${String(L[2].toFixed(2)).replace(".",",")}) e confusão (${String(L[5].toFixed(2)).replace(".",",")}) para o outro. Os <b>dois perfis</b> que o k-means isolou sem rótulos são um estado <b style="color:${C.vigor}">recuperado</b> (vigor alto, negativas baixas; ${MV.cl.n[0]} obs.) e um estado de <b style="color:${C.raiva}">perturbação</b> (fadiga, depressão, raiva e confusão elevadas, vigor baixo; ${MV.cl.n[1]} obs.) — a mesma dicotomia <i>iceberg → barbatana de tubarão</i> descrita nos perfis, agora emergindo da própria estrutura dos dados. A trajetória dos centroides diários e a <b>PERMANOVA (p = 0,002)</b> confirmam, de forma independente, o deslocamento rumo à perturbação ao longo da semana.</p></div>`);
@@ -1959,12 +1951,12 @@ const nav=$("#nav"),stage=$("#stage"),varchips=$("#varchips"),segchips=$("#segch
 const NAVGROUPS=[
   {lab:"Comece por aqui",          ids:["apresentacao","resultados","pipeline"]},
   {lab:"Método & decisões",        ids:["framework","analise","arvore","robustez"]},
-  {lab:"1 · Qualidade das medidas",ids:["conf","distrib"]},
-  {lab:"2 · Descritiva",           ids:["visao","descr"]},
-  {lab:"3 · Variação & perfis",    ids:["d17","dias","perfis","risco"]},
-  {lab:"4 · Estrutura multivariada",ids:["pca","multivar"]},
-  {lab:"5 · Dinâmica temporal",    ids:["limites","curvas","traj","snr"]},
-  {lab:"6 · Resposta aguda",       ids:["agudo","agcron","intraentre","variancia","hiit","negdia","sono"]},
+  {lab:"1 · Qualidade & descritiva",ids:["conf","visao","descr","distrib"]},
+  {lab:"2 · Variação & perfis",    ids:["d17","dias","perfis","risco"]},
+  {lab:"3 · Estrutura multivariada",ids:["multivar"]},
+  {lab:"4 · Dinâmica temporal",    ids:["curvas","traj","limites","snr"]},
+  {lab:"5 · Resposta aguda (pré→pós)",ids:["agudo","agcron","intraentre","variancia"]},
+  {lab:"6 · Tipo de dia (HIIT · jogo · sono)",ids:["hiit","negdia","sono"]},
   {lab:"7 · Relações & predição",  ids:["corr","preditivo","iot","atletas","individual"]},
   {lab:"8 · Aptidão física",       ids:["fisico"]}
 ];
