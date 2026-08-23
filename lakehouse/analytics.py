@@ -99,6 +99,14 @@ def an_profiles(m):
                         empate=empate))
     return pd.DataFrame(prof), pd.DataFrame(dom)
 
+def an_profiles_byday_t(m):
+    """Trajetória do GRUPO em escore-T por dia (6 dims, ordem do painel: Ten,Dep,Rai,Vig,Fad,Con)."""
+    _, T, _, _, _, _ = _classify(m)
+    adT = T.copy(); adT["ID"] = m["ID"].values; adT["dia"] = m["dia"].values
+    ad = adT.groupby(["ID", "dia"])[SUB].mean().reset_index()
+    dg = ad.groupby("dia")[SUB].mean().round(1).reset_index()
+    return dg.rename(columns={c: KEY[c] for c in SUB})
+
 def an_profile_group(m, prof):
     """Perfil do GRUPO: o mais prevalente e o do 'atleta-dia médio'."""
     top = prof.sort_values("prevalencia", ascending=False).iloc[0]
@@ -182,6 +190,7 @@ def run():
     lh.write_delta("gold", "an_spearman", an_spearman(ad)); print("[gold] an_spearman")
     prof, dom = an_profiles(m)
     lh.write_delta("gold", "an_profiles", prof); lh.write_delta("gold", "an_profiles_byday", dom); print("[gold] an_profiles (+byday)")
+    lh.write_delta("gold", "an_profiles_byday_t", an_profiles_byday_t(m)); print("[gold] an_profiles_byday_t")
     lh.write_delta("gold", "an_profile_group", an_profile_group(m, prof)); print("[gold] an_profile_group")
     lh.write_delta("gold", "an_profile_athlete", an_profile_athlete(m)); print("[gold] an_profile_athlete")
     lh.write_delta("gold", "an_snr", an_snr(m)); print("[gold] an_snr")

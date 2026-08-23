@@ -86,6 +86,29 @@ def gen_SPEAR():
     rows = [f'["{lab(r.par)}",{_n(r.rho,2)},{_pstr(r.p)}]' for r in sp.itertuples()]
     return "const SPEAR=[" + ",".join(rows) + "]"
 
+def gen_byday():
+    t = lh.read_delta("gold", "an_profiles_byday_t").sort_values("dia")
+    order = ["tensao", "depressao", "raiva", "vigor", "fadiga", "confusao"]
+    rows = [f'{int(r.dia)}:[{",".join(_n(getattr(r,k),1) for k in order)}]' for r in t.itertuples()]
+    return "byday:{" + ",".join(rows) + "}"
+
+def gen_byday_dom():
+    d = lh.read_delta("gold", "an_profiles_byday").sort_values("dia")
+    rows = [f'{int(r.dia)}:["{ACC[r.dominante]}",{_n(r.pct,1)}]' for r in d.itertuples()]
+    return "byday_dom:{" + ",".join(rows) + "}"
+
+def replace_nested(html, key, new_literal):
+    i = html.find(key + ":{")
+    assert i >= 0, f"chave {key} não encontrada"
+    j = html.index("{", i); depth = 0
+    for k in range(j, len(html)):
+        if html[k] == "{": depth += 1
+        elif html[k] == "}":
+            depth -= 1
+            if depth == 0:
+                return html[:i] + new_literal + html[k + 1:]
+    raise ValueError(key)
+
 def replace_const(html, name, new_rhs):
     i = html.find(f"const {name}=")
     assert i >= 0, f"const {name} não encontrada"
@@ -107,6 +130,9 @@ def run():
     for name, rhs in gens.items():
         html = replace_const(html, name, rhs)
         print(f"[painel←gold] const {name} regenerada do gold")
+    for key, gen in [("byday", gen_byday()), ("byday_dom", gen_byday_dom())]:
+        html = replace_nested(html, key, gen)
+        print(f"[painel←gold] PROFDATA.{key} regenerado do gold")
     open(DASH, "w", encoding="utf-8").write(html)
     print("painel atualizado a partir do lakehouse:", os.path.relpath(DASH, lh.ROOT))
 

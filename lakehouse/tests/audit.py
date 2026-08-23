@@ -85,6 +85,13 @@ def test_perfil_grupo():
     assert g["perfil_mais_prevalente"] == "Iceberg"
     _near(g["prevalencia_pct"], 31.6, 0.2)
 
+def test_perfil_byday_trajetoria():
+    t = lh.read_delta("gold", "an_profiles_byday_t").set_index("dia")
+    # D1 = forma de iceberg (vigor alto, fadiga baixa); D7 = vigor baixo, fadiga alta
+    assert t.loc[1, "vigor"] > t.loc[1, "fadiga"], "D1 deve ter vigor > fadiga (iceberg)"
+    assert t.loc[7, "fadiga"] > t.loc[7, "vigor"], "D7 deve ter fadiga > vigor (erosão)"
+    _near(t.loc[1, "vigor"], 56.1, 0.2); _near(t.loc[7, "fadiga"], 54.7, 0.2)
+
 def test_perfil_individual_27_atletas():
     a = lh.read_delta("gold", "an_profile_athlete")
     assert len(a) == 27, f"esperado 1 perfil por atleta (27), obtido {len(a)}"
