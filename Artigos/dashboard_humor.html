@@ -655,48 +655,70 @@ function drawMomCurve(host){const {cv,g}=mk(host,320);const w=cv._w,h=cv._h,pad=
     if(prog>0.9){g.textAlign="left";g.fillStyle=C.vigor;g.fillText("● vigor",ax.x0+6,ax.y1+12);g.fillStyle=C.fadiga;g.fillText("● fadiga",ax.x0+64,ax.y1+12);}});}
 
 const HVS={"rec": [{"lab": "Vigor", "dim": "Vigor", "ph": 1.21, "pn": 0.54, "p": 0.271}, {"lab": "Fadiga", "dim": "Fadiga", "ph": -1.74, "pn": -0.46, "p": 0.021}, {"lab": "PTH", "dim": "TMD", "ph": -4.36, "pn": -1.8, "p": 0.089}, {"lab": "Fadiga f\u00edsica", "dim": "FadFisica", "ph": -1.67, "pn": -0.58, "p": 0.042}], "intra": {"Vigor": {"h": 42.5, "n": 28.4}, "Fadiga": {"h": 31.9, "n": 30.8}, "TMD": {"h": 23.0, "n": 33.5}, "FadFisica": {"h": 56.4, "n": 32.6}}, "snr": [{"lab": "Vigor", "dim": "Vigor", "trend": 49.6, "hiit": 17.3, "noise": 33.1, "snr": 2.0}, {"lab": "Fadiga", "dim": "Fadiga", "trend": 68.5, "hiit": 17.7, "noise": 13.8, "snr": 6.2}, {"lab": "PTH", "dim": "TMD", "trend": 30.1, "hiit": 42.0, "noise": 27.9, "snr": 2.6}, {"lab": "Fadiga f\u00edsica", "dim": "FadFisica", "trend": 66.7, "hiit": 17.4, "noise": 15.9, "snr": 5.3}]};
-/* microciclo dia a dia (21\u201327/04/2024): tipo, carga interna, estado percebido, humor e perfil */
+/* microciclo real dia a dia (21\u201327/04/2024): sess\u00f5es (per\u00edodo/conte\u00fado/dura\u00e7\u00e3o/volume), estado, humor e perfil.
+   ses: [per\u00edodo M/V/N, tipo, minutos, % do volume semanal]. Volume semanal total = 1380 min. */
+const PER={M:"manh\u00e3",V:"tarde",N:"noite"};
+const STY={TT:{lab:"T\u00e9cnico/t\u00e1tico",abbr:"TT",c:C.tensao},HIIT:{lab:"F\u00edsico \u2013 HIIT",abbr:"HIIT",c:C.fadiga},
+           TF:{lab:"F\u00edsico \u2013 for\u00e7a",abbr:"TF",c:C.pth},AM:{lab:"Amistoso",abbr:"AM",c:C.confusao}};
 const MICRO=[
- {d:"D1",data:"21/04",hiit:false,tipo:"Baseline",carga:"\u2014 (sem treino)",ff:4.7,tqr:13.5,vig:8.3,fad:3.4,perfil:"Iceberg",ice:41},
- {d:"D2",data:"22/04",hiit:true, tipo:"HIIT (TIAI)",carga:"sPSE 202 \u00b7 TRIMP 84",ff:6.0,tqr:11.4,vig:5.4,fad:5.2,perfil:"Superf\u00edcie",ice:27},
- {d:"D3",data:"23/04",hiit:false,tipo:"T\u00e9cnico-t\u00e1tica",carga:"\u2014",ff:6.4,tqr:11.4,vig:5.5,fad:5.1,perfil:"Iceberg",ice:38},
- {d:"D4",data:"24/04",hiit:true, tipo:"HIIT (TIAI)",carga:"sPSE 206 \u00b7 TRIMP 80",ff:7.1,tqr:11.1,vig:5.4,fad:5.8,perfil:"Iceberg",ice:33},
- {d:"D5",data:"25/04",hiit:false,tipo:"T\u00e9cnico-t\u00e1tica",carga:"\u2014",ff:6.0,tqr:11.6,vig:5.9,fad:5.1,perfil:"Iceberg",ice:35},
- {d:"D6",data:"26/04",hiit:false,tipo:"T\u00e9cnico-t\u00e1tica",carga:"\u2014",ff:6.4,tqr:11.7,vig:5.7,fad:6.0,perfil:"Superf\u00edcie",ice:27},
- {d:"D7",data:"27/04",hiit:true, tipo:"HIIT (TIAI)",carga:"sPSE 216 \u00b7 TRIMP 75",ff:7.6,tqr:9.0,vig:4.4,fad:7.2,perfil:"Superf\u00edcie",ice:10}
+ {d:"D1",data:"21/04",hiit:false,vol:7, base:true, ff:4.7,tqr:13.5,vig:8.3,fad:3.4,perfil:"Iceberg",ice:41,   ses:[["N","TT",90,7]]},
+ {d:"D2",data:"22/04",hiit:true,  vol:11,ff:6.0,tqr:11.4,vig:5.4,fad:5.2,perfil:"Superf\u00edcie",ice:27,           ses:[["V","HIIT",60,4],["V","TT",90,7]]},
+ {d:"D3",data:"23/04",hiit:false, vol:20,ff:6.4,tqr:11.4,vig:5.5,fad:5.1,perfil:"Iceberg",ice:38,               ses:[["M","TT",90,7],["V","TF",60,4],["V","AM",120,9]]},
+ {d:"D4",data:"24/04",hiit:true,  vol:11,ff:7.1,tqr:11.1,vig:5.4,fad:5.8,perfil:"Iceberg",ice:33,               ses:[["V","HIIT",60,4],["V","TT",90,7]]},
+ {d:"D5",data:"25/04",hiit:false, vol:22,ff:6.0,tqr:11.6,vig:5.9,fad:5.1,perfil:"Iceberg",ice:35,               ses:[["M","TT",90,7],["V","TF",90,7],["V","AM",120,9]]},
+ {d:"D6",data:"26/04",hiit:false, vol:22,ff:6.4,tqr:11.7,vig:5.7,fad:6.0,perfil:"Superf\u00edcie",ice:27,            ses:[["M","TT",120,9],["V","TF",90,7],["V","TT",90,7]]},
+ {d:"D7",data:"27/04",hiit:true,  vol:9, ff:7.6,tqr:9.0,vig:4.4,fad:7.2,perfil:"Superf\u00edcie",ice:10,             ses:[["M","HIIT",30,2],["M","TT",90,7]]}
 ];
 /* organograma do microciclo: linha do tempo de 7 dias com/sem HIIT */
 function hiitOrg(host){const c=document.createElement("div");c.className="card";
-  const tcol=m=>m.hiit?C.fadiga:(m.tipo==="Baseline"?C.pth:C.vigor);
-  const tbadge=m=>m.hiit?"\u25cf HIIT (TIAI)":(m.tipo==="Baseline"?"\u25c6 Baseline":"\u25cb T\u00e9cnico-t\u00e1tica");
+  const tcol=m=>m.hiit?C.fadiga:C.vigor;
+  const VMAX=Math.max(...MICRO.map(m=>m.vol));
   let cells="";MICRO.forEach((m,i)=>{const col=tcol(m);
     const dv=i>0?m.vig-MICRO[i-1].vig:0,df=i>0?m.fad-MICRO[i-1].fad:0;
     const av=i===0?"":`<span style="color:${dv<0?C.fadiga:C.vigor}">${dv<0?"\u25bc":"\u25b2"}</span>`;
     const af=i===0?"":`<span style="color:${df>0?C.fadiga:C.vigor}">${df>0?"\u25b2":"\u25bc"}</span>`;
+    const sesHTML=m.ses.map(s=>{const st=STY[s[1]];return `<div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);margin-top:3px" title="${PER[s[0]]}"><span style="flex:0 0 auto;width:6px;height:6px;border-radius:2px;background:${st.c}"></span><span style="color:var(--ink);font-weight:600">${st.abbr}</span><span>${s[0]} \u00b7 ${s[2]}\u2032</span></div>`;}).join("");
     if(i>0)cells+=`<div style="align-self:center;color:${C.faint};font-size:20px;flex:0 0 auto;padding:0 2px">\u2192</div>`;
-    cells+=`<div style="flex:0 0 auto;width:158px;border:1px solid var(--stroke);border-top:3px solid ${col};border-radius:12px;padding:11px 12px;background:var(--glass)">
+    cells+=`<div style="flex:0 0 auto;width:172px;border:1px solid var(--stroke);border-top:3px solid ${col};border-radius:12px;padding:11px 12px;background:var(--glass)">
       <div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:14px">${m.d}</b><span style="font-family:'IBM Plex Mono';font-size:10px;color:var(--muted)">${m.data}</span></div>
-      <div style="margin:5px 0 7px"><span style="font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:${col};border:1px solid ${col}66;border-radius:20px;padding:2px 8px">${tbadge(m)}</span></div>
-      <div style="font-size:10.5px;color:var(--muted);line-height:1.5">Carga: <b style="color:var(--ink)">${m.carga}</b><br>Fad.f\u00eds. <b style="color:var(--ink)">${num(m.ff,1)}</b> \u00b7 TQR <b style="color:var(--ink)">${num(m.tqr,1)}</b></div>
-      <div style="margin-top:7px;padding-top:7px;border-top:1px solid var(--stroke);font-size:11px">Vigor <b style="color:${C.vigor}">${num(m.vig,1)}</b> ${av} \u00b7 Fadiga <b style="color:${C.fadiga}">${num(m.fad,1)}</b> ${af}</div>
+      <div style="margin:5px 0 6px"><span style="font-family:'IBM Plex Mono';font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:${col};border:1px solid ${col}66;border-radius:20px;padding:2px 7px">${m.hiit?"\u25cf com HIIT":"\u25cb sem HIIT"}</span>${m.base?`<span style="font-family:'IBM Plex Mono';font-size:9px;color:${C.pth};border:1px solid ${C.pth}66;border-radius:20px;padding:2px 6px;margin-left:4px">baseline</span>`:""}</div>
+      <div style="padding:5px 0 6px;border-bottom:1px solid var(--stroke)">${sesHTML}</div>
+      <div style="margin-top:6px;font-size:10px;color:var(--muted)">Volume dia <b style="color:var(--ink)">${m.vol}%</b><div style="height:5px;border-radius:3px;background:rgba(120,150,190,.16);margin-top:3px;overflow:hidden"><div style="height:100%;width:${Math.round(m.vol/VMAX*100)}%;background:${col};border-radius:3px"></div></div></div>
+      <div style="margin-top:6px;font-size:10.5px;color:var(--muted)">Fad.f\u00eds. <b style="color:var(--ink)">${num(m.ff,1)}</b> \u00b7 TQR <b style="color:var(--ink)">${num(m.tqr,1)}</b></div>
+      <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--stroke);font-size:11px">Vigor <b style="color:${C.vigor}">${num(m.vig,1)}</b> ${av} \u00b7 Fadiga <b style="color:${C.fadiga}">${num(m.fad,1)}</b> ${af}</div>
       <div style="margin-top:5px;font-size:10px;color:var(--muted)">${m.perfil} \u00b7 ${m.ice}% iceberg</div>
     </div>`;});
-  c.innerHTML=`<h3>Organograma do microciclo \u00b7 baseline, HIIT e t\u00e9cnico-t\u00e1ticas</h3><p class="note">7 dias (21\u201327/04/2024) \u00b7 <b style="color:${C.pth}">\u25c6 baseline (D1, sem treino)</b> \u00b7 <b style="color:${C.fadiga}">\u25cf HIIT</b> nos dias 2, 4 e 7 \u00b7 <b style="color:${C.vigor}">\u25cb t\u00e9cnico-t\u00e1ticas</b> nos dias 3, 5 e 6 \u00b7 setas = varia\u00e7\u00e3o de vigor/fadiga vs. dia anterior</p><div style="display:flex;gap:0;overflow-x:auto;padding:6px 2px 10px">${cells}</div>`;
+  const leg=Object.values(STY).map(s=>`<span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px;font-size:10.5px;color:var(--muted)"><span style="width:9px;height:9px;border-radius:2px;background:${s.c}"></span>${s.lab}</span>`).join("");
+  c.innerHTML=`<h3>Organograma do microciclo \u00b7 estrutura real de treino</h3><p class="note">7 dias (21\u201327/04/2024) \u00b7 borda laranja = <b style="color:${C.fadiga}">dia com HIIT</b> (2, 4 e 7) \u00b7 borda teal = <b style="color:${C.vigor}">dia sem HIIT</b> (1, 3, 5, 6) \u00b7 o D1 foi tamb\u00e9m o baseline do BRUMS \u00b7 barra = volume do dia (% das 1380 min semanais) \u00b7 setas = varia\u00e7\u00e3o de vigor/fadiga vs. dia anterior</p><div style="margin:2px 0 8px">${leg}</div><div style="display:flex;gap:0;overflow-x:auto;padding:6px 2px 10px">${cells}</div>`;
   host.appendChild(c);}
 /* framework conceitual: carga -> resposta aguda -> recupera\u00e7\u00e3o -> ac\u00famulo */
 function hiitFramework(host){const c=document.createElement("div");c.className="card";c.style.marginTop="16px";
   const box=(col,tag,tit,sub)=>`<div style="flex:1 1 0;min-width:160px;border:1px solid var(--stroke);border-left:3px solid ${col};border-radius:12px;padding:12px 14px;background:var(--glass)"><div style="font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:${col};margin-bottom:5px">${tag}</div><div style="font-weight:700;font-size:14px;margin-bottom:4px">${tit}</div><div style="font-size:11.5px;color:var(--muted);line-height:1.5">${sub}</div></div>`;
   const arr=`<div style="align-self:center;color:${C.faint};font-size:22px;flex:0 0 auto;padding:0 4px">\u2192</div>`;
-  c.innerHTML=`<h3>Framework \u00b7 como o HIIT age sobre o humor no microciclo</h3><p class="note">o eixo energia\u2013fadiga como via final comum; os dias t\u00e9cnico-t\u00e1ticos funcionam como janelas de recupera\u00e7\u00e3o</p>
+  c.innerHTML=`<h3>Framework \u00b7 como a carga do microciclo age sobre o humor</h3><p class="note">microciclo misto (HIIT + for\u00e7a + amistosos + t\u00e9cnico-t\u00e1tico); o eixo energia\u2013fadiga \u00e9 a via final comum</p>
    <div style="display:flex;flex-wrap:wrap;gap:0;align-items:stretch">
-     ${box(C.fadiga,"1 \u00b7 Carga","Sess\u00e3o de HIIT (TIAI)","Dias 2, 4 e 7 \u00b7 sPSE 202\u2192216 \u00b7 %FCm\u00e1x e TRIMP declinam (84\u219275) enquanto a PSE sobe (8,3\u21928,9)")}
+     ${box(C.fadiga,"1 \u00b7 Carga","Microciclo misto","1380 min na semana \u00b7 HIIT (D2/D4/D7), for\u00e7a (D3/D5/D6), amistosos (D3/D5) e t\u00e9cnico-t\u00e1tico di\u00e1rio \u00b7 pico de volume em D5\u2013D6 (22%)")}
      ${arr}
-     ${box(C.warn,"2 \u00b7 Resposta aguda","Vigor \u2193 \u00b7 Fadiga \u2191","No dia de HIIT: vigor dz \u22121,05 e fadiga dz +0,70 (FDR&lt;0,05); dimens\u00f5es afetivas negativas n\u00e3o mudam")}
+     ${box(C.warn,"2 \u00b7 Resposta aguda","Vigor \u2193 \u00b7 Fadiga \u2191 no HIIT","No dia com HIIT: vigor dz \u22121,05 e fadiga dz +0,70 (FDR&lt;0,05); dimens\u00f5es afetivas negativas n\u00e3o mudam")}
      ${arr}
-     ${box(C.vigor,"3 \u00b7 Recupera\u00e7\u00e3o","Noite / dia t\u00e9cnico-t\u00e1tico","Recupera\u00e7\u00e3o noturna parcial e proporcional \u00e0 carga (fadiga \u22121,74 ap\u00f3s HIIT vs \u22120,46 ap\u00f3s dia leve, p&lt;0,05)")}
+     ${box(C.vigor,"3 \u00b7 Recupera\u00e7\u00e3o","Noturna, parcial","Entre dias a fadiga recua, mas de forma incompleta \u2014 mais forte ap\u00f3s HIIT (\u22121,74 vs \u22120,46; p&lt;0,05); os dias sem HIIT n\u00e3o s\u00e3o leves (for\u00e7a + amistosos)")}
      ${arr}
-     ${box(C.pth,"4 \u00b7 Ac\u00famulo","Tend\u00eancia semanal","O saldo se acumula: vigor 8,3\u21924,4 e fadiga 3,4\u21927,2 de D1 a D7 \u2014 parte da diferen\u00e7a HIIT reflete tamb\u00e9m esse ac\u00famulo")}
+     ${box(C.pth,"4 \u00b7 Ac\u00famulo","Tend\u00eancia semanal","O saldo se acumula: vigor 8,3\u21924,4 e fadiga 3,4\u21927,2 de D1 a D7, com o nadir em D7 ap\u00f3s o pico de volume de D5\u2013D6")}
    </div>`;
+  host.appendChild(c);}
+/* tabela do microciclo de treino, sess\u00e3o a sess\u00e3o (estrutura real fornecida pela comiss\u00e3o t\u00e9cnica) */
+function hiitTrainTable(host){const c=document.createElement("div");c.className="card";c.style.marginTop="16px";
+  let rows="",tot=0;
+  MICRO.forEach(m=>{m.ses.forEach((s,j)=>{const st=STY[s[1]];tot+=s[2];
+    const first=j===0,span=m.ses.length;
+    rows+=`<tr>${first?`<td rowspan="${span}" style="vertical-align:middle"><b>${m.d}</b></td><td rowspan="${span}" style="vertical-align:middle;color:var(--muted);font-family:'IBM Plex Mono';font-size:11px">${m.data}</td>`:""}`
+      +`<td style="text-align:center">${j+1}</td><td style="text-align:center" title="${PER[s[0]]}">${s[0]}</td>`
+      +`<td><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:${st.c}"></span>${st.lab}</span></td>`
+      +`<td style="text-align:center">${s[2]}</td><td style="text-align:center">${s[3]}%</td>`
+      +`${first?`<td rowspan="${span}" style="vertical-align:middle;text-align:center"><b style="color:${m.hiit?C.fadiga:C.vigor}">${m.vol}%</b></td>`:""}</tr>`;});});
+  rows+=`<tr style="border-top:2px solid var(--stroke)"><td colspan="5" style="text-align:right"><b>Total</b></td><td style="text-align:center"><b>${tot}</b></td><td style="text-align:center"><b>100%</b></td><td style="text-align:center"><b>100%</b></td></tr>`;
+  c.innerHTML=`<h3>Tabela \u00b7 microciclo de treino, sess\u00e3o a sess\u00e3o</h3><p class="note">estrutura real do microciclo (21\u201327/04/2024) \u00b7 per\u00edodo: M = manh\u00e3 \u00b7 V = tarde \u00b7 N = noite \u00b7 volume em % das 1380 min semanais</p>
+   <div class="tablewrap"><table class="dyn"><thead><tr><th>Dia</th><th>Data</th><th>Sess\u00e3o</th><th>Per\u00edodo</th><th>Conte\u00fado do treino</th><th>Dura\u00e7\u00e3o (min)</th><th>Vol. sess\u00e3o</th><th>Vol. dia</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   host.appendChild(c);}
 const ALO={"rows": [{"dim": "FadFisica", "lab": "Fadiga f\u00edsica", "b": -1.74, "lo": -3.59, "hi": 0.11, "r2": 0.14, "p": 0.064, "a": 6.447431811351909}, {"dim": "Fadiga", "lab": "Fadiga", "b": -2.09, "lo": -6.36, "hi": 2.19, "r2": 0.04, "p": 0.323, "a": 7.123810827181326}, {"dim": "Vigor", "lab": "Vigor", "b": 2.29, "lo": -0.54, "hi": 5.11, "r2": 0.11, "p": 0.108, "a": -4.528209814999754}, {"dim": "TMD", "lab": "PTH", "b": 2.04, "lo": -3.09, "hi": 7.16, "r2": 0.03, "p": 0.42, "a": -4.183675760186739}], "curve": {"pv": [13.2, 13.272881355932203, 13.345762711864406, 13.41864406779661, 13.491525423728813, 13.564406779661017, 13.63728813559322, 13.710169491525424, 13.783050847457627, 13.85593220338983, 13.928813559322034, 14.001694915254237, 14.07457627118644, 14.147457627118644, 14.220338983050848, 14.293220338983051, 14.366101694915255, 14.438983050847458, 14.511864406779662, 14.584745762711863, 14.657627118644067, 14.73050847457627, 14.803389830508474, 14.876271186440677, 14.94915254237288, 15.022033898305084, 15.094915254237288, 15.167796610169491, 15.240677966101694, 15.313559322033898, 15.386440677966101, 15.459322033898305, 15.532203389830508, 15.605084745762712, 15.677966101694915, 15.750847457627119, 15.823728813559322, 15.896610169491526, 15.969491525423729, 16.04237288135593, 16.115254237288134, 16.188135593220338, 16.26101694915254, 16.333898305084745, 16.406779661016948, 16.47966101694915, 16.552542372881355, 16.62542372881356, 16.698305084745762, 16.771186440677965, 16.84406779661017, 16.916949152542372, 16.989830508474576, 17.06271186440678, 17.135593220338983, 17.208474576271186, 17.28135593220339, 17.354237288135593, 17.427118644067797, 17.5], "fit": [7.071880898146233, 7.00442528643841, 6.937977226571425, 6.872516289497034, 6.808022568287475, 6.744476662063082, 6.6818596604977385, 6.62015312887844, 6.55933909369633, 6.499400028747617, 6.440318841723751, 6.382078861271195, 6.3246638245019975, 6.2680578649372425, 6.212245500866197, 6.1572116241048205, 6.102941489137976, 6.049420702630343, 5.996635213291783, 5.944571302083426, 5.893215572751401, 5.84255494267571, 5.792576634022218, 5.743268165186317, 5.6946173425172475, 5.646612252312598, 5.599241253072852, 5.552492968006377, 5.506356277775558, 5.460820313475243, 5.415874449834976, 5.371508298636872, 5.327711702341317, 5.284474727912987, 5.241787660840004, 5.1996409993393, 5.158025448741585, 5.116931916049542, 5.076351504663148, 5.036275509266246, 4.996695410868731, 4.957602871998954, 4.918989732041127, 4.880848002712709, 4.843169863677021, 4.805947658286416, 4.769173889451586, 4.732841215632732, 4.696942446948482, 4.661470541398604, 4.6264186011967094, 4.591779869209286, 4.557547725497527, 4.523715683958581, 4.4902773890629275, 4.457226612684772, 4.424557251022371, 4.3922633216054345, 4.360338960386734, 4.328778418915245], "pvobs": [15.1, 15.4, 13.9, 15.0, 17.5, 15.6, 13.9, 13.2, 14.9, 13.9, 14.6, 14.2, 14.5, 14.9, 14.4, 15.0, 15.4, 15.8, 14.4, 13.2, 14.4, 16.4, 16.9, 16.2, 14.4], "obs": [5.75, 7.24, 7.57, 5.64, 4.16, 5.94, 6.17, 5.3, 6.3, 6.79, 7.12, 7.55, 2.0, 8.0, 8.4, 3.4, 4.31, 5.5, 5.67, 8.31, 7.19, 5.52, 4.55, 4.2, 7.19]}};
 
@@ -1117,15 +1139,15 @@ const SECTIONS=[
   h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:16px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.62;color:var(--ink)">Para vigor, fadiga e PTH, <b>mais da metade da variância é entre atletas</b> — diferenças interindividuais estáveis (traço), o que exige <b style="color:var(--ink)">baseline por atleta</b> na leitura individual. A <b>fadiga física</b> é a mais reativa dentro do dia (${String(ff.momento).replace(".",",")}% intra-dia). Na curva de momentos, o treino sobe a fadiga (agudo +${String(VM.eff.Fadiga.ag).replace(".",",")}) e a noite recupera apenas parte (${String(VM.eff.Fadiga.rec).replace(".",",")}): <b style="color:var(--ink)">recuperação incompleta → acúmulo ao longo da semana</b>.</p></div>`);
 }},
 {id:"hiit",lab:"Dias com/sem HIIT",icon:"pulse",render(h){
-  head(h,"carga do dia","Dias com HIIT versus sem HIIT","Comparação do humor nos dias com sessão de HIIT (dias 2, 4 e 7) e nos demais dias sem HIIT — <b>baseline no dia 1</b> (sem treino) e técnico-táticas nos dias 3, 5 e 6 —, pareada por atleta. O custo aparece no <b>eixo energia–fadiga</b>: nos dias de HIIT o vigor cai e a fadiga sobe; as dimensões negativas não mudam.");
+  head(h,"carga do dia","Dias com HIIT versus sem HIIT","Comparação do humor nos dias com sessão de HIIT (dias 2, 4 e 7) e nos demais dias (1, 3, 5 e 6), pareada por atleta. O D1 foi também o <b>baseline do BRUMS</b> (medido antes da sessão técnico-tática da noite). Atenção: os dias sem HIIT <b>não são leves</b> — incluem força e amistosos, e concentram o pico de volume (D5–D6). Ainda assim, o custo específico do HIIT aparece no <b>eixo energia–fadiga</b>: nos dias de HIIT o vigor cai e a fadiga sobe; as dimensões negativas não mudam.");
   const vg=HIITD.rows.find(r=>r.dim==="Vigor"),fd=HIITD.rows.find(r=>r.dim==="Fadiga");
-  hiitOrg(h); hiitFramework(h);
-  // Tabela A — caracterização dia a dia
-  const gt=cards(h,`<div class="card"><h3>Tabela · caracterização dos dias do microciclo</h3><p class="note">carga interna só medida no HIIT (sPSE·TRIMP) · fadiga física 0–10 · TQR 6–20 · perfil predominante</p><div class="host" id="t_micro"></div></div><div class="card"><h3>Tabela · HIIT vs sem HIIT (pareado)</h3><p class="note">escore médio por tipo de dia · dz · p · FDR · * FDR&lt;0,05</p><div class="host" id="t_hcmp"></div></div>`);
+  hiitOrg(h); hiitTrainTable(h); hiitFramework(h);
   const arr=v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${num(v,2)}</span>`;
-  dynTable($("#t_micro",gt),["Dia","Data","Tipo","Carga","Fad.fís.","TQR","Vigor","Fadiga","Perfil","Ice%"],
-    MICRO.map(m=>[m.d,m.data,m.hiit?"HIIT":(m.tipo==="Baseline"?"Baseline":"Téc-tát."),m.carga,m.ff,m.tqr,m.vig,m.fad,m.perfil,m.ice]),
-    (i,v)=>i===2?(v==="HIIT"?`<span class="sig" style="color:${C.fadiga}">${v}</span>`:v==="Baseline"?`<span style="color:${C.pth}">${v}</span>`:`<span style="color:${C.vigor}">${v}</span>`):i===4||i===5||i===6||i===7?num(v,1):i===9?v+"%":v);
+  // Tabela — síntese por dia (treino × humor) + HIIT vs sem
+  const gt=cards(h,`<div class="card"><h3>Tabela · síntese diária (treino × humor)</h3><p class="note">volume do dia (% das 1380 min) · fadiga física 0–10 · TQR 6–20 · humor médio · perfil predominante</p><div class="host" id="t_micro"></div></div><div class="card"><h3>Tabela · HIIT vs sem HIIT (pareado)</h3><p class="note">escore médio por tipo de dia · dz · p · FDR · * FDR&lt;0,05</p><div class="host" id="t_hcmp"></div></div>`);
+  dynTable($("#t_micro",gt),["Dia","Data","HIIT?","Vol.%","Fad.fís.","TQR","Vigor","Fadiga","Perfil","Ice%"],
+    MICRO.map(m=>[m.d,m.data,m.hiit?"com HIIT":"sem HIIT",m.vol,m.ff,m.tqr,m.vig,m.fad,m.perfil,m.ice]),
+    (i,v)=>i===2?(v==="com HIIT"?`<span class="sig" style="color:${C.fadiga}">${v}</span>`:`<span style="color:${C.vigor}">${v}</span>`):i===3?v+"%":i===4||i===5||i===6||i===7?num(v,1):i===9?v+"%":v);
   const hb=HIITD.rows.filter(r=>["Vigor","Fadiga","Tensao","Depressao","Raiva","Confusao","TMD","FadFisica"].includes(r.dim));
   dynTable($("#t_hcmp",gt),["Dimensão","HIIT","Sem HIIT","dz","p","FDR"],
     hb.map(r=>[r.lab,r.hiit,r.nao,r.dz,r.p,r.fdr==null?"—":r.fdr]),
