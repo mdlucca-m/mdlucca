@@ -8,7 +8,7 @@ do painel passam a VIR do gold (fonte única da verdade), sem quebrar o arquivo
 único. Rode após o pipeline; depois `export_dashboard.py` confirma a paridade.
 """
 from __future__ import annotations
-import os, re
+import os, re, json
 import lh
 
 DASH = os.path.abspath(os.path.join(lh.ROOT, "..", "Artigos", "dashboard_humor.html"))
@@ -97,6 +97,47 @@ def gen_byday_dom():
     rows = [f'{int(r.dia)}:["{ACC[r.dominante]}",{_n(r.pct,1)}]' for r in d.itertuples()]
     return "byday_dom:{" + ",".join(rows) + "}"
 
+DIM_ORDER_PV = ["Vigor", "Fadiga", "FadFisica", "FadMental", "TMD",
+                "Tensao", "Depressao", "Raiva", "Confusao"]
+
+def _pv_wide():
+    pm = lh.read_delta("silver", "pv_mood").sort_values("pair")
+    PV = pm[pm.dim == "Vigor"].set_index("pair")["pv"].sort_index()
+    mood = {d: pm[pm.dim == d].set_index("pair")["mood"].sort_index().tolist() for d in DIM_ORDER_PV}
+    return PV.tolist(), mood
+
+def gen_AERO():
+    """AERO ← gold (an_tcar_adapt, an_pv_mood) + silver.pv_mood. Grupo único (sem by_group)."""
+    ad = lh.read_delta("gold", "an_tcar_adapt").set_index("var")
+    pmv = lh.read_delta("gold", "an_pv_mood")
+    PV, mood = _pv_wide()
+    assoc = [dict(dim=r.dim, lab=r.lab, r=r.r, lo=r.lo, hi=r.hi, p=r.p, fdr=r.fdr)
+             for r in pmv.itertuples()]
+    def adapt(key):
+        r = ad.loc[key]
+        return dict(lab=r["lab"], pre=f'{r["pre"]:.2f} ± {r["pre_sd"]:.2f}',
+                    pos=f'{r["pos"]:.2f} ± {r["pos_sd"]:.2f}', dz=float(r["dz"]), p=float(r["p"]),
+                    pre_n=float(r["pre"]), pos_n=float(r["pos"]))  # grupo único: médias agrupadas
+    aero = dict(pv=PV, mood=mood, assoc=assoc,
+                tcarpv=adapt("tcarpv"), cmj=adapt("cmj"), bksoma=adapt("bksoma"),
+                n_pm=len(PV), n_ph=int(ad.loc["tcarpv", "n"]))
+    return "const AERO=" + json.dumps(aero)
+
+def gen_HDL(html):
+    """HDL: preserva as peças do humor (velG, rowsA, hiit) e regenera do gold as
+    peças FÍSICAS (bands, band_n, median, limr) — an_pv_bands + an_pv_threshold."""
+    m = re.search(r'const HDL=(\{.*?\});', html)
+    hdl = json.loads(m.group(1))
+    bd = lh.read_delta("gold", "an_pv_bands")
+    bands = {k: [float(bd[(bd.dim == k) & (bd.band == b)]["mean"].iloc[0]) for b in range(3)]
+             for k in ["Vigor", "Fadiga", "FadFisica"]}
+    band_n = [int(bd[(bd.dim == "Vigor") & (bd.band == b)]["n"].iloc[0]) for b in range(3)]
+    th = lh.read_delta("gold", "an_pv_threshold")
+    limr = [dict(dim=r.dim, lab=r.lab, hi=float(r.hi), lo=float(r.lo), dz=float(r.dz), p=float(r.p))
+            for r in th.itertuples()]
+    hdl.update(bands=bands, band_n=band_n, median=float(bd["median"].iloc[0]), limr=limr)
+    return "const HDL=" + json.dumps(hdl)
+
 def replace_nested(html, key, new_literal):
     i = html.find(key + ":{")
     assert i >= 0, f"chave {key} não encontrada"
@@ -126,7 +167,8 @@ def run():
     html = open(DASH, encoding="utf-8").read()
     gens = {"DIM": gen_DIM(), "D17": gen_D17(), "FRIED": gen_FRIED(),
             "SNR": gen_SNR(html), "SPEAR": gen_SPEAR(),
-            "PROFATL": gen_PROFATL(), "PROFGRP": gen_PROFGRP()}
+            "PROFATL": gen_PROFATL(), "PROFGRP": gen_PROFGRP(),
+            "AERO": gen_AERO(), "HDL": gen_HDL(html)}
     for name, rhs in gens.items():
         html = replace_const(html, name, rhs)
         print(f"[painel←gold] const {name} regenerada do gold")

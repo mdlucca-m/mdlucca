@@ -13,7 +13,7 @@ import lh
 
 DBT_DIR = os.path.join(lh.ROOT, "dbt")
 DUCKDB = os.path.join(lh.WAREHOUSE, "lakehouse.duckdb")
-SILVER = ["mood", "wellbeing", "hiit", "rsa", "mdc", "physical", "brums_items"]
+SILVER = ["mood", "wellbeing", "hiit", "rsa", "mdc", "physical", "brums_items", "pv_mood"]
 GOLD = ["athlete_day", "daily_group", "acute_prepos", "risk_features",
         "athlete_day_unified", "athlete_profile"]
 

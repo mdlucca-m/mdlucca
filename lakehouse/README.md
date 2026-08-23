@@ -25,15 +25,16 @@ sem custo**.
 ## Arquitetura medallion
 
 ```
-7 fontes anonimizadas (CSV/IoT)
+8 fontes anonimizadas (CSV/IoT)
    │  ingest.py  (append-only + metadados de carga)
    ▼
 BRONZE  bruto, fiel ao que chegou
-        brums_raw · wellbeing_raw · hiit_raw · rsa_raw · mdc_raw · physical_raw · brums_items_raw
+        brums_raw · wellbeing_raw · hiit_raw · rsa_raw · mdc_raw · physical_raw
+        brums_items_raw · pv_mood_raw (PV×humor casado na fonte, anonimizado)
    │  dbt-duckdb  (models/silver/*.sql · conformar · tipar · DEDUPLICAR · pré/pós · TESTES)
    ▼
 SILVER  limpo e conformado
-        mood · wellbeing · hiit · rsa · mdc · physical(P-code) · brums_items
+        mood · wellbeing · hiit · rsa · mdc · physical(P-code) · brums_items · pv_mood
    │  dbt-duckdb (models/gold/*.sql)  +  analytics.run()   (integrar · agregar · analisar)
    ▼
 GOLD    pronto p/ análise, painel, ML
@@ -41,6 +42,8 @@ GOLD    pronto p/ análise, painel, ML
                      athlete_day_unified (OBT: humor+sono+estresse+HIIT) · athlete_profile
         análises:    an_d17 · an_friedman · an_spearman · an_profiles(+byday)
                      an_snr · an_negatives_daytype · an_wellbeing(+corr)
+        aptidão:     an_tcar_adapt · an_pv_mood · an_pv_threshold · an_pv_bands
+                     (T-CAR pré→pós + PV × humor: Spearman/IC bootstrap/FDR)
    │
    ├──►  painel do humor / SQL (DuckDB)   [reconciliado: DIM · dz · SNR]
    └──►  ml_risk.py  →  ml/risk_model.pkl  (+ metrics.json)
@@ -52,8 +55,11 @@ humor (BRUMS), sono/estresse (Epworth/PSS), carga do HIIT (FC/PSE), RSA e a
 classificação MDC. A **bateria física** (`phys_anon`) usa um esquema de
 anonimização **separado (P01–P24, com grupo controle/experimental)** e por isso
 entra como tabela própria — sem junção fabricada com os A-codes. Os **itens do
-BRUMS** (sem ID) ficam à parte para psicometria. Assim a unificação é honesta:
-junta o que é ligável, isola o que não é.
+BRUMS** (sem ID) ficam à parte para psicometria. A relação **aptidão × humor**
+(pico de velocidade no T-CAR × BRUMS) é casada **na fonte** (identidade real) e
+entra já anonimizada como **vetores paralelos** (`pv_mood`, 25 pares, sem A/P-code)
+— a fronteira de anonimização é respeitada. Assim a unificação é honesta: junta o
+que é ligável, isola o que não é, e casa na fonte o que só lá pode ser ligado.
 
 - **Bronze** — cada carga entra como está, com `_source / _load_id / _ingested_at /
   _row_hash`. Nada é limpo aqui: é o registro auditável (permite *replay*).
@@ -93,7 +99,7 @@ interface usada pelas análises/ML/painel. Para rodar o dbt isolado:
 
 ```bash
 cd lakehouse && export LH_BRONZE="$PWD/warehouse/bronze" LH_DUCKDB="$PWD/warehouse/lakehouse.duckdb"
-cd dbt && dbt build --profiles-dir .     # 13 modelos + 16 testes de qualidade
+cd dbt && dbt build --profiles-dir .     # 14 modelos + 21 testes de qualidade
 dbt docs generate --profiles-dir . && dbt docs serve --profiles-dir .   # lineage + docs no navegador
 ```
 
@@ -107,7 +113,7 @@ Python anterior de silver/gold — mantida como referência; o pipeline usa o db
 python verify.py     # build + determinismo + idempotência + auditoria → "LAKEHOUSE ROBUSTO ✓"
 ```
 
-Garante, além dos **16 testes dbt** (na build) e das **19 checagens** de
+Garante, além dos **21 testes dbt** (na build) e das **22 checagens** de
 `tests/audit.py`: **determinismo** (reconstruir dá conteúdo idêntico — o gold é
 arredondado a 4 casas para reprodutibilidade), **idempotência** (reingerir não
 altera silver/gold) e a **reconciliação** painel × gold. Sai com código ≠ 0 se

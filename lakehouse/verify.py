@@ -16,7 +16,8 @@ GOLD = ["athlete_day", "daily_group", "acute_prepos", "risk_features",
         "athlete_day_unified", "athlete_profile", "an_d17", "an_friedman",
         "an_spearman", "an_profiles", "an_profiles_byday", "an_profiles_byday_t",
         "an_snr", "an_negatives_daytype", "an_wellbeing", "an_profile_group",
-        "an_profile_athlete", "risk_features"]
+        "an_profile_athlete", "an_tcar_adapt", "an_pv_mood", "an_pv_threshold",
+        "an_pv_bands", "risk_features"]
 
 def _sig(layer, table):
     df = lh.read_delta(layer, table).reindex(sorted(lh.read_delta(layer, table).columns), axis=1)
@@ -41,8 +42,8 @@ def main():
     s1 = sig_all()
 
     step("2/4 determinismo (rebuild → mesmo conteúdo?)")
-    import ingest, dbt_run, analytics
-    ingest.run(); dbt_run.run(); analytics.run()
+    import ingest, dbt_run, analytics, analytics_physical
+    ingest.run(); dbt_run.run(); analytics.run(); analytics_physical.run()
     s2 = sig_all()
     diff = [t for t in s1 if s1[t] != s2[t]]
     det = not diff

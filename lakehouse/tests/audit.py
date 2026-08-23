@@ -107,6 +107,34 @@ def test_wellbeing_epworth_sobe():
     assert w.loc["epworth", "dz"] > 0.3, "sonolência (Epworth) deve subir D1→D7"
     assert abs(w.loc["pss", "dz"]) < 0.3, "estresse (PSS) deve ficar estável"
 
+def test_tcar_adaptacao_pico_velocidade():
+    ad = lh.read_delta("gold", "an_tcar_adapt").set_index("var")
+    assert int(ad.loc["tcarpv", "n"]) == 24, "coorte física T-CAR = 24 atletas"
+    _near(ad.loc["tcarpv", "pre"], 14.88, 0.02); _near(ad.loc["tcarpv", "pos"], 15.66, 0.02)
+    _near(ad.loc["tcarpv", "dz"], 0.93, 0.02)   # PV sobe pré→pós (adaptação aeróbia)
+    _near(ad.loc["bksoma", "dz"], -1.08, 0.02)  # Baker soma melhora (tempo cai)
+
+def test_pv_mood_fadiga_fisica_sobrevive_fdr():
+    pm = lh.read_delta("gold", "an_pv_mood").set_index("dim")
+    assert len(pm) == 9, "9 dimensões de humor no bloco PV×humor"
+    _near(pm.loc["FadFisica", "r"], -0.54, 0.02)   # mais apto → menos fadiga física
+    assert pm.loc["FadFisica", "fdr"] < 0.05, "PV×fadiga física deve sobreviver ao FDR"
+    _near(pm.loc["Vigor", "r"], 0.48, 0.02)        # mais apto → mais vigor
+    # negativas do BRUMS não se associam ao PV
+    for d in ["Tensao", "Depressao", "Raiva", "Confusao"]:
+        assert pm.loc[d, "p"] > 0.05, f"{d} não deveria se associar ao PV"
+
+def test_pv_threshold_e_bandas():
+    th = lh.read_delta("gold", "an_pv_threshold").set_index("dim")
+    _near(th.loc["Vigor", "median"], 14.9, 0.05)
+    assert th.loc["FadFisica", "hi"] < th.loc["FadFisica", "lo"], "acima da mediana → menos fadiga física"
+    assert th.loc["Vigor", "hi"] > th.loc["Vigor", "lo"], "acima da mediana → mais vigor"
+    bd = lh.read_delta("gold", "an_pv_bands")
+    n = bd[bd.dim == "Vigor"].sort_values("band")["n"].tolist()
+    assert n == [6, 10, 9] and sum(n) == 25, f"tercis de PV devem cobrir os 25 pares, obtido {n}"
+    vig = bd[bd.dim == "Vigor"].sort_values("band")["mean"].tolist()
+    assert vig[2] > vig[0], "vigor cresce do tercil baixo para o alto de aptidão"
+
 # ---------------- C. Consistência interna entre camadas ----------------
 def test_daily_group_deriva_de_athlete_day():
     ad = lh.read_delta("gold", "athlete_day")

@@ -17,3 +17,5 @@ sources:
         meta: {delta_table_path: "{{ env_var('LH_BRONZE') }}/physical_raw"}
       - name: brums_items_raw
         meta: {delta_table_path: "{{ env_var('LH_BRONZE') }}/brums_items_raw"}
+      - name: pv_mood_raw
+        meta: {delta_table_path: "{{ env_var('LH_BRONZE') }}/pv_mood_raw"}

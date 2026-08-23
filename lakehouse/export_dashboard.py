@@ -81,9 +81,26 @@ def reconcile(daily: dict) -> bool:
     labmap = {v: LAB[v] for v in VARS}
     ok &= _check("efeito D1→D7 (dz)", [(LAB[v], an_d17[v], dz_h.get(labmap[v])) for v in VARS], 0.02)
     ok &= _check("sinal/ruído (SNR)", [(LAB[v], an_snr[v], snr_h.get(labmap[v])) for v in VARS], 0.15)
-    print("\n" + ("[OK] painel e lakehouse CONSISTENTES (DIM · dz · SNR)" if ok
+    ok &= reconcile_aero()
+    print("\n" + ("[OK] painel e lakehouse CONSISTENTES (DIM · dz · SNR · T-CAR)" if ok
                   else "[!!] há divergência — regenerar o painel a partir do lakehouse"))
     return ok
+
+def reconcile_aero() -> bool:
+    """Aptidão aeróbia (T-CAR) × humor: painel (AERO) × gold (an_tcar_adapt · an_pv_mood)."""
+    m = re.search(r'const AERO=(\{.*?\});', _html())
+    if not m:
+        print("\n  aptidão T-CAR × humor\n    AERO não encontrada no painel  DIVERGE"); return False
+    A = json.loads(m.group(1))
+    ad = lh.read_delta("gold", "an_tcar_adapt").set_index("var")
+    pm = lh.read_delta("gold", "an_pv_mood").set_index("dim")
+    assoc = {a["dim"]: a for a in A["assoc"]}
+    pairs = [("T-CAR PV dz", float(ad.loc["tcarpv", "dz"]), A["tcarpv"]["dz"]),
+             ("Baker soma dz", float(ad.loc["bksoma", "dz"]), A["bksoma"]["dz"]),
+             ("ρ fad.física", float(pm.loc["FadFisica", "r"]), round(assoc["FadFisica"]["r"], 4)),
+             ("ρ vigor", float(pm.loc["Vigor", "r"]), round(assoc["Vigor"]["r"], 4)),
+             ("n pares (PV×humor)", 25, A["n_pm"]), ("n coorte física", 24, A["n_ph"])]
+    return _check("aptidão T-CAR × humor", pairs, 0.02)
 
 def run():
     daily = gold_daily()

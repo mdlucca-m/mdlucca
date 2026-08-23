@@ -27,3 +27,17 @@ models:
       - name: grupo_estudo
         tests:
           - accepted_values: {values: ['unico']}   # desenho de grupo único
+  - name: pv_mood
+    description: "Pares pico de velocidade × humor, casados na fonte e anonimizados (vetores paralelos)."
+    columns:
+      - name: pair
+        tests: [not_null]
+      - name: dim
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Vigor','Fadiga','FadFisica','FadMental','TMD','Tensao','Depressao','Raiva','Confusao']
+      - name: pv
+        tests: [not_null]
+      - name: mood
+        tests: [not_null]

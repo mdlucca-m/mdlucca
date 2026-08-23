@@ -23,6 +23,7 @@ SOURCES = {
     "mdc_raw":       "mdc_class_anon.csv",        # atleta (A-code) · mudança confiável (MDC)
     "physical_raw":  "phys_anon.csv",             # atleta (P-code!) · bateria física/T-CAR + grupo
     "brums_items_raw": "brums_itens_anon.csv",    # resposta (sem ID) · 24 itens BRUMS (psicometria)
+    "pv_mood_raw":   "pv_mood_anon.csv",          # par (sem ID) · pico de velocidade × humor (casado na fonte)
 }
 
 def land(table: str, filename: str, load_id: str) -> int:
