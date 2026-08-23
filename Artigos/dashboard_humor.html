@@ -1012,14 +1012,24 @@ const SECTIONS=[
   head(h,"nível 3 · com filtro vs sem filtro","Comportamento de cada dimensão ao longo da semana","Cada dimensão é lida em duas camadas: a curva <b>sem filtro</b> (pontos e ligação bruta das médias diárias, com todo o ruído) e a curva <b>com filtro</b> (spline suavizada = sinal/tendência). Selecione a variável para ver as duas sobrepostas. O p de Friedman e o dz vêm dos dados brutos — não dependem do suavizador; já o dia exato da inflexão e dos cruzamentos é uma leitura aproximada da curva filtrada.");
   const sel=document.createElement("div");sel.className="legend";sel.style.marginBottom="16px";h.appendChild(sel);
   const cc=card(h,"Curva selecionada · sem filtro (pontos + tracejado) vs com filtro (linha cheia)","círculo aberto = média diária · linha cheia = sinal suavizado · ▲ extremos rotulados");
+  const ttl=cc.querySelector("h3"),note=cc.querySelector(".note");
   const ph=document.createElement("div");cc.appendChild(ph);
-  function pick(key){GLOBAL.varKey=key;syncChips();sel.querySelectorAll(".it").forEach(b=>b.classList.toggle("selon",b.dataset.k===key));ph.innerHTML="";weekChart(ph,key,320);}
+  function pick(key){GLOBAL.varKey=key;syncChips();sel.querySelectorAll(".it").forEach(b=>b.classList.toggle("selon",b.dataset.k===key));
+    ttl.textContent="Curva selecionada · sem filtro (pontos + tracejado) vs com filtro (linha cheia)";note.textContent="círculo aberto = média diária · linha cheia = sinal suavizado · ▲ extremos rotulados";ph.innerHTML="";weekChart(ph,key,320);}
+  function pickAll(){GLOBAL.varKey=null;syncChips();sel.querySelectorAll(".it").forEach(b=>b.classList.toggle("selon",b.dataset.k==="__all"));
+    ttl.textContent="Todas as dimensões — curvas suavizadas se cruzando";note.textContent="mesma escala (0–9) · ✕ = cruzamentos vigor × fadiga (dias 2,9 / 3,6 / 5,7) · clique na legenda para incluir/excluir uma dimensão";
+    ph.innerHTML="";const st={};DIM.forEach(d=>st[d.k]=d.k!=="pth");
+    const cv=lineChart(ph,DIM.filter(d=>d.k!=="pth"),{ymax:9,crosses:CROSS,state:st});
+    const lg=document.createElement("div");lg.className="legend";ph.appendChild(lg);
+    DIM.filter(d=>d.k!=="pth").forEach(d=>{const it=document.createElement("span");it.className="it";it.innerHTML=`<span class="dot" style="background:${d.c}"></span>${d.lab}`;it.onclick=()=>{st[d.k]=!st[d.k];it.classList.toggle("off");cv._redraw();};lg.appendChild(it);});}
+  const ball=document.createElement("span");ball.className="it";ball.dataset.k="__all";ball.style.cursor="pointer";ball.innerHTML=`<span class="dot" style="background:linear-gradient(90deg,${C.vigor},${C.fadiga})"></span><b>Todas se cruzando</b>`;ball.onclick=()=>pickAll();sel.appendChild(ball);
   DK.forEach(k=>{const v=DERIV.vars[k];const b=document.createElement("span");b.className="it";b.dataset.k=k;b.style.cursor="pointer";b.innerHTML=`<span class="dot" style="background:${v.c}"></span>${v.lab}`;b.onclick=()=>pick(k);sel.appendChild(b);});
-  const gr=cards(h,`<div class="card"><h3>Comportamento de cada variável na semana</h3><p class="note">Δ e dz de D1→D7 · Wilcoxon (par D1×D7) · Friedman (7 dias) · ★ p&lt;0,05</p><div class="host" id="t_cv"></div></div><div class="card"><h3>Cruzamento do eixo energia × fadiga</h3><p class="note">nas curvas filtradas · pontos de ligação vigor × fadiga</p><div class="host" id="h_cvx"></div></div>`);gr.style.marginTop="18px";
+  const ct=document.createElement("div");ct.className="card";ct.style.marginTop="18px";ct.innerHTML=`<h3>Comportamento de cada variável na semana</h3><p class="note">Δ e dz de D1→D7 · Wilcoxon (par D1×D7) · Friedman (7 dias, n=19) · ★ p&lt;0,05</p><div class="host" id="t_cv"></div>`;h.appendChild(ct);
   const sigp=v=>{const n=parseFloat(String(v).replace("<","").replace(",","."));return n<0.05?`<span class="sig">${v}</span>`:v;};
-  dynTable($("#t_cv",gr),["Dimensão","D1","D7","Δ","dz","p Wilcoxon","p Friedman","Inflexão","Leitura"],CURVE,
+  dynTable($("#t_cv",ct),["Dimensão","D1","D7","Δ","dz","p Wilcoxon","p Friedman","Inflexão","Leitura"],CURVE,
     (i,v)=>i===1||i===2?num(v,1):i===3||i===4?`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${num(v,i===4?2:1)}</span>`:i===5||i===6?sigp(v):i===7?"dia "+num(v,1):v,HLL());
-  const st={vigor:true,fadiga:true};lineChart($("#h_cvx",gr),DIM.filter(d=>d.k==="vigor"||d.k==="fadiga"),{ymax:9,crosses:CURVE_CROSS,state:st});
+  const cx=document.createElement("div");cx.className="card";cx.style.marginTop="18px";cx.innerHTML=`<h3>Cruzamento do eixo energia × fadiga</h3><p class="note">curvas suavizadas de vigor e fadiga na mesma escala · ✕ = pontos de ligação (dias 2,9 / 3,6 / 5,7) onde a fadiga passa a superar o vigor</p><div class="host" id="h_cvx"></div>`;h.appendChild(cx);
+  const st={vigor:true,fadiga:true};lineChart($("#h_cvx",cx),DIM.filter(d=>d.k==="vigor"||d.k==="fadiga"),{ymax:9,h:440,crosses:CURVE_CROSS,state:st});
   const nb=document.createElement("div");nb.className="card";nb.style.marginTop="18px";
   nb.innerHTML=`<h3>Como ler</h3><p class="note" style="line-height:1.6"><b>Backbone robusto (não depende do filtro):</b> Vigor (dz −0,95; Friedman p=0,022), Fadiga (dz +0,72; p=0,040), Tensão (dz −0,59; p=0,039) e Confusão (Friedman p&lt;0,001) têm padrão semanal estatisticamente significativo. Raiva (p=0,056) e Depressão (p=0,936) não — ficam junto ao piso.<br><b>Landmarks dependentes do suavizador:</b> a inflexão do vigor (~dia 4,3) e os cruzamentos vigor × fadiga (~dias 2,9 / 3,6 / 5,7) são aproximações da curva filtrada; a fadiga ultrapassa o vigor por volta do meio da semana e o cruzamento final em D7 confirma o predomínio da fadiga ao término do microciclo.</p>`;h.appendChild(nb);
   pick(HLK()||"vigor");
