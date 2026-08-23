@@ -304,6 +304,18 @@ const C={vigor:"#2ff0cf",fadiga:"#ff8a3d",pth:"#9f8bff",tensao:"#3cb6ff",depress
 /* hex→rgba com alpha (para áreas sombreadas foscas mas vivas) */
 function rgba(hex,a){hex=hex.replace('#','');const n=parseInt(hex,16);return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;}
 function lighten(hex,t){hex=hex.replace('#','');const n=parseInt(hex,16),r=(n>>16)&255,gg=(n>>8)&255,b=n&255,m=(c)=>Math.round(c+(255-c)*t);return `rgb(${m(r)},${m(gg)},${m(b)})`;}
+/* barra "glossy" reutilizável: degradê vivo→fosco, brilho de sombra e capa de luz.
+   dir 'v' = vertical (luz no topo); dir 'h' = horizontal (luz na ponta). Mantém
+   todos os gráficos de barra com a MESMA linguagem visual do barChart. */
+function glossBar(g,x,y,w,h,col,{dir='v',glow=.45,r=5,cap=true,alpha=1}={}){
+  if(w<=0.3||h<=0.3)return;const c=col.charAt(0)==='#'?col:col; // aceita hex
+  const gr=dir==='v'?g.createLinearGradient(0,y,0,y+h):g.createLinearGradient(x,0,x+w,0);
+  gr.addColorStop(0,lighten(c,.30));gr.addColorStop(.5,c);gr.addColorStop(1,rgba(c,.14));
+  g.save();g.globalAlpha=alpha;g.shadowColor=rgba(c,glow);g.shadowBlur=12;g.fillStyle=gr;rr(g,x,y,w,h,r);g.fill();g.restore();
+  if(cap){g.save();g.globalAlpha=alpha;g.fillStyle=lighten(c,.55);
+    if(dir==='v')rr(g,x+1.2,y,Math.max(w-2.4,1),2.6,2);else rr(g,x+w-2.6,y+1.2,2.6,Math.max(h-2.4,1),2);
+    g.fill();g.restore();}
+}
 const GLOBAL={varKey:null};
 
 /* ===================== DATA ===================== */
@@ -458,7 +470,12 @@ function lolliChart(host,rows,{h=340,hl}={}){
   anim(1500,prog=>{g.clearRect(0,0,w,h);g.strokeStyle="rgba(233,238,246,.2)";g.beginPath();g.moveTo(cx,pad.t);g.lineTo(cx,h-pad.b);g.stroke();cv._hits=[];
     rows.forEach((r,i)=>{const pv=stag(prog,i,rows.length),y=pad.t+rowh*i+rowh/2,val=Math.abs(r.v)*pv,x=cx+(w-pad.l-pad.r)*(val/max),col=r.c||(r.v>=0?C.fadiga:C.vigor);
       g.globalAlpha=hasHl&&r.lab!==hl?.24:1;
-      g.strokeStyle=col;g.lineWidth=2.5;g.beginPath();g.moveTo(cx,y);g.lineTo(x,y);g.stroke();g.fillStyle=col;g.beginPath();g.arc(x,y,5.5,0,7);g.fill();
+      /* haste com degradê (fosco no eixo → vivo na ponta) e brilho */
+      const sg=g.createLinearGradient(cx,0,x,0);sg.addColorStop(0,rgba(col,.25));sg.addColorStop(1,col);
+      g.save();g.shadowColor=rgba(col,.5);g.shadowBlur=8;g.strokeStyle=sg;g.lineWidth=3;g.lineCap="round";g.beginPath();g.moveTo(cx,y);g.lineTo(x,y);g.stroke();
+      /* pico: círculo com halo e núcleo de luz */
+      g.fillStyle=col;g.beginPath();g.arc(x,y,6,0,7);g.fill();g.restore();
+      g.fillStyle=lighten(col,.55);g.beginPath();g.arc(x-1.3,y-1.3,2.1,0,7);g.fill();
       g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(r.lab,pad.l-10,y);
       if(pv>=1){g.fillStyle=C.ink;g.font='600 10px "IBM Plex Mono",monospace';g.textAlign="left";g.fillText(r.v.toFixed(2).replace(".",","),x+9,y);cv._hits.push({x:cx,y:y-8,w:x-cx+14,h:16,tip:`<b>${r.lab}</b><br>dz=${r.v.toFixed(2).replace(".",",")} · ${r.mag||""}`});}
       g.globalAlpha=1;});
@@ -498,7 +515,7 @@ function groupChart(host,rows,groups,{ymax,h=340,dec=0,unit=""}={}){
   const {cv,g}=mk(host,h),w=cv._w,pad={l:40,r:14,t:16,b:70};const max=ymax||Math.max(...rows.flatMap(r=>r.vals))*1.15,gw=(w-pad.l-pad.r)/rows.length,bw=gw*0.34;
   anim(1500,prog=>{const A=axY(g,w,h,pad,0,max);cv._hits=[];
     rows.forEach((r,i)=>{const pv=stag(prog,i,rows.length),base=pad.l+gw*i+gw/2;
-      r.vals.forEach((v,j)=>{const off=(j-(r.vals.length-1)/2)*(bw+4),cx=base+off,y=A.Y(v*pv),y0=A.Y(0);g.fillStyle=groups[j].c;rr(g,cx-bw/2,y,bw,y0-y,5);g.fill();if(pv>=1)cv._hits.push({x:cx-bw/2,y,w:bw,h:y0-y,tip:`<b>${r.lab}</b><br>${groups[j].lab}: ${v.toFixed(dec)}${unit}`});});
+      r.vals.forEach((v,j)=>{const off=(j-(r.vals.length-1)/2)*(bw+4),cx=base+off,y=A.Y(v*pv),y0=A.Y(0);glossBar(g,cx-bw/2,y,bw,y0-y,groups[j].c,{dir:'v',r:5});if(pv>=1)cv._hits.push({x:cx-bw/2,y,w:bw,h:y0-y,tip:`<b>${r.lab}</b><br>${groups[j].lab}: ${v.toFixed(dec)}${unit}`});});
       g.save();g.translate(base,h-pad.b+8);g.rotate(-.5);g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(r.lab,0,0);g.restore();});
   });attachHits(cv);
   const lg=document.createElement("div");lg.className="legend";groups.forEach(gr=>lg.insertAdjacentHTML("beforeend",`<span class="it"><span class="dot" style="background:${gr.c}"></span>${gr.lab}</span>`));host.appendChild(lg);
@@ -508,7 +525,7 @@ function divChart(host,rows,{h=420}={}){
   const {cv,g}=mk(host,h),w=cv._w,pad={l:118,r:20,t:10,b:24};const max=Math.max(...rows.map(r=>Math.abs(r.v)))*1.12,rowh=(h-pad.t-pad.b)/rows.length,cx=pad.l+(w-pad.l-pad.r)/2;
   anim(1600,prog=>{g.clearRect(0,0,w,h);cv._hits=[];
     rows.forEach((r,i)=>{const pv=stag(prog,i,rows.length),y=pad.t+rowh*i+rowh/2,vv=r.v*pv,x=cx+((w-pad.l-pad.r)/2)*(vv/max),col=r.tipo==="Agudo"?C.fadiga:C.tensao;
-      g.fillStyle=col+(r.sig?"":"aa");rr(g,Math.min(cx,x),y-rowh*0.3,Math.abs(x-cx),rowh*0.6,5);g.fill();
+      glossBar(g,Math.min(cx,x),y-rowh*0.3,Math.abs(x-cx),rowh*0.6,col,{dir:'h',r:5,alpha:r.sig?1:.62});
       g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(r.lab,pad.l-8,y);
       if(pv>=1){if(r.sig){g.fillStyle=C.ink;g.font='700 11px "IBM Plex Mono",monospace';g.textAlign=x>=cx?"left":"right";g.fillText("★",x+(x>=cx?3:-3),y);}cv._hits.push({x:Math.min(cx,x),y:y-rowh*.3,w:Math.abs(x-cx),h:rowh*.6,tip:`<b>${r.lab}</b><br>${r.tipo} · dz=${r.v.toFixed(2).replace(".",",")}${r.sig?" ★ p<0,05":""}`});}});
     g.strokeStyle="rgba(233,238,246,.18)";g.beginPath();g.moveTo(cx,pad.t);g.lineTo(cx,h-pad.b);g.stroke();
@@ -521,7 +538,7 @@ function groupSigned(host,rows,groups,{h=380,dec=2,hl}={}){
     g.font='9px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";for(let i=0;i<=4;i++){const val=-mx+2*mx*i/4,y=y0+(y1-y0)*i/4;g.fillStyle=C.faint;g.fillText(val.toFixed(1).replace(".",","),x0-6,y);}
     const yz=Y(0);g.strokeStyle="rgba(233,238,246,.24)";g.beginPath();g.moveTo(x0,yz);g.lineTo(x1,yz);g.stroke();cv._hits=[];
     rows.forEach((r,i)=>{const pv=stag(prog,i,rows.length),base=pad.l+gw*i+gw/2;g.globalAlpha=hasHl&&r.lab!==hl?.24:1;
-      r.vals.forEach((val,j)=>{const off=(j-(r.vals.length-1)/2)*(bw+5),cx=base+off,y=Y(val*pv);g.fillStyle=groups[j].c;rr(g,cx-bw/2,Math.min(y,yz),bw,Math.abs(y-yz),4);g.fill();
+      r.vals.forEach((val,j)=>{const off=(j-(r.vals.length-1)/2)*(bw+5),cx=base+off,y=Y(val*pv);glossBar(g,cx-bw/2,Math.min(y,yz),bw,Math.abs(y-yz),groups[j].c,{dir:'v',r:4});
         if(pv>=1){if(r.sig&&j===1){g.fillStyle=C.ink;g.font='700 11px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline=val>=0?"bottom":"top";g.fillText("★",cx,y+(val>=0?-3:3));}cv._hits.push({x:cx-bw/2,y:Math.min(y,yz),w:bw,h:Math.abs(y-yz),tip:`<b>${r.lab}</b><br>${groups[j].lab}: ${(val>=0?"+":"")+val.toFixed(dec).replace(".",",")}`});}});
       g.globalAlpha=1;g.save();g.translate(base,h-pad.b+8);g.rotate(-.5);g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(r.lab,0,0);g.restore();});
   });attachHits(cv);
