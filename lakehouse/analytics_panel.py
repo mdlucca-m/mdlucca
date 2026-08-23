@@ -9,6 +9,7 @@ Regra pré/pós (do estudo): pré = PRIMEIRA resposta do dia (manhã, is_pre),
 pós = ÚLTIMA do dia (is_pos). Unidade = atleta (média das respostas do atleta).
 """
 from __future__ import annotations
+import json
 import numpy as np, pandas as pd
 from scipy import stats
 import lh
@@ -153,17 +154,112 @@ def an_reliability(m, it):
     return pd.DataFrame(icc), pd.DataFrame(om)
 
 
+PROF_SUB = ["Tensao", "Depressao", "Raiva", "Vigor", "Fadiga", "Confusao"]
+PROF_CENT = {"Iceberg": [-.5, -.5, -.5, 1., -.5, -.5], "Iceberg invertido": [.6, .6, .6, -1., .6, .6],
+             "Everest invertido": [1.2, 1.4, 1.2, -.8, 1.2, 1.2], "Barbatana de tubarao": [.2, .2, .2, .3, 1.4, .2],
+             "Superficie": [0, 0, 0, 0, 0, 0], "Submerso": [-.9, -.9, -.9, -.9, -.9, -.9]}
+VM_DIMS = [("Vigor", "Vigor", "Vigor"), ("Fadiga", "Fadiga", "Fadiga"),
+           ("PTH", "TMD", "PTH"), ("FadFisica", "FadFisica", "Fadiga física")]
+
+
+def an_thresholds(icc, desc):
+    """LIM: SEM, MDC90, MDC95 e SWC (mudança mínima detectável e menor mudança
+    relevante) por dimensão, derivados do ICC(2,1) e do DP (métodos padrão)."""
+    rows = []
+    for k in BR6:
+        kk = KEY[k]
+        sd = float(desc.loc[kk, "dp"]); r = float(icc.loc[kk, "icc1"])
+        sem = sd * np.sqrt(max(1 - r, 0))
+        rows.append(dict(dim=kk, sem=round(sem, 1), mdc90=round(1.645 * np.sqrt(2) * sem, 1),
+                         mdc95=round(1.96 * np.sqrt(2) * sem, 1), swc=round(0.2 * sd, 1)))
+    return pd.DataFrame(rows)
+
+
+def an_variance(m):
+    """VM: decomposição de variância em 3 níveis (entre atletas / entre dias /
+    intra-dia) por modelo aninhado; e trajetória pré/pós por dia. ICC = fração atleta."""
+    import statsmodels.formula.api as smf
+    mm = m.copy(); mm["dia"] = mm["dia"].astype(int)
+    vc, curves = [], []
+    for col, key, lab in VM_DIMS:
+        md = smf.mixedlm(f"{col} ~ 1", mm, groups=mm["ID"], re_formula="1",
+                         vc_formula={"dia": "0+C(dia)"}).fit(reml=True)
+        va = float(np.asarray(md.cov_re)[0, 0]); vd = float(md.vcomp[0]); vr = float(md.scale)
+        tot = va + vd + vr
+        vc.append(dict(dim=key, lab=lab, atleta=round(100 * va / tot, 1), dia=round(100 * vd / tot, 1),
+                       momento=round(100 * vr / tot, 1), icc=round(va / tot, 3)))
+        for d in range(1, 8):
+            pre = mm[(mm.dia == d) & (mm.is_pre)][col].mean()
+            pos = mm[(mm.dia == d) & (mm.is_pos)][col].mean()
+            curves.append(dict(dim=key, dia=d, x_pre=round(d - 0.2, 1), x_pos=round(d + 0.2, 1),
+                               y_pre=round(float(pre), 2), y_pos=round(float(pos), 2)))
+    return pd.DataFrame(vc), pd.DataFrame(curves)
+
+
+def an_transitions(m):
+    """TRANS: transições sequenciais — recuperação (pós Dk → pré Dk+1) e aguda
+    (pré Dk → pós Dk), tamanho de efeito dz para vigor/fadiga/PTH + significância."""
+    from scipy import stats
+    pre = m[m.is_pre].groupby(["ID", "dia"])[["Vigor", "Fadiga", "PTH"]].mean()
+    pos = m[m.is_pos].groupby(["ID", "dia"])[["Vigor", "Fadiga", "PTH"]].mean()
+    def eff(a, b, c):
+        j = pd.concat([a[c], b[c]], axis=1).dropna(); j.columns = ["a", "b"]
+        d = j["b"] - j["a"]
+        if len(j) < 5 or d.std(ddof=1) == 0:
+            return 0.0, False
+        p = stats.wilcoxon(j["a"], j["b"]).pvalue
+        return round(float(d.mean() / d.std(ddof=1)), 2), bool(p < 0.05)
+    rows = []
+    for d in range(1, 7):
+        a = pos.xs(d, level="dia"); b = pre.xs(d + 1, level="dia")
+        vals = {c: eff(a, b, c) for c in ["Vigor", "Fadiga", "PTH"]}
+        rows.append(dict(lab=f"D{d}→D{d+1} pré", tipo="Recuperação", vigor=vals["Vigor"][0],
+                         fadiga=vals["Fadiga"][0], pth=vals["PTH"][0], sig=vals["PTH"][1]))
+        a2 = pre.xs(d + 1, level="dia"); b2 = pos.xs(d + 1, level="dia")
+        v2 = {c: eff(a2, b2, c) for c in ["Vigor", "Fadiga", "PTH"]}
+        rows.append(dict(lab=f"D{d+1} pré→pós", tipo="Agudo", vigor=v2["Vigor"][0],
+                         fadiga=v2["Fadiga"][0], pth=v2["PTH"][0], sig=v2["PTH"][1]))
+    return pd.DataFrame(rows)
+
+
+def an_risk_profiles(m):
+    """PRISCO: exposição a perfis de risco por atleta-dia — prevalência de perfil
+    negativo (Everest/Iceberg invertido) e de sobrecarga (barbatana), por dia e por atleta."""
+    mu, sd = m[PROF_SUB].mean(), m[PROF_SUB].std()
+    names = list(PROF_CENT); CM = np.array([PROF_CENT[k] for k in names])
+    ad = m.groupby(["ID", "dia"])[PROF_SUB].mean()
+    Z = (ad - mu) / sd
+    prof = Z.apply(lambda r: names[int(((CM - r.values) ** 2).sum(1).argmin())], axis=1)
+    a = ad.reset_index(); a["perfil"] = prof.values
+    a["neg"] = a.perfil.isin(["Everest invertido", "Iceberg invertido"])
+    a["fad"] = a.perfil.isin(["Barbatana de tubarao"])
+    byday = [[int(round(100 * a[a.dia == d].neg.mean())), int(round(100 * a[a.dia == d].fad.mean()))]
+             for d in range(1, 8)]
+    en = a.groupby("ID").neg.sum(); ef = a.groupby("ID").fad.sum()
+    return pd.DataFrame([dict(
+        neg_prev=round(100 * a.neg.mean(), 1), fad_prev=round(100 * a.fad.mean(), 1),
+        exp_neg1=int((en >= 1).sum()), exp_neg2=int((en >= 2).sum()),
+        exp_fad1=int((ef >= 1).sum()), never=int(((en == 0) & (ef == 0)).sum()),
+        byday=json.dumps(byday))])
+
+
 def run():
     m = lh.read_delta("silver", "mood")
     wb = lh.read_delta("silver", "wellbeing")
     it = lh.read_delta("silver", "brums_items")
+    vc, vcurve = an_variance(m)
+    lh.write_delta("gold", "an_variance", vc); lh.write_delta("gold", "an_variance_curves", vcurve); print("[gold] an_variance (+curves)")
+    lh.write_delta("gold", "an_transitions", an_transitions(m)); print("[gold] an_transitions")
+    lh.write_delta("gold", "an_risk_profiles", an_risk_profiles(m)); print("[gold] an_risk_profiles")
     icc, om = an_reliability(m, it)
     lh.write_delta("gold", "an_icc", icc); print("[gold] an_icc")
     lh.write_delta("gold", "an_omega", om); print("[gold] an_omega")
     nmeans, nmix = an_negatives_bydaytype(m)
     lh.write_delta("gold", "an_negatives_bydaytype", nmeans); print("[gold] an_negatives_bydaytype")
     lh.write_delta("gold", "an_negatives_mix", nmix); print("[gold] an_negatives_mix")
-    lh.write_delta("gold", "an_desc", an_desc(m)); print("[gold] an_desc")
+    desc = an_desc(m)
+    lh.write_delta("gold", "an_desc", desc); print("[gold] an_desc")
+    lh.write_delta("gold", "an_thresholds", an_thresholds(icc.set_index("dim"), desc.set_index("var"))); print("[gold] an_thresholds")
     lh.write_delta("gold", "an_prepos_dim", an_prepos_dim(m)); print("[gold] an_prepos_dim")
     lh.write_delta("gold", "an_perfis_byday_count", an_perfis_byday_count(m)); print("[gold] an_perfis_byday_count")
     lh.write_delta("gold", "an_wellbeing_byday", an_wellbeing_byday(wb)); print("[gold] an_wellbeing_byday")

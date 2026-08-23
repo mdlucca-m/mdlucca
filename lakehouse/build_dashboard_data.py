@@ -141,6 +141,43 @@ def gen_OMEGA():
     rows = [f'["{lab}",{_n(d.loc[k,"omega"],2)}]' for k, lab in BR6_ORDER]
     return "const OMEGA=[" + ",".join(rows) + "]"
 
+def gen_LIM():
+    """LIM ← gold.an_thresholds: [lab, SEM, MDC90, MDC95, SWC] por dimensão."""
+    d = lh.read_delta("gold", "an_thresholds").set_index("dim")
+    rows = [f'["{lab}",{_n(d.loc[k,"sem"],1)},{_n(d.loc[k,"mdc90"],1)},{_n(d.loc[k,"mdc95"],1)},{_n(d.loc[k,"swc"],1)}]'
+            for k, lab in BR6_ORDER]
+    return "const LIM=[" + ",".join(rows) + "]"
+
+def gen_VM():
+    """VM ← gold.an_variance (+curves): componentes de variância + trajetória pré/pós."""
+    vc = lh.read_delta("gold", "an_variance")
+    cu = lh.read_delta("gold", "an_variance_curves").sort_values(["dim", "dia"])
+    labmap = {"Vigor": "Vigor", "Fadiga": "Fadiga", "TMD": "PTH", "FadFisica": "Fadiga física"}
+    vcl = [dict(lab=labmap[r.dim], dim=r.dim, atleta=float(r.atleta), dia=float(r.dia),
+               momento=float(r.momento), icc=float(r.icc)) for r in vc.itertuples()]
+    curves = {}
+    for dim in ["Vigor", "Fadiga", "TMD", "FadFisica"]:
+        sub = cu[cu.dim == dim]
+        x, y = [], []
+        for r in sub.itertuples():
+            x += [float(r.x_pre), float(r.x_pos)]; y += [float(r.y_pre), float(r.y_pos)]
+        curves[dim] = {"x": x, "y": y}
+    return "const VM=" + json.dumps({"vc": vcl, "curves": curves})
+
+def gen_TRANS():
+    """TRANS ← gold.an_transitions: [lab, tipo, vigor, fadiga, pth, sig]."""
+    d = lh.read_delta("gold", "an_transitions")
+    rows = [f'["{r.lab}","{r.tipo}",{_n(r.vigor,2)},{_n(r.fadiga,2)},{_n(r.pth,2)},{str(bool(r.sig)).lower()}]'
+            for r in d.itertuples()]
+    return "const TRANS=[" + ",".join(rows) + "]"
+
+def gen_PRISCO():
+    """PRISCO ← gold.an_risk_profiles: exposição a perfis de risco."""
+    r = lh.read_delta("gold", "an_risk_profiles").iloc[0]
+    return (f'const PRISCO={{neg_prev:{_n(r["neg_prev"],1)},fad_prev:{_n(r["fad_prev"],1)},'
+            f'byday:{r["byday"]},exp_neg1:{int(r["exp_neg1"])},exp_neg2:{int(r["exp_neg2"])},'
+            f'exp_fad1:{int(r["exp_fad1"])},never:{int(r["never"])}}}')
+
 def gen_NEGDT():
     """NEGDT ← gold: an_negatives_bydaytype (means+acute) · an_negatives_daytype (mid) · an_negatives_mix."""
     bd = lh.read_delta("gold", "an_negatives_bydaytype")
@@ -278,7 +315,8 @@ def run():
             "PROFATL": gen_PROFATL(), "PROFGRP": gen_PROFGRP(),
             "AERO": gen_AERO(), "HDL": gen_HDL(html), "ATLETAV": gen_ATLETAV(),
             "DESC": gen_DESC(), "PREPOS": gen_PREPOS(), "PERFIS": gen_PERFIS(), "SONO": gen_SONO(),
-            "MODELS": gen_MODELS(), "ROC_PTS": gen_ROC(), "NEGDT": gen_NEGDT(), "ICC": gen_ICC(), "OMEGA": gen_OMEGA()}
+            "MODELS": gen_MODELS(), "ROC_PTS": gen_ROC(), "NEGDT": gen_NEGDT(), "ICC": gen_ICC(), "OMEGA": gen_OMEGA(),
+            "LIM": gen_LIM(), "VM": gen_VM(), "TRANS": gen_TRANS(), "PRISCO": gen_PRISCO()}
     for name, rhs in gens.items():
         html = replace_const(html, name, rhs)
         print(f"[painel←gold] const {name} regenerada do gold")

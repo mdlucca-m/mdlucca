@@ -148,6 +148,20 @@ def test_painel_desc_prepos_perfis():
     ice = _row(pf, "perfil", "Iceberg")
     assert ice["d1"] > ice["d7"], "Iceberg predomina no D1 e erode até o D7"
 
+def test_painel_variance_transitions_risk():
+    vc = lh.read_delta("gold", "an_variance").set_index("dim")
+    for d in vc.index:  # partição soma ~100%
+        _near(vc.loc[d, "atleta"] + vc.loc[d, "dia"] + vc.loc[d, "momento"], 100.0, 0.5)
+    _near(vc.loc["Vigor", "atleta"], 52.7, 0.5)  # maior fração é entre atletas
+    assert vc.loc["Vigor", "atleta"] > vc.loc["Vigor", "momento"], "traço domina o intra-dia"
+    lim = lh.read_delta("gold", "an_thresholds")
+    assert len(lim) == 6 and (lim["mdc95"] > lim["mdc90"]).all(), "MDC95 > MDC90"
+    tr = lh.read_delta("gold", "an_transitions")
+    assert len(tr) == 12 and set(tr["tipo"]) == {"Recuperação", "Agudo"}
+    pr = lh.read_delta("gold", "an_risk_profiles").iloc[0]
+    assert int(pr["exp_neg1"]) + int(pr["never"]) <= 27, "exposição consistente com 27 atletas"
+    assert 10 < float(pr["neg_prev"]) < 30, "prevalência de perfil negativo plausível"
+
 def test_painel_reliability():
     icc = lh.read_delta("gold", "an_icc").set_index("dim")
     assert len(icc) == 6 and (icc["icck"] > icc["icc1"]).all(), "ICC média > ICC single"
