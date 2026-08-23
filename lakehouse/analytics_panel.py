@@ -119,9 +119,47 @@ def an_negatives_bydaytype(m):
     return means, pd.DataFrame(mix)
 
 
+BR6 = ["Vigor", "Fadiga", "Tensao", "Depressao", "Raiva", "Confusao"]
+ITEM_PREF = {"Vigor": "vig", "Fadiga": "fad", "Tensao": "ten", "Depressao": "dep",
+             "Raiva": "rai", "Confusao": "con"}
+
+def _icc_label(single):
+    return "boa" if single >= .6 else "moderada" if single >= .5 else "pobre"
+
+def an_reliability(m, it):
+    """Confiabilidade: ICC(2,1)/(2,k) (dois fatores, acordo absoluto, casos completos)
+    por dimensão; e ômega de McDonald (fator único sobre os 4 itens de cada dimensão)."""
+    import pingouin as pg
+    from statsmodels.multivariate.factor import Factor
+    ad = m.groupby(["ID", "dia"])[BR6].mean().reset_index()
+    icc = []
+    for c in BR6:
+        w = ad.pivot_table(index="ID", columns="dia", values=c).dropna()
+        long = w.reset_index().melt(id_vars="ID", var_name="dia", value_name="v")
+        long["dia"] = long["dia"].astype(str)
+        r = pg.intraclass_corr(data=long, targets="ID", raters="dia", ratings="v")
+        s = float(r[r.Type == "ICC(A,1)"].ICC.iloc[0]); k = float(r[r.Type == "ICC(A,k)"].ICC.iloc[0])
+        icc.append(dict(dim=KEY[c], icc1=round(s, 2), icck=round(k, 2), label=_icc_label(s), n=int(len(w)))
+                   )
+    om = []
+    for c in BR6:
+        cols = [f"{ITEM_PREF[c]}{i}" for i in range(1, 5)]
+        X = it[cols].dropna().astype(float)
+        # ômega de McDonald sobre as cargas do fator único (eixo principal, PAF)
+        fa = Factor(X.values, n_factor=1, method="pa").fit()
+        l = fa.loadings[:, 0]; l = l * np.sign(l.sum())
+        omega = (l.sum() ** 2) / ((l.sum() ** 2) + np.sum(1 - l ** 2))
+        om.append(dict(dim=KEY[c], omega=round(float(omega), 2)))
+    return pd.DataFrame(icc), pd.DataFrame(om)
+
+
 def run():
     m = lh.read_delta("silver", "mood")
     wb = lh.read_delta("silver", "wellbeing")
+    it = lh.read_delta("silver", "brums_items")
+    icc, om = an_reliability(m, it)
+    lh.write_delta("gold", "an_icc", icc); print("[gold] an_icc")
+    lh.write_delta("gold", "an_omega", om); print("[gold] an_omega")
     nmeans, nmix = an_negatives_bydaytype(m)
     lh.write_delta("gold", "an_negatives_bydaytype", nmeans); print("[gold] an_negatives_bydaytype")
     lh.write_delta("gold", "an_negatives_mix", nmix); print("[gold] an_negatives_mix")

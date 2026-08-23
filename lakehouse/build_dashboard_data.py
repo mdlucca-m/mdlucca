@@ -125,6 +125,22 @@ def gen_AERO():
 
 MODEL_COL = {"Random Forest": "C.vigor", "XGBoost": "C.fadiga", "LightGBM": "C.tensao"}
 
+BR6_ORDER = [("vigor", "Vigor"), ("fadiga", "Fadiga"), ("tensao", "Tensão"),
+             ("depressao", "Depressão"), ("raiva", "Raiva"), ("confusao", "Confusão")]
+
+def gen_ICC():
+    """ICC ← gold.an_icc: [lab, ICC(2,1), ICC(2,k), rótulo] por dimensão."""
+    d = lh.read_delta("gold", "an_icc").set_index("dim")
+    rows = [f'["{lab}",{_n(d.loc[k,"icc1"],2)},{_n(d.loc[k,"icck"],2)},"{d.loc[k,"label"]}"]'
+            for k, lab in BR6_ORDER]
+    return "const ICC=[" + ",".join(rows) + "]"
+
+def gen_OMEGA():
+    """OMEGA ← gold.an_omega: [lab, ômega] por dimensão."""
+    d = lh.read_delta("gold", "an_omega").set_index("dim")
+    rows = [f'["{lab}",{_n(d.loc[k,"omega"],2)}]' for k, lab in BR6_ORDER]
+    return "const OMEGA=[" + ",".join(rows) + "]"
+
 def gen_NEGDT():
     """NEGDT ← gold: an_negatives_bydaytype (means+acute) · an_negatives_daytype (mid) · an_negatives_mix."""
     bd = lh.read_delta("gold", "an_negatives_bydaytype")
@@ -262,7 +278,7 @@ def run():
             "PROFATL": gen_PROFATL(), "PROFGRP": gen_PROFGRP(),
             "AERO": gen_AERO(), "HDL": gen_HDL(html), "ATLETAV": gen_ATLETAV(),
             "DESC": gen_DESC(), "PREPOS": gen_PREPOS(), "PERFIS": gen_PERFIS(), "SONO": gen_SONO(),
-            "MODELS": gen_MODELS(), "ROC_PTS": gen_ROC(), "NEGDT": gen_NEGDT()}
+            "MODELS": gen_MODELS(), "ROC_PTS": gen_ROC(), "NEGDT": gen_NEGDT(), "ICC": gen_ICC(), "OMEGA": gen_OMEGA()}
     for name, rhs in gens.items():
         html = replace_const(html, name, rhs)
         print(f"[painel←gold] const {name} regenerada do gold")

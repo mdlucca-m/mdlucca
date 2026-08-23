@@ -148,6 +148,14 @@ def test_painel_desc_prepos_perfis():
     ice = _row(pf, "perfil", "Iceberg")
     assert ice["d1"] > ice["d7"], "Iceberg predomina no D1 e erode até o D7"
 
+def test_painel_reliability():
+    icc = lh.read_delta("gold", "an_icc").set_index("dim")
+    assert len(icc) == 6 and (icc["icck"] > icc["icc1"]).all(), "ICC média > ICC single"
+    assert icc.loc["raiva", "icc1"] < icc.loc["depressao", "icc1"], "raiva menos confiável que depressão"
+    om = lh.read_delta("gold", "an_omega").set_index("dim")
+    assert (om["omega"].between(0.4, 0.95)).all(), "ômega em faixa plausível"
+    assert om.loc["fadiga", "omega"] >= 0.7, "eixo da fadiga com boa consistência"
+
 def test_painel_negativas_bydaytype():
     bd = lh.read_delta("gold", "an_negatives_bydaytype")
     assert set(bd["cat"]) == {"Outro", "HIIT", "Amistoso"}
