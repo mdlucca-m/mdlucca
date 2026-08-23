@@ -60,6 +60,23 @@ def gen_SNR(html):
                     f'noise:{_n(s.loc[k,"ruido"],1)},snr:{_n(s.loc[k,"snr"],1)},piso:{piso}}}')
     return "const SNR=[\n" + ",\n".join(rows) + "\n]"
 
+ACC = {"Iceberg": "Iceberg", "Superficie": "Superfície", "Submerso": "Submerso",
+       "Everest invertido": "Everest invertido", "Barbatana de tubarao": "Barbatana de tubarão",
+       "Iceberg invertido": "Iceberg invertido"}
+
+def gen_PROFATL():
+    a = lh.read_delta("gold", "an_profile_athlete")
+    parts = []
+    for r in a.itertuples():
+        t = [_n(r.tensao, 1), _n(r.depressao, 1), _n(r.raiva, 1), _n(r.vigor, 1), _n(r.fadiga, 1), _n(r.confusao, 1)]
+        parts.append(f'"{r.ID}":{{"med":"{ACC[r.perfil_medio]}","mod":"{ACC[r.perfil_modal]}",'
+                     f'"risco":{str(bool(r.risco)).lower()},"t":[{",".join(t)}]}}')
+    return "const PROFATL={" + ",".join(parts) + "}"
+
+def gen_PROFGRP():
+    g = lh.read_delta("gold", "an_profile_group").iloc[0]
+    return f'const PROFGRP={{prev:"{ACC[g["perfil_mais_prevalente"]]}",pct:{_n(g["prevalencia_pct"],1)}}}'
+
 def gen_SPEAR():
     sp = lh.read_delta("gold", "an_spearman")
     cap = {k: lab for k, lab in ORDER}
@@ -85,7 +102,8 @@ def replace_const(html, name, new_rhs):
 def run():
     html = open(DASH, encoding="utf-8").read()
     gens = {"DIM": gen_DIM(), "D17": gen_D17(), "FRIED": gen_FRIED(),
-            "SNR": gen_SNR(html), "SPEAR": gen_SPEAR()}
+            "SNR": gen_SNR(html), "SPEAR": gen_SPEAR(),
+            "PROFATL": gen_PROFATL(), "PROFGRP": gen_PROFGRP()}
     for name, rhs in gens.items():
         html = replace_const(html, name, rhs)
         print(f"[painel←gold] const {name} regenerada do gold")

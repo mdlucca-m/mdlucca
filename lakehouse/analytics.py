@@ -90,8 +90,13 @@ def an_profiles(m):
                          **{KEY.get(c, c.lower()): round(float(T[mk][c].mean()), 1) for c in SUB}))
     dom = []
     for d in range(1, 8):
-        vc = m[m.dia == d]["perfil"].value_counts(normalize=True).mul(100)
-        dom.append(dict(dia=d, dominante=vc.index[0], pct=round(float(vc.iloc[0]), 1)))
+        vc = (m[m.dia == d]["perfil"].value_counts(normalize=True).mul(100)
+              .rename_axis("perfil").reset_index(name="pct"))
+        # desempate DETERMINÍSTICO por nome (evita flip em empates, ex.: D7)
+        vc = vc.sort_values(["pct", "perfil"], ascending=[False, True]).reset_index(drop=True)
+        empate = bool((vc["pct"] == vc.loc[0, "pct"]).sum() > 1)
+        dom.append(dict(dia=d, dominante=vc.loc[0, "perfil"], pct=round(float(vc.loc[0, "pct"]), 1),
+                        empate=empate))
     return pd.DataFrame(prof), pd.DataFrame(dom)
 
 def an_profile_group(m, prof):
