@@ -123,6 +123,19 @@ def gen_AERO():
                 n_pm=len(PV), n_ph=int(ad.loc["tcarpv", "n"]))
     return "const AERO=" + json.dumps(aero)
 
+def gen_ATLETAV():
+    """ATLETAV ← gold.athlete_day: trajetória individual por atleta-dia,
+    ordem [Vigor,Fadiga,Tensão,Depressão,Raiva,Confusão,PTH], 1 casa.
+    CORRIGE o bug de rótulo: a constante antiga usava uma permutação dos códigos
+    (A01→A19…), plotando o atleta errado; agora usa o mesmo A01–A27 do silver/perfis."""
+    ad = lh.read_delta("gold", "athlete_day")
+    cols = ["vigor", "fadiga", "tensao", "depressao", "raiva", "confusao", "pth"]
+    out = {}
+    for r in ad.itertuples():
+        out.setdefault(r.ID, {})[str(int(r.dia))] = [round(float(getattr(r, c)), 1) for c in cols]
+    aid_sorted = {a: out[a] for a in sorted(out)}
+    return "const ATLETAV=" + json.dumps(aid_sorted)
+
 def gen_HDL(html):
     """HDL: preserva as peças do humor (velG, rowsA, hiit) e regenera do gold as
     peças FÍSICAS (bands, band_n, median, limr) — an_pv_bands + an_pv_threshold."""
@@ -168,7 +181,7 @@ def run():
     gens = {"DIM": gen_DIM(), "D17": gen_D17(), "FRIED": gen_FRIED(),
             "SNR": gen_SNR(html), "SPEAR": gen_SPEAR(),
             "PROFATL": gen_PROFATL(), "PROFGRP": gen_PROFGRP(),
-            "AERO": gen_AERO(), "HDL": gen_HDL(html)}
+            "AERO": gen_AERO(), "HDL": gen_HDL(html), "ATLETAV": gen_ATLETAV()}
     for name, rhs in gens.items():
         html = replace_const(html, name, rhs)
         print(f"[painel←gold] const {name} regenerada do gold")
