@@ -663,6 +663,8 @@ const HIITPROTO={proto:{int:"104% do PV (T-CAR)",estrut:"4 s\u00e9ries \u00d7 4 
  ses:[{s:"S1",dia:"D2 \u00b7 22/04",fcmax:183,fcpos:176,dfc:57,pse:6.6,trimp:84,spse:202,dist:2560},
       {s:"S2",dia:"D4 \u00b7 24/04",fcmax:183,fcpos:175,dfc:56,pse:6.5,trimp:80,spse:206,dist:2853},
       {s:"S3",dia:"D7 \u00b7 27/04",fcmax:181,fcpos:172,dfc:62,pse:7.1,trimp:75,spse:216,dist:2929}]};
+/* predi\u00e7\u00e3o de risco para o dia seguinte (early-warning) \u2014 log\u00edstica GroupKFold por atleta */
+const IOTPRED={n:139,prev:23.7,auc_multi:0.83,auc_persist:0.75,uni:{TMD:0.87,Fadiga:0.80,Depressao:0.80,Epworth:0.67,Tensao:0.64,Vigor:0.29}};
 /* perfis de risco (rastreio de sa\u00fade mental / sobrecarga) \u2014 negativos = iceberg/everest invertido; sobrecarga = barbatana */
 const PRISCO={neg_prev:18.7,fad_prev:7.2,byday:[[30,7],[19,4],[19,4],[19,10],[9,13],[18,0],[14,14]],exp_neg1:13,exp_neg2:6,exp_fad1:7,never:11};
 /* sono (Epworth 0\u201324) e estresse (PSS) \u2014 456 obs, 100% completos */
@@ -1035,6 +1037,47 @@ const SECTIONS=[
   </div>`;
   h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:16px;border-left:3px solid var(--warn)"><p class="note" style="font-size:13px;line-height:1.62;color:var(--muted)"><b>Padrão de rastreio:</b> os perfis negativos aparecem em <b style="color:var(--ink)">18,7%</b> dos atleta-dias (não são a regra, mas não estão ausentes). A <b style="color:${C.fadiga}">barbatana de tubarão concentra-se nos dias de HIIT</b> (D4 10%, D7 14%) — coerente com sobrecarga física. Seis atletas entram em perfil negativo em ≥2 dias: são os <b style="color:var(--ink)">candidatos naturais a acompanhamento individual</b>. Onze nunca entram em risco (resilientes).</p></div>`);
   h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:12px;border-left:3px solid var(--crit)"><p class="note" style="font-size:12.5px;line-height:1.6;color:var(--muted)"><b>Limitação honesta (importante):</b> este microciclo <b>não tem desfechos de lesão vinculados</b> para testar diretamente a associação perfil→lesão. As únicas lesões registradas no banco (n=3) são de um <b>torneio posterior</b> (maio/2024), em contexto diferente e amostra insuficiente para inferência. Portanto, o que se demonstra aqui é a <b style="color:var(--ink)">viabilidade de rastreio</b> — que os perfis de risco são identificáveis, quantificáveis e concentram-se em subgrupos e dias específicos —, não uma relação causal validada com lesão. A validação exigiria um estudo prospectivo com registro sistemático de lesões e desfechos de saúde mental.</p></div>`);
+}},
+{id:"iot",lab:"Monitoramento IoT & predição",icon:"nodes",render(h){
+  head(h,"internet das coisas · early-warning","Monitoramento contínuo por IoT e predição de risco","Como operacionalizar o rastreio: uma arquitetura de <b>Internet das Coisas (IoT)</b> que coleta humor, carga e sono em tempo real, <b>classifica automaticamente</b> o perfil de cada atleta e <b>prediz</b> quem entra em perfil de risco no dia seguinte — para agir antes.");
+  // --- arquitetura IoT em 4 camadas ---
+  const LY=[
+   {ic:"pulse",lab:"1 · Coleta (IoT)",col:C.vigor,desc:"Vestíveis (FC, HRV, sono, passos), app de BRUMS diário (6 dimensões + Epworth/PSS), GPS/carga externa e PSE da sessão."},
+   {ic:"nodes",lab:"2 · Borda / Gateway",col:C.tensao,desc:"Sincroniza os sinais por atleta e por dia, valida e agrega em uma linha por atleta-dia (a mesma unidade das análises)."},
+   {ic:"brain",lab:"3 · Nuvem / Analítica",col:C.pth,desc:"Classifica o perfil (centroide dos 6 perfis) → tier de risco; roda o modelo de predição do dia seguinte e as regras de alerta."},
+   {ic:"present",lab:"4 · Saída / Ação",col:C.fadiga,desc:"Painel da comissão técnica, semáforo por atleta, alertas de risco e lista de triagem individual para acompanhamento."}
+  ];
+  let cells="";LY.forEach((t,i)=>{
+    if(i>0)cells+=`<div style="align-self:center;color:${C.faint};font-size:22px;flex:0 0 auto;padding:0 2px">→</div>`;
+    cells+=`<div style="flex:1 1 210px;min-width:200px;border:1px solid var(--stroke);border-top:3px solid ${t.col};border-radius:14px;padding:14px 15px;background:var(--glass)">
+      <div style="display:flex;align-items:center;gap:9px"><span style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:${t.col};background:${t.col}22;border:1px solid ${t.col}55">${ICONS[t.ic]||ICONS.grid}</span><div style="font-weight:800;font-size:14.5px">${t.lab}</div></div>
+      <div style="margin-top:9px;font-size:12px;color:var(--muted);line-height:1.55">${t.desc}</div></div>`;});
+  const arch=document.createElement("div");arch.className="card";
+  arch.innerHTML=`<h3>Arquitetura de monitoramento IoT</h3><p class="note">da coleta ao alerta — o mesmo pipeline validado neste estudo, rodando de forma contínua</p><div style="display:flex;flex-wrap:wrap;gap:0;align-items:stretch">${cells}</div>`;h.appendChild(arch);
+  // --- categorização (semáforo) ---
+  const catg=document.createElement("div");catg.className="card";catg.style.marginTop="16px";
+  const tier=(col,lab,perfis,acao)=>`<div style="flex:1 1 200px;min-width:190px;border:1px solid var(--stroke);border-left:4px solid ${col};border-radius:12px;padding:12px 14px;background:var(--glass)"><div style="display:flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border-radius:50%;background:${col};box-shadow:0 0 10px ${col}"></span><b style="font-size:15px">${lab}</b></div><div style="margin-top:7px;font-size:11.5px;color:var(--ink)">${perfis}</div><div style="margin-top:6px;font-size:11px;color:var(--muted)">${acao}</div></div>`;
+  catg.innerHTML=`<h3>Categorização automática (semáforo por atleta)</h3><p class="note">cada atleta-dia recebe um tier a partir do perfil classificado</p>
+    <div style="display:flex;flex-wrap:wrap;gap:10px">
+      ${tier(C.good,"Verde — favorável","Iceberg · Superfície","monitorar de rotina")}
+      ${tier(C.warn,"Amarelo — atenção","Submerso · Barbatana de tubarão","observar carga e recuperação")}
+      ${tier(C.crit,"Vermelho — risco","Iceberg invertido · Everest invertido","triagem individual / avaliação de saúde mental")}
+    </div>`;h.appendChild(catg);
+  // --- predição early-warning ---
+  const kp=(lab,val,cap,col)=>`<div class="kpi"><span class="stripe" style="background:${col}"></span><div class="lab">${lab}</div><div class="val" style="color:${col};font-size:21px">${val}</div><div class="cap">${cap}</div></div>`;
+  h.insertAdjacentHTML("beforeend",`<div class="kpis" style="margin-top:16px">${kp("Predição do dia seguinte",`AUC ${num(IOTPRED.auc_multi,2)}`,"logística · validação por atleta (GroupKFold)",C.vigor)}${kp("Melhor marcador isolado","PTH (TMD)",`AUC ${num(IOTPRED.uni.TMD,2)} — o humor de hoje prevê o risco de amanhã`,C.raiva)}${kp("Ganho sobre persistência",`+${num(IOTPRED.auc_multi-IOTPRED.auc_persist,2)}`,`0,83 vs 0,75 (só repetir o estado de hoje)`,C.tensao)}${kp("Pares hoje→amanhã",`${IOTPRED.n}`,`prevalência de risco amanhã ${num(IOTPRED.prev,0)}%`,C.pth)}</div>`);
+  tilt(h);
+  const g1=cards(h,`<div class="card"><h3>Marcadores de alerta precoce</h3><p class="note">poder de cada marcador de HOJE para prever o perfil de risco AMANHÃ (AUC) · linha = acaso (0,5)</p><div class="host" id="h_iot"></div></div><div class="card"><h3>Como o sistema decide</h3><p class="note">fluxo de alerta</p><div id="k_iot"></div></div>`);
+  const U=IOTPRED.uni;const rows=[["PTH (TMD)",U.TMD],["Fadiga",U.Fadiga],["Depressão",U.Depressao],["Sonolência (Epworth)",U.Epworth],["Tensão",U.Tensao]];
+  barChart($("#h_iot",g1),rows.map(r=>({lab:r[0],v:r[1],c:r[1]>=0.8?C.crit:r[1]>=0.7?C.warn:C.tensao})),{ymax:1,dec:2,hl:null});
+  $("#k_iot",g1).innerHTML=`<div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--ink);line-height:1.5">
+    <div style="border-left:3px solid ${C.vigor};padding:5px 10px"><b>1.</b> IoT coleta humor+carga+sono → agrega em atleta-dia.</div>
+    <div style="border-left:3px solid ${C.tensao};padding:5px 10px"><b>2.</b> Classifica o perfil e atribui o <b>semáforo</b>.</div>
+    <div style="border-left:3px solid ${C.pth};padding:5px 10px"><b>3.</b> O modelo estima a <b>probabilidade de risco amanhã</b> (PTH de hoje é o principal preditor).</div>
+    <div style="border-left:3px solid ${C.crit};padding:5px 10px"><b>4.</b> Vermelho hoje <b>ou</b> alta probabilidade para amanhã → <b>alerta</b> e triagem individual.</div>
+  </div>`;
+  h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:16px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.64;color:var(--ink)"><b>Por que funciona:</b> o humor tem <b>memória</b> — o estado de hoje prediz o de amanhã. A <b>perturbação total do humor (PTH) de hoje</b> antecipa o perfil de risco do dia seguinte com <b>AUC 0,87</b>, e o modelo multivariável validado por atleta chega a <b>0,83</b>, superando a simples persistência. Numa arquitetura IoT, isso vira um <b>alerta precoce</b>: dá para agir <i>antes</i> de o atleta entrar em perfil de risco.</p></div>`);
+  h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:12px;border-left:3px solid var(--crit)"><p class="note" style="font-size:12.5px;line-height:1.6;color:var(--muted)"><b>Ressalvas:</b> (1) o desfecho “perfil de risco” é derivado do próprio humor, então parte da predição é <b>autocorrelação</b> — o que é esperado e útil para <b>early-warning</b>, mas não substitui desfechos clínicos. (2) A associação com <b>lesão e saúde mental</b> é <b>plausível pela literatura</b> (perfis invertidos ↔ overtraining/distresse), mas <b>não validada</b> aqui — exige um estudo prospectivo com registro de lesões e avaliação de saúde mental. O sistema IoT é a <b>plataforma</b> ideal para conduzir essa validação em escala.</p></div>`);
 }},
 {id:"resultados",lab:"Resultados & Discussão",icon:"present",render(h){
   head(h,"leitura guiada para qualquer pessoa","Resultados e Discussão — de onde tudo vem e o que significa","Uma leitura didática de ponta a ponta: de <b>onde vieram os dados</b>, <b>por que</b> cada análise foi feita, <b>o que</b> encontramos e <b>o que significa</b>. Cada bloco tem um botão para abrir a análise detalhada.");
@@ -1630,7 +1673,7 @@ const NAVGROUPS=[
   {lab:"4 · Estrutura multivariada",ids:["pca","multivar"]},
   {lab:"5 · Dinâmica temporal",    ids:["limites","curvas","traj","snr"]},
   {lab:"6 · Resposta aguda",       ids:["agudo","agcron","intraentre","variancia","hiit","negdia","sono"]},
-  {lab:"7 · Relações & predição",  ids:["corr","preditivo"]},
+  {lab:"7 · Relações & predição",  ids:["corr","preditivo","iot"]},
   {lab:"8 · Aptidão física",       ids:["fisico"]}
 ];
 const ORDER=NAVGROUPS.flatMap(g=>g.ids);
