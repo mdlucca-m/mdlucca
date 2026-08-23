@@ -1422,13 +1422,42 @@ const SECTIONS=[
   nb.innerHTML=`<h3>Como ler</h3><p class="note" style="line-height:1.6"><b>Backbone robusto (não depende do filtro):</b> Vigor (dz −0,95; Friedman p=0,022), Fadiga (dz +0,72; p=0,040), Tensão (dz −0,59; p=0,039) e Confusão (Friedman p&lt;0,001) têm padrão semanal estatisticamente significativo. Raiva (p=0,056) e Depressão (p=0,936) não — ficam junto ao piso.<br><b>Landmarks dependentes do suavizador:</b> a inflexão do vigor (~dia 4,3) e os cruzamentos vigor × fadiga (~dias 2,9 / 3,6 / 5,7) são aproximações da curva filtrada; a fadiga ultrapassa o vigor por volta do meio da semana e o cruzamento final em D7 confirma o predomínio da fadiga ao término do microciclo.</p>`;h.appendChild(nb);
   pick(HLK()||"vigor");
 }},
-{id:"agudo",lab:"Pré/Pós & agudo",icon:"pulse",render(h){
-  head(h,"nível 3","Efeito agudo e recuperação","Do pré ao pós-treino, o vigor cai e a fadiga e a PTH sobem. As transições sequenciais mostram um padrão em dente de serra: a sessão piora o estado e a recuperação entre sessões é apenas parcial.");
-  const gr=cards(h,`<div class="card"><h3>Transições sequenciais (PTH)</h3><p class="note">laranja = agudo (pré→pós) · azul = recuperação · ★ p<0,05</p><div class="host" id="h_tr"></div></div><div class="card"><h3>Pré vs Pós-treino</h3><p class="note">Wilcoxon e d de Cohen</p><div class="host" id="t_pp"></div></div>`);
-  divChart($("#h_tr",gr),TRANS.map(r=>({lab:r[0],tipo:r[1],v:r[4],sig:r[5]})));
-  dynTable($("#t_pp",gr),["Dimensão","Pré","Pós","Δ%","p","d"],PREPOS,(i,v)=>i===1||i===2?num(v,2):i===3?`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${v}%</span>`:i===5?num(v,2):i===4?(parseFloat(String(v).replace(",","."))<0.05?`<span class="sig">${v}</span>`:v):v,HLL());
-  const c2=document.createElement("div");c2.className="card";c2.style.marginTop="18px";c2.innerHTML=`<h3>Transições · vigor, fadiga e PTH</h3><p class="note">tamanho de efeito dz por transição</p><div class="host" id="t_tr"></div>`;h.appendChild(c2);
-  dynTable($("#t_tr",c2),["Transição","Tipo","Vigor dz","Fadiga dz","PTH dz"],TRANS.map(r=>[r[0],r[1],r[2],r[3],r[4]]),(i,v)=>i>=2?(`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${num(v,2)}</span>`):v);
+{id:"agudo",lab:"Resposta aguda (pré→pós)",icon:"pulse",render(h){
+  head(h,"nível 3 · agudo · crônico · variância","Resposta aguda ao treino — pré→pós, recuperação e onde mora a variância","Tudo sobre a <b>resposta intradia</b> num só lugar: o efeito <b>agudo</b> (pré→pós de cada sessão), a <b>recuperação</b> entre dias, o contraste <b>agudo × crônico</b>, o mapa por variável e por dia, e a <b>decomposição da variância</b> (traço entre atletas × estado × intradia). Em uma frase: cada sessão piora o estado (vigor↓, fadiga↑), a noite recupera só parte, e o desgaste do eixo energia–fadiga é sobretudo <b>crônico</b>, por acúmulo ao longo da semana.");
+  const sub=(t,d)=>h.insertAdjacentHTML("beforeend",`<div style="margin:22px 0 8px;padding-left:2px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:${C.accent}">${t}</div>${d?`<div class="note" style="margin-top:3px;font-size:12.5px;line-height:1.55">${d}</div>`:""}</div>`);
+  /* KPIs de variância (contexto) */
+  const vg=VM.vc.find(r=>r.dim==="Vigor"),ff=VM.vc.find(r=>r.dim==="FadFisica"),e=VM.eff.FadFisica;
+  h.insertAdjacentHTML("beforeend",`<div class="kpis"><div class="kpi"><span class="stripe" style="background:#1971c2"></span><div class="lab">Vigor · entre atletas</div><div class="val" style="color:#1971c2;font-size:22px">${String(vg.atleta).replace(".",",")}%</div><div class="cap">traço estável · ICC ${String(vg.icc).replace(".",",")}</div></div><div class="kpi"><span class="stripe" style="background:${C.faint}"></span><div class="lab">Fadiga física · intra-dia</div><div class="val" style="color:${C.fadiga};font-size:22px">${String(ff.momento).replace(".",",")}%</div><div class="cap">a mais reativa no dia</div></div><div class="kpi"><span class="stripe" style="background:${C.fadiga}"></span><div class="lab">Agudo → recuperação</div><div class="val" style="color:${C.fadiga};font-size:19px">+${String(e.ag).replace(".",",")} / ${String(e.rec).replace(".",",")}</div><div class="cap">fad. física · recuperação parcial</div></div></div>`);
+  tilt(h);
+  /* 1 · agudo × crônico */
+  sub("1 · Efeito agudo (intradia) × crônico (D1→D7)","O agudo é a variação média pré→pós; o crônico é a mudança acumulada de D1 a D7. Vigor e fadiga mudam sobretudo por <b>acúmulo crônico</b>.");
+  const g1=cards(h,`<div class="card"><h3>Agudo (intradia) vs crônico (D1→D7)</h3><p class="note">★ = efeito crônico significativo</p><div class="host" id="h_ac"></div></div><div class="card"><h3>Tabela agudo × crônico</h3><p class="note">dz do efeito crônico</p><div class="host" id="t_ac"></div></div>`);
+  groupSigned($("#h_ac",g1),DK.map(k=>({lab:DERIV.vars[k].lab,vals:[DERIV.ac[k].ag,DERIV.ac[k].cr],sig:DERIV.ac[k].sig})),[{lab:"Agudo (intradia)",c:C.fadiga},{lab:"Crônico (D1→D7)",c:C.pth}],{hl:HLL()});
+  dynTable($("#t_ac",g1),["Variável","Agudo","Crônico","dz crôn.","Sig."],DK.map(k=>[DERIV.vars[k].lab,DERIV.ac[k].ag,DERIV.ac[k].cr,DERIV.ac[k].dz,DERIV.ac[k].sig?"★":"—"]),(i,v)=>i>=1&&i<=3?(`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${num(v,2)}</span>`):i===4?(v==="★"?`<span class="sig">${v}</span>`:v):v,HLL());
+  /* 2 · pré vs pós + curva dos momentos */
+  sub("2 · Pré vs pós-treino e a curva dos momentos","O teste pareado pré×pós e a curva no nível dos momentos: o treino sobe a fadiga (agudo) e a noite recupera só parte (dente de serra).");
+  const g2=cards(h,`<div class="card"><h3>Pré vs Pós-treino</h3><p class="note">Wilcoxon e d de Cohen</p><div class="host" id="t_pp"></div></div><div class="card"><h3>Curva no nível dos momentos</h3><p class="note">○ pré → ● pós (agudo) e pós→pré (recuperação) · faixas = HIIT</p><div class="host" id="h_mom"></div></div>`);
+  dynTable($("#t_pp",g2),["Dimensão","Pré","Pós","Δ%","p","d"],PREPOS,(i,v)=>i===1||i===2?num(v,2):i===3?`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${v}%</span>`:i===5?num(v,2):i===4?(parseFloat(String(v).replace(",","."))<0.05?`<span class="sig">${v}</span>`:v):v,HLL());
+  drawMomCurve($("#h_mom",g2));
+  /* 3 · transições sequenciais */
+  sub("3 · Transições sequenciais — o dente de serra da PTH","Cada sessão (agudo, laranja) piora o estado; a recuperação entre dias (azul) devolve só parte.");
+  const g3=cards(h,`<div class="card"><h3>Transições sequenciais (PTH)</h3><p class="note">laranja = agudo (pré→pós) · azul = recuperação · ★ p<0,05</p><div class="host" id="h_tr"></div></div><div class="card"><h3>Transições · vigor, fadiga e PTH</h3><p class="note">tamanho de efeito dz por transição</p><div class="host" id="t_tr"></div></div>`);
+  divChart($("#h_tr",g3),TRANS.map(r=>({lab:r[0],tipo:r[1],v:r[4],sig:r[5]})));
+  dynTable($("#t_tr",g3),["Transição","Tipo","Vigor dz","Fadiga dz","PTH dz"],TRANS.map(r=>[r[0],r[1],r[2],r[3],r[4]]),(i,v)=>i>=2?(`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${num(v,2)}</span>`):v);
+  /* 4 · mapa intra & entre dia */
+  sub("4 · Mapa: intradia e entre dias, por variável","Todas as variáveis em cada transição (A = agudo · R = recuperação) e o efeito agudo isolado por dia.");
+  const labs=DK.map(k=>DERIV.vars[k].lab),hlRow=HLK()?DK.indexOf(HLK()):-1;
+  const c1=document.createElement("div");c1.className="card";c1.innerHTML=`<h3>Transições sequenciais · todas as variáveis</h3><p class="note">laranja = agudo (A) · azul = recuperação (R) · * p<0,05</p><div class="host" id="h_m1"></div>`;h.appendChild(c1);
+  const cols1=DERIV.trans.map(t=>({lab:t.lab,tag:t.tipo==="Agudo"?"A":"R"}));
+  heatMap($("#h_m1",c1),labs,cols1,(r,c)=>{const o=DERIV.trans[c].v[DK[r]];return {v:o.dz,sig:o.sig};},(r,c,d)=>`<b>${labs[r]}</b><br>${DERIV.trans[c].lab} · ${DERIV.trans[c].tipo}<br>dz=${num(d.v,2)}${d.sig?" * p<0,05":""}`,{h:labs.length*30+80,hlRow});
+  const c2=document.createElement("div");c2.className="card";c2.style.marginTop="18px";c2.innerHTML=`<h3>Efeito agudo por dia · pré para pós</h3><p class="note">variação intradia (dz) em cada dia de treino</p><div class="host" id="h_m2"></div>`;h.appendChild(c2);
+  const days=[2,3,4,5,6,7],cols2=days.map(d=>({lab:"Dia "+d}));
+  heatMap($("#h_m2",c2),labs,cols2,(r,c)=>{const o=DERIV.prepos_dia[String(days[c])][DK[r]];return {v:o.dz,sig:o.sig};},(r,c,d)=>`<b>${labs[r]}</b><br>Dia ${days[c]} · pré→pós<br>dz=${num(d.v,2)}${d.sig?" * p<0,05":""}`,{h:labs.length*30+70,hlRow});
+  /* 5 · onde mora a variância */
+  sub("5 · Onde mora a variância","Entre atletas (traço, invariante) · entre dias (estado) · dentro do dia (agudo). Mais da metade é traço — por isso a leitura individual exige baseline por atleta.");
+  const c3=document.createElement("div");c3.className="card";c3.innerHTML=`<h3>Onde está a variância</h3><p class="note">entre atletas (traço) · entre dias (estado) · intra-dia (agudo)</p><div class="host" id="h_var"></div>`;h.appendChild(c3);
+  drawVarBars($("#h_var",c3));
+  h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:16px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.62;color:var(--ink)">Para vigor, fadiga e PTH, <b>mais da metade da variância é entre atletas</b> — diferenças interindividuais estáveis (traço), o que exige <b style="color:var(--ink)">baseline por atleta</b> na leitura individual. A <b>fadiga física</b> é a mais reativa dentro do dia (${String(ff.momento).replace(".",",")}% intra-dia). Na curva de momentos, o treino sobe a fadiga (agudo +${String(VM.eff.Fadiga.ag).replace(".",",")}) e a noite recupera apenas parte (${String(VM.eff.Fadiga.rec).replace(".",",")}): <b style="color:var(--ink)">recuperação incompleta → acúmulo ao longo da semana</b>.</p></div>`);
 }},
 {id:"corr",lab:"Correlações",icon:"scatter",render(h){
   head(h,"Spearman","Relações entre as dimensões","As dimensões negativas associam-se entre si; a fadiga relaciona-se com a depressão e a raiva. O vigor mantém-se relativamente independente.");
@@ -1449,22 +1478,6 @@ const SECTIONS=[
   function pick(key){GLOBAL.varKey=key;syncChips();sel.querySelectorAll(".it").forEach(b=>b.classList.toggle("selon",b.dataset.k===key));ph.innerHTML="";drawDeriv(ph,key);}
   DK.forEach(k=>{const v=DERIV.vars[k];const b=document.createElement("span");b.className="it";b.dataset.k=k;b.style.cursor="pointer";b.innerHTML=`<span class="dot" style="background:${v.c}"></span>${v.lab}`;b.onclick=()=>pick(k);sel.appendChild(b);});
   pick(HLK()||"vigor");
-}},
-{id:"agcron",lab:"Agudo & crônico",icon:"split",render(h){
-  head(h,"nível 3 · todas as variáveis","Efeito agudo e efeito crônico","Para cada variável, o efeito agudo é a média das variações intradia (pré→pós) e o efeito crônico é a mudança acumulada do primeiro ao último dia. O desgaste do vigor e da fadiga é sobretudo crônico, por acúmulo entre os dias.");
-  const gr=cards(h,`<div class="card"><h3>Agudo (intradia) vs crônico (D1→D7)</h3><p class="note">★ = efeito crônico significativo</p><div class="host" id="h_ac"></div></div><div class="card"><h3>Tabela agudo × crônico</h3><p class="note">dz do efeito crônico</p><div class="host" id="t_ac"></div></div>`);
-  groupSigned($("#h_ac",gr),DK.map(k=>({lab:DERIV.vars[k].lab,vals:[DERIV.ac[k].ag,DERIV.ac[k].cr],sig:DERIV.ac[k].sig})),[{lab:"Agudo (intradia)",c:C.fadiga},{lab:"Crônico (D1→D7)",c:C.pth}],{hl:HLL()});
-  dynTable($("#t_ac",gr),["Variável","Agudo","Crônico","dz crôn.","Sig."],DK.map(k=>[DERIV.vars[k].lab,DERIV.ac[k].ag,DERIV.ac[k].cr,DERIV.ac[k].dz,DERIV.ac[k].sig?"★":"—"]),(i,v)=>i>=1&&i<=3?(`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${num(v,2)}</span>`):i===4?(v==="★"?`<span class="sig">${v}</span>`:v):v,HLL());
-}},
-{id:"intraentre",lab:"Intra & entre dia",icon:"cells",render(h){
-  head(h,"nível 3 · pré/pós","Efeito intradia e entre dias","O mapa reúne todas as variáveis em cada transição da semana: colunas de estímulo (A, agudo) alternam com recuperação (R, entre dias). O segundo mapa isola o efeito agudo pré→pós por dia. Selecione uma variável para realçar a sua linha.");
-  const labs=DK.map(k=>DERIV.vars[k].lab),hlRow=HLK()?DK.indexOf(HLK()):-1;
-  const c1=document.createElement("div");c1.className="card";c1.innerHTML=`<h3>Transições sequenciais · todas as variáveis</h3><p class="note">laranja = agudo (A) · azul = recuperação (R) · * p<0,05</p><div class="host" id="h_m1"></div>`;h.appendChild(c1);
-  const cols1=DERIV.trans.map(t=>({lab:t.lab,tag:t.tipo==="Agudo"?"A":"R"}));
-  heatMap($("#h_m1",c1),labs,cols1,(r,c)=>{const o=DERIV.trans[c].v[DK[r]];return {v:o.dz,sig:o.sig};},(r,c,d)=>`<b>${labs[r]}</b><br>${DERIV.trans[c].lab} · ${DERIV.trans[c].tipo}<br>dz=${num(d.v,2)}${d.sig?" * p<0,05":""}`,{h:labs.length*30+80,hlRow});
-  const c2=document.createElement("div");c2.className="card";c2.style.marginTop="18px";c2.innerHTML=`<h3>Efeito agudo por dia · pré para pós</h3><p class="note">variação intradia (dz) em cada dia de treino</p><div class="host" id="h_m2"></div>`;h.appendChild(c2);
-  const days=[2,3,4,5,6,7],cols2=days.map(d=>({lab:"Dia "+d}));
-  heatMap($("#h_m2",c2),labs,cols2,(r,c)=>{const o=DERIV.prepos_dia[String(days[c])][DK[r]];return {v:o.dz,sig:o.sig};},(r,c,d)=>`<b>${labs[r]}</b><br>Dia ${days[c]} · pré→pós<br>dz=${num(d.v,2)}${d.sig?" * p<0,05":""}`,{h:labs.length*30+70,hlRow});
 }},
 {id:"distrib",lab:"Distribuições",icon:"violin",render(h){
   head(h,"distribuições","Distribuição por dia e acumulada","Violino com caixa e média por dia (o ponto vermelho é a média, como nos boxplots com média), e distribuição acumulada (ECDF) do primeiro versus o último dia. Selecione a variável no botão de segmentação.");
@@ -1524,15 +1537,6 @@ const SECTIONS=[
   const g2=cards(h,`<div class="card"><h3>Robustez ao método · leave-one-athlete-out</h3><p class="note">o efeito D1→D7 removendo cada atleta, um a um</p><div class="host" id="h_loao"></div></div><div class="card"><h3>Leitura</h3><p class="note">resistência às escolhas analíticas</p><div id="k_sa"></div></div>`);
   drawLOAO($("#h_loao",g2));
   $("#k_sa",g2).innerHTML=`<p class="note" style="font-size:13px;line-height:1.6;color:var(--muted)"><b>LOAO:</b> nenhum atleta isolado sustenta o efeito — vigor, fadiga e PTH mantêm sinal e magnitude ao remover qualquer um. <b>Janela:</b> D1→D7 ≈ D2→D7 (mesma conclusão com ou sem baseline). <b>Suavização:</b> a inflexão da fadiga fica em <b style="color:${C.fadiga}">~dia 4,07 em todos os filtros</b> (polinômio e splines); a da PTH é mais sensível ao método. As conclusões centrais não dependem de uma escolha analítica particular.</p>`;
-}},
-{id:"variancia",lab:"Variância & momentos",icon:"pulse",render(h){
-  head(h,"invariância vs variação","Variância (intra-grupo, intra-sujeito, intra-dia) e curva agudo × recuperação","Onde mora a variância do humor: entre atletas (traço, <b>invariante</b>), entre dias (estado) e dentro do dia (agudo). E as <b>curvas no nível dos momentos</b>: o efeito agudo (pré→pós) e a recuperação noturna (pós do dia anterior → pré do seguinte).");
-  const vg=VM.vc.find(r=>r.dim==="Vigor"),ff=VM.vc.find(r=>r.dim==="FadFisica"),e=VM.eff.FadFisica;
-  h.insertAdjacentHTML("beforeend",`<div class="kpis"><div class="kpi"><span class="stripe" style="background:#1971c2"></span><div class="lab">Vigor · entre atletas</div><div class="val" style="color:#1971c2;font-size:22px">${String(vg.atleta).replace(".",",")}%</div><div class="cap">traço estável · ICC ${String(vg.icc).replace(".",",")}</div></div><div class="kpi"><span class="stripe" style="background:${C.faint}"></span><div class="lab">Fadiga física · intra-dia</div><div class="val" style="color:${C.fadiga};font-size:22px">${String(ff.momento).replace(".",",")}%</div><div class="cap">a mais reativa no dia</div></div><div class="kpi"><span class="stripe" style="background:${C.fadiga}"></span><div class="lab">Agudo → recuperação</div><div class="val" style="color:${C.fadiga};font-size:19px">+${String(e.ag).replace(".",",")} / ${String(e.rec).replace(".",",")}</div><div class="cap">fad. física · recuperação parcial</div></div></div>`);
-  tilt(h);
-  const g1=cards(h,`<div class="card"><h3>Onde está a variância</h3><p class="note">entre atletas (traço) · entre dias (estado) · intra-dia (agudo)</p><div class="host" id="h_var"></div></div><div class="card"><h3>Curva no nível dos momentos</h3><p class="note">○ pré → ● pós (agudo) e pós→pré (recuperação) · faixas = HIIT</p><div class="host" id="h_mom"></div></div>`);
-  drawVarBars($("#h_var",g1)); drawMomCurve($("#h_mom",g1));
-  h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:16px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.62;color:var(--ink)">Para vigor, fadiga e PTH, <b>mais da metade da variância é entre atletas</b> — diferenças interindividuais estáveis (traço), o que exige <b style="color:var(--ink)">baseline por atleta</b> na leitura individual. A <b>fadiga física</b> é a mais reativa dentro do dia (${String(ff.momento).replace(".",",")}% intra-dia). Na curva de momentos, o treino sobe a fadiga (agudo +${String(VM.eff.Fadiga.ag).replace(".",",")}) e a noite recupera apenas parte (${String(VM.eff.Fadiga.rec).replace(".",",")}): <b style="color:var(--ink)">recuperação incompleta → acúmulo ao longo da semana</b>.</p></div>`);
 }},
 {id:"hiit",lab:"Dias com/sem HIIT",icon:"pulse",render(h){
   head(h,"carga do dia","Dias com HIIT versus sem HIIT","Comparação do humor nos dias com sessão de HIIT (dias 2, 4 e 7) e nos demais dias (1, 3, 5 e 6), pareada por atleta. O D1 foi também o <b>baseline do BRUMS</b> (medido antes da sessão técnico-tática da noite). Atenção: os dias sem HIIT <b>não são leves</b> — incluem força e amistosos, e concentram o pico de volume (D5–D6). Ainda assim, o custo específico do HIIT aparece no <b>eixo energia–fadiga</b>: nos dias de HIIT o vigor cai e a fadiga sobe; as dimensões negativas não mudam.");
@@ -1955,7 +1959,7 @@ const NAVGROUPS=[
   {lab:"2 · Variação & perfis",    ids:["d17","dias","perfis","risco"]},
   {lab:"3 · Estrutura multivariada",ids:["multivar"]},
   {lab:"4 · Dinâmica temporal",    ids:["curvas","traj","limites","snr"]},
-  {lab:"5 · Resposta aguda (pré→pós)",ids:["agudo","agcron","intraentre","variancia"]},
+  {lab:"5 · Resposta aguda (pré→pós)",ids:["agudo"]},
   {lab:"6 · Tipo de dia (HIIT · jogo · sono)",ids:["hiit","negdia","sono"]},
   {lab:"7 · Relações & predição",  ids:["corr","preditivo","iot","atletas","individual"]},
   {lab:"8 · Aptidão física",       ids:["fisico"]}
