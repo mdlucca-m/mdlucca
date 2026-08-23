@@ -10,6 +10,13 @@ GOLD:   tabelas prontas para análise/painel/ML — médias atleta-dia, trajetó
 from __future__ import annotations
 import lh
 
+SESS2DIA = {"S1": 2, "S2": 4, "S3": 7}  # sessões de HIIT -> dias do microciclo
+
+def _dedup(raw, keys):
+    """Dedup idempotente nível-atleta: mantém a carga mais recente e remove metadados."""
+    d = raw.sort_values("_ingested_at").drop_duplicates(keys, keep="last")
+    return d[[c for c in d.columns if not c.startswith("_")]].reset_index(drop=True)
+
 DAY_TYPE = """
   CASE dia WHEN 1 THEN 'Baseline' WHEN 2 THEN 'HIIT' WHEN 3 THEN 'Jogo'
            WHEN 4 THEN 'HIIT' WHEN 5 THEN 'Jogo' WHEN 6 THEN 'Forca'
@@ -61,6 +68,19 @@ def build_silver():
     lh.write_delta("silver", "hiit", hiit2, mode="overwrite")
     print(f"[silver] hiit        {len(hiit2)} registros")
 
+    # ---- silver nível-atleta: rsa, mdc (A-code), physical (P-code) ----
+    rsa = _dedup(lh.read_delta("bronze", "rsa_raw"), ["ID"])
+    lh.write_delta("silver", "rsa", rsa, mode="overwrite"); print(f"[silver] rsa         {len(rsa)} atletas")
+    mdc = _dedup(lh.read_delta("bronze", "mdc_raw"), ["ID"])
+    lh.write_delta("silver", "mdc", mdc, mode="overwrite"); print(f"[silver] mdc         {len(mdc)} atletas")
+    phys = _dedup(lh.read_delta("bronze", "physical_raw"), ["id"])
+    lh.write_delta("silver", "physical", phys, mode="overwrite"); print(f"[silver] physical    {len(phys)} atletas (P-code · esquema separado)")
+    # ---- silver.brums_items: itens BRUMS (sem ID) — psicometria ----
+    items = lh.read_delta("bronze", "brums_items_raw")
+    items = items.drop_duplicates("_row_hash").reset_index(drop=True)
+    items = items[[c for c in items.columns if not c.startswith("_")]]
+    lh.write_delta("silver", "brums_items", items, mode="overwrite"); print(f"[silver] brums_items {len(items)} respostas × 24 itens")
+
 def build_gold():
     mood = lh.read_delta("silver", "mood")
     VARS = ["Vigor", "Fadiga", "Tensao", "Depressao", "Raiva", "Confusao", "PTH"]
@@ -107,6 +127,36 @@ def build_gold():
     lh.write_delta("gold", "risk_features", rf, mode="overwrite")
     lab = rf.dropna(subset=["risco_amanha"])
     print(f"[gold]   risk_features {len(rf)} linhas ({len(lab)} rotuladas p/ ML)")
+
+    # ---- gold.athlete_day_unified — TABELA INTEGRADA (OBT) por atleta-dia (A-code) ----
+    #   humor (todos os momentos) + sono/estresse (Epworth/PSS) + carga interna do HIIT do dia
+    wb = lh.read_delta("silver", "wellbeing")
+    hiit = lh.read_delta("silver", "hiit")
+    hiit["dia"] = hiit["sessao"].map(SESS2DIA)
+    hiit_day = lh.sql("""SELECT ID, dia, AVG(PSE) hiit_pse, AVG(dFC) hiit_dfc, MAX(FC_pos) hiit_fcmax
+                         FROM hiit WHERE dia IS NOT NULL GROUP BY ID, dia""", hiit=hiit)
+    obt = lh.sql("""
+        SELECT ad.*, wb.epworth, wb.pss,
+               hd.hiit_pse, hd.hiit_dfc, hd.hiit_fcmax
+        FROM ad LEFT JOIN wb ON ad.ID=wb.ID AND ad.dia=wb.dia
+                LEFT JOIN hd ON ad.ID=hd.ID AND ad.dia=hd.dia
+        ORDER BY ad.ID, ad.dia
+    """, ad=ad, wb=wb, hd=hiit_day)
+    lh.write_delta("gold", "athlete_day_unified", obt, mode="overwrite")
+    print(f"[gold]   athlete_day_unified {len(obt)} linhas × {obt.shape[1]} colunas (humor+sono+estresse+HIIT)")
+
+    # ---- gold.athlete_profile — resumo por atleta (A-code): humor semanal + RSA + MDC ----
+    rsa = lh.read_delta("silver", "rsa"); mdc = lh.read_delta("silver", "mdc")
+    prof = lh.sql("""
+        WITH m AS (SELECT ID, AVG(vigor) vigor_med, AVG(fadiga) fadiga_med, AVG(pth) pth_med,
+                          COUNT(*) n_dias FROM ad GROUP BY ID)
+        SELECT m.*, rsa.BkMel, rsa.BkSoma, rsa.BkF,
+               mdc.clsVigor, mdc.clsFadiga
+        FROM m LEFT JOIN rsa ON m.ID=rsa.ID LEFT JOIN mdc ON m.ID=mdc.ID
+        ORDER BY m.ID
+    """, ad=ad, rsa=rsa, mdc=mdc)
+    lh.write_delta("gold", "athlete_profile", prof, mode="overwrite")
+    print(f"[gold]   athlete_profile {len(prof)} atletas (humor + RSA + classificação MDC)")
 
 def run():
     build_silver(); build_gold()

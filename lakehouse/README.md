@@ -24,20 +24,35 @@ sem custo**.
 ## Arquitetura medallion
 
 ```
-fontes (CSV/IoT anonimizados, A01–A27)
+7 fontes anonimizadas (CSV/IoT)
    │  ingest.py  (append-only + metadados de carga)
    ▼
-BRONZE  bruto, fiel ao que chegou      warehouse/bronze/{brums_raw, hiit_raw, wellbeing_raw}
+BRONZE  bruto, fiel ao que chegou
+        brums_raw · wellbeing_raw · hiit_raw · rsa_raw · mdc_raw · physical_raw · brums_items_raw
    │  transform.build_silver()  (conformar · tipar · DEDUPLICAR · pré/pós)
    ▼
-SILVER  limpo e conformado             warehouse/silver/{mood, wellbeing, hiit}
-   │  transform.build_gold()   (agregar · features)
+SILVER  limpo e conformado
+        mood · wellbeing · hiit · rsa · mdc · physical(P-code) · brums_items
+   │  transform.build_gold()  +  analytics.run()   (integrar · agregar · analisar)
    ▼
-GOLD    pronto p/ análise, painel, ML  warehouse/gold/{athlete_day, daily_group, acute_prepos, risk_features}
+GOLD    pronto p/ análise, painel, ML
+        integração:  athlete_day · daily_group · acute_prepos · risk_features
+                     athlete_day_unified (OBT: humor+sono+estresse+HIIT) · athlete_profile
+        análises:    an_d17 · an_friedman · an_spearman · an_profiles(+byday)
+                     an_snr · an_negatives_daytype · an_wellbeing(+corr)
    │
-   ├──►  painel do humor / SQL (DuckDB)
+   ├──►  painel do humor / SQL (DuckDB)   [reconciliado: DIM · dz · SNR]
    └──►  ml_risk.py  →  ml/risk_model.pkl  (+ metrics.json)
 ```
+
+### Bases unificadas
+Tudo que compartilha o código **A01–A27** é integrado por atleta-dia/atleta:
+humor (BRUMS), sono/estresse (Epworth/PSS), carga do HIIT (FC/PSE), RSA e a
+classificação MDC. A **bateria física** (`phys_anon`) usa um esquema de
+anonimização **separado (P01–P24, com grupo controle/experimental)** e por isso
+entra como tabela própria — sem junção fabricada com os A-codes. Os **itens do
+BRUMS** (sem ID) ficam à parte para psicometria. Assim a unificação é honesta:
+junta o que é ligável, isola o que não é.
 
 - **Bronze** — cada carga entra como está, com `_source / _load_id / _ingested_at /
   _row_hash`. Nada é limpo aqui: é o registro auditável (permite *replay*).

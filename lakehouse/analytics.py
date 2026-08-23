@@ -1,0 +1,145 @@
+# -*- coding: utf-8 -*-
+"""GOLD · ANÁLISES — todas as análises do estudo computadas a partir do lakehouse.
+
+Lê silver.mood / silver.wellbeing e materializa as tabelas analíticas que o painel
+apresenta, de forma reprodutível e versionada (Delta). Métodos idênticos aos
+validados no estudo (não-paramétrico; unidade = atleta; casos completos p/ Friedman).
+
+Tabelas geradas (prefixo an_):
+  an_d17            D1→D7 (Wilcoxon dz) por dimensão
+  an_friedman       Friedman χ²/p/W (7 dias, casos completos) por dimensão
+  an_spearman       correlações de Spearman entre dimensões (atleta-dia)
+  an_profiles       perfis Terry/Parsons-Smith: centroide-T, prevalência, dominante/dia
+  an_snr            decomposição de variância (tendência+HIIT+ruído) e SNR
+  an_negatives_daytype  negativas em dias de HIIT × jogo (meio de semana)
+  an_wellbeing      Epworth/PSS D1→D7 + correlações com o humor
+"""
+from __future__ import annotations
+import numpy as np, pandas as pd
+from scipy import stats
+import lh
+
+BR = ["Vigor", "Fadiga", "Tensao", "Depressao", "Raiva", "Confusao", "PTH"]
+KEY = {"Vigor": "vigor", "Fadiga": "fadiga", "Tensao": "tensao", "Depressao": "depressao",
+       "Raiva": "raiva", "Confusao": "confusao", "PTH": "pth"}
+NEG = ["Tensao", "Depressao", "Raiva", "Confusao"]
+SUB = ["Tensao", "Depressao", "Raiva", "Vigor", "Fadiga", "Confusao"]  # 6 dims p/ perfil
+HIIT = [2, 4, 7]
+CENT = {"Iceberg": [-.5, -.5, -.5, 1., -.5, -.5], "Iceberg invertido": [.6, .6, .6, -1., .6, .6],
+        "Everest invertido": [1.2, 1.4, 1.2, -.8, 1.2, 1.2], "Barbatana de tubarao": [.2, .2, .2, .3, 1.4, .2],
+        "Superficie": [0, 0, 0, 0, 0, 0], "Submerso": [-.9, -.9, -.9, -.9, -.9, -.9]}
+
+def _athlete_day(m):
+    return m.groupby(["ID", "dia"])[BR].mean().reset_index()
+
+def an_d17(ad):
+    rows = []
+    for c in BR:
+        w = ad.pivot_table(index="ID", columns="dia", values=c)
+        j = pd.concat([w[1], w[7]], axis=1).dropna()
+        diff = j[7] - j[1]; dz = diff.mean() / diff.std(ddof=1)
+        p = stats.wilcoxon(j[1], j[7]).pvalue
+        d1 = ad[ad.dia == 1][c].mean(); d7 = ad[ad.dia == 7][c].mean()  # DIM (todos por dia)
+        rows.append(dict(var=KEY[c], d1=round(d1, 2), d7=round(d7, 2), delta=round(d7 - d1, 2),
+                         pct=round(100 * (d7 - d1) / d1, 0), dz=round(dz, 2),
+                         p_wilcoxon=round(float(p), 3), sig=bool(p < .05)))
+    return pd.DataFrame(rows)
+
+def an_friedman(ad):
+    rows = []
+    for c in BR:
+        w = ad.pivot_table(index="ID", columns="dia", values=c).dropna()
+        chi, p = stats.friedmanchisquare(*[w[d] for d in range(1, 8)])
+        W = chi / (len(w) * (7 - 1))
+        rows.append(dict(var=KEY[c], n=len(w), chi2=round(float(chi), 1),
+                         p=round(float(p), 3), W=round(float(W), 2), sig=bool(p < .05)))
+    return pd.DataFrame(rows)
+
+def an_spearman(ad):
+    rows = []
+    for i in range(len(BR)):
+        for j in range(i + 1, len(BR)):
+            a, b = BR[i], BR[j]
+            r, p = stats.spearmanr(ad[a], ad[b])
+            if p < .05:
+                rows.append(dict(par=f"{KEY[a]} × {KEY[b]}", rho=round(float(r), 2), p=round(float(p), 3)))
+    return pd.DataFrame(rows).sort_values("rho", key=abs, ascending=False).reset_index(drop=True)
+
+def an_profiles(m):
+    mu, sd = m[SUB].mean(), m[SUB].std()
+    Z = (m[SUB] - mu) / sd
+    names = list(CENT); CM = np.array([CENT[k] for k in names])
+    m = m.copy(); m["perfil"] = Z.apply(lambda r: names[int(((CM - r.values) ** 2).sum(1).argmin())], axis=1)
+    T = 50 + 10 * Z
+    prof = []
+    for nm in names:
+        mk = m["perfil"] == nm
+        prof.append(dict(perfil=nm, prevalencia=round(100 * mk.mean(), 1), n=int(mk.sum()),
+                         **{KEY.get(c, c.lower()): round(float(T[mk][c].mean()), 1) for c in SUB}))
+    dom = []
+    for d in range(1, 8):
+        vc = m[m.dia == d]["perfil"].value_counts(normalize=True).mul(100)
+        dom.append(dict(dia=d, dominante=vc.index[0], pct=round(float(vc.iloc[0]), 1)))
+    return pd.DataFrame(prof), pd.DataFrame(dom)
+
+def an_snr(m):
+    # decomposição sobre a média diária de TODAS as respostas (mesmo método do painel)
+    x = np.arange(1, 8); ss = lambda a: float((a ** 2).sum()); rows = []
+    for c in BR:
+        y = m.groupby("dia")[c].mean().reindex(range(1, 8)).values; yc = y - y.mean()
+        Xt = np.column_stack([x - 4, (x - 4) ** 2]); bt, *_ = np.linalg.lstsq(Xt, yc, rcond=None); tr = Xt @ bt
+        det = yc - tr; isH = np.isin(x, HIIT).astype(float)
+        hc = (isH - isH.mean()) * (det[isH == 1].mean() - det[isH == 0].mean()); no = det - hc
+        tot = ss(yc) or 1; snr = (ss(tr) + ss(hc)) / ss(no) if ss(no) else 999
+        rows.append(dict(var=KEY[c], tendencia=round(ss(tr) / tot * 100, 1), hiit=round(ss(hc) / tot * 100, 1),
+                         ruido=round(ss(no) / tot * 100, 1), snr=round(float(snr), 1)))
+    return pd.DataFrame(rows)
+
+def an_negatives_daytype(ad):
+    # meio de semana pareado: HIIT (D2,D4) vs jogo (D3,D5)
+    rows = []
+    for c in NEG:
+        hi = ad[ad.dia.isin([2, 4])].groupby("ID")[c].mean()
+        jo = ad[ad.dia.isin([3, 5])].groupby("ID")[c].mean()
+        j = pd.concat([hi, jo], axis=1).dropna(); j.columns = ["hiit", "jogo"]
+        if len(j) < 5: continue
+        diff = j["jogo"] - j["hiit"]; dz = diff.mean() / diff.std(ddof=1)
+        p = stats.wilcoxon(j["hiit"], j["jogo"]).pvalue
+        rows.append(dict(var=KEY[c], media_hiit=round(j["hiit"].mean(), 2), media_jogo=round(j["jogo"].mean(), 2),
+                         dz_jogo_menos_hiit=round(float(dz), 2), p=round(float(p), 3), sig=bool(p < .05)))
+    return pd.DataFrame(rows)
+
+def an_wellbeing(wb, adm):
+    rows = []
+    for c in ["epworth", "pss"]:
+        w = wb.pivot_table(index="ID", columns="dia", values=c)
+        j = pd.concat([w[1], w[7]], axis=1).dropna()
+        diff = j[7] - j[1]; dz = diff.mean() / diff.std(ddof=1); p = stats.wilcoxon(j[1], j[7]).pvalue
+        rows.append(dict(var=c, d1=round(w[1].mean(), 1), d7=round(w[7].mean(), 1),
+                         dz=round(float(dz), 2), p=round(float(p), 3)))
+    d17 = pd.DataFrame(rows)
+    # correlações Epworth/PSS × humor (atleta-dia)
+    mg = wb.merge(adm, on=["ID", "dia"])
+    cor = []
+    for a in ["epworth", "pss"]:
+        for b in ["Fadiga", "Vigor", "PTH"]:
+            r, p = stats.spearmanr(mg[a], mg[b])
+            cor.append(dict(par=f"{a} × {KEY[b]}", rho=round(float(r), 2), p=round(float(p), 3)))
+    return d17, pd.DataFrame(cor)
+
+def run():
+    m = lh.read_delta("silver", "mood")
+    ad = _athlete_day(m)
+    lh.write_delta("gold", "an_d17", an_d17(ad)); print("[gold] an_d17")
+    lh.write_delta("gold", "an_friedman", an_friedman(ad)); print("[gold] an_friedman")
+    lh.write_delta("gold", "an_spearman", an_spearman(ad)); print("[gold] an_spearman")
+    prof, dom = an_profiles(m)
+    lh.write_delta("gold", "an_profiles", prof); lh.write_delta("gold", "an_profiles_byday", dom); print("[gold] an_profiles (+byday)")
+    lh.write_delta("gold", "an_snr", an_snr(m)); print("[gold] an_snr")
+    lh.write_delta("gold", "an_negatives_daytype", an_negatives_daytype(ad)); print("[gold] an_negatives_daytype")
+    wb = lh.read_delta("silver", "wellbeing")
+    wd17, wcor = an_wellbeing(wb, ad[["ID", "dia"] + BR])
+    lh.write_delta("gold", "an_wellbeing", wd17); lh.write_delta("gold", "an_wellbeing_corr", wcor); print("[gold] an_wellbeing (+corr)")
+
+if __name__ == "__main__":
+    run()

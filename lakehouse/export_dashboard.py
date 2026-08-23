@@ -40,17 +40,48 @@ def parse_dim_from_html() -> dict:
         out[m.group(1)] = [float(x) for x in m.group(2).split(",")]
     return out
 
+def _html():
+    return open(DASH, encoding="utf-8").read()
+
+def parse_scalar(const_kind: str) -> dict:
+    """Extrai {var: valor} do painel para D17.dz e SNR.snr."""
+    html = _html(); out = {}
+    if const_kind == "dz":  # const D17=[ ["Vigor",d1,d7,pct,dz,"mag"], ... ]
+        blk = html[html.find("const D17="):html.find("];", html.find("const D17="))]
+        for m in re.finditer(r'\["(\w+)",[-0-9.]+,[-0-9.]+,[-0-9.]+,([-0-9.]+)', blk):
+            out[m.group(1)] = float(m.group(2))
+    elif const_kind == "snr":  # const SNR=[ {lab:"Vigor",...,snr:2.0,...}, ... ]
+        blk = html[html.find("const SNR="):html.find("];", html.find("const SNR="))]
+        for m in re.finditer(r'lab:"([^"]+)"[^}]*?snr:([-0-9.]+)', blk):
+            out[m.group(1)] = float(m.group(2))
+    return out
+
+def _check(title, pairs, tol):
+    ok = True
+    print(f"\n  {title}")
+    for name, a, b in pairs:
+        m = b is not None and abs(a - b) <= tol
+        ok = ok and m
+        print(f"    {name:12s} lakehouse={a!s:>7}  painel={b!s:>7}  {'OK' if m else 'DIVERGE'}")
+    return ok
+
 def reconcile(daily: dict) -> bool:
     dim = parse_dim_from_html()
     ok = True
-    print(f"{'variável':10s} {'lakehouse (gold)':<34s} {'painel (DIM)':<34s} status")
+    print("  trajetória diária (DIM)")
     for v in VARS:
-        g = daily[v]
-        d = dim.get(v)
+        g, d = daily[v], dim.get(v)
         match = d is not None and all(abs(a - b) <= 0.1 for a, b in zip(g, d))
         ok = ok and match
-        print(f"{LAB[v]:10s} {str(g):<34s} {str(d):<34s} {'OK' if match else 'DIVERGE'}")
-    print("\n" + ("[OK] painel e lakehouse CONSISTENTES (tolerância 0,1)" if ok
+        print(f"    {LAB[v]:12s} {'OK' if match else 'DIVERGE'}")
+    # dz (D1→D7) e SNR contra as análises do lakehouse
+    an_d17 = lh.read_delta("gold", "an_d17").set_index("var")["dz"].to_dict()
+    an_snr = lh.read_delta("gold", "an_snr").set_index("var")["snr"].to_dict()
+    dz_h, snr_h = parse_scalar("dz"), parse_scalar("snr")
+    labmap = {v: LAB[v] for v in VARS}
+    ok &= _check("efeito D1→D7 (dz)", [(LAB[v], an_d17[v], dz_h.get(labmap[v])) for v in VARS], 0.02)
+    ok &= _check("sinal/ruído (SNR)", [(LAB[v], an_snr[v], snr_h.get(labmap[v])) for v in VARS], 0.15)
+    print("\n" + ("[OK] painel e lakehouse CONSISTENTES (DIM · dz · SNR)" if ok
                   else "[!!] há divergência — regenerar o painel a partir do lakehouse"))
     return ok
 

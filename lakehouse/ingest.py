@@ -15,10 +15,14 @@ import pandas as pd
 import lh
 
 SOURCES = {
-    # tabela bronze        arquivo bruto (anonimizado A01–A27)
-    "brums_raw":  "humor_anon.csv",            # BRUMS + momento (pré/pós) + flag HIIT do dia
-    "hiit_raw":   "hiit_fcpse_anon.csv",       # carga interna do HIIT (FC/PSE por sessão×fase)
-    "wellbeing_raw": "humor_epworth_pss_anon.csv",  # sonolência (Epworth) + estresse (PSS)
+    # tabela bronze          arquivo bruto            grão / chave
+    "brums_raw":     "humor_anon.csv",            # atleta-momento (A-code) · BRUMS + momento + HIIT
+    "wellbeing_raw": "humor_epworth_pss_anon.csv", # atleta-dia (A-code) · Epworth + PSS
+    "hiit_raw":      "hiit_fcpse_anon.csv",       # atleta-sessão×fase (A-code) · FC/PSE
+    "rsa_raw":       "rsa_anon.csv",              # atleta (A-code) · sprints repetidos (Bosco)
+    "mdc_raw":       "mdc_class_anon.csv",        # atleta (A-code) · mudança confiável (MDC)
+    "physical_raw":  "phys_anon.csv",             # atleta (P-code!) · bateria física/T-CAR + grupo
+    "brums_items_raw": "brums_itens_anon.csv",    # resposta (sem ID) · 24 itens BRUMS (psicometria)
 }
 
 def land(table: str, filename: str, load_id: str) -> int:
