@@ -194,6 +194,10 @@ def _curve_label(dz, pw, pf, piso):
     if piso >= 65: return "piso · sem tendência"
     return "sem tendência clara"
 
+def gen_MV():
+    """MV ← gold.an_pca: dispersão PCA + clusters + cargas + variância (estrutura multivariada)."""
+    return "const MV=" + lh.read_delta("gold", "an_pca").iloc[0]["payload"]
+
 def gen_LC():
     """LC_X/LC_TR/LC_CV ← gold.an_learning: curva de aprendizado (treino × validação)."""
     d = lh.read_delta("gold", "an_learning").sort_values("n")
@@ -405,7 +409,7 @@ def run():
             "LIM": gen_LIM(), "VM": gen_VM(), "TRANS": gen_TRANS(), "PRISCO": gen_PRISCO(),
             "ALO": gen_ALO(), "PVMODEL": gen_PVMODEL(), "ATLETA": gen_ATLETA(),
             "CURVE": gen_CURVE(), "LC_X": gen_LC(),
-            "CROSS": f"const CROSS={gen_CROSS()}", "CURVE_CROSS": f"const CURVE_CROSS={gen_CROSS()}"}
+            "CROSS": f"const CROSS={gen_CROSS()}", "CURVE_CROSS": f"const CURVE_CROSS={gen_CROSS()}", "MV": gen_MV()}
     for name, rhs in gens.items():
         html = replace_const(html, name, rhs)
         print(f"[painel←gold] const {name} regenerada do gold")

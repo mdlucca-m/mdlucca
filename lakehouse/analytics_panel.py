@@ -22,6 +22,7 @@ CENT = {"Iceberg": [-.5, -.5, -.5, 1., -.5, -.5], "Iceberg invertido": [.6, .6, 
         "Everest invertido": [1.2, 1.4, 1.2, -.8, 1.2, 1.2], "Barbatana de tubarao": [.2, .2, .2, .3, 1.4, .2],
         "Superficie": [0, 0, 0, 0, 0, 0], "Submerso": [-.9, -.9, -.9, -.9, -.9, -.9]}
 # tipo de dia → categoria do painel
+SEED = 7
 DAYCAT = {"HIIT": "HIIT", "Jogo": "Amistoso", "Baseline": "Outro", "Forca": "Outro"}
 
 
@@ -262,11 +263,49 @@ def an_athlete_profiles(m):
         columns={"PTH": "pth", "Vigor": "vigor", "Fadiga": "fadiga"})
 
 
+def an_pca(m):
+    """Estrutura multivariada: PCA (2 componentes) das 6 dimensões padronizadas por
+    resposta + agrupamento k-médias. Sinal fixo (vigor>0 no PC1) p/ reprodutibilidade.
+    Devolve dispersão, centroides diários, clusters, cargas (correlação) e variância."""
+    from sklearn.decomposition import PCA
+    from sklearn.cluster import KMeans
+    from sklearn.metrics import silhouette_score
+    m = m.sort_values(["ID", "dia", "seq"]).reset_index(drop=True)  # ordem estável (determinismo)
+    Xz = ((m[PROF_SUB] - m[PROF_SUB].mean()) / m[PROF_SUB].std())
+    X = Xz.values
+    p = PCA(n_components=2, random_state=SEED).fit(X); Z = p.transform(X)
+    load = p.components_.copy()
+    for i in range(2):  # sinal determinístico: PC1 vigor>0, PC2 fadiga>0
+        ref = "Vigor" if i == 0 else "Fadiga"
+        if load[i][PROF_SUB.index(ref)] < 0:
+            load[i] *= -1; Z[:, i] *= -1
+    corr_load = [list(np.round(load[i] * np.sqrt(p.explained_variance_[i]), 2)) for i in range(2)]
+    km = KMeans(n_clusters=2, random_state=SEED, n_init=10).fit(Z)
+    lab = km.labels_.copy()
+    # rótulo canônico: cluster 0 = o maior (evita troca de índice entre execuções)
+    if (lab == 0).sum() < (lab == 1).sum():
+        lab = 1 - lab
+    sil = {k: round(float(silhouette_score(Z, KMeans(n_clusters=k, random_state=SEED, n_init=10).fit_predict(Z))), 3)
+           for k in range(2, 7)}
+    days = m["dia"].values
+    pts = ";".join(f"{Z[i,0]:.3f},{Z[i,1]:.3f},{int(lab[i])},{int(days[i])}" for i in range(len(Z)))
+    daycent = [[round(float(Z[days == d, 0].mean()), 3), round(float(Z[days == d, 1].mean()), 3)] for d in range(1, 8)]
+    prof_z = [[round(float(Xz.iloc[lab == c][col].mean()), 2) for col in PROF_SUB] for c in range(2)]
+    cent_pc = [[round(float(Z[lab == c, 0].mean()), 3), round(float(Z[lab == c, 1].mean()), 3)] for c in range(2)]
+    payload = {"pts": pts, "day": daycent,
+               "cl": {"k": 2, "sil": sil[2], "centroids_pc": cent_pc, "n": [int((lab == 0).sum()), int((lab == 1).sum())],
+                      "profile_z": prof_z},
+               "var": [round(float(v), 3) for v in p.explained_variance_ratio_],
+               "load": {"PCo1": corr_load[0], "PCo2": corr_load[1]}, "sil": sil}
+    return payload
+
+
 def run():
     m = lh.read_delta("silver", "mood")
     wb = lh.read_delta("silver", "wellbeing")
     it = lh.read_delta("silver", "brums_items")
     lh.write_delta("gold", "an_athlete_profiles", an_athlete_profiles(m)); print("[gold] an_athlete_profiles")
+    lh.write_delta("gold", "an_pca", pd.DataFrame([dict(payload=json.dumps(an_pca(m)))])); print("[gold] an_pca")
     vc, vcurve = an_variance(m)
     lh.write_delta("gold", "an_variance", vc); lh.write_delta("gold", "an_variance_curves", vcurve); print("[gold] an_variance (+curves)")
     lh.write_delta("gold", "an_transitions", an_transitions(m)); print("[gold] an_transitions")
