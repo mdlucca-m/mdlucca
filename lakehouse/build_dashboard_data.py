@@ -9,6 +9,7 @@ do painel passam a VIR do gold (fonte única da verdade), sem quebrar o arquivo
 """
 from __future__ import annotations
 import os, re, json
+import numpy as np
 import lh
 
 DASH = os.path.abspath(os.path.join(lh.ROOT, "..", "Artigos", "dashboard_humor.html"))
@@ -178,6 +179,24 @@ def gen_PRISCO():
             f'byday:{r["byday"]},exp_neg1:{int(r["exp_neg1"])},exp_neg2:{int(r["exp_neg2"])},'
             f'exp_fad1:{int(r["exp_fad1"])},never:{int(r["never"])}}}')
 
+def gen_ALO():
+    """ALO ← gold.an_allometry: expoentes de escala (b, IC, R², p, a=ln) + curva ajustada."""
+    d = lh.read_delta("gold", "an_allometry")
+    pm = lh.read_delta("silver", "pv_mood")
+    pv = pm["pv"].astype(float)
+    xs = list(np.linspace(float(pv.min()), float(pv.max()), 60))
+    rows = [dict(dim=r.dim, lab=r.lab, b=float(r.b), lo=float(r.lo), hi=float(r.hi),
+                 r2=float(r.r2), p=float(r.p), a=float(r.a)) for r in d.itertuples()]
+    curve = {"pv": [round(x, 4) for x in xs]}
+    for r in d.itertuples():
+        curve[r.dim] = [round(float(np.exp(r.a + r.b * np.log(x))), 3) for x in xs]
+    return "const ALO=" + json.dumps({"rows": rows, "curve": curve})
+
+def gen_PVMODEL():
+    """PVMODEL ← gold.an_pvmodel: comparação de modelos PV→humor por RMSE (LOO)."""
+    payload = lh.read_delta("gold", "an_pvmodel").iloc[0]["payload"]
+    return "const PVMODEL=" + payload
+
 def gen_NEGDT():
     """NEGDT ← gold: an_negatives_bydaytype (means+acute) · an_negatives_daytype (mid) · an_negatives_mix."""
     bd = lh.read_delta("gold", "an_negatives_bydaytype")
@@ -316,7 +335,8 @@ def run():
             "AERO": gen_AERO(), "HDL": gen_HDL(html), "ATLETAV": gen_ATLETAV(),
             "DESC": gen_DESC(), "PREPOS": gen_PREPOS(), "PERFIS": gen_PERFIS(), "SONO": gen_SONO(),
             "MODELS": gen_MODELS(), "ROC_PTS": gen_ROC(), "NEGDT": gen_NEGDT(), "ICC": gen_ICC(), "OMEGA": gen_OMEGA(),
-            "LIM": gen_LIM(), "VM": gen_VM(), "TRANS": gen_TRANS(), "PRISCO": gen_PRISCO()}
+            "LIM": gen_LIM(), "VM": gen_VM(), "TRANS": gen_TRANS(), "PRISCO": gen_PRISCO(),
+            "ALO": gen_ALO(), "PVMODEL": gen_PVMODEL()}
     for name, rhs in gens.items():
         html = replace_const(html, name, rhs)
         print(f"[painel←gold] const {name} regenerada do gold")

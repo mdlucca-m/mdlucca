@@ -17,6 +17,7 @@ Tabelas geradas (an_):
 Determinismo: o bootstrap usa np.random.default_rng(7) — semente fixa ⇒ IC reprodutível.
 """
 from __future__ import annotations
+import json
 import numpy as np, pandas as pd
 from scipy import stats
 import lh
@@ -115,6 +116,62 @@ def an_pv_bands(pm):
     return pd.DataFrame(rows)
 
 
+ALO_DIMS = [("FadFisica", "Fadiga física"), ("Fadiga", "Fadiga"), ("Vigor", "Vigor"), ("TMD", "PTH")]
+
+def an_allometry(pm):
+    """Ajuste alométrico (lei de potência) humor = a·PV^b por regressão log-log
+    (só valores positivos do humor). Devolve b, IC95%, R², p e o intercepto log (a=ln)."""
+    rows = []
+    for d, lab in ALO_DIMS:
+        sub = pm[pm.dim == d].sort_values("pair")
+        y, x = sub["mood"].values, sub["pv"].values
+        mk = y > 0; y, x = y[mk], x[mk]
+        lx, ly = np.log(x), np.log(y)
+        b, a = np.polyfit(lx, ly, 1); n = len(x)
+        yhat = a + b * lx; ss_res = float(((ly - yhat) ** 2).sum())
+        sxx = float(((lx - lx.mean()) ** 2).sum()); r2 = float(np.corrcoef(lx, ly)[0, 1] ** 2)
+        se = np.sqrt(ss_res / (n - 2) / sxx); tcrit = stats.t.ppf(0.975, n - 2)
+        t = b / se; p = float(2 * (1 - stats.t.cdf(abs(t), n - 2)))
+        rows.append(dict(dim=d, lab=lab, b=round(float(b), 2), lo=round(float(b - tcrit * se), 2),
+                         hi=round(float(b + tcrit * se), 2), r2=round(r2, 2), p=round(p, 3),
+                         a=round(float(a), 4), n=int(n)))
+    return pd.DataFrame(rows)
+
+
+def an_pvmodel(pm):
+    """Compara modelos PV→humor por RMSE de validação leave-one-out: Linear,
+    Logarítmico, Alométrico, XGBoost, LightGBM; base = prever a média. FadFísica e Vigor."""
+    import xgboost as xgb, lightgbm as lgb
+    from sklearn.model_selection import LeaveOneOut
+    names = ["Linear", "Logarítmico", "Alométrico", "XGBoost", "LightGBM"]
+    out = {"names": names}
+    for d in ["FadFisica", "Vigor"]:
+        sub = pm[pm.dim == d].sort_values("pair")
+        y = sub["mood"].values.astype(float); x = sub["pv"].values.astype(float)
+        loo = LeaveOneOut(); preds = {k: [] for k in names}; truth = []
+        base_pred = []
+        for tr, te in loo.split(x):
+            xtr, ytr, xte = x[tr], y[tr], x[te]
+            truth.append(y[te][0]); base_pred.append(ytr.mean())
+            b1, b0 = np.polyfit(xtr, ytr, 1); preds["Linear"].append(b0 + b1 * xte[0])
+            bl1, bl0 = np.polyfit(np.log(xtr), ytr, 1); preds["Logarítmico"].append(bl0 + bl1 * np.log(xte[0]))
+            mk = ytr > 0
+            if mk.sum() > 2:
+                ab, aa = np.polyfit(np.log(xtr[mk]), np.log(ytr[mk]), 1)
+                preds["Alométrico"].append(np.exp(aa + ab * np.log(xte[0])))
+            else:
+                preds["Alométrico"].append(ytr.mean())
+            xg = xgb.XGBRegressor(n_estimators=80, max_depth=2, learning_rate=0.05, random_state=SEED, verbosity=0)
+            xg.fit(xtr.reshape(-1, 1), ytr); preds["XGBoost"].append(float(xg.predict(xte.reshape(-1, 1))[0]))
+            lg = lgb.LGBMRegressor(n_estimators=80, max_depth=2, learning_rate=0.05, random_state=SEED, verbose=-1)
+            lg.fit(xtr.reshape(-1, 1), ytr); preds["LightGBM"].append(float(lg.predict(xte.reshape(-1, 1))[0]))
+        truth = np.array(truth)
+        rmse = lambda pr: float(np.sqrt(np.mean((truth - np.array(pr)) ** 2)))
+        vals = [round(rmse(preds[k]), 2) for k in names]
+        out[d] = {"vals": vals, "base": round(rmse(base_pred), 2), "best": names[int(np.argmin(vals))]}
+    return out
+
+
 def run():
     ph = lh.read_delta("silver", "physical")
     pm = lh.read_delta("silver", "pv_mood")
@@ -122,6 +179,9 @@ def run():
     lh.write_delta("gold", "an_pv_mood", an_pv_mood(pm)); print("[gold] an_pv_mood")
     lh.write_delta("gold", "an_pv_threshold", an_pv_threshold(pm)); print("[gold] an_pv_threshold")
     lh.write_delta("gold", "an_pv_bands", an_pv_bands(pm)); print("[gold] an_pv_bands")
+    lh.write_delta("gold", "an_allometry", an_allometry(pm)); print("[gold] an_allometry")
+    pvm = an_pvmodel(pm)
+    lh.write_delta("gold", "an_pvmodel", pd.DataFrame([dict(payload=json.dumps(pvm))])); print("[gold] an_pvmodel")
 
 
 if __name__ == "__main__":
