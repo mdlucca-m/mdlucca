@@ -148,6 +148,15 @@ def test_painel_desc_prepos_perfis():
     ice = _row(pf, "perfil", "Iceberg")
     assert ice["d1"] > ice["d7"], "Iceberg predomina no D1 e erode até o D7"
 
+def test_painel_modelos_ml():
+    mo = lh.read_delta("gold", "an_models")
+    assert set(mo["modelo"]) == {"Random Forest", "XGBoost", "LightGBM"}, "3 modelos: RF, XGBoost, LightGBM"
+    assert (mo["auc"].between(0.45, 0.75)).all(), "AUC honesto por atleta na faixa esperada"
+    best = mo.sort_values("auc", ascending=False).iloc[0]
+    assert bool(best["melhor"]) and best["auc"] >= 0.5, "melhor modelo marcado e acima do acaso"
+    roc = lh.read_delta("gold", "an_roc")
+    assert roc.iloc[0].tolist() == [0.0, 0.0] and roc.iloc[-1].tolist() == [1.0, 1.0], "ROC de (0,0) a (1,1)"
+
 def test_painel_wellbeing_gold():
     byd = lh.read_delta("gold", "an_wellbeing_byday").sort_values("dia")
     assert len(byd) == 7

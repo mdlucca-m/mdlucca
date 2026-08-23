@@ -123,6 +123,21 @@ def gen_AERO():
                 n_pm=len(PV), n_ph=int(ad.loc["tcarpv", "n"]))
     return "const AERO=" + json.dumps(aero)
 
+MODEL_COL = {"Random Forest": "C.vigor", "XGBoost": "C.fadiga", "LightGBM": "C.tensao"}
+
+def gen_MODELS():
+    """MODELS ← gold.an_models: comparação de AUC (Random Forest, XGBoost, LightGBM)."""
+    d = lh.read_delta("gold", "an_models")
+    rows = [f'{{lab:"{r.modelo}",auc:{_n(r.auc,2)},col:{MODEL_COL.get(r.modelo,"C.muted")}}}'
+            for r in d.itertuples()]
+    return "const MODELS=[" + ",".join(rows) + "]"
+
+def gen_ROC():
+    """ROC_PTS ← gold.an_roc: curva ROC do melhor modelo."""
+    d = lh.read_delta("gold", "an_roc")
+    pts = [f'[{_n(r.fpr,3)},{_n(r.tpr,3)}]' for r in d.itertuples()]
+    return "const ROC_PTS=[" + ",".join(pts) + "]"
+
 def gen_DESC():
     """DESC ← gold.an_desc: [lab, média, DP, "min–max"] por dimensão."""
     d = lh.read_delta("gold", "an_desc").set_index("var")
@@ -230,7 +245,8 @@ def run():
             "SNR": gen_SNR(html), "SPEAR": gen_SPEAR(),
             "PROFATL": gen_PROFATL(), "PROFGRP": gen_PROFGRP(),
             "AERO": gen_AERO(), "HDL": gen_HDL(html), "ATLETAV": gen_ATLETAV(),
-            "DESC": gen_DESC(), "PREPOS": gen_PREPOS(), "PERFIS": gen_PERFIS(), "SONO": gen_SONO()}
+            "DESC": gen_DESC(), "PREPOS": gen_PREPOS(), "PERFIS": gen_PERFIS(), "SONO": gen_SONO(),
+            "MODELS": gen_MODELS(), "ROC_PTS": gen_ROC()}
     for name, rhs in gens.items():
         html = replace_const(html, name, rhs)
         print(f"[painel←gold] const {name} regenerada do gold")
