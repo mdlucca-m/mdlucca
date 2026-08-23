@@ -658,6 +658,13 @@ const HVS={"rec": [{"lab": "Vigor", "dim": "Vigor", "ph": 1.21, "pn": 0.54, "p":
 /* dimens\u00f5es negativas por tipo de dia (HIIT / Amistoso / Outro): m\u00e9dias, compara\u00e7\u00e3o meio-de-semana controlada, agudo, modelo misto */
 const NEGDT={"means":{"Tensao":{"Outro":1.86,"HIIT":1.34,"Amistoso":1.08},"Depressao":{"Outro":1.05,"HIIT":1.21,"Amistoso":0.69},"Raiva":{"Outro":1.84,"HIIT":1.88,"Amistoso":1.04},"Confusao":{"Outro":0.8,"HIIT":0.49,"Amistoso":0.25},"Vigor":{"Outro":6.77,"HIIT":5.18,"Amistoso":5.64},"Fadiga":{"Outro":4.77,"HIIT":6.06,"Amistoso":5.13}},"mid":{"Tensao":{"amist":1.09,"hiit":1.33,"dz":-0.34,"p":0.11},"Depressao":{"amist":0.76,"hiit":1.12,"dz":-0.43,"p":0.04},"Raiva":{"amist":1.06,"hiit":1.52,"dz":-0.48,"p":0.03},"Confusao":{"amist":0.28,"hiit":0.45,"dz":-0.49,"p":0.03}},"acute":{"Tensao":{"HIIT":0.28,"Amistoso":0.1},"Depressao":{"HIIT":-0.05,"Amistoso":0.17},"Raiva":{"HIIT":0.18,"Amistoso":-0.15},"Confusao":{"HIIT":0.07,"Amistoso":-0.33}},"mix":{"Tensao":{"b":-0.2,"p":0.284},"Depressao":{"b":-0.41,"p":0.039},"Raiva":{"b":-0.78,"p":0.044},"Confusao":{"b":-0.21,"p":0.137}}};
 const NEGLAB={Tensao:"Tens\u00e3o",Depressao:"Depress\u00e3o",Raiva:"Raiva",Confusao:"Confus\u00e3o"};
+/* protocolo e carga do HIIT (S1=D2/22-04, S2=D4/24-04, S3=D7/27-04) \u2014 intensidade 104% do PV do T-CAR */
+const HIITPROTO={proto:{int:"104% do PV (T-CAR)",estrut:"4 s\u00e9ries \u00d7 4 min",rec:"3 min de intervalo",vel:"16,5 km/h (4,58 m/s)",dist:"\u22482.929 m/sess\u00e3o",distot:"\u22488.788 m/atleta (3 sess\u00f5es)"},
+ ses:[{s:"S1",dia:"D2 \u00b7 22/04",fcmax:183,fcpos:176,dfc:57,pse:6.6,trimp:84,spse:202,dist:2560},
+      {s:"S2",dia:"D4 \u00b7 24/04",fcmax:183,fcpos:175,dfc:56,pse:6.5,trimp:80,spse:206,dist:2853},
+      {s:"S3",dia:"D7 \u00b7 27/04",fcmax:181,fcpos:172,dfc:62,pse:7.1,trimp:75,spse:216,dist:2929}]};
+/* sono (Epworth 0\u201324) e estresse (PSS) \u2014 456 obs, 100% completos */
+const SONO={"byday":{"Epworth":[8.8,9.0,9.4,9.9,10.1,9.1,11.5],"PSS":[22.7,23.0,21.3,22.3,20.4,22.3,21.6]},"d17":{"Epworth":{"d1":8.8,"d7":11.5,"dz":0.58,"p":0.019},"PSS":{"d1":22.7,"d7":21.6,"dz":-0.19,"p":0.414}},"corr":{"Epworth_Fadiga":{"rho":0.34,"p":0.0},"Epworth_Vigor":{"rho":-0.23,"p":0.002},"Epworth_TMD":{"rho":0.37,"p":0.0},"PSS_TMD":{"rho":0.24,"p":0.002},"PSS_Vigor":{"rho":-0.14,"p":0.073}},"bytype":{"Epworth":{"Outro":8.9,"HIIT":10.1,"Amistoso":9.7},"PSS":{"Outro":22.5,"HIIT":22.3,"Amistoso":20.9}}};
 /* microciclo real dia a dia (21\u201327/04/2024): sess\u00f5es (per\u00edodo/conte\u00fado/dura\u00e7\u00e3o/volume), estado, humor e perfil.
    ses: [per\u00edodo M/V/N, tipo, minutos, % do volume semanal]. Volume semanal total = 1380 min. */
 const PER={M:"manh\u00e3",V:"tarde",N:"noite"};
@@ -709,6 +716,30 @@ function hiitFramework(host){const c=document.createElement("div");c.className="
      ${box(C.pth,"4 \u00b7 Ac\u00famulo","Tend\u00eancia semanal","O saldo se acumula: vigor 8,3\u21924,4 e fadiga 3,4\u21927,2 de D1 a D7, com o nadir em D7 ap\u00f3s o pico de volume de D5\u2013D6")}
    </div>`;
   host.appendChild(c);}
+/* protocolo e carga do HIIT (intensidade, s\u00e9ries, dist\u00e2ncia, FCm\u00e1x, TRIMP, PSE) */
+function hiitProto(host){const c=document.createElement("div");c.className="card";c.style.marginTop="16px";
+  const P=HIITPROTO.proto;
+  const chip=(ic,lab,val)=>`<div style="flex:1 1 150px;min-width:140px;border:1px solid var(--stroke);border-radius:12px;padding:11px 13px;background:var(--glass)"><div style="display:flex;align-items:center;gap:8px;color:${C.fadiga}">${ICONS[ic]||ICONS.pulse}<span style="font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">${lab}</span></div><div style="font-weight:700;font-size:15px;margin-top:5px">${val}</div></div>`;
+  const proto=`<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+    ${chip("bolt","Intensidade",P.int)}${chip("split","Estrutura",P.estrut)}${chip("clock","Recupera\u00e7\u00e3o",P.rec)}
+    ${chip("trend","Velocidade",P.vel)}${chip("wave","Dist\u00e2ncia",P.dist)}${chip("layers","Volume total",P.distot)}</div>`;
+  const rows=HIITPROTO.ses.map(s=>`<tr><td><b>${s.s}</b></td><td>${s.dia}</td><td style="text-align:center">${s.fcmax}</td><td style="text-align:center">${s.fcpos}</td><td style="text-align:center">+${s.dfc}</td><td style="text-align:center">${num(s.pse,1)}</td><td style="text-align:center">${s.trimp}</td><td style="text-align:center">${s.spse}</td><td style="text-align:center">${s.dist}</td></tr>`).join("");
+  c.innerHTML=`<h3>Protocolo e carga interna do HIIT (TIAI)</h3><p class="note">3 sess\u00f5es (S1=D2 \u00b7 S2=D4 \u00b7 S3=D7) \u00b7 esfor\u00e7os intermitentes a <b>104% do pico de velocidade do T-CAR</b> em 4 blocos de 4 min com 3 min de recupera\u00e7\u00e3o</p>
+   ${proto}
+   <div class="tablewrap"><table class="dyn"><thead><tr><th>Sess\u00e3o</th><th>Dia</th><th>FCm\u00e1x (bpm)</th><th>FC p\u00f3s</th><th>\u0394FC</th><th>PSE (0\u201310)</th><th>TRIMP</th><th>sPSE (u.a.)</th><th>Dist\u00e2ncia (m)</th></tr></thead><tbody>${rows}</tbody></table></div>
+   <p class="note" style="margin-top:10px;line-height:1.6;color:var(--muted)">Assinatura de <b style="color:var(--ink)">ac\u00famulo</b>: na 3\u00aa sess\u00e3o (D7) a <b>FCm\u00e1x cai</b> (183\u2192181) e a <b>FC p\u00f3s baixa</b> (o atleta chega mais depletado), enquanto o <b>\u0394FC</b> e a <b>PSE sobem</b> (7,1) e a carga sPSE atinge o pico (216). A dist\u00e2ncia a 104% do PV cresce com a aptid\u00e3o (2.560\u20133.413 m/sess\u00e3o entre atletas).</p>`;
+  host.appendChild(c);}
+/* sono (Epworth) e estresse (PSS) \u2014 duas linhas na mesma escala 0\u201328 com faixas de tipo de dia */
+function drawSono(host){const {cv,g}=mk(host,320);const w=cv._w,h=cv._h,pad={l:40,r:14,t:16,b:34};const X=DAYS;const xmin=1,xmax=7;
+  const HII=[2,4,7],AMI=[3,5];
+  anim(1800,prog=>{const ax=paxes(g,w,h,pad,xmin,xmax,0,28);cv._hits=[];
+    HII.forEach(d=>{const x=ax.X(d);g.fillStyle="rgba(232,89,12,.10)";g.fillRect(x-10,ax.y1,20,ax.y0-ax.y1);});
+    AMI.forEach(d=>{const x=ax.X(d);g.fillStyle="rgba(60,182,255,.10)";g.fillRect(x-10,ax.y1,20,ax.y0-ax.y1);});
+    [["Epworth",C.pth],["PSS",C.tensao]].forEach(([k,col])=>{const ys=SONO.byday[k];const n=Math.max(2,Math.floor(X.length*prog));
+      g.strokeStyle=col;g.lineWidth=4.4;g.lineJoin="round";g.lineCap="round";g.shadowColor=rgba(col,.5);g.shadowBlur=7;g.beginPath();for(let i=0;i<n;i++){const x=ax.X(X[i]),y=ax.Y(ys[i]);i?g.lineTo(x,y):g.moveTo(x,y);}g.stroke();g.shadowBlur=0;
+      if(prog>=1)ys.forEach((v,i)=>{const x=ax.X(X[i]),y=ax.Y(v);g.fillStyle=col;g.beginPath();g.arc(x,y,4.4,0,7);g.fill();g.fillStyle="#0b1220";g.beginPath();g.arc(x,y,1.9,0,7);g.fill();cv._hits.push({x:x-8,y:y-8,w:16,h:16,tip:`<b>${k}</b> \u00b7 D${i+1}<br>${num(v,1)}`});});});
+  });attachHits(cv);
+  const lg=document.createElement("div");lg.className="legend";lg.innerHTML=`<span class="it"><span class="dot" style="background:${C.pth}"></span>Sonol\u00eancia (Epworth 0\u201324)</span><span class="it"><span class="dot" style="background:${C.tensao}"></span>Estresse (PSS)</span><span class="it"><span class="dot" style="background:rgba(232,89,12,.5)"></span>HIIT</span><span class="it"><span class="dot" style="background:rgba(60,182,255,.5)"></span>jogo</span>`;host.appendChild(lg);}
 /* tabela do microciclo de treino, sess\u00e3o a sess\u00e3o (estrutura real fornecida pela comiss\u00e3o t\u00e9cnica) */
 function hiitTrainTable(host){const c=document.createElement("div");c.className="card";c.style.marginTop="16px";
   let rows="",tot=0;
@@ -1154,7 +1185,7 @@ const SECTIONS=[
 {id:"hiit",lab:"Dias com/sem HIIT",icon:"pulse",render(h){
   head(h,"carga do dia","Dias com HIIT versus sem HIIT","Comparação do humor nos dias com sessão de HIIT (dias 2, 4 e 7) e nos demais dias (1, 3, 5 e 6), pareada por atleta. O D1 foi também o <b>baseline do BRUMS</b> (medido antes da sessão técnico-tática da noite). Atenção: os dias sem HIIT <b>não são leves</b> — incluem força e amistosos, e concentram o pico de volume (D5–D6). Ainda assim, o custo específico do HIIT aparece no <b>eixo energia–fadiga</b>: nos dias de HIIT o vigor cai e a fadiga sobe; as dimensões negativas não mudam.");
   const vg=HIITD.rows.find(r=>r.dim==="Vigor"),fd=HIITD.rows.find(r=>r.dim==="Fadiga");
-  hiitOrg(h); hiitTrainTable(h); hiitFramework(h);
+  hiitOrg(h); hiitProto(h); hiitTrainTable(h); hiitFramework(h);
   const arr=v=>`<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${num(v,2)}</span>`;
   // Tabela — síntese por dia (treino × humor) + HIIT vs sem
   const gt=cards(h,`<div class="card"><h3>Tabela · síntese diária (treino × humor)</h3><p class="note">volume do dia (% das 1380 min) · fadiga física 0–10 · TQR 6–20 · humor médio · perfil predominante</p><div class="host" id="t_micro"></div></div><div class="card"><h3>Tabela · HIIT vs sem HIIT (pareado)</h3><p class="note">escore médio por tipo de dia · dz · p · FDR · * FDR&lt;0,05</p><div class="host" id="t_hcmp"></div></div>`);
@@ -1191,6 +1222,55 @@ const SECTIONS=[
   const g2=cards(h,`<div class="card"><h3>Resposta aguda da sessão (pré→pós)</h3><p class="note">Δ intradia · o HIIT sobe raiva/confusão; o jogo as reduz</p><div class="host" id="h_nac"></div></div><div class="card"><h3>Leitura</h3><p class="note">o que as negativas acrescentam</p><div id="k_ndt"></div></div>`);
   groupSigned($("#h_nac",g2),NK.map(k=>({lab:NEGLAB[k],vals:[NEGDT.acute[k].HIIT,NEGDT.acute[k].Amistoso]})),[{lab:"HIIT",c:C.fadiga},{lab:"Amistoso (jogo)",c:C.tensao}],{dec:2});
   $("#k_ndt",g2).innerHTML=`<p class="note" style="font-size:13px;line-height:1.62;color:var(--muted)">Dois estímulos de <b style="color:var(--ink)">custo físico equivalente</b> (mesmo vigor/fadiga no meio da semana) produzem <b style="color:var(--ink)">assinaturas afetivas opostas</b>: o <b style="color:${C.fadiga}">HIIT é aversivo</b> (mais raiva, confusão e depressão), enquanto o <b style="color:${C.tensao}">jogo é protetor do humor</b> (engajamento competitivo). As negativas funcionam como um <b style="color:var(--ink)">sensor da qualidade da carga</b> — distinguem “cansado e engajado” de “cansado e irritado”. Uso prático: <b style="color:var(--ink)">raiva e confusão</b> sinalizam quando a carga está sendo vivida como estresse aversivo, mesmo quando vigor/fadiga não mudam. Raiva e depressão sobrevivem ao modelo misto controlando a posição na semana; tensão segue a mesma direção sem significância.</p>`;
+}},
+{id:"sono",lab:"Sono & Estresse",icon:"moon",render(h){
+  head(h,"Epworth · PSS · 456 obs (100%)","Sonolência e estresse ao longo da semana","Dois questionários coletados a cada envio, ainda não usados nas análises anteriores: a <b>sonolência diurna</b> (Escala de Epworth, 0–24) e o <b>estresse percebido</b> (PSS). Eles contam histórias diferentes — e complementares — sobre a carga.");
+  const ep=SONO.d17.Epworth,ps=SONO.d17.PSS;
+  const kp=(lab,val,cap,col)=>`<div class="kpi"><span class="stripe" style="background:${col}"></span><div class="lab">${lab}</div><div class="val" style="color:${col};font-size:21px">${val}</div><div class="cap">${cap}</div></div>`;
+  h.insertAdjacentHTML("beforeend",`<div class="kpis">${kp("Sonolência (Epworth) D1→D7",`${num(ep.d1,1)} → ${num(ep.d7,1)}`,`sobe · dz +${num(ep.dz,2)} · p=${num(ep.p,3)}`,C.pth)}${kp("Estresse (PSS) D1→D7",`${num(ps.d1,1)} → ${num(ps.d7,1)}`,`estável · dz ${num(ps.dz,2)} · p=${num(ps.p,3)} (ns)`,C.tensao)}${kp("Epworth × Fadiga",`ρ +${num(SONO.corr.Epworth_Fadiga.rho,2)}`,`sonolência acompanha a fadiga · p<0,001`,C.fadiga)}${kp("Epworth × TMD",`ρ +${num(SONO.corr.Epworth_TMD.rho,2)}`,`e a perturbação do humor · p<0,001`,C.raiva)}</div>`);
+  tilt(h);
+  const g1=cards(h,`<div class="card"><h3>Trajetória semanal</h3><p class="note">sonolência (Epworth, esq.) e estresse (PSS, dir.) por dia · faixas = HIIT (2,4,7) e jogo (3,5)</p><div class="host" id="h_sono"></div></div><div class="card"><h3>Relação com o humor</h3><p class="note">Spearman (nível atleta-dia) · ★ p&lt;0,05</p><div class="host" id="t_sono"></div></div>`);
+  drawSono($("#h_sono",g1));
+  const cr=SONO.corr;
+  dynTable($("#t_sono",g1),["Par","ρ","p"],[["Epworth × Fadiga",cr.Epworth_Fadiga.rho,cr.Epworth_Fadiga.p],["Epworth × TMD",cr.Epworth_TMD.rho,cr.Epworth_TMD.p],["Epworth × Vigor",cr.Epworth_Vigor.rho,cr.Epworth_Vigor.p],["PSS × TMD",cr.PSS_TMD.rho,cr.PSS_TMD.p],["PSS × Vigor",cr.PSS_Vigor.rho,cr.PSS_Vigor.p]],
+    (i,v)=>i===1?`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${num(v,2)}</span>`:i===2?(v<0.05?`<span class="sig">${num(v,3)}</span>`:num(v,3)):v);
+  const g2=cards(h,`<div class="card"><h3>Por tipo de dia</h3><p class="note">média de Epworth e PSS · outro · HIIT · amistoso</p><div class="host" id="h_sonot"></div></div><div class="card"><h3>Leitura</h3><p class="note">o que sono e estresse acrescentam</p><div id="k_sono"></div></div>`);
+  groupChart($("#h_sonot",g2),[{lab:"Epworth (0–24)",vals:[SONO.bytype.Epworth.Outro,SONO.bytype.Epworth.HIIT,SONO.bytype.Epworth.Amistoso]},{lab:"PSS",vals:[SONO.bytype.PSS.Outro,SONO.bytype.PSS.HIIT,SONO.bytype.PSS.Amistoso]}],[{lab:"Outro",c:C.muted},{lab:"HIIT",c:C.fadiga},{lab:"Amistoso",c:C.tensao}],{ymax:26,dec:1});
+  $("#k_sono",g2).innerHTML=`<p class="note" style="font-size:13px;line-height:1.62;color:var(--muted)">A <b style="color:${C.pth}">sonolência sobe ao longo da semana</b> (dz +0,58; p=0,019) e acompanha o eixo da fadiga (ρ +0,34 com fadiga; +0,37 com a PTH; −0,23 com o vigor) — um marcador de <b style="color:var(--ink)">necessidade de recuperação/sono</b> seguindo o acúmulo de carga, com pico no dia de HIIT. Já o <b style="color:${C.tensao}">estresse percebido permanece estável</b> (dz −0,19; ns) e é o <b>mais baixo nos dias de jogo</b> (20,9). Conclusão: os atletas ficam mais <b style="color:var(--ink)">sonolentos, mas não mais estressados</b> — evidência independente de <b style="color:var(--ink)">sobrecarga funcional sem distresse psicológico</b>. Sono e humor caminham juntos; estresse é um eixo à parte.</p>`;
+}},
+{id:"framework",lab:"Framework do microciclo",icon:"map",render(h){
+  head(h,"organograma · tipos de estímulo","Framework do microciclo — o que cada tipo de dia faz com o humor","Um mapa único do microciclo: os quatro <b>tipos de estímulo</b> e como cada <b>variável</b> responde. A leitura central do estudo é que a resposta é <b>específica do estímulo</b>, não só da carga — dois dias igualmente pesados (HIIT e jogo) deixam assinaturas afetivas opostas.");
+  // --- organograma de 4 tipos de dia ---
+  const TY=[
+   {ic:"clock",lab:"Baseline",col:C.pth,dias:"D1",carga:"Referência (téc-tático leve à noite)",sig:"Vigor no topo · negativas e sono baixos",role:"ponto de partida (repouso relativo)"},
+   {ic:"bolt",lab:"HIIT (TIAI)",col:C.fadiga,dias:"D2 · D4 · D7",carga:"104% do PV · 4×4 min · FCmáx ~182 · PSE ~6,8",sig:"Vigor ↓ · fadiga ↑ · negativas ↑ · sono ↑",role:"estímulo aversivo — desgaste energético e afetivo"},
+   {ic:"trophy",lab:"Amistoso (jogo)",col:C.tensao,dias:"D3 · D5",carga:"120 min de jogo (alto volume)",sig:"Negativas ↓ · estresse ↓ · vigor preservado",role:"estímulo engajante — protetor do humor"},
+   {ic:"grid",lab:"Técnico-tático / força",col:C.vigor,dias:"D3 · D5 · D6",carga:"Volume alto (força + jogo); pico em D5–D6",sig:"Carga acumula; não é dia leve",role:"construção — nem HIIT nem jogo isolado"}
+  ];
+  let cells="";TY.forEach((t,i)=>{
+    if(i>0)cells+=`<div style="align-self:center;color:${C.faint};font-size:22px;flex:0 0 auto;padding:0 2px">→</div>`;
+    cells+=`<div style="flex:1 1 210px;min-width:200px;border:1px solid var(--stroke);border-top:3px solid ${t.col};border-radius:14px;padding:14px 15px;background:var(--glass)">
+      <div style="display:flex;align-items:center;gap:9px"><span style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:${t.col};background:${t.col}22;border:1px solid ${t.col}55">${ICONS[t.ic]||ICONS.pulse}</span><div><div style="font-weight:800;font-size:16px">${t.lab}</div><div style="font-family:'IBM Plex Mono';font-size:10px;color:var(--muted)">${t.dias}</div></div></div>
+      <div style="margin-top:10px;font-size:11.5px;color:var(--muted);line-height:1.5"><b style="color:var(--ink)">Carga:</b> ${t.carga}</div>
+      <div style="margin-top:7px;font-size:12px;color:var(--ink);line-height:1.5">${t.sig}</div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--stroke);font-size:10.5px;color:${t.col};font-weight:600">${t.role}</div>
+    </div>`;});
+  const org=document.createElement("div");org.className="card";
+  org.innerHTML=`<h3>Organograma dos tipos de estímulo</h3><p class="note">quatro tipos de dia no microciclo · cada card resume carga e assinatura no humor</p><div style="display:flex;flex-wrap:wrap;gap:0;align-items:stretch">${cells}</div>`;h.appendChild(org);
+  // --- matriz de comportamento das variáveis por tipo de dia ---
+  const VARS=[["Vigor",NEGDT.means.Vigor,false],["Fadiga",NEGDT.means.Fadiga,true],["Tensao",NEGDT.means.Tensao,true],["Depressao",NEGDT.means.Depressao,true],["Raiva",NEGDT.means.Raiva,true],["Confusao",NEGDT.means.Confusao,true],["Sonolência",{Outro:SONO.bytype.Epworth.Outro,HIIT:SONO.bytype.Epworth.HIIT,Amistoso:SONO.bytype.Epworth.Amistoso},true],["Estresse",{Outro:SONO.bytype.PSS.Outro,HIIT:SONO.bytype.PSS.HIIT,Amistoso:SONO.bytype.PSS.Amistoso},true]];
+  const mat=document.createElement("div");mat.className="card";mat.style.marginTop="16px";
+  const cell=(m,neg)=>{const vals=[m.Outro,m.HIIT,m.Amistoso];const lo=Math.min(...vals),hi=Math.max(...vals);
+    return ['Outro','HIIT','Amistoso'].map(t=>{const v=m[t];const norm=hi>lo?(v-lo)/(hi-lo):0;const bad=neg?norm:1-norm;const col=bad>0.66?C.crit:bad>0.33?C.warn:C.good;
+      return `<td style="text-align:center"><span style="display:inline-block;min-width:42px;padding:3px 7px;border-radius:7px;background:${col}22;color:${col};font-weight:700;font-family:'IBM Plex Mono';font-size:12px">${num(v,typeof v==='number'&&v>=15?1:2)}</span></td>`;}).join("");};
+  const rows=VARS.map(([lab,m,neg])=>`<tr><td><b>${NEGLAB[lab]||lab}</b></td>${cell(m,neg)}</tr>`).join("");
+  mat.innerHTML=`<h3>Comportamento das variáveis por tipo de dia</h3><p class="note">média por tipo · <span style="color:${C.good}">verde = favorável</span> · <span style="color:${C.warn}">amarelo</span> · <span style="color:${C.crit}">vermelho = desfavorável</span> (mais fadiga/negativas/sono/estresse ou menos vigor)</p>
+   <div class="tablewrap"><table class="dyn"><thead><tr><th>Variável</th><th style="text-align:center">Outro</th><th style="text-align:center">HIIT</th><th style="text-align:center">Amistoso (jogo)</th></tr></thead><tbody>${rows}</tbody></table></div>
+   <p class="note" style="margin-top:10px;line-height:1.62"><b style="color:${C.fadiga}">Coluna HIIT (vermelha):</b> o pior perfil — menos vigor, mais fadiga, mais raiva/confusão e mais sonolência. <b style="color:${C.tensao}">Coluna Amistoso (verde):</b> apesar do alto volume de jogo, o melhor perfil afetivo — negativas e estresse mínimos. <b style="color:var(--ink)">O jogo cansa o corpo sem adoecer o humor; o HIIT faz os dois.</b></p>`;h.appendChild(mat);
+  h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:16px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.64;color:var(--ink)"><b>Síntese do framework:</b> o microciclo combina estímulos de naturezas diferentes. O <b>eixo energia–fadiga</b> (vigor↓, fadiga↑, sono↑) responde à <b>carga física</b> e se acumula rumo ao D7. As <b>dimensões negativas e o estresse</b> respondem à <b>qualidade do estímulo</b>: sobem no HIIT (aversivo) e caem no jogo (engajante). Monitorar os dois eixos separa <b>fadiga funcional</b> (esperada, reversível) de <b>estresse aversivo</b> (sinal de alerta) — mesmo quando a carga externa é a mesma.</p></div>`);
+  const jump=document.createElement("div");jump.className="legend";jump.style.marginTop="14px";
+  [["hiit","Dias com/sem HIIT"],["negdia","Negativas por tipo de dia"],["sono","Sono & Estresse"],["curvas","Curvas por variável"]].forEach(([id,lb])=>{const b=document.createElement("span");b.className="it";b.style.cursor="pointer";b.innerHTML=`<span class="dot" style="background:${C.vigor}"></span>${lb} ›`;b.onclick=()=>go(id);jump.appendChild(b);});
+  h.appendChild(jump);
 }},
 {id:"preditivo",lab:"Modelos preditivos",icon:"trend",render(h){
   head(h,"modelagem avançada","Modelos preditivos, de crescimento e de aprendizado","Curvas de crescimento (modelos mistos), um modelo preditivo do humor e a curva de aprendizado. A leitura é honesta: <b>tendência clara no grupo</b>, <b>previsão individual limitada</b> — o que reforça a interpretação por tendências, não por leitura isolada de um atleta.");
@@ -1455,6 +1535,12 @@ const ICONS={
  cal:ic('<rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="3" x2="8" y2="6"/><line x1="16" y1="3" x2="16" y2="6"/>'),
  wave:ic('<path d="M3 12c3 0 3-6 6-6s3 12 6 12 3-6 6-6"/>'),
  pulse:ic('<polyline points="3 12 7 12 10 4 14 20 17 12 21 12"/>'),
+ bolt:ic('<path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H13z"/>'),
+ clock:ic('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>'),
+ moon:ic('<path d="M21 12.8A8.5 8.5 0 1111.2 3a6.5 6.5 0 009.8 9.8z"/>'),
+ brain:ic('<path d="M9 4a3 3 0 00-3 3 3 3 0 00-1 5.8V15a3 3 0 003 3M9 4a2.5 2.5 0 013 2.5V19a2.5 2.5 0 01-3-1M15 4a3 3 0 013 3 3 3 0 011 5.8V15a3 3 0 01-3 3M15 4a2.5 2.5 0 00-3 2.5"/>'),
+ map:ic('<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/>'),
+ trophy:ic('<path d="M8 4h8v4a4 4 0 01-8 0z"/><path d="M8 6H5v1a3 3 0 003 3M16 6h3v1a3 3 0 01-3 3M10 12v3M14 12v3M8 20h8M9 20l1-3h4l1 3"/>'),
  scatter:ic('<circle cx="6" cy="16" r="1.6"/><circle cx="11" cy="9" r="1.6"/><circle cx="15" cy="14" r="1.6"/><circle cx="19" cy="6" r="1.6"/><line x1="3" y1="21" x2="21" y2="21"/><line x1="3" y1="3" x2="3" y2="21"/>'),
  signal:ic('<line x1="5" y1="20" x2="5" y2="16"/><line x1="10" y1="20" x2="10" y2="12"/><line x1="15" y1="20" x2="15" y2="7"/><line x1="20" y1="20" x2="20" y2="4"/>'),
  deriv:ic('<path d="M3 17c4 0 3-10 7-10s3 8 7 8"/><circle cx="7" cy="7" r="1.4"/><circle cx="17" cy="15" r="1.4"/>'),
@@ -1504,13 +1590,13 @@ const nav=$("#nav"),stage=$("#stage"),varchips=$("#varchips"),segchips=$("#segch
    NAVGROUPS é a única fonte de verdade — dela derivam a ordem, a numeração e a navegação anterior/próximo. */
 const NAVGROUPS=[
   {lab:"Comece por aqui",          ids:["apresentacao","pipeline"]},
-  {lab:"Método & decisões",        ids:["analise","arvore","robustez"]},
+  {lab:"Método & decisões",        ids:["framework","analise","arvore","robustez"]},
   {lab:"1 · Qualidade das medidas",ids:["conf","distrib"]},
   {lab:"2 · Descritiva",           ids:["visao","descr"]},
   {lab:"3 · Variação & perfis",    ids:["d17","dias","perfis"]},
   {lab:"4 · Estrutura multivariada",ids:["pca","multivar"]},
   {lab:"5 · Dinâmica temporal",    ids:["limites","curvas","traj","snr"]},
-  {lab:"6 · Resposta aguda",       ids:["agudo","agcron","intraentre","variancia","hiit","negdia"]},
+  {lab:"6 · Resposta aguda",       ids:["agudo","agcron","intraentre","variancia","hiit","negdia","sono"]},
   {lab:"7 · Relações & predição",  ids:["corr","preditivo"]},
   {lab:"8 · Aptidão física",       ids:["fisico"]}
 ];
