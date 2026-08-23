@@ -3,3 +3,7 @@ ml/
 exports/
 __pycache__/
 *.pyc
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+.user.yml

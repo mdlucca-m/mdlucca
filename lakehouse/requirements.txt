@@ -1,17 +1,15 @@
 # Núcleo do lakehouse (obrigatório) — local, gratuito, sem Spark/JVM
-duckdb>=1.5           # motor SQL in-process (transformações + análises)
+duckdb>=1.5           # motor SQL in-process
 deltalake>=1.6        # formato de tabela Delta: ACID + time-travel (delta-rs)
 pyarrow>=15           # colunar (Parquet) por baixo do Delta
 pandas>=2.0
 scikit-learn>=1.3     # ML de risco (já usado no estudo)
+dbt-duckdb>=1.9       # silver/gold como modelos SQL (lineage + testes + docs); usa o plugin delta
 
 # Ingestão IoT / tempo real (opcional) — para ingestion_api.py
 # fastapi>=0.110
 # uvicorn>=0.29
 
-# Crescer para lakehouse "completo" (opcional):
-# dbt-duckdb>=1.7      # silver/gold como modelos SQL versionados + testes + lineage + docs
+# Crescer mais (opcional):
 # dagster>=1.6         # orquestração por assets, agendamento e linhagem visual
-# dagster-webserver
 # mlflow>=2.10         # registro/versão de modelos e experimentos
-# pandera>=0.18        # validação de esquema/qualidade de dados

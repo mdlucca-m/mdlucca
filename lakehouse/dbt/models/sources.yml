@@ -1,0 +1,19 @@
+version: 2
+sources:
+  - name: bronze
+    meta: {plugin: delta}
+    tables:
+      - name: brums_raw
+        meta: {delta_table_path: "{{ env_var('LH_BRONZE') }}/brums_raw"}
+      - name: wellbeing_raw
+        meta: {delta_table_path: "{{ env_var('LH_BRONZE') }}/wellbeing_raw"}
+      - name: hiit_raw
+        meta: {delta_table_path: "{{ env_var('LH_BRONZE') }}/hiit_raw"}
+      - name: rsa_raw
+        meta: {delta_table_path: "{{ env_var('LH_BRONZE') }}/rsa_raw"}
+      - name: mdc_raw
+        meta: {delta_table_path: "{{ env_var('LH_BRONZE') }}/mdc_raw"}
+      - name: physical_raw
+        meta: {delta_table_path: "{{ env_var('LH_BRONZE') }}/physical_raw"}
+      - name: brums_items_raw
+        meta: {delta_table_path: "{{ env_var('LH_BRONZE') }}/brums_items_raw"}

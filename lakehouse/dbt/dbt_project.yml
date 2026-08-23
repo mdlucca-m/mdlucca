@@ -1,0 +1,14 @@
+name: 'atleta_lakehouse'
+version: '1.0.0'
+profile: 'atleta_lakehouse'
+model-paths: ['models']
+target-path: 'target'
+clean-targets: ['target', 'dbt_packages']
+models:
+  atleta_lakehouse:
+    silver:
+      +materialized: table
+      +schema: silver
+    gold:
+      +materialized: table
+      +schema: gold

@@ -16,7 +16,8 @@ sem custo**.
 |---|---|---|
 | Formato de tabela | **Delta Lake** (`deltalake`/delta-rs) | ACID + *time-travel* (versão/auditoria/replay) sem JVM/Spark |
 | Armazenamento | **Parquet** (dentro do Delta) | colunar, comprimido, aberto |
-| Motor SQL | **DuckDB** | consultas e transformações in-process, zero-config, muito rápido |
+| Transformação silver/gold | **dbt-duckdb** | modelos SQL declarativos + testes de qualidade + lineage + docs (lê a bronze Delta pelo plugin `delta`) |
+| Motor SQL | **DuckDB** | consultas in-process, zero-config, muito rápido |
 | ML | **scikit-learn** | classificador de risco (já usado no estudo) |
 | Ingestão IoT | **FastAPI** (opcional) | um endpoint HTTP grava eventos na mesma bronze |
 | Orquestração | runner Python (→ **Dagster**/**dbt** ao crescer) | um comando hoje; assets/lineage depois |
@@ -29,11 +30,11 @@ sem custo**.
    ▼
 BRONZE  bruto, fiel ao que chegou
         brums_raw · wellbeing_raw · hiit_raw · rsa_raw · mdc_raw · physical_raw · brums_items_raw
-   │  transform.build_silver()  (conformar · tipar · DEDUPLICAR · pré/pós)
+   │  dbt-duckdb  (models/silver/*.sql · conformar · tipar · DEDUPLICAR · pré/pós · TESTES)
    ▼
 SILVER  limpo e conformado
         mood · wellbeing · hiit · rsa · mdc · physical(P-code) · brums_items
-   │  transform.build_gold()  +  analytics.run()   (integrar · agregar · analisar)
+   │  dbt-duckdb (models/gold/*.sql)  +  analytics.run()   (integrar · agregar · analisar)
    ▼
 GOLD    pronto p/ análise, painel, ML
         integração:  athlete_day · daily_group · acute_prepos · risk_features
@@ -80,8 +81,25 @@ junta o que é ligável, isola o que não é.
 
 ```bash
 pip install -r requirements.txt
-python run_pipeline.py          # bronze → silver → gold → ML → ponte/reconciliação
+python run_pipeline.py          # bronze → (dbt) silver/gold → análises → ML → painel←gold → reconciliação
 ```
+
+### dbt-duckdb (silver + gold)
+
+Os modelos SQL vivem em `dbt/models/{silver,gold}`; a bronze Delta entra como
+*source* pelo plugin `delta` (sem extensão do DuckDB). `dbt_run.py` roda
+`dbt build` (modelos + testes) e exporta o resultado para Delta, mantendo a
+interface usada pelas análises/ML/painel. Para rodar o dbt isolado:
+
+```bash
+cd lakehouse && export LH_BRONZE="$PWD/warehouse/bronze" LH_DUCKDB="$PWD/warehouse/lakehouse.duckdb"
+cd dbt && dbt build --profiles-dir .     # 13 modelos + 16 testes de qualidade
+dbt docs generate --profiles-dir . && dbt docs serve --profiles-dir .   # lineage + docs no navegador
+```
+
+As **análises estatísticas** (`an_*`: Friedman, Wilcoxon, perfis, SNR…) usam
+scipy e continuam em `analytics.py` (não são SQL). `transform.py` é a versão
+Python anterior de silver/gold — mantida como referência; o pipeline usa o dbt.
 
 ## Painel + lakehouse: manter os dois em sincronia
 

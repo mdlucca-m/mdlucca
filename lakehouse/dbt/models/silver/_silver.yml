@@ -1,0 +1,29 @@
+version: 2
+models:
+  - name: mood
+    description: "Uma linha por atleta-momento (A-code), tipada e deduplicada. Regra pré/pós do estudo."
+    columns:
+      - name: ID
+        tests: [not_null]
+      - name: dia
+        tests:
+          - not_null
+          - accepted_values: {values: [1,2,3,4,5,6,7]}
+      - name: momento
+        tests: [not_null]
+      - name: Vigor
+        tests: [not_null]
+      - name: Fadiga
+        tests: [not_null]
+      - name: day_type
+        tests:
+          - accepted_values: {values: ['Baseline','HIIT','Jogo','Forca']}
+  - name: wellbeing
+    columns:
+      - name: ID
+        tests: [not_null]
+  - name: physical
+    columns:
+      - name: grupo_estudo
+        tests:
+          - accepted_values: {values: ['unico']}   # desenho de grupo único
