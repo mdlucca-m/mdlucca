@@ -82,7 +82,7 @@ P('Objetivo: descrever o perfil de humor de atletas de handebol de elite ao long
   'velocidade foi obtido no T-car, aplicado antes do período de observação. A análise seguiu três níveis '
   '(descritivo, exploratório e avançado), com verificação de normalidade, análises psicométricas, testes não '
   'paramétricos, tamanhos de efeito, derivadas das curvas diárias e limiares de mudança confiável. Resultados: o '
-  'Vigor caiu de forma acentuada (D1 8,4 para D7 4,3; dz = 1,33; p < 0,001) e a fadiga física aumentou de maneira '
+  'Vigor caiu de forma acentuada (D1 7,6 para D7 4,5; dz = 0,95; p < 0,001) e a fadiga física aumentou de maneira '
   'consistente (qui-quadrado de Friedman = 51,3; p < 0,001). A maioria dos atletas migrou do perfil de iceberg '
   'para perfis de menor energia. A aptidão aeróbia associou-se ao nível do humor, mas não à magnitude da '
   'deterioração ao longo da semana. Conclusão: a última semana de pré-temporada produziu perda de energia e '
@@ -360,10 +360,10 @@ P('Antes de interpretar as tendências, é preciso garantir que elas representam
 figure(f'{FG}/filtragem_sinal_ruido.png','Processo de filtragem das curvas. Painéis superiores: sinal observado (pontos), sinal filtrado (linha) e faixa de ruído para vigor, fadiga e PTH. Painel inferior esquerdo: ruído residual. Painel inferior direito: relação sinal-ruído (SNR) por dimensão.',w=17.0)
 P('A partir das curvas filtradas, a Figura 7 mostra onde as variáveis se cruzam ao longo da semana. No primeiro '
   'dia, o vigor está bem acima da fadiga, configuração do perfil de iceberg. As curvas de vigor e fadiga se cruzam '
-  'por volta dos dias 2,3, 3,9 e 5,8, e no fim da semana a fadiga e a fadiga física passam a superar o vigor. Esse '
+  'por volta dos dias 2,9, 3,6 e 5,7, e no fim da semana a fadiga e a fadiga física passam a superar o vigor. Esse '
   'cruzamento do eixo energia-fadiga é a expressão gráfica da transição do perfil de iceberg para o de barbatana '
   'de tubarão, e localiza com precisão o momento em que o desgaste se sobrepõe à energia.')
-figure(f'{FG}/cruzamentos_semana.png','Cruzamentos das variáveis ao longo da semana. Curvas filtradas de vigor, fadiga e fadiga física; os círculos marcam os cruzamentos entre vigor e fadiga (dias 2,3, 3,9 e 5,8).',w=16.0)
+figure(f'{FG}/cruzamentos_semana.png','Cruzamentos das variáveis ao longo da semana. Curvas filtradas de vigor, fadiga e fadiga física; os círculos marcam os cruzamentos entre vigor e fadiga (dias 2,9, 3,6 e 5,7).',w=16.0)
 
 H2('Etapa 6. Associação entre aptidão e humor','3.6')
 rows=[]

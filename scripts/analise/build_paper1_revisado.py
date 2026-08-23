@@ -84,7 +84,7 @@ P('Objetivo: descrever e caracterizar a dinâmica do humor de atletas de handebo
   'polinomial, localização dos cruzamentos entre as dimensões, separação entre sinal e ruído e comparação '
   'sequencial do efeito agudo (pré para pós) e de recuperação (pós para pré do dia seguinte) por teste de Wilcoxon '
   'pareado. Resultados: entre as seis dimensões, a deterioração concentrou-se no eixo energia-fadiga: o vigor caiu '
-  'e a fadiga subiu do primeiro para o último dia, com efeito grande (d = -1,33 e d = 0,78) e confirmação '
+  'e a fadiga subiu do primeiro para o último dia, com efeito grande no vigor e médio na fadiga (d = -0,95 e d = 0,72) e confirmação '
   'multivariada (Wilks lambda = 0,181; p < 0,001), ao passo que as dimensões negativas se mantiveram junto ao '
   'piso. As trajetórias suavizadas apresentaram um ponto de inflexão na metade da semana, e a fadiga ultrapassou '
   'o vigor de forma definitiva no fim do microciclo, com a PTH a superar ambas as dimensões. O vigor e a fadiga '
@@ -374,17 +374,17 @@ table('Distribuição dos seis perfis de humor no primeiro e no último dia do m
 
 H2('Diferença entre o primeiro e o último dia (com tamanho de efeito)','4.3')
 P('A comparação entre o primeiro e o último dia do microciclo quantificou a magnitude da mudança em cada dimensão '
-  '(Tabela 5). O efeito foi grande no vigor, que caiu 49% (dz = -1,33), e na fadiga, que subiu 115% (dz = 0,78), '
+  '(Tabela 5). O efeito foi grande no vigor, que caiu 41% (dz = -0,95), e médio na fadiga, que subiu 75% (dz = 0,72), '
   'ao passo que as demais dimensões apresentaram efeitos de menor magnitude. A análise multivariada confirmou a '
   'diferença global entre os dois dias (Wilks lambda = 0,181; p < 0,001), e, sob a correção de Bonferroni, apenas '
   'o vigor e a fadiga permaneceram significativos, o que concentra o efeito no eixo energia-fadiga sem prescindir '
   'da leitura das demais dimensões.')
 table('Diferença das dimensões do BRUMS e da PTH entre o primeiro e o último dia do microciclo (com tamanho e magnitude do efeito).',
   ['Dimensão','Dia 1 (M)','Dia 7 (M)','Variação (%)','p','dz','Magnitude'],
-  [['Vigor','8,43','4,29','-49%','< 0,001','-1,33','grande'],['Fadiga','3,43','7,36','+115%','0,003','+0,78','médio'],
-   ['Tensão','2,19','0,93','-58%','0,011','-0,60','médio'],['Depressão','0,52','1,29','+145%','0,504','+0,22','pequeno'],
-   ['Raiva','2,19','2,64','+21%','0,875','+0,09','trivial'],['Confusão','1,19','0,52','-56%','0,020','-0,57','médio'],
-   ['PTH','1,10','8,45','+672%','0,018','+0,55','médio']],fs=8.6,
+  [['Vigor','7,64','4,49','-41%','< 0,001','-0,95','grande'],['Fadiga','4,26','7,46','+75%','0,004','+0,72','médio'],
+   ['Tensão','2,14','0,94','-56%','0,011','-0,59','médio'],['Depressão','1,02','1,27','+24%','0,752','+0,10','trivial'],
+   ['Raiva','2,48','2,59','+5%','0,802','+0,02','trivial'],['Confusão','1,10','0,51','-53%','0,068','-0,46','pequeno'],
+   ['PTH','3,36','8,28','+147%','0,104','+0,41','pequeno']],fs=8.6,
   note='dz = tamanho de efeito intraindividual; magnitude: trivial (< 0,2); pequeno (0,2-0,5); médio (0,5-0,8); grande (> 0,8). PTH: perturbação total do humor.')
 P('A análise multivariada permutacional, livre do pressuposto de normalidade, corroborou o deslocamento do perfil '
   'de humor (Tabela 6). O perfil das seis dimensões diferiu entre o pré e o pós-treino (PERMANOVA: pseudo-F = 2,52; '
@@ -409,13 +409,13 @@ P('A comparação das dimensões entre os sete dias pelo teste de Friedman (Tabe
   'o caminho inverso, com pico no Dia 7, um padrão coerente com o acúmulo de carga dentro da faixa funcional.')
 table('Médias diárias das dimensões do BRUMS e teste de Friedman com W de Kendall e magnitude do efeito (comparação entre os sete dias).',
   ['Dim.','D1','D2','D3','D4','D5','D6','D7','χ²','p','W','Magn.'],
-  [['Tensão','2,1','1,8','1,1','1,4','1,2','1,5','1,1','14,5','0,025','0,13','pequeno'],
-   ['Depressão','0,6','1,3','0,7','1,2','0,7','1,2','1,4','3,5','0,751','0,03','trivial'],
-   ['Raiva','1,7','1,7','1,6','1,6','0,6','1,8','2,5','7,9','0,247','0,07','trivial'],
-   ['Vigor','8,3','5,4','5,5','5,4','5,9','5,7','4,4','23,6','< 0,001','0,21','pequeno'],
-   ['Fadiga','3,4','5,2','5,1','5,8','5,1','6,0','7,2','17,9','0,007','0,16','pequeno'],
-   ['Confusão','1,0','0,6','0,3','0,4','0,2','0,7','0,6','22,9','< 0,001','0,20','pequeno'],
-   ['PTH','0,6','5,3','3,3','5,0','1,9','5,5','8,3','13,8','0,032','0,12','pequeno']],fs=8.0,
+  [['Tensão','2,2','1,6','1,1','1,4','1,0','1,5','0,9','13,2','0,039','0,12','pequeno'],
+   ['Depressão','1,0','1,2','0,7','1,1','0,7','1,1','1,3','1,8','0,936','0,02','trivial'],
+   ['Raiva','2,0','1,7','1,4','1,4','0,6','1,7','2,6','12,3','0,056','0,11','pequeno'],
+   ['Vigor','7,6','5,7','5,7','5,3','5,6','5,7','4,5','14,7','0,022','0,13','pequeno'],
+   ['Fadiga','4,0','5,2','5,0','5,8','5,3','5,8','7,5','13,2','0,040','0,12','pequeno'],
+   ['Confusão','1,0','0,5','0,3','0,4','0,2','0,6','0,5','25,8','< 0,001','0,23','pequeno'],
+   ['PTH','2,5','4,6','2,9','4,8','2,2','4,8','8,3','7,6','0,269','0,07','trivial']],fs=8.0,
   note='W de Kendall = tamanho de efeito do teste de Friedman; magnitude: trivial (< 0,1); pequeno (0,1-0,3); moderado (0,3-0,5); grande (> 0,5).')
 P('A Figura 6 ilustra a trajetória do vigor, da fadiga e da PTH ao longo da semana, com a queda progressiva do '
   'vigor e a elevação da fadiga e da PTH em direção ao fim do microciclo.')
@@ -465,10 +465,10 @@ P('Para atender à leitura conjunta de todas as dimensões, a Figura 14 apresent
   'escala e se cruza ao longo da semana, ao passo que a tensão, a depressão, a raiva e a confusão permanecem junto '
   'ao piso, com pequenas oscilações. Esse contraste mostra, de forma direta, por que o sinal útil do monitoramento '
   'se concentra no eixo energia-fadiga, sem que as demais dimensões deixem de ser descritas.')
-figure('cruz_todas.png','Trajetórias suavizadas das seis dimensões do BRUMS ao longo do microciclo, na mesma escala; os losangos assinalam os cruzamentos entre o vigor e a fadiga (dias 2,3, 3,9 e 5,8).',w=16.0)
+figure('cruz_todas.png','Trajetórias suavizadas das seis dimensões do BRUMS ao longo do microciclo, na mesma escala; os losangos assinalam os cruzamentos entre o vigor e a fadiga (dias 2,9, 3,6 e 5,7).',w=16.0)
 P('Como o vigor e a fadiga compartilham a mesma escala, as suas trajetórias podem ser comparadas de forma direta '
   'e os seus cruzamentos exatos podem ser localizados (Figura 15). No primeiro dia, o vigor superou a fadiga por '
-  'ampla margem (média de 8,4 contra 3,4 pontos). O vigor caiu e a fadiga subiu até que as duas curvas se '
+  'ampla margem (média de 7,6 contra 4,0 pontos). O vigor caiu e a fadiga subiu até que as duas curvas se '
   'igualaram pela primeira vez em torno do dia 2,5 (escore 5,3). A partir daí, o vigor e a fadiga percorreram uma '
   'faixa estreita e próxima e voltaram a cruzar-se nos dias 4,0 e 6,0, sinal de um equilíbrio instável entre '
   'energia e fadiga durante a maior parte da semana. Após o último cruzamento, no dia 6,0 (escore 5,8), a fadiga '
@@ -479,7 +479,7 @@ figure('fig14.png','Cruzamentos exatos das trajetórias de vigor, fadiga e PTH a
 P('Para examinar o cruzamento decisivo do eixo energia-fadiga com maior detalhe, a Figura 16 amplia a região do '
   'último cruzamento e representa a diferença suavizada entre o vigor e a fadiga com a área sombreada de acordo com '
   'o sinal: a área é positiva enquanto o vigor domina e negativa quando a fadiga passa a dominar. Sobre as treze '
-  'coletas, o vigor e a fadiga cruzaram-se três vezes (dias 2,3, 3,9 e 5,8), o que confirma um longo trecho de '
+  'coletas, o vigor e a fadiga cruzaram-se três vezes (dias 2,9, 3,6 e 5,7), o que confirma um longo trecho de '
   'quase equilíbrio no miolo da semana. O cruzamento do dia 5,8 é o definitivo: a partir dele a diferença '
   'torna-se cada vez mais negativa e alcança cerca de três pontos de vantagem da fadiga ao fim do microciclo, sem '
   'retorno.')
