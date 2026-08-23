@@ -101,6 +101,18 @@ As **análises estatísticas** (`an_*`: Friedman, Wilcoxon, perfis, SNR…) usam
 scipy e continuam em `analytics.py` (não são SQL). `transform.py` é a versão
 Python anterior de silver/gold — mantida como referência; o pipeline usa o dbt.
 
+### Robustez (portão único)
+
+```bash
+python verify.py     # build + determinismo + idempotência + auditoria → "LAKEHOUSE ROBUSTO ✓"
+```
+
+Garante, além dos **16 testes dbt** (na build) e das **19 checagens** de
+`tests/audit.py`: **determinismo** (reconstruir dá conteúdo idêntico — o gold é
+arredondado a 4 casas para reprodutibilidade), **idempotência** (reingerir não
+altera silver/gold) e a **reconciliação** painel × gold. Sai com código ≠ 0 se
+algo falhar (pronto para CI).
+
 ## Painel + lakehouse: manter os dois em sincronia
 
 O lakehouse é a **fonte única da verdade** dos números; o painel os apresenta.

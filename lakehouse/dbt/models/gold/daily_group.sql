@@ -1,4 +1,5 @@
 select dia, any_value(day_type) as day_type,
-  avg(vigor) as vigor, avg(fadiga) as fadiga, avg(tensao) as tensao, avg(depressao) as depressao,
-  avg(raiva) as raiva, avg(confusao) as confusao, avg(pth) as pth, count(*) as n_atletas
+  round(avg(vigor),4) as vigor, round(avg(fadiga),4) as fadiga, round(avg(tensao),4) as tensao,
+  round(avg(depressao),4) as depressao, round(avg(raiva),4) as raiva,
+  round(avg(confusao),4) as confusao, round(avg(pth),4) as pth, count(*) as n_atletas
 from {{ ref('athlete_day') }} group by dia
