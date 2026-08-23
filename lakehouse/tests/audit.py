@@ -1,0 +1,140 @@
+# -*- coding: utf-8 -*-
+"""Auditoria e testes do lakehouse — torna TODAS as análises verificáveis.
+
+Roda sem dependências (nem pytest): `python tests/audit.py`.
+Cada checagem é uma função test_*; o runner reporta PASS/FAIL e sai com código
+!=0 se algo falhar (pronto p/ CI). As funções também são coletáveis pelo pytest.
+
+Grupos de checagem:
+  A. Esquema & contagens (coorte de grupo único, 27 atletas)
+  B. Reprodução dos números do estudo/painel (valores conhecidos)
+  C. Consistência interna entre camadas
+  D. Governança & qualidade (anonimização, dedup, nulos)
+"""
+from __future__ import annotations
+import os, re, sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import numpy as np
+import lh
+
+def _near(a, b, tol): assert abs(float(a) - float(b)) <= tol, f"{a} ≠ {b} (tol {tol})"
+def _row(df, key, val): return df[df[key] == val].iloc[0]
+
+# ---------------- A. Esquema & contagens ----------------
+def test_coorte_27_atletas_grupo_unico():
+    mood = lh.read_delta("silver", "mood")
+    assert mood.ID.nunique() == 27, f"esperado 27 atletas, obtido {mood.ID.nunique()}"
+    assert sorted(mood.dia.unique()) == [1, 2, 3, 4, 5, 6, 7], "dias devem ser 1..7"
+    assert len(mood) == 456, f"esperado 456 observações, obtido {len(mood)}"
+
+def test_sem_grupo_controle():
+    phys = lh.read_delta("silver", "physical")
+    grupos = set(phys["grupo_estudo"].unique())
+    assert grupos == {"unico"}, f"desenho é grupo único; encontrado {grupos}"
+
+def test_gold_contagens():
+    assert len(lh.read_delta("gold", "athlete_day")) == 166
+    assert len(lh.read_delta("gold", "daily_group")) == 7
+    assert len(lh.read_delta("gold", "athlete_day_unified")) == 166
+
+# ---------------- B. Reprodução dos números conhecidos ----------------
+def test_trajetoria_diaria_bate_com_painel():
+    dg = lh.read_delta("gold", "daily_group").set_index("dia")
+    _near(dg.loc[1, "vigor"], 7.6, 0.1); _near(dg.loc[7, "vigor"], 4.5, 0.1)
+    _near(dg.loc[1, "fadiga"], 4.0, 0.1); _near(dg.loc[7, "fadiga"], 7.5, 0.1)
+    _near(dg.loc[1, "pth"], 2.5, 0.1);   _near(dg.loc[7, "pth"], 8.3, 0.1)
+
+def test_efeitos_d1_d7_dz():
+    d = lh.read_delta("gold", "an_d17").set_index("var")
+    _near(d.loc["vigor", "dz"], -0.95, 0.02);  _near(d.loc["fadiga", "dz"], 0.72, 0.02)
+    _near(d.loc["tensao", "dz"], -0.59, 0.02);  _near(d.loc["confusao", "dz"], -0.46, 0.02)
+    _near(d.loc["pth", "dz"], 0.41, 0.02)
+    assert bool(d.loc["vigor", "sig"]) and not bool(d.loc["raiva", "sig"])
+
+def test_friedman_casos_completos():
+    f = lh.read_delta("gold", "an_friedman").set_index("var")
+    assert (f["n"] == 19).all(), "Friedman deve usar casos completos (n=19)"
+    _near(f.loc["vigor", "chi2"], 14.7, 0.2); _near(f.loc["vigor", "W"], 0.13, 0.02)
+    _near(f.loc["confusao", "chi2"], 25.8, 0.2)
+
+def test_snr_decomposicao():
+    s = lh.read_delta("gold", "an_snr").set_index("var")
+    _near(s.loc["fadiga", "snr"], 6.2, 0.15); _near(s.loc["vigor", "snr"], 2.0, 0.15)
+    _near(s.loc["pth", "snr"], 2.6, 0.15)
+    for v in s.index:  # partição da variância soma ~100%
+        _near(s.loc[v, "tendencia"] + s.loc[v, "hiit"] + s.loc[v, "ruido"], 100.0, 0.5)
+
+def test_perfis_prevalencia():
+    p = lh.read_delta("gold", "an_profiles").set_index("perfil")
+    _near(p.loc["Iceberg", "prevalencia"], 31.6, 0.2)
+    _near(p["prevalencia"].sum(), 100.0, 0.5)
+    assert int(p["n"].sum()) == 456
+    dom = lh.read_delta("gold", "an_profiles_byday").set_index("dia")
+    assert dom.loc[1, "dominante"] == "Iceberg"
+    assert dom.loc[7, "dominante"] == "Barbatana de tubarao"
+
+def test_spearman_nivel_atleta_sem_pth():
+    sp = lh.read_delta("gold", "an_spearman")
+    pares = " ".join(sp["par"])
+    assert "pth" not in pares, "correlações entre dimensões não devem incluir o composto PTH"
+    assert len(sp) >= 3, "esperadas correlações significativas entre as dimensões"
+    assert (sp["p"] <= 0.05).all(), "só pares significativos (p<0,05; arredondado)"
+
+def test_wellbeing_epworth_sobe():
+    w = lh.read_delta("gold", "an_wellbeing").set_index("var")
+    assert w.loc["epworth", "dz"] > 0.3, "sonolência (Epworth) deve subir D1→D7"
+    assert abs(w.loc["pss", "dz"]) < 0.3, "estresse (PSS) deve ficar estável"
+
+# ---------------- C. Consistência interna entre camadas ----------------
+def test_daily_group_deriva_de_athlete_day():
+    ad = lh.read_delta("gold", "athlete_day")
+    dg = lh.read_delta("gold", "daily_group").set_index("dia")
+    recomputed = ad.groupby("dia")["vigor"].mean().round(1)
+    for d in range(1, 8):
+        _near(dg.loc[d, "vigor"], recomputed.loc[d], 0.1)
+
+def test_obt_alinha_com_athlete_day():
+    ad = lh.read_delta("gold", "athlete_day")
+    obt = lh.read_delta("gold", "athlete_day_unified")
+    assert len(ad) == len(obt), "OBT deve ter uma linha por atleta-dia"
+    assert {"epworth", "pss", "hiit_pse"}.issubset(obt.columns), "OBT deve integrar sono/estresse/HIIT"
+
+def test_rotulos_de_risco_validos():
+    rf = lh.read_delta("gold", "risk_features")
+    vals = set(rf["risco_amanha"].dropna().unique())
+    assert vals.issubset({0, 1}), f"rótulo de risco deve ser 0/1, obtido {vals}"
+
+# ---------------- D. Governança & qualidade ----------------
+def test_anonimizacao_A_codes():
+    mood = lh.read_delta("silver", "mood")
+    assert all(re.fullmatch(r"A\d{2}", str(i)) for i in mood.ID.unique()), "IDs devem ser A01–A27 (anonimizados)"
+
+def test_dedup_chave_unica():
+    mood = lh.read_delta("silver", "mood")
+    assert not mood.duplicated(["ID", "dia", "seq"]).any(), "silver.mood deve ser único por (ID,dia,seq)"
+
+def test_sem_nulos_em_chaves():
+    mood = lh.read_delta("silver", "mood")
+    for c in ["ID", "dia", "seq", "momento", "Vigor", "Fadiga"]:
+        assert mood[c].notna().all(), f"coluna-chave {c} não pode ter nulos"
+
+# ---------------- runner ----------------
+def _all_tests():
+    g = globals()
+    return [(n, g[n]) for n in sorted(g) if n.startswith("test_") and callable(g[n])]
+
+def main():
+    fails = 0
+    print("AUDITORIA DO LAKEHOUSE — análises verificáveis\n" + "=" * 48)
+    for name, fn in _all_tests():
+        try:
+            fn(); print(f"  PASS  {name}")
+        except Exception as e:
+            fails += 1; print(f"  FAIL  {name}\n        → {e}")
+    total = len(_all_tests())
+    print("=" * 48)
+    print(f"{total - fails}/{total} checagens OK" + ("" if not fails else f" · {fails} FALHA(S)"))
+    return 1 if fails else 0
+
+if __name__ == "__main__":
+    sys.exit(main())

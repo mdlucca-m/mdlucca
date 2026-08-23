@@ -56,11 +56,15 @@ def an_friedman(ad):
     return pd.DataFrame(rows)
 
 def an_spearman(ad):
+    # unidade = ATLETA (média por atleta corrige a pseudorreplicação das medidas
+    # repetidas) e entre as 6 dimensões — PTH é excluída por ser o composto delas.
+    dims = ["Vigor", "Fadiga", "Tensao", "Depressao", "Raiva", "Confusao"]
+    am = ad.groupby("ID")[dims].mean()
     rows = []
-    for i in range(len(BR)):
-        for j in range(i + 1, len(BR)):
-            a, b = BR[i], BR[j]
-            r, p = stats.spearmanr(ad[a], ad[b])
+    for i in range(len(dims)):
+        for j in range(i + 1, len(dims)):
+            a, b = dims[i], dims[j]
+            r, p = stats.spearmanr(am[a], am[b])
             if p < .05:
                 rows.append(dict(par=f"{KEY[a]} × {KEY[b]}", rho=round(float(r), 2), p=round(float(p), 3)))
     return pd.DataFrame(rows).sort_values("rho", key=abs, ascending=False).reset_index(drop=True)
@@ -91,8 +95,9 @@ def an_snr(m):
         det = yc - tr; isH = np.isin(x, HIIT).astype(float)
         hc = (isH - isH.mean()) * (det[isH == 1].mean() - det[isH == 0].mean()); no = det - hc
         tot = ss(yc) or 1; snr = (ss(tr) + ss(hc)) / ss(no) if ss(no) else 999
+        piso = round(100 * float((m[c] == 0).mean()), 0)  # % de escores nulos (efeito de piso)
         rows.append(dict(var=KEY[c], tendencia=round(ss(tr) / tot * 100, 1), hiit=round(ss(hc) / tot * 100, 1),
-                         ruido=round(ss(no) / tot * 100, 1), snr=round(float(snr), 1)))
+                         ruido=round(ss(no) / tot * 100, 1), snr=round(float(snr), 1), piso=piso))
     return pd.DataFrame(rows)
 
 def an_negatives_daytype(ad):

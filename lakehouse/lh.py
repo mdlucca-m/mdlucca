@@ -34,7 +34,8 @@ def write_delta(layer: str, table: str, df: pd.DataFrame, mode: str = "overwrite
     """Grava um DataFrame como tabela Delta (cria versão nova no log de transações)."""
     path = tpath(layer, table)
     os.makedirs(path, exist_ok=True)
-    write_deltalake(path, df, mode=mode)
+    kw = {"schema_mode": "overwrite"} if mode == "overwrite" else {}
+    write_deltalake(path, df, mode=mode, **kw)
     return path
 
 def read_delta(layer: str, table: str, version: int | None = None) -> pd.DataFrame:

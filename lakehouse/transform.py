@@ -74,7 +74,13 @@ def build_silver():
     mdc = _dedup(lh.read_delta("bronze", "mdc_raw"), ["ID"])
     lh.write_delta("silver", "mdc", mdc, mode="overwrite"); print(f"[silver] mdc         {len(mdc)} atletas")
     phys = _dedup(lh.read_delta("bronze", "physical_raw"), ["id"])
-    lh.write_delta("silver", "physical", phys, mode="overwrite"); print(f"[silver] physical    {len(phys)} atletas (P-code · esquema separado)")
+    # CORREÇÃO (dono dos dados): o desenho é de GRUPO ÚNICO — não há grupo controle.
+    # O rótulo "Controle/Experimental" da fonte é artefato de template e é neutralizado.
+    if "Grupo" in phys.columns:
+        phys = phys.rename(columns={"Grupo": "grupo_origem"})
+    phys["grupo_estudo"] = "unico"
+    lh.write_delta("silver", "physical", phys, mode="overwrite")
+    print(f"[silver] physical    {len(phys)} atletas (P-code · grupo ÚNICO, sem controle)")
     # ---- silver.brums_items: itens BRUMS (sem ID) — psicometria ----
     items = lh.read_delta("bronze", "brums_items_raw")
     items = items.drop_duplicates("_row_hash").reset_index(drop=True)
