@@ -315,6 +315,23 @@ const DAYTYPE=[
  {d:6,t:"Força",ab:"FORÇA",c:C.confusao},
  {d:7,t:"HIIT",ab:"HIIT",c:C.fadiga}
 ];
+/* perfis de humor (Terry/Parsons-Smith) — centroide empírico em escore-T (média 50, DP 10) por dimensão
+   [Tensão,Depressão,Raiva,Vigor,Fadiga,Confusão], prevalência (%) e trajetória do GRUPO dia a dia.
+   Reproduz de humor_anon.csv (classificação por centroide mais próximo em z). */
+const PROFDATA={
+ dims:["Tensão","Depressão","Raiva","Vigor","Fadiga","Confusão"],
+ order:["Iceberg","Superfície","Submerso","Everest invertido","Barbatana de tubarão","Iceberg invertido"],
+ profiles:{
+  "Iceberg":{t:[46.9,46.3,45.5,59.5,43.7,47.1],prev:31.6,n:144,c:"#22c55e",desc:"O perfil <b>saudável e desejável</b>: vigor no alto, todas as negativas e a fadiga abaixo de 50. É o 'iceberg' — a ponta (vigor) emerge sobre o resto submerso."},
+  "Superfície":{t:[51.1,47.4,48.4,49.6,49.3,48.2],prev:31.1,n:142,c:"#38bdf8",desc:"Tudo <b>perto de 50</b>: perfil achatado, sem picos. Estado neutro — nem iceberg pleno, nem alerta."},
+  "Submerso":{t:[43.9,46.1,45.4,38.3,43.2,46.4],prev:10.3,n:47,c:"#a78bfa",desc:"<b>Tudo abaixo de 50</b>, inclusive o vigor: baixa ativação geral. Comum em fase de descanso ou de baixo engajamento."},
+  "Everest invertido":{t:[60.5,71.2,66.2,43.8,62.9,68.2],prev:9.2,n:42,c:"#f43f5e",desc:"O perfil de <b>maior risco</b>: todas as negativas muito altas e o vigor baixo — o iceberg totalmente invertido e amplificado. Sinal de alerta para saúde mental / overtraining."},
+  "Barbatana de tubarão":{t:[48.5,49.3,52.5,46.5,64.7,48.2],prev:9.2,n:42,c:"#fb923c",desc:"<b>Fadiga isolada no alto</b> (a 'barbatana'), com as demais perto de 50: assinatura de <b>sobrecarga física</b>. Concentra-se nos dias de HIIT."},
+  "Iceberg invertido":{t:[55.3,55.5,57.8,40.9,54.3,54.2],prev:8.6,n:39,c:"#fbbf24",desc:"O iceberg <b>de cabeça para baixo</b>: vigor baixo e negativas moderadamente altas. Erosão do perfil saudável — atenção."}
+ },
+ byday:{1:[54.2,50.2,51.4,56.1,45.7,54.5],2:[51.4,51.0,50.4,49.9,48.8,50.6],3:[48.6,48.7,49.4,50.0,48.4,48.7],4:[49.9,50.6,49.1,48.7,50.3,49.7],5:[47.9,48.6,46.3,49.6,49.0,47.8],6:[50.5,50.3,50.2,50.2,50.3,51.1],7:[47.5,51.2,53.6,46.1,54.7,50.5]},
+ byday_dom:{1:["Iceberg",40.5],2:["Superfície",36.2],3:["Iceberg",32.0],4:["Superfície",35.0],5:["Iceberg",39.4],6:["Superfície",35.3],7:["Barbatana de tubarão",28.3]}
+};
 const DESC=[["Vigor",5.7,3.3,"0–15"],["Fadiga",5.5,4.1,"0–16"],["Tensão",1.4,1.8,"0–8"],["Depressão",1.0,2.4,"0–16"],["Raiva",1.6,2.8,"0–14"],["Confusão",0.5,1.3,"0–8"],["PTH",4.4,10.1,"−12–52"]];
 const ICC=[["Vigor",.53,.89,"moderada"],["Fadiga",.61,.92,"moderada"],["Tensão",.64,.93,"moderada"],["Depressão",.68,.94,"moderada"],["Raiva",.39,.82,"pobre"],["Confusão",.36,.80,"pobre"]];
 const OMEGA=[["Vigor",.77],["Fadiga",.83],["Tensão",.54],["Depressão",.87],["Raiva",.87],["Confusão",.68]];
@@ -841,6 +858,52 @@ function confirmHTML(key){const dim=DIM.find(d=>d.k===key),ys=dim.daily,s=DERIV.
   const dir=s.d7>s.d1?"sobe":s.d7<s.d1?"cai":"n\u00e3o muda";
   const fact=`<b>${dim.lab}</b>: parte de <b>${num(ys[0],1)}</b> no baseline (D1) e ${dir} para <b>${num(ys[6],1)}</b> no D7 (dz ${(s.dz>=0?"+":"")+num(s.dz,2)}, efeito ${mag(s.dz)}). M\u00e1ximo no <b>D${mxd}</b> (${DAYTYPE[mxd-1].t}, ${num(mx,1)}), m\u00ednimo no <b>D${mnd}</b> (${DAYTYPE[mnd-1].t}, ${num(mn,1)}). Resposta aguda pr\u00e9\u2192p\u00f3s significativa em: <b>${sig.length?sig.join(", "):"nenhum dia"}</b>.`;
   return `<span style="color:var(--muted)">${fact}</span><br><br>${CONFIRMTXT[key]||""}`;}
+/* ===== perfis de humor: gr\u00e1fico grande de escore-T ===== */
+const PROFCENT={"Iceberg":[-0.5,-0.5,-0.5,1.0,-0.5,-0.5],"Iceberg invertido":[0.6,0.6,0.6,-1.0,0.6,0.6],"Everest invertido":[1.2,1.4,1.2,-0.8,1.2,1.2],"Barbatana de tubar\u00e3o":[0.2,0.2,0.2,0.3,1.4,0.2],"Superf\u00edcie":[0,0,0,0,0,0],"Submerso":[-0.9,-0.9,-0.9,-0.9,-0.9,-0.9]};
+function nearestProfile(vec){const z=vec.map(t=>(t-50)/10);let best="Superf\u00edcie",bd=1e9;for(const nm in PROFCENT){const d=PROFCENT[nm].reduce((s,c,i)=>s+(c-z[i])*(c-z[i]),0);if(d<bd){bd=d;best=nm;}}return best;}
+function profAxes(cv,g){const w=cv._w,h=cv._h,pad={l:54,r:34,t:22,b:66},dims=PROFDATA.dims,ymin=30,ymax=74;
+  const x0=pad.l,x1=w-pad.r,y0=h-pad.b,y1=pad.t;const X=i=>x0+(x1-x0)*i/(dims.length-1),Y=v=>y0-(y0-y1)*(v-ymin)/(ymax-ymin);
+  g.fillStyle="rgba(140,165,205,.09)";g.fillRect(x0,Y(60),x1-x0,Y(40)-Y(60));
+  g.fillStyle=C.faint;g.font='9px "IBM Plex Mono",monospace';g.textAlign="left";g.textBaseline="bottom";g.fillText("faixa normal (40\u201360)",x0+6,Y(60)-3);
+  for(let v=30;v<=70;v+=10){const yy=Y(v);g.strokeStyle="rgba(120,150,190,.08)";g.lineWidth=1;g.beginPath();g.moveTo(x0,yy);g.lineTo(x1,yy);g.stroke();g.fillStyle=C.faint;g.font='10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(v,x0-8,yy);}
+  g.strokeStyle="rgba(150,170,200,.42)";g.setLineDash([5,5]);g.lineWidth=1.3;g.beginPath();g.moveTo(x0,Y(50));g.lineTo(x1,Y(50));g.stroke();g.setLineDash([]);g.fillStyle=C.muted;g.textAlign="left";g.textBaseline="middle";g.fillText("50",x1+4,Y(50));
+  dims.forEach((d,i)=>{const xx=X(i);g.strokeStyle="rgba(120,150,190,.06)";g.lineWidth=1;g.beginPath();g.moveTo(xx,y1);g.lineTo(xx,y0);g.stroke();g.fillStyle=C.muted;g.font='700 11.5px "Sora",sans-serif';g.textAlign="center";g.textBaseline="top";g.fillText(d,xx,y0+10);});
+  g.save();g.translate(13,(y0+y1)/2);g.rotate(-Math.PI/2);g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="top";g.fillText("escore-T (m\u00e9dia 50 \u00b7 DP 10)",0,0);g.restore();
+  return {X,Y,x0,x1,y0,y1,dims};}
+function polyReveal(g,ax,ys,prog){const nn=ys.length,seg=(nn-1)*prog,full=Math.floor(seg),frac=seg-full;g.beginPath();
+  for(let i=0;i<=full&&i<nn;i++){const px=ax.X(i),py=ax.Y(ys[i]);i?g.lineTo(px,py):g.moveTo(px,py);}
+  if(full<nn-1){const px=ax.X(full)+(ax.X(full+1)-ax.X(full))*frac,py=ax.Y(ys[full])+(ax.Y(ys[full+1])-ax.Y(ys[full]))*frac;g.lineTo(px,py);}
+  g.stroke();return full;}
+function drawProfilesChart(host,sel,hl){const dims=PROFDATA.dims,names=PROFDATA.order,P=PROFDATA.profiles;
+  const {cv,g}=mk(host,470);
+  anim(3600,prog=>{const ax=profAxes(cv,g);cv._hits=[];
+    names.forEach(nm=>{if(sel&&!sel.has(nm))return;const p=P[nm],col=p.c,ys=p.t,emph=!hl||hl===nm;
+      g.globalAlpha=emph?1:0.16;g.strokeStyle=col;g.lineWidth=hl===nm?7:5;g.lineJoin="round";g.lineCap="round";g.shadowColor=rgba(col,.55);g.shadowBlur=emph?10:0;
+      const full=polyReveal(g,ax,ys,prog);g.shadowBlur=0;
+      for(let i=0;i<=full&&i<ys.length;i++){const px=ax.X(i),py=ax.Y(ys[i]);g.fillStyle=col;g.beginPath();g.arc(px,py,emph?5.4:4,0,7);g.fill();g.fillStyle="#0b1220";g.beginPath();g.arc(px,py,2.2,0,7);g.fill();
+        if(prog>=1&&emph)cv._hits.push({x:px-9,y:py-9,w:18,h:18,tip:`<b>${nm}</b> \u00b7 ${dims[i]}<br>T = ${num(ys[i],1)} \u00b7 prev. ${num(p.prev,1)}%`});}
+      g.globalAlpha=1;});
+  });attachHits(cv);}
+function drawProfileMorph(host,fixedDay){const dims=PROFDATA.dims,B=PROFDATA.byday,P=PROFDATA.profiles;
+  const {cv,g}=mk(host,470);const dur=fixedDay?2600:8200;
+  anim(dur,prog=>{const ax=profAxes(cv,g);cv._hits=[];
+    const t=fixedDay?(fixedDay-1):prog*6,d0=Math.floor(t+1e-9),d1=Math.min(6,d0+1),f=t-d0;
+    const cur=dims.map((_,i)=>{const a=B[String(d0+1)][i],b=B[String(d1+1)][i];return a+(b-a)*f;});
+    /* ghosts dos dias j\u00e1 percorridos */
+    const upto=fixedDay?fixedDay:Math.min(7,Math.floor(t)+1);
+    for(let dd=1;dd<=upto;dd++){if(fixedDay&&dd!==1&&dd!==fixedDay)continue;const ys=B[String(dd)];g.globalAlpha=(fixedDay?(dd===fixedDay?0:.22):.13);if(g.globalAlpha<=0)continue;g.strokeStyle=dd===1?C.pth:C.faint;g.lineWidth=2;g.lineJoin="round";g.beginPath();ys.forEach((v,i)=>i?g.lineTo(ax.X(i),ax.Y(v)):g.moveTo(ax.X(i),ax.Y(v)));g.stroke();}
+    g.globalAlpha=1;
+    const dayNow=fixedDay||Math.min(7,d0+1);const dom=PROFDATA.byday_dom[String(dayNow)];const nm=dom[0],col=P[nm].c;const rprog=fixedDay?prog:1;
+    g.strokeStyle=col;g.lineWidth=6.5;g.lineJoin="round";g.lineCap="round";g.shadowColor=rgba(col,.6);g.shadowBlur=12;
+    const full=polyReveal(g,ax,cur,rprog);g.shadowBlur=0;
+    for(let i=0;i<=full&&i<cur.length;i++){const px=ax.X(i),py=ax.Y(cur[i]);g.fillStyle=col;g.beginPath();g.arc(px,py,6,0,7);g.fill();g.fillStyle="#0b1220";g.beginPath();g.arc(px,py,2.4,0,7);g.fill();
+      const tx=num(cur[i],0);g.font='700 11px "IBM Plex Mono",monospace';const tw=g.measureText(tx).width;g.fillStyle="rgba(9,14,22,.85)";rr(g,px-tw/2-3,py-21,tw+6,15,4);g.fill();g.fillStyle=col;g.textAlign="center";g.textBaseline="middle";g.fillText(tx,px,py-13);}
+    /* selo do dia + perfil dominante (por prevalência) */
+    g.textAlign="left";g.textBaseline="top";
+    g.fillStyle=col;g.font='800 22px "Sora",sans-serif';g.fillText("Dia "+dayNow,ax.x0+8,ax.y1+2);
+    g.fillStyle=C.ink;g.font='700 13px "Sora",sans-serif';g.fillText("perfil dominante: "+nm+" ("+num(dom[1],0)+"%)",ax.x0+8,ax.y1+30);
+    g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.fillText("dia de "+DAYTYPE[dayNow-1].t.toUpperCase()+" · linha = perfil MÉDIO do grupo",ax.x0+8,ax.y1+48);
+  });attachHits(cv);}
 /* tabela do microciclo de treino, sess\u00e3o a sess\u00e3o (estrutura real fornecida pela comiss\u00e3o t\u00e9cnica) */
 function hiitTrainTable(host){const c=document.createElement("div");c.className="card";c.style.marginTop="16px";
   let rows="",tot=0;
@@ -1128,7 +1191,32 @@ const SECTIONS=[
   $("#afc_k",gr2).innerHTML=`<div class="kpis"><div class="kpi"><span class="stripe" style="background:${C.vigor}"></span><div class="lab">CFI / TLI</div><div class="val" style="color:${C.vigor};font-size:22px">0,87 / 0,85</div><div class="cap">ajuste aceitável</div></div><div class="kpi"><span class="stripe" style="background:${C.fadiga}"></span><div class="lab">RMSEA / SRMR</div><div class="val" style="color:${C.fadiga};font-size:22px">0,08 / 0,09</div><div class="cap">item de piso (tensao_1) excluído</div></div></div>`;
 }},
 {id:"perfis",lab:"Perfis de humor",icon:"layers",render(h){
-  head(h,"nível 1","Perfis e migração","No primeiro dia predomina o iceberg (vigor no topo; 41%). No último, o iceberg praticamente desaparece (10%) e a prevalência se distribui entre superfície, submerso e barbatana de tubarão. Os perfis de risco à saúde mental (iceberg/everest invertido) aparecem numa minoria dos dias — ver a aba <b>Perfis de risco</b>.");
+  head(h,"nível 1","Perfis e migração","Os <b>seis perfis de humor</b> (Terry/Parsons-Smith) resumem as seis dimensões numa forma única. No baseline predomina o <b>iceberg</b> (vigor no topo); ao longo da semana o vigor desce e a fadiga sobe, e o grupo migra para <b>superfície</b>, <b>submerso</b> e <b>barbatana de tubarão</b>. Os perfis de risco (iceberg/everest invertido) aparecem numa minoria — ver a aba <b>Perfis de risco</b>.");
+  /* ---- gráfico grande e interativo: perfis em escore-T + morfismo do grupo dia a dia ---- */
+  const pc=document.createElement("div");pc.className="card";pc.style.marginTop="14px";
+  pc.innerHTML=`<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px">
+    <div><h3 style="margin:0">Os seis perfis de humor · escore-T</h3><p class="note" style="margin:3px 0 0">média 50 · DP 10 · faixa 40–60 = normal · prevalência ao lado de cada perfil</p></div>
+    <div class="legend" id="pmode" style="margin:0"><span class="it selon" data-m="perfis" style="cursor:pointer">Os 6 perfis (formas)</span><span class="it" data-m="dias" style="cursor:pointer">O grupo dia a dia (animado)</span></div></div>
+    <div id="pctrl" style="margin:10px 0 2px"></div><div class="host" id="h_prof"></div><div id="pleg" class="legend" style="margin-top:8px"></div>`;
+  h.appendChild(pc);
+  const phost=$("#h_prof",pc),pctrl=$("#pctrl",pc),pleg=$("#pleg",pc);let psel=new Set(PROFDATA.order);
+  function renderPerfis(){pctrl.innerHTML="";const chips=document.createElement("div");chips.className="var-chips";
+    PROFDATA.order.forEach(nm=>{const p=PROFDATA.profiles[nm];const b=document.createElement("button");b.className="vchip";b.type="button";b.setAttribute("aria-pressed",psel.has(nm)?"true":"false");b.innerHTML=`<span class="dot" style="background:${p.c}"></span>${nm} · ${num(p.prev,1)}%`;b.onclick=()=>{psel.has(nm)?psel.delete(nm):psel.add(nm);b.setAttribute("aria-pressed",psel.has(nm)?"true":"false");phost.innerHTML="";drawProfilesChart(phost,psel,null);};chips.appendChild(b);});
+    pctrl.appendChild(chips);pleg.innerHTML=`<span class="note">Clique num perfil para ligar/desligar. Cada linha é a <b>forma média</b> de quem foi classificado naquele perfil. O <b>iceberg</b> tem o vigor no topo e tudo o mais embaixo; o <b>everest invertido</b> é o oposto amplificado (risco).</span>`;phost.innerHTML="";drawProfilesChart(phost,psel,null);}
+  function renderDias(){pctrl.innerHTML="";const row=document.createElement("div");row.className="legend";
+    const play=document.createElement("span");play.className="it selon";play.style.cursor="pointer";play.innerHTML="▶ Animar a semana (D1→D7)";play.onclick=()=>{row.querySelectorAll(".it").forEach(x=>x.classList.remove("selon"));play.classList.add("selon");phost.innerHTML="";drawProfileMorph(phost);};row.appendChild(play);
+    for(let d=1;d<=7;d++){const b=document.createElement("span");b.className="it";b.style.cursor="pointer";b.textContent="D"+d;b.onclick=()=>{row.querySelectorAll(".it").forEach(x=>x.classList.remove("selon"));b.classList.add("selon");phost.innerHTML="";drawProfileMorph(phost,d);};row.appendChild(b);}
+    pctrl.appendChild(row);pleg.innerHTML=`<span class="note">A linha grossa é o <b>perfil médio do grupo</b> naquele dia (a cor é o perfil dominante); a linha roxa fina é o <b>D1 (baseline)</b>, para comparar. Veja o <b>vigor descer</b> e a <b>fadiga subir</b> — a erosão do iceberg em tempo real.</span>`;phost.innerHTML="";drawProfileMorph(phost);}
+  $("#pmode",pc).querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{$("#pmode",pc).querySelectorAll("[data-m]").forEach(x=>x.classList.toggle("selon",x===b));b.dataset.m==="perfis"?renderPerfis():renderDias();});
+  renderPerfis();
+  /* ---- figura explicativa: o que cada perfil significa e o porquê ---- */
+  const ex=document.createElement("div");ex.className="card";ex.style.marginTop="14px";ex.style.borderLeft="3px solid "+C.pth;
+  ex.innerHTML=`<h3>O que cada perfil significa — e por que o iceberg se transforma</h3>
+   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:10px;margin-top:10px">
+    ${PROFDATA.order.map(nm=>{const p=PROFDATA.profiles[nm];return `<div style="border-left:3px solid ${p.c};padding:5px 11px;background:${p.c}12;border-radius:8px"><div style="font-weight:800;font-size:13.5px;color:${p.c}">${nm} <span style="color:var(--muted);font-weight:500;font-size:11px">· ${num(p.prev,1)}%</span></div><p class="note" style="font-size:12px;line-height:1.5;margin:3px 0 0;color:var(--ink)">${p.desc}</p></div>`;}).join("")}
+   </div>
+   <p class="note" style="font-size:13px;line-height:1.64;margin-top:12px;border-top:1px solid var(--stroke);padding-top:10px;color:var(--ink)"><b>A leitura:</b> no baseline (D1) o grupo tem forma de <b>iceberg</b> — vigor no alto, fadiga embaixo. Conforme a carga se acumula, o <b>vigor desce e a fadiga sobe</b>: o iceberg vai <b>afundando</b> e, no D7, o grupo se aproxima da <b>barbatana de tubarão</b> (fadiga isolada no topo). Como as negativas seguem perto de 50, não é humor negativo generalizado — é <b>desgaste energético</b>, a assinatura da <b>sobrecarga funcional</b>. É por isso que o monitoramento vigia a <b>forma do perfil inteiro</b>, e não uma variável isolada.</p>`;
+  h.appendChild(ex);
   const gr=cards(h,`<div class="card"><h3>Prevalência dos perfis</h3><p class="note">contagem no Dia 1 (n=27) vs Dia 7 (n=21)</p><div class="host" id="h_perf"></div></div><div class="card"><h3>Distribuição</h3><p class="note">n de atletas por perfil · Δ na contagem</p><div class="host" id="t_perf"></div></div>`);
   groupChart($("#h_perf",gr),PERFIS.map(r=>({lab:r[0],vals:[r[1],r[2]]})),[{lab:"Dia 1",c:C.vigor},{lab:"Dia 7",c:C.fadiga}],{ymax:14});
   dynTable($("#t_perf",gr),["Perfil","Dia 1","Dia 7","Δ"],PERFIS.map(r=>[r[0],r[1],r[2],r[2]-r[1]]),(i,v)=>i===3?(v>0?`<span class="pos">+${v}</span>`:v<0?`<span class="neg">${v}</span>`:v):v);
