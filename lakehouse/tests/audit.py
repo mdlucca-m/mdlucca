@@ -80,6 +80,21 @@ def test_spearman_nivel_atleta_sem_pth():
     assert len(sp) >= 3, "esperadas correlações significativas entre as dimensões"
     assert (sp["p"] <= 0.05).all(), "só pares significativos (p<0,05; arredondado)"
 
+def test_perfil_grupo():
+    g = lh.read_delta("gold", "an_profile_group").iloc[0]
+    assert g["perfil_mais_prevalente"] == "Iceberg"
+    _near(g["prevalencia_pct"], 31.6, 0.2)
+
+def test_perfil_individual_27_atletas():
+    a = lh.read_delta("gold", "an_profile_athlete")
+    assert len(a) == 27, f"esperado 1 perfil por atleta (27), obtido {len(a)}"
+    assert int(a["n_obs"].sum()) == 456, "soma de respostas deve ser 456"
+    validos = {"Iceberg", "Superficie", "Submerso", "Everest invertido",
+               "Barbatana de tubarao", "Iceberg invertido"}
+    assert set(a["perfil_medio"]).issubset(validos), "perfil_medio fora da taxonomia"
+    for c in ["vigor", "fadiga", "tensao"]:
+        assert a[c].between(25, 95).all(), f"T-score {c} fora de faixa plausível"
+
 def test_wellbeing_epworth_sobe():
     w = lh.read_delta("gold", "an_wellbeing").set_index("var")
     assert w.loc["epworth", "dz"] > 0.3, "sonolência (Epworth) deve subir D1→D7"

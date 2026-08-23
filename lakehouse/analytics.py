@@ -69,12 +69,20 @@ def an_spearman(ad):
                 rows.append(dict(par=f"{KEY[a]} × {KEY[b]}", rho=round(float(r), 2), p=round(float(p), 3)))
     return pd.DataFrame(rows).sort_values("rho", key=abs, ascending=False).reset_index(drop=True)
 
-def an_profiles(m):
+def _classify(m):
+    """Classifica cada atleta-dia no perfil mais próximo (z na amostra) e devolve T-scores."""
     mu, sd = m[SUB].mean(), m[SUB].std()
     Z = (m[SUB] - mu) / sd
     names = list(CENT); CM = np.array([CENT[k] for k in names])
-    m = m.copy(); m["perfil"] = Z.apply(lambda r: names[int(((CM - r.values) ** 2).sum(1).argmin())], axis=1)
-    T = 50 + 10 * Z
+    perfil = Z.apply(lambda r: names[int(((CM - r.values) ** 2).sum(1).argmin())], axis=1)
+    return perfil, 50 + 10 * Z, mu, sd, names, CM
+
+def _nearest(zvec, names, CM):
+    return names[int(((CM - np.asarray(zvec)) ** 2).sum(1).argmin())]
+
+def an_profiles(m):
+    perfil, T, mu, sd, names, CM = _classify(m)
+    m = m.copy(); m["perfil"] = perfil
     prof = []
     for nm in names:
         mk = m["perfil"] == nm
@@ -85,6 +93,35 @@ def an_profiles(m):
         vc = m[m.dia == d]["perfil"].value_counts(normalize=True).mul(100)
         dom.append(dict(dia=d, dominante=vc.index[0], pct=round(float(vc.iloc[0]), 1)))
     return pd.DataFrame(prof), pd.DataFrame(dom)
+
+def an_profile_group(m, prof):
+    """Perfil do GRUPO: o mais prevalente e o do 'atleta-dia médio'."""
+    top = prof.sort_values("prevalencia", ascending=False).iloc[0]
+    _, _, mu, sd, names, CM = _classify(m)
+    grupo = _nearest(np.zeros(len(SUB)), names, CM)  # média da amostra: z=0 (Superfície) por construção
+    return pd.DataFrame([dict(
+        perfil_mais_prevalente=top["perfil"], prevalencia_pct=float(top["prevalencia"]),
+        perfil_medio_grupo=grupo,
+        nota="Em escore-T dentro da amostra, a média do grupo é ~50 em todas as dimensões "
+             "(Superfície) por construção; o perfil CARACTERÍSTICO do grupo é o mais prevalente, "
+             "e a trajetória dia a dia (an_profiles_byday) mostra a erosão do iceberg.")])
+
+def an_profile_athlete(m):
+    """Perfil INDIVIDUAL por atleta: perfil médio (centroide) e modal (mais frequente) + T-scores."""
+    perfil, T, mu, sd, names, CM = _classify(m)
+    g = m.copy(); g["perfil"] = perfil
+    for c in SUB:
+        g[c + "_T"] = T[c].values
+    rows = []
+    for aid, sub in g.groupby("ID"):
+        zmean = [(sub[c].mean() - mu[c]) / sd[c] for c in SUB]
+        vc = sub["perfil"].value_counts()
+        rows.append(dict(ID=aid, n_obs=int(len(sub)),
+                         perfil_medio=_nearest(zmean, names, CM),
+                         perfil_modal=vc.index[0], modal_freq=int(vc.iloc[0]),
+                         **{KEY[c]: round(float(sub[c + "_T"].mean()), 1) for c in SUB},
+                         risco=bool(sub["perfil"].isin(["Everest invertido", "Iceberg invertido"]).any())))
+    return pd.DataFrame(rows).sort_values("ID").reset_index(drop=True)
 
 def an_snr(m):
     # decomposição sobre a média diária de TODAS as respostas (mesmo método do painel)
@@ -140,6 +177,8 @@ def run():
     lh.write_delta("gold", "an_spearman", an_spearman(ad)); print("[gold] an_spearman")
     prof, dom = an_profiles(m)
     lh.write_delta("gold", "an_profiles", prof); lh.write_delta("gold", "an_profiles_byday", dom); print("[gold] an_profiles (+byday)")
+    lh.write_delta("gold", "an_profile_group", an_profile_group(m, prof)); print("[gold] an_profile_group")
+    lh.write_delta("gold", "an_profile_athlete", an_profile_athlete(m)); print("[gold] an_profile_athlete")
     lh.write_delta("gold", "an_snr", an_snr(m)); print("[gold] an_snr")
     lh.write_delta("gold", "an_negatives_daytype", an_negatives_daytype(ad)); print("[gold] an_negatives_daytype")
     wb = lh.read_delta("silver", "wellbeing")
