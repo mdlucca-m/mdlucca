@@ -1208,11 +1208,24 @@ const SECTIONS=[
   dynTable($("#t_dias",gr),["Dimensão","χ²","p","W","Magn."],FRIED,(i,v)=>i===1?num(v):i===3?num(v,2):i===2?(String(v).includes("<")?`<span class="sig">${v}</span>`:v):i===4?`<span class="pill ${v}">${v}</span>`:v,HLL());
 }},
 {id:"traj",lab:"Trajetórias & cruzamentos",icon:"wave",render(h){
-  head(h,"nível 3","Trajetórias das seis dimensões","Na mesma escala, apenas o par vigor-fadiga ocupa a faixa central e se cruza (dias 2,9, 3,6 e 5,7); as demais dimensões permanecem junto ao piso.");
+  head(h,"nível 3 · todas as variáveis","Trajetórias de todas as dimensões","Todas as dimensões na mesma escala. Use os botões para <b>ver todas ao mesmo tempo</b> (inclusive a PTH) ou isolar o par vigor-fadiga, que se cruza (dias 2,9, 3,6 e 5,7). Abaixo, a tabela reúne <b>todos os pontos de análise</b> — mínimos, máximos, inflexões e a mudança D1→D7 de cada variável.");
   const st={};DIM.forEach(d=>st[d.k]=d.k!=="pth");
-  const c=document.createElement("div");c.className="card";c.innerHTML=`<h3>Todas as dimensões · cruzamentos vigor × fadiga</h3><p class="note">curvas suavizadas · clique na legenda para filtrar</p><div class="host" id="h_all"></div>`;h.appendChild(c);
-  const cv=lineChart($("#h_all",c),DIM.filter(d=>d.k!=="pth"),{ymax:9,crosses:CROSS,state:st,hlk:HLK()});const lg=document.createElement("div");lg.className="legend";$("#h_all",c).appendChild(lg);
-  DIM.filter(d=>d.k!=="pth").forEach(d=>{const it=document.createElement("span");it.className="it";it.innerHTML=`<span class="dot" style="background:${d.c}"></span>${d.lab}`;it.onclick=()=>{st[d.k]=!st[d.k];it.classList.toggle("off");cv._redraw();};lg.appendChild(it);});
+  const ctr=document.createElement("div");ctr.className="legend";ctr.style.marginBottom="10px";
+  ctr.innerHTML=`<span class="it selon" data-set="all6" style="cursor:pointer">Todas (6 dimensões)</span><span class="it" data-set="all7" style="cursor:pointer">Todas + PTH</span><span class="it" data-set="vf" style="cursor:pointer">Só vigor + fadiga</span><span class="it" data-set="clear" style="cursor:pointer">Limpar</span>`;h.appendChild(ctr);
+  const c=document.createElement("div");c.className="card";c.innerHTML=`<h3>Todas as dimensões · cruzamentos vigor × fadiga</h3><p class="note">curvas suavizadas · clique na legenda para ligar/desligar cada uma · ✕ = cruzamentos vigor × fadiga</p><div class="host" id="h_all"></div>`;h.appendChild(c);
+  const ymaxV=Math.max(...DIM.flatMap(d=>d.daily))+1;
+  const cv=lineChart($("#h_all",c),DIM,{ymax:ymaxV,crosses:CROSS,state:st,hlk:HLK()});const lg=document.createElement("div");lg.className="legend";$("#h_all",c).appendChild(lg);
+  const items={};DIM.forEach(d=>{const it=document.createElement("span");it.className="it"+(st[d.k]?"":" off");it.innerHTML=`<span class="dot" style="background:${d.c}"></span>${d.lab}`;it.onclick=()=>{st[d.k]=!st[d.k];it.classList.toggle("off");cv._redraw();};lg.appendChild(it);items[d.k]=it;});
+  function applySet(s){DIM.forEach(d=>{let on=s==="all7"?true:s==="all6"?d.k!=="pth":s==="vf"?(d.k==="vigor"||d.k==="fadiga"):false;st[d.k]=on;items[d.k].classList.toggle("off",!on);});cv._redraw();}
+  ctr.querySelectorAll("[data-set]").forEach(b=>b.onclick=()=>{ctr.querySelectorAll("[data-set]").forEach(x=>x.classList.toggle("selon",x===b));applySet(b.dataset.set);});
+  // ---- tabela: pontos de análise de cada variável ----
+  const inflOf={Vigor:4.3,Fadiga:3.8,Tensão:4.7,Confusão:5.5,Raiva:2.9,Depressão:2.3};
+  const rows=DIM.map(d=>{const y=d.daily,mn=Math.min(...y),mx=Math.max(...y);const mnd=y.indexOf(mn)+1,mxd=y.indexOf(mx)+1;const dd=D17.find(r=>r[0]===d.lab);
+    return [d.lab,num(y[0],1),num(y[6],1),dd?dd[3]:"—",dd?dd[4]:"—","D"+mnd+" ("+num(mn,1)+")","D"+mxd+" ("+num(mx,1)+")",inflOf[d.lab]?("dia "+String(inflOf[d.lab]).replace(".",",")):"—"];});
+  const tc=document.createElement("div");tc.className="card";tc.style.marginTop="16px";tc.innerHTML=`<h3>Pontos de análise de cada variável</h3><p class="note">mínimo e máximo (dia) · inflexão (curva filtrada) · mudança D1→D7 (dz) · pontos de cruzamento vigor × fadiga: <b>2,9 / 3,6 / 5,7</b></p><div class="host" id="t_traj"></div>`;h.appendChild(tc);
+  dynTable($("#t_traj",tc),["Variável","D1","D7","Δ%","dz","Mínimo","Máximo","Inflexão"],rows,
+    (i,v)=>i===3?`<span class="${(typeof v==="number"?v:0)>=0?"pos":"neg"}">${typeof v==="number"?(v>=0?"+":"")+v+"%":v}</span>`:i===4?(typeof v==="number"?`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${num(v,2)}</span>`:v):v,HLL());
+  applySet("all6");ctr.querySelector('[data-set="all6"]').classList.add("selon");
 }},
 {id:"curvas",lab:"Curvas por variável",icon:"wave",render(h){
   head(h,"nível 3 · com filtro vs sem filtro","Comportamento de cada dimensão ao longo da semana","Cada dimensão é lida em duas camadas: a curva <b>sem filtro</b> (pontos e ligação bruta das médias diárias, com todo o ruído) e a curva <b>com filtro</b> (spline suavizada = sinal/tendência). Selecione a variável para ver as duas sobrepostas. O p de Friedman e o dz vêm dos dados brutos — não dependem do suavizador; já o dia exato da inflexão e dos cruzamentos é uma leitura aproximada da curva filtrada.");
