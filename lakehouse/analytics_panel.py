@@ -85,9 +85,46 @@ def an_wellbeing_bytype(wb, m):
     return pd.DataFrame(rows)
 
 
+NEG = ["Tensao", "Depressao", "Raiva", "Confusao"]
+
+def an_negatives_bydaytype(m):
+    """Média das negativas + vigor/fadiga por tipo de dia (Outro/HIIT/Amistoso),
+    Δ agudo pré→pós por tipo, e efeito de tipo por MODELO MISTO (intercepto aleatório
+    por atleta; contraste Amistoso − Outro). Métodos padrão, documentados."""
+    import statsmodels.formula.api as smf
+    mm = m.copy(); mm["cat"] = mm["day_type"].map(DAYCAT)
+    rows = []
+    for k in NEG + ["Vigor", "Fadiga"]:
+        for c in ["Outro", "HIIT", "Amistoso"]:
+            sub = mm[mm.cat == c]
+            # Δ agudo pré→pós por atleta-dia (só p/ as negativas)
+            if k in NEG:
+                pre = sub[sub.is_pre].groupby(["ID", "dia"])[k].mean()
+                pos = sub[sub.is_pos].groupby(["ID", "dia"])[k].mean()
+                acute = round(float((pos - pre).mean()), 2)
+            else:
+                acute = None
+            rows.append(dict(dim=k, cat=c, media=round(float(sub[k].mean()), 2), acute=acute))
+    means = pd.DataFrame(rows)
+    # modelo misto: HIIT (D2,D4) vs Jogo (D3,D5) CONTROLANDO a posição na semana (dia),
+    # intercepto aleatório por atleta. b>0 = HIIT mais aversivo que o jogo.
+    mw = mm[mm.dia.isin([2, 3, 4, 5])].copy()
+    mw["tipo"] = np.where(mw.dia.isin([2, 4]), "HIIT", "Jogo")
+    adw = mw.groupby(["ID", "dia", "tipo"])[NEG].mean().reset_index()
+    mix = []
+    for k in NEG:
+        md = smf.mixedlm(f"{k} ~ C(tipo, Treatment('Jogo')) + dia", adw, groups=adw["ID"]).fit(reml=False)
+        c = [i for i in md.params.index if "HIIT" in i][0]
+        mix.append(dict(dim=k, b=round(float(md.params[c]), 2), p=round(float(md.pvalues[c]), 3)))
+    return means, pd.DataFrame(mix)
+
+
 def run():
     m = lh.read_delta("silver", "mood")
     wb = lh.read_delta("silver", "wellbeing")
+    nmeans, nmix = an_negatives_bydaytype(m)
+    lh.write_delta("gold", "an_negatives_bydaytype", nmeans); print("[gold] an_negatives_bydaytype")
+    lh.write_delta("gold", "an_negatives_mix", nmix); print("[gold] an_negatives_mix")
     lh.write_delta("gold", "an_desc", an_desc(m)); print("[gold] an_desc")
     lh.write_delta("gold", "an_prepos_dim", an_prepos_dim(m)); print("[gold] an_prepos_dim")
     lh.write_delta("gold", "an_perfis_byday_count", an_perfis_byday_count(m)); print("[gold] an_perfis_byday_count")

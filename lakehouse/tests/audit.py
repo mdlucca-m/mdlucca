@@ -148,6 +148,16 @@ def test_painel_desc_prepos_perfis():
     ice = _row(pf, "perfil", "Iceberg")
     assert ice["d1"] > ice["d7"], "Iceberg predomina no D1 e erode até o D7"
 
+def test_painel_negativas_bydaytype():
+    bd = lh.read_delta("gold", "an_negatives_bydaytype")
+    assert set(bd["cat"]) == {"Outro", "HIIT", "Amistoso"}
+    # HIIT mais aversivo que o jogo: raiva média maior no HIIT que no amistoso
+    r_h = bd[(bd.dim == "Raiva") & (bd.cat == "HIIT")]["media"].iloc[0]
+    r_a = bd[(bd.dim == "Raiva") & (bd.cat == "Amistoso")]["media"].iloc[0]
+    assert r_h > r_a, "raiva maior no HIIT que no jogo (HIIT aversivo)"
+    mx = lh.read_delta("gold", "an_negatives_mix")
+    assert len(mx) == 4 and (mx["b"] > 0).any(), "modelo misto: HIIT ≥ jogo em alguma negativa"
+
 def test_painel_modelos_ml():
     mo = lh.read_delta("gold", "an_models")
     assert set(mo["modelo"]) == {"Random Forest", "XGBoost", "LightGBM"}, "3 modelos: RF, XGBoost, LightGBM"

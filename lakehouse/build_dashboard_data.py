@@ -125,6 +125,22 @@ def gen_AERO():
 
 MODEL_COL = {"Random Forest": "C.vigor", "XGBoost": "C.fadiga", "LightGBM": "C.tensao"}
 
+def gen_NEGDT():
+    """NEGDT ← gold: an_negatives_bydaytype (means+acute) · an_negatives_daytype (mid) · an_negatives_mix."""
+    bd = lh.read_delta("gold", "an_negatives_bydaytype")
+    mid = lh.read_delta("gold", "an_negatives_daytype").set_index("var")
+    mx = lh.read_delta("gold", "an_negatives_mix").set_index("dim")
+    NEG = ["Tensao", "Depressao", "Raiva", "Confusao"]
+    means = {k: {c: float(bd[(bd.dim == k) & (bd.cat == c)]["media"].iloc[0]) for c in ["Outro", "HIIT", "Amistoso"]}
+             for k in NEG + ["Vigor", "Fadiga"]}
+    kn = {"Tensao": "tensao", "Depressao": "depressao", "Raiva": "raiva", "Confusao": "confusao"}
+    mid_d = {k: {"amist": float(mid.loc[kn[k], "media_jogo"]), "hiit": float(mid.loc[kn[k], "media_hiit"]),
+                 "dz": float(mid.loc[kn[k], "dz_jogo_menos_hiit"]), "p": float(mid.loc[kn[k], "p"])} for k in NEG}
+    acute = {k: {"HIIT": float(bd[(bd.dim == k) & (bd.cat == "HIIT")]["acute"].iloc[0]),
+                 "Amistoso": float(bd[(bd.dim == k) & (bd.cat == "Amistoso")]["acute"].iloc[0])} for k in NEG}
+    mix = {k: {"b": float(mx.loc[k, "b"]), "p": float(mx.loc[k, "p"])} for k in NEG}
+    return "const NEGDT=" + json.dumps({"means": means, "mid": mid_d, "acute": acute, "mix": mix})
+
 def gen_MODELS():
     """MODELS ← gold.an_models: comparação de AUC (Random Forest, XGBoost, LightGBM)."""
     d = lh.read_delta("gold", "an_models")
@@ -246,7 +262,7 @@ def run():
             "PROFATL": gen_PROFATL(), "PROFGRP": gen_PROFGRP(),
             "AERO": gen_AERO(), "HDL": gen_HDL(html), "ATLETAV": gen_ATLETAV(),
             "DESC": gen_DESC(), "PREPOS": gen_PREPOS(), "PERFIS": gen_PERFIS(), "SONO": gen_SONO(),
-            "MODELS": gen_MODELS(), "ROC_PTS": gen_ROC()}
+            "MODELS": gen_MODELS(), "ROC_PTS": gen_ROC(), "NEGDT": gen_NEGDT()}
     for name, rhs in gens.items():
         html = replace_const(html, name, rhs)
         print(f"[painel←gold] const {name} regenerada do gold")
