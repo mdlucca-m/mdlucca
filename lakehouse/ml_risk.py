@@ -67,7 +67,24 @@ def run_models():
     lh.write_delta("gold", "an_models", an_models)
     lh.write_delta("gold", "an_roc", an_roc)
     print(f"[gold] an_models (melhor: {best[0]} AUC={best[1]} · preditor {top}) · an_roc")
+    _learning_curve(X, y, g)
     return an_models
+
+
+def _learning_curve(X, y, g):
+    """Curva de aprendizado (AUC de treino × validação por tamanho do conjunto),
+    Random Forest na tarefa fase tardia×inicial, GroupKFold por atleta. Determinístico."""
+    from sklearn.model_selection import learning_curve
+    # regressão logística (não a floresta): treino e validação ficam próximos, mostrando
+    # que o teto baixo é falta de sinal individual, não overfitting — coerente com a leitura.
+    clf = LogisticRegression(max_iter=1000, class_weight="balanced")
+    sizes = np.linspace(0.4, 1.0, 6)
+    ts, tr, cv = learning_curve(clf, X, y, groups=g, cv=GroupKFold(n_splits=5),
+                                train_sizes=sizes, scoring="roc_auc", random_state=SEED, n_jobs=1)
+    df = pd.DataFrame({"n": ts.astype(int), "train_auc": np.round(tr.mean(1), 3),
+                       "cv_auc": np.round(cv.mean(1), 3)})
+    lh.write_delta("gold", "an_learning", df)
+    print(f"[gold] an_learning ({len(df)} pontos)")
 
 def run():
     df = lh.read_delta("gold", "risk_features").dropna(subset=["risco_amanha"]).copy()

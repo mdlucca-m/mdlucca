@@ -243,10 +243,30 @@ def an_risk_profiles(m):
         byday=json.dumps(byday))])
 
 
+ABBR = {"Iceberg": "IC", "Superficie": "SU", "Submerso": "SB",
+        "Barbatana de tubarao": "BT", "Iceberg invertido": "II", "Everest invertido": "EI"}
+RISK = {"EI": 2, "II": 2, "BT": 1, "SB": 1, "SU": 0, "IC": 0}
+
+def an_athlete_profiles(m):
+    """Perfil classificado por atleta-dia (mesmo A01–A27 do silver): sigla, nível de
+    risco (0 bom/1 atenção/2 risco) e PTH/Vigor/Fadiga do dia. Alimenta os ícones da
+    visão individual, consistente com PROFATL/ATLETAV."""
+    mu, sd = m[PROF_SUB].mean(), m[PROF_SUB].std()
+    names = list(PROF_CENT); CM = np.array([PROF_CENT[k] for k in names])
+    ad = m.groupby(["ID", "dia"])[PROF_SUB + ["PTH"]].mean()
+    Z = (ad[PROF_SUB] - mu) / sd
+    prof = Z.apply(lambda r: names[int(((CM - r.values) ** 2).sum(1).argmin())], axis=1)
+    a = ad.reset_index(); a["abbr"] = [ABBR[p] for p in prof.values]
+    a["risco"] = [RISK[x] for x in a["abbr"]]
+    return a[["ID", "dia", "abbr", "risco", "PTH", "Vigor", "Fadiga"]].rename(
+        columns={"PTH": "pth", "Vigor": "vigor", "Fadiga": "fadiga"})
+
+
 def run():
     m = lh.read_delta("silver", "mood")
     wb = lh.read_delta("silver", "wellbeing")
     it = lh.read_delta("silver", "brums_items")
+    lh.write_delta("gold", "an_athlete_profiles", an_athlete_profiles(m)); print("[gold] an_athlete_profiles")
     vc, vcurve = an_variance(m)
     lh.write_delta("gold", "an_variance", vc); lh.write_delta("gold", "an_variance_curves", vcurve); print("[gold] an_variance (+curves)")
     lh.write_delta("gold", "an_transitions", an_transitions(m)); print("[gold] an_transitions")

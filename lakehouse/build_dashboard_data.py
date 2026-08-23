@@ -179,6 +179,73 @@ def gen_PRISCO():
             f'byday:{r["byday"]},exp_neg1:{int(r["exp_neg1"])},exp_neg2:{int(r["exp_neg2"])},'
             f'exp_fad1:{int(r["exp_fad1"])},never:{int(r["never"])}}}')
 
+ABBR_NAME = {"IC": "Iceberg", "SU": "Superfície", "SB": "Submerso",
+             "BT": "Barbatana", "II": "Iceberg inv.", "EI": "Everest inv."}
+
+CURVE_ORDER = [("vigor", "Vigor"), ("fadiga", "Fadiga"), ("tensao", "Tensão"),
+               ("confusao", "Confusão"), ("raiva", "Raiva"), ("depressao", "Depressão")]
+
+def _curve_label(dz, pw, pf, piso):
+    both = pw < 0.05 and pf < 0.05; anys = pw < 0.05 or pf < 0.05
+    d = "queda" if dz < 0 else "subida"
+    if both and abs(dz) >= 0.7: return f"{d} robusta"
+    if both: return f"{d} moderada"
+    if anys: return f"{d} consistente"
+    if piso >= 65: return "piso · sem tendência"
+    return "sem tendência clara"
+
+def gen_LC():
+    """LC_X/LC_TR/LC_CV ← gold.an_learning: curva de aprendizado (treino × validação)."""
+    d = lh.read_delta("gold", "an_learning").sort_values("n")
+    xs = ",".join(str(int(v)) for v in d["n"])
+    tr = ",".join(_n(v, 3) for v in d["train_auc"])
+    cv = ",".join(_n(v, 3) for v in d["cv_auc"])
+    return f"const LC_X=[{xs}],LC_TR=[{tr}],LC_CV=[{cv}]"
+
+def _crossings(a, b):
+    """Dias (interpolação linear) onde a curva a cruza a curva b (1..7)."""
+    xs = []
+    for i in range(6):
+        da, db = a[i] - b[i], a[i + 1] - b[i + 1]
+        if da == 0:
+            xs.append(float(i + 1))
+        elif da * db < 0:
+            xs.append(round(i + 1 + da / (da - db), 1))
+    return xs
+
+def gen_CROSS():
+    """CROSS/CURVE_CROSS ← gold.daily_group: dias de cruzamento vigor × fadiga."""
+    dg = lh.read_delta("gold", "daily_group").sort_values("dia")
+    xs = _crossings(list(dg["vigor"]), list(dg["fadiga"]))
+    lit = "[" + ",".join(_n(x, 1) for x in xs) + "]"
+    return lit  # usado por replace_const para CROSS e CURVE_CROSS
+
+def gen_CURVE():
+    """CURVE ← gold (daily_group · an_d17 · an_friedman · an_snr): resumo por dimensão."""
+    dg = lh.read_delta("gold", "daily_group").sort_values("dia")
+    d17 = lh.read_delta("gold", "an_d17").set_index("var")
+    fr = lh.read_delta("gold", "an_friedman").set_index("var")
+    sn = lh.read_delta("gold", "an_snr").set_index("var")
+    rows = []
+    for k, lab in CURVE_ORDER:
+        d1 = float(dg.iloc[0][k]); d7 = float(dg.iloc[6][k]); dz = float(d17.loc[k, "dz"])
+        pw = float(d17.loc[k, "p_wilcoxon"]); pf = float(fr.loc[k, "p"]); piso = float(sn.loc[k, "piso"])
+        lbl = _curve_label(dz, pw, pf, piso)
+        rows.append(f'["{lab}",{_n(d1,1)},{_n(d7,1)},{_n(d7-d1,1)},{_n(dz,2)},'
+                    f'{_pstr(pw)},{_pstr(pf)},{_n(sn.loc[k,"snr"],1)},"{lbl}"]')
+    return "const CURVE=[" + ",".join(rows) + "]"
+
+def gen_ATLETA():
+    """ATLETA ← gold.an_athlete_profiles: ícones de perfil dia a dia por atleta
+    (mesmo A01–A27 do silver), consistente com ATLETAV/PROFATL."""
+    ap = lh.read_delta("gold", "an_athlete_profiles")
+    g = {}
+    for r in ap.itertuples():
+        g.setdefault(r.ID, {})[str(int(r.dia))] = [int(r.risco), r.abbr,
+                                                    round(float(r.pth), 1), round(float(r.vigor), 1), round(float(r.fadiga), 1)]
+    ids = sorted(g)
+    return "const ATLETA=" + json.dumps({"g": {a: g[a] for a in ids}, "ids": ids, "names": ABBR_NAME})
+
 def gen_ALO():
     """ALO ← gold.an_allometry: expoentes de escala (b, IC, R², p, a=ln) + curva ajustada."""
     d = lh.read_delta("gold", "an_allometry")
@@ -336,7 +403,9 @@ def run():
             "DESC": gen_DESC(), "PREPOS": gen_PREPOS(), "PERFIS": gen_PERFIS(), "SONO": gen_SONO(),
             "MODELS": gen_MODELS(), "ROC_PTS": gen_ROC(), "NEGDT": gen_NEGDT(), "ICC": gen_ICC(), "OMEGA": gen_OMEGA(),
             "LIM": gen_LIM(), "VM": gen_VM(), "TRANS": gen_TRANS(), "PRISCO": gen_PRISCO(),
-            "ALO": gen_ALO(), "PVMODEL": gen_PVMODEL()}
+            "ALO": gen_ALO(), "PVMODEL": gen_PVMODEL(), "ATLETA": gen_ATLETA(),
+            "CURVE": gen_CURVE(), "LC_X": gen_LC(),
+            "CROSS": f"const CROSS={gen_CROSS()}", "CURVE_CROSS": f"const CURVE_CROSS={gen_CROSS()}"}
     for name, rhs in gens.items():
         html = replace_const(html, name, rhs)
         print(f"[painel←gold] const {name} regenerada do gold")
