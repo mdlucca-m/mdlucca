@@ -869,7 +869,8 @@ function profAxes(cv,g){const w=cv._w,h=cv._h,pad={l:54,r:34,t:22,b:66},dims=PRO
   g.fillStyle=C.faint;g.font='9px "IBM Plex Mono",monospace';g.textAlign="left";g.textBaseline="bottom";g.fillText("faixa normal (40\u201360)",x0+6,Y(60)-3);
   for(let v=30;v<=70;v+=10){const yy=Y(v);g.strokeStyle="rgba(120,150,190,.08)";g.lineWidth=1;g.beginPath();g.moveTo(x0,yy);g.lineTo(x1,yy);g.stroke();g.fillStyle=C.faint;g.font='10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(v,x0-8,yy);}
   g.strokeStyle="rgba(150,170,200,.42)";g.setLineDash([5,5]);g.lineWidth=1.3;g.beginPath();g.moveTo(x0,Y(50));g.lineTo(x1,Y(50));g.stroke();g.setLineDash([]);g.fillStyle=C.muted;g.textAlign="left";g.textBaseline="middle";g.fillText("50",x1+4,Y(50));
-  dims.forEach((d,i)=>{const xx=X(i);g.strokeStyle="rgba(120,150,190,.06)";g.lineWidth=1;g.beginPath();g.moveTo(xx,y1);g.lineTo(xx,y0);g.stroke();g.fillStyle=C.muted;g.font='700 11.5px "Sora",sans-serif';g.textAlign="center";g.textBaseline="top";g.fillText(d,xx,y0+10);});
+  const step=(x1-x0)/(dims.length-1),short=step<70,ABBR={"Tensão":"Ten","Depressão":"Dep","Raiva":"Rai","Vigor":"Vig","Fadiga":"Fad","Confusão":"Con"};
+  dims.forEach((d,i)=>{const xx=X(i);g.strokeStyle="rgba(120,150,190,.06)";g.lineWidth=1;g.beginPath();g.moveTo(xx,y1);g.lineTo(xx,y0);g.stroke();g.fillStyle=C.muted;g.font=(short?'700 10px':'700 11.5px')+' "Sora",sans-serif';g.textAlign="center";g.textBaseline="top";g.fillText(short?(ABBR[d]||d):d,xx,y0+10);});
   g.save();g.translate(13,(y0+y1)/2);g.rotate(-Math.PI/2);g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="top";g.fillText("escore-T (m\u00e9dia 50 \u00b7 DP 10)",0,0);g.restore();
   return {X,Y,x0,x1,y0,y1,dims};}
 function polyReveal(g,ax,ys,prog){const nn=ys.length,seg=(nn-1)*prog,full=Math.floor(seg),frac=seg-full;g.beginPath();
@@ -910,20 +911,33 @@ function drawProfileMorph(host,fixedDay){const dims=PROFDATA.dims,B=PROFDATA.byd
 function drawAthleteProfile(host,aid){const P=PROFATL[aid];if(!P){host.innerHTML='<p class="note">sem perfil</p>';return;}
   const dims=PROFDATA.dims,ref=PROFDATA.profiles[PROFGRP.prev];const rc=ref?ref.c:C.vigor;
   const col=(PROFDATA.profiles[P.med]||{}).c||C.vigor;
-  const {cv,g}=mk(host,430);
-  anim(3000,prog=>{const ax=profAxes(cv,g);cv._hits=[];
-    g.globalAlpha=.5;g.strokeStyle=rc;g.lineWidth=2;g.setLineDash([5,4]);g.lineJoin="round";g.beginPath();
+  const {cv,g}=mk(host,340);
+  anim(2600,prog=>{const ax=profAxes(cv,g);cv._hits=[];
+    /* refer\u00eancia: perfil mais prevalente do grupo (tracejado) */
+    g.globalAlpha=.55;g.strokeStyle=rc;g.lineWidth=2.4;g.setLineDash([6,4]);g.lineJoin="round";g.beginPath();
     ref.t.forEach((v,i)=>i?g.lineTo(ax.X(i),ax.Y(v)):g.moveTo(ax.X(i),ax.Y(v)));g.stroke();g.setLineDash([]);g.globalAlpha=1;
+    /* linha do atleta (grossa) com r\u00f3tulos alternando acima/abaixo p/ n\u00e3o colidir */
     g.strokeStyle=col;g.lineWidth=6.5;g.lineJoin="round";g.lineCap="round";g.shadowColor=rgba(col,.6);g.shadowBlur=12;
     const full=polyReveal(g,ax,P.t,prog);g.shadowBlur=0;
     for(let i=0;i<=full&&i<P.t.length;i++){const px=ax.X(i),py=ax.Y(P.t[i]);g.fillStyle=col;g.beginPath();g.arc(px,py,6,0,7);g.fill();g.fillStyle="#0b1220";g.beginPath();g.arc(px,py,2.4,0,7);g.fill();
-      const tx=num(P.t[i],0);g.font='700 11px "IBM Plex Mono",monospace';const tw=g.measureText(tx).width;g.fillStyle="rgba(9,14,22,.85)";rr(g,px-tw/2-3,py-21,tw+6,15,4);g.fill();g.fillStyle=col;g.textAlign="center";g.textBaseline="middle";g.fillText(tx,px,py-13);
+      const up=P.t[i]>=50,tx=num(P.t[i],0);g.font='700 11px "IBM Plex Mono",monospace';const tw=g.measureText(tx).width;g.fillStyle="rgba(9,14,22,.85)";rr(g,px-tw/2-3,up?py-21:py+7,tw+6,15,4);g.fill();g.fillStyle=col;g.textAlign="center";g.textBaseline="middle";g.fillText(tx,px,up?py-13:py+15);
       if(prog>=1)cv._hits.push({x:px-9,y:py-9,w:18,h:18,tip:`<b>${aid}</b> \u00b7 ${dims[i]}<br>T = ${num(P.t[i],1)}`});}
-    g.textAlign="left";g.textBaseline="top";
-    g.fillStyle=col;g.font='800 20px "Sora",sans-serif';g.fillText(aid+" \u00b7 "+P.med,ax.x0+8,ax.y1+2);
-    g.fillStyle=C.ink;g.font='700 12px "Sora",sans-serif';g.fillText("perfil modal: "+P.mod+(P.risco?"  \u00b7  j\u00e1 teve dia de risco":""),ax.x0+8,ax.y1+28);
-    g.fillStyle=rgba(rc,.85);g.font='10px "IBM Plex Mono",monospace';g.fillText("- - -  grupo (mais prevalente: "+PROFGRP.prev+" "+num(PROFGRP.pct,0)+"%)",ax.x0+8,ax.y1+46);
   });attachHits(cv);}
+/* leitura anal\u00edtica: dimens\u00f5es ordenadas por desvio de 50, coloridas pela cor da dimens\u00e3o */
+function athleteProfileHTML(aid){const P=PROFATL[aid];if(!P)return "";
+  const DC={"Tens\u00e3o":C.tensao,"Depress\u00e3o":C.depressao,"Raiva":C.raiva,"Vigor":C.vigor,"Fadiga":C.fadiga,"Confus\u00e3o":C.confusao};
+  const col=(PROFDATA.profiles[P.med]||{}).c||C.vigor;
+  const dv=PROFDATA.dims.map((d,i)=>({d,t:P.t[i],dev:P.t[i]-50,c:DC[d]||C.faint})).sort((a,b)=>Math.abs(b.dev)-Math.abs(a.dev));
+  const chip=o=>{const on=Math.abs(o.dev)>=5;
+    return `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink);border:1px solid ${o.c}${on?"88":"3a"};background:${o.c}${on?"1f":"10"};border-radius:16px;padding:3px 9px"><span class="dot" style="width:8px;height:8px;border-radius:50%;background:${o.c}"></span><b>${o.d}</b> ${num(o.t,0)} <span style="color:${o.c};font-family:'IBM Plex Mono'">${o.dev>=0?"+":""}${num(o.dev,0)}</span></span>`;};
+  const altos=dv.filter(o=>o.dev>=5).map(o=>o.d),baixos=dv.filter(o=>o.dev<=-5).map(o=>o.d);
+  const j=a=>a.length>1?a.slice(0,-1).join(", ")+" e "+a.slice(-1):a[0]||"";
+  let leit=`<b>${aid}</b> tem perfil caracter\u00edstico <b style="color:${col}">${P.med}</b> (o mais frequente \u00e9 ${P.mod}). `;
+  leit+=altos.length?`Elevado em <b>${j(altos)}</b>`:"Sem dimens\u00e3o claramente elevada";
+  leit+=baixos.length?`; reduzido em <b>${j(baixos)}</b>. `:". ";
+  leit+=P.risco?`<span style="color:${C.crit}">J\u00e1 apareceu em perfil de risco (invertido) em ao menos um dia \u2014 acompanhar.</span>`:`Nunca entrou em perfil de risco.`;
+  return `<div style="display:flex;flex-wrap:wrap;gap:7px;margin:4px 0 10px">${dv.map(chip).join("")}</div>`
+       + `<p class="note" style="font-size:13px;line-height:1.6;color:var(--ink)">${leit}</p>`;}
 /* tabela do microciclo de treino, sess\u00e3o a sess\u00e3o (estrutura real fornecida pela comiss\u00e3o t\u00e9cnica) */
 function hiitTrainTable(host){const c=document.createElement("div");c.className="card";c.style.marginTop="16px";
   let rows="",tot=0;
@@ -1353,9 +1367,15 @@ const SECTIONS=[
     // gráfico dinâmico vigor/fadiga
     const gc=document.createElement("div");gc.className="card";gc.style.marginTop="14px";gc.innerHTML=`<h3>Trajetória do humor — ${a}</h3><p class="note">escolha as variáveis (todas as 7 disponíveis) e clique em <b>▶ Plotar</b> para ver a curva desenhada devagar, valor a valor · faixas = HIIT (laranja) e jogo (azul)</p><div class="host" id="h_ind"></div>`;host.appendChild(gc);
     drawIndTraj($("#h_ind",gc),a);
-    if(typeof PROFATL!=="undefined"&&PROFATL[a]){const pc=document.createElement("div");pc.className="card";pc.style.marginTop="14px";
-      pc.innerHTML=`<h3>Perfil de humor de ${a} · escore-T</h3><p class="note">forma média do atleta nas 6 dimensões (média 50 · DP 10 · faixa 40–60) sobre o <b>perfil mais prevalente do grupo</b> (linha tracejada). Rótulo = perfil médio · modal.</p><div class="host" id="h_prof_ind"></div>`;host.appendChild(pc);
-      drawAthleteProfile($("#h_prof_ind",pc),a);}
+    if(typeof PROFATL!=="undefined"&&PROFATL[a]){const P=PROFATL[a],col=(PROFDATA.profiles[P.med]||{}).c||C.vigor,rc=(PROFDATA.profiles[PROFGRP.prev]||{}).c||C.vigor;
+      const pc=document.createElement("div");pc.className="card";pc.style.marginTop="14px";
+      pc.innerHTML=`<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px">
+        <div><div style="font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">perfil de humor · escore-T</div>
+        <div style="font-weight:800;font-size:18px;color:${col}">${a} · ${P.med}${P.risco?` <span style="font-size:11px;color:${C.crit};border:1px solid ${C.crit}66;border-radius:12px;padding:1px 8px;vertical-align:middle">risco</span>`:""}</div></div>
+        <div class="legend" style="margin:0"><span class="it"><span class="dot" style="background:${col}"></span>${a}</span><span class="it"><span class="dot" style="background:${rc}"></span>grupo · ${PROFGRP.prev} ${num(PROFGRP.pct,0)}%</span></div></div>
+        <p class="note" style="margin:6px 0 2px">forma média do atleta nas 6 dimensões (média 50 · DP 10 · faixa 40–60), sobre o perfil mais prevalente do grupo (tracejado). Passe o dedo/mouse nos pontos para o valor exato.</p>
+        <div class="host" id="h_prof_ind"></div><div id="prof_read"></div>`;host.appendChild(pc);
+      drawAthleteProfile($("#h_prof_ind",pc),a);$("#prof_read",pc).innerHTML=athleteProfileHTML(a);}
   }
   render();
 }},
