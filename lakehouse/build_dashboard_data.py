@@ -163,7 +163,11 @@ def gen_VM():
         for r in sub.itertuples():
             x += [float(r.x_pre), float(r.x_pos)]; y += [float(r.y_pre), float(r.y_pos)]
         curves[dim] = {"x": x, "y": y}
-    return "const VM=" + json.dumps({"vc": vcl, "curves": curves})
+    ef = lh.read_delta("gold", "an_variance_eff").set_index("dim")
+    eff = {d: {"ag": float(ef.loc[d, "ag"]), "agdz": float(ef.loc[d, "agdz"]),
+               "rec": float(ef.loc[d, "rec"]), "recdz": float(ef.loc[d, "recdz"])}
+           for d in ["Vigor", "Fadiga", "TMD", "FadFisica"]}
+    return "const VM=" + json.dumps({"vc": vcl, "eff": eff, "curves": curves})
 
 def gen_TRANS():
     """TRANS ← gold.an_transitions: [lab, tipo, vigor, fadiga, pth, sig]."""
@@ -269,16 +273,18 @@ def gen_ATLETA():
     return "const ATLETA=" + json.dumps({"g": {a: g[a] for a in ids}, "ids": ids, "names": ABBR_NAME})
 
 def gen_ALO():
-    """ALO ← gold.an_allometry: expoentes de escala (b, IC, R², p, a=ln) + curva ajustada."""
+    """ALO ← gold.an_allometry + silver.pv_mood: expoentes de escala + curva ajustada
+    (fit de Fadiga física) e nuvem observada (pvobs/obs) para o gráfico alométrico."""
     d = lh.read_delta("gold", "an_allometry")
     pm = lh.read_delta("silver", "pv_mood")
-    pv = pm["pv"].astype(float)
-    xs = list(np.linspace(float(pv.min()), float(pv.max()), 60))
+    ff = pm[pm.dim == "FadFisica"].sort_values("pair")
+    pvobs = [round(float(x), 2) for x in ff["pv"]]; obs = [round(float(x), 2) for x in ff["mood"]]
+    xs = list(np.linspace(float(pm["pv"].min()), float(pm["pv"].max()), 60))
     rows = [dict(dim=r.dim, lab=r.lab, b=float(r.b), lo=float(r.lo), hi=float(r.hi),
                  r2=float(r.r2), p=float(r.p), a=float(r.a)) for r in d.itertuples()]
-    curve = {"pv": [round(x, 4) for x in xs]}
-    for r in d.itertuples():
-        curve[r.dim] = [round(float(np.exp(r.a + r.b * np.log(x))), 3) for x in xs]
+    fr = d[d.dim == "FadFisica"].iloc[0]  # curva plotada = Fadiga física
+    fit = [float(np.exp(fr["a"] + fr["b"] * np.log(x))) for x in xs]
+    curve = {"pv": [round(x, 4) for x in xs], "fit": fit, "pvobs": pvobs, "obs": obs}
     return "const ALO=" + json.dumps({"rows": rows, "curve": curve})
 
 def gen_PVMODEL():

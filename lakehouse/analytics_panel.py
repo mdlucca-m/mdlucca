@@ -194,7 +194,24 @@ def an_variance(m):
             pos = mm[(mm.dia == d) & (mm.is_pos)][col].mean()
             curves.append(dict(dim=key, dia=d, x_pre=round(d - 0.2, 1), x_pos=round(d + 0.2, 1),
                                y_pre=round(float(pre), 2), y_pos=round(float(pos), 2)))
-    return pd.DataFrame(vc), pd.DataFrame(curves)
+    # efeito agudo (pré→pós intradia) e de recuperação (pós Dk → pré Dk+1) por dimensão
+    eff = []
+    prg = mm[mm.is_pre].groupby(["ID", "dia"]); pog = mm[mm.is_pos].groupby(["ID", "dia"])
+    for col, key, lab in VM_DIMS:
+        pre = prg[col].mean(); pos = pog[col].mean()
+        j = pd.concat([pre, pos], axis=1).dropna(); j.columns = ["pre", "pos"]
+        ac = j["pos"] - j["pre"]
+        ov = []
+        for d in range(1, 7):
+            a = pos.xs(d, level="dia") if d in pos.index.get_level_values("dia") else None
+            b = pre.xs(d + 1, level="dia") if (d + 1) in pre.index.get_level_values("dia") else None
+            if a is None or b is None: continue
+            jj = pd.concat([a, b], axis=1).dropna(); jj.columns = ["a", "b"]
+            ov.extend((jj["b"] - jj["a"]).tolist())
+        ov = pd.Series(ov)
+        eff.append(dict(dim=key, ag=round(float(ac.mean()), 2), agdz=round(float(ac.mean() / ac.std(ddof=1)), 2),
+                        rec=round(float(ov.mean()), 2), recdz=round(float(ov.mean() / ov.std(ddof=1)), 2)))
+    return pd.DataFrame(vc), pd.DataFrame(curves), pd.DataFrame(eff)
 
 
 def an_transitions(m):
@@ -519,9 +536,11 @@ def an_deriv(m):
         dist[key] = {str(d): [round(float(x), 1) for x in dm[dm.dia == d][col]] for d in range(1, 8)}
     # PCA (variância + cargas)
     pca_p = an_pca(m)
+    # load = lista de 6 pares [carga_PC1, carga_PC2] (uma por dimensão)
+    load2d = [[pca_p["load"]["PCo1"][i], pca_p["load"]["PCo2"][i]] for i in range(6)]
     pca = {"dims": ["Vigor", "Fadiga", "Tensão", "Depressão", "Raiva", "Confusão"],
            "keys": ["vigor", "fadiga", "tensao", "depressao", "raiva", "confusao"],
-           "load": pca_p["load"], "ve": pca_p["var"]}
+           "load": load2d, "ve": pca_p["var"]}
     return {"x": xgrid, "vars": vars_, "ac": ac_, "trans": trans, "prepos_dia": prepos_dia,
             "order": [k for k, _, _, _ in DERIV9], "stats": stats_, "dist": dist, "pca": pca}
 
@@ -536,8 +555,9 @@ def run():
     lh.write_delta("gold", "an_sensitivity", pd.DataFrame([dict(payload=json.dumps(an_sensitivity(m)))])); print("[gold] an_sensitivity")
     lh.write_delta("gold", "an_recovery", pd.DataFrame([dict(payload=json.dumps(an_recovery(m)))])); print("[gold] an_recovery")
     lh.write_delta("gold", "an_sensitivity_robust", pd.DataFrame([dict(payload=json.dumps(an_sensitivity_robust(m)))])); print("[gold] an_sensitivity_robust")
-    vc, vcurve = an_variance(m)
-    lh.write_delta("gold", "an_variance", vc); lh.write_delta("gold", "an_variance_curves", vcurve); print("[gold] an_variance (+curves)")
+    vc, vcurve, veff = an_variance(m)
+    lh.write_delta("gold", "an_variance", vc); lh.write_delta("gold", "an_variance_curves", vcurve)
+    lh.write_delta("gold", "an_variance_eff", veff); print("[gold] an_variance (+curves +eff)")
     lh.write_delta("gold", "an_transitions", an_transitions(m)); print("[gold] an_transitions")
     lh.write_delta("gold", "an_risk_profiles", an_risk_profiles(m)); print("[gold] an_risk_profiles")
     icc, om = an_reliability(m, it)
