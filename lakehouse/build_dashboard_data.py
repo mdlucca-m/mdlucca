@@ -222,6 +222,10 @@ def gen_DYN():
     """DYN ← gold.an_dyn_payload: AR(1) multinível + GLM Poisson-GEE."""
     return "const DYN=" + _payload("an_dyn_payload")
 
+def gen_LOAD():
+    """LOAD ← gold.an_load_payload: sessões segmentadas + normalização de carga."""
+    return "const LOAD=" + _payload("an_load_payload")
+
 def gen_NORM():
     """NORMSTD ← gold.an_norm_payload: perfis sob padronização interna × externa (ilustrativa)."""
     return "const NORMSTD=" + _payload("an_norm_payload")
@@ -495,7 +499,7 @@ def run():
             "LIM": gen_LIM(), "VM": gen_VM(), "TRANS": gen_TRANS(), "PRISCO": gen_PRISCO(),
             "ALO": gen_ALO(), "PVMODEL": gen_PVMODEL(), "ATLETA": gen_ATLETA(),
             "CURVE": gen_CURVE(), "LC_X": gen_LC(),
-            "CROSS": f"const CROSS={gen_CROSS()}", "CURVE_CROSS": f"const CURVE_CROSS={gen_CROSS()}", "MV": gen_MV(), "SENSV": gen_SENSV(), "HVS": gen_HVS(), "SENSA": gen_SENSA(), "IOTPRED": gen_IOTPRED(), "DERIV": gen_DERIV(), "TRI": gen_TRI(), "TWO": gen_TWO(), "NORMSTD": gen_NORM(), "TRICONF": gen_TRICONF(), "FAC": gen_FAC(), "DYN": gen_DYN()}
+            "CROSS": f"const CROSS={gen_CROSS()}", "CURVE_CROSS": f"const CURVE_CROSS={gen_CROSS()}", "MV": gen_MV(), "SENSV": gen_SENSV(), "HVS": gen_HVS(), "SENSA": gen_SENSA(), "IOTPRED": gen_IOTPRED(), "DERIV": gen_DERIV(), "TRI": gen_TRI(), "TWO": gen_TWO(), "NORMSTD": gen_NORM(), "TRICONF": gen_TRICONF(), "FAC": gen_FAC(), "DYN": gen_DYN(), "LOAD": gen_LOAD()}
     for name, rhs in gens.items():
         html = replace_const(html, name, rhs)
         print(f"[painel←gold] const {name} regenerada do gold")
