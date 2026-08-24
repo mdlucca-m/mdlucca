@@ -133,6 +133,14 @@ Fluxo de manutenção: chegou dado novo → `python run_pipeline.py` → se a
 reconciliação apontar diferença, os dados do painel são regenerados a partir do
 gold. Hoje os dois estão **consistentes** (as 7 variáveis batem, tolerância 0,1).
 
+**Cobertura total:** `build_dashboard_data.py` regenera do gold **todas as ~26
+constantes de dados** do painel — não só a trajetória, mas descritivas, pré→pós,
+perfis, sono/estresse, modelos (Random Forest/XGBoost/LightGBM), negativas por
+tipo de dia, confiabilidade (ICC/ω), limiares (MDC), componentes de variância,
+transições, risco, alometria, PCA, sensibilidade, IoT e as curvas/derivadas
+(DERIV). Cada análise vira uma tabela `gold.an_*` auditável, determinística
+(sementes fixas; verificada por `verify.py`) e reconciliada com o painel.
+
 Consultar em SQL:
 
 ```python
