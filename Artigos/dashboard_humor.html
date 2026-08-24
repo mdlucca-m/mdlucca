@@ -351,6 +351,23 @@ table.dyn tbody tr.hlrow{background:rgba(90,211,196,.1)}
 .lchip{display:inline-flex; align-items:center; gap:7px; font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted);
   padding:6px 11px; border-radius:999px; border:1px solid var(--stroke); background:var(--glass)}
 .lchip .sw{width:16px; height:9px; border-radius:3px}
+
+/* seletor de segmentação da apresentação (geral · variável · cruzamento) — botões maiores e ilustrativos */
+.segwrap{margin:4px 0 18px; padding:14px 16px; border:1px solid var(--stroke); border-radius:18px; background:linear-gradient(160deg,var(--glass2),rgba(11,18,29,.42))}
+.segcaprow{display:flex; align-items:center; gap:8px; font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint); margin-bottom:11px}
+.segcaprow::after{content:""; flex:1; height:1px; background:var(--stroke)}
+.segrow{display:flex; flex-wrap:wrap; gap:9px; align-items:stretch}
+.segbtn{display:flex; align-items:center; gap:10px; padding:8px 14px 8px 8px; border-radius:14px; cursor:pointer; border:1px solid var(--stroke); background:var(--glass); color:var(--ink); font:inherit; transition:transform .16s, border-color .16s, background .16s; position:relative}
+.segbtn .hdi{width:36px; height:36px}
+.segbtn .sl{display:flex; flex-direction:column; line-height:1.16; text-align:left; white-space:nowrap}
+.segbtn .sl b{font-size:13px; font-weight:700; letter-spacing:-.01em}
+.segbtn .sl span{font-size:8.5px; font-family:"IBM Plex Mono",monospace; color:var(--muted); text-transform:uppercase; letter-spacing:.12em}
+.segbtn:hover{border-color:color-mix(in srgb,var(--sc,#2ff0cf) 55%, var(--stroke)); transform:translateY(-1px); background:var(--glass2)}
+.segbtn[aria-pressed="true"]{border-color:var(--sc,#2ff0cf); background:color-mix(in srgb,var(--sc,#2ff0cf) 15%, var(--glass2)); box-shadow:inset 0 0 0 1px var(--sc,#2ff0cf), 0 12px 26px -16px var(--sc,#2ff0cf)}
+.segbtn[aria-pressed="true"] .sl b{color:var(--sc,#2ff0cf)}
+.segdiv{align-self:stretch; width:1px; background:var(--stroke); margin:2px 4px}
+.segtag{align-self:center; font-family:"IBM Plex Mono",monospace; font-size:8.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); padding:0 2px 0 6px}
+@media (max-width:720px){.segbtn .sl span{display:none} .segdiv{display:none}}
 </style>
 
 <canvas id="rain" aria-hidden="true"></canvas>
@@ -2192,20 +2209,15 @@ const SECTIONS=[
   h.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
 }},
 {id:"apresentacao",lab:"Apresentação guiada",icon:"present",render(h){
-  head(h,"para o orientador","Apresentação guiada — por variável e por análise","Escolha a variável e percorra, apertando Próximo, quais análises foram feitas, os resultados e — em destaque — como as curvas se cruzam ao longo da semana e em que dia. Ou vá direto a uma ferramenta pelos <b>atalhos temáticos</b> abaixo.");
-  // atalhos temáticos (mais navegação + ligação com IoT e risco)
+  head(h,"para o orientador","Apresentação guiada — geral · por variável · cruzamentos","Comece pela <b>visão geral de todas as variáveis</b>; depois aprofunde em cada dimensão ou nos <b>cruzamentos</b>. Escolha o recorte nos botões abaixo — tudo é replotado automaticamente — e avance a leitura apertando <b>Próximo</b>. Ao final, use os <b>atalhos temáticos</b> para ir direto a uma ferramenta.");
   const QA=[["atletas","cells","Atletas em risco","clique e veja quem está em risco, por dia",C.crit],["iot","nodes","Monitoramento IoT","classificação e predição em tempo real",C.tensao],["risco","shield","Perfis de risco","rastreio de saúde mental",C.raiva],["framework","map","Framework do microciclo","tipos de dia × variáveis",C.pth],["resultados","present","Resultados & Discussão","leitura guiada de tudo",C.vigor],["sono","moon","Sono & Estresse","Epworth e PSS",C.confusao]];
-  const qa=document.createElement("div");qa.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:18px";
-  QA.forEach(x=>{const b=document.createElement("div");b.style.cssText=`cursor:pointer;border:1px solid var(--stroke);border-left:3px solid ${x[4]};border-radius:12px;padding:11px 13px;background:var(--glass);transition:.15s`;
-    b.onmouseover=()=>b.style.background="var(--glass2)";b.onmouseout=()=>b.style.background="var(--glass)";
-    b.innerHTML=`<div style="display:flex;align-items:center;gap:11px">${icHD(x[1],x[4],{size:34,spin:true})}<div><div style="font-weight:700;font-size:13.5px">${x[2]}</div><div style="font-size:10.5px;color:var(--muted)">${x[3]}</div></div><span style="margin-left:auto;color:${x[4]};font-size:18px">›</span></div>`;
-    b.onclick=()=>go(x[0]);qa.appendChild(b);});
-  h.appendChild(qa);
   const box=(k,t,s)=>`<div class="fbox"><div class="fk">${k}</div><div class="ft">${t}</div><div class="fs">${s}</div></div>`;
-  const arrow=`<div class="farrow">→</div>`;
   const kpiRow=(arr)=>`<div class="kpis fut">`+arr.map(k=>`<div class="kpi" style="--kc:${k[3]}"><span class="scan"></span><span class="cbr"></span><span class="stripe" style="background:${k[3]}"></span><div class="lab">${k[0]}</div><div class="val" style="color:${k[3]};font-size:22px">${k[1]}</div><div class="cap">${k[2]}</div></div>`).join("")+`</div>`;
-  let selK=HLK()||"vigor";
-  const sInfo=()=>DERIV.stats[selK], vLab=()=>DERIV.vars[selK].lab, vCol=()=>DERIV.vars[selK].c;
+  let selK='todas';
+  const isAll=()=>selK==='todas';
+  const sInfo=()=>DERIV.stats[selK], vLab=()=>isAll()?"todas as variáveis":DERIV.vars[selK].lab, vCol=()=>isAll()?C.accent:DERIV.vars[selK].c;
+  const SUB6=["vigor","fadiga","tensao","depressao","raiva","confusao"];
+  const magw=x=>Math.abs(x)>=.8?"grande":Math.abs(x)>=.5?"médio":Math.abs(x)>=.2?"pequeno":"trivial";
   const dcomma=x=>("dia "+x.toFixed(1).replace(".",","));
   function serFor(k){const dd=dailyFromRaw(DERIV.vars[k].raw);return {k,lab:DERIV.vars[k].lab,c:DERIV.vars[k].c,daily:dd.map(x=>x.mean)};}
   function crossDaysK(a,b){const A=DERIV.vars[a].sig,B=DERIV.vars[b].sig,X=DERIV.x,out=[];for(let i=0;i<X.length-1;i++){const d1=A[i]-B[i],d2=A[i+1]-B[i+1];if(d1===0)out.push(X[i]);else if(d1*d2<0){const t=d1/(d1-d2);out.push(X[i]+(X[i+1]-X[i])*t);}}const keep=[];out.forEach(x=>{if(!keep.length||x-keep[keep.length-1]>0.5)keep.push(x);});return keep;}
@@ -2217,8 +2229,14 @@ const SECTIONS=[
    {t:()=>"Objetivos",s:()=>"O que o estudo se propôs a responder.",
     draw:host=>{host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><div class="fk" style="font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:4px">Objetivo geral</div><p class="note" style="font-size:15px;line-height:1.6;color:var(--ink);margin:0">Caracterizar as alterações do perfil de humor de atletas de handebol de elite ao longo de um microciclo pré-competitivo.</p></div>`);
      host.insertAdjacentHTML("beforeend",`<div class="card"><h3>Objetivos específicos</h3><div class="flowrow">${box("a","Descrição e limiares","descritiva, consistência e MDC das dimensões")}${box("b","Perfis e migração","caracterizar e quantificar a migração")}${box("c","Magnitude do efeito","D1→D7, entre dias e pré/pós")}</div><div class="flowrow">${box("d","Forma temporal","suavização e inflexão")}${box("e","Cruzamentos","ajuste polinomial e datação")}${box("f","Estrutura e relações","correlações e componentes principais")}</div></div>`);}},
-   {t:()=>"Descritiva — "+vLab(),s:()=>"Como a variável se distribui na semana e quão confiável é a sua medida.",
-    draw:host=>{const s=sInfo(),c=vCol();host.insertAdjacentHTML("beforeend",kpiRow([["Média ± DP",num(s.m,1)+" ± "+num(s.sd,1),"escore 0–16",c],["Variação (CV)",num(s.cv,0)+"%","dispersão relativa",c],["Piso",num(s.floor,0)+"%","escores nulos",c],["ICC",num(s.icc,2),"confiab. entre dias",c],["MDC95",num(s.mdc95,1),"mudança mínima real",c]]));tilt(host);
+   {t:()=>"Descritiva — "+vLab(),s:()=>isAll()?"Como as sete dimensões se distribuem na semana e quão confiáveis são as suas medidas.":"Como a variável se distribui na semana e quão confiável é a sua medida.",
+    draw:host=>{if(isAll()){const icc=DK.map(k=>DERIV.stats[k].icc),cvs=DK.map(k=>DERIV.stats[k].cv).sort((a,b)=>a-b),cvmed=cvs[Math.floor(cvs.length/2)];
+      host.insertAdjacentHTML("beforeend",kpiRow([["Dimensões","7","6 subescalas + PTH",C.accent],["Observações","286","13 coletas · 7 dias",C.fadiga],["ICC médio",num(icc.reduce((a,b)=>a+b,0)/icc.length,2),"confiab. entre dias",C.vigor],["CV mediano",num(cvmed,0)+"%","dispersão relativa típica",C.warn]]));tilt(host);
+      const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Trajetórias de todas as dimensões</h3><p class="note">média diária suavizada das seis subescalas (0–16) · plotagem automática de todas de uma vez</p><div class="host" id="h_all"></div>`;host.appendChild(cc);
+      lineChart($(".host",ensureHost(cc)),SUB6.map(serFor),{ymax:9});
+      const ic=document.createElement("div");ic.className="card";ic.innerHTML=`<h3>Confiabilidade por dimensão (ICC)</h3><p class="note">consistência da medida entre os dias · uma barra por variável</p><div class="host" id="h_icc"></div>`;host.appendChild(ic);
+      signedBars($(".host",ensureHost(ic)),DK.map(k=>({lab:DERIV.vars[k].lab,v:DERIV.stats[k].icc,c:DERIV.vars[k].c})),{dec:2});return;}
+     const s=sInfo(),c=vCol();host.insertAdjacentHTML("beforeend",kpiRow([["Média ± DP",num(s.m,1)+" ± "+num(s.sd,1),"escore 0–16",c],["Variação (CV)",num(s.cv,0)+"%","dispersão relativa",c],["Piso",num(s.floor,0)+"%","escores nulos",c],["ICC",num(s.icc,2),"confiab. entre dias",c],["MDC95",num(s.mdc95,1),"mudança mínima real",c]]));tilt(host);
      const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Comportamento ao longo da semana</h3><p class="note">trajetória suavizada · picos rotulados · média diária</p><div class="host" id="h_pd"></div>`;host.appendChild(cc);weekChart($(".host",ensureHost(cc)),selK);
      const gc=document.createElement("div");gc.className="card";gc.innerHTML=`<h3>Qualidade da medida — ${vLab()}</h3><p class="note">medidores radiais: consistência entre dias (ICC), dispersão relativa (CV) e razão sinal/ruído</p><div class="host" id="h_gq"></div>`;host.appendChild(gc);
      gaugeRow($(".host",ensureHost(gc)),[{lab:"ICC",v:s.icc,min:0,max:1,dec:2,c:c,cap:"confiabilidade"},{lab:"CV",v:s.cv,min:0,max:100,dec:0,unit:"%",c:C.warn,cap:"dispersão"},{lab:"Sinal / Ruído",v:s.snr,min:0,max:8,dec:1,c:C.vigor,cap:"nitidez da tendência"}]);}},
@@ -2232,26 +2250,51 @@ const SECTIONS=[
      const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Teia do perfil · Dia 1 × Dia 7</h3><p class="note">z-escore de cada dimensão contra a média da semana · anel tracejado marca a média (z = 0)</p><div class="host" id="h_rad"></div>`;host.appendChild(cc);
      radarChart($(".host",ensureHost(cc)),axes,[{lab:"Dia 1 · abertura",c:C.vigor,vals:s1},{lab:"Dia 7 · fechamento",c:C.fadiga,vals:s7}],{hlIdx});
      host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.62;color:var(--ink)">No <b>Dia 1</b> o vigor projeta-se acima da média enquanto as dimensões negativas recuam para dentro do anel — a assinatura clássica do <b>perfil iceberg</b>. Ao longo da semana o desenho se achata: o vigor recua em direção ao centro e a fadiga avança para fora, o que traduz visualmente a <b>inversão do eixo energia-fadiga</b> descrita nas demais análises.</p></div>`);}},
-   {t:()=>"Mudança na semana — "+vLab(),s:()=>"Se e quanto a variável mudou do primeiro ao último dia, e ao longo dos sete dias.",
-    draw:host=>{const s=sInfo(),c=vCol();host.insertAdjacentHTML("beforeend",kpiRow([["D1 → D7",num(s.d1,1)+" → "+num(s.d7,1),(s.delta>=0?"+":"")+num(s.delta,1)+" no total",c],["Tamanho de efeito","dz = "+(s.dz>=0?"+":"")+num(s.dz,2),(Math.abs(s.dz)>=.8?"grande":Math.abs(s.dz)>=.5?"médio":Math.abs(s.dz)>=.2?"pequeno":"trivial")+(s.sig17?" · p<0,05":""),c],["Friedman","χ² = "+num(s.chi,1),pv(s.fp)+" · W = "+num(s.W,2),c],["Efeito crônico",(s.cr>=0?"+":"")+num(s.cr,2),"acúmulo entre dias",c]]));tilt(host);
+   {t:()=>"Mudança na semana — "+vLab(),s:()=>isAll()?"Quanto cada dimensão mudou do primeiro ao último dia, com o tamanho de efeito (dz) lado a lado.":"Se e quanto a variável mudou do primeiro ao último dia, e ao longo dos sete dias.",
+    draw:host=>{if(isAll()){const rows=DK.map(k=>({k,lab:DERIV.vars[k].lab,c:DERIV.vars[k].c,dz:DERIV.stats[k].dz,sig:DERIV.stats[k].sig17}));
+      const up=rows.slice().sort((a,b)=>b.dz-a.dz)[0],dn=rows.slice().sort((a,b)=>a.dz-b.dz)[0],nsig=rows.filter(r=>r.sig).length;
+      host.insertAdjacentHTML("beforeend",kpiRow([["Maior alta",up.lab,"dz "+sg(up.dz,2)+" · "+magw(up.dz),up.c],["Maior queda",dn.lab,"dz "+sg(dn.dz,2)+" · "+magw(dn.dz),dn.c],["Significativas",nsig+" de 7","dimensões com p<0,05",C.pth]]));tilt(host);
+      const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Tamanho de efeito D1→D7, por dimensão</h3><p class="note">dz padronizado · ★ = mudança significativa (p<0,05) · barra para cima = piora/subida, para baixo = queda</p><div class="host" id="h_dzall"></div>`;host.appendChild(cc);
+      signedBars($(".host",ensureHost(cc)),rows.map(r=>({lab:r.lab,v:r.dz,c:r.c,sig:r.sig})),{dec:2});return;}
+     const s=sInfo(),c=vCol();host.insertAdjacentHTML("beforeend",kpiRow([["D1 → D7",num(s.d1,1)+" → "+num(s.d7,1),(s.delta>=0?"+":"")+num(s.delta,1)+" no total",c],["Tamanho de efeito","dz = "+(s.dz>=0?"+":"")+num(s.dz,2),(Math.abs(s.dz)>=.8?"grande":Math.abs(s.dz)>=.5?"médio":Math.abs(s.dz)>=.2?"pequeno":"trivial")+(s.sig17?" · p<0,05":""),c],["Friedman","χ² = "+num(s.chi,1),pv(s.fp)+" · W = "+num(s.W,2),c],["Efeito crônico",(s.cr>=0?"+":"")+num(s.cr,2),"acúmulo entre dias",c]]));tilt(host);
      const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Trajetória diária de ${vLab()}</h3><p class="note">os pontos rosa marcam os picos (valor) da curva</p><div class="host" id="h_ms"></div>`;host.appendChild(cc);weekChart($(".host",ensureHost(cc)),selK);}},
-   {t:()=>"Efeito agudo (pré/pós) — "+vLab(),s:()=>"O que uma sessão de treino faz com a variável, do pré ao pós, em cada dia.",
-    draw:host=>{const s=sInfo(),c=vCol();host.insertAdjacentHTML("beforeend",kpiRow([["Pré-treino",num(s.pre,2),"média da manhã",c],["Pós-treino",num(s.pos,2),"média do fim do dia",c],["Efeito agudo","dz = "+(s.dzpp>=0?"+":"")+num(s.dzpp,2),(s.sigpp?"significativo":"não significativo"),c],["Agudo médio",(s.ag>=0?"+":"")+num(s.ag,2),"média intradia",c]]));tilt(host);
+   {t:()=>"Efeito agudo (pré/pós) — "+vLab(),s:()=>isAll()?"O que uma sessão de treino faz com cada dimensão, do pré ao pós, comparando todas.":"O que uma sessão de treino faz com a variável, do pré ao pós, em cada dia.",
+    draw:host=>{if(isAll()){const rows=DK.map(k=>({lab:DERIV.vars[k].lab,c:DERIV.vars[k].c,v:DERIV.stats[k].dzpp,sig:DERIV.stats[k].sigpp}));
+      const top=rows.slice().sort((a,b)=>Math.abs(b.v)-Math.abs(a.v))[0],nsig=rows.filter(r=>r.sig).length;
+      host.insertAdjacentHTML("beforeend",kpiRow([["Mais reativa",top.lab,"dz "+sg(top.v,2)+" pré→pós",top.c],["Significativas",nsig+" de 7","efeito agudo p<0,05",C.pth],["Direção","piora aguda","fadiga sobe, vigor cai",C.fadiga]]));tilt(host);
+      const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Efeito agudo pré→pós, por dimensão</h3><p class="note">dz intradia · ★ = significativo · barra para cima = piora, para baixo = queda de vigor</p><div class="host" id="h_ppall"></div>`;host.appendChild(cc);
+      signedBars($(".host",ensureHost(cc)),rows,{dec:2});return;}
+     const s=sInfo(),c=vCol();host.insertAdjacentHTML("beforeend",kpiRow([["Pré-treino",num(s.pre,2),"média da manhã",c],["Pós-treino",num(s.pos,2),"média do fim do dia",c],["Efeito agudo","dz = "+(s.dzpp>=0?"+":"")+num(s.dzpp,2),(s.sigpp?"significativo":"não significativo"),c],["Agudo médio",(s.ag>=0?"+":"")+num(s.ag,2),"média intradia",c]]));tilt(host);
      const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Pré → pós por dia</h3><p class="note">o ponto pós viaja a partir do pré em tempo real · ○ pré · ● pós</p><div class="host" id="h_ag"></div>`;host.appendChild(cc);dayChart($(".host",ensureHost(cc)),selK);}},
-   {t:()=>"Forma temporal — "+vLab(),s:()=>"Quando a tendência vira: ponto de inflexão, velocidade e aceleração da variável.",
-    draw:host=>{const s=sInfo();host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.6;color:var(--ink)">A 2ª derivada localiza a <b>inflexão</b> de ${vLab()} ${s.infl!=null?("por volta do <b>"+dcomma(s.infl)+"</b>"):"(não detectada)"}, e a velocidade de pico foi de <b>${(s.vpk>=0?"+":"")+num(s.vpk,1)}</b> ponto/dia, por volta do <b>${dcomma(s.vpkx)}</b>.</p></div>`);
+   {t:()=>"Forma temporal — "+vLab(),s:()=>isAll()?"A velocidade de pico de cada curva e onde a tendência vira, lado a lado.":"Quando a tendência vira: ponto de inflexão, velocidade e aceleração da variável.",
+    draw:host=>{if(isAll()){const rows=DK.map(k=>({lab:DERIV.vars[k].lab,c:DERIV.vars[k].c,v:DERIV.stats[k].vpk}));
+      const fast=rows.slice().sort((a,b)=>Math.abs(b.v)-Math.abs(a.v))[0];
+      host.insertAdjacentHTML("beforeend",kpiRow([["Mais veloz",fast.lab,"pico "+sg(fast.v,1)+" pt/dia",fast.c],["Leitura","2ª derivada","localiza a inflexão de cada curva",C.pth],["Escala","ponto/dia","velocidade de variação",C.tensao]]));tilt(host);
+      const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Velocidade de pico, por dimensão</h3><p class="note">1ª derivada máxima de cada curva · barra para cima = subindo mais rápido, para baixo = caindo mais rápido</p><div class="host" id="h_vpkall"></div>`;host.appendChild(cc);
+      signedBars($(".host",ensureHost(cc)),rows,{dec:1,unit:" pt/d"});return;}
+     const s=sInfo(),d2=DERIV.vars[selK].d2||[],apk=d2.length?d2.reduce((m,v)=>Math.abs(v)>Math.abs(m)?v:m,0):0;
+     host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.6;color:var(--ink)">A 2ª derivada localiza a <b>inflexão</b> de ${vLab()} ${s.infl!=null?("por volta do <b>"+dcomma(s.infl)+"</b>"):"(não detectada)"}, e a velocidade de pico foi de <b>${(s.vpk>=0?"+":"")+num(s.vpk,1)}</b> ponto/dia, por volta do <b>${dcomma(s.vpkx)}</b>.</p></div>`);
+     const gv=document.createElement("div");gv.className="card";gv.innerHTML=`<h3>Velocímetro — ${vLab()}</h3><p class="note">velocidade de pico (1ª derivada) e aceleração de pico (2ª derivada) da curva</p><div class="host" id="h_vel"></div>`;host.appendChild(gv);
+     gaugeRow($(".host",ensureHost(gv)),[{lab:"Velocidade pico",v:Math.abs(s.vpk),min:0,max:Math.max(3,Math.abs(s.vpk)*1.25),dec:1,unit:" pt/d",c:vCol(),cap:"por volta do "+dcomma(s.vpkx)},{lab:"Aceleração pico",v:Math.abs(apk),min:0,max:Math.max(1.2,Math.abs(apk)*1.25),dec:2,c:C.pth,cap:s.infl!=null?("inflexão ~"+dcomma(s.infl)):"sem inflexão"}]);
      const wrap=document.createElement("div");host.appendChild(wrap);drawDeriv(wrap,selK);}},
    {t:()=>"Cruzamentos ao longo da semana — "+vLab(),s:()=>"Como as curvas se cruzam e em que dia: a inversão do eixo energia-fadiga.",
     draw:host=>{const vf=crossDaysK("vigor","fadiga");
      let txt=`O <b>vigor</b> e a <b>fadiga</b> cruzam-se em ${vf.map(dcomma).join(", ")} — após o último cruzamento a fadiga se afasta por cima, o que marca a <b>inversão do eixo energia-fadiga</b>.`;
-     if(selK!=="vigor"&&selK!=="fadiga"){const kv=crossDaysK(selK,"vigor"),kf=crossDaysK(selK,"fadiga");const s=sInfo();
+     if(!isAll()&&selK!=="vigor"&&selK!=="fadiga"){const kv=crossDaysK(selK,"vigor"),kf=crossDaysK(selK,"fadiga");const s=sInfo();
        txt+=` Quanto a <b>${vLab()}</b>: `+(kv.length?("cruza o vigor em "+kv.map(dcomma).join(", ")+(kf.length?"; ":". ")):("não cruza o vigor"+(kf.length?"; ":", permanecendo próxima ao piso. ")))+(kf.length?("cruza a fadiga em "+kf.map(dcomma).join(", ")+". "):"")+`Seu pico ocorre por volta do ${dcomma(s.vpkx)}.`;}
+     else if(isAll())txt+=` No recorte geral, as três curvas de referência — <b>vigor</b>, <b>fadiga</b> e <b>PTH</b> — deixam ver a coreografia do eixo energia-fadiga ao longo da semana.`;
      host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><h3>Onde e em que dia se cruzam</h3><p class="note" style="font-size:13.5px;line-height:1.65;color:var(--ink)">${txt}</p></div>`);
-     const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Trajetórias e cruzamentos</h3><p class="note">linhas ✕ marcam os cruzamentos vigor × fadiga; a variável selecionada aparece em destaque</p><div class="host" id="h_cr"></div>`;host.appendChild(cc);
-     const extra=(selK!=="vigor"&&selK!=="fadiga")?serFor(selK):serFor("pth");
-     lineChart($(".host",ensureHost(cc)),[serFor("vigor"),serFor("fadiga"),extra],{ymax:9,crosses:vf.map(x=>Math.round(x*10)/10),hlk:selK});}},
-   {t:()=>"Agudo × crônico — "+vLab(),s:()=>"O desgaste vem de cada sessão (agudo) ou do acúmulo entre os dias (crônico)?",
-    draw:host=>{const s=sInfo(),c=vCol();host.insertAdjacentHTML("beforeend",kpiRow([["Efeito agudo",(s.ag>=0?"+":"")+num(s.ag,2),"média intradia (pré→pós)",C.fadiga],["Efeito crônico",(s.cr>=0?"+":"")+num(s.cr,2),"acúmulo D1→D7",C.pth],["dz crônico",(s.crdz>=0?"+":"")+num(s.crdz,2),(s.crsig?"significativo":"não significativo"),c]]));tilt(host);
+     const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Trajetórias e cruzamentos</h3><p class="note">linhas ✕ marcam os cruzamentos vigor × fadiga${isAll()?"":"; a variável selecionada aparece em destaque"}</p><div class="host" id="h_cr"></div>`;host.appendChild(cc);
+     const extra=(!isAll()&&selK!=="vigor"&&selK!=="fadiga")?serFor(selK):serFor("pth");
+     lineChart($(".host",ensureHost(cc)),[serFor("vigor"),serFor("fadiga"),extra],{ymax:9,crosses:vf.map(x=>Math.round(x*10)/10),hlk:isAll()?null:selK});}},
+   {t:()=>"Agudo × crônico — "+vLab(),s:()=>isAll()?"Para cada dimensão: quanto vem de cada sessão (agudo) e quanto do acúmulo entre os dias (crônico).":"O desgaste vem de cada sessão (agudo) ou do acúmulo entre os dias (crônico)?",
+    draw:host=>{if(isAll()){const ag=DK.map(k=>({lab:DERIV.vars[k].lab,c:C.fadiga,v:DERIV.stats[k].ag})),cr=DK.map(k=>({lab:DERIV.vars[k].lab,c:C.pth,v:DERIV.stats[k].cr,sig:DERIV.stats[k].crsig}));
+      host.insertAdjacentHTML("beforeend",kpiRow([["Agudo","por sessão","variação média pré→pós",C.fadiga],["Crônico","por acúmulo","mudança D1→D7 entre dias",C.pth],["Regra geral","crônico domina","no eixo energia-fadiga",C.vigor]]));tilt(host);
+      const c1=document.createElement("div");c1.className="card";c1.innerHTML=`<h3>Efeito agudo por dimensão</h3><p class="note">variação média intradia (pré→pós) · uma barra por variável</p><div class="host" id="h_agall"></div>`;host.appendChild(c1);
+      signedBars($(".host",ensureHost(c1)),ag,{dec:2});
+      const c2=document.createElement("div");c2.className="card";c2.innerHTML=`<h3>Efeito crônico por dimensão</h3><p class="note">mudança acumulada D1→D7 · ★ = significativo</p><div class="host" id="h_crall"></div>`;host.appendChild(c2);
+      signedBars($(".host",ensureHost(c2)),cr,{dec:2});return;}
+     const s=sInfo(),c=vCol();host.insertAdjacentHTML("beforeend",kpiRow([["Efeito agudo",(s.ag>=0?"+":"")+num(s.ag,2),"média intradia (pré→pós)",C.fadiga],["Efeito crônico",(s.cr>=0?"+":"")+num(s.cr,2),"acúmulo D1→D7",C.pth],["dz crônico",(s.crdz>=0?"+":"")+num(s.crdz,2),(s.crsig?"significativo":"não significativo"),c]]));tilt(host);
      const dom=Math.abs(s.cr)>Math.abs(s.ag)*2?"predominantemente <b>crônica</b>, por acúmulo entre os dias":"resultante tanto do <b>estímulo agudo</b> quanto do <b>acúmulo</b>";
      host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.6;color:var(--ink)">A mudança de ${vLab()} foi ${dom}.</p></div>`);}},
    {t:()=>"Os dois eixos — mapa da triangulação",s:()=>"A triangulação mostra que o humor sob carga se move em dois eixos coordenados: o dominante energia–fadiga e um segundo eixo afetivo–tensional. O mapa liga cada eixo às suas dimensões e ao efeito medido.",
@@ -2264,21 +2307,45 @@ const SECTIONS=[
        {t:"Eixo 2 · Afetivo–Tensional",s:"revelado pela triangulação",ic:"swirl",c:C.raiva,leaves:[
          {t:"Raiva",s:"+0,47 · ✓ 3 vias",c:C.raiva,ic:"flame"},{t:"Depressão",s:"+0,45 · ✓ 3 vias",c:C.depressao,ic:"cloudrain"},{t:"Confusão",s:"+0,45 · parcial",c:C.confusao,ic:"swirl"},{t:"Tensão",s:"+0,35 · tendência",c:C.tensao,ic:"alert"},{t:"PTH / TMD",s:"+0,46 · ✓ 3 vias",c:C.pth,ic:"sigma"}]}]});
      host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.62;color:var(--ink)">O <b>primeiro eixo</b> concentra a maior parte da variação: a queda do vigor e a subida da fadiga desenham a assinatura da fadiga funcional. Ao confrontar <i>bootstrap</i>, Wilcoxon e permutação, a triangulação revela um <b>segundo eixo afetivo–tensional</b> — raiva, depressão, confusão e tensão elevam-se de modo coordenado entre os tipos de dia e convergem no escore total de humor (PTH/TMD). Os dois eixos, somados, medem o custo do microciclo sobre o estado psicológico, ainda assim sem indício de comprometimento clínico.</p></div>`);}},
-   {t:()=>"Síntese — "+vLab(),s:()=>"O resumo automático da variável e a mensagem do estudo.",
-    draw:host=>{const s=sInfo();const dir=s.delta>0?"subiu":"caiu";const mag=Math.abs(s.dz)>=.8?"grande":Math.abs(s.dz)>=.5?"médio":Math.abs(s.dz)>=.2?"pequeno":"trivial";
+   {t:()=>"Síntese — "+vLab(),s:()=>isAll()?"O resumo do conjunto e a mensagem do estudo.":"O resumo automático da variável e a mensagem do estudo.",
+    draw:host=>{if(isAll()){host.insertAdjacentHTML("beforeend",kpiRow([["Direção geral","fadiga ↑ · vigor ↓","migração ordenada",C.fadiga],["Eixo dominante","energia-fadiga","concentra a variação",C.vigor],["Confirmação","triangulação","por métodos independentes",C.pth]]));tilt(host);
+      host.insertAdjacentHTML("beforeend",`<div class="card"><h3>O estudo em uma frase</h3><p class="note" style="font-size:14px;line-height:1.65;color:var(--ink)">Na última semana de pré-temporada, o humor migrou de forma <b>ordenada e datável</b> da prontidão para a <b>fadiga funcional</b>: o vigor recua e a fadiga sobe no <b>eixo energia-fadiga</b>, com um <b>segundo eixo afetivo-tensional</b> (raiva, depressão, confusão, tensão) revelado pela triangulação.</p></div>`);
+      host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><h3>Mensagem do estudo</h3><p class="note" style="font-size:13.5px;line-height:1.65;color:var(--ink)">O curso pode ser <b>lido, datado e quantificado</b>, e foi confirmado por métodos independentes — sem qualquer sinal de comprometimento da saúde mental. O painel oferece o rastreio precoce para ajustar carga e recuperação dentro do microciclo.</p></div>`);return;}
+     const s=sInfo();const dir=s.delta>0?"subiu":"caiu";const mag=Math.abs(s.dz)>=.8?"grande":Math.abs(s.dz)>=.5?"médio":Math.abs(s.dz)>=.2?"pequeno":"trivial";
      host.insertAdjacentHTML("beforeend",`<div class="card"><h3>${vLab()} em uma frase</h3><p class="note" style="font-size:14px;line-height:1.65;color:var(--ink)">${vLab()} ${dir} de ${num(s.d1,1)} para ${num(s.d7,1)} do D1 ao D7 (efeito ${mag}, dz ${(s.dz>=0?"+":"")+num(s.dz,2)}), com inflexão ${s.infl!=null?"por volta do "+dcomma(s.infl):"não detectada"} e razão sinal/ruído de ${num(s.snr,1)} — ${s.snr>=4?"tendência limpa e confiável":s.snr>=2?"sinal claro, com oscilação":"sinal fraco, dominado pelo piso"}.</p></div>`);
      host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><h3>Mensagem do estudo</h3><p class="note" style="font-size:13.5px;line-height:1.65;color:var(--ink)">Na última semana de pré-temporada, o humor migrou da prontidão para a fadiga funcional, de forma ordenada e datável, concentrada no <b>eixo energia-fadiga</b> — confirmada por métodos independentes (triangulação) e sem sinais de comprometimento da saúde mental.</p></div>`);}}
   ];
-  const varsel=document.createElement("div");varsel.className="legend";varsel.style.marginBottom="16px";h.appendChild(varsel);
-  let cur=0;
+  let cur=0;const crossIdx=SLIDES.findIndex(s=>/Cruzamentos/.test(s.t()));
+  // ---- seletor de segmentação: primeiro geral, depois por variável, depois cruzamento ----
+  const seg=document.createElement("div");seg.className="segwrap";h.appendChild(seg);
+  seg.insertAdjacentHTML("beforeend",`<div class="segcaprow">recorte da apresentação · escolha e tudo é replotado automaticamente</div>`);
+  const segrow=document.createElement("div");segrow.className="segrow";seg.appendChild(segrow);
+  const mkSeg=(icon,color,title,sub,spin)=>{const b=document.createElement("button");b.type="button";b.className="segbtn";b.style.setProperty("--sc",color);b.innerHTML=`${icHD(icon,color,{size:36,spin:!!spin})}<span class="sl"><b>${title}</b><span>${sub}</span></span>`;segrow.appendChild(b);return b;};
+  const segGeral=mkSeg("layers",C.accent,"Visão geral","todas as variáveis",true);
+  segGeral.onclick=()=>{selK='todas';GLOBAL.varKey=null;syncChips();if(cur===crossIdx)cur=0;render();};
+  segrow.insertAdjacentHTML("beforeend",`<span class="segdiv"></span><span class="segtag">por variável</span>`);
+  const segVars={};
+  DK.forEach(k=>{const v=DERIV.vars[k];const b=mkSeg(VSYM[k]||"focus",v.c,v.lab,"individual",false);b.onclick=()=>{selK=k;GLOBAL.varKey=k;syncChips();if(cur===0)cur=2;render();};segVars[k]=b;});
+  segrow.insertAdjacentHTML("beforeend",`<span class="segdiv"></span><span class="segtag">cruzamento</span>`);
+  const segCross=mkSeg("split",C.pth,"Cruzamentos","entre variáveis",true);
+  segCross.onclick=()=>{selK='todas';GLOBAL.varKey=null;syncChips();cur=crossIdx<0?0:crossIdx;render();};
   const head2=document.createElement("div");h.appendChild(head2);
   const body=document.createElement("div");h.appendChild(body);
   const nav=document.createElement("div");nav.className="pathnav";h.appendChild(nav);
   const dots=document.createElement("div");dots.className="deckdots";h.appendChild(dots);
-  DK.forEach(k=>{const v=DERIV.vars[k];const b=document.createElement("span");b.className="it";b.dataset.k=k;b.style.cursor="pointer";b.innerHTML=`<span class="dot" style="background:${v.c}"></span>${v.lab}`;b.onclick=()=>{selK=k;GLOBAL.varKey=k;syncChips();render();};varsel.appendChild(b);});
   SLIDES.forEach((s,i)=>{const d=document.createElement("button");d.className="d2";d.setAttribute("aria-label","tela "+(i+1));d.onclick=()=>{cur=i;render();};dots.appendChild(d);});
+  // ---- atalhos temáticos ao final ----
+  const qa=document.createElement("div");qa.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:24px";
+  qa.insertAdjacentHTML("beforeend",`<div style="grid-column:1/-1;font-family:'IBM Plex Mono';font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)">atalhos temáticos · ir direto a uma ferramenta</div>`);
+  QA.forEach(x=>{const b=document.createElement("div");b.style.cssText=`cursor:pointer;border:1px solid var(--stroke);border-left:3px solid ${x[4]};border-radius:12px;padding:11px 13px;background:var(--glass);transition:.15s`;
+    b.onmouseover=()=>b.style.background="var(--glass2)";b.onmouseout=()=>b.style.background="var(--glass)";
+    b.innerHTML=`<div style="display:flex;align-items:center;gap:11px">${icHD(x[1],x[4],{size:34,spin:true})}<div><div style="font-weight:700;font-size:13.5px">${x[2]}</div><div style="font-size:10.5px;color:var(--muted)">${x[3]}</div></div><span style="margin-left:auto;color:${x[4]};font-size:18px">›</span></div>`;
+    b.onclick=()=>go(x[0]);qa.appendChild(b);});
+  h.appendChild(qa);
   function render(){
-    varsel.querySelectorAll(".it").forEach(b=>b.classList.toggle("selon",b.dataset.k===selK));
+    segGeral.setAttribute("aria-pressed",(isAll()&&cur!==crossIdx)?"true":"false");
+    segCross.setAttribute("aria-pressed",cur===crossIdx?"true":"false");
+    Object.entries(segVars).forEach(([k,b])=>b.setAttribute("aria-pressed",selK===k?"true":"false"));
     const s=SLIDES[cur];
     head2.innerHTML=`<div class="slidehead brill">${s.t()}</div><div class="slidesub">${s.s()}</div>`;
     body.innerHTML="";s.draw(body);
@@ -2457,6 +2524,22 @@ function mindMap(host,spec){
   node(x0,rootCy,rootW,Object.assign({spin:true},spec.root));
   branches.forEach(br=>{node(x1,br._cy,brW,br);br.leaves.forEach((lf,li)=>node(x2,br._lcy[li],lfW,lf));});
   [...inner.querySelectorAll(".fnode")].forEach((el,i)=>setTimeout(()=>el.classList.add("in"),110+i*65));
+}
+/* ---- barras divergentes com estrela de significância (comparação por variável) ---- */
+function signedBars(host,rows,{h=320,unit="",dec=2}={}){
+  const {cv,g}=mk(host,h),w=cv._w,pad={l:18,r:14,t:24,b:56};
+  const amax=Math.max(0.001,...rows.map(r=>Math.abs(r.v)))*1.20;
+  const x0=pad.l,x1=w-pad.r,y0=pad.t,y1=h-pad.b,cy=(y0+y1)/2,half=(y1-y0)/2,n=rows.length,step=(x1-x0)/n,bw=Math.min(48,step*0.58);
+  anim(1300,prog=>{g.clearRect(0,0,w,h);cv._hits=[];
+    g.strokeStyle="rgba(120,150,190,.34)";g.lineWidth=1;g.beginPath();g.moveTo(x0,cy);g.lineTo(x1,cy);g.stroke();
+    g.fillStyle=C.faint;g.font='9px "IBM Plex Mono",monospace';g.textAlign="left";g.textBaseline="middle";g.fillText("0",x0+2,cy-8);
+    rows.forEach((r,i)=>{const cx=x0+step*i+step/2,pr=stag(prog,i,n,0.5),hgt=Math.abs(r.v)/amax*half*pr,up=r.v>=0,by=up?cy-hgt:cy;
+      glossBar(g,cx-bw/2,by,bw,Math.max(hgt,0.4),r.c,{dir:'v',glow:.5,r:5});
+      if(prog>0.55){g.fillStyle=C.ink;g.font='700 11px "Space Grotesk",sans-serif';g.textAlign="center";g.textBaseline=up?"bottom":"top";g.fillText(sg(r.v,dec)+unit,cx,up?by-5:by+hgt+5);}
+      if(r.sig&&prog>=1)sigStar(g,cx+bw/2+1,up?by-11:by+hgt+15,12);
+      g.save();g.translate(cx,y1+11);g.rotate(-.52);g.fillStyle=r.c;g.font='700 10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(r.lab,0,0);g.restore();
+      if(prog>=1)cv._hits.push({x:cx-bw/2,y:Math.min(by,cy)-16,w:bw,h:hgt+32,tip:`<b>${r.lab}</b><br>${sg(r.v,dec)}${unit}${r.sig?' · <b style="color:#ffd34d">significativo</b>':''}`});});
+  });attachHits(cv);
 }
 function badges(k){const s=DERIV.stats[k];return [
   chipv(s.icc>=.75?C.good:s.icc>=.5?C.warn:C.crit,"confiab. "+(s.icc>=.75?"boa":s.icc>=.5?"moderada":"baixa")),
