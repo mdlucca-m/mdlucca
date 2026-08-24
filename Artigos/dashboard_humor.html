@@ -1428,6 +1428,11 @@ const SECTIONS=[
 }},
 {id:"descr",lab:"Descritiva",icon:"bars",render(h){
   head(h,"nível 1","Estatística descritiva","O vigor tem a maior média e, junto da fadiga, ocupa a maior parte da escala. As dimensões negativas concentram-se em valores baixos, com forte efeito de piso.");
+  {const bm=DK.map(k=>Object.assign({k},DERIV.stats[k])),top=bm.slice().sort((a,b)=>b.m-a.m)[0],flr=bm.slice().sort((a,b)=>b.floor-a.floor)[0],cvm=bm.slice().sort((a,b)=>b.cv-a.cv)[0];
+   kpiFut(h,[["Observações","286","2 medidas/dia · 7 dias · 27 atletas",C.vigor,null,ICONS.grid],
+    ["Maior média",DERIV.vars[top.k].lab,num(top.m,1)+" / 16 · domina a escala",DERIV.vars[top.k].c,"visao",MIC.gauge],
+    ["Maior efeito de piso",DERIV.vars[flr.k].lab,num(flr.floor,0)+"% de escores nulos",DERIV.vars[flr.k].c,"distrib",MIC.floor],
+    ["Mais dispersa",DERIV.vars[cvm.k].lab,"CV "+num(cvm.cv,0)+"% · variação relativa",DERIV.vars[cvm.k].c,"conf",MIC.spread]]);}
   const gr=cards(h,`<div class="card"><h3>Médias das dimensões</h3><p class="note">escore médio (0–16) · 286 observações</p><div class="host" id="h_desc"></div></div><div class="card"><h3>Tabela descritiva</h3><p class="note">clique nos cabeçalhos para ordenar</p><div class="host" id="t_desc"></div></div>`);
   barChart($("#h_desc",gr),DESC.map(r=>({lab:r[0],v:r[1],c:cById(kmap[r[0]])})),{ymax:10,dec:1,hl:HLL()});
   dynTable($("#t_desc",gr),["Dimensão","Média","DP","Mín–Máx"],DESC,(i,v)=>i===1||i===2?num(v):v,HLL());
@@ -1445,6 +1450,12 @@ const SECTIONS=[
 }},
 {id:"perfis",lab:"Perfis de humor",icon:"layers",render(h){
   head(h,"nível 1","Perfis e migração","Os <b>seis perfis de humor</b> (Terry/Parsons-Smith) resumem as seis dimensões numa forma única. No baseline predomina o <b>iceberg</b> (vigor no topo); ao longo da semana o vigor desce e a fadiga sobe, e o grupo migra para <b>superfície</b>, <b>submerso</b> e <b>barbatana de tubarão</b>. Os perfis de risco (iceberg/everest invertido) aparecem numa minoria — ver a aba <b>Perfis de risco</b>.");
+  {const pv=PROFDATA.order.map(nm=>[nm,PROFDATA.profiles[nm].prev]).sort((a,b)=>b[1]-a[1]),topP=pv[0],
+    icb=PERFIS.find(r=>r[0]==="Iceberg")||["Iceberg",0,0];
+   kpiFut(h,[["Perfis (taxonomia)","6","Terry / Parsons-Smith · forma do humor",C.pth,null,ICONS.layers],
+    ["Predominante",topP[0],num(topP[1],1)+"% das respostas",(PROFDATA.profiles[topP[0]]||{}).c||C.vigor,null,MIC.focus],
+    ["Iceberg · D1 → D7",icb[1]+" → "+icb[2],"o perfil saudável recua na semana",C.vigor,"risco",MIC.trend],
+    ["Assinatura da migração","vigor ↓ · fadiga ↑","iceberg → superfície → barbatana",C.fadiga,"traj",MIC.deriv]]);}
   /* ---- gráfico grande e interativo: perfis em escore-T + morfismo do grupo dia a dia ---- */
   const pc=document.createElement("div");pc.className="card";pc.style.marginTop="14px";
   pc.innerHTML=`<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px">
@@ -1907,6 +1918,13 @@ const SECTIONS=[
 }},
 {id:"atletas",lab:"Atletas em risco (por dia)",icon:"cells",render(h){
   head(h,"clique para explorar · IoT","Mapa de risco por atleta e por dia","O painel do professor: cada <b>atleta</b> (linha) em cada <b>dia</b> (coluna), com o <b>perfil de humor classificado</b> e o <b>semáforo de risco</b>. <b>Clique</b> numa célula para ver o detalhe; use os botões para filtrar só quem esteve em risco. É a visão que a arquitetura IoT entregaria em tempo real.");
+  {const aids=ATLETA.ids,red1=aids.filter(a=>Object.values(ATLETA.g[a]).some(v=>v[0]===2)).length,
+     red2=aids.filter(a=>Object.values(ATLETA.g[a]).filter(v=>v[0]===2).length>=2).length,
+     never=aids.filter(a=>!Object.values(ATLETA.g[a]).some(v=>v[0]===2)).length;
+   kpiFut(h,[["Atletas monitorados",String(aids.length),"× 7 dias · grade completa",C.vigor,null,ICONS.cells],
+    ["≥ 1 dia em risco",red1+"/"+aids.length,"pelo menos um dia em vermelho",C.warn,null,MIC.signal],
+    ["≥ 2 dias em risco",red2+"/"+aids.length,"lista de acompanhamento",C.crit,"individual",MIC.focus],
+    ["Resilientes",never+"/"+aids.length,"nunca entram em perfil de risco",C.good,null,MIC.target]]);}
   const TC={0:C.good,1:C.warn,2:C.crit};const HII={2:1,4:1,7:1},AMI={3:1,5:1};
   const ids=ATLETA.ids;
   // controles
@@ -1938,6 +1956,11 @@ const SECTIONS=[
 {id:"individual",lab:"Visão individual do atleta",icon:"focus",render(h){
   head(h,"um atleta por vez · navegue","Visão individual do atleta","A semana completa de cada atleta: o <b>perfil classificado dia a dia</b> em ícones coloridos, o <b>semáforo de risco</b> e a <b>trajetória dinâmica</b> de todas as variáveis de humor, plotada com o clique da pessoa. Use ◀ ▶ para trocar de atleta.");
   const ids=ATLETA.ids;let idx=0;
+  {const red=ids.filter(a=>Object.values(ATLETA.g[a]).some(v=>v[0]===2)).length;
+   kpiFut(h,[["Coorte",String(ids.length)+" atletas","navegue um a um com ◀ ▶",C.vigor,null,MIC.focus],
+    ["Janela","7 dias","perfil + trajetória por atleta",C.pth,null,MIC.cal],
+    ["Com dia de risco",red+"/"+ids.length,"pelo menos um dia em vermelho",C.warn,"atletas",MIC.signal],
+    ["Variáveis plotáveis","7","6 do BRUMS + PTH · clique para plotar",C.confusao,null,ICONS.wave]]);}
   const nav=document.createElement("div");nav.style.cssText="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap";h.appendChild(nav);
   const host=document.createElement("div");h.appendChild(host);
   const TC={0:C.good,1:C.warn,2:C.crit};const AB={IC:"Iceberg",SU:"Superfície",SB:"Submerso",BT:"Barbatana",II:"Iceberg inv.",EI:"Everest inv."};
@@ -1977,6 +2000,10 @@ const SECTIONS=[
 }},
 {id:"resultados",lab:"Resultados & Discussão",icon:"present",render(h){
   head(h,"leitura guiada para qualquer pessoa","Resultados e Discussão — de onde tudo vem e o que significa","Uma leitura didática de ponta a ponta: de <b>onde vieram os dados</b>, <b>por que</b> cada análise foi feita, <b>o que</b> encontramos e <b>o que significa</b>. Cada bloco tem um botão para abrir a análise detalhada.");
+  kpiFut(h,[["Atletas · respostas","27 · 456","handebol masculino de elite · 7 dias",C.vigor,"visao",ICONS.grid],
+    ["Eixo energético","vigor ↓ · fadiga ↑","dz −0,95 / +0,72 · responde à carga",C.fadiga,"d17",MIC.trend],
+    ["Eixo afetivo","jogo × HIIT","assinaturas opostas · responde ao estímulo",C.raiva,"negdia",MIC.split],
+    ["Robustez","confirmada","resiste a LOAO, filtros e imputação",C.good,"robustez",MIC.target]]);
   const jl=a=>a.map(x=>`<span class="jlink" data-go="${x[0]}" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:${C.vigor};border:1px solid ${C.vigor}44;border-radius:20px;padding:2px 10px;margin:3px 6px 0 0">${x[1]} ›</span>`).join("");
   const blk=(ic,tag,tit,body,links,col)=>{const c=document.createElement("div");c.className="card";c.style.marginTop="14px";c.style.borderLeft=`3px solid ${col||"var(--accent)"}`;
     c.innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:${col||C.vigor};background:${(col||C.vigor)}1e;border:1px solid ${(col||C.vigor)}44">${ICONS[ic]||ICONS.grid}</span><div><div style="font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">${tag}</div><div style="font-weight:800;font-size:16px">${tit}</div></div></div><p class="note" style="font-size:13.5px;line-height:1.66;color:var(--ink)">${body}</p>${links?`<div style="margin-top:8px">${jl(links)}</div>`:""}`;h.appendChild(c);};
@@ -2008,6 +2035,11 @@ const SECTIONS=[
 }},
 {id:"d17",lab:"D1 → D7",icon:"trend",render(h){
   head(h,"nível 2","Diferença entre o primeiro e o último dia","O efeito é grande no vigor (dz −0,95) e médio na fadiga (dz +0,72); a MANOVA confirma a diferença global (λ = 0,181; p < 0,001) e, sob Bonferroni, apenas vigor e fadiga permanecem significativos. A PERMANOVA (permutação, sem pressupor normalidade) corrobora o deslocamento multivariado — ver o passo dedicado em Análise estatística.");
+  {const bydz=D17.slice().sort((a,b)=>Math.abs(b[4])-Math.abs(a[4])),top=bydz[0],fad=D17.find(r=>r[0]==="Fadiga")||["Fadiga",0,0,0,0,""];
+   kpiFut(h,[["Maior efeito",top[0],"dz "+sg(top[4])+" · "+top[5],cById(kmap[top[0]])||C.vigor,null,MIC.trend],
+    ["Fadiga",sg(fad[4]),"D1 "+num(fad[1],1)+" → D7 "+num(fad[2],1),C.fadiga,null,MIC.pulse],
+    ["MANOVA global","λ 0,181","p < 0,001 · deslocamento confirmado",C.pth,"analise",MIC.split],
+    ["Sob Bonferroni","vigor + fadiga","só o eixo energético resiste",C.vigor,null,MIC.target]]);}
   const gr=cards(h,`<div class="card"><h3>Tamanho de efeito (dz)</h3><p class="note">magnitude da mudança por dimensão</p><div class="host" id="h_d17"></div></div><div class="card"><h3>Médias e efeito</h3><p class="note">Dia 1, Dia 7, variação e magnitude</p><div class="host" id="t_d17"></div></div>`);
   lolliChart($("#h_d17",gr),D17.map(r=>({lab:r[0],v:r[4],mag:r[5]})),{hl:HLL()});
   dynTable($("#t_d17",gr),["Dimensão","Dia 1","Dia 7","Δ%","dz","Magn."],D17,(i,v)=>i===1||i===2?num(v):i===3?`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${v}%</span>`:i===4?num(v,2):i===5?`<span class="pill ${v}">${v}</span>`:v,HLL());
@@ -2015,6 +2047,12 @@ const SECTIONS=[
 {id:"dias",lab:"Entre dias",icon:"cal",render(h){
   head(h,"Friedman · casos completos (n=19)","Comparação entre os sete dias","Vigor, fadiga, tensão e confusão mudam de forma significativa ao longo da semana; a raiva fica no limite (p=0,056) e a depressão e a PTH não atingem significância no teste dos sete dias (a PTH oscila e só dispara no D7). O vigor é máximo no Dia 1 e mínimo no Dia 7; a fadiga percorre o caminho inverso.");
   const st={};DIM.forEach(d=>st[d.k]=["vigor","fadiga","pth"].includes(d.k)||d.k===HLK());
+  {const par=v=>{if(typeof v==="number")return v;const n=parseFloat(String(v).replace("<","").replace(",","."));return isNaN(n)?1:n;};
+   const nsig=FRIED.filter(r=>par(r[2])<0.05).length,vig=FRIED.find(r=>r[0]==="Vigor")||["",0,0,0],fad=FRIED.find(r=>r[0]==="Fadiga")||["",0,0,0];
+   kpiFut(h,[["Mudam na semana",nsig+" de "+FRIED.length,"Friedman · p < 0,05",C.vigor,null,MIC.cal],
+    ["Vigor","W "+num(vig[3],2),"máximo no D1 · mínimo no D7",C.vigor,null,MIC.trend],
+    ["Fadiga","W "+num(fad[3],2),"caminho inverso ao vigor",C.fadiga,null,MIC.pulse],
+    ["No limite","Raiva","p = 0,056 · quase significativa",C.raiva,null,MIC.signal]]);}
   const gr=cards(h,`<div class="card"><h3>Trajetórias diárias</h3><p class="note">médias por dia · alterne as dimensões na legenda</p><div class="host" id="h_dias"></div></div><div class="card"><h3>Teste de Friedman</h3><p class="note">χ², p e W de Kendall</p><div class="host" id="t_dias"></div></div>`);
   const cv=lineChart($("#h_dias",gr),DIM,{ymax:9,state:st,hlk:HLK()});const lg=document.createElement("div");lg.className="legend";$("#h_dias",gr).appendChild(lg);
   DIM.forEach(d=>{const it=document.createElement("span");it.className="it"+(st[d.k]?"":" off");it.innerHTML=`<span class="dot" style="background:${d.c}"></span>${d.lab}`;it.onclick=()=>{st[d.k]=!st[d.k];it.classList.toggle("off");cv._redraw();};lg.appendChild(it);});
@@ -2023,6 +2061,11 @@ const SECTIONS=[
 {id:"traj",lab:"Trajetórias & cruzamentos",icon:"wave",render(h){
   head(h,"nível 3 · todas as variáveis","Trajetórias de todas as dimensões","Todas as dimensões na mesma escala. Use os botões para <b>ver todas ao mesmo tempo</b> (inclusive a PTH) ou isolar o par vigor-fadiga, que se cruza (dias 2,9, 3,6 e 5,7). Abaixo, a tabela reúne <b>todos os pontos de análise</b> — mínimos, máximos, inflexões e a mudança D1→D7 de cada variável.");
   const st={};DIM.forEach(d=>st[d.k]=d.k!=="pth");
+  {const vig=DIM.find(d=>d.k==="vigor"),fad=DIM.find(d=>d.k==="fadiga");
+   kpiFut(h,[["Dimensões","7","6 do BRUMS + PTH · mesma escala",C.pth,null,ICONS.wave],
+    ["Cruzamentos vigor × fadiga","3","dias 2,9 · 3,6 · 5,7",C.confusao,"curvas",MIC.deriv],
+    ["Vigor · D1 → D7",num(vig.daily[0],1)+" → "+num(vig.daily[6],1),"o eixo energético recua",C.vigor,null,MIC.trend],
+    ["Fadiga · D1 → D7",num(fad.daily[0],1)+" → "+num(fad.daily[6],1),"cruza e supera o vigor",C.fadiga,null,MIC.pulse]]);}
   const ctr=document.createElement("div");ctr.className="legend";ctr.style.marginBottom="10px";
   ctr.innerHTML=`<span class="it selon" data-set="all6" style="cursor:pointer">Todas (6 dimensões)</span><span class="it" data-set="all7" style="cursor:pointer">Todas + PTH</span><span class="it" data-set="vf" style="cursor:pointer">Só vigor + fadiga</span><span class="it" data-set="clear" style="cursor:pointer">Limpar</span>`;h.appendChild(ctr);
   const c=document.createElement("div");c.className="card";c.innerHTML=`<h3>Todas as dimensões · cruzamentos vigor × fadiga</h3><p class="note">curvas suavizadas · clique na legenda para ligar/desligar cada uma · ✕ = cruzamentos vigor × fadiga</p><div class="host" id="h_all"></div>`;h.appendChild(c);
@@ -2042,6 +2085,12 @@ const SECTIONS=[
 }},
 {id:"curvas",lab:"Curvas por variável",icon:"wave",render(h){
   head(h,"nível 3 · com filtro vs sem filtro","Comportamento de cada dimensão ao longo da semana","Cada dimensão é lida em duas camadas: a curva <b>sem filtro</b> (pontos e ligação bruta das médias diárias, com todo o ruído) e a curva <b>com filtro</b> (spline suavizada = sinal/tendência). Selecione a variável para ver as duas sobrepostas. O p de Friedman e o dz vêm dos dados brutos — não dependem do suavizador; já o dia exato da inflexão e dos cruzamentos é uma leitura aproximada da curva filtrada.");
+  {const par=v=>{const n=parseFloat(String(v).replace("<","").replace(",","."));return isNaN(n)?1:n;};
+   const bb=CURVE.filter(r=>par(r[6])<0.05).length,vig=CURVE.find(r=>r[0]==="Vigor")||[],fad=CURVE.find(r=>r[0]==="Fadiga")||[];
+   kpiFut(h,[["Padrão semanal robusto",bb+" dimensões","Friedman p < 0,05 · independe do filtro",C.vigor,null,MIC.signal],
+    ["Vigor","dz "+sg(vig[4]),"inflexão ~dia 3,8 · queda dominante",C.vigor,"limites",MIC.trend],
+    ["Fadiga","dz "+sg(fad[4]),"sobe e ultrapassa o vigor",C.fadiga,null,MIC.pulse],
+    ["Camadas de leitura","2","bruta (ruído) + filtrada (sinal)",C.confusao,null,MIC.deriv]]);}
   const sel=document.createElement("div");sel.className="legend";sel.style.marginBottom="16px";h.appendChild(sel);
   const cc=card(h,"Curva selecionada · sem filtro (pontos + tracejado) vs com filtro (linha cheia)","círculo aberto = média diária · linha cheia = sinal suavizado · ▲ extremos rotulados");
   const ttl=cc.querySelector("h3"),note=cc.querySelector(".note");
@@ -2100,12 +2149,23 @@ const SECTIONS=[
 }},
 {id:"corr",lab:"Correlações",icon:"scatter",render(h){
   head(h,"Spearman","Relações entre as dimensões","As dimensões negativas associam-se entre si; a fadiga relaciona-se com a depressão e a raiva. O vigor mantém-se relativamente independente.");
+  {const strong=SPEAR.slice().sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]))[0]||["—",0],
+    pos=SPEAR.filter(r=>r[1]>0).length,neg=SPEAR.filter(r=>r[1]<0).length;
+   kpiFut(h,[["Pares significativos",String(SPEAR.length),"Spearman · p < 0,05",C.confusao,null,ICONS.scatter],
+    ["Associação mais forte",strong[0],"ρ "+sg(strong[1]),strong[1]<0?C.vigor:C.fadiga,null,MIC.trend],
+    ["Positivas / negativas",pos+" / "+neg,"negativas se agrupam entre si",C.raiva,null,MIC.split],
+    ["Vigor","independente","pouco correlacionado com as demais",C.vigor,null,MIC.focus]]);}
   const gr=cards(h,`<div class="card"><h3>Correlações significativas</h3><p class="note">coeficiente de Spearman (ρ)</p><div class="host" id="h_sp"></div></div><div class="card"><h3>Pares (p < 0,05)</h3><p class="note">ordene por ρ ou por p</p><div class="host" id="t_sp"></div></div>`);
   lolliChart($("#h_sp",gr),SPEAR.map(r=>({lab:r[0],v:r[1],c:r[1]<0?C.vigor:C.fadiga})),{h:300});
   dynTable($("#t_sp",gr),["Par de dimensões","ρ","p"],SPEAR,(i,v)=>i===1?(`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${num(v,2)}</span>`):v);
 }},
 {id:"snr",lab:"Sinal / Ruído",icon:"signal",render(h){
   head(h,"nível 3","Separação entre sinal e ruído","A variância da trajetória diária de cada dimensão é <b>quebrada em três partes</b>: <b>tendência lenta</b> (a direção da semana), <b>componente travada no HIIT</b> (o vaivém preso aos dias de tiro) e <b>ruído residual</b>. A soma tendência+HIIT é o <b>sinal</b>; a razão sinal/ruído (SNR) diz o quanto cada curva é confiável. É o <b>mesmo método</b> usado na aba HIIT, agora para as 7 dimensões. <b>Fadiga</b> tem o sinal mais limpo (SNR 6,2); as dimensões negativas (raiva, confusão, depressão), <b>achatadas pelo piso</b>, quase não ultrapassam o ruído.");
+  {const bs=SNR.slice().sort((a,b)=>b.snr-a.snr),best=bs[0],worst=bs[bs.length-1],clean=SNR.filter(r=>r.snr>=4).length;
+   kpiFut(h,[["Sinal mais limpo",best.lab,"SNR "+num(best.snr,1)+" · leitura confiável",C.fadiga,null,MIC.signal],
+    ["Curvas confiáveis",clean+" de "+SNR.length,"SNR ≥ 4",C.good,null,MIC.target],
+    ["Mais ruidosa",worst.lab,"SNR "+num(worst.snr,1)+" · achatada pelo piso",C.raiva,"distrib",MIC.spread],
+    ["Decomposição","3 partes","tendência + HIIT + ruído",C.pth,null,MIC.deriv]]);}
   const gr=cards(h,`<div class="card"><h3>Decomposição da variância</h3><p class="note">■ tendência · ■ HIIT · ■ ruído · SNR = (tendência+HIIT) ÷ ruído</p><div class="host" id="h_snr"></div></div><div class="card"><h3>Sinal, ruído e piso</h3><p class="note">por dimensão · % da variância da curva</p><div class="host" id="t_snr"></div></div>`);
   drawSNRdecomp($("#h_snr",gr),SNR);
   dynTable($("#t_snr",gr),["Dimensão","Tendência","HIIT","Ruído","SNR","Piso %"],SNR.map(r=>[r.lab,r.trend,r.hiit,r.noise,r.snr,r.piso]),(i,v)=>i>=1&&i<=3?num(v,1)+"%":i===4?num(v,1):i===5?v+"%":v,HLL());
@@ -2113,6 +2173,11 @@ const SECTIONS=[
 }},
 {id:"limites",lab:"Limites & derivadas",icon:"deriv",render(h){
   head(h,"nível 3 · tempo real","Limites e derivadas por variável","Selecione a variável (aqui ou na barra lateral): a trajetória é montada ligando os pontos em alta definição, com os limites de mínimo e máximo e a inflexão. Abaixo, as curvas de velocidade (1ª derivada) e de aceleração (2ª derivada) são plotadas em tempo real.");
+  {const v=DERIV.stats.vigor,f=DERIV.stats.fadiga;
+   kpiFut(h,[["Inflexão do vigor",v.infl?("dia "+num(v.infl,1)):"n/d","onde a queda vira",C.vigor,null,MIC.deriv],
+    ["Vel. de pico · vigor",sg(v.vpk,1),"dia "+num(v.vpkx,1)+" · pts/dia",C.vigor,null,MIC.speed],
+    ["Inflexão da fadiga",f.infl?("dia "+num(f.infl,1)):"n/d","virada da tendência",C.fadiga,null,MIC.deriv],
+    ["Vel. de pico · fadiga",sg(f.vpk,1),"dia "+num(f.vpkx,1)+" · pts/dia",C.fadiga,null,MIC.speed]]);}
   const sel=document.createElement("div");sel.className="legend";sel.style.marginBottom="16px";h.appendChild(sel);const ph=document.createElement("div");h.appendChild(ph);
   function pick(key){GLOBAL.varKey=key;syncChips();sel.querySelectorAll(".it").forEach(b=>b.classList.toggle("selon",b.dataset.k===key));ph.innerHTML="";drawDeriv(ph,key);}
   DK.forEach(k=>{const v=DERIV.vars[k];const b=document.createElement("span");b.className="it";b.dataset.k=k;b.style.cursor="pointer";b.innerHTML=`<span class="dot" style="background:${v.c}"></span>${v.lab}`;b.onclick=()=>pick(k);sel.appendChild(b);});
@@ -2120,6 +2185,11 @@ const SECTIONS=[
 }},
 {id:"distrib",lab:"Distribuições",icon:"violin",render(h){
   head(h,"distribuições","Distribuição por dia e acumulada","Violino com caixa e média por dia (o ponto vermelho é a média, como nos boxplots com média), e distribuição acumulada (ECDF) do primeiro versus o último dia. Selecione a variável no botão de segmentação.");
+  {const bm=DK.map(k=>Object.assign({k},DERIV.stats[k])),flr=bm.slice().sort((a,b)=>b.floor-a.floor)[0],lo=bm.slice().sort((a,b)=>a.floor-b.floor)[0];
+   kpiFut(h,[["Escala","0 – 16","escore bruto por dimensão (BRUMS)",C.pth,null,MIC.ruler],
+    ["Maior efeito de piso",DERIV.vars[flr.k].lab,num(flr.floor,0)+"% de zeros · assimetria à direita",DERIV.vars[flr.k].c,null,MIC.floor],
+    ["Menor piso",DERIV.vars[lo.k].lab,num(lo.floor,0)+"% de zeros · usa toda a escala",DERIV.vars[lo.k].c,null,MIC.spread],
+    ["Comparação D1 × D7","ECDF","deslocamento à direita = aumento",C.fadiga,null,MIC.trend]]);}
   const sel=document.createElement("div");sel.className="vsel";h.appendChild(sel);const ph=document.createElement("div");h.appendChild(ph);
   function draw(key){GLOBAL.varKey=key;syncChips();sel.querySelectorAll(".vs").forEach(b=>{const on=b.dataset.k===key;b.setAttribute("aria-pressed",on?"true":"false");b.style.background=on?DERIV.vars[key].c:"";b.style.borderColor=on?"transparent":"";});
     const col=DERIV.vars[key].c;ph.innerHTML="";
@@ -2170,6 +2240,10 @@ const SECTIONS=[
 }},
 {id:"robustez",lab:"Sensibilidade & robustez",icon:"shield",render(h){
   head(h,"o quanto as conclusões dependem","Sensibilidade & robustez","Duas perguntas de robustez: <b>de quais variáveis</b> os resultados dependem (sensibilidade das variáveis) e <b>o quanto</b> as conclusões resistem às escolhas do método (sensibilidade analítica).");
+  kpiFut(h,[["Dimensão dominante","Fadiga","lidera nas 3 lentes de sensibilidade",C.fadiga,null,MIC.signal],
+    ["Mais responsivo","Vigor","dz 0,95 · muda mais, porém gradual",C.vigor,null,MIC.trend],
+    ["Robustez LOAO","estável","nenhum atleta isolado sustenta o efeito",C.good,null,MIC.target],
+    ["Inflexão da fadiga","~dia 4,07","idêntica em todos os filtros",C.fadiga,null,MIC.deriv]]);
   const g1=cards(h,`<div class="card"><h3>Sensibilidade das variáveis</h3><p class="note">importância preditiva de cada dimensão (queda de AUC ao permutar)</p><div class="host" id="h_sv"></div></div><div class="card"><h3>Leitura</h3><p class="note">de quais dimensões o resultado depende</p><div id="k_sv"></div></div>`);
   drawSensImp($("#h_sv",g1));
   $("#k_sv",g1).innerHTML=`<p class="note" style="font-size:13px;line-height:1.6;color:var(--muted)">A <b style="color:${C.fadiga}">fadiga</b> domina as três lentes (multivariada, preditiva e responsividade). O <b style="color:${C.vigor}">vigor</b> é o mais responsivo (dz 0,95) mas fraco como classificador — muda muito, mas de forma gradual e sobreposta. As dimensões <b>negativas</b> contribuem pouco (piso), confirmando o foco no eixo energia–fadiga.</p>`;
@@ -2235,6 +2309,10 @@ const SECTIONS=[
 }},
 {id:"framework",lab:"Framework do microciclo",icon:"map",render(h){
   head(h,"organograma · tipos de estímulo","Framework do microciclo — o que cada tipo de dia faz com o humor","Um mapa único do microciclo: os quatro <b>tipos de estímulo</b> e como cada <b>variável</b> responde. A leitura central do estudo é que a resposta é <b>específica do estímulo</b>, não só da carga — dois dias igualmente pesados (HIIT e jogo) deixam assinaturas afetivas opostas.");
+  kpiFut(h,[["Tipos de estímulo","4","baseline · HIIT · jogo · força",C.pth,null,ICONS.map],
+    ["HIIT","aversivo","vigor ↓ · fadiga / negativas / sono ↑",C.fadiga,"hiit",MIC.pulse],
+    ["Amistoso (jogo)","protetor","negativas ↓ · estresse ↓ · vigor preservado",C.tensao,"negdia",MIC.target],
+    ["Leitura central","2 eixos","carga (quantidade) × estímulo (qualidade)",C.good,null,MIC.split]]);
   // --- organograma de 4 tipos de dia ---
   const TY=[
    {ic:"clock",lab:"Baseline",col:C.pth,dias:"D1",carga:"Referência (téc-tático leve à noite)",sig:"Vigor no topo · negativas e sono baixos",role:"ponto de partida (repouso relativo)"},
@@ -2364,6 +2442,10 @@ const SECTIONS=[
 }},
 {id:"arvore",lab:"Árvore de decisões",icon:"tree",render(h){
   head(h,"lógica do método","Árvore de decisões analíticas","Como cada método foi escolhido, ramificando pelas propriedades dos dados. As caixas com <span style='color:var(--accent)'>›</span> abrem a análise correspondente.");
+  kpiFut(h,[["Ponto de partida","Shapiro-Wilk","a distribuição decide toda a rota",C.pth,null,ICONS.tree],
+    ["Rota adotada","não paramétrica","nenhuma dimensão é normal",C.fadiga,null,MIC.deriv],
+    ["Multivariado","PERMANOVA","permutação restrita ao atleta · p=0,002",C.raiva,"analise",MIC.split],
+    ["Regra transversal","efeito + p","relevância, não só significância",C.good,null,MIC.target]]);
   const L=(t,d,o={})=>({leaf:1,t,d,ex:o.ex,color:o.color||C.muted,go:o.go,icon:o.icon||"grid"});
   const TREE={q:"Distribuição da variável?",sub:"teste de Shapiro-Wilk (distribuição bruta e escores de mudança)",icon:"shield",branches:[
     {label:"Normal",cls:"yes",child:L("Via paramétrica (não aplicável)","nenhuma das seis dimensões do BRUMS seguiu distribuição normal — a rota adotada é integralmente não paramétrica",{color:C.muted,icon:"bars"})},
@@ -2842,6 +2924,14 @@ function narr(k){const s=DERIV.stats[k],v=DERIV.vars[k];
 function kpi(icon,lab,val,cap,color,goto){const d=document.createElement("div");d.className="kpi act";
   d.innerHTML=`<span class="stripe" style="background:${color}"></span><span class="mico" style="color:${color}">${icon}</span><div class="lab">${lab}</div><div class="val" style="font-size:21px">${val}</div><div class="cap">${cap}</div>`;
   if(goto)d.onclick=()=>go(goto);d.title=lab+" — abrir análise";return d;}
+/* Cabeçalho de KPIs futuristas reutilizável (scan + corner-bracket + brilho), com click-through opcional.
+   cards: [ [lab, val, cap, cor, goto?, icon?], ... ]  → padroniza a "elevação" em todas as abas. */
+function kpiFut(host,cards){const wrap=document.createElement("div");wrap.className="kpis fut";
+  cards.forEach(c=>{const lab=c[0],val=c[1],cap=c[2],col=c[3]||C.good,goto=c[4],icon=c[5];
+    const d=document.createElement("div");d.className="kpi"+(goto?" act":"");d.style.setProperty("--kc",col);
+    d.innerHTML=`<span class="scan"></span>${icon?`<span class="mico" style="color:${col}">${icon}</span>`:`<span class="cbr"></span>`}<span class="stripe" style="background:${col}"></span><div class="lab">${lab}</div><div class="val" style="color:${col};font-size:20px">${val}</div><div class="cap">${cap}</div>`;
+    if(goto){d.onclick=()=>go(goto);d.title=lab+" — abrir análise";}wrap.appendChild(d);});
+  host.appendChild(wrap);try{tilt(wrap);}catch(e){}return wrap;}
 function momentos(k){const items=[],s=DERIV.stats[k];
   if(s.sig17)items.push(`<b>D1 → D7</b>: ${sg(s.delta,1)} · dz ${sg(s.dz)} · ${pShort(s.p17)}`);
   if(s.sigpp)items.push(`<b>Pré vs pós da semana</b>: dz ${sg(s.dzpp)} · ${pShort(s.ppp)}`);
