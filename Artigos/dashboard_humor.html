@@ -344,6 +344,22 @@ table.dyn tbody tr.hlrow{background:rgba(90,211,196,.1)}
   background:linear-gradient(90deg,transparent,var(--kc,#2ff0cf),transparent); opacity:.55; animation:scanX 3.6s linear infinite}
 @keyframes scanX{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 
+/* Painel executivo — layout de capa estilo SaaS */
+.execgrid{display:grid; grid-template-columns:1.62fr 1fr; gap:16px; align-items:start; margin-top:6px}
+.execside{display:flex; flex-direction:column; gap:16px}
+.execshort{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; margin-top:16px}
+.exlink{position:relative; overflow:hidden; text-align:left; cursor:pointer; border:1px solid var(--stroke); border-radius:16px; padding:15px 16px;
+  background:linear-gradient(158deg,var(--glass2),rgba(14,22,34,.42)); transition:transform .28s cubic-bezier(.2,.7,.2,1),box-shadow .28s,border-color .28s; display:flex; flex-direction:column; gap:7px}
+.exlink:hover{transform:translateY(-4px); border-color:color-mix(in srgb,var(--xc,#5ad3c4) 45%,var(--stroke)); box-shadow:0 20px 40px -24px color-mix(in srgb,var(--xc,#5ad3c4) 75%,transparent)}
+.exlink .exic{width:34px; height:34px; border-radius:10px; display:grid; place-items:center; color:var(--xc,#5ad3c4); background:color-mix(in srgb,var(--xc,#5ad3c4) 14%,transparent); border:1px solid color-mix(in srgb,var(--xc,#5ad3c4) 34%,var(--stroke))}
+.exlink .exic svg{width:18px; height:18px}
+.exlink .exv{font-family:"Space Grotesk","Sora",sans-serif; font-weight:800; font-size:20px; letter-spacing:-.02em; color:var(--xc,#5ad3c4)}
+.exlink .exl{font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+.exlink .exc{font-size:11.5px; color:var(--faint); line-height:1.45}
+.exlink .exgo{position:absolute; top:13px; right:14px; color:var(--faint); font-family:"IBM Plex Mono",monospace; opacity:0; transition:.2s}
+.exlink:hover .exgo{opacity:1; color:var(--xc,#5ad3c4)}
+@media(max-width:920px){.execgrid{grid-template-columns:1fr}}
+
 /* nós do fluxo (automação) com ícone HD e título brilhante */
 .fnode .hdi,.fstep .hdi{width:38px; height:38px}
 .fnode .fntitle,.fstep .fntitle{letter-spacing:-.01em}
@@ -674,8 +690,8 @@ function groupSigned(host,rows,groups,{h=380,dec=2,hl}={}){
 }
 /* ---- heatmap (segmented by column) ---- */
 /* ---- donut (rosca) — composição, estilo painel ágil ---- */
-function donutChart(host,segs,{h=280,unit="%",centerLab=""}={}){
-  const {cv,g}=mk(host,h),w=cv._w,cx=Math.min(w*0.42,180),cy=h/2,R=Math.min(cx,cy)-14,r0=R*0.58;
+function donutChart(host,segs,{h=280,unit="%",centerLab="",compact=false,legend=true}={}){
+  const {cv,g}=mk(host,h),w=cv._w,cx=legend?Math.min(w*0.42,180):w/2,cy=h/2,R=Math.min(cx,cy)-14,r0=R*0.58;
   const tot=segs.reduce((s,x)=>s+x.v,0)||1;const top=segs.slice().sort((a,b)=>b.v-a.v)[0];
   anim(1400,prog=>{g.clearRect(0,0,w,h);cv._hits=[];let a0=-Math.PI/2;
     segs.forEach(s=>{const frac=s.v/tot,a1=a0+frac*2*Math.PI*prog;
@@ -687,8 +703,12 @@ function donutChart(host,segs,{h=280,unit="%",centerLab=""}={}){
     g.fillStyle=C.ink;g.font='800 26px "Sora",sans-serif';g.textAlign="center";g.textBaseline="middle";g.fillText(prog>=1?(Math.round(100*top.v/tot)+"%"):"",cx,cy-6);
     g.fillStyle=C.muted;g.font='11px "IBM Plex Mono",monospace';g.fillText(prog>=1?(centerLab||top.lab):"",cx,cy+16);
     // legenda à direita
-    if(prog>=1){const lx=cx+R+26;let ly=cy-segs.length*11+6;g.textAlign="left";g.textBaseline="middle";
-      segs.forEach(s=>{g.fillStyle=s.c;g.beginPath();g.arc(lx,ly,5,0,7);g.fill();g.fillStyle=C.ink;g.font='12px "Manrope",sans-serif';g.fillText(s.lab,lx+12,ly);g.fillStyle=C.muted;g.font='11px "IBM Plex Mono",monospace';g.textAlign="right";g.fillText(s.v.toFixed(0)+unit,w-6,ly);g.textAlign="left";ly+=22;});}
+    if(prog>=1&&legend){const lx=cx+R+26;let ly=cy-segs.length*11+6;g.textAlign="left";g.textBaseline="middle";
+      segs.forEach(s=>{g.fillStyle=s.c;g.beginPath();g.arc(lx,ly,5,0,7);g.fill();g.fillStyle=C.ink;g.font='12px "Manrope",sans-serif';g.fillText(s.lab,lx+12,ly);const lw=g.measureText(s.lab).width;
+        g.fillStyle=C.muted;g.font='11px "IBM Plex Mono",monospace';
+        if(compact){g.textAlign="left";g.fillText(s.v.toFixed(0)+unit,lx+12+lw+8,ly);}
+        else{g.textAlign="right";g.fillText(s.v.toFixed(0)+unit,w-6,ly);g.textAlign="left";}
+        ly+=22;});}
   });attachHits(cv);
 }
 /* ---- matriz de bolinhas (entidade × período), estilo "volume de trabalho" ---- */
@@ -2485,6 +2505,57 @@ const SECTIONS=[
    +`<div style="margin-top:14px;border-top:1px solid var(--stroke);padding-top:12px"><div class="fk" style="font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:4px">Onde está a inovação</div><p class="note" style="font-size:13.5px;line-height:1.62;color:var(--ink);margin:0">Nenhuma técnica é nova isolada — elas vivem dispersas (processamento de sinais, ecologia, psicometria, estatística longitudinal). O ineditismo é <b>integrá-las num único fluxo para o monitoramento diário do humor no esporte coletivo</b> — domínio que se acomodou à ANOVA/t sobre amostras pequenas e piso, justo onde esses testes falham — importando <b>cálculo</b> (derivadas, limites, inflexão) e <b>teoria de sinais</b> (filtragem, S/R) para ler estados psicológicos, com a árvore acima tornando a escolha do método função explícita dos dados.</p></div></div>`);
   h.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
 }},
+{id:"executivo",lab:"Painel executivo",icon:"grid",render(h){
+  head(h,"visão de topo · uma tela","Painel executivo","O estudo inteiro num relance: os números-chave do microciclo, a trajetória do eixo <b>energia ↔ fadiga</b> e atalhos diretos para cada análise. Feito para abrir a apresentação e situar a banca em segundos.");
+  const vig=DIM.find(d=>d.k==="vigor"),fad=DIM.find(d=>d.k==="fadiga");
+  /* faixa de KPIs-herói */
+  kpiFut(h,[
+    ["Atletas · respostas","27 · 456","handebol masculino de elite · 7 dias",C.vigor,"descr",ICONS.grid],
+    ["Vigor · D1 → D7",num(vig.daily[0],1)+" → "+num(vig.daily[6],1),"dz −0,95 · efeito grande",C.vigor,"d17",MIC.trend],
+    ["Fadiga · D1 → D7",num(fad.daily[0],1)+" → "+num(fad.daily[6],1),"dz +0,72 · acúmulo crônico",C.fadiga,"d17",MIC.pulse],
+    ["Atletas em risco",PRISCO.exp_neg1+"/27","≥1 dia · "+PRISCO.exp_neg2+" com ≥2 (acompanhamento)",C.warn,"risco",MIC.signal],
+    ["Sonolência (Epworth)","dz +"+String(SONO.d17.Epworth.dz).replace(".",","),"D1 "+num(SONO.d17.Epworth.d1,1)+" → D7 "+num(SONO.d17.Epworth.d7,1)+" · p="+String(SONO.d17.Epworth.p).replace(".",","),C.pth,"sono",MIC.deriv]
+  ]);
+  /* grade principal: gráfico de área (esq.) + coluna de resumo (dir.) */
+  const grid=document.createElement("div");grid.className="execgrid";h.appendChild(grid);
+  const main=document.createElement("div");main.className="card";main.style.margin="0";
+  main.innerHTML=`<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px">
+    <div><h3 style="margin:0">Trajetória do microciclo · energia ↔ fadiga</h3><p class="note" style="margin:3px 0 0">médias diárias suavizadas · ✕ = onde a fadiga passa a superar o vigor</p></div>
+    <div class="legend" style="margin:0"><span class="it"><span class="dot" style="background:${C.vigor}"></span>Vigor</span><span class="it"><span class="dot" style="background:${C.fadiga}"></span>Fadiga</span></div></div>
+    <div class="host" id="ex_area"></div>
+    <p class="note" style="margin:10px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink)">O <b style="color:${C.vigor}">vigor cai</b> e a <b style="color:${C.fadiga}">fadiga sobe</b> ao longo da semana e as curvas <b>se cruzam</b> (~dias 2,9 · 3,6 · 5,7): é a <b>erosão do perfil iceberg</b> — sobrecarga funcional, não humor negativo generalizado.</p>`;
+  grid.appendChild(main);
+  lineChart($("#ex_area",main),[vig,fad],{ymin:0,ymax:9,h:360,crosses:CROSS,state:{vigor:true,fadiga:true}});
+  const side=document.createElement("div");side.className="execside";grid.appendChild(side);
+  /* card composição (donut) */
+  const PCOL2={"Iceberg":C.vigor,"Superfície":C.good,"Submerso":C.tensao,"Everest invertido":C.crit,"Barbatana de tubarão":C.fadiga,"Iceberg invertido":C.raiva},
+        SHORT={"Iceberg":"Iceberg","Superfície":"Superfície","Submerso":"Submerso","Everest invertido":"Everest inv.","Barbatana de tubarão":"Barbatana","Iceberg invertido":"Iceberg inv."};
+  const segs=PROFPREV.map(r=>({lab:SHORT[r[0]]||r[0],v:r[1],c:PCOL2[r[0]]||C.muted}));
+  const cd=document.createElement("div");cd.className="card";cd.style.margin="0";cd.innerHTML=`<h3 style="margin:0 0 2px">Composição de humor do grupo</h3><p class="note" style="margin:0 0 6px">distribuição dos perfis · todas as respostas</p><div class="host" id="ex_donut"></div>
+    <div class="legendchips" style="margin:10px 0 0">${segs.map(s=>`<span class="lchip"><span class="dot" style="background:${s.c}"></span>${s.lab} · ${num(s.v,0)}%</span>`).join("")}</div>`;side.appendChild(cd);
+  donutChart($("#ex_donut",cd),segs,{h:210,centerLab:segs[0].lab,legend:false});
+  /* card leitura em dois eixos */
+  const rd=document.createElement("div");rd.className="card";rd.style.margin="0";rd.style.borderLeft="3px solid "+C.pth;
+  rd.innerHTML=`<h3 style="margin:0 0 6px;font-size:16px">A conclusão em dois eixos</h3>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="border-left:3px solid ${C.fadiga};padding:4px 11px"><b style="color:${C.fadiga};font-size:13px">Eixo energético</b><div class="note" style="font-size:12px;line-height:1.5">vigor ↓ · fadiga ↑ · sono ↑ — responde à <b>quantidade</b> de carga e <b>acumula</b>.</div></div>
+      <div style="border-left:3px solid ${C.raiva};padding:4px 11px"><b style="color:${C.raiva};font-size:13px">Eixo afetivo</b><div class="note" style="font-size:12px;line-height:1.5">raiva/confusão/estresse — responde à <b>qualidade</b> do estímulo (HIIT aversivo × jogo protetor).</div></div>
+    </div>
+    <p class="note" style="margin:9px 0 0;font-size:11.5px;line-height:1.55;border-top:1px solid var(--stroke);padding-top:8px">Monitorar os dois separa a <b style="color:var(--ink)">fadiga funcional</b> (esperada) do <b style="color:var(--ink)">estresse aversivo</b> (alerta). Robusto a LOAO, filtros e imputação.</p>`;
+  side.appendChild(rd);
+  /* atalhos temáticos */
+  h.insertAdjacentHTML("beforeend",`<div style="margin:22px 0 6px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:${C.accent}">atalhos · abra qualquer análise</div></div>`);
+  const short=document.createElement("div");short.className="execshort";h.appendChild(short);
+  [["fatorial","grid","Fatorial","Momento × tipo de dia","2 eixos confirmados",C.pth],
+   ["estratos","split","HIIT × sem-HIIT","estratos comparados","vigor cai nos dois",C.tensao],
+   ["fisico","pulse","Aptidão física","T-CAR × humor","mais apto, menos fadiga",C.good],
+   ["triangulacao","nodes","Triangulação","estímulo × resposta","síntese dos recortes",C.raiva],
+   ["multivar","scatter","Multivariada","PCoA + k-means","2 perfis emergem",C.confusao],
+   ["apresentacao","present","Apresentação guiada","tela a tela","para conduzir a banca",C.vigor]
+  ].forEach(([id,ic,lab,sub,stat,col])=>{const b=document.createElement("button");b.type="button";b.className="exlink";b.style.setProperty("--xc",col);
+    b.innerHTML=`<span class="exgo">abrir ›</span><span class="exic">${ICONS[ic]||ICONS.grid}</span><span class="exl">${sub}</span><span class="exv">${lab}</span><span class="exc">${stat}</span>`;
+    b.onclick=()=>go(id);short.appendChild(b);});
+}},
 {id:"apresentacao",lab:"Apresentação guiada",icon:"present",render(h){
   head(h,"para o orientador","Apresentação guiada — geral · por variável · cruzamentos","Comece pela <b>visão geral de todas as variáveis</b>; depois aprofunde em cada dimensão ou nos <b>cruzamentos</b>. Escolha o recorte nos botões abaixo — tudo é replotado automaticamente — e avance a leitura apertando <b>Próximo</b>. Ao final, use os <b>atalhos temáticos</b> para ir direto a uma ferramenta.");
   const QA=[["atletas","cells","Atletas em risco","clique e veja quem está em risco, por dia",C.crit],["iot","nodes","Monitoramento IoT","classificação e predição em tempo real",C.tensao],["risco","shield","Perfis de risco","rastreio de saúde mental",C.raiva],["framework","map","Framework do microciclo","tipos de dia × variáveis",C.pth],["resultados","present","Resultados & Discussão","leitura guiada de tudo",C.vigor],["sono","moon","Sono & Estresse","Epworth e PSS",C.confusao]];
@@ -2957,7 +3028,7 @@ const nav=$("#nav"),stage=$("#stage"),varchips=$("#varchips"),segchips=$("#segch
 /* ordem por lógica, agrupada: pontos de entrada primeiro, depois panorama, resultados e aprofundamento.
    NAVGROUPS é a única fonte de verdade — dela derivam a ordem, a numeração e a navegação anterior/próximo. */
 const NAVGROUPS=[
-  {lab:"Comece por aqui",     icon:"present",home:"apresentacao",ids:["apresentacao","resultados","pipeline"]},
+  {lab:"Comece por aqui",     icon:"present",home:"executivo",ids:["executivo","apresentacao","resultados","pipeline"]},
   {lab:"Método & decisões",   icon:"tree",   ids:["framework","analise","arvore","robustez","doiscaminhos"]},
   {lab:"Qualidade & descritiva",icon:"grid", home:"visao",ids:["conf","visao","descr","distrib"]},
   {lab:"Variação & perfis",   icon:"layers", home:"perfis",ids:["d17","dias","perfis","risco","padronizacao"],
@@ -3012,7 +3083,7 @@ function go(id){const s=SECTIONS.find(x=>x.id===id)||SECTIONS[0];CUR=s.id;const 
   stage.className="panel";stage.innerHTML="";requestAnimationFrame(()=>{subnav(stage,gi,s.id);s.render(stage);upgradeKpis(stage);addStepNav(stage,s.id);animateKPIs(stage);requestAnimationFrame(()=>stage.classList.add("in"));});
   try{window.scrollTo(0,0);}catch(e){}
   history.replaceState(null,"","#"+id);}
-go((location.hash||"").slice(1)||"apresentacao");
+go((location.hash||"").slice(1)||"executivo");
 /* Observa o palco: qualquer .kpis criada por rebuild interno (ex.: troca de variável) também é
    uniformizada ao padrão futurista. Idempotente (:not(.fut)), então não entra em laço. */
 try{const _ko=new MutationObserver(ms=>{for(const m of ms){for(const n of m.addedNodes){if(n.nodeType===1&&(n.matches&&n.matches(".kpi,.kpis")||n.querySelector&&n.querySelector(".kpi,.kpis"))){upgradeKpis(stage);return;}}}});
