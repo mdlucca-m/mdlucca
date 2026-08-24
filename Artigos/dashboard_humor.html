@@ -300,6 +300,57 @@ table.dyn tbody tr.hlrow{background:rgba(90,211,196,.1)}
   .grid2{gap:14px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+
+/* ============ ELEVAÇÃO · ícones HD, molduras, texto brilhante, KPIs futuristas ============ */
+/* ícone em alta definição: anel de gradiente, halo colorido, brilho no traço */
+.hdi{position:relative; display:inline-grid; place-items:center; border-radius:13px; color:var(--hc,#2ff0cf); flex:0 0 auto;
+  background:radial-gradient(120% 120% at 30% 18%, color-mix(in srgb,var(--hc,#2ff0cf) 30%, transparent), transparent 68%), var(--glass2);
+  border:1px solid color-mix(in srgb,var(--hc,#2ff0cf) 44%, var(--stroke));
+  box-shadow:0 8px 22px -10px color-mix(in srgb,var(--hc,#2ff0cf) 70%, transparent), inset 0 1px 0 rgba(255,255,255,.12)}
+.hdi::before{content:""; position:absolute; inset:0; border-radius:inherit; padding:1px; pointer-events:none; opacity:.8;
+  background:linear-gradient(150deg, color-mix(in srgb,var(--hc,#2ff0cf) 90%, white), transparent 55%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude}
+.hdi .halo{position:absolute; inset:-7px; border-radius:16px; z-index:0; pointer-events:none; filter:blur(7px); opacity:.5;
+  background:radial-gradient(circle, color-mix(in srgb,var(--hc,#2ff0cf) 55%, transparent), transparent 62%)}
+.hdi svg{position:relative; z-index:1; width:56%; height:56%; filter:drop-shadow(0 0 5px color-mix(in srgb,var(--hc,#2ff0cf) 75%, transparent))}
+.hdi.spin svg{animation:hdiPulse 3.4s ease-in-out infinite}
+@keyframes hdiPulse{0%,100%{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--hc,#2ff0cf) 55%, transparent))}50%{filter:drop-shadow(0 0 10px color-mix(in srgb,var(--hc,#2ff0cf) 95%, transparent))}}
+
+/* texto brilhante: degradê animado recortado na tipografia */
+.brill{background:linear-gradient(100deg,#eaf7ff,#7fe9d6 28%,#a99bff 58%,#eaf7ff 92%); background-size:240% 100%;
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent;
+  text-shadow:0 0 20px rgba(120,220,210,.16); animation:brillShift 7s linear infinite}
+@keyframes brillShift{to{background-position:240% 0}}
+.gtxt{color:var(--gc,#2ff0cf); text-shadow:0 0 14px color-mix(in srgb,var(--gc,#2ff0cf) 55%, transparent)}
+
+/* moldura moderna com rótulo e cantos */
+.framex{position:relative; border-radius:20px; padding:22px 22px 20px; margin-top:6px;
+  background:linear-gradient(160deg,var(--glass2),rgba(11,18,29,.5)); border:1px solid var(--stroke); box-shadow:var(--shadow)}
+.framex::before,.framex::after{content:""; position:absolute; width:17px; height:17px; border:2px solid var(--fcol,#2ff0cf); opacity:.7; border-radius:3px; pointer-events:none}
+.framex::before{top:11px; left:11px; border-right:0; border-bottom:0}
+.framex::after{bottom:11px; right:11px; border-left:0; border-top:0}
+.framelab{position:absolute; top:-10px; left:22px; font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--fcol,#2ff0cf); background:var(--bg1); padding:3px 11px; border:1px solid color-mix(in srgb,var(--fcol,#2ff0cf) 40%, var(--stroke)); border-radius:999px;
+  box-shadow:0 0 16px -4px color-mix(in srgb,var(--fcol,#2ff0cf) 60%, transparent)}
+.framehd{display:flex; align-items:center; gap:13px; margin-bottom:12px}
+.framehd .ft{font-family:"Space Grotesk","Sora",sans-serif; font-weight:700; font-size:16px; letter-spacing:-.01em}
+
+/* KPIs futuristas (escopado ao painel de apresentação/pipeline) */
+.kpis.fut .kpi{border:1px solid color-mix(in srgb,var(--kc,#2ff0cf) 34%, var(--stroke));
+  box-shadow:0 16px 36px -22px color-mix(in srgb,var(--kc,#2ff0cf) 75%, transparent), inset 0 1px 0 rgba(255,255,255,.07)}
+.kpis.fut .kpi .val{text-shadow:0 0 22px color-mix(in srgb,var(--kc,#2ff0cf) 60%, transparent)}
+.kpis.fut .kpi .cbr{position:absolute; top:9px; right:11px; width:13px; height:13px; border-top:2px solid var(--kc,#2ff0cf); border-right:2px solid var(--kc,#2ff0cf); opacity:.7; border-radius:0 4px 0 0; pointer-events:none}
+.kpis.fut .kpi .scan{position:absolute; left:0; right:0; top:0; height:2px; pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--kc,#2ff0cf),transparent); opacity:.55; animation:scanX 3.6s linear infinite}
+@keyframes scanX{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+/* nós do fluxo (automação) com ícone HD e título brilhante */
+.fnode .hdi,.fstep .hdi{width:38px; height:38px}
+.fnode .fntitle,.fstep .fntitle{letter-spacing:-.01em}
+.legendchips{display:flex; flex-wrap:wrap; gap:8px; margin:2px 0 16px}
+.lchip{display:inline-flex; align-items:center; gap:7px; font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted);
+  padding:6px 11px; border-radius:999px; border:1px solid var(--stroke); background:var(--glass)}
+.lchip .sw{width:16px; height:9px; border-radius:3px}
 </style>
 
 <canvas id="rain" aria-hidden="true"></canvas>
@@ -1534,6 +1585,16 @@ const SECTIONS=[
   const ax=document.createElement("div");ax.className="card";
   ax.innerHTML=`<h3>Os três eixos de resposta</h3><p class="note">a triangulação reduz oito variáveis a três dimensões independentes de resposta ao estímulo</p>
     <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px">${axes.map(a=>`<div style="flex:1 1 240px;min-width:230px;border:1px solid var(--stroke);border-top:3px solid ${a.c};border-radius:14px;padding:14px 15px;background:var(--glass)"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><b style="font-size:14.5px;color:${a.c}">${a.t}</b><span style="font-size:10px;font-family:'IBM Plex Mono';padding:2px 7px;border-radius:20px;background:${a.c}22;color:${a.c};white-space:nowrap">${a.tag}</span></div><div style="margin-top:9px;font-size:12px;color:var(--muted);line-height:1.6">${a.d}</div></div>`).join("")}</div>`;h.appendChild(ax);
+  // --- mapa mental dos eixos gerados pela triangulação ---
+  const mm=document.createElement("div");mm.className="card";
+  mm.innerHTML=`<h3>Mapa dos eixos da triangulação</h3><p class="note">a mesma redução, em forma de mapa: cada eixo liga-se às variáveis que o compõem e ao efeito medido · ✓ 3 vias = IC <i>bootstrap</i>, Wilcoxon e permutação concordam</p><div class="host" id="h_trmm"></div>`;h.appendChild(mm);
+  mindMap($(".host",mm),{root:{t:"Estímulo → resposta",s:"HIIT × jogo · triangulação",ic:"nodes",c:C.accent},branches:[
+    {t:"Eixo 1 · Custo físico & sono",s:"robusto · responde à carga",ic:"pulse",c:C.fadiga,leaves:[
+      {t:"Fadiga física",s:"↑ dz +1,00 no HIIT",c:C.fadiga,ic:"pulse"},{t:"Fadiga",s:"↑ dz +0,54",c:C.fadiga,ic:"drop"},{t:"PTH / TMD",s:"+0,46 · ✓ 3 vias",c:C.pth,ic:"sigma"},{t:"Sonolência",s:"acompanha o perfil",c:C.confusao,ic:"moon"}]},
+    {t:"Eixo 2 · Afeto & aversão",s:"tendência · separa HIIT do jogo",ic:"swirl",c:C.raiva,leaves:[
+      {t:"Raiva",s:"+0,47 · ✓ 3 vias",c:C.raiva,ic:"flame"},{t:"Depressão",s:"+0,45 · ✓ 3 vias",c:C.depressao,ic:"cloudrain"},{t:"Confusão",s:"+0,45 · parcial",c:C.confusao,ic:"swirl"},{t:"Tensão",s:"+0,35 · tendência",c:C.tensao,ic:"alert"}]},
+    {t:"Eixo 3 · Estresse percebido",s:"desacoplado dos perfis",ic:"heart",c:C.tensao,leaves:[
+      {t:"PSS",s:"↓ dz −0,40 no jogo",c:C.tensao,ic:"heart"}]}]});
   // --- efeito agudo por tipo de dia (pré→pós) ---
   const g1=cards(h,`<div class="card"><h3>Efeito agudo pré→pós, por tipo de dia</h3><p class="note">tamanho de efeito intra-dia (dz) de cada variável no HIIT e no jogo · acima de zero = piora (mais fadiga/negativas), abaixo = queda de vigor</p><div class="host" id="h_tac"></div></div><div class="card"><h3>Leitura</h3><p class="note">o que o efeito agudo revela</p><div id="k_tac"></div></div>`);
   const AC=TRI.acute;
@@ -2137,12 +2198,12 @@ const SECTIONS=[
   const qa=document.createElement("div");qa.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:18px";
   QA.forEach(x=>{const b=document.createElement("div");b.style.cssText=`cursor:pointer;border:1px solid var(--stroke);border-left:3px solid ${x[4]};border-radius:12px;padding:11px 13px;background:var(--glass);transition:.15s`;
     b.onmouseover=()=>b.style.background="var(--glass2)";b.onmouseout=()=>b.style.background="var(--glass)";
-    b.innerHTML=`<div style="display:flex;align-items:center;gap:9px"><span style="width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:${x[4]};background:${x[4]}22;border:1px solid ${x[4]}55">${ICONS[x[1]]||ICONS.grid}</span><div><div style="font-weight:700;font-size:13.5px">${x[2]}</div><div style="font-size:10.5px;color:var(--muted)">${x[3]}</div></div><span style="margin-left:auto;color:${x[4]};font-size:18px">›</span></div>`;
+    b.innerHTML=`<div style="display:flex;align-items:center;gap:11px">${icHD(x[1],x[4],{size:34,spin:true})}<div><div style="font-weight:700;font-size:13.5px">${x[2]}</div><div style="font-size:10.5px;color:var(--muted)">${x[3]}</div></div><span style="margin-left:auto;color:${x[4]};font-size:18px">›</span></div>`;
     b.onclick=()=>go(x[0]);qa.appendChild(b);});
   h.appendChild(qa);
   const box=(k,t,s)=>`<div class="fbox"><div class="fk">${k}</div><div class="ft">${t}</div><div class="fs">${s}</div></div>`;
   const arrow=`<div class="farrow">→</div>`;
-  const kpiRow=(arr)=>`<div class="kpis">`+arr.map(k=>`<div class="kpi"><span class="stripe" style="background:${k[3]}"></span><div class="lab">${k[0]}</div><div class="val" style="color:${k[3]};font-size:22px">${k[1]}</div><div class="cap">${k[2]}</div></div>`).join("")+`</div>`;
+  const kpiRow=(arr)=>`<div class="kpis fut">`+arr.map(k=>`<div class="kpi" style="--kc:${k[3]}"><span class="scan"></span><span class="cbr"></span><span class="stripe" style="background:${k[3]}"></span><div class="lab">${k[0]}</div><div class="val" style="color:${k[3]};font-size:22px">${k[1]}</div><div class="cap">${k[2]}</div></div>`).join("")+`</div>`;
   let selK=HLK()||"vigor";
   const sInfo=()=>DERIV.stats[selK], vLab=()=>DERIV.vars[selK].lab, vCol=()=>DERIV.vars[selK].c;
   const dcomma=x=>("dia "+x.toFixed(1).replace(".",","));
@@ -2158,7 +2219,19 @@ const SECTIONS=[
      host.insertAdjacentHTML("beforeend",`<div class="card"><h3>Objetivos específicos</h3><div class="flowrow">${box("a","Descrição e limiares","descritiva, consistência e MDC das dimensões")}${box("b","Perfis e migração","caracterizar e quantificar a migração")}${box("c","Magnitude do efeito","D1→D7, entre dias e pré/pós")}</div><div class="flowrow">${box("d","Forma temporal","suavização e inflexão")}${box("e","Cruzamentos","ajuste polinomial e datação")}${box("f","Estrutura e relações","correlações e componentes principais")}</div></div>`);}},
    {t:()=>"Descritiva — "+vLab(),s:()=>"Como a variável se distribui na semana e quão confiável é a sua medida.",
     draw:host=>{const s=sInfo(),c=vCol();host.insertAdjacentHTML("beforeend",kpiRow([["Média ± DP",num(s.m,1)+" ± "+num(s.sd,1),"escore 0–16",c],["Variação (CV)",num(s.cv,0)+"%","dispersão relativa",c],["Piso",num(s.floor,0)+"%","escores nulos",c],["ICC",num(s.icc,2),"confiab. entre dias",c],["MDC95",num(s.mdc95,1),"mudança mínima real",c]]));tilt(host);
-     const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Comportamento ao longo da semana</h3><p class="note">trajetória suavizada · picos rotulados · média diária</p><div class="host" id="h_pd"></div>`;host.appendChild(cc);weekChart($(".host",ensureHost(cc)),selK);}},
+     const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Comportamento ao longo da semana</h3><p class="note">trajetória suavizada · picos rotulados · média diária</p><div class="host" id="h_pd"></div>`;host.appendChild(cc);weekChart($(".host",ensureHost(cc)),selK);
+     const gc=document.createElement("div");gc.className="card";gc.innerHTML=`<h3>Qualidade da medida — ${vLab()}</h3><p class="note">medidores radiais: consistência entre dias (ICC), dispersão relativa (CV) e razão sinal/ruído</p><div class="host" id="h_gq"></div>`;host.appendChild(gc);
+     gaugeRow($(".host",ensureHost(gc)),[{lab:"ICC",v:s.icc,min:0,max:1,dec:2,c:c,cap:"confiabilidade"},{lab:"CV",v:s.cv,min:0,max:100,dec:0,unit:"%",c:C.warn,cap:"dispersão"},{lab:"Sinal / Ruído",v:s.snr,min:0,max:8,dec:1,c:C.vigor,cap:"nitidez da tendência"}]);}},
+   {t:()=>"Morfologia do perfil — teia de humor",s:()=>"O formato do perfil no primeiro e no último dia: a assinatura do iceberg e a sua inversão sob a carga. A dimensão selecionada aparece em destaque.",
+    draw:host=>{const DIM=[["vigor","Vigor"],["fadiga","Fadiga"],["tensao","Tensão"],["depressao","Depressão"],["raiva","Raiva"],["confusao","Confusão"]];
+     const axes=DIM.map(([k,l])=>({lab:l,color:DERIV.vars[k].c,key:k}));
+     const z=(k,day)=>{const st=DERIV.stats[k];return (st[day]-st.m)/(st.sd||1);};
+     const s1=DIM.map(([k])=>z(k,"d1")),s7=DIM.map(([k])=>z(k,"d7")),hlIdx=DIM.findIndex(([k])=>k===selK);
+     const vSw=z("vigor","d7")-z("vigor","d1");
+     host.insertAdjacentHTML("beforeend",kpiRow([["Vigor · D1 → D7","z "+sg(z("vigor","d1"),1)+" → "+sg(z("vigor","d7"),1),sg(vSw,1)+" em z",C.vigor],["Fadiga · D1 → D7","z "+sg(z("fadiga","d1"),1)+" → "+sg(z("fadiga","d7"),1),sg(z("fadiga","d7")-z("fadiga","d1"),1)+" em z",C.fadiga],["Assinatura","Iceberg → achatado","inversão do eixo energia-fadiga",C.pth]]));tilt(host);
+     const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Teia do perfil · Dia 1 × Dia 7</h3><p class="note">z-escore de cada dimensão contra a média da semana · anel tracejado marca a média (z = 0)</p><div class="host" id="h_rad"></div>`;host.appendChild(cc);
+     radarChart($(".host",ensureHost(cc)),axes,[{lab:"Dia 1 · abertura",c:C.vigor,vals:s1},{lab:"Dia 7 · fechamento",c:C.fadiga,vals:s7}],{hlIdx});
+     host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.62;color:var(--ink)">No <b>Dia 1</b> o vigor projeta-se acima da média enquanto as dimensões negativas recuam para dentro do anel — a assinatura clássica do <b>perfil iceberg</b>. Ao longo da semana o desenho se achata: o vigor recua em direção ao centro e a fadiga avança para fora, o que traduz visualmente a <b>inversão do eixo energia-fadiga</b> descrita nas demais análises.</p></div>`);}},
    {t:()=>"Mudança na semana — "+vLab(),s:()=>"Se e quanto a variável mudou do primeiro ao último dia, e ao longo dos sete dias.",
     draw:host=>{const s=sInfo(),c=vCol();host.insertAdjacentHTML("beforeend",kpiRow([["D1 → D7",num(s.d1,1)+" → "+num(s.d7,1),(s.delta>=0?"+":"")+num(s.delta,1)+" no total",c],["Tamanho de efeito","dz = "+(s.dz>=0?"+":"")+num(s.dz,2),(Math.abs(s.dz)>=.8?"grande":Math.abs(s.dz)>=.5?"médio":Math.abs(s.dz)>=.2?"pequeno":"trivial")+(s.sig17?" · p<0,05":""),c],["Friedman","χ² = "+num(s.chi,1),pv(s.fp)+" · W = "+num(s.W,2),c],["Efeito crônico",(s.cr>=0?"+":"")+num(s.cr,2),"acúmulo entre dias",c]]));tilt(host);
      const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Trajetória diária de ${vLab()}</h3><p class="note">os pontos rosa marcam os picos (valor) da curva</p><div class="host" id="h_ms"></div>`;host.appendChild(cc);weekChart($(".host",ensureHost(cc)),selK);}},
@@ -2181,6 +2254,16 @@ const SECTIONS=[
     draw:host=>{const s=sInfo(),c=vCol();host.insertAdjacentHTML("beforeend",kpiRow([["Efeito agudo",(s.ag>=0?"+":"")+num(s.ag,2),"média intradia (pré→pós)",C.fadiga],["Efeito crônico",(s.cr>=0?"+":"")+num(s.cr,2),"acúmulo D1→D7",C.pth],["dz crônico",(s.crdz>=0?"+":"")+num(s.crdz,2),(s.crsig?"significativo":"não significativo"),c]]));tilt(host);
      const dom=Math.abs(s.cr)>Math.abs(s.ag)*2?"predominantemente <b>crônica</b>, por acúmulo entre os dias":"resultante tanto do <b>estímulo agudo</b> quanto do <b>acúmulo</b>";
      host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.6;color:var(--ink)">A mudança de ${vLab()} foi ${dom}.</p></div>`);}},
+   {t:()=>"Os dois eixos — mapa da triangulação",s:()=>"A triangulação mostra que o humor sob carga se move em dois eixos coordenados: o dominante energia–fadiga e um segundo eixo afetivo–tensional. O mapa liga cada eixo às suas dimensões e ao efeito medido.",
+    draw:host=>{
+     host.insertAdjacentHTML("beforeend",kpiRow([["Eixo dominante","Energia–Fadiga","efeito agudo grande · dz até +1,0",C.vigor],["2º eixo · triangulação","Afetivo–Tensional","raiva, depressão, confusão, tensão",C.raiva],["Convergência","PTH / TMD +0,46","confirmado por três métodos",C.pth]]));tilt(host);
+     const cc=document.createElement("div");cc.className="card";cc.innerHTML=`<h3>Mapa dos dois eixos do humor</h3><p class="note">raiz → eixo → dimensões · ✓ 3 vias = concordância de IC <i>bootstrap</i>, Wilcoxon e permutação</p><div class="host" id="h_mm"></div>`;host.appendChild(cc);
+     mindMap($(".host",ensureHost(cc)),{root:{t:"Humor sob carga",s:"microciclo · triangulação",ic:"brain",c:C.accent},branches:[
+       {t:"Eixo 1 · Energia–Fadiga",s:"dominante · resposta aguda",ic:"bolt",c:C.vigor,leaves:[
+         {t:"Vigor",s:"↓ dz −0,79",c:C.vigor,ic:"bolt"},{t:"Fadiga",s:"↑ dz +0,54",c:C.fadiga,ic:"drop"},{t:"Fadiga física",s:"↑ dz +1,00 no HIIT",c:C.fadiga,ic:"pulse"}]},
+       {t:"Eixo 2 · Afetivo–Tensional",s:"revelado pela triangulação",ic:"swirl",c:C.raiva,leaves:[
+         {t:"Raiva",s:"+0,47 · ✓ 3 vias",c:C.raiva,ic:"flame"},{t:"Depressão",s:"+0,45 · ✓ 3 vias",c:C.depressao,ic:"cloudrain"},{t:"Confusão",s:"+0,45 · parcial",c:C.confusao,ic:"swirl"},{t:"Tensão",s:"+0,35 · tendência",c:C.tensao,ic:"alert"},{t:"PTH / TMD",s:"+0,46 · ✓ 3 vias",c:C.pth,ic:"sigma"}]}]});
+     host.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.62;color:var(--ink)">O <b>primeiro eixo</b> concentra a maior parte da variação: a queda do vigor e a subida da fadiga desenham a assinatura da fadiga funcional. Ao confrontar <i>bootstrap</i>, Wilcoxon e permutação, a triangulação revela um <b>segundo eixo afetivo–tensional</b> — raiva, depressão, confusão e tensão elevam-se de modo coordenado entre os tipos de dia e convergem no escore total de humor (PTH/TMD). Os dois eixos, somados, medem o custo do microciclo sobre o estado psicológico, ainda assim sem indício de comprometimento clínico.</p></div>`);}},
    {t:()=>"Síntese — "+vLab(),s:()=>"O resumo automático da variável e a mensagem do estudo.",
     draw:host=>{const s=sInfo();const dir=s.delta>0?"subiu":"caiu";const mag=Math.abs(s.dz)>=.8?"grande":Math.abs(s.dz)>=.5?"médio":Math.abs(s.dz)>=.2?"pequeno":"trivial";
      host.insertAdjacentHTML("beforeend",`<div class="card"><h3>${vLab()} em uma frase</h3><p class="note" style="font-size:14px;line-height:1.65;color:var(--ink)">${vLab()} ${dir} de ${num(s.d1,1)} para ${num(s.d7,1)} do D1 ao D7 (efeito ${mag}, dz ${(s.dz>=0?"+":"")+num(s.dz,2)}), com inflexão ${s.infl!=null?"por volta do "+dcomma(s.infl):"não detectada"} e razão sinal/ruído de ${num(s.snr,1)} — ${s.snr>=4?"tendência limpa e confiável":s.snr>=2?"sinal claro, com oscilação":"sinal fraco, dominado pelo piso"}.</p></div>`);
@@ -2197,7 +2280,7 @@ const SECTIONS=[
   function render(){
     varsel.querySelectorAll(".it").forEach(b=>b.classList.toggle("selon",b.dataset.k===selK));
     const s=SLIDES[cur];
-    head2.innerHTML=`<div class="slidehead">${s.t()}</div><div class="slidesub">${s.s()}</div>`;
+    head2.innerHTML=`<div class="slidehead brill">${s.t()}</div><div class="slidesub">${s.s()}</div>`;
     body.innerHTML="";s.draw(body);
     dots.querySelectorAll(".d2").forEach((d,i)=>d.setAttribute("aria-current",i===cur?"true":"false"));
     nav.innerHTML=`<button class="navbtn" ${cur===0?"disabled":""} data-a="p">← Anterior</button><span class="pathpos">${cur+1} / ${SLIDES.length}</span><button class="navbtn primary" ${cur===SLIDES.length-1?"disabled":""} data-a="n">Próximo →</button>`;
@@ -2209,6 +2292,7 @@ const SECTIONS=[
 }},
 {id:"pipeline",lab:"Fluxo (automação)",icon:"nodes",render(h){
   head(h,"automação · estilo n8n","Fluxo automatizado da análise","O caminho dos dados, da coleta ao painel, como um fluxo de automação interligado. Cada nó é um botão: <b>clique</b> para abrir a aba correspondente. Da normalidade partem cinco ramos analíticos (testes, perfis, curvas, estrutura multivariada e resposta ao HIIT), que convergem na aptidão física, nos modelos preditivos e na robustez antes de desembocar no painel.");
+  h.insertAdjacentHTML("beforeend",`<div class="legendchips"><span class="lchip"><span class="sw" style="background:${C.vigor}"></span>coleta &amp; saída</span><span class="lchip"><span class="sw" style="background:${C.tensao}"></span>consolidação &amp; estrutura</span><span class="lchip"><span class="sw" style="background:${C.warn}"></span>decisão &amp; robustez</span><span class="lchip"><span class="sw" style="background:${C.fadiga}"></span>testes &amp; modelos</span><span class="lchip"><span class="sw" style="background:${C.pth}"></span>perfis &amp; migração</span></div>`);
   const W=200,H=66;
   const N=[
    {id:1,x:8,y:300,t:"Coleta BRUMS",s:"Google Forms · pré e pós-treino",ic:"form",c:C.vigor,go:"visao"},
@@ -2229,7 +2313,7 @@ const SECTIONS=[
     const list=document.createElement("div");list.className="flowlist";h.appendChild(list);
     N.forEach((n,i)=>{
       const b=document.createElement("button");b.className="fstep";b.type="button";b.title="Abrir: "+n.t;
-      b.innerHTML=`<span class="fnum">${i+1}</span><span class="fni" style="color:${n.c}">${ICONS[n.ic]||ICONS.grid}</span><div class="fnt"><div class="fntitle">${n.t}</div><div class="fnsub">${n.s}</div></div><span class="fngo">›</span>`;
+      b.innerHTML=`<span class="fnum">${i+1}</span>${icHD(n.ic,n.c)}<div class="fnt"><div class="fntitle">${n.t}</div><div class="fnsub">${n.s}</div></div><span class="fngo">›</span>`;
       b.onclick=()=>go(n.go);
       list.appendChild(b);setTimeout(()=>b.classList.add("in"),120+i*90);
       if(i<N.length-1){const c=document.createElement("div");c.className="fconn";list.appendChild(c);}
@@ -2245,7 +2329,7 @@ const SECTIONS=[
   E.forEach(([a,b],i)=>{const na=map[a],nb=map[b],x1=na.x+W,y1=na.y+H/2,x2=nb.x,y2=nb.y+H/2;const p=document.createElementNS(NS,"path");p.setAttribute("d",`M${x1} ${y1} C ${x1+48} ${y1}, ${x2-48} ${y2}, ${x2} ${y2}`);p.setAttribute("class","wire flow");p.style.animationDelay=(i*0.12)+"s";svg.appendChild(p);});
   N.forEach((n,i)=>{const d=document.createElement("div");d.className="fnode";d.style.left=n.x+"px";d.style.top=n.y+"px";d.style.width=W+"px";
     d.setAttribute("role","button");d.tabIndex=0;d.title="Abrir: "+n.t;
-    d.innerHTML=`<span class="fni" style="color:${n.c}">${ICONS[n.ic]||ICONS.grid}</span><div class="fnt"><div class="fntitle">${n.t}</div><div class="fnsub">${n.s}</div></div><span class="fngo">›</span>`;
+    d.innerHTML=`${icHD(n.ic,n.c)}<div class="fnt"><div class="fntitle">${n.t}</div><div class="fnsub">${n.s}</div></div><span class="fngo">›</span>`;
     d.onclick=()=>go(n.go);d.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go(n.go);}};
     inner.appendChild(d);setTimeout(()=>d.classList.add("in"),140+i*95);});
   h.insertAdjacentHTML("beforeend",`<div class="card" style="border-left:3px solid var(--accent);margin-top:14px"><p class="note" style="font-size:13px;line-height:1.62;color:var(--muted)">Cada etapa alimenta a seguinte: a decisão de <b style="color:var(--ink)">estatística não paramétrica</b> vem do teste de normalidade; os <b style="color:var(--ink)">testes</b>, os <b style="color:var(--ink)">perfis</b>, as <b style="color:var(--ink)">curvas</b> (limites/derivadas/sinal-ruído), a <b style="color:var(--ink)">estrutura multivariada</b> e a <b style="color:var(--ink)">resposta ao HIIT</b> alimentam a aptidão física, os <b style="color:var(--ink)">modelos preditivos</b> e a <b style="color:var(--ink)">robustez</b> — que convergem no <b style="color:var(--ink)">painel interativo</b> e na apresentação guiada.</p></div>`);
@@ -2309,6 +2393,71 @@ function sg(x,d=2){return (x>=0?"+":"")+num(x,d);}
 function pfmt(p){return p<0.001?"< 0,001":("= "+num(p,3));}
 function pShort(p){return p<0.001?"p<0,001":"p="+num(p,3);}
 function chipv(c,t){return `<span class="vbadge"><span class="bd" style="background:${c}"></span>${t}</span>`;}
+/* ícone em alta definição (duotono, halo e brilho) — usa o mesmo repertório de ICONS */
+function icHD(name,color,{size=38,spin=false}={}){return `<span class="hdi${spin?" spin":""}" style="--hc:${color};width:${size}px;height:${size}px"><span class="halo"></span>${ICONS[name]||ICONS.grid}</span>`;}
+/* ---- RADAR / teia: morfologia multidimensional (z-escore), muito visual e comparativo ---- */
+function radarChart(host,axes,series,{h=380,zmin=-2,zmax=2,rings=[-1,0,1],hlIdx=-1}={}){
+  const {cv,g}=mk(host,h),w=cv._w,N=axes.length,cx=w*0.40,cy=h/2+4,R=Math.min(cx-8,cy-52);
+  const ang=i=>-Math.PI/2+i/N*2*Math.PI, rad=v=>R*Math.max(0,Math.min(1,(v-zmin)/(zmax-zmin)));
+  const ringPath=(rv)=>{g.beginPath();for(let i=0;i<=N;i++){const a=ang(i%N),rr2=rad(rv),x=cx+Math.cos(a)*rr2,y=cy+Math.sin(a)*rr2;i?g.lineTo(x,y):g.moveTo(x,y);}};
+  anim(1500,prog=>{g.clearRect(0,0,w,h);cv._hits=[];
+    g.lineWidth=1;g.strokeStyle="rgba(120,150,190,.14)";[zmin,...rings,zmax].forEach(rv=>{ringPath(rv);g.stroke();});
+    g.setLineDash([4,4]);g.strokeStyle="rgba(120,150,190,.42)";ringPath(0);g.stroke();g.setLineDash([]);
+    axes.forEach((ax,i)=>{const a=ang(i),on=i===hlIdx;
+      g.strokeStyle=on?rgba(ax.color||C.accent,.55):"rgba(120,150,190,.13)";g.lineWidth=on?2:1;
+      g.beginPath();g.moveTo(cx,cy);g.lineTo(cx+Math.cos(a)*R,cy+Math.sin(a)*R);g.stroke();
+      const lx=cx+Math.cos(a)*(R+22),ly=cy+Math.sin(a)*(R+22);
+      if(on){g.save();g.shadowColor=rgba(ax.color||C.accent,.8);g.shadowBlur=12;}
+      g.fillStyle=ax.color||C.muted;g.font=(on?'800 ':'700 ')+'11px "IBM Plex Mono",monospace';
+      g.textAlign=Math.abs(Math.cos(a))<0.3?"center":(Math.cos(a)>0?"left":"right");g.textBaseline="middle";g.fillText(ax.lab,lx,ly);if(on)g.restore();});
+    series.forEach(s=>{const pts=s.vals.map((v,i)=>{const a=ang(i),rr2=rad(v)*prog;return [cx+Math.cos(a)*rr2,cy+Math.sin(a)*rr2];});
+      g.save();g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath();
+      g.fillStyle=rgba(s.c,.13);g.fill();g.shadowColor=rgba(s.c,.6);g.shadowBlur=13;g.strokeStyle=s.c;g.lineWidth=2.4;g.stroke();g.restore();
+      if(prog>=1)pts.forEach((p,i)=>{g.save();g.shadowColor=rgba(s.c,.75);g.shadowBlur=8;g.fillStyle=lighten(s.c,.3);g.beginPath();g.arc(p[0],p[1],3.6,0,7);g.fill();g.restore();
+        cv._hits.push({x:p[0]-8,y:p[1]-8,w:16,h:16,tip:`<b>${axes[i].lab}</b> · ${s.lab}<br>z = ${sg(s.vals[i],2)}`});});});
+    if(prog>=1){const lx=Math.min(cx+R+34,w-150);let ly=cy-series.length*13;g.textAlign="left";g.textBaseline="middle";
+      series.forEach(s=>{g.save();g.shadowColor=rgba(s.c,.5);g.shadowBlur=8;g.fillStyle=s.c;rr(g,lx,ly-4,15,8,3);g.fill();g.restore();
+        g.fillStyle=C.ink;g.font='600 12.5px "Manrope",sans-serif';g.fillText(s.lab,lx+21,ly);ly+=25;});
+      g.fillStyle=C.faint;g.font='9.5px "IBM Plex Mono",monospace';g.fillText("anel tracejado = média da amostra (z=0)",lx,ly+2);}
+  });attachHits(cv);
+}
+/* ---- medidores radiais (gauges) em linha: painel de indicadores futurista ---- */
+function gaugeRow(host,items,{h=200}={}){
+  const {cv,g}=mk(host,h),w=cv._w,n=items.length,cw=w/n,a0=Math.PI*0.75,a1=Math.PI*2.25;
+  anim(1450,prog=>{g.clearRect(0,0,w,h);cv._hits=[];
+    items.forEach((it,i)=>{const cx=cw*i+cw/2,cy=h*0.60,R=Math.min(cw*0.34,h*0.40),
+      frac=Math.max(0,Math.min(1,(it.v-(it.min??0))/((it.max??1)-(it.min??0))));
+      g.lineCap="round";g.lineWidth=11;g.strokeStyle="rgba(120,150,190,.15)";g.beginPath();g.arc(cx,cy,R,a0,a1);g.stroke();
+      const av=a0+(a1-a0)*frac*prog,gr=g.createLinearGradient(cx-R,cy,cx+R,cy);gr.addColorStop(0,rgba(it.c,.55));gr.addColorStop(1,lighten(it.c,.22));
+      g.save();g.shadowColor=rgba(it.c,.65);g.shadowBlur=15;g.strokeStyle=gr;g.beginPath();g.arc(cx,cy,R,a0,av);g.stroke();g.restore();
+      const ex=cx+Math.cos(av)*R,ey=cy+Math.sin(av)*R;g.save();g.shadowColor=rgba(it.c,.9);g.shadowBlur=12;g.fillStyle=lighten(it.c,.4);g.beginPath();g.arc(ex,ey,4.2,0,7);g.fill();g.restore();
+      g.fillStyle=C.ink;g.font='800 25px "Space Grotesk","Sora",sans-serif';g.textAlign="center";g.textBaseline="middle";
+      g.save();g.shadowColor=rgba(it.c,.5);g.shadowBlur=16;g.fillText((it.fmt?it.fmt(it.v*prog):num(it.v*prog,it.dec??2))+(it.unit||""),cx,cy-2);g.restore();
+      g.fillStyle=it.c;g.font='700 10.5px "IBM Plex Mono",monospace';g.fillText((it.lab||"").toUpperCase(),cx,cy+R*0.66);
+      if(it.cap){g.fillStyle=C.faint;g.font='10px "IBM Plex Mono",monospace';g.fillText(it.cap,cx,cy+R*0.66+16);}
+    });
+  });
+}
+/* ---- MAPA MENTAL: raiz → eixos → dimensões, com conectores curvos coloridos (estilo mapa mental) ---- */
+function mindMap(host,spec){
+  const rootW=228,brW=214,lfW=200,H0=60,gapY=15,PADL=12,COLGAP=74,yTop=14;
+  const branches=spec.branches;let idx=0;
+  branches.forEach(br=>{br._lcy=br.leaves.map(()=>{const c=yTop+H0/2+idx*(H0+gapY);idx++;return c;});br._cy=(br._lcy[0]+br._lcy[br._lcy.length-1])/2;});
+  const totalH=idx*(H0+gapY)-gapY,x0=PADL,x1=x0+rootW+COLGAP,x2=x1+brW+COLGAP,W=x2+lfW+PADL,Hc=yTop+totalH+yTop,rootCy=yTop+totalH/2;
+  const canvas=document.createElement("div");canvas.className="flowcanvas";const inner=document.createElement("div");inner.className="flowinner";inner.style.width=W+"px";inner.style.height=Hc+"px";canvas.appendChild(inner);host.appendChild(canvas);
+  const NS="http://www.w3.org/2000/svg",svg=document.createElementNS(NS,"svg");svg.setAttribute("class","wires");svg.setAttribute("width",W);svg.setAttribute("height",Hc);inner.appendChild(svg);
+  let wi=0;
+  const wire=(xa,ya,xb,yb,col)=>{const p=document.createElementNS(NS,"path");p.setAttribute("d",`M${xa} ${ya} C ${xa+52} ${ya}, ${xb-52} ${yb}, ${xb} ${yb}`);p.setAttribute("class","wire flow");p.style.stroke=col;p.style.filter=`drop-shadow(0 0 4px ${rgba(col,.55)})`;p.style.animationDelay=(wi++*0.12)+"s";svg.appendChild(p);
+    [[xa,ya],[xb,yb]].forEach(([px,py])=>{const c=document.createElementNS(NS,"circle");c.setAttribute("cx",px);c.setAttribute("cy",py);c.setAttribute("r",3.6);c.setAttribute("fill",col);c.style.filter=`drop-shadow(0 0 5px ${col})`;svg.appendChild(c);});};
+  const node=(x,cy,w,d)=>{const el=document.createElement("div");el.className="fnode";el.style.left=x+"px";el.style.top=(cy-H0/2)+"px";el.style.width=w+"px";el.style.minHeight=H0+"px";
+    el.innerHTML=`${icHD(d.ic,d.c,{size:36,spin:!!d.spin})}<div class="fnt"><div class="fntitle">${d.t}</div><div class="fnsub">${d.s||""}</div></div>${d.go?'<span class="fngo">›</span>':''}`;
+    if(d.go){el.setAttribute("role","button");el.tabIndex=0;el.title="Abrir: "+d.t;el.onclick=()=>go(d.go);el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go(d.go);}};}else el.style.cursor="default";
+    inner.appendChild(el);return el;};
+  branches.forEach(br=>{wire(x0+rootW,rootCy,x1,br._cy,br.c);br.leaves.forEach((lf,li)=>wire(x1+brW,br._cy,x2,br._lcy[li],lf.c||br.c));});
+  node(x0,rootCy,rootW,Object.assign({spin:true},spec.root));
+  branches.forEach(br=>{node(x1,br._cy,brW,br);br.leaves.forEach((lf,li)=>node(x2,br._lcy[li],lfW,lf));});
+  [...inner.querySelectorAll(".fnode")].forEach((el,i)=>setTimeout(()=>el.classList.add("in"),110+i*65));
+}
 function badges(k){const s=DERIV.stats[k];return [
   chipv(s.icc>=.75?C.good:s.icc>=.5?C.warn:C.crit,"confiab. "+(s.icc>=.75?"boa":s.icc>=.5?"moderada":"baixa")),
   chipv(s.snr>=4?C.good:s.snr>=2?C.warn:C.crit,"S/R "+num(s.snr,1)),
