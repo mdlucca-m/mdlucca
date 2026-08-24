@@ -136,6 +136,15 @@ canvas.chart{max-width:100%}
 .card .note{font-size:11.5px; color:var(--faint); margin:0 0 12px}
 .host{position:relative; width:100%}
 canvas.chart{display:block; width:100%; height:auto}
+.plotbtn{position:absolute; top:7px; right:7px; z-index:5; display:inline-flex; align-items:center; gap:6px;
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.02em; color:var(--ink); cursor:pointer;
+  background:var(--glass2); border:1px solid rgba(90,211,196,.42); border-radius:20px; padding:4px 11px 4px 9px;
+  opacity:.72; transition:opacity .18s, transform .18s, box-shadow .18s, background .18s}
+.plotbtn:hover{opacity:1; box-shadow:0 0 0 2px rgba(90,211,196,.22); transform:translateY(-1px); background:var(--glass)}
+.plotbtn.playing{opacity:.42; pointer-events:none}
+.plotbtn .pi{width:0; height:0; border-left:8px solid currentColor; border-top:5px solid transparent; border-bottom:5px solid transparent}
+.plotbtn.playing .pi{border-left:0; width:8px; height:8px; border-radius:2px; background:currentColor; animation:plotpulse 1s ease-in-out infinite}
+@keyframes plotpulse{0%,100%{opacity:1}50%{opacity:.35}}
 .legend{display:flex; gap:12px; flex-wrap:wrap; margin-top:12px}
 .legend .it{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); cursor:pointer; user-select:none; font-family:"IBM Plex Mono",monospace}
 .legend .it .dot{width:12px; height:12px; border-radius:4px}
@@ -425,10 +434,21 @@ function animateKPIs(root){if(!root)return;root.querySelectorAll(".kpi").forEach
 const tip=$("#tip");
 function showTip(html,ev){tip.innerHTML=html;tip.style.opacity=1;let x=ev.clientX+14,y=ev.clientY+14;if(x+tip.offsetWidth>innerWidth)x=ev.clientX-tip.offsetWidth-14;if(y+tip.offsetHeight>innerHeight)y=ev.clientY-tip.offsetHeight-14;tip.style.left=x+"px";tip.style.top=y+"px";}
 function hideTip(){tip.style.opacity=0;}
-function mk(host,h){const box=document.createElement("div");box.className="host";const cv=document.createElement("canvas");cv.className="chart";box.appendChild(cv);host.appendChild(box);
-  const dpr=Math.min(Math.max(devicePixelRatio||1,2),3);const w=host.clientWidth||760;cv.width=w*dpr;cv.height=h*dpr;cv.style.height=h+"px";const g=cv.getContext("2d");g.scale(dpr,dpr);cv._w=w;cv._h=h;cv._hits=[];return {cv,g};}
-const ANIM_MULT=2.1; /* animações mais lentas e didáticas */
-function anim(dur,step){if(rm){step(1);return;}dur*=ANIM_MULT;const t0=performance.now();function fr(t){let p=Math.min(1,(t-t0)/dur);step(1-Math.pow(1-p,2.2));if(p<1)requestAnimationFrame(fr);}requestAnimationFrame(fr);}
+let _curCv=null;
+function mk(host,h){const box=document.createElement("div");box.className="host";const cv=document.createElement("canvas");cv.className="chart";box.appendChild(cv);
+  if(!rm){const btn=document.createElement("button");btn.className="plotbtn";btn.type="button";btn.title="Plotar / repetir a animação";btn.innerHTML='<span class="pi"></span>Plotar';btn.onclick=()=>{if(cv._runAnim)cv._runAnim();};box.appendChild(btn);cv._btn=btn;}
+  host.appendChild(box);
+  const dpr=Math.min(Math.max(devicePixelRatio||1,2),3);const w=host.clientWidth||760;cv.width=w*dpr;cv.height=h*dpr;cv.style.height=h+"px";const g=cv.getContext("2d");g.scale(dpr,dpr);cv._w=w;cv._h=h;cv._hits=[];cv._box=box;box._cv=cv;_curCv=cv;return {cv,g};}
+const ANIM_MULT=2.6; /* animações mais lentas e didáticas (ligação gradual dos pontos) */
+const _animIO=("IntersectionObserver"in window)?new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){const cv=en.target._cv;_animIO.unobserve(en.target);if(cv&&cv._runAnim&&!cv._played){cv._played=true;cv._runAnim();}}});},{threshold:0.25}):null;
+function anim(dur,step){if(rm){step(1);return;}
+  const cv=_curCv;
+  const run=()=>{const d2=dur*ANIM_MULT,t0=performance.now();if(cv&&cv._btn)cv._btn.classList.add("playing");
+    (function fr(t){let p=Math.min(1,(t-t0)/d2);step(1-Math.pow(1-p,2.2));if(p<1)requestAnimationFrame(fr);else if(cv&&cv._btn)cv._btn.classList.remove("playing");})(performance.now());};
+  if(!cv){run();return;}
+  cv._runAnim=run;step(0);
+  const r=cv._box.getBoundingClientRect(),vis=r.top<innerHeight*0.85&&r.bottom>innerHeight*0.06;
+  if(vis){cv._played=true;run();}else if(_animIO){_animIO.observe(cv._box);}else{cv._played=true;run();}}
 function stag(prog,i,n,spread=0.55){const w=1-spread;const s=(n>1?i/(n-1):0)*spread;return Math.max(0,Math.min(1,(prog-s)/w));}
 function attachHits(cv){cv.onmousemove=e=>{const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;let hit=null;for(const h of cv._hits){if(mx>=h.x&&mx<=h.x+h.w&&my>=h.y&&my<=h.y+h.h){hit=h;break;}}if(hit){showTip(hit.tip,e);cv.style.cursor="pointer";}else{hideTip();cv.style.cursor="default";}};cv.onmouseleave=hideTip;}
 function rr(g,x,y,w,h,r){r=Math.min(r,w/2,h/2);g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
@@ -941,26 +961,30 @@ const PROFCENT={"Iceberg":[-0.5,-0.5,-0.5,1.0,-0.5,-0.5],"Iceberg invertido":[0.
 function nearestProfile(vec){const z=vec.map(t=>(t-50)/10);let best="Superf\u00edcie",bd=1e9;for(const nm in PROFCENT){const d=PROFCENT[nm].reduce((s,c,i)=>s+(c-z[i])*(c-z[i]),0);if(d<bd){bd=d;best=nm;}}return best;}
 function profAxes(cv,g){const w=cv._w,h=cv._h,pad={l:54,r:34,t:22,b:66},dims=PROFDATA.dims,ymin=30,ymax=74;
   const x0=pad.l,x1=w-pad.r,y0=h-pad.b,y1=pad.t;const X=i=>x0+(x1-x0)*i/(dims.length-1),Y=v=>y0-(y0-y1)*(v-ymin)/(ymax-ymin);
-  g.fillStyle="rgba(140,165,205,.09)";g.fillRect(x0,Y(60),x1-x0,Y(40)-Y(60));
-  g.fillStyle=C.faint;g.font='9px "IBM Plex Mono",monospace';g.textAlign="left";g.textBaseline="bottom";g.fillText("faixa normal (40\u201360)",x0+6,Y(60)-3);
-  for(let v=30;v<=70;v+=10){const yy=Y(v);g.strokeStyle="rgba(120,150,190,.08)";g.lineWidth=1;g.beginPath();g.moveTo(x0,yy);g.lineTo(x1,yy);g.stroke();g.fillStyle=C.faint;g.font='10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(v,x0-8,yy);}
-  g.strokeStyle="rgba(150,170,200,.42)";g.setLineDash([5,5]);g.lineWidth=1.3;g.beginPath();g.moveTo(x0,Y(50));g.lineTo(x1,Y(50));g.stroke();g.setLineDash([]);g.fillStyle=C.muted;g.textAlign="left";g.textBaseline="middle";g.fillText("50",x1+4,Y(50));
+  /* limpo e analitico: sem grade e sem faixa; so rotulos e a referencia T=50 discreta */
+  for(let v=40;v<=60;v+=10){const yy=Y(v);g.fillStyle=C.faint;g.font='10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(v,x0-8,yy);}
+  g.strokeStyle="rgba(150,170,200,.26)";g.setLineDash([3,6]);g.lineWidth=1;g.beginPath();g.moveTo(x0,Y(50));g.lineTo(x1,Y(50));g.stroke();g.setLineDash([]);g.fillStyle=C.faint;g.textAlign="left";g.textBaseline="middle";g.font='9px "IBM Plex Mono",monospace';g.fillText("50",x1+4,Y(50));
+  g.strokeStyle="rgba(120,150,190,.30)";g.lineWidth=1.2;g.beginPath();g.moveTo(x0,y1-4);g.lineTo(x0,y0);g.lineTo(x1,y0);g.stroke();
   const step=(x1-x0)/(dims.length-1),short=step<70,ABBR={"Tensão":"Ten","Depressão":"Dep","Raiva":"Rai","Vigor":"Vig","Fadiga":"Fad","Confusão":"Con"};
-  dims.forEach((d,i)=>{const xx=X(i);g.strokeStyle="rgba(120,150,190,.06)";g.lineWidth=1;g.beginPath();g.moveTo(xx,y1);g.lineTo(xx,y0);g.stroke();g.fillStyle=C.muted;g.font=(short?'700 10px':'700 11.5px')+' "Sora",sans-serif';g.textAlign="center";g.textBaseline="top";g.fillText(short?(ABBR[d]||d):d,xx,y0+10);});
+  dims.forEach((d,i)=>{const xx=X(i);g.strokeStyle="rgba(120,150,190,.24)";g.lineWidth=1;g.beginPath();g.moveTo(xx,y0);g.lineTo(xx,y0+4);g.stroke();g.fillStyle=C.muted;g.font=(short?'700 10px':'700 11.5px')+' "Sora",sans-serif';g.textAlign="center";g.textBaseline="top";g.fillText(short?(ABBR[d]||d):d,xx,y0+10);});
   g.save();g.translate(13,(y0+y1)/2);g.rotate(-Math.PI/2);g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="top";g.fillText("escore-T (m\u00e9dia 50 \u00b7 DP 10)",0,0);g.restore();
   return {X,Y,x0,x1,y0,y1,dims};}
 function polyReveal(g,ax,ys,prog){const nn=ys.length,seg=(nn-1)*prog,full=Math.floor(seg),frac=seg-full;g.beginPath();
   for(let i=0;i<=full&&i<nn;i++){const px=ax.X(i),py=ax.Y(ys[i]);i?g.lineTo(px,py):g.moveTo(px,py);}
   if(full<nn-1){const px=ax.X(full)+(ax.X(full+1)-ax.X(full))*frac,py=ax.Y(ys[full])+(ax.Y(ys[full+1])-ax.Y(ys[full]))*frac;g.lineTo(px,py);}
   g.stroke();return full;}
+function _profExtrema(ys){const ex=[];for(let i=1;i<ys.length-1;i++){const a=ys[i-1],b=ys[i],c=ys[i+1];if(b>a&&b>c)ex.push({i,dir:1});else if(b<a&&b<c)ex.push({i,dir:-1});}
+  const e0=ys[0]-ys[1];if(Math.abs(e0)>=1.5)ex.unshift({i:0,dir:e0>0?1:-1});const eN=ys[ys.length-1]-ys[ys.length-2];if(Math.abs(eN)>=1.5)ex.push({i:ys.length-1,dir:eN>0?1:-1});return ex;}
 function drawProfilesChart(host,sel,hl){const dims=PROFDATA.dims,names=PROFDATA.order,P=PROFDATA.profiles;
   const {cv,g}=mk(host,470);
-  anim(3600,prog=>{const ax=profAxes(cv,g);cv._hits=[];
+  anim(2400,prog=>{const ax=profAxes(cv,g);cv._hits=[];
     names.forEach(nm=>{if(sel&&!sel.has(nm))return;const p=P[nm],col=p.c,ys=p.t,emph=!hl||hl===nm;
       g.globalAlpha=emph?1:0.16;g.strokeStyle=col;g.lineWidth=hl===nm?7:5;g.lineJoin="round";g.lineCap="round";g.shadowColor=rgba(col,.55);g.shadowBlur=emph?10:0;
       const full=polyReveal(g,ax,ys,prog);g.shadowBlur=0;
+      const ext=emph?_profExtrema(ys):[],eset=new Set(ext.map(e=>e.i));
       for(let i=0;i<=full&&i<ys.length;i++){const px=ax.X(i),py=ax.Y(ys[i]);g.fillStyle=col;g.beginPath();g.arc(px,py,emph?5.4:4,0,7);g.fill();g.fillStyle="#0b1220";g.beginPath();g.arc(px,py,2.2,0,7);g.fill();
-        if(prog>=1&&emph)cv._hits.push({x:px-9,y:py-9,w:18,h:18,tip:`<b>${nm}</b> \u00b7 ${dims[i]}<br>T = ${num(ys[i],1)} \u00b7 prev. ${num(p.prev,1)}%`});}
+        if(prog>=1&&emph)cv._hits.push({x:px-9,y:py-9,w:18,h:18,tip:`<b>${nm}</b> \u00b7 ${dims[i]}<br>T = ${num(ys[i],1)}${eset.has(i)?" \u00b7 <b>ponto de inflexao</b>":""} \u00b7 prev. ${num(p.prev,1)}%`});}
+      if(emph)ext.forEach(e=>{if(e.i>full)return;const px=ax.X(e.i),py=ax.Y(ys[e.i]);g.strokeStyle=col;g.lineWidth=2.2;g.globalAlpha=0.9;g.beginPath();g.arc(px,py,9.5,0,7);g.stroke();g.globalAlpha=1;g.fillStyle=col;g.font='800 12px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline=e.dir>0?"bottom":"top";g.fillText(e.dir>0?"▲":"▼",px,e.dir>0?py-12:py+12);});
       g.globalAlpha=1;});
   });attachHits(cv);}
 function drawProfileMorph(host,fixedDay){const dims=PROFDATA.dims,B=PROFDATA.byday,P=PROFDATA.profiles;
@@ -1305,21 +1329,12 @@ const SECTIONS=[
   /* ---- gráfico grande e interativo: perfis em escore-T + morfismo do grupo dia a dia ---- */
   const pc=document.createElement("div");pc.className="card";pc.style.marginTop="14px";
   pc.innerHTML=`<div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px">
-    <div><h3 style="margin:0">Os seis perfis de humor · escore-T</h3><p class="note" style="margin:3px 0 0">média 50 · DP 10 · faixa 40–60 = normal · prevalência ao lado de cada perfil</p></div>
+    <div><h3 style="margin:0">Os seis perfis de humor · escore-T</h3><p class="note" style="margin:3px 0 0">forma média de cada perfil · média 50 · DP 10 · pontos de inflexão sinalizados (▲ pico, ▼ vale)</p></div>
     <div class="legend" id="pmode" style="margin:0"><span class="it selon" data-m="perfis" style="cursor:pointer">Os 6 perfis (formas)</span><span class="it" data-m="dias" style="cursor:pointer">O grupo dia a dia (animado)</span></div></div>
-    <div id="pctrl" style="margin:10px 0 2px"></div><div class="host" id="h_prof"></div><div id="pleg" class="legend" style="margin-top:8px"></div>`;
+    <div id="pctrl" style="margin:10px 0 2px"></div><div class="host" id="h_prof"></div>
+    <div id="psum" class="note" style="margin-top:9px;font-size:12.5px;color:var(--ink)"></div>
+    <div id="pleg" class="legend" style="margin-top:6px"></div>`;
   h.appendChild(pc);
-  const phost=$("#h_prof",pc),pctrl=$("#pctrl",pc),pleg=$("#pleg",pc);let psel=new Set(PROFDATA.order);
-  function renderPerfis(){pctrl.innerHTML="";const chips=document.createElement("div");chips.className="var-chips";
-    PROFDATA.order.forEach(nm=>{const p=PROFDATA.profiles[nm];const b=document.createElement("button");b.className="vchip";b.type="button";b.setAttribute("aria-pressed",psel.has(nm)?"true":"false");b.innerHTML=`<span class="dot" style="background:${p.c}"></span>${nm} · ${num(p.prev,1)}%`;b.onclick=()=>{psel.has(nm)?psel.delete(nm):psel.add(nm);b.setAttribute("aria-pressed",psel.has(nm)?"true":"false");phost.innerHTML="";drawProfilesChart(phost,psel,null);};chips.appendChild(b);});
-    pctrl.appendChild(chips);pleg.innerHTML=`<span class="note">Clique num perfil para ligar/desligar. Cada linha é a <b>forma média</b> de quem foi classificado naquele perfil. O <b>iceberg</b> tem o vigor no topo e tudo o mais embaixo; o <b>everest invertido</b> é o oposto amplificado (risco).</span>`;phost.innerHTML="";drawProfilesChart(phost,psel,null);}
-  function renderDias(){pctrl.innerHTML="";const row=document.createElement("div");row.className="legend";
-    const play=document.createElement("span");play.className="it selon";play.style.cursor="pointer";play.innerHTML="▶ Animar a semana (D1→D7)";play.onclick=()=>{row.querySelectorAll(".it").forEach(x=>x.classList.remove("selon"));play.classList.add("selon");phost.innerHTML="";drawProfileMorph(phost);};row.appendChild(play);
-    for(let d=1;d<=7;d++){const b=document.createElement("span");b.className="it";b.style.cursor="pointer";b.textContent="D"+d;b.onclick=()=>{row.querySelectorAll(".it").forEach(x=>x.classList.remove("selon"));b.classList.add("selon");phost.innerHTML="";drawProfileMorph(phost,d);};row.appendChild(b);}
-    pctrl.appendChild(row);pleg.innerHTML=`<span class="note">A linha grossa é o <b>perfil médio do grupo</b> naquele dia (a cor é o perfil dominante); a linha roxa fina é o <b>D1 (baseline)</b>, para comparar. Veja o <b>vigor descer</b> e a <b>fadiga subir</b> — a erosão do iceberg em tempo real.</span>`;phost.innerHTML="";drawProfileMorph(phost);}
-  $("#pmode",pc).querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{$("#pmode",pc).querySelectorAll("[data-m]").forEach(x=>x.classList.toggle("selon",x===b));b.dataset.m==="perfis"?renderPerfis():renderDias();});
-  renderPerfis();
-  /* ---- figura explicativa: o que cada perfil significa e o porquê ---- */
   const ex=document.createElement("div");ex.className="card";ex.style.marginTop="14px";ex.style.borderLeft="3px solid "+C.pth;
   ex.innerHTML=`<h3>O que cada perfil significa — e por que o iceberg se transforma</h3>
    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:10px;margin-top:10px">
@@ -1327,9 +1342,27 @@ const SECTIONS=[
    </div>
    <p class="note" style="font-size:13px;line-height:1.64;margin-top:12px;border-top:1px solid var(--stroke);padding-top:10px;color:var(--ink)"><b>A leitura:</b> no baseline (D1) o grupo tem forma de <b>iceberg</b> — vigor no alto, fadiga embaixo. Conforme a carga se acumula, o <b>vigor desce e a fadiga sobe</b>: o iceberg vai <b>afundando</b> e, no D7, o grupo se aproxima da <b>barbatana de tubarão</b> (fadiga isolada no topo). Como as negativas seguem perto de 50, não é humor negativo generalizado — é <b>desgaste energético</b>, a assinatura da <b>sobrecarga funcional</b>. É por isso que o monitoramento vigia a <b>forma do perfil inteiro</b>, e não uma variável isolada.</p>`;
   h.appendChild(ex);
-  const gr=cards(h,`<div class="card"><h3>Prevalência dos perfis</h3><p class="note">contagem no Dia 1 (n=27) vs Dia 7 (n=21)</p><div class="host" id="h_perf"></div></div><div class="card"><h3>Distribuição</h3><p class="note">n de atletas por perfil · Δ na contagem</p><div class="host" id="t_perf"></div></div>`);
-  groupChart($("#h_perf",gr),PERFIS.map(r=>({lab:r[0],vals:[r[1],r[2]]})),[{lab:"Dia 1",c:C.vigor},{lab:"Dia 7",c:C.fadiga}],{ymax:14});
-  dynTable($("#t_perf",gr),["Perfil","Dia 1","Dia 7","Δ"],PERFIS.map(r=>[r[0],r[1],r[2],r[2]-r[1]]),(i,v)=>i===3?(v>0?`<span class="pos">+${v}</span>`:v<0?`<span class="neg">${v}</span>`:v):v);
+  const gr=cards(h,`<div class="card"><h3>Prevalência dos perfis selecionados</h3><p class="note">contagem no Dia 1 (n=27) vs Dia 7 (n=21) · acompanha a seleção acima</p><div class="host" id="h_perf"></div></div><div class="card"><h3>Distribuição</h3><p class="note">n de atletas por perfil · Δ na contagem</p><div class="host" id="t_perf"></div></div>`);
+  const phost=$("#h_prof",pc),pctrl=$("#pctrl",pc),pleg=$("#pleg",pc),psum=$("#psum",pc),hperf=$("#h_perf",gr),tperf=$("#t_perf",gr);
+  let psel=new Set(PROFDATA.order);
+  function refreshLinked(){const selNames=PROFDATA.order.filter(nm=>psel.has(nm)),rows=PERFIS.filter(r=>psel.has(r[0]));
+    hperf.innerHTML="";groupChart(hperf,(rows.length?rows:[["—",0,0]]).map(r=>({lab:r[0],vals:[r[1],r[2]]})),[{lab:"Dia 1",c:C.vigor},{lab:"Dia 7",c:C.fadiga}],{ymax:14});
+    tperf.innerHTML="";dynTable(tperf,["Perfil","Dia 1","Dia 7","Δ"],rows.map(r=>[r[0],r[1],r[2],r[2]-r[1]]),(k,v)=>k===3?(v>0?`<span class="pos">+${v}</span>`:v<0?`<span class="neg">${v}</span>`:v):v);
+    const prev=selNames.reduce((a,nm)=>a+PROFDATA.profiles[nm].prev,0),d1=rows.reduce((a,r)=>a+r[1],0),d7=rows.reduce((a,r)=>a+r[2],0);
+    psum.innerHTML=selNames.length?`<b style="color:var(--accent)">${selNames.length}</b> de 6 perfis · prevalência combinada <b>${num(prev,1)}%</b> das respostas · contagem D1 <b>${d1}</b> → D7 <b>${d7}</b>`:`nenhum perfil selecionado · clique em <b>Todos</b> ou num perfil`;}
+  function drawPerfis(){phost.innerHTML="";drawProfilesChart(phost,psel,null);refreshLinked();}
+  function renderPerfis(){pctrl.innerHTML="";const bar=document.createElement("div");bar.className="var-chips";
+    const tog=(txt,fn,solid)=>{const b=document.createElement("button");b.className="vchip";b.type="button";b.style.fontWeight="700";if(solid)b.setAttribute("aria-pressed","true");b.textContent=txt;b.onclick=fn;return b;};
+    bar.appendChild(tog("✓ Todos",()=>{psel=new Set(PROFDATA.order);renderPerfis();},true));
+    bar.appendChild(tog("✕ Nenhum",()=>{psel=new Set();renderPerfis();}));
+    PROFDATA.order.forEach(nm=>{const p=PROFDATA.profiles[nm];const b=document.createElement("button");b.className="vchip";b.type="button";b.setAttribute("aria-pressed",psel.has(nm)?"true":"false");b.innerHTML=`<span class="dot" style="background:${p.c}"></span>${nm} · ${num(p.prev,1)}%`;b.onclick=()=>{psel.has(nm)?psel.delete(nm):psel.add(nm);b.setAttribute("aria-pressed",psel.has(nm)?"true":"false");drawPerfis();};bar.appendChild(b);});
+    pctrl.appendChild(bar);pleg.innerHTML=`<span class="note">Escolha os perfis (ou <b>Todos</b>). Cada linha é a <b>forma média</b> de quem foi classificado naquele perfil; os anéis marcam os <b>pontos de inflexão</b>. O gráfico, o resumo e as tabelas abaixo <b>atualizam juntos</b>.</span>`;drawPerfis();}
+  function renderDias(){pctrl.innerHTML="";const row=document.createElement("div");row.className="legend";
+    const play=document.createElement("span");play.className="it selon";play.style.cursor="pointer";play.innerHTML="▶ Animar a semana (D1→D7)";play.onclick=()=>{row.querySelectorAll(".it").forEach(x=>x.classList.remove("selon"));play.classList.add("selon");phost.innerHTML="";drawProfileMorph(phost);};row.appendChild(play);
+    for(let dd=1;dd<=7;dd++){const b=document.createElement("span");b.className="it";b.style.cursor="pointer";b.textContent="D"+dd;b.onclick=()=>{row.querySelectorAll(".it").forEach(x=>x.classList.remove("selon"));b.classList.add("selon");phost.innerHTML="";drawProfileMorph(phost,dd);};row.appendChild(b);}
+    pctrl.appendChild(row);pleg.innerHTML=`<span class="note">A linha grossa é o <b>perfil médio do grupo</b> naquele dia; a linha roxa fina é o <b>D1 (baseline)</b>. Veja o <b>vigor descer</b> e a <b>fadiga subir</b>.</span>`;phost.innerHTML="";drawProfileMorph(phost);psum.innerHTML="";}
+  $("#pmode",pc).querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{$("#pmode",pc).querySelectorAll("[data-m]").forEach(x=>x.classList.toggle("selon",x===b));b.dataset.m==="perfis"?renderPerfis():renderDias();});
+  renderPerfis();
 }},
 {id:"risco",lab:"Perfis de risco",icon:"shield",render(h){
   head(h,"rastreio · saúde mental & sobrecarga","Perfis de humor negativos como marcadores de risco","Além de descrever o humor, os perfis podem <b>rastrear risco</b>. Na literatura (modelo de saúde mental de Morgan; taxonomia de Parsons-Smith), os perfis <b>invertidos</b> (iceberg/everest invertido — vigor baixo e afeto negativo alto) associam-se a <b>pior saúde mental e overtraining</b>, e a <b>barbatana de tubarão</b> (fadiga elevada) sinaliza <b>sobrecarga</b>. Aqui mostramos com que frequência aparecem, em quem, e quando — como um <b>instrumento de triagem</b>.");
