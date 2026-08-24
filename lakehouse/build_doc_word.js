@@ -1,496 +1,553 @@
-// Documento Word: Triangulação dos resultados (BRUMS · microciclo de pré-temporada)
+// Documento ABNT: análise descritiva completa + triangulação (BRUMS · handebol)
 const fs = require("fs");
 const D = require("docx");
 const {
-  Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType,
+  Document, Packer, Paragraph, TextRun, AlignmentType, LevelFormat,
   Table, TableRow, TableCell, WidthType, BorderStyle, ShadingType,
-  ImageRun, PageNumber, Header, Footer, TabStopType, TabStopPosition
+  ImageRun, PageNumber, Header, Footer
 } = D;
 
 const DIR = __dirname;
-const data = JSON.parse(fs.readFileSync(DIR + "/data.json", "utf8"));
+const d = JSON.parse(fs.readFileSync(DIR + "/data.json", "utf8"));
 
-// ---------- estilo ----------
-const INK = "1a2230", MUT = "5a6b80", ACC = "1b6ec2", LINE = "c9d2dd";
-const HEADBG = "1b3a5b", HEADTX = "ffffff", ZEBRA = "eef3f8";
-const CW = 9020; // largura de conteúdo (A4, margens de 1440 dxa)
-const FONT = "Calibri";
+// ---------- ABNT ----------
+const FONT = "Times New Roman";
+const BODY = 24;        // 12pt
+const SMALL = 20;       // 10pt (tabelas/figuras)
+const INK = "000000", GREY = "3f3f3f", RULE = "000000";
+const CW = 9505;        // largura de conteúdo em Letter com margens 3/2 cm
+const LINE15 = 360;     // 1,5
+const INDENT = 709;     // 1,25 cm
 
-function n(x, d = 1) {
+function n(x, c = 1) {
   if (x === null || x === undefined || (typeof x === "number" && isNaN(x))) return "–";
-  return Number(x).toFixed(d).replace(".", ",");
+  return Number(x).toFixed(c).replace(".", ",");
 }
-function pfmt(p) { return p < 0.001 ? "< 0,001" : ("= " + n(p, 3)); }
-function sg(x, d = 2) { return (x >= 0 ? "+" : "") + n(x, d); }
+function pf(p) { return p < 0.001 ? "< 0,001" : ("= " + n(p, 3)); }
+function ic(lo, hi) { return "[" + n(lo, 2) + "; " + n(hi, 2) + "]"; }
+function sgn(x, c = 2) { return (x >= 0 ? "+" : "") + n(x, c); }
+function mag(x) { const a = Math.abs(x); return a >= .8 ? "grande" : a >= .5 ? "médio" : a >= .2 ? "pequeno" : "trivial"; }
 
-// parágrafo de texto: aceita string ou array de runs
-function P(content, o = {}) {
-  const runs = typeof content === "string"
-    ? [new TextRun({ text: content, font: FONT, size: o.size || 21, color: o.color || INK, bold: o.bold, italics: o.italics })]
-    : content;
-  return new Paragraph({
-    children: runs,
-    alignment: o.align || AlignmentType.JUSTIFIED,
-    spacing: { after: o.after != null ? o.after : 140, line: o.line || 288, before: o.before || 0 },
-    keepNext: o.keepNext, indent: o.indent
-  });
-}
-// runs inline com formatação (negrito por marcador **texto**)
-function R(text, o = {}) { return new TextRun({ text, font: FONT, size: o.size || 21, color: o.color || INK, bold: o.bold, italics: o.italics }); }
-// converte "texto com **negrito** e *itálico*" numa lista de runs
-function rich(str, base = {}) {
+// runs com **negrito** e *itálico*
+function rich(str, o = {}) {
+  const base = { font: FONT, size: o.size || BODY, color: o.color || INK, bold: o.bold, italics: o.italics };
   const out = []; const re = /\*\*(.+?)\*\*|\*(.+?)\*/g; let last = 0, m;
   while ((m = re.exec(str))) {
-    if (m.index > last) out.push(R(str.slice(last, m.index), base));
-    if (m[1] != null) out.push(R(m[1], { ...base, bold: true }));
-    else out.push(R(m[2], { ...base, italics: true }));
+    if (m.index > last) out.push(new TextRun({ ...base, text: str.slice(last, m.index) }));
+    if (m[1] != null) out.push(new TextRun({ ...base, text: m[1], bold: true }));
+    else out.push(new TextRun({ ...base, text: m[2], italics: true }));
     last = re.lastIndex;
   }
-  if (last < str.length) out.push(R(str.slice(last), base));
+  if (last < str.length) out.push(new TextRun({ ...base, text: str.slice(last) }));
   return out;
 }
-function PR(str, o = {}) { return P(rich(str, { size: o.size, color: o.color }), o); }
+// parágrafo de corpo ABNT (justificado, 1,5, recuo 1,25, sem espaço)
+function P(str) {
+  return new Paragraph({
+    children: rich(str), alignment: AlignmentType.JUSTIFIED,
+    spacing: { before: 0, after: 0, line: LINE15, lineRule: "auto" },
+    indent: { firstLine: INDENT }
+  });
+}
+// parágrafo sem recuo (resumo)
+function Pflat(str, o = {}) {
+  return new Paragraph({
+    children: rich(str, o), alignment: o.align || AlignmentType.JUSTIFIED,
+    spacing: { before: 0, after: o.after || 0, line: LINE15, lineRule: "auto" }
+  });
+}
+function H1(numTitle) {
+  return new Paragraph({
+    children: [new TextRun({ text: numTitle.toUpperCase(), font: FONT, size: BODY, bold: true, color: INK })],
+    spacing: { before: 300, after: 140, line: LINE15, lineRule: "auto" }, keepNext: true
+  });
+}
+function H2(numTitle) {
+  return new Paragraph({
+    children: [new TextRun({ text: numTitle, font: FONT, size: BODY, bold: true, color: INK })],
+    spacing: { before: 200, after: 90, line: LINE15, lineRule: "auto" }, keepNext: true
+  });
+}
+function tblTitle(str) {
+  return new Paragraph({
+    children: rich(str, { size: SMALL }), alignment: AlignmentType.LEFT,
+    spacing: { before: 160, after: 40, line: 240 }, keepNext: true
+  });
+}
+function tblSource(str) {
+  return new Paragraph({
+    children: rich(str, { size: SMALL, color: GREY }), alignment: AlignmentType.LEFT,
+    spacing: { before: 40, after: 180, line: 240 }
+  });
+}
+function figCap(str) {
+  return new Paragraph({
+    children: rich(str, { size: SMALL }), alignment: AlignmentType.CENTER,
+    spacing: { before: 160, after: 40, line: 240 }, keepNext: true
+  });
+}
+function figSource(str) {
+  return new Paragraph({
+    children: rich(str, { size: SMALL, color: GREY }), alignment: AlignmentType.CENTER,
+    spacing: { before: 40, after: 180, line: 240 }
+  });
+}
+const RATIOS = {
+  "fig_framework.png": 9.6 / 6.4, "fig_traj_facets.png": 1440 / 1200, "fig_sono_traj.png": 9.4 / 3.9,
+  "fig_tcar.png": 9.6 / 3.6, "fig_perfil_radar.png": 1470 / 930, "fig_prof_day.png": 8.6 / 4.3,
+  "fig_agudo.png": 9.0 / 4.2, "fig_contrast.png": 8.6 / 4.1, "fig_sono_perfil.png": 7.4 / 4.0,
+  "fig_ice_index.png": 8.6 / 4.0
+};
+function figure(file, wPx = 600) {
+  const img = fs.readFileSync(DIR + "/" + file);
+  const rt = RATIOS[file] || 1.7; const w = wPx, h = Math.round(w / rt);
+  return new Paragraph({
+    alignment: AlignmentType.CENTER, spacing: { before: 40, after: 0 },
+    children: [new ImageRun({ type: "png", data: img, transformation: { width: w, height: h } })]
+  });
+}
 
-function H1(text, num) {
-  return new Paragraph({
-    heading: HeadingLevel.HEADING_1,
-    spacing: { before: 300, after: 130 },
-    children: [new TextRun({ text: (num ? num + "   " : "") + text, font: FONT, size: 30, bold: true, color: HEADBG })]
-  });
-}
-function H2(text) {
-  return new Paragraph({
-    heading: HeadingLevel.HEADING_2,
-    spacing: { before: 200, after: 100 },
-    children: [new TextRun({ text, font: FONT, size: 24, bold: true, color: ACC })]
-  });
-}
-function caption(text) {
-  return new Paragraph({
-    alignment: AlignmentType.CENTER, spacing: { before: 60, after: 200 },
-    children: rich(text, { size: 17, color: MUT, italics: true })
-  });
-}
-function noBorder() {
-  const none = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
-  return { top: none, bottom: none, left: none, right: none };
-}
-
-// tabela de dados: headers=[{t,w,al}], rows=[[{t,al,bold,color}]]
-function DT(headers, rows, o = {}) {
-  const thin = { style: BorderStyle.SINGLE, size: 4, color: LINE };
-  const cellB = { top: thin, bottom: thin, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } };
+// tabela ABNT aberta
+function openTable(headers, rows) {
+  const line = { style: BorderStyle.SINGLE, size: 6, color: RULE };
+  const none = { style: BorderStyle.NONE };
   const widths = headers.map(h => h.w);
-  const hdr = new TableRow({
-    tableHeader: true,
-    children: headers.map(h => new TableCell({
-      width: { size: h.w, type: WidthType.DXA },
-      shading: { type: ShadingType.CLEAR, fill: HEADBG, color: "auto" },
-      margins: { top: 60, bottom: 60, left: 90, right: 90 },
-      verticalAlign: "center",
-      children: [new Paragraph({
-        alignment: h.al || AlignmentType.LEFT, spacing: { after: 0, line: 240 },
-        children: [new TextRun({ text: h.t, font: FONT, size: 18, bold: true, color: HEADTX })]
-      })]
-    }))
-  });
+  const hcells = headers.map(h => new TableCell({
+    width: { size: h.w, type: WidthType.DXA },
+    borders: { top: line, bottom: line, left: none, right: none },
+    margins: { top: 40, bottom: 40, left: 70, right: 70 }, verticalAlign: "center",
+    children: [new Paragraph({ alignment: h.al || AlignmentType.LEFT, spacing: { after: 0, line: 240 },
+      children: [new TextRun({ text: h.t, font: FONT, size: SMALL, bold: true, color: INK })] })]
+  }));
   const trs = rows.map((r, ri) => new TableRow({
     children: r.map((c, ci) => new TableCell({
       width: { size: widths[ci], type: WidthType.DXA },
-      shading: ri % 2 ? { type: ShadingType.CLEAR, fill: ZEBRA, color: "auto" } : undefined,
-      margins: { top: 46, bottom: 46, left: 90, right: 90 },
-      verticalAlign: "center",
-      children: [new Paragraph({
-        alignment: c.al || headers[ci].al || AlignmentType.LEFT, spacing: { after: 0, line: 240 },
-        children: rich(String(c.t), { size: 18, bold: c.bold, color: c.color || INK })
-      })]
+      borders: { top: none, bottom: ri === rows.length - 1 ? line : none, left: none, right: none },
+      margins: { top: 30, bottom: 30, left: 70, right: 70 }, verticalAlign: "center",
+      children: [new Paragraph({ alignment: c.al || headers[ci].al || AlignmentType.LEFT, spacing: { after: 0, line: 240 },
+        children: rich(String(c.t), { size: SMALL, bold: c.bold, color: c.color || INK }) })]
     }))
   }));
   return new Table({
     columnWidths: widths, width: { size: CW, type: WidthType.DXA },
-    borders: { top: thin, bottom: thin, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, insideHorizontal: thin, insideVertical: { style: BorderStyle.NONE } },
-    rows: [hdr, ...trs]
+    borders: { top: line, bottom: line, left: none, right: none, insideHorizontal: none, insideVertical: none },
+    rows: [new TableRow({ tableHeader: true, children: hcells }), ...trs]
   });
 }
-function spacer(after = 120) { return new Paragraph({ spacing: { after }, children: [] }); }
+const AL = { L: AlignmentType.LEFT, C: AlignmentType.CENTER, R: AlignmentType.RIGHT };
+const FONTE_D = "Fonte: Dados da pesquisa (2026).";
+const FONTE_E = "Fonte: Elaborado pelos autores (2026).";
 
-function figure(file, capText, wPx = 640) {
-  const img = fs.readFileSync(DIR + "/" + file);
-  // proporções conhecidas (largura/altura) das figuras geradas
-  const ratios = { "fig_traj.png": 8.4 / 4.6, "fig_agudo.png": 8.4 / 4.4, "fig_contrast.png": 8.4 / 4.3, "fig_perfis_dia.png": 8.4 / 4.5, "fig_sono_perfil.png": 7.4 / 4.2 };
-  const rt = ratios[file] || 1.8;
-  const w = wPx, hgt = Math.round(w / rt);
-  return [
-    new Paragraph({
-      alignment: AlignmentType.CENTER, spacing: { before: 120, after: 0 },
-      children: [new ImageRun({ type: "png", data: img, transformation: { width: w, height: hgt } })]
-    }),
-    caption(capText)
-  ];
-}
+const K = []; // corpo
 
-// nota destacada (faixa lateral)
-function callout(str, color = ACC) {
-  return new Paragraph({
-    spacing: { before: 120, after: 160, line: 288 },
-    border: { left: { style: BorderStyle.SINGLE, size: 18, color, space: 12 } },
-    indent: { left: 200 },
-    children: rich(str, { size: 20, color: INK })
-  });
-}
-
-const PRETTY = {
-  "depressao": "depressão", "raiva": "raiva", "fadiga": "fadiga", "confusao": "confusão",
-  "vigor": "vigor", "tensao": "tensão", "pth": "PTH", "epworth": "Epworth (sonolência)",
-  "pss": "PSS (estresse)"
-};
-function prettyPar(par) {
-  return par.split(" × ").map(s => PRETTY[s.trim()] || s).join(" × ");
-}
-
-// ============================ CONTEÚDO ============================
-const kids = [];
-
-// -------- Capa --------
-kids.push(new Paragraph({ spacing: { before: 400, after: 0 }, children: [] }));
-kids.push(new Paragraph({
-  alignment: AlignmentType.CENTER, spacing: { after: 80 },
-  children: [new TextRun({ text: "TRIANGULAÇÃO DOS RESULTADOS", font: FONT, size: 40, bold: true, color: HEADBG })]
+// ====================== CAPA / TÍTULO ======================
+K.push(new Paragraph({
+  alignment: AlignmentType.CENTER, spacing: { before: 200, after: 120, line: LINE15, lineRule: "auto" },
+  children: [new TextRun({ text: "DINÂMICA DO ESTADO DE HUMOR, DA SONOLÊNCIA E DO ESTRESSE EM UM MICROCICLO DE PRÉ-TEMPORADA DE HANDEBOL: ANÁLISE DESCRITIVA, PERFIS E TRIANGULAÇÃO ESTÍMULO E RESPOSTA", font: FONT, size: 28, bold: true, color: INK })]
 }));
-kids.push(new Paragraph({
-  alignment: AlignmentType.CENTER, spacing: { after: 300 },
-  children: [new TextRun({ text: "Sensibilidade e resposta do humor, da sonolência e do estresse aos estímulos de um microciclo de pré-temporada", font: FONT, size: 24, italics: true, color: ACC })]
-}));
-kids.push(new Paragraph({
-  alignment: AlignmentType.CENTER, spacing: { after: 60 },
-  children: rich(`Monitoramento do estado de humor (BRUMS) de **${data.n_atletas} atletas** de handebol de alto rendimento ao longo de **${data.n_dias} dias**, com **${data.n_resp} observações** pareadas por atleta`, { size: 20, color: MUT })
-}));
-kids.push(new Paragraph({
-  alignment: AlignmentType.CENTER, spacing: { after: 350 },
-  children: [new TextRun({ text: "Análise descritiva robusta, segmentação por variável e triangulação metodológica", font: FONT, size: 19, color: MUT })]
-}));
-kids.push(new Paragraph({
-  alignment: AlignmentType.CENTER, spacing: { after: 500 },
-  border: { top: { style: BorderStyle.SINGLE, size: 6, color: LINE }, bottom: { style: BorderStyle.SINGLE, size: 6, color: LINE } },
-  children: []
-}));
+K.push(Pflat("[Autoria e afiliação a preencher]", { align: AlignmentType.CENTER, size: 22, after: 200 }));
 
-// -------- 1. Introdução --------
-kids.push(H1("Introdução e objetivo", "1"));
-kids.push(PR("O acompanhamento diário do estado de humor por meio da Escala de Humor de Brunel (BRUMS) oferece uma janela sensível para o modo como o atleta responde à carga de treino. Durante um microciclo de pré-temporada, o organismo alterna sessões de alta intensidade intervalada (HIIT) com jogos amistosos, tarefas de força e dias de recuperação relativa. Cada estímulo impõe demandas distintas, e o humor funciona como um marcador precoce dessas demandas, muitas vezes antes que indicadores fisiológicos se tornem evidentes."));
-kids.push(PR("Este relatório persegue uma pergunta central: **quais variáveis do humor, da sonolência e do estresse mais respondem a cada estímulo** (HIIT e jogo amistoso), de que maneira essas medidas se comportam ao longo da semana e como os novos perfis de humor se conectam à sonolência e ao estresse nos dias de maior demanda. Para responder com segurança, o estudo recorre à **triangulação**: em vez de confiar em um único teste, cruza métodos independentes (efeitos agudos pareados, contrastes entre tipos de dia, coeficientes de variação, confiabilidade entre dias, classificação de perfis e comparações entre grupos). Quando caminhos analíticos distintos convergem para a mesma direção, o achado adquire robustez; quando um resultado isolado não resiste à correção por múltiplas comparações, o texto o trata como tendência, sem exagero interpretativo."));
-kids.push(callout("A triangulação não busca um veredito único. Ela procura o **padrão que sobrevive a vários olhares**, o que reduz o risco de confundir ruído amostral com sinal verdadeiro.", ACC));
+// RESUMO
+K.push(new Paragraph({ children: [new TextRun({ text: "RESUMO", font: FONT, size: BODY, bold: true })], spacing: { before: 120, after: 80, line: LINE15, lineRule: "auto" } }));
+K.push(Pflat("**Objetivo:** descrever o comportamento do estado de humor, da sonolência e do estresse percebido ao longo de um microciclo de pré-temporada e identificar quais dimensões respondem a cada estímulo (treinamento intervalado de alta intensidade e jogo amistoso), com integração dos achados por triangulação metodológica. **Método:** vinte e sete atletas de handebol do sexo masculino responderam à Escala de Humor de Brunel (BRUMS), à Escala de Sonolência de Epworth e à Perceived Stress Scale durante sete dias, o que resultou em 456 observações pareadas por atleta. A aptidão aeróbia e neuromuscular foi avaliada por teste de campo (T-CAR) e bateria complementar. A análise combinou estatística descritiva (média, desvio padrão, mediana, mínimo, máximo, coeficiente de variação e intervalo de confiança de 95%), confiabilidade entre dias (coeficiente de correlação intraclasse e ômega de McDonald), classificação dos seis perfis de humor por escores padronizados, correlações de Spearman e contrastes entre tipos de dia com correção por taxa de falsa descoberta. **Resultados:** a fadiga física destacou-se como o marcador mais estável e reprodutível; o afeto negativo diferenciou o estímulo intervalado, percebido como mais aversivo, do jogo; a sonolência acompanhou o perfil de humor, ao passo que o estresse percebido seguiu trajetória própria. **Conclusão:** a triangulação sustenta uma divisão funcional do monitoramento, com a carga física vigiada pela fadiga e o estado psicológico observado pelo afeto e pelo perfil.", { after: 80 }));
+K.push(Pflat("**Palavras-chave:** Estado de humor. BRUMS. Fadiga. Pré-temporada. Handebol.", { after: 200 }));
 
-// -------- 2. Método --------
-kids.push(H1("Delineamento, medidas e estratégia estatística", "2"));
-kids.push(PR(`A amostra reúne ${data.n_atletas} atletas do sexo masculino, todos integrantes do mesmo elenco, avaliados em ${data.n_dias} dias consecutivos de um microciclo de pré-temporada. Cada dia recebeu uma classificação de estímulo: linha de base (D1), HIIT (D2, D4 e D7), jogo amistoso (D3 e D5) e força (D6). O humor foi medido pela BRUMS em seis dimensões (tensão, depressão, raiva, vigor, fadiga e confusão), das quais derivam a fadiga física, a perturbação total do humor (PTH) e o próprio perfil. A sonolência diurna foi captada pela Escala de Sonolência de Epworth e o estresse percebido pela Perceived Stress Scale (PSS).`));
-kids.push(PR("Em cada dia, a primeira resposta representa o estado **pré** e a última representa o estado **pós**, o que viabiliza a leitura do efeito agudo intra-dia. A estatística acompanha a natureza pareada e não normal dos escores: o teste de Wilcoxon avalia as mudanças pré para pós, com o tamanho de efeito dz de Cohen para medidas repetidas; o contraste entre HIIT e jogo compara as médias por atleta e corrige oito testes simultâneos pelo procedimento de Benjamini-Hochberg (FDR); a confiabilidade entre dias apoia-se no coeficiente de correlação intraclasse ICC(A,1) e ICC(A,k); os grupos de perfil são comparados pelo teste de Kruskal-Wallis; as associações entre variáveis empregam a correlação de Spearman no nível do atleta, o que evita pseudorreplicação."));
-kids.push(callout("O estudo trabalha com **grupo único** (todos os atletas recebem os mesmos estímulos), sem grupo controle. Por essa razão, as leituras têm caráter **descritivo e de rastreio**, e não estabelecem relações causais. A magnitude do efeito segue a convenção usual: trivial (dz < 0,20), pequeno (0,20 a 0,49), médio (0,50 a 0,79) e grande (≥ 0,80).", "b0862a"));
+// ====================== 1 INTRODUÇÃO ======================
+K.push(H1("1 Introdução"));
+K.push(P("O monitoramento do estado psicológico do atleta consolidou-se como recurso central da preparação esportiva contemporânea. Entre os instrumentos disponíveis, a Escala de Humor de Brunel (BRUMS) ocupa posição de destaque, pois traduz em seis dimensões (tensão, depressão, raiva, vigor, fadiga e confusão) um construto sensível às oscilações da carga de treino. A literatura consagra o chamado perfil iceberg, proposto por Morgan (1985), no qual o vigor se sobrepõe às dimensões negativas, como marca de equilíbrio afetivo e de boa adaptação. Estudos posteriores refinaram essa leitura e descreveram uma taxonomia de perfis capaz de captar estados menos favoráveis (PARSONS-SMITH; TERRY; MACHIN, 2017; HAN; PARSONS-SMITH; TERRY, 2020)."));
+K.push(P("A pré-temporada representa um período crítico para essa vigilância. Nela, o organismo do atleta enfrenta estímulos de naturezas distintas, entre os quais se destacam o treinamento intervalado de alta intensidade (HIIT) e os jogos amistosos. Cada estímulo impõe demandas específicas, e o humor funciona como sensor precoce dessas demandas, muitas vezes antes que marcadores fisiológicos exibam alterações mensuráveis. Convém reconhecer, porém, que a mera descrição de médias diárias esconde nuances relevantes: uma variável pode oscilar muito e mesmo assim carregar pouca informação útil, ao passo que outra, aparentemente discreta, pode discriminar com precisão o tipo de esforço."));
+K.push(P("Diante dessa complexidade, o presente estudo adota a triangulação metodológica como estratégia analítica. Em vez de depositar confiança em um único teste, o trabalho cruza abordagens independentes, entre elas a descrição estatística robusta, a análise de confiabilidade, a classificação de perfis, a exploração de correlações e o contraste entre tipos de dia. Quando caminhos distintos convergem para a mesma conclusão, o achado ganha solidez; quando um resultado isolado não resiste à correção por comparações múltiplas, a interpretação permanece cautelosa e o trata como tendência."));
+K.push(P("O objetivo geral consiste em descrever o comportamento do humor, da sonolência e do estresse percebido ao longo do microciclo e em identificar quais medidas respondem a cada estímulo. Como objetivos específicos, o estudo pretende caracterizar a distribuição e a confiabilidade das medidas, classificar os atletas segundo os seis perfis de humor, mensurar a resposta aguda por tipo de dia e integrar as evidências em uma síntese aplicável à prática esportiva."));
 
-// -------- 3. Descritiva --------
-kids.push(H1("Análise descritiva do estado de humor", "3"));
-kids.push(PR("A leitura descritiva estabelece o ponto de partida. A Tabela 1 resume cada dimensão pela média, pelo desvio padrão, pela amplitude observada e pelo coeficiente de variação (CV), que expressa a dispersão relativa ao redor da média."));
+// ====================== 2 MÉTODO ======================
+K.push(H1("2 Método"));
+K.push(H2("2.1 Amostra e delineamento"));
+K.push(P(`Participaram do estudo ${d.meta.n_atletas} atletas de handebol do sexo masculino, todos integrantes do mesmo elenco, avaliados ao longo de ${d.meta.n_dias} dias consecutivos de um microciclo de pré-temporada. O delineamento observacional de grupo único acompanhou a rotina real da equipe, sem manipulação experimental e sem grupo de comparação. Cada dia recebeu uma classificação de estímulo conforme a sessão predominante, a saber: linha de base técnico-tática (D1), HIIT (D2, D4 e D7), jogo amistoso (D3 e D5) e força (D6). O conjunto reuniu ${d.meta.n_resp} observações pareadas por atleta, o que confere densidade adequada às análises intra-dia e entre dias.`));
+K.push(P(`A avaliação da aptidão física recorreu a uma bateria complementar aplicada em ${d.meta.n_fisico} atletas, distribuídos em subgrupos de referência (controle, n = ${d.meta.n_ctrl}; experimental, n = ${d.meta.n_exp}). Por respeito à fronteira de anonimização, esse conjunto físico manteve esquema de identificação próprio, sem junção artificial com os códigos do banco de humor. As leituras físicas, portanto, descrevem uma amostra correlata, e não a mesma unidade de análise do humor.`));
+
+K.push(H2("2.2 Instrumentos"));
+K.push(P("O estado de humor foi mensurado pela BRUMS, validada para o português (ROHLFS et al., 2008), em suas seis dimensões, das quais derivam a fadiga física, a perturbação total do humor (PTH) e a classificação do perfil. A sonolência diurna foi avaliada pela Escala de Sonolência de Epworth, e o estresse percebido, pela Perceived Stress Scale (PSS). A aptidão aeróbia foi estimada pelo teste de campo T-CAR, que fornece o pico de velocidade, a frequência cardíaca máxima e o número de repetições completadas. A bateria complementar incluiu o salto com contramovimento (CMJ) e o teste de Baker, além de medidas antropométricas."));
+
+K.push(H2("2.3 Classificação dos perfis de humor"));
+K.push(P("A classificação seguiu a taxonomia dos seis perfis descritos por Parsons-Smith, Terry e Machin (2017). Cada uma das seis subescalas foi padronizada na amostra e convertida em escore T (T = 50 + 10z), o que preserva a forma do perfil em uma métrica de leitura direta. A atribuição de cada observação a um perfil obedeceu ao critério do centroide canônico mais próximo, mensurado pela menor distância euclidiana quadrática sobre as seis subescalas padronizadas. Para cada perfil, o estudo reportou indicadores-chave de desempenho descritivo, entre eles a prevalência, o índice-iceberg (definido como o vigor padronizado menos a média das dimensões negativas padronizadas) e a PTH, que resume o perfil em um único número."));
+
+K.push(H2("2.4 Análise estatística"));
+K.push(P("A descrição de cada variável incluiu média, desvio padrão, mediana, mínimo, máximo, coeficiente de variação e intervalo de confiança de 95% da média. A confiabilidade entre dias apoiou-se no coeficiente de correlação intraclasse, nas formulações ICC(A,1), para uma medida isolada, e ICC(A,k), para a média da semana, ambas acompanhadas do respectivo intervalo de confiança. A consistência interna das dimensões recorreu ao ômega de McDonald. As mudanças pré para pós foram avaliadas pelo teste de Wilcoxon, com o tamanho de efeito dz de Cohen para medidas repetidas e intervalo de confiança obtido por reamostragem. O contraste entre HIIT e jogo comparou as médias por atleta e ajustou oito testes simultâneos pelo procedimento de Benjamini-Hochberg. As associações entre variáveis empregaram a correlação de Spearman no nível do atleta, o que evita a pseudorreplicação, e os grupos de perfil foram comparados pelo teste de Kruskal-Wallis. Toda a cadeia analítica foi construída sobre um repositório reprodutível, com sementes fixas e verificação de determinismo."));
+
+// Figura 1 — organograma / framework
+K.push(figCap("**Figura 1** – Organograma do framework analítico descritivo, da coleta à síntese"));
+K.push(figure("fig_framework.png", 600));
+K.push(figSource(FONTE_E));
+
+// Tabela 1 — microciclo (treinos diários)
+K.push(tblTitle("**Tabela 1** – Caracterização do microciclo de pré-temporada: sessões, carga interna e recuperação percebida ao longo dos sete dias"));
 {
-  const rows = data.desc.map(r => [
-    { t: r.lab, bold: true }, { t: n(r.media, 1), al: AlignmentType.CENTER },
-    { t: n(r.dp, 1), al: AlignmentType.CENTER },
-    { t: (r.minimo < 0 ? "−" + Math.abs(r.minimo) : r.minimo) + "–" + r.maximo, al: AlignmentType.CENTER },
-    { t: n(r.cv, 0) + "%", al: AlignmentType.CENTER }
+  const rows = [
+    ["D1", "21/04", "Técnico-tática (base)", "–", "–", "–", "–", "4,7", "13,5"],
+    ["D2", "22/04", "HIIT", "79,5", "84,0", "8,3", "201,7", "6,0", "11,4"],
+    ["D3", "23/04", "Jogo amistoso", "–", "–", "–", "–", "6,4", "11,4"],
+    ["D4", "24/04", "HIIT", "77,6", "79,6", "8,5", "205,7", "7,1", "11,1"],
+    ["D5", "25/04", "Jogo amistoso", "–", "–", "–", "–", "6,0", "11,6"],
+    ["D6", "26/04", "Força", "–", "–", "–", "–", "6,4", "11,7"],
+    ["D7", "27/04", "HIIT", "75,7", "75,2", "8,9", "215,8", "7,6", "9,0"]
+  ].map(r => r.map((c, i) => ({ t: c, al: i <= 2 ? AL.L : AL.C, bold: i === 0 })));
+  K.push(openTable([
+    { t: "Dia", w: 640, al: AL.L }, { t: "Data", w: 820, al: AL.L }, { t: "Sessão", w: 2100, al: AL.L },
+    { t: "%FCmáx", w: 1080, al: AL.C }, { t: "TRIMP", w: 1000, al: AL.C }, { t: "PSE", w: 900, al: AL.C },
+    { t: "sPSE", w: 1080, al: AL.C }, { t: "Fad. fís.", w: 1080, al: AL.C }, { t: "TQR", w: 805, al: AL.C }
+  ], rows));
+}
+K.push(tblSource("Nota: carga interna quantificada apenas nos dias de HIIT (%FCmáx, TRIMP de Banister, PSE 0–10 e sPSE em unidades arbitrárias); fadiga física percebida (0–10) e qualidade total de recuperação (TQR, 6–20) registradas em todos os dias. " + FONTE_D));
+
+// ====================== 3 RESULTADOS ======================
+K.push(H1("3 Resultados"));
+
+// 3.1 descritiva humor
+K.push(H2("3.1 Estatística descritiva do estado de humor"));
+K.push(P("A descrição das dimensões do humor estabelece o ponto de partida da análise. A Tabela 2 reúne, para cada dimensão, as medidas de tendência central e de dispersão, além do intervalo de confiança de 95% da média, o que permite avaliar de modo simultâneo o nível típico e a variabilidade de cada construto."));
+K.push(tblTitle("**Tabela 2** – Estatística descritiva das dimensões do humor (escores BRUMS, 0 a 16)"));
+{
+  const rows = d.mood_desc.map(r => [
+    { t: r.lab, bold: true, al: AL.L },
+    { t: n(r.media, 1), al: AL.C }, { t: n(r.dp, 1), al: AL.C }, { t: n(r.mediana, 1), al: AL.C },
+    { t: n(r.minimo, 0), al: AL.C }, { t: n(r.maximo, 0), al: AL.C }, { t: n(r.cv, 0) + "%", al: AL.C },
+    { t: ic(r.ic_lo, r.ic_hi), al: AL.C }
   ]);
-  kids.push(DT([
-    { t: "Dimensão", w: 2600 }, { t: "Média", w: 1400, al: AlignmentType.CENTER },
-    { t: "DP", w: 1400, al: AlignmentType.CENTER }, { t: "Amplitude", w: 1810, al: AlignmentType.CENTER },
-    { t: "CV", w: 1810, al: AlignmentType.CENTER }
+  K.push(openTable([
+    { t: "Dimensão", w: 1805, al: AL.L }, { t: "Média", w: 950, al: AL.C }, { t: "DP", w: 850, al: AL.C },
+    { t: "Mediana", w: 1050, al: AL.C }, { t: "Mín.", w: 750, al: AL.C }, { t: "Máx.", w: 750, al: AL.C },
+    { t: "CV", w: 900, al: AL.C }, { t: "IC 95% da média", w: 2450, al: AL.C }
   ], rows));
-  kids.push(caption("**Tabela 1.** Estatística descritiva das dimensões do humor (escores BRUMS, 0 a 16)."));
 }
-kids.push(PR("Dois padrões saltam à vista. De um lado, as dimensões de **ativação e fadiga** (vigor, fadiga e a fadiga física derivada) apresentam médias intermediárias e dispersão relativa contida, o que as torna leituras estáveis e confiáveis. De outro, as dimensões **negativas** (tensão, depressão, raiva e confusão) exibem médias baixas e desvios amplos: muitos atletas pontuam próximo de zero em vários dias, e essa concentração no piso amplia o CV, ainda que a oscilação absoluta seja modesta. A PTH, por combinar todas as dimensões, ocupa uma posição intermediária e resume o clima afetivo do grupo."));
-kids.push(PR("A trajetória semanal (Figura 1) traduz esse retrato estático em movimento. O vigor decresce de forma quase monotônica ao longo do microciclo, enquanto a fadiga sobe no sentido oposto; as duas curvas se cruzam por volta do quarto dia, marco clássico do acúmulo de carga. A PTH descreve um padrão em zigue-zague que merece destaque: eleva-se nos dias de HIIT (D2 e D4), recua nos dias de jogo (D3 e D5) e dispara no fechamento da semana (D7). Os pontos de inflexão assinalados na figura evidenciam que a perturbação do humor não cresce de modo uniforme, mas responde ao tipo de estímulo de cada dia."));
-kids.push(...figure("fig_traj.png", "**Figura 1.** Trajetória diária do vigor, da fadiga, da tensão e da PTH ao longo do microciclo. Círculos vazados assinalam pontos de inflexão (máximos e mínimos locais). O rótulo de cada dia indica o tipo de estímulo."));
+K.push(tblSource(FONTE_D));
+K.push(P("A leitura da tabela revela dois agrupamentos nítidos. As dimensões de ativação e de cansaço, ou seja, o vigor, a fadiga e a fadiga física, apresentam médias intermediárias, medianas próximas das médias e dispersão relativa contida, o que sugere leituras estáveis. Em contraste, as dimensões negativas, a tensão, a depressão, a raiva e a confusão, exibem médias baixas e medianas ainda menores, com desvios amplos. Esse quadro reflete a concentração de muitos escores próximos de zero, fenômeno que amplia o coeficiente de variação sem que a oscilação absoluta seja expressiva. A reflexão pertinente aqui diz respeito à interpretação: um coeficiente de variação elevado em uma dimensão de piso não indica instabilidade do atleta, mas sim a assimetria natural de um construto que raramente se manifesta em repouso."));
 
-// -------- 4. Variação e confiabilidade --------
-kids.push(H1("Variação e confiabilidade por variável", "4"));
-kids.push(PR("A utilidade de um marcador para monitorar carga depende de duas propriedades: variação suficiente para captar mudanças reais e estabilidade suficiente para que a leitura seja reprodutível. A Tabela 2 decompõe o coeficiente de variação em vários recortes e acrescenta o ICC(A,1), que quantifica a concordância entre os dias da semana."));
-kids.push(PR("Os recortes do CV respondem à pergunta sobre onde a variabilidade se concentra. O **CV intra-dia** compara a primeira e a última resposta do mesmo atleta no mesmo dia; o **CV pré e pós do dia** contrasta a dispersão no início e no fim da jornada; o **CV pré e pós da semana** confronta o primeiro dia (D1) com o último (D7); e o **CV da semana** mede a oscilação das médias diárias do grupo."));
+// 3.2 confiabilidade
+K.push(H2("3.2 Confiabilidade entre as medidas"));
+K.push(P("A utilidade de um marcador para o monitoramento depende da sua reprodutibilidade. A Tabela 3 apresenta a confiabilidade entre dias, expressa pelo ICC(A,1) e pelo ICC(A,k), acompanhados dos respectivos intervalos de confiança, e complementa a leitura com o ômega de McDonald, que estima a consistência interna de cada dimensão."));
+K.push(tblTitle("**Tabela 3** – Confiabilidade entre dias (ICC) e consistência interna (ômega) das dimensões do humor"));
 {
-  const rows = data.cv.map(r => [
-    { t: r.lab, bold: true },
-    { t: n(r.media, 2), al: AlignmentType.CENTER },
-    { t: n(r.cv_total, 0) + "%", al: AlignmentType.CENTER },
-    { t: n(r.cv_intradia, 0) + "%", al: AlignmentType.CENTER },
-    { t: n(r.cv_pre_dia, 0) + " / " + n(r.cv_pos_dia, 0), al: AlignmentType.CENTER },
-    { t: n(r.cv_pre_sem, 0) + " / " + n(r.cv_pos_sem, 0), al: AlignmentType.CENTER },
-    { t: n(r.cv_semana, 0) + "%", al: AlignmentType.CENTER },
-    { t: n(r.icc, 2), al: AlignmentType.CENTER, bold: true, color: r.icc >= 0.75 ? "1b7a3d" : r.icc >= 0.5 ? "b0862a" : "b03030" }
+  const rows = d.mood_desc.map(r => [
+    { t: r.lab, bold: true, al: AL.L },
+    { t: n(r.icc1, 2), al: AL.C }, { t: ic(r.icc1_lo, r.icc1_hi), al: AL.C },
+    { t: n(r.icck, 2), al: AL.C }, { t: ic(r.icck_lo, r.icck_hi), al: AL.C },
+    { t: r.omega != null ? n(r.omega, 2) : "–", al: AL.C }
   ]);
-  kids.push(DT([
-    { t: "Dimensão", w: 1560 },
-    { t: "Média", w: 900, al: AlignmentType.CENTER },
-    { t: "CV total", w: 1000, al: AlignmentType.CENTER },
-    { t: "CV intra-dia", w: 1120, al: AlignmentType.CENTER },
-    { t: "CV pré/pós dia", w: 1360, al: AlignmentType.CENTER },
-    { t: "CV pré/pós sem.", w: 1360, al: AlignmentType.CENTER },
-    { t: "CV sem.", w: 900, al: AlignmentType.CENTER },
-    { t: "ICC(A,1)", w: 820, al: AlignmentType.CENTER }
+  K.push(openTable([
+    { t: "Dimensão", w: 2005, al: AL.L },
+    { t: "ICC(A,1)", w: 1200, al: AL.C }, { t: "IC 95%", w: 1900, al: AL.C },
+    { t: "ICC(A,k)", w: 1200, al: AL.C }, { t: "IC 95%", w: 1900, al: AL.C },
+    { t: "Ômega", w: 1300, al: AL.C }
   ], rows));
-  kids.push(caption("**Tabela 2.** Coeficiente de variação (%) em quatro recortes e confiabilidade entre dias. Cores do ICC: verde ≥ 0,75 (substancial), âmbar 0,50 a 0,74 (moderado), vermelho < 0,50 (fraco)."));
 }
-kids.push(PR("A **fadiga física** reúne o melhor conjunto de propriedades para monitorar carga: apresenta o menor CV total, dispersão intra-dia contida e confiabilidade apreciável entre dias. Por reunir estabilidade e reprodutibilidade, ela se firma como o indicador mais indicado para dosar a carga interna do treino. A fadiga e o vigor a acompanham de perto, com CV moderado e ICC substancial."));
-kids.push(PR("As dimensões negativas revelam o efeito oposto. Depressão, confusão e raiva ostentam CV elevado justamente por partirem de valores baixos, condição na qual pequenas variações absolutas se traduzem em grandes variações relativas. Esse comportamento reduz a leitura individual dia a dia e recomenda o uso dessas dimensões **em conjunto**, seja pela PTH, seja pela classificação de perfil. A PTH ilustra bem a distinção entre os recortes: mantém CV intra-dia mínimo, o que a torna estável dentro do dia, mas exibe CV semanal alto, sinal de que responde com nitidez à progressão da carga ao longo dos sete dias."));
-{
-  const rows = data.icc.map(r => [
-    { t: r.lab, bold: true },
-    { t: n(r.icc1, 2), al: AlignmentType.CENTER },
-    { t: n(r.icck, 2), al: AlignmentType.CENTER },
-    { t: r.label, al: AlignmentType.CENTER }
-  ]);
-  kids.push(DT([
-    { t: "Dimensão", w: 2600 },
-    { t: "ICC(A,1)", w: 1810, al: AlignmentType.CENTER },
-    { t: "ICC(A,k)", w: 1810, al: AlignmentType.CENTER },
-    { t: "Interpretação", w: 2800, al: AlignmentType.CENTER }
-  ], rows));
-  kids.push(caption("**Tabela 3.** Confiabilidade entre dias por dimensão do humor. ICC(A,1) refere-se a uma medida isolada; ICC(A,k) refere-se à média da semana."));
-}
-kids.push(PR("A leitura conjunta das duas tabelas de confiabilidade reforça a conclusão. Uma única medida diária já oferece concordância moderada a substancial para a maioria das dimensões, e a média semanal, expressa pelo ICC(A,k), eleva de forma expressiva essa concordância. Em termos práticos, uma leitura pontual serve para o alerta imediato, ao passo que a média de vários dias entrega uma estimativa muito mais fiel do estado do atleta."));
+K.push(tblSource("Nota: ICC(A,1) refere-se a uma medida isolada; ICC(A,k), à média da semana; casos completos (n = " + d.mood_desc[0].icc_n + "). " + FONTE_D));
+K.push(P("Os resultados sustentam uma conclusão de ordem prática. Uma única medida diária já oferece concordância moderada a substancial para a maior parte das dimensões, e a média semanal eleva de modo expressivo essa concordância, com valores de ICC(A,k) próximos do teto. Em termos aplicados, isso significa que uma leitura pontual serve ao alerta imediato, ao passo que a agregação de vários dias entrega uma estimativa muito mais fiel do estado do atleta. A consistência interna, por sua vez, mostra-se satisfatória, o que respalda o emprego das dimensões tanto de forma isolada quanto combinada na perturbação total do humor."));
 
-// -------- 5. Resposta aguda --------
-kids.push(H1("Resposta aguda pré para pós, por tipo de dia", "5"));
-kids.push(PR("A resposta aguda mede o quanto o estado do atleta se altera entre o início e o fim do dia. A Tabela 4 apresenta o efeito pré para pós de cada dimensão no conjunto da amostra, com o valor de p do teste de Wilcoxon, o tamanho de efeito dz e a respectiva magnitude."));
+// 3.3 sono e estresse descritiva
+K.push(H2("3.3 Sonolência e estresse percebido"));
+K.push(P("A Tabela 4 descreve a sonolência diurna e o estresse percebido, medidas externas ao BRUMS que ampliam o retrato do estado do atleta. Além das estatísticas usuais, a tabela informa a confiabilidade entre dias da sonolência, cuja estrutura repetida permite o cálculo do ICC."));
+K.push(tblTitle("**Tabela 4** – Estatística descritiva da sonolência (Epworth) e do estresse percebido (PSS)"));
 {
-  const rows = data.prepos.map(r => [
-    { t: r.lab, bold: true },
-    { t: n(r.pre, 2), al: AlignmentType.CENTER },
-    { t: n(r.pos, 2), al: AlignmentType.CENTER },
-    { t: (r.pct >= 0 ? "+" : "") + r.pct + "%", al: AlignmentType.CENTER },
-    { t: "p " + pfmt(r.p), al: AlignmentType.CENTER, color: r.p < 0.05 ? "1b7a3d" : MUT },
-    { t: sg(r.dz), al: AlignmentType.CENTER, bold: true },
-    { t: r.mag, al: AlignmentType.CENTER }
+  const rows = d.wb_desc.map(r => [
+    { t: r.lab, bold: true, al: AL.L },
+    { t: n(r.media, 1), al: AL.C }, { t: n(r.dp, 1), al: AL.C }, { t: n(r.mediana, 1), al: AL.C },
+    { t: n(r.minimo, 0), al: AL.C }, { t: n(r.maximo, 0), al: AL.C },
+    { t: ic(r.ic_lo, r.ic_hi), al: AL.C },
+    { t: r.icc1 != null ? n(r.icc1, 2) + " " + ic(r.icc1_lo, r.icc1_hi) : "–", al: AL.C }
   ]);
-  kids.push(DT([
-    { t: "Dimensão", w: 1820 },
-    { t: "Pré", w: 1000, al: AlignmentType.CENTER },
-    { t: "Pós", w: 1000, al: AlignmentType.CENTER },
-    { t: "Δ%", w: 900, al: AlignmentType.CENTER },
-    { t: "p (Wilcoxon)", w: 1600, al: AlignmentType.CENTER },
-    { t: "dz", w: 900, al: AlignmentType.CENTER },
-    { t: "Magnitude", w: 1800, al: AlignmentType.CENTER }
+  K.push(openTable([
+    { t: "Medida", w: 2400, al: AL.L }, { t: "Média", w: 850, al: AL.C }, { t: "DP", w: 750, al: AL.C },
+    { t: "Mediana", w: 950, al: AL.C }, { t: "Mín.", w: 700, al: AL.C }, { t: "Máx.", w: 700, al: AL.C },
+    { t: "IC 95%", w: 1355, al: AL.C }, { t: "ICC(A,1) [IC]", w: 1800, al: AL.C }
   ], rows));
-  kids.push(caption("**Tabela 4.** Efeito agudo intra-dia (média pré e pós de todos os atleta-dias), no conjunto da amostra."));
 }
-kids.push(PR("O panorama geral confirma o custo agudo do treino: a fadiga e a fadiga física sobem de maneira consistente entre o início e o fim do dia, ao passo que o vigor recua. A PTH acompanha essa deterioração, o que sinaliza uma piora global do humor ao longo da jornada. As dimensões negativas ensaiam altas de menor porte, coerentes com um desconforto afetivo discreto."));
-kids.push(PR("O passo seguinte separa esse efeito agudo por tipo de estímulo (Figura 2). A distinção é reveladora. No **jogo amistoso**, a assinatura é quase pura fadiga: a fadiga física dispara, o vigor cede um pouco, mas as dimensões negativas praticamente não se movem. No **HIIT**, ao custo físico soma-se um componente afetivo: além da fadiga física, aparecem elevações de tensão, de PTH e das negativas. O maior efeito agudo isolado de toda a série é o da fadiga física no HIIT, de magnitude grande, seguido pela fadiga física no jogo, de magnitude média."));
-kids.push(...figure("fig_agudo.png", "**Figura 2.** Tamanho de efeito agudo (dz, pré para pós) de cada dimensão no HIIT e no jogo amistoso. Valores acima de zero indicam piora (mais fadiga ou mais afeto negativo); abaixo de zero, queda de vigor."));
-{
-  const order = ["vigor", "fadiga", "fadfisica", "tensao", "depressao", "raiva", "confusao", "pth"];
-  const labs = { vigor: "Vigor", fadiga: "Fadiga", fadfisica: "Fadiga física", tensao: "Tensão", depressao: "Depressão", raiva: "Raiva", confusao: "Confusão", pth: "PTH" };
-  const byvt = {}; data.acute.forEach(a => { (byvt[a.var] = byvt[a.var] || {})[a.tipo] = a; });
-  const rows = order.map(k => {
-    const hi = byvt[k].HIIT, jo = byvt[k].Jogo, ou = byvt[k].Outro;
-    return [
-      { t: labs[k], bold: true },
-      { t: sg(hi.dz) + (hi.sig ? " *" : ""), al: AlignmentType.CENTER, color: hi.sig ? "1b7a3d" : INK },
-      { t: sg(jo.dz) + (jo.sig ? " *" : ""), al: AlignmentType.CENTER, color: jo.sig ? "1b7a3d" : INK },
-      { t: sg(ou.dz) + (ou.sig ? " *" : ""), al: AlignmentType.CENTER, color: ou.sig ? "1b7a3d" : INK }
-    ];
-  });
-  kids.push(DT([
-    { t: "Dimensão", w: 2620 },
-    { t: "HIIT (dz)", w: 2130, al: AlignmentType.CENTER },
-    { t: "Jogo (dz)", w: 2130, al: AlignmentType.CENTER },
-    { t: "Outro (dz)", w: 2140, al: AlignmentType.CENTER }
-  ], rows));
-  kids.push(caption("**Tabela 5.** Efeito agudo dz por tipo de dia. O asterisco (*) marca p < 0,05 no teste de Wilcoxon pareado por atleta."));
-}
-kids.push(PR("A Tabela 5 detalha esses efeitos e acrescenta os dias de outra natureza (linha de base e força). A fadiga física alcança significância nos três contextos, prova de que responde a qualquer demanda. O vigor cai de modo significativo nos dias de outra natureza, quando o repouso relativo evidencia o desgaste acumulado. Já a PTH atinge significância no HIIT, o que a confirma como termômetro sensível do estímulo intervalado."));
+K.push(tblSource(FONTE_D));
+K.push(P("A sonolência situou-se em faixa leve a moderada e apresentou confiabilidade substancial entre dias, o que a credencia como marcador estável de recuperação. O estresse percebido manteve nível intermediário e dispersão moderada. A comparação entre as duas medidas antecipa um contraste que as seções seguintes aprofundam: a sonolência integra o mesmo eixo do cansaço físico, ao passo que o estresse percebido guarda dinâmica própria."));
 
-// -------- 6. Contraste HIIT x jogo --------
-kids.push(H1("Contraste direto entre HIIT e jogo amistoso", "6"));
-kids.push(PR("Se o efeito agudo mostra o que acontece dentro de cada dia, o contraste direto responde a uma pergunta complementar: qual estímulo pesa mais sobre cada dimensão? A Figura 3 ordena as dimensões pela diferença padronizada entre a média no HIIT e a média no jogo, calculada com pareamento por atleta. Valores positivos apontam escores maiores no HIIT."));
-kids.push(...figure("fig_contrast.png", "**Figura 3.** Contraste HIIT menos jogo (dz), pareado por atleta. Em laranja, as dimensões com p < 0,05 nominal; em cinza, as demais. Nenhuma diferença sobrevive à correção por FDR (oito testes)."));
+// 3.4 T-CAR
+K.push(H2("3.4 Aptidão aeróbia e neuromuscular (T-CAR)"));
+K.push(P("A caracterização física recorreu ao teste de campo T-CAR e a uma bateria complementar. A Tabela 5 detalha todas as métricas do T-CAR na condição pré e pós, com o tamanho de efeito da adaptação e o respectivo intervalo de confiança."));
+K.push(tblTitle("**Tabela 5** – Descritiva e adaptação (pré→pós) das métricas do T-CAR e da bateria neuromuscular"));
 {
-  const rows = data.contrast.slice().sort((a, b) => b.dz - a.dz).map(r => [
-    { t: r.lab, bold: true },
-    { t: n(r.hiit, 2), al: AlignmentType.CENTER },
-    { t: n(r.jogo, 2), al: AlignmentType.CENTER },
-    { t: sg(r.dz), al: AlignmentType.CENTER, bold: true },
-    { t: r.mag, al: AlignmentType.CENTER },
-    { t: "p " + pfmt(r.p), al: AlignmentType.CENTER, color: r.p < 0.05 ? "b0862a" : MUT },
-    { t: "q " + pfmt(r.fdr), al: AlignmentType.CENTER, color: r.sig_fdr ? "1b7a3d" : MUT }
+  const all = d.tcar.concat(d.neuro);
+  const rows = all.map(r => [
+    { t: r.lab + " (" + r.unit + ")", bold: true, al: AL.L },
+    { t: n(r.pre.media, 1) + " ± " + n(r.pre.dp, 1), al: AL.C },
+    { t: n(r.pre.minimo, 1) + " a " + n(r.pre.maximo, 1), al: AL.C },
+    { t: n(r.pos.media, 1) + " ± " + n(r.pos.dp, 1), al: AL.C },
+    { t: sgn(r.dz), al: AL.C, bold: true }, { t: ic(r.dz_lo, r.dz_hi), al: AL.C },
+    { t: r.mag, al: AL.C }, { t: "p " + pf(r.p), al: AL.C }
   ]);
-  kids.push(DT([
-    { t: "Dimensão", w: 1760 },
-    { t: "Média HIIT", w: 1300, al: AlignmentType.CENTER },
-    { t: "Média jogo", w: 1300, al: AlignmentType.CENTER },
-    { t: "dz", w: 900, al: AlignmentType.CENTER },
-    { t: "Magnitude", w: 1400, al: AlignmentType.CENTER },
-    { t: "p", w: 1180, al: AlignmentType.CENTER },
-    { t: "q (FDR)", w: 1180, al: AlignmentType.CENTER }
+  K.push(openTable([
+    { t: "Métrica", w: 2500, al: AL.L }, { t: "Pré (M±DP)", w: 1250, al: AL.C },
+    { t: "Amplitude pré", w: 1150, al: AL.C }, { t: "Pós (M±DP)", w: 1250, al: AL.C },
+    { t: "dz", w: 750, al: AL.C }, { t: "IC 95%", w: 1300, al: AL.C },
+    { t: "Magn.", w: 700, al: AL.C }, { t: "p", w: 605, al: AL.C }
   ], rows));
-  kids.push(caption("**Tabela 6.** Contraste HIIT versus jogo por dimensão. p refere-se ao teste nominal; q refere-se ao valor corrigido por Benjamini-Hochberg."));
 }
-kids.push(PR("O padrão que emerge tem coerência interna notável. As dimensões que mais separam os dois estímulos são todas **afetivas**: raiva, PTH, depressão e confusão ficam de 0,45 a 0,47 desvios acima no HIIT, magnitude que se classifica entre pequena e média. A tensão as segue de perto. Em sentido contrário, o **custo físico** quase não distingue os dois contextos: fadiga, fadiga física e vigor apresentam diferenças triviais, o que revela uma carga interna semelhante entre correr o HIIT e disputar o jogo."));
-kids.push(PR("Convém, porém, ler esse resultado com o rigor que ele exige. Nenhuma das oito diferenças resiste isolada à correção por FDR, uma vez que a comparação simultânea de várias dimensões infla a chance de falsos positivos. Por isso, o achado vale como **conjunto convergente**, e não como diferença individual confirmada. Ainda assim, a coerência do padrão (quatro dimensões afetivas apontam na mesma direção, com magnitudes próximas) confere-lhe credibilidade que um único teste positivo não teria. A mensagem prática é direta: o jogo desgasta o corpo sem adoecer o humor, ao passo que o HIIT cobra os dois preços."));
+K.push(tblSource("Nota: amostra física (n = " + d.meta.n_fisico + "), esquema de anonimização independente. p do teste de Wilcoxon pareado; IC 95% do dz por reamostragem. " + FONTE_D));
+K.push(figCap("**Figura 2** – Adaptação pré→pós das principais métricas do T-CAR"));
+K.push(figure("fig_tcar.png", 600));
+K.push(figSource(FONTE_E));
+K.push(P("O pico de velocidade progrediu de forma expressiva entre os dois momentos, com efeito grande, o que evidencia a resposta aeróbia ao período de trabalho. A frequência cardíaca máxima permaneceu praticamente estável, comportamento esperado para um parâmetro de teto fisiológico, ao passo que o número de repetições completadas cresceu de maneira relevante. A bateria neuromuscular acompanhou a mesma direção adaptativa, com melhora do salto vertical e redução do tempo total no teste de Baker. Convém observar que essa amostra física constitui grupo correlato, e não a mesma unidade das análises de humor, razão pela qual as duas leituras dialogam sem se sobrepor."));
+K.push(tblTitle("**Tabela 6** – Caracterização antropométrica e carga percebida da sessão de HIIT"));
+{
+  const rows = d.anthro.concat(d.carga).map(r => [
+    { t: r.lab + " (" + r.unit + ")", bold: true, al: AL.L },
+    { t: n(r.media, 1), al: AL.C }, { t: n(r.dp, 1), al: AL.C }, { t: n(r.mediana, 1), al: AL.C },
+    { t: n(r.minimo, 1) + " a " + n(r.maximo, 1), al: AL.C }
+  ]);
+  K.push(openTable([
+    { t: "Variável", w: 3200, al: AL.L }, { t: "Média", w: 1400, al: AL.C },
+    { t: "DP", w: 1300, al: AL.C }, { t: "Mediana", w: 1600, al: AL.C }, { t: "Amplitude", w: 2005, al: AL.C }
+  ], rows));
+}
+K.push(tblSource(FONTE_D));
 
-// -------- 7. Perfis --------
-kids.push(H1("Perfis de humor: classificação e prevalência", "7"));
-kids.push(PR("Além das dimensões isoladas, o humor pode ser lido pela forma do perfil, isto é, pela combinação simultânea das seis dimensões. A classificação adotada segue a taxonomia de Parsons-Smith e distingue seis perfis. O **iceberg** (vigor alto, negativas baixas) e a **superfície** (perfil achatado) representam estados favoráveis. O **submerso** descreve um recolhimento generalizado. A **barbatana de tubarão** isola uma fadiga muito elevada com o restante normal, assinatura de sobrecarga física. O **iceberg invertido** e o **everest invertido** espelham o perfil saudável e sinalizam pior estado psicológico."));
+// 3.5 trajetória
+K.push(H2("3.5 Trajetória semanal e pontos de inflexão"));
+K.push(P("A descrição estática ganha sentido quando se observa a evolução ao longo dos sete dias. A Figura 3 apresenta a trajetória de cada dimensão em painéis separados, o que evita a sobreposição de linhas e destaca os pontos de inflexão, isto é, os máximos e mínimos locais em que a tendência muda de direção."));
+K.push(figCap("**Figura 3** – Trajetória diária das dimensões do humor, com pontos de inflexão assinalados"));
+K.push(figure("fig_traj_facets.png", 600));
+K.push(figSource(FONTE_E));
+K.push(P("O vigor decresce de modo quase monotônico, enquanto a fadiga percorre o caminho inverso. A perturbação total do humor descreve um padrão em serrote de leitura eloquente: eleva-se nos dias de HIIT, recua nos dias de jogo e dispara no encerramento da semana. As dimensões negativas oscilam em faixa estreita, com repiques discretos nos dias de maior demanda. A Figura 4 estende a mesma lógica à sonolência e ao estresse, que sobem levemente nos dias de carga sem romper a estabilidade geral."));
+K.push(figCap("**Figura 4** – Trajetória diária da sonolência (Epworth) e do estresse percebido (PSS)"));
+K.push(figure("fig_sono_traj.png", 600));
+K.push(figSource(FONTE_E));
+
+// 3.6 perfis
+K.push(H2("3.6 Perfis de humor: assinatura, prevalência e indicadores"));
+K.push(P("Para além das dimensões isoladas, o humor pode ser lido pela forma do perfil, que combina as seis subescalas em um padrão único. A Figura 5 apresenta a assinatura dos seis perfis em escores T, com a faixa normal situada entre 40 e 60. O iceberg exibe o vigor elevado sobre negativas rebaixadas; a superfície mantém o padrão achatado; o submerso reúne todas as dimensões abaixo da média; a barbatana de tubarão isola um pico de fadiga; o iceberg invertido e o everest invertido espelham o perfil saudável e sinalizam pior estado psicológico."));
+K.push(figCap("**Figura 5** – Assinatura dos seis perfis de humor em escores T (T = 50 + 10z)"));
+K.push(figure("fig_perfil_radar.png", 600));
+K.push(figSource(FONTE_E));
+K.push(P("A Tabela 7 quantifica cada perfil por meio de indicadores-chave: a prevalência no conjunto das respostas, o número de atletas que assumiram o perfil ao menos uma vez, o índice-iceberg, o vigor médio, a fadiga média e a perturbação total do humor. Esses indicadores permitem classificar os atletas e comparar os perfis segundo o seu significado clínico."));
+K.push(tblTitle("**Tabela 7** – Indicadores descritivos dos seis perfis de humor"));
 {
-  const rows = data.prof_week.map(r => [
-    { t: r.perfil, bold: true },
-    { t: n(r.prev, 1) + "%", al: AlignmentType.CENTER },
-    { t: String(r.n), al: AlignmentType.CENTER }
+  const rows = d.prof_kpi.map(r => [
+    { t: r.perfil, bold: true, al: AL.L },
+    { t: n(r.prev, 1) + "%", al: AL.C }, { t: String(r.n), al: AL.C }, { t: r.n_atletas + "/27", al: AL.C },
+    { t: sgn(r.indice), al: AL.C }, { t: n(r.vigor, 1), al: AL.C }, { t: n(r.fad, 1), al: AL.C },
+    { t: sgn(r.tmd, 1), al: AL.C }
   ]);
-  kids.push(DT([
-    { t: "Perfil", w: 3800 },
-    { t: "Prevalência na semana", w: 2810, al: AlignmentType.CENTER },
-    { t: "N (respostas)", w: 2410, al: AlignmentType.CENTER }
+  K.push(openTable([
+    { t: "Perfil", w: 2350, al: AL.L }, { t: "Prev.", w: 900, al: AL.C }, { t: "N obs.", w: 850, al: AL.C },
+    { t: "Atletas", w: 1000, al: AL.C }, { t: "Índice-iceberg", w: 1500, al: AL.C },
+    { t: "Vigor", w: 800, al: AL.C }, { t: "Fadiga", w: 900, al: AL.C }, { t: "PTH", w: 1205, al: AL.C }
   ], rows));
-  kids.push(caption("**Tabela 7.** Prevalência de cada perfil no conjunto das respostas do microciclo (n = " + data.n_resp + ")."));
 }
-kids.push(PR("No cômputo da semana, os perfis favoráveis predominam com folga: o iceberg e a superfície respondem, somados, por cerca de dois terços das observações. Esse retrato tranquiliza quanto ao estado geral do elenco, mas não elimina a presença dos perfis de risco e de sobrecarga, que aparecem com frequência suficiente para justificar acompanhamento."));
-kids.push(PR("A prevalência ganha muito significado quando se distribui por dia (Tabela 8 e Figura 4), pois é aí que a ligação com o tipo de estímulo se revela. A **barbatana de tubarão** cresce ao longo da semana e atinge o pico no D7, um dia de HIIT, o que a confirma como marca de sobrecarga física acumulada. O **submerso** comparece com mais força nos dias de jogo (D3 e D5), padrão compatível com o recolhimento afetivo que segue o desgaste competitivo. Os perfis favoráveis, embora dominantes, cedem espaço justamente nos dias de maior carga."));
+K.push(tblSource("Nota: índice-iceberg = vigor padronizado − média das negativas padronizadas; PTH = perturbação total do humor. Base de respostas (atleta-dia). " + FONTE_D));
+K.push(P("O grupo revela-se dominado por perfis favoráveis, uma vez que o iceberg e a superfície respondem, somados, por cerca de dois terços das observações. Ainda assim, os perfis de risco e de sobrecarga comparecem com frequência que justifica vigilância. O índice-iceberg ordena com clareza os perfis do mais saudável ao mais desfavorável, o que confirma a sua utilidade como métrica-resumo para a triagem individual."));
+K.push(P("A distribuição dos perfis ao longo dos dias revela a conexão com o tipo de estímulo. A Tabela 8 apresenta a prevalência diária de cada perfil, e a Figura 6 destaca os perfis mais reativos. A barbatana de tubarão cresce ao longo da semana e atinge o pico no sétimo dia, coerente com a sobrecarga física acumulada. O submerso comparece com mais força nos dias de jogo, padrão compatível com o recolhimento afetivo que segue o desgaste competitivo."));
+K.push(tblTitle("**Tabela 8** – Prevalência (%) de cada perfil de humor por dia do microciclo"));
 {
-  const dcols = [1, 2, 3, 4, 5, 6, 7];
   const porder = ["Iceberg", "Superfície", "Submerso", "Barbatana de tubarão", "Everest invertido", "Iceberg invertido"];
-  const rows = porder.map(p => [{ t: p, bold: true }, ...dcols.map((d, i) => ({ t: n(data.prof_day[p][i], 0), al: AlignmentType.CENTER }))]);
-  kids.push(DT([
-    { t: "Perfil", w: 2902 },
-    ...dcols.map(d => ({ t: "D" + d, w: 874, al: AlignmentType.CENTER }))
+  const rows = porder.map(p => [{ t: p, bold: true, al: AL.L }, ...[0,1,2,3,4,5,6].map(i => ({ t: n(d.prof_day[p][i], 0), al: AL.C }))]);
+  K.push(openTable([
+    { t: "Perfil", w: 3100, al: AL.L },
+    ...[1,2,3,4,5,6,7].map(dd => ({ t: "D" + dd, w: 915, al: AL.C }))
   ], rows));
-  kids.push(caption("**Tabela 8.** Prevalência (%) de cada perfil por dia. D2, D4 e D7 são dias de HIIT; D3 e D5, de jogo amistoso."));
 }
-kids.push(...figure("fig_perfis_dia.png", "**Figura 4.** Prevalência diária dos perfis mais informativos. A barbatana (sobrecarga) sobe rumo ao fim da semana; o submerso destaca-se nos dias de jogo; o iceberg (favorável) recua nos dias de maior carga. Círculos vazados marcam inflexões."));
+K.push(tblSource("Nota: D2, D4 e D7 são dias de HIIT; D3 e D5, de jogo amistoso. " + FONTE_D));
+K.push(figCap("**Figura 6** – Prevalência diária dos perfis reativos ao estímulo, com pontos de inflexão"));
+K.push(figure("fig_prof_day.png", 560));
+K.push(figSource(FONTE_E));
+K.push(P("O índice-iceberg do grupo, apresentado na Figura 7 com o respectivo intervalo de confiança, sintetiza a deterioração afetiva ao longo da semana. O indicador parte de valor elevado no primeiro dia, oscila conforme o estímulo e recua no encerramento, o que traduz o efeito acumulado da carga sobre o equilíbrio entre vigor e afeto negativo."));
+K.push(figCap("**Figura 7** – Índice-iceberg do grupo por dia (vigor − média das negativas), com IC 95%"));
+K.push(figure("fig_ice_index.png", 560));
+K.push(figSource(FONTE_E));
 
-// -------- 8. Associações --------
-kids.push(H1("Associações e correlações entre as medidas", "8"));
-kids.push(PR("A triangulação também examina como as medidas se relacionam entre si. As correlações a seguir foram calculadas no nível do atleta, o que respeita a independência das observações e evita a inflação artificial que resultaria de tratar cada resposta como um caso separado. A Tabela 9 apresenta as associações mais fortes entre as próprias dimensões do humor."));
+// 3.7 resposta aguda
+K.push(H2("3.7 Resposta aguda pré→pós por tipo de dia"));
+K.push(P("A resposta aguda mensura a alteração do estado do atleta entre o início e o fim do dia. A Tabela 9 apresenta o efeito pré para pós de cada dimensão no conjunto da amostra, com o valor de p, o tamanho de efeito e a magnitude correspondente."));
+K.push(tblTitle("**Tabela 9** – Efeito agudo intra-dia (pré→pós) das dimensões do humor"));
 {
-  const rows = data.spearman.map(r => [
-    { t: prettyPar(r.par), bold: true },
-    { t: n(r.rho, 2), al: AlignmentType.CENTER, bold: true },
-    { t: "p " + pfmt(r.p), al: AlignmentType.CENTER, color: r.p < 0.05 ? "1b7a3d" : MUT }
+  const rows = d.prepos.map(r => [
+    { t: r.lab, bold: true, al: AL.L },
+    { t: n(r.pre, 2), al: AL.C }, { t: n(r.pos, 2), al: AL.C },
+    { t: (r.pct >= 0 ? "+" : "") + r.pct + "%", al: AL.C },
+    { t: "p " + pf(r.p), al: AL.C }, { t: sgn(r.dz), al: AL.C, bold: true }, { t: r.mag, al: AL.C }
   ]);
-  kids.push(DT([
-    { t: "Par de dimensões", w: 4200 },
-    { t: "ρ (Spearman)", w: 2410, al: AlignmentType.CENTER },
-    { t: "p", w: 2410, al: AlignmentType.CENTER }
+  K.push(openTable([
+    { t: "Dimensão", w: 2000, al: AL.L }, { t: "Pré", w: 1100, al: AL.C }, { t: "Pós", w: 1100, al: AL.C },
+    { t: "Variação", w: 1200, al: AL.C }, { t: "p (Wilcoxon)", w: 1700, al: AL.C },
+    { t: "dz", w: 900, al: AL.C }, { t: "Magnitude", w: 1505, al: AL.C }
   ], rows));
-  kids.push(caption("**Tabela 9.** Correlações de Spearman entre dimensões do humor (nível do atleta)."));
 }
-kids.push(PR("As dimensões negativas caminham juntas, o que confirma a coesão do bloco afetivo: depressão, raiva, confusão e fadiga correlacionam-se de forma positiva e apreciável entre si. Essa convergência sustenta o uso da PTH como resumo único do afeto negativo. O par vigor e fadiga associa-se em sentido inverso, relação esperada entre ativação e cansaço."));
-kids.push(PR("A Tabela 10 estende a análise às medidas de sonolência e de estresse, o que aproxima o humor de dois marcadores externos ao BRUMS. Aqui reside uma das descobertas mais úteis do estudo."));
+K.push(tblSource(FONTE_D));
+K.push(P("O panorama confirma o custo agudo do esforço. A fadiga e a fadiga física sobem de maneira consistente ao longo da jornada, enquanto o vigor recua, e a perturbação total do humor acompanha essa piora global. As dimensões negativas ensaiam altas de menor porte. A Figura 8 separa esse efeito por tipo de estímulo e revela um contraste esclarecedor: no jogo, a assinatura é quase pura fadiga; no HIIT, ao custo físico soma-se um componente afetivo, com repiques de tensão, de perturbação do humor e das negativas."));
+K.push(figCap("**Figura 8** – Efeito agudo dz por dimensão no HIIT e no jogo amistoso"));
+K.push(figure("fig_agudo.png", 590));
+K.push(figSource(FONTE_E));
+
+// 3.8 exploratória
+K.push(H2("3.8 Análises exploratórias: associações e correlações"));
+K.push(P("A exploração das relações entre as medidas complementa a descrição. As correlações foram calculadas no nível do atleta, o que preserva a independência das observações. A Tabela 10 apresenta as associações mais fortes entre as próprias dimensões do humor, e a Tabela 11 estende a análise à sonolência e ao estresse."));
+K.push(tblTitle("**Tabela 10** – Correlações de Spearman entre dimensões do humor (nível do atleta)"));
 {
-  const rows = data.wcorr.map(r => [
-    { t: prettyPar(r.par), bold: true },
-    { t: n(r.rho, 2), al: AlignmentType.CENTER, bold: true },
-    { t: "p " + pfmt(r.p), al: AlignmentType.CENTER, color: r.p < 0.05 ? "1b7a3d" : MUT }
+  const PR = { depressao: "depressão", raiva: "raiva", fadiga: "fadiga", confusao: "confusão", vigor: "vigor", tensao: "tensão" };
+  const pretty = s => s.split(" × ").map(x => PR[x.trim()] || x).join(" × ");
+  const rows = d.spearman.map(r => [
+    { t: pretty(r.par), bold: true, al: AL.L }, { t: n(r.rho, 2), al: AL.C, bold: true },
+    { t: "p " + pf(r.p), al: AL.C }
   ]);
-  kids.push(DT([
-    { t: "Par (medida × humor)", w: 4200 },
-    { t: "ρ (Spearman)", w: 2410, al: AlignmentType.CENTER },
-    { t: "p", w: 2410, al: AlignmentType.CENTER }
+  K.push(openTable([
+    { t: "Par de dimensões", w: 4700, al: AL.L }, { t: "ρ (rô)", w: 2400, al: AL.C }, { t: "p", w: 2405, al: AL.C }
   ], rows));
-  kids.push(caption("**Tabela 10.** Correlações de Spearman entre sonolência (Epworth), estresse (PSS) e dimensões do humor."));
 }
-kids.push(PR("A sonolência associa-se de modo positivo à fadiga e à PTH e de modo negativo ao vigor, o que a coloca dentro do mesmo eixo do custo físico do treino. O estresse percebido, por sua vez, mostra vínculos fracos e pouco consistentes com o humor. Essa diferença antecipa um resultado que a próxima seção detalha: sono e humor formam um bloco acoplado, ao passo que o estresse percebido corre por fora."));
-
-// -------- 9. Sono e estresse --------
-kids.push(H1("Sonolência e estresse: por tipo de dia e por perfil", "9"));
-kids.push(PR("Esta seção fecha a triangulação ao ligar a sonolência e o estresse aos dois recortes que mais interessam: o tipo de estímulo e o perfil de humor. A Tabela 11 compara Epworth e PSS entre os tipos de dia e traz o contraste HIIT versus jogo pareado por atleta."));
+K.push(tblSource(FONTE_D));
+K.push(tblTitle("**Tabela 11** – Correlações de Spearman entre sonolência, estresse e humor"));
 {
-  const rows = data.wb_daytype.map(r => [
-    { t: r.medida, bold: true },
-    { t: n(r.outro, 1), al: AlignmentType.CENTER },
-    { t: n(r.hiit, 1), al: AlignmentType.CENTER, color: "b85c1a" },
-    { t: n(r.jogo, 1), al: AlignmentType.CENTER, color: ACC },
-    { t: sg(r.dz), al: AlignmentType.CENTER, bold: true },
-    { t: "p " + pfmt(r.p) + (r.sig ? " *" : ""), al: AlignmentType.CENTER, color: r.sig ? "1b7a3d" : MUT }
+  const PR = { epworth: "Epworth", pss: "PSS", fadiga: "fadiga", vigor: "vigor", pth: "PTH" };
+  const pretty = s => s.split(" × ").map(x => PR[x.trim()] || x).join(" × ");
+  const rows = d.wcorr.map(r => [
+    { t: pretty(r.par), bold: true, al: AL.L }, { t: n(r.rho, 2), al: AL.C, bold: true },
+    { t: "p " + pf(r.p), al: AL.C }
   ]);
-  kids.push(DT([
-    { t: "Medida", w: 1900 },
-    { t: "Outro", w: 1180, al: AlignmentType.CENTER },
-    { t: "HIIT", w: 1180, al: AlignmentType.CENTER },
-    { t: "Jogo", w: 1180, al: AlignmentType.CENTER },
-    { t: "dz (H×J)", w: 1380, al: AlignmentType.CENTER },
-    { t: "p", w: 2200, al: AlignmentType.CENTER }
+  K.push(openTable([
+    { t: "Par (medida × humor)", w: 4700, al: AL.L }, { t: "ρ (rô)", w: 2400, al: AL.C }, { t: "p", w: 2405, al: AL.C }
   ], rows));
-  kids.push(caption("**Tabela 11.** Sonolência e estresse por tipo de dia, com contraste HIIT versus jogo (dz pareado). O asterisco marca p < 0,05."));
 }
-kids.push(PR("A sonolência sobe de forma discreta nos dias de carga, sem separar o HIIT do jogo. O estresse percebido, ao contrário, apresenta um efeito robusto: o PSS recua no dia de jogo em relação ao HIIT, com significância estatística. Apesar do alto volume que a partida impõe, o atleta a percebe como menos estressante do que a sessão intervalada, resultado que reforça o caráter aversivo do HIIT já sugerido pelos contrastes afetivos."));
-kids.push(PR("A Tabela 12 desloca o olhar para o perfil de humor e agrupa as observações em três blocos: favorável (iceberg e superfície), neutro e de risco ou sobrecarga (perfis invertidos e barbatana). O teste de Kruskal-Wallis avalia se sonolência e estresse diferem entre os três grupos."));
+K.push(tblSource(FONTE_D));
+K.push(P("As dimensões negativas caminham juntas, o que confirma a coesão do bloco afetivo e respalda o uso da perturbação total do humor como resumo. O par vigor e fadiga associa-se em sentido inverso, relação esperada entre ativação e cansaço. Quanto às medidas externas, a sonolência vincula-se de modo positivo à fadiga e à perturbação do humor e de modo negativo ao vigor, o que a situa no eixo do custo físico. O estresse percebido, por outro lado, revela vínculos fracos e pouco consistentes com o humor, indício de que percorre trajetória autônoma."));
+
+// ====================== 4 TRIANGULAÇÃO ======================
+K.push(H1("4 Triangulação estímulo e resposta"));
+K.push(P("A etapa final integra as evidências para responder à pergunta central: quais medidas respondem a cada estímulo. A triangulação cruza o efeito agudo, o contraste entre tipos de dia, a variabilidade, a confiabilidade e a classificação de perfis, o que confere robustez às conclusões que sobrevivem a mais de um olhar."));
+
+K.push(H2("4.1 Contraste direto entre HIIT e jogo amistoso"));
+K.push(P("O contraste direto ordena as dimensões pela diferença padronizada entre a média no HIIT e a média no jogo, com pareamento por atleta. A Figura 9 e a Tabela 12 apresentam esse ordenamento e informam o valor de p nominal e o valor corrigido pela taxa de falsa descoberta."));
+K.push(figCap("**Figura 9** – Contraste HIIT menos jogo (dz), pareado por atleta"));
+K.push(figure("fig_contrast.png", 560));
+K.push(figSource(FONTE_E));
+K.push(tblTitle("**Tabela 12** – Contraste HIIT versus jogo amistoso por dimensão do humor"));
 {
-  const rows = data.wb_profile.map(r => [
-    { t: r.medida, bold: true },
-    { t: n(r.favoravel, 1), al: AlignmentType.CENTER, color: "1b7a3d" },
-    { t: n(r.neutro, 1), al: AlignmentType.CENTER, color: "b0862a" },
-    { t: n(r.risco, 1), al: AlignmentType.CENTER, color: "b03030" },
-    { t: n(r.H, 2), al: AlignmentType.CENTER },
-    { t: "p " + pfmt(r.p) + (r.sig ? " *" : ""), al: AlignmentType.CENTER, color: r.sig ? "1b7a3d" : MUT }
+  const rows = d.contrast.slice().sort((a, b) => b.dz - a.dz).map(r => [
+    { t: r.lab, bold: true, al: AL.L },
+    { t: n(r.hiit, 2), al: AL.C }, { t: n(r.jogo, 2), al: AL.C },
+    { t: sgn(r.dz), al: AL.C, bold: true }, { t: r.mag, al: AL.C },
+    { t: "p " + pf(r.p), al: AL.C }, { t: "q " + pf(r.fdr), al: AL.C }
   ]);
-  kids.push(DT([
-    { t: "Medida", w: 1900 },
-    { t: "Favorável", w: 1360, al: AlignmentType.CENTER },
-    { t: "Neutro", w: 1200, al: AlignmentType.CENTER },
-    { t: "Risco", w: 1200, al: AlignmentType.CENTER },
-    { t: "H", w: 1160, al: AlignmentType.CENTER },
-    { t: "p", w: 2200, al: AlignmentType.CENTER }
+  K.push(openTable([
+    { t: "Dimensão", w: 1900, al: AL.L }, { t: "Média HIIT", w: 1350, al: AL.C }, { t: "Média jogo", w: 1350, al: AL.C },
+    { t: "dz", w: 900, al: AL.C }, { t: "Magnitude", w: 1400, al: AL.C }, { t: "p", w: 1300, al: AL.C },
+    { t: "q (FDR)", w: 1305, al: AL.C }
   ], rows));
-  kids.push(caption("**Tabela 12.** Sonolência e estresse por grupo de perfil de humor, com teste de Kruskal-Wallis. O asterisco marca p < 0,05."));
 }
-kids.push(...figure("fig_sono_perfil.png", "**Figura 5.** Média de sonolência (Epworth) e de estresse (PSS) por grupo de perfil de humor. A sonolência cresce do grupo favorável ao de risco; o estresse permanece estável.", 560));
-kids.push(PR("O desfecho é claro e robusto. A sonolência acompanha o perfil: eleva-se do grupo favorável ao grupo de risco, com diferença significativa pelo teste de Kruskal-Wallis. O estresse percebido, por outro lado, não distingue os três grupos, pois permanece praticamente idêntico entre eles. Sono e humor, portanto, integram um mesmo bloco funcional, ao passo que o estresse percebido segue uma dinâmica própria, desacoplada da forma do perfil."));
+K.push(tblSource("Nota: dz positivo indica escore maior no HIIT; q corrigido por Benjamini-Hochberg (oito testes). " + FONTE_D));
+K.push(P("O padrão exibe coerência interna notável. As dimensões que mais separam os dois estímulos são todas afetivas, pois a raiva, a perturbação do humor, a depressão e a confusão ficam de meio desvio a acima no HIIT, com magnitude pequena a média. Em sentido oposto, o custo físico quase não distingue os dois contextos, o que revela carga interna semelhante entre correr o HIIT e disputar o jogo. Cabe uma ressalva metodológica importante: nenhuma diferença resiste isolada à correção por comparações múltiplas, razão pela qual o achado vale como conjunto convergente, e não como diferença individual confirmada. Ainda assim, a concordância de quatro dimensões afetivas na mesma direção confere credibilidade que um único teste positivo não alcançaria. A mensagem aplicada é direta: o jogo desgasta o corpo sem adoecer o humor, enquanto o HIIT cobra os dois preços."));
 
-// -------- 10. Síntese --------
-kids.push(H1("Síntese da triangulação: três eixos de resposta", "10"));
-kids.push(PR("O cruzamento de todos os métodos reduz a complexidade das oito variáveis a três eixos independentes de resposta ao estímulo. Cada eixo reúne evidências convergentes e possui uma função prática distinta no monitoramento."));
-kids.push(PR([R("Eixo 1, custo físico e sonolência. ", { bold: true, color: "b85c1a" }), R("A fadiga física, a fadiga e a PTH sobem no efeito agudo, acumulam ao longo da semana e reúnem o maior sinal com a melhor reprodutibilidade. Respondem à carga em si, tanto no HIIT quanto no jogo, e por isso servem para dosar a carga interna do treino.")]));
-kids.push(PR([R("Eixo 2, afeto e aversão. ", { bold: true, color: "b03030" }), R("A tensão, a depressão, a raiva e a confusão separam o HIIT (aversivo) do jogo (engajador), pois ficam mais altas na sessão intervalada. A direção converge entre os métodos, embora nenhuma dimensão resista sozinha à correção por FDR. Este eixo discrimina o tipo de estímulo e informa sobre o estado psicológico.")]));
-kids.push(PR([R("Eixo 3, estresse percebido. ", { bold: true, color: ACC }), R("O PSS mantém-se estável na semana, recua no dia de jogo com efeito robusto e não segue os perfis de humor. A sonolência, ao contrário, acompanha o perfil. Este eixo lembra que o estresse percebido carrega informação própria, que os demais marcadores não capturam.")]));
-kids.push(callout("Em conjunto, o painel sugere uma divisão de trabalho no monitoramento: **vigiar a fadiga física para a carga** e **observar o afeto e o perfil para o estado psicológico**, com atenção reforçada aos dias de HIIT no fecho da semana, quando a sobrecarga física se acumula e o desconforto afetivo se acentua.", "1b7a3d"));
+K.push(H2("4.2 Sonolência e estresse por tipo de dia e por perfil"));
+K.push(P("A Tabela 13 compara a sonolência e o estresse entre os tipos de dia, com o contraste HIIT versus jogo pareado por atleta. A Tabela 14 e a Figura 10 deslocam o olhar para o perfil de humor e agrupam as observações em três blocos, a saber, favorável, neutro e de risco ou sobrecarga."));
+K.push(tblTitle("**Tabela 13** – Sonolência e estresse por tipo de dia, com contraste HIIT × jogo"));
+{
+  const rows = d.wb_daytype.map(r => [
+    { t: r.medida, bold: true, al: AL.L },
+    { t: n(r.outro, 1), al: AL.C }, { t: n(r.hiit, 1), al: AL.C }, { t: n(r.jogo, 1), al: AL.C },
+    { t: sgn(r.dz), al: AL.C, bold: true }, { t: "p " + pf(r.p) + (r.sig ? " *" : ""), al: AL.C }
+  ]);
+  K.push(openTable([
+    { t: "Medida", w: 2400, al: AL.L }, { t: "Outro", w: 1300, al: AL.C }, { t: "HIIT", w: 1300, al: AL.C },
+    { t: "Jogo", w: 1300, al: AL.C }, { t: "dz (H×J)", w: 1400, al: AL.C }, { t: "p", w: 1805, al: AL.C }
+  ], rows));
+}
+K.push(tblSource("Nota: o asterisco indica p < 0,05. " + FONTE_D));
+K.push(tblTitle("**Tabela 14** – Sonolência e estresse por grupo de perfil de humor (Kruskal-Wallis)"));
+{
+  const rows = d.wb_profile.map(r => [
+    { t: r.medida, bold: true, al: AL.L },
+    { t: n(r.favoravel, 1), al: AL.C }, { t: n(r.neutro, 1), al: AL.C }, { t: n(r.risco, 1), al: AL.C },
+    { t: n(r.H, 2), al: AL.C }, { t: "p " + pf(r.p) + (r.sig ? " *" : ""), al: AL.C }
+  ]);
+  K.push(openTable([
+    { t: "Medida", w: 2400, al: AL.L }, { t: "Favorável", w: 1450, al: AL.C }, { t: "Neutro", w: 1300, al: AL.C },
+    { t: "Risco", w: 1300, al: AL.C }, { t: "H", w: 1150, al: AL.C }, { t: "p", w: 1905, al: AL.C }
+  ], rows));
+}
+K.push(tblSource("Nota: o asterisco indica p < 0,05. " + FONTE_D));
+K.push(figCap("**Figura 10** – Sonolência e estresse por grupo de perfil de humor"));
+K.push(figure("fig_sono_perfil.png", 520));
+K.push(figSource(FONTE_E));
+K.push(P("Dois desfechos robustos emergem. Em primeiro lugar, o estresse percebido recua no dia de jogo em relação ao HIIT, com significância estatística, o que reforça o caráter aversivo do estímulo intervalado já sugerido pelos contrastes afetivos. Em segundo lugar, a sonolência acompanha o perfil, pois se eleva do grupo favorável ao grupo de risco de maneira significativa, ao passo que o estresse não distingue os três grupos. Sono e humor, portanto, integram um mesmo bloco funcional, enquanto o estresse percebido segue dinâmica autônoma."));
 
-// -------- 11. Limitações --------
-kids.push(H1("Considerações metodológicas e limitações", "11"));
-kids.push(PR("A interpretação dos resultados requer três cautelas. Em primeiro lugar, o estudo trabalha com grupo único, sem controle, de modo que as leituras descrevem e rastreiam, mas não estabelecem causa. Em segundo lugar, o pequeno número de comparações significativas que sobrevivem à correção por FDR recomenda prudência: os padrões afetivos valem como tendência convergente, e a confirmação exigiria amostra maior. Em terceiro lugar, a associação entre perfis de risco e desfechos clínicos de lesão ou de saúde mental é plausível à luz da literatura, porém não foi validada aqui, pois o microciclo não dispõe de desfechos vinculados."));
-kids.push(PR("Essas ressalvas não diminuem o valor do trabalho; ao contrário, delimitam com honestidade o que a evidência sustenta. O estudo demonstra a **viabilidade de um rastreio** sensível e reprodutível, capaz de identificar quais variáveis respondem a cada estímulo, quando o risco se concentra e quais atletas merecem acompanhamento individual. A etapa seguinte natural consiste em um estudo prospectivo, com registro sistemático de lesões e de indicadores de saúde mental, que permita transformar a viabilidade demonstrada em validação causal."));
-kids.push(spacer(60));
-kids.push(new Paragraph({
-  border: { top: { style: BorderStyle.SINGLE, size: 6, color: LINE } },
-  spacing: { before: 120, after: 40 }, children: []
-}));
-kids.push(P([R("Nota técnica. ", { bold: true, size: 17, color: MUT }), R("Todos os números deste relatório derivam da camada gold de um lakehouse local e reprodutível (Delta Lake e DuckDB), com sementes fixas e verificação de determinismo e idempotência. As tabelas an_tri_* alimentam simultaneamente este documento e a aba de triangulação do painel interativo, o que garante consistência entre os dois materiais.", { size: 17, color: MUT, italics: true })], { align: AlignmentType.LEFT, after: 0 }));
+K.push(H2("4.3 Síntese: os três eixos de resposta"));
+K.push(P("O cruzamento de todos os métodos reduz a complexidade das oito variáveis a três eixos independentes de resposta ao estímulo, cada qual com função prática distinta. O primeiro eixo, do custo físico e da sonolência, reúne a fadiga física, a fadiga e a perturbação do humor, que sobem no efeito agudo, acumulam ao longo da semana e concentram o maior sinal com a melhor reprodutibilidade. Esse eixo responde à carga em si e serve para dosá-la. O segundo eixo, do afeto e da aversão, reúne a tensão, a depressão, a raiva e a confusão, que separam o HIIT do jogo e informam sobre o estado psicológico, ainda que a diferença não se confirme variável a variável. O terceiro eixo, do estresse percebido, mostra-se estável na semana, recua no dia de jogo e não segue os perfis, o que revela uma informação própria que os demais marcadores não capturam."));
+K.push(P("A reflexão final que decorre desse quadro aponta para uma divisão de trabalho no monitoramento. A comissão técnica encontra na fadiga física o melhor termômetro da carga interna, pela sua estabilidade e reprodutibilidade, e no afeto e no perfil o melhor retrato do estado psicológico. A atenção redobra nos dias de HIIT do encerramento da semana, quando a sobrecarga física se acumula e o desconforto afetivo se acentua de modo simultâneo."));
 
-// ============================ MONTAGEM ============================
+
+// ====================== 5 SENSIBILIDADE: DOIS CAMINHOS ======================
+K.push(H1("5 Análise de sensibilidade: dois caminhos (n = 19 e n = 27)"));
+K.push(P("Dos 27 atletas, apenas 19 responderam nos sete dias. Como a análise de variância de medidas repetidas exige desenho balanceado, o resultado principal deste estudo repousa sobre esses 19 casos completos, sem qualquer imputação. Convém, porém, examinar a robustez dessa escolha, pois a decisão de aproveitar ou não os oito atletas com dias ausentes altera o poder estatístico. Esta seção confronta dois caminhos e acrescenta um terceiro como árbitro."));
+K.push(P("O primeiro caminho mantém os 19 casos completos. O segundo recupera os 27 atletas e preenche cada dia ausente com a média do grupo naquele dia, procedimento simples porém consequente. O terceiro caminho, tomado como referência por não impor suposições artificiais, ajusta um modelo misto aos 27 atletas com os dados efetivamente observados, no qual o dia entra como efeito fixo e o atleta como efeito aleatório."));
+K.push(figCap("**Figura 11** – Estatística F por variável nos caminhos n = 19 (sem imputação) e n = 27 (imputado). A estrela marca o efeito de dia significativo (ANOVA com correção de Greenhouse-Geisser)"));
+K.push(figure("fig_twopath.png", 600));
+K.push(figSource(FONTE_E));
+K.push(tblTitle("**Tabela 15** – Omnibus do efeito de dia pelos três caminhos"));
+(function(){
+  var O=d.twopath.omni, MX={}; d.twopath.mixed.forEach(function(x){MX[x.var]=x;});
+  var chk=function(b){return b? "sim":"não";};
+  var rows=O.map(function(o){var m=MX[o.var];return [
+    {t:o.lab,bold:true,al:AL.L},
+    {t:n(o.n19.F,1),al:AL.C},{t:n(o.n19.np2,2),al:AL.C},
+    {t:n(o.n27.F,1),al:AL.C},{t:n(o.n27.np2,2),al:AL.C},
+    {t:m.p==null?"–":("p "+pf(m.p)),al:AL.C},
+    {t:(o.n19.sigA?"19":"·")+" · "+(o.n27.sigA?"27":"·")+" · "+(m.sig?"M":"·"),al:AL.C,bold:true}
+  ];});
+  K.push(openTable([
+    {t:"Variável",w:2005,al:AL.L},
+    {t:"F (n19)",w:1250,al:AL.C},{t:"η²ₚ (n19)",w:1250,al:AL.C},
+    {t:"F (n27)",w:1250,al:AL.C},{t:"η²ₚ (n27)",w:1250,al:AL.C},
+    {t:"p (misto)",w:1250,al:AL.C},{t:"Efeito de dia",w:1250,al:AL.C}
+  ], rows));
+})();
+K.push(tblSource("Nota: n19 = casos completos sem imputação; n27 = imputado pela média do dia; misto = modelo misto n = 27 sem imputação (efeito de dia por teste de Wald). Na última coluna, 19/27/M indicam em quais caminhos o efeito de dia é significativo. " + FONTE_D));
+K.push(P("A leitura conjunta traz tranquilidade quanto ao essencial e cautela quanto ao detalhe. A direção e a hierarquia das variáveis permanecem idênticas nos três caminhos: a fadiga física lidera com folga e o vigor a acompanha. As duas vias omnibus, a paramétrica com correção de esfericidade e a de Friedman, concordam integralmente sobre quais variáveis têm efeito de dia. O que oscila é a contagem no limiar, de seis variáveis em n = 19 para sete em n = 27, e a magnitude do F."));
+K.push(P("A explicação para essa oscilação é instrutiva. A imputação pela média do dia coloca o valor ausente exatamente sobre a média, o que encolhe de forma artificial a variância de erro e eleva o F sem elevar na mesma proporção o tamanho de efeito. Por isso o F da fadiga física salta de 13,0 em n = 19 para 20,9 em n = 27 imputado, ao passo que o η²ₚ mal se move, de 0,42 para 0,45. A perturbação total do humor ilustra a fronteira: fica aquém do limiar em n = 19 e o cruza em n = 27. Um ponto merece destaque: o modelo misto, que não imputa nada, também acusa a sétima variável como significativa, o que mostra que o ganho não é mero artefato da imputação, e sim reflexo do maior poder da amostra completa."));
+K.push(P("A recomendação que decorre desta análise é dupla. Convém relatar o caminho de casos completos como resultado principal, por ser o mais conservador e livre de suposições, e apresentar o modelo misto como a via correta para aproveitar os 27 atletas quando o objetivo for maximizar o poder. A imputação pela média do dia, embora simples, deve ser evitada como base de inferência, justamente porque infla a estatística de teste. A transparência sobre o tamanho da amostra e o tratamento dos dias ausentes é, portanto, parte inseparável do relato."));
+
+// ====================== 6 CONSIDERAÇÕES ======================
+K.push(H1("6 Considerações finais"));
+K.push(P("O estudo descreveu, com riqueza de detalhes, o comportamento do humor, da sonolência e do estresse ao longo de um microciclo de pré-temporada e identificou quais medidas respondem a cada estímulo. A triangulação metodológica revelou-se fértil, pois permitiu distinguir os achados robustos das meras tendências e organizar as evidências em três eixos de leitura direta para a prática esportiva."));
+K.push(P("Três cautelas delimitam o alcance das conclusões. Em primeiro lugar, o delineamento de grupo único, sem controle, confere às leituras caráter descritivo e de rastreio, e não causal. Em segundo lugar, o pequeno número de contrastes que sobrevivem à correção por comparações múltiplas recomenda prudência, de modo que os padrões afetivos valem como tendência convergente. Em terceiro lugar, a associação entre perfis de risco e desfechos clínicos de lesão ou de saúde mental permanece plausível à luz da literatura, embora não tenha sido validada neste microciclo, que não dispõe de desfechos vinculados."));
+K.push(P("Longe de fragilizar o trabalho, essas ressalvas delimitam com honestidade o que a evidência sustenta. O estudo demonstra a viabilidade de um rastreio sensível e reprodutível, capaz de apontar quais variáveis respondem a cada estímulo, quando o risco se concentra e quais atletas merecem acompanhamento individual. O passo seguinte consiste em um estudo prospectivo, com registro sistemático de lesões e de indicadores de saúde mental, que converta a viabilidade demonstrada em validação de maior alcance."));
+
+// ====================== REFERÊNCIAS ======================
+K.push(H1("Referências"));
+const REFS = [
+  "HAN, C.; PARSONS-SMITH, R. L.; TERRY, P. C. Mood profiling in Singapore: cross-cultural validation and potential applications of mood profile clusters. Frontiers in Psychology, v. 11, art. 665, 2020.",
+  "MORGAN, W. P. Selected psychological factors limiting performance: a mental health model. In: CLARKE, D. H.; ECKERT, H. M. (Ed.). Limits of human performance. Champaign: Human Kinetics, 1985. p. 70-80.",
+  "PARSONS-SMITH, R. L.; TERRY, P. C.; MACHIN, M. A. Identification and description of novel mood profile clusters. Frontiers in Psychology, v. 8, art. 1958, 2017.",
+  "ROHLFS, I. C. P. M. et al. A Escala de Humor de Brunel (Brums): instrumento para detecção precoce da síndrome do excesso de treinamento. Revista Brasileira de Medicina do Esporte, v. 14, n. 3, p. 176-181, 2008.",
+  "TERRY, P. C.; LANE, A. M.; FOGARTY, G. J. Construct validity of the Profile of Mood States-Adolescents for use with adults. Psychology of Sport and Exercise, v. 4, n. 2, p. 125-139, 2003."
+];
+REFS.forEach(r => K.push(new Paragraph({
+  children: rich(r, { size: BODY }), alignment: AlignmentType.LEFT,
+  spacing: { before: 0, after: 120, line: LINE15, lineRule: "auto" }
+})));
+
+// nota final
+K.push(new Paragraph({ spacing: { before: 200, after: 60 }, border: { top: { style: BorderStyle.SINGLE, size: 4, color: "999999" } }, children: [] }));
+K.push(Pflat("Nota técnica: todos os números derivam da camada gold de um repositório reprodutível (Delta Lake e DuckDB), com sementes fixas e verificação de determinismo, idempotência e reconciliação. As mesmas tabelas alimentam este documento e a aba de triangulação do painel interativo.", { size: SMALL, color: GREY }));
+
+// ====================== MONTAGEM ======================
 const doc = new Document({
   creator: "Monitoramento BRUMS — Handebol",
-  title: "Triangulação dos resultados",
-  styles: {
-    default: { document: { run: { font: FONT, size: 21, color: INK } } }
-  },
+  title: "Análise descritiva e triangulação (BRUMS)",
+  styles: { default: { document: { run: { font: FONT, size: BODY, color: INK } } } },
+  numbering: { config: [] },
   sections: [{
-    properties: { page: { margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 } } },
-    headers: {
-      default: new Header({
-        children: [new Paragraph({
-          alignment: AlignmentType.RIGHT, spacing: { after: 0 },
-          border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: LINE } },
-          children: [new TextRun({ text: "Triangulação dos resultados · BRUMS · microciclo de pré-temporada", font: FONT, size: 15, color: MUT })]
-        })]
-      })
-    },
-    footers: {
-      default: new Footer({
-        children: [new Paragraph({
-          alignment: AlignmentType.CENTER, spacing: { before: 0 },
-          children: [new TextRun({ children: ["Página ", PageNumber.CURRENT, " de ", PageNumber.TOTAL_PAGES], font: FONT, size: 15, color: MUT })]
-        })]
-      })
-    },
-    children: kids
+    properties: { page: {
+      size: { width: 12240, height: 15840 },
+      margin: { top: 1701, right: 1134, bottom: 1134, left: 1701 }
+    } },
+    footers: { default: new Footer({ children: [new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [new TextRun({ children: [PageNumber.CURRENT], font: FONT, size: SMALL, color: GREY })]
+    })] }) },
+    children: K
   }]
 });
-
 Packer.toBuffer(doc).then(buf => {
-  fs.writeFileSync(DIR + "/Triangulacao_resultados.docx", buf);
-  console.log("OK ->", DIR + "/Triangulacao_resultados.docx", buf.length, "bytes");
+  fs.writeFileSync(DIR + "/Analise_Descritiva_Triangulacao_ABNT.docx", buf);
+  console.log("OK ->", buf.length, "bytes");
 });

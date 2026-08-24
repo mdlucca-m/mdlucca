@@ -62,3 +62,23 @@ essa versão e recolocar os números lado a lado.
 
 Tabelas de apoio no lakehouse: `an_bat_desc`, `an_bat_omnibus`, `an_bat_posthoc`,
 `an_bat_dunnett`, `an_bat_daytype`. Reprodução: `python -c "import audit_battery as A; A.run()"`.
+
+## Atualização: os dois caminhos, resolvidos (n = 19, n = 27 e modelo misto)
+
+Materializei os **três caminhos** em `gold.an_two_*` e no painel (aba *Dois caminhos*)
+e no documento ABNT (Seção 5). Resumo:
+
+| Caminho | Amostra | Variáveis com efeito de dia | Fadiga física | Vigor |
+|---|---|---|---|---|
+| Casos completos (sem imputação) | n = 19 | **6/11** | F = 13,0 · η²ₚ = 0,42 | F = 6,34 · η²ₚ = 0,26 |
+| Imputado pela média do dia | n = 27 | **7/11** | F = 20,9 · η²ₚ = 0,45 | F = 7,8 · η²ₚ = 0,23 |
+| **Modelo misto (sem imputação)** | n = 27 | **7/11** | χ² = 102,2 · p < 0,001 | χ² = 52,7 · p < 0,001 |
+
+**Resolução:** o "sete variáveis" **se sustenta** com a amostra cheia — o **modelo misto**,
+que não imputa nada, também acusa a sétima (a **PTH** cruza o limiar com os 27 atletas).
+Logo, não é artefato de imputação. O que **não se reproduz** são os **valores exatos de F**
+descritos originalmente (14,51 / 11,26): o η²ₚ da fadiga física bate com o cenário imputado
+(0,45 ≈ 0,446), mas o F imputado é 20,9 (não 14,51), e o vigor não bate em nenhum caminho.
+A imputação pela média **infla o F** (encolhe o erro) sem elevar o η²ₚ, por isso deve ser
+evitada como base de inferência. **Recomendação:** relatar n = 19 como principal e o
+**modelo misto** como via correta para aproveitar os 27.
