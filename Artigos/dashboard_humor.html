@@ -124,6 +124,10 @@ canvas.chart{max-width:100%}
 .vbadge .bd{width:7px; height:7px; border-radius:50%}
 .vsel{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:18px}
 .vsel .vs{display:flex; align-items:center; gap:7px; font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--muted); padding:7px 12px; border-radius:11px; border:1px solid var(--stroke); background:var(--glass); cursor:pointer; transition:.18s}
+.vsym{display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; flex:0 0 auto}
+.vsym svg{width:100%; height:100%}
+.vsel .vs[aria-pressed="true"] .vsym{animation:vsympulse 1.6s ease-in-out infinite}
+@keyframes vsympulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
 .vsel .vs .dot{width:10px;height:10px;border-radius:50%}
 .vsel .vs:hover{color:var(--ink); border-color:rgba(120,150,190,.34)}
 .vsel .vs[aria-pressed="true"]{color:#06121a; border-color:transparent}
@@ -1304,7 +1308,7 @@ const SECTIONS=[
     lineChart($("#h_traj",gr),DIM,{ymax:9,crosses:CROSS,hlk:key,state:(()=>{const st={};DIM.forEach(d=>st[d.k]=["vigor","fadiga","pth"].includes(d.k)||d.k===key);return st;})()});
     lolliChart($("#h_eff",gr),D17.map(r=>({lab:r[0],v:r[4],mag:r[5]})),{hl:v.lab});
   }
-  DK.forEach(k=>{const v=DERIV.vars[k];const b=document.createElement("span");b.className="vs";b.dataset.k=k;b.innerHTML=`<span class="dot" style="background:${v.c}"></span>${v.lab}`;b.onclick=()=>build(k);vsel.appendChild(b);});
+  DK.forEach(k=>{const v=DERIV.vars[k];const b=document.createElement("span");b.className="vs";b.dataset.k=k;b.innerHTML=`<span class="vsym" style="color:${v.c}">${ICONS[VSYM[k]]||`<span class="dot" style="background:${v.c}"></span>`}</span>${v.lab}`;b.onclick=()=>build(k);vsel.appendChild(b);});
   build(HLK()||"vigor");
 }},
 {id:"descr",lab:"Descritiva",icon:"bars",render(h){
@@ -1706,7 +1710,7 @@ const SECTIONS=[
     boxViolin($("#h_bv",gr),[1,2,3,4,5,6,7].map(d=>({lab:"D"+d,vals:DERIV.dist[key][String(d)]})),{col});
     ecdf($("#h_ec",gr),[{lab:"Dia 1",vals:DERIV.dist[key]["1"],color:col},{lab:"Dia 7",vals:DERIV.dist[key]["7"],color:"#ff7a45"}]);
   }
-  DK.forEach(k=>{const v=DERIV.vars[k];const b=document.createElement("span");b.className="vs";b.dataset.k=k;b.innerHTML=`<span class="dot" style="background:${v.c}"></span>${v.lab}`;b.onclick=()=>draw(k);sel.appendChild(b);});
+  DK.forEach(k=>{const v=DERIV.vars[k];const b=document.createElement("span");b.className="vs";b.dataset.k=k;b.innerHTML=`<span class="vsym" style="color:${v.c}">${ICONS[VSYM[k]]||`<span class="dot" style="background:${v.c}"></span>`}</span>${v.lab}`;b.onclick=()=>draw(k);sel.appendChild(b);});
   draw(HLK()||"vigor");
 }},
 {id:"multivar",lab:"Estrutura multivariada",icon:"scatter",render(h){
@@ -2063,17 +2067,17 @@ const SECTIONS=[
   head(h,"automação · estilo n8n","Fluxo automatizado da análise","O caminho dos dados, da coleta ao painel, como um fluxo de automação interligado. Cada nó é um botão: <b>clique</b> para abrir a aba correspondente. Da normalidade partem cinco ramos analíticos (testes, perfis, curvas, estrutura multivariada e resposta ao HIIT), que convergem na aptidão física, nos modelos preditivos e na robustez antes de desembocar no painel.");
   const W=200,H=66;
   const N=[
-   {id:1,x:8,y:300,t:"Coleta BRUMS",s:"Google Forms · pré e pós-treino",ic:"cal",c:C.vigor,go:"visao"},
-   {id:2,x:258,y:300,t:"Consolidação",s:"286 observações · 13 coletas",ic:"grid",c:C.tensao,go:"descr"},
-   {id:3,x:508,y:300,t:"Normalidade",s:"Shapiro-Wilk → não paramétrica",ic:"shield",c:C.warn,go:"analise"},
+   {id:1,x:8,y:300,t:"Coleta BRUMS",s:"Google Forms · pré e pós-treino",ic:"form",c:C.vigor,go:"visao"},
+   {id:2,x:258,y:300,t:"Consolidação",s:"286 observações · 13 coletas",ic:"database",c:C.tensao,go:"descr"},
+   {id:3,x:508,y:300,t:"Normalidade",s:"Shapiro-Wilk → não paramétrica",ic:"bell",c:C.warn,go:"analise"},
    {id:4,x:772,y:40, t:"Testes + efeito",s:"Friedman · Wilcoxon · dz / W",ic:"bars",c:C.fadiga,go:"dias"},
    {id:5,x:772,y:152,t:"Perfis & migração",s:"ICC · 6 perfis · limiares",ic:"layers",c:C.pth,go:"perfis"},
    {id:6,x:772,y:264,t:"Curvas por variável",s:"limites · derivadas · sinal/ruído",ic:"deriv",c:C.confusao,go:"curvas"},
-   {id:7,x:772,y:376,t:"Estrutura multivariada",s:"PCA · PCoA · k-means",ic:"scatter",c:C.raiva,go:"multivar"},
-   {id:8,x:772,y:488,t:"Resposta ao HIIT",s:"agudo/crônico · variância",ic:"split",c:C.tensao,go:"hiit"},
-   {id:9, x:1040,y:152,t:"Aptidão física",s:"T-CAR · pico de velocidade × humor",ic:"pulse",c:C.vigor,go:"fisico"},
-   {id:10,x:1040,y:300,t:"Modelos preditivos",s:"logística · GBM (XGB/LGBM)",ic:"trend",c:C.fadiga,go:"preditivo"},
-   {id:11,x:1040,y:448,t:"Robustez & sensibilidade",s:"LOAO · janelas · suavização",ic:"shield",c:C.warn,go:"robustez"},
+   {id:7,x:772,y:376,t:"Estrutura multivariada",s:"PCA · PCoA · k-means",ic:"pca",c:C.raiva,go:"multivar"},
+   {id:8,x:772,y:488,t:"Resposta ao HIIT",s:"agudo/crônico · variância",ic:"bolt",c:C.tensao,go:"hiit"},
+   {id:9, x:1040,y:152,t:"Aptidão física",s:"T-CAR · pico de velocidade × humor",ic:"heart",c:C.vigor,go:"fisico"},
+   {id:10,x:1040,y:300,t:"Modelos preditivos",s:"logística · GBM (XGB/LGBM)",ic:"brain",c:C.fadiga,go:"preditivo"},
+   {id:11,x:1040,y:448,t:"Robustez & sensibilidade",s:"LOAO · janelas · suavização",ic:"funnel",c:C.warn,go:"robustez"},
    {id:12,x:1304,y:300,t:"Saída",s:"painel + apresentação guiada",ic:"present",c:C.good,go:"apresentacao"}
   ];
   const E=[[1,2],[2,3],[3,4],[3,5],[3,6],[3,7],[3,8],[4,10],[5,9],[6,10],[6,11],[7,10],[8,9],[8,11],[4,11],[9,12],[10,12],[11,12]];
@@ -2133,8 +2137,22 @@ const ICONS={
  focus:ic('<circle cx="12" cy="12" r="3.2"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>'),
  violin:ic('<path d="M9 3c-2 3-2 5 0 7s2 4 0 7"/><path d="M15 3c2 3 2 5 0 7s-2 4 0 7"/><rect x="10.5" y="9" width="3" height="6" rx="1"/>'),
  ecdf:ic('<path d="M3 19h4v-4h4v-5h4v-4h5"/>'),
- pca:ic('<circle cx="12" cy="12" r="8"/><line x1="12" y1="12" x2="17" y2="8"/><line x1="12" y1="12" x2="8" y2="15"/><line x1="12" y1="12" x2="14" y2="18"/>')
+ pca:ic('<circle cx="12" cy="12" r="8"/><line x1="12" y1="12" x2="17" y2="8"/><line x1="12" y1="12" x2="8" y2="15"/><line x1="12" y1="12" x2="14" y2="18"/>'),
+ form:ic('<rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/>'),
+ database:ic('<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>'),
+ bell:ic('<path d="M3 18c3-1 3-9 9-9s6 8 9 9"/><path d="M3 18h18"/><circle cx="12" cy="9" r="1.1"/>'),
+ heart:ic('<path d="M12 20s-7-4.6-9.2-9C1.3 8 3 4.5 6.2 4.5c2 0 3.2 1.3 3.8 2.3.6-1 1.8-2.3 3.8-2.3C21 4.5 22.7 8 21.2 11c-2.2 4.4-9.2 9-9.2 9z"/><polyline points="6 12 9 12 11 9 13 14 15 12 18 12"/>'),
+ funnel:ic('<path d="M3 4h18l-7 8v7l-4-2v-5z"/>'),
+ radar:ic('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><line x1="12" y1="12" x2="19" y2="7"/><circle cx="12" cy="12" r="1.3"/>'),
+ sigma:ic('<path d="M17 5H7l5 7-5 7h10"/>'),
+ flame:ic('<path d="M12 3c1 3 4 4 4 8a4 4 0 01-8 0c0-1.5.5-2.5 1-3 .3 1 1 1.5 1.5 1.5C10 8 12 6 12 3z"/>'),
+ drop:ic('<path d="M12 3s6 6.5 6 11a6 6 0 01-12 0c0-4.5 6-11 6-11z"/>'),
+ cloudrain:ic('<path d="M7 15a4 4 0 010-8 5 5 0 019-1 3.5 3.5 0 011 6.9"/><line x1="8" y1="17" x2="8" y2="20"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="16" y1="17" x2="16" y2="20"/>'),
+ alert:ic('<path d="M12 3l9 16H3z"/><line x1="12" y1="9" x2="12" y2="14"/><circle cx="12" cy="17" r="0.9"/>'),
+ swirl:ic('<path d="M12 12a3 3 0 103 3c0-3-3-3.5-6-3.5S6 6 9 5s8 1 8 7a8 8 0 01-8 8"/>')
 };
+/* símbolos e cores característicos por dimensão do humor */
+const VSYM={vigor:"bolt",fadiga:"drop",tensao:"alert",depressao:"cloudrain",raiva:"flame",confusao:"swirl",pth:"sigma"};
 const MIC={
  gauge:ic('<path d="M4 16a8 8 0 0 1 16 0"/><line x1="12" y1="16" x2="16" y2="11"/>'),
  spread:ic('<line x1="4" y1="12" x2="20" y2="12"/><polyline points="7 8 3 12 7 16"/><polyline points="17 8 21 12 17 16"/>'),
