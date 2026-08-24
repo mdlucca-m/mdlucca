@@ -230,6 +230,9 @@ def run():
         "wb": wb.to_dict("records"), "corr": corr.to_dict("records"),
         "prof": prof.to_dict("records"), "pv_log": pvl.to_dict("records"),
         "logit": lg.to_dict("records"), "mood_mat": mood_matrix(),
+        "pv_thr": lh.read_delta("gold", "an_pv_threshold").to_dict("records"),
+        "pv_bands": lh.read_delta("gold", "an_pv_bands").sort_values(["dim", "band"]).to_dict("records"),
+        "pv_threshold": 14.9,
         "dims": [{"dim": c, "lab": l} for c, l in DIMS],
         "notas": [
             "Estratos: HIIT (D2/D4/D7, 3 dias) × sem-HIIT (D1/D3/D5/D6, 4 dias); contraste 1º→último dia de cada estrato.",
