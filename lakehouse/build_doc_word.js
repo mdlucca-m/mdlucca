@@ -716,6 +716,25 @@ K.push(tblTitle("**Tabela 25** – Ajuste do humor pelo pico de velocidade: line
   ], rows));
 })();
 K.push(tblSource("Nota: ρ = correlação de Spearman entre pico de velocidade e humor (pares casados, n = 25); melhor = ajuste com menor critério de informação de Akaike. " + FONTE_D));
+K.push(figCap("**Figura 15** – Regressão da fadiga física pelo pico de velocidade, com a reta linear e o limiar de aptidão"));
+K.push(figure("fig_pvreg.png", 520));
+K.push(figSource(FONTE_E));
+K.push(P("A Figura 15 ilustra a relação para a fadiga física, a dimensão de vínculo mais forte com a aptidão. A nuvem de pontos desce da esquerda para a direita, o que traduz a correlação negativa, e a reta linear acompanha bem a tendência, sem indício de curvatura que justifique a forma logarítmica. A linha vertical assinala o limiar de aptidão adotado, isto é, a mediana do pico de velocidade, que serve de corte para a análise dicotômica apresentada na sequência."));
+K.push(P("Além do ajuste contínuo, convém examinar o efeito de um limiar de aptidão. Os atletas foram divididos em dois grupos pela mediana do pico de velocidade, e a Figura 16 e a Tabela 27 comparam o humor médio abaixo e acima desse limiar."));
+K.push(figCap("**Figura 16** – Humor médio dos atletas abaixo e acima do limiar de aptidão"));
+K.push(figure("fig_pvlimiar.png", 520));
+K.push(figSource(FONTE_E));
+K.push(tblTitle("**Tabela 27** – Humor abaixo e acima do limiar do pico de velocidade"));
+(function(){
+  var rows=d.strata.pv_thr.map(function(r){return [
+    {t:r.lab,bold:true,al:AL.L},{t:n(r.lo,2),al:AL.C},{t:n(r.hi,2),al:AL.C},
+    {t:sgn(r.dz),al:AL.C,bold:true},{t:"p "+pf(r.p),al:AL.C,color:r.p<0.05?"1b7a3d":GREY}
+  ];});
+  K.push(openTable([{t:"Dimensão",w:2905,al:AL.L},{t:"Abaixo do limiar",w:1650,al:AL.C},{t:"Acima do limiar",w:1650,al:AL.C},
+    {t:"dz",w:1300,al:AL.C},{t:"p",w:2000,al:AL.C}], rows));
+})();
+K.push(tblSource("Nota: limiar = mediana do pico de velocidade (14,9 km/h); dz = tamanho de efeito do contraste entre os grupos acima e abaixo do limiar. " + FONTE_D));
+K.push(P("O padrão do limiar confirma a leitura contínua. Acima do limiar de aptidão, o vigor apresenta-se maior e a fadiga e a fadiga física menores, comportamento coerente com a aptidão aeróbia na função de amortecedor do custo físico. Apenas a fadiga física alcança significância isolada, ainda que as demais dimensões físicas caminhem na mesma direção, e o padrão permanece monotônico ao longo dos três tercis de pico de velocidade."));
 K.push(tblTitle("**Tabela 26** – Regressão logística de duas caudas: risco de perfil por marcador"));
 (function(){
   var rows=d.strata.logit.map(function(r){return [
