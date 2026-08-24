@@ -3,7 +3,7 @@
 <title>Dinâmica do Humor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Sora:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
 :root{
   --bg0:#070a10; --bg1:#0c141f; --bg2:#0f1826;
@@ -81,7 +81,7 @@ canvas.chart{max-width:100%}
 .crumb{display:flex; align-items:center; gap:11px}
 .crumb .cico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:var(--accent);background:var(--glass);border:1px solid var(--stroke)}
 .crumb .ct{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
-.crumb h1{font-family:"Sora",sans-serif; font-weight:700; font-size:19px; margin:0; letter-spacing:-.01em}
+.crumb h1{font-family:"Space Grotesk","Sora",sans-serif; font-weight:700; font-size:19px; margin:0; letter-spacing:-.01em}
 .meta{display:flex; gap:8px; flex-wrap:wrap}
 .chip{font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--muted); background:var(--glass); border:1px solid var(--stroke); border-radius:999px; padding:6px 11px}
 .chip b{color:var(--ink)}
@@ -91,7 +91,7 @@ canvas.chart{max-width:100%}
 .panel.in{opacity:1; transform:none; transition:opacity .5s ease, transform .6s cubic-bezier(.2,.7,.2,1)}
 
 .section-head{display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap}
-.section-head h2{font-family:"Sora",sans-serif; font-weight:700; font-size:21px; margin:0; letter-spacing:-.01em}
+.section-head h2{font-family:"Space Grotesk","Sora",sans-serif; font-weight:700; font-size:21px; margin:0; letter-spacing:-.01em}
 .section-head .tag{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--accent); letter-spacing:.1em; text-transform:uppercase}
 .lead{color:var(--muted); font-size:13.5px; line-height:1.62; max-width:76ch; margin:9px 0 20px}
 
@@ -105,7 +105,7 @@ canvas.chart{max-width:100%}
 @keyframes kpiSheen{from{left:-60%; opacity:0}30%{opacity:1}to{left:130%; opacity:0}}
 .kpi:hover{transform:translateY(-4px); box-shadow:0 22px 44px -22px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.08); border-color:rgba(120,150,190,.3)}
 .kpi .lab{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted)}
-.kpi .val{font-family:"Sora",sans-serif; font-weight:800; font-size:29px; line-height:1.05; margin-top:6px; letter-spacing:-.02em; font-variant-numeric:tabular-nums; text-shadow:0 0 22px var(--kglow,rgba(90,211,196,.28))}
+.kpi .val{font-family:"Space Grotesk","Sora",sans-serif; font-weight:800; font-size:29px; line-height:1.05; margin-top:6px; letter-spacing:-.02em; font-variant-numeric:tabular-nums; text-shadow:0 0 22px var(--kglow,rgba(90,211,196,.28))}
 .kpi .cap{font-size:11.5px; color:var(--faint); margin-top:3px}
 .kpi .stripe{position:absolute; left:0; top:0; bottom:0; width:4px; box-shadow:0 0 14px 0 var(--kglow,rgba(90,211,196,.5))}
 .kpi .mico{position:absolute; top:12px; right:12px; width:26px; height:26px; display:grid; place-items:center; border-radius:8px; background:rgba(255,255,255,.05); border:1px solid var(--stroke)}
@@ -116,7 +116,7 @@ canvas.chart{max-width:100%}
 .dossier .dhead{display:flex; align-items:center; gap:13px; margin-bottom:12px; flex-wrap:wrap}
 .dossier .dglyph{width:44px; height:44px; border-radius:13px; display:grid; place-items:center; color:#06121a}
 .dossier .dglyph svg{width:23px; height:23px}
-.dossier h3{font-family:"Sora",sans-serif; font-weight:700; font-size:20px; margin:0; letter-spacing:-.01em}
+.dossier h3{font-family:"Space Grotesk","Sora",sans-serif; font-weight:700; font-size:20px; margin:0; letter-spacing:-.01em}
 .dossier .dtxt{color:var(--muted); font-size:13.5px; line-height:1.65; max-width:82ch}
 .dossier .dtxt b{color:var(--ink); font-weight:600}
 .vbadges{display:flex; gap:8px; flex-wrap:wrap; margin-left:auto}
@@ -159,6 +159,12 @@ canvas.chart{display:block; width:100%; height:auto}
 .plotbtn .pi{width:0; height:0; border-left:8px solid currentColor; border-top:5px solid transparent; border-bottom:5px solid transparent}
 .plotbtn.playing .pi{border-left:0; width:8px; height:8px; border-radius:2px; background:currentColor; animation:plotpulse 1s ease-in-out infinite}
 @keyframes plotpulse{0%,100%{opacity:1}50%{opacity:.35}}
+.sighot{display:inline-flex; align-items:center; gap:4px; padding:1px 8px; border-radius:20px; font-weight:700; font-family:"IBM Plex Mono",monospace; position:relative; animation:sigglow 2.2s ease-in-out infinite}
+.sighot.sig-good{color:#062018; background:rgba(51,194,173,.16); box-shadow:0 0 0 1px rgba(51,194,173,.5) inset}
+.sighot.sig-warn{color:#2a1c02; background:rgba(255,194,77,.16); box-shadow:0 0 0 1px rgba(255,194,77,.5) inset}
+.sighot.sig-crit{color:#2a0b10; background:rgba(255,92,114,.16); box-shadow:0 0 0 1px rgba(255,92,114,.5) inset}
+.sighot .st{font-size:.9em}
+@keyframes sigglow{0%,100%{box-shadow:0 0 0 1px currentColor inset, 0 0 0 0 rgba(90,211,196,0)}50%{box-shadow:0 0 0 1px currentColor inset, 0 0 12px 1px rgba(90,211,196,.35)}}
 .legend{display:flex; gap:12px; flex-wrap:wrap; margin-top:12px}
 .legend .it{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); cursor:pointer; user-select:none; font-family:"IBM Plex Mono",monospace}
 .legend .it .dot{width:12px; height:12px; border-radius:4px}
@@ -464,6 +470,8 @@ function anim(dur,step){if(rm){step(1);return;}
   const r=cv._box.getBoundingClientRect(),vis=r.top<innerHeight*0.85&&r.bottom>innerHeight*0.06;
   if(vis){cv._played=true;run();}else if(_animIO){_animIO.observe(cv._box);}else{cv._played=true;run();}}
 function stag(prog,i,n,spread=0.55){const w=1-spread;const s=(n>1?i/(n-1):0)*spread;return Math.max(0,Math.min(1,(prog-s)/w));}
+/* estrela de significância com halo (chama atenção para o que é significativo) */
+function sigStar(g,x,y,size=13){g.save();g.shadowColor="rgba(255,211,77,.95)";g.shadowBlur=12;g.fillStyle="#ffd34d";g.font=`800 ${size}px "IBM Plex Mono",monospace`;g.fillText("★",x,y);g.shadowBlur=4;g.fillText("★",x,y);g.restore();}
 function attachHits(cv){cv.onmousemove=e=>{const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;let hit=null;for(const h of cv._hits){if(mx>=h.x&&mx<=h.x+h.w&&my>=h.y&&my<=h.y+h.h){hit=h;break;}}if(hit){showTip(hit.tip,e);cv.style.cursor="pointer";}else{hideTip();cv.style.cursor="default";}};cv.onmouseleave=hideTip;}
 function rr(g,x,y,w,h,r){r=Math.min(r,w/2,h/2);g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
 /* axes WITHOUT gridlines: only tick numbers + optional zero line */
@@ -556,7 +564,7 @@ function divChart(host,rows,{h=420}={}){
     rows.forEach((r,i)=>{const pv=stag(prog,i,rows.length),y=pad.t+rowh*i+rowh/2,vv=r.v*pv,x=cx+((w-pad.l-pad.r)/2)*(vv/max),col=r.tipo==="Agudo"?C.fadiga:C.tensao;
       glossBar(g,Math.min(cx,x),y-rowh*0.3,Math.abs(x-cx),rowh*0.6,col,{dir:'h',r:5,alpha:r.sig?1:.62});
       g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(r.lab,pad.l-8,y);
-      if(pv>=1){if(r.sig){g.fillStyle=C.ink;g.font='700 11px "IBM Plex Mono",monospace';g.textAlign=x>=cx?"left":"right";g.fillText("★",x+(x>=cx?3:-3),y);}cv._hits.push({x:Math.min(cx,x),y:y-rowh*.3,w:Math.abs(x-cx),h:rowh*.6,tip:`<b>${r.lab}</b><br>${r.tipo} · dz=${r.v.toFixed(2).replace(".",",")}${r.sig?" ★ p<0,05":""}`});}});
+      if(pv>=1){if(r.sig){g.textAlign=x>=cx?"left":"right";g.textBaseline="middle";sigStar(g,x+(x>=cx?5:-5),y,13);}cv._hits.push({x:Math.min(cx,x),y:y-rowh*.3,w:Math.abs(x-cx),h:rowh*.6,tip:`<b>${r.lab}</b><br>${r.tipo} · dz=${r.v.toFixed(2).replace(".",",")}${r.sig?" ★ p<0,05":""}`});}});
     g.strokeStyle="rgba(233,238,246,.18)";g.beginPath();g.moveTo(cx,pad.t);g.lineTo(cx,h-pad.b);g.stroke();
   });attachHits(cv);
 }
@@ -568,7 +576,7 @@ function groupSigned(host,rows,groups,{h=380,dec=2,hl}={}){
     const yz=Y(0);g.strokeStyle="rgba(233,238,246,.24)";g.beginPath();g.moveTo(x0,yz);g.lineTo(x1,yz);g.stroke();cv._hits=[];
     rows.forEach((r,i)=>{const pv=stag(prog,i,rows.length),base=pad.l+gw*i+gw/2;g.globalAlpha=hasHl&&r.lab!==hl?.24:1;
       r.vals.forEach((val,j)=>{const off=(j-(r.vals.length-1)/2)*(bw+5),cx=base+off,y=Y(val*pv);glossBar(g,cx-bw/2,Math.min(y,yz),bw,Math.abs(y-yz),groups[j].c,{dir:'v',r:4});
-        if(pv>=1){if(r.sig&&j===1){g.fillStyle=C.ink;g.font='700 11px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline=val>=0?"bottom":"top";g.fillText("★",cx,y+(val>=0?-3:3));}cv._hits.push({x:cx-bw/2,y:Math.min(y,yz),w:bw,h:Math.abs(y-yz),tip:`<b>${r.lab}</b><br>${groups[j].lab}: ${(val>=0?"+":"")+val.toFixed(dec).replace(".",",")}`});}});
+        if(pv>=1){if(r.sig&&j===1){g.textAlign="center";g.textBaseline=val>=0?"bottom":"top";sigStar(g,cx,y+(val>=0?-5:5),13);}cv._hits.push({x:cx-bw/2,y:Math.min(y,yz),w:bw,h:Math.abs(y-yz),tip:`<b>${r.lab}</b><br>${groups[j].lab}: ${(val>=0?"+":"")+val.toFixed(dec).replace(".",",")}`});}});
       g.globalAlpha=1;g.save();g.translate(base,h-pad.b+8);g.rotate(-.5);g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(r.lab,0,0);g.restore();});
   });attachHits(cv);
   const lg=document.createElement("div");lg.className="legend";groups.forEach(gr=>lg.insertAdjacentHTML("beforeend",`<span class="it"><span class="dot" style="background:${gr.c}"></span>${gr.lab}</span>`));host.appendChild(lg);
