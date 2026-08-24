@@ -2932,6 +2932,18 @@ function kpiFut(host,cards){const wrap=document.createElement("div");wrap.classN
     d.innerHTML=`<span class="scan"></span>${icon?`<span class="mico" style="color:${col}">${icon}</span>`:`<span class="cbr"></span>`}<span class="stripe" style="background:${col}"></span><div class="lab">${lab}</div><div class="val" style="color:${col};font-size:20px">${val}</div><div class="cap">${cap}</div>`;
     if(goto){d.onclick=()=>go(goto);d.title=lab+" — abrir análise";}wrap.appendChild(d);});
   host.appendChild(wrap);try{tilt(wrap);}catch(e){}return wrap;}
+/* Uniformiza QUALQUER linha .kpis já renderizada ao padrão futurista (scan + brilho + corner-bracket),
+   herdando a cor de cada cartão da própria faixa (.stripe). Roda uma vez por render, cobrindo também as
+   abas cujos KPIs foram montados por helpers inline antigos — sem reescrever cada builder. */
+function upgradeKpis(root){root.querySelectorAll(".kpis").forEach(row=>{
+  row.classList.add("fut");
+  row.querySelectorAll(".kpi").forEach(k=>{
+    const st=k.querySelector(".stripe"),bg=st&&st.style&&st.style.background||"";
+    if(bg&&!/gradient/i.test(bg)&&!k.style.getPropertyValue("--kc"))k.style.setProperty("--kc",bg);
+    if(!k.querySelector(".scan")){const s=document.createElement("span");s.className="scan";k.insertBefore(s,k.firstChild);}
+    if(!k.querySelector(".mico")&&!k.querySelector(".cbr")){const c=document.createElement("span");c.className="cbr";k.insertBefore(c,k.firstChild);}
+  });
+});}
 function momentos(k){const items=[],s=DERIV.stats[k];
   if(s.sig17)items.push(`<b>D1 → D7</b>: ${sg(s.delta,1)} · dz ${sg(s.dz)} · ${pShort(s.p17)}`);
   if(s.sigpp)items.push(`<b>Pré vs pós da semana</b>: dz ${sg(s.dzpp)} · ${pShort(s.ppp)}`);
@@ -2997,9 +3009,13 @@ function subnav(host,gi,curId){const gp=NAVGROUPS[gi];if(!gp)return;const sibs=g
 function go(id){const s=SECTIONS.find(x=>x.id===id)||SECTIONS[0];CUR=s.id;const gi=groupOf(s.id);
   nav.querySelectorAll(".navitem").forEach(b=>b.setAttribute("aria-current",(+b.dataset.group===gi)?"true":"false"));syncSeg();
   $("#crumbico").innerHTML=ICONS[s.icon]||ICONS.grid;$("#crumbtitle").textContent=s.lab;$("#crumbtag").textContent=(s.render.tag||"análise");
-  stage.className="panel";stage.innerHTML="";requestAnimationFrame(()=>{subnav(stage,gi,s.id);s.render(stage);addStepNav(stage,s.id);animateKPIs(stage);requestAnimationFrame(()=>stage.classList.add("in"));});
+  stage.className="panel";stage.innerHTML="";requestAnimationFrame(()=>{subnav(stage,gi,s.id);s.render(stage);upgradeKpis(stage);addStepNav(stage,s.id);animateKPIs(stage);requestAnimationFrame(()=>stage.classList.add("in"));});
   try{window.scrollTo(0,0);}catch(e){}
   history.replaceState(null,"","#"+id);}
 go((location.hash||"").slice(1)||"apresentacao");
+/* Observa o palco: qualquer .kpis criada por rebuild interno (ex.: troca de variável) também é
+   uniformizada ao padrão futurista. Idempotente (:not(.fut)), então não entra em laço. */
+try{const _ko=new MutationObserver(ms=>{for(const m of ms){for(const n of m.addedNodes){if(n.nodeType===1&&(n.matches&&n.matches(".kpi,.kpis")||n.querySelector&&n.querySelector(".kpi,.kpis"))){upgradeKpis(stage);return;}}}});
+  _ko.observe(stage,{childList:true,subtree:true});}catch(e){}
 addEventListener("resize",()=>{clearTimeout(window._rz);window._rz=setTimeout(()=>go(CUR),220);});
 </script>
