@@ -197,6 +197,9 @@ def _curve_label(dz, pw, pf, piso):
 def _payload(table):
     return lh.read_delta("gold", table).iloc[0]["payload"]
 
+def gen_DERIV():
+    return "const DERIV=" + _payload("an_deriv")
+
 def gen_SENSV():
     return "const SENSV=" + _payload("an_sensitivity")
 
@@ -424,7 +427,7 @@ def run():
             "LIM": gen_LIM(), "VM": gen_VM(), "TRANS": gen_TRANS(), "PRISCO": gen_PRISCO(),
             "ALO": gen_ALO(), "PVMODEL": gen_PVMODEL(), "ATLETA": gen_ATLETA(),
             "CURVE": gen_CURVE(), "LC_X": gen_LC(),
-            "CROSS": f"const CROSS={gen_CROSS()}", "CURVE_CROSS": f"const CURVE_CROSS={gen_CROSS()}", "MV": gen_MV(), "SENSV": gen_SENSV(), "HVS": gen_HVS(), "SENSA": gen_SENSA(), "IOTPRED": gen_IOTPRED()}
+            "CROSS": f"const CROSS={gen_CROSS()}", "CURVE_CROSS": f"const CURVE_CROSS={gen_CROSS()}", "MV": gen_MV(), "SENSV": gen_SENSV(), "HVS": gen_HVS(), "SENSA": gen_SENSA(), "IOTPRED": gen_IOTPRED(), "DERIV": gen_DERIV()}
     for name, rhs in gens.items():
         html = replace_const(html, name, rhs)
         print(f"[painel←gold] const {name} regenerada do gold")

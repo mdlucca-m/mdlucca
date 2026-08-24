@@ -409,11 +409,129 @@ def an_sensitivity_robust(m):
     return {"loao": loao, "window": window, "n_ath": int(ad["ID"].nunique())}
 
 
+DERIV9 = [("vigor", "Vigor", "Vigor", "#33c2ad"), ("fadiga", "Fadiga", "Fadiga", "#ff7a45"),
+          ("tensao", "Tensao", "Tensão", "#4d9de0"), ("depressao", "Depressao", "Depressão", "#c56bd6"),
+          ("raiva", "Raiva", "Raiva", "#e0525b"), ("confusao", "Confusao", "Confusão", "#f0a848"),
+          ("pth", "PTH", "PTH", "#8b7bf0"), ("fadfisica", "FadFisica", "Fadiga física", "#2fb37a"),
+          ("fadmental", "FadMental", "Fadiga mental", "#d6537e")]
+
+def an_deriv(m):
+    """DERIV: curvas suavizadas por dia + derivadas (spline cúbica pelos pontos pré/pós),
+    estatísticas por dimensão, acoplamento agudo/crônico, pré→pós por dia, transições,
+    distribuições diárias e PCA. Método documentado e reprodutível (substitui a
+    suavização original irrecuperável)."""
+    import pingouin as pg
+    from scipy.interpolate import PchipInterpolator
+    xgrid = list(np.round(np.linspace(1, 7.2, 110), 3))
+    xg = np.array(xgrid)
+    pre = m[m.is_pre].groupby(["ID", "dia"]); pos = m[m.is_pos].groupby(["ID", "dia"])
+    prem = m[m.is_pre].groupby("dia"); posm = m[m.is_pos].groupby("dia")
+    ad = m.groupby(["ID", "dia"])
+    vars_, stats_, ac_ = {}, {}, {}
+    for key, col, lab, color in DERIV9:
+        pm = prem[col].mean(); po = posm[col].mean()
+        raw = [[1.0, round(float(pm[1]), 3)]]
+        for d in range(2, 8):
+            raw.append([round(d - 0.2, 1), round(float(pm[d]), 3)])
+            raw.append([round(d + 0.2, 1), round(float(po[d]), 3)])
+        rx = np.array([p[0] for p in raw]); ry = np.array([p[1] for p in raw])
+        from scipy.ndimage import uniform_filter1d
+        sp = PchipInterpolator(rx, ry); sig = sp(xg)  # preserva a forma (sem overshoot)
+        # derivadas numéricas com suavização leve (reduz o dente do gradiente numérico)
+        d1 = uniform_filter1d(np.gradient(sig, xg), size=7, mode="nearest")
+        d2 = uniform_filter1d(np.gradient(d1, xg), size=9, mode="nearest")
+        infl = [round(float(xg[i]), 1) for i in range(1, len(xg)) if d2[i - 1] * d2[i] < 0]
+        vpk_i = int(np.argmin(d1)) if abs(d1.min()) > abs(d1.max()) else int(np.argmax(d1))
+        vars_[key] = dict(lab=lab, c=color, raw=raw, sig=[round(float(v), 3) for v in sig],
+                          d1=[round(float(v), 3) for v in d1], d2=[round(float(v), 3) for v in d2],
+                          ymin=round(float(sig.min()), 2), ymax=round(float(sig.max()), 2),
+                          min_x=round(float(xg[int(np.argmin(sig))]), 1), max_x=round(float(xg[int(np.argmax(sig))]), 1),
+                          infl=infl, vpk=round(float(d1[vpk_i]), 2), vpk_x=round(float(xg[vpk_i]), 1))
+        # estatísticas
+        allv = m[col]; mean = float(allv.mean()); sd = float(allv.std())
+        dgm = m.groupby("dia")[col].mean()
+        d1v, d7v = float(dgm[1]), float(dgm[7])
+        w = ad[col].mean().reset_index().pivot_table(index="ID", columns="dia", values=col).dropna()
+        chi, fp = stats.friedmanchisquare(*[w[c] for c in range(1, 8)])
+        W = chi / (len(w) * 6)
+        j = w[[1, 7]].dropna(); dd = j[7] - j[1]; dz = float(dd.mean() / dd.std(ddof=1))
+        p17 = float(stats.wilcoxon(j[1], j[7]).pvalue)
+        prp = pre[col].mean().groupby("ID").mean() if False else m[m.is_pre].groupby("ID")[col].mean()
+        pop = m[m.is_pos].groupby("ID")[col].mean()
+        jj = pd.concat([prp, pop], axis=1).dropna(); jj.columns = ["pre", "pos"]
+        dpp = jj["pos"] - jj["pre"]; dzpp = float(dpp.mean() / dpp.std(ddof=1))
+        ppp = float(stats.wilcoxon(jj["pre"], jj["pos"]).pvalue)
+        try:
+            lg = w.reset_index().melt(id_vars="ID", var_name="dia", value_name="v")
+            icc = float(pg.intraclass_corr(data=lg, targets="ID", raters="dia", ratings="v")
+                        .query("Type=='ICC(A,1)'").ICC.iloc[0])
+        except Exception:
+            icc = 0.0
+        sem = sd * np.sqrt(max(1 - icc, 0)); mdc95 = 1.96 * np.sqrt(2) * sem
+        tr_, hi_, no_, snr = _snr_one(dgm.reindex(range(1, 8)).values)
+        floor = round(100 * float((allv == 0).mean()))
+        stats_[key] = dict(m=round(mean, 2), sd=round(sd, 2), cv=round(100 * sd / mean) if mean else 0,
+                           floor=floor, icc=round(icc, 2), mdc95=round(float(mdc95), 1),
+                           chi=round(float(chi), 1), fp=round(float(fp), 3), W=round(float(W), 2),
+                           d1=round(d1v, 1), d7=round(d7v, 1), delta=round(d7v - d1v, 1), dz=round(dz, 2),
+                           p17=float(p17), sig17=bool(p17 < .05), pre=round(float(jj["pre"].mean()), 2),
+                           pos=round(float(jj["pos"].mean()), 2), dzpp=round(dzpp, 2), ppp=float(ppp),
+                           sigpp=bool(ppp < .05), ag=round(dzpp, 2), cr=round(d7v - d1v, 1), crdz=round(dz, 2),
+                           crsig=bool(p17 < .05), infl=infl[0] if infl else None,
+                           vpk=round(float(d1[vpk_i]), 1), vpkx=round(float(xg[vpk_i]), 1),
+                           snr=snr, noise=round(no_ / 100, 2), amp=round(float(sig.max() - sig.min()), 1))
+        ac_[key] = dict(ag=round(dzpp, 2), cr=round(d7v - d1v, 1), dz=round(dz, 2), sig=bool(p17 < .05))
+    # pré→pós por dia
+    prepos_dia = {}
+    for d in range(2, 8):
+        prepos_dia[str(d)] = {}
+        for key, col, _, _ in DERIV9:
+            a = pre[col].mean().xs(d, level="dia") if (d) in pre[col].mean().index.get_level_values("dia") else None
+            b = pos[col].mean().xs(d, level="dia") if (d) in pos[col].mean().index.get_level_values("dia") else None
+            if a is None or b is None:
+                prepos_dia[str(d)][key] = {"dz": 0.0, "sig": False}; continue
+            jj = pd.concat([a, b], axis=1).dropna(); jj.columns = ["a", "b"]; e = jj["b"] - jj["a"]
+            dz = float(e.mean() / e.std(ddof=1)) if e.std(ddof=1) else 0.0
+            p = float(stats.wilcoxon(jj["a"], jj["b"]).pvalue) if len(jj) >= 5 and e.std(ddof=1) else 1.0
+            prepos_dia[str(d)][key] = {"dz": round(dz, 3), "sig": bool(p < .05)}
+    # transições (12) × 9 dims
+    prd = pre; pod = pos
+    trans = []
+    for d in range(1, 7):
+        for lab, tipo, a_src, b_src, da, db in [(f"D{d} base→D{d+1} pré" if d == 1 else f"D{d}→D{d+1} pré", "Recuperação", pod, prd, d, d + 1),
+                                                (f"D{d+1} pré→pós", "Agudo", prd, pod, d + 1, d + 1)]:
+            v = {}
+            for key, col, _, _ in DERIV9:
+                am = a_src[col].mean(); bm = b_src[col].mean()
+                A = am.xs(da, level="dia") if da in am.index.get_level_values("dia") else None
+                B = bm.xs(db, level="dia") if db in bm.index.get_level_values("dia") else None
+                if A is None or B is None:
+                    v[key] = {"dz": 0.0, "sig": False}; continue
+                jj = pd.concat([A, B], axis=1).dropna(); jj.columns = ["a", "b"]; e = jj["b"] - jj["a"]
+                dz = float(e.mean() / e.std(ddof=1)) if e.std(ddof=1) else 0.0
+                p = float(stats.wilcoxon(jj["a"], jj["b"]).pvalue) if len(jj) >= 5 and e.std(ddof=1) else 1.0
+                v[key] = {"dz": round(dz, 3), "sig": bool(p < .05)}
+            trans.append({"lab": lab, "tipo": tipo, "v": v})
+    # distribuições diárias (média atleta-dia por dia)
+    dist = {}
+    for key, col, _, _ in DERIV9:
+        dm = ad[col].mean().reset_index()
+        dist[key] = {str(d): [round(float(x), 1) for x in dm[dm.dia == d][col]] for d in range(1, 8)}
+    # PCA (variância + cargas)
+    pca_p = an_pca(m)
+    pca = {"dims": ["Vigor", "Fadiga", "Tensão", "Depressão", "Raiva", "Confusão"],
+           "keys": ["vigor", "fadiga", "tensao", "depressao", "raiva", "confusao"],
+           "load": pca_p["load"], "ve": pca_p["var"]}
+    return {"x": xgrid, "vars": vars_, "ac": ac_, "trans": trans, "prepos_dia": prepos_dia,
+            "order": [k for k, _, _, _ in DERIV9], "stats": stats_, "dist": dist, "pca": pca}
+
+
 def run():
     m = lh.read_delta("silver", "mood")
     wb = lh.read_delta("silver", "wellbeing")
     it = lh.read_delta("silver", "brums_items")
     lh.write_delta("gold", "an_athlete_profiles", an_athlete_profiles(m)); print("[gold] an_athlete_profiles")
+    lh.write_delta("gold", "an_deriv", pd.DataFrame([dict(payload=json.dumps(an_deriv(m)))])); print("[gold] an_deriv")
     lh.write_delta("gold", "an_pca", pd.DataFrame([dict(payload=json.dumps(an_pca(m)))])); print("[gold] an_pca")
     lh.write_delta("gold", "an_sensitivity", pd.DataFrame([dict(payload=json.dumps(an_sensitivity(m)))])); print("[gold] an_sensitivity")
     lh.write_delta("gold", "an_recovery", pd.DataFrame([dict(payload=json.dumps(an_recovery(m)))])); print("[gold] an_recovery")
