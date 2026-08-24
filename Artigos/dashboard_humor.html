@@ -124,6 +124,16 @@ canvas.chart{max-width:100%}
 .vbadge .bd{width:7px; height:7px; border-radius:50%}
 .vsel{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:18px}
 .vsel .vs{display:flex; align-items:center; gap:7px; font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--muted); padding:7px 12px; border-radius:11px; border:1px solid var(--stroke); background:var(--glass); cursor:pointer; transition:.18s}
+.subwrap{margin:0 0 14px}
+.subnav{display:flex; flex-wrap:wrap; gap:7px}
+.subtab{display:inline-flex; align-items:center; gap:7px; font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--muted); padding:6px 13px; border-radius:20px; border:1px solid var(--stroke); background:var(--glass); cursor:pointer; transition:.16s}
+.subtab .ico{width:15px; height:15px; display:inline-flex; color:var(--faint)}
+.subtab .ico svg{width:100%; height:100%}
+.subtab:hover{color:var(--ink); border-color:rgba(90,211,196,.42)}
+.subtab:hover .ico{color:var(--accent)}
+.subtab[aria-current="true"]{color:#04120f; background:linear-gradient(180deg,#6ee3d2,#33c2ad); border-color:transparent; font-weight:600}
+.subtab[aria-current="true"] .ico{color:rgba(4,18,15,.6)}
+.groupintro{font-size:12.5px; color:var(--muted); line-height:1.58; margin:10px 2px 0; max-width:900px}
 .vsym{display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; flex:0 0 auto}
 .vsym svg{width:100%; height:100%}
 .vsel .vs[aria-pressed="true"] .vsym{animation:vsympulse 1.6s ease-in-out infinite}
@@ -2191,27 +2201,31 @@ const nav=$("#nav"),stage=$("#stage"),varchips=$("#varchips"),segchips=$("#segch
 /* ordem por lógica, agrupada: pontos de entrada primeiro, depois panorama, resultados e aprofundamento.
    NAVGROUPS é a única fonte de verdade — dela derivam a ordem, a numeração e a navegação anterior/próximo. */
 const NAVGROUPS=[
-  {lab:"Comece por aqui",          ids:["apresentacao","resultados","pipeline"]},
-  {lab:"Método & decisões",        ids:["framework","analise","arvore","robustez"]},
-  {lab:"1 · Qualidade & descritiva",ids:["conf","visao","descr","distrib"]},
-  {lab:"2 · Variação & perfis",    ids:["d17","dias","perfis","risco"]},
-  {lab:"3 · Estrutura multivariada",ids:["multivar"]},
-  {lab:"4 · Dinâmica temporal",    ids:["curvas","traj","limites","snr"]},
-  {lab:"5 · Resposta aguda (pré→pós)",ids:["agudo"]},
-  {lab:"6 · Tipo de dia (HIIT · jogo · sono)",ids:["hiit","negdia","sono"]},
-  {lab:"7 · Relações & predição",  ids:["corr","preditivo","iot","atletas","individual"]},
-  {lab:"8 · Síntese · triangulação",ids:["triangulacao"]},
-  {lab:"9 · Aptidão física",       ids:["fisico"]}
+  {lab:"Comece por aqui",     icon:"present",home:"apresentacao",ids:["apresentacao","resultados","pipeline"]},
+  {lab:"Método & decisões",   icon:"tree",   ids:["framework","analise","arvore","robustez"]},
+  {lab:"Qualidade & descritiva",icon:"grid", home:"visao",ids:["conf","visao","descr","distrib"]},
+  {lab:"Variação & perfis",   icon:"layers", home:"perfis",ids:["d17","dias","perfis","risco"],
+   intro:"Como o humor varia na semana e a forma dos perfis: da deterioração D1→D7 e da migração dia a dia até a triagem dos perfis de risco. Percorra as quatro lentes pelas abas abaixo."},
+  {lab:"Estrutura multivariada",icon:"pca",  ids:["multivar"]},
+  {lab:"Dinâmica temporal",   icon:"deriv",  ids:["curvas","traj","limites","snr"]},
+  {lab:"Resposta aguda (pré→pós)",icon:"pulse",ids:["agudo"]},
+  {lab:"Estímulo × resposta (HIIT · jogo · sono)",icon:"bolt",home:"hiit",ids:["hiit","negdia","sono"],
+   intro:"O mesmo olhar por tipo de dia: o que o HIIT e o jogo amistoso fazem ao humor, às dimensões negativas e ao sono/estresse. A síntese destes recortes está na aba Triangulação."},
+  {lab:"Relações & predição", icon:"trend",  ids:["corr","preditivo","iot","atletas","individual"]},
+  {lab:"Síntese · triangulação",icon:"nodes",ids:["triangulacao"]},
+  {lab:"Aptidão física",      icon:"heart",  ids:["fisico"]}
 ];
 const ORDER=NAVGROUPS.flatMap(g=>g.ids);
 SECTIONS.sort((a,b)=>{const ia=ORDER.indexOf(a.id),ib=ORDER.indexOf(b.id);return (ia<0?99:ia)-(ib<0?99:ib);});
 const secById=id=>SECTIONS.find(x=>x.id===id);
-let _ni=0;
-NAVGROUPS.forEach((gp,gi)=>{const gl=document.createElement("div");gl.className="nav-group"+(gi===0?" first":"");gl.textContent=gp.lab;nav.appendChild(gl);
-  gp.ids.forEach(id=>{const s=secById(id);if(!s)return;_ni++;
-    const b=document.createElement("div");b.className="navitem";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.dataset.id=s.id;b.title=s.lab;
-    b.innerHTML=`<span class="ico">${ICONS[s.icon]||ICONS.grid}</span><span>${s.lab}</span><span class="navnum">${String(_ni).padStart(2,"0")}</span>`;
-    b.onclick=()=>go(s.id);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go(s.id);}};nav.appendChild(b);});});
+function groupOf(id){return NAVGROUPS.findIndex(g=>g.ids.includes(id));}
+function groupHome(gp){return gp.home&&secById(gp.home)?gp.home:(gp.ids.find(id=>secById(id))||gp.ids[0]);}
+NAVGROUPS.forEach((gp,gi)=>{const home=groupHome(gp);if(!secById(home))return;
+  if(gi===2){const dv=document.createElement("div");dv.className="nav-group first";dv.textContent="Análises";nav.appendChild(dv);}
+  const cnt=gp.ids.filter(id=>secById(id)).length;
+  const b=document.createElement("div");b.className="navitem";b.setAttribute("role","button");b.setAttribute("tabindex","0");b.dataset.group=gi;b.title=gp.lab+(cnt>1?" ("+cnt+" abas)":"");
+  b.innerHTML=`<span class="ico">${ICONS[gp.icon]||ICONS.grid}</span><span>${gp.lab}</span><span class="navnum">${cnt>1?cnt+"›":String(gi+1).padStart(2,"0")}</span>`;
+  b.onclick=()=>go(home);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go(home);}};nav.appendChild(b);});
 function addStepNav(host,id){const i=ORDER.indexOf(id);if(i<0)return;
   const prev=i>0?secById(ORDER[i-1]):null,next=i<ORDER.length-1?secById(ORDER[i+1]):null;
   const foot=document.createElement("div");foot.className="stepnav";
@@ -2220,7 +2234,7 @@ function addStepNav(host,id){const i=ORDER.indexOf(id);if(i<0)return;
   foot.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));}
 // variable chips (global segmentation)
 function buildChips(){varchips.innerHTML="";const all=document.createElement("span");all.className="vchip";all.dataset.k="";all.innerHTML=`<span class="dot" style="background:linear-gradient(90deg,${C.vigor},${C.pth})"></span>Todas`;all.onclick=()=>setVar(null);varchips.appendChild(all);
-  DK.forEach(k=>{const v=DERIV.vars[k];const c=document.createElement("span");c.className="vchip";c.dataset.k=k;c.innerHTML=`<span class="dot" style="background:${v.c}"></span>${v.lab}`;c.onclick=()=>setVar(k);varchips.appendChild(c);});syncChips();buildSeg();}
+  DK.forEach(k=>{const v=DERIV.vars[k];const c=document.createElement("span");c.className="vchip";c.dataset.k=k;c.innerHTML=`<span class="vsym" style="color:${v.c}">${ICONS[VSYM[k]]||`<span class="dot" style="background:${v.c}"></span>`}</span>${v.lab}`;c.onclick=()=>setVar(k);varchips.appendChild(c);});syncChips();buildSeg();}
 /* recortes analíticos: botões rápidos que abrem a lente correspondente */
 const SEG=[["visao","Semana inteira",C.vigor],["curvas","Curvas & derivadas",C.confusao],["hiit","Com / sem HIIT",C.tensao],["agudo","Pré / pós",C.fadiga],["perfis","Perfis de humor",C.pth],["fisico","Aptidão física",C.good],["preditivo","Predição",C.raiva]];
 function buildSeg(){segchips.innerHTML="";SEG.forEach(([id,lab,c])=>{const b=document.createElement("span");b.className="vchip";b.dataset.seg=id;b.innerHTML=`<span class="dot" style="background:${c}"></span>${lab}`;b.onclick=()=>go(id);segchips.appendChild(b);});}
@@ -2229,10 +2243,17 @@ function syncChips(){varchips.querySelectorAll(".vchip").forEach(c=>c.setAttribu
 function setVar(k){GLOBAL.varKey=k;syncChips();go("visao");}
 buildChips();
 let CUR="visao";
-function go(id){const s=SECTIONS.find(x=>x.id===id)||SECTIONS[0];CUR=s.id;
-  nav.querySelectorAll(".navitem").forEach(b=>b.setAttribute("aria-current",b.dataset.id===s.id?"true":"false"));syncSeg();
+function subnav(host,gi,curId){const gp=NAVGROUPS[gi];if(!gp)return;const sibs=gp.ids.filter(x=>secById(x));if(sibs.length<2&&!gp.intro)return;
+  const wrap=document.createElement("div");wrap.className="subwrap";
+  if(sibs.length>1){const bar=document.createElement("div");bar.className="subnav";
+    sibs.forEach(x=>{const sx=secById(x);const t=document.createElement("button");t.className="subtab";t.type="button";t.setAttribute("aria-current",x===curId?"true":"false");t.innerHTML=`<span class="ico">${ICONS[sx.icon]||ICONS.grid}</span>${sx.lab}`;t.onclick=()=>go(x);bar.appendChild(t);});
+    wrap.appendChild(bar);}
+  if(gp.intro)wrap.insertAdjacentHTML("beforeend",`<p class="groupintro">${gp.intro}</p>`);
+  host.appendChild(wrap);}
+function go(id){const s=SECTIONS.find(x=>x.id===id)||SECTIONS[0];CUR=s.id;const gi=groupOf(s.id);
+  nav.querySelectorAll(".navitem").forEach(b=>b.setAttribute("aria-current",(+b.dataset.group===gi)?"true":"false"));syncSeg();
   $("#crumbico").innerHTML=ICONS[s.icon]||ICONS.grid;$("#crumbtitle").textContent=s.lab;$("#crumbtag").textContent=(s.render.tag||"análise");
-  stage.className="panel";stage.innerHTML="";requestAnimationFrame(()=>{s.render(stage);addStepNav(stage,s.id);animateKPIs(stage);requestAnimationFrame(()=>stage.classList.add("in"));});
+  stage.className="panel";stage.innerHTML="";requestAnimationFrame(()=>{subnav(stage,gi,s.id);s.render(stage);addStepNav(stage,s.id);animateKPIs(stage);requestAnimationFrame(()=>stage.classList.add("in"));});
   try{window.scrollTo(0,0);}catch(e){}
   history.replaceState(null,"","#"+id);}
 go((location.hash||"").slice(1)||"apresentacao");
