@@ -78,6 +78,12 @@ def gen_PROFGRP():
     g = lh.read_delta("gold", "an_profile_group").iloc[0]
     return f'const PROFGRP={{prev:"{ACC[g["perfil_mais_prevalente"]]}",pct:{_n(g["prevalencia_pct"],1)}}}'
 
+def gen_PROFPREV():
+    """PROFPREV ← gold.an_profiles: prevalência por perfil (nível resposta), p/ o donut de composição."""
+    p = lh.read_delta("gold", "an_profiles").sort_values("prevalencia", ascending=False)
+    rows = [f'["{ACC[r.perfil]}",{_n(r.prevalencia,1)}]' for r in p.itertuples()]
+    return "const PROFPREV=[" + ",".join(rows) + "]"
+
 def gen_SPEAR():
     sp = lh.read_delta("gold", "an_spearman")
     cap = {k: lab for k, lab in ORDER}
@@ -426,7 +432,7 @@ def run():
     html = open(DASH, encoding="utf-8").read()
     gens = {"DIM": gen_DIM(), "D17": gen_D17(), "FRIED": gen_FRIED(),
             "SNR": gen_SNR(html), "SPEAR": gen_SPEAR(),
-            "PROFATL": gen_PROFATL(), "PROFGRP": gen_PROFGRP(),
+            "PROFATL": gen_PROFATL(), "PROFGRP": gen_PROFGRP(), "PROFPREV": gen_PROFPREV(),
             "AERO": gen_AERO(), "HDL": gen_HDL(html), "ATLETAV": gen_ATLETAV(),
             "DESC": gen_DESC(), "PREPOS": gen_PREPOS(), "PERFIS": gen_PERFIS(), "SONO": gen_SONO(),
             "MODELS": gen_MODELS(), "ROC_PTS": gen_ROC(), "NEGDT": gen_NEGDT(), "ICC": gen_ICC(), "OMEGA": gen_OMEGA(),
