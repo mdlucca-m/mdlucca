@@ -956,8 +956,8 @@ function hiitFramework(host){const c=document.createElement("div");c.className="
 /* protocolo e carga do HIIT (intensidade, s\u00e9ries, dist\u00e2ncia, FCm\u00e1x, TRIMP, PSE) */
 function hiitProto(host){const c=document.createElement("div");c.className="card";c.style.marginTop="16px";
   const P=HIITPROTO.proto;
-  const chip=(ic,lab,val)=>`<div style="flex:1 1 150px;min-width:140px;border:1px solid var(--stroke);border-radius:12px;padding:11px 13px;background:var(--glass)"><div style="display:flex;align-items:center;gap:8px;color:${C.fadiga}">${ICONS[ic]||ICONS.pulse}<span style="font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">${lab}</span></div><div style="font-weight:700;font-size:15px;margin-top:5px">${val}</div></div>`;
-  const proto=`<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+  const chip=(ic,lab,val)=>`<div class="kpi" style="--kc:${C.fadiga}"><span class="cbr"></span><span class="stripe" style="background:${C.fadiga}"></span><div style="display:flex;align-items:center;gap:10px">${icHD(ic,C.fadiga,{size:34})}<div style="min-width:0"><div class="lab">${lab}</div><div class="val" style="font-size:17px;color:var(--ink);text-shadow:none">${val}</div></div></div></div>`;
+  const proto=`<div class="kpis fut" style="margin-bottom:14px">
     ${chip("bolt","Intensidade",P.int)}${chip("split","Estrutura",P.estrut)}${chip("clock","Recupera\u00e7\u00e3o",P.rec)}
     ${chip("trend","Velocidade",P.vel)}${chip("wave","Dist\u00e2ncia",P.dist)}${chip("layers","Volume total",P.distot)}</div>`;
   const rows=HIITPROTO.ses.map(s=>`<tr><td><b>${s.s}</b></td><td>${s.dia}</td><td style="text-align:center">${s.fcmax}</td><td style="text-align:center">${s.fcpos}</td><td style="text-align:center">+${s.dfc}</td><td style="text-align:center">${num(s.pse,1)}</td><td style="text-align:center">${s.trimp}</td><td style="text-align:center">${s.spse}</td><td style="text-align:center">${s.dist}</td></tr>`).join("");
@@ -1287,16 +1287,22 @@ function weekChart(host,key,h=300){const v=DERIV.vars[key],X=DERIV.x,col=v.c;con
       dd.forEach(d=>{const x=ax.X(d.d),y=ax.Y(d.mean);g.fillStyle="#0e1622";g.strokeStyle=col;g.lineWidth=2;g.beginPath();g.arc(x,y,4,0,7);g.fill();g.stroke();cv._hits.push({x:x-7,y:y-7,w:14,h:14,tip:`<b>${v.lab}</b> · média D${d.d}<br>${num(d.mean,1)}`});});
       markExtrema(g,ax,X,v.sig,col);}
   });attachHits(cv);}
-function dayChart(host,key,h=300){const v=DERIV.vars[key],col=v.c,days=dailyFromRaw(v.raw);const {cv,g}=mk(host,h);const vals=days.flatMap(d=>[d.pre,d.pos,d.base]).filter(x=>x!=null),ymax=Math.max(...vals)+0.6,ymin=Math.max(0,Math.min(...vals)-0.6),pad={l:42,r:14,t:14,b:26},n=days.length;
+function dayChart(host,key,h=310){const v=DERIV.vars[key],col=v.c,days=dailyFromRaw(v.raw);const {cv,g}=mk(host,h);const vals=days.flatMap(d=>[d.pre,d.pos,d.base]).filter(x=>x!=null),ymax=Math.max(...vals)+0.9,ymin=Math.max(0,Math.min(...vals)-0.9),pad={l:42,r:20,t:18,b:30},n=days.length;
   anim(1900,prog=>{g.clearRect(0,0,cv._w,cv._h);const x0=pad.l,x1=cv._w-pad.r,y0=cv._h-pad.b,y1=pad.t,Y=vv=>y0+(y1-y0)*((vv-ymin)/(ymax-ymin));
     g.font='9px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";for(let i=0;i<=4;i++){const val=ymin+(ymax-ymin)*i/4,y=y0+(y1-y0)*i/4;g.fillStyle=C.faint;g.fillText(val.toFixed(1).replace(".",","),x0-6,y);}cv._hits=[];
     days.forEach((d,i)=>{const cx=x0+(x1-x0)*(n>1?i/(n-1):.5);g.fillStyle=C.muted;g.font='9px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="top";g.fillText("D"+d.d,cx,y0+6);
       const pv=stag(prog,i,n,0.5);
-      if(d.pre!=null){const yp=Y(d.pre),yq=Y(d.pre+(d.pos-d.pre)*pv);g.strokeStyle=col;g.globalAlpha=.45;g.lineWidth=3;g.beginPath();g.moveTo(cx,yp);g.lineTo(cx,yq);g.stroke();g.globalAlpha=1;g.fillStyle="#0e1622";g.strokeStyle=col;g.lineWidth=2;g.beginPath();g.arc(cx,yp,4.5,0,7);g.fill();g.stroke();g.fillStyle=col;g.beginPath();g.arc(cx,yq,5,0,7);g.fill();
-        if(pv>=1){cv._hits.push({x:cx-8,y:yp-8,w:16,h:16,tip:`<b>${v.lab}</b> · D${d.d} pré<br>${num(d.pre,1)}`});cv._hits.push({x:cx-8,y:Y(d.pos)-8,w:16,h:16,tip:`<b>${v.lab}</b> · D${d.d} pós<br>${num(d.pos,1)} (Δ ${(d.pos-d.pre>=0?"+":"")+num(d.pos-d.pre,1)})`});}}
-      else{const y=Y(d.base);g.fillStyle=col;g.globalAlpha=pv;g.save();g.translate(cx,y);g.rotate(Math.PI/4);g.fillRect(-4.5,-4.5,9,9);g.restore();g.globalAlpha=1;if(pv>=1)cv._hits.push({x:cx-8,y:y-8,w:16,h:16,tip:`<b>${v.lab}</b> · D1 baseline<br>${num(d.base,1)}`});}});
+      if(d.pre!=null){const yp=Y(d.pre),yc=Y(d.pre+(d.pos-d.pre)*pv),dv=d.pos-d.pre,sdir=Math.sign(yc-yp)||1;
+        const gr=g.createLinearGradient(0,yp,0,yc);gr.addColorStop(0,rgba(col,.12));gr.addColorStop(1,col);
+        g.save();g.strokeStyle=gr;g.lineWidth=5;g.lineCap="round";g.shadowColor=rgba(col,.55);g.shadowBlur=11;g.beginPath();g.moveTo(cx,yp);g.lineTo(cx,yc);g.stroke();g.restore();
+        g.fillStyle="#0e1622";g.strokeStyle=col;g.lineWidth=2;g.beginPath();g.arc(cx,yp,4.6,0,7);g.fill();g.stroke();
+        if(Math.abs(yc-yp)>7){g.fillStyle=col;g.beginPath();g.moveTo(cx,yc+sdir*8.5);g.lineTo(cx-4.2,yc+sdir*2.5);g.lineTo(cx+4.2,yc+sdir*2.5);g.closePath();g.fill();}
+        g.save();g.shadowColor=rgba(col,.85);g.shadowBlur=11;g.fillStyle=lighten(col,.16);g.beginPath();g.arc(cx,yc,5.6,0,7);g.fill();g.restore();
+        if(pv>=1){g.fillStyle=dv>=0?C.fadiga:C.vigor;g.font='700 10.5px "Space Grotesk",sans-serif';g.textAlign="left";g.textBaseline="middle";g.fillText((dv>=0?"+":"")+num(dv,1),cx+9,yc);
+          cv._hits.push({x:cx-9,y:yp-9,w:18,h:18,tip:`<b>${v.lab}</b> · D${d.d} pré<br>${num(d.pre,1)}`});cv._hits.push({x:cx-9,y:Y(d.pos)-9,w:18,h:18,tip:`<b>${v.lab}</b> · D${d.d} pós<br>${num(d.pos,1)} (Δ ${(dv>=0?"+":"")+num(dv,1)})`});}}
+      else{const y=Y(d.base);g.save();g.globalAlpha=pv;g.shadowColor=rgba(col,.7);g.shadowBlur=10;g.fillStyle=col;g.translate(cx,y);g.rotate(Math.PI/4);g.fillRect(-4.8,-4.8,9.6,9.6);g.restore();if(pv>=1){g.fillStyle=C.faint;g.font='8.5px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="bottom";g.fillText("base",cx,y-9);cv._hits.push({x:cx-9,y:y-9,w:18,h:18,tip:`<b>${v.lab}</b> · D1 baseline<br>${num(d.base,1)}`});}}});
   });attachHits(cv);
-  const lg=document.createElement("div");lg.className="legend";lg.innerHTML=`<span class="it"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:#0e1622;border:2px solid ${col}"></span>Pré-treino</span><span class="it"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:${col}"></span>Pós-treino</span>`;host.appendChild(lg);
+  const lg=document.createElement("div");lg.className="legend";lg.innerHTML=`<span class="it"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:#0e1622;border:2px solid ${col}"></span>Pré-treino</span><span class="it"><span class="dot" style="width:12px;height:12px;border-radius:50%;background:${col}"></span>Pós-treino (● + seta = direção)</span><span class="it"><span class="dot" style="width:10px;height:10px;background:${col};transform:rotate(45deg)"></span>D1 baseline</span>`;host.appendChild(lg);
 }
 
 /* ---- violin + box (mean) by group ---- */
@@ -1593,6 +1599,14 @@ const SECTIONS=[
 
 {id:"triangulacao",lab:"Triangulação · estímulo × resposta",icon:"nodes",render(h){
   head(h,"síntese · convergência de métodos","Triangulação: qual resposta é sensível a qual estímulo","Vários métodos convergem sobre a mesma pergunta: <b>quais variáveis do humor, da sonolência e do estresse mais respondem a cada estímulo</b> (HIIT × jogo amistoso), como se comportam ao longo da semana e como os <b>novos perfis</b> se ligam a sono e estresse. Quando caminhos independentes apontam para o mesmo lado, o achado ganha robustez; quando não sobrevivem à correção por múltiplas comparações, tratamos como tendência.");
+  // --- navegação rápida: salta para cada resultado sem rolagem ---
+  const QNAV=[["nodes","Eixos","Mapa dos eixos"],["deriv","Velocímetros","Velocímetros"],["pulse","Agudo","Efeito agudo pré→pós"],["split","HIIT × jogo","Contraste HIIT"],["layers","Perfis","Perfis reativos"],["moon","Sono & estresse","Sonolência e estresse, por tipo"],["shield","Confirmação","Confirmação do contraste"]];
+  const qnav=document.createElement("div");qnav.style.cssText="display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 16px";
+  QNAV.forEach(([ic,lab,match])=>{const b=document.createElement("button");b.type="button";b.style.cssText="display:inline-flex;align-items:center;gap:8px;padding:5px 13px 5px 5px;border-radius:999px;border:1px solid var(--stroke);background:var(--glass);color:var(--ink);cursor:pointer;font:inherit;font-size:12px;font-weight:600;transition:.15s";
+    b.onmouseover=()=>b.style.borderColor="rgba(90,211,196,.5)";b.onmouseout=()=>b.style.borderColor="var(--stroke)";
+    b.innerHTML=`${icHD(ic,C.accent,{size:26})}<span>${lab}</span>`;
+    b.onclick=()=>{const t=[...h.querySelectorAll('.card')].find(c=>{const hh=c.querySelector('h3');return hh&&hh.textContent.includes(match);});if(t)t.scrollIntoView({behavior:'smooth',block:'start'});};qnav.appendChild(b);});
+  h.appendChild(qnav);
   // --- os três eixos ---
   const axes=[
     {c:C.fadiga,t:"Eixo 1 · Custo físico e sonolência",tag:"robusto",d:"<b>Fadiga física, fadiga e PTH</b> sobem no pré→pós, acumulam ao longo da semana e reúnem o maior sinal. Respondem à <b>carga</b> em si, tanto no HIIT quanto no jogo."},
@@ -1612,6 +1626,16 @@ const SECTIONS=[
       {t:"Raiva",s:"+0,47 · ✓ 3 vias",c:C.raiva,ic:"flame"},{t:"Depressão",s:"+0,45 · ✓ 3 vias",c:C.depressao,ic:"cloudrain"},{t:"Confusão",s:"+0,45 · parcial",c:C.confusao,ic:"swirl"},{t:"Tensão",s:"+0,35 · tendência",c:C.tensao,ic:"alert"}]},
     {t:"Eixo 3 · Estresse percebido",s:"desacoplado dos perfis",ic:"heart",c:C.tensao,leaves:[
       {t:"PSS",s:"↓ dz −0,40 no jogo",c:C.tensao,ic:"heart"}]}]});
+  // --- velocímetros interativos (velocidade e aceleração por variável) ---
+  const vm=document.createElement("div");vm.className="card";
+  vm.innerHTML=`<h3>Velocímetros — velocidade e aceleração por variável</h3><p class="note">escolha a dimensão: a velocidade de pico (1ª derivada) e a aceleração de pico (2ª derivada) da curva são replotadas automaticamente</p>`;
+  const vmbar=document.createElement("div");vmbar.className="var-chips";vmbar.style.margin="4px 0 8px";vm.appendChild(vmbar);
+  const vmhost=document.createElement("div");vm.appendChild(vmhost);h.appendChild(vm);
+  let vmk="fadiga";
+  function vmDraw(){vmhost.innerHTML="";const s=DERIV.stats[vmk],d2=DERIV.vars[vmk].d2||[],apk=d2.length?d2.reduce((m,v)=>Math.abs(v)>Math.abs(m)?v:m,0):0;
+    gaugeRow(vmhost,[{lab:"Velocidade pico",v:Math.abs(s.vpk),min:0,max:Math.max(3,Math.abs(s.vpk)*1.25),dec:1,unit:" pt/d",c:DERIV.vars[vmk].c,cap:"por volta do dia "+num(s.vpkx,1)},{lab:"Aceleração pico",v:Math.abs(apk),min:0,max:Math.max(1.2,Math.abs(apk)*1.25),dec:2,c:C.pth,cap:s.infl!=null?("inflexão ~dia "+num(s.infl,1)):"sem inflexão"}]);}
+  DK.forEach(k=>{const b=document.createElement("button");b.className="vchip";b.type="button";b.dataset.k=k;b.innerHTML=`<span class="dot" style="background:${DERIV.vars[k].c}"></span>${DERIV.vars[k].lab}`;b.onclick=()=>{vmk=k;vmbar.querySelectorAll(".vchip").forEach(x=>x.setAttribute("aria-pressed",x.dataset.k===vmk?"true":"false"));vmDraw();};vmbar.appendChild(b);});
+  vmbar.querySelector('[data-k="fadiga"]').setAttribute("aria-pressed","true");vmDraw();
   // --- efeito agudo por tipo de dia (pré→pós) ---
   const g1=cards(h,`<div class="card"><h3>Efeito agudo pré→pós, por tipo de dia</h3><p class="note">tamanho de efeito intra-dia (dz) de cada variável no HIIT e no jogo · acima de zero = piora (mais fadiga/negativas), abaixo = queda de vigor</p><div class="host" id="h_tac"></div></div><div class="card"><h3>Leitura</h3><p class="note">o que o efeito agudo revela</p><div id="k_tac"></div></div>`);
   const AC=TRI.acute;
