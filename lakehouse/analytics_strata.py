@@ -209,6 +209,15 @@ def logit():
     return pd.DataFrame(out)
 
 
+def mood_matrix():
+    """médias por atleta das sete dimensões (nível do atleta, evita pseudorreplicação)."""
+    ad = lh.read_delta("gold", "athlete_day_unified")
+    cols = [c for c, _ in DIMS]
+    g = ad.groupby("ID")[cols].mean().reset_index().sort_values("ID")
+    atl = [{"ID": r.ID, "vals": [round(float(getattr(r, c)), 2) for c in cols]} for r in g.itertuples()]
+    return {"dims": [{"dim": c, "lab": l} for c, l in DIMS], "atl": atl}
+
+
 def run():
     desc, tri = desc_tri()
     wb, corr = wellbeing_strata()
@@ -220,7 +229,7 @@ def run():
         "desc": desc.to_dict("records"), "tri": tri.to_dict("records"),
         "wb": wb.to_dict("records"), "corr": corr.to_dict("records"),
         "prof": prof.to_dict("records"), "pv_log": pvl.to_dict("records"),
-        "logit": lg.to_dict("records"),
+        "logit": lg.to_dict("records"), "mood_mat": mood_matrix(),
         "dims": [{"dim": c, "lab": l} for c, l in DIMS],
         "notas": [
             "Estratos: HIIT (D2/D4/D7, 3 dias) × sem-HIIT (D1/D3/D5/D6, 4 dias); contraste 1º→último dia de cada estrato.",
