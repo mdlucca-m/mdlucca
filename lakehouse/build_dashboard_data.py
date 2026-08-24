@@ -230,6 +230,10 @@ def gen_DOSE():
     """DOSE ← gold.an_dose_payload: modelo dose-resposta (carga contínua)."""
     return "const DOSE=" + _payload("an_dose_payload")
 
+def gen_STR():
+    """STR ← gold.an_str_payload: análise estratificada HIIT × sem-HIIT + PV log + logística."""
+    return "const STR=" + _payload("an_str_payload")
+
 def gen_NORM():
     """NORMSTD ← gold.an_norm_payload: perfis sob padronização interna × externa (ilustrativa)."""
     return "const NORMSTD=" + _payload("an_norm_payload")
@@ -503,7 +507,7 @@ def run():
             "LIM": gen_LIM(), "VM": gen_VM(), "TRANS": gen_TRANS(), "PRISCO": gen_PRISCO(),
             "ALO": gen_ALO(), "PVMODEL": gen_PVMODEL(), "ATLETA": gen_ATLETA(),
             "CURVE": gen_CURVE(), "LC_X": gen_LC(),
-            "CROSS": f"const CROSS={gen_CROSS()}", "CURVE_CROSS": f"const CURVE_CROSS={gen_CROSS()}", "MV": gen_MV(), "SENSV": gen_SENSV(), "HVS": gen_HVS(), "SENSA": gen_SENSA(), "IOTPRED": gen_IOTPRED(), "DERIV": gen_DERIV(), "TRI": gen_TRI(), "TWO": gen_TWO(), "NORMSTD": gen_NORM(), "TRICONF": gen_TRICONF(), "FAC": gen_FAC(), "DYN": gen_DYN(), "LOAD": gen_LOAD(), "DOSE": gen_DOSE()}
+            "CROSS": f"const CROSS={gen_CROSS()}", "CURVE_CROSS": f"const CURVE_CROSS={gen_CROSS()}", "MV": gen_MV(), "SENSV": gen_SENSV(), "HVS": gen_HVS(), "SENSA": gen_SENSA(), "IOTPRED": gen_IOTPRED(), "DERIV": gen_DERIV(), "TRI": gen_TRI(), "TWO": gen_TWO(), "NORMSTD": gen_NORM(), "TRICONF": gen_TRICONF(), "FAC": gen_FAC(), "DYN": gen_DYN(), "LOAD": gen_LOAD(), "DOSE": gen_DOSE(), "STR": gen_STR()}
     for name, rhs in gens.items():
         html = replace_const(html, name, rhs)
         print(f"[painel←gold] const {name} regenerada do gold")
