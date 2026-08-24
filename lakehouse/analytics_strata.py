@@ -158,7 +158,7 @@ def pv_log():
              ("Raiva", "Raiva"), ("Confusao", "Confusão")]
     rows = []
     for key, lab in order:
-        d = pm[pm.dim == key].dropna(subset=["pv", "mood"])
+        d = pm[pm.dim == key].dropna(subset=["pv", "mood"]).sort_values("pair")
         if len(d) < 8:
             continue
         x = d["pv"].values.astype(float); y = d["mood"].values.astype(float)
@@ -167,13 +167,17 @@ def pv_log():
         # log: y ~ ln(x)
         Xg = sm.add_constant(np.log(x)); rg = sm.OLS(y, Xg).fit()
         rho, prho = stats.spearmanr(x, y)
+        pts = [[round(float(a), 2), round(float(b), 2)] for a, b in zip(x, y)]
         rows.append(dict(dim=key, dim_lab=lab, n=int(len(d)),
                          b_lin=round(float(rl.params[1]), 3), r2_lin=round(float(rl.rsquared), 3),
                          aic_lin=round(float(rl.aic), 1), p_lin=round(float(rl.pvalues[1]), 4),
+                         a_lin=round(float(rl.params[0]), 3),
                          b_log=round(float(rg.params[1]), 3), r2_log=round(float(rg.rsquared), 3),
                          aic_log=round(float(rg.aic), 1), p_log=round(float(rg.pvalues[1]), 4),
+                         a_log=round(float(rg.params[0]), 3),
                          melhor=("log" if rg.aic < rl.aic else "linear"),
-                         spearman=round(float(rho), 3), p_spearman=round(float(prho), 4)))
+                         spearman=round(float(rho), 3), p_spearman=round(float(prho), 4),
+                         xmin=round(float(x.min()), 2), xmax=round(float(x.max()), 2), pts=pts))
     return pd.DataFrame(rows)
 
 
