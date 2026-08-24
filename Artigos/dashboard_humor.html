@@ -360,6 +360,25 @@ table.dyn tbody tr.hlrow{background:rgba(90,211,196,.1)}
 .exlink:hover .exgo{opacity:1; color:var(--xc,#5ad3c4)}
 @media(max-width:920px){.execgrid{grid-template-columns:1fr}}
 
+/* Grade "8 painéis" — índice visual estilo mosaico de dashboards */
+.p8grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(370px,1fr)); gap:14px; margin-top:8px}
+.p8{position:relative; overflow:hidden; border:1px solid var(--stroke); border-top:2px solid var(--pc,#5ad3c4); border-radius:16px; padding:14px 15px 12px;
+  background:linear-gradient(158deg,var(--glass2),rgba(14,22,34,.42)); transition:transform .28s cubic-bezier(.2,.7,.2,1),box-shadow .28s,border-color .28s; cursor:pointer}
+.p8:hover{transform:translateY(-4px); box-shadow:0 20px 42px -26px color-mix(in srgb,var(--pc,#5ad3c4) 80%,transparent); border-color:color-mix(in srgb,var(--pc,#5ad3c4) 40%,var(--stroke))}
+.p8::after{content:"abrir ›"; position:absolute; top:14px; right:15px; font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--faint); opacity:0; transition:.2s}
+.p8:hover::after{opacity:1; color:var(--pc,#5ad3c4)}
+.p8h{display:flex; align-items:center; gap:10px; margin-bottom:11px}
+.p8n{width:27px; height:27px; flex:0 0 auto; border-radius:8px; display:grid; place-items:center; font-family:"Space Grotesk","Sora",sans-serif; font-weight:800; font-size:14px;
+  color:var(--pc,#5ad3c4); background:color-mix(in srgb,var(--pc,#5ad3c4) 16%,transparent); border:1px solid color-mix(in srgb,var(--pc,#5ad3c4) 34%,var(--stroke))}
+.p8t{font-family:"Space Grotesk","Sora",sans-serif; font-weight:700; font-size:14.5px; letter-spacing:-.01em; line-height:1.1}
+.p8g{font-family:"IBM Plex Mono",monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-top:2px}
+.p8k{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px}
+.p8kc{border:1px solid var(--stroke); border-radius:10px; padding:7px 9px; background:var(--glass)}
+.p8kl{font-family:"IBM Plex Mono",monospace; font-size:8px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); line-height:1.25; min-height:20px}
+.p8kv{font-family:"Space Grotesk","Sora",sans-serif; font-weight:800; font-size:16px; letter-spacing:-.02em; margin-top:2px; font-variant-numeric:tabular-nums}
+.p8host{margin-top:2px}
+@media(max-width:520px){.p8grid{grid-template-columns:1fr}}
+
 /* nós do fluxo (automação) com ícone HD e título brilhante */
 .fnode .hdi,.fstep .hdi{width:38px; height:38px}
 .fnode .fntitle,.fstep .fntitle{letter-spacing:-.01em}
@@ -710,6 +729,45 @@ function donutChart(host,segs,{h=280,unit="%",centerLab="",compact=false,legend=
         else{g.textAlign="right";g.fillText(s.v.toFixed(0)+unit,w-6,ly);g.textAlign="left";}
         ly+=22;});}
   });attachHits(cv);
+}
+/* ---- barras horizontais ordenadas (ranking), com opção divergente (signed) ---- */
+function hbarChart(host,rows,{h,unit="",dec=2,max,signed=false,pos_c=C.fadiga,neg_c=C.vigor,fmt}={}){
+  h=h||Math.max(120,rows.length*30+22);
+  const {cv,g}=mk(host,h),w=cv._w,pad={l:92,r:46,t:8,b:8};
+  const mx=max||Math.max(...rows.map(r=>Math.abs(r.v)))*1.15||1,rowh=(h-pad.t-pad.b)/rows.length;
+  const zeroX=signed?pad.l+(w-pad.l-pad.r)*0.5:pad.l;
+  anim(1300,prog=>{g.clearRect(0,0,w,h);cv._hits=[];
+    rows.forEach((r,i)=>{const pv=stag(prog,i,rows.length),y=pad.t+rowh*i+rowh*0.5,bh=Math.min(rowh*0.56,15),col=r.c||(r.v>=0?pos_c:neg_c);
+      let x0,x1;
+      if(signed){const span=(w-pad.l-pad.r)/2,len=span*(Math.abs(r.v)/mx)*pv;x0=zeroX;x1=r.v>=0?zeroX+len:zeroX-len;}
+      else{const len=(w-pad.l-pad.r)*(Math.abs(r.v)/mx)*pv;x0=pad.l;x1=pad.l+len;}
+      const bx=Math.min(x0,x1),bw=Math.abs(x1-x0);
+      const gr=g.createLinearGradient(bx,0,bx+Math.max(bw,1),0);gr.addColorStop(0,rgba(col,.32));gr.addColorStop(1,col);
+      g.save();g.shadowColor=rgba(col,.45);g.shadowBlur=10;g.fillStyle=gr;rr(g,bx,y-bh/2,Math.max(bw,1.5),bh,bh/2);g.fill();g.restore();
+      g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="right";g.textBaseline="middle";g.fillText(r.lab,pad.l-8,y);
+      if(pv>=1){g.fillStyle=lighten(col,.32);g.font='700 10.5px "IBM Plex Mono",monospace';g.textAlign="left";
+        const tv=(fmt?fmt(r.v):((signed&&r.v>=0?"+":"")+num(r.v,dec)))+unit;g.fillText(tv,Math.max(x0,x1)+7,y);
+        cv._hits.push({x:bx,y:y-bh/2,w:Math.max(bw,1.5),h:bh,tip:`<b>${r.lab}</b><br>${tv}`});}});
+    if(signed){g.strokeStyle="rgba(233,238,246,.18)";g.lineWidth=1;g.beginPath();g.moveTo(zeroX,pad.t);g.lineTo(zeroX,h-pad.b);g.stroke();}
+  });attachHits(cv);
+}
+/* ---- área (preenchida com degradê); stacked=true empilha as séries ---- */
+function areaChart(host,series,{labels,h=200,ymax,stacked=true,unit="",legendChips=false}={}){
+  const {cv,g}=mk(host,h),w=cv._w,pad={l:34,r:14,t:14,b:22},n=labels.length;
+  let max=ymax;
+  if(!max){max=0;if(stacked){for(let i=0;i<n;i++){let s=0;series.forEach(se=>s+=se.vals[i]);max=Math.max(max,s);}}else{series.forEach(se=>se.vals.forEach(v=>max=Math.max(max,v)));}max*=1.14||1;}
+  max=max||1;
+  const X=i=>pad.l+(w-pad.l-pad.r)*(n>1?i/(n-1):0),Y=v=>h-pad.b-(h-pad.t-pad.b)*(v/max);
+  anim(1400,prog=>{g.clearRect(0,0,w,h);cv._hits=[];
+    g.fillStyle=C.muted;g.font='10px "IBM Plex Mono",monospace';g.textAlign="center";g.textBaseline="top";labels.forEach((l,i)=>g.fillText(l,X(i),h-pad.b+5));
+    const base=new Array(n).fill(0);
+    series.forEach(se=>{const topY=[],botY=[];for(let i=0;i<n;i++){const b=stacked?base[i]:0,t=b+se.vals[i]*prog;botY.push(Y(b));topY.push(Y(t));}
+      const pts=smooth(topY.map((y,i)=>[X(i),y]));
+      const gr=g.createLinearGradient(0,pad.t,0,h-pad.b);gr.addColorStop(0,rgba(se.c,.5));gr.addColorStop(1,rgba(se.c,.04));
+      g.beginPath();g.moveTo(X(0),botY[0]);pts.forEach(p=>g.lineTo(p[0],p[1]));for(let i=n-1;i>=0;i--)g.lineTo(X(i),botY[i]);g.closePath();g.fillStyle=gr;g.fill();
+      g.strokeStyle=se.c;g.lineWidth=2.4;g.lineJoin="round";g.lineCap="round";g.save();g.shadowColor=rgba(se.c,.5);g.shadowBlur=6;g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.stroke();g.restore();
+      if(stacked)for(let i=0;i<n;i++)base[i]+=se.vals[i]*prog;});
+  });
 }
 /* ---- matriz de bolinhas (entidade × período), estilo "volume de trabalho" ---- */
 function dotMatrix(host,rows,colLabs,cell,{h}={}){
@@ -2556,6 +2614,57 @@ const SECTIONS=[
     b.innerHTML=`<span class="exgo">abrir ›</span><span class="exic">${ICONS[ic]||ICONS.grid}</span><span class="exl">${sub}</span><span class="exv">${lab}</span><span class="exc">${stat}</span>`;
     b.onclick=()=>go(id);short.appendChild(b);});
 }},
+{id:"paineis",lab:"8 painéis (mosaico)",icon:"cells",render(h){
+  head(h,"índice visual · o mapa do estudo","8 painéis — o estudo inteiro em mosaico","Oito mini-dashboards numa só tela, cada um com três indicadores e um <b>gráfico-herói</b> próprio (área, barras horizontais, velocímetro e área empilhada). Clique em qualquer painel para abrir a análise completa.");
+  const vig=DIM.find(d=>d.k==="vigor"),fad=DIM.find(d=>d.k==="fadiga");
+  const grid=document.createElement("div");grid.className="p8grid";h.appendChild(grid);
+  function panel(n,title,tag,col,goId,kpis,heroFn){
+    const c=document.createElement("div");c.className="p8";c.style.setProperty("--pc",col);c.setAttribute("role","button");c.tabIndex=0;
+    c.innerHTML=`<div class="p8h"><span class="p8n">${n}</span><div><div class="p8t">${title}</div><div class="p8g">${tag}</div></div></div>
+      <div class="p8k">${kpis.map(k=>`<div class="p8kc"><div class="p8kl">${k[0]}</div><div class="p8kv" style="color:${k[2]||col}">${k[1]}</div></div>`).join("")}</div>
+      <div class="host p8host"></div>`;
+    grid.appendChild(c);heroFn($(".p8host",c));
+    const gogo=()=>go(goId);c.onclick=gogo;c.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();gogo();}};
+  }
+  const HH=150;
+  // 1 · Visão executiva — área energia↔fadiga
+  panel(1,"Visão executiva","panorama · 27 atletas",C.vigor,"executivo",
+    [["Atletas","27"],["Respostas","456"],["Eixos","2"]],
+    host=>lineChart(host,[vig,fad],{ymin:0,ymax:9,h:HH,crosses:CROSS,state:{vigor:true,fadiga:true}}));
+  // 2 · Humor D1→D7 — ranking de barras (dz)
+  panel(2,"Humor · D1 → D7","deterioração · tamanho de efeito",C.fadiga,"d17",
+    [["Vigor dz","−0,95",C.vigor],["Fadiga dz","+0,72",C.fadiga],["Muda","4/6"]],
+    host=>hbarChart(host,D17.slice().sort((a,b)=>Math.abs(b[4])-Math.abs(a[4])).map(r=>({lab:r[0],v:r[4],c:cById(kmap[r[0]])})),{h:HH,signed:true,dec:2}));
+  // 3 · Estímulo HIIT — velocímetro (intensidade)
+  panel(3,"Estímulo · HIIT","3 sessões · TIAI",C.crit,"hiit",
+    [["Sessões","3"],["Intensidade","104%"],["FCmáx","182"]],
+    host=>gaugeRow(host,[{v:104,min:0,max:120,unit:"%",lab:"do pico de velocidade",cap:"4×4 min · 3 min rec.",c:C.fadiga,dec:0}],{h:HH}));
+  // 4 · Negativas por tipo de dia — barras horizontais (dz jogo × HIIT)
+  panel(4,"Negativas × tipo de dia","jogo protege · HIIT agrava",C.raiva,"negdia",
+    [["Raiva","−0,48",C.good],["Depressão","−0,43",C.good],["Confusão","−0,49",C.good]],
+    host=>hbarChart(host,[["Raiva",NEGDT.mid.Raiva.dz],["Confusão",NEGDT.mid.Confusao.dz],["Depressão",NEGDT.mid.Depressao.dz],["Tensão",NEGDT.mid.Tensao.dz]].map(r=>({lab:r[0],v:r[1],c:r[1]<0?C.good:C.raiva})),{h:HH,signed:true,dec:2}));
+  // 5 · Sono & estresse — área (Epworth por dia)
+  panel(5,"Sono & estresse","sonolência sobe · estresse estável",C.pth,"sono",
+    [["Epworth dz","+0,58"],["p","0,019"],["PSS","estável"]],
+    host=>areaChart(host,[{lab:"Epworth",c:C.pth,vals:SONO.byday.Epworth}],{labels:["D1","D2","D3","D4","D5","D6","D7"],h:HH,stacked:false}));
+  // 6 · Perfis & risco — velocímetro (% em risco)
+  panel(6,"Perfis & risco","rastreio · saúde mental",C.warn,"risco",
+    [["Negativos","18,1%",C.raiva],["≥1 dia","13/27",C.warn],["≥2 dias","6",C.crit]],
+    host=>gaugeRow(host,[{v:PRISCO.neg_prev,min:0,max:100,unit:"%",lab:"atleta-dias em risco",cap:PRISCO.exp_neg2+" atletas com ≥2 dias",c:C.raiva,dec:1}],{h:HH}));
+  // 7 · Carga do microciclo — área empilhada por tipo de sessão
+  const TIPOS=[["TT","Técnico/tático",C.vigor],["TF","Força",C.confusao],["AM","Amistoso",C.tensao],["HIIT","HIIT",C.fadiga]];
+  const cargaSeries=TIPOS.map(([t,lab,c])=>{const vals=[0,0,0,0,0,0,0];LOAD.sessoes.forEach(s=>{if(s.tipo===t)vals[s.dia-1]+=s.srpe;});return {lab,c,vals};});
+  panel(7,"Carga do microciclo","volume ponderado (sPSE) · por sessão",C.confusao,"cargas",
+    [["Pico","D5–D6"],["Sessões",String(LOAD.sessoes.length)],["Tipos","4"]],
+    host=>areaChart(host,cargaSeries,{labels:["D1","D2","D3","D4","D5","D6","D7"],h:HH,stacked:true}));
+  // 8 · Aptidão física — barras horizontais (ρ PV × humor)
+  const aMap={Vigor:"Vigor",Fadiga:"Fadiga",FadFisica:"Fad. física",FadMental:"Fad. mental"};
+  const aRows=["FadFisica","Vigor","Fadiga","FadMental"].map(d=>{const a=AERO.assoc.find(x=>x.dim===d)||{r:0};return {lab:aMap[d],v:a.r,c:a.r<0?C.fadiga:C.vigor};});
+  panel(8,"Aptidão física","T-CAR × humor · n=25",C.good,"fisico",
+    [["PV×FadFís","ρ −0,54",C.fadiga],["PV×Vigor","ρ +0,48",C.vigor],["FDR","✓"]],
+    host=>hbarChart(host,aRows,{h:HH,signed:true,dec:2,max:0.7}));
+  h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:16px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13px;line-height:1.62;color:var(--muted)">Cada painel condensa uma frente da análise — do panorama executivo à aptidão física — com seu próprio gráfico. É o <b style="color:var(--ink)">mapa de uma tela</b> para abrir a apresentação; clique em qualquer painel para aprofundar.</p></div>`);
+}},
 {id:"apresentacao",lab:"Apresentação guiada",icon:"present",render(h){
   head(h,"para o orientador","Apresentação guiada — geral · por variável · cruzamentos","Comece pela <b>visão geral de todas as variáveis</b>; depois aprofunde em cada dimensão ou nos <b>cruzamentos</b>. Escolha o recorte nos botões abaixo — tudo é replotado automaticamente — e avance a leitura apertando <b>Próximo</b>. Ao final, use os <b>atalhos temáticos</b> para ir direto a uma ferramenta.");
   const QA=[["atletas","cells","Atletas em risco","clique e veja quem está em risco, por dia",C.crit],["iot","nodes","Monitoramento IoT","classificação e predição em tempo real",C.tensao],["risco","shield","Perfis de risco","rastreio de saúde mental",C.raiva],["framework","map","Framework do microciclo","tipos de dia × variáveis",C.pth],["resultados","present","Resultados & Discussão","leitura guiada de tudo",C.vigor],["sono","moon","Sono & Estresse","Epworth e PSS",C.confusao]];
@@ -3028,7 +3137,7 @@ const nav=$("#nav"),stage=$("#stage"),varchips=$("#varchips"),segchips=$("#segch
 /* ordem por lógica, agrupada: pontos de entrada primeiro, depois panorama, resultados e aprofundamento.
    NAVGROUPS é a única fonte de verdade — dela derivam a ordem, a numeração e a navegação anterior/próximo. */
 const NAVGROUPS=[
-  {lab:"Comece por aqui",     icon:"present",home:"executivo",ids:["executivo","apresentacao","resultados","pipeline"]},
+  {lab:"Comece por aqui",     icon:"present",home:"executivo",ids:["executivo","paineis","apresentacao","resultados","pipeline"]},
   {lab:"Método & decisões",   icon:"tree",   ids:["framework","analise","arvore","robustez","doiscaminhos"]},
   {lab:"Qualidade & descritiva",icon:"grid", home:"visao",ids:["conf","visao","descr","distrib"]},
   {lab:"Variação & perfis",   icon:"layers", home:"perfis",ids:["d17","dias","perfis","risco","padronizacao"],
