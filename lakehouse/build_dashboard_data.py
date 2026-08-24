@@ -314,6 +314,41 @@ def gen_NEGDT():
     mix = {k: {"b": float(mx.loc[k, "b"]), "p": float(mx.loc[k, "p"])} for k in NEG}
     return "const NEGDT=" + json.dumps({"means": means, "mid": mid_d, "acute": acute, "mix": mix})
 
+def gen_TRI():
+    """TRI ← gold.an_tri_*: triangulação estímulo (HIIT × jogo) × resposta.
+    Empacota os 6 recortes num único JSON: efeito agudo por tipo de dia, contraste
+    HIIT×jogo (FDR), coeficiente de variação (+ICC), prevalência de perfil por dia,
+    sono/estresse por tipo de dia e por grupo de perfil."""
+    ac = lh.read_delta("gold", "an_tri_acute")
+    ct = lh.read_delta("gold", "an_tri_contrast")
+    cv = lh.read_delta("gold", "an_tri_cv")
+    pd_ = lh.read_delta("gold", "an_tri_prof_day").sort_values(["dia"])
+    wd = lh.read_delta("gold", "an_tri_wb_daytype")
+    wp = lh.read_delta("gold", "an_tri_wb_profile")
+    order = ["vigor", "fadiga", "fadfisica", "tensao", "depressao", "raiva", "confusao", "pth"]
+    idx = {k: i for i, k in enumerate(order)}
+    acute = {}
+    for r in ac.itertuples():
+        acute.setdefault(r.var, {"lab": r.lab})[r.tipo] = dict(
+            pre=float(r.pre), pos=float(r.pos), dz=float(r.dz), p=float(r.p), sig=bool(r.sig))
+    acute_l = [dict(var=k, **acute[k]) for k in sorted(acute, key=lambda x: idx.get(x, 99))]
+    contrast = [dict(var=r.var, lab=r.lab, hiit=float(r.media_hiit), jogo=float(r.media_jogo),
+                     dz=float(r.dz), p=float(r.p), mag=r.magnitude, fdr=float(r.fdr), sig_fdr=bool(r.sig_fdr))
+                for r in sorted(ct.itertuples(), key=lambda r: idx.get(r.var, 99))]
+    cvl = [dict(var=r.var, lab=r.lab, media=float(r.media), total=float(r.cv_total),
+               intradia=float(r.cv_intradia), semana=float(r.cv_semana), icc=float(r.icc))
+           for r in sorted(cv.itertuples(), key=lambda r: idx.get(r.var, 99))]
+    PROF6 = ["Iceberg", "Superfície", "Submerso", "Barbatana de tubarão",
+             "Everest invertido", "Iceberg invertido"]
+    prof_day = {p: [float(pd_[(pd_.dia == d) & (pd_.perfil == p)]["pct"].iloc[0]) for d in range(1, 8)]
+                for p in PROF6}
+    wb_daytype = [dict(medida=r.medida, outro=float(r.outro), hiit=float(r.hiit), jogo=float(r.jogo),
+                       dz=float(r.dz_hiit_jogo), p=float(r.p), sig=bool(r.sig)) for r in wd.itertuples()]
+    wb_profile = [dict(medida=r.medida, favoravel=float(r.favoravel), neutro=float(r.neutro),
+                       risco=float(r.risco), H=float(r.H), p=float(r.p), sig=bool(r.sig)) for r in wp.itertuples()]
+    return "const TRI=" + json.dumps(dict(acute=acute_l, contrast=contrast, cv=cvl,
+                                          prof_day=prof_day, wb_daytype=wb_daytype, wb_profile=wb_profile))
+
 def gen_MODELS():
     """MODELS ← gold.an_models: comparação de AUC (Random Forest, XGBoost, LightGBM)."""
     d = lh.read_delta("gold", "an_models")
@@ -439,7 +474,7 @@ def run():
             "LIM": gen_LIM(), "VM": gen_VM(), "TRANS": gen_TRANS(), "PRISCO": gen_PRISCO(),
             "ALO": gen_ALO(), "PVMODEL": gen_PVMODEL(), "ATLETA": gen_ATLETA(),
             "CURVE": gen_CURVE(), "LC_X": gen_LC(),
-            "CROSS": f"const CROSS={gen_CROSS()}", "CURVE_CROSS": f"const CURVE_CROSS={gen_CROSS()}", "MV": gen_MV(), "SENSV": gen_SENSV(), "HVS": gen_HVS(), "SENSA": gen_SENSA(), "IOTPRED": gen_IOTPRED(), "DERIV": gen_DERIV()}
+            "CROSS": f"const CROSS={gen_CROSS()}", "CURVE_CROSS": f"const CURVE_CROSS={gen_CROSS()}", "MV": gen_MV(), "SENSV": gen_SENSV(), "HVS": gen_HVS(), "SENSA": gen_SENSA(), "IOTPRED": gen_IOTPRED(), "DERIV": gen_DERIV(), "TRI": gen_TRI()}
     for name, rhs in gens.items():
         html = replace_const(html, name, rhs)
         print(f"[painel←gold] const {name} regenerada do gold")

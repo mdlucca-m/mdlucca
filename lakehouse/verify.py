@@ -19,7 +19,8 @@ GOLD = ["athlete_day", "daily_group", "acute_prepos", "risk_features",
         "an_profile_athlete", "an_tcar_adapt", "an_pv_mood", "an_pv_threshold",
         "an_pv_bands", "an_desc", "an_prepos_dim", "an_perfis_byday_count",
         "an_wellbeing_byday", "an_wellbeing_bytype", "an_wellbeing_corr",
-        "an_models", "an_roc", "an_negatives_bydaytype", "an_negatives_mix", "an_icc", "an_omega", "an_thresholds", "an_variance", "an_variance_curves", "an_variance_eff", "an_transitions", "an_risk_profiles", "an_allometry", "an_pvmodel", "an_athlete_profiles", "an_learning", "an_pca", "an_sensitivity", "an_recovery", "an_sensitivity_robust", "an_iot", "an_deriv", "risk_features"]
+        "an_models", "an_roc", "an_negatives_bydaytype", "an_negatives_mix", "an_icc", "an_omega", "an_thresholds", "an_variance", "an_variance_curves", "an_variance_eff", "an_transitions", "an_risk_profiles", "an_allometry", "an_pvmodel", "an_athlete_profiles", "an_learning", "an_pca", "an_sensitivity", "an_recovery", "an_sensitivity_robust", "an_iot", "an_deriv", "an_tri_acute", "an_tri_contrast", "an_tri_cv",
+        "an_tri_prof_day", "an_tri_wb_daytype", "an_tri_wb_profile", "risk_features"]
 
 def _sig(layer, table):
     df = lh.read_delta(layer, table).reindex(sorted(lh.read_delta(layer, table).columns), axis=1)
@@ -44,8 +45,8 @@ def main():
     s1 = sig_all()
 
     step("2/4 determinismo (rebuild → mesmo conteúdo?)")
-    import ingest, dbt_run, analytics, analytics_physical, analytics_panel
-    ingest.run(); dbt_run.run(); analytics.run(); analytics_physical.run(); analytics_panel.run()
+    import ingest, dbt_run, analytics, analytics_physical, analytics_panel, analytics_tri
+    ingest.run(); dbt_run.run(); analytics.run(); analytics_physical.run(); analytics_panel.run(); analytics_tri.run()
     s2 = sig_all()
     diff = [t for t in s1 if s1[t] != s2[t]]
     det = not diff
