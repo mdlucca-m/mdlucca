@@ -521,6 +521,61 @@ K.push(P("A classificação dos perfis de humor deste estudo padroniza cada sube
 K.push(P("O contraste é instrutivo. Sob a referência interna, a média da amostra corresponde ao ponto neutro, de modo que o elenco se distribui em torno dos perfis favoráveis, com predomínio de iceberg e superfície. Sob a referência externa, ancorada em uma população de vigor mais elevado, os escores absolutos desta equipe situam-se abaixo da referência e a maioria das respostas migra para o perfil submerso. A lição metodológica é direta: o rótulo do perfil é relativo à referência adotada e não deve ser lido como categoria absoluta."));
 K.push(P("Um ponto tranquiliza quanto à leitura dinâmica do estudo. Embora a prevalência absoluta mude de forma expressiva entre as duas referências, a direção da migração ao longo da semana permanece a mesma nos dois modos, pois o perfil iceberg recua de D1 a D7 tanto na padronização interna quanto na externa. Assim, a interpretação central, a erosão do estado favorável conforme a carga se acumula, é robusta à escolha da referência, ainda que os rótulos absolutos dependam dela. Por essa razão, o estudo relata os perfis como descrição transversal do próprio elenco, e não como norma populacional."));
 
+
+// ---------- 5.2 Confirmação por métodos convergentes ----------
+K.push(H2("5.2 Confirmação da triangulação por métodos convergentes"));
+K.push(P("A robustez de uma triangulação depende de os seus valores resistirem a mais de uma via de cálculo. Por isso, cada contraste e cada efeito agudo foi reavaliado por três caminhos independentes, a saber, o teste de Wilcoxon pareado, um teste de permutação por troca de sinais e o intervalo de confiança de 95% do tamanho de efeito obtido por reamostragem. A concordância entre as três vias serve de selo de confiança. O acordo foi elevado: 7 dos 8 contrastes e 23 dos 24 efeitos agudos apontaram no mesmo sentido pelas três abordagens."));
+K.push(tblTitle("**Tabela 17** – Confirmação do contraste HIIT versus jogo por três vias independentes"));
+(function(){
+  var C=d.triconf.contrast.slice().sort(function(a,b){return b.dz-a.dz;});
+  var rows=C.map(function(c){return [
+    {t:c.lab,bold:true,al:AL.L},{t:sgn(c.dz),al:AL.C,bold:true},
+    {t:"["+n(c.ic[0],2)+"; "+n(c.ic[1],2)+"]",al:AL.C},
+    {t:"p "+pf(c.p_wilcoxon),al:AL.C,color:c.p_wilcoxon<.05?"1b7a3d":GREY},
+    {t:"p "+pf(c.p_perm),al:AL.C,color:c.p_perm<.05?"1b7a3d":GREY},
+    {t:c.concordam?"sim":"parcial",al:AL.C}
+  ];});
+  K.push(openTable([{t:"Variável",w:2005,al:AL.L},{t:"dz",w:1000,al:AL.C},{t:"IC 95% do dz",w:1900,al:AL.C},
+    {t:"Wilcoxon",w:1500,al:AL.C},{t:"Permutação",w:1500,al:AL.C},{t:"Três vias",w:1600,al:AL.C}], rows));
+})();
+K.push(tblSource("Nota: dz positivo indica escore maior no HIIT; IC 95% por bootstrap; permutação por troca de sinais (sign-flip). " + FONTE_D));
+K.push(P("As três dimensões afetivas que separam os estímulos, a raiva, a perturbação total do humor e a depressão, apresentaram intervalo de confiança do tamanho de efeito inteiramente acima de zero e permutação significativa, o que reforça o achado para além do teste original. A confusão ficou no limiar, com concordância apenas parcial entre as vias. Nenhum contraste sobrevive à correção por comparações múltiplas, resultado esperado com oito testes, de modo que o conjunto vale como padrão convergente e não como diferença individual confirmada. A associação entre sono e perfil recebeu igual reforço: além do teste de Kruskal-Wallis, uma prova de tendência de Kendall para grupos ordenados confirmou que o grupo de risco é o mais sonolento."));
+K.push(P("Uma propriedade matemática esclarece o alcance da análise de padronização apresentada na Seção 5.1. Os tamanhos de efeito padronizados e o coeficiente intraclasse são invariantes à padronização linear por variável, pois subtrair uma média e dividir por um desvio padrão constante cancela no numerador e no denominador do dz. A verificação numérica confirmou a igualdade: raiva, perturbação do humor e depressão produzem o mesmo dz nos escores brutos e nos escores padronizados por referência externa, com diferença inferior a um milésimo de milésimo. Assim, apenas as partes que dependem do rótulo do perfil variam com a referência adotada, ao passo que o núcleo quantitativo da triangulação permanece o mesmo."));
+
+// ---------- 5.3 Tabela das associações e relações significativas ----------
+K.push(H2("5.3 Síntese das associações e relações significativas"));
+K.push(P("A Tabela 18 reúne, em um único quadro, as associações e as relações que alcançaram significância estatística ao longo do estudo. A consolidação facilita a leitura de conjunto e evidencia que os achados relevantes se concentram em três frentes: o contraste afetivo entre estímulos, o acoplamento entre sono e humor e a coesão interna das dimensões negativas."));
+(function(){
+  var rows=[];
+  var PR={depressao:"depressão",raiva:"raiva",fadiga:"fadiga",confusao:"confusão",vigor:"vigor",tensao:"tensão",pth:"PTH",epworth:"Epworth",pss:"PSS"};
+  var pretty=function(p){return p.split(" × ").map(function(x){return PR[x.trim()]||x;}).join(" × ");};
+  // contrastes HIIT×jogo confirmados
+  d.triconf.contrast.forEach(function(c){ if(c.p_wilcoxon<.05){ rows.push([
+    {t:c.lab+" (HIIT × jogo)",al:AL.L},{t:"contraste",al:AL.C},{t:"dz "+sgn(c.dz),al:AL.C,bold:true},
+    {t:"IC ["+n(c.ic[0],2)+"; "+n(c.ic[1],2)+"]",al:AL.C},{t:"Wilcoxon+perm.+IC",al:AL.C}]); }});
+  // PSS por tipo de dia
+  var pss=d.wb_daytype.find(function(w){return w.medida==="PSS";});
+  if(pss && pss.sig) rows.push([{t:"Estresse (PSS): jogo < HIIT",al:AL.L},{t:"contraste",al:AL.C},
+    {t:"dz "+sgn(pss.dz),al:AL.C,bold:true},{t:"p "+pf(pss.p),al:AL.C},{t:"Wilcoxon pareado",al:AL.C}]);
+  // sono × perfil (Epworth) — interno
+  var e=d.triconf.prof_int.epworth;
+  rows.push([{t:"Sonolência (Epworth) × grupo de perfil",al:AL.L},{t:"tendência",al:AL.C},
+    {t:"τ "+sgn(e.kendall_tau),al:AL.C,bold:true},{t:"p "+pf(e.kendall_p)+" · Kruskal "+pf(e.kruskal_p),al:AL.C},{t:"Kendall + Kruskal",al:AL.C}]);
+  // correlações humor × humor significativas
+  d.spearman.forEach(function(sp){ if(sp.p<.05) rows.push([
+    {t:pretty(sp.par),al:AL.L},{t:"correlação",al:AL.C},{t:"ρ "+sgn(sp.rho),al:AL.C,bold:true},
+    {t:"p "+pf(sp.p),al:AL.C},{t:"Spearman (atleta)",al:AL.C}]); });
+  // sono/estresse × humor significativas
+  d.wcorr.forEach(function(wc){ if(wc.p<.05) rows.push([
+    {t:pretty(wc.par),al:AL.L},{t:"correlação",al:AL.C},{t:"ρ "+sgn(wc.rho),al:AL.C,bold:true},
+    {t:"p "+pf(wc.p),al:AL.C},{t:"Spearman (atleta)",al:AL.C}]); });
+  K.push(tblTitle("**Tabela 18** – Associações e relações estatisticamente significativas do estudo"));
+  K.push(openTable([{t:"Relação",w:3205,al:AL.L},{t:"Tipo",w:1300,al:AL.C},{t:"Estimativa",w:1300,al:AL.C},
+    {t:"IC / p",w:2400,al:AL.C},{t:"Método",w:1300,al:AL.C}], rows));
+})();
+K.push(tblSource("Nota: dz = tamanho de efeito para medidas repetidas; ρ = correlação de Spearman no nível do atleta; τ = tau de Kendall para tendência entre grupos ordenados. Apenas relações com p < 0,05. " + FONTE_D));
+K.push(P("O quadro consolidado confirma a leitura central do estudo. O afeto negativo, com destaque para a raiva, a depressão e a perturbação total do humor, é o que distingue o HIIT do jogo. O estresse percebido recua no dia de jogo. A sonolência acompanha o perfil de humor, com o grupo de risco mais sonolento. E as dimensões negativas correlacionam-se entre si de forma consistente, o que sustenta o uso da perturbação total do humor como resumo do afeto. Nenhuma dessas relações isoladas sobrevive de modo automático à correção por múltiplas comparações, porém a convergência entre métodos e entre pares confere ao conjunto uma credibilidade que um teste solitário não alcançaria."));
+
 // ====================== 6 CONSIDERAÇÕES ======================
 K.push(H1("6 Considerações finais"));
 K.push(P("O estudo descreveu, com riqueza de detalhes, o comportamento do humor, da sonolência e do estresse ao longo de um microciclo de pré-temporada e identificou quais medidas respondem a cada estímulo. A triangulação metodológica revelou-se fértil, pois permitiu distinguir os achados robustos das meras tendências e organizar as evidências em três eixos de leitura direta para a prática esportiva."));
