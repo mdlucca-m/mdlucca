@@ -2659,6 +2659,21 @@ const SECTIONS=[
     </div>
     <p class="note" style="margin:9px 0 0;font-size:11.5px;line-height:1.55;border-top:1px solid var(--stroke);padding-top:8px">Monitorar os dois separa a <b style="color:var(--ink)">fadiga funcional</b> (esperada) do <b style="color:var(--ink)">estresse aversivo</b> (alerta). Robusto a LOAO, filtros e imputação.</p>`;
   side.appendChild(rd);
+  /* funil de triagem + recuperação (meta × realizado) */
+  const grid2=document.createElement("div");grid2.className="execgrid";grid2.style.marginTop="16px";h.appendChild(grid2);
+  const fcard=document.createElement("div");fcard.className="card";fcard.style.margin="0";
+  fcard.innerHTML=`<h3 style="margin:0 0 2px">Funil de triagem</h3><p class="note" style="margin:0 0 4px">do grupo inteiro aos casos que pedem acompanhamento · clique para abrir o rastreio</p><div class="host" id="ex_fun"></div>`;
+  fcard.style.cursor="pointer";fcard.onclick=()=>go("risco");grid2.appendChild(fcard);
+  funnelChart($("#ex_fun",fcard),[
+    {lab:"27 atletas monitorados",sub:"amostra completa · 7 dias",c:C.vigor},
+    {lab:PRISCO.exp_neg1+" com ≥ 1 dia de risco",sub:"perfil negativo em algum dia",c:C.warn},
+    {lab:PRISCO.exp_neg2+" com ≥ 2 dias de risco",sub:"acompanhamento prioritário",c:C.crit}],{h:250});
+  const pcard=document.createElement("div");pcard.className="card";pcard.style.margin="0";
+  pcard.innerHTML=`<h3 style="margin:0 0 2px">Recuperação diária (TQR) × meta</h3><p class="note" style="margin:0 0 8px">meta ≥ 13 = bem recuperado (escala 6–20)</p><div id="ex_prog"></div>`;
+  pcard.style.cursor="pointer";pcard.onclick=()=>go("cargas");grid2.appendChild(pcard);
+  {const HD={2:" · HIIT",4:" · HIIT",7:" · HIIT",3:" · jogo",5:" · jogo"};
+   progressBars($("#ex_prog",pcard),DOSE.tqr_dia.map(d=>({lab:"Dia "+d.dia+(HD[d.dia]||""),val:d.tqr,meta:13,ok:d.tqr>=13,
+     c:d.tqr>=13?C.good:d.tqr>=11?C.warn:C.crit,stat:d.tqr>=13?"recuperado":d.tqr>=11?"parcial":"insuficiente",fmt:v=>num(v,1)})));}
   /* atalhos temáticos */
   h.insertAdjacentHTML("beforeend",`<div style="margin:22px 0 6px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:${C.accent}">atalhos · abra qualquer análise</div></div>`);
   const short=document.createElement("div");short.className="execshort";h.appendChild(short);
