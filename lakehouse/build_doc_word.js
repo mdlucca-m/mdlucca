@@ -750,9 +750,101 @@ K.push(tblTitle("**Tabela 26** – Regressão logística de duas caudas: risco d
 K.push(tblSource("Nota: razão de chance por desvio padrão do marcador; p de duas caudas; modelo com Epworth, PSS e fadiga padronizados. " + FONTE_D));
 K.push(P("Os dois procedimentos fecham o quadro com coerência. O ajuste pelo pico de velocidade mostra-se essencialmente linear, uma vez que a forma logarítmica não melhora a explicação em nenhuma dimensão, e a relação mais forte confirma-se na fadiga física, que decresce de modo linear conforme a aptidão aeróbia aumenta. A regressão logística, por seu turno, aponta a fadiga como o marcador que discrimina o perfil de risco, ao passo que a sonolência e o estresse percebido não distinguem os grupos. O conjunto reitera a mensagem que atravessa todo o estudo: o sinal reside no eixo da energia e da fadiga, tanto para dosar a carga quanto para sinalizar o risco."));
 
+// ---------- 6.6 Superfície de resposta (RSM) ----------
+K.push(H2("6.6 Delineamento de superfície de resposta"));
+K.push(P("A camada final de modelagem trata a carga como duas variáveis contínuas e ajusta uma superfície de resposta de segunda ordem, com o objetivo de mapear como o humor varia no espaço formado pela carga aguda do dia (sPSE) e pela carga cumulativa da semana, e de localizar um eventual ponto de carga no qual a resposta se estabiliza. Cabe uma ressalva de método. Ao contrário do delineamento experimental clássico, no qual os níveis dos fatores são fixados pelo pesquisador, aqui os fatores são observados no plano de carga da equipe e variam apenas no nível do dia, o que resulta em apenas sete pontos de delineamento, correlacionados entre si. A curvatura, portanto, tem caráter exploratório, e a leitura é descritiva, não uma prescrição de carga ótima."));
+K.push(figCap("**Figura 17** – Superfícies de resposta ajustadas do vigor e da fadiga no espaço carga aguda por carga cumulativa"));
+K.push(figure("fig_rsm.png", 600));
+K.push(figSource("Nota: os números indicam os sete dias observados; a cor representa a resposta prevista pelo modelo. " + FONTE_E));
+K.push(tblTitle("**Tabela 28** – Superfície de resposta de segunda ordem por dimensão"));
+(function(){
+  var rows=d.rsm.rsm.map(function(r){return [
+    {t:r.resp_lab,bold:true,al:AL.L},{t:r.r2!=null?n(r.r2,2):"–",al:AL.C},
+    {t:"p "+pf(r.p_curv),al:AL.C,color:r.sig_curv?"1b7a3d":GREY},
+    {t:r.natureza,al:AL.C},{t:r.dentro_regiao?"dentro":"fora",al:AL.C}
+  ];});
+  K.push(openTable([{t:"Resposta",w:2705,al:AL.L},{t:"R²",w:1300,al:AL.C},{t:"Curvatura (p)",w:2000,al:AL.C},
+    {t:"Ponto estacionário",w:2000,al:AL.C},{t:"Região",w:1500,al:AL.C}], rows));
+})();
+K.push(tblSource("Nota: R² marginal dos efeitos fixos; curvatura = menor valor de p entre os termos de segunda ordem; ponto estacionário classificado pela análise canônica dos autovalores da curvatura; região indica se o ponto recai dentro do espaço de carga observado. " + FONTE_D));
+K.push(P("A superfície detecta curvatura significativa no vigor, na fadiga e na sonolência, o que indica que a resposta à carga não é estritamente linear. Ainda assim, o poder explicativo permanece baixo, pois a maior parte da variância situa-se entre os atletas e não é capturada pela carga de nível do dia, e os pontos estacionários configuram-se como selas ou recaem fora da faixa de carga observada. Em termos práticos, não há no microciclo um pico nítido de carga ótima no plano da carga aguda e da cumulativa, resultado coerente com a leitura por tendência de grupo e com a recomendação de coleta da carga interna por atleta para uma dose-resposta individual."));
 
-// ====================== 6 CONSIDERAÇÕES ======================
-K.push(H1("7 Considerações finais"));
+
+// ====================== 7 SÍNTESE, COMPONENTES E AGENDA ======================
+K.push(H1("7 Síntese, componentes-chave e agenda de pesquisa"));
+K.push(P("Esta seção consolida os achados em três planos, a saber, as tendências temporais do microciclo, os componentes que concentram o sinal e uma agenda de investigações futuras derivada das limitações do presente estudo."));
+K.push(H2("7.1 Mapa de tendências"));
+K.push(P("As tendências centrais organizam-se em torno de um eixo energético em deterioração e de um eixo afetivo sensível ao tipo de estímulo. A Figura 18 ordena as dimensões pelo tamanho de efeito do primeiro ao último dia, e a Tabela 29 resume a direção e a confiabilidade de cada tendência."));
+K.push(figCap("**Figura 18** – Tendências do microciclo: tamanho de efeito (dz) por dimensão, do primeiro ao último dia"));
+K.push(figure("fig_tendencias.png", 560));
+K.push(figSource(FONTE_E));
+K.push(tblTitle("**Tabela 29** – Direção e confiabilidade das tendências"));
+(function(){
+  var TR=[
+    ["Eixo energético","Vigor cai, fadiga sobe","dz -0,95 e +0,72","robusto"],
+    ["Sonolência (Epworth)","sobe","dz +0,58; p = 0,019","moderado"],
+    ["Recuperação (TQR)","cai abaixo da meta","13,5 para 9,0 (meta 13)","moderado"],
+    ["Afeto (negativas)","específico do estímulo","jogo protetor, dz -0,48","moderado"],
+    ["Estresse (PSS)","estável","dz -0,19 (ns)","estável"],
+    ["PTH","trajetória em U","marco aproximado","tentativo"],
+    ["Estrutura de dois eixos","energético e afetivo","PERMANOVA p = 0,002","robusto"]
+  ];
+  var rows=TR.map(function(t){return [
+    {t:t[0],bold:true,al:AL.L},{t:t[1],al:AL.L},{t:t[2],al:AL.C},
+    {t:t[3],al:AL.C,color:t[3]==="robusto"?"1b7a3d":(t[3]==="tentativo"?"a15c00":GREY)}
+  ];});
+  K.push(openTable([{t:"Tendência",w:2705,al:AL.L},{t:"Direção",w:2300,al:AL.L},
+    {t:"Evidência",w:2500,al:AL.C},{t:"Confiança",w:2000,al:AL.C}], rows));
+})();
+K.push(tblSource("Nota: confiança = grau de sustentação por métodos independentes (robusto sobrevive a filtros, remoção de atletas e modelo misto; tentativo depende de escolhas de suavização). " + FONTE_D));
+K.push(H2("7.2 Componentes-chave do sinal"));
+K.push(P("A estrutura de dois eixos permite identificar quais elementos concentram a informação. O componente principal da ordenação, que responde por cerca de 41% da variância, opõe o vigor às dimensões de perturbação, o que caracteriza o eixo de energia e perturbação retratado na Figura 19. A Tabela 30 lista as peças que mais carregam o sinal e sugere o que priorizar num painel enxuto de monitoramento."));
+K.push(figCap("**Figura 19** – Cargas do componente principal: eixo de energia e perturbação"));
+K.push(figure("fig_componentes.png", 560));
+K.push(figSource(FONTE_E));
+K.push(tblTitle("**Tabela 30** – Componentes-chave do monitoramento e peso relativo"));
+(function(){
+  var CC=[
+    ["Eixo energético","Vigor e fadiga","alto","componente dominante e sinal mais limpo"],
+    ["Sensor afetivo","Raiva e confusão","médio","distingue a qualidade do estímulo"],
+    ["Recuperação","Epworth e TQR","médio","sinaliza necessidade de repouso"],
+    ["Forma do perfil","Seis dimensões","alto","leitura clínica da forma inteira"],
+    ["Baseline por atleta","Referência individual","alto","variância sobretudo entre atletas"],
+    ["Tipo de estímulo","HIIT, jogo e força","alto","modula o eixo afetivo"]
+  ];
+  var rows=CC.map(function(c){return [
+    {t:c[0],bold:true,al:AL.L},{t:c[1],al:AL.L},
+    {t:c[2],al:AL.C,color:c[2]==="alto"?"1b7a3d":GREY},{t:c[3],al:AL.L}
+  ];});
+  K.push(openTable([{t:"Componente",w:2505,al:AL.L},{t:"Medidas",w:2300,al:AL.L},
+    {t:"Peso",w:1200,al:AL.C},{t:"Função",w:3500,al:AL.L}], rows));
+})();
+K.push(tblSource("Nota: peso relativo estimado pela contribuição ao componente principal e pela relação sinal-ruído de cada medida. " + FONTE_D));
+K.push(H2("7.3 Agenda de pesquisa"));
+K.push(P("Cada hipótese a seguir nasce de uma limitação honesta do estudo atual e aponta um desenho capaz de convertê-la em confirmação. A Tabela 31 organiza as prioridades."));
+K.push(tblTitle("**Tabela 31** – Agenda de pesquisa: hipóteses, desenhos e limitação que resolvem"));
+(function(){
+  var AG=[
+    ["Causalidade estímulo e afeto (alta)","HIIT e jogo com carga externa equalizada geram respostas afetivas distintas; desenho cruzado intra-sujeito randomizado.","Tipo de dia confundido com dia e carga; grupo único."],
+    ["Carga interna individual (alta)","A dose-resposta é individual; coletar sPSE e frequência cardíaca por sessão, o que habilita o ACWR.","RPE por sessão não coletado; carga apenas de nível-dia."],
+    ["Perfis de risco e desfechos (alta)","Perfis invertidos predizem lesão e sofrimento; coorte prospectiva com registro sistemático.","Sem desfechos vinculados a este microciclo."],
+    ["Biomarcadores (média)","Vigor, fadiga e sono correlacionam com HRV, cortisol e actigrafia; coleta fisiológica diária.","Eixo energético medido só por autorrelato."],
+    ["Poder e generalização (média)","Efeitos afetivos pequenos e a taxonomia de perfis se mantêm; estudo multicêntrico com n maior.","n = 27; efeitos afetivos pequenos."],
+    ["Modelos idiográficos (média)","Baseline por atleta melhora a leitura individual; séries temporais individuais.","Variância sobretudo entre atletas; previsão individual fraca."],
+    ["Aptidão e humor individual (média)","A aptidão amortece a fadiga no nível do atleta; coleta integrada com consentimento.","Anonimização separada impede o cruzamento individual."],
+    ["Janela temporal ampliada (baixa)","Recuperação e supercompensação surgem no mesociclo; acompanhar vários microciclos.","Sete dias insuficientes para a dinâmica crônica."]
+  ];
+  var rows=AG.map(function(a){return [
+    {t:a[0],bold:true,al:AL.L},{t:a[1],al:AL.L},{t:a[2],al:AL.L}
+  ];});
+  K.push(openTable([{t:"Tema (prioridade)",w:2705,al:AL.L},{t:"Hipótese e desenho",w:3800,al:AL.L},
+    {t:"Limitação que resolve",w:3000,al:AL.L}], rows));
+})();
+K.push(tblSource("Nota: prioridade sugerida pela combinação entre relevância prática e viabilidade; as hipóteses são caminhos para confirmar, não conclusões. " + FONTE_D));
+
+
+// ====================== 8 CONSIDERAÇÕES ======================
+K.push(H1("8 Considerações finais"));
 K.push(P("O estudo descreveu, com riqueza de detalhes, o comportamento do humor, da sonolência e do estresse ao longo de um microciclo de pré-temporada e identificou quais medidas respondem a cada estímulo. A triangulação metodológica revelou-se fértil, pois permitiu distinguir os achados robustos das meras tendências e organizar as evidências em três eixos de leitura direta para a prática esportiva."));
 K.push(P("Três cautelas delimitam o alcance das conclusões. Em primeiro lugar, o delineamento de grupo único, sem controle, confere às leituras caráter descritivo e de rastreio, e não causal. Em segundo lugar, o pequeno número de contrastes que sobrevivem à correção por comparações múltiplas recomenda prudência, de modo que os padrões afetivos valem como tendência convergente. Em terceiro lugar, a associação entre perfis de risco e desfechos clínicos de lesão ou de saúde mental permanece plausível à luz da literatura, embora não tenha sido validada neste microciclo, que não dispõe de desfechos vinculados."));
 K.push(P("Longe de fragilizar o trabalho, essas ressalvas delimitam com honestidade o que a evidência sustenta. O estudo demonstra a viabilidade de um rastreio sensível e reprodutível, capaz de apontar quais variáveis respondem a cada estímulo, quando o risco se concentra e quais atletas merecem acompanhamento individual. O passo seguinte consiste em um estudo prospectivo, com registro sistemático de lesões e de indicadores de saúde mental, que converta a viabilidade demonstrada em validação de maior alcance."));
