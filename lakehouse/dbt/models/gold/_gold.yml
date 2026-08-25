@@ -1,7 +1,7 @@
 version: 2
 models:
   - name: athlete_day
-    description: "Média atleta-dia (todos os momentos) — unidade de análise."
+    description: "Média atleta-dia sobre as observações válidas (baseline em D1; pré/pós em D2–D7) — unidade de análise."
     columns:
       - name: ID
         tests: [not_null]

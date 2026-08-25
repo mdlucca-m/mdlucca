@@ -44,8 +44,18 @@ def build_silver():
     mood["is_pre"] = mood["seq"] == mood["_seq_min"]
     mood["is_pos"] = mood["seq"] == mood["_seq_max"]
     mood = mood.drop(columns=["_seq_min", "_seq_max"])
+    # ---- REGRA DO ESTUDO (dono dos dados): observação VÁLIDA por atleta-dia =
+    #   pré = primeira resposta da manhã (seq mínima) e pós = última do dia (seq máxima).
+    #   As respostas intermediárias ("mid") e pré/pós repetidos são duplas/erradas → descartadas.
+    #   D1 (21/04) é BASELINE: conta apenas a medida da manhã (pré); a pós de D1 é descartada.
+    #   Resultado: 286 observações válidas = 27 baseline + 139 pré + 120 pós · 13 coletas.
+    mood = mood[mood["is_pre"] | mood["is_pos"]].copy()                       # endpoints válidos (pré/pós)
+    mood = mood[~((mood["dia"] == 1) & mood["is_pos"] & ~mood["is_pre"])].copy()  # D1 = só baseline
+    mood["momento"] = mood["is_pre"].map({True: "pre", False: "pos"})          # rótulo = endpoint (seq)
     lh.write_delta("silver", "mood", mood, mode="overwrite")
-    print(f"[silver] mood        {len(mood)} obs · {mood.ID.nunique()} atletas · dias {sorted(mood.dia.unique())}")
+    _nb = int((mood["dia"] == 1).sum())
+    print(f"[silver] mood        {len(mood)} obs válidas · {mood.ID.nunique()} atletas · "
+          f"{_nb} baseline + {int((mood.momento=='pre').sum())-_nb} pré + {int((mood.momento=='pos').sum())} pós · dias {sorted(mood.dia.unique())}")
 
     # ---- silver.wellbeing: Epworth/PSS por atleta-dia (dedup por ID,dia) ----
     wb = lh.read_delta("bronze", "wellbeing_raw")
@@ -108,8 +118,8 @@ def build_gold():
 
     # gold.acute_prepos — efeito agudo pré→pós por atleta-dia
     ap = lh.sql("""
-        WITH pre AS (SELECT ID,dia,Vigor v_pre,Fadiga f_pre,PTH p_pre FROM mood WHERE is_pre),
-             pos AS (SELECT ID,dia,Vigor v_pos,Fadiga f_pos,PTH p_pos FROM mood WHERE is_pos)
+        WITH pre AS (SELECT ID,dia,Vigor v_pre,Fadiga f_pre,PTH p_pre FROM mood WHERE momento='pre' AND dia>1),
+             pos AS (SELECT ID,dia,Vigor v_pos,Fadiga f_pos,PTH p_pos FROM mood WHERE momento='pos' AND dia>1)
         SELECT pre.ID, pre.dia,
                v_pos-v_pre AS d_vigor, f_pos-f_pre AS d_fadiga, p_pos-p_pre AS d_pth
         FROM pre JOIN pos USING (ID,dia) WHERE pre.ID IS NOT NULL

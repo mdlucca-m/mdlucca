@@ -81,7 +81,7 @@ def glm():
     """GLM Poisson-GEE (log link, EP robustos, permutável) por subescala."""
     import statsmodels.api as sm, statsmodels.formula.api as smf
     m = lh.read_delta("silver", "mood")
-    d = m[m.day_type.isin(["HIIT", "Jogo", "Forca", "Baseline"]) & m.momento.isin(["pre", "mid", "pos"])].copy()
+    d = m[m.day_type.isin(["HIIT", "Jogo", "Forca", "Baseline"]) & m.momento.isin(["pre", "pos"])].copy()
     d["day_type"] = d["day_type"].astype(str)
     d["momento"] = d["momento"].astype(str)
     out = []

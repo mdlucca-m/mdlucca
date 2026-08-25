@@ -25,7 +25,7 @@ def test_coorte_27_atletas_grupo_unico():
     mood = lh.read_delta("silver", "mood")
     assert mood.ID.nunique() == 27, f"esperado 27 atletas, obtido {mood.ID.nunique()}"
     assert sorted(mood.dia.unique()) == [1, 2, 3, 4, 5, 6, 7], "dias devem ser 1..7"
-    assert len(mood) == 456, f"esperado 456 observações, obtido {len(mood)}"
+    assert len(mood) == 286, f"esperado 286 observações válidas, obtido {len(mood)}"
 
 def test_sem_grupo_controle():
     phys = lh.read_delta("silver", "physical")
@@ -40,38 +40,38 @@ def test_gold_contagens():
 # ---------------- B. Reprodução dos números conhecidos ----------------
 def test_trajetoria_diaria_bate_com_painel():
     dg = lh.read_delta("gold", "daily_group").set_index("dia")
-    _near(dg.loc[1, "vigor"], 7.6, 0.1); _near(dg.loc[7, "vigor"], 4.5, 0.1)
-    _near(dg.loc[1, "fadiga"], 4.0, 0.1); _near(dg.loc[7, "fadiga"], 7.5, 0.1)
-    _near(dg.loc[1, "pth"], 2.5, 0.1);   _near(dg.loc[7, "pth"], 8.3, 0.1)
+    _near(dg.loc[1, "vigor"], 8.30, 0.1); _near(dg.loc[7, "vigor"], 4.29, 0.1)
+    _near(dg.loc[1, "fadiga"], 3.37, 0.1); _near(dg.loc[7, "fadiga"], 7.36, 0.1)
+    _near(dg.loc[1, "pth"], 0.59, 0.1);   _near(dg.loc[7, "pth"], 8.45, 0.1)
 
 def test_efeitos_d1_d7_dz():
     d = lh.read_delta("gold", "an_d17").set_index("var")
-    _near(d.loc["vigor", "dz"], -0.95, 0.02);  _near(d.loc["fadiga", "dz"], 0.72, 0.02)
-    _near(d.loc["tensao", "dz"], -0.59, 0.02);  _near(d.loc["confusao", "dz"], -0.46, 0.02)
-    _near(d.loc["pth", "dz"], 0.41, 0.02)
+    _near(d.loc["vigor", "dz"], -1.33, 0.02);  _near(d.loc["fadiga", "dz"], 0.78, 0.02)
+    _near(d.loc["tensao", "dz"], -0.60, 0.02);  _near(d.loc["confusao", "dz"], -0.57, 0.02)
+    _near(d.loc["pth", "dz"], 0.55, 0.02)
     assert bool(d.loc["vigor", "sig"]) and not bool(d.loc["raiva", "sig"])
 
 def test_friedman_casos_completos():
     f = lh.read_delta("gold", "an_friedman").set_index("var")
     assert (f["n"] == 19).all(), "Friedman deve usar casos completos (n=19)"
-    _near(f.loc["vigor", "chi2"], 14.7, 0.2); _near(f.loc["vigor", "W"], 0.13, 0.02)
-    _near(f.loc["confusao", "chi2"], 25.8, 0.2)
+    _near(f.loc["vigor", "chi2"], 23.6, 0.2); _near(f.loc["vigor", "W"], 0.21, 0.02)
+    _near(f.loc["confusao", "chi2"], 22.9, 0.2)
 
 def test_snr_decomposicao():
     s = lh.read_delta("gold", "an_snr").set_index("var")
-    _near(s.loc["fadiga", "snr"], 6.2, 0.15); _near(s.loc["vigor", "snr"], 2.0, 0.15)
-    _near(s.loc["pth", "snr"], 2.6, 0.15)
+    _near(s.loc["fadiga", "snr"], 13.6, 0.15); _near(s.loc["vigor", "snr"], 2.7, 0.15)
+    _near(s.loc["pth", "snr"], 4.5, 0.15)
     for v in s.index:  # partição da variância soma ~100%
         _near(s.loc[v, "tendencia"] + s.loc[v, "hiit"] + s.loc[v, "ruido"], 100.0, 0.5)
 
 def test_perfis_prevalencia():
     p = lh.read_delta("gold", "an_profiles").set_index("perfil")
-    _near(p.loc["Iceberg", "prevalencia"], 31.6, 0.2)
+    _near(p.loc["Iceberg", "prevalencia"], 31.5, 0.2)
     _near(p["prevalencia"].sum(), 100.0, 0.5)
-    assert int(p["n"].sum()) == 456
+    assert int(p["n"].sum()) == 286
     dom = lh.read_delta("gold", "an_profiles_byday").set_index("dia")
     assert dom.loc[1, "dominante"] == "Iceberg"
-    assert dom.loc[7, "dominante"] == "Barbatana de tubarao"
+    assert dom.loc[7, "dominante"] == "Superficie"
 
 def test_spearman_nivel_atleta_sem_pth():
     sp = lh.read_delta("gold", "an_spearman")
@@ -83,19 +83,19 @@ def test_spearman_nivel_atleta_sem_pth():
 def test_perfil_grupo():
     g = lh.read_delta("gold", "an_profile_group").iloc[0]
     assert g["perfil_mais_prevalente"] == "Iceberg"
-    _near(g["prevalencia_pct"], 31.6, 0.2)
+    _near(g["prevalencia_pct"], 31.5, 0.2)
 
 def test_perfil_byday_trajetoria():
     t = lh.read_delta("gold", "an_profiles_byday_t").set_index("dia")
     # D1 = forma de iceberg (vigor alto, fadiga baixa); D7 = vigor baixo, fadiga alta
     assert t.loc[1, "vigor"] > t.loc[1, "fadiga"], "D1 deve ter vigor > fadiga (iceberg)"
     assert t.loc[7, "fadiga"] > t.loc[7, "vigor"], "D7 deve ter fadiga > vigor (erosão)"
-    _near(t.loc[1, "vigor"], 56.1, 0.2); _near(t.loc[7, "fadiga"], 54.7, 0.2)
+    _near(t.loc[1, "vigor"], 57.9, 0.2); _near(t.loc[7, "fadiga"], 54.7, 0.2)
 
 def test_perfil_individual_27_atletas():
     a = lh.read_delta("gold", "an_profile_athlete")
     assert len(a) == 27, f"esperado 1 perfil por atleta (27), obtido {len(a)}"
-    assert int(a["n_obs"].sum()) == 456, "soma de respostas deve ser 456"
+    assert int(a["n_obs"].sum()) == 286, "soma de respostas deve ser 286 (observações válidas)"
     validos = {"Iceberg", "Superficie", "Submerso", "Everest invertido",
                "Barbatana de tubarao", "Iceberg invertido"}
     assert set(a["perfil_medio"]).issubset(validos), "perfil_medio fora da taxonomia"
@@ -152,7 +152,7 @@ def test_painel_variance_transitions_risk():
     vc = lh.read_delta("gold", "an_variance").set_index("dim")
     for d in vc.index:  # partição soma ~100%
         _near(vc.loc[d, "atleta"] + vc.loc[d, "dia"] + vc.loc[d, "momento"], 100.0, 0.5)
-    _near(vc.loc["Vigor", "atleta"], 52.7, 0.5)  # maior fração é entre atletas
+    _near(vc.loc["Vigor", "atleta"], 51.5, 0.5)  # maior fração é entre atletas
     assert vc.loc["Vigor", "atleta"] > vc.loc["Vigor", "momento"], "traço domina o intra-dia"
     lim = lh.read_delta("gold", "an_thresholds")
     assert len(lim) == 6 and (lim["mdc95"] > lim["mdc90"]).all(), "MDC95 > MDC90"

@@ -1,7 +1,7 @@
 version: 2
 models:
   - name: mood
-    description: "Uma linha por atleta-momento (A-code), tipada e deduplicada. Regra pré/pós do estudo."
+    description: "Observações válidas do humor (A-code): pré (1ª da manhã) e pós (última do dia) por atleta-dia; D1 = baseline. Mid/duplicatas descartadas. 286 obs · 13 coletas."
     columns:
       - name: ID
         tests: [not_null]

@@ -59,7 +59,7 @@ def main():
     n_mood = len(lh.read_delta("silver", "mood"))
     ingest.run(); dbt_run.run()
     idem = (len(lh.read_delta("gold", "athlete_day")) == n_ad == 166 and
-            len(lh.read_delta("silver", "mood")) == n_mood == 456)
+            len(lh.read_delta("silver", "mood")) == n_mood == 286)
     print("idempotência:", "OK" if idem else "FALHOU (silver/gold mudaram ao reingerir)")
     ok &= idem
 
