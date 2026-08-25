@@ -1520,6 +1520,13 @@ const SECTIONS=[
   const gr=cards(h,`<div class="card"><h3>ICC por dimensão</h3><p class="note">ICC(2,1) — medida isolada</p><div class="host" id="h_icc"></div></div><div class="card"><h3>Limiares de mudança</h3><p class="note">SEM · MDC90 · MDC95 · SWC (pontos)</p><div class="host" id="t_lim"></div></div>`);
   barChart($("#h_icc",gr),ICC.map(r=>({lab:r[0],v:r[1],c:r[1]>=.5?C.good:C.warn})),{ymax:1,dec:2,hl:HLL()});
   dynTable($("#t_lim",gr),["Dimensão","SEM","MDC90","MDC95","SWC"],LIM,(i,v)=>i?num(v):v,HLL());
+  {const mICC=ICC.reduce((a,r)=>a+r[1],0)/ICC.length,mOme=OMEGA.reduce((a,r)=>a+r[1],0)/OMEGA.length;
+   const gv=document.createElement("div");gv.className="card";gv.style.marginTop="18px";
+   gv.innerHTML=`<h3>Velocímetros de qualidade da medida</h3><p class="note">leitura rápida (escala 0–1) · média das dimensões e ajuste do modelo</p><div class="host" id="cf_g"></div>`;h.appendChild(gv);
+   gaugeRow($("#cf_g",gv),[
+     {v:mICC,min:0,max:1,lab:"ICC médio",cap:"confiabilidade entre dias",c:mICC>=0.5?C.good:C.warn,dec:2},
+     {v:mOme,min:0,max:1,lab:"ω médio",cap:"consistência interna",c:mOme>=0.7?C.good:C.warn,dec:2},
+     {v:0.87,min:0,max:1,lab:"CFI",cap:"ajuste da AFC (6 fatores)",c:C.pth,dec:2}],{h:190});}
   const gr2=document.createElement("div");gr2.className="grid2";gr2.style.marginTop="18px";
   gr2.innerHTML=`<div class="card"><h3>Consistência interna (ômega)</h3><p class="note">ω de McDonald por dimensão · estrutura de 6 fatores</p><div class="host" id="h_om"></div></div><div class="card"><h3>Estrutura fatorial (AFC)</h3><p class="note">ajuste do modelo de 6 fatores · 23 itens (tensao_1 excluído)</p><div class="host" id="afc_k"></div></div>`;
   h.appendChild(gr2);
@@ -1577,6 +1584,12 @@ const SECTIONS=[
   const kp=(lab,val,cap,col)=>`<div class="kpi"><span class="stripe" style="background:${col}"></span><div class="lab">${lab}</div><div class="val" style="color:${col};font-size:21px">${val}</div><div class="cap">${cap}</div></div>`;
   h.insertAdjacentHTML("beforeend",`<div class="kpis">${kp("Perfis negativos",`${num(PRISCO.neg_prev,1)}%`,"iceberg/everest invertido · dos atleta-dias",C.raiva)}${kp("Perfil de sobrecarga",`${num(PRISCO.fad_prev,1)}%`,"barbatana de tubarão (fadiga alta)",C.fadiga)}${kp("Atletas com ≥1 dia de risco",`${PRISCO.exp_neg1}/27`,`${PRISCO.exp_neg2} com ≥2 dias — prioridade de triagem`,C.warn)}${kp("Atletas resilientes",`${PRISCO.never}/27`,"nunca entram em perfil de risco",C.vigor)}</div>`);
   tilt(h);
+  {const favor=PROFPREV.filter(r=>["Iceberg","Superfície"].includes(r[0])).reduce((a,b)=>a+b[1],0);
+   const gv=document.createElement("div");gv.className="card";gv.innerHTML=`<h3>Velocímetros de rastreio</h3><p class="note">o panorama de risco do microciclo em três mostradores (% dos atleta-dias)</p><div class="host" id="rk_g"></div>`;h.appendChild(gv);
+   gaugeRow($("#rk_g",gv),[
+     {v:favor,min:0,max:100,unit:"%",lab:"perfis favoráveis",cap:"iceberg + superfície",c:C.vigor,dec:0},
+     {v:PRISCO.neg_prev,min:0,max:100,unit:"%",lab:"perfis negativos",cap:"iceberg/everest invertido",c:C.raiva,dec:1},
+     {v:PRISCO.fad_prev,min:0,max:100,unit:"%",lab:"sobrecarga",cap:"barbatana de tubarão",c:C.fadiga,dec:1}],{h:190});}
   const g1=cards(h,`<div class="card"><h3>Quando o risco aparece</h3><p class="note">% de atleta-dias em perfil negativo e de sobrecarga, por dia · faixas = HIIT</p><div class="host" id="h_risco"></div></div><div class="card"><h3>Os perfis de risco</h3><p class="note">o que cada um sinaliza</p><div id="k_risco"></div></div>`);
   groupChart($("#h_risco",g1),PRISCO.byday.map((v,i)=>({lab:"D"+(i+1),vals:v})),[{lab:"Perfil negativo",c:C.raiva},{lab:"Sobrecarga (barbatana)",c:C.fadiga}],{ymax:34,dec:0,unit:"%"});
   $("#k_risco",g1).innerHTML=`<div style="display:flex;flex-direction:column;gap:9px">
@@ -2298,6 +2311,12 @@ const SECTIONS=[
   const fa=AERO.assoc.find(a=>a.dim==="FadFisica"),vi=AERO.assoc.find(a=>a.dim==="Vigor");
   h.insertAdjacentHTML("beforeend",`<div class="kpis"><div class="kpi"><span class="stripe" style="background:${C.tensao}"></span><div class="lab">Adaptação T-CAR PV</div><div class="val" style="color:${C.tensao};font-size:22px">dz +${String(AERO.tcarpv.dz).replace(".",",")}</div><div class="cap">pré→pós · grupo único (n=${AERO.n_ph})</div></div><div class="kpi"><span class="stripe" style="background:${C.fadiga}"></span><div class="lab">PV × Fadiga física</div><div class="val" style="color:${C.fadiga};font-size:22px">ρ ${String(fa.r.toFixed(2)).replace(".",",")}</div><div class="cap">p=${String(fa.p.toFixed(3)).replace(".",",")} · sobrevive ao FDR</div></div><div class="kpi"><span class="stripe" style="background:${C.vigor}"></span><div class="lab">PV × Vigor</div><div class="val" style="color:${C.vigor};font-size:22px">ρ +${String(vi.r.toFixed(2)).replace(".",",")}</div><div class="cap">p=${String(vi.p.toFixed(3)).replace(".",",")}</div></div></div>`);
   tilt(h);
+  {const gv=document.createElement("div");gv.className="card";gv.innerHTML=`<h3>Velocímetros da aptidão aeróbia</h3><p class="note">o pico de velocidade médio no T-CAR e a força da associação (|ρ|, 0–1) com o eixo energia–fadiga</p><div class="host" id="fi_g"></div>`;h.appendChild(gv);
+   const pvMean=AERO.pv.reduce((a,b)=>a+b,0)/AERO.pv.length;
+   gaugeRow($("#fi_g",gv),[
+     {v:pvMean,min:10,max:20,unit:" km/h",lab:"pico de velocidade",cap:"média · T-CAR (n="+AERO.n_pm+")",c:C.tensao,dec:1},
+     {v:Math.abs(fa.r),min:0,max:1,lab:"PV × fad. física",cap:"|ρ| · quanto mais apto, menos fadiga",c:C.fadiga,dec:2},
+     {v:Math.abs(vi.r),min:0,max:1,lab:"PV × vigor",cap:"|ρ| · quanto mais apto, mais vigor",c:C.vigor,dec:2}],{h:190});}
   const g1=cards(h,`<div class="card"><h3>Adaptação da capacidade aeróbia</h3><p class="note">T-CAR pico de velocidade, pré→pós · grupo único, sem grupo controle</p><div class="host" id="h_pvad"></div></div><div class="card"><h3>T-CAR PV × humor · ρ de Spearman</h3><p class="note">IC95% bootstrap · * FDR<0,05 · † p<0,05</p><div class="host" id="h_forest"></div></div>`);
   drawPVadapt($("#h_pvad",g1)); drawForest($("#h_forest",g1),AERO.assoc,"ρ de Spearman (IC95%)");
   const g2=cards(h,`<div class="card"><h3>Mais apto → menos fadiga física</h3><p class="note">cada ponto é um atleta</p><div class="host" id="h_sc1"></div></div><div class="card"><h3>Mais apto → mais vigor</h3><p class="note">cada ponto é um atleta</p><div class="host" id="h_sc2"></div></div>`);
@@ -2376,6 +2395,11 @@ const SECTIONS=[
   const kp=(lab,val,cap,col)=>`<div class="kpi"><span class="stripe" style="background:${col}"></span><div class="lab">${lab}</div><div class="val" style="color:${col};font-size:21px">${val}</div><div class="cap">${cap}</div></div>`;
   h.insertAdjacentHTML("beforeend",`<div class="kpis">${kp("Sonolência (Epworth) D1→D7",`${num(ep.d1,1)} → ${num(ep.d7,1)}`,`sobe · dz +${num(ep.dz,2)} · p=${num(ep.p,3)}`,C.pth)}${kp("Estresse (PSS) D1→D7",`${num(ps.d1,1)} → ${num(ps.d7,1)}`,`estável · dz ${num(ps.dz,2)} · p=${num(ps.p,3)} (ns)`,C.tensao)}${kp("Epworth × Fadiga",`ρ +${num(SONO.corr.Epworth_Fadiga.rho,2)}`,`sonolência acompanha a fadiga · p=${num(SONO.corr.Epworth_Fadiga.p,3)}`,C.fadiga)}${kp("Epworth × TMD",`ρ +${num(SONO.corr.Epworth_TMD.rho,2)}`,`e a perturbação do humor · p=${num(SONO.corr.Epworth_TMD.p,3)}`,C.raiva)}</div>`);
   tilt(h);
+  {const gv=document.createElement("div");gv.className="card";gv.innerHTML=`<h3>Velocímetros de sonolência</h3><p class="note">Escala de Epworth (0–24) · o ponteiro sobe do primeiro ao último dia; ≥ 10 indica sonolência diurna excessiva</p><div class="host" id="sn_g"></div>`;h.appendChild(gv);
+   gaugeRow($("#sn_g",gv),[
+     {v:ep.d1,min:0,max:24,lab:"Epworth · D1",cap:"início da semana",c:C.good,dec:1},
+     {v:ep.d7,min:0,max:24,lab:"Epworth · D7",cap:"fim da semana · dz +"+num(ep.dz,2),c:ep.d7>=10?C.warn:C.pth,dec:1},
+     {v:SONO.byday.Epworth.reduce((a,b)=>a+b,0)/7,min:0,max:24,lab:"Epworth · média",cap:"média semanal",c:C.pth,dec:1}],{h:190});}
   const g1=cards(h,`<div class="card"><h3>Trajetória semanal</h3><p class="note">sonolência (Epworth, esq.) e estresse (PSS, dir.) por dia · faixas = HIIT (2,4,7) e jogo (3,5)</p><div class="host" id="h_sono"></div></div><div class="card"><h3>Relação com o humor</h3><p class="note">Spearman (nível atleta-dia) · ★ p&lt;0,05</p><div class="host" id="t_sono"></div></div>`);
   drawSono($("#h_sono",g1));
   const cr=SONO.corr;
@@ -2437,6 +2461,8 @@ const SECTIONS=[
   drawModelBars($("#h_mbars",g3));
   const mkp=MODELS.map(m=>`<div class="kpi"><span class="stripe" style="background:${m.col}"></span><div class="lab">${m.lab}</div><div class="val" style="color:${m.col};font-size:22px">${num(m.auc,2)}</div><div class="cap">${m.auc===Math.max(...MODELS.map(x=>x.auc))?"melhor":"acima do acaso"}</div></div>`).join("");
   $("#k_mbars",g3).innerHTML=`<div class="kpis" style="margin-bottom:8px">${mkp}</div><p class="note" style="font-size:12.5px;line-height:1.6;color:var(--muted)">Mesmo modelos flexíveis (captam interações e não linearidades) ficam <b style="color:var(--ink)">pouco acima do acaso</b> (~0,6) para prever o dia individual. O limite não é a forma do modelo, é o <b style="color:var(--ink)">sinal individual limitado</b> — a mensagem prática é ler a <b style="color:var(--ink)">tendência do grupo</b>. Confirma a curva de aprendizado.</p>`;
+  {const gv=document.createElement("div");gv.className="card";gv.style.marginTop="16px";gv.innerHTML=`<h3>Velocímetros de AUC</h3><p class="note">ponteiro de 0,5 (acaso) a 1,0 (perfeito) · deixa explícito o quanto cada modelo supera o acaso</p><div class="host" id="pr_g"></div>`;h.appendChild(gv);
+   gaugeRow($("#pr_g",gv),MODELS.map(m=>({v:m.auc,min:0.5,max:1,lab:m.lab,cap:m.auc===bestAUC?"melhor modelo":"acima do acaso",c:m.col,dec:2})),{h:190});}
   h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:18px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13px;line-height:1.62;color:var(--muted)">A curva de aprendizado fica <b style="color:var(--ink)">plana e baixa</b> (~0,6, pouco acima do acaso 0,50), com pequena distância entre treino e validação: não é <i>overfitting</i>, é <b style="color:var(--ink)">sinal individual limitado</b>. Os modelos mistos, ao contrário, mostram uma <b style="color:var(--ink)">tendência populacional clara</b> — a mensagem prática é ler o grupo, e o indivíduo apenas acima da mudança mínima detectável (MDC).</p></div>`);
 }},
 {id:"analise",lab:"Análise estatística",icon:"flow",render(h){
@@ -2628,24 +2654,24 @@ const SECTIONS=[
   }
   const HH=150;
   // 1 · Visão executiva — área energia↔fadiga
-  panel(1,"Visão executiva","panorama · 27 atletas",C.vigor,"executivo",
-    [["Atletas","27"],["Respostas","456"],["Eixos","2"]],
+  panel(1,"Visão executiva","panorama · amostra",C.vigor,"executivo",
+    [["Atletas","27"],["Dias","7"],["Respostas","456"]],
     host=>lineChart(host,[vig,fad],{ymin:0,ymax:9,h:HH,crosses:CROSS,state:{vigor:true,fadiga:true}}));
   // 2 · Humor D1→D7 — ranking de barras (dz)
   panel(2,"Humor · D1 → D7","deterioração · tamanho de efeito",C.fadiga,"d17",
-    [["Vigor dz","−0,95",C.vigor],["Fadiga dz","+0,72",C.fadiga],["Muda","4/6"]],
+    [["Vigor dz","−0,95",C.vigor],["Fadiga dz","+0,72",C.fadiga],["Sig. (7 dias)","4/6"]],
     host=>hbarChart(host,D17.slice().sort((a,b)=>Math.abs(b[4])-Math.abs(a[4])).map(r=>({lab:r[0],v:r[4],c:cById(kmap[r[0]])})),{h:HH,signed:true,dec:2}));
   // 3 · Estímulo HIIT — velocímetro (intensidade)
   panel(3,"Estímulo · HIIT","3 sessões · TIAI",C.crit,"hiit",
     [["Sessões","3"],["Intensidade","104%"],["FCmáx","182"]],
     host=>gaugeRow(host,[{v:104,min:0,max:120,unit:"%",lab:"do pico de velocidade",cap:"4×4 min · 3 min rec.",c:C.fadiga,dec:0}],{h:HH}));
   // 4 · Negativas por tipo de dia — barras horizontais (dz jogo × HIIT)
-  panel(4,"Negativas × tipo de dia","jogo protege · HIIT agrava",C.raiva,"negdia",
-    [["Raiva","−0,48",C.good],["Depressão","−0,43",C.good],["Confusão","−0,49",C.good]],
+  panel(4,"Negativas × tipo de dia","raiva · meio de semana",C.raiva,"negdia",
+    [["Raiva · HIIT",num(NEGDT.means.Raiva.HIIT,2),C.fadiga],["Raiva · jogo",num(NEGDT.means.Raiva.Amistoso,2),C.tensao],["Efeito","dz −0,48",C.good]],
     host=>hbarChart(host,[["Raiva",NEGDT.mid.Raiva.dz],["Confusão",NEGDT.mid.Confusao.dz],["Depressão",NEGDT.mid.Depressao.dz],["Tensão",NEGDT.mid.Tensao.dz]].map(r=>({lab:r[0],v:r[1],c:r[1]<0?C.good:C.raiva})),{h:HH,signed:true,dec:2}));
   // 5 · Sono & estresse — área (Epworth por dia)
   panel(5,"Sono & estresse","sonolência sobe · estresse estável",C.pth,"sono",
-    [["Epworth dz","+0,58"],["p","0,019"],["PSS","estável"]],
+    [["Sonolência D7",num(SONO.d17.Epworth.d7,1)],["Sobe (dz)","+0,58"],["Estresse","estável"]],
     host=>areaChart(host,[{lab:"Epworth",c:C.pth,vals:SONO.byday.Epworth}],{labels:["D1","D2","D3","D4","D5","D6","D7"],h:HH,stacked:false}));
   // 6 · Perfis & risco — velocímetro (% em risco)
   panel(6,"Perfis & risco","rastreio · saúde mental",C.warn,"risco",
@@ -2655,13 +2681,13 @@ const SECTIONS=[
   const TIPOS=[["TT","Técnico/tático",C.vigor],["TF","Força",C.confusao],["AM","Amistoso",C.tensao],["HIIT","HIIT",C.fadiga]];
   const cargaSeries=TIPOS.map(([t,lab,c])=>{const vals=[0,0,0,0,0,0,0];LOAD.sessoes.forEach(s=>{if(s.tipo===t)vals[s.dia-1]+=s.srpe;});return {lab,c,vals};});
   panel(7,"Carga do microciclo","volume ponderado (sPSE) · por sessão",C.confusao,"cargas",
-    [["Pico","D5–D6"],["Sessões",String(LOAD.sessoes.length)],["Tipos","4"]],
+    [["Sessões",String(LOAD.sessoes.length)],["Tipos","4"],["Pico de carga","D5–D6"]],
     host=>areaChart(host,cargaSeries,{labels:["D1","D2","D3","D4","D5","D6","D7"],h:HH,stacked:true}));
   // 8 · Aptidão física — barras horizontais (ρ PV × humor)
   const aMap={Vigor:"Vigor",Fadiga:"Fadiga",FadFisica:"Fad. física",FadMental:"Fad. mental"};
   const aRows=["FadFisica","Vigor","Fadiga","FadMental"].map(d=>{const a=AERO.assoc.find(x=>x.dim===d)||{r:0};return {lab:aMap[d],v:a.r,c:a.r<0?C.fadiga:C.vigor};});
   panel(8,"Aptidão física","T-CAR × humor · n=25",C.good,"fisico",
-    [["PV×FadFís","ρ −0,54",C.fadiga],["PV×Vigor","ρ +0,48",C.vigor],["FDR","✓"]],
+    [["PV×FadFís","ρ −0,54",C.fadiga],["PV×Vigor","ρ +0,48",C.vigor],["Amostra","n=25"]],
     host=>hbarChart(host,aRows,{h:HH,signed:true,dec:2,max:0.7}));
   h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:16px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13px;line-height:1.62;color:var(--muted)">Cada painel condensa uma frente da análise — do panorama executivo à aptidão física — com seu próprio gráfico. É o <b style="color:var(--ink)">mapa de uma tela</b> para abrir a apresentação; clique em qualquer painel para aprofundar.</p></div>`);
 }},
