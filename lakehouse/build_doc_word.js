@@ -841,6 +841,37 @@ K.push(tblTitle("**Tabela 31** – Agenda de pesquisa: hipóteses, desenhos e li
     {t:"Limitação que resolve",w:3000,al:AL.L}], rows));
 })();
 K.push(tblSource("Nota: prioridade sugerida pela combinação entre relevância prática e viabilidade; as hipóteses são caminhos para confirmar, não conclusões. " + FONTE_D));
+K.push(H2("7.4 Correção por multiplicidade"));
+K.push(P("Ao longo do estudo foram conduzidos muitos testes, o que exige o controle explícito da multiplicidade. A família confirmatória primária reúne o teste de Wilcoxon do primeiro contra o último dia e o teste de Friedman dos sete dias, para cada dimensão, e recebe duas correções dentro de cada família, a saber, o procedimento de Benjamini-Hochberg, que controla a proporção esperada de falsos positivos, e a correção de Bonferroni, mais conservadora. A Tabela 32 reúne os quatorze testes e assinala quais sobrevivem a cada critério."));
+K.push(tblTitle("**Tabela 32** – Mapa de multiplicidade da família confirmatória primária"));
+(function(){
+  var pv=function(x){return x<0.001?"< 0,001":n(x,3);};
+  var rows=d.mult.tests.map(function(t){var sob=t.sig_fdr?(t.sig_bonf?"Bonferroni":"FDR"):"não";return [
+    {t:t.teste,al:AL.L},{t:t.dim_lab,bold:true,al:AL.L},{t:pv(t.p),al:AL.C},
+    {t:pv(t.p_fdr),al:AL.C,color:t.sig_fdr?"1b7a3d":GREY},{t:pv(t.p_bonf),al:AL.C,color:t.sig_bonf?"1b7a3d":GREY},
+    {t:sob,al:AL.C,bold:sob!=="não",color:sob==="não"?GREY:"1b7a3d"}
+  ];});
+  K.push(openTable([{t:"Teste",w:1700,al:AL.L},{t:"Dimensão",w:1900,al:AL.L},{t:"p bruto",w:1400,al:AL.C},
+    {t:"p FDR",w:1400,al:AL.C},{t:"p Bonf.",w:1400,al:AL.C},{t:"Sobrevive",w:1705,al:AL.C}], rows));
+})();
+K.push(tblSource("Nota: FDR = Benjamini-Hochberg; correção aplicada dentro de cada família. Dos " + d.mult.n_total + " testes, " + d.mult.n_bruto + " são significativos sem correção, " + d.mult.n_fdr + " sobrevivem ao FDR e " + d.mult.n_bonf + " ao Bonferroni. " + FONTE_D));
+K.push(P("O resultado da correção reforça o núcleo do estudo. Os efeitos que resistem concentram-se no eixo energético, isto é, no vigor e na fadiga, e em dimensões de padrão semanal forte, ao passo que os efeitos afetivos, pequenos e numerosos, não sobrevivem, o que recomenda lê-los como tendência convergente, e não como achados isolados."));
+K.push(H2("7.5 Rede psicométrica e dinâmica defasada"));
+K.push(P("Duas leituras complementam a análise multivariada e o modelo autorregressivo. A rede gaussiana estima as correlações parciais entre as dimensões, a sonolência e o estresse, ou seja, a associação entre duas medidas quando se controlam todas as demais, o que revela as ligações diretas. A Figura 20 apresenta essa rede, na qual as arestas verdes indicam associação positiva e as vermelhas, negativa, com espessura proporcional à força. As dimensões negativas ligam-se entre si, com destaque para o par depressão e confusão, e o vigor liga-se de modo negativo à fadiga e à sonolência, o que reproduz o eixo de energia e perturbação na forma de rede de dependências diretas."));
+K.push(figCap("**Figura 20** – Rede de correlações parciais entre as dimensões do humor, a sonolência e o estresse"));
+K.push(figure("fig_rede.png", 520));
+K.push(figSource("Nota: aresta = correlação parcial (associação entre duas medidas com controle das demais); tamanho do nó proporcional à força na rede. " + FONTE_E));
+K.push(tblTitle("**Tabela 33** – Ligações diretas mais fortes na rede (correlações parciais)"));
+(function(){
+  var rows=d.net.top_edges.map(function(e){return [
+    {t:e.a_lab+" e "+e.b_lab,bold:true,al:AL.L},{t:sgn(e.w),al:AL.C,bold:true,color:e.w>0?"1b7a3d":"a12222"},
+    {t:e.w>0?"positiva":"negativa",al:AL.C}
+  ];});
+  K.push(openTable([{t:"Par de dimensões",w:4505,al:AL.L},{t:"Correlação parcial",w:2500,al:AL.C},
+    {t:"Sinal",w:2500,al:AL.C}], rows));
+})();
+K.push(tblSource("Nota: correlação parcial de cada par com controle de todas as demais medidas; regularização por Graphical Lasso com validação cruzada. " + FONTE_D));
+K.push(P("A segunda leitura testa a precedência temporal por meio de um painel cruzado defasado, no qual cada dimensão no dia seguinte é explicada pela própria inércia e pela defasagem de outra dimensão. O resultado é nulo, pois nenhuma defasagem cruzada atinge significância. No nível do dia, a dinâmica é dominada pela inércia de cada dimensão e pela associação contemporânea retratada na rede, e não por uma precedência temporal clara entre dimensões, leitura coerente com a curta janela de sete dias e com o tamanho reduzido da amostra."));
 
 
 // ====================== 8 CONSIDERAÇÕES ======================
