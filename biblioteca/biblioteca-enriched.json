@@ -118,6 +118,32 @@
   "idioma": "en"
  },
  {
+  "authors": "Třebický V, et al.",
+  "year": 2026,
+  "title": "Autonomy support by choosing task order enhances the performance of form-based motor skills in gymnastics",
+  "journal": "International Journal of Sport and Exercise Psychology",
+  "doi": "10.1080/1612197X.2026.2620790",
+  "citations": "n/d",
+  "sport": "Ginástica (30 ginastas do sexo feminino, 11–22 anos)",
+  "topic": "motor-learning",
+  "finding": "Em 30 ginastas do sexo feminino, a condição de suporte à autonomia (escolha da ordem das tarefas) melhorou o desempenho de habilidades motoras de forma frente à condição controle pareada (yoked); o esforço percebido foi maior na condição de autonomia, sem diferenças discerníveis nas medidas de motivação intrínseca (escolha, competência, pressão/tensão percebidas).",
+  "design": "Experimental",
+  "modalities": [
+   "Ginástica artística"
+  ],
+  "variables": [
+   "Neuro"
+  ],
+  "resumo": "Estudo experimental sobre o efeito do suporte à autonomia (escolha da ordem das tarefas) na aprendizagem/desempenho de habilidades motoras de forma em ginastas.",
+  "populacao": "Ginastas femininas, 11–22 anos",
+  "amostra": "30 ginastas do sexo feminino",
+  "instrumentos": "Escala de Borg de 10 pontos (esforço percebido); Intrinsic Motivation Inventory (escolha, competência, pressão/tensão percebidas)",
+  "variaveis_analisadas": "Desempenho de habilidades motoras de forma; esforço percebido; motivação intrínseca",
+  "analise_estatistica": "Modelos lineares de efeitos mistos",
+  "fulltext": "abstract",
+  "n_modalities": 1
+ },
+ {
   "authors": "Ma Y, Wei X, Tan Z, Ren D, Song L, Dai Y, Qin Y, Wang H, Zhao Z",
   "year": 2026,
   "title": "Biomechanical analysis of the tucked front somersault on vault among elite junior female gymnasts",
@@ -1460,6 +1486,32 @@
   "pmcid": "PMC12966509"
  },
  {
+  "authors": "Rupendran R, Wadud AA, Davis RE, Taglia SG, Rusby TA, Angioi M",
+  "year": 2026,
+  "title": "Prevalence, Incidence, Severity, and Anatomical Location of Overuse Injuries in Male and Female Ballet Dancers: A Systematic Review and Meta-Analysis",
+  "journal": "Journal of Dance Medicine & Science",
+  "doi": "10.1177/1089313X251412479",
+  "citations": "n/d",
+  "sport": "Balé (bailarinos profissionais e pré-profissionais; amostra mista, ambos os sexos)",
+  "topic": "overuse-injury",
+  "finding": "Meta-análise de 11 estudos (1.650 bailarinos) identificou o complexo pé/tornozelo como a região mais acometida por lesões de overuse em ambos os sexos, sem diferença significativa entre homens e mulheres na prevalência, incidência ou localização anatômica; certeza da evidência foi classificada como muito baixa.",
+  "design": "Meta-análise",
+  "modalities": [
+   "Dança"
+  ],
+  "variables": [
+   "Fadiga"
+  ],
+  "resumo": "Revisão sistemática e meta-análise sobre prevalência, incidência, gravidade e localização anatômica de lesões por overuse em bailarinos profissionais e pré-profissionais, comparando sexos, com literatura de 2000 a julho de 2025.",
+  "populacao": "Bailarinos profissionais e pré-profissionais de balé (masculino e feminino) — amostra mista, sinalizada por incluir homens",
+  "amostra": "11 estudos (9 coortes, 2 transversais), 1.650 bailarinos ao todo",
+  "instrumentos": "Revisão sistemática com meta-análise (protocolo PROSPERO CRD420251104232)",
+  "variaveis_analisadas": "Prevalência, incidência, gravidade e localização anatômica de lesões por overuse; comparação por sexo",
+  "analise_estatistica": "Meta-análise de proporções; avaliação de qualidade metodológica e certeza da evidência (GRADE)",
+  "fulltext": "abstract",
+  "n_modalities": 1
+ },
+ {
   "authors": "Papacharalampus K, Dallas CG, Karampatsos G, Terzis G, Dallas GC",
   "year": 2026,
   "title": "Relationship between muscle strength and muscle power of female artistic gymnasts on balance beam performance",
@@ -2130,6 +2182,32 @@
   "variaveis_analisadas": "Características epidemiológicas (tipos de lesão — concussão, fratura, entorse; locais — tornozelo, punho, cabeça/pescoço; mecanismos — erro de movimento, queda, sobrecarga articular; taxas de incidência e severidade); mecanismos biomecânicos (stunts como basket toss e pirâmide; flips e saltos); estratégias de prevenção; características dos participantes (n, idade, sexo, nível); métodos e fontes estatísticas (NEISS, CHIRPP; RR, OR, IC 95%).",
   "pmcid": "PMC12283626",
   "fulltext": "PMC"
+ },
+ {
+  "authors": "Leite I, Gómez-Landero LA, Ávila-Carvalho L, Vilas-Boas JP, Goethel M, Conceição F, Mochizuki L",
+  "year": 2025,
+  "title": "Acrobatic gymnastics: The effect of experience, interpersonal coordination and variability in partner-assisted flight",
+  "journal": "Journal of Sports Sciences",
+  "doi": "10.1080/02640414.2025.2490422",
+  "citations": "n/d",
+  "sport": "Ginástica acrobática (duplas de 1ª divisão/elite; amostra mista — 9 duplas femininas, 1 mista, 2 masculinas)",
+  "topic": "biomechanics-technique",
+  "finding": "Em 21 ginastas acrobáticos (12 bases, 9 tops) formando 12 duplas, as mais experientes passaram menos tempo em movimento em fase, mais tempo em fase-base e usaram menos coordenação paralela durante o voo assistido; a variabilidade de coordenação foi semelhante entre grupos, mas diferiu no segmento de 60,7–78,7% da tarefa (fase de subida).",
+  "design": "Transversal",
+  "modalities": [
+   "Ginástica acrobática"
+  ],
+  "variables": [
+   "Neuro"
+  ],
+  "resumo": "Estudo biomecânico da coordenação interpessoal base-top durante o voo assistido em ginástica acrobática, comparando duplas de diferentes níveis de experiência. Amostra majoritariamente, mas não exclusivamente, feminina (9 de 12 duplas).",
+  "populacao": "Ginastas acrobáticos de 1ª divisão/elite (bases e tops)",
+  "amostra": "21 ginastas (12 bases, 9 tops) em 12 duplas (9 femininas, 1 mista, 2 masculinas), divididos por nível de experiência",
+  "instrumentos": "Captura de movimento em laboratório; correlação cruzada e análise de séries temporais do centro de massa",
+  "variaveis_analisadas": "Coordenação interpessoal (tempo em fase, fase-base, coordenação paralela); variabilidade da coordenação ao longo do voo assistido",
+  "analise_estatistica": "Correlação cruzada; comparação de séries temporais entre grupos de experiência",
+  "fulltext": "abstract",
+  "n_modalities": 1
  },
  {
   "authors": "Copeland CG, Welsh TM, Chuhak R, Munoz I, Neibert S, Moses A, Bailey JS",
@@ -3053,6 +3131,34 @@
   "sintese": "A carga cinemática sobre a cabeça cresce ao longo das progressões de tumbling, informação útil para graduar o retorno seguro após concussão na ginástica."
  },
  {
+  "authors": "Martin C, Nguyen LT, Williams A, Bunn J",
+  "year": 2025,
+  "title": "Examining the roles of body image perception on the mental health of female athletes in highly aesthetic sports: A systematic review",
+  "journal": "Current Issues in Sport Science (CISS)",
+  "doi": "10.36950/2025.10ciss004",
+  "citations": "n/d",
+  "sport": "Esportes estéticos femininos (dança, ginástica, cheerleading) — revisão, ≥12 anos",
+  "topic": "body-image",
+  "finding": "Revisão sistemática de 13 artigos mostrou que percepção negativa de imagem corporal foi comum em esportes estéticos femininos (62% dos estudos) e associada a impacto negativo na saúde mental, com transtornos alimentares como desfecho comum (69% dos estudos), num quadro de hiperfoco em corpo magro e críticas de treinadores/pares/mídia.",
+  "design": "Revisão sistemática",
+  "modalities": [
+   "Dança",
+   "Ginástica artística",
+   "Ginástica rítmica"
+  ],
+  "variables": [
+   "Psico"
+  ],
+  "resumo": "Revisão sistemática sobre o papel da percepção de imagem corporal na saúde mental de atletas femininas de esportes altamente estéticos (dança, ginástica, cheer), sintetizando 13 estudos publicados a partir de 2020.",
+  "populacao": "Atletas femininas ≥12 anos de esportes altamente estéticos (dança, ginástica, cheerleading)",
+  "amostra": "13 artigos incluídos na revisão sistemática (publicados de 2020 em diante)",
+  "instrumentos": "Revisão sistemática (PRISMA); síntese qualitativa de instrumentos de imagem corporal/saúde mental usados nos estudos primários",
+  "variaveis_analisadas": "Percepção de imagem corporal; sintomas de ansiedade/depressão; transtornos alimentares",
+  "analise_estatistica": "Síntese narrativa/qualitativa com frequência percentual de temas entre os estudos incluídos",
+  "fulltext": "abstract",
+  "n_modalities": 3
+ },
+ {
   "authors": "Steinberg N, Elbaz L, Nemet D, Eliakim A, Dar G",
   "year": 2025,
   "title": "Exploration of clinical diagnosis for tendinopathy, tendon structure, and muscle strength in young elite female gymnasts: A 12-month follow-up study.",
@@ -3361,6 +3467,32 @@
   "idioma": "en"
  },
  {
+  "authors": "Armando C, Kurapati SS, Voulo MA, Gallo RA",
+  "year": 2025,
+  "title": "Influence of Training Load on the Risk of Injuries in Preprofessional Contemporary Dancers: A Scoping Review",
+  "journal": "Orthopaedic Journal of Sports Medicine",
+  "doi": "10.1177/23259671251369004",
+  "citations": "n/d",
+  "sport": "Dança contemporânea (pré-profissional, predominância feminina)",
+  "topic": "training-load",
+  "finding": "Revisão de escopo com 9 estudos incluídos (de 226 registros triados) indicou que maior intensidade, tipo e duração de treino se associam a maior risco e gravidade de lesão em dançarinos contemporâneos pré-profissionais, com heterogeneidade metodológica que limita conclusões definitivas.",
+  "design": "Revisão narrativa",
+  "modalities": [
+   "Dança"
+  ],
+  "variables": [
+   "Fadiga"
+  ],
+  "resumo": "Revisão de escopo que investigou como intensidade, tipo e duração do treino afetam incidência e gravidade de lesões em dançarinos contemporâneos pré-profissionais.",
+  "populacao": "Dançarinos contemporâneos pré-profissionais",
+  "amostra": "9 estudos incluídos (de 226 registros triados, 54 em revisão de texto completo); buscas em 6 bases em julho de 2022",
+  "instrumentos": "Revisão de escopo (PRISMA-ScR)",
+  "variaveis_analisadas": "Intensidade, tipo e duração de treino; incidência e gravidade de lesão",
+  "analise_estatistica": "Síntese narrativa descritiva",
+  "fulltext": "abstract",
+  "n_modalities": 1
+ },
+ {
   "authors": "Merker S, Pastel S, Bürger D, Witte K",
   "year": 2025,
   "title": "Influence of wearing a head-mounted display on the movement execution of basic elements on the balance beam in women's artistic gymnastics",
@@ -3435,6 +3567,32 @@
   "analise_estatistica": "Síntese qualitativa de incidência, localização, mecanismos e associações moleculares/genéticas.",
   "sintese": "Propõe uma abordagem multidisciplinar e personalizada de prevenção na ginástica artística, integrando dados biomecânicos, clínicos, moleculares e genéticos.",
   "idioma": "en"
+ },
+ {
+  "authors": "Critchley ML, Rio E, Friesen KB, Räisänen AM, Kenny SJ, Emery CA",
+  "year": 2025,
+  "title": "Injury Prevention Strategies in Dance: A Systematic Review",
+  "journal": "Journal of Dance Medicine & Science",
+  "doi": "10.1177/1089313X251314987",
+  "citations": "n/d",
+  "sport": "Dança (população geral de dançarinos, predominância feminina)",
+  "topic": "injury-prevention",
+  "finding": "Revisão sistemática de 8 estudos (de 2.209 registros triados) identificou programas de condicionamento/exercício, treino neuromuscular de aquecimento, treino de habilidades de coping psicológico e programas educativos como estratégias de prevenção de lesão em dança, com evidência inicial de eficácia dos programas de condicionamento na redução da incidência de lesões.",
+  "design": "Revisão sistemática",
+  "modalities": [
+   "Dança"
+  ],
+  "variables": [
+   "Fadiga"
+  ],
+  "resumo": "Revisão sistemática que descreveu estratégias específicas de prevenção de lesão em dança e avaliou evidências de sua eficácia na redução de prevalência/incidência de lesões.",
+  "populacao": "Dançarinos de qualquer população/nível competitivo",
+  "amostra": "8 estudos incluídos, de 2.209 registros identificados em 6 bases (busca até março de 2024)",
+  "instrumentos": "Revisão sistemática (Medline, EMBASE, SportDiscus, CINAHL, SCOPUS, Cochrane)",
+  "variaveis_analisadas": "Tipo de estratégia de prevenção de lesão (condicionamento, neuromuscular, psicológica, educativa); incidência/prevalência de lesão",
+  "analise_estatistica": "Síntese narrativa (heterogeneidade metodológica impediu meta-análise)",
+  "fulltext": "abstract",
+  "n_modalities": 1
  },
  {
   "authors": "Wood S, Turner MJ",
@@ -3708,6 +3866,32 @@
   "variaveis_biodinamicas": "Cinemática frontal e sagital do joelho (pico de flexão e de abdução), momentos externos de pico de flexão e de abdução do joelho (BW×Ht), força de reação do solo vertical de pico (BW) e padrões de coordenação por vector coding (acoplamentos coxa–perna, movimento em fase/antifase).",
   "analise_estatistica": "Comparações entre grupos com valores de p e tamanho de efeito d de Cohen; análise de coordenação por vector coding.",
   "sintese": "O treino de aterrissagem do balé reduz o movimento frontal do joelho, o que pode ajudar a mitigar o risco de lesão aguda do joelho em mulheres."
+ },
+ {
+  "authors": "Psotta R, Lehnert M, Helešic J, et al.",
+  "year": 2025,
+  "title": "Lower Limb Dynamic Strength and Short Distance Locomotion Speed in 8-13 Year Old Female Ice Figure Skaters: Age Changes and Latent Factors",
+  "journal": "Sport Sciences for Health",
+  "doi": "10.1007/s11332-025-01531-6",
+  "citations": "n/d",
+  "sport": "Patinação artística no gelo (patinadoras femininas, 8–13 anos)",
+  "topic": "physical-determinants",
+  "finding": "Em 437 patinadoras artísticas de 8–13 anos, testes de salto e de aceleração no gelo/corrida mostraram mudanças progressivas relacionadas à idade em quase todos os indicadores; desempenho em testes com componente horizontal de força (salto em distância parado, saltos unipodais) melhorou ano a ano, enquanto outros testes mostraram mudanças não lineares com a idade.",
+  "design": "Transversal",
+  "modalities": [
+   "Patinação artística"
+  ],
+  "variables": [
+   "Performance"
+  ],
+  "resumo": "Estudo transversal de larga amostra que investigou mudanças relacionadas à idade na força dinâmica de membro inferior e velocidade de locomoção em patinadoras artísticas jovens, identificando fatores latentes de desempenho.",
+  "populacao": "Patinadoras artísticas femininas jovens",
+  "amostra": "437 patinadoras artísticas femininas, 8–13 anos",
+  "instrumentos": "Salto em distância parado (SLJ); salto triplo unipodal (direito/esquerdo); saltos verticais repetidos (RVJ); teste de aceleração de 15 m em patinação e em corrida",
+  "variaveis_analisadas": "Força dinâmica de membro inferior; velocidade de locomoção em curta distância; fatores latentes de desempenho",
+  "analise_estatistica": "MANOVA/ANOVA one-way (α = 0,05)",
+  "fulltext": "abstract",
+  "n_modalities": 1
  },
  {
   "authors": "Koga A, Bai X, Jia Y, Liu J",
@@ -4613,6 +4797,32 @@
   "sintese": "Sinaliza um vácuo de instrumentos padronizados e validados para decisão de retorno à dança pós-lesão, área carente quando comparada ao esporte convencional (RTS/LCA) — relevante para modalidades estéticas femininas de alta demanda física.",
   "idioma": "inglês",
   "pmcid": "PMC12359533"
+ },
+ {
+  "authors": "Autores não recuperados nas fontes de busca disponíveis (consultar registro do DOI)",
+  "year": 2025,
+  "title": "Technical and artistic performance of elite women's pairs in acrobatic gymnastics",
+  "journal": "International Journal of Performance Analysis in Sport",
+  "doi": "10.1080/24748668.2025.2571836",
+  "citations": "n/d",
+  "sport": "Ginástica acrobática (duplas femininas de elite)",
+  "topic": "judging-scoring",
+  "finding": "Análise de 26 exercícios de duplas femininas de elite no Campeonato Mundial de 2022 revelou forte convergência nas escolhas técnicas (elementos de equilíbrio sem montagem em 87–90%; braço reto da base em 91–97%) e padrões artísticos característicos (andamentos moderados de 107–118 bpm, compassos quaternários simples, tons menores), sugerindo estereotipia na composição coreográfica de alto nível.",
+  "design": "Transversal",
+  "modalities": [
+   "Ginástica acrobática"
+  ],
+  "variables": [
+   "Performance"
+  ],
+  "resumo": "Primeira análise combinada de desempenho técnico e artístico em duplas femininas de elite de ginástica acrobática, examinando elementos, uso do tablado, alocação de tempo e escolhas musicais no Mundial de 2022.",
+  "populacao": "Duplas femininas de elite em ginástica acrobática",
+  "amostra": "26 exercícios de duplas femininas do Campeonato Mundial de Ginástica Acrobática de 2022",
+  "instrumentos": "Análise de vídeo/notação de desempenho técnico e artístico (elementos, uso do tablado, alocação de tempo, características musicais)",
+  "variaveis_analisadas": "Tipo e execução de elementos de equilíbrio e dinâmicos; uso do espaço de competição; alocação de tempo; andamento/compasso/tonalidade musical",
+  "analise_estatistica": "Estatística descritiva de frequências",
+  "fulltext": "abstract",
+  "n_modalities": 1
  },
  {
   "authors": "Nakai S, Shibayama R, Kisara K, Hashizume M, Nagano Y",
@@ -6313,6 +6523,32 @@
   "pmcid": "PMC10932947"
  },
  {
+  "authors": "Junge A, Hauschild A",
+  "year": 2024,
+  "title": "Prevalence of Mental Health Problems and their Potential Association with Sleep Disturbance, Coping Skills and Social Support in Professional Ballet Dancers",
+  "journal": "Journal of Dance Medicine & Science",
+  "doi": "10.1177/1089313x241277930",
+  "citations": "n/d",
+  "sport": "Balé profissional (amostra mista: 49% mulheres, 51% homens)",
+  "topic": "mental-health",
+  "finding": "Em 96 bailarinos profissionais (idade média 27,3 anos), a prevalência de sintomas de depressão (19,8% leve, 4,2% moderada a grave) e de ansiedade (19,8% leve, 11,5% moderada, 3,1% grave) foi elevada; quase dois terços relataram problemas de sono, com correlações baixas entre saúde mental e habilidades de coping atlético/suporte social.",
+  "design": "Transversal",
+  "modalities": [
+   "Dança"
+  ],
+  "variables": [
+   "Psico"
+  ],
+  "resumo": "Estudo transversal sobre prevalência de problemas de saúde mental (depressão, ansiedade), distúrbios do sono e sua associação com habilidades de coping e suporte social em bailarinos profissionais de companhias alemãs. Amostra quase igualmente dividida entre sexos — sinalizado por incluir quase metade de homens.",
+  "populacao": "Bailarinos profissionais (49% mulheres, 51% homens) de seis companhias/teatros",
+  "amostra": "96 bailarinos profissionais, idade média 27,3 anos",
+  "instrumentos": "Questionário sobre saúde mental, distúrbios do sono, habilidades de coping atlético e suporte social",
+  "variaveis_analisadas": "Sintomas de depressão e ansiedade; distúrbios do sono; habilidades de coping atlético; suporte social",
+  "analise_estatistica": "Estatística descritiva e correlacional",
+  "fulltext": "abstract",
+  "n_modalities": 1
+ },
+ {
   "authors": "Lundqvist C",
   "year": 2024,
   "title": "Prevalence of harassment, abuse and mental health among current and retired senior Swedish cheerleaders",
@@ -6385,6 +6621,32 @@
   "variaveis_biodinamicas": "—",
   "analise_estatistica": "Curva ROC (determinação do ponto de corte do FMS) e correlação de Pearson.",
   "sintese": "O escore total do FMS sinaliza risco de lesão e os escores individuais refletem desempenho, oferecendo ferramenta prática de triagem em patinadores de duplas."
+ },
+ {
+  "authors": "Allen N, Kelly S, Lanfear M, Reynolds A, Clarke R, Mountjoy ML, Wyon M, Wolman R",
+  "year": 2024,
+  "title": "Relative energy deficiency in dance (RED-D): a consensus method approach to REDs in dance",
+  "journal": "BMJ Open Sport & Exercise Medicine",
+  "doi": "10.1136/bmjsem-2023-001858",
+  "citations": "n/d",
+  "sport": "Dança (consenso de especialistas; população de risco predominantemente feminina)",
+  "topic": "red-s",
+  "finding": "Consenso multidisciplinar de especialistas adaptou o modelo de RED-S para a dança (RED-D), estabelecendo fatores de risco, indicadores clínicos e recomendações específicas de triagem e manejo da deficiência energética relativa em bailarinos.",
+  "design": "Transversal",
+  "modalities": [
+   "Dança"
+  ],
+  "variables": [
+   "Fadiga"
+  ],
+  "resumo": "Documento de consenso multidisciplinar que adapta os critérios de RED-S ao contexto específico da dança (RED-D), com recomendações de triagem, diagnóstico e manejo clínico.",
+  "populacao": "Bailarinos profissionais e pré-profissionais (grupo de risco predominantemente feminino)",
+  "amostra": "Painel de especialistas multidisciplinares em saúde da dança",
+  "instrumentos": "Método formal de consenso (rodadas de votação)",
+  "variaveis_analisadas": "Fatores de risco de RED-S específicos da dança; indicadores clínicos; recomendações de triagem e manejo",
+  "analise_estatistica": "Síntese de consenso (não estatística inferencial)",
+  "fulltext": "abstract",
+  "n_modalities": 1
  },
  {
   "authors": "Williams SM, Baez SE, Derrico D, Robinson H, Coyne K, Settle H, Jochimsen KN",
