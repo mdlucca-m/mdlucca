@@ -379,6 +379,16 @@ table.dyn tbody tr.hlrow{background:rgba(90,211,196,.1)}
 .p8host{margin-top:2px}
 @media(max-width:520px){.p8grid{grid-template-columns:1fr}}
 
+/* Barras de progresso "meta × realizado" (estilo acompanhamento) */
+.prog{display:flex; flex-direction:column; gap:13px; margin-top:4px}
+.proghead{display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:6px; flex-wrap:wrap}
+.proglab{font-size:12.5px; color:var(--ink); font-weight:600}
+.progval{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted); display:inline-flex; align-items:center; gap:8px}
+.progval b{color:var(--ink)}
+.progtrack{position:relative; height:11px; border-radius:999px; background:rgba(120,150,190,.13); overflow:hidden}
+.progfill{height:100%; border-radius:999px; width:0; transition:width 1.15s cubic-bezier(.2,.7,.2,1)}
+.progstat{font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.04em; padding:1px 8px; border-radius:999px; border:1px solid}
+
 /* nós do fluxo (automação) com ícone HD e título brilhante */
 .fnode .hdi,.fstep .hdi{width:38px; height:38px}
 .fnode .fntitle,.fstep .fntitle{letter-spacing:-.01em}
@@ -769,6 +779,16 @@ function areaChart(host,series,{labels,h=200,ymax,stacked=true,unit="",legendChi
       if(stacked)for(let i=0;i<n;i++)base[i]+=se.vals[i]*prog;});
   });
 }
+/* ---- barras de progresso "meta × realizado" (HTML, com faixa animada) ---- */
+function progressBars(host,rows){const wrap=document.createElement("div");wrap.className="prog";
+  rows.forEach(r=>{const pct=Math.max(0,Math.min(100,(r.val/r.meta)*100)),col=r.c||C.good,fmt=r.fmt||(v=>num(v,1));
+    const ok=r.ok!=null?r.ok:(r.val>=r.meta),stCol=ok?C.good:C.warn,stTx=r.stat||(ok?"na meta":"atenção");
+    const row=document.createElement("div");
+    row.innerHTML=`<div class="proghead"><span class="proglab">${r.lab}</span><span class="progval"><b>${fmt(r.val)}</b> / ${fmt(r.meta)}${r.unit||""} · ${num(pct,0)}%<span class="progstat" style="color:${stCol};border-color:${rgba(stCol,.5)}">${stTx}</span></span></div>
+      <div class="progtrack"><div class="progfill" style="background:linear-gradient(90deg,${rgba(col,.45)},${col});box-shadow:0 0 12px ${rgba(col,.5)}"></div></div>`;
+    wrap.appendChild(row);const fill=row.querySelector(".progfill");
+    if(rm){fill.style.width=pct+"%";}else{requestAnimationFrame(()=>requestAnimationFrame(()=>{fill.style.width=pct+"%";}));}});
+  host.appendChild(wrap);return wrap;}
 /* ---- matriz de bolinhas (entidade × período), estilo "volume de trabalho" ---- */
 function dotMatrix(host,rows,colLabs,cell,{h}={}){
   const rowh=17,{cv,g}=mk(host,h||(rows.length*rowh+42)),w=cv._w,pad={l:52,r:10,t:26,b:8};
@@ -1590,6 +1610,11 @@ const SECTIONS=[
      {v:favor,min:0,max:100,unit:"%",lab:"perfis favoráveis",cap:"iceberg + superfície",c:C.vigor,dec:0},
      {v:PRISCO.neg_prev,min:0,max:100,unit:"%",lab:"perfis negativos",cap:"iceberg/everest invertido",c:C.raiva,dec:1},
      {v:PRISCO.fad_prev,min:0,max:100,unit:"%",lab:"sobrecarga",cap:"barbatana de tubarão",c:C.fadiga,dec:1}],{h:190});}
+  {const fc=document.createElement("div");fc.className="card";fc.innerHTML=`<h3>Funil de triagem</h3><p class="note">do grupo inteiro aos casos que pedem acompanhamento — como o rastreio estreita a atenção</p><div class="host" id="rk_fun"></div>`;h.appendChild(fc);
+   funnelChart($("#rk_fun",fc),[
+     {lab:"27 atletas monitorados",sub:"amostra completa · 7 dias · 2 coletas/dia",c:C.vigor},
+     {lab:PRISCO.exp_neg1+" com ≥ 1 dia de risco",sub:"perfil negativo em algum dia",c:C.warn},
+     {lab:PRISCO.exp_neg2+" com ≥ 2 dias de risco",sub:"acompanhamento prioritário",c:C.crit}],{h:300});}
   const g1=cards(h,`<div class="card"><h3>Quando o risco aparece</h3><p class="note">% de atleta-dias em perfil negativo e de sobrecarga, por dia · faixas = HIIT</p><div class="host" id="h_risco"></div></div><div class="card"><h3>Os perfis de risco</h3><p class="note">o que cada um sinaliza</p><div id="k_risco"></div></div>`);
   groupChart($("#h_risco",g1),PRISCO.byday.map((v,i)=>({lab:"D"+(i+1),vals:v})),[{lab:"Perfil negativo",c:C.raiva},{lab:"Sobrecarga (barbatana)",c:C.fadiga}],{ymax:34,dec:0,unit:"%"});
   $("#k_risco",g1).innerHTML=`<div style="display:flex;flex-direction:column;gap:9px">
@@ -1938,6 +1963,13 @@ const SECTIONS=[
   $("#ds_k",gd).innerHTML=`<div style="display:flex;flex-direction:column;gap:5px">`+DOSE.dose.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid var(--stroke);padding:5px 0;font-size:12.5px"><b style="color:${dcol[r.dim]}">${r.dim_lab}</b><span class="note" style="font-size:11px">agudo ${sg(r.beta_agudo,2)}${r.sig_agudo?"★":""} · cum ${sg(r.beta_cum,2)}${r.sig_cum?"★":""} → <b style="color:var(--ink)">${r.domina}</b></span></div>`).join("")+`</div><p class="note" style="font-size:12px;margin-top:9px;line-height:1.55;color:var(--muted)"><b>Validação da carga:</b> a recuperação percebida (TQR) cai quando a carga acumulada sobe (Spearman ρ=${num(DOSE.valid.rho_acum_tqr,2)}), o que sustenta a métrica de carga. <b>ACWR</b> não calculado — a janela crônica (~28 dias) não cabe em 7 dias.</p>`;
   h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:14px;border-left:3px solid var(--pth)"><p class="note" style="font-size:13.5px;line-height:1.64;color:var(--ink)"><b>Leitura dose-resposta.</b> Trocando o rótulo categórico pela <b>carga contínua segmentada</b>, o <b>eixo físico-energético</b> aparece governado pela <b>carga cumulativa</b>: o vigor cai (β ${sg((DOSE.dose.find(r=>r.dim==="vigor")||{}).beta_cum||0,2)}), a fadiga sobe (β ${sg((DOSE.dose.find(r=>r.dim==="fadiga")||{}).beta_cum||0,2)}) e o PTH sobe (β ${sg((DOSE.dose.find(r=>r.dim==="pth")||{}).beta_cum||0,2)}) à medida que a carga se acumula na semana — mecanicamente coerente com a persistência do modelo autorregressivo. O afeto responde mais ao <b>componente agudo</b> do dia. Isto é o ganho da segmentação: em vez de "dia HIIT/Jogo/Força", o modelo passa a ler <b>volume do dia × acúmulo</b>, que separa a carga aguda do custo crônico.</p></div>`);
   h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:14px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13.5px;line-height:1.64;color:var(--ink)"><b>Como usar nos modelos.</b> Recomenda-se <b>substituir o fator categórico único</b> (day_type) por três blocos de variáveis, agora disponíveis: <b>(1) composição de sessões por período</b> — presença/duração de HIIT, técnico, força e amistoso na manhã/tarde/noite; <b>(2) carga contínua</b> — sRPE do dia e <b>carga acumulada</b> (h), que separam volume de acúmulo; <b>(3) carga interna medida</b> do HIIT (PSE, TRIMP) como âncora de intensidade. Assim o dia 4 deixa de ser só "HIIT" e passa a ser "HIIT + técnico, 2,5 h, sobre 11 h acumuladas" — coerente com o maior ΔTMD observado. <b>Ressalva honesta:</b> só o HIIT tem carga interna medida por atleta; o RPE de técnico/força/amistoso é nominal e deve ser trocado pelo RPE real por sessão quando coletado, para equacionar as cargas por completo.</p></div>`);
+  {const HD={2:" · HIIT",4:" · HIIT",7:" · HIIT",3:" · jogo",5:" · jogo"};
+   const rows=DOSE.tqr_dia.map(d=>({lab:"Dia "+d.dia+(HD[d.dia]||""),val:d.tqr,meta:13,ok:d.tqr>=13,
+     c:d.tqr>=13?C.good:d.tqr>=11?C.warn:C.crit,stat:d.tqr>=13?"recuperado":d.tqr>=11?"parcial":"insuficiente",fmt:v=>num(v,1)}));
+   const cp=document.createElement("div");cp.className="card";cp.style.marginTop="16px";
+   cp.innerHTML=`<h3>Recuperação diária (TQR) × meta</h3><p class="note">Total Quality Recovery (escala 6–20; Kenttä &amp; Hassmén, 1998) · meta <b>≥ 13 = bem recuperado</b> · a barra mostra o realizado sobre a meta</p><div id="tqr_p"></div>`;h.appendChild(cp);
+   progressBars($("#tqr_p",cp),rows);
+   cp.insertAdjacentHTML("beforeend",`<p class="note" style="font-size:12px;line-height:1.6;color:var(--muted);margin-top:12px;border-top:1px solid var(--stroke);padding-top:10px">A recuperação começa <b style="color:${C.good}">adequada</b> (D1 ${num(DOSE.tqr_dia[0].tqr,1)}) e <b style="color:${C.crit}">cai abaixo da meta</b> conforme a carga se acumula, chegando ao mínimo no D7 (${num(DOSE.tqr_dia[6].tqr,1)}) — coerente com a correlação negativa entre carga acumulada e TQR.</p>`);}
 }},
 {id:"dinamica",lab:"Autorregressivo & GLM",icon:"deriv",render(h){
   head(h,"dinâmica de painel · dois modelos","Autorregressivo de painel (lag-1) & GLM (Poisson-GEE)","Dois modelos honestos ao desenho (grupo único, sete dias): um <b>autorregressivo de painel lag-1 multinível</b>, que mede a <b>persistência</b> do estado de um dia para o seguinte, e um <b>modelo linear generalizado</b> (Poisson via GEE) que trata as subescalas como <b>contagens</b> e reporta a <b>razão de taxas (IRR)</b> por tipo de dia e por momento.");
