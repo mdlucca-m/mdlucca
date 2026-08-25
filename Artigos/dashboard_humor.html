@@ -13,6 +13,26 @@
   --good:#2ff0cf; --warn:#ffc24d; --crit:#ff5c72; --accent:#2ff0cf;
   --shadow:0 22px 60px -24px rgba(0,0,0,.78);
 }
+/* Tema alternativo "Executivo BI" — navy + dourado (inspirado em painéis Power BI).
+   Muda apenas o CROMO (fundo, vidros, acento, brilhos); as cores semânticas dos
+   dados (vigor/fadiga/...) permanecem para não perder o significado. */
+:root[data-theme="exec"]{
+  --bg0:#050a15; --bg1:#0a1730; --bg2:#0f2143;
+  --glass:rgba(13,28,56,.62); --glass2:rgba(20,40,76,.68); --stroke:rgba(126,158,212,.20);
+  --ink:#eef3fc; --muted:#a4b6d4; --faint:#7086ab;
+  --good:#e9b949; --accent:#e9b949;
+  --shadow:0 22px 60px -24px rgba(0,0,0,.84);
+}
+:root[data-theme="exec"] body{
+  background:radial-gradient(1200px 720px at 82% -10%,rgba(233,185,73,.13),transparent 60%),
+    radial-gradient(1000px 640px at -6% 110%,rgba(37,80,152,.22),transparent 58%),
+    linear-gradient(158deg,var(--bg0),var(--bg1) 46%,var(--bg2));}
+:root[data-theme="exec"] .side{background:linear-gradient(180deg,rgba(13,28,56,.88),rgba(9,19,38,.66))}
+:root[data-theme="exec"] .logo{background:linear-gradient(150deg,#e9b949,#b8862a)}
+.themebtn{display:inline-flex; align-items:center; gap:7px; cursor:pointer; font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.04em;
+  color:var(--muted); background:var(--glass); border:1px solid var(--stroke); border-radius:999px; padding:6px 12px; transition:.2s}
+.themebtn:hover{color:var(--accent); border-color:color-mix(in srgb,var(--accent) 45%,var(--stroke)); box-shadow:0 0 16px -4px color-mix(in srgb,var(--accent) 60%,transparent)}
+.themebtn .tdot{width:11px; height:11px; border-radius:50%; background:conic-gradient(from 220deg,#2ff0cf,#e9b949)}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{font-family:"Manrope",system-ui,sans-serif; color:var(--ink); min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
@@ -446,7 +466,7 @@ table.dyn tbody tr.hlrow{background:rgba(90,211,196,.1)}
   <main class="app">
     <header class="topbar">
       <div class="crumb"><span class="cico" id="crumbico"></span><div><div class="ct" id="crumbtag">análise</div><h1 id="crumbtitle">Visão geral</h1></div></div>
-      <div class="meta"><span class="chip"><b>27</b> atletas</span><span class="chip"><b>286</b> observações</span><span class="chip"><b>13</b> coletas</span><span class="chip"><b>7</b> dias</span></div>
+      <div class="meta"><span class="chip"><b>27</b> atletas</span><span class="chip"><b>286</b> observações</span><span class="chip"><b>13</b> coletas</span><span class="chip"><b>7</b> dias</span><button class="themebtn" id="themebtn" type="button" title="Alternar tema (Neon ↔ Executivo BI)"><span class="tdot"></span><span id="themelab">Neon</span></button></div>
     </header>
     <section class="stage"><div class="panel" id="stage"></div></section>
   </main>
@@ -3503,6 +3523,12 @@ function go(id){const s=SECTIONS.find(x=>x.id===id)||SECTIONS[0];CUR=s.id;const 
   stage.className="panel";stage.innerHTML="";requestAnimationFrame(()=>{subnav(stage,gi,s.id);s.render(stage);upgradeKpis(stage);addStepNav(stage,s.id);animateKPIs(stage);requestAnimationFrame(()=>stage.classList.add("in"));});
   try{window.scrollTo(0,0);}catch(e){}
   history.replaceState(null,"","#"+id);}
+/* alternância de tema (Neon padrão ↔ Executivo BI navy+dourado), persistida por navegador */
+(function(){const btn=$("#themebtn"),lab=$("#themelab");if(!btn)return;
+  const apply=t=>{if(t==="exec")document.documentElement.setAttribute("data-theme","exec");else document.documentElement.removeAttribute("data-theme");if(lab)lab.textContent=t==="exec"?"Executivo BI":"Neon";};
+  let t="neon";try{t=localStorage.getItem("dash_theme")||"neon";}catch(e){}apply(t);
+  btn.onclick=()=>{t=t==="exec"?"neon":"exec";apply(t);try{localStorage.setItem("dash_theme",t);}catch(e){}};
+})();
 go((location.hash||"").slice(1)||"executivo");
 /* Observa o palco: qualquer .kpis criada por rebuild interno (ex.: troca de variável) também é
    uniformizada ao padrão futurista. Idempotente (:not(.fut)), então não entra em laço. */
