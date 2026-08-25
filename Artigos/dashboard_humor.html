@@ -388,6 +388,7 @@ table.dyn tbody tr.hlrow{background:rgba(90,211,196,.1)}
 .progtrack{position:relative; height:11px; border-radius:999px; background:rgba(120,150,190,.13); overflow:hidden}
 .progfill{height:100%; border-radius:999px; width:0; transition:width 1.15s cubic-bezier(.2,.7,.2,1)}
 .progstat{font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.04em; padding:1px 8px; border-radius:999px; border:1px solid}
+.agtag{font-family:"IBM Plex Mono",monospace; font-size:8.5px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; padding:1px 6px; border-radius:5px; background:var(--glass); border:1px solid var(--stroke); white-space:nowrap}
 
 /* nós do fluxo (automação) com ícone HD e título brilhante */
 .fnode .hdi,.fstep .hdi{width:38px; height:38px}
@@ -2818,6 +2819,77 @@ const SECTIONS=[
     host=>hbarChart(host,aRows,{h:HH,signed:true,dec:2,max:0.7}));
   h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:16px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13px;line-height:1.62;color:var(--muted)">Cada painel condensa uma frente da análise — do panorama executivo à aptidão física — com seu próprio gráfico. É o <b style="color:var(--ink)">mapa de uma tela</b> para abrir a apresentação; clique em qualquer painel para aprofundar.</p></div>`);
 }},
+{id:"agenda",lab:"Tendências & agenda de pesquisa",icon:"map",render(h){
+  head(h,"síntese · o que aprendemos e o que investigar","Tendências, perfis e agenda de pesquisa","Um mapa do que o microciclo revelou — as <b>tendências temporais</b> e os <b>perfis</b> — e, a partir das limitações honestas do estudo, uma <b>agenda de hipóteses testáveis</b> para novas pesquisas. Cada bloco liga o achado à ferramenta que o sustenta e à investigação que ele abre.");
+  kpiFut(h,[
+    ["Tendências mapeadas","7","direções temporais do microciclo",C.vigor,null,MIC.trend],
+    ["Estrutura","2 eixos","energético × afetivo (independentes)",C.pth,"triangulacao",MIC.split],
+    ["Subgrupos",PRISCO.never+" × "+PRISCO.exp_neg2,"resilientes × prioritários (de 27)",C.warn,"risco",MIC.focus],
+    ["Hipóteses futuras","8","agenda de pesquisa derivada",C.good,null,MIC.signal]]);
+  /* ---- 1 · MAPA DE TENDÊNCIAS ---- */
+  h.insertAdjacentHTML("beforeend",`<div style="margin:20px 0 8px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:${C.accent}">1 · mapa de tendências</div></div>`);
+  const conf=lvl=>{const m={robusto:[C.good,"robusto"],moderado:[C.warn,"moderado"],tentativo:[C.tensao,"tentativo"],estavel:[C.muted,"estável"]},[c,t]=m[lvl]||[C.muted,lvl];return `<span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;padding:1px 8px;border-radius:999px;color:${c};border:1px solid ${rgba(c,.5)}">${t}</span>`;};
+  const g1=cards(h,`<div class="card"><h3>Efeitos temporais (dz · D1→D7)</h3><p class="note">tamanho de efeito por dimensão · divergente do zero</p><div class="host" id="ag_bar"></div></div><div class="card"><h3>Direção de cada tendência</h3><p class="note">o que sobe, o que cai, e o quanto é confiável</p><div id="ag_tr"></div></div>`);
+  hbarChart($("#ag_bar",g1),D17.slice().sort((a,b)=>b[4]-a[4]).map(r=>({lab:r[0],v:r[4],c:cById(kmap[r[0]])})),{h:210,signed:true,dec:2});
+  const TR=[
+    ["▲▼","Eixo energético","Vigor ↓ · Fadiga ↑","dz −0,95 / +0,72",C.fadiga,"robusto","responde à quantidade de carga e acumula ao longo da semana"],
+    ["▲","Sonolência (Epworth)","sobe","dz +0,58 · p=0,019",C.pth,"moderado","acompanha a fadiga (ρ +0,18); marcador de necessidade de recuperação"],
+    ["▼","Recuperação (TQR)","cai abaixo da meta","13,5 → 9,0 (meta ≥13)",C.warn,"moderado","ρ negativo com a carga acumulada; mínimo no D7"],
+    ["◨","Afeto (negativas)","específico do estímulo","raiva jogo dz −0,48 vs HIIT",C.raiva,"moderado","HIIT aversivo × jogo protetor; interação confirmada (fatorial + misto)"],
+    ["＝","Estresse (PSS)","estável","dz −0,19 (ns)",C.muted,"estavel","desgaste físico sem distresse psicológico"],
+    ["∪","PTH","trajetória em U","cai e volta a subir no D7",C.confusao,"tentativo","forma sensível ao suavizador; landmark aproximado"],
+    ["⊞","Estrutura de 2 eixos","energético × afetivo","PERMANOVA p=0,002",C.vigor,"robusto","confirmada por 3 rotas: multivariada, fatorial e triangulação"]
+  ];
+  $("#ag_tr",g1).innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">`+TR.map(t=>{const col=t[4];return `<div style="border:1px solid var(--stroke);border-left:3px solid ${col};border-radius:10px;padding:8px 11px;background:var(--glass)"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:12.5px;color:${col}">${t[1]}</b>${conf(t[5])}</div><div class="note" style="font-size:11.5px;margin-top:2px"><b style="color:var(--ink)">${t[2]}</b> · ${t[3]}</div><div class="note" style="font-size:11px;margin-top:2px;color:var(--muted)">${t[6]}</div></div>`;}).join("")+`</div>`;
+  /* ---- 2 · PERFIS IDENTIFICADOS ---- */
+  h.insertAdjacentHTML("beforeend",`<div style="margin:22px 0 8px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:${C.accent}">2 · perfis identificados</div></div>`);
+  const PF=[
+    ["layers","Migração do perfil de humor",C.vigor,"Iceberg (D1) → superfície/submerso → <b>barbatana de tubarão</b> (D7). O vigor sai do topo e a fadiga isola-se no alto — a assinatura de <b>sobrecarga funcional</b>, não de humor negativo generalizado.","perfis"],
+    ["split","Estrutura de dois eixos",C.pth,"Um eixo <b>energético</b> (vigor/fadiga/sono) que responde à <b>quantidade</b> de carga, e um eixo <b>afetivo</b> (raiva/confusão/estresse) que responde à <b>qualidade</b> do estímulo. Independentes — a descoberta central.","triangulacao"],
+    ["focus","Subgrupos de atletas",C.warn,"<b>"+PRISCO.never+"/27 resilientes</b> (nunca entram em perfil de risco) e <b>"+PRISCO.exp_neg2+"/27 prioritários</b> (≥2 dias em perfil negativo) — a lista natural de acompanhamento individual.","risco"],
+    ["scatter","Emergência não-supervisionada",C.raiva,"Sem rótulos, o k-means isola <b>2 estados</b> (recuperado × perturbação) e a PCoA resume "+Math.round((MV.var[0]+MV.var[1])*100)+"% da variância em 2D — a mesma dicotomia surge da própria estrutura dos dados.","multivar"]
+  ];
+  const pg=document.createElement("div");pg.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px";h.appendChild(pg);
+  PF.forEach(p=>{const c=document.createElement("div");c.className="card";c.style.margin="0";c.style.borderLeft="3px solid "+p[2];c.style.cursor="pointer";c.onclick=()=>go(p[4]);
+    c.innerHTML=`<div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:${p[2]};background:${rgba(p[2],.14)};border:1px solid ${rgba(p[2],.4)}">${ICONS[p[0]]||ICONS.grid}</span><b style="font-size:14px">${p[1]}</b></div><p class="note" style="font-size:12.5px;line-height:1.6;color:var(--ink)">${p[3]}</p><div class="note" style="font-size:10.5px;margin-top:6px;color:${p[2]}">abrir análise ›</div>`;pg.appendChild(c);});
+  /* ---- 3 · AGENDA DE PESQUISA ---- */
+  /* ---- 3 · COMPONENTES-CHAVE DO SINAL ---- */
+  h.insertAdjacentHTML("beforeend",`<div style="margin:22px 0 8px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:${C.accent}">3 · componentes-chave do sinal</div><p class="note" style="font-size:12px;margin-top:4px">quais elementos carregam a informação — do componente estatístico dominante às peças operacionais de um painel enxuto</p></div>`);
+  const gc=cards(h,`<div class="card"><h3>Componente principal (PCo1 · ${Math.round(MV.var[0]*100)}%)</h3><p class="note">carga de cada dimensão no eixo energia ↔ perturbação · sinais opostos = extremos do mesmo eixo</p><div class="host" id="cc_bar"></div></div><div class="card"><h3>Peças que carregam o sinal</h3><p class="note">o que priorizar ao enxugar o monitoramento diário</p><div id="cc_list"></div></div>`);
+  const Dl=["Tensão","Depressão","Raiva","Vigor","Fadiga","Confusão"];
+  hbarChart($("#cc_bar",gc),Dl.map((d,i)=>({lab:d,v:MV.load.PCo1[i],c:MV.load.PCo1[i]>=0?C.vigor:C.raiva})),{h:210,signed:true,dec:2,max:Math.max(...MV.load.PCo1.map(Math.abs))*1.2});
+  const CC=[
+    ["Eixo energético","Vigor ↔ Fadiga",C.fadiga,"alto","componente dominante (PCo1, "+Math.round(MV.var[0]*100)+"%) e sinal mais limpo (SNR alto) — a espinha do monitoramento"],
+    ["Sensor afetivo","Raiva · Confusão",C.raiva,"médio","distinguem a qualidade do estímulo (HIIT aversivo × jogo protetor), mesmo com carga física igual"],
+    ["Recuperação","Epworth · TQR",C.pth,"médio","sobem/caem com a carga acumulada; sinalizam necessidade de repouso antes da queda de rendimento"],
+    ["Forma do perfil","padrão das 6 dimensões",C.vigor,"alto","a leitura clínica é a forma inteira (iceberg → barbatana), não uma variável isolada"],
+    ["Baseline por atleta","referência individual",C.tensao,"alto","mais de metade da variância é entre-atletas — a leitura individual exige o próprio ponto de partida"],
+    ["Tipo de estímulo","HIIT × jogo × força",C.confusao,"alto","modula o eixo afetivo; segmentar por tipo de dia é essencial para interpretar as negativas"]
+  ];
+  $("#cc_list",gc).innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">`+CC.map(c=>`<div style="border:1px solid var(--stroke);border-left:3px solid ${c[2]};border-radius:10px;padding:8px 11px;background:var(--glass)"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:12.5px;color:${c[2]}">${c[0]} <span style="color:var(--muted);font-weight:500">· ${c[1]}</span></b><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;padding:1px 7px;border-radius:999px;color:${c[3]==="alto"?C.good:C.warn};border:1px solid ${rgba(c[3]==="alto"?C.good:C.warn,.5)}">peso ${c[3]}</span></div><div class="note" style="font-size:11.5px;margin-top:3px">${c[4]}</div></div>`).join("")+`</div>`;
+  /* ---- 4 · AGENDA DE PESQUISA ---- */
+  h.insertAdjacentHTML("beforeend",`<div style="margin:22px 0 8px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:${C.accent}">4 · agenda de pesquisa · hipóteses testáveis</div><p class="note" style="font-size:12px;margin-top:4px">cada hipótese nasce de uma <b>limitação honesta</b> do estudo atual — são caminhos para confirmar, não conclusões</p></div>`);
+  const prio=p=>{const c=p==="alta"?C.crit:p==="média"?C.warn:C.muted;return `<span style="font-family:'IBM Plex Mono',monospace;font-size:9px;padding:1px 8px;border-radius:999px;color:${c};border:1px solid ${rgba(c,.5)}">prioridade ${p}</span>`;};
+  const AG=[
+    ["Causalidade estímulo → afeto","HIIT e jogo com carga externa equalizada produzem respostas afetivas distintas.","Crossover intra-sujeito randomizado (ordem dos estímulos), carga externa igualada por GPS/velocidade.","Tipo de dia está confundido com dia e carga; grupo único, sem controle.","alta"],
+    ["Carga interna individual","A dose-resposta humor × carga é individual, não só de nível-dia.","Coletar sPSE (Foster) e FC por sessão; habilita ACWR com janela crônica ≥ 28 dias.","O RPE por sessão não foi coletado — a carga ficou no plano da equipe.","alta"],
+    ["Perfis de risco → desfechos","Perfis invertidos e barbatana predizem lesão e sofrimento psicológico.","Coorte prospectiva por vários microciclos, com registro sistemático de lesões e escalas de saúde mental.","Sem desfechos vinculados a este microciclo — viabilidade demonstrada, não validada.","alta"],
+    ["Biomarcadores do eixo energético","Vigor/fadiga/sono correlacionam com HRV, cortisol e sono actigráfico.","Triangular o BRUMS com marcadores fisiológicos diários.","O eixo energético está medido só por autorrelato.","média"],
+    ["Poder e generalização","Os efeitos afetivos pequenos e a taxonomia de perfis se mantêm em amostras maiores.","Estudo multicêntrico, n maior, mais modalidades esportivas.","n=27; efeitos afetivos pequenos; perfis por centroide na própria amostra.","média"],
+    ["Modelos idiográficos","Baseline por atleta melhora muito a leitura individual.","Séries temporais individuais; modelos idiográficos / estado-espaço por atleta.","A variância é majoritariamente entre-atletas; previsão individual fraca (AUC ~0,6).","média"],
+    ["Aptidão × humor individual","A aptidão aeróbia amortece a fadiga também no nível do atleta.","Coleta integrada humor + físico com consentimento para cruzar por atleta.","Anonimização separada (códigos A e P) impede o cruzamento individual.","média"],
+    ["Janela temporal ampliada","Recuperação e supercompensação aparecem na escala do mesociclo.","Acompanhar múltiplos microciclos, incluindo tapering.","7 dias são insuficientes para a dinâmica crônica e o ACWR.","baixa"]
+  ];
+  const ag=document.createElement("div");ag.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px";h.appendChild(ag);
+  AG.forEach((a,i)=>{const c=document.createElement("div");c.className="card";c.style.margin="0";
+    c.innerHTML=`<div style="display:flex;align-items:center;gap:9px;margin-bottom:7px"><span style="width:26px;height:26px;flex:0 0 auto;border-radius:8px;display:grid;place-items:center;font-family:'Space Grotesk','Sora',sans-serif;font-weight:800;font-size:13px;color:${C.good};background:${rgba(C.good,.14)};border:1px solid ${rgba(C.good,.34)}">${i+1}</span><b style="font-size:13.5px;line-height:1.15">${a[0]}</b></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div><span class="agtag" style="color:${C.vigor}">Hipótese</span> <span class="note" style="font-size:12px;color:var(--ink)">${a[1]}</span></div>
+        <div><span class="agtag" style="color:${C.pth}">Desenho</span> <span class="note" style="font-size:12px">${a[2]}</span></div>
+        <div><span class="agtag" style="color:${C.warn}">Resolve</span> <span class="note" style="font-size:11.5px;color:var(--muted)">${a[3]}</span></div>
+      </div><div style="margin-top:8px">${prio(a[4])}</div>`;ag.appendChild(c);});
+  h.insertAdjacentHTML("beforeend",`<div class="card" style="margin-top:16px;border-left:3px solid var(--accent)"><p class="note" style="font-size:13px;line-height:1.64;color:var(--ink)"><b>Fecho.</b> Este microciclo <b>mapeou tendências</b> (eixo energético em queda, afeto sensível ao estímulo, recuperação declinante), <b>identificou perfis</b> (migração iceberg→barbatana, dois eixos, subgrupos de risco) e, sendo <b>observacional e de grupo único</b>, entrega sobretudo <b>hipóteses fortes e um instrumento de rastreio</b>. A agenda acima transforma cada limitação num desenho capaz de <b>confirmar</b> o que aqui só foi descrito.</p></div>`);
+}},
 {id:"futurista",lab:"Galeria 4K · 3D",icon:"pca",render(h){
   head(h,"visual · alto detalhe","Painéis futuristas — 4K · 3D","Uma galeria em alta definição, com profundidade e efeitos de luz: barras isométricas, anel 3D extrudado, radar neon e campo orbital. Os mesmos dados reais do estudo, numa pele futurista. Clique em <b>Plotar</b> para repetir qualquer animação.");
   const grid=document.createElement("div");grid.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:16px;margin-top:6px";h.appendChild(grid);
@@ -3320,7 +3392,7 @@ const NAVGROUPS=[
   {lab:"Estímulo × resposta (HIIT · jogo · sono)",icon:"bolt",home:"hiit",ids:["hiit","cargas","estratos","negdia","sono"],
    intro:"O mesmo olhar por tipo de dia: o que o HIIT e o jogo amistoso fazem ao humor, às dimensões negativas e ao sono/estresse. A síntese destes recortes está na aba Triangulação."},
   {lab:"Relações & predição", icon:"trend",  ids:["corr","preditivo","iot","atletas","individual"]},
-  {lab:"Síntese · triangulação",icon:"nodes",ids:["triangulacao","fatorial","dinamica"]},
+  {lab:"Síntese · triangulação",icon:"nodes",ids:["triangulacao","fatorial","dinamica","agenda"]},
   {lab:"Aptidão física",      icon:"heart",  ids:["fisico"]}
 ];
 const ORDER=NAVGROUPS.flatMap(g=>g.ids);
