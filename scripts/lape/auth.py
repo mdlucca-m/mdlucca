@@ -120,12 +120,49 @@ def set_credentials(db: Database, member_id: int, login: str, password: str,
             "must_change_password": must_change}
 
 
+def _nome_mais_completo(guardado: str | None, digitado: str) -> bool:
+    """O nome digitado e o mesmo, so que inteiro?
+
+    A planilha costuma trazer "Andrade"; a pessoa, ao criar o proprio acesso,
+    digita "Alexandro Andrade". Quando o guardado cabe dentro do digitado, o
+    digitado e melhor -- e so nesse caso trocamos, para nunca substituir um
+    nome bom por um pior.
+    """
+    if not guardado or not digitado:
+        return False
+    def partes(texto: str) -> list[str]:
+        return [t.strip(".").lower() for t in texto.split() if t.strip(".")]
+    velhas, novas = partes(guardado), partes(digitado)
+    if not velhas:
+        return False
+    for parte in velhas:
+        # inicial casa com a palavra inteira: "A" reconhece "Alexandro"
+        if not any(nova == parte or (len(parte) == 1 and nova.startswith(parte))
+                   for nova in novas):
+            return False
+    # melhor = mais partes, ou as mesmas partes com menos iniciais soltas.
+    # "Andrade A." e "Alexandro Andrade" tem duas partes cada, mas o segundo
+    # troca uma inicial por um nome.
+    inteiras = lambda lista: sum(1 for x in lista if len(x) > 1)
+    return len(novas) > len(velhas) or inteiras(novas) > inteiras(velhas)
+
+
 def create_account(db: Database, full_name: str, login: str, password: str | None = None,
                    role: str = "integrante", **extra: Any) -> dict[str, Any]:
-    """Cria (ou reaproveita) o integrante e lhe da acesso."""
+    """Cria (ou reaproveita) o integrante e lhe da acesso.
+
+    Reaproveitar importa: o registro que veio da planilha ja tem os artigos
+    da pessoa ligados a ele. Criar um segundo registro deixaria a producao
+    dela orfa no painel.
+    """
     member_id = db.member_id(full_name, create=True, **extra)
     if member_id is None:
         raise AuthError("nao foi possivel identificar o nome informado", 400)
+    guardado = db.scalar("SELECT full_name FROM members WHERE id = ?", (member_id,))
+    if _nome_mais_completo(guardado, full_name):
+        db.execute("UPDATE members SET full_name = ?, updated_at = datetime('now')"
+                   " WHERE id = ?", (clean_text(full_name), member_id))
+        db.conn.commit()
     generated = password is None
     password = password or generate_password()
     result = set_credentials(db, member_id, login, password, role, must_change=generated)

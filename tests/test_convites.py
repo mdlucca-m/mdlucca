@@ -118,6 +118,65 @@ class TestConvite(unittest.TestCase):
         self.assertEqual(len(tokens), 20)
         self.assertTrue(all(len(t) >= 30 for t in tokens))
 
+    def test_liga_ao_registro_que_a_planilha_ja_criou(self):
+        """Quem se cadastra herda a producao que ja estava no banco.
+
+        A planilha traz o autor como "Andrade"; a pessoa digita o nome
+        inteiro. Se o cadastro criasse um segundo registro, os artigos dela
+        ficariam orfaos no painel e a rede de coautoria se partiria.
+        """
+        from lape import ingest_excel
+
+        ingest_excel.ingest_articles(self.db, [
+            {"title": "Ansiedade competitiva em nadadores", "authors": "Andrade; Vilarino"},
+            {"title": "Dor cronica e exercicio", "authors": "Andrade"},
+        ])
+        antes = self.db.scalar("SELECT COUNT(*) FROM members")
+        convite = auth.create_invite(self.db, self.chefe["member_id"])
+        auth.accept_invite(self.db, convite["token"], "Alexandro Andrade",
+                           "alexandro@udesc.br", "Serra-do-Rio-do-Rastro-8")
+        pessoa = self.db.dicts("SELECT id, full_name FROM members"
+                               " WHERE login = 'alexandro@udesc.br'")[0]
+        # nao criou registro novo: reaproveitou o da planilha
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM members"), antes)
+        # e os artigos vieram junto
+        self.assertEqual(self.db.scalar(
+            "SELECT COUNT(*) FROM article_authors WHERE member_id = ?", (pessoa["id"],)), 2)
+        # o nome digitado, mais completo, substitui a abreviacao da planilha
+        self.assertEqual(pessoa["full_name"], "Alexandro Andrade")
+
+    def test_nome_bom_nunca_e_trocado_por_um_pior(self):
+        from lape import ingest_excel
+
+        ingest_excel.ingest_members(self.db, [{"full_name": "Marina Rossetto Cardoso"}])
+        convite = auth.create_invite(self.db, self.chefe["member_id"])
+        auth.accept_invite(self.db, convite["token"], "Cardoso", "marina@udesc.br",
+                           "Serra-do-Rio-do-Rastro-8")
+        self.assertEqual(
+            self.db.scalar("SELECT full_name FROM members WHERE login = 'marina@udesc.br'"),
+            "Marina Rossetto Cardoso")
+
+    def test_comparacao_de_nomes(self):
+        melhor = auth._nome_mais_completo
+        self.assertTrue(melhor("Andrade", "Alexandro Andrade"))
+        self.assertTrue(melhor("Andrade A.", "Alexandro Andrade"))
+        self.assertTrue(melhor("Cardoso", "Marina Rossetto Cardoso"))
+        self.assertFalse(melhor("Alexandro Andrade", "Andrade"))
+        self.assertFalse(melhor("Andrade", "Andrade"))
+        self.assertFalse(melhor("Silva", "Alexandro Andrade"))
+        self.assertFalse(melhor(None, "Alexandro Andrade"))
+
+    def test_convite_com_perfil_de_coordenacao(self):
+        """E o caso do professor: ele precisa convidar os outros e rodar agentes."""
+        convite = auth.create_invite(self.db, self.chefe["member_id"],
+                                     "Coordenacao", role="coordenacao", max_uses=1)
+        sessao = auth.accept_invite(self.db, convite["token"], "Alexandro Andrade",
+                                    "alexandro@udesc.br", "Serra-do-Rio-do-Rastro-8")
+        self.assertEqual(sessao["user"]["user_role"], "coordenacao")
+        # e ele ja consegue convidar a equipe
+        equipe = auth.create_invite(self.db, sessao["user"]["id"], "Equipe", max_uses=30)
+        self.assertTrue(auth.invite_state(self.db, equipe["token"])["valid"])
+
     def test_uso_fica_registrado(self):
         convite = auth.create_invite(self.db, self.chefe["member_id"])
         auth.accept_invite(self.db, convite["token"], "Julia", "julia@udesc.br",

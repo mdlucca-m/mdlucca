@@ -141,9 +141,21 @@ Você **não** cria conta por conta, nem manda senha para ninguém.
    dias vale. O padrão é 30 pessoas e 14 dias.
 3. Clique em **Gerar link** e mande no grupo do laboratório.
 
+No seletor **Perfil de quem entrar**: *Integrante* para os alunos, *Coordenação*
+para quem também vai convidar os outros e rodar os agentes (o convite de
+coordenação já vem com uma vaga só, porque é para uma pessoa e não para um
+grupo). Administrador não sai por convite: esse se eleva depois, com a pessoa
+já identificada.
+
 Quem abre o link vê uma página de cadastro, **escolhe a própria senha** e cai
 direto no formulário do perfil. A partir daí a pessoa cadastra seus artigos,
 submissões e projetos, e tudo aparece no seu painel.
+
+**O cadastro se liga ao que já está no banco.** Se a planilha traz o autor como
+“Andrade” e a pessoa digita “Alexandro Andrade”, o sistema reconhece que é a
+mesma pessoa: o acesso entra no registro que já existe, com os artigos dela já
+vinculados, e o nome completo substitui a abreviação. Não cria pessoa
+duplicada, e a rede de coautoria não se parte.
 
 Três coisas de propósito: a senha nasce no navegador de quem se cadastra — a
 coordenação nunca a conhece; o link **vence** e tem **limite de pessoas**, para
@@ -791,7 +803,7 @@ Dockerfile
 docker-compose.yml          desenvolvimento
 docker-compose.prod.yml     produção: aplicação + Caddy (+ túnel opcional)
 .env.example                modelo de configuração
-tests/                      191 testes, sem acesso à rede
+tests/                      197 testes, sem acesso à rede
 ```
 
 O `scripts/migrate.R` continua funcionando: aplica o mesmo `sql/schema.sql`,
