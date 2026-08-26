@@ -22,7 +22,7 @@ import os
 from datetime import date
 from typing import Any
 
-from .. import config, sources
+from .. import config, hooks, sources
 from ..db import Database
 from ..util import clean_text, norm_doi, title_key, to_int
 
@@ -104,6 +104,10 @@ def discover(db: Database, since_year: int | None = None, limit_per_author: int 
             new += 1
 
     db.conn.commit()
+    if new:
+        hooks.emit(db, "descoberta.encontrada", entity="discoveries",
+                   detail=f"{new} publicação(ões) nova(s) para revisar",
+                   payload={"new": new, "authors_checked": len(members)})
     db.log_ingest(NAME, target="discoveries", rows_read=found, rows_written=new,
                   status="parcial" if errors else "ok",
                   message=f"autores={len(members)} novos={new}"

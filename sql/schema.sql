@@ -267,6 +267,47 @@ CREATE TABLE IF NOT EXISTS discoveries (
   UNIQUE (source, title_key)
 );
 
+/* ---------- Automacao: eventos e integracoes ---------- */
+
+/* Fila de eventos do sistema. E dela que sai o streaming em tempo real do
+   painel e o disparo dos webhooks para o n8n. */
+CREATE TABLE IF NOT EXISTS change_log (
+  id        INTEGER PRIMARY KEY,
+  at        TEXT NOT NULL DEFAULT (datetime('now')),
+  event     TEXT NOT NULL,
+  entity    TEXT,
+  entity_id TEXT,
+  actor     TEXT,
+  detail    TEXT
+);
+
+/* Destinos externos. Cada webhook do n8n vira uma linha aqui. */
+CREATE TABLE IF NOT EXISTS webhooks (
+  id          INTEGER PRIMARY KEY,
+  name        TEXT NOT NULL,
+  url         TEXT NOT NULL,
+  event       TEXT NOT NULL DEFAULT '*',
+  secret      TEXT,
+  active      INTEGER NOT NULL DEFAULT 1,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  last_at     TEXT,
+  last_status TEXT,
+  failures    INTEGER NOT NULL DEFAULT 0,
+  UNIQUE (url, event)
+);
+
+CREATE TABLE IF NOT EXISTS webhook_deliveries (
+  id         INTEGER PRIMARY KEY,
+  webhook_id INTEGER REFERENCES webhooks(id) ON DELETE CASCADE,
+  event      TEXT NOT NULL,
+  at         TEXT NOT NULL DEFAULT (datetime('now')),
+  status     TEXT NOT NULL,
+  http_code  INTEGER,
+  attempt    INTEGER NOT NULL DEFAULT 1,
+  duration_ms INTEGER,
+  error      TEXT
+);
+
 /* ---------- Acesso e auditoria ---------- */
 
 CREATE TABLE IF NOT EXISTS sessions (
@@ -319,6 +360,9 @@ CREATE INDEX IF NOT EXISTS idx_discoveries_status ON discoveries(status, found_a
 CREATE INDEX IF NOT EXISTS idx_project_members ON project_members(member_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_member ON sessions(member_id, expires_at);
 CREATE INDEX IF NOT EXISTS idx_audit_at ON audit_log(at);
+CREATE INDEX IF NOT EXISTS idx_change_at ON change_log(at);
+CREATE INDEX IF NOT EXISTS idx_change_event ON change_log(event, at);
+CREATE INDEX IF NOT EXISTS idx_delivery_hook ON webhook_deliveries(webhook_id, at);
 
 /* ---------- Views analiticas ---------- */
 

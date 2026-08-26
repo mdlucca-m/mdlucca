@@ -351,6 +351,12 @@ sobrescrito por fonte externa. Os agentes só preenchem campos vazios.
 | `/api/agents/tracker` | POST | coordenação | Dispara o rastreador |
 | `/api/agents/curator` | POST | coordenação | Dispara o ciclo completo |
 | `/api/audit` | GET | coordenação | Registro de atividade |
+| `/api/stream` | GET | leitura | Eventos em tempo real (SSE) — é o que redesenha o painel |
+| `/api/automation` | GET | coordenação | Webhooks, entregas e histórico de eventos |
+| `/api/webhooks` | POST | coordenação | Cadastra um destino (`{"nome","url","evento"}`) |
+| `/api/webhooks/<id>/testar` | POST | coordenação | Dispara um teste e devolve o resultado na hora |
+| `/api/webhooks/<id>/remover` | POST | coordenação | Remove o destino |
+| `/api/hooks/n8n` | POST | HMAC ou token | Porta de entrada do n8n: `curador`, `rastreador`, `lake`, `cadastrar` |
 | `/api/export/sqlite` | GET | admin | Baixa o banco |
 
 O `POST` aceita **os mesmos nomes de coluna das planilhas**:
@@ -387,11 +393,20 @@ curl -H "Authorization: Bearer $LAPE_API_TOKEN" http://127.0.0.1:8000/api/metric
 Servido em `/` (ao vivo) e exportado em `docs/index.html` (arquivo único, sem
 dependências externas, funciona offline e no GitHub Pages).
 
-**Navegação por abas.** Cada aba é plotada no momento em que você entra nela,
-contra o recorte atual — nada é desenhado à toa. Ao vivo, o painel reconfere os
-dados a cada 25 s por uma consulta barata (`/api/state`) e só recarrega tudo
-quando algo mudou; durante a recarga o desenho anterior fica no lugar, sem
-esqueleto e sem salto.
+**Seis seções, cada uma com suas sub-abas.** O primeiro nível diz *do que se
+trata* — Visão geral, Produção, Pessoas, Processo, Espaço-tempo, Dados — e o
+segundo diz *qual recorte*. Cada seção tem seu ícone; `Alt + 1…6` troca de seção
+sem tirar a mão do teclado. No pé de cada sub-aba, um bloco **“Continue por”**
+liga o assunto às sub-abas irmãs de outras seções, para que a leitura siga o
+tema e não a estrutura do menu.
+
+**Plotagem em tempo real.** Cada sub-aba é desenhada no momento em que você
+entra nela, contra o recorte atual — nada é desenhado à toa. Ao vivo, o servidor
+**empurra** as mudanças por `/api/stream` (SSE) e o painel se redesenha no mesmo
+segundo; uma rajada de cadastros vira um redesenho só. Se o navegador ou um
+proxy no meio não segurar a conexão, o painel cai sozinho para a conferência
+periódica em `/api/state`. Durante a recarga o desenho anterior fica no lugar,
+sem esqueleto e sem salto.
 
 **Barra de filtros única, acima de tudo.** Ano em botões (é o filtro que todo
 mundo procura primeiro), linha, situação, integrante e busca livre. Mais o
@@ -401,35 +416,44 @@ seletor **“Segmentar por”**, que muda a dimensão de agrupamento dos gráfic
 nenhum valor existe apenas dentro de uma dica de mouse. As tabelas ordenam por
 qualquer coluna, filtram, paginam e exportam.
 
-| Aba | Conteúdo |
-|---|---|
-| Visão geral | KPIs com variação medida e minigráfico, rosca por segmento, colunas por ano com régua de média, funil da produção, treemap por linha |
-| **Explorar dados** | Medida × recorte × quebra × forma, refeito na hora pela camada analítica |
-| Linhas de pesquisa | Ficha por linha + colunas empilhadas comparando etapas |
-| Banco de pesquisadores | Índice h em ranking, dispersão produção × impacto, tabela ordenável, ficha em painel lateral |
-| Projetos | KPIs, barras por financiador, halteres de vigência, tabela |
-| Artigos em produção | Carga por responsável, distribuição de idade (quartis), tabela |
-| Artigos submetidos | Espera mediana e máxima, tabela por revista |
-| Publicações | Colunas por ano + acumulado, série histórica, periódicos mais usados |
-| Artigos mais citados | Abas Scopus / WoS / OpenAlex, ranking, dispersão idade × impacto |
-| Artigos por integrante | Colunas empilhadas por etapa, tabela cruzada |
-| Rede de colaboração | Grafo de coautoria clicável, densidade, duplas mais produtivas |
-| Tempos do ciclo editorial | Distribuição das três etapas, faixas de tempo, dispersão tentativas × tempo |
-| Submissões e recusas | **Sankey** do caminho das submissões, tentativas, decisões, motivos, intervalos |
-| Datas de aceite | Halteres submissão → aceite, tabela |
-| Calendário e atividades | Calendário navegável, próximas atividades, tipos e anos |
-| Linha do tempo | Mapa de calor ano × mês, evolução anual comparada, histórico medido |
-| Distribuição espacial | Mapa de bolhas, locais, instituições |
-| Achados do rastreador | Publicações aguardando aprovação |
-| Qualidade e origem | Lacunas, últimas cargas e **linhagem** (arquivo, sha256, linhas) |
+| Seção | Sub-aba | Conteúdo |
+|---|---|---|
+| **Visão geral** | Painel | KPIs com variação medida e minigráfico, rosca por segmento, colunas por ano com régua de média, **medidor** do ritmo do ano, **área empilhada** da composição, funil, treemap |
+| | Explorar dados | Medida × recorte × quebra × forma, refeito na hora pela camada analítica |
+| **Produção** | Em produção | Carga por responsável, distribuição de idade (quartis), tabela |
+| | Submetidos | Espera mediana e máxima, tabela por revista |
+| | Publicações | Colunas por ano + acumulado, série histórica, periódicos, **bump** de quem publicou mais ano a ano |
+| | Mais citados | Abas Scopus / WoS / OpenAlex, ranking, dispersão idade × impacto |
+| **Pessoas** | Pesquisadores | Índice h em ranking, dispersão produção × impacto, tabela ordenável, ficha em painel lateral |
+| | Por integrante | Colunas empilhadas por etapa, **bullet** de cada um contra a média, dispersão h × produção |
+| | Colaboração | Grafo de coautoria clicável, densidade, duplas mais produtivas |
+| | Linhas de pesquisa | Ficha por linha, colunas empilhadas por etapa, **radar** por ano |
+| | Projetos | KPIs, barras por financiador, halteres de vigência, tabela |
+| **Processo** | Tempos do ciclo | Distribuição das três etapas, **cascata** de onde o tempo é gasto, faixas, dispersão tentativas × tempo |
+| | Submissões e recusas | **Sankey** do caminho das submissões, tentativas, decisões, motivos, intervalos |
+| | Aceites | Halteres submissão → aceite, tabela |
+| **Espaço-tempo** | Calendário | Calendário navegável, próximas atividades, tipos e anos, **calendário-mapa** do ano inteiro |
+| | Linha do tempo | Mapa de calor ano × mês, evolução anual comparada, histórico medido |
+| | Mapa | Mapa de bolhas, locais, instituições |
+| **Dados** | Achados | Publicações aguardando aprovação |
+| | Qualidade | Lacunas, últimas cargas e **linhagem** (arquivo, sha256, linhas) |
+| | **Automação** | Webhooks do n8n, entregas com status e erro, histórico de eventos, catálogo |
 
 ### Formas disponíveis
 
 Colunas (simples, empilhadas, agrupadas, com linha de referência), barras
-ranqueadas, linhas com mira que encontra o X, área, rosca com chamadas, funil,
-dispersão com alvo de 24 px, halteres, mapa de calor sequencial, distribuição
-(quartis + mediana + pontos), treemap, Sankey, rede de força, bolhas
-geográficas, minigráfico e medidor.
+ranqueadas, linhas com mira que encontra o X, **área empilhada com degradê**,
+rosca com chamadas, funil, dispersão com alvo de 24 px, halteres, mapa de calor
+sequencial, **calendário-mapa** de um ano inteiro, distribuição (quartis +
+mediana + pontos), treemap, Sankey, rede de força, bolhas geográficas,
+**radar**, **medidor radial**, **cascata**, **bullet** (realizado × meta),
+**bump** (mudança de posição), minigráfico e barra de progresso.
+
+Duas regras sobre as formas novas, porque é onde costumam mentir: o **radar** só
+entra quando todos os eixos partilham a mesma unidade (no painel, artigos por
+ano); e a **cascata** só soma quando as parcelas realmente somam — por isso ela
+usa as médias dos artigos que têm as quatro datas preenchidas, e diz isso na
+legenda.
 
 ### Sobre as cores
 
@@ -448,7 +472,10 @@ bolha e mapa usam no máximo três séries (o limite que passa no teste de “to
 os pares”); e texto nunca veste a cor da série.
 
 O modo escuro não é uma inversão automática: são os mesmos oito matizes
-reposicionados para a superfície escura e verificados como conjunto.
+reposicionados para a superfície escura e verificados como conjunto. A
+superfície fosca `#14161c` é a que passou no teste — e o **degradê veste só a
+moldura** (cabeçalho de cartão, indicador, página), nunca a área de plotagem:
+atrás de uma marca, ele quebraria o contraste que acabou de ser verificado.
 
 Para publicar a versão estática no GitHub Pages, veja
 [Publicar na nuvem](#publicar-na-nuvem--custo-zero).
@@ -516,6 +543,35 @@ Num servidor próprio, agende o curador no cron e deixe o site no ar:
 0 3 * * *  /opt/lape/deploy/backup.sh
 ```
 
+### n8n — ligar o LAPE a Drive, e-mail, Slack e planilhas de terceiros
+
+Opcional, e nas duas direções:
+
+```
+  n8n  ──POST /api/hooks/n8n──▶  LAPE      "roda o curador", "cadastra isto"
+  LAPE ──POST no webhook do n8n──▶ n8n     "publiquei um artigo", "achei algo novo"
+```
+
+Todo fato relevante do sistema vira um **evento** (`artigo.publicado`,
+`descoberta.encontrada`, `lake.atualizado`, …). Um evento entra em `change_log`,
+acorda quem estiver assinando `/api/stream` — é assim que o painel redesenha na
+hora — e é entregue aos webhooks cadastrados.
+
+O corpo vai assinado em `X-LAPE-Signature: sha256=<hmac>`; na direção contrária,
+a mesma assinatura é exigida (ou o token de serviço). A entrega roda em segundo
+plano, com três tentativas e espera crescente: **uma automação fora do ar nunca
+trava o cadastro de um artigo**.
+
+Cadastre os destinos em **Painel → Dados → Automação**, que também dispara um
+teste e mostra o resultado na hora. Quatro fluxos prontos para importar estão em
+[`automation/n8n/`](automation/n8n/README.md) — atualização diária, aviso de
+publicação, planilha do Drive e busca semanal.
+
+```bash
+LAPE_API_TOKEN=...       # autentica n8n → LAPE
+LAPE_WEBHOOK_SECRET=...  # prova que a mensagem saiu do LAPE
+```
+
 ---
 
 ## Estrutura do projeto
@@ -534,6 +590,7 @@ scripts/
     mapping.py              sinônimos de abas, colunas e vocabulário controlado
     db.py                   SQLite: upserts idempotentes, fusão de integrantes
     auth.py                 senhas, sessões e permissões
+    hooks.py                eventos: streaming do painel e webhooks do n8n
     ingest_excel.py         planilhas → banco (formato largo → longo incluso)
     ingest_lattes.py        XML do Lattes → banco
     ingest_citations.py     Scopus e Web of Science
@@ -546,6 +603,7 @@ scripts/
     agents/curator.py       agente curador
     templates/
       theme.css             sistema de design e paleta verificada
+      icons.js              ícones em SVG embutido (sem fonte, sem rede)
       charts.js             biblioteca de gráficos (sem dependências)
       dashboard.html/.js    painel
       login.html, app.html  acesso e área do integrante
@@ -553,6 +611,7 @@ data/raw/                   planilhas e XML do Lattes (entrada)
 data/geo/                   GeoJSON opcional para o mapa
 data/lake/                  bronze e ouro (fora do git; em produção, no volume)
 docs/index.html             painel estático (saída)
+automation/n8n/             quatro fluxos prontos para importar no n8n
 deploy/
   instalar.sh               instalação em um comando (Docker + HTTPS + admin)
   Caddyfile                 HTTPS automático e gratuito
@@ -563,7 +622,7 @@ Dockerfile
 docker-compose.yml          desenvolvimento
 docker-compose.prod.yml     produção: aplicação + Caddy (+ túnel opcional)
 .env.example                modelo de configuração
-tests/                      96 testes, sem acesso à rede
+tests/                      122 testes, sem acesso à rede
 ```
 
 O `scripts/migrate.R` continua funcionando: aplica o mesmo `sql/schema.sql`,
@@ -582,6 +641,11 @@ calcula (por exemplo, os 12,5 dias médios entre uma recusa e a nova submissão)
 sobem um servidor HTTP real para testar login, permissões, cadastro e as
 consultas analíticas, e substituem as bases externas por respostas gravadas —
 rodam sem rede.
+
+Os testes da automação sobem um destino de webhook local e conferem o HMAC
+exatamente como o n8n conferiria, verificam que uma entrega com erro é tentada
+de novo e registrada, que um destino fora do ar não derruba o cadastro, e abrem
+uma conexão real em `/api/stream` para ver o evento chegar do outro lado.
 
 Os testes do lakehouse cobrem as três camadas: deduplicação por `sha256` no
 bronze, cálculo das durações e reconstrução sem duplicar no ouro, preservação do

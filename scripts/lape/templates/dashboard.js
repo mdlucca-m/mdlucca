@@ -234,8 +234,13 @@ function card(title, hint, kids) {
   ]);
 }
 function kpi(spec) {
-  const node = el("div", { class: "kpi" + (spec.hero ? " hero" : "") });
-  node.appendChild(el("div", { class: "label", text: spec.label }));
+  const node = el("div", { class: "kpi" + (spec.hero ? " hero" : "")
+    + (spec.tone ? " t-" + spec.tone : "") });
+  const label = el("div", { class: "label" });
+  /* o ícone é decorativo: quem nomeia o indicador é o rótulo ao lado */
+  if (spec.icon) label.appendChild(Icons.get(spec.icon, 14));
+  label.appendChild(el("span", { text: spec.label }));
+  node.appendChild(label);
   node.appendChild(el("div", { class: "value", text: spec.value }));
   if (spec.delta !== undefined && spec.delta !== null && spec.delta !== 0) {
     const up = spec.delta > 0;
@@ -613,7 +618,7 @@ function view(id, label, group, lead, render) {
   VIEWS.push({ id: id, label: label, group: group, lead: lead, render: render });
 }
 
-view("visao", "Visão geral", "", "Retrato do laboratório no recorte atual.", function (host) {
+view("visao", "Painel", "", "Retrato do laboratório no recorte atual.", function (host) {
   const o = D.overview;
   const rows = articles();
   const published = rows.filter(function (a) { return a.status === "publicado"; });
@@ -630,25 +635,28 @@ view("visao", "Visão geral", "", "Retrato do laboratório no recorte atual.", f
   const sparkOf = function (metric) {
     return hist[metric] && hist[metric].values.length > 1 ? hist[metric].values : null; };
 
-  host.appendChild(el("div", { class: "grid g4" }, [
-    kpi({ label: "Artigos no recorte", value: C.fmt(rows.length),
+  host.appendChild(el("div", { class: "grid g4 fixed4" }, [
+    kpi({ label: "Artigos no recorte", value: C.fmt(rows.length), icon: "producao",
       foot: (D.articles || []).length + " no banco todo",
       delta: measured("artigos"), deltaNote: "em 30 dias", spark: sparkOf("artigos") }),
-    kpi({ label: "Em produção", value: C.fmt(rows.filter(function (a) {
+    kpi({ label: "Em produção", icon: "linha", value: C.fmt(rows.filter(function (a) {
       return a.status === "em_producao"; }).length),
       foot: "manuscritos em escrita", delta: measured("em_producao"), deltaNote: "em 30 dias" }),
-    kpi({ label: "Submetidos", value: C.fmt(rows.filter(function (a) {
+    kpi({ label: "Submetidos", icon: "submissao", value: C.fmt(rows.filter(function (a) {
       return a.status === "submetido" || a.status === "em_revisao"; }).length),
       foot: "aguardando parecer", delta: measured("submetidos"), deltaNote: "em 30 dias" }),
-    kpi({ label: "Publicados", value: C.fmt(published.length),
+    kpi({ label: "Publicados", icon: "livro", value: C.fmt(published.length),
       foot: windowTotal + " nos últimos " + o.window + " anos",
       delta: measured("publicados"), deltaNote: "em 30 dias",
       spark: sparkOf("publicados") || perYear, sparkColor: C.token("--series-1") }),
-    kpi({ label: "Média por ano", value: dec(media, 2), foot: "publicações/ano na janela" }),
-    kpi({ label: "Pesquisadores", value: C.fmt(o.n_members),
+    kpi({ label: "Média por ano", icon: "subida", value: dec(media, 2),
+      foot: "publicações/ano na janela" }),
+    kpi({ label: "Pesquisadores", icon: "pessoas", value: C.fmt(o.n_members),
       foot: o.n_collaborators + " colaboradores externos" }),
-    kpi({ label: "Projetos", value: C.fmt(o.n_projects), foot: o.n_projects_active + " em andamento" }),
-    kpi({ label: "Maior índice h", value: C.fmt(o.best_h_index), foot: "entre os integrantes" }),
+    kpi({ label: "Projetos", icon: "projeto", value: C.fmt(o.n_projects),
+      foot: o.n_projects_active + " em andamento" }),
+    kpi({ label: "Maior índice h", icon: "alvo", value: C.fmt(o.best_h_index),
+      foot: "entre os integrantes" }),
   ]));
   if (D.history && !D.history.available) {
     host.appendChild(el("div", { class: "note info", style: "margin-top:14px", html:
@@ -687,6 +695,47 @@ view("visao", "Visão geral", "", "Retrato do laboratório no recorte atual.", f
     { label: "Aceitos", value: aceitos },
     { label: "Publicados", value: published.length },
   ];
+  /* composição da produção ao longo da janela: o total e de que ele é feito */
+  const comp = STATUS_ORDER.filter(function (st) {
+    return rows.some(function (a) { return a.status === st; });
+  }).map(function (st, i) {
+    return {
+      label: STATUS_LABEL[st] || st, color: C.token("--series-" + ((i % 8) + 1)),
+      values: years.map(function (y) {
+        return rows.filter(function (a) {
+          return a.status === st && String(DIM_ACCESSOR.ano(a)) === String(y);
+        }).length;
+      }),
+    };
+  });
+  const noAno = perYear[perYear.length - 1] || 0;
+  const teto = Math.max(Math.max.apply(null, perYear.concat([1])), Math.ceil(media) || 1);
+  host.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" }, [
+    card("Ritmo do ano corrente", "Publicações de " + currentYear
+      + " contra o melhor ano da janela. A marca externa é a média.",
+      C.gauge({
+        value: noAno, max: teto, unit: "publicações em " + currentYear,
+        bands: media > 0 ? [{ to: media, color: C.token("--warning") },
+          { to: teto, color: C.token("--good") }] : [],
+        caption: null, file: "ritmo",
+        table: { cols: [{ label: "Ano", k: "ano" }, { label: "Publicações", k: "n", num: true }],
+          rows: years.map(function (y, i) { return { ano: y, n: perYear[i] }; }) },
+      })),
+    card("Composição da produção por ano", "Cada faixa é um estágio do ciclo; o topo é o total do ano.",
+      comp.length ? C.area({
+        labels: years.map(String), series: comp, height: 250, file: "composicao",
+        table: {
+          cols: [{ label: "Ano", k: "ano" }].concat(comp.map(function (c) {
+            return { label: c.label, k: c.label, num: true }; })),
+          rows: years.map(function (y, i) {
+            const row = { ano: y };
+            comp.forEach(function (c) { row[c.label] = c.values[i]; });
+            return row;
+          }),
+        },
+      }) : C.empty("Sem produção na janela.")),
+  ]));
+
   const linhas = topN(counter(rows, function (a) { return a.research_line || "Sem linha"; }), 8);
   host.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" }, [
     card("Funil da produção", "Quantos manuscritos chegam a cada etapa do ciclo.",
@@ -876,9 +925,47 @@ view("linhas", "Linhas de pesquisa", "Pessoas e projetos",
           { label: "Submetidos", k: "n_submitted", num: true },
           { label: "Publicados", k: "n_published", num: true }], rows: rows },
       }))));
+
+    /* Radar por ano. Todos os eixos são a mesma coisa — artigos num ano —,
+       que é a única situação em que o radar não engana. */
+    const anoAtual = new Date().getFullYear();
+    const janela = [];
+    for (let y = anoAtual - Math.min(D.overview.window, 6) + 1; y <= anoAtual; y++) janela.push(y);
+    const todos = articles();
+    const perfis = rows.slice(0, 4).map(function (line, i) {
+      return {
+        label: cut(line.name, 24), color: C.token("--series-" + ((i % 8) + 1)),
+        values: janela.map(function (y) {
+          return todos.filter(function (a) {
+            return (a.research_line || "Sem linha") === line.name
+              && String(DIM_ACCESSOR.ano(a)) === String(y);
+          }).length;
+        }),
+      };
+    }).filter(function (perfil) {
+      return perfil.values.some(function (v) { return v > 0; });
+    });
+    if (perfis.length && janela.length >= 3) {
+      host.appendChild(el("div", { style: "margin-top:16px" }, card(
+        "Perfil de cada linha ao longo da janela",
+        "Cada eixo é um ano e a unidade é a mesma em todos: artigos. "
+        + "Quanto mais para fora, mais produção naquele ano.",
+        C.radar({
+          axes: janela.map(String), series: perfis, height: 360, file: "linhas-radar",
+          table: {
+            cols: [{ label: "Linha", k: "linha" }].concat(janela.map(function (y) {
+              return { label: String(y), k: String(y), num: true }; })),
+            rows: perfis.map(function (perfil) {
+              const row = { linha: perfil.label };
+              janela.forEach(function (y, i) { row[String(y)] = perfil.values[i]; });
+              return row;
+            }),
+          },
+        }))));
+    }
   });
 
-view("pesquisadores", "Banco de pesquisadores", "Pessoas e projetos",
+view("pesquisadores", "Pesquisadores", "Pessoas e projetos",
   "Nome, linha, projetos, artigos publicados e índice h. Clique numa linha para abrir a ficha.",
   function (host) {
     const rows = (D.researchers || []).filter(function (r) { return !r.is_external || r.n_articles > 0; });
@@ -971,7 +1058,7 @@ view("projetos", "Projetos", "Pessoas e projetos",
     })));
   });
 
-view("producao", "Artigos em produção", "Produção",
+view("producao", "Em produção", "Produção",
   "Manuscritos em escrita, com início, equipe e tempo em aberto.", function (host) {
     const rows = articles().filter(function (a) { return a.status === "em_producao"; });
     const idade = rows.map(function (a) { return daysSince(a.started_on); })
@@ -1012,7 +1099,7 @@ view("producao", "Artigos em produção", "Produção",
     })));
   });
 
-view("submetidos", "Artigos submetidos", "Produção",
+view("submetidos", "Submetidos", "Produção",
   "Manuscritos sob avaliação, com a revista e o tempo desde o envio.", function (host) {
     const rows = articles().filter(function (a) {
       return a.status === "submetido" || a.status === "em_revisao"; });
@@ -1091,9 +1178,64 @@ view("publicacoes", "Publicações", "Produção",
         C.bars({ items: topN(revistas, 12), mono: true, labelWidth: 260, labelChars: 38,
           unit: "artigo(s)", file: "periodicos" }))));
     }
+
+    /* Quem esteve no topo em cada ano. O gráfico lê a inclinação: subiu, caiu
+       ou sumiu do quadro. Sem posição num ano, a linha simplesmente não passa por lá. */
+    const anosBump = years.filter(function (y, i) { return perYear[i] > 0; });
+    if (anosBump.length >= 2) {
+      const porAno = anosBump.map(function (y) {
+        const doAno = published.filter(function (a) { return a.year_published === y; });
+        const contagem = new Map();
+        doAno.forEach(function (a) {
+          (D.researchers || []).forEach(function (person) {
+            const set = MEMBER_ARTICLES.get(person.id);
+            if (set && set.has(a.id)) {
+              contagem.set(person.id, (contagem.get(person.id) || 0) + 1);
+            }
+          });
+        });
+        return Array.from(contagem.entries()).sort(function (a, b) { return b[1] - a[1]; });
+      });
+      const noTopo = new Set();
+      porAno.forEach(function (lista) {
+        lista.slice(0, 5).forEach(function (par) { noTopo.add(par[0]); });
+      });
+      const pessoas = Array.from(noTopo).slice(0, 6).map(function (id, i) {
+        const person = (D.researchers || []).find(function (r) { return r.id === id; }) || {};
+        return {
+          label: cut(person.short_name || person.full_name || "—", 22),
+          color: C.token("--series-" + ((i % 8) + 1)),
+          onClick: function () { showResearcher(id); },
+          values: porAno.map(function (lista) {
+            const pos = lista.findIndex(function (par) { return par[0] === id; });
+            return pos >= 0 && pos < 6 ? pos + 1 : null;
+          }),
+        };
+      }).filter(function (x) { return x.values.some(Boolean); });
+      if (pessoas.length >= 2) {
+        host.appendChild(el("div", { style: "margin-top:16px" }, card(
+          "Quem publicou mais, ano a ano",
+          "Posição no ano entre os integrantes com publicação. 1º fica no alto; "
+          + "sem publicação naquele ano, a linha não passa por ele.",
+          C.bump({
+            labels: anosBump.map(String), series: pessoas, file: "ranking-anual",
+            table: {
+              cols: [{ label: "Integrante", k: "quem" }].concat(anosBump.map(function (y) {
+                return { label: String(y), k: String(y) }; })),
+              rows: pessoas.map(function (x) {
+                const row = { quem: x.label };
+                anosBump.forEach(function (y, i) {
+                  row[String(y)] = x.values[i] ? x.values[i] + "º" : "—";
+                });
+                return row;
+              }),
+            },
+          }))));
+      }
+    }
   });
 
-view("citacoes", "Artigos mais citados", "Produção",
+view("citacoes", "Mais citados", "Produção",
   "Ranking por base. As contagens são atualizadas pelo DOI a cada execução do rastreador.",
   function (host) {
     const published = articles().filter(function (a) { return a.status === "publicado"; });
@@ -1160,7 +1302,7 @@ view("citacoes", "Artigos mais citados", "Produção",
       + "de impacto enquanto Scopus e Web of Science não estiverem configurados." }));
   });
 
-view("equipe", "Artigos por integrante", "Métricas internas",
+view("equipe", "Por integrante", "Métricas internas",
   "Envolvimento de cada pessoa nos artigos do recorte atual.", function (host) {
     const rows = articles();
     const counts = (D.researchers || []).map(function (person) {
@@ -1197,6 +1339,33 @@ view("equipe", "Artigos por integrante", "Métricas internas",
           { label: "Submetidos", k: "f_submitted", num: true },
           { label: "Publicados", k: "f_published", num: true }], rows: top },
       })));
+    /* realizado contra a média do laboratório: quem está acima e quem está abaixo */
+    if (counts.length > 1) {
+      const meta = Math.round(10 * counts.reduce(function (acc, r) { return acc + r.f_total; }, 0)
+        / counts.length) / 10;
+      host.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" }, [
+        card("Cada um contra a média do laboratório",
+          "A barra é o que a pessoa tem; o traço, a média de " + dec(meta, 1) + " artigo(s).",
+          C.bullet({
+            items: top.map(function (r) {
+              return { label: r.short_name || r.full_name, value: r.f_total, target: meta,
+                max: top[0].f_total, onClick: function () { showResearcher(r.id); } };
+            }),
+            file: "equipe-meta",
+            table: { cols: [{ label: "Integrante", k: "full_name" },
+              { label: "Artigos", k: "f_total", num: true }], rows: top },
+          })),
+        card("Índice h e produção", "Duas medidas que costumam andar juntas — quando não andam, vale olhar.",
+          C.scatter({
+            points: counts.filter(function (r) { return r.h_index; }).map(function (r) {
+              return { x: r.f_total, y: r.h_index, label: r.short_name || r.full_name,
+                onSelect: function () { showResearcher(r.id); } };
+            }),
+            xLabel: "artigos no recorte", yLabel: "índice h", height: 280, file: "h-producao",
+            emptyMessage: "Nenhum índice h preenchido ainda. Rode o rastreador na tarefa 'perfis'.",
+          })),
+      ]));
+    }
     host.appendChild(el("div", { style: "margin-top:16px" }, dataTable({
       title: "Integrantes no recorte", file: "equipe", sortKey: "f_total",
       onRow: function (r) { showResearcher(r.id); },
@@ -1215,7 +1384,7 @@ view("equipe", "Artigos por integrante", "Métricas internas",
     })));
   });
 
-view("rede", "Rede de colaboração", "Métricas internas",
+view("rede", "Colaboração", "Métricas internas",
   "Cada nó é um integrante; a espessura da linha é o número de artigos em coautoria.",
   function (host) {
     const net = D.network;
@@ -1244,7 +1413,7 @@ view("rede", "Rede de colaboração", "Métricas internas",
     }
   });
 
-view("tempos", "Tempos do ciclo editorial", "Métricas internas",
+view("tempos", "Tempos do ciclo", "Métricas internas",
   "Quanto tempo cada etapa leva, do início do artigo até a publicação.", function (host) {
     const rows = articles();
     const grupos = [
@@ -1256,10 +1425,40 @@ view("tempos", "Tempos do ciclo editorial", "Métricas internas",
         .filter(function (v) { return v !== null && v !== undefined; }).map(Number) };
     });
     const comDados = grupos.filter(function (g) { return g.values.length; });
-    host.appendChild(el("div", { class: "grid g3" }, grupos.map(function (g) {
-      return kpi({ label: g.label, value: g.values.length ? dur(median(g.values)) : "—",
+    const ICONE = ["relogio", "submissao", "aceite"];
+    host.appendChild(el("div", { class: "grid g3" }, grupos.map(function (g, i) {
+      return kpi({ label: g.label, icon: ICONE[i],
+        value: g.values.length ? dur(median(g.values)) : "—",
         foot: g.values.length ? g.values.length + " artigo(s) com as duas datas" : "sem dados" });
     })));
+
+    /* Cascata do ciclo. Só entram os artigos com as quatro datas: aí as médias
+       das etapas somam exatamente a média do total, e a leitura fecha. */
+    const completos = rows.filter(function (a) {
+      return a.started_on && a.first_submission_on && a.accepted_on && a.published_on;
+    });
+    if (completos.length) {
+      const dias = function (de, ate) {
+        return Math.round((new Date(ate) - new Date(de)) / 86400000);
+      };
+      const medio = function (fn) {
+        return Math.round(completos.reduce(function (acc, a) { return acc + fn(a); }, 0)
+          / completos.length);
+      };
+      const etapas = [
+        { label: "Escrita", value: medio(function (a) { return dias(a.started_on, a.first_submission_on); }) },
+        { label: "Revisão", value: medio(function (a) { return dias(a.first_submission_on, a.accepted_on); }) },
+        { label: "Produção", value: medio(function (a) { return dias(a.accepted_on, a.published_on); }) },
+      ];
+      etapas.push({ label: "Total", value: etapas.reduce(function (acc, e) { return acc + e.value; }, 0),
+        total: true });
+      host.appendChild(el("div", { style: "margin-top:16px" }, card(
+        "Onde o tempo é gasto", "Média de dias por etapa nos " + completos.length
+        + " artigo(s) com as quatro datas preenchidas — por isso as etapas somam o total.",
+        C.waterfall({ items: etapas, height: 260, file: "cascata-do-ciclo",
+          table: { cols: [{ label: "Etapa", k: "label" }, { label: "Dias", k: "value", num: true }],
+            rows: etapas } }))));
+    }
     host.appendChild(el("div", { style: "margin-top:16px" }, card(
       "Distribuição de cada etapa", "Caixa: intervalo interquartil. Traço: mediana. Pontos: artigos.",
       comDados.length ? C.distribution({ groups: comDados, labelWidth: 200, file: "tempos" })
@@ -1420,7 +1619,7 @@ function fluxoSubmissoes() {
       rows: sub.per_journal } });
 }
 
-view("aceites", "Datas de aceite", "Métricas internas",
+view("aceites", "Aceites", "Métricas internas",
   "Aceites registrados, com o tempo decorrido desde a primeira submissão.", function (host) {
     const rows = D.acceptances || [];
     const comTempo = rows.filter(function (r) { return r.days_submission_to_acceptance; });
@@ -1450,7 +1649,7 @@ view("aceites", "Datas de aceite", "Métricas internas",
     })));
   });
 
-view("calendario", "Calendário e atividades", "Espaço-temporal",
+view("calendario", "Calendário", "Espaço-temporal",
   "Reuniões, coletas, defesas e eventos científicos do laboratório.", function (host) {
     const ag = D.agenda;
     const state = { ref: new Date() };
@@ -1518,8 +1717,55 @@ view("calendario", "Calendário e atividades", "Espaço-temporal",
         labels: ag.by_year.map(function (d) { return d.year; }),
         series: [{ label: "Atividades", values: ag.by_year.map(function (d) { return d.n; }),
           color: C.token("--series-1") }],
-        height: 240, file: "atividades-ano" })),
+        height: 240, file: "atividades-ano",
+        onSelect: function (label) { anoCal(Number(label)); } })),
     ]));
+
+    /* o ano inteiro numa tela só: onde o laboratório concentrou atividade */
+    const anos = Array.from(new Set(ag.events.map(function (e) {
+      return Number(String(e.start_at).slice(0, 4)); }))).filter(Boolean).sort();
+    const heatBox = el("div", { style: "margin-top:16px" });
+    host.appendChild(heatBox);
+    let anoAtivo = anos.length ? anos[anos.length - 1] : new Date().getFullYear();
+    function anoCal(ano) {
+      if (ano) anoAtivo = ano;
+      heatBox.innerHTML = "";
+      const dias = {};
+      ag.events.forEach(function (e) {
+        const iso = String(e.start_at).slice(0, 10);
+        if (Number(iso.slice(0, 4)) === anoAtivo) dias[iso] = (dias[iso] || 0) + 1;
+      });
+      const seletor = el("div", { class: "segmented" }, anos.map(function (a) {
+        return el("button", { type: "button", text: String(a),
+          class: a === anoAtivo ? "on" : null, onclick: function () { anoCal(a); } });
+      }));
+      heatBox.appendChild(card("O ano em um quadro",
+        "Um quadrado por dia; quanto mais escuro, mais atividades naquele dia.",
+        el("div", {}, [
+          anos.length > 1 ? el("div", { style: "margin-bottom:12px" }, seletor) : null,
+          C.calendarHeat({
+            year: anoAtivo, days: dias, unit: "atividade(s)", file: "calendario-" + anoAtivo,
+            onPick: function (iso) {
+              const doDia = byDay[iso] || [];
+              if (doDia.length) {
+                openDrawer(dt(iso), el("div", {}, [
+                  el("p", { class: "drawer-sub",
+                    text: doDia.length + " atividade(s) neste dia." }),
+                  el("ul", { class: "agenda" }, doDia.map(function (e) {
+                    return el("li", {}, [
+                      el("div", { class: "what" }, [e.title, el("small", { text:
+                        [KIND_LABEL[e.kind] || e.kind, dtm(e.start_at),
+                         e.location_name || e.city].filter(Boolean).join(" · ") })]),
+                    ]);
+                  })),
+                ]));
+              }
+            },
+            emptyMessage: "Nenhuma atividade registrada em " + anoAtivo + ".",
+          }),
+        ])));
+    }
+    if (anos.length) anoCal(null);
   });
 
 view("temporal", "Linha do tempo", "Espaço-temporal",
@@ -1562,7 +1808,7 @@ view("temporal", "Linha do tempo", "Espaço-temporal",
     }
   });
 
-view("espacial", "Distribuição espacial", "Espaço-temporal",
+view("espacial", "Mapa", "Espaço-temporal",
   "Onde as atividades acontecem e de onde vêm as instituições parceiras.", function (host) {
     const sp = D.spatial;
     host.appendChild(el("div", { class: "grid g2" }, [
@@ -1592,7 +1838,7 @@ view("espacial", "Distribuição espacial", "Espaço-temporal",
     })));
   });
 
-view("descobertas", "Achados do rastreador", "Governança",
+view("descobertas", "Achados", "Governança",
   "Publicações encontradas nas bases externas que ainda não estão no banco.", function (host) {
     const rows = D.discoveries || [];
     if (!rows.length) {
@@ -1623,7 +1869,7 @@ view("descobertas", "Achados do rastreador", "Governança",
     })));
   });
 
-view("qualidade", "Qualidade e origem dos dados", "Governança",
+view("qualidade", "Qualidade", "Governança",
   "Lacunas que limitam as análises e de onde veio cada carga.", function (host) {
     const q = D.quality;
     const pendentes = q.issues.filter(function (i) { return i.n > 0; });
@@ -1676,6 +1922,179 @@ view("qualidade", "Qualidade e origem dos dados", "Governança",
     }
   });
 
+view("automacao", "Automação", "Governança",
+  "Os eventos que o LAPE emite, para onde eles vão e o que voltou de cada entrega.",
+  function (host) {
+    if (!LIVE) {
+      host.appendChild(el("div", { class: "note",
+        text: "Esta aba lê o servidor em tempo real. No arquivo exportado ela fica vazia — "
+          + "abra o painel publicado para cadastrar e conferir os webhooks." }));
+      return;
+    }
+    const box = el("div");
+    host.appendChild(box);
+    box.appendChild(el("div", { class: "empty", text: "Consultando a automação…" }));
+
+    function post(url, body) {
+      return fetch(url, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body || {}),
+      }).then(function (r) {
+        return r.json().then(function (data) {
+          if (!r.ok) throw new Error(data.error || ("HTTP " + r.status));
+          return data;
+        });
+      });
+    }
+    function load() {
+      fetch("/api/automation?limite=60", { headers: { Accept: "application/json" } })
+        .then(function (r) {
+          if (r.status === 401 || r.status === 403) throw new Error("permissao");
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          return r.json();
+        })
+        .then(draw)
+        .catch(function (err) {
+          box.innerHTML = "";
+          box.appendChild(el("div", { class: "note", text: err.message === "permissao"
+            ? "Só a coordenação vê a automação. Entre com um login de coordenação para cadastrar webhooks."
+            : "Não foi possível ler a automação agora: " + err.message }));
+        });
+    }
+
+    function draw(a) {
+      box.innerHTML = "";
+      const falhas = a.deliveries.filter(function (d) { return d.status !== "ok"; }).length;
+      const ativos = a.webhooks.filter(function (w) { return w.active; }).length;
+      box.appendChild(el("div", { class: "grid g4" }, [
+        kpi({ label: "Destinos ativos", value: C.fmt(ativos), icon: "conectar",
+          foot: a.webhooks.length + " cadastrado(s)" }),
+        kpi({ label: "Eventos no catálogo", value: C.fmt(a.events.length), icon: "raio",
+          foot: "assine '*' para receber todos" }),
+        kpi({ label: "Entregas com erro", value: C.fmt(falhas), icon: "aviso",
+          foot: "nas últimas " + a.deliveries.length + " tentativas",
+          tone: falhas ? "bad" : "good" }),
+        kpi({ label: "Painéis ao vivo", value: C.fmt(a.subscribers), icon: "atualizar",
+          foot: a.signing ? "mensagens assinadas" : "sem segredo configurado" }),
+      ]));
+
+      /* cadastro — o mesmo que o curl do README faz, sem linha de comando */
+      const nome = el("input", { class: "search", placeholder: "n8n — publicações", value: "n8n" });
+      const url = el("input", { class: "search", placeholder: "https://n8n.exemplo/webhook/lape" });
+      const evento = el("select", {}, [el("option", { value: "*", text: "* — todos os eventos" })]
+        .concat(a.events.map(function (e) {
+          return el("option", { value: e.id, text: e.id + " — " + e.label });
+        })));
+      const aviso = el("div", { class: "note", style: "display:none" });
+      const enviar = el("button", { class: "primary", type: "button", text: "Cadastrar webhook",
+        onclick: function () {
+          if (!url.value.trim()) { url.focus(); return; }
+          enviar.disabled = true;
+          post("/api/webhooks", { nome: nome.value, url: url.value.trim(), evento: evento.value })
+            .then(function () { url.value = ""; load(); })
+            .catch(function (err) {
+              aviso.style.display = "";
+              aviso.textContent = "Não deu para cadastrar: " + err.message;
+            })
+            .finally(function () { enviar.disabled = false; });
+        } });
+      box.appendChild(el("div", { style: "margin-top:16px" }, card("Ligar o LAPE a um fluxo do n8n",
+        "Copie a URL de produção do nó de webhook no n8n e cole aqui. "
+        + "O corpo vai assinado em X-LAPE-Signature — confira a assinatura antes de agir.",
+        el("div", {}, [
+          el("div", { class: "explorer-controls" }, [
+            el("div", { class: "field" }, [el("label", { text: "Nome" }), nome]),
+            el("div", { class: "field", style: "flex:2" }, [el("label", { text: "URL do webhook" }), url]),
+            el("div", { class: "field" }, [el("label", { text: "Evento" }), evento]),
+            enviar,
+          ]),
+          aviso,
+        ]))));
+
+      const destinos = a.webhooks.length ? dataTable({
+        search: false, pageSize: 10, file: "webhooks",
+        cols: [
+          { k: "name", label: "Nome" },
+          { k: "url", label: "Destino", wide: true },
+          { k: "event", label: "Evento" },
+          { k: "deliveries", label: "Entregas", num: true },
+          { k: "last_status", label: "Última", render: function (r) {
+            return el("span", { class: "badge " + (r.last_status === "ok" ? "s-publicado" : "s-rejeitado"),
+              text: r.last_status || "sem envio" });
+          } },
+          { k: "id", label: "", render: function (r) {
+            return el("div", { style: "display:flex;gap:6px" }, [
+              el("button", { type: "button", text: "Testar", onclick: function (ev) {
+                ev.stopPropagation();
+                ev.target.disabled = true;
+                post("/api/webhooks/" + r.id + "/testar").then(load)
+                  .catch(function () { ev.target.disabled = false; });
+              } }),
+              el("button", { type: "button", text: "Remover", onclick: function (ev) {
+                ev.stopPropagation();
+                if (!confirm("Remover o destino \"" + r.name + "\"?")) return;
+                post("/api/webhooks/" + r.id + "/remover").then(load);
+              } }),
+            ]);
+          } },
+        ],
+        rows: a.webhooks,
+      }) : el("div", { class: "empty",
+        text: "Nenhum destino cadastrado. O LAPE segue funcionando — o n8n é opcional." });
+
+      /* o histórico auditável: é dele que o painel ao vivo se alimenta */
+      const porEvento = counter(a.recent, "event");
+
+      /* a tabela de destinos tem colunas demais para meia largura: fica inteira */
+      box.appendChild(el("div", { style: "margin-top:16px" },
+        card("Destinos cadastrados", "Para onde cada evento é enviado.", destinos)));
+      box.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" }, [
+        card("Últimas entregas", "Três tentativas com espera crescente; falha não trava cadastro.",
+          a.deliveries.length ? dataTable({
+            search: false, pageSize: 10, file: "entregas",
+            cols: [
+              { k: "at", label: "Quando", render: function (r) { return dtm(r.at); } },
+              { k: "webhook", label: "Destino" },
+              { k: "event", label: "Evento" },
+              { k: "status", label: "Status", render: function (r) {
+                return el("span", { class: "badge " + (r.status === "ok" ? "s-publicado" : "s-rejeitado"),
+                  text: r.status + (r.http_code ? " " + r.http_code : "") });
+              } },
+              { k: "attempt", label: "Tent.", num: true },
+              { k: "duration_ms", label: "ms", num: true },
+              { k: "error", label: "Erro", wide: true },
+            ],
+            rows: a.deliveries,
+          }) : el("div", { class: "empty", text: "Nenhuma entrega ainda." })),
+        card("Eventos mais frequentes", "No recorte que o servidor devolveu.",
+          porEvento.length ? C.bars({
+            items: topN(porEvento, 10), mono: true, labelWidth: 210, labelChars: 30,
+            unit: "evento(s)", file: "eventos-frequentes",
+          }) : el("div", { class: "empty", text: "Sem eventos registrados." })),
+      ]));
+
+      box.appendChild(el("div", { style: "margin-top:16px" },
+        card("O que aconteceu no banco", "Cada linha é um evento registrado em change_log.",
+          a.recent.length ? dataTable({
+            search: true, pageSize: 12, file: "eventos",
+            cols: [
+              { k: "at", label: "Quando", render: function (r) { return dtm(r.at); } },
+              { k: "event", label: "Evento" },
+              { k: "entity", label: "Entidade" },
+              { k: "detail", label: "Detalhe", wide: true },
+              { k: "actor", label: "Quem" },
+            ],
+            rows: a.recent,
+          }) : el("div", { class: "empty", text: "Sem eventos registrados." }))));
+
+      box.appendChild(el("div", { style: "margin-top:16px" }, card("Catálogo de eventos",
+        "O n8n pode assinar qualquer um destes nomes — ou '*' para todos.",
+        C.table([{ label: "Evento", k: "id" }, { label: "Quando acontece", k: "label" }], a.events))));
+    }
+
+    load();
+  });
+
 /* abas internas de um cartão */
 function tabbed(items) {
   const nav = el("div", { class: "tabs" });
@@ -1708,46 +2127,130 @@ function aplicarSegmento(label) {
 }
 
 /* ==================================================================== */
-/* navegação e desenho                                                   */
+/* navegação: seis seções com ícone, cada uma com suas sub-abas          */
 /* ==================================================================== */
-let current = "visao";
+/* Menos abas no primeiro nível e mais profundidade no segundo: a seção
+   diz do que se trata, a sub-aba diz qual recorte. Cada sub-aba também
+   aponta para as vizinhas de outras seções (ver RELATED), para que a
+   leitura siga o assunto e não a estrutura do menu. */
+const SECTIONS = [
+  { id: "geral", label: "Visão geral", icon: "painel",
+    views: ["visao", "explorar"] },
+  { id: "producao", label: "Produção", icon: "producao",
+    views: ["producao", "submetidos", "publicacoes", "citacoes"] },
+  { id: "pessoas", label: "Pessoas", icon: "pessoas",
+    views: ["pesquisadores", "equipe", "rede", "linhas", "projetos"] },
+  { id: "processo", label: "Processo", icon: "processo",
+    views: ["tempos", "submissoes", "aceites"] },
+  { id: "espaco", label: "Espaço-tempo", icon: "espaco",
+    views: ["calendario", "temporal", "espacial"] },
+  { id: "dados", label: "Dados", icon: "dados",
+    views: ["descobertas", "qualidade", "automacao"] },
+];
+const VIEW_ICON = {
+  visao: "painel", explorar: "explorar",
+  producao: "producao", submetidos: "submissao", publicacoes: "livro", citacoes: "citacao",
+  pesquisadores: "pessoas", equipe: "barras", rede: "rede", linhas: "linhas", projetos: "projeto",
+  tempos: "relogio", submissoes: "submissao", aceites: "aceite",
+  calendario: "calendario", temporal: "tempo", espacial: "mapa",
+  descobertas: "achado", qualidade: "qualidade", automacao: "automacao",
+};
+/* atalhos entre sub-abas de seções diferentes — a ponte que o menu não faz */
+const RELATED = {
+  visao: ["explorar", "publicacoes", "tempos"],
+  explorar: ["equipe", "publicacoes", "qualidade"],
+  producao: ["tempos", "equipe", "submetidos"],
+  submetidos: ["submissoes", "tempos", "aceites"],
+  publicacoes: ["citacoes", "temporal", "equipe"],
+  citacoes: ["publicacoes", "pesquisadores", "descobertas"],
+  pesquisadores: ["equipe", "rede", "projetos"],
+  equipe: ["rede", "pesquisadores", "producao"],
+  rede: ["equipe", "linhas", "projetos"],
+  linhas: ["projetos", "publicacoes", "equipe"],
+  projetos: ["linhas", "pesquisadores", "producao"],
+  tempos: ["submissoes", "aceites", "producao"],
+  submissoes: ["tempos", "aceites", "submetidos"],
+  aceites: ["publicacoes", "tempos", "submissoes"],
+  calendario: ["temporal", "espacial", "projetos"],
+  temporal: ["publicacoes", "calendario", "espacial"],
+  espacial: ["calendario", "temporal", "projetos"],
+  descobertas: ["citacoes", "qualidade", "automacao"],
+  qualidade: ["automacao", "descobertas", "explorar"],
+  automacao: ["descobertas", "qualidade", "visao"],
+};
+
+/* ordem de leitura do painel inteiro — governa as setas "anterior/próxima" */
+const ORDER = SECTIONS.reduce(function (acc, sec) { return acc.concat(sec.views); }, []);
+function viewOf(id) { return VIEWS.find(function (v) { return v.id === id; }) || null; }
+function sectionOf(id) {
+  return SECTIONS.find(function (sec) { return sec.views.indexOf(id) >= 0; }) || SECTIONS[0];
+}
+function labelOf(id) { const v = viewOf(id); return v ? v.label : id; }
+
+let current = ORDER[0];
 const HOST = document.getElementById("view");
 
 function buildNav() {
   const nav = document.getElementById("nav");
-  nav.querySelectorAll(".navitem, .group").forEach(function (n) { n.remove(); });
-  let group = null;
-  VIEWS.forEach(function (v) {
-    if (v.group !== group) {
-      group = v.group;
-      if (group) nav.appendChild(el("div", { class: "group", text: group }));
-    }
-    nav.appendChild(el("button", {
-      class: "navitem" + (v.id === current ? " active" : ""), type: "button",
-      "data-view": v.id, text: v.label,
-      onclick: function () { go(v.id); },
-    }));
+  nav.querySelectorAll(".navitem, .railfoot").forEach(function (n) { n.remove(); });
+  const active = sectionOf(current);
+  SECTIONS.forEach(function (sec) {
+    const on = sec.id === active.id;
+    const btn = el("button", {
+      class: "navitem" + (on ? " active" : ""), type: "button", "data-section": sec.id,
+      title: sec.label, "aria-current": on ? "page" : null,
+      onclick: function () { go(sec.views[0]); },
+    });
+    btn.appendChild(Icons.get(sec.icon, 18));
+    btn.appendChild(el("span", { text: sec.label }));
+    btn.appendChild(el("em", { text: String(sec.views.length) }));
+    nav.appendChild(btn);
+  });
+  nav.appendChild(el("div", { class: "railfoot no-print",
+    text: "Alt + 1…" + SECTIONS.length + " troca de seção." }));
+}
+
+function buildSubnav() {
+  const bar = document.getElementById("subnav");
+  bar.innerHTML = "";
+  const sec = sectionOf(current);
+  bar.appendChild(el("span", { class: "secname" }, [Icons.get(sec.icon, 15),
+    el("b", { text: sec.label })]));
+  sec.views.forEach(function (id) {
+    const v = viewOf(id);
+    if (!v) return;
+    const on = id === current;
+    const btn = el("button", {
+      class: "subitem" + (on ? " on" : ""), type: "button", "data-view": id,
+      "aria-current": on ? "page" : null,
+      onclick: function () { go(id); },
+    });
+    btn.appendChild(Icons.get(VIEW_ICON[id] || "linha", 15));
+    btn.appendChild(el("span", { text: v.label }));
+    bar.appendChild(btn);
   });
 }
+
 function go(id) {
-  if (!VIEWS.some(function (v) { return v.id === id; })) id = "visao";
+  if (!viewOf(id)) id = ORDER[0];
   current = id;
   if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
-  document.querySelectorAll("#nav .navitem").forEach(function (b) {
-    const on = b.dataset.view === id;
-    b.classList.toggle("active", on);
-    if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
-  });
+  buildNav();
+  buildSubnav();
   render();
   window.scrollTo({ top: 0, behavior: "auto" });
 }
-/* Plotagem sob demanda: só a aba visível é desenhada, com o recorte atual. */
+
+/* Plotagem sob demanda: só a sub-aba visível é desenhada, com o recorte atual. */
 function render() {
-  const v = VIEWS.find(function (x) { return x.id === current; }) || VIEWS[0];
+  const v = viewOf(current) || VIEWS[0];
   C.hideTip();
   HOST.innerHTML = "";
+  const title = el("h2", {});
+  title.appendChild(Icons.get(VIEW_ICON[v.id] || "linha", 18));
+  title.appendChild(el("span", { text: v.label }));
   HOST.appendChild(el("header", { class: "viewhead" }, [
-    el("h2", { text: v.label }),
+    title,
     v.lead ? el("p", { class: "lead", text: v.lead }) : null,
   ]));
   const body = el("div");
@@ -1758,24 +2261,60 @@ function render() {
     body.appendChild(el("div", { class: "note", text: "Falha ao desenhar esta aba: " + err.message }));
     if (window.console) console.error(err);
   }
-  const idx = VIEWS.indexOf(v);
-  const prev = VIEWS[idx - 1], next = VIEWS[idx + 1];
-  HOST.appendChild(el("nav", { class: "secnav no-print", "aria-label": "Navegar entre abas" }, [
-    prev ? el("button", { type: "button", class: "navbtn", text: "← " + prev.label,
-      onclick: function () { go(prev.id); } }) : el("span"),
-    next ? el("button", { type: "button", class: "navbtn", text: next.label + " →",
-      onclick: function () { go(next.id); } }) : el("span"),
-  ]));
+
+  /* pontes para o mesmo assunto em outras seções */
+  const related = (RELATED[v.id] || []).filter(function (id) { return id !== v.id && viewOf(id); });
+  if (related.length) {
+    const chips = el("div", { class: "related no-print" },
+      [el("span", { class: "flabel", text: "Continue por" })]);
+    related.forEach(function (id) {
+      const chip = el("button", { type: "button", class: "chip", onclick: function () { go(id); } });
+      chip.appendChild(Icons.get(VIEW_ICON[id] || "linha", 14));
+      chip.appendChild(el("span", { text: labelOf(id) }));
+      chips.appendChild(chip);
+    });
+    HOST.appendChild(chips);
+  }
+
+  const idx = ORDER.indexOf(v.id);
+  const prev = ORDER[idx - 1], next = ORDER[idx + 1];
+  const back = el("span"), fwd = el("span");
+  const nav = el("nav", { class: "secnav no-print", "aria-label": "Navegar entre sub-abas" });
+  if (prev) {
+    const b = el("button", { type: "button", class: "navbtn",
+      onclick: function () { go(prev); } });
+    b.appendChild(el("span", { class: "arrow", text: "←" }));
+    b.appendChild(el("span", { text: labelOf(prev) }));
+    nav.appendChild(b);
+  } else nav.appendChild(back);
+  if (next) {
+    const b = el("button", { type: "button", class: "navbtn",
+      onclick: function () { go(next); } });
+    b.appendChild(el("span", { text: labelOf(next) }));
+    b.appendChild(el("span", { class: "arrow", text: "→" }));
+    nav.appendChild(b);
+  } else nav.appendChild(fwd);
+  HOST.appendChild(nav);
   updateCount();
 }
 
 /* ==================================================================== */
 /* tempo real                                                            */
 /* ==================================================================== */
-const REFRESH_MS = 25000;
+/* Dois caminhos, na ordem: o servidor empurra por SSE (/api/stream) e o
+   painel redesenha no mesmo segundo; se o navegador ou um proxy no meio
+   não segurar a conexão, cai para a conferência periódica em /api/state.
+   A sondagem nunca é desligada de todo — ela é a rede de proteção. */
+const REFRESH_MS = 25000;        /* sem SSE: confere a cada 25 s */
+const REFRESH_SLOW_MS = 120000;  /* com SSE: só para não perder nada */
+const SETTLE_MS = 700;           /* junta uma rajada de eventos num só redesenho */
 let refreshTimer = null;
+let settleTimer = null;
+let stream = null;
 let lastStamp = null;
 let autoOn = LIVE;
+let streamOn = false;
+let lastEvent = null;
 
 function stampOf(state) {
   return [state.articles, state.members, state.submissions, state.events, state.projects,
@@ -1816,10 +2355,54 @@ function markFresh(state) {
   const node = document.getElementById("freshness");
   if (!node) return;
   const now = new Date();
-  node.textContent = "ao vivo · " + String(now.getHours()).padStart(2, "0") + ":"
+  node.classList.toggle("push", streamOn);
+  node.textContent = (streamOn ? "ao vivo" : "conferindo") + " · "
+    + String(now.getHours()).padStart(2, "0") + ":"
     + String(now.getMinutes()).padStart(2, "0")
+    + (lastEvent ? " · " + lastEvent : "")
     + (state && state.pending_discoveries
       ? " · " + state.pending_discoveries + " achados pendentes" : "");
+}
+
+/* Uma rajada (o curador cadastra dez artigos seguidos) vira um redesenho só. */
+function settle() {
+  clearTimeout(settleTimer);
+  settleTimer = setTimeout(function () { checkForUpdates(true); }, SETTLE_MS);
+}
+function openStream() {
+  if (!LIVE || !autoOn || typeof EventSource === "undefined") return;
+  try { stream = new EventSource("/api/stream"); } catch (err) { return; }
+  stream.addEventListener("pronto", function () {
+    streamOn = true;
+    startAuto();
+    markFresh(null);
+  });
+  stream.addEventListener("mudanca", function (ev) {
+    try {
+      const data = JSON.parse(ev.data);
+      lastEvent = data.event || null;
+    } catch (err) { lastEvent = null; }
+    pulse();
+    settle();
+  });
+  stream.addEventListener("error", function () {
+    /* o EventSource reconecta sozinho; o que muda aqui é o ritmo da sondagem */
+    streamOn = false;
+    startAuto();
+    markFresh(null);
+  });
+}
+function closeStream() {
+  if (stream) { stream.close(); stream = null; }
+  streamOn = false;
+}
+/* sinal de que algo chegou, antes mesmo do redesenho terminar */
+function pulse() {
+  const node = document.getElementById("freshness");
+  if (!node) return;
+  node.classList.remove("pulse");
+  void node.offsetWidth;
+  node.classList.add("pulse");
 }
 
 function buildHeader() {
@@ -1843,13 +2426,16 @@ function buildHeader() {
         ev.target.disabled = true;
         checkForUpdates(true).finally(function () { ev.target.disabled = false; });
       } }));
-    const auto = el("button", { type: "button", text: "Auto: ligado",
-      title: "Reconferir os dados a cada 25 s",
+    const auto = el("button", { type: "button", text: "Tempo real: ligado",
+      title: "Receber as mudanças do servidor assim que acontecem",
       onclick: function () {
         autoOn = !autoOn;
-        auto.textContent = autoOn ? "Auto: ligado" : "Auto: desligado";
-        if (autoOn) startAuto(); else clearInterval(refreshTimer);
+        auto.textContent = autoOn ? "Tempo real: ligado" : "Tempo real: desligado";
+        if (autoOn) { openStream(); startAuto(); }
+        else { closeStream(); clearInterval(refreshTimer); }
+        markFresh(null);
       } });
+    auto.prepend(Icons.get("raio", 14));
     actions.appendChild(auto);
   }
   actions.appendChild(el("button", { type: "button", text: "Imprimir",
@@ -1862,9 +2448,10 @@ function buildHeader() {
 }
 function startAuto() {
   clearInterval(refreshTimer);
+  if (!autoOn) return;
   refreshTimer = setInterval(function () {
     if (document.visibilityState === "visible") checkForUpdates(false);
-  }, REFRESH_MS);
+  }, streamOn ? REFRESH_SLOW_MS : REFRESH_MS);
 }
 
 function setupTheme() {
@@ -1886,9 +2473,10 @@ function setupTheme() {
 function boot() {
   buildHeader();
   buildToolbar();
-  current = (location.hash || "").replace("#", "") || "visao";
-  if (!VIEWS.some(function (v) { return v.id === current; })) current = "visao";
+  const asked = (location.hash || "").replace("#", "");
+  current = viewOf(asked) ? asked : ORDER[0];
   buildNav();
+  buildSubnav();
   render();
   setupTheme();
 
@@ -1899,10 +2487,18 @@ function boot() {
     const id = (location.hash || "").replace("#", "");
     if (id && id !== current) go(id);
   });
+  /* teclado: alterna a seção sem tirar a mão do teclado */
+  addEventListener("keydown", function (ev) {
+    if (ev.altKey && ev.key >= "1" && ev.key <= String(SECTIONS.length)) {
+      ev.preventDefault();
+      go(SECTIONS[Number(ev.key) - 1].views[0]);
+    }
+  });
   const toTop = document.getElementById("toTop");
   addEventListener("scroll", function () { toTop.classList.toggle("on", scrollY > 600); });
   toTop.addEventListener("click", function () { scrollTo({ top: 0, behavior: "smooth" }); });
 
-  if (LIVE) { markFresh(null); startAuto(); }
+  if (LIVE) { markFresh(null); openStream(); startAuto(); }
+  addEventListener("beforeunload", closeStream);
 }
 boot();

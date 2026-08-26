@@ -16,6 +16,7 @@ TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 HTML_TEMPLATE = TEMPLATE_DIR / "dashboard.html"
 JS_TEMPLATE = TEMPLATE_DIR / "dashboard.js"
 CHARTS_TEMPLATE = TEMPLATE_DIR / "charts.js"
+ICONS_TEMPLATE = TEMPLATE_DIR / "icons.js"
 THEME_TEMPLATE = TEMPLATE_DIR / "theme.css"
 
 
@@ -70,6 +71,7 @@ def render_html(payload: dict[str, Any], geo_dir: Path = config.GEO_DIR) -> str:
     # possa ser confundido com um marcador do modelo.
     html = html.replace("__TITLE__", title)
     html = html.replace("__THEME_CSS__", THEME_TEMPLATE.read_text(encoding="utf-8"))
+    html = html.replace("__ICONS_JS__", ICONS_TEMPLATE.read_text(encoding="utf-8"))
     html = html.replace("__CHARTS_JS__", CHARTS_TEMPLATE.read_text(encoding="utf-8"))
     html = html.replace("__SCRIPT__", JS_TEMPLATE.read_text(encoding="utf-8"))
     return html.replace("__DATA__", to_json(payload))

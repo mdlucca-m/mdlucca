@@ -11,6 +11,12 @@ __THEME_CSS__
    estrutura do painel
    ========================================================================== */
 .layout { display: grid; grid-template-columns: 244px minmax(0, 1fr); min-height: 100vh; }
+/* o trilho é sticky e mede 100vh; quem pinta a coluna até o rodapé é a grade */
+@media (min-width: 981px) {
+  .layout { background: linear-gradient(90deg, var(--surface) 0 243px,
+    var(--border) 243px 244px, transparent 244px); }
+  nav.side { background: none; border-right: none; }
+}
 
 nav.side { position: sticky; top: 0; height: 100vh; overflow-y: auto;
   background: var(--surface); border-right: 1px solid var(--border); padding: 20px 12px; }
@@ -20,14 +26,40 @@ nav.side .brand .logo { width: 34px; height: 34px; border-radius: 10px; flex: no
   font-weight: 800; font-size: 13px; letter-spacing: .02em; }
 nav.side .brand b { display: block; font-size: 15px; }
 nav.side .brand small { display: block; font-size: 11.5px; color: var(--ink-2); font-weight: 400; }
-nav.side .navitem { display: block; width: 100%; text-align: left; background: none;
-  border: none; padding: 7px 10px; border-radius: 8px; color: var(--ink-2);
-  font-size: 13.5px; font-weight: 500; }
+/* seis seções, uma linha cada: ícone, nome e quantas sub-abas há dentro */
+nav.side .navitem { display: flex; align-items: center; gap: 10px; width: 100%;
+  text-align: left; background: none; border: none; padding: 9px 10px; border-radius: 10px;
+  color: var(--ink-2); font-size: 13.5px; font-weight: 550; position: relative; }
+nav.side .navitem svg.icon { color: var(--ink-muted); font-size: 18px; flex: none; }
+nav.side .navitem em { margin-left: auto; font-style: normal; font-size: 11px;
+  color: var(--ink-muted); background: var(--surface-raised); border-radius: 999px;
+  padding: 1px 7px; font-variant-numeric: tabular-nums; }
 nav.side .navitem:hover { background: var(--surface-raised); color: var(--ink); }
-nav.side .navitem.active { background: var(--accent-wash); color: var(--accent);
+nav.side .navitem:hover svg.icon { color: var(--ink-2); }
+nav.side .navitem.active { background: var(--accent-wash); color: var(--accent); font-weight: 700; }
+nav.side .navitem.active svg.icon { color: var(--accent); }
+nav.side .navitem.active::before { content: ""; position: absolute; left: -12px; top: 8px;
+  bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent); }
+nav.side .railfoot { margin: 18px 10px 0; font-size: 11px; color: var(--ink-muted);
+  line-height: 1.45; }
+
+/* barra de sub-abas: o segundo nível, sempre visível dentro da seção */
+.subnav { position: sticky; top: 0; z-index: 25; display: flex; gap: 4px; align-items: center;
+  flex-wrap: wrap; padding: 10px 0; margin-bottom: 2px;
+  background: var(--surface-sunken); border-bottom: 1px solid var(--border); }
+.subnav .secname { display: inline-flex; align-items: center; gap: 7px; margin-right: 12px;
+  font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-muted);
   font-weight: 700; }
-nav.side .group { font-size: 11px; text-transform: uppercase; letter-spacing: .07em;
-  color: var(--ink-muted); margin: 16px 10px 6px; font-weight: 700; }
+.subnav .secname svg.icon { color: var(--accent); font-size: 15px; }
+.subnav .subitem { display: inline-flex; align-items: center; gap: 7px; border: 1px solid transparent;
+  background: none; color: var(--ink-2); padding: 6px 12px; border-radius: 999px;
+  font-size: 13px; font-weight: 550; }
+.subnav .subitem svg.icon { color: var(--ink-muted); font-size: 15px; }
+.subnav .subitem:hover { background: var(--surface-raised); color: var(--ink);
+  border-color: var(--border); }
+.subnav .subitem.on { background: var(--accent); border-color: var(--accent);
+  color: var(--on-accent); font-weight: 650; }
+.subnav .subitem.on svg.icon { color: var(--on-accent); }
 
 main { padding: 24px clamp(16px, 3vw, 38px) 90px; max-width: 1440px; }
 
@@ -62,7 +94,8 @@ header.page .meta { margin-top: 8px; }
 .segmented button.on { background: var(--accent); color: var(--on-accent); }
 
 .viewhead { margin-bottom: 18px; }
-.viewhead h2 { font-size: 19px; }
+.viewhead h2 { font-size: 19px; display: flex; align-items: center; gap: 9px; }
+.viewhead h2 svg.icon { color: var(--accent); font-size: 19px; }
 .viewhead .lead { color: var(--ink-2); font-size: 13.5px; margin: 5px 0 0; max-width: 78ch; }
 
 .rowbar { display: flex; justify-content: space-between; align-items: center; gap: 12px;
@@ -87,11 +120,34 @@ header.page .meta { margin-top: 8px; }
 .explorer-controls .field { min-width: 168px; flex: 1; }
 .explorer-controls label { margin-bottom: 5px; }
 
-/* navegação entre abas, no rodapé de cada uma */
-.secnav { display: flex; justify-content: space-between; gap: 10px; margin-top: 26px;
+/* pontes para o mesmo assunto em outra seção */
+.related { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 26px; }
+.related .flabel { font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--ink-muted); }
+.chip { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--ink-2); border-radius: 999px; padding: 6px 13px;
+  font-size: 12.5px; }
+.chip svg.icon { color: var(--ink-muted); font-size: 14px; }
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+.chip:hover svg.icon { color: var(--accent); }
+
+/* navegação entre sub-abas, no rodapé de cada uma */
+.secnav { display: flex; justify-content: space-between; gap: 10px; margin-top: 18px;
   padding-top: 16px; border-top: 1px solid var(--border); }
-.navbtn { font-size: 12.5px; color: var(--ink-2); padding: 7px 13px; }
+.navbtn { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px;
+  color: var(--ink-2); padding: 8px 14px; }
+.navbtn .arrow { color: var(--ink-muted); }
 .navbtn:hover { color: var(--accent); }
+.navbtn:hover .arrow { color: var(--accent); }
+
+/* o pulso do tempo real: uma piscada curta quando o servidor empurra algo */
+.pill.live.push::before { content: ""; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--good); display: inline-block; margin-right: 6px; vertical-align: 1px; }
+.pill.live.pulse { animation: pulse .9s ease-out 1; }
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--good) 55%, transparent); }
+  100% { box-shadow: 0 0 0 9px transparent; }
+}
 
 /* durante a recarga: segura o desenho anterior, sem esqueleto e sem salto */
 #app.reloading, .reloading { opacity: .55; transition: opacity .15s; }
@@ -152,12 +208,15 @@ footer { border-top: 1px solid var(--border); padding-top: 18px; margin-top: 30p
   .layout { grid-template-columns: 1fr; }
   nav.side { position: static; height: auto; border-right: none;
     border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 3px; padding: 12px; }
-  nav.side .brand, nav.side .group { width: 100%; }
-  nav.side .navitem { width: auto; padding: 6px 10px; font-size: 12.5px; }
+  nav.side .brand, nav.side .railfoot { width: 100%; }
+  nav.side .navitem { width: auto; padding: 7px 11px; font-size: 12.5px; }
+  nav.side .navitem em, nav.side .navitem.active::before { display: none; }
+  .subnav { position: static; }
   .toolbar .fcount { margin-left: 0; width: 100%; }
 }
 @media print {
-  nav.side, .toolbar, .head-actions, .secnav, .drawer, .scrim, #themeToggle, #toTop { display: none; }
+  nav.side, .toolbar, .subnav, .head-actions, .secnav, .related, .drawer, .scrim,
+  #themeToggle, #toTop { display: none; }
   .layout { grid-template-columns: 1fr; }
 }
 </style>
@@ -176,6 +235,7 @@ footer { border-top: 1px solid var(--border); padding-top: 18px; margin-top: 30p
       <div class="meta" id="labMeta"></div>
       <div class="head-actions no-print" id="actions"></div>
     </header>
+    <div class="subnav no-print" id="subnav" role="tablist" aria-label="Sub-abas da seção"></div>
     <div class="toolbar no-print" id="toolbar" role="search" aria-label="Filtros do painel"></div>
     <div id="app"><div id="view"></div></div>
     <footer id="foot"></footer>
@@ -193,6 +253,9 @@ footer { border-top: 1px solid var(--border); padding-top: 18px; margin-top: 30p
 </aside>
 
 <script id="payload" type="application/json">__DATA__</script>
+<script>
+__ICONS_JS__
+</script>
 <script>
 __CHARTS_JS__
 </script>

@@ -1,0 +1,160 @@
+{
+  "name": "LAPE — busca semanal de produção",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "toda-segunda-de-manhã",
+      "name": "Toda segunda de manhã",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -40,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LAPE_URL }}/api/hooks/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LAPE_API_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ acao: \"rastreador\", tarefas: [\"enriquecer\", \"citar\", \"perfis\", \"descobrir\"] }) }}",
+        "options": {
+          "timeout": 900000
+        }
+      },
+      "id": "procurar-nas-bases",
+      "name": "Procurar nas bases",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.LAPE_URL }}/api/discoveries?status=pendente&limit=50",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LAPE_API_TOKEN }}"
+            }
+          ]
+        }
+      },
+      "id": "listar-os-achados",
+      "name": "Listar os achados",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const achados = $input.first().json.items ?? [];\nif (!achados.length) return [];   // nada novo: o fluxo para aqui\nconst linhas = achados.map(a =>\n  `• ${a.title} (${a.year ?? 's/ano'}, ${a.citations ?? 0} citações)`);\nreturn [{ json: {\n  total: achados.length,\n  texto: `O rastreador encontrou ${achados.length} publicação(ões):\n\n${linhas.join('\\n')}\n\nRevise em ${$env.LAPE_URL}/app#admin` } }];"
+      },
+      "id": "montar-o-resumo",
+      "name": "Montar o resumo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "subject": "=LAPE — {{ $json.total }} publicação(ões) encontradas nesta semana",
+        "toEmail": "={{ $env.LAPE_EMAIL_COORDENACAO }}",
+        "text": "={{ $json.texto }}",
+        "options": {}
+      },
+      "id": "enviar-por-e-mail",
+      "name": "Enviar por e-mail",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        920,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Toda segunda de manhã": {
+      "main": [
+        [
+          {
+            "node": "Procurar nas bases",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procurar nas bases": {
+      "main": [
+        [
+          {
+            "node": "Listar os achados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Listar os achados": {
+      "main": [
+        [
+          {
+            "node": "Montar o resumo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar o resumo": {
+      "main": [
+        [
+          {
+            "node": "Enviar por e-mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "LAPE"
+    }
+  ]
+}

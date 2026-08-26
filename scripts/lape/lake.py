@@ -620,4 +620,9 @@ def run(db: Database, raw_dir: Path = config.RAW_DIR, with_export: bool = False,
     result["snapshot"] = take_snapshot(db, verbose=verbose)
     if with_export:
         result["export"] = export(db, verbose=verbose)
+    from . import hooks
+
+    hooks.emit(db, "lake.atualizado", entity="lake",
+               detail=f"{sum(result['gold'].values())} linhas na camada ouro",
+               payload={"gold": result["gold"], "snapshot": result["snapshot"]})
     return result

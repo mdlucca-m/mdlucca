@@ -440,7 +440,7 @@ const Charts = (function () {
       }).join(" ");
       if (serieSpec.area || (spec.area && series.length === 1)) {
         svg.appendChild(s("path", {
-          fill: color, "fill-opacity": 0.1,
+          fill: gradFill(svg, color),
           d: path + " L" + X(labels.length - 1) + " " + Y(0) + " L" + X(0) + " " + Y(0) + " Z",
         }));
       }
@@ -496,6 +496,7 @@ const Charts = (function () {
     if (!total) return figure(spec, empty(spec.emptyMessage));
     const W = 300, H = 260, cx = W / 2, cy = H / 2, R = 94, r = 62;
     const svg = svgRoot(W, H, spec.caption || "distribuição");
+    svg.setAttribute("class", "plot round");
     let angle = -Math.PI / 2;
 
     items.forEach(function (item, i) {
@@ -1067,12 +1068,452 @@ const Charts = (function () {
     }, bar);
   }
 
+
+  /* ==================================================================== */
+  /* degradê de preenchimento — um tom só, do opaco ao transparente       */
+  /* Usado apenas SOB a linha, nunca por baixo de outra marca: o degradê  */
+  /* dá profundidade à área e não interfere no contraste já validado.     */
+  /* ==================================================================== */
+  let GRAD_SEQ = 0;
+  function gradFill(svg, color, top, bottom) {
+    const id = "lape-grad-" + (++GRAD_SEQ);
+    const stop1 = s("stop", { offset: "0%", "stop-color": color,
+      "stop-opacity": top === undefined ? 0.34 : top });
+    const stop2 = s("stop", { offset: "100%", "stop-color": color,
+      "stop-opacity": bottom === undefined ? 0.02 : bottom });
+    const grad = s("linearGradient", { id: id, x1: "0", y1: "0", x2: "0", y2: "1" },
+      [stop1, stop2]);
+    let defs = svg.querySelector("defs");
+    if (!defs) { defs = s("defs", {}); svg.insertBefore(defs, svg.firstChild); }
+    defs.appendChild(grad);
+    return "url(#" + id + ")";
+  }
+
+  /* ==================================================================== */
+  /* área empilhada — composição ao longo do tempo                        */
+  /* ==================================================================== */
+  function area(spec) {
+    const labels = spec.labels || [];
+    const series = spec.series || [];
+    if (!labels.length || !series.length) return figure(spec, empty(spec.emptyMessage));
+    const W = 760, H = spec.height || 260, ML = 52, MR = 20, MT = 18, MB = 38;
+    const iw = W - ML - MR, ih = H - MT - MB;
+
+    /* pilha acumulada por índice */
+    const stack = [];
+    let peak = 0;
+    labels.forEach(function (_, i) {
+      let run = 0;
+      const column = series.map(function (x) {
+        const base = run;
+        run += Number(x.values[i]) || 0;
+        return [base, run];
+      });
+      peak = Math.max(peak, run);
+      stack.push(column);
+    });
+    const scale = niceTicks(peak, 4);
+    const X = function (i) { return labels.length === 1 ? ML + iw / 2 : ML + iw * i / (labels.length - 1); };
+    const Y = function (v) { return MT + ih - ih * v / scale.max; };
+
+    const svg = svgRoot(W, H, spec.caption || "área empilhada");
+    scale.ticks.forEach(function (t) {
+      svg.appendChild(s("line", { class: "grid-line", x1: ML, x2: W - MR, y1: Y(t), y2: Y(t) }));
+      svg.appendChild(txt(s("text", { class: "tick", x: ML - 8, y: Y(t) + 3.5, "text-anchor": "end" }), fmt(t)));
+    });
+    labels.forEach(function (label, i) {
+      svg.appendChild(txt(s("text", { class: "lab", x: X(i), y: H - MB + 16, "text-anchor": "middle" }), label));
+    });
+
+    series.forEach(function (serieSpec, si) {
+      const color = serieSpec.color || serie(si);
+      const upper = labels.map(function (_, i) { return (i ? "L" : "M") + X(i) + " " + Y(stack[i][si][1]); });
+      const lower = [];
+      for (let i = labels.length - 1; i >= 0; i--) lower.push("L" + X(i) + " " + Y(stack[i][si][0]));
+      svg.appendChild(s("path", {
+        d: upper.join(" ") + " " + lower.join(" ") + " Z",
+        fill: gradFill(svg, color), stroke: "none",
+      }));
+      svg.appendChild(s("path", {
+        d: upper.join(" "), fill: "none", stroke: color, "stroke-width": 2,
+        "stroke-linejoin": "round", "stroke-linecap": "round",
+      }));
+    });
+    svg.appendChild(s("line", { class: "axis-line", x1: ML, x2: W - MR, y1: Y(0), y2: Y(0) }));
+
+    const crosshair = s("line", { class: "crosshair", y1: MT, y2: MT + ih, x1: -99, x2: -99 });
+    svg.appendChild(crosshair);
+    const hit = s("rect", { class: "hit", x: ML, y: MT, width: iw, height: ih });
+    hit.addEventListener("pointermove", function (ev) {
+      const box = svg.getBoundingClientRect();
+      const px = ((ev.touches ? ev.touches[0] : ev).clientX - box.left) / box.width * W;
+      let idx = Math.round((px - ML) / (iw / Math.max(labels.length - 1, 1)));
+      idx = Math.max(0, Math.min(labels.length - 1, idx));
+      crosshair.setAttribute("x1", X(idx));
+      crosshair.setAttribute("x2", X(idx));
+      const rows = series.map(function (x, si) {
+        return { value: fmt(x.values[idx]), name: x.label, color: x.color || serie(si) };
+      });
+      rows.push({ value: fmt(stack[idx][series.length - 1][1]), name: "total" });
+      showTip(ev, labels[idx], rows);
+    });
+    hit.addEventListener("pointerleave", function () {
+      hideTip();
+      crosshair.setAttribute("x1", -99);
+      crosshair.setAttribute("x2", -99);
+    });
+    svg.appendChild(hit);
+
+    const extras = series.length > 1
+      ? [legendOf(series.map(function (x, i) { return { label: x.label, color: x.color || serie(i) }; }))]
+      : [];
+    return figure(spec, svg, extras);
+  }
+
+  /* ==================================================================== */
+  /* radar — perfil de um mesmo conjunto de eixos comparáveis             */
+  /* Só é honesto quando todos os eixos partilham a mesma unidade, ou     */
+  /* quando cada um vem normalizado; nunca para grandezas de escala solta.*/
+  /* ==================================================================== */
+  function radar(spec) {
+    const axes = spec.axes || [];
+    const series = (spec.series || []).slice(0, 4);
+    if (axes.length < 3 || !series.length) return figure(spec, empty(spec.emptyMessage));
+    const W = 380, H = spec.height || 340, cx = W / 2, cy = H / 2 - 6, R = Math.min(W, H) / 2 - 54;
+    const all = series.reduce(function (acc, x) { return acc.concat(x.values); }, []);
+    const scale = niceTicks(Math.max.apply(null, all.concat([0])), 4);
+    const step = function (i) { return -Math.PI / 2 + 2 * Math.PI * i / axes.length; };
+    const point = function (i, v) {
+      const r = R * Math.max(0, v) / scale.max, a = step(i);
+      return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+    };
+
+    const svg = svgRoot(W, H, spec.caption || "radar");
+    svg.setAttribute("class", "plot round");
+    /* teias concêntricas em vez de círculos: a leitura segue os eixos */
+    scale.ticks.slice(1).forEach(function (t) {
+      const ring = axes.map(function (_, i) {
+        const p = point(i, t);
+        return (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1);
+      }).join(" ") + " Z";
+      svg.appendChild(s("path", { class: "grid-line", d: ring, fill: "none" }));
+    });
+    axes.forEach(function (label, i) {
+      const edge = point(i, scale.max);
+      svg.appendChild(s("line", { class: "grid-line", x1: cx, y1: cy, x2: edge[0], y2: edge[1] }));
+      const a = step(i);
+      const lx = cx + (R + 18) * Math.cos(a), ly = cy + (R + 18) * Math.sin(a);
+      const anchor = Math.abs(Math.cos(a)) < 0.2 ? "middle" : (Math.cos(a) > 0 ? "start" : "end");
+      svg.appendChild(txt(s("text", { class: "lab", x: lx, y: ly + 4, "text-anchor": anchor }), label));
+    });
+    svg.appendChild(txt(s("text", { class: "tick", x: cx + 5, y: cy - R + 4 }), fmt(scale.max)));
+
+    series.forEach(function (serieSpec, si) {
+      const color = serieSpec.color || serie(si);
+      const d = axes.map(function (_, i) {
+        const p = point(i, Number(serieSpec.values[i]) || 0);
+        return (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1);
+      }).join(" ") + " Z";
+      svg.appendChild(s("path", { d: d, fill: color, "fill-opacity": series.length > 1 ? 0.13 : 0.2,
+        stroke: color, "stroke-width": 2, "stroke-linejoin": "round" }));
+      axes.forEach(function (label, i) {
+        const p = point(i, Number(serieSpec.values[i]) || 0);
+        const dot = s("circle", { class: "ring mark", cx: p[0], cy: p[1], r: 4.5, fill: color });
+        hoverable(dot, label, [{ value: fmt(serieSpec.values[i]), name: serieSpec.label, color: color }]);
+        svg.appendChild(dot);
+      });
+    });
+
+    const extras = series.length > 1
+      ? [legendOf(series.map(function (x, i) { return { label: x.label, color: x.color || serie(i) }; }))]
+      : [];
+    return figure(spec, svg, extras);
+  }
+
+  /* ==================================================================== */
+  /* medidor radial — um número só, com a faixa em que ele cai            */
+  /* ==================================================================== */
+  function gauge(spec) {
+    const max = Number(spec.max) || 0;
+    const value = Math.max(0, Number(spec.value) || 0);
+    if (!max) return figure(spec, empty(spec.emptyMessage));
+    const W = 260, H = 168, cx = W / 2, cy = 138, R = 96, thickness = 17;
+    const share = Math.min(1, value / max);
+    const arc = function (from, to, radius) {
+      const a1 = Math.PI + Math.PI * from, a2 = Math.PI + Math.PI * to;
+      const x1 = cx + radius * Math.cos(a1), y1 = cy + radius * Math.sin(a1);
+      const x2 = cx + radius * Math.cos(a2), y2 = cy + radius * Math.sin(a2);
+      /* meia-lua: a varredura vai no máximo a 180°, então o arco é sempre o curto */
+      return "M" + x1.toFixed(1) + " " + y1.toFixed(1) + " A" + radius + " " + radius
+        + " 0 0 1 " + x2.toFixed(1) + " " + y2.toFixed(1);
+    };
+    const svg = svgRoot(W, H, spec.caption || "medidor");
+    svg.setAttribute("class", "plot round");
+    svg.appendChild(s("path", {
+      d: arc(0, 1, R), fill: "none", stroke: token("--grid"),
+      "stroke-width": thickness, "stroke-linecap": "round",
+    }));
+    /* faixas opcionais: [{ até, cor }] — desenhadas por fora, finas */
+    (spec.bands || []).forEach(function (band, i, list) {
+      const from = i ? list[i - 1].to / max : 0;
+      svg.appendChild(s("path", {
+        d: arc(from, Math.min(1, band.to / max), R + thickness / 2 + 5), fill: "none",
+        stroke: band.color || ord(i), "stroke-width": 3, "stroke-linecap": "butt",
+      }));
+    });
+    const color = spec.color || token("--accent-strong");
+    if (share > 0.002) {
+      svg.appendChild(s("path", {
+        d: arc(0, share, R), fill: "none", stroke: color,
+        "stroke-width": thickness, "stroke-linecap": "round",
+      }));
+    }
+    svg.appendChild(txt(s("text", { class: "hero", x: cx, y: cy - 14, "text-anchor": "middle" }),
+      spec.display || fmt(spec.value)));
+    if (spec.unit) {
+      svg.appendChild(txt(s("text", { class: "lab", x: cx, y: cy + 6, "text-anchor": "middle" }), spec.unit));
+    }
+    svg.appendChild(txt(s("text", { class: "tick", x: cx - R, y: cy + 18, "text-anchor": "middle" }), "0"));
+    svg.appendChild(txt(s("text", { class: "tick", x: cx + R, y: cy + 18, "text-anchor": "middle" }), fmt(max)));
+    return figure(spec, svg);
+  }
+
+  /* ==================================================================== */
+  /* cascata — de onde saiu e onde parou                                  */
+  /* itens: [{ label, value, total }] — `total` desenha a barra desde 0    */
+  /* ==================================================================== */
+  function waterfall(spec) {
+    const items = spec.items || [];
+    if (!items.length) return figure(spec, empty(spec.emptyMessage));
+    const W = 760, H = spec.height || 280, ML = 56, MR = 20, MT = 20, MB = 52;
+    const iw = W - ML - MR, ih = H - MT - MB;
+
+    let run = 0, low = 0, high = 0;
+    const steps = items.map(function (item) {
+      const v = Number(item.value) || 0;
+      const from = item.total ? 0 : run;
+      const to = item.total ? v : run + v;
+      run = to;
+      low = Math.min(low, from, to);
+      high = Math.max(high, from, to);
+      return { label: item.label, value: v, from: from, to: to, total: !!item.total };
+    });
+    const scale = niceTicks(high, 4);
+    const top = scale.max, bottom = Math.min(0, low);
+    const Y = function (v) { return MT + ih - ih * (v - bottom) / (top - bottom || 1); };
+    const slot = iw / steps.length;
+    const bw = Math.min(BAR_MAX * 1.6, slot - 14);
+
+    const svg = svgRoot(W, H, spec.caption || "cascata");
+    scale.ticks.forEach(function (t) {
+      svg.appendChild(s("line", { class: "grid-line", x1: ML, x2: W - MR, y1: Y(t), y2: Y(t) }));
+      svg.appendChild(txt(s("text", { class: "tick", x: ML - 8, y: Y(t) + 3.5, "text-anchor": "end" }), fmt(t)));
+    });
+    svg.appendChild(s("line", { class: "axis-line", x1: ML, x2: W - MR, y1: Y(0), y2: Y(0) }));
+
+    steps.forEach(function (step, i) {
+      const x = ML + slot * i + (slot - bw) / 2;
+      const y = Y(Math.max(step.from, step.to));
+      const h = Math.max(2, Math.abs(Y(step.to) - Y(step.from)));
+      const color = step.total ? token("--accent-strong")
+        : (step.value >= 0 ? token("--series-3") : token("--critical"));
+      const bar = s("path", {
+        class: "mark grow",
+        d: capTop(x, y, bw, h, Math.min(R_END, h / 2)),
+        fill: color,
+      });
+      hoverable(bar, step.label, [
+        { value: (step.value > 0 && !step.total ? "+" : "") + fmt(step.value), name: "variação", color: color },
+        { value: fmt(step.to), name: "acumulado" },
+      ]);
+      svg.appendChild(bar);
+      /* fio ligando um degrau ao próximo — é ele que conta a história */
+      if (i < steps.length - 1 && !steps[i + 1].total) {
+        svg.appendChild(s("line", {
+          x1: x + bw, x2: ML + slot * (i + 1) + (slot - bw) / 2,
+          y1: Y(step.to), y2: Y(step.to), stroke: token("--axis"), "stroke-width": 1.5,
+          "stroke-dasharray": "4 3",
+        }));
+      }
+      svg.appendChild(txt(s("text", {
+        class: "val", x: x + bw / 2, y: Y(Math.max(step.from, step.to)) - 6, "text-anchor": "middle",
+      }), (step.value > 0 && !step.total ? "+" : "") + fmt(step.value)));
+      svg.appendChild(txt(s("text", {
+        class: "lab", x: x + bw / 2, y: H - MB + 16, "text-anchor": "middle",
+      }), step.label.length > 14 ? step.label.slice(0, 13) + "…" : step.label));
+    });
+    return figure(spec, svg);
+  }
+
+  /* ==================================================================== */
+  /* bullet — realizado contra meta, uma linha por item                   */
+  /* itens: [{ label, value, target, max }]                               */
+  /* ==================================================================== */
+  function bullet(spec) {
+    const items = spec.items || [];
+    if (!items.length) return figure(spec, empty(spec.emptyMessage));
+    const W = 760, ML = spec.labelWidth || 190, MR = 58, MT = 8;
+    const row = 34, H = MT + row * items.length + 10;
+    const iw = W - ML - MR;
+    const svg = svgRoot(W, H, spec.caption || "realizado contra meta");
+
+    items.forEach(function (item, i) {
+      const max = Number(item.max) || Math.max(Number(item.value) || 0, Number(item.target) || 0, 1);
+      const y = MT + row * i + 8;
+      const h = 14;
+      const value = Math.max(0, Number(item.value) || 0);
+      const target = Number(item.target);
+      svg.appendChild(txt(s("text", {
+        class: "lab", x: ML - 10, y: y + h - 2, "text-anchor": "end",
+      }), item.label.length > 30 ? item.label.slice(0, 29) + "…" : item.label));
+      /* trilho: o quanto caberia */
+      svg.appendChild(s("rect", { x: ML, y: y, width: iw, height: h, rx: 4, fill: token("--grid") }));
+      const w = iw * Math.min(1, value / max);
+      const hit = value >= target;
+      const color = item.color || (isFinite(target) ? (hit ? token("--good") : token("--warning"))
+        : token("--accent-strong"));
+      const bar = s("path", {
+        class: "mark", d: capRight(ML, y + 3, Math.max(2, w), h - 6, 4), fill: color,
+      });
+      hoverable(bar, item.label, [{ value: fmt(item.value), name: "realizado", color: color }]
+        .concat(isFinite(target) ? [{ value: fmt(target), name: "meta" }] : []), item.onClick);
+      svg.appendChild(bar);
+      if (isFinite(target) && target > 0) {
+        const tx = ML + iw * Math.min(1, target / max);
+        svg.appendChild(s("line", {
+          x1: tx, x2: tx, y1: y - 2, y2: y + h + 2, stroke: token("--ink"), "stroke-width": 2,
+        }));
+      }
+      svg.appendChild(txt(s("text", {
+        class: "val", x: W - MR + 8, y: y + h - 2,
+      }), fmt(item.value) + (isFinite(target) ? " / " + fmt(target) : "")));
+    });
+
+    const extras = items.some(function (x) { return isFinite(Number(x.target)); })
+      ? [legendOf([{ label: "meta atingida", color: token("--good") },
+        { label: "abaixo da meta", color: token("--warning") }])]
+      : [];
+    return figure(spec, svg, extras);
+  }
+
+  /* ==================================================================== */
+  /* calendário-mapa — um ano inteiro, um quadrado por dia                */
+  /* dias: { "2026-03-14": 2, ... }                                       */
+  /* ==================================================================== */
+  function calendarHeat(spec) {
+    const days = spec.days || {};
+    const year = Number(spec.year) || new Date().getFullYear();
+    const values = Object.keys(days).map(function (k) { return days[k]; });
+    const peak = Math.max.apply(null, values.concat([0]));
+    if (!peak) return figure(spec, empty(spec.emptyMessage));
+
+    const cell = 13, gap = 2, MT = 22, ML = 30;
+    const start = new Date(Date.UTC(year, 0, 1));
+    const firstDow = start.getUTCDay();
+    const total = (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)) ? 366 : 365;
+    const weeks = Math.ceil((firstDow + total) / 7);
+    const W = ML + weeks * (cell + gap) + 8, H = MT + 7 * (cell + gap) + 20;
+    const svg = svgRoot(W, H, spec.caption || "calendário do ano");
+    const ramp = [seq(200), seq(400), seq(600), seq(700)];
+    const shade = function (v) {
+      if (!v) return token("--grid");
+      return ramp[Math.min(ramp.length - 1, Math.floor((v - 1) / Math.max(1, peak / ramp.length)))];
+    };
+
+    ["S", "T", "Q", "Q", "S"].forEach(function (letter, i) {
+      svg.appendChild(txt(s("text", {
+        class: "tick", x: ML - 7, y: MT + (i + 1) * (cell + gap) + cell - 3, "text-anchor": "end",
+      }), letter));
+    });
+
+    let lastMonth = -1;
+    for (let d = 0; d < total; d++) {
+      const date = new Date(Date.UTC(year, 0, 1 + d));
+      const idx = firstDow + d;
+      const wk = Math.floor(idx / 7), dow = idx % 7;
+      const x = ML + wk * (cell + gap), y = MT + dow * (cell + gap);
+      const iso = date.toISOString().slice(0, 10);
+      const v = days[iso] || 0;
+      const box = s("rect", {
+        class: "mark", x: x, y: y, width: cell, height: cell, rx: 3, fill: shade(v),
+      });
+      if (v) {
+        hoverable(box, date.toLocaleDateString("pt-BR", { timeZone: "UTC" }),
+          [{ value: fmt(v), name: spec.unit || "registros", color: shade(v) }],
+          spec.onPick ? function () { spec.onPick(iso); } : null);
+      }
+      svg.appendChild(box);
+      if (date.getUTCMonth() !== lastMonth && dow <= 3) {
+        lastMonth = date.getUTCMonth();
+        svg.appendChild(txt(s("text", { class: "tick", x: x, y: MT - 7 }), MESES[lastMonth]));
+      }
+    }
+    return figure(spec, svg, [scaleLegend(1, peak, ramp[0], ramp[ramp.length - 1], spec.unit)]);
+  }
+
+  /* ==================================================================== */
+  /* bump — como as posições mudam de um período para o outro             */
+  /* séries: [{ label, values: [posição por período] }] — 1 é o topo      */
+  /* ==================================================================== */
+  function bump(spec) {
+    const labels = spec.labels || [];
+    const series = (spec.series || []).slice(0, 8);
+    if (labels.length < 2 || !series.length) return figure(spec, empty(spec.emptyMessage));
+    const depth = series.reduce(function (acc, x) {
+      return Math.max(acc, Math.max.apply(null, x.values.filter(function (v) { return v; })));
+    }, 1);
+    const W = 760, MT = 24, MB = 40, ML = 168, MR = 168;
+    const H = MT + MB + depth * 30;
+    const iw = W - ML - MR, ih = H - MT - MB;
+    const X = function (i) { return ML + iw * i / (labels.length - 1); };
+    const Y = function (rank) { return MT + ih * (rank - 1) / Math.max(1, depth - 1); };
+
+    const svg = svgRoot(W, H, spec.caption || "mudança de posição");
+    labels.forEach(function (label, i) {
+      svg.appendChild(s("line", { class: "grid-line", x1: X(i), x2: X(i), y1: MT - 6, y2: MT + ih + 6 }));
+      svg.appendChild(txt(s("text", { class: "lab", x: X(i), y: H - MB + 20, "text-anchor": "middle" }), label));
+    });
+
+    series.forEach(function (serieSpec, si) {
+      const color = serieSpec.color || serie(si);
+      const pts = [];
+      serieSpec.values.forEach(function (rank, i) {
+        if (rank) pts.push([X(i), Y(rank), rank, i]);
+      });
+      if (!pts.length) return;
+      /* curva suave entre postos: a inclinação é o que se lê aqui */
+      let d = "M" + pts[0][0] + " " + pts[0][1];
+      for (let i = 1; i < pts.length; i++) {
+        const a = pts[i - 1], b = pts[i], mx = (a[0] + b[0]) / 2;
+        d += " C" + mx + " " + a[1] + " " + mx + " " + b[1] + " " + b[0] + " " + b[1];
+      }
+      svg.appendChild(s("path", { d: d, fill: "none", stroke: color, "stroke-width": 2.5,
+        "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-opacity": 0.85 }));
+      pts.forEach(function (p) {
+        const dot = s("circle", { class: "ring mark", cx: p[0], cy: p[1], r: 5, fill: color });
+        hoverable(dot, serieSpec.label, [
+          { value: p[2] + "º", name: labels[p[3]], color: color },
+        ], serieSpec.onClick);
+        svg.appendChild(dot);
+      });
+      /* rótulo direto nas duas pontas: quem entrou, quem saiu */
+      const head = pts[0], tail = pts[pts.length - 1];
+      svg.appendChild(txt(s("text", { class: "lab", x: head[0] - 12, y: head[1] + 4, "text-anchor": "end" }),
+        serieSpec.label.length > 22 ? serieSpec.label.slice(0, 21) + "…" : serieSpec.label));
+      svg.appendChild(txt(s("text", { class: "val", x: tail[0] + 12, y: tail[1] + 4 }),
+        tail[2] + "º"));
+    });
+    return figure(spec, svg);
+  }
+
   /* --------------------------------------------------------------- API */
   return {
     columns: columns, bars: bars, lines: lines, donut: donut, funnel: funnel,
     scatter: scatter, dumbbell: dumbbell, heatmap: heatmap, distribution: distribution,
     treemap: treemap, sankey: sankey, network: network, geo: geo,
     sparkline: sparkline, meter: meter,
+    area: area, radar: radar, gauge: gauge, waterfall: waterfall, bullet: bullet,
+    calendarHeat: calendarHeat, bump: bump, gradFill: gradFill,
     legend: legendOf, scaleLegend: scaleLegend, table: plainTable, csv: downloadCsv,
     token: token, serie: serie, seq: seq, ord: ord, fmt: fmt, compact: compact,
     el: el, svg: s, txt: txt, hideTip: hideTip, empty: empty, MESES: MESES,

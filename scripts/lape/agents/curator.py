@@ -19,7 +19,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from .. import config, ingest_excel, ingest_lattes, lake, metrics, report
+from .. import config, hooks, ingest_excel, ingest_lattes, lake, metrics, report
 from ..db import Database
 from ..mapping import build_column_map
 from ..util import clean_text, norm_key, title_key
@@ -68,8 +68,37 @@ def register(db: Database, entity: str, payload: dict[str, Any] | list[dict[str,
     written = handler(db, rows)
     db.conn.commit()
     db.log_ingest(NAME, target=table, file="api", rows_read=len(rows), rows_written=written)
-    return {"entity": entity, "received": len(rows), "written": written,
-            "records": _echo(db, entity, rows)}
+    records = _echo(db, entity, rows)
+    if written:
+        hooks.emit(db, EVENT_BY_ENTITY.get(table, "dados.alterados"), entity=table,
+                   detail=f"{written} registro(s)",
+                   payload={"entity": table, "written": written,
+                            "titles": [r.get("title") or r.get("full_name")
+                                       for r in records][:10]})
+        _emit_status_events(db, table, records)
+    return {"entity": entity, "received": len(rows), "written": written, "records": records}
+
+
+EVENT_BY_ENTITY = {
+    "articles": "artigo.cadastrado",
+    "submissions": "submissao.registrada",
+    "projects": "projeto.cadastrado",
+    "members": "integrante.cadastrado",
+    "events": "evento.cadastrado",
+}
+
+
+def _emit_status_events(db: Database, table: str, records: list[dict]) -> None:
+    """Eventos mais específicos, que o n8n costuma querer assinar sozinhos."""
+    if table != "articles":
+        return
+    for record in records:
+        if record.get("status") == "publicado":
+            hooks.emit(db, "artigo.publicado", entity="articles", entity_id=record.get("id"),
+                       detail=record.get("title"),
+                       payload={"title": record.get("title"), "doi": record.get("doi"),
+                                "journal": record.get("journal"),
+                                "year": record.get("year_published")})
 
 
 def _echo(db: Database, entity: str, rows: list[dict]) -> list[dict]:
@@ -133,6 +162,10 @@ def review_discovery(db: Database, discovery_id: int, action: str = "aceitar",
         (now, article_id, discovery_id),
     )
     db.conn.commit()
+    hooks.emit(db, "descoberta.aceita", entity="discoveries", entity_id=discovery_id,
+               detail=discovery["title"],
+               payload={"title": discovery["title"], "doi": discovery["doi"],
+                        "article_id": article_id})
     return {"id": discovery_id, "status": "aceito", "article_id": article_id,
             "article": result["records"][0] if result["records"] else None}
 
@@ -253,6 +286,9 @@ def run(db: Database, raw_dir: Path = config.RAW_DIR, output: Path = config.REPO
         result["lake"] = lake.run(db, raw_dir=raw_dir, with_export=export_lake, verbose=verbose)
     result["validation"] = validate(db)
     result["publish"] = publish(db, output, window)
+    hooks.emit(db, "agente.concluido", entity="curador",
+               detail=f"{result['publish']['overview']['n_articles']} artigos no banco",
+               payload={"overview": result["publish"]["overview"]})
     if verbose:
         over = result["publish"]["overview"]
         print(f"  {over['n_articles']} artigos | {over['n_published']} publicados"

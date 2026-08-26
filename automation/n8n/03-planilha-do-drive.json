@@ -1,0 +1,173 @@
+{
+  "name": "LAPE — planilha nova no Drive",
+  "nodes": [
+    {
+      "parameters": {
+        "event": "fileCreated",
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "={{ $env.LAPE_DRIVE_PASTA }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "planilha-chegou-no-drive",
+      "name": "Planilha chegou no Drive",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {
+          "binaryPropertyName": "data"
+        }
+      },
+      "id": "baixar",
+      "name": "Baixar",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "data",
+        "options": {}
+      },
+      "id": "planilha-→-linhas",
+      "name": "Planilha → linhas",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LAPE_URL }}/api/hooks/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LAPE_API_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ acao: 'cadastrar', entidade: 'articles', dados: $input.all().map(i => i.json) }) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "cadastrar-no-lape",
+      "name": "Cadastrar no LAPE",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.LAPE_URL }}/api/hooks/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LAPE_API_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ acao: \"curador\" }) }}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "id": "recalcular-e-publicar",
+      "name": "Recalcular e publicar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        920,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Planilha chegou no Drive": {
+      "main": [
+        [
+          {
+            "node": "Baixar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Baixar": {
+      "main": [
+        [
+          {
+            "node": "Planilha → linhas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Planilha → linhas": {
+      "main": [
+        [
+          {
+            "node": "Cadastrar no LAPE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cadastrar no LAPE": {
+      "main": [
+        [
+          {
+            "node": "Recalcular e publicar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "LAPE"
+    }
+  ]
+}

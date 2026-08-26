@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import json
 import os
+import queue
 import re
 import traceback
 import urllib.parse
@@ -103,6 +104,10 @@ def route_index(ctx: "Context") -> Any:
             "GET  /api/query                 ?medida=&por=&quebra=&linha=&ano=…",
             "GET  /api/history               ?metrica=publicados",
             "GET  /api/lake/lineage          (coordenação) de onde veio cada carga",
+            "GET  /api/stream                 eventos em tempo real (SSE)",
+            "GET  /api/automation             (coordenação) webhooks e entregas",
+            "POST /api/webhooks               (coordenação) cadastra destino n8n",
+            "POST /api/hooks/n8n              porta de entrada do n8n (HMAC ou token)",
             "POST /api/agents/lake           (coordenação) reconstrói o lakehouse",
             "GET  /api/<entidade>            filtros: q, status, linha, ano, limit, offset",
             "GET  /api/articles/<id>",
@@ -359,6 +364,114 @@ def route_lake(ctx: "Context") -> Any:
     return lake.run(ctx.db, with_export=bool(options.get("exportar", False)), verbose=False)
 
 
+def route_automation(ctx: "Context") -> Any:
+    """Painel de automação: eventos, webhooks e últimas entregas."""
+    from . import hooks
+
+    auth.require(ctx.user, "coordenacao")
+    return hooks.status(ctx.db, min(int(ctx.query.get("limite", [40])[0]), 200))
+
+
+def route_webhook_create(ctx: "Context") -> Any:
+    """Cadastra um webhook do n8n (ou de qualquer outro destino)."""
+    from . import hooks
+
+    user = auth.require(ctx.user, "coordenacao")
+    body = ctx.body or {}
+    if not body.get("url"):
+        raise ApiError(400, "informe a url do webhook")
+    try:
+        created = hooks.register(ctx.db, body.get("nome") or body.get("name") or "n8n",
+                                 body["url"], body.get("evento") or body.get("event") or "*",
+                                 body.get("segredo") or body.get("secret"))
+    except ValueError as exc:
+        raise ApiError(400, str(exc)) from exc
+    auth.log(ctx.db, user["id"], user.get("login"), "webhook_cadastrado", "webhooks",
+             created["id"], created["url"])
+    return created
+
+
+def route_webhook_delete(ctx: "Context", hook_id: str) -> Any:
+    from . import hooks
+
+    user = auth.require(ctx.user, "coordenacao")
+    auth.log(ctx.db, user["id"], user.get("login"), "webhook_removido", "webhooks", hook_id)
+    return hooks.remove(ctx.db, int(hook_id))
+
+
+def route_webhook_test(ctx: "Context", hook_id: str) -> Any:
+    """Dispara um evento de teste, em primeiro plano, para ver o resultado na hora."""
+    from . import hooks
+
+    auth.require(ctx.user, "coordenacao")
+    rows = ctx.db.dicts("SELECT * FROM webhooks WHERE id = ?", (int(hook_id),))
+    if not rows:
+        raise ApiError(404, f"webhook {hook_id} não encontrado")
+    message = {"event": "teste", "detail": "disparo manual a partir do painel",
+               "at": datetime.now().isoformat(timespec="seconds"), "data": {"ok": True}}
+    hooks.dispatch(ctx.db, "*", message, background=False)
+    return {"sent": True, "last": ctx.db.dicts(
+        "SELECT status, http_code, error, duration_ms FROM webhook_deliveries"
+        " WHERE webhook_id = ? ORDER BY id DESC LIMIT 1", (int(hook_id),))}
+
+
+def route_incoming_hook(ctx: "Context") -> Any:
+    """Porta de entrada do n8n.
+
+    Aceita assinatura HMAC (LAPE_WEBHOOK_SECRET) ou o token de serviço.
+    Ações: curador, rastreador, lake, ou o cadastro de qualquer entidade.
+    """
+    from . import hooks
+    from .agents import curator, tracker
+
+    raw = getattr(ctx.handler, "raw_body", b"")
+    signature = ctx.handler.headers.get("X-LAPE-Signature")
+    autorizado = (
+        ctx.handler._service_token()                                   # token de serviço
+        or hooks.verify(hooks.WEBHOOK_SECRET, raw, signature)          # assinatura HMAC
+        or (ctx.user is not None
+            and auth.ROLE_RANK[ctx.user["user_role"]] >= auth.ROLE_RANK["coordenacao"])
+    )
+    if not autorizado:
+        raise ApiError(401, "assinatura ausente ou inválida. Configure LAPE_WEBHOOK_SECRET "
+                            "no LAPE e no n8n, ou use o token de serviço.")
+
+    body = ctx.body or {}
+    action = (body.get("acao") or body.get("action") or "curador").lower()
+    detail = f"n8n:{action}"
+
+    if action in ("curador", "curator", "atualizar"):
+        result = curator.run(ctx.db, with_tracker=bool(body.get("rastrear", False)),
+                             with_lake=True, verbose=False)
+        resumo = result["publish"]["overview"]
+    elif action in ("rastreador", "tracker"):
+        tasks = tuple(body.get("tarefas") or body.get("tasks") or ("enriquecer", "citar"))
+        invalid = [t for t in tasks if t not in tracker.TASKS]
+        if invalid:
+            raise ApiError(400, f"tarefas inválidas: {invalid}")
+        result = tracker.run(ctx.db, tasks, verbose=False)
+        resumo = {k: v for k, v in result.items() if k != "agent"}
+    elif action in ("lake", "lakehouse"):
+        from . import lake
+
+        result = lake.run(ctx.db, with_export=bool(body.get("exportar")), verbose=False)
+        resumo = result.get("gold", {})
+    elif action in ("cadastrar", "register"):
+        entity = body.get("entidade") or body.get("entity") or "articles"
+        if entity not in ENTITIES:
+            raise ApiError(400, f"entidade desconhecida: {entity}")
+        dados = body.get("dados") or body.get("data")
+        if dados is None:
+            raise ApiError(400, "informe 'dados' com o registro a cadastrar")
+        result = curator.register(ctx.db, ENTITIES[entity][0], dados)
+        resumo = {"entidade": entity, "gravados": result["written"]}
+    else:
+        raise ApiError(400, "ação desconhecida. Use: curador, rastreador, lake ou cadastrar")
+
+    hooks.emit(ctx.db, "agente.concluido", entity="n8n", detail=detail, actor="n8n")
+    return {"ok": True, "acao": action, "resumo": resumo}
+
+
 def route_discoveries(ctx: "Context") -> Any:
     status = ctx.query.get("status", ["pendente"])[0]
     rows = ctx.db.dicts(
@@ -477,6 +590,11 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/query/?$", route_query, "leitura"),
     ("GET", r"^/api/history/?$", route_history, "leitura"),
     ("GET", r"^/api/lake/lineage/?$", route_lineage, "coordenacao"),
+    ("GET", r"^/api/automation/?$", route_automation, "coordenacao"),
+    ("POST", r"^/api/webhooks/?$", route_webhook_create, "coordenacao"),
+    ("POST", r"^/api/webhooks/(?P<hook_id>\d+)/remover/?$", route_webhook_delete, "coordenacao"),
+    ("POST", r"^/api/webhooks/(?P<hook_id>\d+)/testar/?$", route_webhook_test, "coordenacao"),
+    ("POST", r"^/api/hooks/n8n/?$", route_incoming_hook, None),
     ("POST", r"^/api/agents/lake/?$", route_lake, "coordenacao"),
     ("GET", r"^/api/metrics/?$", route_metrics, "leitura"),
     ("GET", r"^/api/metrics/(?P<block>[a-z_]+)/?$", route_metrics, "leitura"),
@@ -518,6 +636,7 @@ class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     db_path: Path = config.DB_PATH
     report_path: Path = config.REPORT_PATH
+    raw_body: bytes = b""
 
     def log_message(self, fmt: str, *args: Any) -> None:
         print(f"  {self.address_string()} {fmt % args}")
@@ -585,6 +704,7 @@ class Handler(BaseHTTPRequestHandler):
         if length > MAX_BODY:
             raise ApiError(413, "corpo da requisição excede 8 MB")
         raw = self.rfile.read(length)
+        self.raw_body = raw          # o HMAC assina os bytes, não o JSON reserializado
         try:
             return json.loads(raw.decode("utf-8"))
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
@@ -610,6 +730,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._serve_page("login.html")
         if method == "GET" and path in ("/app", "/area", "/cadastro"):
             return self._serve_page("app.html")
+        if method == "GET" and path == "/api/stream":
+            return self._serve_stream()
         if method == "GET" and path == "/favicon.ico":
             return self._send(200, FAVICON, "image/svg+xml")
         if method == "GET" and path == "/api/export/sqlite":
@@ -664,6 +786,52 @@ class Handler(BaseHTTPRequestHandler):
         finally:
             db.close()
         self._send(200, html, "text/html")
+
+    def _serve_stream(self) -> None:
+        """Streaming de eventos (SSE): o painel redesenha no instante da mudança.
+
+        Sem Content-Length e com Connection: close — o corpo termina quando a
+        conexão fecha, que é como o EventSource espera. Um sinal a cada 20 s
+        mantém a conexão viva atrás de proxy.
+        """
+        from . import hooks
+
+        db = Database(self.db_path)
+        try:
+            user, _ = self._resolve_user(db)
+            if user is None and not PUBLIC_DASHBOARD:
+                return self._send(401, {"error": "é preciso entrar para acompanhar o streaming"})
+            last = hooks.latest_id(db)
+        finally:
+            db.close()
+
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream; charset=utf-8")
+        self.send_header("Cache-Control", "no-cache, no-transform")
+        self.send_header("X-Accel-Buffering", "no")   # nginx não deve bufferizar
+        self.send_header("Connection", "close")
+        self.end_headers()
+
+        channel = hooks.subscribe()
+        try:
+            self._sse(f"retry: 5000\nid: {last}\nevent: pronto\n"
+                      f"data: {json.dumps({'ok': True, 'since': last})}\n\n")
+            while True:
+                try:
+                    message = channel.get(timeout=20)
+                except queue.Empty:
+                    self._sse(": ping\n\n")           # comentário SSE = sinal de vida
+                    continue
+                self._sse("event: mudanca\ndata: "
+                          + json.dumps(message, ensure_ascii=False, default=str) + "\n\n")
+        except (BrokenPipeError, ConnectionResetError, OSError):
+            pass                                        # o navegador foi embora
+        finally:
+            hooks.unsubscribe(channel)
+
+    def _sse(self, text: str) -> None:
+        self.wfile.write(text.encode("utf-8"))
+        self.wfile.flush()
 
     def _serve_page(self, name: str) -> None:
         path = TEMPLATES / name
