@@ -1,6 +1,6 @@
 {
   "overview": {
-    "generated_at": "26/08/2026 20:19",
+    "generated_at": "26/08/2026 20:36",
     "lab_name": "LAPE - Laboratorio de Psicologia do Esporte e do Exercicio",
     "institution": "UDESC / CEFID",
     "site": "https://www.udesc.br/cefid/lape",
@@ -4797,6 +4797,16 @@
     ],
     "last_runs": [
       {
+        "run_at": "2026-08-26 20:19:57",
+        "source": "curador",
+        "target": "report",
+        "file": "/home/user/mdlucca/docs/index.html",
+        "rows_read": 0,
+        "rows_written": 19,
+        "status": "ok",
+        "message": null
+      },
+      {
         "run_at": "2026-08-26 20:00:51",
         "source": "curador",
         "target": "report",
@@ -5032,16 +5042,6 @@
         "target": "institutions",
         "file": "LAPE_cadastros.xlsx:Instituições",
         "rows_read": 2,
-        "rows_written": 0,
-        "status": "ok",
-        "message": null
-      },
-      {
-        "run_at": "2026-08-26 19:22:59",
-        "source": "excel",
-        "target": "research_lines",
-        "file": "LAPE_cadastros.xlsx:Linhas de Pesquisa",
-        "rows_read": 3,
         "rows_written": 0,
         "status": "ok",
         "message": null

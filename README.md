@@ -677,7 +677,7 @@ Dockerfile
 docker-compose.yml          desenvolvimento
 docker-compose.prod.yml     produção: aplicação + Caddy (+ túnel opcional)
 .env.example                modelo de configuração
-tests/                      147 testes, sem acesso à rede
+tests/                      150 testes, sem acesso à rede
 ```
 
 O `scripts/migrate.R` continua funcionando: aplica o mesmo `sql/schema.sql`,

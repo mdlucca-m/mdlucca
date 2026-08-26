@@ -7,29 +7,45 @@
 <style>__BASE_CSS__
 header.top{position:sticky;top:0;z-index:30;background:var(--surface);
   border-bottom:1px solid var(--border);padding:11px clamp(14px,3vw,28px);
-  display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-header.top .logo{width:34px;height:34px;border-radius:10px;background:var(--accent-2);color:#fff;
-  display:grid;place-items:center;font-weight:800;font-size:13px}
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;overflow:hidden}
+header.top::before{content:"";position:absolute;inset:0;background:var(--grad-card);
+  pointer-events:none}
+header.top>*{position:relative}
+header.top .logo{width:34px;height:34px;border-radius:10px;background:var(--accent);
+  color:var(--on-accent);display:grid;place-items:center;font-weight:800;font-size:13px}
 header.top .name{font-weight:700;letter-spacing:-.01em}
-header.top .name small{display:block;font-weight:400;font-size:11.5px;color:var(--muted)}
+header.top .name small{display:block;font-weight:400;font-size:11.5px;color:var(--ink-2)}
 header.top .spacer{flex:1}
-header.top .who{font-size:13px;color:var(--muted);text-align:right}
-header.top .who b{display:block;color:var(--text)}
+header.top .who{font-size:13px;color:var(--ink-2);text-align:right}
+header.top .who b{display:block;color:var(--ink)}
 .layout{display:grid;grid-template-columns:212px minmax(0,1fr);gap:0;
   min-height:calc(100vh - 58px)}
+@media (min-width:861px){
+  .layout{background:linear-gradient(90deg,var(--surface) 0 211px,
+    var(--border) 211px 212px,transparent 212px)}
+  nav.side{background:none;border-right:none}
+}
 nav.side{border-right:1px solid var(--border);padding:18px 12px;background:var(--surface)}
-nav.side button{display:block;width:100%;text-align:left;background:none;border:none;
-  padding:8px 11px;border-radius:8px;color:var(--muted);font-size:13.5px;font-weight:500}
-nav.side button:hover{background:var(--surface-2);color:var(--text)}
-nav.side button.active{background:var(--surface-2);color:var(--accent-2);font-weight:700}
-nav.side .group{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--faint);
+nav.side button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  background:none;border:none;box-shadow:none;padding:9px 11px;border-radius:10px;
+  color:var(--ink-2);font-size:13.5px;font-weight:550;position:relative}
+nav.side button svg.icon{color:var(--ink-muted);font-size:17px;flex:none}
+nav.side button:hover{background:var(--surface-raised);color:var(--ink)}
+nav.side button:hover svg.icon{color:var(--ink-2)}
+nav.side button.active{background:var(--accent-wash);color:var(--accent);font-weight:700}
+nav.side button.active svg.icon{color:var(--accent)}
+nav.side button.active::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;
+  width:3px;border-radius:0 3px 3px 0;background:var(--accent)}
+nav.side .group{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-muted);
   margin:16px 11px 6px;font-weight:700}
+h2.view{display:flex;align-items:center;gap:9px}
+h2.view svg.icon{color:var(--accent);font-size:19px}
 main{padding:26px clamp(14px,3vw,34px) 70px;max-width:1180px}
 h2.view{font-size:19px;letter-spacing:-.01em;margin-bottom:4px}
-p.view{color:var(--muted);font-size:13.5px;margin:0 0 18px}
+p.view{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
 .kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
   padding:13px 15px}
-.kpi .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;
+.kpi .label{font-size:11px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.05em;
   font-weight:700}
 .kpi .value{font-size:25px;font-weight:700;letter-spacing:-.03em;margin-top:2px;
   font-variant-numeric:tabular-nums}
@@ -40,7 +56,7 @@ p.view{color:var(--muted);font-size:13.5px;margin:0 0 18px}
   flex-wrap:wrap;margin-bottom:10px}
 .searchbar{max-width:280px}
 .pick{cursor:pointer}
-.pick:hover{color:var(--accent-2)}
+.pick:hover{color:var(--accent-strong)}
 @media (max-width:860px){
   .layout{grid-template-columns:1fr}
   nav.side{border-right:none;border-bottom:1px solid var(--border);
@@ -64,6 +80,9 @@ p.view{color:var(--muted);font-size:13.5px;margin:0 0 18px}
   <main id="view"><div class="empty">Carregando…</div></main>
 </div>
 <div class="toast" id="toast"></div>
+<script>
+__ICONS_JS__
+</script>
 <script>
 "use strict";
 
@@ -238,7 +257,7 @@ VIEWS.perfil = {
   async render(){
     const me = await api("/api/researchers/" + ME.id);
     VIEW.innerHTML = "";
-    VIEW.appendChild(h("h2", {class: "view", text: "Meu perfil"}));
+    VIEW.appendChild(tituloDaTela("perfil", "Meu perfil"));
     VIEW.appendChild(h("p", {class: "view",
       text: "Estes dados alimentam o índice de pesquisadores, a rede de colaboração e as métricas do painel."}));
     VIEW.appendChild(h("div", {class: "grid g4 sec"}, [
@@ -325,7 +344,7 @@ function crudView(config){
     label: config.label, group: config.group, minimum: config.minimum,
     async render(){
       VIEW.innerHTML = "";
-      VIEW.appendChild(h("h2", {class: "view", text: config.label}));
+      VIEW.appendChild(tituloDaTela(config.id, config.label));
       VIEW.appendChild(h("p", {class: "view", text: config.lead}));
       if (config.minimum && !can(config.minimum)){
         VIEW.appendChild(h("div", {class: "card"}, h("div", {class: "empty",
@@ -536,7 +555,7 @@ VIEWS.senha = {
   label: "Trocar senha", group: "Conta",
   async render(){
     VIEW.innerHTML = "";
-    VIEW.appendChild(h("h2", {class: "view", text: "Trocar senha"}));
+    VIEW.appendChild(tituloDaTela("senha", "Trocar senha"));
     VIEW.appendChild(h("p", {class: "view", text: ME.must_change_password
       ? "Sua senha foi definida pela coordenação. Escolha uma nova antes de continuar."
       : "Use pelo menos 8 caracteres."}));
@@ -557,7 +576,7 @@ VIEWS.admin = {
   label: "Administração", group: "Conta", minimum: "coordenacao",
   async render(){
     VIEW.innerHTML = "";
-    VIEW.appendChild(h("h2", {class: "view", text: "Administração"}));
+    VIEW.appendChild(tituloDaTela("admin", "Administração"));
     VIEW.appendChild(h("p", {class: "view",
       text: "Rodar os agentes, revisar o que o rastreador encontrou e liberar acesso a novos integrantes."}));
 
@@ -658,6 +677,20 @@ async function reviewDiscovery(button, id, action){
   }
 }
 
+/* os mesmos ícones do painel: quem cadastra aqui reconhece a aba lá */
+const ICONE = {
+  perfil: "pessoas", artigos: "producao", submissoes: "submissao", projetos: "projeto",
+  linhas: "linhas", eventos: "calendario", senha: "qualidade", admin: "dados",
+};
+
+/* Cabeçalho da tela, com o ícone da seção — o mesmo par do painel. */
+function tituloDaTela(id, texto){
+  const titulo = h("h2", {class: "view"});
+  titulo.appendChild(Icons.get(ICONE[id] || "linha", 19));
+  titulo.appendChild(h("span", {text: texto}));
+  return titulo;
+}
+
 /* ---------- navegação ---------- */
 const ORDER = ["perfil", "artigos", "submissoes", "projetos", "linhas", "eventos", "senha", "admin"];
 
@@ -672,8 +705,10 @@ function buildMenu(){
       group = view.group;
       MENU.appendChild(h("div", {class: "group", text: group}));
     }
-    MENU.appendChild(h("button", {"data-view": id, text: view.label, onclick: function (){
-      location.hash = id; }}));
+    const botao = h("button", {"data-view": id, onclick: function (){ location.hash = id; }});
+    botao.appendChild(Icons.get(ICONE[id] || "linha", 17));
+    botao.appendChild(h("span", {text: view.label}));
+    MENU.appendChild(botao);
   });
 }
 async function show(id){

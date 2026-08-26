@@ -10,6 +10,7 @@ cookie de sessao. Nenhuma chamada sai para a internet.
 from __future__ import annotations
 
 import json
+import re
 import sys
 import tempfile
 import threading
@@ -395,6 +396,50 @@ class TestApi(unittest.TestCase):
             html = response.read().decode()
         self.assertIn("Entrar", html)
         self.assertNotIn("__BASE_CSS__", html)
+
+    def test_area_do_integrante_vem_montada(self):
+        request = urllib.request.Request(f"http://127.0.0.1:{self.port}/app")
+        with urllib.request.urlopen(request, timeout=20) as response:
+            html = response.read().decode()
+        self.assertIn("Área do integrante", html)
+        for marcador in ("__BASE_CSS__", "__ICONS_JS__"):
+            self.assertNotIn(marcador, html, f"marcador nao substituido: {marcador}")
+        self.assertIn("const Icons", html)   # o menu monta os icones a partir daqui
+
+
+class TestTokensDoTema(unittest.TestCase):
+    """Todo var(--token) usado nas paginas precisa existir no tema.
+
+    Um var() indefinido nao pinta nada e nao levanta erro: a pagina continua
+    de pe, so que sem hierarquia -- rotulo, dica e cabecalho ficam com a
+    mesma cor. Foi assim que a area do integrante quebrou quando o tema
+    trocou de vocabulario, e e por isso que a checagem virou teste.
+    """
+
+    TEMPLATES = ROOT / "scripts" / "lape" / "templates"
+
+    def definidos(self) -> set[str]:
+        tema = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        # sem ancora de inicio de linha: o tema declara varios tokens na mesma
+        # linha, e um `var(--x)` nunca casa aqui porque nao vem seguido de ":"
+        return set(re.findall(r"(--[a-z0-9-]+)\s*:", tema))
+
+    def test_nenhum_token_indefinido(self):
+        definidos = self.definidos()
+        self.assertIn("--ink", definidos, "o proprio tema nao foi lido")
+        for nome in ("dashboard.html", "app.html", "login.html", "theme.css", "charts.js"):
+            texto = (self.TEMPLATES / nome).read_text(encoding="utf-8")
+            usados = set(re.findall(r"var\((--[a-z0-9-]+)", texto))
+            # series-N e seq-N sao montados em tempo de execucao pelo charts.js
+            faltando = {t for t in usados - definidos
+                        if not re.match(r"^--(series|seq|ord)-\d+$", t)}
+            self.assertEqual(faltando, set(), f"tokens indefinidos em {nome}: {sorted(faltando)}")
+
+    def test_o_tema_define_os_dois_modos(self):
+        tema = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        self.assertIn("prefers-color-scheme: light", tema)
+        self.assertIn('[data-theme="light"]', tema)
+        self.assertIn('[data-theme="dark"]', tema)
 
 
 if __name__ == "__main__":

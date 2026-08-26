@@ -838,8 +838,10 @@ class Handler(BaseHTTPRequestHandler):
         if not path.exists():
             return self._send(404, {"error": f"página {name} não encontrada"})
         html = path.read_text(encoding="utf-8")
-        base_css = (TEMPLATES / "theme.css").read_text(encoding="utf-8")
-        self._send(200, html.replace("__BASE_CSS__", base_css), "text/html")
+        html = html.replace("__BASE_CSS__", (TEMPLATES / "theme.css").read_text(encoding="utf-8"))
+        if "__ICONS_JS__" in html:
+            html = html.replace("__ICONS_JS__", (TEMPLATES / "icons.js").read_text(encoding="utf-8"))
+        self._send(200, html, "text/html")
 
     def _serve_database(self) -> None:
         db = Database(self.db_path)
