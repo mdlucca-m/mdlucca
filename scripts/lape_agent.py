@@ -7,6 +7,7 @@
     python3 scripts/lape_agent.py usuarios --criar "Nome" email@udesc.br --perfil admin
     python3 scripts/lape_agent.py revisar --list      # descobertas pendentes
     python3 scripts/lape_agent.py lake                # bronze -> ouro -> historico
+    python3 scripts/lape_agent.py demo                # massa de teste + painel de demo
     python3 scripts/lape_agent.py status              # resumo do banco
 
 Agentes:
@@ -208,6 +209,53 @@ def cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_demo(args: argparse.Namespace) -> int:
+    """Gera a massa de teste num banco separado e publica o painel de demonstração."""
+    from lape import demo
+
+    # A massa nunca cai no banco de produção por descuido: sem --db explícito
+    # (ou com --db apontando para o banco real e sem --forcar), ela vai para
+    # data/demo.sqlite. É o que permite gerar a demonstração num laboratório
+    # que já tem dados de verdade carregados.
+    destino = args.db
+    if destino == config.DB_PATH:
+        if args.forcar:
+            print(f"! gravando no banco de produção {destino}, a seu pedido (--forcar).")
+            print("! a massa se soma ao que já existe; faça backup antes.")
+        else:
+            destino = config.DATA_DIR / "demo.sqlite"
+    if destino.exists() and not args.manter:
+        destino.unlink()          # massa nova, banco limpo: é o que a torna reproduzível
+        for sufixo in ("-wal", "-shm"):
+            extra = destino.with_name(destino.name + sufixo)
+            if extra.exists():
+                extra.unlink()
+
+    print(f"[massa de teste] semente {args.semente} · {args.artigos} artigos")
+    print("  Dados fictícios. Nomes, títulos, DOIs e números são inventados.")
+    db = Database(destino)
+    result = demo.run(db, seed_value=args.semente, n_artigos=args.artigos,
+                      report=args.report, verbose=True)
+    if args.acesso:
+        from lape import auth
+
+        nome, login = args.acesso
+        try:
+            conta = auth.create_account(db, nome, login, args.senha or "demonstracao123",
+                                        role=args.perfil)
+            print(f"  acesso: {conta['login']}  (perfil {args.perfil})")
+        except auth.AuthError as exc:
+            print(f"  ! acesso não criado: {exc}")
+    db.close()
+    print()
+    print("Para navegar com o painel ao vivo (o aviso de massa de teste vai no título):")
+    print(f'  LAPE_LAB_NAME="LAPE — MASSA DE TESTE" \\')
+    print(f"    python3 scripts/lape_agent.py --db {destino} api --port 8000")
+    if args.json:
+        print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -283,6 +331,26 @@ def build_parser() -> argparse.ArgumentParser:
                               dest="perfil_de")
     users_parser.add_argument("--login", default=None)
     users_parser.set_defaults(func=cmd_usuarios)
+
+    demo_parser = subparsers.add_parser(
+        "demo", aliases=["massa"],
+        help="gera massa de teste (dados fictícios) num banco separado")
+    demo_parser.add_argument("--artigos", type=int, default=160,
+                             help="quantos artigos gerar (padrão: 160)")
+    demo_parser.add_argument("--semente", type=int, default=20260826,
+                             help="mesma semente, mesma massa")
+    demo_parser.add_argument("--report", type=Path, default=config.DOCS_DIR / "demo.html")
+    demo_parser.add_argument("--manter", action="store_true",
+                             help="soma ao banco existente em vez de recomeçar")
+    demo_parser.add_argument("--forcar", action="store_true",
+                             help="permite gravar no banco de produção (não recomendado)")
+    demo_parser.add_argument("--acesso", nargs=2, metavar=("NOME", "LOGIN"),
+                             help="já cria um acesso para navegar no painel ao vivo")
+    demo_parser.add_argument("--senha", default=None)
+    demo_parser.add_argument("--perfil", default="coordenacao",
+                             choices=["admin", "coordenacao", "integrante", "leitura"])
+    demo_parser.add_argument("--json", action="store_true")
+    demo_parser.set_defaults(func=cmd_demo)
 
     status_parser = subparsers.add_parser("status", help="resumo do banco e das lacunas")
     status_parser.set_defaults(func=cmd_status)

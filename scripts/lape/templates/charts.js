@@ -276,7 +276,12 @@ const Charts = (function () {
     const series = spec.series || [{ label: spec.name || "", values: spec.values || [] }];
     if (!labels.length) return figure(spec, empty(spec.emptyMessage));
 
-    const W = 760, H = spec.height || 260, ML = 52, MR = 16, MT = 20, MB = 40;
+    const W = 760, MR = 16, MT = 20, ML = 52;
+    /* rótulo que não cabe na faixa é girado; aí o rodapé precisa de mais altura */
+    const maisLongo = labels.reduce(function (a, l) { return Math.max(a, String(l).length); }, 0);
+    const girado = (W - ML - MR) / labels.length - 6 < maisLongo * 5.6;
+    const MB = girado ? Math.min(84, 32 + maisLongo * 3.4) : 40;
+    const H = (spec.height || 260) + (girado ? MB - 40 : 0);
     const iw = W - ML - MR, ih = H - MT - MB;
     const stacked = spec.mode === "empilhado";
     const grouped = spec.mode === "agrupado";
@@ -344,7 +349,15 @@ const Charts = (function () {
           }
         });
       }
-      svg.appendChild(txt(s("text", { class: "lab", x: center, y: H - MB + 16, "text-anchor": "middle" }), label));
+      const cabe = band - 6 >= String(label).length * 5.6;   /* ~5,6px por caractere em 10,5px */
+      const eixo = txt(s("text", {
+        class: "lab", x: center, y: H - MB + (cabe ? 16 : 13),
+        "text-anchor": cabe ? "middle" : "end",
+      }), label);
+      if (!cabe) {
+        eixo.setAttribute("transform", "rotate(-38 " + center + " " + (H - MB + 13) + ")");
+      }
+      svg.appendChild(eixo);
     });
 
     /* linha de referência (meta) — sólida, com rótulo à direita */

@@ -5,6 +5,12 @@ data/*.sqlite-wal
 data/*.sqlite-shm
 data/db.json
 
+# Massa de teste: gerada em um comando, com semente fixa. O painel de
+# demonstracao (docs/demo.html) e versionado porque abre sem instalar nada;
+# o banco e o JSON sao derivados dele e nao precisam entrar no historico.
+data/demo.sqlite
+docs/demo.json
+
 # Lakehouse: bronze e ouro sao derivados/arquivo local. Em producao vivem no
 # mesmo volume do banco. A linhagem (com sha256) fica no proprio banco.
 data/lake/

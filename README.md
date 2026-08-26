@@ -26,6 +26,7 @@ Exercício** (UDESC/CEFID).
 - [Os dados de entrada](#os-dados-de-entrada)
 - [Automação](#automação)
 - [Estrutura do projeto](#estrutura-do-projeto)
+- [Massa de teste](#massa-de-teste)
 - [Testes](#testes)
 
 ---
@@ -482,6 +483,58 @@ Para publicar a versão estática no GitHub Pages, veja
 
 ---
 
+## Massa de teste
+
+Para ver o sistema inteiro funcionando antes de a planilha do laboratório estar
+completa:
+
+```bash
+python3 scripts/lape_agent.py demo
+# abre docs/demo.html — 160 artigos, 23 pessoas, 7 projetos, 5 linhas,
+# ~170 submissões com recusas e ressubmissões, ~185 atividades
+```
+
+**São dados fictícios.** Nomes de pessoas, títulos, DOIs e números são
+inventados; nenhum deles é do LAPE. Por isso a massa nasce num banco separado
+(`data/demo.sqlite`) e num painel separado (`docs/demo.html`): rodar o comando
+**nunca toca o banco de produção**, mesmo que ele já tenha dados carregados.
+
+Para navegar com o painel ao vivo, com login e a aba de automação:
+
+```bash
+python3 scripts/lape_agent.py demo --acesso "Visitante" demo@lape.local --senha demonstracao123
+LAPE_LAB_NAME="LAPE — MASSA DE TESTE" \
+  python3 scripts/lape_agent.py --db data/demo.sqlite api --port 8000
+```
+
+| Opção | Para quê |
+|---|---|
+| `--artigos N` | tamanho da massa (padrão 160) |
+| `--semente N` | mesma semente, mesma massa — a demonstração é reproduzível |
+| `--acesso NOME LOGIN` | já cria o acesso para entrar no painel ao vivo |
+| `--report CAMINHO` | onde publicar o painel (padrão `docs/demo.html`) |
+| `--manter` | soma ao banco de demonstração em vez de recomeçar |
+
+### O que a massa exercita
+
+Ela **não** é injetada direto nas tabelas. Sai do gerador com os *mesmos nomes de
+coluna das planilhas* e entra pelos mesmos `ingest_*` que leem os arquivos
+reais — então também testa o mapa de sinônimos de colunas, a fusão de nomes de
+autor, a derivação de status e o cálculo de datas.
+
+O ciclo de vida de cada artigo é consistente por construção: início → versões →
+revisão interna → submissão → decisão → aceite → publicação, com as datas em
+ordem, nenhuma no futuro, e as tentativas recusadas antes da que decidiu. Um
+manuscrito ainda em escrita não tem submissão; um aceite não existe sem parecer.
+
+O histórico medido é **reconstruído**, não inventado: para cada data do passado
+o gerador conta os registros cuja própria data já tinha acontecido naquele dia —
+é o que o lakehouse teria medido se estivesse rodando desde o começo. Por isso as
+setas de variação (“▲ 3 em 30 dias”) dizem alguma coisa, e o último ponto da
+série bate com o indicador que o painel mostra. Há teste para isso.
+
+---
+
 ## Os dados de entrada
 
 Coloque qualquer `.xlsx`, `.xls` ou `.csv` em `data/raw/`. O importador
@@ -596,6 +649,7 @@ scripts/
     ingest_citations.py     Scopus e Web of Science
     sources.py              OpenAlex, Crossref, PubMed (só biblioteca padrão)
     lake.py                 lakehouse: bronze, ouro, histórico e consulta analítica
+    demo.py                 massa de teste: dados fictícios com a forma dos reais
     metrics.py              indicadores, índice h, rede, séries temporais
     report.py               gera o painel HTML
     api.py                  site + API REST
@@ -611,6 +665,7 @@ data/raw/                   planilhas e XML do Lattes (entrada)
 data/geo/                   GeoJSON opcional para o mapa
 data/lake/                  bronze e ouro (fora do git; em produção, no volume)
 docs/index.html             painel estático (saída)
+docs/demo.html              painel da massa de teste (dados fictícios)
 automation/n8n/             quatro fluxos prontos para importar no n8n
 deploy/
   instalar.sh               instalação em um comando (Docker + HTTPS + admin)
@@ -622,7 +677,7 @@ Dockerfile
 docker-compose.yml          desenvolvimento
 docker-compose.prod.yml     produção: aplicação + Caddy (+ túnel opcional)
 .env.example                modelo de configuração
-tests/                      122 testes, sem acesso à rede
+tests/                      147 testes, sem acesso à rede
 ```
 
 O `scripts/migrate.R` continua funcionando: aplica o mesmo `sql/schema.sql`,
@@ -641,6 +696,12 @@ calcula (por exemplo, os 12,5 dias médios entre uma recusa e a nova submissão)
 sobem um servidor HTTP real para testar login, permissões, cadastro e as
 consultas analíticas, e substituem as bases externas por respostas gravadas —
 rodam sem rede.
+
+Os testes da massa de teste conferem que ela é coerente o bastante para servir
+de teste: nenhuma data no futuro, decisão sempre depois da submissão, manuscrito
+em escrita sem submissão, aceite antes da publicação, e — o que mais importa — o
+último ponto de cada série histórica igual ao indicador que o painel mostra.
+Massa incoerente esconde defeito em vez de revelar.
 
 Os testes da automação sobem um destino de webhook local e conferem o HMAC
 exatamente como o n8n conferiria, verificam que uma entrega com erro é tentada
