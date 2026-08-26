@@ -21,6 +21,10 @@ on:
         description: 'Aprovar achados com 2+ autores já cadastrados'
         type: boolean
         default: false
+      publicar_pages:
+        description: 'Publicar o painel no GitHub Pages (fica PÚBLICO na internet)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -80,3 +84,30 @@ jobs:
             git commit -m "chore(lape): atualiza banco e painel [skip ci]"
             git push
           fi
+
+  # Publicação opcional do painel no GitHub Pages: gratuita, sem servidor, mas
+  # ATENÇÃO — a página fica pública na internet, com títulos de artigos, nomes
+  # dos integrantes, histórico de submissões e motivos de recusa. Só rode se o
+  # laboratório quiser mesmo essa vitrine. Para uso interno com login, publique
+  # o serviço completo (docker-compose.prod.yml).
+  publicar-pages:
+    needs: atualizar
+    if: github.event_name == 'workflow_dispatch' && inputs.publicar_pages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}   # pega o painel recém-commitado
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - id: deploy
+        uses: actions/deploy-pages@v4

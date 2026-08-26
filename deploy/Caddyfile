@@ -1,0 +1,33 @@
+# HTTPS automático e gratuito (Let's Encrypt) na frente do LAPE.
+# O Caddy pede, instala e renova o certificado sozinho — não há nada a pagar
+# nem a renovar à mão.
+#
+# Defina o domínio em LAPE_DOMINIO (arquivo .env). Serve tanto um domínio
+# próprio (lape.udesc.br) quanto um gratuito de DNS dinâmico (lape.duckdns.org).
+
+{$LAPE_DOMINIO} {
+	encode zstd gzip
+
+	# Os agentes podem demorar alguns minutos consultando as bases externas.
+	reverse_proxy lape:8000 {
+		transport http {
+			read_timeout 300s
+			write_timeout 300s
+		}
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "same-origin"
+		-Server
+	}
+
+	log {
+		output file /var/log/caddy/lape.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}

@@ -1,4 +1,4 @@
-# Imagem do LAPE: painel + área do integrante + API, num contêiner só.
+# Imagem do LAPE: painel, área do integrante e API num contêiner só.
 FROM python:3.11-slim
 
 ENV PYTHONUNBUFFERED=1 \
@@ -17,14 +17,20 @@ COPY sql/ ./sql/
 COPY scripts/ ./scripts/
 COPY data/geo/ ./data/geo/
 
+# Usuário sem privilégios: o serviço fica exposto na internet.
+# O chown precisa vir ANTES do VOLUME — o volume nomeado herda daí o dono.
+RUN useradd --create-home --uid 10001 lape \
+ && mkdir -p /dados /app/data/raw /app/docs \
+ && chown -R lape:lape /dados /app
+
 # O banco vive num volume para sobreviver a cada nova versão da imagem.
 VOLUME ["/dados"]
-RUN mkdir -p /dados /app/data/raw /app/docs
+USER lape
 
 EXPOSE 8000
 
+COPY --chown=lape:lape deploy/ ./deploy/
 HEALTHCHECK --interval=60s --timeout=6s --start-period=20s \
-  CMD python3 -c "import urllib.request,os,sys; \
-sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:'+os.environ.get('LAPE_PORT','8000')+'/api/health', timeout=5).status==200 else 1)"
+  CMD ["python3", "/app/deploy/healthcheck.py"]
 
 CMD ["python3", "scripts/lape_agent.py", "api"]

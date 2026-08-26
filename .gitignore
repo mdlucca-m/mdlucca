@@ -5,6 +5,10 @@ data/*.sqlite-wal
 data/*.sqlite-shm
 data/db.json
 
+# Configuracao com senhas - nunca versionar
+.env
+.env.local
+
 # Planilhas abertas no Excel
 ~$*.xlsx
 .~lock.*

@@ -18,7 +18,7 @@ Exercício** (UDESC/CEFID).
 
 - [Início rápido](#início-rápido)
 - [O site: painel, login e cadastro](#o-site-painel-login-e-cadastro)
-- [Publicar na nuvem](#publicar-na-nuvem)
+- [Publicar na nuvem — custo zero](#publicar-na-nuvem--custo-zero)
 - [Os dois agentes digitais](#os-dois-agentes-digitais)
 - [API REST](#api-rest)
 - [O que o painel mostra](#o-que-o-painel-mostra)
@@ -105,51 +105,104 @@ com validade de 14 dias.
 
 ---
 
-## Publicar na nuvem
+## Publicar na nuvem — custo zero
 
-O sistema é um contêiner só. O que precisa persistir é **um arquivo**: o banco
-SQLite. Qualquer opção abaixo entrega um link `https://…` que os integrantes
-acessam com login e senha.
+O sistema inteiro é um contêiner só, e o que precisa sobreviver é **um
+arquivo**: o banco SQLite. Isso permite três caminhos sem nenhuma mensalidade.
 
-### Docker (servidor próprio ou da universidade)
+> Planos gratuitos de plataformas mudam com frequência, e quase nenhum oferece
+> **disco persistente** de graça — sem disco, o banco é apagado a cada nova
+> versão. Por isso os caminhos abaixo não dependem de plano gratuito de
+> fornecedor nenhum.
 
-```bash
-export LAPE_ADMIN_LOGIN=andrade@udesc.br
-export LAPE_ADMIN_PASSWORD='uma-senha-longa-de-verdade'
-docker compose up -d
-```
+### Caminho 1 — computador do laboratório + túnel do Cloudflare
 
-O primeiro administrador é criado na subida inicial. Coloque o `nginx.conf` de
-`deploy/` na frente para ter HTTPS e defina `LAPE_BEHIND_HTTPS=1`.
-
-### Fly.io
+**O mais simples, e o único que não pede cartão de crédito.** Um computador do
+LAPE que fique ligado vira o servidor; o túnel do Cloudflare dá um endereço
+`https://` público sem abrir uma única porta no firewall da universidade.
 
 ```bash
-fly launch --no-deploy --copy-config
-fly volumes create lape_dados --size 1 --region gru
-fly secrets set LAPE_ADMIN_LOGIN=... LAPE_ADMIN_PASSWORD=... \
-                SCOPUS_API_KEY=... WOS_API_KEY=...
-fly deploy      # → https://lape-udesc.fly.dev
+git clone https://github.com/mdlucca-m/mdlucca.git lape && cd lape
+sudo bash deploy/instalar.sh          # escolha a opção 2 (túnel)
 ```
 
-### Render
+O instalador pergunta o token do túnel e os dados do administrador, instala o
+Docker e sobe tudo. O token sai de <https://one.dash.cloudflare.com> →
+**Networks → Tunnels → Create a tunnel**, apontando o serviço para
+`http://lape:8000`.
 
-Suba o repositório no GitHub e use **New → Blueprint** apontando para
-`render.yaml`. Defina `LAPE_ADMIN_LOGIN` e `LAPE_ADMIN_PASSWORD` no painel do
-serviço. O blueprint reserva um disco de 1 GB para o banco: **sem disco o
-SQLite é apagado a cada nova versão**, e discos não existem no plano gratuito
-do Render — para custo zero, prefira o `docker-compose.yml` num servidor da
-universidade.
+| Prós | Contras |
+|---|---|
+| Zero real, sem cartão | Depende de a máquina ficar ligada |
+| Nenhuma porta aberta no firewall | O endereço cai se a máquina desligar |
+| HTTPS pelo Cloudflare | |
 
-### Servidor sem Docker
+### Caminho 2 — VM sempre gratuita (Oracle Cloud)
 
-`deploy/lape.service` (systemd) + `deploy/nginx.conf` (HTTPS) +
-`deploy/backup.sh` (backup diário do banco, agendável no cron).
+A camada **Always Free** da Oracle Cloud inclui máquinas ARM Ampere que não
+expiram, com disco próprio. Dá um servidor de verdade, ligado o tempo todo.
+Exige cartão só para verificação de identidade.
+
+```bash
+# na VM recém-criada (Ubuntu):
+git clone https://github.com/mdlucca-m/mdlucca.git lape && cd lape
+sudo bash deploy/instalar.sh          # escolha a opção 1 (IP público)
+```
+
+Você precisa de um domínio apontando para o IP. Sem domínio próprio, registre
+um gratuito em <https://duckdns.org> (`lape.duckdns.org`). O **Caddy** pede,
+instala e renova o certificado HTTPS sozinho — nada a configurar nem a pagar.
+
+Depois de criar a VM, libere as portas 80 e 443 em **VCN → Security Lists →
+Ingress Rules** (o instalador cuida do firewall de dentro da máquina).
+
+| Prós | Contras |
+|---|---|
+| Ligado 24h, endereço fixo | Cadastro exige cartão (não é cobrado) |
+| Disco persistente de verdade | Precisa de um domínio (gratuito serve) |
+| HTTPS automático e renovado sozinho | |
+
+### Caminho 3 — servidor da própria universidade
+
+Se a UDESC ceder uma máquina ou VM, é o mesmo comando do Caminho 2, com um
+domínio `lape.udesc.br` apontado pelo setor de TI. Para rodar sem Docker,
+use `deploy/lape.service` (systemd) com `deploy/nginx.conf` na frente.
+
+### Painel público sem servidor (opcional)
+
+Só o painel, sem login nem cadastro, pode ir para o **GitHub Pages** — grátis e
+sem máquina nenhuma. É opcional e desligado por padrão: rode o workflow
+manualmente em **Actions → LAPE → Run workflow** marcando *Publicar o painel no
+GitHub Pages*.
+
+> A página fica **pública na internet**, com títulos de artigos, nomes dos
+> integrantes, histórico de submissões e motivos de recusa. Só ligue se o
+> laboratório quiser mesmo essa vitrine.
+
+### Depois de subir, em qualquer caminho
+
+```bash
+# carregar planilhas e recalcular tudo
+docker compose -f docker-compose.prod.yml exec lape \
+  python3 scripts/lape_agent.py curador
+
+# liberar acesso a um integrante (ou faça pela web, em /app → Administração)
+docker compose -f docker-compose.prod.yml exec lape \
+  python3 scripts/lape_agent.py usuarios --criar "Nome" email@udesc.br
+
+# acompanhar
+docker compose -f docker-compose.prod.yml logs -f lape
+```
+
+Backup: `deploy/backup.sh` usa `sqlite3.backup`, que respeita transações em
+andamento — copiar o arquivo direto pode gerar um banco corrompido.
 
 ### Variáveis de ambiente
 
 | Variável | Para quê |
 |---|---|
+| `LAPE_DOMINIO` | Domínio usado pelo Caddy no `docker-compose.prod.yml` |
+| `CLOUDFLARE_TUNNEL_TOKEN` | Token do túnel (Caminho 1) |
 | `LAPE_DB` | Caminho do banco (na nuvem, aponte para o volume) |
 | `LAPE_HOST` / `LAPE_PORT` | Onde o servidor escuta (`0.0.0.0` em contêiner) |
 | `LAPE_PUBLIC_DASHBOARD` | `1` deixa o painel visível sem login |
@@ -159,6 +212,8 @@ universidade.
 | `LAPE_SESSION_DAYS` | Validade da sessão (padrão: 14) |
 | `SCOPUS_API_KEY`, `SCOPUS_INST_TOKEN`, `WOS_API_KEY` | Bases proprietárias |
 | `LAPE_CONTACT_EMAIL` | E-mail de contato para o *polite pool* do Crossref/OpenAlex |
+
+Copie `.env.example` para `.env` e ajuste. O `.env` não vai para o repositório.
 
 ---
 
@@ -387,8 +442,16 @@ scripts/
 data/raw/                   planilhas e XML do Lattes (entrada)
 data/geo/                   GeoJSON opcional para o mapa
 docs/index.html             painel estático (saída)
-deploy/                     systemd, nginx e backup
-Dockerfile, docker-compose.yml, render.yaml, fly.toml
+deploy/
+  instalar.sh               instalação em um comando (Docker + HTTPS + admin)
+  Caddyfile                 HTTPS automático e gratuito
+  lape.service, nginx.conf  alternativa sem Docker
+  backup.sh                 backup diário do banco
+  healthcheck.py            verificação de saúde do contêiner
+Dockerfile
+docker-compose.yml          desenvolvimento
+docker-compose.prod.yml     produção: aplicação + Caddy (+ túnel opcional)
+.env.example                modelo de configuração
 tests/                      64 testes, sem acesso à rede
 ```
 

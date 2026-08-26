@@ -28,6 +28,8 @@ services:
       LAPE_ADMIN_NAME: ${LAPE_ADMIN_NAME:-Administracao LAPE}
     volumes:
       - lape-dados:/dados          # banco de dados (precisa persistir)
+      # O contêiner roda como usuário sem privilégios: se der "permission
+      # denied" ao ler as planilhas, rode  chmod -R a+rX data/raw
       - ./data/raw:/app/data/raw   # planilhas e XML do Lattes
 volumes:
   lape-dados:

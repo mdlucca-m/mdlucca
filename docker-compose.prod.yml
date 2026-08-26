@@ -1,0 +1,74 @@
+# LAPE em produção, custo zero: aplicação + HTTPS automático.
+#
+#   cp .env.example .env      # edite o domínio e a senha do administrador
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Duas formas de expor o serviço na internet, ambas gratuitas:
+#
+#   A) MÁQUINA COM IP PÚBLICO (VM sempre gratuita, servidor da universidade)
+#      Aponte o domínio para o IP e suba o perfil padrão. O Caddy cuida do
+#      certificado. Requer as portas 80 e 443 abertas.
+#
+#   B) MÁQUINA SEM IP PÚBLICO (computador do laboratório, atrás do firewall)
+#      Use o túnel do Cloudflare: nenhuma porta precisa ser aberta.
+#        docker compose -f docker-compose.prod.yml --profile tunel up -d
+#      Crie o túnel em one.dash.cloudflare.com → Networks → Tunnels,
+#      aponte-o para http://lape:8000 e cole o token em CLOUDFLARE_TUNNEL_TOKEN.
+services:
+  lape:
+    build: .
+    image: lape:latest
+    container_name: lape
+    restart: unless-stopped
+    expose:
+      - "8000"
+    environment:
+      LAPE_DB: /dados/db.sqlite
+      LAPE_HOST: 0.0.0.0
+      LAPE_PORT: "8000"
+      LAPE_BEHIND_HTTPS: "1"
+      LAPE_PUBLIC_DASHBOARD: ${LAPE_PUBLIC_DASHBOARD:-0}
+      LAPE_ADMIN_NAME: ${LAPE_ADMIN_NAME:-Administracao LAPE}
+      LAPE_ADMIN_LOGIN: ${LAPE_ADMIN_LOGIN:-}
+      LAPE_ADMIN_PASSWORD: ${LAPE_ADMIN_PASSWORD:-}
+      LAPE_CONTACT_EMAIL: ${LAPE_CONTACT_EMAIL:-}
+      SCOPUS_API_KEY: ${SCOPUS_API_KEY:-}
+      SCOPUS_INST_TOKEN: ${SCOPUS_INST_TOKEN:-}
+      WOS_API_KEY: ${WOS_API_KEY:-}
+    volumes:
+      - lape-dados:/dados
+      - ./data/raw:/app/data/raw
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: lape-caddy
+    restart: unless-stopped
+    depends_on: [lape]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      LAPE_DOMINIO: ${LAPE_DOMINIO:?defina LAPE_DOMINIO no arquivo .env}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-dados:/data
+      - caddy-config:/config
+      - caddy-log:/var/log/caddy
+
+  # Perfil "tunel": só sobe com --profile tunel
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: lape-tunel
+    restart: unless-stopped
+    profiles: [tunel]
+    depends_on: [lape]
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?defina CLOUDFLARE_TUNNEL_TOKEN no arquivo .env}
+
+volumes:
+  lape-dados:
+  caddy-dados:
+  caddy-config:
+  caddy-log:

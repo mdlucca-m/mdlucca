@@ -3,8 +3,13 @@
 #   0 3 * * * /opt/lape/deploy/backup.sh
 set -euo pipefail
 DB="${LAPE_DB:-/opt/lape/data/db.sqlite}"
-DEST="${LAPE_BACKUP_DIR:-/opt/lape/backups}"
+DEST="${LAPE_BACKUP_DIR:-$(dirname "$DB")/backups}"
 KEEP="${LAPE_BACKUP_KEEP:-30}"
+
+if [[ ! -f "$DB" ]]; then
+  echo "banco nao encontrado: $DB" >&2
+  exit 1
+fi
 
 mkdir -p "$DEST"
 STAMP="$(date +%Y%m%d_%H%M%S)"
