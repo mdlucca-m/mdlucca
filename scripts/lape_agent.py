@@ -8,6 +8,7 @@
     python3 scripts/lape_agent.py revisar --list      # descobertas pendentes
     python3 scripts/lape_agent.py lake                # bronze -> ouro -> historico
     python3 scripts/lape_agent.py demo                # massa de teste + painel de demo
+    python3 scripts/lape_agent.py publicar            # confere o que falta para ir ao ar
     python3 scripts/lape_agent.py status              # resumo do banco
 
 Agentes:
@@ -256,6 +257,23 @@ def cmd_demo(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_publicar(args: argparse.Namespace) -> int:
+    """Confere o que falta para expor o serviço fora desta máquina."""
+    from lape import preflight
+
+    db = Database(args.db)
+    db.migrate()
+    achados = preflight.conferir(db)
+    db.close()
+    if args.json:
+        print(json.dumps(preflight.resumo(achados), ensure_ascii=False, indent=2))
+        return 0 if preflight.resumo(achados)["pronto"] else 1
+    pronto = preflight.imprimir(achados)
+    print()
+    print("Passo a passo completo: README → Publicar na nuvem — custo zero")
+    return 0 if pronto else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -351,6 +369,12 @@ def build_parser() -> argparse.ArgumentParser:
                              choices=["admin", "coordenacao", "integrante", "leitura"])
     demo_parser.add_argument("--json", action="store_true")
     demo_parser.set_defaults(func=cmd_demo)
+
+    publish_parser = subparsers.add_parser(
+        "publicar", aliases=["conferir"],
+        help="confere o que falta para publicar o serviço na internet")
+    publish_parser.add_argument("--json", action="store_true")
+    publish_parser.set_defaults(func=cmd_publicar)
 
     status_parser = subparsers.add_parser("status", help="resumo do banco e das lacunas")
     status_parser.set_defaults(func=cmd_status)

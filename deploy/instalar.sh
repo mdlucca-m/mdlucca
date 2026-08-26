@@ -88,10 +88,20 @@ criar_env() {
   read -rsp "Senha do administrador (mínimo 8 caracteres): " admin_senha; echo
   read -rp "E-mail de contato para Crossref/OpenAlex (opcional): " contato
 
+  case "$(printf '%s' "${admin_senha}" | tr '[:upper:]' '[:lower:]')" in
+    troque-por-uma-senha-longa|troque-esta-senha|senha|senha123|12345678|\
+    123456789|admin|admin123|lape|lape2026|mudar123|trocar123|password)
+      erro "Essa é uma das senhas de exemplo da documentação. Escolha outra." ;;
+  esac
   if [[ ${#admin_senha} -lt 8 ]]; then
     erro "A senha precisa de pelo menos 8 caracteres."
     exit 1
   fi
+
+  # Gerados agora: um segredo em branco é pior do que um segredo forte que
+  # ninguém vai usar, porque webhook sem assinatura não dá para conferir.
+  token_api="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))' 2>/dev/null || openssl rand -base64 32 | tr -d '/+=')"
+  segredo_webhook="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))' 2>/dev/null || openssl rand -base64 32 | tr -d '/+=')"
 
   umask 077
   cat > .env <<ENV
@@ -102,6 +112,12 @@ LAPE_ADMIN_LOGIN=${admin_login}
 LAPE_ADMIN_PASSWORD=${admin_senha}
 LAPE_PUBLIC_DASHBOARD=0
 LAPE_CONTACT_EMAIL=${contato}
+# Há proxy com HTTPS na frente (Caddy ou túnel): cookie Secure e endereço real.
+LAPE_BEHIND_HTTPS=1
+LAPE_TRUST_PROXY=1
+# Segredos da automação, gerados aqui para não nascerem em branco.
+LAPE_API_TOKEN=${token_api}
+LAPE_WEBHOOK_SECRET=${segredo_webhook}
 SCOPUS_API_KEY=
 SCOPUS_INST_TOKEN=
 WOS_API_KEY=
@@ -161,6 +177,19 @@ subir() {
   fi
 }
 
+# ------------------------------------------------------------- conferência
+conferir() {
+  azul "Conferindo o que falta para o serviço ficar público…"
+  echo
+  # roda dentro do contêiner, que é onde o ambiente de produção realmente vale
+  if docker compose -f docker-compose.prod.yml exec -T lape \
+       python3 scripts/lape_agent.py publicar; then
+    verde "Conferência sem impedimentos."
+  else
+    aviso "A conferência apontou pendências. Resolva-as antes de divulgar o endereço."
+  fi
+}
+
 # ---------------------------------------------------------------- resumo
 resumo() {
   echo
@@ -174,6 +203,8 @@ resumo() {
   echo "       0 3 * * * cd ${RAIZ} && docker compose -f docker-compose.prod.yml \\"
   echo "                 exec -T lape bash deploy/backup.sh"
   echo
+  echo "  Conferir:     docker compose -f docker-compose.prod.yml exec lape \\"
+  echo "                  python3 scripts/lape_agent.py publicar"
   echo "  Ver o log:    docker compose -f docker-compose.prod.yml logs -f lape"
   echo "  Atualizar:    git pull && docker compose -f docker-compose.prod.yml up -d --build"
 }
@@ -182,4 +213,5 @@ azul "== Instalação do LAPE =="
 instalar_docker
 criar_env
 subir
+conferir
 resumo

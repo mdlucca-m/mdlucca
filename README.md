@@ -109,6 +109,21 @@ com validade de 14 dias.
 
 ## Publicar na nuvem — custo zero
 
+> **Rodar em `127.0.0.1` não é publicar.** Nesse endereço o serviço só existe
+> para quem está sentado na máquina — nada do que está abaixo é necessário, e
+> nada dele está ligado. Para enviar o link a outra pessoa é preciso um
+> endereço público, HTTPS e um banco que sobreviva às atualizações. Antes de
+> abrir o endereço, rode:
+>
+> ```bash
+> python3 scripts/lape_agent.py publicar
+> ```
+>
+> Ele confere HTTPS, administrador, senha de exemplo, painel público, segredo
+> dos webhooks e persistência do banco, e devolve o que ainda falta — com o
+> comando de cada correção. Sai com código 1 enquanto houver impedimento, então
+> serve direto num script de instalação.
+
 O sistema inteiro é um contêiner só, e o que precisa sobreviver é **um
 arquivo**: o banco SQLite. Isso permite três caminhos sem nenhuma mensalidade.
 
@@ -199,6 +214,33 @@ docker compose -f docker-compose.prod.yml logs -f lape
 Backup: `deploy/backup.sh` usa `sqlite3.backup`, que respeita transações em
 andamento — copiar o arquivo direto pode gerar um banco corrompido.
 
+### O que muda quando o endereço deixa de ser 127.0.0.1
+
+Estas proteções já estão no código; o que falta é ligá-las na configuração.
+
+| | Como fica |
+|---|---|
+| **Senha na rede** | O cookie de sessão só vai marcado como `Secure` com `LAPE_BEHIND_HTTPS=1`. Sem HTTPS, senha e cookie viajam em texto claro — o servidor avisa na subida e a conferência trata como impedimento. |
+| **Força bruta** | Oito erros no mesmo login, ou vinte e cinco no mesmo endereço, travam por 15 minutos. A contagem sai do `audit_log`, então sobrevive a um reinício; acertar a senha zera o contador. |
+| **Descobrir quem tem conta** | Login inexistente e senha errada devolvem a mesma mensagem **e demoram o mesmo tempo** — sem isso, a diferença de milissegundos entrega a lista de quem tem acesso. |
+| **Endereço real** | Atrás do Caddy, todo visitante chega como o proxy. `LAPE_TRUST_PROXY=1` faz a aplicação ler `X-Forwarded-For`. **Só ligue com proxy na frente:** sem proxy, esse cabeçalho é escrito pelo próprio cliente, e aceitá-lo daria a qualquer um a chave para escapar do travamento. |
+| **Senha de tutorial** | O serviço **se recusa a subir** se `LAPE_ADMIN_PASSWORD` for uma das senhas de exemplo da documentação. |
+| **Cabeçalhos** | `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy` e uma CSP que bloqueia carregar ou vazar dado para outro servidor. Vão na própria aplicação, não só no Caddy, para valerem também sem proxy. |
+
+Uma ressalva honesta sobre a CSP: as páginas são autocontidas e usam script
+embutido, então ela precisa de `'unsafe-inline'` e **não** promete impedir XSS.
+O que ela impede é o que muda ao ficar público — exfiltração para terceiros,
+enquadramento em iframe alheio e sequestro da base das URLs.
+
+### Banco compartilhado
+
+O SQLite fica em modo WAL: várias leituras simultâneas e uma escrita por vez.
+Para um laboratório — dezenas de pessoas, cadastros esparsos, leitura
+predominante — isso é folgado, e o painel é praticamente só leitura. O que
+**não** funciona é montar o arquivo em disco de rede (NFS, SMB, Google Drive):
+o travamento do SQLite não é confiável ali e o banco corrompe. Use um volume
+local do contêiner, que é o que o `docker-compose.prod.yml` já faz.
+
 ### Variáveis de ambiente
 
 | Variável | Para quê |
@@ -210,8 +252,11 @@ andamento — copiar o arquivo direto pode gerar um banco corrompido.
 | `LAPE_PUBLIC_DASHBOARD` | `1` deixa o painel visível sem login |
 | `LAPE_BEHIND_HTTPS` | `1` marca o cookie como `Secure` — **use sempre que houver HTTPS** |
 | `LAPE_ADMIN_LOGIN` / `LAPE_ADMIN_PASSWORD` | Primeiro administrador, criado na subida |
+| `LAPE_TRUST_PROXY` | `1` lê o endereço real em `X-Forwarded-For` — **só com proxy na frente** |
 | `LAPE_API_TOKEN` | Token de serviço para scripts e CI (vale como admin) |
+| `LAPE_WEBHOOK_SECRET` | Assina os eventos enviados ao n8n |
 | `LAPE_SESSION_DAYS` | Validade da sessão (padrão: 14) |
+| `LAPE_LOCK_WINDOW_MIN`, `LAPE_LOCK_AFTER_LOGIN`, `LAPE_LOCK_AFTER_IP` | Travamento de força bruta (padrão: 15 min, 8 e 25) |
 | `SCOPUS_API_KEY`, `SCOPUS_INST_TOKEN`, `WOS_API_KEY` | Bases proprietárias |
 | `LAPE_CONTACT_EMAIL` | E-mail de contato para o *polite pool* do Crossref/OpenAlex |
 
@@ -644,6 +689,7 @@ scripts/
     db.py                   SQLite: upserts idempotentes, fusão de integrantes
     auth.py                 senhas, sessões e permissões
     hooks.py                eventos: streaming do painel e webhooks do n8n
+    preflight.py            conferência do que falta para publicar na internet
     ingest_excel.py         planilhas → banco (formato largo → longo incluso)
     ingest_lattes.py        XML do Lattes → banco
     ingest_citations.py     Scopus e Web of Science
@@ -677,7 +723,7 @@ Dockerfile
 docker-compose.yml          desenvolvimento
 docker-compose.prod.yml     produção: aplicação + Caddy (+ túnel opcional)
 .env.example                modelo de configuração
-tests/                      150 testes, sem acesso à rede
+tests/                      171 testes, sem acesso à rede
 ```
 
 O `scripts/migrate.R` continua funcionando: aplica o mesmo `sql/schema.sql`,

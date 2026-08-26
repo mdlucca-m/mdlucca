@@ -41,8 +41,33 @@ from .db import Database
 
 TOKEN = os.environ.get("LAPE_API_TOKEN", "")
 PUBLIC_DASHBOARD = os.environ.get("LAPE_PUBLIC_DASHBOARD", "") == "1"
+# Só confie no cabeçalho do proxy quando houver mesmo um proxy na frente:
+# X-Forwarded-For é escrito pelo cliente quando não há.
+TRUST_PROXY = os.environ.get("LAPE_TRUST_PROXY", "") == "1"
 BEHIND_HTTPS = os.environ.get("LAPE_BEHIND_HTTPS", "") == "1"
 COOKIE_NAME = "lape_session"
+
+# Valem para toda resposta, inclusive sem o Caddy na frente. A CSP aqui não
+# promete impedir XSS — as páginas são autocontidas e usam script embutido,
+# então 'unsafe-inline' é necessário. O que ela impede é o que importa quando
+# o serviço fica público: carregar ou vazar dado para outro servidor, ser
+# colocado dentro de um iframe alheio e ter a base das URLs sequestrada.
+CSP = ("default-src 'self'; "
+       "script-src 'self' 'unsafe-inline'; "
+       "style-src 'self' 'unsafe-inline'; "
+       "img-src 'self' data:; "
+       "font-src 'self' data:; "
+       "connect-src 'self'; "
+       "form-action 'self'; "
+       "base-uri 'none'; "
+       "frame-ancestors 'none'")
+SECURITY_HEADERS = [
+    ("X-Content-Type-Options", "nosniff"),
+    ("Referrer-Policy", "same-origin"),
+    ("X-Frame-Options", "DENY"),
+    ("Content-Security-Policy", CSP),
+    ("Cross-Origin-Opener-Policy", "same-origin"),
+]
 MAX_BODY = 8 * 1024 * 1024
 
 TEMPLATES = Path(__file__).resolve().parent / "templates"
@@ -131,7 +156,7 @@ def route_login(ctx: "Context") -> Any:
         raise ApiError(400, "informe login e senha")
     session = auth.login(ctx.db, login_value, password,
                          user_agent=ctx.handler.headers.get("User-Agent", ""),
-                         ip=ctx.handler.client_address[0])
+                         ip=ctx.handler._client_ip())
     ctx.set_cookie = session["token"]
     return {"ok": True, "user": session["user"], "expires_at": session["expires_at"]}
 
@@ -651,8 +676,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", f"{content_type}; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("X-Content-Type-Options", "nosniff")
-        self.send_header("Referrer-Policy", "same-origin")
+        for nome, valor in SECURITY_HEADERS:
+            self.send_header(nome, valor)
         for key, value in (extra_headers or []):
             self.send_header(key, value)
         self.end_headers()
@@ -685,6 +710,17 @@ class Handler(BaseHTTPRequestHandler):
             return ("Set-Cookie", f"{COOKIE_NAME}=; Max-Age=0; {flags}")
         return ("Set-Cookie",
                 f"{COOKIE_NAME}={token}; Max-Age={auth.SESSION_DAYS * 86400}; {flags}")
+
+    def _client_ip(self) -> str:
+        """Endereço de quem chamou, respeitando o proxy só quando ele existe."""
+        if TRUST_PROXY:
+            encaminhado = self.headers.get("X-Forwarded-For", "")
+            if encaminhado:
+                return encaminhado.split(",")[0].strip()[:60]
+            real = self.headers.get("X-Real-IP", "")
+            if real:
+                return real.strip()[:60]
+        return self.client_address[0]
 
     def _service_token(self) -> bool:
         header = self.headers.get("Authorization", "")
@@ -864,10 +900,16 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
     Handler.report_path = Path(report_path)
     db = Database(db_path)
     db.migrate()
-    created = auth.bootstrap_admin(db)
+    try:
+        created = auth.bootstrap_admin(db)
+    except auth.AuthError as exc:
+        # falha fechado: e melhor nao subir do que subir com a senha do tutorial
+        db.close()
+        raise SystemExit(f"\n  ! {exc.message}\n")
     users = int(db.scalar("SELECT COUNT(*) FROM members WHERE login IS NOT NULL") or 0)
     db.close()
 
+    publico = host not in ("127.0.0.1", "localhost", "::1")
     print(f"LAPE em http://{host}:{port}")
     print(f"  painel ............ http://{host}:{port}/")
     print(f"  entrar ............ http://{host}:{port}/entrar")
@@ -876,6 +918,14 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
     print(f"  banco ............. {db_path}")
     print(f"  painel público .... {'sim' if PUBLIC_DASHBOARD else 'não (exige login)'}")
     print(f"  usuários .......... {users}")
+    if publico and not BEHIND_HTTPS:
+        print("\n  ! Este endereço é alcançável de fora desta máquina e o tráfego não")
+        print("    está cifrado: a senha vai em texto claro pela rede. Para publicar,")
+        print("    ponha o Caddy (ou o túnel do Cloudflare) na frente e defina")
+        print("    LAPE_BEHIND_HTTPS=1 — veja 'Publicar na nuvem' no README.")
+    if publico and not TRUST_PROXY:
+        print("  ! Atrás de proxy, defina LAPE_TRUST_PROXY=1, senão o travamento por")
+        print("    tentativa e erro vê todo mundo com o mesmo endereço.")
     if created:
         print(f"\n  ADMINISTRADOR CRIADO: {created['login']}")
         if "senha_inicial" in created:

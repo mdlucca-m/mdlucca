@@ -30,6 +30,20 @@ SALT_BYTES = 16
 SESSION_DAYS = int(os.environ.get("LAPE_SESSION_DAYS", "14"))
 MIN_PASSWORD = 8
 
+# Travamento por tentativa e erro. Enquanto o servico morava em 127.0.0.1 isso
+# nao fazia diferenca; publicado na internet, e a primeira coisa que alguem
+# tenta. A contagem sai do proprio audit_log, entao sobrevive a um reinicio.
+LOCK_WINDOW_MIN = int(os.environ.get("LAPE_LOCK_WINDOW_MIN", "15"))
+LOCK_AFTER_LOGIN = int(os.environ.get("LAPE_LOCK_AFTER_LOGIN", "8"))
+LOCK_AFTER_IP = int(os.environ.get("LAPE_LOCK_AFTER_IP", "25"))
+
+# Hash descartavel, usado quando o login nao existe. Sem ele, uma tentativa
+# com login inexistente responde na hora e uma com login valido demora os
+# ~100ms do PBKDF2 -- diferenca suficiente para descobrir quem tem conta.
+_DUMMY_HASH = ("pbkdf2_sha256$240000$"
+               "00000000000000000000000000000000$"
+               + "0" * 64)
+
 ROLES = ("admin", "coordenacao", "integrante", "leitura")
 ROLE_RANK = {"leitura": 0, "integrante": 1, "coordenacao": 2, "admin": 3}
 
@@ -137,14 +151,54 @@ def change_password(db: Database, member_id: int, current: str, new: str) -> dic
 # ----------------------------------------------------------------------
 # Sessoes
 # ----------------------------------------------------------------------
+def recent_failures(db: Database, login_value: str | None = None,
+                    ip: str | None = None) -> int:
+    """Falhas de login na janela recente, por login ou por origem."""
+    if login_value:
+        campo, valor = "login", login_value
+    elif ip:
+        campo, valor = "ip", ip
+    else:
+        return 0
+    return int(db.scalar(
+        f"SELECT COUNT(*) FROM audit_log WHERE action = 'login_negado' AND {campo} = ?"
+        f" AND at > datetime('now', ?)",
+        (valor, f"-{LOCK_WINDOW_MIN} minutes")) or 0)
+
+
+def check_lock(db: Database, login_value: str, ip: str = "") -> None:
+    """Barra a tentativa quando ja houve falhas demais na janela.
+
+    Dois contadores, porque protegem de coisas diferentes: o do login barra
+    quem martela uma conta so; o do IP barra quem varre varias contas.
+    """
+    if recent_failures(db, login_value=login_value) >= LOCK_AFTER_LOGIN:
+        raise AuthError(
+            f"muitas tentativas para este login. Aguarde {LOCK_WINDOW_MIN} minutos"
+            " ou peca a redefinicao da senha a coordenacao.", 429)
+    if ip and recent_failures(db, ip=ip) >= LOCK_AFTER_IP:
+        raise AuthError(
+            f"muitas tentativas a partir deste endereco. Aguarde {LOCK_WINDOW_MIN} minutos.",
+            429)
+
+
 def login(db: Database, login_value: str, password: str, user_agent: str = "",
           ip: str = "") -> dict[str, Any]:
     login_value = (clean_text(login_value) or "").strip().lower()
+    check_lock(db, login_value, ip)
     rows = db.dicts(
         "SELECT id, full_name, login, password_hash, user_role, active, must_change_password"
         " FROM members WHERE login = ?", (login_value,))
-    if not rows or not verify_password(password, rows[0]["password_hash"]):
-        log(db, None, login_value, "login_negado", "sessions", None, "credenciais invalidas")
+    if not rows:
+        # gasta o mesmo tempo de um login que existe, para nao entregar
+        # quem tem conta pela demora da resposta
+        verify_password(password, _DUMMY_HASH)
+        log(db, None, login_value, "login_negado", "sessions", None,
+            "login inexistente", ip)
+        raise AuthError("login ou senha incorretos", 401)
+    if not verify_password(password, rows[0]["password_hash"]):
+        log(db, None, login_value, "login_negado", "sessions", None,
+            "senha incorreta", ip)
         raise AuthError("login ou senha incorretos", 401)
     member = rows[0]
     if not member["active"]:
@@ -158,7 +212,11 @@ def login(db: Database, login_value: str, password: str, user_agent: str = "",
     db.execute("UPDATE members SET last_login_at = datetime('now') WHERE id = ?", (member["id"],))
     db.execute("DELETE FROM sessions WHERE expires_at < datetime('now')")
     db.conn.commit()
-    log(db, member["id"], member["login"], "login", "sessions", None)
+    # o acerto zera o contador: quem errou e depois lembrou nao fica travado
+    db.execute("DELETE FROM audit_log WHERE action = 'login_negado' AND login = ?",
+               (login_value,))
+    db.conn.commit()
+    log(db, member["id"], member["login"], "login", "sessions", None, None, ip)
     return {
         "token": token,
         "expires_at": expires,
@@ -222,13 +280,35 @@ def can_edit_article(db: Database, user: dict[str, Any], article_id: int) -> boo
 # Auditoria
 # ----------------------------------------------------------------------
 def log(db: Database, member_id: int | None, login_value: str | None, action: str,
-        entity: str | None = None, entity_id: Any = None, detail: str | None = None) -> None:
+        entity: str | None = None, entity_id: Any = None, detail: str | None = None,
+        ip: str | None = None) -> None:
     db.execute(
-        "INSERT INTO audit_log (member_id, login, action, entity, entity_id, detail)"
-        " VALUES (?, ?, ?, ?, ?, ?)",
-        (member_id, login_value, action, entity, str(entity_id) if entity_id else None, detail),
+        "INSERT INTO audit_log (member_id, login, action, entity, entity_id, detail, ip)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (member_id, login_value, action, entity, str(entity_id) if entity_id else None,
+         detail, (ip or None) and ip[:60]),
     )
     db.conn.commit()
+
+
+# Senhas que aparecem em modelo de configuracao e em tutorial. Servem para o
+# primeiro teste na propria maquina; publicadas na internet, sao conta aberta.
+SENHAS_DE_EXEMPLO = frozenset({
+    "troque-por-uma-senha-longa", "troque-esta-senha", "senha", "senha123",
+    "12345678", "123456789", "admin", "admin123", "lape", "lape2026",
+    "mudar123", "trocar123", "password", "demonstracao123",
+})
+
+
+def senha_fraca(password: str | None) -> str | None:
+    """Devolve o motivo pelo qual a senha nao serve, ou None se serve."""
+    if not password or len(password) < MIN_PASSWORD:
+        return f"tem menos de {MIN_PASSWORD} caracteres"
+    if password.strip().lower() in SENHAS_DE_EXEMPLO:
+        return "e uma das senhas de exemplo da documentacao"
+    if len(set(password)) < 4:
+        return "repete poucos caracteres diferentes"
+    return None
 
 
 def bootstrap_admin(db: Database, login_value: str | None = None,
@@ -237,6 +317,10 @@ def bootstrap_admin(db: Database, login_value: str | None = None,
 
     Le LAPE_ADMIN_LOGIN e LAPE_ADMIN_PASSWORD do ambiente, o que permite
     subir o servico na nuvem ja com acesso configurado.
+
+    Recusa senha de exemplo. Enquanto o servico morava em 127.0.0.1 isso era
+    detalhe; publicado, uma senha de tutorial e a porta destrancada -- e o
+    modelo .env.example traz uma justamente para ser trocada.
     """
     if db.scalar("SELECT COUNT(*) FROM members WHERE user_role = 'admin' AND login IS NOT NULL"):
         return None
@@ -244,5 +328,10 @@ def bootstrap_admin(db: Database, login_value: str | None = None,
     password = password or os.environ.get("LAPE_ADMIN_PASSWORD")
     if not login_value:
         return None
+    motivo = senha_fraca(password)
+    if motivo:
+        raise AuthError(
+            f"a senha do primeiro administrador nao serve: {motivo}."
+            " Ajuste LAPE_ADMIN_PASSWORD antes de publicar o servico.", 400)
     name = os.environ.get("LAPE_ADMIN_NAME", "Administracao LAPE")
     return create_account(db, name, login_value, password, role="admin")

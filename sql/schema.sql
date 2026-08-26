@@ -327,8 +327,14 @@ CREATE TABLE IF NOT EXISTS audit_log (
   action     TEXT NOT NULL,
   entity     TEXT,
   entity_id  TEXT,
-  detail     TEXT
+  detail     TEXT,
+  ip         TEXT
 );
+
+/* Contagem de falhas de login por janela de tempo: e daqui que sai o
+   travamento por tentativa e erro. Fica no banco, e nao em memoria, para
+   sobreviver a um reinicio do servico. */
+CREATE INDEX IF NOT EXISTS idx_audit_login_negado ON audit_log(action, at);
 
 /* ---------- Auditoria de ingestao ---------- */
 

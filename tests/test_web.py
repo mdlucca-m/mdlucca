@@ -13,6 +13,7 @@ import json
 import re
 import sys
 import tempfile
+import time
 import threading
 import unittest
 import urllib.error
@@ -23,7 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from lape import api, auth, ingest_excel, metrics  # noqa: E402
+from lape import api, auth, ingest_excel, metrics, preflight  # noqa: E402
 from lape.db import Database  # noqa: E402
 
 
@@ -405,6 +406,283 @@ class TestApi(unittest.TestCase):
         for marcador in ("__BASE_CSS__", "__ICONS_JS__"):
             self.assertNotIn(marcador, html, f"marcador nao substituido: {marcador}")
         self.assertIn("const Icons", html)   # o menu monta os icones a partir daqui
+
+
+class TestPublicacao(unittest.TestCase):
+    """O que so passa a importar quando o endereco deixa de ser 127.0.0.1.
+
+    Servidor proprio, banco proprio: os testes de travamento sujam o
+    audit_log de proposito e nao podem contaminar as outras classes.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.db_path = Path(cls.tmp.name) / "pub.sqlite"
+        db = Database(cls.db_path)
+        db.migrate()
+        auth.create_account(db, "Coordenacao", "coord@udesc.br", "senhaforte123",
+                            role="coordenacao")
+        db.close()
+        api.Handler.db_path = cls.db_path
+        api.Handler.log_message = lambda *a, **k: None
+        cls.server = ThreadingHTTPServer(("127.0.0.1", 0), api.Handler)
+        cls.port = cls.server.server_address[1]
+        cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
+        cls.thread.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.shutdown()
+        cls.server.server_close()
+        cls.tmp.cleanup()
+
+    def setUp(self):
+        db = Database(self.db_path)
+        db.execute("DELETE FROM audit_log")
+        db.conn.commit()
+        db.close()
+
+    def tentar(self, login_value, senha, headers=None):
+        url = f"http://127.0.0.1:{self.port}/api/auth/login"
+        data = json.dumps({"login": login_value, "senha": senha}).encode()
+        head = {"Content-Type": "application/json"}
+        head.update(headers or {})
+        request = urllib.request.Request(url, data=data, method="POST", headers=head)
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                return response.status, json.loads(response.read().decode()), response.headers
+        except urllib.error.HTTPError as exc:
+            return exc.code, json.loads(exc.read().decode()), exc.headers
+
+    # -- forca bruta --
+    def test_trava_depois_de_muitas_tentativas(self):
+        for _ in range(auth.LOCK_AFTER_LOGIN):
+            status, _, _ = self.tentar("coord@udesc.br", "chute-errado")
+            self.assertEqual(status, 401)
+        status, body, _ = self.tentar("coord@udesc.br", "chute-errado")
+        self.assertEqual(status, 429, "a conta deveria estar travada")
+        self.assertIn("tentativas", body["error"])
+        # travado vale ate para a senha certa: quem esta martelando nao passa
+        status, _, _ = self.tentar("coord@udesc.br", "senhaforte123")
+        self.assertEqual(status, 429)
+
+    def test_acerto_zera_o_contador(self):
+        for _ in range(3):
+            self.tentar("coord@udesc.br", "chute-errado")
+        status, _, _ = self.tentar("coord@udesc.br", "senhaforte123")
+        self.assertEqual(status, 200)
+        db = Database(self.db_path)
+        try:
+            self.assertEqual(auth.recent_failures(db, login_value="coord@udesc.br"), 0)
+        finally:
+            db.close()
+
+    def test_travamento_por_login_nao_derruba_os_outros(self):
+        for _ in range(auth.LOCK_AFTER_LOGIN + 1):
+            self.tentar("alvo@udesc.br", "chute")
+        # o alvo trava, mas quem tem a senha certa continua entrando
+        self.assertEqual(self.tentar("alvo@udesc.br", "chute")[0], 429)
+        self.assertEqual(self.tentar("coord@udesc.br", "senhaforte123")[0], 200)
+
+    # -- enumeracao de contas --
+    def test_login_inexistente_e_senha_errada_respondem_igual(self):
+        inexistente = self.tentar("ninguem@udesc.br", "qualquer")
+        errada = self.tentar("coord@udesc.br", "qualquer")
+        self.assertEqual(inexistente[0], errada[0])
+        self.assertEqual(inexistente[1]["error"], errada[1]["error"])
+
+    def test_login_inexistente_nao_responde_instantaneamente(self):
+        """O hash descartavel precisa rodar, senao a demora entrega quem tem conta."""
+        comeco = time.perf_counter()
+        self.tentar("ninguem-mesmo@udesc.br", "qualquer")
+        gasto = time.perf_counter() - comeco
+        # o PBKDF2 leva ~100ms; 20ms ja prova que ele nao foi pulado
+        self.assertGreater(gasto, 0.02, "resposta rapida demais: o hash foi pulado")
+
+    def test_a_origem_fica_registrada(self):
+        self.tentar("coord@udesc.br", "chute-errado")
+        db = Database(self.db_path)
+        try:
+            linha = db.dicts("SELECT ip, detail FROM audit_log WHERE action = 'login_negado'")[0]
+            self.assertTrue(linha["ip"], "sem origem nao da para contar por IP")
+        finally:
+            db.close()
+
+    # -- cabecalhos --
+    def test_cabecalhos_de_seguranca_em_toda_resposta(self):
+        request = urllib.request.Request(f"http://127.0.0.1:{self.port}/api/health")
+        with urllib.request.urlopen(request, timeout=20) as response:
+            headers = response.headers
+        self.assertEqual(headers.get("X-Content-Type-Options"), "nosniff")
+        self.assertEqual(headers.get("X-Frame-Options"), "DENY")
+        self.assertIn("frame-ancestors 'none'", headers.get("Content-Security-Policy", ""))
+        self.assertIn("connect-src 'self'", headers.get("Content-Security-Policy", ""))
+
+    def test_cookie_marcado_como_secure_atras_de_https(self):
+        anterior = api.BEHIND_HTTPS
+        api.BEHIND_HTTPS = True
+        try:
+            _, _, headers = self.tentar("coord@udesc.br", "senhaforte123")
+            cookie = headers.get("Set-Cookie", "")
+        finally:
+            api.BEHIND_HTTPS = anterior
+        self.assertIn("HttpOnly", cookie)
+        self.assertIn("SameSite=Lax", cookie)
+        self.assertIn("Secure", cookie)
+
+    def test_sem_https_o_cookie_nao_finge_ser_secure(self):
+        anterior = api.BEHIND_HTTPS
+        api.BEHIND_HTTPS = False
+        try:
+            _, _, headers = self.tentar("coord@udesc.br", "senhaforte123")
+            cookie = headers.get("Set-Cookie", "")
+        finally:
+            api.BEHIND_HTTPS = anterior
+        self.assertIn("HttpOnly", cookie)
+        self.assertNotIn("Secure", cookie)
+
+    # -- primeiro administrador --
+    def test_recusa_senha_de_exemplo_no_primeiro_admin(self):
+        """Falha fechado: melhor nao subir do que subir com a senha do tutorial."""
+        tmp = tempfile.TemporaryDirectory()
+        db = Database(Path(tmp.name) / "novo.sqlite")
+        db.migrate()
+        try:
+            for ruim in ("troque-por-uma-senha-longa", "senha123", "12345678", "aaaaaaaa"):
+                with self.assertRaises(auth.AuthError, msg=f"aceitou '{ruim}'"):
+                    auth.bootstrap_admin(db, "admin@udesc.br", ruim)
+            criado = auth.bootstrap_admin(db, "admin@udesc.br", "Kx7m-Trilha-Serena-92")
+            self.assertEqual(criado["login"], "admin@udesc.br")
+            self.assertEqual(criado["role"], "admin")
+        finally:
+            db.close()
+            tmp.cleanup()
+
+    def test_senha_fraca_reconhece_os_casos(self):
+        self.assertIsNone(auth.senha_fraca("Kx7m-Trilha-Serena-92"))
+        self.assertIsNotNone(auth.senha_fraca("curta"))
+        self.assertIsNotNone(auth.senha_fraca("SENHA123"))
+        self.assertIsNotNone(auth.senha_fraca("aaaabbbb"))
+        self.assertIsNotNone(auth.senha_fraca(None))
+
+    # -- proxy --
+    def test_cabecalho_de_proxy_so_e_aceito_quando_ha_proxy(self):
+        """Sem proxy na frente, X-Forwarded-For e escrito pelo proprio cliente.
+
+        Aceita-lo sempre daria a qualquer um a chave para escapar do
+        travamento por IP: bastaria mudar o cabecalho a cada tentativa.
+        """
+        anterior = api.TRUST_PROXY
+        api.TRUST_PROXY = False
+        try:
+            self.tentar("coord@udesc.br", "chute", {"X-Forwarded-For": "203.0.113.9"})
+            db = Database(self.db_path)
+            try:
+                ip = db.scalar("SELECT ip FROM audit_log WHERE action = 'login_negado'"
+                               " ORDER BY id DESC LIMIT 1")
+            finally:
+                db.close()
+            self.assertEqual(ip, "127.0.0.1", "o cabecalho do cliente foi acreditado")
+        finally:
+            api.TRUST_PROXY = anterior
+
+    def test_com_proxy_confiavel_o_endereco_real_e_usado(self):
+        anterior = api.TRUST_PROXY
+        api.TRUST_PROXY = True
+        try:
+            self.tentar("coord@udesc.br", "chute",
+                        {"X-Forwarded-For": "203.0.113.9, 10.0.0.1"})
+            db = Database(self.db_path)
+            try:
+                ip = db.scalar("SELECT ip FROM audit_log WHERE action = 'login_negado'"
+                               " ORDER BY id DESC LIMIT 1")
+            finally:
+                db.close()
+            self.assertEqual(ip, "203.0.113.9")
+        finally:
+            api.TRUST_PROXY = anterior
+
+
+class TestConferenciaDePublicacao(unittest.TestCase):
+    """A conferencia precisa acusar o que realmente impede a publicacao."""
+
+    def setUp(self):
+        # dentro do projeto, e nao em /tmp: a conferencia acusa caminho efemero
+        # de proposito, e um banco em /tmp seria justamente um deles
+        self.tmp = tempfile.TemporaryDirectory(dir=ROOT)
+        self.db = Database(Path(self.tmp.name) / "pf.sqlite")
+        self.db.migrate()
+
+    def tearDown(self):
+        self.db.close()
+        self.tmp.cleanup()
+
+    def niveis(self, ambiente):
+        achados = preflight.conferir(self.db, ambiente)
+        return {a["titulo"]: a["nivel"] for a in achados}
+
+    AMBIENTE_BOM = {"LAPE_BEHIND_HTTPS": "1", "LAPE_TRUST_PROXY": "1"}
+
+    def test_sem_https_impede(self):
+        achados = preflight.conferir(self.db, {})
+        impedimentos = [a["titulo"] for a in achados if a["nivel"] == "impede"]
+        self.assertTrue(any("HTTPS" in t for t in impedimentos))
+        self.assertFalse(preflight.resumo(achados)["pronto"])
+
+    def test_sem_administrador_impede(self):
+        achados = preflight.conferir(self.db, self.AMBIENTE_BOM)
+        self.assertTrue(any(a["nivel"] == "impede" and "administrador" in a["titulo"]
+                            for a in achados))
+
+    def test_ambiente_completo_libera(self):
+        auth.create_account(self.db, "Chefia", "chefe@udesc.br", "Kx7m-Trilha-Serena-92",
+                            role="admin")
+        self.db.execute("UPDATE members SET must_change_password = 0")
+        self.db.conn.commit()
+        achados = preflight.conferir(self.db, self.AMBIENTE_BOM)
+        impedimentos = [a["titulo"] for a in achados if a["nivel"] == "impede"]
+        self.assertEqual(impedimentos, [], f"impedimentos inesperados: {impedimentos}")
+        self.assertTrue(preflight.resumo(achados)["pronto"])
+
+    def test_senha_de_exemplo_no_ambiente_impede(self):
+        auth.create_account(self.db, "Chefia", "chefe@udesc.br", "Kx7m-Trilha-Serena-92",
+                            role="admin")
+        ambiente = dict(self.AMBIENTE_BOM, LAPE_ADMIN_PASSWORD="troque-por-uma-senha-longa")
+        achados = preflight.conferir(self.db, ambiente)
+        self.assertTrue(any(a["nivel"] == "impede" and "LAPE_ADMIN_PASSWORD" in a["titulo"]
+                            for a in achados))
+
+    def test_painel_publico_e_apontado_como_risco(self):
+        ambiente = dict(self.AMBIENTE_BOM, LAPE_PUBLIC_DASHBOARD="1")
+        self.assertIn("risco", self.niveis(ambiente).get("Painel visível sem login", ""))
+
+    def test_webhook_sem_segredo_e_risco(self):
+        from lape import hooks
+
+        hooks.register(self.db, "n8n", "https://n8n.exemplo/webhook/lape")
+        achados = preflight.conferir(self.db, self.AMBIENTE_BOM)
+        self.assertTrue(any(a["nivel"] == "risco" and "assinatura" in a["titulo"]
+                            for a in achados))
+
+    def test_banco_em_caminho_efemero_impede(self):
+        efemero = tempfile.TemporaryDirectory(dir="/tmp")
+        db = Database(Path(efemero.name) / "pf.sqlite")
+        db.migrate()
+        auth.create_account(db, "Chefia", "chefe@udesc.br", "Kx7m-Trilha-Serena-92",
+                            role="admin")
+        try:
+            achados = preflight.conferir(db, self.AMBIENTE_BOM)
+            self.assertTrue(any(a["nivel"] == "impede" and "efêmero" in a["titulo"]
+                                for a in achados))
+        finally:
+            db.close()
+            efemero.cleanup()
+
+    def test_a_conferencia_nao_escreve_no_banco(self):
+        antes = self.db.scalar("SELECT COUNT(*) FROM audit_log")
+        preflight.conferir(self.db, self.AMBIENTE_BOM)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM audit_log"), antes)
 
 
 class TestTokensDoTema(unittest.TestCase):
