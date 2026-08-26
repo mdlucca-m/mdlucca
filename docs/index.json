@@ -1,0 +1,2268 @@
+{
+  "overview": {
+    "generated_at": "26/08/2026 17:59",
+    "lab_name": "LAPE - Laboratorio de Psicologia do Esporte e do Exercicio",
+    "institution": "UDESC / CEFID",
+    "site": "https://www.udesc.br/cefid/lape",
+    "window": 5,
+    "n_articles": 19,
+    "n_published": 0,
+    "n_in_progress": 16,
+    "n_submitted": 3,
+    "n_accepted": 0,
+    "n_rejected": 0,
+    "n_members": 17,
+    "n_collaborators": 0,
+    "n_research_lines": 3,
+    "n_events": 1,
+    "published_window": 0,
+    "mean_per_year": 0.0,
+    "scopus_total": 0,
+    "wos_total": 0,
+    "openalex_total": 0,
+    "n_discoveries": 0,
+    "acceptance_rate": 0.0,
+    "network_density": 0.412,
+    "status_counts": [
+      {
+        "status": "em_producao",
+        "n": 16
+      },
+      {
+        "status": "submetido",
+        "n": 3
+      }
+    ]
+  },
+  "research_lines": [
+    {
+      "id": 3,
+      "code": "dor_cronica",
+      "name": "Dor Crônica e Fibromialgia",
+      "description": "Intervenções psicológicas e de exercício no manejo da dor crônica.",
+      "coordinator": null,
+      "keywords": "fibromialgia; dor; treinamento resistido",
+      "started_on": "2012-01-01",
+      "active": 1,
+      "n_articles": 0,
+      "n_published": 0,
+      "n_in_progress": 0,
+      "n_submitted": 0,
+      "n_members": 0,
+      "n_events": 0,
+      "scopus_citations": 0
+    },
+    {
+      "id": 1,
+      "code": "psicologia_esporte",
+      "name": "Psicologia do Esporte e do Exercício",
+      "description": "Aspectos psicológicos do desempenho, treinamento e competição.",
+      "coordinator": "Alexandro Andrade",
+      "keywords": "ansiedade; motivação; humor; atletas",
+      "started_on": "2000-01-01",
+      "active": 1,
+      "n_articles": 0,
+      "n_published": 0,
+      "n_in_progress": 0,
+      "n_submitted": 0,
+      "n_members": 0,
+      "n_events": 0,
+      "scopus_citations": 0
+    },
+    {
+      "id": 2,
+      "code": "saude_mental_exercicio",
+      "name": "Saúde Mental e Exercício Físico",
+      "description": "Efeitos do exercício sobre depressão, ansiedade e qualidade de vida.",
+      "coordinator": "Alexandro Andrade",
+      "keywords": "depressão; qualidade de vida; exercício",
+      "started_on": "2005-01-01",
+      "active": 1,
+      "n_articles": 0,
+      "n_published": 0,
+      "n_in_progress": 0,
+      "n_submitted": 0,
+      "n_members": 0,
+      "n_events": 0,
+      "scopus_citations": 0
+    }
+  ],
+  "in_progress": [
+    {
+      "id": 6,
+      "internal_code": "LAPE-06",
+      "title": "Aspectos psicológicos e classificação dos perfis de humor em pacientes com fibromialgia",
+      "authors": "Andrade; Loiane; Luiza; Marcele; Vilarino",
+      "research_line": null,
+      "status": "em_producao",
+      "study_type": null,
+      "started_on": null,
+      "first_submission_on": null,
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 0,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": null,
+      "last_submitted_on": null,
+      "days_open": null
+    },
+    {
+      "id": 14,
+      "internal_code": "LAPE-14",
+      "title": "Efetividade do treinamento resistido para a fibromialgia: estamos falhando no uso de medidas de relevância clínica?",
+      "authors": "Andrade; Loiane; Vilarino",
+      "research_line": null,
+      "status": "em_producao",
+      "study_type": null,
+      "started_on": "2026-08-19",
+      "first_submission_on": null,
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 0,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": null,
+      "last_submitted_on": null,
+      "days_open": 7
+    },
+    {
+      "id": 16,
+      "internal_code": "LAPE-16",
+      "title": "Editorial - Dropout",
+      "authors": "Andrade; Loiane; Vilarino",
+      "research_line": null,
+      "status": "em_producao",
+      "study_type": null,
+      "started_on": "2026-08-19",
+      "first_submission_on": null,
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 0,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": null,
+      "last_submitted_on": null,
+      "days_open": 7
+    },
+    {
+      "id": 11,
+      "internal_code": "LAPE-11",
+      "title": "EFEITOS DE DIFERENTES INTENSIDADES DE TREINAMENTO RESISTIDO SOBRE A DOR DE PACIENTES COM FIBROMIALGIA",
+      "authors": "Andrade; Loiane; Luiza; Nayara; Vilarino",
+      "research_line": null,
+      "status": "em_producao",
+      "study_type": null,
+      "started_on": "2026-08-18",
+      "first_submission_on": null,
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 0,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": null,
+      "last_submitted_on": null,
+      "days_open": 8
+    },
+    {
+      "id": 17,
+      "internal_code": "LAPE-17",
+      "title": "Efeito da prática da corrida e caminhada na redução da ansiedade: análise das evidências através de uma revisão sistemática de ensaios clínicos controlados e randomizados",
+      "authors": "Alexandro; Ariane; Henrique Fukumasa; Juliana; Marcele; Vilarino",
+      "research_line": null,
+      "status": "em_producao",
+      "study_type": null,
+      "started_on": "2026-08-13",
+      "first_submission_on": null,
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 0,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": null,
+      "last_submitted_on": null,
+      "days_open": 13
+    },
+    {
+      "id": 10,
+      "internal_code": "LAPE-10",
+      "title": "Efetividade clínica do treinamento resistido no impacto da fibromialgia: revisão sistemática com análise da diferença mínima clinicamente importante",
+      "authors": "Andrade; Loiane; Luiza; Vilarino",
+      "research_line": null,
+      "status": "em_producao",
+      "study_type": null,
+      "started_on": "2026-07-28",
+      "first_submission_on": null,
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 0,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": null,
+      "last_submitted_on": null,
+      "days_open": 29
+    },
+    {
+      "id": 2,
+      "internal_code": "LAPE-02",
+      "title": "Determinantes do dropout no treinamento resistido para fibromialgia: revisão sistemática",
+      "authors": "Andrade; Loiane; Nayara; Vilarino",
+      "research_line": null,
+      "status": "em_producao",
+      "study_type": null,
+      "started_on": "2026-07-27",
+      "first_submission_on": null,
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 0,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": null,
+      "last_submitted_on": null,
+      "days_open": 30
+    },
+    {
+      "id": 3,
+      "internal_code": "LAPE-03",
+      "title": "Influência da saúde mental, características clínicas e da prática de exercício físico no impacto da fibromialgia: estudo transversal",
+      "authors": "Andrade; Loiane; Vilarino",
+      "research_line": null,
+      "status": "em_producao",
+      "study_type": null,
+      "started_on": "2026-07-27",
+      "first_submission_on": null,
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 0,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": null,
+      "last_submitted_on": null,
+      "days_open": 30
+    },
+    {
+      "id": 4,
+      "internal_code": "LAPE-04",
+      "title": "Efeitos do treinamento resistido de intensidade alta versus intensidade preferida no impacto da doença em mulheres com fibromialgia: ensaio clínico randomizado crossover",
+      "authors": "Andrade; Loiane; Vilarino",
+      "research_line": null,
+      "status": "em_producao",
+      "study_type": null,
+      "started_on": "2026-07-27",
+      "first_submission_on": null,
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 0,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": null,
+      "last_submitted_on": null,
+      "days_open": 30
+    },
+    {
+      "id": 5,
+      "internal_code": "LAPE-05",
+      "title": "Dropout no treinamento resistido para fibromialgia: análise retrospectiva de características basais, intensidades de prescrição e motivos de descontinuação",
+      "authors": "Andrade; Loiane; Vilarino",
+      "research_line": null,
+      "status": "em_producao",
+      "study_type": null,
+      "started_on": "2026-07-27",
+      "first_submission_on": null,
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 0,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": null,
+      "last_submitted_on": null,
+      "days_open": 30
+    },
+    {
+      "id": 8,
+      "internal_code": "LAPE-08",
+      "title": "Resistance training protocol with low and high intensity for the treatment of patients with fibromyalgia: application in a controlled and randomized study",
+      "authors": "Andrade; Loiane; Vilarino",
+      "research_line": null,
+      "status": "em_producao",
+      "study_type": null,
+      "started_on": "2026-07-27",
+      "first_submission_on": null,
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 0,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": null,
+      "last_submitted_on": null,
+      "days_open": 30
+    },
+    {
+      "id": 9,
+      "internal_code": "LAPE-09",
+      "title": "Effects of resistance training with high and low intensity on anxiety in patients with fibromyalgia: a randomized controlled trial",
+      "authors": "Andrade; Loiane; Vilarino",
+      "research_line": null,
+      "status": "em_producao",
+      "study_type": null,
+      "started_on": "2026-07-27",
+      "first_submission_on": null,
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 0,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": null,
+      "last_submitted_on": null,
+      "days_open": 30
+    },
+    {
+      "id": 12,
+      "internal_code": "LAPE-12",
+      "title": "INTEGRAÇÃO DOS EXERGAMES NA EDUCAÇÃO FÍSICA: UMA RS SOBRE IMPLEMENTAÇÃO PEDAGÓGICA, BENEFÍCIOS, BARREIRAS E RECOMENDAÇÕES",
+      "authors": "Andrade; Camile; Nayara; Vilarino",
+      "research_line": null,
+      "status": "em_producao",
+      "study_type": null,
+      "started_on": "2026-07-27",
+      "first_submission_on": null,
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 0,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": null,
+      "last_submitted_on": null,
+      "days_open": 30
+    },
+    {
+      "id": 19,
+      "internal_code": "LAPE-19",
+      "title": "Determinantes do dropout no TR para FM: revisão sistemática",
+      "authors": "Andrade; Loiane; Nayara; Vilarino",
+      "research_line": null,
+      "status": "em_producao",
+      "study_type": null,
+      "started_on": "2026-07-27",
+      "first_submission_on": null,
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 0,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": null,
+      "last_submitted_on": null,
+      "days_open": 30
+    },
+    {
+      "id": 1,
+      "internal_code": "LAPE-01",
+      "title": "Modalidades Fisioterapêuticas na Reabilitação do Assoalho Pélvico em mulheres com Incontinência Urinária: Revisão sistemática",
+      "authors": "Andrade; Angelise; Ariane; Carla; Letícia; Marcele; Vilarino",
+      "research_line": null,
+      "status": "em_producao",
+      "study_type": null,
+      "started_on": "2026-07-20",
+      "first_submission_on": null,
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 0,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": null,
+      "last_submitted_on": null,
+      "days_open": 37
+    },
+    {
+      "id": 13,
+      "internal_code": "LAPE-13",
+      "title": "Practice of adventure physical activities related to mental health: A thematic and bibliometric analysis of international scientific production",
+      "authors": "Anderson; Andrade; Luiza; Vilarino",
+      "research_line": null,
+      "status": "em_producao",
+      "study_type": null,
+      "started_on": "2026-07-06",
+      "first_submission_on": null,
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 0,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": null,
+      "last_submitted_on": null,
+      "days_open": 51
+    }
+  ],
+  "submitted": [
+    {
+      "id": 15,
+      "internal_code": "LAPE-15",
+      "title": "Relative contribution of psychological, clinical and exercise-related factors to fibromyalgia impact in women with fibromyalgia: a cross-sectional study",
+      "authors": "Andrade; Loiane; Luiza; Vilarino",
+      "research_line": null,
+      "status": "submetido",
+      "study_type": null,
+      "started_on": "2026-07-02",
+      "first_submission_on": "2026-07-14",
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 3,
+      "rejections": 2,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": "International Journal of Rheumatic Diseases",
+      "last_submitted_on": "2026-08-15",
+      "days_open": 55
+    },
+    {
+      "id": 7,
+      "internal_code": "LAPE-07",
+      "title": "Physical Activity Frequency and Anxiety Levels in Patients with Fibromyalgia: A Cross-Sectional Study",
+      "authors": "Andrade; Loiane; Marina; Vilarino",
+      "research_line": null,
+      "status": "submetido",
+      "study_type": null,
+      "started_on": null,
+      "first_submission_on": "2026-05-13",
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 1,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": "Journal of Health Psychology",
+      "last_submitted_on": "2026-05-13",
+      "days_open": null
+    },
+    {
+      "id": 18,
+      "internal_code": "LAPE-18",
+      "title": "The influence of the level of knowledge of patients with rheumatic disease on treatment, adherence, and practice of physical exercise",
+      "authors": "Andrade; Henrique; Loiane; Vilarino",
+      "research_line": null,
+      "status": "submetido",
+      "study_type": null,
+      "started_on": "2026-03-10",
+      "first_submission_on": "2026-04-27",
+      "accepted_on": null,
+      "published_on": null,
+      "year_published": null,
+      "journal": null,
+      "doi": null,
+      "url": null,
+      "submission_attempts": 1,
+      "rejections": 0,
+      "days_start_to_publication": null,
+      "days_submission_to_acceptance": null,
+      "current_journal": "Patient and education Counseling",
+      "last_submitted_on": "2026-04-27",
+      "days_open": 169
+    }
+  ],
+  "accepted": [],
+  "rejected": [],
+  "publications": {
+    "window": 5,
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025,
+      2026
+    ],
+    "series": [
+      {
+        "year": 2022,
+        "n_articles": 0,
+        "scopus_citations": 0,
+        "wos_citations": 0
+      },
+      {
+        "year": 2023,
+        "n_articles": 0,
+        "scopus_citations": 0,
+        "wos_citations": 0
+      },
+      {
+        "year": 2024,
+        "n_articles": 0,
+        "scopus_citations": 0,
+        "wos_citations": 0
+      },
+      {
+        "year": 2025,
+        "n_articles": 0,
+        "scopus_citations": 0,
+        "wos_citations": 0
+      },
+      {
+        "year": 2026,
+        "n_articles": 0,
+        "scopus_citations": 0,
+        "wos_citations": 0
+      }
+    ],
+    "full_series": [],
+    "total_window": 0,
+    "mean_per_year": 0.0,
+    "total_all_time": 0
+  },
+  "most_cited_scopus": [],
+  "most_cited_wos": [],
+  "most_cited_scopus_recent": [],
+  "most_cited_wos_recent": [],
+  "most_cited_openalex": [],
+  "most_cited_openalex_recent": [],
+  "members": [
+    {
+      "member_id": 17,
+      "full_name": "Vilarino",
+      "short_name": null,
+      "role": null,
+      "is_external": 0,
+      "research_line": null,
+      "n_articles": 19,
+      "n_published": 0,
+      "n_submitted": 3,
+      "n_in_progress": 16,
+      "n_first_author": 5,
+      "n_corresponding": 0,
+      "scopus_citations": 0,
+      "wos_citations": 0,
+      "active": 1,
+      "institution_id": null,
+      "n_events": 1
+    },
+    {
+      "member_id": 3,
+      "full_name": "Andrade",
+      "short_name": null,
+      "role": null,
+      "is_external": 0,
+      "research_line": null,
+      "n_articles": 18,
+      "n_published": 0,
+      "n_submitted": 3,
+      "n_in_progress": 15,
+      "n_first_author": 0,
+      "n_corresponding": 0,
+      "scopus_citations": 0,
+      "wos_citations": 0,
+      "active": 1,
+      "institution_id": null,
+      "n_events": 1
+    },
+    {
+      "member_id": 12,
+      "full_name": "Loiane",
+      "short_name": null,
+      "role": null,
+      "is_external": 0,
+      "research_line": null,
+      "n_articles": 15,
+      "n_published": 0,
+      "n_submitted": 3,
+      "n_in_progress": 12,
+      "n_first_author": 9,
+      "n_corresponding": 0,
+      "scopus_citations": 0,
+      "wos_citations": 0,
+      "active": 1,
+      "institution_id": null,
+      "n_events": 1
+    },
+    {
+      "member_id": 13,
+      "full_name": "Luiza",
+      "short_name": null,
+      "role": null,
+      "is_external": 0,
+      "research_line": null,
+      "n_articles": 5,
+      "n_published": 0,
+      "n_submitted": 1,
+      "n_in_progress": 4,
+      "n_first_author": 1,
+      "n_corresponding": 0,
+      "scopus_citations": 0,
+      "wos_citations": 0,
+      "active": 1,
+      "institution_id": null,
+      "n_events": 0
+    },
+    {
+      "member_id": 16,
+      "full_name": "Nayara",
+      "short_name": null,
+      "role": null,
+      "is_external": 0,
+      "research_line": null,
+      "n_articles": 4,
+      "n_published": 0,
+      "n_submitted": 0,
+      "n_in_progress": 4,
+      "n_first_author": 0,
+      "n_corresponding": 0,
+      "scopus_citations": 0,
+      "wos_citations": 0,
+      "active": 1,
+      "institution_id": null,
+      "n_events": 0
+    },
+    {
+      "member_id": 14,
+      "full_name": "Marcele",
+      "short_name": null,
+      "role": null,
+      "is_external": 0,
+      "research_line": null,
+      "n_articles": 3,
+      "n_published": 0,
+      "n_submitted": 0,
+      "n_in_progress": 3,
+      "n_first_author": 1,
+      "n_corresponding": 0,
+      "scopus_citations": 0,
+      "wos_citations": 0,
+      "active": 1,
+      "institution_id": null,
+      "n_events": 0
+    },
+    {
+      "member_id": 5,
+      "full_name": "Ariane",
+      "short_name": null,
+      "role": null,
+      "is_external": 0,
+      "research_line": null,
+      "n_articles": 2,
+      "n_published": 0,
+      "n_submitted": 0,
+      "n_in_progress": 2,
+      "n_first_author": 0,
+      "n_corresponding": 0,
+      "scopus_citations": 0,
+      "wos_citations": 0,
+      "active": 1,
+      "institution_id": null,
+      "n_events": 0
+    },
+    {
+      "member_id": 1,
+      "full_name": "Alexandro",
+      "short_name": null,
+      "role": null,
+      "is_external": 0,
+      "research_line": null,
+      "n_articles": 1,
+      "n_published": 0,
+      "n_submitted": 0,
+      "n_in_progress": 1,
+      "n_first_author": 0,
+      "n_corresponding": 0,
+      "scopus_citations": 0,
+      "wos_citations": 0,
+      "active": 1,
+      "institution_id": null,
+      "n_events": 0
+    },
+    {
+      "member_id": 2,
+      "full_name": "Anderson",
+      "short_name": null,
+      "role": null,
+      "is_external": 0,
+      "research_line": null,
+      "n_articles": 1,
+      "n_published": 0,
+      "n_submitted": 0,
+      "n_in_progress": 1,
+      "n_first_author": 1,
+      "n_corresponding": 0,
+      "scopus_citations": 0,
+      "wos_citations": 0,
+      "active": 1,
+      "institution_id": null,
+      "n_events": 0
+    },
+    {
+      "member_id": 4,
+      "full_name": "Angelise",
+      "short_name": null,
+      "role": null,
+      "is_external": 0,
+      "research_line": null,
+      "n_articles": 1,
+      "n_published": 0,
+      "n_submitted": 0,
+      "n_in_progress": 1,
+      "n_first_author": 1,
+      "n_corresponding": 0,
+      "scopus_citations": 0,
+      "wos_citations": 0,
+      "active": 1,
+      "institution_id": null,
+      "n_events": 0
+    },
+    {
+      "member_id": 6,
+      "full_name": "Camile",
+      "short_name": null,
+      "role": null,
+      "is_external": 0,
+      "research_line": null,
+      "n_articles": 1,
+      "n_published": 0,
+      "n_submitted": 0,
+      "n_in_progress": 1,
+      "n_first_author": 1,
+      "n_corresponding": 0,
+      "scopus_citations": 0,
+      "wos_citations": 0,
+      "active": 1,
+      "institution_id": null,
+      "n_events": 0
+    },
+    {
+      "member_id": 7,
+      "full_name": "Carla",
+      "short_name": null,
+      "role": null,
+      "is_external": 0,
+      "research_line": null,
+      "n_articles": 1,
+      "n_published": 0,
+      "n_submitted": 0,
+      "n_in_progress": 1,
+      "n_first_author": 0,
+      "n_corresponding": 0,
+      "scopus_citations": 0,
+      "wos_citations": 0,
+      "active": 1,
+      "institution_id": null,
+      "n_events": 0
+    },
+    {
+      "member_id": 8,
+      "full_name": "Henrique",
+      "short_name": null,
+      "role": null,
+      "is_external": 0,
+      "research_line": null,
+      "n_articles": 1,
+      "n_published": 0,
+      "n_submitted": 1,
+      "n_in_progress": 0,
+      "n_first_author": 0,
+      "n_corresponding": 0,
+      "scopus_citations": 0,
+      "wos_citations": 0,
+      "active": 1,
+      "institution_id": null,
+      "n_events": 0
+    },
+    {
+      "member_id": 9,
+      "full_name": "Henrique Fukumasa",
+      "short_name": null,
+      "role": null,
+      "is_external": 0,
+      "research_line": null,
+      "n_articles": 1,
+      "n_published": 0,
+      "n_submitted": 0,
+      "n_in_progress": 1,
+      "n_first_author": 0,
+      "n_corresponding": 0,
+      "scopus_citations": 0,
+      "wos_citations": 0,
+      "active": 1,
+      "institution_id": null,
+      "n_events": 0
+    },
+    {
+      "member_id": 10,
+      "full_name": "Juliana",
+      "short_name": null,
+      "role": null,
+      "is_external": 0,
+      "research_line": null,
+      "n_articles": 1,
+      "n_published": 0,
+      "n_submitted": 0,
+      "n_in_progress": 1,
+      "n_first_author": 0,
+      "n_corresponding": 0,
+      "scopus_citations": 0,
+      "wos_citations": 0,
+      "active": 1,
+      "institution_id": null,
+      "n_events": 0
+    },
+    {
+      "member_id": 11,
+      "full_name": "Letícia",
+      "short_name": null,
+      "role": null,
+      "is_external": 0,
+      "research_line": null,
+      "n_articles": 1,
+      "n_published": 0,
+      "n_submitted": 0,
+      "n_in_progress": 1,
+      "n_first_author": 0,
+      "n_corresponding": 0,
+      "scopus_citations": 0,
+      "wos_citations": 0,
+      "active": 1,
+      "institution_id": null,
+      "n_events": 0
+    },
+    {
+      "member_id": 15,
+      "full_name": "Marina",
+      "short_name": null,
+      "role": null,
+      "is_external": 0,
+      "research_line": null,
+      "n_articles": 1,
+      "n_published": 0,
+      "n_submitted": 1,
+      "n_in_progress": 0,
+      "n_first_author": 0,
+      "n_corresponding": 0,
+      "scopus_citations": 0,
+      "wos_citations": 0,
+      "active": 1,
+      "institution_id": null,
+      "n_events": 0
+    }
+  ],
+  "network": {
+    "nodes": [
+      {
+        "id": 17,
+        "name": "Vilarino",
+        "full_name": "Vilarino",
+        "role": null,
+        "research_line": null,
+        "is_external": 0,
+        "degree": 16,
+        "articles": 19
+      },
+      {
+        "id": 3,
+        "name": "Andrade",
+        "full_name": "Andrade",
+        "role": null,
+        "research_line": null,
+        "is_external": 0,
+        "degree": 13,
+        "articles": 18
+      },
+      {
+        "id": 12,
+        "name": "Loiane",
+        "full_name": "Loiane",
+        "role": null,
+        "research_line": null,
+        "is_external": 0,
+        "degree": 7,
+        "articles": 15
+      },
+      {
+        "id": 13,
+        "name": "Luiza",
+        "full_name": "Luiza",
+        "role": null,
+        "research_line": null,
+        "is_external": 0,
+        "degree": 6,
+        "articles": 5
+      },
+      {
+        "id": 16,
+        "name": "Nayara",
+        "full_name": "Nayara",
+        "role": null,
+        "research_line": null,
+        "is_external": 0,
+        "degree": 5,
+        "articles": 4
+      },
+      {
+        "id": 14,
+        "name": "Marcele",
+        "full_name": "Marcele",
+        "role": null,
+        "research_line": null,
+        "is_external": 0,
+        "degree": 11,
+        "articles": 3
+      },
+      {
+        "id": 5,
+        "name": "Ariane",
+        "full_name": "Ariane",
+        "role": null,
+        "research_line": null,
+        "is_external": 0,
+        "degree": 9,
+        "articles": 2
+      },
+      {
+        "id": 1,
+        "name": "Alexandro",
+        "full_name": "Alexandro",
+        "role": null,
+        "research_line": null,
+        "is_external": 0,
+        "degree": 5,
+        "articles": 1
+      },
+      {
+        "id": 2,
+        "name": "Anderson",
+        "full_name": "Anderson",
+        "role": null,
+        "research_line": null,
+        "is_external": 0,
+        "degree": 3,
+        "articles": 1
+      },
+      {
+        "id": 4,
+        "name": "Angelise",
+        "full_name": "Angelise",
+        "role": null,
+        "research_line": null,
+        "is_external": 0,
+        "degree": 6,
+        "articles": 1
+      },
+      {
+        "id": 6,
+        "name": "Camile",
+        "full_name": "Camile",
+        "role": null,
+        "research_line": null,
+        "is_external": 0,
+        "degree": 3,
+        "articles": 1
+      },
+      {
+        "id": 7,
+        "name": "Carla",
+        "full_name": "Carla",
+        "role": null,
+        "research_line": null,
+        "is_external": 0,
+        "degree": 6,
+        "articles": 1
+      },
+      {
+        "id": 8,
+        "name": "Henrique",
+        "full_name": "Henrique",
+        "role": null,
+        "research_line": null,
+        "is_external": 0,
+        "degree": 3,
+        "articles": 1
+      },
+      {
+        "id": 9,
+        "name": "Henrique Fukumasa",
+        "full_name": "Henrique Fukumasa",
+        "role": null,
+        "research_line": null,
+        "is_external": 0,
+        "degree": 5,
+        "articles": 1
+      },
+      {
+        "id": 10,
+        "name": "Juliana",
+        "full_name": "Juliana",
+        "role": null,
+        "research_line": null,
+        "is_external": 0,
+        "degree": 5,
+        "articles": 1
+      },
+      {
+        "id": 11,
+        "name": "Letícia",
+        "full_name": "Letícia",
+        "role": null,
+        "research_line": null,
+        "is_external": 0,
+        "degree": 6,
+        "articles": 1
+      },
+      {
+        "id": 15,
+        "name": "Marina",
+        "full_name": "Marina",
+        "role": null,
+        "research_line": null,
+        "is_external": 0,
+        "degree": 3,
+        "articles": 1
+      }
+    ],
+    "edges": [
+      {
+        "source": 3,
+        "target": 17,
+        "weight": 18
+      },
+      {
+        "source": 3,
+        "target": 12,
+        "weight": 15
+      },
+      {
+        "source": 12,
+        "target": 17,
+        "weight": 15
+      },
+      {
+        "source": 3,
+        "target": 13,
+        "weight": 5
+      },
+      {
+        "source": 13,
+        "target": 17,
+        "weight": 5
+      },
+      {
+        "source": 3,
+        "target": 16,
+        "weight": 4
+      },
+      {
+        "source": 16,
+        "target": 17,
+        "weight": 4
+      },
+      {
+        "source": 12,
+        "target": 13,
+        "weight": 4
+      },
+      {
+        "source": 14,
+        "target": 17,
+        "weight": 3
+      },
+      {
+        "source": 12,
+        "target": 16,
+        "weight": 3
+      },
+      {
+        "source": 3,
+        "target": 14,
+        "weight": 2
+      },
+      {
+        "source": 5,
+        "target": 14,
+        "weight": 2
+      },
+      {
+        "source": 5,
+        "target": 17,
+        "weight": 2
+      },
+      {
+        "source": 3,
+        "target": 4,
+        "weight": 1
+      },
+      {
+        "source": 3,
+        "target": 5,
+        "weight": 1
+      },
+      {
+        "source": 3,
+        "target": 7,
+        "weight": 1
+      },
+      {
+        "source": 3,
+        "target": 11,
+        "weight": 1
+      },
+      {
+        "source": 4,
+        "target": 5,
+        "weight": 1
+      },
+      {
+        "source": 4,
+        "target": 7,
+        "weight": 1
+      },
+      {
+        "source": 4,
+        "target": 11,
+        "weight": 1
+      },
+      {
+        "source": 4,
+        "target": 14,
+        "weight": 1
+      },
+      {
+        "source": 4,
+        "target": 17,
+        "weight": 1
+      },
+      {
+        "source": 5,
+        "target": 7,
+        "weight": 1
+      },
+      {
+        "source": 5,
+        "target": 11,
+        "weight": 1
+      },
+      {
+        "source": 7,
+        "target": 11,
+        "weight": 1
+      },
+      {
+        "source": 7,
+        "target": 14,
+        "weight": 1
+      },
+      {
+        "source": 7,
+        "target": 17,
+        "weight": 1
+      },
+      {
+        "source": 11,
+        "target": 14,
+        "weight": 1
+      },
+      {
+        "source": 11,
+        "target": 17,
+        "weight": 1
+      },
+      {
+        "source": 12,
+        "target": 14,
+        "weight": 1
+      },
+      {
+        "source": 13,
+        "target": 14,
+        "weight": 1
+      },
+      {
+        "source": 3,
+        "target": 15,
+        "weight": 1
+      },
+      {
+        "source": 12,
+        "target": 15,
+        "weight": 1
+      },
+      {
+        "source": 15,
+        "target": 17,
+        "weight": 1
+      },
+      {
+        "source": 13,
+        "target": 16,
+        "weight": 1
+      },
+      {
+        "source": 3,
+        "target": 6,
+        "weight": 1
+      },
+      {
+        "source": 6,
+        "target": 16,
+        "weight": 1
+      },
+      {
+        "source": 6,
+        "target": 17,
+        "weight": 1
+      },
+      {
+        "source": 2,
+        "target": 3,
+        "weight": 1
+      },
+      {
+        "source": 2,
+        "target": 13,
+        "weight": 1
+      },
+      {
+        "source": 2,
+        "target": 17,
+        "weight": 1
+      },
+      {
+        "source": 1,
+        "target": 5,
+        "weight": 1
+      },
+      {
+        "source": 1,
+        "target": 9,
+        "weight": 1
+      },
+      {
+        "source": 1,
+        "target": 10,
+        "weight": 1
+      },
+      {
+        "source": 1,
+        "target": 14,
+        "weight": 1
+      },
+      {
+        "source": 1,
+        "target": 17,
+        "weight": 1
+      },
+      {
+        "source": 5,
+        "target": 9,
+        "weight": 1
+      },
+      {
+        "source": 5,
+        "target": 10,
+        "weight": 1
+      },
+      {
+        "source": 9,
+        "target": 10,
+        "weight": 1
+      },
+      {
+        "source": 9,
+        "target": 14,
+        "weight": 1
+      },
+      {
+        "source": 9,
+        "target": 17,
+        "weight": 1
+      },
+      {
+        "source": 10,
+        "target": 14,
+        "weight": 1
+      },
+      {
+        "source": 10,
+        "target": 17,
+        "weight": 1
+      },
+      {
+        "source": 3,
+        "target": 8,
+        "weight": 1
+      },
+      {
+        "source": 8,
+        "target": 12,
+        "weight": 1
+      },
+      {
+        "source": 8,
+        "target": 17,
+        "weight": 1
+      }
+    ],
+    "density": 0.412,
+    "n_nodes": 17,
+    "n_edges": 56,
+    "mean_degree": 6.59,
+    "top_pairs": [
+      {
+        "a": "Andrade",
+        "b": "Vilarino",
+        "weight": 18
+      },
+      {
+        "a": "Andrade",
+        "b": "Loiane",
+        "weight": 15
+      },
+      {
+        "a": "Loiane",
+        "b": "Vilarino",
+        "weight": 15
+      },
+      {
+        "a": "Andrade",
+        "b": "Luiza",
+        "weight": 5
+      },
+      {
+        "a": "Luiza",
+        "b": "Vilarino",
+        "weight": 5
+      },
+      {
+        "a": "Andrade",
+        "b": "Nayara",
+        "weight": 4
+      },
+      {
+        "a": "Nayara",
+        "b": "Vilarino",
+        "weight": 4
+      },
+      {
+        "a": "Loiane",
+        "b": "Luiza",
+        "weight": 4
+      },
+      {
+        "a": "Marcele",
+        "b": "Vilarino",
+        "weight": 3
+      },
+      {
+        "a": "Loiane",
+        "b": "Nayara",
+        "weight": 3
+      }
+    ]
+  },
+  "timeline": {
+    "articles": [],
+    "start_to_publication": {
+      "n": 0,
+      "unit": "dias"
+    },
+    "submission_to_acceptance": {
+      "n": 0,
+      "unit": "dias"
+    },
+    "acceptance_to_publication": {
+      "n": 0,
+      "unit": "dias"
+    },
+    "histogram_start_to_publication": [
+      {
+        "label": "< 6 meses",
+        "n": 0
+      },
+      {
+        "label": "6-12 meses",
+        "n": 0
+      },
+      {
+        "label": "1-2 anos",
+        "n": 0
+      },
+      {
+        "label": "2-3 anos",
+        "n": 0
+      },
+      {
+        "label": "> 3 anos",
+        "n": 0
+      }
+    ]
+  },
+  "submissions": {
+    "per_article": [
+      {
+        "id": 15,
+        "title": "Relative contribution of psychological, clinical and exercise-related factors to fibromyalgia impact in women with fibromyalgia: a cross-sectional study",
+        "status": "submetido",
+        "attempts": 3,
+        "rejections": 2,
+        "first_submitted_on": "2026-07-14",
+        "last_submitted_on": "2026-08-15"
+      },
+      {
+        "id": 7,
+        "title": "Physical Activity Frequency and Anxiety Levels in Patients with Fibromyalgia: A Cross-Sectional Study",
+        "status": "submetido",
+        "attempts": 1,
+        "rejections": 0,
+        "first_submitted_on": "2026-05-13",
+        "last_submitted_on": "2026-05-13"
+      },
+      {
+        "id": 18,
+        "title": "The influence of the level of knowledge of patients with rheumatic disease on treatment, adherence, and practice of physical exercise",
+        "status": "submetido",
+        "attempts": 1,
+        "rejections": 0,
+        "first_submitted_on": "2026-04-27",
+        "last_submitted_on": "2026-04-27"
+      }
+    ],
+    "attempts_distribution": [
+      {
+        "attempts": 1,
+        "n": 2
+      },
+      {
+        "attempts": 3,
+        "n": 1
+      }
+    ],
+    "attempts_summary": {
+      "n": 3,
+      "unit": "tentativas",
+      "min": 1.0,
+      "max": 3.0,
+      "mean": 1.7,
+      "median": 1.0,
+      "p25": 1.0,
+      "p75": 2.0,
+      "sd": 1.2,
+      "values": [
+        1.0,
+        1.0,
+        3.0
+      ]
+    },
+    "gaps": [
+      {
+        "article_id": 15,
+        "title": "Relative contribution of psychological, clinical and exercise-related factors to fibromyalgia impact in women with fibromyalgia: a cross-sectional study",
+        "attempt_no": 2,
+        "previous_submitted_on": "2026-07-14",
+        "previous_decision_on": "2026-07-17",
+        "submitted_on": "2026-07-22",
+        "days_between_submissions": 8,
+        "days_decision_to_resubmission": 5
+      },
+      {
+        "article_id": 15,
+        "title": "Relative contribution of psychological, clinical and exercise-related factors to fibromyalgia impact in women with fibromyalgia: a cross-sectional study",
+        "attempt_no": 3,
+        "previous_submitted_on": "2026-07-22",
+        "previous_decision_on": "2026-07-26",
+        "submitted_on": "2026-08-15",
+        "days_between_submissions": 24,
+        "days_decision_to_resubmission": 20
+      }
+    ],
+    "gap_summary": {
+      "n": 2,
+      "unit": "dias",
+      "min": 8.0,
+      "max": 24.0,
+      "mean": 16.0,
+      "median": 16.0,
+      "p25": 12.0,
+      "p75": 20.0,
+      "sd": 11.3,
+      "values": [
+        8.0,
+        24.0
+      ]
+    },
+    "decision_to_resubmission": {
+      "n": 2,
+      "unit": "dias",
+      "min": 5.0,
+      "max": 20.0,
+      "mean": 12.5,
+      "median": 12.5,
+      "p25": 8.8,
+      "p75": 16.2,
+      "sd": 10.6,
+      "values": [
+        5.0,
+        20.0
+      ]
+    },
+    "rejection_reasons": [
+      {
+        "reason": "Nao informado",
+        "category": "Nao classificado",
+        "n": 2
+      }
+    ],
+    "per_journal": [
+      {
+        "journal": "Rheumatology International",
+        "n": 1,
+        "accepted": 0,
+        "rejected": 1
+      },
+      {
+        "journal": "Physiotherapy Research International",
+        "n": 1,
+        "accepted": 0,
+        "rejected": 1
+      },
+      {
+        "journal": "Patient and education Counseling",
+        "n": 1,
+        "accepted": 0,
+        "rejected": 0
+      },
+      {
+        "journal": "Journal of Health Psychology",
+        "n": 1,
+        "accepted": 0,
+        "rejected": 0
+      },
+      {
+        "journal": "International Journal of Rheumatic Diseases",
+        "n": 1,
+        "accepted": 0,
+        "rejected": 0
+      }
+    ],
+    "decisions": [
+      {
+        "decision": "em_avaliacao",
+        "n": 3
+      },
+      {
+        "decision": "desk_reject",
+        "n": 2
+      }
+    ],
+    "total": 5,
+    "accepted": 0,
+    "rejected": 2,
+    "acceptance_rate": 0.0,
+    "rejection_rate": 40.0,
+    "desk_rejects": 2
+  },
+  "acceptances": [],
+  "agenda": {
+    "events": [
+      {
+        "id": 1,
+        "kind": "reuniao",
+        "title": "Reunião geral do LAPE",
+        "description": "Alinhamento do pipeline de artigos",
+        "start_at": "2026-09-02 14:00",
+        "end_at": null,
+        "all_day": 0,
+        "status": "confirmado",
+        "location_name": "Sala de reuniões",
+        "city": "Florianópolis",
+        "state": "SC",
+        "country": "Brasil",
+        "latitude": -27.5954,
+        "longitude": -48.548,
+        "url": null,
+        "research_line": null,
+        "institution": "CEFID/UDESC",
+        "n_participants": 3
+      }
+    ],
+    "upcoming": [
+      {
+        "id": 1,
+        "kind": "reuniao",
+        "title": "Reunião geral do LAPE",
+        "description": "Alinhamento do pipeline de artigos",
+        "start_at": "2026-09-02 14:00",
+        "end_at": null,
+        "all_day": 0,
+        "status": "confirmado",
+        "location_name": "Sala de reuniões",
+        "city": "Florianópolis",
+        "state": "SC",
+        "country": "Brasil",
+        "latitude": -27.5954,
+        "longitude": -48.548,
+        "url": null,
+        "research_line": null,
+        "institution": "CEFID/UDESC",
+        "n_participants": 3
+      }
+    ],
+    "past_count": 0,
+    "total": 1,
+    "by_kind": [
+      {
+        "kind": "reuniao",
+        "n": 1
+      }
+    ],
+    "by_year": [
+      {
+        "year": "2026",
+        "n": 1
+      }
+    ],
+    "heatmap": [
+      {
+        "month": "2026-09",
+        "n": 1
+      }
+    ],
+    "next_event": {
+      "id": 1,
+      "kind": "reuniao",
+      "title": "Reunião geral do LAPE",
+      "description": "Alinhamento do pipeline de artigos",
+      "start_at": "2026-09-02 14:00",
+      "end_at": null,
+      "all_day": 0,
+      "status": "confirmado",
+      "location_name": "Sala de reuniões",
+      "city": "Florianópolis",
+      "state": "SC",
+      "country": "Brasil",
+      "latitude": -27.5954,
+      "longitude": -48.548,
+      "url": null,
+      "research_line": null,
+      "institution": "CEFID/UDESC",
+      "n_participants": 3
+    }
+  },
+  "spatial": {
+    "places": [
+      {
+        "city": "Florianópolis",
+        "state": "SC",
+        "country": "Brasil",
+        "latitude": -27.5954,
+        "longitude": -48.548,
+        "n_events": 1,
+        "n_kinds": 1
+      }
+    ],
+    "institutions": [
+      {
+        "id": 1,
+        "name": "Universidade do Estado de Santa Catarina",
+        "acronym": "UDESC",
+        "city": "Florianópolis",
+        "state": "SC",
+        "country": "Brasil",
+        "latitude": -27.5954,
+        "longitude": -48.548,
+        "n_members": 0,
+        "n_articles": 0
+      },
+      {
+        "id": 2,
+        "name": "Centro de Ciências da Saúde e do Esporte",
+        "acronym": "CEFID/UDESC",
+        "city": "Florianópolis",
+        "state": "SC",
+        "country": "Brasil",
+        "latitude": -27.5954,
+        "longitude": -48.548,
+        "n_members": 0,
+        "n_articles": 0
+      },
+      {
+        "id": 3,
+        "name": "CEFID/UDESC",
+        "acronym": null,
+        "city": "Florianópolis",
+        "state": null,
+        "country": "Brasil",
+        "latitude": null,
+        "longitude": null,
+        "n_members": 0,
+        "n_articles": 0
+      }
+    ],
+    "geolocated": [
+      {
+        "city": "Florianópolis",
+        "state": "SC",
+        "country": "Brasil",
+        "latitude": -27.5954,
+        "longitude": -48.548,
+        "n_events": 1,
+        "n_kinds": 1
+      }
+    ],
+    "countries": [
+      {
+        "country": "Brasil",
+        "n": 3
+      }
+    ]
+  },
+  "temporal": {
+    "months": [
+      "2022-01",
+      "2022-02",
+      "2022-03",
+      "2022-04",
+      "2022-05",
+      "2022-06",
+      "2022-07",
+      "2022-08",
+      "2022-09",
+      "2022-10",
+      "2022-11",
+      "2022-12",
+      "2023-01",
+      "2023-02",
+      "2023-03",
+      "2023-04",
+      "2023-05",
+      "2023-06",
+      "2023-07",
+      "2023-08",
+      "2023-09",
+      "2023-10",
+      "2023-11",
+      "2023-12",
+      "2024-01",
+      "2024-02",
+      "2024-03",
+      "2024-04",
+      "2024-05",
+      "2024-06",
+      "2024-07",
+      "2024-08",
+      "2024-09",
+      "2024-10",
+      "2024-11",
+      "2024-12",
+      "2025-01",
+      "2025-02",
+      "2025-03",
+      "2025-04",
+      "2025-05",
+      "2025-06",
+      "2025-07",
+      "2025-08",
+      "2025-09",
+      "2025-10",
+      "2025-11",
+      "2025-12",
+      "2026-01",
+      "2026-02",
+      "2026-03",
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-07",
+      "2026-08",
+      "2026-09",
+      "2026-10",
+      "2026-11",
+      "2026-12"
+    ],
+    "years": [
+      2022,
+      2023,
+      2024,
+      2025,
+      2026
+    ],
+    "publications": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "submissions": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0,
+      2,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "activities": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0
+    ]
+  },
+  "quality": {
+    "total_articles": 19,
+    "issues": [
+      {
+        "label": "Artigos sem DOI",
+        "n": 0
+      },
+      {
+        "label": "Artigos sem data de inicio",
+        "n": 2
+      },
+      {
+        "label": "Publicados sem data de publicacao",
+        "n": 0
+      },
+      {
+        "label": "Artigos sem autoria registrada",
+        "n": 0
+      },
+      {
+        "label": "Artigos sem linha de pesquisa",
+        "n": 19
+      },
+      {
+        "label": "Submissoes sem decisao",
+        "n": 0
+      },
+      {
+        "label": "Recusas sem motivo",
+        "n": 2
+      },
+      {
+        "label": "Atividades sem local",
+        "n": 0
+      },
+      {
+        "label": "Artigos publicados sem citacoes coletadas",
+        "n": 0
+      }
+    ],
+    "last_runs": [
+      {
+        "run_at": "2026-08-26 17:59:29",
+        "source": "excel",
+        "target": "rejection_reasons",
+        "file": "LAPE_cadastros.xlsx:Motivos de recusa",
+        "rows_read": 11,
+        "rows_written": 0,
+        "status": "ok",
+        "message": null
+      },
+      {
+        "run_at": "2026-08-26 17:59:29",
+        "source": "excel",
+        "target": "events",
+        "file": "LAPE_cadastros.xlsx:Eventos",
+        "rows_read": 1,
+        "rows_written": 0,
+        "status": "ok",
+        "message": null
+      },
+      {
+        "run_at": "2026-08-26 17:59:29",
+        "source": "excel",
+        "target": "articles",
+        "file": "LAPE_cadastros.xlsx:Publicações",
+        "rows_read": 0,
+        "rows_written": 0,
+        "status": "ok",
+        "message": null
+      },
+      {
+        "run_at": "2026-08-26 17:59:29",
+        "source": "excel",
+        "target": "institutions",
+        "file": "LAPE_cadastros.xlsx:Instituições",
+        "rows_read": 2,
+        "rows_written": 0,
+        "status": "ok",
+        "message": null
+      },
+      {
+        "run_at": "2026-08-26 17:59:29",
+        "source": "excel",
+        "target": "research_lines",
+        "file": "LAPE_cadastros.xlsx:Linhas de Pesquisa",
+        "rows_read": 3,
+        "rows_written": 0,
+        "status": "ok",
+        "message": null
+      },
+      {
+        "run_at": "2026-08-26 17:59:29",
+        "source": "excel",
+        "target": "members",
+        "file": "LAPE_cadastros.xlsx:Integrantes",
+        "rows_read": 17,
+        "rows_written": 0,
+        "status": "ok",
+        "message": null
+      },
+      {
+        "run_at": "2026-08-26 17:59:29",
+        "source": "excel",
+        "target": "submissions",
+        "file": "LAPE_Gestao_Indicadores_Cientificos_v3.xlsx:Tentativas de Submissão",
+        "rows_read": 51,
+        "rows_written": 0,
+        "status": "ok",
+        "message": null
+      },
+      {
+        "run_at": "2026-08-26 17:59:29",
+        "source": "excel",
+        "target": "articles",
+        "file": "LAPE_Gestao_Indicadores_Cientificos_v3.xlsx:Pipeline de Artigos",
+        "rows_read": 19,
+        "rows_written": 0,
+        "status": "ok",
+        "message": null
+      },
+      {
+        "run_at": "2026-08-26 17:58:51",
+        "source": "curador",
+        "target": "report",
+        "file": "/home/user/mdlucca/docs/index.html",
+        "rows_read": 0,
+        "rows_written": 19,
+        "status": "ok",
+        "message": null
+      },
+      {
+        "run_at": "2026-08-26 17:58:51",
+        "source": "excel",
+        "target": "rejection_reasons",
+        "file": "LAPE_cadastros.xlsx:Motivos de recusa",
+        "rows_read": 11,
+        "rows_written": 0,
+        "status": "ok",
+        "message": null
+      },
+      {
+        "run_at": "2026-08-26 17:58:51",
+        "source": "excel",
+        "target": "events",
+        "file": "LAPE_cadastros.xlsx:Eventos",
+        "rows_read": 1,
+        "rows_written": 0,
+        "status": "ok",
+        "message": null
+      },
+      {
+        "run_at": "2026-08-26 17:58:51",
+        "source": "excel",
+        "target": "articles",
+        "file": "LAPE_cadastros.xlsx:Publicações",
+        "rows_read": 0,
+        "rows_written": 0,
+        "status": "ok",
+        "message": null
+      },
+      {
+        "run_at": "2026-08-26 17:58:51",
+        "source": "excel",
+        "target": "institutions",
+        "file": "LAPE_cadastros.xlsx:Instituições",
+        "rows_read": 2,
+        "rows_written": 0,
+        "status": "ok",
+        "message": null
+      },
+      {
+        "run_at": "2026-08-26 17:58:51",
+        "source": "excel",
+        "target": "research_lines",
+        "file": "LAPE_cadastros.xlsx:Linhas de Pesquisa",
+        "rows_read": 3,
+        "rows_written": 0,
+        "status": "ok",
+        "message": null
+      },
+      {
+        "run_at": "2026-08-26 17:58:51",
+        "source": "excel",
+        "target": "members",
+        "file": "LAPE_cadastros.xlsx:Integrantes",
+        "rows_read": 17,
+        "rows_written": 0,
+        "status": "ok",
+        "message": null
+      },
+      {
+        "run_at": "2026-08-26 17:58:51",
+        "source": "excel",
+        "target": "submissions",
+        "file": "LAPE_Gestao_Indicadores_Cientificos_v3.xlsx:Tentativas de Submissão",
+        "rows_read": 51,
+        "rows_written": 0,
+        "status": "ok",
+        "message": null
+      },
+      {
+        "run_at": "2026-08-26 17:58:51",
+        "source": "excel",
+        "target": "articles",
+        "file": "LAPE_Gestao_Indicadores_Cientificos_v3.xlsx:Pipeline de Artigos",
+        "rows_read": 19,
+        "rows_written": 0,
+        "status": "ok",
+        "message": null
+      }
+    ]
+  },
+  "discoveries": []
+}

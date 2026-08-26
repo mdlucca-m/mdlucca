@@ -1,0 +1,21 @@
+# Banco: o arquivo principal e versionado (guarda o estado das revisoes),
+# mas backups e arquivos temporarios do SQLite nao.
+data/db.sqlite.bak_*
+data/*.sqlite-wal
+data/*.sqlite-shm
+data/db.json
+
+# Planilhas abertas no Excel
+~$*.xlsx
+.~lock.*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Sistema
+.DS_Store
+Thumbs.db

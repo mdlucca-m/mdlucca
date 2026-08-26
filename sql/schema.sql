@@ -1,0 +1,342 @@
+/* ============================================================
+   LAPE - Laboratorio de Psicologia do Esporte
+   Esquema do banco de dados (SQLite)
+
+   Compatibilidade: este arquivo e aplicado tanto pelo pipeline
+   Python (scripts/lape/db.py) quanto pelo scripts/migrate.R.
+   O migrate.R quebra o arquivo em statements usando ";" como
+   separador e ignora blocos iniciados por "--", por isso aqui
+   usamos apenas comentarios de bloco e nunca ";" dentro deles.
+   ============================================================ */
+
+PRAGMA foreign_keys = ON;
+
+/* ---------- Catalogos ---------- */
+
+CREATE TABLE IF NOT EXISTS research_lines (
+  id            INTEGER PRIMARY KEY,
+  code          TEXT UNIQUE NOT NULL,
+  name          TEXT NOT NULL,
+  description   TEXT,
+  coordinator   TEXT,
+  started_on    TEXT,
+  keywords      TEXT,
+  active        INTEGER NOT NULL DEFAULT 1,
+  created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS institutions (
+  id            INTEGER PRIMARY KEY,
+  name          TEXT NOT NULL,
+  acronym       TEXT,
+  city          TEXT,
+  state         TEXT,
+  country       TEXT DEFAULT 'Brasil',
+  latitude      REAL,
+  longitude     REAL,
+  created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at    TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (name, city)
+);
+
+CREATE TABLE IF NOT EXISTS rejection_reasons (
+  id            INTEGER PRIMARY KEY,
+  code          TEXT UNIQUE NOT NULL,
+  label         TEXT NOT NULL,
+  category      TEXT,
+  created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+/* ---------- Pessoas ---------- */
+
+CREATE TABLE IF NOT EXISTS members (
+  id               INTEGER PRIMARY KEY,
+  full_name        TEXT NOT NULL,
+  short_name       TEXT,
+  name_key         TEXT UNIQUE NOT NULL,
+  lattes_id        TEXT,
+  orcid            TEXT,
+  email            TEXT,
+  role             TEXT,
+  research_line_id INTEGER REFERENCES research_lines(id) ON DELETE SET NULL,
+  institution_id   INTEGER REFERENCES institutions(id) ON DELETE SET NULL,
+  joined_on        TEXT,
+  left_on          TEXT,
+  is_external      INTEGER NOT NULL DEFAULT 0,
+  active           INTEGER NOT NULL DEFAULT 1,
+  created_at       TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+/* ---------- Producao cientifica ---------- */
+
+CREATE TABLE IF NOT EXISTS articles (
+  id                  INTEGER PRIMARY KEY,
+  internal_code       TEXT UNIQUE,
+  title               TEXT NOT NULL,
+  title_key           TEXT UNIQUE NOT NULL,
+  status              TEXT NOT NULL DEFAULT 'em_producao',
+  research_line_id    INTEGER REFERENCES research_lines(id) ON DELETE SET NULL,
+  study_type          TEXT,
+  language            TEXT,
+  started_on          TEXT,
+  first_submission_on TEXT,
+  accepted_on         TEXT,
+  published_on        TEXT,
+  year_published      INTEGER,
+  journal             TEXT,
+  issn                TEXT,
+  qualis              TEXT,
+  impact_factor       REAL,
+  doi                 TEXT,
+  url                 TEXT,
+  wos_id              TEXT,
+  scopus_id           TEXT,
+  wos_citations       INTEGER,
+  scopus_citations    INTEGER,
+  openalex_citations  INTEGER,
+  citations_updated_at TEXT,
+  open_access         INTEGER,
+  notes               TEXT,
+  lead_member_id      INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  lead_name           TEXT,
+  status_locked       INTEGER NOT NULL DEFAULT 0,
+  internal_review_on  TEXT,
+  source              TEXT DEFAULT 'planilha',
+  created_at          TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at          TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS article_authors (
+  article_id       INTEGER NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+  member_id        INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  author_name      TEXT NOT NULL,
+  author_order     INTEGER NOT NULL DEFAULT 1,
+  is_corresponding INTEGER NOT NULL DEFAULT 0,
+  is_external      INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (article_id, author_order)
+);
+
+CREATE TABLE IF NOT EXISTS submissions (
+  id                  INTEGER PRIMARY KEY,
+  article_id          INTEGER NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+  attempt_no          INTEGER NOT NULL DEFAULT 1,
+  journal             TEXT,
+  issn                TEXT,
+  submitted_on        TEXT,
+  decision            TEXT,
+  decision_on         TEXT,
+  rejection_reason_id INTEGER REFERENCES rejection_reasons(id) ON DELETE SET NULL,
+  rejection_notes     TEXT,
+  desk_reject         INTEGER NOT NULL DEFAULT 0,
+  review_rounds       INTEGER,
+  created_at          TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at          TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (article_id, attempt_no)
+);
+
+CREATE TABLE IF NOT EXISTS article_milestones (
+  id          INTEGER PRIMARY KEY,
+  article_id  INTEGER NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+  milestone   TEXT NOT NULL,
+  label       TEXT,
+  occurred_on TEXT,
+  seq         INTEGER NOT NULL DEFAULT 0,
+  UNIQUE (article_id, milestone)
+);
+
+CREATE TABLE IF NOT EXISTS citation_snapshots (
+  id           INTEGER PRIMARY KEY,
+  article_id   INTEGER NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+  source       TEXT NOT NULL,
+  citations    INTEGER NOT NULL,
+  snapshot_on  TEXT NOT NULL,
+  UNIQUE (article_id, source, snapshot_on)
+);
+
+/* ---------- Atividades, reunioes e calendario ---------- */
+
+CREATE TABLE IF NOT EXISTS events (
+  id               INTEGER PRIMARY KEY,
+  external_key     TEXT UNIQUE,
+  kind             TEXT NOT NULL DEFAULT 'reuniao',
+  title            TEXT NOT NULL,
+  description      TEXT,
+  start_at         TEXT NOT NULL,
+  end_at           TEXT,
+  all_day          INTEGER NOT NULL DEFAULT 0,
+  status           TEXT DEFAULT 'confirmado',
+  location_name    TEXT,
+  institution_id   INTEGER REFERENCES institutions(id) ON DELETE SET NULL,
+  city             TEXT,
+  state            TEXT,
+  country          TEXT DEFAULT 'Brasil',
+  latitude         REAL,
+  longitude        REAL,
+  research_line_id INTEGER REFERENCES research_lines(id) ON DELETE SET NULL,
+  url              TEXT,
+  created_at       TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS event_participants (
+  event_id   INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  member_id  INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  role       TEXT,
+  attended   INTEGER,
+  PRIMARY KEY (event_id, member_id)
+);
+
+/* ---------- Descobertas do agente rastreador ---------- */
+
+CREATE TABLE IF NOT EXISTS discoveries (
+  id                INTEGER PRIMARY KEY,
+  source            TEXT NOT NULL,
+  external_id       TEXT,
+  doi               TEXT,
+  title             TEXT NOT NULL,
+  title_key         TEXT NOT NULL,
+  authors           TEXT,
+  journal           TEXT,
+  year              INTEGER,
+  citations         INTEGER,
+  url               TEXT,
+  matched_member_id INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  article_id        INTEGER REFERENCES articles(id) ON DELETE SET NULL,
+  status            TEXT NOT NULL DEFAULT 'pendente',
+  payload           TEXT,
+  found_at          TEXT NOT NULL DEFAULT (datetime('now')),
+  reviewed_at       TEXT,
+  UNIQUE (source, title_key)
+);
+
+/* ---------- Auditoria de ingestao ---------- */
+
+CREATE TABLE IF NOT EXISTS ingest_log (
+  id           INTEGER PRIMARY KEY,
+  run_at       TEXT NOT NULL DEFAULT (datetime('now')),
+  source       TEXT NOT NULL,
+  target       TEXT,
+  file         TEXT,
+  rows_read    INTEGER DEFAULT 0,
+  rows_written INTEGER DEFAULT 0,
+  status       TEXT NOT NULL DEFAULT 'ok',
+  message      TEXT
+);
+
+/* ---------- Indices ---------- */
+
+CREATE INDEX IF NOT EXISTS idx_articles_status ON articles(status);
+CREATE INDEX IF NOT EXISTS idx_articles_year ON articles(year_published);
+CREATE INDEX IF NOT EXISTS idx_articles_line ON articles(research_line_id);
+CREATE INDEX IF NOT EXISTS idx_authors_member ON article_authors(member_id);
+CREATE INDEX IF NOT EXISTS idx_submissions_article ON submissions(article_id);
+CREATE INDEX IF NOT EXISTS idx_submissions_decision ON submissions(decision);
+CREATE INDEX IF NOT EXISTS idx_events_start ON events(start_at);
+CREATE INDEX IF NOT EXISTS idx_events_kind ON events(kind);
+CREATE INDEX IF NOT EXISTS idx_citations_article ON citation_snapshots(article_id, source);
+CREATE INDEX IF NOT EXISTS idx_milestones_article ON article_milestones(article_id, seq);
+CREATE INDEX IF NOT EXISTS idx_discoveries_status ON discoveries(status, found_at);
+
+/* ---------- Views analiticas ---------- */
+
+CREATE VIEW IF NOT EXISTS v_articles_full AS
+SELECT
+  a.*,
+  rl.name AS research_line,
+  rl.code AS research_line_code,
+  (SELECT group_concat(aa.author_name, '; ')
+     FROM (SELECT author_name, article_id FROM article_authors ORDER BY author_order) aa
+    WHERE aa.article_id = a.id) AS authors,
+  (SELECT COUNT(*) FROM submissions s WHERE s.article_id = a.id) AS submission_attempts,
+  (SELECT COUNT(*) FROM submissions s WHERE s.article_id = a.id
+     AND s.decision IN ('rejeitado', 'desk_reject')) AS rejections,
+  CASE WHEN a.started_on IS NOT NULL AND a.published_on IS NOT NULL
+       THEN CAST(julianday(a.published_on) - julianday(a.started_on) AS INTEGER)
+  END AS days_start_to_publication,
+  CASE WHEN a.first_submission_on IS NOT NULL AND a.accepted_on IS NOT NULL
+       THEN CAST(julianday(a.accepted_on) - julianday(a.first_submission_on) AS INTEGER)
+  END AS days_submission_to_acceptance,
+  CASE WHEN a.accepted_on IS NOT NULL AND a.published_on IS NOT NULL
+       THEN CAST(julianday(a.published_on) - julianday(a.accepted_on) AS INTEGER)
+  END AS days_acceptance_to_publication
+FROM articles a
+LEFT JOIN research_lines rl ON rl.id = a.research_line_id;
+
+CREATE VIEW IF NOT EXISTS v_member_productivity AS
+SELECT
+  m.id AS member_id,
+  m.full_name,
+  m.short_name,
+  m.role,
+  m.is_external,
+  rl.name AS research_line,
+  COUNT(DISTINCT aa.article_id) AS n_articles,
+  SUM(CASE WHEN a.status = 'publicado' THEN 1 ELSE 0 END) AS n_published,
+  SUM(CASE WHEN a.status IN ('submetido', 'em_revisao') THEN 1 ELSE 0 END) AS n_submitted,
+  SUM(CASE WHEN a.status = 'em_producao' THEN 1 ELSE 0 END) AS n_in_progress,
+  SUM(CASE WHEN aa.author_order = 1 THEN 1 ELSE 0 END) AS n_first_author,
+  SUM(CASE WHEN aa.is_corresponding = 1 THEN 1 ELSE 0 END) AS n_corresponding,
+  COALESCE(SUM(a.scopus_citations), 0) AS scopus_citations,
+  COALESCE(SUM(a.wos_citations), 0) AS wos_citations
+FROM members m
+LEFT JOIN article_authors aa ON aa.member_id = m.id
+LEFT JOIN articles a ON a.id = aa.article_id
+LEFT JOIN research_lines rl ON rl.id = m.research_line_id
+GROUP BY m.id;
+
+CREATE VIEW IF NOT EXISTS v_publications_by_year AS
+SELECT
+  year_published AS year,
+  COUNT(*) AS n_articles,
+  COALESCE(SUM(scopus_citations), 0) AS scopus_citations,
+  COALESCE(SUM(wos_citations), 0) AS wos_citations,
+  COALESCE(SUM(openalex_citations), 0) AS openalex_citations
+FROM articles
+WHERE status = 'publicado' AND year_published IS NOT NULL
+GROUP BY year_published;
+
+CREATE VIEW IF NOT EXISTS v_rejection_reasons AS
+SELECT
+  COALESCE(rr.label, s.rejection_notes, 'Nao informado') AS reason,
+  COALESCE(rr.category, 'Nao classificado') AS category,
+  COUNT(*) AS n
+FROM submissions s
+LEFT JOIN rejection_reasons rr ON rr.id = s.rejection_reason_id
+WHERE s.decision IN ('rejeitado', 'desk_reject')
+GROUP BY reason, category;
+
+CREATE VIEW IF NOT EXISTS v_resubmission_gaps AS
+SELECT
+  s.article_id,
+  a.title,
+  s.attempt_no,
+  prev.submitted_on AS previous_submitted_on,
+  prev.decision_on  AS previous_decision_on,
+  s.submitted_on    AS submitted_on,
+  CAST(julianday(s.submitted_on) - julianday(prev.submitted_on) AS INTEGER) AS days_between_submissions,
+  CAST(julianday(s.submitted_on) - julianday(prev.decision_on) AS INTEGER) AS days_decision_to_resubmission
+FROM submissions s
+JOIN submissions prev
+  ON prev.article_id = s.article_id AND prev.attempt_no = s.attempt_no - 1
+JOIN articles a ON a.id = s.article_id
+WHERE s.submitted_on IS NOT NULL AND prev.submitted_on IS NOT NULL;
+
+CREATE VIEW IF NOT EXISTS v_article_progress AS
+SELECT
+  a.id AS article_id,
+  a.internal_code,
+  a.title,
+  a.status,
+  a.lead_name,
+  (SELECT COUNT(*) FROM article_milestones m
+     WHERE m.article_id = a.id AND m.milestone LIKE 'versao%' AND m.occurred_on IS NOT NULL) AS versions_done,
+  (SELECT MAX(m.occurred_on) FROM article_milestones m
+     WHERE m.article_id = a.id AND m.occurred_on IS NOT NULL) AS last_milestone_on,
+  (SELECT m.milestone FROM article_milestones m
+     WHERE m.article_id = a.id AND m.occurred_on IS NOT NULL
+     ORDER BY m.occurred_on DESC, m.seq DESC LIMIT 1) AS last_milestone,
+  CASE WHEN a.started_on IS NOT NULL
+       THEN CAST(julianday('now') - julianday(a.started_on) AS INTEGER) END AS days_open
+FROM articles a;

@@ -1,0 +1,82 @@
+name: LAPE - atualizar banco e painel
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'data/raw/**'
+      - 'scripts/**'
+      - 'sql/**'
+      - '.github/workflows/lape.yml'
+  schedule:
+    # segundas-feiras as 09:00 em Brasilia (12:00 UTC)
+    - cron: '0 12 * * 1'
+  workflow_dispatch:
+    inputs:
+      descobrir:
+        description: 'Procurar publicações novas nas bases externas'
+        type: boolean
+        default: true
+      aceitar_automatico:
+        description: 'Aprovar achados com 2+ autores já cadastrados'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lape-pipeline
+  cancel-in-progress: false
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Testes
+        run: python3 -m unittest discover -s tests
+
+      - name: Agente curador (carrega, consolida e publica)
+        env:
+          SCOPUS_API_KEY: ${{ secrets.SCOPUS_API_KEY }}
+          SCOPUS_INST_TOKEN: ${{ secrets.SCOPUS_INST_TOKEN }}
+          WOS_API_KEY: ${{ secrets.WOS_API_KEY }}
+          LAPE_CONTACT_EMAIL: ${{ secrets.LAPE_CONTACT_EMAIL }}
+        run: python3 scripts/lape_agent.py curador ${{ inputs.aceitar_automatico && '--aceitar-automatico' || '' }}
+
+      - name: Agente rastreador (descobrir produção nova)
+        if: github.event_name == 'schedule' || inputs.descobrir
+        env:
+          SCOPUS_API_KEY: ${{ secrets.SCOPUS_API_KEY }}
+          WOS_API_KEY: ${{ secrets.WOS_API_KEY }}
+          LAPE_CONTACT_EMAIL: ${{ secrets.LAPE_CONTACT_EMAIL }}
+        run: python3 scripts/lape_agent.py rastreador descobrir
+
+      - name: Republicar painel com os achados
+        if: github.event_name == 'schedule' || inputs.descobrir
+        run: python3 scripts/lape_agent.py curador --offline --sem-backup
+
+      - name: Resumo
+        run: python3 scripts/lape_agent.py status >> $GITHUB_STEP_SUMMARY
+
+      - name: Publicar alterações
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data/db.sqlite docs/
+          if git diff --staged --quiet; then
+            echo 'Nada mudou.'
+          else
+            git commit -m "chore(lape): atualiza banco e painel [skip ci]"
+            git push
+          fi
