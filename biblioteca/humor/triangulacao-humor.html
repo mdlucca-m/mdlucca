@@ -1,0 +1,475 @@
+<title>Humor em Cena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F4F1F6; --surface:#FFFFFF; --surface-2:#EDE7F1; --surface-3:#F6F2F8;
+  --ink:#221B29; --ink-soft:#5C5268; --ink-faint:#8A7E96;
+  --line:#E2DAE8; --line-strong:#CFC3D8;
+  --nucleo:#8A3F7A; --nucleo-soft:#F0DCEC;
+  --correlato:#2F8A7B; --correlato-soft:#D6ECE6;
+  --accent:#8A3F7A; --on-accent:#FFFFFF;
+  --ramp0:#F6F2F8; --ramp-max:#8A3F7A;
+  --shadow:0 1px 2px rgba(34,27,41,.06),0 8px 24px rgba(34,27,41,.06);
+  --radius:14px;
+}
+:root:not([data-theme="light"]){}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#151019; --surface:#1E1824; --surface-2:#281F30; --surface-3:#221A29;
+    --ink:#F2EAF4; --ink-soft:#B7A9C1; --ink-faint:#897C94;
+    --line:#312639; --line-strong:#43364E;
+    --nucleo:#CE84BD; --nucleo-soft:#3A2438;
+    --correlato:#6FC1B1; --correlato-soft:#1E3A35;
+    --accent:#CE84BD; --on-accent:#1A1020;
+    --ramp0:#221A29; --ramp-max:#CE84BD;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#151019; --surface:#1E1824; --surface-2:#281F30; --surface-3:#221A29;
+  --ink:#F2EAF4; --ink-soft:#B7A9C1; --ink-faint:#897C94;
+  --line:#312639; --line-strong:#43364E;
+  --nucleo:#CE84BD; --nucleo-soft:#3A2438;
+  --correlato:#6FC1B1; --correlato-soft:#1E3A35;
+  --accent:#CE84BD; --on-accent:#1A1020;
+  --ramp0:#221A29; --ramp-max:#CE84BD;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px; margin:0 auto; padding:28px 22px 80px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* Masthead */
+header.mast{margin-bottom:22px}
+.eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--ink-faint); display:flex; gap:10px; align-items:center}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+h1{font-family:"Fraunces",Georgia,serif; font-weight:600; font-optical-sizing:auto;
+  font-size:clamp(30px,5vw,46px); line-height:1.02; letter-spacing:-.01em;
+  margin:.28em 0 .12em; text-wrap:balance}
+h1 em{font-style:italic; color:var(--accent)}
+.sub{color:var(--ink-soft); max-width:64ch; font-size:15.5px}
+
+/* Toolbar */
+.toolbar{position:sticky; top:0; z-index:20; margin:20px 0 18px; padding:12px;
+  background:color-mix(in srgb,var(--surface) 88%,transparent); backdrop-filter:blur(8px);
+  border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+  display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center}
+.seg{display:inline-flex; background:var(--surface-2); border-radius:9px; padding:3px; gap:2px}
+.seg button{font:inherit; font-size:13px; border:0; background:transparent; color:var(--ink-soft);
+  padding:6px 11px; border-radius:7px; cursor:pointer; white-space:nowrap; transition:.15s}
+.seg button[aria-pressed="true"]{background:var(--surface); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.08); font-weight:600}
+.seg button:hover{color:var(--ink)}
+.tlabel{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint); margin-right:-4px}
+.search{flex:1 1 190px; min-width:150px; display:flex; align-items:center; gap:8px;
+  background:var(--surface-2); border:1px solid transparent; border-radius:9px; padding:7px 11px}
+.search:focus-within{border-color:var(--line-strong); background:var(--surface)}
+.search input{flex:1; border:0; background:transparent; color:var(--ink); font:inherit; font-size:14px; outline:none}
+.search svg{flex:none; color:var(--ink-faint)}
+.btn-clear{font:inherit; font-size:13px; border:1px solid var(--line-strong); background:transparent;
+  color:var(--ink-soft); padding:7px 12px; border-radius:9px; cursor:pointer; transition:.15s}
+.btn-clear:hover{color:var(--ink); border-color:var(--ink-soft)}
+.btn-clear[hidden]{display:none}
+
+/* active filter chips */
+.actives{display:flex; flex-wrap:wrap; gap:7px; margin:-4px 0 18px; min-height:0}
+.actives:empty{display:none}
+.fchip{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; padding:4px 8px 4px 10px;
+  border-radius:20px; background:var(--nucleo-soft); color:var(--ink); border:1px solid transparent}
+.fchip button{border:0;background:transparent;cursor:pointer;color:var(--ink-soft);font-size:14px;line-height:1;padding:0 1px}
+.fchip button:hover{color:var(--ink)}
+
+/* KPIs */
+.kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:22px}
+.kpi{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px; box-shadow:var(--shadow)}
+.kpi .v{font-family:"Fraunces",serif; font-weight:600; font-size:30px; line-height:1; letter-spacing:-.01em}
+.kpi .l{font-size:12px; color:var(--ink-soft); margin-top:6px}
+@media(max-width:640px){.kpis{grid-template-columns:repeat(2,1fr)}}
+
+/* panels */
+.grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px}
+.grid.tri{grid-template-columns:1fr}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow)}
+.panel h2{margin:0 0 2px; font-family:"IBM Plex Sans",sans-serif; font-size:14px; font-weight:600; letter-spacing:.01em}
+.panel .hint{font-size:11.5px; color:var(--ink-faint); margin:0 0 14px}
+
+/* bar charts */
+.bars{display:flex; flex-direction:column; gap:7px}
+.bar-row{display:grid; grid-template-columns:150px 1fr 32px; align-items:center; gap:10px; cursor:pointer;
+  padding:3px 4px; border-radius:8px; transition:background .12s}
+.bar-row:hover{background:var(--surface-3)}
+.bar-row .cap{font-size:12px; color:var(--ink-soft); display:flex; align-items:center; gap:6px; line-height:1.15}
+.bar-row.on .cap{color:var(--ink); font-weight:600}
+.bar-track{height:20px; background:var(--surface-2); border-radius:6px; overflow:hidden}
+.bar-fill{display:block; height:100%; border-radius:6px; width:0; transition:width .5s cubic-bezier(.2,.7,.2,1)}
+.bar-fill.nucleo{background:var(--nucleo)} .bar-fill.correlato{background:var(--correlato)}
+.bar-fill.neutral{background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 62%,var(--surface)))}
+.bar-row .num{font-size:12.5px; text-align:right; color:var(--ink-soft)}
+.bar-row.on{outline:1.5px solid var(--accent); outline-offset:1px}
+.ic{font-size:14px; line-height:1; filter:saturate(1.05)}
+
+/* year timeline */
+.years{display:flex; align-items:flex-end; gap:3px; height:120px; padding-top:8px}
+.ycol{flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; min-width:0}
+.ybar{width:100%; max-width:20px; background:var(--surface-2); border-radius:4px 4px 0 0; align-self:center; transition:height .5s cubic-bezier(.2,.7,.2,1),background .15s; min-height:2px}
+.ycol:hover .ybar{background:var(--nucleo-soft)}
+.ycol.on .ybar{background:var(--nucleo)}
+.ylab{font-size:9px; color:var(--ink-faint); transform:rotate(-90deg); transform-origin:center; height:22px; white-space:nowrap}
+.ycount{font-size:10px; color:var(--ink-soft); font-variant-numeric:tabular-nums; height:12px}
+
+/* heatmap */
+.hm-scroll{overflow-x:auto; margin:0 -4px; padding:0 4px}
+.heat{display:grid; gap:3px; min-width:520px}
+.heat .hcell{border-radius:6px; min-height:38px; display:flex; align-items:center; justify-content:center;
+  font-size:13px; font-variant-numeric:tabular-nums; cursor:pointer; position:relative; transition:transform .1s, box-shadow .1s}
+.heat .hcell.data:hover{transform:scale(1.06); box-shadow:0 0 0 2px var(--accent); z-index:2}
+.heat .rowhead{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--ink-soft); padding-right:8px; justify-content:flex-end; text-align:right; white-space:nowrap}
+.heat .colhead{font-size:11px; color:var(--ink-soft); text-align:center; align-self:end; padding-bottom:4px; line-height:1.1; word-break:break-word}
+.heat .corner{}
+.hcell.on{box-shadow:0 0 0 2px var(--accent)}
+
+/* extraction table */
+.tablewrap{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; margin-top:20px}
+.tablewrap .thead{display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:16px 18px 8px; flex-wrap:wrap}
+.tablewrap h2{margin:0; font-family:"Fraunces",serif; font-weight:600; font-size:20px}
+.tcount{font-size:12.5px; color:var(--ink-soft)}
+.sortbar{display:flex; gap:6px; padding:0 18px 12px; flex-wrap:wrap}
+.sortbar button{font:inherit; font-size:12px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink-soft); padding:5px 10px; border-radius:7px; cursor:pointer}
+.sortbar button[aria-pressed="true"]{border-color:var(--accent); color:var(--ink); font-weight:600}
+.t-scroll{overflow-x:auto}
+table{border-collapse:collapse; width:100%; min-width:760px}
+thead th{font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); text-align:left; padding:10px 14px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--surface); white-space:nowrap}
+tbody td{padding:12px 14px; border-bottom:1px solid var(--line); vertical-align:top; font-size:13.5px}
+tbody tr:hover{background:var(--surface-3)}
+tbody tr:last-child td{border-bottom:0}
+.cell-study{max-width:340px}
+.cell-study .ti{font-weight:600; line-height:1.25; color:var(--ink)}
+.cell-study .au{color:var(--ink-soft); font-size:12px; margin-top:3px}
+.cell-study .fi{color:var(--ink-soft); font-size:12px; margin-top:6px; line-height:1.4}
+.cell-meta .j{font-style:italic; color:var(--ink); font-size:12.5px}
+.cell-meta .m{color:var(--ink-soft); font-size:12px; margin-top:3px; display:flex; flex-wrap:wrap; gap:4px}
+.pill{display:inline-block; font-size:11px; padding:2px 7px; border-radius:20px; background:var(--surface-2); color:var(--ink-soft); white-space:nowrap}
+.yr{font-family:"IBM Plex Mono",monospace; font-weight:500; font-size:14px}
+.doi{font-size:11.5px; color:var(--accent); text-decoration:none; word-break:break-all}
+.doi:hover{text-decoration:underline}
+.vchips{display:flex; flex-wrap:wrap; gap:5px; max-width:260px}
+.vchip{display:inline-flex; align-items:center; gap:5px; font-size:11.5px; padding:3px 8px 3px 7px; border-radius:20px; border:1px solid; white-space:nowrap}
+.vchip.nucleo{border-color:var(--nucleo); background:var(--nucleo-soft); color:var(--ink)}
+.vchip.correlato{border-color:var(--correlato); background:var(--correlato-soft); color:var(--ink)}
+.vchip.menc{border-style:dashed; background:transparent; opacity:.72}
+.vchip .rng{width:5px;height:5px;border-radius:50%;flex:none}
+.vchip.nucleo .rng{background:var(--nucleo)} .vchip.correlato .rng{background:var(--correlato)}
+.vchip.menc .rng{background:transparent; border:1px solid currentColor}
+.empty{padding:40px 18px; text-align:center; color:var(--ink-soft)}
+
+/* legend */
+.legend{display:flex; flex-wrap:wrap; gap:14px 20px; margin:6px 0 20px; font-size:12px; color:var(--ink-soft)}
+.legend b{color:var(--ink); font-weight:600}
+.lg{display:inline-flex; align-items:center; gap:7px}
+.sw{width:12px;height:12px;border-radius:4px}
+.sw.n{background:var(--nucleo)} .sw.c{background:var(--correlato)}
+.sw.ring{background:transparent;border:1.5px dashed var(--ink-faint)}
+.foot{margin-top:34px; padding-top:18px; border-top:1px solid var(--line); color:var(--ink-faint); font-size:12px; line-height:1.6}
+.foot a{color:var(--accent); text-decoration:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div class="eyebrow"><span class="dot"></span>Revisão sistemática · esportes estéticos femininos</div>
+    <h1>Humor <em>em cena</em></h1>
+    <p class="sub">Triangulação das variáveis psicológicas relacionadas ao <b>humor</b> (afetivas) estudadas nos esportes estéticos — cruzadas por modalidade, ano de publicação e construto. Clique em qualquer barra, célula ou chip para filtrar tudo em tempo real.</p>
+  </header>
+
+  <div class="toolbar" role="region" aria-label="Filtros">
+    <span class="tlabel">Grupo</span>
+    <div class="seg" id="seg-grupo">
+      <button data-v="todos" aria-pressed="true">Todos</button>
+      <button data-v="nucleo" aria-pressed="false">Núcleo afetivo</button>
+      <button data-v="correlato" aria-pressed="false">Correlatos</button>
+    </div>
+    <span class="tlabel">Nível</span>
+    <div class="seg" id="seg-nivel">
+      <button data-v="todos" aria-pressed="true">Todos</button>
+      <button data-v="medido" aria-pressed="false">Só medido</button>
+    </div>
+    <label class="search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="search" type="search" placeholder="Buscar autor, revista, achado…" aria-label="Buscar">
+    </label>
+    <button class="btn-clear" id="clear" hidden>Limpar filtros</button>
+  </div>
+  <div class="actives" id="actives" aria-live="polite"></div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid">
+    <div class="panel">
+      <h2>Por modalidade</h2>
+      <p class="hint">Artigos que estudam ≥1 variável de humor, por esporte estético.</p>
+      <div class="bars" id="chart-mod"></div>
+    </div>
+    <div class="panel">
+      <h2>Por variável de humor</h2>
+      <p class="hint">Quantos artigos abordam cada construto. <span style="color:var(--nucleo)">■</span> núcleo · <span style="color:var(--correlato)">■</span> correlato</p>
+      <div class="bars" id="chart-var"></div>
+    </div>
+  </div>
+
+  <div class="grid tri">
+    <div class="panel">
+      <h2>Por ano de publicação</h2>
+      <p class="hint">Distribuição temporal do corpus filtrado.</p>
+      <div class="years" id="chart-year"></div>
+    </div>
+  </div>
+
+  <div class="grid tri">
+    <div class="panel">
+      <h2>Triangulação — variável × modalidade</h2>
+      <p class="hint">Nº de artigos por cruzamento. Cor = intensidade. Clique numa célula para filtrar por essa variável e modalidade.</p>
+      <div class="hm-scroll"><div class="heat" id="heat"></div></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span class="lg"><span class="sw n"></span><b>Núcleo afetivo</b> — humor propriamente dito</span>
+    <span class="lg"><span class="sw c"></span><b>Correlato</b> — autoavaliativo/comportamental ligado ao humor</span>
+    <span class="lg"><span class="sw ring"></span>chip tracejado = <b>mencionado</b> (não medido diretamente)</span>
+  </div>
+
+  <div class="tablewrap">
+    <div class="thead">
+      <h2>Tabela de extração</h2>
+      <span class="tcount" id="tcount"></span>
+    </div>
+    <div class="sortbar" id="sortbar">
+      <span class="tlabel" style="align-self:center">Ordenar</span>
+      <button data-s="year" aria-pressed="true">Ano ↓</button>
+      <button data-s="modality" aria-pressed="false">Modalidade</button>
+      <button data-s="nvars" aria-pressed="false">Nº variáveis ↓</button>
+      <button data-s="journal" aria-pressed="false">Revista</button>
+    </div>
+    <div class="t-scroll">
+      <table>
+        <thead><tr>
+          <th>Ano</th><th>Estudo</th><th>Revista / Modalidade</th><th>Desenho</th><th>Variáveis de humor</th><th>DOI</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty" id="empty" hidden>Nenhum artigo corresponde aos filtros. <a href="#" id="reset2" style="color:var(--accent)">Limpar</a></div>
+  </div>
+
+  <p class="foot">
+    Gerado automaticamente a partir da Biblioteca De Lucca (<span id="ntot"></span> artigos com conteúdo psicológico triados; <span id="nmood"></span> com variável de humor). Pipeline reproduzível: <span class="mono">extract_humor.py → humor-data.json → build_humor.py</span>. Extração baseada em título, resumo e campos analíticos; o nível <b>“medido”</b> indica instrumento/variável analisada identificada, <b>“mencionado”</b> indica citação sem medição direta — confira o texto completo antes da síntese final. As modalidades de amostra mista estão sinalizadas no campo de esporte.
+  </p>
+</div>
+
+<script>
+const PAYLOAD = {"records": [{"doi": "10.1016/j.actpsy.2026.107290", "authors": "Chatar I, Robert P, Saumade C, Lewton-Brain P, van Rijn RM, Stubbe JH, Soubelet A, Manera V", "year": 2026, "journal": "Acta Psychologica", "title": "The association between passion, disordered eating attitudes, and self-reported injuries among pre-professional contemporary and ballet dancers", "sport": "Dança (contemporânea e balé pré-profissional; ambos os sexos)", "modalities": ["Dança"], "design": "Longitudinal", "n": 62, "topic": "passion", "finding": "Em 62 dançarinos pré-profissionais (23 homens), escores mais altos no EAT-26 associaram-se a mais lesões, a paixão harmoniosa associou-se negativamente à ocorrência de lesões, e houve efeito indireto da paixão obsessiva sobre lesões via atitudes alimentares transtornadas (mediação, b=0,045).", "fulltext": "abstract", "vars": [{"k": "transtorno_alimentar", "nivel": "medido"}]}, {"doi": "10.1097/jsm.0000000000001447", "authors": "Tietzen MA, Geminiani E, Stein CJ, Sarafin S, D'Ambrosi G, Holtzman B, Hunt D, Saville GH", "year": 2026, "journal": "Clinical Journal of Sport Medicine", "title": "Eating Disorders and Disordered Eating in Figure Skaters: Prevalence, Associations, and Athlete Experiences", "sport": "Patinação artística (75,4% mulheres)", "modalities": ["Patinação artística"], "design": "Transversal", "n": 57, "topic": "disordered-eating", "finding": "35,1% dos patinadores tiveram triagem positiva para transtorno/comportamento alimentar transtornado; receber comentários sobre peso ou forma corporal (51,8%) associou-se significativamente à triagem positiva.", "fulltext": "abstract", "vars": [{"k": "transtorno_alimentar", "nivel": "mencionado"}]}, {"doi": "10.1016/j.eatbeh.2026.102085", "authors": "Leiva Fernández Cordero, Marchena-Giráldez C, Cruz Corbella A, Ruiz-Sancho E", "year": 2026, "journal": "Eating Behaviors", "title": "Indirect effect of perfectionism between anxiety, self-esteem, aesthetic pressure and eating disorder risk in figure skaters", "sport": "Patinação artística", "modalities": ["Patinação artística"], "design": "Transversal", "n": null, "topic": "perfectionism", "finding": "Perfeccionismo medeia ansiedade/autoestima/pressão do uniforme → risco de transtorno alimentar.", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "medido"}, {"k": "autoestima", "nivel": "mencionado"}, {"k": "transtorno_alimentar", "nivel": "mencionado"}, {"k": "perfeccionismo", "nivel": "medido"}]}, {"doi": "10.3389/fpsyg.2026.1856362", "authors": "Gao X, Kim H, Bae M", "year": 2026, "journal": "Frontiers in Psychology", "title": "Biopsychosocial experiences of Chinese university dancers during injury rehabilitation: a qualitative study", "sport": "Dança (universitária; sexo não especificado, predomínio feminino)", "modalities": ["Dança"], "design": "Qualitativo", "n": 7, "topic": "coping", "finding": "Entrevistas com 7 dançarinos universitários revelaram experiências multidimensionais de reabilitação de lesão: no nível psicológico emergiram ansiedade, frustração, raiva e culpa, mas também resiliência baseada em mentalidade positiva; suporte de pais, professores e pares foi fator protetor, enquanto pressão para retornar e críticas foram fatores de risco, tudo situado em contexto cultural.", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "mencionado"}]}, {"doi": "10.1177/1089313X261426641", "authors": "Lucia JH, Daniels N", "year": 2026, "journal": "Journal of Dance Medicine & Science", "title": "\"It Feels Kind of Like a Feather\": Perceptions of Well-Being Among Adolescent Ballet Dancers", "sport": "Balé (adolescentes; feminino)", "modalities": ["Dança"], "design": "Qualitativo", "n": 11, "topic": "well-being", "finding": "Onze bailarinas adolescentes definiram bem-estar como integração de saúde emocional, física e mental; identificaram quatro aspectos-chave (Suportes Externos, Resolução Pessoal, Motivação e Barreiras): professores que cuidam além da técnica e amigos foram suportes centrais, força mental foi aspecto pessoal importante e sentimentos de julgamento foram barreiras.", "fulltext": "abstract", "vars": [{"k": "bem_estar", "nivel": "medido"}]}, {"doi": "10.1177/1089313X261472625", "authors": "Valverde MG, Venâncio da Silva A, de Matos BP, Oliveira NCF, Campos PF, Chaves BS, Neves CM", "year": 2026, "journal": "Journal of Dance Medicine & Science", "title": "Female Athlete Triad's Components in Practitioners of Dance: A Systematic Review", "sport": "Dança (bailarinas)", "modalities": ["Dança"], "design": "Revisão sistemática", "n": 11, "topic": "red-s", "finding": "Onze estudos (906 bailarinas): alta prevalência de comportamento alimentar transtornado e baixa disponibilidade energética (28-74%), disfunção menstrual (40-66%) e baixa DMO (15-40%), sobretudo no balé; fatores associados foram exigências estéticas, volume de treino e insatisfação corporal.", "fulltext": "abstract", "vars": [{"k": "imagem_corporal", "nivel": "mencionado"}, {"k": "transtorno_alimentar", "nivel": "mencionado"}]}, {"doi": "10.1177/1089313X261441375", "authors": "Iwabuchi M, Thomson P, Jaque SV", "year": 2026, "journal": "Journal of Dance Medicine & Science", "title": "Shy Dancers Experience Less Flow and More Trait Anxiety and Shame: A Group Comparison Study", "sport": "Dança pré-profissional/profissional (amostra mista, predominância feminina)", "modalities": ["Dança"], "design": "Transversal", "n": 302, "topic": "flow", "finding": "Entre 302 dançarinos, os mais tímidos relataram menor flow disposicional e maior ansiedade-traço e vergonha internalizada, com déficits em equilíbrio desafio-habilidade, concentração, sensação de controle e experiência autotélica.", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "medido"}]}, {"doi": "10.3390/nu18121910", "authors": "Donti A, Panidi I, Bogdanis GC, Kanna DA, Gaspari V, Donti O", "year": 2026, "journal": "Nutrients", "title": "Striving to Be Thin: Weight Pressures and Eating Disorder Symptoms in Professional Young Female Modern Dancers", "sport": "Dança moderna (profissional; feminino)", "modalities": ["Dança"], "design": "Transversal", "n": 86, "topic": "disordered-eating", "finding": "Entre 86 dançarinas profissionais, 29,1% pontuaram >=20 no EAT-26; pressões de peso (WPS-F) associaram-se positivamente aos sintomas alimentares, e pressões quanto a aparência/desempenho, idade e experiência explicaram 38,3% da variância do EAT-26 (idade e experiência com coeficiente negativo), com a experiência moderando a relação pressão-sintomas.", "fulltext": "abstract", "vars": [{"k": "transtorno_alimentar", "nivel": "medido"}]}, {"doi": "10.1186/s40359-025-02653-9", "authors": "Picard M, Gaetz M", "year": 2025, "journal": "BMC Psychology", "title": "Cyclic patterns of high-risk behaviours within ballet culture", "sport": "Balé (pré-profissional, profissional e aposentado; feminino)", "modalities": ["Dança"], "design": "Qualitativo", "n": 10, "topic": "perfectionism", "finding": "Entrevistas com 10 bailarinas (18-25 anos) revelaram tema central de trauma cíclico com dois eixos (falta de controle/instabilidade e perfeccionismo); 80% deram respostas consistentes com perfeccionismo e todas relataram dismorfia corporal/transtornos alimentares, saúde mental e violência sexual como problemáticos na cultura do balé, com C-PTSD emergindo inesperadamente.", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "mencionado"}, {"k": "depressao", "nivel": "mencionado"}, {"k": "saude_mental", "nivel": "medido"}, {"k": "perfeccionismo", "nivel": "medido"}]}, {"doi": "10.1186/s40359-025-03724-7", "authors": "Zhang Y, Noh YE, Liu S", "year": 2025, "journal": "BMC Psychology", "title": "Psychological interventions for dancers' mental health: a systematic review", "sport": "Dança (revisão sistemática)", "modalities": ["Dança"], "design": "Revisão sistemática", "n": null, "topic": "mental-health", "finding": "Onze estudos de intervenção psicológica em dançarinos concentraram-se em manejo de ansiedade de performance/regulação emocional (k=6), redução de sintomas de transtorno alimentar (k=4) e reabilitação psicológica de lesionados (k=1), com eficácia inconsistente entre tipos e durações.", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "medido"}, {"k": "reg_emocional", "nivel": "mencionado"}, {"k": "saude_mental", "nivel": "mencionado"}, {"k": "transtorno_alimentar", "nivel": "mencionado"}]}, {"doi": "10.36950/2025.10ciss004", "authors": "Martin C, Nguyen LT, Williams A, Bunn J", "year": 2025, "journal": "Current Issues in Sport Science (CISS)", "title": "Examining the roles of body image perception on the mental health of female athletes in highly aesthetic sports: A systematic review", "sport": "Esportes estéticos femininos (dança, ginástica, cheerleading) — revisão, ≥12 anos", "modalities": ["Dança", "Ginástica artística", "Ginástica rítmica"], "design": "Revisão sistemática", "n": null, "topic": "body-image", "finding": "Revisão sistemática de 13 artigos mostrou que percepção negativa de imagem corporal foi comum em esportes estéticos femininos (62% dos estudos) e associada a impacto negativo na saúde mental, com transtornos alimentares como desfecho comum (69% dos estudos), num quadro de hiperfoco em corpo magro e críticas de treinadores/pares/mídia.", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "medido"}, {"k": "depressao", "nivel": "medido"}, {"k": "saude_mental", "nivel": "medido"}, {"k": "imagem_corporal", "nivel": "medido"}]}, {"doi": "10.1002/erv.70069", "authors": "Foscolou A, Koutoulogenis K, Amerikanou C, Chatzistamatiou C, Stergiou EM, Katsari R, Perrea A, Panoutsopoulos GI", "year": 2025, "journal": "European Eating Disorders Review", "title": "Eating Attitudes and Anthropometric Indices of Adult Women in Performance Dance: A Case-Control Study in Greece", "sport": "Dança de performance (adultas; feminino)", "modalities": ["Dança"], "design": "Transversal", "n": 170, "topic": "disordered-eating", "finding": "Em 170 mulheres (68 dançarinas, 102 controles), as dançarinas apresentaram melhor composição corporal e menor ingestão energética/gordura, e após ajustes tiveram escore 5% maior de restrição no EDE-Q, enquanto não dançarinas relataram maiores preocupações alimentares quando considerada a ingestão energética.", "fulltext": "abstract", "vars": [{"k": "transtorno_alimentar", "nivel": "medido"}]}, {"doi": "10.3389/fpsyg.2025.1617548", "authors": "Wood S, Turner MJ", "year": 2025, "journal": "Frontiers in Psychology", "title": "Integrating Acceptance and Commitment Therapy (ACT) with Psychological Skills Training (PST): a case study", "sport": "Patinação artística (feminino)", "modalities": ["Patinação artística"], "design": "Estudo de caso", "n": 1, "topic": "anxiety", "finding": "Estudo de caso de uma patinadora artística competitiva de 11 anos com ansiedade de desempenho: intervenção integrando ACT (desfusão, valores, ação comprometida, presença) com treino de habilidades psicológicas (metas, imagética, perfil de desempenho, autofala) buscou reduzir a ansiedade, com reflexões de cliente e praticante avaliando a entrega do serviço.", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "medido"}]}, {"doi": "10.3389/fspor.2025.1515051", "authors": "Lopes CP, Poussel M, Albuisson E, Temperelli M, Hily O, Chenuel B, Allado E", "year": 2025, "journal": "Frontiers in Sports and Active Living", "title": "Prevalence of alexithymia and depression among professional contemporary French dancers", "sport": "Dança contemporânea (profissional; ambos os sexos - predomínio a confirmar)", "modalities": ["Dança"], "design": "Transversal", "n": 22, "topic": "mental-health", "finding": "Entre 22 dançarinos profissionais de uma companhia de dança contemporânea, a prevalência de alexitimia foi 9,1%, a de ansiedade 9,1% e 7 dançarinos apresentaram indícios de depressão menor - prevalências menores que as relatadas em populações geral e atlética, possivelmente por um efeito protetor da intenção artística.", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "medido"}, {"k": "depressao", "nivel": "medido"}]}, {"doi": "10.5114/jhk/204776", "authors": "Gómez-Landero LA, Santos-Rosa FJ, Reguera-López-de-la-Osa X, Cervelló E", "year": 2025, "journal": "J. Human Kinetics", "title": "Interdependence, motivational climate, self-talk, positivity and precompetitive anxiety", "sport": "Ginástica rítmica (individual vs equipe)", "modalities": ["Ginástica rítmica"], "design": "Transversal", "n": null, "topic": "anxiety", "finding": "Autofalar negativo e positividade predizem ansiedade pré-competitiva; individuais têm menor autoconfiança que equipes.", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "medido"}]}, {"doi": "10.1177/1089313X251390010", "authors": "Copeland CG, Welsh TM, Chuhak R, Munoz I, Neibert S, Moses A, Bailey JS", "year": 2025, "journal": "Journal of Dance Medicine & Science", "title": "Assessing and Improving Mental Resilience in University Dancers: A Pilot Study", "sport": "Dança (universitária; sexo não especificado, predomínio feminino)", "modalities": ["Dança"], "design": "Transversal", "n": 4, "topic": "resilience", "finding": "Com 4 dançarinas universitárias, 6 semanas de treino de resiliência melhoraram significativamente indicadores comportamentais de função positiva (contato visual, autodesaprovação, 'branco' na coreografia; melhora média de 61%) e produziram melhoras clinicamente importantes de ansiedade em todas e de depressão em uma.", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "medido"}, {"k": "depressao", "nivel": "medido"}, {"k": "saude_mental", "nivel": "medido"}]}, {"doi": "10.1177/1089313X251406347", "authors": "de Souza JBD, Oliveira Motta BA, Berti Zanella P", "year": 2025, "journal": "Journal of Dance Medicine & Science", "title": "Association Between Body Image Dissatisfaction and Anthropometric Variables Among Adolescent Ballet Dancers: A Pilot Study", "sport": "Balé (adolescentes; feminino)", "modalities": ["Dança"], "design": "Transversal", "n": 26, "topic": "body-image", "finding": "Entre 26 bailarinas adolescentes, a insatisfação com a imagem corporal foi de 65,3% (26,9% leve, 19,2% moderada, 19,2% grave) e correlacionou-se inversamente com a autoestima (Rosenberg); insatisfação grave associou-se a maior peso, IMC, circunferência de cintura e gordura corporal.", "fulltext": "abstract", "vars": [{"k": "autoestima", "nivel": "medido"}, {"k": "imagem_corporal", "nivel": "medido"}]}, {"doi": "10.1177/1089313X251389074", "authors": "Chatar I, Robert P, Saumade C, Lewton-Brain P, van Rijn RM, Stubbe JH, Soubelet A, Manera V", "year": 2025, "journal": "Journal of Dance Medicine & Science", "title": "The Impact of Coping Strategies and Trait Anxiety on Self-Reported Injuries Among Pre-professional Contemporary and Ballet Dancers: A Prospective Study", "sport": "Dança (contemporânea e balé pré-profissional; ambos os sexos)", "modalities": ["Dança"], "design": "Longitudinal", "n": 31, "topic": "coping", "finding": "Em coorte prospectiva de dançarinos pré-profissionais (31 analisados), o uso de 'humor' como estratégia de enfrentamento associou-se a menor risco de lesão substancial (OR=0,485), sem associações entre ansiedade-traço, dados demográficos ou volume de treino e os desfechos de lesão.", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "medido"}]}, {"doi": "10.3177/jnsv.71.519", "authors": "Yoshitani-Kuwabara K, Yumen Y, Takayama Y, Kitayama N, Nagai N", "year": 2025, "journal": "Journal of Nutritional Science and Vitaminology", "title": "High Proportions of Low Body Mass Index and Menstrual Dysfunction among Rhythmic Gymnasts: Association with Body Image Distortion and Eating Behaviors and Attitudes", "sport": "Ginástica rítmica (feminino)", "modalities": ["Ginástica rítmica"], "design": "Transversal", "n": 194, "topic": "body-image", "finding": "Ginastas rítmicas tiveram maiores taxas de baixo IMC e disfunção menstrual, maior distorção de imagem corporal e maiores escores no EAT-26 que jogadoras de voleibol e não atletas; ser ginasta rítmica e a distorção (superestimação) associaram-se independentemente ao baixo IMC, e escores altos no EAT-26 associaram-se à disfunção menstrual.", "fulltext": "abstract", "vars": [{"k": "imagem_corporal", "nivel": "medido"}, {"k": "transtorno_alimentar", "nivel": "medido"}]}, {"doi": "10.3390/nu17101699", "authors": "Donti A, Maraki MI, Psychountaki M, Donti O", "year": 2025, "journal": "Nutrients", "title": "Eating disorder symptoms and energy deficiency awareness in adolescent artistic gymnasts", "sport": "Ginástica artística", "modalities": ["Ginástica artística"], "design": "Transversal", "n": null, "topic": "disordered-eating", "finding": "Alto nível teve sintomas mais severos (20% acima do corte EDE-Q) e pouca consciência de RED-S.", "fulltext": "PMC", "vars": [{"k": "transtorno_alimentar", "nivel": "medido"}]}, {"doi": "10.1016/j.psychsport.2025.102920", "authors": "Ahadi ND, Harris EA, Walton CC", "year": 2025, "journal": "Psychology of Sport and Exercise", "title": "A qualitative study of body image among competitive women pole dancers", "sport": "Pole dance (competitivo; feminino)", "modalities": ["Outro"], "design": "Qualitativo", "n": 20, "topic": "body-image", "finding": "Com 20 mulheres praticantes de pole competitivo, a análise temática construiu três temas (funcionalidade corporal como primordial; comunidade como fonte de acolhimento e tensões de pertencimento; empoderamento pela autonomia): apesar de o ambiente competitivo gerar comparações e inseguranças, valorizar a funcionalidade do corpo permitiu percepções corporais positivas dentro e fora da competição.", "fulltext": "abstract", "vars": [{"k": "imagem_corporal", "nivel": "medido"}]}, {"doi": "10.1016/j.ssmph.2025.101894", "authors": "Christensen JF, Wesseldijk LW, Mosing MA, Ullén F", "year": 2025, "journal": "SSM - Population Health", "title": "Mental health in recreational and professional dancers: a genetically informed study in Sweden", "sport": "Dança (recreativa e profissional; ambos os sexos)", "modalities": ["Dança"], "design": "Transversal", "n": 6610, "topic": "mental-health", "finding": "Em 6610 gêmeos suecos, dançarinos profissionais tiveram maior risco de problemas de saúde mental que recreativos e não dançarinos, mas as associações tornaram-se não significativas após ajuste por confusão familiar (desenho co-gêmeo), sugerindo que fatores familiares compartilhados explicam o risco elevado; não houve efeito protetor da dança recreativa.", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "medido"}, {"k": "depressao", "nivel": "medido"}, {"k": "estresse", "nivel": "medido"}, {"k": "saude_mental", "nivel": "mencionado"}]}, {"doi": "10.3390/sports13070223", "authors": "Zafeiroudi A, Karagiorgos T, Tsartsapakis I, Grivas GV, Kouthouris C, Goulimaris D", "year": 2025, "journal": "Sports (Basel)", "title": "Choreographing Well-Being: The Predictive Role of Self-Compassion on Life Satisfaction - A Therapeutic-Based Art Pedagogy Perspective in Recreational Dance", "sport": "Dança (recreativa; feminino-majoritário)", "modalities": ["Dança"], "design": "Transversal", "n": 912, "topic": "well-being", "finding": "Em 912 dançarinos recreativos (80% mulheres), a autobondade previu positivamente a satisfação com a vida (β=0,258), enquanto isolamento (β=-0,307) e autojulgamento (β=-0,083) previram negativamente; o modelo explicou 21,7% da variância, com bailarinos mostrando leve aumento de autojulgamento e isolamento.", "fulltext": "abstract", "vars": [{"k": "bem_estar", "nivel": "medido"}, {"k": "saude_mental", "nivel": "mencionado"}]}, {"doi": "10.1080/00913847.2025.2597180", "authors": "Portas-Núñez B, Blanco-Martínez N, Sánchez-Lastra MA, Diz-Gómez JC, Ayán-Pérez C", "year": 2025, "journal": "The Physician and Sportsmedicine", "title": "Prevalence of eating disorder, body image dissatisfaction and musculoskeletal complaints among former spanish rhythmic gymnasts: a retrospective study.", "sport": "Ginástica rítmica (ex-atletas espanholas)", "modalities": ["Ginástica rítmica"], "design": "Transversal", "n": 216, "topic": "overuse-injury", "finding": "Entre 216 ex-ginastas rítmicas espanholas, 10,6% pontuaram acima do limiar no EAT-26 e 68,1% relataram insatisfação corporal; a dor lombar foi a queixa musculoesquelética mais prevalente (83,3%), seguida de dor cervical (74,5%).", "fulltext": "abstract", "vars": [{"k": "imagem_corporal", "nivel": "medido"}, {"k": "transtorno_alimentar", "nivel": "medido"}]}, {"doi": "10.3390/children11060696", "authors": "Nuñez BP, Sanchez-Lastra MA, Diz JC, Pérez CA", "year": 2024, "journal": "Children (Basel)", "title": "Body Dissatisfaction among Young Girls in Recreational Rhythmic Gymnastics", "sport": "Ginástica rítmica", "modalities": ["Ginástica rítmica"], "design": "Transversal", "n": 176, "topic": "body-image", "finding": "Meninas em GR recreativa (6–11 anos) não apresentaram maior insatisfação corporal (pictograma de Stunkard) que controles pareadas por idade, sugerindo que a prática recreativa precoce não se associa a insatisfação corporal.", "fulltext": "abstract", "vars": [{"k": "imagem_corporal", "nivel": "medido"}]}, {"doi": "10.3389/fpsyg.2024.1341437", "authors": "Proietti G, Borozan M, Chaigneau A, Cannito L, Palumbo R, Thouvarecq R, Iodice P", "year": 2024, "journal": "Frontiers in Psychology", "title": "Self-regulation training improves stress resilience in elite pre-pubescent female gymnasts", "sport": "Ginástica", "modalities": ["Ginástica artística"], "design": "Experimental", "n": 8, "topic": "stress-coping", "finding": "4 sem de biofeedback ↑ autorregulação fisiológica e consciência interoceptiva sob estresse e ↓ sensibilidade ao estresse do esporte.", "fulltext": "abstract", "vars": [{"k": "estresse", "nivel": "mencionado"}]}, {"doi": "10.1123/jsr.2023-0379", "authors": "Williams SM, Baez SE, Derrico D, Robinson H, Coyne K, Settle H, Jochimsen KN", "year": 2024, "journal": "J. Sport Rehabilitation", "title": "Resilience and well-being over the course of an NCAA Division I gymnastics season", "sport": "Ginástica artística feminina", "modalities": ["Ginástica artística"], "design": "Longitudinal", "n": null, "topic": "mental-toughness", "finding": "Resiliência e bem-estar estáveis na temporada; maior resiliência associou-se a maior bem-estar no início e no pós-temporada.", "fulltext": "abstract", "vars": [{"k": "bem_estar", "nivel": "mencionado"}]}, {"doi": "10.1080/02640414.2024.2405791", "authors": "Lundqvist C", "year": 2024, "journal": "J. Sports Sciences", "title": "Prevalence of harassment, abuse and mental health among current and retired senior Swedish cheerleaders", "sport": "Cheerleading", "modalities": ["Dança"], "design": "Transversal", "n": 284, "topic": "mental-toughness", "finding": "Em 284 atletas (278 mulheres), resiliência protegeu a saúde mental; abuso psicológico foi o assédio mais comum, ligado a lesão.", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "mencionado"}, {"k": "depressao", "nivel": "mencionado"}, {"k": "saude_mental", "nivel": "medido"}]}, {"doi": "10.1177/1089313x241277930", "authors": "Junge A, Hauschild A", "year": 2024, "journal": "Journal of Dance Medicine & Science", "title": "Prevalence of Mental Health Problems and their Potential Association with Sleep Disturbance, Coping Skills and Social Support in Professional Ballet Dancers", "sport": "Balé profissional (amostra mista: 49% mulheres, 51% homens)", "modalities": ["Dança"], "design": "Transversal", "n": null, "topic": "mental-health", "finding": "Em 96 bailarinos profissionais (idade média 27,3 anos), a prevalência de sintomas de depressão (19,8% leve, 4,2% moderada a grave) e de ansiedade (19,8% leve, 11,5% moderada, 3,1% grave) foi elevada; quase dois terços relataram problemas de sono, com correlações baixas entre saúde mental e habilidades de coping atlético/suporte social.", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "medido"}, {"k": "depressao", "nivel": "medido"}, {"k": "saude_mental", "nivel": "medido"}]}, {"doi": "10.1016/j.psychsport.2024.102632", "authors": "Benoit-Piau J, Gaudreault N, Vallerand RJ, Fortin S, Guptill C, Morin M", "year": 2024, "journal": "Psychology of Sport and Exercise", "title": "Passion and performance anxiety: How it affects the incidence of musculoskeletal disorders in dancers", "sport": "Dança profissional/pré-profissional (amostra mista, maioria feminina)", "modalities": ["Dança"], "design": "Longitudinal", "n": 118, "topic": "passion", "finding": "Ao longo de uma temporada de 38 semanas, maior paixão obsessiva (mas não a paixão harmoniosa nem a ansiedade de performance) associou-se a maior incidência de episódios de distúrbio musculoesquelético que interromperam a dança (β=0,264).", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "medido"}]}, {"doi": "10.1016/j.psychsport.2024.102648", "authors": "St-Cyr J, Gavrila A, Tanguay-Sela M, Vallerand RJ", "year": 2024, "journal": "Psychology of Sport and Exercise", "title": "Perfectionism, disordered eating and well-being in aesthetic sports: the mediating role of passion", "sport": "Ginástica artística + nado artístico", "modalities": ["Ginástica artística", "Nado artístico"], "design": "Transversal", "n": null, "topic": "perfectionism", "finding": "Perfeccionismo socialmente prescrito → transtorno alimentar via paixão obsessiva; paixão harmoniosa protege.", "fulltext": "abstract", "vars": [{"k": "bem_estar", "nivel": "mencionado"}, {"k": "transtorno_alimentar", "nivel": "mencionado"}, {"k": "perfeccionismo", "nivel": "medido"}]}, {"doi": "10.1136/bmjsem-2022-001491", "authors": "Jederström M, Agnafors S, Ekegren CL, Fagher K, et al.", "year": 2023, "journal": "BMJ Open Sport & Exercise Medicine", "title": "Anxiety and depression caseness in female competitive figure skaters in Sweden", "sport": "Patinação artística", "modalities": ["Patinação artística"], "design": "Transversal", "n": null, "topic": "anxiety", "finding": "47% das patinadoras com ansiedade clínica; percepção de sobrepeso e idade são os principais correlatos.", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "medido"}, {"k": "depressao", "nivel": "medido"}, {"k": "saude_mental", "nivel": "mencionado"}]}, {"doi": "10.3390/children10020379", "authors": "Chaikali P, Kontele I, Grammatikopoulou MG, Oikonomou E, Sergentanis TN, Vassilakou T", "year": 2023, "journal": "Children", "title": "Body Composition, Eating Habits, and Disordered Eating Behaviors among Adolescent Classical Ballet Dancers and Controls", "sport": "Dança (balé clássico; bailarinas adolescentes)", "modalities": ["Dança"], "design": "Transversal", "n": null, "topic": "anthropometry-maturation", "finding": "Estudo caso-controle comparou composição corporal, hábitos alimentares e comportamentos alimentares desordenados entre bailarinas clássicas adolescentes e pares não dançarinas, apontando vulnerabilidade nutricional das bailarinas.", "fulltext": "abstract", "vars": [{"k": "transtorno_alimentar", "nivel": "medido"}]}, {"doi": "10.1007/s12662-023-00886-7", "authors": "Greither T, Ohlert J", "year": 2023, "journal": "Ger J Exerc Sport Res", "title": "Empowering and disempowering climate and experiences of psychological violence in artistic gymnastics", "sport": "Ginástica artística (amostra mista, sexo não detalhado)", "modalities": ["Ginástica artística"], "design": "Transversal", "n": null, "topic": "motivational-climate", "finding": "Clima motivacional empoderador associa-se a menor percepção de violência psicológica na ginástica artística.", "fulltext": "abstract", "vars": [{"k": "saude_mental", "nivel": "mencionado"}]}, {"doi": "10.3389/fpsyg.2022.925162", "authors": "Deng C, Yu Q, Luo G, Lu S", "year": 2022, "journal": "Frontiers in Psychology", "title": "Effects of 16 weeks of cheerleading on physical self-esteem and mental health of female college students", "sport": "Cheerleading", "modalities": ["Dança"], "design": "Experimental", "n": 63, "topic": "body-image", "finding": "16 sem de cheerleading ↑ autoestima física e ↓ sintomas SCL-90 (depressão, ansiedade, alimentação desordenada).", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "mencionado"}, {"k": "depressao", "nivel": "mencionado"}, {"k": "bem_estar", "nivel": "mencionado"}, {"k": "saude_mental", "nivel": "medido"}, {"k": "autoestima", "nivel": "medido"}, {"k": "transtorno_alimentar", "nivel": "mencionado"}]}, {"doi": "10.3389/fpsyg.2022.955232", "authors": "Kovács K, Kéringer J, Rácz J, Gyömbér N, Németh K", "year": 2022, "journal": "Frontiers in Psychology", "title": "In the pitfall of expectations: An exploratory analysis of stressors in elite rhythmic gymnastics", "sport": "Ginástica rítmica", "modalities": ["Ginástica rítmica"], "design": "Revisão narrativa", "n": 12, "topic": "stress-coping", "finding": "Entrevistas com ginastas, treinadores e pais revelaram metas de evitação (mastery/performance-avoidance), atmosfera prejudicial e a crença de que corpo magro está ligado ao sucesso como principais estressores do ambiente competitivo.", "fulltext": "abstract", "vars": [{"k": "estresse", "nivel": "medido"}, {"k": "imagem_corporal", "nivel": "mencionado"}]}, {"doi": "10.3390/ijerph19042196", "authors": "Smith AB, Gay JL, Monsma EV, Arent SM, Sarzynski MA, Emerson DM, Torres-McGehee TM", "year": 2022, "journal": "Int. J. Environmental Research and Public Health", "title": "Investigation of Eating Disorder Risk and Body Image Dissatisfaction among Female Competitive Cheerleaders", "sport": "Cheerleading feminino", "modalities": ["Dança"], "design": "Transversal", "n": 268, "topic": "disordered-eating", "finding": "34,4% das cheerleaders apresentaram risco de transtorno alimentar; universitárias e equipes coed tiveram maior risco, e a insatisfação corporal foi máxima com o uniforme de barriga de fora, sobretudo pela meta-percepção do que o treinador deseja.", "fulltext": "abstract", "vars": [{"k": "imagem_corporal", "nivel": "medido"}, {"k": "transtorno_alimentar", "nivel": "medido"}]}, {"doi": "10.3390/ijerph192013181", "authors": "Polak E, Gardzińska A, Zadarko-Domaradzka M", "year": 2022, "journal": "International Journal of Environmental Research and Public Health", "title": "Anorexic Readiness Syndrome in Elite Female Acrobatic Gymnasts-International Study", "sport": "Ginástica acrobática (elite feminina)", "modalities": ["Ginástica acrobática"], "design": "Transversal", "n": 133, "topic": "disordered-eating", "finding": "9,8% das acrobatas de elite apresentaram alto nível de síndrome de prontidão anoréxica, com atitudes e comportamentos indicativos de tendências anoréxicas.", "fulltext": "abstract", "vars": [{"k": "transtorno_alimentar", "nivel": "medido"}]}, {"doi": "10.1186/s40337-022-00574-1", "authors": "Leonkiewicz M, Wawrzyniak A", "year": 2022, "journal": "Journal of Eating Disorders", "title": "The relationship between rigorous perception of one's own body and self, unhealthy eating behavior and a high risk of anorexic readiness: a predictor of eating disorders in the group of female ballet dancers and artistic gymnasts at the beginning of their career", "sport": "Balé e ginástica artística feminina (10-12 anos)", "modalities": ["Ginástica artística"], "design": "Transversal", "n": 120, "topic": "disordered-eating", "finding": "Meninas de balé/ginástica artística apresentaram menor gordura corporal, superestimação do tamanho corporal e maior restrição de gorduras/carboidratos, indicando risco de prontidão anoréxica.", "fulltext": "abstract", "vars": [{"k": "transtorno_alimentar", "nivel": "mencionado"}]}, {"doi": "10.1371/journal.pone.0265809", "authors": "Santos-Rosa FJ, Montero-Carretero C, Gómez-Landero LA, Torregrossa M, Cervelló E", "year": 2022, "journal": "PLoS ONE", "title": "Positive and negative spontaneous self-talk and performance in gymnastics", "sport": "Ginástica rítmica", "modalities": ["Ginástica rítmica"], "design": "Transversal", "n": null, "topic": "anxiety", "finding": "Autofalar negativo prediz ansiedade e pior desempenho; clima de tarefa e positividade alimentam a autoconfiança.", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "medido"}]}, {"doi": "10.1016/j.eatbeh.2021.101514", "authors": "Donti O, Donti A, Gaspari V, Pleksida P, Psychountaki M", "year": 2021, "journal": "Eat Behav", "title": "Are they too perfect to eat healthy? Association between eating disorder symptoms and perfectionism in adolescent rhythmic gymnasts", "sport": "Ginástica rítmica", "modalities": ["Ginástica rítmica"], "design": "Transversal", "n": 89, "topic": "perfectionism", "finding": "Perfeccionismo elevado acompanha mais sintomas de transtorno alimentar em ginastas rítmicas adolescentes, sobretudo de elite.", "fulltext": "abstract", "vars": [{"k": "transtorno_alimentar", "nivel": "medido"}, {"k": "perfeccionismo", "nivel": "medido"}]}, {"doi": "10.3390/ijerph18042184", "authors": "Amato A, Proia P, Caldara GF, Alongi A, Ferrantelli V, Baldassano S", "year": 2021, "journal": "International Journal of Environmental Research and Public Health", "title": "Analysis of Body Perception, Preworkout Meal Habits and Bone Resorption in Child Gymnasts", "sport": "Ginástica infantil feminina (rítmica/artística)", "modalities": ["Ginástica rítmica", "Ginástica artística"], "design": "Transversal", "n": 28, "topic": "body-image", "finding": "Ginastas pré-adolescentes relataram maior satisfação com a aparência corporal (autoestima) que pares sedentárias, contrariando a expectativa de maior insatisfação corporal na modalidade.", "fulltext": "abstract", "vars": [{"k": "autoestima", "nivel": "medido"}, {"k": "imagem_corporal", "nivel": "mencionado"}]}, {"doi": "10.3390/ijerph18179023", "authors": "St-Cyr J, Vallerand RJ, Chénard-Poirier LA", "year": 2021, "journal": "International Journal of Environmental Research and Public Health", "title": "The Role of Passion and Achievement Goals in Optimal Functioning in Sports", "sport": "Nado artístico e polo aquático (ambos os sexos; amostra mista)", "modalities": ["Nado artístico", "Outro"], "design": "Transversal", "n": 184, "topic": "passion", "finding": "Em 184 atletas de polo aquático e nado sincronizado, a análise de trajetórias apoiou o modelo: a paixão harmoniosa levou a engajamento cognitivo mais adaptativo (metas de maestria) que, por sua vez, favoreceu maior funcionamento ótimo (bem-estar subjetivo, relação com o treinador, desempenho e intenção de continuar), enquanto a paixão obsessiva teve relações menos adaptativas.", "fulltext": "abstract", "vars": [{"k": "bem_estar", "nivel": "medido"}]}, {"doi": "10.12678/1089-313X.061521k", "authors": "Pentith R, Moss SL, Lamb K, Edwards C", "year": 2021, "journal": "J. Dance Medicine & Science", "title": "Perfectionism among young female competitive Irish dancers: prevalence and relationship with injury responses", "sport": "Dança (irlandesa competitiva)", "modalities": ["Dança"], "design": "Transversal", "n": null, "topic": "stress-coping", "finding": "79% com tendências perfeccionistas; perfeccionismo associou-se a estratégias de coping ao lidar com lesão.", "fulltext": "abstract", "vars": [{"k": "perfeccionismo", "nivel": "medido"}]}, {"doi": "10.1123/jsep.2020-0118", "authors": "Molnar DS, Blackburn M, Zinga D, Spadafora N, Methot-Jones T, Connolly M", "year": 2021, "journal": "J. Sport & Exercise Psychology", "title": "Trait perfectionism and dance goals among young female dancers: the 2x2 model", "sport": "Dança competitiva", "modalities": ["Dança"], "design": "Transversal", "n": null, "topic": "motivation", "finding": "Perfeccionismo de preocupação avaliativa → metas menos intrínsecas/mais extrínsecas; padrões pessoais → motivação mais autodeterminada.", "fulltext": "abstract", "vars": [{"k": "perfeccionismo", "nivel": "medido"}]}, {"doi": "10.3390/nu13093147", "authors": "Remmel L, Jürimäe J, Tamm A-L, Purge P, Tillmann V", "year": 2021, "journal": "Nutrients", "title": "Body image perception and serum resistin in highly trained adolescent rhythmic gymnasts", "sport": "Ginástica rítmica", "modalities": ["Ginástica rítmica"], "design": "Transversal", "n": null, "topic": "body-image", "finding": "Atitude de imagem corporal correlaciona com resistina sérica (via gordura) só nas rítmicas — elo biológico.", "fulltext": "abstract", "vars": [{"k": "imagem_corporal", "nivel": "medido"}]}, {"doi": "10.1002/eat.23425", "authors": "Kulshreshtha M, Babu N, Goel NJ, Chandel S", "year": 2020, "journal": "International Journal of Eating Disorders", "title": "Disordered eating attitudes and body shape concerns among North Indian Kathak dancers", "sport": "Dança (Kathak)", "modalities": ["Dança"], "design": "Transversal", "n": 206, "topic": "disordered-eating", "finding": "Regressão logística binária indicou que bailarinas Kathak com elevada preocupação com a forma corporal têm ~5x mais chance de atitudes alimentares disfuncionais (caso-controle, 206 bailarinas vs 235 controles).", "fulltext": "abstract", "vars": [{"k": "transtorno_alimentar", "nivel": "medido"}]}, {"doi": "10.1186/s12970-020-00344-x", "authors": "Meng K, Qiu J, Benardot D, Carr A, Yi L, Wang J, Liang Y", "year": 2020, "journal": "Journal of the International Society of Sports Nutrition", "title": "The risk of low energy availability in Chinese elite and recreational female aesthetic sports athletes", "sport": "Esportes estéticos femininos (cheerleading e dança entre 6 modalidades)", "modalities": ["Dança"], "design": "Transversal", "n": 166, "topic": "disordered-eating", "finding": "57,2% das atletas estéticas foram classificadas como alto risco de transtorno alimentar (EDI-3 RF) e 41,6% em risco de baixa disponibilidade energética, com prevalência significativamente maior nas atletas de elite do que nas recreacionais.", "fulltext": "abstract", "vars": [{"k": "transtorno_alimentar", "nivel": "medido"}]}, {"doi": "10.20960/nh.03141", "authors": "Martínez-Rodríguez A, Reche-García C, Martínez-Fernández MDC, Martínez-Sanz JM", "year": 2020, "journal": "Nutrición Hospitalaria", "title": "Assessment of nutritional-dietary status, body composition, eating behavior, and perceived image in rhythmic gymnastics athletes", "sport": "Ginástica rítmica", "modalities": ["Ginástica rítmica"], "design": "Transversal", "n": 33, "topic": "body-image", "finding": "Ginastas rítmicas subelite tinham dieta deficiente e preocupação com a imagem corporal (BSQ/EAT-26), com dois casos em risco de transtorno alimentar apesar de peso corporal normal.", "fulltext": "abstract", "vars": [{"k": "imagem_corporal", "nivel": "medido"}, {"k": "transtorno_alimentar", "nivel": "medido"}]}, {"doi": "10.1590/1413-81232021262.08542019", "authors": "Cardoso AA, Reis NM, Silva J, Borgatto A, Folle A, Guimarães ACA, Resende R", "year": 2019, "journal": "Ciência & Saúde Coletiva", "title": "Fadiga e qualidade de vida em bailarinos profissionais de dança de salão no Brasil", "sport": "Dança (dança de salão; amostra mista F+M)", "modalities": ["Dança"], "design": "Transversal", "n": 320, "topic": "perceived-fatigue", "finding": "Maior fadiga associou-se a pior qualidade de vida em todos os domínios (físico, psicológico, social e ambiental); incidência e intensidade de lesões não se associaram à qualidade de vida.", "fulltext": "abstract", "vars": [{"k": "bem_estar", "nivel": "medido"}]}, {"doi": "10.20960/nh.02639", "authors": "Delgado-Floody P, Reyes D, Martínez-Salazar C, García-Pinillos F", "year": 2019, "journal": "Nutrición Hospitalaria", "title": "Calidad de vida relacionada con la salud, variables psicosociales y rendimiento académico en niñas practicantes de danza: estudio comparativo", "sport": "Dança", "modalities": ["Dança"], "design": "Transversal", "n": 252, "topic": "self-confidence", "finding": "Meninas praticantes de dança apresentaram maior autoestima global, melhor qualidade de vida relacionada à saúde e melhor bem-estar físico e escolar do que praticantes de esporte e sedentárias.", "fulltext": "abstract", "vars": [{"k": "bem_estar", "nivel": "mencionado"}, {"k": "autoestima", "nivel": "medido"}, {"k": "imagem_corporal", "nivel": "medido"}]}, {"doi": "10.1123/pes.2018-0182", "authors": "Kipp LE, Bolter ND, Phillips Reichter A", "year": 2019, "journal": "Pediatric Exercise Science", "title": "Motivational Climate Profiles, Pubertal Status, and Well-Being Among Female Adolescent Aesthetic Sport Athletes", "sport": "Esportes estéticos femininos (amostra mista: ginastas, saltadoras ornamentais e patinadoras artísticas)", "modalities": ["Ginástica artística", "Patinação artística"], "design": "Transversal", "n": 183, "topic": "motivational-climate", "finding": "Perfis do clima motivacional criado pelo treinador diferenciaram autonomia e vínculo com treinador/colegas, enquanto autoestima e dieta variaram pelo estágio puberal — meninas pós-púberes relataram menor autoestima e mais dieta.", "fulltext": "abstract", "vars": [{"k": "bem_estar", "nivel": "medido"}, {"k": "autoestima", "nivel": "mencionado"}]}, {"doi": "10.20960/nh.1388", "authors": "Kazarez M, Vaquero-Cristóbal R, Esparza-Ros F", "year": 2018, "journal": "Nutrición Hospitalaria", "title": "Percepción y distorsión de la imagen corporal en mujeres bailarinas españolas según curso académico y edad", "sport": "Dança", "modalities": ["Dança"], "design": "Transversal", "n": 298, "topic": "body-image", "finding": "Bailarinas dos cursos iniciais e mais jovens apresentaram maiores índices de distorção; todas desejavam ser mais magras, e dez mostraram alto risco de transtorno alimentar.", "fulltext": "abstract", "vars": [{"k": "imagem_corporal", "nivel": "medido"}, {"k": "transtorno_alimentar", "nivel": "mencionado"}]}, {"doi": "10.1371/journal.pone.0210174", "authors": "Codonhato R, Rubio V, Oliveira PMP, Resende CF, Fiorese L", "year": 2018, "journal": "PLoS One", "title": "Resilience, stress and injuries in the context of the Brazilian elite rhythmic gymnastics", "sport": "Ginástica rítmica", "modalities": ["Ginástica rítmica"], "design": "Transversal", "n": 8, "topic": "resilience", "finding": "Maior resiliência e melhor equilíbrio estresse-recuperação associam-se a menor vulnerabilidade a lesões na ginástica rítmica de elite.", "fulltext": "abstract", "vars": [{"k": "estresse", "nivel": "medido"}]}, {"doi": "10.20960/nh.1091", "authors": "Vaquero-Cristóbal R, Kazarez M, Esparza-Ros F", "year": 2017, "journal": "Nutrición Hospitalaria", "title": "Influencia de la disciplina de danza en la distorsión y la insatisfacción de la imagen corporal en preadolescentes, adolescentes y jóvenes bailarinas", "sport": "Dança", "modalities": ["Dança"], "design": "Transversal", "n": 298, "topic": "body-image", "finding": "Bailarinas clássicas e contemporâneas percebiam-se com IMC maior do que o real, enquanto a dança espanhola mostrou tendência oposta; todas desejavam ser mais magras e dez apresentaram alto risco de transtorno alimentar.", "fulltext": "abstract", "vars": [{"k": "imagem_corporal", "nivel": "mencionado"}, {"k": "transtorno_alimentar", "nivel": "mencionado"}]}, {"doi": "10.3390/sports5030064", "authors": "Tanner AV, Day S", "year": 2017, "journal": "Sports (Basel)", "title": "The Effects of a 4-Week, Intensified Training, and Competition Period on Salivary Hormones, Immunoglobulin A, Illness Symptoms, and Mood State in Elite Synchronised Swimmers", "sport": "Nado artístico (elite; feminino)", "modalities": ["Nado artístico"], "design": "Longitudinal", "n": 10, "topic": "stress", "finding": "Em 10 nadadoras artísticas de elite, um período intensificado de treino e competição não prejudicou a imunidade mucosa, mas o cortisol salivar elevou-se durante a competição (93%) e os sintomas de estresse aumentaram, com os escores 'a' do DALDA correlacionando-se com o cortisol.", "fulltext": "abstract", "vars": [{"k": "humor_poms", "nivel": "mencionado"}, {"k": "estresse", "nivel": "medido"}]}, {"doi": "10.1016/j.csm.2015.10.002", "authors": "Tan JOA, Calitri R, Bloodworth A, McNamee MJ", "year": 2016, "journal": "Clinics in Sports Medicine", "title": "Understanding eating disorders in elite gymnastics: ethical and conceptual challenges", "sport": "Ginástica rítmica/acrobática", "modalities": ["Ginástica rítmica", "Ginástica acrobática"], "design": "Revisão narrativa", "n": null, "topic": "disordered-eating", "finding": "Ginastas de elite: mais sintomas alimentares e depressivos e menor autoestima; diagnóstico é conceitualmente complexo.", "fulltext": "abstract", "vars": [{"k": "depressao", "nivel": "mencionado"}, {"k": "autoestima", "nivel": "mencionado"}, {"k": "transtorno_alimentar", "nivel": "mencionado"}]}, {"doi": "10.1515/hukin-2015-0188", "authors": "Boldizsár D, Soós I, Whyte I, Hamar P", "year": 2016, "journal": "J Hum Kinet", "title": "An investigation into the relationship between pre-competition mood states, age, gender and a national ranking in artistic gymnastics", "sport": "Ginástica artística (amostra mista, 67F/49M)", "modalities": ["Ginástica artística"], "design": "Transversal", "n": 116, "topic": "anxiety", "finding": "Estados de humor pré-competição associam-se a ranking nacional, idade e sexo em ginástica artística.", "fulltext": "abstract", "vars": [{"k": "humor_poms", "nivel": "mencionado"}]}, {"doi": "10.1080/02640414.2016.1235794", "authors": "Neves CM, Meireles JFF, Carvalho PHB, Schubring A, Barker-Ruchti N, Ferreira MEC", "year": 2016, "journal": "J. Sports Sciences", "title": "Body dissatisfaction in women's artistic gymnastics: a longitudinal study of psychosocial indicators", "sport": "Ginástica artística feminina", "modalities": ["Ginástica artística"], "design": "Longitudinal", "n": null, "topic": "body-image", "finding": "Insatisfação corporal pico na fase competitiva; alimentação desordenada é o maior preditor ao longo do ano.", "fulltext": "abstract", "vars": [{"k": "imagem_corporal", "nivel": "medido"}, {"k": "transtorno_alimentar", "nivel": "mencionado"}]}, {"doi": "10.1080/02640414.2012.671530", "authors": "Day MC, Schubert N", "year": 2012, "journal": "J Sports Sci", "title": "The impact of witnessing athletic injury: a qualitative examination of vicarious trauma in artistic gymnastics", "sport": "Ginástica artística", "modalities": ["Ginástica artística"], "design": "Qualitativo", "n": 8, "topic": "coping", "finding": "Testemunhar lesão grave de colega gera trauma vicário e mobiliza estratégias de coping (evitação, reavaliação) em ginastas artísticas.", "fulltext": "abstract", "vars": [{"k": "reg_emocional", "nivel": "mencionado"}]}, {"doi": "10.2466/05.09.20.PMS.112.2.549-560", "authors": "Tsopani D, Dallas G, Skordilis EK", "year": 2011, "journal": "Perceptual and Motor Skills", "title": "Competitive state anxiety and performance in young female rhythmic gymnasts", "sport": "Ginástica rítmica", "modalities": ["Ginástica rítmica"], "design": "Transversal", "n": null, "topic": "self-confidence", "finding": "Autoconfiança (não a ansiedade cognitiva/somática) foi o único preditor significativo do desempenho competitivo.", "fulltext": "abstract", "vars": [{"k": "ansiedade", "nivel": "mencionado"}]}, {"doi": "10.1590/S1517-86922009000700001", "authors": "Vieira JLL, Amorim HZ, Vieira LF, Amorim AC, Rocha PGM", "year": 2009, "journal": "Revista Brasileira de Medicina do Esporte", "title": "Distúrbios de atitudes alimentares e distorção da imagem corporal no contexto competitivo da ginástica rítmica", "sport": "Ginástica rítmica", "modalities": ["Ginástica rítmica"], "design": "Transversal", "n": null, "topic": "disordered-eating", "finding": "Ginastas rítmicas competitivas apresentaram distúrbios de atitudes alimentares associados à distorção da imagem corporal, reforçando o risco do contexto estético-competitivo.", "fulltext": "abstract", "vars": [{"k": "imagem_corporal", "nivel": "medido"}, {"k": "transtorno_alimentar", "nivel": "medido"}]}, {"doi": "10.1590/S1517-86922009000100012", "authors": "Ferreira dos Reis JA, Ferreira dos Reis Filho A, et al.", "year": 2009, "journal": "Revista Brasileira de Medicina do Esporte", "title": "Transtorno do comportamento alimentar em atletas de elite de nado sincronizado", "sport": "Nado artístico", "modalities": ["Nado artístico"], "design": "Transversal", "n": 27, "topic": "disordered-eating", "finding": "Atletas de elite de nado sincronizado apresentaram maior distorção da imagem corporal e sinais de transtorno do comportamento alimentar do que adolescentes não atletas.", "fulltext": "abstract", "vars": [{"k": "imagem_corporal", "nivel": "medido"}]}, {"doi": "10.1590/s0104-11692005000200017", "authors": "Abrão ACP, Pedrão LJ", "year": 2005, "journal": "Revista Latino-Americana de Enfermagem", "title": "A contribuição da dança do ventre para a educação corporal, saúde física e mental de mulheres", "sport": "Dança", "modalities": ["Dança"], "design": "Qualitativo", "n": 12, "topic": "body-image", "finding": "A dança do ventre foi percebida como benéfica para a educação corporal integral, imagem corporal e saúde física e mental das mulheres praticantes.", "fulltext": "abstract", "vars": [{"k": "saude_mental", "nivel": "medido"}, {"k": "imagem_corporal", "nivel": "medido"}]}, {"doi": "10.1002/eat.10157", "authors": "Poudevigne MS, O'Connor PJ, Laing EM, Wilson AMR, Modlesky CM", "year": 2003, "journal": "Int J Eat Disord", "title": "Body images of 4-8-year-old girls at the outset of their first artistic gymnastics class", "sport": "Ginástica artística", "modalities": ["Ginástica artística"], "design": "Transversal", "n": 108, "topic": "body-image", "finding": "Meninas iniciantes na ginástica artística não diferem de controles em imagem corporal no início — a insatisfação é construída com a exposição ao esporte.", "fulltext": "abstract", "vars": [{"k": "imagem_corporal", "nivel": "medido"}]}], "vars": [{"key": "ansiedade", "label": "Ansiedade", "icon": "😰", "grupo": "nucleo"}, {"key": "depressao", "label": "Depressão", "icon": "😔", "grupo": "nucleo"}, {"key": "humor_poms", "label": "Estados de humor", "icon": "🎭", "grupo": "nucleo"}, {"key": "estresse", "label": "Estresse", "icon": "😣", "grupo": "nucleo"}, {"key": "afeto", "label": "Afeto +/−", "icon": "⚖️", "grupo": "nucleo"}, {"key": "bem_estar", "label": "Bem-estar / QoL", "icon": "🌱", "grupo": "nucleo"}, {"key": "reg_emocional", "label": "Regulação emocional", "icon": "🧘", "grupo": "nucleo"}, {"key": "saude_mental", "label": "Saúde mental", "icon": "🧠", "grupo": "nucleo"}, {"key": "burnout", "label": "Burnout", "icon": "🔥", "grupo": "nucleo"}, {"key": "autoestima", "label": "Autoestima", "icon": "💗", "grupo": "correlato"}, {"key": "imagem_corporal", "label": "Imagem corporal", "icon": "🪞", "grupo": "correlato"}, {"key": "transtorno_alimentar", "label": "Transtorno alimentar", "icon": "🍽️", "grupo": "correlato"}, {"key": "perfeccionismo", "label": "Perfeccionismo", "icon": "🎯", "grupo": "correlato"}]};
+const RECORDS = PAYLOAD.records, VMETA = PAYLOAD.vars;
+const VMAP = {}; VMETA.forEach(v=>VMAP[v.key]=v);
+const MOD_ORDER = ["Dança","Ginástica rítmica","Ginástica artística","Ginástica aeróbica","Ginástica acrobática","Patinação artística","Nado artístico","Outro"];
+const MOD_SHORT = {"Dança":"Dança","Ginástica rítmica":"G. rítmica","Ginástica artística":"G. artística","Ginástica aeróbica":"G. aeróbica","Ginástica acrobática":"G. acrobática","Patinação artística":"Patinação","Nado artístico":"Nado art.","Outro":"Outro"};
+
+const state = { grupo:"todos", nivel:"todos", search:"", mods:new Set(), years:new Set(), vars:new Set(), sort:"year" };
+
+// --- helpers ---------------------------------------------------------------
+function recVars(r){ // variáveis efetivas após filtros de grupo e nível
+  return r.vars.filter(v=>{
+    const m=VMAP[v.k]; if(!m) return false;
+    if(state.grupo!=="todos" && m.grupo!==state.grupo) return false;
+    if(state.nivel==="medido" && v.nivel!=="medido") return false;
+    return true;
+  });
+}
+function matchesSearch(r){
+  if(!state.search) return true;
+  const q=state.search.toLowerCase();
+  return ((r.authors||"")+" "+(r.journal||"")+" "+(r.title||"")+" "+(r.finding||"")+" "+(r.sport||"")).toLowerCase().includes(q);
+}
+// passa nos filtros, opcionalmente ignorando uma dimensão ('mod'|'year'|'var')
+function passes(r, except){
+  if(recVars(r).length===0) return false;
+  if(!matchesSearch(r)) return false;
+  if(except!=="mod" && state.mods.size && !r.modalities.some(m=>state.mods.has(m))) return false;
+  if(except!=="year" && state.years.size && !state.years.has(r.year)) return false;
+  if(except!=="var" && state.vars.size && !recVars(r).some(v=>state.vars.has(v.k))) return false;
+  return true;
+}
+function fullSet(){ return RECORDS.filter(r=>passes(r,null)); }
+
+// --- charts ----------------------------------------------------------------
+function renderMod(){
+  const set = RECORDS.filter(r=>passes(r,"mod"));
+  const counts={}; MOD_ORDER.forEach(m=>counts[m]=0);
+  set.forEach(r=>r.modalities.forEach(m=>{ if(m in counts) counts[m]++; }));
+  const max=Math.max(1,...Object.values(counts));
+  const el=document.getElementById("chart-mod"); el.innerHTML="";
+  MOD_ORDER.filter(m=>counts[m]>0).sort((a,b)=>counts[b]-counts[a]).forEach(m=>{
+    const on=state.mods.has(m);
+    const row=document.createElement("div"); row.className="bar-row"+(on?" on":"");
+    row.innerHTML=`<span class="cap">${MOD_SHORT[m]||m}</span>
+      <span class="bar-track"><span class="bar-fill neutral" style="width:${counts[m]/max*100}%"></span></span>
+      <span class="num tnum">${counts[m]}</span>`;
+    row.onclick=()=>toggle(state.mods,m); el.appendChild(row);
+  });
+}
+function renderVar(){
+  const set = RECORDS.filter(r=>passes(r,"var"));
+  const counts={}; VMETA.forEach(v=>counts[v.key]=0);
+  set.forEach(r=>{ const seen=new Set(recVars(r).map(v=>v.k)); seen.forEach(k=>counts[k]++); });
+  const max=Math.max(1,...Object.values(counts));
+  const el=document.getElementById("chart-var"); el.innerHTML="";
+  VMETA.filter(v=>{ if(state.grupo!=="todos"&&v.grupo!==state.grupo) return false; return counts[v.key]>0; })
+    .sort((a,b)=>counts[b.key]-counts[a.key]).forEach(v=>{
+    const on=state.vars.has(v.key);
+    const row=document.createElement("div"); row.className="bar-row"+(on?" on":"");
+    row.innerHTML=`<span class="cap"><span class="ic">${v.icon}</span>${v.label}</span>
+      <span class="bar-track"><span class="bar-fill ${v.grupo}" style="width:${counts[v.key]/max*100}%"></span></span>
+      <span class="num tnum">${counts[v.key]}</span>`;
+    row.onclick=()=>toggle(state.vars,v.key); el.appendChild(row);
+  });
+}
+function renderYear(){
+  const set = RECORDS.filter(r=>passes(r,"year"));
+  const years=[...new Set(RECORDS.map(r=>r.year))].filter(Boolean).sort((a,b)=>a-b);
+  const counts={}; years.forEach(y=>counts[y]=0);
+  set.forEach(r=>{ if(r.year in counts) counts[r.year]++; });
+  const max=Math.max(1,...Object.values(counts));
+  const el=document.getElementById("chart-year"); el.innerHTML="";
+  years.forEach(y=>{
+    const on=state.years.has(y);
+    const col=document.createElement("div"); col.className="ycol"+(on?" on":"");
+    col.innerHTML=`<span class="ycount tnum">${counts[y]||""}</span>
+      <span class="ybar" style="height:${8+counts[y]/max*90}px"></span>
+      <span class="ylab">${y}</span>`;
+    col.onclick=()=>toggle(state.years,y); el.appendChild(col);
+  });
+}
+function rampColor(t){ // 0..1 -> mistura ramp0 -> ramp-max
+  return t<=0 ? "var(--surface-2)" : `color-mix(in srgb, var(--ramp-max) ${Math.round(18+t*82)}%, var(--ramp0))`;
+}
+function renderHeat(){
+  // aplica busca+grupo+nível+ano (não mod/var) para mostrar todo o cruzamento selecionável
+  const set=RECORDS.filter(r=>{
+    if(recVars(r).length===0) return false;
+    if(!matchesSearch(r)) return false;
+    if(state.years.size && !state.years.has(r.year)) return false;
+    return true;
+  });
+  const vlist=VMETA.filter(v=>state.grupo==="todos"||v.grupo===state.grupo);
+  const mlist=MOD_ORDER.filter(m=>set.some(r=>r.modalities.includes(m)));
+  const grid={}; let gmax=1;
+  vlist.forEach(v=>{ grid[v.key]={}; mlist.forEach(m=>grid[v.key][m]=0); });
+  set.forEach(r=>{ const ks=new Set(recVars(r).map(x=>x.k));
+    r.modalities.forEach(m=>{ if(!(m in (grid[vlist[0]?.key]||{}))) return; ks.forEach(k=>{ if(grid[k]) { grid[k][m]++; if(grid[k][m]>gmax)gmax=grid[k][m]; } }); }); });
+  const el=document.getElementById("heat");
+  el.style.gridTemplateColumns=`minmax(130px,auto) repeat(${mlist.length},1fr)`; el.innerHTML="";
+  el.insertAdjacentHTML("beforeend",`<div class="corner"></div>`);
+  mlist.forEach(m=>el.insertAdjacentHTML("beforeend",`<div class="colhead">${MOD_SHORT[m]||m}</div>`));
+  vlist.forEach(v=>{
+    el.insertAdjacentHTML("beforeend",`<div class="rowhead"><span class="ic">${v.icon}</span>${v.label}</div>`);
+    mlist.forEach(m=>{
+      const c=grid[v.key][m], t=c/gmax;
+      const on=state.vars.has(v.key)&&state.mods.has(m);
+      const cell=document.createElement("div");
+      cell.className="hcell"+(c>0?" data":"")+(on?" on":"");
+      cell.style.background=c>0?rampColor(t):"var(--surface-3)";
+      cell.style.color = t>0.55 ? "var(--on-accent)" : "var(--ink-soft)";
+      cell.textContent=c>0?c:"";
+      if(c>0){ cell.title=`${v.label} · ${m}: ${c} artigo(s)`;
+        cell.onclick=()=>{ state.vars=new Set([v.key]); state.mods=new Set([m]); render(); }; }
+      el.appendChild(cell);
+    });
+  });
+}
+function renderKpis(){
+  const set=fullSet();
+  const nuc=new Set(), mods=new Set(); let ymin=9999,ymax=0;
+  set.forEach(r=>{ r.modalities.forEach(m=>mods.add(m)); if(r.year){ymin=Math.min(ymin,r.year);ymax=Math.max(ymax,r.year);}
+    recVars(r).forEach(v=>{ if(VMAP[v.k].grupo==="nucleo") nuc.add(v.k); }); });
+  const varset=new Set(); set.forEach(r=>recVars(r).forEach(v=>varset.add(v.k)));
+  const kpis=[["Artigos",set.length],["Variáveis de humor",varset.size],["Modalidades",mods.size],["Período", set.length?`${ymin}–${ymax}`:"—"]];
+  document.getElementById("kpis").innerHTML=kpis.map(k=>`<div class="kpi"><div class="v tnum">${k[1]}</div><div class="l">${k[0]}</div></div>`).join("");
+}
+
+// --- table -----------------------------------------------------------------
+function renderTable(){
+  const set=fullSet().slice();
+  const s=state.sort;
+  set.sort((a,b)=>{
+    if(s==="year") return (b.year||0)-(a.year||0) || (a.journal||"").localeCompare(b.journal||"");
+    if(s==="nvars") return recVars(b).length-recVars(a).length || (b.year||0)-(a.year||0);
+    if(s==="journal") return (a.journal||"").localeCompare(b.journal||"");
+    if(s==="modality") return (a.modalities[0]||"").localeCompare(b.modalities[0]||"") || (b.year||0)-(a.year||0);
+    return 0;
+  });
+  const tb=document.getElementById("tbody"); tb.innerHTML="";
+  document.getElementById("empty").hidden=set.length>0;
+  set.forEach(r=>{
+    const vs=recVars(r).map(v=>{ const m=VMAP[v.k]; const menc=v.nivel!=="medido";
+      return `<span class="vchip ${m.grupo}${menc?" menc":""}" title="${m.label} — ${v.nivel}"><span class="rng"></span>${m.icon} ${m.label}</span>`;
+    }).join("");
+    const mods=r.modalities.map(m=>`<span class="pill">${MOD_SHORT[m]||m}</span>`).join(" ");
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><span class="yr tnum">${r.year||"—"}</span></td>
+      <td class="cell-study"><div class="ti">${r.title||""}</div><div class="au">${r.authors||""}</div>${r.finding?`<div class="fi">${r.finding}</div>`:""}</td>
+      <td class="cell-meta"><div class="j">${r.journal||""}</div><div class="m">${mods}</div><div class="au" style="margin-top:4px">${r.sport||""}</div></td>
+      <td><span class="pill">${r.design||"—"}</span>${r.n?`<div class="au" style="margin-top:5px">n=${r.n}</div>`:""}</td>
+      <td><div class="vchips">${vs}</div></td>
+      <td>${r.doi?`<a class="doi" href="https://doi.org/${r.doi}" target="_blank" rel="noopener">${r.doi}</a>`:"—"}</td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById("tcount").textContent=`${set.length} artigo(s) · ${new Set(set.flatMap(r=>recVars(r).map(v=>v.k))).size} variáveis`;
+}
+
+// --- active filter chips ---------------------------------------------------
+function renderActives(){
+  const el=document.getElementById("actives"); el.innerHTML="";
+  const add=(label,onx)=>{ const c=document.createElement("span"); c.className="fchip";
+    c.innerHTML=`${label} <button aria-label="remover">×</button>`; c.querySelector("button").onclick=onx; el.appendChild(c); };
+  state.mods.forEach(m=>add(`◆ ${MOD_SHORT[m]||m}`,()=>{state.mods.delete(m);render();}));
+  state.vars.forEach(k=>add(`${VMAP[k].icon} ${VMAP[k].label}`,()=>{state.vars.delete(k);render();}));
+  [...state.years].sort().forEach(y=>add(`${y}`,()=>{state.years.delete(y);render();}));
+  if(state.grupo!=="todos") add(state.grupo==="nucleo"?"Núcleo afetivo":"Correlatos",()=>{setSeg("seg-grupo","todos");});
+  if(state.nivel==="medido") add("Só medido",()=>{setSeg("seg-nivel","todos");});
+  if(state.search) add(`“${state.search}”`,()=>{state.search="";document.getElementById("search").value="";render();});
+  const any=state.mods.size||state.vars.size||state.years.size||state.grupo!=="todos"||state.nivel!=="medido"&&false||state.nivel==="medido"||state.search;
+  document.getElementById("clear").hidden=!any;
+}
+
+// --- glue ------------------------------------------------------------------
+function toggle(set,val){ set.has(val)?set.delete(val):set.add(val); render(); }
+function setSeg(id,val){ const seg=document.getElementById(id);
+  seg.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.v===val));
+  if(id==="seg-grupo") state.grupo=val; else state.nivel=val; render(); }
+function render(){ renderKpis(); renderMod(); renderVar(); renderYear(); renderHeat(); renderTable(); renderActives(); }
+
+document.getElementById("seg-grupo").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setSeg("seg-grupo",b.dataset.v);});
+document.getElementById("seg-nivel").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setSeg("seg-nivel",b.dataset.v);});
+document.getElementById("sortbar").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+  state.sort=b.dataset.s; document.querySelectorAll("#sortbar button").forEach(x=>x.setAttribute("aria-pressed",x===b)); renderTable();});
+let st; document.getElementById("search").addEventListener("input",e=>{clearTimeout(st);st=setTimeout(()=>{state.search=e.target.value.trim();render();},160);});
+function clearAll(){ state.mods.clear();state.vars.clear();state.years.clear(); state.search="";document.getElementById("search").value="";
+  setSeg("seg-grupo","todos"); document.getElementById("seg-nivel").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v==="todos")); state.nivel="todos"; render(); }
+document.getElementById("clear").onclick=clearAll;
+document.getElementById("reset2").onclick=e=>{e.preventDefault();clearAll();};
+
+document.getElementById("ntot").textContent="90";
+document.getElementById("nmood").textContent=RECORDS.length;
+render();
+</script>
