@@ -132,6 +132,42 @@ arquivo**: o banco SQLite. Isso permite três caminhos sem nenhuma mensalidade.
 > versão. Por isso os caminhos abaixo não dependem de plano gratuito de
 > fornecedor nenhum.
 
+### Caminho 0 — um comando, sem conta e sem Docker (o mais rápido)
+
+Para já mandar o link a alguém hoje. O serviço continua escutando só em
+`127.0.0.1`; quem abre o caminho é o `cloudflared`, que faz uma conexão **de
+saída** até a Cloudflare e recebe de volta um endereço `https`. Nenhuma porta é
+aberta no firewall, o computador não precisa de IP público e o certificado vem
+pronto.
+
+```powershell
+# Windows
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\deploy\publicar.ps1
+```
+
+```bash
+# Linux ou macOS
+bash deploy/publicar.sh
+```
+
+O script baixa o `cloudflared` (uma vez), cria o seu acesso de administrador se
+ainda não houver nenhum, sobe o serviço, abre o túnel, roda a conferência de
+segurança e imprime o endereço:
+
+```
+  No ar. Envie este endereço às pessoas:
+
+    https://algum-nome-sorteado.trycloudflare.com/entrar
+```
+
+**A ressalva que importa:** esse endereço vale enquanto a janela estiver aberta
+e **muda a cada reinício**. Serve para começar hoje e para uma rodada de
+cadastros; não serve como endereço definitivo do laboratório. Para um endereço
+fixo — `lape.udesc.br` ou `lape.duckdns.org` —, o mesmo script com
+`-Permanente` (ou `--permanente`) mostra os três comandos do túnel nomeado, que
+pede uma conta gratuita da Cloudflare.
+
 ### Caminho 1 — computador do laboratório + túnel do Cloudflare
 
 **O mais simples, e o único que não pede cartão de crédito.** Um computador do
@@ -714,6 +750,8 @@ docs/index.html             painel estático (saída)
 docs/demo.html              painel da massa de teste (dados fictícios)
 automation/n8n/             quatro fluxos prontos para importar no n8n
 deploy/
+  publicar.ps1              Windows: um comando, do zero ao endereço https
+  publicar.sh               Linux/macOS: o mesmo, em bash
   instalar.sh               instalação em um comando (Docker + HTTPS + admin)
   Caddyfile                 HTTPS automático e gratuito
   lape.service, nginx.conf  alternativa sem Docker
@@ -723,7 +761,7 @@ Dockerfile
 docker-compose.yml          desenvolvimento
 docker-compose.prod.yml     produção: aplicação + Caddy (+ túnel opcional)
 .env.example                modelo de configuração
-tests/                      171 testes, sem acesso à rede
+tests/                      173 testes, sem acesso à rede
 ```
 
 O `scripts/migrate.R` continua funcionando: aplica o mesmo `sql/schema.sql`,

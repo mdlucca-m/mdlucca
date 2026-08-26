@@ -231,6 +231,35 @@ class TestPainel(unittest.TestCase):
         self.assertIn("Charts", html)
         self.assertIn("Icons", html)
 
+    def test_republicar_nao_apaga_o_aviso_de_massa_de_teste(self):
+        """Republicar pelo curador tem de manter o aviso.
+
+        Sem isto, um `curador` rodado sobre o banco de demonstracao troca um
+        painel avisado por um que parece dado de verdade do laboratorio.
+        """
+        from lape.agents import curator
+
+        destino = Path(self.tmp.name) / "republicado.html"
+        curator.publish(self.db, output=destino)
+        self.assertIn("MASSA DE TESTE", destino.read_text(encoding="utf-8"))
+
+    def test_banco_de_verdade_nao_ganha_o_aviso(self):
+        """E o contrario tambem: banco normal nao pode sair marcado como teste."""
+        from lape.agents import curator
+        from lape import ingest_excel
+
+        outro = tempfile.TemporaryDirectory()
+        db = Database(Path(outro.name) / "real.sqlite")
+        db.migrate()
+        ingest_excel.ingest_articles(db, [{"title": "Artigo de verdade", "authors": "Andrade"}])
+        destino = Path(outro.name) / "painel.html"
+        try:
+            curator.publish(db, output=destino)
+            self.assertNotIn("MASSA DE TESTE", destino.read_text(encoding="utf-8"))
+        finally:
+            db.close()
+            outro.cleanup()
+
     def test_nenhum_bloco_do_painel_esta_vazio(self):
         p = self.payload
         self.assertGreater(p["overview"]["n_articles"], 0)

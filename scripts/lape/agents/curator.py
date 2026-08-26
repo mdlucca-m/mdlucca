@@ -241,9 +241,24 @@ def validate(db: Database) -> dict[str, Any]:
 # ----------------------------------------------------------------------
 # Publicacao
 # ----------------------------------------------------------------------
+def _e_massa_de_teste(db: Database) -> bool:
+    """A carga veio do gerador de massa? A linhagem do lakehouse sabe."""
+    try:
+        return bool(db.scalar(
+            "SELECT 1 FROM lake_manifest WHERE source_path LIKE 'lape.demo.build%' LIMIT 1"))
+    except Exception:          # banco sem a camada analitica ainda
+        return False
+
+
+
 def publish(db: Database, output: Path = config.REPORT_PATH,
             window: int = config.WINDOW_YEARS, json_output: Path | None = None) -> dict[str, Any]:
     payload = metrics.build_payload(db, window=window)
+    # O painel de massa de teste tem de dizer que e massa de teste, mesmo quando
+    # republicado por aqui e nao pelo gerador. Sem isto, uma republicacao troca
+    # um painel avisado por um que parece dado do laboratorio.
+    if _e_massa_de_teste(db) and "MASSA DE TESTE" not in payload["overview"]["lab_name"]:
+        payload["overview"]["lab_name"] += " — MASSA DE TESTE"
     html = report.render(payload, output)
     data_path = json_output or output.with_suffix(".json")
     report.export_json(payload, data_path)

@@ -23,6 +23,9 @@ data/lake/
 ~$*.xlsx
 .~lock.*
 
+# Pasta de execucao dos scripts de publicacao (binarios e pids)
+.lape-run/
+
 # Python
 __pycache__/
 *.py[cod]
