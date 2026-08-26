@@ -130,6 +130,9 @@ def route_index(ctx: "Context") -> Any:
             "GET  /api/history               ?metrica=publicados",
             "GET  /api/lake/lineage          (coordenação) de onde veio cada carga",
             "GET  /api/stream                 eventos em tempo real (SSE)",
+            "POST /api/invites                (coordenação) gera link de convite",
+            "GET  /api/convite/<token>        estado do convite (público)",
+            "POST /api/convite/<token>/aceitar  a pessoa cria o próprio acesso",
             "GET  /api/automation             (coordenação) webhooks e entregas",
             "POST /api/webhooks               (coordenação) cadastra destino n8n",
             "POST /api/hooks/n8n              porta de entrada do n8n (HMAC ou token)",
@@ -159,6 +162,62 @@ def route_login(ctx: "Context") -> Any:
                          ip=ctx.handler._client_ip())
     ctx.set_cookie = session["token"]
     return {"ok": True, "user": session["user"], "expires_at": session["expires_at"]}
+
+
+def route_invite_create(ctx: "Context") -> Any:
+    """Gera o link de convite que a coordenação envia ao laboratório."""
+    user = auth.require(ctx.user, "coordenacao")
+    body = ctx.body or {}
+    convite = auth.create_invite(
+        ctx.db, created_by=user["id"],
+        label=body.get("nome") or body.get("label"),
+        role=body.get("perfil") or body.get("role") or "integrante",
+        max_uses=int(body.get("usos") or body.get("max_uses") or 30),
+        days=int(body.get("dias") or body.get("days") or auth.INVITE_DAYS))
+    convite["link"] = ctx.handler._base_url() + "/convite/" + convite["token"]
+    return convite
+
+
+def route_invite_list(ctx: "Context") -> Any:
+    auth.require(ctx.user, "coordenacao")
+    base = ctx.handler._base_url()
+    convites = auth.list_invites(ctx.db)
+    for convite in convites:
+        convite["link"] = base + "/convite/" + convite["token"]
+        convite["state"] = auth.invite_state(ctx.db, convite["token"])
+    return convites
+
+
+def route_invite_revoke(ctx: "Context", invite_id: str) -> Any:
+    user = auth.require(ctx.user, "coordenacao")
+    return auth.revoke_invite(ctx.db, int(invite_id), user["id"])
+
+
+def route_invite_state(ctx: "Context", token: str) -> Any:
+    """Pública de propósito: a página do convite precisa saber se ele serve."""
+    return auth.invite_state(ctx.db, token)
+
+
+def route_invite_accept(ctx: "Context", token: str) -> Any:
+    """Pública: é aqui que a pessoa convidada cria o próprio acesso."""
+    body = ctx.body or {}
+    ip = ctx.handler._client_ip()
+    # o mesmo travamento do login vale aqui, senão o convite vira porta para
+    # criar contas em massa
+    auth.check_lock(ctx.db, f"convite:{token}"[:80], ip)
+    try:
+        sessao = auth.accept_invite(
+            ctx.db, token,
+            full_name=body.get("nome") or body.get("full_name") or "",
+            login_value=body.get("email") or body.get("login") or "",
+            password=body.get("senha") or body.get("password") or "",
+            ip=ip)
+    except auth.AuthError:
+        auth.log(ctx.db, None, f"convite:{token}"[:80], "login_negado", "invites",
+                 None, "convite recusado", ip)
+        raise
+    ctx.set_cookie = sessao["token"]
+    return {"ok": True, "user": sessao["user"]}
 
 
 def route_logout(ctx: "Context") -> Any:
@@ -615,6 +674,11 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/query/?$", route_query, "leitura"),
     ("GET", r"^/api/history/?$", route_history, "leitura"),
     ("GET", r"^/api/lake/lineage/?$", route_lineage, "coordenacao"),
+    ("POST", r"^/api/invites/?$", route_invite_create, "coordenacao"),
+    ("GET", r"^/api/invites/?$", route_invite_list, "coordenacao"),
+    ("POST", r"^/api/invites/(?P<invite_id>\d+)/revogar/?$", route_invite_revoke, "coordenacao"),
+    ("GET", r"^/api/convite/(?P<token>[A-Za-z0-9_-]{16,64})/?$", route_invite_state, None),
+    ("POST", r"^/api/convite/(?P<token>[A-Za-z0-9_-]{16,64})/aceitar/?$", route_invite_accept, None),
     ("GET", r"^/api/automation/?$", route_automation, "coordenacao"),
     ("POST", r"^/api/webhooks/?$", route_webhook_create, "coordenacao"),
     ("POST", r"^/api/webhooks/(?P<hook_id>\d+)/remover/?$", route_webhook_delete, "coordenacao"),
@@ -711,6 +775,21 @@ class Handler(BaseHTTPRequestHandler):
         return ("Set-Cookie",
                 f"{COOKIE_NAME}={token}; Max-Age={auth.SESSION_DAYS * 86400}; {flags}")
 
+    def _base_url(self) -> str:
+        """Endereço por onde o visitante chegou — é o que vai no link do convite.
+
+        Atrás do túnel ou do Caddy, o endereço público está no Host que o
+        proxy repassa; o nosso é sempre 127.0.0.1 e não serviria para ninguém.
+        """
+        host = self.headers.get("X-Forwarded-Host") or self.headers.get("Host") or ""
+        host = host.split(",")[0].strip()
+        if not host:
+            return f"http://127.0.0.1:{self.server.server_address[1]}"
+        esquema = self.headers.get("X-Forwarded-Proto", "").split(",")[0].strip()
+        if not esquema:
+            esquema = "https" if BEHIND_HTTPS else "http"
+        return f"{esquema}://{host}"
+
     def _client_ip(self) -> str:
         """Endereço de quem chamou, respeitando o proxy só quando ele existe."""
         if TRUST_PROXY:
@@ -766,6 +845,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._serve_page("login.html")
         if method == "GET" and path in ("/app", "/area", "/cadastro"):
             return self._serve_page("app.html")
+        if method == "GET" and path.startswith("/convite"):
+            return self._serve_page("convite.html")
         if method == "GET" and path == "/api/stream":
             return self._serve_stream()
         if method == "GET" and path == "/favicon.ico":

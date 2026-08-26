@@ -104,6 +104,24 @@ def conferir(db: Database, ambiente: dict[str, str] | None = None) -> list[dict[
             "risco", "LAPE_API_TOKEN curto demais",
             "Ele vale como senha de serviço. Use pelo menos 32 caracteres aleatórios."))
 
+    # ------------------------------------------------------------ convites
+    try:
+        abertos = db.dicts(
+            "SELECT label, max_uses - uses AS vagas, expires_at FROM invites"
+            " WHERE revoked = 0 AND uses < max_uses"
+            " AND (expires_at IS NULL OR expires_at > datetime('now'))")
+    except Exception:
+        abertos = []
+    if abertos:
+        vagas = sum(int(c["vagas"] or 0) for c in abertos)
+        sem_prazo = [c for c in abertos if not c["expires_at"]]
+        achados.append(_item(
+            "risco" if sem_prazo else "aviso",
+            f"{len(abertos)} convite(s) em aberto, {vagas} vaga(s) de cadastro",
+            "Quem tiver o link cria acesso sozinho. Cancele os que ja circularam "
+            "em Area do integrante -> Administracao."
+            + (" Ha convite sem prazo de validade." if sem_prazo else "")))
+
     # --------------------------------------------------------------- dados
     caminho = str(db.path)
     if caminho.startswith("/app/") or caminho.startswith("/tmp/"):

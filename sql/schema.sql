@@ -267,6 +267,36 @@ CREATE TABLE IF NOT EXISTS discoveries (
   UNIQUE (source, title_key)
 );
 
+/* ---------- Convites: a pessoa se cadastra sozinha ----------
+
+   A coordenacao gera um link e o envia ao grupo do laboratorio. Quem abre
+   escolhe a propria senha e entra ja com o cadastro criado -- ninguem
+   precisa transmitir senha por mensagem, e a coordenacao nao cria conta a
+   conta. O link tem prazo e numero maximo de usos. */
+
+CREATE TABLE IF NOT EXISTS invites (
+  id          INTEGER PRIMARY KEY,
+  token       TEXT NOT NULL UNIQUE,
+  label       TEXT,
+  user_role   TEXT NOT NULL DEFAULT 'integrante',
+  max_uses    INTEGER NOT NULL DEFAULT 1,
+  uses        INTEGER NOT NULL DEFAULT 0,
+  expires_at  TEXT,
+  revoked     INTEGER NOT NULL DEFAULT 0,
+  created_by  INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS invite_uses (
+  id         INTEGER PRIMARY KEY,
+  invite_id  INTEGER NOT NULL REFERENCES invites(id) ON DELETE CASCADE,
+  member_id  INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  at         TEXT NOT NULL DEFAULT (datetime('now')),
+  ip         TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_invite_uses ON invite_uses(invite_id, at);
+
 /* ---------- Automacao: eventos e integracoes ---------- */
 
 /* Fila de eventos do sistema. E dela que sai o streaming em tempo real do

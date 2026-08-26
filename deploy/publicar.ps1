@@ -21,11 +21,17 @@
 
 .EXAMPLE
   .\deploy\publicar.ps1 -Parar
+
+.EXAMPLE
+  # sobe sozinho toda vez que voce entrar no Windows
+  .\deploy\publicar.ps1 -AoLigar
 #>
 param(
   [int]$Porta = 8000,
   [switch]$Permanente,
-  [switch]$Parar
+  [switch]$Parar,
+  [switch]$AoLigar,
+  [switch]$NaoAoLigar
 )
 
 $ErrorActionPreference = "Stop"
@@ -50,6 +56,32 @@ function Parar-Tudo {
   }
 }
 
+# ------------------------------------------------- subir junto com o Windows
+$NomeTarefa = "LAPE - publicar"
+
+function Agendar {
+  # Tarefa do usuario, nao do sistema: nao pede administrador, e sobe quando
+  # a pessoa faz login -- que e quando o computador do laboratorio comeca a
+  # servir de qualquer jeito.
+  $acao = New-ScheduledTaskAction -Execute "powershell.exe" `
+    -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$($MyInvocation.MyCommand.Path)`" -Porta $Porta" `
+    -WorkingDirectory $Raiz
+  $gatilho = New-ScheduledTaskTrigger -AtLogOn
+  $config  = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries `
+    -DontStopIfGoingOnBatteries -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 2)
+  Register-ScheduledTask -TaskName $NomeTarefa -Action $acao -Trigger $gatilho `
+    -Settings $config -Force | Out-Null
+  Verde "Pronto: o LAPE vai subir sozinho toda vez que voce entrar no Windows."
+  Aviso "O endereco do tunel gratuito muda a cada subida. Para um endereco fixo,"
+  Aviso "que sobreviva a reinicios, use -Permanente."
+}
+
+if ($AoLigar)    { Agendar; exit 0 }
+if ($NaoAoLigar) {
+  Unregister-ScheduledTask -TaskName $NomeTarefa -Confirm:$false -ErrorAction SilentlyContinue
+  Verde "O LAPE nao sobe mais sozinho."
+  exit 0
+}
 if ($Parar) { Parar-Tudo; exit 0 }
 New-Item -ItemType Directory -Force -Path $Exec | Out-Null
 
@@ -205,6 +237,9 @@ Aviso "Fechou ou desligou o computador, o endereco cai - e volta OUTRO na"
 Aviso "proxima vez. Para endereco fixo: .\deploy\publicar.ps1 -Permanente"
 Write-Host ""
 Write-Host "Para encerrar: feche esta janela, ou rode .\deploy\publicar.ps1 -Parar"
+if (-not (Get-ScheduledTask -TaskName $NomeTarefa -ErrorAction SilentlyContinue)) {
+  Write-Host "Para subir sozinho toda vez: .\deploy\publicar.ps1 -AoLigar"
+}
 Write-Host ""
 
 try {

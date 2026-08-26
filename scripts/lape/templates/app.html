@@ -597,6 +597,13 @@ VIEWS.admin = {
     ]);
     VIEW.appendChild(agentBox);
 
+    /* O convite é o que faz o laboratório entrar sozinho: um link para o
+       grupo, cada pessoa escolhe a própria senha, ninguém transmite senha
+       por mensagem e a coordenação não cria conta a conta. */
+    const conviteBox = h("div", {class: "card sec"});
+    VIEW.appendChild(conviteBox);
+    await desenharConvites(conviteBox);
+
     const found = await api("/api/discoveries?limit=100").catch(function (){ return {items: []}; });
     VIEW.appendChild(h("div", {class: "sec"}, [
       h("h3", {text: "Achados do rastreador (" + found.items.length + ")"}),
@@ -675,6 +682,99 @@ async function reviewDiscovery(button, id, action){
     toast(e.message, "erro");
     button.disabled = false;
   }
+}
+
+/* ---------- convites ---------- */
+async function desenharConvites(caixa){
+  caixa.innerHTML = "";
+  caixa.appendChild(h("h3", {text: "Convidar o laboratório"}));
+  caixa.appendChild(h("p", {class: "hint", style: "margin:4px 0 12px",
+    text: "Gere um link e mande no grupo. Quem abrir escolhe a própria senha e "
+        + "já cai no cadastro. Você não precisa criar conta por conta, nem passar senha a ninguém."}));
+
+  const nome = h("input", {class: "searchbar", placeholder: "Equipe LAPE 2026", value: "Equipe LAPE"});
+  const usos = h("input", {type: "number", min: "1", max: "200", value: "30", style: "max-width:110px"});
+  const dias = h("input", {type: "number", min: "1", max: "90", value: "14", style: "max-width:110px"});
+  const saida = h("div", {style: "margin-top:14px"});
+  const gerar = h("button", {class: "primary", text: "Gerar link", onclick: async function (){
+    gerar.disabled = true;
+    try {
+      const criado = await api("/api/invites", "POST", {
+        nome: nome.value, usos: Number(usos.value) || 30, dias: Number(dias.value) || 14});
+      mostrarLink(saida, criado.link, criado);
+      const lista = caixa.querySelector("[data-lista]");
+      if (lista) await preencherLista(lista);
+    } catch (e){ toast(e.message, "erro"); }
+    finally { gerar.disabled = false; }
+  }});
+
+  caixa.appendChild(h("div", {class: "actions", style: "align-items:flex-end"}, [
+    h("div", {}, [h("label", {text: "Nome do convite"}), nome]),
+    h("div", {}, [h("label", {text: "Quantas pessoas"}), usos]),
+    h("div", {}, [h("label", {text: "Vence em (dias)"}), dias]),
+    gerar,
+  ]));
+  caixa.appendChild(saida);
+
+  const lista = h("div", {"data-lista": "1", style: "margin-top:18px"});
+  caixa.appendChild(lista);
+  await preencherLista(lista);
+}
+
+function mostrarLink(destino, link, criado){
+  destino.innerHTML = "";
+  const campo = h("input", {value: link, readonly: "readonly",
+    style: "width:100%;font-family:var(--mono);font-size:12.5px",
+    onclick: function (ev){ ev.target.select(); }});
+  const copiar = h("button", {class: "primary", text: "Copiar link", onclick: async function (){
+    try { await navigator.clipboard.writeText(link); copiar.textContent = "Copiado!"; }
+    catch (e){ campo.select(); copiar.textContent = "Selecionado — use Ctrl+C"; }
+    setTimeout(function (){ copiar.textContent = "Copiar link"; }, 2500);
+  }});
+  destino.appendChild(h("div", {class: "card", style: "background:var(--surface-raised)"}, [
+    h("div", {class: "hint", style: "margin-bottom:8px",
+      text: "Mande isto para as pessoas do laboratório:"}),
+    campo,
+    h("div", {class: "actions", style: "margin-top:10px"}, [copiar]),
+    h("div", {class: "hint", style: "margin-top:8px",
+      text: "Vale para " + criado.max_uses + " pessoa(s) e vence em "
+          + dt(criado.expires_at) + "."}),
+  ]));
+}
+
+async function preencherLista(destino){
+  destino.innerHTML = "";
+  const convites = await api("/api/invites").catch(function (){ return []; });
+  if (!convites.length){
+    destino.appendChild(h("div", {class: "empty", text: "Nenhum convite gerado ainda."}));
+    return;
+  }
+  destino.appendChild(h("h3", {text: "Convites", style: "font-size:13.5px;margin-bottom:8px"}));
+  destino.appendChild(table(
+    ["Nome", "Situação", "Usos", "Vence", ""],
+    convites.map(function (c){
+      const valido = c.state && c.state.valid;
+      return [
+        c.label || "—",
+        h("span", {class: "badge " + (valido ? "s-publicado" : "s-rejeitado"),
+                   text: valido ? "ativo" : (c.revoked ? "cancelado"
+                        : ((c.state && c.state.reason) || "encerrado"))}),
+        c.uses + " de " + c.max_uses,
+        dt(c.expires_at),
+        h("div", {class: "actions"}, [
+          valido ? h("button", {text: "Ver link", onclick: function (ev){
+            mostrarLink(ev.target.closest("[data-lista]").parentNode.querySelector("div"),
+                        c.link, c);
+          }}) : null,
+          valido ? h("button", {text: "Cancelar", onclick: async function (){
+            if (!confirm("Cancelar este convite? Quem ainda não usou não conseguirá se cadastrar."))
+              return;
+            await api("/api/invites/" + c.id + "/revogar", "POST", {});
+            await preencherLista(destino);
+          }}) : null,
+        ]),
+      ];
+    })));
 }
 
 /* os mesmos ícones do painel: quem cadastra aqui reconhece a aba lá */

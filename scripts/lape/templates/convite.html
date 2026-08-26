@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadastro — LAPE</title>
+<style>__BASE_CSS__
+body{min-height:100vh;display:grid;place-items:center;padding:24px}
+.caixa{width:min(440px,100%)}
+.marca{text-align:center;margin-bottom:22px}
+.marca .logo{width:52px;height:52px;border-radius:15px;background:var(--accent);
+  color:var(--on-accent);display:grid;place-items:center;font-weight:800;font-size:18px;
+  margin:0 auto 12px}
+.marca h1{font-size:21px;letter-spacing:-.02em}
+.marca p{color:var(--ink-2);font-size:13.5px;margin:5px 0 0}
+.campo{margin-bottom:13px}
+.campo label{display:block;font-size:12.5px;font-weight:650;margin-bottom:5px}
+.campo input{width:100%}
+.campo .dica{font-size:11.5px;color:var(--ink-muted);margin-top:4px}
+button[type=submit]{width:100%;margin-top:6px}
+.recado{font-size:13px;padding:11px 13px;border-radius:var(--radius-sm);margin-bottom:16px;
+  border:1px solid var(--border)}
+.recado.erro{color:var(--critical);
+  border-color:color-mix(in srgb,var(--critical) 40%,transparent);
+  background:color-mix(in srgb,var(--critical) 10%,transparent)}
+.recado.bom{color:var(--good);
+  border-color:color-mix(in srgb,var(--good) 40%,transparent);
+  background:color-mix(in srgb,var(--good) 10%,transparent)}
+.rodape{text-align:center;font-size:12.5px;color:var(--ink-muted);margin-top:16px}
+.forca{height:4px;border-radius:999px;background:var(--grid);margin-top:6px;overflow:hidden}
+.forca i{display:block;height:100%;width:0;background:var(--critical);transition:width .18s,background .18s}
+</style>
+</head>
+<body>
+<div class="caixa">
+  <div class="marca">
+    <div class="logo">LP</div>
+    <h1>LAPE</h1>
+    <p>Laboratório de Psicologia do Esporte e do Exercício</p>
+  </div>
+  <div class="card" id="caixa">
+    <div class="empty" id="carregando">Conferindo o convite…</div>
+  </div>
+  <div class="rodape">Já tem acesso? <a href="/entrar">Entrar</a></div>
+</div>
+
+<script>
+"use strict";
+
+const CAIXA = document.getElementById("caixa");
+const TOKEN = (location.pathname.split("/convite/")[1] || "").replace(/\/+$/, "");
+
+function h(tag, attrs, kids){
+  const node = document.createElement(tag);
+  for (const k in (attrs || {})){
+    const v = attrs[k];
+    if (v === null || v === undefined || v === false) continue;
+    if (k === "class") node.className = v;
+    else if (k === "text") node.textContent = v;
+    else if (k === "html") node.innerHTML = v;
+    else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
+    else node.setAttribute(k, v);
+  }
+  (Array.isArray(kids) ? kids : (kids ? [kids] : [])).forEach(function (kid){
+    /* typeof null === "object": sem esta guarda, um filho opcional ausente
+       vira appendChild(null) e derruba a página inteira */
+    if (kid === null || kid === undefined || kid === false) return;
+    node.appendChild(typeof kid === "object" ? kid : document.createTextNode(String(kid)));
+  });
+  return node;
+}
+
+function recado(texto, tipo){
+  return h("div", {class: "recado " + (tipo || ""), text: texto});
+}
+
+function campo(id, rotulo, tipo, dica, extras){
+  const entrada = h("input", Object.assign({id: id, type: tipo, required: "required"}, extras || {}));
+  return {node: h("div", {class: "campo"}, [
+    h("label", {for: id, text: rotulo}), entrada,
+    dica ? h("div", {class: "dica", text: dica}) : null,
+  ]), entrada: entrada};
+}
+
+/* Um convite invalido nao mostra formulario: preencher para ouvir "nao vale"
+   no fim seria perder o tempo de quem foi convidado. */
+function recusar(motivo){
+  CAIXA.innerHTML = "";
+  CAIXA.appendChild(recado(motivo, "erro"));
+  CAIXA.appendChild(h("p", {class: "hint",
+    text: "Peça um link novo a quem coordena o laboratório."}));
+}
+
+function formulario(estado){
+  CAIXA.innerHTML = "";
+  CAIXA.appendChild(h("h3", {text: "Criar meu acesso"}));
+  CAIXA.appendChild(h("div", {class: "hint", style: "margin-bottom:16px",
+    text: (estado.label ? estado.label + " · " : "")
+      + "Escolha a sua senha: ninguém mais vai saber qual é."}));
+
+  const nome  = campo("nome", "Nome completo", "text", "Como aparece nas suas publicações.",
+                      {autocomplete: "name"});
+  const email = campo("email", "E-mail", "email", "Será o seu login.",
+                      {autocomplete: "email"});
+  const senha = campo("senha", "Senha", "password", "Pelo menos 8 caracteres.",
+                      {autocomplete: "new-password", minlength: "8"});
+  const medidor = h("i");
+  senha.node.appendChild(h("div", {class: "forca"}, medidor));
+  const repetir = campo("repetir", "Repita a senha", "password", null,
+                        {autocomplete: "new-password"});
+
+  senha.entrada.addEventListener("input", function (){
+    const v = senha.entrada.value;
+    const pontos = Math.min(4, (v.length >= 8) + (v.length >= 12)
+      + (/[^a-zA-Z0-9]/.test(v) ? 1 : 0) + (new Set(v).size >= 8 ? 1 : 0));
+    medidor.style.width = (pontos * 25) + "%";
+    medidor.style.background = pontos >= 3
+      ? "var(--good)" : (pontos >= 2 ? "var(--warning)" : "var(--critical)");
+  });
+
+  const aviso = h("div", {style: "display:none"});
+  const enviar = h("button", {type: "submit", class: "primary", text: "Criar acesso e entrar"});
+  const form = h("form", {onsubmit: async function (ev){
+    ev.preventDefault();
+    aviso.style.display = "none";
+    if (senha.entrada.value !== repetir.entrada.value){
+      aviso.innerHTML = "";
+      aviso.appendChild(recado("As duas senhas não são iguais.", "erro"));
+      aviso.style.display = "";
+      return;
+    }
+    enviar.disabled = true;
+    enviar.textContent = "Criando…";
+    try {
+      const resposta = await fetch("/api/convite/" + encodeURIComponent(TOKEN) + "/aceitar", {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({nome: nome.entrada.value, email: email.entrada.value,
+                              senha: senha.entrada.value}),
+      });
+      const dados = await resposta.json().catch(function (){ return {}; });
+      if (!resposta.ok) throw new Error(dados.error || ("erro " + resposta.status));
+      CAIXA.innerHTML = "";
+      CAIXA.appendChild(recado("Pronto! Seu acesso foi criado.", "bom"));
+      CAIXA.appendChild(h("p", {class: "hint",
+        text: "Levando você para o seu cadastro…"}));
+      setTimeout(function (){ location.href = "/app"; }, 900);
+    } catch (erro){
+      aviso.innerHTML = "";
+      aviso.appendChild(recado(erro.message, "erro"));
+      aviso.style.display = "";
+      enviar.disabled = false;
+      enviar.textContent = "Criar acesso e entrar";
+    }
+  }}, [aviso, nome.node, email.node, senha.node, repetir.node, enviar]);
+  CAIXA.appendChild(form);
+  nome.entrada.focus();
+}
+
+(async function (){
+  if (!TOKEN) return recusar("Link de convite incompleto.");
+  try {
+    const resposta = await fetch("/api/convite/" + encodeURIComponent(TOKEN));
+    const estado = await resposta.json();
+    if (!estado.valid) return recusar(estado.reason || "Este convite não vale mais.");
+    formulario(estado);
+  } catch (erro){
+    recusar("Não foi possível conferir o convite agora. Tente de novo em instantes.");
+  }
+})();
+</script>
+</body>
+</html>

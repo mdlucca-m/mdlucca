@@ -132,6 +132,25 @@ arquivo**: o banco SQLite. Isso permite três caminhos sem nenhuma mensalidade.
 > versão. Por isso os caminhos abaixo não dependem de plano gratuito de
 > fornecedor nenhum.
 
+### Como o laboratório entra: um link, e cada um se cadastra
+
+Você **não** cria conta por conta, nem manda senha para ninguém.
+
+1. Entre em **Área do integrante → Administração → Convidar o laboratório**.
+2. Escolha um nome (“Equipe LAPE 2026”), para quantas pessoas e por quantos
+   dias vale. O padrão é 30 pessoas e 14 dias.
+3. Clique em **Gerar link** e mande no grupo do laboratório.
+
+Quem abre o link vê uma página de cadastro, **escolhe a própria senha** e cai
+direto no formulário do perfil. A partir daí a pessoa cadastra seus artigos,
+submissões e projetos, e tudo aparece no seu painel.
+
+Três coisas de propósito: a senha nasce no navegador de quem se cadastra — a
+coordenação nunca a conhece; o link **vence** e tem **limite de pessoas**, para
+não virar porta aberta meses depois quando ninguém mais lembra dele; e ele pode
+ser **cancelado** a qualquer momento, sem afetar quem já entrou. Convite nunca
+cria administrador: esse perfil você eleva depois, com a pessoa já identificada.
+
 ### Caminho 0 — um comando, sem conta e sem Docker (o mais rápido)
 
 Para já mandar o link a alguém hoje. O serviço continua escutando só em
@@ -159,6 +178,12 @@ segurança e imprime o endereço:
   No ar. Envie este endereço às pessoas:
 
     https://algum-nome-sorteado.trycloudflare.com/entrar
+```
+
+Para o serviço subir sozinho toda vez que você entrar no Windows:
+
+```powershell
+.\deploy\publicar.ps1 -AoLigar     # e -NaoAoLigar desfaz
 ```
 
 **A ressalva que importa:** esse endereço vale enquanto a janela estiver aberta
@@ -432,6 +457,10 @@ sobrescrito por fonte externa. Os agentes só preenchem campos vazios.
 | `/api/discoveries/<id>/review` | POST | coordenação | `{"action": "aceitar"}` ou `"ignorar"` |
 | `/api/agents/tracker` | POST | coordenação | Dispara o rastreador |
 | `/api/agents/curator` | POST | coordenação | Dispara o ciclo completo |
+| `/api/invites` | GET/POST | coordenação | Lista e gera links de convite |
+| `/api/invites/<id>/revogar` | POST | coordenação | Cancela um convite |
+| `/api/convite/<token>` | GET | — | O convite ainda vale? (público) |
+| `/api/convite/<token>/aceitar` | POST | — | A pessoa cria o próprio acesso (público) |
 | `/api/audit` | GET | coordenação | Registro de atividade |
 | `/api/stream` | GET | leitura | Eventos em tempo real (SSE) — é o que redesenha o painel |
 | `/api/automation` | GET | coordenação | Webhooks, entregas e histórico de eventos |
@@ -743,6 +772,7 @@ scripts/
       charts.js             biblioteca de gráficos (sem dependências)
       dashboard.html/.js    painel
       login.html, app.html  acesso e área do integrante
+      convite.html          onde a pessoa convidada cria o próprio acesso
 data/raw/                   planilhas e XML do Lattes (entrada)
 data/geo/                   GeoJSON opcional para o mapa
 data/lake/                  bronze e ouro (fora do git; em produção, no volume)
@@ -761,7 +791,7 @@ Dockerfile
 docker-compose.yml          desenvolvimento
 docker-compose.prod.yml     produção: aplicação + Caddy (+ túnel opcional)
 .env.example                modelo de configuração
-tests/                      173 testes, sem acesso à rede
+tests/                      191 testes, sem acesso à rede
 ```
 
 O `scripts/migrate.R` continua funcionando: aplica o mesmo `sql/schema.sql`,

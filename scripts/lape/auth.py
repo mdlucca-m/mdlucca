@@ -149,6 +149,110 @@ def change_password(db: Database, member_id: int, current: str, new: str) -> dic
 
 
 # ----------------------------------------------------------------------
+# Convites: a pessoa se cadastra sozinha
+# ----------------------------------------------------------------------
+INVITE_DAYS = int(os.environ.get("LAPE_INVITE_DAYS", "14"))
+
+
+def create_invite(db: Database, created_by: int | None = None, label: str | None = None,
+                  role: str = "integrante", max_uses: int = 30,
+                  days: int = INVITE_DAYS) -> dict[str, Any]:
+    """Gera um link de convite.
+
+    O padrao e um link de equipe: vale para varias pessoas e vence em duas
+    semanas. Um link sem prazo que circula em grupo de mensagens vira porta
+    aberta meses depois, quando ninguem mais lembra dele.
+    """
+    if role not in ROLES:
+        raise AuthError(f"perfil invalido: {role}. Use {', '.join(ROLES)}", 400)
+    if role == "admin":
+        raise AuthError("convite nao cria administrador: eleve o perfil depois, "
+                        "com a pessoa ja identificada", 400)
+    max_uses = max(1, min(int(max_uses), 200))
+    days = max(1, min(int(days), 90))
+    token = secrets.token_urlsafe(24)
+    expires = (datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
+    db.execute(
+        "INSERT INTO invites (token, label, user_role, max_uses, expires_at, created_by)"
+        " VALUES (?, ?, ?, ?, ?, ?)",
+        (token, clean_text(label), role, max_uses, expires, created_by))
+    db.conn.commit()
+    log(db, created_by, None, "convite_criado", "invites", None,
+        f"perfil={role} usos={max_uses} vence={expires}")
+    return {"token": token, "user_role": role, "max_uses": max_uses,
+            "expires_at": expires, "label": clean_text(label)}
+
+
+def invite_state(db: Database, token: str) -> dict[str, Any]:
+    """Diz se o convite serve, e por que nao serve quando for o caso."""
+    rows = db.dicts("SELECT * FROM invites WHERE token = ?", (token or "",))
+    if not rows:
+        return {"valid": False, "reason": "Este convite nao existe."}
+    convite = rows[0]
+    if convite["revoked"]:
+        return {"valid": False, "reason": "Este convite foi cancelado pela coordenacao."}
+    if convite["uses"] >= convite["max_uses"]:
+        return {"valid": False, "reason": "Este convite ja atingiu o limite de cadastros."}
+    if convite["expires_at"] and convite["expires_at"] < datetime.now().strftime("%Y-%m-%d %H:%M:%S"):
+        return {"valid": False, "reason": "Este convite venceu. Peca um novo a coordenacao."}
+    return {"valid": True, "label": convite["label"], "user_role": convite["user_role"],
+            "expires_at": convite["expires_at"],
+            "remaining": convite["max_uses"] - convite["uses"]}
+
+
+def accept_invite(db: Database, token: str, full_name: str, login_value: str,
+                  password: str, ip: str = "") -> dict[str, Any]:
+    """Cria o acesso a partir do convite e ja devolve a sessao aberta.
+
+    A senha e escolhida pela propria pessoa: assim ela nunca trafega por
+    mensagem, e a coordenacao nunca a conhece.
+    """
+    estado = invite_state(db, token)
+    if not estado["valid"]:
+        raise AuthError(estado["reason"], 410)
+    if not clean_text(full_name):
+        raise AuthError("informe seu nome completo", 400)
+    motivo = senha_fraca(password)
+    if motivo:
+        raise AuthError(f"escolha outra senha: ela {motivo}", 400)
+    login_value = normalize_login(login_value)
+    if db.dicts("SELECT id FROM members WHERE login = ?", (login_value,)):
+        raise AuthError("ja existe acesso com este e-mail. Use 'entrar' ou peca "
+                        "a redefinicao da senha a coordenacao.", 409)
+
+    convite = db.dicts("SELECT * FROM invites WHERE token = ?", (token,))[0]
+    conta = create_account(db, clean_text(full_name), login_value, password,
+                           role=convite["user_role"])
+    # o mesmo UPDATE confere o limite de novo: duas pessoas clicando ao mesmo
+    # tempo no ultimo uso nao podem passar as duas
+    db.execute("UPDATE invites SET uses = uses + 1 WHERE id = ? AND uses < max_uses",
+               (convite["id"],))
+    db.execute("INSERT INTO invite_uses (invite_id, member_id, ip) VALUES (?, ?, ?)",
+               (convite["id"], conta["member_id"], (ip or None) and ip[:60]))
+    db.conn.commit()
+    log(db, conta["member_id"], login_value, "cadastro_por_convite", "invites",
+        convite["id"], None, ip)
+    sessao = login(db, login_value, password, ip=ip)
+    sessao["created"] = conta
+    return sessao
+
+
+def list_invites(db: Database, limit: int = 40) -> list[dict]:
+    return db.dicts(
+        "SELECT i.id, i.token, i.label, i.user_role, i.max_uses, i.uses, i.expires_at,"
+        "       i.revoked, i.created_at, m.full_name AS created_by_name"
+        " FROM invites i LEFT JOIN members m ON m.id = i.created_by"
+        " ORDER BY i.id DESC LIMIT ?", (limit,))
+
+
+def revoke_invite(db: Database, invite_id: int, actor: int | None = None) -> dict[str, Any]:
+    db.execute("UPDATE invites SET revoked = 1 WHERE id = ?", (invite_id,))
+    db.conn.commit()
+    log(db, actor, None, "convite_cancelado", "invites", invite_id)
+    return {"revoked": invite_id}
+
+
+# ----------------------------------------------------------------------
 # Sessoes
 # ----------------------------------------------------------------------
 def recent_failures(db: Database, login_value: str | None = None,
