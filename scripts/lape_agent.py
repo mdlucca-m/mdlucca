@@ -3,7 +3,8 @@
 
     python3 scripts/lape_agent.py rastreador          # busca nas bases externas
     python3 scripts/lape_agent.py curador             # ciclo completo + painel
-    python3 scripts/lape_agent.py api --port 8000     # sobe a API REST
+    python3 scripts/lape_agent.py api --port 8000     # sobe o site + API
+    python3 scripts/lape_agent.py usuarios --criar "Nome" email@udesc.br --perfil admin
     python3 scripts/lape_agent.py revisar --list      # descobertas pendentes
     python3 scripts/lape_agent.py status              # resumo do banco
 
@@ -18,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -92,6 +94,55 @@ def cmd_revisar(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_usuarios(args: argparse.Namespace) -> int:
+    from lape import auth
+
+    db = Database(args.db)
+    db.migrate()
+    try:
+        if args.criar:
+            nome, login_value = args.criar
+            conta = auth.create_account(db, nome, login_value, args.senha, role=args.perfil)
+            print(f"Acesso criado: {conta['login']}  (perfil {conta['perfil'] if 'perfil' in conta else args.perfil})")
+            if "senha_inicial" in conta:
+                print(f"Senha inicial: {conta['senha_inicial']}")
+                print("Peca ao integrante para troca-la no primeiro acesso.")
+        elif args.redefinir:
+            member_id, senha = args.redefinir[0], (args.redefinir[1] if len(args.redefinir) > 1 else None)
+            row = db.dicts("SELECT id, full_name, login FROM members WHERE id = ?", (int(member_id),))
+            if not row:
+                print(f"Integrante {member_id} nao encontrado.")
+                return 1
+            senha = senha or auth.generate_password()
+            auth.set_credentials(db, int(member_id), row[0]["login"] or args.login or "",
+                                 senha, args.perfil, must_change=True)
+            print(f"Senha de {row[0]['full_name']} redefinida para: {senha}")
+        elif args.perfil_de:
+            member_id, perfil = args.perfil_de
+            db.execute("UPDATE members SET user_role = ? WHERE id = ?", (perfil, int(member_id)))
+            db.conn.commit()
+            print(f"Integrante {member_id} agora e '{perfil}'.")
+        else:
+            rows = db.dicts(
+                "SELECT id, full_name, login, user_role, active, last_login_at"
+                " FROM members WHERE login IS NOT NULL ORDER BY user_role, full_name")
+            if not rows:
+                print("Nenhum usuario com acesso. Crie o primeiro administrador:")
+                print("  python3 scripts/lape_agent.py usuarios"
+                      " --criar 'Alexandro Andrade' andrade@udesc.br --perfil admin")
+            for row in rows:
+                marca = " " if row["active"] else "x"
+                print(f"  [{marca}] {row['id']:3d}  {row['user_role']:12s} {row['login']:32s}"
+                      f" {row['full_name']}"
+                      f"{'  ultimo acesso ' + row['last_login_at'] if row['last_login_at'] else ''}")
+    except auth.AuthError as exc:
+        print(f"! {exc.message}")
+        return 1
+    finally:
+        db.close()
+    return 0
+
+
 def cmd_status(args: argparse.Namespace) -> int:
     from lape.agents import curator
 
@@ -107,6 +158,9 @@ def cmd_status(args: argparse.Namespace) -> int:
     print(f"  atividades .... {db.scalar('SELECT COUNT(*) FROM events')}")
     pending = db.scalar("SELECT COUNT(*) FROM discoveries WHERE status = 'pendente'")
     print(f"  descobertas ... {pending} pendentes")
+    print(f"  projetos ...... {db.scalar('SELECT COUNT(*) FROM projects')}")
+    print(f"  usuarios ...... {db.scalar('SELECT COUNT(*) FROM members WHERE login IS NOT NULL')}"
+          " com acesso")
     validation = curator.validate(db)
     print("\nLacunas:")
     for issue in validation["issues"]:
@@ -150,9 +204,13 @@ def build_parser() -> argparse.ArgumentParser:
     curator_parser.add_argument("--json", action="store_true")
     curator_parser.set_defaults(func=cmd_curador)
 
-    api_parser = subparsers.add_parser("api", aliases=["serve"], help="sobe a API REST")
-    api_parser.add_argument("--host", default="127.0.0.1")
-    api_parser.add_argument("--port", type=int, default=8000)
+    api_parser = subparsers.add_parser(
+        "api", aliases=["serve"], help="sobe o site (painel + area do integrante) e a API")
+    api_parser.add_argument("--host", default=os.environ.get("LAPE_HOST", "127.0.0.1"),
+                            help="use 0.0.0.0 em container/servidor")
+    api_parser.add_argument("--port", type=int,
+                            default=int(os.environ.get("PORT")
+                                        or os.environ.get("LAPE_PORT") or 8000))
     api_parser.add_argument("--report", type=Path, default=config.REPORT_PATH)
     api_parser.set_defaults(func=cmd_api)
 
@@ -164,6 +222,20 @@ def build_parser() -> argparse.ArgumentParser:
                                help="aceita as que tiverem 2+ autores ja cadastrados")
     review_parser.add_argument("--limite", type=int, default=50)
     review_parser.set_defaults(func=cmd_revisar)
+
+    users_parser = subparsers.add_parser(
+        "usuarios", aliases=["users"], help="cria e gerencia os acessos dos integrantes")
+    users_parser.add_argument("--criar", nargs=2, metavar=("NOME", "LOGIN"))
+    users_parser.add_argument("--senha", default=None,
+                              help="senha inicial (em branco: o sistema gera uma)")
+    users_parser.add_argument("--perfil", default="integrante",
+                              choices=["admin", "coordenacao", "integrante", "leitura"])
+    users_parser.add_argument("--redefinir", nargs="+", metavar="ID [SENHA]",
+                              help="redefine a senha de um integrante")
+    users_parser.add_argument("--perfil-de", nargs=2, metavar=("ID", "PERFIL"),
+                              dest="perfil_de")
+    users_parser.add_argument("--login", default=None)
+    users_parser.set_defaults(func=cmd_usuarios)
 
     status_parser = subparsers.add_parser("status", help="resumo do banco e das lacunas")
     status_parser.set_defaults(func=cmd_status)

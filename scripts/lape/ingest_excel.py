@@ -11,6 +11,7 @@ from . import config
 from .db import Database
 from .mapping import (
     DECISION_MAP,
+    PROJECT_STATUS_MAP,
     SHEET_IGNORE,
     EVENT_KIND_MAP,
     STATUS_MAP,
@@ -40,6 +41,8 @@ SHEET_ORDER = (
     "institutions",
     "rejection_reasons",
     "members",
+    "projects",
+    "project_members",
     "articles",
     "authors",
     "submissions",
@@ -226,10 +229,25 @@ def ingest_rejection_reasons(db: Database, rows: list[dict]) -> int:
     return written
 
 
+MEMBER_PROFILE_FIELDS = ("short_name", "lattes_id", "orcid", "email", "role", "degree",
+                         "phone", "bio", "photo_url", "openalex_id", "scopus_author_id")
+
+
 def ingest_members(db: Database, rows: list[dict]) -> int:
     written = 0
     for row in rows:
         name = clean_text(row.get("full_name"))
+        existing_id = to_int(row.get("id"))
+        if existing_id and not name:
+            # edicao do proprio cadastro pela area do integrante
+            db.update_row("members", existing_id, {
+                **{field: clean_text(row.get(field)) for field in MEMBER_PROFILE_FIELDS},
+                "research_line_id": db.research_line_id(row.get("research_line")),
+                "institution_id": db.institution_id(row.get("institution")),
+            })
+            db.conn.commit()
+            written += 1
+            continue
         if not name:
             continue
         member_id = db.member_id(
@@ -239,6 +257,12 @@ def ingest_members(db: Database, rows: list[dict]) -> int:
             orcid=clean_text(row.get("orcid")),
             email=clean_text(row.get("email")),
             role=clean_text(row.get("role")),
+            degree=clean_text(row.get("degree")),
+            phone=clean_text(row.get("phone")),
+            bio=clean_text(row.get("bio")),
+            photo_url=clean_text(row.get("photo_url")),
+            openalex_id=clean_text(row.get("openalex_id")),
+            scopus_author_id=clean_text(row.get("scopus_author_id")),
             research_line_id=db.research_line_id(row.get("research_line")),
             institution_id=db.institution_id(row.get("institution")),
             joined_on=parse_date(row.get("joined_on")),
@@ -289,6 +313,71 @@ def _save_milestones(db: Database, article_id: int, values: dict[str, str | None
             },
             conflict=("article_id", "milestone"),
         )
+
+
+def ingest_projects(db: Database, rows: list[dict]) -> int:
+    written = 0
+    for row in rows:
+        name = clean_text(row.get("name"))
+        if not name:
+            continue
+        coordinator = clean_text(row.get("coordinator"))
+        project_id = db.upsert(
+            "projects",
+            {
+                "code": norm_key(row.get("code") or name)[:60],
+                "name": name,
+                "description": clean_text(row.get("description")),
+                "research_line_id": db.research_line_id(row.get("research_line")),
+                "coordinator_id": db.member_id(coordinator, create=True) if coordinator else None,
+                "coordinator_name": coordinator,
+                "kind": clean_text(row.get("kind")),
+                "funder": clean_text(row.get("funder")),
+                "grant_number": clean_text(row.get("grant_number")),
+                "amount": to_float(row.get("amount")),
+                "started_on": parse_date(row.get("started_on")),
+                "ended_on": parse_date(row.get("ended_on")),
+                "status": map_value(row.get("status"), PROJECT_STATUS_MAP, default="em_andamento"),
+                "ethics_approval": clean_text(row.get("ethics_approval")),
+                "url": clean_text(row.get("url")),
+            },
+            conflict=("code",),
+        )
+        team = split_authors(row.get("members"))
+        if coordinator and not any(clean_text(t) == coordinator for t in team):
+            team = [coordinator, *team]
+        for name_in_team in team:
+            member_id = db.member_id(name_in_team, create=True)
+            if member_id:
+                db.execute(
+                    "INSERT OR IGNORE INTO project_members (project_id, member_id, role)"
+                    " VALUES (?, ?, ?)",
+                    (project_id, member_id,
+                     "Coordenacao" if clean_text(name_in_team) == coordinator else None),
+                )
+        written += 1
+    return written
+
+
+def ingest_project_members(db: Database, rows: list[dict]) -> int:
+    written = 0
+    for row in rows:
+        reference = clean_text(row.get("project"))
+        member_id = db.member_id(row.get("member"), create=True)
+        if not reference or not member_id:
+            continue
+        project_id = db.scalar(
+            "SELECT id FROM projects WHERE code = ? OR lower(name) = lower(?)",
+            (norm_key(reference)[:60], reference))
+        if not project_id:
+            continue
+        db.execute(
+            "INSERT OR REPLACE INTO project_members (project_id, member_id, role, joined_on)"
+            " VALUES (?, ?, ?, ?)",
+            (project_id, member_id, clean_text(row.get("role")), parse_date(row.get("joined_on"))),
+        )
+        written += 1
+    return written
 
 
 def _article_status(row: dict, published_on: str | None, accepted_on: str | None,
@@ -632,6 +721,8 @@ def ingest_event_participants(db: Database, rows: list[dict]) -> int:
 
 HANDLERS: dict[str, Callable[[Database, list[dict]], int]] = {
     "research_lines": ingest_research_lines,
+    "projects": ingest_projects,
+    "project_members": ingest_project_members,
     "institutions": ingest_institutions,
     "rejection_reasons": ingest_rejection_reasons,
     "members": ingest_members,

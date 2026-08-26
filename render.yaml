@@ -1,0 +1,40 @@
+# Publicação no Render (render.com) — gera um link https://<nome>.onrender.com
+#
+# 1. Suba este repositório no GitHub.
+# 2. No Render: New → Blueprint → aponte para o repositório.
+# 3. Defina LAPE_ADMIN_LOGIN e LAPE_ADMIN_PASSWORD nas variáveis do serviço:
+#    o primeiro administrador é criado sozinho na primeira subida.
+#
+# O disco é obrigatório: sem ele o SQLite é apagado a cada nova versão.
+# Discos não existem no plano gratuito do Render, então este blueprint usa
+# o plano pago mais barato. Para custo zero, prefira o docker-compose.yml
+# num servidor da universidade.
+services:
+  - type: web
+    name: lape
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/health
+    disk:
+      name: lape-dados
+      mountPath: /dados
+      sizeGB: 1
+    envVars:
+      - key: LAPE_DB
+        value: /dados/db.sqlite
+      - key: LAPE_HOST
+        value: 0.0.0.0
+      - key: LAPE_BEHIND_HTTPS
+        value: "1"
+      - key: LAPE_PUBLIC_DASHBOARD
+        value: "0"
+      - key: LAPE_ADMIN_LOGIN
+        sync: false
+      - key: LAPE_ADMIN_PASSWORD
+        sync: false
+      - key: SCOPUS_API_KEY
+        sync: false
+      - key: WOS_API_KEY
+        sync: false
+      - key: LAPE_CONTACT_EMAIL
+        sync: false

@@ -34,6 +34,8 @@ REGISTRARS: dict[str, tuple[Any, str]] = {
     "research_lines": (ingest_excel.ingest_research_lines, "research_lines"),
     "institutions": (ingest_excel.ingest_institutions, "institutions"),
     "events": (ingest_excel.ingest_events, "events"),
+    "projects": (ingest_excel.ingest_projects, "projects"),
+    "project_members": (ingest_excel.ingest_project_members, "project_members"),
     "rejection_reasons": (ingest_excel.ingest_rejection_reasons, "rejection_reasons"),
     "authors": (ingest_excel.ingest_authors, "article_authors"),
     "event_participants": (ingest_excel.ingest_event_participants, "event_participants"),
@@ -167,7 +169,9 @@ def consolidate(db: Database) -> dict[str, Any]:
         " WHERE year_published IS NULL AND published_on IS NOT NULL AND status = 'publicado'"
     )
     db.conn.commit()
-    return {"articles": int(db.scalar("SELECT COUNT(*) FROM articles") or 0)}
+    indices = metrics.compute_h_indexes(db)
+    return {"articles": int(db.scalar("SELECT COUNT(*) FROM articles") or 0),
+            "h_index_recalculado": indices["members"]}
 
 
 def duplicate_candidates(db: Database) -> list[dict]:
@@ -220,7 +224,7 @@ def publish(db: Database, output: Path = config.REPORT_PATH,
 # ----------------------------------------------------------------------
 def run(db: Database, raw_dir: Path = config.RAW_DIR, output: Path = config.REPORT_PATH,
         window: int = config.WINDOW_YEARS, with_tracker: bool = True,
-        tracker_tasks: tuple[str, ...] = ("enriquecer", "citar"),
+        tracker_tasks: tuple[str, ...] = ("enriquecer", "citar", "perfis"),
         auto_accept: bool = False, verbose: bool = True) -> dict[str, Any]:
     """Ciclo completo: carregar, consolidar, rastrear, validar e publicar."""
     from . import tracker as tracker_agent

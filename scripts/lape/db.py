@@ -43,9 +43,19 @@ class Database:
     def migrate(self, schema_path: Path = config.SCHEMA_PATH) -> None:
         if not schema_path.exists():
             raise FileNotFoundError(f"schema nao encontrado: {schema_path}")
+        self._drop_views()
         self.conn.executescript(schema_path.read_text(encoding="utf-8"))
         self._add_missing_columns(schema_path)
         self.conn.commit()
+
+    def _drop_views(self) -> None:
+        """Views sao recriadas a cada migracao.
+
+        'CREATE VIEW IF NOT EXISTS' manteria a definicao antiga em bancos
+        ja existentes, escondendo colunas novas do esquema.
+        """
+        for row in self.query("SELECT name FROM sqlite_master WHERE type = 'view'"):
+            self.conn.execute(f"DROP VIEW IF EXISTS {row['name']}")
 
     def _add_missing_columns(self, schema_path: Path) -> None:
         """Adiciona colunas novas a bancos criados por versoes anteriores.
@@ -71,10 +81,18 @@ class Database:
                 column, ctype, rest = match.group(1), match.group(2), match.group(3)
                 if column in existing:
                     continue
-                # ALTER TABLE nao aceita default nao-constante nem NOT NULL sem default
+                # ALTER TABLE nao aceita default nao-constante, NOT NULL sem
+                # default, nem UNIQUE -- a unicidade vira um indice a parte.
                 rest = re.sub(r"DEFAULT\s*\(datetime\('now'\)\)", "", rest)
                 rest = rest.replace("NOT NULL", "") if "DEFAULT" not in rest.upper() else rest
+                unique = "UNIQUE" in rest.upper()
+                rest = re.sub(r"\bUNIQUE\b", "", rest, flags=re.I)
                 self.conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {ctype} {rest}".strip())
+                if unique:
+                    self.conn.execute(
+                        f"CREATE UNIQUE INDEX IF NOT EXISTS ux_{table}_{column}"
+                        f" ON {table}({column})"
+                    )
 
     def close(self) -> None:
         self.conn.commit()
@@ -254,9 +272,11 @@ class Database:
         surname = key.split("_", 1)[0]
         if len(surname) < 4:
             return None
+        # GLOB, e nao LIKE: em LIKE o '_' e curinga, o que faria
+        # 'andrade_a' casar com qualquer sobrenome de mesmo tamanho.
         rows = self.conn.execute(
-            "SELECT id, name_key, full_name FROM members WHERE name_key = ? OR name_key LIKE ?",
-            (surname, surname + "\\_%"),
+            "SELECT id, name_key, full_name FROM members WHERE name_key = ? OR name_key GLOB ?",
+            (surname, surname + "_*"),
         ).fetchall()
         rows = [r for r in rows if r["name_key"].split("_", 1)[0] == surname]
         if len(rows) != 1:

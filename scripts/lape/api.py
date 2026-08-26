@@ -1,37 +1,26 @@
-"""API HTTP do LAPE.
+"""API HTTP e aplicacao web do LAPE.
 
-Expoe o banco como servico REST para alimentacao e leitura automatica.
+Serve tres coisas no mesmo endereco:
+  /            painel de indicadores, lido ao vivo do banco
+  /entrar      tela de acesso
+  /app         area do integrante (perfil, artigos, projetos, submissoes)
+  /api/...     API REST
+
 Usa apenas a biblioteca padrao -- nao precisa de Flask/FastAPI -- e abre
 uma conexao SQLite por requisicao, o que a torna segura com varias
 requisicoes simultaneas.
 
-Subir o servidor:
-    python3 scripts/lape_agent.py api --port 8000
+Acesso
+  Cada integrante tem login e senha (ver lape/auth.py). A sessao vive num
+  cookie HttpOnly. Scripts e integracoes podem usar, em vez do cookie, o
+  cabecalho `Authorization: Bearer <LAPE_API_TOKEN>`, que vale como admin.
 
-Autenticacao (opcional, recomendada fora da rede local):
-    export LAPE_API_TOKEN="uma-senha-longa"
-    curl -H "Authorization: Bearer uma-senha-longa" ...
-Sem LAPE_API_TOKEN definido a API aceita requisicoes sem token.
-
-Rotas
-    GET  /                              painel HTML
-    GET  /api                           indice das rotas
-    GET  /api/health                    status do servico e do banco
-    GET  /api/metrics                   todos os indicadores (JSON)
-    GET  /api/metrics/<bloco>           um bloco de indicadores
-    GET  /api/articles                  filtros: status, linha, q, limit
-    GET  /api/articles/<id>             artigo + autores + submissoes + marcos
-    POST /api/articles                  cadastra/atualiza (objeto ou lista)
-    GET|POST /api/submissions
-    GET|POST /api/members
-    GET|POST /api/events
-    GET|POST /api/research-lines
-    GET|POST /api/institutions
-    GET  /api/discoveries               achados do rastreador
-    POST /api/discoveries/<id>/review   {"action": "aceitar" | "ignorar"}
-    POST /api/agents/tracker            {"tasks": ["descobrir","enriquecer","citar"]}
-    POST /api/agents/curator            {"with_tracker": true}
-    GET  /api/export/sqlite             baixa o banco
+Variaveis de ambiente
+  LAPE_API_TOKEN         token de servico (CI, scripts) -- opcional
+  LAPE_PUBLIC_DASHBOARD  "1" deixa o painel visivel sem login
+  LAPE_ADMIN_LOGIN       cria o primeiro administrador na subida
+  LAPE_ADMIN_PASSWORD    senha desse administrador
+  LAPE_BEHIND_HTTPS      "1" marca o cookie como Secure (use na nuvem)
 """
 from __future__ import annotations
 
@@ -40,24 +29,45 @@ import os
 import re
 import traceback
 import urllib.parse
+from http import cookies
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Callable
 
-from . import config, metrics
+from . import auth, config, metrics, report
 from .db import Database
 
 TOKEN = os.environ.get("LAPE_API_TOKEN", "")
+PUBLIC_DASHBOARD = os.environ.get("LAPE_PUBLIC_DASHBOARD", "") == "1"
+BEHIND_HTTPS = os.environ.get("LAPE_BEHIND_HTTPS", "") == "1"
+COOKIE_NAME = "lape_session"
 MAX_BODY = 8 * 1024 * 1024
 
-ENTITY_ROUTES = {
-    "articles": ("articles", "SELECT * FROM v_articles_full"),
-    "submissions": ("submissions", "SELECT s.*, a.title AS article_title FROM submissions s"
-                                   " JOIN articles a ON a.id = s.article_id"),
-    "members": ("members", "SELECT * FROM v_member_productivity"),
-    "events": ("events", "SELECT * FROM events"),
-    "research-lines": ("research_lines", "SELECT * FROM research_lines"),
-    "institutions": ("institutions", "SELECT * FROM institutions"),
+TEMPLATES = Path(__file__).resolve().parent / "templates"
+
+FAVICON = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
+    '<rect width="64" height="64" rx="14" fill="#2f6fb5"/>'
+    '<text x="32" y="43" font-family="Helvetica,Arial" font-size="30" font-weight="bold"'
+    ' fill="#fff" text-anchor="middle">LP</text></svg>'
+)
+
+# entidade da URL -> (tabela do curador, consulta de listagem, perfil minimo para gravar)
+ENTITIES: dict[str, tuple[str, str, str]] = {
+    "articles": ("articles", "SELECT * FROM v_articles_full", "integrante"),
+    "submissions": ("submissions",
+                    "SELECT s.*, a.title AS article_title, a.internal_code,"
+                    " r.label AS rejection_reason_label FROM submissions s"
+                    " JOIN articles a ON a.id = s.article_id"
+                    " LEFT JOIN rejection_reasons r ON r.id = s.rejection_reason_id",
+                    "integrante"),
+    "members": ("members", "SELECT * FROM v_researcher", "coordenacao"),
+    "researchers": ("members", "SELECT * FROM v_researcher", "coordenacao"),
+    "projects": ("projects", "SELECT * FROM v_projects", "integrante"),
+    "events": ("events", "SELECT * FROM events", "integrante"),
+    "research-lines": ("research_lines", "SELECT * FROM research_lines", "coordenacao"),
+    "institutions": ("institutions", "SELECT * FROM institutions", "coordenacao"),
+    "rejection-reasons": ("rejection_reasons", "SELECT * FROM rejection_reasons", "coordenacao"),
 }
 
 
@@ -69,37 +79,106 @@ class ApiError(Exception):
 
 
 # ----------------------------------------------------------------------
-# Handlers
+# Rotas publicas / de sessao
 # ----------------------------------------------------------------------
-def route_index(_db: Database, _q: dict, _body: Any) -> Any:
+def route_index(ctx: "Context") -> Any:
     return {
         "service": "LAPE API",
         "lab": config.LAB_NAME,
-        "version": "1.0.0",
-        "auth": "Bearer token obrigatório" if TOKEN else "aberta (defina LAPE_API_TOKEN)",
-        "routes": [line.strip() for line in (__doc__ or "").splitlines()
-                   if line.strip().startswith(("GET", "POST", "GET|POST"))],
+        "version": "2.0.0",
+        "authenticated": ctx.user is not None,
+        "user": ctx.user,
+        "paginas": {"painel": "/", "entrar": "/entrar", "area_do_integrante": "/app"},
+        "rotas": [
+            "POST /api/auth/login            {login, senha}",
+            "POST /api/auth/logout",
+            "GET  /api/auth/me",
+            "POST /api/auth/senha            {atual, nova}",
+            "POST /api/auth/usuarios         (admin) {nome, login, senha, perfil}",
+            "GET  /api/health",
+            "GET  /api/metrics[/<bloco>]",
+            "GET  /api/<entidade>            filtros: q, status, linha, ano, limit, offset",
+            "GET  /api/articles/<id>",
+            "GET  /api/researchers/<id>",
+            "POST /api/<entidade>            cadastra ou atualiza",
+            "GET  /api/discoveries",
+            "POST /api/discoveries/<id>/review",
+            "POST /api/agents/tracker        (coordenacao)",
+            "POST /api/agents/curator        (coordenacao)",
+            "GET  /api/export/sqlite         (admin)",
+        ],
+        "entidades": sorted(ENTITIES),
     }
 
 
-def route_health(db: Database, _q: dict, _body: Any) -> Any:
+def route_login(ctx: "Context") -> Any:
+    body = ctx.body or {}
+    login_value = body.get("login") or body.get("usuario") or body.get("email")
+    password = body.get("senha") or body.get("password")
+    if not login_value or not password:
+        raise ApiError(400, "informe login e senha")
+    session = auth.login(ctx.db, login_value, password,
+                         user_agent=ctx.handler.headers.get("User-Agent", ""),
+                         ip=ctx.handler.client_address[0])
+    ctx.set_cookie = session["token"]
+    return {"ok": True, "user": session["user"], "expires_at": session["expires_at"]}
+
+
+def route_logout(ctx: "Context") -> Any:
+    if ctx.token:
+        auth.logout(ctx.db, ctx.token)
+    ctx.clear_cookie = True
+    return {"ok": True}
+
+
+def route_me(ctx: "Context") -> Any:
+    if ctx.user is None:
+        raise ApiError(401, "nao autenticado")
+    return ctx.user
+
+
+def route_change_password(ctx: "Context") -> Any:
+    user = auth.require(ctx.user, "leitura")
+    body = ctx.body or {}
+    return auth.change_password(ctx.db, user["id"],
+                                body.get("atual") or body.get("current") or "",
+                                body.get("nova") or body.get("new") or "")
+
+
+def route_create_user(ctx: "Context") -> Any:
+    auth.require(ctx.user, "admin")
+    body = ctx.body or {}
+    if not body.get("nome") or not body.get("login"):
+        raise ApiError(400, "informe nome e login")
+    return auth.create_account(ctx.db, body["nome"], body["login"], body.get("senha"),
+                               role=body.get("perfil", "integrante"))
+
+
+def route_health(ctx: "Context") -> Any:
+    db = ctx.db
     return {
         "status": "ok",
         "database": str(db.path),
+        "authenticated": ctx.user is not None,
         "articles": int(db.scalar("SELECT COUNT(*) FROM articles") or 0),
         "members": int(db.scalar("SELECT COUNT(*) FROM members") or 0),
+        "projects": int(db.scalar("SELECT COUNT(*) FROM projects") or 0),
         "submissions": int(db.scalar("SELECT COUNT(*) FROM submissions") or 0),
         "events": int(db.scalar("SELECT COUNT(*) FROM events") or 0),
         "pending_discoveries": int(
             db.scalar("SELECT COUNT(*) FROM discoveries WHERE status = 'pendente'") or 0),
-        "last_ingest": db.dicts("SELECT run_at, source, status FROM ingest_log"
-                                " ORDER BY id DESC LIMIT 1"),
+        "users": int(db.scalar("SELECT COUNT(*) FROM members WHERE login IS NOT NULL") or 0),
+        "last_ingest": db.dicts(
+            "SELECT run_at, source, status FROM ingest_log ORDER BY id DESC LIMIT 1"),
     }
 
 
-def route_metrics(db: Database, query: dict, _body: Any, block: str | None = None) -> Any:
-    window = int(query.get("window", [config.WINDOW_YEARS])[0])
-    payload = metrics.build_payload(db, window=window)
+# ----------------------------------------------------------------------
+# Leitura
+# ----------------------------------------------------------------------
+def route_metrics(ctx: "Context", block: str | None = None) -> Any:
+    window = int(ctx.query.get("window", [config.WINDOW_YEARS])[0])
+    payload = metrics.build_payload(ctx.db, window=window)
     if block:
         if block not in payload:
             raise ApiError(404, f"bloco '{block}' inexistente."
@@ -108,8 +187,9 @@ def route_metrics(db: Database, query: dict, _body: Any, block: str | None = Non
     return payload
 
 
-def route_list(db: Database, query: dict, _body: Any, entity: str) -> Any:
-    _, base_sql = ENTITY_ROUTES[entity]
+def route_list(ctx: "Context", entity: str) -> Any:
+    _, base_sql, _ = ENTITIES[entity]
+    query = ctx.query
     clauses: list[str] = []
     params: list[Any] = []
     if "status" in query:
@@ -118,24 +198,28 @@ def route_list(db: Database, query: dict, _body: Any, entity: str) -> Any:
     if "linha" in query or "research_line" in query:
         clauses.append("research_line = ?")
         params.append((query.get("linha") or query.get("research_line"))[0])
-    if "q" in query:
-        clauses.append("lower(COALESCE(title, full_name, name, '')) LIKE ?")
-        params.append(f"%{query['q'][0].lower()}%")
     if "ano" in query:
         clauses.append("year_published = ?")
         params.append(int(query["ano"][0]))
+    if "q" in query:
+        clauses.append("lower(COALESCE(title, full_name, name, '')) LIKE ?")
+        params.append(f"%{query['q'][0].lower()}%")
     sql = base_sql + (" WHERE " + " AND ".join(clauses) if clauses else "")
     limit = min(int(query.get("limit", [500])[0]), 5000)
     offset = int(query.get("offset", [0])[0])
     sql += f" LIMIT {limit} OFFSET {offset}"
     try:
-        rows = db.dicts(sql, params)
+        rows = ctx.db.dicts(sql, params)
     except Exception as exc:
         raise ApiError(400, f"consulta inválida: {exc}") from exc
+    if entity in ("members", "researchers"):
+        for row in rows:
+            row.pop("password_hash", None)
     return {"entity": entity, "count": len(rows), "limit": limit, "offset": offset, "items": rows}
 
 
-def route_article_detail(db: Database, _q: dict, _body: Any, article_id: str) -> Any:
+def route_article_detail(ctx: "Context", article_id: str) -> Any:
+    db = ctx.db
     rows = db.dicts("SELECT * FROM v_articles_full WHERE id = ?", (int(article_id),))
     if not rows:
         raise ApiError(404, f"artigo {article_id} não encontrado")
@@ -153,90 +237,187 @@ def route_article_detail(db: Database, _q: dict, _body: Any, article_id: str) ->
     article["citations_history"] = db.dicts(
         "SELECT source, citations, snapshot_on FROM citation_snapshots"
         " WHERE article_id = ? ORDER BY snapshot_on", (int(article_id),))
+    article["projects"] = db.dicts(
+        "SELECT p.id, p.name FROM project_articles pa JOIN projects p ON p.id = pa.project_id"
+        " WHERE pa.article_id = ?", (int(article_id),))
+    article["can_edit"] = bool(ctx.user and auth.can_edit_article(db, ctx.user, int(article_id)))
     return article
 
 
-def route_create(db: Database, _q: dict, body: Any, entity: str) -> Any:
-    from .agents import curator
+def route_researcher_detail(ctx: "Context", member_id: str) -> Any:
+    db = ctx.db
+    rows = db.dicts("SELECT * FROM v_researcher WHERE id = ?", (int(member_id),))
+    if not rows:
+        raise ApiError(404, f"pesquisador {member_id} não encontrado")
+    person = rows[0]
+    person["project_list"] = db.dicts(
+        "SELECT p.id, p.code, p.name, p.status, p.funder, pm.role"
+        " FROM project_members pm JOIN projects p ON p.id = pm.project_id"
+        " WHERE pm.member_id = ? ORDER BY p.status, p.name", (int(member_id),))
+    person["articles"] = db.dicts(
+        "SELECT a.id, a.internal_code, a.title, a.status, a.year_published, a.journal, a.doi,"
+        "       a.scopus_citations, a.wos_citations, a.openalex_citations, aa.author_order"
+        " FROM article_authors aa JOIN articles a ON a.id = aa.article_id"
+        " WHERE aa.member_id = ?"
+        " ORDER BY COALESCE(a.year_published, 9999) DESC, a.title", (int(member_id),))
+    person["coauthors"] = db.dicts(
+        "SELECT m.id, m.full_name, COUNT(*) AS n FROM article_authors a1"
+        " JOIN article_authors a2 ON a2.article_id = a1.article_id AND a2.member_id <> a1.member_id"
+        " JOIN members m ON m.id = a2.member_id"
+        " WHERE a1.member_id = ? GROUP BY m.id ORDER BY n DESC LIMIT 15", (int(member_id),))
+    person["can_edit"] = bool(ctx.user and auth.can_edit_member(ctx.user, int(member_id)))
+    return person
 
-    if body is None:
-        raise ApiError(400, "corpo JSON obrigatório")
-    table = ENTITY_ROUTES[entity][0]
-    try:
-        return curator.register(db, table, body)
-    except ValueError as exc:
-        raise ApiError(400, str(exc)) from exc
 
-
-def route_discoveries(db: Database, query: dict, _body: Any) -> Any:
-    status = query.get("status", ["pendente"])[0]
-    rows = db.dicts(
+def route_discoveries(ctx: "Context") -> Any:
+    status = ctx.query.get("status", ["pendente"])[0]
+    rows = ctx.db.dicts(
         "SELECT * FROM discoveries WHERE status = ? ORDER BY COALESCE(citations,0) DESC,"
         " COALESCE(year,0) DESC LIMIT ?",
-        (status, min(int(query.get("limit", [200])[0]), 1000)),
-    )
+        (status, min(int(ctx.query.get("limit", [200])[0]), 1000)))
     return {"status": status, "count": len(rows), "items": rows}
 
 
-def route_review(db: Database, _q: dict, body: Any, discovery_id: str) -> Any:
+# ----------------------------------------------------------------------
+# Escrita
+# ----------------------------------------------------------------------
+def route_create(ctx: "Context", entity: str) -> Any:
     from .agents import curator
 
-    action = (body or {}).get("action", "aceitar")
+    table, _, minimum = ENTITIES[entity]
+    user = auth.require(ctx.user, "integrante")
+    if ctx.body is None:
+        raise ApiError(400, "corpo JSON obrigatório")
+
+    # Integrante mexe no proprio cadastro; alterar terceiros exige coordenacao.
+    if table == "members" and auth.ROLE_RANK[user["user_role"]] < auth.ROLE_RANK["coordenacao"]:
+        items = ctx.body if isinstance(ctx.body, list) else [ctx.body]
+        for item in items:
+            target = item.get("id") or item.get("member_id")
+            name = item.get("full_name") or item.get("Nome completo") or item.get("nome")
+            if target and int(target) != int(user["id"]):
+                raise ApiError(403, "você só pode editar o seu próprio cadastro")
+            if not target and name and _name_key(name) != _name_key(user["full_name"]):
+                raise ApiError(403, "você só pode editar o seu próprio cadastro")
+    elif auth.ROLE_RANK[user["user_role"]] < auth.ROLE_RANK[minimum]:
+        raise ApiError(403, f"esta ação exige perfil {minimum} ou superior")
+
     try:
-        return curator.review_discovery(db, int(discovery_id), action, (body or {}).get("overrides"))
+        result = curator.register(ctx.db, table, ctx.body)
+    except ValueError as exc:
+        raise ApiError(400, str(exc)) from exc
+    auth.log(ctx.db, user["id"], user.get("login"), "cadastro", table,
+             None, f"{result['written']} registro(s)")
+    return result
+
+
+def _name_key(name: Any) -> str:
+    from .util import author_key
+
+    return author_key(name)
+
+
+def route_review(ctx: "Context", discovery_id: str) -> Any:
+    from .agents import curator
+
+    user = auth.require(ctx.user, "coordenacao")
+    action = (ctx.body or {}).get("action", "aceitar")
+    try:
+        result = curator.review_discovery(ctx.db, int(discovery_id), action,
+                                          (ctx.body or {}).get("overrides"))
     except KeyError as exc:
         raise ApiError(404, str(exc)) from exc
+    auth.log(ctx.db, user["id"], user.get("login"), f"descoberta_{action}",
+             "discoveries", discovery_id)
+    return result
 
 
-def route_tracker(db: Database, _q: dict, body: Any) -> Any:
+def route_tracker(ctx: "Context") -> Any:
     from .agents import tracker
 
-    options = body or {}
+    user = auth.require(ctx.user, "coordenacao")
+    options = ctx.body or {}
     tasks = tuple(options.get("tasks") or tracker.TASKS)
     invalid = [t for t in tasks if t not in tracker.TASKS]
     if invalid:
         raise ApiError(400, f"tarefas inválidas: {invalid}. Use {list(tracker.TASKS)}")
-    return tracker.run(db, tasks, verbose=False, limit=options.get("limit"),
+    auth.log(ctx.db, user["id"], user.get("login"), "agente_rastreador", detail=",".join(tasks))
+    return tracker.run(ctx.db, tasks, verbose=False, limit=options.get("limit"),
                        since_year=options.get("since_year"))
 
 
-def route_curator(db: Database, _q: dict, body: Any) -> Any:
+def route_curator(ctx: "Context") -> Any:
     from .agents import curator
 
-    options = body or {}
+    user = auth.require(ctx.user, "coordenacao")
+    options = ctx.body or {}
+    auth.log(ctx.db, user["id"], user.get("login"), "agente_curador")
     return curator.run(
-        db,
+        ctx.db,
         with_tracker=bool(options.get("with_tracker", False)),
-        tracker_tasks=tuple(options.get("tracker_tasks") or ("enriquecer", "citar")),
+        tracker_tasks=tuple(options.get("tracker_tasks") or ("enriquecer", "citar", "perfis")),
         auto_accept=bool(options.get("auto_accept", False)),
         window=int(options.get("window", config.WINDOW_YEARS)),
         verbose=False,
     )
 
 
-ROUTES: list[tuple[str, str, Callable]] = [
-    ("GET", r"^/api/?$", route_index),
-    ("GET", r"^/api/health/?$", route_health),
-    ("GET", r"^/api/metrics/?$", route_metrics),
-    ("GET", r"^/api/metrics/(?P<block>[a-z_]+)/?$", route_metrics),
-    ("GET", r"^/api/articles/(?P<article_id>\d+)/?$", route_article_detail),
-    ("GET", r"^/api/discoveries/?$", route_discoveries),
-    ("POST", r"^/api/discoveries/(?P<discovery_id>\d+)/review/?$", route_review),
-    ("POST", r"^/api/agents/tracker/?$", route_tracker),
-    ("POST", r"^/api/agents/curator/?$", route_curator),
+def route_audit(ctx: "Context") -> Any:
+    auth.require(ctx.user, "coordenacao")
+    return {"items": ctx.db.dicts(
+        "SELECT at, login, action, entity, entity_id, detail FROM audit_log"
+        " ORDER BY id DESC LIMIT ?", (min(int(ctx.query.get("limit", [200])[0]), 1000),))}
+
+
+# ----------------------------------------------------------------------
+# Tabela de rotas: (metodo, padrao, funcao, perfil minimo | None = publico)
+# ----------------------------------------------------------------------
+ROUTES: list[tuple[str, str, Callable, str | None]] = [
+    ("GET", r"^/api/?$", route_index, None),
+    ("POST", r"^/api/auth/login/?$", route_login, None),
+    ("POST", r"^/api/auth/logout/?$", route_logout, None),
+    ("GET", r"^/api/auth/me/?$", route_me, None),
+    ("POST", r"^/api/auth/senha/?$", route_change_password, "leitura"),
+    ("POST", r"^/api/auth/usuarios/?$", route_create_user, "admin"),
+    ("GET", r"^/api/health/?$", route_health, None),
+    ("GET", r"^/api/metrics/?$", route_metrics, "leitura"),
+    ("GET", r"^/api/metrics/(?P<block>[a-z_]+)/?$", route_metrics, "leitura"),
+    ("GET", r"^/api/articles/(?P<article_id>\d+)/?$", route_article_detail, "leitura"),
+    ("GET", r"^/api/researchers/(?P<member_id>\d+)/?$", route_researcher_detail, "leitura"),
+    ("GET", r"^/api/discoveries/?$", route_discoveries, "leitura"),
+    ("POST", r"^/api/discoveries/(?P<discovery_id>\d+)/review/?$", route_review, "coordenacao"),
+    ("POST", r"^/api/agents/tracker/?$", route_tracker, "coordenacao"),
+    ("POST", r"^/api/agents/curator/?$", route_curator, "coordenacao"),
+    ("GET", r"^/api/audit/?$", route_audit, "coordenacao"),
 ]
-for name in ENTITY_ROUTES:
-    ROUTES.append(("GET", rf"^/api/{name}/?$",
-                   lambda db, q, b, _n=name: route_list(db, q, b, _n)))
-    ROUTES.append(("POST", rf"^/api/{name}/?$",
-                   lambda db, q, b, _n=name: route_create(db, q, b, _n)))
+for _name in ENTITIES:
+    ROUTES.append(("GET", rf"^/api/{_name}/?$",
+                   lambda ctx, _n=_name: route_list(ctx, _n), "leitura"))
+    ROUTES.append(("POST", rf"^/api/{_name}/?$",
+                   lambda ctx, _n=_name: route_create(ctx, _n), "integrante"))
+
+
+class Context:
+    """Tudo o que uma rota precisa saber sobre a requisicao."""
+
+    def __init__(self, handler: "Handler", db: Database, query: dict, body: Any,
+                 user: dict | None, token: str | None) -> None:
+        self.handler = handler
+        self.db = db
+        self.query = query
+        self.body = body
+        self.user = user
+        self.token = token
+        self.set_cookie: str | None = None
+        self.clear_cookie = False
 
 
 # ----------------------------------------------------------------------
 # Servidor
 # ----------------------------------------------------------------------
 class Handler(BaseHTTPRequestHandler):
-    server_version = "LAPE-API/1.0"
+    server_version = "LAPE-API/2.0"
+    protocol_version = "HTTP/1.1"
     db_path: Path = config.DB_PATH
     report_path: Path = config.REPORT_PATH
 
@@ -244,24 +425,60 @@ class Handler(BaseHTTPRequestHandler):
         print(f"  {self.address_string()} {fmt % args}")
 
     # -- utilidades --
-    def _send(self, status: int, payload: Any, content_type: str = "application/json") -> None:
+    def _send(self, status: int, payload: Any, content_type: str = "application/json",
+              extra_headers: list[tuple[str, str]] | None = None) -> None:
         body = (json.dumps(payload, ensure_ascii=False, default=str, indent=2).encode("utf-8")
                 if content_type == "application/json" else payload)
+        if isinstance(body, str):
+            body = body.encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", f"{content_type}; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "same-origin")
+        for key, value in (extra_headers or []):
+            self.send_header(key, value)
         self.end_headers()
         if self.command != "HEAD":
             self.wfile.write(body)
 
-    def _authorized(self) -> bool:
-        if not TOKEN:
-            return True
+    def _redirect(self, location: str) -> None:
+        self.send_response(303)
+        self.send_header("Location", location)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
+    def _cookie_token(self) -> str | None:
+        raw = self.headers.get("Cookie")
+        if not raw:
+            return None
+        jar = cookies.SimpleCookie()
+        try:
+            jar.load(raw)
+        except cookies.CookieError:
+            return None
+        item = jar.get(COOKIE_NAME)
+        return item.value if item else None
+
+    def _cookie_header(self, token: str | None) -> tuple[str, str]:
+        flags = "HttpOnly; SameSite=Lax; Path=/"
+        if BEHIND_HTTPS:
+            flags += "; Secure"
+        if token is None:
+            return ("Set-Cookie", f"{COOKIE_NAME}=; Max-Age=0; {flags}")
+        return ("Set-Cookie",
+                f"{COOKIE_NAME}={token}; Max-Age={auth.SESSION_DAYS * 86400}; {flags}")
+
+    def _service_token(self) -> bool:
         header = self.headers.get("Authorization", "")
-        return header.removeprefix("Bearer ").strip() == TOKEN
+        return bool(TOKEN) and header.removeprefix("Bearer ").strip() == TOKEN
+
+    def _resolve_user(self, db: Database) -> tuple[dict | None, str | None]:
+        if self._service_token():
+            return ({"id": None, "full_name": "Serviço (token)", "login": "servico",
+                     "user_role": "admin"}, None)
+        token = self._cookie_token() or (self.headers.get("X-LAPE-Session") or None)
+        return (auth.current_user(db, token), token)
 
     def _body(self) -> Any:
         length = int(self.headers.get("Content-Length") or 0)
@@ -287,25 +504,40 @@ class Handler(BaseHTTPRequestHandler):
 
     def _handle(self, method: str) -> None:
         parsed = urllib.parse.urlparse(self.path)
-        path, query = parsed.path, urllib.parse.parse_qs(parsed.query)
+        path, query = parsed.path.rstrip("/") or "/", urllib.parse.parse_qs(parsed.query)
 
-        if method == "GET" and path in ("/", "/index.html", "/painel"):
-            return self._serve_report()
+        if method == "GET" and path in ("/", "/painel", "/index.html"):
+            return self._serve_dashboard()
+        if method == "GET" and path in ("/entrar", "/login"):
+            return self._serve_page("login.html")
+        if method == "GET" and path in ("/app", "/area", "/cadastro"):
+            return self._serve_page("app.html")
+        if method == "GET" and path == "/favicon.ico":
+            return self._send(200, FAVICON, "image/svg+xml")
         if method == "GET" and path == "/api/export/sqlite":
-            return self._serve_file(self.db_path, "application/vnd.sqlite3")
+            return self._serve_database()
 
-        for verb, pattern, handler in ROUTES:
+        for verb, pattern, handler, minimum in ROUTES:
             match = re.match(pattern, path)
             if not match or verb != method:
                 continue
-            if not self._authorized():
-                return self._send(401, {"error": "token inválido ou ausente"})
             db = None
             try:
                 body = self._body() if method == "POST" else None
                 db = Database(self.db_path)
-                result = handler(db, query, body, **match.groupdict())
-                return self._send(200, result)
+                user, token = self._resolve_user(db)
+                if minimum is not None and not (minimum == "leitura" and PUBLIC_DASHBOARD):
+                    auth.require(user, minimum)
+                ctx = Context(self, db, query, body, user, token)
+                result = handler(ctx, **match.groupdict())
+                headers = []
+                if ctx.set_cookie:
+                    headers.append(self._cookie_header(ctx.set_cookie))
+                if ctx.clear_cookie:
+                    headers.append(self._cookie_header(None))
+                return self._send(200, result, extra_headers=headers)
+            except auth.AuthError as exc:
+                return self._send(exc.status, {"error": exc.message})
             except ApiError as exc:
                 return self._send(exc.status, {"error": exc.message})
             except Exception as exc:  # nunca derruba o servidor
@@ -317,18 +549,45 @@ class Handler(BaseHTTPRequestHandler):
         self._send(404, {"error": f"rota não encontrada: {method} {path}",
                          "dica": "consulte GET /api"})
 
-    def _serve_report(self) -> None:
-        if not self.report_path.exists():
-            return self._send(404, {"error": "painel ainda não gerado",
-                                    "dica": "rode POST /api/agents/curator"})
-        self._send(200, self.report_path.read_bytes(), "text/html")
+    # -- paginas --
+    def _serve_dashboard(self) -> None:
+        """Painel renderizado com os dados atuais do banco, a cada acesso."""
+        db = Database(self.db_path)
+        try:
+            user, _ = self._resolve_user(db)
+            if user is None and not PUBLIC_DASHBOARD:
+                return self._redirect("/entrar")
+            payload = metrics.build_payload(db)
+            payload["session"] = {"live": True, "user": user}
+            html = report.render_html(payload)
+        except Exception as exc:
+            traceback.print_exc()
+            return self._send(500, {"error": f"falha ao montar o painel: {exc}"})
+        finally:
+            db.close()
+        self._send(200, html, "text/html")
 
-    def _serve_file(self, path: Path, content_type: str) -> None:
-        if not self._authorized():
-            return self._send(401, {"error": "token inválido ou ausente"})
+    def _serve_page(self, name: str) -> None:
+        path = TEMPLATES / name
         if not path.exists():
-            return self._send(404, {"error": f"arquivo não encontrado: {path.name}"})
-        self._send(200, path.read_bytes(), content_type)
+            return self._send(404, {"error": f"página {name} não encontrada"})
+        html = path.read_text(encoding="utf-8")
+        base_css = (TEMPLATES / "base.css").read_text(encoding="utf-8")
+        self._send(200, html.replace("__BASE_CSS__", base_css), "text/html")
+
+    def _serve_database(self) -> None:
+        db = Database(self.db_path)
+        try:
+            user, _ = self._resolve_user(db)
+            auth.require(user, "admin")
+        except auth.AuthError as exc:
+            return self._send(exc.status, {"error": exc.message})
+        finally:
+            db.close()
+        if not self.db_path.exists():
+            return self._send(404, {"error": "banco não encontrado"})
+        self._send(200, self.db_path.read_bytes(), "application/vnd.sqlite3",
+                   [("Content-Disposition", 'attachment; filename="lape.sqlite"')])
 
 
 def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_PATH,
@@ -337,13 +596,27 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
     Handler.report_path = Path(report_path)
     db = Database(db_path)
     db.migrate()
+    created = auth.bootstrap_admin(db)
+    users = int(db.scalar("SELECT COUNT(*) FROM members WHERE login IS NOT NULL") or 0)
     db.close()
+
+    print(f"LAPE em http://{host}:{port}")
+    print(f"  painel ............ http://{host}:{port}/")
+    print(f"  entrar ............ http://{host}:{port}/entrar")
+    print(f"  área do integrante  http://{host}:{port}/app")
+    print(f"  API ............... http://{host}:{port}/api")
+    print(f"  banco ............. {db_path}")
+    print(f"  painel público .... {'sim' if PUBLIC_DASHBOARD else 'não (exige login)'}")
+    print(f"  usuários .......... {users}")
+    if created:
+        print(f"\n  ADMINISTRADOR CRIADO: {created['login']}")
+        if "senha_inicial" in created:
+            print(f"  SENHA INICIAL: {created['senha_inicial']}  (troque no primeiro acesso)")
+    elif not users:
+        print("\n  ! Nenhum usuário cadastrado. Crie o primeiro administrador:")
+        print("      python3 scripts/lape_agent.py usuarios --criar 'Nome' email@udesc.br --perfil admin")
+
     server = ThreadingHTTPServer((host, port), Handler)
-    print(f"LAPE API em http://{host}:{port}")
-    print(f"  painel:  http://{host}:{port}/")
-    print(f"  rotas:   http://{host}:{port}/api")
-    print(f"  banco:   {db_path}")
-    print(f"  auth:    {'Bearer token exigido' if TOKEN else 'aberta (defina LAPE_API_TOKEN)'}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

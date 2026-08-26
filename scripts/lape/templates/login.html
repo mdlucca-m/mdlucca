@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrar — LAPE</title>
+<style>__BASE_CSS__
+body{display:grid;place-items:center;padding:24px}
+.box{width:min(420px,100%)}
+.brand{text-align:center;margin-bottom:22px}
+.brand .logo{width:56px;height:56px;border-radius:16px;background:var(--accent-2);color:#fff;
+  display:grid;place-items:center;font-weight:800;font-size:20px;margin:0 auto 12px;
+  letter-spacing:.03em}
+.brand h1{font-size:20px;letter-spacing:-.02em}
+.brand p{color:var(--muted);font-size:13.5px;margin:5px 0 0}
+form{display:grid;gap:14px}
+.erro{background:color-mix(in srgb,var(--bad) 12%,transparent);border:1px solid
+  color-mix(in srgb,var(--bad) 32%,transparent);color:var(--bad);border-radius:9px;
+  padding:10px 13px;font-size:13.5px;display:none}
+.erro.on{display:block}
+footer{margin-top:18px;text-align:center;font-size:12.5px;color:var(--faint)}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="brand">
+    <div class="logo">LP</div>
+    <h1>LAPE</h1>
+    <p>Laboratório de Psicologia do Esporte e do Exercício<br>UDESC / CEFID</p>
+  </div>
+  <div class="card">
+    <div class="erro" id="erro"></div>
+    <form id="form">
+      <div>
+        <label for="login">E-mail ou usuário</label>
+        <input id="login" name="login" type="text" autocomplete="username" required autofocus>
+      </div>
+      <div>
+        <label for="senha">Senha</label>
+        <input id="senha" name="senha" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="primary" type="submit" id="btn">Entrar</button>
+    </form>
+  </div>
+  <footer>Não tem acesso? Peça à coordenação do laboratório para criar o seu login.</footer>
+</div>
+<script>
+const erro = document.getElementById("erro");
+const btn = document.getElementById("btn");
+document.getElementById("form").addEventListener("submit", async function (ev) {
+  ev.preventDefault();
+  erro.classList.remove("on");
+  btn.disabled = true;
+  btn.textContent = "Entrando…";
+  try {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        login: document.getElementById("login").value,
+        senha: document.getElementById("senha").value,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "não foi possível entrar");
+    const params = new URLSearchParams(location.search);
+    location.href = data.user.must_change_password
+      ? "/app#senha"
+      : (params.get("next") || "/");
+  } catch (e) {
+    erro.textContent = e.message;
+    erro.classList.add("on");
+    btn.disabled = false;
+    btn.textContent = "Entrar";
+  }
+});
+</script>
+</body>
+</html>

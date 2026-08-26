@@ -1,0 +1,27 @@
+# Serviço systemd para rodar o LAPE num servidor da universidade.
+#   sudo cp deploy/lape.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now lape
+[Unit]
+Description=LAPE - painel e API de indicadores cientificos
+After=network.target
+
+[Service]
+Type=simple
+User=lape
+WorkingDirectory=/opt/lape
+Environment=LAPE_HOST=127.0.0.1
+Environment=LAPE_PORT=8000
+Environment=LAPE_DB=/opt/lape/data/db.sqlite
+Environment=LAPE_BEHIND_HTTPS=1
+Environment=LAPE_PUBLIC_DASHBOARD=0
+EnvironmentFile=-/opt/lape/.env
+ExecStart=/usr/bin/python3 /opt/lape/scripts/lape_agent.py api
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/lape/data /opt/lape/docs
+
+[Install]
+WantedBy=multi-user.target

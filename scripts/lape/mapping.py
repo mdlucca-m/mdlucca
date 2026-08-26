@@ -19,6 +19,9 @@ SHEET_ALIASES: dict[str, tuple[str, ...]] = {
     "authors": ("autoria", "autores", "authors", "artigo_autores", "coautoria"),
     "submissions": ("submissoes", "submissao", "submissions", "tentativas", "envios"),
     "rejection_reasons": ("motivos_de_recusa", "motivos_recusa", "motivos", "rejection_reasons"),
+    "projects": ("projetos", "projeto", "projects", "pesquisas", "editais"),
+    "project_members": ("equipe_do_projeto", "projeto_integrantes", "project_members",
+                        "participacao_em_projetos"),
     "events": ("eventos", "atividades", "reunioes", "agenda", "calendario", "events"),
     "event_participants": ("participacao", "participantes", "presenca", "event_participants"),
 }
@@ -52,7 +55,13 @@ COLUMN_ALIASES: dict[str, dict[str, tuple[str, ...]]] = {
         "lattes_id": ("lattes", "id_lattes", "lattes_id", "curriculo_lattes"),
         "orcid": ("orcid", "orcid_id"),
         "email": ("email", "e_mail", "correio"),
-        "role": ("funcao", "vinculo", "papel", "cargo", "categoria", "titulacao", "role", "nivel"),
+        "role": ("funcao", "vinculo", "papel", "cargo", "categoria", "role", "nivel"),
+        "degree": ("titulacao", "formacao", "grau", "degree", "escolaridade"),
+        "phone": ("telefone", "fone", "celular", "contato", "phone"),
+        "bio": ("resumo", "biografia", "minibio", "apresentacao", "bio", "sobre"),
+        "photo_url": ("foto", "url_da_foto", "photo_url", "imagem"),
+        "openalex_id": ("openalex", "openalex_id", "id_openalex"),
+        "scopus_author_id": ("scopus_author_id", "id_scopus_autor", "author_id_scopus"),
         "research_line": ("linha_de_pesquisa", "linha", "area", "research_line"),
         "institution": ("instituicao", "universidade", "vinculo_institucional", "institution"),
         "joined_on": ("entrada", "data_de_entrada", "ingresso", "inicio", "desde"),
@@ -125,6 +134,29 @@ COLUMN_ALIASES: dict[str, dict[str, tuple[str, ...]]] = {
         "label": ("motivo", "descricao", "label", "nome", "razao"),
         "category": ("categoria", "grupo", "tipo", "category"),
     },
+    "projects": {
+        "code": ("codigo", "cod", "sigla", "id", "code"),
+        "name": ("projeto", "titulo", "nome", "name", "titulo_do_projeto"),
+        "description": ("descricao", "resumo", "objetivo", "description"),
+        "research_line": ("linha_de_pesquisa", "linha", "area"),
+        "coordinator": ("coordenador", "responsavel", "lider", "coordenacao"),
+        "kind": ("tipo", "natureza", "modalidade", "kind"),
+        "funder": ("financiador", "agencia", "fomento", "edital", "funder"),
+        "grant_number": ("processo", "numero_do_processo", "grant", "termo"),
+        "amount": ("valor", "recurso", "orcamento", "amount"),
+        "started_on": ("inicio", "data_de_inicio", "data_inicio", "started_on"),
+        "ended_on": ("termino", "fim", "data_de_termino", "data_fim", "ended_on"),
+        "status": ("status", "situacao", "andamento"),
+        "ethics_approval": ("parecer_etico", "caae", "comite_de_etica", "parecer"),
+        "url": ("link", "url", "pagina"),
+        "members": ("integrantes", "equipe", "participantes", "membros", "pesquisadores"),
+    },
+    "project_members": {
+        "project": ("projeto", "codigo", "titulo", "project"),
+        "member": ("integrante", "nome", "participante", "membro", "member"),
+        "role": ("funcao", "papel", "role"),
+        "joined_on": ("entrada", "desde", "inicio"),
+    },
     "events": {
         "external_key": ("codigo", "id", "chave", "external_key"),
         "kind": ("tipo", "categoria", "natureza", "kind", "tipo_de_atividade"),
@@ -164,6 +196,18 @@ SHEET_IGNORE: tuple[str, ...] = (
 # ----------------------------------------------------------------------
 # Vocabulario controlado
 # ----------------------------------------------------------------------
+PROJECT_STATUS_MAP: dict[str, str] = {
+    "em_andamento": "em_andamento", "andamento": "em_andamento", "ativo": "em_andamento",
+    "ativa": "em_andamento", "em_execucao": "em_andamento", "vigente": "em_andamento",
+    "em_curso": "em_andamento",
+    "concluido": "concluido", "concluida": "concluido", "finalizado": "concluido",
+    "encerrado": "concluido", "encerrada": "concluido",
+    "planejado": "planejado", "planejamento": "planejado", "submetido": "planejado",
+    "aguardando": "planejado", "em_elaboracao": "planejado",
+    "suspenso": "suspenso", "pausado": "suspenso", "cancelado": "suspenso",
+    "interrompido": "suspenso",
+}
+
 STATUS_MAP: dict[str, str] = {
     "em_producao": "em_producao", "producao": "em_producao", "em_andamento": "em_producao",
     "andamento": "em_producao", "escrita": "em_producao", "em_escrita": "em_producao",

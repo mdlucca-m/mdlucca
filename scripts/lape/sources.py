@@ -161,6 +161,48 @@ def openalex_works_by_author(name: str | None = None, orcid: str | None = None,
     return results[:limit]
 
 
+def openalex_author(orcid: str | None = None, name: str | None = None,
+                    institution: str | None = None,
+                    mailto: str | None = None) -> dict[str, Any] | None:
+    """Perfil publico do autor: indice h, i10 e total de citacoes.
+
+    O indice h daqui e global -- inclui producao anterior ao laboratorio --
+    e por isso e o valor que os pesquisadores costumam reportar.
+    """
+    if orcid:
+        target = f"{OPENALEX}/authors/orcid:{urllib.parse.quote(clean_text(orcid))}"
+        try:
+            author = _get(target, {"mailto": mailto})
+        except SourceError:
+            return None
+    elif name:
+        filters = [f"display_name.search:{clean_text(name)}"]
+        if institution:
+            filters.append(f"last_known_institutions.display_name.search:{institution}")
+        data = _get(f"{OPENALEX}/authors", {
+            "filter": ",".join(filters), "per-page": 1, "mailto": mailto})
+        results = data.get("results", [])
+        if not results:
+            return None
+        author = results[0]
+    else:
+        return None
+
+    stats = author.get("summary_stats") or {}
+    institutions = author.get("last_known_institutions") or []
+    return {
+        "openalex_id": author.get("id"),
+        "display_name": clean_text(author.get("display_name")),
+        "orcid": clean_text(author.get("orcid")),
+        "works_count": author.get("works_count"),
+        "citations_total": author.get("cited_by_count"),
+        "h_index": stats.get("h_index"),
+        "i10_index": stats.get("i10_index"),
+        "mean_citedness": stats.get("2yr_mean_citedness"),
+        "institution": clean_text(institutions[0].get("display_name")) if institutions else None,
+    }
+
+
 # ----------------------------------------------------------------------
 # Crossref
 # ----------------------------------------------------------------------

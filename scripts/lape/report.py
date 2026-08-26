@@ -50,10 +50,15 @@ def to_json(payload: dict[str, Any]) -> str:
     return text.replace("</", "<\\/")
 
 
-def render(payload: dict[str, Any], output: Path = config.REPORT_PATH,
-           geo_dir: Path = config.GEO_DIR) -> Path:
+def render_html(payload: dict[str, Any], geo_dir: Path = config.GEO_DIR) -> str:
+    """Monta o painel completo como string HTML.
+
+    Usado tanto pela exportacao estatica quanto pela rota '/' da API, que
+    remonta a pagina a cada acesso com os dados atuais do banco.
+    """
     payload = dict(payload)
-    payload["geo"] = load_basemap(geo_dir)
+    payload.setdefault("geo", load_basemap(geo_dir))
+    payload.setdefault("session", {"live": False, "user": None})
 
     html = HTML_TEMPLATE.read_text(encoding="utf-8")
     script = JS_TEMPLATE.read_text(encoding="utf-8")
@@ -61,10 +66,13 @@ def render(payload: dict[str, Any], output: Path = config.REPORT_PATH,
 
     html = html.replace("__TITLE__", title)
     html = html.replace("__SCRIPT__", script)
-    html = html.replace("__DATA__", to_json(payload))
+    return html.replace("__DATA__", to_json(payload))
 
+
+def render(payload: dict[str, Any], output: Path = config.REPORT_PATH,
+           geo_dir: Path = config.GEO_DIR) -> Path:
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(html, encoding="utf-8")
+    output.write_text(render_html(payload, geo_dir), encoding="utf-8")
     return output
 
 

@@ -1,0 +1,9 @@
+.git
+.github
+docs
+data/db.sqlite*
+data/raw/*
+!data/raw/.gitkeep
+tests
+*.md
+__pycache__

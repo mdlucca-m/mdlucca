@@ -221,9 +221,56 @@ def citations(db: Database, limit: int | None = None, verbose: bool = True) -> d
 
 
 # ----------------------------------------------------------------------
+# Perfis dos pesquisadores
+# ----------------------------------------------------------------------
+def profiles(db: Database, verbose: bool = True) -> dict[str, Any]:
+    """Le o perfil publico de cada pesquisador e traz indice h global.
+
+    O indice h do OpenAlex cobre toda a carreira, nao so o que esta neste
+    banco. Quando o autor tem ORCID cadastrado a identificacao e exata;
+    sem ORCID a busca e por nome + instituicao e pode falhar em homonimos,
+    por isso o valor so e gravado quando o nome bate.
+    """
+    from ..util import author_key
+
+    updated = 0
+    errors: list[str] = []
+    for member in db.dicts(
+        "SELECT id, full_name, orcid, openalex_id FROM members"
+        " WHERE active = 1 AND is_external = 0 ORDER BY full_name"
+    ):
+        try:
+            profile = sources.openalex_author(
+                orcid=clean_text(member["orcid"]),
+                name=member["full_name"] if not member["orcid"] else None,
+                institution=INSTITUTION_QUERY, mailto=MAILTO)
+        except sources.SourceError as exc:
+            errors.append(f"{member['full_name']}: {exc}")
+            continue
+        if not profile:
+            continue
+        if not member["orcid"] and author_key(profile["display_name"]) != author_key(member["full_name"]):
+            continue  # provavel homonimo: nao grava
+        db.execute(
+            "UPDATE members SET openalex_id = COALESCE(openalex_id, ?), orcid = COALESCE(orcid, ?),"
+            " h_index = ?, h_index_source = 'openalex_author', i10_index = ?,"
+            " citations_total = ?, metrics_updated_at = date('now') WHERE id = ?",
+            (profile["openalex_id"], profile["orcid"], profile["h_index"], profile["i10_index"],
+             profile["citations_total"], member["id"]),
+        )
+        updated += 1
+    db.conn.commit()
+    db.log_ingest(NAME, target="members", rows_written=updated,
+                  status="parcial" if errors else "ok", message="perfis OpenAlex")
+    if verbose:
+        print(f"  perfis: {updated} pesquisadores com índice h atualizado")
+    return {"updated": updated, "errors": errors}
+
+
+# ----------------------------------------------------------------------
 # Execucao
 # ----------------------------------------------------------------------
-TASKS = ("descobrir", "enriquecer", "citar")
+TASKS = ("descobrir", "enriquecer", "citar", "perfis")
 
 
 def run(db: Database, tasks: tuple[str, ...] = TASKS, verbose: bool = True,
@@ -236,6 +283,8 @@ def run(db: Database, tasks: tuple[str, ...] = TASKS, verbose: bool = True,
         report["enrich"] = enrich(db, limit=options.get("limit"), verbose=verbose)
     if "citar" in tasks:
         report["citations"] = citations(db, limit=options.get("limit"), verbose=verbose)
+    if "perfis" in tasks:
+        report["profiles"] = profiles(db, verbose=verbose)
     if "descobrir" in tasks:
         report["discover"] = discover(db, since_year=options.get("since_year"), verbose=verbose)
     return report

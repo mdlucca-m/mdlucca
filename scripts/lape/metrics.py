@@ -162,6 +162,97 @@ def most_cited(db: Database, source: str, window: int | None = None, limit: int 
     )
 
 
+def h_index(citations: Iterable[Any]) -> int:
+    """Indice h: maior h tal que h trabalhos tenham ao menos h citacoes."""
+    counts = sorted((int(c) for c in citations if c is not None), reverse=True)
+    h = 0
+    for position, value in enumerate(counts, start=1):
+        if value >= position:
+            h = position
+        else:
+            break
+    return h
+
+
+def i10_index(citations: Iterable[Any]) -> int:
+    """Numero de trabalhos com 10 ou mais citacoes."""
+    return sum(1 for c in citations if c is not None and int(c) >= 10)
+
+
+def compute_h_indexes(db: Database) -> dict[str, int]:
+    """Recalcula indice h, i10 e citacoes de cada integrante a partir do banco.
+
+    O calculo usa apenas os artigos cadastrados aqui. Quando o agente
+    rastreador consegue ler o perfil publico do autor no OpenAlex, ele
+    sobrescreve `h_index` com o valor global (que inclui producao anterior
+    ao laboratorio) e marca a origem em `h_index_source`.
+    """
+    updated = 0
+    for member in db.dicts("SELECT id FROM members"):
+        rows = db.dicts(
+            "SELECT a.scopus_citations, a.wos_citations, a.openalex_citations"
+            " FROM article_authors aa JOIN articles a ON a.id = aa.article_id"
+            " WHERE aa.member_id = ?", (member["id"],))
+        if not rows:
+            continue
+        best = [max((r["openalex_citations"] or 0, r["scopus_citations"] or 0,
+                     r["wos_citations"] or 0)) for r in rows]
+        db.execute(
+            "UPDATE members SET h_index = COALESCE(CASE WHEN h_index_source = 'openalex_author'"
+            "   THEN h_index ELSE ? END, ?),"
+            " h_index_source = COALESCE(h_index_source, 'banco_lape'),"
+            " h_index_scopus = ?, h_index_wos = ?, i10_index = ?, citations_total = ?,"
+            " metrics_updated_at = date('now') WHERE id = ?",
+            (h_index(best), h_index(best),
+             h_index(r["scopus_citations"] for r in rows),
+             h_index(r["wos_citations"] for r in rows),
+             i10_index(best), sum(best), member["id"]),
+        )
+        updated += 1
+    db.conn.commit()
+    return {"members": updated}
+
+
+def researchers(db: Database) -> list[dict]:
+    """Ficha completa de cada pesquisador, com projetos e indice h."""
+    rows = db.dicts(
+        "SELECT * FROM v_researcher ORDER BY is_external, n_articles DESC, full_name")
+    projects = {}
+    for link in db.dicts(
+        "SELECT pm.member_id, p.id, p.name, p.code, p.status, pm.role"
+        " FROM project_members pm JOIN projects p ON p.id = pm.project_id"
+    ):
+        projects.setdefault(link["member_id"], []).append({
+            "id": link["id"], "name": link["name"], "code": link["code"],
+            "status": link["status"], "role": link["role"],
+        })
+    for row in rows:
+        row["project_list"] = projects.get(row["id"], [])
+        row["articles_recent"] = db.dicts(
+            "SELECT a.id, a.title, a.status, a.year_published, a.journal, a.doi,"
+            "       a.scopus_citations, a.wos_citations, a.openalex_citations,"
+            "       aa.author_order"
+            " FROM article_authors aa JOIN articles a ON a.id = aa.article_id"
+            " WHERE aa.member_id = ?"
+            " ORDER BY COALESCE(a.year_published, 9999) DESC, a.title LIMIT 25",
+            (row["id"],))
+    return rows
+
+
+def projects_overview(db: Database) -> dict[str, Any]:
+    rows = db.dicts("SELECT * FROM v_projects ORDER BY status, COALESCE(started_on,'') DESC")
+    by_status = Counter(r["status"] for r in rows)
+    by_funder = Counter(r["funder"] for r in rows if r["funder"])
+    return {
+        "items": rows,
+        "total": len(rows),
+        "by_status": [{"status": k, "n": v} for k, v in by_status.most_common()],
+        "by_funder": [{"funder": k, "n": v} for k, v in by_funder.most_common(10)],
+        "active": by_status.get("em_andamento", 0),
+        "total_amount": round(sum(r["amount"] or 0 for r in rows), 2),
+    }
+
+
 def member_productivity(db: Database) -> list[dict]:
     rows = db.dicts(
         """
@@ -495,6 +586,10 @@ def overview(db: Database, pubs: dict, subs: dict, network: dict, agenda_data: d
         "n_members": int(db.scalar("SELECT COUNT(*) FROM members WHERE is_external = 0") or 0),
         "n_collaborators": int(db.scalar("SELECT COUNT(*) FROM members WHERE is_external = 1") or 0),
         "n_research_lines": int(db.scalar("SELECT COUNT(*) FROM research_lines") or 0),
+        "n_projects": int(db.scalar("SELECT COUNT(*) FROM projects") or 0),
+        "n_projects_active": int(db.scalar(
+            "SELECT COUNT(*) FROM projects WHERE status = 'em_andamento'") or 0),
+        "best_h_index": int(db.scalar("SELECT COALESCE(MAX(h_index), 0) FROM members") or 0),
         "n_events": agenda_data["total"],
         "published_window": pubs["total_window"],
         "mean_per_year": pubs["mean_per_year"],
@@ -511,6 +606,33 @@ def overview(db: Database, pubs: dict, subs: dict, network: dict, agenda_data: d
 # ----------------------------------------------------------------------
 # Payload completo
 # ----------------------------------------------------------------------
+def article_rows(db: Database) -> list[dict]:
+    """Lista achatada de artigos: base do cruzamento interativo do painel."""
+    return db.dicts(
+        """
+        SELECT id, internal_code, title, authors, status, research_line, research_line_code,
+               study_type, language, started_on, first_submission_on, accepted_on, published_on,
+               year_published, journal, qualis, impact_factor, doi, url, lead_name,
+               wos_citations, scopus_citations, openalex_citations,
+               submission_attempts, rejections,
+               days_start_to_publication, days_submission_to_acceptance,
+               days_acceptance_to_publication
+        FROM v_articles_full
+        ORDER BY COALESCE(year_published, 9999) DESC, title
+        """
+    )
+
+
+def authorship_rows(db: Database) -> list[dict]:
+    """Ligacao artigo-integrante, em formato compacto para o navegador."""
+    return [
+        {"a": r["article_id"], "m": r["member_id"], "o": r["author_order"]}
+        for r in db.dicts(
+            "SELECT article_id, member_id, author_order FROM article_authors"
+            " WHERE member_id IS NOT NULL")
+    ]
+
+
 def build_payload(db: Database, window: int = config.WINDOW_YEARS) -> dict[str, Any]:
     pubs = publications_by_year(db, window)
     subs = submission_metrics(db)
@@ -518,6 +640,8 @@ def build_payload(db: Database, window: int = config.WINDOW_YEARS) -> dict[str, 
     agenda_data = agenda(db, window)
     payload: dict[str, Any] = {
         "overview": overview(db, pubs, subs, network, agenda_data),
+        "articles": article_rows(db),
+        "authorship": authorship_rows(db),
         "research_lines": research_lines(db),
         "in_progress": articles_by_status(db, IN_PROGRESS, "COALESCE(started_on,'9999') DESC"),
         "submitted": articles_by_status(db, UNDER_REVIEW, "COALESCE(first_submission_on,'0000') DESC"),
@@ -531,6 +655,8 @@ def build_payload(db: Database, window: int = config.WINDOW_YEARS) -> dict[str, 
         "most_cited_openalex": most_cited(db, "openalex"),
         "most_cited_openalex_recent": most_cited(db, "openalex", window=window),
         "members": member_productivity(db),
+        "researchers": researchers(db),
+        "projects": projects_overview(db),
         "network": network,
         "timeline": publication_timeline(db),
         "submissions": subs,

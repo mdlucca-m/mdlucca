@@ -36,9 +36,9 @@ HEADER_FONT = Font(color="FFFFFF", bold=True, size=11)
 
 SHEETS: dict[str, list[str]] = {
     "Integrantes": [
-        "Nome completo", "Nome curto", "Variações", "Função", "Linha de pesquisa",
-        "Instituição", "Lattes", "ORCID", "E-mail", "Data de entrada", "Data de saída",
-        "Externo", "Ativo",
+        "Nome completo", "Nome curto", "Variações", "Função", "Titulação",
+        "Linha de pesquisa", "Instituição", "Lattes", "ORCID", "E-mail", "Telefone",
+        "Data de entrada", "Data de saída", "Externo", "Ativo",
     ],
     "Linhas de Pesquisa": [
         "Código", "Linha de pesquisa", "Descrição", "Coordenador",
@@ -52,6 +52,11 @@ SHEETS: dict[str, list[str]] = {
         "Data de submissão", "Data do aceite", "Data de publicação", "Ano",
         "Periódico", "ISSN", "Qualis", "Fator de impacto", "DOI", "Link",
         "Citações WoS", "Citações Scopus", "Acesso aberto", "Observações",
+    ],
+    "Projetos": [
+        "Código", "Projeto", "Descrição", "Linha de pesquisa", "Coordenador", "Tipo",
+        "Financiador", "Processo", "Valor", "Início", "Término", "Situação",
+        "Parecer ético", "Integrantes", "Link",
     ],
     "Eventos": [
         "Tipo", "Título", "Descrição", "Data", "Data de término", "Local",
@@ -93,6 +98,18 @@ EXAMPLE_ROWS: dict[str, list[list]] = {
         ["Centro de Ciências da Saúde e do Esporte", "CEFID/UDESC", "Florianópolis", "SC",
          "Brasil", -27.5954, -48.5480],
     ],
+    "Projetos": [
+        "Código", "Projeto", "Descrição", "Linha de pesquisa", "Coordenador", "Tipo",
+        "Financiador", "Processo", "Valor", "Início", "Término", "Situação",
+        "Parecer ético", "Integrantes", "Link",
+    ],
+    "Projetos": [
+        ["PROJ-01", "Exercício físico e saúde mental em mulheres com fibromialgia",
+         "Ensaio clínico randomizado com treinamento resistido.",
+         "Dor Crônica e Fibromialgia", "Alexandro Andrade", "Pesquisa",
+         "CNPq", "409XXX/2024-0", 120000, "2024-03-01", "2027-02-28", "Em andamento",
+         "CAAE 00000000.0.0000.0000", "Andrade; Vilarino; Loiane", ""],
+    ],
     "Eventos": [
         ["Reunião", "Reunião geral do LAPE", "Alinhamento do pipeline de artigos",
          "2026-09-02 14:00", "", "Sala de reuniões", "CEFID/UDESC", "Florianópolis", "SC",
@@ -113,6 +130,8 @@ NOTES = [
     ("Publicações", "Artigos já publicados/aceitos, com DOI. O DOI é o que permite buscar as "
                     "citações no Scopus e na Web of Science automaticamente. Artigos importados "
                     "do XML do Lattes são mesclados por título."),
+    ("Projetos", "Um projeto por linha. A coluna 'Integrantes' aceita vários nomes separados "
+                 "por ponto e vírgula — é o que liga cada pesquisador aos projetos de que participa."),
     ("Eventos", "Reuniões, coletas, defesas, congressos, cursos. Alimentam o calendário, "
                 "a análise temporal e o mapa."),
     ("Motivos de recusa", "Catálogo controlado. Use exatamente o mesmo texto na coluna "
@@ -152,7 +171,7 @@ def build_frames(raw_dir: Path) -> dict[str, pd.DataFrame]:
             rows = [list(item) for item in REJECTION_CATALOG]
         if sheet == "Integrantes":
             rows = [
-                [name, "", name, "", "", "", "", "", "", "", "", "Não", "Sim"]
+                [name, "", name, "", "", "", "", "", "", "", "", "", "", "Não", "Sim"]
                 for name in detected_members(raw_dir)
             ]
         frames[sheet] = pd.DataFrame(rows, columns=columns)

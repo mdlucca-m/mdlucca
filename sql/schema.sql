@@ -65,8 +65,64 @@ CREATE TABLE IF NOT EXISTS members (
   left_on          TEXT,
   is_external      INTEGER NOT NULL DEFAULT 0,
   active           INTEGER NOT NULL DEFAULT 1,
+  openalex_id      TEXT,
+  scopus_author_id TEXT,
+  researcher_id    TEXT,
+  bio              TEXT,
+  photo_url        TEXT,
+  phone            TEXT,
+  degree           TEXT,
+  h_index          INTEGER,
+  h_index_source   TEXT,
+  h_index_scopus   INTEGER,
+  h_index_wos      INTEGER,
+  i10_index        INTEGER,
+  citations_total  INTEGER,
+  metrics_updated_at TEXT,
+  login            TEXT UNIQUE,
+  password_hash    TEXT,
+  user_role        TEXT NOT NULL DEFAULT 'integrante',
+  must_change_password INTEGER NOT NULL DEFAULT 0,
+  last_login_at    TEXT,
   created_at       TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+/* ---------- Projetos ---------- */
+
+CREATE TABLE IF NOT EXISTS projects (
+  id               INTEGER PRIMARY KEY,
+  code             TEXT UNIQUE NOT NULL,
+  name             TEXT NOT NULL,
+  description      TEXT,
+  research_line_id INTEGER REFERENCES research_lines(id) ON DELETE SET NULL,
+  coordinator_id   INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  coordinator_name TEXT,
+  kind             TEXT,
+  funder           TEXT,
+  grant_number     TEXT,
+  amount           REAL,
+  started_on       TEXT,
+  ended_on         TEXT,
+  status           TEXT NOT NULL DEFAULT 'em_andamento',
+  ethics_approval  TEXT,
+  url              TEXT,
+  created_at       TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS project_members (
+  project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  member_id  INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  role       TEXT,
+  joined_on  TEXT,
+  PRIMARY KEY (project_id, member_id)
+);
+
+CREATE TABLE IF NOT EXISTS project_articles (
+  project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  article_id INTEGER NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+  PRIMARY KEY (project_id, article_id)
 );
 
 /* ---------- Producao cientifica ---------- */
@@ -211,6 +267,28 @@ CREATE TABLE IF NOT EXISTS discoveries (
   UNIQUE (source, title_key)
 );
 
+/* ---------- Acesso e auditoria ---------- */
+
+CREATE TABLE IF NOT EXISTS sessions (
+  token      TEXT PRIMARY KEY,
+  member_id  INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  expires_at TEXT NOT NULL,
+  user_agent TEXT,
+  ip         TEXT
+);
+
+CREATE TABLE IF NOT EXISTS audit_log (
+  id         INTEGER PRIMARY KEY,
+  at         TEXT NOT NULL DEFAULT (datetime('now')),
+  member_id  INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  login      TEXT,
+  action     TEXT NOT NULL,
+  entity     TEXT,
+  entity_id  TEXT,
+  detail     TEXT
+);
+
 /* ---------- Auditoria de ingestao ---------- */
 
 CREATE TABLE IF NOT EXISTS ingest_log (
@@ -238,6 +316,9 @@ CREATE INDEX IF NOT EXISTS idx_events_kind ON events(kind);
 CREATE INDEX IF NOT EXISTS idx_citations_article ON citation_snapshots(article_id, source);
 CREATE INDEX IF NOT EXISTS idx_milestones_article ON article_milestones(article_id, seq);
 CREATE INDEX IF NOT EXISTS idx_discoveries_status ON discoveries(status, found_at);
+CREATE INDEX IF NOT EXISTS idx_project_members ON project_members(member_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_member ON sessions(member_id, expires_at);
+CREATE INDEX IF NOT EXISTS idx_audit_at ON audit_log(at);
 
 /* ---------- Views analiticas ---------- */
 
@@ -340,3 +421,74 @@ SELECT
   CASE WHEN a.started_on IS NOT NULL
        THEN CAST(julianday('now') - julianday(a.started_on) AS INTEGER) END AS days_open
 FROM articles a;
+
+CREATE VIEW IF NOT EXISTS v_researcher AS
+SELECT
+  m.id,
+  m.full_name,
+  m.short_name,
+  m.name_key,
+  m.role,
+  m.degree,
+  m.email,
+  m.phone,
+  m.bio,
+  m.photo_url,
+  m.lattes_id,
+  m.orcid,
+  m.openalex_id,
+  m.scopus_author_id,
+  m.is_external,
+  m.active,
+  m.joined_on,
+  m.login,
+  m.user_role,
+  m.must_change_password,
+  m.last_login_at,
+  m.h_index,
+  m.h_index_source,
+  m.h_index_scopus,
+  m.h_index_wos,
+  m.i10_index,
+  m.citations_total,
+  m.metrics_updated_at,
+  rl.name AS research_line,
+  rl.id   AS research_line_id,
+  i.name  AS institution,
+  (SELECT COUNT(DISTINCT aa.article_id) FROM article_authors aa
+     WHERE aa.member_id = m.id) AS n_articles,
+  (SELECT COUNT(DISTINCT aa.article_id) FROM article_authors aa
+     JOIN articles a ON a.id = aa.article_id
+    WHERE aa.member_id = m.id AND a.status = 'publicado') AS n_published,
+  (SELECT COUNT(DISTINCT aa.article_id) FROM article_authors aa
+     JOIN articles a ON a.id = aa.article_id
+    WHERE aa.member_id = m.id AND a.status IN ('submetido','em_revisao')) AS n_submitted,
+  (SELECT COUNT(DISTINCT aa.article_id) FROM article_authors aa
+     JOIN articles a ON a.id = aa.article_id
+    WHERE aa.member_id = m.id AND a.status = 'em_producao') AS n_in_progress,
+  (SELECT COUNT(*) FROM project_members pm WHERE pm.member_id = m.id) AS n_projects,
+  (SELECT group_concat(p.name, ' | ') FROM project_members pm
+     JOIN projects p ON p.id = pm.project_id
+    WHERE pm.member_id = m.id) AS projects,
+  (SELECT COALESCE(SUM(a.scopus_citations), 0) FROM article_authors aa
+     JOIN articles a ON a.id = aa.article_id WHERE aa.member_id = m.id) AS scopus_citations,
+  (SELECT COALESCE(SUM(a.wos_citations), 0) FROM article_authors aa
+     JOIN articles a ON a.id = aa.article_id WHERE aa.member_id = m.id) AS wos_citations,
+  (SELECT COALESCE(SUM(a.openalex_citations), 0) FROM article_authors aa
+     JOIN articles a ON a.id = aa.article_id WHERE aa.member_id = m.id) AS openalex_citations
+FROM members m
+LEFT JOIN research_lines rl ON rl.id = m.research_line_id
+LEFT JOIN institutions i ON i.id = m.institution_id;
+
+CREATE VIEW IF NOT EXISTS v_projects AS
+SELECT
+  p.*,
+  rl.name AS research_line,
+  COALESCE(p.coordinator_name, c.full_name) AS coordinator,
+  (SELECT COUNT(*) FROM project_members pm WHERE pm.project_id = p.id) AS n_members,
+  (SELECT group_concat(m.full_name, '; ') FROM project_members pm
+     JOIN members m ON m.id = pm.member_id WHERE pm.project_id = p.id) AS members,
+  (SELECT COUNT(*) FROM project_articles pa WHERE pa.project_id = p.id) AS n_articles
+FROM projects p
+LEFT JOIN research_lines rl ON rl.id = p.research_line_id
+LEFT JOIN members c ON c.id = p.coordinator_id;

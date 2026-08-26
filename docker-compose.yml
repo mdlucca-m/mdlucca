@@ -1,0 +1,33 @@
+# Subir o LAPE numa máquina própria ou num servidor da universidade:
+#   docker compose up -d
+# Depois crie o primeiro administrador (só na primeira vez):
+#   docker compose exec lape python3 scripts/lape_agent.py usuarios \
+#     --criar "Alexandro Andrade" andrade@udesc.br --perfil admin
+services:
+  lape:
+    build: .
+    container_name: lape
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      LAPE_DB: /dados/db.sqlite
+      LAPE_HOST: 0.0.0.0
+      LAPE_PORT: "8000"
+      # Deixe "1" apenas se o painel puder ser visto sem login.
+      LAPE_PUBLIC_DASHBOARD: "0"
+      # Marque o cookie como Secure quando houver HTTPS na frente (proxy).
+      LAPE_BEHIND_HTTPS: "0"
+      LAPE_CONTACT_EMAIL: ${LAPE_CONTACT_EMAIL:-}
+      SCOPUS_API_KEY: ${SCOPUS_API_KEY:-}
+      SCOPUS_INST_TOKEN: ${SCOPUS_INST_TOKEN:-}
+      WOS_API_KEY: ${WOS_API_KEY:-}
+      # Primeiro administrador, criado automaticamente na subida inicial.
+      LAPE_ADMIN_LOGIN: ${LAPE_ADMIN_LOGIN:-}
+      LAPE_ADMIN_PASSWORD: ${LAPE_ADMIN_PASSWORD:-}
+      LAPE_ADMIN_NAME: ${LAPE_ADMIN_NAME:-Administracao LAPE}
+    volumes:
+      - lape-dados:/dados          # banco de dados (precisa persistir)
+      - ./data/raw:/app/data/raw   # planilhas e XML do Lattes
+volumes:
+  lape-dados:
