@@ -633,6 +633,49 @@ def authorship_rows(db: Database) -> list[dict]:
     ]
 
 
+HISTORY_METRICS = ("artigos", "publicados", "em_producao", "submetidos", "submissoes",
+                   "citacoes", "integrantes", "projetos", "atividades", "indice_h_maximo")
+
+
+def measured_history(db: Database, limit: int = 60) -> dict[str, Any]:
+    """Série histórica dos indicadores, medida a cada execução do lakehouse.
+
+    É o que permite mostrar variação com número medido, e não estimado.
+    Se o lakehouse nunca rodou, devolve vazio e o painel apenas não mostra
+    as setas de variação.
+    """
+    try:
+        from . import lake
+    except ImportError:
+        return {"available": False, "series": {}}
+    exists = db.scalar(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'metric_snapshot'")
+    if not exists:
+        return {"available": False, "series": {}}
+    series: dict[str, Any] = {}
+    for metric in HISTORY_METRICS:
+        rows = lake.metric_history(db, metric, "total", limit)
+        if rows:
+            series[metric] = {
+                "dates": [r["snapshot_on"] for r in rows],
+                "values": [r["value"] for r in rows],
+                "delta_30d": lake.metric_delta(db, metric, 30)["delta"],
+            }
+    return {"available": bool(series), "series": series,
+            "snapshots": int(db.scalar(
+                "SELECT COUNT(DISTINCT snapshot_on) FROM metric_snapshot") or 0)}
+
+
+def _catalog() -> dict[str, Any]:
+    """Medidas e dimensões do explorador — também na exportação estática."""
+    try:
+        from . import lake
+
+        return lake.catalog()
+    except Exception:
+        return {"measures": [], "dimensions": [], "filters": []}
+
+
 def build_payload(db: Database, window: int = config.WINDOW_YEARS) -> dict[str, Any]:
     pubs = publications_by_year(db, window)
     subs = submission_metrics(db)
@@ -665,6 +708,8 @@ def build_payload(db: Database, window: int = config.WINDOW_YEARS) -> dict[str, 
         "spatial": spatial(db),
         "temporal": temporal_grid(db, window),
         "quality": data_quality(db),
+        "history": measured_history(db),
+        "catalog": _catalog(),
         "discoveries": db.dicts(
             "SELECT id, source, title, authors, journal, year, citations, doi, url, status, found_at"
             " FROM discoveries WHERE status = 'pendente' ORDER BY COALESCE(citations,0) DESC,"

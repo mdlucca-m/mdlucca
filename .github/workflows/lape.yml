@@ -1,4 +1,11 @@
-name: LAPE - atualizar banco e painel
+name: LAPE — pipeline de dados e painel
+
+# Automação em três frentes:
+#   • a cada envio de planilha nova, recarrega e republica na hora;
+#   • toda madrugada, recalcula tudo e mede os indicadores do dia;
+#   • uma vez por semana, sai à procura de produção nova nas bases.
+# O histórico diário é o que faz o painel mostrar variação medida, e não
+# estimada — por isso a medição roda mesmo quando nada muda.
 
 on:
   push:
@@ -9,16 +16,20 @@ on:
       - 'sql/**'
       - '.github/workflows/lape.yml'
   schedule:
-    # segundas-feiras as 09:00 em Brasilia (12:00 UTC)
-    - cron: '0 12 * * 1'
+    - cron: '0 6 * * *'    # 03:00 em Brasília — recarrega, mede e publica
+    - cron: '0 12 * * 1'   # 09:00 de segunda — procura produção nova
   workflow_dispatch:
     inputs:
       descobrir:
         description: 'Procurar publicações novas nas bases externas'
         type: boolean
-        default: true
+        default: false
       aceitar_automatico:
         description: 'Aprovar achados com 2+ autores já cadastrados'
+        type: boolean
+        default: false
+      exportar_lake:
+        description: 'Exportar a camada ouro em Parquet'
         type: boolean
         default: false
       publicar_pages:
@@ -33,45 +44,86 @@ concurrency:
   group: lape-pipeline
   cancel-in-progress: false
 
+env:
+  # segunda-feira de manhã é a execução que vai às bases externas
+  BUSCAR_EXTERNO: ${{ github.event.schedule == '0 12 * * 1' || inputs.descobrir }}
+
 jobs:
-  atualizar:
+  testes:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: pip
+      - run: pip install -r requirements.txt
+      - name: Suíte de testes
+        run: python3 -m unittest discover -s tests -v
+      - name: Sintaxe do front-end
+        run: |
+          for f in scripts/lape/templates/*.js; do
+            node --check "$f" || exit 1
+          done
+          echo "JavaScript sem erro de sintaxe."
 
+  pipeline:
+    needs: testes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
       - name: Instalar dependências
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt
+          # pyarrow é opcional: sem ele a camada ouro sai em CSV
+          if [ "${{ inputs.exportar_lake }}" = "true" ]; then pip install pyarrow; fi
 
-      - name: Testes
-        run: python3 -m unittest discover -s tests
-
-      - name: Agente curador (carrega, consolida e publica)
+      - name: Curador — carrega, consolida, mede e publica
         env:
           SCOPUS_API_KEY: ${{ secrets.SCOPUS_API_KEY }}
           SCOPUS_INST_TOKEN: ${{ secrets.SCOPUS_INST_TOKEN }}
           WOS_API_KEY: ${{ secrets.WOS_API_KEY }}
           LAPE_CONTACT_EMAIL: ${{ secrets.LAPE_CONTACT_EMAIL }}
-        run: python3 scripts/lape_agent.py curador ${{ inputs.aceitar_automatico && '--aceitar-automatico' || '' }}
+        run: |
+          python3 scripts/lape_agent.py curador \
+            ${{ inputs.aceitar_automatico && '--aceitar-automatico' || '' }}
 
-      - name: Agente rastreador (descobrir produção nova)
-        if: github.event_name == 'schedule' || inputs.descobrir
+      - name: Rastreador — procurar produção nova
+        if: env.BUSCAR_EXTERNO == 'true'
         env:
           SCOPUS_API_KEY: ${{ secrets.SCOPUS_API_KEY }}
           WOS_API_KEY: ${{ secrets.WOS_API_KEY }}
           LAPE_CONTACT_EMAIL: ${{ secrets.LAPE_CONTACT_EMAIL }}
         run: python3 scripts/lape_agent.py rastreador descobrir
 
-      - name: Republicar painel com os achados
-        if: github.event_name == 'schedule' || inputs.descobrir
+      - name: Republicar com os achados
+        if: env.BUSCAR_EXTERNO == 'true'
         run: python3 scripts/lape_agent.py curador --offline --sem-backup
 
-      - name: Resumo
-        run: python3 scripts/lape_agent.py status >> $GITHUB_STEP_SUMMARY
+      - name: Exportar a camada ouro
+        if: inputs.exportar_lake
+        run: python3 scripts/lape_agent.py lake --exportar
+
+      - name: Resumo da execução
+        run: |
+          {
+            echo '## Banco'
+            echo '```'
+            python3 scripts/lape_agent.py status
+            echo '```'
+            echo '## Produção por linha de pesquisa'
+            echo '```'
+            python3 scripts/lape_agent.py lake --consultar artigos linha
+            echo '```'
+            echo '## Últimas cargas'
+            echo '```'
+            python3 scripts/lape_agent.py lake --linhagem --limite 10
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publicar alterações
         run: |
@@ -81,17 +133,17 @@ jobs:
           if git diff --staged --quiet; then
             echo 'Nada mudou.'
           else
-            git commit -m "chore(lape): atualiza banco e painel [skip ci]"
+            git commit -m 'chore(lape): atualiza banco, indicadores e painel [skip ci]'
             git push
           fi
 
-  # Publicação opcional do painel no GitHub Pages: gratuita, sem servidor, mas
-  # ATENÇÃO — a página fica pública na internet, com títulos de artigos, nomes
-  # dos integrantes, histórico de submissões e motivos de recusa. Só rode se o
-  # laboratório quiser mesmo essa vitrine. Para uso interno com login, publique
-  # o serviço completo (docker-compose.prod.yml).
+  # Publicação opcional do painel estático no GitHub Pages: gratuita e sem
+  # servidor, mas ATENÇÃO — a página fica pública na internet, com títulos de
+  # artigos, nomes dos integrantes e motivos de recusa. Só rode se o
+  # laboratório quiser mesmo essa vitrine. Para uso interno com login,
+  # publique o serviço completo (docker-compose.prod.yml).
   publicar-pages:
-    needs: atualizar
+    needs: pipeline
     if: github.event_name == 'workflow_dispatch' && inputs.publicar_pages
     runs-on: ubuntu-latest
     permissions:

@@ -1,6 +1,6 @@
 {
   "overview": {
-    "generated_at": "26/08/2026 18:41",
+    "generated_at": "26/08/2026 19:22",
     "lab_name": "LAPE - Laboratorio de Psicologia do Esporte e do Exercicio",
     "institution": "UDESC / CEFID",
     "site": "https://www.udesc.br/cefid/lape",
@@ -3605,8 +3605,8 @@
         "status": "em_andamento",
         "ethics_approval": "CAAE 00000000.0.0000.0000",
         "url": null,
-        "created_at": "2026-08-26 18:41:20",
-        "updated_at": "2026-08-26 18:41:20",
+        "created_at": "2026-08-26 19:22:59",
+        "updated_at": "2026-08-26 19:22:59",
         "research_line": "Dor Crônica e Fibromialgia",
         "coordinator": "Alexandro Andrade",
         "n_members": 3,
@@ -4797,7 +4797,17 @@
     ],
     "last_runs": [
       {
-        "run_at": "2026-08-26 18:41:19",
+        "run_at": "2026-08-26 19:22:59",
+        "source": "lake",
+        "target": "gold",
+        "file": null,
+        "rows_read": 0,
+        "rows_written": 492,
+        "status": "ok",
+        "message": "dim_date=365, dim_line=3, dim_researcher=17, dim_project=1, dim_journal=5, fact_article=19, fact_authorship=76, fact_submission=5, fact_citation=0, fact_event=1"
+      },
+      {
+        "run_at": "2026-08-26 19:22:59",
         "source": "excel",
         "target": "rejection_reasons",
         "file": "LAPE_cadastros.xlsx:Motivos de recusa",
@@ -4807,7 +4817,7 @@
         "message": null
       },
       {
-        "run_at": "2026-08-26 18:41:19",
+        "run_at": "2026-08-26 19:22:59",
         "source": "excel",
         "target": "events",
         "file": "LAPE_cadastros.xlsx:Eventos",
@@ -4817,7 +4827,7 @@
         "message": null
       },
       {
-        "run_at": "2026-08-26 18:41:19",
+        "run_at": "2026-08-26 19:22:59",
         "source": "excel",
         "target": "projects",
         "file": "LAPE_cadastros.xlsx:Projetos",
@@ -4827,7 +4837,7 @@
         "message": null
       },
       {
-        "run_at": "2026-08-26 18:41:19",
+        "run_at": "2026-08-26 19:22:59",
         "source": "excel",
         "target": "articles",
         "file": "LAPE_cadastros.xlsx:Publicações",
@@ -4837,7 +4847,7 @@
         "message": null
       },
       {
-        "run_at": "2026-08-26 18:41:19",
+        "run_at": "2026-08-26 19:22:59",
         "source": "excel",
         "target": "institutions",
         "file": "LAPE_cadastros.xlsx:Instituições",
@@ -4847,7 +4857,7 @@
         "message": null
       },
       {
-        "run_at": "2026-08-26 18:41:19",
+        "run_at": "2026-08-26 19:22:59",
         "source": "excel",
         "target": "research_lines",
         "file": "LAPE_cadastros.xlsx:Linhas de Pesquisa",
@@ -4857,7 +4867,7 @@
         "message": null
       },
       {
-        "run_at": "2026-08-26 18:41:19",
+        "run_at": "2026-08-26 19:22:59",
         "source": "excel",
         "target": "members",
         "file": "LAPE_cadastros.xlsx:Integrantes",
@@ -4867,7 +4877,7 @@
         "message": null
       },
       {
-        "run_at": "2026-08-26 18:41:19",
+        "run_at": "2026-08-26 19:22:59",
         "source": "excel",
         "target": "submissions",
         "file": "LAPE_Gestao_Indicadores_Cientificos_v3.xlsx:Tentativas de Submissão",
@@ -4877,7 +4887,7 @@
         "message": null
       },
       {
-        "run_at": "2026-08-26 18:41:19",
+        "run_at": "2026-08-26 19:22:59",
         "source": "excel",
         "target": "articles",
         "file": "LAPE_Gestao_Indicadores_Cientificos_v3.xlsx:Pipeline de Artigos",
@@ -4886,6 +4896,214 @@
         "status": "ok",
         "message": null
       }
+    ]
+  },
+  "history": {
+    "available": true,
+    "series": {
+      "artigos": {
+        "dates": [
+          "2026-08-26"
+        ],
+        "values": [
+          19.0
+        ],
+        "delta_30d": null
+      },
+      "publicados": {
+        "dates": [
+          "2026-08-26"
+        ],
+        "values": [
+          0.0
+        ],
+        "delta_30d": null
+      },
+      "em_producao": {
+        "dates": [
+          "2026-08-26"
+        ],
+        "values": [
+          16.0
+        ],
+        "delta_30d": null
+      },
+      "submetidos": {
+        "dates": [
+          "2026-08-26"
+        ],
+        "values": [
+          3.0
+        ],
+        "delta_30d": null
+      },
+      "submissoes": {
+        "dates": [
+          "2026-08-26"
+        ],
+        "values": [
+          5.0
+        ],
+        "delta_30d": null
+      },
+      "citacoes": {
+        "dates": [
+          "2026-08-26"
+        ],
+        "values": [
+          0.0
+        ],
+        "delta_30d": null
+      },
+      "integrantes": {
+        "dates": [
+          "2026-08-26"
+        ],
+        "values": [
+          17.0
+        ],
+        "delta_30d": null
+      },
+      "projetos": {
+        "dates": [
+          "2026-08-26"
+        ],
+        "values": [
+          1.0
+        ],
+        "delta_30d": null
+      },
+      "atividades": {
+        "dates": [
+          "2026-08-26"
+        ],
+        "values": [
+          1.0
+        ],
+        "delta_30d": null
+      },
+      "indice_h_maximo": {
+        "dates": [
+          "2026-08-26"
+        ],
+        "values": [
+          0.0
+        ],
+        "delta_30d": null
+      }
+    },
+    "snapshots": 1
+  },
+  "catalog": {
+    "measures": [
+      {
+        "id": "artigos",
+        "label": "Artigos",
+        "unit": "artigos"
+      },
+      {
+        "id": "publicados",
+        "label": "Publicados",
+        "unit": "artigos"
+      },
+      {
+        "id": "submetidos",
+        "label": "Submetidos",
+        "unit": "artigos"
+      },
+      {
+        "id": "em_producao",
+        "label": "Em produção",
+        "unit": "artigos"
+      },
+      {
+        "id": "citacoes",
+        "label": "Citações",
+        "unit": "citações"
+      },
+      {
+        "id": "citacoes_media",
+        "label": "Citações por artigo",
+        "unit": "citações"
+      },
+      {
+        "id": "tentativas",
+        "label": "Tentativas de submissão",
+        "unit": "tentativas"
+      },
+      {
+        "id": "recusas",
+        "label": "Recusas",
+        "unit": "recusas"
+      },
+      {
+        "id": "dias_ate_publicar",
+        "label": "Dias do início à publicação",
+        "unit": "dias"
+      },
+      {
+        "id": "dias_ate_aceite",
+        "label": "Dias da submissão ao aceite",
+        "unit": "dias"
+      },
+      {
+        "id": "autores_medio",
+        "label": "Autores por artigo",
+        "unit": "autores"
+      }
+    ],
+    "dimensions": [
+      {
+        "id": "linha",
+        "label": "Linha de pesquisa"
+      },
+      {
+        "id": "status",
+        "label": "Situação"
+      },
+      {
+        "id": "ano",
+        "label": "Ano"
+      },
+      {
+        "id": "ano_publicacao",
+        "label": "Ano de publicação"
+      },
+      {
+        "id": "periodico",
+        "label": "Periódico"
+      },
+      {
+        "id": "qualis",
+        "label": "Qualis"
+      },
+      {
+        "id": "tipo_estudo",
+        "label": "Tipo de estudo"
+      },
+      {
+        "id": "responsavel",
+        "label": "Responsável"
+      },
+      {
+        "id": "idioma",
+        "label": "Idioma"
+      },
+      {
+        "id": "fonte",
+        "label": "Origem do registro"
+      }
+    ],
+    "filters": [
+      "ano",
+      "ate",
+      "de",
+      "integrante",
+      "linha",
+      "periodico",
+      "qualis",
+      "responsavel",
+      "status"
     ]
   },
   "discoveries": []

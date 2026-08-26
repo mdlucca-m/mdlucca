@@ -19,6 +19,7 @@ Exercício** (UDESC/CEFID).
 - [Início rápido](#início-rápido)
 - [O site: painel, login e cadastro](#o-site-painel-login-e-cadastro)
 - [Publicar na nuvem — custo zero](#publicar-na-nuvem--custo-zero)
+- [Camadas de dados (lakehouse)](#camadas-de-dados-lakehouse)
 - [Os dois agentes digitais](#os-dois-agentes-digitais)
 - [API REST](#api-rest)
 - [O que o painel mostra](#o-que-o-painel-mostra)
@@ -217,6 +218,67 @@ Copie `.env.example` para `.env` e ajuste. O `.env` não vai para o repositório
 
 ---
 
+## Camadas de dados (lakehouse)
+
+O mesmo banco guarda três camadas, cada uma com um trabalho diferente.
+
+| Camada | Onde | O que é | Some se apagar? |
+|---|---|---|---|
+| **Bronze** | `data/lake/bronze/<data>/` | O arquivo cru, como chegou, com `sha256` e tamanho | Não — dá para recapturar |
+| **Prata** | `data/db.sqlite` (`sql/schema.sql`) | Dado operacional, normalizado — **a fonte de verdade** | Sim |
+| **Ouro** | tabelas `fact_*`/`dim_*` + Parquet | Modelo dimensional para consulta rápida | Não — é reconstruída |
+
+**Por que bronze existe:** se amanhã o importador mudar, a planilha daquele dia
+continua guardada, com impressão digital, para reprocessar. **Por que ouro
+existe:** um cruzamento "medida × recorte" vira um único `JOIN`, em vez de
+percorrer o modelo operacional.
+
+```bash
+python3 scripts/lape_agent.py lake                        # bronze → ouro → medição
+python3 scripts/lape_agent.py lake --exportar             # + Parquet (ou CSV)
+python3 scripts/lape_agent.py lake --linhagem             # de onde veio cada carga
+python3 scripts/lape_agent.py lake --consultar publicados linha
+```
+
+O curador já chama o lakehouse no fim do ciclo — não é preciso rodar à mão.
+
+### Histórico medido
+
+A cada execução, `metric_snapshot` grava o valor de 14 indicadores (total e por
+linha de pesquisa). É isso que faz o painel mostrar **“▲ 3 em 30 dias”** com
+número medido, e não estimado. Essa tabela sobrevive à reconstrução da camada
+ouro — apagar os fatos não apaga a série.
+
+### Consulta analítica
+
+A camada ouro expõe **11 medidas × 10 dimensões**, combináveis com quebra e
+filtro. O cliente nunca escreve SQL: escolhe chaves de uma lista, e cada chave
+traz a expressão pronta.
+
+```bash
+curl -b cookies.txt 'http://127.0.0.1:8000/api/query?medida=citacoes&por=ano_publicacao&quebra=linha'
+curl -b cookies.txt 'http://127.0.0.1:8000/api/catalog'    # o que existe
+```
+
+| Medidas | Dimensões |
+|---|---|
+| artigos, publicados, submetidos, em produção, citações, citações por artigo, tentativas, recusas, dias até publicar, dias até aceite, autores por artigo | linha, situação, ano, ano de publicação, periódico, Qualis, tipo de estudo, responsável, idioma, origem do registro |
+
+Filtros aceitos: `linha`, `status`, `ano`, `periodico`, `qualis`, `responsavel`,
+`integrante`, `de`, `ate`.
+
+### Saída para outras ferramentas
+
+`lake --exportar` grava a camada ouro em **Parquet** (formato colunar que abre
+no pandas, no R via `arrow`, no DuckDB e no Power BI sem precisar do SQLite).
+Sem o `pyarrow` instalado, a exportação cai para CSV automaticamente:
+
+```bash
+pip install pyarrow      # opcional; fora dele, CSV
+```
+
+---
+
 ## Os dois agentes digitais
 
 ### Agente rastreador — busca informação lá fora
@@ -274,6 +336,12 @@ sobrescrito por fonte externa. Os agentes só preenchem campos vazios.
 | `/api/auth/usuarios` | POST | admin | Cria acesso para um integrante |
 | `/api/health` | GET | — | Status e contagens |
 | `/api/metrics[/<bloco>]` | GET | leitura | Todos os indicadores em JSON |
+| `/api/state` | GET | leitura | Consulta barata: mudou alguma coisa? |
+| `/api/catalog` | GET | leitura | Medidas e dimensões disponíveis |
+| `/api/query` | GET | leitura | `?medida=&por=&quebra=&linha=&ano=…` |
+| `/api/history` | GET | leitura | `?metrica=publicados` — série medida |
+| `/api/lake/lineage` | GET | coordenação | De onde veio cada carga |
+| `/api/agents/lake` | POST | coordenação | Reconstrói o lakehouse |
 | `/api/articles` | GET/POST | leitura / integrante | Filtros: `status`, `linha`, `ano`, `q`, `limit`, `offset` |
 | `/api/articles/<id>` | GET | leitura | Artigo com autores, submissões, marcos e histórico de citações |
 | `/api/researchers/<id>` | GET | leitura | Ficha do pesquisador: projetos, artigos, coautores, índice h |
@@ -317,37 +385,73 @@ curl -H "Authorization: Bearer $LAPE_API_TOKEN" http://127.0.0.1:8000/api/metric
 ## O que o painel mostra
 
 Servido em `/` (ao vivo) e exportado em `docs/index.html` (arquivo único, sem
-dependências externas, funciona offline e no GitHub Pages). Tema claro/escuro,
-imprimível, com barra de filtros, tabelas ordenáveis e ficha de pesquisador em
-painel lateral.
+dependências externas, funciona offline e no GitHub Pages).
 
-**Filtros no topo** — linha de pesquisa, ano, integrante e busca livre. Os
-blocos marcados como *filtrável* respondem na hora; os demais mostram o
-laboratório inteiro.
+**Navegação por abas.** Cada aba é plotada no momento em que você entra nela,
+contra o recorte atual — nada é desenhado à toa. Ao vivo, o painel reconfere os
+dados a cada 25 s por uma consulta barata (`/api/state`) e só recarrega tudo
+quando algo mudou; durante a recarga o desenho anterior fica no lugar, sem
+esqueleto e sem salto.
 
-| Seção | Conteúdo |
+**Barra de filtros única, acima de tudo.** Ano em botões (é o filtro que todo
+mundo procura primeiro), linha, situação, integrante e busca livre. Mais o
+seletor **“Segmentar por”**, que muda a dimensão de agrupamento dos gráficos.
+
+**Toda figura tem par em tabela.** Cada gráfico traz os botões `Tabela` e `CSV`:
+nenhum valor existe apenas dentro de uma dica de mouse. As tabelas ordenam por
+qualquer coluna, filtram, paginam e exportam.
+
+| Aba | Conteúdo |
 |---|---|
-| Visão geral | KPIs, situação dos artigos, publicações por ano com acumulado, funil da produção, produção por linha |
-| Índice de linhas de pesquisa | Uma ficha por linha; clique para filtrar o painel |
-| **Banco de pesquisadores** | Nome, linha, projetos, artigos, publicados, submetidos, **índice h** e citações — ordenável, com ficha completa ao clicar |
-| **Projetos** | Coordenação, financiador, equipe, vigência, situação e recursos |
-| Artigos em produção | Título, início, autores, tempo em aberto, carga por responsável |
-| Artigos submetidos | Revista, data, tentativas, tempo em avaliação |
-| Publicações por ano | Total, média anual, série histórica, periódicos mais usados |
-| Artigos mais citados | Scopus, Web of Science e OpenAlex — geral e últimos 5 anos |
-| Artigos por integrante | Envolvimento por etapa, respeitando os filtros |
-| Rede de colaboração | Grafo de coautoria clicável, densidade, grau médio, duplas mais produtivas |
-| Tempos do ciclo editorial | Início→publicação, submissão→aceite, aceite→publicação |
-| Submissões e recusas | Tentativas por artigo, intervalos entre submissões, motivos das recusas, revistas |
-| Datas de aceite | Aceites com o tempo desde a primeira submissão |
-| Calendário e atividades | Calendário navegável, próximas atividades, tipos |
-| Linha do tempo | Mapa de calor ano × mês e evolução anual comparada |
-| Distribuição espacial | Mapa de atividades e instituições parceiras |
-| Achados do rastreador | Publicações encontradas aguardando aprovação |
-| Qualidade dos dados | Lacunas a preencher e histórico de cargas |
+| Visão geral | KPIs com variação medida e minigráfico, rosca por segmento, colunas por ano com régua de média, funil da produção, treemap por linha |
+| **Explorar dados** | Medida × recorte × quebra × forma, refeito na hora pela camada analítica |
+| Linhas de pesquisa | Ficha por linha + colunas empilhadas comparando etapas |
+| Banco de pesquisadores | Índice h em ranking, dispersão produção × impacto, tabela ordenável, ficha em painel lateral |
+| Projetos | KPIs, barras por financiador, halteres de vigência, tabela |
+| Artigos em produção | Carga por responsável, distribuição de idade (quartis), tabela |
+| Artigos submetidos | Espera mediana e máxima, tabela por revista |
+| Publicações | Colunas por ano + acumulado, série histórica, periódicos mais usados |
+| Artigos mais citados | Abas Scopus / WoS / OpenAlex, ranking, dispersão idade × impacto |
+| Artigos por integrante | Colunas empilhadas por etapa, tabela cruzada |
+| Rede de colaboração | Grafo de coautoria clicável, densidade, duplas mais produtivas |
+| Tempos do ciclo editorial | Distribuição das três etapas, faixas de tempo, dispersão tentativas × tempo |
+| Submissões e recusas | **Sankey** do caminho das submissões, tentativas, decisões, motivos, intervalos |
+| Datas de aceite | Halteres submissão → aceite, tabela |
+| Calendário e atividades | Calendário navegável, próximas atividades, tipos e anos |
+| Linha do tempo | Mapa de calor ano × mês, evolução anual comparada, histórico medido |
+| Distribuição espacial | Mapa de bolhas, locais, instituições |
+| Achados do rastreador | Publicações aguardando aprovação |
+| Qualidade e origem | Lacunas, últimas cargas e **linhagem** (arquivo, sha256, linhas) |
 
-Para publicar a versão estática no GitHub Pages: **Settings → Pages → Deploy
-from a branch → pasta `/docs`**.
+### Formas disponíveis
+
+Colunas (simples, empilhadas, agrupadas, com linha de referência), barras
+ranqueadas, linhas com mira que encontra o X, área, rosca com chamadas, funil,
+dispersão com alvo de 24 px, halteres, mapa de calor sequencial, distribuição
+(quartis + mediana + pontos), treemap, Sankey, rede de força, bolhas
+geográficas, minigráfico e medidor.
+
+### Sobre as cores
+
+A paleta categórica foi **verificada por script** para daltonismo e contraste,
+nos dois modos, sobre as superfícies em que o painel realmente desenha:
+
+| | Pior par adjacente (protanopia) | Pior par (visão normal) |
+|---|---|---|
+| Claro | ΔE 9,1 | ΔE 19,6 |
+| Escuro | ΔE 8,4 | ΔE 19,3 |
+
+Regras que valem em todo o painel: cor categórica segue a **entidade**, nunca a
+posição no ranking (filtrar não repinta quem sobrou); nunca se gera uma nona cor
+— o excedente vira “Outros”; sequencial é um só matiz claro→escuro; dispersão,
+bolha e mapa usam no máximo três séries (o limite que passa no teste de “todos
+os pares”); e texto nunca veste a cor da série.
+
+O modo escuro não é uma inversão automática: são os mesmos oito matizes
+reposicionados para a superfície escura e verificados como conjunto.
+
+Para publicar a versão estática no GitHub Pages, veja
+[Publicar na nuvem](#publicar-na-nuvem--custo-zero).
 
 ---
 
@@ -417,7 +521,8 @@ Num servidor próprio, agende o curador no cron e deixe o site no ar:
 ## Estrutura do projeto
 
 ```
-sql/schema.sql              esquema (16 tabelas + 8 views analíticas)
+sql/schema.sql              camada prata: esquema operacional
+sql/gold.sql                camada ouro: modelo dimensional (fatos e dimensões)
 scripts/
   lape_agent.py             console: rastreador, curador, api, usuarios, revisar, status
   run_pipeline.py           pipeline direto, sem os agentes
@@ -433,14 +538,20 @@ scripts/
     ingest_lattes.py        XML do Lattes → banco
     ingest_citations.py     Scopus e Web of Science
     sources.py              OpenAlex, Crossref, PubMed (só biblioteca padrão)
+    lake.py                 lakehouse: bronze, ouro, histórico e consulta analítica
     metrics.py              indicadores, índice h, rede, séries temporais
     report.py               gera o painel HTML
     api.py                  site + API REST
     agents/tracker.py       agente rastreador
     agents/curator.py       agente curador
-    templates/              painel, login, área do integrante, CSS comum
+    templates/
+      theme.css             sistema de design e paleta verificada
+      charts.js             biblioteca de gráficos (sem dependências)
+      dashboard.html/.js    painel
+      login.html, app.html  acesso e área do integrante
 data/raw/                   planilhas e XML do Lattes (entrada)
 data/geo/                   GeoJSON opcional para o mapa
+data/lake/                  bronze e ouro (fora do git; em produção, no volume)
 docs/index.html             painel estático (saída)
 deploy/
   instalar.sh               instalação em um comando (Docker + HTTPS + admin)
@@ -452,7 +563,7 @@ Dockerfile
 docker-compose.yml          desenvolvimento
 docker-compose.prod.yml     produção: aplicação + Caddy (+ túnel opcional)
 .env.example                modelo de configuração
-tests/                      64 testes, sem acesso à rede
+tests/                      96 testes, sem acesso à rede
 ```
 
 O `scripts/migrate.R` continua funcionando: aplica o mesmo `sql/schema.sql`,
@@ -468,5 +579,12 @@ python3 -m unittest discover -s tests -v
 
 Conferem a ingestão contra os números que a própria planilha do laboratório
 calcula (por exemplo, os 12,5 dias médios entre uma recusa e a nova submissão),
-sobem um servidor HTTP real para testar login, permissões e cadastro, e
-substituem as bases externas por respostas gravadas — rodam sem rede.
+sobem um servidor HTTP real para testar login, permissões, cadastro e as
+consultas analíticas, e substituem as bases externas por respostas gravadas —
+rodam sem rede.
+
+Os testes do lakehouse cobrem as três camadas: deduplicação por `sha256` no
+bronze, cálculo das durações e reconstrução sem duplicar no ouro, preservação do
+histórico entre reconstruções, e a recusa de medidas, dimensões e filtros fora
+da lista — inclusive com valores de filtro contendo SQL, que são tratados como
+dado e não como comando.

@@ -5,6 +5,10 @@ data/*.sqlite-wal
 data/*.sqlite-shm
 data/db.json
 
+# Lakehouse: bronze e ouro sao derivados/arquivo local. Em producao vivem no
+# mesmo volume do banco. A linhagem (com sha256) fica no proprio banco.
+data/lake/
+
 # Configuracao com senhas - nunca versionar
 .env
 .env.local

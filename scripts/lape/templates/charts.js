@@ -1,0 +1,1080 @@
+/* ==========================================================================
+   LAPE — biblioteca de gráficos
+   Sem dependências externas. Cada forma devolve um <figure> com:
+     · o desenho em SVG
+     · legenda, quando há duas séries ou mais
+     · botões "Tabela" e "CSV" — todo valor é alcançável sem passar o mouse
+   Especificação das marcas (fixa em todos os gráficos):
+     barra <= 24px, ponta arredondada em 4px e reta na linha de base
+     linha 2px, junta e ponta redondas · marcador r >= 4 com anel de 2px
+     área a 10% de opacidade · grade em fio de cabelo, sólida, discreta
+     2px de respiro entre marcas encostadas (empilhamento e barras vizinhas)
+   ========================================================================== */
+"use strict";
+
+const Charts = (function () {
+  const NS = "http://www.w3.org/2000/svg";
+  const BAR_MAX = 24;        /* espessura máxima da barra */
+  const GAP = 2;             /* respiro entre marcas encostadas */
+  const R_END = 4;           /* raio da ponta da barra */
+
+  /* ---------------------------------------------------------------- base */
+  function token(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+  function serie(i) { return token("--series-" + ((i % 8) + 1)); }
+  function seq(step) { return token("--seq-" + step); }
+  function ord(i) { return token("--ord-" + (Math.min(i, 3) + 1)); }
+  const SEQ_STEPS = [100, 200, 300, 400, 500, 600, 700];
+
+  function el(tag, attrs, kids) {
+    const node = document.createElement(tag);
+    apply(node, attrs);
+    append(node, kids);
+    return node;
+  }
+  function s(tag, attrs, kids) {
+    const node = document.createElementNS(NS, tag);
+    for (const k in (attrs || {})) {
+      if (attrs[k] === null || attrs[k] === undefined || attrs[k] === false) continue;
+      node.setAttribute(k, attrs[k]);
+    }
+    append(node, kids);
+    return node;
+  }
+  function apply(node, attrs) {
+    for (const k in (attrs || {})) {
+      const v = attrs[k];
+      if (v === null || v === undefined || v === false) continue;
+      if (k === "class") node.className = v;
+      else if (k === "text") node.textContent = v;      /* nunca innerHTML com dado */
+      else if (k === "html") node.innerHTML = v;
+      else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
+      else node.setAttribute(k, v);
+    }
+  }
+  function append(node, kids) {
+    (Array.isArray(kids) ? kids : (kids === undefined || kids === null ? [] : [kids]))
+      .forEach(function (kid) {
+        if (kid === null || kid === undefined || kid === false) return;
+        node.appendChild(typeof kid === "object" ? kid : document.createTextNode(String(kid)));
+      });
+  }
+  function txt(node, value) { node.textContent = value === null || value === undefined ? "" : String(value); return node; }
+
+  /* ------------------------------------------------------------ formatos */
+  function fmt(v) {
+    if (v === null || v === undefined || v === "") return "—";
+    if (typeof v !== "number") return String(v);
+    if (!isFinite(v)) return "—";
+    if (Number.isInteger(v)) return v.toLocaleString("pt-BR");
+    return v.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+  }
+  function compact(v) {
+    if (typeof v !== "number" || !isFinite(v)) return fmt(v);
+    if (Math.abs(v) >= 1e6) return (v / 1e6).toFixed(1).replace(".", ",") + " mi";
+    if (Math.abs(v) >= 10000) return (v / 1000).toFixed(1).replace(".", ",") + " mil";
+    return fmt(v);
+  }
+  /* eixo com números redondos */
+  function niceTicks(max, wanted) {
+    if (!(max > 0)) return { max: 1, ticks: [0, 1] };
+    if (max <= (wanted || 4)) {
+      const ticks = [];
+      for (let i = 0; i <= Math.ceil(max); i++) ticks.push(i);
+      return { max: Math.ceil(max), ticks: ticks };
+    }
+    const raw = max / (wanted || 4);
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const step = [1, 2, 2.5, 5, 10].map(function (m) { return m * mag; })
+      .find(function (v) { return v >= raw; }) || 10 * mag;
+    const top = Math.ceil(max / step) * step;
+    const ticks = [];
+    for (let v = 0; v <= top + 1e-9; v += step) ticks.push(Math.round(v * 1000) / 1000);
+    return { max: top, ticks: ticks };
+  }
+
+  /* -------------------------------------------------------------- dica */
+  let TIP = null;
+  function tipNode() {
+    if (!TIP) {
+      TIP = el("div", { class: "tip", role: "status", "aria-live": "polite" });
+      document.body.appendChild(TIP);
+    }
+    return TIP;
+  }
+  /* rows: [{name, value, color}] — valor em destaque, nome secundário */
+  function showTip(ev, title, rows) {
+    const tip = tipNode();
+    tip.innerHTML = "";
+    tip.appendChild(txt(el("div", { class: "tip-title" }), title));
+    (rows || []).forEach(function (row) {
+      const line = el("div", { class: "row" });
+      if (row.color) line.appendChild(el("span", { class: "key", style: "background:" + row.color }));
+      line.appendChild(txt(el("span", { class: "v" }), row.value));
+      if (row.name) line.appendChild(txt(el("span", { class: "n" }), row.name));
+      tip.appendChild(line);
+    });
+    tip.classList.add("on");
+    place(tip, ev);
+  }
+  function place(tip, ev) {
+    const box = tip.getBoundingClientRect();
+    const source = ev.touches ? ev.touches[0] : ev;
+    let x = (source.clientX || 0) + 16, y = (source.clientY || 0) - box.height - 12;
+    if (x + box.width > innerWidth - 8) x = (source.clientX || 0) - box.width - 16;
+    if (y < 8) y = (source.clientY || 0) + 20;
+    tip.style.left = Math.max(8, x) + "px";
+    tip.style.top = Math.max(8, y) + "px";
+  }
+  function hideTip() { if (TIP) TIP.classList.remove("on"); }
+  /* alvo de toque maior que a marca, e o mesmo conteúdo no foco do teclado */
+  function hoverable(node, title, rows, onClick) {
+    node.addEventListener("pointermove", function (ev) { showTip(ev, title, rows); });
+    node.addEventListener("pointerleave", hideTip);
+    node.setAttribute("tabindex", "0");
+    node.setAttribute("role", "img");
+    node.setAttribute("aria-label", title + ": "
+      + (rows || []).map(function (r) { return r.value + " " + (r.name || ""); }).join(", "));
+    node.addEventListener("focus", function () {
+      const box = node.getBoundingClientRect();
+      showTip({ clientX: box.left + box.width / 2, clientY: box.top }, title, rows);
+    });
+    node.addEventListener("blur", hideTip);
+    if (onClick) {
+      node.style.cursor = "pointer";
+      node.addEventListener("click", onClick);
+      node.addEventListener("keydown", function (ev) {
+        if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); onClick(); }
+      });
+    }
+    return node;
+  }
+
+  /* ------------------------------------------------- caminhos das marcas */
+  /* barra com a ponta arredondada e a base reta */
+  function capTop(x, y, w, h, r) {
+    r = Math.max(0, Math.min(r === undefined ? R_END : r, w / 2, h));
+    return "M" + x + "," + (y + h) + " L" + x + "," + (y + r)
+      + " Q" + x + "," + y + " " + (x + r) + "," + y
+      + " L" + (x + w - r) + "," + y + " Q" + (x + w) + "," + y + " " + (x + w) + "," + (y + r)
+      + " L" + (x + w) + "," + (y + h) + " Z";
+  }
+  function capRight(x, y, w, h, r) {
+    r = Math.max(0, Math.min(r === undefined ? R_END : r, h / 2, w));
+    return "M" + x + "," + y + " L" + (x + w - r) + "," + y
+      + " Q" + (x + w) + "," + y + " " + (x + w) + "," + (y + r)
+      + " L" + (x + w) + "," + (y + h - r)
+      + " Q" + (x + w) + "," + (y + h) + " " + (x + w - r) + "," + (y + h)
+      + " L" + x + "," + (y + h) + " Z";
+  }
+
+  /* ------------------------------------------------------------- moldura */
+  function empty(message) {
+    return el("div", { class: "empty", text: message || "Sem dados para este recorte." });
+  }
+  function legendOf(items, opts) {
+    opts = opts || {};
+    const box = el("div", { class: "legend" + (opts.onToggle ? " clickable" : "") });
+    items.forEach(function (item, i) {
+      const node = el("div", { class: "item", tabindex: opts.onToggle ? "0" : null });
+      node.appendChild(el("span", {
+        class: "swatch" + (opts.line ? " line" : ""),
+        style: "background:" + (item.color || serie(i)),
+      }));
+      node.appendChild(txt(el("span", {}), item.label));
+      if (opts.onToggle) {
+        const fire = function () { node.classList.toggle("off"); opts.onToggle(item, node.classList.contains("off")); };
+        node.addEventListener("click", fire);
+        node.addEventListener("keydown", function (ev) {
+          if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); fire(); }
+        });
+      }
+      box.appendChild(node);
+    });
+    return box;
+  }
+  function scaleLegend(min, max, from, to, unit) {
+    const ramp = el("span", {
+      class: "ramp",
+      style: "background:linear-gradient(90deg," + from + "," + to + ")",
+    });
+    return el("div", { class: "scale" }, [txt(el("span", {}), fmt(min)), ramp,
+      txt(el("span", {}), fmt(max) + (unit ? " " + unit : ""))]);
+  }
+  function csvEscape(v) {
+    const text = v === null || v === undefined ? "" : String(v);
+    return /[";\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+  }
+  function downloadCsv(name, cols, rows) {
+    const head = cols.map(function (c) { return csvEscape(c.label); }).join(";");
+    const body = rows.map(function (row) {
+      return cols.map(function (c) { return csvEscape(c.get ? c.get(row) : row[c.k]); }).join(";");
+    }).join("\n");
+    /* BOM para o Excel abrir os acentos corretamente */
+    const blob = new Blob(["﻿" + head + "\n" + body], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = el("a", { href: url, download: name });
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+  function plainTable(cols, rows) {
+    const head = s ? null : null;
+    const thead = el("thead", {}, el("tr", {}, cols.map(function (c) {
+      return txt(el("th", { class: c.num ? "num" : null }), c.label);
+    })));
+    const tbody = el("tbody", {}, rows.map(function (row) {
+      return el("tr", {}, cols.map(function (c) {
+        return txt(el("td", { class: c.num ? "num" : null }), c.get ? c.get(row) : row[c.k]);
+      }));
+    }));
+    return el("div", { class: "tw" }, el("table", {}, [thead, tbody]));
+  }
+
+  /* Toda figura ganha o par gráfico/tabela: nenhum valor fica só na dica. */
+  function figure(spec, plot, extras) {
+    const fig = el("figure", { class: "chart" });
+    if (spec.caption) fig.appendChild(txt(el("figcaption", {}), spec.caption));
+    fig.appendChild(plot);
+    (extras || []).forEach(function (node) { if (node) fig.appendChild(node); });
+    if (spec.table && spec.table.rows && spec.table.rows.length) {
+      const twin = el("div", { class: "table-twin" }, plainTable(spec.table.cols, spec.table.rows));
+      const toggle = el("button", {
+        class: "no-print", type: "button", text: "Tabela", "aria-expanded": "false",
+        onclick: function () {
+          const on = twin.classList.toggle("on");
+          toggle.textContent = on ? "Gráfico" : "Tabela";
+          toggle.setAttribute("aria-expanded", String(on));
+        },
+      });
+      const csv = el("button", {
+        class: "no-print", type: "button", text: "CSV", title: "Baixar em CSV",
+        onclick: function () {
+          downloadCsv((spec.file || "lape") + ".csv", spec.table.cols, spec.table.rows);
+        },
+      });
+      fig.appendChild(el("div", { class: "chart-tools" }, [toggle, csv]));
+      fig.appendChild(twin);
+    }
+    return fig;
+  }
+  function svgRoot(w, h, label) {
+    return s("svg", {
+      class: "plot", viewBox: "0 0 " + w + " " + h, role: "img",
+      "aria-label": label || "gráfico", preserveAspectRatio: "xMidYMid meet",
+    });
+  }
+
+  /* ==================================================================== */
+  /* colunas verticais — magnitude por categoria                          */
+  /* modo: "simples" | "empilhado" | "agrupado"                           */
+  /* ==================================================================== */
+  function columns(spec) {
+    const labels = spec.labels || [];
+    const series = spec.series || [{ label: spec.name || "", values: spec.values || [] }];
+    if (!labels.length) return figure(spec, empty(spec.emptyMessage));
+
+    const W = 760, H = spec.height || 260, ML = 52, MR = 16, MT = 20, MB = 40;
+    const iw = W - ML - MR, ih = H - MT - MB;
+    const stacked = spec.mode === "empilhado";
+    const grouped = spec.mode === "agrupado";
+
+    const totals = labels.map(function (_, i) {
+      return stacked ? series.reduce(function (a, x) { return a + (x.values[i] || 0); }, 0)
+        : Math.max.apply(null, series.map(function (x) { return x.values[i] || 0; }));
+    });
+    const peak = Math.max.apply(null, totals.concat(spec.reference ? [spec.reference] : []).concat([0]));
+    const scale = niceTicks(peak, 4);
+    const Y = function (v) { return MT + ih - ih * v / scale.max; };
+
+    const svg = svgRoot(W, H, spec.caption || "colunas");
+    scale.ticks.forEach(function (t) {
+      svg.appendChild(s("line", { class: "grid-line", x1: ML, x2: W - MR, y1: Y(t), y2: Y(t) }));
+      svg.appendChild(txt(s("text", { class: "tick", x: ML - 8, y: Y(t) + 3.5, "text-anchor": "end" }), fmt(t)));
+    });
+    svg.appendChild(s("line", { class: "axis-line", x1: ML, x2: W - MR, y1: Y(0), y2: Y(0) }));
+
+    const band = iw / labels.length;
+    const bandInner = Math.min(band - 10, BAR_MAX * (grouped ? series.length : 1) + (grouped ? (series.length - 1) * GAP : 0));
+    const barW = grouped ? Math.min(BAR_MAX, (bandInner - (series.length - 1) * GAP) / series.length)
+      : Math.min(BAR_MAX, bandInner);
+
+    labels.forEach(function (label, i) {
+      const center = ML + band * i + band / 2;
+      if (stacked) {
+        let cursor = 0;
+        series.forEach(function (serieSpec, si) {
+          const v = serieSpec.values[i] || 0;
+          if (!v) return;
+          const y0 = Y(cursor + v), y1 = Y(cursor);
+          const h = Math.max(1, y1 - y0 - (cursor > 0 ? GAP : 0));
+          const x = center - barW / 2;
+          const isTop = cursor + v >= totals[i] - 1e-9;
+          const node = s("path", {
+            class: "mark", d: isTop ? capTop(x, y0, barW, h) : capTop(x, y0, barW, h, 0),
+            fill: serieSpec.color || serie(si),
+          });
+          hoverable(node, label, [{ value: fmt(v), name: serieSpec.label, color: serieSpec.color || serie(si) }],
+            spec.onSelect && function () { spec.onSelect(label, serieSpec.label); });
+          svg.appendChild(node);
+          cursor += v;
+        });
+        if (totals[i]) {
+          svg.appendChild(txt(s("text", { class: "val", x: center, y: Y(totals[i]) - 7, "text-anchor": "middle" }), fmt(totals[i])));
+        }
+      } else {
+        series.forEach(function (serieSpec, si) {
+          const v = serieSpec.values[i] || 0;
+          const x = grouped
+            ? center - bandInner / 2 + si * (barW + GAP)
+            : center - barW / 2;
+          const h = Math.max(v > 0 ? 2 : 0, Y(0) - Y(v));
+          if (h <= 0) return;
+          const node = s("path", {
+            class: "mark", d: capTop(x, Y(v), barW, h), fill: serieSpec.color || serie(si),
+          });
+          hoverable(node, label, [{ value: fmt(v), name: serieSpec.label, color: serieSpec.color || serie(si) }],
+            spec.onSelect && function () { spec.onSelect(label, serieSpec.label); });
+          svg.appendChild(node);
+          /* rótulo direto só quando há uma série — com várias, a legenda + dica carregam */
+          if (series.length === 1 && v) {
+            svg.appendChild(txt(s("text", { class: "val", x: x + barW / 2, y: Y(v) - 7, "text-anchor": "middle" }), fmt(v)));
+          }
+        });
+      }
+      svg.appendChild(txt(s("text", { class: "lab", x: center, y: H - MB + 16, "text-anchor": "middle" }), label));
+    });
+
+    /* linha de referência (meta) — sólida, com rótulo à direita */
+    if (spec.reference) {
+      svg.appendChild(s("line", {
+        class: "axis-line", x1: ML, x2: W - MR, y1: Y(spec.reference), y2: Y(spec.reference),
+        stroke: token("--ink-muted"), "stroke-width": 1.5,
+      }));
+      svg.appendChild(txt(s("text", {
+        class: "val", x: W - MR, y: Y(spec.reference) - 6, "text-anchor": "end",
+      }), (spec.referenceLabel || "meta") + " " + fmt(spec.reference)));
+    }
+
+    const extras = series.length > 1
+      ? [legendOf(series.map(function (x, i) { return { label: x.label, color: x.color || serie(i) }; }))]
+      : [];
+    return figure(spec, svg, extras);
+  }
+
+  /* ==================================================================== */
+  /* barras horizontais — ranking                                          */
+  /* ==================================================================== */
+  function bars(spec) {
+    const items = spec.items || [];
+    if (!items.length) return figure(spec, empty(spec.emptyMessage));
+    const rowH = spec.rowH || 26;
+    const W = 760, ML = spec.labelWidth || 190, MR = 62;
+    const H = items.length * rowH + 12;
+    const iw = W - ML - MR;
+    const peak = Math.max.apply(null, items.map(function (d) { return d.value; }).concat([0]));
+    const scale = niceTicks(peak, 3);
+    const svg = svgRoot(W, H, spec.caption || "ranking");
+
+    scale.ticks.forEach(function (t) {
+      const x = ML + iw * t / scale.max;
+      svg.appendChild(s("line", { class: "grid-line", x1: x, x2: x, y1: 4, y2: H - 8 }));
+    });
+    svg.appendChild(s("line", { class: "axis-line", x1: ML, x2: ML, y1: 4, y2: H - 8 }));
+
+    items.forEach(function (item, i) {
+      const y = i * rowH + 6;
+      const barH = Math.min(BAR_MAX, rowH - 10);
+      const w = Math.max(item.value > 0 ? 2 : 0, iw * item.value / scale.max);
+      const color = item.color || serie(spec.mono ? 0 : i);
+      const label = txt(s("text", {
+        class: "lab", x: ML - 10, y: y + barH / 2 + 4, "text-anchor": "end",
+      }), item.label.length > (spec.labelChars || 26) ? item.label.slice(0, (spec.labelChars || 26) - 1) + "…" : item.label);
+      svg.appendChild(label);
+      if (item.rank) {
+        svg.appendChild(txt(s("text", { class: "tick", x: 6, y: y + barH / 2 + 4 }), item.rank + "º"));
+      }
+      const node = s("path", { class: "mark", d: capRight(ML, y, w, barH), fill: color });
+      const rows = [{ value: fmt(item.value), name: spec.unit || "", color: color }];
+      if (item.note) rows.push({ value: "", name: item.note });
+      hoverable(node, item.label, rows, item.onSelect || (spec.onSelect && function () { spec.onSelect(item); }));
+      svg.appendChild(node);
+      svg.appendChild(txt(s("text", { class: "val", x: ML + w + 8, y: y + barH / 2 + 4 }), fmt(item.value)));
+    });
+    return figure(spec, svg);
+  }
+
+  /* ==================================================================== */
+  /* linhas — tendência, com mira que encontra o X                        */
+  /* ==================================================================== */
+  function lines(spec) {
+    const labels = spec.labels || [];
+    const series = spec.series || [];
+    if (!labels.length || !series.length) return figure(spec, empty(spec.emptyMessage));
+    const W = 760, H = spec.height || 250, ML = 52, MR = 20, MT = 18, MB = 38;
+    const iw = W - ML - MR, ih = H - MT - MB;
+    const all = series.reduce(function (acc, x) { return acc.concat(x.values); }, []);
+    const scale = niceTicks(Math.max.apply(null, all.concat([0])), 4);
+    const X = function (i) { return labels.length === 1 ? ML + iw / 2 : ML + iw * i / (labels.length - 1); };
+    const Y = function (v) { return MT + ih - ih * v / scale.max; };
+
+    const svg = svgRoot(W, H, spec.caption || "linhas");
+    scale.ticks.forEach(function (t) {
+      svg.appendChild(s("line", { class: "grid-line", x1: ML, x2: W - MR, y1: Y(t), y2: Y(t) }));
+      svg.appendChild(txt(s("text", { class: "tick", x: ML - 8, y: Y(t) + 3.5, "text-anchor": "end" }), fmt(t)));
+    });
+    svg.appendChild(s("line", { class: "axis-line", x1: ML, x2: W - MR, y1: Y(0), y2: Y(0) }));
+    labels.forEach(function (label, i) {
+      svg.appendChild(txt(s("text", { class: "lab", x: X(i), y: H - MB + 16, "text-anchor": "middle" }), label));
+    });
+
+    const crosshair = s("line", { class: "crosshair", y1: MT, y2: MT + ih, x1: -99, x2: -99 });
+    svg.appendChild(crosshair);
+
+    series.forEach(function (serieSpec, si) {
+      const color = serieSpec.color || serie(si);
+      const path = serieSpec.values.map(function (v, i) {
+        return (i ? "L" : "M") + X(i) + " " + Y(v);
+      }).join(" ");
+      if (serieSpec.area || (spec.area && series.length === 1)) {
+        svg.appendChild(s("path", {
+          fill: color, "fill-opacity": 0.1,
+          d: path + " L" + X(labels.length - 1) + " " + Y(0) + " L" + X(0) + " " + Y(0) + " Z",
+        }));
+      }
+      svg.appendChild(s("path", {
+        d: path, fill: "none", stroke: color, "stroke-width": 2,
+        "stroke-linejoin": "round", "stroke-linecap": "round",
+      }));
+      serieSpec.values.forEach(function (v, i) {
+        svg.appendChild(s("circle", { class: "ring", cx: X(i), cy: Y(v), r: 4, fill: color }));
+      });
+      /* rótulo direto só na ponta da série — nunca em todos os pontos */
+      const last = serieSpec.values[serieSpec.values.length - 1];
+      if (series.length <= 4 && last !== undefined) {
+        svg.appendChild(txt(s("text", {
+          class: "val", x: X(labels.length - 1) + 8, y: Y(last) + 4,
+        }), fmt(last)));
+      }
+    });
+
+    /* uma dica por X, listando todas as séries */
+    const hit = s("rect", { class: "hit", x: ML, y: MT, width: iw, height: ih });
+    function readAt(ev) {
+      const box = svg.getBoundingClientRect();
+      const px = ((ev.touches ? ev.touches[0] : ev).clientX - box.left) / box.width * W;
+      let idx = Math.round((px - ML) / (iw / Math.max(labels.length - 1, 1)));
+      idx = Math.max(0, Math.min(labels.length - 1, idx));
+      crosshair.setAttribute("x1", X(idx));
+      crosshair.setAttribute("x2", X(idx));
+      showTip(ev, labels[idx], series.map(function (x, si) {
+        return { value: fmt(x.values[idx]), name: x.label, color: x.color || serie(si) };
+      }));
+    }
+    hit.addEventListener("pointermove", readAt);
+    hit.addEventListener("pointerleave", function () {
+      hideTip();
+      crosshair.setAttribute("x1", -99);
+      crosshair.setAttribute("x2", -99);
+    });
+    svg.appendChild(hit);
+
+    const extras = series.length > 1
+      ? [legendOf(series.map(function (x, i) { return { label: x.label, color: x.color || serie(i) }; }), { line: true })]
+      : [];
+    return figure(spec, svg, extras);
+  }
+
+  /* ==================================================================== */
+  /* rosca — parte-e-todo, no máximo 6 fatias                             */
+  /* ==================================================================== */
+  function donut(spec) {
+    const items = (spec.items || []).filter(function (d) { return d.value > 0; });
+    const total = items.reduce(function (a, b) { return a + b.value; }, 0);
+    if (!total) return figure(spec, empty(spec.emptyMessage));
+    const W = 300, H = 260, cx = W / 2, cy = H / 2, R = 94, r = 62;
+    const svg = svgRoot(W, H, spec.caption || "distribuição");
+    let angle = -Math.PI / 2;
+
+    items.forEach(function (item, i) {
+      const color = item.color || serie(i);
+      const span = 2 * Math.PI * item.value / total;
+      /* o respiro de 2px entre fatias é feito com um recorte angular */
+      const pad = Math.min(GAP / R, span / 4);
+      const a0 = angle + pad / 2, a1 = angle + span - pad / 2;
+      const large = (a1 - a0) > Math.PI ? 1 : 0;
+      const path = s("path", {
+        class: "mark", fill: color,
+        d: "M" + (cx + R * Math.cos(a0)) + "," + (cy + R * Math.sin(a0))
+          + "A" + R + "," + R + " 0 " + large + " 1 " + (cx + R * Math.cos(a1)) + "," + (cy + R * Math.sin(a1))
+          + "L" + (cx + r * Math.cos(a1)) + "," + (cy + r * Math.sin(a1))
+          + "A" + r + "," + r + " 0 " + large + " 0 " + (cx + r * Math.cos(a0)) + "," + (cy + r * Math.sin(a0)) + "Z",
+      });
+      const pct = Math.round(100 * item.value / total);
+      hoverable(path, item.label, [{ value: fmt(item.value) + " (" + pct + "%)", name: spec.unit || "", color: color }],
+        item.onSelect || (spec.onSelect && function () { spec.onSelect(item); }));
+      svg.appendChild(path);
+      /* chamada só nas fatias que comportam o texto */
+      if (pct >= 8) {
+        const mid = (a0 + a1) / 2, rr = (R + r) / 2;
+        svg.appendChild(txt(s("text", {
+          x: cx + rr * Math.cos(mid), y: cy + rr * Math.sin(mid) + 4,
+          "text-anchor": "middle", style: "font-size:11px;font-weight:700;fill:#fff",
+        }), pct + "%"));
+      }
+      angle += span;
+    });
+    svg.appendChild(txt(s("text", {
+      x: cx, y: cy - 2, "text-anchor": "middle",
+      style: "font-size:30px;font-weight:650;fill:" + token("--ink"),
+    }), compact(total)));
+    svg.appendChild(txt(s("text", { class: "tick", x: cx, y: cy + 20, "text-anchor": "middle" }),
+      spec.unit || "total"));
+
+    return figure(spec, svg, [legendOf(items.map(function (d, i) {
+      return { label: d.label + " · " + fmt(d.value), color: d.color || serie(i) };
+    }))]);
+  }
+
+  /* ==================================================================== */
+  /* funil — etapas ordenadas, rampa de um matiz                          */
+  /* ==================================================================== */
+  function funnel(spec) {
+    const steps = spec.steps || [];
+    if (!steps.length) return figure(spec, empty(spec.emptyMessage));
+    const W = 760, rowH = 46, H = steps.length * rowH + 10, ML = 176, MR = 130;
+    const peak = Math.max.apply(null, steps.map(function (x) { return x.value; }).concat([1]));
+    const svg = svgRoot(W, H, spec.caption || "funil");
+    steps.forEach(function (step, i) {
+      const y = i * rowH + 6, h = rowH - 14;
+      const w = Math.max(3, (W - ML - MR) * step.value / peak);
+      const color = ord(i);
+      svg.appendChild(txt(s("text", { class: "lab", x: ML - 12, y: y + h / 2 + 4, "text-anchor": "end" }), step.label));
+      const node = s("path", { class: "mark", d: capRight(ML, y, w, h), fill: color });
+      const share = i ? Math.round(100 * step.value / (steps[i - 1].value || 1)) : 100;
+      hoverable(node, step.label, [
+        { value: fmt(step.value), name: spec.unit || "artigos", color: color },
+        i ? { value: share + "%", name: "da etapa anterior" } : null,
+      ].filter(Boolean), step.onSelect);
+      svg.appendChild(node);
+      svg.appendChild(txt(s("text", { class: "val", x: ML + w + 9, y: y + h / 2 + 4 }), fmt(step.value)));
+      if (i) {
+        svg.appendChild(txt(s("text", { class: "tick", x: W - 8, y: y + h / 2 + 4, "text-anchor": "end" }),
+          share + "% da etapa anterior"));
+      }
+    });
+    return figure(spec, svg);
+  }
+
+  /* ==================================================================== */
+  /* dispersão — no máximo 3 séries (limite de "todos os pares")          */
+  /* ==================================================================== */
+  function scatter(spec) {
+    const points = spec.points || [];
+    if (!points.length) return figure(spec, empty(spec.emptyMessage));
+    const W = 760, H = spec.height || 320, ML = 56, MR = 24, MT = 18, MB = 46;
+    const iw = W - ML - MR, ih = H - MT - MB;
+    const xs = points.map(function (p) { return p.x; }), ys = points.map(function (p) { return p.y; });
+    const sx = niceTicks(Math.max.apply(null, xs.concat([0])), 4);
+    const sy = niceTicks(Math.max.apply(null, ys.concat([0])), 4);
+    const X = function (v) { return ML + iw * v / sx.max; };
+    const Y = function (v) { return MT + ih - ih * v / sy.max; };
+    const svg = svgRoot(W, H, spec.caption || "dispersão");
+
+    sy.ticks.forEach(function (t) {
+      svg.appendChild(s("line", { class: "grid-line", x1: ML, x2: W - MR, y1: Y(t), y2: Y(t) }));
+      svg.appendChild(txt(s("text", { class: "tick", x: ML - 8, y: Y(t) + 3.5, "text-anchor": "end" }), fmt(t)));
+    });
+    sx.ticks.forEach(function (t) {
+      svg.appendChild(s("line", { class: "grid-line", x1: X(t), x2: X(t), y1: MT, y2: MT + ih }));
+      svg.appendChild(txt(s("text", { class: "tick", x: X(t), y: H - MB + 16, "text-anchor": "middle" }), fmt(t)));
+    });
+    svg.appendChild(s("line", { class: "axis-line", x1: ML, x2: W - MR, y1: Y(0), y2: Y(0) }));
+    svg.appendChild(s("line", { class: "axis-line", x1: ML, x2: ML, y1: MT, y2: MT + ih }));
+    if (spec.xLabel) svg.appendChild(txt(s("text", { class: "lab", x: ML + iw / 2, y: H - 6, "text-anchor": "middle" }), spec.xLabel));
+    if (spec.yLabel) svg.appendChild(txt(s("text", {
+      class: "lab", x: 12, y: MT + ih / 2, "text-anchor": "middle",
+      transform: "rotate(-90 12 " + (MT + ih / 2) + ")",
+    }), spec.yLabel));
+
+    points.forEach(function (p) {
+      const color = p.color || serie(p.group || 0);
+      const g = s("g");
+      /* alvo transparente de 24px: ninguém acerta um ponto de 8px no centro */
+      g.appendChild(s("circle", { class: "hit", cx: X(p.x), cy: Y(p.y), r: 12 }));
+      g.appendChild(s("circle", { class: "mark ring", cx: X(p.x), cy: Y(p.y), r: p.r || 5, fill: color }));
+      hoverable(g, p.label, [
+        { value: fmt(p.x), name: spec.xLabel || "x", color: color },
+        { value: fmt(p.y), name: spec.yLabel || "y" },
+      ], p.onSelect);
+      svg.appendChild(g);
+    });
+
+    const groups = spec.groups || [];
+    return figure(spec, svg, groups.length > 1
+      ? [legendOf(groups.map(function (g, i) { return { label: g, color: serie(i) }; }))] : []);
+  }
+
+  /* ==================================================================== */
+  /* halteres — antes → depois por item                                    */
+  /* ==================================================================== */
+  function dumbbell(spec) {
+    const items = spec.items || [];
+    if (!items.length) return figure(spec, empty(spec.emptyMessage));
+    const rowH = 30, W = 760, ML = spec.labelWidth || 210, MR = 70;
+    const H = items.length * rowH + 30;
+    const iw = W - ML - MR;
+    const peak = Math.max.apply(null, items.reduce(function (a, d) { return a.concat([d.from, d.to]); }, [0]));
+    const scale = niceTicks(peak, 4);
+    const X = function (v) { return ML + iw * v / scale.max; };
+    const svg = svgRoot(W, H, spec.caption || "antes e depois");
+    const cFrom = seq(200), cTo = seq(500);
+
+    scale.ticks.forEach(function (t) {
+      svg.appendChild(s("line", { class: "grid-line", x1: X(t), x2: X(t), y1: 4, y2: H - 26 }));
+      svg.appendChild(txt(s("text", { class: "tick", x: X(t), y: H - 10, "text-anchor": "middle" }), fmt(t)));
+    });
+    items.forEach(function (item, i) {
+      const y = i * rowH + 18;
+      svg.appendChild(txt(s("text", { class: "lab", x: ML - 12, y: y + 4, "text-anchor": "end" }),
+        item.label.length > 30 ? item.label.slice(0, 29) + "…" : item.label));
+      svg.appendChild(s("line", {
+        x1: X(item.from), x2: X(item.to), y1: y, y2: y,
+        stroke: token("--axis"), "stroke-width": 2, "stroke-linecap": "round",
+      }));
+      const g = s("g");
+      g.appendChild(s("circle", { class: "hit", cx: (X(item.from) + X(item.to)) / 2, cy: y, r: 12 }));
+      g.appendChild(s("circle", { class: "mark ring", cx: X(item.from), cy: y, r: 5, fill: cFrom }));
+      g.appendChild(s("circle", { class: "mark ring", cx: X(item.to), cy: y, r: 5, fill: cTo }));
+      hoverable(g, item.label, [
+        { value: fmt(item.from), name: spec.fromLabel || "antes", color: cFrom },
+        { value: fmt(item.to), name: spec.toLabel || "depois", color: cTo },
+      ], item.onSelect);
+      svg.appendChild(g);
+      svg.appendChild(txt(s("text", { class: "val", x: W - MR + 10, y: y + 4 }), fmt(item.to - item.from)));
+    });
+    return figure(spec, svg, [legendOf([
+      { label: spec.fromLabel || "antes", color: cFrom },
+      { label: spec.toLabel || "depois", color: cTo },
+    ])]);
+  }
+
+  /* ==================================================================== */
+  /* mapa de calor ano × mês — magnitude, rampa de um matiz               */
+  /* ==================================================================== */
+  const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+  function heatmap(spec) {
+    const years = spec.years || [];
+    const values = spec.values || [];
+    if (!years.length) return figure(spec, empty(spec.emptyMessage));
+    const cell = 42, ML = 46, MT = 24;
+    const W = ML + 12 * cell + 8, H = MT + years.length * cell + 10;
+    const peak = Math.max.apply(null, values.concat([1]));
+    const svg = svgRoot(W, H, spec.caption || "mapa de calor");
+
+    MESES.forEach(function (m, i) {
+      svg.appendChild(txt(s("text", { class: "tick", x: ML + i * cell + cell / 2, y: MT - 8, "text-anchor": "middle" }), m));
+    });
+    years.forEach(function (year, r) {
+      svg.appendChild(txt(s("text", { class: "tick", x: ML - 8, y: MT + r * cell + cell * 0.62, "text-anchor": "end" }), year));
+      for (let c = 0; c < 12; c++) {
+        const v = values[r * 12 + c] || 0;
+        const stepIndex = v ? Math.min(SEQ_STEPS.length - 1, Math.round((v / peak) * (SEQ_STEPS.length - 1))) : -1;
+        const fill = v ? seq(SEQ_STEPS[stepIndex]) : token("--surface-raised");
+        const node = s("rect", {
+          class: "mark", x: ML + c * cell + GAP / 2, y: MT + r * cell + GAP / 2,
+          width: cell - GAP, height: cell - GAP, rx: 5, fill: fill,
+          stroke: v ? "none" : token("--grid"), "stroke-width": v ? 0 : 1,
+        });
+        hoverable(node, MESES[c] + "/" + year,
+          [{ value: fmt(v), name: spec.unit || "", color: v ? fill : token("--axis") }],
+          spec.onSelect && function () { spec.onSelect(year, c + 1); });
+        svg.appendChild(node);
+        if (v) {
+          /* texto branco ou tinta conforme a luminância do preenchimento */
+          const light = stepIndex <= 2;
+          svg.appendChild(txt(s("text", {
+            x: ML + c * cell + cell / 2, y: MT + r * cell + cell * 0.62, "text-anchor": "middle",
+            style: "font-size:11.5px;font-weight:700;fill:" + (light ? token("--ink") : "#fff"),
+          }), v));
+        }
+      }
+    });
+    return figure(spec, svg, [scaleLegend(0, peak, seq(100), seq(700), spec.unit)]);
+  }
+
+  /* ==================================================================== */
+  /* distribuição — quartis, mediana e extremos                           */
+  /* ==================================================================== */
+  function distribution(spec) {
+    const groups = (spec.groups || []).filter(function (g) { return g.values && g.values.length; });
+    if (!groups.length) return figure(spec, empty(spec.emptyMessage));
+    const rowH = 54, W = 760, ML = spec.labelWidth || 180, MR = 26;
+    const H = groups.length * rowH + 34;
+    const iw = W - ML - MR;
+    const peak = Math.max.apply(null, groups.reduce(function (a, g) { return a.concat(g.values); }, [0]));
+    const scale = niceTicks(peak, 4);
+    const X = function (v) { return ML + iw * v / scale.max; };
+    const svg = svgRoot(W, H, spec.caption || "distribuição");
+
+    scale.ticks.forEach(function (t) {
+      svg.appendChild(s("line", { class: "grid-line", x1: X(t), x2: X(t), y1: 6, y2: H - 28 }));
+      svg.appendChild(txt(s("text", { class: "tick", x: X(t), y: H - 10, "text-anchor": "middle" }), fmt(t)));
+    });
+
+    groups.forEach(function (group, i) {
+      const sorted = group.values.slice().sort(function (a, b) { return a - b; });
+      const q = function (p) {
+        const pos = (sorted.length - 1) * p;
+        const low = Math.floor(pos), high = Math.min(low + 1, sorted.length - 1);
+        return sorted[low] + (sorted[high] - sorted[low]) * (pos - low);
+      };
+      const y = i * rowH + 22, color = group.color || serie(i);
+      const q1 = q(0.25), med = q(0.5), q3 = q(0.75);
+      svg.appendChild(txt(s("text", { class: "lab", x: ML - 12, y: y + 4, "text-anchor": "end" }), group.label));
+      /* bigodes */
+      svg.appendChild(s("line", {
+        x1: X(sorted[0]), x2: X(sorted[sorted.length - 1]), y1: y, y2: y,
+        stroke: token("--axis"), "stroke-width": 1.5, "stroke-linecap": "round",
+      }));
+      /* caixa interquartil */
+      svg.appendChild(s("rect", {
+        class: "mark", x: X(q1), y: y - 9, width: Math.max(2, X(q3) - X(q1)), height: 18,
+        rx: 4, fill: color, "fill-opacity": 0.28, stroke: color, "stroke-width": 1.5,
+      }));
+      /* mediana */
+      svg.appendChild(s("line", { x1: X(med), x2: X(med), y1: y - 11, y2: y + 11, stroke: color, "stroke-width": 2.5 }));
+      /* pontos individuais, discretos */
+      sorted.forEach(function (v) {
+        svg.appendChild(s("circle", { cx: X(v), cy: y + 17, r: 2.5, fill: color, "fill-opacity": 0.5 }));
+      });
+      const hit = s("rect", { class: "hit", x: ML, y: y - 20, width: iw, height: rowH - 6 });
+      hoverable(hit, group.label, [
+        { value: fmt(med), name: "mediana", color: color },
+        { value: fmt(q1) + " – " + fmt(q3), name: "intervalo interquartil" },
+        { value: fmt(sorted[0]) + " – " + fmt(sorted[sorted.length - 1]), name: "mín – máx" },
+        { value: sorted.length, name: "observações" },
+      ], group.onSelect);
+      svg.appendChild(hit);
+      svg.appendChild(txt(s("text", { class: "val", x: X(med), y: y - 15, "text-anchor": "middle" }), fmt(med)));
+    });
+    return figure(spec, svg);
+  }
+
+  /* ==================================================================== */
+  /* treemap — participação por área                                       */
+  /* ==================================================================== */
+  function treemap(spec) {
+    const items = (spec.items || []).filter(function (d) { return d.value > 0; })
+      .sort(function (a, b) { return b.value - a.value; });
+    if (!items.length) return figure(spec, empty(spec.emptyMessage));
+    const W = 760, H = spec.height || 300;
+    const total = items.reduce(function (a, b) { return a + b.value; }, 0);
+    const svg = svgRoot(W, H, spec.caption || "participação");
+
+    /* fatiamento alternado: simples, estável e sem dependência externa */
+    function layout(list, x, y, w, h, horizontal) {
+      if (!list.length) return [];
+      if (list.length === 1) return [{ item: list[0], x: x, y: y, w: w, h: h }];
+      const sum = list.reduce(function (a, b) { return a + b.value; }, 0);
+      let acc = 0, cut = 1;
+      for (let i = 0; i < list.length; i++) {
+        acc += list[i].value;
+        if (acc >= sum / 2) { cut = i + 1; break; }
+      }
+      const share = list.slice(0, cut).reduce(function (a, b) { return a + b.value; }, 0) / sum;
+      if (horizontal) {
+        return layout(list.slice(0, cut), x, y, w * share, h, !horizontal)
+          .concat(layout(list.slice(cut), x + w * share, y, w * (1 - share), h, !horizontal));
+      }
+      return layout(list.slice(0, cut), x, y, w, h * share, !horizontal)
+        .concat(layout(list.slice(cut), x, y + h * share, w, h * (1 - share), !horizontal));
+    }
+
+    layout(items, 0, 0, W, H, true).forEach(function (box, i) {
+      const color = box.item.color || serie(i);
+      const node = s("rect", {
+        class: "mark", x: box.x + GAP / 2, y: box.y + GAP / 2,
+        width: Math.max(1, box.w - GAP), height: Math.max(1, box.h - GAP),
+        rx: 6, fill: color, "fill-opacity": 0.9,
+      });
+      const pct = Math.round(100 * box.item.value / total);
+      hoverable(node, box.item.label,
+        [{ value: fmt(box.item.value) + " (" + pct + "%)", name: spec.unit || "", color: color }],
+        box.item.onSelect || (spec.onSelect && function () { spec.onSelect(box.item); }));
+      svg.appendChild(node);
+      /* rótulo só quando cabe com folga; senão fica na dica e na tabela */
+      if (box.w > 92 && box.h > 38) {
+        svg.appendChild(txt(s("text", {
+          x: box.x + 10, y: box.y + 22, style: "font-size:12px;font-weight:650;fill:#fff",
+        }), box.item.label.length > box.w / 7 ? box.item.label.slice(0, Math.floor(box.w / 7)) + "…" : box.item.label));
+        svg.appendChild(txt(s("text", {
+          x: box.x + 10, y: box.y + 39, style: "font-size:11px;fill:#fff;fill-opacity:.85",
+        }), fmt(box.item.value) + " · " + pct + "%"));
+      }
+    });
+    return figure(spec, svg);
+  }
+
+  /* ==================================================================== */
+  /* Sankey — o caminho das submissões                                     */
+  /* ==================================================================== */
+  function sankey(spec) {
+    const nodes = spec.nodes || [];
+    const links = spec.links || [];
+    if (!nodes.length || !links.length) return figure(spec, empty(spec.emptyMessage));
+    const W = 760, H = spec.height || 340, PAD = 16, NODE_W = 14;
+    const depths = Array.from(new Set(nodes.map(function (n) { return n.depth; }))).sort();
+    const colX = {};
+    depths.forEach(function (d, i) {
+      colX[d] = depths.length === 1 ? PAD : PAD + (W - 2 * PAD - NODE_W) * i / (depths.length - 1);
+    });
+
+    const totals = {};
+    nodes.forEach(function (n) {
+      totals[n.id] = Math.max(
+        links.filter(function (l) { return l.source === n.id; })
+          .reduce(function (a, l) { return a + l.value; }, 0),
+        links.filter(function (l) { return l.target === n.id; })
+          .reduce(function (a, l) { return a + l.value; }, 0));
+    });
+    const byDepth = {};
+    nodes.forEach(function (n) { (byDepth[n.depth] = byDepth[n.depth] || []).push(n); });
+    const pos = {};
+    Object.keys(byDepth).forEach(function (d) {
+      const list = byDepth[d];
+      const sum = list.reduce(function (a, n) { return a + totals[n.id]; }, 0) || 1;
+      const gaps = (list.length - 1) * 10;
+      let y = PAD;
+      list.forEach(function (n) {
+        const h = Math.max(6, (H - 2 * PAD - gaps) * totals[n.id] / sum);
+        pos[n.id] = { x: colX[n.depth], y: y, h: h, out: y, in: y };
+        y += h + 10;
+      });
+    });
+
+    const svg = svgRoot(W, H, spec.caption || "fluxo");
+    links.slice().sort(function (a, b) { return b.value - a.value; }).forEach(function (link) {
+      const a = pos[link.source], b = pos[link.target];
+      if (!a || !b) return;
+      const sum = links.filter(function (l) { return l.source === link.source; })
+        .reduce(function (acc, l) { return acc + l.value; }, 0) || 1;
+      const inSum = links.filter(function (l) { return l.target === link.target; })
+        .reduce(function (acc, l) { return acc + l.value; }, 0) || 1;
+      const th1 = a.h * link.value / sum, th2 = b.h * link.value / inSum;
+      const x1 = a.x + NODE_W, x2 = b.x, mid = (x1 + x2) / 2;
+      const color = link.color || serie(link.group || 0);
+      const path = s("path", {
+        class: "mark",
+        d: "M" + x1 + "," + a.out + " C" + mid + "," + a.out + " " + mid + "," + b.in + " " + x2 + "," + b.in
+          + " L" + x2 + "," + (b.in + th2)
+          + " C" + mid + "," + (b.in + th2) + " " + mid + "," + (a.out + th1) + " " + x1 + "," + (a.out + th1) + " Z",
+        fill: color, "fill-opacity": 0.32,
+      });
+      const nameOf = function (id) {
+        const found = nodes.find(function (n) { return n.id === id; });
+        return found ? found.label : id;
+      };
+      hoverable(path, nameOf(link.source) + " → " + nameOf(link.target),
+        [{ value: fmt(link.value), name: spec.unit || "", color: color }], link.onSelect);
+      svg.appendChild(path);
+      a.out += th1;
+      b.in += th2;
+    });
+
+    nodes.forEach(function (n, i) {
+      const p = pos[n.id];
+      if (!p) return;
+      const color = n.color || serie(i);
+      svg.appendChild(s("rect", { class: "mark", x: p.x, y: p.y, width: NODE_W, height: p.h, rx: 3, fill: color }));
+      const atEnd = n.depth === depths[depths.length - 1];
+      /* auréola na cor da superfície: o rótulo cruza as faixas sem sumir */
+      svg.appendChild(txt(s("text", {
+        class: "lab", x: atEnd ? p.x - 8 : p.x + NODE_W + 8, y: p.y + p.h / 2 + 4,
+        "text-anchor": atEnd ? "end" : "start",
+        stroke: token("--surface"), "stroke-width": 3.5, "stroke-linejoin": "round",
+        "paint-order": "stroke fill",
+      }), n.label + " (" + fmt(totals[n.id]) + ")"));
+    });
+    return figure(spec, svg);
+  }
+
+  /* ==================================================================== */
+  /* rede de coautoria                                                     */
+  /* ==================================================================== */
+  function network(spec) {
+    const nodes = spec.nodes || [], links = spec.links || [];
+    if (!nodes.length) return figure(spec, empty(spec.emptyMessage));
+    const W = 760, H = spec.height || 470;
+    /* Fruchterman–Reingold determinístico: o mesmo dado gera o mesmo desenho */
+    const k = Math.sqrt(W * H / nodes.length);
+    const pos = new Map();
+    nodes.forEach(function (n, i) {
+      const a = 2 * Math.PI * i / nodes.length;
+      pos.set(n.id, { x: W / 2 + Math.cos(a) * W * 0.33, y: H / 2 + Math.sin(a) * H * 0.33, dx: 0, dy: 0 });
+    });
+    let temp = W * 0.1;
+    for (let it = 0; it < 400; it++) {
+      pos.forEach(function (p) { p.dx = 0; p.dy = 0; });
+      for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
+        const a = pos.get(nodes[i].id), b = pos.get(nodes[j].id);
+        const dx = a.x - b.x, dy = a.y - b.y, d = Math.hypot(dx, dy) || 0.01, rep = k * k / d;
+        a.dx += dx / d * rep; a.dy += dy / d * rep;
+        b.dx -= dx / d * rep; b.dy -= dy / d * rep;
+      }
+      links.forEach(function (e) {
+        const a = pos.get(e.source), b = pos.get(e.target);
+        if (!a || !b) return;
+        const dx = a.x - b.x, dy = a.y - b.y, d = Math.hypot(dx, dy) || 0.01;
+        const att = d * d / k * (1 + Math.log(1 + e.weight)) * 0.55;
+        a.dx -= dx / d * att; a.dy -= dy / d * att;
+        b.dx += dx / d * att; b.dy += dy / d * att;
+      });
+      pos.forEach(function (p) {
+        const d = Math.hypot(p.dx, p.dy) || 0.01;
+        p.x = Math.max(30, Math.min(W - 30, p.x + p.dx / d * Math.min(d, temp)));
+        p.y = Math.max(30, Math.min(H - 30, p.y + p.dy / d * Math.min(d, temp)));
+      });
+      temp *= 0.965;
+    }
+
+    const svg = svgRoot(W, H, spec.caption || "rede");
+    const maxW = Math.max.apply(null, links.map(function (e) { return e.weight; }).concat([1]));
+    const maxA = Math.max.apply(null, nodes.map(function (n) { return n.weight; }).concat([1]));
+    const edges = s("g");
+    svg.appendChild(edges);
+    links.forEach(function (e) {
+      const a = pos.get(e.source), b = pos.get(e.target);
+      if (!a || !b) return;
+      edges.appendChild(s("line", {
+        x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+        stroke: token("--axis"), "stroke-width": 1 + 3 * e.weight / maxW, "stroke-opacity": 0.7,
+      }));
+    });
+    nodes.forEach(function (n) {
+      const p = pos.get(n.id);
+      const r = 8 + 15 * Math.sqrt(n.weight / maxA);
+      const g = s("g");
+      g.appendChild(s("circle", { class: "hit", cx: p.x, cy: p.y, r: Math.max(r, 14) }));
+      g.appendChild(s("circle", {
+        class: "mark ring", cx: p.x, cy: p.y, r: r,
+        fill: n.color || serie(n.group || 0), "fill-opacity": 0.9,
+      }));
+      hoverable(g, n.label, [
+        { value: fmt(n.weight), name: spec.unit || "artigos", color: n.color || serie(n.group || 0) },
+        { value: fmt(n.degree), name: "coautores" },
+      ], n.onSelect);
+      svg.appendChild(g);
+      svg.appendChild(txt(s("text", { class: "lab", x: p.x, y: p.y + r + 13, "text-anchor": "middle" }),
+        n.label.length > 16 ? n.label.slice(0, 15) + "…" : n.label));
+    });
+    return figure(spec, svg, spec.groups && spec.groups.length > 1
+      ? [legendOf(spec.groups.map(function (g, i) { return { label: g, color: serie(i) }; }))] : []);
+  }
+
+  /* ==================================================================== */
+  /* bolhas geográficas — no máximo 3 categorias                          */
+  /* ==================================================================== */
+  function geo(spec) {
+    const points = (spec.points || []).filter(function (p) {
+      return p.lat !== null && p.lat !== undefined && p.lon !== null && p.lon !== undefined;
+    });
+    if (!points.length) return figure(spec, empty(spec.emptyMessage || "Sem coordenadas cadastradas."));
+    const W = 760, H = spec.height || 400, pad = 54;
+    let latMin = Math.min.apply(null, points.map(function (p) { return p.lat; }));
+    let latMax = Math.max.apply(null, points.map(function (p) { return p.lat; }));
+    let lonMin = Math.min.apply(null, points.map(function (p) { return p.lon; }));
+    let lonMax = Math.max.apply(null, points.map(function (p) { return p.lon; }));
+    const spanLat = Math.max(latMax - latMin, 2), spanLon = Math.max(lonMax - lonMin, 2);
+    latMin -= spanLat * 0.2; latMax += spanLat * 0.2;
+    lonMin -= spanLon * 0.2; lonMax += spanLon * 0.2;
+    const X = function (lon) { return pad + (lon - lonMin) / (lonMax - lonMin) * (W - 2 * pad); };
+    const Y = function (lat) { return pad + (latMax - lat) / (latMax - latMin) * (H - 2 * pad); };
+    const svg = svgRoot(W, H, spec.caption || "mapa");
+
+    for (let i = 0; i <= 4; i++) {
+      const lat = latMin + (latMax - latMin) * i / 4, lon = lonMin + (lonMax - lonMin) * i / 4;
+      svg.appendChild(s("line", { class: "grid-line", x1: pad, x2: W - pad, y1: Y(lat), y2: Y(lat) }));
+      svg.appendChild(s("line", { class: "grid-line", y1: pad, y2: H - pad, x1: X(lon), x2: X(lon) }));
+      svg.appendChild(txt(s("text", { class: "tick", x: pad - 8, y: Y(lat) + 3, "text-anchor": "end" }), lat.toFixed(1) + "°"));
+      svg.appendChild(txt(s("text", { class: "tick", x: X(lon), y: H - pad + 16, "text-anchor": "middle" }), lon.toFixed(1) + "°"));
+    }
+    (spec.outline || []).forEach(function (ring) {
+      const d = ring.map(function (pt, i) { return (i ? "L" : "M") + X(pt[0]) + " " + Y(pt[1]); }).join(" ");
+      svg.appendChild(s("path", {
+        d: d + "Z", fill: token("--surface-raised"), "fill-opacity": 0.8,
+        stroke: token("--grid"), "stroke-width": 1,
+      }));
+    });
+
+    const peak = Math.max.apply(null, points.map(function (p) { return p.value; }).concat([1]));
+    points.forEach(function (p) {
+      const r = 7 + 17 * Math.sqrt(p.value / peak);
+      const color = p.color || serie(p.group || 0);
+      const g = s("g");
+      g.appendChild(s("circle", { class: "hit", cx: X(p.lon), cy: Y(p.lat), r: Math.max(r, 14) }));
+      g.appendChild(s("circle", {
+        class: "mark", cx: X(p.lon), cy: Y(p.lat), r: r,
+        fill: color, "fill-opacity": 0.45, stroke: color, "stroke-width": 1.5,
+      }));
+      hoverable(g, p.label, [{ value: fmt(p.value), name: spec.unit || "", color: color }], p.onSelect);
+      svg.appendChild(g);
+      svg.appendChild(txt(s("text", { class: "lab", x: X(p.lon), y: Y(p.lat) - r - 6, "text-anchor": "middle" }), p.label));
+    });
+    return figure(spec, svg);
+  }
+
+  /* ==================================================================== */
+  /* miniaturas: minigráfico e medidor                                     */
+  /* ==================================================================== */
+  function sparkline(values, opts) {
+    opts = opts || {};
+    const W = 132, H = 30;
+    const svg = svgRoot(W, H, "tendência");
+    svg.setAttribute("class", "plot spark");
+    if (!values || values.length < 2) return svg;
+    const peak = Math.max.apply(null, values.concat([1]));
+    const X = function (i) { return W * i / (values.length - 1); };
+    const Y = function (v) { return H - 4 - (H - 10) * v / peak; };
+    const d = values.map(function (v, i) { return (i ? "L" : "M") + X(i) + " " + Y(v); }).join(" ");
+    const color = opts.color || token("--ink-muted");
+    svg.appendChild(s("path", {
+      d: d + " L" + X(values.length - 1) + " " + H + " L0 " + H + " Z",
+      fill: color, "fill-opacity": 0.1,
+    }));
+    svg.appendChild(s("path", {
+      d: d, fill: "none", stroke: color, "stroke-width": 2,
+      "stroke-linejoin": "round", "stroke-linecap": "round",
+    }));
+    svg.appendChild(s("circle", {
+      class: "ring", cx: X(values.length - 1), cy: Y(values[values.length - 1]), r: 3.5,
+      fill: opts.accent || token("--accent-strong"),
+    }));
+    return svg;
+  }
+  function meter(value, limit, opts) {
+    opts = opts || {};
+    const share = limit ? Math.max(0, Math.min(1, value / limit)) : 0;
+    const bar = el("i", { style: "width:" + (share * 100).toFixed(1) + "%" });
+    if (opts.severity === "warning") bar.style.background = token("--warning");
+    if (opts.severity === "critical") bar.style.background = token("--critical");
+    return el("div", {
+      class: "meter", role: "meter", "aria-valuenow": String(value),
+      "aria-valuemin": "0", "aria-valuemax": String(limit),
+      title: fmt(value) + " de " + fmt(limit),
+    }, bar);
+  }
+
+  /* --------------------------------------------------------------- API */
+  return {
+    columns: columns, bars: bars, lines: lines, donut: donut, funnel: funnel,
+    scatter: scatter, dumbbell: dumbbell, heatmap: heatmap, distribution: distribution,
+    treemap: treemap, sankey: sankey, network: network, geo: geo,
+    sparkline: sparkline, meter: meter,
+    legend: legendOf, scaleLegend: scaleLegend, table: plainTable, csv: downloadCsv,
+    token: token, serie: serie, seq: seq, ord: ord, fmt: fmt, compact: compact,
+    el: el, svg: s, txt: txt, hideTip: hideTip, empty: empty, MESES: MESES,
+  };
+})();

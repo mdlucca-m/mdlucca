@@ -6,6 +6,7 @@
     python3 scripts/lape_agent.py api --port 8000     # sobe o site + API
     python3 scripts/lape_agent.py usuarios --criar "Nome" email@udesc.br --perfil admin
     python3 scripts/lape_agent.py revisar --list      # descobertas pendentes
+    python3 scripts/lape_agent.py lake                # bronze -> ouro -> historico
     python3 scripts/lape_agent.py status              # resumo do banco
 
 Agentes:
@@ -91,6 +92,38 @@ def cmd_revisar(args: argparse.Namespace) -> int:
     if args.auto:
         print(f"aceitas automaticamente: {curator.auto_review(db)['accepted']}")
     db.close()
+    return 0
+
+
+def cmd_lake(args: argparse.Namespace) -> int:
+    from lape import lake
+
+    db = Database(args.db)
+    db.migrate()
+    if args.linhagem:
+        for row in lake.lineage(db, args.limite or 40):
+            print(f"  {row['captured_at']}  {row['layer']:7s} {row['source_path'][:52]:52s}"
+                  f" {(row['rows'] if row['rows'] is not None else '-')!s:>7}"
+                  f" {row['bytes'] or 0:>9} B")
+        db.close()
+        return 0
+    if args.consultar:
+        medida, por = args.consultar[0], (args.consultar[1] if len(args.consultar) > 1 else "linha")
+        try:
+            result = lake.query(db, medida, por)
+        except lake.QueryError as exc:
+            print(f"! {exc}")
+            db.close()
+            return 1
+        print(f"{result['measure_label']} por {result['by_label'].lower()}:")
+        for row in result["rows"]:
+            print(f"  {str(row['dim1'])[:44]:44s} {row['valor']}")
+        db.close()
+        return 0
+    result = lake.run(db, raw_dir=args.raw, with_export=args.exportar)
+    db.close()
+    if args.json:
+        print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
     return 0
 
 
@@ -222,6 +255,20 @@ def build_parser() -> argparse.ArgumentParser:
                                help="aceita as que tiverem 2+ autores ja cadastrados")
     review_parser.add_argument("--limite", type=int, default=50)
     review_parser.set_defaults(func=cmd_revisar)
+
+    lake_parser = subparsers.add_parser(
+        "lake", aliases=["lakehouse"],
+        help="camadas bronze/ouro, histórico de indicadores e consultas analíticas")
+    lake_parser.add_argument("--raw", type=Path, default=config.RAW_DIR)
+    lake_parser.add_argument("--exportar", action="store_true",
+                             help="grava a camada ouro em Parquet (ou CSV)")
+    lake_parser.add_argument("--linhagem", action="store_true",
+                             help="mostra de onde veio cada carga")
+    lake_parser.add_argument("--consultar", nargs="+", metavar="MEDIDA [DIMENSAO]",
+                             help="ex.: --consultar publicados linha")
+    lake_parser.add_argument("--limite", type=int, default=None)
+    lake_parser.add_argument("--json", action="store_true")
+    lake_parser.set_defaults(func=cmd_lake)
 
     users_parser = subparsers.add_parser(
         "usuarios", aliases=["users"], help="cria e gerencia os acessos dos integrantes")

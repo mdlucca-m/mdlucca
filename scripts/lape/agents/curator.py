@@ -19,7 +19,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from .. import config, ingest_excel, ingest_lattes, metrics, report
+from .. import config, ingest_excel, ingest_lattes, lake, metrics, report
 from ..db import Database
 from ..mapping import build_column_map
 from ..util import clean_text, norm_key, title_key
@@ -225,7 +225,8 @@ def publish(db: Database, output: Path = config.REPORT_PATH,
 def run(db: Database, raw_dir: Path = config.RAW_DIR, output: Path = config.REPORT_PATH,
         window: int = config.WINDOW_YEARS, with_tracker: bool = True,
         tracker_tasks: tuple[str, ...] = ("enriquecer", "citar", "perfis"),
-        auto_accept: bool = False, verbose: bool = True) -> dict[str, Any]:
+        auto_accept: bool = False, with_lake: bool = True, export_lake: bool = False,
+        verbose: bool = True) -> dict[str, Any]:
     """Ciclo completo: carregar, consolidar, rastrear, validar e publicar."""
     from . import tracker as tracker_agent
 
@@ -246,6 +247,10 @@ def run(db: Database, raw_dir: Path = config.RAW_DIR, output: Path = config.REPO
             result["auto_review"] = auto_review(db)
 
     result["consolidate"] = consolidate(db)
+    if with_lake:
+        if verbose:
+            print("  lakehouse")
+        result["lake"] = lake.run(db, raw_dir=raw_dir, with_export=export_lake, verbose=verbose)
     result["validation"] = validate(db)
     result["publish"] = publish(db, output, window)
     if verbose:

@@ -15,6 +15,8 @@ from . import config
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 HTML_TEMPLATE = TEMPLATE_DIR / "dashboard.html"
 JS_TEMPLATE = TEMPLATE_DIR / "dashboard.js"
+CHARTS_TEMPLATE = TEMPLATE_DIR / "charts.js"
+THEME_TEMPLATE = TEMPLATE_DIR / "theme.css"
 
 
 def load_basemap(geo_dir: Path = config.GEO_DIR) -> list[list[list[float]]]:
@@ -61,11 +63,15 @@ def render_html(payload: dict[str, Any], geo_dir: Path = config.GEO_DIR) -> str:
     payload.setdefault("session", {"live": False, "user": None})
 
     html = HTML_TEMPLATE.read_text(encoding="utf-8")
-    script = JS_TEMPLATE.read_text(encoding="utf-8")
     title = f"{payload['overview']['lab_name']} — Painel de indicadores"
 
+    # A ordem importa: o CSS e a biblioteca de graficos entram antes do
+    # dado, e o dado por ultimo, para que nenhum texto vindo do banco
+    # possa ser confundido com um marcador do modelo.
     html = html.replace("__TITLE__", title)
-    html = html.replace("__SCRIPT__", script)
+    html = html.replace("__THEME_CSS__", THEME_TEMPLATE.read_text(encoding="utf-8"))
+    html = html.replace("__CHARTS_JS__", CHARTS_TEMPLATE.read_text(encoding="utf-8"))
+    html = html.replace("__SCRIPT__", JS_TEMPLATE.read_text(encoding="utf-8"))
     return html.replace("__DATA__", to_json(payload))
 
 

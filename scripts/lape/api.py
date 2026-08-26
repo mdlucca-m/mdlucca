@@ -30,6 +30,7 @@ import re
 import traceback
 import urllib.parse
 from http import cookies
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Callable
@@ -97,6 +98,12 @@ def route_index(ctx: "Context") -> Any:
             "POST /api/auth/usuarios         (admin) {nome, login, senha, perfil}",
             "GET  /api/health",
             "GET  /api/metrics[/<bloco>]",
+            "GET  /api/state                 mudou algo? (consulta barata)",
+            "GET  /api/catalog               medidas e dimensões disponíveis",
+            "GET  /api/query                 ?medida=&por=&quebra=&linha=&ano=…",
+            "GET  /api/history               ?metrica=publicados",
+            "GET  /api/lake/lineage          (coordenação) de onde veio cada carga",
+            "POST /api/agents/lake           (coordenação) reconstrói o lakehouse",
             "GET  /api/<entidade>            filtros: q, status, linha, ano, limit, offset",
             "GET  /api/articles/<id>",
             "GET  /api/researchers/<id>",
@@ -269,6 +276,89 @@ def route_researcher_detail(ctx: "Context", member_id: str) -> Any:
     return person
 
 
+def route_state(ctx: "Context") -> Any:
+    """Resposta barata para o painel saber se algo mudou, sem recalcular tudo."""
+    db = ctx.db
+    return {
+        "articles": int(db.scalar("SELECT COUNT(*) FROM articles") or 0),
+        "members": int(db.scalar("SELECT COUNT(*) FROM members") or 0),
+        "submissions": int(db.scalar("SELECT COUNT(*) FROM submissions") or 0),
+        "events": int(db.scalar("SELECT COUNT(*) FROM events") or 0),
+        "projects": int(db.scalar("SELECT COUNT(*) FROM projects") or 0),
+        "pending_discoveries": int(
+            db.scalar("SELECT COUNT(*) FROM discoveries WHERE status = 'pendente'") or 0),
+        "last_ingest": db.dicts(
+            "SELECT run_at, source, target, status FROM ingest_log ORDER BY id DESC LIMIT 1"),
+        "server_time": datetime.now().isoformat(timespec="seconds"),
+    }
+
+
+def route_catalog(ctx: "Context") -> Any:
+    """Medidas, dimensões e filtros aceitos pela camada ouro."""
+    from . import lake
+
+    return lake.catalog()
+
+
+def route_query(ctx: "Context") -> Any:
+    """Agrega uma medida por uma ou duas dimensões, sobre a camada ouro.
+
+    Nada do que o cliente envia vira SQL: ele escolhe chaves de uma lista,
+    e cada chave traz a expressão já escrita.
+    """
+    from . import lake
+
+    query = ctx.query
+    filters = {}
+    for key in lake.FILTERS:
+        if key in query and query[key][0] not in ("", None):
+            filters[key] = query[key][0]
+    try:
+        return lake.query(
+            ctx.db,
+            measure=query.get("medida", ["artigos"])[0],
+            by=query.get("por", ["linha"])[0],
+            split=(query.get("quebra", [None])[0] or None),
+            filters=filters,
+            limit=int(query.get("limite", [40])[0]),
+            order=query.get("ordem", ["valor"])[0],
+        )
+    except lake.QueryError as exc:
+        raise ApiError(400, str(exc)) from exc
+
+
+def route_history(ctx: "Context") -> Any:
+    from . import lake
+
+    metric = ctx.query.get("metrica", ["artigos"])[0]
+    if metric not in lake.SNAPSHOT_METRICS:
+        raise ApiError(400, f"indicador desconhecido: {metric}."
+                            f" Use um de: {', '.join(sorted(lake.SNAPSHOT_METRICS))}")
+    return {
+        "metric": metric,
+        "series": lake.metric_history(ctx.db, metric, "total",
+                                      min(int(ctx.query.get("limite", [120])[0]), 500)),
+        "delta_30d": lake.metric_delta(ctx.db, metric, 30),
+        "by_line": lake.metric_history(ctx.db, metric, "linha", 400),
+    }
+
+
+def route_lineage(ctx: "Context") -> Any:
+    from . import lake
+
+    auth.require(ctx.user, "coordenacao")
+    return {"items": lake.lineage(ctx.db, min(int(ctx.query.get("limite", [80])[0]), 500))}
+
+
+def route_lake(ctx: "Context") -> Any:
+    from . import lake
+
+    user = auth.require(ctx.user, "coordenacao")
+    options = ctx.body or {}
+    auth.log(ctx.db, user["id"], user.get("login"), "lakehouse")
+    return lake.run(ctx.db, with_export=bool(options.get("exportar", False)), verbose=False)
+
+
 def route_discoveries(ctx: "Context") -> Any:
     status = ctx.query.get("status", ["pendente"])[0]
     rows = ctx.db.dicts(
@@ -357,6 +447,8 @@ def route_curator(ctx: "Context") -> Any:
         with_tracker=bool(options.get("with_tracker", False)),
         tracker_tasks=tuple(options.get("tracker_tasks") or ("enriquecer", "citar", "perfis")),
         auto_accept=bool(options.get("auto_accept", False)),
+        with_lake=bool(options.get("with_lake", True)),
+        export_lake=bool(options.get("export_lake", False)),
         window=int(options.get("window", config.WINDOW_YEARS)),
         verbose=False,
     )
@@ -380,6 +472,12 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/auth/senha/?$", route_change_password, "leitura"),
     ("POST", r"^/api/auth/usuarios/?$", route_create_user, "admin"),
     ("GET", r"^/api/health/?$", route_health, None),
+    ("GET", r"^/api/state/?$", route_state, "leitura"),
+    ("GET", r"^/api/catalog/?$", route_catalog, "leitura"),
+    ("GET", r"^/api/query/?$", route_query, "leitura"),
+    ("GET", r"^/api/history/?$", route_history, "leitura"),
+    ("GET", r"^/api/lake/lineage/?$", route_lineage, "coordenacao"),
+    ("POST", r"^/api/agents/lake/?$", route_lake, "coordenacao"),
     ("GET", r"^/api/metrics/?$", route_metrics, "leitura"),
     ("GET", r"^/api/metrics/(?P<block>[a-z_]+)/?$", route_metrics, "leitura"),
     ("GET", r"^/api/articles/(?P<article_id>\d+)/?$", route_article_detail, "leitura"),
@@ -572,7 +670,7 @@ class Handler(BaseHTTPRequestHandler):
         if not path.exists():
             return self._send(404, {"error": f"página {name} não encontrada"})
         html = path.read_text(encoding="utf-8")
-        base_css = (TEMPLATES / "base.css").read_text(encoding="utf-8")
+        base_css = (TEMPLATES / "theme.css").read_text(encoding="utf-8")
         self._send(200, html.replace("__BASE_CSS__", base_css), "text/html")
 
     def _serve_database(self) -> None:
