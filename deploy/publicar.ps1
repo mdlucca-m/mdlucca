@@ -266,7 +266,7 @@ if ($api.HasExited) {
              Select-Object -First 1).OwningProcess
     if ($dono) {
       $quem = Get-CimInstance Win32_Process -Filter "ProcessId = $dono" -ErrorAction SilentlyContinue
-      Aviso "A porta $Porta ja esta ocupada pelo processo $dono:"
+      Aviso "A porta $Porta ja esta ocupada pelo processo ${dono}:"
       if ($quem) { Write-Host "    $($quem.CommandLine)" }
       Write-Host ""
       Aviso "Provavelmente e um LAPE antigo, de outra pasta. Encerre-o com:"

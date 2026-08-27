@@ -56,6 +56,31 @@ class TestColisaoDeNomes(unittest.TestCase):
             f" distingue maiusculas): {sorted(invasores)}")
 
 
+class TestSintaxeDoPowerShell(unittest.TestCase):
+    """Não há PowerShell nesta máquina; o que dá para conferir é o que já quebrou.
+
+    `"$dono:"` não é o que parece: o PowerShell lê `$nome:` como variável
+    qualificada por unidade (o irmão de `$env:PATH`) e recusa o ARQUIVO
+    INTEIRO na leitura -- nem a primeira linha roda. Um dois-pontos depois de
+    uma variável dentro de aspas derruba tudo, e a mensagem de erro fala de
+    unidade de disco, que não tem relação aparente com nada.
+    """
+
+    ESCOPOS = {"env", "script", "global", "local", "using", "private",
+               "variable", "function"}
+
+    def test_variavel_seguida_de_dois_pontos_e_delimitada(self):
+        texto = PS1.read_text(encoding="utf-8")
+        soltas = []
+        for numero, linha in enumerate(texto.split("\n"), 1):
+            for achado in re.finditer(r"\$([A-Za-z_]\w*):", linha):
+                if achado.group(1).lower() not in self.ESCOPOS:
+                    soltas.append(f"linha {numero}: {achado.group(0)}")
+        self.assertEqual(soltas, [],
+                         "variável seguida de ':' dentro de aspas — use ${nome}: "
+                         + "; ".join(soltas))
+
+
 class TestPidVazio(unittest.TestCase):
     """Um .pid vazio nao pode derrubar a subida.
 
