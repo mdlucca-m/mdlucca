@@ -287,6 +287,23 @@ function Parar-Tunel {
 }
 
 function Mostrar-Log-Do-Tunel {
+  # A linha que explica a falha costuma vir no comeco, e as vinte ultimas do
+  # log sao ruido de depuracao. Quando houver linha de erro declarada, ela
+  # aparece primeiro -- e sozinha, se der conta de explicar.
+  $erros = @()
+  foreach ($arquivo in @("tunel.err", "tunel.log")) {
+    $caminho = Join-Path $Exec $arquivo
+    if (Test-Path $caminho) {
+      $erros += Select-String -Path $caminho -Pattern '^(ERROR|ERR_)' `
+        -ErrorAction SilentlyContinue | ForEach-Object { $_.Line }
+    }
+  }
+  if ($erros.Count) {
+    Write-Host ""
+    $erros | Select-Object -Unique -First 8 | ForEach-Object { Write-Host "  $_" }
+    Write-Host ""
+    return
+  }
   Get-Content (Join-Path $Exec "tunel.err") -Tail 20 -ErrorAction SilentlyContinue
   Get-Content (Join-Path $Exec "tunel.log") -Tail 20 -ErrorAction SilentlyContinue
 }
@@ -322,8 +339,21 @@ if ($Fixo) {
        (a conta gratuita da direito a um, do tipo lape-udesc.ngrok-free.app)
 
 "@
-    $token = Read-Host "  Cole o authtoken"
-    if ($token) { & $NG config add-authtoken $token.Trim() | Out-Null }
+    $token = (Read-Host "  Cole o authtoken").Trim()
+    # As duas paginas ficam a um clique uma da outra, e o ngrok chama as duas
+    # coisas de "token" em lugares diferentes. Quem cola o id do dominio no
+    # lugar do authtoken so descobre o engano num log de vinte linhas, depois
+    # de o tunel falhar -- e a mensagem de la nao diz qual dos dois errou.
+    if ($token -match '^(rd|ak|cr|tn|ep|as|ed)_') {
+      Write-Host ""
+      Aviso "Isso e um identificador de recurso do ngrok -- pelo prefixo, o do"
+      Aviso "proprio dominio reservado. O authtoken e outra coisa, bem mais longa,"
+      Aviso "e esta em:"
+      Write-Host "    https://dashboard.ngrok.com/get-started/your-authtoken"
+      Write-Host ""
+      Erro "Authtoken invalido. Rode de novo com o token certo."
+    }
+    if ($token) { & $NG config add-authtoken $token | Out-Null }
     $Dominio = Read-Host "  Cole o dominio reservado"
   }
   $Dominio = ($Dominio -replace '^https?://', '').Trim().TrimEnd('/')
@@ -332,7 +362,7 @@ if ($Fixo) {
 
   Azul "Abrindo o tunel fixo..."
   $procTunel = Start-Process -FilePath $NG `
-    -ArgumentList "http", "--domain=$Dominio", "--log=stdout", "127.0.0.1:$Porta" `
+    -ArgumentList "http", "--url=https://$Dominio", "--log=stdout", "127.0.0.1:$Porta" `
     -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
     -RedirectStandardOutput (Join-Path $Exec "tunel.log") `
     -RedirectStandardError  (Join-Path $Exec "tunel.err")

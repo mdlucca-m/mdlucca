@@ -211,6 +211,17 @@ if [[ "$FIXO" == 1 ]]; then
 
 TXT
     read -r -p "  Cole o authtoken: " TOKEN
+    # As duas páginas ficam a um clique uma da outra. Quem cola o id do
+    # domínio no lugar do authtoken só descobre o engano num log de vinte
+    # linhas, e a mensagem de lá não diz qual dos dois errou.
+    if [[ "$TOKEN" =~ ^(rd|ak|cr|tn|ep|as|ed)_ ]]; then
+      echo
+      aviso "Isso é um identificador de recurso do ngrok — pelo prefixo, o do"
+      aviso "próprio domínio reservado. O authtoken é outra coisa, bem mais longa:"
+      echo "    https://dashboard.ngrok.com/get-started/your-authtoken"
+      echo
+      erro "Authtoken inválido. Rode de novo com o token certo."
+    fi
     [[ -n "$TOKEN" ]] && "$NG" config add-authtoken "$TOKEN" >/dev/null
     read -r -p "  Cole o domínio reservado: " DOMINIO
   fi
@@ -219,7 +230,7 @@ TXT
   printf '%s' "$DOMINIO" > "$ARQ_NGROK"
 
   azul "Abrindo o túnel fixo…"
-  nohup "$NG" http --domain="$DOMINIO" --log=stdout "127.0.0.1:$PORTA" \
+  nohup "$NG" http --url="https://$DOMINIO" --log=stdout "127.0.0.1:$PORTA" \
     > "$EXEC/tunel.log" 2>&1 &
   echo $! > "$EXEC/tunel.pid"
 
