@@ -54,6 +54,7 @@ param(
   [int]$Porta = 8000,
   [switch]$Fixo,
   [switch]$Permanente,
+  [switch]$Sorteado,
   [string]$Dominio = "",
   [string]$Tunel = "lape",
   [switch]$Parar,
@@ -73,7 +74,11 @@ $arqEnd   = Join-Path $Exec "endereco.txt"
 # Modo escolhido uma vez fica escolhido. Sem isto, rodar o script sem opcao
 # nenhuma trocaria o endereco fixo por um sorteado -- e o link que o
 # laboratorio inteiro tem salvo morreria em silencio.
-if (-not $Fixo -and -not $Permanente) {
+if ($Sorteado) {
+  # esquece o modo gravado: e a saida de quem configurou endereco fixo e
+  # precisa subir agora, sem depender de conta nem de dominio
+  Remove-Item $arqNgrok, $arqCF -ErrorAction SilentlyContinue
+} elseif (-not $Fixo -and -not $Permanente) {
   if (Test-Path $arqCF)        { $Permanente = $true }
   elseif (Test-Path $arqNgrok) { $Fixo = $true }
 }
@@ -358,32 +363,77 @@ if ($Fixo) {
   }
   $Dominio = ($Dominio -replace '^https?://', '').Trim().TrimEnd('/')
   if (-not $Dominio) { Erro "Sem dominio reservado nao da para fixar o endereco." }
-  $Dominio | Out-File $arqNgrok -Encoding ascii
 
-  Azul "Abrindo o tunel fixo..."
-  $procTunel = Start-Process -FilePath $NG `
-    -ArgumentList "http", "--url=https://$Dominio", "--log=stdout", "127.0.0.1:$Porta" `
-    -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
-    -RedirectStandardOutput (Join-Path $Exec "tunel.log") `
-    -RedirectStandardError  (Join-Path $Exec "tunel.err")
-  if (-not $procTunel) { Erro "Nao consegui iniciar o tunel." }
-  $procTunel.Id | Out-File (Join-Path $Exec "tunel.pid") -Encoding ascii
+  # Duas tentativas, e a segunda existe por um motivo especifico: o
+  # authtoken fica guardado no ngrok.yml da maquina. Um token errado gravado
+  # ali sobrevive a tudo -- o script nao pergunta de novo porque o dominio ja
+  # esta salvo, e a pessoa fica presa repetindo o mesmo erro sem entender por
+  # que. Ao ver falha de autenticacao, pede o token outra vez.
+  foreach ($tentativa in 1..2) {
+    if ($tentativa -eq 1) {
+      Azul "Abrindo o tunel fixo..."
+    } else {
+      Parar-Tunel
+      Remove-Item (Join-Path $Exec "tunel.log"), (Join-Path $Exec "tunel.err") `
+        -ErrorAction SilentlyContinue
+      Azul "Tentando de novo com o token novo..."
+    }
+    $procTunel = Start-Process -FilePath $NG `
+      -ArgumentList "http", "--url=https://$Dominio", "--log=stdout", "127.0.0.1:$Porta" `
+      -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
+      -RedirectStandardOutput (Join-Path $Exec "tunel.log") `
+      -RedirectStandardError  (Join-Path $Exec "tunel.err")
+    if (-not $procTunel) { Erro "Nao consegui iniciar o tunel." }
+    $procTunel.Id | Out-File (Join-Path $Exec "tunel.pid") -Encoding ascii
 
-  # o proprio ngrok publica em 127.0.0.1:4040 o que conseguiu abrir -- e mais
-  # confiavel do que confiar no dominio que a pessoa digitou
-  foreach ($i in 1..30) {
-    Start-Sleep -Seconds 1
-    try {
-      $painel = Invoke-RestMethod -Uri "http://127.0.0.1:4040/api/tunnels" -TimeoutSec 2
-      $publico = $painel.tunnels | Where-Object { $_.public_url -like "https://*" } |
-                 Select-Object -First 1
-      if ($publico) { $Link = $publico.public_url; break }
-    } catch { }
+    # o proprio ngrok publica em 127.0.0.1:4040 o que conseguiu abrir -- e mais
+    # confiavel do que confiar no dominio que a pessoa digitou
+    foreach ($i in 1..30) {
+      Start-Sleep -Seconds 1
+      try {
+        $painel = Invoke-RestMethod -Uri "http://127.0.0.1:4040/api/tunnels" -TimeoutSec 2
+        $publico = $painel.tunnels | Where-Object { $_.public_url -like "https://*" } |
+                   Select-Object -First 1
+        if ($publico) { $Link = $publico.public_url; break }
+      } catch { }
+      if ($procTunel.HasExited) { break }
+    }
+    if ($Link) { break }
+    if ($tentativa -eq 2) { break }
+
+    $ruim = @()
+    foreach ($arquivo in @("tunel.log", "tunel.err")) {
+      $caminho = Join-Path $Exec $arquivo
+      if (Test-Path $caminho) {
+        $ruim += Select-String -Path $caminho -Pattern 'ERR_NGROK_105|authentication failed' `
+          -ErrorAction SilentlyContinue
+      }
+    }
+    if (-not $ruim) { break }
+
+    Mostrar-Log-Do-Tunel
+    Aviso "O authtoken guardado nesta maquina nao serve. Ele fica em"
+    Aviso "$env:LOCALAPPDATA\ngrok\ngrok.yml e nao e perguntado de novo sozinho."
+    Write-Host "    O certo esta em https://dashboard.ngrok.com/get-started/your-authtoken"
+    Write-Host ""
+    $token = (Read-Host "  Cole o authtoken (Enter para desistir)").Trim()
+    if (-not $token) { break }
+    if ($token -match '^(rd|ak|cr|tn|ep|as|ed)_') {
+      Erro "Isso e o identificador de um recurso do ngrok, nao o authtoken."
+    }
+    & $NG config add-authtoken $token | Out-Null
   }
   if (-not $Link) {
     Mostrar-Log-Do-Tunel
-    Erro "O tunel fixo nao abriu. Log acima. Confira o authtoken e o dominio reservado."
+    Aviso "Confira o authtoken e o dominio reservado."
+    Aviso "Para voltar ao endereco sorteado, que nao pede conta nenhuma:"
+    Write-Host "    .\deploy\publicar.ps1 -Sorteado"
+    Erro "O tunel fixo nao abriu."
   }
+  # So agora o modo fica gravado. Gravar antes de saber se funciona deixa a
+  # pessoa presa: o script passa a lembrar de uma configuracao que nunca deu
+  # certo, e ate o comando sem opcao nenhuma para de subir.
+  $Dominio | Out-File $arqNgrok -Encoding ascii
 }
 
 # -------------------------------------- 5b. endereco fixo no dominio proprio
@@ -429,8 +479,6 @@ elseif ($Permanente) {
   }
   Azul "Apontando $Dominio para o tunel..."
   & $CF tunnel route dns --overwrite-dns $Tunel $Dominio | Out-Null
-  $Dominio | Out-File $arqCF -Encoding ascii
-
   Azul "Abrindo o tunel permanente..."
   $procTunel = Start-Process -FilePath $CF `
     -ArgumentList "tunnel", "--no-autoupdate", "run", "--url", "http://127.0.0.1:$Porta", $Tunel `
@@ -455,6 +503,7 @@ elseif ($Permanente) {
     Aviso "O tunel subiu, mas $Dominio ainda nao respondeu."
     Aviso "DNS costuma levar ate uns minutos na primeira vez. Tente abrir daqui a pouco."
   }
+  $Dominio | Out-File $arqCF -Encoding ascii
 }
 
 # ------------------------------------------- 5c. endereco sorteado (padrao)
