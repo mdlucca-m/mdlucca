@@ -491,6 +491,82 @@ class TestRecusaRegistradaPelaArea(unittest.TestCase):
         self.assertEqual(depois[0]["event"], "submissao.registrada")
 
 
+class TestDesfechoDeTentativaExistente(unittest.TestCase):
+    """Registrar o desfecho não pode criar uma submissão nova.
+
+    Foi o que o laboratório reportou: para dizer que a terceira tentativa
+    voltou negativa, era preciso preencher outra submissão inteira — revista
+    e data de novo. Ou nascia uma tentativa duplicada, ou a pessoa desistia
+    e o dado não entrava.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.db = Database(Path(self.tmp.name) / "db.sqlite")
+        self.db.migrate()
+        ingest_excel.ingest_articles(self.db, [
+            {"title": "Fibromialgia e exercício", "authors": "Sampaio", "status": "Submetido"},
+        ])
+        curator.register(self.db, "submissions", {
+            "Artigo": "Fibromialgia e exercício",
+            "Revista": "International Journal of Rheumatic Diseases",
+            "Data de submissão": "2026-02-14",
+            "Tentativa": 3,
+        })
+
+    def tearDown(self):
+        self.db.close()
+        self.tmp.cleanup()
+
+    def tentativas(self):
+        return self.db.dicts(
+            "SELECT attempt_no, journal, submitted_on, decision, decision_on"
+            " FROM submissions ORDER BY attempt_no")
+
+    def test_so_o_desfecho_basta(self):
+        # a chave é artigo + tentativa; o resto do registro fica onde está
+        curator.register(self.db, "submissions", {
+            "Artigo": "Fibromialgia e exercício",
+            "Tentativa": 3,
+            "Decisão": "Rejeitado",
+            "Data da decisão": "2026-07-30",
+        })
+        linhas = self.tentativas()
+        self.assertEqual(len(linhas), 1, "nasceu uma tentativa duplicada")
+        self.assertEqual(linhas[0]["attempt_no"], 3)
+        self.assertEqual(linhas[0]["decision"], "rejeitado")
+        self.assertEqual(linhas[0]["decision_on"], "2026-07-30")
+
+    def test_revista_e_data_de_envio_sobrevivem(self):
+        curator.register(self.db, "submissions", {
+            "Artigo": "Fibromialgia e exercício", "Tentativa": 3, "Decisão": "Rejeitado"})
+        linha = self.tentativas()[0]
+        self.assertEqual(linha["journal"], "International Journal of Rheumatic Diseases")
+        self.assertEqual(linha["submitted_on"], "2026-02-14")
+
+    def test_o_artigo_passa_a_rejeitado(self):
+        curator.register(self.db, "submissions", {
+            "Artigo": "Fibromialgia e exercício", "Tentativa": 3, "Decisão": "Rejeitado"})
+        self.assertEqual(
+            self.db.scalar("SELECT status FROM articles WHERE title = ?",
+                           ("Fibromialgia e exercício",)),
+            "rejeitado")
+
+    def test_a_tentativa_seguinte_e_uma_submissao_nova(self):
+        # reenviar a outro periódico é outro evento, e aí sim nasce linha
+        curator.register(self.db, "submissions", {
+            "Artigo": "Fibromialgia e exercício", "Tentativa": 3, "Decisão": "Rejeitado"})
+        curator.register(self.db, "submissions", {
+            "Artigo": "Fibromialgia e exercício", "Tentativa": 4,
+            "Revista": "Pain Medicine", "Data de submissão": "2026-08-20"})
+        linhas = self.tentativas()
+        self.assertEqual([l["attempt_no"] for l in linhas], [3, 4])
+        self.assertEqual(
+            self.db.scalar("SELECT status FROM articles WHERE title = ?",
+                           ("Fibromialgia e exercício",)),
+            "submetido")
+
+
 class TestJanelaDeAnalise(unittest.TestCase):
     def test_media_por_ano_usa_a_janela_completa(self):
         db, tmp = fresh_db()

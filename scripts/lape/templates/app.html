@@ -426,15 +426,31 @@ function crudView(config){
           text: "Somente a coordenação pode alterar estes registros. Você pode consultá-los abaixo."})));
       } else {
         const formHost = h("div", {class: "card sec"});
+        const titulo = h("h3", {style: "margin-bottom:12px", text: config.formTitle});
+        formHost.appendChild(titulo);
         const spec = {fields: config.fields, submitLabel: config.submitLabel || "Cadastrar"};
-        formHost.appendChild(h("h3", {style: "margin-bottom:12px", text: config.formTitle}));
-        formHost.appendChild(buildForm(spec, {}, async function (payload){
+        const gravar = async function (payload){
           const result = await api("/api/" + config.entity, "POST", payload);
           toast(result.written + " registro(s) gravado(s).");
           await loadLookups();
           VIEWS[config.id].render();
-        }));
+        };
+        let formulario = buildForm(spec, {}, gravar);
+        formHost.appendChild(formulario);
         VIEW.appendChild(formHost);
+        /* Carregar um registro existente NO formulário, em vez de exigir que
+           a pessoa redigite tudo para "atualizar". É o mesmo formulário e o
+           mesmo caminho de gravação — só que já preenchido. */
+        config.__carregar = function (row, rotulo){
+          const novo = buildForm(Object.assign({}, spec, {
+            submitLabel: "Salvar alterações",
+            onCancel: function (){ config.__carregar(null); },
+          }), row || {}, gravar);
+          titulo.textContent = row ? (rotulo || "Editando registro") : config.formTitle;
+          formHost.replaceChild(novo, formulario);
+          formulario = novo;
+          if (row) formHost.scrollIntoView({behavior: "smooth", block: "start"});
+        };
       }
       const data = await api("/api/" + config.entity + "?limit=" + (config.limit || 400));
       const bar = h("div", {class: "rowbar"}, [
@@ -443,12 +459,35 @@ function crudView(config){
           oninput: function (ev){
             const term = ev.target.value.toLowerCase();
             host.innerHTML = "";
-            host.appendChild(table(config.columns, data.items.filter(function (row){
+            host.appendChild(table(colunas, data.items.filter(function (row){
               return JSON.stringify(row).toLowerCase().includes(term);
             }), "Nenhum registro corresponde ao filtro."));
           }}),
       ]);
-      const host = h("div", {}, table(config.columns, data.items));
+      /* Coluna de ação: um botão por linha, para mexer no registro que já
+         existe sem redigitá-lo. Sem isso, "atualizar" significa preencher o
+         formulário de novo — e ninguém faz isso, então o dado envelhece. */
+      const acoes = [];
+      if (config.editavel && config.__carregar) {
+        acoes.push(function (row){
+          return h("button", {type: "button", class: "ghost", text: "Editar",
+            onclick: function (){
+              config.__carregar(config.aoEditar ? config.aoEditar(row) : row,
+                "Editando: " + (row.title || row.name || row.full_name || "registro"));
+            }});
+        });
+      }
+      if (config.acao) {
+        acoes.push(function (row){
+          return config.acao(row, function (){ VIEWS[config.id].render(); });
+        });
+      }
+      const colunas = acoes.length
+        ? config.columns.concat([{ k: "__acao", label: "", render: function (row){
+            return h("div", {style: "display:flex;gap:6px;justify-content:flex-end"},
+              acoes.map(function (fn){ return fn(row); })); } }])
+        : config.columns;
+      const host = h("div", {}, table(colunas, data.items));
       VIEW.appendChild(h("div", {class: "sec"}, [bar, host]));
     },
   };
@@ -458,33 +497,43 @@ VIEWS.artigos = crudView({
   id: "artigos", entity: "articles", label: "Artigos", group: "Produção",
   lead: "Cadastre um artigo novo ou atualize um existente — o título é a chave, então repetir o mesmo título atualiza o registro.",
   formTitle: "Novo artigo / atualizar existente", listTitle: "Artigos no banco",
+  /* `from` é o que permite carregar um artigo existente no formulário: sem
+     ele, "atualizar" significaria redigitar tudo, e ninguém redigita — o
+     dado envelhece no banco. */
   fields: [
-    field("Título", "Título", "text", {required: true, span: "full"}),
-    field("Autores", "Autores", "text", {required: true, span: "full",
+    field("Título", "Título", "text", {required: true, span: "full", from: "title"}),
+    field("Autores", "Autores", "text", {required: true, span: "full", from: "authors",
       hint: "Separe por ponto e vírgula, na ordem de autoria. Marque o correspondente com *."}),
-    field("Responsável", "Responsável"),
-    field("Status", "Situação", "select", {options: STATUS_OPTS}),
+    field("Responsável", "Responsável", "text", {from: "lead_name"}),
+    field("Status", "Situação", "select", {options: STATUS_OPTS, from: "__situacao"}),
     field("Linha de pesquisa", "Linha de pesquisa", "select",
-      {options: function (){ return CACHE.lines; }}),
-    field("Tipo de estudo", "Tipo de estudo", "text", {placeholder: "Ensaio clínico, revisão…"}),
-    field("Data de início", "Início do artigo", "date"),
+      {options: function (){ return CACHE.lines; }, from: "research_line"}),
+    field("Tipo de estudo", "Tipo de estudo", "text",
+      {placeholder: "Ensaio clínico, revisão…", from: "study_type"}),
+    field("Data de início", "Início do artigo", "date", {from: "started_on"}),
     field("Data da primeira versão", "1ª versão", "date"),
     field("Data segunda versão", "2ª versão", "date"),
     field("Data terceira versão", "3ª versão", "date"),
     field("Data quarta versão", "4ª versão", "date"),
     field("Data versão final", "Versão final", "date"),
-    field("Revisão interna", "Revisão interna", "date"),
-    field("Data de submissão", "1ª submissão", "date"),
-    field("Data do aceite", "Aceite", "date"),
-    field("Data de publicação", "Publicação", "date"),
-    field("Periódico", "Periódico"),
-    field("Ano", "Ano de publicação", "number"),
-    field("DOI", "DOI", "text", {hint: "Com DOI o sistema busca citações sozinho."}),
-    field("Qualis", "Qualis"),
-    field("Fator de impacto", "Fator de impacto", "number", {step: "0.001"}),
-    field("Link", "Link"),
-    field("Observações", "Observações", "textarea", {span: "full"}),
+    field("Revisão interna", "Revisão interna", "date", {from: "internal_review_on"}),
+    field("Data de submissão", "1ª submissão", "date", {from: "first_submission_on"}),
+    field("Data do aceite", "Aceite", "date", {from: "accepted_on"}),
+    field("Data de publicação", "Publicação", "date", {from: "published_on"}),
+    field("Periódico", "Periódico", "text", {from: "journal"}),
+    field("Ano", "Ano de publicação", "number", {from: "year_published"}),
+    field("DOI", "DOI", "text", {from: "doi",
+      hint: "Com DOI o sistema busca citações sozinho."}),
+    field("Qualis", "Qualis", "text", {from: "qualis"}),
+    field("Fator de impacto", "Fator de impacto", "number",
+      {step: "0.001", from: "impact_factor"}),
+    field("Link", "Link", "text", {from: "url"}),
+    field("Observações", "Observações", "textarea", {span: "full", from: "notes"}),
   ],
+  editavel: true,
+  aoEditar: function (row){
+    return Object.assign({}, row, {__situacao: SITUACAO_ROTULO[row.status] || ""});
+  },
   columns: [
     {k: "internal_code", label: "ID"},
     {k: "title", label: "Título"},
@@ -497,6 +546,76 @@ VIEWS.artigos = crudView({
     {k: "submission_attempts", label: "Tentativas", num: true},
   ],
 });
+
+/* O desfecho de uma tentativa que JÁ existe.
+   Registrar a recusa não pode obrigar a redigitar revista e data: a
+   tentativa está lá, o que falta é dizer como ela terminou. O formulário
+   abaixo pergunta só isso, e grava por cima da mesma tentativa — artigo e
+   número são a chave, então não nasce submissão duplicada. */
+/* O banco guarda a forma canônica ("em_producao"); o formulário mostra o
+   rótulo ("Em produção"). Sem a tradução, editar um artigo abriria o
+   seletor de situação em branco — e salvar apagaria a situação. */
+const SITUACAO_ROTULO = {
+  em_producao: "Em produção", submetido: "Submetido", em_revisao: "Em revisão",
+  aceito: "Aceito", publicado: "Publicado", rejeitado: "Rejeitado",
+  arquivado: "Arquivado",
+};
+
+const DECISAO_ROTULO = {
+  em_avaliacao: "Em avaliação", revisao_solicitada: "Revisão solicitada",
+  aceito: "Aceito", rejeitado: "Rejeitado", desk_reject: "Desk rejection",
+  retirado: "Retirado",
+};
+
+function botaoDeDesfecho(row, recarregar){
+  const jaTem = row.decision && row.decision !== "em_avaliacao";
+  return h("button", {
+    type: "button", class: jaTem ? "ghost" : "",
+    text: jaTem ? "Alterar desfecho" : "Registrar desfecho",
+    onclick: function (){ abrirDesfecho(row, recarregar); },
+  });
+}
+
+function abrirDesfecho(row, recarregar){
+  const anterior = document.getElementById("desfecho");
+  if (anterior) anterior.remove();
+
+  const spec = {
+    submitLabel: "Gravar desfecho",
+    fields: [
+      field("Decisão", "Como terminou", "select",
+        {options: DECISION_OPTS, required: true, from: "__decisao"}),
+      field("Data da decisão", "Data da resposta", "date", {from: "decision_on"}),
+      field("Motivo da recusa", "Motivo da recusa", "select",
+        {options: function (){ return CACHE.reasons; }, span: "full",
+         from: "rejection_reason_label",
+         hint: "Só para recusa. Alimenta o gráfico de motivos no painel."}),
+      field("Rodadas", "Rodadas de revisão", "number", {from: "review_rounds"}),
+    ],
+    /* A chave da tentativa vai junto, sem ser editável: é ela que faz o
+       registro cair por cima do que já existe em vez de criar outro. */
+    extra: function (){
+      return {"Artigo": row.article_title, "Tentativa": row.attempt_no};
+    },
+    onCancel: function (){ const c = document.getElementById("desfecho"); if (c) c.remove(); },
+  };
+
+  const valores = Object.assign({}, row, {__decisao: DECISAO_ROTULO[row.decision] || ""});
+  const cartao = h("div", {class: "card sec", id: "desfecho"}, [
+    h("h3", {text: "Desfecho da tentativa " + row.attempt_no}),
+    h("p", {class: "hint", text: [row.article_title, row.journal,
+      row.submitted_on ? "enviado em " + dt(row.submitted_on) : null]
+      .filter(Boolean).join(" · ")}),
+    h("div", {style: "margin-top:14px"}, buildForm(spec, valores, async function (payload){
+      await api("/api/submissions", "POST", payload);
+      toast("Desfecho registrado. A situação do artigo foi atualizada.");
+      await loadLookups();
+      recarregar();
+    })),
+  ]);
+  VIEW.insertBefore(cartao, VIEW.firstChild.nextSibling);
+  cartao.scrollIntoView({behavior: "smooth", block: "center"});
+}
 
 VIEWS.submissoes = crudView({
   id: "submissoes", entity: "submissions", label: "Submissões", group: "Produção",
@@ -535,6 +654,7 @@ VIEWS.submissoes = crudView({
     {k: "decision_on", label: "Decisão em", render: function (r){ return dt(r.decision_on); }},
     {k: "rejection_reason_label", label: "Motivo"},
   ],
+  acao: botaoDeDesfecho,
 });
 
 VIEWS.projetos = crudView({

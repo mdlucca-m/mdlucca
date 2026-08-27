@@ -737,6 +737,49 @@ class TestConferenciaDePublicacao(unittest.TestCase):
         self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM audit_log"), antes)
 
 
+class TestEdicaoNaAreaDoIntegrante(unittest.TestCase):
+    """Uma aba editável precisa que TODO campo saiba de que coluna vem.
+
+    O formulario e preenchido por `from`. Um campo sem `from` abre em branco
+    ao editar -- e, como o formulario grava o que esta na tela, salvar apaga
+    aquele dado. Um campo esquecido nao da erro nenhum: so come informacao,
+    em silencio.
+    """
+
+    TEMPLATES = ROOT / "scripts" / "lape" / "templates"
+
+    def bloco_da_aba(self, nome: str) -> str:
+        texto = (self.TEMPLATES / "app.html").read_text(encoding="utf-8")
+        return texto.split(f"VIEWS.{nome} = crudView({{", 1)[1].split("\n});", 1)[0]
+
+    def test_a_aba_de_artigos_e_editavel(self):
+        self.assertIn("editavel: true", self.bloco_da_aba("artigos"))
+
+    def test_todo_campo_editavel_sabe_de_onde_vem(self):
+        bloco = self.bloco_da_aba("artigos")
+        campos = bloco.split("fields: [", 1)[1].split("\n  ],", 1)[0]
+        sem_origem = []
+        for chamada in re.findall(r'field\("([^"]+)"(.*?)\),\n', campos + "\n"):
+            nome, resto = chamada
+            if "from:" not in resto:
+                sem_origem.append(nome)
+        # as datas de versao vivem em article_milestones, nao em v_articles_full:
+        # nao ha coluna de onde puxa-las, e por isso ficam de fora
+        previstos = {"Data da primeira versão", "Data segunda versão",
+                     "Data terceira versão", "Data quarta versão", "Data versão final"}
+        self.assertEqual(set(sem_origem) - previstos, set(),
+                         f"campo sem `from` numa aba editável: {sorted(set(sem_origem) - previstos)}")
+
+    def test_a_situacao_e_traduzida_ao_editar(self):
+        # o banco guarda "em_producao"; o seletor mostra "Em produção"
+        texto = (self.TEMPLATES / "app.html").read_text(encoding="utf-8")
+        self.assertIn("SITUACAO_ROTULO", texto)
+        self.assertIn("aoEditar", self.bloco_da_aba("artigos"))
+
+    def test_a_aba_de_submissoes_registra_desfecho(self):
+        self.assertIn("acao: botaoDeDesfecho", self.bloco_da_aba("submissoes"))
+
+
 class TestTokensDoTema(unittest.TestCase):
     """Todo var(--token) usado nas paginas precisa existir no tema.
 
