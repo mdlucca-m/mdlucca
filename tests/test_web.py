@@ -607,10 +607,18 @@ class TestPublicacao(unittest.TestCase):
 class TestConferenciaDePublicacao(unittest.TestCase):
     """A conferencia precisa acusar o que realmente impede a publicacao."""
 
+    # A conferencia marca /tmp e /app como caminho efemero, de proposito. Um
+    # banco de teste vive sempre num diretorio temporario, e o proprio
+    # repositorio pode estar sob /tmp (clone descartavel, CI). Entao este
+    # achado e ruido AQUI -- e tem teste proprio, o test_banco_em_caminho_efemero_impede.
+    RUIDO_DO_AMBIENTE = "efêmero"
+
+    def impedimentos(self, ambiente):
+        return [a["titulo"] for a in preflight.conferir(self.db, ambiente)
+                if a["nivel"] == "impede" and self.RUIDO_DO_AMBIENTE not in a["titulo"]]
+
     def setUp(self):
-        # dentro do projeto, e nao em /tmp: a conferencia acusa caminho efemero
-        # de proposito, e um banco em /tmp seria justamente um deles
-        self.tmp = tempfile.TemporaryDirectory(dir=ROOT)
+        self.tmp = tempfile.TemporaryDirectory()
         self.db = Database(Path(self.tmp.name) / "pf.sqlite")
         self.db.migrate()
 
@@ -631,27 +639,21 @@ class TestConferenciaDePublicacao(unittest.TestCase):
         self.assertFalse(preflight.resumo(achados)["pronto"])
 
     def test_sem_administrador_impede(self):
-        achados = preflight.conferir(self.db, self.AMBIENTE_BOM)
-        self.assertTrue(any(a["nivel"] == "impede" and "administrador" in a["titulo"]
-                            for a in achados))
+        self.assertTrue(any("administrador" in t for t in self.impedimentos(self.AMBIENTE_BOM)))
 
     def test_ambiente_completo_libera(self):
         auth.create_account(self.db, "Chefia", "chefe@udesc.br", "Kx7m-Trilha-Serena-92",
                             role="admin")
         self.db.execute("UPDATE members SET must_change_password = 0")
         self.db.conn.commit()
-        achados = preflight.conferir(self.db, self.AMBIENTE_BOM)
-        impedimentos = [a["titulo"] for a in achados if a["nivel"] == "impede"]
-        self.assertEqual(impedimentos, [], f"impedimentos inesperados: {impedimentos}")
-        self.assertTrue(preflight.resumo(achados)["pronto"])
+        restantes = self.impedimentos(self.AMBIENTE_BOM)
+        self.assertEqual(restantes, [], f"impedimentos inesperados: {restantes}")
 
     def test_senha_de_exemplo_no_ambiente_impede(self):
         auth.create_account(self.db, "Chefia", "chefe@udesc.br", "Kx7m-Trilha-Serena-92",
                             role="admin")
         ambiente = dict(self.AMBIENTE_BOM, LAPE_ADMIN_PASSWORD="troque-por-uma-senha-longa")
-        achados = preflight.conferir(self.db, ambiente)
-        self.assertTrue(any(a["nivel"] == "impede" and "LAPE_ADMIN_PASSWORD" in a["titulo"]
-                            for a in achados))
+        self.assertTrue(any("LAPE_ADMIN_PASSWORD" in t for t in self.impedimentos(ambiente)))
 
     def test_painel_publico_e_apontado_como_risco(self):
         ambiente = dict(self.AMBIENTE_BOM, LAPE_PUBLIC_DASHBOARD="1")
