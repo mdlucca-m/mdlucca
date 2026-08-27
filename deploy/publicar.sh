@@ -166,12 +166,32 @@ LAPE_BEHIND_HTTPS=1 LAPE_TRUST_PROXY=1 \
   > "$EXEC/api.log" 2>&1 &
 echo $! > "$EXEC/api.pid"
 
+# Perguntar só "a porta responde?" não serve. Se um serviço antigo ainda
+# estiver segurando a porta, o novo morre ao tentar abri-la — e a conferência
+# passa, porque quem respondeu foi o velho. O túnel sobe apontando para o
+# serviço errado, e quem atualizou o sistema recarrega a página e vê tudo
+# igual, sem nenhuma mensagem de erro em lugar nenhum.
+API_PID="$(cat "$EXEC/api.pid")"
 for _ in $(seq 1 40); do
+  kill -0 "$API_PID" 2>/dev/null || break
   curl -fsS -m 2 "http://127.0.0.1:$PORTA/api/health" >/dev/null 2>&1 && break
   sleep 0.5
 done
+if ! kill -0 "$API_PID" 2>/dev/null; then
+  tail -20 "$EXEC/api.log"
+  echo
+  DONO="$( (command -v lsof >/dev/null && lsof -ti :"$PORTA" | head -1) || true)"
+  if [[ -n "${DONO:-}" ]]; then
+    aviso "A porta $PORTA já está ocupada pelo processo $DONO:"
+    ps -p "$DONO" -o args= 2>/dev/null | sed 's/^/    /'
+    echo
+    aviso "Provavelmente é um LAPE antigo. Encerre-o com:  kill $DONO"
+    aviso "ou suba este numa porta livre:  bash deploy/publicar.sh --porta 8010"
+  fi
+  erro "O serviço morreu ao subir."
+fi
 curl -fsS -m 3 "http://127.0.0.1:$PORTA/api/health" >/dev/null \
-  || { tail -20 "$EXEC/api.log"; erro "O serviço não subiu. Log acima."; }
+  || { tail -20 "$EXEC/api.log"; erro "O serviço subiu mas não respondeu. Log acima."; }
 verde "Serviço no ar em 127.0.0.1:$PORTA"
 
 # --------------------------------------------------------------------- 5. túnel

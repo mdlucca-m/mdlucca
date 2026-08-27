@@ -243,16 +243,42 @@ $api = Start-Process -FilePath $Python `
 if (-not $api) { Erro "Nao consegui iniciar o servico." }
 $api.Id | Out-File (Join-Path $Exec "api.pid") -Encoding ascii
 
+# Perguntar so "a porta responde?" nao serve. Se um processo antigo ainda
+# estiver segurando a porta, o novo morre ao tentar abri-la -- e a
+# conferencia passa, porque quem respondeu foi o velho. O tunel sobe
+# apontando para o servico errado, e quem atualizou o sistema recarrega a
+# pagina e ve tudo igual, sem nenhuma mensagem de erro em lugar nenhum.
 $ok = $false
 foreach ($i in 1..40) {
+  if ($api.HasExited) { break }
   try {
     Invoke-RestMethod -Uri "http://127.0.0.1:$Porta/api/health" -TimeoutSec 2 | Out-Null
     $ok = $true; break
   } catch { Start-Sleep -Milliseconds 500 }
 }
+if ($api.HasExited) {
+  Get-Content (Join-Path $Exec "api.err") -Tail 20 -ErrorAction SilentlyContinue
+  Write-Host ""
+  # quem esta com a porta? o nome do processo e a pasta de onde ele subiu
+  # sao a resposta que a pessoa precisa para agir
+  try {
+    $dono = (Get-NetTCPConnection -LocalPort $Porta -State Listen -ErrorAction Stop |
+             Select-Object -First 1).OwningProcess
+    if ($dono) {
+      $quem = Get-CimInstance Win32_Process -Filter "ProcessId = $dono" -ErrorAction SilentlyContinue
+      Aviso "A porta $Porta ja esta ocupada pelo processo $dono:"
+      if ($quem) { Write-Host "    $($quem.CommandLine)" }
+      Write-Host ""
+      Aviso "Provavelmente e um LAPE antigo, de outra pasta. Encerre-o com:"
+      Write-Host "    Stop-Process -Id $dono -Force"
+      Aviso "ou suba este numa porta livre:  .\deploy\publicar.ps1 -Porta 8010"
+    }
+  } catch { }
+  Erro "O servico morreu ao subir."
+}
 if (-not $ok) {
   Get-Content (Join-Path $Exec "api.err") -Tail 20 -ErrorAction SilentlyContinue
-  Erro "O servico nao subiu. Log acima."
+  Erro "O servico subiu mas nao respondeu. Log acima."
 }
 Verde "Servico no ar em 127.0.0.1:$Porta"
 
