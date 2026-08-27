@@ -49,6 +49,10 @@
 .EXAMPLE
   # qual e o endereco de hoje? (tambem copia para a area de transferencia)
   .\deploy\publicar.ps1 -Endereco
+
+.EXAMPLE
+  # subir sem procurar atualizacao (internet ruim, ou quero o codigo de agora)
+  .\deploy\publicar.ps1 -SemAtualizar
 #>
 param(
   [int]$Porta = 8000,
@@ -60,7 +64,8 @@ param(
   [switch]$Parar,
   [switch]$Endereco,
   [switch]$AoLigar,
-  [switch]$NaoAoLigar
+  [switch]$NaoAoLigar,
+  [switch]$SemAtualizar
 )
 
 $ErrorActionPreference = "Stop"
@@ -170,6 +175,71 @@ if ($Endereco) {
   exit 0
 }
 New-Item -ItemType Directory -Force -Path $Exec | Out-Null
+
+# ------------------------------------------------------------ 0. atualizacao
+# Quem liga o computador quer o sistema no ar, nao um comando para decorar.
+# Entao a atualizacao acontece aqui, sozinha, antes de subir qualquer coisa.
+#
+# Tres regras, todas para o mesmo fim -- nunca deixar o laboratorio fora do
+# ar por causa de uma atualizacao:
+#   1. so puxa se estiver no ramo principal (ramo de trabalho e de quem sabe
+#      o que esta fazendo; nao cabe ao script mexer);
+#   2. so puxa se nao houver alteracao local pendente (nada e sobrescrito);
+#   3. --ff-only: se divergiu, para e avisa em vez de inventar um merge.
+# Falhar em qualquer ponto -- sem internet, sem git, ramo trocado -- vira um
+# aviso amarelo, e o servico sobe com o codigo que ja esta no disco.
+function Atualizar-Codigo {
+  if ($SemAtualizar) { Azul "Atualizacao dispensada (-SemAtualizar)"; return }
+  if (-not (Test-Path (Join-Path $Raiz ".git"))) { return }
+  if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+    Aviso "git nao encontrado: seguindo com o codigo que esta no disco."
+    return
+  }
+  # git escreve o progresso na saida de erro mesmo quando da tudo certo.
+  # Com ErrorActionPreference = Stop isso vira excecao e a atualizacao
+  # falharia justamente quando funcionou. Aqui o criterio e o codigo de
+  # saida, que e o que o git usa para dizer se deu certo.
+  $antigoEA = $ErrorActionPreference
+  $ErrorActionPreference = "Continue"
+  $registro = Join-Path $Exec "atualizacao.log"
+  try {
+    $ramo = & git rev-parse --abbrev-ref HEAD 2>$null
+    if ($LASTEXITCODE -ne 0) { Aviso "Nao consegui ler o ramo: seguindo com o codigo atual."; return }
+    if ($ramo -ne "main" -and $ramo -ne "master") {
+      Aviso "No ramo '$ramo': nao atualizo sozinho, para nao atrapalhar quem esta trabalhando."
+      return
+    }
+    # `data/` fica de fora de proposito: ali mora o banco vivo, que muda a
+    # cada cadastro. Se ele contasse como "alteracao local", a atualizacao
+    # nunca aconteceria na maquina do laboratorio -- que e justamente a
+    # unica maquina onde ela precisa acontecer.
+    if (& git status --porcelain -- . ':(exclude)data' 2>$null) {
+      Aviso "Ha alteracoes locais no codigo: nao vou sobrescrever. Seguindo com o codigo atual."
+      return
+    }
+    $antes = & git rev-parse HEAD 2>$null
+    Azul "Procurando atualizacoes..."
+    & git pull --ff-only 2>&1 | Out-File -FilePath $registro -Encoding utf8
+    if ($LASTEXITCODE -ne 0) {
+      Aviso "Nao deu para atualizar agora -- seguindo com o codigo atual. O banco nao foi tocado."
+      Get-Content $registro -Tail 3 -ErrorAction SilentlyContinue |
+        ForEach-Object { Write-Host "  $_" }
+      return
+    }
+    $depois = & git rev-parse HEAD 2>$null
+    if ($antes -eq $depois) {
+      Verde "Codigo ja estava atualizado"
+    } else {
+      $quantas = & git rev-list --count "$antes..$depois" 2>$null
+      Verde "Codigo atualizado ($quantas mudanca(s) nova(s))"
+      $ultima = & git log -1 --pretty=%s 2>$null
+      if ($ultima) { Write-Host "  a mais recente: $ultima" }
+    }
+  } finally {
+    $ErrorActionPreference = $antigoEA
+  }
+}
+Atualizar-Codigo
 
 # ------------------------------------------------------------------ 1. Python
 $Python = $null

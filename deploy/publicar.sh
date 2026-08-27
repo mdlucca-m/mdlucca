@@ -21,6 +21,7 @@
 #   --porta N           porta local do serviço (padrão: 8000)
 #   --endereco          diz qual é o endereço que está no ar agora
 #   --parar             encerra o que este script deixou rodando
+#   --sem-atualizar     não procura atualizações antes de subir
 #
 # Escolhido o modo uma vez, ele fica gravado: nas próximas vezes basta rodar
 # o script sem opção nenhuma.
@@ -52,6 +53,7 @@ while [[ $# -gt 0 ]]; do
     --porta) PORTA="$2"; shift 2 ;;
     --endereco) mostrar_endereco=1; shift ;;
     --parar) parar_tudo=1; shift ;;
+    --sem-atualizar) SEM_ATUALIZAR=1; shift ;;
     -h|--help) sed -n '2,25p' "$0"; exit 0 ;;
     *) erro "opção desconhecida: $1" ;;
   esac
@@ -103,6 +105,55 @@ fi
 
 mkdir -p "$EXEC"
 trap 'echo; aviso "Encerrando…"; parar; exit 0' INT TERM
+
+# ------------------------------------------------------------ 0. atualização
+# Quem sobe o serviço quer o serviço no ar, não um comando para decorar.
+# A atualização acontece aqui, sozinha, antes de subir qualquer coisa.
+#
+# Três regras, todas para o mesmo fim -- nunca deixar o laboratório fora do
+# ar por causa de uma atualização:
+#   1. só puxa no ramo principal (ramo de trabalho é de quem sabe o que está
+#      fazendo; não cabe ao script mexer);
+#   2. só puxa sem alteração local pendente (nada é sobrescrito);
+#   3. --ff-only: se divergiu, para e avisa em vez de inventar um merge.
+# Falhar em qualquer ponto -- sem internet, sem git, ramo trocado -- vira um
+# aviso amarelo, e o serviço sobe com o código que já está no disco.
+atualizar_codigo() {
+  if [[ "${SEM_ATUALIZAR:-0}" == 1 ]]; then azul "Atualização dispensada (--sem-atualizar)"; return; fi
+  [[ -d "$RAIZ/.git" ]] || return 0
+  command -v git >/dev/null || { aviso "git não encontrado: seguindo com o código que está no disco."; return 0; }
+  local ramo antes depois quantas ultima
+  ramo="$(git -C "$RAIZ" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+  if [[ "$ramo" != "main" && "$ramo" != "master" ]]; then
+    aviso "No ramo '${ramo:-?}': não atualizo sozinho, para não atrapalhar quem está trabalhando."
+    return 0
+  fi
+  # `data/` fica de fora de propósito: ali mora o banco vivo, que muda a cada
+  # cadastro. Se ele contasse como "alteração local", a atualização nunca
+  # aconteceria na máquina do laboratório -- que é justamente a única máquina
+  # onde ela precisa acontecer.
+  if [[ -n "$(git -C "$RAIZ" status --porcelain -- . ':(exclude)data' 2>/dev/null)" ]]; then
+    aviso "Há alterações locais no código: não vou sobrescrever. Seguindo com o código atual."
+    return 0
+  fi
+  antes="$(git -C "$RAIZ" rev-parse HEAD 2>/dev/null || true)"
+  azul "Procurando atualizações…"
+  if ! git -C "$RAIZ" pull --ff-only > "$EXEC/atualizacao.log" 2>&1; then
+    aviso "Não deu para atualizar agora -- seguindo com o código atual. O banco não foi tocado."
+    tail -n 3 "$EXEC/atualizacao.log" 2>/dev/null | sed 's/^/  /'
+    return 0
+  fi
+  depois="$(git -C "$RAIZ" rev-parse HEAD 2>/dev/null || true)"
+  if [[ "$antes" == "$depois" ]]; then
+    verde "Código já estava atualizado"
+  else
+    quantas="$(git -C "$RAIZ" rev-list --count "$antes..$depois" 2>/dev/null || echo '?')"
+    verde "Código atualizado ($quantas mudança(s) nova(s))"
+    ultima="$(git -C "$RAIZ" log -1 --pretty=%s 2>/dev/null || true)"
+    [[ -n "$ultima" ]] && echo "  a mais recente: $ultima"
+  fi
+}
+atualizar_codigo
 
 # ------------------------------------------------------------------ 1. Python
 command -v python3 >/dev/null || erro "Python 3 não encontrado. Instale-o e rode de novo."
