@@ -67,8 +67,11 @@ fi
 
 parar() {
   for nome in api tunel; do
-    if [[ -f "$EXEC/$nome.pid" ]] && kill -0 "$(cat "$EXEC/$nome.pid")" 2>/dev/null; then
-      kill "$(cat "$EXEC/$nome.pid")" 2>/dev/null || true
+    # .pid vazio acontece quando uma subida anterior morreu antes de o
+    # processo nascer: o teste do número evita agir sobre nada
+    pid="$(cat "$EXEC/$nome.pid" 2>/dev/null || true)"
+    if [[ "$pid" =~ ^[0-9]+$ ]] && kill -0 "$pid" 2>/dev/null; then
+      kill "$pid" 2>/dev/null || true
       verde "Encerrado: $nome"
     fi
     rm -f "$EXEC/$nome.pid"

@@ -88,12 +88,17 @@ function Erro  { param($t) Write-Host "! $t" -ForegroundColor Red; Parar-Tudo; e
 function Parar-Tudo {
   foreach ($nome in @("api", "tunel")) {
     $arquivo = Join-Path $Exec "$nome.pid"
-    if (Test-Path $arquivo) {
-      $pidAlvo = Get-Content $arquivo
-      Stop-Process -Id $pidAlvo -Force -ErrorAction SilentlyContinue
-      Remove-Item $arquivo -ErrorAction SilentlyContinue
+    if (-not (Test-Path $arquivo)) { continue }
+    # Um .pid vazio existe sempre que uma subida anterior morreu antes de o
+    # processo nascer. `Stop-Process -Id $null` e erro terminante, e com
+    # ErrorActionPreference = Stop derrubava o script inteiro na largada --
+    # deixando a pessoa sem servico e sem entender por que.
+    $pidAlvo = Get-Content $arquivo -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ("$pidAlvo".Trim() -match '^\d+$') {
+      Stop-Process -Id ([int]"$pidAlvo".Trim()) -Force -ErrorAction SilentlyContinue
       Verde "Encerrado: $nome"
     }
+    Remove-Item $arquivo -ErrorAction SilentlyContinue
   }
   # endereco de servico parado nao e endereco: apagar evita mandar a alguem
   # um link que ninguem esta atendendo
@@ -230,6 +235,7 @@ $api = Start-Process -FilePath $Python `
   -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
   -RedirectStandardOutput (Join-Path $Exec "api.log") `
   -RedirectStandardError  (Join-Path $Exec "api.err")
+if (-not $api) { Erro "Nao consegui iniciar o servico." }
 $api.Id | Out-File (Join-Path $Exec "api.pid") -Encoding ascii
 
 $ok = $false
@@ -317,6 +323,7 @@ if ($Fixo) {
     -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
     -RedirectStandardOutput (Join-Path $Exec "tunel.log") `
     -RedirectStandardError  (Join-Path $Exec "tunel.err")
+  if (-not $tunel) { Erro "Nao consegui iniciar o tunel." }
   $tunel.Id | Out-File (Join-Path $Exec "tunel.pid") -Encoding ascii
 
   # o proprio ngrok publica em 127.0.0.1:4040 o que conseguiu abrir -- e mais
@@ -387,6 +394,7 @@ elseif ($Permanente) {
     -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
     -RedirectStandardOutput (Join-Path $Exec "tunel.log") `
     -RedirectStandardError  (Join-Path $Exec "tunel.err")
+  if (-not $tunel) { Erro "Nao consegui iniciar o tunel." }
   $tunel.Id | Out-File (Join-Path $Exec "tunel.pid") -Encoding ascii
 
   $endereco = "https://$Dominio"
@@ -414,6 +422,7 @@ else {
     -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
     -RedirectStandardOutput (Join-Path $Exec "tunel.log") `
     -RedirectStandardError  (Join-Path $Exec "tunel.err")
+  if (-not $tunel) { Erro "Nao consegui iniciar o tunel." }
   $tunel.Id | Out-File (Join-Path $Exec "tunel.pid") -Encoding ascii
 
   # o cloudflared escreve o endereco na saida de erro, nao na padrao
