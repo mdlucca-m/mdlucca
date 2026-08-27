@@ -65,6 +65,14 @@ if [[ "$FIXO" == 0 && "$PERMANENTE" == 0 ]]; then
   fi
 fi
 
+parar_tunel() {
+  pid="$(cat "$EXEC/tunel.pid" 2>/dev/null || true)"
+  if [[ "$pid" =~ ^[0-9]+$ ]] && kill -0 "$pid" 2>/dev/null; then
+    kill "$pid" 2>/dev/null || true
+  fi
+  rm -f "$EXEC/tunel.pid"
+}
+
 parar() {
   for nome in api tunel; do
     # .pid vazio acontece quando uma subida anterior morreu antes de o
@@ -280,17 +288,39 @@ TXT
   [[ "$RESPONDEU" == 1 ]] || aviso "O túnel subiu, mas $DOMINIO ainda não respondeu — o DNS costuma levar alguns minutos na primeira vez."
 
 else
-  azul "Abrindo o túnel…"
-  nohup "$CF" tunnel --no-autoupdate --url "http://127.0.0.1:$PORTA" \
-    > "$EXEC/tunel.log" 2>&1 &
-  echo $! > "$EXEC/tunel.pid"
+  # O túnel sorteado é cortesia da Cloudflare, sem garantia de disponibilidade
+  # — o próprio aviso no log diz isso. Às vezes ele pede o endereço e a
+  # resposta não vem. Uma segunda tentativa custa pouco; desistir na primeira
+  # é que não.
+  for tentativa in 1 2; do
+    if [[ "$tentativa" == 1 ]]; then
+      azul "Abrindo o túnel…"
+    else
+      aviso "A Cloudflare não devolveu endereço. Tentando mais uma vez…"
+      parar_tunel
+      rm -f "$EXEC/tunel.log"
+    fi
+    nohup "$CF" tunnel --no-autoupdate --url "http://127.0.0.1:$PORTA" \
+      > "$EXEC/tunel.log" 2>&1 &
+    echo $! > "$EXEC/tunel.pid"
+    TUNEL_PID=$!
 
-  for _ in $(seq 1 60); do
-    ENDERECO="$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' "$EXEC/tunel.log" | head -1 || true)"
+    for _ in $(seq 1 90); do
+      ENDERECO="$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' "$EXEC/tunel.log" | head -1 || true)"
+      [[ -n "$ENDERECO" ]] && break
+      # túnel morto não vai imprimir endereço nenhum
+      kill -0 "$TUNEL_PID" 2>/dev/null || break
+      sleep 1
+    done
     [[ -n "$ENDERECO" ]] && break
-    sleep 1
   done
-  [[ -n "$ENDERECO" ]] || { tail -20 "$EXEC/tunel.log"; erro "O túnel não abriu. Log acima."; }
+  if [[ -z "$ENDERECO" ]]; then
+    tail -20 "$EXEC/tunel.log"
+    echo
+    aviso "O túnel sorteado é de cortesia e cai às vezes. Rode o comando de novo."
+    aviso "Para não depender dele: bash deploy/publicar.sh --fixo"
+    erro "A Cloudflare não devolveu endereço em duas tentativas."
+  fi
 fi
 
 printf '%s' "$ENDERECO" > "$ARQ_END"

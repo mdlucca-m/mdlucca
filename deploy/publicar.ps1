@@ -258,8 +258,8 @@ Verde "Servico no ar em 127.0.0.1:$Porta"
 $Link = $null
 
 function Esperar-Tunel {
-  param($padrao)
-  foreach ($i in 1..60) {
+  param($padrao, $processo, $segundos = 90)
+  foreach ($i in 1..$segundos) {
     Start-Sleep -Seconds 1
     foreach ($arquivo in @("tunel.err", "tunel.log")) {
       $caminho = Join-Path $Exec $arquivo
@@ -269,8 +269,21 @@ function Esperar-Tunel {
         if ($achado) { return $achado.Value }
       }
     }
+    # tunel que morreu nao vai imprimir endereco nenhum: esperar o resto do
+    # prazo so faz a pessoa olhar para uma tela parada
+    if ($processo -and $processo.HasExited) { return $null }
   }
   return $null
+}
+
+function Parar-Tunel {
+  $arquivo = Join-Path $Exec "tunel.pid"
+  if (-not (Test-Path $arquivo)) { return }
+  $alvo = Get-Content $arquivo -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ("$alvo".Trim() -match '^\d+$') {
+    Stop-Process -Id ([int]"$alvo".Trim()) -Force -ErrorAction SilentlyContinue
+  }
+  Remove-Item $arquivo -ErrorAction SilentlyContinue
 }
 
 function Mostrar-Log-Do-Tunel {
@@ -416,20 +429,37 @@ elseif ($Permanente) {
 
 # ------------------------------------------- 5c. endereco sorteado (padrao)
 else {
-  Azul "Abrindo o tunel..."
-  $procTunel = Start-Process -FilePath $CF `
-    -ArgumentList "tunnel", "--no-autoupdate", "--url", "http://127.0.0.1:$Porta" `
-    -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
-    -RedirectStandardOutput (Join-Path $Exec "tunel.log") `
-    -RedirectStandardError  (Join-Path $Exec "tunel.err")
-  if (-not $procTunel) { Erro "Nao consegui iniciar o tunel." }
-  $procTunel.Id | Out-File (Join-Path $Exec "tunel.pid") -Encoding ascii
+  # O tunel sorteado e servico de cortesia da Cloudflare, sem garantia de
+  # disponibilidade -- o proprio aviso no log diz isso. As vezes ele pede o
+  # endereco e a resposta nao vem. Uma segunda tentativa custa pouco e
+  # resolve a maior parte dos casos; desistir na primeira e que nao.
+  foreach ($tentativa in 1..2) {
+    if ($tentativa -gt 1) {
+      Aviso "A Cloudflare nao devolveu endereco. Tentando mais uma vez..."
+      Parar-Tunel
+      Remove-Item (Join-Path $Exec "tunel.err") -ErrorAction SilentlyContinue
+      Remove-Item (Join-Path $Exec "tunel.log") -ErrorAction SilentlyContinue
+    } else {
+      Azul "Abrindo o tunel..."
+    }
+    $procTunel = Start-Process -FilePath $CF `
+      -ArgumentList "tunnel", "--no-autoupdate", "--url", "http://127.0.0.1:$Porta" `
+      -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
+      -RedirectStandardOutput (Join-Path $Exec "tunel.log") `
+      -RedirectStandardError  (Join-Path $Exec "tunel.err")
+    if (-not $procTunel) { Erro "Nao consegui iniciar o tunel." }
+    $procTunel.Id | Out-File (Join-Path $Exec "tunel.pid") -Encoding ascii
 
-  # o cloudflared escreve o endereco na saida de erro, nao na padrao
-  $Link = Esperar-Tunel 'https://[a-z0-9-]+\.trycloudflare\.com'
+    # o cloudflared escreve o endereco na saida de erro, nao na padrao
+    $Link = Esperar-Tunel 'https://[a-z0-9-]+\.trycloudflare\.com' $procTunel
+    if ($Link) { break }
+  }
   if (-not $Link) {
     Mostrar-Log-Do-Tunel
-    Erro "O tunel nao abriu. Log acima."
+    Write-Host ""
+    Aviso "O tunel sorteado e de cortesia e cai as vezes. Rode o comando de novo."
+    Aviso "Para nao depender dele: .\deploy\publicar.ps1 -Fixo"
+    Erro "A Cloudflare nao devolveu endereco em duas tentativas."
   }
 }
 
