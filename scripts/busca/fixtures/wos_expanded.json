@@ -1,0 +1,22 @@
+{"QueryResult":{"RecordsFound":1,"RecordsSearched":9000000,"QueryID":1},
+ "Data":{"Records":{"records":{"REC":[
+  {"UID":"WOS:001111111100003",
+   "static_data":{
+    "summary":{
+     "titles":{"title":[{"type":"source","content":"SPORTS"},
+                        {"type":"item","content":"Associations Between Endocrine Status and Stress, Mood and Psychosomatic Status in Elite Handball Players"}]},
+     "names":{"name":[{"role":"author","full_name":"Ratz-Sulyok, Fanny Zselyke"},
+                      {"role":"author","full_name":"Zsakai, Annamaria"}]},
+     "pub_info":{"pubyear":2026,"vol":"14","issue":"7","page":{"begin":"289","end":"289"}}},
+    "fullrecord_metadata":{
+     "addresses":{"address_name":[{"address_spec":{"full_address":"Eotvos Lorand Univ, Dept Biol Anthropol, Budapest, Hungary"}}]},
+     "abstracts":{"abstract":{"abstract_text":{"p":["The assessment of endocrine status in elite athletes is typically linked to training load and perceived stress."]}}},
+     "keywords":{"keyword":["elite athletes","mood profile","psychosomatic symptoms"]},
+     "normalized_languages":{"language":{"content":"English"}}},
+    "item":{"doctype":"Article"}},
+   "dynamic_data":{
+    "cluster_related":{"identifiers":{"identifier":[
+      {"type":"doi","value":"10.3390/sports14070289"},
+      {"type":"pmid","value":"MEDLINE:42506832"}]}},
+    "citation_related":{"tc_list":{"silo_tc":{"local_count":3}}}}}
+ ]}}}}

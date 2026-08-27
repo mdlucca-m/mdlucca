@@ -1,0 +1,21 @@
+{"metadata":{"total":2,"page":1,"limit":50},
+ "hits":[
+  {"uid":"WOS:001111111100001",
+   "title":"Integrated monitoring of training and sport performance throughout an entire handball season",
+   "types":["Article"],
+   "source":{"sourceTitle":"Frontiers in Sports and Active Living","publishYear":2026,"volume":"8","pages":{"begin":"1869707","end":"1869707"}},
+   "names":{"authors":[{"displayName":"Skarbalius, Antanas"}]},
+   "identifiers":{"doi":"10.3389/fspor.2026.1869707","pmid":"MEDLINE:42421841","issn":"2624-9367"},
+   "keywords":{"authorKeywords":["match performance","well-being","sRPE"]},
+   "citations":[{"db":"WOS","count":2}],
+   "links":{"record":"https://www.webofscience.com/wos/woscc/full-record/WOS:001111111100001"}},
+  {"uid":"WOS:001111111100002",
+   "title":"The association between team behaviors and competitive anxiety among team-handball players",
+   "types":["Article"],
+   "source":{"sourceTitle":"Frontiers in Psychology","publishYear":2024,"volume":"15","pages":{"begin":"1417562","end":"1417562"}},
+   "names":{"authors":[{"displayName":"Wang, Xiao"},{"displayName":"Sun, Zhen"}]},
+   "identifiers":{"doi":"10.3389/fpsyg.2024.1417562"},
+   "keywords":{"authorKeywords":["achievement goals","competitive anxiety"]},
+   "citations":[{"db":"WOS","count":11}],
+   "links":{"record":"https://www.webofscience.com/wos/woscc/full-record/WOS:001111111100002"}}
+ ]}

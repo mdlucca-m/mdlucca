@@ -1,0 +1,74 @@
+<?xml version="1.0" ?>
+<PubmedArticleSet>
+<PubmedArticle>
+  <MedlineCitation Status="MEDLINE" Owner="NLM">
+    <PMID Version="1">42461857</PMID>
+    <Article PubModel="Electronic-eCollection">
+      <Journal>
+        <ISSN IssnType="Electronic">1932-6203</ISSN>
+        <JournalIssue CitedMedium="Internet">
+          <Volume>21</Volume><Issue>7</Issue>
+          <PubDate><Year>2026</Year><Month>Jul</Month><Day>16</Day></PubDate>
+        </JournalIssue>
+        <Title>PloS one</Title>
+        <ISOAbbreviation>PLoS One</ISOAbbreviation>
+      </Journal>
+      <ArticleTitle>Temperament, personality and decision-making accuracy in handball referees.</ArticleTitle>
+      <Pagination><MedlinePgn>e0353879</MedlinePgn></Pagination>
+      <Abstract>
+        <AbstractText Label="BACKGROUND">Accurate decision-making is essential for effective handball officiating.</AbstractText>
+        <AbstractText Label="RESULTS">Sensory Sensitivity showed a positive bivariate correlation with decision-making accuracy (r = 0.32, p &lt; 0.05).</AbstractText>
+      </Abstract>
+      <AuthorList CompleteYN="Y">
+        <Author ValidYN="Y"><LastName>Świdwa</LastName><ForeName>Jacek</ForeName><Initials>J</Initials>
+          <AffiliationInfo><Affiliation>Department of Physical Education and Lifelong Sports, Poznan University of Physical Education, Poznań, Poland.</Affiliation></AffiliationInfo></Author>
+        <Author ValidYN="Y"><LastName>Król-Zielińska</LastName><ForeName>Magdalena</ForeName><Initials>M</Initials></Author>
+        <Author ValidYN="Y"><LastName>Kantanista</LastName><ForeName>Adam</ForeName><Initials>A</Initials></Author>
+      </AuthorList>
+      <Language>eng</Language>
+      <PublicationTypeList><PublicationType UI="D016428">Journal Article</PublicationType></PublicationTypeList>
+    </Article>
+    <KeywordList Owner="NOTNLM">
+      <Keyword MajorTopicYN="N">decision-making</Keyword>
+      <Keyword MajorTopicYN="N">handball referees</Keyword>
+    </KeywordList>
+  </MedlineCitation>
+  <PubmedData>
+    <ArticleIdList>
+      <ArticleId IdType="pubmed">42461857</ArticleId>
+      <ArticleId IdType="doi">10.1371/journal.pone.0353879</ArticleId>
+      <ArticleId IdType="pmc">PMC13375019</ArticleId>
+    </ArticleIdList>
+  </PubmedData>
+</PubmedArticle>
+<PubmedArticle>
+  <MedlineCitation Status="PubMed-not-MEDLINE" Owner="NLM">
+    <PMID Version="1">42421841</PMID>
+    <Article PubModel="Electronic-eCollection">
+      <Journal>
+        <JournalIssue CitedMedium="Internet">
+          <Volume>8</Volume>
+          <PubDate><Year>2026</Year><Month>Jun</Month></PubDate>
+        </JournalIssue>
+        <Title>Frontiers in sports and active living</Title>
+      </Journal>
+      <ArticleTitle>Integrated monitoring of training and sport performance throughout an entire handball season: practical applications in semi-professional female players.</ArticleTitle>
+      <Pagination><MedlinePgn>1869707</MedlinePgn></Pagination>
+      <Abstract><AbstractText>A longitudinal observational study was conducted across the entire competitive season (193 days, 159 training sessions, 34 matches) of semi-professional female handball players.</AbstractText></Abstract>
+      <AuthorList CompleteYN="Y">
+        <Author ValidYN="Y"><LastName>Skarbalius</LastName><ForeName>Antanas</ForeName><Initials>A</Initials>
+          <AffiliationInfo><Affiliation>Department of Coaching Science, Lithuanian Sports University, Kaunas, Lithuania.</Affiliation></AffiliationInfo></Author>
+      </AuthorList>
+      <Language>eng</Language>
+      <PublicationTypeList><PublicationType UI="D016428">Journal Article</PublicationType></PublicationTypeList>
+    </Article>
+  </MedlineCitation>
+  <PubmedData>
+    <ArticleIdList>
+      <ArticleId IdType="pubmed">42421841</ArticleId>
+      <ArticleId IdType="doi">10.3389/fspor.2026.1869707</ArticleId>
+      <ArticleId IdType="pmc">PMC13341432</ArticleId>
+    </ArticleIdList>
+  </PubmedData>
+</PubmedArticle>
+</PubmedArticleSet>
