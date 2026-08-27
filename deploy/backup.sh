@@ -1,25 +1,15 @@
 #!/usr/bin/env bash
-# Backup diário do banco. Agende no cron:
+# Cópia de segurança do banco, para agendar no cron:
 #   0 3 * * * /opt/lape/deploy/backup.sh
+#
+# Numa instalação que roda a API, isto quase nunca é necessário: o próprio
+# serviço copia sozinho, acompanhando o cadastro. Este script existe para o
+# caso de a API não estar no ar — e para quem prefere o cron.
+#
+# A implementação é uma só, em scripts/lape/backup.py. Duas implementações de
+# backup divergem, e a hora de descobrir a divergência é sempre a pior.
 set -euo pipefail
-DB="${LAPE_DB:-/opt/lape/data/db.sqlite}"
-DEST="${LAPE_BACKUP_DIR:-$(dirname "$DB")/backups}"
-KEEP="${LAPE_BACKUP_KEEP:-30}"
+RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$RAIZ"
 
-if [[ ! -f "$DB" ]]; then
-  echo "banco nao encontrado: $DB" >&2
-  exit 1
-fi
-
-mkdir -p "$DEST"
-STAMP="$(date +%Y%m%d_%H%M%S)"
-# sqlite3.backup respeita transações em andamento; copiar o arquivo não.
-python3 - "$DB" "$DEST/db_$STAMP.sqlite" <<'PY'
-import sqlite3, sys
-origem, destino = sys.argv[1], sys.argv[2]
-with sqlite3.connect(origem) as src, sqlite3.connect(destino) as dst:
-    src.backup(dst)
-PY
-gzip -f "$DEST/db_$STAMP.sqlite"
-find "$DEST" -name 'db_*.sqlite.gz' -mtime "+$KEEP" -delete
-echo "backup: $DEST/db_$STAMP.sqlite.gz"
+python3 scripts/lape_agent.py ${LAPE_DB:+--db "$LAPE_DB"} backup --forcar

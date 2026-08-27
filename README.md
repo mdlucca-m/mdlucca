@@ -135,6 +135,50 @@ regra está no servidor, não só na tela.
 - **Administração** — rodar os agentes, aprovar achados do rastreador, liberar
   acesso a novos integrantes, registro de atividade.
 
+### Cópia de segurança
+
+O serviço copia o banco sozinho, **acompanhando o cadastro**: cadastrou algo,
+sai cópia. Não mexeu em nada, não sai — exceto a cópia diária, para haver
+sempre uma recente mesmo numa semana parada. Nada para agendar, nada para
+lembrar.
+
+A cópia é feita pela API `sqlite3.backup`, não copiando o arquivo. Copiar o
+arquivo enquanto o serviço escreve produz um banco que abre e mente; e como o
+banco roda em WAL, a cópia crua ainda perderia o que está no `-wal`.
+
+As cópias ficam em `data/backups/`, comprimidas — um banco do LAPE cabe em
+menos de um décimo do tamanho. Guardam-se 30 dias, com um mínimo de 10 cópias
+que nunca são apagadas por idade: um laboratório que passa um mês sem cadastrar
+nada não pode acordar sem cópia nenhuma.
+
+```bash
+python3 scripts/lape_agent.py backup --listar     # o que existe, e o que está pendente
+python3 scripts/lape_agent.py backup --forcar     # copiar agora, sem esperar
+```
+
+Para restaurar — e a hora de descobrir que uma cópia não presta não é o dia de
+precisar dela, então isto **confere a integridade** antes de entregar:
+
+```bash
+python3 scripts/lape_agent.py backup --restaurar data/backups/db_20260827_030000.sqlite.gz
+```
+
+O banco em uso **não** é tocado: a cópia sai em `data/db-restaurado.sqlite` e a
+troca é sua, com o serviço parado. Trocar o arquivo debaixo de um serviço que
+está escrevendo é como trocar o pneu com o carro andando.
+
+| Variável | Padrão | O que faz |
+|---|---|---|
+| `LAPE_BACKUP` | `1` | `0` desliga a cópia automática |
+| `LAPE_BACKUP_DIR` | `data/backups` | onde guardar |
+| `LAPE_BACKUP_KEEP` | `30` | dias de guarda |
+| `LAPE_BACKUP_KEEP_MIN` | `10` | cópias que nunca envelhecem |
+| `LAPE_BACKUP_INTERVALO_MIN` | `30` | intervalo mínimo entre cópias |
+| `LAPE_BACKUP_DIARIO_H` | `24` | cópia diária mesmo sem mudança |
+
+Numa instalação sem a API no ar, `deploy/backup.sh` faz o mesmo pelo cron —
+chamando a mesma implementação, para as duas não divergirem.
+
 ### Gerenciar acessos pela linha de comando
 
 ```bash

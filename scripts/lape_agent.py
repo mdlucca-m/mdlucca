@@ -274,6 +274,51 @@ def cmd_publicar(args: argparse.Namespace) -> int:
     return 0 if pronto else 1
 
 
+def cmd_backup(args: argparse.Namespace) -> int:
+    """Copia de seguranca do banco -- a mesma que a API faz sozinha."""
+    from lape import backup
+
+    if args.restaurar:
+        destino = args.para or Path(args.db).with_name("db-restaurado.sqlite")
+        conferido = backup.restaurar(Path(args.restaurar), destino)
+        print(f"Cópia restaurada em: {conferido['destino']}")
+        print(f"  integridade: {conferido['integridade']}")
+        for tabela, quantos in conferido["conteudo"].items():
+            print(f"  {tabela:<12} {quantos if quantos is not None else '—'}")
+        print()
+        print("O banco em uso NÃO foi tocado. Para trocar, com o serviço parado:")
+        print(f"  mv {destino} {args.db}")
+        return 0
+
+    db = Database(args.db)
+    db.migrate()
+    try:
+        if args.listar:
+            resumo = backup.resumo(db, db_path=args.db)
+            print(f"  pasta ............. {resumo['pasta']}")
+            print(f"  cópias guardadas .. {resumo['copias']}"
+                  f"  ({resumo['bytes_guardados'] // 1024} kB)")
+            print(f"  última ............ {resumo['ultima'] or 'nenhuma'}")
+            if resumo["motivo_da_ultima"]:
+                print(f"  motivo ............ {resumo['motivo_da_ultima']}")
+            print(f"  pendente agora .... {resumo['pendente'] or 'não'}")
+            for arquivo in backup.copias(args.db)[:10]:
+                print(f"    {arquivo.name}  {arquivo.stat().st_size // 1024} kB")
+            return 0
+        feito = backup.rodar(db, forcar=args.forcar, db_path=args.db)
+    finally:
+        db.close()
+    if feito is None:
+        print("Nada mudou desde a última cópia e ela ainda é recente. Nenhuma cópia feita.")
+        print("Para copiar assim mesmo: --forcar")
+        return 0
+    print(f"Cópia feita: {feito['arquivo']}  ({feito['bytes'] // 1024} kB)")
+    print(f"  motivo: {feito['motivo']}")
+    if feito["apagadas"]:
+        print(f"  cópias antigas apagadas: {feito['apagadas']}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -375,6 +420,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="confere o que falta para publicar o serviço na internet")
     publish_parser.add_argument("--json", action="store_true")
     publish_parser.set_defaults(func=cmd_publicar)
+
+    backup_parser = subparsers.add_parser(
+        "backup", help="copia de seguranca do banco (a API tambem faz sozinha)")
+    backup_parser.add_argument("--forcar", action="store_true",
+                               help="copia mesmo sem mudanca desde a ultima")
+    backup_parser.add_argument("--listar", action="store_true",
+                               help="mostra as copias guardadas, sem copiar nada")
+    backup_parser.add_argument("--restaurar", type=Path, metavar="ARQUIVO",
+                               help="descompacta e confere uma copia (nao troca o banco em uso)")
+    backup_parser.add_argument("--para", type=Path, metavar="DESTINO",
+                               help="onde escrever a copia restaurada")
+    backup_parser.set_defaults(func=cmd_backup)
 
     status_parser = subparsers.add_parser("status", help="resumo do banco e das lacunas")
     status_parser.set_defaults(func=cmd_status)

@@ -1,6 +1,8 @@
 # Banco: o arquivo principal e versionado (guarda o estado das revisoes),
 # mas backups e arquivos temporarios do SQLite nao.
 data/db.sqlite.bak_*
+# copias de seguranca: ficam na maquina, nunca no repositorio
+data/backups/
 data/*.sqlite-wal
 data/*.sqlite-shm
 data/db.json

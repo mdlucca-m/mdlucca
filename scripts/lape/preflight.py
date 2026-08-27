@@ -137,16 +137,21 @@ def conferir(db: Database, ambiente: dict[str, str] | None = None) -> list[dict[
     if not ultimo:
         achados.append(_item(
             "aviso", "Nenhum backup registrado",
-            "deploy/backup.sh faz cópia diária. Um banco sem cópia é um "
-            "laboratório a uma falha de disco de perder tudo."))
+            "A API copia sozinha assim que alguém cadastra algo — se o serviço "
+            "acabou de subir, a primeira cópia sai em minutos. Para não esperar: "
+            "python3 scripts/lape_agent.py backup --forcar"))
     else:
         quando = str(ultimo[0]["run_at"])
         try:
             atrasado = datetime.fromisoformat(quando) < datetime.now() - timedelta(days=7)
         except ValueError:
             atrasado = False
+        detalhe = ""
+        if atrasado:
+            detalhe = ("Mais de sete dias. Se o serviço está no ar, isso quer dizer "
+                       "que ninguém cadastrou nada — ou que a cópia falhou.")
         achados.append(_item("aviso" if atrasado else "ok",
-                             f"Último backup em {quando}"))
+                             f"Último backup em {quando}", detalhe))
 
     ordem = {"impede": 0, "risco": 1, "aviso": 2, "ok": 3}
     return sorted(achados, key=lambda a: ordem[a["nivel"]])

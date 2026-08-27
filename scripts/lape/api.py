@@ -28,6 +28,7 @@ import json
 import os
 import queue
 import re
+import threading
 import traceback
 import urllib.parse
 from http import cookies
@@ -997,6 +998,46 @@ class Handler(BaseHTTPRequestHandler):
                    [("Content-Disposition", 'attachment; filename="lape.sqlite"')])
 
 
+BACKUP_INTERVALO_S = int(os.environ.get("LAPE_BACKUP_CHECAGEM_S", "300"))
+
+
+def _agendar_backup(db_path: Path) -> threading.Event:
+    """Copia de seguranca que acompanha o cadastro, sem ninguem lembrar dela.
+
+    Uma linha de execucao propria acorda de tempos em tempos e pergunta ao
+    modulo `backup` se ha motivo -- cadastro novo desde a ultima copia, ou
+    um dia inteiro sem nenhuma. Cada checagem abre e fecha a sua conexao:
+    conexao de SQLite nao atravessa linhas de execucao.
+
+    Falhar aqui nao pode derrubar o servico: um disco cheio e um problema
+    para resolver, nao motivo para o laboratorio ficar fora do ar. Por isso
+    o aviso e impresso e a vida segue.
+    """
+    parar = threading.Event()
+    if os.environ.get("LAPE_BACKUP", "1") == "0":
+        return parar
+
+    def rodar() -> None:
+        from . import backup
+
+        while not parar.is_set():
+            try:
+                db = Database(db_path)
+                try:
+                    feito = backup.rodar(db, db_path=db_path)
+                finally:
+                    db.close()
+                if feito:
+                    print(f"  backup: {Path(feito['arquivo']).name}"
+                          f" ({feito['bytes'] // 1024} kB) — {feito['motivo']}")
+            except Exception as exc:                      # nunca derruba o servico
+                print(f"  ! backup falhou: {type(exc).__name__}: {exc}")
+            parar.wait(BACKUP_INTERVALO_S)
+
+    threading.Thread(target=rodar, name="lape-backup", daemon=True).start()
+    return parar
+
+
 def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_PATH,
           report_path: Path = config.REPORT_PATH) -> None:
     Handler.db_path = Path(db_path)
@@ -1037,10 +1078,13 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
         print("\n  ! Nenhum usuário cadastrado. Crie o primeiro administrador:")
         print("      python3 scripts/lape_agent.py usuarios --criar 'Nome' email@udesc.br --perfil admin")
 
+    parar_backup = _agendar_backup(Path(db_path))
+
     server = ThreadingHTTPServer((host, port), Handler)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         print("\nservidor encerrado")
     finally:
+        parar_backup.set()
         server.server_close()
