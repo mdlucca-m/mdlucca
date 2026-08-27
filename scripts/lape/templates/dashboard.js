@@ -36,13 +36,20 @@ const PROJECT_LABEL = {
 const DOW = ["D", "S", "T", "Q", "Q", "S", "S"];
 
 const STATE = { linha: "", ano: "", integrante: "", status: "", busca: "", segmento: "status" };
+/* Toda dimensão que o explorador sabe recortar aparece aqui: o seletor
+   "Segmentar por" é a porta de entrada de quem não vai abrir o explorador,
+   e não faz sentido que ele conheça menos cortes do que o motor. */
 const SEGMENTOS = [
   { id: "status", label: "Situação" },
   { id: "linha", label: "Linha de pesquisa" },
-  { id: "ano", label: "Ano de publicação" },
+  { id: "ano", label: "Ano (início ou publicação)" },
+  { id: "ano_publicacao", label: "Ano de publicação" },
   { id: "responsavel", label: "Responsável" },
   { id: "periodico", label: "Periódico" },
   { id: "tipo_estudo", label: "Tipo de estudo" },
+  { id: "qualis", label: "Estrato Qualis" },
+  { id: "idioma", label: "Idioma" },
+  { id: "fonte", label: "Origem do registro" },
 ];
 
 /* ---------------------------------------------------------------- texto */
@@ -238,7 +245,8 @@ function kpi(spec) {
     + (spec.tone ? " t-" + spec.tone : "") });
   const label = el("div", { class: "label" });
   /* o ícone é decorativo: quem nomeia o indicador é o rótulo ao lado */
-  if (spec.icon) label.appendChild(Icons.get(spec.icon, 14));
+  if (spec.icon) label.appendChild(Icons.badge(spec.icon,
+    spec.tone === "good" ? "bom" : (spec.tone === "bad" ? "critico" : null), null));
   label.appendChild(el("span", { text: spec.label }));
   node.appendChild(label);
   node.appendChild(el("div", { class: "value", text: spec.value }));
@@ -2201,7 +2209,7 @@ function buildNav() {
       title: sec.label, "aria-current": on ? "page" : null,
       onclick: function () { go(sec.views[0]); },
     });
-    btn.appendChild(Icons.get(sec.icon, 18));
+    btn.appendChild(Icons.badge(sec.icon, null, null));
     btn.appendChild(el("span", { text: sec.label }));
     btn.appendChild(el("em", { text: String(sec.views.length) }));
     nav.appendChild(btn);
@@ -2247,7 +2255,7 @@ function render() {
   C.hideTip();
   HOST.innerHTML = "";
   const title = el("h2", {});
-  title.appendChild(Icons.get(VIEW_ICON[v.id] || "linha", 18));
+  title.appendChild(Icons.badge(VIEW_ICON[v.id] || "linha", null, null));
   title.appendChild(el("span", { text: v.label }));
   HOST.appendChild(el("header", { class: "viewhead" }, [
     title,
@@ -2421,6 +2429,10 @@ function buildHeader() {
     link.appendChild(el("button", { class: "primary", type: "button",
       text: USER ? "Área do integrante" : "Entrar" }));
     actions.appendChild(link);
+    const tv = el("a", { href: "/mural", target: "_blank", rel: "noopener",
+      title: "Tela para projetor ou TV da sala: gira sozinha" });
+    tv.appendChild(el("button", { type: "button", text: "Modo mural" }));
+    actions.appendChild(tv);
     actions.appendChild(el("button", { type: "button", text: "Atualizar agora",
       onclick: function (ev) {
         ev.target.disabled = true;

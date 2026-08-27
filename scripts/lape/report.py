@@ -15,6 +15,8 @@ from . import config
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 HTML_TEMPLATE = TEMPLATE_DIR / "dashboard.html"
 JS_TEMPLATE = TEMPLATE_DIR / "dashboard.js"
+MURAL_HTML = TEMPLATE_DIR / "mural.html"
+MURAL_JS = TEMPLATE_DIR / "mural.js"
 CHARTS_TEMPLATE = TEMPLATE_DIR / "charts.js"
 ICONS_TEMPLATE = TEMPLATE_DIR / "icons.js"
 THEME_TEMPLATE = TEMPLATE_DIR / "theme.css"
@@ -74,6 +76,26 @@ def render_html(payload: dict[str, Any], geo_dir: Path = config.GEO_DIR) -> str:
     html = html.replace("__ICONS_JS__", ICONS_TEMPLATE.read_text(encoding="utf-8"))
     html = html.replace("__CHARTS_JS__", CHARTS_TEMPLATE.read_text(encoding="utf-8"))
     html = html.replace("__SCRIPT__", JS_TEMPLATE.read_text(encoding="utf-8"))
+    return html.replace("__DATA__", to_json(payload))
+
+
+def render_mural(payload: dict[str, Any]) -> str:
+    """Monta o mural: a tela que fica ligada na sala, girando sozinha.
+
+    Mesma montagem do painel — CSS, icones, graficos e dado embutidos, nessa
+    ordem — trocando so o corpo e o script. O mural nao pede nada ao servidor
+    para desenhar a primeira tela: se a rede cair depois, ele continua girando
+    com o ultimo dado bom.
+    """
+    payload = dict(payload)
+    payload.setdefault("session", {"live": False, "user": None})
+
+    html = MURAL_HTML.read_text(encoding="utf-8")
+    html = html.replace("__TITLE__", f"{payload['overview']['lab_name']} — Mural")
+    html = html.replace("__THEME_CSS__", THEME_TEMPLATE.read_text(encoding="utf-8"))
+    html = html.replace("__ICONS_JS__", ICONS_TEMPLATE.read_text(encoding="utf-8"))
+    html = html.replace("__CHARTS_JS__", CHARTS_TEMPLATE.read_text(encoding="utf-8"))
+    html = html.replace("__SCRIPT__", MURAL_JS.read_text(encoding="utf-8"))
     return html.replace("__DATA__", to_json(payload))
 
 

@@ -63,7 +63,25 @@ Um único serviço responde por tudo, sempre lendo direto do banco:
 | `/` | Painel de indicadores, remontado a cada acesso com os dados atuais |
 | `/entrar` | Tela de acesso |
 | `/app` | Área do integrante: cadastro de perfil, artigos, submissões, projetos |
+| `/mural` | Modo mural: tela de projetor ou TV, que gira sozinha |
 | `/api` | API REST |
+
+### O modo mural
+
+`/mural` é a tela para deixar ligada na sala. Ela troca sozinha entre seis
+assuntos — o retrato de agora, prazos e pendências, os próximos compromissos,
+a produção por área, o que está em andamento e os destaques —, redesenha no
+instante em que alguém cadastra alguma coisa e não pede nenhum clique.
+
+| Ajuste | Como |
+|---|---|
+| Tempo de cada tela | `/mural?t=25` (segundos; padrão 15) |
+| Escolher as telas | `/mural?slides=prazos,agenda` |
+| Recortar por linha de pesquisa | `/mural?area=Dor crônica, fibromialgia e movimento` |
+| Pausar, avançar, voltar | barra de espaço, `→`, `←` |
+| Tela cheia | tecla `F` |
+
+O botão **Modo mural**, no topo do painel, abre a mesma tela numa aba nova.
 
 ### Quem pode o quê
 

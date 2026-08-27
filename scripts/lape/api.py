@@ -115,7 +115,8 @@ def route_index(ctx: "Context") -> Any:
         "version": "2.0.0",
         "authenticated": ctx.user is not None,
         "user": ctx.user,
-        "paginas": {"painel": "/", "entrar": "/entrar", "area_do_integrante": "/app"},
+        "paginas": {"painel": "/", "entrar": "/entrar", "area_do_integrante": "/app",
+                    "mural": "/mural"},
         "rotas": [
             "POST /api/auth/login            {login, senha}",
             "POST /api/auth/logout",
@@ -841,6 +842,8 @@ class Handler(BaseHTTPRequestHandler):
 
         if method == "GET" and path in ("/", "/painel", "/index.html"):
             return self._serve_dashboard()
+        if method == "GET" and path in ("/mural", "/tv"):
+            return self._serve_dashboard(mural=True)
         if method == "GET" and path in ("/entrar", "/login"):
             return self._serve_page("login.html")
         if method == "GET" and path in ("/app", "/area", "/cadastro"):
@@ -887,8 +890,8 @@ class Handler(BaseHTTPRequestHandler):
                          "dica": "consulte GET /api"})
 
     # -- paginas --
-    def _serve_dashboard(self) -> None:
-        """Painel renderizado com os dados atuais do banco, a cada acesso."""
+    def _serve_dashboard(self, mural: bool = False) -> None:
+        """Painel (ou mural) renderizado com os dados atuais, a cada acesso."""
         db = Database(self.db_path)
         try:
             user, _ = self._resolve_user(db)
@@ -896,7 +899,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self._redirect("/entrar")
             payload = metrics.build_payload(db)
             payload["session"] = {"live": True, "user": user}
-            html = report.render_html(payload)
+            html = report.render_mural(payload) if mural else report.render_html(payload)
         except Exception as exc:
             traceback.print_exc()
             return self._send(500, {"error": f"falha ao montar o painel: {exc}"})

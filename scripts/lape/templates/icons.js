@@ -67,6 +67,93 @@ const Icons = (function () {
     atualizar: [["path", "M20.5 12a8.5 8.5 0 1 1-2.6-6.1"], ["path", "M20.5 4v4.6h-4.6"]],
     conectar: [["path", "M10.5 13.5l-2.6 2.6a3.7 3.7 0 0 1-5.2-5.2l2.6-2.6"],
       ["path", "M13.5 10.5l2.6-2.6a3.7 3.7 0 0 1 5.2 5.2l-2.6 2.6"], ["line", 9.5, 14.5, 14.5, 9.5]],
+
+    /* ------------------------------------------------------------------
+       Vocabulario do mural: o que esta acontecendo e o que vem a seguir.
+       Prazo, reuniao, anuncio, defesa -- cada um com desenho proprio, para
+       que a tela se leia de longe, sem depender do rotulo.
+       ------------------------------------------------------------------ */
+    prazo: [["line", 7, 3, 17, 3], ["line", 7, 21, 17, 21],
+      ["path", "M8 3v3.4c0 1.6 1.4 2.6 4 5.6-2.6 3-4 4-4 5.6V21"],
+      ["path", "M16 3v3.4c0 1.6-1.4 2.6-4 5.6 2.6 3 4 4 4 5.6V21"]],
+    reuniao: [["circle", 8.2, 8, 2.2], ["circle", 15.8, 8, 2.2],
+      ["path", "M4.5 14.2c.6-1.7 2-2.6 3.7-2.6s3.1.9 3.7 2.6"],
+      ["path", "M12.1 14.2c.6-1.7 2-2.6 3.7-2.6s3.1.9 3.7 2.6"],
+      ["line", 3, 17.4, 21, 17.4], ["line", 12, 17.4, 12, 20.5]],
+    anuncio: [["path", "M4.5 9.5h3.2L14 5.4v13.2L7.7 14.5H4.5A1.5 1.5 0 0 1 3 13V11a1.5 1.5 0 0 1 1.5-1.5z"],
+      ["path", "M17.4 9.2a4.2 4.2 0 0 1 0 5.6"], ["path", "M19.9 6.6a7.6 7.6 0 0 1 0 10.8"],
+      ["path", "M8 14.5l1.2 5.6"]],
+    tese: [["path", "M2.5 8.5L12 4.5l9.5 4-9.5 4z"],
+      ["path", "M6.5 10.6V15c0 1.7 2.5 3 5.5 3s5.5-1.3 5.5-3v-4.4"], ["line", 21.5, 8.5, 21.5, 13.4]],
+    bolsa: [["line", 8.6, 10.2, 5.5, 3.5], ["line", 15.4, 10.2, 18.5, 3.5], ["line", 9, 3.5, 15, 3.5],
+      ["circle", 12, 15.2, 5.3],
+      ["path", "M12 12.6l.85 1.72 1.9.28-1.37 1.34.32 1.89L12 16.94l-1.7.89.32-1.89-1.37-1.34 1.9-.28z"]],
+    trofeu: [["path", "M8 4h8v5.4a4 4 0 0 1-8 0z"],
+      ["path", "M8 5.6H5.4v1.6a3 3 0 0 0 2.9 3"], ["path", "M16 5.6h2.6v1.6a3 3 0 0 1-2.9 3"],
+      ["line", 12, 13.4, 12, 17.2], ["line", 8.5, 20.6, 15.5, 20.6],
+      ["path", "M9.8 20.6c.2-2 .9-3.4 2.2-3.4s2 1.4 2.2 3.4"]],
+    foguete: [["path", "M12 3c3 2.2 4.6 5.4 4.6 9L12 16.2 7.4 12C7.4 8.4 9 5.2 12 3z"],
+      ["circle", 12, 9.2, 1.9], ["path", "M7.4 12L5 13.6l1 3.6 2.6-2"],
+      ["path", "M16.6 12L19 13.6l-1 3.6-2.6-2"],
+      ["path", "M10.4 18.4c.5 1.3 1.6 2.5 1.6 2.5s1.1-1.2 1.6-2.5"]],
+    experimento: [["line", 9.5, 3.4, 14.5, 3.4],
+      ["path", "M10.5 3.4v5.3L5.6 18a2 2 0 0 0 1.8 3h9.2a2 2 0 0 0 1.8-3l-4.9-9.3V3.4"],
+      ["line", 7.6, 14.6, 16.4, 14.6]],
+    sino: [["path", "M12 3.6a5.6 5.6 0 0 1 5.6 5.6c0 4.1 1.4 5.3 1.4 5.3H5s1.4-1.2 1.4-5.3A5.6 5.6 0 0 1 12 3.6z"],
+      ["path", "M10.2 17.6a2 2 0 0 0 3.6 0"], ["line", 12, 2, 12, 3.6]],
+    apresentacao: [["rect", 3, 4, 18, 12, 2.5], ["line", 7.5, 12.6, 7.5, 10],
+      ["line", 11.5, 12.6, 11.5, 7.6], ["line", 15.5, 12.6, 15.5, 9],
+      ["line", 12, 16, 12, 19], ["path", "M8.6 21L12 19l3.4 2"]],
+    mural: [["rect", 2.5, 4.5, 19, 13, 2.5], ["line", 8, 21, 16, 21], ["line", 12, 17.5, 12, 21],
+      ["path", "M6.5 13.4l3-3.4 2.6 2.2 4.4-4.6"]],
+    fogo: [["path", "M12 21a5.6 5.6 0 0 0 5.6-5.6c0-4.4-5.6-9-5.6-9s-5.6 4.6-5.6 9A5.6 5.6 0 0 0 12 21z"],
+      ["path", "M12 21a2.5 2.5 0 0 0 2.5-2.5c0-2-2.5-4-2.5-4s-2.5 2-2.5 4A2.5 2.5 0 0 0 12 21z"]],
+    financiamento: [["circle", 12, 12, 8.4],
+      ["path", "M14.7 9.2c-.6-.9-1.6-1.4-2.8-1.4-1.6 0-2.6.8-2.6 1.9 0 2.8 5.5 1.3 5.5 4.2 0 1.2-1.2 2.1-2.9 2.1-1.3 0-2.4-.6-3-1.6"],
+      ["line", 12, 5.8, 12, 7.8], ["line", 12, 16.2, 12, 18.2]],
+    hierarquia: [["rect", 9, 3, 6, 4.4, 1.4], ["rect", 2.5, 15.6, 6, 4.4, 1.4],
+      ["rect", 15.5, 15.6, 6, 4.4, 1.4], ["line", 12, 7.4, 12, 13.4],
+      ["path", "M5.5 15.6v-2.2h13v2.2"]],
+    orientacao: [["circle", 7, 7.4, 2.6],
+      ["path", "M2.8 15.4c0-2.4 1.9-3.8 4.2-3.8s4.2 1.4 4.2 3.8"],
+      ["circle", 17.6, 13.4, 2.2], ["path", "M14 20.4c0-2 1.6-3.2 3.6-3.2s3.6 1.2 3.6 3.2"],
+      ["line", 12.8, 8.2, 17.2, 8.2], ["path", "M15.4 6.4l1.9 1.8-1.9 1.8"]],
+    etiqueta: [["path", "M11.4 3.4H19A1.6 1.6 0 0 1 20.6 5v7.6l-8.2 8.2a1.6 1.6 0 0 1-2.3 0l-7-7a1.6 1.6 0 0 1 0-2.3z"],
+      ["circle", 16.4, 7.6, 1.4]],
+    filtro: [["path", "M3.5 5h17l-6.6 7.6V19l-3.8 2v-8.4z"]],
+    pessoa: [["circle", 12, 8, 3.4], ["path", "M5 20.5c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6"]],
+    mensagem: [["path", "M4 5.5h16A1.5 1.5 0 0 1 21.5 7v8a1.5 1.5 0 0 1-1.5 1.5h-8.6L7 20.5v-4H4A1.5 1.5 0 0 1 2.5 15V7A1.5 1.5 0 0 1 4 5.5z"],
+      ["line", 7.5, 10.8, 16.5, 10.8], ["line", 7.5, 13.4, 13, 13.4]],
+    instituicao: [["path", "M3.5 9.5L12 4l8.5 5.5"], ["line", 5, 9.5, 5, 19.5],
+      ["line", 19, 9.5, 19, 19.5], ["line", 9.3, 12.4, 9.3, 17],
+      ["line", 14.7, 12.4, 14.7, 17], ["line", 2.5, 20.5, 21.5, 20.5]],
+
+    /* controles do mural */
+    tocar: [["path", "M8 5.2l10 6.8-10 6.8z"]],
+    pausa: [["rect", 7.4, 5, 3.4, 14, 1.2], ["rect", 13.2, 5, 3.4, 14, 1.2]],
+    proximo: [["path", "M8 5.5l7.5 6.5L8 18.5"], ["line", 17.6, 5.5, 17.6, 18.5]],
+    anterior: [["path", "M16 5.5L8.5 12l7.5 6.5"], ["line", 6.4, 5.5, 6.4, 18.5]],
+    telaCheia: [["path", "M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9"], ["path", "M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9"],
+      ["path", "M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15"], ["path", "M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15"]],
+  };
+
+  /* Tom padrao de cada icone. E cromo, nao marca de dado: a paleta validada
+     continua mandando no grafico, e aqui a cor so ajuda a achar o cartao. */
+  const TOM = {
+    painel: "azul", producao: "azul", pessoas: "violeta", processo: "ambar",
+    espaco: "verde", dados: "azul", explorar: "azul", barras: "azul", linha: "azul",
+    rede: "violeta", calendario: "magenta", relogio: "ambar", submissao: "azul",
+    aceite: "bom", citacao: "violeta", projeto: "laranja", linhas: "verde",
+    achado: "ambar", qualidade: "bom", automacao: "violeta", mapa: "verde",
+    tempo: "azul", alvo: "laranja", subida: "bom", livro: "violeta", raio: "ambar",
+    aviso: "alerta", baixar: "azul", atualizar: "azul", conectar: "verde",
+    prazo: "alerta", reuniao: "magenta", anuncio: "laranja", tese: "violeta",
+    bolsa: "ambar", trofeu: "ambar", foguete: "laranja", experimento: "verde",
+    sino: "alerta", apresentacao: "azul", mural: "azul", fogo: "laranja",
+    financiamento: "bom", hierarquia: "violeta", orientacao: "violeta",
+    etiqueta: "magenta", filtro: "azul", pessoa: "violeta", mensagem: "azul",
+    instituicao: "verde", tocar: "azul", pausa: "azul", proximo: "azul",
+    anterior: "azul", telaCheia: "azul",
   };
 
   function draw(spec) {
@@ -96,8 +183,11 @@ const Icons = (function () {
     const svg = document.createElementNS(NS, "svg");
     svg.setAttribute("class", "icon");
     svg.setAttribute("viewBox", "0 0 24 24");
-    svg.setAttribute("width", size || 18);
-    svg.setAttribute("height", size || 18);
+    /* size null: quem manda no tamanho e o CSS do contexto (1em) */
+    if (size !== null) {
+      svg.setAttribute("width", size || 18);
+      svg.setAttribute("height", size || 18);
+    }
     svg.setAttribute("fill", "none");
     svg.setAttribute("stroke", "currentColor");
     svg.setAttribute("stroke-width", "1.75");
@@ -111,8 +201,21 @@ const Icons = (function () {
     return svg;
   }
 
+  /* Versao com presenca: o mesmo tracado sobre uma pastilha colorida, com
+     contorno e brilho proprios. Serve de cromo -- cabecalho, KPI, mural --
+     e nunca de marca de dado, onde vale a paleta validada. */
+  function badge(name, tone, size) {
+    const wrap = document.createElement("span");
+    wrap.className = "ibadge t-" + (tone || TOM[name] || "azul");
+    wrap.setAttribute("aria-hidden", "true");
+    if (size) wrap.style.setProperty("--badge", String(size) + "px");
+    wrap.appendChild(get(name, null));
+    return wrap;
+  }
+
   function has(name) { return Object.prototype.hasOwnProperty.call(SET, name); }
   function names() { return Object.keys(SET); }
+  function tone(name) { return TOM[name] || "azul"; }
 
-  return { get: get, has: has, names: names };
+  return { get: get, badge: badge, has: has, names: names, tone: tone };
 })();

@@ -707,11 +707,15 @@ class TestTokensDoTema(unittest.TestCase):
     def test_nenhum_token_indefinido(self):
         definidos = self.definidos()
         self.assertIn("--ink", definidos, "o proprio tema nao foi lido")
-        for nome in ("dashboard.html", "app.html", "login.html", "theme.css", "charts.js"):
+        for nome in ("dashboard.html", "app.html", "login.html", "convite.html",
+                     "mural.html", "theme.css", "charts.js"):
             texto = (self.TEMPLATES / nome).read_text(encoding="utf-8")
-            usados = set(re.findall(r"var\((--[a-z0-9-]+)", texto))
+            # so o uso sem reserva precisa existir no tema: `var(--tom, var(--x))`
+            # e uma variavel escrita pelo JS, e a reserva e justamente o plano B
+            usados = set(re.findall(r"var\((--[a-z0-9-]+)\s*\)", texto))
+            locais = set(re.findall(r"(--[a-z0-9-]+)\s*:", texto))
             # series-N e seq-N sao montados em tempo de execucao pelo charts.js
-            faltando = {t for t in usados - definidos
+            faltando = {t for t in usados - definidos - locais
                         if not re.match(r"^--(series|seq|ord)-\d+$", t)}
             self.assertEqual(faltando, set(), f"tokens indefinidos em {nome}: {sorted(faltando)}")
 

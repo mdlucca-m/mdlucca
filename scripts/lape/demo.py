@@ -164,6 +164,10 @@ EVENTOS = [
     ("visita_tecnica", "Visita técnica", None, 0.02),
 ]
 
+# Tempo maximo que um manuscrito passa com o periodico antes de a geracao
+# considerar que a historia terminou (em recusa). Em dias.
+ESPERA_MAXIMA = 540
+
 PROJETOS = [
     ("Exercício e saúde mental em adultos jovens: ensaio multicêntrico", "PEX-001",
      "CNPq", "Universal 2022", 0, "pesquisa", 318000, -3, None),
@@ -388,6 +392,23 @@ def build(seed: int = 20260826, n_artigos: int = 160,
             revista_atual, issn_atual, _, _, facilidade = rng.choice(REVISTAS)
             if data_envio > hoje:
                 break
+        # Nenhum manuscrito fica dois anos "em avaliacao": ou sai parecer, ou o
+        # laboratorio desiste e recomeca em outro lugar. Sem este corte, o sorteio
+        # deixava artigos submetidos em 2020 parados no estagio, e o mural
+        # anunciava "sem resposta ha 2427 dias" -- que nao e um prazo em aberto,
+        # e uma pendencia que a geracao esqueceu de encerrar.
+        if estagio in ("submetido", "em_revisao") and deste_artigo:
+            ultimo = deste_artigo[-1]
+            enviado = date.fromisoformat(ultimo["Data de submissão"])
+            if (hoje - enviado).days > ESPERA_MAXIMA:
+                ultimo["Decisão"] = "Rejeitado"
+                ultimo["Data da decisão"] = _iso(
+                    enviado + timedelta(days=rng.randint(30, 240)))
+                ultimo["Motivo da recusa"] = _pick(
+                    rng, [(m[0], 3.0 if i < 4 else 1.0) for i, m in enumerate(MOTIVOS)])
+                estagio = "rejeitado"
+                linha_artigo["Situação"] = "Rejeitado"
+
         submissoes.extend(deste_artigo)
 
         ultima_decisao = deste_artigo[-1] if deste_artigo else None

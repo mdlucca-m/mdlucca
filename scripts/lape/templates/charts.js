@@ -558,7 +558,9 @@ const Charts = (function () {
   function funnel(spec) {
     const steps = spec.steps || [];
     if (!steps.length) return figure(spec, empty(spec.emptyMessage));
-    const W = 760, rowH = 46, H = steps.length * rowH + 10, ML = 176, MR = 130;
+    /* rowH aberto: no mural, quatro etapas precisam ocupar a altura do quadro */
+    const rowH = spec.rowH || 46;
+    const W = 760, H = steps.length * rowH + 10, ML = 176, MR = 130;
     const peak = Math.max.apply(null, steps.map(function (x) { return x.value; }).concat([1]));
     const svg = svgRoot(W, H, spec.caption || "funil");
     steps.forEach(function (step, i) {
