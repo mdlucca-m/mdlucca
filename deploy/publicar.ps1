@@ -45,6 +45,10 @@
 .EXAMPLE
   # sobe sozinho toda vez que voce entrar no Windows
   .\deploy\publicar.ps1 -AoLigar
+
+.EXAMPLE
+  # qual e o endereco de hoje? (tambem copia para a area de transferencia)
+  .\deploy\publicar.ps1 -Endereco
 #>
 param(
   [int]$Porta = 8000,
@@ -53,6 +57,7 @@ param(
   [string]$Dominio = "",
   [string]$Tunel = "lape",
   [switch]$Parar,
+  [switch]$Endereco,
   [switch]$AoLigar,
   [switch]$NaoAoLigar
 )
@@ -63,6 +68,7 @@ Set-Location $Raiz
 $Exec = Join-Path $Raiz ".lape-run"
 $arqNgrok = Join-Path $Exec "dominio-ngrok.txt"
 $arqCF    = Join-Path $Exec "dominio-cloudflare.txt"
+$arqEnd   = Join-Path $Exec "endereco.txt"
 
 # Modo escolhido uma vez fica escolhido. Sem isto, rodar o script sem opcao
 # nenhuma trocaria o endereco fixo por um sorteado -- e o link que o
@@ -89,6 +95,9 @@ function Parar-Tudo {
       Verde "Encerrado: $nome"
     }
   }
+  # endereco de servico parado nao e endereco: apagar evita mandar a alguem
+  # um link que ninguem esta atendendo
+  Remove-Item $arqEnd -ErrorAction SilentlyContinue
 }
 
 # ------------------------------------------------- subir junto com o Windows
@@ -114,10 +123,11 @@ function Agendar {
     -Settings $config -Force | Out-Null
   Verde "Pronto: o LAPE vai subir sozinho toda vez que voce entrar no Windows."
   if ($Fixo -or $Permanente) {
-    Verde "Com o endereco fixo que voce ja configurou."
+    Verde "Com o endereco fixo que voce ja configurou -- o mesmo de sempre."
   } else {
-    Aviso "O endereco do tunel sorteado muda a cada subida. Para um endereco fixo,"
-    Aviso "que sobreviva a reinicios: -Fixo (gratis) ou -Permanente (dominio proprio)."
+    Aviso "Ele sobe escondido, e o endereco sorteado muda a cada subida."
+    Aviso "Para saber o endereco do dia:  .\deploy\publicar.ps1 -Endereco"
+    Aviso "Para nao ter de perguntar nunca mais: -Fixo (gratis) ou -Permanente."
   }
 }
 
@@ -128,6 +138,27 @@ if ($NaoAoLigar) {
   exit 0
 }
 if ($Parar) { Parar-Tudo; exit 0 }
+
+# Sobe escondido pela tarefa agendada, ninguem ve a tela onde o endereco e
+# impresso. Este e o jeito de perguntar depois qual e o endereco de hoje.
+if ($Endereco) {
+  if (-not (Test-Path $arqEnd)) {
+    Aviso "O LAPE nao esta no ar. Suba com  .\deploy\publicar.ps1"
+    exit 1
+  }
+  $atual = (Get-Content $arqEnd -Raw).Trim()
+  Write-Host ""
+  Verde "  Endereco de agora:"
+  Write-Host ""
+  Write-Host "    $atual/entrar"
+  Write-Host ""
+  try {
+    Set-Clipboard -Value "$atual/entrar"
+    Verde "  (copiado - e so colar no WhatsApp ou no e-mail)"
+  } catch { }
+  Write-Host ""
+  exit 0
+}
 New-Item -ItemType Directory -Force -Path $Exec | Out-Null
 
 # ------------------------------------------------------------------ 1. Python
@@ -393,6 +424,8 @@ else {
   }
 }
 
+$endereco | Out-File $arqEnd -Encoding ascii
+
 # ------------------------------------------------------------------ 6. conferir
 Write-Host ""
 & $Python scripts\lape_agent.py publicar
@@ -421,6 +454,7 @@ if ($Fixo -or $Permanente) {
 }
 Write-Host ""
 Write-Host "Para encerrar: feche esta janela, ou rode .\deploy\publicar.ps1 -Parar"
+Write-Host "Para rever este endereco depois: .\deploy\publicar.ps1 -Endereco"
 if (-not (Get-ScheduledTask -TaskName $NomeTarefa -ErrorAction SilentlyContinue)) {
   Write-Host "Para subir sozinho toda vez: .\deploy\publicar.ps1 -AoLigar"
 }

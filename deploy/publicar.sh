@@ -19,6 +19,7 @@
 #                       aviso, mas exige um domínio hospedado na Cloudflare.
 #   --dominio NOME      o domínio a usar, na primeira vez de cada modo
 #   --porta N           porta local do serviço (padrão: 8000)
+#   --endereco          diz qual é o endereço que está no ar agora
 #   --parar             encerra o que este script deixou rodando
 #
 # Escolhido o modo uma vez, ele fica gravado: nas próximas vezes basta rodar
@@ -35,6 +36,7 @@ TUNEL=lape
 EXEC="$RAIZ/.lape-run"
 ARQ_NGROK="$EXEC/dominio-ngrok.txt"
 ARQ_CF="$EXEC/dominio-cloudflare.txt"
+ARQ_END="$EXEC/endereco.txt"
 
 azul()  { printf '\033[1;34m%s\033[0m\n' "$*"; }
 verde() { printf '\033[1;32m%s\033[0m\n' "$*"; }
@@ -48,6 +50,7 @@ while [[ $# -gt 0 ]]; do
     --dominio) DOMINIO="$2"; shift 2 ;;
     --tunel) TUNEL="$2"; shift 2 ;;
     --porta) PORTA="$2"; shift 2 ;;
+    --endereco) mostrar_endereco=1; shift ;;
     --parar) parar_tudo=1; shift ;;
     -h|--help) sed -n '2,25p' "$0"; exit 0 ;;
     *) erro "opção desconhecida: $1" ;;
@@ -70,8 +73,22 @@ parar() {
     fi
     rm -f "$EXEC/$nome.pid"
   done
+  # endereço de serviço parado não é endereço
+  rm -f "$ARQ_END"
 }
 if [[ "${parar_tudo:-0}" == 1 ]]; then parar; exit 0; fi
+
+# Sobe em segundo plano e ninguém vê a tela onde o endereço é impresso. Este
+# é o jeito de perguntar depois qual é o endereço de agora.
+if [[ "${mostrar_endereco:-0}" == 1 ]]; then
+  [[ -f "$ARQ_END" ]] || { aviso "O LAPE não está no ar. Suba com  bash deploy/publicar.sh"; exit 1; }
+  echo
+  verde "  Endereço de agora:"
+  echo
+  echo "    $(cat "$ARQ_END")/entrar"
+  echo
+  exit 0
+fi
 
 mkdir -p "$EXEC"
 trap 'echo; aviso "Encerrando…"; parar; exit 0' INT TERM
@@ -273,6 +290,8 @@ else
   [[ -n "$ENDERECO" ]] || { tail -20 "$EXEC/tunel.log"; erro "O túnel não abriu. Log acima."; }
 fi
 
+printf '%s' "$ENDERECO" > "$ARQ_END"
+
 # ------------------------------------------------------------------ 6. conferir
 echo
 LAPE_BEHIND_HTTPS=1 LAPE_TRUST_PROXY=1 python3 scripts/lape_agent.py publicar || true
@@ -298,5 +317,6 @@ else
 fi
 echo
 echo "Para encerrar: Ctrl+C — ou, de outra janela, bash deploy/publicar.sh --parar"
+echo "Para rever este endereço depois: bash deploy/publicar.sh --endereco"
 echo
 while kill -0 "$(cat "$EXEC/api.pid")" 2>/dev/null; do sleep 5; done

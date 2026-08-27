@@ -242,6 +242,20 @@ Para o serviço subir sozinho toda vez que você entrar no Windows:
 .\deploy\publicar.ps1 -AoLigar     # e -NaoAoLigar desfaz
 ```
 
+Ele sobe escondido, sem janela — então não há tela onde ler o endereço.
+Para perguntar qual é o de agora, a qualquer momento:
+
+```powershell
+.\deploy\publicar.ps1 -Endereco     # imprime e copia para a área de transferência
+```
+
+```bash
+bash deploy/publicar.sh --endereco
+```
+
+Com `-Fixo` ou `-Permanente` a pergunta deixa de existir: o endereço é sempre
+o mesmo, e o autostart passa a ser autostart de verdade.
+
 **A ressalva que importa:** esse endereço **muda a cada reinício**. Serve para
 começar hoje; não serve como endereço do laboratório — o link que você mandar
 para vinte pessoas morre no próximo desligamento.
