@@ -8,16 +8,33 @@
 # que devolve um endereço https. Nenhuma porta é aberta no firewall, nenhum IP
 # público é necessário, e o certificado vem pronto.
 #
-#   --permanente   usa um túnel nomeado (endereço fixo; pede conta gratuita)
-#   --porta N      porta local do serviço (padrão: 8000)
-#   --parar        encerra o que este script deixou rodando
+# Sem opção nenhuma, o endereço é sorteado e MUDA a cada reinício. Para um
+# endereço que não muda:
+#
+#   --fixo              endereço fixo grátis, sem domínio próprio (ngrok). Uma
+#                       conta gratuita dá direito a um domínio reservado. No
+#                       plano grátis, quem abre pela primeira vez vê uma página
+#                       de aviso do ngrok antes do site.
+#   --permanente        endereço fixo no seu domínio (Cloudflare). Sem página de
+#                       aviso, mas exige um domínio hospedado na Cloudflare.
+#   --dominio NOME      o domínio a usar, na primeira vez de cada modo
+#   --porta N           porta local do serviço (padrão: 8000)
+#   --parar             encerra o que este script deixou rodando
+#
+# Escolhido o modo uma vez, ele fica gravado: nas próximas vezes basta rodar
+# o script sem opção nenhuma.
 set -euo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$RAIZ"
 PORTA=8000
 PERMANENTE=0
+FIXO=0
+DOMINIO=""
+TUNEL=lape
 EXEC="$RAIZ/.lape-run"
+ARQ_NGROK="$EXEC/dominio-ngrok.txt"
+ARQ_CF="$EXEC/dominio-cloudflare.txt"
 
 azul()  { printf '\033[1;34m%s\033[0m\n' "$*"; }
 verde() { printf '\033[1;32m%s\033[0m\n' "$*"; }
@@ -26,13 +43,24 @@ erro()  { printf '\033[1;31m! %s\033[0m\n' "$*" >&2; exit 1; }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --fixo) FIXO=1; shift ;;
     --permanente) PERMANENTE=1; shift ;;
+    --dominio) DOMINIO="$2"; shift 2 ;;
+    --tunel) TUNEL="$2"; shift 2 ;;
     --porta) PORTA="$2"; shift 2 ;;
     --parar) parar_tudo=1; shift ;;
-    -h|--help) sed -n '2,14p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,25p' "$0"; exit 0 ;;
     *) erro "opção desconhecida: $1" ;;
   esac
 done
+
+# Modo escolhido uma vez fica escolhido: rodar sem opção nenhuma não pode
+# trocar o endereço fixo por um sorteado e matar o link que todos guardaram.
+if [[ "$FIXO" == 0 && "$PERMANENTE" == 0 ]]; then
+  if   [[ -f "$ARQ_CF"    ]]; then PERMANENTE=1
+  elif [[ -f "$ARQ_NGROK" ]]; then FIXO=1
+  fi
+fi
 
 parar() {
   for nome in api tunel; do
@@ -119,37 +147,131 @@ curl -fsS -m 3 "http://127.0.0.1:$PORTA/api/health" >/dev/null \
 verde "Serviço no ar em 127.0.0.1:$PORTA"
 
 # --------------------------------------------------------------------- 5. túnel
-azul "Abrindo o túnel…"
-if [[ "$PERMANENTE" == 1 ]]; then
-  cat <<'TXT'
+# Três modos, um só resultado: $ENDERECO. Deste lado nada muda — o serviço
+# continua escutando só em 127.0.0.1.
+ENDERECO=""
 
-  Endereço fixo pede uma conta gratuita da Cloudflare. Três passos:
+if [[ "$FIXO" == 1 ]]; then
+  NG="$EXEC/ngrok"
+  command -v ngrok >/dev/null 2>&1 && NG="$(command -v ngrok)"
+  if [[ ! -x "$NG" ]]; then
+    azul "Baixando o ngrok (uma vez só)…"
+    case "$(uname -s)-$(uname -m)" in
+      Linux-x86_64)   ARQ=ngrok-v3-stable-linux-amd64.tgz ;;
+      Linux-aarch64)  ARQ=ngrok-v3-stable-linux-arm64.tgz ;;
+      Darwin-x86_64)  ARQ=ngrok-v3-stable-darwin-amd64.tgz ;;
+      Darwin-arm64)   ARQ=ngrok-v3-stable-darwin-arm64.tgz ;;
+      *) erro "sistema não reconhecido para baixar o ngrok: $(uname -s)-$(uname -m)" ;;
+    esac
+    curl -fsSL "https://bin.equinox.io/c/bNyj1mQVY4c/$ARQ" -o "$EXEC/ngrok.tgz"
+    tar -xzf "$EXEC/ngrok.tgz" -C "$EXEC"
+    rm -f "$EXEC/ngrok.tgz"
+    chmod +x "$NG"
+  fi
+  verde "ngrok pronto"
 
-    1. cloudflared tunnel login          (abre o navegador, você autoriza)
-    2. cloudflared tunnel create lape
-    3. cloudflared tunnel route dns lape lape.seu-dominio.br
+  [[ -z "$DOMINIO" && -f "$ARQ_NGROK" ]] && DOMINIO="$(cat "$ARQ_NGROK")"
+  if [[ -z "$DOMINIO" ]]; then
+    cat <<'TXT'
 
-  Depois rode:  cloudflared tunnel run --url http://127.0.0.1:8000 lape
+  Endereço fixo gratuito — três passos, uma vez só:
 
-  Sem domínio próprio, dá para usar um gratuito (duckdns.org) apontado para
-  a Cloudflare. Se preferir começar sem nada disso, rode este script sem
-  --permanente: o endereço sai na hora, só muda a cada reinício.
+    1. Crie a conta gratuita em  https://dashboard.ngrok.com/signup
+    2. Copie o authtoken de      https://dashboard.ngrok.com/get-started/your-authtoken
+    3. Reserve o domínio em      https://dashboard.ngrok.com/domains
+       (a conta gratuita dá direito a um, do tipo lape-udesc.ngrok-free.app)
 
 TXT
-  exit 0
+    read -r -p "  Cole o authtoken: " TOKEN
+    [[ -n "$TOKEN" ]] && "$NG" config add-authtoken "$TOKEN" >/dev/null
+    read -r -p "  Cole o domínio reservado: " DOMINIO
+  fi
+  DOMINIO="${DOMINIO#https://}"; DOMINIO="${DOMINIO#http://}"; DOMINIO="${DOMINIO%/}"
+  [[ -n "$DOMINIO" ]] || erro "Sem domínio reservado não dá para fixar o endereço."
+  printf '%s' "$DOMINIO" > "$ARQ_NGROK"
+
+  azul "Abrindo o túnel fixo…"
+  nohup "$NG" http --domain="$DOMINIO" --log=stdout "127.0.0.1:$PORTA" \
+    > "$EXEC/tunel.log" 2>&1 &
+  echo $! > "$EXEC/tunel.pid"
+
+  # o próprio ngrok publica em 127.0.0.1:4040 o que conseguiu abrir — mais
+  # confiável do que acreditar no domínio que a pessoa digitou
+  for _ in $(seq 1 30); do
+    ENDERECO="$(curl -fsS http://127.0.0.1:4040/api/tunnels 2>/dev/null \
+      | grep -oE 'https://[a-zA-Z0-9.-]+' | head -1 || true)"
+    [[ -n "$ENDERECO" ]] && break
+    sleep 1
+  done
+  [[ -n "$ENDERECO" ]] || { tail -20 "$EXEC/tunel.log"; \
+    erro "O túnel fixo não abriu. Log acima. Confira o authtoken e o domínio."; }
+
+elif [[ "$PERMANENTE" == 1 ]]; then
+  [[ -z "$DOMINIO" && -f "$ARQ_CF" ]] && DOMINIO="$(cat "$ARQ_CF")"
+  if [[ -z "$DOMINIO" ]]; then
+    cat <<'TXT'
+
+  Endereço fixo no domínio do laboratório, pela Cloudflare. Sem página de
+  aviso e sem limite de sessão, mas exige um domínio já hospedado lá:
+
+    · lape.udesc.br, se a universidade delegar o subdomínio, ou
+    · um domínio próprio — um .com.br no registro.br sai por poucos reais ao
+      ano, e a Cloudflare não cobra nada pelo túnel.
+
+  Com o domínio em mãos:
+
+    bash deploy/publicar.sh --permanente --dominio lape.seu-dominio.br
+
+  O script cuida do resto. Da segunda vez em diante, só --permanente.
+
+  Sem domínio nenhum, o equivalente gratuito é  bash deploy/publicar.sh --fixo
+
+TXT
+    parar
+    exit 0
+  fi
+  DOMINIO="${DOMINIO#https://}"; DOMINIO="${DOMINIO#http://}"; DOMINIO="${DOMINIO%/}"
+
+  if [[ ! -f "$HOME/.cloudflared/cert.pem" ]]; then
+    azul "Autorize o cloudflared no navegador que vai abrir (uma vez só)…"
+    "$CF" tunnel login
+    [[ -f "$HOME/.cloudflared/cert.pem" ]] || erro "A autorização não foi concluída."
+  fi
+  if ! "$CF" tunnel list 2>/dev/null | grep -q "\b$TUNEL\b"; then
+    azul "Criando o túnel '$TUNEL'…"
+    "$CF" tunnel create "$TUNEL"
+  fi
+  azul "Apontando $DOMINIO para o túnel…"
+  "$CF" tunnel route dns --overwrite-dns "$TUNEL" "$DOMINIO" >/dev/null
+  printf '%s' "$DOMINIO" > "$ARQ_CF"
+
+  azul "Abrindo o túnel permanente…"
+  nohup "$CF" tunnel --no-autoupdate run --url "http://127.0.0.1:$PORTA" "$TUNEL" \
+    > "$EXEC/tunel.log" 2>&1 &
+  echo $! > "$EXEC/tunel.pid"
+  ENDERECO="https://$DOMINIO"
+
+  # DNS leva um pouco na primeira vez: isso é aviso, não motivo para abortar
+  RESPONDEU=0
+  for _ in $(seq 1 20); do
+    if curl -fsS "$ENDERECO/api/health" >/dev/null 2>&1; then RESPONDEU=1; break; fi
+    sleep 3
+  done
+  [[ "$RESPONDEU" == 1 ]] || aviso "O túnel subiu, mas $DOMINIO ainda não respondeu — o DNS costuma levar alguns minutos na primeira vez."
+
+else
+  azul "Abrindo o túnel…"
+  nohup "$CF" tunnel --no-autoupdate --url "http://127.0.0.1:$PORTA" \
+    > "$EXEC/tunel.log" 2>&1 &
+  echo $! > "$EXEC/tunel.pid"
+
+  for _ in $(seq 1 60); do
+    ENDERECO="$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' "$EXEC/tunel.log" | head -1 || true)"
+    [[ -n "$ENDERECO" ]] && break
+    sleep 1
+  done
+  [[ -n "$ENDERECO" ]] || { tail -20 "$EXEC/tunel.log"; erro "O túnel não abriu. Log acima."; }
 fi
-
-nohup "$CF" tunnel --no-autoupdate --url "http://127.0.0.1:$PORTA" \
-  > "$EXEC/tunel.log" 2>&1 &
-echo $! > "$EXEC/tunel.pid"
-
-ENDERECO=""
-for _ in $(seq 1 60); do
-  ENDERECO="$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' "$EXEC/tunel.log" | head -1 || true)"
-  [[ -n "$ENDERECO" ]] && break
-  sleep 1
-done
-[[ -n "$ENDERECO" ]] || { tail -20 "$EXEC/tunel.log"; erro "O túnel não abriu. Log acima."; }
 
 # ------------------------------------------------------------------ 6. conferir
 echo
@@ -165,9 +287,15 @@ echo   "  Painel .............. $ENDERECO/"
 echo   "  Cadastro ............ $ENDERECO/app"
 verde "═══════════════════════════════════════════════════════════════"
 echo
-aviso "Enquanto esta janela estiver aberta, o endereço funciona."
-aviso "Fechou ou desligou o computador, o endereço cai — e volta OUTRO"
-aviso "na próxima vez. Para um endereço fixo: bash deploy/publicar.sh --permanente"
+if [[ "$FIXO" == 1 || "$PERMANENTE" == 1 ]]; then
+  verde "Este endereço é fixo: fechou a janela, ele volta o MESMO na próxima vez."
+  aviso "Só funciona com o serviço rodando — ele roda aqui."
+  [[ "$FIXO" == 1 ]] && aviso "No plano gratuito do ngrok, quem abre pela primeira vez vê uma página de aviso antes do site. Basta clicar em Visit Site."
+else
+  aviso "Enquanto esta janela estiver aberta, o endereço funciona."
+  aviso "Fechou ou desligou o computador, o endereço cai — e volta OUTRO na"
+  aviso "próxima vez. Para um endereço fixo: --fixo (grátis) ou --permanente."
+fi
 echo
 echo "Para encerrar: Ctrl+C — ou, de outra janela, bash deploy/publicar.sh --parar"
 echo

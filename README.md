@@ -242,12 +242,43 @@ Para o serviço subir sozinho toda vez que você entrar no Windows:
 .\deploy\publicar.ps1 -AoLigar     # e -NaoAoLigar desfaz
 ```
 
-**A ressalva que importa:** esse endereço vale enquanto a janela estiver aberta
-e **muda a cada reinício**. Serve para começar hoje e para uma rodada de
-cadastros; não serve como endereço definitivo do laboratório. Para um endereço
-fixo — `lape.udesc.br` ou `lape.duckdns.org` —, o mesmo script com
-`-Permanente` (ou `--permanente`) mostra os três comandos do túnel nomeado, que
-pede uma conta gratuita da Cloudflare.
+**A ressalva que importa:** esse endereço **muda a cada reinício**. Serve para
+começar hoje; não serve como endereço do laboratório — o link que você mandar
+para vinte pessoas morre no próximo desligamento.
+
+### Endereço fixo
+
+Duas rotas. Nenhuma delas é grátis *e* sem ressalva; escolha qual ressalva
+incomoda menos.
+
+| | `-Fixo` | `-Permanente` |
+|---|---|---|
+| Custo | grátis | grátis, mas exige um domínio |
+| Endereço | `lape-udesc.ngrok-free.app` | `lape.udesc.br` |
+| Domínio próprio | não precisa | precisa, hospedado na Cloudflare |
+| Ressalva | página de aviso do ngrok na primeira visita de cada pessoa | conseguir o domínio |
+
+```powershell
+.\deploy\publicar.ps1 -Fixo                              # pergunta o token e o domínio, uma vez
+.\deploy\publicar.ps1 -Permanente -Dominio lape.udesc.br  # autoriza, cria o túnel e aponta o DNS
+```
+
+```bash
+bash deploy/publicar.sh --fixo
+bash deploy/publicar.sh --permanente --dominio lape.udesc.br
+```
+
+**Escolhido o modo uma vez, ele fica gravado.** Nas próximas vezes basta rodar
+o script sem opção nenhuma — inclusive na tarefa do `-AoLigar`, que passa a
+subir com o mesmo endereço. Isso é de propósito: um script que voltasse ao
+endereço sorteado por esquecimento de uma opção mataria em silêncio o link que
+o laboratório inteiro tem salvo.
+
+Para o `-Fixo`: conta gratuita em `dashboard.ngrok.com`, o *authtoken* em
+**Your Authtoken** e o domínio em **Domains** — a conta gratuita dá direito a
+um. Para o `-Permanente`: um subdomínio delegado pela universidade, ou um
+domínio próprio (um `.com.br` no registro.br sai por poucos reais ao ano; a
+Cloudflare não cobra nada pelo túnel).
 
 ### Caminho 1 — computador do laboratório + túnel do Cloudflare
 
