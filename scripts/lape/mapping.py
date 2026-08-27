@@ -68,6 +68,24 @@ COLUMN_ALIASES: dict[str, dict[str, tuple[str, ...]]] = {
         "left_on": ("saida", "data_de_saida", "desligamento", "fim", "ate"),
         "is_external": ("externo", "colaborador_externo", "is_external"),
         "active": ("ativo", "ativa", "situacao", "status"),
+        "advisor": ("orientador", "orientadora", "professor_responsavel", "supervisor",
+                    "advisor", "responsavel"),
+        "co_advisor": ("coorientador", "co_orientador", "coorientadora", "co_advisor",
+                       "segundo_orientador"),
+        "thesis_title": ("titulo_da_tese", "tese", "dissertacao", "titulo_do_trabalho",
+                         "thesis_title", "titulo_da_dissertacao"),
+        "thesis_kind": ("tipo_de_trabalho", "nivel_do_trabalho", "thesis_kind",
+                        "tese_ou_dissertacao"),
+        "thesis_status": ("situacao_da_tese", "andamento_da_tese", "thesis_status",
+                          "estagio_da_tese"),
+        "thesis_due_on": ("prazo_para_conclusao", "prazo", "previsao_de_defesa",
+                          "data_de_defesa", "thesis_due_on", "conclusao_prevista"),
+        "topics": ("temas", "modalidades", "objetos_de_estudo", "topics", "palavras_chave",
+                   "assuntos"),
+        "scholarship": ("bolsa", "tipo_de_bolsa", "agencia_de_fomento", "scholarship",
+                        "financiadora_da_bolsa"),
+        "scholarship_until": ("fim_da_bolsa", "vigencia_da_bolsa", "bolsa_ate",
+                              "scholarship_until", "termino_da_bolsa"),
     },
     "articles": {
         "internal_code": ("codigo", "cod", "id", "codigo_interno", "id_artigo", "identificador"),
@@ -239,6 +257,73 @@ DECISION_MAP: dict[str, str] = {
     "desk_reject": "desk_reject", "recusa_direta": "desk_reject", "recusa_editorial": "desk_reject",
     "rejeicao_sem_revisao": "desk_reject", "desk_rejection": "desk_reject",
     "retirado": "retirado", "withdrawn": "retirado", "cancelado": "retirado",
+}
+
+# Vinculo com o laboratorio. A lista e fechada de proposito: "IC",
+# "iniciacao cientifica" e "bolsista de IC" sao a mesma coisa, e sem uma
+# forma canonica o organograma ganharia tres caixas para um cargo so.
+# A ordem e hierarquica -- e ela que empilha os niveis no desenho.
+VINCULOS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
+    ("coordenacao", "Coordenação",
+     ("coordenador", "coordenadora", "chefia", "direcao", "lider")),
+    ("professor", "Professor(a)",
+     ("professora", "docente", "orientador", "orientadora", "pesquisador_senior")),
+    ("pos_doutorado", "Pós-doutorado",
+     ("pos_doc", "posdoc", "pos_doutoral", "pd", "pos_doutoranda", "pos_doutorando")),
+    ("doutorando", "Doutorando(a)",
+     ("doutorado", "doutoranda", "aluno_de_doutorado", "aluna_de_doutorado", "phd")),
+    ("mestrando", "Mestrando(a)",
+     ("mestrado", "mestranda", "aluno_de_mestrado", "aluna_de_mestrado")),
+    ("bolsista_ic", "Bolsista de IC",
+     ("ic", "iniciacao_cientifica", "bolsista_de_iniciacao_cientifica", "pibic",
+      "bolsista_ic", "bolsista_de_ic")),
+    ("bolsista_extensao", "Bolsista de extensão",
+     ("extensao", "bolsista_de_extensao", "pibex", "probolsa", "bolsista_extensao")),
+    ("voluntario", "Voluntário(a)",
+     ("voluntaria", "voluntariado", "sem_bolsa", "colaboracao_voluntaria")),
+    ("graduando", "Graduando(a)",
+     ("graduacao", "graduanda", "aluno_de_graduacao", "aluna_de_graduacao", "estagiario")),
+    ("tecnico", "Técnico(a)",
+     ("tecnica", "tecnico_administrativo", "apoio", "secretaria")),
+    ("colaborador", "Colaborador(a) externo",
+     ("colaboradora", "externo", "externa", "parceiro", "parceira", "convidado")),
+)
+ROLE_MAP: dict[str, str] = {
+    codigo: codigo for codigo, _, _ in VINCULOS
+}
+for _codigo, _, _sinonimos in VINCULOS:
+    for _sinonimo in _sinonimos:
+        ROLE_MAP.setdefault(_sinonimo, _codigo)
+ROLE_LABEL: dict[str, str] = {codigo: rotulo for codigo, rotulo, _ in VINCULOS}
+# Quem orienta. Um mestrando nao aparece como orientador de ninguem no
+# organograma, ainda que ajude a tocar o trabalho de um bolsista.
+ORIENTAM: tuple[str, ...] = ("coordenacao", "professor", "pos_doutorado")
+# Quem tem orientador. Nao e o complemento de ORIENTAM: tecnico e
+# colaborador externo nao sao orientados por ninguem, e cobrar deles um
+# orientador encheria a lista de pendencias com falso alarme.
+ORIENTADOS: tuple[str, ...] = ("pos_doutorado", "doutorando", "mestrando", "bolsista_ic",
+                               "bolsista_extensao", "voluntario", "graduando")
+
+THESIS_KIND_MAP: dict[str, str] = {
+    "tese": "tese", "doutorado": "tese", "tese_de_doutorado": "tese",
+    "dissertacao": "dissertacao", "mestrado": "dissertacao",
+    "dissertacao_de_mestrado": "dissertacao",
+    "tcc": "tcc", "monografia": "tcc", "trabalho_de_conclusao": "tcc",
+    "trabalho_de_conclusao_de_curso": "tcc",
+    "relatorio": "relatorio", "relatorio_de_ic": "relatorio", "plano_de_trabalho": "relatorio",
+    "projeto": "projeto", "projeto_de_pesquisa": "projeto",
+}
+THESIS_STATUS_MAP: dict[str, str] = {
+    "em_andamento": "em_andamento", "andamento": "em_andamento", "escrita": "em_andamento",
+    "em_escrita": "em_andamento", "em_desenvolvimento": "em_andamento",
+    "coleta": "coleta", "coleta_de_dados": "coleta", "campo": "coleta",
+    "analise": "analise", "analise_de_dados": "analise", "em_analise": "analise",
+    "qualificacao": "qualificacao", "qualificado": "qualificacao",
+    "em_qualificacao": "qualificacao",
+    "defesa_marcada": "defesa_marcada", "defesa_agendada": "defesa_marcada",
+    "concluida": "concluida", "concluido": "concluida", "defendida": "concluida",
+    "defendido": "concluida", "finalizada": "concluida",
+    "trancada": "trancada", "trancado": "trancada", "suspensa": "trancada",
 }
 
 EVENT_KIND_MAP: dict[str, str] = {

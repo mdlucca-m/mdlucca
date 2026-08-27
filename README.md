@@ -66,6 +66,28 @@ Um único serviço responde por tudo, sempre lendo direto do banco:
 | `/mural` | Modo mural: tela de projetor ou TV, que gira sozinha |
 | `/api` | API REST |
 
+### O organograma
+
+Ninguém desenha caixa: a hierarquia sai do cadastro. Quem se cadastra
+apontando o orientador entra no lugar certo da árvore **e na equipe dos
+projetos em andamento dele** — mesma linha de pesquisa, projeto ainda em
+curso, e nunca por cima de uma participação já registrada. A linha de
+pesquisa desce do orientador quando a pessoa não declara a sua.
+
+O vocabulário de vínculo é fechado, para que "IC", "iniciação científica" e
+"bolsista de IC" não virem três caixas diferentes:
+
+| | |
+|---|---|
+| Coordenação · Professor(a) · Pós-doutorado | orientam |
+| Doutorando(a) · Mestrando(a) | tese e dissertação |
+| Bolsista de IC · Bolsista de extensão · Voluntário(a) · Graduando(a) | plano de trabalho |
+| Técnico(a) · Colaborador(a) externo | não orientam nem são orientados |
+
+A aba **Pessoas → Organograma** mostra a árvore, a carga de orientação de cada
+professor, a lista de teses com prazo — e o que está faltando: quem não
+declarou vínculo e quem não apontou orientador.
+
 ### O modo mural
 
 `/mural` é a tela para deixar ligada na sala. Ela troca sozinha entre seis
@@ -97,9 +119,13 @@ regra está no servidor, não só na tela.
 
 ### O que cada pessoa cadastra em `/app`
 
-- **Meu perfil** — nome, variações do nome, função, titulação, linha de
-  pesquisa, instituição, Lattes, ORCID, e-mail, telefone, minibiografia.
-  Mostra artigos, projetos e **índice h**.
+- **Meu perfil** — nome, variações do nome, **vínculo**, titulação, linha de
+  pesquisa, **orientador e coorientador**, instituição, Lattes, ORCID, e-mail,
+  telefone, minibiografia. Mostra artigos, projetos e **índice h**.
+- **Formação em curso e bolsa** — tese, dissertação, TCC ou plano de trabalho:
+  título, situação, **prazo para conclusão**, temas e modalidades, agência da
+  bolsa e vigência. O prazo declarado aqui vira prazo do laboratório — aparece
+  no mural e na lista de pendências.
 - **Artigos** — título, autores, situação, linha, datas de cada versão,
   submissão, aceite, publicação, periódico, DOI, Qualis, fator de impacto.
 - **Submissões** — revista, data, decisão, motivo da recusa, rodadas de revisão.

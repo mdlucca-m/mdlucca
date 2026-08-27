@@ -341,6 +341,24 @@ def route_article_detail(ctx: "Context", article_id: str) -> Any:
     return article
 
 
+def route_team(ctx: "Context") -> Any:
+    """Lista enxuta da equipe: nome, vinculo e quem pode orientar.
+
+    Existe porque `/api/members` exige coordenacao -- e quem esta preenchendo
+    a propria ficha precisa escolher o orientador numa lista, nao digitar o
+    nome de cabeca. Aqui so sai o que ja aparece no painel: nome e vinculo.
+    """
+    from .mapping import ORIENTAM, ROLE_LABEL
+
+    pessoas = ctx.db.dicts(
+        "SELECT id, full_name, short_name, role FROM members"
+        " WHERE is_external = 0 AND active = 1 ORDER BY full_name")
+    for pessoa in pessoas:
+        pessoa["role_label"] = ROLE_LABEL.get(pessoa["role"] or "", pessoa["role"])
+        pessoa["orienta"] = (pessoa["role"] or "") in ORIENTAM
+    return {"items": pessoas, "count": len(pessoas)}
+
+
 def route_researcher_detail(ctx: "Context", member_id: str) -> Any:
     db = ctx.db
     rows = db.dicts("SELECT * FROM v_researcher WHERE id = ?", (int(member_id),))
@@ -690,6 +708,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/metrics/(?P<block>[a-z_]+)/?$", route_metrics, "leitura"),
     ("GET", r"^/api/articles/(?P<article_id>\d+)/?$", route_article_detail, "leitura"),
     ("GET", r"^/api/researchers/(?P<member_id>\d+)/?$", route_researcher_detail, "leitura"),
+    ("GET", r"^/api/equipe/?$", route_team, "integrante"),
     ("GET", r"^/api/discoveries/?$", route_discoveries, "leitura"),
     ("POST", r"^/api/discoveries/(?P<discovery_id>\d+)/review/?$", route_review, "coordenacao"),
     ("POST", r"^/api/agents/tracker/?$", route_tracker, "coordenacao"),

@@ -36,6 +36,13 @@ const TIPO_EVENTO = {
   extensao: "Extensão", visita_tecnica: "Visita técnica", defesa_tese: "Defesa de tese",
 };
 
+/* Como cada trabalho de formação se chama. Sem este mapa, o relatório de um
+   bolsista de IC era anunciado na parede como "Tese" — e quem passa acredita. */
+const TIPO_TRABALHO = {
+  tese: "Tese", dissertacao: "Dissertação", tcc: "Trabalho de conclusão",
+  relatorio: "Relatório de IC", projeto: "Projeto de pesquisa",
+};
+
 const ICONE_EVENTO = {
   reuniao: "reuniao", congresso: "anuncio", seminario: "apresentacao",
   coleta: "experimento", curso: "livro", palestra: "anuncio", workshop: "livro",
@@ -173,7 +180,7 @@ function prazos() {
   pessoas().forEach(function (p) {
     if (p.thesis_due_on && (p.thesis_status || "") !== "concluida") {
       itens.push({
-        titulo: (p.thesis_kind === "dissertacao" ? "Dissertação" : "Tese") + " — " + p.full_name,
+        titulo: (TIPO_TRABALHO[p.thesis_kind] || "Trabalho de conclusão") + " — " + p.full_name,
         detalhe: p.thesis_title || "Título em definição",
         data: p.thesis_due_on, dias: diasAte(p.thesis_due_on), icone: "tese",
       });

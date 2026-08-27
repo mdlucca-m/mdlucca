@@ -12,9 +12,12 @@ from .db import Database
 from .mapping import (
     DECISION_MAP,
     PROJECT_STATUS_MAP,
+    ROLE_MAP,
     SHEET_IGNORE,
     EVENT_KIND_MAP,
     STATUS_MAP,
+    THESIS_KIND_MAP,
+    THESIS_STATUS_MAP,
     build_column_map,
     map_value,
     resolve_sheet,
@@ -230,7 +233,96 @@ def ingest_rejection_reasons(db: Database, rows: list[dict]) -> int:
 
 
 MEMBER_PROFILE_FIELDS = ("short_name", "lattes_id", "orcid", "email", "role", "degree",
-                         "phone", "bio", "photo_url", "openalex_id", "scopus_author_id")
+                         "phone", "bio", "photo_url", "openalex_id", "scopus_author_id",
+                         "thesis_title", "topics", "scholarship")
+
+# Papel dentro do projeto, deduzido do vinculo com o laboratorio. Serve so
+# de ponto de partida: a coordenacao pode corrigir depois, e a correcao nao
+# e desfeita, porque a ligacao automatica nunca sobrescreve o que ja existe.
+PAPEL_NO_PROJETO = {
+    "coordenacao": "coordenacao", "professor": "pesquisador",
+    "pos_doutorado": "pesquisador", "doutorando": "pesquisador",
+    "mestrando": "pesquisador", "tecnico": "apoio",
+}
+
+
+def _campos_de_formacao(db: Database, row: dict) -> dict[str, Any]:
+    """Orientacao, tese e bolsa -- o que sustenta o organograma."""
+    return {
+        "advisor_id": db.member_id(row.get("advisor")) if clean_text(row.get("advisor")) else None,
+        "co_advisor_id": (db.member_id(row.get("co_advisor"))
+                          if clean_text(row.get("co_advisor")) else None),
+        "thesis_title": clean_text(row.get("thesis_title")),
+        "thesis_kind": map_value(row.get("thesis_kind"), THESIS_KIND_MAP),
+        "thesis_status": map_value(row.get("thesis_status"), THESIS_STATUS_MAP),
+        "thesis_due_on": parse_date(row.get("thesis_due_on")),
+        "topics": clean_text(row.get("topics")),
+        "scholarship": clean_text(row.get("scholarship")),
+        "scholarship_until": parse_date(row.get("scholarship_until")),
+    }
+
+
+def ligar_ao_orientador(db: Database, member_id: int) -> list[str]:
+    """Liga o orientando ao trabalho que ja esta em curso com o orientador.
+
+    Foi o que o laboratorio pediu: quem se cadastra ja aparece ligado ao
+    projeto e a rede se forma sozinha, sem ninguem repetir a mesma
+    informacao em tres telas. A regra e conservadora de proposito --
+    so projetos em andamento, so os da linha de pesquisa da pessoa, e
+    nunca por cima de uma participacao ja registrada, que pode ter sido
+    corrigida a mao.
+    """
+    pessoa = db.conn.execute(
+        "SELECT id, role, advisor_id, research_line_id FROM members WHERE id = ?",
+        (member_id,)).fetchone()
+    if pessoa is None or not pessoa["advisor_id"]:
+        return []
+    orientador = db.conn.execute(
+        "SELECT id, research_line_id FROM members WHERE id = ?",
+        (pessoa["advisor_id"],)).fetchone()
+    if orientador is None:
+        return []
+
+    # A linha de pesquisa desce do orientador quando a pessoa nao declarou a
+    # sua: e a informacao que o orientando quase nunca sabe de cor.
+    linha = pessoa["research_line_id"] or orientador["research_line_id"]
+    if linha and not pessoa["research_line_id"]:
+        db.execute("UPDATE members SET research_line_id = ? WHERE id = ?", (linha, member_id))
+
+    # O orientador entra num projeto como membro da equipe ou como
+    # coordenador; os dois casos valem.
+    projetos = db.dicts(
+        """
+        SELECT DISTINCT p.id, p.name, p.research_line_id
+        FROM projects p
+        LEFT JOIN project_members pm ON pm.project_id = p.id
+        WHERE p.status = 'em_andamento'
+          AND (pm.member_id = ? OR p.coordinator_id = ?)
+        ORDER BY COALESCE(p.started_on, '') DESC
+        """,
+        (orientador["id"], orientador["id"]))
+    if linha:
+        na_linha = [p for p in projetos if p["research_line_id"] == linha]
+        # sem projeto na linha da pessoa, nao se inventa vinculo: um projeto
+        # de outra area nao vira dela so porque o orientador e o mesmo
+        projetos = na_linha
+    if not projetos:
+        return []
+
+    papel = PAPEL_NO_PROJETO.get(pessoa["role"] or "", "bolsista")
+    ligados = []
+    for projeto in projetos:
+        ja = db.conn.execute(
+            "SELECT 1 FROM project_members WHERE project_id = ? AND member_id = ?",
+            (projeto["id"], member_id)).fetchone()
+        if ja:
+            continue
+        db.execute(
+            "INSERT INTO project_members (project_id, member_id, role) VALUES (?, ?, ?)",
+            (projeto["id"], member_id, papel))
+        ligados.append(projeto["name"])
+    db.conn.commit()
+    return ligados
 
 
 def ingest_members(db: Database, rows: list[dict]) -> int:
@@ -242,10 +334,13 @@ def ingest_members(db: Database, rows: list[dict]) -> int:
             # edicao do proprio cadastro pela area do integrante
             db.update_row("members", existing_id, {
                 **{field: clean_text(row.get(field)) for field in MEMBER_PROFILE_FIELDS},
+                "role": map_value(row.get("role"), ROLE_MAP) or clean_text(row.get("role")),
                 "research_line_id": db.research_line_id(row.get("research_line")),
                 "institution_id": db.institution_id(row.get("institution")),
+                **_campos_de_formacao(db, row),
             })
             db.conn.commit()
+            ligar_ao_orientador(db, existing_id)
             written += 1
             continue
         if not name:
@@ -256,7 +351,7 @@ def ingest_members(db: Database, rows: list[dict]) -> int:
             lattes_id=clean_text(row.get("lattes_id")),
             orcid=clean_text(row.get("orcid")),
             email=clean_text(row.get("email")),
-            role=clean_text(row.get("role")),
+            role=map_value(row.get("role"), ROLE_MAP) or clean_text(row.get("role")),
             degree=clean_text(row.get("degree")),
             phone=clean_text(row.get("phone")),
             bio=clean_text(row.get("bio")),
@@ -269,6 +364,7 @@ def ingest_members(db: Database, rows: list[dict]) -> int:
             left_on=parse_date(row.get("left_on")),
             is_external=to_bool(row.get("is_external")),
             active=to_bool(row.get("active"), default=1),
+            **_campos_de_formacao(db, row),
         )
         if member_id:
             db.execute("UPDATE members SET full_name = ? WHERE id = ?", (name, member_id))
@@ -277,6 +373,7 @@ def ingest_members(db: Database, rows: list[dict]) -> int:
                 if duplicate and duplicate != member_id:
                     db.merge_members(duplicate, member_id)
                 db.register_alias(alias, member_id)
+            ligar_ao_orientador(db, member_id)
             written += 1
     db.conn.commit()
     return written

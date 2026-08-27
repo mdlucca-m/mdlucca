@@ -50,31 +50,58 @@ LINHAS = [
 ]
 
 PESSOAS = [
-    # (nome, curto, função, titulação, linha, externo)
-    ("Marina Rossetto Cardoso", "Cardoso MR", "coordenacao", "Doutorado", 0, False),
-    ("Otávio Bernardes Lemos", "Lemos OB", "professor", "Doutorado", 1, False),
-    ("Helena Krieger Sampaio", "Sampaio HK", "professor", "Doutorado", 2, False),
-    ("Rafael Nogueira Bittencourt", "Bittencourt RN", "professor", "Doutorado", 4, False),
-    ("Camila Deodoro Vasques", "Vasques CD", "pos_doutorado", "Doutorado", 0, False),
-    ("Tiago Meireles Farias", "Farias TM", "doutorando", "Mestrado", 1, False),
-    ("Larissa Pilger Antunes", "Antunes LP", "doutorando", "Mestrado", 2, False),
-    ("Bruno Sartori Cavalheiro", "Cavalheiro BS", "doutorando", "Mestrado", 3, False),
-    ("Júlia Kunzler Amaral", "Amaral JK", "doutorando", "Mestrado", 4, False),
-    ("Eduardo Rampinelli Souza", "Souza ER", "mestrando", "Graduação", 0, False),
-    ("Nathália Bregantin Costa", "Costa NB", "mestrando", "Graduação", 1, False),
-    ("Vinícius Haeser Portela", "Portela VH", "mestrando", "Graduação", 2, False),
-    ("Isabela Marchi Fontanella", "Fontanella IM", "mestrando", "Graduação", 3, False),
-    ("Gustavo Zilli Trevisan", "Trevisan GZ", "mestrando", "Graduação", 4, False),
-    ("Ana Clara Bonfim Ribas", "Ribas ACB", "graduando", "Graduação", 0, False),
-    ("Pedro Lauth Meurer", "Meurer PL", "graduando", "Graduação", 1, False),
-    ("Manuela Sperb Coelho", "Coelho MS", "graduando", "Graduação", 2, False),
-    ("Lucas Werneck Prazeres", "Prazeres LW", "graduando", "Graduação", 3, False),
-    ("Beatriz Nunes Delgado", "Delgado BN", "tecnico", "Especialização", 4, False),
-    ("Ricardo Salvatierra Pinto", "Pinto RS", "colaborador", "Doutorado", 1, True),
-    ("Sofia Marques Rebelo", "Rebelo SM", "colaborador", "Doutorado", 0, True),
-    ("Andreu Ferrer Solans", "Ferrer Solans A", "colaborador", "Doutorado", 4, True),
-    ("Patricia Oakley Hall", "Hall PO", "colaborador", "Doutorado", 2, True),
+    # (nome, curto, vínculo, titulação, linha, externo, índice do orientador)
+    # O vínculo usa o vocabulário de mapping.VINCULOS, e o orientador é o que
+    # monta o organograma -- sem ele, todo mundo viraria raiz da árvore.
+    ("Marina Rossetto Cardoso", "Cardoso MR", "coordenacao", "Doutorado", 0, False, None),
+    ("Otávio Bernardes Lemos", "Lemos OB", "professor", "Doutorado", 1, False, None),
+    ("Helena Krieger Sampaio", "Sampaio HK", "professor", "Doutorado", 2, False, None),
+    ("Rafael Nogueira Bittencourt", "Bittencourt RN", "professor", "Doutorado", 4, False, None),
+    ("Camila Deodoro Vasques", "Vasques CD", "pos_doutorado", "Doutorado", 0, False, 0),
+    ("Tiago Meireles Farias", "Farias TM", "doutorando", "Mestrado", 1, False, 1),
+    ("Larissa Pilger Antunes", "Antunes LP", "doutorando", "Mestrado", 2, False, 2),
+    ("Bruno Sartori Cavalheiro", "Cavalheiro BS", "doutorando", "Mestrado", 3, False, 0),
+    ("Júlia Kunzler Amaral", "Amaral JK", "doutorando", "Mestrado", 4, False, 3),
+    ("Eduardo Rampinelli Souza", "Souza ER", "mestrando", "Graduação", 0, False, 0),
+    ("Nathália Bregantin Costa", "Costa NB", "mestrando", "Graduação", 1, False, 1),
+    ("Vinícius Haeser Portela", "Portela VH", "mestrando", "Graduação", 2, False, 2),
+    ("Isabela Marchi Fontanella", "Fontanella IM", "mestrando", "Graduação", 3, False, 0),
+    ("Gustavo Zilli Trevisan", "Trevisan GZ", "mestrando", "Graduação", 4, False, 3),
+    ("Ana Clara Bonfim Ribas", "Ribas ACB", "bolsista_ic", "Graduação", 0, False, 0),
+    ("Pedro Lauth Meurer", "Meurer PL", "bolsista_ic", "Graduação", 1, False, 1),
+    ("Manuela Sperb Coelho", "Coelho MS", "bolsista_extensao", "Graduação", 2, False, 2),
+    ("Lucas Werneck Prazeres", "Prazeres LW", "voluntario", "Graduação", 3, False, 0),
+    ("Rodrigo Alencastro Vieira", "Vieira RA", "graduando", "Graduação", 4, False, 3),
+    ("Beatriz Nunes Delgado", "Delgado BN", "tecnico", "Especialização", 4, False, None),
+    ("Ricardo Salvatierra Pinto", "Pinto RS", "colaborador", "Doutorado", 1, True, None),
+    ("Sofia Marques Rebelo", "Rebelo SM", "colaborador", "Doutorado", 0, True, None),
+    ("Andreu Ferrer Solans", "Ferrer Solans A", "colaborador", "Doutorado", 4, True, None),
+    ("Patricia Oakley Hall", "Hall PO", "colaborador", "Doutorado", 2, True, None),
 ]
+
+# Trabalho de formação por vínculo: (tipo, meses até a conclusão prevista).
+# Extensão e voluntariado não têm trabalho de conclusão -- e o organograma
+# tem de aguentar a lacuna sem inventar prazo para quem não tem.
+FORMACAO = {
+    "doutorando": ("tese", (14, 34)),
+    "mestrando": ("dissertacao", (6, 20)),
+    "bolsista_ic": ("relatorio", (5, 11)),
+    "graduando": ("tcc", (4, 12)),
+    "pos_doutorado": ("projeto", (8, 22)),
+}
+BOLSAS = {
+    "doutorando": ("CAPES — Demanda Social", (12, 30)),
+    "mestrando": ("CNPq — Mestrado", (6, 18)),
+    "bolsista_ic": ("PIBIC/CNPq", (4, 10)),
+    "bolsista_extensao": ("PROBOLSA/UDESC", (4, 10)),
+    "pos_doutorado": ("FAPESC — Pós-doutorado", (6, 16)),
+}
+MODALIDADES = [
+    "handebol", "ginástica rítmica", "futebol", "natação", "atletismo",
+    "musculação", "corrida de rua", "voleibol", "ciclismo", "judô",
+]
+SITUACOES_DA_TESE = [("em_andamento", 3.0), ("coleta", 1.6), ("analise", 1.2),
+                     ("qualificacao", 0.9), ("defesa_marcada", 0.4)]
 
 INSTITUICOES = [
     ("Universidade do Estado de Santa Catarina", "UDESC", "Florianópolis", "SC", "Brasil", -27.5949, -48.5482),
@@ -235,9 +262,9 @@ def build(seed: int = 20260826, n_artigos: int = 160,
                for i, (rotulo, categoria) in enumerate(MOTIVOS)]
 
     integrantes = []
-    for i, (nome, curto, funcao, titulacao, linha, externo) in enumerate(PESSOAS):
+    for i, (nome, curto, funcao, titulacao, linha, externo, orientador) in enumerate(PESSOAS):
         entrada = date(ano_atual - rng.randint(1, 8), rng.randint(1, 12), rng.randint(1, 28))
-        integrantes.append({
+        pessoa = {
             "Nome": nome, "Nome curto": curto, "Função": funcao, "Titulação": titulacao,
             "Linha de pesquisa": LINHAS[linha][0],
             "Instituição": INSTITUICOES[0][0] if not externo
@@ -247,7 +274,31 @@ def build(seed: int = 20260826, n_artigos: int = 160,
             "ORCID": f"0000-000{rng.randint(1, 3)}-{rng.randint(1000, 9999)}-{rng.randint(1000, 9999)}",
             "Lattes": str(rng.randint(10 ** 15, 10 ** 16 - 1)),
             "Entrada": _iso(entrada), "Externo": "Sim" if externo else "Não", "Ativo": "Sim",
-        })
+        }
+        if orientador is not None:
+            pessoa["Orientador"] = PESSOAS[orientador][0]
+            # coorientação existe, mas é minoria: uma em cada três, e nunca
+            # apontando para o próprio orientador
+            outros = [p[0] for j, p in enumerate(PESSOAS)
+                      if p[2] in ("professor", "coordenacao", "pos_doutorado")
+                      and j != orientador and j != i]
+            if outros and rng.random() < 0.34:
+                pessoa["Coorientador"] = rng.choice(outros)
+        if funcao in FORMACAO:
+            tipo, (menos, mais) = FORMACAO[funcao]
+            prazo = hoje + timedelta(days=rng.randint(menos * 30, mais * 30))
+            pessoa["Tipo de trabalho"] = tipo
+            pessoa["Título da tese"] = _titulo(rng, linha)
+            pessoa["Situação da tese"] = _pick(rng, SITUACOES_DA_TESE)
+            pessoa["Prazo para conclusão"] = _iso(prazo)
+        if funcao in BOLSAS:
+            agencia, (menos, mais) = BOLSAS[funcao]
+            pessoa["Bolsa"] = agencia
+            pessoa["Fim da bolsa"] = _iso(
+                hoje + timedelta(days=rng.randint(menos * 30, mais * 30)))
+        if not externo:
+            pessoa["Temas"] = "; ".join(rng.sample(MODALIDADES, rng.randint(1, 3)))
+        integrantes.append(pessoa)
 
     projetos, projeto_membros = [], []
     for nome, cod, financiadora, edital, linha, tipo, valor, ini, fim in PROJETOS:
@@ -303,6 +354,7 @@ def build(seed: int = 20260826, n_artigos: int = 160,
         # ordem de autoria como num laboratório: quem escreveu vem primeiro,
         # os demais no meio, a coordenação por último
         PESO = {"doutorando": 0, "mestrando": 1, "pos_doutorado": 2, "graduando": 3,
+                "bolsista_ic": 3, "bolsista_extensao": 3, "voluntario": 3,
                 "tecnico": 4, "professor": 5, "colaborador": 6, "coordenacao": 9}
         unicos.sort(key=lambda p: (PESO.get(p[2], 5), p[1]))
         ordenados = unicos

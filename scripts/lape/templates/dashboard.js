@@ -889,6 +889,205 @@ view("explorar", "Explorar dados", "", "Escolha a medida, o recorte e a quebra: 
     run();
   });
 
+view("organograma", "Organograma", "Pessoas e projetos",
+  "Quem orienta quem, e o que cada pessoa está tocando. O desenho sai do cadastro: "
+  + "ninguém arrasta caixa.",
+  function (host) {
+    const org = D.org || {};
+    const gente = org.people || [];
+    if (!gente.length) {
+      host.appendChild(el("div", { class: "note", html:
+        "<b>Nenhum integrante cadastrado ainda.</b> Assim que alguém se cadastrar em "
+        + "<a href='/app#perfil'>Área do integrante</a> apontando o orientador, "
+        + "o organograma se monta sozinho." }));
+      return;
+    }
+
+    /* Quantos há de cada vínculo. Ordinal, e não categórico: os vínculos têm
+       ordem (coordenação, professor, doutorando, mestrando…), e a cor deve
+       carregar essa ordem em vez de sortear um matiz para cada um. */
+    host.appendChild(el("div", { class: "grid g4", style: "margin-bottom:18px" },
+      (org.by_role || []).slice(0, 8).map(function (r, i) {
+        return kpi({ label: r.label, value: C.fmt(r.n),
+          icon: r.role === "sem_vinculo" ? "aviso" : "pessoa",
+          tone: r.role === "sem_vinculo" ? "bad" : null });
+      })));
+
+    const pendencias = [];
+    if ((org.sem_vinculo || []).length) {
+      pendencias.push((org.sem_vinculo.length) + " sem vínculo declarado: "
+        + org.sem_vinculo.slice(0, 4).map(function (p) { return p.full_name; }).join(", ")
+        + (org.sem_vinculo.length > 4 ? " e outros" : ""));
+    }
+    if ((org.sem_orientador || []).length) {
+      pendencias.push((org.sem_orientador.length) + " sem orientador apontado: "
+        + org.sem_orientador.slice(0, 4).map(function (p) { return p.full_name; }).join(", ")
+        + (org.sem_orientador.length > 4 ? " e outros" : ""));
+    }
+    if (pendencias.length) {
+      host.appendChild(el("div", { class: "note", style: "margin-bottom:18px" }, [
+        el("b", { text: "O desenho está incompleto. " }),
+        el("span", { text: pendencias.join(" · ")
+          + ". Quem preenche é a própria pessoa, na área do integrante." }),
+      ]));
+    }
+
+    host.appendChild(card("Quem responde a quem",
+      "Cada coluna é um orientador. Clique numa pessoa para abrir a ficha completa.",
+      organogramaEmColunas(org)));
+
+    if ((org.orientadores || []).length) {
+      host.appendChild(el("div", { style: "margin-top:18px" }, card(
+        "Carga de orientação", "Quantos orientandos cada professor acompanha.",
+        C.bars({
+          items: org.orientadores.map(function (o) {
+            return { label: o.full_name, value: o.n,
+              note: o.research_line || "sem linha declarada" };
+          }),
+          unit: "orientandos", mono: true, labelWidth: 220, file: "carga-de-orientacao",
+          table: { cols: [{ label: "Orientador", k: "full_name" },
+            { label: "Vínculo", k: "role_label" },
+            { label: "Orientandos", k: "n", num: true }], rows: org.orientadores },
+        }))));
+    }
+
+    const teses = org.teses || [];
+    host.appendChild(el("div", { style: "margin-top:18px" }, card(
+      "Teses, dissertações e planos de trabalho",
+      "Prazo em branco é prazo que ninguém declarou — e prazo não declarado não cobra.",
+      dataTable({
+        cols: [
+          { label: "Pessoa", k: "full_name" },
+          { label: "Vínculo", k: "role_label" },
+          { label: "Trabalho", k: "title", render: function (r) {
+            return r.title ? cut(r.title, 60) : "título em definição"; } },
+          { label: "Orientação", k: "advisor" },
+          { label: "Situação", k: "status", render: function (r) {
+            return TESE_SITUACAO[r.status] || r.status || "—"; } },
+          { label: "Prazo", k: "due_on", render: function (r) { return dt(r.due_on); } },
+        ],
+        rows: teses, sortKey: "due_on", sortDir: 1, pageSize: 15,
+        emptyMessage: "Ninguém declarou tese, dissertação ou plano de trabalho ainda.",
+      }))));
+  });
+
+/* Organograma em colunas, e não em árvore SVG: com vinte pessoas, uma árvore
+   desenhada fica com três mil pixels de largura, e a raiz — centrada sobre
+   todos os filhos — vai parar no meio, fora da tela. Em colunas, cada
+   orientador ocupa uma faixa com a sua gente embaixo, e o desenho cabe. */
+function organogramaEmColunas(org) {
+  const gente = org.people || [];
+  const porId = new Map(gente.map(function (p) { return [p.id, p]; }));
+  const filhos = new Map();
+  (org.edges || []).forEach(function (e) {
+    if (e.kind !== "orientacao") return;
+    if (!filhos.has(e.from)) filhos.set(e.from, []);
+    filhos.get(e.from).push(e.to);
+  });
+
+  function cartao(pessoa, classe) {
+    const node = el("button", {
+      class: classe, type: "button",
+      title: "Abrir a ficha de " + pessoa.full_name,
+      onclick: function () { showResearcher(pessoa.id); },
+    }, [
+      el("b", { text: pessoa.short_name || pessoa.full_name }),
+      el("small", { text: [pessoa.role_label, pessoa.research_line
+        ? cut(pessoa.research_line, 26) : null].filter(Boolean).join(" · ") }),
+    ]);
+    const marcas = el("span", { class: "org-marks" });
+    if (pessoa.thesis_due_on) {
+      marcas.appendChild(el("span", { class: "org-chip", text: dt(pessoa.thesis_due_on) }));
+    }
+    if (pessoa.scholarship) {
+      marcas.appendChild(el("span", { class: "org-chip soft",
+        text: cut(pessoa.scholarship, 18) }));
+    }
+    if (pessoa.co_advisor) {
+      marcas.appendChild(el("span", { class: "org-chip soft",
+        text: "coorient.: " + cut(pessoa.co_advisor, 16) }));
+    }
+    if (marcas.childNodes.length) node.appendChild(marcas);
+    return node;
+  }
+
+  /* Um orientando que também orienta (o pós-doutorado, quase sempre) aparece
+     uma vez só, com a sua gente recuada abaixo dele. */
+  const desenhados = new Set();
+  function ramo(id, nivel) {
+    if (desenhados.has(id) || nivel > 3) return null;
+    desenhados.add(id);
+    const pessoa = porId.get(id);
+    if (!pessoa) return null;
+    const linha = el("li", { class: "org-kid n" + Math.min(nivel, 3) },
+      cartao(pessoa, "org-card small"));
+    const netos = (filhos.get(id) || []).map(function (f) { return ramo(f, nivel + 1); })
+      .filter(Boolean);
+    if (netos.length) linha.appendChild(el("ul", { class: "org-kids" }, netos));
+    return linha;
+  }
+
+  const caixa = el("div", { class: "org" });
+  const raiz = (org.roots || []).map(function (id) { return porId.get(id); })
+    .find(function (p) { return p && p.role === "coordenacao"; });
+  if (raiz) {
+    desenhados.add(raiz.id);
+    caixa.appendChild(el("div", { class: "org-top" }, cartao(raiz, "org-card boss")));
+    caixa.appendChild(el("div", { class: "org-stem" }));
+  }
+
+  /* Uma coluna por quem orienta -- a coordenação inclusive: ela aparece no
+     topo por coordenar, e ganha coluna própria por orientar, que são duas
+     coisas diferentes. Sem essa coluna, quem ela orienta sumia do desenho. */
+  const colunas = (org.orientadores || []).map(function (o) {
+    const pessoa = porId.get(o.id);
+    if (!pessoa) return null;
+    const ehRaiz = raiz && o.id === raiz.id;
+    if (!ehRaiz && desenhados.has(o.id)) return null;
+    desenhados.add(o.id);
+    const kids = (filhos.get(o.id) || []).map(function (f) { return ramo(f, 1); })
+      .filter(Boolean);
+    const cabeca = ehRaiz
+      ? el("div", { class: "org-card ghost" }, [
+        el("b", { text: "Orientação direta" }),
+        el("small", { text: pessoa.short_name || pessoa.full_name }),
+      ])
+      : cartao(pessoa, "org-card");
+    return el("div", { class: "org-branch" }, [
+      cabeca,
+      kids.length ? el("ul", { class: "org-kids" }, kids)
+        : el("p", { class: "org-vazio", text: "sem orientandos declarados" }),
+    ]);
+  }).filter(Boolean);
+
+  const sobra = gente.filter(function (p) { return !desenhados.has(p.id); });
+  if (sobra.length) {
+    colunas.push(el("div", { class: "org-branch solta" }, [
+      el("div", { class: "org-card ghost" }, [
+        el("b", { text: "Sem orientação declarada" }),
+        el("small", { text: sobra.length + (sobra.length === 1 ? " pessoa" : " pessoas") }),
+      ]),
+      el("ul", { class: "org-kids" }, sobra.map(function (p) {
+        return el("li", { class: "org-kid n1" }, cartao(p, "org-card small"));
+      })),
+    ]));
+  }
+
+  const trilho = el("div", { class: "org-branches" }, colunas);
+  /* a barra horizontal precisa nascer no centro da primeira coluna e morrer
+     no centro da última: sem saber quantas são, o CSS erraria as duas pontas */
+  trilho.style.setProperty("--n", String(Math.max(colunas.length, 1)));
+  if (!raiz) trilho.classList.add("sem-topo");
+  caixa.appendChild(el("div", { class: "org-scroll" }, trilho));
+  return caixa;
+}
+
+const TESE_SITUACAO = {
+  em_andamento: "Em andamento", coleta: "Coleta de dados", analise: "Análise de dados",
+  qualificacao: "Qualificação", defesa_marcada: "Defesa marcada", concluida: "Concluída",
+  trancada: "Trancada",
+};
+
 view("linhas", "Linhas de pesquisa", "Pessoas e projetos",
   "Cada linha reúne artigos, pessoas, projetos e atividades. Clique para filtrar o painel.",
   function (host) {
@@ -2147,7 +2346,7 @@ const SECTIONS = [
   { id: "producao", label: "Produção", icon: "producao",
     views: ["producao", "submetidos", "publicacoes", "citacoes"] },
   { id: "pessoas", label: "Pessoas", icon: "pessoas",
-    views: ["pesquisadores", "equipe", "rede", "linhas", "projetos"] },
+    views: ["pesquisadores", "organograma", "equipe", "rede", "linhas", "projetos"] },
   { id: "processo", label: "Processo", icon: "processo",
     views: ["tempos", "submissoes", "aceites"] },
   { id: "espaco", label: "Espaço-tempo", icon: "espaco",
@@ -2158,7 +2357,8 @@ const SECTIONS = [
 const VIEW_ICON = {
   visao: "painel", explorar: "explorar",
   producao: "producao", submetidos: "submissao", publicacoes: "livro", citacoes: "citacao",
-  pesquisadores: "pessoas", equipe: "barras", rede: "rede", linhas: "linhas", projetos: "projeto",
+  pesquisadores: "pessoas", organograma: "hierarquia", equipe: "barras", rede: "rede",
+  linhas: "linhas", projetos: "projeto",
   tempos: "relogio", submissoes: "submissao", aceites: "aceite",
   calendario: "calendario", temporal: "tempo", espacial: "mapa",
   descobertas: "achado", qualidade: "qualidade", automacao: "automacao",
@@ -2171,7 +2371,8 @@ const RELATED = {
   submetidos: ["submissoes", "tempos", "aceites"],
   publicacoes: ["citacoes", "temporal", "equipe"],
   citacoes: ["publicacoes", "pesquisadores", "descobertas"],
-  pesquisadores: ["equipe", "rede", "projetos"],
+  pesquisadores: ["organograma", "equipe", "rede"],
+  organograma: ["pesquisadores", "projetos", "linhas"],
   equipe: ["rede", "pesquisadores", "producao"],
   rede: ["equipe", "linhas", "projetos"],
   linhas: ["projetos", "publicacoes", "equipe"],

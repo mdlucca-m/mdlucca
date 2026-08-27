@@ -413,6 +413,13 @@ figure.chart figcaption { font-size: 12px; color: var(--ink-2); margin-bottom: 1
 svg.plot { display: block; width: 100%; height: auto; overflow: visible; }
 /* formas redondas crescem em círculo: sem teto, viram um disco gigante no cartão */
 svg.plot.round { max-width: 380px; margin-inline: auto; }
+/* O organograma tem a largura que a equipe tiver. Encolher tudo até caber
+   deixaria o nome ilegível; quem rola é a caixa, nunca a página. */
+.scrollx { overflow-x: auto; overflow-y: hidden; padding-bottom: 6px; }
+svg.plot.tree { width: auto; max-width: none; }
+svg.plot.tree .node { cursor: default; }
+svg.plot.tree .lab { font-size: 13px; fill: var(--ink); }
+svg.plot.tree .tick { font-size: 11px; }
 .plot .grid-line { stroke: var(--grid); stroke-width: 1; shape-rendering: crispEdges; }
 .plot .axis-line { stroke: var(--axis); stroke-width: 1; shape-rendering: crispEdges; }
 .plot .tick { font-size: 10.5px; fill: var(--ink-muted); font-variant-numeric: tabular-nums; }

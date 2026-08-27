@@ -230,17 +230,58 @@ function table(cols, rows, emptyMessage){
 
 /* ---------- listas auxiliares ---------- */
 async function loadLookups(){
-  const [lines, articles, reasons, projects] = await Promise.all([
+  const [lines, articles, reasons, projects, equipe] = await Promise.all([
     api("/api/research-lines?limit=200").catch(function (){ return {items: []}; }),
     api("/api/articles?limit=1000"),
     api("/api/rejection-reasons?limit=200").catch(function (){ return {items: []}; }),
     api("/api/projects?limit=300").catch(function (){ return {items: []}; }),
+    api("/api/equipe").catch(function (){ return {items: []}; }),
   ]);
   CACHE.lines = lines.items.map(function (l){ return l.name; });
   CACHE.articles = articles.items;
   CACHE.reasons = reasons.items.map(function (r){ return r.label; });
   CACHE.projects = projects.items;
+  CACHE.equipe = equipe.items;
+  /* Só quem orienta entra na lista de orientadores. A pessoa não aparece na
+     própria lista: ninguém orienta a si mesmo, e ver o próprio nome ali é
+     convite para o clique errado. */
+  CACHE.orientadores = equipe.items
+    .filter(function (p){ return p.orienta && p.id !== ME.id; })
+    .map(function (p){ return p.full_name; });
 }
+
+/* Vocabulário de vínculo, tese e bolsa. É a mesma lista de mapping.VINCULOS,
+   repetida aqui para a página abrir sem consultar o servidor — e há teste
+   que reprova a divergência entre as duas. */
+const VINCULO_OPTS = [
+  {value: "coordenacao", label: "Coordenação"},
+  {value: "professor", label: "Professor(a)"},
+  {value: "pos_doutorado", label: "Pós-doutorado"},
+  {value: "doutorando", label: "Doutorando(a)"},
+  {value: "mestrando", label: "Mestrando(a)"},
+  {value: "bolsista_ic", label: "Bolsista de IC"},
+  {value: "bolsista_extensao", label: "Bolsista de extensão"},
+  {value: "voluntario", label: "Voluntário(a)"},
+  {value: "graduando", label: "Graduando(a)"},
+  {value: "tecnico", label: "Técnico(a)"},
+  {value: "colaborador", label: "Colaborador(a) externo"},
+];
+const TESE_TIPO_OPTS = [
+  {value: "tese", label: "Tese de doutorado"},
+  {value: "dissertacao", label: "Dissertação de mestrado"},
+  {value: "tcc", label: "Trabalho de conclusão de curso"},
+  {value: "relatorio", label: "Relatório de iniciação científica"},
+  {value: "projeto", label: "Projeto de pesquisa"},
+];
+const TESE_SITUACAO_OPTS = [
+  {value: "em_andamento", label: "Em andamento"},
+  {value: "coleta", label: "Coleta de dados"},
+  {value: "analise", label: "Análise de dados"},
+  {value: "qualificacao", label: "Qualificação"},
+  {value: "defesa_marcada", label: "Defesa marcada"},
+  {value: "concluida", label: "Concluída"},
+  {value: "trancada", label: "Trancada"},
+];
 const STATUS_OPTS = ["Em produção", "Submetido", "Em revisão", "Aceito", "Publicado",
                      "Rejeitado", "Arquivado"];
 const DECISION_OPTS = ["Em avaliação", "Revisão solicitada", "Aceito", "Rejeitado",
@@ -275,11 +316,17 @@ VIEWS.perfil = {
       field("Nome curto", "Nome de citação", "text", {from: "short_name"}),
       field("Variações", "Variações do nome", "text",
         {hint: "Outras grafias usadas nas planilhas, separadas por ponto e vírgula."}),
-      field("Função", "Função no laboratório", "text", {from: "role",
-        placeholder: "Coordenação, doutorando, bolsista…"}),
+      field("Função", "Vínculo com o laboratório", "select", {from: "role",
+        options: VINCULO_OPTS,
+        hint: "É o vínculo que põe você no lugar certo do organograma."}),
       field("Titulação", "Titulação", "text", {from: "degree", placeholder: "Doutor, Mestre…"}),
       field("Linha de pesquisa", "Linha de pesquisa", "select",
         {from: "research_line", options: function (){ return CACHE.lines; }}),
+      field("Orientador", "Orientador(a)", "select", {from: "advisor",
+        options: function (){ return CACHE.orientadores || []; },
+        hint: "Ao gravar, você entra na equipe dos projetos em andamento dele(a)."}),
+      field("Coorientador", "Coorientador(a)", "select", {from: "co_advisor",
+        options: function (){ return CACHE.orientadores || []; }}),
       field("Instituição", "Instituição", "text", {from: "institution"}),
       field("E-mail", "E-mail", "email", {from: "email"}),
       field("Telefone", "Telefone", "text", {from: "phone"}),
@@ -290,11 +337,39 @@ VIEWS.perfil = {
       field("Resumo", "Minibiografia", "textarea", {from: "bio", span: "full"}),
     ], extra: function (){ return {id: ME.id}; }};
 
+    const formacao = {fields: [
+      field("Tipo de trabalho", "Tipo de trabalho", "select", {from: "thesis_kind",
+        options: TESE_TIPO_OPTS}),
+      field("Situação da tese", "Situação", "select", {from: "thesis_status",
+        options: TESE_SITUACAO_OPTS}),
+      field("Título da tese", "Título do trabalho", "text", {from: "thesis_title",
+        span: "full", placeholder: "Em definição"}),
+      field("Prazo para conclusão", "Prazo para conclusão", "date", {from: "thesis_due_on",
+        hint: "Aparece no mural e na lista de prazos do laboratório."}),
+      field("Temas", "Temas e modalidades", "text", {from: "topics",
+        placeholder: "handebol; ginástica rítmica"}),
+      field("Bolsa", "Bolsa", "text", {from: "scholarship",
+        placeholder: "CAPES, CNPq, PIBIC, sem bolsa…"}),
+      field("Fim da bolsa", "Vigência da bolsa até", "date", {from: "scholarship_until"}),
+    ], extra: function (){ return {id: ME.id}; }};
+
     VIEW.appendChild(h("div", {class: "card sec"}, buildForm(spec, me, async function (payload){
       await api("/api/members", "POST", payload);
       toast("Perfil atualizado.");
       VIEWS.perfil.render();
     })));
+
+    VIEW.appendChild(h("div", {class: "card sec"}, [
+      h("h3", {text: "Formação em curso e bolsa"}),
+      h("p", {class: "hint", text: "Tese, dissertação, plano de trabalho: o que você está"
+        + " escrevendo, para quando, e com que bolsa. O prazo daqui vira prazo do"
+        + " laboratório — aparece no mural e na lista de pendências."}),
+      buildForm(formacao, me, async function (payload){
+        await api("/api/members", "POST", payload);
+        toast("Formação atualizada.");
+        VIEWS.perfil.render();
+      }),
+    ]));
 
     VIEW.appendChild(h("div", {class: "sec"}, [
       h("h3", {text: "Projetos de que participo"}),

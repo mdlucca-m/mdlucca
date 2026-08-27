@@ -267,6 +267,105 @@ def member_productivity(db: Database) -> list[dict]:
     return [r for r in rows if (r["n_articles"] or 0) > 0 or not r["is_external"]]
 
 
+def organograma(db: Database) -> dict[str, Any]:
+    """Quem orienta quem, e o que cada pessoa esta tocando.
+
+    O desenho nao e mantido a mao: ele cai do `advisor_id` de cada ficha.
+    Quem se cadastra apontando o orientador ja entra no lugar certo, e o
+    que fica de fora -- orientando sem orientador, gente sem vinculo --
+    aparece listado, porque um organograma so serve se disser tambem o
+    que esta faltando.
+    """
+    from .mapping import ORIENTADOS, ROLE_LABEL, VINCULOS
+
+    ordem = {codigo: i for i, (codigo, _, _) in enumerate(VINCULOS)}
+    pessoas = db.dicts(
+        """
+        SELECT m.id, m.full_name, m.short_name, m.role, m.degree, m.active,
+               m.advisor_id, m.co_advisor_id, m.thesis_title, m.thesis_kind,
+               m.thesis_status, m.thesis_due_on, m.topics, m.scholarship,
+               m.scholarship_until, m.is_external,
+               rl.name AS research_line,
+               (SELECT COUNT(DISTINCT aa.article_id) FROM article_authors aa
+                  WHERE aa.member_id = m.id) AS n_articles,
+               (SELECT COUNT(*) FROM project_members pm WHERE pm.member_id = m.id) AS n_projects,
+               (SELECT group_concat(p.name, ' | ') FROM project_members pm
+                  JOIN projects p ON p.id = pm.project_id
+                 WHERE pm.member_id = m.id AND p.status = 'em_andamento') AS projetos
+        FROM members m
+        LEFT JOIN research_lines rl ON rl.id = m.research_line_id
+        WHERE m.is_external = 0
+        ORDER BY m.full_name
+        """
+    )
+    por_id = {p["id"]: p for p in pessoas}
+    for pessoa in pessoas:
+        pessoa["role_label"] = ROLE_LABEL.get(pessoa["role"] or "", pessoa["role"] or "Sem vínculo")
+        pessoa["level"] = ordem.get(pessoa["role"] or "", len(ordem))
+        pessoa["advisor"] = (por_id.get(pessoa["advisor_id"]) or {}).get("full_name")
+        pessoa["co_advisor"] = (por_id.get(pessoa["co_advisor_id"]) or {}).get("full_name")
+        pessoa["orientandos"] = 0
+
+    arestas = []
+    for pessoa in pessoas:
+        if pessoa["advisor_id"] in por_id:
+            arestas.append({"from": pessoa["advisor_id"], "to": pessoa["id"], "kind": "orientacao"})
+            por_id[pessoa["advisor_id"]]["orientandos"] += 1
+        if pessoa["co_advisor_id"] in por_id:
+            arestas.append({"from": pessoa["co_advisor_id"], "to": pessoa["id"],
+                            "kind": "coorientacao"})
+
+    # Raiz e quem nao tem orientador dentro do laboratorio. Sem essa regra,
+    # um professor orientado por outro sumiria do topo do desenho.
+    raizes = [p["id"] for p in pessoas if p["advisor_id"] not in por_id]
+    raizes.sort(key=lambda i: (por_id[i]["level"], por_id[i]["full_name"]))
+
+    # Uma coordenacao sozinha no topo puxa as demais raizes para baixo dela.
+    # Nao e orientacao -- e coordenacao, e a aresta diz isso --, mas e assim
+    # que um laboratorio se desenha, e uma floresta de arvores soltas nao
+    # responderia a pergunta "quem responde a quem".
+    chefes = [i for i in raizes if por_id[i]["role"] == "coordenacao"]
+    if len(chefes) == 1 and len(raizes) > 1:
+        topo = chefes[0]
+        for outro in raizes:
+            if outro != topo:
+                arestas.append({"from": topo, "to": outro, "kind": "coordenacao"})
+        raizes = [topo]
+
+    contagem = Counter(p["role"] or "sem_vinculo" for p in pessoas)
+    esperam_orientador = [
+        {"id": p["id"], "full_name": p["full_name"], "role_label": p["role_label"]}
+        for p in pessoas
+        if p["role"] in ORIENTADOS and p["advisor_id"] not in por_id
+    ]
+    return {
+        "people": pessoas,
+        "edges": arestas,
+        "roots": raizes,
+        "by_role": [
+            {"role": codigo, "label": ROLE_LABEL.get(codigo, codigo), "n": contagem.get(codigo, 0)}
+            for codigo, _, _ in VINCULOS if contagem.get(codigo)
+        ] + ([{"role": "sem_vinculo", "label": "Sem vínculo declarado",
+               "n": contagem["sem_vinculo"]}] if contagem.get("sem_vinculo") else []),
+        "sem_orientador": esperam_orientador,
+        "sem_vinculo": [{"id": p["id"], "full_name": p["full_name"]}
+                        for p in pessoas if not p["role"]],
+        "orientadores": sorted(
+            ({"id": p["id"], "full_name": p["full_name"], "role_label": p["role_label"],
+              "n": p["orientandos"], "research_line": p["research_line"]}
+             for p in pessoas if p["orientandos"]),
+            key=lambda x: (-x["n"], x["full_name"])),
+        "teses": sorted(
+            ({"id": p["id"], "full_name": p["full_name"], "role_label": p["role_label"],
+              "title": p["thesis_title"], "kind": p["thesis_kind"],
+              "status": p["thesis_status"], "due_on": p["thesis_due_on"],
+              "advisor": p["advisor"], "research_line": p["research_line"]}
+             for p in pessoas
+             if p["thesis_title"] or p["thesis_due_on"]),
+            key=lambda x: (x["due_on"] or "9999")),
+    }
+
+
 def collaboration_network(db: Database, min_weight: int = 1) -> dict[str, Any]:
     """Rede de coautoria: nos = integrantes, arestas = artigos em comum."""
     rows = db.dicts(
@@ -701,6 +800,7 @@ def build_payload(db: Database, window: int = config.WINDOW_YEARS) -> dict[str, 
         "researchers": researchers(db),
         "projects": projects_overview(db),
         "network": network,
+        "org": organograma(db),
         "timeline": publication_timeline(db),
         "submissions": subs,
         "acceptances": acceptance_log(db),
