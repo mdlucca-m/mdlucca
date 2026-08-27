@@ -408,6 +408,56 @@ class TestApi(unittest.TestCase):
         self.assertIn("const Icons", html)   # o menu monta os icones a partir daqui
 
 
+class TestCacheDoNavegador(unittest.TestCase):
+    """Nada do que a API devolve pode ser guardado pelo navegador.
+
+    O painel e remontado do banco a cada acesso. Sem `no-store`, o navegador
+    guarda por conta propria e devolve a versao velha -- e quem acabou de
+    atualizar o sistema recarrega a pagina e jura que nada mudou. Foi
+    exatamente o que aconteceu.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.db_path = Path(cls.tmp.name) / "cache.sqlite"
+        db = Database(cls.db_path)
+        db.migrate()
+        auth.create_account(db, "Coordenação", "coord@udesc.br", "senhaforte123", role="admin")
+        db.close()
+        api.Handler.db_path = cls.db_path
+        api.Handler.log_message = lambda *args, **kwargs: None
+        cls.server = ThreadingHTTPServer(("127.0.0.1", 0), api.Handler)
+        cls.port = cls.server.server_address[1]
+        cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
+        cls.thread.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.shutdown()
+        cls.server.server_close()
+        cls.tmp.cleanup()
+
+    def cabecalhos(self, caminho):
+        pedido = urllib.request.Request(f"http://127.0.0.1:{self.port}{caminho}")
+        try:
+            with urllib.request.urlopen(pedido, timeout=30) as resposta:
+                return resposta.headers
+        except urllib.error.HTTPError as exc:
+            return exc.headers
+
+    def test_paginas_e_api_nao_sao_guardadas(self):
+        for caminho in ("/entrar", "/app", "/api/health", "/api"):
+            with self.subTest(caminho=caminho):
+                cache = self.cabecalhos(caminho).get("Cache-Control") or ""
+                self.assertIn("no-store", cache, f"{caminho} pode ser guardada pelo navegador")
+
+    def test_o_favicon_pode_ser_guardado(self):
+        # nunca muda; buscar de novo a cada tela e desperdicio
+        cache = self.cabecalhos("/favicon.ico").get("Cache-Control") or ""
+        self.assertIn("max-age", cache)
+
+
 class TestPublicacao(unittest.TestCase):
     """O que so passa a importar quando o endereco deixa de ser 127.0.0.1.
 

@@ -761,6 +761,15 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", f"{content_type}; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
+        # Toda pagina e toda resposta da API sao remontadas do banco a cada
+        # acesso -- nenhuma delas pode ser guardada. Sem este cabecalho o
+        # navegador guarda por conta propria e devolve a versao velha: quem
+        # atualiza o sistema recarrega a pagina e jura que nada mudou.
+        # O favicon e a excecao: nunca muda, e cabe guardar.
+        if content_type == "image/svg+xml":
+            self.send_header("Cache-Control", "public, max-age=86400")
+        else:
+            self.send_header("Cache-Control", "no-store, must-revalidate")
         for nome, valor in SECURITY_HEADERS:
             self.send_header(nome, valor)
         for key, value in (extra_headers or []):
