@@ -650,8 +650,22 @@ def ingest_authors(db: Database, rows: list[dict]) -> int:
     return written
 
 
-def ingest_submissions(db: Database, rows: list[dict]) -> int:
+def ingest_submissions(db: Database, rows: list[dict], destravar: bool = False) -> int:
+    """Registra tentativas de submissao e rededuz o status dos artigos.
+
+    `destravar` existe por causa de um choque de duas verdades. O status que
+    veio da planilha fica travado (status_locked), para que uma reimportacao
+    nao apague o que o laboratorio escreveu a mao. So que registrar uma
+    recusa pela area do integrante TAMBEM e escrever a mao -- e e a
+    declaracao mais recente. Sem destravar, a pessoa registrava a recusa,
+    via a tentativa aparecer na lista, e o artigo continuava "submetido"
+    para sempre: teria de ir a outra tela mudar a situacao de novo.
+
+    O caminho da planilha nao destrava: la a coluna de situacao e a
+    declaracao, e ela continua mandando.
+    """
     written = 0
+    destravados: set[int] = set()
     counters: dict[int, int] = {}
     ordered = sorted(rows, key=lambda r: (parse_date(r.get("submitted_on")) or "9999",
                                           to_int(r.get("attempt_no")) or 0))
@@ -691,7 +705,12 @@ def ingest_submissions(db: Database, rows: list[dict]) -> int:
             },
             conflict=("article_id", "attempt_no"),
         )
+        # decisao declarada agora vale mais do que status escrito na planilha
+        if destravar and decision and decision != "em_avaliacao":
+            destravados.add(article_id)
         written += 1
+    for article_id in destravados:
+        db.execute("UPDATE articles SET status_locked = 0 WHERE id = ?", (article_id,))
     _sync_article_dates(db)
     derive_status(db)
     return written

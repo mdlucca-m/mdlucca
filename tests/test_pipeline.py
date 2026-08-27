@@ -408,6 +408,89 @@ class TestAgenteCurador(unittest.TestCase):
             tmp.cleanup()
 
 
+class TestRecusaRegistradaPelaArea(unittest.TestCase):
+    """Registrar a recusa tem de mudar a situação do artigo, e só ela.
+
+    O status vindo da planilha fica travado, para que reimportar não apague
+    o que o laboratório escreveu à mão. Só que registrar a recusa pela área
+    do integrante também é escrever à mão — e é a declaração mais recente.
+    Sem destravar, a pessoa registrava a recusa, via a tentativa na lista, e
+    o artigo continuava "submetido" para sempre.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.db = Database(Path(self.tmp.name) / "db.sqlite")
+        self.db.migrate()
+        # artigo vindo da planilha COM situação declarada: fica travado
+        ingest_excel.ingest_articles(self.db, [
+            {"title": "Ansiedade em atletas de base", "authors": "Cardoso",
+             "status": "Submetido", "first_submission_on": "2026-01-10"},
+        ])
+
+    def tearDown(self):
+        self.db.close()
+        self.tmp.cleanup()
+
+    def situacao(self):
+        return self.db.scalar("SELECT status FROM articles WHERE title = ?",
+                              ("Ansiedade em atletas de base",))
+
+    def test_a_planilha_continua_mandando(self):
+        # reimportar a mesma aba de submissões não pode mexer no que a
+        # coluna de situação declarou
+        ingest_excel.ingest_submissions(self.db, [
+            {"article": "Ansiedade em atletas de base", "journal": "Revista X",
+             "submitted_on": "2026-01-10", "decision": "Rejeitado",
+             "decision_on": "2026-04-02"},
+        ])
+        self.assertEqual(self.situacao(), "submetido")
+
+    def test_recusa_registrada_pela_api_muda_a_situacao(self):
+        curator.register(self.db, "submissions", {
+            "Artigo": "Ansiedade em atletas de base",
+            "Revista": "Revista X",
+            "Data de submissão": "2026-01-10",
+            "Decisão": "Rejeitado",
+            "Data da decisão": "2026-04-02",
+        })
+        self.assertEqual(self.situacao(), "rejeitado")
+
+    def test_aceite_registrado_pela_api_tambem_vale(self):
+        curator.register(self.db, "submissions", {
+            "Artigo": "Ansiedade em atletas de base",
+            "Revista": "Revista X",
+            "Data de submissão": "2026-01-10",
+            "Decisão": "Aceito",
+            "Data da decisão": "2026-05-20",
+        })
+        self.assertEqual(self.situacao(), "aceito")
+
+    def test_envio_sem_parecer_nao_destrava(self):
+        # "em avaliação" não é desfecho: não há o que declarar ainda
+        curator.register(self.db, "submissions", {
+            "Artigo": "Ansiedade em atletas de base",
+            "Revista": "Revista X",
+            "Data de submissão": "2026-06-01",
+            "Tentativa": 2,
+        })
+        self.assertEqual(self.situacao(), "submetido")
+
+    def test_a_recusa_avisa_quem_estiver_olhando(self):
+        # é este registro que vira o empurrão do tempo real para o painel
+        antes = int(self.db.scalar("SELECT COUNT(*) FROM change_log") or 0)
+        curator.register(self.db, "submissions", {
+            "Artigo": "Ansiedade em atletas de base",
+            "Revista": "Revista X",
+            "Data de submissão": "2026-01-10",
+            "Decisão": "Rejeitado",
+        })
+        depois = self.db.dicts(
+            "SELECT event FROM change_log ORDER BY id DESC LIMIT 1")
+        self.assertGreater(int(self.db.scalar("SELECT COUNT(*) FROM change_log") or 0), antes)
+        self.assertEqual(depois[0]["event"], "submissao.registrada")
+
+
 class TestJanelaDeAnalise(unittest.TestCase):
     def test_media_por_ano_usa_a_janela_completa(self):
         db, tmp = fresh_db()
