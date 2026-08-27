@@ -713,6 +713,7 @@ def article_rows(db: Database) -> list[dict]:
                study_type, language, started_on, first_submission_on, accepted_on, published_on,
                year_published, journal, qualis, impact_factor, doi, url, lead_name,
                wos_citations, scopus_citations, openalex_citations,
+               wos_id, scopus_id,
                submission_attempts, rejections,
                days_start_to_publication, days_submission_to_acceptance,
                days_acceptance_to_publication

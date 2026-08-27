@@ -37,7 +37,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Callable
 
-from . import auth, config, metrics, report
+from . import auth, config, export, metrics, report
 from .db import Database
 
 TOKEN = os.environ.get("LAPE_API_TOKEN", "")
@@ -885,6 +885,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, FAVICON, "image/svg+xml")
         if method == "GET" and path == "/api/export/sqlite":
             return self._serve_database()
+        if method == "GET" and path == "/api/export/artigos":
+            return self._serve_export(query)
 
         for verb, pattern, handler, minimum in ROUTES:
             match = re.match(pattern, path)
@@ -1005,6 +1007,32 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(404, {"error": "banco não encontrado"})
         self._send(200, self.db_path.read_bytes(), "application/vnd.sqlite3",
                    [("Content-Disposition", 'attachment; filename="lape.sqlite"')])
+
+    def _serve_export(self, query: dict) -> None:
+        """Tabela de extracao da producao, nos formatos de troca.
+
+        `formato=csv|bibtex|ris`; `publicados=1` limita ao que ja saiu. Vai
+        como anexo para o navegador salvar o arquivo em vez de exibi-lo.
+        """
+        db = Database(self.db_path)
+        try:
+            user, _ = self._resolve_user(db)
+            if not PUBLIC_DASHBOARD:
+                auth.require(user, "leitura")
+            formato = (query.get("formato") or ["csv"])[0].strip().lower()
+            publicados = (query.get("publicados") or ["0"])[0] in ("1", "true", "sim")
+            conteudo, nome, mime = export.extrair(db, formato, publicados)
+        except auth.AuthError as exc:
+            return self._send(exc.status, {"error": exc.message})
+        except ValueError as exc:
+            return self._send(400, {"error": str(exc)})
+        except Exception as exc:  # nunca derruba o servidor
+            traceback.print_exc()
+            return self._send(500, {"error": f"falha ao extrair: {exc}"})
+        finally:
+            db.close()
+        self._send(200, conteudo, mime,
+                   [("Content-Disposition", f'attachment; filename="{nome}"')])
 
 
 BACKUP_INTERVALO_S = int(os.environ.get("LAPE_BACKUP_CHECAGEM_S", "300"))

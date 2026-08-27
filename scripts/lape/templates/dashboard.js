@@ -507,6 +507,98 @@ function showResearcher(id) {
   openDrawer(person.full_name, content);
 }
 
+/* ==================================================================== */
+/* onde o artigo mora fora daqui                                         */
+/* ==================================================================== */
+/* Nada disto é cadastrado à mão: o endereço de cada base se monta do
+   identificador que o artigo já tem. Um DOI vira o endereço do próprio
+   artigo na editora; o id do Scopus vira o registro no Scopus; e assim por
+   diante. Onde não há identificador nenhum, sobra a busca pelo título — que
+   não é o artigo, e por isso vem rotulada como busca, não como link. */
+function linksDoArtigo(a) {
+  const links = [];
+  const doi = (a.doi || "").replace(/^https?:\/\/(dx\.)?doi\.org\//i, "").trim();
+  if (doi) {
+    links.push({ rotulo: "Abrir o artigo", icone: "livro", forte: true,
+      titulo: "Página do artigo na editora, pelo DOI " + doi,
+      url: "https://doi.org/" + encodeURI(doi) });
+  }
+  if (a.url && a.url !== "https://doi.org/" + doi) {
+    links.push({ rotulo: doi ? "Link cadastrado" : "Abrir o artigo", icone: "conectar",
+      forte: !doi, url: a.url });
+  }
+  if (a.scopus_id) {
+    links.push({ rotulo: "Scopus", icone: "citacao",
+      url: "https://www.scopus.com/record/display.uri?origin=resultslist&eid="
+        + encodeURIComponent(a.scopus_id) });
+  }
+  if (a.wos_id) {
+    links.push({ rotulo: "Web of Science", icone: "citacao",
+      url: "https://www.webofscience.com/wos/woscc/full-record/"
+        + encodeURIComponent(a.wos_id) });
+  }
+  if (doi) {
+    links.push({ rotulo: "OpenAlex", icone: "dados",
+      url: "https://openalex.org/works/doi:" + encodeURI(doi) });
+  }
+  if (!links.length && a.title) {
+    const termo = encodeURIComponent('"' + a.title + '"');
+    links.push({ rotulo: "Procurar no Google Acadêmico", icone: "explorar", busca: true,
+      url: "https://scholar.google.com/scholar?q=" + termo });
+    links.push({ rotulo: "Procurar na PubMed", icone: "explorar", busca: true,
+      url: "https://pubmed.ncbi.nlm.nih.gov/?term=" + termo });
+  }
+  return links;
+}
+
+/* Um ícone discreto ao lado do título: um clique e a pessoa está no artigo,
+   sem passar pela ficha. Só aparece quando existe destino de verdade. */
+function atalhoExterno(a) {
+  const destino = linksDoArtigo(a)[0];
+  if (!destino || destino.busca) return null;
+  const link = el("a", {
+    href: destino.url, target: "_blank", rel: "noopener", class: "atalho-externo",
+    title: destino.titulo || destino.rotulo,
+    "aria-label": destino.rotulo + ": " + cut(a.title, 60),
+    onclick: function (ev) { ev.stopPropagation(); },   /* não abre a ficha junto */
+  }, Icons.get("conectar", 13));
+  return link;
+}
+
+/* ------------------------------------------------------------------ *
+ * Tabela de extracao: a producao em formato de troca internacional.
+ * O painel serve para olhar; isto serve para levar embora -- planilha no
+ * modelo Scopus/WoS, .bib do Zotero/Mendeley, .ris do EndNote. O arquivo
+ * e montado pelo servidor a partir do banco no instante do clique, entao
+ * o que sai e sempre o cadastro de agora, com o recorte que estiver na
+ * tela ignorado de proposito: extracao e do acervo inteiro.
+ * ------------------------------------------------------------------ */
+const FORMATOS_EXTRACAO = [
+  { id: "csv", rotulo: "Planilha (CSV)", icone: "dados",
+    dica: "Cabeçalhos no modelo Scopus/WoS, em inglês. Abre no Excel." },
+  { id: "bibtex", rotulo: "BibTeX (.bib)", icone: "livro",
+    dica: "Padrão do LaTeX, do Zotero e do Mendeley." },
+  { id: "ris", rotulo: "RIS (.ris)", icone: "etiqueta",
+    dica: "Padrão do EndNote e da maioria dos gestores de referência." },
+];
+
+function cartaoDeExtracao(opts) {
+  const conf = opts || {};
+  const somentePublicados = conf.publicados !== false;
+  const botoes = FORMATOS_EXTRACAO.map(function (f) {
+    const url = "/api/export/artigos?formato=" + f.id
+      + (somentePublicados ? "&publicados=1" : "");
+    return el("a", { href: url, class: "btn-extrair", title: f.dica,
+      download: "", rel: "noopener" },
+      [Icons.get(f.icone, 15), el("span", { text: f.rotulo })]);
+  });
+  return card("Tabela de extração",
+    (somentePublicados ? "Apenas os artigos publicados" : "Toda a produção registrada")
+    + ", nos três formatos que as bases e os gestores de referência aceitam. "
+    + "Campos sem valor saem vazios — nada é preenchido por suposição.",
+    el("div", { class: "extrair" }, botoes));
+}
+
 function showArticle(article) {
   const content = [
     el("div", { class: "drawer-sub", text: article.authors || "—" }),
@@ -553,10 +645,22 @@ function showArticle(article) {
   });
   content.push(el("h4", { text: "Ficha" }));
   content.push(dl);
-  if (article.doi) {
-    content.push(el("p", { style: "margin-top:16px" },
-      el("a", { href: "https://doi.org/" + article.doi, target: "_blank", rel: "noopener",
-        text: "Abrir pelo DOI: " + article.doi })));
+  const destinos = linksDoArtigo(article);
+  if (destinos.length) {
+    content.push(el("h4", { text: destinos[0].busca ? "Procurar o artigo" : "Onde ler" }));
+    content.push(el("div", { class: "drawer-actions" }, destinos.map(function (d) {
+      const botao = el("button", { type: "button", class: d.forte ? "primary" : "",
+        title: d.titulo || null,
+        onclick: function () { window.open(d.url, "_blank", "noopener"); } });
+      botao.appendChild(Icons.get(d.icone, 15));
+      botao.appendChild(el("span", { text: d.rotulo }));
+      return botao;
+    })));
+    if (destinos[0].busca) {
+      content.push(el("div", { class: "hint", style: "margin-top:8px", text:
+        "Este artigo não tem DOI nem identificador de base cadastrado, então não há "
+        + "endereço certo para ele — o que vai acima é uma busca pelo título." }));
+    }
   }
   openDrawer(cut(article.title, 90), content);
 }
@@ -1523,6 +1627,7 @@ view("publicacoes", "Publicações", "Produção",
           }))));
       }
     }
+    host.appendChild(el("div", { style: "margin-top:16px" }, cartaoDeExtracao()));
   });
 
 view("citacoes", "Mais citados", "Produção",
@@ -1565,8 +1670,8 @@ view("citacoes", "Mais citados", "Produção",
             cols: [
               { k: "title", label: "Título", wide: true, render: function (r) {
                 return el("div", {}, [
-                  r.doi ? el("a", { href: "https://doi.org/" + r.doi, target: "_blank",
-                    rel: "noopener", text: r.title }) : r.title,
+                  el("div", { class: "com-atalho" }, [
+                    el("span", { text: r.title }), atalhoExterno(r)]),
                   el("small", { text: [r.journal, r.year_published].filter(Boolean).join(" · ") })]); } },
               { k: "year_published", label: "Ano", num: true },
               { k: "wos_citations", label: "WoS", num: true },
