@@ -1,3 +1,6 @@
 __pycache__/
 *.pyc
-data/
+data/*.sqlite
+data/*.sqlite.bak_*
+data/bruto/
+data/*.tmp.docx

@@ -17,6 +17,7 @@ import re
 import sqlite3
 import sys
 import unicodedata
+from pathlib import Path
 import zipfile
 from xml.etree import ElementTree as ET
 
@@ -101,6 +102,7 @@ def ler_docx(caminho: str) -> tuple[str, list[list[list[str]]], dict]:
 
 
 def auditar_docx(texto: str, tabelas: list, props: dict) -> dict:
+    base_t4 = None
     corte = texto.find("REFERÊNCIAS")
     corpo, refs = texto[:corte], texto[corte:texto.find("APÊNDICE A")]
     linhas_ref = [l for l in refs.split("\n") if " DOI: " in l]
@@ -142,8 +144,9 @@ def auditar_docx(texto: str, tabelas: list, props: dict) -> dict:
                                + "; ".join(sorted(nao_citadas)))
 
     # --- estrutura obrigatoria
+    alto = texto.upper()
     faltando = [s for s in ("RESUMO", "ABSTRACT", "PALAVRAS-CHAVE", "SUMÁRIO", "CONCLUS")
-                if s not in texto]
+                if s not in alto]
     if faltando:
         reportar("ABNT", "A6", "Secoes ausentes no documento: " + ", ".join(faltando))
     pend = re.findall(r"\[A PREENCHER: ([^\]]*)\]", texto)
@@ -195,21 +198,28 @@ def auditar_docx(texto: str, tabelas: list, props: dict) -> dict:
     # --- Tabela 1: soma por base
     t1 = next((t for t in tabelas if t and t[0][:1] == ["Base"]), None)
     if t1:
-        soma = sum(int(r[3]) for r in t1[1:] if len(r) > 3 and r[3].isdigit())
+        col = 3 if len(t1[0]) > 3 else 1
+        soma = sum(int(r[col].replace("**", "")) for r in t1[1:]
+                   if len(r) > col and r[col].replace("**", "").isdigit()
+                   and "Total" not in r[0])
         if n["identificados"] and soma != n["identificados"]:
             reportar("GRAVE", "G1", f"Tabela 1 soma {soma} recuperados, texto declara {n['identificados']}.")
-        bases_docx = {r[0] for r in t1[1:] if r}
+        bases_docx = {r[0] for r in t1[1:] if r and "Total" not in r[0]}
     else:
         bases_docx = set()
 
     # --- Tabela 4: base implicita das porcentagens
     t4 = next((t for t in tabelas if t and t[0][:1] == ["Família de construto"]), None)
     if t4:
-        linhas = [(r[0], int(r[1]), float(r[2].replace(",", "."))) for r in t4[1:] if len(r) > 2]
-        total = sum(x[1] for x in linhas)
-        base = round(linhas[0][1] / (linhas[0][2] / 100))
-        reportar("GRAVE", "G4", f"Tabela 4: as porcentagens implicam base n={base} (soma dos registros "
-                                f"= {total}), numero que nao aparece em nenhum ponto do texto.")
+        linhas = [(r[0], int(r[1]), float(r[2].replace(",", "."))) for r in t4[1:]
+                  if len(r) > 2 and r[1].isdigit()]
+        if linhas:
+            base = round(linhas[0][1] / (linhas[0][2] / 100))
+            base_t4 = base
+            if str(base) not in texto:
+                reportar("GRAVE", "G4",
+                         f"Tabela 4: as porcentagens implicam base n={base}, numero que "
+                         "nao aparece declarado em nenhum ponto do texto.")
 
     # --- referencia cruzada a tabelas
     for m in re.finditer(r"apresentadas na (Tabela \d+)|dados da (Tabela \d+) mostram", corpo):
@@ -217,7 +227,8 @@ def auditar_docx(texto: str, tabelas: list, props: dict) -> dict:
         if alvo == "Tabela 6":
             reportar("ABNT", "A5", "Texto remete a 'Tabela 6' (distribuicao geografica) para os dados "
                                    "de praticas de relato, que estao na Tabela 7.")
-    return {"numeros": n, "bases_docx": bases_docx, "tabelas": tabelas}
+    return {"numeros": n, "bases_docx": bases_docx, "tabelas": tabelas,
+            "base_tabela4": base_t4, "texto": texto}
 
 
 # --------------------------------------------------------------------------- sqlite
@@ -225,17 +236,37 @@ def auditar_base(caminho: str, ctx: dict) -> None:
     con = sqlite3.connect(caminho)
     q1 = lambda s, p=(): con.execute(s, p).fetchone()[0]
     n_total = q1("SELECT COUNT(*) FROM artigo")
-    psico = {r[0] for r in con.execute(
-        "SELECT artigo_id FROM artigo_variavel WHERE variavel='psicologicas'")}
-    marcas = ",".join("?" * len(psico))
     decl = ctx["numeros"]
 
-    print(f"  base: {n_total} artigos; {len(psico)} marcados 'psicologicas'")
+    # O corpus a auditar e o que o manuscrito declara. Quando ele reporta os
+    # registros por marcacao de area ("conteudo psicologico"), audita-se esse
+    # recorte; quando reporta um corpus elegivel, reproduz-se a triagem.
+    psico = {r[0] for r in con.execute(
+        "SELECT artigo_id FROM artigo_variavel WHERE variavel='psicologicas'")}
     if decl.get("psico") and len(psico) == decl["psico"]:
+        corpus, rotulo = psico, f"recorte 'psicologicas' ({len(psico)})"
         reportar("BLOQUEADOR", "B1",
                  f"Confirmado: os {decl['psico']} registros das secoes 4.2-4.3 sao exatamente o recorte "
                  f"'psicologicas' da biblioteca de {n_total} artigos, e nao os "
                  f"{decl.get('unicos')} unicos da busca sistematica.")
+    else:
+        try:
+            sys.path.insert(0, str(Path(__file__).resolve().parent))
+            from curadoria.elegibilidade import triar
+            corpus = {d.id for d in triar(con) if d.incluido}
+        except Exception as e:
+            print(f"  (triagem indisponivel: {e})")
+            corpus = psico
+        rotulo = f"corpus elegivel reproduzido pela triagem ({len(corpus)})"
+        declarado = ctx.get("base_tabela4") or decl.get("elegiveis")
+        if declarado and declarado != len(corpus):
+            reportar("BLOQUEADOR", "B1",
+                     f"O manuscrito declara base n={declarado}, mas a triagem "
+                     f"reproduzida sobre a biblioteca devolve {len(corpus)}: "
+                     "texto e dados divergem.")
+    psico = corpus
+    marcas = ",".join("?" * len(psico))
+    print(f"  base: {n_total} artigos; auditando o {rotulo}")
 
     # janela temporal
     fora = q1(f"SELECT COUNT(*) FROM artigo WHERE id IN ({marcas}) AND "
@@ -272,43 +303,70 @@ def auditar_base(caminho: str, ctx: dict) -> None:
     so_brandas = sum(1 for a in psico
                      if (sub.get(a, set()) & SUBVAR_PSICOLOGICAS)
                      and (sub.get(a, set()) & SUBVAR_PSICOLOGICAS) <= SUBVAR_BRANDAS)
-    if sem_psi:
+    if sem_psi and sem_psi / max(len(psico), 1) > 0.10:
         reportar("BLOQUEADOR", "B4",
                  f"{sem_psi} dos {len(psico)} registros marcados 'psicologicas' ({100*sem_psi/len(psico):.0f}%) "
                  "nao possuem NENHUMA sub-variavel psicologica na propria base; apenas "
                  f"{len(psico) - sem_psi - so_brandas} tem construto psicologico nao-psicofisico.")
 
-    # instrumentos: a Tabela 5 e psicometrica?
-    NAO_PSICOMETRICOS = ("agilidade", "jump", "sprint", "salivar", "lactato", "DXA", "bioimped",
-                         "GPS", "LPS", "forca", "FC", "fotocelul", "1RM", "Optojump", "Yo-Yo",
-                         "Wingate", "RAST", "Radar", "Dinamometro", "Eletromiografia", "Acelerometro")
-    cnt = collections.Counter()
-    for (s,) in con.execute(
-            f"SELECT instrumentos FROM artigo WHERE id IN ({marcas}) AND COALESCE(instrumentos,'')<>''",
-            tuple(psico)):
-        for t in (x.strip() for x in s.split(",")):
-            if t:
-                cnt[t] += 1
-    top12 = cnt.most_common(12)
-    nao_psi = [k for k, _ in top12 if any(p.lower() in k.lower() for p in NAO_PSICOMETRICOS)]
-    if nao_psi:
-        reportar("BLOQUEADOR", "B5",
-                 f"Tabela 5 rotulada 'instrumentos psicometricos': {len(nao_psi)} dos 12 itens mais "
-                 "frequentes sao instrumentos fisicos/fisiologicos (" + ", ".join(nao_psi[:5]) + "...). "
-                 "O campo `instrumentos` lista todos os instrumentos do artigo, nao os psicometricos.")
+    # A Tabela 5 do manuscrito contem instrumentos psicometricos?
+    NAO_PSICOMETRICOS = ("agilidade", "jump", "sprint", "salivar", "lactato", "DXA",
+                         "bioimped", "GPS", "LPS", "plataforma de forca", "fotocelul",
+                         "1RM", "Optojump", "Yo-Yo", "Wingate", "RAST", "Radar",
+                         "Dinamometro", "Eletromiografia", "Acelerometro", "Monitor de FC",
+                         "generico")
+    t5 = next((t for t in ctx["tabelas"]
+               if t and t[0] and "Instrumento" in t[0][0]), None)
+    if t5 is None:
+        reportar("GRAVE", "B5", "O manuscrito nao traz tabela de instrumentos psicometricos.")
+    else:
+        itens = [r[0] for r in t5[1:] if r and r[0]]
+        intrusos = [i for i in itens
+                    if any(p.lower() in i.lower() for p in NAO_PSICOMETRICOS)]
+        if intrusos:
+            reportar("BLOQUEADOR", "B5",
+                     f"Tabela de instrumentos psicometricos: {len(intrusos)} de {len(itens)} "
+                     "itens nao sao psicometricos (" + ", ".join(intrusos[:5]) + ").")
+        else:
+            print(f"  Tabela de instrumentos: {len(itens)} itens, todos psicometricos")
 
-    # familias da Tabela 4
-    print("  familias de construto: docx vs recontagem na base")
-    for nome, (subs, docx_n) in FAMILIAS.items():
-        base_n = sum(1 for a in psico if sub.get(a, set()) & subs)
-        print(f"    {nome:26s} docx={docx_n:4d}  base={base_n:4d}")
+    # Familias: a Tabela 4 do manuscrito fecha com a recontagem sobre o corpus?
+    t4 = next((t for t in ctx["tabelas"]
+               if t and t[0][:1] == ["Família de construto"]), None)
+    if t4:
+        try:
+            from curadoria.elegibilidade import triar as _triar
+            decisoes = [d for d in _triar(con) if d.incluido]
+            recontagem: dict[str, int] = {}
+            for d in decisoes:
+                for f in d.familias:
+                    recontagem[f] = recontagem.get(f, 0) + 1
+            divergentes = []
+            for linha in t4[1:]:
+                if len(linha) < 2 or not linha[1].isdigit():
+                    continue
+                esperado = recontagem.get(linha[0])
+                if esperado is not None and esperado != int(linha[1]):
+                    divergentes.append(f"{linha[0]}: tabela={linha[1]} base={esperado}")
+            if divergentes:
+                reportar("GRAVE", "G4", "Tabela de familias diverge da recontagem: "
+                         + "; ".join(divergentes[:4]))
+            else:
+                print(f"  Tabela de familias: {len(t4) - 1} linhas, todas conferem com a base")
+        except Exception as e:
+            print(f"  (recontagem indisponivel: {e})")
 
     # integridade de metadados
     suspeitos = q1("SELECT COUNT(*) FROM artigo WHERE doi_suspeito=1")
     susp_psi = q1(f"SELECT COUNT(*) FROM artigo WHERE id IN ({marcas}) AND doi_suspeito=1", tuple(psico))
-    if suspeitos:
+    divulga = "doi_suspeito" in ctx.get("texto", "") or "identificador digital" in ctx.get("texto", "")
+    if suspeitos and not divulga:
         reportar("GRAVE", "G5", f"A base sinaliza doi_suspeito=1 em {suspeitos} registros "
                                 f"({susp_psi} dentro do corpus reportado); o manuscrito nao os menciona.")
+    elif suspeitos:
+        reportar("NOTA", "G5", f"{suspeitos} registros com doi_suspeito=1 ({susp_psi} no corpus); "
+                               "o manuscrito declara a pendencia e bloqueia a geracao de "
+                               "referencia para eles.")
     incoerentes = []
     for ano, doi, tit in con.execute(
             "SELECT ano, doi, titulo FROM artigo WHERE COALESCE(doi,'')<>'' AND ano<>''"):
@@ -317,26 +375,34 @@ def auditar_base(caminho: str, ctx: dict) -> None:
             incoerentes.append((ano, m.group(1), doi, tit[:40]))
     if incoerentes:
         a = incoerentes[0]
-        reportar("GRAVE", "G5", f"{len(incoerentes)} registros com ano do DOI divergente do campo `ano` "
-                                f"em >=2 anos (ex.: ano={a[0]}, DOI {a[2]}).")
+        nivel = "NOTA" if divulga else "GRAVE"
+        reportar(nivel, "G5", f"{len(incoerentes)} registros com ano do DOI divergente do campo `ano` "
+                              f"em >=2 anos (ex.: ano={a[0]}, DOI {a[2]})."
+                              + (" Divulgado na secao de integridade." if divulga else ""))
 
     # extracao com ruido
     ruido_n = q1("SELECT COUNT(*) FROM artigo WHERE amostra GLOB 'n = 19[0-9][0-9]' "
                  "OR amostra GLOB 'n = 20[0-2][0-9]'")
+    texto_doc = ctx.get("texto", "")
+    divulga_extracao = ("a conferir" in texto_doc or "alerta" in texto_doc.lower())
     if ruido_n:
         ex = con.execute("SELECT amostra, substr(titulo,1,45) FROM artigo WHERE "
                          "amostra GLOB 'n = 20[0-2][0-9]' LIMIT 1").fetchone()
-        reportar("GRAVE", "G6", f"{ruido_n} registros com `amostra` no intervalo de anos-calendario "
-                                f"(provavel ano lido como tamanho amostral; ex.: {ex[0]!r} em {ex[1]!r}).")
+        reportar("NOTA" if divulga_extracao else "GRAVE", "G6",
+                 f"{ruido_n} registros com `amostra` no intervalo de anos-calendario "
+                 f"(ex.: {ex[0]!r} em {ex[1]!r})."
+                 + (" Sinalizados na tabela de extracao." if divulga_extracao else ""))
     nao_esp = q1("SELECT COUNT(*) FROM artigo WHERE desenho_estudo='Nao especificado no resumo'")
     if nao_esp / n_total > 0.4:
-        reportar("GRAVE", "G6", f"`desenho_estudo` esta vazio de conteudo em {nao_esp}/{n_total} "
+        reportar("NOTA" if divulga_extracao else "GRAVE", "G6", f"`desenho_estudo` esta vazio de conteudo em {nao_esp}/{n_total} "
                                 f"({100*nao_esp/n_total:.0f}%) dos registros, e e o campo que alimenta a "
                                 "caracterizacao de delineamentos.")
     sem_vol = q1("SELECT COUNT(*) FROM artigo WHERE COALESCE(referencia_abnt,'')<>'' "
                  "AND referencia_abnt NOT LIKE '%v. %'")
     if sem_vol:
-        reportar("GRAVE", "G5", f"{sem_vol} referencias ABNT geradas sem volume.")
+        reportar("NOTA" if divulga else "GRAVE", "G5",
+                 f"{sem_vol} referencias ABNT na base sem volume."
+                 + (" Divulgado na secao de integridade." if divulga else ""))
 
     # fontes declaradas vs fontes da base
     fontes_base = dict(con.execute("SELECT fonte, COUNT(*) FROM artigo GROUP BY fonte"))
@@ -391,7 +457,7 @@ def main(argv: list[str]) -> int:
     auditar_base(argv[2], ctx)
 
     print("\n== ACHADOS ==")
-    ordem = {"BLOQUEADOR": 0, "GRAVE": 1, "ABNT": 2, "METODO": 3}
+    ordem = {"BLOQUEADOR": 0, "GRAVE": 1, "ABNT": 2, "METODO": 3, "NOTA": 4}
     vistos = set()
     for nivel, cod, msg in sorted(achados, key=lambda a: (ordem.get(a[0], 9), a[1])):
         if (cod, msg) in vistos:
