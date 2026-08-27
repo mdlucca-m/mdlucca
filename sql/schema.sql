@@ -72,6 +72,22 @@ CREATE TABLE IF NOT EXISTS members (
   photo_url        TEXT,
   phone            TEXT,
   degree           TEXT,
+
+  /* Vinculo com o laboratorio e formacao em curso. O vocabulario de `role`
+     esta em mapping.VINCULOS: doutorando, mestrando, bolsista de IC, de
+     extensao, voluntario, professor, tecnico. E o `advisor_id` que liga
+     cada orientando ao seu professor -- e dele sai o organograma, sem
+     ninguem desenhar caixa nenhuma a mao. */
+  advisor_id        INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  co_advisor_id     INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  thesis_title      TEXT,
+  thesis_kind       TEXT,
+  thesis_status     TEXT,
+  thesis_due_on     TEXT,
+  topics            TEXT,
+  scholarship       TEXT,
+  scholarship_until TEXT,
+
   h_index          INTEGER,
   h_index_source   TEXT,
   h_index_scopus   INTEGER,
@@ -296,6 +312,9 @@ CREATE TABLE IF NOT EXISTS invite_uses (
 );
 
 CREATE INDEX IF NOT EXISTS idx_invite_uses ON invite_uses(invite_id, at);
+
+CREATE INDEX IF NOT EXISTS idx_members_advisor ON members(advisor_id);
+CREATE INDEX IF NOT EXISTS idx_members_role ON members(role, active);
 
 /* ---------- Automacao: eventos e integracoes ---------- */
 

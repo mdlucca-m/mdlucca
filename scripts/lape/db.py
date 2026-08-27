@@ -44,8 +44,12 @@ class Database:
         if not schema_path.exists():
             raise FileNotFoundError(f"schema nao encontrado: {schema_path}")
         self._drop_views()
-        self.conn.executescript(schema_path.read_text(encoding="utf-8"))
+        # As colunas novas entram ANTES do script: um indice criado sobre uma
+        # coluna que ainda nao existe faz o executescript inteiro falhar, e o
+        # banco antigo nao migra. Foi assim que a coluna advisor_id quebrou a
+        # migracao de um banco ja em uso.
         self._add_missing_columns(schema_path)
+        self.conn.executescript(schema_path.read_text(encoding="utf-8"))
         self.conn.commit()
 
     def _drop_views(self) -> None:
