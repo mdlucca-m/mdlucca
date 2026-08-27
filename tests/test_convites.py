@@ -307,7 +307,7 @@ class TestConviteNaConferencia(unittest.TestCase):
     """Convite em aberto e uma porta: a conferencia de publicacao tem de contar."""
 
     def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory(dir=ROOT)
+        self.tmp = tempfile.TemporaryDirectory()
         self.db = Database(Path(self.tmp.name) / "c.sqlite")
         self.db.migrate()
         self.chefe = auth.create_account(self.db, "Coordenacao", "coord@udesc.br",
