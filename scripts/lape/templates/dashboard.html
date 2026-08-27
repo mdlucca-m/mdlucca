@@ -43,16 +43,24 @@ nav.side .navitem em { margin-left: auto; font-style: normal; font-size: 11px;
   color: var(--ink-muted); background: var(--surface-raised); border-radius: 999px;
   padding: 1px 7px; font-variant-numeric: tabular-nums; }
 nav.side .navitem:hover { background: var(--surface-raised); color: var(--ink); }
-nav.side .navitem.active { background: var(--accent-wash); color: var(--accent); font-weight: 700; }
+nav.side .navitem.active { background: var(--accent-wash); color: var(--accent); font-weight: 700;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-strong) 22%, transparent); }
 nav.side .navitem.active::before { content: ""; position: absolute; left: -12px; top: 8px;
-  bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent); }
+  bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent);
+  box-shadow: 0 0 14px -1px color-mix(in srgb, var(--accent) 85%, transparent); }
 nav.side .railfoot { margin: 18px 10px 0; font-size: 11px; color: var(--ink-muted);
   line-height: 1.45; }
 
 /* barra de sub-abas: o segundo nível, sempre visível dentro da seção */
+/* As barras grudadas no topo precisam esconder o que passa por baixo. Vidro
+   fosco em vez de cor chapada: o conteúdo some sob elas sem que a moldura
+   vire um bloco opaco no meio da tela. */
 .subnav { position: sticky; top: 0; z-index: 25; display: flex; gap: 4px; align-items: center;
   flex-wrap: wrap; padding: 10px 0; margin-bottom: 2px;
-  background: var(--surface-sunken); border-bottom: 1px solid var(--border); }
+  background: color-mix(in srgb, var(--surface-sunken) 82%, transparent);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid var(--border); }
 .subnav .secname { display: inline-flex; align-items: center; gap: 7px; margin-right: 12px;
   font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-muted);
   font-weight: 700; }
@@ -64,8 +72,8 @@ nav.side .railfoot { margin: 18px 10px 0; font-size: 11px; color: var(--ink-mute
 .subnav .subitem svg.icon { color: var(--ink-muted); font-size: 15px; }
 .subnav .subitem:hover { background: var(--surface-raised); color: var(--ink);
   border-color: var(--border); }
-.subnav .subitem.on { background: var(--accent); border-color: var(--accent);
-  color: var(--on-accent); font-weight: 650; }
+.subnav .subitem.on { background: var(--accent-solid); border-color: var(--accent-strong);
+  color: var(--on-accent); font-weight: 650; box-shadow: var(--glow); }
 .subnav .subitem.on svg.icon { color: var(--on-accent); }
 
 main { padding: 24px clamp(16px, 3vw, 38px) 90px; max-width: 1440px; }
@@ -82,7 +90,10 @@ header.page .meta { margin-top: 8px; }
 
 /* barra de filtros: uma só, acima de tudo o que ela recorta */
 .toolbar { position: sticky; top: 0; z-index: 20; display: flex; gap: 9px; align-items: center;
-  flex-wrap: wrap; background: var(--surface-sunken); padding: 11px 0 12px; margin-bottom: 18px;
+  flex-wrap: wrap; padding: 11px 0 12px; margin-bottom: 18px;
+  background: color-mix(in srgb, var(--surface-sunken) 82%, transparent);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
   border-bottom: 1px solid var(--border); }
 .toolbar .flabel { font-size: 11px; font-weight: 700; text-transform: uppercase;
   letter-spacing: .06em; color: var(--ink-muted); }
@@ -109,6 +120,24 @@ header.page .meta { margin-top: 8px; }
 .rowbar h3 { font-size: 14.5px; }
 .search { padding: 7px 11px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
   background: var(--surface); color: var(--ink); font-size: 13px; min-width: 200px; }
+/* Campo de busca com lupa dentro e o atalho impresso na borda: quem não sabe
+   que existe atalho descobre olhando, sem precisar de tutorial. */
+.buscabox { position: relative; display: flex; align-items: center; flex: 1;
+  min-width: 220px; max-width: 340px; }
+.buscabox svg.icon { position: absolute; left: 11px; font-size: 15px; color: var(--ink-muted);
+  pointer-events: none; }
+.buscabox input { width: 100%; padding-left: 34px; padding-right: 40px; }
+.buscabox .atalho { position: absolute; right: 9px; font-size: 10.5px; font-weight: 700;
+  color: var(--ink-muted); border: 1px solid var(--border-strong); border-radius: 5px;
+  padding: 1px 6px; background: var(--surface-raised); pointer-events: none; }
+.buscabox input:focus ~ .atalho, .buscabox input:not(:placeholder-shown) ~ .atalho { display: none; }
+.buscabox:focus-within svg.icon { color: var(--accent); }
+
+/* botões de navegação entre sub-abas, com alvo maior e rumo explícito */
+.secnav .navbtn { border: 1px solid var(--border); background: var(--surface);
+  border-radius: var(--radius-sm); box-shadow: var(--ring); }
+.secnav .navbtn:hover { border-color: var(--accent-strong); background: var(--surface-raised);
+  box-shadow: var(--ring), var(--glow); }
 
 .card.clickable { cursor: pointer; transition: border-color .12s, transform .12s; }
 .card.clickable:hover { border-color: var(--accent); transform: translateY(-2px); }

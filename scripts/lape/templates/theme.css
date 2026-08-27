@@ -23,36 +23,54 @@
 :root {
   color-scheme: dark;
 
-  /* --- superfícies e tinta (escuro fosco) --- */
-  --surface:        #14161c;   /* cartões e área de plotagem — cor verificada */
-  --surface-raised: #1a1d25;   /* cabeçalho de tabela, chips, campos */
-  --surface-hover:  #20242e;
-  --surface-sunken: #0d0f14;   /* plano da página */
-  --ink:            #f2f4f8;
-  --ink-2:          #a9b1c2;
-  --ink-muted:      #7b8496;
-  --grid:           #232733;
-  --axis:           #313746;
-  --border:         #232733;
-  --border-strong:  #313746;
+  /* --- superfícies e tinta ---------------------------------------------
+     O plano do fundo é quase preto com um viés frio; os cartões sobem em
+     degraus curtos. A área de plotagem (--surface) é opaca de propósito:
+     nenhum degradê passa por baixo de marca de dado, senão a mesma altura
+     de barra muda de cor conforme onde ela cai na tela.
+     A paleta de séries foi reconferida contra esta superfície nova — o
+     validador aprova as cinco checagens sobre #0b1018. */
+  --surface:        #0b1018;   /* cartões e área de plotagem — cor verificada */
+  --surface-raised: #121a25;   /* cabeçalho de tabela, chips, campos */
+  --surface-hover:  #182231;
+  --surface-sunken: #05070d;   /* plano da página */
+  --ink:            #eaf0fa;
+  --ink-2:          #a7b4c9;
+  --ink-muted:      #77869b;
+  --grid:           #1b2533;
+  --axis:           #2a3648;
+  --border:         #1a2432;
+  --border-strong:  #2a3648;
 
-  /* --- degradês da moldura (nunca sob marcas de dado) --- */
-  --grad-page: radial-gradient(1200px 620px at 16% -8%, #18202f 0%, transparent 62%),
-               radial-gradient(900px 520px at 96% 4%, #191b2b 0%, transparent 58%),
-               linear-gradient(180deg, #0e1017 0%, #0d0f14 42%);
-  --grad-bar:  linear-gradient(180deg, rgba(37,106,191,.14) 0%, rgba(20,22,28,0) 100%);
-  --grad-card: linear-gradient(180deg, rgba(255,255,255,.035) 0%, rgba(255,255,255,0) 58%);
-  --grad-kpi:  linear-gradient(135deg, rgba(57,135,229,.13) 0%, rgba(20,22,28,0) 55%);
-  --grad-accent: linear-gradient(90deg, #3987e5 0%, #199e70 100%);
+  /* --- degradês da moldura (nunca sob marcas de dado) ---
+     Duas luzes frias nas quinas altas e uma quente embaixo: a leitura é a
+     do laboratório — cognição em cima, esforço embaixo. */
+  --grad-page: radial-gradient(1100px 620px at 12% -10%, rgba(47,168,221,.16) 0%, transparent 60%),
+               radial-gradient(900px 560px at 92% 2%, rgba(144,133,233,.14) 0%, transparent 58%),
+               radial-gradient(1000px 700px at 60% 108%, rgba(217,89,38,.09) 0%, transparent 62%),
+               linear-gradient(180deg, #070b12 0%, #05070d 46%);
+  --grad-bar:  linear-gradient(180deg, rgba(47,168,221,.13) 0%, rgba(11,16,24,0) 100%);
+  --grad-card: linear-gradient(180deg, rgba(255,255,255,.045) 0%, rgba(255,255,255,0) 62%);
+  --grad-kpi:  linear-gradient(135deg, rgba(47,168,221,.15) 0%, rgba(11,16,24,0) 58%);
+  --grad-accent: linear-gradient(90deg, #2fa8dd 0%, #9085e9 100%);
+  /* malha fina de fundo: dá profundidade sem competir com nada */
+  --grad-malha: linear-gradient(rgba(47,168,221,.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(47,168,221,.045) 1px, transparent 1px);
+  --malha-passo: 46px;
 
   /* --- ação --- */
-  --accent:        #6da7ec;   /* 7,2:1 sobre a superfície — cor de texto/link */
-  --accent-solid:  #256abf;   /* fundo de botão; texto branco a 5,4:1 */
-  --accent-strong: #3987e5;
-  --accent-wash:   #172436;
+  --accent:        #5ec8f2;   /* 10:1 sobre a superfície — cor de texto/link */
+  --accent-solid:  #12799f;   /* fundo de botão; texto branco a 4,9:1 */
+  --accent-strong: #2fa8dd;   /* 7:1 — aro, traço, barra de progresso */
+  --accent-wash:   #0c2735;
   --on-accent:     #ffffff;
+  /* brilho: só em cromo, e curto. Halo permanente vira ruído. */
+  --glow:      0 0 0 1px rgba(47,168,221,.28), 0 0 22px -6px rgba(47,168,221,.55);
+  --glow-forte: 0 0 0 1px rgba(47,168,221,.42), 0 0 34px -6px rgba(47,168,221,.75);
 
-  /* --- séries categóricas (ordem fixa; nunca reciclar) --- */
+  /* --- séries categóricas (ordem fixa; nunca reciclar) ---
+     Conferidas pelo validador sobre #0b1018: faixa de luminosidade, piso de
+     croma, separação para daltonismo e contraste — as cinco passam. */
   --series-1: #3987e5;  /* azul       */
   --series-2: #d95926;  /* laranja    */
   --series-3: #199e70;  /* verde-água */
@@ -70,7 +88,7 @@
   --ord-1: #cde2fb; --ord-2: #9ec5f4; --ord-3: #6da7ec; --ord-4: #3987e5;
 
   /* --- divergente: dois polos opostos + cinza neutro --- */
-  --div-neg: #3987e5; --div-mid: #313746; --div-pos: #e66767;
+  --div-neg: #3987e5; --div-mid: #2a3648; --div-pos: #e66767;
 
   /* --- estado (reservado; nunca vira "série 9") --- */
   --good: #0ca30c; --warning: #fab219; --serious: #ec835a; --critical: #d03b3b;
@@ -78,9 +96,9 @@
   /* --- forma --- */
   --radius:    14px;
   --radius-sm: 10px;
-  --shadow:    0 1px 2px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.34);
-  --shadow-lg: 0 2px 8px rgba(0,0,0,.6), 0 24px 60px rgba(0,0,0,.5);
-  --ring:      inset 0 1px 0 rgba(255,255,255,.045);
+  --shadow:    0 1px 2px rgba(0,0,0,.6), 0 12px 34px rgba(0,0,0,.44);
+  --shadow-lg: 0 2px 8px rgba(0,0,0,.7), 0 28px 68px rgba(0,0,0,.58);
+  --ring:      inset 0 1px 0 rgba(255,255,255,.055);
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
@@ -102,16 +120,20 @@
     --border:         #dedcd4;
     --border-strong:  #c3c2b7;
 
-    --grad-page: radial-gradient(1100px 560px at 14% -10%, #eaf1fb 0%, transparent 60%),
+    --grad-page: radial-gradient(1100px 560px at 14% -10%, #e7f3f9 0%, transparent 60%),
                  linear-gradient(180deg, #fbfbf9 0%, #f6f6f3 46%);
-    --grad-bar:  linear-gradient(180deg, rgba(37,106,191,.07) 0%, rgba(252,252,251,0) 100%);
+    --grad-bar:  linear-gradient(180deg, rgba(14,111,150,.07) 0%, rgba(252,252,251,0) 100%);
     --grad-card: linear-gradient(180deg, rgba(11,11,11,.018) 0%, rgba(11,11,11,0) 58%);
-    --grad-kpi:  linear-gradient(135deg, rgba(42,120,214,.08) 0%, rgba(252,252,251,0) 55%);
+    --grad-kpi:  linear-gradient(135deg, rgba(14,111,150,.09) 0%, rgba(252,252,251,0) 55%);
 
-    --accent:        #256abf;
-    --accent-solid:  #256abf;
-    --accent-strong: #1c5cab;
-    --accent-wash:   #eaf2fd;
+    --accent:        #0e6f96;   /* 5,5:1 sobre o papel — mesma família do escuro */
+    --accent-solid:  #0e6f96;
+    --accent-strong: #0b6386;
+    --accent-wash:   #e6f4fa;
+    --glow:       0 0 0 1px rgba(14,111,150,.16), 0 6px 18px -8px rgba(14,111,150,.34);
+    --glow-forte: 0 0 0 1px rgba(14,111,150,.26), 0 10px 26px -8px rgba(14,111,150,.46);
+    --grad-malha: linear-gradient(rgba(14,111,150,.035) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(14,111,150,.035) 1px, transparent 1px);
 
     --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100;
     --series-5: #e87ba4; --series-6: #008300; --series-7: #4a3aa7; --series-8: #e34948;
@@ -141,16 +163,20 @@
   --border:         #dedcd4;
   --border-strong:  #c3c2b7;
 
-  --grad-page: radial-gradient(1100px 560px at 14% -10%, #eaf1fb 0%, transparent 60%),
+  --grad-page: radial-gradient(1100px 560px at 14% -10%, #e7f3f9 0%, transparent 60%),
                linear-gradient(180deg, #fbfbf9 0%, #f6f6f3 46%);
-  --grad-bar:  linear-gradient(180deg, rgba(37,106,191,.07) 0%, rgba(252,252,251,0) 100%);
+  --grad-bar:  linear-gradient(180deg, rgba(14,111,150,.07) 0%, rgba(252,252,251,0) 100%);
   --grad-card: linear-gradient(180deg, rgba(11,11,11,.018) 0%, rgba(11,11,11,0) 58%);
-  --grad-kpi:  linear-gradient(135deg, rgba(42,120,214,.08) 0%, rgba(252,252,251,0) 55%);
+  --grad-kpi:  linear-gradient(135deg, rgba(14,111,150,.09) 0%, rgba(252,252,251,0) 55%);
 
-  --accent:        #256abf;
-  --accent-solid:  #256abf;
-  --accent-strong: #1c5cab;
-  --accent-wash:   #eaf2fd;
+  --accent:        #0e6f96;
+  --accent-solid:  #0e6f96;
+  --accent-strong: #0b6386;
+  --accent-wash:   #e6f4fa;
+  --glow:       0 0 0 1px rgba(14,111,150,.16), 0 6px 18px -8px rgba(14,111,150,.34);
+  --glow-forte: 0 0 0 1px rgba(14,111,150,.26), 0 10px 26px -8px rgba(14,111,150,.46);
+  --grad-malha: linear-gradient(rgba(14,111,150,.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(14,111,150,.035) 1px, transparent 1px);
 
   --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100;
   --series-5: #e87ba4; --series-6: #008300; --series-7: #4a3aa7; --series-8: #e34948;
@@ -172,21 +198,50 @@
 * { box-sizing: border-box; }
 html { background: var(--surface-sunken); min-height: 100%; scroll-behavior: smooth; }
 body {
-  margin: 0; min-height: 100vh;
+  margin: 0; min-height: 100vh; position: relative;
   background: var(--grad-page) fixed, var(--surface-sunken);
   color: var(--ink);
   font: 14.5px/1.5 var(--sans);
+  font-variant-numeric: tabular-nums;   /* número que não dança ao atualizar */
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
+/* Malha fina, esmaecendo para baixo. Fica atrás de todo o conteúdo e some
+   antes da metade da tela: profundidade no topo, silêncio onde estão os
+   dados. Nunca por baixo de uma área de plotagem, que é opaca. */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: var(--grad-malha);
+  background-size: var(--malha-passo, 46px) var(--malha-passo, 46px);
+  mask-image: linear-gradient(180deg, #000 0%, transparent 62%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 62%);
+}
+body > * { position: relative; z-index: 1; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
-h1, h2, h3, h4 { line-height: 1.18; margin: 0; letter-spacing: -.016em; }
+h1, h2, h3, h4 { line-height: 1.15; margin: 0; letter-spacing: -.022em; font-weight: 680; }
+h1 { letter-spacing: -.03em; }
+/* Rótulo de eixo, de coluna, de indicador: caixa alta curta e espaçada. É o
+   que separa "o que é este número" de "o número" sem gritar. */
+.rotulo, .flabel, .kpi .label, .placar th, thead th {
+  text-transform: uppercase; letter-spacing: .08em; font-weight: 700;
+}
+/* Leitura analítica: a frase curta que diz o que o número quer dizer.
+   Um painel que só mostra número obriga cada pessoa a interpretar sozinha —
+   e cada uma interpreta de um jeito. */
+.leitura { font-size: 12px; line-height: 1.45; color: var(--ink-2); margin-top: 6px;
+  padding-top: 6px; border-top: 1px solid var(--grid); }
+.leitura b { color: var(--ink); font-weight: 650; }
+.leitura .sinal { font-weight: 700; }
+.leitura .sinal.sobe { color: var(--good); }
+.leitura .sinal.desce { color: var(--critical); }
+.leitura .sinal.parado { color: var(--ink-muted); }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
-:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 2px; border-radius: 5px; }
+:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 2px;
+  border-radius: 5px; box-shadow: var(--glow); }
 svg.icon { width: 1em; height: 1em; flex: none; display: block; }
 
 /* --------------------------------------------------------------------------
@@ -273,9 +328,13 @@ button {
 button:hover { background: var(--surface-hover); border-color: var(--ink-muted); }
 button:active { transform: translateY(1px); }
 button.primary {
-  background: var(--accent-solid); border-color: var(--accent-solid); color: var(--on-accent);
+  background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent-solid) 86%, #fff) 0%, var(--accent-solid) 100%);
+  border-color: color-mix(in srgb, var(--accent-strong) 70%, transparent);
+  color: var(--on-accent); box-shadow: var(--ring), var(--glow);
 }
-button.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+button.primary:hover { background: var(--accent-strong); border-color: var(--accent-strong);
+  box-shadow: var(--ring), var(--glow-forte); }
 button.ghost { background: transparent; border-color: transparent; color: var(--ink-2); }
 button.ghost:hover { background: var(--surface-raised); color: var(--ink); }
 button:disabled { opacity: .42; cursor: not-allowed; }
@@ -295,6 +354,14 @@ button:disabled:active { transform: none; }
   content: ""; position: absolute; inset: 0 0 auto 0; height: 96px;
   background: var(--grad-card); pointer-events: none;
 }
+/* fio de luz na borda superior: dá o acabamento de painel sem pesar */
+.card::after {
+  content: ""; position: absolute; top: 0; left: 14px; right: 14px; height: 1px;
+  background: linear-gradient(90deg, transparent,
+    color-mix(in srgb, var(--accent-strong) 55%, transparent), transparent);
+  pointer-events: none;
+}
+.card:hover { border-color: color-mix(in srgb, var(--accent-strong) 26%, var(--border)); }
 .card > * { position: relative; }
 .card > h3 { font-size: 13.5px; font-weight: 700; }
 .card > .hint { font-size: 12px; color: var(--ink-2); margin-top: 3px; }

@@ -240,6 +240,19 @@ function card(title, hint, kids) {
       Array.isArray(kids) ? kids : [kids]),
   ]);
 }
+/* {texto, sinal: "sobe"|"desce"|"parado", forte: "trecho em destaque"} */
+function leituraDe(spec) {
+  if (typeof spec === "string") spec = { texto: spec };
+  const node = el("div", { class: "leitura" });
+  if (spec.sinal) {
+    node.appendChild(el("span", { class: "sinal " + spec.sinal,
+      text: spec.sinal === "sobe" ? "▲ " : (spec.sinal === "desce" ? "▼ " : "■ ") }));
+  }
+  if (spec.forte) node.appendChild(el("b", { text: spec.forte + " " }));
+  node.appendChild(document.createTextNode(spec.texto));
+  return node;
+}
+
 function kpi(spec) {
   const node = el("div", { class: "kpi" + (spec.hero ? " hero" : "")
     + (spec.tone ? " t-" + spec.tone : "") });
@@ -265,6 +278,10 @@ function kpi(spec) {
   if (spark.length > 1 && Math.max.apply(null, spark) > 0) {
     node.appendChild(el("div", { class: "spark" }, C.sparkline(spark, { color: spec.sparkColor })));
   }
+  /* A leitura fecha o cartão. É a frase curta que diz o que o número quer
+     dizer — sem ela, cada pessoa que olha o painel interpreta por conta
+     própria, e cada uma interpreta de um jeito. */
+  if (spec.leitura) node.appendChild(leituraDe(spec.leitura));
   return node;
 }
 
@@ -590,11 +607,15 @@ function buildToolbar() {
   bar.appendChild(select("Todos os integrantes",
     people.map(function (p) { return { value: String(p.id), label: p.short_name || p.full_name }; }),
     "integrante", "Integrante"));
-  bar.appendChild(el("input", {
-    class: "search", type: "search", value: STATE.busca, "aria-label": "Buscar",
+  const campoBusca = el("input", {
+    class: "search", id: "busca", type: "search", value: STATE.busca, "aria-label": "Buscar",
     placeholder: "Buscar título, autor, revista…",
     oninput: function (ev) { STATE.busca = ev.target.value.toLowerCase(); render(); },
-  }));
+  });
+  bar.appendChild(el("div", { class: "buscabox" }, [
+    Icons.get("explorar", 15), campoBusca,
+    el("kbd", { class: "atalho", text: "/" }),
+  ]));
   bar.appendChild(el("button", { class: "clear", type: "button", text: "Limpar",
     disabled: !filtersActive(),
     onclick: function () {
@@ -643,28 +664,90 @@ view("visao", "Painel", "", "Retrato do laboratório no recorte atual.", functio
   const sparkOf = function (metric) {
     return hist[metric] && hist[metric].values.length > 1 ? hist[metric].values : null; };
 
+  /* ---- leituras: o que cada número quer dizer -----------------------
+     Todas saem do recorte atual, não de constante escrita à mão. Um painel
+     que só mostra número obriga cada pessoa a interpretar sozinha. */
+  const emProducao = rows.filter(function (a) { return a.status === "em_producao"; });
+  const emAvaliacao = rows.filter(function (a) {
+    return a.status === "submetido" || a.status === "em_revisao"; });
+  const esperaMaxima = Math.max.apply(null, (D.submitted || [])
+    .map(function (a) { return daysSince(a.last_submitted_on || a.first_submission_on) || 0; })
+    .concat([0]));
+  const publicadosNoAno = published.filter(function (a) {
+    return Number(a.year_published) === currentYear; }).length;
+  const ritmo = media > 0 ? publicadosNoAno / media : 0;
+  const escritaLonga = median(emProducao.map(function (a) { return daysSince(a.started_on); })
+    .filter(function (d) { return d !== null; }));
+  const publicaram = new Set((D.authorship || []).filter(function (l) {
+    const artigo = (D.articles || []).find(function (a) { return a.id === l.a; });
+    return artigo && Number(artigo.year_published) >= currentYear - 1;
+  }).map(function (l) { return l.m; })).size;
+  const terminando = ((D.projects && D.projects.items) || []).filter(function (pj) {
+    const d = daysSince(pj.ended_on);
+    return pj.status === "em_andamento" && d !== null && d > -366 && d < 0;
+  }).length;
+  const hMediano = median((D.researchers || []).filter(function (m) { return !m.is_external; })
+    .map(function (m) { return m.h_index; }));
+  const comFomento = ((D.projects && D.projects.items) || [])
+    .filter(function (pj) { return pj.funder; }).length;
+
   host.appendChild(el("div", { class: "grid g4 fixed4" }, [
     kpi({ label: "Artigos no recorte", value: C.fmt(rows.length), icon: "producao",
       foot: (D.articles || []).length + " no banco todo",
-      delta: measured("artigos"), deltaNote: "em 30 dias", spark: sparkOf("artigos") }),
-    kpi({ label: "Em produção", icon: "linha", value: C.fmt(rows.filter(function (a) {
-      return a.status === "em_producao"; }).length),
-      foot: "manuscritos em escrita", delta: measured("em_producao"), deltaNote: "em 30 dias" }),
-    kpi({ label: "Submetidos", icon: "submissao", value: C.fmt(rows.filter(function (a) {
-      return a.status === "submetido" || a.status === "em_revisao"; }).length),
-      foot: "aguardando parecer", delta: measured("submetidos"), deltaNote: "em 30 dias" }),
+      delta: measured("artigos"), deltaNote: "em 30 dias", spark: sparkOf("artigos"),
+      leitura: rows.length ? {
+        texto: "estão publicados; " + C.fmt(emProducao.length + emAvaliacao.length)
+          + " ainda em curso.",
+        forte: Math.round(100 * published.length / rows.length) + "%",
+      } : null }),
+    kpi({ label: "Em produção", icon: "linha", value: C.fmt(emProducao.length),
+      foot: "manuscritos em escrita", delta: measured("em_producao"), deltaNote: "em 30 dias",
+      leitura: escritaLonga !== null ? {
+        texto: "é o tempo mediano de escrita já decorrido neste grupo.",
+        forte: dur(escritaLonga),
+      } : null }),
+    kpi({ label: "Submetidos", icon: "submissao", value: C.fmt(emAvaliacao.length),
+      foot: "aguardando parecer", delta: measured("submetidos"), deltaNote: "em 30 dias",
+      leitura: esperaMaxima > 0 ? {
+        sinal: esperaMaxima > 180 ? "desce" : "parado",
+        forte: dur(esperaMaxima),
+        texto: "é a espera do mais antigo — o que decide se é hora de cobrar.",
+      } : null }),
     kpi({ label: "Publicados", icon: "livro", value: C.fmt(published.length),
       foot: windowTotal + " nos últimos " + o.window + " anos",
       delta: measured("publicados"), deltaNote: "em 30 dias",
-      spark: sparkOf("publicados") || perYear, sparkColor: C.token("--series-1") }),
+      spark: sparkOf("publicados") || perYear, sparkColor: C.token("--series-1"),
+      leitura: media > 0 ? {
+        sinal: ritmo >= 1 ? "sobe" : (ritmo >= 0.6 ? "parado" : "desce"),
+        forte: C.fmt(publicadosNoAno) + " em " + currentYear,
+        texto: "contra média de " + dec(media, 1) + " por ano na janela.",
+      } : null }),
     kpi({ label: "Média por ano", icon: "subida", value: dec(media, 2),
-      foot: "publicações/ano na janela" }),
+      foot: "publicações/ano na janela",
+      leitura: { texto: "Mede o ritmo da janela inteira; um ano fraco não a derruba, "
+        + "e é por isso que ela serve de régua." } }),
     kpi({ label: "Pesquisadores", icon: "pessoas", value: C.fmt(o.n_members),
-      foot: o.n_collaborators + " colaboradores externos" }),
+      foot: o.n_collaborators + " colaboradores externos",
+      leitura: publicaram ? {
+        forte: C.fmt(publicaram),
+        texto: "assinaram algo publicado nos últimos dois anos.",
+      } : null }),
     kpi({ label: "Projetos", icon: "projeto", value: C.fmt(o.n_projects),
-      foot: o.n_projects_active + " em andamento" }),
+      foot: o.n_projects_active + " em andamento",
+      leitura: terminando ? {
+        sinal: "desce",
+        forte: C.fmt(terminando),
+        texto: "termina" + (terminando > 1 ? "m" : "") + " nos próximos doze meses.",
+      } : (comFomento ? {
+        forte: C.fmt(comFomento),
+        texto: "com financiadora declarada; nenhum vence nos próximos doze meses.",
+      } : null) }),
     kpi({ label: "Maior índice h", icon: "alvo", value: C.fmt(o.best_h_index),
-      foot: "entre os integrantes" }),
+      foot: "entre os integrantes",
+      leitura: hMediano !== null ? {
+        forte: dec(hMediano, 0),
+        texto: "é a mediana da equipe — o topo diz menos do que ela.",
+      } : null }),
   ]));
   if (D.history && !D.history.available) {
     host.appendChild(el("div", { class: "note info", style: "margin-top:14px", html:
@@ -2398,6 +2481,27 @@ function labelOf(id) { const v = viewOf(id); return v ? v.label : id; }
 
 let current = ORDER[0];
 const HOST = document.getElementById("view");
+
+/* "/" põe o foco na busca e Esc a esvazia — o par que todo painel de dados
+   tem, e que dispensa levar a mão ao mouse para filtrar. O atalho não rouba
+   a tecla de quem já está escrevendo num campo. */
+document.addEventListener("keydown", function (ev) {
+  const alvo = ev.target;
+  const escrevendo = alvo && (alvo.tagName === "INPUT" || alvo.tagName === "TEXTAREA"
+    || alvo.tagName === "SELECT" || alvo.isContentEditable);
+  const campo = document.getElementById("busca");
+  if (ev.key === "/" && !escrevendo && campo) {
+    ev.preventDefault();
+    campo.focus();
+    campo.select();
+  } else if (ev.key === "Escape" && campo && document.activeElement === campo) {
+    campo.value = "";
+    STATE.busca = "";
+    campo.blur();
+    buildToolbar();
+    render();
+  }
+});
 
 function buildNav() {
   const nav = document.getElementById("nav");
