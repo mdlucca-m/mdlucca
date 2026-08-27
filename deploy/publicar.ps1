@@ -252,10 +252,10 @@ if (-not $ok) {
 Verde "Servico no ar em 127.0.0.1:$Porta"
 
 # --------------------------------------------------------------------- 5. tunel
-# Tres modos, um so resultado: $endereco. Do lado de ca nada muda -- o servico
+# Tres modos, um so resultado: $Link. Do lado de ca nada muda -- o servico
 # continua escutando so em 127.0.0.1, e quem abre o caminho e sempre uma
 # conexao de saida.
-$endereco = $null
+$Link = $null
 
 function Esperar-Tunel {
   param($padrao)
@@ -318,13 +318,13 @@ if ($Fixo) {
   $Dominio | Out-File $arqNgrok -Encoding ascii
 
   Azul "Abrindo o tunel fixo..."
-  $tunel = Start-Process -FilePath $NG `
+  $procTunel = Start-Process -FilePath $NG `
     -ArgumentList "http", "--domain=$Dominio", "--log=stdout", "127.0.0.1:$Porta" `
     -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
     -RedirectStandardOutput (Join-Path $Exec "tunel.log") `
     -RedirectStandardError  (Join-Path $Exec "tunel.err")
-  if (-not $tunel) { Erro "Nao consegui iniciar o tunel." }
-  $tunel.Id | Out-File (Join-Path $Exec "tunel.pid") -Encoding ascii
+  if (-not $procTunel) { Erro "Nao consegui iniciar o tunel." }
+  $procTunel.Id | Out-File (Join-Path $Exec "tunel.pid") -Encoding ascii
 
   # o proprio ngrok publica em 127.0.0.1:4040 o que conseguiu abrir -- e mais
   # confiavel do que confiar no dominio que a pessoa digitou
@@ -334,10 +334,10 @@ if ($Fixo) {
       $painel = Invoke-RestMethod -Uri "http://127.0.0.1:4040/api/tunnels" -TimeoutSec 2
       $publico = $painel.tunnels | Where-Object { $_.public_url -like "https://*" } |
                  Select-Object -First 1
-      if ($publico) { $endereco = $publico.public_url; break }
+      if ($publico) { $Link = $publico.public_url; break }
     } catch { }
   }
-  if (-not $endereco) {
+  if (-not $Link) {
     Mostrar-Log-Do-Tunel
     Erro "O tunel fixo nao abriu. Log acima. Confira o authtoken e o dominio reservado."
   }
@@ -389,22 +389,22 @@ elseif ($Permanente) {
   $Dominio | Out-File $arqCF -Encoding ascii
 
   Azul "Abrindo o tunel permanente..."
-  $tunel = Start-Process -FilePath $CF `
+  $procTunel = Start-Process -FilePath $CF `
     -ArgumentList "tunnel", "--no-autoupdate", "run", "--url", "http://127.0.0.1:$Porta", $Tunel `
     -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
     -RedirectStandardOutput (Join-Path $Exec "tunel.log") `
     -RedirectStandardError  (Join-Path $Exec "tunel.err")
-  if (-not $tunel) { Erro "Nao consegui iniciar o tunel." }
-  $tunel.Id | Out-File (Join-Path $Exec "tunel.pid") -Encoding ascii
+  if (-not $procTunel) { Erro "Nao consegui iniciar o tunel." }
+  $procTunel.Id | Out-File (Join-Path $Exec "tunel.pid") -Encoding ascii
 
-  $endereco = "https://$Dominio"
+  $Link = "https://$Dominio"
   # o DNS pode levar um minuto para propagar; nao e motivo para abortar, so
   # para avisar -- o tunel ja esta de pe e o endereco passa a responder
   $respondeu = $false
   foreach ($i in 1..20) {
     Start-Sleep -Seconds 3
     try {
-      Invoke-RestMethod -Uri "$endereco/api/health" -TimeoutSec 4 | Out-Null
+      Invoke-RestMethod -Uri "$Link/api/health" -TimeoutSec 4 | Out-Null
       $respondeu = $true; break
     } catch { }
   }
@@ -417,23 +417,23 @@ elseif ($Permanente) {
 # ------------------------------------------- 5c. endereco sorteado (padrao)
 else {
   Azul "Abrindo o tunel..."
-  $tunel = Start-Process -FilePath $CF `
+  $procTunel = Start-Process -FilePath $CF `
     -ArgumentList "tunnel", "--no-autoupdate", "--url", "http://127.0.0.1:$Porta" `
     -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
     -RedirectStandardOutput (Join-Path $Exec "tunel.log") `
     -RedirectStandardError  (Join-Path $Exec "tunel.err")
-  if (-not $tunel) { Erro "Nao consegui iniciar o tunel." }
-  $tunel.Id | Out-File (Join-Path $Exec "tunel.pid") -Encoding ascii
+  if (-not $procTunel) { Erro "Nao consegui iniciar o tunel." }
+  $procTunel.Id | Out-File (Join-Path $Exec "tunel.pid") -Encoding ascii
 
   # o cloudflared escreve o endereco na saida de erro, nao na padrao
-  $endereco = Esperar-Tunel 'https://[a-z0-9-]+\.trycloudflare\.com'
-  if (-not $endereco) {
+  $Link = Esperar-Tunel 'https://[a-z0-9-]+\.trycloudflare\.com'
+  if (-not $Link) {
     Mostrar-Log-Do-Tunel
     Erro "O tunel nao abriu. Log acima."
   }
 }
 
-$endereco | Out-File $arqEnd -Encoding ascii
+$Link | Out-File $arqEnd -Encoding ascii
 
 # ------------------------------------------------------------------ 6. conferir
 Write-Host ""
@@ -443,10 +443,10 @@ Write-Host ""
 Verde "==============================================================="
 Verde "  No ar. Envie este endereco as pessoas:"
 Write-Host ""
-Write-Host "    $endereco/entrar"
+Write-Host "    $Link/entrar"
 Write-Host ""
-Write-Host "  Painel ......... $endereco/"
-Write-Host "  Cadastro ....... $endereco/app"
+Write-Host "  Painel ......... $Link/"
+Write-Host "  Cadastro ....... $Link/app"
 Verde "==============================================================="
 Write-Host ""
 if ($Fixo -or $Permanente) {
