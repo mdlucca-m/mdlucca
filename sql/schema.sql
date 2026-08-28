@@ -485,6 +485,8 @@ CREATE TABLE IF NOT EXISTS refs (
   reason_id     INTEGER REFERENCES exclusion_reasons(id) ON DELETE SET NULL,
   decided_at    TEXT,
   full_text_url TEXT,
+  affiliation   TEXT,
+  country       TEXT,
   notes         TEXT,
   origem        TEXT,
   created_at    TEXT NOT NULL DEFAULT (datetime('now')),
@@ -606,6 +608,58 @@ CREATE TABLE IF NOT EXISTS rob_final (
   PRIMARY KEY (ref_id, domain_id)
 );
 
+/* ---------- Variaveis psicologicas: o eixo tematico da revisao ----------
+
+   Uma revisao sobre "variaveis psicologicas no handebol" nao e uma lista
+   de artigos: e uma rede de variaveis estudadas ao longo do tempo, que se
+   cruzam. Um artigo sobre ansiedade pre-competitiva, estresse e depressao
+   pertence as tres -- e e justamente o artigo que liga as tres que conta
+   a historia do campo.
+
+   Por isso a ligacao e muitos-para-muitos, e nao uma coluna "variavel" na
+   referencia. Uma coluna obrigaria a escolher uma, e a escolha apagaria a
+   relacao, que e o que se quer ver.
+
+   `origem` guarda quem disse: `auto` e o sistema tendo achado o termo no
+   titulo ou no resumo, `confirmada` e alguem tendo olhado e concordado,
+   `manual` e alguem tendo marcado a mao. A diferenca importa: numero de
+   revisao que saiu de busca automatica sem revisao humana nao se publica.
+   ---------- */
+
+CREATE TABLE IF NOT EXISTS variables (
+  id        INTEGER PRIMARY KEY,
+  review_id INTEGER REFERENCES reviews(id) ON DELETE CASCADE,
+  code      TEXT NOT NULL,
+  label     TEXT NOT NULL,
+  grupo     TEXT,
+  icone     TEXT,
+  cor       TEXT,
+  seq       INTEGER NOT NULL DEFAULT 1,
+  UNIQUE (review_id, code)
+);
+
+/* A mesma ligacao, do lado da producao do proprio laboratorio. Duas
+   tabelas e nao uma com coluna de tipo: referencia de revisao e artigo do
+   LAPE sao coisas diferentes, e uma chave estrangeira que aponta para
+   "uma das duas" nao existe -- viraria integridade conferida a mao. */
+CREATE TABLE IF NOT EXISTS article_variables (
+  article_id  INTEGER NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+  variable_id INTEGER NOT NULL REFERENCES variables(id) ON DELETE CASCADE,
+  origem      TEXT NOT NULL DEFAULT 'auto',
+  trecho      TEXT,
+  criado_em   TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (article_id, variable_id)
+);
+
+CREATE TABLE IF NOT EXISTS ref_variables (
+  ref_id      INTEGER NOT NULL REFERENCES refs(id) ON DELETE CASCADE,
+  variable_id INTEGER NOT NULL REFERENCES variables(id) ON DELETE CASCADE,
+  origem      TEXT NOT NULL DEFAULT 'auto',
+  trecho      TEXT,
+  criado_em   TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (ref_id, variable_id)
+);
+
 /* ---------- Indices ---------- */
 
 CREATE INDEX IF NOT EXISTS idx_articles_status ON articles(status);
@@ -632,6 +686,8 @@ CREATE INDEX IF NOT EXISTS idx_screenings_ref ON screenings(ref_id, stage);
 CREATE INDEX IF NOT EXISTS idx_screenings_member ON screenings(member_id, stage);
 CREATE INDEX IF NOT EXISTS idx_extractions_ref ON extractions(ref_id, field_id);
 CREATE INDEX IF NOT EXISTS idx_rob_answers_ref ON rob_answers(ref_id, domain_id);
+CREATE INDEX IF NOT EXISTS idx_ref_variables_var ON ref_variables(variable_id);
+CREATE INDEX IF NOT EXISTS idx_article_variables_var ON article_variables(variable_id);
 
 /* ---------- Views analiticas ---------- */
 
