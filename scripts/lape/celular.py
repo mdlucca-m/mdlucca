@@ -94,6 +94,15 @@ def reunir(db: Database) -> dict[str, Any]:
         "variaveis": sorted(p["variaveis"], key=lambda v: -v["total_geral"]),
         "por_ano": dict(sorted(por_ano.items())),
         "triangulacao": tri,
+        "rede": analise.rede(db),
+        "incidencia": analise.incidencia(db, p["janela"]["anos"]),
+        "prevalencia": prev,
+        "lacunas": analise.lacunas(db, p),
+        "projetos": analise.projetos(db),
+        "linhas": db.dicts(
+            "SELECT rl.name, rl.description,"
+            "       (SELECT COUNT(*) FROM articles a WHERE a.research_line_id = rl.id) AS n"
+            "  FROM research_lines rl ORDER BY n DESC, rl.name"),
         "artigos": sorted(artigos, key=lambda a: (-(a.get("ano") or 0),
                                                   a.get("title") or "")),
         "sintese": analise.sintese(db, p),
@@ -220,9 +229,24 @@ def _tela_visao(d: dict[str, Any]) -> str:
 
     principais = {v["label"]: v["total_geral"] for v in d["variaveis"][:6]
                   if v["total_geral"]}
-    return topo + _cartao(
+    achados = (d["sintese"] or {}).get("achados") or []
+    leitura = ""
+    if achados:
+        leitura = _cartao(
+            "O que estes números dizem", "achado",
+            '<ul class="leitura">' + "".join(
+                f'<li>{_e(a.get("texto") or a.get("titulo") or "")}</li>'
+                for a in achados[:4]) + "</ul>")
+
+    linhas = {x["name"]: x["n"] for x in d["linhas"]}
+    porLinha = _cartao(
+        "Linhas de pesquisa", "linha", _barras(linhas),
+        "Artigos ligados a cada linha no cadastro.") if linhas else ""
+
+    return topo + leitura + _cartao(
         "O que o laboratório mais estuda", "alvo", _barras(principais),
-        "As seis variáveis com mais artigos. A lista inteira está em Temas.")
+        "As seis variáveis com mais artigos. A lista inteira está em Temas."
+        ) + porLinha
 
 
 def _tela_temas(d: dict[str, Any]) -> str:
@@ -269,23 +293,66 @@ def _tela_temas(d: dict[str, Any]) -> str:
                         "Condição → intervenção → desfecho.")
                 if trios else "")
 
-    return resumo + caminhos + _cartao(
+    pares = ""
+    for aresta in (d["rede"].get("arestas") or [])[:8]:
+        pares += (
+            '<li class="par-tema">'
+            f'<span>{_e(aresta["rotulo_a"])}<em>+</em>{_e(aresta["rotulo_b"])}</span>'
+            f'<b>{_numero(aresta["n"])}</b></li>')
+    rede = _cartao(
+        "Os temas que andam juntos", "rede",
+        f'<ul class="pares">{pares}</ul>',
+        "Quantos artigos tocam os dois assuntos ao mesmo tempo. É onde a "
+        "produção se amarra.") if pares else ""
+
+    return resumo + caminhos + rede + _cartao(
         "Todas as variáveis", "alvo", _barras(todas),
         "Quantos artigos tocam cada tema. Um artigo pode contar em vários.")
 
 
 def _tela_curva(d: dict[str, Any]) -> str:
-    leitura = ""
-    achados = (d["sintese"] or {}).get("achados") or []
-    if achados:
-        leitura = "".join(
-            f'<li>{_e(a.get("texto") or a.get("titulo") or "")}</li>'
-            for a in achados[:4])
-        leitura = f'<ul class="leitura">{leitura}</ul>'
+    # Prevalencia: onde a carteira ESTA. Nao e o que aconteceu no ano.
+    estados = {k: v for k, v in (d["estados"] or {}).items() if v}
+    situacao = _cartao(
+        "Onde a carteira está hoje", "processo", _barras(estados),
+        "Cada artigo conta uma vez, na situação em que está agora."
+        ) if estados else ""
+
+    # Incidencia: quantos viraram caso sobre quantos podiam virar.
+    comRisco = [x for x in d["incidencia"]["serie"] if x["em_risco_decisao"]]
+    incidencia = ""
+    if comRisco:
+        linhas = "".join(
+            f'<li class="ano-linha"><span class="ano-rot">{x["ano"]}</span>'
+            '<div class="tres">'
+            f'<div><b>{_numero(x["aceitos"])}</b><small>aceitos</small></div>'
+            f'<div><b>{_numero(x["rejeitados"])}</b><small>rejeitados</small></div>'
+            f'<div><b>{_numero(x["em_risco_decisao"])}</b><small>em risco</small></div>'
+            "</div></li>"
+            for x in comRisco[-6:])
+        incidencia = _cartao(
+            "Quantos viraram caso", "linhas", f'<ul class="anos">{linhas}</ul>',
+            "Aceite e rejeição só podem acontecer com artigo que está em "
+            "avaliação — é esse o denominador, e não o acervo inteiro.")
+
+    faltas = ""
+    for achado in (d["lacunas"] or {}).get("achados", [])[:3]:
+        itens = "".join(
+            f'<li>{_e(i.get("rotulo"))}'
+            + (f' <em>{_e(i.get("grupo"))}</em>' if i.get("grupo") else "")
+            + "</li>"
+            for i in (achado.get("itens") or [])[:5])
+        faltas += (f'<div class="falta"><b>{_e(achado.get("titulo"))}</b>'
+                   f'<p>{_e(achado.get("texto"))}</p>'
+                   + (f"<ul>{itens}</ul>" if itens else "") + "</div>")
+    lacunas = _cartao("O que ainda não foi olhado", "explorar", faltas,
+                      "Análise não conserta dado ausente — cada linha aqui é um "
+                      "número que o painel ainda não pode calcular.") if faltas else ""
+
     return (_cartao("Produção ano a ano", "linhas",
                     _colunas_por_ano(d["por_ano"]),
                     f'Recorte de {d["janela"]["de"]} a {d["janela"]["ate"]}.')
-            + (_cartao("O que a curva diz", "achado", leitura) if leitura else ""))
+            + situacao + incidencia + lacunas)
 
 
 def _tela_artigos(d: dict[str, Any]) -> str:
@@ -311,7 +378,22 @@ def _tela_sobre(d: dict[str, Any], quando: datetime) -> str:
     lab = d["lab"]
     site = (f'<a href="{_e(lab["site"])}" target="_blank" rel="noopener">'
             f'{_e(lab["site"])}</a>') if lab.get("site") else ""
+    pr = d["projetos"]
+    projetos = ""
+    for grupo, titulo, icone in ((pr["extensao"], "Extensão", "pessoas"),
+                                 (pr["pesquisa"], "Pesquisa", "projeto")):
+        if not grupo:
+            continue
+        itens = "".join(
+            f'<li><b>{_e(x["name"])}</b>'
+            + (f'<small>{_e(x.get("coordinator_name"))}</small>'
+               if x.get("coordinator_name") else "")
+            + "</li>" for x in grupo)
+        projetos += _cartao(f"{titulo} ({len(grupo)})", icone,
+                            f'<ul class="projetos">{itens}</ul>')
+
     return (
+        projetos +
         _cartao("O laboratório", "instituicao",
                 f'<p class="texto"><b>{_e(lab["nome"])}</b><br>{_e(lab["instituicao"])}'
                 + (f"<br>{site}" if site else "") + "</p>"
@@ -498,6 +580,42 @@ main { max-width: 560px; margin: 0 auto; padding: 14px 14px 24px; }
 .quais { list-style: none; margin: 2px 0 0 26px; padding: 0;
   font-size: 12px; color: var(--fraca); }
 .quais li { margin-bottom: 3px; }
+
+/* pares de temas, anos e projetos: listas de leitura, não tabelas --
+   tabela num celular de 390px vira rolagem lateral */
+.pares, .anos, .projetos { list-style: none; margin: 0; padding: 0; }
+.par-tema {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 9px 0; border-top: 1px solid var(--borda); font-size: 13px;
+}
+.par-tema:first-child { border-top: 0; }
+.par-tema span { color: var(--tinta2); }
+.par-tema em {
+  font-style: normal; color: var(--tom); margin: 0 6px; font-weight: 700;
+}
+.par-tema b { font-size: 15px; font-weight: 750; flex: none; }
+/* O ano manda na linha, e os três números vêm embaixo em colunas iguais.
+   Tentar tudo numa grade só põe o rótulo longe do número que ele nomeia. */
+.ano-linha { padding: 12px 0; border-top: 1px solid var(--borda); }
+.ano-linha:first-child { border-top: 0; padding-top: 2px; }
+.ano-rot {
+  display: block; font-size: 13px; font-weight: 750; color: var(--tom);
+  margin-bottom: 6px;
+}
+.ano-linha .tres { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ano-linha b { display: block; font-size: 20px; font-weight: 750; line-height: 1.1; }
+.ano-linha small { display: block; font-size: 10.5px; color: var(--fraca); }
+.projetos li { padding: 10px 0; border-top: 1px solid var(--borda); }
+.projetos li:first-child { border-top: 0; }
+.projetos b { font-size: 13.5px; font-weight: 650; }
+.projetos small { display: block; font-size: 12px; color: var(--fraca); margin-top: 2px; }
+.falta { padding: 12px 0; border-top: 1px solid var(--borda); }
+.falta:first-child { border-top: 0; padding-top: 2px; }
+.falta > b { font-size: 13.5px; }
+.falta p { margin: 4px 0 8px; font-size: 12.5px; color: var(--fraca); }
+.falta ul { margin: 0; padding-left: 18px; font-size: 13px; color: var(--tinta2); }
+.falta li { margin-bottom: 4px; }
+.falta em { font-style: normal; color: var(--fraca); font-size: 12px; }
 
 .leitura { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--tinta2); }
 .leitura li { margin-bottom: 8px; }
