@@ -215,6 +215,26 @@ table.dados small { color: var(--ink-muted); display: block; margin-top: 3px; }
   background: var(--accent-wash); box-shadow: var(--glow); text-decoration: none; }
 .acoes svg.icon { color: var(--accent); font-size: 15px; }
 
+/* selo de tempo real: o ponto pulsa a cada mudança que chega */
+.pulso { display: inline-flex; align-items: center; gap: 8px; padding: 7px 13px;
+  border-radius: 99px; font-size: 12.5px; font-weight: 650; cursor: pointer;
+  border: 1px solid var(--border-strong); background: var(--surface-raised);
+  color: var(--ink-2); user-select: none; }
+.pulso i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-muted);
+  flex: none; transition: background .2s, box-shadow .2s; }
+.pulso.on { border-color: color-mix(in srgb, var(--good) 46%, transparent);
+  color: var(--ink); }
+.pulso.on i { background: var(--good); box-shadow: 0 0 0 3px
+  color-mix(in srgb, var(--good) 22%, transparent); }
+.pulso.on i { animation: respira 2.6s ease-in-out infinite; }
+.pulso .batendo, .pulso.on i.batendo { animation: none; }
+#pulso.batendo { color: var(--good); }
+@keyframes respira {
+  0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 22%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--good) 8%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) { .pulso.on i { animation: none; } }
+
 .nota-honesta { border-left: 3px solid var(--series-4);
   background: color-mix(in srgb, var(--series-4) 9%, var(--surface-raised));
   border-radius: var(--radius-sm); padding: 13px 16px; font-size: 13.5px;

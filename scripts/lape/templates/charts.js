@@ -473,6 +473,45 @@ const Charts = (function () {
       }
     });
 
+    /* Marcas anotadas sobre a curva: um ponto de inflexão, uma mudança de
+       política, um corte de coleta. Vão DEPOIS de todas as séries, para
+       ficarem por cima delas — uma marca escondida atrás de uma linha não
+       marca nada. `marks: [{ serie, i, label, tone }]`. */
+    (spec.marks || []).forEach(function (marca) {
+      const serieAlvo = series[marca.serie || 0];
+      if (!serieAlvo) return;
+      const valor = serieAlvo.values[marca.i];
+      if (valor === undefined || valor === null) return;
+      const cor = marca.color || serieAlvo.color || serie(marca.serie || 0);
+      const x = X(marca.i), y = Y(valor);
+      const g = s("g", { class: "marca" });
+      g.appendChild(s("line", {
+        x1: x, x2: x, y1: y, y2: MT + ih, stroke: cor, "stroke-width": 1,
+        "stroke-dasharray": "3 3", "stroke-opacity": 0.55,
+      }));
+      /* anel duplo: o de fora na cor do fundo, para a marca se destacar
+         mesmo quando cai em cima de outra linha */
+      g.appendChild(s("circle", { cx: x, cy: y, r: 7.5, fill: "none",
+        stroke: token("--surface-raised"), "stroke-width": 3 }));
+      g.appendChild(s("circle", { cx: x, cy: y, r: 6.5, fill: "none",
+        stroke: cor, "stroke-width": 2.4 }));
+      g.appendChild(s("circle", { cx: x, cy: y, r: 2.4, fill: cor }));
+      if (marca.label) {
+        const acima = y > MT + 30;
+        const rotulo = txt(s("text", {
+          class: "val", x: x, y: acima ? y - 14 : y + 22, "text-anchor": "middle",
+          style: "font-size:10.5px;font-weight:700;fill:" + cor,
+        }), marca.label);
+        g.appendChild(rotulo);
+      }
+      if (marca.title) {
+        const dica = s("title");
+        dica.textContent = marca.title;
+        g.appendChild(dica);
+      }
+      svg.appendChild(g);
+    });
+
     /* uma dica por X, listando todas as séries */
     const hit = s("rect", { class: "hit", x: ML, y: MT, width: iw, height: ih });
     function readAt(ev) {
@@ -1042,6 +1081,94 @@ const Charts = (function () {
     return figure(spec, svg);
   }
 
+
+  /* ==================================================================== */
+  /* mapa-múndi — o mundo inteiro, com bolhas onde há produção            */
+  /* ==================================================================== */
+  /* Diferente de `geo`, que enquadra os pontos: aqui o enquadramento é o
+     planeta. Cinco países espalhados pelo mundo, num mapa que se ajusta
+     a eles, viram cinco bolhas soltas num plano cartesiano — some a
+     informação que o mapa existe para dar, que é ONDE aquilo fica.
+
+     A projeção é equirretangular (lon → x, lat → y, direto). Ela distorce
+     as áreas perto dos polos, e não faz diferença aqui: não se mede área
+     nenhuma neste mapa, marca-se posição. */
+const TERRA = [
+    /* America do Sul */ [[-81,-4],[-79,2],[-77,8],[-72,12],[-66,11],[-61,9],[-60,5],[-55,6],[-51,4],[-50,0],[-44,-2],[-38,-4],[-35,-6],[-35,-9],[-38,-13],[-39,-18],[-41,-22],[-48,-25],[-53,-34],[-57,-38],[-62,-40],[-65,-45],[-68,-50],[-69,-55],[-74,-53],[-73,-45],[-72,-38],[-71,-30],[-70,-23],[-70,-18],[-76,-14],[-79,-8],[-81,-4]],
+    /* America do Norte */ [[-168,66],[-160,71],[-140,70],[-128,70],[-114,69],[-100,69],[-95,74],[-85,73],[-80,68],[-78,62],[-64,60],[-56,52],[-60,47],[-66,45],[-70,42],[-74,39],[-76,35],[-81,31],[-80,25],[-85,30],[-90,29],[-94,29],[-97,26],[-98,20],[-95,16],[-88,16],[-83,9],[-78,8],[-83,15],[-90,20],[-97,22],[-105,20],[-110,24],[-115,30],[-121,35],[-124,42],[-125,49],[-131,53],[-137,59],[-146,61],[-155,58],[-163,60],[-168,66]],
+    /* África */ [[-17,15],[-16,21],[-12,28],[-6,36],[2,37],[10,37],[20,33],[25,32],[32,31],[35,28],[38,22],[39,15],[43,12],[51,12],[48,5],[42,-1],[40,-10],[38,-17],[35,-24],[31,-30],[25,-34],[19,-35],[16,-29],[13,-23],[12,-16],[9,-1],[5,4],[-4,5],[-8,5],[-13,9],[-17,15]],
+    /* Eurásia */ [[-9,38],[-9,43],[-2,43],[-1,46],[-4,48],[2,51],[4,53],[8,55],[5,58],[5,62],[11,64],[14,68],[20,70],[25,71],[33,70],[43,68],[55,70],[60,71],[70,73],[75,73],[85,74],[95,76],[105,77],[115,74],[130,72],[140,73],[150,70],[160,68],[170,66],[178,65],[170,60],[162,58],[155,50],[145,45],[140,46],[135,44],[130,42],[126,38],[122,40],[120,35],[122,30],[118,24],[110,20],[105,10],[100,3],[98,8],[95,16],[90,22],[85,20],[80,10],[77,8],[72,20],[68,24],[62,25],[56,26],[50,28],[48,30],[43,30],[36,36],[30,40],[26,40],[23,38],[18,40],[14,42],[8,44],[3,42],[0,39],[-2,37],[-6,36],[-9,38]],
+    /* Oceania */ [[113,-22],[114,-27],[118,-34],[125,-32],[131,-31],[137,-33],[141,-38],[147,-38],[150,-37],[153,-28],[153,-25],[148,-20],[143,-12],[136,-12],[130,-11],[125,-14],[118,-20],[113,-22]],
+    /* Groenlandia */ [[-45,60],[-52,64],[-54,69],[-57,74],[-60,78],[-50,82],[-30,83],[-22,80],[-20,75],[-25,70],[-32,66],[-40,62],[-45,60]],
+    /* Nova Zelandia */ [[173,-35],[175,-37],[178,-38],[177,-40],[174,-41],[172,-43],[170,-46],[167,-46],[168,-44],[171,-42],[173,-38],[173,-35]],
+    /* Japao */ [[130,32],[132,34],[136,35],[140,36],[141,40],[142,43],[145,44],[144,42],[140,38],[137,36],[133,34],[130,32]],
+    /* Reino Unido */ [[-5,50],[-3,54],[-3,58],[-5,58],[-6,55],[-5,52],[-5,50]],
+    /* Madagascar */ [[43,-12],[50,-15],[50,-22],[47,-25],[44,-21],[43,-16],[43,-12]],
+  ];
+
+  function mapaMundi(spec) {
+    const pontos = (spec.points || []).filter(function (p) {
+      return p.lat !== null && p.lat !== undefined && p.lon !== null && p.lon !== undefined;
+    });
+    const W = 900, H = spec.height || 440;
+    const LON0 = -180, LON1 = 180, LAT0 = -60, LAT1 = 84;
+    const X = function (lon) { return (lon - LON0) / (LON1 - LON0) * W; };
+    const Y = function (lat) { return H - (lat - LAT0) / (LAT1 - LAT0) * H; };
+    const svg = svgRoot(W, H, spec.caption || "mapa-múndi");
+
+    svg.appendChild(s("rect", { x: 0, y: 0, width: W, height: H, rx: 6,
+      fill: token("--surface-sunken") }));
+    /* meridianos e paralelos a cada 30°: dão a escala sem competir com o dado */
+    for (let lon = -150; lon <= 150; lon += 30) {
+      svg.appendChild(s("line", { class: "grid-line", x1: X(lon), x2: X(lon), y1: 0, y2: H }));
+    }
+    for (let lat = -30; lat <= 60; lat += 30) {
+      svg.appendChild(s("line", { class: "grid-line", x1: 0, x2: W, y1: Y(lat), y2: Y(lat) }));
+    }
+    svg.appendChild(s("line", { x1: 0, x2: W, y1: Y(0), y2: Y(0),
+      stroke: token("--axis"), "stroke-width": 1, "stroke-dasharray": "5 5" }));
+
+    TERRA.forEach(function (anel) {
+      const d = anel.map(function (pt, i) {
+        return (i ? "L" : "M") + X(pt[0]).toFixed(1) + " " + Y(pt[1]).toFixed(1);
+      }).join(" ") + " Z";
+      svg.appendChild(s("path", { d: d, fill: token("--surface-raised"),
+        stroke: token("--border-strong"), "stroke-width": 1, "stroke-linejoin": "round" }));
+    });
+
+    if (!pontos.length) {
+      svg.appendChild(txt(s("text", { class: "lab", x: W / 2, y: H / 2,
+        "text-anchor": "middle" }), spec.emptyMessage || "Sem país registrado ainda."));
+      return figure(spec, svg);
+    }
+
+    const teto = Math.max.apply(null, pontos.map(function (p) { return p.value; }).concat([1]));
+    pontos.forEach(function (p, i) {
+      const r = 8 + 20 * Math.sqrt(p.value / teto);
+      const cor = p.color || serie(i);
+      const g = s("g");
+      g.appendChild(s("circle", { class: "hit", cx: X(p.lon), cy: Y(p.lat),
+        r: Math.max(r, 16) }));
+      /* halo pulsante só no primeiro: o mapa tem um protagonista */
+      if (i === 0) {
+        g.appendChild(s("circle", { cx: X(p.lon), cy: Y(p.lat), r: r + 9, fill: "none",
+          stroke: cor, "stroke-width": 1.2, "stroke-opacity": 0.4 }));
+      }
+      g.appendChild(s("circle", { class: "mark", cx: X(p.lon), cy: Y(p.lat), r: r,
+        fill: cor, "fill-opacity": 0.5, stroke: cor, "stroke-width": 2 }));
+      hoverable(g, p.label, [{ value: fmt(p.value), name: spec.unit || "", color: cor }],
+        p.onSelect);
+      svg.appendChild(g);
+      const acima = Y(p.lat) > 30;
+      svg.appendChild(txt(s("text", {
+        class: "lab", x: X(p.lon), y: Y(p.lat) + (acima ? -r - 7 : r + 15),
+        "text-anchor": "middle",
+        style: "font-size:11.5px;font-weight:700;fill:" + token("--ink"),
+      }), p.label + " · " + fmt(p.value)));
+    });
+    return figure(spec, svg);
+  }
+
   /* ==================================================================== */
   /* miniaturas: minigráfico e medidor                                     */
   /* ==================================================================== */
@@ -1526,6 +1653,7 @@ const Charts = (function () {
     columns: columns, bars: bars, lines: lines, donut: donut, funnel: funnel,
     scatter: scatter, dumbbell: dumbbell, heatmap: heatmap, distribution: distribution,
     treemap: treemap, sankey: sankey, network: network, geo: geo,
+    mapaMundi: mapaMundi,
     sparkline: sparkline, meter: meter,
     area: area, radar: radar, gauge: gauge, waterfall: waterfall, bullet: bullet,
     calendarHeat: calendarHeat, bump: bump, gradFill: gradFill,

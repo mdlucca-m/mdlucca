@@ -227,5 +227,97 @@ class TestPaginaDoPanorama(BasePanorama):
         self.assertEqual(usados - definidos, set())
 
 
+class TestPecasNovasDaTela(unittest.TestCase):
+    """Marcas na curva, tempo real e o mapa-múndi."""
+
+    def js(self, nome):
+        return (TEMPLATES / nome).read_text(encoding="utf-8")
+
+    def test_a_biblioteca_desenha_marca_sobre_a_linha(self):
+        # o ponto de inflexão só significa algo em cima da curva que o
+        # gerou; numa tabela ao lado, é um número
+        graficos = self.js("charts.js")
+        trecho = graficos[graficos.index("(spec.marks || [])"):]
+        trecho = trecho[:trecho.index("/* uma dica por X")]
+        self.assertIn("svg.appendChild(g)", trecho)
+        self.assertIn("stroke-dasharray", trecho)
+
+    def test_a_marca_vai_depois_das_series(self):
+        # marca escondida atrás de uma linha não marca nada
+        graficos = self.js("charts.js")
+        self.assertLess(graficos.index("serieSpec.values.forEach"),
+                        graficos.index("(spec.marks || [])"))
+
+    def test_o_panorama_marca_as_inflexoes_no_grafico(self):
+        js = self.js("panorama.js")
+        self.assertIn("marks: marcas", js)
+        self.assertIn("inflexoes", js[js.index("const marcas = []"):js.index("marks: marcas")])
+
+    def test_a_cor_nao_e_ciclada_entre_as_variaveis(self):
+        # o defeito que este teste guarda: 8 cores para 23 variáveis,
+        # cicladas pelo índice — "Exercício" e "Saúde mental" saíram as
+        # duas verdes no mesmo gráfico, e a legenda não ajudava
+        js = self.js("panorama.js")
+        corpo = js[js.index("function montarCores()"):js.index("function corDaVariavel")]
+        self.assertIn("i < 8", corpo)
+        self.assertIn("--ink-muted", corpo)
+        self.assertNotIn("% 8", corpo)
+
+    def test_o_tempo_real_usa_a_mesma_conexao_do_painel(self):
+        js = self.js("panorama.js")
+        self.assertIn('new EventSource("/api/stream")', js)
+        self.assertIn('addEventListener("mudanca"', js)
+
+    def test_a_rajada_de_eventos_vira_uma_recarga_so(self):
+        # numa importação de planilha chegam dezenas de eventos; recarregar
+        # a cada um faria o painel recalcular tudo dezenas de vezes
+        js = self.js("panorama.js")
+        trecho = js[js.index('addEventListener("mudanca"'):js.index("function desligarAoVivo")]
+        self.assertIn("clearTimeout(recargaMarcada)", trecho)
+        self.assertIn("setTimeout(recarregar", trecho)
+
+    def test_a_recarga_preserva_onde_a_pessoa_estava(self):
+        # painel que salta para o topo a cada mudança é painel que ninguém
+        # consegue ler enquanto a equipe trabalha
+        js = self.js("panorama.js")
+        corpo = js[js.index("async function recarregar()"):js.index("function marcarPulso")]
+        self.assertIn("window.scrollY", corpo)
+        self.assertIn("window.scrollTo", corpo)
+
+    def test_o_mapa_mundi_enquadra_o_planeta(self):
+        # `geo` enquadra os pontos: cinco países espalhados viram cinco
+        # bolhas soltas num plano, e some o que o mapa existe para dar
+        graficos = self.js("charts.js")
+        corpo = graficos[graficos.index("function mapaMundi(spec)"):]
+        corpo = corpo[:corpo.index("\n  }\n")]
+        self.assertIn("LON0 = -180", corpo)
+        self.assertIn("LON1 = 180", corpo)
+
+    def test_o_contorno_do_mundo_e_plausivel(self):
+        graficos = self.js("charts.js")
+        bloco = graficos[graficos.index("const TERRA = ["):graficos.index("function mapaMundi")]
+        pares = [(float(a), float(b)) for a, b in
+                 re.findall(r"\[(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)\]", bloco)]
+        self.assertGreater(len(pares), 150, "contorno pobre demais para reconhecer o mundo")
+        for lon, lat in pares:
+            self.assertTrue(-180 <= lon <= 180, f"longitude fora do mundo: {lon}")
+            self.assertTrue(-90 <= lat <= 90, f"latitude fora do mundo: {lat}")
+
+    def test_todo_continente_esperado_esta_no_contorno(self):
+        # apaguei a África sem querer ao trocar a Eurásia, e o mapa seguiu
+        # desenhando sem reclamar de nada
+        graficos = self.js("charts.js")
+        bloco = graficos[graficos.index("const TERRA = ["):graficos.index("function mapaMundi")]
+        for continente in ("America do Sul", "America do Norte", "África", "Eurásia",
+                           "Oceania"):
+            with self.subTest(continente=continente):
+                self.assertIn(continente, bloco)
+
+    def test_o_mapa_esta_exposto_pela_biblioteca(self):
+        graficos = self.js("charts.js")
+        self.assertIn("mapaMundi: mapaMundi", graficos)
+        self.assertIn("C.mapaMundi(", self.js("panorama.js"))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

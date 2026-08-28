@@ -56,12 +56,35 @@ function cortar(t, n) {
   return s.length > n ? s.slice(0, n - 1) + "…" : s;
 }
 
-/* Cor por variável: a ordem no vocabulário decide, e a mesma variável
-   fica com a mesma cor em toda a tela. Cor que muda de gráfico para
-   gráfico obriga a reler a legenda toda vez. */
+/* Cor por variável, com duas regras que brigam entre si e precisam das
+   duas:
+
+   1. a MESMA variável tem a MESMA cor em toda a tela — cor que muda de
+      gráfico para gráfico obriga a reler a legenda toda vez;
+   2. duas variáveis NUNCA dividem a mesma cor.
+
+   A paleta tem oito cores e o vocabulário tem mais de vinte, então
+   ciclar o índice quebra a segunda regra em silêncio: foi o que
+   aconteceu — "Exercício" e "Saúde mental" saíram as duas verdes no
+   mesmo gráfico, e a legenda não ajudava a separar.
+
+   A saída é não ciclar. As oito cores vão para as oito variáveis mais
+   presentes na produção (atribuição feita uma vez, a partir do dado, e
+   por isso estável na tela inteira); da nona em diante, cinza. Cinza diz
+   a verdade: aquela variável não está entre as que a paleta consegue
+   distinguir, e a identidade dela vem do rótulo, não da cor. */
+const CORES = {};
+
+function montarCores() {
+  const ordenadas = ((D.panorama || {}).variaveis || []).slice()
+    .sort(function (a, b) { return b.total_geral - a.total_geral; });
+  ordenadas.forEach(function (v, i) {
+    CORES[v.code] = i < 8 ? C.token("--series-" + (i + 1)) : C.token("--ink-muted");
+  });
+}
+
 function corDaVariavel(code) {
-  const i = (D.vocabulario || []).findIndex(function (v) { return v.code === code; });
-  return C.token("--series-" + (((i < 0 ? 0 : i) % 8) + 1));
+  return CORES[code] || C.token("--ink-muted");
 }
 
 function iconeDaVariavel(code) {
@@ -191,7 +214,8 @@ function verVisao(palco) {
   palco.appendChild(cabeca("painel", "Panorama analítico",
     "O que o laboratório estuda, como isso se move no tempo e o que ainda não foi "
     + "olhado — calculado do banco a cada acesso.",
-    [el("a", { class: "botao-destino", href: "/painel", text: "Indicadores" })]));
+    [seloAoVivo(),
+     el("a", { class: "botao-destino", href: "/painel", text: "Indicadores" })]));
 
   palco.appendChild(el("div", { class: "tese" }, [
     el("h3", {}, [Icons.get("alvo", null), el("span", { text: "O que este painel responde" })]),
@@ -504,15 +528,34 @@ function verCurvas(palco) {
       + "que analisar. Enquanto isso, os cartões abaixo mostram a série crua."));
   }
 
+  /* Os pontos de inflexão marcados NA curva, e não só numa tabela ao lado.
+     O ponto só significa alguma coisa em cima da linha que o gerou: numa
+     tabela, "2015 — desaceleração" é um número; no gráfico, é o lugar em
+     que a curva visivelmente deixa de abrir. */
+  const marcas = [];
+  fortes.forEach(function (v, si) {
+    (v.inflexoes || []).forEach(function (inf) {
+      const i = p.janela.anos.indexOf(inf.ano);
+      if (i >= 0) {
+        marcas.push({ serie: si, i: i, label: String(inf.ano),
+                      color: corDaVariavel(v.code),
+                      title: v.label + " · " + inf.ano + ": " + inf.leitura });
+      }
+    });
+  });
+
   palco.appendChild(cartao("linhas", "Todas as variáveis no tempo",
-    "Séries filtradas. Onde duas linhas se cruzam, uma passou a outra — os cruzamentos "
-    + "estão listados abaixo.",
+    marcas.length
+      ? "Séries filtradas, com os pontos de inflexão marcados sobre a própria curva. "
+        + "Onde duas linhas se cruzam, uma passou a outra."
+      : "Séries filtradas. Onde duas linhas se cruzam, uma passou a outra.",
     C.lines({
       labels: anos,
       series: fortes.map(function (v) {
         return { label: v.label, values: v.suave, color: corDaVariavel(v.code),
                  area: false }; }),
-      height: 320, file: "curvas-variaveis" })));
+      marks: marcas,
+      height: 340, file: "curvas-variaveis" })));
 
   const comCurva = fortes.filter(function (v) { return v.confiavel; });
   if (comCurva.length) {
@@ -524,10 +567,18 @@ function verCurvas(palco) {
             return { label: v.label, values: v.velocidade, color: corDaVariavel(v.code) }; }),
           height: 240, file: "velocidade" })),
       cartao("raio", "Aceleração — a curva abre ou fecha?",
-        "Onde cruza o zero está o ponto de inflexão.",
+        "Onde cruza o zero está o ponto de inflexão, marcado no gráfico.",
         C.lines({ labels: anos,
           series: comCurva.map(function (v) {
             return { label: v.label, values: v.aceleracao, color: corDaVariavel(v.code) }; }),
+          marks: comCurva.reduce(function (acc, v, si) {
+            (v.inflexoes || []).forEach(function (inf) {
+              const i = p.janela.anos.indexOf(inf.ano);
+              if (i >= 0) acc.push({ serie: si, i: i, color: corDaVariavel(v.code),
+                                     title: v.label + ": " + inf.leitura });
+            });
+            return acc;
+          }, []),
           height: 240, file: "aceleracao" })),
     ]));
 
@@ -659,7 +710,12 @@ function verMapa(palco) {
     palco.appendChild(nota("<b>Nenhum país para mostrar ainda.</b> O artigo não carrega "
       + "país — quem carrega é a instituição de quem assina. Assim que os integrantes e "
       + "coautores externos estiverem ligados às suas instituições na "
-      + "<a href='/app#perfil'>Área do integrante</a>, o mapa se desenha sozinho."));
+      + "<a href='/app#perfil'>Área do integrante</a>, as bolhas aparecem sozinhas."));
+    palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
+      "mapa", "O mundo, à espera dos dados",
+      "O mapa fica aqui pronto; o que falta é a instituição de cada coautor.",
+      C.mapaMundi({ points: [], height: 440,
+        emptyMessage: "Nenhum país registrado ainda." }))));
     return;
   }
   palco.appendChild(el("div", { class: "grade g4" },
@@ -669,10 +725,11 @@ function verMapa(palco) {
   palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
     "mapa", "Os cinco mais produtivos",
     "Um artigo com autores de dois países conta para os dois — foi produzido nos dois.",
-    C.geo({ points: paises.top.filter(function (x) { return x.latitude !== null; })
-      .map(function (x) {
-        return { label: x.pais, lat: x.latitude, lon: x.longitude, value: x.n }; }),
-      height: 420, unit: "artigo(s)", file: "mapa-producao" }))));
+    C.mapaMundi({ points: paises.top.filter(function (x) { return x.latitude !== null; })
+      .map(function (x, i) {
+        return { label: x.pais, lat: x.latitude, lon: x.longitude, value: x.n,
+                 color: C.token("--series-" + ((i % 8) + 1)) }; }),
+      height: 440, unit: "artigo(s)", file: "mapa-producao" }))));
 }
 
 /* ==================================================================== */
@@ -913,11 +970,84 @@ function desenhar() {
      lacunas: verLacunas, extracao: verExtracao }[ST.aba] || verVisao)(palco);
 }
 
+/* ==================================================================== */
+/* ao vivo                                                              */
+/* ==================================================================== */
+/* O painel se redesenha quando o banco muda. A conexão é a mesma do
+   painel de indicadores (`/api/stream`), e o gatilho é o `change_log`:
+   alguém cadastra um artigo na Área do integrante e o Panorama recalcula
+   as curvas sem ninguém apertar nada.
+ *
+ * Duas cautelas que a experiência com o painel ensinou:
+ *   - recarregar a cada evento faria o Panorama recalcular vinte vezes
+ *     numa importação de planilha. Há uma espera curta que junta a rajada
+ *     numa recarga só;
+ *   - a aba aberta e a posição da rolagem são preservadas. Um painel que
+ *     salta para o topo a cada mudança é um painel que ninguém consegue
+ *     ler enquanto a equipe trabalha. */
+let fonteDeEventos = null;
+let recargaMarcada = null;
+let aoVivo = true;
+
+function ligarAoVivo() {
+  if (!aoVivo || typeof EventSource === "undefined") return;
+  try { fonteDeEventos = new EventSource("/api/stream"); } catch (erro) { return; }
+  fonteDeEventos.addEventListener("pronto", function () { marcarPulso("ao vivo"); });
+  fonteDeEventos.addEventListener("mudanca", function (ev) {
+    let evento = "";
+    try { evento = (JSON.parse(ev.data) || {}).event || ""; } catch (erro) { evento = ""; }
+    marcarPulso(evento || "mudança");
+    clearTimeout(recargaMarcada);
+    recargaMarcada = setTimeout(recarregar, 1200);
+  });
+  fonteDeEventos.addEventListener("error", function () { marcarPulso("reconectando"); });
+}
+
+function desligarAoVivo() {
+  if (fonteDeEventos) { fonteDeEventos.close(); fonteDeEventos = null; }
+  clearTimeout(recargaMarcada);
+}
+
+async function recarregar() {
+  const rolagem = window.scrollY;
+  try {
+    const dados = await api("/api/panorama");
+    Object.assign(D, dados, { pronto: true });
+    montarCores();
+    desenhar();
+    window.scrollTo(0, rolagem);
+    marcarPulso("atualizado agora");
+  } catch (erro) { /* o EventSource reconecta sozinho */ }
+}
+
+function marcarPulso(texto) {
+  const alvo = document.getElementById("pulso");
+  if (!alvo) return;
+  alvo.textContent = texto;
+  alvo.classList.add("batendo");
+  setTimeout(function () { alvo.classList.remove("batendo"); }, 900);
+}
+
+function seloAoVivo() {
+  const caixa = el("span", { class: "pulso" + (aoVivo ? " on" : ""), title:
+    "O painel se redesenha quando alguém cadastra algo. Clique para desligar." }, [
+    el("i", {}), el("span", { id: "pulso", text: aoVivo ? "ao vivo" : "parado" }),
+  ]);
+  caixa.onclick = function () {
+    aoVivo = !aoVivo;
+    if (aoVivo) { ligarAoVivo(); } else { desligarAoVivo(); }
+    desenhar();
+  };
+  return caixa;
+}
+
 (async function inicio() {
   desenhar();
   try {
     const dados = await api("/api/panorama");
     Object.assign(D, dados, { pronto: true });
+    montarCores();
+    ligarAoVivo();
     const hash = location.hash.replace("#", "");
     if (ABAS.some(function (a) { return a.id === hash; })) ST.aba = hash;
     desenhar();
