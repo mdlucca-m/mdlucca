@@ -2963,9 +2963,10 @@ function setupTheme() {
   try { stored = localStorage.getItem("lape-theme"); } catch (e) { /* janela privada */ }
   if (stored) document.documentElement.setAttribute("data-theme", stored);
   toggle.addEventListener("click", function () {
-    const dark = document.documentElement.getAttribute("data-theme") === "dark"
-      || (!document.documentElement.getAttribute("data-theme")
-        && matchMedia("(prefers-color-scheme:dark)").matches);
+    /* Sem escolha gravada, o painel está escuro -- a folha não segue mais
+       o sistema. Perguntar ao sistema aqui faria o primeiro clique num
+       Windows claro "trocar para escuro" estando já escuro, e nada mudava. */
+    const dark = document.documentElement.getAttribute("data-theme") !== "light";
     const next = dark ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
     try { localStorage.setItem("lape-theme", next); } catch (e) { /* ignora */ }

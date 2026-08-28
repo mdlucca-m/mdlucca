@@ -825,11 +825,34 @@ class TestTokensDoTema(unittest.TestCase):
                         if not re.match(r"^--(series|seq|ord)-\d+$", t)}
             self.assertEqual(faltando, set(), f"tokens indefinidos em {nome}: {sorted(faltando)}")
 
-    def test_o_tema_define_os_dois_modos(self):
+    def test_o_escuro_e_o_padrao_e_nao_o_que_o_sistema_manda(self):
+        # o defeito que este teste guarda: a folha seguia
+        # `prefers-color-scheme`, e no Windows do laboratório -- que está
+        # no claro -- o painel abria claro. O tema escuro existia e nunca
+        # aparecia para ninguém
         tema = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
-        self.assertIn("prefers-color-scheme: light", tema)
-        self.assertIn('[data-theme="light"]', tema)
-        self.assertIn('[data-theme="dark"]', tema)
+        self.assertNotIn("prefers-color-scheme: light", tema)
+        raiz = tema[tema.index(":root {"):tema.index("--surface:")]
+        self.assertIn("color-scheme: dark", raiz)
+
+    def test_o_claro_continua_inteiro_por_escolha(self):
+        # trocar o padrão não pode ser o mesmo que apagar o outro modo
+        tema = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        self.assertIn(':root[data-theme="light"]', tema)
+        claro = tema[tema.index(':root[data-theme="light"]'):]
+        claro = claro[:claro.index("\n}")]
+        for token in ("--surface", "--ink", "--accent", "--series-1", "--seq-100"):
+            with self.subTest(token=token):
+                self.assertIn(token + ":", claro)
+
+    def test_o_botao_de_tema_sabe_que_o_padrao_e_escuro(self):
+        # perguntando ao sistema, o primeiro clique num Windows claro
+        # "trocava para escuro" estando já escuro, e nada acontecia
+        js = (self.TEMPLATES / "dashboard.js").read_text(encoding="utf-8")
+        corpo = js[js.index("function setupTheme"):]
+        corpo = corpo[:corpo.index("\n}")]
+        self.assertNotIn("prefers-color-scheme", corpo)
+        self.assertIn('!== "light"', corpo)
 
 
 if __name__ == "__main__":
