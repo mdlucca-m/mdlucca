@@ -27,12 +27,24 @@ from .util import clean_text, norm_doi, title_key
 # nao digitado a cada vez, porque a busca certa e o resultado de conferir
 # quantos artigos cada forma do nome traz -- nao e coisa de improvisar na
 # hora. Acrescentar alguem e uma linha.
+# O ID Lattes vai junto quando se sabe: e o unico identificador que nao
+# se repete e nao depende de como a pessoa assina. Serve para achar o
+# curriculo certo entre os arquivos de data/raw/ e para montar o link do
+# CV na tela. Nao substitui a busca da PubMed -- o Lattes exige captcha e
+# so sai do navegador.
 PESQUISADORES: tuple[dict[str, Any], ...] = (
     {"nome": "Alexandro Andrade", "afiliacao": "UDESC",
-     "papel": "Coordenador do LAPE"},
+     "papel": "Coordenador do LAPE", "lattes": "5577164706111568"},
     {"nome": "Guilherme Torres Vilarino", "afiliacao": "UDESC",
-     "papel": "Pesquisador do LAPE"},
+     "papel": "Pesquisador do LAPE", "lattes": None},
 )
+
+
+def link_do_lattes(lattes_id: Any) -> str | None:
+    """O endereco publico do curriculo, para quem quiser abrir e conferir."""
+    from .ingest_lattes import e_id_lattes
+
+    return f"http://lattes.cnpq.br/{lattes_id}" if e_id_lattes(lattes_id) else None
 
 
 def buscar(nome: str, afiliacao: str | None = None, desde: int | None = None,

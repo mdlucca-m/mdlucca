@@ -334,11 +334,18 @@ function cartaoDaProducao() {
 
   corpo.appendChild(el("div", { class: "selos", style: "margin-bottom:10px" },
     (prod.pesquisadores || []).map(function (p) {
-      return el("span", { class: "selo-var", style: "--tom:" + C.token("--series-1"),
-        title: p.papel || "" }, [
-        Icons.get("pessoa", 12),
-        el("span", { text: p.nome + (p.ja_importados ? " · " + p.ja_importados : "") }),
-      ]);
+      const rotulo = p.nome + (p.ja_importados ? " · " + p.ja_importados : "");
+      const dentro = [Icons.get("pessoa", 12), el("span", { text: rotulo })];
+      /* Com o ID Lattes, o selo vira o caminho para conferir se é a
+         pessoa certa -- que é a única pergunta que importa aqui. */
+      if (!p.link_lattes) {
+        return el("span", { class: "selo-var", style: "--tom:" + C.token("--series-1"),
+          title: p.papel || "" }, dentro);
+      }
+      dentro.push(Icons.get("conectar", 11));
+      return el("a", { class: "selo-var", style: "--tom:" + C.token("--series-1"),
+        href: p.link_lattes, target: "_blank", rel: "noopener",
+        title: (p.papel ? p.papel + " · " : "") + "abrir o currículo Lattes" }, dentro);
     })));
 
   const estado = el("p", { class: "hint", text: prod.artigos_de_base
@@ -372,6 +379,12 @@ function cartaoDaProducao() {
     } finally { botao.disabled = false; }
   };
   corpo.appendChild(botao);
+  corpo.appendChild(el("p", { class: "hint", style: "margin-top:12px", html:
+    "<b>E o Lattes?</b> Nenhum programa consegue baixá-lo: o CNPq exige captcha. "
+    + "Ele tem o que a PubMed não indexa — capítulos, livros, orientações, "
+    + "congressos. Para trazê-lo: abra o currículo pelo selo acima, clique em "
+    + "<b>Exportar XML</b>, e ponha o arquivo em <code>data/raw/</code>. O sistema "
+    + "acha o dono pelo ID gravado dentro do arquivo — não precisa renomear nada." }));
   return corpo;
 }
 

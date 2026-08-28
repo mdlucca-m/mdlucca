@@ -256,6 +256,20 @@ class TestListaDePesquisadores(unittest.TestCase):
         self.assertIn("Alexandro Andrade", nomes)
         self.assertIn("Guilherme Torres Vilarino", nomes)
 
+    def test_o_id_lattes_do_coordenador_esta_gravado(self):
+        # é ele que acha o currículo certo entre os arquivos de data/raw/
+        # e que monta o link do CV na tela
+        andrade = next(p for p in ingest_autor.PESQUISADORES
+                       if p["nome"] == "Alexandro Andrade")
+        self.assertEqual(andrade["lattes"], "5577164706111568")
+        self.assertEqual(ingest_autor.link_do_lattes(andrade["lattes"]),
+                         "http://lattes.cnpq.br/5577164706111568")
+
+    def test_sem_id_lattes_nao_se_inventa_link(self):
+        # link para currículo errado é pior que link nenhum
+        self.assertIsNone(ingest_autor.link_do_lattes(None))
+        self.assertIsNone(ingest_autor.link_do_lattes("Alexandro Andrade"))
+
     def test_toda_pessoa_da_lista_tem_afiliacao(self):
         # sem afiliação a busca traz produção alheia, e ninguém percebe
         # até o painel ter o dobro de artigos

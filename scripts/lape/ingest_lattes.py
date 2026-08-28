@@ -78,20 +78,48 @@ def de_quem(path: Path) -> str:
         return ""
 
 
+def identificador(path: Path) -> str:
+    """O ID Lattes gravado dentro do curriculo.
+
+    E o unico jeito de ter certeza de quem e o arquivo: nome de arquivo
+    se renomeia, nome de pessoa se repete, ID nao.
+    """
+    try:
+        return researcher_info(load_xml(path))["lattes_id"] or ""
+    except Exception:
+        return ""
+
+
+def e_id_lattes(texto: Any) -> bool:
+    """Um ID Lattes sao 16 digitos -- nunca um nome."""
+    return bool(re.fullmatch(r"\d{16}", str(texto or "").strip()))
+
+
 def filtrar(arquivos: list[Path], somente: Iterable[str]) -> list[Path]:
     """Fica so com os curriculos das pessoas pedidas.
 
-    Casa pelo nome do arquivo E pelo nome de dentro do curriculo: quem
-    exporta do Lattes recebe um `curriculo.xml` sem nome nenhum, e quem
-    renomeia o arquivo raramente escreve o nome completo. Bastar um dos
-    dois evita a importacao silenciosa de quem nao foi pedido -- que e o
-    erro caro aqui, porque desfazer significa apagar artigo do banco.
+    Aceita ID Lattes ou nome. O ID vale mais: casa com o
+    NUMERO-IDENTIFICADOR gravado dentro do proprio curriculo, entao nao
+    depende de como o arquivo foi salvo nem de como a pessoa assina.
+
+    Sem ID, casa pelo nome do arquivo E pelo nome de dentro do curriculo:
+    quem exporta do Lattes recebe um `curriculo.xml` sem nome nenhum, e
+    quem renomeia o arquivo raramente escreve o nome completo. Bastar um
+    dos dois evita a importacao silenciosa de quem nao foi pedido -- que
+    e o erro caro aqui, porque desfazer significa apagar artigo do banco.
     """
-    alvos = [_dobra(nome) for nome in somente if str(nome).strip()]
-    if not alvos:
+    pedidos = [str(x).strip() for x in somente if str(x).strip()]
+    if not pedidos:
         return list(arquivos)
+    # ID Lattes tem preferencia sobre nome: e o unico identificador que
+    # nao se repete e nao depende de como a pessoa assina.
+    ids = {x for x in pedidos if e_id_lattes(x)}
+    alvos = [_dobra(x) for x in pedidos if not e_id_lattes(x)]
     escolhidos = []
     for caminho in arquivos:
+        if ids and identificador(caminho) in ids:
+            escolhidos.append(caminho)
+            continue
         nome_arquivo = _dobra(caminho.stem)
         dono = _dobra(de_quem(caminho))
         for alvo in alvos:

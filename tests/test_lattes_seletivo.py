@@ -105,6 +105,48 @@ class TestFiltro(BaseCurriculos):
             ["lattes_alexandro_andrade.xml"])
 
 
+class TestFiltroPeloIdLattes(BaseCurriculos):
+    """O ID Lattes é o único identificador que não se repete.
+
+    Nome de arquivo se renomeia, nome de pessoa se repete — "Alexandro
+    Andrade" pode ser outro Alexandro Andrade. O ID, gravado dentro do
+    próprio currículo, não.
+    """
+
+    def nomes(self, escolhidos):
+        return sorted(p.name for p in escolhidos)
+
+    def test_dezesseis_digitos_e_id_lattes(self):
+        self.assertTrue(ingest_lattes.e_id_lattes("5577164706111568"))
+        self.assertFalse(ingest_lattes.e_id_lattes("Alexandro Andrade"))
+        self.assertFalse(ingest_lattes.e_id_lattes("557716470611156"))   # 15
+        self.assertFalse(ingest_lattes.e_id_lattes(None))
+
+    def test_o_id_sai_de_dentro_do_curriculo(self):
+        alvo = self.pasta / "curriculo.xml"
+        self.assertEqual(ingest_lattes.identificador(alvo), "3333333333333333")
+
+    def test_o_id_acha_o_curriculo_sem_depender_do_nome_do_arquivo(self):
+        escolhidos = ingest_lattes.filtrar(self.arquivos(), ["3333333333333333"])
+        self.assertEqual(self.nomes(escolhidos), ["curriculo.xml"])
+
+    def test_id_e_nome_convivem_no_mesmo_pedido(self):
+        escolhidos = ingest_lattes.filtrar(
+            self.arquivos(), ["1111111111111111", "Guilherme Vilarino"])
+        self.assertEqual(self.nomes(escolhidos),
+                         ["lattes_alexandro_andrade.xml", "lattes_guilherme_vilarino.xml"])
+
+    def test_id_errado_nao_traz_ninguem_pelo_nome_parecido(self):
+        # o ID é exato de propósito: pedir um ID e receber outra pessoa
+        # seria pior que não receber nada
+        self.assertEqual(ingest_lattes.filtrar(self.arquivos(), ["9999999999999999"]), [])
+
+    def test_arquivo_ilegivel_nao_derruba_o_filtro(self):
+        (self.pasta / "quebrado.xml").write_text("<nao é xml", encoding="utf-8")
+        escolhidos = ingest_lattes.filtrar(self.arquivos(), ["1111111111111111"])
+        self.assertEqual(self.nomes(escolhidos), ["lattes_alexandro_andrade.xml"])
+
+
 class TestConferencia(BaseCurriculos):
     def test_diz_o_que_traria_sem_gravar(self):
         resumo = ingest_lattes.confere(self.pasta / "lattes_alexandro_andrade.xml")

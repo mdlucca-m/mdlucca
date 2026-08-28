@@ -1040,8 +1040,10 @@ def route_producao(ctx: "Context") -> Any:
         "  JOIN articles a ON a.id = aa.article_id"
         " WHERE a.source = 'pubmed' GROUP BY m.full_name")}
     return {
-        "pesquisadores": [dict(p, ja_importados=ja.get(p["nome"], 0))
-                          for p in ingest_autor.PESQUISADORES],
+        "pesquisadores": [
+            dict(p, ja_importados=ja.get(p["nome"], 0),
+                 link_lattes=ingest_autor.link_do_lattes(p.get("lattes")))
+            for p in ingest_autor.PESQUISADORES],
         "artigos_de_base": int(ctx.db.scalar(
             "SELECT COUNT(*) FROM articles WHERE source = 'pubmed'") or 0),
         "paises_marcados": int(ctx.db.scalar(

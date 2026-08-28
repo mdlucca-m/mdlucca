@@ -173,6 +173,14 @@ class TestProducaoDasBases(BasePanorama):
         self.assertIn("Alexandro Andrade", nomes)
         self.assertIn("Guilherme Torres Vilarino", nomes)
 
+    def test_o_link_do_lattes_vem_pronto(self):
+        # o selo na tela vira o caminho para conferir se é a pessoa certa
+        _, _, dados = self.buscar("/api/producao", self.ana)
+        andrade = next(p for p in dados["pesquisadores"]
+                       if p["nome"] == "Alexandro Andrade")
+        self.assertEqual(andrade["link_lattes"],
+                         "http://lattes.cnpq.br/5577164706111568")
+
     def test_o_painel_ja_chega_com_ela(self):
         # sem isso a aba precisaria de uma segunda viagem só para o botão
         _, _, dados = self.buscar("/api/panorama", self.ana)
