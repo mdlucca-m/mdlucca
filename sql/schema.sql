@@ -659,6 +659,17 @@ CREATE TABLE IF NOT EXISTS article_variables (
   PRIMARY KEY (article_id, variable_id)
 );
 
+-- De que paises saiu cada artigo. Vem da afiliacao de quem assina, que e
+-- quem carrega pais -- o artigo nao carrega. Um artigo pode ter varios:
+-- Brasil e Noruega juntos foi produzido nos dois, e conta para os dois.
+CREATE TABLE IF NOT EXISTS article_countries (
+  article_id INTEGER NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+  country    TEXT NOT NULL,
+  origem     TEXT NOT NULL DEFAULT 'afiliacao',
+  criado_em  TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (article_id, country)
+);
+
 CREATE TABLE IF NOT EXISTS ref_variables (
   ref_id      INTEGER NOT NULL REFERENCES refs(id) ON DELETE CASCADE,
   variable_id INTEGER NOT NULL REFERENCES variables(id) ON DELETE CASCADE,

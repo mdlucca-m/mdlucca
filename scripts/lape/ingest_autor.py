@@ -23,6 +23,18 @@ from .db import Database
 from .util import clean_text, norm_doi, title_key
 
 
+# Quem o laboratorio pediu para trazer das bases. Fica escrito aqui, e
+# nao digitado a cada vez, porque a busca certa e o resultado de conferir
+# quantos artigos cada forma do nome traz -- nao e coisa de improvisar na
+# hora. Acrescentar alguem e uma linha.
+PESQUISADORES: tuple[dict[str, Any], ...] = (
+    {"nome": "Alexandro Andrade", "afiliacao": "UDESC",
+     "papel": "Coordenador do LAPE"},
+    {"nome": "Guilherme Torres Vilarino", "afiliacao": "UDESC",
+     "papel": "Pesquisador do LAPE"},
+)
+
+
 def buscar(nome: str, afiliacao: str | None = None, desde: int | None = None,
            limite: int = 400) -> dict[str, Any]:
     """Procura a producao na PubMed e devolve os registros completos.
@@ -37,10 +49,11 @@ def buscar(nome: str, afiliacao: str | None = None, desde: int | None = None,
     bruto = sources.pubmed_medline(pmids)
     registros = referencias.ler_nbib(bruto)
     for registro in registros:
-        registro["pais"] = None
-        achado = variaveis.pais_da_afiliacao(registro.get("affiliation"))
-        if achado:
-            registro["pais"] = achado[0]
+        # Todos os paises do registro, nao so o do primeiro autor: e a
+        # colaboracao internacional que o mapa da producao mostra.
+        registro["paises"] = variaveis.paises_da_afiliacao(
+            registro.get("afiliacoes") or registro.get("affiliation"))
+        registro["pais"] = registro["paises"][0] if registro["paises"] else None
     return {"termo": termo, "pmids": pmids, "registros": registros}
 
 
@@ -57,8 +70,8 @@ def resumir(achado: dict[str, Any]) -> dict[str, Any]:
         revistas[chave] = revistas.get(chave, 0) + 1
     paises: dict[str, int] = {}
     for r in registros:
-        if r.get("pais"):
-            paises[r["pais"]] = paises.get(r["pais"], 0) + 1
+        for pais in r.get("paises") or ([r["pais"]] if r.get("pais") else []):
+            paises[pais] = paises.get(pais, 0) + 1
     return {
         "termo": achado["termo"],
         "encontrados": len(registros),
@@ -96,8 +109,17 @@ def importar(db: Database, achado: dict[str, Any], quem: str | None = None,
             "url": clean_text(registro.get("url")),
             "language": clean_text(registro.get("language")),
             "notes": clean_text(registro.get("abstract")),
+            "pmid": clean_text(registro.get("pmid")),
+            "pmc": clean_text(registro.get("pmc")),
+            "oa_url": clean_text(registro.get("oa_url")),
+            # PMC e texto completo livre. Nao e a definicao inteira de
+            # acesso aberto, mas e a parte que se pode afirmar daqui.
+            "open_access": 1 if registro.get("pmc") else None,
             "source": fonte,
         }, conflict=("title_key",), fill_only=True)
+        for pais in registro.get("paises") or []:
+            db.execute("INSERT OR IGNORE INTO article_countries (article_id, country)"
+                       " VALUES (?, ?)", (article_id, pais))
         if existia:
             ja_havia += 1
         else:
@@ -119,3 +141,31 @@ def importar(db: Database, achado: dict[str, Any], quem: str | None = None,
     db.conn.commit()
     return {"novos": novos, "ja_havia": ja_havia,
             "total": len(achado["registros"])}
+
+
+def trazer(db: Database, nome: str, afiliacao: str | None = None,
+           desde: int | None = None) -> dict[str, Any]:
+    """Busca e grava de uma vez -- o que o botao da tela chama."""
+    achado = buscar(nome, afiliacao, desde)
+    resumo_ = resumir(achado)
+    gravado = importar(db, achado, quem=nome)
+    return {"quem": nome, "resumo": resumo_, "gravado": gravado}
+
+
+def trazer_todos(db: Database, desde: int | None = None) -> dict[str, Any]:
+    """A producao de todo mundo da lista.
+
+    Uma pessoa falhar nao pode derrubar as outras: a rede cai no meio, e
+    quem ja entrou fica. O erro vira texto ao lado do nome, nao um 500.
+    """
+    from . import variaveis
+
+    saida = []
+    for pessoa in PESQUISADORES:
+        try:
+            saida.append(trazer(db, pessoa["nome"], pessoa.get("afiliacao"), desde))
+        except Exception as erro:  # noqa: BLE001 -- vira recado, nao rastreio
+            saida.append({"quem": pessoa["nome"], "erro": str(erro)})
+    variaveis.instalar(db)
+    marcadas = variaveis.marcar_artigos(db)
+    return {"pessoas": saida, "variaveis": marcadas}

@@ -37,8 +37,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Callable
 
-from . import (analise, auth, config, export, extracao, metrics, report, revisao,
-               variaveis, versao)
+from . import (analise, auth, config, export, extracao, ingest_autor, metrics,
+               report, revisao, variaveis, versao)
 from .db import Database
 from .util import to_int
 
@@ -1031,6 +1031,43 @@ def _artigos_do_panorama(db: Database) -> list[dict[str, Any]]:
     return artigos
 
 
+def route_producao(ctx: "Context") -> Any:
+    """Quem esta na lista para trazer das bases, e o que ja veio de la."""
+    auth.require(ctx.user, "leitura")
+    ja = {linha["nome"]: linha["n"] for linha in ctx.db.dicts(
+        "SELECT m.full_name AS nome, COUNT(*) AS n"
+        "  FROM article_authors aa JOIN members m ON m.id = aa.member_id"
+        "  JOIN articles a ON a.id = aa.article_id"
+        " WHERE a.source = 'pubmed' GROUP BY m.full_name")}
+    return {
+        "pesquisadores": [dict(p, ja_importados=ja.get(p["nome"], 0))
+                          for p in ingest_autor.PESQUISADORES],
+        "artigos_de_base": int(ctx.db.scalar(
+            "SELECT COUNT(*) FROM articles WHERE source = 'pubmed'") or 0),
+        "paises_marcados": int(ctx.db.scalar(
+            "SELECT COUNT(DISTINCT country) FROM article_countries") or 0),
+    }
+
+
+def route_producao_importar(ctx: "Context") -> Any:
+    """Traz a producao dos pesquisadores da lista, da PubMed.
+
+    Sincrono de proposito. Sao duas buscas e um punhado de segundos; uma
+    fila em segundo plano custaria estado, tela de progresso e um jeito
+    novo de falhar em silencio -- que e o que ja atrapalha aqui.
+    """
+    user = auth.require(ctx.user, "coordenacao")
+    desde = to_int((ctx.body or {}).get("desde"))
+    from . import hooks
+
+    resultado = ingest_autor.trazer_todos(ctx.db, desde=desde)
+    novos = sum(p.get("gravado", {}).get("novos", 0) for p in resultado["pessoas"])
+    hooks.emit(ctx.db, "producao.importada", entity="articles",
+               detail=f"{novos} artigo(s) novo(s) das bases públicas",
+               actor=user.get("full_name"))
+    return resultado
+
+
 def route_versao(ctx: "Context") -> Any:
     """Que codigo esta rodando, e quanta coisa nova espera do outro lado."""
     auth.require(ctx.user, "leitura")
@@ -1059,6 +1096,11 @@ def route_panorama(ctx: "Context") -> Any:
             "eventos": int(ctx.db.scalar("SELECT COUNT(*) FROM events") or 0),
         },
         "vocabulario": variaveis.lista(ctx.db),
+        # A tela precisa saber quem esta olhando para decidir se mostra o
+        # botao que grava. Quem so le nao ganha um botao que devolve 403.
+        "usuario": {"papel": (ctx.user or {}).get("user_role", "leitura"),
+                    "nome": (ctx.user or {}).get("full_name")},
+        "producao": route_producao(ctx),
     }
 
 
@@ -1114,6 +1156,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/agents/curator/?$", route_curator, "coordenacao"),
     ("GET", r"^/api/audit/?$", route_audit, "coordenacao"),
     ("GET", r"^/api/versao/?$", route_versao, "leitura"),
+    ("GET", r"^/api/producao/?$", route_producao, "leitura"),
+    ("POST", r"^/api/producao/importar/?$", route_producao_importar, "coordenacao"),
     ("GET", r"^/api/panorama/?$", route_panorama, "leitura"),
     ("POST", r"^/api/panorama/marcar/?$", route_panorama_marcar, "coordenacao"),
     ("GET", r"^/api/revisoes/?$", route_reviews, "leitura"),
@@ -1194,8 +1238,12 @@ class Handler(BaseHTTPRequestHandler):
     def _send(self, status: int, payload: Any, content_type: str = "application/json",
               extra_headers: list[tuple[str, str]] | None = None,
               cacheavel: bool = False) -> None:
-        body = (json.dumps(payload, ensure_ascii=False, default=str, indent=2).encode("utf-8")
-                if content_type == "application/json" else payload)
+        # Serializa o que ainda nao e texto. A regra antes era "o tipo do
+        # conteudo e application/json", e por isso um JSON ja pronto em
+        # disco -- o contorno do mundo -- so podia ser enviado mentindo o
+        # tipo, ou sendo reserializado com indentacao a cada visita.
+        body = (payload if isinstance(payload, (str, bytes))
+                else json.dumps(payload, ensure_ascii=False, default=str, indent=2))
         if isinstance(body, str):
             body = body.encode("utf-8")
         self.send_response(status)
@@ -1327,6 +1375,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._serve_page("convite.html")
         if method == "GET" and path == "/api/stream":
             return self._serve_stream()
+        if method == "GET" and path == "/api/geo/mundo.json":
+            return self._serve_mundo()
         if method == "GET" and path == "/favicon.ico":
             return self._send(200, FAVICON, "image/svg+xml", cacheavel=True)
         if method == "GET" and path == "/api/export/sqlite":
@@ -1459,6 +1509,19 @@ class Handler(BaseHTTPRequestHandler):
                                 (TEMPLATES / "triagem.js").read_text(encoding="utf-8"))
         html = html.replace("</body>", _marca_de_versao() + "\n</body>", 1)
         self._send(200, html, "text/html")
+
+    def _serve_mundo(self) -> None:
+        """O contorno dos paises, para o mapa da producao.
+
+        Sem login: e geografia, nao e dado do laboratorio. Fica fora da
+        pagina de proposito -- sao 70 KB que so a aba do mapa precisa, e
+        que nunca mudam, entao o navegador guarda e nao pede de novo.
+        """
+        arquivo = config.GEO_DIR / "mundo.json"
+        if not arquivo.exists():
+            return self._send(404, {"error": "mapa-múndi não encontrado"})
+        self._send(200, arquivo.read_text(encoding="utf-8"), "application/json",
+                   cacheavel=True)
 
     def _serve_database(self) -> None:
         db = Database(self.db_path)

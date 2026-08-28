@@ -115,6 +115,23 @@ class TestPaises(unittest.TestCase):
     def test_afiliacao_vazia(self):
         self.assertIsNone(variaveis.pais_da_afiliacao(None))
 
+    def test_todos_os_paises_do_bloco_de_afiliacoes(self):
+        # a PubMed manda uma afiliação por autor. Lendo só a primeira, um
+        # artigo Brasil-Noruega vira brasileiro e a colaboração some
+        achados = variaveis.paises_da_afiliacao(
+            "Lab, UDESC, Florianopolis, Brazil. | Faculty, Lisbon, Portugal."
+            " | Dept, Univ Oslo, Norway")
+        self.assertEqual(achados, ["Brasil", "Portugal", "Noruega"])
+
+    def test_o_mesmo_pais_nao_conta_duas_vezes(self):
+        achados = variaveis.paises_da_afiliacao(
+            "A, UDESC, Brazil. | B, USP, Brazil. | C, Porto, Portugal.")
+        self.assertEqual(achados, ["Brasil", "Portugal"])
+
+    def test_bloco_vazio_nao_inventa_pais(self):
+        self.assertEqual(variaveis.paises_da_afiliacao(None), [])
+        self.assertEqual(variaveis.paises_da_afiliacao("Rua sem nome, 42"), [])
+
     def test_todo_pais_tem_coordenada_plausivel(self):
         for chave, (rotulo, lat, lon) in variaveis.PAISES.items():
             with self.subTest(pais=rotulo):

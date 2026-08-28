@@ -29,11 +29,38 @@ FIXTURE = ROOT / "tests" / "fixtures" / "pubmed_lape.nbib"
 
 class TestTermoDeBusca(unittest.TestCase):
     def test_o_nome_vira_o_formato_da_pubmed(self):
-        # a PubMed indexa "Sobrenome Iniciais"; buscar pelo nome inteiro
-        # não acha nada, e o silêncio parece "esta pessoa não publicou"
-        self.assertEqual(sources.termo_de_autor("Alexandro Andrade"), "Andrade A[Author]")
+        # a PubMed indexa "Sobrenome Nome" e "Sobrenome Iniciais"; buscar
+        # "Alexandro Andrade" como está escrito não acha nada, e o
+        # silêncio parece "esta pessoa não publicou"
+        self.assertEqual(sources.termo_de_autor("Alexandro Andrade"),
+                         "Andrade Alexandro[Author]")
         self.assertEqual(sources.termo_de_autor("Guilherme Torres Vilarino"),
-                         "Vilarino GT[Author]")
+                         "Vilarino Guilherme[Author]")
+
+    def test_so_o_primeiro_nome_entra_na_forma_por_extenso(self):
+        # "Vilarino Guilherme Torres" exige que o registro traga o nome do
+        # meio; os que não trazem somem — some um décimo da produção
+        self.assertNotIn("Torres", sources.termo_de_autor("Guilherme Torres Vilarino"))
+
+    def test_sem_afiliacao_a_forma_abreviada_nao_e_usada_sozinha(self):
+        # "Andrade A[Author]" sem afiliação traz milhares de artigos de
+        # dezenas de pessoas, e a importação enche o banco de produção alheia
+        self.assertNotIn("Andrade A[Author]",
+                         sources.termo_de_autor("Alexandro Andrade"))
+
+    def test_com_afiliacao_os_dois_caminhos_valem(self):
+        # o nome por extenso acerta a pessoa mesmo quando ela assinou por
+        # outra instituição; o abreviado alcança os registros antigos
+        termo = sources.termo_de_autor("Alexandro Andrade", "UDESC")
+        self.assertIn("Andrade Alexandro[Author]", termo)
+        self.assertIn("Andrade A[Author] AND UDESC[Affiliation]", termo)
+
+    def test_o_recorte_de_data_vale_para_a_busca_toda(self):
+        # sem parênteses, o AND gruda só no último ramo do OR e o outro
+        # volta a produção inteira
+        termo = sources.termo_de_autor("Alexandro Andrade", "UDESC", 2006)
+        self.assertTrue(termo.startswith("("), termo)
+        self.assertIn(") AND (\"2006\"", termo)
 
     def test_a_afiliacao_entra_na_busca(self):
         termo = sources.termo_de_autor("Alexandro Andrade", "UDESC")
@@ -176,10 +203,91 @@ class TestImportacaoDaProducao(unittest.TestCase):
             self.db.scalar("SELECT journal FROM articles WHERE title LIKE 'Impact%'"),
             "Revista digitada à mão")
 
+    def test_o_pais_de_cada_coautor_e_gravado(self):
+        # um artigo Brasil-Portugal foi produzido nos dois. Lendo só a
+        # primeira afiliação ele vira brasileiro, e a colaboração
+        # internacional some justamente do mapa que existe para mostrá-la
+        for registro in self.achado["registros"]:
+            registro["paises"] = variaveis.paises_da_afiliacao(registro.get("afiliacoes"))
+        ingest_autor.importar(self.db, self.achado)
+        paises = {linha["country"] for linha in self.db.dicts(
+            "SELECT country FROM article_countries")}
+        self.assertIn("Brasil", paises)
+        self.assertIn("Portugal", paises)
+
+    def test_o_pais_alimenta_o_mapa(self):
+        from lape import analise
+        for registro in self.achado["registros"]:
+            registro["paises"] = variaveis.paises_da_afiliacao(registro.get("afiliacoes"))
+        ingest_autor.importar(self.db, self.achado)
+        # sem isto o mapa fica vazio até alguém ligar cada integrante à
+        # sua instituição, um por um -- e ninguém liga
+        nomes = {x["pais"]: x["n"] for x in analise.paises(self.db)["todos"]}
+        self.assertEqual(nomes.get("Brasil"), 3)
+        self.assertEqual(nomes.get("Portugal"), 1)
+
+    def test_o_identificador_da_base_vem_junto(self):
+        # sem PMID e PMC gravados, o clique no título leva ao resumo em
+        # vez do texto completo -- e a coluna do Excel sai vazia
+        registro = dict(self.achado["registros"][0], pmid="12345678", pmc="PMC7654321",
+                        oa_url="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7654321/")
+        ingest_autor.importar(self.db, {"termo": "t", "pmids": [], "registros": [registro]})
+        linha = self.db.dicts("SELECT pmid, pmc, oa_url, open_access FROM articles")[0]
+        self.assertEqual(linha["pmid"], "12345678")
+        self.assertEqual(linha["pmc"], "PMC7654321")
+        self.assertIn("PMC7654321", linha["oa_url"])
+        self.assertEqual(linha["open_access"], 1)
+
     def test_artigo_sem_titulo_e_ignorado(self):
         vazio = {"termo": "t", "pmids": [], "registros": [{"title": None, "year": 2020}]}
         resultado = ingest_autor.importar(self.db, vazio)
         self.assertEqual(resultado["novos"], 0)
+
+
+class TestListaDePesquisadores(unittest.TestCase):
+    """Quem o laboratório pediu para trazer das bases.
+
+    A busca certa é o resultado de conferir quantos artigos cada forma do
+    nome traz -- não é coisa de improvisar na hora, então fica escrita.
+    """
+
+    def test_os_dois_professores_estao_na_lista(self):
+        nomes = {p["nome"] for p in ingest_autor.PESQUISADORES}
+        self.assertIn("Alexandro Andrade", nomes)
+        self.assertIn("Guilherme Torres Vilarino", nomes)
+
+    def test_toda_pessoa_da_lista_tem_afiliacao(self):
+        # sem afiliação a busca traz produção alheia, e ninguém percebe
+        # até o painel ter o dobro de artigos
+        for pessoa in ingest_autor.PESQUISADORES:
+            with self.subTest(quem=pessoa["nome"]):
+                self.assertTrue(pessoa.get("afiliacao"))
+
+    def test_uma_falha_nao_derruba_as_outras(self):
+        # a rede cai no meio da segunda busca; quem já entrou tem de ficar
+        tmp = tempfile.TemporaryDirectory()
+        db = Database(Path(tmp.name) / "t.sqlite")
+        db.migrate()
+        original = ingest_autor.buscar
+        chamadas = []
+
+        def falso(nome, afiliacao=None, desde=None, limite=400):
+            chamadas.append(nome)
+            if len(chamadas) > 1:
+                raise RuntimeError("sem internet")
+            return {"termo": "t", "pmids": [],
+                    "registros": referencias.ler_nbib(FIXTURE.read_text(encoding="utf-8"))}
+
+        ingest_autor.buscar = falso
+        try:
+            resultado = ingest_autor.trazer_todos(db)
+        finally:
+            ingest_autor.buscar = original
+            db.close()
+            tmp.cleanup()
+        self.assertEqual(len(resultado["pessoas"]), len(ingest_autor.PESQUISADORES))
+        self.assertIn("erro", resultado["pessoas"][1])
+        self.assertEqual(resultado["pessoas"][0]["gravado"]["novos"], 3)
 
 
 class TestIdentificadores(unittest.TestCase):

@@ -329,17 +329,21 @@ def cmd_autor(args: argparse.Namespace) -> int:
     from lape import ingest_autor, variaveis
 
     nomes = [n.strip() for n in args.nomes if n.strip()]
+    afiliacao = args.afiliacao
     if not nomes:
-        print("Informe ao menos um nome. Exemplo:")
-        print('  python3 scripts/lape_agent.py autor "Alexandro Andrade" '
-              '--afiliacao UDESC --conferir')
-        return 1
+        # Sem nome, vale a lista que o laboratorio ja pediu -- e o caso
+        # comum. Errar aqui era pedir para a pessoa digitar de novo o que
+        # o sistema ja sabe.
+        nomes = [p["nome"] for p in ingest_autor.PESQUISADORES]
+        afiliacao = afiliacao or ingest_autor.PESQUISADORES[0].get("afiliacao")
+        print("Sem nome informado: trazendo quem está na lista do laboratório —")
+        print("  " + ", ".join(nomes))
 
     achados = []
     for nome in nomes:
         print(f"\nProcurando {nome}…")
         try:
-            achado = ingest_autor.buscar(nome, args.afiliacao, args.desde, args.limite)
+            achado = ingest_autor.buscar(nome, afiliacao, args.desde, args.limite)
         except Exception as exc:
             print(f"  ! não consegui buscar ({type(exc).__name__}: {exc})")
             print("    a busca sai desta máquina para a PubMed — confira a internet")

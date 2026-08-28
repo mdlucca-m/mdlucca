@@ -461,6 +461,21 @@ def pais_da_afiliacao(afiliacao: Any) -> tuple[str, float, float] | None:
     return None
 
 
+def paises_da_afiliacao(texto: Any) -> list[str]:
+    """Todos os paises de um bloco de afiliacoes, sem repetir.
+
+    A PubMed manda uma afiliacao por autor. Ler so a primeira faz um
+    artigo Brasil-Noruega contar como so brasileiro -- e a colaboracao
+    internacional some justamente do mapa que existe para mostra-la.
+    """
+    achados: list[str] = []
+    for pedaco in re.split(r"\s*\|\s*", clean_text(texto) or ""):
+        achado = pais_da_afiliacao(pedaco)
+        if achado and achado[0] not in achados:
+            achados.append(achado[0])
+    return achados
+
+
 def marcar_paises(db: Database, review_id: int) -> dict[str, int]:
     """Preenche o pais das referencias que trouxeram afiliacao."""
     achados = 0

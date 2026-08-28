@@ -150,6 +150,10 @@ def ler_nbib(texto: str) -> list[dict[str, Any]]:
         registro["authors"] = "; ".join(
             _todos(pares, ("FAU",)) or _todos(pares, ("AU",)))[:4000] or None
         registro["keywords"] = "; ".join(_todos(pares, ("MH", "OT"))) or None
+        # AD se repete: uma linha por autor. Guardar so a primeira faz um
+        # artigo Brasil-Noruega parecer so brasileiro -- e o mapa da
+        # producao e feito exatamente desses paises.
+        registro["afiliacoes"] = " | ".join(_todos(pares, ("AD",))) or None
         # o DOI vem escondido: `LID - 10.1016/x [doi]` ou `AID - 10.1016/x [doi]`
         registro["doi"] = None
         for etiqueta, valor in pares:

@@ -137,6 +137,63 @@ class TestRotaDoPanorama(BasePanorama):
                 self.assertIsNotNone(v["porque"])
 
 
+class TestMapaMundiServido(BasePanorama):
+    """O contorno do mundo é servido à parte da página, e guardado."""
+
+    def test_o_contorno_sai_sem_login(self):
+        # é geografia, não é dado do laboratório
+        status, cab, corpo = self.buscar("/api/geo/mundo.json", cru=True)
+        self.assertEqual(status, 200)
+        self.assertIn("application/json", cab.get("Content-Type", ""))
+        self.assertGreater(len(json.loads(corpo)["paises"]), 120)
+
+    def test_o_contorno_e_guardado_pelo_navegador(self):
+        # 70 KB que nunca mudam; sem cache, viajam a cada visita à aba
+        _, cab, _ = self.buscar("/api/geo/mundo.json", cru=True)
+        self.assertIn("max-age", cab.get("Cache-Control", ""))
+
+    def test_o_contorno_nao_e_reserializado(self):
+        # a regra era "o tipo é application/json, então serialize": um
+        # JSON já pronto em disco só passava mentindo o tipo, ou inchado
+        # com indentação a cada visita
+        _, _, corpo = self.buscar("/api/geo/mundo.json", cru=True)
+        self.assertNotIn(b'\n  ', corpo[:400])
+
+
+class TestProducaoDasBases(BasePanorama):
+    """O botão que traz a produção sem ninguém abrir um terminal."""
+
+    def setUp(self):
+        self.ana = self.entrar("ana@udesc.br")
+        self.curioso = self.entrar("curioso@udesc.br")
+
+    def test_a_lista_de_quem_trazer_esta_na_rota(self):
+        _, _, dados = self.buscar("/api/producao", self.ana)
+        nomes = {p["nome"] for p in dados["pesquisadores"]}
+        self.assertIn("Alexandro Andrade", nomes)
+        self.assertIn("Guilherme Torres Vilarino", nomes)
+
+    def test_o_painel_ja_chega_com_ela(self):
+        # sem isso a aba precisaria de uma segunda viagem só para o botão
+        _, _, dados = self.buscar("/api/panorama", self.ana)
+        self.assertIn("producao", dados)
+        self.assertIn("usuario", dados)
+
+    def test_quem_so_le_nao_ve_botao_que_grava(self):
+        # o botão que devolve 403 é pior que botão nenhum
+        _, _, dados = self.buscar("/api/panorama", self.curioso)
+        self.assertEqual(dados["usuario"]["papel"], "leitura")
+
+    def test_importar_e_da_coordenacao(self):
+        pedido = urllib.request.Request(
+            f"http://127.0.0.1:{self.port}/api/producao/importar",
+            data=b"{}", headers={"Content-Type": "application/json",
+                                 "Cookie": self.curioso}, method="POST")
+        with self.assertRaises(urllib.error.HTTPError) as caso:
+            urllib.request.urlopen(pedido, timeout=30)
+        self.assertEqual(caso.exception.code, 403)
+
+
 class TestExportacaoDaExtracao(BasePanorama):
     def setUp(self):
         self.ana = self.entrar("ana@udesc.br")
@@ -346,25 +403,58 @@ class TestPecasNovasDaTela(unittest.TestCase):
         self.assertIn("LON0 = -180", corpo)
         self.assertIn("LON1 = 180", corpo)
 
-    def test_o_contorno_do_mundo_e_plausivel(self):
-        graficos = self.js("charts.js")
-        bloco = graficos[graficos.index("const TERRA = ["):graficos.index("function mapaMundi")]
-        pares = [(float(a), float(b)) for a, b in
-                 re.findall(r"\[(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)\]", bloco)]
-        self.assertGreater(len(pares), 150, "contorno pobre demais para reconhecer o mundo")
-        for lon, lat in pares:
-            self.assertTrue(-180 <= lon <= 180, f"longitude fora do mundo: {lon}")
-            self.assertTrue(-90 <= lat <= 90, f"latitude fora do mundo: {lat}")
+    def test_o_contorno_do_mundo_e_de_verdade(self):
+        # antes eram dez manchas desenhadas à mão. Continente irreconhecível
+        # com bolhas espetadas em cima não diz de onde vem a produção
+        mundo = json.loads((ROOT / "data" / "geo" / "mundo.json")
+                           .read_text(encoding="utf-8"))["paises"]
+        self.assertGreater(len(mundo), 120, "poucos países para um mapa-múndi")
+        pontos = 0
+        for pais in mundo:
+            self.assertTrue(pais["id"] and pais["nome"], pais)
+            for anel in pais["d"]:
+                self.assertGreaterEqual(len(anel), 4, f"anel degenerado em {pais['nome']}")
+                for lon, lat in anel:
+                    self.assertTrue(-180 <= lon <= 180, f"{pais['nome']}: longitude {lon}")
+                    self.assertTrue(-90 <= lat <= 90, f"{pais['nome']}: latitude {lat}")
+                pontos += len(anel)
+        self.assertGreater(pontos, 3000, "contorno pobre demais para reconhecer o mundo")
 
-    def test_todo_continente_esperado_esta_no_contorno(self):
+    def test_todo_pais_esperado_esta_no_contorno(self):
         # apaguei a África sem querer ao trocar a Eurásia, e o mapa seguiu
         # desenhando sem reclamar de nada
+        mundo = json.loads((ROOT / "data" / "geo" / "mundo.json")
+                           .read_text(encoding="utf-8"))["paises"]
+        nomes = {p["nome"] for p in mundo}
+        for pais in ("Brasil", "Portugal", "Estados Unidos", "Espanha", "Austrália",
+                     "China", "Reino Unido", "Noruega", "Canadá", "Nigéria",
+                     "Índia", "Nova Zelândia"):
+            with self.subTest(pais=pais):
+                self.assertIn(pais, nomes)
+
+    def test_o_contorno_cabe_numa_visita(self):
+        # é servido à parte da página e guardado pelo navegador; ainda
+        # assim, meio megabyte de litoral por causa de cinco países seria
+        # pagar caro por detalhe que ninguém vê
+        tamanho = (ROOT / "data" / "geo" / "mundo.json").stat().st_size
+        self.assertLess(tamanho, 200 * 1024, "contorno pesado demais")
+
+    def test_a_cor_do_pais_e_o_valor(self):
+        # bolha espetada em cima do país não é escala: o coroplético diz
+        # magnitude com um tom só, do claro ao escuro
         graficos = self.js("charts.js")
-        bloco = graficos[graficos.index("const TERRA = ["):graficos.index("function mapaMundi")]
-        for continente in ("America do Sul", "America do Norte", "África", "Eurásia",
-                           "Oceania"):
-            with self.subTest(continente=continente):
-                self.assertIn(continente, bloco)
+        corpo = graficos[graficos.index("function mapaMundi(spec)"):]
+        corpo = corpo[:corpo.index("\n  }\n")]
+        self.assertIn("PASSOS_MAPA", corpo)
+        self.assertNotIn("serie(", corpo, "cor de série é identidade, não magnitude")
+        passos = graficos[graficos.index("const PASSOS_MAPA"):]
+        passos = passos[:passos.index("\n")]
+        self.assertNotIn("--series-", passos, "a escala tem de sair da rampa sequencial")
+
+    def test_a_escala_do_mapa_vem_com_legenda(self):
+        graficos = self.js("charts.js")
+        self.assertIn("legendaDoMapa", graficos)
+        self.assertIn("sem registro", graficos)
 
     def test_o_mapa_esta_exposto_pela_biblioteca(self):
         graficos = self.js("charts.js")

@@ -405,15 +405,34 @@ def termo_de_autor(nome: str, afiliacao: str | None = None,
     A afiliacao nao e enfeite: "Andrade A" sozinho traz milhares de
     artigos de dezenas de pessoas diferentes. Sem ela, a importacao enche
     o banco de producao alheia.
+
+    Desde 2002 a PubMed tambem indexa o nome por extenso, e "Andrade
+    Alexandro[Author]" acerta a pessoa sem depender de afiliacao nenhuma
+    -- inclusive nos artigos em que ela assinou por outra instituicao.
+    Como nem todo registro tem o nome por extenso, os dois caminhos vao
+    unidos: nome inteiro OU (abreviado E afiliacao).
+
+    So o PRIMEIRO nome entra na forma por extenso. Incluir o nome do meio
+    exige que o registro tambem o traga, e os que nao trazem somem da
+    busca (com "Vilarino Guilherme Torres" some um decimo da producao).
     """
     pedacos = [p for p in clean_text(nome).split() if p]
     sobrenome = pedacos[-1] if pedacos else ""
     iniciais = "".join(p[0] for p in pedacos[:-1]).upper()
-    termo = f"{sobrenome} {iniciais}[Author]" if iniciais else f"{sobrenome}[Author]"
-    if afiliacao:
-        termo += f" AND {clean_text(afiliacao)}[Affiliation]"
+    abreviado = f"{sobrenome} {iniciais}[Author]" if iniciais else f"{sobrenome}[Author]"
+    inteiro = f"{sobrenome} {pedacos[0]}[Author]" if iniciais else None
+    if not afiliacao:
+        # Sem afiliacao, o abreviado sozinho traz gente demais -- entao,
+        # havendo nome de batismo, so ele vale.
+        termo = inteiro or abreviado
+    else:
+        comAfiliacao = f"{abreviado} AND {clean_text(afiliacao)}[Affiliation]"
+        termo = f"{inteiro} OR ({comAfiliacao})" if inteiro else comAfiliacao
     if desde:
-        termo += f' AND ("{desde}"[Date - Publication] : "3000"[Date - Publication])'
+        janela = f'("{desde}"[Date - Publication] : "3000"[Date - Publication])'
+        # Sem os parenteses em volta, o recorte de data grudaria so no
+        # ultimo ramo do OR e o outro voltaria a producao inteira.
+        termo = f"({termo}) AND {janela}"
     return termo
 
 

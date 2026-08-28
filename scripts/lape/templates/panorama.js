@@ -321,11 +321,70 @@ function mediaVariaveis() {
 /* ==================================================================== */
 /* 2. o laboratório: linha do tempo que abre em organograma             */
 /* ==================================================================== */
+/* O Lattes exige captcha e só sai do navegador -- não há como um programa
+   buscá-lo. A mesma produção sai da PubMed por programa, e com o que o
+   Lattes não tem: DOI conferido, resumo, e a afiliação que vira o país no
+   mapa. Este botão existe para que trazer isso não dependa de ninguém
+   abrir um terminal. */
+function cartaoDaProducao() {
+  const prod = D.producao || {};
+  const podeGravar = ["coordenacao", "admin"]
+    .indexOf(((D.usuario || {}).papel) || "leitura") >= 0;
+  const corpo = el("div", {});
+
+  corpo.appendChild(el("div", { class: "selos", style: "margin-bottom:10px" },
+    (prod.pesquisadores || []).map(function (p) {
+      return el("span", { class: "selo-var", style: "--tom:" + C.token("--series-1"),
+        title: p.papel || "" }, [
+        Icons.get("pessoa", 12),
+        el("span", { text: p.nome + (p.ja_importados ? " · " + p.ja_importados : "") }),
+      ]);
+    })));
+
+  const estado = el("p", { class: "hint", text: prod.artigos_de_base
+    ? prod.artigos_de_base + " artigo(s) já vieram das bases, em "
+      + (prod.paises_marcados || 0) + " país(es)."
+    : "Nada foi trazido das bases ainda." });
+  corpo.appendChild(estado);
+
+  if (!podeGravar) {
+    corpo.appendChild(el("p", { class: "hint", style: "margin-top:8px",
+      text: "Quem traz a produção é a coordenação." }));
+    return corpo;
+  }
+
+  const botao = el("button", { class: "botao-destino", style: "margin-top:10px" },
+    [Icons.get("baixar", 15), el("span", { text: "Trazer a produção da PubMed" })]);
+  botao.onclick = async function () {
+    botao.disabled = true;
+    estado.textContent = "Procurando na PubMed… isto leva alguns segundos.";
+    try {
+      const r = await api("/api/producao/importar", "POST", {});
+      const linhas = (r.pessoas || []).map(function (p) {
+        if (p.erro) return p.quem + ": " + p.erro;
+        return p.quem + ": " + p.gravado.novos + " novo(s), "
+          + p.gravado.ja_havia + " já estava(m)";
+      });
+      estado.textContent = linhas.join(" · ");
+      await recarregar();
+    } catch (erro) {
+      estado.textContent = "Não deu: " + erro.message;
+    } finally { botao.disabled = false; }
+  };
+  corpo.appendChild(botao);
+  return corpo;
+}
+
 function verLaboratorio(palco) {
   const lab = D.laboratorio || {};
   palco.appendChild(cabeca("instituicao", lab.nome || "O laboratório",
     "A história da produção, ano a ano. Clique num ano para abrir o que foi feito "
     + "nele e as variáveis que apareceram junto."));
+
+  palco.appendChild(cartao("baixar", "Produção nas bases públicas",
+    "O Lattes pede captcha e só sai do navegador. A PubMed entrega a mesma "
+    + "produção por programa — com DOI, resumo e a afiliação que preenche o mapa.",
+    cartaoDaProducao()));
 
   palco.appendChild(el("div", { class: "grade g3" }, (D.linhas || []).map(function (l) {
     return el("div", { class: "cartao" }, [
@@ -717,35 +776,67 @@ function verRede(palco) {
 /* ==================================================================== */
 /* 6. mapa                                                              */
 /* ==================================================================== */
+/* O contorno do mundo é grande demais para viajar em toda visita: só é
+   buscado quando alguém abre esta aba, e uma vez só. */
+let mundoPedido = false;
+function pedirMundo() {
+  if (mundoPedido) return;
+  mundoPedido = true;
+  fetch("/api/geo/mundo.json")
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (dados) {
+      D.mundo = (dados || {}).paises || [];
+      if (ST.aba === "mapa") desenhar();
+    })
+    .catch(function () { mundoPedido = false; });
+}
+
 function verMapa(palco) {
   const paises = ((D.panorama || {}).paises) || { top: [], todos: [] };
+  pedirMundo();
   palco.appendChild(cabeca("mapa", "Mapa da produção",
-    "De onde vem a produção: o país da instituição de quem assina cada artigo."));
+    "De onde vem a produção: o país de quem assina cada artigo — a instituição "
+    + "no cadastro, ou a afiliação que veio junto com o artigo da base. "
+    + "A cor do país é a quantidade de artigos — quanto mais forte, mais produção."));
+
+  const valores = {};
+  (paises.todos || []).forEach(function (x) { valores[x.pais] = x.n; });
 
   if (!paises.todos.length) {
     palco.appendChild(nota("<b>Nenhum país para mostrar ainda.</b> O artigo não carrega "
-      + "país — quem carrega é a instituição de quem assina. Assim que os integrantes e "
-      + "coautores externos estiverem ligados às suas instituições na "
-      + "<a href='/app#perfil'>Área do integrante</a>, as bolhas aparecem sozinhas."));
-    palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
-      "mapa", "O mundo, à espera dos dados",
-      "O mapa fica aqui pronto; o que falta é a instituição de cada coautor.",
-      C.mapaMundi({ points: [], height: 440,
-        emptyMessage: "Nenhum país registrado ainda." }))));
-    return;
+      + "país — quem carrega é quem assina. Há dois caminhos, e os dois valem: "
+      + "trazer a produção das bases públicas, que vem com a afiliação de cada autor "
+      + "(o botão está em <a href='#laboratorio'>O laboratório</a>), ou ligar cada "
+      + "integrante à sua instituição na <a href='/app#perfil'>Área do integrante</a>."));
+  } else {
+    palco.appendChild(el("div", { class: "grade g4" },
+      paises.top.map(function (x, i) {
+        /* "0 instituição(ões)" não é informação: quando o país veio da
+           afiliação do artigo, e não do cadastro, não há instituição
+           ligada — e dizer zero parece defeito. */
+        const pe = x.instituicoes.length
+          ? x.instituicoes.length + " instituição(ões)"
+          : (i === 0 ? x.pais : "artigos com autor daqui");
+        return indicador(i === 0 ? "País mais produtivo" : x.pais, x.n, pe, "mapa"); })));
   }
-  palco.appendChild(el("div", { class: "grade g4" },
-    paises.top.map(function (x, i) {
-      return indicador(i === 0 ? "País mais produtivo" : x.pais, x.n,
-        x.instituicoes.length + " instituição(ões)", "mapa"); })));
+
   palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
-    "mapa", "Os cinco mais produtivos",
+    "mapa", paises.todos.length ? "Onde a produção acontece" : "O mundo, à espera dos dados",
     "Um artigo com autores de dois países conta para os dois — foi produzido nos dois.",
-    C.mapaMundi({ points: paises.top.filter(function (x) { return x.latitude !== null; })
-      .map(function (x, i) {
-        return { label: x.pais, lat: x.latitude, lon: x.longitude, value: x.n,
-                 color: C.token("--series-" + ((i % 8) + 1)) }; }),
-      height: 440, unit: "artigo(s)", file: "mapa-producao" }))));
+    C.mapaMundi({
+      world: D.mundo || [],
+      values: valores,
+      unit: "artigos",
+      file: "mapa-producao",
+      emptyMessage: "Nenhum país registrado ainda.",
+      emptyHint: "Falta ligar cada coautor à instituição dele.",
+      onSelect: function (nome) { ST.busca = nome; ST.aba = "extracao"; desenhar(); },
+      table: paises.todos.length ? {
+        cols: ["País", "Artigos", "Instituições"],
+        rows: paises.todos.map(function (x) {
+          return [x.pais, x.n, x.instituicoes.join("; ")]; }),
+      } : null,
+    }))));
 }
 
 /* ==================================================================== */

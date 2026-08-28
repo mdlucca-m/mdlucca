@@ -356,13 +356,22 @@ def paises(db: Database) -> dict[str, Any]:
         "  JOIN members m ON m.id = aa.member_id"
         "  JOIN institutions i ON i.id = m.institution_id"
         " WHERE i.country IS NOT NULL")
+    # A afiliacao que veio com o artigo das bases publicas conta igual: e
+    # a mesma pergunta ("de onde saiu isto"), respondida por quem assinou
+    # em vez de pelo cadastro. Sem ela o mapa fica vazio ate alguem ligar
+    # os dezessete integrantes as suas instituicoes, um por um.
+    linhas += db.dicts(
+        "SELECT ac.article_id, NULL AS instituicao, ac.country,"
+        "       NULL AS latitude, NULL AS longitude"
+        "  FROM article_countries ac")
     por_pais: dict[str, dict[str, Any]] = {}
     for linha in linhas:
         item = por_pais.setdefault(linha["country"], {
             "pais": linha["country"], "artigos": set(), "instituicoes": set(),
             "latitude": linha["latitude"], "longitude": linha["longitude"]})
         item["artigos"].add(linha["article_id"])
-        item["instituicoes"].add(linha["instituicao"])
+        if linha["instituicao"]:
+            item["instituicoes"].add(linha["instituicao"])
         if item["latitude"] is None and linha["latitude"] is not None:
             item["latitude"], item["longitude"] = linha["latitude"], linha["longitude"]
 
