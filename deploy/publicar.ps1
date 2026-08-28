@@ -53,6 +53,10 @@
 .EXAMPLE
   # subir sem procurar atualizacao (internet ruim, ou quero o codigo de agora)
   .\deploy\publicar.ps1 -SemAtualizar
+
+.EXAMPLE
+  # atualizou mesmo? qual versao esta rodando, e tem coisa nova esperando?
+  .\deploy\publicar.ps1 -Versao
 #>
 param(
   [int]$Porta = 8000,
@@ -65,7 +69,8 @@ param(
   [switch]$Endereco,
   [switch]$AoLigar,
   [switch]$NaoAoLigar,
-  [switch]$SemAtualizar
+  [switch]$SemAtualizar,
+  [switch]$Versao
 )
 
 $ErrorActionPreference = "Stop"
@@ -174,6 +179,57 @@ if ($Endereco) {
   Write-Host ""
   exit 0
 }
+# "Nao atualizou" e uma frase sem resposta possivel: a versao velha e a nova
+# sao iguais na tela. Aqui a pergunta vira numero -- que commit esta no
+# disco, quantos existem no servidor esperando, e o que estaria impedindo.
+function Mostrar-Versao {
+  $antigoEA = $ErrorActionPreference
+  $ErrorActionPreference = "Continue"
+  try {
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+      Aviso "git nao encontrado: nao da para saber a versao."
+      return
+    }
+    $ramo   = & git rev-parse --abbrev-ref HEAD 2>$null
+    $commit = & git log -1 --format="%h  %cs  %s" 2>$null
+    Write-Host ""
+    Verde "  No disco: $commit"
+    Write-Host "  Ramo:     $ramo"
+    Azul  "  Perguntando ao servidor..."
+    & git fetch --quiet 2>&1 | Out-Null
+    # O ramo de trabalho pode acompanhar outro ramo do servidor, ou
+    # nenhum. Perguntar sempre por origin/<ramo> respondia "sem internet"
+    # a quem so estava fora do main -- que e justamente quem mais precisa
+    # da resposta certa.
+    $alvo = & git rev-parse --abbrev-ref --symbolic-full-name "@{upstream}" 2>$null
+    if ($LASTEXITCODE -ne 0 -or -not $alvo) { $alvo = "origin/main" }
+    $atras = & git rev-list --count "HEAD..$alvo" 2>$null
+    Write-Host ""
+    if ("$atras" -match '^\d+$' -and [int]$atras -gt 0) {
+      Aviso "Ha $atras mudanca(s) esperando. Motivo de nao terem entrado:"
+      if ($ramo -ne "main" -and $ramo -ne "master") {
+        Write-Host "  - voce esta no ramo '$ramo', e a atualizacao automatica so roda no main."
+        Write-Host "    Para trazer:  git checkout main; git pull"
+      } elseif (& git status --porcelain -- . ':(exclude)data' 2>$null) {
+        Write-Host "  - ha alteracao local no codigo -- nada e sobrescrito sem voce mandar:"
+        & git status --short -- . ':(exclude)data' 2>$null |
+          ForEach-Object { Write-Host "      $_" }
+        Write-Host "    Para descartar e trazer:  git checkout -- . ; git pull"
+      } else {
+        Write-Host "  - nada impede. Rode de novo:  .\deploy\publicar.ps1"
+      }
+    } elseif ("$atras" -match '^\d+$') {
+      Verde "  Esta na versao mais nova. Se a tela nao mudou, e o navegador:"
+      Write-Host "    recarregue segurando Ctrl (Ctrl+F5)."
+    } else {
+      Aviso "Nao consegui falar com o servidor (sem internet?)."
+    }
+    Write-Host ""
+  } finally { $ErrorActionPreference = $antigoEA }
+}
+
+if ($Versao) { Mostrar-Versao; exit 0 }
+
 New-Item -ItemType Directory -Force -Path $Exec | Out-Null
 
 # ------------------------------------------------------------ 0. atualizacao
@@ -235,6 +291,10 @@ function Atualizar-Codigo {
       $ultima = & git log -1 --pretty=%s 2>$null
       if ($ultima) { Write-Host "  a mais recente: $ultima" }
     }
+    # dito sempre, atualizando ou nao: e assim que se confere de fora se o
+    # que subiu e o que se esperava
+    $agora = & git log -1 --format="%h  %cs  %s" 2>$null
+    if ($agora) { Write-Host "  no ar: $agora" }
   } finally {
     $ErrorActionPreference = $antigoEA
   }
@@ -248,9 +308,9 @@ foreach ($c in @("python", "python3", "py")) {
   if ($achado) { $Python = $achado.Source; break }
 }
 if (-not $Python) { Erro "Python nao encontrado. Instale em python.org e marque 'Add to PATH'." }
-$versao = & $Python -c "import sys; print('%d.%d' % sys.version_info[:2])"
-if ([version]$versao -lt [version]"3.9") { Erro "E preciso Python 3.9 ou mais novo (achei $versao)." }
-Verde "Python $versao"
+$versaoPython = & $Python -c "import sys; print('%d.%d' % sys.version_info[:2])"
+if ([version]$versaoPython -lt [version]"3.9") { Erro "E preciso Python 3.9 ou mais novo (achei $versaoPython)." }
+Verde "Python $versaoPython"
 
 # --------------------------------------------------------------- 2. cloudflared
 $CF = Join-Path $Exec "cloudflared.exe"

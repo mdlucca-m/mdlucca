@@ -22,6 +22,7 @@
 #   --endereco          diz qual é o endereço que está no ar agora
 #   --parar             encerra o que este script deixou rodando
 #   --sem-atualizar     não procura atualizações antes de subir
+#   --versao            qual versão está rodando, e o que espera do outro lado
 #
 # Escolhido o modo uma vez, ele fica gravado: nas próximas vezes basta rodar
 # o script sem opção nenhuma.
@@ -54,7 +55,8 @@ while [[ $# -gt 0 ]]; do
     --endereco) mostrar_endereco=1; shift ;;
     --parar) parar_tudo=1; shift ;;
     --sem-atualizar) SEM_ATUALIZAR=1; shift ;;
-    -h|--help) sed -n '2,25p' "$0"; exit 0 ;;
+    --versao) VER_VERSAO=1; shift ;;
+    -h|--help) sed -n '2,26p' "$0"; exit 0 ;;
     *) erro "opção desconhecida: $1" ;;
   esac
 done
@@ -152,7 +154,53 @@ atualizar_codigo() {
     ultima="$(git -C "$RAIZ" log -1 --pretty=%s 2>/dev/null || true)"
     [[ -n "$ultima" ]] && echo "  a mais recente: $ultima"
   fi
+  # dito sempre, atualizando ou não: é assim que se confere de fora se o
+  # que subiu é o que se esperava
+  echo "  no ar: $(git -C "$RAIZ" log -1 --format='%h  %cs  %s' 2>/dev/null)"
 }
+
+# "Não atualizou" é uma frase sem resposta possível: a versão velha e a nova
+# são iguais na tela. Aqui a pergunta vira número -- que commit está no
+# disco, quantos existem no servidor esperando, e o que estaria impedindo.
+mostrar_versao() {
+  command -v git >/dev/null || { aviso "git não encontrado: não dá para saber a versão."; return 0; }
+  local ramo atras alvo
+  ramo="$(git -C "$RAIZ" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+  echo
+  verde "  No disco: $(git -C "$RAIZ" log -1 --format='%h  %cs  %s' 2>/dev/null)"
+  echo   "  Ramo:     ${ramo:-?}"
+  azul   "  Perguntando ao servidor…"
+  git -C "$RAIZ" fetch --quiet 2>/dev/null || true
+  # O ramo de trabalho pode acompanhar outro ramo do servidor, ou nenhum.
+  # Perguntar sempre por origin/<ramo> respondia "sem internet" a quem só
+  # estava fora do main -- que é justamente quem mais precisa da resposta.
+  alvo="$(git -C "$RAIZ" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || true)"
+  [[ -n "$alvo" ]] || alvo="origin/main"
+  atras="$(git -C "$RAIZ" rev-list --count "HEAD..$alvo" 2>/dev/null || true)"
+  echo
+  if [[ "$atras" =~ ^[0-9]+$ && "$atras" -gt 0 ]]; then
+    aviso "Há $atras mudança(s) esperando. Motivo de não terem entrado:"
+    if [[ "$ramo" != "main" && "$ramo" != "master" ]]; then
+      echo "  · você está no ramo '$ramo', e a atualização automática só roda no main."
+      echo "    Para trazer:  git checkout main && git pull"
+    elif [[ -n "$(git -C "$RAIZ" status --porcelain -- . ':(exclude)data' 2>/dev/null)" ]]; then
+      echo "  · há alteração local no código -- nada é sobrescrito sem você mandar:"
+      git -C "$RAIZ" status --short -- . ':(exclude)data' 2>/dev/null | sed 's/^/      /'
+      echo "    Para descartar e trazer:  git checkout -- . && git pull"
+    else
+      echo "  · nada impede. Rode de novo:  bash deploy/publicar.sh"
+    fi
+  elif [[ "$atras" =~ ^[0-9]+$ ]]; then
+    verde "  Está na versão mais nova. Se a tela não mudou, é o navegador:"
+    echo   "    recarregue segurando Ctrl (Ctrl+F5)."
+  else
+    aviso "Não consegui falar com o servidor (sem internet?)."
+  fi
+  echo
+}
+
+if [[ "${VER_VERSAO:-0}" == 1 ]]; then mostrar_versao; exit 0; fi
+
 atualizar_codigo
 
 # ------------------------------------------------------------------ 1. Python

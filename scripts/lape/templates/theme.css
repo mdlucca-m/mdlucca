@@ -557,9 +557,19 @@ svg.plot.tree .tick { font-size: 11px; }
 .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
 .toast.erro { border-left-color: var(--critical); }
 
+/* Qual versao esta no ar. Discreta ate alguem procurar por ela -- que e
+   exatamente quando "sera que atualizou?" aparece. */
+.marca-versao { position: fixed; left: 10px; bottom: 8px; z-index: 90;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .02em;
+  color: var(--ink-muted); background: var(--surface);
+  border: 1px solid var(--border); border-radius: 99px; padding: 3px 10px;
+  opacity: .38; transition: opacity .16s; pointer-events: auto;
+  user-select: all; cursor: default; }
+.marca-versao:hover { opacity: 1; }
+
 @media print {
   body { background: #fff; }
-  .no-print { display: none !important; }
+  .no-print, .marca-versao { display: none !important; }
   .card, .tw, .kpi { box-shadow: none; break-inside: avoid; }
   .card::before, .kpi::before { display: none; }
   section { break-inside: avoid; page-break-inside: avoid; }

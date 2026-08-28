@@ -140,7 +140,8 @@ class TestBash(unittest.TestCase):
         pronto = subprocess.run(["bash", str(SH), "--help"],
                                 capture_output=True, text=True, cwd=ROOT)
         self.assertEqual(pronto.returncode, 0, pronto.stderr)
-        for opcao in ("--fixo", "--permanente", "--dominio", "--endereco", "--parar"):
+        for opcao in ("--fixo", "--permanente", "--dominio", "--endereco", "--parar",
+                      "--versao"):
             self.assertIn(opcao, pronto.stdout, f"{opcao} nao aparece na ajuda")
 
 
@@ -296,6 +297,83 @@ class TestAtualizacaoSozinha(unittest.TestCase):
             self.assertIn(trecho, sh, f"trava ausente no publicar.sh: {trecho}")
 
 
+class TestRelatorioDeVersao(unittest.TestCase):
+    """`--versao` responde "atualizou?" sem ninguem precisar ler git.
+
+    A resposta util nao e o commit: e o numero de mudancas esperando e o
+    motivo de nao terem entrado. Sem o motivo, quem esta no laboratorio
+    so sabe que nao atualizou -- que e onde a conversa ja estava.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.base = Path(self.tmp.name)
+        self.origem = self.base / "origem"
+        self.copia = self.base / "copia"
+        self.git("init", "--initial-branch=main", str(self.origem), cwd=self.base)
+        (self.origem / "a.txt").write_text("um\n", encoding="utf-8")
+        self.git("add", "-A", cwd=self.origem)
+        self.commit("primeiro", cwd=self.origem)
+        self.git("clone", str(self.origem), str(self.copia), cwd=self.base)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def git(self, *args, cwd):
+        return subprocess.run(["git", *args], cwd=str(cwd), capture_output=True,
+                              text=True, check=True)
+
+    def commit(self, mensagem, cwd):
+        return self.git("-c", "user.email=teste@lape", "-c", "user.name=Teste",
+                        "commit", "-m", mensagem, cwd=cwd)
+
+    def novidade_no_servidor(self):
+        (self.origem / "a.txt").write_text("dois\n", encoding="utf-8")
+        self.git("add", "-A", cwd=self.origem)
+        self.commit("segundo", cwd=self.origem)
+
+    def rodar(self):
+        script = (
+            "set -u\n"
+            "azul(){ printf '%s\\n' \"$*\"; }\n"
+            "verde(){ printf '%s\\n' \"$*\"; }\n"
+            "aviso(){ printf '! %s\\n' \"$*\"; }\n"
+            f'RAIZ="{self.copia}"\n'
+            + _funcao_do_bash("mostrar_versao")
+            + "\nmostrar_versao\n"
+        )
+        return subprocess.run(["bash", "-c", script], capture_output=True, text=True)
+
+    def test_em_dia_diz_que_esta_em_dia(self):
+        pronto = self.rodar()
+        self.assertEqual(pronto.returncode, 0, pronto.stderr)
+        self.assertIn("versão mais nova", pronto.stdout)
+
+    def test_atrasada_diz_quantas_esperam(self):
+        self.novidade_no_servidor()
+        pronto = self.rodar()
+        self.assertIn("1 mudança(s) esperando", pronto.stdout)
+
+    def test_diz_que_o_ramo_e_o_impedimento(self):
+        self.novidade_no_servidor()
+        self.git("checkout", "-b", "experimento", cwd=self.copia)
+        self.git("branch", "--set-upstream-to=origin/main", cwd=self.copia)
+        self.assertIn("ramo", self.rodar().stdout)
+
+    def test_diz_que_a_alteracao_local_e_o_impedimento(self):
+        self.novidade_no_servidor()
+        (self.copia / "a.txt").write_text("mexido a mao\n", encoding="utf-8")
+        saida = self.rodar().stdout
+        self.assertIn("alteração local", saida)
+        self.assertIn("a.txt", saida, "nao mostrou qual arquivo esta segurando")
+
+    def test_nada_impede_manda_rodar_de_novo(self):
+        self.novidade_no_servidor()
+        saida = self.rodar().stdout
+        self.assertIn("nada impede", saida)
+        self.assertIn("publicar.sh", saida)
+
+
 class TestOsDoisScriptsOferecemOMesmo(unittest.TestCase):
     """O laboratorio e Windows, mas o servidor do futuro sera Linux.
 
@@ -308,7 +386,7 @@ class TestOsDoisScriptsOferecemOMesmo(unittest.TestCase):
         sh = SH.read_text(encoding="utf-8")
         for ps, bash in [("$Fixo", "--fixo"), ("$Permanente", "--permanente"),
                          ("$Dominio", "--dominio"), ("$Endereco", "--endereco"),
-                         ("$Parar", "--parar")]:
+                         ("$Parar", "--parar"), ("$Versao", "--versao")]:
             self.assertIn(ps, ps1, f"{ps} sumiu do publicar.ps1")
             self.assertIn(bash, sh, f"{bash} sumiu do publicar.sh")
 

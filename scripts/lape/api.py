@@ -37,7 +37,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Callable
 
-from . import analise, auth, config, export, extracao, metrics, report, revisao, variaveis
+from . import (analise, auth, config, export, extracao, metrics, report, revisao,
+               variaveis, versao)
 from .db import Database
 from .util import to_int
 
@@ -1030,6 +1031,12 @@ def _artigos_do_panorama(db: Database) -> list[dict[str, Any]]:
     return artigos
 
 
+def route_versao(ctx: "Context") -> Any:
+    """Que codigo esta rodando, e quanta coisa nova espera do outro lado."""
+    auth.require(ctx.user, "leitura")
+    return versao.atual()
+
+
 def route_panorama(ctx: "Context") -> Any:
     auth.require(ctx.user, "leitura")
     desde = to_int((ctx.query.get("desde") or [None])[0])
@@ -1106,6 +1113,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/agents/tracker/?$", route_tracker, "coordenacao"),
     ("POST", r"^/api/agents/curator/?$", route_curator, "coordenacao"),
     ("GET", r"^/api/audit/?$", route_audit, "coordenacao"),
+    ("GET", r"^/api/versao/?$", route_versao, "leitura"),
     ("GET", r"^/api/panorama/?$", route_panorama, "leitura"),
     ("POST", r"^/api/panorama/marcar/?$", route_panorama_marcar, "coordenacao"),
     ("GET", r"^/api/revisoes/?$", route_reviews, "leitura"),
@@ -1152,6 +1160,26 @@ class Context:
 # ----------------------------------------------------------------------
 # Servidor
 # ----------------------------------------------------------------------
+def _marca_de_versao() -> str:
+    """O selo discreto de versao que vai no rodape de toda pagina.
+
+    Sem ele, "atualizou?" e uma pergunta sem resposta possivel na tela:
+    a versao velha e a nova sao identicas na primeira olhada, e quem
+    esta no computador do laboratorio nao tem como conferir sem abrir
+    um terminal.
+    """
+    import html as _html
+
+    dados = versao.atual()
+    if not dados.get("commit"):
+        return ""
+    detalhe = " · ".join(
+        parte for parte in (dados.get("assunto"), dados.get("ramo")) if parte)
+    return ('<div class="marca-versao" title="%s">%s</div>'
+            % (_html.escape(detalhe or "versão em uso"),
+               _html.escape(versao.resumo(dados))))
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "LAPE-API/2.0"
     protocol_version = "HTTP/1.1"
@@ -1429,6 +1457,7 @@ class Handler(BaseHTTPRequestHandler):
         if "__TRIAGEM_JS__" in html:
             html = html.replace("__TRIAGEM_JS__",
                                 (TEMPLATES / "triagem.js").read_text(encoding="utf-8"))
+        html = html.replace("</body>", _marca_de_versao() + "\n</body>", 1)
         self._send(200, html, "text/html")
 
     def _serve_database(self) -> None:

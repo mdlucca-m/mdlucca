@@ -210,6 +210,13 @@ class TestPaginaDoPanorama(BasePanorama):
         self.assertIn("const Charts", html)
         self.assertIn("const ABAS", html)
 
+    def test_a_pagina_diz_qual_versao_esta_no_ar(self):
+        # sem isso "atualizou?" só se responde abrindo um terminal, e
+        # quem está no computador do laboratório não vai abrir
+        html = self.pagina()
+        self.assertIn('class="marca-versao"', html)
+        self.assertLess(html.index('class="marca-versao"'), html.index("</body>"))
+
     def test_a_biblioteca_de_graficos_esta_ligada(self):
         # `C` não definido derrubava todo gráfico da tela, e a página
         # continuava de pé: cartões vazios, nenhum erro visível
