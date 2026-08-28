@@ -37,8 +37,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Callable
 
-from . import auth, config, export, metrics, report
+from . import auth, config, export, metrics, report, revisao
 from .db import Database
+from .util import to_int
 
 TOKEN = os.environ.get("LAPE_API_TOKEN", "")
 PUBLIC_DASHBOARD = os.environ.get("LAPE_PUBLIC_DASHBOARD", "") == "1"
@@ -679,6 +680,240 @@ def route_audit(ctx: "Context") -> Any:
 
 
 # ----------------------------------------------------------------------
+# Revisao sistematica
+# ----------------------------------------------------------------------
+def _revisao(ctx: "Context", review_id: str) -> dict:
+    """Acha a revisao pelo id, pelo codigo, ou pelo titulo escrito a mao.
+
+    O codigo e gravado normalizado ("handebol-humor"), e quem digita o
+    endereco escreve como fala. Aceitar as tres formas evita um 404 que
+    nao ensina nada a ninguem.
+    """
+    linhas = ctx.db.dicts(
+        "SELECT * FROM reviews WHERE id = ? OR code = ? OR code = ?",
+        (to_int(review_id) or -1, str(review_id), revisao._slug(review_id)))
+    if not linhas:
+        raise ApiError(404, f"revisão não encontrada: {review_id}")
+    return linhas[0]
+
+
+def _sou_da_equipe(ctx: "Context", review_id: int) -> int:
+    """Quem tria e um integrante da equipe da revisao -- e ninguem tria em
+    nome de outra pessoa. A decisao vale pelo nome de quem a tomou."""
+    user = auth.require(ctx.user, "integrante")
+    member_id = user.get("id")
+    if not member_id:
+        raise ApiError(403, "sua conta não está ligada a um integrante")
+    revisao.equipe(ctx.db, review_id, int(member_id))
+    return int(member_id)
+
+
+def route_reviews(ctx: "Context") -> Any:
+    auth.require(ctx.user, "leitura")
+    return {"revisoes": ctx.db.dicts(
+        "SELECT p.*, rv.status, rv.question, rv.reviewers_needed, rv.blind,"
+        "       rv.created_at"
+        "  FROM v_prisma p JOIN reviews rv ON rv.id = p.review_id"
+        " ORDER BY rv.created_at DESC")}
+
+
+def route_review_create(ctx: "Context") -> Any:
+    from . import hooks
+
+    user = auth.require(ctx.user, "coordenacao")
+    body = ctx.body or {}
+    if not body.get("titulo") and not body.get("title"):
+        raise ApiError(400, "informe o título da revisão")
+    titulo = body.get("titulo") or body.get("title")
+    review_id = revisao.criar(
+        ctx.db, body.get("codigo") or body.get("code") or titulo, titulo,
+        question=body.get("pergunta"), population=body.get("populacao"),
+        intervention=body.get("intervencao"), comparison=body.get("comparador"),
+        outcome=body.get("desfecho"), study_designs=body.get("delineamentos"),
+        protocol_url=body.get("protocolo"),
+        reviewers_needed=to_int(body.get("avaliadores")) or 2,
+        blind=0 if body.get("aberta") else 1,
+        created_by=user.get("id"))
+    hooks.emit(ctx.db, "revisao.criada", entity="reviews", entity_id=review_id,
+               detail=titulo, actor=user.get("full_name"))
+    return {"id": review_id,
+            "code": ctx.db.scalar("SELECT code FROM reviews WHERE id = ?", (review_id,)),
+            "prisma": revisao.prisma(ctx.db, review_id)}
+
+
+def route_review_detail(ctx: "Context", review_id: str) -> Any:
+    auth.require(ctx.user, "leitura")
+    rev = _revisao(ctx, review_id)
+    return {
+        "revisao": rev,
+        "prisma": revisao.prisma(ctx.db, rev["id"]),
+        "andamento": revisao.andamento(ctx.db, rev["id"]),
+        "motivos": ctx.db.dicts(
+            "SELECT id, code, label FROM exclusion_reasons WHERE review_id = ?"
+            " ORDER BY seq", (rev["id"],)),
+        "termos": ctx.db.dicts(
+            "SELECT term, tone FROM review_terms WHERE review_id = ?", (rev["id"],)),
+        "buscas": ctx.db.dicts(
+            "SELECT base, query, searched_on, file, n_retrieved, created_at"
+            "  FROM review_searches WHERE review_id = ? ORDER BY id", (rev["id"],)),
+        "equipe": ctx.db.dicts(
+            "SELECT m.id, m.full_name, rm.role FROM review_members rm"
+            "  JOIN members m ON m.id = rm.member_id WHERE rm.review_id = ?", (rev["id"],)),
+    }
+
+
+def route_review_import(ctx: "Context", review_id: str) -> Any:
+    """Recebe o arquivo como texto no corpo JSON.
+
+    Sem multipart de proposito: o navegador le o arquivo com FileReader e
+    manda o texto. Um analisador de multipart escrito a mao e superficie
+    de ataque por nada, e arquivo de referencia e texto puro.
+    """
+    from . import hooks
+
+    user = auth.require(ctx.user, "integrante")
+    rev = _revisao(ctx, review_id)
+    body = ctx.body or {}
+    conteudo = body.get("conteudo")
+    if not conteudo or not str(conteudo).strip():
+        raise ApiError(400, "envie o conteúdo do arquivo em 'conteudo'")
+    try:
+        resumo = revisao.importar(
+            ctx.db, rev["id"], str(conteudo), nome=body.get("nome") or "",
+            base=body.get("base"), query=body.get("busca"),
+            searched_on=body.get("data"), formato=body.get("formato"))
+    except ValueError as exc:
+        raise ApiError(400, str(exc)) from exc
+    hooks.emit(ctx.db, "revisao.importada", entity="reviews", entity_id=rev["id"],
+               detail=f"{resumo['novos']} novas, {resumo['duplicados']} repetidas",
+               actor=user.get("full_name"), payload=resumo)
+    resumo["prisma"] = revisao.prisma(ctx.db, rev["id"])
+    return resumo
+
+
+def route_review_queue(ctx: "Context", review_id: str) -> Any:
+    rev = _revisao(ctx, review_id)
+    member_id = _sou_da_equipe(ctx, rev["id"])
+    etapa = (ctx.query.get("etapa") or ["titulo_resumo"])[0]
+    limite = min(to_int((ctx.query.get("limite") or ["40"])[0]) or 40, 200)
+    return {
+        "fila": revisao.fila(ctx.db, rev["id"], member_id, limite, etapa),
+        "faltam": ctx.db.scalar(
+            "SELECT COUNT(*) FROM refs r WHERE r.review_id = ? AND r.duplicate_of IS NULL"
+            "   AND r.stage = ? AND NOT EXISTS (SELECT 1 FROM screenings s"
+            "        WHERE s.ref_id = r.id AND s.member_id = ? AND s.stage = r.stage)",
+            (rev["id"], etapa, member_id)),
+        "ja_triei": ctx.db.scalar(
+            "SELECT COUNT(*) FROM screenings s JOIN refs r ON r.id = s.ref_id"
+            " WHERE r.review_id = ? AND s.member_id = ? AND s.stage = ?",
+            (rev["id"], member_id, etapa)),
+        "motivos": ctx.db.dicts(
+            "SELECT id, code, label FROM exclusion_reasons WHERE review_id = ?"
+            " ORDER BY seq", (rev["id"],)),
+        "termos": ctx.db.dicts(
+            "SELECT term, tone FROM review_terms WHERE review_id = ?", (rev["id"],)),
+        "etapa": etapa,
+        "eu": member_id,
+    }
+
+
+def route_review_decide(ctx: "Context", review_id: str) -> Any:
+    from . import hooks
+
+    rev = _revisao(ctx, review_id)
+    member_id = _sou_da_equipe(ctx, rev["id"])
+    body = ctx.body or {}
+    decisoes = body.get("decisoes") or [body]
+    resultados = []
+    for item in decisoes:
+        ref_id = to_int(item.get("ref_id"))
+        if not ref_id:
+            continue
+        try:
+            resultados.append({"ref_id": ref_id, **revisao.decidir(
+                ctx.db, ref_id, member_id, str(item.get("decisao") or item.get("decision")),
+                reason_id=to_int(item.get("motivo_id")),
+                notes=item.get("nota"), seconds=item.get("segundos"))})
+        except ValueError as exc:
+            raise ApiError(400, str(exc)) from exc
+    hooks.emit(ctx.db, "revisao.triada", entity="reviews", entity_id=rev["id"],
+               detail=f"{len(resultados)} decisão(ões)",
+               actor=(ctx.user or {}).get("full_name"), deliver=False)
+    return {"gravadas": len(resultados), "resultados": resultados,
+            "prisma": revisao.prisma(ctx.db, rev["id"])}
+
+
+def route_review_conflicts(ctx: "Context", review_id: str) -> Any:
+    auth.require(ctx.user, "integrante")
+    rev = _revisao(ctx, review_id)
+    etapa = (ctx.query.get("etapa") or ["titulo_resumo"])[0]
+    return {"conflitos": revisao.conflitos(ctx.db, rev["id"], etapa)}
+
+
+def route_review_arbitrate(ctx: "Context", review_id: str) -> Any:
+    user = auth.require(ctx.user, "coordenacao")
+    rev = _revisao(ctx, review_id)
+    body = ctx.body or {}
+    ref_id = to_int(body.get("ref_id"))
+    if not ref_id:
+        raise ApiError(400, "informe a referência")
+    try:
+        resultado = revisao.arbitrar(
+            ctx.db, ref_id, int(user["id"]), str(body.get("decisao") or ""),
+            reason_id=to_int(body.get("motivo_id")), notes=body.get("nota"))
+    except ValueError as exc:
+        raise ApiError(400, str(exc)) from exc
+    return {**resultado, "prisma": revisao.prisma(ctx.db, rev["id"])}
+
+
+def route_review_advance(ctx: "Context", review_id: str) -> Any:
+    from . import hooks
+
+    user = auth.require(ctx.user, "coordenacao")
+    rev = _revisao(ctx, review_id)
+    qual = ((ctx.body or {}).get("etapa") or "titulo_resumo")
+    passou = (revisao.fechar_texto_completo(ctx.db, rev["id"]) if qual == "texto_completo"
+              else revisao.avancar_etapa(ctx.db, rev["id"]))
+    hooks.emit(ctx.db, "revisao.etapa", entity="reviews", entity_id=rev["id"],
+               detail=str(passou), actor=user.get("full_name"))
+    return {**passou, "prisma": revisao.prisma(ctx.db, rev["id"])}
+
+
+def route_review_agreement(ctx: "Context", review_id: str) -> Any:
+    auth.require(ctx.user, "integrante")
+    rev = _revisao(ctx, review_id)
+    pessoas = [int(m["id"]) for m in ctx.db.dicts(
+        "SELECT member_id AS id FROM review_members WHERE review_id = ?", (rev["id"],))]
+    pares = []
+    for i, a in enumerate(pessoas):
+        for b in pessoas[i + 1:]:
+            resultado = revisao.concordancia(ctx.db, rev["id"], a, b)
+            if resultado["n"]:
+                nomes = ctx.db.dicts(
+                    "SELECT id, full_name FROM members WHERE id IN (?, ?)", (a, b))
+                mapa = {m["id"]: m["full_name"] for m in nomes}
+                pares.append({"a": mapa.get(a), "b": mapa.get(b), **resultado})
+    return {"pares": pares}
+
+
+def route_review_terms(ctx: "Context", review_id: str) -> Any:
+    auth.require(ctx.user, "integrante")
+    rev = _revisao(ctx, review_id)
+    body = ctx.body or {}
+    ctx.db.execute("DELETE FROM review_terms WHERE review_id = ?", (rev["id"],))
+    for tone in ("incluir", "excluir"):
+        for termo in (body.get(tone) or []):
+            texto = str(termo).strip()
+            if texto:
+                ctx.db.execute(
+                    "INSERT OR IGNORE INTO review_terms (review_id, term, tone)"
+                    " VALUES (?, ?, ?)", (rev["id"], texto, tone))
+    ctx.db.conn.commit()
+    return {"termos": ctx.db.dicts(
+        "SELECT term, tone FROM review_terms WHERE review_id = ?", (rev["id"],))}
+
+
+# ----------------------------------------------------------------------
 # Tabela de rotas: (metodo, padrao, funcao, perfil minimo | None = publico)
 # ----------------------------------------------------------------------
 ROUTES: list[tuple[str, str, Callable, str | None]] = [
@@ -715,6 +950,17 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/agents/tracker/?$", route_tracker, "coordenacao"),
     ("POST", r"^/api/agents/curator/?$", route_curator, "coordenacao"),
     ("GET", r"^/api/audit/?$", route_audit, "coordenacao"),
+    ("GET", r"^/api/revisoes/?$", route_reviews, "leitura"),
+    ("POST", r"^/api/revisoes/?$", route_review_create, "coordenacao"),
+    ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/?$", route_review_detail, "leitura"),
+    ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/importar/?$", route_review_import, "integrante"),
+    ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/fila/?$", route_review_queue, "integrante"),
+    ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/decidir/?$", route_review_decide, "integrante"),
+    ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/conflitos/?$", route_review_conflicts, "integrante"),
+    ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/arbitrar/?$", route_review_arbitrate, "coordenacao"),
+    ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/avancar/?$", route_review_advance, "coordenacao"),
+    ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/concordancia/?$", route_review_agreement, "integrante"),
+    ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/termos/?$", route_review_terms, "integrante"),
 ]
 for _name in ENTITIES:
     ROUTES.append(("GET", rf"^/api/{_name}/?$",
@@ -877,6 +1123,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._serve_page("login.html")
         if method == "GET" and path in ("/app", "/area", "/cadastro"):
             return self._serve_page("app.html")
+        if method == "GET" and path in ("/triagem", "/revisao", "/revisoes"):
+            return self._serve_page("triagem.html")
         if method == "GET" and path.startswith("/convite"):
             return self._serve_page("convite.html")
         if method == "GET" and path == "/api/stream":
@@ -994,6 +1242,9 @@ class Handler(BaseHTTPRequestHandler):
         html = html.replace("__BASE_CSS__", (TEMPLATES / "theme.css").read_text(encoding="utf-8"))
         if "__ICONS_JS__" in html:
             html = html.replace("__ICONS_JS__", (TEMPLATES / "icons.js").read_text(encoding="utf-8"))
+        if "__TRIAGEM_JS__" in html:
+            html = html.replace("__TRIAGEM_JS__",
+                                (TEMPLATES / "triagem.js").read_text(encoding="utf-8"))
         self._send(200, html, "text/html")
 
     def _serve_database(self) -> None:

@@ -2908,6 +2908,13 @@ function buildHeader() {
     link.appendChild(el("button", { class: "primary", type: "button",
       text: USER ? "Área do integrante" : "Entrar" }));
     actions.appendChild(link);
+    if (USER) {
+      const triagem = el("a", { href: "/triagem",
+        title: "Triagem de revisão sistemática: importar as buscas, decidir "
+          + "pelo teclado e ver o PRISMA sair sozinho" });
+      triagem.appendChild(el("button", { type: "button", text: "Triagem" }));
+      actions.appendChild(triagem);
+    }
     const tv = el("a", { href: "/mural", target: "_blank", rel: "noopener",
       title: "Tela para projetor ou TV da sala: gira sozinha" });
     tv.appendChild(el("button", { type: "button", text: "Modo mural" }));

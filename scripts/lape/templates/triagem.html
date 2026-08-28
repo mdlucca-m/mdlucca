@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Triagem — LAPE</title>
+<style>__BASE_CSS__
+/* ------------------------------------------------------------------
+   Triar 3.000 referências é uma tarefa de ritmo, não de cliques. Tudo
+   aqui serve a isso: uma referência por vez ocupando a tela inteira,
+   decisão pelo teclado, e a próxima já carregada antes de a atual
+   sair. O mouse funciona, mas quem tria de verdade não usa.
+   ------------------------------------------------------------------ */
+header.top{position:sticky;top:0;z-index:30;background:var(--surface);
+  border-bottom:1px solid var(--border);padding:10px clamp(14px,3vw,26px);
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+header.top .logo{width:32px;height:32px;border-radius:9px;background:var(--accent);
+  color:var(--on-accent);display:grid;place-items:center;font-weight:800;font-size:12px}
+header.top .name{font-weight:700;letter-spacing:-.01em;line-height:1.2}
+header.top .name small{display:block;font-weight:400;font-size:11.5px;color:var(--ink-2)}
+header.top .spacer{flex:1}
+.abas{display:flex;gap:4px}
+.abas button{background:none;border:1px solid transparent;box-shadow:none;
+  padding:7px 13px;border-radius:9px;color:var(--ink-2);font-size:13px;font-weight:600}
+.abas button:hover{background:var(--surface-raised);color:var(--ink)}
+.abas button.on{background:var(--accent-wash);color:var(--accent);
+  border-color:var(--accent-strong);font-weight:700}
+
+main{padding:clamp(14px,2.4vw,26px);max-width:1180px;margin:0 auto}
+
+/* barra de progresso: o número que importa é quanto falta */
+.andar{display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.barra{flex:1;min-width:200px;height:8px;border-radius:99px;background:var(--surface-sunken);
+  overflow:hidden;border:1px solid var(--border)}
+.barra i{display:block;height:100%;background:linear-gradient(90deg,var(--accent-solid),var(--accent));
+  transition:width .3s ease}
+.andar .n{font-size:13px;color:var(--ink-2);white-space:nowrap}
+.andar .n b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* a referência */
+.ref{background:var(--surface-raised);border:1px solid var(--border);
+  border-radius:var(--radius);padding:clamp(18px,2.6vw,30px);position:relative;
+  box-shadow:var(--shadow-lg)}
+.ref::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  border-top:1px solid rgba(255,255,255,.06)}
+.ref .meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;font-size:12px}
+.ref h2{font-size:clamp(19px,2.3vw,25px);line-height:1.28;letter-spacing:-.02em;margin-bottom:10px}
+.ref .autores{color:var(--ink-2);font-size:13.5px;margin-bottom:4px}
+.ref .fonte{color:var(--ink-muted);font-size:13px;margin-bottom:18px}
+.ref .resumo{font-size:15px;line-height:1.68;color:var(--ink);max-width:76ch;
+  white-space:pre-wrap}
+.ref .sem-resumo{color:var(--ink-muted);font-style:italic;font-size:14px}
+.ref .fora{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+/* Realce: verde para o que aproxima, vermelho para o que afasta. O texto
+   fica com a cor normal -- quem nao distingue as duas cores continua lendo
+   a palavra, que e o que importa. */
+mark.t-inc{background:color-mix(in srgb,var(--series-3) 24%,transparent);
+  color:var(--ink);border-radius:3px;padding:0 2px;font-weight:600}
+mark.t-exc{background:color-mix(in srgb,var(--series-8) 26%,transparent);
+  color:var(--ink);border-radius:3px;padding:0 2px;font-weight:600}
+
+/* as decisões */
+.decidir{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;align-items:center}
+.decidir button{font-size:14px;padding:11px 20px;font-weight:700}
+.decidir .tecla{display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;
+  border-radius:5px;background:rgba(0,0,0,.22);font-size:11px;font-weight:800;
+  font-family:var(--mono,ui-monospace,monospace)}
+/* Os tres botoes usam as cores reservadas de estado -- e cada um leva o
+   rotulo escrito e a tecla. Cor sozinha nao decide nada aqui: o texto fica
+   sempre na cor normal de leitura, para o contraste nao depender do
+   fundo colorido nem da visao de cores de quem tria. */
+.decidir button.incluir,.decidir button.excluir,.decidir button.talvez{
+  color:var(--ink);border-width:1.5px}
+button.incluir{background:color-mix(in srgb,var(--good) 15%,var(--surface-raised));
+  border-color:color-mix(in srgb,var(--good) 62%,transparent)}
+button.incluir .tecla{background:var(--good);color:#fff}
+button.excluir{background:color-mix(in srgb,var(--critical) 15%,var(--surface-raised));
+  border-color:color-mix(in srgb,var(--critical) 62%,transparent)}
+button.excluir .tecla{background:var(--critical);color:#fff}
+button.talvez{background:color-mix(in srgb,var(--warning) 18%,var(--surface-raised));
+  border-color:color-mix(in srgb,var(--warning) 62%,transparent)}
+button.talvez .tecla{background:var(--warning);color:#2a1c00}
+button.incluir:hover{background:color-mix(in srgb,var(--good) 26%,var(--surface-raised))}
+button.excluir:hover{background:color-mix(in srgb,var(--critical) 26%,var(--surface-raised))}
+button.talvez:hover{background:color-mix(in srgb,var(--warning) 30%,var(--surface-raised))}
+
+/* motivos: aparecem ao excluir, e cada um tem o seu número */
+.motivos{margin-top:16px;padding:16px;border:1px dashed var(--border-strong);
+  border-radius:var(--radius-sm);background:var(--surface)}
+.motivos h4{font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--ink-muted);margin-bottom:10px;font-weight:700}
+.motivos .lista{display:flex;gap:8px;flex-wrap:wrap}
+.motivos button{font-size:13px;padding:8px 13px}
+.motivos .tecla{margin-right:7px}
+
+.vazio{text-align:center;padding:64px 20px;color:var(--ink-2)}
+.vazio h3{font-size:20px;color:var(--ink);margin-bottom:8px}
+.vazio svg.icon{font-size:46px;color:var(--accent);margin-bottom:14px}
+
+/* conflitos, lado a lado */
+.conflito{background:var(--surface-raised);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px;margin-bottom:14px}
+.conflito h3{font-size:16px;line-height:1.35;margin-bottom:6px}
+.votos{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.voto{border:1px solid var(--border-strong);border-radius:var(--radius-sm);
+  padding:9px 13px;font-size:13px;background:var(--surface)}
+.voto b{display:block;font-size:12px;color:var(--ink-2);font-weight:600}
+.voto .d-incluir{color:var(--good);font-weight:700}
+.voto .d-excluir{color:var(--critical);font-weight:700}
+.voto .d-talvez{color:var(--warning);font-weight:700}
+
+/* PRISMA em caixas, na ordem do fluxograma */
+.prisma{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.caixa{background:var(--surface-raised);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:16px}
+.caixa .rot{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--ink-muted);font-weight:700}
+.caixa .val{font-size:29px;font-weight:800;letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums;margin-top:4px}
+.caixa small{color:var(--ink-2);font-size:12.5px}
+
+table.simples{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:10px}
+table.simples th{text-align:left;font-size:11.5px;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--ink-muted);padding:8px 10px;
+  border-bottom:1px solid var(--border)}
+table.simples td{padding:9px 10px;border-bottom:1px solid var(--border)}
+table.simples td.num{text-align:right;font-variant-numeric:tabular-nums}
+
+.solto{background:var(--surface-raised);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.solto h3{font-size:15px;margin-bottom:4px}
+.solto .hint{margin-bottom:14px}
+.arquivo{border:2px dashed var(--border-strong);border-radius:var(--radius);
+  padding:30px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.arquivo:hover,.arquivo.sobre{border-color:var(--accent);background:var(--accent-wash)}
+.arquivo input{display:none}
+
+/* ajuda do teclado */
+.ajuda{position:fixed;inset:0;background:rgba(4,7,12,.72);z-index:90;display:grid;
+  place-items:center;padding:20px}
+.ajuda[hidden]{display:none}
+.ajuda .painel{background:var(--surface-raised);border:1px solid var(--border-strong);
+  border-radius:var(--radius);padding:26px;max-width:460px;width:100%;box-shadow:var(--shadow-lg)}
+.ajuda h3{font-size:17px;margin-bottom:14px}
+.ajuda dl{display:grid;grid-template-columns:auto 1fr;gap:9px 14px;align-items:center;font-size:14px}
+.ajuda kbd{display:inline-grid;place-items:center;min-width:26px;height:26px;padding:0 8px;
+  border-radius:7px;background:var(--surface-sunken);border:1px solid var(--border-strong);
+  font-family:ui-monospace,monospace;font-size:12.5px;font-weight:700;color:var(--ink)}
+
+.aviso{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(140%);
+  background:var(--surface-raised);border:1px solid var(--border-strong);
+  border-radius:99px;padding:11px 20px;font-size:13.5px;font-weight:600;
+  box-shadow:var(--shadow-lg);z-index:95;transition:transform .22s ease;
+  display:flex;align-items:center;gap:12px}
+.aviso.on{transform:translateX(-50%) translateY(0)}
+.aviso button{padding:5px 11px;font-size:12.5px}
+@media (max-width:640px){
+  .decidir button{flex:1;min-width:96px;justify-content:center}
+  header.top .name small{display:none}
+}
+</style>
+</head>
+<body>
+<script>
+__ICONS_JS__
+</script>
+<header class="top">
+  <div class="logo">LP</div>
+  <div class="name">Triagem<small id="qual">revisão sistemática</small></div>
+  <div class="abas" id="abas"></div>
+  <div class="spacer"></div>
+  <button id="ajudaBtn" class="ghost" title="Atalhos do teclado (?)">?</button>
+  <a class="botao-destino" href="/painel">Painel</a>
+</header>
+<main id="palco"></main>
+<div class="ajuda" id="ajuda" hidden><div class="painel">
+  <h3>Atalhos</h3>
+  <dl>
+    <dt><kbd>I</kbd></dt><dd>Incluir</dd>
+    <dt><kbd>E</kbd></dt><dd>Excluir (abre os motivos)</dd>
+    <dt><kbd>T</kbd></dt><dd>Talvez — sobe para texto completo</dd>
+    <dt><kbd>1</kbd>…<kbd>9</kbd></dt><dd>Motivo da exclusão</dd>
+    <dt><kbd>Z</kbd></dt><dd>Desfazer a última</dd>
+    <dt><kbd>A</kbd></dt><dd>Abrir o artigo em outra aba</dd>
+    <dt><kbd>Esc</kbd></dt><dd>Fechar</dd>
+  </dl>
+  <p class="hint" style="margin-top:16px">A decisão é gravada sozinha. A próxima
+  referência já está carregada — não há espera entre uma e outra.</p>
+</div></div>
+<div class="aviso" id="aviso"></div>
+<script>
+__TRIAGEM_JS__
+</script>
+</body>
+</html>
