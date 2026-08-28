@@ -52,6 +52,7 @@ RIS_CAMPOS: dict[str, tuple[str, ...]] = {
     "issn": ("SN",),
     "language": ("LA",),
     "url": ("UR", "L1"),
+    "affiliation": ("AD", "A1"),
     "pub_type": ("TY", "M3"),
     "pmid": ("AN", "ID", "C7"),
 }
@@ -80,6 +81,16 @@ def _linhas_de_registro(texto: str) -> Iterable[list[tuple[str, str]]]:
         elif linha.strip() and registro:
             anterior, valor = registro[-1]
             registro[-1] = (anterior, (valor + " " + linha.strip()).strip())
+        elif not linha.strip() and registro:
+            # Linha em branco tambem fecha o registro. O RIS fecha com `ER`,
+            # o MEDLINE nao fecha com nada -- separa por linha em branco. Sem
+            # esta regra, um `.nbib` da PubMed com cem artigos virava UM
+            # registro so: o primeiro PMID levava o titulo do primeiro e os
+            # autores de todos, e a importacao dizia "1 artigo lido" sem
+            # nenhum erro. Continuacao de campo nunca e linha vazia, entao
+            # nada legitimo se perde aqui.
+            yield registro
+            registro, etiqueta = [], None
     if registro:
         yield registro
 
@@ -118,6 +129,7 @@ def ler_ris(texto: str) -> list[dict[str, Any]]:
 # ----------------------------------------------------------------------
 NBIB_CAMPOS = {
     "title": ("TI",), "abstract": ("AB",), "journal": ("JT", "TA"),
+    "affiliation": ("AD",),
     "volume": ("VI",), "issue": ("IP",), "pages": ("PG",),
     "issn": ("IS",), "language": ("LA",), "pmid": ("PMID",),
     "year": ("DP", "DEP"), "pub_type": ("PT",),
@@ -214,6 +226,7 @@ CSV_ALIASES: dict[str, tuple[str, ...]] = {
     "language": ("language of original document", "language", "idioma", "la"),
     "keywords": ("author keywords", "keywords", "de", "palavras_chave"),
     "url": ("link", "url", "doi link"),
+    "affiliation": ("affiliations", "affiliation", "addresses", "c1", "afiliacao"),
     "pub_type": ("document type", "publication type", "dt"),
     "notes": ("notes", "note", "observacoes"),
     "publisher": ("publisher",),

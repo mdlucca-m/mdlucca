@@ -38,6 +38,19 @@ class SourceError(RuntimeError):
     """Falha ao consultar uma base externa."""
 
 
+def _get_text(url: str, params: dict[str, Any] | None = None,
+              timeout: int = 30) -> str:
+    """Como `_get`, mas para respostas que nao sao JSON."""
+    import urllib.parse
+    import urllib.request
+
+    limpos = {k: v for k, v in (params or {}).items() if v not in (None, "")}
+    endereco = f"{url}?{urllib.parse.urlencode(limpos)}" if limpos else url
+    pedido = urllib.request.Request(endereco, headers={"User-Agent": USER_AGENT})
+    with urllib.request.urlopen(pedido, timeout=timeout) as resposta:
+        return resposta.read().decode("utf-8", "replace")
+
+
 def _get(url: str, params: dict[str, Any] | None = None,
          headers: dict[str, str] | None = None, expect_json: bool = True) -> Any:
     """GET com retentativa e backoff exponencial."""
@@ -294,6 +307,50 @@ def pubmed_summaries(pmids: list[str]) -> list[dict[str, Any]]:
             "url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
         })
     return out
+
+
+def pubmed_medline(pmids: list[str], lote: int = 150) -> str:
+    """Baixa os registros completos em MEDLINE -- com resumo e afiliacao.
+
+    O `esummary` traz titulo e revista e para por ai. O resumo e a
+    afiliacao so vem no `efetch` em MEDLINE, e sao justamente eles que o
+    painel precisa: o resumo alimenta o reconhecimento de variaveis, e a
+    afiliacao diz de que pais e o estudo.
+
+    O formato e o mesmo do arquivo `.nbib` que a PubMed entrega no botao
+    "Send to", entao quem le e o leitor de referencias que ja existe.
+    """
+    partes: list[str] = []
+    for inicio in range(0, len(pmids), lote):
+        pedaco = pmids[inicio:inicio + lote]
+        partes.append(_get_text(f"{PUBMED}/efetch.fcgi", {
+            "db": "pubmed", "id": ",".join(pedaco),
+            "rettype": "medline", "retmode": "text",
+        }))
+    return "\n".join(partes)
+
+
+def termo_de_autor(nome: str, afiliacao: str | None = None,
+                   desde: int | None = None) -> str:
+    """Monta a busca da PubMed para um pesquisador.
+
+    A PubMed indexa o autor como "Sobrenome Iniciais" -- "Andrade A", nao
+    "Alexandro Andrade". Buscar pelo nome inteiro nao acha nada, e o
+    silencio parece "esta pessoa nao publicou".
+
+    A afiliacao nao e enfeite: "Andrade A" sozinho traz milhares de
+    artigos de dezenas de pessoas diferentes. Sem ela, a importacao enche
+    o banco de producao alheia.
+    """
+    pedacos = [p for p in clean_text(nome).split() if p]
+    sobrenome = pedacos[-1] if pedacos else ""
+    iniciais = "".join(p[0] for p in pedacos[:-1]).upper()
+    termo = f"{sobrenome} {iniciais}[Author]" if iniciais else f"{sobrenome}[Author]"
+    if afiliacao:
+        termo += f" AND {clean_text(afiliacao)}[Affiliation]"
+    if desde:
+        termo += f' AND ("{desde}"[Date - Publication] : "3000"[Date - Publication])'
+    return termo
 
 
 # ----------------------------------------------------------------------

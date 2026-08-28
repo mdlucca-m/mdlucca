@@ -9,6 +9,7 @@
     python3 scripts/lape_agent.py lake                # bronze -> ouro -> historico
     python3 scripts/lape_agent.py demo                # massa de teste + painel de demo
     python3 scripts/lape_agent.py publicar            # confere o que falta para ir ao ar
+    python3 scripts/lape_agent.py autor "Fulano" --conferir   # producao pela PubMed
     python3 scripts/lape_agent.py lattes --conferir    # ve o que o Lattes traria
     python3 scripts/lape_agent.py planilha            # reescreve a planilha do laboratorio
     python3 scripts/lape_agent.py status              # resumo do banco
@@ -276,6 +277,72 @@ def cmd_publicar(args: argparse.Namespace) -> int:
     return 0 if pronto else 1
 
 
+def cmd_autor(args: argparse.Namespace) -> int:
+    """Traz a producao de um pesquisador das bases publicas."""
+    from lape import ingest_autor, variaveis
+
+    nomes = [n.strip() for n in args.nomes if n.strip()]
+    if not nomes:
+        print("Informe ao menos um nome. Exemplo:")
+        print('  python3 scripts/lape_agent.py autor "Alexandro Andrade" '
+              '--afiliacao UDESC --conferir')
+        return 1
+
+    achados = []
+    for nome in nomes:
+        print(f"\nProcurando {nome}…")
+        try:
+            achado = ingest_autor.buscar(nome, args.afiliacao, args.desde, args.limite)
+        except Exception as exc:
+            print(f"  ! não consegui buscar ({type(exc).__name__}: {exc})")
+            print("    a busca sai desta máquina para a PubMed — confira a internet")
+            continue
+        resumo = ingest_autor.resumir(achado)
+        achados.append((nome, achado, resumo))
+        print(f"  busca ............. {resumo['termo']}")
+        print(f"  encontrados ....... {resumo['encontrados']}"
+              f"  ({resumo['com_doi']} com DOI, {resumo['com_resumo']} com resumo)")
+        if resumo["primeiro_ano"]:
+            print(f"  período ........... {resumo['primeiro_ano']}–{resumo['ultimo_ano']}"
+                  f"  ({resumo['anos_com_producao']} anos com produção)")
+        if resumo["revistas"]:
+            print("  onde mais publica .")
+            for revista, n in resumo["revistas"][:5]:
+                print(f"      {n:3}  {revista[:58]}")
+        if resumo["paises"]:
+            print(f"  países ............ "
+                  f"{', '.join(f'{p} ({n})' for p, n in resumo['paises'][:6])}")
+
+    if not achados:
+        return 1
+    if args.conferir:
+        print()
+        print(f"Conferência apenas — nada foi gravado. Seriam lidos "
+              f"{sum(r['encontrados'] for _, _, r in achados)} artigo(s).")
+        print("Confira se é a pessoa certa (revista e país costumam entregar) e,")
+        print("se estiver, rode o mesmo comando sem --conferir.")
+        return 0
+
+    db = Database(args.db)
+    db.migrate()
+    try:
+        antes = int(db.scalar("SELECT COUNT(*) FROM articles") or 0)
+        for nome, achado, _ in achados:
+            resultado = ingest_autor.importar(db, achado, quem=nome)
+            print(f"\n  {nome}: {resultado['novos']} novo(s),"
+                  f" {resultado['ja_havia']} já estava(m) no banco")
+        depois = int(db.scalar("SELECT COUNT(*) FROM articles") or 0)
+        variaveis.instalar(db)
+        marcacao = variaveis.marcar_artigos(db)
+    finally:
+        db.close()
+    print()
+    print(f"  artigos no banco ... {antes} → {depois}  (+{depois - antes})")
+    print(f"  variáveis marcadas . {marcacao['ligacoes']} ligação(ões)"
+          f" em {marcacao['com_variavel']} artigo(s)")
+    return 0
+
+
 def cmd_lattes(args: argparse.Namespace) -> int:
     """Importa o Lattes de pessoas escolhidas -- e so delas."""
     from lape import ingest_lattes
@@ -539,6 +606,18 @@ def build_parser() -> argparse.ArgumentParser:
     backup_parser.add_argument("--para", type=Path, metavar="DESTINO",
                                help="onde escrever a copia restaurada")
     backup_parser.set_defaults(func=cmd_backup)
+
+    autor_parser = subparsers.add_parser(
+        "autor", help="traz a producao de um pesquisador da PubMed")
+    autor_parser.add_argument("nomes", nargs="*", help="nome completo, um ou varios")
+    autor_parser.add_argument("--afiliacao", default="",
+                              help="filtro de afiliacao: sem ele, o nome traz gente demais")
+    autor_parser.add_argument("--desde", type=int, help="ano inicial")
+    autor_parser.add_argument("--limite", type=int, default=400,
+                              help="teto de artigos por pessoa")
+    autor_parser.add_argument("--conferir", action="store_true",
+                              help="mostra o que seria importado, sem gravar nada")
+    autor_parser.set_defaults(func=cmd_autor)
 
     lattes_parser = subparsers.add_parser(
         "lattes", help="importa o curriculo Lattes de pessoas escolhidas")
