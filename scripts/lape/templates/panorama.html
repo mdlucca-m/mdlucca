@@ -228,6 +228,15 @@ table.dados small { color: var(--ink-muted); display: block; margin-top: 3px; }
   background: color-mix(in srgb, var(--good) 12%, transparent); }
 /* Uma base por botão. O que não está cadastrado não vira botão -- link
    quebrado custa mais do que a ausência dele. */
+/* O aviso do instantâneo fica no topo de tudo e não se esconde: quem
+   abre precisa saber, antes de ler qualquer número, que aquilo é um
+   retrato com data — e não a tela ao vivo. */
+.instantaneo-aviso { padding: 12px clamp(14px, 3vw, 28px); font-size: 13px;
+  line-height: 1.55; color: var(--ink-2);
+  background: color-mix(in srgb, var(--warning) 11%, var(--surface));
+  border-bottom: 1px solid color-mix(in srgb, var(--warning) 40%, transparent); }
+.instantaneo-aviso b { color: var(--ink); }
+
 .linhas-projeto { margin-top: 9px; display: flex; flex-direction: column; gap: 3px;
   font-size: 12.5px; color: var(--ink-2); }
 .linhas-projeto b { color: var(--ink-2); font-weight: 650; }

@@ -466,6 +466,24 @@ def cmd_lattes(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_instantaneo(args: argparse.Namespace) -> int:
+    """Uma pagina so, com tudo dentro, para abrir longe do laboratorio."""
+    from lape import instantaneo
+
+    db = Database(args.db)
+    db.migrate()
+    try:
+        resultado = instantaneo.escrever(db, args.para)
+    finally:
+        db.close()
+    print(f"  arquivo ........... {resultado['arquivo']}")
+    print(f"  tamanho ........... {resultado['bytes'] // 1024} kB")
+    print()
+    print("  Abre com dois cliques, sem servidor e sem internet. E um RETRATO:")
+    print("  nao esta ao vivo e nao grava nada -- a data esta escrita no topo.")
+    return 0
+
+
 def cmd_planilha(args: argparse.Namespace) -> int:
     """A planilha do laboratorio -- a mesma que a API reescreve sozinha."""
     from lape import planilha
@@ -698,6 +716,14 @@ def build_parser() -> argparse.ArgumentParser:
     planilha_parser.add_argument("--para", type=Path, metavar="ARQUIVO",
                                  help="escreve num caminho escolhido, sem mexer na planilha oficial")
     planilha_parser.set_defaults(func=cmd_planilha)
+
+    instantaneo_parser = subparsers.add_parser(
+        "instantaneo",
+        help="gera uma pagina unica do painel, para abrir longe do laboratorio")
+    instantaneo_parser.add_argument(
+        "--para", type=Path, default=Path("docs/panorama-instantaneo.html"),
+        metavar="ARQUIVO", help="onde gravar (padrao: docs/panorama-instantaneo.html)")
+    instantaneo_parser.set_defaults(func=cmd_instantaneo)
 
     status_parser = subparsers.add_parser("status", help="resumo do banco e das lacunas")
     status_parser.set_defaults(func=cmd_status)
