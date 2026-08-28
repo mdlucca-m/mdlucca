@@ -1,0 +1,230 @@
+{
+  "biblioteca": 2445,
+  "escopo": 525,
+  "por_categoria": {
+    "ensaio controlado": 50,
+    "não especificado": 298,
+    "longitudinal": 39,
+    "experimental sem controle": 47,
+    "transversal": 41,
+    "revisão": 14,
+    "observacional": 9,
+    "validação": 17,
+    "outro": 2,
+    "estudo de caso": 8
+  },
+  "por_familia": {
+    "burnout e saúde mental": 59,
+    "coping e resiliência": 100,
+    "cognição e atenção": 131,
+    "motivação": 141,
+    "sono e recuperação": 113,
+    "ansiedade e estresse": 214,
+    "humor e afeto": 32,
+    "autoeficácia e confiança": 55,
+    "coesão e grupo": 36,
+    "personalidade": 27,
+    "emoção": 1
+  },
+  "por_subvariavel": {
+    "Habilidades mentais": 44,
+    "Cognicao / Tomada de decisao": 130,
+    "Motivacao": 127,
+    "Sono / Sonolencia": 40,
+    "Estresse": 166,
+    "Bem-estar": 87,
+    "Engajamento / satisfacao": 37,
+    "Humor / Afeto": 32,
+    "Autoconfianca / Autoeficacia": 52,
+    "Enfrentamento (coping)": 48,
+    "Coesao / Lideranca": 34,
+    "Personalidade": 26,
+    "Burnout": 11,
+    "Resiliencia / Mental toughness": 19,
+    "Saude mental": 26,
+    "Depressao": 25,
+    "Ansiedade": 75,
+    "Imagem corporal / alimentar": 8,
+    "Medo de re-lesao / prontidao": 8
+  },
+  "por_ano": {
+    "2006": 3,
+    "2007": 3,
+    "2008": 3,
+    "2009": 4,
+    "2010": 7,
+    "2011": 9,
+    "2012": 9,
+    "2013": 17,
+    "2014": 17,
+    "2015": 13,
+    "2016": 12,
+    "2017": 23,
+    "2018": 22,
+    "2019": 29,
+    "2020": 32,
+    "2021": 37,
+    "2022": 51,
+    "2023": 38,
+    "2024": 49,
+    "2025": 80,
+    "2026": 67
+  },
+  "por_pais": {
+    "não declarado": 152,
+    "Alemanha": 63,
+    "Espanha": 52,
+    "Noruega": 25,
+    "Brasil": 19,
+    "Tunisia": 17,
+    "Polonia": 17,
+    "Portugal": 15,
+    "Franca": 14,
+    "Dinamarca": 13,
+    "Turquia": 12,
+    "Ira": 12
+  },
+  "por_revista": {
+    "Frontiers in psychology": 40,
+    "Frontiers in sports and active living": 27,
+    "International journal of environmental research and public health": 27,
+    "Journal of human kinetics": 16,
+    "Scandinavian journal of medicine & science in sports": 16,
+    "PloS one": 16,
+    "Sports (Basel, Switzerland)": 12,
+    "BMC sports science, medicine & rehabilitation": 10,
+    "International Journal of Sports Science &amp; Coaching": 9,
+    "Children (Basel, Switzerland)": 7,
+    "Journal of sports sciences": 7,
+    "Perceptual and motor skills": 6
+  },
+  "por_abordagem": {
+    "PICO (intervencao)": 238,
+    "PCC (observacional)": 287
+  },
+  "familia_por_categoria": {
+    "burnout e saúde mental": {
+      "ensaio controlado": 6,
+      "longitudinal": 8,
+      "transversal": 12,
+      "não especificado": 26,
+      "validação": 3,
+      "estudo de caso": 1,
+      "experimental sem controle": 3
+    },
+    "coping e resiliência": {
+      "ensaio controlado": 8,
+      "transversal": 14,
+      "não especificado": 55,
+      "experimental sem controle": 10,
+      "validação": 2,
+      "longitudinal": 6,
+      "revisão": 3,
+      "outro": 1,
+      "estudo de caso": 1
+    },
+    "cognição e atenção": {
+      "ensaio controlado": 15,
+      "não especificado": 81,
+      "experimental sem controle": 15,
+      "revisão": 5,
+      "longitudinal": 4,
+      "observacional": 4,
+      "validação": 3,
+      "transversal": 2,
+      "estudo de caso": 2
+    },
+    "motivação": {
+      "ensaio controlado": 18,
+      "não especificado": 78,
+      "longitudinal": 12,
+      "experimental sem controle": 16,
+      "revisão": 2,
+      "transversal": 9,
+      "validação": 4,
+      "estudo de caso": 1,
+      "observacional": 1
+    },
+    "sono e recuperação": {
+      "longitudinal": 13,
+      "ensaio controlado": 17,
+      "não especificado": 53,
+      "experimental sem controle": 9,
+      "transversal": 13,
+      "revisão": 2,
+      "validação": 3,
+      "estudo de caso": 2,
+      "outro": 1
+    },
+    "ansiedade e estresse": {
+      "longitudinal": 20,
+      "não especificado": 115,
+      "transversal": 22,
+      "experimental sem controle": 17,
+      "observacional": 5,
+      "ensaio controlado": 19,
+      "validação": 6,
+      "revisão": 7,
+      "estudo de caso": 3
+    },
+    "humor e afeto": {
+      "transversal": 4,
+      "não especificado": 17,
+      "ensaio controlado": 6,
+      "experimental sem controle": 2,
+      "longitudinal": 1,
+      "revisão": 1,
+      "validação": 1
+    },
+    "autoeficácia e confiança": {
+      "transversal": 8,
+      "não especificado": 32,
+      "experimental sem controle": 9,
+      "validação": 2,
+      "ensaio controlado": 3,
+      "longitudinal": 1
+    },
+    "coesão e grupo": {
+      "não especificado": 24,
+      "validação": 2,
+      "experimental sem controle": 2,
+      "ensaio controlado": 2,
+      "transversal": 2,
+      "longitudinal": 1,
+      "revisão": 2,
+      "estudo de caso": 1
+    },
+    "personalidade": {
+      "não especificado": 21,
+      "transversal": 2,
+      "validação": 2,
+      "observacional": 1,
+      "experimental sem controle": 1
+    },
+    "emoção": {
+      "ensaio controlado": 1
+    }
+  },
+  "combinacao": {
+    "psicológica combinada com fisiológica ou física": 246,
+    "psicológica isolada": 279
+  },
+  "humor": {
+    "total": 32,
+    "por_categoria": {
+      "transversal": 4,
+      "não especificado": 17,
+      "ensaio controlado": 6,
+      "experimental sem controle": 2,
+      "longitudinal": 1,
+      "revisão": 1,
+      "validação": 1
+    },
+    "combinado_com": {
+      "fisicas": 10,
+      "fisiologicas": 9,
+      "neuromuscular": 5,
+      "biomecanica": 2
+    }
+  }
+}
