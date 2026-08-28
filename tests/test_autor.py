@@ -368,11 +368,26 @@ class TestOrdemDosDestinos(unittest.TestCase):
         js = self.js()
         return js[js.index("function destinosDoArtigo(a)"):js.index("function artigosFiltrados")]
 
-    def test_o_texto_livre_vem_primeiro(self):
-        # mandar quem vai ler para o resumo atrás do paywall quando há PDF
-        # livre no PMC é o detalhe que faz a pessoa desistir
+    def test_o_titulo_leva_a_onde_o_artigo_saiu(self):
+        # o pedido é "clicar no título abre o site onde foi publicado":
+        # isso é o DOI, que resolve para a editora. O PMC é uma cópia --
+        # abrir a cópia no lugar da fonte faria o título mentir
         corpo = self.corpo()
-        self.assertLess(corpo.index("Texto completo (livre)"), corpo.index('rotulo: "DOI"'))
+        doi = corpo[corpo.index('chave: "doi"'):corpo.index('chave: "pmc"')]
+        pmc = corpo[corpo.index('chave: "pmc"'):corpo.index('chave: "pubmed"')]
+        self.assertIn("editora: true", doi)
+        self.assertNotIn("editora", pmc)
+
+    def test_o_texto_livre_nunca_fica_escondido(self):
+        # mandar quem vai ler para o resumo atrás do paywall quando há PDF
+        # livre no PMC é o detalhe que faz a pessoa desistir. O título vai
+        # para a editora, mas o texto livre continua a UM clique, marcado
+        corpo = self.corpo()
+        pmc = corpo[corpo.index('chave: "pmc"'):corpo.index('chave: "pubmed"')]
+        self.assertIn("livre: true", pmc)
+        css = (ROOT / "scripts" / "lape" / "templates" / "panorama.html").read_text(
+            encoding="utf-8")
+        self.assertIn(".base.livre", css)
 
     def test_o_pmc_vira_endereco_do_pmc(self):
         self.assertIn("ncbi.nlm.nih.gov/pmc/articles/", self.corpo())
@@ -381,9 +396,11 @@ class TestOrdemDosDestinos(unittest.TestCase):
         # o Scopus só abre o registro pelo id dele; pelo DOI dá para
         # procurar, e procurar não é abrir
         corpo = self.corpo()
-        self.assertIn("Procurar no Scopus", corpo)
-        trecho = corpo[corpo.index("Procurar no Scopus"):]
-        self.assertIn("busca: true", trecho[:200])
+        scopus = corpo[corpo.index("scopus.com/results/results.uri"):]
+        self.assertIn("busca: true", corpo[:corpo.index("scopus.com/results/results.uri")]
+                      [-400:] + scopus[:200])
+        wos = corpo[corpo.index("general-search"):]
+        self.assertIn("busca", corpo[:corpo.index("general-search")][-400:] + wos[:200])
 
     def test_a_exportacao_leva_os_identificadores(self):
         api_py = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")

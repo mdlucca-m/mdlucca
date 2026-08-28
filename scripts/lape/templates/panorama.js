@@ -469,7 +469,7 @@ function verLaboratorio(palco) {
         }, [
           Icons.get("producao", null),
           el("div", { class: "txt" }, [
-            el("span", { text: cortar(a.title, 92) }),
+            tituloClicavel(a, 92),
             el("small", { text: (a.variaveis || []).map(function (v) { return v.label; })
               .join(" · ") || "sem variável reconhecida" }),
           ]),
@@ -527,7 +527,7 @@ function arvoreHierarquica() {
       .concat(((vars[varEscolhida] || {}).artigos || []).map(function (a) {
         return el("div", { class: "no folha" }, [
           Icons.get("producao", null),
-          el("span", { text: cortar(a.title, 64) })]);
+          tituloClicavel(a, 64)]);
       }))),
   ]);
 }
@@ -907,44 +907,104 @@ function verLacunas(palco) {
    o texto completo livre primeiro, a página da editora depois, e as bases
    por último. Mandar quem vai ler para o resumo atrás do paywall quando há
    PDF livre no PMC é o tipo de detalhe que faz a pessoa desistir. */
+/* Cada base tem o seu jeito de abrir um artigo, e nenhum deles se
+   adivinha: o DOI resolve para a editora, o PMC abre o texto completo de
+   graça, o Scopus só abre pelo id dele. Aqui viram botões, um por base,
+   com o que existe cadastrado -- e o que não existe simplesmente não
+   aparece, em vez de virar um link quebrado. */
 function destinosDoArtigo(a) {
   const links = [];
   const doi = String(a.doi || "").replace(/^https?:\/\/(dx\.)?doi\.org\//i, "").trim();
   const pmc = String(a.pmc || "").trim();
-  if (pmc || a.oa_url) {
-    links.push({ rotulo: "Texto completo (livre)", livre: true,
-      url: a.oa_url || ("https://www.ncbi.nlm.nih.gov/pmc/articles/" + pmc + "/") });
+  if (doi) {
+    links.push({ rotulo: "DOI", chave: "doi", icone: "conectar", editora: true,
+      dica: "Abre na página da editora — " + doi,
+      url: "https://doi.org/" + encodeURI(doi) });
   }
-  if (doi) links.push({ rotulo: "DOI", url: "https://doi.org/" + encodeURI(doi) });
-  if (a.pmid) links.push({ rotulo: "PubMed",
-    url: "https://pubmed.ncbi.nlm.nih.gov/" + encodeURIComponent(a.pmid) + "/" });
+  if (pmc) {
+    links.push({ rotulo: "PMC", chave: "pmc", icone: "baixar", livre: true,
+      dica: "Texto completo de graça no PubMed Central — " + pmc,
+      url: "https://www.ncbi.nlm.nih.gov/pmc/articles/" + encodeURIComponent(pmc) + "/" });
+  } else if (a.oa_url) {
+    links.push({ rotulo: "Texto completo", chave: "oa", icone: "baixar", livre: true,
+      dica: "Texto completo de graça", url: a.oa_url });
+  }
+  if (a.pmid) {
+    links.push({ rotulo: "PubMed", chave: "pubmed", icone: "explorar",
+      dica: "Registro na PubMed — PMID " + a.pmid,
+      url: "https://pubmed.ncbi.nlm.nih.gov/" + encodeURIComponent(a.pmid) + "/" });
+  }
   if (a.scopus_id) {
-    links.push({ rotulo: "Scopus",
+    links.push({ rotulo: "Scopus", chave: "scopus", icone: "explorar",
+      dica: "Registro na Scopus",
       url: "https://www.scopus.com/record/display.uri?origin=resultslist&eid="
         + encodeURIComponent(a.scopus_id) });
   } else if (doi) {
-    /* sem o EID não há link direto: o Scopus só abre o registro pelo id
-       dele. Pelo DOI dá para procurar, e a busca vem marcada como busca. */
-    links.push({ rotulo: "Procurar no Scopus", busca: true,
+    /* sem o EID não há link direto: a Scopus só abre o registro pelo id
+       dela. Pelo DOI dá para procurar, e a busca vem marcada como busca --
+       prometer "abre o artigo" e cair numa lista é pior que avisar. */
+    links.push({ rotulo: "Scopus", chave: "scopus", icone: "explorar", busca: true,
+      dica: "Sem o id da Scopus cadastrado: procura pelo DOI",
       url: "https://www.scopus.com/results/results.uri?st1="
         + encodeURIComponent(doi) + "&sot=b&sdt=b&sl=" + (doi.length + 4)
         + "&s=" + encodeURIComponent("DOI(" + doi + ")") });
   }
   if (a.wos_id) {
-    links.push({ rotulo: "Web of Science",
+    links.push({ rotulo: "Web of Science", chave: "wos", icone: "explorar",
+      dica: "Registro na Web of Science",
       url: "https://www.webofscience.com/wos/woscc/full-record/"
         + encodeURIComponent(a.wos_id) });
   } else if (doi) {
-    links.push({ rotulo: "Procurar na Web of Science", busca: true,
+    links.push({ rotulo: "Web of Science", chave: "wos", icone: "explorar", busca: true,
+      dica: "Sem o id da Web of Science cadastrado: procura pelo DOI",
       url: "https://www.webofscience.com/wos/woscc/general-search?search_mode=general"
         + "&q=" + encodeURIComponent("DO=(" + doi + ")") });
   }
-  if (a.url && !doi) links.push({ rotulo: "Link", url: a.url });
+  if (a.url && !doi) {
+    links.push({ rotulo: "Página do artigo", chave: "url", icone: "conectar",
+      editora: true, dica: a.url, url: a.url });
+  }
   if (!links.length && a.title) {
-    links.push({ rotulo: "Procurar", busca: true,
+    links.push({ rotulo: "Procurar no Google Acadêmico", chave: "scholar",
+      icone: "explorar", busca: true,
+      dica: "Nenhum identificador cadastrado: procura pelo título",
       url: "https://scholar.google.com/scholar?q=" + encodeURIComponent('"' + a.title + '"') });
   }
   return links;
+}
+
+/* O clique no título vai para onde o artigo FOI PUBLICADO -- o DOI, que
+   resolve para a editora. O texto livre continua a um clique, no botão
+   verde ao lado; ele é outra coisa (uma cópia), e trocar um pelo outro
+   faria o título mentir sobre onde o trabalho saiu. */
+function destinoDoTitulo(destinos) {
+  return destinos.find(function (d) { return d.editora; })
+    || destinos.find(function (d) { return !d.busca; })
+    || destinos[0] || null;
+}
+
+/* O título é clicável em toda parte onde ele aparece -- a linha do
+   tempo e o organograma inclusive. Quando não há identificador nenhum,
+   fica texto: um link que só abre uma busca promete o que não cumpre. */
+function tituloClicavel(a, limite) {
+  const rotulo = limite ? cortar(a.title, limite) : a.title;
+  const destino = destinoDoTitulo(destinosDoArtigo(a));
+  if (!destino || destino.busca) return el("span", { text: rotulo });
+  return el("a", { class: "titulo-artigo", href: destino.url, target: "_blank",
+    rel: "noopener", title: "Abre em " + destino.rotulo,
+    onclick: function (ev) { ev.stopPropagation(); } }, [
+    el("span", { text: rotulo }), Icons.get("conectar", 11),
+  ]);
+}
+
+function botoesDeBase(destinos) {
+  return el("div", { class: "bases" }, destinos.map(function (d) {
+    return el("a", {
+      class: "base" + (d.livre ? " livre" : "") + (d.busca ? " busca" : ""),
+      href: d.url, target: "_blank", rel: "noopener",
+      title: d.dica + (d.busca ? " (abre uma busca, não o artigo)" : ""),
+    }, [Icons.get(d.icone, 12), el("span", { text: d.rotulo })]);
+  }));
 }
 
 function artigosFiltrados(soMulti) {
@@ -1067,18 +1127,16 @@ const SITUACAO = { em_producao: "Em escrita", submetido: "Submetido",
 function tabelaDeArtigos(lista) {
   const corpo = el("tbody", {}, lista.map(function (a) {
     const destinos = destinosDoArtigo(a);
-    const principal = destinos[0];
+    const doTitulo = destinoDoTitulo(destinos);
     return el("tr", {}, COLUNAS.map(function (col) {
       if (col.k === "title") {
         return el("td", {}, [
-          principal
-            ? el("a", { class: "titulo" + (principal.livre ? " livre-link" : ""),
-                href: principal.url, target: "_blank", rel: "noopener",
-                title: principal.busca ? "Sem identificador cadastrado: procura pelo título"
-                                       : "Abrir em " + principal.rotulo },
+          doTitulo
+            ? el("a", { class: "titulo" + (doTitulo.busca ? " incerto" : ""),
+                href: doTitulo.url, target: "_blank", rel: "noopener",
+                title: doTitulo.busca ? doTitulo.dica : "Abre em " + doTitulo.rotulo },
                 [el("span", { text: a.title }),
-                 Icons.get(principal.busca ? "explorar"
-                           : principal.livre ? "baixar" : "conectar", 12)])
+                 Icons.get(doTitulo.busca ? "explorar" : "conectar", 12)])
             : el("span", { text: a.title }),
           el("small", {}, [
             el("span", { text: [a.authors, a.internal_code].filter(Boolean).join(" · ") }),
@@ -1087,9 +1145,7 @@ function tabelaDeArtigos(lista) {
               + " — o texto completo está disponível de graça",
               text: "acesso aberto" }) : null,
           ]),
-          destinos.length > 1 ? el("small", {}, destinos.slice(1).map(function (d) {
-            return el("a", { href: d.url, target: "_blank", rel: "noopener",
-              style: "margin-right:9px;font-size:11.5px", text: d.rotulo }); })) : null,
+          destinos.length ? botoesDeBase(destinos) : null,
         ]);
       }
       if (col.k === "variaveis") {

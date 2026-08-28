@@ -348,6 +348,53 @@ class TestPecasNovasDaTela(unittest.TestCase):
         self.assertIn("marks: marcas", js)
         self.assertIn("inflexoes", js[js.index("const marcas = []"):js.index("marks: marcas")])
 
+    def test_o_titulo_leva_a_editora_e_nao_a_copia(self):
+        # "leva direto para o site onde foi publicado" é o DOI, que
+        # resolve para a editora. O texto livre é outra coisa -- uma
+        # cópia -- e fica no botão ao lado, não no título
+        js = self.js("panorama.js")
+        corpo = js[js.index("function destinoDoTitulo"):]
+        corpo = corpo[:corpo.index("\n}")]
+        self.assertIn("d.editora", corpo)
+        editora = js[js.index("function destinosDoArtigo"):js.index("function destinoDoTitulo")]
+        # só o DOI e a página própria do artigo são "editora"
+        self.assertEqual(editora.count("editora: true"), 2)
+        pmc = editora[editora.index('chave: "pmc"'):]
+        self.assertNotIn("editora", pmc[:pmc.index('chave: "pubmed"')])
+
+    def test_toda_base_pedida_tem_botao(self):
+        js = self.js("panorama.js")
+        editora = js[js.index("function destinosDoArtigo"):js.index("function destinoDoTitulo")]
+        for base in ("DOI", "PMC", "PubMed", "Scopus", "Web of Science"):
+            with self.subTest(base=base):
+                self.assertIn('rotulo: "' + base + '"', editora)
+
+    def test_a_busca_nao_se_disfarca_de_artigo(self):
+        # prometer "abre o artigo" e cair numa lista de resultados é pior
+        # que avisar antes: sem o id da base não há link direto
+        js = self.js("panorama.js")
+        editora = js[js.index("function destinosDoArtigo"):js.index("function destinoDoTitulo")]
+        self.assertIn("busca: true", editora)
+        css = (TEMPLATES / "panorama.html").read_text(encoding="utf-8")
+        self.assertIn(".base.busca", css)
+        self.assertIn("border-style: dashed", css[css.index(".base.busca"):][:200])
+
+    def test_o_texto_livre_nao_e_so_uma_cor(self):
+        css = (TEMPLATES / "panorama.html").read_text(encoding="utf-8")
+        self.assertIn(".base.livre", css)
+        js = self.js("panorama.js")
+        self.assertIn('rotulo: "PMC"', js)   # o rótulo diz qual base é
+
+    def test_o_titulo_e_clicavel_fora_da_tabela_tambem(self):
+        # linha do tempo e organograma mostram título; clicar neles tem
+        # de levar ao artigo como na tabela
+        js = self.js("panorama.js")
+        self.assertGreaterEqual(js.count("tituloClicavel("), 3)
+        corpo = js[js.index("function tituloClicavel"):]
+        corpo = corpo[:corpo.index("\n}")]
+        self.assertIn("destino.busca", corpo)
+        self.assertIn("stopPropagation", corpo)
+
     def test_o_selo_da_variavel_principal_se_distingue(self):
         # se o destaque fosse só cor, quem imprime em preto e branco ou
         # não separa bem as cores lê a tabela toda como se fosse igual
