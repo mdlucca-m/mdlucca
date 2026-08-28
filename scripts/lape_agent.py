@@ -466,6 +466,26 @@ def cmd_lattes(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_app(args: argparse.Namespace) -> int:
+    """O painel em forma de aplicativo de celular, para mostrar a alguem."""
+    from lape import celular
+
+    db = Database(args.db)
+    db.migrate()
+    try:
+        resultado = celular.escrever(db, args.para)
+    finally:
+        db.close()
+    print(f"  arquivo ........... {resultado['arquivo']}")
+    print(f"  tamanho ........... {resultado['bytes'] // 1024} kB"
+          f"  ({resultado['artigos']} artigos)")
+    print()
+    print("  Abre no celular como aplicativo: abas embaixo, uma tela por aba.")
+    print("  E um RETRATO -- nao esta ao vivo e nao grava. Pode mandar por")
+    print("  WhatsApp ou e-mail; abre sozinho, sem internet.")
+    return 0
+
+
 def cmd_instantaneo(args: argparse.Namespace) -> int:
     """Uma pagina so, com tudo dentro, para abrir longe do laboratorio."""
     from lape import instantaneo
@@ -716,6 +736,13 @@ def build_parser() -> argparse.ArgumentParser:
     planilha_parser.add_argument("--para", type=Path, metavar="ARQUIVO",
                                  help="escreve num caminho escolhido, sem mexer na planilha oficial")
     planilha_parser.set_defaults(func=cmd_planilha)
+
+    app_parser = subparsers.add_parser(
+        "app", help="o painel em forma de aplicativo de celular, para mostrar")
+    app_parser.add_argument(
+        "--para", type=Path, default=Path("docs/lape-app.html"),
+        metavar="ARQUIVO", help="onde gravar (padrao: docs/lape-app.html)")
+    app_parser.set_defaults(func=cmd_app)
 
     instantaneo_parser = subparsers.add_parser(
         "instantaneo",
