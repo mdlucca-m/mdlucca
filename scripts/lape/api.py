@@ -37,7 +37,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Callable
 
-from . import auth, config, export, extracao, metrics, report, revisao
+from . import analise, auth, config, export, extracao, metrics, report, revisao, variaveis
 from .db import Database
 from .util import to_int
 
@@ -1003,6 +1003,70 @@ def route_review_terms(ctx: "Context", review_id: str) -> Any:
 
 
 # ----------------------------------------------------------------------
+# Panorama analitico da producao do laboratorio
+# ----------------------------------------------------------------------
+def _artigos_do_panorama(db: Database) -> list[dict[str, Any]]:
+    """Os artigos com tudo o que a tabela de extracao precisa mostrar."""
+    artigos = db.dicts(
+        "SELECT id, internal_code, title, authors, lead_name, status, research_line,"
+        "       research_line_code, study_type, journal, qualis, impact_factor,"
+        "       year_published, started_on, first_submission_on, accepted_on,"
+        "       published_on, doi, url, wos_id, scopus_id,"
+        "       wos_citations, scopus_citations, openalex_citations,"
+        "       submission_attempts, rejections, days_start_to_publication"
+        "  FROM v_articles_full ORDER BY COALESCE(year_published, 9999) DESC, title")
+    por_artigo: dict[int, list[dict]] = {}
+    for linha in db.dicts(
+            "SELECT av.article_id, v.code, v.label, v.grupo, v.icone, av.origem, av.trecho"
+            "  FROM article_variables av JOIN variables v ON v.id = av.variable_id"
+            " ORDER BY v.seq"):
+        por_artigo.setdefault(linha["article_id"], []).append(linha)
+    for artigo in artigos:
+        artigo["variaveis"] = por_artigo.get(artigo["id"], [])
+        artigo["ano"] = analise._ano_do_artigo(artigo)
+    return artigos
+
+
+def route_panorama(ctx: "Context") -> Any:
+    auth.require(ctx.user, "leitura")
+    desde = to_int((ctx.query.get("desde") or [None])[0])
+    ate = to_int((ctx.query.get("ate") or [None])[0])
+    dados = analise.panorama(ctx.db, desde=desde, ate=ate)
+    return {
+        "panorama": dados,
+        "sintese": analise.sintese(ctx.db, dados),
+        "lacunas": analise.lacunas(ctx.db, dados),
+        "artigos": _artigos_do_panorama(ctx.db),
+        "linhas": ctx.db.dicts(
+            "SELECT rl.code, rl.name, rl.description, rl.keywords,"
+            "       (SELECT COUNT(*) FROM articles a WHERE a.research_line_id = rl.id) AS n"
+            "  FROM research_lines rl ORDER BY n DESC"),
+        "laboratorio": {
+            "nome": config.LAB_NAME, "instituicao": config.LAB_INSTITUTION,
+            "site": getattr(config, "LAB_SITE", None),
+            "integrantes": int(ctx.db.scalar("SELECT COUNT(*) FROM members") or 0),
+            "projetos": int(ctx.db.scalar("SELECT COUNT(*) FROM projects") or 0),
+            "eventos": int(ctx.db.scalar("SELECT COUNT(*) FROM events") or 0),
+        },
+        "vocabulario": variaveis.lista(ctx.db),
+    }
+
+
+def route_panorama_marcar(ctx: "Context") -> Any:
+    """Repassa o vocabulario sobre a producao. Nao apaga marcacao humana."""
+    user = auth.require(ctx.user, "coordenacao")
+    variaveis.instalar(ctx.db)
+    resultado = variaveis.marcar_artigos(
+        ctx.db, apenas_novos=not (ctx.body or {}).get("tudo"))
+    from . import hooks
+
+    hooks.emit(ctx.db, "variaveis.marcadas", entity="articles",
+               detail=f"{resultado['ligacoes']} ligação(ões)",
+               actor=user.get("full_name"))
+    return resultado
+
+
+# ----------------------------------------------------------------------
 # Tabela de rotas: (metodo, padrao, funcao, perfil minimo | None = publico)
 # ----------------------------------------------------------------------
 ROUTES: list[tuple[str, str, Callable, str | None]] = [
@@ -1039,6 +1103,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/agents/tracker/?$", route_tracker, "coordenacao"),
     ("POST", r"^/api/agents/curator/?$", route_curator, "coordenacao"),
     ("GET", r"^/api/audit/?$", route_audit, "coordenacao"),
+    ("GET", r"^/api/panorama/?$", route_panorama, "leitura"),
+    ("POST", r"^/api/panorama/marcar/?$", route_panorama_marcar, "coordenacao"),
     ("GET", r"^/api/revisoes/?$", route_reviews, "leitura"),
     ("POST", r"^/api/revisoes/?$", route_review_create, "coordenacao"),
     ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/?$", route_review_detail, "leitura"),
@@ -1224,6 +1290,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._serve_page("app.html")
         if method == "GET" and path in ("/triagem", "/revisao", "/revisoes"):
             return self._serve_page("triagem.html")
+        if method == "GET" and path in ("/panorama", "/analitico"):
+            return self._serve_page("panorama.html")
         if method == "GET" and path.startswith("/convite"):
             return self._serve_page("convite.html")
         if method == "GET" and path == "/api/stream":
@@ -1236,6 +1304,9 @@ class Handler(BaseHTTPRequestHandler):
             return self._serve_export(query)
         if method == "GET" and path == "/api/export/planilha":
             return self._serve_planilha()
+        if method == "GET" and path in ("/api/panorama/extracao.csv",
+                                        "/api/panorama/extracao.xlsx"):
+            return self._serve_extracao(path.endswith(".xlsx"))
         casa = re.match(
             r"^/api/revisoes/([\w-]+)/(exportar|prisma\.svg|semaforo\.svg|caracteristicas\.csv)$",
             path)
@@ -1346,6 +1417,12 @@ class Handler(BaseHTTPRequestHandler):
         html = html.replace("__BASE_CSS__", (TEMPLATES / "theme.css").read_text(encoding="utf-8"))
         if "__ICONS_JS__" in html:
             html = html.replace("__ICONS_JS__", (TEMPLATES / "icons.js").read_text(encoding="utf-8"))
+        if "__CHARTS_JS__" in html:
+            html = html.replace("__CHARTS_JS__",
+                                (TEMPLATES / "charts.js").read_text(encoding="utf-8"))
+        if "__PANORAMA_JS__" in html:
+            html = html.replace("__PANORAMA_JS__",
+                                (TEMPLATES / "panorama.js").read_text(encoding="utf-8"))
         if "__TRIAGEM_JS__" in html:
             html = html.replace("__TRIAGEM_JS__",
                                 (TEMPLATES / "triagem.js").read_text(encoding="utf-8"))
@@ -1390,6 +1467,30 @@ class Handler(BaseHTTPRequestHandler):
             db.close()
         self._send(200, conteudo, mime,
                    [("Content-Disposition", f'attachment; filename="{nome}"')])
+
+    def _serve_extracao(self, planilha_excel: bool) -> None:
+        """A tabela de extracao do panorama, em CSV ou Excel."""
+        db = Database(self.db_path)
+        try:
+            user, _ = self._resolve_user(db)
+            if not PUBLIC_DASHBOARD:
+                auth.require(user, "leitura")
+            artigos = _linhas_de_extracao(db)
+        except auth.AuthError as exc:
+            return self._send(exc.status, {"error": exc.message})
+        except Exception as exc:  # nunca derruba o servidor
+            traceback.print_exc()
+            return self._send(500, {"error": f"falha ao montar a extração: {exc}"})
+        finally:
+            db.close()
+        if planilha_excel:
+            return self._send(
+                200, _extracao_xlsx(artigos),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                [("Content-Disposition",
+                  'attachment; filename="lape-extracao.xlsx"')])
+        self._send(200, _extracao_csv(artigos), "text/csv",
+                   [("Content-Disposition", 'attachment; filename="lape-extracao.csv"')])
 
     def _serve_revisao(self, code: str, o_que: str, query: dict) -> None:
         """Download da revisao: as referencias, ou o fluxograma.
@@ -1467,6 +1568,97 @@ class Handler(BaseHTTPRequestHandler):
         self._send(200, alvo.read_bytes(),
                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                    [("Content-Disposition", f'attachment; filename="{alvo.name}"')])
+
+
+COLUNAS_EXTRACAO: tuple[tuple[str, str], ...] = (
+    ("Código", "internal_code"), ("Título", "title"), ("Autores", "authors"),
+    ("Responsável", "lead_name"), ("Variáveis", "variaveis_texto"),
+    ("Nº de variáveis", "n_variaveis"), ("Linha de pesquisa", "research_line"),
+    ("Situação", "status"), ("Tipo de estudo", "study_type"),
+    ("Periódico", "journal"), ("Qualis", "qualis"), ("Fator de impacto", "impact_factor"),
+    ("Ano", "ano"), ("Início", "started_on"), ("1ª submissão", "first_submission_on"),
+    ("Aceite", "accepted_on"), ("Publicação", "published_on"),
+    ("Tentativas", "submission_attempts"), ("Recusas", "rejections"),
+    ("Dias início→publicação", "days_start_to_publication"),
+    ("Citações WoS", "wos_citations"), ("Citações Scopus", "scopus_citations"),
+    ("Citações OpenAlex", "openalex_citations"),
+    ("DOI", "doi"), ("Link", "link"), ("Scopus ID", "scopus_id"), ("WoS ID", "wos_id"),
+)
+
+
+def _linhas_de_extracao(db: Database) -> list[dict[str, Any]]:
+    """Os artigos com as variaveis ja escritas, prontos para a planilha."""
+    artigos = _artigos_do_panorama(db)
+    for artigo in artigos:
+        rotulos = [v["label"] for v in artigo["variaveis"]]
+        artigo["variaveis_texto"] = "; ".join(rotulos)
+        artigo["n_variaveis"] = len(rotulos)
+        doi = (artigo.get("doi") or "").replace("https://doi.org/", "").strip()
+        artigo["link"] = (f"https://doi.org/{doi}" if doi else (artigo.get("url") or ""))
+    return artigos
+
+
+def _extracao_csv(artigos: list[dict[str, Any]]) -> str:
+    import csv as _csv
+    import io as _io
+
+    saida = _io.StringIO()
+    escritor = _csv.writer(saida, delimiter=";", quoting=_csv.QUOTE_MINIMAL,
+                           lineterminator="\r\n")
+    escritor.writerow([rotulo for rotulo, _ in COLUNAS_EXTRACAO])
+    for artigo in artigos:
+        escritor.writerow(["" if artigo.get(campo) is None else str(artigo.get(campo))
+                           for _, campo in COLUNAS_EXTRACAO])
+    return "\ufeff" + saida.getvalue()
+
+
+def _extracao_xlsx(artigos: list[dict[str, Any]]) -> bytes:
+    """Duas abas: tudo, e so os artigos que cruzam mais de uma variavel.
+
+    A segunda nao e um recorte por comodidade -- e a tabela que responde
+    "como estes assuntos se relacionam", que a primeira nao responde.
+    """
+    import io as _io
+
+    from openpyxl import Workbook
+    from openpyxl.styles import Alignment, Font, PatternFill
+    from openpyxl.utils import get_column_letter
+
+    livro = Workbook()
+    livro.remove(livro.active)
+    titulo = Font(bold=True, color="FFFFFF")
+    fundo = PatternFill("solid", fgColor="12799F")
+
+    for nome, lista in (("Todos os artigos", artigos),
+                        ("Mais de uma variável",
+                         [a for a in artigos if a["n_variaveis"] > 1])):
+        aba = livro.create_sheet(nome)
+        aba.append([rotulo for rotulo, _ in COLUNAS_EXTRACAO])
+        for artigo in lista:
+            aba.append([artigo.get(campo) for _, campo in COLUNAS_EXTRACAO])
+        for celula in aba[1]:
+            celula.font = titulo
+            celula.fill = fundo
+            celula.alignment = Alignment(vertical="center")
+        aba.freeze_panes = "A2"
+        if lista:
+            aba.auto_filter.ref = aba.dimensions
+        for i, (rotulo, campo) in enumerate(COLUNAS_EXTRACAO, start=1):
+            maior = max([len(rotulo)] + [len(str(a.get(campo) or ""))
+                                         for a in lista[:200]] or [0])
+            aba.column_dimensions[get_column_letter(i)].width = min(max(maior + 2, 10), 60)
+        # o link do artigo vira link de verdade na planilha
+        coluna_link = next(i for i, (_, campo) in enumerate(COLUNAS_EXTRACAO, start=1)
+                           if campo == "link")
+        for linha, artigo in enumerate(lista, start=2):
+            if artigo.get("link"):
+                celula = aba.cell(row=linha, column=coluna_link)
+                celula.hyperlink = artigo["link"]
+                celula.style = "Hyperlink"
+
+    memoria = _io.BytesIO()
+    livro.save(memoria)
+    return memoria.getvalue()
 
 
 def _caracteristicas_csv(tabela: dict) -> str:

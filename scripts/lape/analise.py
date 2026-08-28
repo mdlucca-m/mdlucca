@@ -418,3 +418,202 @@ def rede(db: Database) -> dict[str, Any]:
                 for c in codigos],
         "arestas": arestas,
     }
+
+
+# ----------------------------------------------------------------------
+# Sintese e lacunas
+# ----------------------------------------------------------------------
+def sintese(db: Database, panorama_pronto: dict[str, Any] | None = None) -> dict[str, Any]:
+    """O que os numeros dizem, em frases -- nao em mais numeros.
+
+    Um painel que so mostra grafico obriga cada leitor a tirar a propria
+    conclusao, e cada um tira uma. Aqui as leituras que o dado sustenta
+    saem escritas, com o numero que as sustenta ao lado, para que possam
+    ser contestadas.
+    """
+    p = panorama_pronto or panorama(db)
+    variaveis = [v for v in p["variaveis"] if v["total_geral"]]
+    total = p["total_artigos"] or 1
+    achados: list[dict[str, Any]] = []
+
+    if variaveis:
+        maior = variaveis[0]
+        achados.append({
+            "titulo": "O eixo da casa",
+            "texto": f"{maior['label']} aparece em {maior['total_geral']} dos {total} "
+                     f"artigos ({maior['total_geral'] * 100 // total}%). É o assunto em "
+                     f"torno do qual o resto se organiza.",
+            "numero": maior["total_geral"], "icone": maior["icone"],
+        })
+
+    # Pareto: quantas variaveis seguram 80% das aparicoes
+    aparicoes = sorted((v["total_geral"] for v in variaveis), reverse=True)
+    soma, quantas = 0, 0
+    alvo = sum(aparicoes) * 0.8
+    for valor in aparicoes:
+        soma += valor
+        quantas += 1
+        if soma >= alvo:
+            break
+    if aparicoes:
+        achados.append({
+            "titulo": "Concentração temática",
+            "texto": f"{quantas} de {len(variaveis)} variáveis concentram 80% das "
+                     f"aparições. Concentrar é foco quando é escolha, e fragilidade "
+                     f"quando é inércia.",
+            "numero": quantas, "icone": "alvo",
+        })
+
+    ligacoes = sum(v["total_geral"] for v in variaveis)
+    if total:
+        media = round(ligacoes / total, 1)
+        achados.append({
+            "titulo": "Quantas perguntas por artigo",
+            "texto": f"Cada artigo do LAPE toca {media} variáveis em média. Acima de 2, "
+                     f"a produção é combinatória: o valor está no cruzamento, não na "
+                     f"variável isolada.",
+            "numero": media, "icone": "rede",
+        })
+
+    arestas = p["rede"]["arestas"]
+    if arestas:
+        forte = arestas[0]
+        achados.append({
+            "titulo": "O par que anda junto",
+            "texto": f"{forte['rotulo_a']} e {forte['rotulo_b']} dividem "
+                     f"{forte['n']} artigos (Jaccard {forte['jaccard']}). É a dupla que "
+                     f"define a identidade da produção.",
+            "numero": forte["n"], "icone": "conectar",
+        })
+
+    subindo = [v for v in variaveis if v["tendencia"] == "subindo"]
+    caindo = [v for v in variaveis if v["tendencia"] == "caindo"]
+    if subindo or caindo:
+        achados.append({
+            "titulo": "Para onde a produção anda",
+            "texto": (f"{len(subindo)} variável(is) em alta e {len(caindo)} em queda "
+                      f"no recorte de {p['janela']['corte']}."),
+            "numero": len(subindo), "icone": "subida",
+        })
+    else:
+        achados.append({
+            "titulo": "Ainda não dá para falar em tendência",
+            "texto": "Nenhuma variável tem produção em três anos distintos. A série "
+                     "temporal do laboratório está no Lattes da equipe — importá-lo "
+                     "abre a história inteira para a análise.",
+            "numero": None, "icone": "aviso",
+        })
+
+    situacoes = dict(db.conn.execute(
+        "SELECT status, COUNT(*) FROM articles GROUP BY 1").fetchall())
+    publicados = situacoes.get("publicado", 0)
+    achados.append({
+        "titulo": "Onde o acervo está",
+        "texto": (f"{publicados} publicado(s), "
+                  f"{situacoes.get('submetido', 0) + situacoes.get('em_revisao', 0)} "
+                  f"em avaliação e {situacoes.get('em_producao', 0)} em escrita."),
+        "numero": publicados, "icone": "producao",
+    })
+    return {"achados": achados, "situacoes": situacoes,
+            "janela": p["janela"], "total": p["total_artigos"]}
+
+
+def lacunas(db: Database, panorama_pronto: dict[str, Any] | None = None) -> dict[str, Any]:
+    """O que NAO esta la -- que e mais dificil de ver do que o que esta.
+
+    Um painel mostra a producao. A pergunta que faz um laboratorio andar e
+    a outra: o que ficou de fora, o que ficou pela metade, e que ponte
+    ninguem atravessou ainda.
+    """
+    from . import variaveis as vocabulario
+
+    p = panorama_pronto or panorama(db)
+    por_codigo = {v["code"]: v for v in p["variaveis"]}
+    todas = vocabulario.lista(db)
+    achados: list[dict[str, Any]] = []
+
+    nunca = [v for v in todas if v["code"] not in por_codigo]
+    if nunca:
+        achados.append({
+            "tipo": "nunca estudada", "peso": len(nunca), "icone": "explorar",
+            "titulo": "Variáveis do vocabulário sem nenhum artigo",
+            "texto": "Não é acusação: é o mapa do que o laboratório escolheu não olhar. "
+                     "Cada uma é uma pergunta possível.",
+            "itens": [{"rotulo": v["label"], "grupo": v["grupo"]} for v in nunca],
+        })
+
+    solitarias = [v for v in p["variaveis"] if v["total_geral"] == 1]
+    if solitarias:
+        achados.append({
+            "tipo": "fio solto", "peso": len(solitarias), "icone": "prazo",
+            "titulo": "Estudadas uma vez só",
+            "texto": "Um artigo isolado não sustenta linha de pesquisa. Ou vira série, "
+                     "ou some do currículo do laboratório.",
+            "itens": [{"rotulo": v["label"], "grupo": v["grupo"]} for v in solitarias],
+        })
+
+    # pontes que ninguem atravessou: duas variaveis fortes que nunca
+    # apareceram no mesmo artigo
+    fortes = [v for v in p["variaveis"] if v["total_geral"] >= 3]
+    juntos = {(a["a"], a["b"]) for a in p["rede"]["arestas"]}
+    juntos |= {(b, a) for a, b in juntos}
+    pontes = []
+    for i, a in enumerate(fortes):
+        for b in fortes[i + 1:]:
+            if (a["code"], b["code"]) not in juntos:
+                pontes.append({"rotulo": f"{a['label']} × {b['label']}",
+                               "grupo": f"{a['total_geral']} + {b['total_geral']} artigos"})
+    if pontes:
+        achados.append({
+            "tipo": "ponte não atravessada", "peso": len(pontes), "icone": "conectar",
+            "titulo": "Variáveis fortes que nunca se encontraram",
+            "texto": "As duas já têm massa crítica na casa, e nenhum artigo as juntou. "
+                     "É onde costuma estar o artigo que ainda não foi escrito.",
+            "itens": pontes[:12],
+        })
+
+    so_em_gaveta = db.dicts(
+        "SELECT v.label, COUNT(*) AS n FROM article_variables av"
+        "  JOIN variables v ON v.id = av.variable_id"
+        "  JOIN articles a ON a.id = av.article_id"
+        " GROUP BY v.id"
+        " HAVING SUM(CASE WHEN a.status = 'publicado' THEN 1 ELSE 0 END) = 0")
+    if so_em_gaveta:
+        achados.append({
+            "tipo": "sem nada publicado", "peso": len(so_em_gaveta), "icone": "pausa",
+            "titulo": "Assunto sem nenhum artigo publicado",
+            "texto": "Trabalho feito que ainda não virou registro. Enquanto não sair, "
+                     "não existe para quem lê de fora.",
+            "itens": [{"rotulo": x["label"], "grupo": f"{x['n']} artigo(s) na gaveta"}
+                      for x in so_em_gaveta],
+        })
+
+    buracos = []
+    for rotulo, sql in (
+            ("sem ano de referência",
+             "SELECT COUNT(*) FROM articles WHERE year_published IS NULL"
+             "   AND published_on IS NULL AND accepted_on IS NULL"
+             "   AND first_submission_on IS NULL AND started_on IS NULL"),
+            ("sem linha de pesquisa",
+             "SELECT COUNT(*) FROM articles WHERE research_line_id IS NULL"),
+            ("publicado sem DOI",
+             "SELECT COUNT(*) FROM articles WHERE status = 'publicado'"
+             "   AND (doi IS NULL OR TRIM(doi) = '')"),
+            ("sem nenhuma variável reconhecida",
+             "SELECT COUNT(*) FROM articles a WHERE NOT EXISTS"
+             "  (SELECT 1 FROM article_variables av WHERE av.article_id = a.id)")):
+        quantos = int(db.scalar(sql) or 0)
+        if quantos:
+            buracos.append({"rotulo": rotulo, "grupo": f"{quantos} artigo(s)"})
+    if buracos:
+        achados.append({
+            "tipo": "buraco no cadastro", "peso": sum(
+                int(b["grupo"].split()[0]) for b in buracos), "icone": "aviso",
+            "titulo": "O que falta no próprio cadastro",
+            "texto": "Análise não conserta dado ausente. Cada linha aqui é um número "
+                     "que o painel não pode calcular.",
+            "itens": buracos,
+        })
+
+    achados.sort(key=lambda x: -x["peso"])
+    return {"achados": achados}

@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panorama analítico — LAPE</title>
+<style>__BASE_CSS__
+/* ------------------------------------------------------------------
+   Painel analítico da produção do laboratório. A régua daqui: cada
+   elemento gráfico ou responde uma pergunta ou sai. Sombra, brilho e
+   movimento existem para separar planos e guiar o olho — nunca para
+   preencher espaço.
+   ------------------------------------------------------------------ */
+body { background: var(--surface-sunken); }
+body::before { content: ""; position: fixed; inset: 0; z-index: -1;
+  background: var(--grad-malha); background-size: var(--malha-passo) var(--malha-passo);
+  opacity: .5; pointer-events: none; }
+
+/* Cor da variável. Vale o padrão até o JS trocar por `style="--tom:…"` na
+   peça — assim o seletor nunca fica sem cor se a variável não for
+   reconhecida. */
+:root { --tom: var(--accent); }
+
+.casca { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; }
+
+/* ---- navegação lateral temática ---- */
+nav.lado { background: var(--surface); border-right: 1px solid var(--border);
+  padding: 18px 12px 28px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+nav.lado .marca { display: flex; align-items: center; gap: 11px; padding: 0 10px 18px;
+  border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+nav.lado .marca .selo { width: 38px; height: 38px; border-radius: 11px; flex: none;
+  background: linear-gradient(145deg, var(--accent-strong), var(--accent-solid));
+  color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 13px;
+  box-shadow: var(--glow); }
+nav.lado .marca b { font-size: 14px; letter-spacing: -.01em; line-height: 1.15; }
+nav.lado .marca small { display: block; font-weight: 400; color: var(--ink-2);
+  font-size: 11.5px; margin-top: 2px; }
+nav.lado .grupo { font-size: 10.5px; text-transform: uppercase; letter-spacing: .09em;
+  color: var(--ink-muted); font-weight: 700; margin: 18px 12px 7px; }
+nav.lado button { display: flex; align-items: center; gap: 11px; width: 100%;
+  text-align: left; background: none; border: 1px solid transparent; box-shadow: none;
+  padding: 9px 11px; border-radius: 10px; color: var(--ink-2); font-size: 13.5px;
+  font-weight: 550; position: relative; transition: background .14s, color .14s; }
+nav.lado button svg.icon { color: var(--ink-muted); font-size: 17px; flex: none;
+  transition: color .14s, transform .18s; }
+nav.lado button:hover { background: var(--surface-raised); color: var(--ink); }
+nav.lado button:hover svg.icon { color: var(--accent); transform: scale(1.12); }
+nav.lado button.on { background: var(--accent-wash); color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent-strong) 34%, transparent);
+  font-weight: 700; box-shadow: var(--glow); }
+nav.lado button.on svg.icon { color: var(--accent); }
+nav.lado button .n { margin-left: auto; font-size: 11.5px; color: var(--ink-muted);
+  font-variant-numeric: tabular-nums; }
+
+main.palco { padding: clamp(16px, 2.4vw, 32px); max-width: 1440px; }
+
+/* ---- cabeçalho da seção ---- */
+.cabeca { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 20px;
+  flex-wrap: wrap; }
+.cabeca .brasao { width: 52px; height: 52px; border-radius: 14px; flex: none;
+  display: grid; place-items: center; background: var(--accent-wash);
+  border: 1px solid color-mix(in srgb, var(--accent-strong) 40%, transparent);
+  color: var(--accent); box-shadow: var(--glow); }
+.cabeca .brasao svg.icon { font-size: 26px; }
+.cabeca h1 { font-size: clamp(21px, 2.6vw, 29px); letter-spacing: -.025em; line-height: 1.15; }
+.cabeca p { color: var(--ink-2); font-size: 14px; margin-top: 5px; max-width: 74ch; }
+.cabeca .direita { margin-left: auto; display: flex; gap: 8px; align-items: center;
+  flex-wrap: wrap; }
+
+/* ---- caixa temática de texto ---- */
+.tese { position: relative; background: var(--surface-raised);
+  border: 1px solid var(--border); border-left: 3px solid var(--accent);
+  border-radius: var(--radius); padding: 20px 22px; margin-bottom: 18px;
+  box-shadow: var(--shadow-lg); overflow: hidden; }
+.tese::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: var(--grad-card); }
+.tese > * { position: relative; }
+.tese h3 { font-size: 15px; display: flex; align-items: center; gap: 9px;
+  margin-bottom: 8px; }
+.tese h3 svg.icon { color: var(--accent); font-size: 18px; }
+.tese p { color: var(--ink-2); font-size: 14px; line-height: 1.7; max-width: 82ch; }
+.tese p + p { margin-top: 9px; }
+.tese b { color: var(--ink); }
+
+/* ---- grade de cartões com sombra e realce ---- */
+.grade { display: grid; gap: 14px; }
+.g2 { grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); }
+.g3 { grid-template-columns: repeat(auto-fit, minmax(266px, 1fr)); }
+.g4 { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.cartao { background: var(--surface-raised); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 17px 18px; position: relative;
+  box-shadow: var(--shadow); transition: transform .18s, box-shadow .18s, border-color .18s; }
+.cartao::after { content: ""; position: absolute; inset: 0; border-radius: inherit;
+  pointer-events: none; border-top: 1px solid rgba(255,255,255,.055); }
+.cartao:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg);
+  border-color: var(--border-strong); }
+.cartao h3 { font-size: 14.5px; letter-spacing: -.01em; display: flex; gap: 9px;
+  align-items: center; }
+.cartao h3 svg.icon { color: var(--accent); font-size: 17px; flex: none; }
+.cartao .hint { margin-top: 3px; }
+.cartao .corpo { margin-top: 13px; }
+
+/* números grandes */
+.numero { font-size: 33px; font-weight: 800; letter-spacing: -.035em; line-height: 1;
+  font-variant-numeric: tabular-nums; }
+.rotulo { font-size: 11px; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--ink-muted); font-weight: 700; }
+.pe { font-size: 12.5px; color: var(--ink-2); margin-top: 5px; }
+
+/* ---- selo de variável ---- */
+.selos { display: flex; gap: 6px; flex-wrap: wrap; }
+.selo-var { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px 3px 6px;
+  border-radius: 99px; font-size: 11.5px; font-weight: 650; white-space: nowrap;
+  border: 1px solid color-mix(in srgb, var(--tom, var(--accent)) 42%, transparent);
+  background: color-mix(in srgb, var(--tom, var(--accent)) 13%, transparent);
+  color: var(--ink); cursor: pointer; transition: background .14s, transform .14s; }
+.selo-var:hover { background: color-mix(in srgb, var(--tom, var(--accent)) 26%, transparent);
+  transform: translateY(-1px); }
+.selo-var svg.icon { font-size: 12px; color: var(--tom, var(--accent)); }
+.selo-var.auto { border-style: dashed; }
+.selo-var.on { background: var(--tom, var(--accent)); color: #04121a; }
+.selo-var.on svg.icon { color: #04121a; }
+
+/* ---- linha do tempo com organograma que se abre ---- */
+.trilho { position: relative; padding-left: 30px; }
+.trilho::before { content: ""; position: absolute; left: 9px; top: 6px; bottom: 6px;
+  width: 2px; border-radius: 2px;
+  background: linear-gradient(180deg, var(--accent-strong), transparent); }
+.marco { position: relative; margin-bottom: 8px; }
+.marco > .bolha { position: absolute; left: -30px; top: 3px; width: 20px; height: 20px;
+  border-radius: 50%; background: var(--surface); display: grid; place-items: center;
+  border: 2px solid var(--accent-strong); box-shadow: var(--glow); }
+.marco > .bolha svg.icon { font-size: 10px; color: var(--accent); }
+.marco .topo { display: flex; align-items: center; gap: 10px; cursor: pointer;
+  padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface-raised); transition: border-color .16s, background .16s; }
+.marco .topo:hover { border-color: var(--accent-strong); background: var(--surface-hover); }
+.marco .ano { font-size: 15px; font-weight: 800; color: var(--accent);
+  font-variant-numeric: tabular-nums; min-width: 46px; }
+.marco .titulo { font-size: 13.5px; font-weight: 600; }
+.marco .conta { margin-left: auto; font-size: 11.5px; color: var(--ink-muted); }
+.marco .abre { font-size: 13px; color: var(--ink-muted); transition: transform .2s; }
+.marco.aberto .abre { transform: rotate(90deg); }
+
+/* os ramos que surgem ao clicar */
+.ramos { display: grid; gap: 7px; margin: 8px 0 14px 22px; padding-left: 18px;
+  border-left: 1px dashed var(--border-strong); }
+.ramo { display: flex; align-items: flex-start; gap: 10px; padding: 9px 12px;
+  border-radius: 9px; background: var(--surface); border: 1px solid var(--border);
+  opacity: 0; transform: translateX(-8px);
+  animation: surge .34s cubic-bezier(.2,.7,.3,1) forwards; }
+.ramo:hover { border-color: var(--accent-strong); }
+.ramo svg.icon { color: var(--accent); font-size: 15px; flex: none; margin-top: 1px; }
+.ramo .txt { font-size: 13px; line-height: 1.45; }
+.ramo .txt small { display: block; color: var(--ink-muted); font-size: 11.5px;
+  margin-top: 3px; }
+@keyframes surge { to { opacity: 1; transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .ramo { animation: none; opacity: 1; transform: none; }
+  .cartao { transition: none; }
+}
+
+/* ---- organograma hierárquico em colunas ---- */
+/* Três colunas lado a lado, e a rolagem horizontal é do próprio organograma
+   — não da página. Espremido dentro de meia largura, o terceiro nível some
+   pela direita e o desenho perde justamente o que ele existe para mostrar. */
+.arvore { display: grid; grid-template-columns: repeat(3, minmax(230px, 1fr));
+  gap: 14px; overflow-x: auto; padding-bottom: 8px; }
+.coluna { display: grid; gap: 8px; align-content: start; max-height: 460px;
+  overflow-y: auto; padding-right: 4px; }
+.coluna .cab { font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--ink-muted); font-weight: 700; padding-left: 3px; }
+.no { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--surface-raised); font-size: 13px; cursor: pointer;
+  display: flex; align-items: center; gap: 9px; transition: all .15s; }
+.no:hover { border-color: var(--accent-strong); background: var(--surface-hover); }
+.no.on { border-color: var(--accent); background: var(--accent-wash);
+  box-shadow: var(--glow); }
+.no svg.icon { color: var(--accent); font-size: 15px; flex: none; }
+.no .n { margin-left: auto; font-size: 11.5px; color: var(--ink-muted);
+  font-variant-numeric: tabular-nums; }
+.no.folha { cursor: default; font-size: 12.5px; line-height: 1.4; align-items: flex-start; }
+.no.folha:hover { border-color: var(--border); background: var(--surface-raised); }
+
+/* ---- tabela dinâmica ---- */
+.tab-topo { display: flex; gap: 9px; flex-wrap: wrap; align-items: center;
+  margin-bottom: 12px; }
+.tab-topo input, .tab-topo select { width: auto; min-width: 180px; }
+table.dados { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.dados th { position: sticky; top: 0; z-index: 2; text-align: left; font-size: 11px;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--ink-muted);
+  padding: 10px 11px; background: var(--surface); border-bottom: 1px solid var(--border-strong);
+  cursor: pointer; white-space: nowrap; }
+table.dados th:hover { color: var(--accent); }
+table.dados td { padding: 11px; border-bottom: 1px solid var(--border);
+  vertical-align: top; }
+table.dados tr:hover td { background: var(--surface-hover); }
+table.dados td.num { text-align: right; font-variant-numeric: tabular-nums;
+  white-space: nowrap; }
+table.dados a.titulo { font-weight: 600; color: var(--ink); text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px; }
+table.dados a.titulo:hover { color: var(--accent); text-decoration: none; }
+table.dados a.titulo svg.icon { font-size: 12px; color: var(--ink-muted); flex: none; }
+table.dados a.titulo:hover svg.icon { color: var(--accent); }
+table.dados small { color: var(--ink-muted); display: block; margin-top: 3px; }
+.rolagem { max-height: 74vh; overflow: auto; border: 1px solid var(--border);
+  border-radius: var(--radius); background: var(--surface-raised); }
+
+.acoes { display: flex; gap: 9px; flex-wrap: wrap; }
+.acoes a, .acoes button { display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 14px; border-radius: 9px; font-size: 13px; font-weight: 600;
+  border: 1px solid var(--border-strong); background: var(--surface-raised);
+  color: var(--ink); text-decoration: none; }
+.acoes a:hover, .acoes button:hover { border-color: var(--accent-strong);
+  background: var(--accent-wash); box-shadow: var(--glow); text-decoration: none; }
+.acoes svg.icon { color: var(--accent); font-size: 15px; }
+
+.nota-honesta { border-left: 3px solid var(--series-4);
+  background: color-mix(in srgb, var(--series-4) 9%, var(--surface-raised));
+  border-radius: var(--radius-sm); padding: 13px 16px; font-size: 13.5px;
+  color: var(--ink-2); margin: 14px 0; }
+.nota-honesta b { color: var(--ink); }
+
+@media (max-width: 900px) {
+  .casca { grid-template-columns: 1fr; }
+  nav.lado { position: static; height: auto; display: flex; gap: 6px;
+    overflow-x: auto; padding: 12px; border-right: none;
+    border-bottom: 1px solid var(--border); }
+  nav.lado .marca, nav.lado .grupo { display: none; }
+  nav.lado button { width: auto; white-space: nowrap; }
+}
+@media print { nav.lado, .acoes, .tab-topo { display: none; } .casca { display: block; } }
+</style>
+</head>
+<body>
+<script>
+__ICONS_JS__
+</script>
+<script>
+__CHARTS_JS__
+</script>
+<div class="casca">
+  <nav class="lado" id="nav"></nav>
+  <main class="palco" id="palco"></main>
+</div>
+<div class="aviso" id="aviso" style="position:fixed;left:50%;bottom:24px;
+  transform:translateX(-50%) translateY(140%);background:var(--surface-raised);
+  border:1px solid var(--border-strong);border-radius:99px;padding:11px 20px;
+  font-size:13.5px;font-weight:600;box-shadow:var(--shadow-lg);z-index:95;
+  transition:transform .22s ease"></div>
+<script>
+__PANORAMA_JS__
+</script>
+</body>
+</html>

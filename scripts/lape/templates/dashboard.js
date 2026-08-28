@@ -2909,6 +2909,11 @@ function buildHeader() {
       text: USER ? "Área do integrante" : "Entrar" }));
     actions.appendChild(link);
     if (USER) {
+      const analitico = el("a", { href: "/panorama",
+        title: "Painel analítico: o que o laboratório estuda, como isso se move no "
+          + "tempo e o que ainda não foi olhado" });
+      analitico.appendChild(el("button", { type: "button", text: "Panorama" }));
+      actions.appendChild(analitico);
       const triagem = el("a", { href: "/triagem",
         title: "Triagem de revisão sistemática: importar as buscas, decidir "
           + "pelo teclado e ver o PRISMA sair sozinho" });
