@@ -123,6 +123,14 @@ class TestRotaDoPanorama(BasePanorama):
                     self.assertIn(v["principal"], (0, 1))
                     self.assertIn("onde", v)
 
+    def test_as_abas_novas_chegam_com_o_painel(self):
+        # cada uma dessas abas precisaria de uma viagem própria se não
+        # viesse aqui, e a tela abriria vazia por um instante
+        _, _, dados = self.buscar("/api/panorama", self.ana)
+        for chave in ("incidencia", "prevalencia", "triangulacao", "projetos"):
+            with self.subTest(chave=chave):
+                self.assertIn(chave, dados)
+
     def test_a_janela_pode_ser_apertada_pela_consulta(self):
         _, _, dados = self.buscar("/api/panorama?desde=2023&ate=2025", self.ana)
         self.assertEqual(dados["panorama"]["janela"]["anos"], [2023, 2024, 2025])
@@ -295,6 +303,17 @@ class TestPaginaDoPanorama(BasePanorama):
         trecho = js[js.index("C.network({"):js.index("height: 440")]
         self.assertIn("weight:", trecho)
         self.assertNotIn("value:", trecho)
+
+    def test_a_aba_do_ponto_so_aparece_para_quem_pode_abri_la(self):
+        # aba que responde 403 é pior que aba nenhuma: promete e nega
+        js = (TEMPLATES / "panorama.js").read_text(encoding="utf-8")
+        corpo = js[js.index("function abasVisiveis"):]
+        corpo = corpo[:corpo.index("\n}")]
+        self.assertIn("coordenacao", corpo)
+        self.assertIn("equipe", corpo)
+        montar = js[js.index("function montarNav"):js.index("function contaDaAba")
+                    if "function contaDaAba" in js else js.index("function montarNav") + 2000]
+        self.assertIn("abasVisiveis()", montar)
 
     def test_toda_aba_declarada_tem_funcao(self):
         js = (TEMPLATES / "panorama.js").read_text(encoding="utf-8")

@@ -1159,6 +1159,10 @@ def route_panorama(ctx: "Context") -> Any:
     dados = analise.panorama(ctx.db, desde=desde, ate=ate)
     return {
         "panorama": dados,
+        "incidencia": analise.incidencia(ctx.db, dados["janela"]["anos"]),
+        "triangulacao": analise.triangulacao(ctx.db),
+        "projetos": analise.projetos(ctx.db),
+        "prevalencia": analise.prevalencia(ctx.db, dados["janela"]["anos"]),
         "sintese": analise.sintese(ctx.db, dados),
         "lacunas": analise.lacunas(ctx.db, dados),
         "artigos": _artigos_do_panorama(ctx.db),

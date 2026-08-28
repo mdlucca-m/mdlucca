@@ -131,7 +131,10 @@ const ABAS = [
   { id: "visao", rotulo: "Visão geral", icone: "painel", grupo: "" },
   { id: "laboratorio", rotulo: "O laboratório", icone: "instituicao", grupo: "Contexto" },
   { id: "variaveis", rotulo: "Variáveis", icone: "alvo", grupo: "Contexto" },
+  { id: "projetos", rotulo: "Projetos e extensão", icone: "projeto", grupo: "Contexto" },
   { id: "curvas", rotulo: "Curvas e derivadas", icone: "linhas", grupo: "Análise" },
+  { id: "funil", rotulo: "Incidência e prevalência", icone: "processo", grupo: "Análise" },
+  { id: "triangulo", rotulo: "Triangulação", icone: "hierarquia", grupo: "Análise" },
   { id: "rede", rotulo: "Rede temática", icone: "rede", grupo: "Análise" },
   { id: "mapa", rotulo: "Mapa da produção", icone: "mapa", grupo: "Análise" },
   { id: "sintese", rotulo: "Síntese", icone: "aceite", grupo: "Leitura" },
@@ -1191,6 +1194,333 @@ function tabelaDeArtigos(lista) {
 }
 
 /* ==================================================================== */
+/* Projetos, com a extensão separada                                    */
+/*                                                                      */
+/* Extensão não é pesquisa com outro nome: outro público, outra entrega */
+/* e outra prestação de contas. Numa lista só ela some -- é sempre a    */
+/* minoria, e some primeiro.                                            */
+/* ==================================================================== */
+const SITUACAO_PROJETO = { em_andamento: "Em andamento", concluido: "Concluído",
+  suspenso: "Suspenso", planejado: "Planejado" };
+
+function cartaoDeProjeto(p) {
+  const periodo = [p.started_on, p.ended_on].filter(Boolean)
+    .map(function (d) { return String(d).slice(0, 7).split("-").reverse().join("/"); })
+    .join(" – ") || "sem período declarado";
+  const corpo = el("div", {}, [
+    el("div", { class: "hint", style: "line-height:1.55",
+      text: p.description || "Sem descrição cadastrada." }),
+    el("div", { class: "linhas-projeto" }, [
+      el("div", {}, [el("b", { text: "Coordenação: " }),
+        el("span", { text: p.coordinator_name || "—" })]),
+      el("div", {}, [el("b", { text: "Período: " }), el("span", { text: periodo })]),
+      p.funder ? el("div", {}, [el("b", { text: "Financiamento: " }),
+        el("span", { text: p.funder + (p.grant_number ? " · " + p.grant_number : "") })]) : null,
+      p.linha ? el("div", {}, [el("b", { text: "Linha: " }),
+        el("span", { text: p.linha })]) : null,
+    ]),
+  ]);
+  if (p.equipe.length) {
+    corpo.appendChild(el("div", { class: "selos", style: "margin-top:10px" },
+      p.equipe.map(function (nome) {
+        return el("span", { class: "selo-var", style: "--tom:" + C.token("--series-1") },
+          [Icons.get("pessoa", 12), el("span", { text: nome })]);
+      })));
+  }
+  if (p.tipo_deduzido) {
+    corpo.appendChild(el("p", { class: "hint", style: "margin-top:9px", text:
+      "Reconhecido como extensão pelo nome — o campo de tipo está em branco. "
+      + "Preencher o tipo no cadastro tira a adivinhação daqui." }));
+  }
+  return el("div", { class: "cartao" }, [
+    el("h3", {}, [Icons.get(p.extensao ? "pessoas" : "projeto", null),
+      el("span", { text: p.name })]),
+    el("div", { class: "selos", style: "margin:2px 0 8px" }, [
+      el("span", { class: "badge", text: SITUACAO_PROJETO[p.status] || p.status || "—" }),
+      p.kind ? el("span", { class: "badge", text: p.kind }) : null,
+      el("span", { class: "badge", text: p.artigos + " artigo(s)" }),
+    ]),
+    el("div", { class: "corpo" }, corpo),
+  ]);
+}
+
+function verProjetos(palco) {
+  const pr = D.projetos || { todos: [], extensao: [], pesquisa: [] };
+  palco.appendChild(cabeca("projeto", "Projetos e extensão",
+    "A extensão vem primeiro e separada: tem outro público e outra entrega, "
+    + "e numa lista única ela desaparece por ser minoria."));
+
+  palco.appendChild(el("div", { class: "grade g4" }, [
+    indicador("Projetos de extensão", pr.extensao.length, "cadastrados", "pessoas"),
+    indicador("Em andamento", (pr.em_andamento || []).length, "agora", "processo"),
+    indicador("Projetos de pesquisa", pr.pesquisa.length, "cadastrados", "projeto"),
+    indicador("Pessoas na equipe", pr.pessoas_alcancadas || 0, "somadas nos de extensão",
+      "pessoa"),
+  ]));
+
+  palco.appendChild(el("h2", { style: "margin:22px 0 10px;font-size:17px",
+    text: "Extensão (" + pr.extensao.length + ")" }));
+  if (pr.extensao.length) {
+    palco.appendChild(el("div", { class: "grade g2" },
+      pr.extensao.map(cartaoDeProjeto)));
+  } else {
+    palco.appendChild(nota("<b>Nenhum projeto de extensão cadastrado ainda.</b> "
+      + "O sistema reconhece um projeto como extensão pelo campo <i>tipo</i> — "
+      + "basta escrever \"Extensão\" nele, na "
+      + "<a href='/app#projetos'>Área do integrante</a>. Enquanto o tipo estiver "
+      + "em branco, o nome do projeto é o único indício, e adivinhar não é o "
+      + "mesmo que saber."));
+  }
+
+  palco.appendChild(el("h2", { style: "margin:26px 0 10px;font-size:17px",
+    text: "Pesquisa (" + pr.pesquisa.length + ")" }));
+  palco.appendChild(pr.pesquisa.length
+    ? el("div", { class: "grade g2" }, pr.pesquisa.map(cartaoDeProjeto))
+    : nota("Nenhum projeto de pesquisa cadastrado."));
+}
+
+/* ==================================================================== */
+/* Triangulação — em quem, com o quê, medindo o quê                     */
+/*                                                                      */
+/* Um artigo de intervenção só responde de verdade quando responde às   */
+/* três perguntas. O valor de olhar assim não é contar cruzamentos      */
+/* bonitos: é ver a PERNA QUE FALTA.                                    */
+/* ==================================================================== */
+function matrizDeCruzamento(m) {
+  if (!m.celulas.length) {
+    return el("p", { class: "hint", text: "Nenhum cruzamento nesta face." });
+  }
+  const teto = Math.max.apply(null, m.celulas.map(function (c) { return c.n; }));
+  const conta = {};
+  m.celulas.forEach(function (c) { conta[c.x + "||" + c.y] = c.n; });
+  const cabeca_ = el("tr", {}, [el("th", { text: m.eixo_y + " ↓  /  " + m.eixo_x + " →" })]
+    .concat(m.colunas.map(function (x) { return el("th", { class: "num", text: x }); })));
+  const corpo = el("tbody", {}, m.linhas.map(function (y) {
+    return el("tr", {}, [el("th", { text: y })].concat(m.colunas.map(function (x) {
+      const n = conta[x + "||" + y] || 0;
+      /* Um matiz só, do fraco ao forte: é magnitude, não identidade.
+         Célula vazia fica sem tinta -- zero não é o tom mais claro,
+         é a ausência de célula. */
+      const tinta = n ? "background:color-mix(in srgb, " + C.token("--accent-strong")
+        + " " + Math.round(14 + 62 * n / teto) + "%, transparent)" : null;
+      return el("td", { class: "num celula", style: tinta,
+        title: n ? y + " × " + x + ": " + n + " artigo(s)" : "sem cruzamento",
+        text: n ? String(n) : "" });
+    })));
+  }));
+  return el("div", { class: "rolagem" },
+    el("table", { class: "dados matriz" }, [el("thead", {}, cabeca_), corpo]));
+}
+
+function verTriangulo(palco) {
+  const t = D.triangulacao || { trios: [], faltando: {}, matrizes: [], pernas: {} };
+  palco.appendChild(cabeca("hierarquia", "Triangulação",
+    "Todo artigo de intervenção responde três perguntas: EM QUEM, COM O QUÊ e "
+    + "MEDINDO O QUÊ. Aqui elas aparecem cruzadas — e, principalmente, aparece "
+    + "a pergunta que ficou sem resposta."));
+
+  const faltaDesfecho = (t.faltando.desfecho || []).length;
+  palco.appendChild(el("div", { class: "grade g4" }, [
+    indicador("Triângulos completos", t.completos || 0,
+      "de " + (t.com_variavel || 0) + " artigos com variável", "aceite"),
+    indicador("Sem desfecho declarado", faltaDesfecho,
+      "dizem o que fizeram, não o que mediram", "aviso"),
+    indicador("Sem população", (t.faltando.aplicacao || []).length,
+      "não dizem em quem", "aviso"),
+    indicador("Sem intervenção", (t.faltando.intervencao || []).length,
+      "não dizem com o quê", "aviso"),
+  ]));
+
+  if (faltaDesfecho) {
+    palco.appendChild(nota("<b>" + faltaDesfecho + " artigo(s) dizem o que fizeram "
+      + "e não dizem o que mediram.</b> Pode ser o texto (o desfecho está lá e não "
+      + "foi reconhecido) ou pode ser o estudo. Nos dois casos é onde olhar primeiro "
+      + "— e é o que separa uma triangulação de uma lista."));
+  }
+
+  /* ---- os trios, em organograma ---- */
+  palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
+    "hierarquia", "Os trios que o laboratório fecha",
+    "Condição → intervenção → desfecho. Clique num artigo e ele abre na base.",
+    t.trios.length ? arvoreDeTrios(t.trios)
+      : el("p", { class: "hint", text: "Nenhum artigo fecha as três pernas ainda." }))));
+
+  /* ---- as duas faces do triângulo ---- */
+  (t.matrizes || []).forEach(function (m) {
+    palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
+      "rede", m.eixo_x + " × " + m.eixo_y,
+      "Uma face do triângulo, achatada. A cor é quantidade — um matiz só.",
+      matrizDeCruzamento(m))));
+  });
+
+  /* ---- quem está incompleto, e o que tem ---- */
+  const incompletos = (t.faltando.desfecho || []).slice(0, 20);
+  if (incompletos.length) {
+    palco.appendChild(el("h2", { style: "margin:26px 0 10px;font-size:17px",
+      text: "Artigos sem desfecho declarado" }));
+    palco.appendChild(el("div", { class: "rolagem" }, el("table", { class: "dados" }, [
+      el("thead", {}, el("tr", {}, ["Artigo", "O que já tem"].map(function (x) {
+        return el("th", { text: x }); }))),
+      el("tbody", {}, incompletos.map(function (a) {
+        const tem = Object.keys(a.tem || {}).map(function (k) {
+          return (t.pernas[k] || k) + ": " + a.tem[k].join(", "); }).join(" · ");
+        return el("tr", {}, [
+          el("td", {}, tituloClicavel(
+            (D.artigos || []).find(function (x) { return x.id === a.id; }) || a, 90)),
+          el("td", { text: tem || "—" }),
+        ]);
+      })),
+    ])));
+  }
+}
+
+function arvoreDeTrios(trios) {
+  /* Organograma: a condição abre as intervenções, que abrem os desfechos.
+     A mesma condição repetida em cada linha viraria ruído -- agrupar é o
+     que faz a hierarquia dizer alguma coisa. */
+  const porAplicacao = {};
+  trios.forEach(function (t) {
+    const nivel1 = porAplicacao[t.aplicacao] = porAplicacao[t.aplicacao] || {};
+    (nivel1[t.intervencao] = nivel1[t.intervencao] || []).push(t);
+  });
+  const caixa = el("div", { class: "arvore-trios" });
+  Object.keys(porAplicacao).forEach(function (aplicacao) {
+    const galho = el("div", { class: "galho" });
+    galho.appendChild(el("div", { class: "no n1" }, [
+      Icons.get("alvo", 14), el("span", { text: aplicacao })]));
+    Object.keys(porAplicacao[aplicacao]).forEach(function (intervencao) {
+      const sub = el("div", { class: "sub" });
+      sub.appendChild(el("div", { class: "no n2" }, [
+        Icons.get("experimento", 13), el("span", { text: intervencao })]));
+      porAplicacao[aplicacao][intervencao].forEach(function (t) {
+        const folha = el("div", { class: "no n3" }, [
+          Icons.get("qualidade", 13),
+          el("span", { text: t.desfecho }),
+          el("span", { class: "n", text: String(t.n) }),
+        ]);
+        const artigos = el("div", { class: "artigos-trio" }, t.artigos.map(function (a) {
+          const cheio = (D.artigos || []).find(function (x) { return x.id === a.id; });
+          return el("div", {}, tituloClicavel(cheio || { title: a.titulo }, 80));
+        }));
+        sub.appendChild(folha);
+        sub.appendChild(artigos);
+      });
+      galho.appendChild(sub);
+    });
+    caixa.appendChild(galho);
+  });
+  return caixa;
+}
+
+/* ==================================================================== */
+/* Incidência e prevalência                                             */
+/*                                                                      */
+/* A leitura é a da epidemiologia, e cabe porque a pergunta é a mesma.  */
+/* Incidência: casos NOVOS no ano sobre quem estava em risco de virar   */
+/* caso -- aceite e rejeição só acontecem com artigo em avaliação.      */
+/* Prevalência: a fatia da carteira em cada situação NUM INSTANTE.      */
+/* ==================================================================== */
+const COR_ESTADO = {
+  "em produção": "--ord-1", "em avaliação": "--ord-2",
+  "aceito": "--ord-3", "publicado": "--ord-4",
+  "rejeitado": "--critical", "arquivado": "--ink-muted",
+};
+
+function verFunil(palco) {
+  const inc = D.incidencia || { serie: [] };
+  const prev = D.prevalencia || { serie: [], estados: [] };
+  palco.appendChild(cabeca("processo", "Incidência e prevalência",
+    "Duas perguntas diferentes sobre a mesma carteira. Incidência: quantos "
+    + "artigos VIRARAM aceitos, rejeitados ou publicados no ano, sobre quantos "
+    + "podiam virar. Prevalência: quantos ESTÃO em cada situação hoje."));
+
+  const hoje = prev.hoje || { estados: {}, fracao: {}, total: 0 };
+  palco.appendChild(nota("<b>Por que não é a mesma coisa.</b> Contar aceites "
+    + "sobre o acervo inteiro dá uma taxa que <i>cai sozinha</i> toda vez que "
+    + "alguém começa um artigo novo — e não foi isso que aconteceu. Aceite e "
+    + "rejeição só podem acontecer com artigo que está em avaliação; publicação, "
+    + "só com artigo já aceito. É esse o denominador."));
+
+  /* ---- prevalência de hoje ---- */
+  palco.appendChild(el("div", { class: "grade g4", style: "margin-top:14px" },
+    (prev.estados || []).filter(function (e) { return hoje.estados[e]; })
+      .map(function (estado) {
+        return indicador(estado[0].toUpperCase() + estado.slice(1),
+          hoje.estados[estado],
+          (hoje.fracao[estado] || 0).toFixed(1).replace(".", ",") + "% da carteira",
+          estado === "publicado" ? "producao" : estado === "rejeitado" ? "aviso" : "processo");
+      })));
+  if (!hoje.total) {
+    palco.appendChild(nota("<b>Nenhum artigo com data para situar no tempo.</b> "
+      + "A prevalência é reconstruída das datas de início, submissão, aceite e "
+      + "publicação — sem elas não dá para dizer onde o artigo estava em cada ano."));
+  }
+
+  /* ---- a carteira ao longo do tempo ---- */
+  palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
+    "processo", "Prevalência: onde a carteira estava, ano a ano",
+    "Cada coluna é o dia 31 daquele ano. Reconstruído das datas, não do "
+    + "estado de hoje — o estado de hoje não sabe onde o artigo estava em 2019.",
+    C.columns({
+      labels: prev.serie.map(function (x) { return String(x.ano); }),
+      mode: "empilhado",
+      series: (prev.estados || []).map(function (estado) {
+        return { label: estado, color: C.token(COR_ESTADO[estado] || "--ink-muted"),
+                 values: prev.serie.map(function (x) { return x.estados[estado] || 0; }) };
+      }),
+      height: 300, unit: "artigos",
+      table: { cols: ["Ano"].concat(prev.estados || []),
+               rows: prev.serie.map(function (x) {
+                 return [x.ano].concat((prev.estados || []).map(function (e) {
+                   return x.estados[e] || 0; })); }) },
+    }))));
+
+  /* ---- incidência: as taxas ---- */
+  const comRisco = inc.serie.filter(function (x) { return x.em_risco_decisao > 0; });
+  palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
+    "linhas", "Incidência: quantos viraram caso, sobre quantos podiam virar",
+    "Por 100 artigos em risco no ano. Anos sem ninguém em risco não entram — "
+    + "taxa sem denominador não é zero, é ausência.",
+    comRisco.length
+      ? C.lines({
+          labels: comRisco.map(function (x) { return String(x.ano); }),
+          series: [
+            { name: "Aceite", values: comRisco.map(function (x) { return x.taxa_aceite; }) },
+            { name: "Rejeição", values: comRisco.map(function (x) { return x.taxa_rejeicao; }) },
+            { name: "Publicação", values: comRisco.map(function (x) { return x.taxa_publicacao; }) },
+          ],
+          height: 280, unit: "%",
+        })
+      : el("p", { class: "hint", text: "Nenhum artigo esteve em avaliação nesta janela." }))));
+
+  /* ---- a tabela, com o denominador à vista ---- */
+  const linhas = inc.serie.filter(function (x) {
+    return x.submetidos || x.aceitos || x.rejeitados || x.publicados; });
+  if (linhas.length) {
+    palco.appendChild(el("h2", { style: "margin:26px 0 10px;font-size:17px",
+      text: "Ano a ano, com o denominador à vista" }));
+    const corpo = el("tbody", {}, linhas.map(function (x) {
+      return el("tr", {}, [
+        el("td", { text: String(x.ano) }),
+        el("td", { class: "num", text: String(x.em_risco_decisao) }),
+        el("td", { class: "num", text: String(x.aceitos) }),
+        el("td", { class: "num", text: String(x.rejeitados) }),
+        el("td", { class: "num", text: String(x.publicados) }),
+        el("td", { class: "num",
+          text: x.taxa_aceite === null ? "—" : x.taxa_aceite.toFixed(1).replace(".", ",") + "%" }),
+        el("td", { text: x.confiavel ? "" : (x.porque || "") }),
+      ]);
+    }));
+    palco.appendChild(el("div", { class: "rolagem" }, el("table", { class: "dados" }, [
+      el("thead", {}, el("tr", {}, ["Ano", "Em risco", "Aceitos", "Rejeitados",
+        "Publicados", "Taxa de aceite", "Ressalva"].map(function (t, i) {
+        return el("th", { class: i >= 1 && i <= 5 ? "num" : null, text: t }); }))),
+      corpo,
+    ])));
+  }
+}
+
+/* ==================================================================== */
 /* Equipe e ponto — a leitura da coordenação                            */
 /*                                                                      */
 /* Hora registrada não é produtividade, e este painel não finge que é:  */
@@ -1322,7 +1652,8 @@ function desenhar() {
   }
   ({ visao: verVisao, laboratorio: verLaboratorio, variaveis: verVariaveis,
      curvas: verCurvas, rede: verRede, mapa: verMapa, sintese: verSintese,
-     lacunas: verLacunas, extracao: verExtracao,
+     lacunas: verLacunas, extracao: verExtracao, funil: verFunil,
+     triangulo: verTriangulo, projetos: verProjetos,
      equipe: verEquipe }[ST.aba] || verVisao)(palco);
 }
 

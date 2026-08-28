@@ -263,6 +263,203 @@ class TestVariavelPrincipal(unittest.TestCase):
                 self.assertEqual(bool(v["principal"]), variaveis.e_principal(v["onde"]))
 
 
+class TestIncidenciaEPrevalencia(unittest.TestCase):
+    """Duas perguntas diferentes sobre a mesma carteira.
+
+    O erro que estes testes guardam: contar aceites sobre o acervo inteiro.
+    A taxa cairia sozinha toda vez que alguém começasse um artigo novo, e
+    a queda seria do denominador, não do trabalho.
+    """
+
+    def setUp(self):
+        from lape import ingest_excel
+        self.tmp = tempfile.TemporaryDirectory()
+        self.db = Database(Path(self.tmp.name) / "t.sqlite")
+        self.db.migrate()
+        ingest_excel.ingest_articles(self.db, [
+            {"title": "Publicado depois de aceito", "status": "Publicado",
+             "started_on": "2022-01-10", "first_submission_on": "2023-02-01",
+             "accepted_on": "2023-08-01", "published_on": "2023-10-01"},
+            {"title": "Ainda em avaliação", "status": "Em revisão",
+             "started_on": "2023-03-01", "first_submission_on": "2024-01-15"},
+            {"title": "Recusado", "status": "Rejeitado",
+             "started_on": "2023-05-01", "first_submission_on": "2023-06-01"},
+            {"title": "Só começado", "status": "Em produção", "started_on": "2025-02-01"},
+        ])
+        self.db.execute("UPDATE submissions SET decision = 'rejeitado',"
+                        " decision_on = '2024-03-01' WHERE article_id = 3")
+        self.db.conn.commit()
+        self.anos = [2022, 2023, 2024, 2025]
+
+    def tearDown(self):
+        self.db.close()
+        self.tmp.cleanup()
+
+    def estados(self, ano):
+        serie = analise.prevalencia(self.db, self.anos)["serie"]
+        return {k: v for k, v in
+                next(x for x in serie if x["ano"] == ano)["estados"].items() if v}
+
+    def test_a_prevalencia_reconstroi_o_passado_pelas_datas(self):
+        # o status de hoje diz onde o artigo está agora; não sabe onde ele
+        # estava em 2022
+        self.assertEqual(self.estados(2022), {"em produção": 1})
+        self.assertEqual(self.estados(2023),
+                         {"em produção": 1, "em avaliação": 1, "publicado": 1})
+
+    def test_o_artigo_recusado_so_vira_rejeitado_na_data_da_decisao(self):
+        # em 2023 ele estava em avaliação; a recusa veio em março de 2024
+        self.assertEqual(self.estados(2023).get("rejeitado"), None)
+        self.assertEqual(self.estados(2024).get("rejeitado"), 1)
+
+    def test_artigo_que_ainda_nao_existia_nao_conta(self):
+        # o de 2025 não pode aparecer na carteira de 2022
+        self.assertEqual(sum(self.estados(2022).values()), 1)
+
+    def test_o_denominador_do_aceite_e_quem_estava_em_avaliacao(self):
+        serie = {x["ano"]: x for x in analise.incidencia(self.db, self.anos)["serie"]}
+        # 2023: dois artigos entraram em avaliação, um foi aceito
+        self.assertEqual(serie[2023]["em_risco_decisao"], 2)
+        self.assertEqual(serie[2023]["aceitos"], 1)
+        self.assertEqual(serie[2023]["taxa_aceite"], 50.0)
+
+    def test_comecar_um_artigo_novo_nao_derruba_a_taxa_de_aceite(self):
+        # este é o defeito: com denominador "acervo inteiro", o artigo
+        # começado em 2025 mudaria a taxa de 2025 sem nada ter acontecido
+        antes = {x["ano"]: x["taxa_aceite"]
+                 for x in analise.incidencia(self.db, self.anos)["serie"]}
+        from lape import ingest_excel
+        ingest_excel.ingest_articles(self.db, [
+            {"title": "Mais um começado agora", "status": "Em produção",
+             "started_on": "2025-06-01"}])
+        depois = {x["ano"]: x["taxa_aceite"]
+                  for x in analise.incidencia(self.db, self.anos)["serie"]}
+        self.assertEqual(antes, depois)
+
+    def test_taxa_sem_denominador_e_ausencia_e_nao_zero(self):
+        serie = {x["ano"]: x for x in analise.incidencia(self.db, self.anos)["serie"]}
+        self.assertEqual(serie[2022]["em_risco_decisao"], 0)
+        self.assertIsNone(serie[2022]["taxa_aceite"])
+
+    def test_denominador_pequeno_vem_com_ressalva(self):
+        # um aceite sobre dois artigos é "50%" e não quer dizer nada
+        serie = {x["ano"]: x for x in analise.incidencia(self.db, self.anos)["serie"]}
+        self.assertFalse(serie[2023]["confiavel"])
+        self.assertIn("oscila", serie[2023]["porque"])
+
+    def test_a_rejeicao_sai_da_decisao_registrada(self):
+        serie = {x["ano"]: x for x in analise.incidencia(self.db, self.anos)["serie"]}
+        self.assertEqual(serie[2024]["rejeitados"], 1)
+        self.assertEqual(serie[2023]["rejeitados"], 0)
+
+
+class TestTriangulacao(unittest.TestCase):
+    """Em quem, com o quê, medindo o quê — e qual perna falta."""
+
+    def setUp(self):
+        from lape import ingest_excel
+        self.tmp = tempfile.TemporaryDirectory()
+        self.db = Database(Path(self.tmp.name) / "t.sqlite")
+        self.db.migrate()
+        ingest_excel.ingest_articles(self.db, [
+            {"title": "Treinamento resistido e ansiedade em fibromialgia",
+             "status": "Publicado", "year_published": 2024},
+            {"title": "Treinamento resistido em fibromialgia: dose e adesão",
+             "status": "Publicado", "year_published": 2023},
+            {"title": "Ansiedade em atletas de alto rendimento",
+             "status": "Publicado", "year_published": 2022},
+        ])
+        variaveis.instalar(self.db)
+        variaveis.marcar_artigos(self.db)
+
+    def tearDown(self):
+        self.db.close()
+        self.tmp.cleanup()
+
+    def test_o_trio_completo_e_reconhecido(self):
+        t = analise.triangulacao(self.db)
+        trios = {(x["aplicacao"], x["intervencao"], x["desfecho"]) for x in t["trios"]}
+        self.assertIn(("Fibromialgia", "Treinamento resistido", "Ansiedade"), trios)
+
+    def test_artigo_sem_desfecho_nao_vira_trio_e_entra_na_lista_do_que_falta(self):
+        # dizer o que fez sem dizer o que mediu é o achado, não um erro
+        t = analise.triangulacao(self.db)
+        sem_desfecho = {a["titulo"] for a in t["faltando"]["desfecho"]}
+        self.assertIn("Treinamento resistido em fibromialgia: dose e adesão", sem_desfecho)
+
+    def test_artigo_sem_populacao_aparece_como_tal(self):
+        t = analise.triangulacao(self.db)
+        sem_populacao = {a["titulo"] for a in t["faltando"]["aplicacao"]}
+        self.assertIn("Ansiedade em atletas de alto rendimento", sem_populacao)
+
+    def test_a_perna_que_falta_vem_com_o_que_o_artigo_ja_tem(self):
+        # sem isso a lista diz "falta algo" e não diz onde continuar
+        t = analise.triangulacao(self.db)
+        alvo = next(a for a in t["faltando"]["desfecho"]
+                    if a["titulo"].startswith("Treinamento resistido em"))
+        self.assertIn("aplicacao", alvo["tem"])
+        self.assertIn("Fibromialgia", alvo["tem"]["aplicacao"])
+
+    def test_a_matriz_cruza_as_duas_faces(self):
+        t = analise.triangulacao(self.db)
+        eixos = {(m["eixo_x"], m["eixo_y"]) for m in t["matrizes"]}
+        self.assertIn(("Condição clínica", "Intervenção"), eixos)
+        self.assertIn(("Intervenção", "Desfecho psicológico"), eixos)
+
+    def test_o_mesmo_artigo_nao_conta_duas_vezes_no_mesmo_trio(self):
+        for trio in analise.triangulacao(self.db)["trios"]:
+            ids = [a["id"] for a in trio["artigos"]]
+            with self.subTest(trio=trio["desfecho"]):
+                self.assertEqual(len(ids), len(set(ids)))
+
+
+class TestProjetosEExtensao(unittest.TestCase):
+    """Extensão não é pesquisa com outro nome, e numa lista só ela some."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.db = Database(Path(self.tmp.name) / "t.sqlite")
+        self.db.migrate()
+        for code, nome, tipo in [
+                ("p1", "Ensaio clínico em fibromialgia", "Pesquisa"),
+                ("p2", "Caminhada para a comunidade", "Extensão"),
+                ("p3", "Projeto de extensão sem tipo declarado", None)]:
+            self.db.execute(
+                "INSERT INTO projects (code, name, kind, status) VALUES (?, ?, ?, ?)",
+                (code, nome, tipo, "em_andamento"))
+        self.db.conn.commit()
+
+    def tearDown(self):
+        self.db.close()
+        self.tmp.cleanup()
+
+    def test_o_tipo_declarado_manda(self):
+        r = analise.projetos(self.db)
+        nomes = {p["name"] for p in r["extensao"]}
+        self.assertIn("Caminhada para a comunidade", nomes)
+        self.assertNotIn("Ensaio clínico em fibromialgia", nomes)
+
+    def test_sem_tipo_o_nome_e_o_indicio_e_isso_fica_dito(self):
+        # adivinhar não é o mesmo que saber, e a tela precisa avisar
+        r = analise.projetos(self.db)
+        deduzido = next(p for p in r["extensao"]
+                        if p["name"].startswith("Projeto de extensão sem tipo"))
+        self.assertTrue(deduzido["tipo_deduzido"])
+
+    def test_projeto_com_tipo_nao_e_reclassificado_pelo_nome(self):
+        # "Pesquisa sobre ações de extensão" é pesquisa: o tipo foi declarado
+        self.db.execute("INSERT INTO projects (code, name, kind, status)"
+                        " VALUES ('p4', 'Pesquisa sobre extensão universitária',"
+                        " 'Pesquisa', 'em_andamento')")
+        self.db.conn.commit()
+        nomes = {p["name"] for p in analise.projetos(self.db)["extensao"]}
+        self.assertNotIn("Pesquisa sobre extensão universitária", nomes)
+
+    def test_as_duas_listas_somam_o_total(self):
+        r = analise.projetos(self.db)
+        self.assertEqual(len(r["extensao"]) + len(r["pesquisa"]), len(r["todos"]))
+
+
 class TestFiltros(unittest.TestCase):
     def test_a_mediana_movel_ignora_o_pico_isolado(self):
         # um ano em que a banca liberou cinco defesas de uma vez não é

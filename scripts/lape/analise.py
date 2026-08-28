@@ -340,6 +340,297 @@ def panorama(db: Database, desde: int | None = None,
     }
 
 
+# ----------------------------------------------------------------------
+# Incidencia e prevalencia da producao
+# ----------------------------------------------------------------------
+# A leitura e a da epidemiologia, e ela cabe porque a pergunta e a mesma:
+#
+#   INCIDENCIA -- casos NOVOS num periodo, sobre quem estava em risco de
+#   virar caso. Aceite e rejeicao so podem acontecer com artigo que esta
+#   em avaliacao; publicacao so com artigo ja aceito. Contar aceites sobre
+#   o acervo inteiro daria uma taxa que cai sozinha toda vez que alguem
+#   comeca um artigo novo -- e nao foi isso que aconteceu.
+#
+#   PREVALENCIA -- a fatia da carteira em cada situacao NUM INSTANTE. Nao
+#   e o que aconteceu no ano, e o que esta parado ali no dia 31.
+#
+# Denominador pequeno faz taxa grande. Abaixo de MIN_EM_RISCO a taxa sai,
+# mas marcada: um aceite sobre dois artigos e "50%" e nao quer dizer nada.
+MIN_EM_RISCO = 3
+
+ESTADOS = ("em produção", "em avaliação", "aceito", "publicado",
+           "rejeitado", "arquivado")
+
+
+def _dia(valor: Any) -> str | None:
+    texto = str(valor or "")[:10]
+    return texto if len(texto) == 10 else None
+
+
+def estado_em(artigo: dict[str, Any], ate_dia: str) -> str | None:
+    """Em que situacao o artigo estava naquele dia -- ou None se nem existia.
+
+    Reconstruido das datas, e nao do `status` de hoje: o status atual diz
+    onde o artigo esta agora, e a prevalencia de 2019 precisa saber onde
+    ele estava em 2019.
+    """
+    saiu = artigo.get("saiu_em")
+    if saiu and saiu <= ate_dia:
+        return artigo.get("saiu_como")
+    for campo, estado in (("published_on", "publicado"), ("accepted_on", "aceito"),
+                          ("first_submission_on", "em avaliação"),
+                          ("started_on", "em produção")):
+        dia = _dia(artigo.get(campo))
+        if dia and dia <= ate_dia:
+            return estado
+    return None
+
+
+def _artigos_para_estado(db: Database) -> list[dict[str, Any]]:
+    """Os artigos com as datas, e com a data em que sairam do funil.
+
+    Rejeitado e arquivado nao estao na linha do tempo das datas -- estao
+    no status. A data em que isso aconteceu vem da ultima decisao
+    registrada; sem decisao nenhuma, nao da para dizer quando, e o artigo
+    segue a leitura das datas.
+    """
+    artigos = db.dicts(
+        "SELECT id, status, started_on, first_submission_on, accepted_on,"
+        "       published_on FROM articles")
+    ultima = {linha["article_id"]: linha["quando"] for linha in db.dicts(
+        "SELECT article_id, MAX(decision_on) AS quando FROM submissions"
+        " WHERE decision_on IS NOT NULL GROUP BY article_id")}
+    for artigo in artigos:
+        artigo["saiu_em"] = None
+        artigo["saiu_como"] = None
+        if artigo["status"] in ("rejeitado", "arquivado"):
+            artigo["saiu_em"] = _dia(ultima.get(artigo["id"]))
+            artigo["saiu_como"] = artigo["status"]
+    return artigos
+
+
+def prevalencia(db: Database, anos: list[int]) -> dict[str, Any]:
+    """A fatia da carteira em cada situacao, no ultimo dia de cada ano."""
+    artigos = _artigos_para_estado(db)
+    serie = []
+    for ano in anos:
+        fim = f"{ano}-12-31"
+        conta = {estado: 0 for estado in ESTADOS}
+        for artigo in artigos:
+            estado = estado_em(artigo, fim)
+            if estado:
+                conta[estado] += 1
+        total = sum(conta.values())
+        serie.append({
+            "ano": ano, "total": total, "estados": conta,
+            "fracao": {e: (round(n / total * 100, 1) if total else 0)
+                       for e, n in conta.items()},
+        })
+    return {"anos": anos, "serie": serie, "estados": list(ESTADOS),
+            "hoje": serie[-1] if serie else None}
+
+
+def incidencia(db: Database, anos: list[int]) -> dict[str, Any]:
+    """Casos novos por ano, cada um sobre quem estava em risco de virar caso."""
+    artigos = _artigos_para_estado(db)
+    linhas = []
+    for ano in anos:
+        inicio, fim = f"{ano}-01-01", f"{ano}-12-31"
+        vespera = f"{ano - 1}-12-31"
+        em_avaliacao = sum(1 for a in artigos if estado_em(a, vespera) == "em avaliação")
+        aceitos_antes = sum(1 for a in artigos if estado_em(a, vespera) == "aceito")
+
+        def no_ano(campo: str) -> int:
+            return sum(1 for a in artigos
+                       if (_dia(a.get(campo)) or "") >= inicio
+                       and (_dia(a.get(campo)) or "") <= fim)
+
+        novos_aceitos = no_ano("accepted_on")
+        novos_publicados = no_ano("published_on")
+        novos_submetidos = no_ano("first_submission_on")
+        rejeitados = int(db.scalar(
+            "SELECT COUNT(*) FROM submissions"
+            " WHERE decision = 'rejeitado' AND decision_on BETWEEN ? AND ?",
+            (inicio, fim)) or 0)
+
+        # Em risco de aceite ou rejeicao: o que estava em avaliacao na
+        # virada, mais o que entrou em avaliacao durante o ano.
+        risco_decisao = em_avaliacao + novos_submetidos
+        risco_publicacao = aceitos_antes + novos_aceitos
+
+        def taxa(casos: int, risco: int) -> float | None:
+            return round(casos / risco * 100, 1) if risco else None
+
+        linhas.append({
+            "ano": ano,
+            "em_avaliacao_no_inicio": em_avaliacao,
+            "submetidos": novos_submetidos,
+            "aceitos": novos_aceitos,
+            "rejeitados": rejeitados,
+            "publicados": novos_publicados,
+            "em_risco_decisao": risco_decisao,
+            "em_risco_publicacao": risco_publicacao,
+            "taxa_aceite": taxa(novos_aceitos, risco_decisao),
+            "taxa_rejeicao": taxa(rejeitados, risco_decisao),
+            "taxa_publicacao": taxa(novos_publicados, risco_publicacao),
+            "confiavel": risco_decisao >= MIN_EM_RISCO,
+            "porque": (None if risco_decisao >= MIN_EM_RISCO else
+                       f"{risco_decisao} artigo(s) em risco no ano — "
+                       "a taxa existe, mas oscila com um caso só"),
+        })
+    return {"anos": anos, "serie": linhas, "minimo_em_risco": MIN_EM_RISCO}
+
+
+# ----------------------------------------------------------------------
+# Triangulacao: a quem se aplica, o que se faz, o que se mede
+# ----------------------------------------------------------------------
+# Um artigo de intervencao responde tres perguntas, e so responde de
+# verdade quando responde as tres: EM QUEM (condicao clinica), COM O QUE
+# (intervencao) e MEDINDO O QUE (desfecho). E o triangulo de PICO, e o
+# vocabulario do laboratorio ja esta organizado nesses grupos.
+#
+# O valor de olhar assim nao e contar cruzamentos bonitos -- e ver a
+# PERNA QUE FALTA. Artigo com condicao e intervencao mas sem desfecho
+# declarado e um artigo que diz o que fez e nao diz o que mediu.
+PERNAS = {
+    "aplicacao": "Condição clínica",
+    "intervencao": "Intervenção",
+    "desfecho": "Desfecho psicológico",
+}
+
+
+def triangulacao(db: Database, minimo: int = 1) -> dict[str, Any]:
+    """Os trios condicao x intervencao x desfecho, e o que falta em cada artigo."""
+    linhas = db.dicts(
+        "SELECT av.article_id, v.code, v.label, v.grupo, a.title,"
+        "       a.year_published, a.published_on, a.started_on,"
+        "       a.first_submission_on"
+        "  FROM article_variables av"
+        "  JOIN variables v ON v.id = av.variable_id"
+        "  JOIN articles a ON a.id = av.article_id")
+    por_artigo: dict[int, dict[str, Any]] = {}
+    for linha in linhas:
+        item = por_artigo.setdefault(linha["article_id"], {
+            "id": linha["article_id"], "titulo": linha["title"],
+            "ano": _ano_do_artigo(linha),
+            "pernas": {chave: [] for chave in PERNAS}})
+        for chave, grupo in PERNAS.items():
+            if linha["grupo"] == grupo:
+                item["pernas"][chave].append(linha["label"])
+
+    trios: dict[tuple[str, str, str], dict[str, Any]] = {}
+    completos, faltando = [], {chave: [] for chave in PERNAS}
+    for item in por_artigo.values():
+        cheias = [c for c in PERNAS if item["pernas"][c]]
+        if len(cheias) == len(PERNAS):
+            completos.append(item)
+            for aplicacao in item["pernas"]["aplicacao"]:
+                for intervencao in item["pernas"]["intervencao"]:
+                    for desfecho in item["pernas"]["desfecho"]:
+                        chave = (aplicacao, intervencao, desfecho)
+                        alvo = trios.setdefault(chave, {
+                            "aplicacao": aplicacao, "intervencao": intervencao,
+                            "desfecho": desfecho, "artigos": []})
+                        if item["id"] not in [a["id"] for a in alvo["artigos"]]:
+                            alvo["artigos"].append(
+                                {"id": item["id"], "titulo": item["titulo"],
+                                 "ano": item["ano"]})
+        else:
+            for chave in PERNAS:
+                if not item["pernas"][chave]:
+                    faltando[chave].append(
+                        {"id": item["id"], "titulo": item["titulo"],
+                         "tem": {c: item["pernas"][c] for c in PERNAS
+                                 if item["pernas"][c]}})
+
+    lista = sorted(trios.values(), key=lambda t: (-len(t["artigos"]),
+                                                  t["aplicacao"], t["intervencao"]))
+    lista = [dict(t, n=len(t["artigos"])) for t in lista if len(t["artigos"]) >= minimo]
+    return {
+        "trios": lista,
+        "completos": len(completos),
+        "com_variavel": len(por_artigo),
+        "faltando": faltando,
+        "pernas": PERNAS,
+        "matrizes": [
+            _matriz(por_artigo, "aplicacao", "intervencao"),
+            _matriz(por_artigo, "intervencao", "desfecho"),
+        ],
+    }
+
+
+def _matriz(por_artigo: dict[int, dict[str, Any]], eixo_x: str,
+            eixo_y: str) -> dict[str, Any]:
+    """Quantos artigos cruzam cada par -- a face do triangulo, achatada."""
+    conta: dict[tuple[str, str], int] = {}
+    colunas: dict[str, int] = {}
+    linhas_: dict[str, int] = {}
+    for item in por_artigo.values():
+        for x in item["pernas"][eixo_x]:
+            for y in item["pernas"][eixo_y]:
+                conta[(x, y)] = conta.get((x, y), 0) + 1
+                colunas[x] = colunas.get(x, 0) + 1
+                linhas_[y] = linhas_.get(y, 0) + 1
+    ordem_x = sorted(colunas, key=lambda k: -colunas[k])
+    ordem_y = sorted(linhas_, key=lambda k: -linhas_[k])
+    return {
+        "eixo_x": PERNAS[eixo_x], "eixo_y": PERNAS[eixo_y],
+        "colunas": ordem_x, "linhas": ordem_y,
+        "celulas": [{"x": x, "y": y, "n": conta[(x, y)]}
+                    for (x, y) in sorted(conta, key=lambda k: -conta[k])],
+    }
+
+
+# ----------------------------------------------------------------------
+# Projetos, com a extensao separada
+# ----------------------------------------------------------------------
+# Extensao nao e pesquisa com outro nome: tem outro publico, outra
+# entrega e outra prestacao de contas. Misturar as duas numa lista so faz
+# a extensao sumir -- ela e sempre a minoria, e some primeiro.
+def e_extensao(projeto: dict[str, Any]) -> bool:
+    """Reconhece extensao pelo tipo, e pelo nome quando o tipo esta vazio."""
+    from .util import norm_key
+
+    tipo = norm_key(projeto.get("kind") or "")
+    if "extensao" in tipo or "extension" in tipo:
+        return True
+    if tipo:
+        return False
+    # Sem tipo declarado, o nome e o unico indicio -- e e melhor que nada,
+    # desde que o painel diga que foi assim que se descobriu.
+    return "extensao" in norm_key(projeto.get("name") or "")
+
+
+def projetos(db: Database) -> dict[str, Any]:
+    """Os projetos, separados por tipo, com equipe, periodo e producao."""
+    linhas = db.dicts(
+        "SELECT p.*, rl.name AS linha,"
+        "       (SELECT COUNT(*) FROM project_members pm WHERE pm.project_id = p.id) AS pessoas,"
+        "       (SELECT COUNT(*) FROM project_articles pa WHERE pa.project_id = p.id) AS artigos"
+        "  FROM projects p"
+        "  LEFT JOIN research_lines rl ON rl.id = p.research_line_id"
+        " ORDER BY COALESCE(p.started_on, '') DESC, p.name")
+    equipes: dict[int, list[str]] = {}
+    for linha in db.dicts(
+            "SELECT pm.project_id, m.full_name, pm.role"
+            "  FROM project_members pm JOIN members m ON m.id = pm.member_id"
+            " ORDER BY m.full_name"):
+        equipes.setdefault(linha["project_id"], []).append(
+            linha["full_name"] + (f" ({linha['role']})" if linha["role"] else ""))
+    for projeto in linhas:
+        projeto["extensao"] = e_extensao(projeto)
+        projeto["equipe"] = equipes.get(projeto["id"], [])
+        projeto["tipo_deduzido"] = projeto["extensao"] and not (projeto.get("kind") or "")
+    extensao = [p for p in linhas if p["extensao"]]
+    return {
+        "todos": linhas,
+        "extensao": extensao,
+        "pesquisa": [p for p in linhas if not p["extensao"]],
+        "em_andamento": [p for p in extensao if p["status"] == "em_andamento"],
+        "pessoas_alcancadas": sum(p["pessoas"] for p in extensao),
+    }
+
+
 def paises(db: Database) -> dict[str, Any]:
     """De onde vem a producao: o pais da instituicao de cada coautor.
 
