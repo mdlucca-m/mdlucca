@@ -9,6 +9,7 @@
     python3 scripts/lape_agent.py lake                # bronze -> ouro -> historico
     python3 scripts/lape_agent.py demo                # massa de teste + painel de demo
     python3 scripts/lape_agent.py publicar            # confere o que falta para ir ao ar
+    python3 scripts/lape_agent.py lattes --conferir    # ve o que o Lattes traria
     python3 scripts/lape_agent.py planilha            # reescreve a planilha do laboratorio
     python3 scripts/lape_agent.py status              # resumo do banco
 
@@ -275,6 +276,78 @@ def cmd_publicar(args: argparse.Namespace) -> int:
     return 0 if pronto else 1
 
 
+def cmd_lattes(args: argparse.Namespace) -> int:
+    """Importa o Lattes de pessoas escolhidas -- e so delas."""
+    from lape import ingest_lattes
+
+    arquivos = [Path(a) for a in (args.arquivos or [])]
+    if not arquivos:
+        arquivos = ingest_lattes.discover_lattes_files(args.de or config.RAW_DIR)
+    pedidos = [p.strip() for p in (args.somente or "").split(",") if p.strip()]
+    if pedidos:
+        arquivos = ingest_lattes.filtrar(arquivos, pedidos)
+
+    if not arquivos:
+        print("Nenhum currículo encontrado.")
+        print()
+        print("Como obter o XML (o CNPq não deixa baixar por programa —")
+        print("é preciso resolver o captcha no navegador):")
+        print("  1. abra o currículo em lattes.cnpq.br")
+        print("  2. clique no ícone XML, no alto à direita")
+        print("  3. salve o .zip em data/raw/ com o nome da pessoa, por exemplo")
+        print("     data/raw/lattes_alexandro_andrade.zip")
+        return 1
+
+    print(f"{len(arquivos)} currículo(s):")
+    total_novos = 0
+    for caminho in arquivos:
+        try:
+            resumo = ingest_lattes.confere(caminho)
+        except Exception as exc:
+            print(f"  ! {caminho.name}: não consegui ler ({exc})")
+            continue
+        print()
+        print(f"  {resumo['de_quem']}  ({caminho.name})")
+        print(f"    artigos ............ {resumo['artigos']}"
+              f"  ({resumo['publicados']} publicados, {resumo['com_doi']} com DOI)")
+        print(f"    trabalhos em evento  {resumo['eventos']}")
+        if resumo["primeiro_ano"]:
+            print(f"    período ............ {resumo['primeiro_ano']}–{resumo['ultimo_ano']}"
+                  f"  ({resumo['anos_com_producao']} anos com produção)")
+        if resumo["nomes_de_citacao"]:
+            print(f"    cita-se como ....... {'; '.join(resumo['nomes_de_citacao'][:4])}")
+        total_novos += resumo["artigos"]
+
+    if args.conferir:
+        print()
+        print(f"Conferência apenas — nada foi gravado. Seriam lidos {total_novos} artigo(s).")
+        print("Para importar de verdade, rode o mesmo comando sem --conferir.")
+        return 0
+
+    db = Database(args.db)
+    db.migrate()
+    try:
+        antes = int(db.scalar("SELECT COUNT(*) FROM articles") or 0)
+        resultado = ingest_lattes.ingest_all(db, verbose=True, arquivos=arquivos,
+                                             somente=None)
+        depois = int(db.scalar("SELECT COUNT(*) FROM articles") or 0)
+        # o vocabulario passa sobre o que chegou: sem isso, os artigos novos
+        # entram no painel sem variavel nenhuma
+        from lape import variaveis
+
+        variaveis.instalar(db)
+        marcacao = variaveis.marcar_artigos(db)
+    finally:
+        db.close()
+    print()
+    print(f"Importado de: {', '.join(resultado['de_quem']) or '—'}")
+    print(f"  artigos no banco ... {antes} → {depois}  (+{depois - antes})")
+    print(f"  trabalhos em evento  {resultado['events']}")
+    print(f"  variáveis marcadas . {marcacao['ligacoes']} ligação(ões)"
+          f" em {marcacao['com_variavel']} artigo(s)")
+    return 0
+
+
 def cmd_planilha(args: argparse.Namespace) -> int:
     """A planilha do laboratorio -- a mesma que a API reescreve sozinha."""
     from lape import planilha
@@ -466,6 +539,18 @@ def build_parser() -> argparse.ArgumentParser:
     backup_parser.add_argument("--para", type=Path, metavar="DESTINO",
                                help="onde escrever a copia restaurada")
     backup_parser.set_defaults(func=cmd_backup)
+
+    lattes_parser = subparsers.add_parser(
+        "lattes", help="importa o curriculo Lattes de pessoas escolhidas")
+    lattes_parser.add_argument("arquivos", nargs="*",
+                               help="os .zip/.xml a importar (padrao: procura em data/raw)")
+    lattes_parser.add_argument("--somente", default="",
+                               help="nomes separados por virgula: 'Andrade,Vilarino'")
+    lattes_parser.add_argument("--de", type=Path, metavar="PASTA",
+                               help="onde procurar os curriculos")
+    lattes_parser.add_argument("--conferir", action="store_true",
+                               help="mostra o que seria importado, sem gravar nada")
+    lattes_parser.set_defaults(func=cmd_lattes)
 
     planilha_parser = subparsers.add_parser(
         "planilha", help="reescreve a planilha do laboratorio (a API tambem faz sozinha)")

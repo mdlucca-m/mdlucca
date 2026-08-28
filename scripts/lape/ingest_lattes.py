@@ -20,12 +20,89 @@ from __future__ import annotations
 import re
 import zipfile
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Iterable, Iterator
 from xml.etree import ElementTree as ET
 
 from . import config
 from .db import Database
 from .util import clean_text, display_name, norm_doi, title_key, to_int
+
+
+def _dobra(texto: Any) -> str:
+    """Sem acento e em minuscula, para comparar nome com nome de arquivo."""
+    import unicodedata
+
+    limpo = str(texto or "")
+    sem = "".join(c for c in unicodedata.normalize("NFKD", limpo)
+                  if not unicodedata.combining(c))
+    return re.sub(r"[^a-z0-9]+", " ", sem.lower()).strip()
+
+
+def confere(path: Path, with_conferences: bool = True) -> dict[str, Any]:
+    """Le o curriculo e diz o que ele TRARIA -- sem gravar nada.
+
+    Um Lattes de professor titular traz decadas de producao, e boa parte
+    dela nao e do laboratorio. Deixar isso entrar sem olhar antes e o tipo
+    de coisa que so se descobre depois, quando o painel ja esta com o
+    dobro de artigos e ninguem sabe de onde vieram.
+    """
+    root = load_xml(path)
+    info = researcher_info(root)
+    artigos = list(iter_articles(root))
+    anos = sorted(a["year"] for a in artigos if a["year"])
+    por_ano: dict[int, int] = {}
+    for ano in anos:
+        por_ano[ano] = por_ano.get(ano, 0) + 1
+    eventos = list(iter_conference_papers(root)) if with_conferences else []
+    return {
+        "arquivo": path.name,
+        "de_quem": info["full_name"] or "(sem nome no currículo)",
+        "lattes_id": info["lattes_id"],
+        "nomes_de_citacao": info["citation_names"],
+        "artigos": len(artigos),
+        "publicados": sum(1 for a in artigos if a["status"] == "publicado"),
+        "com_doi": sum(1 for a in artigos if a["doi"]),
+        "eventos": len(eventos),
+        "primeiro_ano": anos[0] if anos else None,
+        "ultimo_ano": anos[-1] if anos else None,
+        "anos_com_producao": len(por_ano),
+        "por_ano": dict(sorted(por_ano.items())),
+    }
+
+
+def de_quem(path: Path) -> str:
+    """O nome de quem e o curriculo, sem carregar o resto."""
+    try:
+        return researcher_info(load_xml(path))["full_name"] or ""
+    except Exception:
+        return ""
+
+
+def filtrar(arquivos: list[Path], somente: Iterable[str]) -> list[Path]:
+    """Fica so com os curriculos das pessoas pedidas.
+
+    Casa pelo nome do arquivo E pelo nome de dentro do curriculo: quem
+    exporta do Lattes recebe um `curriculo.xml` sem nome nenhum, e quem
+    renomeia o arquivo raramente escreve o nome completo. Bastar um dos
+    dois evita a importacao silenciosa de quem nao foi pedido -- que e o
+    erro caro aqui, porque desfazer significa apagar artigo do banco.
+    """
+    alvos = [_dobra(nome) for nome in somente if str(nome).strip()]
+    if not alvos:
+        return list(arquivos)
+    escolhidos = []
+    for caminho in arquivos:
+        nome_arquivo = _dobra(caminho.stem)
+        dono = _dobra(de_quem(caminho))
+        for alvo in alvos:
+            partes = [p for p in alvo.split() if len(p) > 2]
+            if not partes:
+                continue
+            if (all(p in nome_arquivo for p in partes)
+                    or all(p in dono for p in partes)):
+                escolhidos.append(caminho)
+                break
+    return escolhidos
 
 
 def discover_lattes_files(raw_dir: Path = config.RAW_DIR) -> list[Path]:
@@ -141,6 +218,7 @@ def ingest_file(db: Database, path: Path, with_conferences: bool = True,
     root = load_xml(path)
     info = researcher_info(root)
     owner_id = None
+    dono = info["full_name"] or ""
     if info["full_name"]:
         owner_id = db.member_id(
             info["raw_name"],
@@ -218,12 +296,20 @@ def ingest_file(db: Database, path: Path, with_conferences: bool = True,
     if verbose:
         print(f"  lattes {path.name}: {written} artigos, {events_written} trabalhos em evento"
               f" (curriculo: {info['full_name'] or '?'} / ID {info['lattes_id'] or '?'})")
-    return {"articles": written, "events": events_written}
+    return {"articles": written, "events": events_written, "de_quem": dono}
 
 
-def ingest_all(db: Database, raw_dir: Path = config.RAW_DIR, verbose: bool = True) -> dict[str, int]:
-    totals = {"articles": 0, "events": 0}
-    files = discover_lattes_files(raw_dir)
+def ingest_all(db: Database, raw_dir: Path = config.RAW_DIR, verbose: bool = True,
+               somente: Iterable[str] | None = None,
+               arquivos: Iterable[Path] | None = None) -> dict[str, int]:
+    """Importa os curriculos encontrados -- ou so os de quem foi pedido."""
+    totals: dict[str, Any] = {"articles": 0, "events": 0, "de_quem": []}
+    files = [Path(a) for a in arquivos] if arquivos else discover_lattes_files(raw_dir)
+    if somente:
+        pedidos = list(somente)
+        files = filtrar(files, pedidos)
+        if not files and verbose:
+            print(f"  ! nenhum currículo encontrado para: {', '.join(pedidos)}")
     if not files:
         if verbose:
             print("  ! nenhum XML/ZIP do Lattes encontrado em data/raw/"
@@ -239,4 +325,7 @@ def ingest_all(db: Database, raw_dir: Path = config.RAW_DIR, verbose: bool = Tru
             continue
         totals["articles"] += result["articles"]
         totals["events"] += result["events"]
+        dono = result.get("de_quem")
+        if dono:
+            totals["de_quem"].append(dono)
     return totals
