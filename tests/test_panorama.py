@@ -113,6 +113,16 @@ class TestRotaDoPanorama(BasePanorama):
         codigos = {v["code"] for v in com_var[0]["variaveis"]}
         self.assertTrue(codigos)
 
+    def test_cada_variavel_diz_se_e_principal(self):
+        # sem esse campo a tela não tem como destacar nada: todo selo
+        # sairia igual, e "o artigo é sobre" viraria "o artigo cita"
+        _, _, dados = self.buscar("/api/panorama", self.ana)
+        for artigo in dados["artigos"]:
+            for v in artigo["variaveis"]:
+                with self.subTest(code=v["code"]):
+                    self.assertIn(v["principal"], (0, 1))
+                    self.assertIn("onde", v)
+
     def test_a_janela_pode_ser_apertada_pela_consulta(self):
         _, _, dados = self.buscar("/api/panorama?desde=2023&ate=2025", self.ana)
         self.assertEqual(dados["panorama"]["janela"]["anos"], [2023, 2024, 2025])
@@ -140,6 +150,19 @@ class TestExportacaoDaExtracao(BasePanorama):
         cabecalho = texto.splitlines()[0].lstrip("﻿")
         self.assertIn("Variáveis", cabecalho)
         self.assertIn("Nº de variáveis", cabecalho)
+
+    def test_o_csv_separa_principal_de_secundaria(self):
+        # quem filtra a planilha por assunto quer os artigos que SÃO
+        # sobre o assunto, não os que o mencionam de passagem
+        _, _, corpo = self.buscar("/api/panorama/extracao.csv", self.ana, cru=True)
+        linhas = corpo.decode("utf-8").lstrip("\ufeff").splitlines()
+        cabecalho = linhas[0].split(";")
+        self.assertIn("Variáveis principais", cabecalho)
+        self.assertIn("Variáveis secundárias", cabecalho)
+        coluna = cabecalho.index("Variáveis principais")
+        principais = [l.split(";")[coluna] for l in linhas[1:]]
+        self.assertTrue(any(p.strip('"') for p in principais),
+                        "nenhum artigo saiu com variável principal")
 
     def test_o_csv_traz_as_variaveis_escritas(self):
         _, _, corpo = self.buscar("/api/panorama/extracao.csv", self.ana, cru=True)
@@ -252,6 +275,29 @@ class TestPecasNovasDaTela(unittest.TestCase):
         js = self.js("panorama.js")
         self.assertIn("marks: marcas", js)
         self.assertIn("inflexoes", js[js.index("const marcas = []"):js.index("marks: marcas")])
+
+    def test_o_selo_da_variavel_principal_se_distingue(self):
+        # se o destaque fosse só cor, quem imprime em preto e branco ou
+        # não separa bem as cores lê a tabela toda como se fosse igual
+        css = (TEMPLATES / "panorama.html").read_text(encoding="utf-8")
+        self.assertIn(".selo-var.principal", css)
+        self.assertIn(".selo-var.principal::before", css)
+        self.assertIn(".selo-var.secundaria", css)
+
+    def test_a_tela_usa_o_campo_principal_que_a_rota_manda(self):
+        js = self.js("panorama.js")
+        trecho = js[js.index("function pesoDaVariavel"):js.index("function seloVariavel")]
+        self.assertIn("v.principal", trecho)
+        self.assertIn("principal", js[js.index("function seloVariavel"):][:900])
+
+    def test_o_destaque_vem_com_legenda(self):
+        # marca sem legenda é enfeite: ninguém sabe o que ela afirma
+        js = self.js("panorama.js")
+        self.assertIn("legendaDosSelos()", js)
+        legenda = js[js.index("function legendaDosSelos"):]
+        legenda = legenda[:legenda.index("\n}")]
+        self.assertIn("principal", legenda)
+        self.assertIn("secundária", legenda.lower())
 
     def test_a_cor_nao_e_ciclada_entre_as_variaveis(self):
         # o defeito que este teste guarda: 8 cores para 23 variáveis,

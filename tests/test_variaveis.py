@@ -179,6 +179,73 @@ class TestMarcacaoNoBanco(unittest.TestCase):
         self.assertIn("humor", codigos, "a marcação humana foi apagada pela automática")
 
 
+class TestVariavelPrincipal(unittest.TestCase):
+    """Principal x secundária: o assunto DO artigo x o assunto citado nele.
+
+    Sem essa separação a tabela de extração afirma que um artigo estuda
+    sete coisas porque o resumo mencionou sete. O critério é onde a
+    palavra apareceu — título é tese, resumo é menção.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.db = Database(Path(self.tmp.name) / "t.sqlite")
+        self.db.migrate()
+        from lape import ingest_excel
+        ingest_excel.ingest_articles(self.db, [
+            {"title": "Ansiedade em atletas de alto rendimento",
+             "notes": "Avaliamos também a qualidade do sono e a depressão.",
+             "authors": "Ana Souza", "status": "Publicado", "year_published": 2024},
+        ])
+        variaveis.instalar(self.db)
+        variaveis.marcar_artigos(self.db)
+        self.alvo = self.db.scalar("SELECT id FROM articles LIMIT 1")
+
+    def tearDown(self):
+        self.db.close()
+        self.tmp.cleanup()
+
+    def peso(self):
+        return {v["code"]: v["principal"] for v in variaveis.do_artigo(self.db, self.alvo)}
+
+    def test_o_titulo_faz_a_variavel_principal(self):
+        self.assertEqual(self.peso()["ansiedade"], 1)
+
+    def test_o_resumo_sozinho_faz_secundaria(self):
+        peso = self.peso()
+        self.assertEqual(peso["sono"], 0)
+        self.assertEqual(peso["depressao"], 0)
+
+    def test_as_principais_vem_primeiro(self):
+        pesos = [v["principal"] for v in variaveis.do_artigo(self.db, self.alvo)]
+        self.assertEqual(pesos, sorted(pesos, reverse=True))
+
+    def test_quem_leu_marcou_e_principal(self):
+        # a mão de quem leu vale mais que qualquer heurística de texto
+        variaveis.marcar_artigo_a_mao(self.db, self.alvo, ["humor"])
+        self.assertEqual(self.peso()["humor"], 1)
+
+    def test_o_onde_fica_gravado(self):
+        ondes = {v["code"]: v["onde"] for v in variaveis.do_artigo(self.db, self.alvo)}
+        self.assertEqual(ondes["ansiedade"], "título")
+        self.assertEqual(ondes["sono"], "resumo")
+
+    def test_banco_antigo_recupera_o_onde_pelo_trecho(self):
+        # marcações gravadas antes da coluna existir só guardavam o lugar
+        # no começo do trecho; sem recuperá-lo, tudo viraria secundária
+        self.db.execute("UPDATE article_variables SET onde = NULL")
+        self.db.conn.commit()
+        self.assertEqual(sorted(set(self.peso().values())), [0])
+        variaveis.preencher_onde(self.db)
+        self.assertEqual(self.peso()["ansiedade"], 1)
+        self.assertEqual(self.peso()["sono"], 0)
+
+    def test_a_regra_em_sql_e_a_mesma_em_python(self):
+        for v in variaveis.do_artigo(self.db, self.alvo):
+            with self.subTest(code=v["code"]):
+                self.assertEqual(bool(v["principal"]), variaveis.e_principal(v["onde"]))
+
+
 class TestFiltros(unittest.TestCase):
     def test_a_mediana_movel_ignora_o_pico_isolado(self):
         # um ano em que a banca liberou cinco defesas de uma vez não é

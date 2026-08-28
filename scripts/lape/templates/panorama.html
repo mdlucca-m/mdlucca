@@ -118,8 +118,24 @@ main.palco { padding: clamp(16px, 2.4vw, 32px); max-width: 1440px; }
   transform: translateY(-1px); }
 .selo-var svg.icon { font-size: 12px; color: var(--tom, var(--accent)); }
 .selo-var.auto { border-style: dashed; }
+/* O destaque da variavel principal -- a que da titulo ao artigo -- nao
+   e so cor: e um ponto cheio antes do rotulo, que sobrevive a impressao
+   em preto e branco e a quem nao separa bem as cores. */
+.selo-var.principal { font-weight: 750;
+  border-color: var(--tom, var(--accent));
+  background: color-mix(in srgb, var(--tom, var(--accent)) 24%, transparent);
+  box-shadow: 0 1px 5px color-mix(in srgb, var(--tom, var(--accent)) 22%, transparent); }
+.selo-var.principal::before { content: ""; flex: none; width: 6px; height: 6px;
+  border-radius: 50%; background: var(--tom, var(--accent)); }
+.selo-var.secundaria { font-weight: 550; background: transparent; color: var(--ink-2);
+  border-color: color-mix(in srgb, var(--ink-muted) 46%, transparent); }
+.selo-var.secundaria svg.icon { color: var(--ink-muted); }
 .selo-var.on { background: var(--tom, var(--accent)); color: #04121a; }
 .selo-var.on svg.icon { color: #04121a; }
+.selo-var.on.principal::before { background: #04121a; }
+.legenda-selos { display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  margin: 2px 0 14px; font-size: 12px; color: var(--ink-2); }
+.legenda-selos .selo-var { cursor: default; pointer-events: none; }
 
 /* ---- linha do tempo com organograma que se abre ---- */
 .trilho { position: relative; padding-left: 30px; }

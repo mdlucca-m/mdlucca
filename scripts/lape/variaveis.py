@@ -32,6 +32,48 @@ from .util import clean_text
 
 ORIGENS = ("auto", "confirmada", "manual")
 
+# Onde a variavel apareceu, e o que isso significa. A ordem e de peso:
+# quem poe a variavel no TITULO esta dizendo que o trabalho e sobre
+# aquilo; quem so a menciona no resumo esta dizendo que ela aparece. A
+# diferenca entre "o artigo e sobre ansiedade" e "o artigo menciona
+# ansiedade" e exatamente o que separa a variavel principal da secundaria.
+ONDE = ("título", "palavras-chave", "resumo")
+PRINCIPAIS = ("título", "escolha de quem leu")
+
+
+def e_principal(onde: Any) -> bool:
+    return str(onde or "") in PRINCIPAIS
+
+
+def sql_principal(prefixo: str) -> str:
+    """A mesma regra de `e_principal`, escrita em SQL.
+
+    Fica aqui, e nao espalhada pelas consultas, para que mudar o criterio
+    de principal seja uma edicao so.
+    """
+    lista = ", ".join(f"'{onde}'" for onde in PRINCIPAIS)
+    return (f"CASE WHEN {prefixo}.onde IN ({lista}) THEN 1 ELSE 0 END AS principal")
+
+
+def preencher_onde(db: Database) -> int:
+    """Deduz o `onde` das marcacoes gravadas antes desta coluna existir.
+
+    Ate agora o lugar so ficava no comeco do trecho ("titulo: ..."), que
+    e de onde tiramos o valor de volta. Sem isto, um banco antigo mostraria
+    toda variavel como secundaria ate alguem remarcar a producao inteira.
+    """
+    tocadas = 0
+    for tabela in ("article_variables", "ref_variables"):
+        for onde in ONDE:
+            tocadas += db.execute(
+                f"UPDATE {tabela} SET onde = ?"
+                "  WHERE onde IS NULL AND trecho LIKE ?", (onde, f"{onde}: %")).rowcount
+        tocadas += db.execute(
+            f"UPDATE {tabela} SET onde = 'escolha de quem leu'"
+            "  WHERE onde IS NULL AND origem IN ('manual', 'confirmada')").rowcount
+    db.conn.commit()
+    return tocadas
+
 # ----------------------------------------------------------------------
 # O vocabulario
 # ----------------------------------------------------------------------
@@ -217,6 +259,7 @@ def marcar(db: Database, review_id: int, apenas_novas: bool = True) -> dict[str,
         instalar(db)
         por_codigo = {v["code"]: v["id"] for v in lista(db, review_id)}
 
+    preencher_onde(db)
     ja_humano = {(linha["ref_id"], linha["variable_id"]) for linha in db.dicts(
         "SELECT ref_id, variable_id FROM ref_variables WHERE origem <> 'auto'")}
 
@@ -239,11 +282,13 @@ def marcar(db: Database, review_id: int, apenas_novas: bool = True) -> dict[str,
             if variable_id is None or (ref["id"], variable_id) in ja_humano:
                 continue
             db.execute(
-                "INSERT INTO ref_variables (ref_id, variable_id, origem, trecho)"
-                " VALUES (?, ?, 'auto', ?)"
-                " ON CONFLICT (ref_id, variable_id) DO UPDATE SET trecho = excluded.trecho"
+                "INSERT INTO ref_variables (ref_id, variable_id, origem, onde, trecho)"
+                " VALUES (?, ?, 'auto', ?, ?)"
+                " ON CONFLICT (ref_id, variable_id) DO UPDATE"
+                "   SET trecho = excluded.trecho, onde = excluded.onde"
                 " WHERE ref_variables.origem = 'auto'",
-                (ref["id"], variable_id, f"{achado['onde']}: {achado['trecho']}"))
+                (ref["id"], variable_id, achado["onde"],
+                 f"{achado['onde']}: {achado['trecho']}"))
             ligacoes += 1
     db.conn.commit()
     return {"referencias_lidas": len(referencias), "com_variavel": marcadas,
@@ -262,6 +307,7 @@ def marcar_artigos(db: Database, apenas_novos: bool = True) -> dict[str, Any]:
         instalar(db)
         por_codigo = {v["code"]: v["id"] for v in lista(db)}
 
+    preencher_onde(db)
     ja_humano = {(l["article_id"], l["variable_id"]) for l in db.dicts(
         "SELECT article_id, variable_id FROM article_variables WHERE origem <> 'auto'")}
     filtro = (" AND NOT EXISTS (SELECT 1 FROM article_variables av"
@@ -279,11 +325,14 @@ def marcar_artigos(db: Database, apenas_novos: bool = True) -> dict[str, Any]:
             if variable_id is None or (artigo["id"], variable_id) in ja_humano:
                 continue
             db.execute(
-                "INSERT INTO article_variables (article_id, variable_id, origem, trecho)"
-                " VALUES (?, ?, 'auto', ?)"
-                " ON CONFLICT (article_id, variable_id) DO UPDATE SET trecho = excluded.trecho"
+                "INSERT INTO article_variables"
+                " (article_id, variable_id, origem, onde, trecho)"
+                " VALUES (?, ?, 'auto', ?, ?)"
+                " ON CONFLICT (article_id, variable_id) DO UPDATE"
+                "   SET trecho = excluded.trecho, onde = excluded.onde"
                 " WHERE article_variables.origem = 'auto'",
-                (artigo["id"], variable_id, f"{achado['onde']}: {achado['trecho']}"))
+                (artigo["id"], variable_id, achado["onde"],
+                 f"{achado['onde']}: {achado['trecho']}"))
             ligacoes += 1
     db.conn.commit()
     return {"artigos_lidos": len(artigos), "com_variavel": marcados, "ligacoes": ligacoes}
@@ -291,9 +340,10 @@ def marcar_artigos(db: Database, apenas_novos: bool = True) -> dict[str, Any]:
 
 def do_artigo(db: Database, article_id: int) -> list[dict[str, Any]]:
     return db.dicts(
-        "SELECT v.id, v.code, v.label, v.grupo, v.icone, av.origem, av.trecho"
+        "SELECT v.id, v.code, v.label, v.grupo, v.icone, av.origem, av.onde, av.trecho,"
+        "       " + sql_principal("av") +
         "  FROM article_variables av JOIN variables v ON v.id = av.variable_id"
-        " WHERE av.article_id = ? ORDER BY v.seq", (article_id,))
+        " WHERE av.article_id = ? ORDER BY principal DESC, v.seq", (article_id,))
 
 
 def marcar_artigo_a_mao(db: Database, article_id: int,
@@ -304,8 +354,9 @@ def marcar_artigo_a_mao(db: Database, article_id: int,
     atuais = {l["variable_id"] for l in db.dicts(
         "SELECT variable_id FROM article_variables WHERE article_id = ?", (article_id,))}
     for variable_id in escolhidos - atuais:
-        db.execute("INSERT INTO article_variables (article_id, variable_id, origem, trecho)"
-                   " VALUES (?, ?, 'manual', 'marcada por quem leu')",
+        db.execute("INSERT INTO article_variables"
+                   " (article_id, variable_id, origem, onde, trecho)"
+                   " VALUES (?, ?, 'manual', 'escolha de quem leu', 'marcada por quem leu')",
                    (article_id, variable_id))
     for variable_id in escolhidos & atuais:
         db.execute("UPDATE article_variables SET origem = 'confirmada'"
@@ -342,9 +393,10 @@ def marcar_a_mao(db: Database, ref_id: int, codigos: Iterable[str],
 
 def de(db: Database, ref_id: int) -> list[dict[str, Any]]:
     return db.dicts(
-        "SELECT v.id, v.code, v.label, v.grupo, v.icone, rv.origem, rv.trecho"
+        "SELECT v.id, v.code, v.label, v.grupo, v.icone, rv.origem, rv.onde, rv.trecho,"
+        "       " + sql_principal("rv") +
         "  FROM ref_variables rv JOIN variables v ON v.id = rv.variable_id"
-        " WHERE rv.ref_id = ? ORDER BY v.seq", (ref_id,))
+        " WHERE rv.ref_id = ? ORDER BY principal DESC, v.seq", (ref_id,))
 
 
 # ----------------------------------------------------------------------

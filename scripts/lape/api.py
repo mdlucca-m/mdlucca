@@ -1016,11 +1016,13 @@ def _artigos_do_panorama(db: Database) -> list[dict[str, Any]]:
         "       wos_citations, scopus_citations, openalex_citations,"
         "       submission_attempts, rejections, days_start_to_publication"
         "  FROM v_articles_full ORDER BY COALESCE(year_published, 9999) DESC, title")
+    variaveis.preencher_onde(db)
     por_artigo: dict[int, list[dict]] = {}
     for linha in db.dicts(
-            "SELECT av.article_id, v.code, v.label, v.grupo, v.icone, av.origem, av.trecho"
+            "SELECT av.article_id, v.code, v.label, v.grupo, v.icone, av.origem,"
+            "       av.onde, av.trecho, " + variaveis.sql_principal("av") +
             "  FROM article_variables av JOIN variables v ON v.id = av.variable_id"
-            " ORDER BY v.seq"):
+            " ORDER BY principal DESC, v.seq"):
         por_artigo.setdefault(linha["article_id"], []).append(linha)
     for artigo in artigos:
         artigo["variaveis"] = por_artigo.get(artigo["id"], [])
@@ -1574,6 +1576,8 @@ class Handler(BaseHTTPRequestHandler):
 COLUNAS_EXTRACAO: tuple[tuple[str, str], ...] = (
     ("Código", "internal_code"), ("Título", "title"), ("Autores", "authors"),
     ("Responsável", "lead_name"), ("Variáveis", "variaveis_texto"),
+    ("Variáveis principais", "variaveis_principais"),
+    ("Variáveis secundárias", "variaveis_secundarias"),
     ("Nº de variáveis", "n_variaveis"), ("Linha de pesquisa", "research_line"),
     ("Situação", "status"), ("Tipo de estudo", "study_type"),
     ("Periódico", "journal"), ("Qualis", "qualis"), ("Fator de impacto", "impact_factor"),
@@ -1595,6 +1599,13 @@ def _linhas_de_extracao(db: Database) -> list[dict[str, Any]]:
     for artigo in artigos:
         rotulos = [v["label"] for v in artigo["variaveis"]]
         artigo["variaveis_texto"] = "; ".join(rotulos)
+        # Principal e secundaria em colunas separadas: quem filtra a
+        # planilha por assunto quer os artigos QUE SAO sobre o assunto,
+        # nao os que o mencionam de passagem.
+        artigo["variaveis_principais"] = "; ".join(
+            v["label"] for v in artigo["variaveis"] if v.get("principal"))
+        artigo["variaveis_secundarias"] = "; ".join(
+            v["label"] for v in artigo["variaveis"] if not v.get("principal"))
         artigo["n_variaveis"] = len(rotulos)
         doi = (artigo.get("doi") or "").replace("https://doi.org/", "").strip()
         artigo["link"] = (f"https://doi.org/{doi}" if doi else (artigo.get("url") or ""))

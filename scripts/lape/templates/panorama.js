@@ -92,14 +92,30 @@ function iconeDaVariavel(code) {
   return (v && v.icone) || "alvo";
 }
 
+/* Principal = a variável está no título (ou alguém a marcou à mão): o
+   artigo É sobre ela. Secundária = só aparece no resumo, mencionada.
+   Os selos do filtro não trazem esse campo e ficam sem peso nenhum. */
+function pesoDaVariavel(v) {
+  if (v.principal === undefined || v.principal === null) return "";
+  return v.principal ? " principal" : " secundaria";
+}
+
 function seloVariavel(v, opts) {
   const conf = opts || {};
+  const peso = pesoDaVariavel(v);
+  const ondeDiz = peso === " principal"
+    ? "Variável principal — " + (v.onde === "escolha de quem leu"
+        ? "marcada por quem leu" : "está no título do artigo")
+    : peso === " secundaria"
+      ? "Variável secundária — aparece no resumo, não no título" : "";
   return el("span", {
-    class: "selo-var" + (v.origem === "auto" ? " auto" : "")
+    class: "selo-var" + peso + (v.origem === "auto" ? " auto" : "")
       + (ST.variavel === v.code ? " on" : ""),
     style: "--tom:" + corDaVariavel(v.code),
-    title: (v.origem === "auto" ? "Reconhecida automaticamente — " + (v.trecho || "")
-            : "Confirmada por quem leu") + " · clique para filtrar",
+    title: [ondeDiz,
+            v.origem === "auto" ? "Reconhecida automaticamente — " + (v.trecho || "")
+                                : "Confirmada por quem leu",
+            "clique para filtrar"].filter(Boolean).join(" · "),
     onclick: function (ev) {
       ev.stopPropagation();
       ST.variavel = ST.variavel === v.code ? null : v.code;
@@ -889,8 +905,25 @@ function verExtracao(palco) {
           { aoClicar: redesenharTabelas }); })),
   ]));
 
+  palco.appendChild(legendaDosSelos());
   palco.appendChild(el("div", { id: "tabelas" }));
   redesenharTabelas();
+}
+
+/* Sem esta legenda o destaque vira enfeite: quem olha a tabela precisa
+   saber o que a marca mais forte está afirmando sobre o artigo. */
+function legendaDosSelos() {
+  const modelo = function (principal, label) {
+    return el("span", { class: "selo-var " + (principal ? "principal" : "secundaria"),
+      style: "--tom:" + C.token("--series-1") },
+      [Icons.get("alvo", 12), el("span", { text: label })]);
+  };
+  return el("div", { class: "legenda-selos" }, [
+    modelo(true, "Variável principal"),
+    el("span", { text: "está no título — o artigo é sobre ela" }),
+    modelo(false, "Variável secundária"),
+    el("span", { text: "aparece só no resumo — é mencionada" }),
+  ]);
 }
 
 function redesenharTabelas() {

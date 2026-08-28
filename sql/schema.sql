@@ -650,6 +650,10 @@ CREATE TABLE IF NOT EXISTS article_variables (
   article_id  INTEGER NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
   variable_id INTEGER NOT NULL REFERENCES variables(id) ON DELETE CASCADE,
   origem      TEXT NOT NULL DEFAULT 'auto',
+  -- Onde a variavel apareceu. Nao e detalhe de proveniencia: e o que
+  -- separa o assunto DO artigo do assunto mencionado nele. Quem poe a
+  -- variavel no titulo esta dizendo que o trabalho e sobre aquilo.
+  onde        TEXT,
   trecho      TEXT,
   criado_em   TEXT NOT NULL DEFAULT (datetime('now')),
   PRIMARY KEY (article_id, variable_id)
@@ -659,6 +663,7 @@ CREATE TABLE IF NOT EXISTS ref_variables (
   ref_id      INTEGER NOT NULL REFERENCES refs(id) ON DELETE CASCADE,
   variable_id INTEGER NOT NULL REFERENCES variables(id) ON DELETE CASCADE,
   origem      TEXT NOT NULL DEFAULT 'auto',
+  onde        TEXT,
   trecho      TEXT,
   criado_em   TEXT NOT NULL DEFAULT (datetime('now')),
   PRIMARY KEY (ref_id, variable_id)
