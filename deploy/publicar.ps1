@@ -179,6 +179,12 @@ if ($Endereco) {
   Write-Host ""
   exit 0
 }
+# Saida da maquina, nao trabalho de ninguem: o banco vivo em data/ e o
+# relatorio em docs/, que o proprio sistema reescreve a cada subida. Nao
+# contam como "alteracao local" em lugar nenhum deste arquivo.
+$GeradoData = ':(exclude)data'
+$GeradoDocs = ':(exclude)docs'
+
 # "Nao atualizou" e uma frase sem resposta possivel: a versao velha e a nova
 # sao iguais na tela. Aqui a pergunta vira numero -- que commit esta no
 # disco, quantos existem no servidor esperando, e o que estaria impedindo.
@@ -210,11 +216,15 @@ function Mostrar-Versao {
       if ($ramo -ne "main" -and $ramo -ne "master") {
         Write-Host "  - voce esta no ramo '$ramo', e a atualizacao automatica so roda no main."
         Write-Host "    Para trazer:  git checkout main; git pull"
-      } elseif (& git status --porcelain -- . ':(exclude)data' 2>$null) {
+      } elseif (& git status --porcelain -- . $GeradoData $GeradoDocs 2>$null) {
         Write-Host "  - ha alteracao local no codigo -- nada e sobrescrito sem voce mandar:"
-        & git status --short -- . ':(exclude)data' 2>$null |
+        & git status --short -- . $GeradoData $GeradoDocs 2>$null |
           ForEach-Object { Write-Host "      $_" }
-        Write-Host "    Para descartar e trazer:  git checkout -- . ; git pull"
+        # De proposito NAO se sugere "git checkout -- ." aqui: rodado na
+        # raiz, ele restaura tambem data/db.sqlite -- o banco do
+        # laboratorio inteiro. Descartar e sempre arquivo a arquivo.
+        Write-Host "    Para descartar UM arquivo:  git checkout -- <arquivo acima>"
+        Write-Host "    (nunca 'git checkout -- .' aqui: isso apagaria o banco)"
       } else {
         Write-Host "  - nada impede. Rode de novo:  .\deploy\publicar.ps1"
       }
@@ -265,17 +275,28 @@ function Atualizar-Codigo {
       Aviso "No ramo '$ramo': nao atualizo sozinho, para nao atrapalhar quem esta trabalhando."
       return
     }
-    # `data/` fica de fora de proposito: ali mora o banco vivo, que muda a
-    # cada cadastro. Se ele contasse como "alteracao local", a atualizacao
-    # nunca aconteceria na maquina do laboratorio -- que e justamente a
-    # unica maquina onde ela precisa acontecer.
-    if (& git status --porcelain -- . ':(exclude)data' 2>$null) {
+    # `data/` e `docs/` ficam de fora de proposito: em data/ mora o banco
+    # vivo, que muda a cada cadastro; em docs/ mora o relatorio, que o
+    # PROPRIO sistema reescreve toda vez que sobe. Contar isso como
+    # "alteracao local" desliga a atualizacao para sempre na maquina do
+    # laboratorio -- que e justamente a unica onde ela precisa acontecer.
+    # Foi o que aconteceu: docs/index.html modificado, e o script avisando
+    # "nao vou sobrescrever" em toda subida.
+    if (& git status --porcelain -- . $GeradoData $GeradoDocs 2>$null) {
       Aviso "Ha alteracoes locais no codigo: nao vou sobrescrever. Seguindo com o codigo atual."
       return
     }
     $antes = & git rev-parse HEAD 2>$null
     Azul "Procurando atualizacoes..."
     & git pull --ff-only 2>&1 | Out-File -FilePath $registro -Encoding utf8
+    if ($LASTEXITCODE -ne 0 -and (Select-String -Path $registro -Pattern "docs/" -Quiet)) {
+      # O relatorio em docs/ e saida da maquina, nao trabalho de ninguem:
+      # restaurar e seguro, e o proximo `publicar` o reescreve. O banco em
+      # data/ NAO entra aqui -- ali estao os cadastros do laboratorio.
+      Aviso "O relatorio gerado estava travando a atualizacao; refazendo."
+      & git checkout -- docs 2>&1 | Out-Null
+      & git pull --ff-only 2>&1 | Out-File -FilePath $registro -Encoding utf8
+    }
     if ($LASTEXITCODE -ne 0) {
       Aviso "Nao deu para atualizar agora -- seguindo com o codigo atual. O banco nao foi tocado."
       Get-Content $registro -Tail 3 -ErrorAction SilentlyContinue |

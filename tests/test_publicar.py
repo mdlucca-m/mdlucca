@@ -157,6 +157,18 @@ def _funcao_do_bash(nome: str) -> str:
     return texto[inicio:fim]
 
 
+def _constante_do_bash(nome: str) -> str:
+    """A linha que declara uma constante, para o dublê usar a de verdade.
+
+    Copiar o valor para dentro do teste faria o teste passar com a regra
+    errada no script -- que é exatamente o defeito que ele deveria pegar.
+    """
+    for linha in SH.read_text(encoding="utf-8").splitlines():
+        if linha.startswith(f"{nome}="):
+            return linha + "\n"
+    raise AssertionError(f"constante {nome} sumiu do publicar.sh")
+
+
 class TestAtualizacaoSozinha(unittest.TestCase):
     """O `git pull` que ninguem precisa lembrar de rodar.
 
@@ -187,6 +199,14 @@ class TestAtualizacaoSozinha(unittest.TestCase):
         return self.git("-c", "user.email=teste@lape", "-c", "user.name=Teste",
                         "commit", "-m", mensagem, cwd=cwd)
 
+    def relatorio_versionado(self):
+        """docs/ rastreado nos dois lados -- como está no repositório real."""
+        (self.origem / "docs").mkdir(exist_ok=True)
+        (self.origem / "docs" / "index.html").write_text("relatório\n", encoding="utf-8")
+        self.git("add", "-A", cwd=self.origem)
+        self.commit("relatório inicial", cwd=self.origem)
+        self.git("pull", cwd=self.copia)
+
     def novidade_no_servidor(self, texto="segunda versao\n"):
         (self.origem / "a.txt").write_text(texto, encoding="utf-8")
         self.git("add", "-A", cwd=self.origem)
@@ -204,6 +224,7 @@ class TestAtualizacaoSozinha(unittest.TestCase):
             f'RAIZ="{raiz}"\n'
             f'EXEC="{exec_dir}"\n'
             f"{ambiente}\n"
+            + _constante_do_bash("GERADOS")
             + _funcao_do_bash("atualizar_codigo")
             + "\natualizar_codigo\n"
         )
@@ -258,6 +279,54 @@ class TestAtualizacaoSozinha(unittest.TestCase):
         self.assertEqual(self.conteudo(), "segunda versao\n")          # código veio
         self.assertEqual((self.copia / "data" / "db.sqlite").read_text(encoding="utf-8"),
                          "banco com cadastro novo\n")                  # banco intacto
+
+    def test_o_relatorio_gerado_nao_conta_como_alteracao_local(self):
+        # o defeito que este teste guarda: docs/index.html e docs/index.json
+        # são reescritos pelo PRÓPRIO sistema a cada subida. Contá-los como
+        # "alteração local" desligava a atualização para sempre justamente
+        # na máquina do laboratório -- e foi o que aconteceu
+        self.relatorio_versionado()
+        self.novidade_no_servidor()
+        (self.copia / "docs" / "index.html").write_text("relatório de hoje\n",
+                                                        encoding="utf-8")
+        pronto = self.rodar()
+        self.assertEqual(pronto.returncode, 0, pronto.stderr)
+        self.assertNotIn("alterações locais", pronto.stdout)
+        self.assertEqual(self.conteudo(), "segunda versao\n")
+
+    def test_o_relatorio_travando_o_pull_e_refeito(self):
+        # quando a mudança do servidor toca docs/, o git recusa por causa
+        # do relatório local. Restaurá-lo é seguro: a próxima subida o
+        # reescreve. O banco em data/ nunca entra nessa restauração
+        self.relatorio_versionado()
+        (self.origem / "docs" / "index.html").write_text("relatório novo\n",
+                                                         encoding="utf-8")
+        (self.origem / "a.txt").write_text("segunda versao\n", encoding="utf-8")
+        self.git("add", "-A", cwd=self.origem)
+        self.commit("mexe no relatório também", cwd=self.origem)
+        (self.copia / "docs" / "index.html").write_text("gerado agora\n", encoding="utf-8")
+        pronto = self.rodar()
+        self.assertEqual(pronto.returncode, 0, pronto.stderr)
+        self.assertEqual(self.conteudo(), "segunda versao\n")
+
+    def test_o_banco_nunca_e_restaurado_para_destravar(self):
+        # restaurar data/ -- ou a raiz inteira, que dá no mesmo -- apagaria
+        # os cadastros do laboratório. O script pode desistir da
+        # atualização; do banco, nunca. Só linhas que EXECUTAM contam:
+        # avisar contra o comando perigoso é o oposto de fazê-lo.
+        for arquivo in (PS1, SH):
+            texto = arquivo.read_text(encoding="utf-8")
+            executadas = [
+                linha.strip() for linha in texto.splitlines()
+                if "checkout --" in linha
+                and not linha.strip().startswith(("#", "//"))
+                and "echo" not in linha and "Write-Host" not in linha
+            ]
+            with self.subTest(arquivo=arquivo.name):
+                self.assertTrue(executadas, "o destravamento sumiu do script")
+                for linha in executadas:
+                    self.assertIn("checkout -- docs", linha,
+                                  f"restauração perigosa: {linha}")
 
     def test_em_outro_ramo_nao_mexe(self):
         self.git("checkout", "-b", "experimento", cwd=self.copia)
@@ -339,6 +408,7 @@ class TestRelatorioDeVersao(unittest.TestCase):
             "verde(){ printf '%s\\n' \"$*\"; }\n"
             "aviso(){ printf '! %s\\n' \"$*\"; }\n"
             f'RAIZ="{self.copia}"\n'
+            + _constante_do_bash("GERADOS")
             + _funcao_do_bash("mostrar_versao")
             + "\nmostrar_versao\n"
         )

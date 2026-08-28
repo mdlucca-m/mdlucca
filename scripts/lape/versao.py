@@ -24,6 +24,9 @@ _CACHE: dict[str, Any] | None = None
 
 TEMPO_LIMITE = 5
 
+# Saida da maquina, nao trabalho de ninguem.
+GERADOS = (":(exclude)data", ":(exclude)docs")
+
 
 def _git(raiz: Path, *args: str) -> str | None:
     """Roda um comando git e devolve a saida, ou None se nao deu."""
@@ -69,10 +72,12 @@ def atual(raiz: Path | None = None, usar_cache: bool = True) -> dict[str, Any]:
                     "--symbolic-full-name", "@{upstream}") or "origin/main"
         atras = _git(base, "rev-list", "--count", f"HEAD..{alvo}")
         dados["atrasada"] = int(atras) if atras and atras.isdigit() else None
-        # `data/` fica de fora: ali mora o banco vivo, que muda a cada
-        # cadastro. Contá-lo como alteracao local diria "voce mexeu no
-        # codigo" para quem so usou o sistema.
-        sujo = _git(base, "status", "--porcelain", "--", ".", ":(exclude)data")
+        # `data/` e `docs/` ficam de fora: em data/ mora o banco vivo, que
+        # muda a cada cadastro; em docs/ mora o relatorio, que o proprio
+        # sistema reescreve a cada subida. Conta-los como alteracao local
+        # diria "voce mexeu no codigo" para quem so usou o sistema -- e,
+        # pior, desligaria a atualizacao automatica para sempre.
+        sujo = _git(base, "status", "--porcelain", "--", ".", *GERADOS)
         dados["suja"] = bool(sujo)
 
     if usar_cache and raiz is None:

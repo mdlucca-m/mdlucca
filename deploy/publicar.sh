@@ -130,20 +130,31 @@ atualizar_codigo() {
     aviso "No ramo '${ramo:-?}': não atualizo sozinho, para não atrapalhar quem está trabalhando."
     return 0
   fi
-  # `data/` fica de fora de propósito: ali mora o banco vivo, que muda a cada
-  # cadastro. Se ele contasse como "alteração local", a atualização nunca
-  # aconteceria na máquina do laboratório -- que é justamente a única máquina
-  # onde ela precisa acontecer.
-  if [[ -n "$(git -C "$RAIZ" status --porcelain -- . ':(exclude)data' 2>/dev/null)" ]]; then
+  # `data/` e `docs/` ficam de fora de propósito: em data/ mora o banco vivo,
+  # que muda a cada cadastro; em docs/ mora o relatório, que o PRÓPRIO sistema
+  # reescreve toda vez que sobe. Contar isso como "alteração local" desliga a
+  # atualização para sempre na máquina do laboratório -- que é justamente a
+  # única onde ela precisa acontecer. Foi o que aconteceu: docs/index.html
+  # modificado, e o script avisando "não vou sobrescrever" em toda subida.
+  if [[ -n "$(git -C "$RAIZ" status --porcelain -- . "${GERADOS[@]}" 2>/dev/null)" ]]; then
     aviso "Há alterações locais no código: não vou sobrescrever. Seguindo com o código atual."
     return 0
   fi
   antes="$(git -C "$RAIZ" rev-parse HEAD 2>/dev/null || true)"
   azul "Procurando atualizações…"
   if ! git -C "$RAIZ" pull --ff-only > "$EXEC/atualizacao.log" 2>&1; then
-    aviso "Não deu para atualizar agora -- seguindo com o código atual. O banco não foi tocado."
-    tail -n 3 "$EXEC/atualizacao.log" 2>/dev/null | sed 's/^/  /'
-    return 0
+    if grep -q "docs/" "$EXEC/atualizacao.log"; then
+      # O relatório em docs/ é saída da máquina, não trabalho de ninguém:
+      # restaurar é seguro, e a próxima subida o reescreve. O banco em
+      # data/ NÃO entra aqui -- ali estão os cadastros do laboratório.
+      aviso "O relatório gerado estava travando a atualização; refazendo."
+      git -C "$RAIZ" checkout -- docs > /dev/null 2>&1 || true
+    fi
+    if ! git -C "$RAIZ" pull --ff-only > "$EXEC/atualizacao.log" 2>&1; then
+      aviso "Não deu para atualizar agora -- seguindo com o código atual. O banco não foi tocado."
+      tail -n 3 "$EXEC/atualizacao.log" 2>/dev/null | sed 's/^/  /'
+      return 0
+    fi
   fi
   depois="$(git -C "$RAIZ" rev-parse HEAD 2>/dev/null || true)"
   if [[ "$antes" == "$depois" ]]; then
@@ -162,6 +173,11 @@ atualizar_codigo() {
 # "Não atualizou" é uma frase sem resposta possível: a versão velha e a nova
 # são iguais na tela. Aqui a pergunta vira número -- que commit está no
 # disco, quantos existem no servidor esperando, e o que estaria impedindo.
+# Saída da máquina, não trabalho de ninguém: o banco vivo em data/ e o
+# relatório em docs/, que o próprio sistema reescreve a cada subida. Não
+# contam como "alteração local" em lugar nenhum deste arquivo.
+GERADOS=(':(exclude)data' ':(exclude)docs')
+
 mostrar_versao() {
   command -v git >/dev/null || { aviso "git não encontrado: não dá para saber a versão."; return 0; }
   local ramo atras alvo
@@ -183,10 +199,14 @@ mostrar_versao() {
     if [[ "$ramo" != "main" && "$ramo" != "master" ]]; then
       echo "  · você está no ramo '$ramo', e a atualização automática só roda no main."
       echo "    Para trazer:  git checkout main && git pull"
-    elif [[ -n "$(git -C "$RAIZ" status --porcelain -- . ':(exclude)data' 2>/dev/null)" ]]; then
+    elif [[ -n "$(git -C "$RAIZ" status --porcelain -- . "${GERADOS[@]}" 2>/dev/null)" ]]; then
       echo "  · há alteração local no código -- nada é sobrescrito sem você mandar:"
-      git -C "$RAIZ" status --short -- . ':(exclude)data' 2>/dev/null | sed 's/^/      /'
-      echo "    Para descartar e trazer:  git checkout -- . && git pull"
+      git -C "$RAIZ" status --short -- . "${GERADOS[@]}" 2>/dev/null | sed 's/^/      /'
+      # De propósito NÃO se sugere "git checkout -- ." aqui: rodado na
+      # raiz, ele restaura também data/db.sqlite -- o banco do laboratório
+      # inteiro. Descartar é sempre arquivo a arquivo.
+      echo "    Para descartar UM arquivo:  git checkout -- <arquivo acima>"
+      echo "    (nunca 'git checkout -- .' aqui: isso apagaria o banco)"
     else
       echo "  · nada impede. Rode de novo:  bash deploy/publicar.sh"
     fi
