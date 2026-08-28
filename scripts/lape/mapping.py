@@ -295,6 +295,12 @@ for _codigo, _, _sinonimos in VINCULOS:
     for _sinonimo in _sinonimos:
         ROLE_MAP.setdefault(_sinonimo, _codigo)
 ROLE_LABEL: dict[str, str] = {codigo: rotulo for codigo, rotulo, _ in VINCULOS}
+# O rotulo que o sistema imprime tem de voltar quando alguem o digita. Sem
+# isto, "Doutorando(a)" -- que e o que aparece na tela e na planilha gerada
+# pelo proprio sistema -- nao seria reconhecido na reimportacao, e o vinculo
+# se perderia em silencio.
+for _codigo, _rotulo, _ in VINCULOS:
+    ROLE_MAP.setdefault(norm_key(_rotulo), _codigo)
 # Quem orienta. Um mestrando nao aparece como orientador de ninguem no
 # organograma, ainda que ajude a tocar o trabalho de um bolsista.
 ORIENTAM: tuple[str, ...] = ("coordenacao", "professor", "pos_doutorado")

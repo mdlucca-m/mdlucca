@@ -275,6 +275,25 @@ class TestRotaDeExtracao(unittest.TestCase):
         for formato in export.FORMATOS:
             self.assertIn(formato, corpo)
 
+    def test_a_planilha_do_laboratorio_baixa_como_xlsx(self):
+        pedido = urllib.request.Request(
+            f"http://127.0.0.1:{self.port}/api/export/planilha")
+        pedido.add_header("Cookie", self.cookie)
+        with urllib.request.urlopen(pedido, timeout=60) as resposta:
+            corpo = resposta.read()
+            cabecalhos = resposta.headers
+        self.assertIn("spreadsheetml", cabecalhos.get("Content-Type", ""))
+        self.assertIn(".xlsx", cabecalhos.get("Content-Disposition", ""))
+        # PK: todo .xlsx e um zip; um HTML de erro devolvido com 200 nao seria
+        self.assertTrue(corpo.startswith(b"PK"), "não veio um arquivo do Excel")
+
+    def test_a_planilha_tambem_pede_para_entrar(self):
+        pedido = urllib.request.Request(
+            f"http://127.0.0.1:{self.port}/api/export/planilha")
+        with self.assertRaises(urllib.error.HTTPError) as erro:
+            urllib.request.urlopen(pedido, timeout=30)
+        self.assertEqual(erro.exception.code, 401)
+
     def test_sem_formato_o_padrao_e_planilha(self):
         status, cabecalhos, _ = self.baixar("")
         self.assertEqual(status, 200)

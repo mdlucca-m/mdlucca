@@ -9,6 +9,7 @@
     python3 scripts/lape_agent.py lake                # bronze -> ouro -> historico
     python3 scripts/lape_agent.py demo                # massa de teste + painel de demo
     python3 scripts/lape_agent.py publicar            # confere o que falta para ir ao ar
+    python3 scripts/lape_agent.py planilha            # reescreve a planilha do laboratorio
     python3 scripts/lape_agent.py status              # resumo do banco
 
 Agentes:
@@ -274,6 +275,39 @@ def cmd_publicar(args: argparse.Namespace) -> int:
     return 0 if pronto else 1
 
 
+def cmd_planilha(args: argparse.Namespace) -> int:
+    """A planilha do laboratorio -- a mesma que a API reescreve sozinha."""
+    from lape import planilha
+
+    db = Database(args.db)
+    db.migrate()
+    try:
+        if args.onde:
+            resumo = planilha.resumo(db, db_path=args.db)
+            print(f"  arquivo ........... {resumo['arquivo']}")
+            print(f"  existe ............ {'sim' if resumo['existe'] else 'ainda não'}"
+                  f"  ({resumo['bytes'] // 1024} kB)")
+            print(f"  atualizada em ..... {resumo['atualizada_em'] or 'nunca'}")
+            if resumo["motivo"]:
+                print(f"  motivo ............ {resumo['motivo']}")
+            print(f"  agora .............. {resumo['pendente']}")
+            return 0
+        if args.para:
+            alvo = planilha.gerar(db, destino=args.para)
+            print(f"Planilha escrita em: {alvo}")
+            return 0
+        feita = planilha.rodar(db, forcar=args.forcar, db_path=args.db)
+    finally:
+        db.close()
+    if not feita.get("gerou"):
+        print(f"Planilha não reescrita: {feita['motivo']}.")
+        print("Para reescrever assim mesmo: --forcar")
+        return 0
+    print(f"Planilha atualizada: {feita['arquivo']}")
+    print(f"  motivo: {feita['motivo']}")
+    return 0
+
+
 def cmd_backup(args: argparse.Namespace) -> int:
     """Copia de seguranca do banco -- a mesma que a API faz sozinha."""
     from lape import backup
@@ -432,6 +466,16 @@ def build_parser() -> argparse.ArgumentParser:
     backup_parser.add_argument("--para", type=Path, metavar="DESTINO",
                                help="onde escrever a copia restaurada")
     backup_parser.set_defaults(func=cmd_backup)
+
+    planilha_parser = subparsers.add_parser(
+        "planilha", help="reescreve a planilha do laboratorio (a API tambem faz sozinha)")
+    planilha_parser.add_argument("--forcar", action="store_true",
+                                 help="reescreve mesmo sem cadastro novo")
+    planilha_parser.add_argument("--onde", action="store_true",
+                                 help="mostra o caminho e a data, sem escrever nada")
+    planilha_parser.add_argument("--para", type=Path, metavar="ARQUIVO",
+                                 help="escreve num caminho escolhido, sem mexer na planilha oficial")
+    planilha_parser.set_defaults(func=cmd_planilha)
 
     status_parser = subparsers.add_parser("status", help="resumo do banco e das lacunas")
     status_parser.set_defaults(func=cmd_status)

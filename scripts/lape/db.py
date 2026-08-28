@@ -252,6 +252,13 @@ class Database:
             return None
         cache = self._cache.setdefault("members", {})
         if key in cache:
+            # O atalho do cache nao pode pular a atualizacao. Quem aparece
+            # primeiro como orientador ou coautor de outra pessoa entra no
+            # banco so com o nome; se a linha de cadastro da propria pessoa
+            # caisse aqui e voltasse sem aplicar `extra`, funcao, e-mail,
+            # Lattes e instituicao dela se perderiam em silencio -- e a
+            # importacao ainda diria "17 linhas gravadas".
+            self.update_row("members", cache[key], extra)
             return cache[key]
 
         row = self.conn.execute("SELECT id FROM members WHERE name_key = ?", (key,)).fetchone()

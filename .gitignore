@@ -3,6 +3,8 @@
 data/db.sqlite.bak_*
 # copias de seguranca: ficam na maquina, nunca no repositorio
 data/backups/
+# planilha gerada: e espelho do banco, refeita a cada cadastro
+data/planilha/
 data/*.sqlite-wal
 data/*.sqlite-shm
 data/db.json

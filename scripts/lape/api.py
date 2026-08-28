@@ -887,6 +887,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._serve_database()
         if method == "GET" and path == "/api/export/artigos":
             return self._serve_export(query)
+        if method == "GET" and path == "/api/export/planilha":
+            return self._serve_planilha()
 
         for verb, pattern, handler, minimum in ROUTES:
             match = re.match(pattern, path)
@@ -1034,12 +1036,40 @@ class Handler(BaseHTTPRequestHandler):
         self._send(200, conteudo, mime,
                    [("Content-Disposition", f'attachment; filename="{nome}"')])
 
+    def _serve_planilha(self) -> None:
+        """A planilha do laboratorio, com o cadastro de agora.
+
+        Ela ja e reescrita sozinha em segundo plano; aqui a gente so garante
+        que quem clicou nao vai baixar a versao de antes do ultimo cadastro.
+        """
+        from . import planilha
+
+        db = Database(self.db_path)
+        try:
+            user, _ = self._resolve_user(db)
+            if not PUBLIC_DASHBOARD:
+                auth.require(user, "leitura")
+            planilha.rodar(db, db_path=self.db_path)
+            alvo = planilha.caminho(self.db_path)
+            if not alvo.exists():
+                alvo = Path(planilha.gerar(db, db_path=self.db_path))
+        except auth.AuthError as exc:
+            return self._send(exc.status, {"error": exc.message})
+        except Exception as exc:  # nunca derruba o servidor
+            traceback.print_exc()
+            return self._send(500, {"error": f"falha ao montar a planilha: {exc}"})
+        finally:
+            db.close()
+        self._send(200, alvo.read_bytes(),
+                   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                   [("Content-Disposition", f'attachment; filename="{alvo.name}"')])
+
 
 BACKUP_INTERVALO_S = int(os.environ.get("LAPE_BACKUP_CHECAGEM_S", "300"))
 
 
 def _agendar_backup(db_path: Path) -> threading.Event:
-    """Copia de seguranca que acompanha o cadastro, sem ninguem lembrar dela.
+    """Copia de seguranca e planilha que acompanham o cadastro, sozinhas.
 
     Uma linha de execucao propria acorda de tempos em tempos e pergunta ao
     modulo `backup` se ha motivo -- cadastro novo desde a ultima copia, ou
@@ -1055,7 +1085,7 @@ def _agendar_backup(db_path: Path) -> threading.Event:
         return parar
 
     def rodar() -> None:
-        from . import backup
+        from . import backup, planilha
 
         while not parar.is_set():
             try:
@@ -1069,6 +1099,21 @@ def _agendar_backup(db_path: Path) -> threading.Event:
                           f" ({feito['bytes'] // 1024} kB) — {feito['motivo']}")
             except Exception as exc:                      # nunca derruba o servico
                 print(f"  ! backup falhou: {type(exc).__name__}: {exc}")
+            # A planilha e o espelho do cadastro em Excel. Vai na mesma volta
+            # da copia de seguranca, com a sua propria conta de mudancas: um
+            # erro ao escrever o .xlsx (Excel aberto, disco cheio) nao pode
+            # levar junto a copia de seguranca, nem o servico.
+            if os.environ.get("LAPE_PLANILHA", "1") != "0":
+                try:
+                    db = Database(db_path)
+                    try:
+                        feita = planilha.rodar(db, db_path=db_path)
+                    finally:
+                        db.close()
+                    if feita.get("gerou"):
+                        print(f"  planilha: {Path(feita['arquivo']).name} — {feita['motivo']}")
+                except Exception as exc:                  # nunca derruba o servico
+                    print(f"  ! planilha falhou: {type(exc).__name__}: {exc}")
             parar.wait(BACKUP_INTERVALO_S)
 
     threading.Thread(target=rodar, name="lape-backup", daemon=True).start()

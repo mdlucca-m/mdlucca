@@ -592,10 +592,16 @@ function cartaoDeExtracao(opts) {
       download: "", rel: "noopener" },
       [Icons.get(f.icone, 15), el("span", { text: f.rotulo })]);
   });
+  botoes.push(el("a", { href: "/api/export/planilha", class: "btn-extrair destaque",
+    title: "A planilha do laboratório, com as mesmas abas de sempre, no estado de agora. "
+      + "Ela também é reescrita sozinha a cada cadastro.",
+    download: "", rel: "noopener" },
+    [Icons.get("atualizar", 15), el("span", { text: "Planilha do LAPE (Excel)" })]));
   return card("Tabela de extração",
     (somentePublicados ? "Apenas os artigos publicados" : "Toda a produção registrada")
     + ", nos três formatos que as bases e os gestores de referência aceitam. "
-    + "Campos sem valor saem vazios — nada é preenchido por suposição.",
+    + "Campos sem valor saem vazios — nada é preenchido por suposição. "
+    + "A última é a planilha completa do laboratório, com todas as abas.",
     el("div", { class: "extrair" }, botoes));
 }
 
