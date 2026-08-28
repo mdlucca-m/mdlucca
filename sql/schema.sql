@@ -399,6 +399,132 @@ CREATE TABLE IF NOT EXISTS ingest_log (
   message      TEXT
 );
 
+/* ---------- Revisao sistematica: triagem de referencias ----------
+
+   O ciclo de uma revisao: a busca em cada base traz um monte de
+   registros, os duplicados sao juntados, cada pessoa da equipe le
+   titulo e resumo e decide, as divergencias vao para arbitragem, e o
+   que sobrou vai para leitura de texto completo. O PRISMA e a conta
+   desse caminho -- e por isso ele nao e digitado a mao em lugar
+   nenhum: sai do proprio banco.
+
+   Duas decisoes de esquema que sustentam o resto:
+
+   1. A decisao de cada pessoa vive em `screenings`, uma linha por
+      (referencia, pessoa, etapa). A decisao consolidada da referencia
+      e DERIVADA disso, nunca digitada -- e o que permite triagem as
+      cegas: ninguem ve o que o outro decidiu ate haver conflito.
+   2. Duplicado nao e apagado. Ele aponta para o registro que ficou
+      (`duplicate_of`), porque o PRISMA precisa saber quantos foram
+      removidos, e porque juntar errado tem de poder ser desfeito.
+   ---------- */
+
+CREATE TABLE IF NOT EXISTS reviews (
+  id               INTEGER PRIMARY KEY,
+  code             TEXT UNIQUE NOT NULL,
+  title            TEXT NOT NULL,
+  question         TEXT,
+  population       TEXT,
+  intervention     TEXT,
+  comparison       TEXT,
+  outcome          TEXT,
+  study_designs    TEXT,
+  protocol_url     TEXT,
+  blind            INTEGER NOT NULL DEFAULT 1,
+  reviewers_needed INTEGER NOT NULL DEFAULT 2,
+  status           TEXT NOT NULL DEFAULT 'triagem',
+  research_line_id INTEGER REFERENCES research_lines(id) ON DELETE SET NULL,
+  created_by       INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  created_at       TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS review_members (
+  review_id  INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+  member_id  INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  role       TEXT NOT NULL DEFAULT 'triador',
+  joined_on  TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (review_id, member_id)
+);
+
+CREATE TABLE IF NOT EXISTS review_searches (
+  id          INTEGER PRIMARY KEY,
+  review_id   INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+  base        TEXT NOT NULL,
+  query       TEXT,
+  searched_on TEXT,
+  file        TEXT,
+  n_retrieved INTEGER NOT NULL DEFAULT 0,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+/* `refs` e nao `references`: a segunda e palavra reservada em SQL. */
+CREATE TABLE IF NOT EXISTS refs (
+  id            INTEGER PRIMARY KEY,
+  review_id     INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+  search_id     INTEGER REFERENCES review_searches(id) ON DELETE SET NULL,
+  title         TEXT,
+  abstract      TEXT,
+  authors       TEXT,
+  journal       TEXT,
+  year          INTEGER,
+  volume        TEXT,
+  issue         TEXT,
+  pages         TEXT,
+  doi           TEXT,
+  pmid          TEXT,
+  issn          TEXT,
+  language      TEXT,
+  keywords      TEXT,
+  url           TEXT,
+  pub_type      TEXT,
+  dedup_key     TEXT,
+  duplicate_of  INTEGER REFERENCES refs(id) ON DELETE SET NULL,
+  stage         TEXT NOT NULL DEFAULT 'titulo_resumo',
+  decision      TEXT,
+  reason_id     INTEGER REFERENCES exclusion_reasons(id) ON DELETE SET NULL,
+  decided_at    TEXT,
+  full_text_url TEXT,
+  notes         TEXT,
+  origem        TEXT,
+  created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS exclusion_reasons (
+  id        INTEGER PRIMARY KEY,
+  review_id INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+  code      TEXT NOT NULL,
+  label     TEXT NOT NULL,
+  seq       INTEGER NOT NULL DEFAULT 1,
+  UNIQUE (review_id, code)
+);
+
+/* Uma linha por (referencia, pessoa, etapa). E daqui que sai tanto a
+   decisao consolidada quanto a concordancia entre avaliadores. */
+CREATE TABLE IF NOT EXISTS screenings (
+  id         INTEGER PRIMARY KEY,
+  ref_id     INTEGER NOT NULL REFERENCES refs(id) ON DELETE CASCADE,
+  member_id  INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  stage      TEXT NOT NULL DEFAULT 'titulo_resumo',
+  decision   TEXT NOT NULL,
+  reason_id  INTEGER REFERENCES exclusion_reasons(id) ON DELETE SET NULL,
+  notes      TEXT,
+  seconds    REAL,
+  decided_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (ref_id, member_id, stage)
+);
+
+/* Termos realcados no titulo e no resumo: o olho acha em um segundo o
+   que levaria a leitura inteira para encontrar. */
+CREATE TABLE IF NOT EXISTS review_terms (
+  id        INTEGER PRIMARY KEY,
+  review_id INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+  term      TEXT NOT NULL,
+  tone      TEXT NOT NULL DEFAULT 'incluir',
+  UNIQUE (review_id, term, tone)
+);
+
 /* ---------- Indices ---------- */
 
 CREATE INDEX IF NOT EXISTS idx_articles_status ON articles(status);
@@ -418,6 +544,11 @@ CREATE INDEX IF NOT EXISTS idx_audit_at ON audit_log(at);
 CREATE INDEX IF NOT EXISTS idx_change_at ON change_log(at);
 CREATE INDEX IF NOT EXISTS idx_change_event ON change_log(event, at);
 CREATE INDEX IF NOT EXISTS idx_delivery_hook ON webhook_deliveries(webhook_id, at);
+CREATE INDEX IF NOT EXISTS idx_refs_review ON refs(review_id, stage);
+CREATE INDEX IF NOT EXISTS idx_refs_dedup ON refs(review_id, dedup_key);
+CREATE INDEX IF NOT EXISTS idx_refs_duplicate ON refs(duplicate_of);
+CREATE INDEX IF NOT EXISTS idx_screenings_ref ON screenings(ref_id, stage);
+CREATE INDEX IF NOT EXISTS idx_screenings_member ON screenings(member_id, stage);
 
 /* ---------- Views analiticas ---------- */
 
@@ -604,3 +735,58 @@ SELECT
 FROM projects p
 LEFT JOIN research_lines rl ON rl.id = p.research_line_id
 LEFT JOIN members c ON c.id = p.coordinator_id;
+
+/* Referencia com o que a triagem ja disse sobre ela.
+
+   `decision` na tabela e a decisao consolidada, gravada quando ha
+   consenso. Aqui vem tudo o que permite calcular o estado sem
+   depender dela: quantos ja opinaram, quantos incluiram, quantos
+   excluiram, e se ha conflito. Triagem as cegas se apoia nisto --
+   a lista de quem decidiu o que so e revelada quando o conflito
+   aparece. */
+CREATE VIEW IF NOT EXISTS v_refs AS
+SELECT
+  r.*,
+  (SELECT COUNT(*) FROM screenings s
+    WHERE s.ref_id = r.id AND s.stage = r.stage) AS n_triagens,
+  (SELECT COUNT(*) FROM screenings s
+    WHERE s.ref_id = r.id AND s.stage = r.stage AND s.decision = 'incluir') AS n_incluir,
+  (SELECT COUNT(*) FROM screenings s
+    WHERE s.ref_id = r.id AND s.stage = r.stage AND s.decision = 'excluir') AS n_excluir,
+  (SELECT COUNT(*) FROM screenings s
+    WHERE s.ref_id = r.id AND s.stage = r.stage AND s.decision = 'talvez') AS n_talvez,
+  x.label AS reason_label,
+  rv.reviewers_needed,
+  rv.blind
+FROM refs r
+JOIN reviews rv ON rv.id = r.review_id
+LEFT JOIN exclusion_reasons x ON x.id = r.reason_id;
+
+/* O PRISMA, contado do banco. Nenhum destes numeros e digitado. */
+CREATE VIEW IF NOT EXISTS v_prisma AS
+SELECT
+  rv.id AS review_id,
+  rv.code,
+  rv.title,
+  (SELECT COALESCE(SUM(n_retrieved), 0) FROM review_searches s
+    WHERE s.review_id = rv.id) AS identificados,
+  (SELECT COUNT(*) FROM refs r WHERE r.review_id = rv.id) AS registros,
+  (SELECT COUNT(*) FROM refs r
+    WHERE r.review_id = rv.id AND r.duplicate_of IS NOT NULL) AS duplicados,
+  (SELECT COUNT(*) FROM refs r
+    WHERE r.review_id = rv.id AND r.duplicate_of IS NULL) AS triados,
+  (SELECT COUNT(*) FROM refs r
+    WHERE r.review_id = rv.id AND r.duplicate_of IS NULL
+      AND r.stage = 'titulo_resumo' AND r.decision IS NULL) AS pendentes,
+  (SELECT COUNT(*) FROM refs r
+    WHERE r.review_id = rv.id AND r.duplicate_of IS NULL
+      AND r.decision = 'excluir' AND r.stage = 'titulo_resumo') AS excluidos_triagem,
+  (SELECT COUNT(*) FROM refs r
+    WHERE r.review_id = rv.id AND r.duplicate_of IS NULL
+      AND r.stage IN ('texto_completo', 'incluido')) AS texto_completo,
+  (SELECT COUNT(*) FROM refs r
+    WHERE r.review_id = rv.id AND r.duplicate_of IS NULL
+      AND r.stage = 'texto_completo' AND r.decision = 'excluir') AS excluidos_texto,
+  (SELECT COUNT(*) FROM refs r
+    WHERE r.review_id = rv.id AND r.stage = 'incluido') AS incluidos
+FROM reviews rv;

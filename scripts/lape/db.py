@@ -124,6 +124,20 @@ class Database:
     def execute(self, sql: str, params: Sequence[Any] = ()) -> sqlite3.Cursor:
         return self.conn.execute(sql, params)
 
+    def insert(self, table: str, data: dict[str, Any]) -> int:
+        """Insere uma linha e devolve o id.
+
+        Ao contrario de `update_row`, aqui None e gravado: numa linha nova,
+        campo vazio e informacao -- quer dizer que o arquivo nao trouxe
+        aquele dado.
+        """
+        colunas = list(data)
+        cursor = self.conn.execute(
+            f"INSERT INTO {table} ({', '.join(colunas)})"
+            f" VALUES ({', '.join('?' for _ in colunas)})",
+            [data[coluna] for coluna in colunas])
+        return int(cursor.lastrowid)
+
     # ------------------------------------------------------------------
     # Upsert
     # ------------------------------------------------------------------
