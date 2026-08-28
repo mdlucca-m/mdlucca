@@ -16,6 +16,7 @@ from xml.etree import ElementTree as ET
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import conteudo  # noqa: E402
+import dados  # noqa: E402
 from analise import DIARIO, ORDEM, br, sinal  # noqa: E402
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
@@ -51,17 +52,17 @@ def main() -> int:
     for secao in conteudo.SECOES:
         conferir(f"seção presente: {secao['titulo']}",
                  secao["titulo"] in texto)
-    conferir("quatro tabelas", n_tabelas == 4, f"encontradas {n_tabelas}")
-    conferir("duas figuras", n_figuras == 2, f"encontradas {n_figuras}")
+    conferir("cinco tabelas", n_tabelas == 5, f"encontradas {n_tabelas}")
+    conferir("quatro figuras", n_figuras == 4, f"encontradas {n_figuras}")
     conferir("resumo presente", conteudo.RESUMO[:60] in texto)
     conferir("palavras-chave presentes", "Palavras-chave" in texto)
-    for n in (1, 2, 3, 4):
+    for n in (1, 2, 3, 4, 5):
         conferir(f"título da Tabela {n}", f"Tabela {n} - " in texto)
     conferir("fonte sob cada tabela",
-             texto.count(conteudo.FONTE_TABELA) == 4,
+             texto.count(conteudo.FONTE_TABELA) == 5,
              f"{texto.count(conteudo.FONTE_TABELA)} ocorrência(s)")
     conferir("fonte sob cada figura",
-             texto.count(conteudo.FONTE_FIGURA) == 2,
+             texto.count(conteudo.FONTE_FIGURA) == 4,
              f"{texto.count(conteudo.FONTE_FIGURA)} ocorrência(s)")
 
     # ── o que o pedido excluiu ────────────────────────────────────────────
@@ -70,7 +71,7 @@ def main() -> int:
 
     # ── coerência numérica: médias diárias na Tabela 1 ─────────────────────
     faltando = [f"{d} dia {i + 1}" for d in ORDEM
-                for i, v in enumerate(DIARIO[d]) if br(v, 1) not in celulas]
+                for i, v in enumerate(DIARIO[d]) if br(v, 2) not in celulas]
     conferir("médias diárias na Tabela 1", not faltando,
              f"ausentes: {faltando[:4]}")
 
@@ -109,6 +110,22 @@ def main() -> int:
              br(fad["especificidade"], 0) in texto)
     conferir("texto cita as três dimensões com resposta aguda",
              all(f"dz = {v}" in texto for v in ("0,45", "0,44", "−0,39")))
+    # migração dos perfis: cada percentual do texto existe na tabela
+    perfil = []
+    for nome, v in dados.PARSONS.items():
+        for i in (1, 2):
+            if br(v[i], 1) not in celulas:
+                perfil.append(f"{nome}:{br(v[i], 1)}")
+    for dia in (1, 7):
+        for k in (0, 1):
+            if br(dados.PERFIL_DIA[dia][k], 1) not in celulas:
+                perfil.append(f"Morgan dia {dia}")
+    conferir("migração dos perfis na Tabela 4", not perfil,
+             f"ausentes: {perfil[:4]}")
+    conferir("texto cita a queda do perfil iceberg",
+             "71,4%" in texto and "32,6%" in texto)
+    conferir("texto cita o avanço do humor perturbado",
+             "47,6%" in texto and "71,7%" in texto)
     conferir("texto declara o piso das quatro subescalas",
              all(br(DADOS[d]["piso"], 1) in texto
                  for d in ("Confusão", "Depressão", "Raiva", "Tensão")))

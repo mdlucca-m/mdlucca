@@ -28,6 +28,7 @@ from docx.shared import Cm, Pt, RGBColor
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import conteudo  # noqa: E402
 import figuras  # noqa: E402
+import figuras_analiticas  # noqa: E402
 
 FONTE = "Times New Roman"
 CORPO, MENOR, MIUDO = 12, 10, 8
@@ -169,6 +170,7 @@ def inserir_figura(doc, caminho: Path, legenda: str, largura_cm: float):
 
 def montar(saida: Path, dir_figuras: Path) -> dict:
     figuras.gerar_todas(dir_figuras)
+    figuras_analiticas.gerar_todas(dir_figuras)
 
     doc = docx.Document()
     preparar(doc)
