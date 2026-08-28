@@ -18,6 +18,9 @@ from dados import PARSONS  # noqa: E402
 
 AZUL, TIJOLO, VERDE = "#3A6EA5", "#A63A2B", "#4E8F3A"
 CINZA, CINZA_CLARO, FAIXA = "#3A3A3A", "#8C8C8C", "#EFEFEF"
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "comum"))
+from grafico import virgula  # noqa: E402
+
 DPI = 300
 
 # Parsons-Smith, Terry e Machin (2017), amostra A: probabilidades a priori de
@@ -110,6 +113,7 @@ def figura_prevalencia(destino: Path) -> Path:
     fig.tight_layout(w_pad=2.0)
     destino.mkdir(parents=True, exist_ok=True)
     caminho = destino / "fig_prevalencia.png"
+    virgula(fig)
     fig.savefig(caminho, dpi=DPI, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  {caminho.name}")
