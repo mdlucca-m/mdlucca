@@ -29,6 +29,9 @@ from pathlib import Path
 
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import orientacoes  # noqa: E402
+
 # ── 1 · Correções de texto ──────────────────────────────────────────────────
 # (rótulo, trecho procurado, trecho novo, justificativa no próprio artigo)
 SUBSTITUICOES: list[tuple[str, str, str, str]] = [
@@ -161,6 +164,61 @@ def paragrafo(texto: str, *, negrito=False, titulo=False) -> str:
             f'<w:t xml:space="preserve">{escapar(texto)}</w:t></w:r></w:p>')
 
 
+FONTE_TAB = ('<w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" '
+             'w:cs="Times New Roman"/><w:color w:val="000000"/><w:sz w:val="16"/>')
+
+
+def _celula(texto: str, largura: int, negrito: bool) -> str:
+    rpr = "<w:rPr>" + FONTE_TAB + ("<w:b/>" if negrito else "") + "</w:rPr>"
+    return (f'<w:tc><w:tcPr><w:tcW w:w="{largura}" w:type="dxa"/>'
+            '<w:vAlign w:val="center"/></w:tcPr>'
+            '<w:p><w:pPr><w:spacing w:after="0"/><w:jc w:val="center"/>'
+            f'<w:rPr>{FONTE_TAB}</w:rPr></w:pPr>'
+            f'<w:r>{rpr}<w:t xml:space="preserve">{escapar(texto)}</w:t>'
+            "</w:r></w:p></w:tc>")
+
+
+def tabela_ooxml(cabecalho: list[str], linhas: list[list[str]]) -> str:
+    """Gera uma tabela com as mesmas bordas e margens das já existentes."""
+    n = len(cabecalho)
+    larg = max(600, 9060 // n)
+    bordas = "".join(
+        f'<w:{b} w:val="single" w:sz="6" w:space="0" w:color="000000"/>'
+        for b in ("top", "left", "bottom", "right", "insideH", "insideV"))
+    grid = "".join(f'<w:gridCol w:w="{larg}"/>' for _ in range(n))
+    cab = ('<w:tr><w:trPr><w:tblHeader/><w:jc w:val="center"/></w:trPr>'
+           + "".join(_celula(c, larg, True) for c in cabecalho) + "</w:tr>")
+    corpo = "".join(
+        '<w:tr><w:trPr><w:jc w:val="center"/></w:trPr>'
+        + "".join(_celula(c, larg, False) for c in linha) + "</w:tr>"
+        for linha in linhas)
+    return (f'<w:tbl xmlns:w="{W}"><w:tblPr>'
+            '<w:tblW w:w="0" w:type="auto"/><w:jc w:val="center"/>'
+            f"<w:tblBorders>{bordas}</w:tblBorders>"
+            '<w:tblCellMar><w:top w:w="40" w:type="dxa"/>'
+            '<w:left w:w="90" w:type="dxa"/><w:bottom w:w="40" w:type="dxa"/>'
+            '<w:right w:w="90" w:type="dxa"/></w:tblCellMar>'
+            '<w:tblLook w:val="04A0" w:firstRow="1" w:lastRow="0" '
+            'w:firstColumn="1" w:lastColumn="0" w:noHBand="0" w:noVBand="1"/>'
+            f"</w:tblPr><w:tblGrid>{grid}</w:tblGrid>{cab}{corpo}</w:tbl>")
+
+
+def bloco_orientacoes() -> str:
+    """Seções 4.17 e 4.18, com a Tabela 71, conforme as orientações."""
+    o = orientacoes
+    t = o.TABELA_CARGA
+    partes = [paragrafo(o.SECAO_CARGA_TITULO, titulo=True)]
+    partes.append(paragrafo(o.SECAO_CARGA[0]))
+    partes.append(paragrafo(t["legenda"], negrito=False))
+    partes.append(tabela_ooxml(t["cabecalho"], t["linhas"]))
+    partes.append(paragrafo(t["fonte"]))
+    partes.append(paragrafo(t["nota"]))
+    partes += [paragrafo(p) for p in o.SECAO_CARGA[1:]]
+    partes.append(paragrafo(o.SECAO_RECOMENDACOES_TITULO, titulo=True))
+    partes += [paragrafo(p) for p in o.SECAO_RECOMENDACOES]
+    return "".join(partes)
+
+
 def corrigir_celula(xml: str, legenda: str, linha_rotulo: str,
                     de: str, para: str) -> tuple[str, bool]:
     """Troca o valor de uma célula na tabela que segue a legenda dada."""
@@ -253,6 +311,27 @@ def main() -> int:
         xml, ok = inserir_nota(xml)
         print(f"  {'✓' if ok else '✗'} {NOTA_TITULO} "
               f"({len(NOTA_PARAGRAFOS)} parágrafos)")
+
+        print("\n── orientações do orientador ──")
+        for rotulo, de, para, motivo in orientacoes.AJUSTES:
+            if de in xml:
+                xml = xml.replace(de, para, 1)
+                print(f"  ✓ {rotulo}")
+                print(f"      pedido: {motivo}")
+            else:
+                print(f"  ✗ {rotulo}: trecho não encontrado")
+
+        m = re.search(r"<w:t[^>]*>\s*5\s+DISCUSS", xml)
+        if m:
+            ini = xml.rfind("<w:p ", 0, m.start())
+            if ini == -1:
+                ini = xml.rfind("<w:p>", 0, m.start())
+            xml = xml[:ini] + bloco_orientacoes() + xml[ini:]
+            print(f"  ✓ §4.17 e §4.18 inseridas, com a Tabela "
+                  f"{orientacoes.TABELA_CARGA['numero']} "
+                  f"({len(orientacoes.TABELA_CARGA['linhas'])} dias)")
+        else:
+            print("  ✗ não localizei o início da seção 5")
 
         doc.write_text(xml, encoding="utf-8")
         print(f"\n  document.xml: {antes // 1024} KB → {len(xml) // 1024} KB")

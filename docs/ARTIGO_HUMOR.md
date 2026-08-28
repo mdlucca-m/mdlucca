@@ -65,6 +65,59 @@ Vale registrar, porque a primeira leitura sugeriu problema onde não havia:
   confundimento entre volume e modalidade. Deixei o título como está: mudá-lo
   é decisão editorial dos autores, não correção de erro.
 
+## Orientações do orientador (áudios de 27/08)
+
+Cada item abaixo responde a um pedido explícito, e **todo valor vem de uma
+tabela do próprio artigo** — nada foi estimado.
+
+**Tabela 71 — caracterização da carga por dia.** Era o pedido central,
+repetido em três áudios: “tu tens que me apresentar uma tabela que faça a
+caracterização de tipo de treino de carga”. A tabela cruza, para cada um dos
+sete dias, o conteúdo da sessão, o número de sessões, a duração, o volume
+relativo, a FC de pico, o %FC máx, a PSE e a exigência — ao lado do PTH, do
+vigor e da fadiga médios daquele dia. Conteúdo e duração vêm do Esquema 1 e da
+§3.3; FC e PSE, da Tabela 48; humor, da Tabela 19. Nos dias sem HIIT a FC e a
+PSE constam como `n.d.`, porque a §3.4 declara que só foram registradas nas
+sessões de HIIT — a lacuna fica visível em vez de preenchida por estimativa.
+
+**§4.17 — a variação diária explicada pela carga.** Responde a “quais são os
+fatores que geram essa variação”. O PTH alterna com o tipo de dia: 2,52 no
+repouso, 4,61 no primeiro HIIT, 2,87 no dia de volume, 4,76 no segundo HIIT,
+2,19 no de volume. Nos dias longos sem HIIT o humor volta a valores próximos
+ao repouso — é por isso que a variação pré→pós é pequena justamente nos dias
+mais longos. Dois dias rompem o padrão: o Dia 6, de alto volume, chega a 4,80
+por acúmulo; e o Dia 7 dispara para 8,28, com a mesma carga dos Dias 2 e 4.
+O vigor faz o percurso que o orientador descreveu: cai de 7,61 para 5,66,
+estabiliza entre 5,3 e 5,7 a semana toda, e despenca para 4,49 no Dia 7.
+
+**§3.3 — o momento do monitoramento.** Passa a declarar que se trata da última
+semana de treinamento antes do início da competição. Fica um marcador
+`[A CONFIRMAR]` para nomear a competição e a data da primeira partida: essa
+informação não está em nenhum dos documentos e só os autores a têm.
+
+**§3.1 — estudo de acompanhamento.** O texto já dizia “observacional,
+longitudinal e prospectivo”; passa a abrir com “trata-se de um estudo de
+acompanhamento” e a explicitar a consequência — descreve-se a resposta a um
+microciclo tal como planejado pela comissão técnica, não o efeito de um
+tratamento atribuído pelo pesquisador.
+
+**§4.18 — recomendações.** O achado de consequência prática: no Dia 7 o PTH
+atinge 8,28, o vigor cai ao mínimo, o perfil iceberg recua de 71,4% para 32,6%
+e os perturbados sobem de 47,6% para 71,7%. Uma competição no dia seguinte
+encontraria a equipe no pior estado da semana. Seguem quatro recomendações —
+reposicionar o HIIT, monitorar por tendência e não por coleta isolada,
+priorizar o eixo energia–fadiga, e ler a divergência entre carga externa e
+resposta interna como alerta — cada uma remetendo à tabela que a sustenta, e
+todas delimitadas quanto ao alcance de um estudo observacional de uma equipe.
+
+Os perfis de humor de Parsons-Smith que o orientador quer explorar (iceberg
+invertido, barbatana de tubarão) **já estão no artigo**, nas Tabelas 20 e 21 e
+nas Figuras 21 a 26. Vale registrar que os percentuais do painel enviado no
+WhatsApp (iceberg 48% → 22%) não coincidem com os do artigo, porque são três
+operacionalizações distintas: o critério de Morgan da Tabela 20 (71,4% →
+32,6%), a classificação de Parsons-Smith da Tabela 21 (21,4% → 6,5%) e a do
+painel. Convém unificar antes de publicar.
+
 ## Contexto
 
 Este arquivo é uma de seis versões em circulação, e não é a mais recente — ver

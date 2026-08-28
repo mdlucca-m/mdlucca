@@ -82,6 +82,37 @@ CHECAGENS = [
      lambda txt, tab: "1,83 a 3,69" in txt, ""),
     ("A nota registra a divergência das médias diárias",
      lambda txt, tab: "2,87" in txt and "4,5" in txt, ""),
+
+    # ── orientações do orientador ──
+    ("Tabela de caracterização da carga por dia presente",
+     lambda txt, tab: any(t and t[0] and t[0][0] == "Dia" and "Volume rel." in " ".join(t[0])
+                          for _, t in tab),
+     "Pedido central: uma tabela que caracterize tipo de treino e carga por dia."),
+    ("A tabela de carga cobre os sete dias",
+     lambda txt, tab: any(t and t[0] and t[0][0] == "Dia" and len(t) == 8
+                          for _, t in tab), ""),
+    ("Momento do monitoramento declarado",
+     lambda txt, tab: "última semana de treinamento da fase pré-competitiva" in txt,
+     "'a gente tem que colocar em que momento que foi feito esse monitoramento'."),
+    ("Estudo reposicionado como acompanhamento",
+     lambda txt, tab: "Trata-se de um estudo de acompanhamento" in txt,
+     "'seria um estudo experimental...? Mas é um estudo de acompanhamento'."),
+    ("Variação diária explicada pela carga",
+     lambda txt, tab: "4.17 Caracterização da carga" in txt
+                      and "governada mais pela intensidade" in txt,
+     "'quais são os fatores que geram essa variação que potencialmente explicam isso'."),
+    ("Recomendações para comissão técnica presentes",
+     lambda txt, tab: "4.18 Recomendações" in txt
+                      and "Quatro recomendações decorrem dos dados" in txt,
+     "'os dados vão indicar recomendações para o treinamento, para o técnico'."),
+    ("Alerta do Dia 7 para jogo no dia seguinte",
+     lambda txt, tab: "pior estado psicológico de toda a semana" in txt,
+     "'o que se obteve no sétimo dia não é favorável pra esse jogo'."),
+    ("Seções na ordem 4.16 → 4.17 → 4.18",
+     lambda txt, tab: (txt.index("4.16 Nota") < txt.index("4.17 Caracterização")
+                       < txt.index("4.18 Recomendações"))
+                      if all(k in txt for k in ("4.16 Nota", "4.17 Caracterização",
+                                                "4.18 Recomendações")) else False, ""),
 ]
 
 
@@ -108,10 +139,15 @@ def main() -> int:
             print(f'      {motivo}')
 
     print(f"\n── integridade ──")
-    for rot, o, c in (("tabelas", len(tabo), len(tabc)), ("imagens", imo, imc)):
-        ok = o == c
-        print(f'  {"✓" if ok else "✗"} {rot}: {o} → {c}')
-        falhas += 0 if ok else 1
+    # A correção acrescenta uma tabela (a de caracterização da carga) e não
+    # remove nenhuma; imagens têm de ser preservadas integralmente.
+    ok_tab = len(tabc) == len(tabo) + 1
+    print(f'  {"✓" if ok_tab else "✗"} tabelas: {len(tabo)} → {len(tabc)} '
+          f'(+1 esperada: a de carga)')
+    falhas += 0 if ok_tab else 1
+    ok_img = imo == imc
+    print(f'  {"✓" if ok_img else "✗"} imagens preservadas: {imo} → {imc}')
+    falhas += 0 if ok_img else 1
 
     print(f"\n{'OK: tudo verificado' if not falhas else f'FALHOU: {falhas} checagem(ns)'}")
     return 1 if falhas else 0
