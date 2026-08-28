@@ -513,6 +513,31 @@ def _ler_kappa(kappa: float | None) -> str:
 
 
 # ----------------------------------------------------------------------
+def _pode_ser_o_mesmo(a: dict[str, Any], b: dict[str, Any]) -> bool:
+    """Barreiras antes de comparar titulo por semelhanca.
+
+    Semelhanca de titulo sozinha e traicoeira: "estudo parte 1" e "estudo
+    parte 2" sao 98% iguais e sao dois trabalhos. Tres provas de que sao
+    diferentes, e qualquer uma encerra a conversa:
+
+      DOI diferente     -- o identificador nao mente
+      ano diferente     -- resumo de congresso e artigo saem em anos distintos
+      numero diferente  -- "parte 1"/"parte 2", "coorte 2019"/"coorte 2020"
+
+    A ultima parece pequena e e a que mais pega: numero dentro do titulo
+    quase sempre e o que distingue um trabalho do irmao dele.
+    """
+    if a.get("doi") and b.get("doi") and norm_doi(a["doi"]) != norm_doi(b["doi"]):
+        return False
+    if a.get("year") and b.get("year") and int(a["year"]) != int(b["year"]):
+        return False
+    return _numeros(a.get("title")) == _numeros(b.get("title"))
+
+
+def _numeros(titulo: Any) -> list[str]:
+    return re.findall(r"\d+", str(titulo or ""))
+
+
 def _normalizar(texto: Any) -> str:
     """Titulo sem acento, sem pontuacao e sem espaco sobrando."""
     limpo = clean_text(texto)
@@ -542,3 +567,163 @@ def _base_pelo_nome(nome: str) -> str:
         if any(marca in chave for marca in marcas):
             return base
     return "não informada"
+
+
+# ----------------------------------------------------------------------
+# Duplicados: conferir a uniao, e desfazer quando ela erra
+# ----------------------------------------------------------------------
+# Uniao automatica erra dos dois lados. Juntar dois estudos diferentes
+# esconde um deles; deixar de juntar o mesmo estudo faz a equipe ler o
+# mesmo resumo duas vezes e infla o PRISMA. Os dois erros sao invisiveis
+# se ninguem puder olhar -- por isso a uniao fica exposta, com a evidencia
+# do que casou, e da para desfazer.
+LIMIAR_SUSPEITA = 0.85
+
+
+def duplicados(db: Database, review_id: int) -> list[dict[str, Any]]:
+    """Os grupos que foram unidos, com a evidencia do que casou."""
+    grupos: dict[int, dict[str, Any]] = {}
+    for linha in db.dicts(
+            "SELECT id, duplicate_of, title, authors, journal, year, doi, origem"
+            "  FROM refs WHERE review_id = ? AND duplicate_of IS NOT NULL"
+            " ORDER BY duplicate_of, id", (review_id,)):
+        alvo = int(linha["duplicate_of"])
+        if alvo not in grupos:
+            ficou = db.dicts(
+                "SELECT id, title, authors, journal, year, doi, origem, stage, decision"
+                "  FROM refs WHERE id = ?", (alvo,))
+            if not ficou:
+                continue
+            grupos[alvo] = {"ficou": ficou[0], "repetidos": []}
+        linha["casou_por"] = _por_que_casaram(grupos[alvo]["ficou"], linha)
+        grupos[alvo]["repetidos"].append(linha)
+    return list(grupos.values())
+
+
+def _por_que_casaram(a: dict[str, Any], b: dict[str, Any]) -> str:
+    if a.get("doi") and norm_doi(a["doi"]) == norm_doi(b.get("doi")):
+        return f"mesmo DOI ({norm_doi(a['doi'])})"
+    if _normalizar(a.get("title")) == _normalizar(b.get("title")):
+        return f"mesmo título e ano ({b.get('year') or 'sem ano'})"
+    return "chave de união"
+
+
+def separar(db: Database, ref_id: int) -> dict[str, Any]:
+    """Desfaz a uniao: o registro volta a valer por si e entra na fila."""
+    linha = db.dicts("SELECT id, review_id, duplicate_of, title FROM refs WHERE id = ?",
+                     (ref_id,))
+    if not linha:
+        raise ValueError(f"referência {ref_id} não existe")
+    if linha[0]["duplicate_of"] is None:
+        raise ValueError("esta referência não está unida a nenhuma outra")
+    db.execute(
+        "UPDATE refs SET duplicate_of = NULL, stage = 'titulo_resumo',"
+        "       decision = NULL, reason_id = NULL, decided_at = NULL,"
+        "       updated_at = datetime('now') WHERE id = ?", (ref_id,))
+    db.conn.commit()
+    return {"separada": ref_id, "title": linha[0]["title"]}
+
+
+def unir(db: Database, ref_id: int, alvo_id: int) -> dict[str, Any]:
+    """Une a mao o que a chave nao pegou -- grafia diferente, ano trocado."""
+    if ref_id == alvo_id:
+        raise ValueError("uma referência não é duplicada de si mesma")
+    linhas = db.dicts("SELECT id, review_id FROM refs WHERE id IN (?, ?)", (ref_id, alvo_id))
+    if len(linhas) != 2:
+        raise ValueError("uma das referências não existe")
+    if linhas[0]["review_id"] != linhas[1]["review_id"]:
+        raise ValueError("as duas referências são de revisões diferentes")
+    db.execute(
+        "UPDATE refs SET duplicate_of = ?, stage = 'excluido',"
+        "       updated_at = datetime('now') WHERE id = ?", (alvo_id, ref_id))
+    # quem apontava para a que virou duplicada passa a apontar para a que ficou
+    db.execute("UPDATE refs SET duplicate_of = ? WHERE duplicate_of = ?", (alvo_id, ref_id))
+    db.conn.commit()
+    return {"unida": ref_id, "a": alvo_id}
+
+
+def suspeitas(db: Database, review_id: int, limite: int = 40) -> list[dict[str, Any]]:
+    """Pares parecidos que a uniao NAO pegou, para o olho humano decidir.
+
+    A chave exige titulo identico; a realidade traz subtitulo cortado,
+    erro de digitacao e o mesmo estudo com o ano do online e o do impresso.
+    Aqui a comparacao e por semelhanca, e nada e unido sozinho: quem decide
+    e quem esta lendo.
+
+    A comparacao so acontece entre titulos que comecam parecido -- comparar
+    todos contra todos seria quadratico, e uma revisao tem milhares.
+    """
+    from difflib import SequenceMatcher
+
+    linhas = db.dicts(
+        "SELECT id, title, authors, journal, year, doi, origem FROM refs"
+        " WHERE review_id = ? AND duplicate_of IS NULL", (review_id,))
+    baldes: dict[str, list[dict[str, Any]]] = {}
+    for linha in linhas:
+        chave = _normalizar(linha["title"])[:14]
+        if chave:
+            baldes.setdefault(chave, []).append(linha)
+
+    achados = []
+    for grupo in baldes.values():
+        for i, a in enumerate(grupo):
+            for b in grupo[i + 1:]:
+                if not _pode_ser_o_mesmo(a, b):
+                    continue
+                razao = SequenceMatcher(
+                    None, _normalizar(a["title"]), _normalizar(b["title"])).ratio()
+                if razao >= LIMIAR_SUSPEITA:
+                    achados.append({"a": a, "b": b, "semelhanca": round(razao, 3)})
+    achados.sort(key=lambda x: -x["semelhanca"])
+    return achados[:limite]
+
+
+# ----------------------------------------------------------------------
+# Exportar
+# ----------------------------------------------------------------------
+ETAPA_ROTULO = {"titulo_resumo": "Título e resumo", "texto_completo": "Texto completo",
+                "incluido": "Incluído", "excluido": "Excluído"}
+DECISAO_ROTULO = {"incluir": "Incluir", "excluir": "Excluir", "talvez": "Talvez"}
+RECORTES = ("incluidos", "texto_completo", "excluidos", "pendentes", "todos", "duplicados")
+
+
+def para_exportar(db: Database, review_id: int, recorte: str = "incluidos") -> list[dict]:
+    """As referencias de um recorte, com a triagem junto."""
+    if recorte not in RECORTES:
+        raise ValueError(f"recorte desconhecido: {recorte}. Use {', '.join(RECORTES)}")
+    filtros = {
+        "incluidos": "r.stage = 'incluido' AND r.duplicate_of IS NULL",
+        "texto_completo": "r.stage IN ('texto_completo','incluido') AND r.duplicate_of IS NULL",
+        "excluidos": "r.decision = 'excluir' AND r.duplicate_of IS NULL",
+        "pendentes": "r.decision IS NULL AND r.duplicate_of IS NULL",
+        "duplicados": "r.duplicate_of IS NOT NULL",
+        "todos": "1 = 1",
+    }
+    linhas = db.dicts(
+        "SELECT r.*, x.label AS reason_label FROM refs r"
+        "  LEFT JOIN exclusion_reasons x ON x.id = r.reason_id"
+        f" WHERE r.review_id = ? AND {filtros[recorte]}"
+        " ORDER BY COALESCE(r.year, 0) DESC, r.title", (review_id,))
+    votos: dict[int, list[str]] = {}
+    for voto in db.dicts(
+            "SELECT s.ref_id, m.full_name AS quem, s.decision FROM screenings s"
+            "  JOIN members m ON m.id = s.member_id"
+            "  JOIN refs r ON r.id = s.ref_id"
+            " WHERE r.review_id = ? ORDER BY m.full_name", (review_id,)):
+        votos.setdefault(voto["ref_id"], []).append(
+            f"{voto['quem']}: {DECISAO_ROTULO.get(voto['decision'], voto['decision'])}")
+    for linha in linhas:
+        linha["stage_rotulo"] = ETAPA_ROTULO.get(linha["stage"], linha["stage"])
+        linha["decision_rotulo"] = DECISAO_ROTULO.get(linha["decision"] or "", "")
+        linha["votos_texto"] = "; ".join(votos.get(linha["id"], []))
+    return linhas
+
+
+def exportar(db: Database, review_id: int, formato: str = "ris",
+             recorte: str = "incluidos") -> tuple[str, str, str]:
+    """Devolve (conteudo, nome do arquivo, tipo MIME)."""
+    registros = para_exportar(db, review_id, recorte)
+    conteudo = referencias.escrever(registros, formato)
+    extensao, mime = referencias.EXTENSAO[formato]
+    codigo = db.scalar("SELECT code FROM reviews WHERE id = ?", (review_id,)) or "revisao"
+    return conteudo, f"{codigo}-{recorte}.{extensao}", mime

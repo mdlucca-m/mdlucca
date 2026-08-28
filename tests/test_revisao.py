@@ -10,6 +10,7 @@ Por isso os testes aqui perseguem o silêncio, não a exceção.
 """
 from __future__ import annotations
 
+import re
 import sys
 import tempfile
 import unittest
@@ -516,6 +517,209 @@ class TestConcordancia(unittest.TestCase):
         self.assertLess(resultado["kappa"], resultado["concordancia"])
         self.assertIn(resultado["leitura"],
                       ("leve", "razoável", "moderada", "substancial", "quase perfeita"))
+
+
+class TestNomesUnicosNosModulos(unittest.TestCase):
+    """Duas funções com o mesmo nome no mesmo arquivo: a segunda apaga a primeira.
+
+    Aconteceu: `_chave` normalizava cabeçalho de CSV, e uma `_chave` nova
+    para gerar chave de BibTeX tomou o nome. O módulo continuou importando
+    sem erro; o que quebrou foi a leitura de CSV, longe dali.
+    """
+
+    def test_nenhum_modulo_define_o_mesmo_nome_duas_vezes(self):
+        import ast
+
+        pasta = ROOT / "scripts" / "lape"
+        for arquivo in sorted(pasta.rglob("*.py")):
+            arvore = ast.parse(arquivo.read_text(encoding="utf-8"))
+            vistos: dict[str, int] = {}
+            for no in arvore.body:
+                if isinstance(no, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                    with self.subTest(arquivo=arquivo.name, nome=no.name):
+                        self.assertNotIn(
+                            no.name, vistos,
+                            f"{arquivo.name}: '{no.name}' definido na linha "
+                            f"{vistos.get(no.name)} e de novo na {no.lineno}")
+                    vistos[no.name] = no.lineno
+
+
+class TestDuplicadosNaTela(unittest.TestCase):
+    """União automática erra dos dois lados, e os dois erros são invisíveis."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.db = Database(Path(self.tmp.name) / "t.sqlite")
+        self.db.migrate()
+        self.rev = revisao.criar(self.db, "r", "Revisão", reviewers_needed=1)
+        revisao.importar(self.db, self.rev, RIS, "scopus.ris")
+        revisao.importar(self.db, self.rev, RIS, "wos.ris")     # tudo repetido
+
+    def tearDown(self):
+        self.db.close()
+        self.tmp.cleanup()
+
+    def test_a_uniao_mostra_a_evidencia(self):
+        grupos = revisao.duplicados(self.db, self.rev)
+        self.assertEqual(len(grupos), 2)
+        for grupo in grupos:
+            for repetido in grupo["repetidos"]:
+                self.assertIn("DOI", repetido["casou_por"])
+
+    def test_separar_devolve_a_referencia_para_a_fila(self):
+        repetido = self.db.scalar("SELECT id FROM refs WHERE duplicate_of IS NOT NULL LIMIT 1")
+        revisao.separar(self.db, repetido)
+        linha = self.db.dicts("SELECT duplicate_of, stage FROM refs WHERE id = ?",
+                              (repetido,))[0]
+        self.assertIsNone(linha["duplicate_of"])
+        self.assertEqual(linha["stage"], "titulo_resumo")
+
+    def test_separar_o_que_nao_esta_unido_e_recusado(self):
+        sozinha = self.db.scalar("SELECT id FROM refs WHERE duplicate_of IS NULL LIMIT 1")
+        with self.assertRaises(ValueError):
+            revisao.separar(self.db, sozinha)
+
+    def test_unir_a_mao_o_que_a_chave_nao_pegou(self):
+        a, b = [r["id"] for r in self.db.dicts(
+            "SELECT id FROM refs WHERE duplicate_of IS NULL ORDER BY id")][:2]
+        revisao.unir(self.db, b, a)
+        self.assertEqual(self.db.scalar("SELECT duplicate_of FROM refs WHERE id = ?", (b,)), a)
+
+    def test_nao_se_une_uma_referencia_a_si_mesma(self):
+        sozinha = self.db.scalar("SELECT id FROM refs WHERE duplicate_of IS NULL LIMIT 1")
+        with self.assertRaises(ValueError):
+            revisao.unir(self.db, sozinha, sozinha)
+
+    def test_suspeitas_pegam_o_titulo_quase_igual(self):
+        # subtítulo cortado é o caso do mundo real: a chave exige igualdade
+        quase = ("TY  - JOUR\nTI  - Anxiety and mood in youth handball players\n"
+                 "PY  - 2021\nER  -\n")
+        revisao.importar(self.db, self.rev, quase, "embase.ris")
+        achados = revisao.suspeitas(self.db, self.rev)
+        self.assertTrue(achados, "o título quase igual não foi apontado")
+        self.assertGreaterEqual(achados[0]["semelhanca"], revisao.LIMIAR_SUSPEITA)
+
+    def test_dois_dois_diferentes_nao_viram_suspeita(self):
+        # DOIs diferentes provam que são trabalhos distintos, por parecido
+        # que esteja o título
+        outro = ("TY  - JOUR\nTI  - Anxiety and mood in youth handball\n"
+                 "PY  - 2021\nDO  - 10.9999/outro.2021\nER  -\n")
+        revisao.importar(self.db, self.rev, outro, "embase.ris")
+        for achado in revisao.suspeitas(self.db, self.rev):
+            self.assertFalse(achado["a"].get("doi") and achado["b"].get("doi")
+                             and achado["a"]["doi"] != achado["b"]["doi"])
+
+
+class TestExportar(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.db = Database(Path(self.tmp.name) / "t.sqlite")
+        self.db.migrate()
+        self.rev = revisao.criar(self.db, "r", "Revisão", reviewers_needed=1)
+        revisao.importar(self.db, self.rev, RIS, "scopus.ris")
+        self.ana = self.db.member_id("Ana Souza")
+        refs = [r["id"] for r in self.db.dicts("SELECT id FROM refs ORDER BY id")]
+        motivo = self.db.scalar(
+            "SELECT id FROM exclusion_reasons WHERE review_id = ? AND code = 'populacao'",
+            (self.rev,))
+        revisao.decidir(self.db, refs[0], self.ana, "incluir")
+        revisao.decidir(self.db, refs[1], self.ana, "excluir", reason_id=motivo)
+        revisao.avancar_etapa(self.db, self.rev)
+        revisao.decidir(self.db, refs[0], self.ana, "incluir")
+        revisao.fechar_texto_completo(self.db, self.rev)
+
+    def tearDown(self):
+        self.db.close()
+        self.tmp.cleanup()
+
+    def test_o_recorte_de_incluidos_traz_so_o_que_entrou(self):
+        linhas = revisao.para_exportar(self.db, self.rev, "incluidos")
+        self.assertEqual(len(linhas), 1)
+        self.assertTrue(linhas[0]["title"].startswith("Mood profiles"))
+
+    def test_o_recorte_de_excluidos_traz_o_motivo(self):
+        linhas = revisao.para_exportar(self.db, self.rev, "excluidos")
+        self.assertEqual(linhas[0]["reason_label"], "População não elegível")
+
+    def test_a_triagem_viaja_junto(self):
+        linhas = revisao.para_exportar(self.db, self.rev, "todos")
+        com_voto = [l for l in linhas if l["votos_texto"]]
+        self.assertTrue(com_voto)
+        self.assertIn("Ana Souza", com_voto[0]["votos_texto"])
+
+    def test_recorte_inventado_e_recusado(self):
+        with self.assertRaises(ValueError):
+            revisao.para_exportar(self.db, self.rev, "os_bons")
+
+    def test_ris_sai_no_formato_posicional(self):
+        conteudo, nome, mime = revisao.exportar(self.db, self.rev, "ris", "todos")
+        self.assertTrue(nome.endswith("-todos.ris"))
+        self.assertIn("research-info", mime)
+        for linha in conteudo.split("\r\n"):
+            if linha:
+                self.assertRegex(linha, r"^[A-Z][A-Z0-9]  - ")
+
+    def test_bibtex_fecha_as_chaves(self):
+        conteudo, nome, _ = revisao.exportar(self.db, self.rev, "bibtex", "todos")
+        self.assertTrue(nome.endswith(".bib"))
+        self.assertEqual(conteudo.count("{"), conteudo.count("}"))
+
+    def test_csv_abre_no_excel_em_portugues(self):
+        conteudo, nome, _ = revisao.exportar(self.db, self.rev, "csv", "todos")
+        self.assertTrue(conteudo.startswith("\ufeff"))
+        cabecalho = conteudo.splitlines()[0].lstrip("\ufeff")
+        self.assertIn("Decisão", cabecalho)
+        self.assertIn("Quem decidiu o quê", cabecalho)
+
+    def test_o_que_sai_pode_voltar(self):
+        # a prova de que não é jaula: o arquivo exportado é reimportável
+        conteudo, _, _ = revisao.exportar(self.db, self.rev, "ris", "todos")
+        volta = referencias.ler(conteudo, "volta.ris")
+        self.assertEqual(len(volta), 2)
+        self.assertTrue(all(r["title"] for r in volta))
+        self.assertTrue(any(r["doi"] for r in volta))
+
+
+class TestFluxogramaPrisma(unittest.TestCase):
+    def setUp(self):
+        from lape import prisma as desenho
+        self.desenho = desenho
+        self.dados = {"identificados": 1284, "duplicados": 312, "triados": 972,
+                      "excluidos_triagem": 861, "texto_completo": 111,
+                      "excluidos_texto": 74, "incluidos": 37,
+                      "por_base": [{"base": "PubMed", "n": 540}],
+                      "motivos": [{"motivo": "População não elegível", "n": 402}]}
+
+    def test_todos_os_numeros_aparecem(self):
+        svg = self.desenho.desenhar(self.dados, "Revisão")
+        for valor in (1284, 312, 972, 861, 111, 74, 37):
+            self.assertIn(f"(n = {valor})", svg)
+
+    def test_e_um_svg_valido(self):
+        import xml.etree.ElementTree as ET
+        ET.fromstring(self.desenho.desenhar(self.dados, "Revisão"))
+
+    def test_texto_com_e_comercial_nao_quebra_o_xml(self):
+        import xml.etree.ElementTree as ET
+        dados = dict(self.dados, motivos=[{"motivo": "Fora do P&D <interno>", "n": 3}])
+        ET.fromstring(self.desenho.desenhar(dados, "Saúde & Esporte <2024>"))
+
+    def test_revisao_recem_aberta_nao_quebra(self):
+        vazio = {"identificados": 0, "duplicados": 0, "triados": 0,
+                 "excluidos_triagem": 0, "texto_completo": 0, "excluidos_texto": 0,
+                 "incluidos": 0, "por_base": [], "motivos": []}
+        svg = self.desenho.desenhar(vazio, "Nova")
+        self.assertIn("(n = 0)", svg)
+
+    def test_o_titulo_nao_passa_por_cima_da_contagem(self):
+        # foi o defeito da primeira versão: título e "(n = ...)" na mesma
+        # linha, e o número saía ilegível quando o rótulo era longo
+        svg = self.desenho.desenhar(self.dados, "Revisão")
+        ys_titulo = re.findall(r'y="(\d+)" font-size="12.5"', svg)
+        ys_valor = re.findall(r'y="(\d+)" font-size="17"', svg)
+        self.assertTrue(ys_titulo and ys_valor)
+        self.assertFalse(set(ys_titulo) & set(ys_valor),
+                         "título e contagem caíram na mesma linha")
 
 
 if __name__ == "__main__":

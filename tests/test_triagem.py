@@ -212,7 +212,7 @@ class TestPermissoes(BaseWeb):
         self.ana = self.entrar("ana@udesc.br")
         self.beto = self.entrar("beto@udesc.br")
         self.curioso = self.entrar("curioso@udesc.br")
-        self.code = "perm"
+        self.code = f"perm-{self._testMethodName}"[:40]
         self.chamar("/api/revisoes", self.ana,
                     {"titulo": "Permissões", "codigo": self.code, "avaliadores": 2})
         self.chamar(f"/api/revisoes/{self.code}/importar", self.ana,
@@ -281,6 +281,109 @@ class TestPaginaDeTriagem(BaseWeb):
         js = (ROOT / "scripts" / "lape" / "templates" / "triagem.js").read_text(encoding="utf-8")
         corpo = js[js.index("async function enviarPendentes"):js.index("function desfazer")]
         self.assertIn("ESTADO.pendentes = lote.concat", corpo)
+
+
+class TestDownloadsDaRevisao(BaseWeb):
+    """Exportar e o fluxograma: os dois respondem arquivo, não JSON."""
+
+    def setUp(self):
+        self.ana = self.entrar("ana@udesc.br")
+        self.curioso = self.entrar("curioso@udesc.br")
+        self.code = f"baixar-{self._testMethodName}"[:40]
+        self.chamar("/api/revisoes", self.ana,
+                    {"titulo": "Para baixar", "codigo": self.code, "avaliadores": 1})
+        self.chamar(f"/api/revisoes/{self.code}/importar", self.ana,
+                    {"nome": "s.ris", "conteudo": RIS})
+        fila = self.chamar(f"/api/revisoes/{self.code}/fila", self.ana)[1]["fila"]
+        self.chamar(f"/api/revisoes/{self.code}/decidir", self.ana,
+                    {"ref_id": fila[0]["id"], "decisao": "incluir"})
+
+    def baixar(self, caminho, cookie=None):
+        pedido = urllib.request.Request(f"http://127.0.0.1:{self.port}{caminho}")
+        if cookie:
+            pedido.add_header("Cookie", cookie)
+        try:
+            with urllib.request.urlopen(pedido, timeout=30) as resposta:
+                return resposta.status, resposta.headers, resposta.read().decode("utf-8")
+        except urllib.error.HTTPError as exc:
+            return exc.code, exc.headers, exc.read().decode("utf-8")
+
+    def test_o_ris_vem_como_anexo(self):
+        status, cab, corpo = self.baixar(
+            f"/api/revisoes/{self.code}/exportar?formato=ris&recorte=todos", self.ana)
+        self.assertEqual(status, 200)
+        self.assertIn("research-info", cab.get("Content-Type", ""))
+        # o código é gravado normalizado; o nome do arquivo sai dele
+        self.assertIn("-todos.ris\"", cab.get("Content-Disposition", ""))
+        self.assertIn("attachment;", cab.get("Content-Disposition", ""))
+        self.assertIn("TY  - JOUR", corpo)
+
+    def test_formato_e_recorte_inventados_explicam(self):
+        for consulta in ("formato=docx", "recorte=os_bons"):
+            with self.subTest(consulta=consulta):
+                status, _, corpo = self.baixar(
+                    f"/api/revisoes/{self.code}/exportar?{consulta}", self.ana)
+                self.assertEqual(status, 400)
+                self.assertIn("desconhecid", corpo)
+
+    def test_o_fluxograma_sai_desenhado(self):
+        status, cab, corpo = self.baixar(f"/api/revisoes/{self.code}/prisma.svg", self.ana)
+        self.assertEqual(status, 200)
+        self.assertIn("image/svg+xml", cab.get("Content-Type", ""))
+        self.assertIn("<svg", corpo)
+        self.assertIn("(n = 10)", corpo)      # os 10 registros importados
+
+    def test_o_fluxograma_nao_e_guardado_pelo_navegador(self):
+        # ele muda a cada decisão: um dia de cache mostraria número velho
+        _, cab, _ = self.baixar(f"/api/revisoes/{self.code}/prisma.svg", self.ana)
+        self.assertEqual(cab.get_all("Cache-Control"), ["no-store, must-revalidate"])
+
+    def test_quem_so_le_tambem_baixa(self):
+        # o resultado da revisão é do laboratório inteiro
+        self.assertEqual(self.baixar(
+            f"/api/revisoes/{self.code}/prisma.svg", self.curioso)[0], 200)
+
+    def test_sem_entrar_nao_baixa(self):
+        self.assertEqual(self.baixar(f"/api/revisoes/{self.code}/exportar")[0], 401)
+
+    def test_revisao_que_nao_existe_da_404(self):
+        self.assertEqual(self.baixar("/api/revisoes/nao-existe/prisma.svg", self.ana)[0], 404)
+
+
+class TestDuplicadosPelaApi(BaseWeb):
+    def setUp(self):
+        self.ana = self.entrar("ana@udesc.br")
+        self.beto = self.entrar("beto@udesc.br")
+        self.code = f"dups-{self._testMethodName}"[:40]
+        self.chamar("/api/revisoes", self.ana,
+                    {"titulo": "Duplicados", "codigo": self.code, "avaliadores": 1})
+        for nome in ("scopus.ris", "wos.ris"):
+            self.chamar(f"/api/revisoes/{self.code}/importar", self.ana,
+                        {"nome": nome, "conteudo": RIS})
+
+    def test_a_uniao_fica_exposta_com_a_evidencia(self):
+        status, r = self.chamar(f"/api/revisoes/{self.code}/duplicados", self.beto)
+        self.assertEqual(status, 200)
+        self.assertEqual(len(r["unidos"]), 10)
+        self.assertIn("DOI", r["unidos"][0]["repetidos"][0]["casou_por"])
+
+    def test_separar_devolve_para_a_fila(self):
+        r = self.chamar(f"/api/revisoes/{self.code}/duplicados", self.ana)[1]
+        repetido = r["unidos"][0]["repetidos"][0]["id"]
+        antes = self.chamar(f"/api/revisoes/{self.code}/fila", self.ana)[1]["faltam"]
+        status, resultado = self.chamar(f"/api/revisoes/{self.code}/duplicados", self.ana,
+                                        {"ref_id": repetido})
+        self.assertEqual(status, 200)
+        self.assertEqual(resultado["prisma"]["duplicados"], 9)
+        self.assertEqual(
+            self.chamar(f"/api/revisoes/{self.code}/fila", self.ana)[1]["faltam"], antes + 1)
+
+    def test_separar_o_que_nao_esta_unido_explica(self):
+        sozinha = self.chamar(f"/api/revisoes/{self.code}/fila", self.ana)[1]["fila"][0]["id"]
+        status, r = self.chamar(f"/api/revisoes/{self.code}/duplicados", self.ana,
+                                {"ref_id": sozinha})
+        self.assertEqual(status, 400)
+        self.assertIn("não está unida", r["error"])
 
 
 if __name__ == "__main__":

@@ -337,3 +337,137 @@ def _ano(valor: Any) -> int | None:
         return None
     casa = re.search(r"(19|20)\d{2}", texto)
     return int(casa.group()) if casa else to_int(texto)
+
+
+# ----------------------------------------------------------------------
+# Escrita: levar as referencias embora
+# ----------------------------------------------------------------------
+# Ler e escrever o mesmo formato moram juntos de proposito. Quando um lado
+# muda -- uma etiqueta nova, um campo a mais -- o outro esta na mesma tela,
+# e a chance de os dois divergirem cai.
+#
+# Um sistema de triagem do qual nao se sai e uma jaula. O que entrou tem de
+# poder sair, no formato que qualquer gestor de referencias le.
+
+def escrever_ris(registros: Iterable[dict[str, Any]]) -> str:
+    """RIS: o formato que EndNote, Mendeley e Zotero importam sem reclamar."""
+    linhas: list[str] = []
+    for r in registros:
+        linhas.append("TY  - JOUR")
+        for autor in _lista(r.get("authors")):
+            linhas.append(f"AU  - {autor}")
+        for etiqueta, valor in (
+            ("TI", r.get("title")), ("AB", r.get("abstract")),
+            ("JO", r.get("journal")), ("PY", r.get("year")),
+            ("VL", r.get("volume")), ("IS", r.get("issue")),
+            ("SN", r.get("issn")), ("DO", r.get("doi")),
+            ("LA", r.get("language")), ("AN", r.get("pmid")),
+            ("UR", r.get("url") or (f"https://doi.org/{r['doi']}" if r.get("doi") else None)),
+        ):
+            if valor not in (None, "", 0):
+                linhas.append(f"{etiqueta}  - {valor}")
+        inicio, _, fim = str(r.get("pages") or "").partition("-")
+        if inicio:
+            linhas.append(f"SP  - {inicio}")
+        if fim:
+            linhas.append(f"EP  - {fim}")
+        for palavra in _lista(r.get("keywords")):
+            linhas.append(f"KW  - {palavra}")
+        # A triagem viaja junto na nota: quem abrir o arquivo noutro lugar
+        # ve o que a equipe decidiu, e por que.
+        nota = _nota_da_triagem(r)
+        if nota:
+            linhas.append(f"N1  - {nota}")
+        linhas.append("ER  - ")
+        linhas.append("")
+    return "\r\n".join(linhas)
+
+
+def escrever_bibtex(registros: Iterable[dict[str, Any]]) -> str:
+    blocos, usadas = [], set()
+    for r in registros:
+        campos = [
+            ("author", " and ".join(_lista(r.get("authors")))),
+            ("title", r.get("title")), ("journal", r.get("journal")),
+            ("year", r.get("year")), ("volume", r.get("volume")),
+            ("number", r.get("issue")), ("pages", r.get("pages")),
+            ("doi", r.get("doi")), ("issn", r.get("issn")),
+            ("language", r.get("language")), ("pmid", r.get("pmid")),
+            ("abstract", r.get("abstract")), ("note", _nota_da_triagem(r)),
+        ]
+        corpo = ",\n".join(f"  {nome} = {{{_escapar_bibtex(valor)}}}"
+                            for nome, valor in campos if valor not in (None, "", 0))
+        blocos.append(f"@article{{{_chave_bibtex(r, usadas)},\n{corpo}\n}}")
+    return "\n\n".join(blocos) + "\n"
+
+
+COLUNAS_CSV: tuple[tuple[str, str], ...] = (
+    ("Título", "title"), ("Autores", "authors"), ("Ano", "year"),
+    ("Periódico", "journal"), ("Volume", "volume"), ("Número", "issue"),
+    ("Páginas", "pages"), ("DOI", "doi"), ("PMID", "pmid"), ("ISSN", "issn"),
+    ("Idioma", "language"), ("Palavras-chave", "keywords"), ("Link", "url"),
+    ("Resumo", "abstract"),
+    # --- o que a triagem disse ---
+    ("Etapa", "stage_rotulo"), ("Decisão", "decision_rotulo"),
+    ("Motivo da exclusão", "reason_label"), ("Quem decidiu o quê", "votos_texto"),
+    ("Base de origem", "origem"), ("Duplicado de", "duplicate_of"),
+)
+
+
+def escrever_csv(registros: Iterable[dict[str, Any]]) -> str:
+    """Planilha com a bibliografia E a triagem, lado a lado.
+
+    E a tabela que a revista pede quando quer ver o caminho da decisao, e a
+    que serve de anexo do protocolo. Ponto e virgula e BOM: e assim que o
+    Excel em portugues abre sem embaralhar coluna nem comer acento.
+    """
+    saida = io.StringIO()
+    escritor = csv.writer(saida, delimiter=";", quoting=csv.QUOTE_MINIMAL,
+                          lineterminator="\r\n")
+    escritor.writerow([titulo for titulo, _ in COLUNAS_CSV])
+    for r in registros:
+        escritor.writerow(["" if r.get(campo) is None else str(r.get(campo))
+                           for _, campo in COLUNAS_CSV])
+    return "\ufeff" + saida.getvalue()
+
+
+def _lista(texto: Any) -> list[str]:
+    return [p.strip() for p in str(texto or "").split(";") if p.strip()]
+
+
+def _nota_da_triagem(r: dict[str, Any]) -> str | None:
+    partes = [p for p in (r.get("decision_rotulo"), r.get("reason_label"),
+                          r.get("votos_texto")) if p]
+    return " | ".join(partes) or None
+
+
+def _escapar_bibtex(texto: Any) -> str:
+    return str(texto or "").replace("\\", r"\textbackslash{}").replace("{", r"\{") \
+        .replace("}", r"\}").replace("&", r"\&").replace("%", r"\%").replace("$", r"\$") \
+        .replace("#", r"\#").replace("_", r"\_")
+
+
+def _chave_bibtex(r: dict[str, Any], usadas: set[str]) -> str:
+    primeiro = _lista(r.get("authors"))
+    sobrenome = re.sub(r"[^a-z]", "", (primeiro[0] if primeiro else "ref").split(",")[0]
+                       .split()[-1].lower()) or "ref"
+    base = f"{sobrenome}{r.get('year') or 'sd'}"
+    chave, n = base, 1
+    while chave in usadas:
+        n += 1
+        chave = f"{base}{chr(ord('a') + n - 2)}"
+    usadas.add(chave)
+    return chave
+
+
+ESCRITORES = {"ris": escrever_ris, "bibtex": escrever_bibtex, "csv": escrever_csv}
+EXTENSAO = {"ris": ("ris", "application/x-research-info-systems"),
+            "bibtex": ("bib", "application/x-bibtex"),
+            "csv": ("csv", "text/csv")}
+
+
+def escrever(registros: Iterable[dict[str, Any]], formato: str = "ris") -> str:
+    if formato not in ESCRITORES:
+        raise ValueError(
+            f"formato desconhecido: {formato}. Use {', '.join(ESCRITORES)}")
+    return ESCRITORES[formato](registros)

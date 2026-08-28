@@ -446,6 +446,19 @@ class TestCacheDoNavegador(unittest.TestCase):
         except urllib.error.HTTPError as exc:
             return exc.headers
 
+    def test_so_o_favicon_e_guardado(self):
+        # a exceção é do favicon, não do tipo SVG: o fluxograma PRISMA
+        # também é SVG e muda a cada decisão. Quando a regra olhava o
+        # content-type, ele saía com um dia de cache -- e com dois
+        # cabeçalhos Cache-Control brigando na mesma resposta.
+        favicon = self.cabecalhos("/favicon.ico")
+        self.assertEqual(favicon.get_all("Cache-Control"), ["public, max-age=86400"])
+        for caminho in ("/entrar", "/api/health"):
+            with self.subTest(caminho=caminho):
+                guardas = self.cabecalhos(caminho).get_all("Cache-Control")
+                self.assertEqual(guardas, ["no-store, must-revalidate"],
+                                 "só pode haver um Cache-Control, e ele é no-store")
+
     def test_paginas_e_api_nao_sao_guardadas(self):
         for caminho in ("/entrar", "/app", "/api/health", "/api"):
             with self.subTest(caminho=caminho):

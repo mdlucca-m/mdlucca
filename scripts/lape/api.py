@@ -896,6 +896,28 @@ def route_review_agreement(ctx: "Context", review_id: str) -> Any:
     return {"pares": pares}
 
 
+def route_review_duplicates(ctx: "Context", review_id: str) -> Any:
+    auth.require(ctx.user, "integrante")
+    rev = _revisao(ctx, review_id)
+    return {"unidos": revisao.duplicados(ctx.db, rev["id"]),
+            "suspeitas": revisao.suspeitas(ctx.db, rev["id"])}
+
+
+def route_review_unmerge(ctx: "Context", review_id: str) -> Any:
+    auth.require(ctx.user, "integrante")
+    rev = _revisao(ctx, review_id)
+    body = ctx.body or {}
+    ref_id, alvo = to_int(body.get("ref_id")), to_int(body.get("unir_a"))
+    if not ref_id:
+        raise ApiError(400, "informe a referência")
+    try:
+        resultado = (revisao.unir(ctx.db, ref_id, alvo) if alvo
+                     else revisao.separar(ctx.db, ref_id))
+    except ValueError as exc:
+        raise ApiError(400, str(exc)) from exc
+    return {**resultado, "prisma": revisao.prisma(ctx.db, rev["id"])}
+
+
 def route_review_terms(ctx: "Context", review_id: str) -> Any:
     auth.require(ctx.user, "integrante")
     rev = _revisao(ctx, review_id)
@@ -961,6 +983,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/avancar/?$", route_review_advance, "coordenacao"),
     ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/concordancia/?$", route_review_agreement, "integrante"),
     ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/termos/?$", route_review_terms, "integrante"),
+    ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/duplicados/?$", route_review_duplicates, "integrante"),
+    ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/duplicados/?$", route_review_unmerge, "integrante"),
 ]
 for _name in ENTITIES:
     ROUTES.append(("GET", rf"^/api/{_name}/?$",
@@ -999,7 +1023,8 @@ class Handler(BaseHTTPRequestHandler):
 
     # -- utilidades --
     def _send(self, status: int, payload: Any, content_type: str = "application/json",
-              extra_headers: list[tuple[str, str]] | None = None) -> None:
+              extra_headers: list[tuple[str, str]] | None = None,
+              cacheavel: bool = False) -> None:
         body = (json.dumps(payload, ensure_ascii=False, default=str, indent=2).encode("utf-8")
                 if content_type == "application/json" else payload)
         if isinstance(body, str):
@@ -1011,11 +1036,13 @@ class Handler(BaseHTTPRequestHandler):
         # acesso -- nenhuma delas pode ser guardada. Sem este cabecalho o
         # navegador guarda por conta propria e devolve a versao velha: quem
         # atualiza o sistema recarrega a pagina e jura que nada mudou.
-        # O favicon e a excecao: nunca muda, e cabe guardar.
-        if content_type == "image/svg+xml":
-            self.send_header("Cache-Control", "public, max-age=86400")
-        else:
-            self.send_header("Cache-Control", "no-store, must-revalidate")
+        # O favicon e a excecao: nunca muda, e cabe guardar. A excecao e
+        # pedida pela chamada, e nao deduzida do tipo do conteudo: quando
+        # era "todo SVG e cacheavel", o fluxograma PRISMA -- que tambem e
+        # SVG e muda a cada decisao -- saia com um dia de cache, e saia
+        # com DOIS cabecalhos Cache-Control brigando entre si.
+        self.send_header("Cache-Control", "public, max-age=86400" if cacheavel
+                         else "no-store, must-revalidate")
         for nome, valor in SECURITY_HEADERS:
             self.send_header(nome, valor)
         for key, value in (extra_headers or []):
@@ -1130,13 +1157,16 @@ class Handler(BaseHTTPRequestHandler):
         if method == "GET" and path == "/api/stream":
             return self._serve_stream()
         if method == "GET" and path == "/favicon.ico":
-            return self._send(200, FAVICON, "image/svg+xml")
+            return self._send(200, FAVICON, "image/svg+xml", cacheavel=True)
         if method == "GET" and path == "/api/export/sqlite":
             return self._serve_database()
         if method == "GET" and path == "/api/export/artigos":
             return self._serve_export(query)
         if method == "GET" and path == "/api/export/planilha":
             return self._serve_planilha()
+        casa = re.match(r"^/api/revisoes/([\w-]+)/(exportar|prisma\.svg)$", path)
+        if method == "GET" and casa:
+            return self._serve_revisao(casa.group(1), casa.group(2), query)
 
         for verb, pattern, handler, minimum in ROUTES:
             match = re.match(pattern, path)
@@ -1282,6 +1312,44 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as exc:  # nunca derruba o servidor
             traceback.print_exc()
             return self._send(500, {"error": f"falha ao extrair: {exc}"})
+        finally:
+            db.close()
+        self._send(200, conteudo, mime,
+                   [("Content-Disposition", f'attachment; filename="{nome}"')])
+
+    def _serve_revisao(self, code: str, o_que: str, query: dict) -> None:
+        """Download da revisao: as referencias, ou o fluxograma.
+
+        Fora da tabela de rotas porque estas duas respondem arquivo, e nao
+        JSON -- a tabela serializa tudo o que a funcao devolve.
+        """
+        from . import prisma as desenho
+
+        db = Database(self.db_path)
+        try:
+            user, _ = self._resolve_user(db)
+            auth.require(user, "leitura")
+            linhas = db.dicts(
+                "SELECT id, code, title FROM reviews WHERE id = ? OR code = ? OR code = ?",
+                (int(code) if code.isdigit() else -1, code, revisao._slug(code)))
+            if not linhas:
+                return self._send(404, {"error": f"revisão não encontrada: {code}"})
+            rev = linhas[0]
+            if o_que == "prisma.svg":
+                svg = desenho.desenhar(revisao.prisma(db, rev["id"]), rev["title"])
+                return self._send(200, svg, "image/svg+xml", [
+                    ("Content-Disposition",
+                     f'attachment; filename="{rev["code"]}-prisma.svg"')])
+            conteudo, nome, mime = revisao.exportar(
+                db, rev["id"], (query.get("formato") or ["ris"])[0],
+                (query.get("recorte") or ["incluidos"])[0])
+        except auth.AuthError as exc:
+            return self._send(exc.status, {"error": exc.message})
+        except ValueError as exc:
+            return self._send(400, {"error": str(exc)})
+        except Exception as exc:  # nunca derruba o servidor
+            traceback.print_exc()
+            return self._send(500, {"error": f"falha ao exportar: {exc}"})
         finally:
             db.close()
         self._send(200, conteudo, mime,

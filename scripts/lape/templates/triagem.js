@@ -150,6 +150,7 @@ function desenhar() {
   desenharAbas();
   if (!ESTADO.revisao) return desenharEscolha(palco);
   if (ESTADO.aba === "conflitos") return desenharConflitos(palco);
+  if (ESTADO.aba === "duplicados") return desenharDuplicados(palco);
   if (ESTADO.aba === "prisma") return desenharPrisma(palco);
   if (ESTADO.aba === "importar") return desenharImportar(palco);
   desenharTriagem(palco);
@@ -160,8 +161,8 @@ function desenharAbas() {
   barra.innerHTML = "";
   if (!ESTADO.revisao) return;
   document.getElementById("qual").textContent = ESTADO.revisao.title;
-  [["triar", "Triar"], ["conflitos", "Conflitos"], ["prisma", "PRISMA"],
-   ["importar", "Importar"]].forEach(function (par) {
+  [["triar", "Triar"], ["conflitos", "Conflitos"], ["duplicados", "Duplicados"],
+   ["prisma", "PRISMA"], ["importar", "Importar"]].forEach(function (par) {
     barra.appendChild(el("button", {
       text: par[1], class: ESTADO.aba === par[0] ? "on" : "",
       onclick: function () { ESTADO.aba = par[0]; desenhar(); },
@@ -339,6 +340,96 @@ async function arbitrar(refId, decisao) {
   } catch (erro) { aviso(erro.message); }
 }
 
+/* -------------------------------------------------------------- duplicados */
+/* União automática erra dos dois lados: juntar dois estudos diferentes
+   esconde um deles, e deixar de juntar o mesmo estudo faz a equipe ler o
+   mesmo resumo duas vezes e infla o PRISMA. Os dois erros são invisíveis
+   se ninguém puder olhar — por isso a união fica exposta, com a evidência
+   do que casou, e dá para desfazer. */
+async function desenharDuplicados(palco) {
+  const alvo = el("div", {});
+  palco.appendChild(alvo);
+  let dados;
+  try {
+    dados = await api("/api/revisoes/" + ESTADO.revisao.code + "/duplicados");
+  } catch (erro) { alvo.appendChild(el("p", { class: "note erro", text: erro.message })); return; }
+
+  alvo.appendChild(el("p", { class: "hint", text:
+    "O que o sistema juntou, e por quê. Se juntou errado, separe: o registro "
+    + "volta a valer por si e entra na fila de triagem." }));
+
+  if (!dados.unidos.length) {
+    alvo.appendChild(el("div", { class: "note info", style: "margin-top:12px",
+      text: "Nenhum registro repetido entre as buscas até agora." }));
+  }
+  dados.unidos.forEach(function (g) {
+    alvo.appendChild(el("div", { class: "conflito" }, [
+      el("h3", { text: g.ficou.title }),
+      el("div", { class: "hint", text: [g.ficou.journal, g.ficou.year, g.ficou.origem]
+        .filter(Boolean).join(" · ") + " — este ficou" }),
+      el("div", { class: "votos" }, g.repetidos.map(function (r) {
+        return el("div", { class: "voto" }, [
+          el("b", { text: r.origem || "sem base" }),
+          el("div", { text: cortar(r.title, 70) }),
+          el("div", { class: "hint", text: "casou por " + r.casou_por }),
+          el("button", { class: "ghost", text: "Separar",
+            onclick: function () { separar(r.id); } }),
+        ]);
+      })),
+    ]));
+  });
+
+  if (dados.suspeitas.length) {
+    alvo.appendChild(el("h3", { style: "margin:26px 0 6px", text: "Parecidos, mas não unidos" }));
+    alvo.appendChild(el("p", { class: "hint", text:
+      "A união exige título idêntico; a realidade traz subtítulo cortado, erro "
+      + "de digitação e o mesmo estudo com o ano do online e o do impresso. "
+      + "Nada aqui foi unido sozinho — quem decide é quem está lendo." }));
+    dados.suspeitas.forEach(function (s) {
+      alvo.appendChild(el("div", { class: "conflito" }, [
+        el("div", { class: "hint", text: "semelhança " + Math.round(s.semelhanca * 100) + "%" }),
+        el("div", { class: "votos" }, [s.a, s.b].map(function (r) {
+          return el("div", { class: "voto" }, [
+            el("b", { text: r.origem || "sem base" }),
+            el("div", { text: cortar(r.title, 80) }),
+            el("div", { class: "hint", text: [r.journal, r.year, r.doi]
+              .filter(Boolean).join(" · ") }),
+          ]);
+        })),
+        el("div", { class: "decidir" }, [
+          el("button", { text: "São o mesmo — unir",
+            onclick: function () { unir(s.b.id, s.a.id); } }),
+          el("button", { class: "ghost", text: "São diferentes — deixar como está",
+            onclick: function (ev) { ev.target.closest(".conflito").remove(); } }),
+        ]),
+      ]));
+    });
+  }
+}
+
+function cortar(texto, n) {
+  const t = String(texto || "");
+  return t.length > n ? t.slice(0, n - 1) + "…" : t;
+}
+
+async function separar(refId) {
+  try {
+    await api("/api/revisoes/" + ESTADO.revisao.code + "/duplicados", "POST",
+              { ref_id: refId });
+    aviso("Separado — voltou para a fila");
+    desenhar();
+  } catch (erro) { aviso(erro.message); }
+}
+
+async function unir(refId, alvoId) {
+  try {
+    await api("/api/revisoes/" + ESTADO.revisao.code + "/duplicados", "POST",
+              { ref_id: refId, unir_a: alvoId });
+    aviso("Unidos");
+    desenhar();
+  } catch (erro) { aviso(erro.message); }
+}
+
 /* -------------------------------------------------------------- PRISMA */
 async function desenharPrisma(palco) {
   const alvo = el("div", {});
@@ -365,6 +456,58 @@ async function desenharPrisma(palco) {
     alvo.appendChild(el("p", { class: "note info", style: "margin-top:14px",
       text: p.pendentes + " referência(s) ainda sem decisão da equipe." }));
   }
+
+  /* O fluxograma que vai no artigo, desenhado destes mesmos números. Quase
+     todo mundo o faz à mão num editor de imagem, copiando de uma planilha
+     — e é daí que vem o clássico "o fluxograma não fecha com a tabela". */
+  const base = "/api/revisoes/" + ESTADO.revisao.code;
+  alvo.appendChild(el("div", { class: "solto", style: "margin-top:16px" }, [
+    el("h3", { text: "Fluxograma PRISMA 2020" }),
+    el("div", { class: "hint", text:
+      "Desenhado agora, destes números. SVG entra no Word e no LaTeX sem "
+      + "serrilhar, e continua sendo texto — dá para corrigir uma palavra "
+      + "sem redesenhar nada." }),
+    el("div", { class: "moldura", id: "molduraPrisma" }),
+    el("div", { class: "extrair", style: "margin-top:12px" }, [
+      el("a", { class: "btn-extrair destaque", href: base + "/prisma.svg",
+        download: "", rel: "noopener" }, [
+        Icons.get("baixar", 15), el("span", { text: "Baixar o fluxograma (SVG)" })]),
+    ]),
+  ]));
+  fetch(base + "/prisma.svg").then(function (r) { return r.text(); })
+    .then(function (svg) {
+      const moldura = document.getElementById("molduraPrisma");
+      if (moldura) moldura.innerHTML = svg;
+    }).catch(function () { /* o botão de baixar continua valendo */ });
+
+  alvo.appendChild(el("div", { class: "solto" }, [
+    el("h3", { text: "Levar as referências embora" }),
+    el("div", { class: "hint", text:
+      "Um sistema de triagem do qual não se sai é uma jaula. O arquivo leva "
+      + "junto o que a equipe decidiu e por quê." }),
+    (function () {
+      const recorte = el("select", {}, [
+        ["incluidos", "Incluídos na síntese"],
+        ["texto_completo", "Que chegaram ao texto completo"],
+        ["excluidos", "Excluídos, com motivo"],
+        ["pendentes", "Ainda sem decisão"],
+        ["duplicados", "Removidos por repetição"],
+        ["todos", "Tudo"],
+      ].map(function (par) {
+        return el("option", { value: par[0], text: par[1] }); }));
+      const linha = el("div", { class: "extrair", style: "margin-top:12px" });
+      [["ris", "RIS (.ris)", "etiqueta"], ["bibtex", "BibTeX (.bib)", "livro"],
+       ["csv", "Planilha (CSV)", "dados"]].forEach(function (f) {
+        linha.appendChild(el("a", { class: "btn-extrair", href: "#", download: "",
+          onclick: function (ev) {
+            ev.preventDefault();
+            location.href = base + "/exportar?formato=" + f[0] + "&recorte=" + recorte.value;
+          } }, [Icons.get(f[2], 15), el("span", { text: f[1] })]));
+      });
+      return el("div", {}, [
+        el("div", { style: "max-width:340px" }, recorte), linha]);
+    })(),
+  ]));
   if ((p.motivos || []).length) {
     alvo.appendChild(secao("Excluídos, com motivo", p.motivos, ["motivo", "n"],
       ["Motivo", "Quantos"]));
