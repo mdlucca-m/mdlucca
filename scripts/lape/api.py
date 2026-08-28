@@ -38,9 +38,9 @@ from pathlib import Path
 from typing import Any, Callable
 
 from . import (analise, auth, config, export, extracao, ingest_autor, metrics,
-               report, revisao, variaveis, versao)
+               ponto, report, revisao, variaveis, versao)
 from .db import Database
-from .util import to_int
+from .util import clean_text, to_int
 
 TOKEN = os.environ.get("LAPE_API_TOKEN", "")
 PUBLIC_DASHBOARD = os.environ.get("LAPE_PUBLIC_DASHBOARD", "") == "1"
@@ -1031,6 +1031,82 @@ def _artigos_do_panorama(db: Database) -> list[dict[str, Any]]:
     return artigos
 
 
+# ----------------------------------------------------------------------
+# Ponto: entrada, saida, e o que esta acontecendo agora
+# ----------------------------------------------------------------------
+def _eu(ctx: "Context") -> int:
+    """O id de quem esta pedindo. Ninguem bate ponto por outra pessoa."""
+    user = auth.require(ctx.user, "integrante")
+    return int(user["id"])
+
+
+def route_ponto(ctx: "Context") -> Any:
+    """Meu ponto: onde estou, quanto fiz, e o que o laboratorio produziu."""
+    eu = _eu(ctx)
+    quem = to_int((ctx.query.get("de") or [None])[0])
+    if quem and quem != eu:
+        # Ver o ponto de outra pessoa e coisa de coordenacao. Sem isto,
+        # qualquer integrante leria a rotina de todo mundo.
+        auth.require(ctx.user, "coordenacao")
+    alvo = quem or eu
+    dias = to_int((ctx.query.get("dias") or ["30"])[0]) or 30
+    return {
+        "de": alvo,
+        "sou_eu": alvo == eu,
+        "resumo": ponto.resumo(ctx.db, alvo),
+        "serie": ponto.serie(ctx.db, alvo, dias=dias),
+        "historico": ponto.historico(ctx.db, alvo),
+        "producao": ponto.producao_no_periodo(ctx.db, alvo, dias=dias),
+        "agora": ponto.agora(ctx.db),
+    }
+
+
+def route_ponto_entrar(ctx: "Context") -> Any:
+    corpo = ctx.body or {}
+    resultado = ponto.entrar(ctx.db, _eu(ctx), corpo.get("atividade"),
+                             to_int(corpo.get("project_id")),
+                             to_int(corpo.get("article_id")))
+    _avisar_ponto(ctx, "ponto.entrada", corpo.get("atividade"))
+    return resultado
+
+
+def route_ponto_sair(ctx: "Context") -> Any:
+    resultado = ponto.sair(ctx.db, _eu(ctx), (ctx.body or {}).get("observacao"))
+    if resultado.get("fechou"):
+        _avisar_ponto(ctx, "ponto.saida", f"{resultado['horas']} h")
+    return resultado
+
+
+def route_ponto_anotar(ctx: "Context") -> Any:
+    atividade = (ctx.body or {}).get("atividade")
+    resultado = ponto.anotar(ctx.db, _eu(ctx), atividade)
+    if resultado.get("anotou"):
+        _avisar_ponto(ctx, "ponto.atividade", atividade)
+    return resultado
+
+
+def _avisar_ponto(ctx: "Context", evento: str, detalhe: Any) -> None:
+    """O quadro do que esta acontecendo se redesenha sozinho nas outras telas."""
+    from . import hooks
+
+    hooks.emit(ctx.db, evento, entity="ponto",
+               detail=clean_text(detalhe), actor=(ctx.user or {}).get("full_name"))
+
+
+def route_ponto_equipe(ctx: "Context") -> Any:
+    """A visao da coordenacao: horas por pessoa, e a producao ao lado."""
+    auth.require(ctx.user, "coordenacao")
+    dias = to_int((ctx.query.get("dias") or ["30"])[0]) or 30
+    return {
+        "dias": dias,
+        "pessoas": ponto.por_pessoa(ctx.db, dias=dias),
+        "agora": ponto.agora(ctx.db),
+        "serie": ponto.serie(ctx.db, None, dias=dias),
+        "resumo": ponto.resumo(ctx.db, None),
+        "producao": ponto.producao_no_periodo(ctx.db, None, dias=dias),
+    }
+
+
 def route_producao(ctx: "Context") -> Any:
     """Quem esta na lista para trazer das bases, e o que ja veio de la."""
     auth.require(ctx.user, "leitura")
@@ -1158,6 +1234,11 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/agents/curator/?$", route_curator, "coordenacao"),
     ("GET", r"^/api/audit/?$", route_audit, "coordenacao"),
     ("GET", r"^/api/versao/?$", route_versao, "leitura"),
+    ("GET", r"^/api/ponto/?$", route_ponto, "integrante"),
+    ("POST", r"^/api/ponto/entrar/?$", route_ponto_entrar, "integrante"),
+    ("POST", r"^/api/ponto/sair/?$", route_ponto_sair, "integrante"),
+    ("POST", r"^/api/ponto/anotar/?$", route_ponto_anotar, "integrante"),
+    ("GET", r"^/api/ponto/equipe/?$", route_ponto_equipe, "coordenacao"),
     ("GET", r"^/api/producao/?$", route_producao, "leitura"),
     ("POST", r"^/api/producao/importar/?$", route_producao_importar, "coordenacao"),
     ("GET", r"^/api/panorama/?$", route_panorama, "leitura"),

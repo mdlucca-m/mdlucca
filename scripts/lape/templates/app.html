@@ -51,6 +51,42 @@ p.view{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
   font-variant-numeric:tabular-nums}
 .actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:6px}
 .sec{margin-bottom:26px}
+
+/* ---- ponto: o estado tem de ser lido de longe ---- */
+.card.marcar{display:flex;flex-wrap:wrap;align-items:center;gap:16px;
+  justify-content:space-between;margin-bottom:22px}
+.card.marcar.dentro{border-color:color-mix(in srgb,var(--good) 52%,transparent);
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--good) 22%,transparent)}
+.card.marcar .estado{display:flex;align-items:center;gap:12px}
+.card.marcar .estado b{font-size:15.5px}
+.card.marcar .estado small{display:block;color:var(--ink-2);margin-top:2px}
+.acao-ponto{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.acao-ponto input{min-width:min(300px,60vw)}
+/* verde a pulsar = dentro. O ponto pisca, mas o rótulo ao lado é que
+   informa: quem não distingue a cor lê "Dentro desde 14:03" do mesmo jeito. */
+.pulso-vivo{width:11px;height:11px;border-radius:50%;background:var(--good);flex:none;
+  box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 60%,transparent);
+  animation:bater 2.2s ease-out infinite}
+.parado{width:11px;height:11px;border-radius:50%;flex:none;
+  background:var(--ink-muted);opacity:.5}
+@keyframes bater{
+  0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 55%,transparent)}
+  70%{box-shadow:0 0 0 9px transparent}
+  100%{box-shadow:0 0 0 0 transparent}
+}
+@media (prefers-reduced-motion: reduce){ .pulso-vivo{animation:none} }
+.agora{display:flex;flex-direction:column;gap:9px}
+.quem-agora{display:flex;align-items:center;gap:10px;padding:8px 11px;
+  border-radius:var(--radius-sm);background:var(--surface-raised);
+  border:1px solid var(--border)}
+.quem-agora.eu{border-color:var(--accent);background:var(--accent-wash)}
+.quem-agora b{font-size:13.5px}
+.quem-agora small{display:block;color:var(--ink-2);font-size:12px}
+.hint.aviso{color:var(--warning)}
+/* Sair não é erro: o botão se distingue pela borda, não pela cor de alerta.
+   Vermelho aqui ensinaria a associar "fim do expediente" a problema. */
+button.sair-ponto{border-color:var(--ink-muted);font-weight:700}
+button.sair-ponto:hover{border-color:var(--ink-2);background:var(--surface-hover)}
 .sec h3{font-size:14.5px;margin-bottom:10px}
 .rowbar{display:flex;justify-content:space-between;align-items:center;gap:12px;
   flex-wrap:wrap;margin-bottom:10px}
@@ -84,7 +120,11 @@ p.view{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
 __ICONS_JS__
 </script>
 <script>
+__CHARTS_JS__
+</script>
+<script>
 "use strict";
+const C = Charts;
 
 /* ---------- infraestrutura ---------- */
 const VIEW = document.getElementById("view");
@@ -995,8 +1035,184 @@ async function preencherLista(destino){
 
 /* os mesmos ícones do painel: quem cadastra aqui reconhece a aba lá */
 const ICONE = {
+  ponto: "relogio",
   perfil: "pessoas", artigos: "producao", submissoes: "submissao", projetos: "projeto",
   linhas: "linhas", eventos: "calendario", senha: "qualidade", admin: "dados",
+};
+
+/* ==================================================================== */
+/* Meu ponto — entrada, saída, e o que estou fazendo                    */
+/*                                                                      */
+/* Hora presente NÃO é produtividade, e este painel não finge que é: as */
+/* horas ficam de um lado, o que saiu de trabalho do outro, e a         */
+/* diferença entre as duas é justamente o que há para conversar.        */
+/* ==================================================================== */
+function horasTexto(h){
+  if (h === null || h === undefined) return "—";
+  if (h < 1 / 60) return "poucos segundos";
+  if (h < 1) return Math.round(h * 60) + " min";
+  const inteiras = Math.floor(h);
+  const min = Math.round((h - inteiras) * 60);
+  return inteiras + "h" + (min ? String(min).padStart(2, "0") : "");
+}
+
+function variacaoTexto(v){
+  if (v === null || v === undefined) return "sem base para comparar";
+  const seta = v > 0 ? "▲" : v < 0 ? "▼" : "=";
+  return seta + " " + Math.abs(v).toFixed(0) + "% ante o período anterior";
+}
+
+function quadroDeAgora(lista, eu){
+  const caixa = h("div", {class: "card"}, [
+    h("h3", {}, [Icons.get("pessoas", 16),
+      h("span", {text: "No laboratório agora (" + lista.length + ")"})]),
+  ]);
+  if (!lista.length){
+    caixa.appendChild(h("div", {class: "empty",
+      text: "Ninguém com entrada em aberto."}));
+    return caixa;
+  }
+  const corpo = h("div", {class: "agora"});
+  lista.forEach(function (x){
+    corpo.appendChild(h("div", {class: "quem-agora" + (x.member_id === eu ? " eu" : "")}, [
+      h("span", {class: "pulso-vivo"}),
+      h("div", {}, [
+        h("b", {text: x.quem}),
+        h("small", {text: (x.atividade || "sem anotar o que está fazendo")
+          + " · há " + horasTexto(x.ha_horas)}),
+      ]),
+    ]));
+  });
+  caixa.appendChild(corpo);
+  return caixa;
+}
+
+VIEWS.ponto = {
+  label: "Meu ponto", group: "Meu dia",
+  async render(){
+    const d = await api("/api/ponto");
+    const r = d.resumo;
+    VIEW.innerHTML = "";
+    VIEW.appendChild(tituloDaTela("ponto", "Meu ponto"));
+    VIEW.appendChild(h("p", {class: "view", text:
+      "Marque a entrada quando começar e a saída quando parar. Hora registrada não "
+      + "é produção — por isso o que o laboratório publicou aparece ao lado, e não "
+      + "misturado."}));
+
+    /* ---- o botão, e o estado em que ele está ---- */
+    const dentro = !!r.aberto;
+    const painel = h("div", {class: "card marcar" + (dentro ? " dentro" : "")});
+    painel.appendChild(h("div", {class: "estado"}, [
+      h("span", {class: dentro ? "pulso-vivo" : "parado"}),
+      h("div", {}, [
+        h("b", {text: dentro
+          ? "Dentro desde " + String(r.aberto.entrada).slice(11, 16)
+            + " · há " + horasTexto(r.aberto.ha_horas)
+          : "Fora"}),
+        h("small", {text: dentro
+          ? (r.aberto.atividade || "sem anotar o que você está fazendo")
+          : "Nenhuma entrada em aberto."}),
+      ]),
+    ]));
+
+    const oque = h("input", {type: "text", placeholder: "O que você está fazendo?",
+      value: dentro ? (r.aberto.atividade || "") : ""});
+    const botao = h("button", {class: dentro ? "sair-ponto" : "primary"});
+    botao.appendChild(Icons.get(dentro ? "pausa" : "tocar", 16));
+    botao.appendChild(h("span", {text: dentro ? "Marcar saída" : "Marcar entrada"}));
+    botao.onclick = async function (){
+      botao.disabled = true;
+      try {
+        if (dentro){
+          const saiu = await api("/api/ponto/sair", "POST", {});
+          toast(saiu.fechou ? "Saída marcada — " + horasTexto(saiu.horas) + " nesta sessão."
+                            : saiu.porque);
+        } else {
+          await api("/api/ponto/entrar", "POST", {atividade: oque.value});
+          toast("Entrada marcada. Bom trabalho.");
+        }
+        await show("ponto");
+      } catch (e){ toast(e.message, "erro"); botao.disabled = false; }
+    };
+    const linha = h("div", {class: "acao-ponto"}, [oque, botao]);
+    if (dentro){
+      const anotar = h("button", {class: "ghost"});
+      anotar.appendChild(Icons.get("etiqueta", 15));
+      anotar.appendChild(h("span", {text: "Anotar"}));
+      anotar.onclick = async function (){
+        await api("/api/ponto/anotar", "POST", {atividade: oque.value});
+        toast("Anotado.");
+        await show("ponto");
+      };
+      linha.insertBefore(anotar, botao);
+    }
+    painel.appendChild(linha);
+    VIEW.appendChild(painel);
+
+    /* ---- três velocímetros: hoje, semana, mês ---- */
+    /* A escala de cada um é a meta do período, não o máximo histórico: o
+       ponteiro tem de dizer "quanto do dia" e não "quanto do recorde". */
+    const metas = {dia: 8, semana: 40, mes: 160};
+    VIEW.appendChild(h("div", {class: "grid g3 sec"},
+      [["dia", "Hoje"], ["semana", "Esta semana"], ["mes", "Este mês"]].map(function (par){
+        const bloco = r[par[0]];
+        const cartao = h("div", {class: "card"}, [
+          h("h3", {}, [Icons.get("relogio", 16), h("span", {text: par[1]})]),
+        ]);
+        cartao.appendChild(C.gauge({
+          value: bloco.horas, max: metas[par[0]],
+          display: horasTexto(bloco.horas), unit: "de " + metas[par[0]] + "h",
+        }));
+        cartao.appendChild(h("div", {class: "hint", text: variacaoTexto(bloco.variacao)}));
+        if (bloco.esquecidas)
+          cartao.appendChild(h("div", {class: "hint aviso", text:
+            bloco.esquecidas + " entrada(s) sem saída, fechadas pelo sistema — "
+            + "não entraram na conta."}));
+        return cartao;
+      })));
+
+    /* ---- a curva dos dias ---- */
+    VIEW.appendChild(h("div", {class: "card sec"}, [
+      h("h3", {}, [Icons.get("linhas", 16), h("span", {text: "Últimos 30 dias"})]),
+      C.lines({
+        labels: d.serie.map(function (x){ return x.dia.slice(5); }),
+        series: [{name: "Horas registradas",
+                  values: d.serie.map(function (x){ return x.horas; })}],
+        height: 220, unit: "h",
+      }),
+    ]));
+
+    /* ---- o que saiu de trabalho, ao lado das horas ---- */
+    const prod = d.producao;
+    VIEW.appendChild(h("div", {class: "grid g4 sec"}, [
+      kpi("Publicados (30 d)", prod.publicados), kpi("Aceitos", prod.aceitos),
+      kpi("Submetidos", prod.submetidos), kpi("Iniciados", prod.iniciados),
+    ]));
+
+    VIEW.appendChild(h("div", {class: "sec"}, quadroDeAgora(d.agora, ME.id)));
+
+    /* ---- as sessões, para conferir e corrigir ---- */
+    const tabela = h("table", {});
+    tabela.appendChild(h("thead", {}, h("tr", {}, ["Dia", "Entrada", "Saída", "Duração",
+      "O que fez"].map(function (t){ return h("th", {text: t}); }))));
+    const tbody = h("tbody");
+    d.historico.forEach(function (x){
+      tbody.appendChild(h("tr", {}, [
+        h("td", {text: String(x.entrada).slice(0, 10)}),
+        h("td", {text: String(x.entrada).slice(11, 16)}),
+        h("td", {text: x.saida ? String(x.saida).slice(11, 16) : "em aberto"}),
+        h("td", {text: x.fechado_sozinho ? "não medida" : horasTexto(x.horas)}),
+        h("td", {text: x.atividade || "—"}),
+      ]));
+    });
+    tabela.appendChild(tbody);
+    VIEW.appendChild(h("div", {class: "card sec"}, [
+      h("h3", {}, [Icons.get("dados", 16), h("span", {text: "Minhas sessões"})]),
+      h("div", {class: "tw"}, tabela),
+      h("p", {class: "hint", text: "\"Não medida\" é entrada sem saída que o sistema "
+        + "fechou depois de 12 horas: houve trabalho, mas não dá para dizer quanto."}),
+    ]));
+  },
 };
 
 /* Cabeçalho da tela, com o ícone da seção — o mesmo par do painel. */
@@ -1008,7 +1224,8 @@ function tituloDaTela(id, texto){
 }
 
 /* ---------- navegação ---------- */
-const ORDER = ["perfil", "artigos", "submissoes", "projetos", "linhas", "eventos", "senha", "admin"];
+const ORDER = ["ponto", "perfil", "artigos", "submissoes", "projetos", "linhas",
+               "eventos", "senha", "admin"];
 
 function buildMenu(){
   MENU.innerHTML = "";

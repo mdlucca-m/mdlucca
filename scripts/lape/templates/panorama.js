@@ -137,7 +137,16 @@ const ABAS = [
   { id: "sintese", rotulo: "Síntese", icone: "aceite", grupo: "Leitura" },
   { id: "lacunas", rotulo: "Lacunas e insights", icone: "explorar", grupo: "Leitura" },
   { id: "extracao", rotulo: "Extração", icone: "dados", grupo: "Leitura" },
+  { id: "equipe", rotulo: "Equipe e ponto", icone: "relogio", grupo: "Equipe" },
 ];
+
+/* A aba do ponto só aparece para quem pode abri-la. Aba que responde 403
+   é pior que aba nenhuma: promete e nega. */
+function abasVisiveis() {
+  const papel = ((D.usuario || {}).papel) || "leitura";
+  const manda = papel === "coordenacao" || papel === "admin";
+  return ABAS.filter(function (a) { return a.id !== "equipe" || manda; });
+}
 
 function montarNav() {
   const nav = document.getElementById("nav");
@@ -150,7 +159,7 @@ function montarNav() {
     ]),
   ]));
   let grupoAtual = null;
-  ABAS.forEach(function (aba) {
+  abasVisiveis().forEach(function (aba) {
     if (aba.grupo !== grupoAtual) {
       grupoAtual = aba.grupo;
       if (grupoAtual) nav.appendChild(el("div", { class: "grupo", text: grupoAtual }));
@@ -1182,6 +1191,127 @@ function tabelaDeArtigos(lista) {
 }
 
 /* ==================================================================== */
+/* Equipe e ponto — a leitura da coordenação                            */
+/*                                                                      */
+/* Hora registrada não é produtividade, e este painel não finge que é:  */
+/* as horas de um lado, o que saiu de trabalho do outro. Um ranking de  */
+/* horas sozinho ensinaria a ficar sentado, que não é o que se quer.    */
+/* ==================================================================== */
+let EQUIPE = null;
+
+function horasCurtas(h) {
+  if (h === null || h === undefined) return "—";
+  if (h < 1) return Math.round(h * 60) + " min";
+  const inteiras = Math.floor(h), min = Math.round((h - inteiras) * 60);
+  return inteiras + "h" + (min ? String(min).padStart(2, "0") : "");
+}
+
+function verEquipe(palco) {
+  palco.appendChild(cabeca("relogio", "Equipe e ponto",
+    "Quem está no laboratório agora, e quantas horas cada pessoa registrou. "
+    + "Hora registrada não é produção — o que saiu de trabalho está ao lado, "
+    + "de propósito separado."));
+
+  if (!EQUIPE) {
+    palco.appendChild(el("p", { class: "hint", text: "Carregando o ponto da equipe…" }));
+    api("/api/ponto/equipe").then(function (dados) {
+      EQUIPE = dados;
+      if (ST.aba === "equipe") desenhar();
+    }).catch(function (erro) {
+      EQUIPE = { erro: erro.message, pessoas: [], agora: [], serie: [] };
+      if (ST.aba === "equipe") desenhar();
+    });
+    return;
+  }
+  if (EQUIPE.erro) {
+    palco.appendChild(nota("<b>Não deu para ler o ponto.</b> " + EQUIPE.erro
+      + " — esta aba é da coordenação."));
+    return;
+  }
+
+  const r = EQUIPE.resumo || {};
+  palco.appendChild(el("div", { class: "grade g4" }, [
+    indicador("No laboratório agora", (EQUIPE.agora || []).length,
+      "com entrada em aberto", "pessoas"),
+    indicador("Horas hoje", horasCurtas((r.dia || {}).horas), "de todo o laboratório", "relogio"),
+    indicador("Horas na semana", horasCurtas((r.semana || {}).horas),
+      variacaoCurta((r.semana || {}).variacao), "relogio"),
+    indicador("Horas no mês", horasCurtas((r.mes || {}).horas),
+      variacaoCurta((r.mes || {}).variacao), "relogio"),
+  ]));
+
+  /* ---- quem está dentro, agora ---- */
+  const vivos = EQUIPE.agora || [];
+  palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
+    "pessoas", "No laboratório agora (" + vivos.length + ")",
+    "Atualiza sozinho quando alguém marca entrada ou saída.",
+    vivos.length
+      ? el("div", { class: "agora" }, vivos.map(function (x) {
+          return el("div", { class: "quem-agora" }, [
+            el("span", { class: "pulso-vivo" }),
+            el("div", {}, [
+              el("b", { text: x.quem }),
+              el("small", { text: (x.atividade || "sem anotar o que está fazendo")
+                + " · há " + horasCurtas(x.ha_horas) }),
+            ]),
+          ]);
+        }))
+      : el("p", { class: "hint", text: "Ninguém com entrada em aberto." }))));
+
+  /* ---- horas por pessoa ---- */
+  const pessoas = EQUIPE.pessoas || [];
+  palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
+    "barras", "Horas registradas por pessoa (" + EQUIPE.dias + " dias)",
+    "A barra é tempo, não resultado. Quem aparece pouco pode estar trabalhando "
+    + "fora do laboratório — o ponto só sabe o que foi marcado.",
+    pessoas.length
+      ? C.bars({
+          /* `bars` lê `items`, não `labels`/`series` como `columns` --
+             passar a forma errada não dá erro, desenha "sem dados". */
+          items: pessoas.map(function (x) {
+            return { label: x.quem, value: x.horas }; }),
+          /* Uma cor só: todas as barras são a MESMA medida (horas). Cor
+             diferente por barra diria que são coisas diferentes, e quatro
+             matizes num ranking viram enfeite que atrapalha a leitura. */
+          mono: true, unit: "h",
+          table: { cols: ["Pessoa", "Horas", "Dias com registro", "Média por dia",
+                          "Sem saída"],
+                   rows: pessoas.map(function (x) {
+                     return [x.quem, x.horas, x.dias_com_registro, x.media_por_dia,
+                             x.esquecidas]; }) },
+        })
+      : el("p", { class: "hint", text: "Nenhuma hora registrada no período." }))));
+
+  /* ---- a curva do laboratório ---- */
+  palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
+    "linhas", "Horas do laboratório, dia a dia",
+    "Dia sem registro entra como zero — série que pula os vazios desenha "
+    + "trabalho que não houve.",
+    C.lines({
+      labels: (EQUIPE.serie || []).map(function (x) { return x.dia.slice(5); }),
+      series: [{ name: "Horas registradas",
+                 values: (EQUIPE.serie || []).map(function (x) { return x.horas; }) }],
+      height: 240, unit: "h",
+    }))));
+
+  /* ---- e o que saiu de trabalho no mesmo período ---- */
+  const prod = EQUIPE.producao || {};
+  palco.appendChild(el("h2", { style: "margin:26px 0 10px;font-size:17px",
+    text: "O que saiu de trabalho nos mesmos " + EQUIPE.dias + " dias" }));
+  palco.appendChild(el("div", { class: "grade g4" }, [
+    indicador("Publicados", prod.publicados || 0, "no período", "producao"),
+    indicador("Aceitos", prod.aceitos || 0, "no período", "aceite"),
+    indicador("Submetidos", prod.submetidos || 0, "no período", "submissao"),
+    indicador("Iniciados", prod.iniciados || 0, "no período", "foguete"),
+  ]));
+}
+
+function variacaoCurta(v) {
+  if (v === null || v === undefined) return "sem base para comparar";
+  return (v > 0 ? "▲ " : v < 0 ? "▼ " : "= ") + Math.abs(v).toFixed(0) + "% ante o anterior";
+}
+
+/* ==================================================================== */
 function desenhar() {
   montarNav();
   const palco = document.getElementById("palco");
@@ -1192,7 +1322,8 @@ function desenhar() {
   }
   ({ visao: verVisao, laboratorio: verLaboratorio, variaveis: verVariaveis,
      curvas: verCurvas, rede: verRede, mapa: verMapa, sintese: verSintese,
-     lacunas: verLacunas, extracao: verExtracao }[ST.aba] || verVisao)(palco);
+     lacunas: verLacunas, extracao: verExtracao,
+     equipe: verEquipe }[ST.aba] || verVisao)(palco);
 }
 
 /* ==================================================================== */

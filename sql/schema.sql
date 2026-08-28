@@ -659,6 +659,32 @@ CREATE TABLE IF NOT EXISTS article_variables (
   PRIMARY KEY (article_id, variable_id)
 );
 
+-- ----------------------------------------------------------------------
+-- Ponto: entrada e saida de quem trabalha no laboratorio
+-- ----------------------------------------------------------------------
+-- Uma linha por sessao de trabalho. `saida` nula quer dizer "ainda esta
+-- dentro" -- e e dai que sai o quadro do que esta acontecendo agora.
+--
+-- `fechado_sozinho` existe porque a falha classica de todo ponto e o
+-- check-out esquecido: entra na sexta, esquece, e a segunda-feira mostra
+-- setenta e duas horas de trabalho. Sessao longa demais e fechada pelo
+-- sistema e MARCADA -- a duracao dela nao entra na conta de horas, porque
+-- nao foi medida, foi inventada.
+CREATE TABLE IF NOT EXISTS ponto (
+  id           INTEGER PRIMARY KEY,
+  member_id    INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  entrada      TEXT NOT NULL,
+  saida        TEXT,
+  atividade    TEXT,
+  project_id   INTEGER REFERENCES projects(id) ON DELETE SET NULL,
+  article_id   INTEGER REFERENCES articles(id) ON DELETE SET NULL,
+  observacao   TEXT,
+  fechado_sozinho INTEGER NOT NULL DEFAULT 0,
+  criado_em    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS ix_ponto_membro ON ponto(member_id, entrada);
+CREATE INDEX IF NOT EXISTS ix_ponto_aberto ON ponto(saida) WHERE saida IS NULL;
+
 -- De que paises saiu cada artigo. Vem da afiliacao de quem assina, que e
 -- quem carrega pais -- o artigo nao carrega. Um artigo pode ter varios:
 -- Brasil e Noruega juntos foi produzido nos dois, e conta para os dois.

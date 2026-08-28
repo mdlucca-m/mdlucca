@@ -439,7 +439,13 @@ const Charts = (function () {
       svg.appendChild(txt(s("text", { class: "tick", x: ML - 8, y: Y(t) + 3.5, "text-anchor": "end" }), fmt(t)));
     });
     svg.appendChild(s("line", { class: "axis-line", x1: ML, x2: W - MR, y1: Y(0), y2: Y(0) }));
+    /* Trinta rótulos de data em 760px saem colados uns nos outros e viram
+       uma tarja preta. Só cabe um rótulo a cada ~64px; os outros somem,
+       e o primeiro e o último ficam sempre -- são eles que dizem o
+       intervalo que a curva cobre. */
+    const cabem = Math.max(1, Math.ceil(labels.length / Math.floor(iw / 64)));
     labels.forEach(function (label, i) {
+      if (cabem > 1 && i % cabem && i !== labels.length - 1) return;
       svg.appendChild(txt(s("text", { class: "lab", x: X(i), y: H - MB + 16, "text-anchor": "middle" }), label));
     });
 
