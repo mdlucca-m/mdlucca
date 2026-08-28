@@ -1011,7 +1011,8 @@ def _artigos_do_panorama(db: Database) -> list[dict[str, Any]]:
         "SELECT id, internal_code, title, authors, lead_name, status, research_line,"
         "       research_line_code, study_type, journal, qualis, impact_factor,"
         "       year_published, started_on, first_submission_on, accepted_on,"
-        "       published_on, doi, url, wos_id, scopus_id,"
+        "       published_on, doi, url, wos_id, scopus_id, pmid, pmc,"
+        "       open_access, oa_status, oa_url,"
         "       wos_citations, scopus_citations, openalex_citations,"
         "       submission_attempts, rejections, days_start_to_publication"
         "  FROM v_articles_full ORDER BY COALESCE(year_published, 9999) DESC, title")
@@ -1582,7 +1583,9 @@ COLUNAS_EXTRACAO: tuple[tuple[str, str], ...] = (
     ("Dias início→publicação", "days_start_to_publication"),
     ("Citações WoS", "wos_citations"), ("Citações Scopus", "scopus_citations"),
     ("Citações OpenAlex", "openalex_citations"),
-    ("DOI", "doi"), ("Link", "link"), ("Scopus ID", "scopus_id"), ("WoS ID", "wos_id"),
+    ("DOI", "doi"), ("Link", "link"), ("PMID", "pmid"), ("PMC", "pmc"),
+    ("Texto completo livre", "oa_url"), ("Acesso aberto", "acesso_aberto"),
+    ("Scopus ID", "scopus_id"), ("WoS ID", "wos_id"),
 )
 
 
@@ -1595,6 +1598,11 @@ def _linhas_de_extracao(db: Database) -> list[dict[str, Any]]:
         artigo["n_variaveis"] = len(rotulos)
         doi = (artigo.get("doi") or "").replace("https://doi.org/", "").strip()
         artigo["link"] = (f"https://doi.org/{doi}" if doi else (artigo.get("url") or ""))
+        if not artigo.get("oa_url") and artigo.get("pmc"):
+            artigo["oa_url"] = (
+                f"https://www.ncbi.nlm.nih.gov/pmc/articles/{artigo['pmc']}/")
+        artigo["acesso_aberto"] = ("sim" if artigo.get("open_access")
+                                   else ("não" if artigo.get("open_access") == 0 else ""))
     return artigos
 
 

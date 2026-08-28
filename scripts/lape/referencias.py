@@ -131,7 +131,7 @@ NBIB_CAMPOS = {
     "title": ("TI",), "abstract": ("AB",), "journal": ("JT", "TA"),
     "affiliation": ("AD",),
     "volume": ("VI",), "issue": ("IP",), "pages": ("PG",),
-    "issn": ("IS",), "language": ("LA",), "pmid": ("PMID",),
+    "issn": ("IS",), "language": ("LA",), "pmid": ("PMID",), "pmc": ("PMC",),
     "year": ("DP", "DEP"), "pub_type": ("PT",),
 }
 
@@ -161,6 +161,11 @@ def ler_nbib(texto: str) -> list[dict[str, Any]]:
         registro["issn"] = re.sub(r"\s*\(.*\)\s*$", "", registro["issn"] or "") or None
         if registro.get("pmid"):
             registro["url"] = f"https://pubmed.ncbi.nlm.nih.gov/{registro['pmid']}/"
+        # PMC e o texto completo livre. Guardar so o PMID manda quem le para
+        # o resumo; o PMC manda para o artigo inteiro, de graca.
+        if registro.get("pmc"):
+            registro["oa_url"] = (
+                f"https://www.ncbi.nlm.nih.gov/pmc/articles/{registro['pmc']}/")
         if registro.get("title"):
             saida.append(registro)
     return saida

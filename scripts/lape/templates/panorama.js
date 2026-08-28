@@ -783,17 +783,42 @@ function verLacunas(palco) {
 /* ==================================================================== */
 /* 9. extração                                                          */
 /* ==================================================================== */
+/* Para onde o clique leva, na ordem de quem quer LER o artigo:
+   o texto completo livre primeiro, a página da editora depois, e as bases
+   por último. Mandar quem vai ler para o resumo atrás do paywall quando há
+   PDF livre no PMC é o tipo de detalhe que faz a pessoa desistir. */
 function destinosDoArtigo(a) {
   const links = [];
   const doi = String(a.doi || "").replace(/^https?:\/\/(dx\.)?doi\.org\//i, "").trim();
+  const pmc = String(a.pmc || "").trim();
+  if (pmc || a.oa_url) {
+    links.push({ rotulo: "Texto completo (livre)", livre: true,
+      url: a.oa_url || ("https://www.ncbi.nlm.nih.gov/pmc/articles/" + pmc + "/") });
+  }
   if (doi) links.push({ rotulo: "DOI", url: "https://doi.org/" + encodeURI(doi) });
   if (a.pmid) links.push({ rotulo: "PubMed",
     url: "https://pubmed.ncbi.nlm.nih.gov/" + encodeURIComponent(a.pmid) + "/" });
-  if (a.scopus_id) links.push({ rotulo: "Scopus",
-    url: "https://www.scopus.com/record/display.uri?origin=resultslist&eid="
-      + encodeURIComponent(a.scopus_id) });
-  if (a.wos_id) links.push({ rotulo: "Web of Science",
-    url: "https://www.webofscience.com/wos/woscc/full-record/" + encodeURIComponent(a.wos_id) });
+  if (a.scopus_id) {
+    links.push({ rotulo: "Scopus",
+      url: "https://www.scopus.com/record/display.uri?origin=resultslist&eid="
+        + encodeURIComponent(a.scopus_id) });
+  } else if (doi) {
+    /* sem o EID não há link direto: o Scopus só abre o registro pelo id
+       dele. Pelo DOI dá para procurar, e a busca vem marcada como busca. */
+    links.push({ rotulo: "Procurar no Scopus", busca: true,
+      url: "https://www.scopus.com/results/results.uri?st1="
+        + encodeURIComponent(doi) + "&sot=b&sdt=b&sl=" + (doi.length + 4)
+        + "&s=" + encodeURIComponent("DOI(" + doi + ")") });
+  }
+  if (a.wos_id) {
+    links.push({ rotulo: "Web of Science",
+      url: "https://www.webofscience.com/wos/woscc/full-record/"
+        + encodeURIComponent(a.wos_id) });
+  } else if (doi) {
+    links.push({ rotulo: "Procurar na Web of Science", busca: true,
+      url: "https://www.webofscience.com/wos/woscc/general-search?search_mode=general"
+        + "&q=" + encodeURIComponent("DO=(" + doi + ")") });
+  }
   if (a.url && !doi) links.push({ rotulo: "Link", url: a.url });
   if (!links.length && a.title) {
     links.push({ rotulo: "Procurar", busca: true,
@@ -910,14 +935,21 @@ function tabelaDeArtigos(lista) {
       if (col.k === "title") {
         return el("td", {}, [
           principal
-            ? el("a", { class: "titulo", href: principal.url, target: "_blank",
-                rel: "noopener",
-                title: principal.busca ? "Sem DOI cadastrado: procura pelo título"
+            ? el("a", { class: "titulo" + (principal.livre ? " livre-link" : ""),
+                href: principal.url, target: "_blank", rel: "noopener",
+                title: principal.busca ? "Sem identificador cadastrado: procura pelo título"
                                        : "Abrir em " + principal.rotulo },
                 [el("span", { text: a.title }),
-                 Icons.get(principal.busca ? "explorar" : "conectar", 12)])
+                 Icons.get(principal.busca ? "explorar"
+                           : principal.livre ? "baixar" : "conectar", 12)])
             : el("span", { text: a.title }),
-          el("small", { text: [a.authors, a.internal_code].filter(Boolean).join(" · ") }),
+          el("small", {}, [
+            el("span", { text: [a.authors, a.internal_code].filter(Boolean).join(" · ") }),
+            a.open_access ? el("span", { class: "livre", title:
+              "Acesso aberto" + (a.oa_status ? " (" + a.oa_status + ")" : "")
+              + " — o texto completo está disponível de graça",
+              text: "acesso aberto" }) : null,
+          ]),
           destinos.length > 1 ? el("small", {}, destinos.slice(1).map(function (d) {
             return el("a", { href: d.url, target: "_blank", rel: "noopener",
               style: "margin-right:9px;font-size:11.5px", text: d.rotulo }); })) : null,

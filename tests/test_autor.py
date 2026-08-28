@@ -182,5 +182,94 @@ class TestImportacaoDaProducao(unittest.TestCase):
         self.assertEqual(resultado["novos"], 0)
 
 
+class TestIdentificadores(unittest.TestCase):
+    """DOI, PMID, PMC e acesso aberto — o que faz o clique abrir o artigo."""
+
+    def test_o_pmid_sai_do_endereco(self):
+        self.assertEqual(
+            sources._so_numero("https://pubmed.ncbi.nlm.nih.gov/38333426"), "38333426")
+        self.assertIsNone(sources._so_numero(None))
+
+    def test_o_pmc_sai_normalizado(self):
+        # vem em três formas diferentes das três fontes
+        for bruto in ("PMC10850388", "pmc10850388",
+                      "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10850388"):
+            with self.subTest(bruto=bruto):
+                self.assertEqual(sources._pmc(bruto), "PMC10850388")
+        self.assertIsNone(sources._pmc("sem identificador"))
+
+    def test_o_openalex_entrega_os_quatro(self):
+        obra = sources._openalex_work({
+            "id": "https://openalex.org/W1", "doi": "https://doi.org/10.1/x",
+            "title": "Um artigo", "publication_year": 2024,
+            "ids": {"pmid": "https://pubmed.ncbi.nlm.nih.gov/38333426",
+                    "pmcid": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10850388"},
+            "open_access": {"is_oa": True, "oa_status": "gold",
+                            "oa_url": "https://exemplo.org/artigo.pdf"},
+            "authorships": [], "primary_location": {},
+        })
+        self.assertEqual(obra["pmid"], "38333426")
+        self.assertEqual(obra["pmc"], "PMC10850388")
+        self.assertEqual(obra["oa_status"], "gold")
+        self.assertTrue(obra["open_access"])
+        self.assertEqual(obra["oa_url"], "https://exemplo.org/artigo.pdf")
+
+    def test_artigo_fechado_nao_vira_aberto(self):
+        obra = sources._openalex_work({
+            "id": "W2", "title": "Outro", "open_access": {"is_oa": False},
+            "authorships": [], "primary_location": {}, "ids": {},
+        })
+        self.assertFalse(obra["open_access"])
+        self.assertIsNone(obra["oa_url"])
+
+    def test_o_medline_entrega_o_pmc_como_texto_livre(self):
+        texto = ("PMID- 39845808\nTI  - Um artigo qualquer.\n"
+                 "PMC - PMC11751499\nDP  - 2024\nLA  - eng\n")
+        registro = referencias.ler_nbib(texto)[0]
+        self.assertEqual(registro["pmc"], "PMC11751499")
+        self.assertIn("PMC11751499", registro["oa_url"])
+
+    def test_sem_pmc_nao_se_inventa_texto_livre(self):
+        registro = referencias.ler_nbib(
+            "PMID- 1\nTI  - Sem PMC.\nDP  - 2024\nLA  - eng\n")[0]
+        self.assertIsNone(registro.get("oa_url"))
+
+
+class TestOrdemDosDestinos(unittest.TestCase):
+    """Para onde o clique leva, na ordem de quem quer LER."""
+
+    def js(self):
+        return (ROOT / "scripts" / "lape" / "templates" / "panorama.js").read_text(
+            encoding="utf-8")
+
+    def corpo(self):
+        js = self.js()
+        return js[js.index("function destinosDoArtigo(a)"):js.index("function artigosFiltrados")]
+
+    def test_o_texto_livre_vem_primeiro(self):
+        # mandar quem vai ler para o resumo atrás do paywall quando há PDF
+        # livre no PMC é o detalhe que faz a pessoa desistir
+        corpo = self.corpo()
+        self.assertLess(corpo.index("Texto completo (livre)"), corpo.index('rotulo: "DOI"'))
+
+    def test_o_pmc_vira_endereco_do_pmc(self):
+        self.assertIn("ncbi.nlm.nih.gov/pmc/articles/", self.corpo())
+
+    def test_sem_id_da_base_a_busca_vem_marcada_como_busca(self):
+        # o Scopus só abre o registro pelo id dele; pelo DOI dá para
+        # procurar, e procurar não é abrir
+        corpo = self.corpo()
+        self.assertIn("Procurar no Scopus", corpo)
+        trecho = corpo[corpo.index("Procurar no Scopus"):]
+        self.assertIn("busca: true", trecho[:200])
+
+    def test_a_exportacao_leva_os_identificadores(self):
+        api_py = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
+        bloco = api_py[api_py.index("COLUNAS_EXTRACAO"):api_py.index("def _linhas_de_extracao")]
+        for coluna in ("PMID", "PMC", "Texto completo livre", "Acesso aberto"):
+            with self.subTest(coluna=coluna):
+                self.assertIn(coluna, bloco)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

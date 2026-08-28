@@ -14,6 +14,7 @@ Bases proprietarias (exigem chave, ver ingest_citations.py):
 """
 from __future__ import annotations
 
+import re
 import json
 import time
 import urllib.error
@@ -83,6 +84,24 @@ def _get(url: str, params: dict[str, Any] | None = None,
 # ----------------------------------------------------------------------
 # OpenAlex
 # ----------------------------------------------------------------------
+def _so_numero(valor: Any) -> str | None:
+    """`https://pubmed.ncbi.nlm.nih.gov/38333426` -> `38333426`."""
+    texto = clean_text(valor)
+    if not texto:
+        return None
+    achado = re.search(r"(\d{4,9})\s*$", texto)
+    return achado.group(1) if achado else None
+
+
+def _pmc(valor: Any) -> str | None:
+    """Devolve sempre no formato `PMC12345`, venha como vier."""
+    texto = clean_text(valor)
+    if not texto:
+        return None
+    achado = re.search(r"(PMC\d+)", texto, re.I)
+    return achado.group(1).upper() if achado else None
+
+
 def _openalex_work(work: dict) -> dict[str, Any]:
     location = (work.get("primary_location") or {}).get("source") or {}
     authors = [
@@ -102,6 +121,14 @@ def _openalex_work(work: dict) -> dict[str, Any]:
         "citations": work.get("cited_by_count"),
         "type": clean_text(work.get("type")),
         "open_access": bool((work.get("open_access") or {}).get("is_oa")),
+        # O OpenAlex ja carrega estes tres e eles nunca eram lidos. `oa_url`
+        # e o endereco do texto livre -- o que interessa a quem vai ler, e
+        # nao a pagina da editora atras do paywall.
+        "oa_status": clean_text((work.get("open_access") or {}).get("oa_status")),
+        "oa_url": clean_text((work.get("open_access") or {}).get("oa_url")
+                             or ((work.get("best_oa_location") or {}).get("pdf_url"))),
+        "pmid": _so_numero((work.get("ids") or {}).get("pmid")),
+        "pmc": _pmc((work.get("ids") or {}).get("pmcid")),
         "url": (work.get("primary_location") or {}).get("landing_page_url") or work.get("doi"),
         "institutions": sorted({
             clean_text(inst.get("display_name"))
@@ -290,11 +317,16 @@ def pubmed_summaries(pmids: list[str]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for pmid in result.get("uids", []):
         item = result.get(pmid, {})
-        doi = next((i.get("value") for i in item.get("articleids", [])
-                    if i.get("idtype") == "doi"), None)
+        ids = item.get("articleids", [])
+        doi = next((i.get("value") for i in ids if i.get("idtype") == "doi"), None)
+        pmc = _pmc(next((i.get("value") for i in ids
+                         if i.get("idtype") in ("pmc", "pmcid")), None))
         out.append({
             "source": "pubmed",
             "external_id": pmid,
+            "pmid": pmid,
+            "pmc": pmc,
+            "oa_url": (f"https://www.ncbi.nlm.nih.gov/pmc/articles/{pmc}/" if pmc else None),
             "doi": norm_doi(doi),
             "title": clean_text(item.get("title")),
             "authors": [clean_text(a.get("name")) for a in item.get("authors", []) if a.get("name")],
@@ -307,6 +339,38 @@ def pubmed_summaries(pmids: list[str]) -> list[dict[str, Any]]:
             "url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
         })
     return out
+
+
+def pubmed_por_doi(doi: str) -> dict[str, Any] | None:
+    """Acha o registro na PubMed pelo DOI -- o caminho mais confiavel."""
+    limpo = norm_doi(doi)
+    if not limpo:
+        return None
+    achados = pubmed_search(f"{limpo}[Location ID]", retmax=2)
+    if not achados:
+        achados = pubmed_search(f'"{limpo}"[All Fields]', retmax=2)
+    registros = pubmed_summaries(achados[:1])
+    return registros[0] if registros else None
+
+
+def pubmed_por_titulo(titulo: str) -> dict[str, Any] | None:
+    """Acha pelo titulo, e so aceita se o titulo bater de verdade.
+
+    Busca por titulo devolve resultado quase sempre -- inclusive quando o
+    artigo nao esta la. Sem a conferencia, o banco ganharia PMID de outro
+    trabalho, e um identificador errado e pior do que nenhum: ele parece
+    certo e ninguem confere de novo.
+    """
+    texto = clean_text(titulo)
+    if not texto or len(texto) < 15:
+        return None
+    achados = pubmed_search(f'"{texto}"[Title]', retmax=3)
+    if not achados:
+        achados = pubmed_search(f"{texto}[Title]", retmax=3)
+    for registro in pubmed_summaries(achados[:3]):
+        if _similar(texto, registro.get("title") or "", threshold=0.90):
+            return registro
+    return None
 
 
 def pubmed_medline(pmids: list[str], lote: int = 150) -> str:

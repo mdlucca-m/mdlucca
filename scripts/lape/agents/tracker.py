@@ -160,6 +160,85 @@ def enrich(db: Database, limit: int | None = None, verbose: bool = True) -> dict
     return {"pending": len(pending), "updated": updated, "errors": errors}
 
 
+def identificar(db: Database, limit: int | None = None,
+                verbose: bool = True) -> dict[str, Any]:
+    """Acha DOI, PMID, PMC e o acesso aberto de cada artigo.
+
+    A ordem das fontes nao e arbitraria:
+
+      1. **DOI**, se ja houver: e o identificador, e o OpenAlex responde por
+         ele com tudo -- PMID, PMC, situacao de acesso aberto e o endereco
+         do texto livre;
+      2. **titulo no OpenAlex**, que cobre revista brasileira e area de
+         humanas, que a PubMed nao indexa;
+      3. **titulo na PubMed**, so aceitando quando o titulo bate de fato.
+
+    Identificador errado e pior do que nenhum: ele parece certo, e ninguem
+    confere de novo. Por isso a busca por titulo exige semelhanca alta, e
+    nada aqui sobrescreve o que ja estava preenchido.
+    """
+    pendentes = db.dicts(
+        "SELECT id, title, doi, pmid, pmc, status, year_published FROM articles"
+        " WHERE doi IS NULL OR TRIM(COALESCE(doi, '')) = ''"
+        "    OR pmid IS NULL OR oa_status IS NULL"
+        " ORDER BY CASE status WHEN 'publicado' THEN 0 WHEN 'aceito' THEN 1 ELSE 2 END,"
+        "          COALESCE(year_published, 0) DESC, id"
+        + (f" LIMIT {int(limit)}" if limit else ""))
+
+    achados, sem_nada, erros = 0, 0, []
+    for artigo in pendentes:
+        encontrado: dict[str, Any] = {}
+        try:
+            if artigo["doi"]:
+                obra = sources.openalex_by_doi(artigo["doi"], mailto=MAILTO)
+                if obra:
+                    encontrado.update(obra)
+            if not encontrado.get("pmid") or not encontrado.get("doi"):
+                obra = sources.openalex_search_title(artigo["title"], mailto=MAILTO)
+                if obra:
+                    for chave, valor in obra.items():
+                        encontrado.setdefault(chave, valor)
+            if not encontrado.get("pmid"):
+                registro = (sources.pubmed_por_doi(artigo["doi"]) if artigo["doi"]
+                            else sources.pubmed_por_titulo(artigo["title"]))
+                if registro:
+                    for chave, valor in registro.items():
+                        encontrado.setdefault(chave, valor)
+        except sources.SourceError as exc:
+            erros.append(f"{(artigo['title'] or '')[:48]}: {exc}")
+            continue
+
+        campos = {
+            "doi": encontrado.get("doi"),
+            "pmid": encontrado.get("pmid"),
+            "pmc": encontrado.get("pmc"),
+            "oa_url": encontrado.get("oa_url"),
+            "oa_status": encontrado.get("oa_status"),
+            "journal": encontrado.get("journal"),
+            "issn": encontrado.get("issn"),
+            "url": encontrado.get("url"),
+        }
+        if encontrado.get("open_access") is not None:
+            campos["open_access"] = 1 if encontrado["open_access"] else 0
+        if artigo["status"] == "publicado":
+            campos["year_published"] = encontrado.get("year")
+        if any(v is not None for v in campos.values()):
+            _fill_missing(db, artigo["id"], campos)
+            achados += 1
+        else:
+            sem_nada += 1
+
+    db.conn.commit()
+    db.log_ingest(NAME, target="articles", rows_read=len(pendentes),
+                  rows_written=achados, status="parcial" if erros else "ok",
+                  message="identificadores e acesso aberto")
+    if verbose:
+        print(f"  identificadores: {len(pendentes)} sem identificação completa,"
+              f" {achados} com algo encontrado, {sem_nada} sem nada nas bases")
+    return {"pendentes": len(pendentes), "achados": achados,
+            "sem_nada": sem_nada, "erros": erros}
+
+
 def _fill_missing(db: Database, article_id: int, values: dict[str, Any]) -> None:
     """Preenche apenas os campos ainda vazios do artigo.
 

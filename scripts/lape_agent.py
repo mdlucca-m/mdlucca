@@ -10,6 +10,7 @@
     python3 scripts/lape_agent.py demo                # massa de teste + painel de demo
     python3 scripts/lape_agent.py publicar            # confere o que falta para ir ao ar
     python3 scripts/lape_agent.py autor "Fulano" --conferir   # producao pela PubMed
+    python3 scripts/lape_agent.py identificar         # DOI, PMID, PMC e acesso aberto
     python3 scripts/lape_agent.py lattes --conferir    # ve o que o Lattes traria
     python3 scripts/lape_agent.py planilha            # reescreve a planilha do laboratorio
     python3 scripts/lape_agent.py status              # resumo do banco
@@ -275,6 +276,52 @@ def cmd_publicar(args: argparse.Namespace) -> int:
     print()
     print("Passo a passo completo: README → Publicar na nuvem — custo zero")
     return 0 if pronto else 1
+
+
+def cmd_identificar(args: argparse.Namespace) -> int:
+    """Acha DOI, PMID, PMC e acesso aberto dos artigos ja cadastrados."""
+    from lape.agents import tracker
+
+    db = Database(args.db)
+    db.migrate()
+    try:
+        antes = db.dicts(
+            "SELECT COUNT(*) AS n,"
+            "       SUM(CASE WHEN doi IS NOT NULL AND TRIM(doi) <> '' THEN 1 ELSE 0 END) AS doi,"
+            "       SUM(CASE WHEN pmid IS NOT NULL THEN 1 ELSE 0 END) AS pmid,"
+            "       SUM(CASE WHEN pmc IS NOT NULL THEN 1 ELSE 0 END) AS pmc,"
+            "       SUM(CASE WHEN open_access = 1 THEN 1 ELSE 0 END) AS aberto"
+            "  FROM articles")[0]
+        print(f"Antes: {antes['n']} artigos — {antes['doi'] or 0} com DOI,"
+              f" {antes['pmid'] or 0} com PMID, {antes['pmc'] or 0} com PMC,"
+              f" {antes['aberto'] or 0} em acesso aberto")
+        if args.conferir:
+            pendentes = db.scalar(
+                "SELECT COUNT(*) FROM articles WHERE doi IS NULL"
+                "   OR TRIM(COALESCE(doi, '')) = '' OR pmid IS NULL OR oa_status IS NULL")
+            print()
+            print(f"{pendentes} artigo(s) seriam consultados nas bases. Nada foi gravado.")
+            print("Para procurar de verdade, rode o mesmo comando sem --conferir.")
+            return 0
+        print()
+        resultado = tracker.identificar(db, limit=args.limite, verbose=True)
+        depois = db.dicts(
+            "SELECT SUM(CASE WHEN doi IS NOT NULL AND TRIM(doi) <> '' THEN 1 ELSE 0 END) AS doi,"
+            "       SUM(CASE WHEN pmid IS NOT NULL THEN 1 ELSE 0 END) AS pmid,"
+            "       SUM(CASE WHEN pmc IS NOT NULL THEN 1 ELSE 0 END) AS pmc,"
+            "       SUM(CASE WHEN open_access = 1 THEN 1 ELSE 0 END) AS aberto"
+            "  FROM articles")[0]
+    finally:
+        db.close()
+    print()
+    print(f"  com DOI ........... {antes['doi'] or 0} → {depois['doi'] or 0}")
+    print(f"  com PMID .......... {antes['pmid'] or 0} → {depois['pmid'] or 0}")
+    print(f"  com PMC ........... {antes['pmc'] or 0} → {depois['pmc'] or 0}"
+          f"   (texto completo livre)")
+    print(f"  em acesso aberto .. {antes['aberto'] or 0} → {depois['aberto'] or 0}")
+    for erro in resultado["erros"][:5]:
+        print(f"  ! {erro}")
+    return 0
 
 
 def cmd_autor(args: argparse.Namespace) -> int:
@@ -606,6 +653,13 @@ def build_parser() -> argparse.ArgumentParser:
     backup_parser.add_argument("--para", type=Path, metavar="DESTINO",
                                help="onde escrever a copia restaurada")
     backup_parser.set_defaults(func=cmd_backup)
+
+    ident_parser = subparsers.add_parser(
+        "identificar", help="acha DOI, PMID, PMC e acesso aberto dos artigos")
+    ident_parser.add_argument("--limite", type=int, help="quantos artigos consultar")
+    ident_parser.add_argument("--conferir", action="store_true",
+                              help="diz quantos seriam consultados, sem procurar nada")
+    ident_parser.set_defaults(func=cmd_identificar)
 
     autor_parser = subparsers.add_parser(
         "autor", help="traz a producao de um pesquisador da PubMed")
