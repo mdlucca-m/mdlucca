@@ -490,7 +490,12 @@ def build(seed: int = 20260826, n_artigos: int = 160,
             if estagio == "publicado":
                 linha_artigo["Data de publicação"] = _iso(publicacao)
                 linha_artigo["Ano"] = publicacao.year
-                linha_artigo["DOI"] = f"10.{rng.randint(1000, 9999)}/lape.{publicacao.year}.{n + 1:04d}"
+                # 10.5555 e o prefixo que a Crossref reserva para teste: um DOI
+                # assim se declara ficticio. Antes o gerador sorteava o prefixo,
+                # e o DOI de mentira ficava indistinguivel de um de verdade --
+                # quem clicava caia na pagina de erro do doi.org e concluia,
+                # com razao, que o link do sistema estava quebrado.
+                linha_artigo["DOI"] = f"10.5555/lape.{publicacao.year}.{n + 1:04d}"
                 linha_artigo["Link"] = "https://doi.org/" + linha_artigo["DOI"]
                 linha_artigo["Acesso aberto"] = "Sim" if rng.random() < 0.55 else "Não"
                 # citações: crescem com a idade e com o peso da revista, com cauda longa
@@ -697,9 +702,9 @@ def _achados(db, massa: dict, hoje: date | None = None) -> int:
             "journal": revista,
             "year": ano,
             "citations": (4 - i) * 3,
-            "doi": f"10.1016/j.demo.{ano}.{i + 1:03d}",
+            "doi": f"10.5555/demo.{ano}.{i + 1:03d}",
             "title_key": title_key(titulo),
-            "url": f"https://doi.org/10.1016/j.demo.{ano}.{i + 1:03d}",
+            "url": f"https://doi.org/10.5555/demo.{ano}.{i + 1:03d}",
             "found_at": (hoje - timedelta(days=i)).isoformat(),
             "status": "pendente",
         }, conflict=("source", "title_key"))

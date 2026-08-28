@@ -515,15 +515,23 @@ function showResearcher(id) {
    artigo na editora; o id do Scopus vira o registro no Scopus; e assim por
    diante. Onde não há identificador nenhum, sobra a busca pelo título — que
    não é o artigo, e por isso vem rotulada como busca, não como link. */
+/* 10.5555 é o prefixo que a Crossref reserva para teste: nenhum DOI que
+   comece assim existe de verdade. É o que a massa de demonstração usa, e
+   por isso ele nunca é oferecido como "abrir o artigo" — um link que leva
+   à página de erro do doi.org parece defeito do sistema, não dado de
+   mentira. */
+function doiDeExemplo(doi) { return /^10\.5555\//.test(doi); }
+
 function linksDoArtigo(a) {
   const links = [];
   const doi = (a.doi || "").replace(/^https?:\/\/(dx\.)?doi\.org\//i, "").trim();
-  if (doi) {
+  if (doi && !doiDeExemplo(doi)) {
     links.push({ rotulo: "Abrir o artigo", icone: "livro", forte: true,
       titulo: "Página do artigo na editora, pelo DOI " + doi,
       url: "https://doi.org/" + encodeURI(doi) });
   }
-  if (a.url && a.url !== "https://doi.org/" + doi) {
+  if (a.url && a.url !== "https://doi.org/" + doi && !doiDeExemplo(
+        a.url.replace(/^https?:\/\/(dx\.)?doi\.org\//i, ""))) {
     links.push({ rotulo: doi ? "Link cadastrado" : "Abrir o artigo", icone: "conectar",
       forte: !doi, url: a.url });
   }
@@ -537,7 +545,7 @@ function linksDoArtigo(a) {
       url: "https://www.webofscience.com/wos/woscc/full-record/"
         + encodeURIComponent(a.wos_id) });
   }
-  if (doi) {
+  if (doi && !doiDeExemplo(doi)) {
     links.push({ rotulo: "OpenAlex", icone: "dados",
       url: "https://openalex.org/works/doi:" + encodeURI(doi) });
   }
@@ -552,17 +560,48 @@ function linksDoArtigo(a) {
 }
 
 /* Um ícone discreto ao lado do título: um clique e a pessoa está no artigo,
-   sem passar pela ficha. Só aparece quando existe destino de verdade. */
+   sem passar pela ficha.
+
+   Quando não há endereço certo, o ícone continua ali — só que de lupa, e
+   dizendo que é busca. A primeira versão não mostrava nada nesse caso, e
+   uma linha sem ícone nenhum não explica coisa alguma: quem procurava o
+   link concluía que ele estava quebrado. */
 function atalhoExterno(a) {
   const destino = linksDoArtigo(a)[0];
-  if (!destino || destino.busca) return null;
+  if (!destino) return null;
   const link = el("a", {
-    href: destino.url, target: "_blank", rel: "noopener", class: "atalho-externo",
-    title: destino.titulo || destino.rotulo,
+    href: destino.url, target: "_blank", rel: "noopener",
+    class: destino.busca ? "atalho-externo busca" : "atalho-externo",
+    title: destino.busca
+      ? "Sem DOI cadastrado: procura o título nas bases, em vez de abrir o artigo"
+      : (destino.titulo || destino.rotulo),
     "aria-label": destino.rotulo + ": " + cut(a.title, 60),
     onclick: function (ev) { ev.stopPropagation(); },   /* não abre a ficha junto */
-  }, Icons.get("conectar", 13));
+  }, Icons.get(destino.busca ? "explorar" : "conectar", 13));
   return link;
+}
+
+/* A coluna de título com o atalho ao lado. Existe para o atalho aparecer
+   em toda tabela de artigo, e não só numa: era o que estava acontecendo. */
+function tituloComAtalho(r, subtitulo) {
+  return el("div", {}, [
+    el("div", { class: "com-atalho" }, [el("span", { text: r.title }), atalhoExterno(r)]),
+    subtitulo ? el("small", { text: subtitulo }) : null,
+  ]);
+}
+
+/* Por que não há link — em português, e específico. "Sem DOI cadastrado"
+   não ajuda quem tem um artigo que ainda está sendo escrito: nesse caso o
+   DOI não existe em lugar nenhum, e não há o que cadastrar. */
+function porQueNaoHaLink(a) {
+  if (a.status === "publicado") {
+    return "Publicado, mas sem DOI nem identificador de base cadastrado. "
+      + "Cadastre o DOI na ficha do artigo, ou rode o rastreador para ele "
+      + "buscar pelo título — daí o link passa a abrir o artigo direto.";
+  }
+  return "O DOI só passa a existir quando a revista publica o artigo. "
+    + "Enquanto ele estiver em produção ou em avaliação, não há endereço "
+    + "para abrir — o que vai acima é uma busca pelo título.";
 }
 
 /* ------------------------------------------------------------------ *
@@ -654,18 +693,21 @@ function showArticle(article) {
   const destinos = linksDoArtigo(article);
   if (destinos.length) {
     content.push(el("h4", { text: destinos[0].busca ? "Procurar o artigo" : "Onde ler" }));
+    /* Âncora de verdade, não `window.open`: bloqueador de pop-up derruba
+       janela aberta por script, e aí o botão não faz nada -- que é como um
+       link quebrado se parece. Com <a> ainda dá para abrir em outra aba e
+       copiar o endereço. */
     content.push(el("div", { class: "drawer-actions" }, destinos.map(function (d) {
-      const botao = el("button", { type: "button", class: d.forte ? "primary" : "",
-        title: d.titulo || null,
-        onclick: function () { window.open(d.url, "_blank", "noopener"); } });
-      botao.appendChild(Icons.get(d.icone, 15));
-      botao.appendChild(el("span", { text: d.rotulo }));
-      return botao;
+      const link = el("a", { href: d.url, target: "_blank", rel: "noopener",
+        class: "botao-destino" + (d.forte ? " primary" : ""),
+        title: d.titulo || null });
+      link.appendChild(Icons.get(d.icone, 15));
+      link.appendChild(el("span", { text: d.rotulo }));
+      return link;
     })));
     if (destinos[0].busca) {
-      content.push(el("div", { class: "hint", style: "margin-top:8px", text:
-        "Este artigo não tem DOI nem identificador de base cadastrado, então não há "
-        + "endereço certo para ele — o que vai acima é uma busca pelo título." }));
+      content.push(el("div", { class: "hint", style: "margin-top:8px",
+        text: porQueNaoHaLink(article) }));
     }
   }
   openDrawer(cut(article.title, 90), content);
@@ -1488,8 +1530,7 @@ view("producao", "Em produção", "Produção",
       cols: [
         { k: "internal_code", label: "ID" },
         { k: "title", label: "Título", wide: true, render: function (r) {
-          return el("div", {}, [r.title,
-            el("small", { text: r.research_line || "sem linha de pesquisa" })]); } },
+          return tituloComAtalho(r, r.research_line || "sem linha de pesquisa"); } },
         { k: "authors", label: "Autores", render: function (r) { return cut(r.authors, 50); } },
         { k: "started_on", label: "Início", render: function (r) { return dt(r.started_on); } },
         { label: "Em aberto", num: true, sortValue: function (r) { return daysSince(r.started_on) || -1; },
@@ -1515,7 +1556,8 @@ view("submetidos", "Submetidos", "Produção",
       title: "Submetidos", file: "submetidos", sortKey: "first_submission_on", onRow: showArticle,
       cols: [
         { k: "internal_code", label: "ID" },
-        { k: "title", label: "Título", wide: true },
+        { k: "title", label: "Título", wide: true,
+          render: function (r) { return tituloComAtalho(r); } },
         { k: "authors", label: "Autores", render: function (r) { return cut(r.authors, 40); } },
         { k: "journal", label: "Revista" },
         { k: "first_submission_on", label: "Submissão",
@@ -1633,6 +1675,28 @@ view("publicacoes", "Publicações", "Produção",
           }))));
       }
     }
+    /* A lista do que já saiu. Faltava: a aba Publicações tinha os gráficos
+       e nenhuma tabela, e era justamente aqui que alguém ia procurar o
+       artigo publicado para abrir. */
+    host.appendChild(el("div", { style: "margin-top:16px" }, card(
+      "Artigos publicados", "Clique no título para abrir o artigo na editora; "
+      + "clique na linha para ver a ficha.",
+      dataTable({
+        pageSize: 15, sortKey: "published_on", file: "publicados", onRow: showArticle,
+        cols: [
+          { k: "title", label: "Título", wide: true,
+            render: function (r) { return tituloComAtalho(r, r.authors ? cut(r.authors, 60) : null); } },
+          { k: "journal", label: "Periódico" },
+          { k: "year_published", label: "Ano", num: true },
+          { k: "qualis", label: "Qualis" },
+          { label: "Citações", num: true, sortValue: bestCitations,
+            render: function (r) { return bestCitations(r) || "—"; } },
+          { k: "published_on", label: "Publicação",
+            render: function (r) { return dt(r.published_on); } },
+        ],
+        rows: published,
+        emptyMessage: "Nenhum artigo publicado neste recorte.",
+      }))));
     host.appendChild(el("div", { style: "margin-top:16px" }, cartaoDeExtracao()));
   });
 
@@ -1675,10 +1739,8 @@ view("citacoes", "Mais citados", "Produção",
             onRow: showArticle,
             cols: [
               { k: "title", label: "Título", wide: true, render: function (r) {
-                return el("div", {}, [
-                  el("div", { class: "com-atalho" }, [
-                    el("span", { text: r.title }), atalhoExterno(r)]),
-                  el("small", { text: [r.journal, r.year_published].filter(Boolean).join(" · ") })]); } },
+                return tituloComAtalho(r,
+                  [r.journal, r.year_published].filter(Boolean).join(" · ")); } },
               { k: "year_published", label: "Ano", num: true },
               { k: "wos_citations", label: "WoS", num: true },
               { k: "scopus_citations", label: "Scopus", num: true },
@@ -1889,7 +1951,8 @@ view("tempos", "Tempos do ciclo", "Métricas internas",
       title: "Artigos publicados ou aceitos", file: "tempos-artigos", sortKey: "published_on",
       onRow: showArticle,
       cols: [
-        { k: "title", label: "Artigo", wide: true },
+        { k: "title", label: "Artigo", wide: true,
+          render: function (r) { return tituloComAtalho(r); } },
         { k: "journal", label: "Revista" },
         { k: "started_on", label: "Início", render: function (r) { return dt(r.started_on); } },
         { k: "first_submission_on", label: "1ª submissão",

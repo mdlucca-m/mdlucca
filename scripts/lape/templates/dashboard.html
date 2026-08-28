@@ -268,7 +268,12 @@ header.page .meta { margin-top: 8px; }
   border: 1px solid transparent; }
 .atalho-externo:hover { color: var(--accent); border-color: var(--accent-strong);
   background: var(--accent-wash); text-decoration: none; box-shadow: var(--glow); }
-.drawer-actions button svg.icon { font-size: 15px; }
+.drawer-actions button svg.icon, .drawer-actions a svg.icon { font-size: 15px; }
+/* busca não é link para o artigo: a lupa e o tom mais apagado dizem isso
+   antes do clique */
+.atalho-externo.busca { color: var(--ink-muted); opacity: .8; }
+.atalho-externo.busca:hover { color: var(--ink-2); border-color: var(--border-strong);
+  background: var(--surface-hover); box-shadow: none; }
 
 /* tabela de extracao: tres formatos, um clique cada */
 .extrair { display: flex; flex-wrap: wrap; gap: 10px; }
