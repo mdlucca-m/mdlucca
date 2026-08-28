@@ -196,3 +196,125 @@ markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#333333"/><
 <text x="{x_fase}" y="{altura_total - 10}" font-size="10.5" fill="#6a6a6a">\
 Fluxograma PRISMA 2020 — gerado pelo LAPE a partir do banco da revisão.</text>
 </svg>'''
+
+
+# ----------------------------------------------------------------------
+# Semaforo de risco de vies
+# ----------------------------------------------------------------------
+# A figura que acompanha toda revisao com avaliacao de qualidade: estudos
+# nas linhas, dominios nas colunas, um sinal por celula.
+#
+# O sinal nao e so a cor. Cada julgamento leva o seu simbolo dentro do
+# circulo (+ - ? !), e a legenda traz os dois juntos. Uma figura em que a
+# cor e a unica informacao vira uma coluna de circulos cinzentos quando
+# impressa em preto e branco -- que e como metade das revistas ainda
+# publica -- e nao diz nada a quem nao distingue verde de vermelho.
+TONS = {
+    "good":     ("#1a8a4a", "+"),
+    "warning":  ("#e0a300", "?"),
+    "serious":  ("#e06c2a", "!"),
+    "critical": ("#c93a3a", "\u2212"),
+    "neutro":   ("#b8b8b4", ""),
+}
+CELULA = 42
+ROTULO = 250
+CABECALHO = 130
+
+
+def semaforo(dados: dict[str, Any], titulo: str = "") -> str:
+    """O semaforo inteiro, em SVG, a partir do que `extracao.semaforo` devolve."""
+    dominios = dados.get("dominios") or []
+    estudos = dados.get("estudos") or []
+    if not dominios:
+        return _vazio("Nenhum domínio de risco de viés configurado.")
+    if not estudos:
+        return _vazio("Nenhum estudo incluído ainda — o semáforo aparece quando houver.")
+
+    largura_grade = len(dominios) * CELULA
+    julgamentos = list(dados.get("julgamentos") or [])
+    largura = ROTULO + largura_grade + MARGEM * 2 + 10
+    # Quantos itens de legenda cabem por linha na largura que a grade
+    # determinou. Com um numero fixo, o ultimo item saia para fora do
+    # desenho -- e um item de legenda que nao aparece e uma cor sem
+    # significado no papel de quem le.
+    LARGURA_ITEM = 176
+    por_linha = max(1, (largura - MARGEM * 2) // LARGURA_ITEM)
+    linhas_legenda = -(-len(julgamentos) // por_linha) if julgamentos else 0
+    legenda_alt = 30 + 22 * linhas_legenda
+    altura = (CABECALHO + len(estudos) * CELULA + legenda_alt + MARGEM * 2
+              + (26 if titulo else 0))
+    x0 = MARGEM + ROTULO
+    y0 = MARGEM + (26 if titulo else 0) + CABECALHO
+
+    partes: list[str] = []
+    if titulo:
+        partes.append(f'<text x="{MARGEM}" y="{MARGEM + 14}" font-size="14" '
+                      f'font-weight="800" fill="#1a1a1a">{_escapar(titulo)}</text>')
+
+    # cabecalho: o nome do dominio na vertical, senao nao cabe
+    for i, dominio in enumerate(dominios):
+        cx = x0 + i * CELULA + CELULA / 2
+        rotulo = _encurtar(dominio["label"], 26)
+        partes.append(
+            f'<text x="{cx}" y="{y0 - 10}" font-size="11.5" fill="#3a3a3a" '
+            f'text-anchor="start" transform="rotate(-55 {cx} {y0 - 10})">'
+            f'{_escapar(rotulo)}</text>')
+
+    for j, estudo in enumerate(estudos):
+        cy = y0 + j * CELULA + CELULA / 2
+        if j % 2 == 0:
+            partes.append(
+                f'<rect x="{MARGEM}" y="{y0 + j * CELULA}" '
+                f'width="{ROTULO + largura_grade}" height="{CELULA}" fill="#f5f6f7"/>')
+        partes.append(
+            f'<text x="{MARGEM + ROTULO - 14}" y="{cy + 4}" font-size="12.5" '
+            f'text-anchor="end" fill="#1a1a1a">'
+            f'{_escapar(_encurtar(estudo["estudo"], 34))}</text>')
+        for i, celula in enumerate(estudo["celulas"]):
+            cx = x0 + i * CELULA + CELULA / 2
+            cor, simbolo = TONS.get(celula.get("tom") or "neutro", TONS["neutro"])
+            partes.append(
+                f'<circle cx="{cx}" cy="{cy}" r="13" fill="{cor}" '
+                f'stroke="#ffffff" stroke-width="2"><title>'
+                f'{_escapar(celula.get("rotulo") or "Sem julgamento")}</title></circle>')
+            if simbolo:
+                partes.append(
+                    f'<text x="{cx}" y="{cy + 5.5}" font-size="15" font-weight="800" '
+                    f'text-anchor="middle" fill="#ffffff">{simbolo}</text>')
+
+    # legenda: simbolo e palavra, nunca so a cor
+    y_legenda = y0 + len(estudos) * CELULA + 28
+    for k, julgamento in enumerate(julgamentos):
+        col, lin = k % por_linha, k // por_linha
+        lx = MARGEM + col * LARGURA_ITEM
+        ly = y_legenda + lin * 22
+        cor, simbolo = TONS.get(julgamento["tom"], TONS["neutro"])
+        partes.append(f'<circle cx="{lx + 9}" cy="{ly - 4}" r="9" fill="{cor}"/>')
+        if simbolo:
+            partes.append(
+                f'<text x="{lx + 9}" y="{ly}" font-size="11" font-weight="800" '
+                f'text-anchor="middle" fill="#ffffff">{simbolo}</text>')
+        partes.append(f'<text x="{lx + 24}" y="{ly}" font-size="11.5" fill="#3a3a3a">'
+                      f'{_escapar(julgamento["rotulo"])}</text>')
+
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{largura}" \
+height="{altura}" viewBox="0 0 {largura} {altura}" \
+font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
+<rect width="100%" height="100%" fill="#ffffff"/>
+{chr(10).join(partes)}
+<text x="{MARGEM}" y="{altura - 8}" font-size="10" fill="#6a6a6a">\
+{_escapar(dados.get("ferramenta") or "")} — gerado pelo LAPE.</text>
+</svg>'''
+
+
+def _encurtar(texto: Any, n: int) -> str:
+    t = str(texto or "")
+    return t if len(t) <= n else t[:n - 1] + "\u2026"
+
+
+def _vazio(mensagem: str) -> str:
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="520" height="90" '
+            f'viewBox="0 0 520 90" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">'
+            f'<rect width="100%" height="100%" fill="#ffffff"/>'
+            f'<text x="20" y="50" font-size="13" fill="#6a6a6a">{_escapar(mensagem)}</text>'
+            f'</svg>')

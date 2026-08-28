@@ -198,7 +198,7 @@ class TestRotacao(BancoTemporario):
         self.assertEqual(len(backup.copias(self.caminho)), 3)
 
 
-class TestConferenciaDePublicacao(BancoTemporario):
+class TestConferenciaAvisaDaCopia(BancoTemporario):
     def test_o_aviso_some_depois_da_primeira_copia(self):
         titulos = {a["titulo"] for a in preflight.conferir(self.db)}
         self.assertIn("Nenhum backup registrado", titulos)

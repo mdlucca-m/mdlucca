@@ -318,5 +318,57 @@ class TestOsDoisScriptsOferecemOMesmo(unittest.TestCase):
         self.assertIn("endereco.txt", SH.read_text(encoding="utf-8"))
 
 
+class TestOsArquivosDeTeste(unittest.TestCase):
+    """Nome de arquivo de teste é chave: repetir um apaga o outro.
+
+    Aconteceu ao escrever um teste novo de extração: já havia um
+    `test_extracao.py` (formatos de exportação), e o arquivo novo o
+    substituiu inteiro. Nada acusou — a suíte seguiu verde, com 24 testes
+    a menos.
+    """
+
+    def test_todo_teste_tem_a_sua_classe_e_nenhuma_se_repete(self):
+        import ast
+        from collections import defaultdict
+
+        onde = defaultdict(list)
+        for arquivo in sorted((ROOT / "tests").glob("test_*.py")):
+            arvore = ast.parse(arquivo.read_text(encoding="utf-8"))
+            for no in arvore.body:
+                if isinstance(no, ast.ClassDef):
+                    onde[no.name].append(arquivo.name)
+        # classes de teste com o mesmo nome em arquivos diferentes não são
+        # erro, mas tornam o relatório ambíguo -- e escondem perda como a
+        # que motivou este teste
+        repetidas = {nome: arqs for nome, arqs in onde.items() if len(arqs) > 1}
+        self.assertEqual(repetidas, {}, f"classe de teste repetida: {repetidas}")
+
+    # Dívida conhecida, e declarada aqui de propósito: enquanto o nome
+    # estiver nesta lista, o módulo não tem teste nenhum. A lista existe
+    # para que a dívida seja visível e para que um módulo NOVO não entre
+    # sem teste — não para dar a entender que está tudo coberto.
+    SEM_TESTE_AINDA = {
+        "config",             # só caminhos e constantes lidos do ambiente
+        "ingest_citations",   # falta: bate no OpenAlex/Crossref, precisa de dublê
+    }
+
+    def test_todo_modulo_novo_chega_com_teste(self):
+        modulos = {caminho.stem for caminho in (ROOT / "scripts" / "lape").glob("*.py")
+                   if caminho.stem != "__init__"}
+        texto = "\n".join(arquivo.read_text(encoding="utf-8")
+                          for arquivo in (ROOT / "tests").glob("test_*.py"))
+        sem_teste = sorted(m for m in modulos
+                           if m not in texto and m not in self.SEM_TESTE_AINDA)
+        self.assertEqual(sem_teste, [], f"módulo sem nenhum teste: {sem_teste}")
+
+    def test_a_lista_de_divida_nao_guarda_nome_que_ja_tem_teste(self):
+        # dívida quitada tem de sair da lista, senão ela vira decoração
+        texto = "\n".join(arquivo.read_text(encoding="utf-8")
+                          for arquivo in (ROOT / "tests").glob("test_*.py"))
+        for nome in self.SEM_TESTE_AINDA:
+            with self.subTest(modulo=nome):
+                self.assertNotIn(f"lape import {nome}", texto)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

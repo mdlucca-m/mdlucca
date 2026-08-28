@@ -37,7 +37,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Callable
 
-from . import auth, config, export, metrics, report, revisao
+from . import auth, config, export, extracao, metrics, report, revisao
 from .db import Database
 from .util import to_int
 
@@ -918,6 +918,73 @@ def route_review_unmerge(ctx: "Context", review_id: str) -> Any:
     return {**resultado, "prisma": revisao.prisma(ctx.db, rev["id"])}
 
 
+def route_review_form(ctx: "Context", review_id: str) -> Any:
+    """O formulario de extracao e os dominios de risco de vies."""
+    auth.require(ctx.user, "integrante")
+    rev = _revisao(ctx, review_id)
+    return {
+        "campos": extracao.campos(ctx.db, rev["id"]),
+        "dominios": extracao.dominios(ctx.db, rev["id"]),
+        "ferramenta": extracao.ferramenta_da(ctx.db, rev["id"]),
+        "ferramentas": [{"codigo": c, "nome": f["nome"],
+                         "dominios": len(f["dominios"])}
+                        for c, f in extracao.FERRAMENTAS_ROB.items()],
+        "progresso": extracao.progresso(ctx.db, rev["id"]),
+        "incluidos": ctx.db.dicts(
+            "SELECT r.id, r.title, r.authors, r.journal, r.year, r.doi, r.url,"
+            "       (SELECT COUNT(DISTINCT member_id) FROM extractions e"
+            "          WHERE e.ref_id = r.id) AS extracoes,"
+            "       (SELECT COUNT(*) FROM extraction_final x WHERE x.ref_id = r.id) AS acordados"
+            "  FROM refs r WHERE r.review_id = ? AND r.stage = 'incluido'"
+            "   AND r.duplicate_of IS NULL ORDER BY COALESCE(r.year, 0), r.title",
+            (rev["id"],)),
+    }
+
+
+def route_review_form_setup(ctx: "Context", review_id: str) -> Any:
+    user = auth.require(ctx.user, "coordenacao")
+    rev = _revisao(ctx, review_id)
+    body = ctx.body or {}
+    try:
+        resultado = extracao.preparar(ctx.db, rev["id"],
+                                      body.get("ferramenta") or "rob2")
+    except ValueError as exc:
+        raise ApiError(400, str(exc)) from exc
+    return {**resultado, "por": user.get("full_name")}
+
+
+def route_review_extract(ctx: "Context", review_id: str) -> Any:
+    """Grava a extracao de quem esta pedindo, ou devolve a dela."""
+    rev = _revisao(ctx, review_id)
+    member_id = _sou_da_equipe(ctx, rev["id"])
+    body = ctx.body or {}
+    ref_id = to_int(body.get("ref_id") if body else
+                    (ctx.query.get("ref_id") or [None])[0])
+    if not ref_id:
+        raise ApiError(400, "informe o estudo")
+    if ctx.body is None:
+        return {"minha": extracao.minha_extracao(ctx.db, ref_id, member_id),
+                "divergencias": extracao.divergencias(ctx.db, ref_id)}
+    try:
+        if body.get("acordar"):
+            auth.require(ctx.user, "coordenacao")
+            resultado = extracao.acordar(ctx.db, ref_id, member_id,
+                                         body.get("valores"), body.get("risco"))
+        else:
+            resultado = extracao.gravar(ctx.db, ref_id, member_id,
+                                        body.get("valores") or {}, body.get("risco"))
+    except ValueError as exc:
+        raise ApiError(400, str(exc)) from exc
+    return {**resultado, "divergencias": extracao.divergencias(ctx.db, ref_id)}
+
+
+def route_review_table(ctx: "Context", review_id: str) -> Any:
+    auth.require(ctx.user, "leitura")
+    rev = _revisao(ctx, review_id)
+    return {"tabela": extracao.tabela(ctx.db, rev["id"]),
+            "semaforo": extracao.semaforo(ctx.db, rev["id"])}
+
+
 def route_review_terms(ctx: "Context", review_id: str) -> Any:
     auth.require(ctx.user, "integrante")
     rev = _revisao(ctx, review_id)
@@ -985,6 +1052,11 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/termos/?$", route_review_terms, "integrante"),
     ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/duplicados/?$", route_review_duplicates, "integrante"),
     ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/duplicados/?$", route_review_unmerge, "integrante"),
+    ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/formulario/?$", route_review_form, "integrante"),
+    ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/formulario/?$", route_review_form_setup, "coordenacao"),
+    ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/extracao/?$", route_review_extract, "integrante"),
+    ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/extracao/?$", route_review_extract, "integrante"),
+    ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/caracteristicas/?$", route_review_table, "leitura"),
 ]
 for _name in ENTITIES:
     ROUTES.append(("GET", rf"^/api/{_name}/?$",
@@ -1164,7 +1236,9 @@ class Handler(BaseHTTPRequestHandler):
             return self._serve_export(query)
         if method == "GET" and path == "/api/export/planilha":
             return self._serve_planilha()
-        casa = re.match(r"^/api/revisoes/([\w-]+)/(exportar|prisma\.svg)$", path)
+        casa = re.match(
+            r"^/api/revisoes/([\w-]+)/(exportar|prisma\.svg|semaforo\.svg|caracteristicas\.csv)$",
+            path)
         if method == "GET" and casa:
             return self._serve_revisao(casa.group(1), casa.group(2), query)
 
@@ -1340,6 +1414,17 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, svg, "image/svg+xml", [
                     ("Content-Disposition",
                      f'attachment; filename="{rev["code"]}-prisma.svg"')])
+            if o_que == "semaforo.svg":
+                svg = desenho.semaforo(extracao.semaforo(db, rev["id"]),
+                                       f"Risco de viés — {rev['title']}")
+                return self._send(200, svg, "image/svg+xml", [
+                    ("Content-Disposition",
+                     f'attachment; filename="{rev["code"]}-risco-de-vies.svg"')])
+            if o_que == "caracteristicas.csv":
+                conteudo = _caracteristicas_csv(extracao.tabela(db, rev["id"]))
+                return self._send(200, conteudo, "text/csv", [
+                    ("Content-Disposition",
+                     f'attachment; filename="{rev["code"]}-caracteristicas.csv"')])
             conteudo, nome, mime = revisao.exportar(
                 db, rev["id"], (query.get("formato") or ["ris"])[0],
                 (query.get("recorte") or ["incluidos"])[0])
@@ -1382,6 +1467,35 @@ class Handler(BaseHTTPRequestHandler):
         self._send(200, alvo.read_bytes(),
                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                    [("Content-Disposition", f'attachment; filename="{alvo.name}"')])
+
+
+def _caracteristicas_csv(tabela: dict) -> str:
+    """A tabela de caracteristicas dos estudos incluidos, em planilha.
+
+    Cada linha e um estudo, cada coluna um campo do formulario. Onde o
+    valor ainda nao foi conciliado, sai marcado -- em branco pareceria
+    "nao se aplica", e nao "ainda nao conferimos".
+    """
+    import csv as _csv
+    import io as _io
+
+    saida = _io.StringIO()
+    escritor = _csv.writer(saida, delimiter=";", quoting=_csv.QUOTE_MINIMAL,
+                           lineterminator="\r\n")
+    campos = tabela.get("campos") or []
+    escritor.writerow(["Estudo", "Título", "Periódico", "Ano", "DOI"]
+                      + [c["label"] for c in campos])
+    for estudo in tabela.get("estudos") or []:
+        linha = [estudo.get("estudo"), estudo.get("title"), estudo.get("journal"),
+                 estudo.get("year"), estudo.get("doi")]
+        for campo in campos:
+            celula = (estudo.get("celulas") or {}).get(campo["code"]) or {}
+            valor = celula.get("valor") or ""
+            if valor and celula.get("origem") == "provisorio":
+                valor += "  [provisório]"
+            linha.append(valor)
+        escritor.writerow(["" if v is None else str(v) for v in linha])
+    return "\ufeff" + saida.getvalue()
 
 
 BACKUP_INTERVALO_S = int(os.environ.get("LAPE_BACKUP_CHECAGEM_S", "300"))

@@ -13,7 +13,7 @@
  * a pessoa desacelera por medo. */
 
 const ESTADO = {
-  revisao: null, etapa: "titulo_resumo", aba: "triar",
+  revisao: null, etapa: "titulo_resumo", aba: "triar", extraindo: null,
   fila: [], indice: 0, motivos: [], termos: [],
   faltam: 0, jaTriei: 0, eu: null,
   pendentes: [], ultima: null, comecou: null, feitasAgora: 0,
@@ -151,6 +151,7 @@ function desenhar() {
   if (!ESTADO.revisao) return desenharEscolha(palco);
   if (ESTADO.aba === "conflitos") return desenharConflitos(palco);
   if (ESTADO.aba === "duplicados") return desenharDuplicados(palco);
+  if (ESTADO.aba === "extracao") return desenharExtracao(palco);
   if (ESTADO.aba === "prisma") return desenharPrisma(palco);
   if (ESTADO.aba === "importar") return desenharImportar(palco);
   desenharTriagem(palco);
@@ -162,7 +163,8 @@ function desenharAbas() {
   if (!ESTADO.revisao) return;
   document.getElementById("qual").textContent = ESTADO.revisao.title;
   [["triar", "Triar"], ["conflitos", "Conflitos"], ["duplicados", "Duplicados"],
-   ["prisma", "PRISMA"], ["importar", "Importar"]].forEach(function (par) {
+   ["extracao", "Extração"], ["prisma", "PRISMA"],
+   ["importar", "Importar"]].forEach(function (par) {
     barra.appendChild(el("button", {
       text: par[1], class: ESTADO.aba === par[0] ? "on" : "",
       onclick: function () { ESTADO.aba = par[0]; desenhar(); },
@@ -428,6 +430,292 @@ async function unir(refId, alvoId) {
     aviso("Unidos");
     desenhar();
   } catch (erro) { aviso(erro.message); }
+}
+
+/* -------------------------------------------------------------- extração */
+/* Depois da triagem vem a parte que ninguém gosta: ler cada estudo e tirar
+   dele, campo a campo, o que a revisão precisa. O Rayyan acaba aqui — a
+   triagem termina e a ferramenta termina junto.
+
+   O desenho é o mesmo da triagem: cada pessoa preenche a sua, e a versão
+   final é uma terceira coisa. Sem isso, "extração em duplicata" vira uma
+   pessoa conferindo o que a outra digitou, que não é a mesma coisa. */
+async function desenharExtracao(palco) {
+  const alvo = el("div", {});
+  palco.appendChild(alvo);
+  let dados;
+  try {
+    dados = await api("/api/revisoes/" + ESTADO.revisao.code + "/formulario");
+  } catch (erro) { alvo.appendChild(el("p", { class: "note erro", text: erro.message })); return; }
+
+  if (!dados.campos.length) {
+    alvo.appendChild(el("div", { class: "solto" }, [
+      el("h3", { text: "Preparar a extração" }),
+      el("div", { class: "hint", text:
+        "Escolha o instrumento de risco de viés. O formulário de extração vem "
+        + "com os campos que quase toda revisão precisa — dá para mexer depois." }),
+      (function () {
+        const escolha = el("select", {}, dados.ferramentas.map(function (f) {
+          return el("option", { value: f.codigo,
+            text: f.nome + " (" + f.dominios + " domínios)" }); }));
+        return el("div", { style: "display:grid;gap:9px;max-width:520px" }, [
+          escolha,
+          el("button", { class: "primary", text: "Preparar", onclick: async function () {
+            try {
+              await api("/api/revisoes/" + ESTADO.revisao.code + "/formulario", "POST",
+                        { ferramenta: escolha.value });
+              desenhar();
+            } catch (erro) { aviso(erro.message); }
+          } }),
+        ]);
+      })(),
+    ]));
+    return;
+  }
+
+  const p = dados.progresso;
+  alvo.appendChild(el("div", { class: "prisma", style: "margin-bottom:16px" }, [
+    caixa("Estudos incluídos", p.incluidos, "para extrair"),
+    caixa("Com duas extrações", p.com_duas_extracoes, "prontos para conciliar"),
+    caixa("Já conciliados", p.acordados, "vão para a tabela"),
+  ]));
+
+  if (!dados.incluidos.length) {
+    alvo.appendChild(el("div", { class: "note info", text:
+      "Nenhum estudo chegou a incluído ainda. A extração começa quando a "
+      + "leitura de texto completo terminar." }));
+    return;
+  }
+
+  if (ESTADO.extraindo) {
+    return formularioDeExtracao(alvo, dados, ESTADO.extraindo);
+  }
+
+  alvo.appendChild(el("div", { class: "solto" }, [
+    el("h3", { text: "Estudos incluídos" }),
+    el("div", { class: "hint", text: "Clique para extrair. O que você escrever "
+      + "só aparece para a outra pessoa depois que ela também extrair." }),
+    el("table", { class: "simples" }, [
+      el("thead", {}, el("tr", {}, ["Estudo", "Extrações", "Conciliado"].map(
+        function (c, i) { return el("th", { text: c, style: i ? "text-align:right" : null }); }))),
+      el("tbody", {}, dados.incluidos.map(function (r) {
+        return el("tr", { style: "cursor:pointer",
+          onclick: function () { ESTADO.extraindo = r.id; desenhar(); } }, [
+          el("td", {}, [el("div", { text: cortar(r.title, 70) }),
+            el("small", { class: "hint", text: [r.journal, r.year].filter(Boolean).join(" · ") })]),
+          el("td", { class: "num", text: String(r.extracoes || 0) }),
+          el("td", { class: "num", text: r.acordados ? "sim" : "—" }),
+        ]);
+      })),
+    ]),
+  ]));
+
+  alvo.appendChild(saidasDaExtracao());
+  fetch("/api/revisoes/" + ESTADO.revisao.code + "/semaforo.svg")
+    .then(function (r) { return r.text(); })
+    .then(function (svg) {
+      const moldura = document.getElementById("molduraSemaforo");
+      if (moldura) moldura.innerHTML = svg;
+    }).catch(function () { /* o botão de baixar continua valendo */ });
+}
+
+function saidasDaExtracao() {
+  const base = "/api/revisoes/" + ESTADO.revisao.code;
+  return el("div", { class: "solto" }, [
+    el("h3", { text: "O que sai daqui" }),
+    el("div", { class: "hint", text:
+      "A tabela de características dos estudos incluídos e o semáforo de risco "
+      + "de viés — as duas figuras que a revista pede." }),
+    el("div", { class: "moldura", id: "molduraSemaforo" }),
+    el("div", { class: "extrair", style: "margin-top:12px" }, [
+      el("a", { class: "btn-extrair destaque", href: base + "/semaforo.svg",
+        download: "", rel: "noopener" },
+        [Icons.get("qualidade", 15), el("span", { text: "Semáforo de risco de viés (SVG)" })]),
+      el("a", { class: "btn-extrair", href: base + "/caracteristicas.csv",
+        download: "", rel: "noopener" },
+        [Icons.get("dados", 15), el("span", { text: "Tabela de características (CSV)" })]),
+    ]),
+  ]);
+}
+
+async function formularioDeExtracao(alvo, dados, refId) {
+  const estudo = dados.incluidos.find(function (r) { return r.id === refId; }) || {};
+  let atual;
+  try {
+    atual = await api("/api/revisoes/" + ESTADO.revisao.code + "/extracao?ref_id=" + refId);
+  } catch (erro) { alvo.appendChild(el("p", { class: "note erro", text: erro.message })); return; }
+
+  alvo.appendChild(el("button", { class: "ghost", text: "← Voltar à lista",
+    onclick: function () { ESTADO.extraindo = null; desenhar(); } }));
+  alvo.appendChild(el("h2", { style: "margin:12px 0 4px", text: estudo.title || "" }));
+  alvo.appendChild(el("div", { class: "hint", style: "margin-bottom:16px",
+    text: [estudo.authors, estudo.journal, estudo.year].filter(Boolean).join(" · ") }));
+  if (estudo.doi || estudo.url) {
+    alvo.appendChild(el("div", { class: "extrair", style: "margin-bottom:16px" },
+      el("a", { class: "btn-extrair", target: "_blank", rel: "noopener",
+        href: estudo.doi ? "https://doi.org/" + estudo.doi : estudo.url },
+        [Icons.get("livro", 15), el("span", { text: "Abrir o artigo" })])));
+  }
+
+  const entradas = {};
+  const grupos = [];
+  dados.campos.forEach(function (campo) {
+    let grupo = grupos.find(function (g) { return g.nome === (campo.grupo || "Geral"); });
+    if (!grupo) { grupo = { nome: campo.grupo || "Geral", campos: [] }; grupos.push(grupo); }
+    grupo.campos.push(campo);
+  });
+
+  grupos.forEach(function (grupo) {
+    alvo.appendChild(el("div", { class: "solto" }, [
+      el("h3", { text: grupo.nome }),
+      el("div", { style: "display:grid;gap:14px;margin-top:10px" },
+        grupo.campos.map(function (campo) {
+          const valor = atual.minha.valores[campo.code] || "";
+          let entrada;
+          if (campo.kind === "texto_longo") {
+            entrada = el("textarea", { rows: "3" });
+            entrada.value = valor;
+          } else if (campo.kind === "escolha") {
+            entrada = el("select", {}, [el("option", { value: "", text: "—" })].concat(
+              String(campo.options || "").split(";").filter(Boolean).map(function (o) {
+                return el("option", { value: o.trim(), text: o.trim() }); })));
+            entrada.value = valor;
+          } else if (campo.kind === "sim_nao") {
+            entrada = el("select", {}, ["", "Sim", "Não"].map(function (o) {
+              return el("option", { value: o, text: o || "—" }); }));
+            entrada.value = valor;
+          } else {
+            entrada = el("input", { type: campo.kind === "numero" ? "number"
+              : campo.kind === "data" ? "date" : "text" });
+            entrada.value = valor;
+          }
+          entradas[campo.code] = entrada;
+          return el("label", { style: "display:grid;gap:5px" }, [
+            el("span", { style: "font-size:13px;font-weight:600",
+              text: campo.label + (campo.required ? " *" : "") }),
+            campo.help ? el("small", { class: "hint", text: campo.help }) : null,
+            entrada,
+          ]);
+        })),
+    ]));
+  });
+
+  // risco de viés
+  const riscos = {};
+  const julgamentos = dados.ferramenta.julgamentos || [];
+  alvo.appendChild(el("div", { class: "solto" }, [
+    el("h3", { text: "Risco de viés — " + dados.ferramenta.nome }),
+    el("div", { style: "display:grid;gap:14px;margin-top:10px" },
+      dados.dominios.map(function (d) {
+        const meu = atual.minha.risco[d.code] || {};
+        const escolha = el("select", {}, [el("option", { value: "", text: "—" })].concat(
+          julgamentos.map(function (j) {
+            return el("option", { value: j[0], text: j[1] }); })));
+        escolha.value = meu.julgamento || "";
+        const nota = el("input", { type: "text", placeholder: "Justificativa (o que no texto sustenta)" });
+        nota.value = meu.justificativa || "";
+        riscos[d.code] = { escolha: escolha, nota: nota };
+        return el("div", { style: "display:grid;gap:5px" }, [
+          el("span", { style: "font-size:13px;font-weight:600", text: d.label }),
+          el("div", { style: "display:grid;grid-template-columns:minmax(160px,220px) 1fr;gap:8px" },
+            [escolha, nota]),
+        ]);
+      })),
+  ]));
+
+  alvo.appendChild(el("div", { class: "decidir" }, [
+    el("button", { class: "primary", text: "Gravar minha extração",
+      onclick: async function () {
+        const valores = {}, risco = {};
+        Object.entries(entradas).forEach(function (par) { valores[par[0]] = par[1].value; });
+        Object.entries(riscos).forEach(function (par) {
+          if (par[1].escolha.value) {
+            risco[par[0]] = { julgamento: par[1].escolha.value,
+                              justificativa: par[1].nota.value };
+          }
+        });
+        try {
+          await api("/api/revisoes/" + ESTADO.revisao.code + "/extracao", "POST",
+                    { ref_id: refId, valores: valores, risco: risco });
+          aviso("Extração gravada");
+          desenhar();
+        } catch (erro) { aviso(erro.message); }
+      } }),
+  ]));
+
+  if (atual.divergencias && atual.divergencias.pronto) {
+    alvo.appendChild(conciliar(refId, atual.divergencias));
+  } else {
+    alvo.appendChild(el("p", { class: "hint", style: "margin-top:14px", text:
+      "A comparação com a outra extração aparece aqui quando as duas pessoas "
+      + "tiverem preenchido — antes disso, comparar seria comparar com o vazio." }));
+  }
+}
+
+function conciliar(refId, d) {
+  const bloco = el("div", { class: "solto", style: "margin-top:20px" });
+  bloco.appendChild(el("h3", { text: "Conciliar" }));
+  const pendentes = d.divergencias.filter(function (x) { return !x.resolvida; });
+  const pendentesRisco = d.risco_divergente.filter(function (x) { return !x.resolvida; });
+  bloco.appendChild(el("div", { class: "hint", text:
+    pendentes.length || pendentesRisco.length
+      ? "Onde as duas extrações discordam. Escolha o que vale — é o que vai "
+        + "para a tabela do artigo."
+      : "As duas extrações coincidem no que importa. Onde as duas escreveram a "
+        + "mesma coisa, isso já é o consenso: não há o que conciliar." }));
+
+  const escolhas = {}, escolhasRisco = {};
+  pendentes.forEach(function (campo) {
+    const opcoes = Object.entries(campo.respostas);
+    const caixa = el("div", { class: "conflito", style: "margin-top:12px" }, [
+      el("h3", { style: "font-size:14px", text: campo.label }),
+      el("div", { class: "votos" }, opcoes.map(function (par) {
+        return el("div", { class: "voto" }, [
+          el("b", { text: par[0] }), el("div", { text: par[1] || "(em branco)" })]);
+      })),
+    ]);
+    const escolha = el("select", {}, opcoes.map(function (par) {
+      return el("option", { value: par[1], text: par[0] + ": " + (par[1] || "(em branco)") });
+    }).concat([el("option", { value: "__outro__", text: "Outro valor…" })]));
+    const outro = el("input", { type: "text", placeholder: "O valor acordado", hidden: true });
+    escolha.onchange = function () { outro.hidden = escolha.value !== "__outro__"; };
+    escolhas[campo.code] = function () {
+      return escolha.value === "__outro__" ? outro.value : escolha.value; };
+    caixa.appendChild(el("div", { style: "display:grid;gap:8px;max-width:520px" },
+      [escolha, outro]));
+    bloco.appendChild(caixa);
+  });
+  pendentesRisco.forEach(function (dominio) {
+    const opcoes = Object.entries(dominio.respostas);
+    const escolha = el("select", {}, opcoes.map(function (par) {
+      const j = (par[1] || {}).julgamento || "";
+      return el("option", { value: j, text: par[0] + ": " + (j || "—") });
+    }));
+    escolhasRisco[dominio.code] = function () { return escolha.value; };
+    bloco.appendChild(el("div", { class: "conflito", style: "margin-top:12px" }, [
+      el("h3", { style: "font-size:14px", text: dominio.label }),
+      el("div", { style: "max-width:520px" }, escolha),
+    ]));
+  });
+
+  if (pendentes.length || pendentesRisco.length) {
+    bloco.appendChild(el("div", { class: "decidir" }, [
+      el("button", { class: "incluir", text: "Gravar o que foi acordado",
+        onclick: async function () {
+          const valores = {}, risco = {};
+          Object.entries(escolhas).forEach(function (par) { valores[par[0]] = par[1](); });
+          Object.entries(escolhasRisco).forEach(function (par) {
+            if (par[1]()) risco[par[0]] = { julgamento: par[1]() }; });
+          try {
+            await api("/api/revisoes/" + ESTADO.revisao.code + "/extracao", "POST",
+                      { ref_id: refId, acordar: true, valores: valores, risco: risco });
+            aviso("Conciliado");
+            desenhar();
+          } catch (erro) { aviso(erro.message); }
+        } }),
+    ]));
+  }
+  return bloco;
 }
 
 /* -------------------------------------------------------------- PRISMA */

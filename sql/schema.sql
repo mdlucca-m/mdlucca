@@ -525,6 +525,87 @@ CREATE TABLE IF NOT EXISTS review_terms (
   UNIQUE (review_id, term, tone)
 );
 
+/* ---------- Extracao de dados e risco de vies ----------
+
+   Depois da triagem vem a parte que ninguem gosta: ler cada estudo
+   incluido e tirar dele, campo a campo, o que a revisao precisa. Hoje
+   isso e feito em planilha compartilhada, e a planilha nao sabe que duas
+   pessoas deviam extrair em separado, nem onde as duas discordaram.
+
+   O desenho aqui e o mesmo da triagem, e pela mesma razao: cada pessoa
+   preenche a sua, e a versao final e uma terceira coisa, construida a
+   partir das duas. Sem isso, "extracao em duplicata" vira uma pessoa
+   conferindo o que a outra digitou -- que nao e a mesma coisa e nao vale
+   como duplicata.
+   ---------- */
+
+CREATE TABLE IF NOT EXISTS extraction_fields (
+  id         INTEGER PRIMARY KEY,
+  review_id  INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+  code       TEXT NOT NULL,
+  label      TEXT NOT NULL,
+  kind       TEXT NOT NULL DEFAULT 'texto',
+  options    TEXT,
+  help       TEXT,
+  grupo      TEXT,
+  seq        INTEGER NOT NULL DEFAULT 1,
+  required   INTEGER NOT NULL DEFAULT 0,
+  UNIQUE (review_id, code)
+);
+
+CREATE TABLE IF NOT EXISTS extractions (
+  id         INTEGER PRIMARY KEY,
+  ref_id     INTEGER NOT NULL REFERENCES refs(id) ON DELETE CASCADE,
+  member_id  INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  field_id   INTEGER NOT NULL REFERENCES extraction_fields(id) ON DELETE CASCADE,
+  value      TEXT,
+  notes      TEXT,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (ref_id, member_id, field_id)
+);
+
+/* A versao que vai para a tabela do artigo. E uma terceira coisa: nao e a
+   de ninguem, e a que as duas pessoas acordaram. */
+CREATE TABLE IF NOT EXISTS extraction_final (
+  ref_id     INTEGER NOT NULL REFERENCES refs(id) ON DELETE CASCADE,
+  field_id   INTEGER NOT NULL REFERENCES extraction_fields(id) ON DELETE CASCADE,
+  value      TEXT,
+  decided_by INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  decided_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (ref_id, field_id)
+);
+
+CREATE TABLE IF NOT EXISTS rob_domains (
+  id        INTEGER PRIMARY KEY,
+  review_id INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+  code      TEXT NOT NULL,
+  label     TEXT NOT NULL,
+  help      TEXT,
+  seq       INTEGER NOT NULL DEFAULT 1,
+  UNIQUE (review_id, code)
+);
+
+CREATE TABLE IF NOT EXISTS rob_answers (
+  id         INTEGER PRIMARY KEY,
+  ref_id     INTEGER NOT NULL REFERENCES refs(id) ON DELETE CASCADE,
+  member_id  INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  domain_id  INTEGER NOT NULL REFERENCES rob_domains(id) ON DELETE CASCADE,
+  judgement  TEXT NOT NULL,
+  support    TEXT,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (ref_id, member_id, domain_id)
+);
+
+CREATE TABLE IF NOT EXISTS rob_final (
+  ref_id     INTEGER NOT NULL REFERENCES refs(id) ON DELETE CASCADE,
+  domain_id  INTEGER NOT NULL REFERENCES rob_domains(id) ON DELETE CASCADE,
+  judgement  TEXT NOT NULL,
+  support    TEXT,
+  decided_by INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  decided_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (ref_id, domain_id)
+);
+
 /* ---------- Indices ---------- */
 
 CREATE INDEX IF NOT EXISTS idx_articles_status ON articles(status);
@@ -549,6 +630,8 @@ CREATE INDEX IF NOT EXISTS idx_refs_dedup ON refs(review_id, dedup_key);
 CREATE INDEX IF NOT EXISTS idx_refs_duplicate ON refs(duplicate_of);
 CREATE INDEX IF NOT EXISTS idx_screenings_ref ON screenings(ref_id, stage);
 CREATE INDEX IF NOT EXISTS idx_screenings_member ON screenings(member_id, stage);
+CREATE INDEX IF NOT EXISTS idx_extractions_ref ON extractions(ref_id, field_id);
+CREATE INDEX IF NOT EXISTS idx_rob_answers_ref ON rob_answers(ref_id, domain_id);
 
 /* ---------- Views analiticas ---------- */
 
