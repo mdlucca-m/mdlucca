@@ -25,6 +25,7 @@ from dados import (ACUMULO, AUMENTO_DESFAVORAVEL, BETA_HIIT, DIARIO, DIAS,
 AZUL, TIJOLO, VERDE = "#3A6EA5", "#A63A2B", "#4E8F3A"
 CINZA, CINZA_CLARO, FAIXA = "#3A3A3A", "#8C8C8C", "#EFEFEF"
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "comum"))
+import estilo as E  # noqa: E402
 from grafico import virgula  # noqa: E402
 
 DPI = 300
@@ -135,100 +136,98 @@ def figura_variaveis(destino: Path) -> Path:
 
 # ── Migração dos perfis de humor ──────────────────────────────────────────
 def figura_perfis(destino: Path) -> Path:
-    fig = plt.figure(figsize=(17.5 / 2.54, 12.6 / 2.54), dpi=DPI)
+    fig = plt.figure(figsize=(17.4 / 2.54, 13.4 / 2.54), dpi=E.DPI)
     fig.patch.set_facecolor("white")
-    grade = fig.add_gridspec(2, 2, height_ratios=[1.28, 0.82], hspace=0.62,
-                             wspace=0.38)
+    grade = fig.add_gridspec(2, 2, height_ratios=[1.3, 0.85], hspace=0.95,
+                             wspace=0.42)
     a1 = fig.add_subplot(grade[0, 0])
     a2 = fig.add_subplot(grade[0, 1])
     a3 = fig.add_subplot(grade[1, :])
-    for ax in (a1, a2, a3):
-        limpar(ax)
+    E.aplicar(a1, grade="ambos")
+    E.aplicar(a2, grade="x")
+    E.aplicar(a3, grade="x")
 
     # A · migração dia a dia pelo critério de Morgan
     iceberg = [PERFIL_DIA[d][0] for d in DIAS]
     perturbado = [PERFIL_DIA[d][1] for d in DIAS]
     for dia in DIAS_HIIT:
-        a1.axvspan(dia - 0.4, dia + 0.4, color=FAIXA, zorder=0)
-    a1.plot(DIAS, iceberg, color=VERDE, marker="o", markersize=4,
-            linewidth=1.6, zorder=3, markeredgecolor="white",
-            markeredgewidth=0.6, label="perfil iceberg")
-    a1.plot(DIAS, perturbado, color=TIJOLO, marker="s", markersize=4,
-            linewidth=1.6, zorder=3, markeredgecolor="white",
-            markeredgewidth=0.6, label="humor perturbado (PTH > 0)")
-    for serie, cor, desloc in ((iceberg, VERDE, 10), (perturbado, TIJOLO, -15)):
-        for i, (dx, ali) in ((0, (2, "left")), (6, (-2, "right"))):
-            a1.annotate(f"{vg(serie[i], 1)}%", (DIAS[i], serie[i]),
-                        textcoords="offset points", xytext=(dx, desloc),
-                        ha=ali, fontsize=6.8, color=cor, fontweight="bold")
-    a1.set_ylim(22, 88)
+        a1.axvspan(dia - 0.4, dia + 0.4, color=E.FAIXA, zorder=1)
+    a1.plot(DIAS, iceberg, color=E.VERDE, marker="o", markersize=5,
+            linewidth=2.0, zorder=3, markeredgecolor="white",
+            markeredgewidth=0.8, label="Perfil iceberg")
+    a1.plot(DIAS, perturbado, color=E.CORAL, marker="s", markersize=5,
+            linewidth=2.0, zorder=3, markeredgecolor="white",
+            markeredgewidth=0.8, label="Humor perturbado (PTH > 0)")
+    for serie, cor in ((iceberg, E.VERDE), (perturbado, E.CORAL)):
+        for i, dx, ali in ((0, 6, "left"), (6, -6, "right")):
+            a1.annotate(E.vg(serie[i]) + "%", (DIAS[i], serie[i]),
+                        textcoords="offset points",
+                        xytext=(dx, 11 if serie[i] > 55 else -17), ha=ali,
+                        fontsize=7.6, color=cor, fontweight="bold")
+    a1.set_ylim(20, 92)
     a1.set_xlim(0.55, 7.45)
     a1.set_xticks(DIAS)
-    a1.set_xlabel("Dia do microciclo", fontsize=7.5, color=CINZA)
-    a1.set_ylabel("Atletas (%)", fontsize=7.5, color=CINZA)
-    a1.set_title("A. Migração diária pelo critério de Morgan", fontsize=8.4,
-                 color=CINZA, loc="left", pad=6)
-    a1.legend(frameon=False, fontsize=6.8, labelcolor=CINZA, loc="lower left",
-              handlelength=1.4, borderpad=0.1, labelspacing=0.3)
+    a1.set_xlabel("Dia do microciclo", fontsize=8.8, color=E.TINTA)
+    a1.set_ylabel("Atletas (%)", fontsize=8.8, color=E.TINTA)
+    E.titulo(a1, "A. Migração pelo critério de Morgan", tamanho=9.4)
+    E.legenda(a1, loc="upper center", bbox_to_anchor=(0.5, -0.30),
+              ncol=2, fontsize=7.0)
 
     # B · deslocamento de cada perfil de Parsons-Smith, um por linha
     perfis = sorted(PARSONS, key=lambda k: PARSONS[k][1])
     for i, nome in enumerate(perfis):
         d1, d7 = PARSONS[nome][1], PARSONS[nome][2]
         delta = d7 - d1
-        cor = (CINZA_CLARO if abs(delta) <= 1.0 else
-               AZUL if delta > 0 else TIJOLO)
+        cor = ("#B4B4B0" if abs(delta) <= 1.0 else
+               E.AZUL if delta > 0 else E.CORAL)
         a2.annotate("", xy=(d7, i), xytext=(d1, i),
-                    arrowprops={"arrowstyle": "-|>,head_width=0.16,"
-                                "head_length=0.34", "color": cor,
-                                "linewidth": 1.5, "shrinkA": 0, "shrinkB": 0})
-        a2.plot(d1, i, "o", color="white", markersize=5.4,
-                markeredgecolor=cor, markeredgewidth=1.2, zorder=3)
-        a2.annotate(f"{sg(delta, 1)} p.p.", (max(d1, d7) + 2.0, i),
-                    fontsize=6.6, color=cor, va="center", ha="left")
+                    arrowprops={"arrowstyle": "-|>,head_width=0.18,"
+                                "head_length=0.36", "color": cor,
+                                "linewidth": 1.8, "shrinkA": 0, "shrinkB": 0})
+        a2.plot(d1, i, "o", color="white", markersize=6.0,
+                markeredgecolor=cor, markeredgewidth=1.4, zorder=3)
+        a2.annotate(E.sg(delta) + " p.p.", (max(d1, d7) + 2.4, i),
+                    fontsize=7.2, color=E.TINTA, va="center")
     a2.set_yticks(range(len(perfis)))
-    a2.set_yticklabels(perfis, fontsize=7.2)
+    a2.set_yticklabels(perfis, fontsize=8.2)
     a2.set_ylim(-0.6, len(perfis) - 0.4)
-    a2.set_xlim(0, 82)
+    a2.set_xlim(0, 86)
     a2.set_xlabel("Observações no perfil (%), do dia 1 ao dia 7",
-                  fontsize=7.5, color=CINZA)
-    a2.set_title("B. Deslocamento entre os perfis de Parsons-Smith",
-                 fontsize=8.4, color=CINZA, loc="left", pad=6)
-    a2.legend(handles=[
-        Line2D([], [], color="white", marker="o", markeredgecolor=CINZA,
-               markeredgewidth=1.2, linestyle="", label="dia 1"),
-        Line2D([], [], color=AZUL, label="perfil avança"),
-        Line2D([], [], color=TIJOLO, label="perfil recua"),
-        Line2D([], [], color=CINZA_CLARO, label="estável (até 1 p.p.)")],
-        frameon=False, fontsize=6.4, labelcolor=CINZA, loc="lower right",
-        handlelength=1.3, borderpad=0.1, labelspacing=0.28)
+                  fontsize=8.8, color=E.TINTA)
+    E.titulo(a2, "B. Deslocamento entre os perfis", tamanho=9.4)
+    E.legenda(a2, handles=[
+        Line2D([], [], color="white", marker="o", markeredgecolor=E.TINTA_FRACA,
+               markeredgewidth=1.4, linestyle="", label="Dia 1"),
+        Line2D([], [], color=E.AZUL, linewidth=1.8, label="Perfil avança"),
+        Line2D([], [], color=E.CORAL, linewidth=1.8, label="Perfil recua"),
+        Line2D([], [], color="#B4B4B0", linewidth=1.8, label="Estável")],
+        loc="lower right", fontsize=6.8)
 
     # C · métricas do perfil em dias de HIIT, com intervalo de confiança
     nomes = list(METRICAS_PERFIL)[::-1]
     for i, nome in enumerate(nomes):
         _, _, dz, inf, sup, p = METRICAS_PERFIL[nome]
-        cor = TIJOLO if inf * sup > 0 else CINZA_CLARO
-        a3.plot([inf, sup], [i, i], color=cor, linewidth=1.5, zorder=2,
+        cor = E.CORAL if inf * sup > 0 else "#B4B4B0"
+        a3.plot([inf, sup], [i, i], color=cor, linewidth=1.8, zorder=3,
                 solid_capstyle="butt")
         for extremo in (inf, sup):
-            a3.plot([extremo, extremo], [i - 0.09, i + 0.09], color=cor,
-                    linewidth=1.2, zorder=2)
-        a3.plot(dz, i, "o", color=cor, markersize=5.6, zorder=3,
-                markeredgecolor="white", markeredgewidth=0.7)
-        a3.annotate(f"dz = {sg(dz, 2)}   IC 95% [{vg(inf, 2)}; {vg(sup, 2)}]"
-                    f"   p = {p}", (sup + 0.06, i), fontsize=6.8, color=cor,
-                    va="center", ha="left")
-    a3.axvline(0, color=CINZA, linewidth=0.8, zorder=1)
+            a3.plot([extremo, extremo], [i - 0.1, i + 0.1], color=cor,
+                    linewidth=1.5, zorder=3)
+        a3.plot(dz, i, "o", color=cor, markersize=6.5, zorder=4,
+                markeredgecolor="white", markeredgewidth=0.9)
+        a3.annotate(f"dz = {E.sg(dz, 2)}   IC 95% [{E.vg(inf, 2)}; "
+                    f"{E.vg(sup, 2)}]   p = {p}", (sup + 0.07, i),
+                    fontsize=7.4, color=E.TINTA, va="center", ha="left")
+    a3.axvline(0, color=E.TINTA, linewidth=1.0, zorder=2)
     a3.set_yticks(range(len(nomes)))
-    a3.set_yticklabels(nomes, fontsize=7.2)
+    a3.set_yticklabels(nomes, fontsize=8.2)
     a3.set_ylim(-0.55, len(nomes) - 0.45)
-    a3.set_xlim(-1.45, 2.05)
+    a3.set_xlim(-1.45, 2.15)
     a3.set_xlabel("Efeito do dia de HIIT sobre a métrica do perfil (dz)",
-                  fontsize=7.5, color=CINZA)
-    a3.set_title("C. Efeito do dia de HIIT sobre o perfil, com intervalo de "
-                 "confiança de 95%", fontsize=8.4, color=CINZA, loc="left",
-                 pad=6)
-    return salvar(fig, destino, "fig_perfis.png")
+                  fontsize=8.8, color=E.TINTA)
+    E.titulo(a3, "C. Efeito do dia de HIIT sobre o perfil, com IC de 95%",
+             tamanho=9.4)
+    return E.salvar(fig, destino, "fig_perfis.png")
 
 
 # ── Efeito do HIIT por variável e mudança confiável por atleta ────────────
