@@ -678,12 +678,30 @@ BLOCOS += [
       "avança 13,3 pontos, enquanto os quatro perfis restantes se movem menos "
       "de 4 pontos (Tabela 7)."),
 ("tab", "distribuicao"),
+("fig", "a1_prevalencia_semana.png", 16.0,
+ "Figura 4 - Composição do grupo em faixas de significado ao longo da semana "
+ "(A) e prevalência dos seis perfis no primeiro e no último dia (B)"),
+("p", "A Figura 4 reúne a leitura de grupo. O painel A agrega os seis perfis "
+      "em três faixas: favorável, que reúne o iceberg; neutra, que reúne "
+      "superfície e submerso; e de risco, que reúne barbatana de tubarão, "
+      "iceberg invertido e Everest invertido. A composição revela um "
+      "movimento que a leitura perfil a perfil esconde. A faixa de risco "
+      "praticamente não se altera entre o primeiro e o último dia, de 23,8% "
+      "para 21,7%, enquanto a faixa favorável cai de 21,4% para 6,5% e a "
+      "neutra sobe de 54,7% para 71,8%. A semana não empurra a equipe para o "
+      "risco: ela dissolve o padrão favorável na indiferenciação."),
+("p", "O mesmo painel separa os dois tipos de dia. Nos dias de HIIT a faixa "
+      "de risco alcança 23,0% das observações, contra 16,4% nos dias sem "
+      "HIIT, e a faixa favorável cai de 15,9% para 10,0%. A diferença de 6,6 "
+      "pontos percentuais na faixa de risco entre os dois tipos de dia é a "
+      "primeira indicação de que o deslocamento acompanha a intensidade, e "
+      "não o volume, o que a análise da série diária confirma a seguir."),
 ("tab", "sinal"),
 ("fig", "a1_sinal.png", 15.0,
- "Figura 4 - Predominância diária dos perfis, com banda de erro-padrão e "
- "curva suavizada (A), e derivada da série do perfil iceberg contra o piso "
- "de ruído (B)"),
-("p", "A análise da derivada mostra que a perda não é gradual. Das seis "
+ "Figura 5 - Predominância diária dos dois critérios de Morgan, com a curva "
+ "suavizada sobre os valores observados (A), e variação diária do perfil "
+ "iceberg contra o ruído amostral (B)"),
+("p", "A análise da derivada, no painel B da Figura 5, mostra que a perda não é gradual. Das seis "
       "variações diárias da série suavizada, apenas duas ultrapassam o piso "
       f"de ruído de {F.br(_PISO, 1)} pontos percentuais: a do dia 1 para o "
       f"dia 2, de {F.sinal(_DERIV[0], 1)} pontos, e a do dia 6 para o dia 7, "
@@ -750,6 +768,16 @@ BLOCOS += [
       "estreia, corresponde a cerca de cinco atletas do elenco em qualquer "
       "dia dado. Para uma modalidade coletiva com sete jogadores em quadra, "
       "essa fração não é residual."),
+("p", "A composição por faixas, no painel A da Figura 4, acrescenta uma "
+      "qualificação importante a esse quadro. A faixa de risco permanece "
+      "estável ao longo da semana, de 23,8% no primeiro dia para 21,7% no "
+      "último, e o que se desloca é a faixa favorável, que cai de 21,4% para "
+      "6,5%, absorvida pela faixa neutra. A semana de pré-temporada não "
+      "adoece a equipe: ela apaga o padrão de prontidão e deixa a maior parte "
+      "do elenco em estado indiferenciado. A distinção não é semântica. Uma "
+      "equipe com risco crescente exige encaminhamento clínico; uma equipe "
+      "que perde prontidão exige ajuste de carga. As duas leituras levam a "
+      "condutas diferentes, e só a composição por faixas as separa."),
 ("h2", "5.2 Duas quedas, e não uma erosão"),
 ("p", "O resultado metodologicamente mais interessante do estudo é o da "
       "seção 4.4. A curva bruta do perfil iceberg sugere declínio contínuo ao "

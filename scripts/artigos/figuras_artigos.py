@@ -22,6 +22,10 @@ sys.path.insert(0, str(AQUI.parent / "artigo4p"))
 import fonte as F  # noqa: E402
 
 AZUL, TIJOLO, VERDE = "#3A6EA5", "#A63A2B", "#4E8F3A"
+# Paleta divergente dos perfis: polo favorável, cinza neutro e polo de
+# risco. Validada por scripts/validate_palette.js.
+FAVORAVEL, NEUTRO, RISCO = "#3F7A2E", "#B4B4B0", "#A63A2B"
+DIA1, DIA7 = "#8FB8DC", "#28527A"
 CINZA, CINZA_CLARO, FAIXA = "#3A3A3A", "#8C8C8C", "#EFEFEF"
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "comum"))
 from grafico import virgula  # noqa: E402
@@ -315,7 +319,7 @@ def fig_mdc(destino: Path) -> Path:
 def gerar_artigo1(destino: Path) -> list[Path]:
     print("figuras do Artigo 1:")
     return [fig_distribuicao(destino), fig_psicometria(destino),
-            fig_sinal(destino)]
+            fig_prevalencia_semana(destino), fig_sinal(destino)]
 
 
 def gerar_artigo2(destino: Path) -> list[Path]:
@@ -343,101 +347,152 @@ def _suavizar(y: list[float]) -> list[float]:
 
 
 def fig_sinal(destino: Path) -> Path:
+    """Série diária do perfil, com a curva suavizada e a derivada.
+
+    Versão enxuta: os pontos observados aparecem como marcadores, a tendência
+    como linha única, e o que não é sinal fica em cinza. A banda de
+    erro-padrão saiu da figura para a Tabela 7, que a traz por dia.
+    """
     from dados import DIAS, DIAS_HIIT, N_DIA, PERFIL_DIA
     ice = [PERFIL_DIA[d][0] for d in DIAS]
     per = [PERFIL_DIA[d][1] for d in DIAS]
-    ep_ice = [_erro_padrao(v, N_DIA[d]) for v, d in zip(ice, DIAS)]
-    piso = sum(ep_ice) / len(ep_ice)
+    piso = sum(_erro_padrao(v, N_DIA[d]) for v, d in zip(ice, DIAS)) / len(DIAS)
     s_ice, s_per = _suavizar(ice), _suavizar(per)
     d_ice = [s_ice[i] - s_ice[i - 1] for i in range(1, len(DIAS))]
 
-    fig, (a1, a2) = plt.subplots(2, 1, figsize=(16.5 / 2.54, 12.4 / 2.54),
+    fig, (a1, a2) = plt.subplots(2, 1, figsize=(15.5 / 2.54, 11.4 / 2.54),
                                  dpi=DPI, sharex=True,
-                                 gridspec_kw={"height_ratios": [1.5, 1]})
+                                 gridspec_kw={"height_ratios": [1.55, 1]})
+    fig.patch.set_facecolor("white")
+    for ax in (a1, a2):
+        limpar(ax)
+        for dia in DIAS_HIIT:
+            ax.axvspan(dia - 0.4, dia + 0.4, color=FAIXA, zorder=0)
+
+    # A · duas curvas, sem duplicação de traçado
+    for serie, suave, cor, marca, rotulo in (
+            (ice, s_ice, FAVORAVEL, "o", "perfil iceberg"),
+            (per, s_per, RISCO, "s", "humor perturbado")):
+        a1.plot(DIAS, suave, color=cor, linewidth=2.0, zorder=3, label=rotulo)
+        a1.plot(DIAS, serie, linestyle="none", marker=marca, markersize=4.2,
+                markerfacecolor="white", markeredgecolor=cor,
+                markeredgewidth=1.2, zorder=4)
+    a1.axhline(50, color=CINZA_CLARO, linewidth=0.9, linestyle=(0, (4, 3)),
+               zorder=2)
+    a1.annotate("maioria do elenco", (7.36, 51.2), fontsize=6.6,
+                color=CINZA_CLARO, va="bottom", ha="right")
+    for serie, cor in ((ice, FAVORAVEL), (per, RISCO)):
+        for i, dx, ali in ((0, 5, "left"), (6, -5, "right")):
+            a1.annotate(f"{serie[i]:.1f}".replace(".", ",") + "%",
+                        (DIAS[i], serie[i]), textcoords="offset points",
+                        xytext=(dx, 10 if serie[i] > 55 else -16), ha=ali,
+                        fontsize=7.0, color=cor, fontweight="bold")
+    a1.set_ylim(20, 88)
+    a1.set_xlim(0.55, 7.45)
+    a1.set_ylabel("Atletas (%)", fontsize=7.8, color=CINZA)
+    a1.set_title("A. Predominância diária", fontsize=9.0, color=CINZA,
+                 loc="left", pad=8)
+    a1.legend(frameon=False, fontsize=7.2, labelcolor=CINZA, loc="lower left",
+              handlelength=1.4, borderpad=0.1, labelspacing=0.3)
+
+    # B · derivada: só o que supera o ruído recebe cor
+    xs = [d + 0.5 for d in DIAS[:-1]]
+    for x, v in zip(xs, d_ice):
+        cor = RISCO if abs(v) > piso else CINZA_CLARO
+        a2.bar(x, v, width=0.5, color=cor, zorder=3)
+        if abs(v) > piso:
+            a2.text(x, v - 1.8, f"{v:+.1f}".replace(".", ",").replace("-", "−"),
+                    ha="center", va="top", fontsize=7.0, color=cor,
+                    fontweight="bold")
+    a2.axhspan(-piso, piso, color=FAIXA, zorder=1)
+    a2.axhline(0, color=CINZA, linewidth=0.8, zorder=2)
+    a2.annotate(f"ruído amostral ±{piso:.1f}".replace(".", ",") + " p.p.",
+                (7.36, piso + 0.8), fontsize=6.6, color=CINZA_CLARO,
+                va="bottom", ha="right")
+    a2.set_ylim(-24, 13)
+    a2.set_xticks(DIAS)
+    a2.set_xlabel("Dia do microciclo", fontsize=7.8, color=CINZA)
+    a2.set_ylabel("Variação (p.p./dia)", fontsize=7.8, color=CINZA)
+    a2.set_title("B. Variação diária do perfil iceberg", fontsize=9.0,
+                 color=CINZA, loc="left", pad=8)
+    fig.tight_layout(h_pad=1.6)
+    return salvar(fig, destino, "a1_sinal.png")
+
+
+# ═══════════ Artigo 1 · prevalência dos perfis ao longo da semana ══════════
+GRUPOS = {
+    "Favorável": ["Iceberg"],
+    "Neutro": ["Superfície", "Submerso"],
+    "De risco": ["Barbatana tubarão", "Iceberg invertido", "Everest invertido"],
+}
+CORES_GRUPO = {"Favorável": FAVORAVEL, "Neutro": NEUTRO, "De risco": RISCO}
+MOMENTOS = [("Dia 1\nrepouso", 1), ("Dias sem\nHIIT", 4), ("Dias de\nHIIT", 3),
+            ("Dia 7\nvéspera", 2)]
+
+
+def fig_prevalencia_semana(destino: Path) -> Path:
+    """Prevalência dos perfis no nível do grupo ao longo da semana.
+
+    O painel A agrega os seis perfis em três faixas de significado, o que é o
+    que a leitura de grupo comporta; o painel B abre os seis no contraste
+    entre o primeiro e o último dia.
+    """
+    from dados import PARSONS
+
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(17.0 / 2.54, 8.0 / 2.54),
+                                 dpi=DPI,
+                                 gridspec_kw={"width_ratios": [1.05, 1.15]})
     fig.patch.set_facecolor("white")
     for ax in (a1, a2):
         limpar(ax)
 
-    for dia in DIAS_HIIT:
-        a1.axvspan(dia - 0.4, dia + 0.4, color=FAIXA, zorder=0)
-        a2.axvspan(dia - 0.4, dia + 0.4, color=FAIXA, zorder=0)
+    # A · composição em três faixas, com folga de superfície entre as faixas
+    xs = list(range(len(MOMENTOS)))
+    base = [0.0] * len(MOMENTOS)
+    for grupo, perfis in GRUPOS.items():
+        vals = [sum(PARSONS[p][i] for p in perfis) for _, i in MOMENTOS]
+        a1.bar(xs, vals, bottom=base, width=0.72, color=CORES_GRUPO[grupo],
+               label=grupo, zorder=3, edgecolor="white", linewidth=1.4)
+        for x, v, b in zip(xs, vals, base):
+            a1.text(x, b + v / 2, f"{v:.1f}".replace(".", ",") + "%",
+                    ha="center", va="center", fontsize=6.6, color="white",
+                    fontweight="bold")
+        base = [b + v for b, v in zip(base, vals)]
+    a1.set_xticks(xs)
+    a1.set_xticklabels([r for r, _ in MOMENTOS], fontsize=7.4)
+    a1.set_ylim(0, 100)
+    a1.set_yticks([0, 25, 50, 75, 100])
+    a1.set_ylabel("Observações (%)", fontsize=7.8, color=CINZA)
+    a1.set_title("A. Composição do grupo", fontsize=9.0, color=CINZA,
+                 loc="left", pad=8)
+    a1.legend(frameon=False, fontsize=7.2, labelcolor=CINZA, ncol=3,
+              loc="upper center", bbox_to_anchor=(0.5, -0.16),
+              handlelength=1.0, columnspacing=1.4, handletextpad=0.5)
 
-    # A · as duas curvas, com a banda de erro-padrão e o limiar de maioria
-    a1.fill_between(DIAS, [v - e for v, e in zip(ice, ep_ice)],
-                    [v + e for v, e in zip(ice, ep_ice)], color=VERDE,
-                    alpha=0.16, linewidth=0, zorder=1)
-    a1.plot(DIAS, ice, color=VERDE, marker="o", markersize=4, linewidth=1.0,
-            alpha=0.45, zorder=2, markeredgecolor="white",
-            markeredgewidth=0.5)
-    a1.plot(DIAS, s_ice, color=VERDE, linewidth=2.0, zorder=4,
-            label="perfil iceberg")
-    a1.plot(DIAS, per, color=TIJOLO, marker="s", markersize=4, linewidth=1.0,
-            alpha=0.45, zorder=2, markeredgecolor="white",
-            markeredgewidth=0.5)
-    a1.plot(DIAS, s_per, color=TIJOLO, linewidth=2.0, zorder=4,
-            label="humor perturbado")
-    a1.axhline(50, color=CINZA, linewidth=0.9, linestyle=(0, (4, 3)), zorder=3)
-    a1.annotate("limiar de maioria", (7.38, 51.4), fontsize=6.4, color=CINZA,
-                va="bottom", ha="right")
+    # B · os seis perfis, do primeiro ao último dia
+    ordem = sorted(PARSONS, key=lambda k: PARSONS[k][1])
+    ys = list(range(len(ordem)))
+    altura = 0.34
+    for desloc, indice, cor, rotulo in ((altura / 2, 1, DIA1, "Dia 1"),
+                                        (-altura / 2, 2, DIA7, "Dia 7")):
+        vals = [PARSONS[p][indice] for p in ordem]
+        a2.barh([y + desloc for y in ys], vals, height=altura, color=cor,
+                label=rotulo, zorder=3)
+        for y, v in zip(ys, vals):
+            a2.text(v + 1.4, y + desloc, f"{v:.1f}".replace(".", ",") + "%",
+                    va="center", fontsize=6.8, color=CINZA)
+    a2.set_yticks(ys)
+    a2.set_yticklabels(ordem, fontsize=7.4)
+    a2.set_xlim(0, 76)
+    a2.set_xlabel("Observações no perfil (%)", fontsize=7.8, color=CINZA)
+    a2.set_title("B. Os seis perfis, do primeiro ao último dia", fontsize=9.0,
+                 color=CINZA, loc="left", pad=8)
+    a2.legend(frameon=False, fontsize=7.2, labelcolor=CINZA, ncol=2,
+              loc="upper center", bbox_to_anchor=(0.5, -0.16),
+              handlelength=1.0, columnspacing=1.4, handletextpad=0.5)
 
-    # cruzamento das curvas suavizadas
-    for i in range(len(DIAS) - 1):
-        a, b = s_ice[i] - s_per[i], s_ice[i + 1] - s_per[i + 1]
-        if a * b < 0:
-            x = DIAS[i] + a / (a - b)
-            y = s_ice[i] + (s_ice[i + 1] - s_ice[i]) * (a / (a - b))
-            a1.plot(x, y, "o", color=CINZA, markersize=6, zorder=5,
-                    markerfacecolor="white", markeredgewidth=1.3)
-            a1.annotate(f"inversão no dia {x:.1f}".replace(".", ","),
-                        (x, y), textcoords="offset points", xytext=(6, -14),
-                        fontsize=6.4, color=CINZA)
-    # O rótulo vai para o lado oposto ao da curva, ponto a ponto.
-    for serie, cor in ((ice, VERDE), (per, TIJOLO)):
-        for i, dx, ali in ((0, 4, "left"), (6, -4, "right")):
-            acima = serie[i] > 55
-            a1.annotate(f"{serie[i]:.1f}".replace(".", ",") + "%",
-                        (DIAS[i], serie[i]), textcoords="offset points",
-                        xytext=(dx, 11 if acima else -16), ha=ali,
-                        fontsize=6.8, color=cor, fontweight="bold")
-    a1.set_ylim(18, 92)
-    a1.set_xlim(0.55, 7.45)
-    a1.set_ylabel("Atletas (%)", fontsize=7.5, color=CINZA)
-    a1.set_title("A. Sinal semanal, com a banda de erro-padrão e a curva "
-                 "suavizada", fontsize=8.6, color=CINZA, loc="left", pad=6)
-    a1.legend(handles=[
-        Line2D([], [], color=VERDE, linewidth=2.0, label="perfil iceberg"),
-        Line2D([], [], color=TIJOLO, linewidth=2.0, label="humor perturbado"),
-        Line2D([], [], color=CINZA_CLARO, marker="o", markersize=4,
-               linewidth=1.0, label="valor observado"),
-        Patch(facecolor=VERDE, alpha=0.16,
-              label="erro-padrão do perfil iceberg")],
-        frameon=False, fontsize=6.6, labelcolor=CINZA, loc="lower left",
-        handlelength=1.4, borderpad=0.1, labelspacing=0.28)
-
-    # B · derivada da curva suavizada do perfil iceberg
-    xs = [d + 0.5 for d in DIAS[:-1]]
-    for x, v in zip(xs, d_ice):
-        acima = abs(v) > piso
-        cor = TIJOLO if (v < 0 and acima) else VERDE if (v > 0 and acima) \
-            else CINZA_CLARO
-        a2.bar(x, v, width=0.55, color=cor, zorder=3)
-        a2.text(x, v + (1.6 if v > 0 else -1.6),
-                f"{v:+.1f}".replace(".", ",").replace("-", "−"),
-                ha="center", va="bottom" if v > 0 else "top", fontsize=6.4,
-                color=cor)
-    a2.axhspan(-piso, piso, color=FAIXA, zorder=1)
-    a2.axhline(0, color=CINZA, linewidth=0.8, zorder=2)
-    a2.annotate(f"piso de ruído ±{piso:.1f}".replace(".", ",") + " p.p.",
-                (7.38, piso + 0.8), fontsize=6.4, color=CINZA, va="bottom",
-                ha="right")
-    a2.set_ylim(-25, 14)
-    a2.set_xticks(DIAS)
-    a2.set_xlabel("Dia do microciclo", fontsize=7.5, color=CINZA)
-    a2.set_ylabel("Variação por dia (p.p.)", fontsize=7.5, color=CINZA)
-    a2.set_title("B. Derivada do perfil iceberg, contra o piso de ruído",
-                 fontsize=8.6, color=CINZA, loc="left", pad=6)
-    fig.tight_layout(h_pad=1.4)
-    return salvar(fig, destino, "a1_sinal.png")
+    fig.tight_layout(w_pad=2.6)
+    return salvar(fig, destino, "a1_prevalencia_semana.png")
 
 
 if __name__ == "__main__":

@@ -159,6 +159,12 @@ def checar_a1(texto, celulas):
         ("as duas derivadas acima do ruído citadas",
          artigo1.F.sinal(artigo1._DERIV[0], 1) in texto
          and artigo1.F.sinal(artigo1._DERIV[5], 1) in texto, ""),
+        ("figura de composição do grupo presente",
+         "Composição do grupo" in texto, ""),
+        ("texto lê a estabilidade da faixa de risco",
+         "23,8" in texto and "21,7" in texto, ""),
+        ("texto contrasta dias com e sem HIIT na faixa de risco",
+         "23,0" in texto and "16,4" in texto, ""),
         ("série diária completa na Tabela 8",
          all(artigo1.F.br(v, 1) in celulas
              for d in artigo1.DIAS for v in artigo1.PERFIL_DIA[d]), ""),
@@ -196,7 +202,7 @@ def checar_a2(texto, celulas):
 def main() -> int:
     falhas = conferir("Artigo 1",
                       RAIZ / "data" / "ARTIGO1_PERFIS_HUMOR_HANDEBOL.docx",
-                      artigo1, checar_a1, n_figuras=4)
+                      artigo1, checar_a1, n_figuras=5)
     falhas += conferir("Artigo 2", RAIZ / "data" / "ARTIGO2_FADIGA_PERFIS_HANDEBOL.docx",
                        artigo2, checar_a2)
     print("OK: os dois manuscritos conferem" if not falhas
