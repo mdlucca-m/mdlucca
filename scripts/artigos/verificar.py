@@ -26,6 +26,20 @@ from dados import PARSONS, PERFIL_DIA  # noqa: E402
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 
 
+def _palavras_intro(mod) -> int:
+    """Conta as palavras dos parágrafos entre a introdução e o objetivo."""
+    total, dentro = 0, False
+    for b in mod.BLOCOS:
+        if b[0] == "h1" and b[1].startswith("1 INTRO"):
+            dentro = True
+            continue
+        if b[0] == "h1" and b[1].startswith("2 "):
+            break
+        if dentro and b[0] == "p":
+            total += len(b[1].split())
+    return total
+
+
 def ler(caminho: Path):
     raiz = ET.fromstring(zipfile.ZipFile(caminho).read("word/document.xml"))
     corpo = raiz.find(f"{W}body")
@@ -38,7 +52,13 @@ def ler(caminho: Path):
     return [p for p in paragrafos if p], celulas, n_tab, n_fig
 
 
-def conferir(nome: str, caminho: Path, mod, checagens) -> int:
+def _numeros_das_tabelas(mod) -> list[int]:
+    """Número de cada tabela na ordem em que ela aparece no documento."""
+    return [mod.TABELAS[b[1]]["numero"] for b in mod.BLOCOS if b[0] == "tab"]
+
+
+def conferir(nome: str, caminho: Path, mod, checagens,
+             n_figuras: int = 3) -> int:
     paragrafos, celulas, n_tab, n_fig = ler(caminho)
     texto = "\n".join(paragrafos)
     print(f"── {nome} ──")
@@ -46,15 +66,23 @@ def conferir(nome: str, caminho: Path, mod, checagens) -> int:
     itens = [
         (f"{len(mod.TABELAS)} tabelas", n_tab == len(mod.TABELAS),
          f"encontradas {n_tab}"),
-        ("três figuras", n_fig == 3, f"encontradas {n_fig}"),
+        (f"{n_figuras} figuras", n_fig == n_figuras,
+         f"encontradas {n_fig}"),
         ("resumo presente", mod.ABERTURA[0][1][:60] in texto, ""),
         ("palavras-chave presentes", "PALAVRAS-CHAVE" in texto, ""),
         ("fonte sob cada tabela",
          texto.count(mod.FONTE_TABELA) == len(mod.TABELAS),
          f"{texto.count(mod.FONTE_TABELA)} de {len(mod.TABELAS)}"),
-        ("fonte sob cada figura", texto.count(mod.FONTE_FIGURA) == 3,
-         f"{texto.count(mod.FONTE_FIGURA)}"),
+        ("fonte sob cada figura",
+         texto.count(mod.FONTE_FIGURA) == n_figuras,
+         f"{texto.count(mod.FONTE_FIGURA)} de {n_figuras}"),
         ("referências presentes", "REFERÊNCIAS" in texto, ""),
+        ("tabelas em ordem crescente no documento",
+         _numeros_das_tabelas(mod) == sorted(_numeros_das_tabelas(mod)),
+         f"ordem encontrada: {_numeros_das_tabelas(mod)}"),
+        ("cada tabela usada uma única vez",
+         len(_numeros_das_tabelas(mod)) == len(set(_numeros_das_tabelas(mod))),
+         f"ordem encontrada: {_numeros_das_tabelas(mod)}"),
         ("sem PERMANOVA", "PERMANOVA" not in texto, ""),
     ] + checagens(texto, celulas)
     for rotulo, ok, detalhe in itens:
@@ -102,6 +130,38 @@ def checar_a1(texto, celulas):
          "semeada" in texto, ""),
         ("afirmação de pioneirismo qualificada",
          "Até onde alcança" in texto, ""),
+        ("seção de objetivo separada", "2 OBJETIVO" in texto, ""),
+        ("introdução com no máximo duas páginas",
+         _palavras_intro(artigo1) <= 1100,
+         f"{_palavras_intro(artigo1)} palavras"),
+        ("os seis perfis nomeados na introdução",
+         all(t in texto for t in ("iceberg", "superfície", "submerso",
+                                  "barbatana de tubarão",
+                                  "iceberg invertido", "Everest invertido")),
+         ""),
+        ("características de cada perfil descritas",
+         any("Correlatos descritos" in c for c in celulas), ""),
+        ("tabela sociodemográfica presente",
+         "Escolaridade" in celulas and "Renda mensal" in celulas, ""),
+        ("procedimento de coleta descrito",
+         all(t in texto for t in ("linha de base", "pré-sessão",
+                                  "pós-sessão", "duas coletas diárias")),
+         ""),
+        ("primeiro contato com a equipe descrito",
+         "primeiro contato" in texto.lower(), ""),
+        ("análise de sinal, ruído e derivada descrita",
+         all(t in texto for t in ("piso de ruído", "derivada",
+                                  "filtro binomial",
+                                  "limiar de maioria")), ""),
+        ("piso de ruído coerente com o cálculo",
+         artigo1.F.br(artigo1._PISO, 1) in texto,
+         f"esperado {artigo1.F.br(artigo1._PISO, 1)}"),
+        ("as duas derivadas acima do ruído citadas",
+         artigo1.F.sinal(artigo1._DERIV[0], 1) in texto
+         and artigo1.F.sinal(artigo1._DERIV[5], 1) in texto, ""),
+        ("série diária completa na Tabela 8",
+         all(artigo1.F.br(v, 1) in celulas
+             for d in artigo1.DIAS for v in artigo1.PERFIL_DIA[d]), ""),
     ]
 
 
@@ -134,8 +194,9 @@ def checar_a2(texto, celulas):
 
 
 def main() -> int:
-    falhas = conferir("Artigo 1", RAIZ / "data" / "ARTIGO1_PERFIS_HUMOR_HANDEBOL.docx",
-                      artigo1, checar_a1)
+    falhas = conferir("Artigo 1",
+                      RAIZ / "data" / "ARTIGO1_PERFIS_HUMOR_HANDEBOL.docx",
+                      artigo1, checar_a1, n_figuras=4)
     falhas += conferir("Artigo 2", RAIZ / "data" / "ARTIGO2_FADIGA_PERFIS_HANDEBOL.docx",
                        artigo2, checar_a2)
     print("OK: os dois manuscritos conferem" if not falhas

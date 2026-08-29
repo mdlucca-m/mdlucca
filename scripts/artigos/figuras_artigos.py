@@ -314,12 +314,130 @@ def fig_mdc(destino: Path) -> Path:
 
 def gerar_artigo1(destino: Path) -> list[Path]:
     print("figuras do Artigo 1:")
-    return [fig_distribuicao(destino), fig_psicometria(destino)]
+    return [fig_distribuicao(destino), fig_psicometria(destino),
+            fig_sinal(destino)]
 
 
 def gerar_artigo2(destino: Path) -> list[Path]:
     print("figuras do Artigo 2:")
     return [fig_sessoes(destino), fig_mdc(destino)]
+
+
+
+
+# ══════════════════ Artigo 1 · sinal semanal do perfil ═════════════════════
+def _erro_padrao(p: float, n: int) -> float:
+    """Erro-padrão binomial da proporção, em pontos percentuais."""
+    from math import sqrt
+    return 100 * sqrt((p / 100) * (1 - p / 100) / n)
+
+
+def _suavizar(y: list[float]) -> list[float]:
+    """Filtro binomial de três pontos, com pesos 1, 2 e 1. É o filtro mais
+    leve capaz de separar tendência de ruído em uma série de sete pontos;
+    filtros mais pesados apagariam o próprio sinal."""
+    s = list(y)
+    for i in range(1, len(y) - 1):
+        s[i] = (y[i - 1] + 2 * y[i] + y[i + 1]) / 4
+    return s
+
+
+def fig_sinal(destino: Path) -> Path:
+    from dados import DIAS, DIAS_HIIT, N_DIA, PERFIL_DIA
+    ice = [PERFIL_DIA[d][0] for d in DIAS]
+    per = [PERFIL_DIA[d][1] for d in DIAS]
+    ep_ice = [_erro_padrao(v, N_DIA[d]) for v, d in zip(ice, DIAS)]
+    piso = sum(ep_ice) / len(ep_ice)
+    s_ice, s_per = _suavizar(ice), _suavizar(per)
+    d_ice = [s_ice[i] - s_ice[i - 1] for i in range(1, len(DIAS))]
+
+    fig, (a1, a2) = plt.subplots(2, 1, figsize=(16.5 / 2.54, 12.4 / 2.54),
+                                 dpi=DPI, sharex=True,
+                                 gridspec_kw={"height_ratios": [1.5, 1]})
+    fig.patch.set_facecolor("white")
+    for ax in (a1, a2):
+        limpar(ax)
+
+    for dia in DIAS_HIIT:
+        a1.axvspan(dia - 0.4, dia + 0.4, color=FAIXA, zorder=0)
+        a2.axvspan(dia - 0.4, dia + 0.4, color=FAIXA, zorder=0)
+
+    # A · as duas curvas, com a banda de erro-padrão e o limiar de maioria
+    a1.fill_between(DIAS, [v - e for v, e in zip(ice, ep_ice)],
+                    [v + e for v, e in zip(ice, ep_ice)], color=VERDE,
+                    alpha=0.16, linewidth=0, zorder=1)
+    a1.plot(DIAS, ice, color=VERDE, marker="o", markersize=4, linewidth=1.0,
+            alpha=0.45, zorder=2, markeredgecolor="white",
+            markeredgewidth=0.5)
+    a1.plot(DIAS, s_ice, color=VERDE, linewidth=2.0, zorder=4,
+            label="perfil iceberg")
+    a1.plot(DIAS, per, color=TIJOLO, marker="s", markersize=4, linewidth=1.0,
+            alpha=0.45, zorder=2, markeredgecolor="white",
+            markeredgewidth=0.5)
+    a1.plot(DIAS, s_per, color=TIJOLO, linewidth=2.0, zorder=4,
+            label="humor perturbado")
+    a1.axhline(50, color=CINZA, linewidth=0.9, linestyle=(0, (4, 3)), zorder=3)
+    a1.annotate("limiar de maioria", (7.38, 51.4), fontsize=6.4, color=CINZA,
+                va="bottom", ha="right")
+
+    # cruzamento das curvas suavizadas
+    for i in range(len(DIAS) - 1):
+        a, b = s_ice[i] - s_per[i], s_ice[i + 1] - s_per[i + 1]
+        if a * b < 0:
+            x = DIAS[i] + a / (a - b)
+            y = s_ice[i] + (s_ice[i + 1] - s_ice[i]) * (a / (a - b))
+            a1.plot(x, y, "o", color=CINZA, markersize=6, zorder=5,
+                    markerfacecolor="white", markeredgewidth=1.3)
+            a1.annotate(f"inversão no dia {x:.1f}".replace(".", ","),
+                        (x, y), textcoords="offset points", xytext=(6, -14),
+                        fontsize=6.4, color=CINZA)
+    # O rótulo vai para o lado oposto ao da curva, ponto a ponto.
+    for serie, cor in ((ice, VERDE), (per, TIJOLO)):
+        for i, dx, ali in ((0, 4, "left"), (6, -4, "right")):
+            acima = serie[i] > 55
+            a1.annotate(f"{serie[i]:.1f}".replace(".", ",") + "%",
+                        (DIAS[i], serie[i]), textcoords="offset points",
+                        xytext=(dx, 11 if acima else -16), ha=ali,
+                        fontsize=6.8, color=cor, fontweight="bold")
+    a1.set_ylim(18, 92)
+    a1.set_xlim(0.55, 7.45)
+    a1.set_ylabel("Atletas (%)", fontsize=7.5, color=CINZA)
+    a1.set_title("A. Sinal semanal, com a banda de erro-padrão e a curva "
+                 "suavizada", fontsize=8.6, color=CINZA, loc="left", pad=6)
+    a1.legend(handles=[
+        Line2D([], [], color=VERDE, linewidth=2.0, label="perfil iceberg"),
+        Line2D([], [], color=TIJOLO, linewidth=2.0, label="humor perturbado"),
+        Line2D([], [], color=CINZA_CLARO, marker="o", markersize=4,
+               linewidth=1.0, label="valor observado"),
+        Patch(facecolor=VERDE, alpha=0.16,
+              label="erro-padrão do perfil iceberg")],
+        frameon=False, fontsize=6.6, labelcolor=CINZA, loc="lower left",
+        handlelength=1.4, borderpad=0.1, labelspacing=0.28)
+
+    # B · derivada da curva suavizada do perfil iceberg
+    xs = [d + 0.5 for d in DIAS[:-1]]
+    for x, v in zip(xs, d_ice):
+        acima = abs(v) > piso
+        cor = TIJOLO if (v < 0 and acima) else VERDE if (v > 0 and acima) \
+            else CINZA_CLARO
+        a2.bar(x, v, width=0.55, color=cor, zorder=3)
+        a2.text(x, v + (1.6 if v > 0 else -1.6),
+                f"{v:+.1f}".replace(".", ",").replace("-", "−"),
+                ha="center", va="bottom" if v > 0 else "top", fontsize=6.4,
+                color=cor)
+    a2.axhspan(-piso, piso, color=FAIXA, zorder=1)
+    a2.axhline(0, color=CINZA, linewidth=0.8, zorder=2)
+    a2.annotate(f"piso de ruído ±{piso:.1f}".replace(".", ",") + " p.p.",
+                (7.38, piso + 0.8), fontsize=6.4, color=CINZA, va="bottom",
+                ha="right")
+    a2.set_ylim(-25, 14)
+    a2.set_xticks(DIAS)
+    a2.set_xlabel("Dia do microciclo", fontsize=7.5, color=CINZA)
+    a2.set_ylabel("Variação por dia (p.p.)", fontsize=7.5, color=CINZA)
+    a2.set_title("B. Derivada do perfil iceberg, contra o piso de ruído",
+                 fontsize=8.6, color=CINZA, loc="left", pad=6)
+    fig.tight_layout(h_pad=1.4)
+    return salvar(fig, destino, "a1_sinal.png")
 
 
 if __name__ == "__main__":

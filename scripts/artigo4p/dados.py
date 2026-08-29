@@ -48,6 +48,9 @@ PERFIL_DIA = {                                    # dia: (% iceberg, % PTH > 0)
     5: (53.5, 50.7), 6: (47.1, 55.9), 7: (32.6, 71.7),
 }
 
+# Tabela 52: número de atletas com coleta válida em cada dia.
+N_DIA = {1: 27, 2: 26, 3: 26, 4: 21, 5: 23, 6: 22, 7: 21}
+
 # ── Tabela 22: perfis de Parsons-Smith ────────────────────────────────────
 PARSONS = {                       # perfil: (global, dia 1, dia 7, HIIT, sem)
     "Superfície":         (56.8, 47.6, 60.9, 58.5, 57.0),
