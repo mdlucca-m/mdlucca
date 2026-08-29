@@ -168,6 +168,23 @@ def checar_a1(texto, celulas):
         ("discussão compara com as duas coortes brasileiras",
          "Rohlfs, Noce e Wilke, 2024" in texto
          and "Rohlfs e outros, 2025" in texto and "28,3" in texto, ""),
+        ("seção de curvas por variável presente",
+         "4.3 Comportamento de cada variável ao longo da semana" in texto, ""),
+        ("tabela de comportamento e tabela de cruzamentos presentes",
+         any("Dias de choque" in c for c in celulas)
+         and any("Limiar de ruído" in c for c in celulas), ""),
+        ("inversão do eixo energético reportada com o dia",
+         "Inversão estabelecida" in celulas
+         and "inversão é dada por estabelecida" in texto, ""),
+        ("divergência distinguida de inversão",
+         "Divergência a partir de ponto comum" in celulas
+         and "divergência a partir de ponto comum" in texto, ""),
+        ("método descreve o teste de inversão",
+         "3.8.7" in texto and "limiar de ruído do par" in texto, ""),
+        ("figuras de curvas presentes",
+         all(x in texto for x in ("ponto de inversão", "afeto negativo ao "
+                                  "longo da semana", "percentual do dia 1")),
+         ""),
         ("discussão situa a produção recente do handebol",
          "Ratz-Sulyok" in texto and "Skarbalius" in texto, ""),
         ("tabela sociodemográfica presente",
@@ -231,7 +248,7 @@ def checar_a2(texto, celulas):
 def main() -> int:
     falhas = conferir("Artigo 1",
                       RAIZ / "data" / "ARTIGO1_PERFIS_HUMOR_HANDEBOL.docx",
-                      artigo1, checar_a1, n_figuras=5)
+                      artigo1, checar_a1, n_figuras=8)
     falhas += conferir("Artigo 2", RAIZ / "data" / "ARTIGO2_FADIGA_PERFIS_HANDEBOL.docx",
                        artigo2, checar_a2)
     print("OK: os dois manuscritos conferem" if not falhas

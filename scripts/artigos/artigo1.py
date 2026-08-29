@@ -11,6 +11,7 @@ from pathlib import Path
 AQUI = Path(__file__).resolve().parent
 sys.path.insert(0, str(AQUI))
 sys.path.insert(0, str(AQUI.parent / "artigo4p"))
+import curvas as C  # noqa: E402
 import fonte as F  # noqa: E402
 from dados import (DIAS, N_DIA, N_PERFIL, PERFIL_DIA, PERFIS_T,
                    faixa)  # noqa: E402
@@ -24,6 +25,9 @@ TITULO = ("Perfil de humor em atletas de handebol de elite na última semana "
 SUBTITULO = ("Estudo observacional descritivo de um microciclo de sete dias "
              "com duas coletas diárias")
 
+_REV_VF = C.reversao("Vigor", "Fadiga")
+_REV_FF = C.reversao("Fadiga mental", "Fadiga física")
+_DIA_VF = C.cruzar(C.SUAVE["Vigor"], C.SUAVE["Fadiga"])[0][0]
 _RISCO1, _RISCO7 = faixa("De risco", 1), faixa("De risco", 7)
 _FAV1, _FAV7 = faixa("Favorável", 1), faixa("Favorável", 7)
 _NEU1, _NEU7 = faixa("Neutro", 1), faixa("Neutro", 7)
@@ -221,8 +225,65 @@ TABELAS = {
           "relatório completo."),
 },
 
-"perfis": {
+"comportamento": {
  "numero": 6,
+ "titulo": ("Comportamento de cada variável ao longo dos sete dias do "
+            "microciclo, com o efeito do dia e os dias em que a variação "
+            "supera o ruído"),
+ "cabecalho": ["Variável", "Dia 1", "Dia 7", "Diferença", "Piso de ruído",
+               "η² parcial", "p (FDR)", "Dias de choque"],
+ "linhas": [
+  [nome, F.br(C.SERIE[nome][0], 2), F.br(C.SERIE[nome][-1], 2),
+   F.sinal(C.variacao_total(nome), 2), F.br(C.PISO[nome], 2),
+   F.br(C.EFEITO_DIA[C.CHAVE[nome]][1], 3),
+   C.EFEITO_DIA[C.CHAVE[nome]][2],
+   ", ".join(str(d) for d in C.dias_acima_do_piso(nome)) or "nenhum"]
+  for nome in sorted(C.SERIE, key=lambda k: -abs(C.variacao_total(k)))
+ ],
+ "nota": ("Nota: os escores vêm da estimativa em dois passos, que agrega "
+          "primeiro por atleta e só depois por dia. O piso de ruído é o "
+          "erro-padrão médio da média diária, igual ao desvio-padrão da "
+          "subescala dividido pela raiz do n de cada dia e promediado na "
+          "semana. Os dias de choque são aqueles em que a derivada da série "
+          "suavizada supera esse piso em valor absoluto, identificados pelo "
+          "dia de origem da variação. O eta² parcial e o p corrigido vêm do "
+          "modelo misto com intercepto aleatório por atleta. A perturbação "
+          "total do humor não é subescala e sim escore composto, e por isso "
+          "aparece em primeiro lugar sem entrar na contagem das seis. Fonte "
+          "primária: Tabelas 19 e 19 de resultados do relatório completo."),
+},
+
+"cruzamentos": {
+ "numero": 7,
+ "titulo": ("Pontos de cruzamento entre pares de variáveis ao longo da "
+            "semana, e teste de inversão estabelecida"),
+ "cabecalho": ["Par de variáveis", "Dia do cruzamento", "Diferença no dia 1",
+               "Diferença no dia 7", "Limiar de ruído", "Leitura"],
+ "linhas": [
+  [f"{a} e {b}",
+   ", ".join(F.br(d, 2) for d, _, _ in cruz) or "não cruzam",
+   F.sinal(rev["dif_dia1"], 2) + ("*" if rev["dia1_acima"] else ""),
+   F.sinal(rev["dif_dia7"], 2) + ("*" if rev["dia7_acima"] else ""),
+   F.br(rev["limiar"], 2),
+   "Inversão estabelecida" if rev["inversao_estabelecida"]
+   else "Divergência a partir de ponto comum"]
+  for a, b, leitura, cruz, rev in C.CRUZAMENTOS
+ ],
+ "nota": ("Nota: a diferença é a da primeira variável do par menos a "
+          "segunda, na escala original. O limiar de ruído é a raiz da soma "
+          "dos quadrados dos pisos das duas séries, que é o erro-padrão da "
+          "diferença entre duas médias. O asterisco marca a diferença que "
+          "supera esse limiar. A inversão só é dada por estabelecida quando "
+          "as diferenças do dia 1 e do dia 7 superam o limiar e têm sinais "
+          "opostos; quando apenas uma das pontas supera, o que a série "
+          "mostra é divergência a partir de um ponto comum, e não troca de "
+          "uma ordem previamente estabelecida. O dia do cruzamento vem de "
+          "interpolação linear sobre as séries suavizadas e é reportado em "
+          "fração de dia."),
+},
+
+"perfis": {
+ "numero": 8,
  "titulo": ("Os seis perfis de humor: definição, correlatos descritos na "
             "literatura, prevalência normativa e prevalência nesta amostra"),
  "cabecalho": ["Perfil", "Definição pelo padrão das seis subescalas",
@@ -277,7 +338,7 @@ TABELAS = {
 },
 
 "caracteristicas": {
- "numero": 7,
+ "numero": 9,
  "titulo": ("Correlatos físicos e psicológicos descritos na literatura para "
             "cada perfil, e leitura prática do que a prevalência dele "
             "significa para a comissão técnica"),
@@ -346,7 +407,7 @@ TABELAS = {
 },
 
 "distribuicao": {
- "numero": 8,
+ "numero": 10,
  "titulo": ("Distribuição dos perfis no primeiro e no último dia do "
             "microciclo, com as faixas de significado"),
  "cabecalho": ["Perfil ou faixa", "Dia 1, n (%)", "Dia 7, n (%)",
@@ -373,12 +434,12 @@ TABELAS = {
           "e a de humor perturbado de "
           f"{F.br(PERFIL_DIA[1][1], 1)}% para {F.br(PERFIL_DIA[7][1], 1)}%; "
           "esse critério não classifica nos seis perfis e é discutido na "
-          "seção 4.5. Fonte primária: Tabela 12 do estudo de perfil e Tabela "
+          "seção 4.6. Fonte primária: Tabela 12 do estudo de perfil e Tabela "
           "20 do relatório completo."),
 },
 
 "sinal": {
- "numero": 9,
+ "numero": 11,
  "titulo": ("Predominância diária dos perfis, erro-padrão da proporção e "
             "derivada da série suavizada"),
  "cabecalho": ["Dia", "Iceberg (%)", "Erro-padrão", "Perturbado (%)",
@@ -433,7 +494,7 @@ BLOCOS = [
       "e Lane, 2000). Uma equipe apresenta, na mesma semana, estados que a "
       "oposição entre dois padrões não distingue. A resposta veio da análise "
       "de agrupamento: sobre três amostras independentes, com 2364, 2303 e "
-      "1865 respostas à Escala de Humor de Brunel, os escores brutos foram "
+      "1865 respostas à Escala de Humor de Brunel, os escores foram "
       "convertidos em escores T de média 50 e desvio-padrão 10 contra a "
       "norma da amostra, e submetidos a análise "
       "hierárquica aglomerativa com distância euclidiana quadrática pelo "
@@ -449,9 +510,9 @@ BLOCOS = [
       "seis grupos em vez de gerar solução nova a cada amostra (Rohlfs e "
       "outros, 2024; Luojumäki e outros, 2026)."),
 
-("p", "A replicação da solução de seis agrupamentos em populações "
-      "distintas é o principal argumento a favor da adoção dela como "
-      "linguagem comum do monitoramento. Eles reapareceram em contexto "
+("p", "A replicação da solução em populações distintas é o principal "
+      "argumento a favor da adoção dela como linguagem comum do "
+      "monitoramento. Os seis perfis reapareceram em contexto "
       "esportivo e de exercício (Quartiroli e outros, 2018), em "
       "Singapura (Han e outros, 2020), em população lituana e grega (Terry e "
       "Parsons-Smith, 2021, 2022), em 592 triatletas amadores (Parsons-Smith "
@@ -486,19 +547,22 @@ BLOCOS = [
       "overtraining alteram humor, estresse, esgotamento e fadiga "
       "(Valdesalici e outros, 2026). Os três últimos reúnem-se sob o rótulo "
       "de perfis de risco, e a prevalência deles é o indicador de triagem "
-      "que interessa ao clube (Tabela 7)."),
+      "que interessa ao clube (Tabela 9)."),
 
 ("p", "O handebol permanece fora desse mapa, e a lacuna é dupla. O "
       "levantamento que conduzimos sobre a produção internacional em "
       "psicologia do esporte no handebol entre 2006 e 2026 reúne 525 "
       "estudos, dos quais apenas 32 aferem humor ou afeto, um único com "
       "desenho longitudinal, e nenhum aplica os seis perfis. O precedente "
-      "mais próximo acompanha medidas biológicas e psicológicas ao longo de "
-      "uma temporada, sem classificação por perfil (Bresciani e outros, "
-      "2010), e o estudo mais citado descreve ansiedade e humor em handebol "
-      "de areia, em corte único (Reigal e outros, 2019). A "
+      "mais próximo acompanha uma temporada sem classificação por perfil "
+      "(Bresciani e outros, 2010), e o estudo mais citado descreve "
+      "ansiedade e humor em handebol de areia, em corte único (Reigal e "
+      "outros, 2019). A "
       "produção recente caminhou para o monitoramento de carga (Skarbalius, "
-      "2026; Struzik, Nadobnik e Stępień-Słodkowska, 2026), e o maior estudo "
+      "2026; Struzik, Nadobnik e Stępień-Słodkowska, 2026), a ponto de o "
+      "campo registrar protocolo de revisão sistemática só dos métodos de "
+      "monitoramento na modalidade (Henze e outros, 2025), e o maior "
+      "estudo "
       "psicofisiológico da modalidade, com 584 handebolistas de elite, não "
       "encontrou associação entre estado endócrino e perturbação de humor, e "
       "pediu indicadores psicológicos mais sensíveis à tensão fisiológica "
@@ -507,8 +571,8 @@ BLOCOS = [
       "esportivas heterogêneas (Terry e Lane, 2000), mas nenhuma específica "
       "do handebol, e a versão brasileira foi validada em futebolistas "
       "(Rohlfs, Rotta e Luft, 2008). Sem norma, cada estudo padroniza "
-      "dentro da própria amostra, o que impede a comparação entre estudos e "
-      "trava o acúmulo de conhecimento na modalidade."),
+      "dentro da própria amostra, o que trava o acúmulo de conhecimento na "
+      "modalidade."),
 
 ("p", "Some-se a isso o momento. A última semana de pré-temporada concentra "
       "a maior carga acumulada do ciclo preparatório e termina na véspera da "
@@ -516,13 +580,12 @@ BLOCOS = [
       "ser indicador de processo e passa a ser condição de partida. É "
       "justamente nesse intervalo que o monitoramento tem mais consequência "
       "prática e menos descrição publicada: os estudos com os seis perfis "
-      "são, na quase totalidade, transversais, e dizem quantos atletas "
-      "estão em cada perfil, sem dizer quando um atleta migra. Descrever "
-      "quais "
-      "perfis predominam nessa semana, em que dias o deslocamento acontece e "
-      "quanto dele excede a flutuação amostral é o que permite à comissão "
-      "técnica agir antes da competição, e não depois dela. É essa a "
-      "justificativa deste estudo."),
+      "são quase todos transversais, e dizem quantos atletas estão em "
+      "cada perfil, sem dizer quando um atleta migra. Descrever quais "
+      "perfis predominam nessa semana, em que dias o deslocamento acontece "
+      "e quanto dele excede a flutuação amostral é o que permite agir "
+      "antes da competição, e não depois dela. É essa a justificativa "
+      "deste estudo."),
 ("h1", "2 OBJETIVO"),
 ("p", "Descrever o perfil de humor de atletas de handebol masculino de elite "
       "ao longo da última semana de pré-temporada, e caracterizar os perfis "
@@ -674,13 +737,14 @@ BLOCOS = [
       "decorre dessa escolha está na seção 5.7."),
 ("h2", "3.8 Plano de análise"),
 ("p0", "O plano de análise está descrito com o detalhe necessário à "
-       "reprodução integral do estudo. Ele se organiza em sete blocos, na "
+       "reprodução integral do estudo. Ele se organiza em oito blocos, na "
        "ordem em que as perguntas do objetivo foram respondidas: a descrição "
        "das subescalas e das propriedades da medida; o contraste entre o "
        "primeiro e o último dia; a comparação entre os sete dias; a "
        "comparação intradia; a separação entre o nível do grupo e o nível do "
-       "atleta; a análise da predominância dos perfis ao longo da semana; e "
-       "as decisões gerais de tratamento de dados. O nível de significância "
+       "atleta; a análise da predominância dos perfis ao longo da semana; a "
+       "análise das curvas de cada variável e dos pontos em que elas se "
+       "cruzam; e as decisões gerais de tratamento de dados. O nível de significância "
        "adotado foi de 5% em todos os testes, sempre depois da correção para "
        "múltiplas comparações descrita em 3.8.7."),
 ("h3", "3.8.1 Descrição das subescalas e propriedades da medida"),
@@ -882,7 +946,48 @@ BLOCOS = [
       "dias adjacentes das séries suavizadas, e é reportado em fração de "
       "dia, o que permite dizer se a inversão acontece no início ou no fim "
       "do intervalo entre duas coletas."),
-("h3", "3.8.7 Decisões gerais de tratamento de dados"),
+("h3", "3.8.7 Curvas das variáveis contínuas e pontos de cruzamento"),
+("p", "A série diária de cada subescala recebeu o mesmo tratamento aplicado "
+      "às proporções de perfil, com uma adaptação necessária. O piso de "
+      "ruído de uma proporção vem do erro-padrão binomial; o de uma média "
+      "vem do erro-padrão da média, igual ao desvio-padrão da subescala "
+      "dividido pela raiz do número de atletas que responderam naquele dia. "
+      "Como o n varia entre os sete dias, o piso de cada variável é a média "
+      "desses sete erros-padrão. As séries foram suavizadas pelo mesmo "
+      "filtro binomial de três pontos e derivadas do mesmo modo, e um dia é "
+      "chamado de dia de choque quando a derivada que parte dele supera o "
+      "piso da própria série em valor absoluto."),
+("p", "Para comparar variáveis de escalas diferentes, cada série foi também "
+      "reexpressa em percentual do próprio valor no dia 1, que passa a valer "
+      "100. A transformação preserva a forma da curva e torna comparável a "
+      "magnitude relativa da mudança entre subescalas que partem de "
+      "patamares muito distintos, o que a escala bruta não permite."),
+("p", "O ponto de cruzamento entre duas curvas foi obtido por interpolação "
+      "linear sobre as séries suavizadas, entre os dois dias em que a "
+      "diferença troca de sinal, e é reportado em fração de dia. Um "
+      "cruzamento visível na figura, porém, não basta para afirmar que duas "
+      "variáveis trocaram de posição, porque duas curvas próximas podem "
+      "cruzar-se várias vezes por flutuação amostral. Adotou-se, por isso, "
+      "um teste explícito de inversão. O limiar de ruído do par é a raiz da "
+      "soma dos quadrados dos pisos das duas séries, que é o erro-padrão da "
+      "diferença entre duas médias independentes. A inversão só é dada por "
+      "estabelecida quando a diferença entre as duas variáveis supera esse "
+      "limiar tanto no dia 1 quanto no dia 7 e os dois valores têm sinais "
+      "opostos. Quando apenas uma das pontas supera o limiar, o que a série "
+      "descreve é divergência a partir de um ponto comum, e não troca de uma "
+      "ordem previamente estabelecida; quando nenhuma supera, os "
+      "cruzamentos são oscilação dentro do ruído e não são interpretados. A "
+      "distinção muda a leitura prática e por isso é reportada em coluna "
+      "própria na tabela de cruzamentos."),
+("p", "Quatro pares foram definidos a priori, pela leitura clínica que "
+      "carregam: vigor e fadiga, que formam o eixo energético dos seis "
+      "perfis e cuja inversão caracteriza a passagem ao perfil barbatana de "
+      "tubarão; fadiga física e fadiga mental, cuja separação distingue "
+      "desgaste de carga de desgaste cognitivo; e os pares tensão e raiva e "
+      "tensão e depressão, que identificam qual afeto negativo domina o "
+      "quadro em cada momento da semana. Nenhum outro par foi testado, e a "
+      "escolha foi registrada antes da inspeção das curvas."),
+("h3", "3.8.8 Decisões gerais de tratamento de dados"),
 ("p", "Não houve imputação de dado faltante. Cada estimativa usa as "
       "observações efetivamente disponíveis, e o denominador de cada uma "
       "está declarado na nota da tabela correspondente, de modo que o leitor "
@@ -1001,7 +1106,146 @@ BLOCOS += [
       "energético, e confusão com tensão em 0,75, o mais alto do bloco de "
       "afeto negativo."),
 ("tab", "correlacao"),
-("h2", "4.3 Prevalência dos seis perfis"),
+("h2", "4.3 Comportamento de cada variável ao longo da semana"),
+("p0", "Esta seção descreve o que acontece com cada variável dia a dia, e é "
+       "o que sustenta a leitura dos perfis nas seções seguintes: um perfil "
+       "é a combinação de seis subescalas, e a migração entre perfis só "
+       "ganha explicação quando se sabe qual subescala se moveu, quanto e "
+       "quando. A Tabela 6 reúne o comportamento das nove variáveis, e a "
+       "Tabela 7 localiza os pontos em que duas delas trocam de posição."),
+("tab", "comportamento"),
+("p", "A hierarquia de resposta é nítida e segue a natureza da variável. A "
+      f"perturbação total do humor sobe {F.sinal(C.variacao_total('PTH'), 2)} "
+      f"ponto entre o primeiro e o último dia, a fadiga do BRUMS sobe "
+      f"{F.sinal(C.variacao_total('Fadiga'), 2)}, a fadiga física "
+      f"{F.sinal(C.variacao_total('Fadiga física'), 2)} e o vigor cai "
+      f"{F.sinal(C.variacao_total('Vigor'), 2)}. Essas quatro são as únicas "
+      "cuja variação total supera com folga o piso de ruído da própria "
+      "série, e são também as de maior eta² parcial no modelo misto: "
+      f"{F.br(C.EFEITO_DIA['Fadiga física'][1], 3)} na fadiga física, "
+      f"{F.br(C.EFEITO_DIA['Vigor'][1], 3)} no vigor, "
+      f"{F.br(C.EFEITO_DIA['Fadiga (BRUMS)'][1], 3)} na fadiga do BRUMS e "
+      f"{F.br(C.EFEITO_DIA['PTH (TMD)'][1], 3)} na perturbação total. As "
+      "quatro subescalas de afeto negativo ficam abaixo: raiva com "
+      f"{F.br(C.EFEITO_DIA['Raiva'][1], 3)}, tensão com "
+      f"{F.br(C.EFEITO_DIA['Tensão'][1], 3)}, confusão com "
+      f"{F.br(C.EFEITO_DIA['Confusão'][1], 3)} e depressão com "
+      f"{F.br(C.EFEITO_DIA['Depressão'][1], 3)}, esta última a única sem "
+      "efeito do dia que sobreviva à correção. Em outras palavras, o que a "
+      "semana move é o eixo energético, e não o eixo de sofrimento "
+      "psíquico."),
+("p", "Duas subescalas se movem na direção favorável, e o achado merece "
+      f"destaque porque contraria a expectativa. A tensão cai "
+      f"{F.sinal(C.variacao_total('Tensão'), 2)} ponto e a confusão "
+      f"{F.sinal(C.variacao_total('Confusão'), 2)} ponto do primeiro ao "
+      "último dia. A queda da tensão é a maior variação favorável de toda a "
+      "tabela e supera o piso de ruído da própria série. A leitura "
+      "plausível é que o dia de repouso, por ser também o dia de "
+      "apresentação e de primeira coleta, carrega a tensão antecipatória da "
+      "retomada, que se dissipa quando a rotina se instala. Ela não é "
+      "reposta pela proximidade da estreia, o que contraria a expectativa de "
+      "que a véspera de competição elevaria a tensão."),
+("fig", "a1_curvas_energia.png", 16.4,
+ "Figura 3 - Vigor e fadiga ao longo dos sete dias, com o ponto de inversão "
+ "(A), e fadiga física e mental, com o ponto de separação (B)"),
+("p", "O par vigor e fadiga é o eixo energético dos seis perfis, e o "
+      "comportamento dele ao longo da semana é o achado temporal central "
+      f"deste estudo (Figura 3, painel A). No dia de repouso o vigor supera "
+      f"a fadiga em {F.br(abs(_REV_VF['dif_dia1']), 2)} pontos, separação "
+      f"muito acima do limiar de ruído do par, de "
+      f"{F.br(_REV_VF['limiar'], 2)} pontos. Na véspera da competição a "
+      f"relação está invertida, e a fadiga supera o vigor em "
+      f"{F.br(abs(_REV_VF['dif_dia7']), 2)} pontos, também acima do limiar. "
+      "As duas pontas superam o ruído e têm sinais opostos, e por isso a "
+      "inversão é dada por estabelecida pelo critério da seção 3.8.7. O "
+      f"cruzamento das curvas suavizadas ocorre no dia {F.br(_DIA_VF, 2)}, "
+      "isto é, praticamente sobre o segundo dia de jogo. A partir dali a "
+      "equipe passa a semana com mais fadiga do que vigor declarados, "
+      "condição que é a definição do perfil barbatana de tubarão e explica a "
+      "migração descrita na seção 4.5."),
+("p", "O painel B da Figura 3 separa a fadiga em suas duas componentes e "
+      "mostra que elas não caminham juntas. A fadiga física sobe "
+      f"{F.sinal(C.variacao_total('Fadiga física'), 2)} ponto ao longo da "
+      f"semana, com eta² parcial de "
+      f"{F.br(C.EFEITO_DIA['Fadiga física'][1], 3)}, o maior de todas as "
+      "variáveis do estudo. A fadiga mental sobe apenas "
+      f"{F.sinal(C.variacao_total('Fadiga mental'), 2)} ponto, variação "
+      f"inferior ao piso de ruído da série, de {F.br(C.PISO['Fadiga mental'], 2)} "
+      "ponto, e com o segundo menor eta² do conjunto. As duas curvas partem "
+      f"praticamente do mesmo ponto, separadas por "
+      f"{F.br(abs(_REV_FF['dif_dia1']), 2)} ponto, valor abaixo do limiar de "
+      f"ruído de {F.br(_REV_FF['limiar'], 2)}, e terminam a "
+      f"{F.br(abs(_REV_FF['dif_dia7']), 2)} pontos uma da outra. O teste da "
+      "seção 3.8.7 classifica isso como divergência a partir de ponto "
+      "comum, e não como inversão: as duas não trocam de posição, elas se "
+      "afastam. A leitura prática é que a carga da semana produz desgaste "
+      "físico sem custo mental proporcional, o que é o padrão esperado de "
+      "uma pré-temporada bem conduzida e afasta, para esta equipe, a "
+      "hipótese de fadiga mental acumulada."),
+("fig", "a1_curvas_negativas.png", 16.4,
+ "Figura 4 - As quatro subescalas de afeto negativo ao longo da semana (A) e "
+ "a perturbação total do humor com a faixa de erro-padrão da média (B)"),
+("p", "As quatro subescalas de afeto negativo aparecem na Figura 4, painel "
+      "A, e o traço comum a elas é a escala: nenhuma passa de 2,6 pontos em "
+      "média, em um instrumento que vai a 16. Elas descrevem, e é preciso "
+      "dizê-lo, a variação de uma equipe que praticamente não pontua nessas "
+      "dimensões, o que é consequência direta do efeito piso documentado na "
+      "seção 4.1. Dentro dessa faixa estreita, o desenho é de queda até o "
+      "meio da semana e retomada no fim: tensão, raiva, depressão e confusão "
+      "atingem o valor mais baixo entre os dias 3 e 5 e sobem nos dois "
+      "últimos. A raiva é a que mais sobe no trecho final, com dois dias de "
+      f"choque, no dia 5 e no dia 6, e termina em "
+      f"{F.br(C.SERIE['Raiva'][-1], 2)} pontos, o valor mais alto de toda a "
+      "semana para essa subescala."),
+("p", "O painel B mostra a perturbação total do humor com a faixa de "
+      f"erro-padrão da média, de {F.br(C.PISO['PTH'], 2)} ponto. A série "
+      "tem forma de platô com degrau final: os cinco primeiros dias oscilam "
+      f"entre {F.br(min(C.SERIE['PTH'][:5]), 2)} e "
+      f"{F.br(max(C.SERIE['PTH'][:5]), 2)} pontos, e a série sobe para "
+      f"{F.br(C.SERIE['PTH'][-1], 2)} no dia 7. Os três dias de choque da "
+      "perturbação total estão nos dias 1, 5 e 6, e o do dia 6 é o de maior "
+      "magnitude. O escore composto reproduz, portanto, o mesmo desenho de "
+      "deslocamento por choques descrito para os perfis na seção 4.5, e não "
+      "o de erosão gradual."),
+("tab", "cruzamentos"),
+("p", "A Tabela 7 aplica o teste de inversão aos quatro pares de leitura "
+      "clínica definidos a priori na seção 3.8.7, e o resultado é sóbrio: dos quatro, "
+      "apenas o par vigor e fadiga tem inversão estabelecida. O par tensão e "
+      "raiva cruza três vezes ao longo da semana, nos dias "
+      f"{', '.join(F.br(d, 2) for d, _, _ in C.cruzar(C.SUAVE['Tensão'], C.SUAVE['Raiva']))}, "
+      "mas a separação entre as duas curvas no dia 1 é de apenas "
+      f"{F.br(abs(C.reversao('Tensão', 'Raiva')['dif_dia1']), 2)} ponto, "
+      f"abaixo do limiar de {F.br(C.reversao('Tensão', 'Raiva')['limiar'], 2)}. "
+      "Os três cruzamentos são, por isso, oscilação dentro do ruído, e não "
+      "trocas de dominância. O par tensão e depressão cruza uma única vez, "
+      f"no dia {F.br(C.cruzar(C.SUAVE['Tensão'], C.SUAVE['Depressão'])[0][0], 2)}, "
+      "mas a separação final também não supera o limiar. Reportar esses três "
+      "pares como divergência, e não como inversão, é o que impede que a "
+      "figura seja lida além do que os dados sustentam."),
+("fig", "a1_indice.png", 16.4,
+ "Figura 5 - Trajetória de todas as variáveis reexpressas em percentual do "
+ "dia 1 (A) e variação total de cada uma contra o piso de ruído da série (B)"),
+("p", "A Figura 5 põe as nove variáveis na mesma régua, cada uma reexpressa "
+      "em percentual do próprio valor no dia 1. A leitura em percentual "
+      "corrige a diferença de escala que impede a comparação direta: uma "
+      "variação de 0,5 ponto significa pouco na fadiga, que parte de "
+      f"{F.br(C.SERIE['Fadiga'][0], 2)}, e muito na confusão, que parte de "
+      f"{F.br(C.SERIE['Confusão'][0], 2)}. Nessa régua, a perturbação total "
+      f"do humor termina em {F.br(C.INDICE['PTH'][-1], 0)}% do valor "
+      f"inicial, a fadiga em {F.br(C.INDICE['Fadiga'][-1], 0)}%, a fadiga "
+      f"física em {F.br(C.INDICE['Fadiga física'][-1], 0)}% e o vigor em "
+      f"{F.br(C.INDICE['Vigor'][-1], 0)}%. As curvas se separam em dois "
+      "feixes já no segundo dia, e o feixe superior contém apenas o bloco de "
+      "fadiga e o escore composto que ele domina."),
+("p", "O painel B da Figura 5 confronta a variação total de cada variável "
+      "com o piso de ruído da própria série, e é o resumo mais direto de "
+      "toda a seção. Quatro variáveis mudam além do ruído na direção "
+      "desfavorável, uma muda além do ruído na direção favorável, que é a "
+      "tensão, e as quatro restantes ficam dentro da faixa em que a variação "
+      "não é distinguível de flutuação amostral. Nenhuma conclusão deste "
+      "estudo se apoia nessas quatro."),
+
+("h2", "4.4 Prevalência dos seis perfis"),
 ("p", "No dia de repouso, o perfil iceberg é o mais frequente, com "
       f"{F.br(PERFIS_T['Iceberg'][1], 1)}% das observações, seguido do "
       f"superfície com {F.br(PERFIS_T['Superfície'][1], 1)}%, do Everest "
@@ -1009,10 +1253,10 @@ BLOCOS += [
       f"iceberg invertido com {F.br(PERFIS_T['Iceberg invertido'][1], 1)}%, "
       f"do submerso com {F.br(PERFIS_T['Submerso'][1], 1)}% e da barbatana "
       f"de tubarão com {F.br(PERFIS_T['Barbatana de tubarão'][1], 1)}% "
-      "(Tabela 6). Os três perfis associados a risco à saúde mental somam "
+      "(Tabela 8). Os três perfis associados a risco à saúde mental somam "
       f"{F.br(_RISCO1, 1)}% das observações nesse dia."),
 ("tab", "perfis"),
-("p", "A Tabela 7 traduz cada perfil nos correlatos físicos e psicológicos "
+("p", "A Tabela 9 traduz cada perfil nos correlatos físicos e psicológicos "
       "que a literatura lhe atribui, e acrescenta a leitura prática que "
       "decorre deles. A separação entre as duas colunas de correlato importa "
       "para a conduta: a barbatana de tubarão é resposta à carga, e responde "
@@ -1023,7 +1267,7 @@ BLOCOS += [
       "prática de classificar em seis perfis em vez de dois."),
 ("tab", "caracteristicas"),
 ("fig", "fig_prevalencia.png", 16.0,
- "Figura 3 - Prevalência de cada perfil na amostra normativa e nesta amostra "
+ "Figura 6 - Prevalência de cada perfil na amostra normativa e nesta amostra "
  "(A) e efeito da padronização interna sobre essa prevalência (B)"),
 ("p", "A comparação com a amostra normativa tem a direção esperada nos dois "
       "extremos. O perfil iceberg fica 11,1 pontos percentuais acima da "
@@ -1032,23 +1276,23 @@ BLOCOS += [
       "perfis submerso e barbatana de tubarão ficam abaixo, em 18,4 e 14,9 "
       "pontos, também coerente com o dia de menor carga da semana. O "
       "afastamento que essa lógica não explica é o do Everest invertido, 11,6 "
-      "pontos acima da norma, retomado na seção 5.5."),
-("h2", "4.4 Predominância dos perfis ao longo da semana"),
+      "pontos acima da norma, retomado na seção 5.6."),
+("h2", "4.5 Predominância dos perfis ao longo da semana"),
 ("p", "Do primeiro ao último dia, a proporção de atletas em perfil iceberg "
       f"cai de {F.br(PERFIL_DIA[1][0], 1)}% para {F.br(PERFIL_DIA[7][0], 1)}%, "
       f"perda de {F.br(abs(PERFIL_DIA[7][0] - PERFIL_DIA[1][0]), 1)} pontos "
       "percentuais, e a de humor perturbado sobe de "
       f"{F.br(PERFIL_DIA[1][1], 1)}% para {F.br(PERFIL_DIA[7][1], 1)}%, ganho "
       f"de {F.br(abs(PERFIL_DIA[7][1] - PERFIL_DIA[1][1]), 1)} pontos "
-      "(Tabela 9). Pela classificação nos seis perfis, no mesmo intervalo, o "
+      "(Tabela 11). Pela classificação nos seis perfis, no mesmo intervalo, o "
       "perfil iceberg recua 23,1 pontos percentuais e a barbatana de tubarão "
       "avança 25,9 pontos, que são os dois maiores deslocamentos da "
-      "distribuição (Tabela 8)."),
+      "distribuição (Tabela 10)."),
 ("tab", "distribuicao"),
 ("fig", "a1_prevalencia_semana.png", 16.0,
- "Figura 4 - Composição do grupo em faixas de significado ao longo da semana "
+ "Figura 7 - Composição do grupo em faixas de significado ao longo da semana "
  "(A) e prevalência dos seis perfis no primeiro e no último dia (B)"),
-("p", "A Figura 4 reúne a leitura de grupo. O painel A agrega os seis perfis "
+("p", "A Figura 7 reúne a leitura de grupo. O painel A agrega os seis perfis "
       "em três faixas: favorável, que reúne o iceberg; neutra, que reúne "
       "superfície e submerso; e de risco, que reúne barbatana de tubarão, "
       "iceberg invertido e Everest invertido. As três faixas se movem na "
@@ -1069,10 +1313,10 @@ BLOCOS += [
       "tubarão."),
 ("tab", "sinal"),
 ("fig", "a1_sinal.png", 15.0,
- "Figura 5 - Predominância diária dos dois critérios de Morgan, com a curva "
+ "Figura 8 - Predominância diária dos dois critérios de Morgan, com a curva "
  "suavizada sobre os valores observados (A), e variação diária do perfil "
  "iceberg contra o ruído amostral (B)"),
-("p", "A análise da derivada, no painel B da Figura 5, mostra que a perda não é gradual. Das seis "
+("p", "A análise da derivada, no painel B da Figura 8, mostra que a perda não é gradual. Das seis "
       "variações diárias da série suavizada, apenas duas ultrapassam o piso "
       f"de ruído de {F.br(_PISO, 1)} pontos percentuais: a do dia 1 para o "
       f"dia 2, de {F.sinal(_DERIV[0], 1)} pontos, e a do dia 6 para o dia 7, "
@@ -1090,7 +1334,7 @@ BLOCOS += [
       "humor perturbado caracteriza a maioria em seis dos sete dias. O dia 5, "
       "único dia de recuperação parcial, sucede um dia de volume máximo sem "
       "componente de alta intensidade."),
-("h2", "4.5 Concordância entre os dois critérios de classificação"),
+("h2", "4.6 Concordância entre os dois critérios de classificação"),
 ("p", "Os dois critérios não concordam entre si, e a diferença é grande. No "
       "primeiro dia, o critério de Morgan classifica 71,4% das observações "
       "como perfil iceberg, contra 40,5% pelo critério dos seis perfis. A "
@@ -1148,7 +1392,7 @@ BLOCOS += [
       "para 7,46 entre o primeiro e o último dia. A migração dos perfis e o "
       "comportamento das subescalas contam, portanto, a mesma história, por "
       "dois caminhos independentes."),
-("p", "A composição por faixas, no painel A da Figura 4, resume o "
+("p", "A composição por faixas, no painel A da Figura 7, resume o "
       f"movimento. A faixa favorável cai de {F.br(_FAV1, 1)}% para "
       f"{F.br(_FAV7, 1)}%, a neutra sobe de {F.br(_NEU1, 1)}% para "
       f"{F.br(_NEU7, 1)}% e a de risco sobe de {F.br(_RISCO1, 1)}% para "
@@ -1186,7 +1430,81 @@ BLOCOS += [
       "lido como demonstração de que a distinção entre erosão e choque é "
       "acessível a partir de dados de rotina, e não como estimativa precisa "
       "das taxas."),
-("h2", "5.3 O efeito piso: defeito do instrumento ou retrato da população?"),
+("h2", "5.3 A inversão do eixo energético e o que ela diz sobre a carga"),
+("p", "O achado de maior densidade analítica deste estudo não está na "
+      "prevalência dos perfis, e sim no dia em que o eixo energético se "
+      f"inverte. No dia de repouso o vigor supera a fadiga em "
+      f"{F.br(abs(_REV_VF['dif_dia1']), 2)} pontos; na véspera da estreia a "
+      f"fadiga supera o vigor em {F.br(abs(_REV_VF['dif_dia7']), 2)}; e o "
+      f"cruzamento ocorre no dia {F.br(_DIA_VF, 2)}, no segundo dia de jogo. "
+      "A relevância disso é conceitual antes de ser prática. Os seis perfis "
+      "são definidos por combinações de vigor e das cinco negativas, e a "
+      "barbatana de tubarão é exatamente o padrão em que o vigor é o mais "
+      "baixo dos seis e a fadiga a mais alta depois do Everest invertido "
+      "(Parsons-Smith, Terry e Machin, 2017). A migração de 2,4% para 28,3% "
+      "nesse perfil, descrita na seção 5.1, deixa de ser um achado de "
+      "contagem e passa a ter mecanismo: ela é a consequência, no nível da "
+      "classificação, do cruzamento observado no nível das variáveis "
+      "contínuas. Os dois resultados são a mesma coisa vista em duas "
+      "resoluções, e a concordância entre eles é o argumento mais forte a "
+      "favor da leitura aqui proposta."),
+("p", "A separação entre fadiga física e fadiga mental reforça essa "
+      "interpretação e afasta a alternativa. A fadiga física tem o maior "
+      f"eta² parcial de todo o estudo, "
+      f"{F.br(C.EFEITO_DIA['Fadiga física'][1], 3)}, e sobe "
+      f"{F.sinal(C.variacao_total('Fadiga física'), 2)} ponto; a fadiga "
+      f"mental sobe {F.sinal(C.variacao_total('Fadiga mental'), 2)} ponto, "
+      "variação inferior ao piso de ruído da própria série. Se o que a "
+      "semana produzisse fosse desgaste cognitivo, as duas subiriam juntas. "
+      "A literatura experimental sobre fadiga mental mostra que ela deprime "
+      "seletivamente tarefas de mudança de direção sem afetar o desempenho "
+      "em tiros repetidos, o que indica um mecanismo distinto do da fadiga "
+      "periférica (Yang, Chen e Chen, 2026). Aqui o padrão é o inverso do "
+      "que caracteriza a fadiga mental: a componente física carrega "
+      "praticamente toda a variação, e a mental permanece dentro do ruído. "
+      "Para esta equipe, e nesta semana, o desgaste é de carga, e não "
+      "cognitivo."),
+("p", "Isso muda a conduta que decorre do achado. Um quadro de fadiga com "
+      "vigor baixo e afeto negativo estável responde a manejo de volume, de "
+      "intensidade e de recuperação, e é a assinatura descrita para o "
+      "excesso funcional de treino, o estágio que precede o excesso não "
+      "funcional e a síndrome instalada. A revisão sistemática de onze "
+      "estudos e 461 atletas de elite localiza o prejuízo de controle "
+      "inibitório apenas no quadro instalado, e não no excesso funcional "
+      "(Valdesalici e outros, 2026), o que é coerente com a estabilidade da "
+      "fadiga mental observada aqui. A distinção não é acadêmica: confundir "
+      "os dois quadros leva a interromper uma pré-temporada que dá certo, "
+      "ou, no erro oposto, a manter a carga quando o sinal já "
+      "mudou de natureza."),
+("p", "Vale ainda registrar o que se move na direção contrária ao esperado. "
+      f"A tensão cai {F.sinal(C.variacao_total('Tensão'), 2)} ponto ao longo "
+      "da semana, com variação acima do piso de ruído, e a confusão cai "
+      f"{F.sinal(C.variacao_total('Confusão'), 2)} ponto. A véspera de "
+      "competição não elevou a tensão desta equipe. O achado converge com o "
+      "de uma seleção nacional de basquetebol acompanhada por catorze dias "
+      "de competição internacional, na qual tensão e vigor caíram juntos ao "
+      "longo do período (Bird e outros, 2025), e diverge da leitura "
+      "corrente de que a proximidade competitiva eleva a ativação. Duas "
+      "explicações concorrem e este estudo não as separa. A primeira é o "
+      "efeito piso: com 49,6% das respostas de tensão no valor mínimo, "
+      "a subescala tem pouca margem para subir e muita para descer. A "
+      "segunda é a de que a tensão do dia 1 seja antecipatória da retomada, "
+      "e não da competição, hipótese que só um desenho com coleta anterior "
+      "ao início da pré-temporada poderia testar. Há ainda evidência de que "
+      "a tensão guarda relação em forma de U invertido com o desempenho, de "
+      "modo que a queda observada não é, por si, favorável (Houison e "
+      "outros, 2025)."),
+("p", "Por fim, a análise das curvas expõe uma limitação de método que a "
+      "análise de prevalência esconde. Dos quatro pares testados, apenas um "
+      "tem inversão estabelecida. Os pares tensão e raiva e tensão e "
+      "depressão cruzam-se na figura, mas as separações não superam o "
+      "limiar de ruído, e os cruzamentos são oscilação amostral. Um estudo "
+      "que reportasse esses cruzamentos como trocas de dominância estaria a "
+      "descrever ruído, e a inspeção visual da figura não distingue os dois "
+      "casos. Esse é o argumento a favor de declarar o limiar antes de olhar "
+      "a curva, e é o procedimento que este estudo propõe incorporar ao "
+      "monitoramento de rotina."),
+("h2", "5.4 O efeito piso: defeito do instrumento ou retrato da população?"),
 ("p", "Quatro subescalas concentram entre 49,6% e 80,5% das respostas no "
       "valor mínimo, mais de três vezes o limite convencional de 15% (Terwee "
       "e outros, 2007). A leitura imediata é a de falha psicométrica, e ela "
@@ -1207,7 +1525,7 @@ BLOCOS += [
       "(van Wijk e outros, 2013). Elas não servem ao acompanhamento de "
       "variação de carga no dia a dia. A distinção entre triagem e "
       "monitoramento resolve boa parte da aparente contradição."),
-("h2", "5.4 A instabilidade da medida isolada: defeito ou propriedade?"),
+("h2", "5.5 A instabilidade da medida isolada: defeito ou propriedade?"),
 ("p", "Nenhuma subescala atinge 0,60 de estabilidade em uma coleta isolada, "
       "com ICC entre 0,31 e 0,59. Isolado, o número parece condenar o "
       "instrumento. Comparado à literatura, ele deixa de ser anômalo: a "
@@ -1232,7 +1550,7 @@ BLOCOS += [
       "observações, é estável; a classificação de um atleta em um dia não é. "
       "Nenhuma decisão individual deveria repousar sobre uma única "
       "classificação."),
-("h2", "5.5 O que a literatura corrobora e o que ela contraria"),
+("h2", "5.6 O que a literatura corrobora e o que ela contraria"),
 ("p", "Três resultados convergem com a literatura. A estrutura de seis "
       "fatores ajustou bem, o que replica a validade estrutural do "
       "instrumento descrita desde a versão original (Terry e outros, 1999, "
@@ -1252,7 +1570,7 @@ BLOCOS += [
 ("p", "O segundo é a prevalência do Everest invertido, de "
       f"{F.br(PERFIS_T['Everest invertido'][1], 1)}% no dia de repouso contra "
       f"{F.br(NORMATIVO['Everest invertido'], 1)}% na amostra normativa, o "
-      "maior excesso relativo de toda a distribuição (Figura 3). O Everest "
+      "maior excesso relativo de toda a distribuição (Figura 6). O Everest "
       "invertido é o perfil mais negativo dos seis e o que a literatura "
       "associa a quadros clinicamente diagnosticáveis, de modo que seis "
       "observações nesse perfil no dia de repouso merecem atenção antes de "
@@ -1318,7 +1636,13 @@ BLOCOS += [
       "trabalhos citados permite comparação direta de prevalência na "
       "modalidade, o que é, em si, a medida do vazio que este estudo começa "
       "a preencher."),
-("h2", "5.6 Aplicação prática"),
+("h2", "5.7 Aplicação prática"),
+("p", "A distinção corrente entre triagem, que é avaliação pontual do risco "
+      "de base, e monitoramento, que é acompanhamento contínuo da condição "
+      "que muda, com coleta próxima do momento da decisão, organiza o uso "
+      "prático destes resultados (Jimenez e Verhagen, 2025). O que este "
+      "estudo mede é monitoramento, e as três recomendações abaixo decorrem "
+      "disso."),
 ("p", "Para a comissão técnica, quatro decisões decorrem destes resultados. A "
       "primeira é o que medir: no acompanhamento diário bastam vigor, fadiga "
       "e o índice total, porque as demais subescalas não variam o suficiente "
@@ -1333,7 +1657,7 @@ BLOCOS += [
       "conversa individual, porque a repetição atenua a instabilidade da "
       "classificação isolada e porque esses três perfis são os que a "
       "literatura associa a risco."),
-("h2", "5.7 Limitações"),
+("h2", "5.8 Limitações"),
 ("p", "Cinco limitações restringem a generalização. A amostra tem 27 atletas "
       "de uma única equipe, dos quais 19 completaram todas as coletas, e o "
       "período monitorado é um único microciclo, o que concentra a observação "
@@ -1394,20 +1718,26 @@ BLOCOS += [
 ("nota", "HAN, C. S. Y. e outros. Mood profiling in Singapore: cross-cultural "
          "validation and potential applications of mood profile clusters. "
          "Frontiers in Psychology, v. 11, art. 665, 2020."),
+("nota", "JIMENEZ, C.; VERHAGEN, E. Reimagining athlete monitoring for true "
+         "indicative injury prevention. BMJ Open Sport and Exercise "
+         "Medicine, v. 11, n. 2, art. e002479, 2025."),
 ("nota", "LANE, A. M.; TERRY, P. C. The nature of mood: development of a "
          "conceptual model with a focus on depression. Journal of Applied "
          "Sport Psychology, v. 12, n. 1, p. 16-33, 2000."),
+("nota", "HENZE, A. S. e outros. Athlete monitoring in handball (ATHMON HB): "
+         "a systematic review protocol. Systematic Reviews, v. 14, n. 1, "
+         "art. 64, 2025."),
 ("nota", "LEW, P. C. F. e outros. Cross-cultural validation of the Malaysian "
          "Mood Scale and tests of between-group mood differences. "
          "International Journal of Environmental Research and Public "
          "Health, v. 20, n. 4, art. 3348, 2023."),
+("nota", "MAIN, L. C.; GROVE, J. R. A multi-component assessment model for "
+         "monitoring training distress among athletes. European Journal of "
+         "Sport Science, v. 9, n. 4, p. 195-202, 2009."),
 ("nota", "LUOJUMÄKI, R. J. e outros. Exploring mood profile clusters across "
          "physical activity level, gender and age in a Finnish population. "
          "European Journal of Sport Science, v. 26, n. 2, art. e70131, "
          "2026."),
-("nota", "MAIN, L. C.; GROVE, J. R. A multi-component assessment model for "
-         "monitoring training distress among athletes. European Journal of "
-         "Sport Science, v. 9, n. 4, p. 195-202, 2009."),
 ("nota", "MORGAN, W. P. Test of champions: the iceberg profile. Psychology "
          "Today, v. 14, p. 92-108, 1980."),
 ("nota", "MORGAN, W. P. Selected psychological factors limiting performance: "
@@ -1488,6 +1818,9 @@ BLOCOS += [
          "of the Brunel Mood Scale: initial validation among exercise "
          "participants and inactive adults. Sports, v. 11, n. 12, art. 234, "
          "2023."),
+("nota", "YANG, W.; CHEN, T.; CHEN, G. The impact of mental fatigue on "
+         "repeated sprint and change-of-direction performance in soccer. "
+         "Frontiers in Psychology, v. 17, art. 1842345, 2026."),
 ("nota", "VAN WIJK, C. H. e outros. The Brunel Mood Scale as a screening tool "
          "for post-traumatic stress risk in military populations. Military "
          "Medicine, v. 178, n. 4, p. 372-376, 2013."),

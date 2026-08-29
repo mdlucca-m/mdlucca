@@ -1,8 +1,9 @@
 """Estilo visual das figuras do projeto.
 
-Reproduz o padrão das figuras de referência enviadas pelo orientador: título
-em negrito sobre cada painel, moldura fechada nos quatro lados, linhas de
-grade discretas ao fundo, legenda em caixa e rótulo direto sobre os valores.
+Padrão ABNT pedido pelo orientador: fundo branco, sem linha de grade, título
+em negrito sobre cada painel, moldura fechada nos quatro lados, legenda em
+caixa e rótulo direto sobre os valores. A leitura do valor exato cabe ao
+rótulo e à tabela que acompanha a figura, nunca à grade.
 
 A paleta foi escolhida pelo trabalho que a variável cumpre e conferida com
 scripts/validate_palette.js da habilidade de visualização de dados. Todas as
@@ -30,23 +31,19 @@ _VIRGULA = FuncFormatter(
     lambda v, _: f"{v:g}".replace(".", ",").replace("-", "−"))
 
 
-def aplicar(ax, *, grade: str = "ambos") -> None:
-    """Moldura fechada, grade discreta atrás dos dados e tinta de texto.
+def aplicar(ax, *, grade: str = "nenhum") -> None:
+    """Moldura fechada sobre fundo branco, sem grade, e tinta de texto.
 
-    grade aceita ambos, x, y ou nenhum.
+    O argumento grade é mantido por compatibilidade e ignorado: nenhuma
+    figura do projeto leva linha de grade.
     """
     ax.set_facecolor("white")
     for lado in ("top", "right", "bottom", "left"):
         ax.spines[lado].set_visible(True)
         ax.spines[lado].set_color(MOLDURA)
         ax.spines[lado].set_linewidth(0.9)
-    if grade == "nenhum":
-        ax.grid(False)
-    else:
-        eixo = {"ambos": "both", "x": "x", "y": "y"}[grade]
-        ax.grid(True, axis=eixo, color=GRADE, linewidth=0.7,
-                linestyle=(0, (1, 3)), zorder=0)
-        ax.set_axisbelow(True)
+    ax.grid(False)
+    ax.set_axisbelow(True)
     ax.tick_params(colors=TINTA_FRACA, labelsize=8.2, width=0.9, length=3)
 
 
