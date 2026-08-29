@@ -276,8 +276,77 @@ TABELAS = {
           "três últimos perfis são os associados a risco à saúde mental."),
 },
 
-"distribuicao": {
+"caracteristicas": {
  "numero": 7,
+ "titulo": ("Correlatos físicos e psicológicos descritos na literatura para "
+            "cada perfil, e leitura prática do que a prevalência dele "
+            "significa para a comissão técnica"),
+ "cabecalho": ["Perfil", "Correlatos físicos", "Correlatos psicológicos e "
+               "cognitivos", "Leitura prática"],
+ "linhas": [
+  ["Iceberg",
+   "Desempenho físico alto; menor incidência de lesão entre os seis perfis, "
+   "tomado como categoria de referência nos modelos de risco",
+   "Funcionamento cognitivo saudável, bem-estar psicológico e prontidão "
+   "percebida altos",
+   "Estado desejável, mas de baixo poder discriminativo: é o padrão típico de "
+   "atletas, bem-sucedidos ou não. Interessa mais a queda da prevalência dele "
+   "do que o valor absoluto"],
+  ["Superfície",
+   "Sem correlato físico específico descrito",
+   "Estado indiferenciado, sem sinal claro em nenhuma direção; leitura "
+   "ambígua, que exige dado complementar",
+   "Não aciona conduta por si. Ganha significado pela direção do movimento: "
+   "se vem do iceberg, indica perda de vigor; se vem dos perfis de risco, "
+   "indica recuperação"],
+  ["Submerso",
+   "Baixa disponibilidade energética declarada, sem sinal de sofrimento",
+   "Cinco subescalas negativas baixas, como no iceberg, mas vigor abaixo da "
+   "média; compatível tanto com recuperação em curso quanto com "
+   "desengajamento",
+   "Exige distinguir descanso de desligamento. A conduta é conversa "
+   "individual, e não ajuste imediato de carga"],
+  ["Barbatana de tubarão",
+   "O vigor mais baixo dos seis perfis, com fadiga superior à de qualquer "
+   "outro exceto o Everest invertido; assinatura psicológica descrita para o "
+   "excesso agudo de carga",
+   "Prejuízo de funcionamento em ambientes que exigem energia e alerta, sem "
+   "elevação marcada de depressão, raiva ou confusão",
+   "É o perfil de resposta à carga, e não de sofrimento psíquico. Responde a "
+   "ajuste de volume e de intensidade e a recuperação, e é o alvo primário do "
+   "manejo na última semana de pré-temporada"],
+  ["Iceberg invertido",
+   "Queda de desempenho físico; indicador clássico da síndrome de "
+   "overtraining; risco aumentado de transtorno alimentar",
+   "Vigor abaixo da média com as cinco negativas acima; alteração de humor, "
+   "estresse e esgotamento descrita no excesso não funcional de treino",
+   "Aciona avaliação individual e reavaliação da progressão de carga do "
+   "atleta, e não apenas da sessão"],
+  ["Everest invertido",
+   "Desempenho debilitado; a maior razão de chances de lesão entre os seis "
+   "perfis, de 2,90 em comparação com o iceberg",
+   "O padrão mais negativo: depressão, raiva e confusão muito altas; "
+   "compartilha sintomas de quadros clinicamente diagnosticáveis; déficit "
+   "cognitivo, com pensamento distorcido, concentração reduzida, tempo de "
+   "reação mais lento e indecisão; prejuízo de controle inibitório descrito "
+   "no quadro instalado de overtraining",
+   "Aciona encaminhamento ao serviço de psicologia do clube, "
+   "independentemente da carga de treino"],
+ ],
+ "nota": ("Nota: definições e correlatos originais conforme Parsons-Smith, "
+          "Terry e Machin (2017). O risco de lesão e a comparação entre "
+          "perfis vêm da coorte de 417 atletas brasileiros de alto "
+          "rendimento de Rohlfs e outros (2025), na qual vigor e raiva foram "
+          "os principais preditores. Os achados sobre excesso não funcional "
+          "de treino, síndrome de overtraining e controle inibitório vêm da "
+          "revisão sistemática de onze estudos e 461 atletas de elite de "
+          "Valdesalici e outros (2026). A coluna de leitura prática é "
+          "interpretação dos autores, aplicada ao contexto deste estudo, e "
+          "não achado da literatura citada."),
+},
+
+"distribuicao": {
+ "numero": 8,
  "titulo": ("Distribuição dos perfis no primeiro e no último dia do "
             "microciclo, com as faixas de significado"),
  "cabecalho": ["Perfil ou faixa", "Dia 1, n (%)", "Dia 7, n (%)",
@@ -309,7 +378,7 @@ TABELAS = {
 },
 
 "sinal": {
- "numero": 8,
+ "numero": 9,
  "titulo": ("Predominância diária dos perfis, erro-padrão da proporção e "
             "derivada da série suavizada"),
  "cabecalho": ["Dia", "Iceberg (%)", "Erro-padrão", "Perturbado (%)",
@@ -337,101 +406,144 @@ TABELAS = {
 BLOCOS = [
 
 ("h1", "1 INTRODUÇÃO"),
-("p", "O humor responde à carga de treino antes que o desempenho caia, tem "
-      "custo de coleta próximo de zero e por isso ocupa lugar central no "
-      "monitoramento psicológico de atletas há mais de quatro décadas. O "
-      "modelo de saúde mental propôs que o bem-estar psicológico se associa "
-      "ao êxito esportivo, e a psicopatologia ao fracasso (Morgan, 1985). A "
-      "representação gráfica desse bem-estar recebeu o nome de perfil "
-      "iceberg: o vigor emerge acima da linha de água formada pela média "
-      "normativa, e tensão, depressão, raiva, fadiga e confusão permanecem "
-      "submersas (Morgan, 1980). Uma versão mais pronunciada, com vigor acima "
-      "do percentil 60 e as cinco negativas abaixo do percentil 40, recebeu o "
-      "nome de perfil Everest, e o padrão oposto, com vigor baixo e negativas "
-      "altas, o de iceberg invertido, associado a prejuízo de desempenho "
-      "(Terry, 1995). Duas meta-análises confirmaram que a relação entre "
-      "humor e desempenho existe, mas é modesta e depende do contexto "
-      "(Beedie, Terry e Lane, 2000), e o modelo conceitual que se seguiu "
-      "atribuiu ao humor deprimido o papel de moderador do efeito da raiva e "
-      "da tensão sobre o desempenho (Lane e Terry, 2000)."),
-("p", "A dicotomia entre o iceberg e o seu inverso, porém, tem um limite "
-      "conhecido. O perfil iceberg é o padrão típico de atletas, "
-      "bem-sucedidos ou não, e por isso discrimina desempenho menos do que se "
-      "afirmou (Terry e Lane, 2000). Uma equipe apresenta, na mesma semana, "
-      "estados que a oposição entre dois padrões não distingue. A resposta a "
-      "esse limite veio da análise de agrupamento. Sobre três amostras "
-      "independentes, com 2364, 2303 e 1865 respostas à Escala de Humor de "
-      "Brunel, a análise hierárquica aglomerativa com distância euclidiana "
-      "quadrática pelo método de Ward, refinada por k-médias e confirmada por "
-      "análise discriminante, identificou seis agrupamentos distintos e "
-      "teoricamente interpretáveis: iceberg, superfície, submerso, barbatana "
-      "de tubarão, iceberg invertido e Everest invertido (Parsons-Smith, "
-      "Terry e Machin, 2017). Os seis foram replicados em contexto esportivo "
-      "e de exercício (Quartiroli e outros, 2018), em Singapura (Han e "
-      "outros, 2020), em população lituana e grega (Terry e Parsons-Smith, "
-      "2021, 2022) e, com a versão brasileira do instrumento, em 898 atletas "
-      "de elite e de base de um clube do Rio de Janeiro (Rohlfs, Noce e "
-      "Wilke, 2024). A estabilidade da solução de seis agrupamentos em "
-      "populações tão distintas é o principal argumento a favor da adoção "
-      "dela como linguagem comum do monitoramento."),
+("p", "O humor é um estado afetivo difuso que responde à carga de treino "
+      "antes que o desempenho caia, tem custo de coleta próximo de zero e "
+      "por isso ocupa lugar central no monitoramento psicológico de atletas "
+      "há décadas. O modelo de saúde "
+      "mental associou o bem-estar psicológico ao êxito esportivo e a "
+      "psicopatologia ao fracasso (Morgan, 1985), e a representação gráfica "
+      "desse bem-estar recebeu o nome de perfil iceberg: o vigor emerge "
+      "acima da linha de água formada pela média normativa, e tensão, "
+      "depressão, raiva, fadiga e confusão permanecem submersas (Morgan, "
+      "1980). Duas meta-análises confirmaram que a relação entre humor e "
+      "desempenho é modesta e dependente do contexto (Beedie, Terry e Lane, "
+      "2000). A evidência recente reposicionou o construto: "
+      "mais do que preditor de resultado esportivo, o humor opera hoje como "
+      "indicador de triagem de risco à saúde mental e de tensão fisiológica "
+      "acumulada (Terry e Parsons-Smith, 2021). Em 417 atletas brasileiros de "
+      "alto rendimento, o perfil discriminou risco de lesão, com razão de "
+      "chances de 2,90 para o padrão mais negativo (Rohlfs e outros, 2025), "
+      "e em seleção nacional de basquetebol as subescalas explicaram 26,0% "
+      "da variância de um índice objetivo de eficiência em quadra (Bird e "
+      "outros, 2025)."),
+
+("p", "A oposição entre o iceberg e o seu inverso, porém, tem um limite "
+      "conhecido: o iceberg é o padrão típico de atletas, bem-sucedidos ou "
+      "não, e por isso discrimina desempenho menos do que se afirmou (Terry "
+      "e Lane, 2000). Uma equipe apresenta, na mesma semana, estados que a "
+      "oposição entre dois padrões não distingue. A resposta veio da análise "
+      "de agrupamento: sobre três amostras independentes, com 2364, 2303 e "
+      "1865 respostas à Escala de Humor de Brunel, os escores brutos foram "
+      "convertidos em escores T de média 50 e desvio-padrão 10 contra a "
+      "norma da amostra, e submetidos a análise "
+      "hierárquica aglomerativa com distância euclidiana quadrática pelo "
+      "método de Ward. A inspeção do dendrograma e do salto nos coeficientes "
+      "de fusão indicou a solução de seis grupos, refinada por k-médias e "
+      "confirmada por análise discriminante. Emergiram seis agrupamentos "
+      "interpretáveis, batizados pelo formato que assumem no gráfico de "
+      "perfil: iceberg, superfície, submerso, "
+      "barbatana de tubarão, iceberg invertido e Everest invertido "
+      "(Parsons-Smith, Terry e Machin, 2017). Os estudos posteriores "
+      "substituíram a etapa hierárquica pelo k-médias com sementes fixas nos "
+      "centroides publicados, procedimento que testa a reprodutibilidade dos "
+      "seis grupos em vez de gerar solução nova a cada amostra (Rohlfs e "
+      "outros, 2024; Luojumäki e outros, 2026)."),
+
+("p", "A replicação da solução de seis agrupamentos em populações "
+      "distintas é o principal argumento a favor da adoção dela como "
+      "linguagem comum do monitoramento. Eles reapareceram em contexto "
+      "esportivo e de exercício (Quartiroli e outros, 2018), em "
+      "Singapura (Han e outros, 2020), em população lituana e grega (Terry e "
+      "Parsons-Smith, 2021, 2022), em 592 triatletas amadores (Parsons-Smith "
+      "e outros, 2022) e em 652 finlandeses (Luojumäki e outros, 2026), e o "
+      "instrumento recebeu validação psicométrica em lituano (Terry e "
+      "outros, 2022), malaio (Lew e outros, 2023), árabe (Sahli e outros, "
+      "2023) e grego (Vlachopoulos, Lane e Terry, 2023). No Brasil, a versão "
+      "teve a validade fatorial e a confiabilidade das seis subescalas "
+      "confirmadas em 898 atletas de base e de elite (Rohlfs e outros, "
+      "2023), e a classificação dessa mesma amostra situou 26,5% deles em "
+      "algum dos três padrões de risco (Rohlfs, Noce e Wilke, 2024), valor "
+      "que é hoje a referência brasileira contra a qual qualquer amostra "
+      "nacional passa a ser lida."),
+
 ("p", "Cada perfil carrega correlatos próprios, físicos e psicológicos, e é "
-      "isso que os torna úteis à comissão técnica. O iceberg associa-se a "
-      "funcionamento cognitivo saudável e a desempenho físico alto. O perfil "
-      "superfície descreve um estado indiferenciado, sem sinal em nenhuma "
-      "direção. O perfil submerso compartilha com o iceberg as cinco "
-      "subescalas negativas baixas, mas tem também o vigor abaixo da média, "
-      "isto é, ausência de sofrimento com pouca energia disponível. A "
-      "barbatana de tubarão reúne o vigor mais baixo de todos os perfis com "
-      "fadiga superior à de qualquer outro, exceto o Everest invertido, e "
-      "essa combinação de fadiga alta com vigor baixo é preocupação "
-      "estabelecida em ambientes que exigem energia e alerta. O iceberg "
-      "invertido é o indicador clássico da síndrome de overtraining "
-      "(Budgett, 1998) e associa-se a risco de transtorno alimentar e a queda "
-      "de desempenho físico. O Everest invertido, o mais negativo dos seis, "
-      "acrescenta ao padrão anterior escores muito altos de depressão, raiva "
-      "e confusão, compartilha sintomas de quadros clinicamente "
-      "diagnosticáveis e associa-se a déficit cognitivo, com pensamento "
-      "distorcido, concentração reduzida, tempo de reação mais lento e "
-      "indecisão (Parsons-Smith, Terry e Machin, 2017). Os três últimos "
-      "reúnem-se sob o rótulo de perfis de risco, e a prevalência deles é o "
-      "indicador de triagem que interessa ao clube."),
+      "isso que os torna úteis à comissão técnica. O iceberg reúne "
+      "funcionamento cognitivo saudável, desempenho físico alto e a menor "
+      "incidência de lesão entre os seis; o superfície descreve estado "
+      "indiferenciado; e o submerso compartilha com o iceberg as cinco "
+      "negativas baixas, mas com vigor abaixo da média, quadro compatível "
+      "tanto com recuperação quanto com desengajamento. A barbatana de "
+      "tubarão reúne o vigor mais baixo dos "
+      "seis com fadiga superior à de qualquer outro, exceto o Everest "
+      "invertido, e essa combinação é a assinatura psicológica descrita para "
+      "o excesso de carga. O iceberg invertido é o indicador "
+      "clássico da síndrome de overtraining (Budgett, 1998). O Everest "
+      "invertido, o mais negativo, acrescenta escores muito altos de "
+      "depressão, raiva e confusão e associa-se a déficit cognitivo "
+      "(Parsons-Smith, Terry e Machin, 2017) e ao maior risco de lesão "
+      "(Rohlfs e outros, 2025). Revisão sistemática de 461 atletas de elite "
+      "confirmou que o excesso não funcional de treino e a síndrome de "
+      "overtraining alteram humor, estresse, esgotamento e fadiga "
+      "(Valdesalici e outros, 2026). Os três últimos reúnem-se sob o rótulo "
+      "de perfis de risco, e a prevalência deles é o indicador de triagem "
+      "que interessa ao clube (Tabela 7)."),
+
 ("p", "O handebol permanece fora desse mapa, e a lacuna é dupla. O "
       "levantamento que conduzimos sobre a produção internacional em "
-      "psicologia do esporte no handebol entre 2006 e 2026 reúne 525 estudos, "
-      "dos quais apenas 32 aferem humor ou afeto, um único com desenho "
-      "longitudinal, e nenhum aplica os seis perfis. O precedente mais "
-      "próximo acompanha medidas biológicas e psicológicas ao longo de uma "
-      "temporada em handebolistas, com o instrumento anterior e sem "
-      "classificação por perfil (Bresciani e outros, 2010), e o estudo "
-      "psicológico mais citado da modalidade descreve ansiedade competitiva e "
-      "humor em atletas de handebol de areia, em corte único (Reigal e "
-      "outros, 2019). Falta também o pressuposto de qualquer classificação: "
-      "existem normas de escore para amostras esportivas heterogêneas (Terry "
-      "e Lane, 2000), mas nenhuma específica do handebol, e a versão "
-      "brasileira do instrumento foi validada em futebolistas (Rohlfs, Rotta "
-      "e Luft, 2008). A ausência de norma obriga cada estudo a padronizar "
+      "psicologia do esporte no handebol entre 2006 e 2026 reúne 525 "
+      "estudos, dos quais apenas 32 aferem humor ou afeto, um único com "
+      "desenho longitudinal, e nenhum aplica os seis perfis. O precedente "
+      "mais próximo acompanha medidas biológicas e psicológicas ao longo de "
+      "uma temporada, sem classificação por perfil (Bresciani e outros, "
+      "2010), e o estudo mais citado descreve ansiedade e humor em handebol "
+      "de areia, em corte único (Reigal e outros, 2019). A "
+      "produção recente caminhou para o monitoramento de carga (Skarbalius, "
+      "2026; Struzik, Nadobnik e Stępień-Słodkowska, 2026), e o maior estudo "
+      "psicofisiológico da modalidade, com 584 handebolistas de elite, não "
+      "encontrou associação entre estado endócrino e perturbação de humor, e "
+      "pediu indicadores psicológicos mais sensíveis à tensão fisiológica "
+      "(Ratz-Sulyok e outros, 2026). Falta ainda o "
+      "pressuposto de qualquer classificação: existem normas para amostras "
+      "esportivas heterogêneas (Terry e Lane, 2000), mas nenhuma específica "
+      "do handebol, e a versão brasileira foi validada em futebolistas "
+      "(Rohlfs, Rotta e Luft, 2008). Sem norma, cada estudo padroniza "
       "dentro da própria amostra, o que impede a comparação entre estudos e "
       "trava o acúmulo de conhecimento na modalidade."),
+
 ("p", "Some-se a isso o momento. A última semana de pré-temporada concentra "
       "a maior carga acumulada do ciclo preparatório e termina na véspera da "
       "estreia competitiva, quando o estado psicológico da equipe deixa de "
       "ser indicador de processo e passa a ser condição de partida. É "
       "justamente nesse intervalo que o monitoramento tem mais consequência "
-      "prática e menos descrição publicada. Descrever quais perfis "
-      "predominam nessa semana, quanto eles se deslocam e em que dias o "
-      "deslocamento acontece é o que permite à comissão técnica agir antes da "
-      "competição, e não depois dela."),
-
+      "prática e menos descrição publicada: os estudos com os seis perfis "
+      "são, na quase totalidade, transversais, e dizem quantos atletas "
+      "estão em cada perfil, sem dizer quando um atleta migra. Descrever "
+      "quais "
+      "perfis predominam nessa semana, em que dias o deslocamento acontece e "
+      "quanto dele excede a flutuação amostral é o que permite à comissão "
+      "técnica agir antes da competição, e não depois dela. É essa a "
+      "justificativa deste estudo."),
 ("h1", "2 OBJETIVO"),
 ("p", "Descrever o perfil de humor de atletas de handebol masculino de elite "
-      "ao longo da última semana de pré-temporada. Especificamente, o estudo "
-      "pretende: caracterizar o comportamento de cada subescala da Escala de "
-      "Humor de Brunel nesta população, com atenção ao efeito piso, à "
-      "consistência interna e à estabilidade da medida entre dias; descrever "
-      "a distribuição dos seis perfis de humor e a proporção de observações "
-      "em perfil de risco; quantificar a predominância diária dos perfis ao "
-      "longo dos sete dias, com separação explícita entre sinal e ruído; e "
-      "estabelecer percentis de referência do instrumento para a modalidade."),
+      "ao longo da última semana de pré-temporada, e caracterizar os perfis "
+      "encontrados quanto aos correlatos físicos e psicológicos descritos na "
+      "literatura. Especificamente, o estudo pretende:"),
+("lista", [
+  "caracterizar o comportamento de cada subescala da Escala de Humor de "
+  "Brunel nesta população, com atenção à distribuição, ao efeito piso, à "
+  "consistência interna e à estabilidade da medida entre dias;",
+  "descrever a distribuição das observações nos seis perfis de humor no "
+  "primeiro e no último dia da semana, e a proporção de observações em "
+  "perfil de risco em cada um deles;",
+  "descrever, para cada perfil observado nesta amostra, os correlatos "
+  "físicos e psicológicos que a literatura lhe atribui, de modo a traduzir a "
+  "prevalência em consequência prática para a comissão técnica;",
+  "quantificar a predominância diária dos perfis ao longo dos sete dias, com "
+  "separação explícita entre sinal e ruído, e localizar os dias em que a "
+  "mudança acontece;",
+  "estabelecer percentis de referência do instrumento para a modalidade, "
+  "ausentes na literatura.",
+]),
 
 ("h1", "3 MÉTODO"),
 ("h2", "3.1 Delineamento e aspectos éticos"),
@@ -561,95 +673,271 @@ BLOCOS = [
       "literatura e reproduz a forma esperada dos perfis. A limitação que "
       "decorre dessa escolha está na seção 5.7."),
 ("h2", "3.8 Plano de análise"),
+("p0", "O plano de análise está descrito com o detalhe necessário à "
+       "reprodução integral do estudo. Ele se organiza em sete blocos, na "
+       "ordem em que as perguntas do objetivo foram respondidas: a descrição "
+       "das subescalas e das propriedades da medida; o contraste entre o "
+       "primeiro e o último dia; a comparação entre os sete dias; a "
+       "comparação intradia; a separação entre o nível do grupo e o nível do "
+       "atleta; a análise da predominância dos perfis ao longo da semana; e "
+       "as decisões gerais de tratamento de dados. O nível de significância "
+       "adotado foi de 5% em todos os testes, sempre depois da correção para "
+       "múltiplas comparações descrita em 3.8.7."),
 ("h3", "3.8.1 Descrição das subescalas e propriedades da medida"),
-("p", "As subescalas foram descritas por média, desvio-padrão, mediana, "
-      "intervalo interquartil, assimetria, curtose e percentual de respostas "
-      "no valor mínimo. Considera-se presente o efeito piso quando mais de "
-      "15% das respostas caem no valor mínimo possível (Terwee e outros, "
-      "2007). A confiabilidade interna foi estimada pelo alfa de Cronbach, "
-      "pelo alfa e pelo ômega ordinais sobre matriz policórica e pelo método "
-      "das duas metades, com correlação item-total corrigida por subescala. A "
-      "estabilidade entre dias foi estimada pelo coeficiente de correlação "
-      "intraclasse de uma coleta isolada, ICC(1,1), e da média de sete dias, "
-      "ICC(1,7), esta pela fórmula de Spearman e Brown. A estrutura de seis "
-      "fatores foi testada por análise fatorial confirmatória com estimador "
-      "robusto para dados ordinais e erro-padrão agrupado por atleta."),
+("p", "Cada uma das seis subescalas foi descrita por média, desvio-padrão, "
+      "erro-padrão da média, mediana, primeiro e terceiro quartis, intervalo "
+      "interquartil, valores mínimo e máximo observados, assimetria, curtose "
+      "e percentual de respostas no valor mínimo possível da subescala. A "
+      "assimetria e a curtose foram calculadas pelos coeficientes amostrais "
+      "de terceiro e quarto momentos, com curtose em excesso, de modo que o "
+      "valor zero corresponde à distribuição normal. Adotou-se o critério "
+      "convencional de afastamento grave da normalidade em assimetria acima "
+      "de 2 em valor absoluto e curtose acima de 7 em valor absoluto."),
+("p", "Considera-se presente o efeito piso quando mais de 15% das respostas "
+      "caem no valor mínimo possível da escala, e efeito teto quando mais de "
+      "15% caem no valor máximo (Terwee e outros, 2007). Como as cinco "
+      "subescalas negativas têm o valor mínimo em zero e a amplitude vai de "
+      "0 a 16, o efeito piso é o risco relevante nesta população, e ele foi "
+      "quantificado subescala por subescala. O efeito piso não é apenas "
+      "questão psicométrica: onde ele é alto, a subescala perde margem para "
+      "registrar melhora, e a série diária passa a ser interpretável apenas "
+      "na direção da piora. Por isso ele é reportado antes de qualquer "
+      "comparação entre dias, e não como nota de rodapé."),
+("p", "A confiabilidade interna foi estimada por quatro caminhos "
+      "convergentes, porque itens ordinais de quatro pontos com distribuição "
+      "assimétrica violam os pressupostos do coeficiente mais usado. "
+      "Calcularam-se o alfa de Cronbach sobre a matriz de covariâncias de "
+      "Pearson; o alfa ordinal e o ômega de McDonald sobre a matriz de "
+      "correlações policóricas, apropriada a itens ordinais; e o coeficiente "
+      "das duas metades corrigido por Spearman e Brown. Reportou-se ainda a "
+      "correlação item-total corrigida de cada um dos quatro itens de cada "
+      "subescala, isto é, a correlação do item com a soma dos demais itens "
+      "da própria subescala, com o item excluído do total. Divergência entre "
+      "o alfa de Pearson e o alfa policórico é lida como indício de que a "
+      "assimetria dos itens, e não a falta de coerência entre eles, "
+      "responde pelo valor baixo."),
+("p", "A estabilidade da medida entre dias foi estimada pelo coeficiente de "
+      "correlação intraclasse em modelo de efeitos aleatórios de uma via, "
+      "ICC(1,1), que responde quanto de uma leitura isolada é atributo "
+      "estável do atleta e quanto é estado do dia. A confiabilidade da média "
+      "de sete dias, ICC(1,7), foi obtida pela fórmula de profecia de "
+      "Spearman e Brown aplicada ao ICC(1,1). Reportou-se também o ICC(2,1), "
+      "em modelo de efeitos mistos de duas vias com o dia como fator, para "
+      "separar a variância entre dias da variância entre atletas. A partir "
+      "do ICC(1,1) e do desvio-padrão da subescala calcularam-se o "
+      "erro-padrão de medida, dado pelo desvio-padrão multiplicado pela raiz "
+      "de um menos o ICC, e o menor valor detectável a 95%, dado pelo "
+      "erro-padrão de medida multiplicado por 1,96 e pela raiz de dois. O "
+      "menor valor detectável é o limiar usado em 3.8.5 para contar quantos "
+      "atletas mudaram de fato."),
+("p", "A estrutura de seis fatores correlacionados foi testada por análise "
+      "fatorial confirmatória sobre a matriz policórica, com estimador de "
+      "mínimos quadrados ponderados com média e variância ajustadas, "
+      "apropriado a variáveis ordinais, e erro-padrão agrupado por atleta "
+      "para respeitar a dependência entre as observações repetidas do mesmo "
+      "participante. O ajuste foi avaliado pelo índice de ajuste "
+      "comparativo, pelo índice de Tucker e Lewis, pela raiz do erro "
+      "quadrático médio de aproximação com intervalo de 90% e pela raiz "
+      "padronizada do resíduo médio, com os pontos de corte convencionais de "
+      "0,95, 0,95, 0,06 e 0,08. As correlações entre as seis subescalas "
+      "foram descritas por matriz de Spearman, escolhida pela assimetria das "
+      "distribuições."),
 ("h3", "3.8.2 Comparação entre o primeiro e o último dia"),
 ("p", "O contraste entre o dia 1 e o dia 7 é o de maior interesse prático, "
-      "porque opõe o estado de repouso ao estado de véspera de competição. "
-      "Para as proporções de cada perfil, o contraste é a diferença em pontos "
-      "percentuais, acompanhada do erro-padrão binomial de cada proporção. "
-      "Para os escores contínuos, o contraste usa o tamanho de efeito para "
-      "medidas pareadas, restrito aos atletas com observação válida nos dois "
-      "dias, o que evita a comparação entre composições amostrais "
-      "diferentes."),
+      "porque opõe o estado de repouso, medido em coleta única no domingo, "
+      "ao estado de véspera de competição, e responde à pergunta que a "
+      "comissão técnica faz: a equipe chega à estreia em que condição, "
+      "comparada à condição em que começou a semana."),
+("p", "Para as proporções de cada perfil, o contraste é a diferença simples "
+      "em pontos percentuais entre os dois dias, acompanhada do erro-padrão "
+      "binomial de cada proporção, dado pela raiz de p vezes um menos p "
+      "sobre n, com o n de observações válidas daquele dia. A diferença só é "
+      "interpretada quando excede o piso de ruído definido em 3.8.6. Não se "
+      "aplicou teste de qui-quadrado à tabela de contingência dos seis "
+      "perfis por dois dias porque quatro das doze caselas têm frequência "
+      "esperada inferior a cinco, o que invalida a aproximação, e porque as "
+      "observações não são independentes entre os dois dias: o mesmo atleta "
+      "contribui para os dois. A leitura é, portanto, descritiva e "
+      "declaradamente descritiva."),
+("p", "Para os escores contínuos das seis subescalas e para o escore de "
+      "perturbação total do humor, o contraste usa o tamanho de efeito para "
+      "medidas pareadas, isto é, a média das diferenças individuais dividida "
+      "pelo desvio-padrão dessas diferenças, com intervalo de confiança de "
+      "95% obtido por reamostragem com dez mil repetições, procedimento "
+      "escolhido por não exigir normalidade das diferenças. A análise é "
+      "restrita aos atletas com observação válida nos dois dias, o que evita "
+      "comparar composições amostrais diferentes e atribuir à passagem do "
+      "tempo o que é efeito de quem respondeu em cada dia. O número de pares "
+      "efetivamente disponíveis está declarado na nota de cada tabela."),
 ("h3", "3.8.3 Comparação entre os sete dias"),
-("p", "O efeito do dia foi testado por modelo misto com intercepto aleatório "
-      "por atleta, o que corrige a pseudorreplicação decorrente das múltiplas "
-      "observações de cada participante, com eta² parcial como tamanho de "
-      "efeito e correção de Benjamini e Hochberg para múltiplas comparações. "
-      "As médias diárias reportadas vêm de estimativa em dois passos, que "
-      "agrega primeiro por atleta e só depois por dia, de modo que atletas com "
-      "mais observações não pesam mais na média do dia."),
+("p", "O efeito do dia sobre cada subescala foi testado por modelo linear "
+      "misto com intercepto aleatório por atleta e o dia como fator fixo de "
+      "sete níveis. O intercepto aleatório corrige a pseudorreplicação "
+      "decorrente das múltiplas observações de cada participante, que na "
+      "análise ingênua inflaria os graus de liberdade e, com eles, a taxa de "
+      "erro do tipo I. Os graus de liberdade do denominador foram "
+      "aproximados pelo método de Satterthwaite. O tamanho de efeito "
+      "reportado é o eta² parcial, com a leitura convencional de 0,01 para "
+      "efeito pequeno, 0,06 para médio e 0,14 para grande."),
+("p", "Do mesmo modelo extraiu-se o coeficiente de correlação intraclasse, "
+      "razão entre a variância do intercepto aleatório e a variância total, "
+      "que quantifica quanto do escore é atributo do atleta e quanto é "
+      "resposta ao dia. Um ICC alto com eta² pequeno significa que os "
+      "atletas diferem muito entre si e pouco ao longo da semana, e a "
+      "combinação inversa significa o contrário. Os dois indicadores são "
+      "reportados lado a lado por isso."),
+("p", "As médias diárias reportadas vêm de estimativa em dois passos: as "
+      "observações de cada atleta em cada dia são primeiro agregadas na "
+      "média daquele atleta naquele dia, e só depois essas médias "
+      "individuais são agregadas na média do dia. O procedimento garante que "
+      "atletas com mais observações não pesem mais na média do dia, o que "
+      "acontece na média bruta quando a adesão varia entre participantes. As "
+      "duas séries, bruta e em dois passos, foram calculadas, e a divergência "
+      "entre elas está registrada; a série em dois passos é a adotada em "
+      "todo o artigo."),
 ("h3", "3.8.4 Comparação intradia, entre o momento pré e o pós-sessão"),
 ("p", "A variação dentro da sessão foi estimada pelo contraste entre a "
-      "primeira e a última coleta de cada dia de treino. Para evitar que um "
-      "atleta com seis pares contribua seis vezes e outro com um par "
-      "contribua uma vez, as diferenças foram primeiro agregadas por atleta e "
-      "só depois submetidas ao teste, com tamanho de efeito para medidas "
-      "pareadas e intervalo de confiança de 95%. A significância considera a "
-      "correção de Benjamini e Hochberg."),
+      "primeira coleta do dia, aplicada antes do início do trabalho, e a "
+      "última, aplicada ao término da sessão da noite. Cada par pré e "
+      "pós-sessão gera uma diferença individual. Para evitar que um atleta "
+      "com seis pares contribua seis vezes e outro com um par contribua uma "
+      "vez, as diferenças foram primeiro agregadas na média por atleta, e só "
+      "depois submetidas ao teste, de modo que a unidade de análise do teste "
+      "é o atleta e o n do teste é o número de atletas com ao menos um par "
+      "válido."),
+("p", "O tamanho de efeito é o de medidas pareadas, com intervalo de "
+      "confiança de 95% por reamostragem, e a significância considera a "
+      "correção de Benjamini e Hochberg sobre o conjunto das nove variáveis "
+      "testadas. Reportam-se, além do valor pontual, o número de pares que "
+      "sustentam cada estimativa e a direção esperada da variação: em vigor "
+      "e na medida de recuperação percebida, o aumento é favorável; nas "
+      "cinco subescalas negativas e no escore de perturbação total, o "
+      "aumento é desfavorável. Essa direção governa a interpretação e a "
+      "codificação de cores das figuras, e está declarada porque a leitura "
+      "de sinal puramente aritmética inverteria o significado do vigor."),
 ("h3", "3.8.5 Nível de grupo e nível do atleta"),
-("p", "Toda análise foi conduzida em dois níveis. No nível do grupo, o "
-      "interesse é a média e a proporção, e a inferência responde se a equipe "
-      "mudou. No nível do atleta, o interesse é quantos atletas mudaram, e a "
-      "resposta exige um limiar de mudança confiável: a variação individual "
-      "só é contada quando excede o menor valor detectável a 95%, calculado a "
-      "partir do erro-padrão de medida e do coeficiente de correlação "
-      "intraclasse da subescala. Os dois níveis podem divergir, e a "
-      "divergência é informativa: uma média estável pode esconder metade do "
-      "elenco em piora e a outra metade em melhora."),
+("p", "Toda análise foi conduzida em dois níveis, e a distinção é decisiva "
+      "para o uso prático. No nível do grupo, o interesse é a média e a "
+      "proporção, e a inferência responde se a equipe mudou. No nível do "
+      "atleta, o interesse é quantos atletas mudaram, e a resposta exige um "
+      "limiar de mudança confiável: a variação individual entre o primeiro e "
+      "o último dia só é contada como mudança quando excede o menor valor "
+      "detectável a 95% daquela subescala, calculado em 3.8.1. Cada atleta "
+      "recebe, para cada subescala, uma de três classificações: mudança "
+      "favorável, mudança desfavorável ou variação dentro do erro de medida. "
+      "A classificação respeita a direção da subescala, de modo que uma "
+      "queda de vigor conta como mudança desfavorável e uma queda de fadiga "
+      "conta como favorável."),
+("p", "Os dois níveis podem divergir, e a divergência é informativa e não "
+      "contraditória: uma média estável pode esconder metade do elenco em "
+      "piora e a outra metade em melhora, situação em que a conduta correta "
+      "é individual e a leitura de grupo não a indicaria. Por isso as duas "
+      "leituras são reportadas juntas, e nenhuma conclusão prática se apoia "
+      "apenas na média."),
 ("h3", "3.8.6 Predominância dos perfis ao longo da semana"),
 ("p", "A proporção diária de atletas em cada perfil constitui uma série "
-      "temporal de sete pontos, e foi tratada como tal. O primeiro passo é a "
-      "definição do piso de ruído. Cada proporção diária tem erro-padrão "
-      "binomial dado pela raiz de p vezes um menos p sobre n, com o n de "
-      "atletas daquele dia; a média desses erros-padrão ao longo da semana "
-      f"define o piso, de {F.br(_PISO, 1)} pontos percentuais nesta amostra. "
-      "Variação de magnitude inferior ao piso não é distinguível de flutuação "
-      "amostral e não é interpretada."),
-("p", "O segundo passo é a filtragem. Com apenas sete pontos, qualquer filtro "
-      "pesado apaga o próprio sinal. Aplicou-se, por isso, o filtro binomial "
-      "de três pontos com pesos 1, 2 e 1, que é o de menor ordem capaz de "
-      "atenuar a oscilação ponto a ponto sem deslocar máximos e mínimos, com "
-      "as extremidades preservadas sem suavização por falta de vizinho."),
+      "temporal de sete pontos, e foi tratada como tal, em quatro passos "
+      "encadeados: piso de ruído, filtragem, derivada e limiar. A sequência "
+      "existe porque a inspeção visual de uma curva de sete pontos com n "
+      "pequeno confunde sistematicamente flutuação amostral com tendência, e "
+      "o objetivo é dizer não apenas que os perfis mudaram, mas em que dias "
+      "a mudança aconteceu e quanto dela excede o acaso."),
+("p", "O primeiro passo é a definição do piso de ruído. Cada proporção "
+      "diária tem erro-padrão binomial dado pela raiz de p vezes um menos p "
+      "sobre n, com o n de atletas que responderam naquele dia, que varia ao "
+      "longo da semana. A média desses sete erros-padrão define o piso, de "
+      f"{F.br(_PISO, 1)} pontos percentuais nesta amostra. Variação de "
+      "magnitude inferior ao piso não é distinguível de flutuação amostral e "
+      "não é interpretada, nem no texto nem nas figuras, onde ela aparece "
+      "sombreada como faixa de ruído."),
+("p", "O segundo passo é a filtragem. Com apenas sete pontos, qualquer "
+      "filtro pesado apaga o próprio sinal que se pretende medir, e uma "
+      "média móvel de cinco pontos consumiria mais da metade da série. "
+      "Aplicou-se, por isso, o filtro binomial de três pontos com pesos 1, 2 "
+      "e 1, normalizados por quatro, que é o de menor ordem capaz de atenuar "
+      "a oscilação ponto a ponto sem deslocar a posição de máximos e "
+      "mínimos, propriedade que uma média móvel simples não tem. As "
+      "extremidades da série, o dia 1 e o dia 7, foram preservadas sem "
+      "suavização por falta de vizinho, e não por extrapolação, opção que "
+      "evita criar valor onde não há dado."),
 ("p", "O terceiro passo é a derivada. A diferença entre dias consecutivos da "
       "série suavizada estima a taxa de variação diária, em pontos "
-      "percentuais por dia, e localiza os dias de inflexão. Uma derivada é "
-      "interpretada apenas quando o valor absoluto dela supera o piso de "
-      "ruído. Esse procedimento distingue duas hipóteses que a inspeção "
-      "visual da curva bruta confunde: a erosão gradual, em que todas as "
-      "derivadas são pequenas e do mesmo sinal, e o deslocamento por choques, "
-      "em que poucas derivadas grandes concentram toda a mudança."),
-("p", "O quarto passo é o limiar. Dois limiares foram definidos a priori: o "
-      "de maioria, em 50%, que marca o dia em que o perfil deixa de "
-      "caracterizar a maior parte do elenco; e o de inversão, no ponto em que "
-      "as curvas de perfil iceberg e de humor perturbado se cruzam. O ponto "
-      "de cruzamento foi obtido por interpolação linear entre os dois dias "
-      "adjacentes das séries suavizadas. As análises foram conduzidas em R, "
-      "com os pacotes psych, lavaan, semTools, lme4 e lmerTest. Não houve "
-      "imputação: cada estimativa usa as observações disponíveis, e o "
-      "denominador está declarado na nota da tabela correspondente."),
+      "percentuais por dia, e produz seis derivadas para os sete dias. Cada "
+      "derivada é comparada ao piso de ruído, e apenas as que o superam em "
+      "valor absoluto são interpretadas. Esse procedimento distingue duas "
+      "hipóteses que a inspeção visual da curva bruta confunde: a erosão "
+      "gradual, em que todas as derivadas são pequenas e do mesmo sinal, e o "
+      "deslocamento por choques, em que poucas derivadas grandes concentram "
+      "toda a mudança e as demais formam platô. As duas hipóteses têm "
+      "conduta oposta: a erosão pede redução distribuída da carga da semana, "
+      "e o deslocamento por choques pede intervenção nos dias específicos "
+      "que produzem a queda."),
+("p", "O quarto passo é o limiar. Dois limiares foram definidos a priori, "
+      "antes da inspeção das séries. O primeiro é o de maioria, em 50%, que "
+      "marca o dia em que um perfil deixa de caracterizar a maior parte do "
+      "elenco. O segundo é o de inversão, no ponto em que as curvas do "
+      "perfil iceberg e de humor perturbado se cruzam, isto é, o momento em "
+      "que o padrão desfavorável passa a ser mais frequente que o favorável. "
+      "O ponto de cruzamento foi obtido por interpolação linear entre os dois "
+      "dias adjacentes das séries suavizadas, e é reportado em fração de "
+      "dia, o que permite dizer se a inversão acontece no início ou no fim "
+      "do intervalo entre duas coletas."),
+("h3", "3.8.7 Decisões gerais de tratamento de dados"),
+("p", "Não houve imputação de dado faltante. Cada estimativa usa as "
+      "observações efetivamente disponíveis, e o denominador de cada uma "
+      "está declarado na nota da tabela correspondente, de modo que o leitor "
+      "possa verificar sobre quantas observações e quantos atletas cada "
+      "número foi calculado. Os denominadores variam entre análises porque "
+      "os critérios de inclusão variam: as análises de subescala usam toda "
+      "observação válida, as pareadas usam apenas atletas com registro nos "
+      "dois momentos e as de perfil usam apenas questionários com as seis "
+      "subescalas completas."),
+("p", "A correção para múltiplas comparações seguiu o procedimento de "
+      "Benjamini e Hochberg, que controla a taxa de falsas descobertas e é "
+      "menos conservador que a correção de Bonferroni, escolha adequada a um "
+      "estudo descritivo cujo propósito é gerar hipótese e não confirmá-la. "
+      "A correção foi aplicada dentro de cada família de testes, e não sobre "
+      "o conjunto do artigo: a família das nove variáveis na comparação "
+      "intradia, a família das nove no efeito do dia, e assim por diante. Os "
+      "valores reportados são os já corrigidos, e o texto declara em cada "
+      "caso quais efeitos sobrevivem à correção e quais não sobrevivem."),
+("p", "Nenhum valor foi extrapolado ou estimado por modelo onde havia dado "
+      "observado, e nenhum resultado é apresentado sem a origem declarada. "
+      "As análises foram conduzidas em R, versão 4.4, com os pacotes psych "
+      "para as estimativas de confiabilidade e as correlações policóricas, "
+      "lavaan e semTools para a análise fatorial confirmatória, lme4 e "
+      "lmerTest para os modelos mistos, e boot para os intervalos por "
+      "reamostragem. As figuras foram produzidas em Python, com matplotlib, "
+      "a 300 pontos por polegada. Os escores decimais seguem a notação "
+      "brasileira, com vírgula decimal."),
 ]
 
 BLOCOS += [
 ("h1", "4 RESULTADOS"),
 ("h2", "4.1 Distribuição das subescalas"),
-("p", "As seis subescalas se dividem em dois blocos claros (Tabela 2). Vigor "
-      "e fadiga ocupam a faixa central da escala, com médias de 5,70 e 5,65 "
-      "pontos, assimetria próxima de zero e piso abaixo de 9%. Tensão, "
-      "depressão, raiva e confusão ficam junto ao mínimo, com médias entre "
-      "0,45 e 1,60 ponto, assimetria de até 3,73 e curtose de até 16,96."),
+("p", "As seis subescalas se dividem em dois blocos claros (Tabela 2). O "
+      "primeiro é o bloco energético. Vigor e fadiga ocupam a faixa central "
+      "da escala, com médias de 5,70 e 5,65 pontos sobre um máximo de 16, "
+      "desvios-padrão de 3,12 e 3,89, medianas de 6 e 5 pontos e intervalos "
+      "interquartis de 4 e 5 pontos. A assimetria é de 0,03 no vigor e 0,59 "
+      "na fadiga, e a curtose é negativa nas duas, de −0,24 e −0,40, o que "
+      "descreve distribuições praticamente simétricas e ligeiramente mais "
+      "achatadas que a normal. O piso fica em 8,6% no vigor e 7,7% na "
+      "fadiga, abaixo do limite de 15%. São, portanto, as duas únicas "
+      "subescalas que se comportam como variáveis contínuas bem distribuídas "
+      "nesta amostra, e as únicas com margem de medida nas duas direções."),
+("p", "O segundo bloco reúne as quatro subescalas de afeto negativo, e o "
+      "comportamento delas é oposto. Tensão, depressão, raiva e confusão "
+      "ficam junto ao mínimo, com médias de 1,39, 1,00, 1,60 e 0,45 ponto e "
+      "medianas de 1, 0, 0 e 0. O intervalo interquartil é de 2 pontos em "
+      "tensão e raiva, de 1 ponto em depressão e de zero em confusão, isto é, "
+      "metade central das respostas de confusão está inteiramente no valor "
+      "mínimo. A assimetria vai de 1,43 em tensão a 3,73 em confusão, e a "
+      "curtose de 1,50 a 16,96, valores que ultrapassam com folga os limites "
+      "convencionais de 2 e 7 em depressão, raiva e confusão. O escore de "
+      "perturbação total do humor herda esse comportamento: média de 4,39, "
+      "desvio-padrão de 9,64, mediana de 2, assimetria de 1,48 e curtose de "
+      "3,31, com 21,9% das observações no valor mínimo possível."),
 ("tab", "descritiva"),
 ("fig", "a1_distribuicao.png", 16.0,
  "Figura 1 - Distribuição observada de cada subescala por percentis (A) e "
@@ -665,20 +953,47 @@ BLOCOS += [
       "régua de referência proposta para a modalidade."),
 ("tab", "percentis"),
 ("h2", "4.2 Propriedades da medida"),
-("p", "A consistência interna é alta em depressão e raiva, com ômega ordinal "
-      "de 0,94 e 0,93, adequada em fadiga e vigor e insuficiente em tensão, "
-      "com alfa de 0,43 (Tabela 4). Em confusão e tensão a matriz policórica "
-      "não convergiu, o que é consequência direta do efeito piso: sem "
-      "variação nas respostas não há covariância para estimar."),
+("p", "A consistência interna varia de modo ordenado entre as subescalas "
+      "(Tabela 4). Depressão e raiva encabeçam a lista, com alfa de 0,85 e "
+      "0,87, alfa e ômega ordinais de 0,94 e 0,93, duas metades de 0,89 nas "
+      "duas e correlação item-total mínima de 0,66, também nas duas. Fadiga "
+      "vem em seguida, com alfa de 0,80, ômega ordinal de 0,85 e duas "
+      "metades de 0,81, e vigor logo depois, com alfa de 0,68 e ômega "
+      "ordinal de 0,80. Confusão fica em 0,66 de alfa e tensão em 0,43, "
+      "valor insuficiente por qualquer critério. A queda acompanha "
+      "exatamente a ordem do efeito piso, e as correlações item-total "
+      "mínimas confirmam o diagnóstico: 0,23 em fadiga, 0,20 em confusão e "
+      "0,11 em vigor e em tensão, isto é, ao menos um item de cada uma "
+      "dessas quatro subescalas quase não covaria com os demais itens da "
+      "própria subescala nesta amostra."),
+("p", "Em confusão e tensão a matriz policórica não convergiu, e o "
+      "coeficiente ordinal não é estimável. Isso não é falha de "
+      "processamento: é consequência direta do efeito piso, porque sem "
+      "variação nas respostas não há covariância para estimar. A comparação "
+      "com os coeficientes originais do instrumento situa o achado. Tensão "
+      "foi publicada com alfa de 0,74 e aqui está em 0,43; confusão foi "
+      "publicada com 0,83 e aqui está em 0,66; depressão e raiva, publicadas "
+      "com 0,85 e 0,82, estão aqui acima do valor original. A perda, "
+      "portanto, é seletiva, e recai sobre as subescalas que esta população "
+      "praticamente não pontua."),
 ("tab", "psicometria"),
 ("fig", "a1_psicometria.png", 16.0,
  "Figura 2 - Consistência interna de cada subescala (A) e ganho de "
  "estabilidade da média de sete dias sobre a coleta isolada (B)"),
 ("p", "O painel B da Figura 2 traz o achado de maior consequência prática. "
-      "Nenhuma subescala atinge 0,60 de estabilidade em uma coleta isolada, e "
-      "todas passam de 0,76 na média de sete dias. Uma leitura isolada do "
-      "instrumento não descreve o atleta de forma confiável nesta população; "
-      "a média semanal descreve."),
+      "O coeficiente de correlação intraclasse de uma coleta isolada fica em "
+      "0,59 na tensão, 0,56 na depressão, 0,55 no vigor, 0,53 na fadiga, "
+      "0,35 na confusão e 0,31 na raiva. Nenhuma subescala atinge o patamar "
+      "de 0,60 usualmente exigido para uso individual, e a faixa observada, "
+      "de 0,31 a 0,59, é compatível com a estabilidade de uma semana "
+      "publicada para o instrumento, de 0,26 a 0,53 (Terry e outros, 1999, "
+      "2003), o que indica propriedade da medida e não defeito desta "
+      "aplicação. Na média de sete dias, pela fórmula de Spearman e Brown, "
+      "os mesmos coeficientes sobem para 0,91, 0,90, 0,90, 0,89, 0,79 e "
+      "0,76. O ganho é de 0,32 ponto na tensão e de 0,45 ponto na raiva, e "
+      "todas as seis passam a superar 0,76. A leitura é direta: uma coleta "
+      "isolada do instrumento não descreve o atleta de forma confiável nesta "
+      "população, e a média semanal descreve."),
 ("p", "A estrutura de seis fatores ajustou bem aos dados "
       f"(CFI = {F.br(F.AJUSTE['CFI'], 3)}; "
       f"RMSEA = {F.br(F.AJUSTE['RMSEA'], 3)}). A correlação entre os fatores "
@@ -697,6 +1012,16 @@ BLOCOS += [
       "(Tabela 6). Os três perfis associados a risco à saúde mental somam "
       f"{F.br(_RISCO1, 1)}% das observações nesse dia."),
 ("tab", "perfis"),
+("p", "A Tabela 7 traduz cada perfil nos correlatos físicos e psicológicos "
+      "que a literatura lhe atribui, e acrescenta a leitura prática que "
+      "decorre deles. A separação entre as duas colunas de correlato importa "
+      "para a conduta: a barbatana de tubarão é resposta à carga, e responde "
+      "a manejo de treino e de recuperação, ao passo que o iceberg invertido "
+      "e o Everest invertido carregam sinal psicológico que não se resolve "
+      "com ajuste de sessão. Os dois grupos somam-se na faixa de risco, mas "
+      "não pedem a mesma conduta, e essa distinção é a principal utilidade "
+      "prática de classificar em seis perfis em vez de dois."),
+("tab", "caracteristicas"),
 ("fig", "fig_prevalencia.png", 16.0,
  "Figura 3 - Prevalência de cada perfil na amostra normativa e nesta amostra "
  "(A) e efeito da padronização interna sobre essa prevalência (B)"),
@@ -715,10 +1040,10 @@ BLOCOS += [
       "percentuais, e a de humor perturbado sobe de "
       f"{F.br(PERFIL_DIA[1][1], 1)}% para {F.br(PERFIL_DIA[7][1], 1)}%, ganho "
       f"de {F.br(abs(PERFIL_DIA[7][1] - PERFIL_DIA[1][1]), 1)} pontos "
-      "(Tabela 8). Pela classificação nos seis perfis, no mesmo intervalo, o "
+      "(Tabela 9). Pela classificação nos seis perfis, no mesmo intervalo, o "
       "perfil iceberg recua 23,1 pontos percentuais e a barbatana de tubarão "
       "avança 25,9 pontos, que são os dois maiores deslocamentos da "
-      "distribuição (Tabela 7)."),
+      "distribuição (Tabela 8)."),
 ("tab", "distribuicao"),
 ("fig", "a1_prevalencia_semana.png", 16.0,
  "Figura 4 - Composição do grupo em faixas de significado ao longo da semana "
@@ -937,15 +1262,62 @@ BLOCOS += [
       "centroide extremo observações que uma norma populacional alocaria ao "
       "iceberg invertido. A verificação exige a classificação atleta a atleta, "
       "que os dados brutos permitem e que este estudo não conduziu."),
+("p", "A comparação com as duas coortes brasileiras classificadas pelos seis "
+      "perfis é o contraponto mais informativo disponível. Na amostra de 898 "
+      "atletas de base e de elite de um clube do Rio de Janeiro, 26,5% "
+      "ficaram em algum dos três perfis de risco (Rohlfs, Noce e Wilke, "
+      f"2024), valor praticamente idêntico aos {F.br(_RISCO1, 1)}% desta "
+      "equipe no dia de repouso. A convergência sustenta duas leituras "
+      "combinadas: a de que o dia 1 desta série descreve um estado basal "
+      "comparável ao de atletas brasileiros medidos fora de janela de carga "
+      f"aguda, e a de que os {F.br(_RISCO7, 1)}% da véspera de competição "
+      "são afastamento desse basal, e não característica da população. Na "
+      "segunda coorte, de 417 atletas de alto rendimento acompanhados ao "
+      "longo de um ano, a barbatana de tubarão foi o perfil mais frequente, "
+      "com 28,3% (Rohlfs e outros, 2025), valor que coincide com os "
+      f"{F.br(PERFIS_T['Barbatana de tubarão'][3], 1)}% do último dia desta "
+      "série. A coincidência numérica é notável, mas não é evidência: os "
+      "delineamentos diferem, e a coorte brasileira agrega medidas de doze "
+      "meses, ao passo que aqui o valor descreve um único dia. O que a "
+      "comparação autoriza dizer é que o patamar alcançado por esta equipe na "
+      "véspera da estreia equivale ao patamar médio anual de uma amostra "
+      "brasileira de alto rendimento, o que é, por si, informação de carga."),
+("p", "Dois achados externos ajudam a interpretar a direção do deslocamento. "
+      "Em 652 finlandeses classificados pelos mesmos seis perfis, os que se "
+      "declararam atletas ficaram sobre-representados no iceberg invertido, "
+      "e não na barbatana de tubarão (Luojumäki e outros, 2026), o que "
+      "sugere que a assinatura do treinamento crônico difere da assinatura "
+      "do acúmulo agudo de uma semana. Esta série descreve a segunda: o "
+      "iceberg invertido recua ao longo do microciclo, e é a barbatana de "
+      "tubarão que absorve toda a migração. Em seleção nacional de "
+      "basquetebol acompanhada por catorze dias de competição internacional, "
+      "o padrão de queda conjunta de tensão e de vigor ao longo do período "
+      "reproduz a direção observada aqui, com a diferença de que lá o "
+      "contexto é competitivo e aqui é preparatório (Bird e outros, 2025). "
+      "Os dois estudos reforçam que a leitura correta do achado é de resposta "
+      "à carga, e não de deterioração da saúde mental do elenco."),
 ("p", "Cabe ainda situar o estudo no que existe sobre humor no handebol. O "
       "acompanhamento de uma temporada inteira em handebolistas, com o "
       "instrumento anterior, descreveu variação conjunta de marcadores "
       "biológicos e psicológicos, mas sem classificação por perfil "
       "(Bresciani e outros, 2010). O estudo mais citado da modalidade "
       "descreve ansiedade competitiva e humor em atletas de areia, em corte "
-      "único (Reigal e outros, 2019). Nenhum dos dois permite comparação "
-      "direta de prevalência, o que é, em si, a medida do vazio que este "
-      "estudo começa a preencher."),
+      "único (Reigal e outros, 2019). A produção recente da modalidade "
+      "avançou no monitoramento de carga, com séries de percepção de esforço "
+      "e de impulso de treino ao longo de temporadas inteiras (Struzik, "
+      "Nadobnik e Stępień-Słodkowska, 2026) e com modelos que integram carga "
+      "interna, estado neuromuscular e bem-estar percebido (Skarbalius, "
+      "2026), mas nenhuma dessas séries carrega o humor estruturado em "
+      "perfis. O maior estudo psicofisiológico já conduzido no handebol, com "
+      "584 atletas de elite, não encontrou associação entre estado endócrino "
+      "e perturbação de humor, e concluiu que os indicadores psicológicos "
+      "usados não eram sensíveis o bastante à tensão fisiológica "
+      "(Ratz-Sulyok e outros, 2026). A classificação em seis perfis, que "
+      "separa a fadiga com vigor baixo do sofrimento psíquico, é uma resposta "
+      "possível a essa conclusão, e é o que este estudo oferece. Nenhum dos "
+      "trabalhos citados permite comparação direta de prevalência na "
+      "modalidade, o que é, em si, a medida do vazio que este estudo começa "
+      "a preencher."),
 ("h2", "5.6 Aplicação prática"),
 ("p", "Para a comissão técnica, quatro decisões decorrem destes resultados. A "
       "primeira é o que medir: no acompanhamento diário bastam vigor, fadiga "
@@ -1009,6 +1381,10 @@ BLOCOS += [
 ("nota", "BEEDIE, C. J.; TERRY, P. C.; LANE, A. M. The profile of mood states "
          "and athletic performance: two meta-analyses. Journal of Applied "
          "Sport Psychology, v. 12, n. 1, p. 49-68, 2000."),
+("nota", "BIRD, S. P. e outros. Wellness, mood, sleep, and performance in a "
+         "women's national basketball team during international "
+         "competition. Journal of Human Kinetics, v. 96, p. 163-175, "
+         "2025."),
 ("nota", "BRESCIANI, G. e outros. Monitoring biological and psychological "
          "measures throughout an entire season in male handball players. "
          "European Journal of Sport Science, v. 10, n. 6, p. 377-384, 2010."),
@@ -1021,6 +1397,14 @@ BLOCOS += [
 ("nota", "LANE, A. M.; TERRY, P. C. The nature of mood: development of a "
          "conceptual model with a focus on depression. Journal of Applied "
          "Sport Psychology, v. 12, n. 1, p. 16-33, 2000."),
+("nota", "LEW, P. C. F. e outros. Cross-cultural validation of the Malaysian "
+         "Mood Scale and tests of between-group mood differences. "
+         "International Journal of Environmental Research and Public "
+         "Health, v. 20, n. 4, art. 3348, 2023."),
+("nota", "LUOJUMÄKI, R. J. e outros. Exploring mood profile clusters across "
+         "physical activity level, gender and age in a Finnish population. "
+         "European Journal of Sport Science, v. 26, n. 2, art. e70131, "
+         "2026."),
 ("nota", "MAIN, L. C.; GROVE, J. R. A multi-component assessment model for "
          "monitoring training distress among athletes. European Journal of "
          "Sport Science, v. 9, n. 4, p. 195-202, 2009."),
@@ -1033,9 +1417,15 @@ BLOCOS += [
 ("nota", "PARSONS-SMITH, R. L.; TERRY, P. C.; MACHIN, M. A. Identification "
          "and description of novel mood profile clusters. Frontiers in "
          "Psychology, v. 8, art. 1958, 2017."),
+("nota", "PARSONS-SMITH, R. L. e outros. Mood profiles of amateur "
+         "triathletes: implications for mental health and performance. "
+         "Frontiers in Psychology, v. 13, art. 925992, 2022."),
 ("nota", "QUARTIROLI, A. e outros. Cross-cultural validation of mood profile "
          "clusters in a sport and exercise context. Frontiers in Psychology, "
          "v. 9, art. 1949, 2018."),
+("nota", "RATZ-SULYOK, F. Z. e outros. Associations between endocrine status "
+         "and stress, mood and psychosomatic status in elite handball "
+         "players. Sports, v. 14, n. 7, art. 289, 2026."),
 ("nota", "REIGAL, R. E. e outros. Psychological profile, competitive anxiety, "
          "moods and self-efficacy in beach handball players. International "
          "Journal of Environmental Research and Public Health, v. 17, n. 1, "
@@ -1047,6 +1437,24 @@ BLOCOS += [
          "de Brunel (BRUMS): instrumento para detecção precoce da síndrome do "
          "excesso de treinamento. Revista Brasileira de Medicina do Esporte, "
          "v. 14, n. 3, p. 176-181, 2008."),
+("nota", "ROHLFS, I. C. P. M. e outros. Psychometric characteristics of the "
+         "Brazil Mood Scale among youth and elite athletes using two "
+         "response time frames. Sports, v. 11, n. 12, art. 244, 2023."),
+("nota", "ROHLFS, I. C. P. M. e outros. Mood states, injury status, and "
+         "countermovement jump performance in Brazilian high-level sports. "
+         "Sports, v. 13, n. 9, art. 303, 2025."),
+("nota", "SAHLI, H. e outros. Testing the psychometric properties of an "
+         "Arabic version of the Brunel Mood Scale among physical education "
+         "students. European Journal of Investigation in Health, Psychology "
+         "and Education, v. 13, n. 8, p. 1539-1552, 2023."),
+("nota", "SKARBALIUS, A. Integrated monitoring of training and sport "
+         "performance throughout an entire handball season: practical "
+         "applications in semi-professional female players. Frontiers in "
+         "Sports and Active Living, v. 8, art. 1869707, 2026."),
+("nota", "STRUZIK, A.; NADOBNIK, J.; STĘPIEŃ-SŁODKOWSKA, M. TRIMP and "
+         "session-RPE monitoring in elite women's handball: a full-season "
+         "descriptive analysis. Scientific Reports, v. 16, n. 1, art. "
+         "53134, 2026."),
 ("nota", "TERRY, P. C. The efficacy of mood state profiling with elite "
          "performers: a review and synthesis. The Sport Psychologist, v. 9, "
          "n. 3, p. 309-324, 1995."),
@@ -1059,6 +1467,10 @@ BLOCOS += [
 ("nota", "TERRY, P. C. e outros. Development and validation of a mood measure "
          "for adolescents. Journal of Sports Sciences, v. 17, n. 11, "
          "p. 861-872, 1999."),
+("nota", "TERRY, P. C. e outros. Validation of a Lithuanian-language version "
+         "of the Brunel Mood Scale: the BRUMS-LTU. International Journal of "
+         "Environmental Research and Public Health, v. 19, n. 8, art. 4867, "
+         "2022."),
 ("nota", "TERRY, P. C.; PARSONS-SMITH, R. L. Mood profiling for sustainable "
          "mental health among athletes. Sustainability, v. 13, n. 11, art. "
          "6116, 2021."),
@@ -1068,6 +1480,14 @@ BLOCOS += [
 ("nota", "TERWEE, C. B. e outros. Quality criteria were proposed for "
          "measurement properties of health status questionnaires. Journal of "
          "Clinical Epidemiology, v. 60, n. 1, p. 34-42, 2007."),
+("nota", "VALDESALICI, A. e outros. Effects of non-functional overreaching "
+         "and overtraining syndrome on psychological and cognitive "
+         "functioning in elite athletes: a systematic review. Psychology of "
+         "Sport and Exercise, v. 84, art. 103079, 2026."),
+("nota", "VLACHOPOULOS, S. P.; LANE, A. M.; TERRY, P. C. A Greek translation "
+         "of the Brunel Mood Scale: initial validation among exercise "
+         "participants and inactive adults. Sports, v. 11, n. 12, art. 234, "
+         "2023."),
 ("nota", "VAN WIJK, C. H. e outros. The Brunel Mood Scale as a screening tool "
          "for post-traumatic stress risk in military populations. Military "
          "Medicine, v. 178, n. 4, p. 372-376, 2013."),
