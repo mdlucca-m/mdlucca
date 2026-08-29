@@ -20,7 +20,7 @@ from matplotlib.patches import Patch
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from dados import (ACUMULO, AUMENTO_DESFAVORAVEL, BETA_HIIT, DIARIO, DIAS,
                    DIAS_HIIT, EFEITO_DIA, METRICAS_PERFIL, MUDANCA_CONFIAVEL,
-                   ORDEM_GRADE, PARSONS, PERFIL_DIA, inclinacao, reta)
+                   ORDEM_GRADE, PERFIL_DIA, PERFIS_T, inclinacao, reta)
 
 AZUL, TIJOLO, VERDE = "#3A6EA5", "#A63A2B", "#4E8F3A"
 CINZA, CINZA_CLARO, FAIXA = "#3A3A3A", "#8C8C8C", "#EFEFEF"
@@ -174,9 +174,9 @@ def figura_perfis(destino: Path) -> Path:
               ncol=2, fontsize=7.0)
 
     # B · deslocamento de cada perfil de Parsons-Smith, um por linha
-    perfis = sorted(PARSONS, key=lambda k: PARSONS[k][1])
+    perfis = sorted(PERFIS_T, key=lambda k: PERFIS_T[k][1])
     for i, nome in enumerate(perfis):
-        d1, d7 = PARSONS[nome][1], PARSONS[nome][2]
+        d1, d7 = PERFIS_T[nome][1], PERFIS_T[nome][3]
         delta = d7 - d1
         cor = ("#B4B4B0" if abs(delta) <= 1.0 else
                E.AZUL if delta > 0 else E.CORAL)
@@ -191,7 +191,7 @@ def figura_perfis(destino: Path) -> Path:
     a2.set_yticks(range(len(perfis)))
     a2.set_yticklabels(perfis, fontsize=8.2)
     a2.set_ylim(-0.6, len(perfis) - 0.4)
-    a2.set_xlim(0, 86)
+    a2.set_xlim(0, 58)
     a2.set_xlabel("Observações no perfil (%), do dia 1 ao dia 7",
                   fontsize=8.8, color=E.TINTA)
     E.titulo(a2, "B. Deslocamento entre os perfis", tamanho=9.4)

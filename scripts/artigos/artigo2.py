@@ -12,7 +12,7 @@ AQUI = Path(__file__).resolve().parent
 sys.path.insert(0, str(AQUI))
 sys.path.insert(0, str(AQUI.parent / "artigo4p"))
 import fonte as F  # noqa: E402
-from dados import METRICAS_PERFIL, PARSONS, PERFIL_DIA  # noqa: E402
+from dados import METRICAS_PERFIL, PERFIL_DIA, PERFIS_T  # noqa: E402
 
 TITULO = ("Impacto da fadiga sobre os perfis de humor em atletas de handebol "
           "de elite: assinatura de sobrecarga e recomendações de "
@@ -169,8 +169,8 @@ TABELAS = {
    ["Humor perturbado", F.br(PERFIL_DIA[1][1], 1), F.br(PERFIL_DIA[7][1], 1),
     F.sinal(PERFIL_DIA[7][1] - PERFIL_DIA[1][1], 1), "n.a.", "n.a."],
    ["**Critério de Parsons-Smith**", "", "", "", "", ""]]
-  + [[nome, F.br(v[1], 1), F.br(v[2], 1), F.sinal(v[2] - v[1], 1),
-      F.br(v[3], 1), F.br(v[4], 1)] for nome, v in PARSONS.items()]
+  + [[nome, F.br(v[1], 1), F.br(v[3], 1), F.sinal(v[3] - v[1], 1),
+      "n.d.", "n.d."] for nome, v in PERFIS_T.items()]
  ),
  "nota": ("Nota: os dois critérios não são equivalentes. Sobre as métricas "
           "contínuas do perfil, o dia de HIIT reduz o índice iceberg "
@@ -310,11 +310,13 @@ BLOCOS = [
  "os perfis de Parsons-Smith (B) e efeito do dia de HIIT sobre as métricas do "
  "perfil (C)"),
 ("p", "Pela classificação de Parsons-Smith, o deslocamento tem direção única: "
-      "o perfil iceberg recua 14,9 pontos percentuais e o perfil superfície "
-      "avança 13,3 pontos, enquanto os quatro perfis restantes se movem menos "
-      "de 4 pontos. O quadro é de perda do padrão favorável sem migração para "
-      "perfis clinicamente negativos, o que é coerente com a estabilidade das "
-      "subescalas negativas descrita no primeiro artigo desta série."),
+      "o perfil iceberg recua 23,1 pontos percentuais e a barbatana de tubarão "
+      "avança 25,9 pontos, e passa a dividir com o superfície a primeira "
+      "posição no último dia. A faixa de risco, que reúne barbatana de "
+      "tubarão, iceberg invertido e Everest invertido, sobe de 26,2% para "
+      "43,5% das observações. O quadro é de migração para o esgotamento "
+      "energético, e não para o sofrimento psíquico: os outros dois perfis de "
+      "risco recuam no mesmo intervalo."),
 
 ("h1", "4 DISCUSSÃO"),
 ("p", "O achado central é a dissociação entre o estímulo externo entregue e o "

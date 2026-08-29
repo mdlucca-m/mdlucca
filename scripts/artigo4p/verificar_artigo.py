@@ -112,8 +112,8 @@ def main() -> int:
              all(f"dz = {v}" in texto for v in ("0,45", "0,44", "−0,39")))
     # migração dos perfis: cada percentual do texto existe na tabela
     perfil = []
-    for nome, v in dados.PARSONS.items():
-        for i in (1, 2):
+    for nome, v in dados.PERFIS_T.items():
+        for i in (1, 3):
             if br(v[i], 1) not in celulas:
                 perfil.append(f"{nome}:{br(v[i], 1)}")
     for dia in (1, 7):

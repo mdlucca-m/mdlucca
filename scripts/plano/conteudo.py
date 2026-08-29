@@ -16,7 +16,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(RAIZ))
 sys.path.insert(0, str(RAIZ / "scripts" / "artigo4p"))
-from dados import PARSONS  # noqa: E402
+from dados import PERFIS_T  # noqa: E402
 from scripts.panorama.corpus import ORDEM_CATEGORIAS, levantar  # noqa: E402
 
 P = levantar()
@@ -154,31 +154,31 @@ TABELAS = {
  "titulo": ("Os seis perfis de humor de Parsons-Smith: definição, prevalência "
             "normativa e prevalência nesta amostra"),
  "cabecalho": ["Perfil", "Definição pelo escore T das seis subescalas",
-               "Norma (%)", "Amostra (%)", "Leitura para o handebol"],
+               "Norma (%)", "Dia 1 (%)", "Leitura para o handebol"],
  "linhas": [
   ["Iceberg", "Vigor alto; tensão, depressão, raiva, fadiga e confusão baixas",
-   "29,4", "13,8", "Prontidão competitiva"],
+   "29,4", "40,5", "Prontidão competitiva"],
   ["Submerso", "As seis subescalas abaixo da média, o vigor incluído",
-   "25,5", "9,4", "Apatia geral, sem sofrimento declarado"],
+   "25,5", "7,1", "Apatia geral, sem sofrimento declarado"],
   ["Barbatana de tubarão",
    "O vigor mais baixo de todos os perfis, com fadiga superior à de qualquer "
-   "outro perfil exceto o Everest invertido", "17,3", "7,2",
+   "outro perfil exceto o Everest invertido", "17,3", "2,4",
    "Risco por baixa energia em ambiente que exige alerta"],
-  ["Superfície", "As seis subescalas próximas da média", "14,8", "56,8",
+  ["Superfície", "As seis subescalas próximas da média", "14,8", "26,2",
    "Estado indiferenciado"],
   ["Iceberg invertido",
    "Vigor baixo com tensão, depressão, raiva, fadiga e confusão altas",
-   "10,3", "9,0", "Indicador clássico de síndrome de overtraining"],
+   "10,3", "9,5", "Indicador clássico de síndrome de overtraining"],
   ["Everest invertido",
    "Vigor baixo, tensão e fadiga altas, e depressão, raiva e confusão muito "
-   "altas", "2,7", "3,7", "O perfil mais negativo, com risco clínico"],
+   "altas", "2,7", "14,3", "O perfil mais negativo, com risco clínico"],
  ],
  "nota": ("Nota: as definições e as prevalências normativas são da amostra A "
           "de Parsons-Smith, Terry e Machin (2017), sobre escores T. A "
-          "prevalência nesta amostra usa padronização dentro da própria "
-          "amostra, na ausência de normas de escore T para handebol de elite, "
-          "e por isso não é diretamente comparável à norma. A Figura 1 "
-          "quantifica essa diferença."),
+          "prevalência nesta amostra é a do dia de repouso, pela "
+          "classificação sobre escores T adotada depois da auditoria "
+          "registrada em data/AUDITORIA_PERFIS_HUMOR.docx. A Figura 1 "
+          "compara as duas distribuições."),
 },
 
 "delineamento": {

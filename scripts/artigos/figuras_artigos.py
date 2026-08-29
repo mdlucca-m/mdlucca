@@ -158,59 +158,68 @@ def fig_psicometria(destino: Path) -> Path:
 GRUPOS = {
     "Favorável": ["Iceberg"],
     "Neutro": ["Superfície", "Submerso"],
-    "De risco": ["Barbatana tubarão", "Iceberg invertido", "Everest invertido"],
+    "De risco": ["Barbatana de tubarão", "Iceberg invertido",
+                 "Everest invertido"],
 }
 CORES_GRUPO = {"Favorável": FAVORAVEL, "Neutro": NEUTRO, "De risco": RISCO}
-MOMENTOS = [("Dia 1\nrepouso", 1), ("Sem\nHIIT", 4), ("Com\nHIIT", 3),
-            ("Dia 7\nvéspera", 2)]
 
 
 def fig_prevalencia_semana(destino: Path) -> Path:
-    """Prevalência dos perfis no nível do grupo ao longo da semana."""
-    from dados import PARSONS
+    """Prevalência dos perfis no nível do grupo, do primeiro ao último dia.
+
+    Usa a classificação sobre escores T, que é a série adotada depois da
+    auditoria. Ela existe apenas para o dia 1 e para o dia 7; a curva diária
+    dos perfis exige recomputar a classificação a partir dos dados brutos.
+    """
+    from dados import N_PERFIL, PERFIS_T, faixa
 
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(17.4 / 2.54, 8.4 / 2.54),
                                  dpi=DPI,
-                                 gridspec_kw={"width_ratios": [1.15, 1.1]})
+                                 gridspec_kw={"width_ratios": [0.85, 1.3]})
     fig.patch.set_facecolor("white")
     aplicar(a1, grade="y")
     aplicar(a2, grade="x")
 
-    xs = list(range(len(MOMENTOS)))
-    base = [0.0] * len(MOMENTOS)
-    for grupo, perfis in GRUPOS.items():
-        vals = [sum(PARSONS[p][i] for p in perfis) for _, i in MOMENTOS]
-        a1.bar(xs, vals, bottom=base, width=0.7, color=CORES_GRUPO[grupo],
+    momentos = [(f"Dia 1\nrepouso\n(n = {N_PERFIL[1]})", 1),
+                (f"Dia 7\nvéspera\n(n = {N_PERFIL[7]})", 7)]
+    xs = list(range(len(momentos)))
+    base = [0.0] * len(momentos)
+    for grupo in GRUPOS:
+        vals = [faixa(grupo, d) for _, d in momentos]
+        a1.bar(xs, vals, bottom=base, width=0.6, color=CORES_GRUPO[grupo],
                label=grupo, zorder=3, edgecolor="white", linewidth=1.6)
         for x, v, b in zip(xs, vals, base):
             a1.text(x, b + v / 2, vg(v) + "%", ha="center", va="center",
-                    fontsize=6.8, color="white", fontweight="bold")
+                    fontsize=7.4, color="white", fontweight="bold")
         base = [b + v for b, v in zip(base, vals)]
     a1.set_xticks(xs)
-    a1.set_xticklabels([r for r, _ in MOMENTOS], fontsize=7.8)
+    a1.set_xticklabels([r for r, _ in momentos], fontsize=7.8)
     a1.set_ylim(0, 100)
     a1.set_yticks([0, 25, 50, 75, 100])
     a1.set_ylabel("Observações (%)", fontsize=8.8, color=TINTA)
-    titulo(a1, "A. Composição do grupo")
-    legenda(a1, loc="upper center", bbox_to_anchor=(0.5, -0.20), ncol=3)
+    titulo(a1, "A. Composição do grupo", tamanho=9.4)
+    legenda(a1, loc="upper center", bbox_to_anchor=(0.5, -0.24), ncol=1,
+            fontsize=7.4)
 
-    ordem = sorted(PARSONS, key=lambda k: PARSONS[k][1])
+    ordem = sorted(PERFIS_T, key=lambda k: PERFIS_T[k][1])
     ys = list(range(len(ordem)))
     altura = 0.36
     for desloc, indice, cor, rotulo in ((altura / 2, 1, AZUL, "Dia 1"),
-                                        (-altura / 2, 2, CORAL, "Dia 7")):
-        vals = [PARSONS[p][indice] for p in ordem]
+                                        (-altura / 2, 3, CORAL, "Dia 7")):
+        vals = [PERFIS_T[p][indice] for p in ordem]
+        ns = [PERFIS_T[p][indice - 1] for p in ordem]
         a2.barh([y + desloc for y in ys], vals, height=altura, color=cor,
                 label=rotulo, zorder=3)
-        for y, v in zip(ys, vals):
-            a2.text(v + 1.5, y + desloc, vg(v) + "%", va="center",
-                    fontsize=7.2, color=TINTA)
+        for y, v, n in zip(ys, vals, ns):
+            a2.text(v + 1.2, y + desloc, f"{vg(v)}% (n = {n})", va="center",
+                    fontsize=7.0, color=TINTA)
     a2.set_yticks(ys)
     a2.set_yticklabels(ordem, fontsize=8.4)
-    a2.set_xlim(0, 78)
+    a2.set_xlim(0, 62)
     a2.set_xlabel("Observações no perfil (%)", fontsize=8.8, color=TINTA)
     titulo(a2, "B. Os seis perfis, do dia 1 ao dia 7", tamanho=9.4)
-    legenda(a2, loc="upper center", bbox_to_anchor=(0.5, -0.18), ncol=2)
+    legenda(a2, loc="upper center", bbox_to_anchor=(0.5, -0.24), ncol=2,
+            fontsize=7.4)
     fig.tight_layout(w_pad=2.6)
     return salvar(fig, destino, "a1_prevalencia_semana.png")
 

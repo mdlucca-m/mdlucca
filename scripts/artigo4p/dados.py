@@ -51,7 +51,36 @@ PERFIL_DIA = {                                    # dia: (% iceberg, % PTH > 0)
 # Tabela 52: número de atletas com coleta válida em cada dia.
 N_DIA = {1: 27, 2: 26, 3: 26, 4: 21, 5: 23, 6: 22, 7: 21}
 
-# ── Tabela 22: perfis de Parsons-Smith ────────────────────────────────────
+# ── Classificação nos seis perfis, série adotada ──────────────────────────
+# Tabela 12 de Artigo_Perfil_de_humor__handebol.docx. O método daquele
+# documento converte os escores em T, com média 50 e desvio 10, que é a escala
+# sobre a qual os seis perfis foram definidos na literatura. É a série que a
+# auditoria de scripts/auditoria/ elegeu; ver data/AUDITORIA_PERFIS_HUMOR.docx.
+PERFIS_T = {              # perfil: (n dia 1, % dia 1, n dia 7, % dia 7)
+    "Iceberg":              (17, 40.5, 8, 17.4),
+    "Superfície":           (11, 26.2, 13, 28.3),
+    "Everest invertido":    (6, 14.3, 4, 8.7),
+    "Iceberg invertido":    (4, 9.5, 3, 6.5),
+    "Submerso":             (3, 7.1, 5, 10.9),
+    "Barbatana de tubarão": (1, 2.4, 13, 28.3),
+}
+N_PERFIL = {1: 42, 7: 46}   # denominadores declarados na Tabela 12
+FAVORAVEL = ["Iceberg"]
+NEUTRO = ["Superfície", "Submerso"]
+RISCO = ["Barbatana de tubarão", "Iceberg invertido", "Everest invertido"]
+
+
+def faixa(nome: str, dia: int) -> float:
+    """Soma dos perfis de uma faixa de significado, em percentual."""
+    i = 1 if dia == 1 else 3
+    perfis = {"Favorável": FAVORAVEL, "Neutro": NEUTRO, "De risco": RISCO}[nome]
+    return sum(PERFIS_T[p][i] for p in perfis)
+
+
+# ── Tabela 22: classificação por centroide, série substituída ─────────────
+# Mantida apenas para a discussão de método: ela padroniza dentro da própria
+# amostra e atribui ao centroide mais próximo, o que infla o perfil superfície.
+# Não deve ser usada como resultado.
 PARSONS = {                       # perfil: (global, dia 1, dia 7, HIIT, sem)
     "Superfície":         (56.8, 47.6, 60.9, 58.5, 57.0),
     "Iceberg":            (13.8, 21.4, 6.5, 10.0, 15.9),

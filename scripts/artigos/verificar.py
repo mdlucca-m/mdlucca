@@ -21,7 +21,7 @@ sys.path.insert(0, str(RAIZ))
 import artigo1  # noqa: E402
 import artigo2  # noqa: E402
 import fonte as F  # noqa: E402
-from dados import PARSONS, PERFIL_DIA  # noqa: E402
+from dados import PERFIL_DIA, PERFIS_T  # noqa: E402
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 
@@ -100,28 +100,36 @@ def checar_a1(texto, celulas):
                  for v in vals if str(v) not in celulas]
     confiab = [f"{n}:{F.br(v, 2)}" for n, vals in F.CONFIABILIDADE.items()
                for v in vals if v is not None and F.br(v, 2) not in celulas]
-    prev = [f"{n}:{F.br(v[0], 1)}" for n, v in PARSONS.items()
-            if F.br(v[0], 1) not in celulas]
+    prev = [f"{n}:{F.br(v[1], 1)}" for n, v in PERFIS_T.items()
+            if F.br(v[1], 1) not in celulas]
+    prev += [f"{n}:{F.br(v[3], 1)}" for n, v in PERFIS_T.items()
+             if F.br(v[3], 1) not in celulas]
     return [
         ("descritivas na Tabela 1", not faltando, f"ausentes: {faltando[:3]}"),
         ("percentis na Tabela 2", not percentis, f"ausentes: {percentis[:3]}"),
         ("confiabilidade na Tabela 3", not confiab, f"ausentes: {confiab[:3]}"),
         ("prevalência dos perfis na Tabela 5", not prev,
          f"ausentes: {prev[:3]}"),
-        ("texto cita o excesso de perfil superfície",
-         "56,8" in texto and "42,0" in texto, ""),
+        ("texto compara a amostra com a norma",
+         "11,1" in texto and "11,6" in texto, ""),
         ("texto cita o piso da confusão", "80,5" in texto, ""),
         ("texto cita o ganho de estabilidade da média semanal",
          "0,76" in texto or "sete dias" in texto, ""),
-        ("texto soma os três perfis de risco",
-         artigo1.F.br(artigo1._RISCO, 1) in texto,
-         f"esperado {artigo1.F.br(artigo1._RISCO, 1)}%"),
+        ("texto soma a faixa de risco nos dois dias",
+         artigo1.F.br(artigo1._RISCO1, 1) in texto
+         and artigo1.F.br(artigo1._RISCO7, 1) in texto,
+         f"esperado {artigo1.F.br(artigo1._RISCO1, 1)}% e "
+         f"{artigo1.F.br(artigo1._RISCO7, 1)}%"),
+        ("texto relata a explosão da barbatana de tubarão",
+         "2,4" in texto and "28,3" in texto, ""),
+        ("texto registra a série de classificação substituída",
+         "proximidade ao centroide" in texto, ""),
         ("texto compara com a amostra brasileira",
          "26,5" in texto and "Rohlfs" in texto, ""),
         ("texto declara o limite de piso de 15%",
          "15%" in texto and "Terwee" in texto, ""),
         ("texto relata a divergência entre os dois critérios",
-         "71,4" in texto and "21,4" in texto, ""),
+         "71,4" in texto and "40,5" in texto and "30,9" in texto, ""),
         ("método declara aprovação ética",
          "comitê de ética" in texto and "consentimento" in texto, ""),
         ("método declara a instrução de resposta",
@@ -161,10 +169,10 @@ def checar_a1(texto, celulas):
          and artigo1.F.sinal(artigo1._DERIV[5], 1) in texto, ""),
         ("figura de composição do grupo presente",
          "Composição do grupo" in texto, ""),
-        ("texto lê a estabilidade da faixa de risco",
-         "23,8" in texto and "21,7" in texto, ""),
-        ("texto contrasta dias com e sem HIIT na faixa de risco",
-         "23,0" in texto and "16,4" in texto, ""),
+        ("texto lê a migração da faixa de risco",
+         "26,2" in texto and "43,5" in texto, ""),
+        ("prevalência do iceberg correta nos dois dias",
+         "40,5" in texto and "17,4" in texto, ""),
         ("série diária completa na Tabela 8",
          all(artigo1.F.br(v, 1) in celulas
              for d in artigo1.DIAS for v in artigo1.PERFIL_DIA[d]), ""),

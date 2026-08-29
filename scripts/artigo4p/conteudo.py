@@ -142,14 +142,14 @@ TABELAS = {
    ["Morgan: humor perturbado", br(dados.PERFIL_DIA[1][1], 1),
     br(dados.PERFIL_DIA[7][1], 1),
     sinal(dados.PERFIL_DIA[7][1] - dados.PERFIL_DIA[1][1], 1), "n.a.", "n.a."]]
-  + [[f"Parsons-Smith: {nome.lower()}", br(v[1], 1), br(v[2], 1),
-      sinal(v[2] - v[1], 1), br(v[3], 1), br(v[4], 1)]
-     for nome, v in dados.PARSONS.items()]
+  + [[f"Seis perfis: {nome.lower()}", br(v[1], 1), br(v[3], 1),
+      sinal(v[3] - v[1], 1), "n.d.", "n.d."]
+     for nome, v in dados.PERFIS_T.items()]
  ),
  "nota": ("Nota: o critério de Morgan classifica como iceberg a observação em "
           "que o vigor supera todas as cinco subescalas negativas, e como "
           "humor perturbado aquela com PTH maior que zero. A classificação de "
-          "Parsons-Smith atribui a observação ao centroide canônico mais "
+          "Parsons-Smith converte os escores em T e atribui a observação "
           "próximo, sobre subescalas padronizadas na amostra, na ausência de "
           "normas de escore T para esta população. Os dois critérios não são "
           "equivalentes. Fonte primária: Tabelas 20 e 21 do relatório "
@@ -334,12 +334,12 @@ SECOES: list[dict] = [
   "Figura 4 - Migração diária pelo critério de Morgan (A), deslocamento entre "
   "os perfis de Parsons-Smith (B) e efeito do dia de HIIT sobre as métricas "
   "do perfil (C)"),
- ("p", "Pela classificação de Parsons-Smith, o deslocamento tem uma direção "
-       "única: o perfil iceberg recua 14,9 pontos percentuais e o perfil "
-       "superfície avança 13,3 pontos (Figura 4B). Os quatro perfis restantes "
-       "movem-se menos de 4 pontos. O quadro é de perda do padrão favorável "
-       "sem migração para perfis clinicamente negativos, o que é coerente com "
-       "a estabilidade das subescalas negativas ao longo da semana. Nos dias "
+ ("p", "Pela classificação nos seis perfis, o deslocamento tem uma direção "
+       "única: o perfil iceberg recua 23,1 pontos percentuais e a barbatana "
+       "de tubarão avança 25,9 pontos (Figura 4B). A faixa de risco, que "
+       "reúne barbatana de tubarão, iceberg invertido e Everest invertido, "
+       "sobe de 26,2% para 43,5% das observações. O quadro é de migração para "
+       "o esgotamento energético, e não para o sofrimento psíquico. Nos dias "
        "de HIIT, o índice iceberg cai (dz = −0,64; IC 95% [−1,10; −0,30]; p = "
        "0,004), o eixo vigor e fadiga se inverte (dz = −0,67; IC 95% [−1,22; "
        "−0,28]; p = 0,003) e a PTH sobe (dz = 0,54; IC 95% [0,19; 0,99]; p = "

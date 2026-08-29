@@ -12,7 +12,8 @@ AQUI = Path(__file__).resolve().parent
 sys.path.insert(0, str(AQUI))
 sys.path.insert(0, str(AQUI.parent / "artigo4p"))
 import fonte as F  # noqa: E402
-from dados import DIAS, N_DIA, PARSONS, PERFIL_DIA  # noqa: E402
+from dados import (DIAS, N_DIA, N_PERFIL, PERFIL_DIA, PERFIS_T,
+                   faixa)  # noqa: E402
 
 NORMATIVO = {"Iceberg": 29.4, "Submerso": 25.5, "Barbatana tubarão": 17.3,
              "Superfície": 14.8, "Iceberg invertido": 10.3,
@@ -23,8 +24,12 @@ TITULO = ("Perfil de humor em atletas de handebol de elite na última semana "
 SUBTITULO = ("Estudo observacional descritivo de um microciclo de sete dias "
              "com duas coletas diárias")
 
-_RISCO = sum(PARSONS[k][0] for k in
-             ("Barbatana tubarão", "Iceberg invertido", "Everest invertido"))
+_RISCO1, _RISCO7 = faixa("De risco", 1), faixa("De risco", 7)
+_FAV1, _FAV7 = faixa("Favorável", 1), faixa("Favorável", 7)
+_NEU1, _NEU7 = faixa("Neutro", 1), faixa("Neutro", 7)
+NORMATIVO = {"Iceberg": 29.4, "Submerso": 25.5, "Barbatana de tubarão": 17.3,
+             "Superfície": 14.8, "Iceberg invertido": 10.3,
+             "Everest invertido": 2.7}
 
 ABERTURA = [
  ("RESUMO",
@@ -37,9 +42,13 @@ ABERTURA = [
   "handebol. Este estudo descreve o perfil de humor de 27 atletas de handebol "
   "masculino de primeira divisão ao longo dos sete dias da última semana de "
   "pré-temporada, com duas coletas diárias, e caracteriza cada subescala "
-  "nesta população. Os três perfis de risco somaram 19,9% das observações, "
-  "contra 26,5% da única amostra brasileira classificada pelo mesmo critério. "
-  "A proporção de atletas em perfil iceberg caiu de 71,4% para 32,6% ao longo "
+  "nesta população. No dia de repouso o perfil iceberg predominou, com 40,5% "
+  "das observações, e os três perfis de risco somaram 26,2%, valor quase "
+  "idêntico aos 26,5% da única amostra brasileira classificada pelo mesmo "
+  "critério. Na véspera da competição o iceberg caiu para 17,4%, a barbatana "
+  "de tubarão subiu de 2,4% para 28,3% e a faixa de risco alcançou 43,5% das "
+  "observações. Pelo critério de Morgan, aplicado em paralelo sobre escores "
+  "brutos, a proporção em perfil iceberg caiu de 71,4% para 32,6% ao longo "
   "da semana, e a análise da derivada da série mostra que a perda não é "
   "gradual: duas quedas ultrapassam o piso de ruído de 10,0 pontos "
   "percentuais, a primeira no dia seguinte à sessão inicial de alta "
@@ -217,67 +226,86 @@ TABELAS = {
  "titulo": ("Os seis perfis de humor: definição, correlatos descritos na "
             "literatura, prevalência normativa e prevalência nesta amostra"),
  "cabecalho": ["Perfil", "Definição pelo padrão das seis subescalas",
-               "Correlatos descritos", "Norma (%)", "Amostra (%)"],
+               "Correlatos descritos", "Norma (%)", "Dia 1 (%)", "Dia 7 (%)"],
  "linhas": [
   ["Iceberg",
    "Vigor alto; tensão, depressão, raiva, fadiga e confusão baixas",
    "Funcionamento cognitivo saudável e desempenho físico alto; padrão típico "
    "de atletas, o que reduz o seu poder discriminativo",
-   F.br(29.4, 1), F.br(PARSONS["Iceberg"][0], 1)],
+   F.br(NORMATIVO["Iceberg"], 1), F.br(PERFIS_T["Iceberg"][1], 1),
+   F.br(PERFIS_T["Iceberg"][3], 1)],
+  ["Superfície", "As seis subescalas próximas da média",
+   "Estado indiferenciado, sem sinal claro em nenhuma direção",
+   F.br(NORMATIVO["Superfície"], 1), F.br(PERFIS_T["Superfície"][1], 1),
+   F.br(PERFIS_T["Superfície"][3], 1)],
   ["Submerso",
    "Tensão, depressão, raiva, fadiga e confusão baixas, como no iceberg, mas "
    "com o vigor também abaixo da média",
    "Ausência de sofrimento declarado com baixa disponibilidade energética",
-   F.br(25.5, 1), F.br(PARSONS["Submerso"][0], 1)],
+   F.br(NORMATIVO["Submerso"], 1), F.br(PERFIS_T["Submerso"][1], 1),
+   F.br(PERFIS_T["Submerso"][3], 1)],
   ["Barbatana de tubarão",
    "O vigor mais baixo de todos os perfis, com fadiga superior à de qualquer "
    "outro perfil exceto o Everest invertido",
    "Combinação de fadiga alta e vigor baixo, associada a prejuízo de "
    "funcionamento em ambientes que exigem energia e alerta",
-   F.br(17.3, 1), F.br(PARSONS["Barbatana tubarão"][0], 1)],
-  ["Superfície", "As seis subescalas próximas da média",
-   "Estado indiferenciado, sem sinal claro em nenhuma direção",
-   F.br(14.8, 1), F.br(PARSONS["Superfície"][0], 1)],
+   F.br(NORMATIVO["Barbatana de tubarão"], 1),
+   F.br(PERFIS_T["Barbatana de tubarão"][1], 1),
+   F.br(PERFIS_T["Barbatana de tubarão"][3], 1)],
   ["Iceberg invertido",
    "Vigor abaixo da média com tensão, depressão, raiva, fadiga e confusão "
    "acima da média",
    "Prejuízo de desempenho; indicador clássico de síndrome de overtraining, "
    "risco de transtorno alimentar e queda de desempenho físico",
-   F.br(10.3, 1), F.br(PARSONS["Iceberg invertido"][0], 1)],
+   F.br(NORMATIVO["Iceberg invertido"], 1),
+   F.br(PERFIS_T["Iceberg invertido"][1], 1),
+   F.br(PERFIS_T["Iceberg invertido"][3], 1)],
   ["Everest invertido",
    "Vigor baixo, tensão e fadiga altas, e depressão, raiva e confusão muito "
    "altas",
    "O perfil mais negativo; compartilha sintomas de quadros clínicos e "
    "associa-se a déficit cognitivo e a desempenho debilitado",
-   F.br(2.7, 1), F.br(PARSONS["Everest invertido"][0], 1)],
+   F.br(NORMATIVO["Everest invertido"], 1),
+   F.br(PERFIS_T["Everest invertido"][1], 1),
+   F.br(PERFIS_T["Everest invertido"][3], 1)],
  ],
  "nota": ("Nota: definições, correlatos e prevalências normativas conforme a "
-          "amostra A de Parsons-Smith, Terry e Machin (2017), sobre escores "
-          "T de população geral. A prevalência desta amostra usa padronização "
-          "dentro da própria amostra, na ausência de normas de escore T para "
-          "handebol, e por isso não é diretamente comparável à norma; a "
-          "Figura 3 quantifica essa diferença. Os três últimos perfis são os "
-          "associados a risco à saúde mental."),
+          "amostra A de Parsons-Smith, Terry e Machin (2017). A prevalência "
+          "desta amostra vem da classificação sobre escores T, com "
+          f"{N_PERFIL[1]} observações no dia 1 e {N_PERFIL[7]} no dia 7. Os "
+          "três últimos perfis são os associados a risco à saúde mental."),
 },
 
 "distribuicao": {
  "numero": 7,
  "titulo": ("Distribuição dos perfis no primeiro e no último dia do "
-            "microciclo e nos dois tipos de dia"),
- "cabecalho": ["Perfil", "Global (%)", "Dia 1 (%)", "Dia 7 (%)",
-               "Diferença (p.p.)", "Dias de HIIT (%)", "Dias sem HIIT (%)"],
- "linhas": [[nome, F.br(v[0], 1), F.br(v[1], 1), F.br(v[2], 1),
-             F.sinal(v[2] - v[1], 1), F.br(v[3], 1), F.br(v[4], 1)]
-            for nome, v in PARSONS.items()],
- "nota": ("Nota: pelo critério de Morgan, aplicado em paralelo, a proporção "
-          f"de atletas em perfil iceberg passa de {F.br(PERFIL_DIA[1][0], 1)}% "
-          f"no dia 1 para {F.br(PERFIL_DIA[7][0], 1)}% no dia 7, e a de humor "
-          f"perturbado de {F.br(PERFIL_DIA[1][1], 1)}% para "
-          f"{F.br(PERFIL_DIA[7][1], 1)}%. Os dois critérios não são "
-          "equivalentes: o de Morgan exige apenas que o vigor supere as cinco "
-          "negativas, enquanto o de Parsons-Smith exige proximidade a um "
-          "centroide específico das seis dimensões. Fonte primária: Tabelas "
-          "20 e 21 do relatório completo."),
+            "microciclo, com as faixas de significado"),
+ "cabecalho": ["Perfil ou faixa", "Dia 1, n (%)", "Dia 7, n (%)",
+               "Diferença (p.p.)"],
+ "linhas": (
+  [[p, f"{PERFIS_T[p][0]} ({F.br(PERFIS_T[p][1], 1)})",
+    f"{PERFIS_T[p][2]} ({F.br(PERFIS_T[p][3], 1)})",
+    F.sinal(PERFIS_T[p][3] - PERFIS_T[p][1], 1)]
+   for p in sorted(PERFIS_T, key=lambda k: -PERFIS_T[k][1])]
+  + [["**Faixas de significado**", "", "", ""],
+     ["Favorável (iceberg)", F.br(_FAV1, 1), F.br(_FAV7, 1),
+      F.sinal(_FAV7 - _FAV1, 1)],
+     ["Neutra (superfície e submerso)", F.br(_NEU1, 1), F.br(_NEU7, 1),
+      F.sinal(_NEU7 - _NEU1, 1)],
+     ["De risco (barbatana, iceberg invertido e Everest invertido)",
+      F.br(_RISCO1, 1), F.br(_RISCO7, 1), F.sinal(_RISCO7 - _RISCO1, 1)]]
+ ),
+ "nota": ("Nota: classificação sobre escores T, com "
+          f"{N_PERFIL[1]} observações no dia 1 e {N_PERFIL[7]} no dia 7. As "
+          "linhas de faixa trazem apenas o percentual, porque somam perfis "
+          "com denominadores idênticos. Pelo critério de Morgan, aplicado em "
+          "paralelo sobre escores brutos, a proporção em perfil iceberg passa "
+          f"de {F.br(PERFIL_DIA[1][0], 1)}% para {F.br(PERFIL_DIA[7][0], 1)}% "
+          "e a de humor perturbado de "
+          f"{F.br(PERFIL_DIA[1][1], 1)}% para {F.br(PERFIL_DIA[7][1], 1)}%; "
+          "esse critério não classifica nos seis perfis e é discutido na "
+          "seção 4.5. Fonte primária: Tabela 12 do estudo de perfil e Tabela "
+          "20 do relatório completo."),
 },
 
 "sinal": {
@@ -513,14 +541,25 @@ BLOCOS = [
       "agrupamentos verificado por inspeção do gráfico de sedimentação, "
       "seguida de k-médias para refino das fronteiras e de análise "
       "discriminante para confirmação (Parsons-Smith, Terry e Machin, 2017). "
-      "Nesta amostra não há normas de escore T para handebol de elite, e 27 "
-      "atletas não comportam a derivação de agrupamentos própria. As seis "
-      "subescalas foram, portanto, padronizadas dentro da própria amostra, e "
-      "cada observação foi atribuída ao agrupamento cujo centroide canônico "
-      "está a menor distância euclidiana sobre as seis dimensões "
-      "padronizadas. Essa decisão está declarada aqui porque afeta "
-      "diretamente a prevalência relatada na seção 4.3, e é discutida na "
-      "seção 5."),
+      "Nesta amostra o tamanho não comporta a derivação de agrupamentos "
+      "próprios. Os escores das seis subescalas foram convertidos em escore "
+      "T, com média 50 e desvio-padrão 10, que é a escala sobre a qual os "
+      "seis perfis foram definidos, e cada observação foi atribuída pelo "
+      "padrão de forma do perfil, isto é, pela posição relativa do vigor e "
+      "das cinco subescalas negativas em relação à linha de 50."),
+("p", "Registra-se, por transparência, que uma análise anterior deste mesmo "
+      "conjunto de dados classificou as observações por proximidade ao "
+      "centroide canônico, sobre escores padronizados dentro da amostra, e "
+      "chegou a uma distribuição distinta, com predomínio do perfil "
+      "superfície. Uma auditoria das duas classificações mostrou que submerso "
+      "e iceberg invertido recebem valores idênticos nas duas regras, nos "
+      "dois dias, o que localiza a divergência na fronteira entre perfis e "
+      "não nos dados. A regra por proximidade a centroide concentra as "
+      "observações no centro da distribuição, que é onde fica o centroide do "
+      "perfil superfície, e por isso apaga o deslocamento entre perfis. "
+      "Adotou-se a classificação sobre escore T, que segue o procedimento da "
+      "literatura e reproduz a forma esperada dos perfis. A limitação que "
+      "decorre dessa escolha está na seção 5.7."),
 ("h2", "3.8 Plano de análise"),
 ("h3", "3.8.1 Descrição das subescalas e propriedades da medida"),
 ("p", "As subescalas foram descritas por média, desvio-padrão, mediana, "
@@ -648,24 +687,27 @@ BLOCOS += [
       "afeto negativo."),
 ("tab", "correlacao"),
 ("h2", "4.3 Prevalência dos seis perfis"),
-("p", "O perfil superfície reúne 56,8% das observações, seguido do iceberg "
-      "com 13,8%, do submerso com 9,4%, do iceberg invertido com 9,0%, da "
-      "barbatana de tubarão com 7,2% e do Everest invertido com 3,7% "
+("p", "No dia de repouso, o perfil iceberg é o mais frequente, com "
+      f"{F.br(PERFIS_T['Iceberg'][1], 1)}% das observações, seguido do "
+      f"superfície com {F.br(PERFIS_T['Superfície'][1], 1)}%, do Everest "
+      f"invertido com {F.br(PERFIS_T['Everest invertido'][1], 1)}%, do "
+      f"iceberg invertido com {F.br(PERFIS_T['Iceberg invertido'][1], 1)}%, "
+      f"do submerso com {F.br(PERFIS_T['Submerso'][1], 1)}% e da barbatana "
+      f"de tubarão com {F.br(PERFIS_T['Barbatana de tubarão'][1], 1)}% "
       "(Tabela 6). Os três perfis associados a risco à saúde mental somam "
-      f"{F.br(_RISCO, 1)}% das observações."),
+      f"{F.br(_RISCO1, 1)}% das observações nesse dia."),
 ("tab", "perfis"),
 ("fig", "fig_prevalencia.png", 16.0,
  "Figura 3 - Prevalência de cada perfil na amostra normativa e nesta amostra "
  "(A) e efeito da padronização interna sobre essa prevalência (B)"),
-("p", "A diferença mais visível é o excesso de perfil superfície, 42,0 pontos "
-      "percentuais acima da norma, com déficit correspondente nos perfis "
-      "iceberg, submerso e barbatana de tubarão. Essa diferença não é achado "
-      "clínico: ela decorre da padronização dentro da amostra, que coloca a "
-      "média do próprio grupo na linha de água e comprime as observações em "
-      "direção ao centro. Os dois perfis mais negativos, iceberg invertido e "
-      "Everest invertido, ficam a 1,3 e a 1,0 ponto percentual da norma, o "
-      "que sugere que a compressão atinge sobretudo os perfis intermediários "
-      "e preserva os extremos negativos."),
+("p", "A comparação com a amostra normativa tem a direção esperada nos dois "
+      "extremos. O perfil iceberg fica 11,1 pontos percentuais acima da "
+      "norma, o que é coerente com atletas de elite em dia de repouso, e o "
+      "iceberg invertido fica praticamente sobre a norma, a 0,8 ponto. Os "
+      "perfis submerso e barbatana de tubarão ficam abaixo, em 18,4 e 14,9 "
+      "pontos, também coerente com o dia de menor carga da semana. O "
+      "afastamento que essa lógica não explica é o do Everest invertido, 11,6 "
+      "pontos acima da norma, retomado na seção 5.5."),
 ("h2", "4.4 Predominância dos perfis ao longo da semana"),
 ("p", "Do primeiro ao último dia, a proporção de atletas em perfil iceberg "
       f"cai de {F.br(PERFIL_DIA[1][0], 1)}% para {F.br(PERFIL_DIA[7][0], 1)}%, "
@@ -673,10 +715,10 @@ BLOCOS += [
       "percentuais, e a de humor perturbado sobe de "
       f"{F.br(PERFIL_DIA[1][1], 1)}% para {F.br(PERFIL_DIA[7][1], 1)}%, ganho "
       f"de {F.br(abs(PERFIL_DIA[7][1] - PERFIL_DIA[1][1]), 1)} pontos "
-      "(Tabela 8). Pela classificação de Parsons-Smith, no mesmo intervalo, o "
-      "perfil iceberg recua 14,9 pontos percentuais e o perfil superfície "
-      "avança 13,3 pontos, enquanto os quatro perfis restantes se movem menos "
-      "de 4 pontos (Tabela 7)."),
+      "(Tabela 8). Pela classificação nos seis perfis, no mesmo intervalo, o "
+      "perfil iceberg recua 23,1 pontos percentuais e a barbatana de tubarão "
+      "avança 25,9 pontos, que são os dois maiores deslocamentos da "
+      "distribuição (Tabela 7)."),
 ("tab", "distribuicao"),
 ("fig", "a1_prevalencia_semana.png", 16.0,
  "Figura 4 - Composição do grupo em faixas de significado ao longo da semana "
@@ -684,18 +726,22 @@ BLOCOS += [
 ("p", "A Figura 4 reúne a leitura de grupo. O painel A agrega os seis perfis "
       "em três faixas: favorável, que reúne o iceberg; neutra, que reúne "
       "superfície e submerso; e de risco, que reúne barbatana de tubarão, "
-      "iceberg invertido e Everest invertido. A composição revela um "
-      "movimento que a leitura perfil a perfil esconde. A faixa de risco "
-      "praticamente não se altera entre o primeiro e o último dia, de 23,8% "
-      "para 21,7%, enquanto a faixa favorável cai de 21,4% para 6,5% e a "
-      "neutra sobe de 54,7% para 71,8%. A semana não empurra a equipe para o "
-      "risco: ela dissolve o padrão favorável na indiferenciação."),
-("p", "O mesmo painel separa os dois tipos de dia. Nos dias de HIIT a faixa "
-      "de risco alcança 23,0% das observações, contra 16,4% nos dias sem "
-      "HIIT, e a faixa favorável cai de 15,9% para 10,0%. A diferença de 6,6 "
-      "pontos percentuais na faixa de risco entre os dois tipos de dia é a "
-      "primeira indicação de que o deslocamento acompanha a intensidade, e "
-      "não o volume, o que a análise da série diária confirma a seguir."),
+      "iceberg invertido e Everest invertido. As três faixas se movem na "
+      f"mesma direção: a favorável cai de {F.br(_FAV1, 1)}% para "
+      f"{F.br(_FAV7, 1)}%, a neutra sobe de {F.br(_NEU1, 1)}% para "
+      f"{F.br(_NEU7, 1)}% e a de risco sobe de {F.br(_RISCO1, 1)}% para "
+      f"{F.br(_RISCO7, 1)}%. Na véspera da competição, quase metade das "
+      "observações está em um dos três perfis que a literatura associa a "
+      "risco à saúde mental."),
+("p", "O painel B mostra que esse aumento não se distribui pelos três perfis "
+      "de risco. Ele se concentra na barbatana de tubarão, que passa de "
+      f"{PERFIS_T['Barbatana de tubarão'][0]} para "
+      f"{PERFIS_T['Barbatana de tubarão'][2]} observações e se torna, "
+      "empatada com o superfície, o perfil mais frequente do último dia. O "
+      "iceberg invertido e o Everest invertido recuam no mesmo intervalo. A "
+      "leitura é específica: o elenco não migra para o sofrimento psíquico, "
+      "migra para o esgotamento energético, que é a definição da barbatana de "
+      "tubarão."),
 ("tab", "sinal"),
 ("fig", "a1_sinal.png", 15.0,
  "Figura 5 - Predominância diária dos dois critérios de Morgan, com a curva "
@@ -722,14 +768,14 @@ BLOCOS += [
 ("h2", "4.5 Concordância entre os dois critérios de classificação"),
 ("p", "Os dois critérios não concordam entre si, e a diferença é grande. No "
       "primeiro dia, o critério de Morgan classifica 71,4% das observações "
-      "como perfil iceberg, contra 21,4% pelo critério de Parsons-Smith. A "
+      "como perfil iceberg, contra 40,5% pelo critério dos seis perfis. A "
       "discrepância é esperada e decorre da definição: o critério de Morgan "
       "exige apenas que o vigor supere as cinco subescalas negativas, "
       "condição que quatro subescalas presas ao piso tornam fácil de "
       "satisfazer, enquanto o critério de Parsons-Smith exige proximidade a "
       "um centroide específico das seis dimensões. Em população com efeito "
       "piso acentuado, o critério de Morgan superestima a prevalência do "
-      "padrão favorável, e a magnitude dessa superestimativa, de 50 pontos "
+      "padrão favorável, e a magnitude dessa superestimativa, de 30,9 pontos "
       "percentuais no primeiro dia, desaconselha o uso dele como critério "
       "único de triagem."),
 ]
@@ -747,37 +793,47 @@ BLOCOS += [
       "monitoramento diário, e o que a comparação com a literatura corrobora "
       "e o que ela contraria."),
 ("h2", "5.1 O que os perfis dizem sobre esta equipe"),
-("p", f"Os três perfis de risco somam {F.br(_RISCO, 1)}% das observações, "
-      "isto é, aproximadamente uma em cada cinco. O número aproxima-se dos "
+("p", f"No dia de repouso, os três perfis de risco somam "
+      f"{F.br(_RISCO1, 1)}% das observações, isto é, aproximadamente uma em "
+      "cada quatro. O número é quase idêntico aos "
       "26,5% relatados na única amostra brasileira classificada pelos mesmos "
       "seis perfis, com 898 atletas de elite e de base de um clube do Rio de "
-      "Janeiro (Rohlfs, Noce e Wilke, 2024). A diferença de seis pontos "
-      "percentuais tem duas explicações plausíveis e não excludentes, e as "
-      "duas empurram na mesma direção. A amostra brasileira reúne os dois "
-      "sexos e uma faixa etária de 12 a 44 anos, e nela os perfis de risco "
-      "foram mais frequentes entre mulheres, tendência que replica o achado "
-      "original de sobre-representação feminina nos perfis negativos "
-      "(Parsons-Smith, Terry e Machin, 2017); a nossa amostra é masculina e "
-      "adulta. E a amostra brasileira empregou também a instrução de semana "
-      "anterior, que produz escores mais altos que a de momento presente "
-      "adotada aqui. A prevalência menor observada no handebol é, portanto, "
-      "coerente com a literatura, e não contraditória."),
-("p", "A leitura otimista desse número seria a de uma equipe psicologicamente "
-      "saudável. A leitura cautelosa, que preferimos, observa que uma em cada "
-      "cinco observações em perfil de risco, na semana que antecede a "
-      "estreia, corresponde a cerca de cinco atletas do elenco em qualquer "
-      "dia dado. Para uma modalidade coletiva com sete jogadores em quadra, "
-      "essa fração não é residual."),
-("p", "A composição por faixas, no painel A da Figura 4, acrescenta uma "
-      "qualificação importante a esse quadro. A faixa de risco permanece "
-      "estável ao longo da semana, de 23,8% no primeiro dia para 21,7% no "
-      "último, e o que se desloca é a faixa favorável, que cai de 21,4% para "
-      "6,5%, absorvida pela faixa neutra. A semana de pré-temporada não "
-      "adoece a equipe: ela apaga o padrão de prontidão e deixa a maior parte "
-      "do elenco em estado indiferenciado. A distinção não é semântica. Uma "
-      "equipe com risco crescente exige encaminhamento clínico; uma equipe "
-      "que perde prontidão exige ajuste de carga. As duas leituras levam a "
-      "condutas diferentes, e só a composição por faixas as separa."),
+      "Janeiro (Rohlfs, Noce e Wilke, 2024). A coincidência é notável e "
+      "sustenta a validade externa da classificação adotada aqui, com a "
+      "ressalva de que a amostra brasileira reúne os dois sexos, uma faixa "
+      "etária de 12 a 44 anos e também a instrução de semana anterior, que "
+      "produz escores mais altos que a de momento presente."),
+("p", f"O que muda a leitura é o dia 7. A faixa de risco sobe de "
+      f"{F.br(_RISCO1, 1)}% para {F.br(_RISCO7, 1)}% das observações, um "
+      f"ganho de {F.br(_RISCO7 - _RISCO1, 1)} pontos percentuais, e passa a "
+      "abranger quase metade do elenco na véspera da competição. O aumento "
+      "não se distribui pelos três perfis de risco: ele se concentra na "
+      "barbatana de tubarão, que salta de "
+      f"{F.br(PERFIS_T['Barbatana de tubarão'][1], 1)}% para "
+      f"{F.br(PERFIS_T['Barbatana de tubarão'][3], 1)}% e se torna, empatada "
+      "com o superfície, o perfil mais frequente do último dia. Os outros "
+      "dois perfis de risco, iceberg invertido e Everest invertido, recuam."),
+("p", "Essa concentração é o achado clinicamente mais relevante do estudo, "
+      "porque a barbatana de tubarão tem definição própria: é o perfil com o "
+      "vigor mais baixo de todos os seis, combinado a fadiga superior à de "
+      "qualquer outro perfil exceto o Everest invertido. Ele não é um perfil "
+      "de sofrimento psíquico, é um perfil de esgotamento energético, e "
+      "corresponde exatamente ao que o eixo vigor e fadiga desta amostra faz "
+      "esperar: vigor em queda de 7,61 para 4,49 e fadiga em alta de 3,96 "
+      "para 7,46 entre o primeiro e o último dia. A migração dos perfis e o "
+      "comportamento das subescalas contam, portanto, a mesma história, por "
+      "dois caminhos independentes."),
+("p", "A composição por faixas, no painel A da Figura 4, resume o "
+      f"movimento. A faixa favorável cai de {F.br(_FAV1, 1)}% para "
+      f"{F.br(_FAV7, 1)}%, a neutra sobe de {F.br(_NEU1, 1)}% para "
+      f"{F.br(_NEU7, 1)}% e a de risco sobe de {F.br(_RISCO1, 1)}% para "
+      f"{F.br(_RISCO7, 1)}%. As três se movem na mesma direção: perda de "
+      "prontidão com ganho de risco. Uma versão anterior desta análise, "
+      "baseada em classificação por proximidade a centroide sobre escores "
+      "padronizados dentro da amostra, indicava faixa de risco estável e "
+      "levava à conclusão oposta. A auditoria das classificações do projeto "
+      "mostrou que aquela regra concentra as observações no perfil superfície "
+      "e apaga o deslocamento; a seção 3.7 registra a decisão."),
 ("h2", "5.2 Duas quedas, e não uma erosão"),
 ("p", "O resultado metodologicamente mais interessante do estudo é o da "
       "seção 4.4. A curva bruta do perfil iceberg sugere declínio contínuo ao "
@@ -811,7 +867,7 @@ BLOCOS += [
       "e outros, 2007). A leitura imediata é a de falha psicométrica, e ela "
       "tem consequências reais: a matriz policórica não converge em duas "
       "subescalas, o alfa da tensão cai a 0,43 e o critério de Morgan passa a "
-      "superestimar o padrão favorável em 50 pontos percentuais."),
+      "superestimar o padrão favorável em 30,9 pontos percentuais."),
 ("p", "A leitura alternativa, porém, é a de que o instrumento descreve "
       "corretamente uma população sem sintoma clínico. Atletas de elite "
       "saudáveis, em período preparatório, não têm razão para relatar "
@@ -868,15 +924,19 @@ BLOCOS += [
       "funcionem de modo diferente em atletas brasileiros de elite, exigiria "
       "análise de funcionamento diferencial do item que este estudo não "
       "conduziu, e permanece em aberto."),
-("p", "O segundo é a prevalência do perfil superfície, de 56,8% contra 14,8% "
-      "na amostra normativa. Aqui a divergência é, com alta probabilidade, "
-      "artefato de método, e não achado de população. A padronização dentro "
-      "da amostra transforma a média do grupo na linha de água e comprime as "
-      "observações em direção ao centro, e a Figura 3 mostra que a compressão "
-      "atinge sobretudo os perfis intermediários e preserva os extremos "
-      "negativos. A comparação com a literatura fica, portanto, restrita à "
-      "soma dos perfis de risco, que é robusta a esse deslocamento, e não "
-      "vale para a distribuição interna dos perfis intermediários."),
+("p", "O segundo é a prevalência do Everest invertido, de "
+      f"{F.br(PERFIS_T['Everest invertido'][1], 1)}% no dia de repouso contra "
+      f"{F.br(NORMATIVO['Everest invertido'], 1)}% na amostra normativa, o "
+      "maior excesso relativo de toda a distribuição (Figura 3). O Everest "
+      "invertido é o perfil mais negativo dos seis e o que a literatura "
+      "associa a quadros clinicamente diagnosticáveis, de modo que seis "
+      "observações nesse perfil no dia de repouso merecem atenção antes de "
+      "serem descartadas como ruído. Duas explicações concorrem e este estudo "
+      "não as separa: a amostra pode conter atletas em sofrimento real, ou a "
+      "conversão para escore T sobre uma amostra pequena pode alocar ao "
+      "centroide extremo observações que uma norma populacional alocaria ao "
+      "iceberg invertido. A verificação exige a classificação atleta a atleta, "
+      "que os dados brutos permitem e que este estudo não conduziu."),
 ("p", "Cabe ainda situar o estudo no que existe sobre humor no handebol. O "
       "acompanhamento de uma temporada inteira em handebolistas, com o "
       "instrumento anterior, descreveu variação conjunta de marcadores "
@@ -906,14 +966,16 @@ BLOCOS += [
       "de uma única equipe, dos quais 19 completaram todas as coletas, e o "
       "período monitorado é um único microciclo, o que concentra a observação "
       "em um momento particular da temporada e impede separar o efeito desta "
-      "semana do efeito da fase. A classificação por proximidade a centroide "
-      "não reproduz a análise de agrupamento original: o procedimento "
-      "indicado para amostras deste tamanho é a k-médias semeada com os "
-      "centroides canônicos, adotada na amostra brasileira de referência "
-      "(Rohlfs, Noce e Wilke, 2024), e a diferença entre os dois "
-      "procedimentos ainda não foi quantificada nestes dados. A ausência de "
-      "normas de escore T para a modalidade obriga à padronização interna, "
-      "cujo efeito a Figura 3 quantifica. A amostra é masculina, o que impede "
+      "A classificação por regra de forma sobre escore T não reproduz a "
+      "análise de agrupamento original: o procedimento indicado para amostras "
+      "deste tamanho é a k-médias semeada com os centroides canônicos, "
+      "adotada na amostra brasileira de referência (Rohlfs, Noce e Wilke, "
+      "2024), e a diferença entre os procedimentos ainda não foi quantificada "
+      "nestes dados. A conversão para escore T foi feita sobre a própria "
+      "amostra, na ausência de normas da modalidade, o que torna a linha de "
+      "50 uma referência interna e não populacional. A classificação existe "
+      "apenas para o primeiro e o último dia, de modo que a curva diária dos "
+      "perfis permanece por calcular. A amostra é masculina, o que impede "
       "extensão aos achados de sexo relatados na literatura. E o estudo não "
       "mediu desempenho, de modo que nenhuma afirmação sobre consequência "
       "competitiva dos perfis é sustentada por estes dados."),
@@ -921,12 +983,16 @@ BLOCOS += [
 ("h1", "6 CONCLUSÃO"),
 ("p", "Em atletas de handebol masculino de elite, na última semana de "
       "pré-temporada, os seis perfis de humor descritos na literatura são "
-      "identificáveis, e os três associados a risco à saúde mental somam "
-      f"{F.br(_RISCO, 1)}% das observações, valor próximo ao da única amostra "
-      "brasileira classificada pelo mesmo critério. A distribuição entre os "
-      "perfis intermediários depende da régua: sem normas de escore da "
-      "modalidade, a padronização interna concentra as observações no perfil "
-      "superfície e não é comparável à norma."),
+      "identificáveis. No dia de repouso, o perfil iceberg predomina, com "
+      f"{F.br(PERFIS_T['Iceberg'][1], 1)}% das observações, e os três perfis "
+      f"de risco somam {F.br(_RISCO1, 1)}%, valor quase idêntico ao da única "
+      "amostra brasileira classificada pelo mesmo critério. Na véspera da "
+      "competição o quadro se inverte: o iceberg cai para "
+      f"{F.br(PERFIS_T['Iceberg'][3], 1)}%, a barbatana de tubarão sobe de "
+      f"{F.br(PERFIS_T['Barbatana de tubarão'][1], 1)}% para "
+      f"{F.br(PERFIS_T['Barbatana de tubarão'][3], 1)}% e passa a dividir a "
+      f"primeira posição, e a faixa de risco alcança {F.br(_RISCO7, 1)}% das "
+      "observações."),
 ("p", "Ao longo da semana, a proporção de atletas em perfil iceberg cai 38,8 "
       "pontos percentuais, e a análise da derivada mostra que essa perda se "
       "concentra em dois dias, o primeiro de alta intensidade e a véspera da "
