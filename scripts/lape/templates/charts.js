@@ -94,6 +94,24 @@ const Charts = (function () {
     return { max: top, ticks: ticks };
   }
 
+  /* Eixo que atravessa o zero. `niceTicks` so sabe subir de 0 ate o
+     maximo -- e velocidade e aceleracao sao grandezas COM SINAL: metade
+     da informacao esta abaixo da linha. Com a escala so-positiva, o
+     trecho negativo era desenhado fora da area do grafico, por cima da
+     legenda, sem erro nenhum na tela. */
+  function niceTicksSigned(min, max, wanted) {
+    if (min >= 0) return { lo: 0, hi: niceTicks(max, wanted).max,
+                           ticks: niceTicks(max, wanted).ticks };
+    const alcance = niceTicks(Math.max(Math.abs(min), Math.abs(max), 1e-9), wanted);
+    const passo = alcance.ticks.length > 1
+      ? alcance.ticks[1] - alcance.ticks[0] : alcance.max;
+    const lo = -Math.ceil(Math.abs(min) / passo) * passo;
+    const hi = Math.ceil(Math.max(max, passo) / passo) * passo;
+    const ticks = [];
+    for (let v = lo; v <= hi + 1e-9; v += passo) ticks.push(Math.round(v * 1000) / 1000);
+    return { lo: lo, hi: hi, ticks: ticks };
+  }
+
   /* -------------------------------------------------------------- dica */
   let TIP = null;
   function tipNode() {
@@ -429,9 +447,14 @@ const Charts = (function () {
     const W = 760, H = spec.height || 250, ML = 52, MR = 20, MT = 18, MB = 38;
     const iw = W - ML - MR, ih = H - MT - MB;
     const all = series.reduce(function (acc, x) { return acc.concat(x.values); }, []);
-    const scale = niceTicks(Math.max.apply(null, all.concat([0])), 4);
+    /* `spec.max` trava o topo do eixo. Sem ele, uma serie desenhada
+       ponto a ponto reescala a cada quadro e a curva parece pular. */
+    const scale = niceTicksSigned(
+      Math.min.apply(null, all.concat([0])),
+      Math.max.apply(null, all.concat([spec.max || 0, 0])), 4);
+    const alcance = (scale.hi - scale.lo) || 1;
     const X = function (i) { return labels.length === 1 ? ML + iw / 2 : ML + iw * i / (labels.length - 1); };
-    const Y = function (v) { return MT + ih - ih * v / scale.max; };
+    const Y = function (v) { return MT + ih - ih * (v - scale.lo) / alcance; };
 
     const svg = svgRoot(W, H, spec.caption || "linhas");
     scale.ticks.forEach(function (t) {
@@ -442,8 +465,13 @@ const Charts = (function () {
     /* Trinta rótulos de data em 760px saem colados uns nos outros e viram
        uma tarja preta. Só cabe um rótulo a cada ~64px; os outros somem,
        e o primeiro e o último ficam sempre -- são eles que dizem o
-       intervalo que a curva cobre. */
-    const cabem = Math.max(1, Math.ceil(labels.length / Math.floor(iw / 64)));
+       intervalo que a curva cobre.
+       O viewBox tem sempre 760 de largura, mas o gráfico pode ser
+       desenhado em metade disso quando está numa coluna. `larguraReal`
+       é o espaço que ele vai ocupar de fato; sem essa dica, meia coluna
+       recebe o desbaste de tela cheia e os anos voltam a se encavalar. */
+    const encolhe = W / (spec.larguraReal || W);
+    const cabem = Math.max(1, Math.ceil(labels.length / Math.max(1, Math.floor(iw / (64 * encolhe)))));
     labels.forEach(function (label, i) {
       if (cabem > 1 && i % cabem && i !== labels.length - 1) return;
       svg.appendChild(txt(s("text", { class: "lab", x: X(i), y: H - MB + 16, "text-anchor": "middle" }), label));
@@ -460,7 +488,8 @@ const Charts = (function () {
       if (serieSpec.area || (spec.area && series.length === 1)) {
         svg.appendChild(s("path", {
           fill: gradFill(svg, color),
-          d: path + " L" + X(labels.length - 1) + " " + Y(0) + " L" + X(0) + " " + Y(0) + " Z",
+          d: path + " L" + X(serieSpec.values.length - 1) + " " + Y(0)
+            + " L" + X(0) + " " + Y(0) + " Z",
         }));
       }
       svg.appendChild(s("path", {
@@ -474,7 +503,10 @@ const Charts = (function () {
       const last = serieSpec.values[serieSpec.values.length - 1];
       if (series.length <= 4 && last !== undefined) {
         svg.appendChild(txt(s("text", {
-          class: "val", x: X(labels.length - 1) + 8, y: Y(last) + 4,
+          /* a ponta da serie e o fim DELA. Numa serie mais curta que o
+             eixo -- e e o caso durante a plotagem quadro a quadro -- o
+             rotulo ficava flutuando na borda direita, longe da linha. */
+          class: "val", x: X(serieSpec.values.length - 1) + 8, y: Y(last) + 4,
         }), fmt(last)));
       }
     });
@@ -1763,12 +1795,257 @@ const Charts = (function () {
     return figure(spec, svg);
   }
 
+  /* ==================================================================== */
+  /* dendrograma — em que ORDEM os assuntos se juntam, e a que custo      */
+  /* ==================================================================== */
+  /* A rede diz quais pares andam juntos; o dendrograma diz quando cada
+     par se junta. Dois temas que se fundem perto de zero são o mesmo
+     assunto com dois nomes; dois ramos que só se encontram no topo são
+     duas agendas diferentes dentro do mesmo laboratório — e isso é
+     invisível numa lista de pares.
+
+     Uma cor só, com a intensidade seguindo a altura da fusão: a altura é
+     grandeza contínua, e cor categórica aqui inventaria grupos que o
+     algoritmo não decidiu. Onde cortar a árvore é escolha de quem lê.
+
+     spec: { raiz, altura_maxima, corte?, height, unit } */
+  function dendrograma(spec) {
+    const raiz = spec.raiz;
+    if (!raiz) return figure(spec, empty(spec.emptyMessage));
+
+    /* Cada folha ganha uma faixa; cada nó interno senta na média dos
+       filhos. É o que faz o desenho ler como árvore e não como escada. */
+    const folhas = [];
+    (function contar(no) {
+      if (!no.filhos || !no.filhos.length) { folhas.push(no); return; }
+      no.filhos.forEach(contar);
+    })(raiz);
+    if (folhas.length < 2) return figure(spec, empty(spec.emptyMessage));
+
+    const linha = 26;
+    const MT = 14, MB = 34, MR = 22;
+    /* o rótulo é o dado mais longo aqui; a margem se ajusta a ele em vez
+       de cortar "Exercício e atividade física" no meio */
+    const maisLongo = folhas.reduce(function (a, f) {
+      return Math.max(a, String(f.label || "").length); }, 0);
+    const ML = Math.max(120, Math.min(250, maisLongo * 6.1 + 34));
+    const W = 760, H = MT + MB + folhas.length * linha;
+    const iw = W - ML - MR, ih = folhas.length * linha;
+    const topo = spec.altura_maxima || 1;
+    const X = function (d) { return ML + iw * (topo ? d / topo : 0); };
+
+    const svg = svgRoot(W, H, spec.caption || "dendrograma");
+    const cor = spec.color || seq(500);
+
+    /* Eixo da distância, embaixo: sem ele a largura não significa nada.
+       A escala aqui vai de 0 a 1 e o passo redondo do eixo comum devolve
+       só "0" e "1" -- dois traços não deixam ninguém ler a que altura um
+       ramo se fundiu. Cinco cortes iguais dão a régua. */
+    for (let k = 0; k <= 4; k++) {
+      const d = topo * k / 4;
+      svg.appendChild(s("line", { class: "grid-line", x1: X(d), x2: X(d),
+        y1: MT, y2: MT + ih }));
+      svg.appendChild(txt(s("text", { class: "tick", x: X(d),
+        y: MT + ih + 16, "text-anchor": "middle" }),
+        (Math.round(d * 100) / 100).toString().replace(".", ",")));
+    }
+    svg.appendChild(txt(s("text", { class: "lab", x: ML + iw / 2,
+      y: H - 4, "text-anchor": "middle" }),
+      spec.unit || "distância (1 − Jaccard)"));
+
+    let slot = 0;
+    function desenhar(no) {
+      if (!no.filhos || !no.filhos.length) {
+        const y = MT + slot * linha + linha / 2;
+        slot += 1;
+        svg.appendChild(txt(s("text", {
+          class: "lab", x: ML - 10, y: y + 3.5, "text-anchor": "end",
+        }), no.label));
+        const ponto = s("circle", { class: "ring mark", cx: ML, cy: y, r: 4, fill: cor });
+        hoverable(ponto, no.label, [{ value: fmt(no.n), name: "artigo(s)", color: cor }]);
+        svg.appendChild(ponto);
+        return { y: y, x: ML };
+      }
+      const filhos = no.filhos.map(desenhar);
+      const y = filhos.reduce(function (a, f) { return a + f.y; }, 0) / filhos.length;
+      const x = X(no.altura || 0);
+      /* o colchete: um traço horizontal por filho até a altura da fusão,
+         e o vertical que os amarra */
+      const ys = filhos.map(function (f) { return f.y; });
+      svg.appendChild(s("path", {
+        d: "M" + x + "," + Math.min.apply(null, ys) + " L" + x + "," + Math.max.apply(null, ys),
+        stroke: cor, fill: "none", "stroke-width": 2, "stroke-linecap": "round",
+      }));
+      filhos.forEach(function (f) {
+        svg.appendChild(s("path", {
+          d: "M" + f.x + "," + f.y + " L" + x + "," + f.y,
+          stroke: cor, fill: "none", "stroke-width": 2, "stroke-linecap": "round",
+        }));
+      });
+      const junta = s("circle", { class: "ring mark", cx: x, cy: y, r: 4.5, fill: cor });
+      hoverable(junta, "Fusão a " + String(no.altura).replace(".", ","), [
+        { value: fmt(no.compartilham), name: "artigos em comum", color: cor },
+        { value: fmt(no.n), name: "artigos no ramo" },
+      ]);
+      svg.appendChild(junta);
+      return { y: y, x: x };
+    }
+    desenhar(raiz);
+
+    /* linha de corte: acima dela os ramos são agendas separadas */
+    if (spec.corte !== undefined && spec.corte !== null) {
+      svg.appendChild(s("line", { x1: X(spec.corte), x2: X(spec.corte),
+        y1: MT, y2: MT + ih, stroke: token("--warning"), "stroke-width": 1.5,
+        "stroke-dasharray": "5 4" }));
+      /* corte perto da borda direita: o rótulo vai para dentro, senão o
+         texto sai do viewBox e some pela metade */
+      const cabeDireita = X(spec.corte) < ML + iw * 0.7;
+      svg.appendChild(txt(s("text", { class: "val", y: MT + 10,
+        x: X(spec.corte) + (cabeDireita ? 6 : -6),
+        "text-anchor": cabeDireita ? "start" : "end",
+        style: "fill:" + token("--warning") }), spec.corteRotulo || "corte"));
+    }
+    return figure(spec, svg);
+  }
+
+  /* ==================================================================== */
+  /* fluxo — organograma / árvore de decisão no formato de nós ligados    */
+  /* ==================================================================== */
+  /* O desenho de caixa-e-seta que qualquer pessoa que já viu um n8n ou um
+     Node-RED lê sem legenda: cada passo é uma caixa com o seu valor
+     dentro, e o fio curvo sai da direita de uma e entra na esquerda da
+     seguinte. Serve para o método (uma corrente) e para a decisão (uma
+     árvore que abre) porque a diferença entre os dois é só quantos fios
+     saem de cada caixa.
+
+     spec: { nodes: [{id, label, valor, nota, tom, coluna, icone}],
+             links: [{de, para, rotulo, tom}], height } */
+  const TOM_FLUXO = {
+    entrada: "--series-1", passo: "--accent-strong", decisao: "--series-4",
+    saida: "--good", descarte: "--ink-muted", alerta: "--warning",
+  };
+  function fluxo(spec) {
+    const nodes = spec.nodes || [];
+    const links = spec.links || [];
+    if (!nodes.length) return figure(spec, empty(spec.emptyMessage));
+
+    const porId = {};
+    nodes.forEach(function (n) { porId[n.id] = n; });
+    const saindo = {};
+    links.forEach(function (l) { (saindo[l.de] = saindo[l.de] || []).push(l.para); });
+    const temPai = {};
+    links.forEach(function (l) { temPai[l.para] = true; });
+
+    /* Cada folha ocupa uma faixa; o pai senta na média dos filhos. Sem
+       isso a árvore vira uma lista com setas: o pai fica em cima do
+       primeiro filho e a bifurcação não se vê. */
+    const faixa = {};
+    let livre = 0;
+    const visitado = {};
+    function situar(id) {
+      if (visitado[id]) return faixa[id];
+      visitado[id] = true;
+      const filhos = (saindo[id] || []).filter(function (f) { return porId[f]; });
+      if (!filhos.length) { faixa[id] = livre; livre += 1; return faixa[id]; }
+      const ys = filhos.map(situar);
+      faixa[id] = ys.reduce(function (a, y) { return a + y; }, 0) / ys.length;
+      return faixa[id];
+    }
+    nodes.filter(function (n) { return !temPai[n.id]; })
+      .forEach(function (n) { situar(n.id); });
+    nodes.forEach(function (n) { if (faixa[n.id] === undefined) situar(n.id); });
+
+    /* A caixa tem largura FIXA, e o desenho fica do tamanho que precisar.
+       Espremer sete passos em 760px encolhe a letra até ninguém ler o
+       rótulo -- e um fluxograma ilegível não é um fluxograma. Quando não
+       cabe, a tira rola de lado. */
+    const colunas = nodes.reduce(function (a, n) {
+      return Math.max(a, n.coluna || 0); }, 0) + 1;
+    const NW = 116, NH = 58, VGAP = 20, HGAP = 24;
+    const W = 24 + colunas * NW + (colunas - 1) * HGAP;
+    const H = 20 + Math.max(1, Math.round(livre)) * (NH + VGAP) + 8;
+    const svg = svgRoot(W, H, spec.caption || "fluxo");
+    svg.classList.add("fluxo");
+    svg.setAttribute("width", W);
+    svg.setAttribute("height", H);
+
+    const px = function (n) { return 12 + (n.coluna || 0) * (NW + HGAP); };
+    const py = function (n) { return 14 + faixa[n.id] * (NH + VGAP); };
+    const cor = function (n) { return token(TOM_FLUXO[n.tom] || TOM_FLUXO.passo); };
+
+    /* os fios primeiro, para as caixas ficarem por cima deles */
+    links.forEach(function (l) {
+      const a = porId[l.de], b = porId[l.para];
+      if (!a || !b) return;
+      const x1 = px(a) + NW, y1 = py(a) + NH / 2;
+      const x2 = px(b), y2 = py(b) + NH / 2;
+      const dx = Math.max(18, (x2 - x1) * 0.55);
+      const tinta = token(TOM_FLUXO[l.tom] || TOM_FLUXO.descarte);
+      svg.appendChild(s("path", {
+        d: "M" + x1 + "," + y1 + " C" + (x1 + dx) + "," + y1
+          + " " + (x2 - dx) + "," + y2 + " " + x2 + "," + y2,
+        fill: "none", stroke: tinta, "stroke-width": 1.6, "stroke-opacity": 0.75,
+      }));
+      svg.appendChild(s("circle", { cx: x2 - 3, cy: y2, r: 2.6, fill: tinta }));
+      if (l.rotulo) {
+        const mx = (x1 + x2) / 2, my = (y1 + y2) / 2 - 5;
+        const largura = String(l.rotulo).length * 5.6 + 10;
+        svg.appendChild(s("rect", { x: mx - largura / 2, y: my - 9, width: largura,
+          height: 15, rx: 7, fill: token("--surface"), stroke: tinta,
+          "stroke-width": 1, "stroke-opacity": 0.6 }));
+        svg.appendChild(txt(s("text", { class: "val", x: mx, y: my + 2,
+          "text-anchor": "middle", style: "font-size:9.5px;fill:" + tinta }), l.rotulo));
+      }
+    });
+
+    nodes.forEach(function (n) {
+      const x = px(n), y = py(n), tinta = cor(n);
+      const g = s("g", { class: "mark" });
+      g.appendChild(s("rect", {
+        x: x, y: y, width: NW, height: NH, rx: 11,
+        fill: token("--surface-raised"), stroke: tinta, "stroke-width": 1.5,
+      }));
+      /* a barrinha de cor à esquerda é o que dá o estado da caixa sem
+         depender de o leitor separar o tom da borda do tom do fundo */
+      g.appendChild(s("rect", { x: x, y: y + 10, width: 3.5, height: NH - 20,
+        rx: 2, fill: tinta }));
+      g.appendChild(txt(s("text", {
+        x: x + 12, y: y + 20, style: "font-size:10px;font-weight:700;fill:"
+          + token("--ink-2") + ";letter-spacing:.02em",
+      }), recortar(n.label, Math.floor((NW - 18) / 5.4))));
+      g.appendChild(txt(s("text", {
+        x: x + 12, y: y + 38, style: "font-size:15px;font-weight:750;fill:" + tinta
+          + ";font-variant-numeric:tabular-nums",
+      }), n.valor === undefined || n.valor === null ? "—" : String(n.valor)));
+      if (n.nota) {
+        g.appendChild(txt(s("text", {
+          x: x + 12, y: y + 49, style: "font-size:9px;fill:" + token("--ink-muted"),
+        }), recortar(n.nota, Math.floor((NW - 18) / 4.7))));
+      }
+      hoverable(g, n.label, [
+        { value: n.valor === undefined || n.valor === null ? "—" : String(n.valor),
+          name: n.nota || "", color: tinta },
+        n.dica ? { value: "", name: n.dica } : null,
+      ].filter(Boolean), n.onClick);
+      svg.appendChild(g);
+    });
+
+    /* uma tira com rolagem: o fluxo é largo por natureza e encolher tudo
+       para caber deixaria a letra ilegível */
+    return figure(spec, el("div", { class: "scrollx" }, svg));
+  }
+  function recortar(texto, n) {
+    texto = String(texto === undefined || texto === null ? "" : texto);
+    return texto.length > n ? texto.slice(0, Math.max(1, n - 1)) + "…" : texto;
+  }
+
   /* --------------------------------------------------------------- API */
   return {
     columns: columns, bars: bars, lines: lines, donut: donut, funnel: funnel,
     scatter: scatter, dumbbell: dumbbell, heatmap: heatmap, distribution: distribution,
     treemap: treemap, sankey: sankey, network: network, geo: geo,
     mapaMundi: mapaMundi,
+    dendrograma: dendrograma, fluxo: fluxo,
     sparkline: sparkline, meter: meter,
     area: area, radar: radar, gauge: gauge, waterfall: waterfall, bullet: bullet,
     calendarHeat: calendarHeat, bump: bump, gradFill: gradFill,

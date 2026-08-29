@@ -138,6 +138,35 @@ a.selo-var { text-decoration: none; }
   margin: 2px 0 14px; font-size: 12px; color: var(--ink-2); }
 .legenda-selos .selo-var { cursor: default; pointer-events: none; }
 
+/* ---- filtro e navegacao das curvas ---- */
+/* Os controles ficam FORA do palco que se redesenha. Um filtro que se
+   reconstroi a cada quadro perde o foco do teclado no meio do clique. */
+.curva-controles { display: grid; gap: 10px; margin: 4px 0 14px;
+  padding: 12px 14px; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--surface-raised); }
+.filtro-series { display: grid; gap: 8px; }
+.rotulo-filtro { display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--ink-muted); font-weight: 700; }
+.rotulo-filtro svg.icon { color: var(--accent); }
+.atalhos { display: flex; gap: 6px; flex-wrap: wrap; }
+.atalhos button { padding: 4px 10px; font-size: 11.5px; }
+/* a contagem dentro do selo diz quanto aquela variavel pesa: sem ela,
+   marcar e desmarcar e escolha as cegas */
+.selo-var small { font-variant-numeric: tabular-nums; opacity: .68;
+  font-weight: 700; font-size: 10.5px; }
+
+.nav-tempo { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding-top: 10px; border-top: 1px solid var(--border); }
+.nav-tempo button { padding: 6px 11px; }
+.nav-tempo .cursor-ano { flex: 1 1 180px; width: auto; min-width: 140px;
+  padding: 0; background: transparent; border: none; box-shadow: none;
+  accent-color: var(--accent-strong); cursor: pointer; }
+.nav-tempo .cursor-ano:hover, .nav-tempo .cursor-ano:focus { background: transparent; }
+.ano-corrente { font-size: 15px; font-weight: 800; color: var(--accent);
+  font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; }
+.curva-palco { min-height: 220px; }
+
 /* ---- linha do tempo com organograma que se abre ---- */
 .trilho { position: relative; padding-left: 30px; }
 .trilho::before { content: ""; position: absolute; left: 9px; top: 6px; bottom: 6px;

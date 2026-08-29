@@ -102,9 +102,17 @@ class TestRotaDoPanorama(BasePanorama):
     def test_traz_tudo_o_que_a_tela_precisa(self):
         _, _, dados = self.buscar("/api/panorama", self.ana)
         for chave in ("panorama", "sintese", "lacunas", "artigos", "linhas",
-                      "laboratorio", "vocabulario"):
+                      "laboratorio", "vocabulario", "dendrograma"):
             self.assertIn(chave, dados)
         self.assertEqual(len(dados["artigos"]), 3)
+
+    def test_a_arvore_dos_assuntos_vem_junto(self):
+        # a rota inteira cai se um `set` sobrar dentro de um nó -- não só
+        # o gráfico do dendrograma
+        _, _, dados = self.buscar("/api/panorama", self.ana)
+        arvore = dados["dendrograma"]
+        self.assertIn("raiz", arvore)
+        self.assertIn("altura_maxima", arvore)
 
     def test_cada_artigo_chega_com_as_suas_variaveis(self):
         _, _, dados = self.buscar("/api/panorama", self.ana)
@@ -552,6 +560,188 @@ class TestPecasNovasDaTela(unittest.TestCase):
         self.assertIn("mapaMundi: mapaMundi", graficos)
         self.assertIn("C.mapaMundi(", self.js("panorama.js"))
 
+
+class TestCurvasAoVivo(unittest.TestCase):
+    """Filtro, plotagem quadro a quadro, dendrograma e fluxo.
+
+    O que estes testes guardam não é a aparência: é o cronômetro que
+    sobrevive à troca de aba redesenhando um elemento que já saiu da
+    página, e o eixo que só sabe subir de zero — dois defeitos que a tela
+    não denuncia porque não dão erro nenhum.
+    """
+
+    def js(self, nome):
+        return (TEMPLATES / nome).read_text(encoding="utf-8")
+
+    # ---- filtro ----
+    def test_o_filtro_vive_fora_da_funcao_que_redesenha(self):
+        # estado dentro de verCurvas() se perde a cada evento do banco, e
+        # um filtro que se apaga sozinho não é filtro
+        js = self.js("panorama.js")
+        self.assertLess(js.index("const CURVA = {"), js.index("function verCurvas"))
+        self.assertIn("escolhidas", js[js.index("const CURVA = {"):][:220])
+
+    def test_os_atalhos_do_filtro_estao_todos_la(self):
+        js = self.js("panorama.js")
+        corpo = js[js.index("function filtroDeSeries"):js.index("function navegacaoDoTempo")]
+        for atalho in ("Todas", "Principais", "Só as confiáveis", "Nenhuma"):
+            with self.subTest(atalho=atalho):
+                self.assertIn('"' + atalho + '"', corpo)
+
+    def test_variavel_fora_do_recorte_sai_da_selecao(self):
+        # marcada ontem, ausente hoje: sem essa limpeza o gráfico pede
+        # uma série que não existe mais
+        js = self.js("panorama.js")
+        corpo = js[js.index("function verCurvas"):js.index("function filtroDeSeries")]
+        self.assertIn("CURVA.escolhidas = CURVA.escolhidas.filter", corpo)
+
+    def test_palco_vazio_avisa_em_vez_de_ficar_em_branco(self):
+        js = self.js("panorama.js")
+        corpo = js[js.index("function desenharCurvas"):]
+        self.assertIn("Nenhuma série no gráfico", corpo[:1200])
+
+    # ---- tempo real ----
+    def test_o_cronometro_para_quando_o_palco_e_esvaziado(self):
+        # este é o defeito silencioso: sair da aba deixava o intervalo
+        # vivo, redesenhando um elemento fora da página
+        js = self.js("panorama.js")
+        corpo = js[js.index("function desenhar()"):]
+        corpo = corpo[:corpo.index("palco.innerHTML")]
+        self.assertIn("pararACurva()", corpo)
+        self.assertIn("clearInterval", js[js.index("function pararACurva"):][:200])
+
+    def test_quem_pediu_menos_movimento_recebe_a_curva_pronta(self):
+        js = self.js("panorama.js")
+        self.assertIn("prefers-reduced-motion", js)
+        corpo = js[js.index("function animarTracado"):]
+        self.assertIn("poucoMovimento()", corpo[:200])
+
+    def test_o_eixo_fica_parado_enquanto_a_curva_cresce(self):
+        # sem travar o topo, cada ano novo reescala e a linha parece pular
+        js = self.js("panorama.js")
+        self.assertIn("labels: anos, max: teto", js)
+        graficos = self.js("charts.js")
+        self.assertIn("spec.max || 0", graficos)
+
+    def test_a_navegacao_tem_os_tres_controles(self):
+        js = self.js("panorama.js")
+        corpo = js[js.index("function navegacaoDoTempo"):js.index("function tocarACurva")]
+        for marca in ('"data-nav": "antes"', '"data-nav": "tocar"',
+                      '"data-nav": "depois"', "cursor-ano"):
+            with self.subTest(marca=marca):
+                self.assertIn(marca, corpo)
+
+    def test_mexer_na_barra_interrompe_a_reproducao(self):
+        # o gráfico continuar andando sob o dedo de quem arrasta é briga
+        # entre o usuário e a tela
+        js = self.js("panorama.js")
+        corpo = js[js.index("function navegacaoDoTempo"):js.index("function tocarACurva")]
+        # antes, depois, a barra -- e o proprio botao, que pausa
+        self.assertEqual(corpo.count("pararACurva()"), 4)
+        barra = corpo[corpo.index('type: "range"'):]
+        self.assertIn("pararACurva()", barra[:barra.index("caixa.appendChild(cursor)")])
+
+    # ---- o eixo com sinal ----
+    def test_a_curva_negativa_fica_dentro_do_grafico(self):
+        # velocidade e aceleração têm sinal; com escala só-positiva o
+        # trecho abaixo de zero era desenhado por cima da legenda
+        graficos = self.js("charts.js")
+        self.assertIn("function niceTicksSigned", graficos)
+        corpo = graficos[graficos.index("function lines(spec)"):]
+        corpo = corpo[:corpo.index("const svg = svgRoot")]
+        self.assertIn("niceTicksSigned", corpo)
+        self.assertIn("scale.lo", corpo)
+
+    def test_o_rotulo_da_ponta_segue_a_serie_e_nao_o_eixo(self):
+        graficos = self.js("charts.js")
+        corpo = graficos[graficos.index("function lines(spec)"):]
+        corpo = corpo[:corpo.index("(spec.marks || [])")]
+        self.assertNotIn("X(labels.length - 1)", corpo)
+
+    def test_grafico_estreito_desbasta_mais_os_rotulos(self):
+        # o viewBox tem sempre 760; meia coluna recebe metade disso, e o
+        # desbaste de tela cheia deixa os anos encavalados
+        graficos = self.js("charts.js")
+        self.assertIn("spec.larguraReal", graficos)
+        js = self.js("panorama.js")
+        self.assertEqual(js.count("larguraReal: 400"), 2)   # velocidade e aceleração
+
+    # ---- dendrograma e fluxo ----
+    def test_a_aba_ativa_nao_se_anuncia_so_pela_cor(self):
+        # classe "on" pinta o botao e nao diz nada a um leitor de tela
+        js = self.js("panorama.js")
+        corpo = js[js.index("function montarNav"):]
+        self.assertIn('"aria-current"', corpo[:1400])
+        self.assertIn('"data-aba"', corpo[:1400])
+
+    def test_a_biblioteca_publica_as_duas_formas_novas(self):
+        graficos = self.js("charts.js")
+        self.assertIn("dendrograma: dendrograma", graficos)
+        self.assertIn("fluxo: fluxo", graficos)
+
+    def test_o_dendrograma_tem_regua_de_distancia(self):
+        # sem eixo, a largura do colchete não significa nada
+        graficos = self.js("charts.js")
+        corpo = graficos[graficos.index("function dendrograma(spec)"):]
+        corpo = corpo[:corpo.index("function fluxo(spec)")]
+        self.assertIn("distância (1 − Jaccard)", corpo)
+        self.assertIn("altura_maxima", corpo)
+
+    def test_o_dendrograma_usa_uma_cor_so(self):
+        # altura de fusão é grandeza contínua; cor categórica aqui
+        # inventaria grupos que o algoritmo não decidiu
+        graficos = self.js("charts.js")
+        corpo = graficos[graficos.index("function dendrograma(spec)"):]
+        corpo = corpo[:corpo.index("function fluxo(spec)")]
+        self.assertNotIn("serie(", corpo)
+        self.assertIn("seq(", corpo)
+
+    def test_o_fluxo_nao_encolhe_ate_a_letra_sumir(self):
+        graficos = self.js("charts.js")
+        corpo = graficos[graficos.index("function fluxo(spec)"):]
+        self.assertIn('svg.classList.add("fluxo")', corpo)
+        self.assertIn("scrollx", corpo)
+        css = (TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        self.assertIn("svg.plot.fluxo { width: auto; max-width: none; }", css)
+
+    def test_o_pai_senta_na_media_dos_filhos(self):
+        # sem isso a árvore vira lista com setas: o pai fica em cima do
+        # primeiro filho e a bifurcação não se vê
+        graficos = self.js("charts.js")
+        corpo = graficos[graficos.index("function fluxo(spec)"):]
+        corpo = corpo[:corpo.index("const colunas = nodes.reduce")]
+        self.assertIn("function situar", corpo)
+        self.assertIn("/ ys.length", corpo)
+
+    def test_cada_caixa_do_metodo_carrega_um_valor_de_verdade(self):
+        # fluxograma que diz só "suavização" é desenho de manual
+        js = self.js("panorama.js")
+        corpo = js[js.index("function cartaoDoMetodo"):js.index("function cartaoDaDecisao")]
+        self.assertIn("p.total_artigos", corpo)
+        self.assertIn("todas.length", corpo)
+        self.assertIn("inflexoes", corpo)
+
+    def test_a_arvore_de_decisao_usa_o_mesmo_limiar_do_calculo(self):
+        # a tela dizer 0,5 e o cálculo usar 0,8 é a tela mentindo sobre
+        # a própria regra
+        analise_py = (ROOT / "scripts" / "lape" / "analise.py").read_text(encoding="utf-8")
+        self.assertIn("RUIDO_ALTO = 0.8", analise_py)
+        js = self.js("panorama.js")
+        corpo = js[js.index("function cartaoDaDecisao"):]
+        self.assertIn("razao_ruido >= 0.8", corpo)
+        self.assertIn("razão ≥ 0,8", corpo)
+        self.assertIn("(v.anos_com_dado || 0) < 3", corpo)
+
+    def test_as_folhas_da_arvore_somam_o_total(self):
+        # cada variável cai em exatamente uma folha; se a soma não fecha,
+        # uma condição está errada e ninguém percebe
+        js = self.js("panorama.js")
+        corpo = js[js.index("function cartaoDaDecisao"):]
+        corpo = corpo[:corpo.index("C.fluxo(")]
+        self.assertIn("semAnos", corpo)
+        self.assertIn("ruidosa", corpo)
+        self.assertIn("virou", corpo)
+        self.assertIn("lisa", corpo)
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

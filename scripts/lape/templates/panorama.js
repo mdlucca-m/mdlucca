@@ -170,6 +170,9 @@ function montarNav() {
     const conta = contaDaAba(aba.id);
     nav.appendChild(el("button", {
       class: ST.aba === aba.id ? "on" : "",
+      /* a aba tem nome proprio no HTML: o rotulo muda quando muda a
+         redacao, e ai qualquer coisa que aponte para ele quebra */
+      "data-aba": aba.id, "aria-current": ST.aba === aba.id ? "page" : null,
       onclick: function () { ST.aba = aba.id; desenhar(); window.scrollTo(0, 0); },
     }, [
       Icons.get(aba.icone, null),
@@ -671,10 +674,53 @@ function verVariaveis(palco) {
 /* ==================================================================== */
 /* 4. curvas e derivadas                                                */
 /* ==================================================================== */
+/* Esta aba tem estado proprio: quais series estao no palco e ate que ano
+   a curva ja foi tracada. O estado vive fora da funcao porque `desenhar()`
+   esvazia o palco a cada evento do banco -- e um filtro que se perde a
+   cada artigo cadastrado nao e filtro. */
+const CURVA = { escolhidas: null, quadro: null, tocando: false, animar: true };
+let relogioDaCurva = null;
+
+function pararACurva() {
+  if (relogioDaCurva) { clearInterval(relogioDaCurva); relogioDaCurva = null; }
+  CURVA.tocando = false;
+}
+
+function poucoMovimento() {
+  return typeof matchMedia === "function"
+    && matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/* O tracado que cresce da esquerda para a direita. Nao e enfeite: e a
+   unica forma de ver a ORDEM em que as coisas aconteceram sem ler o eixo
+   ponto a ponto. Quem pediu menos movimento recebe a curva pronta. */
+function animarTracado(no) {
+  if (poucoMovimento()) return;
+  const caminhos = no.querySelectorAll("svg.plot path[stroke]");
+  Array.prototype.forEach.call(caminhos, function (caminho, i) {
+    let comprimento = 0;
+    try { comprimento = caminho.getTotalLength(); } catch (erro) { return; }
+    if (!comprimento) return;
+    caminho.style.strokeDasharray = comprimento;
+    caminho.style.strokeDashoffset = comprimento;
+    caminho.style.transition = "stroke-dashoffset .6s ease-out " + (i * 0.07) + "s";
+    requestAnimationFrame(function () { caminho.style.strokeDashoffset = "0"; });
+  });
+}
+
 function verCurvas(palco) {
   const p = D.panorama;
   const anos = p.janela.anos.map(String);
-  const fortes = (p.variaveis || []).filter(function (v) { return v.total > 0; }).slice(0, 6);
+  const todas = (p.variaveis || []).filter(function (v) { return v.total > 0; });
+  const principais = todas.slice(0, 6).map(function (v) { return v.code; });
+
+  if (CURVA.escolhidas === null) CURVA.escolhidas = principais.slice();
+  /* variavel que sumiu do recorte nao pode continuar marcada */
+  CURVA.escolhidas = CURVA.escolhidas.filter(function (c) {
+    return todas.some(function (v) { return v.code === c; }); });
+  if (CURVA.quadro === null || CURVA.quadro > anos.length - 1) {
+    CURVA.quadro = anos.length - 1;
+  }
 
   palco.appendChild(cabeca("linhas", "Curvas e derivadas",
     "Como cada variável se comporta no tempo: o sinal depois do filtro, a velocidade "
@@ -694,7 +740,7 @@ function verCurvas(palco) {
       + "diagnosticar, e quase sempre passa despercebido porque o número ainda sobe." }),
   ]));
 
-  if (!fortes.length || !fortes.some(function (v) { return v.confiavel; })) {
+  if (!todas.length || !todas.some(function (v) { return v.confiavel; })) {
     palco.appendChild(nota("<b>Ainda não há série que sustente derivada.</b> "
       + "Nenhuma variável tem produção em três anos distintos dentro do recorte. "
       + "A história completa do laboratório está no <b>Lattes da equipe</b> — importá-lo "
@@ -702,15 +748,178 @@ function verCurvas(palco) {
       + "que analisar. Enquanto isso, os cartões abaixo mostram a série crua."));
   }
 
-  /* Os pontos de inflexão marcados NA curva, e não só numa tabela ao lado.
-     O ponto só significa alguma coisa em cima da linha que o gerou: numa
-     tabela, "2015 — desaceleração" é um número; no gráfico, é o lugar em
-     que a curva visivelmente deixa de abrir. */
+  if (!todas.length) { curvasSemSerie(palco); return; }
+
+  /* ---- o palco que se redesenha: filtro e navegação mexem só nele ---- */
+  const painel = el("div", { class: "curva-palco" });
+  palco.appendChild(el("div", { class: "curva-controles" },
+    [filtroDeSeries(todas, redesenhar), navegacaoDoTempo(anos, redesenhar)]));
+  palco.appendChild(painel);
+
+  function redesenhar(comAnimacao) {
+    CURVA.animar = comAnimacao !== false;
+    painel.innerHTML = "";
+    desenharCurvas(painel, p, anos, todas);
+    atualizarControles(todas, anos);
+  }
+  redesenhar(true);
+
+  /* "Tudo automatizado": ao abrir a aba pela primeira vez a série se
+     desenha sozinha, ano a ano. Uma vez -- repetir a cada recarga do
+     painel ao vivo seria um gráfico que nunca para quieto. */
+  if (!CURVA.jaTocou && anos.length > 2 && !poucoMovimento()) {
+    CURVA.jaTocou = true;
+    CURVA.quadro = 0;
+    tocarACurva(redesenhar);
+  }
+
+  curvasSemSerie(palco);
+  palco.appendChild(el("div", { style: "margin-top:14px" },
+    cartaoDoDendrograma()));
+  /* Os dois desenhos vao um embaixo do outro, e nao lado a lado: cada um
+     tem a sua largura natural, e em meia coluna a letra sumiria. */
+  palco.appendChild(el("div", { style: "margin-top:14px" }, cartaoDoMetodo(p, todas)));
+  palco.appendChild(el("div", { style: "margin-top:14px" }, cartaoDaDecisao(todas)));
+}
+
+/* ---- chips: cada variável entra e sai do palco com um toque ---- */
+function filtroDeSeries(todas, redesenhar) {
+  const caixa = el("div", { class: "filtro-series" });
+  caixa.appendChild(el("span", { class: "rotulo-filtro" },
+    [Icons.get("filtro", 13), el("span", { text: "Séries no gráfico" })]));
+
+  const rapidos = el("div", { class: "atalhos" });
+  [["Todas", function () { return todas.map(function (v) { return v.code; }); }],
+   ["Principais", function () {
+     return todas.slice(0, 6).map(function (v) { return v.code; }); }],
+   ["Só as confiáveis", function () {
+     return todas.filter(function (v) { return v.confiavel; })
+       .map(function (v) { return v.code; }); }],
+   ["Nenhuma", function () { return []; }],
+  ].forEach(function (par) {
+    rapidos.appendChild(el("button", {
+      type: "button", class: "ghost", text: par[0],
+      onclick: function () { CURVA.escolhidas = par[1](); redesenhar(true); },
+    }));
+  });
+  caixa.appendChild(rapidos);
+
+  const selos = el("div", { class: "selos", "data-selos-curva": "1" });
+  todas.forEach(function (v) {
+    const marcado = CURVA.escolhidas.indexOf(v.code) >= 0;
+    const selo = el("button", {
+      type: "button", class: "selo-var" + (marcado ? " on" : ""),
+      "data-code": v.code, style: "--tom:" + corDaVariavel(v.code),
+      "aria-pressed": String(marcado),
+      title: v.confiavel ? "série confiável" : (v.porque || "sem base para derivada"),
+      onclick: function () {
+        const i = CURVA.escolhidas.indexOf(v.code);
+        if (i >= 0) CURVA.escolhidas.splice(i, 1); else CURVA.escolhidas.push(v.code);
+        redesenhar(true);
+      },
+    }, [Icons.get(iconeDaVariavel(v.code), 12),
+        el("span", { text: v.label }),
+        el("small", { text: String(v.total) })]);
+    selos.appendChild(selo);
+  });
+  caixa.appendChild(selos);
+  return caixa;
+}
+
+/* ---- navegação no tempo: passo a passo, ou sozinho ---- */
+function navegacaoDoTempo(anos, redesenhar) {
+  const caixa = el("div", { class: "nav-tempo" });
+  const irPara = function (i) {
+    CURVA.quadro = Math.max(0, Math.min(anos.length - 1, i));
+    redesenhar(false);
+  };
+  caixa.appendChild(el("button", {
+    type: "button", class: "ghost", title: "Ano anterior", "data-nav": "antes",
+    onclick: function () { pararACurva(); irPara(CURVA.quadro - 1); },
+  }, [Icons.get("anterior", 14)]));
+  caixa.appendChild(el("button", {
+    type: "button", class: "primary", "data-nav": "tocar",
+    onclick: function () {
+      if (CURVA.tocando) { pararACurva(); redesenhar(false); }
+      else {
+        if (CURVA.quadro >= anos.length - 1) CURVA.quadro = 0;
+        tocarACurva(redesenhar);
+      }
+    },
+  }, [Icons.get("tocar", 14), el("span", { text: "Tocar" })]));
+  caixa.appendChild(el("button", {
+    type: "button", class: "ghost", title: "Próximo ano", "data-nav": "depois",
+    onclick: function () { pararACurva(); irPara(CURVA.quadro + 1); },
+  }, [Icons.get("proximo", 14)]));
+
+  const cursor = el("input", {
+    type: "range", min: "0", max: String(Math.max(0, anos.length - 1)),
+    value: String(CURVA.quadro), class: "cursor-ano",
+    "aria-label": "Ano até onde a curva é traçada",
+    oninput: function (ev) { pararACurva(); irPara(Number(ev.target.value)); },
+  });
+  caixa.appendChild(cursor);
+  caixa.appendChild(el("span", { class: "ano-corrente", "data-ano": "1",
+    text: anos[CURVA.quadro] || "—" }));
+  return caixa;
+}
+
+function tocarACurva(redesenhar) {
+  pararACurva();
+  CURVA.tocando = true;
+  redesenhar(false);
+  relogioDaCurva = setInterval(function () {
+    const anos = (D.panorama.janela.anos || []).length;
+    if (CURVA.quadro >= anos - 1) { pararACurva(); redesenhar(false); return; }
+    CURVA.quadro += 1;
+    redesenhar(false);
+  }, 700);
+}
+
+/* Os controles vivem fora do palco que se redesenha — senão o foco do
+   teclado saltaria do botão a cada quadro. Então eles se atualizam à mão. */
+function atualizarControles(todas, anos) {
+  const ano = document.querySelector('[data-ano="1"]');
+  if (ano) ano.textContent = anos[CURVA.quadro] || "—";
+  const cursor = document.querySelector(".cursor-ano");
+  if (cursor) cursor.value = String(CURVA.quadro);
+  const tocar = document.querySelector('[data-nav="tocar"]');
+  if (tocar) {
+    tocar.innerHTML = "";
+    tocar.appendChild(Icons.get(CURVA.tocando ? "pausa" : "tocar", 14));
+    tocar.appendChild(el("span", { text: CURVA.tocando ? "Pausar" : "Tocar" }));
+  }
+  const selos = document.querySelector('[data-selos-curva="1"]');
+  if (selos) {
+    Array.prototype.forEach.call(selos.children, function (selo) {
+      const marcado = CURVA.escolhidas.indexOf(selo.getAttribute("data-code")) >= 0;
+      selo.classList.toggle("on", marcado);
+      selo.setAttribute("aria-pressed", String(marcado));
+    });
+  }
+}
+
+/* ---- o desenho propriamente dito ---- */
+function desenharCurvas(palco, p, anos, todas) {
+  const vivas = todas.filter(function (v) {
+    return CURVA.escolhidas.indexOf(v.code) >= 0; });
+  if (!vivas.length) {
+    palco.appendChild(nota("<b>Nenhuma série no gráfico.</b> Marque ao menos uma "
+      + "variável acima — ou use <b>Principais</b> para voltar às seis maiores."));
+    return;
+  }
+  const ate = CURVA.quadro + 1;
+  const parcial = ate < anos.length;
+  /* o topo do eixo vem da série INTEIRA: durante a plotagem o eixo tem de
+     ficar parado, senão a curva parece pular a cada ano novo */
+  const teto = vivas.reduce(function (a, v) {
+    return Math.max(a, Math.max.apply(null, (v.suave || [0]).concat([0]))); }, 0);
+
   const marcas = [];
-  fortes.forEach(function (v, si) {
+  vivas.forEach(function (v, si) {
     (v.inflexoes || []).forEach(function (inf) {
       const i = p.janela.anos.indexOf(inf.ano);
-      if (i >= 0) {
+      if (i >= 0 && i < ate) {
         marcas.push({ serie: si, i: i, label: String(inf.ano),
                       color: corDaVariavel(v.code),
                       title: v.label + " · " + inf.ano + ": " + inf.leitura });
@@ -718,71 +927,90 @@ function verCurvas(palco) {
     });
   });
 
-  palco.appendChild(cartao("linhas", "Todas as variáveis no tempo",
-    marcas.length
-      ? "Séries filtradas, com os pontos de inflexão marcados sobre a própria curva. "
-        + "Onde duas linhas se cruzam, uma passou a outra."
-      : "Séries filtradas. Onde duas linhas se cruzam, uma passou a outra.",
+  const grafico = cartao("linhas", "Todas as variáveis no tempo",
+    (parcial ? "Traçado até " + anos[CURVA.quadro] + " — o eixo já está na escala do "
+       + "período inteiro, então a linha cresce sem o gráfico pular. "
+     : marcas.length ? "Séries filtradas, com os pontos de inflexão marcados sobre a "
+       + "própria curva. " : "Séries filtradas. ")
+    + "Onde duas linhas se cruzam, uma passou a outra.",
     C.lines({
-      labels: anos,
-      series: fortes.map(function (v) {
-        return { label: v.label, values: v.suave, color: corDaVariavel(v.code),
-                 area: false }; }),
+      labels: anos, max: teto,
+      series: vivas.map(function (v) {
+        return { label: v.label, values: (v.suave || []).slice(0, ate),
+                 color: corDaVariavel(v.code), area: false }; }),
       marks: marcas,
-      height: 340, file: "curvas-variaveis" })));
+      height: 340, file: "curvas-variaveis",
+      table: {
+        cols: [{ k: "ano", label: "Ano" }].concat(vivas.map(function (v) {
+          return { k: v.code, label: v.label, num: true }; })),
+        rows: anos.map(function (ano, i) {
+          const linha = { ano: ano };
+          vivas.forEach(function (v) { linha[v.code] = (v.serie || [])[i]; });
+          return linha;
+        }),
+      },
+    }));
+  palco.appendChild(grafico);
+  if (CURVA.animar) animarTracado(grafico);
 
-  const comCurva = fortes.filter(function (v) { return v.confiavel; });
-  if (comCurva.length) {
-    palco.appendChild(el("div", { class: "grade g2", style: "margin-top:14px" }, [
-      cartao("subida", "Velocidade — artigos por ano",
-        "Acima de zero a variável cresce; abaixo, encolhe.",
-        C.lines({ labels: anos,
-          series: comCurva.map(function (v) {
-            return { label: v.label, values: v.velocidade, color: corDaVariavel(v.code) }; }),
-          height: 240, file: "velocidade" })),
-      cartao("raio", "Aceleração — a curva abre ou fecha?",
-        "Onde cruza o zero está o ponto de inflexão, marcado no gráfico.",
-        C.lines({ labels: anos,
-          series: comCurva.map(function (v) {
-            return { label: v.label, values: v.aceleracao, color: corDaVariavel(v.code) }; }),
-          marks: comCurva.reduce(function (acc, v, si) {
-            (v.inflexoes || []).forEach(function (inf) {
-              const i = p.janela.anos.indexOf(inf.ano);
-              if (i >= 0) acc.push({ serie: si, i: i, color: corDaVariavel(v.code),
-                                     title: v.label + ": " + inf.leitura });
-            });
-            return acc;
-          }, []),
-          height: 240, file: "aceleracao" })),
-    ]));
+  const comCurva = vivas.filter(function (v) { return v.confiavel; });
+  if (!comCurva.length) return;
 
-    const inflexoes = [];
-    comCurva.forEach(function (v) {
-      (v.inflexoes || []).forEach(function (i) {
-        inflexoes.push({ variavel: v.label, code: v.code, ano: i.ano, tipo: i.tipo,
-                         leitura: i.leitura }); });
-    });
-    if (inflexoes.length) {
-      palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
-        "alvo", "Pontos de inflexão", "Onde cada curva mudou de curvatura.",
-        el("table", { class: "dados" }, [
-          el("thead", {}, el("tr", {}, ["Ano", "Variável", "O quê", "Leitura"].map(
-            function (c) { return el("th", { text: c }); }))),
-          el("tbody", {}, inflexoes.sort(function (a, b) { return b.ano - a.ano; })
-            .map(function (i) {
-              return el("tr", {}, [
-                el("td", { class: "num", text: String(i.ano) }),
-                el("td", {}, el("span", { class: "selo-var",
-                  style: "--tom:" + corDaVariavel(i.code) },
-                  [Icons.get(iconeDaVariavel(i.code), 12), el("span", { text: i.variavel })])),
-                el("td", { text: i.tipo }),
-                el("td", { class: "hint", text: i.leitura }),
-              ]);
-            })),
-        ]))));
-    }
+  palco.appendChild(el("div", { class: "grade g2", style: "margin-top:14px" }, [
+    cartao("subida", "Velocidade — artigos por ano",
+      "Acima de zero a variável cresce; abaixo, encolhe.",
+      C.lines({ labels: anos,
+        series: comCurva.map(function (v) {
+          return { label: v.label, values: (v.velocidade || []).slice(0, ate),
+                   color: corDaVariavel(v.code) }; }),
+        height: 240, file: "velocidade", larguraReal: 400 })),
+    cartao("raio", "Aceleração — a curva abre ou fecha?",
+      "Onde cruza o zero está o ponto de inflexão, marcado no gráfico.",
+      C.lines({ labels: anos,
+        series: comCurva.map(function (v) {
+          return { label: v.label, values: (v.aceleracao || []).slice(0, ate),
+                   color: corDaVariavel(v.code) }; }),
+        marks: comCurva.reduce(function (acc, v, si) {
+          (v.inflexoes || []).forEach(function (inf) {
+            const i = p.janela.anos.indexOf(inf.ano);
+            if (i >= 0 && i < ate) acc.push({ serie: si, i: i, color: corDaVariavel(v.code),
+                                              title: v.label + ": " + inf.leitura });
+          });
+          return acc;
+        }, []),
+        height: 240, file: "aceleracao", larguraReal: 400 })),
+  ]));
+
+  const inflexoes = [];
+  comCurva.forEach(function (v) {
+    (v.inflexoes || []).forEach(function (i) {
+      inflexoes.push({ variavel: v.label, code: v.code, ano: i.ano, tipo: i.tipo,
+                       leitura: i.leitura }); });
+  });
+  if (inflexoes.length) {
+    palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
+      "alvo", "Pontos de inflexão", "Onde cada curva mudou de curvatura.",
+      el("table", { class: "dados" }, [
+        el("thead", {}, el("tr", {}, ["Ano", "Variável", "O quê", "Leitura"].map(
+          function (c) { return el("th", { text: c }); }))),
+        el("tbody", {}, inflexoes.sort(function (a, b) { return b.ano - a.ano; })
+          .map(function (i) {
+            return el("tr", {}, [
+              el("td", { class: "num", text: String(i.ano) }),
+              el("td", {}, el("span", { class: "selo-var",
+                style: "--tom:" + corDaVariavel(i.code) },
+                [Icons.get(iconeDaVariavel(i.code), 12), el("span", { text: i.variavel })])),
+              el("td", { text: i.tipo }),
+              el("td", { class: "hint", text: i.leitura }),
+            ]);
+          })),
+      ]))));
   }
+}
 
+/* ---- o que não depende do filtro ---- */
+function curvasSemSerie(palco) {
+  const p = D.panorama;
   if ((p.cruzamentos || []).length) {
     palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
       "conectar", "Cruzamentos", "Em que ano uma variável passou a outra em volume.",
@@ -809,6 +1037,133 @@ function verCurvas(palco) {
         return { label: v.label, value: v.razao_ruido, color: corDaVariavel(v.code) }; }),
         labelWidth: 190, unit: "ruído/sinal", file: "ruido" }))));
   }
+}
+
+/* ---- dendrograma: em que ordem os assuntos se juntam ---- */
+function cartaoDoDendrograma() {
+  const d = D.dendrograma || {};
+  if (!d.raiz) {
+    return cartao("hierarquia", "Dendrograma dos assuntos",
+      "Como as variáveis se agrupam pela produção que dividem.",
+      nota("<b>Ainda não dá para agrupar.</b> "
+        + (d.porque || "é preciso pelo menos duas variáveis com artigo.")));
+  }
+  const separadas = (d.altura_maxima || 0) >= 0.999;
+  return cartao("hierarquia", "Dendrograma dos assuntos",
+    "Agrupamento pela média (UPGMA) sobre a distância 1 − Jaccard: quanto mais à "
+    + "esquerda dois ramos se juntam, mais os mesmos artigos os sustentam.",
+    el("div", {}, [
+      C.dendrograma({ raiz: d.raiz, altura_maxima: d.altura_maxima,
+        caption: null, corte: 0.9, corteRotulo: "agendas separadas" }),
+      el("p", { class: "leitura", html: separadas
+        ? "Há ramos que <b>só se encontram na distância máxima</b> — nenhum artigo em "
+          + "comum entre eles. Não é um laboratório com um tema: são agendas paralelas, "
+          + "e cada uma sustenta a sua própria série."
+        : "Todos os ramos se encontram <b>antes da distância máxima</b>: há artigo "
+          + "cruzando cada par de agendas." }),
+      el("p", { class: "hint", text: (d.folhas || []).length
+        + " variável(is) agrupada(s). A fusão mais baixa é o par que mais divide artigos." }),
+    ]));
+}
+
+/* ---- organograma do método, no formato de nós ligados ---- */
+/* Cada caixa carrega o valor REAL do passo, não um rótulo genérico: um
+   fluxograma que diz "suavização" e nada mais é um desenho de manual. O
+   que responde à pergunta "de onde saiu esse número" é ver 44 artigos
+   virarem 15 séries e 6 curvas confiáveis. */
+function cartaoDoMetodo(p, todas) {
+  const comSerie = todas.filter(function (v) { return v.confiavel; });
+  const inflexoes = todas.reduce(function (a, v) {
+    return a + (v.inflexoes || []).length; }, 0);
+  return cartao("automacao", "O caminho do dado até a leitura",
+    "Cada caixa é um passo do cálculo, com o número que ele produziu agora. "
+    + "É o mesmo desenho de caixa-e-fio de um n8n — só que os valores são os desta base.",
+    C.fluxo({
+      caption: null, file: "metodo",
+      nodes: [
+        { id: "art", label: "Artigos na base", valor: p.total_artigos || 0,
+          nota: "cadastro", tom: "entrada", coluna: 0,
+          dica: "Todo o acervo. Só os que carregam variável do vocabulário "
+            + "entram numa série." },
+        { id: "ser", label: "Séries anuais", valor: todas.length,
+          nota: "uma por variável", tom: "passo", coluna: 1 },
+        { id: "med", label: "Mediana móvel", valor: "janela 3",
+          nota: "tira o pico isolado", tom: "passo", coluna: 2 },
+        { id: "sua", label: "Suavização", valor: "1·2·1",
+          nota: "média ponderada", tom: "passo", coluna: 3 },
+        { id: "vel", label: "Velocidade", valor: "Δ central",
+          nota: "artigos por ano", tom: "passo", coluna: 4 },
+        { id: "ace", label: "Aceleração", valor: "Δ²",
+          nota: "abre ou fecha", tom: "passo", coluna: 5 },
+        { id: "rui", label: "Resíduo", valor: "ruído",
+          nota: "o que a subtração deixou", tom: "alerta", coluna: 4 },
+        { id: "inf", label: "Inflexões", valor: inflexoes,
+          nota: "troca de sinal", tom: "saida", coluna: 6 },
+        { id: "lei", label: "Curvas legíveis", valor: comSerie.length,
+          nota: "de " + todas.length, tom: "saida", coluna: 6 },
+      ],
+      links: [
+        { de: "art", para: "ser" }, { de: "ser", para: "med" },
+        { de: "med", para: "sua" }, { de: "sua", para: "vel", tom: "passo" },
+        { de: "sua", para: "rui", tom: "alerta" },
+        { de: "vel", para: "ace", tom: "passo" },
+        { de: "ace", para: "inf", tom: "saida" },
+        { de: "rui", para: "lei", rotulo: "ruído < 0,8", tom: "saida" },
+      ],
+    }));
+}
+
+/* ---- a árvore de decisão, com quantas variáveis caem em cada folha ---- */
+/* A regra que decide se uma curva pode ser lida está escrita em três
+   linhas de Python. Aqui ela vira desenho com a contagem em cada folha --
+   e assim quem olha vê POR QUE a maior parte das variáveis não tem curva,
+   em vez de descobrir isso um cartão vazio de cada vez. */
+function cartaoDaDecisao(todas) {
+  const semAnos = todas.filter(function (v) {
+    return (v.anos_com_dado || 0) < 3; });
+  const comAnos = todas.filter(function (v) { return (v.anos_com_dado || 0) >= 3; });
+  const ruidosa = comAnos.filter(function (v) {
+    return v.razao_ruido !== null && v.razao_ruido >= 0.8; });
+  const limpa = comAnos.filter(function (v) {
+    return !(v.razao_ruido !== null && v.razao_ruido >= 0.8); });
+  const virou = limpa.filter(function (v) { return (v.inflexoes || []).length; });
+  const lisa = limpa.filter(function (v) { return !(v.inflexoes || []).length; });
+
+  return cartao("processo", "A árvore que decide se a curva pode ser lida",
+    "As mesmas três perguntas que o cálculo faz, com quantas variáveis caem de cada "
+    + "lado. É por aqui que se vê o que falta para uma variável ganhar curva.",
+    C.fluxo({
+      caption: null, file: "decisao",
+      nodes: [
+        { id: "raiz", label: "Variáveis", valor: todas.length,
+          nota: "no recorte", tom: "entrada", coluna: 0 },
+        { id: "q1", label: "3 anos com dado?", valor: comAnos.length + "/" + todas.length,
+          nota: "mínimo para série", tom: "decisao", coluna: 1 },
+        { id: "curta", label: "Sem série", valor: semAnos.length,
+          nota: "falta história", tom: "descarte", coluna: 2,
+          dica: "A produção anterior está no Lattes da equipe." },
+        { id: "q2", label: "Ruído domina?", valor: ruidosa.length + " de " + comAnos.length,
+          nota: "razão ≥ 0,8", tom: "decisao", coluna: 2 },
+        { id: "ruido", label: "Só variação", valor: ruidosa.length,
+          nota: "sem tendência", tom: "alerta", coluna: 3,
+          dica: "A linha existe, mas o que ela desenha é balanço, não tendência." },
+        { id: "q3", label: "Tem inflexão?", valor: virou.length + " de " + limpa.length,
+          nota: "Δ² troca de sinal", tom: "decisao", coluna: 3 },
+        { id: "virada", label: "Curva com virada", valor: virou.length,
+          nota: "há ano a explicar", tom: "saida", coluna: 4 },
+        { id: "lisa", label: "Tendência lisa", valor: lisa.length,
+          nota: "sobe ou desce sem virar", tom: "saida", coluna: 4 },
+      ],
+      links: [
+        { de: "raiz", para: "q1" },
+        { de: "q1", para: "curta", rotulo: "não", tom: "descarte" },
+        { de: "q1", para: "q2", rotulo: "sim", tom: "saida" },
+        { de: "q2", para: "ruido", rotulo: "sim", tom: "alerta" },
+        { de: "q2", para: "q3", rotulo: "não", tom: "saida" },
+        { de: "q3", para: "virada", rotulo: "sim", tom: "saida" },
+        { de: "q3", para: "lisa", rotulo: "não", tom: "passo" },
+      ],
+    }));
 }
 
 /* ==================================================================== */
@@ -1718,6 +2073,10 @@ function variacaoCurta(v) {
 /* ==================================================================== */
 function desenhar() {
   montarNav();
+  /* O relogio da curva aponta para um palco que esta prestes a ser
+     esvaziado. Sem parar aqui, sair da aba deixa um cronometro vivo
+     redesenhando um elemento que ja saiu da pagina. */
+  pararACurva();
   const palco = document.getElementById("palco");
   palco.innerHTML = "";
   if (!D.pronto) {

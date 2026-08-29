@@ -1152,33 +1152,49 @@ def route_versao(ctx: "Context") -> Any:
     return versao.atual()
 
 
-def route_panorama(ctx: "Context") -> Any:
-    auth.require(ctx.user, "leitura")
-    desde = to_int((ctx.query.get("desde") or [None])[0])
-    ate = to_int((ctx.query.get("ate") or [None])[0])
-    dados = analise.panorama(ctx.db, desde=desde, ate=ate)
+def payload_do_panorama(db, desde: int | None = None,
+                        ate: int | None = None) -> dict[str, Any]:
+    """Tudo o que a tela do painel consome e que NAO depende de quem olha.
+
+    O instantaneo monta a mesma tela sem servidor, e por muito tempo
+    remontou este dicionario a mao. Toda analise nova entrava aqui e
+    esquecia de la -- e o cartao correspondente saia vazio no arquivo que
+    o professor abre, sem erro nenhum na tela. Uma funcao so, dois
+    chamadores.
+    """
+    dados = analise.panorama(db, desde=desde, ate=ate)
     return {
         "panorama": dados,
-        "incidencia": analise.incidencia(ctx.db, dados["janela"]["anos"]),
-        "triangulacao": analise.triangulacao(ctx.db),
-        "raio_x": analise.raio_x(ctx.db),
-        "projetos": analise.projetos(ctx.db),
-        "prevalencia": analise.prevalencia(ctx.db, dados["janela"]["anos"]),
-        "sintese": analise.sintese(ctx.db, dados),
-        "lacunas": analise.lacunas(ctx.db, dados),
-        "artigos": _artigos_do_panorama(ctx.db),
-        "linhas": ctx.db.dicts(
+        "incidencia": analise.incidencia(db, dados["janela"]["anos"]),
+        "triangulacao": analise.triangulacao(db),
+        "dendrograma": analise.dendrograma(db),
+        "raio_x": analise.raio_x(db),
+        "projetos": analise.projetos(db),
+        "prevalencia": analise.prevalencia(db, dados["janela"]["anos"]),
+        "sintese": analise.sintese(db, dados),
+        "lacunas": analise.lacunas(db, dados),
+        "artigos": _artigos_do_panorama(db),
+        "linhas": db.dicts(
             "SELECT rl.code, rl.name, rl.description, rl.keywords,"
             "       (SELECT COUNT(*) FROM articles a WHERE a.research_line_id = rl.id) AS n"
             "  FROM research_lines rl ORDER BY n DESC"),
         "laboratorio": {
             "nome": config.LAB_NAME, "instituicao": config.LAB_INSTITUTION,
             "site": getattr(config, "LAB_SITE", None),
-            "integrantes": int(ctx.db.scalar("SELECT COUNT(*) FROM members") or 0),
-            "projetos": int(ctx.db.scalar("SELECT COUNT(*) FROM projects") or 0),
-            "eventos": int(ctx.db.scalar("SELECT COUNT(*) FROM events") or 0),
+            "integrantes": int(db.scalar("SELECT COUNT(*) FROM members") or 0),
+            "projetos": int(db.scalar("SELECT COUNT(*) FROM projects") or 0),
+            "eventos": int(db.scalar("SELECT COUNT(*) FROM events") or 0),
         },
-        "vocabulario": variaveis.lista(ctx.db),
+        "vocabulario": variaveis.lista(db),
+    }
+
+
+def route_panorama(ctx: "Context") -> Any:
+    auth.require(ctx.user, "leitura")
+    desde = to_int((ctx.query.get("desde") or [None])[0])
+    ate = to_int((ctx.query.get("ate") or [None])[0])
+    return {
+        **payload_do_panorama(ctx.db, desde=desde, ate=ate),
         # A tela precisa saber quem esta olhando para decidir se mostra o
         # botao que grava. Quem so le nao ganha um botao que devolve 403.
         "usuario": {"papel": (ctx.user or {}).get("user_role", "leitura"),

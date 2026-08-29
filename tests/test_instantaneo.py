@@ -156,5 +156,63 @@ class TestComandoDeLinha(unittest.TestCase):
         self.assertTrue(re.search(r"def cmd_instantaneo", agente))
 
 
+class TestUmaFonteSo(unittest.TestCase):
+    """O instantâneo e a rota servem o MESMO conteúdo.
+
+    Enquanto eram dois dicionários montados à mão, toda análise nova
+    entrava num e esquecia do outro: o raio-x analítico foi para a rota e
+    nunca chegou ao arquivo que sai por e-mail. O cartão saía vazio, sem
+    erro nenhum na tela.
+    """
+
+    def setUp(self):
+        from lape import ingest_excel, variaveis
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.db = Database(Path(self.tmp.name) / "t.sqlite")
+        self.addCleanup(self.db.close)
+        self.db.migrate()
+        ingest_excel.ingest_articles(self.db, [
+            {"title": "Exercício físico na fibromialgia", "status": "Publicado",
+             "year_published": 2023, "doi": "10.1000/a.1"},
+            {"title": "Ansiedade e treinamento resistido", "status": "Publicado",
+             "year_published": 2024},
+        ])
+        variaveis.instalar(self.db)
+        variaveis.marcar_artigos(self.db)
+
+    def test_o_instantaneo_nao_remonta_o_painel_a_mao(self):
+        fonte = (ROOT / "scripts" / "lape" / "instantaneo.py").read_text(encoding="utf-8")
+        self.assertIn("payload_do_panorama", fonte)
+        # o que caracterizava a copia: chamar cada analise de novo aqui
+        for analise in ("analise.sintese(", "analise.lacunas(", "analise.raio_x(",
+                        "analise.triangulacao("):
+            with self.subTest(chamada=analise):
+                self.assertNotIn(analise, fonte)
+
+    def test_toda_analise_da_rota_chega_ao_arquivo(self):
+        from lape import instantaneo
+        from lape.api import payload_do_panorama
+
+        embutido = instantaneo._dados(self.db)
+        for chave in payload_do_panorama(self.db):
+            with self.subTest(chave=chave):
+                self.assertIn(chave, embutido)
+
+    def test_o_raio_x_e_a_arvore_estao_no_arquivo(self):
+        # as duas que faltavam, nomeadas: um teste generico passa mesmo
+        # quando as duas somem juntas da rota
+        from lape import instantaneo
+        embutido = instantaneo._dados(self.db)
+        self.assertIn("medidas", embutido["raio_x"])
+        self.assertIn("raiz", embutido["dendrograma"])
+
+    def test_o_arquivo_continua_sendo_de_leitura(self):
+        # a fonte comum nao pode trazer papel de quem grava para dentro
+        # de um retrato que nao grava nada
+        from lape import instantaneo
+        embutido = instantaneo._dados(self.db)
+        self.assertEqual(embutido["usuario"]["papel"], "leitura")
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

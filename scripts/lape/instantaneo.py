@@ -25,39 +25,25 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from . import analise, config, versao
+from . import config, versao
 from .db import Database
 
 TEMPLATES = Path(__file__).resolve().parent / "templates"
 
 
 def _dados(db: Database) -> dict[str, Any]:
-    """O mesmo conteudo que a rota do painel serve, calculado aqui."""
-    from . import ponto, variaveis
-    from .api import _artigos_do_panorama
+    """O mesmo conteudo que a rota do painel serve, calculado aqui.
 
-    panorama = analise.panorama(db)
+    Literalmente o mesmo: `api.payload_do_panorama` e a unica fonte. A
+    versao anterior remontava o dicionario a mao e ja tinha ficado para
+    tras -- o raio-x analitico nunca chegou ao instantaneo, e o cartao
+    saia vazio no arquivo que sai por e-mail.
+    """
+    from . import ponto
+    from .api import payload_do_panorama
+
     return {
-        "panorama": panorama,
-        "incidencia": analise.incidencia(db, panorama["janela"]["anos"]),
-        "prevalencia": analise.prevalencia(db, panorama["janela"]["anos"]),
-        "triangulacao": analise.triangulacao(db),
-        "projetos": analise.projetos(db),
-        "sintese": analise.sintese(db, panorama),
-        "lacunas": analise.lacunas(db, panorama),
-        "artigos": _artigos_do_panorama(db),
-        "linhas": db.dicts(
-            "SELECT rl.code, rl.name, rl.description, rl.keywords,"
-            "       (SELECT COUNT(*) FROM articles a WHERE a.research_line_id = rl.id) AS n"
-            "  FROM research_lines rl ORDER BY n DESC"),
-        "laboratorio": {
-            "nome": config.LAB_NAME, "instituicao": config.LAB_INSTITUTION,
-            "site": getattr(config, "LAB_SITE", None),
-            "integrantes": int(db.scalar("SELECT COUNT(*) FROM members") or 0),
-            "projetos": int(db.scalar("SELECT COUNT(*) FROM projects") or 0),
-            "eventos": int(db.scalar("SELECT COUNT(*) FROM events") or 0),
-        },
-        "vocabulario": variaveis.lista(db),
+        **payload_do_panorama(db),
         # Quem abre um instantaneo esta olhando, nao mandando. O papel de
         # leitura esconde os botoes que gravam em vez de deixa-los falhar.
         "usuario": {"papel": "leitura", "nome": None},

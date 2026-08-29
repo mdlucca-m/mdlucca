@@ -814,6 +814,93 @@ def raio_x(db: Database) -> dict[str, Any]:
     }
 
 
+# ----------------------------------------------------------------------
+# Dendrograma: que assuntos se agrupam, e a que distancia
+# ----------------------------------------------------------------------
+# A rede tematica diz quais pares andam juntos. O dendrograma diz outra
+# coisa: em que ORDEM os assuntos se juntam, e a que custo. Dois temas
+# que se fundem baixo sao o mesmo assunto com dois nomes; dois ramos que
+# so se encontram no topo sao duas agendas diferentes no mesmo
+# laboratorio -- e isso nao aparece numa lista de pares.
+#
+# Distancia = 1 - Jaccard sobre os artigos. Ligacao pela media (UPGMA):
+# a distancia entre dois grupos e a media das distancias entre os seus
+# membros. A ligacao simples encadearia tudo num fio so, e a completa
+# quebraria grupos legitimos por causa de um par distante.
+MIN_PARA_AGRUPAR = 2
+
+
+def _conjuntos_de_artigos(db: Database) -> dict[str, dict[str, Any]]:
+    conjuntos: dict[str, dict[str, Any]] = {}
+    for linha in db.dicts(
+            "SELECT v.code, v.label, av.article_id"
+            "  FROM article_variables av JOIN variables v ON v.id = av.variable_id"):
+        item = conjuntos.setdefault(linha["code"], {
+            "code": linha["code"], "label": linha["label"], "artigos": set()})
+        item["artigos"].add(linha["article_id"])
+    return conjuntos
+
+
+def _distancia(a: set, b: set) -> float:
+    uniao = len(a | b)
+    return 1.0 - (len(a & b) / uniao) if uniao else 1.0
+
+
+def dendrograma(db: Database, minimo_artigos: int = 1) -> dict[str, Any]:
+    """Agrupa as variaveis pela producao que compartilham (UPGMA)."""
+    conjuntos = {c: v for c, v in _conjuntos_de_artigos(db).items()
+                 if len(v["artigos"]) >= minimo_artigos}
+    if len(conjuntos) < MIN_PARA_AGRUPAR:
+        return {"raiz": None, "folhas": [], "altura_maxima": 0,
+                "porque": ("é preciso pelo menos duas variáveis com artigo "
+                           "para haver o que agrupar")}
+
+    # Cada folha comeca sendo o seu proprio grupo.
+    grupos: list[dict[str, Any]] = [
+        {"tipo": "folha", "code": v["code"], "label": v["label"],
+         "artigos": set(v["artigos"]), "n": len(v["artigos"]),
+         "altura": 0.0, "filhos": []}
+        for v in sorted(conjuntos.values(), key=lambda x: -len(x["artigos"]))]
+
+    while len(grupos) > 1:
+        melhor, par = None, None
+        for i in range(len(grupos)):
+            for j in range(i + 1, len(grupos)):
+                # Ligacao pela media: a distancia entre grupos e a media
+                # das distancias entre os artigos que cada um reune.
+                d = _distancia(grupos[i]["artigos"], grupos[j]["artigos"])
+                if melhor is None or d < melhor:
+                    melhor, par = d, (i, j)
+        i, j = par
+        a, b = grupos[i], grupos[j]
+        juntos = {
+            "tipo": "no", "label": None, "altura": round(melhor, 3),
+            "artigos": a["artigos"] | b["artigos"],
+            "n": len(a["artigos"] | b["artigos"]),
+            "compartilham": len(a["artigos"] & b["artigos"]),
+            "filhos": [a, b],
+        }
+        grupos = [g for k, g in enumerate(grupos) if k not in (i, j)] + [juntos]
+
+    def limpar(no: dict[str, Any]) -> dict[str, Any]:
+        saida = {k: v for k, v in no.items() if k != "artigos"}
+        saida["filhos"] = [limpar(f) for f in no["filhos"]]
+        return saida
+
+    raiz = limpar(grupos[0])
+    folhas: list[dict[str, Any]] = []
+
+    def andar(no: dict[str, Any]) -> None:
+        if no["tipo"] == "folha":
+            folhas.append({"code": no["code"], "label": no["label"], "n": no["n"]})
+        for f in no["filhos"]:
+            andar(f)
+
+    andar(raiz)
+    return {"raiz": raiz, "folhas": folhas,
+            "altura_maxima": raiz.get("altura", 0), "porque": None}
+
+
 def paises(db: Database) -> dict[str, Any]:
     """De onde vem a producao: o pais da instituicao de cada coautor.
 

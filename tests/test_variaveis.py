@@ -15,6 +15,7 @@ o painel mostra uma ladeira bonita, e quem lê acredita.
 """
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
 import unittest
@@ -700,6 +701,99 @@ class TestPanorama(unittest.TestCase):
             {"title": "Ansiedade sem data nenhuma", "authors": "X", "status": "Em produção"}])
         variaveis.marcar_artigos(self.db)
         self.assertGreaterEqual(analise.panorama(self.db)["sem_ano"], 1)
+
+
+class TestDendrograma(unittest.TestCase):
+    """A ordem em que os assuntos se juntam, e a que custo.
+
+    A rede temática já diz quais pares andam juntos. O que só o
+    dendrograma diz é se o laboratório tem UM tema com ramificações ou
+    duas agendas que nunca se encontram — e essa é a leitura que muda o
+    que se escreve no relatório.
+    """
+
+    def monta(self, artigos):
+        from lape import ingest_excel
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        db = Database(Path(self.tmp.name) / "t.sqlite")
+        self.addCleanup(db.close)
+        db.migrate()
+        ingest_excel.ingest_articles(db, artigos)
+        variaveis.instalar(db)
+        variaveis.marcar_artigos(db)
+        return db
+
+    def test_quem_divide_mais_artigos_se_funde_mais_baixo(self):
+        # fibromialgia e exercício nos mesmos três artigos: distância
+        # perto de zero. Assoalho pélvico sozinho: só entra no fim.
+        db = self.monta([
+            {"title": "Exercício físico na fibromialgia", "status": "Publicado",
+             "year_published": 2022},
+            {"title": "Exercício aeróbio e fibromialgia", "status": "Publicado",
+             "year_published": 2023},
+            {"title": "Fibromialgia e atividade física", "status": "Publicado",
+             "year_published": 2024},
+            {"title": "Treinamento do assoalho pélvico", "status": "Publicado",
+             "year_published": 2024},
+        ])
+        arvore = analise.dendrograma(db)
+        alturas = []
+
+        def andar(no):
+            if no["tipo"] == "no":
+                alturas.append(no["altura"])
+                for filho in no["filhos"]:
+                    andar(filho)
+
+        andar(arvore["raiz"])
+        self.assertGreaterEqual(len(arvore["folhas"]), 3)
+        self.assertLess(min(alturas), max(alturas))
+
+    def test_duas_agendas_sem_artigo_em_comum_so_se_juntam_no_topo(self):
+        # é o achado que importa: distância máxima entre os ramos não é
+        # detalhe de algoritmo, é o laboratório dividido em dois
+        db = self.monta([
+            {"title": "Exercício físico na fibromialgia", "status": "Publicado",
+             "year_published": 2022},
+            {"title": "Motivação e exergames na educação física escolar",
+             "status": "Publicado", "year_published": 2023},
+        ])
+        arvore = analise.dendrograma(db)
+        self.assertEqual(arvore["altura_maxima"], 1.0)
+        self.assertEqual(arvore["raiz"]["compartilham"], 0)
+
+    def test_uma_variavel_so_nao_vira_arvore_e_diz_por_que(self):
+        # "—" sozinho parece defeito; o motivo transforma em pendência
+        db = self.monta([
+            {"title": "Exercício físico e saúde", "status": "Publicado",
+             "year_published": 2024}])
+        arvore = analise.dendrograma(db, minimo_artigos=99)
+        self.assertIsNone(arvore["raiz"])
+        self.assertEqual(arvore["folhas"], [])
+        self.assertIn("duas variáveis", arvore["porque"])
+
+    def test_a_arvore_serializa_em_json(self):
+        # ela viaja no payload do panorama; um `set` esquecido dentro de
+        # um nó derruba a rota inteira, não só o gráfico
+        db = self.monta([
+            {"title": "Exercício físico na fibromialgia", "status": "Publicado",
+             "year_published": 2022},
+            {"title": "Ansiedade e treinamento resistido", "status": "Publicado",
+             "year_published": 2023},
+        ])
+        texto = json.dumps(analise.dendrograma(db))
+        self.assertNotIn("set(", texto)
+        self.assertIn("altura", texto)
+
+    def test_a_distancia_e_um_menos_jaccard(self):
+        self.assertEqual(analise._distancia({1, 2}, {1, 2}), 0.0)
+        self.assertEqual(analise._distancia({1}, {2}), 1.0)
+        self.assertAlmostEqual(analise._distancia({1, 2}, {2, 3}), 1 - 1 / 3)
+        # conjunto vazio dos dois lados: distância máxima, e não divisão
+        # por zero
+        self.assertEqual(analise._distancia(set(), set()), 1.0)
+
 
 
 if __name__ == "__main__":

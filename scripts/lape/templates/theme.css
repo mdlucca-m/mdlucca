@@ -451,6 +451,8 @@ svg.plot.round { max-width: 380px; margin-inline: auto; }
    deixaria o nome ilegível; quem rola é a caixa, nunca a página. */
 .scrollx { overflow-x: auto; overflow-y: hidden; padding-bottom: 6px; }
 svg.plot.tree { width: auto; max-width: none; }
+/* o fluxograma tem largura propria: encolher para caber apaga a letra */
+svg.plot.fluxo { width: auto; max-width: none; }
 svg.plot.tree .node { cursor: default; }
 svg.plot.tree .lab { font-size: 13px; fill: var(--ink); }
 svg.plot.tree .tick { font-size: 11px; }
