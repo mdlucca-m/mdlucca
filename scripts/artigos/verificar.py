@@ -85,6 +85,23 @@ def checar_a1(texto, celulas):
         ("texto cita o piso da confusão", "80,5" in texto, ""),
         ("texto cita o ganho de estabilidade da média semanal",
          "0,76" in texto or "sete dias" in texto, ""),
+        ("texto soma os três perfis de risco",
+         artigo1.F.br(artigo1._RISCO, 1) in texto,
+         f"esperado {artigo1.F.br(artigo1._RISCO, 1)}%"),
+        ("texto compara com a amostra brasileira",
+         "26,5" in texto and "Rohlfs" in texto, ""),
+        ("texto declara o limite de piso de 15%",
+         "15%" in texto and "Terwee" in texto, ""),
+        ("texto relata a divergência entre os dois critérios",
+         "71,4" in texto and "21,4" in texto, ""),
+        ("método declara aprovação ética",
+         "comitê de ética" in texto and "consentimento" in texto, ""),
+        ("método declara a instrução de resposta",
+         "momento presente" in texto, ""),
+        ("limitação da k-médias semeada declarada",
+         "semeada" in texto, ""),
+        ("afirmação de pioneirismo qualificada",
+         "Até onde alcança" in texto, ""),
     ]
 
 
