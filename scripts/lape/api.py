@@ -1161,6 +1161,7 @@ def route_panorama(ctx: "Context") -> Any:
         "panorama": dados,
         "incidencia": analise.incidencia(ctx.db, dados["janela"]["anos"]),
         "triangulacao": analise.triangulacao(ctx.db),
+        "raio_x": analise.raio_x(ctx.db),
         "projetos": analise.projetos(ctx.db),
         "prevalencia": analise.prevalencia(ctx.db, dados["janela"]["anos"]),
         "sintese": analise.sintese(ctx.db, dados),

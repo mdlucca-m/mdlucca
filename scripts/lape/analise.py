@@ -631,6 +631,189 @@ def projetos(db: Database) -> dict[str, Any]:
     }
 
 
+# ----------------------------------------------------------------------
+# Raio-X: varias medidas analiticas, cada uma com a sua base a vista
+# ----------------------------------------------------------------------
+# Um indicador sozinho e um numero; varios indicadores sem a base sao
+# varios numeros. O que faz este bloco valer e cada medida vir com o N
+# que a sustenta e com a leitura em portugues -- "2,8 variaveis por
+# artigo" nao diz nada a quem nao sabe que acima de 2 a producao e
+# combinatoria.
+#
+# Medida sem base suficiente NAO sai com um valor pequeno: sai dizendo
+# que nao da para dizer. Uma mediana de dois artigos e o valor do meio
+# de dois artigos, e chamar aquilo de mediana e emprestar autoridade que
+# o numero nao tem.
+MIN_BASE = 3
+
+
+def _mediana(valores: list[float]) -> float | None:
+    if not valores:
+        return None
+    ordenados = sorted(valores)
+    meio = len(ordenados) // 2
+    if len(ordenados) % 2:
+        return float(ordenados[meio])
+    return (ordenados[meio - 1] + ordenados[meio]) / 2
+
+
+def _dias(de: Any, ate: Any) -> int | None:
+    """Dias entre duas datas do cadastro, ou None se falta alguma."""
+    try:
+        inicio = date.fromisoformat(str(de)[:10])
+        fim = date.fromisoformat(str(ate)[:10])
+    except (TypeError, ValueError):
+        return None
+    return (fim - inicio).days if fim >= inicio else None
+
+
+def _medida(chave: str, rotulo: str, valor: Any, unidade: str, base: int,
+            leitura: str, dica: str = "", icone: str = "achado") -> dict[str, Any]:
+    basta = base >= MIN_BASE and valor is not None
+    return {
+        "chave": chave, "rotulo": rotulo, "icone": icone,
+        "valor": valor if basta else None,
+        "unidade": unidade, "base": base, "confiavel": basta,
+        "leitura": leitura if basta else None,
+        "porque": None if basta else (
+            f"{base} artigo(s) com este dado — abaixo de {MIN_BASE} o número "
+            "diria mais do que se sabe" if valor is not None or base else
+            "nenhum artigo tem este dado cadastrado"),
+        "dica": dica,
+    }
+
+
+def raio_x(db: Database) -> dict[str, Any]:
+    """Um punhado de medidas analiticas, cada uma com a base que a sustenta."""
+    artigos = db.dicts(
+        # `submission_attempts` e `rejections` sao contados pela view, e
+        # nao guardados na tabela -- ler de `articles` daria erro.
+        "SELECT id, journal, doi, pmc, open_access, submission_attempts,"
+        "       rejections, started_on, first_submission_on, accepted_on,"
+        "       published_on FROM v_articles_full")
+    total = len(artigos)
+
+    por_artigo: dict[int, int] = {}
+    for linha in db.dicts(
+            "SELECT article_id, COUNT(*) AS n FROM article_variables"
+            " GROUP BY article_id"):
+        por_artigo[linha["article_id"]] = linha["n"]
+    autores: dict[int, int] = {}
+    for linha in db.dicts(
+            "SELECT article_id, COUNT(*) AS n FROM article_authors"
+            " GROUP BY article_id"):
+        autores[linha["article_id"]] = linha["n"]
+
+    medidas = []
+
+    # --- densidade tematica -------------------------------------------
+    densidades = list(por_artigo.values())
+    medidas.append(_medida(
+        "densidade", "Variáveis por artigo",
+        round(sum(densidades) / len(densidades), 1) if densidades else None,
+        "em média", len(densidades),
+        ("acima de 2, a produção é combinatória: o valor está no cruzamento, "
+         "não na variável isolada")
+        if densidades and sum(densidades) / len(densidades) > 2 else
+        "cada artigo trata de um assunto de cada vez",
+        "Quantos temas o mesmo artigo toca.", "rede"))
+
+    # --- concentracao --------------------------------------------------
+    aparicoes = sorted(db.dicts(
+        "SELECT v.label, COUNT(*) AS n FROM article_variables av"
+        "  JOIN variables v ON v.id = av.variable_id"
+        " GROUP BY v.label ORDER BY n DESC"), key=lambda x: -x["n"])
+    soma = sum(x["n"] for x in aparicoes)
+    topo3 = sum(x["n"] for x in aparicoes[:3])
+    medidas.append(_medida(
+        "concentracao", "Concentração nos 3 temas maiores",
+        round(topo3 / soma * 100) if soma else None, "% das aparições",
+        len(aparicoes),
+        ("a produção tem um centro claro — foco quando é escolha, "
+         "fragilidade quando é inércia")
+        if soma and topo3 / soma > 0.5 else "os temas se distribuem",
+        "Quanto do que se estuda cabe em três assuntos.", "alvo"))
+
+    # --- colaboracao ---------------------------------------------------
+    equipes = list(autores.values())
+    mediana_autores = _mediana([float(x) for x in equipes])
+    medidas.append(_medida(
+        "colaboracao", "Autores por artigo", mediana_autores, "na mediana",
+        len(equipes),
+        ("equipes grandes: o artigo é de um grupo, não de uma pessoa")
+        if mediana_autores and mediana_autores >= 4 else
+        "equipes enxutas",
+        "O valor do meio, não a média — um artigo de 20 autores não "
+        "desloca a leitura.", "pessoas"))
+
+    # --- alcance -------------------------------------------------------
+    revistas = {a["journal"] for a in artigos if a["journal"]}
+    medidas.append(_medida(
+        "revistas", "Periódicos distintos", len(revistas) or None, "revistas",
+        len(revistas),
+        f"a produção se espalha por {len(revistas)} veículos"
+        if len(revistas) > 1 else "concentrada num veículo só",
+        "Onde a produção sai.", "livro"))
+
+    # --- travessia: onde o tempo fica ----------------------------------
+    etapas = (("escrita → submissão", "started_on", "first_submission_on"),
+              ("submissão → aceite", "first_submission_on", "accepted_on"),
+              ("aceite → publicação", "accepted_on", "published_on"))
+    travessia = []
+    for nome, de, ate in etapas:
+        vaos = [d for d in (_dias(a[de], a[ate]) for a in artigos) if d is not None]
+        travessia.append({"etapa": nome, "dias": _mediana([float(v) for v in vaos]),
+                          "base": len(vaos), "confiavel": len(vaos) >= MIN_BASE})
+    medidos = [e for e in travessia if e["confiavel"]]
+    gargalo = max(medidos, key=lambda e: e["dias"]) if medidos else None
+    medidas.append(_medida(
+        "travessia", "Da escrita à publicação",
+        _mediana([float(d) for d in (
+            _dias(a["started_on"], a["published_on"]) for a in artigos)
+            if d is not None]) or None,
+        "dias na mediana",
+        sum(1 for a in artigos if _dias(a["started_on"], a["published_on"]) is not None),
+        f"o maior vão é {gargalo['etapa']}, com {int(gargalo['dias'])} dias"
+        if gargalo else "o caminho inteiro, de começar a sair",
+        "Quanto tempo o artigo leva do começo à publicação.", "relogio"))
+
+    # --- persistencia --------------------------------------------------
+    tentativas = [a["submission_attempts"] for a in artigos
+                  if a["submission_attempts"]]
+    medidas.append(_medida(
+        "tentativas", "Submissões por artigo",
+        _mediana([float(x) for x in tentativas]), "na mediana", len(tentativas),
+        "mais de uma revista por artigo é o normal da área"
+        if tentativas and (_mediana([float(x) for x in tentativas]) or 0) > 1 else
+        "aceite na primeira revista",
+        "Quantas revistas até sair.", "submissao"))
+
+    # --- abertura ------------------------------------------------------
+    com_doi = sum(1 for a in artigos if a["doi"])
+    livres = sum(1 for a in artigos if a["pmc"] or a["open_access"])
+    medidas.append(_medida(
+        "abertura", "Com texto livre",
+        round(livres / total * 100) if total and livres else None,
+        "% do acervo", total if livres else 0,
+        f"{livres} de {total} podem ser lidos sem assinatura",
+        "Quanto da produção qualquer pessoa consegue ler.", "baixar"))
+    medidas.append(_medida(
+        "identificados", "Com DOI cadastrado",
+        round(com_doi / total * 100) if total and com_doi else None,
+        "% do acervo", total if com_doi else 0,
+        f"{total - com_doi} artigo(s) ainda não têm identificador — "
+        "sem ele o clique não abre o artigo",
+        "O DOI é o que liga o registro ao artigo de verdade.", "conectar"))
+
+    return {
+        "medidas": medidas,
+        "travessia": travessia,
+        "total": total,
+        "minimo": MIN_BASE,
+        "prontas": sum(1 for m in medidas if m["confiavel"]),
+    }
+
+
 def paises(db: Database) -> dict[str, Any]:
     """De onde vem a producao: o pais da instituicao de cada coautor.
 

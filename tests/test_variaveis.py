@@ -460,6 +460,118 @@ class TestProjetosEExtensao(unittest.TestCase):
         self.assertEqual(len(r["extensao"]) + len(r["pesquisa"]), len(r["todos"]))
 
 
+class TestRaioXAnalitico(unittest.TestCase):
+    """Vários números sem a base são vários números.
+
+    O erro que estes testes guardam é o mais tentador de um painel:
+    mostrar uma mediana de dois artigos como se fosse uma mediana.
+    """
+
+    def setUp(self):
+        from lape import ingest_excel
+        self.tmp = tempfile.TemporaryDirectory()
+        self.db = Database(Path(self.tmp.name) / "t.sqlite")
+        self.db.migrate()
+        ingest_excel.ingest_articles(self.db, [
+            {"title": "Treinamento resistido e ansiedade em fibromialgia",
+             "authors": "Ana Souza; Beto Lima; Caio Dias", "status": "Publicado",
+             "journal": "Pain", "doi": "10.1000/a.1",
+             "started_on": "2022-01-01", "first_submission_on": "2022-07-01",
+             "accepted_on": "2022-10-01", "published_on": "2022-12-01"},
+            {"title": "Exercício e dor crônica em mulheres",
+             "authors": "Ana Souza; Dora Reis", "status": "Publicado",
+             "journal": "Pain", "doi": "10.1000/a.2",
+             "started_on": "2023-01-01", "first_submission_on": "2023-05-01",
+             "accepted_on": "2023-09-01", "published_on": "2023-11-01"},
+            {"title": "Dropout no treinamento resistido para fibromialgia",
+             "authors": "Beto Lima", "status": "Publicado",
+             "journal": "JAMA", "doi": "10.1000/a.3",
+             "started_on": "2024-01-01", "first_submission_on": "2024-04-01",
+             "accepted_on": "2024-06-01", "published_on": "2024-08-01"},
+        ])
+        variaveis.instalar(self.db)
+        variaveis.marcar_artigos(self.db)
+
+    def tearDown(self):
+        self.db.close()
+        self.tmp.cleanup()
+
+    def por_chave(self):
+        return {m["chave"]: m for m in analise.raio_x(self.db)["medidas"]}
+
+    def test_toda_medida_carrega_a_base_que_a_sustenta(self):
+        # número sem N é opinião
+        for medida in analise.raio_x(self.db)["medidas"]:
+            with self.subTest(medida=medida["chave"]):
+                self.assertIn("base", medida)
+                self.assertIsInstance(medida["base"], int)
+
+    def test_base_pequena_nao_vira_numero(self):
+        # uma mediana de dois artigos é o valor do meio de dois artigos
+        tmp = tempfile.TemporaryDirectory()
+        db = Database(Path(tmp.name) / "t.sqlite")
+        db.migrate()
+        from lape import ingest_excel
+        ingest_excel.ingest_articles(db, [
+            {"title": "Sozinho", "status": "Publicado", "journal": "Pain",
+             "started_on": "2024-01-01", "published_on": "2024-06-01"}])
+        medidas = {m["chave"]: m for m in analise.raio_x(db)["medidas"]}
+        db.close()
+        tmp.cleanup()
+        self.assertFalse(medidas["travessia"]["confiavel"])
+        self.assertIsNone(medidas["travessia"]["valor"])
+        self.assertIn("abaixo de", medidas["travessia"]["porque"])
+
+    def test_medida_sem_base_diz_por_que(self):
+        # "—" sozinho parece defeito; o motivo transforma em pendência
+        for medida in analise.raio_x(self.db)["medidas"]:
+            if not medida["confiavel"]:
+                with self.subTest(medida=medida["chave"]):
+                    self.assertTrue(medida["porque"])
+
+    def test_a_densidade_tematica_sai_com_a_leitura(self):
+        densidade = self.por_chave()["densidade"]
+        self.assertTrue(densidade["confiavel"])
+        self.assertGreater(densidade["valor"], 1)
+        self.assertTrue(densidade["leitura"])
+
+    def test_a_travessia_separa_as_etapas_e_acha_o_gargalo(self):
+        r = analise.raio_x(self.db)
+        etapas = {e["etapa"]: e for e in r["travessia"]}
+        self.assertEqual(len(etapas), 3)
+        # escrita → submissão: 181, 120, 91 dias → mediana 120
+        self.assertEqual(etapas["escrita → submissão"]["dias"], 120.0)
+        self.assertTrue(etapas["escrita → submissão"]["confiavel"])
+        self.assertIn("maior vão", self.por_chave()["travessia"]["leitura"])
+
+    def test_data_invertida_nao_vira_dia_negativo(self):
+        # cadastro errado (publicado antes de submeter) não pode virar
+        # "-40 dias" e puxar a mediana para baixo
+        self.db.execute("UPDATE articles SET published_on = '2000-01-01'"
+                        " WHERE title LIKE 'Dropout%'")
+        self.db.conn.commit()
+        for etapa in analise.raio_x(self.db)["travessia"]:
+            if etapa["dias"] is not None:
+                with self.subTest(etapa=etapa["etapa"]):
+                    self.assertGreaterEqual(etapa["dias"], 0)
+
+    def test_a_mediana_e_o_valor_do_meio_e_nao_a_media(self):
+        # um artigo de vinte autores não pode deslocar a leitura
+        self.assertEqual(analise._mediana([1.0, 2.0, 30.0]), 2.0)
+        self.assertEqual(analise._mediana([1.0, 3.0]), 2.0)
+        self.assertIsNone(analise._mediana([]))
+
+    def test_banco_vazio_nao_quebra_e_nao_inventa(self):
+        tmp = tempfile.TemporaryDirectory()
+        db = Database(Path(tmp.name) / "t.sqlite")
+        db.migrate()
+        r = analise.raio_x(db)
+        db.close()
+        tmp.cleanup()
+        self.assertEqual(r["prontas"], 0)
+        self.assertTrue(all(m["valor"] is None for m in r["medidas"]))
+
+
 class TestFiltros(unittest.TestCase):
     def test_a_mediana_movel_ignora_o_pico_isolado(self):
         # um ano em que a banca liberou cinco defesas de uma vez não é

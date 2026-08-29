@@ -58,6 +58,15 @@ def _curto(nome: Any) -> str:
     return texto[:34]
 
 
+def _medida_txt(valor: Any) -> str:
+    """Inteiro sai sem casa; fracionado sai com uma, e com vírgula."""
+    if valor is None:
+        return "—"
+    numero = float(valor)
+    return (str(int(numero)) if numero == int(numero)
+            else f"{numero:.1f}".replace(".", ","))
+
+
 def _numero(valor: Any) -> str:
     try:
         return f"{int(valor):,}".replace(",", ".")
@@ -106,6 +115,7 @@ def reunir(db: Database) -> dict[str, Any]:
         "artigos": sorted(artigos, key=lambda a: (-(a.get("ano") or 0),
                                                   a.get("title") or "")),
         "sintese": analise.sintese(db, p),
+        "raio_x": analise.raio_x(db),
     }
 
 
@@ -238,12 +248,35 @@ def _tela_visao(d: dict[str, Any]) -> str:
                 f'<li>{_e(a.get("texto") or a.get("titulo") or "")}</li>'
                 for a in achados[:4]) + "</ul>")
 
+    # Raio-X: cada medida com a base a vista. So as que tem base entram --
+    # no celular nao ha espaco para listar o que ainda nao da para dizer,
+    # e a contagem no rodape avisa que falta.
+    r = d["raio_x"]
+    prontas = [m for m in r["medidas"] if m["confiavel"]]
+    raiox = ""
+    if prontas:
+        itens = "".join(
+            f'<li class="medida-cel">{_icone(m.get("icone") or "achado", 15)}'
+            f'<div><span class="rotulo">{_e(m["rotulo"])}</span>'
+            f'<b>{_e(_medida_txt(m["valor"]))}</b>'
+            f'<i>{_e(m["unidade"])}</i>'
+            f'<small>{_e(m["leitura"])}</small>'
+            f'<span class="quantos">base: {m["base"]} artigo(s)</span></div></li>'
+            for m in prontas)
+        faltam = len(r["medidas"]) - len(prontas)
+        raiox = _cartao(
+            "Raio-X analítico", "achado", f'<ul class="medidas">{itens}</ul>'
+            + (f'<p class="pe">{faltam} medida(s) ainda sem base para sair — '
+               "faltam datas e identificadores no cadastro.</p>" if faltam else ""),
+            "Cada número com o N que o sustenta. Medida sem base não sai com "
+            "um número pequeno: fica de fora e diz por quê.")
+
     linhas = {x["name"]: x["n"] for x in d["linhas"]}
     porLinha = _cartao(
         "Linhas de pesquisa", "linha", _barras(linhas),
         "Artigos ligados a cada linha no cadastro.") if linhas else ""
 
-    return topo + leitura + _cartao(
+    return topo + raiox + leitura + _cartao(
         "O que o laboratório mais estuda", "alvo", _barras(principais),
         "As seis variáveis com mais artigos. A lista inteira está em Temas."
         ) + porLinha
@@ -616,6 +649,28 @@ main { max-width: 560px; margin: 0 auto; padding: 14px 14px 24px; }
 .falta ul { margin: 0; padding-left: 18px; font-size: 13px; color: var(--tinta2); }
 .falta li { margin-bottom: 4px; }
 .falta em { font-style: normal; color: var(--fraca); font-size: 12px; }
+
+/* raio-x no celular: um por linha, com a base sempre visível */
+.medidas { list-style: none; margin: 0; padding: 0; }
+.medida-cel {
+  display: flex; gap: 11px; padding: 13px 0; border-top: 1px solid var(--borda);
+}
+.medida-cel:first-child { border-top: 0; padding-top: 2px; }
+.medida-cel > .ic { color: var(--tom); margin-top: 3px; flex: none; }
+.medida-cel .rotulo { display: block; }
+.medida-cel b {
+  font-size: 26px; font-weight: 780; letter-spacing: -.035em; margin-right: 5px;
+}
+.medida-cel i { font-style: normal; font-size: 12.5px; color: var(--tinta2); }
+.medida-cel small {
+  display: block; font-size: 12.5px; color: var(--tinta2); line-height: 1.5;
+  margin-top: 3px;
+}
+/* `.base` já é o botão que abre o artigo na base bibliográfica -- reusar
+   o nome faria esta linha herdar fundo, borda e recheio de botão. */
+.medida-cel .quantos {
+  display: block; font-size: 11px; color: var(--fraca); margin-top: 5px;
+}
 
 .leitura { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--tinta2); }
 .leitura li { margin-bottom: 8px; }

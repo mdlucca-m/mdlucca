@@ -87,6 +87,18 @@ class TestOQueAparece(BaseApp):
         self.assertIn("grandao", visao)
         self.assertIn("artigos do laboratório", visao)
 
+    def test_o_raio_x_leva_a_base_junto(self):
+        visao = self.pagina[self.pagina.index('data-tela="visao"'):]
+        visao = visao[:visao.index('data-tela="temas"')]
+        self.assertIn("Raio-X analítico", visao)
+        self.assertIn("base:", visao)
+
+    def test_medida_fracionada_sai_com_virgula(self):
+        # "2.8 variáveis" num painel em português é erro de digitação
+        self.assertEqual(celular._medida_txt(2.8), "2,8")
+        self.assertEqual(celular._medida_txt(4.0), "4")
+        self.assertEqual(celular._medida_txt(None), "—")
+
     def test_o_titulo_com_sinal_de_menor_nao_quebra_a_pagina(self):
         # "Exercício & dor <crônica>" é título de verdade, e sem escapar
         # ele fecha uma tag no meio da lista

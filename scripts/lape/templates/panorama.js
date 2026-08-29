@@ -218,6 +218,78 @@ function cartao(icone, titulo, dica, corpo) {
   ]);
 }
 
+/* ==================================================================== */
+/* Raio-X analítico                                                     */
+/*                                                                      */
+/* Um indicador sozinho é um número; vários sem a base são vários       */
+/* números. Cada medida aqui traz o N que a sustenta e a leitura em     */
+/* português — "2,8 variáveis por artigo" não diz nada a quem não sabe  */
+/* que acima de 2 a produção é combinatória.                            */
+/* ==================================================================== */
+function raioX() {
+  const r = D.raio_x || { medidas: [], travessia: [] };
+  const prontas = r.medidas.filter(function (m) { return m.confiavel; });
+  const faltando = r.medidas.filter(function (m) { return !m.confiavel; });
+
+  const bloco = el("div", { style: "margin-top:14px" });
+  bloco.appendChild(cartao("achado", "Raio-X analítico",
+    "Oito medidas sobre a mesma produção, cada uma com a base que a sustenta. "
+    + "Medida sem base não sai com um número pequeno: sai dizendo que ainda "
+    + "não dá para dizer.",
+    el("div", {}, [
+      el("div", { class: "grade g3" }, prontas.map(function (m) {
+        return el("div", { class: "medida" }, [
+          el("div", { class: "topo" }, [
+            Icons.get(m.icone || "achado", 15),
+            el("span", { class: "rotulo", text: m.rotulo }),
+          ]),
+          el("div", { class: "valor" }, [
+            el("b", { text: formatarMedida(m.valor) }),
+            el("small", { text: m.unidade }),
+          ]),
+          el("p", { class: "hint", text: m.leitura || "" }),
+          el("p", { class: "base", text: "base: " + m.base + " artigo(s)" }),
+        ]);
+      })),
+      faltando.length ? el("div", { class: "sem-base" }, [
+        el("b", { text: "Ainda sem base para " + faltando.length + " medida(s)" }),
+        el("ul", {}, faltando.map(function (m) {
+          return el("li", {}, [
+            el("span", { text: m.rotulo + " — " }),
+            el("em", { text: m.porque || "" }),
+          ]);
+        })),
+      ]) : null,
+    ])));
+
+  /* ---- onde o tempo fica ---- */
+  const medidas = (r.travessia || []).filter(function (e) { return e.confiavel; });
+  if (medidas.length) {
+    const maior = medidas.reduce(function (a, b) { return b.dias > a.dias ? b : a; });
+    bloco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
+      "relogio", "Onde o tempo fica",
+      "Mediana de dias em cada etapa. O maior vão é onde o artigo espera.",
+      C.bars({
+        items: medidas.map(function (e) {
+          return { label: e.etapa, value: Math.round(e.dias) }; }),
+        mono: true, unit: "dias",
+        table: { cols: ["Etapa", "Dias (mediana)", "Artigos"],
+                 rows: medidas.map(function (e) {
+                   return [e.etapa, Math.round(e.dias), e.base]; }) },
+      }))));
+    bloco.appendChild(el("p", { class: "hint", style: "margin-top:-6px",
+      text: "Gargalo: " + maior.etapa + ", " + Math.round(maior.dias)
+        + " dias na mediana." }));
+  }
+  return bloco;
+}
+
+function formatarMedida(valor) {
+  if (valor === null || valor === undefined) return "—";
+  const n = Number(valor);
+  return Number.isInteger(n) ? String(n) : n.toFixed(1).replace(".", ",");
+}
+
 function indicador(rotulo, valor, pe, icone) {
   return el("div", { class: "cartao" }, [
     el("div", { style: "display:flex;align-items:center;gap:9px" }, [
@@ -267,6 +339,8 @@ function verVisao(palco) {
     indicador("Integrantes", lab.integrantes || 0, (lab.projetos || 0) + " projeto(s)", "pessoas"),
     indicador("Publicados", publicados, emAvaliacao + " em avaliação", "trofeu"),
   ]));
+
+  palco.appendChild(raioX());
 
   /* velocímetros: cada um responde "quanto do caminho já andamos" */
   const emProducao = (s.situacoes || {}).em_producao || 0;

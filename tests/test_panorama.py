@@ -127,7 +127,8 @@ class TestRotaDoPanorama(BasePanorama):
         # cada uma dessas abas precisaria de uma viagem própria se não
         # viesse aqui, e a tela abriria vazia por um instante
         _, _, dados = self.buscar("/api/panorama", self.ana)
-        for chave in ("incidencia", "prevalencia", "triangulacao", "projetos"):
+        for chave in ("incidencia", "prevalencia", "triangulacao", "projetos",
+                      "raio_x"):
             with self.subTest(chave=chave):
                 self.assertIn(chave, dados)
 
@@ -413,6 +414,22 @@ class TestPecasNovasDaTela(unittest.TestCase):
         corpo = corpo[:corpo.index("\n}")]
         self.assertIn("destino.busca", corpo)
         self.assertIn("stopPropagation", corpo)
+
+    def test_o_raio_x_mostra_a_base_de_cada_medida(self):
+        # número sem N é opinião: a tela tem de dizer quantos artigos
+        # sustentam cada medida
+        js = self.js("panorama.js")
+        corpo = js[js.index("function raioX()"):js.index("function formatarMedida")]
+        self.assertIn("m.base", corpo)
+        self.assertIn("m.leitura", corpo)
+        self.assertIn("m.porque", corpo)
+
+    def test_o_raio_x_separa_o_que_tem_base_do_que_nao_tem(self):
+        # medida sem base junto das outras vira "—" e parece defeito
+        js = self.js("panorama.js")
+        corpo = js[js.index("function raioX()"):js.index("function formatarMedida")]
+        self.assertIn("m.confiavel", corpo)
+        self.assertIn("sem-base", corpo)
 
     def test_o_selo_da_variavel_principal_se_distingue(self):
         # se o destaque fosse só cor, quem imprime em preto e branco ou

@@ -237,6 +237,26 @@ table.dados small { color: var(--ink-muted); display: block; margin-top: 3px; }
   border-bottom: 1px solid color-mix(in srgb, var(--warning) 40%, transparent); }
 .instantaneo-aviso b { color: var(--ink); }
 
+/* ---- raio-x: o número, a leitura e a base, nessa ordem ---- */
+.medida { padding: 13px 14px; border-radius: var(--radius-sm);
+  background: var(--surface-raised); border: 1px solid var(--border); }
+.medida .topo { display: flex; align-items: center; gap: 7px; }
+.medida .topo svg.icon { color: var(--accent); font-size: 15px; }
+.medida .valor { display: flex; align-items: baseline; gap: 6px; margin: 7px 0 5px; }
+.medida .valor b { font-size: 28px; font-weight: 780; letter-spacing: -.035em; }
+.medida .valor small { font-size: 12px; color: var(--ink-2); }
+.medida .hint { margin: 0; font-size: 12.5px; line-height: 1.5; }
+/* a base fica discreta, mas nunca ausente: número sem N é opinião */
+.medida .base { margin: 8px 0 0; font-size: 11px; color: var(--ink-muted);
+  font-variant-numeric: tabular-nums; }
+.sem-base { margin-top: 13px; padding: 12px 14px; border-radius: var(--radius-sm);
+  border: 1px dashed var(--border-strong); background: var(--surface); }
+.sem-base b { font-size: 13px; }
+.sem-base ul { margin: 8px 0 0; padding-left: 18px; font-size: 12.5px;
+  color: var(--ink-2); }
+.sem-base li { margin-bottom: 4px; }
+.sem-base em { font-style: normal; color: var(--ink-muted); }
+
 .linhas-projeto { margin-top: 9px; display: flex; flex-direction: column; gap: 3px;
   font-size: 12.5px; color: var(--ink-2); }
 .linhas-projeto b { color: var(--ink-2); font-weight: 650; }
