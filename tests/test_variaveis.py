@@ -786,6 +786,46 @@ class TestDendrograma(unittest.TestCase):
         self.assertNotIn("set(", texto)
         self.assertIn("altura", texto)
 
+    def test_a_arvore_nao_tem_inversao(self):
+        """Um pai mais baixo que o proprio filho nao tem leitura possivel.
+
+        Medir a distancia entre as UNIOES dos grupos e o atalho obvio, e
+        era o que estava aqui: nao e UPGMA e nao e monotonico. Na producao
+        real do laboratorio ele produzia uma fusao a 0,54 acima de outra a
+        0,55 -- desenho impossivel de interpretar.
+        """
+        db = self.monta([
+            {"title": "Exercício físico na fibromialgia e dor crônica",
+             "status": "Publicado", "year_published": 2020},
+            {"title": "Treinamento resistido na fibromialgia",
+             "status": "Publicado", "year_published": 2021},
+            {"title": "Dor crônica e treinamento resistido",
+             "status": "Publicado", "year_published": 2022},
+            {"title": "Ansiedade e exercício físico", "status": "Publicado",
+             "year_published": 2023},
+            {"title": "Motivação e aderência ao exercício", "status": "Publicado",
+             "year_published": 2024},
+        ])
+        arvore = analise.dendrograma(db)
+        problemas = []
+
+        def andar(no):
+            for filho in no["filhos"]:
+                if filho["tipo"] == "no" and filho["altura"] > no["altura"] + 1e-9:
+                    problemas.append((no["altura"], filho["altura"]))
+                andar(filho)
+
+        andar(arvore["raiz"])
+        self.assertEqual(problemas, [])
+
+    def test_a_ligacao_e_pela_media_e_nao_pela_uniao(self):
+        # a formula de Lance-Williams e o que faz a media ser media
+        fonte = (ROOT / "scripts" / "lape" / "analise.py").read_text(encoding="utf-8")
+        corpo = fonte[fonte.index("def dendrograma("):]
+        corpo = corpo[:corpo.index("\ndef ")]
+        self.assertIn("Lance-Williams", corpo)
+        self.assertIn('ga["folhas"] * entre(a, c)', corpo)
+
     def test_a_distancia_e_um_menos_jaccard(self):
         self.assertEqual(analise._distancia({1, 2}, {1, 2}), 0.0)
         self.assertEqual(analise._distancia({1}, {2}), 1.0)

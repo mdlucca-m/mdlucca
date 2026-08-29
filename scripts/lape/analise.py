@@ -859,31 +859,56 @@ def dendrograma(db: Database, minimo_artigos: int = 1) -> dict[str, Any]:
     grupos: list[dict[str, Any]] = [
         {"tipo": "folha", "code": v["code"], "label": v["label"],
          "artigos": set(v["artigos"]), "n": len(v["artigos"]),
-         "altura": 0.0, "filhos": []}
+         "folhas": 1, "altura": 0.0, "filhos": []}
         for v in sorted(conjuntos.values(), key=lambda x: -len(x["artigos"]))]
 
-    while len(grupos) > 1:
+    # Matriz de distancias entre as FOLHAS. A ligacao pela media (UPGMA)
+    # atualiza essa matriz pela formula de Lance-Williams; medir a
+    # distancia entre as unioes dos grupos, que e o atalho obvio, nao e
+    # UPGMA e nao e monotonica: da dendrograma com inversao, um pai mais
+    # baixo que o proprio filho, o que nao tem leitura possivel.
+    dist: dict[tuple[int, int], float] = {}
+    for i in range(len(grupos)):
+        for j in range(i + 1, len(grupos)):
+            dist[(i, j)] = _distancia(grupos[i]["artigos"], grupos[j]["artigos"])
+    vivos = list(range(len(grupos)))
+
+    def entre(a: int, b: int) -> float:
+        return dist[(a, b)] if a < b else dist[(b, a)]
+
+    while len(vivos) > 1:
         melhor, par = None, None
-        for i in range(len(grupos)):
-            for j in range(i + 1, len(grupos)):
-                # Ligacao pela media: a distancia entre grupos e a media
-                # das distancias entre os artigos que cada um reune.
-                d = _distancia(grupos[i]["artigos"], grupos[j]["artigos"])
+        for x, a in enumerate(vivos):
+            for b in vivos[x + 1:]:
+                d = entre(a, b)
                 if melhor is None or d < melhor:
-                    melhor, par = d, (i, j)
-        i, j = par
-        a, b = grupos[i], grupos[j]
-        juntos = {
+                    melhor, par = d, (a, b)
+        a, b = par
+        ga, gb = grupos[a], grupos[b]
+        novo_id = len(grupos)
+        grupos.append({
             "tipo": "no", "label": None, "altura": round(melhor, 3),
-            "artigos": a["artigos"] | b["artigos"],
-            "n": len(a["artigos"] | b["artigos"]),
-            "compartilham": len(a["artigos"] & b["artigos"]),
-            "filhos": [a, b],
-        }
-        grupos = [g for k, g in enumerate(grupos) if k not in (i, j)] + [juntos]
+            "artigos": ga["artigos"] | gb["artigos"],
+            "n": len(ga["artigos"] | gb["artigos"]),
+            "folhas": ga["folhas"] + gb["folhas"],
+            "compartilham": len(ga["artigos"] & gb["artigos"]),
+            "filhos": [ga, gb],
+        })
+        # Lance-Williams para a media: a distancia do grupo novo a cada
+        # outro e a media das distancias dos dois que se juntaram,
+        # ponderada pelo numero de folhas de cada um.
+        peso = ga["folhas"] + gb["folhas"]
+        for c in vivos:
+            if c in (a, b):
+                continue
+            media = (ga["folhas"] * entre(a, c) + gb["folhas"] * entre(b, c)) / peso
+            dist[(min(c, novo_id), max(c, novo_id))] = media
+        vivos = [c for c in vivos if c not in (a, b)] + [novo_id]
+
+    grupos = [grupos[vivos[0]]]
 
     def limpar(no: dict[str, Any]) -> dict[str, Any]:
-        saida = {k: v for k, v in no.items() if k != "artigos"}
+        saida = {k: v for k, v in no.items() if k not in ("artigos", "folhas")}
         saida["filhos"] = [limpar(f) for f in no["filhos"]]
         return saida
 
