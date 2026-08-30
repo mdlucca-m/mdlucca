@@ -254,8 +254,23 @@ function leituraDe(spec) {
 }
 
 function kpi(spec) {
-  const node = el("div", { class: "kpi" + (spec.hero ? " hero" : "")
-    + (spec.tone ? " t-" + spec.tone : "") });
+  /* Um numero grande num painel de parede levanta sempre a mesma
+     pergunta: "quais sao esses treze?". Com `ir`, o cartao inteiro vira
+     botao e leva a tabela que responde -- a mesma que ja existe, com
+     ordenacao, busca e exportacao. Sem `ir` ele continua sendo um <div>:
+     cartao que parece clicavel e nao e custa mais que cartao inerte. */
+  const navega = !!spec.ir;
+  const node = el(navega ? "button" : "div", {
+    class: "kpi" + (spec.hero ? " hero" : "") + (spec.tone ? " t-" + spec.tone : "")
+      + (navega ? " clicavel" : ""),
+    type: navega ? "button" : null,
+    title: navega ? "Abrir " + labelOf(spec.ir) : null,
+    onclick: navega ? function () {
+      if (spec.filtro) Object.assign(STATE, spec.filtro);
+      if (spec.filtro) { buildToolbar(); updateCount(); }
+      go(spec.ir);
+    } : null,
+  });
   const label = el("div", { class: "label" });
   /* o ícone é decorativo: quem nomeia o indicador é o rótulo ao lado */
   if (spec.icon) label.appendChild(Icons.badge(spec.icon,
@@ -273,6 +288,11 @@ function kpi(spec) {
     }));
   }
   if (spec.foot) node.appendChild(el("div", { class: "foot", text: spec.foot }));
+  if (navega) {
+    const seta = el("span", { class: "kpi-ir", "aria-hidden": "true" },
+      [Icons.get("proximo", 13), el("span", { text: labelOf(spec.ir) })]);
+    node.appendChild(seta);
+  }
   /* minigráfico só quando ele diz alguma coisa: uma linha reta em zero é ruído */
   const spark = spec.spark || [];
   if (spark.length > 1 && Math.max.apply(null, spark) > 0) {
@@ -845,6 +865,7 @@ view("visao", "Painel", "", "Retrato do laboratório no recorte atual.", functio
 
   host.appendChild(el("div", { class: "grid g4 fixed4" }, [
     kpi({ label: "Artigos no recorte", value: C.fmt(rows.length), icon: "producao",
+      ir: "explorar",
       foot: (D.articles || []).length + " no banco todo",
       delta: measured("artigos"), deltaNote: "em 30 dias", spark: sparkOf("artigos"),
       leitura: rows.length ? {
@@ -853,12 +874,14 @@ view("visao", "Painel", "", "Retrato do laboratório no recorte atual.", functio
         forte: Math.round(100 * published.length / rows.length) + "%",
       } : null }),
     kpi({ label: "Em produção", icon: "linha", value: C.fmt(emProducao.length),
+      ir: "producao",
       foot: "manuscritos em escrita", delta: measured("em_producao"), deltaNote: "em 30 dias",
       leitura: escritaLonga !== null ? {
         texto: "é o tempo mediano de escrita já decorrido neste grupo.",
         forte: dur(escritaLonga),
       } : null }),
     kpi({ label: "Submetidos", icon: "submissao", value: C.fmt(emAvaliacao.length),
+      ir: "submetidos",
       foot: "aguardando parecer", delta: measured("submetidos"), deltaNote: "em 30 dias",
       leitura: esperaMaxima > 0 ? {
         sinal: esperaMaxima > 180 ? "desce" : "parado",
@@ -866,6 +889,7 @@ view("visao", "Painel", "", "Retrato do laboratório no recorte atual.", functio
         texto: "é a espera do mais antigo — o que decide se é hora de cobrar.",
       } : null }),
     kpi({ label: "Publicados", icon: "livro", value: C.fmt(published.length),
+      ir: "publicacoes",
       foot: windowTotal + " nos últimos " + o.window + " anos",
       delta: measured("publicados"), deltaNote: "em 30 dias",
       spark: sparkOf("publicados") || perYear, sparkColor: C.token("--series-1"),
@@ -875,16 +899,19 @@ view("visao", "Painel", "", "Retrato do laboratório no recorte atual.", functio
         texto: "contra média de " + dec(media, 1) + " por ano na janela.",
       } : null }),
     kpi({ label: "Média por ano", icon: "subida", value: dec(media, 2),
+      ir: "temporal",
       foot: "publicações/ano na janela",
       leitura: { texto: "Mede o ritmo da janela inteira; um ano fraco não a derruba, "
         + "e é por isso que ela serve de régua." } }),
     kpi({ label: "Pesquisadores", icon: "pessoas", value: C.fmt(o.n_members),
+      ir: "pesquisadores",
       foot: o.n_collaborators + " colaboradores externos",
       leitura: publicaram ? {
         forte: C.fmt(publicaram),
         texto: "assinaram algo publicado nos últimos dois anos.",
       } : null }),
     kpi({ label: "Projetos", icon: "projeto", value: C.fmt(o.n_projects),
+      ir: "projetos",
       foot: o.n_projects_active + " em andamento",
       leitura: terminando ? {
         sinal: "desce",
@@ -895,6 +922,7 @@ view("visao", "Painel", "", "Retrato do laboratório no recorte atual.", functio
         texto: "com financiadora declarada; nenhum vence nos próximos doze meses.",
       } : null) }),
     kpi({ label: "Maior índice h", icon: "alvo", value: C.fmt(o.best_h_index),
+      ir: "equipe",
       foot: "entre os integrantes",
       leitura: hMediano !== null ? {
         forte: dec(hMediano, 0),
@@ -2272,10 +2300,66 @@ view("temporal", "Linha do tempo", "Espaço-temporal",
     }
   });
 
+/* O contorno do mundo é 70 kB e não muda; vem uma vez por sessão e fica.
+   Pedi-lo a cada redesenho faria o painel ao vivo buscá-lo de minuto em
+   minuto sem necessidade nenhuma. */
+let mundoPedido = false;
+function pedirMundo() {
+  if (mundoPedido) return;
+  mundoPedido = true;
+  fetch("/api/geo/mundo.json")
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (dados) {
+      D.mundo = (dados || {}).paises || [];
+      if (current === "espacial") render();
+    })
+    .catch(function () { mundoPedido = false; });
+}
+
+/* O que mudou desde o último desenho. Num painel de parede, "ao vivo" que
+   não se vê é o mesmo que parado: sem isto, um artigo novo da Noruega
+   muda um número que ninguém estava olhando. */
+let paisesAntes = null;
+function paisesQueMudaram(valores) {
+  const antes = paisesAntes;
+  paisesAntes = Object.assign({}, valores);
+  if (!antes) return [];          /* o primeiro desenho não pisca nada */
+  return Object.keys(valores).filter(function (k) { return valores[k] !== antes[k]; });
+}
+
 view("espacial", "Mapa", "Espaço-temporal",
-  "Onde as atividades acontecem e de onde vêm as instituições parceiras.", function (host) {
+  "De onde vem a produção e onde as atividades acontecem.", function (host) {
     const sp = D.spatial;
-    host.appendChild(el("div", { class: "grid g2" }, [
+    pedirMundo();
+
+    /* ---- o mapa-múndi: a produção por país de quem assina ---- */
+    const porPais = {};
+    (sp.countries || []).forEach(function (c) { porPais[c.country] = c.n; });
+    const mudaram = paisesQueMudaram(porPais);
+    host.appendChild(card("De onde vem a produção",
+      "A cor do país é o número de artigos com ao menos um autor de lá. Um artigo "
+      + "Brasil–Itália conta para os dois: foi produzido nos dois.",
+      el("div", {}, [
+        C.mapaMundi({
+          world: D.mundo || [],
+          values: porPais,
+          highlight: mudaram,
+          unit: "artigos",
+          file: "mapa-producao",
+          loadingMessage: "Carregando o contorno do mundo…",
+          emptyMessage: "Nenhum país registrado ainda.",
+          emptyHint: "Falta ligar cada coautor à instituição dele, ou trazer a "
+            + "produção das bases públicas.",
+          table: (sp.countries || []).length ? {
+            cols: ["País", "Artigos"],
+            rows: (sp.countries || []).map(function (c) { return [c.country, c.n]; }),
+          } : null,
+        }),
+        mudaram.length ? el("p", { class: "hint", style: "margin-top:8px",
+          text: "Mudou agora: " + mudaram.join(", ") + "." }) : null,
+      ])));
+
+    host.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" }, [
       card("Mapa de atividades", "O tamanho do círculo é o número de atividades no local.",
         C.geo({
           points: sp.geolocated.map(function (p) {
@@ -2829,6 +2913,7 @@ async function reload(state) {
     const fresh = await response.json();
     fresh.session = D.session;
     fresh.geo = D.geo;
+    fresh.mundo = D.mundo;
     D = fresh;
     indexAuthorship();
     buildToolbar();

@@ -1203,6 +1203,17 @@ const Charts = (function () {
       return null;
     };
 
+    /* O nome do pais que mudou chega como veio do servidor; a comparacao
+       aqui usa as mesmas tres chaves de `valorDe`, senao "Estados Unidos"
+       nunca casaria com "United States". */
+    const acesos = {};
+    (spec.highlight || []).forEach(function (k) {
+      acesos[String(k).toLowerCase()] = true; });
+    const aceso = function (pais) {
+      return [pais.nome, pais.en, pais.id].some(function (k) {
+        return acesos[String(k || "").toLowerCase()]; });
+    };
+
     const comDado = mundo.map(valorDe).filter(function (v) { return v !== null && v > 0; });
     const cortes = comDado.length ? cortesQuantil(comDado, PASSOS_MAPA.length) : [];
     const tons = PASSOS_MAPA.slice(PASSOS_MAPA.length - cortes.length).map(token);
@@ -1224,6 +1235,16 @@ const Charts = (function () {
       if (valor) {
         const g = s("g");
         g.appendChild(forma);
+        /* `highlight`: o pais que mudou desde o desenho anterior ganha um
+           contorno aceso e pisca uma vez. Num painel de parede, "ao vivo"
+           que nao se ve e o mesmo que parado -- a cor da faixa muda de um
+           tom para o vizinho e ninguem percebe. Quem pediu menos
+           movimento fica so com o contorno, que ja basta. */
+        if (aceso(pais)) {
+          forma.setAttribute("stroke", token("--accent-strong"));
+          forma.setAttribute("stroke-width", 2.6);
+          g.classList.add("acendeu");
+        }
         hoverable(g, pais.nome,
           [{ value: fmt(valor), name: spec.unit || "artigos",
              color: tons[faixaDe(valor, cortes)] }],

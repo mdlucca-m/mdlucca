@@ -743,5 +743,112 @@ class TestCurvasAoVivo(unittest.TestCase):
         self.assertIn("virou", corpo)
         self.assertIn("lisa", corpo)
 
+class TestMapaNoPainel(unittest.TestCase):
+    """O mapa-múndi no painel de indicadores, e ao vivo.
+
+    O defeito que estes testes guardam é o mais silencioso possível: o
+    painel ao vivo troca o objeto de dados inteiro a cada evento, e o
+    contorno do mundo — que vem por fora, uma vez só — ia junto. Depois do
+    primeiro evento o mapa sumia e ficava "carregando" para sempre, sem
+    erro nenhum no console.
+    """
+
+    def js(self, nome):
+        return (TEMPLATES / nome).read_text(encoding="utf-8")
+
+    def test_o_recarregamento_preserva_o_contorno_do_mundo(self):
+        js = self.js("dashboard.js")
+        corpo = js[js.index("async function reload(state)"):]
+        corpo = corpo[:corpo.index("function markFresh")]
+        self.assertIn("fresh.mundo = D.mundo;", corpo)
+        # preservados junto: o que tambem nao vem de /api/metrics
+        self.assertIn("fresh.session = D.session;", corpo)
+        self.assertIn("fresh.geo = D.geo;", corpo)
+
+    def test_o_contorno_e_pedido_uma_vez_so(self):
+        # 70 kB a cada redesenho, num painel que redesenha a cada evento,
+        # e trafego jogado fora
+        js = self.js("dashboard.js")
+        corpo = js[js.index("function pedirMundo"):]
+        corpo = corpo[:corpo.index("\n}")]
+        self.assertIn("if (mundoPedido) return;", corpo)
+        self.assertIn("/api/geo/mundo.json", corpo)
+
+    def test_o_painel_desenha_o_mapa_mundi(self):
+        js = self.js("dashboard.js")
+        corpo = js[js.index('view("espacial"'):]
+        corpo = corpo[:corpo.index('view("descobertas"')]
+        self.assertIn("C.mapaMundi(", corpo)
+        self.assertIn("sp.countries", corpo)
+        self.assertIn("pedirMundo()", corpo)
+
+    def test_o_que_mudou_acende_no_mapa(self):
+        # "ao vivo" que nao se ve e o mesmo que parado: a cor da faixa
+        # muda de um tom para o vizinho e ninguem percebe
+        js = self.js("dashboard.js")
+        self.assertIn("function paisesQueMudaram", js)
+        corpo = js[js.index("function paisesQueMudaram"):]
+        corpo = corpo[:corpo.index("\n}")]
+        self.assertIn("if (!antes) return [];", corpo)   # o primeiro nao pisca
+
+        graficos = self.js("charts.js")
+        mapa = graficos[graficos.index("function mapaMundi(spec)"):]
+        self.assertIn("spec.highlight", mapa)
+        self.assertIn('g.classList.add("acendeu")', mapa)
+        css = (TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        self.assertIn(".plot .acendeu", css)
+        self.assertIn("prefers-reduced-motion", css[css.index(".plot .acendeu"):][:600])
+
+    def test_o_pais_aceso_casa_pelos_tres_nomes(self):
+        # "Estados Unidos" nunca casaria com "United States" sem isto
+        graficos = self.js("charts.js")
+        mapa = graficos[graficos.index("function mapaMundi(spec)"):]
+        corpo = mapa[mapa.index("const aceso = function"):]
+        self.assertIn("pais.nome, pais.en, pais.id", corpo[:260])
+
+
+class TestCartoesQueNavegam(unittest.TestCase):
+    """Um número grande num painel de parede levanta sempre a mesma
+    pergunta: quais são esses treze? O cartão tem de levar à tabela."""
+
+    def js(self, nome):
+        return (TEMPLATES / nome).read_text(encoding="utf-8")
+
+    def test_o_cartao_com_destino_vira_botao(self):
+        js = self.js("dashboard.js")
+        corpo = js[js.index("function kpi(spec)"):]
+        corpo = corpo[:corpo.index("/* Tabela dinâmica")]
+        self.assertIn('el(navega ? "button" : "div"', corpo)
+        self.assertIn("go(spec.ir)", corpo)
+        # sem destino continua sendo div: cartao que parece clicavel e nao
+        # e custa mais que cartao inerte
+        self.assertIn("const navega = !!spec.ir;", corpo)
+
+    def test_cada_cartao_do_painel_tem_destino(self):
+        js = self.js("dashboard.js")
+        visao = js[js.index('view("visao"'):js.index('view("explorar"')]
+        grade = visao[visao.index('kpi({ label: "Artigos no recorte"'):]
+        grade = grade[:grade.index('kpi({ label: "Maior índice h"')]
+        self.assertEqual(grade.count("kpi({ label:"), grade.count("ir: \""),
+                         "há cartão sem destino na grade do painel")
+
+    def test_os_destinos_sao_abas_que_existem(self):
+        js = self.js("dashboard.js")
+        visao = js[js.index('view("visao"'):js.index('view("explorar"')]
+        destinos = set(re.findall(r'ir: "(\w+)"', visao))
+        registradas = set(re.findall(r'^view\("(\w+)"', js, re.M))
+        self.assertTrue(destinos)
+        self.assertEqual(destinos - registradas, set())
+
+    def test_a_seta_diz_para_onde_leva(self):
+        # "clique aqui" sem dizer onde chega e promessa vazia
+        js = self.js("dashboard.js")
+        corpo = js[js.index("function kpi(spec)"):]
+        corpo = corpo[:corpo.index("/* Tabela dinâmica")]
+        self.assertIn("labelOf(spec.ir)", corpo)
+        css = (TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        self.assertIn(".kpi-ir", css)
+        self.assertIn("button.kpi", css)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

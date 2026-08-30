@@ -604,13 +604,21 @@ def spatial(db: Database) -> dict[str, Any]:
         "places": [p for p in places if p["city"] != "Nao informado" or p["n_events"]],
         "institutions": institutions,
         "geolocated": [p for p in places if p["latitude"] is not None],
-        "countries": [
-            {"country": c, "n": n}
-            for c, n in Counter(
-                (i["country"] or "Brasil") for i in institutions
-            ).most_common()
-        ],
+        # Contar INSTITUICOES por pais, que era o que estava aqui, responde
+        # outra pergunta -- quantas parceiras temos la -- e enche o mapa de
+        # 1 onde ha dez artigos. A pergunta do mapa e "de onde saiu a
+        # producao", e quem responde e `analise.paises`, a mesma funcao que
+        # o Panorama usa. Uma medida so, dois consumidores.
+        "countries": _paises_com_artigo(db),
     }
+
+
+def _paises_com_artigo(db: Database) -> list[dict[str, Any]]:
+    from . import analise
+
+    return [{"country": p["pais"], "n": p["n"],
+             "institutions": p.get("instituicoes") or []}
+            for p in analise.paises(db).get("todos", [])]
 
 
 def temporal_grid(db: Database, window: int = config.WINDOW_YEARS) -> dict[str, Any]:
