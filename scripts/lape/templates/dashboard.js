@@ -2386,6 +2386,246 @@ view("espacial", "Mapa", "Espaço-temporal",
     })));
   });
 
+
+/* ==================================================================== */
+/* cenários: o que teria de mudar, e o que isso pediria                 */
+/* ==================================================================== */
+/* Um simulador de cenários é o lugar mais fácil de mentir num painel.
+   Ele desenha o futuro com a mesma tinta do passado, e de longe as duas
+   linhas são uma só. Três regras seguram isso aqui:
+
+     · o projetado é TRACEJADO e sem marcador — o ponto redondo é reservado
+       ao que foi medido;
+     · toda projeção sai como FAIXA, nunca como linha só: dizer "dá entre
+       9 e 15" é a única frase honesta sobre um ano que não aconteceu;
+     · todo parâmetro diz de onde veio, e o que não pôde ser medido é
+       rotulado como suposição na própria tela, não numa nota de rodapé.  */
+
+/* O estado dos controles vive fora da função que desenha: o painel se
+   redesenha a cada evento ao vivo, e um cenário que se apaga sozinho a
+   cada artigo cadastrado não serviria para conversar com ninguém. */
+const CENARIO = { ritmo: null, pesquisadores: null, atraso: null, horizonte: null };
+
+/* A conta inteira, isolada de propósito para poder ser testada no Node.
+   `ritmoBase` é o que o laboratório faz hoje; `alvo`, o que o cenário
+   pede. O atraso é a rampa entre os dois — nada muda no dia em que se
+   decide mudar. */
+function projetarCenario(base, ajuste) {
+  const hoje = base.ano_corrente;
+  const anos = base.anos.slice();
+  const serie = base.serie.slice();
+  const ultimoReal = serie.length ? serie[serie.length - 1] : 0;
+  const escala = ajuste.pesquisadoresBase > 0
+    ? ajuste.pesquisadores / ajuste.pesquisadoresBase : 1;
+  const alvo = ajuste.ritmo * escala;
+  const rampaMeses = Math.max(ajuste.atraso, 1);
+
+  const futuros = [];
+  for (let k = 1; k <= ajuste.horizonte; k++) futuros.push(hoje + k);
+  const valorEm = function (ano, taxa) {
+    const meses = (ano - hoje) * 12;
+    const fracao = Math.max(0, Math.min(1, meses / rampaMeses));
+    return ultimoReal + (taxa - ultimoReal) * fracao;
+  };
+
+  /* A linha do cenário repete o realizado até hoje e só então se separa:
+     duas séries que começam em pontos diferentes do eixo não se ligam, e
+     um cenário que nasce solto no meio do gráfico não se lê. */
+  const linha = serie.slice();
+  const baixo = serie.slice();
+  const alto = serie.slice();
+  futuros.forEach(function (ano) {
+    linha.push(round1(valorEm(ano, alvo)));
+    baixo.push(round1(valorEm(ano, alvo * 0.7)));
+    alto.push(round1(valorEm(ano, alvo * 1.3)));
+  });
+
+  /* Quando a velocidade volta a ser positiva: o primeiro ano projetado
+     que supera o anterior. É a pergunta que o cenário existe para
+     responder, e ela não se lê no desenho. */
+  let viraEm = null;
+  for (let i = serie.length; i < linha.length; i++) {
+    if (linha[i] > linha[i - 1] + 1e-9) { viraEm = anos.concat(futuros)[i]; break; }
+  }
+  const acumulado = round1(linha.slice(serie.length)
+    .reduce(function (a, b) { return a + b; }, 0));
+
+  return {
+    anos: anos.concat(futuros), linha: linha, baixo: baixo, alto: alto,
+    corte: serie.length,            /* onde o medido acaba */
+    alvo: round1(alvo), ultimoReal: ultimoReal, viraEm: viraEm,
+    chegaEm: linha[linha.length - 1], acumulado: acumulado,
+    porPessoa: ajuste.pesquisadores > 0
+      ? round1(alvo / ajuste.pesquisadores * 10) / 10 : null,
+  };
+}
+function round1(v) { return Math.round(v * 10) / 10; }
+
+function controleDeCenario(par, valor, aoMudar) {
+  const campo = el("input", {
+    type: "range", min: String(par.minimo), max: String(par.maximo),
+    step: String(par.passo), value: String(valor), class: "cursor-cenario",
+    "aria-label": par.rotulo,
+    oninput: function (ev) { aoMudar(Number(ev.target.value)); },
+  });
+  const unidade = function (v) {
+    return Math.abs(v) === 1 && par.unidade_um ? par.unidade_um : par.unidade; };
+  const lido = el("b", { class: "cen-valor",
+    text: dec(valor, par.passo < 1 ? 1 : 0) + " " + unidade(valor) });
+  return el("div", { class: "cen-controle" }, [
+    el("div", { class: "cen-topo" }, [
+      el("span", { class: "flabel", text: par.rotulo }), lido]),
+    campo,
+    /* de onde veio o número, na própria linha em que ele é arrastado */
+    el("div", { class: "cen-base" + (par.medido ? "" : " suposicao") }, [
+      Icons.get(par.medido ? "qualidade" : "aviso", 12),
+      el("span", { text: (par.medido ? "medido: " : "suposição: ") + par.base }),
+    ]),
+  ]);
+}
+
+view("cenarios", "Cenários", "Espaço-temporal",
+  "O que teria de mudar para a curva virar — e o que cada cenário pediria da equipe.",
+  function (host) {
+    const base = D.cenario;
+    if (!base || !base.anos || base.anos.length < 3) {
+      host.appendChild(el("div", { class: "note",
+        html: "<b>Ainda não há série para projetar.</b> São precisos ao menos "
+          + "três anos com publicação registrada." }));
+      return;
+    }
+    const porChave = {};
+    base.parametros.forEach(function (p) { porChave[p.chave] = p; });
+    if (CENARIO.ritmo === null) {
+      CENARIO.ritmo = porChave.ritmo.valor;
+      CENARIO.pesquisadores = porChave.pesquisadores.valor;
+      CENARIO.atraso = porChave.atraso.valor;
+      CENARIO.horizonte = base.horizonte;
+    }
+
+    const palco = el("div");
+    const controles = el("div", { class: "cen-controles" });
+    host.appendChild(controles);
+    host.appendChild(palco);
+
+    function desenharCenario() {
+      const p = projetarCenario(base, {
+        ritmo: CENARIO.ritmo, pesquisadores: CENARIO.pesquisadores,
+        pesquisadoresBase: porChave.pesquisadores.valor,
+        atraso: CENARIO.atraso, horizonte: CENARIO.horizonte,
+      });
+      palco.innerHTML = "";
+
+      const melhor = base.melhor_por_pesquisador;
+      const exigente = melhor && p.porPessoa !== null
+        && p.porPessoa > melhor.por_pessoa;
+
+      palco.appendChild(el("div", { class: "grid g4", style: "margin-bottom:14px" }, [
+        kpi({ label: "Ritmo do cenário", icon: "subida", value: dec(p.alvo, 1),
+          foot: "publicações por ano",
+          leitura: { forte: dec(p.ultimoReal, 0),
+            texto: "é o que saiu no último ano registrado." } }),
+        kpi({ label: "Volta a subir em", icon: "linha",
+          value: p.viraEm ? String(p.viraEm) : "não vira",
+          foot: p.viraEm ? "primeiro ano acima do anterior"
+            : "neste cenário a curva não volta a subir",
+          tone: p.viraEm ? null : "bad" }),
+        kpi({ label: "Chega em " + p.anos[p.anos.length - 1], icon: "alvo",
+          value: dec(p.chegaEm, 1), foot: "publicações no ano",
+          leitura: base.pico ? { forte: C.fmt(base.pico.valor),
+            texto: "foi o pico real, em " + base.pico.ano + "." } : null }),
+        kpi({ label: "Por pesquisador", icon: "pessoas",
+          value: p.porPessoa === null ? "—" : dec(p.porPessoa, 1),
+          foot: "publicações/pessoa/ano", tone: exigente ? "bad" : null,
+          leitura: melhor ? {
+            sinal: exigente ? "desce" : "parado",
+            forte: dec(melhor.por_pessoa, 1),
+            texto: "foi o melhor ano do laboratório, em " + melhor.ano + ".",
+          } : null }),
+      ]));
+
+      if (exigente) {
+        palco.appendChild(el("div", { class: "note", style: "margin-bottom:14px",
+          html: "<b>Este cenário pede mais do que o laboratório já fez.</b> "
+            + dec(p.porPessoa, 1) + " publicações por pesquisador por ano contra "
+            + dec(melhor.por_pessoa, 1) + " no melhor ano (" + melhor.ano
+            + "). Não é impossível — é a conta que precisa de um plano junto." }));
+      }
+
+      palco.appendChild(card("A curva e o cenário",
+        "Sólido é o que aconteceu; tracejado é hipótese, e a faixa é o mesmo "
+        + "cenário com 30% a mais e 30% a menos de ritmo. Um ano que não "
+        + "aconteceu não se diz com um número só.",
+        C.lines({
+          labels: p.anos.map(String),
+          series: [
+            /* O cenário vem primeiro para ficar POR BAIXO: ele repete o
+               realizado até hoje, e desenhado por cima cobriria o medido
+               com tracejado -- o passado passaria a parecer hipótese. */
+            { label: "Cenário", values: p.linha, dash: "6 4", width: 2.6,
+              color: C.token("--series-2"),
+              band: { baixo: p.baixo, alto: p.alto } },
+            { label: "Realizado", values: base.serie, width: 2.8,
+              color: C.token("--series-1") },
+          ],
+          height: 320, file: "cenario",
+          table: {
+            cols: [{ k: "ano", label: "Ano" }, { k: "real", label: "Realizado", num: true },
+              { k: "cen", label: "Cenário", num: true },
+              { k: "faixa", label: "Faixa" }],
+            rows: p.anos.map(function (ano, i) {
+              return { ano: ano,
+                real: i < p.corte ? base.serie[i] : "—",
+                cen: i < p.corte ? "—" : dec(p.linha[i], 1),
+                faixa: i < p.corte ? "—"
+                  : dec(p.baixo[i], 1) + " – " + dec(p.alto[i], 1) };
+            }),
+          },
+        })));
+
+      palco.appendChild(el("p", { class: "hint", style: "margin-top:10px",
+        text: "Somando os " + CENARIO.horizonte + " anos projetados: "
+          + dec(p.acumulado, 0) + " publicações." }));
+
+      if (!base.submissoes_registradas) {
+        palco.appendChild(el("div", { class: "note", style: "margin-top:14px",
+          html: "<b>O modelo é simples porque a base é.</b> O laboratório não "
+            + "registra submissões, então não há taxa de aceite nem tempo de "
+            + "parecer a estimar: o cenário move o ritmo de publicação e o "
+            + "tamanho da equipe, e nada mais. Registrando as submissões, "
+            + "passa a ser possível separar o que depende de submeter mais "
+            + "do que depende de ser aceito mais." }));
+      }
+    }
+
+    base.parametros.forEach(function (par) {
+      controles.appendChild(controleDeCenario(par, CENARIO[par.chave],
+        function (v) { CENARIO[par.chave] = v; desenharCenario(); rotular(par, v); }));
+    });
+    controles.appendChild(controleDeCenario(
+      { chave: "horizonte", rotulo: "Horizonte", unidade: "anos", medido: true,
+        base: "quantos anos projetar à frente", minimo: 2, maximo: 10, passo: 1 },
+      CENARIO.horizonte,
+      function (v) { CENARIO.horizonte = v; desenharCenario(); }));
+    controles.appendChild(el("button", { type: "button", class: "ghost",
+      text: "Voltar ao medido",
+      onclick: function () {
+        CENARIO.ritmo = porChave.ritmo.valor;
+        CENARIO.pesquisadores = porChave.pesquisadores.valor;
+        CENARIO.atraso = porChave.atraso.valor;
+        CENARIO.horizonte = base.horizonte;
+        go("cenarios");
+      } }));
+
+    function rotular(par, v) {
+      const nos = controles.querySelectorAll(".cen-valor");
+      const i = base.parametros.indexOf(par);
+      if (nos[i]) nos[i].textContent = dec(v, par.passo < 1 ? 1 : 0) + " "
+        + (Math.abs(v) === 1 && par.unidade_um ? par.unidade_um : par.unidade);
+    }
+    desenharCenario();
+  });
+
 view("descobertas", "Achados", "Governança",
   "Publicações encontradas nas bases externas que ainda não estão no banco.", function (host) {
     const rows = D.discoveries || [];

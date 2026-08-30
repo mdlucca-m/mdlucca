@@ -485,6 +485,20 @@ const Charts = (function () {
       const path = serieSpec.values.map(function (v, i) {
         return (i ? "L" : "M") + X(i) + " " + Y(v);
       }).join(" ");
+      /* Faixa de variação da série: o alto e o baixo de um mesmo valor.
+         Numa projeção ela é o que separa "vai dar 12" de "dá entre 9 e
+         15" -- e a segunda frase é a única que se pode dizer. */
+      if (serieSpec.band && serieSpec.band.alto && serieSpec.band.baixo) {
+        const alto = serieSpec.band.alto, baixo = serieSpec.band.baixo;
+        const n = Math.min(alto.length, baixo.length, labels.length);
+        if (n > 1) {
+          let d = "";
+          for (let i = 0; i < n; i++) d += (i ? "L" : "M") + X(i) + " " + Y(alto[i]);
+          for (let i = n - 1; i >= 0; i--) d += "L" + X(i) + " " + Y(baixo[i]);
+          svg.appendChild(s("path", { d: d + " Z", fill: color,
+            "fill-opacity": 0.16, stroke: "none" }));
+        }
+      }
       if (serieSpec.area || (spec.area && series.length === 1)) {
         svg.appendChild(s("path", {
           fill: gradFill(svg, color),
@@ -493,10 +507,15 @@ const Charts = (function () {
         }));
       }
       svg.appendChild(s("path", {
-        d: path, fill: "none", stroke: color, "stroke-width": 2,
+        d: path, fill: "none", stroke: color,
+        "stroke-width": serieSpec.width || 2,
+        /* `dash`: o que ainda nao aconteceu nao pode ser desenhado com a
+           mesma tinta do que aconteceu. */
+        "stroke-dasharray": serieSpec.dash || null,
         "stroke-linejoin": "round", "stroke-linecap": "round",
       }));
       serieSpec.values.forEach(function (v, i) {
+        if (serieSpec.dash) return;   /* projeção não ganha marcador de dado */
         svg.appendChild(s("circle", { class: "ring", cx: X(i), cy: Y(v), r: 4, fill: color }));
       });
       /* rótulo direto só na ponta da série — nunca em todos os pontos */

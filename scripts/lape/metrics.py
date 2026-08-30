@@ -572,6 +572,12 @@ def agenda(db: Database, window: int = config.WINDOW_YEARS) -> dict[str, Any]:
     }
 
 
+def _cenario(db: Database) -> dict[str, Any]:
+    from . import cenario
+
+    return cenario.base(db)
+
+
 def spatial(db: Database) -> dict[str, Any]:
     """Distribuicao geografica de atividades e colaboracoes."""
     places = db.dicts(
@@ -815,6 +821,7 @@ def build_payload(db: Database, window: int = config.WINDOW_YEARS) -> dict[str, 
         "acceptances": acceptance_log(db),
         "agenda": agenda_data,
         "spatial": spatial(db),
+        "cenario": _cenario(db),
         "temporal": temporal_grid(db, window),
         "quality": data_quality(db),
         "history": measured_history(db),

@@ -451,6 +451,27 @@ svg.plot.round { max-width: 380px; margin-inline: auto; }
    deixaria o nome ilegível; quem rola é a caixa, nunca a página. */
 .scrollx { overflow-x: auto; overflow-y: hidden; padding-bottom: 6px; }
 svg.plot.tree { width: auto; max-width: none; }
+/* ---- controles do simulador de cenarios ---- */
+.cen-controles { display: grid; gap: 14px; margin-bottom: 18px; padding: 15px 16px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  align-items: end; border: 1px solid var(--border);
+  border-radius: var(--radius); background: var(--surface-raised); }
+.cen-controle { display: grid; gap: 7px; }
+.cen-topo { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.cen-valor { font-size: 15px; font-weight: 750; color: var(--accent);
+  font-variant-numeric: tabular-nums; }
+.cursor-cenario { width: 100%; padding: 0; background: transparent; border: none;
+  box-shadow: none; accent-color: var(--accent-strong); cursor: pointer; }
+.cursor-cenario:hover, .cursor-cenario:focus { background: transparent; }
+/* De onde veio o numero, na propria linha em que ele e arrastado. Uma
+   nota de rodape dizendo "alguns valores sao suposicoes" nao impede
+   ninguem de ler a linha tracejada como previsao. */
+.cen-base { display: flex; align-items: flex-start; gap: 5px; font-size: 11px;
+  line-height: 1.35; color: var(--ink-muted); }
+.cen-base svg.icon { flex: none; margin-top: 1px; color: var(--good); }
+.cen-base.suposicao { color: var(--warning); }
+.cen-base.suposicao svg.icon { color: var(--warning); }
+
 /* ---- cartao que leva a uma tabela ---- */
 /* O <button> herda o visual do cartao; sem isto ele volta a ser botao. */
 button.kpi { width: 100%; text-align: left; display: block; padding: 15px 16px;
