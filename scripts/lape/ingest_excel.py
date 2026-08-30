@@ -650,7 +650,8 @@ def ingest_authors(db: Database, rows: list[dict]) -> int:
     return written
 
 
-def ingest_submissions(db: Database, rows: list[dict], destravar: bool = False) -> int:
+def ingest_submissions(db: Database, rows: list[dict], destravar: bool = False,
+                       continuar: bool = False) -> int:
     """Registra tentativas de submissao e rededuz o status dos artigos.
 
     `destravar` existe por causa de um choque de duas verdades. O status que
@@ -663,6 +664,16 @@ def ingest_submissions(db: Database, rows: list[dict], destravar: bool = False) 
 
     O caminho da planilha nao destrava: la a coluna de situacao e a
     declaracao, e ela continua mandando.
+
+    `continuar` resolve outra diferenca entre os dois caminhos, e esta
+    custava dado. A planilha e uma DECLARACAO COMPLETA do historico do
+    artigo: as tentativas vem todas juntas, e numerar de 1 e o que faz
+    reimportar a mesma planilha nao criar tentativa nova. Ja a area do
+    integrante manda UMA tentativa por vez -- e numerar de 1 ali fazia a
+    segunda submissao gravar POR CIMA da primeira, pela chave
+    (artigo, tentativa). A pessoa registrava "ressubmeti a Rheumatology" e
+    perdia a recusa da Pain: a linha ficava com a revista nova, a data de
+    decisao antiga e um motivo de recusa que ja nao correspondia a nada.
     """
     written = 0
     destravados: set[int] = set()
@@ -678,7 +689,11 @@ def ingest_submissions(db: Database, rows: list[dict], destravar: bool = False) 
             for field in ("journal", "submitted_on", "decision", "decision_on", "rejection_reason")
         ):
             continue  # bloco de tentativa ainda em branco na planilha
-        counters[article_id] = counters.get(article_id, 0) + 1
+        if article_id not in counters:
+            counters[article_id] = int(db.scalar(
+                "SELECT COALESCE(MAX(attempt_no), 0) FROM submissions"
+                " WHERE article_id = ?", (article_id,)) or 0) if continuar else 0
+        counters[article_id] += 1
         attempt = to_int(row.get("attempt_no")) or counters[article_id]
         counters[article_id] = max(counters[article_id], attempt)
         reason = clean_text(row.get("rejection_reason"))
@@ -705,12 +720,22 @@ def ingest_submissions(db: Database, rows: list[dict], destravar: bool = False) 
             },
             conflict=("article_id", "attempt_no"),
         )
-        # decisao declarada agora vale mais do que status escrito na planilha
-        if destravar and decision and decision != "em_avaliacao":
+        # Declaracao feita agora vale mais do que status escrito na planilha
+        # meses atras -- e registrar O ENVIO tambem e uma declaracao. Excluir
+        # `em_avaliacao` daqui era o que fazia a pessoa registrar "submeti a
+        # Pain", ver a tentativa aparecer na lista, e o artigo continuar "em
+        # producao" para sempre. A tela prometia, em letras, que a situacao
+        # tinha sido atualizada.
+        if destravar and decision:
             destravados.add(article_id)
         written += 1
     for article_id in destravados:
-        db.execute("UPDATE articles SET status_locked = 0 WHERE id = ?", (article_id,))
+        # `arquivado` e a unica situacao que o historico de submissoes nao
+        # consegue deduzir: e uma decisao de quem coordena ("este nao vai
+        # adiante"), e nenhuma tentativa a contradiz. Destravar aqui faria
+        # um artigo engavetado voltar sozinho para "submetido".
+        db.execute("UPDATE articles SET status_locked = 0"
+                   " WHERE id = ? AND status <> 'arquivado'", (article_id,))
     _sync_article_dates(db)
     derive_status(db)
     return written

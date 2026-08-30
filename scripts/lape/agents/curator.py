@@ -31,7 +31,8 @@ REGISTRARS: dict[str, tuple[Any, str]] = {
     "articles": (ingest_excel.ingest_articles, "articles"),
     # Pela API, quem registra a decisao esta declarando o desfecho agora --
     # e essa declaracao ganha do status que veio da planilha meses atras.
-    "submissions": (lambda db, rows: ingest_excel.ingest_submissions(db, rows, destravar=True),
+    "submissions": (lambda db, rows: ingest_excel.ingest_submissions(
+                        db, rows, destravar=True, continuar=True),
                     "submissions"),
     "members": (ingest_excel.ingest_members, "members"),
     "research_lines": (ingest_excel.ingest_research_lines, "research_lines"),
