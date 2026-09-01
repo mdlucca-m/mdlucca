@@ -1,0 +1,328 @@
+{
+ "TE": [
+  {
+   "variavel": "Tensão",
+   "et": 0.7523007060815682,
+   "et_ic": [
+    0.59430379059302,
+    0.910283025130396
+   ],
+   "et_pct": 53.24698004954818,
+   "sd_entre": 1.648719012711856,
+   "mmr": 0.32974380254237123,
+   "mmd95": 2.0852711685858822,
+   "razao": 0.4383138283358447,
+   "aptidao": "insuficiente",
+   "piso_grupo": 0.35111239096110036,
+   "n_difs": 133
+  },
+  {
+   "variavel": "Depressão",
+   "et": 0.9989909800789148,
+   "et_ic": [
+    0.5692962911890324,
+    1.495762696836578
+   ],
+   "et_pct": 98.12574123852063,
+   "sd_entre": 1.9672107850621146,
+   "mmr": 0.3934421570124229,
+   "mmd95": 2.769061721723344,
+   "razao": 0.3938395489630378,
+   "aptidao": "insuficiente",
+   "piso_grupo": 0.44885263324671865,
+   "n_difs": 133
+  },
+  {
+   "variavel": "Raiva",
+   "et": 1.6037017010563366,
+   "et_ic": [
+    1.1347805921154017,
+    2.036015271499788
+   ],
+   "et_pct": 101.36998757708392,
+   "sd_entre": 1.657932709689236,
+   "mmr": 0.3315865419378472,
+   "mmd95": 4.4452343234439615,
+   "razao": 0.2067632289218348,
+   "aptidao": "insuficiente",
+   "piso_grupo": 0.49589883783309735,
+   "n_difs": 133
+  },
+  {
+   "variavel": "Vigor",
+   "et": 1.378875802886294,
+   "et_ic": [
+    1.1875887569314636,
+    1.5359976491927192
+   ],
+   "et_pct": 24.015673410882894,
+   "sd_entre": 2.5307950566536883,
+   "mmr": 0.5061590113307377,
+   "mmd95": 3.8220487280889794,
+   "razao": 0.3670809294580659,
+   "aptidao": "insuficiente",
+   "piso_grupo": 0.5853741634044543,
+   "n_difs": 133
+  },
+  {
+   "variavel": "Fadiga",
+   "et": 1.6138326887623107,
+   "et_ic": [
+    1.3715917332085665,
+    1.843398226887364
+   ],
+   "et_pct": 30.161134820844413,
+   "sd_entre": 3.1396138601847334,
+   "mmr": 0.6279227720369467,
+   "mmd95": 4.4733159886634475,
+   "razao": 0.3890879001332639,
+   "aptidao": "insuficiente",
+   "piso_grupo": 0.7570559382261612,
+   "n_difs": 133
+  },
+  {
+   "variavel": "Confusão",
+   "et": 0.5890045496082812,
+   "et_ic": [
+    0.38641232706199874,
+    0.8056619707862128
+   ],
+   "et_pct": 116.81571712661253,
+   "sd_entre": 0.8221169100154532,
+   "mmr": 0.16442338200309065,
+   "mmd95": 1.632637315816756,
+   "razao": 0.2791546892336244,
+   "aptidao": "insuficiente",
+   "piso_grupo": 0.2102258824329867,
+   "n_difs": 133
+  },
+  {
+   "variavel": "TMD",
+   "et": 4.478303806017171,
+   "et_ic": [
+    3.4659033330964104,
+    5.484740113370509
+   ],
+   "et_pct": 108.53059980517548,
+   "sd_entre": 7.693612925156711,
+   "mmr": 1.5387225850313424,
+   "mmd95": 12.413224838637204,
+   "razao": 0.3435949528399286,
+   "aptidao": "insuficiente",
+   "piso_grupo": 1.8652609733364094,
+   "n_difs": 133
+  }
+ ],
+ "ET_PURO": [
+  {
+   "variavel": "Tensão",
+   "et_puro": 0.5720191276110801,
+   "et_entre_dias": 0.7523007060815682,
+   "variacao_biologica": 0.48862098810620586,
+   "pct_biologico": 42.18531500136795,
+   "n_pares": 17
+  },
+  {
+   "variavel": "Depressão",
+   "et_puro": 0.492592183071889,
+   "et_entre_dias": 0.9989909800789148,
+   "variacao_biologica": 0.8691006382781579,
+   "pct_biologico": 75.68625276134854,
+   "n_pares": 17
+  },
+  {
+   "variavel": "Raiva",
+   "et_puro": 1.1031372374758646,
+   "et_entre_dias": 1.6037017010563366,
+   "variacao_biologica": 1.164022070780922,
+   "pct_biologico": 52.68357652431057,
+   "n_pares": 17
+  },
+  {
+   "variavel": "Vigor",
+   "et_puro": 1.4815036082225619,
+   "et_entre_dias": 1.378875802886294,
+   "variacao_biologica": 0.0,
+   "pct_biologico": 0.0,
+   "n_pares": 17
+  },
+  {
+   "variavel": "Fadiga",
+   "et_puro": 1.4677914581799016,
+   "et_entre_dias": 1.6138326887623107,
+   "variacao_biologica": 0.6708533242161863,
+   "pct_biologico": 17.27977710951063,
+   "n_pares": 17
+  },
+  {
+   "variavel": "Confusão",
+   "et_puro": 0.3031695312954162,
+   "et_entre_dias": 0.5890045496082812,
+   "variacao_biologica": 0.5049896976705286,
+   "pct_biologico": 73.50683734463331,
+   "n_pares": 17
+  },
+  {
+   "variavel": "TMD",
+   "et_puro": 3.114836413417716,
+   "et_entre_dias": 4.478303806017171,
+   "variacao_biologica": 3.2176076666733215,
+   "pct_biologico": 51.62250451931018,
+   "n_pares": 17
+  }
+ ],
+ "MMI": [
+  {
+   "variavel": "Tensão",
+   "auc": 0.5324074074074076,
+   "corte": null,
+   "sens": 0.9583333333333334,
+   "espec": 0.16666666666666663,
+   "discrimina": false,
+   "corte_sobre_et": null,
+   "supera_mmr": null,
+   "n": 78,
+   "eventos": 24
+  },
+  {
+   "variavel": "Depressão",
+   "auc": 0.6060956790123457,
+   "corte": 0.0,
+   "sens": 0.9583333333333334,
+   "espec": 0.16666666666666663,
+   "discrimina": true,
+   "corte_sobre_et": 0.0,
+   "supera_mmr": false,
+   "n": 78,
+   "eventos": 24
+  },
+  {
+   "variavel": "Raiva",
+   "auc": 0.630787037037037,
+   "corte": 1.0,
+   "sens": 0.4166666666666667,
+   "espec": 0.7962962962962963,
+   "discrimina": true,
+   "corte_sobre_et": 0.6235573606620942,
+   "supera_mmr": true,
+   "n": 78,
+   "eventos": 24
+  },
+  {
+   "variavel": "Vigor",
+   "auc": 0.6859567901234568,
+   "corte": -3.0,
+   "sens": 0.625,
+   "espec": 0.7777777777777778,
+   "discrimina": true,
+   "corte_sobre_et": 2.175685434264879,
+   "supera_mmr": true,
+   "n": 78,
+   "eventos": 24
+  },
+  {
+   "variavel": "Fadiga",
+   "auc": 0.9537037037037037,
+   "corte": 3.0,
+   "sens": 0.875,
+   "espec": 0.8703703703703703,
+   "discrimina": true,
+   "corte_sobre_et": 1.858928760639231,
+   "supera_mmr": true,
+   "n": 78,
+   "eventos": 24
+  },
+  {
+   "variavel": "Confusão",
+   "auc": 0.4510030864197531,
+   "corte": null,
+   "sens": 1.0,
+   "espec": 0.01851851851851849,
+   "discrimina": false,
+   "corte_sobre_et": null,
+   "supera_mmr": null,
+   "n": 78,
+   "eventos": 24
+  },
+  {
+   "variavel": "TMD",
+   "auc": 0.851466049382716,
+   "corte": 8.0,
+   "sens": 0.7083333333333334,
+   "espec": 0.9259259259259259,
+   "discrimina": true,
+   "corte_sobre_et": 1.7863906395209237,
+   "supera_mmr": true,
+   "n": 78,
+   "eventos": 24
+  }
+ ],
+ "INDIVIDUAL": [
+  {
+   "variavel": "Tensão",
+   "n": 21,
+   "acima_et": 10,
+   "acima_mmr": 13,
+   "acima_mmd": 4,
+   "mesma_direcao": 11,
+   "delta_medio": -1.1547619047619047
+  },
+  {
+   "variavel": "Depressão",
+   "n": 21,
+   "acima_et": 11,
+   "acima_mmr": 14,
+   "acima_mmd": 2,
+   "mesma_direcao": 6,
+   "delta_medio": 0.22222222222222224
+  },
+  {
+   "variavel": "Raiva",
+   "n": 21,
+   "acima_et": 10,
+   "acima_mmr": 14,
+   "acima_mmd": 5,
+   "mesma_direcao": 5,
+   "delta_medio": 0.3055555555555555
+  },
+  {
+   "variavel": "Vigor",
+   "n": 21,
+   "acima_et": 15,
+   "acima_mmr": 16,
+   "acima_mmd": 6,
+   "mesma_direcao": 17,
+   "delta_medio": -3.0595238095238093
+  },
+  {
+   "variavel": "Fadiga",
+   "n": 21,
+   "acima_et": 16,
+   "acima_mmr": 19,
+   "acima_mmd": 8,
+   "mesma_direcao": 18,
+   "delta_medio": 3.3849206349206353
+  },
+  {
+   "variavel": "Confusão",
+   "n": 21,
+   "acima_et": 8,
+   "acima_mmr": 11,
+   "acima_mmd": 4,
+   "mesma_direcao": 9,
+   "delta_medio": -0.6071428571428571
+  },
+  {
+   "variavel": "TMD",
+   "n": 21,
+   "acima_et": 14,
+   "acima_mmr": 19,
+   "acima_mmd": 5,
+   "mesma_direcao": 14,
+   "delta_medio": 5.21031746031746
+  }
+ ],
+ "n_atletas_D1D7": 21,
+ "n_casos_ancora": 78,
+ "eventos_ancora": 24
+}
