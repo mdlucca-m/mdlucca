@@ -633,20 +633,46 @@ RC=[
 
 RP=[
  "As séries de prevalência, examinadas perfil a perfil na Figura 10, revelam um padrão que a média das "
- "subescalas não expõe. Os dois perfis de extremos favorável e desfavorável, o iceberg e a barbatana de tubarão, não se movem em "
- "espelho ao longo de toda a semana. O iceberg atinge o seu máximo em D5, entre "
- "os dois amistosos, e só desaba no último dia; a barbatana de tubarão atinge o seu em D6, o dia técnico e "
- "de força que antecede a estreia.",
+ "subescalas não expõe. Os dois perfis de extremos favorável e desfavorável, o iceberg e a barbatana de "
+ "tubarão, trocam de posição já na saída do dia basal e nunca mais se reaproximam: o iceberg parte de 44,4% "
+ "e a barbatana de 3,7%, e no segundo dia estão em 23,1% e 30,8%. O iceberg não volta ao patamar inicial em "
+ "nenhum momento, e a barbatana atinge o seu máximo em D5, entre os dois amistosos, com 34,8%. O submerso e "
+ "o iceberg invertido partilham o pico no último dia, ambos com 23,8%, o que reparte o elenco da véspera da "
+ "estreia entre uma configuração de apatia e outra de perturbação franca.",
+
  "A Figura 11 recompõe a semana como redistribuição, e não como deslocamento de médias. A leitura em área "
- "empilhada mostra que o elenco não migra progressivamente de uma faixa para outra: a composição permanece "
- "estável do primeiro ao terceiro dia, sofre um rearranjo em D4, retorna quase à configuração inicial em D5 "
- "e só então se desloca. O painel das três faixas localiza a inversão entre a favorável e a de risco em "
- "D1,88, isto é, ainda na primeira metade do segundo dia.",
+ "empilhada mostra que o elenco não migra progressivamente de uma faixa para outra: o rearranjo maior "
+ "concentra-se na passagem do primeiro para o segundo dia, quando a faixa de risco quase triplica, e o "
+ "restante da semana oscila em torno do novo patamar sem retornar ao inicial. O painel das três faixas "
+ "localiza a inversão entre a favorável e a de risco em D1,85, isto é, ainda na primeira metade do segundo "
+ "dia.",
+
  "O mapa da Figura 12 responde à pergunta de onde cada perfil predomina. Por dia, os picos distribuem-se "
- "sem concentração: superfície em D1, submerso e Everest invertido em D4, iceberg em D5, barbatana de "
- "tubarão em D6 e iceberg invertido em D7. Por tipo de estímulo, a barbatana de tubarão alcança o seu "
- "máximo no dia técnico e de força, e não no HIIT nem no amistoso. A associação entre estímulo e perfil, "
- "contudo, não é estatisticamente detectável, o que impede atribuir a distribuição ao tipo de sessão."]
+ "sem concentração: iceberg em D1, superfície em D2, Everest invertido em D4, barbatana de tubarão em D5, e "
+ "submerso e iceberg invertido em D7. Por tipo de estímulo, o contraste é mais nítido: o iceberg alcança "
+ "44,4% no dia basal e cai a 23,5% nos dias de HIIT, ao passo que a barbatana de tubarão faz o percurso "
+ "inverso, de 3,7% no basal a 31,8% no dia técnico e de força. A associação entre estímulo e perfil, "
+ "contudo, não é estatisticamente detectável, o que impede atribuir a distribuição ao tipo de sessão.",
+
+ "A Figura 13 sai da prevalência e volta à forma. Cada painel confronta o centroide observado neste elenco "
+ "com o centroide canônico de Parsons-Smith, Terry e Machin (2017), em escore T contra a norma de atletas, "
+ "e o que se vê é uma correspondência de formato com deslocamento de nível. O iceberg do elenco tem o "
+ "desenho esperado, com o vigor como único ponto acima da linha normativa, mas o pico de vigor fica em 51 "
+ "contra 55 na referência: é um iceberg de pouca altura. A barbatana de tubarão reproduz com fidelidade a "
+ "combinação que lhe dá nome, com a fadiga isolada em 66 e o vigor em 41, e é o perfil em que o elenco mais "
+ "se aproxima do padrão publicado. A superfície e o submerso, ao contrário, afastam-se: a superfície do "
+ "elenco exibe um pico de raiva em 62 que a referência não tem, e o submerso desce a 38 no vigor onde a "
+ "referência marca 41.",
+
+ "Os dois perfis desfavoráveis merecem leitura separada, porque neles o elenco excede a referência. No "
+ "iceberg invertido, a raiva chega a 86 contra 75, e no Everest invertido a depressão alcança 123 contra "
+ "89. O Everest invertido, porém, reúne apenas dois pares atleta-dia no conjunto inteiro, e o seu centroide "
+ "é, na prática, a média de duas observações; a distância em relação à referência não deve ser interpretada "
+ "como característica do elenco. A Figura 14 reúne os seis perfis em um único eixo e permite ver de uma vez "
+ "o que a taxonomia organiza: o vigor é a dimensão que separa os perfis favoráveis dos desfavoráveis, e ela "
+ "os separa em uma faixa estreita, de 33 a 51, ao passo que a raiva e a depressão, que quase não distinguem "
+ "os três primeiros perfis, abrem o leque nos três últimos.",
+]
 
 RL=[
  "O piso de ruído empregado até aqui é o erro da média do grupo. A decisão sobre um atleta exige o erro da "

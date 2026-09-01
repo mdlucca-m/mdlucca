@@ -210,6 +210,13 @@ figura(f"{S}/P2fig.png",fig(),"Composição do elenco entre os seis perfis, dia 
 para(A.RP[2])
 figura(f"{S}/P3fig.png",fig(),"Prevalência de cada perfil por dia e por tipo de estímulo, com o pico de cada "
        "perfil destacado.",w=16.0)
+para(A.RP[3])
+figura(f"{S}/P4fig.png",fig(),"Assinatura dos seis perfis de humor em escore T: o centroide observado neste "
+       "elenco contra o centroide canônico de Parsons-Smith, Terry e Machin (2017), com a prevalência de "
+       "cada perfil e o dia e o estímulo em que predomina.",w=16.0)
+para(A.RP[4])
+figura(f"{S}/P5fig.png",fig(),"Os seis perfis no mesmo eixo, a prevalência observada contra a de referência "
+       "e o dia de predomínio de cada perfil.",w=16.0)
 
 head("3.9 Limiares individuais de mudança", lvl=2)
 para(A.RL[0]); para(A.RL[1])
