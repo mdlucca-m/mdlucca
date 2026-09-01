@@ -309,3 +309,36 @@ class TestLLMDegrada(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestQuedaDeBackend(unittest.TestCase):
+    """O 'auto' existe para absorver backend indisponivel. Se ele so apanhasse
+    EmbeddingError, uma falha de rede ao baixar os pesos do modelo local
+    derrubaria a indexacao inteira — foi o que aconteceu atras de um proxy que
+    bloqueia o repositorio de modelos."""
+
+    def test_falha_de_rede_no_local_cai_para_o_seguinte(self):
+        from lape.rag import embed
+
+        class FalhaDeRede(Exception):
+            pass
+
+        original = embed.LocalEmbedder
+        embed.LocalEmbedder = lambda *a, **k: (_ for _ in ()).throw(
+            FalhaDeRede("403 Forbidden"))
+        try:
+            emb = embed.get_embedder("auto", use_cache=False)
+            self.assertFalse(emb.semantic)      # caiu no hash, nao explodiu
+        finally:
+            embed.LocalEmbedder = original
+
+    def test_backend_nomeado_nao_e_absorvido(self):
+        from lape.rag import embed
+        original = embed.LocalEmbedder
+        embed.LocalEmbedder = lambda *a, **k: (_ for _ in ()).throw(
+            RuntimeError("403 Forbidden"))
+        try:
+            with self.assertRaises(RuntimeError):
+                embed.get_embedder("local", use_cache=False)
+        finally:
+            embed.LocalEmbedder = original

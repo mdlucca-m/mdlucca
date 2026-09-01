@@ -623,11 +623,27 @@ recíproco. A fusão combina posições, não pontuações, e por isso não depe
 de que cosseno e BM25 estejam na mesma escala. Todo trecho devolvido carrega
 a citação rastreável até o documento, a seção e o número do trecho.
 
+O peso da fusão **não deve ser aceito por convenção**. Ele depende de quanto
+os dois rankings divergem, e isso é propriedade do par corpus-modelo. Meça no
+seu próprio acervo antes de fixá-lo:
+
+```bash
+python3 -m lape.rag.eval.rodar --db data/db.sqlite \
+    --pesos 0.0 0.2 0.4 0.6 0.8 1.0
+```
+
+O conjunto de avaliação traz 26 perguntas redigidas no vocabulário de quem
+pergunta, cada uma com a cadeia que a resposta precisa conter. Ele separa o
+que a arquitetura entrega do que o modelo de embeddings entrega.
+
 ### Onde os vetores moram
 
 Hoje, no mesmo arquivo SQLite do resto do LAPE: nada de infraestrutura nova,
-busca exata por produto escalar, adequado até a ordem de cem mil trechos.
-Quando o corpus passar disso, a troca é uma variável de ambiente:
+busca exata por produto escalar. A medição do Apêndice do artigo do sistema
+mostra que **o limite é de memória, e não de tempo**: com cem mil trechos a
+busca leva 8,9 ms e a matriz ocupa 410 MB; com um milhão, 79,7 ms e 4 GB. O
+ponto de troca é onde a matriz deixa de caber, não onde a busca fica lenta.
+Quando chegar lá, a troca é uma variável de ambiente:
 
 ```bash
 export LAPE_VECTOR_STORE=pgvector

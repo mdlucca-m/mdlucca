@@ -245,8 +245,14 @@ def _auto(nome: str | None) -> Embedder:
                                (lambda: LocalEmbedder(nome), "local")):
         try:
             emb = construtor()
-        except EmbeddingError as exc:
-            log.debug("backend %s indisponivel: %s", rotulo, exc)
+        except Exception as exc:
+            # Qualquer falha derruba este backend e passa ao proximo. Nao basta
+            # apanhar EmbeddingError: o modelo local baixa pesos da rede, e
+            # atras de um proxy que bloqueie o repositorio o erro vem da
+            # biblioteca de HTTP. O sentido de 'auto' e nunca deixar o sistema
+            # cair por indisponibilidade de um backend.
+            log.info("backend %s indisponivel (%s: %s)", rotulo,
+                     type(exc).__name__, exc)
             continue
         log.info("embeddings por %s (%s, %d dimensoes)", rotulo, emb.model, emb.dim)
         return emb
