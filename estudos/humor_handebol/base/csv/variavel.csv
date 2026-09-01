@@ -8,5 +8,5 @@ Confusão,Confusão,BRUMS,0.0,16.0,alto pior,1.425,1.781
 TMD,Perturbação total do humor,composto,-16.0,80.0,alto pior,,
 Fad.Física,Fadiga física,fadiga,0.0,10.0,alto pior,,
 Fad.Mental,Fadiga mental,fadiga,0.0,10.0,alto pior,,
-Epworth,Sonolência diurna (Epworth),sono,0.0,24.0,alto pior,,
+Epworth,"Sonolência diurna (Epworth, 6 itens)",sono,0.0,18.0,alto pior,,
 PSS,Estresse percebido (PSS),estresse,0.0,56.0,alto pior,,

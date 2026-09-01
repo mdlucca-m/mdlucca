@@ -1,0 +1,21 @@
+variavel,tipo,escala,dominio,origem
+atleta,nominal,código A01–A27,27 níveis,"Nome Padronizado, codificado"
+dia,ordinal,D1–D7,1 a 7,"carimbo de data e hora, virada às 4h"
+tipo_estimulo,nominal,4 níveis,"Basal, HIIT, Amistoso, Técnico/força",planejamento do microciclo
+periodo,nominal,4 níveis,"madrugada, manhã, tarde, noite",hora do carimbo
+momento,nominal,3 níveis,"pré, pós, único",ordem do registro no dia
+sensacao_fisica,ordinal,Likert de 5,Muito mal a Muito bem,item do formulário
+sensacao_mental,ordinal,Likert de 5,Muito mal a Muito bem,item do formulário
+item BRUMS (24),ordinal,Likert de 5,0 a 4,itens 5 a 28 do formulário
+item Epworth (6),ordinal,Likert de 4,0 a 3,itens 32 a 37
+item PSS (14),ordinal,Likert de 5,0 a 4,"itens 38 a 51, sete deles invertidos"
+Tensão…Confusão,discreta,soma de 4 itens,0 a 16,calculada por fórmula
+TMD,discreta,composto,−16 a 80,calculada por fórmula
+Fad.Física,discreta,numérica direta,0 a 10,item único
+Fad.Mental,discreta,numérica direta,0 a 10,item único
+Epworth,discreta,soma de 6 itens,0 a 24,calculada por fórmula
+PSS,discreta,soma de 14 itens,0 a 56,"calculada por fórmula, com inversão"
+TQR,ordinal,Borg 6–20,6 a 20,item único
+escore T,contínua,padronizada,real,(x − média normativa) ÷ desvio × 10 + 50
+média diária,contínua,média de 1 a 2 registros,0 a 16,agregação do par atleta-dia
+hora decimal,contínua,0 a 24 h,real,carimbo de data e hora

@@ -1,0 +1,61 @@
+bloco,item,faltantes,n,completude
+itens do BRUMS (24),Apavorado,0,457,100.0
+itens do BRUMS (24),Animado,0,457,100.0
+itens do BRUMS (24),Confuso,0,457,100.0
+itens do BRUMS (24),Esgotado,0,457,100.0
+itens do BRUMS (24),Deprimido,0,457,100.0
+itens do BRUMS (24),Desanimado,0,457,100.0
+itens do BRUMS (24),Irritado,0,457,100.0
+itens do BRUMS (24),Exausto,0,457,100.0
+itens do BRUMS (24),Inseguro,0,457,100.0
+itens do BRUMS (24),Sonolento,0,457,100.0
+itens do BRUMS (24),Zangado,0,457,100.0
+itens do BRUMS (24),Triste,0,457,100.0
+itens do BRUMS (24),Ansioso,0,457,100.0
+itens do BRUMS (24),Preocupado,0,457,100.0
+itens do BRUMS (24),Com disposição,0,457,100.0
+itens do BRUMS (24),Infeliz,0,457,100.0
+itens do BRUMS (24),Desorientado,0,457,100.0
+itens do BRUMS (24),Tenso,0,457,100.0
+itens do BRUMS (24),Com raiva,0,457,100.0
+itens do BRUMS (24),Com energia,0,457,100.0
+itens do BRUMS (24),Cansado,0,457,100.0
+itens do BRUMS (24),Mal-humorado,0,457,100.0
+itens do BRUMS (24),Alerta,0,457,100.0
+itens do BRUMS (24),Indeciso,0,457,100.0
+itens de Epworth (6),Sentado e lendo,0,457,100.0
+itens de Epworth (6),Assistindo TV,0,457,100.0
+itens de Epworth (6),Sentado em lugar público,0,457,100.0
+itens de Epworth (6),Andando de carro por uma hora,0,457,100.0
+itens de Epworth (6),Deitado após o almoço,0,457,100.0
+itens de Epworth (6),Carro parado no trânsito,0,457,100.0
+itens da PSS (14),PSS1,0,457,100.0
+itens da PSS (14),PSS2,0,457,100.0
+itens da PSS (14),PSS3,0,457,100.0
+itens da PSS (14),PSS4,0,457,100.0
+itens da PSS (14),PSS5,0,457,100.0
+itens da PSS (14),PSS6,0,457,100.0
+itens da PSS (14),PSS7,0,457,100.0
+itens da PSS (14),PSS8,0,457,100.0
+itens da PSS (14),PSS9,0,457,100.0
+itens da PSS (14),PSS10,0,457,100.0
+itens da PSS (14),PSS11,0,457,100.0
+itens da PSS (14),PSS12,0,457,100.0
+itens da PSS (14),PSS13,0,457,100.0
+itens da PSS (14),PSS14,0,457,100.0
+variável isolada,Fadiga física,0,457,100.0
+variável isolada,Fadiga mental,0,457,100.0
+variável isolada,TQR,2,457,99.56236323851203
+variável isolada,Sensação física,0,457,100.0
+variável isolada,Sensação mental,0,457,100.0
+variável isolada,Data declarada,16,457,96.49890590809628
+variável isolada,Nome padronizado,0,457,100.0
+escore calculado,Tensão,0,457,100.0
+escore calculado,Depressão,0,457,100.0
+escore calculado,Raiva,0,457,100.0
+escore calculado,Vigor,0,457,100.0
+escore calculado,Fadiga,0,457,100.0
+escore calculado,Confusão,0,457,100.0
+escore calculado,TMD,0,457,100.0
+escore calculado,Epworth,0,457,100.0
+escore calculado,PSS,0,457,100.0

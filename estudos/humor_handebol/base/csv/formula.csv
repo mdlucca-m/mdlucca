@@ -1,0 +1,15 @@
+id,nome,formula,nota
+F1,Subescala do BRUMS,"S_k = Σ_{i∈k} x_i,  x_i ∈ {0,1,2,3,4},  |k| = 4  ⇒  S_k ∈ [0, 16]","Quatro itens por subescala, sem inversão e sem peso."
+F2,Perturbação total do humor,"PTH = (Tensão + Depressão + Raiva + Fadiga + Confusão) − Vigor  ⇒  PTH ∈ [−16, 80]",Sem a constante 100 que algumas versões acrescentam.
+F3,Escore T normativo,T_k = (S_k − μ_k) ÷ σ_k × 10 + 50,μ e σ das normas externas de atletas; o T tem média 50 e desvio 10 na população normativa.
+F4,Sonolência de Epworth,"E = Σ_{j=1}^{6} y_j,  y_j ∈ {0,1,2,3}  ⇒  E ∈ [0, 18] nesta aplicação de 6 itens",A escala clássica tem 8 situações e vai a 24; o formulário aplicou 6.
+F5,Estresse percebido (PSS-14),"PSS = Σ_{i∉R} z_i + Σ_{i∈R} (4 − z_i),  R = {4,5,6,7,9,10,13}  ⇒  PSS ∈ [0, 56]",Sete itens positivos entram invertidos.
+F6,Cerca de Tukey,"Q1 − 1,5·IQR  e  Q3 + 1,5·IQR (moderado);  ±3,0·IQR (extremo),  IQR = Q3 − Q1",Não pressupõe normalidade.
+F7,Escore z,z = (x − x̄) ÷ s;  |z| > 3 sinaliza discrepância,A própria média e o próprio desvio são arrastados pelo valor discrepante.
+F8,Escore z modificado,"z_M = 0,6745 · (x − Md) ÷ MAD,  MAD = Md(|x − Md|);  |z_M| > 3,5 sinaliza discrepância","Robusto: mediana e MAD não são arrastados. A constante 0,6745 iguala o MAD ao desvio sob normalidade."
+F9,Coeficiente de variação,CV = s ÷ x̄ × 100,Comparável entre escalas de amplitudes diferentes.
+F10,Assimetria e curtose,"g₁ = m₃ ÷ m₂^{3/2},  g₂ = m₄ ÷ m₂² − 3,  m_r = (1/n)·Σ(x − x̄)^r",Curtose em excesso: 0 na normal.
+F11,Regra de Freedman-Diaconis,h = 2 · IQR · n^{−1/3};  k = ⌈(máx − mín) ÷ h⌉,Largura de classe do histograma; robusta a caudas pesadas.
+F12,Regra de Sturges,k = ⌈log₂(n) + 1⌉,Só aceitável com distribuição próxima da normal e n moderado.
+F13,Entropia de Shannon normalizada,H* = −Σ p_i·log₂(p_i) ÷ log₂(m),"Mede o equilíbrio de uma categórica de m níveis: 1 é uniforme, 0 é degenerada."
+F14,Completude,C = (1 − faltantes ÷ total) × 100,"Calculada por variável, por atleta e por dia."

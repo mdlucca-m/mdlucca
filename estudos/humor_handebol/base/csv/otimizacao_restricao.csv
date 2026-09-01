@@ -1,0 +1,9 @@
+restricao,tipo,folga,preco_sombra,ativa
+vigor previsto em D6 ≥ t,desigualdade,0.0,1.0,1
+D6 − D7 ≤ 2.5 h,desigualdade,0.0,0.05481854084411144,1
+polimento: D7 ≤ 60% de D1,desigualdade,-2.220446049250313e-16,0.015227372456697622,1
+polimento: D7 ≤ 60% de D2,desigualdade,0.0,0.01522737245669762,1
+polimento: D7 ≤ 60% de D4,desigualdade,0.0,0.01522737245669762,1
+D3 fixado em 4.5 h pelo calendário,igualdade,,-0.009136423474018572,1
+D5 fixado em 5.0 h pelo calendário,igualdade,,-0.41565892025795914,1
+carga da semana = 23.0 h,igualdade,,0.009136423474018572,1
