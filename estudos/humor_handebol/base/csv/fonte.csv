@@ -1,0 +1,7 @@
+id,arquivo,papel,sha256,n_abas,nota
+1,ad245c30-Backup__Banco_de_dados_ORIGINAL_INTOCADO_20260723.xlsx,fonte-verdade,3ba1614432b259a4b315e4ffac759dca789b6c9524ace624e22db6445b388633,30,Export do formulário; base de onde a camada canônica foi reconstruída.
+2,bc6d935b-COLETAS.xlsx,fonte derivada,ee94a68df47682e8432775a8734eec23b4837494aa4f2aacb687f70f98bc9750,4,Derivada do backup; carrega o desalinhamento de linhas de dois atletas.
+3,9970ba89-Avalia__es_Handebol_S_o_Jos__2024.xlsx,resultados,f42cabbd8958547873e0df593a5adf7be46c057f0d62dbf9bb2e348889bbb510,52,Painéis e análises da avaliação geral.
+4,639c1ba3-HIIT_FC_PSE.xlsx,resultados,4460729d2a4c8b657a3141ed8cbb33de7714c5698576309797efbf5e57720417,58,"Carga interna, FC e PSE das sessões de HIIT."
+5,be1e9e29-resultados_handebol.xlsx,resultados,15246046eb1bf96ce93642ead407d932a927d86c5858ed6f50328ae12894ddd3,68,Saídas analíticas e painéis do estudo.
+6,74be9990-AUDITORIA_DADOS_20260820.xlsx,auditoria,b139acbabe73a9f98f2ff4484df02b94baa63da3af67a619629161ecf7c4e108,6,Auditoria de divergências feita pelo autor.

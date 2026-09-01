@@ -1,0 +1,306 @@
+id,dominio,via,unidade,variavel,recorte,teste,estatistica,rotulo_estatistica,gl,p,p_ajustado,metodo_ajuste,efeito,rotulo_efeito,ic_inf,ic_sup,n,significativo,artigo
+1,descritiva,robusta,U-AD,Tensão,geral,média,1.41285140562249,média,,,,,1.7511753153791594,DP,1.1464529798619343,1.6792498313830455,166,0,ambos
+2,descritiva,robusta,U-AD,Tensão,geral,mediana,1.0,mediana,,,,,2.0,AIQ,0.4,1.125,166,0,ambos
+3,descritiva,robusta,U-AD,Tensão,geral,média aparada 20%,0.9253333333333333,média aparada 20%,,,,,1.4826,MAD,,,166,0,ambos
+4,descritiva,paramétrica,U-AD,Tensão,normalidade,Shapiro-Wilk,0.7953961447648764,W,,5.724367614550696e-14,,,,,,,166,1,ambos
+5,descritiva,descritiva,U-AD,Tensão,efeito de piso,percentual no valor mínimo,40.36144578313253,%,,,,,,,,,166,1,ambos
+6,descritiva,robusta,U-AD,Depressão,geral,média,1.0180722891566265,média,,,,,2.163384000930798,DP,0.6889664097497132,1.3471781685635398,166,0,ambos
+7,descritiva,robusta,U-AD,Depressão,geral,mediana,0.0,mediana,,,,,1.0,AIQ,0.0,0.29166666666666663,166,0,ambos
+8,descritiva,robusta,U-AD,Depressão,geral,média aparada 20%,0.3115,média aparada 20%,,,,,0.0,MAD,,,166,0,ambos
+9,descritiva,paramétrica,U-AD,Depressão,normalidade,Shapiro-Wilk,0.5223730130312908,W,,4.177098552079069e-21,,,,,,,166,1,ambos
+10,descritiva,descritiva,U-AD,Depressão,efeito de piso,percentual no valor mínimo,52.40963855421686,%,,,,,,,,,166,1,ambos
+11,descritiva,robusta,U-AD,Raiva,geral,média,1.5820281124497992,média,,,,,2.512337899331422,DP,1.199837445711466,1.9642187791881325,166,0,ambos
+12,descritiva,robusta,U-AD,Raiva,geral,mediana,0.5,mediana,,,,,2.0,AIQ,0.0,0.75,166,0,ambos
+13,descritiva,robusta,U-AD,Raiva,geral,média aparada 20%,0.6526666666666666,média aparada 20%,,,,,0.7413,MAD,,,166,0,ambos
+14,descritiva,paramétrica,U-AD,Raiva,normalidade,Shapiro-Wilk,0.6849545874057801,W,,2.1078890705838328e-17,,,,,,,166,1,ambos
+15,descritiva,descritiva,U-AD,Raiva,efeito de piso,percentual no valor mínimo,45.18072289156627,%,,,,,,,,,166,1,ambos
+16,descritiva,robusta,U-AD,Vigor,geral,média,5.74156626506024,média,,,,,2.9502295447918625,DP,5.292761111479907,6.190371418640574,166,0,ambos
+17,descritiva,robusta,U-AD,Vigor,geral,mediana,6.0,mediana,,,,,3.625,AIQ,5.375,6.166666666666666,166,0,ambos
+18,descritiva,robusta,U-AD,Vigor,geral,média aparada 20%,5.8308333333333335,média aparada 20%,,,,,2.9652,MAD,,,166,0,ambos
+19,descritiva,paramétrica,U-AD,Vigor,normalidade,Shapiro-Wilk,0.982584394825528,W,,0.03529305844895565,,,,,,,166,1,ambos
+20,descritiva,descritiva,U-AD,Vigor,efeito de piso,percentual no valor mínimo,4.819277108433735,%,,,,,,,,,166,0,ambos
+21,descritiva,robusta,U-AD,Fadiga,geral,média,5.35070281124498,média,,,,,3.706631309515274,DP,4.7868296587069326,5.914575963783027,166,0,ambos
+22,descritiva,robusta,U-AD,Fadiga,geral,mediana,4.5,mediana,,,,,4.916666666666666,AIQ,4.0,5.333333333333333,166,0,ambos
+23,descritiva,robusta,U-AD,Fadiga,geral,média aparada 20%,4.861666666666666,média aparada 20%,,,,,3.7064999999999997,MAD,,,166,0,ambos
+24,descritiva,paramétrica,U-AD,Fadiga,normalidade,Shapiro-Wilk,0.9428471392558762,W,,3.1442217971908464e-06,,,,,,,166,1,ambos
+25,descritiva,descritiva,U-AD,Fadiga,efeito de piso,percentual no valor mínimo,6.024096385542169,%,,,,,,,,,166,0,ambos
+26,descritiva,robusta,U-AD,Confusão,geral,média,0.5042168674698795,média,,,,,1.0976983675941288,DP,0.33722895111514684,0.6712047838246121,166,0,ambos
+27,descritiva,robusta,U-AD,Confusão,geral,mediana,0.0,mediana,,,,,0.5,AIQ,0.0,0.0,166,0,ambos
+28,descritiva,robusta,U-AD,Confusão,geral,média aparada 20%,0.12033333333333335,média aparada 20%,,,,,0.0,MAD,,,166,0,ambos
+29,descritiva,paramétrica,U-AD,Confusão,normalidade,Shapiro-Wilk,0.5241990382793026,W,,4.5365160942476896e-21,,,,,,,166,1,ambos
+30,descritiva,descritiva,U-AD,Confusão,efeito de piso,percentual no valor mínimo,65.66265060240963,%,,,,,,,,,166,1,ambos
+31,descritiva,robusta,U-AD,TMD,geral,média,4.126305220883534,média,,,,,9.033962526256362,DP,2.7520091271463576,5.5006013146207104,166,0,ambos
+32,descritiva,robusta,U-AD,TMD,geral,mediana,1.7916666666666665,mediana,,,,,10.0625,AIQ,0.75,3.5,166,0,ambos
+33,descritiva,robusta,U-AD,TMD,geral,média aparada 20%,2.3041666666666667,média aparada 20%,,,,,7.351225,MAD,,,166,0,ambos
+34,descritiva,paramétrica,U-AD,TMD,normalidade,Shapiro-Wilk,0.8593527717553295,W,,2.536443062619884e-11,,,,,,,166,1,ambos
+35,descritiva,descritiva,U-AD,TMD,efeito de piso,percentual no valor mínimo,0.6024096385542169,%,,,,,,,,,166,0,ambos
+36,descritiva,robusta,U-AD,Fad.Física,geral,média,5.915461847389558,média,,,,,2.156085714975188,DP,5.58746622340496,6.243457471374156,166,0,ambos
+37,descritiva,robusta,U-AD,Fad.Física,geral,mediana,6.2,mediana,,,,,2.8833333333333337,AIQ,6.0,6.583333333333334,166,0,ambos
+38,descritiva,robusta,U-AD,Fad.Física,geral,média aparada 20%,6.097333333333332,média aparada 20%,,,,,2.0015099999999992,MAD,,,166,0,ambos
+39,descritiva,paramétrica,U-AD,Fad.Física,normalidade,Shapiro-Wilk,0.9773748117342261,W,,0.008096238739589569,,,,,,,166,1,ambos
+40,descritiva,descritiva,U-AD,Fad.Física,efeito de piso,percentual no valor mínimo,0.6024096385542169,%,,,,,,,,,166,0,ambos
+41,descritiva,robusta,U-AD,Fad.Mental,geral,média,4.554016064257028,média,,,,,2.578774524764045,DP,4.16171869245458,4.946313436059476,166,0,ambos
+42,descritiva,robusta,U-AD,Fad.Mental,geral,mediana,4.5,mediana,,,,,4.0,AIQ,4.0,5.0,166,0,ambos
+43,descritiva,robusta,U-AD,Fad.Mental,geral,média aparada 20%,4.488666666666667,média aparada 20%,,,,,2.9652,MAD,,,166,0,ambos
+44,descritiva,paramétrica,U-AD,Fad.Mental,normalidade,Shapiro-Wilk,0.977439018146949,W,,0.008240827427335042,,,,,,,166,1,ambos
+45,descritiva,descritiva,U-AD,Fad.Mental,efeito de piso,percentual no valor mínimo,4.819277108433735,%,,,,,,,,,166,0,ambos
+46,descritiva,robusta,U-AD,Epworth,geral,média,9.568273092369477,média,,,,,4.575240873832556,DP,8.872262272915663,10.264283911823291,166,0,ambos
+47,descritiva,robusta,U-AD,Epworth,geral,mediana,9.9,mediana,,,,,5.875,AIQ,9.333333333333334,10.5,166,0,ambos
+48,descritiva,robusta,U-AD,Epworth,geral,média aparada 20%,9.881833333333335,média aparada 20%,,,,,4.29954,MAD,,,166,0,ambos
+49,descritiva,paramétrica,U-AD,Epworth,normalidade,Shapiro-Wilk,0.9718485546452913,W,,0.001850413997341859,,,,,,,166,1,ambos
+50,descritiva,descritiva,U-AD,Epworth,efeito de piso,percentual no valor mínimo,4.819277108433735,%,,,,,,,,,166,0,ambos
+51,descritiva,robusta,U-AD,PSS,geral,média,21.95020080321285,média,,,,,4.598833839867061,DP,21.25060089193287,22.649800714492834,166,0,ambos
+52,descritiva,robusta,U-AD,PSS,geral,mediana,22.1,mediana,,,,,4.625,AIQ,21.625,23.0,166,0,ambos
+53,descritiva,robusta,U-AD,PSS,geral,média aparada 20%,22.33,média aparada 20%,,,,,3.558239999999998,MAD,,,166,0,ambos
+54,descritiva,paramétrica,U-AD,PSS,normalidade,Shapiro-Wilk,0.978606005925277,W,,0.011392280830582257,,,,,,,166,1,ambos
+55,descritiva,descritiva,U-AD,PSS,efeito de piso,percentual no valor mínimo,0.6024096385542169,%,,,,,,,,,166,0,ambos
+56,confiabilidade,paramétrica,U-AD,Tensão,entre dias,"CCI (1,1)",0.6454497676844922,CCI,,,,,2.890277773263698,MVD,,,27,0,ambos
+57,confiabilidade,paramétrica,U-AD,Depressão,entre dias,"CCI (1,1)",0.7664711282200892,CCI,,,,,2.897843806809309,MVD,,,27,0,ambos
+58,confiabilidade,paramétrica,U-AD,Raiva,entre dias,"CCI (1,1)",0.3489751784279138,CCI,,,,,5.618855877051584,MVD,,,27,0,ambos
+59,confiabilidade,paramétrica,U-AD,Vigor,entre dias,"CCI (1,1)",0.6069210709697398,CCI,,,,,5.127040630681405,MVD,,,27,0,ambos
+60,confiabilidade,paramétrica,U-AD,Fadiga,entre dias,"CCI (1,1)",0.6829506368949643,CCI,,,,,5.78514037680456,MVD,,,27,0,ambos
+61,confiabilidade,paramétrica,U-AD,Confusão,entre dias,"CCI (1,1)",0.4838292776478843,CCI,,,,,2.186003088575799,MVD,,,27,0,ambos
+62,confiabilidade,paramétrica,U-AD,TMD,entre dias,"CCI (1,1)",0.6673680816794436,CCI,,,,,14.44213213433429,MVD,,,27,0,ambos
+63,confiabilidade,paramétrica,U-AD,Fad.Física,entre dias,"CCI (1,1)",0.49496095012668817,CCI,,,,,4.247169279545651,MVD,,,27,0,ambos
+64,confiabilidade,paramétrica,U-AD,Fad.Mental,entre dias,"CCI (1,1)",0.7932250276077042,CCI,,,,,3.2503746796757276,MVD,,,27,0,ambos
+65,confiabilidade,paramétrica,U-AD,Epworth,entre dias,"CCI (1,1)",0.754853840177067,CCI,,,,,6.279102605634691,MVD,,,27,0,ambos
+66,confiabilidade,paramétrica,U-AD,PSS,entre dias,"CCI (1,1)",0.6875125127550727,CCI,,,,,7.12582419597967,MVD,,,27,0,ambos
+67,série,robusta,U-AD,Tensão,D1→D7,piso de ruído,-1.207671957671958,Δ,,,,,3.439559493660124,|Δ|/piso,,,166,1,ambos
+68,série,robusta,U-AD,Depressão,D1→D7,piso de ruído,0.2142857142857144,Δ,,,,,0.47740772452576663,|Δ|/piso,,,166,0,ambos
+69,série,robusta,U-AD,Raiva,D1→D7,piso de ruído,0.7420634920634925,Δ,,,,,1.496400950052732,|Δ|/piso,,,166,1,ambos
+70,série,robusta,U-AD,Vigor,D1→D7,piso de ruído,-2.977513227513227,Δ,,,,,5.086512889800989,|Δ|/piso,,,166,1,ambos
+71,série,robusta,U-AD,Fadiga,D1→D7,piso de ruído,3.6150793650793656,Δ,,,,,4.77518130767162,|Δ|/piso,,,166,1,ambos
+72,série,robusta,U-AD,Confusão,D1→D7,piso de ruído,-0.45105820105820105,Δ,,,,,2.1455883349757565,|Δ|/piso,,,166,1,ambos
+73,série,robusta,U-AD,TMD,D1→D7,piso de ruído,5.890211640211641,Δ,,,,,3.1578485393793265,|Δ|/piso,,,166,1,ambos
+74,série,robusta,U-AD,Fad.Física,D1→D7,piso de ruído,3.4074074074074074,Δ,,,,,8.41251644152687,|Δ|/piso,,,166,1,ambos
+75,série,robusta,U-AD,Fad.Mental,D1→D7,piso de ruído,0.2420634920634921,Δ,,,,,0.44539137480846763,|Δ|/piso,,,166,0,ambos
+76,série,robusta,U-AD,Epworth,D1→D7,piso de ruído,3.1124338624338623,Δ,,,,,3.2984749054703055,|Δ|/piso,,,166,1,ambos
+77,série,robusta,U-AD,PSS,D1→D7,piso de ruído,-1.154761904761905,Δ,,,,,1.2273811432125097,|Δ|/piso,,,166,1,ambos
+78,tendência,não paramétrica,U-AD,Tensão,D1..D7,Friedman,10.33587786259537,χ²,6,0.11120160607426237,,,0.09066559528592429,W de Kendall,,,19,0,ambos
+79,tendência,não paramétrica,U-AD,Tensão,ordenada D1→D7,L de Page,-2.5889907791579683,z,,0.009625767194390678,,,,,,,19,1,ambos
+80,contraste,não paramétrica,U-AD,Tensão,D1–D2,Wilcoxon,-0.433974358974359,Δ,,0.30328674571322456,0.5595079010159518,Holm,0.20188403854372797,r,,,26,0,ambos
+81,contraste,não paramétrica,U-AD,Tensão,D1–D3,Wilcoxon,-0.8673076923076923,Δ,,0.051879465313977705,0.20751786125591082,Holm,0.38127576783542916,r,,,26,0,ambos
+82,contraste,não paramétrica,U-AD,Tensão,D1–D4,Wilcoxon,-0.8015873015873017,Δ,,0.14847834587155517,0.4454350376146655,Holm,0.3153089568897834,r,,,21,0,ambos
+83,contraste,não paramétrica,U-AD,Tensão,D1–D5,Wilcoxon,-1.184782608695652,Δ,,0.009856091191701048,0.05913654715020629,Holm,0.538141856611712,r,,,23,0,ambos
+84,contraste,não paramétrica,U-AD,Tensão,D1–D6,Wilcoxon,-0.5818181818181819,Δ,,0.2797539505079759,0.5595079010159518,Holm,0.2304427349141818,r,,,22,0,ambos
+85,contraste,não paramétrica,U-AD,Tensão,D1–D7,Wilcoxon,-1.1547619047619047,Δ,,0.011847839085313791,0.059239195426568955,Holm,0.5491767981513902,r,,,21,0,ambos
+86,tendência,não paramétrica,U-AD,Depressão,D1..D7,Friedman,1.029255319148918,χ²,6,0.984478935396941,,,0.009028555431130859,W de Kendall,,,19,0,ambos
+87,tendência,não paramétrica,U-AD,Depressão,ordenada D1→D7,L de Page,-0.3612545273243677,z,,0.7179091834865157,,,,,,,19,0,ambos
+88,contraste,não paramétrica,U-AD,Depressão,D1–D2,Wilcoxon,0.1346153846153846,Δ,,0.6627841012127882,1.0,Holm,0.08552086078821587,r,,,26,0,ambos
+89,contraste,não paramétrica,U-AD,Depressão,D1–D3,Wilcoxon,-0.1717948717948718,Δ,,0.47691816671766996,1.0,Holm,0.13949113457393755,r,,,26,0,ambos
+90,contraste,não paramétrica,U-AD,Depressão,D1–D4,Wilcoxon,0.0833333333333334,Δ,,0.8065346360113491,1.0,Holm,0.0534413430986047,r,,,21,0,ambos
+91,contraste,não paramétrica,U-AD,Depressão,D1–D5,Wilcoxon,-0.2710144927536232,Δ,,0.314935917875272,1.0,Holm,0.20954006910984585,r,,,23,0,ambos
+92,contraste,não paramétrica,U-AD,Depressão,D1–D6,Wilcoxon,0.05833333333333333,Δ,,0.8870196450030348,1.0,Holm,0.030290794069822737,r,,,22,0,ambos
+93,contraste,não paramétrica,U-AD,Depressão,D1–D7,Wilcoxon,0.22222222222222224,Δ,,0.7289268637948052,1.0,Holm,0.07562415071010764,r,,,21,0,ambos
+94,tendência,não paramétrica,U-AD,Raiva,D1..D7,Friedman,11.045454545454493,χ²,6,0.08698172264734766,,,0.0968899521531096,W de Kendall,,,19,0,ambos
+95,tendência,não paramétrica,U-AD,Raiva,ordenada D1→D7,L de Page,-2.027039292208952,z,,0.04265839448922737,,,,,,,19,1,ambos
+96,contraste,não paramétrica,U-AD,Raiva,D1–D2,Wilcoxon,-0.17115384615384616,Δ,,0.9306511290455646,1.0,Holm,0.01706713281663239,r,,,26,0,ambos
+97,contraste,não paramétrica,U-AD,Raiva,D1–D3,Wilcoxon,-0.27435897435897433,Δ,,0.9825818181660028,1.0,Holm,0.0042816442890205005,r,,,26,0,ambos
+98,contraste,não paramétrica,U-AD,Raiva,D1–D4,Wilcoxon,-0.8650793650793651,Δ,,0.1869429686095696,0.934714843047848,Holm,0.2879770743501714,r,,,21,0,ambos
+99,contraste,não paramétrica,U-AD,Raiva,D1–D5,Wilcoxon,-1.4123188405797102,Δ,,0.011994803418993165,0.07196882051395899,Holm,0.5238501727746147,r,,,23,0,ambos
+100,contraste,não paramétrica,U-AD,Raiva,D1–D6,Wilcoxon,-0.4803030303030303,Δ,,0.6086565304246822,1.0,Holm,0.10915708495934925,r,,,22,0,ambos
+101,contraste,não paramétrica,U-AD,Raiva,D1–D7,Wilcoxon,0.3055555555555555,Δ,,0.7534928259969147,1.0,Holm,0.06852852356728831,r,,,21,0,ambos
+102,tendência,não paramétrica,U-AD,Vigor,D1..D7,Friedman,12.898832684824882,χ²,6,0.044670919598668216,,,0.11314765513004282,W de Kendall,,,19,1,ambos
+103,tendência,não paramétrica,U-AD,Vigor,ordenada D1→D7,L de Page,-2.8398619786887793,z,,0.0045133056920232395,,,,,,,19,1,ambos
+104,contraste,não paramétrica,U-AD,Vigor,D1–D2,Wilcoxon,-1.525,Δ,,0.004254176196527051,0.017016704786108203,Holm,0.5606318197353117,r,,,26,1,ambos
+105,contraste,não paramétrica,U-AD,Vigor,D1–D3,Wilcoxon,-1.7525641025641023,Δ,,0.003211132789090847,0.016055663945454237,Holm,0.577908892101383,r,,,26,1,ambos
+106,contraste,não paramétrica,U-AD,Vigor,D1–D4,Wilcoxon,-2.253968253968254,Δ,,0.006303315361892035,0.018909946085676105,Holm,0.5960776654502724,r,,,21,1,ambos
+107,contraste,não paramétrica,U-AD,Vigor,D1–D5,Wilcoxon,-1.6492753623188405,Δ,,0.03327536267881908,0.05770665440410767,Holm,0.44387401859548603,r,,,23,0,ambos
+108,contraste,não paramétrica,U-AD,Vigor,D1–D6,Wilcoxon,-1.6666666666666665,Δ,,0.028853327202053834,0.05770665440410767,Holm,0.4659469017573225,r,,,22,0,ambos
+109,contraste,não paramétrica,U-AD,Vigor,D1–D7,Wilcoxon,-3.0595238095238093,Δ,,0.0006638248408875143,0.003982949045325085,Holm,0.7428354861615751,r,,,21,1,ambos
+110,tendência,não paramétrica,U-AD,Fadiga,D1..D7,Friedman,13.517374517374495,χ²,6,0.035517400586233,,,0.11857346067872364,W de Kendall,,,19,1,ambos
+111,tendência,não paramétrica,U-AD,Fadiga,ordenada D1→D7,L de Page,2.859931674651244,z,,0.00423732290424117,,,,,,,19,1,ambos
+112,contraste,não paramétrica,U-AD,Fadiga,D1–D2,Wilcoxon,1.5750000000000002,Δ,,0.0007602657980366115,0.004561594788219669,Holm,0.6602974882458625,r,,,26,1,ambos
+113,contraste,não paramétrica,U-AD,Fadiga,D1–D3,Wilcoxon,1.4275641025641026,Δ,,0.01781615428448162,0.07126461713792648,Holm,0.4646809011542533,r,,,26,0,ambos
+114,contraste,não paramétrica,U-AD,Fadiga,D1–D4,Wilcoxon,1.8000000000000003,Δ,,0.05442099817409362,0.08904667803800247,Holm,0.4197356565021748,r,,,21,0,ambos
+115,contraste,não paramétrica,U-AD,Fadiga,D1–D5,Wilcoxon,1.3130434782608693,Δ,,0.04452333901900123,0.08904667803800247,Holm,0.4189325840687384,r,,,23,0,ambos
+116,contraste,não paramétrica,U-AD,Fadiga,D1–D6,Wilcoxon,1.7303030303030305,Δ,,0.023845411802025727,0.07153623540607718,Holm,0.4817506581208018,r,,,22,0,ambos
+117,contraste,não paramétrica,U-AD,Fadiga,D1–D7,Wilcoxon,3.3849206349206353,Δ,,0.0015528602863107439,0.007764301431553719,Holm,0.6905765298376496,r,,,21,1,ambos
+118,tendência,não paramétrica,U-AD,Confusão,D1..D7,Friedman,24.778846153846132,χ²,6,0.00037519013260980813,,,0.2173582995951415,W de Kendall,,,19,1,ambos
+119,tendência,não paramétrica,U-AD,Confusão,ordenada D1→D7,L de Page,-2.518746843289341,z,,0.011777329957129545,,,,,,,19,1,ambos
+120,contraste,não paramétrica,U-AD,Confusão,D1–D2,Wilcoxon,-0.4897435897435897,Δ,,0.04068273387363692,0.15577504618183433,Holm,0.4014005066387478,r,,,26,0,ambos
+121,contraste,não paramétrica,U-AD,Confusão,D1–D3,Wilcoxon,-0.7,Δ,,0.012592786746742414,0.06296393373371208,Holm,0.4893259260286055,r,,,26,0,ambos
+122,contraste,não paramétrica,U-AD,Confusão,D1–D4,Wilcoxon,-0.753968253968254,Δ,,0.03894376154545858,0.15577504618183433,Holm,0.45057207259760884,r,,,21,0,ambos
+123,contraste,não paramétrica,U-AD,Confusão,D1–D5,Wilcoxon,-0.8347826086956521,Δ,,0.004245648288725709,0.025473889732354253,Holm,0.5962071679117417,r,,,23,1,ambos
+124,contraste,não paramétrica,U-AD,Confusão,D1–D6,Wilcoxon,-0.5265151515151515,Δ,,0.13458889999012513,0.15577504618183433,Holm,0.31900126032256587,r,,,22,0,ambos
+125,contraste,não paramétrica,U-AD,Confusão,D1–D7,Wilcoxon,-0.6071428571428571,Δ,,0.06753459831355195,0.15577504618183433,Holm,0.39892404755907196,r,,,21,0,ambos
+126,tendência,não paramétrica,U-AD,TMD,D1..D7,Friedman,8.073863636363615,χ²,6,0.23274167518972394,,,0.07082336523125979,W de Kendall,,,19,0,ambos
+127,tendência,não paramétrica,U-AD,TMD,ordenada D1→D7,L de Page,0.7927529905173624,z,,0.42792175015227985,,,,,,,19,0,ambos
+128,contraste,não paramétrica,U-AD,TMD,D1–D2,Wilcoxon,2.1397435897435892,Δ,,0.04536808167198247,0.2722084900318948,Holm,0.3924726332467016,r,,,26,0,ambos
+129,contraste,não paramétrica,U-AD,TMD,D1–D3,Wilcoxon,1.166666666666667,Δ,,0.43849802938004945,1.0,Holm,0.1519374484564907,r,,,26,0,ambos
+130,contraste,não paramétrica,U-AD,TMD,D1–D4,Wilcoxon,1.7166666666666668,Δ,,0.44443469507267486,1.0,Holm,0.16687690367108318,r,,,21,0,ambos
+131,contraste,não paramétrica,U-AD,TMD,D1–D5,Wilcoxon,-0.7405797101449274,Δ,,0.7942463176534508,1.0,Holm,0.054380674579582074,r,,,23,0,ambos
+132,contraste,não paramétrica,U-AD,TMD,D1–D6,Wilcoxon,1.8666666666666665,Δ,,0.5235109329223633,1.0,Holm,0.13600985623055784,r,,,22,0,ambos
+133,contraste,não paramétrica,U-AD,TMD,D1–D7,Wilcoxon,5.21031746031746,Δ,,0.07338568141341512,0.3669284070670756,Holm,0.39070267494043726,r,,,21,0,ambos
+134,tendência,não paramétrica,U-AD,Fad.Física,D1..D7,Friedman,49.18624641833808,χ²,6,6.842604017696602e-09,,,0.4314583019152463,W de Kendall,,,19,1,ambos
+135,tendência,não paramétrica,U-AD,Fad.Física,ordenada D1→D7,L de Page,5.569340629584001,z,,2.5570515482797873e-08,,,,,,,19,1,ambos
+136,contraste,não paramétrica,U-AD,Fad.Física,D1–D2,Wilcoxon,1.576923076923077,Δ,,0.000343066247924532,0.001372264991698128,Holm,0.7021745648733965,r,,,26,1,ambos
+137,contraste,não paramétrica,U-AD,Fad.Física,D1–D3,Wilcoxon,1.7173076923076922,Δ,,0.00022571323792196137,0.001128566189609807,Holm,0.7233449005255079,r,,,26,1,ambos
+138,contraste,não paramétrica,U-AD,Fad.Física,D1–D4,Wilcoxon,2.12063492063492,Δ,,0.0016885456987832165,0.003931226732980863,Holm,0.6852394744177404,r,,,21,1,ambos
+139,contraste,não paramétrica,U-AD,Fad.Física,D1–D5,Wilcoxon,1.4985507246376812,Δ,,0.003982487305499453,0.003982487305499453,Holm,0.600426758731003,r,,,23,1,ambos
+140,contraste,não paramétrica,U-AD,Fad.Física,D1–D6,Wilcoxon,1.8931818181818185,Δ,,0.0013104089109936211,0.003931226732980863,Holm,0.6851610925311983,r,,,22,1,ambos
+141,contraste,não paramétrica,U-AD,Fad.Física,D1–D7,Wilcoxon,3.3888888888888884,Δ,,5.79788598135036e-05,0.0003478731588810216,Holm,0.8774299692895285,r,,,21,1,ambos
+142,tendência,não paramétrica,U-AD,Fad.Mental,D1..D7,Friedman,5.3562499999999895,χ²,6,0.49899818624601255,,,0.04698464912280693,W de Kendall,,,19,0,ambos
+143,tendência,não paramétrica,U-AD,Fad.Mental,ordenada D1→D7,L de Page,0.7726832945548975,z,,0.43970983561557064,,,,,,,19,0,ambos
+144,contraste,não paramétrica,U-AD,Fad.Mental,D1–D2,Wilcoxon,-0.006410256410256405,Δ,,0.8910605570861201,1.0,Holm,0.026860526210688872,r,,,26,0,ambos
+145,contraste,não paramétrica,U-AD,Fad.Mental,D1–D3,Wilcoxon,-0.1717948717948718,Δ,,0.5382792932634353,1.0,Holm,0.12069322555078155,r,,,26,0,ambos
+146,contraste,não paramétrica,U-AD,Fad.Mental,D1–D4,Wilcoxon,0.011111111111111092,Δ,,0.9168463258418237,1.0,Holm,0.022783486817156175,r,,,21,0,ambos
+147,contraste,não paramétrica,U-AD,Fad.Mental,D1–D5,Wilcoxon,-0.2746376811594203,Δ,,0.45491167887846384,1.0,Holm,0.15581273755142602,r,,,23,0,ambos
+148,contraste,não paramétrica,U-AD,Fad.Mental,D1–D6,Wilcoxon,0.00454545454545453,Δ,,0.9721846766857727,1.0,Holm,0.0074339683245974965,r,,,22,0,ambos
+149,contraste,não paramétrica,U-AD,Fad.Mental,D1–D7,Wilcoxon,0.3373015873015873,Δ,,0.5059481147108931,1.0,Holm,0.14514982788739766,r,,,21,0,ambos
+150,tendência,não paramétrica,U-AD,Epworth,D1..D7,Friedman,15.651090342679106,χ²,6,0.015754413407521674,,,0.13729026616385182,W de Kendall,,,19,1,ambos
+151,tendência,não paramétrica,U-AD,Epworth,ordenada D1→D7,L de Page,2.3682241235708545,z,,0.01787370472255967,,,,,,,19,1,ambos
+152,contraste,não paramétrica,U-AD,Epworth,D1–D2,Wilcoxon,0.5275641025641027,Δ,,0.38140701300529833,0.5427131471431967,Holm,0.17166178024425552,r,,,26,0,ambos
+153,contraste,não paramétrica,U-AD,Epworth,D1–D3,Wilcoxon,1.2852564102564104,Δ,,0.0774054544519924,0.2322163633559772,Holm,0.3463298666034379,r,,,26,0,ambos
+154,contraste,não paramétrica,U-AD,Epworth,D1–D4,Wilcoxon,1.3531746031746035,Δ,,0.04167925474085363,0.19520942410870173,Holm,0.44444624819258804,r,,,21,0,ambos
+155,contraste,não paramétrica,U-AD,Epworth,D1–D5,Wilcoxon,1.1362318840579713,Δ,,0.03904188482174035,0.19520942410870173,Holm,0.4303206134475322,r,,,23,0,ambos
+156,contraste,não paramétrica,U-AD,Epworth,D1–D6,Wilcoxon,0.30606060606060603,Δ,,0.27135657357159837,0.5427131471431967,Holm,0.23450882356048286,r,,,22,0,ambos
+157,contraste,não paramétrica,U-AD,Epworth,D1–D7,Wilcoxon,2.8055555555555554,Δ,,0.009080947547428555,0.05448568528457133,Holm,0.569328639284443,r,,,21,0,ambos
+158,tendência,não paramétrica,U-AD,PSS,D1..D7,Friedman,4.146806482364121,χ²,6,0.6568170764988792,,,0.03637549545933439,W de Kendall,,,19,0,ambos
+159,tendência,não paramétrica,U-AD,PSS,ordenada D1→D7,L de Page,-0.7225090546487354,z,,0.469981560448689,,,,,,,19,0,ambos
+160,contraste,não paramétrica,U-AD,PSS,D1–D2,Wilcoxon,-0.2576923076923077,Δ,,0.6784789780318329,1.0,Holm,0.08129790260110248,r,,,26,0,ambos
+161,contraste,não paramétrica,U-AD,PSS,D1–D3,Wilcoxon,-1.1044871794871793,Δ,,0.45747635703286105,1.0,Holm,0.14571601281384078,r,,,26,0,ambos
+162,contraste,não paramétrica,U-AD,PSS,D1–D4,Wilcoxon,-0.40873015873015883,Δ,,0.9169152311382036,1.0,Holm,0.02276453861480916,r,,,21,0,ambos
+163,contraste,não paramétrica,U-AD,PSS,D1–D5,Wilcoxon,-1.5014492753623188,Δ,,0.21123576277501044,1.0,Holm,0.2606794301588356,r,,,23,0,ambos
+164,contraste,não paramétrica,U-AD,PSS,D1–D6,Wilcoxon,-0.29469696969696985,Δ,,0.8582546406494352,1.0,Holm,0.03807687519922549,r,,,22,0,ambos
+165,contraste,não paramétrica,U-AD,PSS,D1–D7,Wilcoxon,-1.0595238095238095,Δ,,0.3047957394882531,1.0,Holm,0.22393593145188098,r,,,21,0,ambos
+166,tendência,paramétrica,U-AD,Tensão,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),3.94771761770726,F,"6, 108",0.029030153851996247,,,0.1798691639135301,η²p,,,19,1,A2
+167,contraste,paramétrica,U-AD,Tensão,D1→D7,t pareado,-2.592804473650578,t,20,0.017395468890346263,,,-0.5657963220344719,dz,-2.083791127022133,-0.22573268250167622,21,1,A2
+168,tendência,paramétrica,U-AD,Depressão,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),0.5256800637600837,F,"6, 108",0.6074243560855316,,,0.028375749875353753,η²p,,,19,0,A2
+169,contraste,paramétrica,U-AD,Depressão,D1→D7,t pareado,0.4257798056058642,t,20,0.6748151892801525,,,0.09291277088440265,dz,-0.8664800286187772,1.3109244730632217,21,0,A2
+170,tendência,paramétrica,U-AD,Raiva,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),1.6821581628759255,F,"6, 108",0.18352492106889146,,,0.08546614395411052,η²p,,,19,0,A2
+171,contraste,paramétrica,U-AD,Raiva,D1→D7,t pareado,0.29137375117041414,t,20,0.7737659701259251,,,0.06358296525055479,dz,-1.8819363425225364,2.4930474536336473,21,0,A2
+172,tendência,paramétrica,U-AD,Vigor,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),5.926941843896289,F,"6, 108",0.000995698115233396,,,0.2477099615389519,η²p,,,19,1,A2
+173,contraste,paramétrica,U-AD,Vigor,D1→D7,t pareado,-4.38206840992355,t,20,0.00028802243119521384,,,-0.9562457232833068,dz,-4.5159261829449076,-1.6031214361027113,21,1,A2
+174,tendência,paramétrica,U-AD,Fadiga,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),3.9161793619185654,F,"6, 108",0.005511161881020281,,,0.17868896294594566,η²p,,,19,1,A2
+175,contraste,paramétrica,U-AD,Fadiga,D1→D7,t pareado,3.8624815683324867,t,20,0.0009701772274513513,,,0.8428625789169224,dz,1.5568677131331776,5.212973556708093,21,1,A2
+176,tendência,paramétrica,U-AD,Confusão,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),4.189407768604836,F,"6, 108",0.014137623542027,,,0.1888021443516086,η²p,,,19,1,A2
+177,contraste,paramétrica,U-AD,Confusão,D1→D7,t pareado,-2.1238940930814865,t,20,0.04634356349386346,,,-0.4634716880769284,dz,-1.203442743937622,-0.010842970348092118,21,1,A2
+178,tendência,paramétrica,U-AD,TMD,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),2.1516722979206016,F,"6, 108",0.09081569484578704,,,0.1067738828872593,η²p,,,19,0,A2
+179,contraste,paramétrica,U-AD,TMD,D1→D7,t pareado,2.0678149990532706,t,20,0.05183988734943619,,,0.45123422649174527,dz,-0.04572903119623106,10.46636395183115,21,0,A2
+180,tendência,paramétrica,U-AD,Fad.Física,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),13.565434965659549,F,"6, 108",1.5829696080996074e-07,,,0.42975599672292053,η²p,,,19,1,A2
+181,contraste,paramétrica,U-AD,Fad.Física,D1→D7,t pareado,8.413364371495957,t,20,5.3062069953977456e-08,,,1.8359466229345138,dz,2.548666352822652,4.229111424955125,21,1,A2
+182,tendência,paramétrica,U-AD,Fad.Mental,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),1.0864763288694492,F,"6, 108",0.3699740897312113,,,0.056923882132507,η²p,,,19,0,A2
+183,contraste,paramétrica,U-AD,Fad.Mental,D1→D7,t pareado,0.7525837926307906,t,20,0.46046697090993044,,,0.1642272474536927,dz,-0.5976093006359701,1.2722124752391446,21,0,A2
+184,tendência,paramétrica,U-AD,Epworth,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),4.084536077456628,F,"6, 108",0.005919813497359876,,,0.18495005116390134,η²p,,,19,1,A2
+185,contraste,paramétrica,U-AD,Epworth,D1→D7,t pareado,3.085271889818581,t,20,0.00583648721274614,,,0.673261522600624,dz,0.908709330276303,4.7024017808348075,21,1,A2
+186,tendência,paramétrica,U-AD,PSS,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),0.9361412098186147,F,"6, 108",0.42353018563743994,,,0.0494367463489982,η²p,,,19,0,A2
+187,contraste,paramétrica,U-AD,PSS,D1→D7,t pareado,-1.0563993559788187,t,20,0.30338003435502886,,,-0.23052523870835892,dz,-3.1516567947117142,1.0326091756640954,21,0,A2
+188,tendência,modelo misto,U-AD,Tensão,efeito linear do dia,modelo linear misto (intercepto aleatório por atleta),-0.13145880426374534,b por dia,,0.0012113655656567726,,,0.6850953105191707,CCI do atleta,-0.211075418380134,-0.05184219014735668,166,1,A2
+189,tendência,modelo misto,U-AD,Depressão,efeito linear do dia,modelo linear misto (intercepto aleatório por atleta),0.03286525322781813,b por dia,,0.4343627516192141,,,0.7654369227434707,CCI do atleta,-0.049533066704785085,0.11526357316042135,166,0,A2
+190,tendência,modelo misto,U-AD,Raiva,efeito linear do dia,modelo linear misto (intercepto aleatório por atleta),0.0005234411457364648,b por dia,,0.9948067005469681,,,0.3408407525741916,CCI do atleta,-0.15709592567029015,0.15814280796176308,166,0,A2
+191,tendência,modelo misto,U-AD,Vigor,efeito linear do dia,modelo linear misto (intercepto aleatório por atleta),-0.33537852430024323,b por dia,,9.991339513710378e-07,,,0.6596614959113198,CCI do atleta,-0.46975209302250714,-0.20100495557797932,166,1,A2
+192,tendência,modelo misto,U-AD,Fadiga,efeito linear do dia,modelo linear misto (intercepto aleatório por atleta),0.3535074070266598,b por dia,,6.756358954531436e-06,,,0.6959022216945855,CCI do atleta,0.19957995364402562,0.507434860409294,166,1,A2
+193,tendência,modelo misto,U-AD,Confusão,efeito linear do dia,modelo linear misto (intercepto aleatório por atleta),-0.055994124970803416,b por dia,,0.07165036383151743,,,0.4864906342607386,CCI do atleta,-0.11691925687791387,0.004931006936307034,166,0,A2
+194,tendência,modelo misto,U-AD,TMD,efeito linear do dia,modelo linear misto (intercepto aleatório por atleta),0.5219220846295362,b por dia,,0.010752550355194282,,,0.671098058544849,CCI do atleta,0.12086638257231186,0.9229777866867604,166,1,A2
+195,contraste,não paramétrica,U-AD,Tensão,entre estímulos,Friedman,0.1971830985915813,χ²,2,0.9061127348341845,,,0.004481434058899576,W,,,22,0,ambos
+196,contraste,paramétrica,U-AD,Tensão,entre estímulos,ANOVA de medidas repetidas,1.0963447578328585,F,"2, 42",0.3434598728935777,,,0.0496165664433806,η²p,,,22,0,A2
+197,contraste,não paramétrica,U-AD,Depressão,entre estímulos,Friedman,3.3030303030303307,χ²,2,0.19175914424238943,,,0.07506887052341661,W,,,22,0,ambos
+198,contraste,paramétrica,U-AD,Depressão,entre estímulos,ANOVA de medidas repetidas,0.9676300822498359,F,"2, 42",0.3882914674092696,,,0.04404799601171795,η²p,,,22,0,A2
+199,contraste,não paramétrica,U-AD,Raiva,entre estímulos,Friedman,7.818181818181854,χ²,2,0.020058727982721278,,,0.17768595041322396,W,,,22,1,ambos
+200,contraste,paramétrica,U-AD,Raiva,entre estímulos,ANOVA de medidas repetidas,1.4973356953352535,F,"2, 42",0.23542486297185236,,,0.06655613427352293,η²p,,,22,0,A2
+201,contraste,não paramétrica,U-AD,Vigor,entre estímulos,Friedman,4.2093023255814055,χ²,2,0.12188818598846103,,,0.09566596194503195,W,,,22,0,ambos
+202,contraste,paramétrica,U-AD,Vigor,entre estímulos,ANOVA de medidas repetidas,2.545516917804781,F,"2, 42",0.09047578763172508,,,0.10811047074018144,η²p,,,22,0,A2
+203,contraste,não paramétrica,U-AD,Fadiga,entre estímulos,Friedman,2.6117647058823317,χ²,2,0.2709333706909416,,,0.059358288770052996,W,,,22,0,ambos
+204,contraste,paramétrica,U-AD,Fadiga,entre estímulos,ANOVA de medidas repetidas,1.515638843545574,F,"2, 42",0.2314384107988951,,,0.06731493847797498,η²p,,,22,0,A2
+205,contraste,não paramétrica,U-AD,Confusão,entre estímulos,Friedman,4.952380952380975,χ²,2,0.08406285583693662,,,0.11255411255411306,W,,,22,0,ambos
+206,contraste,paramétrica,U-AD,Confusão,entre estímulos,ANOVA de medidas repetidas,1.2454521499659807,F,"2, 42",0.2982216738326049,,,0.055986821107067736,η²p,,,22,0,A2
+207,contraste,não paramétrica,U-AD,TMD,entre estímulos,Friedman,2.545454545454561,χ²,2,0.28006676082164667,,,0.05785123966942184,W,,,22,0,ambos
+208,contraste,paramétrica,U-AD,TMD,entre estímulos,ANOVA de medidas repetidas,2.660048785111156,F,"2, 42",0.0817103062392336,,,0.11242786560884341,η²p,,,22,0,A2
+209,contraste,não paramétrica,U-AD,Tensão,pré×pós — HIIT,Wilcoxon,0.4406779661016949,Δ,,0.022579386464036,,,0.29689287629947114,r,,,59,1,ambos
+210,contraste,paramétrica,U-AD,Tensão,pré×pós — HIIT,t pareado,2.3479641996875977,t,,0.022308341674137398,,,0.30567890217929006,dz,,,59,1,A2
+211,contraste,não paramétrica,U-AD,Tensão,pré×pós — Amistoso,Wilcoxon,0.075,Δ,,0.7491621695443725,,,0.05055601391655587,r,,,40,0,ambos
+212,contraste,paramétrica,U-AD,Tensão,pré×pós — Amistoso,t pareado,0.4157177772361822,t,,0.6798951485803255,,,0.06573075199444169,dz,,,40,0,A2
+213,contraste,não paramétrica,U-AD,Tensão,pré×pós — Técnico/força,Wilcoxon,0.2,Δ,,0.3804551252503885,,,0.196116135138184,r,,,20,0,ambos
+214,contraste,paramétrica,U-AD,Tensão,pré×pós — Técnico/força,t pareado,0.9400643223910575,t,,0.3589833724092913,,,0.21020477280886826,dz,,,20,0,A2
+215,contraste,não paramétrica,U-AD,Depressão,pré×pós — HIIT,Wilcoxon,0.0,Δ,,0.8228113929722396,,,0.02915326621738881,r,,,59,0,ambos
+216,contraste,paramétrica,U-AD,Depressão,pré×pós — HIIT,t pareado,0.0,t,,1.0,,,0.0,dz,,,59,0,A2
+217,contraste,não paramétrica,U-AD,Depressão,pré×pós — Amistoso,Wilcoxon,0.15,Δ,,0.4272628567457064,,,0.12552411131335844,r,,,40,0,ambos
+218,contraste,paramétrica,U-AD,Depressão,pré×pós — Amistoso,t pareado,1.0,t,,0.32347494517138353,,,0.15811388300841897,dz,,,40,0,A2
+219,contraste,não paramétrica,U-AD,Depressão,pré×pós — Técnico/força,Wilcoxon,1.05,Δ,,0.010613156038105713,,,0.5713565985620566,r,,,20,1,ambos
+220,contraste,paramétrica,U-AD,Depressão,pré×pós — Técnico/força,t pareado,2.5397532203588846,t,,0.019988561845980534,,,0.5679060846796469,dz,,,20,1,A2
+221,contraste,não paramétrica,U-AD,Raiva,pré×pós — HIIT,Wilcoxon,0.3559322033898305,Δ,,0.47306060703664377,,,0.09341160517393328,r,,,59,0,ambos
+222,contraste,paramétrica,U-AD,Raiva,pré×pós — HIIT,t pareado,1.143533432679798,t,,0.257515137118991,,,0.14887537227074613,dz,,,59,0,A2
+223,contraste,não paramétrica,U-AD,Raiva,pré×pós — Amistoso,Wilcoxon,-0.3,Δ,,0.4667459423323308,,,0.11507272273440705,r,,,40,0,ambos
+224,contraste,paramétrica,U-AD,Raiva,pré×pós — Amistoso,t pareado,-0.7840350969663006,t,,0.4377556975735759,,,-0.12396683359622405,dz,,,40,0,A2
+225,contraste,não paramétrica,U-AD,Raiva,pré×pós — Técnico/força,Wilcoxon,1.65,Δ,,0.007420961287866498,,,0.5986710947139653,r,,,20,1,ambos
+226,contraste,paramétrica,U-AD,Raiva,pré×pós — Técnico/força,t pareado,2.905487990874559,t,,0.009068644515673525,,,0.6496868655404803,dz,,,20,1,A2
+227,contraste,não paramétrica,U-AD,Vigor,pré×pós — HIIT,Wilcoxon,-1.2033898305084745,Δ,,0.0035595396719156477,,,0.37947036615491664,r,,,59,1,ambos
+228,contraste,paramétrica,U-AD,Vigor,pré×pós — HIIT,t pareado,-3.1622668445070206,t,,0.002490497433049372,,,-0.41169207671713526,dz,,,59,1,A2
+229,contraste,não paramétrica,U-AD,Vigor,pré×pós — Amistoso,Wilcoxon,-0.375,Δ,,0.4590108134628119,,,0.11707964124328095,r,,,40,0,ambos
+230,contraste,paramétrica,U-AD,Vigor,pré×pós — Amistoso,t pareado,-1.033522126223031,t,,0.3077262392054196,,,-0.16341419655224074,dz,,,40,0,A2
+231,contraste,não paramétrica,U-AD,Vigor,pré×pós — Técnico/força,Wilcoxon,-2.3,Δ,,0.004369567889489955,,,0.6373176934657858,r,,,20,1,ambos
+232,contraste,paramétrica,U-AD,Vigor,pré×pós — Técnico/força,t pareado,-3.2340217968204996,t,,0.004367722435200857,,,-0.723149257840665,dz,,,20,1,A2
+233,contraste,não paramétrica,U-AD,Fadiga,pré×pós — HIIT,Wilcoxon,2.016949152542373,Δ,,5.777135857261376e-05,,,0.5235851264662821,r,,,59,1,ambos
+234,contraste,paramétrica,U-AD,Fadiga,pré×pós — HIIT,t pareado,4.418708470593087,t,,4.4054706236514855e-05,,,0.5752668437282558,dz,,,59,1,A2
+235,contraste,não paramétrica,U-AD,Fadiga,pré×pós — Amistoso,Wilcoxon,0.725,Δ,,0.1319952271021268,,,0.23816383084096462,r,,,40,0,ambos
+236,contraste,paramétrica,U-AD,Fadiga,pré×pós — Amistoso,t pareado,1.469003376149768,t,,0.1498526355238982,,,0.2322698279555169,dz,,,40,0,A2
+237,contraste,não paramétrica,U-AD,Fadiga,pré×pós — Técnico/força,Wilcoxon,1.4,Δ,,0.13858107212223986,,,0.3311830678476741,r,,,20,0,ambos
+238,contraste,paramétrica,U-AD,Fadiga,pré×pós — Técnico/força,t pareado,1.6964368513818688,t,,0.10612614333752222,,,0.37933481192255664,dz,,,20,0,A2
+239,contraste,não paramétrica,U-AD,Confusão,pré×pós — HIIT,Wilcoxon,0.13559322033898305,Δ,,0.6524252018208385,,,0.05863651542275318,r,,,59,0,ambos
+240,contraste,paramétrica,U-AD,Confusão,pré×pós — HIIT,t pareado,0.8141603913585719,t,,0.41888326047925983,,,0.10599465471469383,dz,,,59,0,A2
+241,contraste,não paramétrica,U-AD,Confusão,pré×pós — Amistoso,Wilcoxon,-0.325,Δ,,0.026856695507524397,,,0.35,r,,,40,1,ambos
+242,contraste,paramétrica,U-AD,Confusão,pré×pós — Amistoso,t pareado,-2.3139108864813203,t,,0.02603106579169088,,,-0.3658614351970144,dz,,,40,1,A2
+243,contraste,não paramétrica,U-AD,Confusão,pré×pós — Técnico/força,Wilcoxon,0.3,Δ,,0.3804551252503885,,,0.196116135138184,r,,,20,0,ambos
+244,contraste,paramétrica,U-AD,Confusão,pré×pós — Técnico/força,t pareado,1.030588085144708,t,,0.3156754026236066,,,0.2304465015184908,dz,,,20,0,A2
+245,contraste,não paramétrica,U-AD,TMD,pré×pós — HIIT,Wilcoxon,4.1525423728813555,Δ,,6.282051072347795e-05,,,0.5210105249164922,r,,,59,1,ambos
+246,contraste,paramétrica,U-AD,TMD,pré×pós — HIIT,t pareado,4.609110323492747,t,,2.2681335908110275e-05,,,0.6000550536059934,dz,,,59,1,A2
+247,contraste,não paramétrica,U-AD,TMD,pré×pós — Amistoso,Wilcoxon,0.7,Δ,,0.7336824109059297,,,0.05379527889970981,r,,,40,0,ambos
+248,contraste,paramétrica,U-AD,TMD,pré×pós — Amistoso,t pareado,0.659703252060247,t,,0.5133214801627136,,,0.10430824281652741,dz,,,40,0,A2
+249,contraste,não paramétrica,U-AD,TMD,pré×pós — Técnico/força,Wilcoxon,6.9,Δ,,0.003053489164344797,,,0.6623906863172193,r,,,20,1,ambos
+250,contraste,paramétrica,U-AD,TMD,pré×pós — Técnico/força,t pareado,3.5398704665668252,t,,0.0021880220040072624,,,0.7915390994787318,dz,,,20,1,A2
+251,associação,não paramétrica,U-AD,Tensão×Depressão,geral,Spearman,0.2515964865442701,ρ,,0.001076001563895784,0.009684014075062057,Holm,,,,,166,1,ambos
+252,associação,paramétrica,U-AD,Tensão×Depressão,geral,Pearson,0.21696120024988638,r,,0.004988877614643201,0.029933265687859208,Holm,,,,,166,1,A2
+253,associação,não paramétrica,U-AD,Tensão×Raiva,geral,Spearman,0.1293018938528644,ρ,,0.09684861288208231,0.3149380817486114,Holm,,,,,166,0,ambos
+254,associação,paramétrica,U-AD,Tensão×Raiva,geral,Pearson,0.16931966456716677,r,,0.029196870029151938,0.11678748011660775,Holm,,,,,166,0,A2
+255,associação,não paramétrica,U-AD,Tensão×Vigor,geral,Spearman,0.22558110208506604,ρ,,0.00347557890088599,0.02780463120708792,Holm,,,,,166,1,ambos
+256,associação,paramétrica,U-AD,Tensão×Vigor,geral,Pearson,0.2582581984996122,r,,0.0007809579057684121,0.006327851789563053,Holm,,,,,166,1,A2
+257,associação,não paramétrica,U-AD,Tensão×Fadiga,geral,Spearman,-0.10336918111933878,ρ,,0.18506894323325285,0.3701378864665057,Holm,,,,,166,0,ambos
+258,associação,paramétrica,U-AD,Tensão×Fadiga,geral,Pearson,-0.0822442290018661,r,,0.2921478460931529,0.44521218319404715,Holm,,,,,166,0,A2
+259,associação,não paramétrica,U-AD,Tensão×Confusão,geral,Spearman,0.43119291796397197,ρ,,6.6492689184991485e-09,9.308976485898808e-08,Holm,,,,,166,1,ambos
+260,associação,paramétrica,U-AD,Tensão×Confusão,geral,Pearson,0.29167951766060224,r,,0.00013735710710831002,0.0013735710710831002,Holm,,,,,166,1,A2
+261,associação,não paramétrica,U-AD,Tensão×TMD,geral,Spearman,0.2109483349222084,ρ,,0.006369820989920156,0.04458874692944109,Holm,,,,,166,1,ambos
+262,associação,paramétrica,U-AD,Tensão×TMD,geral,Pearson,0.21024440144062778,r,,0.006551966628322657,0.032759833141613286,Holm,,,,,166,1,A2
+263,associação,não paramétrica,U-AD,Depressão×Raiva,geral,Spearman,0.5739883664138336,ρ,,6.258418357361985e-16,1.0639311207515374e-14,Holm,,,,,166,1,ambos
+264,associação,paramétrica,U-AD,Depressão×Raiva,geral,Pearson,0.49920026339916757,r,,7.602754788733275e-12,1.1404132183099913e-10,Holm,,,,,166,1,A2
+265,associação,não paramétrica,U-AD,Depressão×Vigor,geral,Spearman,-0.16432423782333594,ρ,,0.0343810142588188,0.2062860855529128,Holm,,,,,166,0,ambos
+266,associação,paramétrica,U-AD,Depressão×Vigor,geral,Pearson,-0.24319177992023389,r,,0.0015931013595773863,0.011151709517041704,Holm,,,,,166,1,A2
+267,associação,não paramétrica,U-AD,Depressão×Fadiga,geral,Spearman,0.42464533319912245,ρ,,1.1839334928754507e-08,1.539113540738086e-07,Holm,,,,,166,1,ambos
+268,associação,paramétrica,U-AD,Depressão×Fadiga,geral,Pearson,0.4916894117560965,r,,1.731933621674996e-11,2.4247070703449945e-10,Holm,,,,,166,1,A2
+269,associação,não paramétrica,U-AD,Depressão×Confusão,geral,Spearman,0.5534402627332969,ρ,,1.0503287143758063e-14,1.68052594300129e-13,Holm,,,,,166,1,ambos
+270,associação,paramétrica,U-AD,Depressão×Confusão,geral,Pearson,0.7005545753530449,r,,8.169907810684135e-26,1.5522824840299856e-24,Holm,,,,,166,1,A2
+271,associação,não paramétrica,U-AD,Depressão×TMD,geral,Spearman,0.605840841225069,ρ,,5.2453443600280015e-18,9.966154284053203e-17,Holm,,,,,166,1,ambos
+272,associação,paramétrica,U-AD,Depressão×TMD,geral,Pearson,0.7866383523024647,r,,3.5565631718392515e-36,7.113126343678503e-35,Holm,,,,,166,1,A2
+273,associação,não paramétrica,U-AD,Raiva×Vigor,geral,Spearman,-0.13684456338262896,ρ,,0.07873452043715284,0.3149380817486114,Holm,,,,,166,0,ambos
+274,associação,paramétrica,U-AD,Raiva×Vigor,geral,Pearson,-0.09516556018855184,r,,0.22260609159702358,0.44521218319404715,Holm,,,,,166,0,A2
+275,associação,não paramétrica,U-AD,Raiva×Fadiga,geral,Spearman,0.41827258812321694,ρ,,2.0517331808922494e-08,2.462079817070699e-07,Holm,,,,,166,1,ambos
+276,associação,paramétrica,U-AD,Raiva×Fadiga,geral,Pearson,0.4656335184883494,r,,2.592500823917937e-10,3.3702510710933177e-09,Holm,,,,,166,1,A2
+277,associação,não paramétrica,U-AD,Raiva×Confusão,geral,Spearman,0.400819409613783,ρ,,8.734477545683631e-08,9.607925300251994e-07,Holm,,,,,166,1,ambos
+278,associação,paramétrica,U-AD,Raiva×Confusão,geral,Pearson,0.38402844791873486,r,,3.261033030446919e-07,3.587136333491611e-06,Holm,,,,,166,1,A2
+279,associação,não paramétrica,U-AD,Raiva×TMD,geral,Spearman,0.5992174596569173,ρ,,1.4813487113089575e-17,2.666427680356123e-16,Holm,,,,,166,1,ambos
+280,associação,paramétrica,U-AD,Raiva×TMD,geral,Pearson,0.6992554581847921,r,,1.0963623581347336e-25,1.9734522446425204e-24,Holm,,,,,166,1,A2
+281,associação,não paramétrica,U-AD,Vigor×Fadiga,geral,Spearman,-0.3586621727523224,ρ,,2.085540777911412e-06,2.0855407779114118e-05,Holm,,,,,166,1,ambos
+282,associação,paramétrica,U-AD,Vigor×Fadiga,geral,Pearson,-0.385411170380902,r,,2.9338180976065925e-07,3.5205817171279107e-06,Holm,,,,,166,1,A2
+283,associação,não paramétrica,U-AD,Vigor×Confusão,geral,Spearman,-0.08784199242958776,ρ,,0.2604238812344033,0.3701378864665057,Holm,,,,,166,0,ambos
+284,associação,paramétrica,U-AD,Vigor×Confusão,geral,Pearson,-0.1380106709781207,r,,0.07619523343973196,0.2285857003191959,Holm,,,,,166,0,A2
+285,associação,não paramétrica,U-AD,Vigor×TMD,geral,Spearman,-0.6152102407291119,ρ,,1.1581018383165025e-18,2.316203676633005e-17,Holm,,,,,166,1,ambos
+286,associação,paramétrica,U-AD,Vigor×TMD,geral,Pearson,-0.5361158624836834,r,,9.787708799559163e-14,1.5660334079294661e-12,Holm,,,,,166,1,A2
+287,associação,não paramétrica,U-AD,Fadiga×Confusão,geral,Spearman,0.156149259194204,ρ,,0.04453916830647773,0.22269584153238864,Holm,,,,,166,0,ambos
+288,associação,paramétrica,U-AD,Fadiga×Confusão,geral,Pearson,0.2604040183802328,r,,0.0007030946432847837,0.006327851789563053,Holm,,,,,166,1,A2
+289,associação,não paramétrica,U-AD,Fadiga×TMD,geral,Spearman,0.7627860878342572,ρ,,7.23525663075211e-33,1.519403892457943e-31,Holm,,,,,166,1,ambos
+290,associação,paramétrica,U-AD,Fadiga×TMD,geral,Pearson,0.7991006665161997,r,,4.452160074606865e-38,9.349536156674417e-37,Holm,,,,,166,1,A2
+291,associação,não paramétrica,U-AD,Confusão×TMD,geral,Spearman,0.44129902626344436,ρ,,2.663482196764417e-09,3.9952232951466254e-08,Holm,,,,,166,1,ambos
+292,associação,paramétrica,U-AD,Confusão×TMD,geral,Pearson,0.60452353592831,r,,6.460765662161483e-18,1.098330162567452e-16,Holm,,,,,166,1,A2
+293,categórica,não paramétrica,U-AD,Iceberg,estabilidade D1..D7,Q de Cochran,7.5,Q,6,0.2770684433661073,,,,,,,19,0,ambos
+294,categórica,não paramétrica,U-AD,Superfície,estabilidade D1..D7,Q de Cochran,4.8,Q,6,0.5697087466575106,,,,,,,19,0,ambos
+295,categórica,não paramétrica,U-AD,Submerso,estabilidade D1..D7,Q de Cochran,11.117647058823529,Q,6,0.08480775451794598,,,,,,,19,0,ambos
+296,categórica,não paramétrica,U-AD,Barbatana de tubarão,estabilidade D1..D7,Q de Cochran,4.163265306122449,Q,6,0.6545928796287133,,,,,,,19,0,ambos
+297,categórica,não paramétrica,U-AD,Iceberg invertido,estabilidade D1..D7,Q de Cochran,4.956521739130435,Q,6,0.5494015410498678,,,,,,,19,0,ambos
+298,categórica,não paramétrica,U-AD,Everest invertido,estabilidade D1..D7,Q de Cochran,6.0,Q,6,0.42319008112684364,,,,,,,19,0,ambos
+299,categórica,não paramétrica,U-AD,Faixa de risco,estabilidade D1..D7,Q de Cochran,4.754716981132075,Q,6,0.575635240420125,,,,,,,19,0,ambos
+300,categórica,não paramétrica,U-AD,Faixa de risco,migração pré→pós — TODOS,McNemar,7.03125,χ²,1,0.008009942329880018,,,16.0,entram − saem,,,119,1,ambos
+301,categórica,não paramétrica,U-AD,Faixa de risco,migração pré→pós — HIIT,McNemar,4.5,χ²,1,0.033894853524689295,0.10168456057406788,Holm,10.0,entram − saem,,,59,0,ambos
+302,categórica,não paramétrica,U-AD,Faixa de risco,migração pré→pós — Amistoso,McNemar,0.9,χ²,1,0.34278171114790873,0.6855634222958175,Holm,4.0,entram − saem,,,40,0,ambos
+303,categórica,não paramétrica,U-AD,Faixa de risco,migração pré→pós — Técnico/força,McNemar,0.25,χ²,1,0.6170750774519739,0.6855634222958175,Holm,2.0,entram − saem,,,20,0,ambos
+304,categórica,não paramétrica,U-AD,Perfil,perfil × estímulo,qui-quadrado de contingência,6.062631360344985,χ²,10,0.8099740518073444,,,,,,,166,0,ambos
+305,categórica,não paramétrica,U-AD,Faixa,faixa × estímulo,qui-quadrado de contingência,3.655736622054027,χ²,4,0.454596471122942,,,,,,,166,0,ambos

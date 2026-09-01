@@ -1,0 +1,8 @@
+dia,data,tipo_estimulo,conteudo,horas,sessoes,carga_acumulada,n_registros,n_atletas,janela
+1,2024-04-21,Basal,Técnico e tático,1.5,1,1.5,48,27,00:26 às 23:55
+2,2024-04-22,HIIT,HIIT + técnico e tático,2.0,2,3.5,88,26,09:21 às 20:51
+3,2024-04-23,Amistoso,"Técnico, tático, força e amistoso",4.5,3,8.0,75,26,08:43 às 23:15
+4,2024-04-24,HIIT,HIIT + técnico e tático,2.5,2,10.5,60,21,08:26 às 21:49
+5,2024-04-25,Amistoso,"Técnico, tático, força e amistoso",5.0,3,15.5,71,23,08:50 às 22:38
+6,2024-04-26,Técnico/força,"Técnico, tático e força",5.0,3,20.5,68,22,09:27 às 19:25
+7,2024-04-27,HIIT,HIIT + técnico e tático,2.5,2,23.0,46,21,08:57 às 14:40

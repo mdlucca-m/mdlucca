@@ -1,2 +1,6 @@
 saida/
 __pycache__/
+base/csv/celula.csv
+base/humor_handebol.sqlite
+base/humor_handebol.sqlite-wal
+base/humor_handebol.sqlite-shm

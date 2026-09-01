@@ -1,0 +1,219 @@
+id,fonte_id,nome,linhas,colunas,categoria,tem_dados
+1,1,Dashboard,235,111,painel,1
+2,1,Planilha3,0,0,outra,0
+3,1,Relatório Analítico,73,1,texto,1
+4,1,Dicionário Atletas,81,8,dados,1
+5,1,Caracterização Grupo,135,231,dados,1
+6,1,Planilha1,0,0,outra,0
+7,1,Baseline,29,281,dados,1
+8,1,Diário - Treino,458,79,dados,1
+9,1,Último Dia de Treino,22,202,outra,1
+10,1,Pré competição,27,202,outra,1
+11,1,Competição,154,67,outra,1
+12,1,Resumo por Ciclo,9,20,outra,1
+13,1,Resumo Coorte Completa,40,11,outra,1
+14,1,Estatística Descritiva Robusta,135,10,análise,1
+15,1,Determinantes do Humor,14,14,outra,1
+16,1,Gráficos Adicionais,8,13,figura,1
+17,1,Agrupamento e Sensibilidade,151,8,outra,1
+18,1,Comparação Entre Ciclos,164,11,outra,1
+19,1,Correlações Fadiga-Humor,18,8,análise,1
+20,1,Trajetória Coorte Completa,30,7,outra,1
+21,1,Pós Competição,18,202,outra,1
+22,1,Lesões Sul Centro Americano,4,4,outra,1
+23,1,Participação,30,12,outra,1
+24,1,Planilha2,0,0,outra,0
+25,1,Última Semana Pré-Temporada,138,27,outra,1
+26,1,Log de Respostas - Semana,324,6,dados,1
+27,1,Classificação Perfil Humor,153,16,análise,1
+28,1,Segmentação Estatística,122,54,análise,1
+29,1,Caminho Fadiga-Humor,199,20,outra,1
+30,1,Análises Finais,339,28,análise,1
+31,2,Caracterização,28,229,dados,1
+32,2,Diario,458,52,dados,1
+33,2,Sem caracterização,22,150,dados,1
+34,2,Quantidade de coletas ,44,8,dados,1
+35,3,Índice,58,4,índice,1
+36,3,Painel Interativo,25,20,painel,1
+37,3,Síntese,31,9,texto,1
+38,3,Tabela 1 (amostra),40,7,tabela,1
+39,3,Tabela 2 (questionários),39,14,dados,1
+40,3,Resumo (abstract),11,13,outra,1
+41,3,Desenho do Estudo,28,11,método,1
+42,3,DADOS LIMPOS,31,11,dados,1
+43,3,DADOS LIMPOS T-CAR,33,11,dados,1
+44,3,HIIT Consolidado,391,10,outra,1
+45,3,DADOS LIMPOS HIIT,37,11,dados,1
+46,3,Caracterização (limpa),38,11,dados,1
+47,3,Análise Estatística,40,18,análise,1
+48,3,DADOS LIMPOS Humor,33,15,dados,1
+49,3,Análise Estatística (2),40,11,análise,1
+50,3,Perfil Humor (descritiva),65,19,análise,1
+51,3,Questionários 21-28abr,463,16,dados,1
+52,3,Quest. dia e atleta,40,18,dados,1
+53,3,Pré×Pós humor,80,19,outra,1
+54,3,Síntese HIIT,18,15,texto,1
+55,3,Principais Achados,31,19,texto,1
+56,3,Conclusões Científicas,42,10,texto,1
+57,3,Limiar Veloc. & Perfil Humor,106,16,análise,1
+58,3,Psicometria,20,18,análise,1
+59,3,Correlações (humor),33,18,análise,1
+60,3,Análises Inferenciais,58,17,análise,1
+61,3,Análises Avançadas,53,22,análise,1
+62,3,HIIT × não-HIIT,22,17,outra,1
+63,3,HIIT S1·S2·S3 (carga),27,14,outra,1
+64,3,Carga Externa HIIT,46,15,outra,1
+65,3,Integração 3 domínios,43,16,outra,1
+66,3,HIIT agudo × crônico,57,15,outra,1
+67,3,Curva da Fadiga & ROC,220,17,análise,1
+68,3,Dashboard,91,19,painel,1
+69,3,Equações (modelos),24,11,análise,1
+70,3,Atletas,30,13,dados,1
+71,3,Avaliações,118,13,outra,1
+72,3,Resumo,26,13,outra,1
+73,3,Análise,69,13,análise,1
+74,3,Pareado,31,14,outra,1
+75,3,Estatística,46,12,análise,1
+76,3,Variabilidade,70,13,outra,1
+77,3,Modelagem,67,17,outra,1
+78,3,ROC & ANOVA,57,16,análise,1
+79,3,Bayesiano,35,12,análise,1
+80,3,Treino Resumo,30,13,outra,1
+81,3,T-CAR Unificado,39,16,outra,1
+82,3,Masculino,35,100,outra,1
+83,3,Intervenção,21,44,outra,1
+84,3,Treino Masculino,31,220,outra,1
+85,3,Diagnóstico,21,11,outra,1
+86,3,Chave (confidencial),30,6,outra,1
+87,4,01_RAW,2,18,dados,1
+88,4,02_BASE,2,18,dados,1
+89,4,03_TRIMP,2,18,outra,1
+90,4,04_PSE_LOAD,2,18,outra,1
+91,4,05_BRUMS_RAW,2,18,dados,1
+92,4,06_BRUMS_WEEK,2,18,outra,1
+93,4,07_EFFECTS_ACUTE,2,18,outra,1
+94,4,08_HIIT_vs_NON,2,18,outra,1
+95,4,09_RMCORR,2,18,outra,1
+96,4,10_PERMANOVA,2,18,análise,1
+97,4,11_ROC,2,18,análise,1
+98,4,12_RESPONDERS,2,18,outra,1
+99,4,Índice,57,6,índice,1
+100,4,Central de Estudos,54,14,índice,1
+101,4,Planilha1,30,73,outra,1
+102,4,Base Consolidada,521,10,dados,1
+103,4,Análise,56,5,análise,1
+104,4,Dados A×S,105,17,dados,1
+105,4,Comp. Grupo,21,10,outra,1
+106,4,Atleta Pré×Pós,107,10,outra,1
+107,4,Atleta Sessões,86,9,outra,1
+108,4,Base Psico,63,19,dados,1
+109,4,Correl. Psico,38,5,análise,1
+110,4,Diário BRUMS,137,15,dados,1
+111,4,Base Dias,28,15,dados,1
+112,4,Comp. Dias,39,8,outra,1
+113,4,Correl. Atleta,66,12,análise,1
+114,4,Pré×Pós Humor,114,24,outra,1
+115,4,Momentos,34,10,outra,1
+116,4,Efeito Agudo,35,7,análise,1
+117,4,Trajetória Semana,10,6,outra,1
+118,4,Sensibilidade,36,20,outra,1
+119,4,Base Psicofis,103,15,dados,1
+120,4,Efeito Agudo Psicofis,36,9,análise,1
+121,4,Efeitos & IC,38,36,análise,1
+122,4,Perfis Humor,13,6,outra,1
+123,4,Predição Fadiga,42,6,outra,1
+124,4,Itens BRUMS,458,55,outra,1
+125,4,Psicometria,43,12,análise,1
+126,4,Resíduos,520,23,outra,1
+127,4,Exploratória,506,16,outra,1
+128,4,Regressões,506,16,análise,1
+129,4,Inferência Avançada,48,13,análise,1
+130,4,ROC Humor,25,15,análise,1
+131,4,Multivariada,18,8,análise,1
+132,4,Distribuições,20,8,outra,1
+133,4,Robusta,22,7,outra,1
+134,4,Humor × PSE,61,30,outra,1
+135,4,HIIT Pré×Pós,37,9,outra,1
+136,4,FC Recuperação,107,10,outra,1
+137,4,Carga Interna,30,10,outra,1
+138,4,Longitudinal,17,5,outra,1
+139,4,Responders,25,12,outra,1
+140,4,Painel Temporal,19,7,painel,1
+141,4,Síntese,27,18,texto,1
+142,4,Interativo,35,27,painel,1
+143,4,Infográfico,31,24,painel,1
+144,4,Dashboard,393,75,painel,1
+145,5,Sumario_Executivo,68,5,índice,1
+146,5,Dados Análise,278,16,dados,1
+147,5,Planilha2,11,1,outra,1
+148,5,Indefinidos,278,16,outra,1
+149,5,Cluster K-means,278,24,análise,1
+150,5,GRAF INDEF,278,32,figura,1
+151,5,Artigo - Resultados e Discussão,31,12,texto,1
+152,5,Planilha1,50,7,outra,1
+153,5,Análise BRUMS,102,12,análise,1
+154,5,Dashboard BRUMS,39,24,painel,1
+155,5,Insights BRUMS,56,12,texto,1
+156,5,Analítico Semana Treino,39,15,outra,1
+157,5,Análise Global Profunda,33,5,análise,1
+158,5,Comparativo Dia x Horas,34,17,outra,1
+159,5,Análises Artigo,64,13,análise,1
+160,5,Base Unificada BRUMS,460,46,dados,1
+161,5,Roster BRUMS,29,7,dados,1
+162,5,Análise Segmentada BRUMS,109,12,análise,1
+163,5,Dashboard Segmentado BRUMS,22,17,painel,1
+164,5,Pareado Pré-Pós BRUMS,163,11,outra,1
+165,5,LMM_Robustez,23,13,outra,1
+166,5,Auditoria_Completa,77,8,auditoria,1
+167,5,Tese_Analises,81,7,análise,1
+168,5,Figuras_Tabelas,59,19,figura,1
+169,5,Tese_Fase2,126,5,texto,1
+170,5,Artigo_v2,62,1,texto,1
+171,5,Recomendacoes_Praticas,43,8,texto,1
+172,5,Analise_Bayesiana,61,6,análise,1
+173,5,Analise_Longitudinal,119,8,análise,1
+174,5,Efeitos_Slopes,91,25,análise,1
+175,5,Planilha3,0,0,outra,0
+176,5,Dia4_Profunda,88,6,outra,1
+177,5,Perfil_por_Variavel,120,11,análise,1
+178,5,Analises_Complementares,37,10,análise,1
+179,5,Dashboard Espaço-Temporal,41,13,painel,1
+180,5,Mineração_Padrões,67,10,outra,1
+181,5,Effect_Size_Completo,63,12,outra,1
+182,5,Relatorio_Geral,95,3,texto,1
+183,5,Perfis_Humor,60,13,outra,1
+184,5,Estatísticas_Inferenciais,78,14,análise,1
+185,5,Modelo_Linear_Misto,54,12,análise,1
+186,5,Planilha4,0,0,outra,0
+187,5,Planilha5,0,0,outra,0
+188,5,Planilha6,0,0,outra,0
+189,5,Temporal_Carga_Recuperação,82,15,outra,1
+190,5,Modelo_Preditivo,137,10,análise,1
+191,5,Analise_Multivariada,71,12,análise,1
+192,5,Modelo_Analogico,72,8,dados,1
+193,5,ANALISES,113,10,análise,1
+194,5,Framework_Validacao,52,9,método,1
+195,5,Descritivas_Individuais,87,15,outra,1
+196,5,Correcoes_Multiplas,62,9,outra,1
+197,5,LMM_Completo,57,11,outra,1
+198,5,ANOVA_2x7,49,12,análise,1
+199,5,APRESENTACAO_ORIENTADOR,136,12,outra,1
+200,5,Deteccao_Risco_Overtraining,84,13,outra,1
+201,5,Modelo_Preditivo_Completo,123,14,análise,1
+202,5,Dashboard_BI,75,14,painel,1
+203,5,Exploratoria_Avancada,112,10,outra,1
+204,5,Regressoes_Exploradas,56,10,análise,1
+205,5,Bivariada_Bicaudal,95,10,outra,1
+206,5,Discussao_Cientifica,98,6,texto,1
+207,5,Framework_Bayesiano,90,10,análise,1
+208,5,Dashboard_BI_Completo,66,22,painel,1
+209,5,PowerBI_Analitico,156,28,outra,1
+210,5,Dashboard_PRO,143,17,painel,1
+211,5,Dashboard_FINAL,168,25,painel,1
+212,5,FADIGA_PRO,384,8,outra,1
+213,6,1_Divergencias_registro,29,19,auditoria,1
+214,6,2_Impacto_medias_por_dia,8,16,auditoria,1
+215,6,3_Impacto_tamanhos_efeito,7,10,análise,1
+216,6,4_Confronto_Paper1,12,5,auditoria,1
+217,6,5_Cobertura_por_atleta,28,10,auditoria,1
+218,6,6_Linhagem,11,5,auditoria,1
