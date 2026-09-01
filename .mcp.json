@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "ana": {
+      "command": "python3",
+      "args": [
+        "/home/user/mdlucca/ana/ana_mcp.py"
+      ],
+      "env": {
+        "HH_RAIZ": "/home/user/mdlucca/estudos/humor_handebol"
+      }
+    },
+    "lape-corpus": {
+      "command": "python3",
+      "args": [
+        "/home/user/mdlucca/scripts/lape_agent.py",
+        "rag",
+        "mcp"
+      ]
+    }
+  }
+}
