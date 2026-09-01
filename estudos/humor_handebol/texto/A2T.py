@@ -1,0 +1,417 @@
+# -*- coding: utf-8 -*-
+"""Artigo 2 — inferencial completo, paramétrico e não paramétrico."""
+TITULO=("Estatística paramétrica e não paramétrica sobre a mesma série de humor: quanto a via de análise "
+        "decide a conclusão em um microciclo de handebol de elite")
+SUB=("Estudo observacional longitudinal com bateria inferencial completa, modelo linear misto e tratamento de "
+     "séries por limites, derivadas e piso de ruído")
+
+RESUMO=(
+"O monitoramento psicológico do atleta produz séries curtas, repetidas e desbalanceadas, e a escolha da via "
+"de análise raramente é discutida. Este estudo submeteu a mesma série de humor a três vias — não paramétrica, "
+"paramétrica clássica e modelo linear misto — e mediu quanto do resultado é atribuível à via, e não aos dados. "
+"Vinte e sete atletas de handebol masculino de primeira divisão responderam à Escala de Humor de Brunel "
+"durante a última semana de pré-temporada; os 456 registros foram agregados em 166 pares atleta-dia e 119 "
+"pares de manhã e noite. A via não paramétrica reuniu Friedman com W de Kendall, teste L de Page, Wilcoxon "
+"com correção de Holm, Q de Cochran, McNemar, Spearman e qui-quadrado de contingência. A via paramétrica "
+"reuniu análise de variância de medidas repetidas com correção de Greenhouse-Geisser, teste t pareado com "
+"intervalo de confiança, Pearson e teste de Levene. O modelo misto estimou o efeito linear do dia com "
+"intercepto aleatório por atleta. As séries foram tratadas por filtro binomial, derivadas de primeira e "
+"segunda ordem e piso de ruído. Nenhuma das sete variáveis passou no teste de Shapiro-Wilk, e o ε de "
+"Greenhouse-Geisser situou-se entre 0,327 e 0,693, o que indica violação severa de esfericidade em todas "
+"elas. As três vias concordaram em quatro das sete variáveis e divergiram em três. A tensão não alcançou "
+"significância pelo teste de Friedman (p = 0,111), alcançou-a pela análise de variância corrigida (p = 0,029) "
+"e alcançou-a com folga pelo modelo misto (p = 0,001). A perturbação total repetiu o padrão. A confusão "
+"inverteu-o: fortemente significativa pelo Friedman (p < 0,001) e não significativa pelo modelo misto "
+"(p = 0,072). A explicação está no custo amostral: as duas primeiras vias exigem registro completo nos sete "
+"dias e operam com dezenove atletas, ao passo que o modelo misto retém os 166 pares. Conclui-se que, em "
+"séries de monitoramento com ausências frequentes, reportar uma única via é insuficiente, e que a discordância "
+"entre vias identifica qual pressuposto está sob tensão em cada variável."
+)
+PALAVRAS=("estatística não paramétrica; modelo linear misto; medidas repetidas; humor; handebol; "
+          "tamanho de efeito")
+ABSTRACT=(
+"Athlete psychological monitoring produces short, repeated and unbalanced series, and the choice of analytical "
+"route is rarely discussed. This study submitted the same mood series to three routes — non-parametric, "
+"classical parametric and linear mixed model — and measured how much of the result is attributable to the "
+"route rather than to the data. Twenty-seven male first-division handball players completed the Brunel Mood "
+"Scale during the final pre-season week; the 456 records were aggregated into 166 athlete-day pairs and 119 "
+"morning-evening pairs. The non-parametric route combined Friedman with Kendall's W, Page's L test, Wilcoxon "
+"with Holm correction, Cochran's Q, McNemar, Spearman and contingency chi-square. The parametric route "
+"combined repeated-measures analysis of variance with Greenhouse-Geisser correction, paired t tests with "
+"confidence intervals, Pearson and Levene's test. The mixed model estimated the linear effect of day with a "
+"random intercept per athlete. Series were treated with a binomial filter, first and second derivatives and a "
+"noise floor. None of the seven variables passed the Shapiro-Wilk test, and Greenhouse-Geisser ε ranged from "
+"0.327 to 0.693, indicating severe sphericity violation throughout. The three routes agreed on four of the "
+"seven variables and diverged on three. Tension did not reach significance by Friedman (p = 0.111), reached it "
+"by corrected analysis of variance (p = 0.029), and reached it comfortably by the mixed model (p = 0.001). "
+"Total mood disturbance repeated the pattern. Confusion reversed it: strongly significant by Friedman "
+"(p < 0.001) and non-significant by the mixed model (p = 0.072). The explanation lies in the sample cost: the "
+"first two routes require complete records across all seven days and operate with nineteen athletes, whereas "
+"the mixed model retains all 166 pairs. In monitoring series with frequent absences, reporting a single route "
+"is insufficient, and disagreement between routes identifies which assumption is under strain in each variable."
+)
+KEYWORDS=("nonparametric statistics; linear mixed model; repeated measures; mood; handball; effect size")
+
+INTRO=[
+"A psicologia do esporte herdou da psicometria um instrumental de comparação entre grupos e da fisiologia do "
+"exercício um instrumental de comparação entre momentos. O monitoramento diário do atleta situa-se no "
+"cruzamento dos dois, e é justamente aí que os pressupostos rangem. Séries de humor coletadas ao longo de um "
+"microciclo são curtas, repetidas, desbalanceadas por ausências e medidas em escalas de amplitude estreita com "
+"forte concentração no valor mínimo. Nenhuma dessas propriedades favorece os testes que, ainda assim, são "
+"rotineiramente aplicados.",
+
+"A tradição de medida do humor no esporte remonta ao modelo de saúde mental de Morgan (1985) e ao perfil "
+"iceberg (MORGAN, 1980), e consolidou-se com a Escala de Humor de Brunel (TERRY et al., 1999), suas normas "
+"para amostras atléticas (TERRY; LANE, 2000) e sua adaptação brasileira (ROHLFS et al., 2008; ROHLFS et al., "
+"2023). Duas metanálises estabeleceram que a relação entre humor e desempenho existe e é de magnitude modesta "
+"(BEEDIE; TERRY; LANE, 2000; LOCHBAUM et al., 2021). Os documentos de consenso sobre supertreinamento e "
+"recuperação atribuíram ao humor o papel de sentinela precoce (MEEUSEN et al., 2013; KELLMANN et al., 2018), "
+"e revisões sistemáticas mostraram que medidas subjetivas superam medidas objetivas na detecção de respostas "
+"ao treino (SAW; MAIN; GASTIN, 2016).",
+
+"O que essa literatura raramente discute é o caminho estatístico. Estudos longitudinais de monitoramento "
+"tendem a escolher uma via e reportá-la, sem examinar se outra via, igualmente defensável, levaria à "
+"conclusão oposta. A escolha, entretanto, não é neutra. A via não paramétrica dispensa a hipótese de "
+"normalidade e resiste ao efeito de piso, porém, na sua forma clássica para medidas repetidas, exige registro "
+"completo em todas as condições e descarta quem faltou. A via paramétrica clássica estima magnitude e "
+"intervalo de confiança, o que a via de postos não oferece, mas pressupõe normalidade e esfericidade e "
+"descarta igualmente os casos incompletos. O modelo linear misto retém todas as observações disponíveis e "
+"separa a variância entre atletas da variância dentro do atleta, ao preço de pressupostos sobre a forma dos "
+"resíduos e sobre a linearidade do efeito.",
+
+"Em amostras grandes e equilibradas, as três vias tendem a convergir, e a discussão é acadêmica. Em um elenco "
+"de handebol acompanhado por sete dias, com ausências que reduzem a subamostra completa a menos de um terço "
+"do grupo, a convergência deixa de ser garantida. O handebol acrescenta um agravante: a modalidade combina "
+"deslocamentos de alta intensidade, mudanças de direção, saltos e contato permanente, com demandas que variam "
+"por posição (KARCHER; BUCHHEIT, 2014; GARCÍA-SÁNCHEZ et al., 2023) e carga distribuída de modo desigual "
+"entre atletas do mesmo elenco (BÜCHEL; DÖRING; BAUMEISTER, 2026), de forma que a ausência a uma sessão "
+"raramente é aleatória.",
+
+"Justifica-se, assim, submeter uma mesma série a todas as vias disponíveis e medir quanto do resultado "
+"pertence à via. Essa comparação não é um exercício de estatística aplicada desligado da prática: se a "
+"comissão técnica decide reduzir carga a partir de um valor de p, importa saber que esse valor depende de uma "
+"escolha metodológica que ninguém declarou. O objetivo geral deste estudo consiste, portanto, em descrever o "
+"comportamento das variáveis do BRUMS ao longo da última semana de pré-temporada de atletas de handebol de "
+"elite por meio de uma bateria inferencial completa, paramétrica e não paramétrica, acrescida de modelo "
+"linear misto, e em quantificar em que medida a conclusão sobre cada variável depende da via escolhida. Como "
+"em seu artigo companheiro, a descrição das séries apoia-se em suavização, derivadas e piso de ruído, "
+"instrumental que fornece um critério de relevância independente do valor de p.",
+]
+
+METODO=[
+("Delineamento, participantes e coleta",[
+ "O delineamento, a amostra e o procedimento de coleta são os mesmos descritos no artigo companheiro desta "
+ "série e aqui se resumem. Vinte e sete atletas de handebol masculino de uma equipe da primeira divisão "
+ "nacional, com 21,96 ± 3,81 anos, responderam à Escala de Humor de Brunel ao longo dos sete dias que "
+ "antecederam a estreia na competição oficial. O primeiro dia teve janela única noturna e serviu de linha de "
+ "base; do segundo ao sétimo houve medida matinal e uma segunda medida ao fim do dia. A semana reuniu treino "
+ "intervalado de alta intensidade no segundo, quarto e sétimo dias, jogo amistoso no terceiro e no quinto, e "
+ "conteúdo técnico, tático e de força no sexto, com carga acumulada de 1,5 a 23,0 horas.",
+ "A unidade de análise é o par atleta-dia: um valor por atleta e por dia, obtido pela média das respostas "
+ "daquele atleta naquele dia. O conjunto reúne 456 registros, 166 pares atleta-dia e 119 pares de manhã e "
+ "noite. Dezenove dos vinte e sete atletas possuem registro nos sete dias, e essa subamostra completa é a "
+ "única sobre a qual as vias clássicas de medidas repetidas podem operar."]),
+("Via não paramétrica",[
+ "A comparação global entre os sete dias empregou o teste de Friedman (FRIEDMAN, 1937), com tamanho de efeito "
+ "expresso pelo W de Kendall (KENDALL; SMITH, 1939). A hipótese de tendência ordenada recebeu tratamento "
+ "específico pelo teste L de Page (PAGE, 1963), mais potente que o de Friedman quando a alternativa é "
+ "monotônica. Os contrastes entre a linha de base e cada dia subsequente recorreram ao teste de postos "
+ "sinalizados de Wilcoxon (WILCOXON, 1945), com correção de Holm para as seis comparações (HOLM, 1979) e "
+ "tamanho de efeito r obtido pela razão entre o escore z e a raiz do número de pares.",
+ "As variáveis categóricas seguiram procedimentos próprios. A estabilidade da prevalência de cada perfil ao "
+ "longo dos sete dias foi avaliada pelo Q de Cochran (COCHRAN, 1950); a migração entre a manhã e a noite, pelo "
+ "teste de McNemar com correção de continuidade (McNEMAR, 1947); e a associação entre tipo de estímulo e "
+ "perfil, pelo qui-quadrado de contingência. As associações entre variáveis contínuas empregaram o "
+ "coeficiente de Spearman, com correção de Holm para os vinte e um pares."]),
+("Via paramétrica clássica",[
+ "A comparação global entre os sete dias empregou análise de variância de medidas repetidas de um fator, sobre "
+ "a mesma subamostra completa. A esfericidade foi avaliada pelo ε de Greenhouse-Geisser, calculado a partir "
+ "dos autovalores da matriz de covariância duplamente centrada, e os graus de liberdade foram corrigidos por "
+ "esse fator em todos os casos, dada a violação generalizada. O tamanho de efeito foi expresso pelo eta "
+ "quadrado parcial.",
+ "O contraste entre a linha de base e a véspera da estreia empregou o teste t para amostras pareadas, com "
+ "intervalo de confiança de noventa e cinco por cento para a diferença média e tamanho de efeito d de Cohen "
+ "para medidas repetidas, obtido pela razão entre a diferença média e o desvio-padrão das diferenças. A "
+ "homogeneidade de variâncias entre os dias foi verificada pelo teste de Levene, e as associações entre "
+ "variáveis contínuas pelo coeficiente de Pearson, também com correção de Holm."]),
+("Modelo linear misto",[
+ "O terceiro caminho ajusta um modelo linear de efeitos mistos sobre os 166 pares atleta-dia, com o dia como "
+ "efeito fixo contínuo e intercepto aleatório por atleta. A estimação empregou máxima verossimilhança "
+ "restrita. Do modelo extraem-se três quantidades de interesse: o coeficiente do dia, que expressa a mudança "
+ "média por dia na escala original com o respectivo intervalo de confiança; o valor de p desse coeficiente; e "
+ "a proporção da variância total atribuível a diferenças estáveis entre atletas, obtida pela razão entre a "
+ "variância do intercepto aleatório e a soma dessa variância com a residual.",
+ "A vantagem decisiva do modelo, neste contexto, é não exigir registro completo: um atleta com quatro dias "
+ "contribui com quatro observações em vez de ser descartado. A contrapartida é o pressuposto de efeito linear "
+ "do dia, que o tratamento de séries descrito adiante permite avaliar de modo independente."]),
+("Tratamento de séries: suavização, derivadas e piso de ruído",[
+ "Independentemente das três vias, cada série diária recebeu um tratamento próprio, descrito em detalhe no "
+ "artigo companheiro e aqui resumido. O erro-padrão de cada dia foi calculado, e a média dos sete erros-padrão "
+ "define o piso de ruído da série, isto é, a magnitude típica da oscilação que a amostragem produz por si só. "
+ "A série foi suavizada por filtro binomial de três pontos, com pesos um quarto, um meio e um quarto. As "
+ "derivadas discretas de primeira e segunda ordem da série suavizada, expressas em unidades do piso, "
+ "localizam as transições de choque e os pontos de inflexão.",
+ "Declara-se variação real quando o deslocamento total entre o primeiro e o sétimo dia supera, em valor "
+ "absoluto, o piso de ruído. Esse critério é deliberadamente independente do valor de p: ele responde a "
+ "quanto a série se moveu em relação ao seu próprio ruído, e não à probabilidade de observar o movimento sob a "
+ "hipótese nula. Reportar os dois lado a lado é parte do argumento deste artigo."]),
+("Processamento computacional",[
+ "Toda a análise foi executada em Python 3.11. A importação empregou openpyxl; a manipulação numérica, NumPy "
+ "(HARRIS et al., 2020); os testes de hipótese, o módulo stats do SciPy (VIRTANEN et al., 2020); os modelos "
+ "mistos, o pacote statsmodels; as figuras, matplotlib (HUNTER, 2007); e a exportação, python-docx. A "
+ "confiabilidade das medidas repetidas foi estimada por correlação intraclasse de via única, com o "
+ "coeficiente de medida média pela fórmula de Spearman-Brown (SHROUT; FLEISS, 1979). O efeito de piso seguiu "
+ "o critério de Terwee et al. (2007). Adotou-se alfa de cinco por cento. Todos os resultados, das três vias, "
+ "foram depositados em uma base única em formato longo, o que permite comparar diretamente as vias e auditar "
+ "cada número contra o objeto que o gerou.",
+ "A codificação dos participantes em A01 a A27 ocorre na rotina de importação, e apenas a base anonimizada "
+ "alimenta as análises. O projeto obteve aprovação do comitê de ética sob o parecer CAAE [inserir número do "
+ "CAAE], e todos os participantes assinaram termo de consentimento livre e esclarecido."]),
+]
+
+R1=[
+"A verificação de pressupostos, apresentada na Figura 3 e na Tabela 1, é inequívoca em duas frentes e "
+"heterogênea numa terceira. Nenhuma das sete variáveis passa no teste de Shapiro-Wilk ao nível de cinco por "
+"cento. O vigor é a que mais se aproxima da normalidade (W = 0,983; p = 0,035) e a depressão a que mais dela "
+"se afasta (W = 0,522; p < 0,001), com assimetria de 3,80 e curtose de 17,66. Quatro das seis subescalas "
+"apresentam efeito de piso acima do limite de quinze por cento proposto por Terwee et al. (2007): 65,7% na "
+"confusão, 52,4% na depressão, 45,2% na raiva e 40,4% na tensão.",
+"A esfericidade está violada em todas as variáveis, e severamente. O ε de Greenhouse-Geisser situa-se entre "
+"0,327, na tensão, e 0,693, na fadiga, sempre abaixo do limite convencional de 0,75. A correção dos graus de "
+"liberdade é, portanto, obrigatória, e não facultativa; a análise de variância sem correção produziria "
+"valores de p artificialmente pequenos em todas as sete variáveis. O teste de Levene não rejeita a "
+"homogeneidade de variâncias entre os dias em nenhuma variável, o que constitui a única boa notícia entre os "
+"pressupostos.",
+"Esse quadro autoriza uma expectativa e uma dúvida. A expectativa é que a via não paramétrica, imune à "
+"assimetria e ao piso, seja a mais confiável. A dúvida diz respeito ao preço que ela cobra: o teste de "
+"Friedman, como a análise de variância de medidas repetidas, exige registro em todos os sete dias e opera "
+"sobre dezenove dos vinte e sete atletas, isto é, descarta 88% dos 166 pares atleta-dia disponíveis.",
+]
+R2=[
+"A Figura 2 apresenta o resultado central deste estudo: a mesma hipótese, submetida às três vias, para as sete "
+"variáveis. A Tabela 2 traz os valores.",
+"As três vias concordam em quatro variáveis. O vigor é significativo pelas três (Friedman p = 0,045; análise "
+"de variância corrigida p = 0,001; modelo misto p < 0,001), assim como a fadiga (p = 0,036; p = 0,006; "
+"p < 0,001). A depressão não é significativa por nenhuma (p = 0,985; p = 0,607; p = 0,434), e a raiva tampouco "
+"(p = 0,087; p = 0,184; p = 0,995).",
+"As três variáveis restantes divergem, e a divergência tem um padrão. A tensão não alcança significância pelo "
+"teste de Friedman (χ² = 10,34; p = 0,111), alcança-a pela análise de variância corrigida (F = 3,95; "
+"p = 0,029; η²p = 0,180) e alcança-a com folga pelo modelo misto (b = −0,131 ponto por dia; IC 95% −0,211 a "
+"−0,052; p = 0,001). A perturbação total repete exatamente o mesmo padrão: p = 0,233, p = 0,091 e p = 0,011. "
+"Em ambos os casos, a ordem é a mesma — a via de postos é a mais conservadora, a paramétrica clássica fica no "
+"meio e o modelo misto é o mais sensível.",
+"A confusão inverte o padrão e por isso merece exame separado. Ela é a variável mais significativa pelo teste "
+"de Friedman de todo o conjunto (χ² = 24,78; p < 0,001; W = 0,217), permanece significativa pela análise de "
+"variância corrigida (p = 0,014) e deixa de sê-lo pelo modelo misto (b = −0,056; p = 0,072). A explicação "
+"reside na forma da trajetória: a confusão cai abruptamente do primeiro para o segundo dia e depois oscila sem "
+"direção, de modo que o efeito não é linear no dia. O teste de Friedman, que apenas pergunta se os dias "
+"diferem, capta o degrau; o modelo misto, que impõe uma reta, não o capta. A discordância, nesse caso, não "
+"indica qual via está certa: indica que a pergunta que cada uma responde é diferente.",
+"O teste L de Page, que especifica a alternativa como ordenada, ilumina esse ponto. Ele identifica tendência "
+"monotônica em quatro variáveis — fadiga (z = 2,86; p = 0,004), vigor (z = −2,84; p = 0,004), tensão "
+"(z = −2,59; p = 0,010) e confusão (z = −2,52; p = 0,012) — e não a identifica na depressão nem na "
+"perturbação total. Note-se que o teste de Page acusa tendência na tensão, onde o de Friedman nada encontra, "
+"o que confirma que o problema da tensão é de potência, e não de ausência de efeito: o deslocamento existe, é "
+"ordenado, e o teste sem direção especificada não o detecta.",
+]
+R3=[
+"A magnitude, que a via de postos não fornece, aparece na Figura 2 e na Tabela 3. O vigor apresenta o maior "
+"efeito do conjunto no contraste entre a linha de base e a véspera da estreia (dz = −0,96; IC 95% da "
+"diferença de −4,52 a −1,60 pontos), seguido pela fadiga (dz = 0,84; IC 95% de 1,56 a 5,21). A tensão "
+"apresenta efeito médio (dz = −0,57; IC 95% de −2,08 a −0,23) e a confusão, efeito próximo do médio "
+"(dz = −0,46; IC 95% de −1,20 a −0,01). A perturbação total, apesar da diferença média de 5,21 pontos, "
+"apresenta intervalo que cruza o zero por margem estreita (de −0,05 a 10,47), o que explica o valor de p de "
+"0,052 e ilustra o risco de tratar 0,05 como fronteira ontológica.",
+"A comparação entre os tamanhos de efeito das duas vias merece registro. O r não paramétrico e o dz "
+"paramétrico ordenam as variáveis de modo idêntico — vigor, fadiga, tensão, confusão, perturbação total, "
+"raiva, depressão —, o que indica que a discordância entre vias diz respeito à detecção, e não à ordenação da "
+"importância. Nenhum revisor que exija ambos os índices encontrará contradição substantiva; encontrará, sim, "
+"limiares diferentes.",
+]
+R4=[
+"O modelo misto, apresentado na Figura 6 e na Tabela 4, acrescenta duas informações que as outras vias não "
+"fornecem. A primeira é a taxa de mudança na escala original: a fadiga sobe 0,354 ponto por dia (IC 95% 0,200 "
+"a 0,507), o vigor cai 0,335 (IC 95% −0,470 a −0,201), a perturbação total sobe 0,522 (IC 95% 0,121 a 0,923) "
+"e a tensão cai 0,131 (IC 95% −0,211 a −0,052). Traduzido para a semana inteira, o modelo prevê queda de "
+"aproximadamente dois pontos de vigor e elevação de aproximadamente dois pontos de fadiga entre o primeiro e "
+"o sétimo dia, valores compatíveis com os deslocamentos observados de 2,98 e 3,62 pontos, e ligeiramente "
+"menores por efeito da imposição de linearidade.",
+"A segunda é a decomposição da variância. A proporção atribuível a diferenças estáveis entre atletas varia de "
+"0,341, na raiva, a 0,765, na depressão. A leitura substantiva é direta: a raiva comporta-se como estado, "
+"sensível ao dia, ao passo que a depressão comporta-se como característica relativamente estável do "
+"respondente. Essa distinção tem consequência prática para o monitoramento: variáveis com proporção elevada "
+"exigem referência intraindividual, porque a comparação com a média do grupo confunde traço com estado.",
+"Convém observar que a ordem dessa decomposição reproduz a da correlação intraclasse calculada de modo "
+"independente na descrição — depressão, fadiga, tensão, perturbação total, vigor, confusão e raiva —, o que "
+"confere consistência interna às duas estimativas.",
+]
+R5=[
+"A estrutura de associação, apresentada na Figura 5 e na Tabela 5, foi estimada pelas duas vias. Quinze dos "
+"vinte e um pares de variáveis associam-se de modo significativo após correção de Holm pelo coeficiente de "
+"Spearman, e dezessete pelo de Pearson. A concordância entre os dois é alta: a discrepância mediana entre "
+"|ρ| e |r| é de 0,05 e a máxima, de 0,18, no par formado pela depressão e pela perturbação total.",
+"O padrão substantivo é o mesmo pelas duas vias. A fadiga vincula-se fortemente à perturbação total "
+"(ρ = 0,76; r = 0,80) e o vigor, de modo inverso (ρ = −0,62; r = −0,54). A tensão destaca-se por dois "
+"comportamentos que a afastam do bloco de afeto negativo: correlaciona-se positivamente com o vigor "
+"(ρ = 0,23; p ajustado = 0,028) e não se correlaciona com a fadiga. A leitura mais econômica atribui à "
+"tensão, neste contexto, a função de ativação e não de sofrimento, embora uma explicação alternativa de "
+"natureza métrica não possa ser descartada: com 40,4% das respostas no valor zero, a variável perde variância "
+"e, com ela, capacidade de correlacionar-se.",
+"O contraste entre as duas vias é mais informativo onde elas discordam. Nos pares que envolvem a depressão e "
+"a confusão, ambas com efeito de piso severo, o coeficiente de Pearson é sistematicamente maior que o de "
+"Spearman — 0,70 contra 0,55 no par depressão e confusão, 0,79 contra 0,61 no par depressão e perturbação "
+"total, 0,60 contra 0,44 no par confusão e perturbação total. A explicação é conhecida: poucos valores "
+"extremos, em variáveis concentradas no zero, exercem alavancagem desproporcional sobre o coeficiente de "
+"momento-produto. Nesses pares, a estimativa de postos é a defensável.",
+]
+R6=[
+"A resposta ao tipo de estímulo, apresentada na Figura 4 e na Tabela 6, foi igualmente examinada pelas duas "
+"vias, e o resultado é convergente e negativo. A distribuição dos seis perfis não difere entre os tipos de "
+"estímulo (χ² = 6,06; gl = 10; p = 0,810), e tampouco a composição das três faixas (χ² = 3,66; gl = 4; "
+"p = 0,455). Os níveis médios das variáveis, comparados nos vinte e dois atletas com registro nos três tipos "
+"de dia, diferem apenas na raiva pela via não paramétrica (χ² = 7,82; p = 0,020) e em nenhuma variável pela "
+"análise de variância de medidas repetidas, cujo menor valor de p é 0,082, na perturbação total.",
+"A dinâmica intradiária, ao contrário, é robusta pelas duas vias. Nos dias de treino intervalado, a fadiga "
+"sobe 2,02 pontos (Wilcoxon p < 0,001; t pareado p < 0,001; dz = 0,58), a perturbação total sobe 4,15 "
+"(p < 0,001 em ambas; dz = 0,60) e o vigor cai 1,20 (p = 0,004; dz = −0,41). Nos dias de conteúdo técnico e "
+"de força, com apenas vinte pares, os efeitos são maiores: a perturbação total sobe 6,90 pontos (dz = 0,79) e "
+"o vigor cai 2,30 (dz = −0,72). A migração para a faixa de risco, considerados os 119 pares completos, é "
+"inequívoca: vinte e quatro pares entram e oito saem (χ² = 7,03; p = 0,008); repartida por estímulo, apenas o "
+"treino intervalado alcança significância bruta (p = 0,034), que não sobrevive à correção de Holm (p = 0,102).",
+"Cabe registrar a advertência de delineamento que atravessa toda esta seção e que nenhuma via estatística "
+"resolve: os tipos de estímulo não foram distribuídos ao acaso ao longo da semana, de modo que o tipo de dia "
+"se confunde com a posição no microciclo e com a carga acumulada. O dia de conteúdo técnico e de força "
+"ocorreu uma única vez, no penúltimo lugar da sequência, depois de vinte horas e meia de trabalho.",
+]
+R7=[
+"O tratamento de séries oferece um critério paralelo, e a comparação com os valores de p é instrutiva. A "
+"Tabela 7 põe lado a lado o veredito do piso de ruído e o das três vias inferenciais.",
+"As duas leituras concordam nos extremos. O vigor e a fadiga são sinal pelo piso, com deslocamento de 5,1 e "
+"4,8 vezes o respectivo ruído, e significativos pelas três vias. A depressão é ruído pelo piso, com "
+"deslocamento de apenas 0,5 vez o ruído, e não significativa por nenhuma via. Nas cinco variáveis restantes "
+"as leituras divergem, e cada divergência é informativa.",
+"A tensão é sinal pelo piso, com deslocamento de 3,4 vezes o ruído, e não é significativa pelo teste de "
+"Friedman. A discrepância mede exatamente o custo do descarte de casos incompletos: o deslocamento é grande "
+"em relação ao ruído da série agregada, mas o teste opera sobre dezenove trajetórias individuais e não o "
+"detecta. A raiva ilustra o caso oposto: é sinal pelo piso por margem estreita, com deslocamento de 1,5 vez o "
+"ruído, e não é significativa por via alguma. Aqui o piso é permissivo, e a leitura correta é a das vias "
+"inferenciais.",
+"A conclusão que essa comparação sustenta não é a de que um critério substitui o outro. É a de que eles "
+"respondem a perguntas distintas — quanto a série se moveu em relação ao seu próprio ruído, e qual a "
+"probabilidade de observar esse movimento sob a hipótese nula — e que reportar ambos permite ao leitor "
+"identificar onde a conclusão é frágil.",
+]
+
+DISCUSSAO=[
+("Quanto da conclusão pertence à via",[
+ "O achado central deste estudo pode ser enunciado em uma frase: em três das sete variáveis examinadas, o "
+ "veredito sobre a existência de mudança ao longo da semana depende da via de análise escolhida. Não se trata "
+ "de discrepância marginal em torno do limiar. A tensão passa de p = 0,111 pelo teste de Friedman a p = 0,001 "
+ "pelo modelo misto, dois valores separados por duas ordens de grandeza sobre exatamente os mesmos dados.",
+ "A explicação principal é amostral e não conceitual. As vias clássicas de medidas repetidas exigem registro "
+ "completo em todas as condições, e essa exigência, num elenco acompanhado por sete dias, descarta oito dos "
+ "vinte e sete atletas e 88% dos pares atleta-dia disponíveis. O modelo misto retém todas as observações "
+ "porque estima a variância entre atletas em vez de eliminá-la por emparelhamento. A diferença de potência "
+ "que daí decorre é grande o bastante para inverter conclusões.",
+ "Há, porém, um segundo mecanismo, e a confusão o exemplifica. Ela é a variável mais significativa pelo teste "
+ "de Friedman e a única que perde significância ao passar para o modelo misto. A razão não é potência, e sim "
+ "forma: a confusão desloca-se em degrau entre o primeiro e o segundo dia e depois oscila sem direção. O teste "
+ "de Friedman pergunta se os dias diferem, sem especificar como; o modelo misto, na especificação adotada, "
+ "pergunta se existe tendência linear. São perguntas diferentes, e a discordância entre elas informa a forma "
+ "da trajetória em vez de contradizê-la. Um modelo misto com o dia como fator categórico responderia à "
+ "primeira pergunta e provavelmente concordaria com o teste de postos.",
+ "Esse ponto tem consequência prática para quem lê literatura de monitoramento. Um estudo que reporte apenas "
+ "«ANOVA de medidas repetidas, p = 0,03» esconde três decisões: quantos participantes foram descartados por "
+ "dados incompletos, se a esfericidade foi corrigida e se o efeito foi tratado como linear ou categórico. "
+ "Nenhuma delas é técnica no sentido de irrelevante; todas as três podem inverter o resultado."]),
+("Os pressupostos como diagnóstico, e não como formalidade",[
+ "A verificação de pressupostos costuma ser reportada como ritual: uma frase que declara normalidade "
+ "verificada e segue adiante. Os presentes dados sugerem um uso mais produtivo. Nenhuma das sete variáveis "
+ "passa no teste de Shapiro-Wilk; o ε de Greenhouse-Geisser fica entre 0,327 e 0,693 em todas; e quatro das "
+ "seis subescalas apresentam efeito de piso acima do critério de Terwee et al. (2007). Esse conjunto não "
+ "invalida a análise paramétrica — a correção existe precisamente para isso —, mas indica onde a estimativa "
+ "está sob tensão.",
+ "O efeito de piso, em particular, deixa marca identificável nos coeficientes de associação. Nos pares que "
+ "envolvem a depressão e a confusão, ambas com mais de metade das respostas no valor mínimo, o coeficiente de "
+ "Pearson excede sistematicamente o de Spearman, com diferenças de até 0,18. Poucos valores extremos, em "
+ "distribuições concentradas no zero, exercem alavancagem desproporcional sobre o coeficiente de "
+ "momento-produto. Reportar apenas o de Pearson, nesse contexto, superestima a associação.",
+ "A recomendação que decorre é que os pressupostos sejam reportados variável a variável, e não como declaração "
+ "global sobre o conjunto. Um estudo de monitoramento com seis subescalas pode ter três variáveis em que a via "
+ "paramétrica se sustenta e três em que não se sustenta, e a média entre elas não descreve nenhuma."]),
+("O critério de ruído como leitura independente do valor de p",[
+ "O tratamento de séries adotado neste estudo fornece um critério que não depende de hipótese nula alguma: o "
+ "deslocamento total é comparado ao piso de ruído da própria série. Essa leitura converge com a inferencial "
+ "nos extremos — vigor e fadiga são sinal pelo piso e significativos pelas três vias; a depressão é ruído pelo "
+ "piso e não significativa por nenhuma — e diverge no meio, e é aí que ela é útil.",
+ "A tensão é sinal pelo piso, com deslocamento de 3,4 vezes o ruído da série, e não é significativa pelo teste "
+ "de Friedman. A discrepância mede o custo do descarte de casos incompletos, e o modelo misto, que não "
+ "descarta, converge com o piso. A raiva ilustra a situação inversa: o piso a declara sinal por margem "
+ "estreita, e via alguma a confirma; aqui o critério de ruído é permissivo, porque a trajetória não é "
+ "monotônica e o deslocamento entre as pontas não representa a série.",
+ "Nenhum dos dois critérios é superior ao outro em abstrato. O valor de p responde a uma pergunta sobre "
+ "probabilidade; o piso, a uma pergunta sobre magnitude relativa ao próprio ruído. A literatura de "
+ "monitoramento do atleta já se move nessa direção quando adota a mínima variação detectável para decisões "
+ "individuais (TERWEE et al., 2007; SAW; MAIN; GASTIN, 2016); o que se propõe aqui é a extensão do mesmo "
+ "raciocínio às séries agregadas do grupo, com o critério declarado antes da leitura."]),
+("O que os resultados dizem sobre o microciclo, e não sobre o método",[
+ "Interessa registrar que, apesar da divergência entre vias, o retrato substantivo do microciclo é estável. As "
+ "três vias concordam que o vigor cai e a fadiga sobe, e essas são as duas variáveis com maior tamanho de "
+ "efeito por qualquer índice: dz de −0,96 e 0,84, r de 0,74 e 0,69. A ordenação das variáveis por magnitude é "
+ "idêntica pelas duas vias. A depressão não se move por critério algum. O eixo do microciclo terminal é, "
+ "portanto, o par vigor e fadiga, e essa conclusão não depende da escolha metodológica.",
+ "O modelo misto acrescenta a taxa: a fadiga sobe 0,354 ponto por dia e o vigor cai 0,335, o que projeta cerca "
+ "de dois pontos de deslocamento ao longo da semana em cada direção. A decomposição da variância acrescenta "
+ "outra informação de valor prático: a proporção atribuível a diferenças estáveis entre atletas vai de 0,341 "
+ "na raiva a 0,765 na depressão. Variáveis com proporção elevada exigem referência intraindividual no "
+ "monitoramento, porque comparar um atleta à média do grupo confunde traço com estado. Essa distinção dialoga "
+ "com a evidência de que a carga se distribui de modo desigual entre atletas do mesmo elenco (BÜCHEL; DÖRING; "
+ "BAUMEISTER, 2026) e de que a resposta ao treino é individual (SAW; MAIN; GASTIN, 2016).",
+ "Quanto ao estímulo, as duas vias convergem em um resultado negativo: nem a distribuição dos perfis nem os "
+ "níveis médios distinguem os tipos de dia, com a única exceção da raiva pela via de postos. A dinâmica "
+ "intradiária, ao contrário, é robusta pelas duas vias, e a migração para a faixa de risco ao longo do dia é o "
+ "fenômeno mais consistente do conjunto. A leitura que os dados sustentam é que o custo do dia de treino "
+ "existe e é mensurável, ao passo que a sua atribuição a um tipo particular de estímulo não se sustenta neste "
+ "tamanho de amostra e neste delineamento."]),
+]
+LIMITACOES=[
+"A comparação entre vias realizada aqui é empírica e não simula condições controladas. Ela mostra que as vias "
+"divergem neste conjunto de dados, com esta estrutura de ausências e estas distribuições, e não estabelece "
+"com que frequência divergiriam em outros. Um estudo de simulação com estruturas de dados variadas seria o "
+"complemento natural.",
+"O modelo misto foi especificado com intercepto aleatório e efeito linear do dia. Especificações alternativas "
+"— dia como fator categórico, inclinação aleatória por atleta, estrutura autorregressiva para os resíduos — "
+"produziriam estimativas distintas, e o caso da confusão mostra que a escolha importa. A especificação "
+"adotada é a mais simples que responde à pergunta de tendência, e essa escolha foi declarada em vez de "
+"otimizada contra o resultado.",
+"O mecanismo de ausência não foi modelado. As faltas às sessões não são aleatórias e podem correlacionar-se "
+"com o próprio estado que se mede, o que introduz possibilidade de viés que nem o modelo misto elimina; ele "
+"apenas dispensa a exigência de dados completos sob o pressuposto mais fraco de ausência aleatória "
+"condicional às covariáveis observadas.",
+"Os tipos de estímulo não foram distribuídos ao acaso ao longo da semana, de modo que o tipo de dia se "
+"confunde com a posição no microciclo e com a carga acumulada. Nenhuma via estatística resolve confundimento "
+"de delineamento.",
+"Quatro das seis subescalas apresentam efeito de piso severo, o que compromete a detecção de melhora e "
+"introduz assimetria em toda comparação. O estudo acompanhou uma única equipe masculina de primeira divisão "
+"em uma única semana, e não registrou desfechos externos de desempenho, marcadores fisiológicos ou lesão.",
+]
+CONCLUSAO=[
+"Submetida às três vias de análise, a mesma série de humor produziu vereditos concordantes em quatro das sete "
+"variáveis e discordantes em três. A tensão e a perturbação total passaram de não significativas pela via de "
+"postos a significativas pelo modelo misto; a confusão percorreu o caminho inverso. A causa principal é o "
+"custo amostral das vias clássicas de medidas repetidas, que exigem registro completo e descartam 88% dos "
+"pares disponíveis; a causa secundária é a diferença entre perguntar se os dias diferem e perguntar se existe "
+"tendência linear.",
+"O retrato substantivo do microciclo, contudo, resistiu à variação metodológica. O vigor cai e a fadiga sobe "
+"por qualquer via e por qualquer índice de magnitude, com os dois maiores tamanhos de efeito do conjunto, e a "
+"depressão não se move por critério algum. As duas vias ordenam as variáveis por magnitude de modo idêntico, "
+"o que indica que a discordância diz respeito à detecção e não à importância relativa.",
+"Três recomendações decorrem do estudo. Primeira: em séries de monitoramento com ausências frequentes, "
+"reportar mais de uma via, e explicitar quantos participantes cada uma descarta. Segunda: reportar os "
+"pressupostos variável a variável, e não como declaração global, porque o efeito de piso e a violação de "
+"esfericidade não se distribuem igualmente entre as subescalas. Terceira: acompanhar o valor de p com um "
+"critério de magnitude relativo ao ruído da própria série, declarado antes da leitura, de modo que o leitor "
+"identifique onde a conclusão é frágil.",
+"A discordância entre vias não é um defeito a ocultar. Ela é informação: aponta qual pressuposto está sob "
+"tensão em cada variável e, com isso, torna auditável um julgamento que de outro modo permaneceria implícito.",
+]
