@@ -60,7 +60,7 @@ ACHADOS=[
                'curado em COLETAS.xlsx para o mesmo carimbo. Os quatro voltaram aos donos (A01, A01, A04, A07).',
       impacto='O elenco é de 27 atletas, não 28. Nenhum atleta-dia foi criado ou perdido.',
       gravidade='média'),
- dict(id='D4', titulo='Unidade de análise não declarada — a causa raiz',
+ dict(id='D4', titulo='Unidade de análise não declarada: a causa raiz',
       achado='As sete gerações de manuscrito misturam quatro unidades de análise distintas sem declará-las. '
              'A mesma classificação, sobre os mesmos dados, produz variações do perfil iceberg entre D1 e D7 '
              'que vão de −0,6 a −18,0 pontos percentuais conforme a unidade escolhida.',

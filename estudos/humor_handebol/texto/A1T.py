@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Artigo 1 — descritivo-analítico."""
+"""Artigo 1: descritivo-analítico."""
 TITULO=("Dois choques e um platô: o comportamento das dimensões do humor no microciclo terminal de "
         "pré-temporada em atletas de handebol de elite")
 SUB=("Estudo observacional longitudinal com coletas diárias pré e pós, tratamento de séries por "
@@ -59,8 +59,8 @@ KEYWORDS=("mood; handball; Brunel Mood Scale; athlete monitoring; time series; p
 INTRO=[
 "O reconhecimento de que o estado afetivo informa sobre a condição de treino de um atleta antecede em décadas "
 "o instrumental que hoje o mede. Morgan (1985) propôs um modelo de saúde mental no qual o bem-estar "
-"psicológico acompanha o êxito esportivo, e a representação gráfica desse bem-estar — vigor acima da média "
-"normativa e as cinco dimensões negativas abaixo dela — recebeu o nome de perfil iceberg (MORGAN, 1980). O "
+"psicológico acompanha o êxito esportivo, e a representação gráfica desse bem-estar, com vigor acima da média normativa e as cinco dimensões negativas "
+"abaixo dela, recebeu o nome de perfil iceberg (MORGAN, 1980). O "
 "Profile of Mood States sustentou essa tradição até que Terry et al. (1999) dele derivassem uma versão breve "
 "de vinte e quatro itens, a Escala de Humor de Brunel, validada em seguida para amostras atléticas com "
 "valores normativos próprios (TERRY; LANE, 2000) e adaptada ao português por Rohlfs et al. (2008), com "
@@ -126,7 +126,17 @@ INTRO=[
  "(HOPKINS, 2000; HOPKINS; SCHABORT; HAWLEY, 2001). Aplicados a testes físicos, esses limiares mostram que "
  "muitos instrumentos consagrados não distinguem a mudança relevante do próprio erro (LINDBERG et al., 2022; "
  "GARRETT et al., 2020). Aplicados a escalas de humor com coleta diária, praticamente não existem.",
- "Essas lacunas justificam o presente estudo. De um lado, o handebol de elite impõe, na semana que antecede a "
+ "A relevância prática dessas lacunas não é conjetural. A revisão de escopo de Timmerman, Abbiss e Lawler (2024) "
+ "reuniu quarenta e dois estudos sobre a perspectiva de treinadores e de comissões técnicas e registrou três "
+ "motivos recorrentes para monitorar: reduzir lesão e doença, orientar o programa de treino e sustentar o "
+ "rendimento. Os mesmos profissionais admitem que nenhuma abordagem científica é perfeita e que o dado só adquire "
+ "sentido quando se integra à conversa com o atleta. Do outro lado dessa relação, Woolmer, Morris e Noon (2025) "
+ "verificaram que a adesão do jogador depende menos da sofisticação do instrumento do que da devolutiva que ele "
+ "recebe. Lobo (2026) formula o impasse em termos gerais ao situar a analítica esportiva como cadeia que só se "
+ "completa quando a captura do dado desemboca em decisão interpretável. Sucede que devolver ao atleta uma oscilação "
+ "indistinguível do erro da medida corrói justamente a confiança de que depende a adesão. Um limiar declarado, "
+ "portanto, não constitui refinamento estatístico: é condição para que o monitoramento diário sustente decisão "
+ "defensável.",  "Do encontro desses problemas nasce o presente estudo. De um lado, o handebol de elite impõe, na semana que antecede a "
 "estreia competitiva, uma sucessão de estímulos heterogêneos cuja repercussão afetiva permanece indocumentada "
 "em escala diária. De outro, o instrumental disponível para descrever essa repercussão carece de um critério "
 "que separe sinal de ruído. A conjunção dos dois problemas define o objetivo geral desta investigação: "
@@ -179,9 +189,8 @@ METODO=[
  "identificou divergências entre versões derivadas dessa base, e o presente estudo as resolveu antes de "
  "qualquer análise. Três decisões merecem registro.",
  "Primeira: o dia de cada registro passou a ser definido pelo carimbo de data e hora do formulário, com "
- "fronteira às quatro da manhã, e não pela data autorreferida pelo respondente. Essa coluna contém datas de "
- "nascimento e erros de digitação — cinquenta e cinco registros trazem ano anterior a 2020 —, de modo que "
- "oitenta e quatro dos 457 registros seriam inutilizáveis por ela: sessenta e oito caem fora da semana de "
+ "fronteira às quatro da manhã, e não pela data autorreferida pelo respondente. Essa coluna acumula datas de nascimento e erros de digitação, pois cinquenta e cinco registros trazem ano "
+ "anterior a 2020, de modo que oitenta e quatro dos 457 registros seriam inutilizáveis por ela: sessenta e oito caem fora da semana de "
  "estudo e dezesseis estão em branco. Entre os registros do microciclo, oitenta e oito divergem do dia obtido "
  "pelo carimbo. A fronteira às quatro da manhã devolve ao primeiro dia seis registros lançados entre "
  "meia-noite e uma da manhã do dia seguinte, todos de atletas que já haviam respondido na noite anterior.",
@@ -189,9 +198,8 @@ METODO=[
  "um vigésimo oitavo atleta inexistente. Dois foram devolvidos ao respondente por correspondência exata no "
  "dicionário de variantes de nome e dois pelo nome curado, no mesmo carimbo de data e hora, de uma base "
  "derivada. O elenco é, portanto, de vinte e sete atletas.",
- "Terceira: a unidade de análise passou a ser declarada. Quatro unidades circulavam nas versões anteriores — "
- "o registro isolado, o par formado pelo primeiro e pelo último registro do dia, o par atleta-dia e a "
- "subamostra dos atletas com medida no primeiro e no sétimo dia. Elas produzem, sobre exatamente os mesmos "
+ "Terceira: a unidade de análise passou a ser declarada. Quatro unidades circulavam nas versões anteriores: o registro isolado, o par formado pelo primeiro e pelo "
+ "último registro do dia, o par atleta-dia e a subamostra dos atletas com medida no primeiro e no sétimo dia. Elas produzem, sobre exatamente os mesmos "
  "dados e com a mesma classificação, variações do perfil iceberg entre o primeiro e o sétimo dia que vão de "
  "0,6 a 18,0 pontos percentuais. A Figura 2 apresenta essa comparação, e o Quadro 1 documenta a linhagem.",
  "A essa primeira passagem, dedicada à procedência do número, seguiu-se uma segunda, dedicada à qualidade do "
@@ -223,15 +231,15 @@ METODO=[
  "é por isso que a identidade do respondente provém da coluna padronizada, e não do texto livre. As demais "
  "variáveis categóricas do formulário não apresentam variante de grafia.",
  "A triagem de valores discrepantes obedeceu a uma ordem. Primeiro a verificação de domínio: valor fora do "
- "intervalo admissível da escala é erro, e não discrepância. Depois três critérios de dispersão — a cerca de "
- "Tukey, o escore z e o escore z modificado, este último construído sobre a mediana e o desvio absoluto "
+ "intervalo admissível da escala é erro, e não discrepância. Depois três critérios de dispersão: a cerca de Tukey, o escore z e o escore z modificado, este último "
+ "construído sobre a mediana e o desvio absoluto "
  "mediano e, por isso, resistente à contaminação pelo próprio valor extremo. A ordem importa porque os três "
  "critérios de dispersão falham em subescala com efeito de piso, condição que se verifica nesta amostra e "
  "cujo tratamento é relatado na seção de resultados."]),
 ("Instrumentos",[
  "Aplicou-se a Escala de Humor de Brunel em sua versão brasileira (ROHLFS et al., 2008), composta por vinte e "
- "quatro itens distribuídos em seis subescalas de quatro itens — tensão, depressão, raiva, vigor, fadiga e "
- "confusão —, respondidos em escala de cinco pontos, de zero a quatro, com amplitude de zero a dezesseis por "
+ "quatro itens distribuídos em seis subescalas de quatro itens (tensão, depressão, raiva, vigor, fadiga e confusão), respondidos em escala de "
+ "cinco pontos, de zero a quatro, com amplitude de zero a dezesseis por "
  "subescala. A instrução temporal solicitou ao atleta que considerasse como se sentia naquele momento. A "
  "perturbação total do humor resulta da soma das cinco subescalas negativas subtraída do vigor. Todas as "
  "subescalas foram recalculadas a partir dos vinte e quatro itens e conferidas contra as colunas já "
@@ -292,8 +300,7 @@ METODO=[
  "pergunta acrescentaram-se três limiares consagrados na literatura de monitoramento (HOPKINS, 2000; "
  "HOPKINS; SCHABORT; HAWLEY, 2001).",
  "O erro típico é o desvio-padrão das diferenças entre medidas repetidas do mesmo atleta, dividido pela raiz "
- "de dois. Calculou-se a partir das diferenças entre dias consecutivos, de modo que a estimativa incorpora a "
- "variação biológica de um dia para o outro — que é o ruído contra o qual o monitoramento diário de fato "
+ "de dois. Calculou-se a partir das diferenças entre dias consecutivos, de modo que a estimativa incorpora a variação biológica de um dia para o outro, que constitui o ruído contra o qual o monitoramento diário de fato "
  "opera. A menor mudança relevante adotou o critério de distribuição usual, dois décimos do desvio-padrão "
  "entre atletas, e a mudança mínima detectável correspondeu a 1,96 vezes a raiz de dois vezes o erro típico. "
  "A razão entre a menor mudança relevante e o erro típico expressa a aptidão do instrumento para o "
@@ -343,8 +350,8 @@ R1=[
 "no primeiro dia, 26 no segundo e no terceiro, 21 no quarto, 23 no quinto, 22 no sexto e 21 no sétimo. A "
 "Tabela 1 reúne a descrição completa das sete variáveis. Três traços organizam a leitura.",
 "Em primeiro lugar, a assimetria é acentuada nas subescalas negativas: a depressão apresenta assimetria de "
-"3,80 e curtose de 17,66, e a confusão, 3,53 e 15,15. Em segundo lugar, a mediana coincide com o valor mínimo "
-"da escala em duas subescalas — depressão e confusão — e situa-se a meio ponto dele na raiva, o que desloca a "
+"3,80 e curtose de 17,66, e a confusão, 3,53 e 15,15. Em segundo lugar, a mediana coincide com o valor mínimo da escala em duas subescalas, depressão e confusão, e situa-se a meio "
+"ponto dele na raiva, o que desloca a "
 "informação para as caudas. Em terceiro lugar, a média aparada a vinte por cento afasta-se sistematicamente "
 "da média aritmética nas mesmas subescalas: a depressão cai de 1,02 para 0,31 e a confusão, de 0,50 para "
 "0,12. Nenhuma das sete variáveis passa no teste de Shapiro-Wilk ao nível de cinco por cento; o vigor é a que "
@@ -377,8 +384,8 @@ R2=[
 "(z = 2,86; p = 0,004), o vigor decresce (z = −2,84; p = 0,004), a tensão decresce (z = −2,59; p = 0,010) e a "
 "confusão decresce (z = −2,52; p = 0,012). A raiva alcança significância marginal na direção decrescente "
 "(z = −2,03; p = 0,043), resultado que exige cautela: a comparação direta entre o primeiro e o sétimo dia "
-"mostra elevação de 0,74 ponto. A contradição é aparente e revela a limitação do teste quando a trajetória "
-"não é monotônica — a raiva cai até o quinto dia e sobe abruptamente depois, de modo que a soma ponderada de "
+"mostra elevação de 0,74 ponto. A contradição é aparente e revela a limitação do teste quando a trajetória não é monotônica: a raiva cai até o quinto dia e sobe abruptamente "
+"depois, de modo que a soma ponderada de "
 "postos favorece a direção do trecho mais longo. Nem a depressão (z = −0,36; p = 0,718) nem a perturbação "
 "total (z = 0,79; p = 0,428) apresentam tendência ordenada.",
 "O teste de Friedman, restrito aos dezenove atletas com registro completo nos sete dias, rejeita a hipótese de "
@@ -414,9 +421,8 @@ R3=[
 "apenas na primeira dessas passagens; a raiva, nas duas últimas; e a perturbação total, somente na passagem "
 "do sexto para o sétimo dia. A depressão não apresenta transição alguma que supere o piso. O padrão que "
 "emerge é o de deslocamento por choques nas pontas, com platô intermediário, e não o de deriva lenta e "
-"uniforme. Os pontos de inflexão reforçam essa leitura: situam-se entre o terceiro e o quinto dia na maioria "
-"das variáveis — 3,86 no vigor, 3,77 na fadiga, 3,53 na perturbação total, 4,54 na tensão e 5,07 na "
-"confusão —, o que localiza no miolo da semana a mudança de regime da aceleração.",
+"uniforme. Os pontos de inflexão reforçam essa leitura: situam-se entre o terceiro e o quinto dia na maioria das variáveis (3,86 no vigor, 3,77 na fadiga, 3,53 na "
+"perturbação total, 4,54 na tensão e 5,07 na confusão), o que localiza no miolo da semana a mudança de regime da aceleração.",
 ]
 R4=[
 "A Figura 6 expressa as duas derivadas em unidades do piso de ruído de cada variável, o que permite "
@@ -451,8 +457,7 @@ R5=[
 "A trajetória diária revela dois movimentos de sentido oposto e magnitude comparável. O iceberg recua de "
 "37,0% no primeiro dia para 19,0% no sétimo, deslocamento de 18,0 pontos percentuais contra um piso de 9,5. A "
 "barbatana de tubarão avança de 11,1% para 28,6%, deslocamento de 17,5 pontos contra um piso de 9,0. A faixa "
-"de risco, que agrega três perfis, sobe de 22,2% para 52,4%, deslocamento de 30,2 pontos contra um piso de "
-"9,8 — o maior da série. A superfície recua 13,8 pontos contra um piso de 5,9 e o iceberg invertido avança "
+"de risco, que agrega três perfis, sobe de 22,2% para 52,4%, deslocamento de 30,2 pontos contra um piso de 9,8, o maior da série. A superfície recua 13,8 pontos contra um piso de 5,9 e o iceberg invertido avança "
 "7,9 contra 6,2. O submerso oscila abaixo do respectivo piso e recebe o veredito de ruído. O Everest "
 "invertido, cujo deslocamento nominalmente supera o piso, envolve dois pares atleta-dia no conjunto inteiro; "
 "o piso binomial, calculado sobre proporções próximas de zero, encolhe a ponto de deixar de discriminar, e "
@@ -516,9 +521,8 @@ R7=[
 "A faixa favorável e a faixa de risco fornecem o cruzamento de maior amplitude do estudo. Elas partem "
 "separadas por 14,8 pontos percentuais em favor da favorável e terminam separadas por 33,3 em favor da de "
 "risco, com um único cruzamento, na abscissa 1,88. O limiar combinado é de 13,7 pontos percentuais, e ambas "
-"as separações o superam: a inversão é declarada estabelecida. O grupo, portanto, troca de regime já no "
-"segundo dia da semana — antes, e de modo mais nítido, do que a inversão entre vigor e fadiga, que só ocorre "
-"no quinto. A faixa agrega três perfis e por isso responde antes que qualquer subescala isolada.",
+"as separações o superam: a inversão é declarada estabelecida. O grupo, portanto, troca de regime já no segundo dia da semana, antes e de modo mais nítido do que a inversão "
+"entre vigor e fadiga, que só ocorre no quinto. A faixa agrega três perfis e por isso responde antes que qualquer subescala isolada.",
 ]
 
 RC=[
@@ -536,13 +540,13 @@ RC=[
  "A implicação é local e não invalida o instrumento: em elenco saudável de alto rendimento, medido "
  "diariamente, os itens de tensão de alta intensidade têm efeito de piso severo, e o escore de tensão passa "
  "a ser governado pelos dois itens de apreensão. Onde este artigo e o companheiro leem a tensão como "
- "ativação e não como sofrimento, é a essa apreensão que se referem — e a leitura ganha suporte, não o "
- "perde, quando se sabe de onde vem a variância."]
+ "ativação e não como sofrimento, é a essa apreensão que se referem, e a leitura ganha suporte, em vez de perdê-lo, quando se conhece a origem da "
+ "variância."]
 
 RP=[
  "As séries de prevalência, examinadas perfil a perfil na Figura 10, revelam um padrão que a média das "
- "subescalas não expõe. Os dois perfis de extremos favorável e desfavorável — iceberg e barbatana de "
- "tubarão — não se movem em espelho ao longo de toda a semana. O iceberg atinge o seu máximo em D5, entre "
+ "subescalas não expõe. Os dois perfis de extremos favorável e desfavorável, o iceberg e a barbatana de tubarão, não se movem em "
+ "espelho ao longo de toda a semana. O iceberg atinge o seu máximo em D5, entre "
  "os dois amistosos, e só desaba no último dia; a barbatana de tubarão atinge o seu em D6, o dia técnico e "
  "de força que antecede a estreia.",
  "A Figura 11 recompõe a semana como redistribuição, e não como deslocamento de médias. A leitura em área "
@@ -610,11 +614,9 @@ RQ=[
  "que é precisamente o que o monitoramento diário existe para detectar.",
  "A reconferência fechou a auditoria. Todos os números deste artigo foram recalculados por um segundo caminho "
  "de código, independente do primeiro: enquanto a base canônica parte das colunas já pontuadas, a "
- "reconferência parte do item do formulário e reconstrói cada escore por fórmula. As sessenta e cinco "
- "conferências — médias diárias, variações entre o primeiro e o sétimo dia, pisos de ruído, derivadas "
- "normalizadas, prevalências da faixa de risco, valores de p dos contrastes e estatísticas W do teste de "
- "normalidade — coincidem dentro da tolerância "
- "adotada. Nenhum valor do texto precisou de correção."]
+ "reconferência parte do item do formulário e reconstrói cada escore por fórmula. As sessenta e cinco conferências (médias diárias, variações entre o primeiro e o sétimo dia, pisos de ruído, "
+ "derivadas normalizadas, prevalências da faixa de risco, valores de p dos contrastes e estatísticas W do teste "
+ "de normalidade) coincidem dentro da tolerância adotada. Nenhum valor do texto precisou de correção."]
 
 DISCUSSAO=[
 ("A forma da semana: dois choques e um platô",[
@@ -625,8 +627,8 @@ DISCUSSAO=[
  "primeiro dia de treino intervalado, quatro variáveis se movem acima do piso; na passagem do penúltimo para o "
  "último dia, quatro também; nos quatro dias intermediários, quase nenhuma o faz.",
  "Essa geometria contraria a intuição de acúmulo linear que costuma orientar a leitura de séries de "
- "monitoramento. Se a carga se soma dia após dia, e ela de fato se soma — de 1,5 hora para 23,0 horas ao longo "
- "da semana —, seria razoável esperar deterioração proporcional. O que se observa aproxima-se mais de um "
+ "monitoramento. Se a carga se soma dia após dia, e ela de fato se soma, de 1,5 hora para 23,0 horas ao longo da semana, seria "
+ "razoável esperar deterioração proporcional. O que se observa aproxima-se mais de um "
  "sistema com histerese: resiste até certo ponto, cede de uma vez e depois se estabiliza em novo patamar. "
  "Meeusen et al. (2013) descreveram o continuum entre sobrecarga funcional, sobrecarga não funcional e "
  "supertreinamento em termos de patamares, e não de gradientes; os dados aqui apresentados oferecem, em escala "
@@ -654,8 +656,8 @@ DISCUSSAO=[
  "depressão em termos positivos: a variação de 0,21 ponto é menor do que a oscilação amostral típica de 0,45, "
  "e não apenas ausência de evidência de mudança. Recusou o estatuto de inversão à troca de posição entre "
  "tensão e raiva, que uma leitura desatenta teria celebrado. E expôs a própria fragilidade em prevalências "
- "próximas de zero, onde o erro-padrão binomial encolhe e o critério se torna permissivo — limitação que o "
- "texto assinala em vez de ocultar.",
+ "próximas de zero, onde o erro-padrão binomial encolhe e o critério se torna permissivo, limitação que o texto assinala em vez de "
+ "ocultar.",
  "Há, nessa discussão, uma dimensão que ultrapassa a técnica. Uma série de sete pontos comporta muitas "
  "narrativas, e a escolha entre elas raramente decorre dos dados. O piso de ruído funciona como um compromisso "
  "que o analista assume consigo mesmo antes de olhar, e o seu valor epistemológico reside exatamente aí: "
@@ -663,9 +665,8 @@ DISCUSSAO=[
  "um critério explícito faz é torná-lo auditável."]),
 ("A unidade de análise como fonte silenciosa de divergência",[
  "A auditoria que precedeu este estudo revelou algo que merece registro na literatura, e não apenas no "
- "apêndice metodológico. Sete versões anteriores deste conjunto de dados chegaram a valores divergentes para a "
- "mesma quantidade — a variação da prevalência do perfil iceberg entre o primeiro e o último dia — e a causa "
- "não foi erro de cálculo em nenhuma delas. Foi a escolha, nunca declarada, de qual observação conta como uma "
+ "apêndice metodológico. Sete versões anteriores deste conjunto de dados chegaram a valores divergentes para a mesma quantidade, a variação da prevalência do perfil iceberg entre o "
+ "primeiro e o último dia, e a causa não foi erro de cálculo em nenhuma delas. Foi a escolha, nunca declarada, de qual observação conta como uma "
  "unidade.",
  "Sobre exatamente os mesmos registros e com a mesma classificação, a variação vai de 0,6 ponto percentual, "
  "quando se conta cada registro do primeiro e do último momento do dia, a 18,0 pontos, quando se conta um "
@@ -680,9 +681,9 @@ DISCUSSAO=[
  "poucos atletas muito assíduos podem determinar a série inteira."]),
 ("Do grupo para o atleta: o que os limiares permitem e o que impedem",[
  "A distinção entre o piso de ruído do grupo e o erro típico do atleta organiza o alcance prático de tudo o "
- "que este artigo descreve. O piso responde à pergunta do pesquisador — a média se moveu? — e por ele a "
- "semana tem sinal claro em cinco das sete variáveis. O erro típico responde à pergunta do preparador — este "
- "atleta mudou? — e por ele o instrumento diário não alcança, em nenhuma variável, a menor mudança "
+ "que este artigo descreve. O piso responde à pergunta do pesquisador, a de saber se a média se moveu, e por ele a semana exibe sinal claro "
+ "em cinco das sete variáveis. O erro típico atende à pergunta do preparador, a de saber se aquele atleta mudou, "
+ "e por ele o instrumento diário não alcança, em nenhuma variável, a menor mudança "
  "considerada relevante pelo critério de distribuição usual.",
  "A conclusão não é que o monitoramento diário do humor seja inútil, e sim que ele opera em outra escala de "
  "decisão do que a que a literatura de testes físicos costuma assumir. Instrumentos de autorrelato são "
@@ -758,9 +759,8 @@ LIMITACOES=[
  "verificável com estes dados. É por essa razão que cada contraste declara o seu denominador e que a unidade "
  "de análise foi fixada no par atleta-dia.",
  "A nona é de granularidade do registro. O número de respostas por atleta e por dia varia de um a seis, "
- "acima do previsto no protocolo. A regra "
- "adotada — média de todos os registros do dia para o valor diário, primeiro e último para o contraste "
- "intradiário — preserva a informação, mas atribui pesos internos distintos conforme o atleta tenha respondido "
+ "acima do previsto no protocolo. A regra adotada, que toma a média de todos os registros do dia para o valor diário e reserva o primeiro e o "
+ "último ao contraste intradiário, preserva a informação, mas atribui pesos internos distintos conforme o atleta tenha respondido "
  "duas ou seis vezes naquele dia. O efeito é pequeno, porque a mediana do intervalo entre respostas "
  "consecutivas é de quase duas horas, e a alternativa de descartar registros seria pior."
 ]
@@ -772,8 +772,8 @@ CONCLUSAO=[
 "dos pares atleta-dia e a faixa de risco avançou de 22,2% para 52,4%. A deterioração, contudo, não se "
 "distribuiu de modo uniforme: concentrou-se em duas transições, a primeira na saída do dia basal e a segunda "
 "na véspera da estreia, e deixou entre elas um platô de quatro dias.",
-"O tratamento de séries proposto — filtro binomial, derivadas de primeira e segunda ordem expressas em "
-"unidades de ruído e teste formal de cruzamento — mostrou-se útil em três frentes: localizou as transições de "
+"O tratamento de séries proposto, que reúne filtro binomial, derivadas de primeira e segunda ordem expressas em "
+"unidades de ruído e teste formal de cruzamento, mostrou-se útil em três frentes: localizou as transições de "
 "choque e os pontos de inflexão que a comparação entre médias diárias não revela; explicou a imobilidade da "
 "depressão em termos positivos; e separou, entre as trocas de posição observadas, as três que constituem "
 "inversão estabelecida das duas que permanecem no terreno da divergência. Recomenda-se a sua adoção como "

@@ -19,11 +19,17 @@ para("Modelagem preditiva, limiares de mudança e o processo do estudo mapeado n
      indent=False, italic=True, size=11, align=WD_ALIGN_PARAGRAPH.CENTER, after=18, spacing=1.15)
 
 head("1 OBJETIVO")
+para("O monitoramento psicológico só se converte em prática quando alcança a escala de decisão da comissão "
+     "técnica, que é diária e individual. Revisões recentes da perspectiva de treinadores mostram que o dado é "
+     "procurado para reduzir lesão, ajustar o programa e sustentar o rendimento, e que a sua utilidade percebida "
+     "depende da devolutiva oferecida ao atleta (TIMMERMAN; ABBISS; LAWLER, 2024; WOOLMER; MORRIS; NOON, 2025). A "
+     "analítica esportiva, por sua vez, ganhou sofisticação computacional sem resolver a tradução do modelo em "
+     "conduta interpretável (LOBO, 2026). Neste intervalo se situa o presente anexo.")
 para("Os dois artigos descrevem o comportamento das dimensões do humor ao longo do microciclo terminal e "
      "submetem cada contraste a três vias de análise. Este anexo responde a outra pergunta, de natureza "
      "operacional: a medida da manhã antecipa o estado da noite do mesmo dia? A pergunta interessa à comissão "
-     "técnica porque o horizonte de decisão é de horas — a informação da manhã precisa servir à sessão que "
-     "começa depois dela.")
+     "técnica porque o horizonte de decisão é de horas: a informação da manhã precisa servir à sessão que começa depois "
+     "dela.")
 para("O anexo cumpre também uma segunda função. A modelagem preditiva sobre amostra pequena produz números "
      "otimistas com facilidade, e o registro do que foi feito para evitá-los importa tanto quanto o resultado. "
      "A seção 5 organiza o estudo inteiro nas seis fases do CRISP-DM (CHAPMAN et al., 2000) e separa, em cada "
@@ -50,8 +56,8 @@ figura(os.path.join(S,"M4fig.png"), fig(),
 head("2 MÉTODO")
 head("2.1 Unidade, alvo e preditores", lvl=2)
 para(f"A unidade é o par atleta-dia com medida da manhã e medida da noite, o que produz {ML['n']} observações "
-     f"de {ML['atletas']} atletas. O desfecho é binário: o atleta termina o dia classificado em um dos três "
-     "perfis da faixa de risco — barbatana de tubarão, iceberg invertido ou everest invertido. A taxa de "
+     f"de {ML['atletas']} atletas. O desfecho é binário: o atleta termina o dia classificado em um dos três perfis da faixa de risco, a saber, barbatana de tubarão, "
+     "iceberg invertido ou everest invertido. A taxa de "
      f"eventos é de {n_(ML['eventos']/ML['n']*100,1)}% ({ML['eventos']} de {ML['n']}).")
 para("Os preditores vêm exclusivamente da medida da manhã: as seis subescalas do BRUMS, a perturbação total "
      "do humor, a fadiga física e a mental, a sonolência de Epworth, o estresse percebido, o indicador de já "
@@ -66,8 +72,8 @@ para("A modelagem herda a base dos dois artigos, e com ela as duas auditorias qu
 para("Duas consequências recaem sobre este anexo. A primeira é que a sonolência de Epworth, que entra como "
      "preditor, teve o domínio corrigido de zero a vinte e quatro para zero a dezoito: o formulário aplicou "
      "seis das oito situações da escala, e o rótulo da coluna de origem estava incorreto. A correção não "
-     "altera nenhum valor observado, apenas o intervalo declarado. A segunda é que o número de pares "
-     f"disponíveis para a modelagem — {ML['n']} — foi confirmado por recálculo independente, junto com a "
+     "altera nenhum valor observado, apenas o intervalo declarado. A segunda é que o número de pares "      f"disponíveis para a modelagem ({ML['n']}) foi confirmado por "
+     "recálculo independente, junto com a "
      f"contagem de atletas e de eventos.")
 para(f"A reconferência abrangeu {CO['total']} valores dos três documentos, recalculados por um caminho de "
      "código que parte do item do formulário em vez das colunas já pontuadas. Todos coincidem dentro da "
@@ -82,7 +88,7 @@ para("A validação é cruzada, estratificada e agrupada por atleta: nenhum atle
 para("Dois modelos triviais entram na comparação como referência obrigatória. O primeiro atribui a todos a "
      "classe majoritária. O segundo aplica a regra que qualquer preparador aplicaria de cabeça: quem amanhece "
      f"na faixa de risco termina o dia na faixa de risco. Essa regra acerta {n_(ML['regra_trivial']*100,1)}% dos "
-     "casos, e é contra ela — não contra o acaso — que os modelos precisam mostrar ganho.")
+     "casos, e é contra ela, e não contra o acaso, que os modelos precisam mostrar ganho.")
 head("2.4 Modelos", lvl=2)
 para("Quatro classificadores foram ajustados: árvore de decisão de profundidade três, floresta aleatória, "
      "XGBoost e regressão logística com padronização. Os hiperparâmetros foram fixados em valores conservadores "
@@ -133,16 +139,15 @@ src(nota="Profundidade máxima de três e mínimo de doze pares por folha. Os li
 imp=ML2['IMPORTANCIA'][:5]
 para("A importância por permutação, medida fora da amostra, concentra-se em duas variáveis: a perturbação "
      f"total do humor pela manhã, cuja permuta derruba a AUC em {n_(imp[0]['media'])}, e a tensão pela manhã, "
-     f"que derruba {n_(imp[1]['media'])}. As demais somam pouco — a terceira colocada, a fadiga pela manhã, "
-     f"responde por {n_(imp[2]['media'])} — e o indicador de já estar em risco pela "
+     f"que derruba {n_(imp[1]['media'])}. As demais somam pouco, pois a terceira colocada, a fadiga pela manhã, "      f"responde por apenas "
+     "{n_(imp[2]['media'])}, e o indicador de já estar em risco pela "
      f"manhã, que sustenta a regra trivial, aparece com apenas {n_([e for e in ML2['IMPORTANCIA'] if 'risco' in e['var'].lower()][0]['media'])}. "
-     "O modelo, em outras palavras, não está reproduzindo a regra trivial por outro caminho.")
+     "O modelo, em outras palavras, não reproduz a regra trivial por outro caminho.")
 
 head("3.3 Diagnóstico: achado ou aritmética do desenho?", lvl=2)
 para("O primeiro corte da árvore é contraintuitivo. Ele separa pela perturbação total do humor e atribui maior "
      "risco vespertino a quem amanhece com o escore mais favorável. Antes de qualquer leitura clínica, a "
-     "hipótese concorrente precisa ser afastada: quem amanhece no piso da escala só tem para onde subir, e o "
-     "corte poderia estar capturando reversão à média em vez de risco.")
+     "hipótese concorrente precisa ser afastada: quem amanhece no piso da escala só tem para onde subir, e o corte poderia refletir reversão à média em vez de risco.")
 rv=sorted(ML3['REVERSAO'],key=lambda e:e['rho'])
 caption(f"Tabela {tab()} – Reversão à média: correlação entre o valor da manhã e a própria variação até a noite")
 mktable(["Dimensão","ρ de Spearman","p","Componente mecânico"],
@@ -197,9 +202,8 @@ para(f"O limiar da fadiga é o resultado de maior utilidade prática de todo o e
 para("Duas ressalvas delimitam o uso. O corte foi obtido no mesmo conjunto em que é avaliado, sem validação "
      "externa, e por isso a área sob a curva é otimista. E a subescala de tensão, que a análise de "
      "confiabilidade do artigo descritivo mostrou ter alfa de "
-     f"{n_([c for c in PS['CONF'] if c['subescala']=='Tensão'][0]['alfa'],3)} neste elenco, não discrimina "
-     "como âncora — o que é coerente: o marcador protetor identificado pela modelagem é a apreensão "
-     "antecipatória do início do dia, não a variação da tensão ao longo dele.")
+     f"{n_([c for c in PS['CONF'] if c['subescala']=='Tensão'][0]['alfa'],3)} neste elenco, não discrimina como âncora, resultado coerente: o marcador protetor identificado pela modelagem é a "
+     "apreensão antecipatória do início do dia, não a variação da tensão ao longo dele.")
 
 head("4 O QUE ISTO PERMITE DIZER, E O QUE NÃO PERMITE")
 for t in [
@@ -214,7 +218,7 @@ for t in [
  "atletas de uma equipe em uma semana.",
  "O passo seguinte é a replicação prospectiva em um segundo microciclo, com o limiar fixado antes da coleta.",
 ]:
-    para("— "+t)
+    para("• "+t)
 
 head("5 O ESTUDO NAS SEIS FASES DO CRISP-DM")
 para("O CRISP-DM organiza um projeto de análise em seis fases que se retroalimentam (CHAPMAN et al., 2000). "
@@ -230,7 +234,7 @@ src(nota="A coluna de automação descreve o que foi executado por rotina ou por
          "repositório do estudo.")
 para("Seis regras atravessam as fases, e cada uma nasceu de um erro cometido e corrigido neste estudo:")
 for r in CD['REGRAS']:
-    para(f"— {r['t']}. {r['d']}")
+    para(f"• {r['t']}. {r['d']}")
 
 head("6 REPRODUÇÃO")
 para("Toda a cadeia é reconstruída por um comando (atualizar.sh), em sete etapas: base canônica a partir da "
@@ -243,6 +247,8 @@ para("A base anonimizada e os roteiros podem ser disponibilizados mediante solic
      "hipótese.", after=12)
 
 head("REFERÊNCIAS")
+# apenas as obras efetivamente citadas neste anexo
+CITADAS=('LOBO','TIMMERMAN','WOOLMER')
 cx=sqlite3.connect(os.path.join(RAIZ,"base","humor_handebol.sqlite"))
 usadas=[r for r in cx.execute("SELECT abnt,url_doi,autores FROM referencia ORDER BY id")]
 cx.close()
@@ -250,7 +256,7 @@ para("CHAPMAN, P.; CLINTON, J.; KERBER, R.; KHABAZA, T.; REINARTZ, T.; SHEARER, 
      "CRISP-DM 1.0: step-by-step data mining guide. [S. l.]: SPSS Inc., 2000.",
      indent=False, size=11, spacing=1.0, after=6, align=WD_ALIGN_PARAGRAPH.LEFT)
 for abnt,doi,aut in usadas:
-    if any(k in (aut or '').upper() for k in ('TERRY','PARSONS','LANE','BEEDIE','MORGAN')):
+    if any(k in (aut or '').upper() for k in CITADAS):
         para(abnt + (f" Disponível em: {doi}." if doi else ""), indent=False, size=11, spacing=1.0,
              after=6, align=WD_ALIGN_PARAGRAPH.LEFT)
 out=f"{S}/ANEXO_MODELAGEM_CRISP_DM.docx"

@@ -27,7 +27,7 @@ Base única: `base/humor_handebol.sqlite`. Os CSV em `base/csv/` são exportaç�
 | `qualidade_faltante` | 60 | 5 | — |
 | `qualidade_numerica` | 19 | 31 | — |
 | `reconferencia` | 65 | 6 | — |
-| `referencia` | 52 | 13 | Referências com DOI e ligação, quando localizados. |
+| `referencia` | 63 | 13 | Referências com DOI e ligação, quando localizados. |
 | `registro` | 456 | 19 | Cada formulário respondido, com momento (pré, pós, único) e período do dia. |
 | `resultado` | 305 | 20 | Todo resultado estatístico do estudo em formato longo e consultável. |
 | `serie_diaria` | 77 | 9 | Série de cada variável com erro-padrão, suavização, derivadas, piso de ruído e choque. |

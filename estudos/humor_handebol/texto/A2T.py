@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Artigo 2 — inferencial completo, paramétrico e não paramétrico."""
+"""Artigo 2: inferencial completo, paramétrico e não paramétrico."""
 TITULO=("Quanto a via e a unidade de análise decidem a conclusão: três rotas estatísticas sobre a mesma "
         "série de humor em um microciclo de handebol de elite")
 SUB=("Estudo observacional longitudinal com bateria inferencial completa, modelo linear misto, "
@@ -7,8 +7,8 @@ SUB=("Estudo observacional longitudinal com bateria inferencial completa, modelo
 
 RESUMO=(
 "O monitoramento psicológico do atleta produz séries curtas, repetidas e desbalanceadas, e a escolha da via "
-"de análise raramente é discutida. Este estudo submeteu a mesma série de humor a três vias — não paramétrica, "
-"paramétrica clássica e modelo linear misto — e mediu quanto do resultado é atribuível à via, e não aos dados. "
+"de análise raramente é discutida. Este estudo submeteu a mesma série de humor a três vias (não paramétrica, paramétrica clássica e modelo linear "
+"misto) e mediu quanto do resultado é atribuível à via, e não aos dados. "
 "Vinte e sete atletas de handebol masculino de primeira divisão responderam à Escala de Humor de Brunel "
 "durante a última semana de pré-temporada; os 456 registros foram agregados em 166 pares atleta-dia e 119 "
 "pares de manhã e noite. A via não paramétrica reuniu Friedman com W de Kendall, teste L de Page, Wilcoxon "
@@ -34,8 +34,8 @@ PALAVRAS=("estatística não paramétrica; modelo linear misto; medidas repetida
           "tamanho de efeito")
 ABSTRACT=(
 "Athlete psychological monitoring produces short, repeated and unbalanced series, and the choice of analytical "
-"route is rarely discussed. This study submitted the same mood series to three routes — non-parametric, "
-"classical parametric and linear mixed model — and measured how much of the result is attributable to the "
+"route is rarely discussed. This study submitted the same mood series to three routes (non-parametric, classical parametric and linear mixed "
+"model) and measured how much of the result is attributable to the "
 "route rather than to the data. Twenty-seven male first-division handball players completed the Brunel Mood "
 "Scale during the final pre-season week; the 456 records were aggregated into 166 athlete-day pairs and 119 "
 "morning-evening pairs. The non-parametric route combined Friedman with Kendall's W, Page's L test, Wilcoxon "
@@ -98,8 +98,18 @@ INTRO=[
  "reconhece o problema no plano da medida, ao exigir que a magnitude observada seja lida contra o erro "
  "típico do instrumento (HOPKINS, 2000; LINDBERG et al., 2022), mas raramente o examina no plano da "
  "inferência.",
- "Justifica-se, assim, submeter uma mesma série a todas as vias disponíveis e medir quanto do resultado "
-"pertence à via. Essa comparação não é um exercício de estatística aplicada desligado da prática: se a "
+ "Convém sublinhar que a questão já tem precedente documentado dentro da própria área. Newans, Bellinger e "
+ "Drovandi (2022) confrontaram as duas vias sobre 472 observações de partidas de rúgbi e demonstraram que a "
+ "exigência de casos completos, imposta pela análise de variância de medidas repetidas, descartaria 48,7% das "
+ "observações disponíveis, ao passo que o modelo misto as reteve e recuperou efeitos que a via clássica teria "
+ "ocultado. O alerta "
+ "extrapola o esporte: a literatura metodológica designa por graus de liberdade do pesquisador o conjunto de "
+ "escolhas analíticas defensáveis que, exercidas sem declaração, elevam a taxa de falsos positivos (MANDL et al., "
+ "2024). Falta, contudo, quantificar o fenômeno onde ele mais pesa, isto é, em séries curtas de monitoramento "
+ "psicológico com ausências frequentes, nas quais cada via disponível opera sobre um denominador próprio. Aí "
+ "reside a pergunta que organiza esta investigação: quanto da conclusão pertence aos dados e quanto pertence ao "
+ "caminho escolhido para lê-los.",  "Justifica-se, assim, submeter uma mesma série a todas as vias disponíveis e "
+ "medir quanto do resultado pertence à via. Essa comparação não é um exercício de estatística aplicada desligado da prática: se a "
 "comissão técnica decide reduzir carga a partir de um valor de p, importa saber que esse valor depende de uma "
 "escolha metodológica que ninguém declarou. O objetivo geral deste estudo consiste, portanto, em descrever o "
 "comportamento das variáveis do BRUMS ao longo da última semana de pré-temporada de atletas de handebol de "
@@ -193,9 +203,9 @@ METODO=[
 ("Sensibilidade da inferência à unidade de análise",[
  "A auditoria de procedência demonstrou que a prevalência dos perfis varia conforme a unidade de análise "
  "adotada. Resta a pergunta gêmea, que é a deste artigo: o veredito dos testes de hipótese também varia? "
- "Para respondê-la, cada contraste foi refeito sobre três tabelas atleta-dia construídas por regras "
- "distintas — o par atleta-dia, o par formado pelo primeiro e pelo último registro do dia e a subamostra "
- "dos atletas com medida no primeiro e no sétimo dia —, além de uma leitura não pareada sobre o registro "
+ "Para respondê-la, cada contraste foi refeito sobre três tabelas atleta-dia construídas por regras distintas (o par atleta-dia, o "
+ "par formado pelo primeiro e pelo último registro do dia e a subamostra dos atletas com medida no primeiro e no "
+ "sétimo dia), além de uma leitura não pareada sobre o registro "
  "isolado, único tratamento que essa unidade admite.",
  "A comparação examinou o contraste entre a linha de base e a véspera da estreia e a comparação global "
  "entre os sete dias. Considerou-se troca de veredito a situação em que a mesma variável cruza o limiar de "
@@ -238,8 +248,8 @@ METODO=[
 
 R1=[
  "Antes de qualquer pressuposto, uma verificação sobre a própria base. Os valores de normalidade aqui "
- "relatados foram recalculados por um caminho de código independente do que gerou a base canônica, partindo "
- "do item do formulário e reconstruindo cada escore por fórmula. As sete variáveis rejeitam a normalidade "
+ "relatados foram recalculados por um caminho de código independente do que gerou a base canônica, o qual parte do item do "
+ "formulário e reconstrói cada escore por fórmula. As sete variáveis rejeitam a normalidade "
  "pelos dois caminhos, com valores de W idênticos até a quarta casa decimal. A opção pela via não paramétrica "
  "como rota principal, portanto, não depende de uma particularidade do processamento.",
 "A verificação de pressupostos, apresentada na Figura 3 e na Tabela 1, é inequívoca em duas frentes e "
@@ -270,8 +280,8 @@ R2=[
 "teste de Friedman (χ² = 10,34; p = 0,111), alcança-a pela análise de variância corrigida (F = 3,95; "
 "p = 0,029; η²p = 0,180) e alcança-a com folga pelo modelo misto (b = −0,131 ponto por dia; IC 95% −0,211 a "
 "−0,052; p = 0,001). A perturbação total repete exatamente o mesmo padrão: p = 0,233, p = 0,091 e p = 0,011. "
-"Em ambos os casos, a ordem é a mesma — a via de postos é a mais conservadora, a paramétrica clássica fica no "
-"meio e o modelo misto é o mais sensível.",
+"Em ambos os casos, a ordem é a mesma: a via de postos mostra-se a mais conservadora, a paramétrica clássica fica "
+"no meio e o modelo misto revela-se o mais sensível.",
 "A confusão inverte o padrão e por isso merece exame separado. Ela é a variável mais significativa pelo teste "
 "de Friedman de todo o conjunto (χ² = 24,78; p < 0,001; W = 0,217), permanece significativa pela análise de "
 "variância corrigida (p = 0,014) e deixa de sê-lo pelo modelo misto (b = −0,056; p = 0,072). A explicação "
@@ -279,9 +289,8 @@ R2=[
 "direção, de modo que o efeito não é linear no dia. O teste de Friedman, que apenas pergunta se os dias "
 "diferem, capta o degrau; o modelo misto, que impõe uma reta, não o capta. A discordância, nesse caso, não "
 "indica qual via está certa: indica que a pergunta que cada uma responde é diferente.",
-"O teste L de Page, que especifica a alternativa como ordenada, ilumina esse ponto. Ele identifica tendência "
-"monotônica em quatro variáveis — fadiga (z = 2,86; p = 0,004), vigor (z = −2,84; p = 0,004), tensão "
-"(z = −2,59; p = 0,010) e confusão (z = −2,52; p = 0,012) — e não a identifica na depressão nem na "
+"O teste L de Page, que especifica a alternativa como ordenada, ilumina esse ponto. Ele acusa tendência monotônica em quatro variáveis, a saber, fadiga (z = 2,86; p = 0,004), vigor (z = −2,84; p = "
+"0,004), tensão (z = −2,59; p = 0,010) e confusão (z = −2,52; p = 0,012), e nada encontra na depressão nem na "
 "perturbação total. Note-se que o teste de Page acusa tendência na tensão, onde o de Friedman nada encontra, "
 "o que confirma que o problema da tensão é de potência, e não de ausência de efeito: o deslocamento existe, é "
 "ordenado, e o teste sem direção especificada não o detecta.",
@@ -294,9 +303,8 @@ R3=[
 "(dz = −0,46; IC 95% de −1,20 a −0,01). A perturbação total, apesar da diferença média de 5,21 pontos, "
 "apresenta intervalo que cruza o zero por margem estreita (de −0,05 a 10,47), o que explica o valor de p de "
 "0,052 e ilustra o risco de tratar 0,05 como fronteira ontológica.",
-"A comparação entre os tamanhos de efeito das duas vias merece registro. O r não paramétrico e o dz "
-"paramétrico ordenam as variáveis de modo idêntico — vigor, fadiga, tensão, confusão, perturbação total, "
-"raiva, depressão —, o que indica que a discordância entre vias diz respeito à detecção, e não à ordenação da "
+"A comparação entre os tamanhos de efeito das duas vias merece registro. O r não paramétrico e o dz paramétrico ordenam as variáveis de modo idêntico (vigor, fadiga, tensão, confusão, "
+"perturbação total, raiva, depressão), o que indica que a discordância entre vias diz respeito à detecção, e não à ordenação da "
 "importância. Nenhum revisor que exija ambos os índices encontrará contradição substantiva; encontrará, sim, "
 "limiares diferentes.",
 ]
@@ -313,9 +321,8 @@ R4=[
 "sensível ao dia, ao passo que a depressão comporta-se como característica relativamente estável do "
 "respondente. Essa distinção tem consequência prática para o monitoramento: variáveis com proporção elevada "
 "exigem referência intraindividual, porque a comparação com a média do grupo confunde traço com estado.",
-"Convém observar que a ordem dessa decomposição reproduz a da correlação intraclasse calculada de modo "
-"independente na descrição — depressão, fadiga, tensão, perturbação total, vigor, confusão e raiva —, o que "
-"confere consistência interna às duas estimativas.",
+"Convém observar que a ordem dessa decomposição reproduz a da correlação intraclasse calculada de modo independente na descrição (depressão, fadiga, tensão, "
+"perturbação total, vigor, confusão e raiva), o que confere consistência interna às duas estimativas.",
 ]
 R5=[
 "A estrutura de associação, apresentada na Figura 5 e na Tabela 5, foi estimada pelas duas vias. Quinze dos "
@@ -330,8 +337,7 @@ R5=[
 "natureza métrica não possa ser descartada: com 40,4% das respostas no valor zero, a variável perde variância "
 "e, com ela, capacidade de correlacionar-se.",
 "O contraste entre as duas vias é mais informativo onde elas discordam. Nos pares que envolvem a depressão e "
-"a confusão, ambas com efeito de piso severo, o coeficiente de Pearson é sistematicamente maior que o de "
-"Spearman — 0,70 contra 0,55 no par depressão e confusão, 0,79 contra 0,61 no par depressão e perturbação "
+"a confusão, ambas com efeito de piso severo, o coeficiente de Pearson supera sistematicamente o de Spearman: 0,70 contra 0,55 no par depressão e confusão, 0,79 contra 0,61 no par depressão e perturbação "
 "total, 0,60 contra 0,44 no par confusão e perturbação total. A explicação é conhecida: poucos valores "
 "extremos, em variáveis concentradas no zero, exercem alavancagem desproporcional sobre o coeficiente de "
 "momento-produto. Nesses pares, a estimativa de postos é a defensável.",
@@ -368,9 +374,8 @@ R7=[
 "detecta. A raiva ilustra o caso oposto: é sinal pelo piso por margem estreita, com deslocamento de 1,5 vez o "
 "ruído, e não é significativa por via alguma. Aqui o piso é permissivo, e a leitura correta é a das vias "
 "inferenciais.",
-"A conclusão que essa comparação sustenta não é a de que um critério substitui o outro. É a de que eles "
-"respondem a perguntas distintas — quanto a série se moveu em relação ao seu próprio ruído, e qual a "
-"probabilidade de observar esse movimento sob a hipótese nula — e que reportar ambos permite ao leitor "
+"A conclusão que essa comparação sustenta não é a de que um critério substitui o outro. É a de que eles respondem a perguntas distintas, uma sobre quanto a série se moveu em relação ao seu próprio "
+"ruído, outra sobre a probabilidade de observar esse movimento sob a hipótese nula, e que reportar ambos permite ao leitor "
 "identificar onde a conclusão é frágil.",
 ]
 
@@ -394,16 +399,15 @@ R9=[
  "A unidade de análise não altera apenas a prevalência descrita no artigo companheiro: altera o veredito "
  "inferencial. Na comparação entre a linha de base e a véspera da estreia, três das sete variáveis cruzam o "
  "limiar de cinco por cento em uma unidade e não cruzam em outra. A Tabela 10 apresenta os valores.",
- "As três variáveis que trocam são a tensão, a confusão e a perturbação total do humor — exatamente as três "
- "que este artigo já identificara como trocando de veredito conforme a via de análise. As duas "
+ "As três variáveis que trocam são a tensão, a confusão e a perturbação total do humor, exatamente aquelas que "
+ "este artigo já identificara como sujeitas a troca de veredito conforme a via de análise. As duas "
  "fragilidades, portanto, não se distribuem ao acaso: recaem sobre as mesmas variáveis, que são aquelas "
  "cujo deslocamento é pequeno em relação à dispersão. Vigor e fadiga, cujo deslocamento é grande, resistem "
  "a qualquer combinação de via e de unidade.",
  "A comparação global entre os sete dias repete o padrão em escala menor: duas variáveis trocam de veredito, "
  "e são a tensão e a perturbação total do humor. Registre-se que a subamostra pareada produz, no contraste "
- "entre extremos, resultado idêntico ao do par atleta-dia, porque esse contraste já opera apenas sobre os "
- "atletas com medida nos dois dias — a coincidência é verificação de consistência do procedimento, não "
- "achado.",
+ "entre extremos, resultado idêntico ao do par atleta-dia, porque esse contraste já opera apenas sobre os atletas com medida nos dois dias; a coincidência vale como "
+ "verificação de consistência do procedimento, não como achado.",
  "A consequência prática é direta e vale além deste estudo. Em séries de monitoramento com ausências, "
  "declarar a via estatística sem declarar a unidade de análise deixa metade da decisão implícita. Um "
  "relatório que informe apenas «p = 0,03 pelo teste de Wilcoxon» não permite ao leitor saber se o mesmo "
@@ -414,8 +418,8 @@ R10=[
  "passa a ser testado. Nenhuma das sete variáveis do dia corrente se associa à probabilidade de o atleta "
  "responder no dia seguinte após a correção para comparações múltiplas. A Tabela 11 apresenta os "
  "coeficientes.",
- "A tensão é a única candidata: o coeficiente é negativo, o sinal é o que se esperaria — quem amanhece mais "
- "tenso comparece um pouco menos no dia seguinte — e o valor bruto de p é de 0,014. Ele não sobrevive ao "
+ "A tensão é a única candidata: o coeficiente é negativo, o sinal corresponde ao que se esperaria, pois quem amanhece mais tenso comparece um "
+ "pouco menos no dia seguinte, e o valor bruto de p é de 0,014. Ele não sobrevive ao "
  "ajuste de Holm, que o leva a 0,101. A leitura honesta é que o dado não permite afirmar dependência, e "
  "tampouco permite descartá-la com segurança: com doze faltas em cento e quarenta e cinco oportunidades, a "
  "potência para detectar uma associação moderada é baixa.",
@@ -430,10 +434,9 @@ R10=[
 
 R11=[
  "O contraste direto entre os dois estímulos que dominam a semana produz o resultado mais contraintuitivo "
- "deste artigo. Pareando cada atleta consigo mesmo, a resposta aguda ao HIIT supera a resposta ao amistoso "
- "na perturbação total do humor em 3,45 pontos, com tamanho de efeito moderado e valor de p de 0,016. O "
- "amistoso tem o dobro das horas do HIIT — quatro horas e meia ou cinco contra duas ou duas e meia — e "
- "custa menos humor no mesmo dia. A Tabela 13 apresenta o contraste variável a variável.",
+ "deste artigo. No pareamento de cada atleta consigo mesmo, a resposta aguda ao HIIT supera a resposta ao amistoso "
+ "na perturbação total do humor em 3,45 pontos, com tamanho de efeito moderado e valor de p de 0,016. O amistoso ocupa o dobro das horas do HIIT, quatro horas e meia ou cinco contra duas ou duas e meia, e ainda "
+ "assim custa menos humor no mesmo dia. A Tabela 13 apresenta o contraste variável a variável.",
  "O resíduo da manhã seguinte, na Tabela 14, desloca a atenção para um terceiro estímulo. Nem o HIIT nem o "
  "amistoso deixam efeito detectável na manhã do dia seguinte; o dia técnico e de força deixa, e é grande: "
  "o vigor cai 2,73 pontos, com tamanho de efeito de 0,87 e magnitude de quase duas vezes o erro típico da "
@@ -458,14 +461,13 @@ DISCUSSAO=[
  "O resultado que organiza este artigo ganhou, com a análise por unidade, a sua formulação mais forte. As "
  "variáveis cujo veredito depende da via de análise são a tensão, a confusão e a perturbação total do "
  "humor; as variáveis cujo veredito depende da unidade de análise são as mesmas três. Não se trata de duas "
- "instabilidades independentes que por acaso coincidem: trata-se de uma única propriedade — deslocamento "
- "pequeno em relação à dispersão — manifestando-se por dois caminhos.",
+ "instabilidades independentes que por acaso coincidem: trata-se de uma única propriedade, o deslocamento pequeno em relação à dispersão, que se manifesta por dois "
+ "caminhos.",
  "Vigor e fadiga, cujo deslocamento entre os extremos da semana é de três e de três vírgula seis pontos, "
  "resistem a toda combinação de via e de unidade. Depressão e raiva, que praticamente não se movem, também "
  "resistem, pelo motivo oposto: nenhuma rota as declara significativas. A instabilidade concentra-se na "
  "faixa intermediária, onde o efeito existe mas é da ordem da variabilidade.",
- "A recomendação prática que decorre disso é mais modesta e mais útil do que «reportar várias vias». É "
- "declarar as duas escolhas — via e unidade — e verificar a estabilidade do veredito nas variáveis de "
+ "A recomendação prática que decorre disso é mais modesta e mais útil do que «reportar várias vias». É declarar as duas escolhas, a via e a unidade, e verificar a estabilidade do veredito nas variáveis de "
  "deslocamento intermediário, que são justamente aquelas sobre as quais a decisão do leitor mudaria."]),
 ("O dia que deixa resíduo, e o que isso não autoriza a concluir",[
  "O contraste pareado entre HIIT e amistoso e a análise de resíduo produzem, juntos, um deslocamento de "
@@ -479,8 +481,7 @@ DISCUSSAO=[
  "acumulada são, neste desenho, o mesmo efeito. Três análises independentes concordam sobre QUANDO o "
  "fenômeno acontece; nenhuma delas identifica POR QUE.",
  "O desenho capaz de separá-los é conhecido e não é o deste estudo: exigiria alternar a ordem dos "
- "estímulos entre microciclos ou entre equipes. Enquanto isso não existe, o achado tem valor descritivo e "
- "de planejamento — sabe-se onde olhar — e não tem valor explicativo."]),
+ "estímulos entre microciclos ou entre equipes. Enquanto isso não existe, o achado guarda valor descritivo e de planejamento, pois indica onde olhar, mas carece de valor explicativo."]),
 
 ("Quanto da conclusão pertence à via",[
  "O achado central deste estudo pode ser enunciado em uma frase: em três das sete variáveis examinadas, o "
@@ -507,9 +508,8 @@ DISCUSSAO=[
  "A verificação de pressupostos costuma ser reportada como ritual: uma frase que declara normalidade "
  "verificada e segue adiante. Os presentes dados sugerem um uso mais produtivo. Nenhuma das sete variáveis "
  "passa no teste de Shapiro-Wilk; o ε de Greenhouse-Geisser fica entre 0,327 e 0,693 em todas; e quatro das "
- "seis subescalas apresentam efeito de piso acima do critério de Terwee et al. (2007). Esse conjunto não "
- "invalida a análise paramétrica — a correção existe precisamente para isso —, mas indica onde a estimativa "
- "está sob tensão.",
+ "seis subescalas apresentam efeito de piso acima do critério de Terwee et al. (2007). Esse conjunto não invalida a análise paramétrica, uma vez que a correção existe precisamente para isso, mas "
+ "assinala onde a estimativa está sob tensão.",
  "O efeito de piso, em particular, deixa marca identificável nos coeficientes de associação. Nos pares que "
  "envolvem a depressão e a confusão, ambas com mais de metade das respostas no valor mínimo, o coeficiente de "
  "Pearson excede sistematicamente o de Spearman, com diferenças de até 0,18. Poucos valores extremos, em "
@@ -520,9 +520,9 @@ DISCUSSAO=[
  "paramétrica se sustenta e três em que não se sustenta, e a média entre elas não descreve nenhuma."]),
 ("O critério de ruído como leitura independente do valor de p",[
  "O tratamento de séries adotado neste estudo fornece um critério que não depende de hipótese nula alguma: o "
- "deslocamento total é comparado ao piso de ruído da própria série. Essa leitura converge com a inferencial "
- "nos extremos — vigor e fadiga são sinal pelo piso e significativos pelas três vias; a depressão é ruído pelo "
- "piso e não significativa por nenhuma — e diverge no meio, e é aí que ela é útil.",
+ "deslocamento total é comparado ao piso de ruído da própria série. Essa leitura converge com a inferencial nos extremos, pois vigor e fadiga constituem sinal pelo piso e alcançam "
+ "significância pelas três vias, ao passo que a depressão permanece ruído pelo piso e não atinge significância "
+ "por nenhuma; a divergência aparece no meio, e é aí que ela se torna útil.",
  "A tensão é sinal pelo piso, com deslocamento de 3,4 vezes o ruído da série, e não é significativa pelo teste "
  "de Friedman. A discrepância mede o custo do descarte de casos incompletos, e o modelo misto, que não "
  "descarta, converge com o piso. A raiva ilustra a situação inversa: o piso a declara sinal por margem "
@@ -558,9 +558,8 @@ LIMITACOES=[
 "divergem neste conjunto de dados, com esta estrutura de ausências e estas distribuições, e não estabelece "
 "com que frequência divergiriam em outros. Um estudo de simulação com estruturas de dados variadas seria o "
 "complemento natural.",
-"O modelo misto foi especificado com intercepto aleatório e efeito linear do dia. Especificações alternativas "
-"— dia como fator categórico, inclinação aleatória por atleta, estrutura autorregressiva para os resíduos — "
-"produziriam estimativas distintas, e o caso da confusão mostra que a escolha importa. A especificação "
+"O modelo misto foi especificado com intercepto aleatório e efeito linear do dia. Especificações alternativas, entre elas o dia como fator categórico, a inclinação aleatória por atleta e a "
+"estrutura autorregressiva para os resíduos, produziriam estimativas distintas, e o caso da confusão mostra que a escolha importa. A especificação "
 "adotada é a mais simples que responde à pergunta de tendência, e essa escolha foi declarada em vez de "
 "otimizada contra o resultado.",
 "O mecanismo de ausência não foi modelado. As faltas às sessões não são aleatórias e podem correlacionar-se "

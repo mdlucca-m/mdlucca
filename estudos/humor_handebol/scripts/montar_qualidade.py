@@ -24,7 +24,7 @@ para("Relatório técnico de apoio aos três documentos do estudo", indent=False
 
 head("1 O QUE FOI FEITO, E POR QUE OUTRA VEZ")
 para("A base já havia sido auditada quanto à procedência: a origem de cada número e a unidade de análise que "
-     "o gerou. Esta segunda passagem audita outra coisa — a qualidade do dado em si. Ela desce ao nível do "
+     "o gerou. Esta segunda passagem audita outra coisa: a qualidade do dado em si. Ela desce ao nível do "
      f"item do formulário, reconstrói por fórmula cada um dos {sum(c['n_comparado'] for c in Q['CONFRONTO'])} "
      "escores calculados que a planilha traz, e só então descreve cada variável pela técnica que o seu tipo "
      "de mensuração admite.")
@@ -81,8 +81,7 @@ mktable(["Bloco","Itens ou variáveis","Células","Faltantes","Completude"],
         widths=[4.0,3.6,2.4,2.4,3.1], fs=9)
 src(nota="Completude = (1 − faltantes ÷ total) × 100. As variáveis derivadas não aparecem porque nenhuma "
          "delas tem falta: são função de itens que estão todos preenchidos.")
-para("Nenhuma célula de instrumento está ausente. Quem responde, responde tudo — o formulário exigia resposta "
-     "em cada item. A falta, portanto, não é de item: é de comparecimento.")
+para("Nenhuma célula de instrumento está ausente. Quem responde, responde tudo, uma vez que o formulário exigia resposta em cada item. A falta, portanto, não é de item: é de comparecimento.")
 caption(f"Tabela {tab()} – Cobertura da grade atleta × dia")
 mktable(["Dia","Atletas com registro","Cobertura de atletas","Registros","Previstos no protocolo","Cobertura de registros"],
         [[f"D{g['dia']}", f"{g['atletas_com_registro']} de {g['atletas_esperados']}",
@@ -92,8 +91,8 @@ mktable(["Dia","Atletas com registro","Cobertura de atletas","Registros","Previs
 src(nota="O protocolo previa uma coleta em D1, que teve janela única noturna, e duas de D2 a D7. "
          "Cobertura acima de 100% indica registro além do previsto, e não erro.")
 para("Duas leituras se impõem. A cobertura de atletas cai de 100% em D1 para 78% em D4 e em D7, o que "
-     "significa que a comparação entre extremos da semana perde um quarto do elenco — é a razão pela qual a "
-     "unidade de análise precisa ser declarada em cada contraste. E a cobertura de registros passa de 100% em "
+     "significa que a comparação entre extremos da semana perde um quarto do elenco, razão pela qual a unidade de análise "
+     "precisa ser declarada em cada contraste. E a cobertura de registros passa de 100% em "
      "cinco dos sete dias, o que revela envio repetido.")
 
 head("5 REGISTROS REPETIDOS NO MESMO DIA")
@@ -112,12 +111,12 @@ para(f"O intervalo entre registros consecutivos do mesmo dia tem mediana de {n_(
      f"(Q1 {n_(q['q1'],0)}; Q3 {n_(q['q3'],0)}), amplitude de {n_(q['minimo'],0)} a {n_(q['maximo'],0)}. "
      f"Apenas {R['ate_30min']} dos {R['pares_consecutivos']} pares consecutivos ocorrem em trinta minutos ou "
      f"menos, e em nenhum deles o vetor dos 24 itens se repete por inteiro. Ou seja: não são duplicatas de "
-     "envio, e sim reenvios com alteração. A regra adotada — média de todos os registros do dia para o valor "
-     "diário, primeiro e último para o contraste pré-pós — preserva todos eles e passa a ser declarada.")
+     "envio, e sim reenvios com alteração. A regra adotada, que toma a média de todos os registros do dia para o valor diário e reserva o primeiro e o "
+     "último ao contraste pré-pós, preserva todos eles e passa a ser declarada.")
 
 head("6 PADRONIZAÇÃO DE VARIÁVEIS CATEGÓRICAS")
 para("Uma variável categórica está padronizada quando cada nível tem uma única grafia. A verificação compara "
-     "cada valor com a sua chave canônica, obtida removendo acento, caixa e espaço redundante.")
+     "cada valor com a sua chave canônica, obtida pela remoção de acento, caixa e espaço redundante.")
 caption(f"Tabela {tab()} – Grafias por nível em cada variável categórica")
 mktable(["Variável","Registros","Níveis canônicos","Grafias distintas","Níveis com mais de uma grafia"],
         [[c['variavel'], str(c['n']), str(c['niveis_canonicos']), str(c['grafias']),
@@ -164,8 +163,7 @@ mktable(["Variável","Assimetria g₁","Curtose g₂","Shapiro-Wilk W","p","MAD"
 src(nota="g₁ e g₂ pelas fórmulas F10; g₂ é a curtose em excesso, nula na normal. Número de classes por F12 "
          "(Sturges) e F11 (Freedman-Diaconis). MAD = mediana dos desvios absolutos em relação à mediana.")
 nn=sum(1 for u in Q['UNI'] if u['shapiro_p']<.05)
-para(f"Nenhuma das {len(Q['UNI'])} variáveis passa no teste de normalidade — {nn} rejeitam a hipótese ao nível "
-     "de 5%. A assimetria positiva de depressão, raiva e confusão vem do efeito de piso: em uma equipe "
+para(f"Nenhuma das {len(Q['UNI'])} variáveis passa no teste de normalidade: {nn} rejeitam a hipótese ao nível de 5%. A assimetria positiva de depressão, raiva e confusão vem do efeito de piso: em uma equipe "
      "saudável, a resposta modal a «deprimido» é zero. Esse é o dado, e não um defeito dele. A consequência "
      "metodológica é direta: a via não paramétrica é a rota principal, e a paramétrica entra como conferência.")
 figura(os.path.join(S,"Q1fig.png"), "Q1",
@@ -193,8 +191,7 @@ para("O primeiro resultado é o mais importante: nenhum valor cai fora do domín
      "Não há erro de digitação, nem escore impossível, nem código de ausência tratado como número.")
 degen=[L(u['variavel']) for u in Q['UNI'] if u['iqr_nulo']]
 para(f"O segundo resultado é metodológico. Em {' e '.join(degen)} o primeiro e o terceiro quartis coincidem "
-     "no piso da escala. O intervalo interquartil é zero, a cerca de Tukey colapsa sobre o próprio piso, e a "
-     "regra passa a classificar como discrepante toda resposta diferente de zero — quase um quinto da amostra. "
+     "no piso da escala. O intervalo interquartil é zero, a cerca de Tukey colapsa sobre o próprio piso, e a regra passa a classificar como discrepante toda resposta diferente de zero, quase um quinto da amostra. "
      "O mesmo colapso atinge o escore z modificado, porque o desvio absoluto mediano também é zero. "
      "Nessas subescalas a triagem de discrepantes precisa ser feita pelo domínio e pela comparação de cada "
      "atleta consigo mesmo, e não por regra de dispersão do grupo.")
@@ -275,8 +272,8 @@ figura(os.path.join(S,"Q3fig.png"), "Q3",
 
 head("11.2 O programa", lvl=2)
 P=O['PARAMETROS']; A=O['AMISTOSO']
-para("As variáveis de decisão são as horas de treino de cada dia, h₁ a h₇. O objetivo é maximizar o pior dia "
-     "de vigor da semana — um critério maximin, que é linear quando se introduz a variável auxiliar t:")
+para("As variáveis de decisão são as horas de treino de cada dia, h₁ a h₇. O objetivo é maximizar o pior dia de vigor da semana, critério maximin que se torna linear quando se introduz a "
+"variável auxiliar t:")
 para("maximizar  t     sujeito a     vigor previsto no dia d ≥ t,  para d = 1, …, 7",
      indent=False, italic=True, align=WD_ALIGN_PARAGRAPH.CENTER, size=11.5)
 para("A escolha do critério não é neutra. Maximizar a soma do vigor da semana permitiria compensar um dia "
@@ -323,9 +320,8 @@ mktable(["Restrição","Folga","Preço-sombra (pontos de vigor)"],
 src(nota="Preço-sombra negativo indica restrição que custa ao objetivo: afrouxá-la melhoraria o pior dia de "
          "vigor. Exclui-se a restrição «vigor ≥ t», que é a própria definição do critério maximin.")
 d5=[e for e in O['EQ'] if e['restricao'].startswith('D5')][0]
-para(f"O maior preço-sombra em valor absoluto é o do amistoso de D5: {n_(d5['preco_sombra'],3)}. Cada hora "
-     "daquele jogo custa quatro décimos de ponto do pior dia de vigor da semana — mais do que qualquer "
-     "decisão de treino disponível ao preparador. Quem comprime este microciclo não é o volume de treino, e "
+para(f"O maior preço-sombra em valor absoluto é o do amistoso de D5: {n_(d5['preco_sombra'],3)}. Cada hora daquele jogo custa quatro décimos de ponto do pior dia de vigor da semana, mais do que qualquer "
+"decisão de treino disponível ao preparador. Quem comprime este microciclo não é o volume de treino, e "
      "sim o calendário de jogos. É por isso que o rearranjo das horas de treino, por melhor que seja, "
      "produz ganho pequeno: ele opera sobre a parte que não é o gargalo.")
 head("11.5 Fronteira eficiente e sensibilidade", lvl=2)
@@ -342,9 +338,8 @@ src(nota=f"Carga semanal mínima estruturalmente viável: {n_(O['CARGA_MINIMA_ES
 a0,a1=FR[0],FR[-1]
 incl=(a1['vigor_minimo']-a0['vigor_minimo'])/(a1['carga']-a0['carga'])
 para(f"A fronteira é quase horizontal: de {n_(a0['carga'],0)} a {n_(a1['carga'],0)} horas semanais o pior dia "
-     f"de vigor varia {n_(abs(incl),4)} ponto por hora. A planitude confirma a leitura dos preços-sombra — "
-     "dentro da faixa realista de volume, o vigor do pior dia da semana é determinado pelos jogos, não pelo "
-     "volume de treino. A informação prática é a carga mínima estrutural: com dois amistosos e a regra de "
+     f"de vigor varia {n_(abs(incl),4)} ponto por hora. A planitude confirma a leitura dos preços-sombra: dentro da faixa realista de volume, quem determina o "
+     "vigor do pior dia da semana são os jogos, não o volume de treino. A informação prática é a carga mínima estrutural: com dois amistosos e a regra de "
      f"variação máxima entre dias, a semana não pode ter menos de {n_(O['CARGA_MINIMA_ESTRUTURAL'])} horas.")
 caption(f"Tabela {tab()} – Sensibilidade dos parâmetros")
 linhas=[]
@@ -395,7 +390,7 @@ for abnt,doi,aut in cx.execute("SELECT abnt,url_doi,autores FROM referencia ORDE
 cx.close()
 
 # Quadro 1 das fórmulas, ao final, como anexo de conferência
-head("ANEXO — QUADRO DE FÓRMULAS")
+head("ANEXO: QUADRO DE FÓRMULAS")
 para("Toda estatística deste relatório pode ser recalculada a partir das fórmulas abaixo e das tabelas "
      "correspondentes.")
 caption(f"Quadro {quadro()} – Fórmulas empregadas")

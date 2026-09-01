@@ -72,7 +72,7 @@ for i,ref in enumerate(ET.REFS,1):
     cx.execute("""INSERT INTO referencia (id,autores,ano,titulo,veiculo,doi,url_doi,pubmed,url_pubmed,
                   open_access,url_oa,abnt,usada_em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
       (i, ref.split('.')[0], ano, tit, veic, doi, f"https://doi.org/{doi}" if doi else None,
-       None, None, None, None, ref, 'ambos'))
+       None, None, None, None, re.sub(r'\s*DOI:\s*10\.[^\s,;]+\.?\s*$','',ref).strip(), 'ambos'))
     print(f"  [{i:2}] {'✓' if doi else '·'} {(doi or '—')[:34]:36} {tit[:52]}")
 cx.commit()
 print(f"\nreferências com DOI: {nd}/{len(ET.REFS)}")

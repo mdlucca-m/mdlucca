@@ -43,8 +43,8 @@ FASES=[
          f"Segunda passagem, sobre a qualidade do dado: os nove escores calculados foram reconstruídos por "
          f"fórmula a partir dos itens e confrontados com a base de origem em "
          f"{sum(c['n_comparado'] for c in Q['CONFRONTO'])} conferências, sem divergência.",
-         "Completude integral no nível do item (nenhuma célula ausente em 20.108 respostas), mas cobertura da "
-         "grade atleta-dia recuando a 78% do elenco em D4 e D7. A falta é de comparecimento, não de item.",
+         "Completude integral no nível do item (nenhuma célula ausente em 20.108 respostas), mas a cobertura da "
+         "grade atleta-dia recua a 78% do elenco em D4 e D7. A falta é de comparecimento, não de item.",
          f"O nome em texto livre traz {Q['CATEG'][0]['grafias']} grafias para "
          f"{Q['CATEG'][0]['niveis_canonicos']} nomes canônicos; a identidade passa a vir da coluna padronizada."],
   copiloto="Ler as sete versões do manuscrito e as seis planilhas em paralelo, reproduzir cada número divergente e localizar a regra que o gerou; depois reconstruir por fórmula, desde o item, todo escore calculado.",
@@ -55,7 +55,7 @@ FASES=[
   pergunta='Como transformar planilhas em uma base que responda perguntas?',
   feito=["A regra do dia fisiológico (virada às 4h) resolveu os registros de madrugada sem descartá-los.",
          "Registros órfãos foram reconciliados por dicionário de variantes do nome e, quando insuficiente, pelo carimbo de tempo curado.",
-         f"A base única em SQLite tem três camadas — canônica, de resultados e de acervo — com {N['pre_pos']} pares pré-pós e {N['resultado']} resultados em formato longo.",
+         f"A base única em SQLite tem três camadas (canônica, de resultados e de acervo), com {N['pre_pos']} pares pré-pós e {N['resultado']} resultados em formato longo.",
          "Anonimização A01–A27 dentro da rotina de importação: nenhum nome sai do script.",
          "Triagem de discrepantes por ordem declarada: domínio da escala primeiro, depois cerca de Tukey, "
          "escore z e escore z modificado. Nenhum valor fora do domínio em 456 registros.",
@@ -64,7 +64,7 @@ FASES=[
          "Correção aplicada: o domínio da sonolência de Epworth passou de 0 a 24 para 0 a 18, porque o "
          "formulário aplicou seis das oito situações da escala."],
   copiloto="Escrever a rotina de reconciliação, a raspagem de nomes e o esquema de três camadas; verificar que zero nomes completos sobrevivem.",
-  humano="A curadoria dos registros ambíguos, a regra da virada às 4h — decisão de fisiologia, não de programação — e a recusa em aplicar regra de dispersão a variável com piso.",
+  humano="A curadoria dos registros ambíguos, a regra da virada às 4h, que é decisão de fisiologia e não de programação, e a recusa em aplicar regra de dispersão a variável com piso.",
   artefatos=['analise/base_v2.py','scripts/construir_base.py','atualizar.sh']),
 
  dict(id='modelagem', n=4, nome='Modelagem',
@@ -83,7 +83,7 @@ FASES=[
   feito=[f"O ganho de AUC sobre a regra trivial não exclui zero em nenhum modelo (melhor caso, XGBoost: {bs(ML['GANHO']['XGBoost']['m'])}, IC 95% [{bs(ML['GANHO']['XGBoost']['ic'][0])}, {bs(ML['GANHO']['XGBoost']['ic'][1])}]).",
          f"Reversão à média testada em todas as dimensões: o corte pelo PTH é parcialmente mecânico (ρ = {br(ML3['VEREDICTO']['pth']['rho'])}, p < 0,001).",
          f"O corte pela tensão não é mecânico (ρ = {br(ML3['VEREDICTO']['tensao']['rho'])}, p = {br(ML3['VEREDICTO']['tensao']['p'])}) e acrescenta {bs(ML3['VEREDICTO']['ganho_tensao'])} de AUC sobre o PTH sozinho.",
-         "No subgrupo acionável — quem começa o dia fora da faixa de risco — o intervalo de confiança exclui o acaso.",
+         "No subgrupo acionável, isto é, entre os que começam o dia fora da faixa de risco, o intervalo de confiança exclui o acaso.",
          f"Reconferência por dois caminhos de código independentes: {CF['ok']} de {CF['total']} conferências "
          "coincidem, incluídas as que sustentam os dois artigos e a base da modelagem."],
   copiloto="Propor e executar o diagnóstico de reversão à média e a sequência de modelos aninhados antes de qualquer redação.",
