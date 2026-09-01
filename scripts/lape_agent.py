@@ -14,6 +14,9 @@
     python3 scripts/lape_agent.py lattes --conferir    # ve o que o Lattes traria
     python3 scripts/lape_agent.py planilha            # reescreve a planilha do laboratorio
     python3 scripts/lape_agent.py status              # resumo do banco
+    python3 scripts/lape_agent.py rag indexar --banco # indexa o corpus para busca semantica
+    python3 scripts/lape_agent.py rag buscar "..."    # busca semantica no corpus
+    python3 scripts/lape_agent.py rag mcp             # servidor MCP para clientes de I.A.
 
 Agentes:
   rastreador  vai as bases bibliograficas (OpenAlex, Crossref, PubMed,
@@ -754,6 +757,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     status_parser = subparsers.add_parser("status", help="resumo do banco e das lacunas")
     status_parser.set_defaults(func=cmd_status)
+
+    from lape.rag.cli import build_parser as build_rag_parser
+    build_rag_parser(subparsers)
     return parser
 
 

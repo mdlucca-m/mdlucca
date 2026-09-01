@@ -21,6 +21,7 @@ Exercício** (UDESC/CEFID).
 - [Publicar na nuvem — custo zero](#publicar-na-nuvem--custo-zero)
 - [Camadas de dados (lakehouse)](#camadas-de-dados-lakehouse)
 - [Os dois agentes digitais](#os-dois-agentes-digitais)
+- [Busca semântica e agentes de escrita (RAG)](#busca-semântica-e-agentes-de-escrita-rag)
 - [API REST](#api-rest)
 - [O que o painel mostra](#o-que-o-painel-mostra)
 - [Os dados de entrada](#os-dados-de-entrada)
@@ -574,6 +575,114 @@ recalcula o índice h, valida e regenera o painel.
 
 **Regra que vale em todo o sistema:** o que o laboratório digitou nunca é
 sobrescrito por fonte externa. Os agentes só preenchem campos vazios.
+
+---
+
+## Busca semântica e agentes de escrita (RAG)
+
+O laboratório já acumula artigos, referências de revisões e capítulos de
+tese. O módulo `rag` transforma esse acervo num índice consultável por
+sentido, e não apenas por palavra exata, e abre esse índice a três
+consumidores: a linha de comando, os agentes de escrita e qualquer cliente
+de I.A. que fale MCP.
+
+### Como começar
+
+```bash
+pip install -r requirements.txt
+
+# indexa o que já está no banco (artigos e referências) e uma pasta de PDFs
+python3 scripts/lape_agent.py rag indexar --banco --pasta ~/tese
+
+# consulta
+python3 scripts/lape_agent.py rag buscar "o vigor se recupera durante a noite?"
+
+# inventário do índice e das credenciais
+python3 scripts/lape_agent.py rag status
+```
+
+Sem nenhuma chave o índice sobe do mesmo jeito, com busca léxica e um aviso
+explícito em toda resposta. Para busca semântica de verdade, escolha um
+caminho:
+
+| Caminho | Como | Custo | Offline |
+|---|---|---|---|
+| Voyage (recomendado) | `export VOYAGE_API_KEY=...` | ~US$ 0,02 por milhão de tokens | não |
+| OpenAI | `export OPENAI_API_KEY=...` | semelhante | não |
+| Modelo local | `pip install sentence-transformers` | zero | sim |
+
+Depois de trocar de backend, reindexe: `rag indexar --reindexar`. Vetores de
+modelos diferentes não são comparáveis, e o sistema recusa a comparação em
+vez de devolver um ranking sem sentido.
+
+### Como a busca funciona
+
+Cada consulta corre duas vezes — uma no espaço vetorial, outra no índice
+BM25 do próprio SQLite — e os dois rankings entram numa fusão por posto
+recíproco. A fusão combina posições, não pontuações, e por isso não depende
+de que cosseno e BM25 estejam na mesma escala. Todo trecho devolvido carrega
+a citação rastreável até o documento, a seção e o número do trecho.
+
+### Onde os vetores moram
+
+Hoje, no mesmo arquivo SQLite do resto do LAPE: nada de infraestrutura nova,
+busca exata por produto escalar, adequado até a ordem de cem mil trechos.
+Quando o corpus passar disso, a troca é uma variável de ambiente:
+
+```bash
+export LAPE_VECTOR_STORE=pgvector
+export LAPE_PG_DSN=postgresql://usuario:senha@servidor/lape
+```
+
+Nenhum código que chama a busca muda.
+
+### Os quatro agentes
+
+```bash
+# redige ancorado no corpus, com fonte para cada afirmação
+python3 scripts/lape_agent.py rag escrever     "parágrafo sobre o efeito piso das subescalas negativas" --palavras 180
+
+# audita a consistência interna da tese
+python3 scripts/lape_agent.py rag coerencia --foco "objetivos contra resultados"
+
+# vigia as bases e separa o que é novo
+python3 scripts/lape_agent.py rag literatura "mood profile handball" "BRUMS pre-season"
+
+# triagem assistida numa revisão sistemática já cadastrada
+python3 scripts/lape_agent.py rag triagem REV2024 --limite 30
+```
+
+Os agentes usam Claude e exigem `pip install anthropic` mais uma credencial
+(`ANTHROPIC_API_KEY` ou `ant auth login`). Sem isso, cada agente entrega o
+contexto recuperado para uso manual em vez de falhar.
+
+Duas travas valem para todos: nenhuma afirmação sem trecho de origem
+recuperado, e o agente de triagem **nunca** escreve em `screenings` — a
+decisão de incluir ou excluir continua humana, e a sugestão da máquina fica
+guardada à parte, em `rag_runs`.
+
+### Servidor MCP
+
+O mesmo índice, aberto a qualquer cliente de I.A. que fale o protocolo:
+
+```json
+{
+  "mcpServers": {
+    "lape-corpus": {
+      "command": "python3",
+      "args": ["/caminho/para/scripts/lape_agent.py", "rag", "mcp"],
+      "env": {"LAPE_DB": "/dados/db.sqlite", "VOYAGE_API_KEY": "..."}
+    }
+  }
+}
+```
+
+Seis ferramentas ficam disponíveis: `buscar_corpus`, `checar_afirmacao`,
+`listar_fontes`, `ler_documento`, `vizinhos_do_trecho` e `indexar_arquivo`.
+A segunda é a mais útil na escrita: recebe uma frase do manuscrito e devolve
+os trechos que a sustentam ou a contradizem, com um veredito sobre a
+cobertura.
+
 
 ---
 

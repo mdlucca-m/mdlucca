@@ -26,10 +26,20 @@ services:
       LAPE_ADMIN_LOGIN: ${LAPE_ADMIN_LOGIN:-}
       LAPE_ADMIN_PASSWORD: ${LAPE_ADMIN_PASSWORD:-}
       LAPE_ADMIN_NAME: ${LAPE_ADMIN_NAME:-Administracao LAPE}
+      # Busca semantica (RAG). Sem chave nenhuma o sistema sobe igual,
+      # so que a busca fica lexica; o 'rag status' avisa quando e o caso.
+      VOYAGE_API_KEY: ${VOYAGE_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      LAPE_EMBED_BACKEND: ${LAPE_EMBED_BACKEND:-auto}
+      LAPE_VECTOR_STORE: ${LAPE_VECTOR_STORE:-sqlite}
+      LAPE_PG_DSN: ${LAPE_PG_DSN:-}
+      LAPE_CORPUS_DIRS: ${LAPE_CORPUS_DIRS:-/app/data/corpus}
     volumes:
       - lape-dados:/dados          # banco de dados (precisa persistir)
       # O contêiner roda como usuário sem privilégios: se der "permission
       # denied" ao ler as planilhas, rode  chmod -R a+rX data/raw
       - ./data/raw:/app/data/raw   # planilhas e XML do Lattes
+      - ./data/corpus:/app/data/corpus  # pdf, docx e md a indexar
 volumes:
   lape-dados:

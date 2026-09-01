@@ -1,3 +1,13 @@
 pandas>=2.0
 openpyxl>=3.1
 requests>=2.31
+numpy>=1.24
+
+# --- camada de recuperacao semantica (RAG) -------------------------------
+# Nada abaixo e obrigatorio: sem estes pacotes o LAPE roda igual, e o
+# modulo rag cai para busca lexica com aviso explicito.
+#
+#   pip install anthropic                 # agentes de escrita e triagem
+#   pip install pypdf                     # indexar PDFs
+#   pip install sentence-transformers     # embeddings locais, sem chave
+#   pip install 'psycopg[binary]'         # store pgvector, quando escalar
