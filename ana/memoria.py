@@ -91,10 +91,12 @@ def semear() -> int:
         ("unidade de análise canônica", "Par atleta-dia (U-AD), n = 166. As outras três, a saber, U-R (456 "
          "registros), U-286 (primeira e última) e U-PAR (143 pareados), existem e devem ser declaradas, nunca "
          "misturadas.", "handebol"),
-        ("regra de composição do valor diário", "D1 entra por inteiro, por ser basal de janela noturna única. De "
-         "D2 a D7 valem o primeiro registro do dia (pré) e o último (pós); os 150 intermediários ficam na base "
-         "mas não compõem o valor diário. O pré não exige hora da manhã: 59 dos 139 atletas-dia só responderam a "
-         "partir do meio-dia, sem registro anterior naquele dia. Auditado em analise/V2_proto.py.", "handebol"),
+        ("regra de composição do valor diário", "D1 teve coleta única e vale a primeira resposta de cada "
+         "atleta; as 21 respostas tardias são repetição, e não segunda coleta. De D2 a D7 valem o primeiro "
+         "registro do dia (pré) e o último (pós). Ao todo, 285 dos 456 registros compõem os valores diários; os "
+         "171 excedentes ficam na base sem entrar no cálculo. O pré não exige hora da manhã: 59 dos 139 "
+         "atletas-dia só responderam a partir do meio-dia, sem registro anterior naquele dia. Auditado em "
+         "analise/V2_proto.py.", "handebol"),
         ("faixa de risco", "Perfis 3, 4 e 5 da solução: barbatana de tubarão, iceberg invertido e everest invertido.",
          "handebol"),
         ("dia fisiológico", "A virada é às 4h: registro antes das 4h pertence ao dia anterior.", "handebol"),

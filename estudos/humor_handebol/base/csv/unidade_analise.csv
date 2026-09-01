@@ -1,5 +1,5 @@
 sigla,nome,n,regra,usada_em,vies
 U-R,Registro,456,Todo formulário respondido conta uma vez; dia civil com fronteira à meia-noite.,Dashboard da planilha e aba de impacto da auditoria,Pondera cada atleta pelo número de respostas: quem respondeu seis vezes num dia pesa seis vezes.
 U-286,Primeiro e último,285,D1 = um registro; D2 a D7 = primeiro e último do dia.,Tabelas do Paper 1,Pondera duplamente os atletas que responderam duas vezes e simplesmente os que responderam uma.
-U-AD,Par atleta-dia,166,"Um valor por atleta e por dia. D1 entra por inteiro, por ser basal de janela única; de D2 a D7 o valor é a média do primeiro registro do dia (pré) e do último (pós).",Artigos 1 e 2 (unidade adotada),Cada atleta pesa igual em cada dia; elimina a pseudorreplicação.
+U-AD,Par atleta-dia,166,Um valor por atleta e por dia. D1 teve coleta única e vale a primeira resposta de cada atleta; de D2 a D7 o valor é a média do primeiro registro do dia (pré) e do último (pós).,Artigos 1 e 2 (unidade adotada),Cada atleta pesa igual em cada dia; elimina a pseudorreplicação.
 U-PAR,Subamostra pareada,143,Apenas os 21 atletas com medida em D1 e em D7.,Uma das gerações intermediárias,"Sem viés de ponderação, mas perde 22% dos pares e restringe a inferência aos assíduos."

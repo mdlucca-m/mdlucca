@@ -87,7 +87,7 @@
    "nome": "Avaliação",
    "pergunta": "O ganho é real, ou é aritmética do desenho?",
    "feito": [
-    "O ganho de AUC sobre a regra trivial não exclui zero em nenhum modelo (melhor caso, XGBoost: +0,039, IC 95% [−0,045, +0,116]).",
+    "O ganho de AUC sobre a regra trivial não exclui zero em nenhum modelo (melhor caso, XGBoost: +0,033, IC 95% [−0,047, +0,109]).",
     "Reversão à média testada em todas as dimensões: o corte pelo PTH é parcialmente mecânico (ρ = −0,422, p < 0,001).",
     "O corte pela tensão não é mecânico (ρ = −0,132, p = 0,153) e acrescenta +0,082 de AUC sobre o PTH sozinho.",
     "No subgrupo acionável, isto é, entre os que começam o dia fora da faixa de risco, o intervalo de confiança exclui o acaso.",
@@ -161,6 +161,6 @@
   "celula": 282776,
   "referencia": 63,
   "auditoria": 12,
-  "significativo": 119
+  "significativo": 130
  }
 }

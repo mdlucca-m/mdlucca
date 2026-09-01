@@ -2,114 +2,114 @@
  "TE": [
   {
    "variavel": "Tensão",
-   "et": 0.7385296643757155,
+   "et": 0.7922068584271882,
    "et_ic": [
-    0.5608523632068206,
-    0.9003648986463293
+    0.6088889146483436,
+    0.9536891691186742
    ],
-   "et_pct": 51.1882773638283,
-   "sd_entre": 1.6481333494031865,
-   "mmr": 0.3296266698806373,
-   "mmd95": 2.0470997884469746,
-   "razao": 0.4463282732986401,
+   "et_pct": 54.68039022823835,
+   "sd_entre": 1.6673314322456776,
+   "mmr": 0.33346628644913556,
+   "mmd95": 2.1958853794497153,
+   "razao": 0.420933349543558,
    "aptidao": "insuficiente",
-   "piso_grupo": 0.350808165566825,
+   "piso_grupo": 0.35554385608367106,
    "n_difs": 133
   },
   {
    "variavel": "Depressão",
-   "et": 1.081908381603378,
+   "et": 1.1386369377898027,
    "et_ic": [
-    0.6118024177550069,
-    1.6163135743967543
+    0.5499751094276641,
+    1.7871656962798523
    ],
-   "et_pct": 106.27029073737323,
-   "sd_entre": 1.9934395537850917,
-   "mmr": 0.39868791075701837,
-   "mmd95": 2.9988970327569016,
-   "razao": 0.3685043184212758,
+   "et_pct": 121.5522390180754,
+   "sd_entre": 1.8760824130930298,
+   "mmr": 0.37521648261860596,
+   "mmd95": 3.1561405680809655,
+   "razao": 0.32953127565572843,
    "aptidao": "insuficiente",
-   "piso_grupo": 0.4573938812882577,
+   "piso_grupo": 0.4444135985682636,
    "n_difs": 133
   },
   {
    "variavel": "Raiva",
-   "et": 1.6175506646329083,
+   "et": 1.5946267145083928,
    "et_ic": [
-    1.2007949153764403,
-    1.992951923299688
+    1.1566637057330085,
+    1.9718767171455656
    ],
-   "et_pct": 98.71816556215543,
-   "sd_entre": 1.6860181181972032,
-   "mmr": 0.3372036236394407,
-   "mmd95": 4.483621691988967,
-   "razao": 0.2084655714422192,
+   "et_pct": 99.14158599565289,
+   "sd_entre": 1.68575203319016,
+   "mmr": 0.33715040663803203,
+   "mmd95": 4.420079744097229,
+   "razao": 0.21142904704313328,
    "aptidao": "insuficiente",
-   "piso_grupo": 0.5140249795147345,
+   "piso_grupo": 0.5105102110295486,
    "n_difs": 133
   },
   {
    "variavel": "Vigor",
-   "et": 1.4456676662148915,
+   "et": 1.5929067463236763,
    "et_ic": [
-    1.2454827483783024,
-    1.6403431007264184
+    1.3816748929750053,
+    1.785923479762234
    ],
-   "et_pct": 25.367952705250737,
-   "sd_entre": 2.593006433552808,
-   "mmr": 0.5186012867105616,
-   "mmd95": 4.007186327680906,
-   "razao": 0.35872787282320945,
+   "et_pct": 27.064741032725717,
+   "sd_entre": 2.64756997241304,
+   "mmr": 0.529513994482608,
+   "mmd95": 4.415312235523223,
+   "razao": 0.3324199584845073,
    "aptidao": "insuficiente",
-   "piso_grupo": 0.6046223050611553,
+   "piso_grupo": 0.6107738594812838,
    "n_difs": 133
   },
   {
    "variavel": "Fadiga",
-   "et": 1.7440578738665073,
+   "et": 1.8475442926814805,
    "et_ic": [
-    1.4877119688917808,
-    1.9797209185189208
+    1.5754996199526083,
+    2.0847521809768486
    ],
-   "et_pct": 32.88059137556391,
-   "sd_entre": 3.1352814708900016,
-   "mmr": 0.6270562941780004,
-   "mmd95": 4.834281785619774,
-   "razao": 0.35953869626346824,
+   "et_pct": 35.66190146338672,
+   "sd_entre": 3.0508606128224725,
+   "mmr": 0.6101721225644945,
+   "mmd95": 5.121131503758507,
+   "razao": 0.3302611607102018,
    "aptidao": "insuficiente",
-   "piso_grupo": 0.763383161008031,
+   "piso_grupo": 0.7562618841012465,
    "n_difs": 133
   },
   {
    "variavel": "Confusão",
-   "et": 0.6937906088849775,
+   "et": 0.7422417136277624,
    "et_ic": [
-    0.4193850058473666,
-    0.9691897607951278
+    0.4106925474481863,
+    1.0811091640898116
    ],
-   "et_pct": 137.927234820247,
-   "sd_entre": 0.7541877880162675,
-   "mmr": 0.1508375576032535,
-   "mmd95": 1.9230894535231564,
-   "razao": 0.2174107802434389,
+   "et_pct": 142.44176238405612,
+   "sd_entre": 0.8179792560791365,
+   "mmr": 0.16359585121582731,
+   "mmd95": 2.0573890640239996,
+   "razao": 0.2204077838959498,
    "aptidao": "insuficiente",
-   "piso_grupo": 0.2095100409957296,
+   "piso_grupo": 0.21717610767057627,
    "n_difs": 133
   },
   {
    "variavel": "TMD",
-   "et": 4.582434303591319,
+   "et": 4.680889715199462,
    "et_ic": [
-    3.6546820728667826,
-    5.458095887710944
+    3.702522484742972,
+    5.612398076512
    ],
-   "et_pct": 108.9025188827715,
-   "sd_entre": 7.7114576526930065,
-   "mmr": 1.5422915305386014,
-   "mmd95": 12.701859852012204,
-   "razao": 0.3365659883721378,
+   "et_pct": 122.85022809851553,
+   "sd_entre": 7.70276502270449,
+   "mmr": 1.5405530045408982,
+   "mmd95": 12.974764329647314,
+   "razao": 0.32911542426187074,
    "aptidao": "insuficiente",
-   "piso_grupo": 1.8845569409803937,
+   "piso_grupo": 1.8768610560841528,
    "n_difs": 133
   }
  ],
@@ -117,144 +117,144 @@
   {
    "variavel": "Tensão",
    "et_puro": 0.5720191276110801,
-   "et_entre_dias": 0.7385296643757155,
-   "variacao_biologica": 0.46714043157274016,
-   "pct_biologico": 40.009122546204,
+   "et_entre_dias": 0.7922068584271882,
+   "variacao_biologica": 0.5480746520193521,
+   "pct_biologico": 47.863255848718154,
    "n_pares": 17
   },
   {
    "variavel": "Depressão",
    "et_puro": 0.492592183071889,
-   "et_entre_dias": 1.081908381603378,
-   "variacao_biologica": 0.9632645988305142,
-   "pct_biologico": 79.27025017479102,
+   "et_entre_dias": 1.1386369377898027,
+   "variacao_biologica": 1.0265705125688198,
+   "pct_biologico": 81.28436810497716,
    "n_pares": 17
   },
   {
    "variavel": "Raiva",
    "et_puro": 1.1031372374758646,
-   "et_entre_dias": 1.6175506646329083,
-   "variacao_biologica": 1.1830293267491223,
-   "pct_biologico": 53.49032499104391,
+   "et_entre_dias": 1.5946267145083928,
+   "variacao_biologica": 1.151487122775565,
+   "pct_biologico": 52.143490566783576,
    "n_pares": 17
   },
   {
    "variavel": "Vigor",
    "et_puro": 1.4815036082225619,
-   "et_entre_dias": 1.4456676662148915,
-   "variacao_biologica": 0.0,
-   "pct_biologico": 0.0,
+   "et_entre_dias": 1.5929067463236763,
+   "variacao_biologica": 0.5852341081199991,
+   "pct_biologico": 13.498283819906238,
    "n_pares": 17
   },
   {
    "variavel": "Fadiga",
    "et_puro": 1.4677914581799016,
-   "et_entre_dias": 1.7440578738665073,
-   "variacao_biologica": 0.9419798844401511,
-   "pct_biologico": 29.171682155819045,
+   "et_entre_dias": 1.8475442926814805,
+   "variacao_biologica": 1.122055323374935,
+   "pct_biologico": 36.88406878287141,
    "n_pares": 17
   },
   {
    "variavel": "Confusão",
    "et_puro": 0.3031695312954162,
-   "et_entre_dias": 0.6937906088849775,
-   "variacao_biologica": 0.6240461876104247,
-   "pct_biologico": 80.90523707264103,
+   "et_entre_dias": 0.7422417136277624,
+   "variacao_biologica": 0.6775035031224523,
+   "pct_biologico": 83.31676032695957,
    "n_pares": 17
   },
   {
    "variavel": "TMD",
    "et_puro": 3.114836413417716,
-   "et_entre_dias": 4.582434303591319,
-   "variacao_biologica": 3.3610263706757078,
-   "pct_biologico": 53.79616849421829,
+   "et_entre_dias": 4.680889715199462,
+   "variacao_biologica": 3.494069639189689,
+   "pct_biologico": 55.71938253489871,
    "n_pares": 17
   }
  ],
  "MMI": [
   {
    "variavel": "Tensão",
-   "auc": 0.5314285714285714,
+   "auc": 0.5208333333333335,
    "corte": null,
-   "sens": 0.96,
-   "espec": 0.18367346938775508,
+   "sens": 0.9565217391304348,
+   "espec": 0.1875,
    "discrimina": false,
    "corte_sobre_et": null,
    "supera_mmr": null,
-   "n": 74,
-   "eventos": 25
+   "n": 71,
+   "eventos": 23
   },
   {
    "variavel": "Depressão",
-   "auc": 0.5710204081632653,
+   "auc": 0.5769927536231884,
    "corte": null,
-   "sens": 0.24,
-   "espec": 0.8571428571428572,
+   "sens": 0.2608695652173913,
+   "espec": 0.8541666666666666,
    "discrimina": false,
    "corte_sobre_et": null,
    "supera_mmr": null,
-   "n": 74,
-   "eventos": 25
+   "n": 71,
+   "eventos": 23
   },
   {
    "variavel": "Raiva",
-   "auc": 0.5857142857142857,
-   "corte": null,
-   "sens": 0.28,
-   "espec": 0.8775510204081632,
-   "discrimina": false,
-   "corte_sobre_et": null,
-   "supera_mmr": null,
-   "n": 74,
-   "eventos": 25
+   "auc": 0.6064311594202899,
+   "corte": 1.0,
+   "sens": 0.391304347826087,
+   "espec": 0.7916666666666666,
+   "discrimina": true,
+   "corte_sobre_et": 0.6271060122734052,
+   "supera_mmr": true,
+   "n": 71,
+   "eventos": 23
   },
   {
    "variavel": "Vigor",
-   "auc": 0.710204081632653,
+   "auc": 0.6924818840579711,
    "corte": -3.0,
-   "sens": 0.64,
-   "espec": 0.7755102040816326,
+   "sens": 0.6086956521739131,
+   "espec": 0.7708333333333334,
    "discrimina": true,
-   "corte_sobre_et": 2.075165731453846,
+   "corte_sobre_et": 1.883349422007159,
    "supera_mmr": true,
-   "n": 74,
-   "eventos": 25
+   "n": 71,
+   "eventos": 23
   },
   {
    "variavel": "Fadiga",
-   "auc": 0.9677551020408164,
+   "auc": 0.972373188405797,
    "corte": 3.0,
-   "sens": 0.88,
-   "espec": 0.8979591836734694,
+   "sens": 0.9130434782608695,
+   "espec": 0.8958333333333334,
    "discrimina": true,
-   "corte_sobre_et": 1.7201264046066995,
+   "corte_sobre_et": 1.6237770384632422,
    "supera_mmr": true,
-   "n": 74,
-   "eventos": 25
+   "n": 71,
+   "eventos": 23
   },
   {
    "variavel": "Confusão",
-   "auc": 0.4285714285714286,
+   "auc": 0.4225543478260869,
    "corte": null,
    "sens": 1.0,
-   "espec": 0.020408163265306145,
+   "espec": 0.02083333333333337,
    "discrimina": false,
    "corte_sobre_et": null,
    "supera_mmr": null,
-   "n": 74,
-   "eventos": 25
+   "n": 71,
+   "eventos": 23
   },
   {
    "variavel": "TMD",
-   "auc": 0.8571428571428571,
-   "corte": 9.0,
-   "sens": 0.64,
-   "espec": 0.9591836734693877,
+   "auc": 0.8573369565217391,
+   "corte": 8.0,
+   "sens": 0.6956521739130435,
+   "espec": 0.9166666666666666,
    "discrimina": true,
-   "corte_sobre_et": 1.9640216102927153,
+   "corte_sobre_et": 1.7090767966660168,
    "supera_mmr": true,
-   "n": 74,
-   "eventos": 25
+   "n": 71,
+   "eventos": 23
   }
  ],
  "INDIVIDUAL": [
@@ -262,37 +262,37 @@
    "variavel": "Tensão",
    "n": 21,
    "acima_et": 11,
-   "acima_mmr": 14,
-   "acima_mmd": 4,
-   "mesma_direcao": 11,
-   "delta_medio": -1.1666666666666667
+   "acima_mmr": 13,
+   "acima_mmd": 5,
+   "mesma_direcao": 10,
+   "delta_medio": -1.3095238095238095
   },
   {
    "variavel": "Depressão",
    "n": 21,
-   "acima_et": 7,
-   "acima_mmr": 14,
-   "acima_mmd": 2,
-   "mesma_direcao": 6,
-   "delta_medio": 0.23809523809523808
+   "acima_et": 6,
+   "acima_mmr": 12,
+   "acima_mmd": 1,
+   "mesma_direcao": 8,
+   "delta_medio": 0.8095238095238095
   },
   {
    "variavel": "Raiva",
    "n": 21,
    "acima_et": 10,
-   "acima_mmr": 14,
+   "acima_mmr": 12,
    "acima_mmd": 5,
    "mesma_direcao": 5,
-   "delta_medio": 0.35714285714285715
+   "delta_medio": 0.5714285714285714
   },
   {
    "variavel": "Vigor",
    "n": 21,
-   "acima_et": 16,
-   "acima_mmr": 16,
-   "acima_mmd": 6,
-   "mesma_direcao": 18,
-   "delta_medio": -3.261904761904762
+   "acima_et": 18,
+   "acima_mmr": 19,
+   "acima_mmd": 10,
+   "mesma_direcao": 19,
+   "delta_medio": -4.523809523809524
   },
   {
    "variavel": "Fadiga",
@@ -301,28 +301,28 @@
    "acima_mmr": 18,
    "acima_mmd": 8,
    "mesma_direcao": 18,
-   "delta_medio": 3.2857142857142856
+   "delta_medio": 4.333333333333333
   },
   {
    "variavel": "Confusão",
    "n": 21,
-   "acima_et": 7,
-   "acima_mmr": 11,
-   "acima_mmd": 4,
-   "mesma_direcao": 9,
-   "delta_medio": -0.5952380952380952
+   "acima_et": 9,
+   "acima_mmr": 12,
+   "acima_mmd": 3,
+   "mesma_direcao": 10,
+   "delta_medio": -0.7142857142857143
   },
   {
    "variavel": "TMD",
    "n": 21,
-   "acima_et": 12,
-   "acima_mmr": 18,
-   "acima_mmd": 6,
+   "acima_et": 15,
+   "acima_mmr": 19,
+   "acima_mmd": 5,
    "mesma_direcao": 15,
-   "delta_medio": 5.380952380952381
+   "delta_medio": 8.214285714285714
   }
  ],
  "n_atletas_D1D7": 21,
- "n_casos_ancora": 74,
- "eventos_ancora": 25
+ "n_casos_ancora": 71,
+ "eventos_ancora": 23
 }

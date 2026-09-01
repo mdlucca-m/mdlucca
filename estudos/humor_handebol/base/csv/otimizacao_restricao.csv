@@ -1,9 +1,6 @@
 restricao,tipo,folga,preco_sombra,ativa
 vigor previsto em D6 ≥ t,desigualdade,0.0,1.0,1
-D6 − D7 ≤ 2.5 h,desigualdade,0.0,0.07866794253771561,1
-polimento: D7 ≤ 60% de D1,desigualdade,-2.220446049250313e-16,0.021852206260476556,1
-polimento: D7 ≤ 60% de D2,desigualdade,0.0,0.02185220626047656,1
-polimento: D7 ≤ 60% de D4,desigualdade,0.0,0.02185220626047656,1
-D3 fixado em 4.5 h pelo calendário,igualdade,,-0.013111323756285934,1
-D5 fixado em 5.0 h pelo calendário,igualdade,,-0.44777667660068815,1
-carga da semana = 23.0 h,igualdade,,0.013111323756285934,1
+D5 − D6 ≤ 2.5 h,desigualdade,0.0,0.0086128881891536,1
+D3 fixado em 4.5 h pelo calendário,igualdade,,0.0,1
+D5 fixado em 5.0 h pelo calendário,igualdade,,-0.5761620317567067,1
+carga da semana = 23.0 h,igualdade,,0.0,1

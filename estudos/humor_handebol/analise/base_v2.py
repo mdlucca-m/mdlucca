@@ -81,13 +81,17 @@ PARES=[]; PREPOS=[]; EXCED=[]
 for (a,d),g in sorted(por.items(), key=lambda x:(x[0][1],x[0][0])):
     g=sorted(g,key=lambda x:x['ts'])
     # Regra de composição do valor diário, auditada pelo carimbo em V2_proto.py:
-    #   D1 é basal de janela única e entra por inteiro;
-    #   de D2 a D7 valem o primeiro registro do dia (pré) e o último (pós). O
+    #   D1 teve coleta única, à noite, após o treino. Vale a primeira resposta de
+    #   cada atleta; as 21 respostas tardias são repetição, e não segunda coleta.
+    #   A conferência sustenta a leitura: dos 22 atletas que respondem depois das
+    #   21h, 21 já haviam respondido na janela das 20h42, e o único que não
+    #   respondera (A14) responde às 21h54, uma vez só.
+    #   De D2 a D7 valem o primeiro registro do dia (pré) e o último (pós). O
     #   pré não exige hora da manhã: 59 atletas-dia só responderam a partir do
     #   meio-dia, sem qualquer registro anterior naquele dia, e nesses casos o
     #   primeiro registro é o pré, atrasado por esquecimento.
-    elei = g if d==1 else ([g[0]] if len(g)==1 else [g[0],g[-1]])
-    for x in g[1:-1] if d>1 else []:
+    elei = [g[0]] if d==1 else ([g[0]] if len(g)==1 else [g[0],g[-1]])
+    for x in (g[1:] if d==1 else g[1:-1]):
         EXCED.append(dict(a=a, dia=d, ts=x['ts'], hora=x['ts'][11:16]))
     p={'a':a,'dia':d,'nobs':len(g),'nusado':len(elei)}
     for v in VARS:
@@ -104,7 +108,7 @@ nd=[sum(1 for p in PARES if p['dia']==d) for d in range(1,8)]
 print(f"pares atleta-dia: {len(PARES)}  por dia {nd}")
 print(f"pares pré/pós: {len(PREPOS)}  por dia {[sum(1 for p in PREPOS if p['dia']==d) for d in range(2,8)]}")
 print(f"registros que compõem o valor diário: {sum(p['nusado'] for p in PARES)} de {len(REG)}"
-      f"  ·  intermediários descartados (D2 a D7): {len(EXCED)}")
+      f"  ·  excedentes de protocolo: {len(EXCED)}")
 
 CARGA={1:dict(h=1.5,ses=1,tipo='Basal',cont='Técnico e tático',acum=1.5),
        2:dict(h=2.0,ses=2,tipo='HIIT',cont='HIIT + técnico e tático',acum=3.5),
@@ -130,7 +134,7 @@ DEC=[
  "D1 teve janela única noturna (20h42 às 01h19 do dia seguinte), sem qualquer registro matinal.",
  "D2 a D7: primeiro registro do dia = pré; último = pós; valor diário = média dos dois. Os registros\n  intermediários são excedentes de protocolo e não entram no valor diário.",
  "O pré não exige hora da manhã: 59 dos 139 atletas-dia de D2 a D7 só responderam a partir do meio-dia,\n  sem nenhum registro anterior naquele dia, e neles o primeiro registro é o pré.",
- "D1 entra por inteiro no basal, por decisão do autor: a noite de 21/04 é tratada como coleta única.",
+ "D1 teve coleta única: vale a primeira resposta de cada atleta. Vinte e um dos vinte e sete atletas\n  responderam uma segunda vez, em mediana 153 minutos depois, e essas 21 respostas são repetição, não\n  segunda coleta: dos 22 atletas que respondem depois das 21h, 21 já haviam respondido na janela das\n  20h42, e o único que não respondera responde às 21h54, uma vez só.",
  "Em D7 todos os registros ocorrem entre 08h e 14h: o contraste pré/pós desse dia é manhã contra início da tarde.",
 ]
 json.dump(dict(NORMA=NORMA, CARGA={str(k):v for k,v in CARGA.items()}, ATL=sorted(COD.values()),

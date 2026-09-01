@@ -1,120 +1,131 @@
 dominio,via,variavel,recorte,teste,p,p_ajustado,efeito,rotulo_efeito,n,artigo
-associação,não paramétrica,Confusão×TMD,geral,Spearman,2.677436967494138e-09,3.748411754491793e-08,,,166,ambos
-associação,paramétrica,Confusão×TMD,geral,Pearson,8.571441735011162e-16,1.4571450949518975e-14,,,166,A2
-associação,não paramétrica,Depressão×Confusão,geral,Spearman,1.7777055138103057e-15,3.0220993734775195e-14,,,166,ambos
-associação,paramétrica,Depressão×Confusão,geral,Pearson,7.013562612869094e-19,1.262441270316437e-17,,,166,A2
-associação,não paramétrica,Depressão×Fadiga,geral,Spearman,1.6102934853845786e-06,1.7713228339230365e-05,,,166,ambos
-associação,paramétrica,Depressão×Fadiga,geral,Pearson,2.2467526437361156e-10,2.9207784368569502e-09,,,166,A2
-associação,não paramétrica,Depressão×Raiva,geral,Spearman,1.170062156135504e-15,2.1061118810439073e-14,,,166,ambos
-associação,paramétrica,Depressão×Raiva,geral,Pearson,9.653298818543336e-12,1.4479948227815003e-10,,,166,A2
-associação,não paramétrica,Depressão×TMD,geral,Spearman,2.0299027287611827e-15,3.2478443660178923e-14,,,166,ambos
-associação,paramétrica,Depressão×TMD,geral,Pearson,2.3486944328180538e-33,4.6973888656361076e-32,,,166,A2
-associação,paramétrica,Depressão×Vigor,geral,Pearson,0.0031830434871098993,0.02113133774247232,,,166,A2
-associação,paramétrica,Fadiga×Confusão,geral,Pearson,0.0015869732606487868,0.012695786085190295,,,166,A2
-associação,não paramétrica,Fadiga×TMD,geral,Spearman,3.463436497428001e-32,7.273216644598802e-31,,,166,ambos
-associação,paramétrica,Fadiga×TMD,geral,Pearson,1.1758448493892677e-36,2.4692741837174623e-35,,,166,A2
-associação,não paramétrica,Raiva×Confusão,geral,Spearman,5.252822437328619e-08,6.828669168527205e-07,,,166,ambos
-associação,paramétrica,Raiva×Confusão,geral,Pearson,1.2307263664667367e-07,1.476871639760084e-06,,,166,A2
-associação,não paramétrica,Raiva×Fadiga,geral,Spearman,1.0279538966527991e-07,1.233544675983359e-06,,,166,ambos
-associação,paramétrica,Raiva×Fadiga,geral,Pearson,1.6414569712933187e-10,2.298039759810646e-09,,,166,A2
-associação,não paramétrica,Raiva×TMD,geral,Spearman,1.9000570049990214e-17,3.6101083094981404e-16,,,166,ambos
-associação,paramétrica,Raiva×TMD,geral,Pearson,1.1976455752338499e-27,2.2755265929443147e-26,,,166,A2
-associação,não paramétrica,Tensão×Confusão,geral,Spearman,1.1251585308507377e-10,1.6877377962761066e-09,,,166,ambos
-associação,paramétrica,Tensão×Confusão,geral,Pearson,2.721853255310579e-05,0.00027218532553105793,,,166,A2
-associação,não paramétrica,Tensão×Depressão,geral,Spearman,0.00013162255337708986,0.0011846029803938088,,,166,ambos
-associação,paramétrica,Tensão×Depressão,geral,Pearson,0.003018762534638903,0.02113133774247232,,,166,A2
-associação,paramétrica,Tensão×Raiva,geral,Pearson,0.011883363129488716,0.04753345251795486,,,166,A2
-associação,não paramétrica,Tensão×TMD,geral,Spearman,0.003883915449961678,0.027187408149731748,,,166,ambos
-associação,paramétrica,Tensão×TMD,geral,Pearson,0.003938791631262727,0.02113133774247232,,,166,A2
-associação,não paramétrica,Tensão×Vigor,geral,Spearman,0.002657431309583989,0.021259450476671913,,,166,ambos
-associação,paramétrica,Tensão×Vigor,geral,Pearson,0.001006491707276234,0.009058425365486107,,,166,A2
-associação,não paramétrica,Vigor×Fadiga,geral,Spearman,4.161640452330641e-06,4.161640452330641e-05,,,166,ambos
-associação,paramétrica,Vigor×Fadiga,geral,Pearson,1.1533795135252228e-06,1.268717464877745e-05,,,166,A2
-associação,não paramétrica,Vigor×TMD,geral,Spearman,2.523186988731222e-18,5.046373977462444e-17,,,166,ambos
-associação,paramétrica,Vigor×TMD,geral,Pearson,1.2913175786877866e-13,2.0661081259004585e-12,,,166,A2
-categórica,não paramétrica,Faixa de risco,migração pré→pós — TODOS,McNemar,0.010097314647507242,,16.0,entram − saem,119,ambos
-contraste,não paramétrica,Confusão,D1–D3,Wilcoxon,0.009363437608220067,0.046817188041100334,0.5096061008963275,r,26,ambos
-contraste,não paramétrica,Confusão,D1–D5,Wilcoxon,0.004861991788476002,0.02917195073085601,0.5871845102976366,r,23,ambos
+associação,não paramétrica,Confusão×TMD,geral,Spearman,6.898969401375554e-08,9.658557161925774e-07,,,166,ambos
+associação,paramétrica,Confusão×TMD,geral,Pearson,2.0619370607393202e-11,3.2990992971829123e-10,,,166,A2
+associação,não paramétrica,Depressão×Confusão,geral,Spearman,7.374918309285272e-12,1.1799869294856435e-10,,,166,ambos
+associação,paramétrica,Depressão×Confusão,geral,Pearson,2.885069663551053e-12,4.90461842803679e-11,,,166,A2
+associação,não paramétrica,Depressão×Fadiga,geral,Spearman,8.403483138248726e-08,1.0924528079723345e-06,,,166,ambos
+associação,paramétrica,Depressão×Fadiga,geral,Pearson,4.870321108091273e-11,7.305481662136909e-10,,,166,A2
+associação,não paramétrica,Depressão×Raiva,geral,Spearman,1.8463313883388504e-13,3.1387633601760455e-12,,,166,ambos
+associação,paramétrica,Depressão×Raiva,geral,Pearson,4.987729929790848e-11,7.305481662136909e-10,,,166,A2
+associação,não paramétrica,Depressão×TMD,geral,Spearman,6.602721753436304e-15,1.1884899156185347e-13,,,166,ambos
+associação,paramétrica,Depressão×TMD,geral,Pearson,1.7144565993504308e-32,3.4289131987008618e-31,,,166,A2
+associação,paramétrica,Depressão×Vigor,geral,Pearson,0.000449096434030396,0.003592771472243168,,,166,A2
+associação,não paramétrica,Fadiga×TMD,geral,Spearman,3.337599840926051e-33,7.008959665944707e-32,,,166,ambos
+associação,paramétrica,Fadiga×TMD,geral,Pearson,1.7838255384964035e-37,3.7460336308424476e-36,,,166,A2
+associação,não paramétrica,Raiva×Confusão,geral,Spearman,7.069146465790134e-07,7.0691464657901345e-06,,,166,ambos
+associação,paramétrica,Raiva×Confusão,geral,Pearson,9.729450640829085e-07,1.0702395704911993e-05,,,166,A2
+associação,não paramétrica,Raiva×Fadiga,geral,Spearman,1.195029329109766e-07,1.4340351949317192e-06,,,166,ambos
+associação,paramétrica,Raiva×Fadiga,geral,Pearson,8.883628316443087e-11,1.1548716811376014e-09,,,166,A2
+associação,não paramétrica,Raiva×TMD,geral,Spearman,7.355122441293729e-17,1.3974732638458085e-15,,,166,ambos
+associação,paramétrica,Raiva×TMD,geral,Pearson,6.763574350793958e-28,1.285079126650852e-26,,,166,A2
+associação,não paramétrica,Tensão×Confusão,geral,Spearman,9.47369833607976e-09,1.421054750411964e-07,,,166,ambos
+associação,paramétrica,Tensão×Confusão,geral,Pearson,0.00010502417808024039,0.001050241780802404,,,166,A2
+associação,não paramétrica,Tensão×Depressão,geral,Spearman,0.0033915363875653384,0.027132291100522708,,,166,ambos
+associação,não paramétrica,Tensão×Vigor,geral,Spearman,0.002258819195143805,0.020329372756294248,,,166,ambos
+associação,paramétrica,Tensão×Vigor,geral,Pearson,0.00034648753037057724,0.003118387773335195,,,166,A2
+associação,não paramétrica,Vigor×Fadiga,geral,Spearman,5.294486207667032e-07,5.823934828433736e-06,,,166,ambos
+associação,paramétrica,Vigor×Fadiga,geral,Pearson,7.389019916549765e-08,8.866823899859718e-07,,,166,A2
+associação,não paramétrica,Vigor×TMD,geral,Spearman,1.3975152096965765e-20,2.795030419393153e-19,,,166,ambos
+associação,paramétrica,Vigor×TMD,geral,Pearson,1.3569836303042391e-15,2.4425705345476304e-14,,,166,A2
+categórica,não paramétrica,Faixa de risco,migração pré→pós — TODOS,McNemar,0.036713856362704134,,13.0,entram − saem,119,ambos
+categórica,não paramétrica,Superfície,estabilidade D1..D7,Q de Cochran,0.04947084056008604,,,,19,ambos
+contraste,não paramétrica,Confusão,D1–D3,Wilcoxon,0.004150775691332019,0.024904654147992117,0.5621610072489345,r,26,ambos
+contraste,não paramétrica,Confusão,D1–D5,Wilcoxon,0.00736857462637493,0.03684287313187465,0.5587583697974344,r,23,ambos
 contraste,não paramétrica,Confusão,pré×pós — Amistoso,Wilcoxon,0.026856695507524397,,0.35,r,40,ambos
+contraste,paramétrica,Confusão,D1→D7,t pareado,0.010998722944531076,,-0.6115321562763972,dz,21,A2
 contraste,paramétrica,Confusão,pré×pós — Amistoso,t pareado,0.02603106579169088,,-0.3658614351970144,dz,40,A2
 contraste,não paramétrica,Depressão,pré×pós — Técnico/força,Wilcoxon,0.010613156038105713,,0.5713565985620566,r,20,ambos
 contraste,paramétrica,Depressão,pré×pós — Técnico/força,t pareado,0.019988561845980534,,0.5679060846796469,dz,20,A2
-contraste,não paramétrica,Epworth,D1–D5,Wilcoxon,0.00660608363771145,0.038133040878505185,0.5663409069207518,r,23,ambos
-contraste,não paramétrica,Epworth,D1–D7,Wilcoxon,0.0063555068130841975,0.038133040878505185,0.595484498802092,r,21,ambos
-contraste,paramétrica,Epworth,D1→D7,t pareado,0.004648997634297156,,0.6951008638999111,dz,21,A2
-contraste,não paramétrica,Fad.Física,D1–D2,Wilcoxon,0.0014768873915262306,0.004647881692233127,0.6234898822117471,r,26,ambos
-contraste,não paramétrica,Fad.Física,D1–D3,Wilcoxon,0.0008897116169752196,0.0044485580848760975,0.6517453893011521,r,26,ambos
-contraste,não paramétrica,Fad.Física,D1–D4,Wilcoxon,0.005240604873930575,0.006359102766041607,0.609233767247323,r,21,ambos
-contraste,não paramétrica,Fad.Física,D1–D5,Wilcoxon,0.0031795513830208035,0.006359102766041607,0.6150807943879575,r,23,ambos
-contraste,não paramétrica,Fad.Física,D1–D6,Wilcoxon,0.0011619704230582818,0.004647881692233127,0.6924875302407832,r,22,ambos
-contraste,não paramétrica,Fad.Física,D1–D7,Wilcoxon,5.79039278864947e-05,0.0003474235673189682,0.8774964387392127,r,21,ambos
-contraste,paramétrica,Fad.Física,D1→D7,t pareado,7.307359398192518e-08,,1.7989569074028866,dz,21,A2
-contraste,não paramétrica,Fadiga,D1–D2,Wilcoxon,0.00244600368267177,0.01244888891728332,0.5942205966151928,r,26,ambos
-contraste,não paramétrica,Fadiga,D1–D7,Wilcoxon,0.00207481481954722,0.01244888891728332,0.6719602757938138,r,21,ambos
+contraste,paramétrica,Epworth,D1→D7,t pareado,0.006159200599051014,,0.6680728123930068,dz,21,A2
+contraste,não paramétrica,Fad.Física,D1–D2,Wilcoxon,0.0007497939154795836,0.002249381746438751,0.661047264210446,r,26,ambos
+contraste,não paramétrica,Fad.Física,D1–D3,Wilcoxon,0.0003866692477271408,0.0016425397490415447,0.6960198806686377,r,26,ambos
+contraste,não paramétrica,Fad.Física,D1–D4,Wilcoxon,0.0013393075876294979,0.002249381746438751,0.6999166815446672,r,21,ambos
+contraste,não paramétrica,Fad.Física,D1–D5,Wilcoxon,0.0009569471884838061,0.002249381746438751,0.6886996834978292,r,23,ambos
+contraste,não paramétrica,Fad.Física,D1–D6,Wilcoxon,0.00032850794980830895,0.0016425397490415447,0.7657563880840711,r,22,ambos
+contraste,não paramétrica,Fad.Física,D1–D7,Wilcoxon,8.596886147715013e-05,0.0005158131688629008,0.8569679835600635,r,21,ambos
+contraste,paramétrica,Fad.Física,D1→D7,t pareado,2.4720253614610078e-08,,1.9260400361372048,dz,21,A2
+contraste,não paramétrica,Fadiga,D1–D2,Wilcoxon,0.0003545383152076569,0.002127229891245941,0.7004872936934328,r,26,ambos
+contraste,não paramétrica,Fadiga,D1–D3,Wilcoxon,0.0077323772681672405,0.021077172295802544,0.5223626975400086,r,26,ambos
+contraste,não paramétrica,Fadiga,D1–D4,Wilcoxon,0.007935888397784365,0.021077172295802544,0.5793216622243912,r,21,ambos
+contraste,não paramétrica,Fadiga,D1–D5,Wilcoxon,0.007025724098600848,0.021077172295802544,0.5620761440756754,r,23,ambos
+contraste,não paramétrica,Fadiga,D1–D6,Wilcoxon,0.0026247004016054,0.0104988016064216,0.6414318180675358,r,22,ambos
+contraste,não paramétrica,Fadiga,D1–D7,Wilcoxon,0.0005054217167808864,0.002527108583904432,0.7589326742076753,r,21,ambos
 contraste,não paramétrica,Fadiga,pré×pós — HIIT,Wilcoxon,5.777135857261376e-05,,0.5235851264662821,r,59,ambos
-contraste,paramétrica,Fadiga,D1→D7,t pareado,0.0013820023293762136,,0.8097637831909438,dz,21,A2
+contraste,paramétrica,Fadiga,D1→D7,t pareado,0.00020921408647436317,,0.9861652697643082,dz,21,A2
 contraste,paramétrica,Fadiga,pré×pós — HIIT,t pareado,4.4054706236514855e-05,,0.5752668437282558,dz,59,A2
 contraste,não paramétrica,Raiva,pré×pós — Técnico/força,Wilcoxon,0.007420961287866498,,0.5986710947139653,r,20,ambos
 contraste,paramétrica,Raiva,pré×pós — Técnico/força,t pareado,0.009068644515673525,,0.6496868655404803,dz,20,A2
+contraste,não paramétrica,TMD,D1–D2,Wilcoxon,0.0002141505524231824,0.0012849033145390944,0.7259652334862953,r,26,ambos
+contraste,não paramétrica,TMD,D1–D6,Wilcoxon,0.01168712341635962,0.04674849366543848,0.5375756198679861,r,22,ambos
+contraste,não paramétrica,TMD,D1–D7,Wilcoxon,0.0035178250875433246,0.017589125437716624,0.6368567981908131,r,21,ambos
 contraste,não paramétrica,TMD,pré×pós — HIIT,Wilcoxon,6.282051072347795e-05,,0.5210105249164922,r,59,ambos
 contraste,não paramétrica,TMD,pré×pós — Técnico/força,Wilcoxon,0.003053489164344797,,0.6623906863172193,r,20,ambos
-contraste,paramétrica,TMD,D1→D7,t pareado,0.043648163684674224,,0.46996092142422313,dz,21,A2
+contraste,paramétrica,TMD,D1→D7,t pareado,0.005906085864346296,,0.6721193852669887,dz,21,A2
 contraste,paramétrica,TMD,pré×pós — HIIT,t pareado,2.2681335908110275e-05,,0.6000550536059934,dz,59,A2
 contraste,paramétrica,TMD,pré×pós — Técnico/força,t pareado,0.0021880220040072624,,0.7915390994787318,dz,20,A2
+contraste,não paramétrica,Tensão,D1–D7,Wilcoxon,0.006975322882452377,0.04185193729471426,0.5887562541021742,r,21,ambos
 contraste,não paramétrica,Tensão,pré×pós — HIIT,Wilcoxon,0.022579386464036,,0.29689287629947114,r,59,ambos
-contraste,paramétrica,Tensão,D1→D7,t pareado,0.01661791783302994,,-0.5704079293306621,dz,21,A2
+contraste,paramétrica,Tensão,D1→D7,t pareado,0.008554554923918739,,-0.6361932370898412,dz,21,A2
 contraste,paramétrica,Tensão,pré×pós — HIIT,t pareado,0.022308341674137398,,0.30567890217929006,dz,59,A2
-contraste,não paramétrica,Vigor,D1–D2,Wilcoxon,0.0012150748593783144,0.006075374296891572,0.634497986233487,r,26,ambos
-contraste,não paramétrica,Vigor,D1–D3,Wilcoxon,0.006853804005027264,0.02056141201508179,0.5302716376519098,r,26,ambos
-contraste,não paramétrica,Vigor,D1–D4,Wilcoxon,0.004957885081270752,0.019831540325083007,0.6131393394849659,r,21,ambos
-contraste,não paramétrica,Vigor,D1–D7,Wilcoxon,0.0002867773740266298,0.001720664244159779,0.7914676230389569,r,21,ambos
+contraste,não paramétrica,Vigor,D1–D2,Wilcoxon,6.323937903049045e-05,0.00037943627418294266,0.784540144091551,r,26,ambos
+contraste,não paramétrica,Vigor,D1–D3,Wilcoxon,0.00029797408798724526,0.001191896351948981,0.7093628331838578,r,26,ambos
+contraste,não paramétrica,Vigor,D1–D4,Wilcoxon,0.0006725465424107917,0.0020176396272323753,0.7420571043695645,r,21,ambos
+contraste,não paramétrica,Vigor,D1–D5,Wilcoxon,0.0012085112626172324,0.0020176396272323753,0.674932733944152,r,23,ambos
+contraste,não paramétrica,Vigor,D1–D6,Wilcoxon,0.0008385026742697417,0.0020176396272323753,0.7120396144864358,r,22,ambos
+contraste,não paramétrica,Vigor,D1–D7,Wilcoxon,0.00011846034107215899,0.0005923017053607949,0.8399841014976542,r,21,ambos
 contraste,não paramétrica,Vigor,pré×pós — HIIT,Wilcoxon,0.0035595396719156477,,0.37947036615491664,r,59,ambos
 contraste,não paramétrica,Vigor,pré×pós — Técnico/força,Wilcoxon,0.004369567889489955,,0.6373176934657858,r,20,ambos
-contraste,paramétrica,Vigor,D1→D7,t pareado,8.968412998747973e-05,,-1.0658751686414112,dz,21,A2
+contraste,paramétrica,Vigor,D1→D7,t pareado,8.36142202167364e-07,,-1.530472426943939,dz,21,A2
 contraste,paramétrica,Vigor,pré×pós — HIIT,t pareado,0.002490497433049372,,-0.41169207671713526,dz,59,A2
 contraste,paramétrica,Vigor,pré×pós — Técnico/força,t pareado,0.004367722435200857,,-0.723149257840665,dz,20,A2
 descritiva,descritiva,Confusão,efeito de piso,percentual no valor mínimo,,,,,166,ambos
-descritiva,paramétrica,Confusão,normalidade,Shapiro-Wilk,4.6910433875207455e-21,,,,166,ambos
+descritiva,paramétrica,Confusão,normalidade,Shapiro-Wilk,1.923906647771704e-21,,,,166,ambos
 descritiva,descritiva,Depressão,efeito de piso,percentual no valor mínimo,,,,,166,ambos
-descritiva,paramétrica,Depressão,normalidade,Shapiro-Wilk,3.006903301013924e-21,,,,166,ambos
-descritiva,paramétrica,Epworth,normalidade,Shapiro-Wilk,0.0017003068666411561,,,,166,ambos
-descritiva,paramétrica,Fad.Física,normalidade,Shapiro-Wilk,0.00455811914370637,,,,166,ambos
-descritiva,paramétrica,Fad.Mental,normalidade,Shapiro-Wilk,0.003292039299477027,,,,166,ambos
-descritiva,paramétrica,Fadiga,normalidade,Shapiro-Wilk,5.435012156668453e-06,,,,166,ambos
-descritiva,paramétrica,PSS,normalidade,Shapiro-Wilk,0.010095290028339355,,,,166,ambos
+descritiva,paramétrica,Depressão,normalidade,Shapiro-Wilk,8.172677752966041e-22,,,,166,ambos
+descritiva,paramétrica,Epworth,normalidade,Shapiro-Wilk,0.0025452472354065806,,,,166,ambos
+descritiva,paramétrica,Fad.Física,normalidade,Shapiro-Wilk,0.0010048632109298462,,,,166,ambos
+descritiva,paramétrica,Fad.Mental,normalidade,Shapiro-Wilk,0.002487517489198127,,,,166,ambos
+descritiva,paramétrica,Fadiga,normalidade,Shapiro-Wilk,1.8764565963533938e-06,,,,166,ambos
+descritiva,paramétrica,PSS,normalidade,Shapiro-Wilk,0.00509690150570281,,,,166,ambos
 descritiva,descritiva,Raiva,efeito de piso,percentual no valor mínimo,,,,,166,ambos
-descritiva,paramétrica,Raiva,normalidade,Shapiro-Wilk,3.299120627076498e-17,,,,166,ambos
-descritiva,paramétrica,TMD,normalidade,Shapiro-Wilk,7.34845227149991e-11,,,,166,ambos
+descritiva,paramétrica,Raiva,normalidade,Shapiro-Wilk,2.1233983116197868e-17,,,,166,ambos
+descritiva,paramétrica,TMD,normalidade,Shapiro-Wilk,3.2742379559332026e-10,,,,166,ambos
 descritiva,descritiva,Tensão,efeito de piso,percentual no valor mínimo,,,,,166,ambos
-descritiva,paramétrica,Tensão,normalidade,Shapiro-Wilk,8.196817367016167e-14,,,,166,ambos
-descritiva,paramétrica,Vigor,normalidade,Shapiro-Wilk,0.020420595318208997,,,,166,ambos
-série,robusta,Confusão,D1→D7,piso de ruído,,,2.096097337704164,|Δ|/piso,166,ambos
-série,robusta,Epworth,D1→D7,piso de ruído,,,3.214871272223426,|Δ|/piso,166,ambos
-série,robusta,Fad.Física,D1→D7,piso de ruído,,,8.200460010364854,|Δ|/piso,166,ambos
-série,robusta,Fadiga,D1→D7,piso de ruído,,,4.6056465422035,|Δ|/piso,166,ambos
-série,robusta,PSS,D1→D7,piso de ruído,,,1.0591351775979492,|Δ|/piso,166,ambos
-série,robusta,Raiva,D1→D7,piso de ruído,,,1.5439926565437352,|Δ|/piso,166,ambos
-série,robusta,TMD,D1→D7,piso de ruído,,,3.2160591325479175,|Δ|/piso,166,ambos
-série,robusta,Tensão,D1→D7,piso de ruído,,,3.4764775717411407,|Δ|/piso,166,ambos
-série,robusta,Vigor,D1→D7,piso de ruído,,,5.259306766019068,|Δ|/piso,166,ambos
-tendência,não paramétrica,Confusão,D1..D7,Friedman,0.0008895814012511656,,0.1994459833795012,W de Kendall,19,ambos
-tendência,não paramétrica,Confusão,ordenada D1→D7,L de Page,0.027975361761586548,,,,19,ambos
-tendência,paramétrica,Confusão,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),0.03699038279345881,,0.15078125000000003,η²p,19,A2
-tendência,não paramétrica,Epworth,D1..D7,Friedman,0.008737811900074891,,0.15046309134268732,W de Kendall,19,ambos
-tendência,não paramétrica,Epworth,ordenada D1→D7,L de Page,0.007159361739016212,,,,19,ambos
-tendência,paramétrica,Epworth,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),0.013839136499556488,,0.15357720239164463,η²p,19,A2
-tendência,não paramétrica,Fad.Física,D1..D7,Friedman,1.116639504570389e-08,,0.4221309370988442,W de Kendall,19,ambos
-tendência,não paramétrica,Fad.Física,ordenada D1→D7,L de Page,2.6705544442506834e-09,,,,19,ambos
-tendência,paramétrica,Fad.Física,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),3.986652354694637e-07,,0.39939811409081794,η²p,19,A2
-tendência,modelo misto,Fadiga,efeito linear do dia,modelo linear misto (intercepto aleatório por atleta),4.721632193785408e-06,,0.6818335606381056,CCI do atleta,166,A2
-tendência,não paramétrica,Fadiga,D1..D7,Friedman,0.04526294263974447,,0.11283380865957983,W de Kendall,19,ambos
-tendência,não paramétrica,Fadiga,ordenada D1→D7,L de Page,0.003613062933458311,,,,19,ambos
-tendência,paramétrica,Fadiga,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),0.012574800120724367,,0.15280928095699034,η²p,19,A2
-tendência,modelo misto,TMD,efeito linear do dia,modelo linear misto (intercepto aleatório por atleta),0.006173203552637538,,0.6551445520172655,CCI do atleta,166,A2
-tendência,modelo misto,Tensão,efeito linear do dia,modelo linear misto (intercepto aleatório por atleta),0.0007199446364192592,,0.6840952827406839,CCI do atleta,166,A2
-tendência,não paramétrica,Tensão,ordenada D1→D7,L de Page,0.0061530188011811315,,,,19,ambos
-tendência,paramétrica,Tensão,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),0.0254770811397525,,0.18440764833431894,η²p,19,A2
-tendência,modelo misto,Vigor,efeito linear do dia,modelo linear misto (intercepto aleatório por atleta),5.932232791780919e-07,,0.6496501403549128,CCI do atleta,166,A2
-tendência,não paramétrica,Vigor,D1..D7,Friedman,0.003511930915435946,,0.17033964220897058,W de Kendall,19,ambos
-tendência,não paramétrica,Vigor,ordenada D1→D7,L de Page,0.0014674391665732145,,,,19,ambos
-tendência,paramétrica,Vigor,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),0.0007092079268002253,,0.2570097054170764,η²p,19,A2
+descritiva,paramétrica,Tensão,normalidade,Shapiro-Wilk,4.268890647679054e-14,,,,166,ambos
+descritiva,paramétrica,Vigor,normalidade,Shapiro-Wilk,0.03530249980287488,,,,166,ambos
+série,robusta,Confusão,D1→D7,piso de ruído,,,2.533725077618665,|Δ|/piso,166,ambos
+série,robusta,Depressão,D1→D7,piso de ruído,,,1.6429711703490437,|Δ|/piso,166,ambos
+série,robusta,Epworth,D1→D7,piso de ruído,,,3.273690766087184,|Δ|/piso,166,ambos
+série,robusta,Fad.Física,D1→D7,piso de ruído,,,9.499148773153808,|Δ|/piso,166,ambos
+série,robusta,Fad.Mental,D1→D7,piso de ruído,,,1.045599328743719,|Δ|/piso,166,ambos
+série,robusta,Fadiga,D1→D7,piso de ruído,,,5.652978637437096,|Δ|/piso,166,ambos
+série,robusta,PSS,D1→D7,piso de ruído,,,1.2930632971097256,|Δ|/piso,166,ambos
+série,robusta,Raiva,D1→D7,piso de ruído,,,1.9173680715650239,|Δ|/piso,166,ambos
+série,robusta,TMD,D1→D7,piso de ruído,,,4.531657246400692,|Δ|/piso,166,ambos
+série,robusta,Tensão,D1→D7,piso de ruído,,,3.5343424871840123,|Δ|/piso,166,ambos
+série,robusta,Vigor,D1→D7,piso de ruído,,,7.086161696111283,|Δ|/piso,166,ambos
+tendência,não paramétrica,Confusão,D1..D7,Friedman,0.0010726035615783208,,0.19552864462040045,W de Kendall,19,ambos
+tendência,não paramétrica,Confusão,ordenada D1→D7,L de Page,0.02943866033132725,,,,19,ambos
+tendência,paramétrica,Confusão,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),0.03254307680769378,,0.16903940178314636,η²p,19,A2
+tendência,modelo misto,Depressão,efeito linear do dia,modelo linear misto (intercepto aleatório por atleta),0.0486734204614027,,0.675131093658874,CCI do atleta,166,A2
+tendência,não paramétrica,Epworth,D1..D7,Friedman,0.009548510817803167,,0.148498238156496,W de Kendall,19,ambos
+tendência,não paramétrica,Epworth,ordenada D1→D7,L de Page,0.007377528982277282,,,,19,ambos
+tendência,paramétrica,Epworth,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),0.006551204745650449,,0.17339653626209808,η²p,19,A2
+tendência,não paramétrica,Fad.Física,D1..D7,Friedman,1.8952703671353726e-09,,0.4558334612040303,W de Kendall,19,ambos
+tendência,não paramétrica,Fad.Física,ordenada D1→D7,L de Page,3.13705283971899e-10,,,,19,ambos
+tendência,paramétrica,Fad.Física,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),6.602566399519647e-08,,0.44748381708081025,η²p,19,A2
+tendência,modelo misto,Fadiga,efeito linear do dia,modelo linear misto (intercepto aleatório por atleta),5.8551337507446974e-08,,0.6361318907404208,CCI do atleta,166,A2
+tendência,não paramétrica,Fadiga,D1..D7,Friedman,0.0034387981656474873,,0.1707925941335548,W de Kendall,19,ambos
+tendência,não paramétrica,Fadiga,ordenada D1→D7,L de Page,0.000497512268533784,,,,19,ambos
+tendência,paramétrica,Fadiga,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),0.00018528905197233192,,0.2504586990392887,η²p,19,A2
+tendência,modelo misto,TMD,efeito linear do dia,modelo linear misto (intercepto aleatório por atleta),5.92255751013834e-05,,0.6428701397767922,CCI do atleta,166,A2
+tendência,não paramétrica,TMD,D1..D7,Friedman,0.023526339476472393,,0.12814863037708438,W de Kendall,19,ambos
+tendência,paramétrica,TMD,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),0.02036177990861302,,0.15691117148267064,η²p,19,A2
+tendência,modelo misto,Tensão,efeito linear do dia,modelo linear misto (intercepto aleatório por atleta),0.0005119037575119877,,0.6741994955567157,CCI do atleta,166,A2
+tendência,não paramétrica,Tensão,D1..D7,Friedman,0.02773617299133841,,0.12434634974533092,W de Kendall,19,ambos
+tendência,não paramétrica,Tensão,ordenada D1→D7,L de Page,0.002361394694048613,,,,19,ambos
+tendência,paramétrica,Tensão,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),0.012091230378827764,,0.2144554093567251,η²p,19,A2
+tendência,modelo misto,Vigor,efeito linear do dia,modelo linear misto (intercepto aleatório por atleta),1.5295906859887283e-10,,0.6253420819175081,CCI do atleta,166,A2
+tendência,não paramétrica,Vigor,D1..D7,Friedman,7.56269790035089e-05,,0.24999999999999956,W de Kendall,19,ambos
+tendência,não paramétrica,Vigor,ordenada D1→D7,L de Page,5.033229569306741e-05,,,,19,ambos
+tendência,paramétrica,Vigor,D1..D7,ANOVA de medidas repetidas (Greenhouse-Geisser),3.1883857826631143e-06,,0.3808960235600113,η²p,19,A2

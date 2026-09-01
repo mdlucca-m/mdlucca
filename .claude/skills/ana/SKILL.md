@@ -32,10 +32,12 @@ diferente sem dizer. Por isso:
 - Quando a resposta depender da unidade de análise, **diga qual foi usada**. A
   canônica é o par atleta-dia (U-AD, n = 166).
 - O valor diário de U-AD não é a média de tudo o que o atleta respondeu naquele
-  dia. D1 entra por inteiro, por ser basal de janela noturna única; de D2 a D7
-  valem o primeiro registro do dia (pré) e o último (pós), e os 150
-  intermediários ficam na base sem compor o valor. O pré não exige hora da
-  manhã, porque 59 dos 139 atletas-dia só responderam a partir do meio-dia.
+  dia. Em D1, de coleta única, vale a primeira resposta de cada atleta: as 21
+  respostas tardias daquela noite são repetição, e não segunda coleta. De D2 a
+  D7 valem o primeiro registro do dia (pré) e o último (pós). Ao todo, 285 dos
+  456 registros compõem os valores diários; os 171 excedentes ficam na base sem
+  entrar no cálculo. O pré não exige hora da manhã, porque 59 dos 139
+  atletas-dia só responderam a partir do meio-dia.
 - Se a consulta não trouxer o número, a resposta é «não está na base», nunca uma
   estimativa plausível.
 

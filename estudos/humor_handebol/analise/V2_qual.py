@@ -514,10 +514,12 @@ INCONS.append(dict(id='Q3', gravidade='alta', titulo='Registros excedentes ao pr
          f"registros por par atleta-dia, e {REPETICAO['ate_30min']} pares consecutivos ocorrem em 30 minutos "
          "ou menos. A conferência pelo carimbo (V2_proto) mostra de 7 a 10 janelas de coleta do elenco por "
          "dia, e não duas.",
-  correcao='De D2 a D7 valem o primeiro registro do dia (pré) e o último (pós); os 150 registros '
+  correcao='De D2 a D7 valem o primeiro registro do dia (pré) e o último (pós); os registros '
            'intermediários deixam de compor o valor diário. O pré não exige hora da manhã, porque 59 dos '
-           '139 atletas-dia só responderam a partir do meio-dia, sem registro anterior naquele dia. D1 '
-           'entra por inteiro, por decisão do autor, por ser basal de janela única.',
+           '139 atletas-dia só responderam a partir do meio-dia, sem registro anterior naquele dia. Em D1, '
+           'de coleta única, vale a primeira resposta de cada atleta: as 21 respostas tardias são '
+           'repetição, e não segunda coleta, pois 21 dos 22 atletas da janela tardia já haviam respondido '
+           'às 20h42. Ao todo, 285 dos 456 registros compõem os valores diários.',
   n=sum(v for k,v in REPETICAO['distribuicao'].items() if int(k)>2), de=len(grade)))
 INCONS.append(dict(id='Q4', gravidade='média', titulo='Rótulo do domínio da sonolência de Epworth',
   achado='A coluna da planilha é rotulada «Epworth Total (0-24)», mas o formulário aplicou seis das oito '

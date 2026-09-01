@@ -18,17 +18,17 @@ RESUMO=(
 "intercepto aleatório por atleta. As séries foram tratadas por filtro binomial, derivadas de primeira e "
 "segunda ordem e piso de ruído. Nenhuma das sete variáveis passou no teste de Shapiro-Wilk, e o ε de "
 "Greenhouse-Geisser situou-se entre 0,327 e 0,693, o que indica violação severa de esfericidade em todas "
-"elas. As três vias concordaram em quatro das sete variáveis e divergiram em três. A tensão não alcançou "
-"significância pelo teste de Friedman (p = 0,111), alcançou-a pela análise de variância corrigida (p = 0,029) "
-"e alcançou-a com folga pelo modelo misto (p = 0,001). A perturbação total repetiu o padrão. A confusão "
-"inverteu-o: fortemente significativa pelo Friedman (p < 0,001) e não significativa pelo modelo misto "
-"(p = 0,072). A explicação está no custo amostral: as duas primeiras vias exigem registro completo nos sete "
-"dias e operam com dezenove atletas, ao passo que o modelo misto retém os 166 pares. Um modelo adicional "
-"separou a carga do próprio dia da carga da véspera e mostrou que apenas a segunda tem efeito detectável "
-"sobre fadiga e vigor. Todos os valores foram recalculados por um segundo caminho de código, e as "
-"sessenta e cinco conferências coincidem. Conclui-se que, em "
-"séries de monitoramento com ausências frequentes, reportar uma única via é insuficiente, e que a discordância "
-"entre vias identifica qual pressuposto está sob tensão em cada variável."
+"elas. As três vias concordaram em cinco das sete variáveis e divergiram em duas. A depressão nada mostrou pelas vias "
+"que exigem registro completo (Friedman p = 0,815; análise de variância corrigida p = 0,457) e alcançou "
+"significância pelo modelo misto (p = 0,049), que retém os 166 pares em lugar de dezenove atletas. A confusão "
+"inverteu o padrão: significativa pelo Friedman (p = 0,001) e não significativa pelo modelo misto (p = 0,079). A "
+"sensibilidade à unidade de análise trocou o veredito de uma variável, a tensão, e apenas contra a leitura não "
+"pareada. A regra que compõe a linha de base trocou o de quatro, o que a torna a decisão mais consequente das "
+"três. Um modelo adicional separou a carga do próprio dia da carga da véspera e mostrou que apenas a segunda tem "
+"efeito detectável sobre fadiga e vigor. Todos os valores foram recalculados por um segundo caminho de código, e "
+"as sessenta e cinco conferências coincidem. Conclui-se que, em séries de monitoramento com ausências frequentes, "
+"reportar uma única via é insuficiente, e que a regra de composição da linha de base merece escrutínio maior do "
+"que o número de observações que a formam sugere."
 )
 PALAVRAS=("estatística não paramétrica; modelo linear misto; medidas repetidas; humor; handebol; "
           "tamanho de efeito")
@@ -44,14 +44,14 @@ ABSTRACT=(
 "confidence intervals, Pearson and Levene's test. The mixed model estimated the linear effect of day with a "
 "random intercept per athlete. Series were treated with a binomial filter, first and second derivatives and a "
 "noise floor. None of the seven variables passed the Shapiro-Wilk test, and Greenhouse-Geisser ε ranged from "
-"0.327 to 0.693, indicating severe sphericity violation throughout. The three routes agreed on four of the "
-"seven variables and diverged on three. Tension did not reach significance by Friedman (p = 0.111), reached it "
-"by corrected analysis of variance (p = 0.029), and reached it comfortably by the mixed model (p = 0.001). "
-"Total mood disturbance repeated the pattern. Confusion reversed it: strongly significant by Friedman "
-"(p < 0.001) and non-significant by the mixed model (p = 0.072). The explanation lies in the sample cost: the "
-"first two routes require complete records across all seven days and operate with nineteen athletes, whereas "
-"the mixed model retains all 166 pairs. In monitoring series with frequent absences, reporting a single route "
-"is insufficient, and disagreement between routes identifies which assumption is under strain in each variable."
+"0.327 to 0.693, indicating severe sphericity violation throughout. The three routes agreed on five of the seven variables and diverged on two. Depression showed nothing by the "
+"routes that require complete records (Friedman p = 0.815; corrected analysis of variance p = 0.457) and reached "
+"significance by the mixed model (p = 0.049), which retains all 166 pairs instead of nineteen athletes. Confusion "
+"reversed the pattern: significant by Friedman (p = 0.001) and non-significant by the mixed model (p = 0.079). "
+"Sensitivity to the unit of analysis switched the verdict of one variable, tension, and only against the unpaired "
+"reading. The rule composing the baseline switched four, making it the most consequential of the three decisions. "
+"In monitoring series with frequent absences, reporting a single route is insufficient, and the rule composing "
+"the baseline deserves scrutiny out of proportion to the number of observations that form it."
 )
 KEYWORDS=("nonparametric statistics; linear mixed model; repeated measures; mood; handball; effect size")
 
@@ -254,10 +254,10 @@ R1=[
  "como rota principal, portanto, não depende de uma particularidade do processamento.",
 "A verificação de pressupostos, apresentada na Figura 3 e na Tabela 1, é inequívoca em duas frentes e "
 "heterogênea numa terceira. Nenhuma das sete variáveis passa no teste de Shapiro-Wilk ao nível de cinco por "
-"cento. O vigor é a que mais se aproxima da normalidade (W = 0,983; p = 0,035) e a depressão a que mais dela "
-"se afasta (W = 0,522; p < 0,001), com assimetria de 3,80 e curtose de 17,66. Quatro das seis subescalas "
-"apresentam efeito de piso acima do limite de quinze por cento proposto por Terwee et al. (2007): 65,7% na "
-"confusão, 52,4% na depressão, 45,2% na raiva e 40,4% na tensão.",
+"cento. O vigor é a que mais se aproxima da normalidade (W = 0,983; p = 0,035) e a depressão a que mais dela se afasta "
+"(W = 0,485; p < 0,001), com assimetria de 4,04 e curtose de 19,64. Quatro das seis subescalas apresentam efeito "
+"de piso acima do limite de quinze por cento proposto por Terwee et al. (2007): 69,3% na confusão, 61,4% na "
+"depressão, 51,8% na raiva e 41,6% na tensão.",
 "A esfericidade está violada em todas as variáveis, e severamente. O ε de Greenhouse-Geisser situa-se entre "
 "0,327, na tensão, e 0,693, na fadiga, sempre abaixo do limite convencional de 0,75. A correção dos graus de "
 "liberdade é, portanto, obrigatória, e não facultativa; a análise de variância sem correção produziria "
@@ -272,28 +272,30 @@ R1=[
 R2=[
 "A Figura 2 apresenta o resultado central deste estudo: a mesma hipótese, submetida às três vias, para as sete "
 "variáveis. A Tabela 2 traz os valores.",
-"As três vias concordam em quatro variáveis. O vigor é significativo pelas três (Friedman p = 0,045; análise "
-"de variância corrigida p = 0,001; modelo misto p < 0,001), assim como a fadiga (p = 0,036; p = 0,006; "
-"p < 0,001). A depressão não é significativa por nenhuma (p = 0,985; p = 0,607; p = 0,434), e a raiva tampouco "
-"(p = 0,087; p = 0,184; p = 0,995).",
-"As três variáveis restantes divergem, e a divergência tem um padrão. A tensão não alcança significância pelo "
-"teste de Friedman (χ² = 10,34; p = 0,111), alcança-a pela análise de variância corrigida (F = 3,95; "
-"p = 0,029; η²p = 0,180) e alcança-a com folga pelo modelo misto (b = −0,131 ponto por dia; IC 95% −0,211 a "
-"−0,052; p = 0,001). A perturbação total repete exatamente o mesmo padrão: p = 0,233, p = 0,091 e p = 0,011. "
-"Em ambos os casos, a ordem é a mesma: a via de postos mostra-se a mais conservadora, a paramétrica clássica fica "
-"no meio e o modelo misto revela-se o mais sensível.",
-"A confusão inverte o padrão e por isso merece exame separado. Ela é a variável mais significativa pelo teste "
-"de Friedman de todo o conjunto (χ² = 24,78; p < 0,001; W = 0,217), permanece significativa pela análise de "
-"variância corrigida (p = 0,014) e deixa de sê-lo pelo modelo misto (b = −0,056; p = 0,072). A explicação "
+"As três vias concordam em cinco das sete variáveis. O vigor é significativo pelas três (Friedman p < 0,001; "
+"análise de variância corrigida p < 0,001; modelo misto p < 0,001), assim como a fadiga (p = 0,003; p < 0,001; p "
+"< 0,001), a perturbação total (p = 0,024; p = 0,020; p < 0,001) e a tensão (p = 0,028; p = 0,012; p = 0,001). A "
+"raiva não é significativa por nenhuma (p = 0,487; p = 0,291; p = 0,680).",
+"As duas variáveis restantes divergem, e divergem em sentidos opostos. A depressão nada mostra pelas duas vias "
+"que exigem registro completo (Friedman χ² = 2,95; p = 0,815; análise de variância corrigida F = 0,73; p = 0,457) "
+"e alcança significância pelo modelo misto, ainda que por margem estreita (b = 0,098 ponto por dia; IC 95% 0,001 "
+"a 0,195; p = 0,049). A explicação está no custo amostral: as duas primeiras operam sobre dezenove atletas e a "
+"terceira retém os 166 pares, o que triplica a informação disponível para estimar um efeito pequeno. Aqui a ordem "
+"entre as vias é a esperada, com a via de postos mais conservadora e o modelo misto mais sensível.",
+"A confusão inverte esse padrão e por isso merece exame separado. Ela é significativa pelo teste de Friedman (χ² "
+"= 22,29; p = 0,001; W = 0,196), permanece significativa pela análise de variância corrigida (F = 3,66; p = "
+"0,033; η²p = 0,169) e deixa de sê-lo pelo modelo misto (b = −0,063; IC 95% −0,133 a 0,007; p = 0,079). A explicação "
 "reside na forma da trajetória: a confusão cai abruptamente do primeiro para o segundo dia e depois oscila sem "
 "direção, de modo que o efeito não é linear no dia. O teste de Friedman, que apenas pergunta se os dias "
 "diferem, capta o degrau; o modelo misto, que impõe uma reta, não o capta. A discordância, nesse caso, não "
 "indica qual via está certa: indica que a pergunta que cada uma responde é diferente.",
-"O teste L de Page, que especifica a alternativa como ordenada, ilumina esse ponto. Ele acusa tendência monotônica em quatro variáveis, a saber, fadiga (z = 2,86; p = 0,004), vigor (z = −2,84; p = "
-"0,004), tensão (z = −2,59; p = 0,010) e confusão (z = −2,52; p = 0,012), e nada encontra na depressão nem na "
-"perturbação total. Note-se que o teste de Page acusa tendência na tensão, onde o de Friedman nada encontra, "
-"o que confirma que o problema da tensão é de potência, e não de ausência de efeito: o deslocamento existe, é "
-"ordenado, e o teste sem direção especificada não o detecta.",
+"O teste L de Page, que especifica a alternativa como ordenada, ilumina esse ponto. Ele acusa tendência monotônica em quatro variáveis, a saber, vigor (z = −4,05; p < 0,001), fadiga (z = 3,48; p < "
+"0,001), tensão (z = −3,04; p = 0,002) e confusão (z = −2,18; p = 0,029), e nada encontra na depressão, na raiva "
+"nem na perturbação total. O contraste com o teste de Friedman é informativo justamente onde os dois discordam: a "
+"perturbação total é significativa por Friedman e não apresenta tendência ordenada por Page, o que indica que os "
+"dias diferem entre si sem que o deslocamento siga uma direção única. A depressão, por sua vez, escapa às duas, e "
+"a significância que o modelo misto lhe atribui repousa inteiramente na imposição de linearidade sobre os 166 "
+"pares.",
 ]
 R3=[
 "A magnitude, que a via de postos não fornece, aparece na Figura 2 e na Tabela 3. O vigor apresenta o maior "
@@ -310,12 +312,12 @@ R3=[
 ]
 R4=[
 "O modelo misto, apresentado na Figura 6 e na Tabela 4, acrescenta duas informações que as outras vias não "
-"fornecem. A primeira é a taxa de mudança na escala original: a fadiga sobe 0,354 ponto por dia (IC 95% 0,200 "
-"a 0,507), o vigor cai 0,335 (IC 95% −0,470 a −0,201), a perturbação total sobe 0,522 (IC 95% 0,121 a 0,923) "
-"e a tensão cai 0,131 (IC 95% −0,211 a −0,052). Traduzido para a semana inteira, o modelo prevê queda de "
-"aproximadamente dois pontos de vigor e elevação de aproximadamente dois pontos de fadiga entre o primeiro e "
-"o sétimo dia, valores compatíveis com os deslocamentos observados de 2,98 e 3,62 pontos, e ligeiramente "
-"menores por efeito da imposição de linearidade.",
+"fornecem. A primeira é a taxa de mudança na escala original: a perturbação total sobe 0,868 ponto por dia (IC 95% 0,445 a "
+"1,292), o vigor cai 0,491 (IC 95% −0,642 a −0,341), a fadiga sobe 0,467 (IC 95% 0,299 a 0,636), a tensão cai "
+"0,146 (IC 95% −0,229 a −0,064) e a depressão sobe 0,098 (IC 95% 0,001 a 0,195). Traduzido para a semana inteira, "
+"o modelo prevê queda de aproximadamente três pontos de vigor e elevação de aproximadamente três de fadiga entre "
+"o primeiro e o sétimo dia, valores compatíveis com os deslocamentos observados de 4,52 e 4,33 pontos, e menores "
+"por efeito da imposição de linearidade sobre uma trajetória que se move por degraus.",
 "A segunda é a decomposição da variância. A proporção atribuível a diferenças estáveis entre atletas varia de "
 "0,341, na raiva, a 0,765, na depressão. A leitura substantiva é direta: a raiva comporta-se como estado, "
 "sensível ao dia, ao passo que a depressão comporta-se como característica relativamente estável do "
@@ -344,18 +346,18 @@ R5=[
 ]
 R6=[
 "A resposta ao tipo de estímulo, apresentada na Figura 4 e na Tabela 6, foi igualmente examinada pelas duas "
-"vias, e o resultado é convergente e negativo. A distribuição dos seis perfis não difere entre os tipos de "
-"estímulo (χ² = 6,06; gl = 10; p = 0,810), e tampouco a composição das três faixas (χ² = 3,66; gl = 4; "
-"p = 0,455). Os níveis médios das variáveis, comparados nos vinte e dois atletas com registro nos três tipos "
-"de dia, diferem apenas na raiva pela via não paramétrica (χ² = 7,82; p = 0,020) e em nenhuma variável pela "
-"análise de variância de medidas repetidas, cujo menor valor de p é 0,082, na perturbação total.",
+"vias, e o resultado é convergente e negativo. A distribuição dos seis perfis não difere entre os tipos de estímulo (χ² = 6,38; gl = 10; p = 0,782), e tampouco "
+"a composição das três faixas (χ² = 3,03; gl = 4; p = 0,553). Os níveis médios das variáveis, comparados nos "
+"vinte e dois atletas com registro nos três tipos de dia, não diferem em nenhuma variável por via alguma; o menor "
+"valor de p é 0,062, na raiva, pela via não paramétrica, e 0,070, na perturbação total, pela análise de variância "
+"de medidas repetidas.",
 "A dinâmica intradiária, ao contrário, é robusta pelas duas vias. Nos dias de treino intervalado, a fadiga "
 "sobe 2,02 pontos (Wilcoxon p < 0,001; t pareado p < 0,001; dz = 0,58), a perturbação total sobe 4,15 "
 "(p < 0,001 em ambas; dz = 0,60) e o vigor cai 1,20 (p = 0,004; dz = −0,41). Nos dias de conteúdo técnico e "
 "de força, com apenas vinte pares, os efeitos são maiores: a perturbação total sobe 6,90 pontos (dz = 0,79) e "
-"o vigor cai 2,30 (dz = −0,72). A migração para a faixa de risco, considerados os 119 pares completos, é "
-"inequívoca: vinte e quatro pares entram e oito saem (χ² = 7,03; p = 0,008); repartida por estímulo, apenas o "
-"treino intervalado alcança significância bruta (p = 0,034), que não sobrevive à correção de Holm (p = 0,102).",
+"o vigor cai 2,30 (dz = −0,72). A migração para a faixa de risco, considerados os 119 pares completos, tem direção clara: vinte e três pares "
+"entram e dez saem (χ² = 4,36; p = 0,037); repartida por estímulo, apenas o treino intervalado alcança "
+"significância bruta (p = 0,037), que não sobrevive à correção de Holm (p = 0,111).",
 "Cabe registrar a advertência de delineamento que atravessa toda esta seção e que nenhuma via estatística "
 "resolve: os tipos de estímulo não foram distribuídos ao acaso ao longo da semana, de modo que o tipo de dia "
 "se confunde com a posição no microciclo e com a carga acumulada. O dia de conteúdo técnico e de força "
@@ -364,10 +366,10 @@ R6=[
 R7=[
 "O tratamento de séries oferece um critério paralelo, e a comparação com os valores de p é instrutiva. A "
 "Tabela 7 põe lado a lado o veredito do piso de ruído e o das três vias inferenciais.",
-"As duas leituras concordam nos extremos. O vigor e a fadiga são sinal pelo piso, com deslocamento de 5,1 e "
-"4,8 vezes o respectivo ruído, e significativos pelas três vias. A depressão é ruído pelo piso, com "
-"deslocamento de apenas 0,5 vez o ruído, e não significativa por nenhuma via. Nas cinco variáveis restantes "
-"as leituras divergem, e cada divergência é informativa.",
+"As duas leituras concordam nos extremos. O vigor e a fadiga são sinal pelo piso, com deslocamento de 7,1 e 5,7 "
+"vezes o respectivo ruído, e significativos pelas três vias. A raiva desloca-se apenas 1,9 vez o seu ruído e não "
+"alcança significância por via alguma. Nas variáveis intermediárias as leituras divergem, e cada divergência é "
+"informativa.",
 "A tensão é sinal pelo piso, com deslocamento de 3,4 vezes o ruído, e não é significativa pelo teste de "
 "Friedman. A discrepância mede exatamente o custo do descarte de casos incompletos: o deslocamento é grande "
 "em relação ao ruído da série agregada, mas o teste opera sobre dezenove trajetórias individuais e não o "
@@ -399,11 +401,13 @@ R9=[
  "A unidade de análise não altera apenas a prevalência descrita no artigo companheiro: altera o veredito "
  "inferencial. Na comparação entre a linha de base e a véspera da estreia, três das sete variáveis cruzam o "
  "limiar de cinco por cento em uma unidade e não cruzam em outra. A Tabela 10 apresenta os valores.",
- "As três variáveis que trocam são a tensão, a confusão e a perturbação total do humor, exatamente aquelas que "
- "este artigo já identificara como sujeitas a troca de veredito conforme a via de análise. As duas "
- "fragilidades, portanto, não se distribuem ao acaso: recaem sobre as mesmas variáveis, que são aquelas "
- "cujo deslocamento é pequeno em relação à dispersão. Vigor e fadiga, cujo deslocamento é grande, resistem "
- "a qualquer combinação de via e de unidade.",
+ "A única variável que troca é a tensão, e a troca ocorre contra uma unidade específica: as três unidades "
+ "pareadas concordam em declará-la significativa (p = 0,007), ao passo que a leitura não pareada sobre o registro "
+ "isolado não o faz (p = 0,056). A explicação é de ponderação, não de efeito: a contagem por registro pesa cada "
+ "atleta pelo número de vezes que respondeu, e o deslocamento da tensão, de 1,31 ponto entre os extremos da "
+ "semana pelo par atleta-dia, reduz-se a 0,66 ponto quando os atletas mais assíduos dominam a média. Vigor, "
+ "fadiga, confusão e perturbação total resistem a qualquer unidade, e depressão e raiva não alcançam "
+ "significância em nenhuma.",
  "A comparação global entre os sete dias repete o padrão em escala menor: duas variáveis trocam de veredito, "
  "e são a tensão e a perturbação total do humor. Registre-se que a subamostra pareada produz, no contraste "
  "entre extremos, resultado idêntico ao do par atleta-dia, porque esse contraste já opera apenas sobre os atletas com medida nos dois dias; a coincidência vale como "
@@ -414,19 +418,20 @@ R9=[
  "dado, contado de outra forma igualmente defensável, produziria p = 0,07."]
 
 R9B=[
- "Convém distinguir essa instabilidade de outra, que a auditoria de protocolo permitiu testar. A regra que "
- "compõe o valor diário mudou entre uma versão e outra deste estudo: a anterior tomava a média de todos os "
- "registros do dia, ao passo que a atual retém apenas o primeiro e o último, por conferência dos carimbos de "
- "data e hora contra o protocolo de coleta. Cento e cinquenta registros deixaram de compor os valores "
- "diários, um terço do total. Refeitas as três vias sobre a base recomposta, nenhum dos vinte e um vereditos "
- "trocou de lado: as mesmas quatro variáveis concordam, as mesmas três divergem, e a divergência mantém a "
- "mesma ordem entre as vias. Os coeficientes deslocaram-se pouco e no sentido esperado: o efeito diário do "
- "vigor passou de −0,335 a −0,358 e o da fadiga, de +0,354 a +0,370.",
- "O contraste entre as duas sensibilidades é instrutivo. O veredito é frágil quanto à via e quanto à unidade, "
- "mas robusto quanto à regra de composição do valor diário. A razão está na natureza de cada escolha: via e "
- "unidade alteram quem entra no cálculo e sob que pressuposto, ao passo que a regra de composição altera "
- "apenas a precisão com que cada atleta-dia é estimado. Uma decisão de amostra pesa mais do que uma decisão "
- "de medida, e é isso que recomenda declarar as três, sem confundi-las.",
+ "Convém distinguir essa instabilidade de uma terceira, que a auditoria de protocolo permitiu testar e que se "
+ "revelou a mais consequente das três. A regra que compõe o valor diário foi conferida contra os carimbos de data "
+ "e hora, e a conferência produziu duas correções de natureza distinta. A primeira restringiu os dias de segundo "
+ "a sétimo ao primeiro e ao último registro de cada atleta, o que afastou 150 registros intermediários. Refeitas "
+ "as três vias sobre essa base, nenhum dos vinte e um vereditos trocou de lado. A segunda corrigiu a linha de "
+ "base, que passou a reter apenas a primeira resposta de cada atleta na noite de coleta única, o que afastou "
+ "outros 21 registros. Essa segunda correção, muito menor em volume, trocou quatro dos vinte e um vereditos.",
+ "O contraste entre as três sensibilidades é instrutivo, e a lição não é a que se esperaria. Vinte e um por cento "
+ "dos registros afastados no miolo da semana não mudaram veredito algum; cinco por cento afastados na linha de "
+ "base mudaram quatro. A assimetria tem explicação estrutural: o basal é o ponto contra o qual todos os seis "
+ "contrastes se medem, de modo que um erro nele se propaga a todos, ao passo que um erro no valor de um dia "
+ "intermediário afeta apenas os contrastes que o envolvem. Daí decorre uma recomendação prática que a literatura "
+ "de monitoramento raramente enuncia: quando o desenho tem uma linha de base, a regra que a compõe merece "
+ "escrutínio desproporcional ao número de observações que a formam.",
 ]
 
 R10=[
@@ -441,9 +446,9 @@ R10=[
  "potência para detectar uma associação moderada é baixa.",
  "Duas verificações reforçam a leitura. As faltas concentram-se em oito dos vinte e sete atletas, e "
  "dezenove têm série completa; o número de faltas de cada atleta não se correlaciona com o seu humor médio "
- "ao longo da semana. E, sob imputação de pior caso nos ausentes do sétimo dia, seis das sete variáveis "
- "mantêm o sinal da variação entre os extremos da semana, conforme a Tabela 12. A exceção é a depressão, "
- "cuja variação de 0,21 ponto já era classificada como ruído pelo critério do piso.",
+ "ao longo da semana. E, sob imputação de pior caso nos ausentes do sétimo dia, as sete variáveis mantêm o sinal da variação entre os "
+ "extremos da semana, conforme a Tabela 12. O intervalo mais largo é o da perturbação total, que vai de 5,87 a "
+ "12,65 pontos em torno do valor observado de 8,51; o mais estreito é o da confusão, de −0,67 a −0,33.",
  "O conjunto sustenta a hipótese de ausência ignorável melhor do que uma declaração de limitação, e sem "
  "afirmá-la: o que se pode dizer é que, onde a dependência seria detectável, ela não aparece, e que as "
  "conclusões sobre a variação da semana não dependem do que os ausentes teriam respondido."]
@@ -473,16 +478,19 @@ R11=[
  "sensível do que a variação contínua, e a comparação entre eles ilustra o custo de dicotomizar."]
 
 DISCUSSAO=[
-("Duas fragilidades sobre as mesmas variáveis",[
- "O resultado que organiza este artigo ganhou, com a análise por unidade, a sua formulação mais forte. As "
- "variáveis cujo veredito depende da via de análise são a tensão, a confusão e a perturbação total do "
- "humor; as variáveis cujo veredito depende da unidade de análise são as mesmas três. Não se trata de duas "
- "instabilidades independentes que por acaso coincidem: trata-se de uma única propriedade, o deslocamento pequeno em relação à dispersão, que se manifesta por dois "
- "caminhos.",
- "Vigor e fadiga, cujo deslocamento entre os extremos da semana é de três e de três vírgula seis pontos, "
- "resistem a toda combinação de via e de unidade. Depressão e raiva, que praticamente não se movem, também "
- "resistem, pelo motivo oposto: nenhuma rota as declara significativas. A instabilidade concentra-se na "
- "faixa intermediária, onde o efeito existe mas é da ordem da variabilidade.",
+("Três decisões metodológicas, de pesos distintos",[
+ "O resultado que organiza este artigo ganhou, com a análise por unidade e com a auditoria de protocolo, uma "
+ "formulação mais precisa e mais modesta do que a inicial. Três decisões metodológicas foram postas à prova, e "
+ "elas não pesam igual. A via de análise troca o veredito de duas variáveis, a depressão e a confusão. A unidade "
+ "de análise troca o de uma, a tensão, e apenas contra a leitura não pareada. A regra que compõe a linha de base "
+ "troca o de quatro. As três variáveis vulneráveis, tomadas em conjunto, são justamente aquelas de deslocamento "
+ "intermediário em relação à dispersão; vigor e fadiga, cujo deslocamento supera cinco vezes o próprio ruído, "
+ "resistem a toda combinação.",
+ "Vigor e fadiga, cujo deslocamento entre os extremos da semana é de quatro vírgula cinco e de quatro vírgula "
+ "três pontos, resistem a toda combinação de via, de unidade e de regra de composição. A raiva, que praticamente "
+ "não se move, também resiste, pelo motivo oposto: nenhuma rota a declara significativa. A instabilidade "
+ "concentra-se na faixa intermediária, onde o efeito existe mas é da ordem da variabilidade, e é justamente aí "
+ "que se situam a depressão, a confusão e a tensão.",
  "A recomendação prática que decorre disso é mais modesta e mais útil do que «reportar várias vias». É declarar as duas escolhas, a via e a unidade, e verificar a estabilidade do veredito nas variáveis de "
  "deslocamento intermediário, que são justamente aquelas sobre as quais a decisão do leitor mudaria."]),
 ("O dia que deixa resíduo, e o que isso não autoriza a concluir",[
@@ -536,9 +544,11 @@ DISCUSSAO=[
  "paramétrica se sustenta e três em que não se sustenta, e a média entre elas não descreve nenhuma."]),
 ("O critério de ruído como leitura independente do valor de p",[
  "O tratamento de séries adotado neste estudo fornece um critério que não depende de hipótese nula alguma: o "
- "deslocamento total é comparado ao piso de ruído da própria série. Essa leitura converge com a inferencial nos extremos, pois vigor e fadiga constituem sinal pelo piso e alcançam "
- "significância pelas três vias, ao passo que a depressão permanece ruído pelo piso e não atinge significância "
- "por nenhuma; a divergência aparece no meio, e é aí que ela se torna útil.",
+ "deslocamento total é comparado ao piso de ruído da própria série. Essa leitura converge com a inferencial nos extremos, pois vigor e fadiga constituem sinal pelo piso, com folga "
+ "de 7,1 e 5,7 vezes, e alcançam significância pelas três vias, ao passo que a raiva, com folga de apenas 1,9 "
+ "vez, não a atinge por nenhuma; a divergência aparece no meio, e é aí que ela se torna útil. A depressão ilustra "
+ "bem o ponto: desloca-se 1,6 vez o próprio ruído, o que o critério registra como sinal fraco, e recebe "
+ "significância de uma única via entre três.",
  "A tensão é sinal pelo piso, com deslocamento de 3,4 vezes o ruído da série, e não é significativa pelo teste "
  "de Friedman. A discrepância mede o custo do descarte de casos incompletos, e o modelo misto, que não "
  "descarta, converge com o piso. A raiva ilustra a situação inversa: o piso a declara sinal por margem "
@@ -550,10 +560,9 @@ DISCUSSAO=[
  "individuais (TERWEE et al., 2007; SAW; MAIN; GASTIN, 2016); o que se propõe aqui é a extensão do mesmo "
  "raciocínio às séries agregadas do grupo, com o critério declarado antes da leitura."]),
 ("O que os resultados dizem sobre o microciclo, e não sobre o método",[
- "Interessa registrar que, apesar da divergência entre vias, o retrato substantivo do microciclo é estável. As "
- "três vias concordam que o vigor cai e a fadiga sobe, e essas são as duas variáveis com maior tamanho de "
- "efeito por qualquer índice: dz de −0,96 e 0,84, r de 0,74 e 0,69. A ordenação das variáveis por magnitude é "
- "idêntica pelas duas vias. A depressão não se move por critério algum. O eixo do microciclo terminal é, "
+ "Interessa registrar que, apesar da divergência entre vias, o retrato substantivo do microciclo é estável. As três vias concordam que o vigor cai e a fadiga sobe, e essas são as duas variáveis com maior tamanho de "
+ "efeito por qualquer índice: dz de −1,53 e 0,99, r de 0,84 e 0,76. A ordenação das variáveis por magnitude é "
+ "praticamente idêntica pelas duas vias. A raiva não se move por critério algum. O eixo do microciclo terminal é, "
  "portanto, o par vigor e fadiga, e essa conclusão não depende da escolha metodológica.",
  "O modelo misto acrescenta a taxa: a fadiga sobe 0,354 ponto por dia e o vigor cai 0,335, o que projeta cerca "
  "de dois pontos de deslocamento ao longo da semana em cada direção. A decomposição da variância acrescenta "
@@ -607,16 +616,17 @@ LIMITACOES=[
  "imputação."
 ]
 CONCLUSAO=[
-"Submetida às três vias de análise, a mesma série de humor produziu vereditos concordantes em quatro das sete "
-"variáveis e discordantes em três. A tensão e a perturbação total passaram de não significativas pela via de "
-"postos a significativas pelo modelo misto; a confusão percorreu o caminho inverso. A causa principal é o "
-"custo amostral das vias clássicas de medidas repetidas, que exigem registro completo e descartam 88% dos "
-"pares disponíveis; a causa secundária é a diferença entre perguntar se os dias diferem e perguntar se existe "
-"tendência linear.",
-"O retrato substantivo do microciclo, contudo, resistiu à variação metodológica. O vigor cai e a fadiga sobe "
-"por qualquer via e por qualquer índice de magnitude, com os dois maiores tamanhos de efeito do conjunto, e a "
-"depressão não se move por critério algum. As duas vias ordenam as variáveis por magnitude de modo idêntico, "
-"o que indica que a discordância diz respeito à detecção e não à importância relativa.",
+"Submetida às três vias de análise, a mesma série de humor produziu vereditos concordantes em cinco das sete "
+"variáveis e discordantes em duas. A depressão passou de não significativa pelas vias que exigem registro "
+"completo a significativa pelo modelo misto; a confusão percorreu o caminho inverso. A causa principal é o custo "
+"amostral das vias clássicas de medidas repetidas, que exigem registro completo e descartam 88% dos pares "
+"disponíveis; a causa secundária é a diferença entre perguntar se os dias diferem e perguntar se existe tendência "
+"linear. À variação por via somam-se outras duas, de peso distinto: a unidade de análise trocou um veredito e a "
+"regra que compõe a linha de base trocou quatro.",
+"O retrato substantivo do microciclo, contudo, resistiu à variação metodológica. O vigor cai e a fadiga sobe por qualquer via e por qualquer índice de magnitude, com os dois maiores tamanhos de "
+"efeito do conjunto, e a raiva não se move por critério algum. As duas vias ordenam as variáveis por magnitude de "
+"modo praticamente idêntico, o que indica que a discordância diz respeito à detecção e não à importância "
+"relativa.",
 "Três recomendações decorrem do estudo. Primeira: em séries de monitoramento com ausências frequentes, "
 "reportar mais de uma via, e explicitar quantos participantes cada uma descarta. Segunda: reportar os "
 "pressupostos variável a variável, e não como declaração global, porque o efeito de piso e a violação de "

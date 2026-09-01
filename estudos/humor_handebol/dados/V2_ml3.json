@@ -72,8 +72,8 @@
   {
    "modelo": "todos os preditores",
    "k": 18,
-   "auc": 0.7539923685698133,
-   "dp": 0.03497085182051199
+   "auc": 0.7520491803278688,
+   "dp": 0.03655505913098714
   }
  ],
  "FOLHAS": [
@@ -100,8 +100,7 @@
    },
    "perfil_manha": {
     "Iceberg": 16,
-    "Barbatana de tubarão": 3,
-    "Superfície": 1,
+    "Barbatana de tubarão": 4,
     "Submerso": 1
    },
    "perfil_noite": {

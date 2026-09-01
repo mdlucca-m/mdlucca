@@ -36,9 +36,9 @@ PARES_B={}
 for k,g in por.items():
     g=sorted(g,key=lambda x:x['carimbo'])
     # Mesma regra de composição da base canônica, reconstruída de modo independente:
-    # D1 entra por inteiro (basal de janela única); de D2 a D7 valem o primeiro
-    # registro do dia (pré) e o último (pós). Ver analise/V2_proto.py.
-    elei = g if k[1]==1 else ([g[0]] if len(g)==1 else [g[0],g[-1]])
+    # D1 teve coleta única e vale a primeira resposta de cada atleta; de D2 a D7
+    # valem o primeiro registro do dia (pré) e o último (pós). Ver V2_proto.py.
+    elei = [g[0]] if k[1]==1 else ([g[0]] if len(g)==1 else [g[0],g[-1]])
     PARES_B[k]={v:float(np.mean([y['calc'][v] for y in elei])) for v in V7}
 
 CONF=[]

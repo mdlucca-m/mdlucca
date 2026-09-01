@@ -131,16 +131,24 @@ mktable(["Dia","Atletas","Registros","Previsto","Janelas","Excedentes"],
             str(PR['TOTAIS']['esperado']), "—", str(PR['REGRA_A']['n_excedentes'])]],
         widths=[2.2,2.4,2.6,2.4,2.2,2.6], fs=9)
 src(nota="Janela = bloco de carimbos do elenco separado do seguinte por mais de 25 minutos. Excedente = "
-         "registro que não é o primeiro nem o último do atleta naquele dia, de D2 a D7; o primeiro dia entra "
-         "por inteiro, por ser basal de janela noturna única.")
+         "registro que não é o primeiro nem o último do atleta naquele dia, de D2 a D7; no primeiro dia, de "
+         "coleta única, excedente é tudo o que sucede a primeira resposta do atleta.")
 _d1=[b for b in PR['JANELAS'][0]['blocos'] if b['registros']>=3]
-para(f"O primeiro dia apresenta duas janelas noturnas e não uma: {_d1[0]['ini']} a {_d1[0]['fim']}, com "
-     f"{_d1[0]['atletas']} atletas, e uma segunda a partir de {_d1[1]['ini']}, com "
+para(f"O primeiro dia distribui os seus registros por uma janela de {_d1[0]['ini']} a {_d1[0]['fim']}, com "
+     f"{_d1[0]['atletas']} atletas, e outra a partir de {_d1[1]['ini']}, com "
      f"{sum(b['atletas'] for b in _d1[1:])} atletas. Vinte e um dos vinte e sete atletas responderam duas "
-     "vezes naquela noite, com intervalo mediano de 153 minutos. Nenhum dos vinte e um pares repete os "
-     "valores, e a segunda resposta é sistematicamente mais desfavorável: a perturbação total do humor sobe, "
-     "em média, 6,3 pontos. São duas medidas genuínas, e não reenvio. Por decisão do autor, o basal integra "
-     "as duas.")
+     "vezes naquela noite, com intervalo mediano de 153 minutos.")
+para("A composição de cada janela decide a leitura, e a conferência é conclusiva. Dos vinte e dois atletas "
+     "que respondem depois das 21h, vinte e um já haviam respondido na janela das 20h42. O único que ainda "
+     "não respondera, A14, responde às 21h54, cinquenta e oito minutos depois de a primeira janela fechar, e "
+     "uma vez apenas. Nenhum atleta tem como única resposta do dia um registro posterior às 23h. A janela "
+     "tardia, portanto, é composta exclusivamente por repetição: houve uma coleta, e não duas.")
+para("Retém-se, em consequência, a primeira resposta de cada atleta, e as vinte e uma respostas tardias "
+     "passam a excedente. Convém explicitar o que essa escolha implica, porque ela não é neutra. Nenhum dos "
+     "vinte e um pares repete os sete escores, e a segunda resposta é mais desfavorável em dezesseis deles: "
+     "a perturbação total sobe, em média, 6,3 pontos entre a primeira e a segunda. Integrar as duas elevaria "
+     "a perturbação total do basal de −0,15 para 2,30 e reduziria a deterioração observada ao longo da "
+     "semana de 8,51 para 6,06 pontos. A leitura adotada é a que corresponde ao protocolo de coleta.")
 para(f"De D2 a D7 há de {min(p['janelas'] for p in PR['POR_DIA'][1:])} a "
      f"{max(p['janelas'] for p in PR['POR_DIA'][1:])} janelas por dia, e "
      f"{PR['REGRA_A']['reenvio_imediato']} registros excedentes situam-se a menos de trinta minutos de outro "
