@@ -104,12 +104,18 @@ class TestCheckOutEsquecido(BasePonto):
         self.assertEqual(linha["fechado_sozinho"], 1)
 
     def test_a_duracao_inventada_nao_entra_na_soma(self):
-        # houve trabalho, mas não dá para dizer quanto: contar seria mentir
-        tres_dias = (datetime.now() - timedelta(days=3)).strftime(ponto.FORMATO)
-        self.aberta(tres_dias)
-        hoje = date.today()
-        self.sessao(hoje.isoformat(), "09:00", "12:00")
-        resumo = ponto.resumo(self.db, self.eu, hoje=hoje)
+        # houve trabalho, mas não dá para dizer quanto: contar seria mentir.
+        #
+        # As duas sessões ficam no mesmo dia de referência, e é esse dia que
+        # vai para o resumo. Ancorar a esquecida em "três dias atrás" e pedir
+        # o resumo de hoje quebrava o teste nos dias 1, 2 e 3 de todo mês: a
+        # sessão caía no mês anterior e a janela do mês corrente não a via.
+        # O que se testa aqui é a soma, não a virada de mês.
+        esquecida_em = datetime.now() - timedelta(hours=ponto.LIMITE_HORAS + 1)
+        dia = esquecida_em.date()
+        self.aberta(esquecida_em.strftime(ponto.FORMATO))
+        self.sessao(dia.isoformat(), "09:00", "12:00")
+        resumo = ponto.resumo(self.db, self.eu, hoje=dia)
         self.assertEqual(resumo["mes"]["horas"], 3.0)
         self.assertGreaterEqual(resumo["mes"]["esquecidas"], 1)
 
