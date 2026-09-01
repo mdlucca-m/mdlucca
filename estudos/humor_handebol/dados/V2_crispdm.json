@@ -1,0 +1,152 @@
+{
+ "FASES": [
+  {
+   "id": "negocio",
+   "n": 1,
+   "nome": "Entendimento do problema",
+   "pergunta": "O que a comissão técnica precisa decidir, e em que prazo?",
+   "feito": [
+    "A pergunta foi fixada em uma forma verificável: como as seis dimensões do humor se comportam ao longo dos sete dias finais de pré-temporada, e se a medida da manhã antecipa o estado da noite.",
+    "O desfecho de interesse foi definido como a faixa de risco do perfil de humor, não como escore bruto, porque a comissão age sobre atletas, não sobre médias.",
+    "O horizonte de decisão é de horas: a medida da manhã precisa informar a sessão do mesmo dia."
+   ],
+   "copiloto": "Formular hipóteses concorrentes e escrever o critério de falseamento de cada uma antes de olhar os dados.",
+   "humano": "A escolha do desfecho clinicamente relevante e do horizonte de decisão. Nenhum modelo decide o que importa para a equipe.",
+   "artefatos": [
+    "texto/A1T.py",
+    "texto/A2T.py"
+   ]
+  },
+  {
+   "id": "dados",
+   "n": 2,
+   "nome": "Entendimento dos dados",
+   "pergunta": "O que existe de fato, e o que cada linha significa?",
+   "feito": [
+    "456 registros de 27 atletas ao longo de sete dias, de duas coletas diárias a partir do dia 2.",
+    "218 abas e 282.776 células das planilhas de origem foram catalogadas em camada de acervo. com raspagem de nomes próprios na importação.",
+    "Quatro unidades de análise coexistiam nas versões anteriores: registro (U-R), primeira e última (U-286), par atleta-dia (U-AD) e subamostra pareada (U-PAR).",
+    "6 achados de auditoria foram registrados, dois deles críticos."
+   ],
+   "copiloto": "Ler as sete versões do manuscrito e as seis planilhas em paralelo, reproduzir cada número divergente e localizar a regra que o gerou.",
+   "humano": "A decisão de adotar o par atleta-dia (U-AD) como unidade canônica, e de declarar as outras três em vez de escondê-las.",
+   "artefatos": [
+    "analise/V2_audit.py",
+    "scripts/colher_planilhas.py",
+    "base/esquema.sql"
+   ]
+  },
+  {
+   "id": "preparacao",
+   "n": 3,
+   "nome": "Preparação dos dados",
+   "pergunta": "Como transformar planilhas em uma base que responda perguntas?",
+   "feito": [
+    "A regra do dia fisiológico (virada às 4h) resolveu os registros de madrugada sem descartá-los.",
+    "Registros órfãos foram reconciliados por dicionário de variantes do nome e, quando insuficiente, pelo carimbo de tempo curado.",
+    "A base única em SQLite tem três camadas — canônica, de resultados e de acervo — com 1309 pares pré-pós e 305 resultados em formato longo.",
+    "Anonimização A01–A27 dentro da rotina de importação: nenhum nome sai do script."
+   ],
+   "copiloto": "Escrever a rotina de reconciliação, a raspagem de nomes e o esquema de três camadas; verificar que zero nomes completos sobrevivem.",
+   "humano": "A curadoria dos registros ambíguos e a regra da virada às 4h, que é uma decisão de fisiologia, não de programação.",
+   "artefatos": [
+    "analise/base_v2.py",
+    "scripts/construir_base.py",
+    "atualizar.sh"
+   ]
+  },
+  {
+   "id": "modelagem",
+   "n": 4,
+   "nome": "Modelagem",
+   "pergunta": "A medida da manhã antecipa o estado da noite?",
+   "feito": [
+    "119 pares atleta-dia, 27 atletas, 57 eventos (47,9%).",
+    "Alvo e preditores separados no tempo: a previsão não é circular.",
+    "Validação cruzada agrupada por atleta (StratifiedGroupKFold): nenhum atleta aparece ao mesmo tempo no treino e no teste.",
+    "Duas linhas de base obrigatórias: a classe majoritária e a regra trivial de já estar em risco pela manhã.",
+    "Quatro modelos: árvore de decisão, floresta aleatória, XGBoost e regressão logística."
+   ],
+   "copiloto": "Montar a matriz, escrever o protocolo de validação agrupada e rodar o intervalo de confiança por reamostragem agrupada.",
+   "humano": "A exigência de que existisse uma linha de base trivial. Sem ela, uma AUC de 0,80 pareceria descoberta quando é sobretudo persistência do estado matinal.",
+   "artefatos": [
+    "analise/V2_ml.py",
+    "analise/V2_ml2.py"
+   ]
+  },
+  {
+   "id": "avaliacao",
+   "n": 5,
+   "nome": "Avaliação",
+   "pergunta": "O ganho é real, ou é aritmética do desenho?",
+   "feito": [
+    "O ganho de AUC sobre a regra trivial não exclui zero em nenhum modelo (melhor caso, XGBoost: +0,081, IC 95% [−0,009, +0,174]).",
+    "Reversão à média testada em todas as dimensões: o corte pelo PTH é parcialmente mecânico (ρ = −0,422, p < 0,001).",
+    "O corte pela tensão não é mecânico (ρ = −0,132, p = 0,153) e acrescenta +0,110 de AUC sobre o PTH sozinho.",
+    "No subgrupo acionável — quem começa o dia fora da faixa de risco — o intervalo de confiança exclui o acaso."
+   ],
+   "copiloto": "Propor e executar o diagnóstico de reversão à média e a sequência de modelos aninhados antes de qualquer redação.",
+   "humano": "A recusa em relatar a folha mais forte como achado clínico antes do diagnóstico. O modelo não sabe que precisa desconfiar de si.",
+   "artefatos": [
+    "analise/V2_ml3.py"
+   ]
+  },
+  {
+   "id": "implantacao",
+   "n": 6,
+   "nome": "Implantação",
+   "pergunta": "Como isso vira rotina da comissão técnica, e não um relatório único?",
+   "feito": [
+    "Um comando reconstrói tudo: base, perfis, análises, banco, acervo e figuras (atualizar.sh).",
+    "Consulta por linha de comando sobre a base única. com busca em texto completo sobre 282.776 células.",
+    "Dois artigos e 52 referências com DOI verificado contra o registro do periódico.",
+    "Painel de apresentação com as duas trilhas de artigo, a auditoria e esta trilha de modelagem."
+   ],
+   "copiloto": "Escrever a automação, o exportador do painel e a resolução de DOI; manter tudo reprodutível a partir da fonte.",
+   "humano": "A decisão sobre o que entra em repositório aberto: as planilhas com nomes reais não acompanham a submissão.",
+   "artefatos": [
+    "atualizar.sh",
+    "scripts/consultar.py",
+    "painel/painel.html"
+   ]
+  }
+ ],
+ "REGRAS": [
+  {
+   "t": "A pergunta antes do dado",
+   "d": "A hipótese e o critério de falseamento são escritos antes de olhar o resultado. O contrário produz achado por garimpo."
+  },
+  {
+   "t": "A unidade de análise é declarada",
+   "d": "Sete versões divergiam por quatro unidades não declaradas, sem um único erro de aritmética. Declarar a unidade é metade da reprodutibilidade."
+  },
+  {
+   "t": "Toda comparação tem linha de base",
+   "d": "Um modelo só ganha crédito contra a regra trivial que qualquer preparador aplicaria de cabeça."
+  },
+  {
+   "t": "Validação agrupada por indivíduo",
+   "d": "Com 27 atletas e 119 observações, dividir por linha e não por atleta infla a AUC pela memorização do atleta."
+  },
+  {
+   "t": "O contraintuitivo é diagnosticado, não narrado",
+   "d": "A folha mais forte foi submetida ao teste de reversão à média antes de virar frase."
+  },
+  {
+   "t": "O anonimato começa na importação",
+   "d": "O nome não sai do script. A raspagem é verificada, não presumida."
+  }
+ ],
+ "N": {
+  "atleta": 27,
+  "registro": 456,
+  "atleta_dia": 166,
+  "pre_pos": 1309,
+  "resultado": 305,
+  "aba": 218,
+  "celula": 282776,
+  "referencia": 52,
+  "auditoria": 6,
+  "significativo": 117
+ }
+}

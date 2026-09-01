@@ -23,6 +23,10 @@ D['acervo']=q("SELECT f.arquivo, f.papel, a.categoria, COUNT(*) n, SUM(a.linhas)
               "FROM aba a JOIN fonte f ON f.id=a.fonte_id GROUP BY f.arquivo, a.categoria")
 D['contagem']={t:cx.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
                for t in ['atleta','registro','atleta_dia','pre_pos','resultado','aba','celula','busca','referencia']}
+D['ml']=json.load(open(os.path.join(RAIZ,"dados","V2_ml.json")))
+D['ml2']=json.load(open(os.path.join(RAIZ,"dados","V2_ml2.json")))
+D['ml3']=json.load(open(os.path.join(RAIZ,"dados","V2_ml3.json")))
+D['crispdm']=json.load(open(os.path.join(RAIZ,"dados","V2_crispdm.json")))
 sai=os.path.join(RAIZ,"painel"); os.makedirs(sai, exist_ok=True)
 p=os.path.join(sai,"dados.json")
 json.dump(D, open(p,'w',encoding='utf-8'), ensure_ascii=False, separators=(',',':'))
