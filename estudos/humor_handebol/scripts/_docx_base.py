@@ -27,6 +27,11 @@ st._element.rPr.rFonts.set(qn('w:eastAsia'),'Times New Roman')
 pf=st.paragraph_format; pf.line_spacing=1.5; pf.space_after=Pt(0); pf.first_line_indent=Cm(1.25)
 pf.alignment=WD_ALIGN_PARAGRAPH.JUSTIFY
 
+_CONT={'tab':0,'fig':0,'quadro':0}
+def tab():   _CONT['tab']+=1;   return _CONT['tab']
+def fig():   _CONT['fig']+=1;   return _CONT['fig']
+def quadro():_CONT['quadro']+=1;return _CONT['quadro']
+
 def para(txt, indent=True, size=12, bold=False, italic=False, align=WD_ALIGN_PARAGRAPH.JUSTIFY,
          before=0, after=0, spacing=1.5):
     p=doc.add_paragraph(); r=p.add_run(txt); r.bold=bold; r.italic=italic; r.font.size=Pt(size)

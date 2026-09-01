@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """Artigo 2 — inferencial completo, paramétrico e não paramétrico."""
-TITULO=("Estatística paramétrica e não paramétrica sobre a mesma série de humor: quanto a via de análise "
-        "decide a conclusão em um microciclo de handebol de elite")
-SUB=("Estudo observacional longitudinal com bateria inferencial completa, modelo linear misto e tratamento de "
-     "séries por limites, derivadas e piso de ruído")
+TITULO=("Quanto a via e a unidade de análise decidem a conclusão: três rotas estatísticas sobre a mesma "
+        "série de humor em um microciclo de handebol de elite")
+SUB=("Estudo observacional longitudinal com bateria inferencial completa, modelo linear misto, "
+     "sensibilidade à unidade de análise e teste do mecanismo de ausência")
 
 RESUMO=(
 "O monitoramento psicológico do atleta produz séries curtas, repetidas e desbalanceadas, e a escolha da via "
@@ -90,7 +90,15 @@ INTRO=[
 "entre atletas do mesmo elenco (BÜCHEL; DÖRING; BAUMEISTER, 2026), de forma que a ausência a uma sessão "
 "raramente é aleatória.",
 
-"Justifica-se, assim, submeter uma mesma série a todas as vias disponíveis e medir quanto do resultado "
+"A escolha da via, contudo, não é a única decisão silenciosa. Antes dela vem a de contar: em séries de "
+ "monitoramento com ausências e com mais de uma resposta por dia, decidir o que conta como uma observação "
+ "já fixa parte do resultado. Instrumentos de autorrelato aplicados diariamente convivem com adesão "
+ "incompleta por construção (SAW; MAIN; GASTIN, 2015; McGUIGAN; HASSMÉN; ROSIĆ, 2022), e cada regra de "
+ "agregação produz um denominador diferente e uma potência diferente. A literatura de monitoramento "
+ "reconhece o problema no plano da medida, ao exigir que a magnitude observada seja lida contra o erro "
+ "típico do instrumento (HOPKINS, 2000; LINDBERG et al., 2022), mas raramente o examina no plano da "
+ "inferência.",
+ "Justifica-se, assim, submeter uma mesma série a todas as vias disponíveis e medir quanto do resultado "
 "pertence à via. Essa comparação não é um exercício de estatística aplicada desligado da prática: se a "
 "comissão técnica decide reduzir carga a partir de um valor de p, importa saber que esse valor depende de uma "
 "escolha metodológica que ninguém declarou. O objetivo geral deste estudo consiste, portanto, em descrever o "
@@ -182,6 +190,27 @@ METODO=[
  "se separa do efeito do dia do microciclo nem da carga acumulada, que progridem juntos. Os coeficientes são, "
  "portanto, associativos, e a leitura que deles se faz é de convergência com os demais achados, não de "
  "demonstração causal."]),
+("Sensibilidade da inferência à unidade de análise",[
+ "A auditoria de procedência demonstrou que a prevalência dos perfis varia conforme a unidade de análise "
+ "adotada. Resta a pergunta gêmea, que é a deste artigo: o veredito dos testes de hipótese também varia? "
+ "Para respondê-la, cada contraste foi refeito sobre três tabelas atleta-dia construídas por regras "
+ "distintas — o par atleta-dia, o par formado pelo primeiro e pelo último registro do dia e a subamostra "
+ "dos atletas com medida no primeiro e no sétimo dia —, além de uma leitura não pareada sobre o registro "
+ "isolado, único tratamento que essa unidade admite.",
+ "A comparação examinou o contraste entre a linha de base e a véspera da estreia e a comparação global "
+ "entre os sete dias. Considerou-se troca de veredito a situação em que a mesma variável cruza o limiar de "
+ "cinco por cento em uma unidade e não cruza em outra."]),
+("Mecanismo de ausência",[
+ "A hipótese de ausência ignorável não é demonstrável com dados observacionais, mas é refutável em uma "
+ "direção: se a probabilidade de responder amanhã dependesse do humor de hoje, a hipótese estaria "
+ "descartada. Ajustou-se, para cada variável, um modelo logístico de efeitos mistos com intercepto "
+ "aleatório por atleta, em que a resposta é o comparecimento no dia seguinte e os preditores são o escore "
+ "do dia corrente e o dia do microciclo, com correção de Holm para as sete comparações.",
+ "Acrescentaram-se duas verificações. A primeira mede a concentração das faltas entre os atletas e a "
+ "associação entre o número de faltas e o humor médio de cada um. A segunda calcula limites de pior caso "
+ "para a variação entre o primeiro e o sétimo dia: cada ausente do sétimo dia recebe, alternadamente, o "
+ "quinto e o nonagésimo quinto percentil observado naquele dia, e verifica-se se o sinal da variação "
+ "sobrevive aos dois cenários extremos."]),
 ("Tratamento de séries: suavização, derivadas e piso de ruído",[
  "Independentemente das três vias, cada série diária recebeu um tratamento próprio, descrito em detalhe no "
  "artigo companheiro e aqui resumido. O erro-padrão de cada dia foi calculado, e a média dos sete erros-padrão "
@@ -361,7 +390,98 @@ R8=[
  "com base no acúmulo do dia anterior, e não para avaliar a sessão que ainda não ocorreu. Serve, também, para "
  "situar corretamente o que se mede: o escore da manhã é consequência, não previsão."]
 
+R9=[
+ "A unidade de análise não altera apenas a prevalência descrita no artigo companheiro: altera o veredito "
+ "inferencial. Na comparação entre a linha de base e a véspera da estreia, três das sete variáveis cruzam o "
+ "limiar de cinco por cento em uma unidade e não cruzam em outra. A Tabela 10 apresenta os valores.",
+ "As três variáveis que trocam são a tensão, a confusão e a perturbação total do humor — exatamente as três "
+ "que este artigo já identificara como trocando de veredito conforme a via de análise. As duas "
+ "fragilidades, portanto, não se distribuem ao acaso: recaem sobre as mesmas variáveis, que são aquelas "
+ "cujo deslocamento é pequeno em relação à dispersão. Vigor e fadiga, cujo deslocamento é grande, resistem "
+ "a qualquer combinação de via e de unidade.",
+ "A comparação global entre os sete dias repete o padrão em escala menor: duas variáveis trocam de veredito, "
+ "e são a tensão e a perturbação total do humor. Registre-se que a subamostra pareada produz, no contraste "
+ "entre extremos, resultado idêntico ao do par atleta-dia, porque esse contraste já opera apenas sobre os "
+ "atletas com medida nos dois dias — a coincidência é verificação de consistência do procedimento, não "
+ "achado.",
+ "A consequência prática é direta e vale além deste estudo. Em séries de monitoramento com ausências, "
+ "declarar a via estatística sem declarar a unidade de análise deixa metade da decisão implícita. Um "
+ "relatório que informe apenas «p = 0,03 pelo teste de Wilcoxon» não permite ao leitor saber se o mesmo "
+ "dado, contado de outra forma igualmente defensável, produziria p = 0,07."]
+
+R10=[
+ "O mecanismo de ausência, declarado como limitação não verificada nas versões anteriores deste estudo, "
+ "passa a ser testado. Nenhuma das sete variáveis do dia corrente se associa à probabilidade de o atleta "
+ "responder no dia seguinte após a correção para comparações múltiplas. A Tabela 11 apresenta os "
+ "coeficientes.",
+ "A tensão é a única candidata: o coeficiente é negativo, o sinal é o que se esperaria — quem amanhece mais "
+ "tenso comparece um pouco menos no dia seguinte — e o valor bruto de p é de 0,014. Ele não sobrevive ao "
+ "ajuste de Holm, que o leva a 0,101. A leitura honesta é que o dado não permite afirmar dependência, e "
+ "tampouco permite descartá-la com segurança: com doze faltas em cento e quarenta e cinco oportunidades, a "
+ "potência para detectar uma associação moderada é baixa.",
+ "Duas verificações reforçam a leitura. As faltas concentram-se em oito dos vinte e sete atletas, e "
+ "dezenove têm série completa; o número de faltas de cada atleta não se correlaciona com o seu humor médio "
+ "ao longo da semana. E, sob imputação de pior caso nos ausentes do sétimo dia, seis das sete variáveis "
+ "mantêm o sinal da variação entre os extremos da semana, conforme a Tabela 12. A exceção é a depressão, "
+ "cuja variação de 0,21 ponto já era classificada como ruído pelo critério do piso.",
+ "O conjunto sustenta a hipótese de ausência ignorável melhor do que uma declaração de limitação, e sem "
+ "afirmá-la: o que se pode dizer é que, onde a dependência seria detectável, ela não aparece, e que as "
+ "conclusões sobre a variação da semana não dependem do que os ausentes teriam respondido."]
+
+R11=[
+ "O contraste direto entre os dois estímulos que dominam a semana produz o resultado mais contraintuitivo "
+ "deste artigo. Pareando cada atleta consigo mesmo, a resposta aguda ao HIIT supera a resposta ao amistoso "
+ "na perturbação total do humor em 3,45 pontos, com tamanho de efeito moderado e valor de p de 0,016. O "
+ "amistoso tem o dobro das horas do HIIT — quatro horas e meia ou cinco contra duas ou duas e meia — e "
+ "custa menos humor no mesmo dia. A Tabela 13 apresenta o contraste variável a variável.",
+ "O resíduo da manhã seguinte, na Tabela 14, desloca a atenção para um terceiro estímulo. Nem o HIIT nem o "
+ "amistoso deixam efeito detectável na manhã do dia seguinte; o dia técnico e de força deixa, e é grande: "
+ "o vigor cai 2,73 pontos, com tamanho de efeito de 0,87 e magnitude de quase duas vezes o erro típico da "
+ "medida. A perturbação total do humor acompanha, com aumento de 6,60 pontos.",
+ "A convergência com a análise de séries do artigo companheiro é o que dá peso ao achado. Aquela análise "
+ "localizou o segundo choque da semana na transição do sexto para o sétimo dia, por um critério que não "
+ "usa valor de p nem tipo de estímulo, apenas a derivada da série contra o piso de ruído. Esta localiza o "
+ "único resíduo detectável no dia técnico e de força, que é o sexto. Dois caminhos independentes apontam "
+ "para o mesmo dia.",
+ "O confundimento precisa ser declarado antes de qualquer leitura fisiológica. Há um único dia técnico e de "
+ "força no microciclo, e ele é a véspera da estreia. O que se mede como efeito do estímulo é, "
+ "inseparavelmente, efeito da posição no microciclo e da carga acumulada de vinte horas e meia. A "
+ "convergência entre as duas análises fortalece a localização do fenômeno no tempo; não identifica a sua "
+ "causa.",
+ "A migração para a faixa de risco, por fim, não distingue os estímulos. Trinta e cinco por cento dos pares "
+ "que amanhecem fora da faixa entram nela em dias de HIIT, contra 25,9 por cento no amistoso e 27,3 por "
+ "cento no dia técnico e de força, sem diferença detectável entre os três. O desfecho categórico é menos "
+ "sensível do que a variação contínua, e a comparação entre eles ilustra o custo de dicotomizar."]
+
 DISCUSSAO=[
+("Duas fragilidades sobre as mesmas variáveis",[
+ "O resultado que organiza este artigo ganhou, com a análise por unidade, a sua formulação mais forte. As "
+ "variáveis cujo veredito depende da via de análise são a tensão, a confusão e a perturbação total do "
+ "humor; as variáveis cujo veredito depende da unidade de análise são as mesmas três. Não se trata de duas "
+ "instabilidades independentes que por acaso coincidem: trata-se de uma única propriedade — deslocamento "
+ "pequeno em relação à dispersão — manifestando-se por dois caminhos.",
+ "Vigor e fadiga, cujo deslocamento entre os extremos da semana é de três e de três vírgula seis pontos, "
+ "resistem a toda combinação de via e de unidade. Depressão e raiva, que praticamente não se movem, também "
+ "resistem, pelo motivo oposto: nenhuma rota as declara significativas. A instabilidade concentra-se na "
+ "faixa intermediária, onde o efeito existe mas é da ordem da variabilidade.",
+ "A recomendação prática que decorre disso é mais modesta e mais útil do que «reportar várias vias». É "
+ "declarar as duas escolhas — via e unidade — e verificar a estabilidade do veredito nas variáveis de "
+ "deslocamento intermediário, que são justamente aquelas sobre as quais a decisão do leitor mudaria."]),
+("O dia que deixa resíduo, e o que isso não autoriza a concluir",[
+ "O contraste pareado entre HIIT e amistoso e a análise de resíduo produzem, juntos, um deslocamento de "
+ "atenção. A resposta aguda maior é a do HIIT, apesar da metade das horas; o resíduo detectável na manhã "
+ "seguinte não é nem do HIIT nem do amistoso, mas do dia técnico e de força. Isso converge com o modelo de "
+ "carga defasada apresentado acima e com a localização do segundo choque pela análise de derivadas do "
+ "artigo companheiro.",
+ "A tentação de ler causalidade fisiológica aqui é grande e precisa ser resistida com clareza. O dia "
+ "técnico e de força ocorre uma única vez no microciclo, e ocorre na véspera da estreia, com vinte horas e "
+ "meia de carga acumulada. Efeito do conteúdo da sessão, efeito da posição na semana e efeito da carga "
+ "acumulada são, neste desenho, o mesmo efeito. Três análises independentes concordam sobre QUANDO o "
+ "fenômeno acontece; nenhuma delas identifica POR QUE.",
+ "O desenho capaz de separá-los é conhecido e não é o deste estudo: exigiria alternar a ordem dos "
+ "estímulos entre microciclos ou entre equipes. Enquanto isso não existe, o achado tem valor descritivo e "
+ "de planejamento — sabe-se onde olhar — e não tem valor explicativo."]),
+
 ("Quanto da conclusão pertence à via",[
  "O achado central deste estudo pode ser enunciado em uma frase: em três das sete variáveis examinadas, o "
  "veredito sobre a existência de mudança ao longo da semana depende da via de análise escolhida. Não se trata "
@@ -462,6 +582,12 @@ LIMITACOES=[
  "na qual o efeito das horas não se separa do efeito do dia do microciclo nem da carga acumulada. Os "
  "coeficientes são associativos, e a defasagem que eles revelam é convergente com as derivadas, não "
  "demonstrativa de causalidade."
+,
+ "O teste do mecanismo de ausência tem potência baixa. São doze faltas em cento e quarenta e cinco "
+ "oportunidades, e a tensão, única variável com valor bruto de p abaixo de cinco por cento, não sobrevive à "
+ "correção para as sete comparações. O resultado é compatível com ausência ignorável e não a demonstra; o "
+ "que se pode afirmar é que as conclusões sobre a variação da semana sobrevivem aos cenários extremos de "
+ "imputação."
 ]
 CONCLUSAO=[
 "Submetida às três vias de análise, a mesma série de humor produziu vereditos concordantes em quatro das sete "

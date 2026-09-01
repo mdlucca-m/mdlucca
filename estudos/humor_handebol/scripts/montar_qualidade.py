@@ -39,7 +39,7 @@ para("A escolha da técnica descritiva depende do tipo de mensuração, e não d
      "escore de subescala é armazenado como número, mas é a soma de quatro respostas ordinais e assume "
      "dezessete valores possíveis: é discreto, não contínuo. A distinção decide, adiante, se cabe média ou "
      "mediana, histograma ou tabela de frequência.")
-caption("Tabela 1 — Dicionário: tipo de mensuração, escala, domínio e origem de cada variável")
+caption(f"Tabela {tab()} – Dicionário: tipo de mensuração, escala, domínio e origem de cada variável")
 mktable(["Variável","Tipo","Escala","Domínio admissível","Origem"],
         [[d['v'],d['tipo'],d['escala'],d['dominio'],d['origem']] for d in Q['DICIONARIO']],
         widths=[2.9,1.9,2.6,3.1,4.5], fs=7.5)
@@ -51,7 +51,7 @@ para("Cada subescala do BRUMS é a soma de quatro itens, sem inversão e sem pes
      "perturbação total do humor é a soma das cinco subescalas negativas menos o vigor (F2). O estresse "
      "percebido soma catorze itens, sete deles invertidos (F5). Reconstruídas por essas fórmulas, as nove "
      "colunas calculadas da planilha foram comparadas linha a linha com o que ela própria registra.")
-caption("Tabela 2 — Escore reconstruído por fórmula contra a coluna calculada da planilha")
+caption(f"Tabela {tab()} – Escore reconstruído por fórmula contra a coluna calculada da planilha")
 mktable(["Variável","Comparações","Divergências","% divergente","Maior diferença"],
         [[c['variavel'], str(c['n_comparado']), str(c['n_divergente']),
           n_(c['pct'],2)+"%", n_(c['max_dif'],0)] for c in Q['CONFRONTO']],
@@ -68,7 +68,7 @@ para("A completude foi medida em três recortes (F14): por item do instrumento, 
      "grade que cruza atleta com dia. Os três contam coisas diferentes, e apenas o terceiro revela onde está "
      "o problema.")
 falt=[f for f in Q['FALTA_VAR'] if f['faltantes']>0]
-caption("Tabela 3 — Completude por bloco de variáveis")
+caption(f"Tabela {tab()} – Completude por bloco de variáveis")
 mktable(["Bloco","Itens ou variáveis","Células","Faltantes","Completude"],
         [["Itens do BRUMS", "24", str(24*Q['n_registros']),
           str(sum(f['faltantes'] for f in Q['FALTA_ITEM'] if 'BRUMS' in f['bloco'])), "100,00%"],
@@ -83,7 +83,7 @@ src(nota="Completude = (1 − faltantes ÷ total) × 100. As variáveis derivada
          "delas tem falta: são função de itens que estão todos preenchidos.")
 para("Nenhuma célula de instrumento está ausente. Quem responde, responde tudo — o formulário exigia resposta "
      "em cada item. A falta, portanto, não é de item: é de comparecimento.")
-caption("Tabela 4 — Cobertura da grade atleta × dia")
+caption(f"Tabela {tab()} – Cobertura da grade atleta × dia")
 mktable(["Dia","Atletas com registro","Cobertura de atletas","Registros","Previstos no protocolo","Cobertura de registros"],
         [[f"D{g['dia']}", f"{g['atletas_com_registro']} de {g['atletas_esperados']}",
           n_(g['cobertura_atleta'],1)+"%", str(g['registros']), str(g['registros_esperados']),
@@ -99,7 +99,7 @@ para("Duas leituras se impõem. A cobertura de atletas cai de 100% em D1 para 78
 head("5 REGISTROS REPETIDOS NO MESMO DIA")
 R=Q['REPETICAO']
 para("O protocolo previa até dois registros diários. A distribuição observada vai até seis.")
-caption("Tabela 5 — Registros por par atleta-dia")
+caption(f"Tabela {tab()} – Registros por par atleta-dia")
 mktable(["Registros no dia","Pares atleta-dia","%","% acumulado"],
         (lambda ks: [[k, str(R['distribuicao'][k]),
                       n_(100*R['distribuicao'][k]/sum(R['distribuicao'].values()),1),
@@ -118,7 +118,7 @@ para(f"O intervalo entre registros consecutivos do mesmo dia tem mediana de {n_(
 head("6 PADRONIZAÇÃO DE VARIÁVEIS CATEGÓRICAS")
 para("Uma variável categórica está padronizada quando cada nível tem uma única grafia. A verificação compara "
      "cada valor com a sua chave canônica, obtida removendo acento, caixa e espaço redundante.")
-caption("Tabela 6 — Grafias por nível em cada variável categórica")
+caption(f"Tabela {tab()} – Grafias por nível em cada variável categórica")
 mktable(["Variável","Registros","Níveis canônicos","Grafias distintas","Níveis com mais de uma grafia"],
         [[c['variavel'], str(c['n']), str(c['niveis_canonicos']), str(c['grafias']),
           str(c['niveis_com_variante'])] for c in Q['CATEG']],
@@ -135,7 +135,7 @@ para(f"O problema está no nome digitado em texto livre: {nl['grafias']} grafias
 para("As demais categóricas estão padronizadas. As cinco variáveis com tabela de frequência completa "
      "aparecem a seguir.")
 for nome,t in Q['FREQ'].items():
-    caption(f"Tabela 7.{list(Q['FREQ']).index(nome)+1} — Distribuição de frequência: {nome.lower()}")
+    caption(f"Tabela {tab()} – Distribuição de frequência: {nome.lower()}")
     mktable(["Nível","f","%","f acumulada","% acumulada"],
             [[l['nivel'], str(l['f']), n_(l['pct'],1), str(l['f_acum']), n_(l['pct_acum'],1)]
              for l in t['linhas']],
@@ -148,7 +148,7 @@ head("7 ANÁLISE EXPLORATÓRIA UNIVARIADA DAS NUMÉRICAS")
 para("As variáveis discretas e contínuas recebem posição, dispersão e forma. Os escores de subescala são "
      "discretos: assumem dezessete valores inteiros. A mediana e o intervalo interquartil são as medidas "
      "de referência, e a média entra como complemento, não como substituta.")
-caption("Tabela 8 — Posição e dispersão")
+caption(f"Tabela {tab()} – Posição e dispersão")
 mktable(["Variável","Tipo","n","Mín","Q1","Md","Q3","Máx","Média","DP","EP","CV %"],
         [[L(u['variavel']), u['tipo'], str(u['n']), n_(u['minimo'],1), n_(u['q1'],1), n_(u['mediana'],1),
           n_(u['q3'],1), n_(u['maximo'],1), n_(u['media']), n_(u['desvio']), n_(u['erro_padrao']),
@@ -156,7 +156,7 @@ mktable(["Variável","Tipo","n","Mín","Q1","Md","Q3","Máx","Média","DP","EP",
         widths=[2.6,1.7,1.1,1.1,1.1,1.1,1.1,1.2,1.4,1.3,1.2,1.3], fs=7.5)
 src(nota="Erro padrão = DP ÷ √n. Coeficiente de variação = DP ÷ média × 100 (F9). Nível de registro, "
          f"n = {Q['n_no_microciclo']}.")
-caption("Tabela 9 — Forma da distribuição e normalidade")
+caption(f"Tabela {tab()} – Forma da distribuição e normalidade")
 mktable(["Variável","Assimetria g₁","Curtose g₂","Shapiro-Wilk W","p","MAD","Classes por Sturges","Classes por Freedman-Diaconis"],
         [[L(u['variavel']), n_(u['assimetria']), n_(u['curtose']), n_(u['shapiro_W'],4), pf_(u['shapiro_p']),
           n_(u['mad']), str(u['k_sturges']), (str(u['k_fd']) if u['k_fd'] else "—")] for u in Q['UNI']],
@@ -177,7 +177,7 @@ para("Três critérios foram aplicados, porque nenhum deles é suficiente sozinh
      "valor discrepante, já que este entra no cálculo da média e do desvio. O escore z modificado (F8) usa "
      "mediana e desvio absoluto mediano, que resistem à contaminação. Antes de qualquer um deles, a "
      "verificação de domínio: valor fora do intervalo admissível é erro, não discrepância.")
-caption("Tabela 10 — Valores discrepantes por três critérios, e verificação de domínio")
+caption(f"Tabela {tab()} – Valores discrepantes por três critérios, e verificação de domínio")
 mktable(["Variável","Domínio","Fora do domínio","Cerca 1,5 × IQR","Cerca 3,0 × IQR","|z| > 3","|z modificado| > 3,5"],
         [[L(u['variavel']),
           (f"{n_(u['dominio'][0],0)} a {n_(u['dominio'][1],0)}" if 'dominio' in u else "—"),
@@ -198,7 +198,7 @@ para(f"O segundo resultado é metodológico. Em {' e '.join(degen)} o primeiro e
      "O mesmo colapso atinge o escore z modificado, porque o desvio absoluto mediano também é zero. "
      "Nessas subescalas a triagem de discrepantes precisa ser feita pelo domínio e pela comparação de cada "
      "atleta consigo mesmo, e não por regra de dispersão do grupo.")
-caption("Tabela 11 — Discrepantes intraindividuais: o atleta contra a própria série")
+caption(f"Tabela {tab()} – Discrepantes intraindividuais: o atleta contra a própria série")
 mktable(["Variável","Atletas avaliados","Casos","Caso mais extremo"],
         [[L(i['variavel']), str(i['atletas_avaliados']), str(i['n_discrepantes']),
           (f"{i['casos'][0]['atleta']} em D{i['casos'][0]['dia']}: {n_(i['casos'][0]['valor'],0)} contra "
@@ -210,7 +210,7 @@ src(nota="Escore z modificado calculado dentro da série de cada atleta, entre o
          "o que o monitoramento procura detectar.")
 
 head("9 INCONSISTÊNCIAS ENCONTRADAS E O QUE SE FEZ COM CADA UMA")
-caption("Quadro 2 — Achados da auditoria de qualidade")
+caption(f"Quadro {quadro()} – Achados da auditoria de qualidade")
 mktable(["Achado","Gravidade","O que se encontrou","O que se corrigiu","Magnitude"],
         [[i['id'], i['gravidade'], i['achado'], i['correcao'], f"{i['n']} de {i['de']}"]
          for i in Q['INCONS']],
@@ -229,7 +229,7 @@ blocos={}
 for c in C['CONF']:
     blocos.setdefault(c['bloco'],[0,0])
     blocos[c['bloco']][0]+=c['confere']; blocos[c['bloco']][1]+=1
-caption("Tabela 12 — Conferências por bloco, entre os dois caminhos de cálculo")
+caption(f"Tabela {tab()} – Conferências por bloco, entre os dois caminhos de cálculo")
 mktable(["Bloco de conferência","Conferências","Batem","Divergem"],
         [[b, str(t), str(o), str(t-o)] for b,(o,t) in blocos.items()]
         +[["Total", str(C['total']), str(C['ok']), str(C['total']-C['ok'])]],
@@ -239,7 +239,7 @@ para(f"As {C['total']} conferências batem. As médias diárias, as variações 
      "ruído, as derivadas normalizadas, as prevalências da faixa de risco, os valores de p do teste de "
      "Wilcoxon e a base da modelagem foram recalculados desde o item e reproduzem o que os três documentos "
      "afirmam. Nada precisa ser corrigido no texto dos artigos.")
-caption("Tabela 13 — Normalidade das médias diárias, que decide a via principal do Artigo 2")
+caption(f"Tabela {tab()} – Normalidade das médias diárias, que decide a via principal do Artigo 2")
 mktable(["Variável","n","Shapiro-Wilk W","p","Distribuição"],
         [[L(n['variavel']), str(n['n']), n_(n['W'],4), pf_(n['p']), "normal" if n['normal'] else "não normal"]
          for n in C['NORMALIDADE']],
@@ -254,7 +254,7 @@ para("O programa linear exige coeficientes, e os coeficientes vêm da própria a
      "das horas do próprio dia e das horas da véspera:")
 para("y(a,d) = β₀ + β₁ · h(d) + β₂ · h(d − 1) + u(a) + ε(a,d)", indent=False, italic=True,
      align=WD_ALIGN_PARAGRAPH.CENTER, size=11.5)
-caption("Tabela 14 — Coeficientes da resposta dose-humor")
+caption(f"Tabela {tab()} – Coeficientes da resposta dose-humor")
 mktable(["Variável","β₀","β₁ · horas do dia","p","β₂ · horas da véspera","p","n"],
         [[L(v), n_(M[v]['b0'],3), n_(M[v]['b1'],4), pf_(M[v]['p1'],4), n_(M[v]['b2'],4),
           pf_(M[v]['p2'],4), str(M[v]['n'])] for v in ['Fadiga','Vigor','TMD','Tensão']],
@@ -282,7 +282,7 @@ para("maximizar  t     sujeito a     vigor previsto no dia d ≥ t,  para d = 1,
 para("A escolha do critério não é neutra. Maximizar a soma do vigor da semana permitiria compensar um dia "
      "muito ruim com dois muito bons, o que não corresponde à decisão do treinador. Maximizar o pior dia "
      "protege o elo mais fraco do microciclo, que é onde a lesão e a queda de rendimento aparecem.")
-caption("Quadro 3 — Restrições do programa")
+caption(f"Quadro {quadro()} – Restrições do programa")
 mktable(["Restrição","Formulação","Valor"],
         [["Fadiga prevista", "β₀ + β₁·h(d) + β₂·h(d−1) ≤ F_máx,  d = 1…7", n_(P['fadiga_max'],1)+" pontos"],
          ["Vigor previsto", "γ₀ + γ₁·h(d) + γ₂·h(d−1) ≥ V_mín,  d = 1…7", n_(P['vigor_min'],2)+" pontos"],
@@ -296,7 +296,7 @@ src(nota="Resolvido pelo método dos pontos interiores (HiGHS). Os coeficientes 
 
 head("11.3 A solução", lvl=2)
 OB=O['OBSERVADO']; P1=O['PROGRAMA_I']
-caption("Tabela 15 — Calendário observado e distribuição ótima, com a mesma carga semanal")
+caption(f"Tabela {tab()} – Calendário observado e distribuição ótima, com a mesma carga semanal")
 mktable(["Dia","Estímulo","Observado (h)","Ótimo (h)","Diferença","Fadiga prevista","Vigor previsto"],
         [[f"D{d}", O['TIPO'][str(d)], n_(OB['horas'][d-1],1), n_(P1['horas'][d-1],2),
           ("+" if P1['horas'][d-1]-OB['horas'][d-1]>=0 else "")+n_(P1['horas'][d-1]-OB['horas'][d-1],2),
@@ -315,7 +315,7 @@ para("O preço-sombra de uma restrição é quanto o objetivo melhoraria se ela 
 Rs=sorted([r for r in O['ATIVAS'] if '≥ t' not in r['restricao']]
           +[dict(restricao=e['restricao'],preco_sombra=e['preco_sombra'],folga=None) for e in O['EQ']],
           key=lambda r:-abs(r['preco_sombra']))[:7]
-caption("Tabela 16 — Restrições ativas e preços-sombra")
+caption(f"Tabela {tab()} – Restrições ativas e preços-sombra")
 mktable(["Restrição","Folga","Preço-sombra (pontos de vigor)"],
         [[r['restricao'], (n_(r['folga'],3) if r['folga'] is not None else "igualdade"),
           n_(r['preco_sombra'],4)] for r in Rs],
@@ -330,7 +330,7 @@ para(f"O maior preço-sombra em valor absoluto é o do amistoso de D5: {n_(d5['p
      "produz ganho pequeno: ele opera sobre a parte que não é o gargalo.")
 head("11.5 Fronteira eficiente e sensibilidade", lvl=2)
 FR=[f for f in O['FRONTEIRA'] if f.get('viavel') is not False]
-caption("Tabela 17 — Fronteira eficiente: carga da semana contra o pior dia de vigor")
+caption(f"Tabela {tab()} – Fronteira eficiente: carga da semana contra o pior dia de vigor")
 mktable(["Carga da semana (h)","Pior dia de vigor","Fadiga máxima","Distribuição ótima (D1 a D7)"],
         [[n_(f['carga'],1), n_(f['vigor_minimo'],3), n_(f['fadiga_maxima']),
           " · ".join(n_(v,1) for v in f['horas'])] for f in FR]
@@ -346,7 +346,7 @@ para(f"A fronteira é quase horizontal: de {n_(a0['carga'],0)} a {n_(a1['carga']
      "dentro da faixa realista de volume, o vigor do pior dia da semana é determinado pelos jogos, não pelo "
      "volume de treino. A informação prática é a carga mínima estrutural: com dois amistosos e a regra de "
      f"variação máxima entre dias, a semana não pode ter menos de {n_(O['CARGA_MINIMA_ESTRUTURAL'])} horas.")
-caption("Tabela 18 — Sensibilidade dos parâmetros")
+caption(f"Tabela {tab()} – Sensibilidade dos parâmetros")
 linhas=[]
 for s_ in O['SENSIBILIDADE']:
     for p_ in s_['pontos']:
@@ -398,7 +398,7 @@ cx.close()
 head("ANEXO — QUADRO DE FÓRMULAS")
 para("Toda estatística deste relatório pode ser recalculada a partir das fórmulas abaixo e das tabelas "
      "correspondentes.")
-caption("Quadro 1 — Fórmulas empregadas")
+caption(f"Quadro {quadro()} – Fórmulas empregadas")
 mktable(["Id","Estatística","Fórmula","Observação"],
         [[f['id'], f['nome'], f['formula'], f['nota']] for f in Q['FORMULAS']],
         widths=[1.0,3.2,6.4,5.4], fs=7.5)

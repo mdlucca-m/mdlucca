@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """Artigo 1 — descritivo-analítico."""
-TITULO=("Perfil e comportamento das dimensões do humor ao longo da última semana de pré-temporada de "
-        "atletas de handebol de elite: descrição por limites, derivadas e piso de ruído")
-SUB=("Estudo observacional longitudinal com coletas diárias pré e pós, comparação com a linha de base e "
-     "tratamento de séries por suavização, derivadas e limiar explícito de ruído")
+TITULO=("Dois choques e um platô: o comportamento das dimensões do humor no microciclo terminal de "
+        "pré-temporada em atletas de handebol de elite")
+SUB=("Estudo observacional longitudinal com coletas diárias pré e pós, tratamento de séries por "
+     "suavização, derivadas e piso de ruído, e limiares individuais de mudança")
 
 RESUMO=(
 "A literatura sobre humor no esporte descreve escores em corte transversal e raramente acompanha o mesmo "
@@ -113,7 +113,20 @@ INTRO=[
 "das dimensões do humor um tratamento que reunisse suavização, derivadas de primeira e segunda ordem e um "
 "limiar explícito de ruído contra o qual toda variação fosse contrastada.",
 
-"Essas lacunas justificam o presente estudo. De um lado, o handebol de elite impõe, na semana que antecede a "
+"Uma segunda lacuna, de natureza métrica, atravessa a primeira. Os instrumentos de autorrelato são hoje o "
+ "método mais adotado no monitoramento de atletas, por serem baratos, rápidos e aplicáveis todos os dias, e "
+ "a sua contribuição documentada vai além do escore: eles organizam a conversa entre o atleta e a comissão "
+ "técnica e permitem que informações relevantes sejam reveladas fora do contato presencial (SAW; MAIN; "
+ "GASTIN, 2015). A contrapartida é a adesão, que costuma ser o gargalo prático desse tipo de instrumento e "
+ "que não melhora apenas com educação sobre a sua utilidade (McGUIGAN; HASSMÉN; ROSIĆ, 2022).",
+ "Ora, decidir sobre um atleta a partir de um escore diário exige saber quanto desse escore é ruído. A "
+ "literatura de monitoramento resolveu essa pergunta há duas décadas, com um conjunto de limiares que "
+ "raramente aparece nos estudos de humor no esporte: o erro típico da medida, a menor mudança considerada "
+ "relevante e a razão entre os dois, que expressa a aptidão do instrumento para detectar o que importa "
+ "(HOPKINS, 2000; HOPKINS; SCHABORT; HAWLEY, 2001). Aplicados a testes físicos, esses limiares mostram que "
+ "muitos instrumentos consagrados não distinguem a mudança relevante do próprio erro (LINDBERG et al., 2022; "
+ "GARRETT et al., 2020). Aplicados a escalas de humor com coleta diária, praticamente não existem.",
+ "Essas lacunas justificam o presente estudo. De um lado, o handebol de elite impõe, na semana que antecede a "
 "estreia competitiva, uma sucessão de estímulos heterogêneos cuja repercussão afetiva permanece indocumentada "
 "em escala diária. De outro, o instrumental disponível para descrever essa repercussão carece de um critério "
 "que separe sinal de ruído. A conjunção dos dois problemas define o objetivo geral desta investigação: "
@@ -228,6 +241,15 @@ METODO=[
  "Para permitir comparação com a norma e classificação nos seis perfis, cada subescala foi convertida em "
  "escore T por padronização contra parâmetros normativos de amostras atléticas, com média cinquenta e "
  "desvio-padrão dez, recuperados por inversão das faixas de escore T publicadas."]),
+("Confiabilidade do instrumento neste elenco",[
+ "A validação brasileira do instrumento é condição necessária, não suficiente: a consistência interna é "
+ "propriedade da resposta de uma amostra, e não do questionário em abstrato. Estimaram-se, por isso, o alfa "
+ "de Cronbach e o ômega de McDonald de cada subescala sobre os registros deste elenco, com intervalo de "
+ "confiança por reamostragem agrupada por atleta, uma vez que os registros não são independentes entre si.",
+ "Complementaram-se essas estimativas com a correlação item-total corrigida, o alfa resultante da remoção de "
+ "cada item e o percentual de respostas no piso da escala. Verificou-se ainda o escalonamento multitraço, "
+ "que compara a correlação de cada item com a própria subescala, corrigida, e com cada uma das demais: cada "
+ "comparação em que o item se aproxima mais da própria subescala conta como sucesso de escalonamento."]),
 ("Classificação nos seis perfis de humor",[
  "A classificação seguiu a proposta de Parsons-Smith, Terry e Machin (2017). Aplicou-se agrupamento por "
  "k-médias com seis centros, semeados nos centroides canônicos, de modo que a solução não dependesse de "
@@ -264,6 +286,24 @@ METODO=[
  "proporção e o seu complemento tende a zero e o erro-padrão encolhe artificialmente, o que rebaixa o piso e "
  "torna o critério permissivo. Séries de prevalência muito baixa exigem, por isso, leitura cautelosa, e o "
  "texto assinala explicitamente onde essa condição ocorre."]),
+("Limiares de mudança: o piso do grupo, o erro típico e a menor mudança relevante",[
+ "O piso de ruído descrito acima responde a uma pergunta de grupo: a média diária se moveu mais do que a "
+ "oscilação que a amostragem produz? A comissão técnica, porém, decide sobre um atleta. Para essa segunda "
+ "pergunta acrescentaram-se três limiares consagrados na literatura de monitoramento (HOPKINS, 2000; "
+ "HOPKINS; SCHABORT; HAWLEY, 2001).",
+ "O erro típico é o desvio-padrão das diferenças entre medidas repetidas do mesmo atleta, dividido pela raiz "
+ "de dois. Calculou-se a partir das diferenças entre dias consecutivos, de modo que a estimativa incorpora a "
+ "variação biológica de um dia para o outro — que é o ruído contra o qual o monitoramento diário de fato "
+ "opera. A menor mudança relevante adotou o critério de distribuição usual, dois décimos do desvio-padrão "
+ "entre atletas, e a mudança mínima detectável correspondeu a 1,96 vezes a raiz de dois vezes o erro típico. "
+ "A razão entre a menor mudança relevante e o erro típico expressa a aptidão do instrumento para o "
+ "monitoramento individual: valores iguais ou superiores à unidade indicam que o instrumento distingue a "
+ "mudança que importa do ruído que a acompanha (LINDBERG et al., 2022; GARRETT et al., 2020).",
+ "Aos limiares de distribuição somou-se um limiar ancorado em critério externo. Tomou-se como âncora a "
+ "entrada na faixa de risco entre a manhã e a noite do mesmo dia, restrita aos pares que amanhecem fora "
+ "dela, e procurou-se o valor de variação que maximiza o índice de Youden na curva de característica de "
+ "operação. O limiar assim obtido responde a uma pergunta que o critério de distribuição não responde: qual "
+ "variação, nesta amostra, acompanha a transição clínica que interessa?"]),
 ("Análise estatística e processamento computacional",[
  "Toda a análise foi executada em Python 3.11. A cadeia parte da planilha e termina no arquivo de saída, sem "
  "etapa manual intermediária, e reproduz-se pela execução de um único comando.",
@@ -481,6 +521,70 @@ R7=[
 "no quinto. A faixa agrega três perfis e por isso responde antes que qualquer subescala isolada.",
 ]
 
+RC=[
+ "A consistência interna do instrumento neste elenco não é homogênea, e a heterogeneidade tem consequência "
+ "interpretativa. Raiva, depressão e fadiga apresentam alfa adequado; vigor e confusão ficam abaixo do "
+ "convencional de 0,70; e a tensão fica bem abaixo, com alfa de 0,427. A Tabela 8 apresenta as estimativas "
+ "com o intervalo obtido por reamostragem agrupada.",
+ "A leitura item a item explica o resultado da tensão sem recorrer a hipótese sobre o instrumento. Dois dos "
+ "seus quatro itens praticamente não variam neste elenco: «apavorado» permanece no zero em 99,6 por cento "
+ "dos registros e «tenso» em 92,1 por cento, com correlação item-total de 0,11 e 0,14. Os outros dois, "
+ "«ansioso» e «preocupado», correlacionam-se com o total em 0,42 e 0,45. A subescala mede, aqui, duas coisas "
+ "que não se movem juntas: uma apreensão antecipatória, que varia, e uma tensão somática de intensidade "
+ "elevada, que não ocorre. O escalonamento multitraço confirma o diagnóstico ao apontar que «tenso» se "
+ "correlaciona mais com a depressão do que com a própria subescala.",
+ "A implicação é local e não invalida o instrumento: em elenco saudável de alto rendimento, medido "
+ "diariamente, os itens de tensão de alta intensidade têm efeito de piso severo, e o escore de tensão passa "
+ "a ser governado pelos dois itens de apreensão. Onde este artigo e o companheiro leem a tensão como "
+ "ativação e não como sofrimento, é a essa apreensão que se referem — e a leitura ganha suporte, não o "
+ "perde, quando se sabe de onde vem a variância."]
+
+RP=[
+ "As séries de prevalência, examinadas perfil a perfil na Figura 10, revelam um padrão que a média das "
+ "subescalas não expõe. Os dois perfis de extremos favorável e desfavorável — iceberg e barbatana de "
+ "tubarão — não se movem em espelho ao longo de toda a semana. O iceberg atinge o seu máximo em D5, entre "
+ "os dois amistosos, e só desaba no último dia; a barbatana de tubarão atinge o seu em D6, o dia técnico e "
+ "de força que antecede a estreia.",
+ "A Figura 11 recompõe a semana como redistribuição, e não como deslocamento de médias. A leitura em área "
+ "empilhada mostra que o elenco não migra progressivamente de uma faixa para outra: a composição permanece "
+ "estável do primeiro ao terceiro dia, sofre um rearranjo em D4, retorna quase à configuração inicial em D5 "
+ "e só então se desloca. O painel das três faixas localiza a inversão entre a favorável e a de risco em "
+ "D1,88, isto é, ainda na primeira metade do segundo dia.",
+ "O mapa da Figura 12 responde à pergunta de onde cada perfil predomina. Por dia, os picos distribuem-se "
+ "sem concentração: superfície em D1, submerso e Everest invertido em D4, iceberg em D5, barbatana de "
+ "tubarão em D6 e iceberg invertido em D7. Por tipo de estímulo, a barbatana de tubarão alcança o seu "
+ "máximo no dia técnico e de força, e não no HIIT nem no amistoso. A associação entre estímulo e perfil, "
+ "contudo, não é estatisticamente detectável, o que impede atribuir a distribuição ao tipo de sessão."]
+
+RL=[
+ "O piso de ruído empregado até aqui é o erro da média do grupo. A decisão sobre um atleta exige o erro da "
+ "medida dele, e os dois números não se confundem: o segundo é sempre maior. A Tabela 9 apresenta os três "
+ "limiares individuais ao lado do piso de grupo, e o resultado é desconfortável o bastante para merecer "
+ "enunciado direto.",
+ "Em todas as sete variáveis o erro típico supera a menor mudança relevante, com razão entre 0,21 e 0,44. "
+ "Pelo critério consagrado de monitoramento, portanto, o instrumento aplicado diariamente não distingue, no "
+ "atleta isolado, a menor mudança que importaria da oscilação que a própria medida produz. O resultado não "
+ "contradiz nada do que os artigos afirmam sobre o grupo: a média de vinte e um a vinte e sete atletas tem "
+ "erro-padrão muito menor do que a medida de um. Ele delimita o alcance da aplicação prática.",
+ "Uma tentativa de decompor esse erro entre imprecisão do instrumento e variação biológica real usou os "
+ "dezessete reenvios ocorridos em trinta minutos ou menos, situação em que não há treino nem sono entre as "
+ "duas respostas. A decomposição não se sustenta. Quem reenvia é quem quis alterar a resposta, de modo que "
+ "o valor obtido é um teto e não uma estimativa não enviesada; e, mesmo como teto, ele iguala ou supera o "
+ "erro entre dias no vigor, o que é impossível na população e denuncia o erro amostral de uma estimativa "
+ "com dezessete pares. Registra-se o que não depende da decomposição: qualquer que seja a sua composição, o "
+ "erro típico entre dias excede a menor mudança relevante.",
+ "O limiar ancorado, na Tabela 10, é o resultado de maior utilidade prática deste artigo. Tomada como "
+ "âncora a entrada na faixa de risco ao longo do dia, a variação da fadiga entre a manhã e a noite "
+ "discrimina com área sob a curva de 0,954, e o ponto de corte de três pontos alcança sensibilidade de 0,88 "
+ "e especificidade de 0,87. A perturbação total do humor acompanha, com área de 0,851 e corte de oito "
+ "pontos. Tensão e confusão não discriminam e não recebem corte. Um aumento de três pontos na fadiga ao "
+ "longo do dia é, nesta amostra, o sinal operacional mais preciso disponível.",
+ "A Tabela 11 mostra por que a leitura de grupo não basta. Entre os vinte e um atletas com medida no "
+ "primeiro e no sétimo dia, dezoito variam a fadiga na direção do grupo, mas apenas oito ultrapassam a "
+ "mudança mínima detectável; no vigor, dezessete acompanham a direção e seis ultrapassam o limiar. O "
+ "deslocamento médio da semana é real e é grande, e ainda assim uma parte do elenco não se move mais do que "
+ "o erro da própria medida."]
+
 RQ=[
  "A última seção dos resultados não descreve o humor, e sim a base que o descreve. Ela reúne o que a auditoria "
  "de qualidade encontrou e o resultado da reconferência independente, porque nenhum dos achados anteriores se "
@@ -574,6 +678,29 @@ DISCUSSAO=[
  "reportar qualquer prevalência longitudinal, e reportar a sensibilidade do achado à escolha. Estudos que "
  "acompanham perfis de humor ao longo do tempo em amostras pequenas são particularmente vulneráveis, porque "
  "poucos atletas muito assíduos podem determinar a série inteira."]),
+("Do grupo para o atleta: o que os limiares permitem e o que impedem",[
+ "A distinção entre o piso de ruído do grupo e o erro típico do atleta organiza o alcance prático de tudo o "
+ "que este artigo descreve. O piso responde à pergunta do pesquisador — a média se moveu? — e por ele a "
+ "semana tem sinal claro em cinco das sete variáveis. O erro típico responde à pergunta do preparador — este "
+ "atleta mudou? — e por ele o instrumento diário não alcança, em nenhuma variável, a menor mudança "
+ "considerada relevante pelo critério de distribuição usual.",
+ "A conclusão não é que o monitoramento diário do humor seja inútil, e sim que ele opera em outra escala de "
+ "decisão do que a que a literatura de testes físicos costuma assumir. Instrumentos de autorrelato são "
+ "adotados justamente por serem baratos e frequentes, e a sua contribuição documentada está mais em "
+ "sustentar a conversa entre atleta e comissão do que em produzir um número de corte individual (SAW; MAIN; "
+ "GASTIN, 2015). A adesão, aliás, é o gargalo prático conhecido desse tipo de instrumento, e não melhora "
+ "apenas com educação sobre ele (McGUIGAN; HASSMÉN; ROSIĆ, 2022).",
+ "O limiar ancorado oferece a saída para a decisão individual, e é por isso que ele merece destaque acima "
+ "dos limiares de distribuição. Um aumento de três pontos na fadiga entre a manhã e a noite, com "
+ "sensibilidade de 0,88 e especificidade de 0,87, é um critério que a comissão técnica pode aplicar sem "
+ "conhecer o desvio-padrão do elenco nem o erro típico da medida. Ele não descreve uma mudança «real» no "
+ "sentido psicométrico: descreve a variação que, nesta amostra, acompanha a transição para a faixa de "
+ "risco. É pouco para uma afirmação de validade e é suficiente para uma triagem.",
+ "Cabe registrar o que esse limiar exige para ser usado fora daqui. Ele foi obtido no mesmo conjunto em que "
+ "é avaliado, sem validação externa, e a área sob a curva de 0,954 da fadiga é, por isso, uma estimativa "
+ "otimista. A replicação prospectiva com o corte fixado antes da coleta é a única forma de saber quanto "
+ "dele sobrevive."]),
+
 ("Implicações para o monitoramento no handebol de elite",[
  "O levantamento de Henze et al. (2025) revelou que a prática de monitoramento em clubes profissionais de "
  "handebol privilegia indicadores de carga externa, apesar da evidência de que medidas subjetivas superam "

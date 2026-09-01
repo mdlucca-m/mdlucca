@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Lista canônica de referências do estudo, usada pelas rotinas de DOI e PubMed."""
+"""Lista canônica de referências do estudo, usada pelas rotinas de DOI e PubMed.
+
+Ordenada alfabeticamente: a ordem desta lista é a ordem de identificador na base
+e, portanto, a ordem em que as referências saem nos documentos.
+"""
 
 REFS=[
  'BEEDIE, C. J.; TERRY, P. C.; LANE, A. M. The profile of mood states and athletic performance: two meta-analyses. Journal of Applied Sport Psychology, v. 12, n. 1, p. 49-68, 2000.',
@@ -12,19 +16,24 @@ REFS=[
  'FERREIRA, A. B. M.; RIBEIRO, B. L. L.; MELO, A. L. L. S. et al. Effects of different training load magnitudes on sleep pattern and mood state in young soccer players. Sleep Science, v. 16, 2023. DOI: 10.1055/s-0043-1770247.',
  'FRIEDMAN, M. The use of ranks to avoid the assumption of normality implicit in the analysis of variance. Journal of the American Statistical Association, v. 32, n. 200, p. 675-701, 1937. DOI: 10.1080/01621459.1937.10503522.',
  'GARCÍA-SÁNCHEZ, C. et al. Physical demands during official competitions in elite handball: a systematic review. International Journal of Environmental Research and Public Health, v. 20, n. 4, 3353, 2023.',
+ 'GARRETT, J.; GRAHAM, S. R.; ESTON, R. G. et al. Comparison of a countermovement jump test and submaximal run test to quantify the sensitivity for detecting practically important changes within high-performance Australian rules football. International Journal of Sports Physiology and Performance, v. 15, n. 1, p. 68-72, 2020. DOI: 10.1123/ijspp.2019-0150.',
  "GENTILE, A.; TRIVIĆ, T.; BIANCO, A. et al. Living in the “bubble”: athletes' psychological profile during the Sambo World Championship. Frontiers in Psychology, v. 12, 657652, 2021.",
  'HAN, C. S. Y.; PARSONS-SMITH, R. L.; TERRY, P. C. Mood profiling in Singapore: cross-cultural validation and potential applications of mood profile clusters. Frontiers in Psychology, v. 11, 665, 2020.',
  'HARRIS, C. R. et al. Array programming with NumPy. Nature, v. 585, n. 7825, p. 357-362, 2020.',
  "HENZE, A. S. et al. Athlete monitoring in handball (ATHMON HB): a survey of current practice in professional women's and men's handball. BMC Sports Science, Medicine and Rehabilitation, v. 17, n. 1, 126, 2025.",
  'HOLM, S. A simple sequentially rejective multiple test procedure. Scandinavian Journal of Statistics, v. 6, n. 2, p. 65-70, 1979.',
+ 'HOPKINS, W. G. Measures of reliability in sports medicine and science. Sports Medicine, v. 30, n. 1, p. 1-15, 2000. DOI: 10.2165/00007256-200030010-00001.',
+ 'HOPKINS, W. G.; SCHABORT, E. J.; HAWLEY, J. A. Reliability of power in physical performance tests. Sports Medicine, v. 31, n. 3, p. 211-234, 2001. DOI: 10.2165/00007256-200131030-00005.',
  'HUNTER, J. D. Matplotlib: a 2D graphics environment. Computing in Science and Engineering, v. 9, n. 3, p. 90-95, 2007.',
  'KARCHER, C.; BUCHHEIT, M. On-court demands of elite handball, with special reference to playing positions. Sports Medicine, v. 44, n. 6, p. 797-814, 2014.',
  'KELLMANN, M. et al. Recovery and performance in sport: consensus statement. International Journal of Sports Physiology and Performance, v. 13, n. 2, p. 240-245, 2018.',
  'KENDALL, M. G.; SMITH, B. B. The problem of m rankings. The Annals of Mathematical Statistics, v. 10, n. 3, p. 275-287, 1939. DOI: 10.1214/aoms/1177732186.',
  'LEW, P. C. F.; PARSONS-SMITH, R. L.; LAMONT-MILLS, A. et al. Cross-cultural validation of the Malaysian Mood Scale and tests of between-group mood differences. International Journal of Environmental Research and Public Health, v. 20, n. 4, 3348, 2023.',
+ 'LINDBERG, K.; SOLBERG, P.; BJØRNSEN, T. et al. Strength and power testing of athletes: a multicenter study of test-retest reliability. International Journal of Sports Physiology and Performance, v. 17, n. 7, p. 1103-1110, 2022. DOI: 10.1123/ijspp.2021-0558.',
  'LOCHBAUM, M. et al. The Profile of Mood States and athletic performance: a meta-analysis of published studies. European Journal of Investigation in Health, Psychology and Education, v. 11, n. 1, p. 50-70, 2021.',
  'LUOJUMÄKI, R.; RUIZ, M. C.; ADIE, J. et al. Exploring mood profile clusters across physical activity level, gender and age. European Journal of Sport Science, 2026. DOI: 10.1002/ejsc.70131.',
  "McFADDEN, B. A.; WALKER, A. J.; BOZZINI, B. N. et al. Psychological and physiological changes in response to the cumulative demands of a women's division I collegiate soccer season. Journal of Strength and Conditioning Research, v. 35, n. 12, p. 3405-3414, 2021.",
+ 'McGUIGAN, H.; HASSMÉN, P.; ROSIĆ, N. et al. Does education improve adherence to a training monitoring program in recreational athletes? International Journal of Sports Science & Coaching, v. 18, n. 1, p. 101-113, 2022. DOI: 10.1177/17479541211070789.',
  'McNEMAR, Q. Note on the sampling error of the difference between correlated proportions or percentages. Psychometrika, v. 12, n. 2, p. 153-157, 1947. DOI: 10.1007/BF02295996.',
  'MEEUSEN, R. et al. Prevention, diagnosis, and treatment of the overtraining syndrome: joint consensus statement of the European College of Sport Science and the American College of Sports Medicine. Medicine and Science in Sports and Exercise, v. 45, n. 1, p. 186-205, 2013.',
  'MORGAN, W. P. Selected psychological factors limiting performance: a mental health model. In: CLARKE, D. H.; ECKERT, H. M. (org.). Limits of human performance. Champaign: Human Kinetics, 1985. p. 70-80.',
@@ -41,6 +50,7 @@ REFS=[
  'SAAL, C.; RHEINSBERG, P.; BAUMGART, C. How different defensive formations affect physical match demands in the German Handball Bundesliga. Frontiers in Sports and Active Living, v. 8, 1811523, 2026.',
  'SAHLI, H.; SAHLI, F.; SAIDANE, M. et al. Testing the psychometric properties of an Arabic version of the Brunel Mood Scale among physical education students. European Journal of Investigation in Health, Psychology and Education, v. 13, n. 8, p. 1539-1552, 2023.',
  'SAW, A. E.; MAIN, L. C.; GASTIN, P. B. Monitoring the athlete training response: subjective self-reported measures trump commonly used objective measures: a systematic review. British Journal of Sports Medicine, v. 50, n. 5, p. 281-291, 2016.',
+ 'SAW, A. E.; MAIN, L. C.; GASTIN, P. B. Role of a self-report measure in athlete preparation. Journal of Strength and Conditioning Research, v. 29, n. 3, p. 685-691, 2015. DOI: 10.1519/jsc.0000000000000698.',
  'SAWCZUK, T.; JONES, B.; SCANTLEBURY, S. et al. Influence of perceptions of sleep on well-being in youth athletes. Journal of Strength and Conditioning Research, v. 35, n. 4, p. 1066-1073, 2021.',
  'SHROUT, P. E.; FLEISS, J. L. Intraclass correlations: uses in assessing rater reliability. Psychological Bulletin, v. 86, n. 2, p. 420-428, 1979. DOI: 10.1037/0033-2909.86.2.420.',
  'TERRY, P. C.; LANE, A. M. Normative values for the profile of mood states for use with athletic samples. Journal of Applied Sport Psychology, v. 12, n. 1, p. 93-109, 2000.',

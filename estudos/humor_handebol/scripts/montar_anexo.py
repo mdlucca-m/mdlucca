@@ -5,7 +5,7 @@ exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),"_docx_base.py
 import sqlite3
 def jd(n): return json.load(open(os.path.join(DADOS,n+".json"),encoding='utf-8'))
 ML=jd("V2_ml"); ML2=jd("V2_ml2"); ML3=jd("V2_ml3"); CD=jd("V2_crispdm")
-CO=jd("V2_conf"); QA=jd("V2_qual")
+CO=jd("V2_conf"); QA=jd("V2_qual"); TEJ=jd("V2_te"); PS=jd("V2_psico")
 def n_(x,d=3):
     if x is None or (isinstance(x,float) and x!=x): return "—"
     return f"{x:.{d}f}".replace('.',',').replace('-','−')
@@ -15,7 +15,7 @@ def pf_(p,d=3):
 
 para("ANEXO METODOLÓGICO", indent=False, bold=True, size=14,
      align=WD_ALIGN_PARAGRAPH.CENTER, after=6, spacing=1.15)
-para("Modelagem preditiva sobre a base do microciclo terminal e o estudo mapeado nas seis fases do CRISP-DM",
+para("Modelagem preditiva, limiares de mudança e o processo do estudo mapeado nas seis fases do CRISP-DM",
      indent=False, italic=True, size=11, align=WD_ALIGN_PARAGRAPH.CENTER, after=18, spacing=1.15)
 
 head("1 OBJETIVO")
@@ -28,6 +28,24 @@ para("O anexo cumpre também uma segunda função. A modelagem preditiva sobre a
      "otimistas com facilidade, e o registro do que foi feito para evitá-los importa tanto quanto o resultado. "
      "A seção 5 organiza o estudo inteiro nas seis fases do CRISP-DM (CHAPMAN et al., 2000) e separa, em cada "
      "fase, o que coube à automação e o que permaneceu decisão humana.")
+
+head("1.1 O processo completo, em um mapa", lvl=2)
+para("O leitor que chega a este anexo pelos dois artigos precisa reconstruir mentalmente uma cadeia longa: "
+     "o que foi coletado, como o dado foi limpo, que unidade de análise foi adotada, quais pareamentos "
+     "sustentam cada teste e onde a modelagem se encaixa. A Figura 1 apresenta essa cadeia inteira em cinco "
+     "etapas, do export do formulário às saídas, com os números de cada passagem e o circuito de "
+     "reconferência que a fecha.")
+figura(os.path.join(S,"M3fig.png"), fig(),
+       "Do formulário ao resultado: coleta, limpeza e auditoria, unidades de análise, pareamentos e análises.",
+       w=16.5)
+para("A Figura 2 desdobra a etapa de modelagem em um framework próprio. Ele responde a três perguntas em "
+     "sequência: o que se mede e em que instante do dia, o que protege a inferência de produzir otimismo, e "
+     "o que o resultado permite dizer. A separação temporal entre a manhã, o estímulo do dia e a noite é a "
+     "condição que torna a previsão não circular; as quatro salvaguardas da faixa central são o que impede "
+     "que um desempenho aparente se confunda com memorização do atleta.")
+figura(os.path.join(S,"M4fig.png"), fig(),
+       "Framework do estudo de modelagem: o eixo temporal do dia, as salvaguardas da inferência e o alcance "
+       "de cada resultado.", w=16.5)
 
 head("2 MÉTODO")
 head("2.1 Unidade, alvo e preditores", lvl=2)
@@ -81,7 +99,7 @@ for k in ordem:
     linhas.append([k, n_(r['auc']), f"[{n_(r['ic'][0])}; {n_(r['ic'][1])}]", n_(r['bacc']),
                    n_(r['sens']), n_(r['espec']), n_(r['brier']),
                    (f"{n_(g['m'])} [{n_(g['ic'][0])}; {n_(g['ic'][1])}]" if g else "—")])
-caption("Tabela M1 — Desempenho dos modelos e das duas linhas de base, com validação agrupada por atleta")
+caption(f"Tabela {tab()} – Desempenho dos modelos e das duas linhas de base, com validação agrupada por atleta")
 mktable(["Modelo","AUC","IC 95% da AUC","Ac. balanc.","Sensib.","Especif.","Brier","Ganho sobre a regra trivial"],
         linhas, widths=[3.4,1.5,2.9,1.8,1.5,1.5,1.4,4.1], fs=8)
 src(nota="Acurácia balanceada, sensibilidade e especificidade no ponto de corte de 0,5. O escore de Brier mede "
@@ -100,12 +118,12 @@ para(f"A restrição ao subgrupo acionável muda a conclusão. Dos {ML['n']} par
      "modelos de árvore têm intervalo de confiança que exclui o acaso "
      f"(floresta aleatória, {n_(S2['Random Forest']['auc'])}, de {n_(S2['Random Forest']['ic'][0])} a "
      f"{n_(S2['Random Forest']['ic'][1])}).")
-figura(os.path.join(S,"M1fig.png"), "M1",
+figura(os.path.join(S,"M1fig.png"), fig(),
        "Área sob a curva dos modelos e das linhas de base, na amostra completa e no subgrupo acionável")
 
 head("3.2 A árvore e o que ela usa", lvl=2)
 folhas=[n for n in ML2['ARVORE'] if n['tipo']=='folha']
-caption("Tabela M2 — Folhas da árvore de decisão, ordenadas pelo risco previsto")
+caption(f"Tabela {tab()} – Folhas da árvore de decisão, ordenadas pelo risco previsto")
 mktable(["Caminho da manhã até a folha","n","Risco previsto"],
         [[" e ".join(f['caminho']).replace('.',','), str(f['n']), n_(f['p']*100,0)+"%"]
          for f in sorted(folhas,key=lambda f:-f['p'])],
@@ -126,7 +144,7 @@ para("O primeiro corte da árvore é contraintuitivo. Ele separa pela perturbaç
      "hipótese concorrente precisa ser afastada: quem amanhece no piso da escala só tem para onde subir, e o "
      "corte poderia estar capturando reversão à média em vez de risco.")
 rv=sorted(ML3['REVERSAO'],key=lambda e:e['rho'])
-caption("Tabela M3 — Reversão à média: correlação entre o valor da manhã e a própria variação até a noite")
+caption(f"Tabela {tab()} – Reversão à média: correlação entre o valor da manhã e a própria variação até a noite")
 mktable(["Dimensão","ρ de Spearman","p","Componente mecânico"],
         [[e['variavel'], n_(e['rho']), pf_(e['p']), "sim" if e['mecanico'] else "não"] for e in rv],
         widths=[4.5,3.2,3.2,4.1], fs=9)
@@ -142,11 +160,46 @@ para("A sequência de modelos aninhados confirma a leitura. A perturbação tota
      f"{n_(an[0]['auc'])}; o acréscimo da tensão matinal a eleva para {n_(an[1]['auc'])}, ganho de "
      f"{n_(V['ganho_tensao'],2)} que nenhuma outra variável reproduz. O modelo com todas as {an[3]['k']} "
      f"variáveis ({n_(an[3]['auc'])}) não supera o de três, o que é esperado com {ML['n']} observações.")
-figura(os.path.join(S,"M2fig.png"), "M2",
+figura(os.path.join(S,"M2fig.png"), fig(),
        "Reversão à média por dimensão e contribuição da tensão matinal em modelos aninhados")
 para("A leitura substantiva é a seguinte. Alguma tensão pela manhã protege; a ausência completa de tensão em "
      "atleta que amanhece muito favorável antecede a queda vespertina. O achado converge com o que os dois "
      "artigos observam por outra via: neste elenco, a tensão se comporta como ativação, e não como sofrimento.")
+
+head("3.4 Do modelo ao limiar: a mudança mínima importante", lvl=2)
+para("O modelo preditivo entrega uma probabilidade, e a comissão técnica precisa de um número que se aplique "
+     "sem computador. A ponte entre os dois é a mudança mínima importante ancorada: em vez de partir da "
+     "distribuição, parte do desfecho clínico e pergunta qual variação o acompanha. Tomada como âncora a "
+     "entrada na faixa de risco entre a manhã e a noite, restrita a quem amanhece fora dela, o resultado "
+     "aparece na Tabela abaixo.")
+_MMI={m['variavel']:m for m in TEJ['MMI']}; _ET={t['variavel']:t for t in TEJ['TE']}
+caption(f"Tabela {tab()} – Mudança mínima importante ancorada na entrada em risco, e a sua leitura contra o erro típico")
+mktable(["Variável","AUC da variação","Ponto de corte","Sensibilidade","Especificidade","Corte ÷ erro típico",
+         "Supera a menor mudança relevante"],
+        [[('PTH' if v=='TMD' else v), n_(_MMI[v]['auc'],3),
+          (n_(_MMI[v]['corte'],1) if _MMI[v]['discrimina'] else "não discrimina"),
+          (n_(_MMI[v]['sens'],2) if _MMI[v]['discrimina'] else "—"),
+          (n_(_MMI[v]['espec'],2) if _MMI[v]['discrimina'] else "—"),
+          (n_(_MMI[v]['corte_sobre_et']) if _MMI[v]['discrimina'] else "—"),
+          (("sim" if _MMI[v]['supera_mmr'] else "não") if _MMI[v]['discrimina'] else "—")]
+         for v in ['Tensão','Depressão','Raiva','Vigor','Fadiga','Confusão','TMD']],
+        widths=[2.0,2.4,2.3,2.2,2.4,2.3,3.0], fs=8)
+src(nota=f"Sobre {TEJ['n_casos_ancora']} pares que amanhecem fora da faixa, dos quais {TEJ['eventos_ancora']} "
+         "entram nela até a noite. Ponto de corte pelo índice de Youden; variáveis com área sob a curva "
+         "abaixo de 0,60 não recebem corte.")
+_f=_MMI['Fadiga']
+para(f"O limiar da fadiga é o resultado de maior utilidade prática de todo o estudo. Um aumento de "
+     f"{n_(_f['corte'],0)} pontos entre a manhã e a noite identifica a entrada na faixa de risco com "
+     f"sensibilidade de {n_(_f['sens'],2)} e especificidade de {n_(_f['espec'],2)}, sobre área sob a curva de "
+     f"{n_(_f['auc'],3)}. O corte equivale a {n_(_f['corte_sobre_et'])} vezes o erro típico da medida, de modo "
+     "que não se confunde com a oscilação do instrumento. A perturbação total do humor oferece um segundo "
+     f"critério, com corte de {n_(_MMI['TMD']['corte'],0)} pontos e área de {n_(_MMI['TMD']['auc'],3)}.")
+para("Duas ressalvas delimitam o uso. O corte foi obtido no mesmo conjunto em que é avaliado, sem validação "
+     "externa, e por isso a área sob a curva é otimista. E a subescala de tensão, que a análise de "
+     "confiabilidade do artigo descritivo mostrou ter alfa de "
+     f"{n_([c for c in PS['CONF'] if c['subescala']=='Tensão'][0]['alfa'],3)} neste elenco, não discrimina "
+     "como âncora — o que é coerente: o marcador protetor identificado pela modelagem é a apreensão "
+     "antecipatória do início do dia, não a variação da tensão ao longo dele.")
 
 head("4 O QUE ISTO PERMITE DIZER, E O QUE NÃO PERMITE")
 for t in [
@@ -168,7 +221,7 @@ para("O CRISP-DM organiza um projeto de análise em seis fases que se retroalime
      "O quadro abaixo mapeia o estudo nessas fases e declara, em cada uma, a divisão entre o que foi automatizado "
      "e o que permaneceu decisão humana. A separação é o ponto: o que a automação decide sozinha não constitui "
      "achado.")
-caption("Quadro M1 — O estudo nas seis fases do CRISP-DM")
+caption(f"Quadro {quadro()} – O estudo nas seis fases do CRISP-DM")
 mktable(["Fase","Pergunta da fase","Automação","Decisão humana"],
         [[f"{f['n']} {f['nome']}", f['pergunta'], f['copiloto'], f['humano']] for f in CD['FASES']],
         widths=[2.6,3.8,4.4,4.2], fs=8)
