@@ -1,0 +1,209 @@
+{
+ "UNIVARIADA": [
+  {
+   "variavel": "Tensão",
+   "media_respondeu": 1.430701754385965,
+   "media_faltou": 2.0416666666666665,
+   "diferenca": 0.6109649122807015,
+   "p": 0.7283910925257909,
+   "n1": 133,
+   "n0": 12,
+   "significativo": false
+  },
+  {
+   "variavel": "Depressão",
+   "media_respondeu": 0.957393483709273,
+   "media_faltou": 1.25,
+   "diferenca": 0.292606516290727,
+   "p": 0.7095841817514223,
+   "n1": 133,
+   "n0": 12,
+   "significativo": false
+  },
+  {
+   "variavel": "Raiva",
+   "media_respondeu": 1.4977443609022556,
+   "media_faltou": 0.875,
+   "diferenca": -0.6227443609022556,
+   "p": 0.10879524108850137,
+   "n1": 133,
+   "n0": 12,
+   "significativo": false
+  },
+  {
+   "variavel": "Vigor",
+   "media_respondeu": 5.95375939849624,
+   "media_faltou": 5.75,
+   "diferenca": -0.20375939849624025,
+   "p": 0.8971200769504334,
+   "n1": 133,
+   "n0": 12,
+   "significativo": false
+  },
+  {
+   "variavel": "Fadiga",
+   "media_respondeu": 5.181453634085213,
+   "media_faltou": 3.75,
+   "diferenca": -1.431453634085213,
+   "p": 0.25644323951154124,
+   "n1": 133,
+   "n0": 12,
+   "significativo": false
+  },
+  {
+   "variavel": "Confusão",
+   "media_respondeu": 0.48834586466165414,
+   "media_faltou": 0.6666666666666666,
+   "diferenca": 0.1783208020050125,
+   "p": 0.3033597874077457,
+   "n1": 133,
+   "n0": 12,
+   "significativo": false
+  },
+  {
+   "variavel": "TMD",
+   "media_respondeu": 3.601879699248121,
+   "media_faltou": 2.8333333333333335,
+   "diferenca": -0.7685463659147875,
+   "p": 0.7036119543579835,
+   "n1": 133,
+   "n0": 12,
+   "significativo": false
+  }
+ ],
+ "MISTO": [
+  {
+   "variavel": "Tensão",
+   "beta": -0.03776400633972329,
+   "se": 0.01544111071129546,
+   "p": 0.01445795006636876,
+   "p_dia": 0.010608326738587746,
+   "p_holm": 0.10120565046458133,
+   "significativo": false
+  },
+  {
+   "variavel": "Depressão",
+   "beta": -0.009328892887405809,
+   "se": 0.01624817368979535,
+   "p": 0.5658661358061821,
+   "p_dia": 0.042103935888757785,
+   "p_holm": 1.0,
+   "significativo": false
+  },
+  {
+   "variavel": "Raiva",
+   "beta": -0.006199585769554708,
+   "se": 0.011584016545148911,
+   "p": 0.5925223032127453,
+   "p_dia": 0.036203663595176815,
+   "p_holm": 1.0,
+   "significativo": false
+  },
+  {
+   "variavel": "Vigor",
+   "beta": -0.008001556480724276,
+   "se": 0.009777286498563634,
+   "p": 0.4131390264375999,
+   "p_dia": 0.03060368838949,
+   "p_holm": 1.0,
+   "significativo": false
+  },
+  {
+   "variavel": "Fadiga",
+   "beta": 0.006502720935580679,
+   "se": 0.008812255786913324,
+   "p": 0.4605643649103335,
+   "p_dia": 0.03469341029362902,
+   "p_holm": 1.0,
+   "significativo": false
+  },
+  {
+   "variavel": "Confusão",
+   "beta": -0.03934165168930835,
+   "se": 0.024777850750318735,
+   "p": 0.1123372291498283,
+   "p_dia": 0.017817311979208054,
+   "p_holm": 0.6740233748989698,
+   "significativo": false
+  },
+  {
+   "variavel": "TMD",
+   "beta": -0.0018097931972070943,
+   "se": 0.0037158516978514746,
+   "p": 0.626225257746646,
+   "p_dia": 0.043270080900939124,
+   "p_holm": 1.0,
+   "significativo": false
+  }
+ ],
+ "CONCENTRACAO": {
+  "sem_falta": 19,
+  "total": 27,
+  "max_faltas": 5,
+  "mediana": 0.0,
+  "com_falta": 8,
+  "total_faltas": 23,
+  "rho_faltas_pth": -0.10024864232941087,
+  "p_rho": 0.6188259267168407
+ },
+ "LIMITES": [
+  {
+   "variavel": "Tensão",
+   "delta": -1.207671957671958,
+   "limite_inf": -1.416666666666667,
+   "limite_sup": -0.7500000000000002,
+   "n_ausentes": 6,
+   "sinal_preservado": true
+  },
+  {
+   "variavel": "Depressão",
+   "delta": 0.2142857142857144,
+   "limite_inf": -0.0679012345679012,
+   "limite_sup": 0.5987654320987656,
+   "n_ausentes": 6,
+   "sinal_preservado": false
+  },
+  {
+   "variavel": "Raiva",
+   "delta": 0.7420634920634925,
+   "limite_inf": 0.18209876543209913,
+   "limite_sup": 2.4043209876543212,
+   "n_ausentes": 6,
+   "sinal_preservado": true
+  },
+  {
+   "variavel": "Vigor",
+   "delta": -2.977513227513227,
+   "limite_inf": -3.9537037037037037,
+   "limite_sup": -2.1759259259259256,
+   "n_ausentes": 6,
+   "sinal_preservado": true
+  },
+  {
+   "variavel": "Fadiga",
+   "delta": 3.6150793650793656,
+   "limite_inf": 2.317901234567901,
+   "limite_sup": 5.317901234567901,
+   "n_ausentes": 6,
+   "sinal_preservado": true
+  },
+  {
+   "variavel": "Confusão",
+   "delta": -0.45105820105820105,
+   "limite_inf": -0.5648148148148148,
+   "limite_sup": -0.2314814814814814,
+   "n_ausentes": 6,
+   "sinal_preservado": true
+  },
+  {
+   "variavel": "TMD",
+   "delta": 5.890211640211641,
+   "limite_inf": 3.293209876543209,
+   "limite_sup": 10.070987654320987,
+   "n_ausentes": 6,
+   "sinal_preservado": true
+  }
+ ],
+ "n_pares": 145,
+ "n_respondeu": 133
+}
