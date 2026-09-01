@@ -222,28 +222,90 @@ METODO=[
  "quinto e o nonagésimo quinto percentil observado naquele dia, e verifica-se se o sinal da variação "
  "sobrevive aos dois cenários extremos."]),
 ("Tratamento de séries: suavização, derivadas e piso de ruído",[
- "Independentemente das três vias, cada série diária recebeu um tratamento próprio, descrito em detalhe no "
- "artigo companheiro e aqui resumido. O erro-padrão de cada dia foi calculado, e a média dos sete erros-padrão "
- "define o piso de ruído da série, isto é, a magnitude típica da oscilação que a amostragem produz por si só. "
- "A série foi suavizada por filtro binomial de três pontos, com pesos um quarto, um meio e um quarto. As "
- "derivadas discretas de primeira e segunda ordem da série suavizada, expressas em unidades do piso, "
- "localizam as transições de choque e os pontos de inflexão.",
+ "Independentemente das três vias, cada série diária recebeu um tratamento próprio, cuja justificação "
+ "completa consta do artigo companheiro e cujos parâmetros se declaram aqui por inteiro, de modo que este "
+ "artigo se sustente sozinho. O erro-padrão de cada dia foi calculado, pelo desvio-padrão amostral dividido "
+ "pela raiz do número de respondentes do dia no caso das médias e pela fórmula binomial no caso das "
+ "prevalências, e a média dos sete erros-padrão define o piso de ruído da série, isto é, a magnitude típica "
+ "da oscilação que a amostragem produz por si só.",
+
+ "A suavização empregou o filtro binomial de três pontos, de núcleo [1/4, 1/2, 1/4], que é a terceira linha "
+ "normalizada do triângulo de Pascal. Cada ponto interno passa a "
+ "ŷ(d) = 0,25·y(d − 1) + 0,50·y(d) + 0,25·y(d + 1) e os extremos conservam o valor observado, sem "
+ "preenchimento por reflexão ou extrapolação, porque o deslocamento total da série é medido justamente entre "
+ "esses dois pontos. O núcleo tem soma unitária, o que preserva o nível da série; é simétrico, o que anula o "
+ "deslocamento de fase e impede que um evento migre no tempo por efeito do filtro; e tem resposta em "
+ "frequência H(ω) = cos²(ω/2), que se anula na frequência de Nyquist e portanto remove por construção a "
+ "componente que alterna de um dia para o outro, assinatura do ruído amostral em série diária. Descartaram-se "
+ "a média móvel simples, cuja resposta não se anula em Nyquist, e o ajuste polinomial local do tipo "
+ "Savitzky-Golay, instável nas extremidades de séries de sete pontos.",
+
+ "As derivadas discretas da série suavizada foram calculadas por diferença progressiva, "
+ "Δ(d) = ŷ(d + 1) − ŷ(d) para a primeira e Δ²(d) = Δ(d + 1) − Δ(d) para a segunda, e expressas em unidades "
+ "do piso pela divisão de cada valor pelo piso da própria variável. Transição de choque é aquela cuja "
+ "primeira derivada, em unidades originais, supera o piso em valor absoluto; ponto de inflexão é a abscissa "
+ "em que a segunda derivada muda de sinal, obtida por interpolação linear entre os dois dias que a cercam.",
+
  "Declara-se variação real quando o deslocamento total entre o primeiro e o sétimo dia supera, em valor "
- "absoluto, o piso de ruído. Esse critério é deliberadamente independente do valor de p: ele responde a "
- "quanto a série se moveu em relação ao seu próprio ruído, e não à probabilidade de observar o movimento sob a "
- "hipótese nula. Reportar os dois lado a lado é parte do argumento deste artigo."]),
+ "absoluto, o piso de ruído, e reporta-se também a razão entre um e outro, que ordena as variáveis por folga. "
+ "Esse critério é deliberadamente independente do valor de p: ele responde a quanto a série se moveu em "
+ "relação ao seu próprio ruído, e não à probabilidade de observar o movimento sob a hipótese nula. Reportar "
+ "os dois lado a lado é parte do argumento deste artigo.",
+]),
 ("Processamento computacional",[
- "Toda a análise foi executada em Python 3.11. A importação empregou openpyxl; a manipulação numérica, NumPy "
- "(HARRIS et al., 2020); os testes de hipótese, o módulo stats do SciPy (VIRTANEN et al., 2020); os modelos "
- "mistos, o pacote statsmodels; as figuras, matplotlib (HUNTER, 2007); e a exportação, python-docx. A "
- "confiabilidade das medidas repetidas foi estimada por correlação intraclasse de via única, com o "
+ "Toda a análise foi executada em Python 3.11.15, em ambiente Linux, por cadeia que parte da planilha de "
+ "origem e termina nos arquivos de saída sem etapa manual intermediária. As versões das bibliotecas são "
+ "declaradas porque resultados de bootstrap e de modelos mistos delas dependem: openpyxl 3.1.5 na "
+ "importação, NumPy 2.4.6 na manipulação numérica (HARRIS et al., 2020), SciPy 1.17.1 nos testes de "
+ "hipótese (VIRTANEN et al., 2020), statsmodels 0.15.0 nos modelos mistos, matplotlib 3.11.1 nas figuras "
+ "(HUNTER, 2007) e python-docx 1.2.0 na exportação.",
+
+ "A importação abre a planilha em modo somente leitura e com leitura de valores em cache, percorre as linhas "
+ "da aba do formulário diário e converte as respostas em escala Likert por expressão regular que captura o "
+ "dígito inicial do rótulo. A identidade do respondente provém da coluna padronizada, com chave canônica "
+ "obtida por normalização Unicode NFKD, remoção de diacríticos, caixa baixa e colapso de espaços. A "
+ "codificação dos participantes em A01 a A27 ocorre dentro dessa rotina, antes de qualquer gravação em "
+ "disco, e apenas a base anonimizada alimenta as análises. O dia de cada registro deriva do carimbo de data "
+ "e hora com fronteira às quatro da manhã.",
+
+ "Na via não paramétrica utilizaram-se as funções shapiro, friedmanchisquare, wilcoxon, chi2_contingency, "
+ "spearmanr, mannwhitneyu e kruskal do módulo stats do SciPy, além de rankdata para os postos. O teste L de "
+ "Page, o Q de Cochran, o teste de McNemar e a correção de Holm foram implementados a partir das respectivas "
+ "definições, por não integrarem a biblioteca, no próprio código depositado. Na via paramétrica "
+ "utilizaram-se ttest_rel, pearsonr e levene, com a análise de variância de medidas repetidas e a correção "
+ "de Greenhouse-Geisser implementadas diretamente sobre a matriz de somas de quadrados, e as probabilidades "
+ "obtidas pelas distribuições f, chi2, t, norm e beta. Os momentos de terceira e quarta ordem vieram de skew "
+ "e kurtosis, e o erro-padrão da média de sem.",
+
+ "Os modelos mistos foram ajustados pela interface de fórmulas do statsmodels, com intercepto aleatório por "
+ "atleta. O modelo de tendência empregou máxima verossimilhança restrita, apropriada à estimação de "
+ "componentes de variância; os modelos de ausência e de carga empregaram máxima verossimilhança plena, "
+ "condição necessária para comparar especificações com efeitos fixos distintos. Os intervalos de confiança "
+ "sem forma fechada foram obtidos por bootstrap agrupado por atleta, com sorteio de atletas com reposição e "
+ "não de linhas, o que respeita a dependência entre observações do mesmo respondente; o gerador "
+ "pseudoaleatório recebeu semente fixa em cada rotina, o que torna os intervalos reproduzíveis dígito a "
+ "dígito.",
+
+ "A confiabilidade das medidas repetidas foi estimada por correlação intraclasse de via única, com o "
  "coeficiente de medida média pela fórmula de Spearman-Brown (SHROUT; FLEISS, 1979). O efeito de piso seguiu "
- "o critério de Terwee et al. (2007). Adotou-se alfa de cinco por cento. Todos os resultados, das três vias, "
- "foram depositados em uma base única em formato longo, o que permite comparar diretamente as vias e auditar "
- "cada número contra o objeto que o gerou.",
- "A codificação dos participantes em A01 a A27 ocorre na rotina de importação, e apenas a base anonimizada "
- "alimenta as análises. O projeto obteve aprovação do comitê de ética sob o parecer CAAE [inserir número do "
- "CAAE], e todos os participantes assinaram termo de consentimento livre e esclarecido."]),
+ "o critério de Terwee et al. (2007). Adotou-se alfa de cinco por cento, com correção de Holm sempre que uma "
+ "família de comparações foi examinada em conjunto.",
+
+ "Os resultados de cada rotina são gravados em arquivos JSON e consolidados em um banco SQLite de camada "
+ "tripla, com vinte e seis tabelas de conteúdo, quatro visões e índice de texto completo do tipo FTS5. Os resultados das três vias "
+ "residem na mesma tabela, em formato longo, cada linha com a sua variável, o seu recorte, a sua unidade de "
+ "análise e a rotina que a produziu, o que permite compará-las por consulta direta em lugar de por "
+ "transcrição. As figuras foram geradas com matplotlib a partir desses mesmos arquivos, a 300 pontos por "
+ "polegada. A exportação para o formato de texto emprega um módulo comum que fixa página A4, margens de três "
+ "centímetros à esquerda, ao topo e à direita e de dois ao pé, Times New Roman de doze pontos, espaçamento "
+ "de uma linha e meia, alinhamento justificado e recuo de primeira linha de 1,25 centímetro, com contadores "
+ "automáticos de tabelas, figuras e quadros. Todo valor numérico impresso é lido do JSON no momento da "
+ "montagem e formatado por função única, com vírgula decimal e sinal menos tipográfico; nenhum número foi "
+ "digitado à mão no manuscrito.",
+
+ "O projeto obteve aprovação do comitê de ética sob o parecer CAAE [inserir número do CAAE], e todos os "
+ "participantes assinaram termo de consentimento livre e esclarecido.",
+]),
 ]
 
 R1=[

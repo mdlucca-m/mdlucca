@@ -236,12 +236,28 @@ para("Seis regras atravessam as fases, e cada uma nasceu de um erro cometido e c
 for r in CD['REGRAS']:
     para(f"• {r['t']}. {r['d']}")
 
-head("6 REPRODUÇÃO")
-para("Toda a cadeia é reconstruída por um comando (atualizar.sh), em sete etapas: base canônica a partir da "
+head("6 REPRODUÇÃO E AMBIENTE COMPUTACIONAL")
+para("Toda a cadeia é reconstruída por um comando (atualizar.sh), em oito etapas: base canônica a partir da "
      "fonte-verdade, classificação nos perfis, as três vias de análise, banco único, acervo das planilhas e "
-     "índice de busca, modelagem e diagnóstico, exportações e figuras. Os roteiros da modelagem são V2_ml.py, "
-     "V2_ml2.py e V2_ml3.py; o mapa das fases é V2_crispdm.py. Os resultados aqui relatados foram lidos desses "
-     "arquivos no momento da composição do documento, e não transcritos de versões anteriores.")
+     "índice de busca, auditoria de qualidade com reconferência e otimização da carga, modelagem preditiva "
+     "com diagnóstico e mapa das fases, e por fim exportações, figuras e documentos. Os roteiros da "
+     "modelagem são V2_ml.py, V2_ml2.py e V2_ml3.py; a auditoria do protocolo de coleta é V2_proto.py; o "
+     "mapa das fases é V2_crispdm.py. Os resultados aqui relatados foram lidos desses arquivos no momento da "
+     "composição do documento, e não transcritos de versões anteriores.")
+para("O ambiente é Python 3.11.15 sobre Linux. A importação usa openpyxl 3.1.5, com a planilha aberta em "
+     "modo somente leitura e leitura de valores em cache; a manipulação numérica usa NumPy 2.4.6; os testes "
+     "de hipótese, o módulo stats do SciPy 1.17.1; os modelos mistos e a programação linear, statsmodels "
+     "0.15.0 e a rotina linprog do SciPy com o método HiGHS. A modelagem preditiva desta seção usa "
+     "scikit-learn 1.9.0, nos classificadores de árvore de decisão, floresta aleatória e regressão "
+     "logística, e XGBoost 3.2.0 no potenciador de gradiente. As figuras vêm de matplotlib 3.11.1 a 300 "
+     "pontos por polegada e a exportação, de python-docx 1.2.0.")
+para("Três decisões do procedimento computacional condicionam os números desta seção e por isso ficam "
+     "declaradas. A validação cruzada é estratificada e agrupada por atleta, de modo que nenhum atleta "
+     "apareça simultaneamente no ajuste e na avaliação, condição sem a qual a área sob a curva seria "
+     "otimista por vazamento de identidade. Os intervalos de confiança vêm de bootstrap agrupado, com "
+     "sorteio de atletas com reposição e não de linhas, em 500 replicações para as áreas sob a curva. E o "
+     "gerador pseudoaleatório recebe semente fixa em cada rotina, o que torna partição, reamostragem e "
+     "intervalos reproduzíveis dígito a dígito.")
 para("A base anonimizada e os roteiros podem ser disponibilizados mediante solicitação ao autor correspondente. "
      "As planilhas de origem que contêm identificação nominal não integram o pacote de dados, em nenhuma "
      "hipótese.", after=12)

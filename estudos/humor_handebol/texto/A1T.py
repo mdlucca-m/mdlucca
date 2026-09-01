@@ -273,34 +273,71 @@ METODO=[
  "neutra, a superfície e o submerso; e a de risco, a barbatana de tubarão, o iceberg invertido e o Everest "
  "invertido, configurações que a literatura associa a maior vulnerabilidade (TERRY; PARSONS-SMITH, 2021)."]),
 ("Tratamento de séries: suavização, derivadas e piso de ruído",[
- "O núcleo metodológico deste estudo é o tratamento aplicado às séries diárias, tanto às médias das subescalas "
- "quanto às prevalências dos perfis. O procedimento tem quatro passos encadeados.",
- "O primeiro estima a incerteza de cada ponto. Para séries de médias, o erro-padrão diário resulta do "
- "desvio-padrão da amostra do dia dividido pela raiz do número de respondentes daquele dia; para séries de "
- "prevalência, decorre da fórmula binomial. O piso de ruído da série é a média dos erros-padrão dos sete dias, "
- "e responde a uma pergunta simples: qual é a magnitude típica da oscilação que a amostragem, por si só, "
- "produz nesta série?",
- "O segundo suaviza a série por filtro binomial de três pontos, no qual cada ponto interno recebe peso um meio "
- "e cada vizinho recebe peso um quarto; os extremos permanecem inalterados. O filtro atenua a oscilação de "
- "alta frequência sem deslocar o nível da série, e a soma unitária dos pesos garante que a média não se altere "
- "de modo sistemático.",
- "O terceiro calcula as derivadas discretas da série suavizada. A primeira, obtida pela diferença entre dias "
- "consecutivos, mede a velocidade da mudança; a segunda, pela diferença entre velocidades consecutivas, mede a "
- "aceleração. Ambas foram expressas em unidades do piso de ruído da própria variável, o que torna comparáveis "
- "subescalas de amplitude e dispersão distintas. Chama-se transição de choque aquela cuja primeira derivada, "
- "em valor absoluto, supera o piso, e ponto de inflexão a abscissa, obtida por interpolação linear, em que a "
- "segunda derivada muda de sinal.",
- "O quarto emite o veredito. Declara-se variação real, ou sinal, quando o deslocamento total entre o primeiro "
- "e o sétimo dia supera, em valor absoluto, o piso de ruído; caso contrário, atribui-se a oscilação à "
- "flutuação amostral. O mesmo princípio governa o teste de cruzamento entre duas séries: calcula-se a série da "
- "diferença e o limiar combinado, definido como a raiz da soma dos quadrados dos dois pisos; o ponto de "
- "cruzamento é a abscissa em que a diferença muda de sinal; e a inversão só é declarada estabelecida quando a "
- "diferença ultrapassa o limiar antes e depois do cruzamento. Do contrário, o achado é classificado como "
- "divergência, categoria que reconhece a troca de posição sem lhe atribuir estatuto de resultado.",
+ "O núcleo metodológico deste estudo é o tratamento aplicado às séries diárias, tanto às médias das "
+ "subescalas quanto às prevalências dos perfis. O procedimento tem quatro passos encadeados, descritos a "
+ "seguir com detalhe suficiente para reprodução independente.",
+
+ "O primeiro passo estima a incerteza de cada ponto. Para séries de médias, o erro-padrão do dia d é o "
+ "desvio-padrão amostral daquele dia dividido pela raiz do número de respondentes do dia, "
+ "EP(d) = s(d) ÷ √n(d), com s calculado sobre os n(d) valores diários disponíveis. Para séries de "
+ "prevalência, o erro-padrão decorre da fórmula binomial, EP(d) = √[p(d)(1 − p(d)) ÷ n(d)], em que p(d) é a "
+ "proporção de pares atleta-dia classificados no perfil naquele dia. O piso de ruído da série é a média "
+ "aritmética dos sete erros-padrão, piso = (1/7)·Σ EP(d), e responde a uma pergunta simples: qual é a "
+ "magnitude típica da oscilação que a amostragem, por si só, produz nesta série? O piso é, portanto, uma "
+ "quantidade da própria série, e não um valor importado da literatura ou fixado por convenção.",
+
+ "O segundo passo suaviza a série. Adotou-se o filtro binomial de três pontos, também chamado filtro "
+ "1-2-1, cujo núcleo é o vetor de pesos [1/4, 1/2, 1/4], obtido pela normalização da terceira linha do "
+ "triângulo de Pascal. Cada ponto interno da série é substituído pela combinação "
+ "ŷ(d) = 0,25·y(d − 1) + 0,50·y(d) + 0,25·y(d + 1), e o primeiro e o sétimo dias permanecem com o valor "
+ "observado. Três propriedades motivaram a escolha. A soma unitária dos pesos preserva o nível da série, de "
+ "modo que a suavização não introduz viés na média. A simetria do núcleo anula o deslocamento de fase, de "
+ "modo que um evento não migra no tempo por efeito do filtro, o que seria fatal em um estudo cujo objeto é "
+ "justamente localizar quando a mudança ocorre. E a resposta em frequência do núcleo, H(ω) = cos²(ω/2), "
+ "anula-se exatamente na frequência de Nyquist, ω = π, que corresponde à componente que alterna a cada dia; "
+ "o filtro remove por construção a oscilação de um dia para o outro, que é a assinatura do ruído amostral em "
+ "série diária, e atenua pouco as componentes lentas, que são o objeto de interesse.",
+
+ "Duas decisões acessórias sobre o filtro merecem registro porque afetam resultados. A primeira é o "
+ "tratamento das bordas: não se aplicou preenchimento por reflexão, por repetição do extremo ou por qualquer "
+ "outra extrapolação, e os dias inicial e final conservam o valor observado. A razão é substantiva, e não de "
+ "conveniência: o deslocamento total da série, que fundamenta o veredito de sinal, é a diferença entre esses "
+ "dois pontos, e qualquer preenchimento os contaminaria com informação inventada. A segunda é a largura do "
+ "núcleo. Um filtro de cinco pontos consumiria quatro dos sete dias em bordas e deixaria apenas três pontos "
+ "suavizados, e o ajuste polinomial local do tipo Savitzky-Golay, embora preserve melhor a amplitude de "
+ "picos, é instável nas extremidades de séries curtas, precisamente onde este estudo concentra a leitura. "
+ "Pela mesma razão, descartou-se a média móvel simples de três pontos, cujo núcleo [1/3, 1/3, 1/3] tem "
+ "resposta em frequência que não se anula em Nyquist e ainda inverte o sinal de parte da banda alta. O mesmo "
+ "filtro, com os mesmos parâmetros, foi aplicado às onze séries de médias e às nove séries de prevalência, "
+ "sem ajuste por variável.",
+
+ "O terceiro passo calcula as derivadas discretas da série suavizada. A primeira derivada é a diferença "
+ "progressiva entre dias consecutivos, Δ(d) = ŷ(d + 1) − ŷ(d), o que produz seis valores e mede a velocidade "
+ "da mudança. A segunda é a diferença entre velocidades consecutivas, Δ²(d) = Δ(d + 1) − Δ(d), o que produz "
+ "cinco valores e mede a aceleração. Ambas foram expressas em unidades do piso de ruído da própria variável, "
+ "pela divisão de cada valor pelo piso, o que torna comparáveis subescalas de amplitude e de dispersão "
+ "distintas. Chama-se transição de choque aquela cuja primeira derivada, em valor absoluto e em unidades "
+ "originais, supera o piso, isto é, |Δ(d)| > piso. Chama-se ponto de inflexão a abscissa em que a segunda "
+ "derivada muda de sinal, localizada por interpolação linear entre os dois dias que a cercam pela expressão "
+ "d + |Δ²(d)| ÷ (|Δ²(d)| + |Δ²(d + 1)|), o que devolve uma posição em fração de dia.",
+
+ "O quarto passo emite o veredito. Declara-se variação real, ou sinal, quando o deslocamento total entre o "
+ "primeiro e o sétimo dia supera, em valor absoluto, o piso de ruído; caso contrário, atribui-se a oscilação "
+ "à flutuação amostral. Reporta-se também a razão entre o deslocamento e o piso, que ordena as variáveis por "
+ "folga em relação ao próprio ruído e informa mais do que o veredito binário. O mesmo princípio governa o "
+ "teste de cruzamento entre duas séries: calcula-se a série da diferença entre as duas séries suavizadas e o "
+ "limiar combinado, definido como a raiz da soma dos quadrados dos dois pisos, √(piso²ᴬ + piso²ᴮ), expressão "
+ "que supõe independência entre os dois erros; o ponto de cruzamento é a abscissa em que a diferença muda de "
+ "sinal, obtida pela mesma interpolação linear; e a inversão só é declarada estabelecida quando a diferença, "
+ "em valor absoluto, ultrapassa o limiar tanto no primeiro quanto no sétimo dia. Do contrário, o achado é "
+ "classificado como divergência, categoria que reconhece a troca de posição sem lhe atribuir estatuto de "
+ "resultado.",
+
  "Cabe uma ressalva sobre o alcance do piso binomial. Em prevalências próximas de zero, o produto entre a "
  "proporção e o seu complemento tende a zero e o erro-padrão encolhe artificialmente, o que rebaixa o piso e "
  "torna o critério permissivo. Séries de prevalência muito baixa exigem, por isso, leitura cautelosa, e o "
- "texto assinala explicitamente onde essa condição ocorre."]),
+ "texto assinala explicitamente onde essa condição ocorre.",
+]),
 ("Limiares de mudança: o piso do grupo, o erro típico e a menor mudança relevante",[
  "O piso de ruído descrito acima responde a uma pergunta de grupo: a média diária se moveu mais do que a "
  "oscilação que a amostragem produz? A comissão técnica, porém, decide sobre um atleta. Para essa segunda "
@@ -319,28 +356,80 @@ METODO=[
  "operação. O limiar assim obtido responde a uma pergunta que o critério de distribuição não responde: qual "
  "variação, nesta amostra, acompanha a transição clínica que interessa?"]),
 ("Análise estatística e processamento computacional",[
- "Toda a análise foi executada em Python 3.11. A cadeia parte da planilha e termina no arquivo de saída, sem "
- "etapa manual intermediária, e reproduz-se pela execução de um único comando.",
- "A importação empregou o pacote openpyxl, com percurso célula a célula e reconstrução da matriz de respostas. "
- "Os identificadores nominais foram substituídos por códigos anônimos de A01 a A27 na própria rotina de "
- "importação, de modo que nenhum nome trafegasse para as etapas seguintes. A conversão para arranjos "
- "numéricos, o cálculo de médias diárias, a padronização em escore T, a suavização, as derivadas e os pisos de "
- "ruído utilizaram o NumPy (HARRIS et al., 2020).",
- "Os testes de hipótese utilizaram o módulo stats do SciPy (VIRTANEN et al., 2020). A verificação de "
- "normalidade recorreu ao teste de Shapiro-Wilk, cujo resultado motivou a opção não paramétrica na descrição. "
- "A comparação global entre os sete dias empregou o teste de Friedman (FRIEDMAN, 1937), com tamanho de efeito "
- "pelo W de Kendall (KENDALL; SMITH, 1939); a hipótese de tendência ordenada recebeu tratamento específico "
- "pelo teste L de Page (PAGE, 1963); os contrastes pareados recorreram ao teste de postos sinalizados de "
- "Wilcoxon (WILCOXON, 1945), com correção de Holm (HOLM, 1979). A estabilidade da prevalência de cada perfil "
- "foi avaliada pelo Q de Cochran (COCHRAN, 1950) e a migração intradiária pelo teste de McNemar (McNEMAR, "
- "1947). A associação entre tipo de estímulo e perfil empregou o qui-quadrado de contingência, e as "
- "associações entre variáveis contínuas, o coeficiente de Spearman.",
+ "Toda a análise foi executada em Python 3.11.15, em ambiente Linux. A cadeia parte da planilha de origem e "
+ "termina nos arquivos de saída sem etapa manual intermediária, e reproduz-se pela execução de um único "
+ "comando, que encadeia oito etapas: construção da base canônica, classificação nos perfis, análises "
+ "descritiva e inferencial, montagem do banco único, coleta do acervo de planilhas e casamento de "
+ "referências, auditoria de qualidade e reconferência, modelagem preditiva e, por fim, geração das figuras e "
+ "dos documentos. As versões das bibliotecas são declaradas adiante porque resultados numéricos de "
+ "bootstrap e de modelos mistos dependem delas.",
+
+ "A importação empregou o pacote openpyxl 3.1.5, com a planilha aberta em modo somente leitura e com leitura "
+ "de valores em cache, o que devolve o resultado das fórmulas e não a sua expressão. Percorreram-se as "
+ "linhas da aba do formulário diário uma a uma, com extração por posição de coluna. As respostas em escala "
+ "Likert foram convertidas por expressão regular que captura o dígito inicial do rótulo, de modo que "
+ "variantes de redação do mesmo nível produzam o mesmo número. A identidade do respondente foi resolvida "
+ "pela coluna padronizada, com uma chave canônica obtida por normalização Unicode na forma NFKD, remoção de "
+ "diacríticos, conversão para caixa baixa e colapso de espaços repetidos; um dicionário de variantes, "
+ "mantido na própria planilha, resolve as grafias divergentes. A substituição dos nomes pelos códigos "
+ "anônimos de A01 a A27 ocorre dentro dessa mesma rotina, antes de qualquer gravação em disco, de modo que "
+ "nenhum nome trafega para as etapas seguintes nem aparece em arquivo intermediário. O dia de cada registro "
+ "deriva do carimbo de data e hora, com fronteira às quatro da manhã, e não da data autorreferida.",
+
+ "A manipulação numérica utilizou o NumPy 2.4.6 (HARRIS et al., 2020): conversão para arranjos de ponto "
+ "flutuante, agregação por atleta e por dia com tratamento explícito de ausentes, padronização em escore T, "
+ "aplicação do filtro binomial, cálculo das derivadas e dos pisos de ruído. Os testes de hipótese utilizaram "
+ "o módulo stats do SciPy 1.17.1 (VIRTANEN et al., 2020), com as seguintes funções: shapiro para a "
+ "normalidade, friedmanchisquare para a comparação global entre os sete dias, wilcoxon para os contrastes "
+ "pareados, ttest_rel para o teste t de amostras dependentes, chi2_contingency para as tabelas de "
+ "contingência, spearmanr e pearsonr para as associações, levene para a homogeneidade de variâncias, "
+ "mannwhitneyu e kruskal para as comparações entre grupos independentes, skew e kurtosis para os momentos de "
+ "terceira e quarta ordem, sem para o erro-padrão da média e rankdata para os postos. As distribuições norm, "
+ "chi2, f, t e beta forneceram os valores críticos e as probabilidades de cauda. O teste L de Page, o Q de "
+ "Cochran, o teste de McNemar e a correção de Holm não integram a biblioteca e foram implementados "
+ "diretamente a partir das respectivas definições, no próprio código depositado.",
+
+ "A modelagem de efeitos mistos utilizou o statsmodels 0.15.0, pela interface de fórmulas, com intercepto "
+ "aleatório por atleta. O modelo de tendência foi ajustado por máxima verossimilhança restrita, apropriada "
+ "para a estimação de componentes de variância; os modelos auxiliares de ausência e de carga foram ajustados "
+ "por máxima verossimilhança plena, condição necessária para comparar especificações com efeitos fixos "
+ "distintos. A programação linear da carga empregou a rotina linprog do SciPy, com o método dos pontos "
+ "interiores da biblioteca HiGHS. Os intervalos de confiança que não admitem forma fechada foram obtidos por "
+ "reamostragem bootstrap agrupada por atleta, isto é, com sorteio de atletas com reposição, e não de linhas, "
+ "o que respeita a dependência entre observações do mesmo respondente; o gerador de números pseudoaleatórios "
+ "foi instanciado com semente fixa em cada rotina, o que torna os intervalos reproduzíveis dígito a dígito. "
+ "Adotaram-se 1.500 replicações para o erro típico, 800 para os coeficientes de consistência interna e 500 "
+ "para as áreas sob a curva da modelagem preditiva.",
+
  "A confiabilidade das medidas repetidas foi estimada por correlação intraclasse de via única, com o "
  "coeficiente de medida média obtido pela fórmula de Spearman-Brown (SHROUT; FLEISS, 1979), acompanhada do "
- "erro-padrão de medida e da mínima variação detectável. O efeito de piso foi avaliado pelo critério de Terwee "
- "et al. (2007). Adotou-se alfa de cinco por cento. As figuras foram produzidas com matplotlib (HUNTER, 2007) "
- "e a exportação do manuscrito utilizou a biblioteca python-docx. Todos os resultados intermediários foram "
- "depositados em uma base única, o que permite auditar cada número do texto contra o objeto que o gerou."]),
+ "erro-padrão de medida e da mínima variação detectável. O efeito de piso foi avaliado pelo critério de "
+ "Terwee et al. (2007). Adotou-se alfa de cinco por cento em todas as decisões, com correção de Holm sempre "
+ "que uma família de comparações foi examinada em conjunto.",
+
+ "Os resultados intermediários de cada rotina são gravados em arquivos JSON, e um script de consolidação os "
+ "carrega em um banco SQLite de camada tripla: a camada canônica guarda registros, pares atleta-dia e pares "
+ "pré-pós; a camada de resultados guarda, em formato longo, cada estatística com a sua variável, o seu "
+ "recorte, a sua unidade de análise e a rotina que a produziu; e a camada de acervo guarda a proveniência "
+ "das planilhas de origem, aba a aba e célula a célula. O banco reúne vinte e seis tabelas de conteúdo e quatro visões, e um "
+ "índice de texto completo do tipo FTS5 permite localizar qualquer número pelo termo que o descreve. Essa "
+ "arquitetura é o que torna possível auditar cada valor do texto contra o objeto que o gerou.",
+
+ "As figuras foram produzidas com matplotlib 3.11.1 (HUNTER, 2007) a partir dos mesmos arquivos JSON, sem "
+ "reentrada de dados, e gravadas em mapa de bits a 300 pontos por polegada. A exportação do manuscrito "
+ "utilizou a biblioteca python-docx 1.2.0. Um módulo comum fixa a formatação editorial, com página A4, "
+ "margens de três centímetros à esquerda, ao topo e à direita e de dois centímetros ao pé, fonte Times New "
+ "Roman de doze pontos, espaçamento de uma linha e meia, alinhamento justificado e recuo de primeira linha "
+ "de 1,25 centímetro; contadores automáticos numeram tabelas, figuras e quadros na ordem de inserção. Todos "
+ "os valores numéricos impressos no texto e nas tabelas são lidos dos arquivos JSON no momento da montagem e "
+ "formatados por função única, com vírgula decimal e sinal menos tipográfico. Nenhum número foi digitado à "
+ "mão no manuscrito, o que elimina por construção a classe de erro mais comum em textos com muitas "
+ "estatísticas.",
+
+ "A reprodutibilidade foi verificada por um segundo caminho de código, independente do primeiro, que parte "
+ "do item do formulário e reconstrói cada escore por fórmula, e cujo resultado é confrontado com o do "
+ "caminho canônico em sessenta e cinco quantidades reportadas neste artigo.",
+]),
 ("Aspectos éticos e proteção de dados",[
  "O projeto obteve aprovação do comitê de ética em pesquisa com seres humanos sob o parecer CAAE [inserir "
  "número do CAAE], e observou as diretrizes da Resolução 466/2012 do Conselho Nacional de Saúde e os "
