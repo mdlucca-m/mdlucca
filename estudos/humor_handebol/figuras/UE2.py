@@ -68,12 +68,16 @@ for i,nm in enumerate(PERF):
     a.text(.035,.955,nm,transform=a.transAxes,fontsize=12.2,fontweight='bold',color=c,va='top')
     a.text(.035,.845,f'Δ D1→D7 = {vg(d["dtot"])} p.p.\npiso de ruído = ±{vg(piso)} p.p.',
            transform=a.transAxes,fontsize=9.4,color=MUT,va='top',linespacing=1.45)
-    a.add_patch(Rectangle((.71,.90),.26,.085,transform=a.transAxes,zorder=6,
-                fc=c if d['sinal'] else '#FFFFFF',ec=c,lw=1.8))
-    a.text(.84,.9425,'SINAL' if d['sinal'] else 'RUÍDO',transform=a.transAxes,fontsize=10,
-           fontweight='bold',ha='center',va='center',color='white' if d['sinal'] else c,zorder=7)
+    frag=max(d['y'])<10
+    rot='NÃO AVALIÁVEL' if frag else ('SINAL' if d['sinal'] else 'RUÍDO')
+    larg=.38 if frag else .26
+    a.add_patch(Rectangle((.97-larg,.90),larg,.085,transform=a.transAxes,zorder=6,
+                fc=c if (d['sinal'] and not frag) else '#FFFFFF',ec=c,lw=1.8))
+    a.text(.97-larg/2,.9425,rot,transform=a.transAxes,fontsize=9.4 if frag else 10,
+           fontweight='bold',ha='center',va='center',
+           color='white' if (d['sinal'] and not frag) else c,zorder=7)
     if max(d['y'])<10:
-        a.annotate('prevalência ≤ 1 atleta por dia:\no piso binomial subestima a incerteza',
+        a.annotate('prevalência ≤ 1 atleta por dia: o piso binomial\nencolhe e o critério deixa de discriminar',
                    xy=(.035,.40),xycoords='axes fraction',fontsize=8.8,color='#A31E52',
                    style='italic',linespacing=1.35,va='top')
     gy(a)

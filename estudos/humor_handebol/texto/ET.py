@@ -418,10 +418,10 @@ R5=[
 "8,9. A faixa de risco, que agrega três perfis, sobe de 29,6% para 52,4%, deslocamento de 22,8 pontos "
 "contra um piso de 9,9. A superfície recua 6,3 pontos contra um piso de 6,0, resultado que supera o "
 "critério por margem estreita e merece leitura reservada. O submerso e o iceberg invertido oscilam abaixo "
-"dos respectivos pisos e recebem o veredito de ruído. O Everest invertido, embora receba veredito de sinal, "
-"envolve dois pares atleta-dia no conjunto inteiro, e o piso binomial, calculado sobre proporções próximas "
-"de zero, encolhe a ponto de tornar o critério inoperante; esse caso está assinalado na figura e não "
-"sustenta interpretação.",
+"dos respectivos pisos e recebem o veredito de ruído. O Everest invertido, cujo deslocamento nominalmente "
+"supera o piso, envolve dois pares atleta-dia no conjunto inteiro; o piso binomial, calculado sobre "
+"proporções próximas de zero, encolhe a ponto de deixar de discriminar, e por isso a figura o assinala "
+"como não avaliável.",
 
 "O teste Q de Cochran, aplicado aos dezenove atletas com registro completo, não rejeita a hipótese de "
 "estabilidade para nenhum dos seis perfis nem para a faixa de risco. Os valores de p variam de 0,088, no "

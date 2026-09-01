@@ -239,15 +239,15 @@ for nm in PERF+['Favorável','Neutra','De risco']:
     d=SP[nm]
     cq=S2['CQ'].get(nm) or (S2['CQ'].get('Faixa de risco') if nm=='De risco' else None)
     q=f"{n(cq['Q'])}" if cq else "—"; pq=pf(cq['p']) if cq else "—"
-    rows.append([nm]+[n(v,1) for v in d['y']]+[n(d['dtot'],1), n(d['piso'],1),
-                 "__SINAL" if d['sinal'] else "ruído", q, pq])
+    ver=("não avaliável" if max(d['y'])<10 else ("__SINAL" if d['sinal'] else "ruído"))
+    rows.append([nm]+[n(v,1) for v in d['y']]+[n(d['dtot'],1), n(d['piso'],1), ver, q, pq])
 mktable(["Perfil ou faixa","D1","D2","D3","D4","D5","D6","D7","Δ","Piso","Veredito","Q","p"],
         rows, widths=[3.0,0.9,0.9,0.9,0.9,0.9,0.9,0.9,1.0,0.9,1.2,0.9,1.0], fs=7.5)
 src(nota="Valores em percentual dos pares atleta-dia do dia; n por dia = 27, 26, 26, 21, 23, 22 e 21. "
          "Δ e piso em pontos percentuais. Q de Cochran com gl = 6, restrito aos 19 atletas com registro "
-         "completo; a faixa favorável coincide com o perfil iceberg. O veredito de sinal do Everest "
-         "invertido não é interpretável, pois envolve dois pares no conjunto inteiro e o piso binomial "
-         "encolhe em prevalências próximas de zero.")
+         "completo; a faixa favorável coincide com o perfil iceberg. O Everest invertido aparece como não "
+         "avaliável porque envolve dois pares no conjunto inteiro e o piso binomial deixa de discriminar "
+         "em prevalências próximas de zero.")
 
 head("3.5 Resposta dos perfis e das variáveis aos diferentes estímulos", lvl=2)
 for p in A.R6[:1]: para(p)
