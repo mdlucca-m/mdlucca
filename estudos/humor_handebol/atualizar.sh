@@ -20,6 +20,8 @@ python3 analise/V2_qual.py && python3 analise/V2_conf.py && python3 analise/V2_o
 python3 analise/V2_psico.py && python3 analise/V2_falta.py && python3 analise/V2_unid.py
 python3 analise/V2_te.py && python3 analise/V2_estim.py
 python3 analise/V2_proto.py
+python3 analise/V2_cruz.py
+python3 analise/V2_decomp.py
 python3 scripts/gravar_qualidade.py
 echo "▶ 7/8  modelos de árvore, diagnóstico e mapa CRISP-DM"
 python3 analise/V2_ml.py && python3 analise/V2_ml2.py && python3 analise/V2_ml3.py && python3 analise/V2_crispdm.py

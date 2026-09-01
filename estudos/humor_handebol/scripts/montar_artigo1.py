@@ -169,7 +169,18 @@ figura(f"{S}/F8fig.png",fig(),"Teste formal de cruzamento entre trajetórias.",w
 para(A.R7[1]); para(A.R7[2]); para(A.R7[3])
 figura(f"{S}/P6fig.png",fig(),"Vigor, fadiga e perturbação total do humor ao longo do microciclo, com os três "
        "pontos de cruzamento e a diferença de cada par contra o seu limiar combinado.",w=16.0)
-para(A.R7[4]); para(A.R7[5])
+para(A.R7[4])
+figura(f"{S}/P7fig.png",fig(),"O filtro binomial: resposta em frequência do núcleo, série observada contra "
+       "série suavizada e resíduo do filtro lido contra o piso de ruído de cada série.",w=16.0)
+para(A.R7[5]); para(A.R7[6]); para(A.R7[7])
+figura(f"{S}/P8fig.png",fig(),"Anatomia dos três cruzamentos: as duas séries, a diferença contra o limiar "
+       "combinado com a zona de indecisão, e a primeira e a segunda derivadas da diferença.",w=16.0)
+para(A.R7[8]); para(A.R7[9])
+para(A.R7[10])
+figura(f"{S}/P9fig.png",fig(),"Quatro decomposições da variação do humor: componentes de variância do par "
+       "atleta-dia, variação verdadeira contra erro de amostragem na série diária, deslocamento separado em "
+       "choque e deriva, e a identidade de variância do filtro.",w=16.0)
+for _p in A.R7[11:15]: para(_p)
 caption(f"Tabela {tab()} – Cruzamentos testados")
 mktable(["Par de séries","Diferença em D1","Diferença em D7","Limiar","Cruzamentos","Veredito"],
   [[k.replace('TMD','PTH'), n_(d['d1']), n_(d['d7']), n_(d['lim']),

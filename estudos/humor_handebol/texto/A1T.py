@@ -607,6 +607,36 @@ R7=[
 "ponto; a diferença parte de 0,59 ponto no primeiro dia, valor inferior ao limiar. O procedimento classifica o "
 "achado como divergência e recusa-lhe o estatuto de inversão estabelecida, ainda que a separação final, de −1,64 "
 "ponto, ultrapasse o limiar. É o único par da série a receber esse veredito.",
+"Antes de ler os cruzamentos, convém expor o que a suavização faz com a série, porque toda a leitura "
+"seguinte repousa sobre a série suavizada. A Figura 11 apresenta essa verificação. O painel a mostra o "
+"ganho do núcleo binomial por frequência: ele vale um na frequência zero, decresce de modo monótono e "
+"anula-se exatamente em Nyquist, que é a componente que alterna a cada dia. A média móvel simples, "
+"sobreposta para comparação, não se anula ali e ainda inverte o sinal de parte da banda alta, o que a "
+"tornaria imprópria para série diária. O painel c fecha o argumento pelo lado empírico: o resíduo do "
+"filtro, isto é, a diferença entre a série observada e a suavizada, cabe dentro de uma unidade de piso de "
+"ruído em vinte das vinte e uma células. O filtro removeu componente da ordem do ruído amostral, e não "
+"sinal, e é esse o direito com que a análise prossegue sobre a série suavizada.",
+"A Figura 12 abre cada cruzamento em três camadas e revela uma distinção que o veredito binário esconde. "
+"Um cruzamento é um zero da série da diferença, e dizer em que abscissa ele ocorre não basta: interessa "
+"com que velocidade a diferença atravessa o zero e em que intervalo de dias ela permanece dentro do "
+"limiar, isto é, indistinguível de zero. Chamou-se esse intervalo de zona de indecisão, e ele mede a "
+"determinação da data do cruzamento, ao passo que o veredito de inversão estabelecida mede apenas a "
+"separação nos extremos da semana. As duas coisas não coincidem.",
+"O par formado pelo vigor e pela perturbação total é o único de travessia nítida. A diferença atravessa o "
+"zero a 2,1 limiares por dia e a zona de indecisão dura 1,4 dia, de D5,0 a D6,5: a data do cruzamento está "
+"bem determinada. O par formado pelo vigor e pela fadiga recebe o mesmo veredito de inversão estabelecida, "
+"porque a separação supera o limiar no primeiro e no sétimo dia, mas atravessa o zero a apenas 0,9 limiar "
+"por dia e a sua zona de indecisão dura 3,5 dias, de D2,6 a D6,1. A inversão é certa; a data não é. Dizer "
+"que o grupo troca de regime em D5,13 concede à estimativa uma precisão que os dados não sustentam, e a "
+"leitura correta é que a troca ocorre em algum ponto entre o terceiro e o sexto dia. O par formado pela "
+"fadiga e pela perturbação total leva o caso ao extremo: a zona de indecisão cobre 5,3 dias, de D1,7 a D7, "
+"praticamente toda a semana, e é por isso que o procedimento lhe recusa o estatuto de inversão.",
+"A segunda derivada acrescenta a informação que falta. Nos dois pares que envolvem o vigor a aceleração da "
+"diferença é da ordem de um limiar por dia ao quadrado e tem o mesmo sinal da velocidade, o que significa "
+"que a separação não apenas se inverte como ganha ritmo ao inverter-se; no par entre fadiga e perturbação "
+"total a aceleração é de 0,4 limiar por dia ao quadrado, e a travessia ocorre por deriva, não por evento. "
+"A distinção importa para quem monitora: uma inversão que acelera sinaliza mudança de estado do grupo, ao "
+"passo que uma inversão que apenas deriva pode reverter-se com a mesma lentidão com que se produziu.",
 "O eixo do microciclo, porém, não se resume a um par. A Figura 10 reúne o vigor, a fadiga e a perturbação "
 "total do humor no mesmo gráfico e localiza os três cruzamentos que ocorrem entre eles, todos na segunda "
 "metade da semana e em sequência ordenada. O vigor cruza a fadiga em D5,13, cruza a perturbação total em "
@@ -621,6 +651,44 @@ R7=[
 "porque a separação final não se distingue do ruído somado das duas séries. O painel b da figura torna essa "
 "distinção visível: a diferença de cada par é lida contra a sua própria faixa de limiar, e a fadiga menos a "
 "perturbação total termina dentro dela.",
+"Uma última verificação fecha esta seção e responde à pergunta de fundo: de onde vem, afinal, a variação "
+"que o estudo descreve. A Figura 13 reúne quatro decomposições, cada uma com o seu estimador declarado.",
+"A primeira separa a variância do par atleta-dia em três componentes, por modelo de efeitos aleatórios "
+"cruzados de atleta e de dia. O resultado impõe modéstia. A parcela que corresponde ao objeto deste estudo, "
+"isto é, o movimento do elenco inteiro de um dia para o outro, é a menor das três em todas as sete "
+"variáveis: vai de 0,6% na depressão a 15,6% no vigor. A maior parcela é a diferença estável entre atletas, "
+"que responde por 34% a 67% da variância, e o restante é idiossincrático. Duas leituras decorrem daí. A "
+"primeira é que o vigor, com 15,6%, é a variável em que o microciclo mais se imprime sobre o grupo, e é por "
+"isso que ele encabeça todos os vereditos deste artigo. A segunda é que a raiva e a confusão, cujo "
+"componente residual alcança 65% e 56%, comportam-se como estado idiossincrático, e nelas a média do grupo "
+"informa pouco sobre o atleta.",
+"A segunda decomposição leva a ideia do piso de ruído da comparação entre dois pontos para a série inteira. "
+"A variância observada entre as sete médias diárias contém a variação verdadeira somada à média dos "
+"erros-padrão ao quadrado, porque cada média carrega o seu próprio erro; subtraída a segunda parcela, resta "
+"a primeira, e a razão entre uma e outra é a fidedignidade da série diária. Apenas o vigor e a fadiga têm "
+"série majoritariamente verdadeira, com fidedignidade de 0,78 e 0,62. A perturbação total fica em 0,48, a "
+"tensão e a confusão em 0,33, a raiva em 0,08. Na depressão a estimativa é nula: a variância observada "
+"entre as sete médias, de 0,094, é menor do que a média dos erros-padrão ao quadrado, de 0,227, de modo que "
+"toda a oscilação diária da depressão cabe dentro do erro de amostragem.",
+"Esse resultado merece confronto explícito com o veredito do piso, que declarou sinal para a depressão. Não "
+"há contradição, e sim duas perguntas distintas. O piso compara o deslocamento entre os dois extremos da "
+"semana, de 0,73 ponto, com a oscilação típica de um ponto isolado, de 0,44; a fidedignidade compara a "
+"dispersão das sete médias entre si com o erro de cada uma. Uma série que sobe pouco e de modo ordenado "
+"pode ter deslocamento superior ao piso e, ao mesmo tempo, dispersão inferior ao erro. A leitura correta da "
+"depressão é, portanto, a de deslocamento pequeno, ordenado e no limite da detecção, e não a de variável "
+"que se move com clareza.",
+"A terceira decomposição quantifica a afirmação que dá título a este artigo. As seis transições da série "
+"suavizada foram separadas conforme superem ou não o piso de ruído, e mediu-se quanto do movimento absoluto "
+"da semana cada grupo carrega. No vigor, 90,7% do movimento está nas três transições de choque; na "
+"perturbação total, 71,0% em duas; na fadiga, 65,9% em duas. Na depressão, que não tem transição alguma "
+"acima do piso, a totalidade do movimento é deriva. A semana move-se por eventos nas variáveis que se "
+"movem, e por deriva naquela que quase não se move.",
+"A quarta decomposição volta ao filtro e fecha o argumento do método. A variância da série observada iguala a soma da variância da série suavizada, da variância do resíduo e do dobro da covariância entre as duas. A "
+"identidade confere em todas as sete variáveis. Onde a covariância é negativa, como no vigor, na fadiga e "
+"na perturbação total, a parcela retida excede a variância observada, o que não é anomalia: significa que a "
+"série suavizada e o resíduo se movem em sentidos opostos, isto é, que o filtro retirou oscilação que "
+"contrariava a tendência. Reportar a covariância em vez de omiti-la é o que impede que a decomposição "
+"pareça mais limpa do que é.",
 "A faixa favorável e a faixa de risco fornecem o cruzamento de maior amplitude do estudo. Elas partem separadas por 29,6 pontos percentuais em favor da favorável e terminam separadas por 33,3 em favor "
 "da de risco, com um único cruzamento, na abscissa 1,85. O limiar combinado é de 13,5 pontos percentuais, e ambas "
 "as separações o superam com folga: a inversão é declarada estabelecida. O grupo, portanto, troca de regime já no segundo dia da semana, antes e de modo mais nítido do que a inversão "
@@ -646,7 +714,7 @@ RC=[
  "variância."]
 
 RP=[
- "As séries de prevalência, examinadas perfil a perfil na Figura 11, revelam um padrão que a média das "
+ "As séries de prevalência, examinadas perfil a perfil na Figura 14, revelam um padrão que a média das "
  "subescalas não expõe. Os dois perfis de extremos favorável e desfavorável, o iceberg e a barbatana de "
  "tubarão, trocam de posição já na saída do dia basal e nunca mais se reaproximam: o iceberg parte de 44,4% "
  "e a barbatana de 3,7%, e no segundo dia estão em 23,1% e 30,8%. O iceberg não volta ao patamar inicial em "
@@ -654,21 +722,21 @@ RP=[
  "o iceberg invertido partilham o pico no último dia, ambos com 23,8%, o que reparte o elenco da véspera da "
  "estreia entre uma configuração de apatia e outra de perturbação franca.",
 
- "A Figura 12 recompõe a semana como redistribuição, e não como deslocamento de médias. A leitura em área "
+ "A Figura 15 recompõe a semana como redistribuição, e não como deslocamento de médias. A leitura em área "
  "empilhada mostra que o elenco não migra progressivamente de uma faixa para outra: o rearranjo maior "
  "concentra-se na passagem do primeiro para o segundo dia, quando a faixa de risco quase triplica, e o "
  "restante da semana oscila em torno do novo patamar sem retornar ao inicial. O painel das três faixas "
  "localiza a inversão entre a favorável e a de risco em D1,85, isto é, ainda na primeira metade do segundo "
  "dia.",
 
- "O mapa da Figura 13 responde à pergunta de onde cada perfil predomina. Por dia, os picos distribuem-se "
+ "O mapa da Figura 16 responde à pergunta de onde cada perfil predomina. Por dia, os picos distribuem-se "
  "sem concentração: iceberg em D1, superfície em D2, Everest invertido em D4, barbatana de tubarão em D5, e "
  "submerso e iceberg invertido em D7. Por tipo de estímulo, o contraste é mais nítido: o iceberg alcança "
  "44,4% no dia basal e cai a 23,5% nos dias de HIIT, ao passo que a barbatana de tubarão faz o percurso "
  "inverso, de 3,7% no basal a 31,8% no dia técnico e de força. A associação entre estímulo e perfil, "
  "contudo, não é estatisticamente detectável, o que impede atribuir a distribuição ao tipo de sessão.",
 
- "A Figura 14 sai da prevalência e volta à forma. Cada painel confronta o centroide observado neste elenco "
+ "A Figura 17 sai da prevalência e volta à forma. Cada painel confronta o centroide observado neste elenco "
  "com o centroide canônico de Parsons-Smith, Terry e Machin (2017), em escore T contra a norma de atletas, "
  "e o que se vê é uma correspondência de formato com deslocamento de nível. O iceberg do elenco tem o "
  "desenho esperado, com o vigor como único ponto acima da linha normativa, mas o pico de vigor fica em 51 "
@@ -682,7 +750,7 @@ RP=[
  "iceberg invertido, a raiva chega a 86 contra 75, e no Everest invertido a depressão alcança 123 contra "
  "89. O Everest invertido, porém, reúne apenas dois pares atleta-dia no conjunto inteiro, e o seu centroide "
  "é, na prática, a média de duas observações; a distância em relação à referência não deve ser interpretada "
- "como característica do elenco. A Figura 15 reúne os seis perfis em um único eixo e permite ver de uma vez "
+ "como característica do elenco. A Figura 18 reúne os seis perfis em um único eixo e permite ver de uma vez "
  "o que a taxonomia organiza: o vigor é a dimensão que separa os perfis favoráveis dos desfavoráveis, e ela "
  "os separa em uma faixa estreita, de 33 a 51, ao passo que a raiva e a depressão, que quase não distinguem "
  "os três primeiros perfis, abrem o leque nos três últimos.",
