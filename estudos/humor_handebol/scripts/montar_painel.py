@@ -46,6 +46,38 @@ import re as _re
 s=_re.sub(r"const ordem=\[[^\]]*\];",
           "const ordem=['visao','mapa','a1','a2','modelos','auditoria','qualidade','base','refs','automacao'];", s)
 
+# 3b. correções pontuais nas telas originais, todas idempotentes
+PATCHES=[
+ # a tabela de gravidade não previa os achados de qualidade
+ ("const GRAV={'crítica':'cr','alta':'cr','média':'at','baixa':'neu'};",
+  "const GRAV={'crítica':'cr','alta':'cr','média':'at','baixa':'neu','nenhuma':'bom','método':'neu'};"),
+ # o título falava em seis achados; agora são doze, de duas passagens
+ ("c2.append(el('h3',{txt:'Os seis achados e o que foi feito com cada um'}));",
+  "c2.append(el('h3',{txt:`Os ${D.auditoria.length} achados e o que foi feito com cada um`}),\n"
+  "    el('p',{class:'leg',txt:'D1 a D6 vêm da auditoria de procedência, que pergunta de onde vem cada número. "
+  "Q1 a Q6 vêm da auditoria de qualidade, que pergunta se o número está certo. A tela de qualidade abre cada "
+  "um deles.'}));"),
+ # o mapa de navegação não listava as duas telas novas
+ ("""   ['auditoria','Auditoria','As quatro unidades de análise e os seis achados com correção e impacto','#E0952B'],""",
+  """   ['modelos','Modelos e CRISP-DM','Árvore de decisão sobre a base, desempenho contra as linhas de base, diagnóstico de reversão à média e as seis fases do CRISP-DM','#8A4FBF'],
+   ['qualidade','Qualidade e otimização','Auditoria do dado em si, exploratória univariada por tipo de variável, triagem de discrepantes e a programação linear da carga','#0F6E5C'],
+   ['auditoria','Auditoria','As quatro unidades de análise e os doze achados das duas passagens, com correção e impacto','#E0952B'],"""),
+ # a cadeia passou de seis a oito etapas
+ ("""   ['5 · acervo e busca','recolhe as 218 abas das planilhas, resolve os DOI, indexa a busca','#C1440E'],
+   ['6 · figuras e artigos','gera as 15 figuras e monta os dois documentos','#8A4FBF']];""",
+  """   ['5 · acervo e busca','recolhe as 218 abas das planilhas, resolve os DOI, indexa a busca','#C1440E'],
+   ['6 · qualidade e otimização','audita o dado desde o item, reconfere os três documentos e resolve o programa linear da carga','#0F6E5C'],
+   ['7 · modelos','árvores, floresta, XGBoost, diagnóstico de reversão à média e o mapa CRISP-DM','#8A4FBF'],
+   ['8 · figuras e documentos','gera as 21 figuras e monta os quatro documentos','#A31E52']];"""),
+ ("el('p',{class:'leg',txt:'Da planilha de origem ao .docx dos dois artigos, sem etapa manual.'})",
+  "el('p',{class:'leg',txt:'Da planilha de origem ao .docx dos quatro documentos, sem etapa manual.'})"),
+]
+for velho,novo in PATCHES:
+    if novo in s: continue
+    if velho not in s:
+        raise SystemExit(f"trecho a corrigir não encontrado no painel: {velho[:70]}…")
+    s=s.replace(velho,novo,1)
+
 # 4. corpo das telas adicionais
 for arq,marca in [("_tela_modelos.js","modelos"),("_tela_qualidade.js","qualidade")]:
     tela=open(os.path.join(RAIZ,"painel",arq),encoding='utf-8').read()

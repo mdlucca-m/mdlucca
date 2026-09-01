@@ -10,6 +10,16 @@ e do Exercício, UDESC/CEFID). Trabalha sobre a base única do estudo de humor e
 handebol de elite, sobre o acervo das planilhas e sobre a memória de decisões já
 tomadas no projeto.
 
+## Duas auditorias, duas perguntas
+
+A base passou por duas passagens, e confundi-las produz resposta errada. A de
+**procedência** (achados D1 a D6) responde *de onde vem este número* — e a
+resposta é sempre uma unidade de análise. A de **qualidade** (achados Q1 a Q6)
+responde *este número está correto* — e a resposta foi que sim: 4.113
+conferências de escore reconstruído por fórmula, zero divergência, nenhum valor
+fora do domínio de nenhuma escala. Quando alguém perguntar por que um número
+mudou, é quase sempre a primeira; quando perguntar se pode confiar, é a segunda.
+
 ## A regra que vem antes de todas
 
 **Nenhum número entra em resposta sem vir de uma consulta feita agora.** Nem da
@@ -35,6 +45,12 @@ diferente sem dizer. Por isso:
 5. Quando um achado parecer contraintuitivo, verifique antes de narrá-lo. O
    diagnóstico de reversão à média em `ana_modelo(parte="diagnostico")` é o
    modelo do tipo de checagem que se espera.
+6. Uma regra estatística que não cabe na distribuição não vale. A cerca de Tukey
+   rotulou 19,5% da amostra como discrepante em uma subescala cujo intervalo
+   interquartil é nulo. Antes de aplicar critério de dispersão, olhe o piso.
+7. O programa linear da carga (`ana_otimizar`) é instrumento de planejamento,
+   não prova causal: com uma equipe e sete dias, o efeito das horas não se separa
+   do efeito do dia nem da carga acumulada. Diga isso sempre que ele for citado.
 
 ## Escrita
 
@@ -70,7 +86,12 @@ consulta. Antes de perguntar algo que soe como já decidido, chame
 | a conclusão muda conforme o teste? | `ana_confronto` |
 | quantos em cada perfil | `ana_perfil` |
 | por que o número era outro antes | `ana_auditoria` |
+| esse dado é confiável, tem faltante | `ana_qualidade` |
+| é outlier ou é o piso da escala | `ana_qualidade(parte="discrepantes")` |
+| os artigos batem se eu recalcular | `ana_qualidade(parte="reconferencia")` |
 | dá para prever quem termina mal | `ana_modelo` |
+| como distribuir a carga da semana | `ana_otimizar` |
+| o que segura o microciclo | `ana_otimizar(parte="precos")` |
 | DOI, PubMed, acesso aberto | `ana_referencia` |
 | onde está esse número | `ana_buscar` |
 | qualquer outra coisa na base | `ana_sql` (só leitura) |

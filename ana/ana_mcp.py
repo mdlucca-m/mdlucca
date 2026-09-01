@@ -79,7 +79,8 @@ FERRAMENTAS = [
   "inputSchema": {"type": "object", "properties": {
      "recorte": {"type": "string", "default": "dia"}, "unidade": {"type": "string", "default": "U-AD"}}}},
  {"name": "ana_auditoria", "description":
-  "Os achados da auditoria de procedência: por que sete versões do manuscrito divergiam, e o que foi corrigido.",
+  "Os achados das duas auditorias: a de procedência (D1–D6), que responde de onde vem cada número e por que "
+  "sete versões do manuscrito divergiam, e a de qualidade (Q1–Q6), que responde se o número está correto.",
   "inputSchema": {"type": "object", "properties": {}}},
  {"name": "ana_modelo", "description":
   "Resultados da modelagem: desempenho contra as linhas de base, a árvore legível, importância por permutação, "
@@ -159,7 +160,10 @@ class Servidor:
          f"  {n['atleta']} atletas · {n['registro']} registros · {n['atleta_dia']} pares atleta-dia · "
          f"{n['pre_pos']} medidas pré-pós em formato longo\n"
          f"  {n['resultado']} resultados estatísticos · {n['referencia']} referências · "
-         f"{n['aba']} abas e {n['celula']} células de acervo\n\n"
+         f"{n['aba']} abas e {n['celula']} células de acervo\n"
+         f"  {self.cx.execute('SELECT COUNT(*) FROM auditoria').fetchone()[0]} achados de auditoria · "
+         f"{self.cx.execute('SELECT COUNT(*) FROM reconferencia').fetchone()[0]} conferências de recálculo · "
+         f"{self.cx.execute('SELECT COUNT(*) FROM dicionario').fetchone()[0]} variáveis no dicionário de tipos\n\n"
          "UNIDADES DE ANÁLISE — a causa de toda divergência entre versões do manuscrito:\n"
          + _tab(un) + "\n\n"
          "POR ONDE ENTRAR:\n"
@@ -168,10 +172,19 @@ class Servidor:
          "  «a conclusão muda conforme o teste?»         → ana_confronto\n"
          "  «quantos atletas em risco no dia 5?»         → ana_perfil\n"
          "  «por que o número era outro antes?»          → ana_auditoria\n"
+         "  «esse dado é confiável? tem faltante?»       → ana_qualidade\n"
+         "  «qual a distribuição dessa variável?»        → ana_qualidade(parte='univariada')\n"
+         "  «isso é outlier ou é o piso da escala?»      → ana_qualidade(parte='discrepantes')\n"
+         "  «os artigos batem se eu recalcular?»         → ana_qualidade(parte='reconferencia')\n"
          "  «dá para prever quem termina mal?»           → ana_modelo\n"
+         "  «como distribuir a carga da semana?»         → ana_otimizar\n"
+         "  «o que segura o microciclo?»                 → ana_otimizar(parte='precos')\n"
          "  «qual o DOI daquele artigo?»                 → ana_referencia\n"
          "  «onde está esse número?»                     → ana_buscar\n"
-         "  «o que já decidimos sobre isso?»             → ana_recordar\n")
+         "  «o que já decidimos sobre isso?»             → ana_recordar\n\n"
+         "DUAS AUDITORIAS, DUAS PERGUNTAS DIFERENTES:\n"
+         "  procedência (D1–D6): de onde vem este número?   → ana_auditoria\n"
+         "  qualidade   (Q1–Q6): este número está correto?  → ana_qualidade(parte='achados')\n")
 
     def _resultado(self, a) -> str:
         onde, arg = ["1=1"], []
@@ -221,10 +234,19 @@ class Servidor:
 
     def _auditoria(self, a) -> str:
         r = self.cx.execute("SELECT id,gravidade,titulo,achado,correcao,impacto FROM auditoria ORDER BY id").fetchall()
-        return "\n\n".join(
-            f"D{x['id']} · {x['gravidade'].upper()} · {x['titulo']}\n"
-            f"  achado:   {x['achado']}\n  correção: {x['correcao']}\n  impacto:  {x['impacto']}" for x in r)
-
+        fmt = lambda x: (f"{x['id']} · {x['gravidade'].upper()} · {x['titulo']}\n"
+                         f"  achado:   {x['achado']}\n  correção: {x['correcao']}\n  impacto:  {x['impacto']}")
+        D = [x for x in r if x['id'].startswith('D')]
+        Q = [x for x in r if x['id'].startswith('Q')]
+        outros = [x for x in r if not x['id'].startswith(('D', 'Q'))]
+        blocos = []
+        if D: blocos.append("AUDITORIA DE PROCEDÊNCIA — de onde vem cada número\n\n"
+                            + "\n\n".join(fmt(x) for x in D))
+        if Q: blocos.append("AUDITORIA DE QUALIDADE — o número está correto\n"
+                            "  (o detalhe de cada achado está em ana_qualidade)\n\n"
+                            + "\n\n".join(fmt(x) for x in Q))
+        if outros: blocos.append("\n\n".join(fmt(x) for x in outros))
+        return ("\n\n" + "─" * 72 + "\n\n").join(blocos)
     def _modelo(self, a) -> str:
         parte = a.get("parte", "tudo")
         blocos = []

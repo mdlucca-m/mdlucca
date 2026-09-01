@@ -61,6 +61,16 @@ Depois disso, no Claude Code:
 | `ana_sql` | consulta livre, somente leitura |
 | `ana_lembrar` · `ana_recordar` · `ana_esquecer` | a memória de decisões |
 
+## O que ela sabe além dos resultados
+
+Duas auditorias estão na base e a Ana distingue as duas: a de procedência
+(D1–D6) responde de onde vem cada número, a de qualidade (Q1–Q6) responde se ele
+está correto. A segunda reconstruiu 4.113 escores por fórmula sem encontrar
+divergência, e a reconferência recalculou 65 valores dos três documentos por um
+caminho de código independente. `ana_qualidade` abre as duas; `ana_otimizar`
+abre a programação linear da carga, com os preços-sombra que dizem o que
+realmente comprime o microciclo.
+
 ## O que a Ana não faz
 
 - Não escreve na base do estudo. `ana_sql` recusa qualquer coisa que não seja

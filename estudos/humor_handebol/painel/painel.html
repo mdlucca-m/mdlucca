@@ -1247,8 +1247,9 @@ TELAS.auditoria=()=>{
   f.append(c1);
 
   const c2=el('div',{class:'cartao'});
-  c2.append(el('h3',{txt:'Os seis achados e o que foi feito com cada um'}));
-  const GRAV={'crítica':'cr','alta':'cr','média':'at','baixa':'neu'};
+  c2.append(el('h3',{txt:`Os ${D.auditoria.length} achados e o que foi feito com cada um`}),
+    el('p',{class:'leg',txt:'D1 a D6 vêm da auditoria de procedência, que pergunta de onde vem cada número. Q1 a Q6 vêm da auditoria de qualidade, que pergunta se o número está certo. A tela de qualidade abre cada um deles.'}));
+  const GRAV={'crítica':'cr','alta':'cr','média':'at','baixa':'neu','nenhuma':'bom','método':'neu'};
   const wrap=el('div',{style:'margin-top:10px'});
   D.auditoria.forEach(a=>{
     const d=el('details');
@@ -1429,7 +1430,9 @@ TELAS.mapa=()=>{
   const mapa=[['visao','Visão geral','KPIs do microciclo, instrumento de leitura dia a dia, séries das seis subescalas, rosca de perfis e velocímetro de sinal','#0F6E5C'],
    ['a1','Artigo 1','Objetivo, framework, resultados segmentados por variável, derivadas e discussão','#2166AC'],
    ['a2','Artigo 2','Três vias, árvore de decisão, pressupostos, magnitude com IC e modelo misto','#1A9070'],
-   ['auditoria','Auditoria','As quatro unidades de análise e os seis achados com correção e impacto','#E0952B'],
+   ['modelos','Modelos e CRISP-DM','Árvore de decisão sobre a base, desempenho contra as linhas de base, diagnóstico de reversão à média e as seis fases do CRISP-DM','#8A4FBF'],
+   ['qualidade','Qualidade e otimização','Auditoria do dado em si, exploratória univariada por tipo de variável, triagem de discrepantes e a programação linear da carga','#0F6E5C'],
+   ['auditoria','Auditoria','As quatro unidades de análise e os doze achados das duas passagens, com correção e impacto','#E0952B'],
    ['base','Base de dados','Explorador dos 305 resultados, com filtro, ordenação e busca','#C1440E'],
    ['refs','Referências','52 referências com DOI, PubMed, Scholar e OpenAlex','#8A4FBF'],
    ['automacao','Automação','Fluxo n8n e o comando único que reconstrói tudo','#A31E52']];
@@ -1473,14 +1476,16 @@ TELAS.automacao=()=>{
   const f=document.createDocumentFragment();
   const c=el('div',{class:'cartao',style:'margin-bottom:14px'});
   c.append(el('h3',{txt:'Um comando reconstrói tudo'}),
-    el('p',{class:'leg',txt:'Da planilha de origem ao .docx dos dois artigos, sem etapa manual.'}));
+    el('p',{class:'leg',txt:'Da planilha de origem ao .docx dos quatro documentos, sem etapa manual.'}));
   const passos=[['./atualizar.sh','o único comando que você precisa lembrar','#0F6E5C'],
    ['1 · base canônica','reconstrói os 456 registros da fonte-verdade, com limpeza e códigos anônimos','#87968F'],
    ['2 · perfis','classifica nos seis perfis e monta a matriz de reconciliação','#2166AC'],
    ['3 · análises','descritiva, séries, não paramétrica, paramétrica e modelo misto','#1A9070'],
    ['4 · banco','constrói o SQLite de três camadas','#E0952B'],
    ['5 · acervo e busca','recolhe as 218 abas das planilhas, resolve os DOI, indexa a busca','#C1440E'],
-   ['6 · figuras e artigos','gera as 15 figuras e monta os dois documentos','#8A4FBF']];
+   ['6 · qualidade e otimização','audita o dado desde o item, reconfere os três documentos e resolve o programa linear da carga','#0F6E5C'],
+   ['7 · modelos','árvores, floresta, XGBoost, diagnóstico de reversão à média e o mapa CRISP-DM','#8A4FBF'],
+   ['8 · figuras e documentos','gera as 21 figuras e monta os quatro documentos','#A31E52']];
   const fl=el('div',{style:'margin-top:10px'});
   passos.forEach(([t,x,cor],i)=>{
     fl.append(el('div',{style:`display:flex;gap:12px;align-items:center;padding:9px 12px;border-radius:9px;background:${cor}0F;border-left:3px solid ${cor}`},

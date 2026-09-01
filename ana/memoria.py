@@ -107,6 +107,29 @@ def semear() -> int:
          "handebol"),
         ("pendências dos artigos", "Falta o número do CAAE, o financiamento e a contribuição dos autores. "
          "Cinco referências seguem sem DOI. A idade diverge entre 21,96 ± 3,81 e 22,2 ± 3,7.", "handebol"),
+        ("duas auditorias", "A de procedência (D1–D6) pergunta de onde vem cada número; a de qualidade "
+         "(Q1–Q6) pergunta se o número está certo. As duas estão na tabela auditoria da base. Nenhum erro de "
+         "pontuação: 4.113 conferências de escore reconstruído por fórmula, zero divergência.", "handebol"),
+        ("correção do achado D2", "O número «136 dos 457 registros fora da semana» estava errado e foi "
+         "corrigido em 01/09/2026. Os valores verificados na fonte: 55 registros com ano anterior a 2020, 84 "
+         "inutilizáveis pelo campo de data autorreferida (68 fora da semana, 16 em branco) e 88 divergentes do "
+         "dia obtido pelo carimbo. Passaram a ser computados a cada execução, não escritos à mão.", "handebol"),
+        ("domínio de Epworth", "A coluna de origem dizia 0 a 24, mas o formulário aplicou seis das oito "
+         "situações da escala: o máximo possível é 18. Corrigido na tabela variavel.", "handebol"),
+        ("triagem de discrepantes", "Ordem obrigatória: domínio da escala primeiro, critérios de dispersão "
+         "depois. Em subescala com piso (confusão, e em menor grau depressão e raiva) o IQR é zero, a cerca de "
+         "Tukey rotula 19,5% da amostra e o z modificado fica indefinido. Nesses casos a triagem é "
+         "intraindividual.", "handebol"),
+        ("resposta dose-humor", "As horas do próprio dia não têm efeito detectável; as da véspera têm. Cada "
+         "hora de treino de ontem soma 0,433 ponto de fadiga e subtrai 0,407 de vigor hoje (p < 0,001). O "
+         "humor da manhã é consequência, não previsão.", "handebol"),
+        ("o que comprime o microciclo", "Pela programação linear, cada hora do amistoso de D5 custa 0,416 "
+         "ponto do pior dia de vigor da semana — mais do que qualquer decisão de treino disponível. Quem "
+         "comprime a semana é o calendário de jogos, não o volume. Carga semanal mínima estruturalmente "
+         "viável: 19,17 h.", "handebol"),
+        ("reconferência", "Os números dos três documentos foram recalculados por um segundo caminho de "
+         "código, partindo do item do formulário: 65 de 65 conferências coincidem. Não repetir a "
+         "reconferência sem motivo; consultar ana_qualidade(parte='reconferencia').", "handebol"),
     ]
     for chave, valor, escopo in base:
         lembrar(chave, valor, escopo=escopo, origem="semeadura inicial")
