@@ -521,6 +521,69 @@
    "diferenca": 0.0,
    "confere": true,
    "unidade": ""
+  },
+  {
+   "bloco": "Artigo 2 · normalidade",
+   "item": "Tensão · W de Shapiro-Wilk",
+   "caminho_a": 0.7953961447648764,
+   "caminho_b": 0.7953961447648773,
+   "diferenca": -8.881784197001252e-16,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 2 · normalidade",
+   "item": "Depressão · W de Shapiro-Wilk",
+   "caminho_a": 0.5223730130312908,
+   "caminho_b": 0.5223730130312909,
+   "diferenca": -1.1102230246251565e-16,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 2 · normalidade",
+   "item": "Raiva · W de Shapiro-Wilk",
+   "caminho_a": 0.6849545874057801,
+   "caminho_b": 0.6849545874057794,
+   "diferenca": 6.661338147750939e-16,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 2 · normalidade",
+   "item": "Vigor · W de Shapiro-Wilk",
+   "caminho_a": 0.982584394825528,
+   "caminho_b": 0.9825843948255277,
+   "diferenca": 2.220446049250313e-16,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 2 · normalidade",
+   "item": "Fadiga · W de Shapiro-Wilk",
+   "caminho_a": 0.9428471392558762,
+   "caminho_b": 0.9428471392558773,
+   "diferenca": -1.1102230246251565e-15,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 2 · normalidade",
+   "item": "Confusão · W de Shapiro-Wilk",
+   "caminho_a": 0.5241990382793026,
+   "caminho_b": 0.5241990382793025,
+   "diferenca": 1.1102230246251565e-16,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 2 · normalidade",
+   "item": "TMD · W de Shapiro-Wilk",
+   "caminho_a": 0.8593527717553295,
+   "caminho_b": 0.8593527717553298,
+   "diferenca": -2.220446049250313e-16,
+   "confere": true,
+   "unidade": ""
   }
  ],
  "NORMALIDADE": [
@@ -528,6 +591,8 @@
    "variavel": "Tensão",
    "W": 0.7953961447648764,
    "p": 5.724367614550696e-14,
+   "W_b": 0.7953961447648773,
+   "p_b": 5.72436761455111e-14,
    "normal": false,
    "n": 166
   },
@@ -535,6 +600,8 @@
    "variavel": "Depressão",
    "W": 0.5223730130312908,
    "p": 4.177098552079069e-21,
+   "W_b": 0.5223730130312909,
+   "p_b": 4.177098552079069e-21,
    "normal": false,
    "n": 166
   },
@@ -542,6 +609,8 @@
    "variavel": "Raiva",
    "W": 0.6849545874057801,
    "p": 2.1078890705838328e-17,
+   "W_b": 0.6849545874057794,
+   "p_b": 2.107889070583772e-17,
    "normal": false,
    "n": 166
   },
@@ -549,6 +618,8 @@
    "variavel": "Vigor",
    "W": 0.982584394825528,
    "p": 0.03529305844895565,
+   "W_b": 0.9825843948255277,
+   "p_b": 0.03529305844895267,
    "normal": false,
    "n": 166
   },
@@ -556,6 +627,8 @@
    "variavel": "Fadiga",
    "W": 0.9428471392558762,
    "p": 3.1442217971908464e-06,
+   "W_b": 0.9428471392558773,
+   "p_b": 3.144221797191518e-06,
    "normal": false,
    "n": 166
   },
@@ -563,6 +636,8 @@
    "variavel": "Confusão",
    "W": 0.5241990382793026,
    "p": 4.5365160942476896e-21,
+   "W_b": 0.5241990382793025,
+   "p_b": 4.5365160942476896e-21,
    "normal": false,
    "n": 166
   },
@@ -570,12 +645,14 @@
    "variavel": "TMD",
    "W": 0.8593527717553295,
    "p": 2.536443062619884e-11,
+   "W_b": 0.8593527717553298,
+   "p_b": 2.53644306261993e-11,
    "normal": false,
    "n": 166
   }
  ],
- "ok": 58,
- "total": 58,
+ "ok": 65,
+ "total": 65,
  "por_bloco": {
   "Estrutura": [
    3,
@@ -608,6 +685,10 @@
   "Anexo · modelagem": [
    3,
    3
+  ],
+  "Artigo 2 · normalidade": [
+   7,
+   7
   ]
  }
 }

@@ -6,6 +6,7 @@ import A1T as A
 import numpy as np
 def jd(n): return json.load(open(os.path.join(DADOS,n+".json"),encoding='utf-8'))
 B=jd("V2_base"); Q=jd("V2_perfis"); A1=jd("V2_a1"); A2=jd("V2_a2"); A3=jd("V2_a3"); AU=jd("V2_audit")
+QA=jd("V2_qual"); CO=jd("V2_conf"); UNIQ={u["variavel"]:u for u in QA["UNI"]}
 SUB=['Tensão','Depressão','Raiva','Vigor','Fadiga','Confusão']; V7=SUB+['TMD']
 LB={'TMD':'PTH'}
 def L(k): return LB.get(k,k)
@@ -166,6 +167,58 @@ mktable(["Par de séries","Diferença em D1","Diferença em D7","Limiar","Cruzam
   widths=[4.2,2.4,2.4,1.6,3.0,3.0], fs=8)
 src(nota="O limiar é a raiz da soma dos quadrados dos dois pisos de ruído. A inversão só é declarada "
          "estabelecida quando a diferença o ultrapassa antes e depois do ponto de cruzamento.")
+
+head("3.7 Qualidade dos dados e reconferência dos resultados", lvl=2)
+para(A.RQ[0]); para(A.RQ[1])
+caption("Tabela 8 – Completude do instrumento e cobertura da grade atleta-dia")
+mktable(["Dia","Atletas com registro","Cobertura de atletas (%)","Registros","Previstos no protocolo",
+         "Cobertura de registros (%)"],
+        [[f"D{g['dia']}", f"{g['atletas_com_registro']} de {g['atletas_esperados']}",
+          n_(g['cobertura_atleta'],1), str(g['registros']), str(g['registros_esperados']),
+          n_(g['cobertura_registro'],1)] for g in QA['GRADE']],
+        widths=[1.6,3.2,3.0,2.2,3.0,3.0], fs=8.5)
+src(nota="Completude no nível do item: 100,00%, sem nenhuma célula ausente em 20.108 respostas de "
+         "instrumento. O protocolo previa uma coleta em D1, que teve janela única noturna, e duas de D2 a D7; "
+         "cobertura de registros acima de cem por cento indica reenvio, e não duplicata.")
+para(A.RQ[2])
+caption("Tabela 9 – Triagem de valores discrepantes: verificação de domínio e três critérios de dispersão")
+mktable(["Variável","Domínio admissível","Fora do domínio","Cerca 1,5 × IQR","Cerca 3,0 × IQR","|z| > 3",
+         "|z modificado| > 3,5","IQR"],
+        [[L(v), (f"{n_(UNIQ[v]['dominio'][0],0)} a {n_(UNIQ[v]['dominio'][1],0)}"
+                 if 'dominio' in UNIQ[v] else "—"),
+          str(UNIQ[v].get('fora_do_dominio','—')),
+          str(UNIQ[v]['n_tukey_moderado']), str(UNIQ[v]['n_tukey_extremo']), str(UNIQ[v]['n_z3']),
+          (str(UNIQ[v]['n_zmod']) if UNIQ[v]['n_zmod'] is not None else "indefinido"),
+          n_(UNIQ[v]['iqr'],1)] for v in V7],
+        widths=[1.9,2.4,2.0,2.2,2.2,1.5,2.6,1.2], fs=8)
+src(nota="Nível de registro, n = 456. A cerca de Tukey usa Q1 − 1,5 × IQR e Q3 + 1,5 × IQR; o escore z "
+         "modificado é 0,6745 × (x − mediana) ÷ desvio absoluto mediano. Onde o intervalo interquartil é nulo, "
+         "os dois critérios de dispersão perdem sentido, e o escore z modificado torna-se indefinido porque o "
+         "desvio absoluto mediano também é nulo.")
+para(A.RQ[3])
+caption("Tabela 10 – Discrepantes intraindividuais: cada atleta contra a própria série")
+mktable(["Variável","Atletas avaliados","Casos","Caso mais extremo"],
+        [[L(i['variavel']), str(i['atletas_avaliados']), str(i['n_discrepantes']),
+          (f"{i['casos'][0]['atleta']} em D{i['casos'][0]['dia']}: {n_(i['casos'][0]['valor'],0)} contra "
+           f"mediana própria {n_(i['casos'][0]['mediana_do_atleta'],0)} "
+           f"(z modificado = {'+' if i['casos'][0]['z_mod']>0 else ''}{n_(i['casos'][0]['z_mod'],1)})")
+          if i['casos'] else "—"]
+         for i in QA['INTRA'] if i['variavel'] in V7],
+        widths=[2.4,2.8,1.6,8.2], fs=8.5)
+src(nota="Escore z modificado calculado dentro da série de cada atleta, entre os que registraram quatro dias "
+         "ou mais. Um caso intraindividual não indica erro de medida.")
+para(A.RQ[4])
+caption("Tabela 11 – Reconferência por dois caminhos independentes de cálculo")
+_bl={}
+for _c in CO['CONF']:
+    _e=_bl.setdefault(_c['bloco'],[0,0]); _e[0]+=int(_c['confere']); _e[1]+=1
+mktable(["Bloco de conferência","Conferências","Coincidem","Divergem"],
+        [[b, str(t), str(o), str(t-o)] for b,(o,t) in _bl.items()]
+        + [["Total", str(CO['total']), str(CO['ok']), str(CO['total']-CO['ok'])]],
+        widths=[6.6,2.8,2.4,2.6], fs=8.5)
+src(nota="O caminho A parte das colunas já pontuadas da base de origem e gerou a base canônica; o caminho B "
+         "parte do item do formulário e reconstrói cada escore por fórmula. Tolerância de 5 × 10⁻³ para médias "
+         "e derivadas e de 10⁻⁶ para valores de p.")
 
 head("4 DISCUSSÃO")
 for i,(sub,ps) in enumerate(A.DISCUSSAO):

@@ -3,8 +3,8 @@
 Nada é inventado: o que não for encontrado fica nulo e assim aparece no painel."""
 import json, re, sqlite3, os, sys, time, urllib.parse, urllib.request, unicodedata
 RAIZ=os.environ.get("HH_RAIZ") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0,"/tmp/claude-0/-home-user-mdlucca/4ddb0907-77b2-5876-a286-ef4b6b886e93/scratchpad")
-import ET
+sys.path.insert(0,os.path.join(RAIZ,"texto"))
+import REFS as ET   # ET.REFS: a lista canônica de referências
 UA={'User-Agent':'estudo-humor-handebol/1.0 (pesquisa academica)'}
 def pega(url, t=25):
     req=urllib.request.Request(url, headers=UA)

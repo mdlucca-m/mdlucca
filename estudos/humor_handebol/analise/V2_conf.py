@@ -106,9 +106,11 @@ registra('Anexo · modelagem','Eventos (risco à noite)', float(ev), float(ML['e
 # ---- normalidade: a escolha não paramétrica do Artigo 2 se justifica? ----
 NORMALIDADE=[]
 for v in V7:
-    x=[PARES_A[k][v] for k in PARES_A]
-    W,p=stats.shapiro(x)
-    NORMALIDADE.append(dict(variavel=v, W=float(W), p=float(p), normal=bool(p>=.05), n=len(x)))
+    xa=[PARES_A[k][v] for k in PARES_A]; xb=[PARES_B[k][v] for k in PARES_B]
+    Wa,pa_=stats.shapiro(xa); Wb,pb_=stats.shapiro(xb)
+    NORMALIDADE.append(dict(variavel=v, W=float(Wa), p=float(pa_), W_b=float(Wb), p_b=float(pb_),
+                            normal=bool(pa_>=.05), n=len(xa)))
+    registra('Artigo 2 · normalidade', f"{v} · W de Shapiro-Wilk", float(Wa), float(Wb), tol=1e-6)
 
 ok=sum(1 for c in CONF if c['confere']); tot=len(CONF)
 print(f"=== RECONFERÊNCIA POR DOIS CAMINHOS INDEPENDENTES ===")
@@ -127,7 +129,7 @@ else:
     print("\n  Nenhuma divergência. Os números dos três documentos se sustentam ao recálculo independente.")
 print("\n=== NORMALIDADE DAS MÉDIAS DIÁRIAS (Shapiro-Wilk sobre os 166 pares) ===")
 for n in NORMALIDADE:
-    print(f"  {n['variavel']:<10} W = {n['W']:.4f}  p = {n['p']:.2e}  "
+    print(f"  {n['variavel']:<10} W = {n['W']:.4f} (caminho B: {n['W_b']:.4f})  p = {n['p']:.2e}  "
           + ("normal" if n['normal'] else "não normal"))
 print(f"  {sum(1 for n in NORMALIDADE if not n['normal'])} de {len(NORMALIDADE)} variáveis rejeitam a "
       "normalidade, o que sustenta a via não paramétrica como rota principal do Artigo 2.")

@@ -9,6 +9,27 @@ S=DADOS
 V1=json.load(open(os.path.join(DADOS,"U_base.json"))); V2=json.load(open(f"{S}/V2_base.json"))
 Q2=json.load(open(f"{S}/V2_perfis.json"))
 SUB=['Tensão','Depressão','Raiva','Vigor','Fadiga','Confusão','TMD']
+
+# ---- a coluna «Data» autorreferida, contada na fonte, para o achado D2 não depender de memória ----
+import openpyxl, datetime, re
+UP=os.environ.get("HH_UPLOADS") or "/root/.claude/uploads/4ddb0907-77b2-5876-a286-ef4b6b886e93"
+_wb=openpyxl.load_workbook(os.path.join(UP,"ad245c30-Backup__Banco_de_dados_ORIGINAL_INTOCADO_20260723.xlsx"),
+                           read_only=True, data_only=True)
+_lin=list(_wb['Diário - Treino'].iter_rows(values_only=True))[1:]; _wb.close()
+_D0, _DF = datetime.date(2024,4,21), datetime.date(2024,4,27)
+def _dia4h(ts): return ts.date() if ts.hour>=4 else ts.date()-datetime.timedelta(days=1)
+DATA=dict(linhas=len(_lin),
+  nulas=sum(1 for r in _lin if not isinstance(r[2],datetime.datetime)),
+  com_data=sum(1 for r in _lin if isinstance(r[2],datetime.datetime)))
+DATA['fora_da_semana']=sum(1 for r in _lin if isinstance(r[2],datetime.datetime)
+                           and not (_D0<=r[2].date()<=_DF))
+DATA['inutilizaveis']=DATA['nulas']+DATA['fora_da_semana']
+DATA['difere_do_carimbo']=sum(1 for r in _lin if isinstance(r[2],datetime.datetime)
+                              and r[2].date()!=_dia4h(r[0]))
+DATA['anteriores_a_2020']=sum(1 for r in _lin if isinstance(r[2],datetime.datetime) and r[2].year<2020)
+print(f"coluna «Data»: {DATA['linhas']} linhas · {DATA['nulas']} sem data · "
+      f"{DATA['fora_da_semana']} fora da semana · {DATA['inutilizaveis']} inutilizáveis · "
+      f"{DATA['difere_do_carimbo']} divergem do carimbo · {DATA['anteriores_a_2020']} anteriores a 2020")
 def med(Bd,v,d):
     xs=[p[v] for p in Bd['pares'] if p['dia']==d and p.get(v) is not None]
     return float(np.mean(xs))
@@ -23,8 +44,11 @@ ACHADOS=[
       impacto='Diferença máxima nas médias diárias: 0,30 ponto (PTH em D3). Nenhuma conclusão se inverte.',
       gravidade='média'),
  dict(id='D2', titulo='Coluna de data corrompida',
-      achado='A coluna «Data», preenchida pelo respondente, contém datas de nascimento e erros de digitação: '
-             '136 dos 457 registros caem fora da semana de estudo por esse campo.',
+      achado=(f"A coluna «Data», preenchida pelo respondente, contém datas de nascimento e erros de digitação: "
+              f"{DATA['anteriores_a_2020']} registros trazem ano anterior a 2020. Por esse campo, "
+              f"{DATA['inutilizaveis']} dos {DATA['linhas']} registros seriam inutilizáveis "
+              f"({DATA['fora_da_semana']} caem fora da semana e {DATA['nulas']} estão em branco), e "
+              f"{DATA['difere_do_carimbo']} divergem do dia obtido pelo carimbo."),
       correcao='O dia passou a ser definido pelo carimbo de data/hora, com fronteira às 04h00.',
       impacto='Seis registros lançados entre 00h e 01h de 22/04 retornaram ao dia 1, ao qual pertencem: '
               'todos são de atletas que já haviam respondido na noite de 21/04.',
@@ -74,7 +98,7 @@ UNID=[
       usada_em='Uma das gerações intermediárias',
       vies='Sem viés de ponderação, mas perde 22% dos pares e restringe a inferência aos assíduos.'),
 ]
-json.dump(dict(ACHADOS=ACHADOS, UNIDADES=UNID, CMP=CMP,
+json.dump(dict(DATA=DATA, ACHADOS=ACHADOS, UNIDADES=UNID, CMP=CMP,
                REC=Q2['REC'], DECISOES=V2['DECISOES'],
                recuperados=V2['recuperados'], nd=V2['nd']),
           open(f"{S}/V2_audit.json",'w'), ensure_ascii=False)

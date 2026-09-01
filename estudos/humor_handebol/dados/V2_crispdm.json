@@ -26,12 +26,16 @@
     "456 registros de 27 atletas ao longo de sete dias, de duas coletas diárias a partir do dia 2.",
     "218 abas e 282.776 células das planilhas de origem foram catalogadas em camada de acervo. com raspagem de nomes próprios na importação.",
     "Quatro unidades de análise coexistiam nas versões anteriores: registro (U-R), primeira e última (U-286), par atleta-dia (U-AD) e subamostra pareada (U-PAR).",
-    "6 achados de auditoria foram registrados, dois deles críticos."
+    "12 achados de auditoria foram registrados, dois deles críticos.",
+    "Segunda passagem, sobre a qualidade do dado: os nove escores calculados foram reconstruídos por fórmula a partir dos itens e confrontados com a base de origem em 4113 conferências, sem divergência.",
+    "Completude integral no nível do item (nenhuma célula ausente em 20.108 respostas), mas cobertura da grade atleta-dia recuando a 78% do elenco em D4 e D7. A falta é de comparecimento, não de item.",
+    "O nome em texto livre traz 67 grafias para 48 nomes canônicos; a identidade passa a vir da coluna padronizada."
    ],
-   "copiloto": "Ler as sete versões do manuscrito e as seis planilhas em paralelo, reproduzir cada número divergente e localizar a regra que o gerou.",
+   "copiloto": "Ler as sete versões do manuscrito e as seis planilhas em paralelo, reproduzir cada número divergente e localizar a regra que o gerou; depois reconstruir por fórmula, desde o item, todo escore calculado.",
    "humano": "A decisão de adotar o par atleta-dia (U-AD) como unidade canônica, e de declarar as outras três em vez de escondê-las.",
    "artefatos": [
     "analise/V2_audit.py",
+    "analise/V2_qual.py",
     "scripts/colher_planilhas.py",
     "base/esquema.sql"
    ]
@@ -45,10 +49,13 @@
     "A regra do dia fisiológico (virada às 4h) resolveu os registros de madrugada sem descartá-los.",
     "Registros órfãos foram reconciliados por dicionário de variantes do nome e, quando insuficiente, pelo carimbo de tempo curado.",
     "A base única em SQLite tem três camadas — canônica, de resultados e de acervo — com 1309 pares pré-pós e 305 resultados em formato longo.",
-    "Anonimização A01–A27 dentro da rotina de importação: nenhum nome sai do script."
+    "Anonimização A01–A27 dentro da rotina de importação: nenhum nome sai do script.",
+    "Triagem de discrepantes por ordem declarada: domínio da escala primeiro, depois cerca de Tukey, escore z e escore z modificado. Nenhum valor fora do domínio em 456 registros.",
+    "Em subescala com efeito de piso o intervalo interquartil é nulo e a cerca de Tukey rotula 19,5% da amostra: o critério é inaplicável, e a triagem passa a ser intraindividual.",
+    "Correção aplicada: o domínio da sonolência de Epworth passou de 0 a 24 para 0 a 18, porque o formulário aplicou seis das oito situações da escala."
    ],
    "copiloto": "Escrever a rotina de reconciliação, a raspagem de nomes e o esquema de três camadas; verificar que zero nomes completos sobrevivem.",
-   "humano": "A curadoria dos registros ambíguos e a regra da virada às 4h, que é uma decisão de fisiologia, não de programação.",
+   "humano": "A curadoria dos registros ambíguos, a regra da virada às 4h — decisão de fisiologia, não de programação — e a recusa em aplicar regra de dispersão a variável com piso.",
    "artefatos": [
     "analise/base_v2.py",
     "scripts/construir_base.py",
@@ -83,12 +90,15 @@
     "O ganho de AUC sobre a regra trivial não exclui zero em nenhum modelo (melhor caso, XGBoost: +0,081, IC 95% [−0,009, +0,174]).",
     "Reversão à média testada em todas as dimensões: o corte pelo PTH é parcialmente mecânico (ρ = −0,422, p < 0,001).",
     "O corte pela tensão não é mecânico (ρ = −0,132, p = 0,153) e acrescenta +0,110 de AUC sobre o PTH sozinho.",
-    "No subgrupo acionável — quem começa o dia fora da faixa de risco — o intervalo de confiança exclui o acaso."
+    "No subgrupo acionável — quem começa o dia fora da faixa de risco — o intervalo de confiança exclui o acaso.",
+    "Reconferência por dois caminhos de código independentes: 65 de 65 conferências coincidem, incluídas as que sustentam os dois artigos e a base da modelagem."
    ],
    "copiloto": "Propor e executar o diagnóstico de reversão à média e a sequência de modelos aninhados antes de qualquer redação.",
    "humano": "A recusa em relatar a folha mais forte como achado clínico antes do diagnóstico. O modelo não sabe que precisa desconfiar de si.",
    "artefatos": [
-    "analise/V2_ml3.py"
+    "analise/V2_ml3.py",
+    "analise/V2_qual.py",
+    "analise/V2_conf.py"
    ]
   },
   {
@@ -133,6 +143,10 @@
    "d": "A folha mais forte foi submetida ao teste de reversão à média antes de virar frase."
   },
   {
+   "t": "A regra de triagem tem de caber na distribuição",
+   "d": "A cerca de Tukey rotulou 19,5% da amostra como discrepante em uma subescala cujo interquartil é nulo. Critério de dispersão não se aplica a variável com piso."
+  },
+  {
    "t": "O anonimato começa na importação",
    "d": "O nome não sai do script. A raspagem é verificada, não presumida."
   }
@@ -146,7 +160,7 @@
   "aba": 218,
   "celula": 282776,
   "referencia": 52,
-  "auditoria": 6,
+  "auditoria": 12,
   "significativo": 117
  }
 }

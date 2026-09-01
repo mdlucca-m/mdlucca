@@ -5,6 +5,7 @@ import A2T as A
 import numpy as np, sqlite3
 def jd(n): return json.load(open(os.path.join(DADOS,n+".json"),encoding='utf-8'))
 B=jd("V2_base"); Q=jd("V2_perfis"); A1=jd("V2_a1"); A2=jd("V2_a2"); A3=jd("V2_a3")
+CO=jd("V2_conf"); OT=jd("V2_otim")
 SUB=['Tensão','Depressão','Raiva','Vigor','Fadiga','Confusão']; V7=SUB+['TMD']
 LB={'TMD':'PTH'}
 def L(k): return LB.get(k,k)
@@ -152,6 +153,40 @@ src(nota="O veredito do piso não depende de hipótese nula: compara o deslocame
          "típico da própria série. As duas leituras respondem a perguntas distintas, e a divergência entre "
          "elas indica onde a conclusão é frágil.")
 for p in A.R7[1:]: para(p)
+
+head("3.7 Carga do dia e carga da véspera", lvl=2)
+para(A.R8[0])
+caption("Tabela 8 – Modelo misto da carga do dia e da carga da véspera")
+_M=OT['MODELO']
+mktable(["Variável","β₀","β₁ · horas do dia","IC 95% de β₁","p","β₂ · horas da véspera","IC 95% de β₂","p"],
+  [[L(v), n_(_M[v]['b0'],3), n_(_M[v]['b1'],4),
+    f"{n_(_M[v]['b1']-1.96*_M[v]['se1'],3)}; {n_(_M[v]['b1']+1.96*_M[v]['se1'],3)}", pf_(_M[v]['p1']),
+    n_(_M[v]['b2'],4),
+    f"{n_(_M[v]['b2']-1.96*_M[v]['se2'],3)}; {n_(_M[v]['b2']+1.96*_M[v]['se2'],3)}", pf_(_M[v]['p2'])]
+   for v in ['Fadiga','Vigor','TMD','Tensão']],
+  widths=[1.8,1.4,2.2,2.4,1.3,2.4,2.4,1.3], fs=8)
+src(nota="Modelo misto com intercepto aleatório por atleta, estimado por máxima verossimilhança sobre os 166 "
+         "pares atleta-dia de 27 atletas. O coeficiente exprime a variação esperada do escore por hora "
+         "adicional de treino, mantida constante a outra parcela. Com uma única equipe e sete dias, o efeito "
+         "das horas não se separa do efeito do dia nem da carga acumulada: as estimativas são associativas.")
+for p in A.R8[1:]: para(p)
+
+head("3.8 Reconferência dos resultados", lvl=2)
+para("Os valores relatados neste artigo foram recalculados por um segundo caminho de código, independente do "
+     "que produziu a base canônica. O caminho A parte das colunas já pontuadas da base de origem; o caminho B "
+     "parte do item do formulário e reconstrói cada escore por fórmula, inclusive a perturbação total do humor "
+     "e as escalas auxiliares. A Tabela 9 apresenta o resultado por bloco.")
+_bl={}
+for _c in CO['CONF']:
+    _e=_bl.setdefault(_c['bloco'],[0,0]); _e[0]+=int(_c['confere']); _e[1]+=1
+caption("Tabela 9 – Reconferência por dois caminhos independentes de cálculo")
+mktable(["Bloco de conferência","Conferências","Coincidem","Divergem"],
+        [[b, str(t), str(o), str(t-o)] for b,(o,t) in _bl.items()]
+        + [["Total", str(CO['total']), str(CO['ok']), str(CO['total']-CO['ok'])]],
+        widths=[6.6,2.8,2.4,2.6], fs=8.5)
+src(nota="Tolerância de 5 × 10⁻³ para médias e derivadas e de 10⁻⁶ para valores de p e para a estatística W. "
+         "Os valores de W do teste de Shapiro-Wilk coincidem entre os dois caminhos até a quarta casa decimal, "
+         "de modo que a opção pela via não paramétrica não depende de particularidade do processamento.")
 
 head("4 DISCUSSÃO")
 for i,(sub,ps) in enumerate(A.DISCUSSAO):

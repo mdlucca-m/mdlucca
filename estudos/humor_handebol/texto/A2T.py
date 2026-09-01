@@ -23,7 +23,10 @@ RESUMO=(
 "e alcançou-a com folga pelo modelo misto (p = 0,001). A perturbação total repetiu o padrão. A confusão "
 "inverteu-o: fortemente significativa pelo Friedman (p < 0,001) e não significativa pelo modelo misto "
 "(p = 0,072). A explicação está no custo amostral: as duas primeiras vias exigem registro completo nos sete "
-"dias e operam com dezenove atletas, ao passo que o modelo misto retém os 166 pares. Conclui-se que, em "
+"dias e operam com dezenove atletas, ao passo que o modelo misto retém os 166 pares. Um modelo adicional "
+"separou a carga do próprio dia da carga da véspera e mostrou que apenas a segunda tem efeito detectável "
+"sobre fadiga e vigor. Todos os valores foram recalculados por um segundo caminho de código, e as "
+"sessenta e cinco conferências coincidem. Conclui-se que, em "
 "séries de monitoramento com ausências frequentes, reportar uma única via é insuficiente, e que a discordância "
 "entre vias identifica qual pressuposto está sob tensão em cada variável."
 )
@@ -111,6 +114,30 @@ METODO=[
  "daquele atleta naquele dia. O conjunto reúne 456 registros, 166 pares atleta-dia e 119 pares de manhã e "
  "noite. Dezenove dos vinte e sete atletas possuem registro nos sete dias, e essa subamostra completa é a "
  "única sobre a qual as vias clássicas de medidas repetidas podem operar."]),
+("Procedência dos dados e auditoria de qualidade",[
+ "A base primária é o export do formulário eletrônico. Duas passagens de auditoria a antecederam. A primeira "
+ "tratou da procedência: fixou a fonte, definiu o dia pelo carimbo de data e hora com fronteira às quatro da "
+ "manhã em lugar da data autorreferida, recuperou quatro registros sem identificação e, sobretudo, declarou a "
+ "unidade de análise, que é o par atleta-dia. Essa passagem está descrita em detalhe no artigo descritivo "
+ "companheiro, e a ela se deve o fato de os números aqui apresentados não coincidirem com os de versões "
+ "anteriores do mesmo estudo.",
+ "A segunda passagem tratou da qualidade do dado. Cada escore foi reconstruído por fórmula a partir dos itens "
+ "que o compõem e confrontado com a coluna já computada na base de origem: as 4.113 conferências não "
+ "apresentaram divergência. A completude do instrumento é integral, sem célula ausente em 20.108 respostas de "
+ "item, e nenhum dos 456 registros apresenta valor fora do domínio admissível da sua escala. A cobertura da "
+ "grade que cruza atleta e dia, porém, recua a setenta e oito por cento do elenco no quarto e no sétimo dias, "
+ "o que explica por que cada teste deste artigo declara o seu número de casos completos e por que os "
+ "denominadores diferem entre as três vias.",
+ "A triagem de valores discrepantes seguiu ordem definida: verificação de domínio primeiro, e só depois "
+ "critérios de dispersão. A precaução não é retórica. Em confusão, e em menor grau em depressão e raiva, o "
+ "primeiro e o terceiro quartis coincidem no piso da escala; o intervalo interquartil é nulo, a cerca de "
+ "Tukey passa a classificar como discrepante toda resposta diferente de zero, e o escore z modificado torna-se "
+ "indefinido porque o desvio absoluto mediano também é nulo. Em variável com efeito de piso, a triagem "
+ "apoia-se no domínio e na comparação de cada atleta com a própria série. Nenhum registro foi excluído, "
+ "nenhum valor foi imputado e nenhum escore foi alterado.",
+ "Por fim, todos os números deste artigo foram recalculados por um segundo caminho de código, independente do "
+ "que produziu a base canônica: enquanto este parte das colunas já pontuadas, aquele parte do item do "
+ "formulário. As sessenta e cinco conferências coincidem dentro da tolerância adotada."]),
 ("Via não paramétrica",[
  "A comparação global entre os sete dias empregou o teste de Friedman (FRIEDMAN, 1937), com tamanho de efeito "
  "expresso pelo W de Kendall (KENDALL; SMITH, 1939). A hipótese de tendência ordenada recebeu tratamento "
@@ -144,6 +171,17 @@ METODO=[
  "A vantagem decisiva do modelo, neste contexto, é não exigir registro completo: um atleta com quatro dias "
  "contribui com quatro observações em vez de ser descartado. A contrapartida é o pressuposto de efeito linear "
  "do dia, que o tratamento de séries descrito adiante permite avaliar de modo independente."]),
+("Modelo de carga do dia e da véspera",[
+ "Ao modelo do efeito do dia acrescentou-se um segundo, destinado a separar a carga do próprio dia da carga "
+ "que a antecede. Para cada variável ajustou-se, sobre os 166 pares atleta-dia, a especificação y(a,d) = β₀ + "
+ "β₁·h(d) + β₂·h(d − 1) + u(a) + ε(a,d), em que h(d) são as horas de treino do dia d, h(d − 1) as do dia "
+ "anterior, u(a) o intercepto aleatório do atleta e ε o resíduo. A estimação empregou máxima verossimilhança. "
+ "A separação entre os dois coeficientes responde a uma pergunta que o efeito do dia, sozinho, não distingue: "
+ "o humor medido reflete o esforço em curso ou o esforço da véspera?",
+ "Uma ressalva delimita o alcance dessa estimativa. Com uma única equipe e sete dias, o efeito das horas não "
+ "se separa do efeito do dia do microciclo nem da carga acumulada, que progridem juntos. Os coeficientes são, "
+ "portanto, associativos, e a leitura que deles se faz é de convergência com os demais achados, não de "
+ "demonstração causal."]),
 ("Tratamento de séries: suavização, derivadas e piso de ruído",[
  "Independentemente das três vias, cada série diária recebeu um tratamento próprio, descrito em detalhe no "
  "artigo companheiro e aqui resumido. O erro-padrão de cada dia foi calculado, e a média dos sete erros-padrão "
@@ -170,6 +208,11 @@ METODO=[
 ]
 
 R1=[
+ "Antes de qualquer pressuposto, uma verificação sobre a própria base. Os valores de normalidade aqui "
+ "relatados foram recalculados por um caminho de código independente do que gerou a base canônica, partindo "
+ "do item do formulário e reconstruindo cada escore por fórmula. As sete variáveis rejeitam a normalidade "
+ "pelos dois caminhos, com valores de W idênticos até a quarta casa decimal. A opção pela via não paramétrica "
+ "como rota principal, portanto, não depende de uma particularidade do processamento.",
 "A verificação de pressupostos, apresentada na Figura 3 e na Tabela 1, é inequívoca em duas frentes e "
 "heterogênea numa terceira. Nenhuma das sete variáveis passa no teste de Shapiro-Wilk ao nível de cinco por "
 "cento. O vigor é a que mais se aproxima da normalidade (W = 0,983; p = 0,035) e a depressão a que mais dela "
@@ -302,6 +345,22 @@ R7=[
 "identificar onde a conclusão é frágil.",
 ]
 
+R8=[
+ "O modelo que separa a carga do próprio dia da carga da véspera produz um resultado que reorganiza a leitura "
+ "de todos os anteriores. As horas do próprio dia não exibem efeito detectável sobre a fadiga nem sobre o "
+ "vigor; as horas da véspera exibem, e com folga. Cada hora de treino no dia anterior acrescenta 0,433 ponto "
+ "de fadiga e subtrai 0,407 ponto de vigor no dia seguinte, ambos com p abaixo de 0,001. A perturbação total "
+ "do humor acompanha, com 0,858 ponto por hora da véspera. A Tabela 8 apresenta as estimativas.",
+ "O achado converge com a leitura das derivadas apresentada no artigo companheiro e a explica. Os dois "
+ "choques da semana localizam-se nas suas extremidades porque é ali que a carga do dia anterior muda de "
+ "patamar: o primeiro dia, de linha de base com uma hora e meia, antecede a primeira sessão intervalada; o "
+ "sexto dia, com cinco horas, antecede o sétimo. O humor medido em cada manhã não informa sobre o treino que "
+ "está por vir, e sim sobre o que já passou.",
+ "A implicação prática é imediata e não exige o modelo preditivo do anexo metodológico para ser enunciada. Se "
+ "a resposta afetiva é defasada em um dia, a leitura do humor matinal serve para decidir a sessão daquele dia "
+ "com base no acúmulo do dia anterior, e não para avaliar a sessão que ainda não ocorreu. Serve, também, para "
+ "situar corretamente o que se mede: o escore da manhã é consequência, não previsão."]
+
 DISCUSSAO=[
 ("Quanto da conclusão pertence à via",[
  "O achado central deste estudo pode ser enunciado em uma frase: em três das sete variáveis examinadas, o "
@@ -394,6 +453,15 @@ LIMITACOES=[
 "Quatro das seis subescalas apresentam efeito de piso severo, o que compromete a detecção de melhora e "
 "introduz assimetria em toda comparação. O estudo acompanhou uma única equipe masculina de primeira divisão "
 "em uma única semana, e não registrou desfechos externos de desempenho, marcadores fisiológicos ou lesão.",
+ "A cobertura da grade que cruza atleta e dia recua a setenta e oito por cento do elenco no quarto e no "
+ "sétimo dias, e o número de respostas por atleta e por dia varia de um a seis, acima do previsto no "
+ "protocolo. A primeira condição reduz o número de casos completos sobre o qual as vias clássicas podem "
+ "operar e é uma das duas causas da divergência entre rotas documentada neste artigo; a segunda faz o valor "
+ "diário ser a média de um número desigual de respostas conforme o atleta e o dia.",
+ "O modelo que separa a carga do dia da carga da véspera opera sobre uma única equipe e sete dias, condição "
+ "na qual o efeito das horas não se separa do efeito do dia do microciclo nem da carga acumulada. Os "
+ "coeficientes são associativos, e a defasagem que eles revelam é convergente com as derivadas, não "
+ "demonstrativa de causalidade."
 ]
 CONCLUSAO=[
 "Submetida às três vias de análise, a mesma série de humor produziu vereditos concordantes em quatro das sete "

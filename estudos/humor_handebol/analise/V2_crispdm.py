@@ -18,6 +18,8 @@ N=dict(atleta=c('atleta'),registro=c('registro'),atleta_dia=c('atleta_dia'),pre_
 cx.close()
 ML=json.load(open(os.path.join(DADOS,"V2_ml.json")))
 ML3=json.load(open(os.path.join(DADOS,"V2_ml3.json")))
+Q=json.load(open(os.path.join(DADOS,"V2_qual.json")))
+CF=json.load(open(os.path.join(DADOS,"V2_conf.json")))
 AUD=json.load(open(os.path.join(DADOS,"V2_audit.json")))
 br=lambda x,d=3: f"{x:.{d}f}".replace('.',',').replace('-','−')
 bs=lambda x,d=3: ('+' if x>=0 else '−')+f"{abs(x):.{d}f}".replace('.',',')
@@ -37,19 +39,32 @@ FASES=[
   feito=[f"{N['registro']} registros de {N['atleta']} atletas ao longo de sete dias, de duas coletas diárias a partir do dia 2.",
          f"{N['aba']} abas e {N['celula']:,} células das planilhas de origem foram catalogadas em camada de acervo, com raspagem de nomes próprios na importação.".replace(',','.'),
          "Quatro unidades de análise coexistiam nas versões anteriores: registro (U-R), primeira e última (U-286), par atleta-dia (U-AD) e subamostra pareada (U-PAR).",
-         f"{N['auditoria']} achados de auditoria foram registrados, dois deles críticos."],
-  copiloto="Ler as sete versões do manuscrito e as seis planilhas em paralelo, reproduzir cada número divergente e localizar a regra que o gerou.",
+         f"{N['auditoria']} achados de auditoria foram registrados, dois deles críticos.",
+         f"Segunda passagem, sobre a qualidade do dado: os nove escores calculados foram reconstruídos por "
+         f"fórmula a partir dos itens e confrontados com a base de origem em "
+         f"{sum(c['n_comparado'] for c in Q['CONFRONTO'])} conferências, sem divergência.",
+         "Completude integral no nível do item (nenhuma célula ausente em 20.108 respostas), mas cobertura da "
+         "grade atleta-dia recuando a 78% do elenco em D4 e D7. A falta é de comparecimento, não de item.",
+         f"O nome em texto livre traz {Q['CATEG'][0]['grafias']} grafias para "
+         f"{Q['CATEG'][0]['niveis_canonicos']} nomes canônicos; a identidade passa a vir da coluna padronizada."],
+  copiloto="Ler as sete versões do manuscrito e as seis planilhas em paralelo, reproduzir cada número divergente e localizar a regra que o gerou; depois reconstruir por fórmula, desde o item, todo escore calculado.",
   humano="A decisão de adotar o par atleta-dia (U-AD) como unidade canônica, e de declarar as outras três em vez de escondê-las.",
-  artefatos=['analise/V2_audit.py','scripts/colher_planilhas.py','base/esquema.sql']),
+  artefatos=['analise/V2_audit.py','analise/V2_qual.py','scripts/colher_planilhas.py','base/esquema.sql']),
 
  dict(id='preparacao', n=3, nome='Preparação dos dados',
   pergunta='Como transformar planilhas em uma base que responda perguntas?',
   feito=["A regra do dia fisiológico (virada às 4h) resolveu os registros de madrugada sem descartá-los.",
          "Registros órfãos foram reconciliados por dicionário de variantes do nome e, quando insuficiente, pelo carimbo de tempo curado.",
          f"A base única em SQLite tem três camadas — canônica, de resultados e de acervo — com {N['pre_pos']} pares pré-pós e {N['resultado']} resultados em formato longo.",
-         "Anonimização A01–A27 dentro da rotina de importação: nenhum nome sai do script."],
+         "Anonimização A01–A27 dentro da rotina de importação: nenhum nome sai do script.",
+         "Triagem de discrepantes por ordem declarada: domínio da escala primeiro, depois cerca de Tukey, "
+         "escore z e escore z modificado. Nenhum valor fora do domínio em 456 registros.",
+         "Em subescala com efeito de piso o intervalo interquartil é nulo e a cerca de Tukey rotula 19,5% da "
+         "amostra: o critério é inaplicável, e a triagem passa a ser intraindividual.",
+         "Correção aplicada: o domínio da sonolência de Epworth passou de 0 a 24 para 0 a 18, porque o "
+         "formulário aplicou seis das oito situações da escala."],
   copiloto="Escrever a rotina de reconciliação, a raspagem de nomes e o esquema de três camadas; verificar que zero nomes completos sobrevivem.",
-  humano="A curadoria dos registros ambíguos e a regra da virada às 4h, que é uma decisão de fisiologia, não de programação.",
+  humano="A curadoria dos registros ambíguos, a regra da virada às 4h — decisão de fisiologia, não de programação — e a recusa em aplicar regra de dispersão a variável com piso.",
   artefatos=['analise/base_v2.py','scripts/construir_base.py','atualizar.sh']),
 
  dict(id='modelagem', n=4, nome='Modelagem',
@@ -68,10 +83,12 @@ FASES=[
   feito=[f"O ganho de AUC sobre a regra trivial não exclui zero em nenhum modelo (melhor caso, XGBoost: {bs(ML['GANHO']['XGBoost']['m'])}, IC 95% [{bs(ML['GANHO']['XGBoost']['ic'][0])}, {bs(ML['GANHO']['XGBoost']['ic'][1])}]).",
          f"Reversão à média testada em todas as dimensões: o corte pelo PTH é parcialmente mecânico (ρ = {br(ML3['VEREDICTO']['pth']['rho'])}, p < 0,001).",
          f"O corte pela tensão não é mecânico (ρ = {br(ML3['VEREDICTO']['tensao']['rho'])}, p = {br(ML3['VEREDICTO']['tensao']['p'])}) e acrescenta {bs(ML3['VEREDICTO']['ganho_tensao'])} de AUC sobre o PTH sozinho.",
-         "No subgrupo acionável — quem começa o dia fora da faixa de risco — o intervalo de confiança exclui o acaso."],
+         "No subgrupo acionável — quem começa o dia fora da faixa de risco — o intervalo de confiança exclui o acaso.",
+         f"Reconferência por dois caminhos de código independentes: {CF['ok']} de {CF['total']} conferências "
+         "coincidem, incluídas as que sustentam os dois artigos e a base da modelagem."],
   copiloto="Propor e executar o diagnóstico de reversão à média e a sequência de modelos aninhados antes de qualquer redação.",
   humano="A recusa em relatar a folha mais forte como achado clínico antes do diagnóstico. O modelo não sabe que precisa desconfiar de si.",
-  artefatos=['analise/V2_ml3.py']),
+  artefatos=['analise/V2_ml3.py','analise/V2_qual.py','analise/V2_conf.py']),
 
  dict(id='implantacao', n=6, nome='Implantação',
   pergunta='Como isso vira rotina da comissão técnica, e não um relatório único?',
@@ -91,6 +108,7 @@ REGRAS=[
  dict(t='Toda comparação tem linha de base', d='Um modelo só ganha crédito contra a regra trivial que qualquer preparador aplicaria de cabeça.'),
  dict(t='Validação agrupada por indivíduo', d='Com 27 atletas e 119 observações, dividir por linha e não por atleta infla a AUC pela memorização do atleta.'),
  dict(t='O contraintuitivo é diagnosticado, não narrado', d='A folha mais forte foi submetida ao teste de reversão à média antes de virar frase.'),
+ dict(t='A regra de triagem tem de caber na distribuição', d='A cerca de Tukey rotulou 19,5% da amostra como discrepante em uma subescala cujo interquartil é nulo. Critério de dispersão não se aplica a variável com piso.'),
  dict(t='O anonimato começa na importação', d='O nome não sai do script. A raspagem é verificada, não presumida.'),
 ]
 

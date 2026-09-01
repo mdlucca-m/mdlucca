@@ -3,8 +3,8 @@
 Só aceita casamento com similaridade alta; o que não casar fica nulo."""
 import json, os, re, sys, glob, sqlite3, difflib, unicodedata
 RAIZ=os.environ.get("HH_RAIZ") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0,"/tmp/claude-0/-home-user-mdlucca/4ddb0907-77b2-5876-a286-ef4b6b886e93/scratchpad")
-import ET
+sys.path.insert(0,os.path.join(RAIZ,"texto"))
+import REFS as ET   # ET.REFS: a lista canônica de referências
 DIR=os.environ.get("HH_TOOLRES","/root/.claude/projects/-home-user-mdlucca/"
                    "4ddb0907-77b2-5876-a286-ef4b6b886e93/tool-results")
 def nn(s):

@@ -23,7 +23,10 @@ RESUMO=(
 "nas duas extremidades da semana e deixaram um platô de quatro dias entre elas. O perfil iceberg recuou de "
 "37,0% para 19,0% e a barbatana de tubarão avançou de 11,1% para 28,6%; a faixa de risco passou de 22,2% para "
 "52,4%. O teste formal de cruzamento reconheceu inversão estabelecida entre vigor e fadiga no quinto dia e "
-"entre vigor e perturbação total no sexto, mas recusou a inversão aparente entre tensão e raiva. Conclui-se "
+"entre vigor e perturbação total no sexto, mas recusou a inversão aparente entre tensão e raiva. A base "
+"passou por duas auditorias: a de procedência, que fixou a unidade de análise no par atleta-dia, e a de "
+"qualidade, que reconstruiu os escores por fórmula sem divergência nas 4.113 conferências e não "
+"encontrou valor fora do domínio das escalas. Conclui-se "
 "que a deterioração do humor no microciclo terminal não é gradual, e sim concentrada em dois eventos discretos, "
 "e que a distinção entre variação real e flutuação amostral exige um critério declarado antes da leitura."
 )
@@ -164,9 +167,11 @@ METODO=[
  "qualquer análise. Três decisões merecem registro.",
  "Primeira: o dia de cada registro passou a ser definido pelo carimbo de data e hora do formulário, com "
  "fronteira às quatro da manhã, e não pela data autorreferida pelo respondente. Essa coluna contém datas de "
- "nascimento e erros de digitação, e por ela 136 dos 457 registros cairiam fora da semana de estudo. A "
- "fronteira às quatro da manhã devolve ao primeiro dia seis registros lançados entre meia-noite e uma da "
- "manhã do dia seguinte, todos de atletas que já haviam respondido na noite anterior.",
+ "nascimento e erros de digitação — cinquenta e cinco registros trazem ano anterior a 2020 —, de modo que "
+ "oitenta e quatro dos 457 registros seriam inutilizáveis por ela: sessenta e oito caem fora da semana de "
+ "estudo e dezesseis estão em branco. Entre os registros do microciclo, oitenta e oito divergem do dia obtido "
+ "pelo carimbo. A fronteira às quatro da manhã devolve ao primeiro dia seis registros lançados entre "
+ "meia-noite e uma da manhã do dia seguinte, todos de atletas que já haviam respondido na noite anterior.",
  "Segunda: quatro registros receberam o rótulo «não identificado» na coluna de nome padronizado, o que criaria "
  "um vigésimo oitavo atleta inexistente. Dois foram devolvidos ao respondente por correspondência exata no "
  "dicionário de variantes de nome e dois pelo nome curado, no mesmo carimbo de data e hora, de uma base "
@@ -175,7 +180,41 @@ METODO=[
  "o registro isolado, o par formado pelo primeiro e pelo último registro do dia, o par atleta-dia e a "
  "subamostra dos atletas com medida no primeiro e no sétimo dia. Elas produzem, sobre exatamente os mesmos "
  "dados e com a mesma classificação, variações do perfil iceberg entre o primeiro e o sétimo dia que vão de "
- "0,6 a 18,0 pontos percentuais. A Figura 2 apresenta essa comparação, e o Quadro 1 documenta a linhagem."]),
+ "0,6 a 18,0 pontos percentuais. A Figura 2 apresenta essa comparação, e o Quadro 1 documenta a linhagem.",
+ "A essa primeira passagem, dedicada à procedência do número, seguiu-se uma segunda, dedicada à qualidade do "
+ "dado em si e descrita na subseção seguinte. A distinção importa: a primeira responde de onde vem cada "
+ "valor, e a segunda, se o valor está correto. As duas fontes de erro estavam confundidas nas versões "
+ "anteriores, e a segunda auditoria descartou uma delas."]),
+("Qualidade dos dados: completude, padronização e triagem de discrepantes",[
+ "A segunda passagem de auditoria desceu ao nível do item do formulário. Cada escore de subescala, a "
+ "perturbação total do humor e os escores das escalas auxiliares foram reconstruídos por fórmula a partir dos "
+ "itens que os compõem e confrontados, linha a linha, com as colunas já computadas na base de origem. As "
+ "4.113 conferências não apresentaram divergência alguma. O resultado tem consequência direta sobre a "
+ "interpretação das divergências entre versões: elas decorrem da unidade de análise, e não de erro de "
+ "pontuação, hipótese que agora está eliminada.",
+ "A completude foi medida em três recortes. No nível do item, nenhuma célula está ausente entre as 20.108 "
+ "respostas de instrumento, porque o formulário exigia resposta em cada item; quem respondeu, respondeu "
+ "tudo. A falta, portanto, não é de item, e sim de comparecimento. Na grade que cruza atleta e dia, a "
+ "cobertura parte de vinte e sete atletas no primeiro dia e recua a vinte e um no quarto e no sétimo, o que "
+ "corresponde a setenta e oito por cento do elenco. É essa queda, e não a ausência de resposta, que obriga a "
+ "declarar o denominador de cada contraste.",
+ "O protocolo previa uma coleta no primeiro dia e duas nos demais, mas o número observado de registros por "
+ "par atleta-dia varia de um a seis. O intervalo mediano entre registros consecutivos do mesmo dia é de 114 "
+ "minutos, e apenas dezessete dos 290 pares consecutivos ocorrem em trinta minutos ou menos; em nenhum deles "
+ "o vetor dos vinte e quatro itens se repete integralmente, o que caracteriza reenvio com alteração e não "
+ "duplicata. Nenhum registro foi descartado: o valor diário é a média de todos os registros do dia e o "
+ "contraste intradiário usa o primeiro e o último, regra que passa a ser declarada.",
+ "A padronização das variáveis categóricas foi verificada por comparação de cada valor com a sua chave "
+ "canônica, obtida pela remoção de acento, caixa e espaço redundante. O nome digitado em campo livre "
+ "apresenta sessenta e sete grafias para quarenta e oito nomes canônicos, quinze deles com mais de uma forma; "
+ "é por isso que a identidade do respondente provém da coluna padronizada, e não do texto livre. As demais "
+ "variáveis categóricas do formulário não apresentam variante de grafia.",
+ "A triagem de valores discrepantes obedeceu a uma ordem. Primeiro a verificação de domínio: valor fora do "
+ "intervalo admissível da escala é erro, e não discrepância. Depois três critérios de dispersão — a cerca de "
+ "Tukey, o escore z e o escore z modificado, este último construído sobre a mediana e o desvio absoluto "
+ "mediano e, por isso, resistente à contaminação pelo próprio valor extremo. A ordem importa porque os três "
+ "critérios de dispersão falham em subescala com efeito de piso, condição que se verifica nesta amostra e "
+ "cujo tratamento é relatado na seção de resultados."]),
 ("Instrumentos",[
  "Aplicou-se a Escala de Humor de Brunel em sua versão brasileira (ROHLFS et al., 2008), composta por vinte e "
  "quatro itens distribuídos em seis subescalas de quatro itens — tensão, depressão, raiva, vigor, fadiga e "
@@ -183,7 +222,9 @@ METODO=[
  "subescala. A instrução temporal solicitou ao atleta que considerasse como se sentia naquele momento. A "
  "perturbação total do humor resulta da soma das cinco subescalas negativas subtraída do vigor. Todas as "
  "subescalas foram recalculadas a partir dos vinte e quatro itens e conferidas contra as colunas já "
- "computadas na planilha de origem, sem divergência em nenhuma das 2.736 células conferidas.",
+ "computadas na planilha de origem, sem divergência em nenhuma das 2.736 células conferidas. Estendida às "
+ "nove variáveis derivadas da base, incluída a perturbação total do humor, a conferência alcança 4.113 "
+ "células e mantém a ausência de divergência.",
  "Para permitir comparação com a norma e classificação nos seis perfis, cada subescala foi convertida em "
  "escore T por padronização contra parâmetros normativos de amostras atléticas, com média cinquenta e "
  "desvio-padrão dez, recuperados por inversão das faixas de escore T publicadas."]),
@@ -440,6 +481,37 @@ R7=[
 "no quinto. A faixa agrega três perfis e por isso responde antes que qualquer subescala isolada.",
 ]
 
+RQ=[
+ "A última seção dos resultados não descreve o humor, e sim a base que o descreve. Ela reúne o que a auditoria "
+ "de qualidade encontrou e o resultado da reconferência independente, porque nenhum dos achados anteriores se "
+ "sustenta se a base não sustentar.",
+ "A completude do instrumento é integral: nenhuma das 20.108 respostas de item está ausente. A cobertura da "
+ "grade que cruza atleta e dia, ao contrário, decresce ao longo da semana e chega a setenta e oito por cento "
+ "do elenco no quarto e no sétimo dias. A contagem de registros supera o previsto no protocolo em seis dos "
+ "sete dias, o que decorre de reenvio e não de duplicata, conforme exposto no método. A Tabela 8 apresenta "
+ "os dois recortes.",
+ "A triagem de discrepantes, na Tabela 9, produz dois resultados de natureza distinta. O primeiro é factual: "
+ "nenhum dos 456 registros apresenta valor fora do domínio admissível da sua escala, o que descarta erro de "
+ "digitação, escore impossível e código de ausência tratado como número. O segundo é metodológico e merece "
+ "registro porque afeta a leitura de qualquer estudo com estas escalas. Em confusão, o primeiro e o terceiro "
+ "quartis coincidem no piso; o intervalo interquartil é nulo; a cerca de Tukey colapsa sobre o próprio piso e "
+ "passa a classificar como discrepante toda resposta diferente de zero, isto é, 19,5 por cento da amostra. O "
+ "escore z modificado falha pela mesma razão, uma vez que o desvio absoluto mediano também é nulo. Depressão "
+ "e raiva aproximam-se dessa condição. Em subescala com efeito de piso, portanto, a triagem de discrepantes "
+ "não pode apoiar-se em regra de dispersão do grupo: apoia-se no domínio da escala e na comparação de cada "
+ "atleta com a própria série.",
+ "Aplicada dentro da série individual, essa comparação identifica poucos casos e todos interpretáveis. Em "
+ "raiva, onze registros afastam-se da mediana do próprio atleta por mais de três desvios e meio; em "
+ "perturbação total do humor, dez. Nenhum é erro de medida. São os dias em que o atleta destoou de si mesmo, "
+ "que é precisamente o que o monitoramento diário existe para detectar.",
+ "A reconferência fechou a auditoria. Todos os números deste artigo foram recalculados por um segundo caminho "
+ "de código, independente do primeiro: enquanto a base canônica parte das colunas já pontuadas, a "
+ "reconferência parte do item do formulário e reconstrói cada escore por fórmula. As sessenta e cinco "
+ "conferências — médias diárias, variações entre o primeiro e o sétimo dia, pisos de ruído, derivadas "
+ "normalizadas, prevalências da faixa de risco, valores de p dos contrastes e estatísticas W do teste de "
+ "normalidade — coincidem dentro da tolerância "
+ "adotada. Nenhum valor do texto precisou de correção."]
+
 DISCUSSAO=[
 ("A forma da semana: dois choques e um platô",[
  "O primeiro resultado a discutir não é um valor, e sim uma forma. A deterioração do humor ao longo do "
@@ -526,6 +598,7 @@ DISCUSSAO=[
 ]
 
 LIMITACOES=[
+
 "A primeira limitação é de delineamento. Os tipos de estímulo não foram distribuídos ao acaso ao longo da "
 "semana, de modo que o tipo de dia se confunde com a posição no microciclo e com a carga acumulada. O dia de "
 "conteúdo técnico e de força ocorreu uma única vez e ocupou o penúltimo lugar da sequência; toda inferência "
@@ -551,6 +624,18 @@ LIMITACOES=[
 "A sétima é a ausência de desfechos externos. O estudo não registrou desempenho objetivo, marcadores "
 "fisiológicos nem incidência de lesão no período, o que impede verificar se os deslocamentos afetivos "
 "observados anteciparam qualquer consequência prática.",
+ "A oitava é de cobertura. A grade que cruza atleta e dia decresce ao longo da semana e chega a setenta e "
+ "oito por cento do elenco no "
+ "quarto e no sétimo dias. A consequência não é apenas de potência: o subconjunto que comparece ao fim da "
+ "semana pode diferir sistematicamente do que deixa de comparecer, e a hipótese de ausência ignorável não é "
+ "verificável com estes dados. É por essa razão que cada contraste declara o seu denominador e que a unidade "
+ "de análise foi fixada no par atleta-dia.",
+ "A nona é de granularidade do registro. O número de respostas por atleta e por dia varia de um a seis, "
+ "acima do previsto no protocolo. A regra "
+ "adotada — média de todos os registros do dia para o valor diário, primeiro e último para o contraste "
+ "intradiário — preserva a informação, mas atribui pesos internos distintos conforme o atleta tenha respondido "
+ "duas ou seis vezes naquele dia. O efeito é pequeno, porque a mediana do intervalo entre respostas "
+ "consecutivas é de quase duas horas, e a alternativa de descartar registros seria pior."
 ]
 
 CONCLUSAO=[

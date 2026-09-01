@@ -5,6 +5,7 @@ exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),"_docx_base.py
 import sqlite3
 def jd(n): return json.load(open(os.path.join(DADOS,n+".json"),encoding='utf-8'))
 ML=jd("V2_ml"); ML2=jd("V2_ml2"); ML3=jd("V2_ml3"); CD=jd("V2_crispdm")
+CO=jd("V2_conf"); QA=jd("V2_qual")
 def n_(x,d=3):
     if x is None or (isinstance(x,float) and x!=x): return "—"
     return f"{x:.{d}f}".replace('.',',').replace('-','−')
@@ -38,7 +39,23 @@ para("Os preditores vêm exclusivamente da medida da manhã: as seis subescalas 
      "do humor, a fadiga física e a mental, a sonolência de Epworth, o estresse percebido, o indicador de já "
      "estar na faixa de risco pela manhã, o dia do microciclo, as horas de treino do dia, a carga acumulada e "
      "o tipo de estímulo. Alvo e preditores ficam separados no tempo, de modo que a previsão não é circular.")
-head("2.2 Validação e linhas de base", lvl=2)
+head("2.2 Integridade da base usada na modelagem", lvl=2)
+para("A modelagem herda a base dos dois artigos, e com ela as duas auditorias que a precederam. A primeira "
+     "fixou a procedência e declarou a unidade de análise. A segunda desceu ao nível do item: os nove escores "
+     f"calculados foram reconstruídos por fórmula e confrontados com a base de origem em "
+     f"{format(sum(c['n_comparado'] for c in QA['CONFRONTO']),',').replace(',','.')} conferências, sem divergência, e nenhum dos 456 "
+     "registros apresenta valor fora do domínio admissível da sua escala.")
+para("Duas consequências recaem sobre este anexo. A primeira é que a sonolência de Epworth, que entra como "
+     "preditor, teve o domínio corrigido de zero a vinte e quatro para zero a dezoito: o formulário aplicou "
+     "seis das oito situações da escala, e o rótulo da coluna de origem estava incorreto. A correção não "
+     "altera nenhum valor observado, apenas o intervalo declarado. A segunda é que o número de pares "
+     f"disponíveis para a modelagem — {ML['n']} — foi confirmado por recálculo independente, junto com a "
+     f"contagem de atletas e de eventos.")
+para(f"A reconferência abrangeu {CO['total']} valores dos três documentos, recalculados por um caminho de "
+     "código que parte do item do formulário em vez das colunas já pontuadas. Todos coincidem dentro da "
+     "tolerância adotada.")
+
+head("2.3 Validação e linhas de base", lvl=2)
 para("A validação é cruzada, estratificada e agrupada por atleta: nenhum atleta aparece ao mesmo tempo no "
      "conjunto de treino e no de teste. A distinção não é formal. Com 27 atletas e sete dias, uma divisão por "
      "linha permitiria ao modelo reconhecer o atleta em vez de aprender a regra, e a área sob a curva subiria "
@@ -48,7 +65,7 @@ para("Dois modelos triviais entram na comparação como referência obrigatória
      "classe majoritária. O segundo aplica a regra que qualquer preparador aplicaria de cabeça: quem amanhece "
      f"na faixa de risco termina o dia na faixa de risco. Essa regra acerta {n_(ML['regra_trivial']*100,1)}% dos "
      "casos, e é contra ela — não contra o acaso — que os modelos precisam mostrar ganho.")
-head("2.3 Modelos", lvl=2)
+head("2.4 Modelos", lvl=2)
 para("Quatro classificadores foram ajustados: árvore de decisão de profundidade três, floresta aleatória, "
      "XGBoost e regressão logística com padronização. Os hiperparâmetros foram fixados em valores conservadores "
      "antes da avaliação, sem busca em grade: com esta amostra, a busca de hiperparâmetros sobre a mesma "

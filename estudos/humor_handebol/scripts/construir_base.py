@@ -3,7 +3,7 @@
 Camadas 1 e 2. A camada 3 (acervo das planilhas) fica em colher_planilhas.py."""
 import json, sqlite3, os, datetime, itertools, numpy as np
 RAIZ=os.environ.get("HH_RAIZ") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-JS=os.environ.get("HH_JSON") or "/tmp/claude-0/-home-user-mdlucca/4ddb0907-77b2-5876-a286-ef4b6b886e93/scratchpad"
+JS=os.environ.get("HH_JSON") or os.path.join(RAIZ,"dados")   # os JSON canônicos vivem no repositório
 DB=os.path.join(RAIZ,"base","humor_handebol.sqlite")
 def j(n): return json.load(open(os.path.join(JS,n),encoding='utf-8'))
 B=j("V2_base.json"); Q=j("V2_perfis.json"); A1=j("V2_a1.json"); A2=j("V2_a2.json")
