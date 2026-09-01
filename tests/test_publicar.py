@@ -518,5 +518,62 @@ class TestOsArquivosDeTeste(unittest.TestCase):
                 self.assertNotIn(f"lape import {nome}", texto)
 
 
+class TestSubirComOWindows(unittest.TestCase):
+    """`-AoLigar` num computador de universidade.
+
+    Tres defeitos moravam aqui, e os dois primeiros so apareceram quando
+    alguem sem direito de administrador tentou usar a opcao:
+
+      1. o comentario prometia "nao pede administrador" e o codigo pedia:
+         sem `-Principal`, o Windows le a tarefa como sendo para qualquer
+         usuario, e devolve "Acesso negado";
+      2. dentro de uma funcao, `$MyInvocation.MyCommand.Path` e o da
+         FUNCAO e vem vazio -- a tarefa saia registrada com `-File ""`;
+      3. desligar tirava a tarefa e deixava o atalho de inicializacao, e o
+         sistema continuava subindo sozinho sem nada para desligar.
+    """
+
+    def ps1(self):
+        return PS1.read_text(encoding="utf-8")
+
+    def agendar(self):
+        texto = self.ps1()
+        return texto[texto.index("function Agendar"):texto.index("\nif ($AoLigar)")]
+
+    def test_a_tarefa_declara_para_quem_e(self):
+        corpo = self.agendar()
+        self.assertIn("New-ScheduledTaskPrincipal", corpo)
+        self.assertIn("-Principal $quem", corpo)
+        self.assertIn("-RunLevel Limited", corpo)
+        self.assertIn("-AtLogOn -User $eu", corpo)
+
+    def test_o_caminho_do_script_nao_vem_de_dentro_da_funcao(self):
+        corpo = self.agendar()
+        self.assertIn("$script = $PSCommandPath", corpo)
+        self.assertNotIn("$MyInvocation.MyCommand.Path", corpo)
+
+    def test_ha_plano_b_para_quem_nao_e_administrador(self):
+        # num computador de universidade, quase ninguem e
+        corpo = self.agendar()
+        self.assertIn("catch {", corpo)
+        self.assertIn("Caminho-Inicializar", corpo)
+        self.assertIn("Startup", self.ps1())
+
+    def test_desligar_desliga_os_dois_caminhos(self):
+        texto = self.ps1()
+        corpo = texto[texto.index("if ($NaoAoLigar)"):]
+        corpo = corpo[:corpo.index("exit 0")]
+        self.assertIn("Unregister-ScheduledTask", corpo)
+        self.assertIn("Remove-Item (Caminho-Inicializar)", corpo)
+
+    def test_a_dica_some_pelos_dois_caminhos(self):
+        # olhar so a tarefa fazia a dica reaparecer todo dia para quem
+        # tinha caido no plano B
+        texto = self.ps1()
+        corpo = texto[texto.index("Para subir sozinho toda vez") - 400:]
+        corpo = corpo[:corpo.index("Para subir sozinho toda vez") + 80]
+        self.assertIn("Get-ScheduledTask", corpo)
+        self.assertIn("Test-Path (Caminho-Inicializar)", corpo)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

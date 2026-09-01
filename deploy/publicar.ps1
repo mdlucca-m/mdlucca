@@ -123,25 +123,62 @@ function Parar-Tudo {
 # ------------------------------------------------- subir junto com o Windows
 $NomeTarefa = "LAPE - publicar"
 
+# Atalho na pasta Inicializar: o plano B de quem nao e administrador da
+# maquina -- e, num computador de universidade, quase ninguem e.
+function Caminho-Inicializar {
+  Join-Path ([Environment]::GetFolderPath("Startup")) "LAPE - publicar.lnk"
+}
+
 function Agendar {
-  # Tarefa do usuario, nao do sistema: nao pede administrador, e sobe quando
-  # a pessoa faz login -- que e quando o computador do laboratorio comeca a
-  # servir de qualquer jeito.
   # o modo vai junto: sem isso, quem configurou endereco fixo veria a tarefa
   # subir um tunel sorteado toda manha, e o link enviado ao laboratorio morria
   $modo = ""
   if ($Fixo)       { $modo = " -Fixo" }
   if ($Permanente) { $modo = " -Permanente" }
   if ($Dominio)    { $modo += " -Dominio $Dominio" }
-  $acao = New-ScheduledTaskAction -Execute "powershell.exe" `
-    -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$($MyInvocation.MyCommand.Path)`" -Porta $Porta$modo" `
-    -WorkingDirectory $Raiz
-  $gatilho = New-ScheduledTaskTrigger -AtLogOn
-  $config  = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries `
-    -DontStopIfGoingOnBatteries -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 2)
-  Register-ScheduledTask -TaskName $NomeTarefa -Action $acao -Trigger $gatilho `
-    -Settings $config -Force | Out-Null
+  # Dentro de uma funcao, `$MyInvocation` e o da FUNCAO, e `.Path` vem
+  # vazio -- a tarefa saia registrada com `-File ""`, apontando para lugar
+  # nenhum. `$PSCommandPath` e o caminho do proprio script, e vale em
+  # qualquer escopo dele.
+  $script = $PSCommandPath
+  $argumentos = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$script`" -Porta $Porta$modo"
+
+  # A tarefa agendada e o caminho bom: reinicia sozinha se cair e funciona
+  # com o computador na bateria. Ela PRECISA declarar para quem e -- sem
+  # `-Principal`, o Windows le "tarefa para qualquer usuario", que so
+  # administrador cria, e devolve "Acesso negado". O comentario que estava
+  # aqui prometia que nao pedia administrador; o codigo nao cumpria.
+  $eu = "$env:USERDOMAIN\$env:USERNAME"
+  $agendou = $false
+  try {
+    $acao = New-ScheduledTaskAction -Execute "powershell.exe" `
+      -Argument $argumentos -WorkingDirectory $Raiz
+    $gatilho = New-ScheduledTaskTrigger -AtLogOn -User $eu
+    $quem = New-ScheduledTaskPrincipal -UserId $eu -LogonType Interactive -RunLevel Limited
+    $config = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries `
+      -DontStopIfGoingOnBatteries -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 2)
+    Register-ScheduledTask -TaskName $NomeTarefa -Action $acao -Trigger $gatilho `
+      -Principal $quem -Settings $config -Force -ErrorAction Stop | Out-Null
+    $agendou = $true
+  } catch {
+    # Em maquina com politica restritiva nem a tarefa do proprio usuario
+    # passa. A pasta Inicializar e do usuario e nunca pede permissao: e
+    # menos esperta -- nao reinicia se cair -- mas funciona sempre, e um
+    # sistema que sobe vale mais que um agendamento elegante que nao existe.
+    Aviso "Sem permissao para criar tarefa agendada; usando a pasta Inicializar."
+    $atalho = Caminho-Inicializar
+    $shell = New-Object -ComObject WScript.Shell
+    $lnk = $shell.CreateShortcut($atalho)
+    $lnk.TargetPath = "powershell.exe"
+    $lnk.Arguments = $argumentos
+    $lnk.WorkingDirectory = $Raiz
+    $lnk.Description = "Sobe o LAPE quando voce entra no Windows"
+    $lnk.Save()
+  }
   Verde "Pronto: o LAPE vai subir sozinho toda vez que voce entrar no Windows."
+  if (-not $agendou) {
+    Write-Host "  (pelo atalho em $(Caminho-Inicializar))"
+  }
   if ($Fixo -or $Permanente) {
     Verde "Com o endereco fixo que voce ja configurou -- o mesmo de sempre."
   } else {
@@ -154,6 +191,9 @@ function Agendar {
 if ($AoLigar)    { Agendar; exit 0 }
 if ($NaoAoLigar) {
   Unregister-ScheduledTask -TaskName $NomeTarefa -Confirm:$false -ErrorAction SilentlyContinue
+  # os dois caminhos, senao desligar tirava a tarefa e deixava o atalho --
+  # e o sistema continuava subindo sozinho, sem nada para desligar
+  Remove-Item (Caminho-Inicializar) -ErrorAction SilentlyContinue
   Verde "O LAPE nao sobe mais sozinho."
   exit 0
 }
@@ -750,7 +790,11 @@ if ($Fixo -or $Permanente) {
 Write-Host ""
 Write-Host "Para encerrar: feche esta janela, ou rode .\deploy\publicar.ps1 -Parar"
 Write-Host "Para rever este endereco depois: .\deploy\publicar.ps1 -Endereco"
-if (-not (Get-ScheduledTask -TaskName $NomeTarefa -ErrorAction SilentlyContinue)) {
+# A dica so serve a quem ainda nao configurou -- e sao dois caminhos
+# possiveis, a tarefa e o atalho. Olhar so a tarefa fazia a dica
+# reaparecer todo dia para quem tinha caido no plano B.
+if (-not (Get-ScheduledTask -TaskName $NomeTarefa -ErrorAction SilentlyContinue) `
+    -and -not (Test-Path (Caminho-Inicializar))) {
   Write-Host "Para subir sozinho toda vez: .\deploy\publicar.ps1 -AoLigar"
 }
 Write-Host ""

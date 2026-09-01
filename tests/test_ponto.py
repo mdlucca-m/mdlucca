@@ -46,6 +46,19 @@ class BasePonto(unittest.TestCase):
             (member_id or self.eu, f"{dia} {hora_ini}:00", f"{dia} {hora_fim}:00", atividade))
         self.db.conn.commit()
 
+    def esquecida(self, dia, hora_ini, hora_fim, member_id=None):
+        """Sessao que o sistema fechou sozinho, com datas escolhidas.
+
+        Separa o que se quer testar: `fechar_esquecidos` tem o seu proprio
+        teste; aqui interessa so a REGRA DA SOMA -- duracao inventada nao
+        entra nas horas, mas a sessao e contada como esquecida.
+        """
+        self.db.execute(
+            "INSERT INTO ponto (member_id, entrada, saida, fechado_sozinho, atividade)"
+            " VALUES (?, ?, ?, 1, 'trabalho')",
+            (member_id or self.eu, f"{dia} {hora_ini}:00", f"{dia} {hora_fim}:00"))
+        self.db.conn.commit()
+
     def aberta(self, quando, member_id=None):
         self.db.execute("INSERT INTO ponto (member_id, entrada) VALUES (?, ?)",
                         (member_id or self.eu, quando))
@@ -104,14 +117,34 @@ class TestCheckOutEsquecido(BasePonto):
         self.assertEqual(linha["fechado_sozinho"], 1)
 
     def test_a_duracao_inventada_nao_entra_na_soma(self):
-        # houve trabalho, mas não dá para dizer quanto: contar seria mentir
-        tres_dias = (datetime.now() - timedelta(days=3)).strftime(ponto.FORMATO)
-        self.aberta(tres_dias)
+        """Houve trabalho, mas nao da para dizer quanto: contar seria mentir.
+
+        As datas sao escolhidas dentro do mes de referencia, e nao
+        derivadas de `now()`. A versao anterior punha a sessao esquecida
+        tres dias antes de agora e a esperava na janela do MES -- o que so
+        e verdade a partir do dia 4. Nos dias 1, 2 e 3 o teste falhava, e
+        falhava com razao: agosto nao entra no resumo de setembro. Um
+        teste que erra em dez por cento dos dias do ano vira "instabilidade"
+        e acaba ignorado.
+        """
         hoje = date.today()
+        # o dia 1 do mes existe sempre; o de hoje tambem
+        primeiro = hoje.replace(day=1)
+        self.esquecida(primeiro.isoformat(), "08:00", "20:00")
         self.sessao(hoje.isoformat(), "09:00", "12:00")
         resumo = ponto.resumo(self.db, self.eu, hoje=hoje)
         self.assertEqual(resumo["mes"]["horas"], 3.0)
         self.assertGreaterEqual(resumo["mes"]["esquecidas"], 1)
+
+    def test_o_mes_nao_puxa_o_mes_anterior(self):
+        # a fronteira que fazia o teste acima falhar todo dia 1
+        hoje = date.today()
+        anterior = hoje.replace(day=1) - timedelta(days=1)
+        self.esquecida(anterior.isoformat(), "08:00", "20:00")
+        self.sessao(anterior.isoformat(), "09:00", "12:00")
+        resumo = ponto.resumo(self.db, self.eu, hoje=hoje)
+        self.assertEqual(resumo["mes"]["horas"], 0.0)
+        self.assertEqual(resumo["mes"]["esquecidas"], 0)
 
     def test_sessao_dentro_do_limite_continua_aberta(self):
         # quem entrou hoje de manhã ainda está trabalhando
