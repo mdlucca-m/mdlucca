@@ -48,4 +48,4 @@ def gx(a):
 def rod(fig,txt,y=-0.03):
     fig.text(.008,y,txt,fontsize=8.6,color=MUT,style='italic',ha='left',va='top')
 def salvar(fig,nome):
-    fig.savefig(f"{S}/{nome}.png",bbox_inches='tight',facecolor=SURF); plt.close(fig); print(nome,"ok")
+    fig.savefig(f"{SAIDA}/{nome}.png",bbox_inches='tight',facecolor=SURF); plt.close(fig); print(nome,"ok")
