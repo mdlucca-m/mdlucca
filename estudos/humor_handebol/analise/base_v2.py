@@ -77,12 +77,21 @@ print("  órfãos:", orf)
 VARS=SUB+['TMD','Fad.Física','Fad.Mental','Epworth','PSS']
 por=collections.defaultdict(list)
 for r in REG: por[(r['a'],r['dia'])].append(r)
-PARES=[]; PREPOS=[]
+PARES=[]; PREPOS=[]; EXCED=[]
 for (a,d),g in sorted(por.items(), key=lambda x:(x[0][1],x[0][0])):
     g=sorted(g,key=lambda x:x['ts'])
-    p={'a':a,'dia':d,'nobs':len(g)}
+    # Regra de composição do valor diário, auditada pelo carimbo em V2_proto.py:
+    #   D1 é basal de janela única e entra por inteiro;
+    #   de D2 a D7 valem o primeiro registro do dia (pré) e o último (pós). O
+    #   pré não exige hora da manhã: 59 atletas-dia só responderam a partir do
+    #   meio-dia, sem qualquer registro anterior naquele dia, e nesses casos o
+    #   primeiro registro é o pré, atrasado por esquecimento.
+    elei = g if d==1 else ([g[0]] if len(g)==1 else [g[0],g[-1]])
+    for x in g[1:-1] if d>1 else []:
+        EXCED.append(dict(a=a, dia=d, ts=x['ts'], hora=x['ts'][11:16]))
+    p={'a':a,'dia':d,'nobs':len(g),'nusado':len(elei)}
     for v in VARS:
-        xs=[x[v] for x in g if x.get(v) is not None]
+        xs=[x[v] for x in elei if x.get(v) is not None]
         p[v]=float(np.mean(xs)) if xs else None
     PARES.append(p)
     if d>=2 and len(g)>=2:
@@ -94,6 +103,8 @@ for (a,d),g in sorted(por.items(), key=lambda x:(x[0][1],x[0][0])):
 nd=[sum(1 for p in PARES if p['dia']==d) for d in range(1,8)]
 print(f"pares atleta-dia: {len(PARES)}  por dia {nd}")
 print(f"pares pré/pós: {len(PREPOS)}  por dia {[sum(1 for p in PREPOS if p['dia']==d) for d in range(2,8)]}")
+print(f"registros que compõem o valor diário: {sum(p['nusado'] for p in PARES)} de {len(REG)}"
+      f"  ·  intermediários descartados (D2 a D7): {len(EXCED)}")
 
 CARGA={1:dict(h=1.5,ses=1,tipo='Basal',cont='Técnico e tático',acum=1.5),
        2:dict(h=2.0,ses=2,tipo='HIIT',cont='HIIT + técnico e tático',acum=3.5),
@@ -110,17 +121,20 @@ for p in PARES:
 DEC=[
  "Fonte: aba 'Diário - Treino' do export do formulário (base designada FONTE-VERDADE na auditoria do autor).",
  "Dia definido pelo carimbo de data/hora com fronteira às 04h00, e não pela coluna 'Data' autorreferida, "
- "que contém datas de nascimento e erros de digitação em 136 dos 457 registros.",
+ "que contém datas de nascimento e erros de digitação: 84 dos 457 registros seriam inutilizáveis por ela "
+ "e 88 dos registros do microciclo divergem do dia obtido pelo carimbo.",
  "Microciclo D1=21/04/2024 a D7=27/04/2024; um registro de 29/04 foi excluído.",
  "O rótulo 'Não Identificado' da coluna padronizada é marcador, não atleta: dois de seus quatro registros "
  "foram recuperados por correspondência exata no dicionário de variantes e dois pelo nome curado em "
  "COLETAS.xlsx para o mesmo carimbo de data/hora, o que atribuiu todos os quatro.",
  "D1 teve janela única noturna (20h42 às 01h19 do dia seguinte), sem qualquer registro matinal.",
- "D2 a D7: primeiro registro do dia = pré; último = pós; valor diário = média dos dois.",
+ "D2 a D7: primeiro registro do dia = pré; último = pós; valor diário = média dos dois. Os registros\n  intermediários são excedentes de protocolo e não entram no valor diário.",
+ "O pré não exige hora da manhã: 59 dos 139 atletas-dia de D2 a D7 só responderam a partir do meio-dia,\n  sem nenhum registro anterior naquele dia, e neles o primeiro registro é o pré.",
+ "D1 entra por inteiro no basal, por decisão do autor: a noite de 21/04 é tratada como coleta única.",
  "Em D7 todos os registros ocorrem entre 08h e 14h: o contraste pré/pós desse dia é manhã contra início da tarde.",
 ]
 json.dump(dict(NORMA=NORMA, CARGA={str(k):v for k,v in CARGA.items()}, ATL=sorted(COD.values()),
                pares=PARES, prepos=PREPOS, registros=REG, nd=nd, DECISOES=DEC,
-               orfaos=orf, recuperados=recup, fora_semana=fora),
+               orfaos=orf, recuperados=recup, fora_semana=fora, excedentes=EXCED),
           open(os.path.join(DADOS,"V2_base.json"),"w"), ensure_ascii=False)
 print("gravado: V2_base.json")

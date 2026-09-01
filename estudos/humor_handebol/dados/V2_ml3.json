@@ -54,26 +54,26 @@
   {
    "modelo": "só PTH (manhã)",
    "k": 1,
-   "auc": 0.6871462931522354,
-   "dp": 0.023909536416020376
+   "auc": 0.6585288298473714,
+   "dp": 0.017960587032503115
   },
   {
    "modelo": "PTH + tensão",
    "k": 2,
-   "auc": 0.7976089417091115,
-   "dp": 0.013319788652187426
+   "auc": 0.7404253815715093,
+   "dp": 0.014656308364297122
   },
   {
    "modelo": "PTH + tensão + fadiga física",
    "k": 3,
-   "auc": 0.8192027447651387,
-   "dp": 0.012499864739070126
+   "auc": 0.7607228660260034,
+   "dp": 0.01291835499976211
   },
   {
    "modelo": "todos os preditores",
    "k": 18,
-   "auc": 0.8030737125070742,
-   "dp": 0.016471729529159238
+   "auc": 0.7539923685698133,
+   "dp": 0.03497085182051199
   }
  ],
  "FOLHAS": [
@@ -101,14 +101,15 @@
    "perfil_manha": {
     "Iceberg": 16,
     "Barbatana de tubarão": 3,
-    "Submerso": 2
+    "Superfície": 1,
+    "Submerso": 1
    },
    "perfil_noite": {
-    "Barbatana de tubarão": 13,
+    "Barbatana de tubarão": 12,
     "Iceberg": 4,
     "Superfície": 2,
-    "Submerso": 1,
-    "Iceberg invertido": 1
+    "Iceberg invertido": 2,
+    "Submerso": 1
    },
    "risco_noite": 0.6666666666666666
   },
@@ -134,78 +135,80 @@
     "TMD": 0.8260869565217391
    },
    "perfil_manha": {
-    "Iceberg": 20,
+    "Iceberg": 19,
     "Superfície": 2,
+    "Barbatana de tubarão": 1,
     "Submerso": 1
    },
    "perfil_noite": {
-    "Iceberg": 16,
-    "Superfície": 5,
-    "Submerso": 2
+    "Iceberg": 12,
+    "Superfície": 6,
+    "Submerso": 3,
+    "Barbatana de tubarão": 2
    },
-   "risco_noite": 0.0
+   "risco_noite": 0.08695652173913043
   }
  ],
  "PERFIL_NOITE": [
   {
    "perfil": "Iceberg",
-   "n": 32,
+   "n": 23,
    "risco": false,
-   "Tensão": 2.0,
-   "Depressão": 0.1875,
-   "Raiva": 0.28125,
-   "Vigor": 7.75,
-   "Fadiga": 3.40625,
-   "Confusão": 0.09375,
-   "TMD": -1.78125
+   "Tensão": 2.217391304347826,
+   "Depressão": 0.17391304347826086,
+   "Raiva": 0.043478260869565216,
+   "Vigor": 8.08695652173913,
+   "Fadiga": 3.217391304347826,
+   "Confusão": 0.08695652173913043,
+   "TMD": -2.347826086956522
   },
   {
    "perfil": "Superfície",
-   "n": 14,
+   "n": 18,
    "risco": false,
-   "Tensão": 2.5714285714285716,
-   "Depressão": 1.0714285714285714,
-   "Raiva": 3.142857142857143,
-   "Vigor": 6.642857142857143,
-   "Fadiga": 5.0,
-   "Confusão": 1.0,
-   "TMD": 6.142857142857143
+   "Tensão": 2.388888888888889,
+   "Depressão": 0.9444444444444444,
+   "Raiva": 2.888888888888889,
+   "Vigor": 6.888888888888889,
+   "Fadiga": 4.611111111111111,
+   "Confusão": 0.7777777777777778,
+   "TMD": 4.722222222222222
   },
   {
    "perfil": "Submerso",
-   "n": 16,
+   "n": 17,
    "risco": false,
-   "Tensão": 0.9375,
-   "Depressão": 0.25,
-   "Raiva": 0.25,
-   "Vigor": 3.1875,
-   "Fadiga": 2.25,
-   "Confusão": 0.1875,
-   "TMD": 0.6875
+   "Tensão": 1.0,
+   "Depressão": 0.23529411764705882,
+   "Raiva": 0.23529411764705882,
+   "Vigor": 3.411764705882353,
+   "Fadiga": 2.0,
+   "Confusão": 0.17647058823529413,
+   "TMD": 0.23529411764705882
   },
   {
    "perfil": "Barbatana de tubarão",
-   "n": 38,
+   "n": 40,
    "risco": true,
-   "Tensão": 0.7894736842105263,
-   "Depressão": 1.0526315789473684,
-   "Raiva": 0.5263157894736842,
-   "Vigor": 3.5789473684210527,
-   "Fadiga": 9.31578947368421,
-   "Confusão": 0.23684210526315788,
-   "TMD": 8.342105263157896
+   "Tensão": 0.8,
+   "Depressão": 0.625,
+   "Raiva": 0.375,
+   "Vigor": 3.9,
+   "Fadiga": 8.8,
+   "Confusão": 0.175,
+   "TMD": 6.875
   },
   {
    "perfil": "Iceberg invertido",
-   "n": 16,
+   "n": 18,
    "risco": true,
-   "Tensão": 2.0625,
-   "Depressão": 2.5,
-   "Raiva": 6.875,
-   "Vigor": 3.5,
-   "Fadiga": 9.8125,
-   "Confusão": 1.0625,
-   "TMD": 18.8125
+   "Tensão": 1.9444444444444444,
+   "Depressão": 3.0555555555555554,
+   "Raiva": 6.388888888888889,
+   "Vigor": 3.3333333333333335,
+   "Fadiga": 10.166666666666666,
+   "Confusão": 1.1111111111111112,
+   "TMD": 19.333333333333332
   },
   {
    "perfil": "Everest invertido",
@@ -231,7 +234,7 @@
    "p": 0.1531563853535742,
    "mecanico": false
   },
-  "ganho_tensao": 0.11046264855687604,
-  "texto": "O corte pelo PTH tem componente mecânico: quem amanhece com PTH baixo tende a subir por reversão à média (ρ = −0,422, p < 0,001). O corte pela tensão não tem: a tensão da manhã não prediz a própria variação (ρ = −0,132, p = 0,153). Acrescentar a tensão ao PTH eleva a AUC de 0,687 para 0,798, de modo que a tensão matinal carrega informação própria: alguma tensão pela manhã protege, e a ausência completa de tensão em atleta já muito favorável antecede a queda vespertina."
+  "ganho_tensao": 0.0818965517241379,
+  "texto": "O corte pelo PTH tem componente mecânico: quem amanhece com PTH baixo tende a subir por reversão à média (ρ = −0,422, p < 0,001). O corte pela tensão não tem: a tensão da manhã não prediz a própria variação (ρ = −0,132, p = 0,153). Acrescentar a tensão ao PTH eleva a AUC de 0,659 para 0,740, de modo que a tensão matinal carrega informação própria: alguma tensão pela manhã protege, e a ausência completa de tensão em atleta já muito favorável antecede a queda vespertina."
  }
 }

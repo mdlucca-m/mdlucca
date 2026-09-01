@@ -68,7 +68,7 @@
    "nome": "Modelagem",
    "pergunta": "A medida da manhã antecipa o estado da noite?",
    "feito": [
-    "119 pares atleta-dia, 27 atletas, 57 eventos (47,9%).",
+    "119 pares atleta-dia, 27 atletas, 61 eventos (51,3%).",
     "Alvo e preditores separados no tempo: a previsão não é circular.",
     "Validação cruzada agrupada por atleta (StratifiedGroupKFold): nenhum atleta aparece ao mesmo tempo no treino e no teste.",
     "Duas linhas de base obrigatórias: a classe majoritária e a regra trivial de já estar em risco pela manhã.",
@@ -87,9 +87,9 @@
    "nome": "Avaliação",
    "pergunta": "O ganho é real, ou é aritmética do desenho?",
    "feito": [
-    "O ganho de AUC sobre a regra trivial não exclui zero em nenhum modelo (melhor caso, XGBoost: +0,081, IC 95% [−0,009, +0,174]).",
+    "O ganho de AUC sobre a regra trivial não exclui zero em nenhum modelo (melhor caso, XGBoost: +0,039, IC 95% [−0,045, +0,116]).",
     "Reversão à média testada em todas as dimensões: o corte pelo PTH é parcialmente mecânico (ρ = −0,422, p < 0,001).",
-    "O corte pela tensão não é mecânico (ρ = −0,132, p = 0,153) e acrescenta +0,110 de AUC sobre o PTH sozinho.",
+    "O corte pela tensão não é mecânico (ρ = −0,132, p = 0,153) e acrescenta +0,082 de AUC sobre o PTH sozinho.",
     "No subgrupo acionável, isto é, entre os que começam o dia fora da faixa de risco, o intervalo de confiança exclui o acaso.",
     "Reconferência por dois caminhos de código independentes: 65 de 65 conferências coincidem, incluídas as que sustentam os dois artigos e a base da modelagem."
    ],
@@ -161,6 +161,6 @@
   "celula": 282776,
   "referencia": 63,
   "auditoria": 12,
-  "significativo": 117
+  "significativo": 119
  }
 }

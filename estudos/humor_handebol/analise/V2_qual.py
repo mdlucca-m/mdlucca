@@ -509,11 +509,15 @@ INCONS.append(dict(id='Q2', gravidade='alta', titulo='Nome em texto livre sem pa
          f"{CATEG[0]['niveis_com_variante']} deles com mais de uma grafia.",
   correcao='A identidade passa a vir da coluna padronizada, e a codificação A01–A27 é feita na importação.',
   n=CATEG[0]['niveis_com_variante'], de=CATEG[0]['niveis_canonicos']))
-INCONS.append(dict(id='Q3', gravidade='média', titulo='Mais de dois registros no mesmo dia',
+INCONS.append(dict(id='Q3', gravidade='alta', titulo='Registros excedentes ao protocolo de coleta',
   achado="O protocolo previa uma coleta em D1 e duas de D2 a D7; a distribuição observada vai de 1 a 6 "
-         f"registros por par atleta-dia, e {REPETICAO['ate_30min']} pares consecutivos ocorrem em 30 minutos ou menos.",
-  correcao='O valor diário é a média de todos os registros do dia; o contraste pré-pós usa o primeiro e o '
-           'último. Nenhum registro é descartado, e a regra passa a ser declarada.',
+         f"registros por par atleta-dia, e {REPETICAO['ate_30min']} pares consecutivos ocorrem em 30 minutos "
+         "ou menos. A conferência pelo carimbo (V2_proto) mostra de 7 a 10 janelas de coleta do elenco por "
+         "dia, e não duas.",
+  correcao='De D2 a D7 valem o primeiro registro do dia (pré) e o último (pós); os 150 registros '
+           'intermediários deixam de compor o valor diário. O pré não exige hora da manhã, porque 59 dos '
+           '139 atletas-dia só responderam a partir do meio-dia, sem registro anterior naquele dia. D1 '
+           'entra por inteiro, por decisão do autor, por ser basal de janela única.',
   n=sum(v for k,v in REPETICAO['distribuicao'].items() if int(k)>2), de=len(grade)))
 INCONS.append(dict(id='Q4', gravidade='média', titulo='Rótulo do domínio da sonolência de Epworth',
   achado='A coluna da planilha é rotulada «Epworth Total (0-24)», mas o formulário aplicou seis das oito '

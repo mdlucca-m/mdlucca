@@ -4,7 +4,7 @@ import os, sys
 exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),"_docx_base.py")).read())
 import sqlite3
 jd=lambda n: json.load(open(os.path.join(DADOS,n+".json"),encoding='utf-8'))
-Q=jd("V2_qual"); C=jd("V2_conf"); O=jd("V2_otim")
+Q=jd("V2_qual"); C=jd("V2_conf"); O=jd("V2_otim"); PR=jd("V2_proto")
 UNI={u['variavel']:u for u in Q['UNI']}
 def n_(x,d=2):
     if x is None or (isinstance(x,float) and x!=x): return "—"
@@ -109,10 +109,51 @@ src(nota=f"Total de {sum(R['distribuicao'].values())} pares atleta-dia.")
 q=R['intervalo']
 para(f"O intervalo entre registros consecutivos do mesmo dia tem mediana de {n_(q['mediana'],0)} minutos "
      f"(Q1 {n_(q['q1'],0)}; Q3 {n_(q['q3'],0)}), amplitude de {n_(q['minimo'],0)} a {n_(q['maximo'],0)}. "
-     f"Apenas {R['ate_30min']} dos {R['pares_consecutivos']} pares consecutivos ocorrem em trinta minutos ou "
-     f"menos, e em nenhum deles o vetor dos 24 itens se repete por inteiro. Ou seja: não são duplicatas de "
-     "envio, e sim reenvios com alteração. A regra adotada, que toma a média de todos os registros do dia para o valor diário e reserva o primeiro e o "
-     "último ao contraste pré-pós, preserva todos eles e passa a ser declarada.")
+     f"Apenas {R['ate_30min']} dos {R['pares_consecutivos']} pares consecutivos ocorrem em trinta minutos "
+     "ou menos, e em nenhum deles o vetor dos 24 itens se repete por inteiro. Ou seja: não são duplicatas "
+     "de envio, e sim reenvios com alteração. A regra de composição adotada retém o primeiro registro do "
+     "dia como pré e o último como pós, e afasta os intermediários do valor diário. Todos permanecem na "
+     "base.")
+
+head("5.1 Conferência do protocolo de coleta pelo carimbo de data e hora", lvl=2)
+para("O protocolo declarado pelo autor prevê uma coleta no primeiro dia, à noite, após o treino, e duas "
+     "coletas por atleta nos demais dias, a primeira da manhã como pré e a última do dia como pós, sem "
+     "coleta intermediária. A conferência confronta essa declaração com os carimbos, registro a registro.")
+para(f"Nenhum dos {PR['TOTAIS']['registros']} registros cai fora do intervalo que vai das quatro da manhã de "
+     "21 de abril às quatro da manhã de 28 de abril. A estrutura interna, porém, difere da prevista. O "
+     "agrupamento dos carimbos do elenco por lacuna superior a vinte e cinco minutos revela as janelas de "
+     "coleta reproduzidas na tabela abaixo.")
+caption(f"Tabela {tab()} – Janelas de coleta do elenco, por dia, e registros excedentes ao protocolo")
+mktable(["Dia","Atletas","Registros","Previsto","Janelas","Excedentes"],
+        [[f"D{p['dia']}", str(p['atletas']), str(p['registros']), str(p['esperado']),
+          str(p['janelas']), str(p['excedente_A'])] for p in PR['POR_DIA']]
+        + [["Total", str(PR['TOTAIS']['atleta_dia']), str(PR['TOTAIS']['registros']),
+            str(PR['TOTAIS']['esperado']), "—", str(PR['REGRA_A']['n_excedentes'])]],
+        widths=[2.2,2.4,2.6,2.4,2.2,2.6], fs=9)
+src(nota="Janela = bloco de carimbos do elenco separado do seguinte por mais de 25 minutos. Excedente = "
+         "registro que não é o primeiro nem o último do atleta naquele dia, de D2 a D7; o primeiro dia entra "
+         "por inteiro, por ser basal de janela noturna única.")
+_d1=[b for b in PR['JANELAS'][0]['blocos'] if b['registros']>=3]
+para(f"O primeiro dia apresenta duas janelas noturnas e não uma: {_d1[0]['ini']} a {_d1[0]['fim']}, com "
+     f"{_d1[0]['atletas']} atletas, e uma segunda a partir de {_d1[1]['ini']}, com "
+     f"{sum(b['atletas'] for b in _d1[1:])} atletas. Vinte e um dos vinte e sete atletas responderam duas "
+     "vezes naquela noite, com intervalo mediano de 153 minutos. Nenhum dos vinte e um pares repete os "
+     "valores, e a segunda resposta é sistematicamente mais desfavorável: a perturbação total do humor sobe, "
+     "em média, 6,3 pontos. São duas medidas genuínas, e não reenvio. Por decisão do autor, o basal integra "
+     "as duas.")
+para(f"De D2 a D7 há de {min(p['janelas'] for p in PR['POR_DIA'][1:])} a "
+     f"{max(p['janelas'] for p in PR['POR_DIA'][1:])} janelas por dia, e "
+     f"{PR['REGRA_A']['reenvio_imediato']} registros excedentes situam-se a menos de trinta minutos de outro "
+     f"registro do mesmo atleta no mesmo dia, dos quais {PR['REGRA_A']['identicos']} repetem as sete "
+     "variáveis. A regra de composição retém o primeiro e o último registro de cada atleta-dia e afasta os "
+     f"{PR['REGRA_A']['n_excedentes']} intermediários do valor diário, de modo que "
+     f"{PR['REGRA_A']['retidos']} dos {PR['TOTAIS']['registros']} registros compõem os valores analisados.")
+para(f"A regra dispensa qualquer hipótese de relógio, e isso importa: {len(PR['SEM_MANHA'])} dos 139 pares "
+     "atleta-dia entre o segundo e o sétimo dia não têm nenhum registro antes do meio-dia, e a conferência "
+     "confirma que nenhum deles tem registro anterior naquele dia. Nesses casos o primeiro registro é o de "
+     "pré, atrasado em relação à hora prevista. Uma regra que exigisse resposta matinal descartaria esses "
+     f"pares e reteria apenas {PR['REGRA_B']['retidos']} registros, contra "
+     f"{PR['REGRA_A']['retidos']} pela regra adotada.")
 
 head("6 PADRONIZAÇÃO DE VARIÁVEIS CATEGÓRICAS")
 para("Uma variável categórica está padronizada quando cada nível tem uma única grafia. A verificação compara "

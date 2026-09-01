@@ -7,7 +7,7 @@ Base única: `base/humor_handebol.sqlite`. Os CSV em `base/csv/` são exportaç�
 | `v_confronto_vias` | 29 | 5 | Vista: a mesma hipótese pelas três vias de análise. |
 | `v_painel_dia` | 7 | 10 | Vista: o painel dia a dia. |
 | `v_qualidade` | 20 | 9 | — |
-| `v_significativos` | 117 | 11 | Vista: apenas os resultados significativos. |
+| `v_significativos` | 119 | 11 | Vista: apenas os resultados significativos. |
 | `aba` | 218 | 7 | Cada aba das planilhas, categorizada. |
 | `atleta` | 27 | 7 | Um registro por atleta, com assiduidade. |
 | `atleta_dia` | 166 | 22 | A unidade de análise adotada: um valor por atleta e por dia, com escore T, perfil e faixa. |

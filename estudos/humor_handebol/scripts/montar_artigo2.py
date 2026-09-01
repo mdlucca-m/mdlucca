@@ -195,7 +195,10 @@ src(nota="Restrito, em cada unidade, aos atletas com registro nos sete dias. O r
          "teste de medidas repetidas e fica fora da comparação.")
 para(A.R9[3])
 
-head("3.9 Mecanismo de ausência", lvl=2)
+head("3.9 Robustez à regra de composição do valor diário", lvl=2)
+para(A.R9B[0]); para(A.R9B[1])
+
+head("3.10 Mecanismo de ausência", lvl=2)
 para(A.R10[0])
 caption(f"Tabela {tab()} – A probabilidade de responder no dia seguinte, em função do humor do dia")
 mktable(["Variável","β do humor","Erro padrão","p","p de Holm","p do dia","Associação"],
@@ -217,7 +220,7 @@ src(nota="Cada atleta com medida em D1 e sem medida em D7 recebe, alternadamente
          "extremos concordam com o sinal observado.")
 para(A.R10[3])
 
-head("3.10 HIIT e amistoso: resposta aguda, contraste pareado e resíduo", lvl=2)
+head("3.11 HIIT e amistoso: resposta aguda, contraste pareado e resíduo", lvl=2)
 para(A.R11[0])
 caption(f"Tabela {tab()} – HIIT contra amistoso, pareado no mesmo atleta")
 mktable(["Variável","n","Δ no HIIT","Δ no amistoso","Diferença","IC 95% da diferença","dz","Magnitude","p"],
@@ -248,7 +251,7 @@ src(nota=f"Intervalo de Jeffreys para a proporção. Qui-quadrado entre os três
          f"χ² = {n_(ES['qui2'])}; {pf_(ES['p_qui2'])}.")
 para(A.R11[4])
 
-head("3.11 Reconferência dos resultados", lvl=2)
+head("3.12 Reconferência dos resultados", lvl=2)
 para("Os valores relatados neste artigo foram recalculados por um segundo caminho de código, independente do "
      "que produziu a base canônica. O caminho A parte das colunas já pontuadas da base de origem; o caminho B "
      "parte do item do formulário e reconstrói cada escore por fórmula, inclusive a perturbação total do humor "

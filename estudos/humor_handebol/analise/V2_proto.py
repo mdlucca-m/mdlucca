@@ -10,9 +10,11 @@ Protocolo declarado pelo autor:
 
 A rotina confere o cumprimento pelo carimbo de data e hora sob duas leituras:
 
-  REGRA A (literal, sem relógio)  pré = primeiro registro do atleta no dia;
-      pós = último registro do dia; excedente = tudo o que fica entre os dois.
-      Em D1 vale apenas o primeiro registro. Não pressupõe hora de corte.
+  REGRA A (adotada)  D1 entra por inteiro, por ser basal de janela única. De
+      D2 a D7, pré = primeiro registro do atleta no dia e pós = último;
+      excedente = tudo o que fica entre os dois. Não pressupõe hora de corte,
+      o que importa porque 59 atletas-dia só responderam a partir do meio-dia
+      e neles o primeiro registro é o pré, atrasado por esquecimento.
 
   REGRA B (com corte de relógio)  o dia divide-se em manhã (04h–11h59) e fim
       do dia (12h–03h59); vale a primeira resposta da manhã e a última do fim
@@ -62,7 +64,9 @@ for d in range(1,8):
 def julga(v, d, regra):
     """devolve (indices validos, indices excedentes)"""
     if regra=='A':
-        val=[0] if d==1 else ([0] if len(v)==1 else [0,len(v)-1])
+        # regra adotada: D1 entra por inteiro (basal de janela única, decisão do
+        # autor); de D2 a D7 valem o primeiro e o último registro do dia.
+        val=list(range(len(v))) if d==1 else ([0] if len(v)==1 else [0,len(v)-1])
     else:
         m=[i for i,r in enumerate(v) if r['periodo']=='manhã']
         f=[i for i,r in enumerate(v) if r['periodo']=='fim do dia']
@@ -74,7 +78,7 @@ for regra in ('A','B'):
     exc=[]; conf=0; incompleto=0
     for (a,d),v in sorted(AD.items()):
         val,ex=julga(v,d,regra)
-        alvo=1 if d==1 else 2
+        alvo=len(v) if d==1 else 2
         if len(val)==alvo and not ex: conf+=1
         if len(val)<alvo: incompleto+=1
         for i in ex:

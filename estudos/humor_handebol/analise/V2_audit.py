@@ -90,7 +90,8 @@ UNID=[
       usada_em='Tabelas do Paper 1',
       vies='Pondera duplamente os atletas que responderam duas vezes e simplesmente os que responderam uma.'),
  dict(sigla='U-AD', nome='Par atleta-dia', n=166,
-      regra='Um valor por atleta e por dia, média das respostas daquele dia.',
+      regra='Um valor por atleta e por dia. D1 entra por inteiro, por ser basal de janela única; de D2 a '
+            'D7 o valor é a média do primeiro registro do dia (pré) e do último (pós).',
       usada_em='Artigos 1 e 2 (unidade adotada)',
       vies='Cada atleta pesa igual em cada dia; elimina a pseudorreplicação.'),
  dict(sigla='U-PAR', nome='Subamostra pareada', n=143,

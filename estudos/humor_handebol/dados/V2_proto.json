@@ -424,7 +424,7 @@
    "atletas": 27,
    "registros": 48,
    "esperado": 27,
-   "excedente_A": 21,
+   "excedente_A": 0,
    "excedente_B": 21,
    "janelas": 4
   },
@@ -484,19 +484,9 @@
   }
  ],
  "REGRA_A": {
-  "conformes": 46,
+  "conformes": 67,
   "incompletos": 20,
   "excedentes": [
-   {
-    "atleta": "A01",
-    "dia": 1,
-    "hora": "01:05",
-    "carimbo": "2024-04-22T01:05:57",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 250.3,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
    {
     "atleta": "A01",
     "dia": 2,
@@ -605,16 +595,6 @@
     "periodo": "fim do dia",
     "minutos_do_vizinho": 2.2,
     "reenvio_imediato": true,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A02",
-    "dia": 1,
-    "hora": "23:30",
-    "carimbo": "2024-04-21T23:30:16",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 153.3,
-    "reenvio_imediato": false,
     "identico_a_outro": false
    },
    {
@@ -778,26 +758,6 @@
     "identico_a_outro": false
    },
    {
-    "atleta": "A06",
-    "dia": 1,
-    "hora": "23:03",
-    "carimbo": "2024-04-21T23:03:07",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 134.1,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A07",
-    "dia": 1,
-    "hora": "22:59",
-    "carimbo": "2024-04-21T22:59:31",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 129.3,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
     "atleta": "A07",
     "dia": 2,
     "hora": "15:12",
@@ -938,52 +898,12 @@
     "identico_a_outro": false
    },
    {
-    "atleta": "A08",
-    "dia": 1,
-    "hora": "23:37",
-    "carimbo": "2024-04-21T23:37:11",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 164.9,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A09",
-    "dia": 1,
-    "hora": "23:37",
-    "carimbo": "2024-04-21T23:37:11",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 162.9,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
     "atleta": "A09",
     "dia": 2,
     "hora": "14:45",
     "carimbo": "2024-04-22T14:45:36",
     "periodo": "fim do dia",
     "minutos_do_vizinho": 79.0,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A10",
-    "dia": 1,
-    "hora": "00:45",
-    "carimbo": "2024-04-22T00:45:20",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 234.2,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A11",
-    "dia": 1,
-    "hora": "23:07",
-    "carimbo": "2024-04-21T23:07:32",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 136.0,
     "reenvio_imediato": false,
     "identico_a_outro": false
    },
@@ -1074,16 +994,6 @@
     "carimbo": "2024-04-27T11:31:09",
     "periodo": "manhã",
     "minutos_do_vizinho": 88.5,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A12",
-    "dia": 1,
-    "hora": "23:06",
-    "carimbo": "2024-04-21T23:06:53",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 144.1,
     "reenvio_imediato": false,
     "identico_a_outro": false
    },
@@ -1204,16 +1114,6 @@
     "carimbo": "2024-04-26T15:15:22",
     "periodo": "fim do dia",
     "minutos_do_vizinho": 47.9,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A13",
-    "dia": 1,
-    "hora": "23:55",
-    "carimbo": "2024-04-21T23:55:59",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 183.8,
     "reenvio_imediato": false,
     "identico_a_outro": false
    },
@@ -1389,16 +1289,6 @@
    },
    {
     "atleta": "A15",
-    "dia": 1,
-    "hora": "23:22",
-    "carimbo": "2024-04-21T23:22:52",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 150.1,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A15",
     "dia": 2,
     "hora": "15:07",
     "carimbo": "2024-04-22T15:07:22",
@@ -1434,26 +1324,6 @@
     "carimbo": "2024-04-23T14:03:47",
     "periodo": "fim do dia",
     "minutos_do_vizinho": 78.5,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A16",
-    "dia": 1,
-    "hora": "01:15",
-    "carimbo": "2024-04-22T01:15:24",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 262.9,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A17",
-    "dia": 1,
-    "hora": "23:09",
-    "carimbo": "2024-04-21T23:09:12",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 140.4,
     "reenvio_imediato": false,
     "identico_a_outro": false
    },
@@ -1579,16 +1449,6 @@
    },
    {
     "atleta": "A19",
-    "dia": 1,
-    "hora": "00:26",
-    "carimbo": "2024-04-22T00:26:34",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 215.7,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A19",
     "dia": 2,
     "hora": "11:26",
     "carimbo": "2024-04-22T11:26:55",
@@ -1689,16 +1549,6 @@
    },
    {
     "atleta": "A20",
-    "dia": 1,
-    "hora": "23:29",
-    "carimbo": "2024-04-21T23:29:40",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 156.0,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A20",
     "dia": 2,
     "hora": "15:06",
     "carimbo": "2024-04-22T15:06:20",
@@ -1759,16 +1609,6 @@
    },
    {
     "atleta": "A21",
-    "dia": 1,
-    "hora": "23:22",
-    "carimbo": "2024-04-21T23:22:48",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 152.1,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A21",
     "dia": 2,
     "hora": "16:03",
     "carimbo": "2024-04-22T16:03:55",
@@ -1794,16 +1634,6 @@
     "carimbo": "2024-04-25T14:00:04",
     "periodo": "fim do dia",
     "minutos_do_vizinho": 77.6,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A22",
-    "dia": 1,
-    "hora": "23:05",
-    "carimbo": "2024-04-21T23:05:13",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 133.7,
     "reenvio_imediato": false,
     "identico_a_outro": false
    },
@@ -1949,31 +1779,11 @@
    },
    {
     "atleta": "A23",
-    "dia": 1,
-    "hora": "01:10",
-    "carimbo": "2024-04-22T01:10:08",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 260.2,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A23",
     "dia": 3,
     "hora": "10:56",
     "carimbo": "2024-04-23T10:56:55",
     "periodo": "manhã",
     "minutos_do_vizinho": 131.3,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A24",
-    "dia": 1,
-    "hora": "23:11",
-    "carimbo": "2024-04-21T23:11:23",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 142.9,
     "reenvio_imediato": false,
     "identico_a_outro": false
    },
@@ -2089,16 +1899,6 @@
    },
    {
     "atleta": "A26",
-    "dia": 1,
-    "hora": "23:00",
-    "carimbo": "2024-04-21T23:00:28",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 129.9,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A26",
     "dia": 2,
     "hora": "13:46",
     "carimbo": "2024-04-22T13:46:11",
@@ -2169,16 +1969,6 @@
    },
    {
     "atleta": "A27",
-    "dia": 1,
-    "hora": "01:19",
-    "carimbo": "2024-04-22T01:19:15",
-    "periodo": "fim do dia",
-    "minutos_do_vizinho": 264.9,
-    "reenvio_imediato": false,
-    "identico_a_outro": false
-   },
-   {
-    "atleta": "A27",
     "dia": 2,
     "hora": "16:34",
     "carimbo": "2024-04-22T16:34:18",
@@ -2198,14 +1988,14 @@
     "identico_a_outro": false
    }
   ],
-  "n_excedentes": 171,
-  "retidos": 285,
+  "n_excedentes": 150,
+  "retidos": 306,
   "reenvio_imediato": 26,
   "identicos": 11
  },
  "REGRA_B": {
   "conformes": 23,
-  "incompletos": 72,
+  "incompletos": 93,
   "excedentes": [
    {
     "atleta": "A01",
@@ -5050,52 +4840,52 @@
  "IMPACTO": {
   "tensao": {
    "n": 166,
-   "media": 0.0359,
-   "dp": 0.3121,
-   "max_abs": 1.5,
-   "n_diferente": 45
+   "media": 0.0299,
+   "dp": 0.2015,
+   "max_abs": 0.8333,
+   "n_diferente": 35
   },
   "depressao": {
    "n": 166,
-   "media": -0.0813,
-   "dp": 0.6422,
-   "max_abs": 5.5,
-   "n_diferente": 50
+   "media": 0.0,
+   "dp": 0.1949,
+   "max_abs": 0.75,
+   "n_diferente": 40
   },
   "raiva": {
    "n": 166,
-   "media": 0.0264,
-   "dp": 0.7145,
-   "max_abs": 4.0,
-   "n_diferente": 59
+   "media": 0.0565,
+   "dp": 0.4447,
+   "max_abs": 2.0,
+   "n_diferente": 46
   },
   "vigor": {
    "n": 166,
-   "media": 0.144,
-   "dp": 0.8819,
-   "max_abs": 3.5,
-   "n_diferente": 80
+   "media": -0.0428,
+   "dp": 0.5584,
+   "max_abs": 2.4,
+   "n_diferente": 63
   },
   "fadiga": {
    "n": 166,
-   "media": -0.17,
-   "dp": 0.8173,
-   "max_abs": 5.0,
-   "n_diferente": 83
+   "media": -0.0465,
+   "dp": 0.5914,
+   "max_abs": 2.9,
+   "n_diferente": 68
   },
   "confusao": {
    "n": 166,
-   "media": 0.0169,
-   "dp": 0.3484,
+   "media": -0.0012,
+   "dp": 0.2655,
    "max_abs": 2.0,
-   "n_diferente": 34
+   "n_diferente": 24
   },
   "pth": {
    "n": 166,
-   "media": -0.3161,
-   "dp": 2.0601,
-   "max_abs": 12.0,
-   "n_diferente": 95
+   "media": 0.0815,
+   "dp": 1.2333,
+   "max_abs": 7.0,
+   "n_diferente": 76
   }
  },
  "TOTAIS": {

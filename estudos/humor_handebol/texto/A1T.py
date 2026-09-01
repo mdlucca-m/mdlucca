@@ -219,14 +219,22 @@ METODO=[
  "cobertura parte de vinte e sete atletas no primeiro dia e recua a vinte e um no quarto e no sétimo, o que "
  "corresponde a setenta e oito por cento do elenco. É essa queda, e não a ausência de resposta, que obriga a "
  "declarar o denominador de cada contraste.",
- "O protocolo previa uma coleta no primeiro dia e duas nos demais, mas o número observado de registros por "
- "par atleta-dia varia de um a seis. O intervalo mediano entre registros consecutivos do mesmo dia é de 114 "
- "minutos, e apenas dezessete dos 290 pares consecutivos ocorrem em trinta minutos ou menos; em nenhum deles "
- "o vetor dos vinte e quatro itens se repete integralmente, o que caracteriza reenvio com alteração e não "
- "duplicata. Nenhum registro foi descartado: o valor diário é a média de todos os registros do dia e o "
- "contraste intradiário usa o primeiro e o último, regra que passa a ser declarada.",
- "A padronização das variáveis categóricas foi verificada por comparação de cada valor com a sua chave "
- "canônica, obtida pela remoção de acento, caixa e espaço redundante. O nome digitado em campo livre "
+ "O protocolo previa uma coleta no primeiro dia e duas nos demais, mas o número observado de registros por par "
+ "atleta-dia varia de um a seis. A conferência dos carimbos de data e hora, apresentada adiante, localiza de quatro a dez janelas de coleta do elenco em cada dia de D2 a D7, e não duas. Daí decorre a regra de composição "
+ "adotada: o primeiro registro do dia responde pelo estado de pré e o último pelo de pós, e a média dos dois "
+ "fornece o valor diário; os registros intermediários permanecem na base, mas não compõem esse valor. O primeiro "
+ "dia constitui exceção declarada, por ser basal de janela noturna única, e entra por inteiro. Assim, 306 dos 456 "
+ "registros compõem os valores diários, e 150 são excedentes de protocolo.",
+ "A aderência ao protocolo de coleta foi conferida registro a registro pelo carimbo de data e hora. Nenhum dos "
+ "456 registros cai fora do intervalo que vai das quatro da manhã de 21 de abril às quatro da manhã de 28 de "
+ "abril. O agrupamento dos carimbos do elenco por lacuna superior a vinte e cinco minutos revela, porém, "
+ "estrutura distinta da prevista: o primeiro dia apresenta duas janelas noturnas, às 20h42 e às 22h59, e os demais apresentam de quatro a dez janelas cada. Quarenta registros repetem o mesmo atleta dentro de uma "
+ "única janela do elenco, e vinte e seis situam-se a menos de trinta minutos de outro registro do mesmo atleta no "
+ "mesmo dia. Cinquenta e nove dos 139 pares atleta-dia entre o segundo e o sétimo dia têm o seu primeiro registro "
+ "ao meio-dia ou depois, sem qualquer registro anterior naquele dia; nesses casos o primeiro registro é o de pré, "
+ "atrasado em relação à hora prevista. É essa constatação que dispensa a regra de composição de qualquer hipótese "
+ "de relógio.",  "A padronização das variáveis categóricas foi verificada por comparação de cada valor com a sua "
+ "chave canônica, obtida pela remoção de acento, caixa e espaço redundante. O nome digitado em campo livre "
  "apresenta sessenta e sete grafias para quarenta e oito nomes canônicos, quinze deles com mais de uma forma; "
  "é por isso que a identidade do respondente provém da coluna padronizada, e não do texto livre. As demais "
  "variáveis categóricas do formulário não apresentam variante de grafia.",
@@ -758,11 +766,14 @@ LIMITACOES=[
  "semana pode diferir sistematicamente do que deixa de comparecer, e a hipótese de ausência ignorável não é "
  "verificável com estes dados. É por essa razão que cada contraste declara o seu denominador e que a unidade "
  "de análise foi fixada no par atleta-dia.",
- "A nona é de granularidade do registro. O número de respostas por atleta e por dia varia de um a seis, "
- "acima do previsto no protocolo. A regra adotada, que toma a média de todos os registros do dia para o valor diário e reserva o primeiro e o "
- "último ao contraste intradiário, preserva a informação, mas atribui pesos internos distintos conforme o atleta tenha respondido "
- "duas ou seis vezes naquele dia. O efeito é pequeno, porque a mediana do intervalo entre respostas "
- "consecutivas é de quase duas horas, e a alternativa de descartar registros seria pior."
+ "A nona é de granularidade do registro. O número de respostas por atleta e por dia varia de um a seis, acima do "
+ "previsto no protocolo, e a auditoria dos carimbos identificou 150 registros excedentes entre o segundo e o "
+ "sétimo dia. A regra de composição neutraliza o efeito de ponderação que essa irregularidade produziria, porque "
+ "cada atleta-dia passa a contribuir com exatamente duas medidas, mas não recupera a hora prevista de coleta: o "
+ "intervalo entre o pré e o pós tem mediana de 292 minutos e varia de 52 a 854, o que torna a janela intradiária "
+ "heterogênea entre atletas. O primeiro dia guarda irregularidade própria, pois vinte e um dos vinte e sete "
+ "atletas responderam duas vezes na noite basal, com a segunda resposta sistematicamente mais desfavorável; o "
+ "basal integra as duas por decisão declarada, e não por indiferença ao problema."
 ]
 
 CONCLUSAO=[

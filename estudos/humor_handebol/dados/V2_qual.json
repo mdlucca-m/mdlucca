@@ -2778,10 +2778,10 @@
   },
   {
    "id": "Q3",
-   "gravidade": "média",
-   "titulo": "Mais de dois registros no mesmo dia",
-   "achado": "O protocolo previa uma coleta em D1 e duas de D2 a D7; a distribuição observada vai de 1 a 6 registros por par atleta-dia, e 17 pares consecutivos ocorrem em 30 minutos ou menos.",
-   "correcao": "O valor diário é a média de todos os registros do dia; o contraste pré-pós usa o primeiro e o último. Nenhum registro é descartado, e a regra passa a ser declarada.",
+   "gravidade": "alta",
+   "titulo": "Registros excedentes ao protocolo de coleta",
+   "achado": "O protocolo previa uma coleta em D1 e duas de D2 a D7; a distribuição observada vai de 1 a 6 registros por par atleta-dia, e 17 pares consecutivos ocorrem em 30 minutos ou menos. A conferência pelo carimbo (V2_proto) mostra de 7 a 10 janelas de coleta do elenco por dia, e não duas.",
+   "correcao": "De D2 a D7 valem o primeiro registro do dia (pré) e o último (pós); os 150 registros intermediários deixam de compor o valor diário. O pré não exige hora da manhã, porque 59 dos 139 atletas-dia só responderam a partir do meio-dia, sem registro anterior naquele dia. D1 entra por inteiro, por decisão do autor, por ser basal de janela única.",
    "n": 79,
    "de": 166
   },

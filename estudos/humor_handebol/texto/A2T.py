@@ -413,6 +413,22 @@ R9=[
  "relatório que informe apenas «p = 0,03 pelo teste de Wilcoxon» não permite ao leitor saber se o mesmo "
  "dado, contado de outra forma igualmente defensável, produziria p = 0,07."]
 
+R9B=[
+ "Convém distinguir essa instabilidade de outra, que a auditoria de protocolo permitiu testar. A regra que "
+ "compõe o valor diário mudou entre uma versão e outra deste estudo: a anterior tomava a média de todos os "
+ "registros do dia, ao passo que a atual retém apenas o primeiro e o último, por conferência dos carimbos de "
+ "data e hora contra o protocolo de coleta. Cento e cinquenta registros deixaram de compor os valores "
+ "diários, um terço do total. Refeitas as três vias sobre a base recomposta, nenhum dos vinte e um vereditos "
+ "trocou de lado: as mesmas quatro variáveis concordam, as mesmas três divergem, e a divergência mantém a "
+ "mesma ordem entre as vias. Os coeficientes deslocaram-se pouco e no sentido esperado: o efeito diário do "
+ "vigor passou de −0,335 a −0,358 e o da fadiga, de +0,354 a +0,370.",
+ "O contraste entre as duas sensibilidades é instrutivo. O veredito é frágil quanto à via e quanto à unidade, "
+ "mas robusto quanto à regra de composição do valor diário. A razão está na natureza de cada escolha: via e "
+ "unidade alteram quem entra no cálculo e sob que pressuposto, ao passo que a regra de composição altera "
+ "apenas a precisão com que cada atleta-dia é estimado. Uma decisão de amostra pesa mais do que uma decisão "
+ "de medida, e é isso que recomenda declarar as três, sem confundi-las.",
+]
+
 R10=[
  "O mecanismo de ausência, declarado como limitação não verificada nas versões anteriores deste estudo, "
  "passa a ser testado. Nenhuma das sete variáveis do dia corrente se associa à probabilidade de o atleta "
@@ -572,11 +588,13 @@ LIMITACOES=[
 "Quatro das seis subescalas apresentam efeito de piso severo, o que compromete a detecção de melhora e "
 "introduz assimetria em toda comparação. O estudo acompanhou uma única equipe masculina de primeira divisão "
 "em uma única semana, e não registrou desfechos externos de desempenho, marcadores fisiológicos ou lesão.",
- "A cobertura da grade que cruza atleta e dia recua a setenta e oito por cento do elenco no quarto e no "
- "sétimo dias, e o número de respostas por atleta e por dia varia de um a seis, acima do previsto no "
- "protocolo. A primeira condição reduz o número de casos completos sobre o qual as vias clássicas podem "
- "operar e é uma das duas causas da divergência entre rotas documentada neste artigo; a segunda faz o valor "
- "diário ser a média de um número desigual de respostas conforme o atleta e o dia.",
+ "A cobertura da grade que cruza atleta e dia recua a setenta e oito por cento do elenco no quarto e no sétimo "
+ "dias, e o número de respostas por atleta e por dia varia de um a seis, acima do previsto no protocolo. A "
+ "primeira condição reduz o número de casos completos sobre o qual as vias clássicas podem operar e é uma das "
+ "duas causas da divergência entre rotas documentada neste artigo. A segunda foi tratada pela regra de composição "
+ "descrita no método, que retém o primeiro e o último registro de cada dia e afasta os 150 intermediários, de "
+ "modo que todo atleta-dia contribui com o mesmo número de medidas; resta, ainda assim, a heterogeneidade da "
+ "janela entre o pré e o pós, cuja amplitude vai de 52 a 854 minutos.",
  "O modelo que separa a carga do dia da carga da véspera opera sobre uma única equipe e sete dias, condição "
  "na qual o efeito das horas não se separa do efeito do dia do microciclo nem da carga acumulada. Os "
  "coeficientes são associativos, e a defasagem que eles revelam é convergente com as derivadas, não "

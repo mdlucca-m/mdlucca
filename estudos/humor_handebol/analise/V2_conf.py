@@ -35,7 +35,11 @@ for x in DENTRO: por[(x['atleta'],x['dia'])].append(x)
 PARES_B={}
 for k,g in por.items():
     g=sorted(g,key=lambda x:x['carimbo'])
-    PARES_B[k]={v:float(np.mean([y['calc'][v] for y in g])) for v in V7}
+    # Mesma regra de composição da base canônica, reconstruída de modo independente:
+    # D1 entra por inteiro (basal de janela única); de D2 a D7 valem o primeiro
+    # registro do dia (pré) e o último (pós). Ver analise/V2_proto.py.
+    elei = g if k[1]==1 else ([g[0]] if len(g)==1 else [g[0],g[-1]])
+    PARES_B[k]={v:float(np.mean([y['calc'][v] for y in elei])) for v in V7}
 
 CONF=[]
 def registra(bloco, item, a, b, tol=5e-3, unid=''):
