@@ -564,7 +564,7 @@ R5=[
 "tubarão é consistente e de magnitude relevante, porém não confirmado por teste formal na subamostra completa.",
 ]
 R6=[
-"A Figura 9 acompanha o custo do dia e a migração intradiária, e a Tabela 6 registra os testes.",
+"A Figura 8 acompanha o custo do dia e a migração intradiária, e a Tabela 6 registra os testes.",
 "Considerados em conjunto os 119 pares completos de manhã e tarde ou noite, a migração para a faixa de risco tem "
 "direção clara: vinte e três pares entram nessa faixa ao longo do dia e dez saem dela (χ² = 4,36; p = 0,037). O "
 "dia de treino, qualquer que seja o conteúdo, desloca o grupo na direção do risco, ainda que a margem seja mais "
@@ -594,7 +594,7 @@ R6=[
 "estímulo quanto a de efeito cumulativo, e o presente desenho não separa as duas.",
 ]
 R7=[
-"A Figura 8 aplica o teste formal de cruzamento e ilustra a diferença entre uma troca de posição aparente e "
+"A Figura 9 aplica o teste formal de cruzamento e ilustra a diferença entre uma troca de posição aparente e "
 "uma inversão estabelecida.",
 "O par formado pelo vigor e pela fadiga cruza-se uma única vez, na abscissa 5,13, com limiar combinado de 0,97 "
 "ponto. A diferença entre as duas séries é de 5,56 pontos no primeiro dia, favorável ao vigor, e de −3,05 pontos "
@@ -607,6 +607,20 @@ R7=[
 "ponto; a diferença parte de 0,59 ponto no primeiro dia, valor inferior ao limiar. O procedimento classifica o "
 "achado como divergência e recusa-lhe o estatuto de inversão estabelecida, ainda que a separação final, de −1,64 "
 "ponto, ultrapasse o limiar. É o único par da série a receber esse veredito.",
+"O eixo do microciclo, porém, não se resume a um par. A Figura 10 reúne o vigor, a fadiga e a perturbação "
+"total do humor no mesmo gráfico e localiza os três cruzamentos que ocorrem entre eles, todos na segunda "
+"metade da semana e em sequência ordenada. O vigor cruza a fadiga em D5,13, cruza a perturbação total em "
+"D6,01 e, por fim, a fadiga cruza a perturbação total em D6,41. A ordem não é arbitrária: o vigor perde "
+"primeiro a dianteira para a variável que mede o custo direto do esforço e só depois para o composto que "
+"agrega as cinco dimensões negativas, o que indica que a fadiga puxa a perturbação total, e não o contrário.",
+"Os dois primeiros cruzamentos recebem o estatuto de inversão estabelecida. A diferença entre vigor e "
+"fadiga parte de 5,56 pontos e termina em −3,05, contra um limiar de 0,97; a diferença entre vigor e "
+"perturbação total parte de 8,67 e termina em −4,17, contra um limiar de 1,97. O terceiro não o recebe: a "
+"diferença entre fadiga e perturbação total parte de 3,11 pontos, valor que supera o limiar de 2,02, mas "
+"termina em −1,12, aquém dele. A troca de posição existe, e o procedimento a classifica como divergência, "
+"porque a separação final não se distingue do ruído somado das duas séries. O painel b da figura torna essa "
+"distinção visível: a diferença de cada par é lida contra a sua própria faixa de limiar, e a fadiga menos a "
+"perturbação total termina dentro dela.",
 "A faixa favorável e a faixa de risco fornecem o cruzamento de maior amplitude do estudo. Elas partem separadas por 29,6 pontos percentuais em favor da favorável e terminam separadas por 33,3 em favor "
 "da de risco, com um único cruzamento, na abscissa 1,85. O limiar combinado é de 13,5 pontos percentuais, e ambas "
 "as separações o superam com folga: a inversão é declarada estabelecida. O grupo, portanto, troca de regime já no segundo dia da semana, antes e de modo mais nítido do que a inversão "
@@ -632,7 +646,7 @@ RC=[
  "variância."]
 
 RP=[
- "As séries de prevalência, examinadas perfil a perfil na Figura 10, revelam um padrão que a média das "
+ "As séries de prevalência, examinadas perfil a perfil na Figura 11, revelam um padrão que a média das "
  "subescalas não expõe. Os dois perfis de extremos favorável e desfavorável, o iceberg e a barbatana de "
  "tubarão, trocam de posição já na saída do dia basal e nunca mais se reaproximam: o iceberg parte de 44,4% "
  "e a barbatana de 3,7%, e no segundo dia estão em 23,1% e 30,8%. O iceberg não volta ao patamar inicial em "
@@ -640,21 +654,21 @@ RP=[
  "o iceberg invertido partilham o pico no último dia, ambos com 23,8%, o que reparte o elenco da véspera da "
  "estreia entre uma configuração de apatia e outra de perturbação franca.",
 
- "A Figura 11 recompõe a semana como redistribuição, e não como deslocamento de médias. A leitura em área "
+ "A Figura 12 recompõe a semana como redistribuição, e não como deslocamento de médias. A leitura em área "
  "empilhada mostra que o elenco não migra progressivamente de uma faixa para outra: o rearranjo maior "
  "concentra-se na passagem do primeiro para o segundo dia, quando a faixa de risco quase triplica, e o "
  "restante da semana oscila em torno do novo patamar sem retornar ao inicial. O painel das três faixas "
  "localiza a inversão entre a favorável e a de risco em D1,85, isto é, ainda na primeira metade do segundo "
  "dia.",
 
- "O mapa da Figura 12 responde à pergunta de onde cada perfil predomina. Por dia, os picos distribuem-se "
+ "O mapa da Figura 13 responde à pergunta de onde cada perfil predomina. Por dia, os picos distribuem-se "
  "sem concentração: iceberg em D1, superfície em D2, Everest invertido em D4, barbatana de tubarão em D5, e "
  "submerso e iceberg invertido em D7. Por tipo de estímulo, o contraste é mais nítido: o iceberg alcança "
  "44,4% no dia basal e cai a 23,5% nos dias de HIIT, ao passo que a barbatana de tubarão faz o percurso "
  "inverso, de 3,7% no basal a 31,8% no dia técnico e de força. A associação entre estímulo e perfil, "
  "contudo, não é estatisticamente detectável, o que impede atribuir a distribuição ao tipo de sessão.",
 
- "A Figura 13 sai da prevalência e volta à forma. Cada painel confronta o centroide observado neste elenco "
+ "A Figura 14 sai da prevalência e volta à forma. Cada painel confronta o centroide observado neste elenco "
  "com o centroide canônico de Parsons-Smith, Terry e Machin (2017), em escore T contra a norma de atletas, "
  "e o que se vê é uma correspondência de formato com deslocamento de nível. O iceberg do elenco tem o "
  "desenho esperado, com o vigor como único ponto acima da linha normativa, mas o pico de vigor fica em 51 "
@@ -668,7 +682,7 @@ RP=[
  "iceberg invertido, a raiva chega a 86 contra 75, e no Everest invertido a depressão alcança 123 contra "
  "89. O Everest invertido, porém, reúne apenas dois pares atleta-dia no conjunto inteiro, e o seu centroide "
  "é, na prática, a média de duas observações; a distância em relação à referência não deve ser interpretada "
- "como característica do elenco. A Figura 14 reúne os seis perfis em um único eixo e permite ver de uma vez "
+ "como característica do elenco. A Figura 15 reúne os seis perfis em um único eixo e permite ver de uma vez "
  "o que a taxonomia organiza: o vigor é a dimensão que separa os perfis favoráveis dos desfavoráveis, e ela "
  "os separa em uma faixa estreita, de 33 a 51, ao passo que a raiva e a depressão, que quase não distinguem "
  "os três primeiros perfis, abrem o leque nos três últimos.",

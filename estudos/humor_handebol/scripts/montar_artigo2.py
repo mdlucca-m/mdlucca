@@ -30,6 +30,8 @@ for i,(sub,ps) in enumerate(A.METODO):
     head(f"2.{i+1} {sub}", lvl=2)
     for p in ps: para(p)
     if i==3:
+        para("A Figura 1 resume as três vias aplicadas à mesma hipótese e explicita a árvore de decisão que "
+             "determina, variável a variável, qual delas governa a conclusão reportada.")
         figura(f"{S}/G1fig.png",fig(),"As três vias de análise aplicadas à mesma hipótese e a árvore de decisão "
                "que define qual delas governa a conclusão em cada variável.",w=16.0)
 

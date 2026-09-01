@@ -38,6 +38,8 @@ for i,(sub,ps) in enumerate(A.METODO):
     head(f"2.{i+1} {sub}", lvl=2)
     for p in ps: para(p)
     if i==2:
+        para("A Figura 1 resume o desenho do microciclo, as janelas de coleta efetivamente observadas em cada "
+             "dia e a cadeia que leva do registro bruto ao veredito de cada série.")
         figura(f"{S}/F1fig.png",fig(),"Desenho do microciclo, janelas observadas de coleta e cadeia de "
                "processamento das séries.",w=16.0)
     if i==3:
@@ -75,6 +77,8 @@ src(nota="Piso = percentual de respostas no valor mínimo; o critério de Terwee
          "problemática a concentração acima de 15%. CCI (1,1) refere-se à medida única e CCI (1,k) à média "
          "das medidas da semana. EPM = erro-padrão de medida; MVD = mínima variação detectável.")
 for p in A.R1[2:]: para(p)
+para("A Figura 3 apresenta a distribuição das sete variáveis e a concentração de respostas no valor "
+     "mínimo de cada escala.")
 figura(f"{S}/F3fig.png",fig(),"Distribuição das sete variáveis e efeito de piso.",w=16.0)
 
 head("3.2 Comportamento temporal e tendência ordenada", lvl=2)
@@ -110,6 +114,7 @@ mktable(["Variável","D1","D7","Δ","Piso","|Δ|/piso","Veredito","Transições 
 src(nota="O piso de ruído é a média dos sete erros-padrão diários. Declara-se sinal quando |Δ| o supera. "
          "Transição de choque é aquela cuja primeira derivada, em valor absoluto, supera o piso; o ponto de "
          "inflexão é a abscissa, em fração de dia, na qual a segunda derivada muda de sinal.")
+para(A.R4[0])
 figura(f"{S}/F6fig.png",fig(),"Primeira e segunda derivadas das séries diárias, expressas em unidades do piso de "
        "ruído de cada subescala.",w=16.0)
 for p in A.R4[1:]: para(p)
@@ -161,7 +166,10 @@ src(nota="Resposta aguda pelo teste de Wilcoxon para a diferença entre a últim
 head("3.6 Teste formal de cruzamento", lvl=2)
 para(A.R7[0])
 figura(f"{S}/F8fig.png",fig(),"Teste formal de cruzamento entre trajetórias.",w=16.0)
-for p in A.R7[1:]: para(p)
+para(A.R7[1]); para(A.R7[2]); para(A.R7[3])
+figura(f"{S}/P6fig.png",fig(),"Vigor, fadiga e perturbação total do humor ao longo do microciclo, com os três "
+       "pontos de cruzamento e a diferença de cada par contra o seu limiar combinado.",w=16.0)
+para(A.R7[4]); para(A.R7[5])
 caption(f"Tabela {tab()} – Cruzamentos testados")
 mktable(["Par de séries","Diferença em D1","Diferença em D7","Limiar","Cruzamentos","Veredito"],
   [[k.replace('TMD','PTH'), n_(d['d1']), n_(d['d7']), n_(d['lim']),

@@ -124,6 +124,7 @@ para(f"A restrição ao subgrupo acionável muda a conclusão. Dos {ML['n']} par
      "modelos de árvore têm intervalo de confiança que exclui o acaso "
      f"(floresta aleatória, {n_(S2['Random Forest']['auc'])}, de {n_(S2['Random Forest']['ic'][0])} a "
      f"{n_(S2['Random Forest']['ic'][1])}).")
+para("A Figura 3 compara a área sob a curva dos quatro classificadores com a das duas linhas de base.")
 figura(os.path.join(S,"M1fig.png"), fig(),
        "Área sob a curva dos modelos e das linhas de base, na amostra completa e no subgrupo acionável")
 
@@ -165,6 +166,8 @@ para("A sequência de modelos aninhados confirma a leitura. A perturbação tota
      f"{n_(an[0]['auc'])}; o acréscimo da tensão matinal a eleva para {n_(an[1]['auc'])}, ganho de "
      f"{n_(V['ganho_tensao'],2)} que nenhuma outra variável reproduz. O modelo com todas as {an[3]['k']} "
      f"variáveis ({n_(an[3]['auc'])}) não supera o de três, o que é esperado com {ML['n']} observações.")
+para("A Figura 4 apresenta a reversão à média por dimensão e o ganho que a tensão matinal acrescenta "
+     "à sequência de modelos aninhados.")
 figura(os.path.join(S,"M2fig.png"), fig(),
        "Reversão à média por dimensão e contribuição da tensão matinal em modelos aninhados")
 para("A leitura substantiva é a seguinte. Alguma tensão pela manhã protege; a ausência completa de tensão em "

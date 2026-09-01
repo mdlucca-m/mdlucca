@@ -30,4 +30,5 @@ python3 scripts/montar_painel.py
 for f in figuras/UV*.py figuras/UM*.py figuras/UQ*.py figuras/UP*.py; do [ -e "$f" ] && python3 "$f"; done
 python3 scripts/montar_artigo1.py && python3 scripts/montar_artigo2.py
 python3 scripts/montar_anexo.py && python3 scripts/montar_qualidade.py
+python3 scripts/conferir_figuras.py > /dev/null || echo "  ATENÇÃO: referência de figura ou tabela inexistente"
 echo "✔ pronto — consulte com ./scripts/consultar.py resumo"
