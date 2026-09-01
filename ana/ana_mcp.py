@@ -87,6 +87,21 @@ FERRAMENTAS = [
   "inputSchema": {"type": "object", "properties": {
      "parte": {"type": "string", "enum": ["desempenho", "arvore", "diagnostico", "crispdm", "tudo"],
                "default": "tudo"}}}},
+ {"name": "ana_qualidade", "description":
+  "Auditoria de qualidade do dado: dicionário de tipos de mensuração, conferência dos escores contra a fórmula, "
+  "faltantes e cobertura, padronização das categóricas, univariada com posição/dispersão/forma, e discrepantes "
+  "por três critérios. Também a reconferência dos três documentos por dois caminhos de cálculo.",
+  "inputSchema": {"type": "object", "properties": {
+     "parte": {"type": "string", "enum": ["dicionario", "formulas", "confronto", "faltantes", "categoricas",
+                                          "univariada", "discrepantes", "achados", "reconferencia", "tudo"],
+               "default": "tudo"},
+     "variavel": {"type": "string"}}}},
+ {"name": "ana_otimizar", "description":
+  "Programação linear da carga do microciclo: resposta dose-humor estimada na base, distribuição ótima das "
+  "horas, restrições ativas com preço-sombra, fronteira eficiente e análise de sensibilidade.",
+  "inputSchema": {"type": "object", "properties": {
+     "parte": {"type": "string", "enum": ["modelo", "solucao", "precos", "fronteira", "sensibilidade", "tudo"],
+               "default": "tudo"}}}},
  {"name": "ana_referencia", "description":
   "Referências do estudo com DOI verificado, PubMed e via de acesso aberto quando existe. Filtre por termo.",
   "inputSchema": {"type": "object", "properties": {
@@ -267,6 +282,130 @@ class Servidor:
             blocos.append("\n".join(L))
         return "\n\n" + ("\n\n" + "─" * 72 + "\n\n").join(blocos)
 
+    def _qualidade(self, a) -> str:
+        Q=self._json("V2_qual.json"); parte=a.get("parte","tudo"); B=[]
+        if parte in ("dicionario","tudo"):
+            B.append("DICIONÁRIO DE VARIÁVEIS — o tipo de mensuração decide a técnica descritiva\n\n"
+                     + _tab([{"variável":d['v'],"tipo":d['tipo'],"escala":d['escala'],
+                              "domínio":d['dominio'],"origem":d['origem']} for d in Q['DICIONARIO']]))
+        if parte in ("formulas","tudo"):
+            B.append("FÓRMULAS\n\n" + "\n".join(
+                f"  {f['id']:<4} {f['nome']}\n       {f['formula']}\n       {f['nota']}" for f in Q['FORMULAS']))
+        if parte in ("confronto","tudo"):
+            tot=sum(c['n_comparado'] for c in Q['CONFRONTO']); div=sum(c['n_divergente'] for c in Q['CONFRONTO'])
+            B.append(f"ESCORE RECONSTRUÍDO POR FÓRMULA × COLUNA DA PLANILHA\n"
+                     f"  {div} divergência em {tot} conferências.\n\n"
+                     + _tab([{"variável":c['variavel'],"comparações":c['n_comparado'],
+                              "divergências":c['n_divergente'],"maior diferença":c['max_dif']}
+                             for c in Q['CONFRONTO']]))
+        if parte in ("faltantes","tudo"):
+            fi=sum(f['faltantes'] for f in Q['FALTA_ITEM'])
+            B.append(f"FALTANTES — {fi} célula ausente em {len(Q['FALTA_ITEM'])*Q['n_registros']} itens de "
+                     "instrumento. A falta não é de item, é de comparecimento.\n\n"
+                     + _tab([{"dia":f"D{g['dia']}",
+                              "atletas":f"{g['atletas_com_registro']}/{g['atletas_esperados']}",
+                              "cobertura":_s(g['cobertura_atleta'],1)+"%","registros":g['registros'],
+                              "previstos":g['registros_esperados'],
+                              "cobertura reg.":_s(g['cobertura_registro'],1)+"%"} for g in Q['GRADE']])
+                     + "\n\n" + _tab([{"variável":f['item'],"faltantes":f['faltantes'],
+                                        "completude":_s(f['completude'],2)+"%"}
+                                       for f in Q['FALTA_VAR'] if f['faltantes']]))
+        if parte in ("categoricas","tudo"):
+            L=["PADRONIZAÇÃO DAS CATEGÓRICAS\n",
+               _tab([{"variável":c['variavel'],"n":c['n'],"níveis":c['niveis_canonicos'],
+                      "grafias":c['grafias'],"com variante":c['niveis_com_variante']} for c in Q['CATEG']])]
+            for nome,t in Q['FREQ'].items():
+                L.append(f"\n{nome} — n = {t['n']}, moda «{t['moda']}», H* = {_s(t['entropia_normalizada'])}\n"
+                         + _tab([{"nível":l['nivel'],"f":l['f'],"%":_s(l['pct'],1),
+                                  "f acum":l['f_acum'],"% acum":_s(l['pct_acum'],1)} for l in t['linhas']]))
+            B.append("\n".join(L))
+        if parte in ("univariada","tudo"):
+            U=[u for u in Q['UNI'] if not a.get("variavel") or u['variavel']==a['variavel']]
+            if not U: return "variável não encontrada. Disponíveis: " + ", ".join(u['variavel'] for u in Q['UNI'])
+            B.append("UNIVARIADA — posição, dispersão e forma\n\n"
+                     + _tab([{"variável":u['variavel'],"tipo":u['tipo'],"n":u['n'],"mín":u['minimo'],
+                              "Q1":u['q1'],"Md":u['mediana'],"Q3":u['q3'],"máx":u['maximo'],
+                              "média":u['media'],"dp":u['desvio'],"CV%":u['cv'],
+                              "assim":u['assimetria'],"curt":u['curtose'],"Shapiro p":u['shapiro_p']}
+                             for u in U]))
+        if parte in ("discrepantes","tudo"):
+            B.append("DISCREPANTES — domínio primeiro, depois os três critérios de dispersão\n\n"
+                     + _tab([{"variável":u['variavel'],
+                              "domínio":(f"{u['dominio'][0]:g} a {u['dominio'][1]:g}" if 'dominio' in u else "—"),
+                              "fora do domínio":u.get('fora_do_dominio','—'),
+                              "Tukey 1,5":str(u['n_tukey_moderado'])+(" ⚠ IQR=0" if u['iqr_nulo'] else ""),
+                              "Tukey 3,0":u['n_tukey_extremo'],"|z|>3":u['n_z3'],
+                              "|zM|>3,5":(u['n_zmod'] if u['n_zmod'] is not None else "MAD=0")}
+                             for u in Q['UNI']])
+                     + "\n\nINTRAINDIVIDUAIS (z modificado dentro da própria série do atleta)\n"
+                     + "\n".join(f"  {i['variavel']:<10} {i['n_discrepantes']:>3} casos"
+                                 + (f"  ·  maior: {i['casos'][0]['atleta']} D{i['casos'][0]['dia']} = "
+                                    f"{i['casos'][0]['valor']:g} contra mediana própria "
+                                    f"{i['casos'][0]['mediana_do_atleta']:g}" if i['casos'] else "")
+                                 for i in Q['INTRA']))
+        if parte in ("achados","tudo"):
+            B.append("ACHADOS DA AUDITORIA DE QUALIDADE\n\n" + "\n\n".join(
+                f"{i['id']} · {i['gravidade'].upper()} · {i['titulo']}  ({i['n']} de {i['de']})\n"
+                f"  achado:   {i['achado']}\n  correção: {i['correcao']}" for i in Q['INCONS']))
+        if parte in ("reconferencia","tudo"):
+            C=self._json("V2_conf.json")
+            B.append(f"RECONFERÊNCIA POR DOIS CAMINHOS INDEPENDENTES — {C['ok']} de {C['total']} batem\n\n"
+                     + _tab([{"bloco":c['bloco'],"item":c['item'],"caminho A":c['caminho_a'],
+                              "caminho B":c['caminho_b'],"confere":"sim" if c['confere'] else "NÃO"}
+                             for c in C['CONF']])
+                     + "\n\nNORMALIDADE das médias diárias (decide a via principal do Artigo 2)\n"
+                     + _tab([{"variável":n['variavel'],"W":n['W'],"p":n['p'],
+                              "distribuição":"normal" if n['normal'] else "não normal"}
+                             for n in C['NORMALIDADE']]))
+        return "\n\n" + ("\n\n" + "─"*72 + "\n\n").join(B)
+
+    def _otimizar(self, a) -> str:
+        O=self._json("V2_otim.json"); parte=a.get("parte","tudo"); B=[]
+        M=O['MODELO']; OB=O['OBSERVADO']; P1=O['PROGRAMA_I']
+        if parte in ("modelo","tudo"):
+            B.append("RESPOSTA DOSE-HUMOR  ·  y = β₀ + β₁·h(d) + β₂·h(d−1) + u(atleta)\n"
+                     "  O humor do dia responde à véspera, não ao próprio dia.\n\n"
+                     + _tab([{"variável":v,"β₀":M[v]['b0'],"β₁ dia":M[v]['b1'],"p":M[v]['p1'],
+                              "β₂ véspera":M[v]['b2'],"p ":M[v]['p2'],"n":M[v]['n']} for v in M]))
+        if parte in ("solucao","tudo"):
+            B.append("PROGRAMA I — mesma carga semanal, arranjo que maximiza o pior dia de vigor\n"
+                     "  max t   s.a.   vigor previsto em D_d ≥ t (d = 1…7),  Σ h_d = 23 h\n\n"
+                     + _tab([{"dia":f"D{d}","estímulo":O['TIPO'][str(d)],"observado":OB['horas'][d-1],
+                              "ótimo":P1['horas'][d-1],"Δ":P1['horas'][d-1]-OB['horas'][d-1],
+                              "fadiga prev":P1['fadiga'][d-1],"vigor prev":P1['vigor'][d-1]}
+                             for d in range(1,8)])
+                     + f"\n\n  pior dia de vigor: {_s(OB['vigor_minimo'])} → {_s(P1['vigor_minimo_garantido'])}"
+                     + f"\n  fadiga máxima:     {_s(OB['fadiga_maxima'])} → {_s(max(P1['fadiga']))}")
+        if parte in ("precos","tudo"):
+            R=sorted([r for r in O['ATIVAS'] if '≥ t' not in r['restricao']]
+                     +[dict(restricao=e['restricao'],preco_sombra=e['preco_sombra'],folga=None)
+                       for e in O['EQ']], key=lambda r:-abs(r['preco_sombra']))
+            d5=[e for e in O['EQ'] if e['restricao'].startswith('D5')][0]
+            B.append("PREÇOS-SOMBRA — variação do pior dia de vigor por unidade de afrouxamento\n\n"
+                     + _tab([{"restrição":r['restricao'],
+                              "folga":(r['folga'] if r['folga'] is not None else "igualdade"),
+                              "preço-sombra":r['preco_sombra']} for r in R])
+                     + f"\n\n  Cada hora do amistoso de D5 custa {_s(abs(d5['preco_sombra']))} ponto do pior dia "
+                       "de vigor. Quem comprime o microciclo é o calendário de jogos, não o volume de treino.")
+        if parte in ("fronteira","tudo"):
+            B.append("FRONTEIRA EFICIENTE — carga da semana contra o pior dia de vigor\n\n"
+                     + _tab([{"carga":f['carga'],
+                              "vigor mínimo":(f['vigor_minimo'] if f.get('viavel') is not False else "inviável"),
+                              "fadiga máxima":f.get('fadiga_maxima','—'),
+                              "distribuição":(" · ".join(_s(v,1) for v in f['horas'])
+                                              if f.get('horas') else "—")} for f in O['FRONTEIRA']])
+                     + f"\n\n  Carga semanal mínima estruturalmente viável: "
+                       f"{_s(O['CARGA_MINIMA_ESTRUTURAL'])} h.")
+        if parte in ("sensibilidade","tudo"):
+            L=["SENSIBILIDADE (carga mantida em 23 h)"]
+            for s_ in O['SENSIBILIDADE']:
+                L.append(f"\n  {s_['parametro']}")
+                for p_ in s_['pontos']:
+                    L.append(f"    {_s(p_['valor'],2):>7} → " +
+                             (f"pior dia de vigor {_s(p_['vigor_minimo'])}" if p_['viavel'] else "inviável"))
+            B.append("\n".join(L))
+        return "\n\n" + ("\n\n" + "─"*72 + "\n\n").join(B)
+
     def _referencia(self, a) -> str:
         lim = max(1, min(int(a.get("limite", 20)), 100))
         if a.get("termo"):
@@ -327,7 +466,8 @@ class Servidor:
         acao: Callable[[dict], str] | None = {
             "ana_orientar": self._orientar, "ana_resultado": self._resultado, "ana_serie": self._serie,
             "ana_confronto": self._confronto, "ana_perfil": self._perfil, "ana_auditoria": self._auditoria,
-            "ana_modelo": self._modelo, "ana_referencia": self._referencia, "ana_buscar": self._buscar,
+            "ana_modelo": self._modelo, "ana_qualidade": self._qualidade,
+            "ana_otimizar": self._otimizar, "ana_referencia": self._referencia, "ana_buscar": self._buscar,
             "ana_sql": self._sql, "ana_lembrar": self._lembrar, "ana_recordar": self._recordar,
             "ana_esquecer": self._esquecer,
         }.get(nome)

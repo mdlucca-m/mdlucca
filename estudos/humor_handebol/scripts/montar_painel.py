@@ -27,25 +27,38 @@ if 'data-tela="modelos"' not in s:
     a=s.index('      <div class="grupo">Evidência</div>')
     s=s[:a]+BOTAO+s[a:]
 
+BOTAO_Q='''      <button data-tela="qualidade">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19V5M4 19h16"/><rect x="7" y="11" width="3" height="5" rx="1"/><rect x="12" y="8" width="3" height="8" rx="1"/><path d="M17.5 6.5 20 9l-2.5 2.5"/></svg>
+        <span class="rot">Qualidade e otimização</span></button>
+'''
+if 'data-tela="qualidade"' not in s:
+    a=s.index('      <button data-tela="base">')
+    s=s[:a]+BOTAO_Q+s[a:]
+if 'qualidade:[' not in s:
+    s=s.replace(" base:['Base de dados'",
+      " qualidade:['Qualidade dos dados e otimização da carga','Auditoria do dado em si, exploratória univariada e programação linear'],\n base:['Base de dados'",1)
+
 # 3. título e ordem
 if 'modelos:[' not in s:
     s=s.replace(" auditoria:['Auditoria de procedência'",
       " modelos:['Modelos e CRISP-DM','Árvores de decisão sobre a base, e o estudo mapeado nas seis fases'],\n auditoria:['Auditoria de procedência'",1)
-s=s.replace("const ordem=['visao','mapa','a1','a2','auditoria','base','refs','automacao'];",
-            "const ordem=['visao','mapa','a1','a2','modelos','auditoria','base','refs','automacao'];")
+import re as _re
+s=_re.sub(r"const ordem=\[[^\]]*\];",
+          "const ordem=['visao','mapa','a1','a2','modelos','auditoria','qualidade','base','refs','automacao'];", s)
 
-# 4. corpo da tela
-tela=open(os.path.join(RAIZ,"painel","_tela_modelos.js"),encoding='utf-8').read()
-INI='/* <<< tela modelos >>> */'; FIM='/* <<< fim tela modelos >>> */'
-bloco=INI+'\n'+tela+'\n'+FIM
-if INI in s:
-    s=re.sub(re.escape(INI)+r'.*?'+re.escape(FIM), lambda m: bloco, s, flags=re.S)
-else:
-    anc='/* ============================ roteamento ============================ */'
-    k=s.index(anc); s=s[:k]+bloco+'\n\n'+s[k:]
+# 4. corpo das telas adicionais
+for arq,marca in [("_tela_modelos.js","modelos"),("_tela_qualidade.js","qualidade")]:
+    tela=open(os.path.join(RAIZ,"painel",arq),encoding='utf-8').read()
+    INI=f'/* <<< tela {marca} >>> */'; FIM=f'/* <<< fim tela {marca} >>> */'
+    bloco=INI+'\n'+tela+'\n'+FIM
+    if INI in s:
+        s=re.sub(re.escape(INI)+r'.*?'+re.escape(FIM), lambda m: bloco, s, flags=re.S)
+    else:
+        anc='/* ============================ roteamento ============================ */'
+        k=s.index(anc); s=s[:k]+bloco+'\n\n'+s[k:]
 
 open(P,'w',encoding='utf-8').write(s)
 print(f"painel montado: {orig/1024:.0f} KB → {len(s)/1024:.0f} KB")
-for t in ['modelos','auditoria','base']:
+for t in ['modelos','qualidade','auditoria','base']:
     marca='data-tela="%s"'%t
     print("   tela %-10s nav=%s  título=%s"%(t, marca in s, (t+":[") in s))

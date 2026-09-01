@@ -1,0 +1,2883 @@
+{
+ "DICIONARIO": [
+  {
+   "v": "atleta",
+   "tipo": "nominal",
+   "escala": "código A01–A27",
+   "dominio": "27 níveis",
+   "origem": "Nome Padronizado, codificado"
+  },
+  {
+   "v": "dia",
+   "tipo": "ordinal",
+   "escala": "D1–D7",
+   "dominio": "1 a 7",
+   "origem": "carimbo de data e hora, virada às 4h"
+  },
+  {
+   "v": "tipo_estimulo",
+   "tipo": "nominal",
+   "escala": "4 níveis",
+   "dominio": "Basal, HIIT, Amistoso, Técnico/força",
+   "origem": "planejamento do microciclo"
+  },
+  {
+   "v": "periodo",
+   "tipo": "nominal",
+   "escala": "4 níveis",
+   "dominio": "madrugada, manhã, tarde, noite",
+   "origem": "hora do carimbo"
+  },
+  {
+   "v": "momento",
+   "tipo": "nominal",
+   "escala": "3 níveis",
+   "dominio": "pré, pós, único",
+   "origem": "ordem do registro no dia"
+  },
+  {
+   "v": "sensacao_fisica",
+   "tipo": "ordinal",
+   "escala": "Likert de 5",
+   "dominio": "Muito mal a Muito bem",
+   "origem": "item do formulário"
+  },
+  {
+   "v": "sensacao_mental",
+   "tipo": "ordinal",
+   "escala": "Likert de 5",
+   "dominio": "Muito mal a Muito bem",
+   "origem": "item do formulário"
+  },
+  {
+   "v": "item BRUMS (24)",
+   "tipo": "ordinal",
+   "escala": "Likert de 5",
+   "dominio": "0 a 4",
+   "origem": "itens 5 a 28 do formulário"
+  },
+  {
+   "v": "item Epworth (6)",
+   "tipo": "ordinal",
+   "escala": "Likert de 4",
+   "dominio": "0 a 3",
+   "origem": "itens 32 a 37"
+  },
+  {
+   "v": "item PSS (14)",
+   "tipo": "ordinal",
+   "escala": "Likert de 5",
+   "dominio": "0 a 4",
+   "origem": "itens 38 a 51, sete deles invertidos"
+  },
+  {
+   "v": "Tensão…Confusão",
+   "tipo": "discreta",
+   "escala": "soma de 4 itens",
+   "dominio": "0 a 16",
+   "origem": "calculada por fórmula"
+  },
+  {
+   "v": "TMD",
+   "tipo": "discreta",
+   "escala": "composto",
+   "dominio": "−16 a 80",
+   "origem": "calculada por fórmula"
+  },
+  {
+   "v": "Fad.Física",
+   "tipo": "discreta",
+   "escala": "numérica direta",
+   "dominio": "0 a 10",
+   "origem": "item único"
+  },
+  {
+   "v": "Fad.Mental",
+   "tipo": "discreta",
+   "escala": "numérica direta",
+   "dominio": "0 a 10",
+   "origem": "item único"
+  },
+  {
+   "v": "Epworth",
+   "tipo": "discreta",
+   "escala": "soma de 6 itens",
+   "dominio": "0 a 24",
+   "origem": "calculada por fórmula"
+  },
+  {
+   "v": "PSS",
+   "tipo": "discreta",
+   "escala": "soma de 14 itens",
+   "dominio": "0 a 56",
+   "origem": "calculada por fórmula, com inversão"
+  },
+  {
+   "v": "TQR",
+   "tipo": "ordinal",
+   "escala": "Borg 6–20",
+   "dominio": "6 a 20",
+   "origem": "item único"
+  },
+  {
+   "v": "escore T",
+   "tipo": "contínua",
+   "escala": "padronizada",
+   "dominio": "real",
+   "origem": "(x − média normativa) ÷ desvio × 10 + 50"
+  },
+  {
+   "v": "média diária",
+   "tipo": "contínua",
+   "escala": "média de 1 a 2 registros",
+   "dominio": "0 a 16",
+   "origem": "agregação do par atleta-dia"
+  },
+  {
+   "v": "hora decimal",
+   "tipo": "contínua",
+   "escala": "0 a 24 h",
+   "dominio": "real",
+   "origem": "carimbo de data e hora"
+  }
+ ],
+ "FORMULAS": [
+  {
+   "id": "F1",
+   "nome": "Subescala do BRUMS",
+   "formula": "S_k = Σ_{i∈k} x_i,  x_i ∈ {0,1,2,3,4},  |k| = 4  ⇒  S_k ∈ [0, 16]",
+   "nota": "Quatro itens por subescala, sem inversão e sem peso."
+  },
+  {
+   "id": "F2",
+   "nome": "Perturbação total do humor",
+   "formula": "PTH = (Tensão + Depressão + Raiva + Fadiga + Confusão) − Vigor  ⇒  PTH ∈ [−16, 80]",
+   "nota": "Sem a constante 100 que algumas versões acrescentam."
+  },
+  {
+   "id": "F3",
+   "nome": "Escore T normativo",
+   "formula": "T_k = (S_k − μ_k) ÷ σ_k × 10 + 50",
+   "nota": "μ e σ das normas externas de atletas; o T tem média 50 e desvio 10 na população normativa."
+  },
+  {
+   "id": "F4",
+   "nome": "Sonolência de Epworth",
+   "formula": "E = Σ_{j=1}^{6} y_j,  y_j ∈ {0,1,2,3}  ⇒  E ∈ [0, 18] nesta aplicação de 6 itens",
+   "nota": "A escala clássica tem 8 situações e vai a 24; o formulário aplicou 6."
+  },
+  {
+   "id": "F5",
+   "nome": "Estresse percebido (PSS-14)",
+   "formula": "PSS = Σ_{i∉R} z_i + Σ_{i∈R} (4 − z_i),  R = {4,5,6,7,9,10,13}  ⇒  PSS ∈ [0, 56]",
+   "nota": "Sete itens positivos entram invertidos."
+  },
+  {
+   "id": "F6",
+   "nome": "Cerca de Tukey",
+   "formula": "Q1 − 1,5·IQR  e  Q3 + 1,5·IQR (moderado);  ±3,0·IQR (extremo),  IQR = Q3 − Q1",
+   "nota": "Não pressupõe normalidade."
+  },
+  {
+   "id": "F7",
+   "nome": "Escore z",
+   "formula": "z = (x − x̄) ÷ s;  |z| > 3 sinaliza discrepância",
+   "nota": "A própria média e o próprio desvio são arrastados pelo valor discrepante."
+  },
+  {
+   "id": "F8",
+   "nome": "Escore z modificado",
+   "formula": "z_M = 0,6745 · (x − Md) ÷ MAD,  MAD = Md(|x − Md|);  |z_M| > 3,5 sinaliza discrepância",
+   "nota": "Robusto: mediana e MAD não são arrastados. A constante 0,6745 iguala o MAD ao desvio sob normalidade."
+  },
+  {
+   "id": "F9",
+   "nome": "Coeficiente de variação",
+   "formula": "CV = s ÷ x̄ × 100",
+   "nota": "Comparável entre escalas de amplitudes diferentes."
+  },
+  {
+   "id": "F10",
+   "nome": "Assimetria e curtose",
+   "formula": "g₁ = m₃ ÷ m₂^{3/2},  g₂ = m₄ ÷ m₂² − 3,  m_r = (1/n)·Σ(x − x̄)^r",
+   "nota": "Curtose em excesso: 0 na normal."
+  },
+  {
+   "id": "F11",
+   "nome": "Regra de Freedman-Diaconis",
+   "formula": "h = 2 · IQR · n^{−1/3};  k = ⌈(máx − mín) ÷ h⌉",
+   "nota": "Largura de classe do histograma; robusta a caudas pesadas."
+  },
+  {
+   "id": "F12",
+   "nome": "Regra de Sturges",
+   "formula": "k = ⌈log₂(n) + 1⌉",
+   "nota": "Só aceitável com distribuição próxima da normal e n moderado."
+  },
+  {
+   "id": "F13",
+   "nome": "Entropia de Shannon normalizada",
+   "formula": "H* = −Σ p_i·log₂(p_i) ÷ log₂(m)",
+   "nota": "Mede o equilíbrio de uma categórica de m níveis: 1 é uniforme, 0 é degenerada."
+  },
+  {
+   "id": "F14",
+   "nome": "Completude",
+   "formula": "C = (1 − faltantes ÷ total) × 100",
+   "nota": "Calculada por variável, por atleta e por dia."
+  }
+ ],
+ "CONFRONTO": [
+  {
+   "variavel": "Tensão",
+   "n_comparado": 457,
+   "n_divergente": 0,
+   "pct": 0.0,
+   "max_dif": 0.0,
+   "exemplos": []
+  },
+  {
+   "variavel": "Depressão",
+   "n_comparado": 457,
+   "n_divergente": 0,
+   "pct": 0.0,
+   "max_dif": 0.0,
+   "exemplos": []
+  },
+  {
+   "variavel": "Raiva",
+   "n_comparado": 457,
+   "n_divergente": 0,
+   "pct": 0.0,
+   "max_dif": 0.0,
+   "exemplos": []
+  },
+  {
+   "variavel": "Vigor",
+   "n_comparado": 457,
+   "n_divergente": 0,
+   "pct": 0.0,
+   "max_dif": 0.0,
+   "exemplos": []
+  },
+  {
+   "variavel": "Fadiga",
+   "n_comparado": 457,
+   "n_divergente": 0,
+   "pct": 0.0,
+   "max_dif": 0.0,
+   "exemplos": []
+  },
+  {
+   "variavel": "Confusão",
+   "n_comparado": 457,
+   "n_divergente": 0,
+   "pct": 0.0,
+   "max_dif": 0.0,
+   "exemplos": []
+  },
+  {
+   "variavel": "TMD",
+   "n_comparado": 457,
+   "n_divergente": 0,
+   "pct": 0.0,
+   "max_dif": 0.0,
+   "exemplos": []
+  },
+  {
+   "variavel": "Epworth",
+   "n_comparado": 457,
+   "n_divergente": 0,
+   "pct": 0.0,
+   "max_dif": 0.0,
+   "exemplos": []
+  },
+  {
+   "variavel": "PSS",
+   "n_comparado": 457,
+   "n_divergente": 0,
+   "pct": 0.0,
+   "max_dif": 0.0,
+   "exemplos": []
+  }
+ ],
+ "FALTA_ITEM": [
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Apavorado",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Animado",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Confuso",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Esgotado",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Deprimido",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Desanimado",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Irritado",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Exausto",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Inseguro",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Sonolento",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Zangado",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Triste",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Ansioso",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Preocupado",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Com disposição",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Infeliz",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Desorientado",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Tenso",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Com raiva",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Com energia",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Cansado",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Mal-humorado",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Alerta",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens do BRUMS (24)",
+   "item": "Indeciso",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens de Epworth (6)",
+   "item": "Sentado e lendo",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens de Epworth (6)",
+   "item": "Assistindo TV",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens de Epworth (6)",
+   "item": "Sentado em lugar público",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens de Epworth (6)",
+   "item": "Andando de carro por uma hora",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens de Epworth (6)",
+   "item": "Deitado após o almoço",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens de Epworth (6)",
+   "item": "Carro parado no trânsito",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens da PSS (14)",
+   "item": "PSS1",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens da PSS (14)",
+   "item": "PSS2",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens da PSS (14)",
+   "item": "PSS3",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens da PSS (14)",
+   "item": "PSS4",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens da PSS (14)",
+   "item": "PSS5",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens da PSS (14)",
+   "item": "PSS6",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens da PSS (14)",
+   "item": "PSS7",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens da PSS (14)",
+   "item": "PSS8",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens da PSS (14)",
+   "item": "PSS9",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens da PSS (14)",
+   "item": "PSS10",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens da PSS (14)",
+   "item": "PSS11",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens da PSS (14)",
+   "item": "PSS12",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens da PSS (14)",
+   "item": "PSS13",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "itens da PSS (14)",
+   "item": "PSS14",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  }
+ ],
+ "FALTA_VAR": [
+  {
+   "bloco": "variável isolada",
+   "item": "Fadiga física",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "variável isolada",
+   "item": "Fadiga mental",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "variável isolada",
+   "item": "TQR",
+   "faltantes": 2,
+   "n": 457,
+   "completude": 99.56236323851203
+  },
+  {
+   "bloco": "variável isolada",
+   "item": "Sensação física",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "variável isolada",
+   "item": "Sensação mental",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "variável isolada",
+   "item": "Data declarada",
+   "faltantes": 16,
+   "n": 457,
+   "completude": 96.49890590809628
+  },
+  {
+   "bloco": "variável isolada",
+   "item": "Nome padronizado",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "escore calculado",
+   "item": "Tensão",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "escore calculado",
+   "item": "Depressão",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "escore calculado",
+   "item": "Raiva",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "escore calculado",
+   "item": "Vigor",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "escore calculado",
+   "item": "Fadiga",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "escore calculado",
+   "item": "Confusão",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "escore calculado",
+   "item": "TMD",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "escore calculado",
+   "item": "Epworth",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  },
+  {
+   "bloco": "escore calculado",
+   "item": "PSS",
+   "faltantes": 0,
+   "n": 457,
+   "completude": 100.0
+  }
+ ],
+ "GRADE": [
+  {
+   "dia": 1,
+   "atletas_com_registro": 27,
+   "atletas_esperados": 27,
+   "registros": 48,
+   "registros_esperados": 27,
+   "cobertura_atleta": 100.0,
+   "cobertura_registro": 177.77777777777777
+  },
+  {
+   "dia": 2,
+   "atletas_com_registro": 26,
+   "atletas_esperados": 27,
+   "registros": 88,
+   "registros_esperados": 54,
+   "cobertura_atleta": 96.29629629629629,
+   "cobertura_registro": 162.96296296296296
+  },
+  {
+   "dia": 3,
+   "atletas_com_registro": 26,
+   "atletas_esperados": 27,
+   "registros": 75,
+   "registros_esperados": 54,
+   "cobertura_atleta": 96.29629629629629,
+   "cobertura_registro": 138.88888888888889
+  },
+  {
+   "dia": 4,
+   "atletas_com_registro": 21,
+   "atletas_esperados": 27,
+   "registros": 60,
+   "registros_esperados": 54,
+   "cobertura_atleta": 77.77777777777777,
+   "cobertura_registro": 111.11111111111111
+  },
+  {
+   "dia": 5,
+   "atletas_com_registro": 23,
+   "atletas_esperados": 27,
+   "registros": 71,
+   "registros_esperados": 54,
+   "cobertura_atleta": 85.18518518518519,
+   "cobertura_registro": 131.4814814814815
+  },
+  {
+   "dia": 6,
+   "atletas_com_registro": 22,
+   "atletas_esperados": 27,
+   "registros": 68,
+   "registros_esperados": 54,
+   "cobertura_atleta": 81.48148148148148,
+   "cobertura_registro": 125.92592592592592
+  },
+  {
+   "dia": 7,
+   "atletas_com_registro": 21,
+   "atletas_esperados": 27,
+   "registros": 46,
+   "registros_esperados": 54,
+   "cobertura_atleta": 77.77777777777777,
+   "cobertura_registro": 85.18518518518519
+  }
+ ],
+ "FALTA_ATLETA": [
+  {
+   "atleta": "A14",
+   "dias_com_registro": 2,
+   "registros": 3,
+   "completude_dias": 28.571428571428573
+  },
+  {
+   "atleta": "A03",
+   "dias_com_registro": 3,
+   "registros": 4,
+   "completude_dias": 42.857142857142854
+  },
+  {
+   "atleta": "A08",
+   "dias_com_registro": 3,
+   "registros": 5,
+   "completude_dias": 42.857142857142854
+  },
+  {
+   "atleta": "A06",
+   "dias_com_registro": 4,
+   "registros": 7,
+   "completude_dias": 57.142857142857146
+  },
+  {
+   "atleta": "A25",
+   "dias_com_registro": 4,
+   "registros": 6,
+   "completude_dias": 57.142857142857146
+  },
+  {
+   "atleta": "A16",
+   "dias_com_registro": 5,
+   "registros": 10,
+   "completude_dias": 71.42857142857143
+  },
+  {
+   "atleta": "A09",
+   "dias_com_registro": 6,
+   "registros": 10,
+   "completude_dias": 85.71428571428571
+  },
+  {
+   "atleta": "A15",
+   "dias_com_registro": 6,
+   "registros": 14,
+   "completude_dias": 85.71428571428571
+  },
+  {
+   "atleta": "A01",
+   "dias_com_registro": 7,
+   "registros": 25,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A02",
+   "dias_com_registro": 7,
+   "registros": 21,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A04",
+   "dias_com_registro": 7,
+   "registros": 16,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A05",
+   "dias_com_registro": 7,
+   "registros": 15,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A07",
+   "dias_com_registro": 7,
+   "registros": 28,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A10",
+   "dias_com_registro": 7,
+   "registros": 13,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A11",
+   "dias_com_registro": 7,
+   "registros": 23,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A12",
+   "dias_com_registro": 7,
+   "registros": 26,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A13",
+   "dias_com_registro": 7,
+   "registros": 31,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A17",
+   "dias_com_registro": 7,
+   "registros": 22,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A18",
+   "dias_com_registro": 7,
+   "registros": 16,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A19",
+   "dias_com_registro": 7,
+   "registros": 24,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A20",
+   "dias_com_registro": 7,
+   "registros": 20,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A21",
+   "dias_com_registro": 7,
+   "registros": 17,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A22",
+   "dias_com_registro": 7,
+   "registros": 28,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A23",
+   "dias_com_registro": 7,
+   "registros": 12,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A24",
+   "dias_com_registro": 7,
+   "registros": 25,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A26",
+   "dias_com_registro": 7,
+   "registros": 20,
+   "completude_dias": 100.0
+  },
+  {
+   "atleta": "A27",
+   "dias_com_registro": 7,
+   "registros": 15,
+   "completude_dias": 100.0
+  }
+ ],
+ "REPETICAO": {
+  "distribuicao": {
+   "1": 26,
+   "2": 61,
+   "3": 29,
+   "4": 35,
+   "5": 9,
+   "6": 6
+  },
+  "pares_consecutivos": 290,
+  "intervalo": {
+   "mediana": 114.1,
+   "q1": 78.50416666666666,
+   "q3": 175.49583333333334,
+   "minimo": 1.4333333333333333,
+   "maximo": 473.0
+  },
+  "ate_30min": 17,
+  "identicos": 4,
+  "identicos_ate_30min": 0,
+  "exemplos": [
+   {
+    "atleta": "A26",
+    "dia": 6,
+    "minutos": 1.4,
+    "itens_iguais": 23,
+    "identico": false,
+    "linha_a": 387,
+    "linha_b": 390,
+    "pth_a": -5.0,
+    "pth_b": -4.0
+   },
+   {
+    "atleta": "A01",
+    "dia": 7,
+    "minutos": 2.2,
+    "itens_iguais": 22,
+    "identico": false,
+    "linha_a": 446,
+    "linha_b": 449,
+    "pth_a": 5.0,
+    "pth_b": 3.0
+   },
+   {
+    "atleta": "A13",
+    "dia": 7,
+    "minutos": 2.6,
+    "itens_iguais": 21,
+    "identico": false,
+    "linha_a": 442,
+    "linha_b": 443,
+    "pth_a": 9.0,
+    "pth_b": 6.0
+   },
+   {
+    "atleta": "A21",
+    "dia": 2,
+    "minutos": 3.4,
+    "itens_iguais": 15,
+    "identico": false,
+    "linha_a": 117,
+    "linha_b": 119,
+    "pth_a": 1.0,
+    "pth_b": 4.0
+   },
+   {
+    "atleta": "A12",
+    "dia": 2,
+    "minutos": 3.8,
+    "itens_iguais": 16,
+    "identico": false,
+    "linha_a": 85,
+    "linha_b": 91,
+    "pth_a": 1.0,
+    "pth_b": 8.0
+   },
+   {
+    "atleta": "A22",
+    "dia": 7,
+    "minutos": 3.8,
+    "itens_iguais": 21,
+    "identico": false,
+    "linha_a": 426,
+    "linha_b": 430,
+    "pth_a": 4.0,
+    "pth_b": 0.0
+   },
+   {
+    "atleta": "A13",
+    "dia": 2,
+    "minutos": 4.2,
+    "itens_iguais": 22,
+    "identico": false,
+    "linha_a": 101,
+    "linha_b": 113,
+    "pth_a": -2.0,
+    "pth_b": -2.0
+   },
+   {
+    "atleta": "A18",
+    "dia": 2,
+    "minutos": 5.6,
+    "itens_iguais": 15,
+    "identico": false,
+    "linha_a": 92,
+    "linha_b": 95,
+    "pth_a": 3.0,
+    "pth_b": 15.0
+   },
+   {
+    "atleta": "A21",
+    "dia": 4,
+    "minutos": 5.6,
+    "itens_iguais": 15,
+    "identico": false,
+    "linha_a": 250,
+    "linha_b": 256,
+    "pth_a": 7.0,
+    "pth_b": 2.0
+   },
+   {
+    "atleta": "A19",
+    "dia": 2,
+    "minutos": 9.9,
+    "itens_iguais": 21,
+    "identico": false,
+    "linha_a": 98,
+    "linha_b": 111,
+    "pth_a": 0.0,
+    "pth_b": -3.0
+   }
+  ]
+ },
+ "CATEG": [
+  {
+   "variavel": "Nome (texto livre)",
+   "n": 457,
+   "faltantes": 0,
+   "niveis_canonicos": 48,
+   "grafias": 67,
+   "niveis_com_variante": 15,
+   "variantes": {
+    "joao gomes": {
+     "João Gomes": 3,
+     "Joao Gomes": 17,
+     "Joao gomes": 5
+    },
+    "ricardo marreta barros": {
+     "Ricardo marreta barros": 5,
+     "Ricardo Marreta Barros": 1
+    },
+    "octavio": {
+     "Octávio": 14,
+     "Octavio": 10
+    },
+    "luis andre": {
+     "Luis André": 1,
+     "Luis Andre": 15,
+     "luis André": 1
+    },
+    "lukas cazarin de almeida": {
+     "Lukas Cazarin de Almeida": 15,
+     "Lukas cazarin de almeida": 1
+    },
+    "luis felipe": {
+     "Luís Felipe": 22,
+     "Luís felipe": 2
+    },
+    "jose sena": {
+     "José sena": 25,
+     "José Sena": 6
+    },
+    "gabriel felipe oliveira paixao": {
+     "Gabriel Felipe Oliveira Paixão": 3,
+     "Gabriel Felipe Oliveira Paixao": 1,
+     "Gabriel Felipe Oliveira paixão": 1
+    },
+    "george correia barros neto": {
+     "George Correia Barros neto": 8,
+     "George Correia Barros Neto": 1
+    },
+    "abner januario": {
+     "Abner Januário": 23,
+     "Abner Januario": 2
+    },
+    "isaac": {
+     "Isaac": 2,
+     "isaac": 20
+    },
+    "nichollas": {
+     "Nichollas": 1,
+     "nichollas": 10
+    },
+    "lucas mineiro": {
+     "lucas mineiro": 1,
+     "Lucas mineiro": 1
+    },
+    "lucas silva": {
+     "Lucas Silva": 4,
+     "lucas silva": 2,
+     "Lucas silva": 1
+    },
+    "gustavo": {
+     "Gustavo": 7,
+     "gustavo": 4
+    }
+   },
+   "frequencia": {
+    "jose sena": 31,
+    "felipe cesar coutinho braga": 27,
+    "matheus vicente da silva": 27,
+    "joao gomes": 25,
+    "abner januario": 25,
+    "octavio": 24,
+    "luis felipe": 24,
+    "isaac": 22,
+    "oneda": 20,
+    "roberto weickert": 19,
+    "luis gustavo": 18,
+    "luis andre": 17,
+    "lukas cazarin de almeida": 16,
+    "alvaro araujo": 16,
+    "enzo": 15,
+    "sydclebson aquino de araujo": 15,
+    "lissandro": 12,
+    "guilherme": 11,
+    "nichollas": 11,
+    "gustavo": 11,
+    "george correia barros neto": 9,
+    "enzo remlinger mattos": 7,
+    "lucas silva": 7,
+    "ricardo marreta barros": 6,
+    "gabriel felipe oliveira paixao": 5,
+    "alvaro bruno souza de araujo": 5,
+    "emanuel gustavo ferreira paiva": 3,
+    "kauan dos passos pereira": 3,
+    "cristiano": 2,
+    "lucas oneda guedes": 2,
+    "guilherme monteiro felipe santiago": 2,
+    "lissandro santos": 2,
+    "lucas mineiro": 2,
+    "cristiano rossa": 2,
+    "nichollas oliveira bonato batista": 1,
+    "isaac anderson": 1,
+    "lucas gabriel vieira da silva": 1,
+    "joao vitor gomes assuncao": 1,
+    "octavio ": 1,
+    "luis gustavo da silva garcia": 1,
+    "lukas cazarin": 1,
+    "george correia barros e": 1,
+    "fefealemaogmailcom": 1,
+    "gustavo paiva": 1,
+    "roberto": 1,
+    "gusta": 1,
+    "mtheua vicente da silva": 1,
+    "luis gustavo garcia": 1
+   }
+  },
+  {
+   "variavel": "Nome padronizado",
+   "n": 457,
+   "faltantes": 0,
+   "niveis_canonicos": 28,
+   "grafias": 28,
+   "niveis_com_variante": 0,
+   "variantes": {},
+   "frequencia": {
+    "jose sena": 31,
+    "matheus vicente da silva": 28,
+    "felipe cesar coutinho braga": 27,
+    "joao vitor gomes assuncao": 26,
+    "octavio augusto martins paiva": 25,
+    "luis felipe araujo vieira": 24,
+    "isaac anderson da conceicao silva": 23,
+    "abner giovane januario andrade": 23,
+    "lucas oneda guedes": 22,
+    "alvaro bruno souza de araujo": 21,
+    "roberto": 20,
+    "luis gustavo da silva garcia": 20,
+    "luis andre saboia da silva": 17,
+    "lukas cazarin de almeida": 17,
+    "enzo adamo santos": 15,
+    "emanuel gustavo ferreira paiva": 15,
+    "sydclebson aquino de araujo": 15,
+    "lissandro santos": 14,
+    "guilherme monteiro felipe santiago": 13,
+    "nichollas oliveira bonato batista": 12,
+    "lucas gabriel vieira da silva": 10,
+    "george correia barros neto": 10,
+    "enzo remlinger mattos": 7,
+    "ricardo marreta barros": 6,
+    "gabriel felipe oliveira paixao": 5,
+    "cristiano rossa": 4,
+    "nao identificado": 4,
+    "kauan dos passos pereira": 3
+   }
+  },
+  {
+   "variavel": "Ciclo",
+   "n": 457,
+   "faltantes": 0,
+   "niveis_canonicos": 1,
+   "grafias": 1,
+   "niveis_com_variante": 0,
+   "variantes": {},
+   "frequencia": {
+    "treino temporada regular": 457
+   }
+  },
+  {
+   "variavel": "Sensação física",
+   "n": 457,
+   "faltantes": 0,
+   "niveis_canonicos": 5,
+   "grafias": 5,
+   "niveis_com_variante": 0,
+   "variantes": {},
+   "frequencia": {
+    "regular": 185,
+    "bem": 110,
+    "ruim": 89,
+    "pessimo": 61,
+    "muito bem": 12
+   }
+  },
+  {
+   "variavel": "Sensação mental",
+   "n": 457,
+   "faltantes": 0,
+   "niveis_canonicos": 5,
+   "grafias": 5,
+   "niveis_com_variante": 0,
+   "variantes": {},
+   "frequencia": {
+    "bem": 201,
+    "regular": 131,
+    "ruim": 49,
+    "muito bem": 42,
+    "pessimo": 34
+   }
+  },
+  {
+   "variavel": "Período do dia",
+   "n": 457,
+   "faltantes": 0,
+   "niveis_canonicos": 3,
+   "grafias": 3,
+   "niveis_com_variante": 0,
+   "variantes": {},
+   "frequencia": {
+    "tarde 12h17h": 268,
+    "manha 05h11h": 111,
+    "noite 18h04h": 78
+   }
+  },
+  {
+   "variavel": "Faixa horária",
+   "n": 457,
+   "faltantes": 0,
+   "niveis_canonicos": 7,
+   "grafias": 7,
+   "niveis_com_variante": 0,
+   "variantes": {},
+   "frequencia": {
+    "14h15h": 159,
+    "08h09h": 73,
+    "12h13h": 61,
+    "20h23h": 55,
+    "16h17h": 48,
+    "10h11h": 44,
+    "18h19h": 17
+   }
+  },
+  {
+   "variavel": "TQR (rótulo)",
+   "n": 457,
+   "faltantes": 0,
+   "niveis_canonicos": 17,
+   "grafias": 17,
+   "niveis_com_variante": 0,
+   "variantes": {},
+   "frequencia": {
+    "13 razoavelmente recuperado": 98,
+    "15 bem recuperado": 55,
+    "11 mal recuperado": 53,
+    "14": 38,
+    "6 em nada recuperado": 37,
+    "9 muito mal recuperado": 37,
+    "12": 30,
+    "7 extremamente mal recuperado": 28,
+    "10": 22,
+    "17 muito bem recuperado": 21,
+    "16": 18,
+    "8": 12,
+    "18": 4,
+    "20": 1,
+    "19 extremamente bem recuperado": 1,
+    "recuperado": 1,
+    "bem": 1
+   }
+  }
+ ],
+ "FREQ": {
+  "Estímulo do dia": {
+   "n": 456,
+   "linhas": [
+    {
+     "nivel": "Basal",
+     "f": 48,
+     "pct": 10.526315789473685,
+     "f_acum": 48,
+     "pct_acum": 10.526315789473685
+    },
+    {
+     "nivel": "HIIT",
+     "f": 194,
+     "pct": 42.54385964912281,
+     "f_acum": 242,
+     "pct_acum": 53.07017543859649
+    },
+    {
+     "nivel": "Amistoso",
+     "f": 146,
+     "pct": 32.01754385964912,
+     "f_acum": 388,
+     "pct_acum": 85.08771929824562
+    },
+    {
+     "nivel": "Técnico/força",
+     "f": 68,
+     "pct": 14.912280701754385,
+     "f_acum": 456,
+     "pct_acum": 100.0
+    }
+   ],
+   "entropia_normalizada": 0.9009590967529587,
+   "imprevistos": {},
+   "moda": "HIIT"
+  },
+  "Período do dia": {
+   "n": 456,
+   "linhas": [
+    {
+     "nivel": "Manhã (05h-11h)",
+     "f": 111,
+     "pct": 24.342105263157894,
+     "f_acum": 111,
+     "pct_acum": 24.342105263157894
+    },
+    {
+     "nivel": "Tarde (12h-17h)",
+     "f": 267,
+     "pct": 58.55263157894737,
+     "f_acum": 378,
+     "pct_acum": 82.89473684210526
+    },
+    {
+     "nivel": "Noite (18h-04h)",
+     "f": 78,
+     "pct": 17.105263157894736,
+     "f_acum": 456,
+     "pct_acum": 100.0
+    }
+   ],
+   "entropia_normalizada": 0.873271115046935,
+   "imprevistos": {},
+   "moda": "Tarde (12h-17h)"
+  },
+  "Dia do microciclo": {
+   "n": 456,
+   "linhas": [
+    {
+     "nivel": "D1",
+     "f": 48,
+     "pct": 10.526315789473685,
+     "f_acum": 48,
+     "pct_acum": 10.526315789473685
+    },
+    {
+     "nivel": "D2",
+     "f": 88,
+     "pct": 19.29824561403509,
+     "f_acum": 136,
+     "pct_acum": 29.82456140350877
+    },
+    {
+     "nivel": "D3",
+     "f": 75,
+     "pct": 16.44736842105263,
+     "f_acum": 211,
+     "pct_acum": 46.271929824561404
+    },
+    {
+     "nivel": "D4",
+     "f": 60,
+     "pct": 13.157894736842104,
+     "f_acum": 271,
+     "pct_acum": 59.42982456140351
+    },
+    {
+     "nivel": "D5",
+     "f": 71,
+     "pct": 15.570175438596491,
+     "f_acum": 342,
+     "pct_acum": 75.0
+    },
+    {
+     "nivel": "D6",
+     "f": 68,
+     "pct": 14.912280701754385,
+     "f_acum": 410,
+     "pct_acum": 89.91228070175438
+    },
+    {
+     "nivel": "D7",
+     "f": 46,
+     "pct": 10.087719298245615,
+     "f_acum": 456,
+     "pct_acum": 100.0
+    }
+   ],
+   "entropia_normalizada": 0.9882026783488556,
+   "imprevistos": {},
+   "moda": "D2"
+  },
+  "Sensação física": {
+   "n": 456,
+   "linhas": [
+    {
+     "nivel": "Péssimo",
+     "f": 61,
+     "pct": 13.37719298245614,
+     "f_acum": 61,
+     "pct_acum": 13.37719298245614
+    },
+    {
+     "nivel": "Ruim",
+     "f": 89,
+     "pct": 19.517543859649123,
+     "f_acum": 150,
+     "pct_acum": 32.89473684210526
+    },
+    {
+     "nivel": "Regular",
+     "f": 184,
+     "pct": 40.35087719298246,
+     "f_acum": 334,
+     "pct_acum": 73.24561403508773
+    },
+    {
+     "nivel": "Bem",
+     "f": 110,
+     "pct": 24.12280701754386,
+     "f_acum": 444,
+     "pct_acum": 97.36842105263158
+    },
+    {
+     "nivel": "Muito bem",
+     "f": 12,
+     "pct": 2.6315789473684212,
+     "f_acum": 456,
+     "pct_acum": 100.0
+    }
+   ],
+   "entropia_normalizada": 0.8654880598210208,
+   "imprevistos": {},
+   "moda": "Regular"
+  },
+  "Sensação mental": {
+   "n": 456,
+   "linhas": [
+    {
+     "nivel": "Péssimo",
+     "f": 34,
+     "pct": 7.456140350877193,
+     "f_acum": 34,
+     "pct_acum": 7.456140350877193
+    },
+    {
+     "nivel": "Ruim",
+     "f": 49,
+     "pct": 10.74561403508772,
+     "f_acum": 83,
+     "pct_acum": 18.20175438596491
+    },
+    {
+     "nivel": "Regular",
+     "f": 131,
+     "pct": 28.728070175438596,
+     "f_acum": 214,
+     "pct_acum": 46.92982456140351
+    },
+    {
+     "nivel": "Bem",
+     "f": 201,
+     "pct": 44.078947368421055,
+     "f_acum": 415,
+     "pct_acum": 91.00877192982456
+    },
+    {
+     "nivel": "Muito bem",
+     "f": 41,
+     "pct": 8.991228070175438,
+     "f_acum": 456,
+     "pct_acum": 100.0
+    }
+   ],
+   "entropia_normalizada": 0.850778771451788,
+   "imprevistos": {},
+   "moda": "Bem"
+  }
+ },
+ "UNI": [
+  {
+   "variavel": "Tensão",
+   "tipo": "discreta",
+   "n": 456,
+   "minimo": 0.0,
+   "maximo": 8.0,
+   "media": 1.3903508771929824,
+   "desvio": 1.8352575912021623,
+   "erro_padrao": 0.08594381102587709,
+   "cv": 131.9995996195877,
+   "mediana": 1.0,
+   "q1": 0.0,
+   "q3": 2.0,
+   "iqr": 2.0,
+   "amplitude": 8.0,
+   "p5": 0.0,
+   "p95": 6.0,
+   "mad": 1.0,
+   "assimetria": 1.4309482398197029,
+   "curtose": 1.5031187950100522,
+   "shapiro_W": 0.7655337001057297,
+   "shapiro_p": 5.478099796854523e-25,
+   "tukey_moderado": [
+    -3.0,
+    5.0
+   ],
+   "tukey_extremo": [
+    -6.0,
+    8.0
+   ],
+   "n_tukey_moderado": 24,
+   "n_tukey_extremo": 0,
+   "n_z3": 14,
+   "n_zmod": 14,
+   "mad_nulo": false,
+   "iqr_nulo": false,
+   "pct_no_piso": 49.56140350877193,
+   "h_freedman_diaconis": 0.5196828406118895,
+   "k_fd": 16,
+   "k_sturges": 10,
+   "fora_do_dominio": 0,
+   "dominio": [
+    0,
+    16
+   ]
+  },
+  {
+   "variavel": "Depressão",
+   "tipo": "discreta",
+   "n": 456,
+   "minimo": 0.0,
+   "maximo": 16.0,
+   "media": 1.0,
+   "desvio": 2.3138379705256273,
+   "erro_padrao": 0.10835539067466422,
+   "cv": 231.38379705256273,
+   "mediana": 0.0,
+   "q1": 0.0,
+   "q3": 1.0,
+   "iqr": 1.0,
+   "amplitude": 16.0,
+   "p5": 0.0,
+   "p95": 5.25,
+   "mad": 0.0,
+   "assimetria": 3.6274989649206844,
+   "curtose": 14.93079181732146,
+   "shapiro_W": 0.4894790061593203,
+   "shapiro_p": 4.130899316253555e-34,
+   "tukey_moderado": [
+    -1.5,
+    2.5
+   ],
+   "tukey_extremo": [
+    -3.0,
+    4.0
+   ],
+   "n_tukey_moderado": 51,
+   "n_tukey_extremo": 27,
+   "n_z3": 15,
+   "n_zmod": null,
+   "mad_nulo": true,
+   "iqr_nulo": false,
+   "pct_no_piso": 67.10526315789474,
+   "h_freedman_diaconis": 0.25984142030594476,
+   "k_fd": 62,
+   "k_sturges": 10,
+   "fora_do_dominio": 0,
+   "dominio": [
+    0,
+    16
+   ]
+  },
+  {
+   "variavel": "Raiva",
+   "tipo": "discreta",
+   "n": 456,
+   "minimo": 0.0,
+   "maximo": 15.0,
+   "media": 1.6008771929824561,
+   "desvio": 2.7268948041311343,
+   "erro_padrao": 0.12769854916125314,
+   "cv": 170.33753844983522,
+   "mediana": 0.0,
+   "q1": 0.0,
+   "q3": 2.0,
+   "iqr": 2.0,
+   "amplitude": 15.0,
+   "p5": 0.0,
+   "p95": 8.0,
+   "mad": 0.0,
+   "assimetria": 2.064912767671138,
+   "curtose": 4.216890737698914,
+   "shapiro_W": 0.6567463644285608,
+   "shapiro_p": 2.862962952924594e-29,
+   "tukey_moderado": [
+    -3.0,
+    5.0
+   ],
+   "tukey_extremo": [
+    -6.0,
+    8.0
+   ],
+   "n_tukey_moderado": 53,
+   "n_tukey_extremo": 14,
+   "n_z3": 10,
+   "n_zmod": null,
+   "mad_nulo": true,
+   "iqr_nulo": false,
+   "pct_no_piso": 59.64912280701754,
+   "h_freedman_diaconis": 0.5196828406118895,
+   "k_fd": 29,
+   "k_sturges": 10,
+   "fora_do_dominio": 0,
+   "dominio": [
+    0,
+    16
+   ]
+  },
+  {
+   "variavel": "Vigor",
+   "tipo": "discreta",
+   "n": 456,
+   "minimo": 0.0,
+   "maximo": 15.0,
+   "media": 5.6951754385964914,
+   "desvio": 3.1169967885999923,
+   "erro_padrao": 0.14596674834742288,
+   "cv": 54.73047884488241,
+   "mediana": 6.0,
+   "q1": 4.0,
+   "q3": 8.0,
+   "iqr": 4.0,
+   "amplitude": 15.0,
+   "p5": 0.0,
+   "p95": 11.0,
+   "mad": 2.0,
+   "assimetria": 0.03345436112682404,
+   "curtose": -0.23767447163429134,
+   "shapiro_W": 0.9738967717892555,
+   "shapiro_p": 2.831370929770279e-07,
+   "tukey_moderado": [
+    -2.0,
+    14.0
+   ],
+   "tukey_extremo": [
+    -8.0,
+    20.0
+   ],
+   "n_tukey_moderado": 1,
+   "n_tukey_extremo": 0,
+   "n_z3": 0,
+   "n_zmod": 0,
+   "mad_nulo": false,
+   "iqr_nulo": false,
+   "pct_no_piso": 8.552631578947368,
+   "h_freedman_diaconis": 1.039365681223779,
+   "k_fd": 15,
+   "k_sturges": 10,
+   "fora_do_dominio": 0,
+   "dominio": [
+    0,
+    16
+   ]
+  },
+  {
+   "variavel": "Fadiga",
+   "tipo": "discreta",
+   "n": 456,
+   "minimo": 0.0,
+   "maximo": 16.0,
+   "media": 5.644736842105263,
+   "desvio": 3.8892490216716316,
+   "erro_padrao": 0.1821307725702817,
+   "cv": 68.90044886877483,
+   "mediana": 5.0,
+   "q1": 3.0,
+   "q3": 8.0,
+   "iqr": 5.0,
+   "amplitude": 16.0,
+   "p5": 0.0,
+   "p95": 13.0,
+   "mad": 3.0,
+   "assimetria": 0.5861163041160374,
+   "curtose": -0.3970544292300078,
+   "shapiro_W": 0.9492781005348021,
+   "shapiro_p": 2.1609608498846197e-11,
+   "tukey_moderado": [
+    -4.5,
+    15.5
+   ],
+   "tukey_extremo": [
+    -12.0,
+    23.0
+   ],
+   "n_tukey_moderado": 4,
+   "n_tukey_extremo": 0,
+   "n_z3": 0,
+   "n_zmod": 0,
+   "mad_nulo": false,
+   "iqr_nulo": false,
+   "pct_no_piso": 7.675438596491229,
+   "h_freedman_diaconis": 1.2992071015297237,
+   "k_fd": 13,
+   "k_sturges": 10,
+   "fora_do_dominio": 0,
+   "dominio": [
+    0,
+    16
+   ]
+  },
+  {
+   "variavel": "Confusão",
+   "tipo": "discreta",
+   "n": 456,
+   "minimo": 0.0,
+   "maximo": 9.0,
+   "media": 0.4517543859649123,
+   "desvio": 1.1887185791516348,
+   "erro_padrao": 0.0556668477598486,
+   "cv": 263.1338214044395,
+   "mediana": 0.0,
+   "q1": 0.0,
+   "q3": 0.0,
+   "iqr": 0.0,
+   "amplitude": 9.0,
+   "p5": 0.0,
+   "p95": 3.0,
+   "mad": 0.0,
+   "assimetria": 3.7339258645595996,
+   "curtose": 16.960696489321244,
+   "shapiro_W": 0.44036669633079695,
+   "shapiro_p": 2.7573292018626614e-35,
+   "tukey_moderado": [
+    0.0,
+    0.0
+   ],
+   "tukey_extremo": [
+    0.0,
+    0.0
+   ],
+   "n_tukey_moderado": 89,
+   "n_tukey_extremo": 89,
+   "n_z3": 8,
+   "n_zmod": null,
+   "mad_nulo": true,
+   "iqr_nulo": true,
+   "pct_no_piso": 80.48245614035088,
+   "h_freedman_diaconis": 0.0,
+   "k_fd": null,
+   "k_sturges": 10,
+   "fora_do_dominio": 0,
+   "dominio": [
+    0,
+    16
+   ]
+  },
+  {
+   "variavel": "TMD",
+   "tipo": "discreta",
+   "n": 456,
+   "minimo": -12.0,
+   "maximo": 52.0,
+   "media": 4.392543859649122,
+   "desvio": 9.640885309893052,
+   "erro_padrao": 0.45147581961661076,
+   "cv": 219.48296062462467,
+   "mediana": 2.0,
+   "q1": -2.0,
+   "q3": 8.0,
+   "iqr": 10.0,
+   "amplitude": 64.0,
+   "p5": -6.0,
+   "p95": 22.25,
+   "mad": 5.0,
+   "assimetria": 1.4803554034978912,
+   "curtose": 3.3133948391628776,
+   "shapiro_W": 0.8953921022341285,
+   "shapiro_p": 4.202107531721583e-17,
+   "tukey_moderado": [
+    -17.0,
+    23.0
+   ],
+   "tukey_extremo": [
+    -32.0,
+    38.0
+   ],
+   "n_tukey_moderado": 22,
+   "n_tukey_extremo": 4,
+   "n_z3": 4,
+   "n_zmod": 13,
+   "mad_nulo": false,
+   "iqr_nulo": false,
+   "pct_no_piso": 0.21929824561403508,
+   "h_freedman_diaconis": 2.5984142030594475,
+   "k_fd": 25,
+   "k_sturges": 10,
+   "fora_do_dominio": 0,
+   "dominio": [
+    -16,
+    80
+   ]
+  },
+  {
+   "variavel": "Epworth",
+   "tipo": "discreta",
+   "n": 456,
+   "minimo": 0.0,
+   "maximo": 18.0,
+   "media": 9.699561403508772,
+   "desvio": 5.016859468640661,
+   "erro_padrao": 0.23493596985140597,
+   "cv": 51.72253940086234,
+   "mediana": 10.0,
+   "q1": 6.0,
+   "q3": 13.0,
+   "iqr": 7.0,
+   "amplitude": 18.0,
+   "p5": 0.0,
+   "p95": 18.0,
+   "mad": 3.0,
+   "assimetria": -0.16450661523542268,
+   "curtose": -0.6199215376655309,
+   "shapiro_W": 0.9621274528641156,
+   "shapiro_p": 1.8929588091399244e-09,
+   "tukey_moderado": [
+    -4.5,
+    23.5
+   ],
+   "tukey_extremo": [
+    -15.0,
+    34.0
+   ],
+   "n_tukey_moderado": 0,
+   "n_tukey_extremo": 0,
+   "n_z3": 0,
+   "n_zmod": 0,
+   "mad_nulo": false,
+   "iqr_nulo": false,
+   "pct_no_piso": 7.017543859649122,
+   "h_freedman_diaconis": 1.8188899421416134,
+   "k_fd": 10,
+   "k_sturges": 10,
+   "fora_do_dominio": 0,
+   "dominio": [
+    0,
+    18
+   ]
+  },
+  {
+   "variavel": "PSS",
+   "tipo": "discreta",
+   "n": 456,
+   "minimo": 9.0,
+   "maximo": 40.0,
+   "media": 22.05921052631579,
+   "desvio": 4.846977378225714,
+   "erro_padrao": 0.22698051207518208,
+   "cv": 21.972578630787606,
+   "mediana": 22.0,
+   "q1": 19.0,
+   "q3": 26.0,
+   "iqr": 7.0,
+   "amplitude": 31.0,
+   "p5": 14.0,
+   "p95": 29.25,
+   "mad": 3.0,
+   "assimetria": -0.05413776374795149,
+   "curtose": 0.2577466949903715,
+   "shapiro_W": 0.986605537921748,
+   "shapiro_p": 0.00033061503550843834,
+   "tukey_moderado": [
+    8.5,
+    36.5
+   ],
+   "tukey_extremo": [
+    -2.0,
+    47.0
+   ],
+   "n_tukey_moderado": 3,
+   "n_tukey_extremo": 0,
+   "n_z3": 3,
+   "n_zmod": 1,
+   "mad_nulo": false,
+   "iqr_nulo": false,
+   "pct_no_piso": 0.43859649122807015,
+   "h_freedman_diaconis": 1.8188899421416134,
+   "k_fd": 18,
+   "k_sturges": 10,
+   "fora_do_dominio": 0,
+   "dominio": [
+    0,
+    56
+   ]
+  },
+  {
+   "variavel": "Fad.Física",
+   "tipo": "discreta",
+   "n": 456,
+   "minimo": 0.0,
+   "maximo": 10.0,
+   "media": 6.116228070175438,
+   "desvio": 2.3378584697951137,
+   "erro_padrao": 0.10948025361480969,
+   "cv": 38.22386024476773,
+   "mediana": 6.0,
+   "q1": 5.0,
+   "q3": 8.0,
+   "iqr": 3.0,
+   "amplitude": 10.0,
+   "p5": 2.0,
+   "p95": 10.0,
+   "mad": 2.0,
+   "assimetria": -0.3748320736109354,
+   "curtose": -0.5559026978533965,
+   "shapiro_W": 0.9606838494790033,
+   "shapiro_p": 1.0964273278692874e-09,
+   "tukey_moderado": [
+    0.5,
+    12.5
+   ],
+   "tukey_extremo": [
+    -4.0,
+    17.0
+   ],
+   "n_tukey_moderado": 3,
+   "n_tukey_extremo": 0,
+   "n_z3": 0,
+   "n_zmod": 0,
+   "mad_nulo": false,
+   "iqr_nulo": false,
+   "pct_no_piso": 0.6578947368421052,
+   "h_freedman_diaconis": 0.7795242609178343,
+   "k_fd": 13,
+   "k_sturges": 10,
+   "fora_do_dominio": 0,
+   "dominio": [
+    0,
+    10
+   ]
+  },
+  {
+   "variavel": "Fad.Mental",
+   "tipo": "discreta",
+   "n": 456,
+   "minimo": 0.0,
+   "maximo": 10.0,
+   "media": 4.589912280701754,
+   "desvio": 2.809838913098603,
+   "erro_padrao": 0.131582762941914,
+   "cv": 61.21770398341916,
+   "mediana": 4.0,
+   "q1": 2.0,
+   "q3": 7.0,
+   "iqr": 5.0,
+   "amplitude": 10.0,
+   "p5": 0.0,
+   "p95": 10.0,
+   "mad": 2.0,
+   "assimetria": 0.21342783523726308,
+   "curtose": -0.9380333467338136,
+   "shapiro_W": 0.9545700897455491,
+   "shapiro_p": 1.2351381658814607e-10,
+   "tukey_moderado": [
+    -5.5,
+    14.5
+   ],
+   "tukey_extremo": [
+    -13.0,
+    22.0
+   ],
+   "n_tukey_moderado": 0,
+   "n_tukey_extremo": 0,
+   "n_z3": 0,
+   "n_zmod": 0,
+   "mad_nulo": false,
+   "iqr_nulo": false,
+   "pct_no_piso": 5.263157894736842,
+   "h_freedman_diaconis": 1.2992071015297237,
+   "k_fd": 8,
+   "k_sturges": 10,
+   "fora_do_dominio": 0,
+   "dominio": [
+    0,
+    10
+   ]
+  },
+  {
+   "variavel": "TQR",
+   "tipo": "ordinal",
+   "n": 454,
+   "minimo": 6.0,
+   "maximo": 20.0,
+   "media": 11.865638766519824,
+   "desvio": 3.1520706830711496,
+   "erro_padrao": 0.14793400712793014,
+   "cv": 26.5646944517227,
+   "mediana": 13.0,
+   "q1": 9.25,
+   "q3": 14.0,
+   "iqr": 4.75,
+   "amplitude": 14.0,
+   "p5": 6.0,
+   "p95": 17.0,
+   "mad": 2.0,
+   "assimetria": -0.30214041251370954,
+   "curtose": -0.675988212436847,
+   "shapiro_W": 0.9536892769594723,
+   "shapiro_p": 9.824049109755915e-11,
+   "tukey_moderado": [
+    2.125,
+    21.125
+   ],
+   "tukey_extremo": [
+    -5.0,
+    28.25
+   ],
+   "n_tukey_moderado": 0,
+   "n_tukey_extremo": 0,
+   "n_z3": 0,
+   "n_zmod": 0,
+   "mad_nulo": false,
+   "iqr_nulo": false,
+   "pct_no_piso": 8.149779735682818,
+   "h_freedman_diaconis": 1.2360564950078117,
+   "k_fd": 12,
+   "k_sturges": 10,
+   "fora_do_dominio": 0,
+   "dominio": [
+    6,
+    20
+   ]
+  },
+  {
+   "variavel": "Hora do registro",
+   "tipo": "contínua",
+   "n": 456,
+   "minimo": 0.43333333333333335,
+   "maximo": 23.916666666666668,
+   "media": 14.526242690058481,
+   "desvio": 3.948669847976976,
+   "erro_padrao": 0.184913407711784,
+   "cv": 27.183008932374367,
+   "mediana": 14.3,
+   "q1": 11.779166666666667,
+   "q3": 16.033333333333335,
+   "iqr": 4.254166666666668,
+   "amplitude": 23.483333333333334,
+   "p5": 9.016666666666666,
+   "p95": 21.008333333333333,
+   "mad": 1.8499999999999979,
+   "assimetria": -0.11606534585525799,
+   "curtose": 0.9095428306038595,
+   "shapiro_W": 0.9543024396609059,
+   "shapiro_p": 1.1274609749264939e-10,
+   "tukey_moderado": [
+    5.3979166666666645,
+    22.414583333333336
+   ],
+   "tukey_extremo": [
+    -0.9833333333333378,
+    28.79583333333334
+   ],
+   "n_tukey_moderado": 23,
+   "n_tukey_extremo": 0,
+   "n_z3": 6,
+   "n_zmod": 7,
+   "mad_nulo": false,
+   "iqr_nulo": false,
+   "pct_no_piso": 0.21929824561403508,
+   "h_freedman_diaconis": 1.1054087088848736,
+   "k_fd": 22,
+   "k_sturges": 10,
+   "fora_do_dominio": 0,
+   "dominio": [
+    0,
+    24
+   ]
+  },
+  {
+   "variavel": "T de Tensão",
+   "tipo": "contínua",
+   "n": 456,
+   "minimo": 37.0003249918752,
+   "maximo": 62.9996750081248,
+   "media": 41.51885237956771,
+   "desvio": 5.964438060455516,
+   "erro_padrao": 0.27931040307402366,
+   "cv": 14.365613976822585,
+   "mediana": 40.2502437439064,
+   "q1": 37.0003249918752,
+   "q3": 43.5001624959376,
+   "iqr": 6.499837504062398,
+   "amplitude": 25.999350016249593,
+   "p5": 37.0003249918752,
+   "p95": 56.4998375040624,
+   "mad": 3.249918752031199,
+   "assimetria": 1.4309482398197,
+   "curtose": 1.5031187950100469,
+   "shapiro_W": 0.7655337001057297,
+   "shapiro_p": 5.478099796854523e-25,
+   "tukey_moderado": [
+    27.250568735781606,
+    53.2499187520312
+   ],
+   "tukey_extremo": [
+    17.50081247968801,
+    62.9996750081248
+   ],
+   "n_tukey_moderado": 24,
+   "n_tukey_extremo": 0,
+   "n_z3": 14,
+   "n_zmod": 14,
+   "mad_nulo": false,
+   "iqr_nulo": false,
+   "pct_no_piso": 49.56140350877193,
+   "h_freedman_diaconis": 1.6889270088134205,
+   "k_fd": 16,
+   "k_sturges": 10
+  },
+  {
+   "variavel": "T de Depressão",
+   "tipo": "contínua",
+   "n": 456,
+   "minimo": 45.002678093197645,
+   "maximo": 130.70166041778253,
+   "media": 50.35886448848421,
+   "desvio": 12.393347458626819,
+   "erro_padrao": 0.5803716693875962,
+   "cv": 24.610061375511876,
+   "mediana": 45.002678093197645,
+   "q1": 45.002678093197645,
+   "q3": 50.3588644884842,
+   "iqr": 5.3561863952865565,
+   "amplitude": 85.69898232458489,
+   "p5": 45.002678093197645,
+   "p95": 73.12265666845207,
+   "mad": 0.0,
+   "assimetria": 3.6274989649206826,
+   "curtose": 14.930791817321452,
+   "shapiro_W": 0.4894790061593206,
+   "shapiro_p": 4.130899316253672e-34,
+   "tukey_moderado": [
+    36.96839850026781,
+    58.393144081414036
+   ],
+   "tukey_extremo": [
+    28.934118907337975,
+    66.42742367434387
+   ],
+   "n_tukey_moderado": 51,
+   "n_tukey_extremo": 27,
+   "n_z3": 15,
+   "n_zmod": null,
+   "mad_nulo": true,
+   "iqr_nulo": false,
+   "pct_no_piso": 67.10526315789474,
+   "h_freedman_diaconis": 1.3917590803746374,
+   "k_fd": 62,
+   "k_sturges": 10
+  },
+  {
+   "variavel": "T de Raiva",
+   "tipo": "contínua",
+   "n": 456,
+   "minimo": 45.0,
+   "maximo": 143.5545335085414,
+   "media": 55.518246997256604,
+   "desvio": 17.91652302320062,
+   "erro_padrao": 0.839018062820323,
+   "cv": 32.271413440136094,
+   "mediana": 45.0,
+   "q1": 45.0,
+   "q3": 58.14060446780552,
+   "iqr": 13.140604467805517,
+   "amplitude": 98.5545335085414,
+   "p5": 45.0,
+   "p95": 97.56241787122207,
+   "mad": 0.0,
+   "assimetria": 2.0649127676711383,
+   "curtose": 4.216890737698916,
+   "shapiro_W": 0.6567463644285605,
+   "shapiro_p": 2.8629629529244917e-29,
+   "tukey_moderado": [
+    25.289093298291725,
+    77.8515111695138
+   ],
+   "tukey_extremo": [
+    5.57818659658345,
+    97.56241787122207
+   ],
+   "n_tukey_moderado": 53,
+   "n_tukey_extremo": 14,
+   "n_z3": 10,
+   "n_zmod": null,
+   "mad_nulo": true,
+   "iqr_nulo": false,
+   "pct_no_piso": 59.64912280701754,
+   "h_freedman_diaconis": 3.4144733285932287,
+   "k_fd": 29,
+   "k_sturges": 10
+  },
+  {
+   "variavel": "T de Vigor",
+   "tipo": "contínua",
+   "n": 456,
+   "minimo": 28.99794976934905,
+   "maximo": 67.4397744746284,
+   "media": 43.593478827771634,
+   "desvio": 7.988202943618639,
+   "erro_padrao": 0.374081876851417,
+   "cv": 18.324307117535383,
+   "mediana": 44.37467965146079,
+   "q1": 39.24910302409021,
+   "q3": 49.500256278831365,
+   "iqr": 10.251153254741155,
+   "amplitude": 38.441824705279345,
+   "p5": 28.99794976934905,
+   "p95": 57.18862121988724,
+   "mad": 5.125576627370577,
+   "assimetria": 0.03345436112682355,
+   "curtose": -0.23767447163429267,
+   "shapiro_W": 0.9738967717892555,
+   "shapiro_p": 2.831370929770295e-07,
+   "tukey_moderado": [
+    23.87237314197848,
+    64.87698616094309
+   ],
+   "tukey_extremo": [
+    8.495643259866746,
+    80.25371604305482
+   ],
+   "n_tukey_moderado": 3,
+   "n_tukey_extremo": 0,
+   "n_z3": 0,
+   "n_zmod": 0,
+   "mad_nulo": false,
+   "iqr_nulo": false,
+   "pct_no_piso": 8.552631578947368,
+   "h_freedman_diaconis": 2.66367422148585,
+   "k_fd": 15,
+   "k_sturges": 10
+  },
+  {
+   "variavel": "T de Fadiga",
+   "tipo": "contínua",
+   "n": 456,
+   "minimo": 40.0,
+   "maximo": 92.99768135144087,
+   "media": 58.697372779414586,
+   "desvio": 12.882573771684765,
+   "erro_padrao": 0.603281790560721,
+   "cv": 21.947445280213184,
+   "mediana": 56.56177542232527,
+   "q1": 49.93706525339516,
+   "q3": 66.49884067572043,
+   "iqr": 16.56177542232527,
+   "amplitude": 52.997681351440875,
+   "p5": 40.0,
+   "p95": 83.06061609804571,
+   "mad": 9.937065253395161,
+   "assimetria": 0.5861163041160364,
+   "curtose": -0.3970544292300069,
+   "shapiro_W": 0.9492781005348028,
+   "shapiro_p": 2.1609608498850746e-11,
+   "tukey_moderado": [
+    25.094402119907258,
+    91.34150380920833
+   ],
+   "tukey_extremo": [
+    0.25173898641935466,
+    116.18416694269624
+   ],
+   "n_tukey_moderado": 4,
+   "n_tukey_extremo": 0,
+   "n_z3": 0,
+   "n_zmod": 0,
+   "mad_nulo": false,
+   "iqr_nulo": false,
+   "pct_no_piso": 7.675438596491229,
+   "h_freedman_diaconis": 4.303435248525086,
+   "k_fd": 13,
+   "k_sturges": 10
+  },
+  {
+   "variavel": "T de Confusão",
+   "tipo": "contínua",
+   "n": 456,
+   "minimo": 41.99887703537338,
+   "maximo": 92.53228523301516,
+   "media": 44.535398012155596,
+   "desvio": 6.674444576932257,
+   "erro_padrao": 0.3125595045471567,
+   "cv": 14.986830419951604,
+   "mediana": 41.99887703537338,
+   "q1": 41.99887703537338,
+   "q3": 41.99887703537338,
+   "iqr": 0.0,
+   "amplitude": 50.533408197641776,
+   "p5": 41.99887703537338,
+   "p95": 58.84334643458731,
+   "mad": 0.0,
+   "assimetria": 3.7339258645595996,
+   "curtose": 16.96069648932126,
+   "shapiro_W": 0.44036669633079706,
+   "shapiro_p": 2.7573292018626614e-35,
+   "tukey_moderado": [
+    41.99887703537338,
+    41.99887703537338
+   ],
+   "tukey_extremo": [
+    41.99887703537338,
+    41.99887703537338
+   ],
+   "n_tukey_moderado": 89,
+   "n_tukey_extremo": 89,
+   "n_z3": 8,
+   "n_zmod": null,
+   "mad_nulo": true,
+   "iqr_nulo": true,
+   "pct_no_piso": 80.48245614035088,
+   "h_freedman_diaconis": 0.0,
+   "k_fd": null,
+   "k_sturges": 10
+  }
+ ],
+ "INTRA": [
+  {
+   "variavel": "Tensão",
+   "atletas_avaliados": 26,
+   "n_discrepantes": 3,
+   "casos": [
+    {
+     "atleta": "A03",
+     "dia": 1,
+     "valor": 5.0,
+     "z_mod": 5.396,
+     "mediana_do_atleta": 1.0,
+     "linha": 5
+    },
+    {
+     "atleta": "A05",
+     "dia": 1,
+     "valor": 7.0,
+     "z_mod": 4.047,
+     "mediana_do_atleta": 1.0,
+     "linha": 6
+    },
+    {
+     "atleta": "A18",
+     "dia": 2,
+     "valor": 4.0,
+     "z_mod": 4.047,
+     "mediana_do_atleta": 1.0,
+     "linha": 95
+    }
+   ]
+  },
+  {
+   "variavel": "Depressão",
+   "atletas_avaliados": 26,
+   "n_discrepantes": 1,
+   "casos": [
+    {
+     "atleta": "A21",
+     "dia": 1,
+     "valor": 8.0,
+     "z_mod": 4.7215,
+     "mediana_do_atleta": 1.0,
+     "linha": 37
+    }
+   ]
+  },
+  {
+   "variavel": "Raiva",
+   "atletas_avaliados": 26,
+   "n_discrepantes": 11,
+   "casos": [
+    {
+     "atleta": "A09",
+     "dia": 7,
+     "valor": 10.0,
+     "z_mod": 12.8155,
+     "mediana_do_atleta": 0.5,
+     "linha": 420
+    },
+    {
+     "atleta": "A17",
+     "dia": 7,
+     "valor": 14.0,
+     "z_mod": 8.7685,
+     "mediana_do_atleta": 1.0,
+     "linha": 433
+    },
+    {
+     "atleta": "A17",
+     "dia": 7,
+     "valor": 13.0,
+     "z_mod": 8.094,
+     "mediana_do_atleta": 1.0,
+     "linha": 418
+    },
+    {
+     "atleta": "A17",
+     "dia": 4,
+     "valor": 12.0,
+     "z_mod": 7.4195,
+     "mediana_do_atleta": 1.0,
+     "linha": 246
+    },
+    {
+     "atleta": "A17",
+     "dia": 4,
+     "valor": 11.0,
+     "z_mod": 6.745,
+     "mediana_do_atleta": 1.0,
+     "linha": 224
+    },
+    {
+     "atleta": "A11",
+     "dia": 3,
+     "valor": 11.0,
+     "z_mod": 6.745,
+     "mediana_do_atleta": 1.0,
+     "linha": 140
+    }
+   ]
+  },
+  {
+   "variavel": "Vigor",
+   "atletas_avaliados": 26,
+   "n_discrepantes": 5,
+   "casos": [
+    {
+     "atleta": "A12",
+     "dia": 2,
+     "valor": 1.0,
+     "z_mod": -6.0705,
+     "mediana_do_atleta": 5.5,
+     "linha": 125
+    },
+    {
+     "atleta": "A12",
+     "dia": 3,
+     "valor": 1.0,
+     "z_mod": -6.0705,
+     "mediana_do_atleta": 5.5,
+     "linha": 158
+    },
+    {
+     "atleta": "A13",
+     "dia": 6,
+     "valor": 0.0,
+     "z_mod": -4.7215,
+     "mediana_do_atleta": 7.0,
+     "linha": 409
+    },
+    {
+     "atleta": "A02",
+     "dia": 7,
+     "valor": 0.0,
+     "z_mod": -4.7215,
+     "mediana_do_atleta": 7.0,
+     "linha": 456
+    },
+    {
+     "atleta": "A13",
+     "dia": 7,
+     "valor": 1.0,
+     "z_mod": -4.047,
+     "mediana_do_atleta": 7.0,
+     "linha": 450
+    }
+   ]
+  },
+  {
+   "variavel": "Fadiga",
+   "atletas_avaliados": 26,
+   "n_discrepantes": 5,
+   "casos": [
+    {
+     "atleta": "A17",
+     "dia": 1,
+     "valor": 4.0,
+     "z_mod": -6.0705,
+     "mediana_do_atleta": 13.0,
+     "linha": 7
+    },
+    {
+     "atleta": "A26",
+     "dia": 4,
+     "valor": 12.0,
+     "z_mod": 5.73325,
+     "mediana_do_atleta": 3.5,
+     "linha": 257
+    },
+    {
+     "atleta": "A22",
+     "dia": 6,
+     "valor": 10.0,
+     "z_mod": 4.7215,
+     "mediana_do_atleta": 3.0,
+     "linha": 410
+    },
+    {
+     "atleta": "A22",
+     "dia": 7,
+     "valor": 9.0,
+     "z_mod": 4.047,
+     "mediana_do_atleta": 3.0,
+     "linha": 434
+    },
+    {
+     "atleta": "A22",
+     "dia": 7,
+     "valor": 9.0,
+     "z_mod": 4.047,
+     "mediana_do_atleta": 3.0,
+     "linha": 445
+    }
+   ]
+  },
+  {
+   "variavel": "Confusão",
+   "atletas_avaliados": 26,
+   "n_discrepantes": 3,
+   "casos": [
+    {
+     "atleta": "A17",
+     "dia": 2,
+     "valor": 9.0,
+     "z_mod": 4.38425,
+     "mediana_do_atleta": 2.5,
+     "linha": 67
+    },
+    {
+     "atleta": "A17",
+     "dia": 1,
+     "valor": 8.0,
+     "z_mod": 3.70975,
+     "mediana_do_atleta": 2.5,
+     "linha": 7
+    },
+    {
+     "atleta": "A17",
+     "dia": 7,
+     "valor": 8.0,
+     "z_mod": 3.70975,
+     "mediana_do_atleta": 2.5,
+     "linha": 418
+    }
+   ]
+  },
+  {
+   "variavel": "TMD",
+   "atletas_avaliados": 26,
+   "n_discrepantes": 10,
+   "casos": [
+    {
+     "atleta": "A20",
+     "dia": 2,
+     "valor": 12.0,
+     "z_mod": 7.419499999999999,
+     "mediana_do_atleta": -4.5,
+     "linha": 74
+    },
+    {
+     "atleta": "A09",
+     "dia": 7,
+     "valor": 27.0,
+     "z_mod": 6.475199999999999,
+     "mediana_do_atleta": 3.0,
+     "linha": 420
+    },
+    {
+     "atleta": "A20",
+     "dia": 2,
+     "valor": 8.0,
+     "z_mod": 5.620833333333334,
+     "mediana_do_atleta": -4.5,
+     "linha": 104
+    },
+    {
+     "atleta": "A25",
+     "dia": 2,
+     "valor": 18.0,
+     "z_mod": 5.171166666666667,
+     "mediana_do_atleta": 6.5,
+     "linha": 106
+    },
+    {
+     "atleta": "A21",
+     "dia": 1,
+     "valor": 21.0,
+     "z_mod": 4.7215,
+     "mediana_do_atleta": 0.0,
+     "linha": 37
+    },
+    {
+     "atleta": "A22",
+     "dia": 6,
+     "valor": 19.0,
+     "z_mod": 4.271833333333333,
+     "mediana_do_atleta": 0.0,
+     "linha": 410
+    }
+   ]
+  },
+  {
+   "variavel": "Epworth",
+   "atletas_avaliados": 26,
+   "n_discrepantes": 3,
+   "casos": [
+    {
+     "atleta": "A16",
+     "dia": 1,
+     "valor": 0.0,
+     "z_mod": -5.396,
+     "mediana_do_atleta": 4.0,
+     "linha": 48
+    },
+    {
+     "atleta": "A23",
+     "dia": 7,
+     "valor": 14.0,
+     "z_mod": 4.7215,
+     "mediana_do_atleta": 7.0,
+     "linha": 432
+    },
+    {
+     "atleta": "A16",
+     "dia": 6,
+     "valor": 7.0,
+     "z_mod": 4.047,
+     "mediana_do_atleta": 4.0,
+     "linha": 364
+    }
+   ]
+  },
+  {
+   "variavel": "PSS",
+   "atletas_avaliados": 26,
+   "n_discrepantes": 3,
+   "casos": [
+    {
+     "atleta": "A04",
+     "dia": 1,
+     "valor": 27.0,
+     "z_mod": 8.094,
+     "mediana_do_atleta": 15.0,
+     "linha": 9
+    },
+    {
+     "atleta": "A04",
+     "dia": 2,
+     "valor": 21.0,
+     "z_mod": 4.047,
+     "mediana_do_atleta": 15.0,
+     "linha": 59
+    },
+    {
+     "atleta": "A27",
+     "dia": 2,
+     "valor": 27.0,
+     "z_mod": 4.047,
+     "mediana_do_atleta": 21.0,
+     "linha": 90
+    }
+   ]
+  }
+ ],
+ "INCONS": [
+  {
+   "id": "Q1",
+   "gravidade": "alta",
+   "titulo": "Coluna «Data» autorreferida diverge do carimbo",
+   "achado": "88 de 440 registros com data declarada divergem do dia obtido pelo carimbo; o conjunto inclui datas de nascimento.",
+   "correcao": "O dia passa a ser derivado exclusivamente do carimbo de data e hora, com virada às 4h.",
+   "n": 88,
+   "de": 440
+  },
+  {
+   "id": "Q2",
+   "gravidade": "alta",
+   "titulo": "Nome em texto livre sem padronização",
+   "achado": "67 grafias distintas para 48 nomes canônicos, 15 deles com mais de uma grafia.",
+   "correcao": "A identidade passa a vir da coluna padronizada, e a codificação A01–A27 é feita na importação.",
+   "n": 15,
+   "de": 48
+  },
+  {
+   "id": "Q3",
+   "gravidade": "média",
+   "titulo": "Mais de dois registros no mesmo dia",
+   "achado": "O protocolo previa uma coleta em D1 e duas de D2 a D7; a distribuição observada vai de 1 a 6 registros por par atleta-dia, e 17 pares consecutivos ocorrem em 30 minutos ou menos.",
+   "correcao": "O valor diário é a média de todos os registros do dia; o contraste pré-pós usa o primeiro e o último. Nenhum registro é descartado, e a regra passa a ser declarada.",
+   "n": 79,
+   "de": 166
+  },
+  {
+   "id": "Q4",
+   "gravidade": "média",
+   "titulo": "Rótulo do domínio da sonolência de Epworth",
+   "achado": "A coluna da planilha é rotulada «Epworth Total (0-24)», mas o formulário aplicou seis das oito situações da escala, de modo que o máximo possível é 18. O máximo observado é 18.",
+   "correcao": "O domínio declarado passa a 0 a 18, e o texto passa a dizer que é uma aplicação de seis itens.",
+   "n": 6,
+   "de": 8
+  },
+  {
+   "id": "Q5",
+   "gravidade": "nenhuma",
+   "titulo": "Escores calculados da planilha",
+   "achado": "As nove colunas calculadas foram reconstruídas por fórmula a partir dos itens em 4113 conferências, com 0 divergências.",
+   "correcao": "Nada a corrigir. A pontuação da planilha está correta, e as divergências entre versões do manuscrito não vêm do escore.",
+   "n": 0,
+   "de": 4113
+  },
+  {
+   "id": "Q6",
+   "gravidade": "método",
+   "titulo": "Cerca de Tukey inaplicável a subescala com piso",
+   "achado": "Em Confusão, T de Confusão o intervalo interquartil é zero, de modo que a cerca de Tukey classifica como discrepante todo valor diferente do piso. O z modificado também falha, porque o desvio absoluto mediano é zero.",
+   "correcao": "Nessas subescalas a triagem passa a ser feita pelo domínio admissível e pela comparação intraindividual, e não por regra de dispersão.",
+   "n": 2,
+   "de": 19
+  }
+ ],
+ "n_linhas_fonte": 457,
+ "n_registros": 457,
+ "n_no_microciclo": 456,
+ "orfaos": [],
+ "fora_semana": 1,
+ "tqr_ancoras": [
+  [
+   6,
+   "6 Em nada recuperado"
+  ],
+  [
+   7,
+   "7 Extremamente mal recuperado"
+  ],
+  [
+   8,
+   "—"
+  ],
+  [
+   9,
+   "9 Muito mal recuperado"
+  ],
+  [
+   10,
+   "—"
+  ],
+  [
+   11,
+   "11 Mal recuperado"
+  ],
+  [
+   12,
+   "—"
+  ],
+  [
+   13,
+   "13 Razoavelmente recuperado"
+  ],
+  [
+   14,
+   "—"
+  ],
+  [
+   15,
+   "15 Bem recuperado"
+  ],
+  [
+   16,
+   "—"
+  ],
+  [
+   17,
+   "17 Muito bem recuperado"
+  ],
+  [
+   18,
+   "—"
+  ],
+  [
+   19,
+   "19 Extremamente bem recuperado"
+  ],
+  [
+   20,
+   "—"
+  ]
+ ]
+}

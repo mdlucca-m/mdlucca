@@ -36,12 +36,14 @@ Depois disso, no Claude Code:
 ./ana.py resultado --variavel Tensão --sig
 ./ana.py confronto                         # onde as três vias divergem
 ./ana.py modelo --parte diagnostico        # a checagem de reversão à média
+./ana.py qualidade --parte discrepantes    # domínio, Tukey, z e z modificado
+./ana.py otimizar --parte precos           # o que segura o microciclo
 ./ana.py buscar "piso de ruído"
 ./ana.py lembrar "periódico alvo" "Frontiers in Psychology"
 ./ana.py recordar --escopo handebol
 ```
 
-## As treze ferramentas
+## As quinze ferramentas
 
 | Ferramenta | Responde |
 |---|---|
@@ -52,6 +54,8 @@ Depois disso, no Claude Code:
 | `ana_perfil` | prevalência dos seis perfis por recorte |
 | `ana_auditoria` | por que sete versões divergiam |
 | `ana_modelo` | desempenho, árvore, subgrupo, diagnóstico, CRISP-DM |
+| `ana_qualidade` | dicionário de tipos, conferência dos escores, faltantes, univariada, discrepantes, reconferência |
+| `ana_otimizar` | resposta dose-humor, distribuição ótima da carga, preços-sombra, fronteira eficiente |
 | `ana_referencia` | DOI, PubMed, acesso aberto |
 | `ana_buscar` | texto completo sobre 282.776 células de acervo |
 | `ana_sql` | consulta livre, somente leitura |

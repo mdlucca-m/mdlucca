@@ -8,6 +8,8 @@
   ./ana.py confronto
   ./ana.py perfil --recorte estimulo
   ./ana.py auditoria
+  ./ana.py qualidade --parte discrepantes
+  ./ana.py otimizar --parte precos
   ./ana.py modelo --parte diagnostico
   ./ana.py referencia --termo Terry
   ./ana.py buscar "piso de ruído"
@@ -33,6 +35,13 @@ def main() -> int:
     pf = sp.add_parser("perfil"); pf.add_argument("--recorte", default="dia"); pf.add_argument("--unidade", default="U-AD")
     mo = sp.add_parser("modelo")
     mo.add_argument("--parte", default="tudo", choices=["desempenho", "arvore", "diagnostico", "crispdm", "tudo"])
+    qa = sp.add_parser("qualidade")
+    qa.add_argument("--parte", default="tudo", choices=["dicionario","formulas","confronto","faltantes",
+        "categoricas","univariada","discrepantes","achados","reconferencia","tudo"])
+    qa.add_argument("--variavel")
+    ot = sp.add_parser("otimizar")
+    ot.add_argument("--parte", default="tudo",
+                    choices=["modelo","solucao","precos","fronteira","sensibilidade","tudo"])
     rf = sp.add_parser("referencia"); rf.add_argument("--termo"); rf.add_argument("--limite", type=int, default=20)
     bu = sp.add_parser("buscar"); bu.add_argument("termo", nargs="+")
     bu.add_argument("--origem", choices=["acervo", "resultado", "auditoria"]); bu.add_argument("--limite", type=int, default=20)

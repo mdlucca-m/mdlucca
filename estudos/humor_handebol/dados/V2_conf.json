@@ -1,0 +1,613 @@
+{
+ "CONF": [
+  {
+   "bloco": "Estrutura",
+   "item": "Pares atleta-dia",
+   "caminho_a": 166.0,
+   "caminho_b": 166.0,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Estrutura",
+   "item": "Atletas",
+   "caminho_a": 27.0,
+   "caminho_b": 27.0,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Estrutura",
+   "item": "Registros no microciclo",
+   "caminho_a": 456.0,
+   "caminho_b": 456.0,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · média diária",
+   "item": "Tensão em D1",
+   "caminho_a": 2.1481481481481484,
+   "caminho_b": 2.1481481481481484,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · média diária",
+   "item": "Tensão em D7",
+   "caminho_a": 0.9404761904761905,
+   "caminho_b": 0.9404761904761905,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · variação",
+   "item": "Tensão · D1 → D7",
+   "caminho_a": -1.207671957671958,
+   "caminho_b": -1.207671957671958,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · média diária",
+   "item": "Depressão em D1",
+   "caminho_a": 1.0555555555555556,
+   "caminho_b": 1.0555555555555556,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · média diária",
+   "item": "Depressão em D7",
+   "caminho_a": 1.26984126984127,
+   "caminho_b": 1.2698412698412698,
+   "diferenca": 2.220446049250313e-16,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · variação",
+   "item": "Depressão · D1 → D7",
+   "caminho_a": 0.2142857142857144,
+   "caminho_b": 0.2142857142857142,
+   "diferenca": 2.220446049250313e-16,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · média diária",
+   "item": "Raiva em D1",
+   "caminho_a": 1.7777777777777777,
+   "caminho_b": 1.7777777777777777,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · média diária",
+   "item": "Raiva em D7",
+   "caminho_a": 2.51984126984127,
+   "caminho_b": 2.51984126984127,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · variação",
+   "item": "Raiva · D1 → D7",
+   "caminho_a": 0.7420634920634925,
+   "caminho_b": 0.7420634920634925,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · média diária",
+   "item": "Vigor em D1",
+   "caminho_a": 7.37037037037037,
+   "caminho_b": 7.37037037037037,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · média diária",
+   "item": "Vigor em D7",
+   "caminho_a": 4.392857142857143,
+   "caminho_b": 4.392857142857143,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · variação",
+   "item": "Vigor · D1 → D7",
+   "caminho_a": -2.977513227513227,
+   "caminho_b": -2.977513227513227,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · média diária",
+   "item": "Fadiga em D1",
+   "caminho_a": 3.7222222222222223,
+   "caminho_b": 3.7222222222222223,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · média diária",
+   "item": "Fadiga em D7",
+   "caminho_a": 7.337301587301588,
+   "caminho_b": 7.337301587301588,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · variação",
+   "item": "Fadiga · D1 → D7",
+   "caminho_a": 3.6150793650793656,
+   "caminho_b": 3.6150793650793656,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · média diária",
+   "item": "Confusão em D1",
+   "caminho_a": 0.9629629629629629,
+   "caminho_b": 0.9629629629629629,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · média diária",
+   "item": "Confusão em D7",
+   "caminho_a": 0.5119047619047619,
+   "caminho_b": 0.5119047619047619,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · variação",
+   "item": "Confusão · D1 → D7",
+   "caminho_a": -0.45105820105820105,
+   "caminho_b": -0.45105820105820105,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · média diária",
+   "item": "TMD em D1",
+   "caminho_a": 2.2962962962962963,
+   "caminho_b": 2.2962962962962963,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · média diária",
+   "item": "TMD em D7",
+   "caminho_a": 8.186507936507937,
+   "caminho_b": 8.186507936507937,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · variação",
+   "item": "TMD · D1 → D7",
+   "caminho_a": 5.890211640211641,
+   "caminho_b": 5.890211640211641,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Tensão · piso de ruído",
+   "caminho_a": 0.35111239096110036,
+   "caminho_b": 0.3511123909611003,
+   "diferenca": 5.551115123125783e-17,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Tensão · derivada D1→D2",
+   "caminho_a": -1.4972255550579137,
+   "caminho_b": -1.4972255550579132,
+   "diferenca": -4.440892098500626e-16,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Tensão · derivada D6→D7",
+   "caminho_a": -0.8598548805590509,
+   "caminho_b": -0.859854880559051,
+   "diferenca": 1.1102230246251565e-16,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Depressão · piso de ruído",
+   "caminho_a": 0.44885263324671865,
+   "caminho_b": 0.44885263324671865,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Depressão · derivada D1→D2",
+   "caminho_a": 0.014995499039591326,
+   "caminho_b": 0.014995499039591326,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Depressão · derivada D6→D7",
+   "caminho_a": 0.5610693921932648,
+   "caminho_b": 0.5610693921932648,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Raiva · piso de ruído",
+   "caminho_a": 0.49589883783309735,
+   "caminho_b": 0.49589883783309735,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Raiva · derivada D1→D2",
+   "caminho_a": -0.22686078574328847,
+   "caminho_b": -0.226860785743288,
+   "diferenca": -4.718447854656915e-16,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Raiva · derivada D6→D7",
+   "caminho_a": 1.8569497304618565,
+   "caminho_b": 1.856949730461856,
+   "diferenca": 4.440892098500626e-16,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Vigor · piso de ruído",
+   "caminho_a": 0.5853741634044543,
+   "caminho_b": 0.5853741634044543,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Vigor · derivada D1→D2",
+   "caminho_a": -2.229927389945251,
+   "caminho_b": -2.229927389945253,
+   "diferenca": 1.7763568394002505e-15,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Vigor · derivada D6→D7",
+   "caminho_a": -1.7196552064800612,
+   "caminho_b": -1.7196552064800612,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Fadiga · piso de ruído",
+   "caminho_a": 0.7570559382261612,
+   "caminho_b": 0.7570559382261611,
+   "diferenca": 1.1102230246251565e-16,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Fadiga · derivada D1→D2",
+   "caminho_a": 1.4629461250605618,
+   "caminho_b": 1.462946125060563,
+   "diferenca": -1.3322676295501878e-15,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Fadiga · derivada D6→D7",
+   "caminho_a": 1.849893549411899,
+   "caminho_b": 1.8498935494118995,
+   "diferenca": -4.440892098500626e-16,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Confusão · piso de ruído",
+   "caminho_a": 0.2102258824329867,
+   "caminho_b": 0.2102258824329867,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Confusão · derivada D1→D2",
+   "caminho_a": -1.8651081996005134,
+   "caminho_b": -1.8651081996005134,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "Confusão · derivada D6→D7",
+   "caminho_a": 0.20753312783496192,
+   "caminho_b": 0.20753312783496192,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "TMD · piso de ruído",
+   "caminho_a": 1.8652609733364094,
+   "caminho_b": 1.8652609733364094,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "TMD · derivada D1→D2",
+   "caminho_a": 0.7448374566220386,
+   "caminho_b": 0.7448374566220386,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · sinal",
+   "item": "TMD · derivada D6→D7",
+   "caminho_a": 1.7807344341075195,
+   "caminho_b": 1.7807344341075195,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 1 · prevalência",
+   "item": "Faixa de risco em D1",
+   "caminho_a": 22.22222222222222,
+   "caminho_b": 22.22222222222222,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": "%"
+  },
+  {
+   "bloco": "Artigo 1 · prevalência",
+   "item": "Faixa de risco em D7",
+   "caminho_a": 52.38095238095239,
+   "caminho_b": 52.38095238095239,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": "%"
+  },
+  {
+   "bloco": "Artigo 2 · Wilcoxon D1×D7",
+   "item": "Tensão · p",
+   "caminho_a": 0.011847839085313791,
+   "caminho_b": 0.011847839085313791,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 2 · Wilcoxon D1×D7",
+   "item": "Depressão · p",
+   "caminho_a": 0.7289268637948052,
+   "caminho_b": 0.7289268637948052,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 2 · Wilcoxon D1×D7",
+   "item": "Raiva · p",
+   "caminho_a": 0.7534928259969147,
+   "caminho_b": 0.7534928259969147,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 2 · Wilcoxon D1×D7",
+   "item": "Vigor · p",
+   "caminho_a": 0.0006638248408875143,
+   "caminho_b": 0.0006638248408875143,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 2 · Wilcoxon D1×D7",
+   "item": "Fadiga · p",
+   "caminho_a": 0.0015528602863107439,
+   "caminho_b": 0.0015528602863107439,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 2 · Wilcoxon D1×D7",
+   "item": "Confusão · p",
+   "caminho_a": 0.06753459831355195,
+   "caminho_b": 0.06753459831355195,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 2 · Wilcoxon D1×D7",
+   "item": "TMD · p",
+   "caminho_a": 0.07338568141341512,
+   "caminho_b": 0.07338568141341512,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Artigo 2 · pareamento",
+   "item": "Atletas com D1 e D7",
+   "caminho_a": 21.0,
+   "caminho_b": 21.0,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Anexo · modelagem",
+   "item": "Pares pré-pós",
+   "caminho_a": 119.0,
+   "caminho_b": 119.0,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Anexo · modelagem",
+   "item": "Atletas na modelagem",
+   "caminho_a": 27.0,
+   "caminho_b": 27.0,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  },
+  {
+   "bloco": "Anexo · modelagem",
+   "item": "Eventos (risco à noite)",
+   "caminho_a": 57.0,
+   "caminho_b": 57.0,
+   "diferenca": 0.0,
+   "confere": true,
+   "unidade": ""
+  }
+ ],
+ "NORMALIDADE": [
+  {
+   "variavel": "Tensão",
+   "W": 0.7953961447648764,
+   "p": 5.724367614550696e-14,
+   "normal": false,
+   "n": 166
+  },
+  {
+   "variavel": "Depressão",
+   "W": 0.5223730130312908,
+   "p": 4.177098552079069e-21,
+   "normal": false,
+   "n": 166
+  },
+  {
+   "variavel": "Raiva",
+   "W": 0.6849545874057801,
+   "p": 2.1078890705838328e-17,
+   "normal": false,
+   "n": 166
+  },
+  {
+   "variavel": "Vigor",
+   "W": 0.982584394825528,
+   "p": 0.03529305844895565,
+   "normal": false,
+   "n": 166
+  },
+  {
+   "variavel": "Fadiga",
+   "W": 0.9428471392558762,
+   "p": 3.1442217971908464e-06,
+   "normal": false,
+   "n": 166
+  },
+  {
+   "variavel": "Confusão",
+   "W": 0.5241990382793026,
+   "p": 4.5365160942476896e-21,
+   "normal": false,
+   "n": 166
+  },
+  {
+   "variavel": "TMD",
+   "W": 0.8593527717553295,
+   "p": 2.536443062619884e-11,
+   "normal": false,
+   "n": 166
+  }
+ ],
+ "ok": 58,
+ "total": 58,
+ "por_bloco": {
+  "Estrutura": [
+   3,
+   3
+  ],
+  "Artigo 1 · média diária": [
+   14,
+   14
+  ],
+  "Artigo 1 · variação": [
+   7,
+   7
+  ],
+  "Artigo 1 · sinal": [
+   21,
+   21
+  ],
+  "Artigo 1 · prevalência": [
+   2,
+   2
+  ],
+  "Artigo 2 · Wilcoxon D1×D7": [
+   7,
+   7
+  ],
+  "Artigo 2 · pareamento": [
+   1,
+   1
+  ],
+  "Anexo · modelagem": [
+   3,
+   3
+  ]
+ }
+}
