@@ -21,5 +21,5 @@ echo "▶ 7/7  exportações, painel e figuras"
 python3 scripts/exportar.py
 python3 scripts/exportar_painel.py
 python3 scripts/montar_painel.py
-for f in figuras/UV*.py; do [ -e "$f" ] && python3 "$f"; done
+for f in figuras/UV*.py figuras/UM*.py; do [ -e "$f" ] && python3 "$f"; done
 echo "✔ pronto — consulte com ./scripts/consultar.py resumo"
