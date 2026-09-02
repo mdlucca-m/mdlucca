@@ -612,8 +612,15 @@ if ($Fixo) {
     if (-not $procTunel) { Erro "Nao consegui iniciar o tunel." }
     $procTunel.Id | Out-File (Join-Path $Exec "tunel.pid") -Encoding ascii
 
-    # o proprio ngrok publica em 127.0.0.1:4040 o que conseguiu abrir -- e mais
-    # confiavel do que confiar no dominio que a pessoa digitou
+    # Duas perguntas, e a segunda existe porque a primeira falhou na rede da
+    # universidade: o ngrok publica em 127.0.0.1:4040 o que conseguiu abrir,
+    # e tambem ESCREVE no proprio log a linha
+    #   msg="started tunnel" ... url=https://<dominio>
+    # Numa rede com proxy de sistema, o Invoke-RestMethod para 127.0.0.1 pode
+    # nao chegar a lugar nenhum -- e o script anunciava "o tunel fixo nao
+    # abriu" com o tunel aberto e funcionando, mandando a pessoa conferir um
+    # authtoken que estava certo. O log e arquivo local: nenhum proxy o
+    # atrapalha, e ele diz a mesma coisa.
     foreach ($i in 1..30) {
       Start-Sleep -Seconds 1
       try {
@@ -622,6 +629,14 @@ if ($Fixo) {
                    Select-Object -First 1
         if ($publico) { $Link = $publico.public_url; break }
       } catch { }
+      foreach ($arquivo in @("tunel.log", "tunel.err")) {
+        $caminho = Join-Path $Exec $arquivo
+        if (-not (Test-Path $caminho)) { continue }
+        $achado = Select-String -Path $caminho -Pattern 'url=(https://[^\s"]+)' `
+          -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($achado) { $Link = $achado.Matches[0].Groups[1].Value; break }
+      }
+      if ($Link) { break }
       if ($procTunel.HasExited) { break }
     }
     if ($Link) { break }

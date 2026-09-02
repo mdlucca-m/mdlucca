@@ -606,3 +606,55 @@ class TestSubirComOWindows(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestOTunelQueAbriuMasNaoFoiVisto(unittest.TestCase):
+    """O tunel do ngrok subiu e o script disse que nao.
+
+    Na rede da universidade o script imprimiu, na mesma tela:
+
+        started tunnel ... url=https://stucco-impending-haggler.ngrok-free.dev
+        ! O tunel fixo nao abriu.
+        ! Confira o authtoken e o dominio reservado.
+
+    Ele so perguntava ao painel do ngrok em 127.0.0.1:4040, e com proxy de
+    sistema no caminho essa chamada nao chega a lugar nenhum. O tunel estava
+    aberto e funcionando; a pessoa foi mandada conferir um authtoken certo.
+    """
+
+    LINHA_REAL = ('t=2026-09-02T13:35:39-0300 lvl=info msg="started tunnel" obj=tunnels'
+                  ' name=command_line addr=http://127.0.0.1:8000'
+                  ' url=https://stucco-impending-haggler.ngrok-free.dev')
+
+    def ps1(self):
+        return PS1.read_text(encoding="utf-8")
+
+    def trecho(self):
+        texto = self.ps1()
+        inicio = texto.index("o que conseguiu abrir")
+        return texto[inicio:texto.index("if ($Link) { break }", inicio)]
+
+    def padrao(self):
+        """O mesmo padrao que o script usa, lido do script."""
+        achado = re.search(r"-Pattern '([^']+)'", self.trecho())
+        self.assertIsNotNone(achado, "o script deixou de procurar no log")
+        return achado.group(1).replace("\\\\s", r"\s")
+
+    def test_o_endereco_sai_da_linha_que_o_ngrok_imprime(self):
+        achado = re.search(self.padrao(), self.LINHA_REAL)
+        self.assertIsNotNone(achado, "o padrão não casa com o log real do ngrok")
+        self.assertEqual(achado.group(1),
+                         "https://stucco-impending-haggler.ngrok-free.dev")
+
+    def test_o_endereco_local_nao_e_confundido_com_o_publico(self):
+        # a mesma linha traz `addr=http://127.0.0.1:8000`; pegar esse seria
+        # anunciar como endereço do laboratório algo que só abre na máquina
+        todos = re.findall(self.padrao(), self.LINHA_REAL)
+        self.assertEqual(todos, ["https://stucco-impending-haggler.ngrok-free.dev"])
+
+    def test_o_log_e_perguntado_junto_com_o_painel(self):
+        corpo = self.trecho()
+        self.assertIn("127.0.0.1:4040", corpo)      # o painel continua valendo
+        self.assertIn("tunel.log", corpo)           # e o log entrou junto
+        # o log é arquivo local: nenhum proxy o atrapalha
+        self.assertLess(corpo.index("Invoke-RestMethod"), corpo.index("Select-String"))
