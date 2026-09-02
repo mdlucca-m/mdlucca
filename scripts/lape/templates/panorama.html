@@ -167,6 +167,42 @@ a.selo-var { text-decoration: none; }
   font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; }
 .curva-palco { min-height: 220px; }
 
+/* ---- mapa: rodízio, botões de país e o recorte de quem foi escolhido ---- */
+.nav-mapa { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding-top: 10px; margin-top: 10px; border-top: 1px solid var(--border); }
+.nav-mapa button { padding: 6px 11px; }
+
+/* Os países ficam numa fila que rola na horizontal, e não numa nuvem que
+   cresce para baixo: com trinta países, uma nuvem empurra o recorte para
+   fora da tela e o mapa deixa de caber junto com o que ele explica. */
+.botoes-pais { display: flex; gap: 7px; margin-top: 10px; overflow-x: auto;
+  padding-bottom: 6px; scrollbar-width: thin; }
+.chip-pais { flex: none; display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 620;
+  border: 1px solid var(--border); background: var(--surface); color: var(--ink-2);
+  cursor: pointer; white-space: nowrap; }
+.chip-pais small { font-variant-numeric: tabular-nums; font-weight: 700;
+  color: var(--ink-muted); }
+.chip-pais:hover { border-color: var(--border-strong); color: var(--ink); }
+/* o país escolhido não muda de matiz -- ganha peso. A cor neste mapa
+   significa quantidade de artigos, e um chip de outra cor faria a pessoa
+   procurar esse tom na legenda, onde ele não está. */
+.chip-pais.ativo { border-color: var(--accent-strong); color: var(--ink);
+  background: color-mix(in srgb, var(--accent-strong) 14%, var(--surface));
+  box-shadow: 0 0 0 1px var(--accent-strong) inset; }
+.chip-pais.ativo small { color: var(--accent); }
+
+.recorte-pais { margin-top: 14px; padding: 16px 18px; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--surface);
+  border-left: 3px solid var(--accent-strong); }
+.recorte-topo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.recorte-topo h3 { display: flex; align-items: center; gap: 8px; margin: 0;
+  font-size: 17px; letter-spacing: -.02em; }
+.recorte-topo .hint { margin: 0; flex: 1 1 200px; min-width: 0; }
+@media (max-width: 640px) {
+  .recorte-topo .hint { display: none; }
+}
+
 /* ---- linha do tempo com organograma que se abre ---- */
 .trilho { position: relative; padding-left: 30px; }
 .trilho::before { content: ""; position: absolute; left: 9px; top: 6px; bottom: 6px;

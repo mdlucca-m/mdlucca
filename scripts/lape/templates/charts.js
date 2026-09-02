@@ -1233,6 +1233,17 @@ const Charts = (function () {
         return acesos[String(k || "").toLowerCase()]; });
     };
 
+    /* `foco`: um pais escolhido a mao, que o mapa tem de LOCALIZAR. E outra
+       coisa que `highlight` -- ali a marca dura um piscar e diz "isto mudou
+       agora"; aqui ela fica, e diz "e este que voce esta olhando". Sem o
+       foco, clicar num botao de pais mudava a tabela e deixava o mapa
+       exatamente igual: quem estava a tres metros nao via nada acontecer. */
+    const alvo = String(spec.foco || "").toLowerCase();
+    const focado = function (pais) {
+      return !!alvo && [pais.nome, pais.en, pais.id].some(function (k) {
+        return String(k || "").toLowerCase() === alvo; });
+    };
+
     const comDado = mundo.map(valorDe).filter(function (v) { return v !== null && v > 0; });
     const cortes = comDado.length ? cortesQuantil(comDado, PASSOS_MAPA.length) : [];
     const tons = PASSOS_MAPA.slice(PASSOS_MAPA.length - cortes.length).map(token);
@@ -1240,6 +1251,7 @@ const Charts = (function () {
     const contorno = token("--border-strong");
 
     const marcados = [];
+    let noFoco = null;
     mundo.forEach(function (pais) {
       const valor = valorDe(pais);
       const d = pais.d.map(function (anel) {
@@ -1264,12 +1276,22 @@ const Charts = (function () {
           forma.setAttribute("stroke-width", 2.6);
           g.classList.add("acendeu");
         }
+        const item = { pais: pais, valor: valor };
+        if (focado(pais)) {
+          forma.setAttribute("stroke", token("--ink"));
+          forma.setAttribute("stroke-width", 3.4);
+          g.classList.add("emfoco");
+          /* o MESMO objeto que entra em `marcados`: com uma copia, o
+             `indexOf` la embaixo devolveria -1 e o pais focado perderia a
+             frente da fila de rotulos calado */
+          noFoco = item;
+        }
         hoverable(g, pais.nome,
           [{ value: fmt(valor), name: spec.unit || "artigos",
              color: tons[faixaDe(valor, cortes)] }],
           spec.onSelect ? function () { spec.onSelect(pais.nome); } : null);
         terra.appendChild(g);
-        marcados.push({ pais: pais, valor: valor });
+        marcados.push(item);
       } else {
         terra.appendChild(forma);
       }
@@ -1295,10 +1317,53 @@ const Charts = (function () {
        a tabela que o mapa veio substituir. Portugal e Espanha são
        vizinhos e pequenos: sem desviar um do outro, os dois rótulos
        saíam impressos um por cima do outro, ilegíveis. */
-    marcados.sort(function (a, b) { return b.valor - a.valor; });
+    /* A MIRA no pais focado.
+       So o contorno nao resolve: a Italia tem o tamanho de uma unha no
+       mapa-mundi, e um traco em volta dela e invisivel a tres metros --
+       era possivel clicar em "Italia" e nao ver nada acontecer no mapa. Um
+       par de circulos concentricos no centro do pais tem tamanho proprio,
+       independente do tamanho do pais, e por isso funciona igual para a
+       Italia e para o Brasil. */
     const ocupados = [];
+    if (noFoco) {
+      const maiorAnel = noFoco.pais.d.slice().sort(function (a, b) {
+        return b.length - a.length; })[0];
+      const centro = centroDoAnel(maiorAnel);
+      const cx = X(centro[0]), cy = Y(centro[1]);
+      const acento = token("--accent-strong");
+      const mira = s("g", { class: "mira-foco", "pointer-events": "none" });
+      mira.appendChild(s("circle", { cx: cx, cy: cy, r: 26, fill: "none",
+        stroke: acento, "stroke-width": 2.6, "stroke-opacity": 0.95 }));
+      mira.appendChild(s("circle", { cx: cx, cy: cy, r: 40, fill: "none",
+        stroke: acento, "stroke-width": 1.3, "stroke-opacity": 0.4 }));
+      /* quatro riscos de mira, e nao um circulo cheio: o preenchimento
+         esconderia justamente o pais que se quer olhar */
+      [[0, -1], [0, 1], [-1, 0], [1, 0]].forEach(function (d) {
+        mira.appendChild(s("line", {
+          x1: cx + d[0] * 15, y1: cy + d[1] * 15,
+          x2: cx + d[0] * 34, y2: cy + d[1] * 34,
+          stroke: acento, "stroke-width": 2.2, "stroke-linecap": "round",
+        }));
+      });
+      svg.appendChild(mira);
+      /* a mira ocupa lugar: sem reservar, o rotulo do proprio pais focado
+         era impresso por cima dela e os dois ficavam ilegiveis juntos */
+      ocupados.push([cx - 44, cy - 44, cx + 44, cy + 44]);
+    }
+
+    marcados.sort(function (a, b) { return b.valor - a.valor; });
+    /* o focado entra na frente da fila de rotulos: e o unico que a pessoa
+       pediu para ver, e seria perverso ele ser o omitido por falta de lugar */
+    if (noFoco) {
+      const posicao = marcados.indexOf(noFoco);
+      if (posicao > 0) {
+        marcados.splice(posicao, 1);
+        marcados.unshift(noFoco);
+      }
+    }
     const DESVIOS = [[0, 0], [0, -30], [0, 30], [0, -60], [0, 60], [0, -90], [0, 90]];
-    marcados.slice(0, spec.labelCount || 5).forEach(function (item) {
+    const quantos = spec.labelCount || 5;
+    marcados.slice(0, noFoco ? Math.max(quantos, 1) : quantos).forEach(function (item) {
       const maior = item.pais.d.slice().sort(function (a, b) {
         return b.length - a.length; })[0];
       const centro = centroDoAnel(maior);

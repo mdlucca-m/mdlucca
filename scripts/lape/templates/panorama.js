@@ -11,7 +11,7 @@ const C = Charts;
 
 const D = { pronto: false };
 const ST = { aba: "visao", variavel: null, busca: "", ordem: "ano", desc: true,
-             so_multi: false, linha: "", abertos: {} };
+             so_multi: false, linha: "", abertos: {}, pais: null };
 
 async function api(caminho, metodo, corpo) {
   const r = await fetch(caminho, {
@@ -1362,52 +1362,272 @@ function pedirMundo() {
     .catch(function () { mundoPedido = false; });
 }
 
+/* O rodizio: o mapa passeia sozinho pelos paises, um a um, e para no
+   instante em que alguem escolhe um. Numa tela de sala isso e o que faz o
+   mapa ser lido -- parado, ele e uma figura; girando, e a pergunta "de onde
+   vem isto?" sendo respondida pais a pais. Quem pediu menos movimento
+   recebe o mapa parado, e os botoes continuam ali. */
+const MAPA = { girando: false, indice: 0 };
+let relogioDoMapa = null;
+const SEGUNDOS_POR_PAIS = 3200;
+
+function pararORodizio() {
+  if (relogioDoMapa) { clearInterval(relogioDoMapa); relogioDoMapa = null; }
+  MAPA.girando = false;
+}
+
+function girarOMapa(paises, redesenhar) {
+  pararORodizio();
+  if (paises.length < 2) return;
+  MAPA.girando = true;
+  redesenhar();
+  relogioDoMapa = setInterval(function () {
+    /* o palco pode ter sido esvaziado por uma troca de aba ou por um
+       evento do banco; sem esta saida o cronometro segue vivo redesenhando
+       um elemento que ja nao esta na pagina */
+    if (!document.getElementById("palco-mapa")) { pararORodizio(); return; }
+    MAPA.indice = (MAPA.indice + 1) % paises.length;
+    ST.pais = paises[MAPA.indice].pais;
+    redesenhar();
+  }, SEGUNDOS_POR_PAIS);
+}
+
+/* Os artigos de um pais, pelos ids que vieram no payload -- e nao pela
+   palavra "Italia" procurada no titulo, que nao esta la. */
+function artigosDoPais(nome) {
+  const paises = ((D.panorama || {}).paises || {}).todos || [];
+  const achado = paises.find(function (x) { return x.pais === nome; });
+  if (!achado) return [];
+  const querido = {};
+  (achado.artigos || []).forEach(function (id) { querido[id] = true; });
+  return (D.artigos || []).filter(function (a) { return querido[a.id]; });
+}
+
+/* O que o pais escolhido tem dentro: as variaveis que aparecem nos artigos
+   dele, do mais frequente ao menos. E a extracao do laboratorio recortada
+   por pais -- a mesma marcacao da aba Extracao, contada. */
+function variaveisDoPais(artigos) {
+  const conta = new Map();
+  artigos.forEach(function (a) {
+    (a.variaveis || []).forEach(function (v) {
+      const antes = conta.get(v.code) || { code: v.code, label: v.label,
+        grupo: v.grupo, icone: v.icone, n: 0, principais: 0 };
+      antes.n += 1;
+      if (v.principal) antes.principais += 1;
+      conta.set(v.code, antes);
+    });
+  });
+  return Array.from(conta.values()).sort(function (a, b) {
+    return b.n - a.n || b.principais - a.principais; });
+}
+
+function botoesDePais(paises, redesenhar) {
+  const caixa = el("div", { class: "botoes-pais", role: "group",
+    "aria-label": "Países com produção" });
+  paises.forEach(function (x, i) {
+    const atual = ST.pais === x.pais;
+    caixa.appendChild(el("button", {
+      type: "button", class: "chip-pais" + (atual ? " ativo" : ""),
+      "data-pais": x.pais, "aria-pressed": atual ? "true" : "false",
+      title: x.n + " artigo(s) com autor deste país",
+      onclick: function () {
+        /* Clicar no país que já está em foco desliga o foco -- é o único
+           jeito de ver o mapa inteiro de novo sem recarregar. MAS não
+           enquanto o mapa gira: ali o país aceso é escolha do rodízio, não
+           da pessoa, e o chip muda debaixo do dedo. Clicar no que acabou de
+           acender apagaria justamente o que se quis ver. */
+        const escolhaMinha = !MAPA.girando && ST.pais === x.pais;
+        pararORodizio();
+        if (escolhaMinha) { ST.pais = null; }
+        else { ST.pais = x.pais; MAPA.indice = i; }
+        redesenhar();
+      },
+    }, [el("span", { text: x.pais }), el("small", { text: String(x.n) })]));
+  });
+  return caixa;
+}
+
+function controlesDoMapa(paises, redesenhar) {
+  const caixa = el("div", { class: "nav-mapa" });
+  const irPara = function (i) {
+    pararORodizio();
+    MAPA.indice = (i + paises.length) % paises.length;
+    ST.pais = paises[MAPA.indice].pais;
+    redesenhar();
+  };
+  caixa.appendChild(el("button", {
+    type: "button", class: "ghost", title: "País anterior", "data-nav": "antes",
+    onclick: function () { irPara(MAPA.indice - 1); },
+  }, [Icons.get("anterior", 14)]));
+  caixa.appendChild(el("button", {
+    type: "button", class: MAPA.girando ? "ghost" : "primary", "data-nav": "girar",
+    onclick: function () {
+      if (MAPA.girando) { pararORodizio(); redesenhar(); }
+      else { girarOMapa(paises, redesenhar); }
+    },
+  }, [Icons.get(MAPA.girando ? "pausa" : "tocar", 14),
+      el("span", { text: MAPA.girando ? "Parar" : "Girar o mapa" })]));
+  caixa.appendChild(el("button", {
+    type: "button", class: "ghost", title: "Próximo país", "data-nav": "depois",
+    onclick: function () { irPara(MAPA.indice + 1); },
+  }, [Icons.get("proximo", 14)]));
+  if (ST.pais) {
+    caixa.appendChild(el("button", {
+      type: "button", class: "ghost", "data-nav": "limpar",
+      onclick: function () { pararORodizio(); ST.pais = null; redesenhar(); },
+    }, [Icons.get("filtro", 14), el("span", { text: "Ver o mundo todo" })]));
+  }
+  return caixa;
+}
+
+/* O recorte do pais, escrito: quantos artigos, quais variaveis, quais
+   periodicos, e o caminho para a tabela inteira. E aqui que o clique no
+   mapa vira resposta -- antes ele so mudava a cor de um contorno. */
+function recorteDoPais(nome, redesenhar) {
+  const artigos = artigosDoPais(nome);
+  const paises = ((D.panorama || {}).paises || {}).todos || [];
+  const ficha = paises.find(function (x) { return x.pais === nome; }) || {};
+  const caixa = el("div", { class: "recorte-pais" });
+
+  caixa.appendChild(el("div", { class: "recorte-topo" }, [
+    el("h3", {}, [Icons.get("mapa", null), el("span", { text: nome })]),
+    el("span", { class: "badge", text: artigos.length + " artigo(s)" }),
+    ficha.instituicoes && ficha.instituicoes.length
+      ? el("span", { class: "hint", text: ficha.instituicoes.join(" · ") }) : null,
+  ]));
+
+  if (!artigos.length) {
+    /* O mapa contou N e a lista veio vazia: isso e um desencontro entre o
+       payload e a tabela, e dizer "nenhum artigo" esconderia o defeito. */
+    caixa.appendChild(nota("<b>O mapa conta " + (ficha.n || 0) + " artigo(s) aqui, "
+      + "mas nenhum deles chegou à tabela.</b> O país vem da afiliação de quem "
+      + "assina; se a lista está vazia, o vínculo entre o artigo e o país existe "
+      + "e o artigo, não — vale recarregar a página."));
+    return caixa;
+  }
+
+  const vars = variaveisDoPais(artigos);
+  if (vars.length) {
+    caixa.appendChild(el("p", { class: "hint", style: "margin:10px 0 6px",
+      text: "O que se estuda neste país, do mais frequente ao menos:" }));
+    caixa.appendChild(el("div", { class: "selos" }, vars.slice(0, 14).map(function (v) {
+      return seloVariavel(
+        { code: v.code, label: v.label + " · " + v.n, grupo: v.grupo, icone: v.icone,
+          principal: v.principais > 0, origem: "confirmada" },
+        { aoClicar: function () { ST.aba = "extracao"; desenhar(); } });
+    })));
+  } else {
+    caixa.appendChild(el("p", { class: "hint", style: "margin-top:10px",
+      text: "Nenhum artigo deste país tem variável marcada ainda." }));
+  }
+
+  const anos = artigos.map(function (a) { return a.ano; }).filter(Boolean).sort();
+  const revistas = {};
+  artigos.forEach(function (a) {
+    if (a.journal) revistas[a.journal] = (revistas[a.journal] || 0) + 1; });
+  const quantasRevistas = Object.keys(revistas).length;
+  caixa.appendChild(el("p", { class: "hint", style: "margin-top:10px", text:
+    (anos.length ? "De " + anos[0] + " a " + anos[anos.length - 1] + ". " : "")
+    + (quantasRevistas ? quantasRevistas + " periódico(s) diferente(s). " : "")
+    + artigos.filter(function (a) { return a.status === "publicado"; }).length
+    + " publicado(s)." }));
+
+  caixa.appendChild(el("button", {
+    type: "button", class: "botao-destino", style: "margin-top:12px",
+    "data-ir": "extracao",
+    onclick: function () { pararORodizio(); ST.aba = "extracao"; desenhar(); },
+  }, [Icons.get("dados", 15),
+      el("span", { text: "Abrir os " + artigos.length + " artigos na Extração" })]));
+  return caixa;
+}
+
 function verMapa(palco) {
   const paises = ((D.panorama || {}).paises) || { top: [], todos: [] };
+  const todos = paises.todos || [];
   pedirMundo();
   palco.appendChild(cabeca("mapa", "Mapa da produção",
     "De onde vem a produção: o país de quem assina cada artigo — a instituição "
     + "no cadastro, ou a afiliação que veio junto com o artigo da base. "
-    + "A cor do país é a quantidade de artigos — quanto mais forte, mais produção."));
+    + "A cor do país é a quantidade de artigos; clique num país, ou deixe o mapa "
+    + "girar, e o recorte dele aparece embaixo."));
 
   const valores = {};
-  (paises.todos || []).forEach(function (x) { valores[x.pais] = x.n; });
+  todos.forEach(function (x) { valores[x.pais] = x.n; });
 
-  if (!paises.todos.length) {
+  if (!todos.length) {
     palco.appendChild(nota("<b>Nenhum país para mostrar ainda.</b> O artigo não carrega "
       + "país — quem carrega é quem assina. Há dois caminhos, e os dois valem: "
       + "trazer a produção das bases públicas, que vem com a afiliação de cada autor "
       + "(o botão está em <a href='#laboratorio'>O laboratório</a>), ou ligar cada "
       + "integrante à sua instituição na <a href='/app#perfil'>Área do integrante</a>."));
-  } else {
-    palco.appendChild(el("div", { class: "grade g4" },
-      paises.top.map(function (x, i) {
-        /* "0 instituição(ões)" não é informação: quando o país veio da
-           afiliação do artigo, e não do cadastro, não há instituição
-           ligada — e dizer zero parece defeito. */
-        const pe = x.instituicoes.length
-          ? x.instituicoes.length + " instituição(ões)"
-          : (i === 0 ? x.pais : "artigos com autor daqui");
-        return indicador(i === 0 ? "País mais produtivo" : x.pais, x.n, pe, "mapa"); })));
+    return;
   }
 
-  palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
-    "mapa", paises.todos.length ? "Onde a produção acontece" : "O mundo, à espera dos dados",
-    "Um artigo com autores de dois países conta para os dois — foi produzido nos dois.",
-    C.mapaMundi({
-      world: D.mundo || [],
-      values: valores,
-      unit: "artigos",
-      file: "mapa-producao",
-      emptyMessage: "Nenhum país registrado ainda.",
-      emptyHint: "Falta ligar cada coautor à instituição dele.",
-      onSelect: function (nome) { ST.busca = nome; ST.aba = "extracao"; desenhar(); },
-      table: paises.todos.length ? {
-        cols: ["País", "Artigos", "Instituições"],
-        rows: paises.todos.map(function (x) {
-          return [x.pais, x.n, x.instituicoes.join("; ")]; }),
-      } : null,
-    }))));
+  /* Um país escolhido numa visita anterior pode não existir mais no recorte
+     de hoje. Sem esta limpeza, o mapa ficaria com um foco que não acende
+     nada e um recorte vazio embaixo, sem explicação. */
+  if (ST.pais && !todos.some(function (x) { return x.pais === ST.pais; })) {
+    ST.pais = null;
+  }
+  if (ST.pais) {
+    const onde = todos.findIndex(function (x) { return x.pais === ST.pais; });
+    if (onde >= 0) MAPA.indice = onde;
+  }
+
+  /* O primeiro cartão dizia "País mais produtivo · 160 · 4 instituição(ões)"
+     e não dizia QUAL país: o nome só entrava no rodapé quando não havia
+     instituição para pôr ali. O rótulo do cartão é o lugar do nome. */
+  palco.appendChild(el("div", { class: "grade g4" },
+    paises.top.map(function (x, i) {
+      const pe = (i === 0 ? "o país mais produtivo" : "artigos com autor daqui")
+        + (x.instituicoes.length
+          ? " · " + x.instituicoes.length + " instituição(ões)" : "");
+      return indicador(x.pais, x.n, pe, "mapa"); })));
+
+  const palcoMapa = el("div", { id: "palco-mapa", style: "margin-top:14px" });
+  palco.appendChild(palcoMapa);
+
+  function redesenhar() {
+    palcoMapa.innerHTML = "";
+    palcoMapa.appendChild(cartao("mapa",
+      ST.pais ? "A produção, com " + ST.pais + " em foco" : "Onde a produção acontece",
+      "Um artigo com autores de dois países conta para os dois — foi produzido nos dois.",
+      el("div", {}, [
+        C.mapaMundi({
+          world: D.mundo || [],
+          values: valores,
+          foco: ST.pais,
+          unit: "artigos",
+          file: "mapa-producao",
+          emptyMessage: "Nenhum país registrado ainda.",
+          emptyHint: "Falta ligar cada coautor à instituição dele.",
+          onSelect: function (nome) {
+            /* mesma regra do chip: com o mapa girando, o clique escolhe;
+               parado, ele alterna */
+            const escolhaMinha = !MAPA.girando && ST.pais === nome;
+            pararORodizio();
+            ST.pais = escolhaMinha ? null : nome;
+            redesenhar();
+          },
+          table: {
+            cols: ["País", "Artigos", "Instituições"],
+            rows: todos.map(function (x) {
+              return [x.pais, x.n, x.instituicoes.join("; ")]; }),
+          },
+        }),
+        controlesDoMapa(todos, redesenhar),
+        botoesDePais(todos, redesenhar),
+      ])));
+    if (ST.pais) palcoMapa.appendChild(recorteDoPais(ST.pais, redesenhar));
+  }
+  redesenhar();
+
+  /* O mapa começa girando: numa tela de sala ninguém aperta nada. Quem
+     pediu menos movimento recebe o mapa parado -- e os botões, que são o
+     caminho de quem opera, continuam exatamente onde estão. */
+  if (!poucoMovimento() && !ST.pais && todos.length > 1) {
+    girarOMapa(todos, redesenhar);
+  }
 }
 
 /* ==================================================================== */
@@ -1577,6 +1797,16 @@ function artigosFiltrados(soMulti) {
   if (ST.linha) {
     lista = lista.filter(function (a) { return a.research_line === ST.linha; });
   }
+  /* O recorte por país vem dos ids que o mapa mandou, e não da busca em
+     texto. Antes, clicar num país escrevia "Itália" na caixa de busca e a
+     busca procurava a palavra no título, no autor e na revista -- onde ela
+     não está. A tabela vinha vazia, com o nome do país escrito em cima,
+     e nada na tela dizia que a pergunta tinha sido a errada. */
+  if (ST.pais) {
+    const doPais = {};
+    artigosDoPais(ST.pais).forEach(function (a) { doPais[a.id] = true; });
+    lista = lista.filter(function (a) { return doPais[a.id]; });
+  }
   const busca = ST.busca.trim().toLowerCase();
   if (busca) {
     lista = lista.filter(function (a) {
@@ -1621,6 +1851,16 @@ function verExtracao(palco) {
 
   palco.appendChild(el("div", { class: "tab-topo" }, [
     busca, linha,
+    /* O recorte que veio do mapa precisa aparecer AQUI: sem a pastilha, a
+       tabela mostra 4 de 138 artigos e nada explica o desaparecimento dos
+       outros 134 -- quem chegou pelo mapa sabe por quê, quem voltou a esta
+       aba dez minutos depois, não. E ela se desliga no mesmo lugar. */
+    ST.pais ? el("button", {
+      type: "button", class: "chip-pais ativo", "data-recorte": "pais",
+      title: "Mostrar todos os países de novo",
+      onclick: function () { ST.pais = null; desenhar(); },
+    }, [Icons.get("mapa", 12), el("span", { text: ST.pais }),
+        Icons.get("filtro", 11)]) : null,
     el("div", { class: "selos", style: "flex:1" },
       (D.panorama.variaveis || []).slice(0, 12).map(function (v) {
         return seloVariavel({ code: v.code, label: v.label, origem: "confirmada" },
@@ -1657,7 +1897,8 @@ function redesenharTabelas() {
   const multi = artigosFiltrados(true);
 
   alvo.appendChild(el("h2", { style: "margin:8px 0 10px;font-size:17px",
-    text: "Todos os artigos (" + todos.length + ")" }));
+    text: (ST.pais ? "Artigos com autor de " + ST.pais : "Todos os artigos")
+      + " (" + todos.length + ")" }));
   alvo.appendChild(tabelaDeArtigos(todos));
 
   alvo.appendChild(el("h2", { style: "margin:26px 0 6px;font-size:17px",
@@ -2194,6 +2435,7 @@ function desenhar() {
      esvaziado. Sem parar aqui, sair da aba deixa um cronometro vivo
      redesenhando um elemento que ja saiu da pagina. */
   pararACurva();
+  pararORodizio();
   const palco = document.getElementById("palco");
   palco.innerHTML = "";
   if (!D.pronto) {

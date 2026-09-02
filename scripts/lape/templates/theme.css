@@ -492,8 +492,32 @@ button.kpi:focus-visible .kpi-ir { color: var(--accent); }
   35%  { opacity: 1; }
   100% { opacity: 1; }
 }
+/* ---- o pais escolhido a mao: o mapa tem de LOCALIZA-LO ----
+   `acendeu` pisca e passa ("isto mudou agora"); `emfoco` fica ("e este que
+   voce esta olhando"). Com um pais em foco, os demais recuam -- e o recuo
+   e de opacidade, nao de cor: trocar a cor do pais mentiria sobre quantos
+   artigos ele tem, que e a unica coisa que a cor diz neste mapa. */
+.plot:has(.emfoco) g:not(.emfoco):not(.mira-foco) { opacity: .55;
+  transition: opacity .35s ease; }
+.plot .mira-foco { animation: mira 2.4s ease-out infinite; transform-box: fill-box;
+  transform-origin: center; }
+@keyframes mira {
+  0%   { opacity: .55; }
+  40%  { opacity: 1; }
+  100% { opacity: .55; }
+}
+.plot .emfoco { opacity: 1; animation: chega .5s cubic-bezier(.16,.84,.3,1) 1; }
+@keyframes chega {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.012); }
+  100% { transform: scale(1); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .plot .acendeu { animation: none; }
+  .plot .emfoco { animation: none; }
+  .plot .mira-foco { animation: none; opacity: 1; }
+  .plot:has(.emfoco) g:not(.emfoco):not(.mira-foco) { transition: none; }
   button.kpi:hover .kpi-ir { gap: 5px; }
 }
 

@@ -797,7 +797,13 @@ class TestMapaNoPainel(unittest.TestCase):
         self.assertIn('g.classList.add("acendeu")', mapa)
         css = (TEMPLATES / "theme.css").read_text(encoding="utf-8")
         self.assertIn(".plot .acendeu", css)
-        self.assertIn("prefers-reduced-motion", css[css.index(".plot .acendeu"):][:600])
+        # a garantia é a regra dentro do bloco, e não a distância entre as
+        # duas no arquivo: medir por proximidade quebrava o teste toda vez
+        # que alguém escrevia uma regra nova entre elas
+        guardas = [bloco[:bloco.index("\n}")] for bloco in
+                   css.split("@media (prefers-reduced-motion: reduce)")[1:]]
+        self.assertTrue(any(".plot .acendeu { animation: none; }" in g for g in guardas),
+                        "o piscar do mapa ficou sem guarda de movimento reduzido")
 
     def test_o_pais_aceso_casa_pelos_tres_nomes(self):
         # "Estados Unidos" nunca casaria com "United States" sem isto
@@ -852,3 +858,197 @@ class TestCartoesQueNavegam(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class TestOMapaQueSegmenta(unittest.TestCase):
+    """Clicar num pais e chegar aos artigos daquele pais.
+
+    O defeito que este bloco guarda nao dava erro nenhum: o clique no mapa
+    escrevia o nome do pais na CAIXA DE BUSCA da aba Extracao, e a busca
+    procura a palavra no titulo, no autor e na revista -- onde "Italia" nao
+    esta. A tabela vinha vazia, com o nome do pais escrito em cima, e nada
+    dizia que a pergunta feita tinha sido a errada.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.db = Database(Path(self.tmp.name) / "mapa.sqlite")
+        self.addCleanup(self.db.close)
+        self.db.migrate()
+
+    def artigo(self, titulo, paises):
+        from lape.util import title_key
+        self.db.execute("INSERT INTO articles (title, title_key, status, year_published)"
+                        " VALUES (?, ?, 'publicado', 2024)", (titulo, title_key(titulo)))
+        artigo_id = self.db.scalar("SELECT last_insert_rowid()")
+        for pais in paises:
+            self.db.execute("INSERT INTO article_countries (article_id, country)"
+                            " VALUES (?, ?)", (artigo_id, pais))
+        self.db.conn.commit()
+        return artigo_id
+
+    def paises(self):
+        from lape import analise
+        return {p["pais"]: p for p in analise.paises(self.db)["todos"]}
+
+    def test_cada_pais_leva_os_ids_dos_artigos_dele(self):
+        um = self.artigo("Exercício e dor crônica", ["Itália"])
+        dois = self.artigo("Fibromialgia e treino", ["Itália", "Brasil"])
+        self.artigo("Só do Brasil", ["Brasil"])
+        italia = self.paises()["Itália"]
+        self.assertEqual(italia["artigos"], sorted([um, dois]))
+        self.assertEqual(italia["n"], 2)
+
+    def test_o_artigo_de_dois_paises_entra_nas_duas_listas(self):
+        """Um artigo Brasil-Itália foi produzido nos dois.
+
+        Se ele saísse de uma das listas, a soma dos recortes por país seria
+        menor que o total -- e o mapa contaria um número que a tabela não
+        consegue mostrar.
+        """
+        compartilhado = self.artigo("Colaboração internacional", ["Brasil", "Itália"])
+        paises = self.paises()
+        self.assertIn(compartilhado, paises["Brasil"]["artigos"])
+        self.assertIn(compartilhado, paises["Itália"]["artigos"])
+
+    def test_a_conta_do_mapa_e_o_tamanho_da_lista(self):
+        # o número no mapa e o número de linhas na tabela têm de ser o mesmo,
+        # senão o recorte acusa um desencontro que ninguém consegue explicar
+        for i in range(5):
+            self.artigo(f"Artigo {i}", ["Itália"] if i % 2 else ["Portugal"])
+        for ficha in self.paises().values():
+            with self.subTest(pais=ficha["pais"]):
+                self.assertEqual(ficha["n"], len(ficha["artigos"]))
+
+    def test_pais_sem_artigo_nao_aparece(self):
+        self.artigo("Único", ["Itália"])
+        self.assertEqual(list(self.paises()), ["Itália"])
+
+
+class TestOMapaQueGira(unittest.TestCase):
+    """O rodízio, os botões de país e a mira -- lidos do próprio panorama.js."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.js = (TEMPLATES / "panorama.js").read_text(encoding="utf-8")
+        cls.charts = (TEMPLATES / "charts.js").read_text(encoding="utf-8")
+        cls.css = (TEMPLATES / "theme.css").read_text(encoding="utf-8")
+
+    def mapa(self):
+        return self.js[self.js.index("function verMapa"):self.js.index("function verSintese")]
+
+    # ---- o recorte é por id, não por texto ----
+    def test_o_pais_filtra_por_id_e_nao_pela_busca(self):
+        corpo = self.js[self.js.index("function artigosFiltrados"):
+                        self.js.index("function verExtracao")]
+        self.assertIn("ST.pais", corpo)
+        self.assertIn("artigosDoPais(ST.pais)", corpo)
+
+    def test_o_clique_no_mapa_nao_escreve_na_caixa_de_busca(self):
+        # era `ST.busca = nome` -- o defeito inteiro em uma linha
+        self.assertNotIn("ST.busca = nome", self.js)
+
+    def test_os_ids_do_pais_vem_do_payload(self):
+        corpo = self.js[self.js.index("function artigosDoPais"):
+                        self.js.index("function variaveisDoPais")]
+        self.assertIn("achado.artigos", corpo)
+
+    # ---- o rodízio ----
+    def test_o_rodizio_para_quando_o_palco_e_esvaziado(self):
+        """Trocar de aba não pode deixar um cronômetro vivo.
+
+        É o mesmo defeito que já mordeu as curvas: o `setInterval` continua
+        redesenhando um elemento que já saiu da página, e ninguém vê nada
+        acontecer -- nem erro, nem tela.
+        """
+        self.assertIn("pararORodizio();", self.js[self.js.index("function desenhar()"):])
+        corpo = self.js[self.js.index("function girarOMapa"):self.js.index("function artigosDoPais")]
+        self.assertIn('document.getElementById("palco-mapa")', corpo)
+        self.assertIn("pararORodizio(); return;", corpo)
+
+    def test_girando_o_clique_escolhe_em_vez_de_desligar(self):
+        """O chip aceso muda debaixo do dedo enquanto o mapa gira.
+
+        Com a alternância cega, clicar no país que o rodízio acabou de
+        acender DESLIGAVA o foco -- apagando justamente o que se quis ver.
+        """
+        corpo = self.js[self.js.index("function botoesDePais"):
+                        self.js.index("function controlesDoMapa")]
+        self.assertIn("!MAPA.girando && ST.pais === x.pais", corpo)
+
+    def test_quem_pediu_menos_movimento_recebe_o_mapa_parado(self):
+        self.assertIn("!poucoMovimento()", self.mapa())
+
+    def test_o_pais_que_sumiu_do_recorte_nao_fica_em_foco(self):
+        # foco preso num país que não existe mais = mira que não acende e
+        # recorte vazio embaixo, sem explicação
+        self.assertIn("ST.pais = null;", self.mapa())
+        self.assertIn("!todos.some(", self.mapa())
+
+    # ---- a mira ----
+    def test_a_mira_tem_tamanho_proprio(self):
+        """A Itália tem o tamanho de uma unha no mapa-múndi.
+
+        Um contorno em volta dela é invisível a três metros: era possível
+        clicar em "Itália" e não ver nada acontecer no mapa. A mira é
+        desenhada em pixels do mapa, não do país, e por isso funciona igual
+        para a Itália e para o Brasil.
+        """
+        corpo = self.charts[self.charts.index("const ocupados = [];"):
+                            self.charts.index("const DESVIOS")]
+        self.assertIn("mira-foco", corpo)
+        self.assertIn('s("circle"', corpo)
+        self.assertIn("ocupados.push(", corpo)   # o rótulo desvia da mira
+
+    def test_o_foco_e_o_piscar_sao_coisas_diferentes(self):
+        # `acendeu` dura um piscar ("isto mudou agora"); `emfoco` fica
+        # ("é este que você está olhando"). Um só faria os dois mentirem.
+        self.assertIn(".plot .emfoco", self.css)
+        self.assertIn(".plot .acendeu", self.css)
+        self.assertIn("spec.foco", self.charts)
+
+    def test_o_foco_recua_os_outros_sem_mudar_a_cor_deles(self):
+        """Cor neste mapa significa quantidade de artigos, e só isso.
+
+        Recuar por opacidade preserva o que a legenda promete; trocar o tom
+        do país faria a legenda mentir sobre metade do mapa.
+        """
+        regra = self.css[self.css.index(".plot:has(.emfoco)"):]
+        regra = regra[:regra.index("}") + 1]
+        self.assertIn("opacity", regra)
+        self.assertNotIn("fill", regra)
+
+    def test_o_pais_focado_nunca_perde_o_rotulo(self):
+        # seria perverso: o único que a pessoa pediu para ver é o omitido
+        self.assertIn("marcados.unshift(noFoco)", self.charts)
+
+    # ---- a ponte com a Extração ----
+    def test_o_recorte_leva_para_a_extracao(self):
+        corpo = self.js[self.js.index("function recorteDoPais"):
+                        self.js.index("function verMapa")]
+        self.assertIn('"data-ir": "extracao"', corpo)
+        self.assertIn('ST.aba = "extracao"', corpo)
+
+    def test_a_extracao_mostra_e_desliga_o_recorte(self):
+        """Sem a pastilha, a tabela mostra 4 de 138 e nada explica os outros.
+
+        Quem chegou pelo mapa sabe por quê; quem voltou a esta aba dez
+        minutos depois, não.
+        """
+        corpo = self.js[self.js.index("function verExtracao"):
+                        self.js.index("function legendaDosSelos")]
+        self.assertIn('"data-recorte": "pais"', corpo)
+        self.assertIn("ST.pais = null", corpo)
+
+    def test_o_titulo_da_tabela_diz_o_recorte(self):
+        corpo = self.js[self.js.index("function redesenharTabelas"):
+                        self.js.index("const COLUNAS")]
+        self.assertIn("Artigos com autor de", corpo)
+
+    def test_o_desencontro_entre_o_mapa_e_a_tabela_e_dito(self):
+        # mapa conta N, tabela traz 0: dizer "nenhum artigo" esconderia o
+        # defeito em vez de denunciá-lo
+        corpo = self.js[self.js.index("function recorteDoPais"):
+                        self.js.index("function verMapa")]
+        self.assertIn("mas nenhum deles chegou à tabela", corpo)

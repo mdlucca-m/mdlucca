@@ -969,7 +969,13 @@ def paises(db: Database) -> dict[str, Any]:
             achado = variaveis.coordenadas(item["pais"])
             if achado:
                 item["latitude"], item["longitude"] = achado
+        # Os ids vao junto porque a tela precisa SEGMENTAR por pais, e nao
+        # so colorir: clicar na Italia tem de devolver os artigos da Italia.
+        # Sem eles, a unica ponte entre o mapa e a tabela era procurar a
+        # palavra "Italia" no titulo -- que nao esta la, e o clique levava
+        # a uma tabela vazia sem dizer por que.
         saida.append({"pais": item["pais"], "n": len(item["artigos"]),
+                      "artigos": sorted(item["artigos"]),
                       "instituicoes": sorted(item["instituicoes"]),
                       "latitude": item["latitude"], "longitude": item["longitude"]})
     saida.sort(key=lambda x: -x["n"])
