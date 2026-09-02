@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from . import config
+from . import config, marca
 
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 HTML_TEMPLATE = TEMPLATE_DIR / "dashboard.html"
@@ -74,6 +74,7 @@ def render_html(payload: dict[str, Any], geo_dir: Path = config.GEO_DIR) -> str:
     html = html.replace("__TITLE__", title)
     html = html.replace("__THEME_CSS__", THEME_TEMPLATE.read_text(encoding="utf-8"))
     html = html.replace("__ICONS_JS__", ICONS_TEMPLATE.read_text(encoding="utf-8"))
+    html = html.replace("__LOGO__", marca.marcador())
     html = html.replace("__CHARTS_JS__", CHARTS_TEMPLATE.read_text(encoding="utf-8"))
     html = html.replace("__SCRIPT__", JS_TEMPLATE.read_text(encoding="utf-8"))
     return html.replace("__DATA__", to_json(payload))
@@ -94,6 +95,7 @@ def render_mural(payload: dict[str, Any]) -> str:
     html = html.replace("__TITLE__", f"{payload['overview']['lab_name']} — Mural")
     html = html.replace("__THEME_CSS__", THEME_TEMPLATE.read_text(encoding="utf-8"))
     html = html.replace("__ICONS_JS__", ICONS_TEMPLATE.read_text(encoding="utf-8"))
+    html = html.replace("__LOGO__", marca.marcador())
     html = html.replace("__CHARTS_JS__", CHARTS_TEMPLATE.read_text(encoding="utf-8"))
     html = html.replace("__SCRIPT__", MURAL_JS.read_text(encoding="utf-8"))
     return html.replace("__DATA__", to_json(payload))

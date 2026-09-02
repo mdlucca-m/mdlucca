@@ -37,7 +37,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Callable
 
-from . import (analise, auth, config, export, extracao, ingest_autor, metrics,
+from . import (analise, auth, config, export, extracao, ingest_autor, marca, metrics,
                ponto, report, revisao, variaveis, versao)
 from .db import Database
 from .util import clean_text, to_int
@@ -1209,6 +1209,8 @@ def payload_do_panorama(db, desde: int | None = None,
         "laboratorio": {
             "nome": config.LAB_NAME, "instituicao": config.LAB_INSTITUTION,
             "site": getattr(config, "LAB_SITE", None),
+            "logo": marca.fonte(),
+            "marca": marca.situacao(),
             "integrantes": int(db.scalar("SELECT COUNT(*) FROM members") or 0),
             "projetos": int(db.scalar("SELECT COUNT(*) FROM projects") or 0),
             "eventos": int(db.scalar("SELECT COUNT(*) FROM events") or 0),
@@ -1636,6 +1638,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(404, {"error": f"página {name} não encontrada"})
         html = path.read_text(encoding="utf-8")
         html = html.replace("__BASE_CSS__", (TEMPLATES / "theme.css").read_text(encoding="utf-8"))
+        html = html.replace("__LOGO__", marca.marcador())
         if "__ICONS_JS__" in html:
             html = html.replace("__ICONS_JS__", (TEMPLATES / "icons.js").read_text(encoding="utf-8"))
         if "__CHARTS_JS__" in html:

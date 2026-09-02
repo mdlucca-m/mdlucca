@@ -1066,7 +1066,17 @@ function comecar() {
   document.getElementById("labNome").textContent = o.lab_name || "LAPE";
   document.getElementById("labSub").textContent = o.institution || "";
   document.title = (o.lab_name || "LAPE") + " — Mural";
-  document.getElementById("marcaIcone").appendChild(Icons.get("mural", null));
+  /* O logotipo do laboratório, quando há arquivo; o ícone, quando não há.
+     Nunca um espaço vazio: a marca fica na tela o tempo todo, e um buraco
+     no canto superior esquerdo é a primeira coisa que a sala repara. */
+  const marca = document.getElementById("marcaIcone");
+  if (o.lab_logo) {
+    marca.classList.add("tem-logo");
+    marca.appendChild(el("img", { class: "logo-img", src: o.lab_logo,
+      alt: o.lab_name || "LAPE" }));
+  } else {
+    marca.appendChild(Icons.get("mural", null));
+  }
 
   if (AREA) {
     const selo = document.getElementById("seloFiltro");

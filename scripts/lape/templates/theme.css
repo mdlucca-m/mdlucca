@@ -228,6 +228,31 @@ svg.icon { width: 1em; height: 1em; flex: none; display: block; }
 }
 .ibadge svg.icon { stroke-width: 1.9; }
 .ibadge.sm { --badge: 26px; border-radius: 8px; }
+
+/* ---- o logotipo do laboratorio ----
+   O mesmo arquivo serve a cinco lugares de tamanhos diferentes: o selo da
+   navegacao, o cabecalho do mural, a tela de entrada, o convite e o
+   aplicativo. Ele preenche o quadrado que ja existia, sem deformar --
+   `contain`, e nao `cover`: um logotipo cortado ao meio para caber e pior
+   do que um logotipo com margem.
+
+   O quadrado colorido some quando ha imagem: um logotipo desenhado tem
+   fundo proprio, e o azul do tema por tras dele viraria uma moldura que
+   ninguem pediu. */
+.logo-img { width: 100%; height: 100%; object-fit: contain; display: block;
+  border-radius: inherit; }
+.tem-logo, .logo:has(.logo-img), .brand .logo:has(.logo-img),
+.marca .selo:has(.logo-img) {
+  background: var(--surface) !important; color: inherit;
+  padding: 2px; overflow: hidden; }
+/* Placa branca atras da imagem, nos dois temas. A escolha nao e neutra e
+   vale explicar: um logotipo desenhado em preto sobre branco -- que e o
+   caso da arte do LAPE, e o caso da maioria -- desaparece por completo
+   sobre o fundo escuro do painel. A placa custa uma moldura desnecessaria
+   a quem tiver um logotipo claro; a falta dela custa o logotipo inteiro a
+   quem tiver um escuro. No tema claro a placa some contra a superficie,
+   que ja e quase branca. */
+.logo-img { background: #fff; }
 .ibadge.lg { --badge: 44px; }
 .ibadge.xl { --badge: 60px; }
 /* sólida: o tom vira fundo, para o item ativo e para o mural */

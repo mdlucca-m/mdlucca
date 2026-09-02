@@ -20,6 +20,10 @@ LAB_NAME = os.environ.get("LAPE_LAB_NAME", "LAPE - Laboratorio de Psicologia do 
 LAB_INSTITUTION = os.environ.get("LAPE_INSTITUTION", "UDESC / CEFID")
 LAB_SITE = os.environ.get("LAPE_SITE", "https://www.udesc.br/cefid/lape")
 
+# Logotipo do laboratorio. Vazio: procura-se data/logo.svg|png|webp|jpg.
+# O arquivo viaja EMBUTIDO nas paginas -- ver marca.py.
+LOGO_PATH = os.environ.get("LAPE_LOGO", "")
+
 # Janela padrao das analises "ultimos N anos"
 WINDOW_YEARS = int(os.environ.get("LAPE_WINDOW_YEARS", "5"))
 

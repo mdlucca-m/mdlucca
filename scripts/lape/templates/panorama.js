@@ -155,7 +155,11 @@ function montarNav() {
   const nav = document.getElementById("nav");
   nav.innerHTML = "";
   nav.appendChild(el("div", { class: "marca" }, [
-    el("div", { class: "selo", text: "LP" }),
+    (D.laboratorio || {}).logo
+      ? el("div", { class: "selo tem-logo" },
+          el("img", { class: "logo-img", src: D.laboratorio.logo,
+            alt: D.laboratorio.nome || "LAPE" }))
+      : el("div", { class: "selo", text: "LP" }),
     el("div", {}, [
       el("b", { text: "Panorama" }),
       el("small", { text: (D.laboratorio || {}).instituicao || "LAPE" }),

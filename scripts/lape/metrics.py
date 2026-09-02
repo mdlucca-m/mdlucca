@@ -619,6 +619,12 @@ def spatial(db: Database) -> dict[str, Any]:
     }
 
 
+def _logo() -> str | None:
+    from . import marca
+
+    return marca.fonte()
+
+
 def _paises_com_artigo(db: Database) -> list[dict[str, Any]]:
     from . import analise
 
@@ -687,6 +693,9 @@ def overview(db: Database, pubs: dict, subs: dict, network: dict, agenda_data: d
     return {
         "generated_at": datetime.now().strftime("%d/%m/%Y %H:%M"),
         "lab_name": config.LAB_NAME,
+        # embutido, e nao um endereco: o mural roda numa TV que pode estar
+        # sem rede, e o instantaneo e um arquivo unico que viaja por e-mail
+        "lab_logo": _logo(),
         "institution": config.LAB_INSTITUTION,
         "site": config.LAB_SITE,
         "window": config.WINDOW_YEARS,
