@@ -27,7 +27,7 @@ LINHAS: tuple[tuple[str, str, str, str], ...] = (
     ("psicologia_exercicio", "Psicologia do Exercício",
      "Processos psicológicos associados à prática regular de exercício físico.",
      "exercício; motivação; aderência; humor; bem-estar; autoeficácia"),
-    ("psicologia_esporte", "Psicologia do Esporte",
+    ("psicologia_do_esporte", "Psicologia do Esporte",
      "Aspectos psicológicos do desempenho, do treinamento e da competição.",
      "esporte; atletas; ansiedade competitiva; desempenho; coesão de equipe"),
     ("qualidade_do_ar", "Qualidade do ar e poluição no exercício e no esporte",
@@ -45,20 +45,48 @@ LINHAS: tuple[tuple[str, str, str, str], ...] = (
 )
 
 
+def _achar(db: Database, codigo: str, nome: str):
+    """A linha que ja existe, se existir -- por codigo ou por nome.
+
+    So por codigo, uma linha antiga que por acaso ocupasse o mesmo codigo
+    engoliria a nova em silencio: foi o que aconteceu com "Psicologia do
+    Esporte", que ficou de fora porque o banco ja tinha "Psicologia do
+    Esporte e do Exercicio" no codigo `psicologia_esporte`. So por nome,
+    uma linha renomeada a mao viraria duas. As duas perguntas cobrem os
+    dois casos, e a comparacao de nome ignora caixa e acento.
+    """
+    from .util import norm_key
+
+    achado = db.dicts(
+        "SELECT id, name FROM research_lines WHERE code = ? OR name = ?",
+        (codigo, nome))
+    if achado:
+        return achado[0]
+    alvo = norm_key(nome)
+    for linha in db.dicts("SELECT id, name FROM research_lines"):
+        if norm_key(linha["name"]) == alvo:
+            return linha
+    return None
+
+
 def instalar(db: Database) -> dict[str, Any]:
     """Poe as linhas no banco. Rodar de novo nao desfaz o que foi mexido."""
     novas, ja_havia = [], []
     for codigo, nome, descricao, palavras in LINHAS:
-        existente = db.dicts(
-            "SELECT id, name FROM research_lines WHERE code = ?", (codigo,))
-        if existente:
-            # `fill_only`: preenche buraco, nao corrige ninguem. Quem
-            # reescreveu a descricao na tela continua com a dela.
-            db.upsert("research_lines", {
-                "code": codigo, "name": existente[0]["name"] or nome,
-                "description": descricao, "keywords": palavras, "active": 1,
-            }, conflict=("code",), fill_only=True)
-            ja_havia.append(existente[0]["name"])
+        achado = _achar(db, codigo, nome)
+        if achado:
+            # Preenche buraco pelo ID -- nao pelo codigo. Gravar por codigo
+            # criaria uma segunda linha quando a existente foi encontrada
+            # pelo nome e tem outro codigo. E nao se toca em `name`: quem
+            # reescreveu o nome na tela continua com o dele.
+            db.execute(
+                "UPDATE research_lines"
+                "   SET description = COALESCE(NULLIF(TRIM(description), ''), ?),"
+                "       keywords    = COALESCE(NULLIF(TRIM(keywords), ''), ?),"
+                "       active      = 1"
+                " WHERE id = ?",
+                (descricao, palavras, achado["id"]))
+            ja_havia.append(achado["name"])
             continue
         db.upsert("research_lines", {
             "code": codigo, "name": nome, "description": descricao,

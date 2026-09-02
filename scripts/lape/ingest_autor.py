@@ -44,16 +44,36 @@ from .util import clean_text, norm_doi, title_key
 #
 # Sem declarar isso, a importacao criava um integrante fantasma e repartia
 # a producao de uma pessoa entre dois nomes no painel.
+#
+# `vinculo` e o que faz os dois aparecerem na lista de orientadores da ficha
+# de cadastro -- a lista sai de quem tem vinculo de coordenacao, professor
+# ou pos-doutorado (mapping.ORIENTAM). Sem isso, quem se cadastra encontra
+# um campo "Orientador" sem uma unica opcao, e nao ha o que escolher.
 PESQUISADORES: tuple[dict[str, Any], ...] = (
     {"nome": "Alexandro Andrade", "afiliacao": "UDESC",
      "papel": "Coordenador do LAPE", "lattes": "5577164706111568",
+     "vinculo": "coordenacao", "orienta_por_padrao": True,
      "grafias": ("Andrade A", "Andrade, Alexandro")},
     {"nome": "Guilherme Torres Vilarino", "afiliacao": "UDESC",
      "papel": "Pesquisador do LAPE", "lattes": None,
+     "vinculo": "professor",
      "grafias": ("Torres Vilarino G", "Torres Vilarino, G",
                  "Torres Vilarino, Guilherme", "Vilarino GT",
                  "Vilarino, Guilherme T")},
 )
+
+
+def orientador_padrao() -> str | None:
+    """Quem vem preenchido na ficha de quem se cadastra.
+
+    No LAPE, a orientacao e de uma pessoa so, e obrigar cada integrante a
+    escolher o mesmo nome numa lista de dois e trabalho sem informacao. O
+    campo continua sendo um select: quem tiver outro orientador troca.
+    """
+    for pessoa in PESQUISADORES:
+        if pessoa.get("orienta_por_padrao"):
+            return pessoa["nome"]
+    return None
 
 
 def link_do_lattes(lattes_id: Any) -> str | None:
@@ -180,6 +200,43 @@ def trazer(db: Database, nome: str, afiliacao: str | None = None,
     return {"quem": nome, "resumo": resumo_, "gravado": gravado}
 
 
+def garantir_professores(db: Database) -> dict[str, Any]:
+    """Poe os dois professores no banco, com vinculo, nome inteiro e grafias.
+
+    Existe para uma coisa concreta: a ficha de cadastro tem um campo
+    "Orientador" que so lista quem tem vinculo de coordenacao, professor ou
+    pos-doutorado. Numa instalacao nova ninguem tem vinculo, entao o campo
+    abre sem uma opcao -- e quem chega pelo link de convite nao tem como
+    dizer quem o orienta.
+
+    Nao passa por cima do que houver: se a coordenacao ja marcou outro
+    vinculo para alguem, o dela fica.
+    """
+    saida = []
+    for pessoa in PESQUISADORES:
+        membro = db.member_id(pessoa["nome"])
+        if not membro:
+            continue
+        atual = db.dicts("SELECT full_name, role FROM members WHERE id = ?", (membro,))[0]
+        mudou = []
+        # O nome inteiro: quem veio da planilha entrou como "Andrade", e um
+        # orientador chamado "Andrade" numa lista nao diz de quem se trata.
+        if (atual["full_name"] or "").strip() != pessoa["nome"]:
+            db.execute("UPDATE members SET full_name = ? WHERE id = ?",
+                       (pessoa["nome"], membro))
+            mudou.append("nome")
+        if not (atual["role"] or "").strip():
+            db.execute("UPDATE members SET role = ? WHERE id = ?",
+                       (pessoa["vinculo"], membro))
+            mudou.append("vínculo")
+        grafias = declarar_grafias(db, pessoa)
+        saida.append({"quem": pessoa["nome"], "id": membro,
+                      "vinculo": atual["role"] or pessoa["vinculo"],
+                      "ajustes": mudou, "grafias": len(grafias)})
+    db.conn.commit()
+    return {"professores": saida, "orientador_padrao": orientador_padrao()}
+
+
 def declarar_grafias(db: Database, pessoa: dict[str, Any]) -> list[str]:
     """Garante o cadastro da pessoa e prega nele as grafias conhecidas.
 
@@ -219,7 +276,7 @@ def trazer_todos(db: Database, desde: int | None = None) -> dict[str, Any]:
             # As grafias entram ANTES da busca: se entrassem depois, os
             # registros indexados pela forma composta ja teriam criado o
             # integrante fantasma que elas existem para evitar.
-            declarar_grafias(db, pessoa)
+            garantir_professores(db)
             saida.append(trazer(db, pessoa["nome"], pessoa.get("afiliacao"), desde))
         except Exception as erro:  # noqa: BLE001 -- vira recado, nao rastreio
             saida.append({"quem": pessoa["nome"], "erro": str(erro)})

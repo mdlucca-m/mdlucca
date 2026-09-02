@@ -209,8 +209,86 @@ class TestAsGrafiasDosDoisProfessores(BaseIdentidade):
         # criado o integrante fantasma que elas existem para evitar
         fonte = (ROOT / "scripts" / "lape" / "ingest_autor.py").read_text(encoding="utf-8")
         corpo = fonte[fonte.index("def trazer_todos"):]
-        self.assertLess(corpo.index("declarar_grafias(db, pessoa)"),
+        self.assertLess(corpo.index("garantir_professores(db)"),
                         corpo.index("trazer(db, pessoa"))
+
+
+class TestOsProfessoresDoLaboratorio(BaseIdentidade):
+    """A lista de orientadores não pode abrir vazia para quem chega pelo link."""
+
+    def test_os_dois_entram_com_vinculo(self):
+        from lape.mapping import ORIENTAM
+
+        ingest_autor.garantir_professores(self.db)
+        pessoas = {p["full_name"]: p["role"] for p in
+                   self.db.dicts("SELECT full_name, role FROM members")}
+        self.assertEqual(pessoas.get("Alexandro Andrade"), "coordenacao")
+        self.assertEqual(pessoas.get("Guilherme Torres Vilarino"), "professor")
+        for vinculo in pessoas.values():
+            with self.subTest(vinculo=vinculo):
+                self.assertIn(vinculo, ORIENTAM)
+
+    def test_o_nome_pela_metade_vira_o_nome_inteiro(self):
+        """Quem veio da planilha entrou como "Andrade".
+
+        Um orientador chamado "Andrade" numa lista não diz de quem se trata,
+        e ainda por cima duplicaria a pessoa quando a base trouxesse o nome
+        completo.
+        """
+        self.db.member_id("Andrade")
+        self.db.member_id("Vilarino")
+        self.db.conn.commit()
+        ingest_autor.garantir_professores(self.db)
+        nomes = [r["full_name"] for r in self.db.dicts("SELECT full_name FROM members")]
+        self.assertIn("Alexandro Andrade", nomes)
+        self.assertIn("Guilherme Torres Vilarino", nomes)
+        self.assertEqual(len(nomes), 2, nomes)
+
+    def test_o_vinculo_ja_definido_nao_e_atropelado(self):
+        # a coordenação pode ter marcado outra coisa, e uma preparação
+        # automática não desfaz decisão de gente
+        pessoa = self.db.member_id("Guilherme Torres Vilarino")
+        self.db.execute("UPDATE members SET role = ? WHERE id = ?",
+                        ("pos_doutorado", pessoa))
+        self.db.conn.commit()
+        ingest_autor.garantir_professores(self.db)
+        self.assertEqual(
+            self.db.scalar("SELECT role FROM members WHERE id = ?", (pessoa,)),
+            "pos_doutorado")
+
+    def test_rodar_de_novo_nao_muda_nada(self):
+        primeiro = ingest_autor.garantir_professores(self.db)
+        segundo = ingest_autor.garantir_professores(self.db)
+        self.assertTrue(any(p["ajustes"] for p in primeiro["professores"]))
+        self.assertFalse(any(p["ajustes"] for p in segundo["professores"]))
+
+    def test_o_orientador_padrao_e_o_coordenador(self):
+        self.assertEqual(ingest_autor.orientador_padrao(), "Alexandro Andrade")
+
+    def test_o_padrao_so_sai_se_a_pessoa_puder_orientar(self):
+        """Sugerir um nome fora da lista seria um campo que se recusa a
+        gravar o que mostra."""
+        fonte = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
+        corpo = fonte[fonte.index("def route_team"):fonte.index("def route_professores")]
+        self.assertIn('p["orienta"]', corpo)
+        self.assertIn("padrao = None", corpo)
+
+    def test_a_ficha_abre_preenchida_mas_e_um_select(self):
+        html = (TEMPLATES / "app.html").read_text(encoding="utf-8")
+        trecho = html[html.index('field("Orientador"'):]
+        trecho = trecho[:trecho.index('field("Coorientador"')]
+        self.assertIn("padrao:", trecho)
+        self.assertIn('"select"', trecho)
+        self.assertIn("troque se o seu", trecho)
+
+    def test_um_botao_so_prepara_professores_e_linhas(self):
+        # quem vai sair da sala não pode depender de lembrar de dois botões
+        html = (TEMPLATES / "app.html").read_text(encoding="utf-8")
+        corpo = html[html.index("Preparar o laboratório"):]
+        corpo = corpo[:corpo.index("const conviteBox")]
+        self.assertIn("/api/equipe/professores", corpo)
+        self.assertIn("/api/research-lines/padrao", corpo)
+        self.assertIn("loadLookups()", corpo)
 
 
 class TestAsLinhasDoLape(BaseIdentidade):
@@ -238,13 +316,39 @@ class TestAsLinhasDoLape(BaseIdentidade):
         # instalar de novo não pode desfazer o que a coordenação ajustou
         linhas.instalar(self.db)
         self.db.execute("UPDATE research_lines SET name = ? WHERE code = ?",
-                        ("Psicologia do Esporte (CEFID)", "psicologia_esporte"))
+                        ("Psicologia do Esporte (CEFID)", "psicologia_do_esporte"))
         self.db.conn.commit()
         linhas.instalar(self.db)
         self.assertEqual(
             self.db.scalar("SELECT name FROM research_lines WHERE code = ?",
-                           ("psicologia_esporte",)),
+                           ("psicologia_do_esporte",)),
             "Psicologia do Esporte (CEFID)")
+
+    def test_linha_antiga_com_o_mesmo_codigo_nao_engole_a_nova(self):
+        """Aconteceu de verdade: entraram 6 das 7.
+
+        O banco já tinha "Psicologia do Esporte e do Exercício" no código
+        `psicologia_esporte`, e a busca só por código deu por instalada a
+        linha "Psicologia do Esporte" -- que ficou de fora, em silêncio.
+        """
+        self.db.execute(
+            "INSERT INTO research_lines (code, name) VALUES (?, ?)",
+            ("psicologia_esporte", "Psicologia do Esporte e do Exercício"))
+        self.db.conn.commit()
+        resultado = linhas.instalar(self.db)
+        self.assertEqual(len(resultado["novas"]), 7, resultado)
+        nomes = [r["name"] for r in self.db.dicts("SELECT name FROM research_lines")]
+        self.assertIn("Psicologia do Esporte", nomes)
+        self.assertIn("Psicologia do Esporte e do Exercício", nomes)
+
+    def test_o_mesmo_nome_com_outra_caixa_nao_duplica(self):
+        self.db.execute("INSERT INTO research_lines (code, name) VALUES (?, ?)",
+                        ("linha_qualquer", "psicologia do esporte"))
+        self.db.conn.commit()
+        linhas.instalar(self.db)
+        iguais = [r for r in self.db.dicts("SELECT name FROM research_lines")
+                  if r["name"].lower() == "psicologia do esporte"]
+        self.assertEqual(len(iguais), 1, iguais)
 
     def test_toda_linha_tem_palavras_chave(self):
         # é por elas que a busca da tela encontra a linha

@@ -359,7 +359,21 @@ def route_team(ctx: "Context") -> Any:
     for pessoa in pessoas:
         pessoa["role_label"] = ROLE_LABEL.get(pessoa["role"] or "", pessoa["role"])
         pessoa["orienta"] = (pessoa["role"] or "") in ORIENTAM
-    return {"items": pessoas, "count": len(pessoas)}
+    # O orientador que a ficha ja abre preenchido. So vale se a pessoa
+    # existir e puder orientar -- um nome sugerido que nao esta na lista
+    # seria um campo que se recusa a gravar o que mostra.
+    padrao = ingest_autor.orientador_padrao()
+    if padrao and not any(p["full_name"] == padrao and p["orienta"] for p in pessoas):
+        padrao = None
+    return {"items": pessoas, "count": len(pessoas), "orientador_padrao": padrao}
+
+
+def route_professores(ctx: "Context") -> Any:
+    """Poe os dois professores no banco com vinculo, para a lista existir."""
+    user = auth.require(ctx.user, "coordenacao")
+    resultado = ingest_autor.garantir_professores(ctx.db)
+    auth.log(ctx.db, user["id"], user.get("login"), "professores_preparados", "members")
+    return resultado
 
 
 def route_researcher_detail(ctx: "Context", member_id: str) -> Any:
@@ -1343,6 +1357,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/ponto/equipe/?$", route_ponto_equipe, "coordenacao"),
     ("GET", r"^/api/producao/?$", route_producao, "leitura"),
     ("POST", r"^/api/producao/importar/?$", route_producao_importar, "coordenacao"),
+    ("POST", r"^/api/equipe/professores/?$", route_professores, "coordenacao"),
     ("POST", r"^/api/research-lines/padrao/?$", route_linhas_padrao, "coordenacao"),
     ("GET", r"^/api/marca/?$", route_marca, "leitura"),
     ("POST", r"^/api/marca/?$", route_marca_gravar, "coordenacao"),
