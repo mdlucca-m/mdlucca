@@ -764,8 +764,14 @@ function slideCitados() {
 function slideDestaques() {
   const arts = artigos();
 
+  /* "Quem está produzindo" é uma frase no presente, e a parede é lida por
+     quem passa. Alguém que saiu do laboratório escreveu de fato o que
+     escreveu -- por isso continua nas tabelas de histórico do painel --,
+     mas anunciá-lo hoje como quem está produzindo é dizer uma coisa que
+     não é verdade, e ninguém na sala tem como saber que não é. */
   const equipe = (D.members || []).filter(function (m) {
-    return !m.is_external && (!AREA || m.research_line === AREA);
+    return !m.is_external && m.active !== 0 && !m.left_on
+      && (!AREA || m.research_line === AREA);
   }).slice(0, 8);
   const ranking = equipe.length ? C.bars({
     items: equipe.map(function (m) {

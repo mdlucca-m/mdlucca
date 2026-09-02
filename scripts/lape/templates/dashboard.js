@@ -1796,10 +1796,19 @@ view("citacoes", "Mais citados", "Produção",
 view("equipe", "Por integrante", "Métricas internas",
   "Envolvimento de cada pessoa nos artigos do recorte atual.", function (host) {
     const rows = articles();
+    /* Esta tela é HISTÓRICO, e por isso quem saiu do laboratório continua
+       aqui: os artigos que a pessoa escreveu ela escreveu mesmo, e apagá-la
+       falsificaria o passado. O que muda é o rótulo -- "(saiu)" ao lado do
+       nome --, para ninguém ler uma coluna alta como equipe de hoje. O
+       mural, que fala no presente, filtra de verdade. */
     const counts = (D.researchers || []).map(function (person) {
       const set = MEMBER_ARTICLES.get(person.id) || new Set();
       const own = rows.filter(function (a) { return set.has(a.id); });
+      const saiu = person.active === 0 || !!person.left_on;
       return Object.assign({}, person, {
+        saiu: saiu,
+        full_name: person.full_name + (saiu ? " (saiu)" : ""),
+        short_name: (person.short_name || person.full_name) + (saiu ? " (saiu)" : ""),
         f_total: own.length,
         f_published: own.filter(function (a) { return a.status === "publicado"; }).length,
         f_progress: own.filter(function (a) { return a.status === "em_producao"; }).length,

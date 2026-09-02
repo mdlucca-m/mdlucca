@@ -32,11 +32,27 @@ from .util import clean_text, norm_doi, title_key
 # curriculo certo entre os arquivos de data/raw/ e para montar o link do
 # CV na tela. Nao substitui a busca da PubMed -- o Lattes exige captcha e
 # so sai do navegador.
+# `grafias` sao as assinaturas com que a pessoa aparece nos artigos, e a
+# lista saiu de uma auditoria dos registros da PubMed, nao de palpite. Elas
+# existem porque a chave canonica de autor le "Torres Vilarino" como nome
+# proprio + sobrenome, e nao como sobrenome composto:
+#
+#   "Vilarino, Guilherme Torres"  -> vilarino_gt   (17 registros)
+#   "Vilarino, Guilherme T"       -> vilarino_gt   (1)
+#   "Torres Vilarino, Guilherme"  -> torres_g      (1)   <- outra pessoa, para o programa
+#   "Torres Vilarino, G"          -> torres_g      (1)   <-
+#
+# Sem declarar isso, a importacao criava um integrante fantasma e repartia
+# a producao de uma pessoa entre dois nomes no painel.
 PESQUISADORES: tuple[dict[str, Any], ...] = (
     {"nome": "Alexandro Andrade", "afiliacao": "UDESC",
-     "papel": "Coordenador do LAPE", "lattes": "5577164706111568"},
+     "papel": "Coordenador do LAPE", "lattes": "5577164706111568",
+     "grafias": ("Andrade A", "Andrade, Alexandro")},
     {"nome": "Guilherme Torres Vilarino", "afiliacao": "UDESC",
-     "papel": "Pesquisador do LAPE", "lattes": None},
+     "papel": "Pesquisador do LAPE", "lattes": None,
+     "grafias": ("Torres Vilarino G", "Torres Vilarino, G",
+                 "Torres Vilarino, Guilherme", "Vilarino GT",
+                 "Vilarino, Guilherme T")},
 )
 
 
@@ -164,6 +180,31 @@ def trazer(db: Database, nome: str, afiliacao: str | None = None,
     return {"quem": nome, "resumo": resumo_, "gravado": gravado}
 
 
+def declarar_grafias(db: Database, pessoa: dict[str, Any]) -> list[str]:
+    """Garante o cadastro da pessoa e prega nele as grafias conhecidas.
+
+    Nao apaga o que ja existir: a coordenacao pode ter acrescentado outras
+    grafias pela tela, e uma importacao nao tem por que desfazer isso.
+    """
+    grafias = tuple(pessoa.get("grafias") or ())
+    if not grafias:
+        return []
+    membro = db.member_id(pessoa["nome"])
+    if not membro:
+        return []
+    postas = []
+    for grafia in grafias:
+        try:
+            db.register_alias(grafia, membro)
+        except ValueError:
+            # a grafia ja e o nome de outra pessoa: juntar cadastros e
+            # destrutivo e nao se faz sozinho, no meio de uma importacao
+            continue
+        postas.append(grafia)
+    db.conn.commit()
+    return postas
+
+
 def trazer_todos(db: Database, desde: int | None = None) -> dict[str, Any]:
     """A producao de todo mundo da lista.
 
@@ -175,6 +216,10 @@ def trazer_todos(db: Database, desde: int | None = None) -> dict[str, Any]:
     saida = []
     for pessoa in PESQUISADORES:
         try:
+            # As grafias entram ANTES da busca: se entrassem depois, os
+            # registros indexados pela forma composta ja teriam criado o
+            # integrante fantasma que elas existem para evitar.
+            declarar_grafias(db, pessoa)
             saida.append(trazer(db, pessoa["nome"], pessoa.get("afiliacao"), desde))
         except Exception as erro:  # noqa: BLE001 -- vira recado, nao rastreio
             saida.append({"quem": pessoa["nome"], "erro": str(erro)})

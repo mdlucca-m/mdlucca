@@ -837,6 +837,26 @@ SELECT
        THEN CAST(julianday('now') - julianday(a.started_on) AS INTEGER) END AS days_open
 FROM articles a;
 
+/* Grafias alternativas do nome de um integrante.
+   A mesma pessoa assina de varias maneiras, e a PubMed indexa cada uma como
+   uma entrada diferente: Guilherme Torres Vilarino esta la como "Vilarino,
+   Guilherme Torres", "Vilarino, Guilherme T", "Torres Vilarino, Guilherme" e
+   "Torres Vilarino, G" -- quatro grafias em vinte artigos. Sem um lugar para
+   guardar isso, cada grafia vira um integrante novo, e a producao de uma
+   pessoa aparece repartida entre quatro fantasmas.
+
+   `name_key` e a chave canonica (util.author_key) e e UNICA: uma grafia
+   aponta para uma pessoa so, senao a desambiguacao vira sorteio. */
+CREATE TABLE IF NOT EXISTS member_aliases (
+  id         INTEGER PRIMARY KEY,
+  member_id  INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  alias      TEXT NOT NULL,
+  name_key   TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_member_aliases_key ON member_aliases(name_key);
+CREATE INDEX IF NOT EXISTS idx_member_aliases_member ON member_aliases(member_id);
+
 CREATE VIEW IF NOT EXISTS v_researcher AS
 SELECT
   m.id,
@@ -871,6 +891,9 @@ SELECT
      defesa e o fim de bolsa, e o organograma tira quem orienta quem. */
   m.advisor_id,
   m.co_advisor_id,
+  m.left_on,
+  (SELECT group_concat(al.alias, '; ') FROM member_aliases al
+    WHERE al.member_id = m.id)                                     AS aliases,
   (SELECT o.full_name FROM members o WHERE o.id = m.advisor_id)    AS advisor,
   (SELECT o.full_name FROM members o WHERE o.id = m.co_advisor_id) AS co_advisor,
   m.thesis_title,

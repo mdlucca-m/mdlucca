@@ -256,7 +256,7 @@ def projects_overview(db: Database) -> dict[str, Any]:
 def member_productivity(db: Database) -> list[dict]:
     rows = db.dicts(
         """
-        SELECT v.*, m.active, m.institution_id,
+        SELECT v.*, m.active, m.left_on, m.institution_id,
                (SELECT COUNT(DISTINCT ep.event_id) FROM event_participants ep
                   WHERE ep.member_id = v.member_id) AS n_events
         FROM v_member_productivity v

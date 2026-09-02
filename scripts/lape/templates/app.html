@@ -201,6 +201,16 @@ function buildForm(spec, values, onSubmit){
         const text = typeof opt === "object" ? opt.label : opt;
         input.appendChild(h("option", {value: value, text: text}));
       });
+      /* Uma lista vazia é um campo que não se pode preencher, e sem
+         explicação ele parece defeito -- foi assim que "Orientador" ficou:
+         a lista sai de quem tem vínculo de coordenação, professor ou
+         pós-doutorado, e ninguém tinha vínculo preenchido, então o único
+         item era "— selecione —". O aviso diz onde se resolve. */
+      if (!options.length && f.vazio){
+        input.disabled = true;
+        input.firstChild.textContent = "— nada para escolher —";
+        f = Object.assign({}, f, {hint: f.vazio});
+      }
       input.value = preset === null || preset === undefined ? "" : String(preset);
     } else if (f.type === "checkbox"){
       input = h("input", {id: id, type: "checkbox"});
@@ -354,8 +364,13 @@ VIEWS.perfil = {
     const spec = {fields: [
       field("Nome completo", "Nome completo", "text", {from: "full_name", required: true, span: "full"}),
       field("Nome curto", "Nome de citação", "text", {from: "short_name"}),
-      field("Variações", "Variações do nome", "text",
-        {hint: "Outras grafias usadas nas planilhas, separadas por ponto e vírgula."}),
+      /* `from: "aliases"` faltava, e sem ele o campo era enfeite: não
+         carregava o que estava gravado e não gravava o que se digitava --
+         e a tela ainda respondia "Perfil atualizado". */
+      field("Variações", "Variações do nome", "text", {from: "aliases", span: "full",
+        hint: "Como seu nome aparece nos artigos, separado por ponto e vírgula. "
+            + "É o que junta as várias grafias numa pessoa só — sem isso, cada "
+            + "grafia vira um pesquisador diferente no painel."}),
       field("Função", "Vínculo com o laboratório", "select", {from: "role",
         options: VINCULO_OPTS,
         hint: "É o vínculo que põe você no lugar certo do organograma."}),
@@ -364,9 +379,15 @@ VIEWS.perfil = {
         {from: "research_line", options: function (){ return CACHE.lines; }}),
       field("Orientador", "Orientador(a)", "select", {from: "advisor",
         options: function (){ return CACHE.orientadores || []; },
-        hint: "Ao gravar, você entra na equipe dos projetos em andamento dele(a)."}),
+        hint: "Ao gravar, você entra na equipe dos projetos em andamento dele(a).",
+        vazio: "Ninguém no laboratório está marcado como coordenação, professor ou "
+             + "pós-doutorado — a lista de orientadores sai daí. A coordenação "
+             + "define o vínculo de cada pessoa em Laboratório › Equipe, ou cada um "
+             + "define o seu no campo “Vínculo com o laboratório”, aqui em cima."}),
       field("Coorientador", "Coorientador(a)", "select", {from: "co_advisor",
-        options: function (){ return CACHE.orientadores || []; }}),
+        options: function (){ return CACHE.orientadores || []; },
+        vazio: "Mesma lista do orientador: ela se enche quando alguém tem vínculo "
+             + "de coordenação, professor ou pós-doutorado."}),
       field("Instituição", "Instituição", "text", {from: "institution"}),
       field("E-mail", "E-mail", "email", {from: "email"}),
       field("Telefone", "Telefone", "text", {from: "phone"}),
@@ -465,6 +486,26 @@ function crudView(config){
         VIEW.appendChild(h("div", {class: "card"}, h("div", {class: "empty",
           text: "Somente a coordenação pode alterar estes registros. Você pode consultá-los abaixo."})));
       } else {
+        if (config.atalho && can("coordenacao")){
+          const estado = h("p", {class: "hint", style: "margin:6px 0 0",
+            text: config.atalho.dica});
+          const botao = h("button", {class: "primary", text: config.atalho.rotulo,
+            onclick: async function (){
+              botao.disabled = true;
+              const antes = estado.textContent;
+              estado.textContent = "Instalando…";
+              try {
+                const r = await api(config.atalho.rota, "POST", {});
+                estado.textContent = config.atalho.contar(r);
+                await VIEWS[config.id].render();
+              } catch (e){
+                estado.textContent = antes;
+                toast(e.message, "erro");
+              } finally { botao.disabled = false; }
+            }});
+          VIEW.appendChild(h("div", {class: "card sec"},
+            [h("div", {class: "actions"}, [botao]), estado]));
+        }
         const formHost = h("div", {class: "card sec"});
         const titulo = h("h3", {style: "margin-bottom:12px", text: config.formTitle});
         formHost.appendChild(titulo);
@@ -736,6 +777,21 @@ VIEWS.linhas = crudView({
   id: "linhas", entity: "research-lines", label: "Linhas de pesquisa", group: "Laboratório",
   minimum: "coordenacao",
   lead: "As linhas organizam artigos, projetos, pessoas e atividades no painel.",
+  /* As sete linhas do LAPE ficam escritas no código e entram por um botão.
+     Digitá-las a cada instalação é convite à divergência: uma máquina com
+     "Psicologia do Esporte", outra com "Psicologia do esporte", e o painel
+     contando duas linhas onde há uma. */
+  atalho: {
+    rotulo: "Instalar as 7 linhas do LAPE",
+    dica: "Atividade física e saúde, psicologia do exercício, psicologia do esporte, "
+        + "qualidade do ar, fibromialgia, câncer e envelhecimento. Rodar de novo não "
+        + "desfaz o que você tiver mexido.",
+    rota: "/api/research-lines/padrao",
+    contar: function (r){
+      if (!r.novas.length) return "As 7 já estavam cadastradas.";
+      return r.novas.length + " linha(s) incluída(s): " + r.novas.join(", ") + ".";
+    },
+  },
   formTitle: "Nova linha de pesquisa", listTitle: "Linhas cadastradas",
   fields: [
     field("Linha de pesquisa", "Nome da linha", "text", {required: true, span: "full"}),

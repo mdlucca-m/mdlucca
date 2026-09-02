@@ -277,6 +277,13 @@ class Database:
 
         row = self.conn.execute("SELECT id FROM members WHERE name_key = ?", (key,)).fetchone()
         if row is None:
+            # As grafias declaradas a mao vem ANTES do palpite por sobrenome:
+            # o que a pessoa escreveu sobre o proprio nome vale mais do que
+            # a regra que o programa inventa.
+            row = self.conn.execute(
+                "SELECT member_id AS id FROM member_aliases WHERE name_key = ?",
+                (key,)).fetchone()
+        if row is None:
             row = self._match_by_surname(key, display_name(name) or str(name))
         if row is not None:
             member_id = int(row["id"])
@@ -345,12 +352,58 @@ class Database:
                 cache[key] = target_id
 
     def register_alias(self, alias: Any, member_id: int) -> None:
-        """Aponta uma grafia alternativa para um integrante ja existente."""
-        from .util import author_key
+        """Aponta uma grafia alternativa para um integrante ja existente.
+
+        Isto morava so no cache em memoria, e por isso durava exatamente uma
+        execucao: a planilha declarava as variacoes, a importacao daquele
+        momento as respeitava, e no processo seguinte estava tudo esquecido.
+        Quem preenchia a coluna via funcionar uma vez e nunca mais, sem nada
+        na tela dizendo que o dado nao tinha sido guardado.
+        """
+        from .util import author_key, display_name
 
         key = author_key(alias)
-        if key:
-            self._cache.setdefault("members", {})[key] = member_id
+        if not key:
+            return
+        # Uma grafia que ja e o nome canonico de OUTRA pessoa nao vira apelido:
+        # apontar duas pessoas para a mesma chave transforma desambiguacao em
+        # sorteio. Fundir dois cadastros e destrutivo e tem de ser explicito.
+        dono = self.conn.execute(
+            "SELECT id FROM members WHERE name_key = ? AND id <> ?",
+            (key, member_id)).fetchone()
+        if dono is not None:
+            raise ValueError(
+                f"a grafia \u201c{display_name(alias) or alias}\u201d ja e o nome de"
+                " outro integrante; junte os dois cadastros antes")
+        self.conn.execute(
+            "INSERT INTO member_aliases (member_id, alias, name_key) VALUES (?, ?, ?)"
+            " ON CONFLICT(name_key) DO UPDATE SET member_id = excluded.member_id,"
+            " alias = excluded.alias",
+            (member_id, display_name(alias) or str(alias), key))
+        self._cache.setdefault("members", {})[key] = member_id
+
+    def set_aliases(self, member_id: int, aliases: Any) -> list[str]:
+        """Troca a lista inteira de grafias de um integrante.
+
+        Trocar, e nao acrescentar: o campo da tela mostra a lista completa,
+        entao apagar uma linha dali tem de apagar de verdade -- senao a
+        pessoa remove uma grafia errada, salva, e ela continua valendo.
+        """
+        from .util import author_key, display_name, split_authors
+
+        nomes = [n for n in split_authors(aliases) if author_key(n)]
+        proprio = self.conn.execute(
+            "SELECT name_key FROM members WHERE id = ?", (member_id,)).fetchone()
+        chave_propria = proprio["name_key"] if proprio else None
+        self.conn.execute("DELETE FROM member_aliases WHERE member_id = ?", (member_id,))
+        gravados: list[str] = []
+        for nome in nomes:
+            # o proprio nome nao e apelido de si mesmo
+            if author_key(nome) == chave_propria:
+                continue
+            self.register_alias(nome, member_id)
+            gravados.append(display_name(nome) or str(nome))
+        return gravados
 
     # ------------------------------------------------------------------
     # Log de ingestao

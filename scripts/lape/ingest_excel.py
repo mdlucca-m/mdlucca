@@ -368,11 +368,16 @@ def ingest_members(db: Database, rows: list[dict]) -> int:
         )
         if member_id:
             db.execute("UPDATE members SET full_name = ? WHERE id = ?", (name, member_id))
-            for alias in split_authors(row.get("aliases")):
-                duplicate = db.member_id(alias, create=False)
-                if duplicate and duplicate != member_id:
-                    db.merge_members(duplicate, member_id)
-                db.register_alias(alias, member_id)
+            # `in row`, e nao `row.get(...)`: a linha que NAO traz a coluna
+            # nao mexe nas grafias; a que traz a coluna vazia apaga todas.
+            # Sem essa distincao, gravar qualquer outro campo do cadastro
+            # limparia as variacoes de nome sem ninguem pedir.
+            if "aliases" in row:
+                for alias in split_authors(row.get("aliases")):
+                    duplicate = db.member_id(alias, create=False)
+                    if duplicate and duplicate != member_id:
+                        db.merge_members(duplicate, member_id)
+                db.set_aliases(member_id, row.get("aliases"))
             ligar_ao_orientador(db, member_id)
             written += 1
     db.conn.commit()

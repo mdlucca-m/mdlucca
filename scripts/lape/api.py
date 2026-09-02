@@ -1146,6 +1146,19 @@ def route_producao_importar(ctx: "Context") -> Any:
     return resultado
 
 
+def route_linhas_padrao(ctx: "Context") -> Any:
+    """Instala as linhas de pesquisa declaradas pelo laboratorio."""
+    user = auth.require(ctx.user, "coordenacao")
+    from . import hooks, linhas
+
+    resultado = linhas.instalar(ctx.db)
+    if resultado["novas"]:
+        hooks.emit(ctx.db, "linhas.instaladas", entity="research_lines",
+                   detail=f"{len(resultado['novas'])} linha(s) de pesquisa",
+                   actor=user.get("full_name"))
+    return resultado
+
+
 def route_marca(ctx: "Context") -> Any:
     """Se ha logotipo, onde ele esta, e o que houve se nao entrou."""
     auth.require(ctx.user, "leitura")
@@ -1330,6 +1343,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/ponto/equipe/?$", route_ponto_equipe, "coordenacao"),
     ("GET", r"^/api/producao/?$", route_producao, "leitura"),
     ("POST", r"^/api/producao/importar/?$", route_producao_importar, "coordenacao"),
+    ("POST", r"^/api/research-lines/padrao/?$", route_linhas_padrao, "coordenacao"),
     ("GET", r"^/api/marca/?$", route_marca, "leitura"),
     ("POST", r"^/api/marca/?$", route_marca_gravar, "coordenacao"),
     ("GET", r"^/api/citacoes/?$", route_citacoes, "leitura"),
