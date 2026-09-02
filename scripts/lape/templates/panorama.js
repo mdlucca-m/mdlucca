@@ -477,6 +477,118 @@ function cartaoDaProducao() {
   return corpo;
 }
 
+/* ------------------------------------------------------------------ */
+/* Citações das bases proprietárias                                     */
+/* A PubMed e a OpenAlex são abertas; Scopus e Web of Science não. Elas
+   pedem chave, e a chave costuma vir da assinatura da universidade. O que
+   este cartão faz de diferente é dizer, ANTES de alguém apertar, o que vai
+   impedir a coleta -- porque as três coisas que a impedem (não há chave,
+   não há DOI, a chave não vale) devolvem o mesmo "0 atualizados" se a tela
+   ficar calada até o fim. */
+function cartaoDasCitacoes() {
+  const cit = D.citacoes || {};
+  const podeGravar = ["coordenacao", "admin"]
+    .indexOf(((D.usuario || {}).papel) || "leitura") >= 0;
+  const corpo = el("div", {});
+
+  const selos = el("div", { class: "selos", style: "margin-bottom:10px" },
+    (cit.fontes || []).map(function (f) {
+      const ligada = f.configurada;
+      return el("span", {
+        class: "selo-var",
+        style: "--tom:" + C.token(ligada ? "--good" : "--ink-muted"),
+        title: ligada ? "chave presente em " + f.variavel
+          : "falta a variável de ambiente " + f.variavel,
+      }, [Icons.get(ligada ? "conectar" : "aviso", 12),
+        el("span", { text: f.rotulo + (ligada ? " · ligada" : " · sem chave") }),
+        f.artigos_com_numero
+          ? el("small", { text: " " + f.artigos_com_numero + " artigo(s)" }) : null]);
+    }));
+  corpo.appendChild(selos);
+
+  const estado = el("p", { class: "hint" });
+  function contar() {
+    const c = D.citacoes || {};
+    const partes = [];
+    (c.fontes || []).forEach(function (f) {
+      if (f.citacoes) partes.push(f.rotulo + ": " + f.citacoes + " citações");
+    });
+    estado.textContent = partes.length
+      ? partes.join(" · ") + (c.atualizado_em ? " · conferido em " + c.atualizado_em : "")
+      : "Nenhum número veio dessas bases ainda.";
+  }
+  contar();
+  corpo.appendChild(estado);
+
+  /* A consulta é por DOI. Sem DOI não há o que perguntar, e este é o
+     estado do banco hoje -- dizer isso aqui poupa a rodada inteira. */
+  const semChave = (cit.fontes || []).every(function (f) { return !f.configurada; });
+  const semDoi = !cit.com_doi;
+
+  if (semDoi && cit.artigos) {
+    corpo.appendChild(el("p", { class: "nota-honesta", style: "margin-top:10px", html:
+      "<b>Nenhum dos " + cit.artigos + " artigos tem DOI.</b> A consulta às duas bases é "
+      + "por DOI — é a única chave que não confunde um artigo com o homônimo de outro "
+      + "grupo. Preencha a coluna <code>doi</code> na planilha, ou traga a produção da "
+      + "PubMed no cartão acima: ela vem com o DOI conferido." }));
+  }
+
+  if (!podeGravar) {
+    corpo.appendChild(el("p", { class: "hint", style: "margin-top:8px",
+      text: "Quem conecta as bases é a coordenação." }));
+    return corpo;
+  }
+
+  if (semChave) {
+    corpo.appendChild(el("p", { class: "hint", style: "margin-top:10px", html:
+      "<b>Como ligar.</b> Ponha as chaves no arquivo <code>.env</code>, na raiz do "
+      + "sistema, uma por linha:<br>"
+      + "<code>SCOPUS_API_KEY=…</code> — grátis em dev.elsevier.com; a contagem "
+      + "completa só sai de dentro da rede da universidade, ou com "
+      + "<code>SCOPUS_INST_TOKEN=…</code>, que a biblioteca pede à Elsevier.<br>"
+      + "<code>WOS_API_KEY=…</code> — Web of Science Starter API, no portal da "
+      + "Clarivate; depende da assinatura da UDESC.<br>"
+      + "Depois reinicie o sistema. As chaves ficam só nesta máquina — o "
+      + "<code>.env</code> não vai para o repositório." }));
+    return corpo;
+  }
+
+  const botao = el("button", { class: "botao-destino", style: "margin-top:10px" },
+    [Icons.get("atualizar", 15), el("span", { text: "Conferir as citações agora" })]);
+  botao.disabled = semDoi;
+  botao.onclick = async function () {
+    botao.disabled = true;
+    estado.textContent = "Perguntando às bases, artigo por artigo… "
+      + cit.com_doi + " DOI(s) a conferir.";
+    try {
+      const r = await api("/api/citacoes/atualizar", "POST", {});
+      D.citacoes = r.situacao || D.citacoes;
+      const recusadas = Object.keys(r.recusadas || {});
+      contar();
+      const linha = ["Scopus: " + r.scopus, "WoS: " + r.wos];
+      if (r.erros) linha.push(r.erros + " erro(s)");
+      estado.textContent = linha.join(" · ") + " — de " + r.consultados + " DOI(s).";
+      if (recusadas.length) {
+        /* a chave recusada é o único desfecho que não se resolve tentando
+           de novo, e é o que a pessoa precisa ler inteiro */
+        recusadas.forEach(function (k) {
+          corpo.appendChild(el("p", { class: "nota-honesta", style: "margin-top:8px",
+            text: r.recusadas[k] }));
+        });
+      }
+      await recarregar();
+    } catch (erro) {
+      estado.textContent = "Não deu: " + erro.message;
+    } finally { botao.disabled = semDoi; }
+  };
+  corpo.appendChild(botao);
+  if (semDoi) {
+    corpo.appendChild(el("p", { class: "hint", style: "margin-top:6px",
+      text: "O botão liga quando houver ao menos um artigo com DOI." }));
+  }
+  return corpo;
+}
+
 function verLaboratorio(palco) {
   const lab = D.laboratorio || {};
   palco.appendChild(cabeca("instituicao", lab.nome || "O laboratório",
@@ -487,6 +599,11 @@ function verLaboratorio(palco) {
     "O Lattes pede captcha e só sai do navegador. A PubMed entrega a mesma "
     + "produção por programa — com DOI, resumo e a afiliação que preenche o mapa.",
     cartaoDaProducao()));
+
+  palco.appendChild(cartao("citacao", "Citações na Scopus e na Web of Science",
+    "As duas bases fechadas não deixam contar de fora: pedem chave, e a chave "
+    + "vem da assinatura da universidade. Ligadas, elas respondem por DOI.",
+    cartaoDasCitacoes()));
 
   palco.appendChild(el("div", { class: "grade g3" }, (D.linhas || []).map(function (l) {
     return el("div", { class: "cartao" }, [

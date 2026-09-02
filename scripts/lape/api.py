@@ -1146,6 +1146,34 @@ def route_producao_importar(ctx: "Context") -> Any:
     return resultado
 
 
+def route_citacoes(ctx: "Context") -> Any:
+    """Retrato da conexao com Scopus e Web of Science, antes de tentar."""
+    auth.require(ctx.user, "leitura")
+    from . import ingest_citations
+    return ingest_citations.situacao(ctx.db)
+
+
+def route_citacoes_atualizar(ctx: "Context") -> Any:
+    """Vai as duas bases e traz o numero de citacoes de cada DOI.
+
+    Sincrono, como a importacao da PubMed, e pelo mesmo motivo: uma fila em
+    segundo plano custaria estado, tela de progresso e um jeito novo de
+    falhar calado. Aqui ha uma espera de rede por artigo e por base, entao
+    `limite` existe para a primeira tentativa nao demorar o dia inteiro.
+    """
+    user = auth.require(ctx.user, "coordenacao")
+    from . import hooks, ingest_citations
+
+    limite = to_int((ctx.body or {}).get("limite"))
+    resultado = ingest_citations.update_citations(ctx.db, limit=limite, verbose=False)
+    trazidos = resultado["scopus"] + resultado["wos"]
+    if trazidos:
+        hooks.emit(ctx.db, "citacoes.atualizadas", entity="articles",
+                   detail=f"{trazidos} numero(s) de citacao das bases proprietarias",
+                   actor=user.get("full_name"))
+    return {**resultado, "situacao": ingest_citations.situacao(ctx.db)}
+
+
 def route_versao(ctx: "Context") -> Any:
     """Que codigo esta rodando, e quanta coisa nova espera do outro lado."""
     auth.require(ctx.user, "leitura")
@@ -1186,7 +1214,13 @@ def payload_do_panorama(db, desde: int | None = None,
             "eventos": int(db.scalar("SELECT COUNT(*) FROM events") or 0),
         },
         "vocabulario": variaveis.lista(db),
+        "citacoes": _situacao_das_citacoes(db),
     }
+
+
+def _situacao_das_citacoes(db) -> dict[str, Any]:
+    from . import ingest_citations
+    return ingest_citations.situacao(db)
 
 
 def route_panorama(ctx: "Context") -> Any:
@@ -1262,6 +1296,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/ponto/equipe/?$", route_ponto_equipe, "coordenacao"),
     ("GET", r"^/api/producao/?$", route_producao, "leitura"),
     ("POST", r"^/api/producao/importar/?$", route_producao_importar, "coordenacao"),
+    ("GET", r"^/api/citacoes/?$", route_citacoes, "leitura"),
+    ("POST", r"^/api/citacoes/atualizar/?$", route_citacoes_atualizar, "coordenacao"),
     ("GET", r"^/api/panorama/?$", route_panorama, "leitura"),
     ("POST", r"^/api/panorama/marcar/?$", route_panorama_marcar, "coordenacao"),
     ("GET", r"^/api/revisoes/?$", route_reviews, "leitura"),

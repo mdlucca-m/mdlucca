@@ -527,7 +527,6 @@ class TestOsArquivosDeTeste(unittest.TestCase):
     # sem teste — não para dar a entender que está tudo coberto.
     SEM_TESTE_AINDA = {
         "config",             # só caminhos e constantes lidos do ambiente
-        "ingest_citations",   # falta: bate no OpenAlex/Crossref, precisa de dublê
     }
 
     def test_todo_modulo_novo_chega_com_teste(self):
