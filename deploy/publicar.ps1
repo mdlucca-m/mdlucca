@@ -256,9 +256,9 @@ function Mostrar-Versao {
       if ($ramo -ne "main" -and $ramo -ne "master") {
         Write-Host "  - voce esta no ramo '$ramo', e a atualizacao automatica so roda no main."
         Write-Host "    Para trazer:  git checkout main; git pull"
-      } elseif (& git status --porcelain -- . $GeradoData $GeradoDocs 2>$null) {
+      } elseif (& git status --porcelain -uno -- . $GeradoData $GeradoDocs 2>$null) {
         Write-Host "  - ha alteracao local no codigo -- nada e sobrescrito sem voce mandar:"
-        & git status --short -- . $GeradoData $GeradoDocs 2>$null |
+        & git status --short -uno -- . $GeradoData $GeradoDocs 2>$null |
           ForEach-Object { Write-Host "      $_" }
         # De proposito NAO se sugere "git checkout -- ." aqui: rodado na
         # raiz, ele restaura tambem data/db.sqlite -- o banco do
@@ -322,7 +322,16 @@ function Atualizar-Codigo {
     # laboratorio -- que e justamente a unica onde ela precisa acontecer.
     # Foi o que aconteceu: docs/index.html modificado, e o script avisando
     # "nao vou sobrescrever" em toda subida.
-    if (& git status --porcelain -- . $GeradoData $GeradoDocs 2>$null) {
+    #
+    # `-uno` pela mesma razao, e essa doeu mais: arquivo NAO RASTREADO na raiz
+    # tambem aparecia aqui. Um comando digitado torto deixa lixo com nome de
+    # comando ("powershell", "Set-ExecutionPolicy") no meio do repositorio, e a
+    # partir dali a maquina do laboratorio nunca mais se atualizava -- calada,
+    # porque o aviso fala em "alteracoes locais no codigo" e nao ha nenhuma.
+    # Arquivo solto nao e trabalho a proteger: nada em `git pull --ff-only` o
+    # sobrescreve, e no caso raro em que a atualizacao traz um arquivo com esse
+    # mesmo nome, o proprio git recusa e o erro dele e mostrado logo abaixo.
+    if (& git status --porcelain -uno -- . $GeradoData $GeradoDocs 2>$null) {
       Aviso "Ha alteracoes locais no codigo: nao vou sobrescrever. Seguindo com o codigo atual."
       return
     }

@@ -136,7 +136,16 @@ atualizar_codigo() {
   # atualização para sempre na máquina do laboratório -- que é justamente a
   # única onde ela precisa acontecer. Foi o que aconteceu: docs/index.html
   # modificado, e o script avisando "não vou sobrescrever" em toda subida.
-  if [[ -n "$(git -C "$RAIZ" status --porcelain -- . "${GERADOS[@]}" 2>/dev/null)" ]]; then
+  #
+  # `-uno` pela mesma razão, e essa doeu mais: arquivo NÃO RASTREADO na raiz
+  # também aparecia aqui. Um comando digitado torto deixa lixo com nome de
+  # comando ("powershell", "Set-ExecutionPolicy") no meio do repositório, e a
+  # partir dali a máquina do laboratório nunca mais se atualizava -- calada,
+  # porque o aviso fala em "alterações locais no código" e não há nenhuma.
+  # Arquivo solto não é trabalho a proteger: nada em `git pull --ff-only` o
+  # sobrescreve, e no caso raro em que a atualização traz um arquivo com esse
+  # mesmo nome, o próprio git recusa e o erro dele é mostrado logo abaixo.
+  if [[ -n "$(git -C "$RAIZ" status --porcelain -uno -- . "${GERADOS[@]}" 2>/dev/null)" ]]; then
     aviso "Há alterações locais no código: não vou sobrescrever. Seguindo com o código atual."
     return 0
   fi
@@ -199,9 +208,9 @@ mostrar_versao() {
     if [[ "$ramo" != "main" && "$ramo" != "master" ]]; then
       echo "  · você está no ramo '$ramo', e a atualização automática só roda no main."
       echo "    Para trazer:  git checkout main && git pull"
-    elif [[ -n "$(git -C "$RAIZ" status --porcelain -- . "${GERADOS[@]}" 2>/dev/null)" ]]; then
+    elif [[ -n "$(git -C "$RAIZ" status --porcelain -uno -- . "${GERADOS[@]}" 2>/dev/null)" ]]; then
       echo "  · há alteração local no código -- nada é sobrescrito sem você mandar:"
-      git -C "$RAIZ" status --short -- . "${GERADOS[@]}" 2>/dev/null | sed 's/^/      /'
+      git -C "$RAIZ" status --short -uno -- . "${GERADOS[@]}" 2>/dev/null | sed 's/^/      /'
       # De propósito NÃO se sugere "git checkout -- ." aqui: rodado na
       # raiz, ele restaura também data/db.sqlite -- o banco do laboratório
       # inteiro. Descartar é sempre arquivo a arquivo.

@@ -255,6 +255,36 @@ class TestAtualizacaoSozinha(unittest.TestCase):
         self.assertIn("não vou sobrescrever", pronto.stdout)
         self.assertEqual(self.conteudo(), "mexido a mao\n")
 
+    def test_lixo_solto_na_raiz_nao_desliga_a_atualizacao(self):
+        """Arquivo nao rastreado nao e trabalho a proteger.
+
+        Aconteceu na maquina do laboratorio: comandos de PowerShell digitados
+        num prompt de cmd deixaram arquivos vazios chamados "powershell" e
+        "Set-ExecutionPolicy" na raiz do repositorio. A partir dali toda
+        subida dizia "ha alteracoes locais no codigo: nao vou sobrescrever" --
+        e nao havia alteracao nenhuma no codigo. A maquina parou de se
+        atualizar em silencio, e ninguem tinha como ligar uma coisa a outra.
+        """
+        self.novidade_no_servidor()
+        for lixo in ("powershell", "Set-ExecutionPolicy", "Subir LAPE.bat"):
+            (self.copia / lixo).write_text("", encoding="utf-8")
+        pronto = self.rodar()
+        self.assertEqual(pronto.returncode, 0, pronto.stderr)
+        self.assertNotIn("não vou sobrescrever", pronto.stdout)
+        self.assertEqual(self.conteudo(), "segunda versao\n")
+        # e o lixo continua onde estava: o script nao apaga nada de ninguem
+        self.assertTrue((self.copia / "powershell").exists())
+
+    def test_arquivo_rastreado_e_lixo_solto_juntos_ainda_travam(self):
+        # ignorar o nao rastreado nao pode fazer o script atropelar edicao
+        # de verdade que esteja no mesmo diretorio
+        self.novidade_no_servidor()
+        (self.copia / "a.txt").write_text("mexido a mao\n", encoding="utf-8")
+        (self.copia / "powershell").write_text("", encoding="utf-8")
+        pronto = self.rodar()
+        self.assertIn("não vou sobrescrever", pronto.stdout)
+        self.assertEqual(self.conteudo(), "mexido a mao\n")
+
     def test_o_banco_vivo_nao_conta_como_alteracao_local(self):
         """O banco muda a cada cadastro. Se contasse, nunca haveria atualização.
 
