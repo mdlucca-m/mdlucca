@@ -20,6 +20,10 @@ let D = JSON.parse(document.getElementById("payload").textContent);
 const PARAMS = new URLSearchParams(location.search);
 const SEGUNDOS = Math.max(5, Math.min(120, Number(PARAMS.get("t")) || 15));
 const AREA = (PARAMS.get("area") || "").trim();   /* recorta o mural numa linha */
+/* "Últimos cinco anos" é a janela que o laboratório usa para se olhar: o
+   gráfico de publicações por ano e o recorte dos mais citados saem daqui,
+   e mudam juntos. `?anos=` abre a janela sem mexer no código. */
+const JANELA = Math.max(2, Math.min(20, Number(PARAMS.get("anos")) || 5));
 
 const MESES_EXT = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
   "agosto", "setembro", "outubro", "novembro", "dezembro"];
@@ -84,6 +88,29 @@ function porExtenso(dias) {
   const meses = Math.round(dias / 30.44);
   return "em " + meses + (meses === 1 ? " mês" : " meses");
 }
+/* `porExtenso` conta para a frente: "em 3 dias". Data de início e data de
+   submissão contam para trás, e "há 780 dias" não é um número que alguém leia
+   de pé, a três metros. Aqui a escala muda com a distância: dias, meses, anos. */
+function haQuanto(dias) {
+  if (dias === null) return "sem data";
+  const d = Math.abs(dias);
+  if (d === 0) return "hoje";
+  if (d === 1) return "ontem";
+  if (d < 45) return "há " + d + " dias";
+  const meses = Math.round(d / 30.44);
+  if (meses < 18) return "há " + meses + (meses === 1 ? " mês" : " meses");
+  const anos = Math.floor(meses / 12);
+  const resto = meses % 12;
+  return "há " + anos + (anos === 1 ? " ano" : " anos")
+    + (resto ? " e " + resto + (resto === 1 ? " mês" : " meses") : "");
+}
+/* Com o ano por extenso: na parede, "12 mar" de 2023 é lido como este ano. */
+function dataCurta(iso) {
+  const d = comoData(iso);
+  if (!d) return "sem data";
+  return d.getDate() + " " + MESES_EXT[d.getMonth()].slice(0, 3) + " " + d.getFullYear();
+}
+
 /* O tom acompanha a urgência, e só ela. Vermelho é prazo vencido — nunca
    decoração — para que a cor continue significando alguma coisa na tela. */
 function tomDoPrazo(dias) {
@@ -100,6 +127,10 @@ function fmt(v) { return C.fmt(v); }
 function citacoes(a) {
   return Math.max(a.openalex_citations || 0, a.scopus_citations || 0, a.wos_citations || 0);
 }
+/* A Web of Science é uma base entre três, e a única que o laboratório
+   informa à mão. Onde a tela promete "citações na WoS" é este número que
+   entra — nunca o da melhor fonte, que costuma ser maior e diria outra coisa. */
+function citacoesWos(a) { return a.wos_citations || 0; }
 function cortar(texto, n) {
   const t = String(texto || "");
   return t.length > n ? t.slice(0, n - 1) + "…" : t;
@@ -301,9 +332,9 @@ function slideAgora() {
   ]);
 
   /* full_series é a série inteira, ano a ano; `series` traz só a janela
-     configurada. Aqui vale a série longa, cortada nos oito últimos anos. */
+     configurada. Aqui vale a série longa, cortada na janela do mural. */
   const anos = (D.publications && (D.publications.full_series || D.publications.series)) || [];
-  const recentes = anos.slice(-8);
+  const recentes = anos.slice(-JANELA);
   const grafico = recentes.length
     ? C.area({
       labels: recentes.map(function (r) { return String(r.year); }),
@@ -555,21 +586,183 @@ function slideAndamento() {
   ]));
 }
 
+/* ==========================================================================
+   Na bancada — o que está sendo escrito e o que está com o periódico
+   Duas listas de nome e data. É o quadro que a sala olha para saber de quem
+   é a vez: um manuscrito começado há dois anos e um enviado há cinco meses
+   são conversas diferentes, e a data é o que separa uma da outra.
+   ========================================================================== */
+function linhaDeArtigo(item) {
+  const li = el("li", {}, [
+    el("div", { class: "quando" }, [
+      el("b", { text: dia(item.data) }), el("small", { text: mesCurto(item.data) }),
+    ]),
+    Icons.badge(item.icone, item.tom, null),
+    el("div", { class: "oque" }, [
+      el("b", { text: item.titulo }), el("small", { text: item.detalhe }),
+    ]),
+    el("span", { class: "contagem", text: item.contagem || haQuanto(item.dias) }),
+  ]);
+  li.style.setProperty("--tom", "var(--" + tomToken(item.tom) + ")");
+  return li;
+}
+
+/* Sem data no fim da fila, e não no começo: a lista é cronológica, e um
+   artigo sem data de início não é o mais antigo — é o que ninguém datou.
+   Ordenar em texto ISO ordena em tempo, e sem depender de fuso. */
+function emOrdemDeData(lista, campo) {
+  return lista.slice().sort(function (a, b) {
+    const x = a[campo], y = b[campo];
+    if (!x && !y) return String(a.title || "").localeCompare(String(b.title || ""), "pt-BR");
+    if (!x) return 1;
+    if (!y) return -1;
+    return String(x).localeCompare(String(y));
+  });
+}
+
+function slideBancada() {
+  const arts = artigos();
+  const producao = emOrdemDeData(arts.filter(function (a) {
+    return a.status === "em_producao"; }), "started_on");
+  const submetidos = emOrdemDeData(arts.filter(function (a) {
+    return a.status === "submetido" || a.status === "em_revisao"; }), "first_submission_on");
+
+  const listaProducao = producao.length
+    ? el("ul", { class: "pauta" }, producao.slice(0, 6).map(function (a) {
+      return linhaDeArtigo({
+        titulo: a.title, data: a.started_on, dias: diasAte(a.started_on),
+        detalhe: (a.started_on ? "início em " + dataCurta(a.started_on)
+          : "sem data de início registrada")
+          + (a.lead_name ? " · " + a.lead_name : ""),
+        icone: "experimento", tom: "verde",
+      });
+    }))
+    : vazio("Nenhum manuscrito em escrita no momento.");
+
+  const listaSubmetidos = submetidos.length
+    ? el("ul", { class: "pauta" }, submetidos.slice(0, 6).map(function (a) {
+      const espera = diasAte(a.first_submission_on);
+      /* âmbar é a cor de "em avaliação" no mural inteiro. Passada a espera
+         longa, o tom sobe — e sobe acompanhado das palavras "sem resposta":
+         no escuro, âmbar e alerta são quase a mesma cor, e uma distinção que
+         ninguém enxerga a três metros não é distinção, é ruído. */
+      const demorado = espera !== null && Math.abs(espera) > ESPERA_LONGA;
+      return linhaDeArtigo({
+        titulo: a.title, data: a.first_submission_on, dias: espera,
+        detalhe: (a.first_submission_on
+          ? "submetido em " + dataCurta(a.first_submission_on)
+          : "sem data de submissão registrada")
+          + (a.journal ? " · " + a.journal : ""),
+        /* as palavras vão na pastilha, e não no fim da linha de detalhe:
+           lá o nome do periódico corta primeiro, e o que sumiria com as
+           reticências é justamente o que a cor está tentando dizer */
+        contagem: demorado ? haQuanto(espera) + " sem resposta" : null,
+        icone: "submissao", tom: demorado ? "grave" : "ambar",
+      });
+    }))
+    : vazio("Nenhum manuscrito com o periódico agora.");
+
+  const sobraP = Math.max(0, producao.length - 6);
+  const sobraS = Math.max(0, submetidos.length - 6);
+
+  return escalonar(el("div", { class: "slide" }, [
+    el("div", { class: "painel-duplo igual" }, [
+      quadro("Artigos em produção", "experimento", listaProducao,
+        sobraP ? fmt(producao.length) + " ao todo · e mais " + sobraP
+          : fmt(producao.length) + " em escrita"),
+      quadro("Artigos submetidos", "submissao", listaSubmetidos,
+        sobraS ? fmt(submetidos.length) + " ao todo · e mais " + sobraS
+          : fmt(submetidos.length) + " com o periódico"),
+    ]),
+  ]));
+}
+
+/* ==========================================================================
+   Os mais citados — na Web of Science
+   Duas leituras do mesmo acervo: a obra que pesa desde sempre e a que está
+   pesando agora. Sem a segunda, um artigo de 2009 esconderia para sempre o
+   que o laboratório publicou depois.
+   ========================================================================== */
+function placarDeCitacoes(lista) {
+  return el("table", { class: "placar citado" }, [
+    el("thead", {}, el("tr", {}, [
+      el("th", { text: "Artigo" }), el("th", { class: "num", text: "Ano" }),
+      el("th", { class: "num", text: "Citações WoS" }),
+    ])),
+    el("tbody", {}, lista.map(function (a, i) {
+      return el("tr", {}, [
+        el("td", {}, el("div", { class: "quem" }, [
+          el("span", { class: "posto", text: String(i + 1) }),
+          el("span", { title: a.title, text: a.title }),
+        ])),
+        el("td", { class: "num", text: a.year_published ? String(a.year_published) : "—" }),
+        el("td", { class: "num forte", text: fmt(citacoesWos(a)) }),
+      ]);
+    })),
+  ]);
+}
+
+/* Do mais citado ao menos citado, e só quem tem citação: um artigo com zero
+   não está no fim do pódio, está fora dele. `desdeOAno` recorta a janela —
+   e recorta pelo ano de publicação, que é o que o rótulo da tela promete. */
+function maisCitados(arts, desdeOAno) {
+  return arts.filter(function (a) {
+    if (citacoesWos(a) <= 0) return false;
+    if (!desdeOAno) return true;
+    return Number(a.year_published) >= desdeOAno;
+  }).sort(function (a, b) { return citacoesWos(b) - citacoesWos(a); });
+}
+
+function slideCitados() {
+  const arts = artigos();
+  const comWos = maisCitados(arts);
+  const corte = new Date().getFullYear() - (JANELA - 1);
+  const recentes = maisCitados(arts, corte);
+
+  const totalWos = arts.reduce(function (s, a) { return s + citacoesWos(a); }, 0);
+  const totalMelhor = arts.reduce(function (s, a) { return s + citacoes(a); }, 0);
+
+  /* O caso do acervo sem WoS preenchida não é "zero citações": é um campo em
+     branco. Dizer "0" na parede seria mentir sobre o laboratório, então a tela
+     conta o que há nas outras bases e diz de onde viria o número que falta. */
+  const semWos = !comWos.length;
+  const recado = semWos
+    ? vazio(totalMelhor
+      ? "Nenhum artigo com citações da Web of Science registradas. Nas outras bases "
+        + "o acervo soma " + fmt(totalMelhor) + " citações; o número da WoS entra "
+        + "pela planilha, na coluna citacoes_wos."
+      : "Ainda sem citações registradas em nenhuma base.")
+    : null;
+
+  const kpis = el("div", { class: "linha-kpi" }, [
+    tile({ nome: "Citações na WoS", valor: totalWos, icone: "citacao", serie: 7,
+      pastilha: "violeta", pe: "no acervo inteiro" }),
+    tile({ nome: "Artigos citados", valor: comWos.length, icone: "livro", serie: 1,
+      pe: "de <b>" + fmt(arts.length) + "</b> no acervo" }),
+    tile({ nome: "Mais citado", valor: comWos.length ? citacoesWos(comWos[0]) : 0,
+      icone: "trofeu", serie: 6, pastilha: "bom",
+      pe: comWos.length ? cortar(comWos[0].title, 46) : "sem citações ainda" }),
+  ]);
+
+  return escalonar(el("div", { class: "slide" }, [
+    kpis,
+    el("div", { class: "painel-duplo igual" }, [
+      quadro("Artigos mais citados", "fogo",
+        recado || placarDeCitacoes(comWos.slice(0, 6)),
+        semWos ? "" : "todos os anos"),
+      quadro("Mais citados nos últimos " + JANELA + " anos", "subida",
+        recentes.length ? placarDeCitacoes(recentes.slice(0, 6))
+          : vazio(semWos ? "Sem citações da WoS para o período."
+            : "Nenhum artigo publicado de " + corte + " para cá tem citações na WoS."),
+        recentes.length ? "publicados de " + corte + " a " + new Date().getFullYear() : ""),
+    ]),
+  ]));
+}
+
+/* Os mais citados saíram daqui para a tela `citados`, onde o número é o da
+   WoS. Esta ficou com as pessoas: quem assina, quanto, e com quem. */
 function slideDestaques() {
   const arts = artigos();
-  const citados = arts.slice().sort(function (a, b) { return citacoes(b) - citacoes(a); })
-    .filter(function (a) { return citacoes(a) > 0; }).slice(0, 6);
-  const barras = citados.length ? C.bars({
-    items: citados.map(function (a, i) {
-      return { label: cortar(a.title, 44), value: citacoes(a), rank: i + 1,
-        note: [a.journal, a.year_published].filter(Boolean).join(" · ") };
-    }),
-    /* uma cor só: a posição já é o ranking, e seis matizes diferentes fariam
-       a cor significar "1º, 2º, 3º" — que é justamente o que ela não deve
-       significar. Cor de série identifica entidade, nunca colocação. */
-    unit: "citações", mono: true, labelWidth: 260, labelChars: 40, rowH: 72,
-    caption: "mais citados",
-  }) : vazio("Ainda sem citações registradas.");
 
   const equipe = (D.members || []).filter(function (m) {
     return !m.is_external && (!AREA || m.research_line === AREA);
@@ -581,6 +774,11 @@ function slideDestaques() {
     }),
     unit: "artigos", mono: true, labelWidth: 200, rowH: 54, caption: "produção por pessoa",
   }) : vazio("Nenhum integrante com produção registrada.");
+
+  const porLinha = contar(arts, "research_line").slice(0, 6);
+  const reparte = porLinha.length
+    ? C.donut({ items: porLinha, unit: "artigos", caption: "por linha de pesquisa" })
+    : vazio("Sem linha de pesquisa informada nos artigos.");
 
   const noventa = arts.filter(function (a) {
     const d = diasAte(a.accepted_on || a.published_on);
@@ -597,19 +795,28 @@ function slideDestaques() {
         serie: 6, pastilha: "bom", pe: "no laboratório" }),
     ]),
     el("div", { class: "painel-duplo igual" }, [
-      quadro("Artigos mais citados", "fogo", barras),
-      quadro("Quem está produzindo", "pessoas", ranking),
+      quadro("Produção por integrante", "pessoas", ranking,
+        equipe.length + " de "
+          + fmt((D.members || []).filter(function (m) { return !m.is_external; }).length)
+          + " integrantes"),
+      quadro("Onde a produção está", "linhas", reparte, fmt(arts.length) + " artigos"),
     ]),
   ]));
 }
 
+/* A ordem é a de quem passa na frente da tela: primeiro o retrato de agora,
+   depois o que está na mão de alguém (em produção, submetido), depois o que
+   já rendeu (citações), depois o que vem (agenda e prazos), e por fim os
+   cortes por área e por pessoa. */
 const SLIDES = [
   { id: "agora", titulo: "Agora no laboratório", icone: "painel", montar: slideAgora },
-  { id: "prazos", titulo: "Prazos e pendências", icone: "prazo", montar: slidePrazos },
+  { id: "bancada", titulo: "Na bancada", icone: "experimento", montar: slideBancada },
+  { id: "citados", titulo: "Os mais citados", icone: "fogo", montar: slideCitados },
   { id: "agenda", titulo: "O que vem a seguir", icone: "calendario", montar: slideAgenda },
+  { id: "prazos", titulo: "Prazos e pendências", icone: "prazo", montar: slidePrazos },
   { id: "areas", titulo: "Produção por área", icone: "linhas", montar: slideAreas },
   { id: "andamento", titulo: "Em andamento", icone: "projeto", montar: slideAndamento },
-  { id: "destaques", titulo: "Destaques", icone: "trofeu", montar: slideDestaques },
+  { id: "destaques", titulo: "Quem está produzindo", icone: "pessoas", montar: slideDestaques },
 ];
 
 /* ?slides=agora,prazos escolhe quais telas entram no ciclo */
