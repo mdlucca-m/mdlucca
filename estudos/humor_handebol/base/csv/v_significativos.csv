@@ -1,31 +1,63 @@
 dominio,via,variavel,recorte,teste,p,p_ajustado,efeito,rotulo_efeito,n,artigo
 associação,não paramétrica,Confusão×TMD,geral,Spearman,6.898969401375554e-08,9.658557161925774e-07,,,166,ambos
+associação,não paramétrica,Confusão×TMD,entre atletas,Spearman sobre as médias individuais,0.040619954104026045,,,,27,A1
+associação,não paramétrica,Confusão×TMD,dentro do atleta,Spearman sobre os desvios da média do atleta,0.0004295337191550391,,,,166,A1
 associação,paramétrica,Confusão×TMD,geral,Pearson,2.0619370607393202e-11,3.2990992971829123e-10,,,166,A2
 associação,não paramétrica,Depressão×Confusão,geral,Spearman,7.374918309285272e-12,1.1799869294856435e-10,,,166,ambos
+associação,não paramétrica,Depressão×Confusão,entre atletas,Spearman sobre as médias individuais,0.04934385716453675,,,,27,A1
+associação,não paramétrica,Depressão×Confusão,dentro do atleta,Spearman sobre os desvios da média do atleta,0.03660857280580265,,,,166,A1
 associação,paramétrica,Depressão×Confusão,geral,Pearson,2.885069663551053e-12,4.90461842803679e-11,,,166,A2
 associação,não paramétrica,Depressão×Fadiga,geral,Spearman,8.403483138248726e-08,1.0924528079723345e-06,,,166,ambos
+associação,não paramétrica,Depressão×Fadiga,entre atletas,Spearman sobre as médias individuais,0.019820209035255845,,,,27,A1
+associação,não paramétrica,Depressão×Fadiga,dentro do atleta,Spearman sobre os desvios da média do atleta,3.060608124874892e-05,,,,166,A1
 associação,paramétrica,Depressão×Fadiga,geral,Pearson,4.870321108091273e-11,7.305481662136909e-10,,,166,A2
 associação,não paramétrica,Depressão×Raiva,geral,Spearman,1.8463313883388504e-13,3.1387633601760455e-12,,,166,ambos
+associação,não paramétrica,Depressão×Raiva,entre atletas,Spearman sobre as médias individuais,0.006140897965195736,,,,27,A1
+associação,não paramétrica,Depressão×Raiva,dentro do atleta,Spearman sobre os desvios da média do atleta,1.4993860996372899e-06,,,,166,A1
 associação,paramétrica,Depressão×Raiva,geral,Pearson,4.987729929790848e-11,7.305481662136909e-10,,,166,A2
 associação,não paramétrica,Depressão×TMD,geral,Spearman,6.602721753436304e-15,1.1884899156185347e-13,,,166,ambos
+associação,não paramétrica,Depressão×TMD,entre atletas,Spearman sobre as médias individuais,0.0010906280785903675,,,,27,A1
+associação,não paramétrica,Depressão×TMD,dentro do atleta,Spearman sobre os desvios da média do atleta,2.477089914025363e-13,,,,166,A1
 associação,paramétrica,Depressão×TMD,geral,Pearson,1.7144565993504308e-32,3.4289131987008618e-31,,,166,A2
+associação,não paramétrica,Depressão×Vigor,dentro do atleta,Spearman sobre os desvios da média do atleta,0.001883125818784986,,,,166,A1
 associação,paramétrica,Depressão×Vigor,geral,Pearson,0.000449096434030396,0.003592771472243168,,,166,A2
 associação,não paramétrica,Fadiga×TMD,geral,Spearman,3.337599840926051e-33,7.008959665944707e-32,,,166,ambos
+associação,não paramétrica,Fadiga×TMD,D1,Spearman,0.0001285757788093738,,,,27,A1
+associação,não paramétrica,Fadiga×TMD,D2,Spearman,0.0013432142072245697,,,,26,A1
+associação,não paramétrica,Fadiga×TMD,D3,Spearman,1.7569259076713064e-07,,,,26,A1
+associação,não paramétrica,Fadiga×TMD,D4,Spearman,0.0017742319285614283,,,,21,A1
+associação,não paramétrica,Fadiga×TMD,D5,Spearman,1.5255872972560032e-07,,,,23,A1
+associação,não paramétrica,Fadiga×TMD,D6,Spearman,5.859517701989966e-07,,,,22,A1
+associação,não paramétrica,Fadiga×TMD,D7,Spearman,6.482758389915504e-07,,,,21,A1
+associação,não paramétrica,Fadiga×TMD,entre atletas,Spearman sobre as médias individuais,5.146753418057849e-06,,,,27,A1
+associação,não paramétrica,Fadiga×TMD,dentro do atleta,Spearman sobre os desvios da média do atleta,4.134792224494019e-28,,,,166,A1
 associação,paramétrica,Fadiga×TMD,geral,Pearson,1.7838255384964035e-37,3.7460336308424476e-36,,,166,A2
 associação,não paramétrica,Raiva×Confusão,geral,Spearman,7.069146465790134e-07,7.0691464657901345e-06,,,166,ambos
+associação,não paramétrica,Raiva×Confusão,dentro do atleta,Spearman sobre os desvios da média do atleta,3.869629190584447e-06,,,,166,A1
 associação,paramétrica,Raiva×Confusão,geral,Pearson,9.729450640829085e-07,1.0702395704911993e-05,,,166,A2
 associação,não paramétrica,Raiva×Fadiga,geral,Spearman,1.195029329109766e-07,1.4340351949317192e-06,,,166,ambos
+associação,não paramétrica,Raiva×Fadiga,entre atletas,Spearman sobre as médias individuais,0.015490873496192254,,,,27,A1
+associação,não paramétrica,Raiva×Fadiga,dentro do atleta,Spearman sobre os desvios da média do atleta,0.0007003165884811518,,,,166,A1
 associação,paramétrica,Raiva×Fadiga,geral,Pearson,8.883628316443087e-11,1.1548716811376014e-09,,,166,A2
 associação,não paramétrica,Raiva×TMD,geral,Spearman,7.355122441293729e-17,1.3974732638458085e-15,,,166,ambos
+associação,não paramétrica,Raiva×TMD,entre atletas,Spearman sobre as médias individuais,0.0001625482642655369,,,,27,A1
+associação,não paramétrica,Raiva×TMD,dentro do atleta,Spearman sobre os desvios da média do atleta,1.4562640013884179e-15,,,,166,A1
 associação,paramétrica,Raiva×TMD,geral,Pearson,6.763574350793958e-28,1.285079126650852e-26,,,166,A2
 associação,não paramétrica,Tensão×Confusão,geral,Spearman,9.47369833607976e-09,1.421054750411964e-07,,,166,ambos
+associação,não paramétrica,Tensão×Confusão,entre atletas,Spearman sobre as médias individuais,0.022719291638652835,,,,27,A1
+associação,não paramétrica,Tensão×Confusão,dentro do atleta,Spearman sobre os desvios da média do atleta,0.0001487979484403044,,,,166,A1
 associação,paramétrica,Tensão×Confusão,geral,Pearson,0.00010502417808024039,0.001050241780802404,,,166,A2
 associação,não paramétrica,Tensão×Depressão,geral,Spearman,0.0033915363875653384,0.027132291100522708,,,166,ambos
+associação,não paramétrica,Tensão×Fadiga,dentro do atleta,Spearman sobre os desvios da média do atleta,0.016531851395767332,,,,166,A1
 associação,não paramétrica,Tensão×Vigor,geral,Spearman,0.002258819195143805,0.020329372756294248,,,166,ambos
+associação,não paramétrica,Tensão×Vigor,dentro do atleta,Spearman sobre os desvios da média do atleta,1.5409615353701884e-05,,,,166,A1
 associação,paramétrica,Tensão×Vigor,geral,Pearson,0.00034648753037057724,0.003118387773335195,,,166,A2
 associação,não paramétrica,Vigor×Fadiga,geral,Spearman,5.294486207667032e-07,5.823934828433736e-06,,,166,ambos
+associação,não paramétrica,Vigor×Fadiga,dentro do atleta,Spearman sobre os desvios da média do atleta,3.625710221136659e-10,,,,166,A1
 associação,paramétrica,Vigor×Fadiga,geral,Pearson,7.389019916549765e-08,8.866823899859718e-07,,,166,A2
 associação,não paramétrica,Vigor×TMD,geral,Spearman,1.3975152096965765e-20,2.795030419393153e-19,,,166,ambos
+associação,não paramétrica,Vigor×TMD,entre atletas,Spearman sobre as médias individuais,0.0003087444551503109,,,,27,A1
+associação,não paramétrica,Vigor×TMD,dentro do atleta,Spearman sobre os desvios da média do atleta,8.382590493960188e-19,,,,166,A1
 associação,paramétrica,Vigor×TMD,geral,Pearson,1.3569836303042391e-15,2.4425705345476304e-14,,,166,A2
 categórica,não paramétrica,Faixa de risco,migração pré→pós — TODOS,McNemar,0.036713856362704134,,13.0,entram − saem,119,ambos
 categórica,não paramétrica,Superfície,estabilidade D1..D7,Q de Cochran,0.04947084056008604,,,,19,ambos

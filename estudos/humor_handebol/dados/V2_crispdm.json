@@ -48,7 +48,7 @@
    "feito": [
     "A regra do dia fisiológico (virada às 4h) resolveu os registros de madrugada sem descartá-los.",
     "Registros órfãos foram reconciliados por dicionário de variantes do nome e, quando insuficiente, pelo carimbo de tempo curado.",
-    "A base única em SQLite tem três camadas (canônica, de resultados e de acervo), com 1309 pares pré-pós e 305 resultados em formato longo.",
+    "A base única em SQLite tem três camadas (canônica, de resultados e de acervo), com 1309 pares pré-pós e 355 resultados em formato longo.",
     "Anonimização A01–A27 dentro da rotina de importação: nenhum nome sai do script.",
     "Triagem de discrepantes por ordem declarada: domínio da escala primeiro, depois cerca de Tukey, escore z e escore z modificado. Nenhum valor fora do domínio em 456 registros.",
     "Em subescala com efeito de piso o intervalo interquartil é nulo e a cerca de Tukey rotula 19,5% da amostra: o critério é inaplicável, e a triagem passa a ser intraindividual.",
@@ -156,11 +156,11 @@
   "registro": 456,
   "atleta_dia": 166,
   "pre_pos": 1309,
-  "resultado": 305,
+  "resultado": 355,
   "aba": 218,
   "celula": 282776,
   "referencia": 63,
   "auditoria": 12,
-  "significativo": 130
+  "significativo": 162
  }
 }

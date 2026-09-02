@@ -291,16 +291,66 @@ id,dominio,via,unidade,variavel,recorte,teste,estatistica,rotulo_estatistica,gl,
 290,associação,paramétrica,U-AD,Fadiga×TMD,geral,Pearson,0.795244164680446,r,,1.7838255384964035e-37,3.7460336308424476e-36,Holm,,,,,166,1,A2
 291,associação,não paramétrica,U-AD,Confusão×TMD,geral,Spearman,0.4037305758601927,ρ,,6.898969401375554e-08,9.658557161925774e-07,Holm,,,,,166,1,ambos
 292,associação,paramétrica,U-AD,Confusão×TMD,geral,Pearson,0.49007461383490475,r,,2.0619370607393202e-11,3.2990992971829123e-10,Holm,,,,,166,1,A2
-293,categórica,não paramétrica,U-AD,Iceberg,estabilidade D1..D7,Q de Cochran,4.92,Q,6,0.5541140049838518,,,,,,,19,0,ambos
-294,categórica,não paramétrica,U-AD,Superfície,estabilidade D1..D7,Q de Cochran,12.620689655172415,Q,6,0.04947084056008604,,,,,,,19,1,ambos
-295,categórica,não paramétrica,U-AD,Submerso,estabilidade D1..D7,Q de Cochran,9.11111111111111,Q,6,0.16742501642718885,,,,,,,19,0,ambos
-296,categórica,não paramétrica,U-AD,Barbatana de tubarão,estabilidade D1..D7,Q de Cochran,8.076923076923077,Q,6,0.2325217373128842,,,,,,,19,0,ambos
-297,categórica,não paramétrica,U-AD,Iceberg invertido,estabilidade D1..D7,Q de Cochran,7.6,Q,6,0.26889667771111053,,,,,,,19,0,ambos
-298,categórica,não paramétrica,U-AD,Everest invertido,estabilidade D1..D7,Q de Cochran,6.0,Q,6,0.42319008112684364,,,,,,,19,0,ambos
-299,categórica,não paramétrica,U-AD,Faixa de risco,estabilidade D1..D7,Q de Cochran,10.392857142857142,Q,6,0.1090533145191197,,,,,,,19,0,ambos
-300,categórica,não paramétrica,U-AD,Faixa de risco,migração pré→pós — TODOS,McNemar,4.363636363636363,χ²,1,0.036713856362704134,,,13.0,entram − saem,,,119,1,ambos
-301,categórica,não paramétrica,U-AD,Faixa de risco,migração pré→pós — HIIT,McNemar,4.3478260869565215,χ²,1,0.03705621856411898,0.11116865569235695,Holm,11.0,entram − saem,,,59,0,ambos
-302,categórica,não paramétrica,U-AD,Faixa de risco,migração pré→pós — Amistoso,McNemar,0.0,χ²,1,1.0,1.0,Holm,-1.0,entram − saem,,,40,0,ambos
-303,categórica,não paramétrica,U-AD,Faixa de risco,migração pré→pós — Técnico/força,McNemar,1.3333333333333333,χ²,1,0.24821307898992026,0.4964261579798405,Holm,3.0,entram − saem,,,20,0,ambos
-304,categórica,não paramétrica,U-AD,Perfil,perfil × estímulo,qui-quadrado de contingência,6.383565132580666,χ²,10,0.7820744680911498,,,,,,,166,0,ambos
-305,categórica,não paramétrica,U-AD,Faixa,faixa × estímulo,qui-quadrado de contingência,3.0296416647934232,χ²,4,0.5528772512050348,,,,,,,166,0,ambos
+293,associação,não paramétrica,U-AD,Fadiga×TMD,D1,Spearman,0.6707816298303333,ρ,,0.0001285757788093738,,,,,,,27,1,A1
+294,associação,não paramétrica,U-AD,Fadiga×TMD,D2,Spearman,0.5950588996760297,ρ,,0.0013432142072245697,,,,,,,26,1,A1
+295,associação,não paramétrica,U-AD,Fadiga×TMD,D3,Spearman,0.8282580840181092,ρ,,1.7569259076713064e-07,,,,,,,26,1,A1
+296,associação,não paramétrica,U-AD,Fadiga×TMD,D4,Spearman,0.640145308763012,ρ,,0.0017742319285614283,,,,,,,21,1,A1
+297,associação,não paramétrica,U-AD,Fadiga×TMD,D5,Spearman,0.8591969325675961,ρ,,1.5255872972560032e-07,,,,,,,23,1,A1
+298,associação,não paramétrica,U-AD,Fadiga×TMD,D6,Spearman,0.8490373750767405,ρ,,5.859517701989966e-07,,,,,,,22,1,A1
+299,associação,não paramétrica,U-AD,Fadiga×TMD,D7,Spearman,0.8582611585824932,ρ,,6.482758389915504e-07,,,,,,,21,1,A1
+300,tendência,não paramétrica,U-AD,Fadiga×TMD,acoplamento D1→D7,Spearman sobre os sete coeficientes,0.7142857142857144,ρ,,0.07134356146753766,,,,,,,7,0,A1
+301,associação,não paramétrica,atleta,Tensão×Depressão,entre atletas,Spearman sobre as médias individuais,0.24316929356464426,ρ,,0.22163063647837494,,,,,,,27,0,A1
+302,associação,não paramétrica,U-AD,Tensão×Depressão,dentro do atleta,Spearman sobre os desvios da média do atleta,-0.07803472094948995,ρ,,0.3176326039401934,,,,,,,166,0,A1
+303,associação,não paramétrica,atleta,Tensão×Raiva,entre atletas,Spearman sobre as médias individuais,0.2389940509282535,ρ,,0.22991386059817082,,,,,,,27,0,A1
+304,associação,não paramétrica,U-AD,Tensão×Raiva,dentro do atleta,Spearman sobre os desvios da média do atleta,0.03011056586369427,ρ,,0.7001608199905333,,,,,,,166,0,A1
+305,associação,não paramétrica,atleta,Tensão×Vigor,entre atletas,Spearman sobre as médias individuais,0.20721842536018031,ρ,,0.2996894086208839,,,,,,,27,0,A1
+306,associação,não paramétrica,U-AD,Tensão×Vigor,dentro do atleta,Spearman sobre os desvios da média do atleta,0.32862741382833116,ρ,,1.5409615353701884e-05,,,,,,,166,1,A1
+307,associação,não paramétrica,atleta,Tensão×Fadiga,entre atletas,Spearman sobre as médias individuais,-0.12769548721457608,ρ,,0.5256013122186032,,,,,,,27,0,A1
+308,associação,não paramétrica,U-AD,Tensão×Fadiga,dentro do atleta,Spearman sobre os desvios da média do atleta,-0.1858208282996907,ρ,,0.016531851395767332,,,,,,,166,1,A1
+309,associação,não paramétrica,atleta,Tensão×Confusão,entre atletas,Spearman sobre as médias individuais,0.43680745443874097,ρ,,0.022719291638652835,,,,,,,27,1,A1
+310,associação,não paramétrica,U-AD,Tensão×Confusão,dentro do atleta,Spearman sobre os desvios da média do atleta,0.2902298097738824,ρ,,0.0001487979484403044,,,,,,,166,1,A1
+311,associação,não paramétrica,atleta,Tensão×TMD,entre atletas,Spearman sobre as médias individuais,0.21042992863144508,ρ,,0.29209328328155926,,,,,,,27,0,A1
+312,associação,não paramétrica,U-AD,Tensão×TMD,dentro do atleta,Spearman sobre os desvios da média do atleta,0.015215637254235128,ρ,,0.8457298317838131,,,,,,,166,0,A1
+313,associação,não paramétrica,atleta,Depressão×Raiva,entre atletas,Spearman sobre as médias individuais,0.5136092553059506,ρ,,0.006140897965195736,,,,,,,27,1,A1
+314,associação,não paramétrica,U-AD,Depressão×Raiva,dentro do atleta,Spearman sobre os desvios da média do atleta,0.3633340430004306,ρ,,1.4993860996372899e-06,,,,,,,166,1,A1
+315,associação,não paramétrica,atleta,Depressão×Vigor,entre atletas,Spearman sobre as médias individuais,-0.12203063715967692,ρ,,0.5442766237195078,,,,,,,27,0,A1
+316,associação,não paramétrica,U-AD,Depressão×Vigor,dentro do atleta,Spearman sobre os desvios da média do atleta,-0.2395215809408341,ρ,,0.001883125818784986,,,,,,,166,1,A1
+317,associação,não paramétrica,atleta,Depressão×Fadiga,entre atletas,Spearman sobre as médias individuais,0.44565711334570457,ρ,,0.019820209035255845,,,,,,,27,1,A1
+318,associação,não paramétrica,U-AD,Depressão×Fadiga,dentro do atleta,Spearman sobre os desvios da média do atleta,0.31755432964916924,ρ,,3.060608124874892e-05,,,,,,,166,1,A1
+319,associação,não paramétrica,atleta,Depressão×Confusão,entre atletas,Spearman sobre as médias individuais,0.38187537969093754,ρ,,0.04934385716453675,,,,,,,27,1,A1
+320,associação,não paramétrica,U-AD,Depressão×Confusão,dentro do atleta,Spearman sobre os desvios da média do atleta,0.1623722434368183,ρ,,0.03660857280580265,,,,,,,166,1,A1
+321,associação,não paramétrica,atleta,Depressão×TMD,entre atletas,Spearman sobre as médias individuais,0.5939028748198346,ρ,,0.0010906280785903675,,,,,,,27,1,A1
+322,associação,não paramétrica,U-AD,Depressão×TMD,dentro do atleta,Spearman sobre os desvios da média do atleta,0.5286060832073797,ρ,,2.477089914025363e-13,,,,,,,166,1,A1
+323,associação,não paramétrica,atleta,Raiva×Vigor,entre atletas,Spearman sobre as médias individuais,-0.30269749905670934,ρ,,0.12485818989073805,,,,,,,27,0,A1
+324,associação,não paramétrica,U-AD,Raiva×Vigor,dentro do atleta,Spearman sobre os desvios da média do atleta,-0.06034132771426913,ρ,,0.4399527195825171,,,,,,,166,0,A1
+325,associação,não paramétrica,atleta,Raiva×Fadiga,entre atletas,Spearman sobre as médias individuais,0.4610928502837527,ρ,,0.015490873496192254,,,,,,,27,1,A1
+326,associação,não paramétrica,U-AD,Raiva×Fadiga,dentro do atleta,Spearman sobre os desvios da média do atleta,0.2604845528906978,ρ,,0.0007003165884811518,,,,,,,166,1,A1
+327,associação,não paramétrica,atleta,Raiva×Confusão,entre atletas,Spearman sobre as médias individuais,0.3540692146652961,ρ,,0.06999357423194284,,,,,,,27,0,A1
+328,associação,não paramétrica,U-AD,Raiva×Confusão,dentro do atleta,Spearman sobre os desvios da média do atleta,0.3497058237013033,ρ,,3.869629190584447e-06,,,,,,,166,1,A1
+329,associação,não paramétrica,atleta,Raiva×TMD,entre atletas,Spearman sobre as médias individuais,0.6632996816374249,ρ,,0.0001625482642655369,,,,,,,27,1,A1
+330,associação,não paramétrica,U-AD,Raiva×TMD,dentro do atleta,Spearman sobre os desvios da média do atleta,0.5679831342866136,ρ,,1.4562640013884179e-15,,,,,,,166,1,A1
+331,associação,não paramétrica,atleta,Vigor×Fadiga,entre atletas,Spearman sobre as médias individuais,-0.3622480146609652,ρ,,0.06333050971054487,,,,,,,27,0,A1
+332,associação,não paramétrica,U-AD,Vigor×Fadiga,dentro do atleta,Spearman sobre os desvios da média do atleta,-0.46224540505165707,ρ,,3.625710221136659e-10,,,,,,,166,1,A1
+333,associação,não paramétrica,atleta,Vigor×Confusão,entre atletas,Spearman sobre as médias individuais,-0.12841525242933968,ρ,,0.5232506987405433,,,,,,,27,0,A1
+334,associação,não paramétrica,U-AD,Vigor×Confusão,dentro do atleta,Spearman sobre os desvios da média do atleta,0.15027369862969497,ρ,,0.053297905537476646,,,,,,,166,0,A1
+335,associação,não paramétrica,atleta,Vigor×TMD,entre atletas,Spearman sobre as médias individuais,-0.6417226634086743,ρ,,0.0003087444551503109,,,,,,,27,1,A1
+336,associação,não paramétrica,U-AD,Vigor×TMD,dentro do atleta,Spearman sobre os desvios da média do atleta,-0.6171752064748174,ρ,,8.382590493960188e-19,,,,,,,166,1,A1
+337,associação,não paramétrica,atleta,Fadiga×Confusão,entre atletas,Spearman sobre as médias individuais,0.2643110050001944,ρ,,0.1827781024162373,,,,,,,27,0,A1
+338,associação,não paramétrica,U-AD,Fadiga×Confusão,dentro do atleta,Spearman sobre os desvios da média do atleta,-0.05682023365660535,ρ,,0.4671442390614586,,,,,,,166,0,A1
+339,associação,não paramétrica,atleta,Fadiga×TMD,entre atletas,Spearman sobre as médias individuais,0.7558032987171656,ρ,,5.146753418057849e-06,,,,,,,27,1,A1
+340,associação,não paramétrica,U-AD,Fadiga×TMD,dentro do atleta,Spearman sobre os desvios da média do atleta,0.7227661162818411,ρ,,4.134792224494019e-28,,,,,,,166,1,A1
+341,associação,não paramétrica,atleta,Confusão×TMD,entre atletas,Spearman sobre as médias individuais,0.39646650750029155,ρ,,0.040619954104026045,,,,,,,27,1,A1
+342,associação,não paramétrica,U-AD,Confusão×TMD,dentro do atleta,Spearman sobre os desvios da média do atleta,0.27024023314907036,ρ,,0.0004295337191550391,,,,,,,166,1,A1
+343,categórica,não paramétrica,U-AD,Iceberg,estabilidade D1..D7,Q de Cochran,4.92,Q,6,0.5541140049838518,,,,,,,19,0,ambos
+344,categórica,não paramétrica,U-AD,Superfície,estabilidade D1..D7,Q de Cochran,12.620689655172415,Q,6,0.04947084056008604,,,,,,,19,1,ambos
+345,categórica,não paramétrica,U-AD,Submerso,estabilidade D1..D7,Q de Cochran,9.11111111111111,Q,6,0.16742501642718885,,,,,,,19,0,ambos
+346,categórica,não paramétrica,U-AD,Barbatana de tubarão,estabilidade D1..D7,Q de Cochran,8.076923076923077,Q,6,0.2325217373128842,,,,,,,19,0,ambos
+347,categórica,não paramétrica,U-AD,Iceberg invertido,estabilidade D1..D7,Q de Cochran,7.6,Q,6,0.26889667771111053,,,,,,,19,0,ambos
+348,categórica,não paramétrica,U-AD,Everest invertido,estabilidade D1..D7,Q de Cochran,6.0,Q,6,0.42319008112684364,,,,,,,19,0,ambos
+349,categórica,não paramétrica,U-AD,Faixa de risco,estabilidade D1..D7,Q de Cochran,10.392857142857142,Q,6,0.1090533145191197,,,,,,,19,0,ambos
+350,categórica,não paramétrica,U-AD,Faixa de risco,migração pré→pós — TODOS,McNemar,4.363636363636363,χ²,1,0.036713856362704134,,,13.0,entram − saem,,,119,1,ambos
+351,categórica,não paramétrica,U-AD,Faixa de risco,migração pré→pós — HIIT,McNemar,4.3478260869565215,χ²,1,0.03705621856411898,0.11116865569235695,Holm,11.0,entram − saem,,,59,0,ambos
+352,categórica,não paramétrica,U-AD,Faixa de risco,migração pré→pós — Amistoso,McNemar,0.0,χ²,1,1.0,1.0,Holm,-1.0,entram − saem,,,40,0,ambos
+353,categórica,não paramétrica,U-AD,Faixa de risco,migração pré→pós — Técnico/força,McNemar,1.3333333333333333,χ²,1,0.24821307898992026,0.4964261579798405,Holm,3.0,entram − saem,,,20,0,ambos
+354,categórica,não paramétrica,U-AD,Perfil,perfil × estímulo,qui-quadrado de contingência,6.383565132580666,χ²,10,0.7820744680911498,,,,,,,166,0,ambos
+355,categórica,não paramétrica,U-AD,Faixa,faixa × estímulo,qui-quadrado de contingência,3.0296416647934232,χ²,4,0.5528772512050348,,,,,,,166,0,ambos

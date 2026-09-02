@@ -4,10 +4,10 @@ Base única: `base/humor_handebol.sqlite`. Os CSV em `base/csv/` são exportaç�
 
 | Objeto | Linhas | Colunas | O que é |
 |---|---:|---:|---|
-| `v_confronto_vias` | 29 | 5 | Vista: a mesma hipótese pelas três vias de análise. |
+| `v_confronto_vias` | 30 | 5 | Vista: a mesma hipótese pelas três vias de análise. |
 | `v_painel_dia` | 7 | 10 | Vista: o painel dia a dia. |
 | `v_qualidade` | 20 | 9 | — |
-| `v_significativos` | 130 | 11 | Vista: apenas os resultados significativos. |
+| `v_significativos` | 162 | 11 | Vista: apenas os resultados significativos. |
 | `aba` | 218 | 7 | Cada aba das planilhas, categorizada. |
 | `atleta` | 27 | 7 | Um registro por atleta, com assiduidade. |
 | `atleta_dia` | 166 | 22 | A unidade de análise adotada: um valor por atleta e por dia, com escore T, perfil e faixa. |
@@ -29,7 +29,7 @@ Base única: `base/humor_handebol.sqlite`. Os CSV em `base/csv/` são exportaç�
 | `reconferencia` | 65 | 6 | — |
 | `referencia` | 63 | 13 | Referências com DOI e ligação, quando localizados. |
 | `registro` | 456 | 19 | Cada formulário respondido, com momento (pré, pós, único) e período do dia. |
-| `resultado` | 305 | 20 | Todo resultado estatístico do estudo em formato longo e consultável. |
+| `resultado` | 355 | 20 | Todo resultado estatístico do estudo em formato longo e consultável. |
 | `serie_diaria` | 77 | 9 | Série de cada variável com erro-padrão, suavização, derivadas, piso de ruído e choque. |
 | `serie_perfil` | 63 | 8 | O mesmo para a prevalência de cada perfil e faixa. |
 | `unidade_analise` | 4 | 6 | As quatro unidades que circulavam nos manuscritos e o viés de cada uma. |
