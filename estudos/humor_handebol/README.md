@@ -1,6 +1,6 @@
 # Perfis de humor no handebol de elite — microciclo terminal de pré-temporada
 
-Pipeline reproduzível de quatro documentos sobre o comportamento das dimensões do BRUMS na
+Pipeline reproduzível de sete documentos sobre o comportamento das dimensões do BRUMS na
 última semana de pré-temporada de vinte e sete atletas de handebol de elite, entre 21 e 27 de
 abril de 2024.
 
@@ -10,6 +10,9 @@ abril de 2024.
 | Artigo 2, inferencial | `ARTIGO_2_INFERENCIAL_HUMOR_HANDEBOL.docx` |
 | Anexo metodológico, Estudo 3 e CRISP-DM | `ANEXO_MODELAGEM_CRISP_DM.docx` |
 | Relatório de auditoria e otimização | `AUDITORIA_QUALIDADE_E_OTIMIZACAO.docx` |
+| Síntese executiva, quatro a seis páginas | `SINTESE_HUMOR_HANDEBOL.docx` |
+| Artigo curto, seis páginas, só os perfis | `ARTIGO_CURTO_PERFIS_HUMOR_HANDEBOL.docx` |
+| Artigo descritivo e não paramétrico, oito páginas | `ARTIGO_DESCRITIVO_EXPLORATORIO_PERFIS_HUMOR_HANDEBOL.docx` |
 
 ## O que há aqui
 
