@@ -409,3 +409,46 @@ class TestOrientadorSemLista(unittest.TestCase):
         corpo = corpo[:corpo.index('} else if (f.type === "checkbox")')]
         self.assertIn("!options.length && f.vazio", corpo)
         self.assertIn("input.disabled = true", corpo)
+
+
+class TestOQueOServicoPreparaSozinho(unittest.TestCase):
+    """A ficha de quem chega pelo link não pode depender de um botão.
+
+    Quem manda o convite e sai da sala não está lá para apertar nada, e
+    quem chega encontra o seletor com as opções velhas sem saber que
+    faltam sete -- ou o campo "Orientador" sem uma única opção.
+    """
+
+    def serve(self):
+        fonte = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
+        corpo = fonte[fonte.index("def serve("):]
+        fim = corpo.find("\ndef ", 10)          # `serve` é a última do arquivo
+        return corpo if fim < 0 else corpo[:fim]
+
+    def test_a_subida_instala_as_linhas_e_os_orientadores(self):
+        corpo = self.serve()
+        self.assertIn("_linhas.instalar(db)", corpo)
+        self.assertIn("garantir_professores(db, criar=False)", corpo)
+
+    def test_a_subida_nao_inventa_gente_num_banco_novo(self):
+        """Ajustar quem já está cadastrado é conserto; criar é outra coisa.
+
+        Num laboratório recém-instalado, subir o serviço não pode fazer
+        aparecer dois integrantes que ninguém cadastrou.
+        """
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        db = Database(Path(tmp.name) / "novo.sqlite")
+        self.addCleanup(db.close)
+        db.migrate()
+        ingest_autor.garantir_professores(db, criar=False)
+        self.assertEqual(db.scalar("SELECT COUNT(*) FROM members"), 0)
+        ingest_autor.garantir_professores(db)          # pelo botão, cria
+        self.assertEqual(db.scalar("SELECT COUNT(*) FROM members"), 2)
+
+    def test_falhar_a_preparacao_nao_derruba_o_servico(self):
+        # vocabulário é conveniência; o laboratório sem ele ainda abre
+        corpo = self.serve()
+        trecho = corpo[corpo.index("_linhas.instalar(db)"):]
+        self.assertIn("except Exception", trecho[:600])
+        self.assertNotIn("raise", trecho[:600])

@@ -200,7 +200,7 @@ def trazer(db: Database, nome: str, afiliacao: str | None = None,
     return {"quem": nome, "resumo": resumo_, "gravado": gravado}
 
 
-def garantir_professores(db: Database) -> dict[str, Any]:
+def garantir_professores(db: Database, criar: bool = True) -> dict[str, Any]:
     """Poe os dois professores no banco, com vinculo, nome inteiro e grafias.
 
     Existe para uma coisa concreta: a ficha de cadastro tem um campo
@@ -214,7 +214,11 @@ def garantir_professores(db: Database) -> dict[str, Any]:
     """
     saida = []
     for pessoa in PESQUISADORES:
-        membro = db.member_id(pessoa["nome"])
+        # `criar=False` na subida do servico: ajustar quem ja esta cadastrado
+        # e conserto; INVENTAR duas pessoas num banco recem-instalado seria
+        # outra coisa -- um laboratorio vazio ganharia dois integrantes que
+        # ninguem cadastrou. Pelo botao, criar e o que se quer.
+        membro = db.member_id(pessoa["nome"], create=criar)
         if not membro:
             continue
         atual = db.dicts("SELECT full_name, role FROM members WHERE id = ?", (membro,))[0]

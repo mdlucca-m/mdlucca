@@ -2068,6 +2068,28 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
     Handler.report_path = Path(report_path)
     db = Database(db_path)
     db.migrate()
+    # O vocabulario do laboratorio entra na subida, e nao num botao. Sao as
+    # sete linhas de pesquisa declaradas pelo LAPE, e elas nao sao dado de
+    # ninguem: sao a lista de opcoes que a ficha de cadastro precisa ter
+    # PRONTA quando a primeira pessoa chegar pelo link do convite. Depender
+    # de alguem lembrar de apertar um botao antes de sair da sala e depender
+    # de nao esquecer -- e quem chega encontra um seletor com tres opcoes
+    # velhas, sem saber que faltam sete.
+    #
+    # E seguro repetir: procura por codigo e por nome, nao duplica, nao
+    # renomeia o que foi ajustado a mao e nao apaga linha nenhuma.
+    try:
+        from . import ingest_autor as _autor
+        from . import linhas as _linhas
+
+        _linhas.instalar(db)
+        # O mesmo argumento vale para o campo "Orientador", que sem vinculo
+        # cadastrado abre sem uma unica opcao. `criar=False`: aqui so se
+        # ajusta quem ja esta no banco -- inventar duas pessoas num banco
+        # recem-instalado seria outra coisa.
+        _autor.garantir_professores(db, criar=False)
+    except Exception as erro:  # noqa: BLE001 -- vocabulario nao derruba o servico
+        print(f"  ! nao consegui preparar linhas e orientadores: {erro}")
     try:
         created = auth.bootstrap_admin(db)
     except auth.AuthError as exc:
