@@ -54,6 +54,9 @@ def _tab(rows, cols=None, larg=54) -> str:
     out.append(f"  ({len(rows)} linha{'s' if len(rows) != 1 else ''})")
     return "\n".join(out)
 
+NOME7 = {"tensao": "Tensão", "depressao": "Depressão", "raiva": "Raiva", "vigor": "Vigor",
+         "fadiga": "Fadiga", "confusao": "Confusão", "pth": "TMD"}
+
 FERRAMENTAS = [
  {"name": "ana_orientar", "description":
   "Mapa de entrada: o que existe na base, quais unidades de análise, e qual ferramenta usar para cada pergunta. "
@@ -103,6 +106,29 @@ FERRAMENTAS = [
   "inputSchema": {"type": "object", "properties": {
      "parte": {"type": "string", "enum": ["modelo", "solucao", "precos", "fronteira", "sensibilidade", "tudo"],
                "default": "tudo"}}}},
+ {"name": "ana_cruzamento", "description":
+  "Anatomia dos cruzamentos entre curvas por limites e derivadas: a série da diferença, o limiar combinado, a "
+  "abscissa do cruzamento por interpolação, a velocidade e a aceleração na travessia, e a zona de indecisão, "
+  "isto é, o intervalo em que a diferença permanece indistinguível de zero. Também a resposta em frequência do "
+  "filtro binomial e o resíduo de cada série em pisos de ruído.",
+  "inputSchema": {"type": "object", "properties": {
+     "par": {"type": "string", "enum": ["Vigor×Fadiga", "Vigor×TMD", "Fadiga×TMD", "todos"], "default": "todos"},
+     "parte": {"type": "string", "enum": ["filtro", "cruzamentos", "tudo"], "default": "tudo"}}}},
+ {"name": "ana_decomposicao", "description":
+  "As quatro decomposições da variação: (a) componentes de variância de um modelo de efeitos aleatórios cruzados, "
+  "atleta e dia; (b) variância entre as médias diárias separada em verdadeira e erro de amostragem, cuja razão é a "
+  "fidedignidade da série; (c) deslocamento total repartido em choque e deriva; (d) identidade do filtro, "
+  "Var(observada) = Var(suavizada) + Var(resíduo) + 2·cov.",
+  "inputSchema": {"type": "object", "properties": {
+     "parte": {"type": "string", "enum": ["componentes", "serie", "deslocamento", "filtro", "tudo"],
+               "default": "tudo"},
+     "variavel": {"type": "string"}}}},
+ {"name": "ana_protocolo", "description":
+  "Auditoria do protocolo de coleta pelo carimbo de tempo: janelas de resposta por dia, excedentes, atleta-dia sem "
+  "registro de manhã, e o impacto da regra de composição do valor diário sobre as sete variáveis. Explica por que "
+  "o basal de D1 é de coleta única.",
+  "inputSchema": {"type": "object", "properties": {
+     "parte": {"type": "string", "enum": ["janelas", "regra", "excedentes", "impacto", "tudo"], "default": "tudo"}}}},
  {"name": "ana_referencia", "description":
   "Referências do estudo com DOI verificado, PubMed e via de acesso aberto quando existe. Filtre por termo.",
   "inputSchema": {"type": "object", "properties": {
@@ -168,6 +194,13 @@ class Servidor:
          + _tab(un) + "\n\n"
          "POR ONDE ENTRAR:\n"
          "  «como o vigor se comportou na semana»        → ana_serie\n"
+         "  «onde vigor e fadiga se cruzam?»             → ana_cruzamento\n"
+         "  «esse cruzamento é nítido ou lento?»         → ana_cruzamento(par=\'Vigor×Fadiga\')\n"
+         "  «o que a suavização remove?»                 → ana_cruzamento(parte=\'filtro\')\n"
+         "  «de onde vem a variância?»                   → ana_decomposicao\n"
+         "  «a série diária é confiável?»                → ana_decomposicao(parte=\'serie\')\n"
+         "  «foi choque ou deriva?»                      → ana_decomposicao(parte=\'deslocamento\')\n"
+         "  «por que o basal tem coleta única?»          → ana_protocolo(parte=\'regra\')\n"
          "  «isso deu significativo?»                    → ana_resultado(significativo=true)\n"
          "  «a conclusão muda conforme o teste?»         → ana_confronto\n"
          "  «quantos atletas em risco no dia 5?»         → ana_perfil\n"
@@ -184,7 +217,14 @@ class Servidor:
          "  «o que já decidimos sobre isso?»             → ana_recordar\n\n"
          "DUAS AUDITORIAS, DUAS PERGUNTAS DIFERENTES:\n"
          "  procedência (D1–D6): de onde vem este número?   → ana_auditoria\n"
-         "  qualidade   (Q1–Q6): este número está correto?  → ana_qualidade(parte='achados')\n")
+         "  qualidade   (Q1–Q6): este número está correto?  → ana_qualidade(parte='achados')\n"
+         "  protocolo:           quando o dado foi colhido? → ana_protocolo\n\n"
+         "COMO ESTE ESTUDO LÊ UMA SÉRIE DE SETE PONTOS:\n"
+         "  A curva vem do filtro binomial 1-2-1; o piso de ruído é a média dos sete erros padrão diários;\n"
+         "  derivadas e limiares saem em unidades desse piso. Um cruzamento tem abscissa, velocidade,\n"
+         "  aceleração e zona de indecisão. Inversão estabelecida não implica data determinada.\n"
+         "  A variação se decompõe de quatro maneiras, e a parcela entre dias é a menor das três\n"
+         "  em todas as sete variáveis. Detalhe em ana_cruzamento e ana_decomposicao.\n")
 
     def _resultado(self, a) -> str:
         onde, arg = ["1=1"], []
@@ -428,6 +468,151 @@ class Servidor:
             B.append("\n".join(L))
         return "\n\n" + ("\n\n" + "─"*72 + "\n\n").join(B)
 
+    def _cruzamento(self, a) -> str:
+        C = self._json("V2_cruz.json"); parte = a.get("parte", "tudo"); par = a.get("par", "todos"); B = []
+        if parte in ("filtro", "tudo"):
+            L = ["FILTRO BINOMIAL 1-2-1  ·  núcleo [¼, ½, ¼] nos pontos internos",
+                 "  Ganho H(ω) = cos²(ω/2): vale 1 em ω = 0 e anula-se em ω = π, a componente que troca de sinal",
+                 "  a cada dia. Os extremos conservam o valor observado, porque o deslocamento total é medido",
+                 "  entre eles. A média móvel simples não se anula em Nyquist e ainda inverte parte da banda alta.",
+                 "  Meia potência em ω = π/2 rad por dia, ou seja, período de quatro dias: oscilação mais lenta",
+                 "  que isso passa quase inteira; mais rápida, atenua.",
+                 "", "  série    piso de ruído   maior resíduo (em pisos)   resíduo médio absoluto"]
+            for v, f in C["FILTRO"].items():
+                L.append(f"  {v:<8} {_s(f['piso']):>13} {_s(f['max_residuo_em_pisos'], 2):>25} "
+                         f"{_s(f['media_abs_residuo'], 2):>22}")
+            L.append("")
+            L.append("  Nenhum resíduo excede um piso e meio: o que a suavização remove cabe dentro do erro de")
+            L.append("  amostragem, e não corresponde a movimento do elenco.")
+            B.append("\n".join(L))
+        if parte in ("cruzamentos", "tudo"):
+            alvos = list(C["CRUZ"]) if par == "todos" else [par]
+            faltam = [k for k in alvos if k not in C["CRUZ"]]
+            if faltam:
+                return f"par «{par}» não existe. Disponíveis: {', '.join(C['CRUZ'])}"
+            L = ["CRUZAMENTOS POR LIMITES E DERIVADAS",
+                 "  Um cruzamento é um zero da série da diferença. A abscissa sai por interpolação linear entre",
+                 "  os dois dias que trocam de sinal; a velocidade é a primeira derivada ali; a aceleração é a",
+                 "  segunda. O limiar combina os pisos de ruído das duas séries, √(piso²ᴬ + piso²ᴮ).", ""]
+            lin = []
+            for k in alvos:
+                c = C["CRUZ"][k]
+                for it in c["cruzamentos"]:
+                    lin.append({"par": k, "limiar": c["limiar"], "cruza em": f"D{_s(it['abscissa'], 2)}",
+                                "velocidade": it["velocidade_em_limiares"],
+                                "aceleração": it["aceleracao_em_limiares"],
+                                "zona de indecisão": f"D{_s(it['zona_ini'], 2)} a D{_s(it['zona_fim'], 2)}",
+                                "largura": it["zona_largura"], "travessia": "nítida" if it["nitido"] else "lenta",
+                                "veredito": "inversão estabelecida" if c["estabelecida"] else "divergência"})
+            L.append(_tab(lin))
+            L += ["", "  Velocidade e aceleração vêm em limiares por dia e por dia ao quadrado.",
+                  "  A travessia é nítida quando a diferença atravessa o zero a pelo menos um limiar por dia.",
+                  "  Inversão estabelecida e data determinada são coisas distintas: a primeira exige separação",
+                  "  maior que o limiar em D1 e em D7; a segunda exige zona de indecisão estreita."]
+            for k in alvos:
+                c = C["CRUZ"][k]
+                L += ["", f"  {k}  ·  série da diferença ({c['a']} menos {c['b']}), limiar ±{_s(c['limiar'])}",
+                      "    dia           " + "".join(f"D{i+1:<8}" for i in range(7)),
+                      "    diferença     " + "".join(f"{_s(x, 2):<9}" for x in c["dif"]),
+                      "    Δ (limiares)  " + "".join(f"{_s(x, 2):<9}" for x in c["d1_em_limiares"]),
+                      "    Δ² (limiares) " + "".join(f"{_s(x, 2):<9}" for x in c["d2_em_limiares"])]
+            B.append("\n".join(L))
+        return "\n\n" + ("\n\n" + "─" * 72 + "\n\n").join(B)
+
+    def _decomposicao(self, a) -> str:
+        D = self._json("V2_decomp.json"); parte = a.get("parte", "tudo"); B = []
+        V7 = [a["variavel"]] if a.get("variavel") else D["V7"]
+        fora = [v for v in V7 if v not in D["V7"]]
+        if fora:
+            return f"variável «{fora[0]}» não está na decomposição. Disponíveis: {', '.join(D['V7'])}"
+        if parte in ("componentes", "tudo"):
+            C = D["COMPONENTES"]
+            B.append("(a) COMPONENTES DE VARIÂNCIA  ·  efeitos aleatórios cruzados, atleta e dia, por REML\n"
+                     "    y(atleta, dia) = μ + u(atleta) + v(dia) + e\n\n"
+                     + _tab([{"variável": v, "entre atletas": C[v]["atleta"], "entre dias": C[v]["dia"],
+                              "residual": C[v]["residual"], "% atleta": C[v]["p_atleta"],
+                              "% dia": C[v]["p_dia"], "% residual": C[v]["p_residual"], "n": C[v]["n"]}
+                             for v in V7])
+                     + "\n\n    A parcela «entre dias» é o objeto deste estudo, o movimento do elenco de um dia"
+                       "\n    para o outro, e é a menor das três em todas as sete variáveis.")
+        if parte in ("serie", "tudo"):
+            S = D["SERIE"]
+            B.append("(b) FIDEDIGNIDADE DA SÉRIE DIÁRIA\n"
+                     "    Var(médias observadas) = Var(verdadeira) + média(erro padrão²). A razão entre a\n"
+                     "    primeira parcela e o total diz quanto da oscilação diária sobreviveria à medida sem erro.\n\n"
+                     + _tab([{"variável": v, "var. observada": S[v]["var_observada"],
+                              "var. de erro": S[v]["var_erro"],
+                              "var. verdadeira": (S[v]["var_verdadeira"] if not S[v]["negativa"] else None),
+                              "fidedignidade": (S[v]["fidedignidade"] if not S[v]["negativa"] else None),
+                              "dp verdadeiro": (S[v]["dp_verdadeiro"] if not S[v]["negativa"] else None)}
+                             for v in V7])
+                     + "\n\n    Estimativa nula (—) significa variância observada menor que a de erro: a série"
+                       "\n    daquela variável não se distingue de sete sorteios em torno de uma mesma média.")
+        if parte in ("deslocamento", "tudo"):
+            L = D["DESLOCAMENTO"]
+            B.append("(c) DESLOCAMENTO REPARTIDO EM CHOQUE E DERIVA\n"
+                     "    Transição de choque é aquela cujo módulo excede o piso de ruído; as demais formam a\n"
+                     "    deriva. A coluna de percentagem toma o movimento absoluto, soma dos módulos, porque\n"
+                     "    choque e deriva podem ter sinais opostos.\n\n"
+                     + _tab([{"variável": v, "D1→D7": L[v]["total"], "choque": L[v]["choque"],
+                              "deriva": L[v]["deriva"], "n choques": L[v]["n_choques"],
+                              "movimento absoluto": L[v]["soma_abs"], "% do choque": L[v]["p_choque_abs"]}
+                             for v in V7]))
+        if parte in ("filtro", "tudo"):
+            F = D["FILTRO"]
+            B.append("(d) IDENTIDADE DO FILTRO\n"
+                     "    Var(observada) = Var(suavizada) + Var(resíduo) + 2·cov. As duas parcelas não são\n"
+                     "    ortogonais; onde a covariância é negativa, a parcela retida excede o total, o que\n"
+                     "    significa que o filtro retirou oscilação contrária à tendência.\n\n"
+                     + _tab([{"variável": v, "var. observada": F[v]["var_observada"],
+                              "retida": F[v]["var_suavizada"], "removida": F[v]["var_residuo"],
+                              "2·cov": 2 * F[v]["covariancia"], "confere": F[v]["soma_conferida"]}
+                             for v in V7]))
+        return "\n\n" + ("\n\n" + "─" * 72 + "\n\n").join(B)
+
+    def _protocolo(self, a) -> str:
+        P = self._json("V2_proto.json"); parte = a.get("parte", "tudo"); T = P["TOTAIS"]; B = []
+        if parte in ("janelas", "tudo"):
+            B.append("JANELAS DE RESPOSTA POR DIA  ·  blocos separados por intervalo maior que "
+                     f"{P['parametros']['lacuna']} min\n\n"
+                     + _tab([{"dia": f"D{d['dia']}", "atletas": d["atletas"], "registros": d["registros"],
+                              "esperado": d["esperado"], "janelas": d["janelas"],
+                              "excedente": d["excedente_A"]} for d in P["POR_DIA"]])
+                     + f"\n\n  {T['registros']} registros para {T['esperado']} esperados sob o protocolo"
+                       f" declarado, sobre {T['atleta_dia']} pares atleta-dia.")
+        if parte in ("regra", "tudo"):
+            A_, Bg = P["REGRA_A"], P["REGRA_B"]
+            B.append("DUAS REGRAS DE COMPOSIÇÃO DO VALOR DIÁRIO, CONFRONTADAS\n"
+                     "  A (adotada) — D1 tem coleta única e vale a primeira resposta de cada atleta; de D2 a D7\n"
+                     "                valem o primeiro e o último registro do dia, ainda que o primeiro caia\n"
+                     "                depois do meio-dia por esquecimento.\n"
+                     "  B (relógio) — classifica pelo período nominal, manhã e fim de dia, e descarta quem\n"
+                     "                respondeu fora da janela.\n\n"
+                     + _tab([{"regra": k, "conformes": r["conformes"], "incompletos": r["incompletos"],
+                              "excedentes": r["n_excedentes"], "retidos": r["retidos"]}
+                             for k, r in (("A", A_), ("B", Bg))])
+                     + f"\n\n  Reenvio imediato, dentro de {P['parametros']['curto']} min: "
+                       f"{A_['reenvio_imediato']} casos, dos quais {A_['identicos']} com resposta idêntica."
+                       "\n  O bloco tardio de D1 é composto por repetição: dos atletas que responderam depois"
+                       "\n  das 21 h, todos menos um já haviam respondido às 20:42. Por isso o basal é de"
+                       "\n  coleta única, e não de duas medidas.")
+        if parte in ("excedentes", "tudo"):
+            sm, so = P["SEM_MANHA"], P["SO_MANHA"]
+            B.append("ATLETA-DIA FORA DA JANELA NOMINAL\n"
+                     f"  sem registro antes das {P['parametros']['corte']} h: {len(sm)} pares\n"
+                     f"  apenas um registro no dia:              {len(so)} pares\n\n"
+                     + _tab([{"atleta": x["atleta"], "dia": f"D{x['dia']}",
+                                 "horas do dia": " · ".join(x["horas"])} for x in sm[:15]])
+                     + ("\n  (primeiros 15 de %d)" % len(sm) if len(sm) > 15 else ""))
+        if parte in ("impacto", "tudo"):
+            I = P["IMPACTO"]
+            B.append("IMPACTO DA REGRA SOBRE O VALOR DIÁRIO  ·  diferença entre a regra adotada e a média de\n"
+                     "todos os registros do dia\n\n"
+                     + _tab([{"variável": NOME7.get(k, k), "n": v["n"], "média da diferença": v["media"], "dp": v["dp"],
+                              "maior diferença": v["max_abs"], "pares alterados": v["n_diferente"]}
+                             for k, v in I.items()]))
+        return "\n\n" + ("\n\n" + "─" * 72 + "\n\n").join(B)
+
     def _referencia(self, a) -> str:
         lim = max(1, min(int(a.get("limite", 20)), 100))
         if a.get("termo"):
@@ -489,6 +674,8 @@ class Servidor:
             "ana_orientar": self._orientar, "ana_resultado": self._resultado, "ana_serie": self._serie,
             "ana_confronto": self._confronto, "ana_perfil": self._perfil, "ana_auditoria": self._auditoria,
             "ana_modelo": self._modelo, "ana_qualidade": self._qualidade,
+            "ana_cruzamento": self._cruzamento, "ana_decomposicao": self._decomposicao,
+            "ana_protocolo": self._protocolo,
             "ana_otimizar": self._otimizar, "ana_referencia": self._referencia, "ana_buscar": self._buscar,
             "ana_sql": self._sql, "ana_lembrar": self._lembrar, "ana_recordar": self._recordar,
             "ana_esquecer": self._esquecer,

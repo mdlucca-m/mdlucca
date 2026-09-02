@@ -38,13 +38,24 @@ if 'qualidade:[' not in s:
     s=s.replace(" base:['Base de dados'",
       " qualidade:['Qualidade dos dados e otimização da carga','Auditoria do dado em si, exploratória univariada e programação linear'],\n base:['Base de dados'",1)
 
+BOTAO_S='''      <button data-tela="series">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 17c3-1 4-8 7-8s4 7 7 8"/><path d="M3 20h18"/><circle cx="10" cy="9" r="1.5"/><path d="M14 4l3 3-3 3"/></svg>
+        <span class="rot">Séries e cruzamentos</span></button>
+'''
+if 'data-tela="series"' not in s:
+    a=s.index('      <div class="grupo">Modelos</div>')
+    s=s[:a]+BOTAO_S+s[a:]
+if 'series:[' not in s:
+    s=s.replace(" modelos:['Modelos e CRISP-DM'",
+      " series:['Séries, cruzamentos e decomposições','Como o filtro separa sinal de ruído, onde as curvas se cruzam e de onde vem a variância'],\n modelos:['Modelos e CRISP-DM'",1)
+
 # 3. título e ordem
 if 'modelos:[' not in s:
     s=s.replace(" auditoria:['Auditoria de procedência'",
       " modelos:['Modelos e CRISP-DM','Árvores de decisão sobre a base, e o estudo mapeado nas seis fases'],\n auditoria:['Auditoria de procedência'",1)
 import re as _re
 s=_re.sub(r"const ordem=\[[^\]]*\];",
-          "const ordem=['visao','mapa','a1','a2','modelos','auditoria','qualidade','base','refs','automacao'];", s)
+          "const ordem=['visao','mapa','a1','a2','series','modelos','auditoria','qualidade','base','refs','automacao'];", s)
 
 # 3b. correções pontuais nas telas originais, todas idempotentes
 PATCHES=[
@@ -69,6 +80,10 @@ PATCHES=[
    ['6 · qualidade e otimização','audita o dado desde o item, reconfere os três documentos e resolve o programa linear da carga','#0F6E5C'],
    ['7 · modelos','árvores, floresta, XGBoost, diagnóstico de reversão à média e o mapa CRISP-DM','#8A4FBF'],
    ['8 · figuras e documentos','gera as 21 figuras e monta os quatro documentos','#A31E52']];"""),
+ # o mapa de navegação ainda não trazia a tela de séries
+ ("""   ['modelos','Modelos e CRISP-DM','Árvore de decisão sobre a base, desempenho contra as linhas de base, diagnóstico de reversão à média e as seis fases do CRISP-DM','#8A4FBF'],""",
+  """   ['series','Séries, cruzamentos e decomposições','O filtro binomial e o piso de ruído, a anatomia dos três cruzamentos por derivadas e as quatro decomposições da variância','#2166AC'],
+   ['modelos','Modelos e CRISP-DM','Árvore de decisão sobre a base, desempenho contra as linhas de base, diagnóstico de reversão à média e as seis fases do CRISP-DM','#8A4FBF'],"""),
  ("el('p',{class:'leg',txt:'Da planilha de origem ao .docx dos dois artigos, sem etapa manual.'})",
   "el('p',{class:'leg',txt:'Da planilha de origem ao .docx dos quatro documentos, sem etapa manual.'})"),
 ]
@@ -79,7 +94,7 @@ for velho,novo in PATCHES:
     s=s.replace(velho,novo,1)
 
 # 4. corpo das telas adicionais
-for arq,marca in [("_tela_modelos.js","modelos"),("_tela_qualidade.js","qualidade")]:
+for arq,marca in [("_tela_modelos.js","modelos"),("_tela_qualidade.js","qualidade"),("_tela_series.js","series")]:
     tela=open(os.path.join(RAIZ,"painel",arq),encoding='utf-8').read()
     INI=f'/* <<< tela {marca} >>> */'; FIM=f'/* <<< fim tela {marca} >>> */'
     bloco=INI+'\n'+tela+'\n'+FIM
@@ -91,6 +106,6 @@ for arq,marca in [("_tela_modelos.js","modelos"),("_tela_qualidade.js","qualidad
 
 open(P,'w',encoding='utf-8').write(s)
 print(f"painel montado: {orig/1024:.0f} KB → {len(s)/1024:.0f} KB")
-for t in ['modelos','qualidade','auditoria','base']:
+for t in ['modelos','qualidade','series','auditoria','base']:
     marca='data-tela="%s"'%t
     print("   tela %-10s nav=%s  título=%s"%(t, marca in s, (t+":[") in s))

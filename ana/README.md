@@ -26,7 +26,7 @@ Depois disso, no Claude Code:
 
 - `/ana` carrega a persona na conversa em curso;
 - o subagente `ana` (em `.claude/agents/ana.md`) responde em contexto próprio;
-- as treze ferramentas `mcp__ana__*` ficam disponíveis diretamente.
+- as dezoito ferramentas `mcp__ana__*` ficam disponíveis diretamente.
 
 ## Sem cliente nenhum
 
@@ -56,6 +56,9 @@ Depois disso, no Claude Code:
 | `ana_modelo` | desempenho, árvore, subgrupo, diagnóstico, CRISP-DM |
 | `ana_qualidade` | dicionário de tipos, conferência dos escores, faltantes, univariada, discrepantes, reconferência |
 | `ana_otimizar` | resposta dose-humor, distribuição ótima da carga, preços-sombra, fronteira eficiente |
+| `ana_cruzamento` | filtro binomial e piso de ruído; abscissa, velocidade, aceleração e zona de indecisão de cada cruzamento |
+| `ana_decomposicao` | componentes de variância, fidedignidade da série, choque contra deriva, identidade do filtro |
+| `ana_protocolo` | janelas de coleta pelo carimbo, regra de composição do valor diário e seu impacto |
 | `ana_referencia` | DOI, PubMed, acesso aberto |
 | `ana_buscar` | texto completo sobre 282.776 células de acervo |
 | `ana_sql` | consulta livre, somente leitura |

@@ -133,6 +133,32 @@ def semear() -> int:
          "ponto do pior dia de vigor da semana — mais do que qualquer decisão de treino disponível. Quem "
          "comprime a semana é o calendário de jogos, não o volume. Carga semanal mínima estruturalmente "
          "viável: 19,17 h.", "handebol"),
+        ("filtro das séries", "A curva de cada série de sete pontos vem do filtro binomial 1-2-1, núcleo "
+         "[¼, ½, ¼] aplicado aos pontos internos, com os extremos conservados no valor observado porque o "
+         "deslocamento total é medido entre eles. O ganho é H(ω) = cos²(ω/2), que se anula em Nyquist. Foram "
+         "descartadas a média móvel simples, que não se anula ali e inverte parte da banda alta, e a "
+         "Savitzky-Golay, instável nas bordas de série tão curta. O piso de ruído é a média dos sete erros "
+         "padrão diários; derivadas e limiares saem em unidades desse piso. Nenhum resíduo do filtro chega a "
+         "um piso e meio. Ver analise/V2_cruz.py e ana_cruzamento(parte='filtro').", "handebol"),
+        ("anatomia dos cruzamentos", "Cruzamento é zero da série da diferença. A abscissa sai por interpolação "
+         "linear, e a travessia tem velocidade, aceleração e zona de indecisão, isto é, o intervalo em que a "
+         "diferença fica dentro do limiar combinado √(piso²ᴬ+piso²ᴮ). Inversão estabelecida e data determinada "
+         "são coisas distintas: vigor×fadiga inverte de modo estabelecido, mas cruza a 0,86 limiar por dia, com "
+         "zona de indecisão de 3,52 dias, de D2,59 a D6,11. Vigor×TMD cruza em D6,01, a 2,14 limiar por dia, "
+         "zona de 1,42 dia, e é o único cruzamento nítido. Fadiga×TMD não separa nos extremos: divergência. "
+         "Consultar ana_cruzamento.", "handebol"),
+        ("decomposição da variação", "Quatro decomposições, em analise/V2_decomp.py. (a) Efeitos aleatórios "
+         "cruzados, atleta e dia: a parcela entre dias, que é o objeto do estudo, é a menor das três em todas as "
+         "sete variáveis, de 0,6% na depressão a 15,6% no vigor. (b) Fidedignidade da série diária: vigor 0,78 e "
+         "fadiga 0,62 sustentam leitura de série; TMD 0,48; tensão e confusão 0,33; raiva 0,08; depressão nula, "
+         "porque a variância observada, 0,094, é menor que a de erro, 0,227. (c) Deslocamento em choque e "
+         "deriva: o movimento do vigor é 90,7% choque, o do TMD 71,0%, o da fadiga 65,9%; o da depressão é "
+         "deriva pura. (d) Identidade do filtro, com o termo de covariância explícito. Consultar "
+         "ana_decomposicao.", "handebol"),
+        ("sinal pelo piso não é fidedignidade", "Não confundir os dois critérios. O piso de ruído compara o "
+         "deslocamento entre extremos com o erro de amostragem; a fidedignidade compara a dispersão das sete "
+         "médias com esse mesmo erro. Uma variável pode ter deslocamento acima do piso e série de fidedignidade "
+         "nula, como a depressão: ela se move pouco por dia, mas na mesma direção o tempo todo.", "handebol"),
         ("reconferência", "Os números dos três documentos foram recalculados por um segundo caminho de "
          "código, partindo do item do formulário: 65 de 65 conferências coincidem. Não repetir a "
          "reconferência sem motivo; consultar ana_qualidade(parte='reconferencia').", "handebol"),

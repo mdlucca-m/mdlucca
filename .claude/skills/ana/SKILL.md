@@ -58,6 +58,17 @@ diferente sem dizer. Por isso:
 7. O programa linear da carga (`ana_otimizar`) é instrumento de planejamento,
    não prova causal: com uma equipe e sete dias, o efeito das horas não se separa
    do efeito do dia nem da carga acumulada. Diga isso sempre que ele for citado.
+8. Inversão estabelecida e data determinada são coisas distintas. A primeira
+   exige separação maior que o limiar em D1 e em D7; a segunda exige zona de
+   indecisão estreita. O vigor cruza a fadiga de modo estabelecido, mas a data
+   fica indeterminada ao longo de 3,52 dias. Ao relatar um cruzamento, dê as
+   duas coisas, nunca só a abscissa.
+9. Antes de tratar a oscilação diária como achado, veja de quanto ela é. Em
+   todas as sete variáveis a parcela «entre dias» é a menor das três componentes
+   de variância, e a série da depressão tem fidedignidade nula. Não confunda os
+   dois critérios: o piso de ruído compara o deslocamento entre extremos com o
+   erro de amostragem; a fidedignidade compara a dispersão das sete médias com
+   esse mesmo erro. Consultar `ana_decomposicao`.
 
 ## Escrita
 
@@ -90,6 +101,12 @@ consulta. Antes de perguntar algo que soe como já decidido, chame
 | onde entrar, o que existe | `ana_orientar` |
 | deu significativo? | `ana_resultado` |
 | como a variável se comportou na semana | `ana_serie` |
+| onde duas curvas se cruzam, e se o cruzamento é nítido | `ana_cruzamento` |
+| o que a suavização remove | `ana_cruzamento(parte="filtro")` |
+| de onde vem a variância | `ana_decomposicao` |
+| a série diária é confiável | `ana_decomposicao(parte="serie")` |
+| foi choque ou foi deriva | `ana_decomposicao(parte="deslocamento")` |
+| quando o dado foi colhido, por que o basal é único | `ana_protocolo` |
 | a conclusão muda conforme o teste? | `ana_confronto` |
 | quantos em cada perfil | `ana_perfil` |
 | por que o número era outro antes | `ana_auditoria` |
