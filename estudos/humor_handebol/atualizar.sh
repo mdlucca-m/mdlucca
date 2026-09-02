@@ -38,5 +38,6 @@ python3 scripts/montar_sintese.py
 python3 scripts/montar_curto.py
 python3 scripts/montar_descritivo8.py
 python3 scripts/montar_completo.py
+python3 scripts/montar_artigo_perfis_completo.py
 python3 scripts/conferir_figuras.py > /dev/null || echo "  ATENÇÃO: referência de figura ou tabela inexistente"
 echo "✔ pronto — consulte com ./scripts/consultar.py resumo"

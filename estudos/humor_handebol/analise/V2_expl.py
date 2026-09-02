@@ -113,8 +113,18 @@ SENSI.sort(key=lambda x: -x['razao_piso'])
 print("\nranking de sensibilidade (razão deslocamento/piso, decrescente)")
 for s in SENSI: print(f"  {s['variavel']:12} razão={s['razao_piso']:5.1f}  CV={s['cv']:6.1f}%")
 
+# ---------- F. dia de pico (máximo e mínimo) de cada variável ----------
+PICO = {}
+for v in V7:
+    s = A1['SER'][v]['med']
+    imax, imin = int(np.argmax(s)), int(np.argmin(s))
+    PICO[v] = dict(dia_max=imax + 1, valor_max=s[imax], dia_min=imin + 1, valor_min=s[imin])
+print("\npico (máximo e mínimo) de cada variável, sobre a média diária bruta")
+for v, d in PICO.items():
+    print(f"  {v:12} máximo D{d['dia_max']} ({d['valor_max']:.2f})  mínimo D{d['dia_min']} ({d['valor_min']:.2f})")
+
 json.dump(dict(TRANS=TRANS, MATRIZ=MATRIZ, NOMES_MATRIZ=NOMES, n_pareados=len(pareados),
                RISCO=RISCO, n_nunca_risco=n_nunca, n_sempre_risco=n_sempre, n_intermitente=n_interm,
-               MUDANCA=MUDANCA, INTRADIA=INTRADIA, SENSI=SENSI, V11=V11),
+               MUDANCA=MUDANCA, INTRADIA=INTRADIA, SENSI=SENSI, V11=V11, PICO=PICO),
           open(f"{DADOS}/V2_expl.json", "w", encoding="utf-8"), ensure_ascii=False)
 print(f"\nescrito: {DADOS}/V2_expl.json")

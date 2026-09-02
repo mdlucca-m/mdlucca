@@ -14,6 +14,7 @@ abril de 2024.
 | Artigo curto, seis páginas, só os perfis | `ARTIGO_CURTO_PERFIS_HUMOR_HANDEBOL.docx` |
 | Artigo descritivo e não paramétrico, oito páginas | `ARTIGO_DESCRITIVO_EXPLORATORIO_PERFIS_HUMOR_HANDEBOL.docx` |
 | Relatório exploratório completo, por etapa de análise | `RELATORIO_EXPLORATORIO_COMPLETO_PERFIS_HUMOR_HANDEBOL.docx` |
+| Artigo completo dos seis perfis de Terry, introdução, método e discussão por tópico | `ARTIGO_PERFIS_HUMOR_HANDEBOL_COMPLETO.docx` |
 
 ## O que há aqui
 
@@ -31,7 +32,7 @@ saida/     figuras e .docx gerados, fora do controle de versão
 ## Como reproduzir
 
 ```bash
-./atualizar.sh        # refaz tudo, do JSON de origem aos quatro .docx
+./atualizar.sh        # refaz tudo, do JSON de origem aos nove .docx
 ./scripts/consultar.py resumo
 ```
 
