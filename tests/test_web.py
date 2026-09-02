@@ -825,34 +825,56 @@ class TestTokensDoTema(unittest.TestCase):
                         if not re.match(r"^--(series|seq|ord)-\d+$", t)}
             self.assertEqual(faltando, set(), f"tokens indefinidos em {nome}: {sorted(faltando)}")
 
-    def test_o_escuro_e_o_padrao_e_nao_o_que_o_sistema_manda(self):
-        # o defeito que este teste guarda: a folha seguia
-        # `prefers-color-scheme`, e no Windows do laboratório -- que está
-        # no claro -- o painel abria claro. O tema escuro existia e nunca
-        # aparecia para ninguém
+    def test_o_padrao_e_uma_escolha_e_nao_o_que_o_sistema_manda(self):
+        """O defeito que este teste guarda não é qual tema vence: é PERGUNTAR.
+
+        A folha já seguiu `prefers-color-scheme`, e no Windows do
+        laboratório -- que está no claro -- o tema escuro nunca aparecia
+        para ninguém. Depois disso o padrão foi escuro; hoje é claro. O que
+        não pode voltar é a pergunta ao sistema: é ela que fazia a mesma
+        tela sair diferente na sala, no projetor e no PDF.
+        """
         tema = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
         self.assertNotIn("prefers-color-scheme: light", tema)
-        raiz = tema[tema.index(":root {"):tema.index("--surface:")]
-        self.assertIn("color-scheme: dark", raiz)
+        self.assertNotIn("prefers-color-scheme: dark", tema)
+        padrao = tema[tema.index(":root, :root[data-theme=\"light\"]"):]
+        padrao = padrao[:padrao.index("\n}")]
+        self.assertIn("color-scheme: light", padrao)
+        self.assertIn("--surface:", padrao)
 
-    def test_o_claro_continua_inteiro_por_escolha(self):
+    def test_os_dois_temas_continuam_inteiros(self):
         # trocar o padrão não pode ser o mesmo que apagar o outro modo
         tema = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
-        self.assertIn(':root[data-theme="light"]', tema)
-        claro = tema[tema.index(':root[data-theme="light"]'):]
-        claro = claro[:claro.index("\n}")]
-        for token in ("--surface", "--ink", "--accent", "--series-1", "--seq-100"):
-            with self.subTest(token=token):
-                self.assertIn(token + ":", claro)
+        for seletor in (':root, :root[data-theme="light"]', ':root[data-theme="dark"]'):
+            with self.subTest(tema=seletor):
+                self.assertIn(seletor, tema)
+                bloco = tema[tema.index(seletor):]
+                bloco = bloco[:bloco.index("\n}")]
+                for token in ("--surface", "--ink", "--accent", "--series-1", "--seq-100"):
+                    self.assertIn(token + ":", bloco, f"{token} falta em {seletor}")
 
-    def test_o_botao_de_tema_sabe_que_o_padrao_e_escuro(self):
-        # perguntando ao sistema, o primeiro clique num Windows claro
-        # "trocava para escuro" estando já escuro, e nada acontecia
+    def test_o_que_nao_e_de_tema_fica_fora_dos_dois(self):
+        """Cor de estado significa a mesma coisa nos dois fundos.
+
+        Declarada dentro de um tema, ela some no outro -- e some calada,
+        porque `var(--good)` sem valor não pinta nada e não avisa.
+        """
+        tema = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        comum = tema[tema.index(":root {"):]
+        comum = comum[:comum.index("\n}")]
+        for token in ("--good", "--warning", "--serious", "--critical",
+                      "--radius", "--sans", "--on-accent"):
+            with self.subTest(token=token):
+                self.assertIn(token + ":", comum)
+
+    def test_o_botao_de_tema_sabe_qual_e_o_padrao(self):
+        # perguntando ao sistema, o primeiro clique num Windows escuro
+        # "trocava para claro" estando já claro, e nada acontecia
         js = (self.TEMPLATES / "dashboard.js").read_text(encoding="utf-8")
         corpo = js[js.index("function setupTheme"):]
         corpo = corpo[:corpo.index("\n}")]
         self.assertNotIn("prefers-color-scheme", corpo)
-        self.assertIn('!== "light"', corpo)
+        self.assertIn('!== "dark"', corpo)
 
 
 if __name__ == "__main__":

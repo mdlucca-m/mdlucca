@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LAPE — sistema de design  ·  escuro por padrão, fosco, alta densidade
+   LAPE — sistema de design  ·  claro por padrão, fosco, alta densidade
 
    A paleta categórica foi verificada por script para daltonismo e contraste
    sobre as superfícies em que o painel realmente desenha:
@@ -20,7 +20,27 @@
    - Texto nunca veste a cor da série; a identidade vem da marca ao lado.
    ========================================================================== */
 
+/* ==========================================================================
+   O que nao muda de tema
+   Raio, tipografia, o degrade do acento, e as cores de ESTADO. Estas
+   ultimas ficam aqui de proposito: bom, alerta, grave e critico significam
+   a mesma coisa nos dois fundos, e um verde que muda de tom conforme o tema
+   convidaria alguem a usa-lo como cor de serie -- que e justamente o que
+   elas nao sao. Os polos do divergente tambem: so o cinza do meio muda.
+   ========================================================================== */
 :root {
+  --grad-accent: linear-gradient(90deg, #2fa8dd 0%, #9085e9 100%);
+  --malha-passo: 46px;
+  --on-accent:     #ffffff;
+  --good: #0ca30c; --warning: #fab219; --serious: #ec835a; --critical: #d03b3b;
+  --radius:    14px;
+  --radius-sm: 10px;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --div-neg: #3987e5; --div-pos: #e66767;
+}
+
+:root[data-theme="dark"] {
   color-scheme: dark;
 
   /* --- superfícies e tinta ---------------------------------------------
@@ -52,18 +72,15 @@
   --grad-bar:  linear-gradient(180deg, rgba(47,168,221,.13) 0%, rgba(11,16,24,0) 100%);
   --grad-card: linear-gradient(180deg, rgba(255,255,255,.045) 0%, rgba(255,255,255,0) 62%);
   --grad-kpi:  linear-gradient(135deg, rgba(47,168,221,.15) 0%, rgba(11,16,24,0) 58%);
-  --grad-accent: linear-gradient(90deg, #2fa8dd 0%, #9085e9 100%);
   /* malha fina de fundo: dá profundidade sem competir com nada */
   --grad-malha: linear-gradient(rgba(47,168,221,.045) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(47,168,221,.045) 1px, transparent 1px);
-  --malha-passo: 46px;
 
   /* --- ação --- */
   --accent:        #5ec8f2;   /* 10:1 sobre a superfície — cor de texto/link */
   --accent-solid:  #12799f;   /* fundo de botão; texto branco a 4,9:1 */
   --accent-strong: #2fa8dd;   /* 7:1 — aro, traço, barra de progresso */
   --accent-wash:   #0c2735;
-  --on-accent:     #ffffff;
   /* brilho: só em cromo, e curto. Halo permanente vira ruído. */
   --glow:      0 0 0 1px rgba(47,168,221,.28), 0 0 22px -6px rgba(47,168,221,.55);
   --glow-forte: 0 0 0 1px rgba(47,168,221,.42), 0 0 34px -6px rgba(47,168,221,.75);
@@ -88,30 +105,29 @@
   --ord-1: #cde2fb; --ord-2: #9ec5f4; --ord-3: #6da7ec; --ord-4: #3987e5;
 
   /* --- divergente: dois polos opostos + cinza neutro --- */
-  --div-neg: #3987e5; --div-mid: #2a3648; --div-pos: #e66767;
+  --div-mid: #2a3648;   /* os polos ficam no bloco comum */
 
   /* --- estado (reservado; nunca vira "série 9") --- */
-  --good: #0ca30c; --warning: #fab219; --serious: #ec835a; --critical: #d03b3b;
 
   /* --- forma --- */
-  --radius:    14px;
-  --radius-sm: 10px;
   --shadow:    0 1px 2px rgba(0,0,0,.6), 0 12px 34px rgba(0,0,0,.44);
   --shadow-lg: 0 2px 8px rgba(0,0,0,.7), 0 28px 68px rgba(0,0,0,.58);
   --ring:      inset 0 1px 0 rgba(255,255,255,.055);
-  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
 
-/* O escuro é o padrão, e não o que sobra quando o sistema está escuro.
-   Antes esta folha seguia `prefers-color-scheme`: em computador com
-   Windows no claro -- que é o do laboratório -- o painel abria claro,
-   e o tema escuro que existe aqui nunca aparecia para ninguém.
+/* O CLARO é o padrão, e continua não sendo o que o sistema mandar.
 
-   O claro continua inteiro, mas é uma ESCOLHA: só entra com
-   data-theme="light" no elemento raiz. Os mesmos oito matizes,
-   reposicionados para a superfície clara. */
-:root[data-theme="light"] {
+   Esta folha já foi das duas maneiras, e o motivo de cada volta importa.
+   No começo ela seguia `prefers-color-scheme`, e no Windows do laboratório
+   -- que está no claro -- o tema escuro nunca aparecia para ninguém. A
+   correção foi fixar um padrão em vez de perguntar ao sistema, e o padrão
+   escolhido foi o escuro. O laboratório pediu o claro: muda o padrão, não
+   a regra. Continuamos sem perguntar ao sistema -- é o que faz a tela ser
+   a mesma na sala, no projetor e no PDF que sai daqui.
+
+   O escuro continua inteiro, e agora é ele a ESCOLHA: entra com
+   data-theme="dark" no elemento raiz, pelo botão do painel. */
+:root, :root[data-theme="light"] {
   color-scheme: light;
   --surface:        #fcfcfb;
   --surface-raised: #f2f1ee;
