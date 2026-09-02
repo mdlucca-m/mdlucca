@@ -315,9 +315,9 @@ p_("A fadiga física tem o maior efeito intradiário do conjunto, seguida pela p
    "intradiária, ainda que móveis na escala semanal.")
 
 h_("3.6 Estrutura de associação entre as variáveis", before=6, size=10.5)
-p_(f"A Figura {prox_fig()} apresenta a matriz de correlação de Spearman entre as sete variáveis, sobre os "
-   f"{NAD} pares atleta-dia.")
-fig_("G5fig.png", "Matriz de correlação de Spearman entre as sete variáveis do BRUMS, com o coeficiente de "
+p_(f"A Figura {prox_fig()} ordena as 21 associações de Spearman entre as sete variáveis, sobre os "
+   f"{NAD} pares atleta-dia, com o coeficiente de Pearson ao lado para comparação.")
+fig_("G5fig.png", "As 21 associações entre pares das sete variáveis do BRUMS por Spearman, com o coeficiente de "
      "Pearson ao lado para comparação.", w=13.4)
 mv = A3['MAT']
 p_(f"A associação mais forte do conjunto liga a fadiga à perturbação total "
@@ -462,7 +462,7 @@ p_(f"A Figura {prox_fig()} cruza o perfil de cada atleta no primeiro dia com o p
    f"{EXP['n_pareados']} atletas com classificação nos dois extremos, e a Tabela {prox_tab()} resume o "
    "mesmo cruzamento por perfil de partida, ordenado pela percentagem que permanece no próprio perfil, do "
    "que mais migra ao que menos migra.")
-fig_("X3fig.png", "Transição individual de perfil, do primeiro ao sétimo dia.", w=11.2)
+fig_("X3fig.png", "Retenção e migração de perfil, do primeiro ao sétimo dia, por perfil de partida.", w=13.6)
 cap_(f"Tabela {tab()} – Para onde foram os atletas de cada perfil inicial, do que mais migra ao que menos migra")
 ordenT = sorted([nome for nome in NOMES if EXP['TRANS'][nome]['n_d1'] > 0],
                 key=lambda nome: (EXP['TRANS'][nome]['pct_ficou'] if EXP['TRANS'][nome]['pct_ficou'] is not None else 999))

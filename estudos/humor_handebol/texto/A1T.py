@@ -518,8 +518,8 @@ R3=[
 ]
 R4=[
 "A Figura 6 expressa as duas derivadas em unidades do piso de ruído de cada variável, o que permite "
-"compará-las apesar das diferenças de amplitude e dispersão. A moldura destaca as células cujo valor absoluto "
-"supera uma unidade de piso.",
+"compará-las apesar das diferenças de amplitude e dispersão. O círculo aberto destaca o dia em que o valor "
+"absoluto supera uma unidade de piso.",
 "A primeira derivada mostra que a velocidade se concentra em duas colunas. Na passagem do primeiro para o segundo "
 "dia, o vigor cai 3,64 pisos, a confusão cai 2,25, a fadiga sobe 2,10, a perturbação total sobe 1,73 e a tensão "
 "cai 1,39. Na passagem do sexto para o sétimo dia, a raiva sobe 1,74 piso, a perturbação total sobe 1,67, a "
@@ -730,7 +730,7 @@ RP=[
  "localiza a inversão entre a favorável e a de risco em D1,85, isto é, ainda na primeira metade do segundo "
  "dia.",
 
- "O mapa da Figura 16 responde à pergunta de onde cada perfil predomina. Por dia, os picos distribuem-se "
+ "A Figura 16 responde à pergunta de onde cada perfil predomina. Por dia, os picos distribuem-se "
  "sem concentração: iceberg em D1, superfície em D2, Everest invertido em D4, barbatana de tubarão em D5, e "
  "submerso e iceberg invertido em D7. Por tipo de estímulo, o contraste é mais nítido: o iceberg alcança "
  "44,4% no dia basal e cai a 23,5% nos dias de HIIT, ao passo que a barbatana de tubarão faz o percurso "

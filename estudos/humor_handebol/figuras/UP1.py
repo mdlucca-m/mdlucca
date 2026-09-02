@@ -92,44 +92,43 @@ rod(fig,'A composição do painel a soma 100% em cada dia. As faixas do painel b
 salvar(fig,'P2fig')
 
 # ---------------- P3: onde cada perfil predomina ----------------
-fig,axs=plt.subplots(1,2,figsize=(13.8,4.4),gridspec_kw=dict(width_ratios=[1.25,1],wspace=.30))
-a=axs[0]
+fig,axs=plt.subplots(1,2,figsize=(14.6,5.4),gridspec_kw=dict(width_ratios=[1.35,1],wspace=.30))
+a=axs[0]; marcar(a,alpha=.75)
 M=np.array([SERP[nm]['y'] for nm in NOMES])
-im=a.imshow(M, aspect='auto', cmap='RdPu', vmin=0, vmax=np.nanmax(M))
-for i in range(len(NOMES)):
-    j=int(np.argmax(M[i]))
-    for d in range(7):
-        v=M[i][d]
-        a.text(d, i, vg(v,1), ha='center', va='center', fontsize=8.8,
-               color=SURF if v>np.nanmax(M)*.55 else INK,
-               fontweight='bold' if d==j else 'normal')
-    a.add_patch(Rectangle((j-.5,i-.5),1,1,fill=False,ec=INK,lw=2.2,zorder=5))
+fin={nm: M[i][6] for i,nm in enumerate(NOMES)}
+ordem=sorted(NOMES, key=lambda k: fin[k]); yp={}; ult=None
+for k in ordem:
+    val=fin[k]
+    if ult is not None and val-ult<3.4: val=ult+3.4
+    yp[k]=val; ult=val
+for i,nm in enumerate(NOMES):
+    y=M[i]; j=int(np.argmax(y))
+    a.plot(x7, y, '-', lw=2.6, color=CPF[nm], zorder=4, alpha=.92)
+    a.plot(x7, y, 'o', ms=5.6, color=CPF[nm], mec=SURF, mew=1.3, zorder=5)
+    a.plot([x7[j]],[y[j]],'o',ms=12,mfc='none',mec=CPF[nm],mew=2.2,zorder=6)
+    a.annotate(nm, xy=(7.14, yp[nm]), fontsize=9.2, fontweight='bold', color=CPF[nm],
+               va='center', ha='left', zorder=6)
+    if abs(yp[nm]-fin[nm])>.3:
+        a.plot([7.02,7.12],[fin[nm],yp[nm]],color=CPF[nm],lw=1.1,clip_on=False,zorder=3)
 ABREV={'Basal':'basal','HIIT':'HIIT','Amistoso':'amistoso','Técnico/força':'téc./força'}
-a.set_xticks(range(7)); a.set_xticklabels([f"D{d}\n{ABREV[TIPO[d]]}" for d in x7], fontsize=8.4)
-a.set_yticks(range(len(NOMES))); a.set_yticklabels(NOMES, fontsize=10)
-for t,nm in zip(a.get_yticklabels(),NOMES): t.set_color(CPF[nm]); t.set_fontweight('bold')
-a.set_title('a) Prevalência por dia — o retângulo marca o pico de cada perfil',
+a.set_xticks(x7); a.set_xticklabels([f"D{d}\n{ABREV[TIPO[d]]}" for d in x7], fontsize=8.6)
+a.set_xlim(.6,9.6); a.set_ylabel('prevalência (%)'); gy(a)
+a.set_title('a) Prevalência por dia — o círculo aberto marca o pico de cada perfil',
             fontsize=11, loc='left', pad=10, fontweight='bold')
+
 b=axs[1]
 EST=['Basal','HIIT','Amistoso','Técnico/força']
-ME=np.array([[PREV_E.get((t,nm), np.nan) for t in EST] for nm in NOMES])
-b.imshow(ME, aspect='auto', cmap='RdPu', vmin=0, vmax=np.nanmax(M))
-for i in range(len(NOMES)):
-    j=int(np.nanargmax(ME[i]))
-    for d in range(len(EST)):
-        v=ME[i][d]
-        if v==v: b.text(d, i, vg(v,1), ha='center', va='center', fontsize=8.8,
-                        color=SURF if v>np.nanmax(M)*.55 else INK,
-                        fontweight='bold' if d==j else 'normal')
-    b.add_patch(Rectangle((j-.5,i-.5),1,1,fill=False,ec=INK,lw=2.2,zorder=5))
-b.set_xticks(range(len(EST)))
-b.set_xticklabels([f"{t}\nn = {NPOR.get(t,0)}" for t in EST], fontsize=8.6)
+w=.13; xb=np.arange(len(EST))
+for k,nm in enumerate(NOMES):
+    v=[PREV_E.get((t,nm), np.nan) for t in EST]
+    b.bar(xb+(k-2.5)*w, v, width=w-.015, color=CPF[nm], alpha=.92, edgecolor=SURF, lw=.9, zorder=3, label=nm)
+b.set_xticks(xb); b.set_xticklabels([f"{t}\nn = {NPOR.get(t,0)}" for t in EST], fontsize=8.8)
 for t,e in zip(b.get_xticklabels(),EST): t.set_color(CEST[e]); t.set_fontweight('bold')
-b.set_yticks(range(len(NOMES))); b.set_yticklabels([])
+b.set_ylabel('prevalência (%)'); gy(b)
+b.legend(frameon=False, fontsize=8.2, ncol=2, loc='upper center', bbox_to_anchor=(.5,-.20))
 b.set_title('b) Prevalência por tipo de estímulo', fontsize=11, loc='left', pad=10, fontweight='bold')
-fig.colorbar(im, ax=axs, fraction=.018, pad=.015, label='prevalência (%)')
 rod(fig,f"Percentual dos pares atleta-dia de cada recorte. O dia basal e o dia técnico e de força ocorrem uma "
         f"única vez no microciclo, de modo que a coluna do estímulo\ne a do dia coincidem para eles: o basal é D1 "
         f"e o técnico e de força é D6. Associação entre estímulo e perfil: χ² = {vg(A3['chi'],2)}; "
-        + pv(A3['p_chi']) + ".", y=-.02)
-salvar(fig,'P3fig')
+        + pv(A3['p_chi']) + ".", y=-.06)
+fig.tight_layout(); salvar(fig,'P3fig')

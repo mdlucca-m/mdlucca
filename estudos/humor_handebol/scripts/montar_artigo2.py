@@ -103,7 +103,8 @@ src(nota="Ajuste por máxima verossimilhança restrita sobre os 166 pares atleta
 
 head("3.4 Estrutura de associação pelas duas vias", lvl=2)
 for p in A.R5[:1]: para(p)
-figura(f"{S}/G5fig.png",fig(),"Matriz de Spearman, matriz de Pearson e concordância entre os dois coeficientes.",w=16.0)
+figura(f"{S}/G5fig.png",fig(),"As 21 associações entre pares de variáveis por Spearman e por Pearson, e "
+       "concordância entre os dois coeficientes.",w=16.0)
 for p in A.R5[1:]: para(p)
 caption(f"Tabela {tab()} – Associação entre as sete variáveis pelas duas vias")
 MAT=A3['MAT']

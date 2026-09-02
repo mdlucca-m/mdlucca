@@ -194,43 +194,47 @@ a2.annotate(f"χ² = {vg(A3['chi_f'],2)}; gl = {A3['gl_f']}; {pv(A3['p_f'])}",xy
 rod(fig,'166 pares atleta-dia. Barras de erro: erro-padrão binomial. Nenhuma associação significativa entre estímulo e perfil ou faixa.')
 fig.tight_layout(); salvar(fig,'G4fig')
 
-# ============ G5: Spearman × Pearson ============
+# ============ G5: Spearman × Pearson, os 21 pares ============
 MAT=A3['MAT']
 def par(i,j,campo):
     k=f"{V7[i]}×{V7[j]}"
     return MAT[k][campo] if k in MAT else MAT[f"{V7[j]}×{V7[i]}"][campo]
-fig,ax=plt.subplots(1,3,figsize=(17.4,6.2),gridspec_kw={'width_ratios':[1,1,.95]})
-for idx,(campo,pcam,tit) in enumerate([('rho','ph','(A) Spearman (ρ) — via não paramétrica'),
-                                        ('r','phr','(B) Pearson (r) — via paramétrica')]):
-    a=ax[idx]; M=np.full((7,7),np.nan)
-    for i in range(7):
-        for j in range(7):
-            if i!=j: M[i,j]=par(i,j,campo)
-    im=a.imshow(M,cmap=DIV,vmin=-.85,vmax=.85,aspect='equal')
-    for i in range(7):
-        a.add_patch(Rectangle((i-.5,i-.5),1,1,fc='#F2F3F4',ec=SURF,lw=2.4,zorder=4))
-        for j in range(7):
-            if i==j: continue
-            val=par(i,j,campo); pa=par(i,j,pcam)
-            est='**' if pa<.01 else ('*' if pa<.05 else '')
-            a.text(j,i,f"{vg(val,2)}{est}",ha='center',va='center',fontsize=9.0,
-                   color='white' if abs(val)>.55 else INK,fontweight='bold' if est else 'normal')
-    a.set_xticks(range(7)); a.set_xticklabels([L(v) for v in V7],fontsize=9.4,rotation=40,ha='right')
-    a.set_yticks(range(7)); a.set_yticklabels([L(v) for v in V7],fontsize=9.4)
-    for t,v in zip(a.get_xticklabels(),V7): t.set_color(CV[v]); t.set_fontweight('bold')
-    for t,v in zip(a.get_yticklabels(),V7): t.set_color(CV[v]); t.set_fontweight('bold')
-    a.set_xticks(np.arange(8)-.5,minor=True); a.set_yticks(np.arange(8)-.5,minor=True)
-    a.grid(which='minor',color=SURF,lw=2.4); a.tick_params(which='minor',length=0)
-    for sp in a.spines.values(): sp.set_visible(False)
-    a.set_title(tit,fontsize=12,loc='left',fontweight='bold',pad=22)
-    a.annotate('* Holm p < 0,05    ** Holm p < 0,01',xy=(1.0,1.012),xycoords='axes fraction',
-               ha='right',va='bottom',fontsize=8.8,color=MUT,style='italic')
-a3=ax[2]
-rho=[]; rr=[]; cores=[]; rot=[]
+rho=[]; rr=[]; ph=[]; cores=[]; rot=[]
 for i in range(7):
     for j in range(i+1,7):
-        rho.append(par(i,j,'rho')); rr.append(par(i,j,'r')); cores.append(CV[V7[i]])
-        rot.append(f"{L(V7[i])}×{L(V7[j])}")
+        rho.append(par(i,j,'rho')); rr.append(par(i,j,'r')); ph.append(par(i,j,'ph'))
+        cores.append(CV[V7[i]]); rot.append(f"{L(V7[i])}×{L(V7[j])}")
+ordem=np.argsort(-np.abs(rho))
+fig,ax=plt.subplots(1,2,figsize=(16.6,7.6),gridspec_kw={'width_ratios':[1.35,1]})
+
+# --- painel a: as 21 associações, barra = Spearman, marcador = Pearson
+a=ax[0]; yb=np.arange(len(rho))[::-1]
+for x_,est in [(.30,'moderada'),(.50,'forte')]:
+    a.axvline(x_,color=GRID,lw=1.2,ls=':',zorder=1); a.axvline(-x_,color=GRID,lw=1.2,ls=':',zorder=1)
+    a.annotate(est,xy=(x_,len(rho)+.55),ha='center',fontsize=8.2,color=MUT,style='italic',annotation_clip=False)
+a.axvline(0,color='#4A5257',lw=1.4,zorder=3)
+for k,i in enumerate(ordem):
+    y=yb[k]; v=rho[i]; sig='**' if ph[i]<.01 else ('*' if ph[i]<.05 else '')
+    a.barh(y,v,height=.62,color=cores[i],alpha=.90 if sig else .35,edgecolor=cores[i],lw=1.4,zorder=3)
+    a.plot([rr[i]],[y],'D',ms=6.6,mfc=SURF,mec=INK,mew=1.5,zorder=6)
+    ponta=v if abs(v)>=abs(rr[i]) else rr[i]  # o rótulo foge do que estiver mais longe do zero: barra ou losango
+    a.annotate(f"ρ={vg(v,2)}{sig}",xy=(ponta,y),xytext=(9 if ponta>=0 else -9,0),textcoords='offset points',
+               ha='left' if ponta>=0 else 'right',va='center',fontsize=8.7,
+               fontweight='bold' if sig else 'normal',color=cores[i])
+a.set_yticks(yb); a.set_yticklabels(rot,fontsize=9.2)
+for t,i in zip(a.get_yticklabels(),ordem): t.set_color(cores[i])
+a.set_xlim(-.95,.95); a.set_ylim(-.8,len(rho)+.95); a.set_xlabel('coeficiente de correlação',fontsize=11)
+a.set_title('(A) As 21 associações entre pares de variáveis, da mais à menos forte',
+            fontsize=12,loc='left',fontweight='bold',pad=14)
+a.legend(handles=[Patch(fc=MUT,alpha=.85,label='ρ de Spearman (barra)'),
+                  Line2D([],[],marker='D',ls='none',mfc=SURF,mec=INK,mew=1.5,ms=6.6,label='r de Pearson (losango)')],
+         frameon=False,fontsize=9,loc='lower right')
+a.annotate('* Holm p < 0,05    ** Holm p < 0,01    barra clara: sem significância',xy=(1.0,1.045),
+           xycoords='axes fraction',ha='right',va='bottom',fontsize=8.6,color=MUT,style='italic')
+gx(a)
+
+# --- painel b: as duas vias concordam?
+a3=ax[1]
 a3.plot([-1,1],[-1,1],color='#8A9299',lw=1.5,ls='--',zorder=2)
 a3.scatter(rho,rr,s=90,c=cores,alpha=.85,zorder=4,edgecolor='white',lw=1.4)
 dif=np.abs(np.array(rho)-np.array(rr)); k=int(np.argmax(dif))
@@ -239,12 +243,12 @@ a3.annotate(rot[k],xy=(rho[k],rr[k]),xytext=(12,-14),textcoords='offset points',
             arrowprops=dict(arrowstyle='-',lw=1.2,color=cores[k]))
 a3.set_xlim(-.9,.95); a3.set_ylim(-.9,.95)
 a3.set_xlabel('ρ de Spearman',fontsize=11); a3.set_ylabel('r de Pearson',fontsize=11)
-a3.set_title('(C) As duas concordam?',fontsize=12,loc='left',fontweight='bold',pad=22)
+a3.set_title('(B) As duas vias concordam?',fontsize=12,loc='left',fontweight='bold')
 a3.annotate(f"maior discrepância: {vg(dif.max(),3)}\nmediana das discrepâncias: {vg(float(np.median(dif)),3)}",
             xy=(.03,.95),xycoords='axes fraction',va='top',fontsize=9.6,color=INK,linespacing=1.45,
             bbox=dict(boxstyle='round,pad=.45',fc='#F7F8F8',ec='#8A9299',lw=1.2))
 gy(a3); gx(a3)
-fig.suptitle('Estrutura de associação pelas duas vias',fontsize=13.5,fontweight='bold',x=.011,ha='left',y=1.01)
+fig.suptitle('Estrutura de associação entre as sete variáveis, pelas duas vias',fontsize=13.5,fontweight='bold',x=.011,ha='left',y=1.01)
 fig.tight_layout(); salvar(fig,'G5fig')
 
 # ============ G6: modelo misto ============

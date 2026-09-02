@@ -123,34 +123,42 @@ fig.legend(handles=[Line2D([],[],color=MUT,lw=1.6,marker='o',mfc='white',alpha=.
 fig.suptitle('Decomposição sinal–ruído das seis subescalas do BRUMS',fontsize=13.5,fontweight='bold',x=.011,ha='left',y=1.005)
 fig.tight_layout(rect=[0,.035,1,.99]); salvar(fig,'F5fig')
 
-# ============ F6: derivadas normalizadas pelo piso ============
+# ============ F6: derivadas normalizadas pelo piso, em linha ============
 fig,ax=plt.subplots(1,2,figsize=(16.4,6.2))
-M1=np.array([[A1['SER'][v]['d1'][t]/A1['SER'][v]['piso'] for t in range(6)] for v in SUB])
-M2=np.array([[A1['SER'][v]['d2'][t]/A1['SER'][v]['piso'] for t in range(5)] for v in SUB])
-lim=float(np.abs(np.concatenate([M1.ravel(),M2.ravel()])).max())
-TR=[f'D{d}→D{d+1}' for d in range(1,7)]
-for idx,(M,lab,tit,cols) in enumerate([
-        (M1,TR,'(A) 1.ª derivada — velocidade diária',[CEST[TIPO[d+1]] for d in range(1,7)]),
-        (M2,[f'em D{d}' for d in range(2,7)],'(B) 2.ª derivada — aceleração',[CEST[TIPO[d]] for d in range(2,7)])]):
-    a=ax[idx]; im=a.imshow(M,cmap=DIV,vmin=-lim,vmax=lim,aspect='auto')
-    for i in range(6):
-        for jx in range(M.shape[1]):
-            val=M[i,jx]; forte=abs(val)>1
-            a.text(jx,i,vg(val,2),ha='center',va='center',fontsize=10.6,
-                   color='white' if abs(val)>lim*.62 else INK,fontweight='bold' if forte else 'normal')
-            if forte: a.add_patch(Rectangle((jx-.5,i-.5),1,1,fill=False,ec='#2A2F33',lw=2.4,zorder=5))
-    a.set_xticks(range(M.shape[1])); a.set_xticklabels(lab,fontsize=10)
-    a.set_yticks(range(6)); a.set_yticklabels(SUB,fontsize=11)
-    for t,c in zip(a.get_xticklabels(),cols): t.set_color(c); t.set_fontweight('bold')
-    for t,v in zip(a.get_yticklabels(),SUB): t.set_color(CV[v]); t.set_fontweight('bold')
+D1=np.array([[A1['SER'][v]['d1'][t]/A1['SER'][v]['piso'] for t in range(6)] for v in SUB])
+D2=np.array([[A1['SER'][v]['d2'][t]/A1['SER'][v]['piso'] for t in range(5)] for v in SUB])
+xv=np.arange(1,7); xa=np.arange(2,7)
+for idx,(M,xx,tit,xlab) in enumerate([
+        (D1,xv,'(A) 1.ª derivada — velocidade diária',[f'D{d}→D{d+1}' for d in range(1,7)]),
+        (D2,xa,'(B) 2.ª derivada — aceleração',[f'em D{d}' for d in range(2,7)])]):
+    a=ax[idx]
+    a.axhspan(-1,1,color=INK,alpha=.07,zorder=1,lw=0)
+    a.axhline(0,color=MUT,lw=1.2,zorder=2)
+    for k in (1,-1): a.axhline(k,color='#8A9299',lw=1.0,ls=(0,(4,3)),zorder=2)
+    fin={v:M[SUB.index(v)][-1] for v in SUB}; rng=fin[max(fin,key=fin.get)]-fin[min(fin,key=fin.get)]
+    gap=max(rng*.075,.14)
+    ordem=sorted(SUB,key=lambda k:fin[k]); yp={}; ult=None
+    for k in ordem:
+        val=fin[k]
+        if ult is not None and val-ult<gap: val=ult+gap
+        yp[k]=val; ult=val
+    for v in SUB:
+        y=M[SUB.index(v)]
+        a.plot(xx,y,'-o',color=CV[v],lw=2.4,ms=6.4,mfc=SURF,mec=CV[v],mew=1.7,zorder=4,alpha=.92)
+        forte=np.abs(y)>1
+        if forte.any():
+            a.plot(xx[forte],y[forte],'o',ms=11,mfc='none',mec=CV[v],mew=2.0,zorder=5)
+        a.annotate(L(v),xy=(xx[-1]+.32,yp[v]),fontsize=9.6,fontweight='bold',color=CV[v],
+                   va='center',ha='left',zorder=6)
+        if abs(yp[v]-fin[v])>gap*.15:
+            a.plot([xx[-1]+.06,xx[-1]+.28],[fin[v],yp[v]],color=CV[v],lw=1.0,clip_on=False,zorder=3)
+    a.set_xticks(xx); a.set_xticklabels(xlab,fontsize=9.6)
+    a.set_xlim(xx[0]-.4,xx[-1]+1.55)
+    a.set_ylabel('derivada, em unidades do piso de ruído',fontsize=10.2)
     a.set_title(tit,fontsize=12,loc='left',fontweight='bold')
-    a.set_xticks(np.arange(M.shape[1]+1)-.5,minor=True); a.set_yticks(np.arange(7)-.5,minor=True)
-    a.grid(which='minor',color=SURF,lw=2.4); a.tick_params(which='minor',length=0)
-    for sp in a.spines.values(): sp.set_visible(False)
-cb=fig.colorbar(im,ax=ax,fraction=.030,pad=.02)
-cb.set_label('derivada em unidades do piso de ruído da variável',fontsize=10.2); cb.outline.set_visible(False)
-fig.suptitle('Derivadas padronizadas pelo piso de ruído de cada subescala',fontsize=13.5,fontweight='bold',x=.011,ha='left',y=1.0)
-fig.text(.011,-.035,'Moldura e negrito: |derivada| > 1 piso — variação que excede a flutuação amostral. '
-         'A 2.ª derivada é avaliada no dia central de cada par de transições; a cor do rótulo indica o estímulo desse dia.',
-         fontsize=9,color=MUT,style='italic')
-salvar(fig,'F6fig')
+    gy(a)
+rod(fig,'Faixa sombreada e linhas tracejadas: ±1 piso de ruído — a variação que a amostragem, sozinha, já produz. '
+        'Círculo aberto: dia em que a derivada excede essa faixa. A 2.ª derivada é avaliada no dia central de cada '
+        'par de transições.',y=-.04)
+fig.suptitle('Derivadas padronizadas pelo piso de ruído de cada subescala',fontsize=13.5,fontweight='bold',x=.011,ha='left',y=1.02)
+fig.tight_layout(); salvar(fig,'F6fig')

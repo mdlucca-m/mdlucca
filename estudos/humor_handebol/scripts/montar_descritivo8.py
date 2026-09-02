@@ -210,9 +210,9 @@ fig_("F4fig.png", "Trajetória das seis subescalas em escore T ao longo do micro
      "teste de Page assinalado.", w=13.4)
 
 h_("3.3 Estrutura de associação entre as variáveis", before=6, size=10.5)
-p_(f"A Figura {prox_fig()} apresenta a matriz de correlação de Spearman entre as sete variáveis, sobre os "
-   f"{NAD} pares atleta-dia.")
-fig_("G5fig.png", "Matriz de correlação de Spearman entre as sete variáveis do BRUMS, com o coeficiente de "
+p_(f"A Figura {prox_fig()} ordena as 21 associações de Spearman entre as sete variáveis, sobre os "
+   f"{NAD} pares atleta-dia, com o coeficiente de Pearson ao lado para comparação.")
+fig_("G5fig.png", "As 21 associações entre pares das sete variáveis do BRUMS por Spearman, com o coeficiente de "
      "Pearson ao lado para comparação.", w=13.4)
 mv = A3['MAT']
 p_(f"A associação mais forte do conjunto liga a fadiga à perturbação total (ρ = {n_(mv['Fadiga×TMD']['rho'],3)}; "

@@ -12,21 +12,30 @@ EXP = json.load(open(f"{S}/V2_expl.json", encoding="utf-8"))
 PAR = B['pares']; dia_arr = np.array([p['dia'] for p in PAR])
 X = {v: np.array([p[v] for p in PAR], float) for v in V7}
 
-# ==================== X1: caixa e bigodes por dia ====================
+# ==================== X1: caixa e bigodes por dia, com linha de tendência ====================
 DEST = ['Tensão', 'Vigor', 'Fadiga', 'TMD']
 fig, axs = plt.subplots(1, 4, figsize=(16.4, 4.2))
 for a, v in zip(axs, DEST):
     dados = [X[v][dia_arr == d] for d in range(1, 8)]
-    bp = a.boxplot(dados, widths=.6, patch_artist=True, showfliers=True,
+    medianas = np.array([np.median(dd) for dd in dados])
+    bp = a.boxplot(dados, widths=.6, patch_artist=True, showfliers=True, zorder=3,
                     flierprops=dict(marker='o', ms=3.2, mfc='none', mec=CV[v], alpha=.55),
-                    medianprops=dict(color=SURF, lw=1.8), whiskerprops=dict(color=MUT, lw=1.1),
+                    medianprops=dict(color=SURF, lw=1.8, zorder=6), whiskerprops=dict(color=MUT, lw=1.1),
                     capprops=dict(color=MUT, lw=1.1))
     for p in bp['boxes']: p.set(facecolor=CV[v], alpha=.78, lw=0)
+    # linha de tendência: mediana de cada dia, com sombra ±piso em torno dela
+    piso = A1['SER'][v]['piso'] if v in A1['SER'] else None
+    if piso:
+        a.fill_between(range(1, 8), medianas - piso, medianas + piso, color=INK, alpha=.07, zorder=1, lw=0)
+    a.plot(range(1, 8), medianas, '-', lw=2.2, color=INK, alpha=.75, zorder=5,
+           marker='D', ms=5.0, mfc=SURF, mec=INK, mew=1.4)
     a.set_xticks(range(1, 8)); a.set_xticklabels([f"D{d}" for d in range(1, 8)], fontsize=9.4)
     a.set_title(L(v), fontsize=11.4, loc='left', fontweight='bold', color=CV[v])
     gy(a)
 axs[0].set_ylabel('Escore bruto', fontsize=10.4)
-rod(fig, 'Caixa: quartis; traço: mediana; pontos além dos bigodes: valores atípicos por 1,5 vez o intervalo interquartil.')
+rod(fig, 'Caixa: quartis; traço branco: mediana; pontos além dos bigodes: valores atípicos por 1,5 vez o intervalo '
+        'interquartil. Losango e linha escura: tendência da mediana diária, com a banda cinza marcando ±1 piso de '
+        'ruído em torno dela.')
 fig.tight_layout(); salvar(fig, 'X1fig')
 
 # ==================== X2: histograma das sete variáveis ====================
@@ -44,23 +53,33 @@ axs.flat[-1].axis('off')
 rod(fig, 'Linha tracejada: mediana. Distribuição sobre os 166 pares atleta-dia.')
 fig.tight_layout(); salvar(fig, 'X2fig')
 
-# ==================== X3: transição de perfil D1 → D7 ====================
-NM = EXP['NOMES_MATRIZ']; M = np.array(EXP['MATRIZ'])
-fig, a = plt.subplots(figsize=(8.6, 7.4))
-im = a.imshow(M, cmap=DIV, vmin=-M.max(), vmax=M.max())
-for i in range(6):
-    for j in range(6):
-        if M[i, j] > 0:
-            a.text(j, i, str(M[i, j]), ha='center', va='center', fontsize=13,
-                   fontweight='bold', color=INK if M[i, j] < M.max() * .6 else SURF)
-CURTO = ['Iceberg', 'Superfície', 'Submerso', 'Barbatana\nde tubarão', 'Iceberg\ninvertido', 'Everest\ninvertido']
-a.set_xticks(range(6)); a.set_xticklabels(CURTO, fontsize=9.2, rotation=30, ha='right')
-a.set_yticks(range(6)); a.set_yticklabels(CURTO, fontsize=9.2)
-a.set_xlabel('Perfil no sétimo dia (D7)', fontsize=11); a.set_ylabel('Perfil no primeiro dia (D1)', fontsize=11)
-a.set_title(f'Transição individual de perfil, D1 → D7 (n = {EXP["n_pareados"]} atletas pareados)',
+# ==================== X3: retenção e migração de perfil, D1 → D7 ====================
+TRANS = EXP['TRANS']; NOMES_T = [nm for nm in EXP['NOMES_MATRIZ'] if TRANS[nm]['n_d1'] > 0]
+NOMES_T.sort(key=lambda nm: TRANS[nm]['pct_ficou'])
+PITCH = 1.7
+yy = np.arange(len(NOMES_T))[::-1] * PITCH
+fig, a = plt.subplots(figsize=(11.6, 1.15 * len(NOMES_T) + 1.3))
+a.barh(yy, [100] * len(NOMES_T), height=1.0, color=GRID, alpha=.55, zorder=2)
+for y, nm in zip(yy, NOMES_T):
+    t = TRANS[nm]; pct = t['pct_ficou']
+    a.barh(y, pct, height=1.0, color=CPF[nm], alpha=.92, edgecolor=CPF[nm], lw=1.4, zorder=3)
+    dest = sorted(t['destinos'].items(), key=lambda x: -x[1])
+    dtxt = '; '.join(f"{v}× {k}" for k, v in dest[:2]) if dest else 'nenhum outro caso'
+    a.annotate(f"{vg(pct,0)}%  (n = {t['n_d1']})", xy=(pct, y), xytext=(8, 0), textcoords='offset points',
+               va='center', fontsize=10.4, fontweight='bold', color=CPF[nm], zorder=5)
+    a.annotate(f"migrou para: {dtxt}" if pct < 100 else 'sem migração no único caso',
+               xy=(2, y - .62), va='top', fontsize=8.3, color=MUT, style='italic', zorder=5)
+a.set_yticks(yy); a.set_yticklabels(NOMES_T, fontsize=10.6)
+for t_, nm in zip(a.get_yticklabels(), NOMES_T): t_.set_color(CPF[nm]); t_.set_fontweight('bold')
+a.set_ylim(-PITCH * .62, yy[0] + PITCH * .62)
+a.set_xlim(0, 118); a.set_xticks([0, 25, 50, 75, 100])
+a.set_xlabel('Permaneceu no mesmo perfil em D7 (%)', fontsize=10.8)
+a.set_title(f'Retenção e migração de perfil, do primeiro ao sétimo dia (n = {EXP["n_pareados"]} atletas pareados)',
             fontsize=11.6, loc='left', fontweight='bold')
-for i in range(7): a.axhline(i - .5, color=SURF, lw=2); a.axvline(i - .5, color=SURF, lw=2)
-rod(fig, 'A diagonal é quem permaneceu no mesmo perfil; fora dela, quem migrou.')
+gx(a)
+rod(fig, 'Barra clara: totalidade dos atletas que começaram no perfil, em D1 (sombra = 100%). Barra colorida: os '
+        'que permaneceram nele em D7. Ordenado do que mais migra ao que menos migra; a barbatana de tubarão tem '
+        'um único representante em D1 e a sua retenção de 100% não deve ser generalizada.', y=-.045)
 fig.tight_layout(); salvar(fig, 'X3fig')
 
 # ==================== X4: magnitude de mudança por transição ====================

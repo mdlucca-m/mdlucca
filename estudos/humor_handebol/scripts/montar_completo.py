@@ -309,7 +309,7 @@ h_("Etapa 10 — Transição individual de perfil e classificação de risco", b
 p_(f"A Figura {prox_fig()} cruza o perfil de cada atleta no primeiro dia com o perfil no sétimo, sobre os "
    f"{EXP['n_pareados']} atletas com classificação nos dois extremos, e a Tabela {prox_tab()} resume o "
    "mesmo cruzamento por perfil de partida.")
-fig_("X3fig.png", "Transição individual de perfil, do primeiro ao sétimo dia.", w=11.2)
+fig_("X3fig.png", "Retenção e migração de perfil, do primeiro ao sétimo dia, por perfil de partida.", w=13.6)
 cap_(f"Tabela {tab()} – Para onde foram os atletas de cada perfil inicial")
 linT = []
 for nome in NOMES:

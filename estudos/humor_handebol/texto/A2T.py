@@ -392,7 +392,7 @@ R5=[
 "A estrutura de associação, apresentada na Figura 5 e na Tabela 5, foi estimada pelas duas vias. Quinze dos "
 "vinte e um pares de variáveis associam-se de modo significativo após correção de Holm pelo coeficiente de "
 "Spearman, e dezessete pelo de Pearson. A concordância entre os dois é alta: a discrepância mediana entre "
-"|ρ| e |r| é de 0,05 e a máxima, de 0,18, no par formado pela depressão e pela perturbação total.",
+"|ρ| e |r| é de 0,05 e a máxima, de 0,20, no par formado pela depressão e pela perturbação total.",
 "O padrão substantivo é o mesmo pelas duas vias. A fadiga vincula-se fortemente à perturbação total "
 "(ρ = 0,76; r = 0,80) e o vigor, de modo inverso (ρ = −0,62; r = −0,54). A tensão destaca-se por dois "
 "comportamentos que a afastam do bloco de afeto negativo: correlaciona-se positivamente com o vigor "
