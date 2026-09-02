@@ -34,13 +34,44 @@ class TestTermoDeBusca(unittest.TestCase):
         # silêncio parece "esta pessoa não publicou"
         self.assertEqual(sources.termo_de_autor("Alexandro Andrade"),
                          "Andrade Alexandro[Author]")
-        self.assertEqual(sources.termo_de_autor("Guilherme Torres Vilarino"),
-                         "Vilarino Guilherme[Author]")
+        self.assertIn("Vilarino Guilherme[Author]",
+                      sources.termo_de_autor("Guilherme Torres Vilarino"))
 
     def test_so_o_primeiro_nome_entra_na_forma_por_extenso(self):
         # "Vilarino Guilherme Torres" exige que o registro traga o nome do
         # meio; os que não trazem somem — some um décimo da produção
-        self.assertNotIn("Torres", sources.termo_de_autor("Guilherme Torres Vilarino"))
+        self.assertNotIn("Vilarino Guilherme Torres",
+                         sources.termo_de_autor("Guilherme Torres Vilarino"))
+
+    def test_o_sobrenome_composto_tambem_e_procurado(self):
+        """A PubMed indexa o sobrenome como o periódico mandou.
+
+        "Guilherme Torres Vilarino" aparece ora como "Vilarino GT", ora
+        como "Torres Vilarino G" -- são duas entradas diferentes no índice.
+        Procurando só pela última palavra vinham 30 dos 34 artigos dele, e
+        os quatro que faltavam estavam todos na forma composta. O silêncio
+        parecia "só publicou 30".
+        """
+        termo = sources.termo_de_autor("Guilherme Torres Vilarino", "UDESC")
+        self.assertIn("Torres Vilarino G[Author]", termo)
+
+    def test_o_composto_nao_depende_da_afiliacao(self):
+        # dos quatro artigos perdidos, dois não trazem "UDESC" em afiliação
+        # nenhuma: prender a forma composta à afiliação recuperaria só metade
+        termo = sources.termo_de_autor("Guilherme Torres Vilarino", "UDESC")
+        antes = termo.index("Torres Vilarino G[Author]")
+        self.assertNotIn("Affiliation", termo[:antes])
+
+    def test_nome_de_duas_partes_nao_inventa_composto(self):
+        # "Alexandro Andrade" não tem sobrenome composto para procurar
+        termo = sources.termo_de_autor("Alexandro Andrade", "UDESC")
+        self.assertEqual(termo,
+                         "Andrade Alexandro[Author]"
+                         " OR (Andrade A[Author] AND UDESC[Affiliation])")
+
+    def test_quatro_partes_juntam_as_iniciais_do_comeco(self):
+        termo = sources.termo_de_autor("Ana Paula Silva Souza")
+        self.assertIn("Silva Souza AP[Author]", termo)
 
     def test_sem_afiliacao_a_forma_abreviada_nao_e_usada_sozinha(self):
         # "Andrade A[Author]" sem afiliação traz milhares de artigos de

@@ -415,19 +415,37 @@ def termo_de_autor(nome: str, afiliacao: str | None = None,
     So o PRIMEIRO nome entra na forma por extenso. Incluir o nome do meio
     exige que o registro tambem o traga, e os que nao trazem somem da
     busca (com "Vilarino Guilherme Torres" some um decimo da producao).
+
+    E ha o sobrenome COMPOSTO. A PubMed indexa o sobrenome como o periodico
+    mandou, e "Guilherme Torres Vilarino" aparece ora como "Vilarino GT",
+    ora como "Torres Vilarino G" -- sao duas entradas diferentes no indice,
+    e quem procura so pela ultima palavra perde a outra. Com este autor
+    eram 30 de 34 artigos: os quatro que faltavam estavam todos indexados
+    pela forma composta, e o silencio parecia "so publicou 30".
+
+    A forma composta vai SEM afiliacao, pelo mesmo motivo do nome por
+    extenso: "Torres Vilarino G" e um endereco especifico o bastante --
+    hoje, na PubMed inteira, ele so devolve artigos deste laboratorio.
     """
     pedacos = [p for p in clean_text(nome).split() if p]
     sobrenome = pedacos[-1] if pedacos else ""
     iniciais = "".join(p[0] for p in pedacos[:-1]).upper()
     abreviado = f"{sobrenome} {iniciais}[Author]" if iniciais else f"{sobrenome}[Author]"
     inteiro = f"{sobrenome} {pedacos[0]}[Author]" if iniciais else None
+    # "Torres Vilarino G": as duas ultimas palavras como sobrenome, e as
+    # anteriores viram inicial. So faz sentido com tres pedacos ou mais.
+    composto = None
+    if len(pedacos) >= 3:
+        iniciaisDoComposto = "".join(p[0] for p in pedacos[:-2]).upper()
+        composto = f"{pedacos[-2]} {sobrenome} {iniciaisDoComposto}[Author]"
+    livres = [x for x in (inteiro, composto) if x]
     if not afiliacao:
         # Sem afiliacao, o abreviado sozinho traz gente demais -- entao,
-        # havendo nome de batismo, so ele vale.
-        termo = inteiro or abreviado
+        # havendo nome de batismo, so as formas especificas valem.
+        termo = " OR ".join(livres) if livres else abreviado
     else:
         comAfiliacao = f"{abreviado} AND {clean_text(afiliacao)}[Affiliation]"
-        termo = f"{inteiro} OR ({comAfiliacao})" if inteiro else comAfiliacao
+        termo = " OR ".join(livres + [f"({comAfiliacao})"]) if livres else comAfiliacao
     if desde:
         janela = f'("{desde}"[Date - Publication] : "3000"[Date - Publication])'
         # Sem os parenteses em volta, o recorte de data grudaria so no
