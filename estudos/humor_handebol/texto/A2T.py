@@ -428,16 +428,26 @@ R6=[
 R7=[
 "O tratamento de séries oferece um critério paralelo, e a comparação com os valores de p é instrutiva. A "
 "Tabela 7 põe lado a lado o veredito do piso de ruído e o das três vias inferenciais.",
-"As duas leituras concordam nos extremos. O vigor e a fadiga são sinal pelo piso, com deslocamento de 7,1 e 5,7 "
-"vezes o respectivo ruído, e significativos pelas três vias. A raiva desloca-se apenas 1,9 vez o seu ruído e não "
-"alcança significância por via alguma. Nas variáveis intermediárias as leituras divergem, e cada divergência é "
-"informativa.",
-"A tensão é sinal pelo piso, com deslocamento de 3,4 vezes o ruído, e não é significativa pelo teste de "
-"Friedman. A discrepância mede exatamente o custo do descarte de casos incompletos: o deslocamento é grande "
-"em relação ao ruído da série agregada, mas o teste opera sobre dezenove trajetórias individuais e não o "
-"detecta. A raiva ilustra o caso oposto: é sinal pelo piso por margem estreita, com deslocamento de 1,5 vez o "
-"ruído, e não é significativa por via alguma. Aqui o piso é permissivo, e a leitura correta é a das vias "
-"inferenciais.",
+"Convém distinguir esta contagem da apresentada na secção 3.2. Lá a comparação era entre as vias, e cinco das "
+"sete variáveis recebiam veredito unânime. Aqui a comparação é entre o piso e as vias, e a raiva muda de "
+"lado: as três rotas concordam em não a declarar significativa, e é justamente essa unanimidade que a opõe "
+"ao piso.",
+"As sete séries são sinal pelo piso, e em quatro delas as três vias confirmam o veredito. O vigor e a fadiga "
+"deslocam-se 7,1 e 5,7 vezes o respectivo ruído, a perturbação total 4,5 vezes e a tensão 3,5 vezes, e todas "
+"as quatro alcançam significância pelas três rotas. As três variáveis restantes divergem, e cada divergência "
+"tem causa própria.",
+"Na raiva, que se desloca 1,9 vez o seu ruído sem alcançar significância por via alguma, o piso é "
+"permissivo: a trajetória não é monotônica, de modo que o deslocamento entre as pontas não representa a "
+"série, e a leitura correta é a das vias inferenciais.",
+"Na depressão, que apresenta a menor folga do conjunto, de 1,6 vez o ruído, e só alcança significância pelo "
+"modelo misto, a divergência mede o custo do descarte de casos incompletos, conforme a secção 3.2 detalhou. "
+"O piso e o modelo misto convergem, e ambos se opõem às duas vias que exigem série completa.",
+"Na confusão, que se desloca 2,5 vezes o ruído e é significativa pelas duas vias de casos completos mas não "
+"pelo coeficiente do modelo misto, a causa não é de poder estatístico, e sim de hipótese testada. O piso "
+"acompanha o teste de Friedman, e por bom motivo: ambos respondem à magnitude do movimento, ao passo que o "
+"coeficiente avalia a sua forma. A confusão cai 2,25 pisos na primeira transição e mais 1,06 na segunda, e a "
+"partir daí oscila sem direção definida. O movimento existe, é grande e está concentrado no início da "
+"semana; ele apenas não tem a forma de reta que o coeficiente procura.",
 "A conclusão que essa comparação sustenta não é a de que um critério substitui o outro. É a de que eles respondem a perguntas distintas, uma sobre quanto a série se moveu em relação ao seu próprio "
 "ruído, outra sobre a probabilidade de observar esse movimento sob a hipótese nula, e que reportar ambos permite ao leitor "
 "identificar onde a conclusão é frágil.",
@@ -606,16 +616,19 @@ DISCUSSAO=[
  "paramétrica se sustenta e três em que não se sustenta, e a média entre elas não descreve nenhuma."]),
 ("O critério de ruído como leitura independente do valor de p",[
  "O tratamento de séries adotado neste estudo fornece um critério que não depende de hipótese nula alguma: o "
- "deslocamento total é comparado ao piso de ruído da própria série. Essa leitura converge com a inferencial nos extremos, pois vigor e fadiga constituem sinal pelo piso, com folga "
- "de 7,1 e 5,7 vezes, e alcançam significância pelas três vias, ao passo que a raiva, com folga de apenas 1,9 "
- "vez, não a atinge por nenhuma; a divergência aparece no meio, e é aí que ela se torna útil. A depressão ilustra "
- "bem o ponto: desloca-se 1,6 vez o próprio ruído, o que o critério registra como sinal fraco, e recebe "
- "significância de uma única via entre três.",
- "A tensão é sinal pelo piso, com deslocamento de 3,4 vezes o ruído da série, e não é significativa pelo teste "
- "de Friedman. A discrepância mede o custo do descarte de casos incompletos, e o modelo misto, que não "
- "descarta, converge com o piso. A raiva ilustra a situação inversa: o piso a declara sinal por margem "
- "estreita, e via alguma a confirma; aqui o critério de ruído é permissivo, porque a trajetória não é "
- "monotônica e o deslocamento entre as pontas não representa a série.",
+ "deslocamento total é comparado ao piso de ruído da própria série. As duas leituras convergem onde o "
+ "movimento é grande, pois vigor e fadiga constituem sinal pelo piso, com folga de 7,1 e 5,7 vezes, e "
+ "alcançam significância pelas três vias, e o mesmo vale para a perturbação total e para a tensão. A "
+ "divergência aparece nas variáveis de folga estreita, e é aí que ela se torna útil, porque nomeia a razão "
+ "pela qual dois critérios defensáveis chegam a vereditos distintos sobre o mesmo dado.",
+ "As três divergências observadas ilustram três lições distintas. Na depressão, o custo do descarte de casos "
+ "incompletos: o modelo misto, que aproveita os 166 pares, detecta o que as vias restritas às dezenove "
+ "trajetórias completas não detectam. Na raiva, a permissividade do piso: a trajetória não é monotônica e o "
+ "deslocamento entre as pontas não representa a série, de modo que nenhuma via confirma o que o critério "
+ "sugere. Na confusão, a diferença entre as hipóteses testadas: Friedman e a ANOVA reconhecem um movimento "
+ "que o coeficiente linear do modelo misto não reconhece, porque a queda concentra-se nas duas primeiras "
+ "transições e não desenha uma reta. Nenhuma das três é falha de um critério isolado; cada uma revela algo "
+ "sobre a série que uma leitura única deixaria oculto.",
  "Nenhum dos dois critérios é superior ao outro em abstrato. O valor de p responde a uma pergunta sobre "
  "probabilidade; o piso, a uma pergunta sobre magnitude relativa ao próprio ruído. A literatura de "
  "monitoramento do atleta já se move nessa direção quando adota a mínima variação detectável para decisões "
