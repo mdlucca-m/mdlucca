@@ -1039,8 +1039,8 @@ DISCUSSAO=[
  "handebol privilegia indicadores de carga externa, apesar da evidência de que medidas subjetivas superam "
  "medidas objetivas na detecção de respostas ao treino (SAW; MAIN; GASTIN, 2016). Os presentes resultados "
  "acrescentam três recomendações operacionais.",
- "A primeira diz respeito à frequência. A migração intradiária para a faixa de risco, com vinte e quatro "
- "entradas contra oito saídas, só se torna visível porque houve duas coletas diárias. Um protocolo com coleta "
+ "A primeira diz respeito à frequência. A migração intradiária para a faixa de risco, com vinte e três "
+ "entradas contra dez saídas, só se torna visível porque houve duas coletas diárias. Um protocolo com coleta "
  "única perderia integralmente esse fenômeno, e a escolha entre a medida matinal e a vespertina produziria "
  "retratos substancialmente distintos do mesmo dia. A segunda diz respeito ao critério: nenhuma série de "
  "monitoramento deve ser lida sem uma declaração prévia da magnitude que se considerará relevante, e o cálculo "

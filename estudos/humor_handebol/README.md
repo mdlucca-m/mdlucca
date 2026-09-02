@@ -101,8 +101,8 @@ contra os carimbos de data e hora em `analise/V2_proto.py`.
 - A distribuição dos perfis **não** difere por tipo de estímulo (χ² = 6,384; p = 0,782), nem a
   das faixas (χ² = 3,030; p = 0,553). Nenhuma das sete variáveis contínuas difere entre os três
   tipos de estímulo na subamostra de vinte e dois atletas presentes em todos eles.
-- A migração intradiária para a faixa de risco é robusta no conjunto, com vinte e sete entradas
-  contra nove saídas, mas a atribuição a um estímulo específico não sobrevive à correção de
+- A migração intradiária para a faixa de risco é robusta no conjunto, com vinte e três entradas
+  contra dez saídas, mas a atribuição a um estímulo específico não sobrevive à correção de
   Holm.
 - Em um modelo de efeitos aleatórios cruzados, a parcela de variância atribuível ao dia é a
   menor das três em todas as sete variáveis, de 0,6% na depressão a 15,6% no vigor.
