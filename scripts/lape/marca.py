@@ -13,7 +13,9 @@ que fosse um <img src="/logo.png"> sumiria dos tres.
 from __future__ import annotations
 
 import base64
+import binascii
 import mimetypes
+import re
 from pathlib import Path
 from typing import Any
 
@@ -121,3 +123,84 @@ def situacao() -> dict[str, Any]:
         "aceitos": list(NOMES),
         "limite_kb": LIMITE_BYTES // 1024,
     }
+
+
+# ----------------------------------------------------------------------
+# Receber o arquivo pela tela
+# ----------------------------------------------------------------------
+# Quem cuida do laboratorio nao tem por que abrir um terminal para trocar
+# um logotipo. A imagem chega da propria pagina, como data: URI (que e o
+# que o FileReader do navegador produz), e e gravada em data/logo.<ext>.
+
+# A extensao NAO vem do nome que o navegador manda: vem do que os primeiros
+# bytes dizem ser. Um .png que na verdade e outra coisa viraria um <img>
+# quebrado -- e um <img> quebrado nao da erro nenhum na pagina.
+ASSINATURAS = (
+    (b"\x89PNG\r\n\x1a\n", ".png", "image/png"),
+    (b"\xff\xd8\xff", ".jpg", "image/jpeg"),
+    (b"GIF87a", None, None),      # reconhecido para poder recusar com nome
+    (b"GIF89a", None, None),
+)
+
+
+class Recusado(ValueError):
+    """O arquivo nao serve, e a mensagem diz por que."""
+
+
+def _tipo_real(bruto: bytes) -> tuple[str, str]:
+    for assinatura, extensao, tipo in ASSINATURAS:
+        if bruto.startswith(assinatura):
+            if extensao is None:
+                raise Recusado("GIF nao serve como logotipo: use PNG, SVG, WEBP ou JPG.")
+            return extensao, tipo
+    if bruto[:4] == b"RIFF" and bruto[8:12] == b"WEBP":
+        return ".webp", "image/webp"
+    # SVG e texto: pode vir com BOM, com declaracao XML ou com comentario antes
+    cabeca = bruto[:600].lstrip(b"\xef\xbb\xbf").lstrip()
+    if re.search(rb"<svg[\s>]", cabeca, re.I) or cabeca.startswith(b"<?xml"):
+        if re.search(rb"<svg[\s>]", bruto[:4000], re.I):
+            return ".svg", "image/svg+xml"
+    raise Recusado("Nao reconheci a imagem. Aceito PNG, SVG, WEBP e JPG.")
+
+
+def gravar(data_uri: str) -> dict[str, Any]:
+    """Grava o logotipo enviado pela tela. Devolve a situacao resultante."""
+    texto = (data_uri or "").strip()
+    if "," in texto and texto.lower().startswith("data:"):
+        texto = texto.split(",", 1)[1]
+    if not texto:
+        raise Recusado("Nenhum arquivo veio junto.")
+    try:
+        bruto = base64.b64decode(texto, validate=True)
+    except (binascii.Error, ValueError):
+        raise Recusado("O arquivo chegou corrompido no caminho.") from None
+    if not bruto:
+        raise Recusado("O arquivo esta vazio.")
+    if len(bruto) > LIMITE_BYTES:
+        raise Recusado(f"O arquivo tem {len(bruto) // 1024} kB e o limite e"
+                       f" {LIMITE_BYTES // 1024} kB: ele entra embutido em cada"
+                       f" pagina e em cada instantaneo que sai daqui.")
+    extensao, _tipo = _tipo_real(bruto)
+
+    config.DATA_DIR.mkdir(parents=True, exist_ok=True)
+    alvo = config.DATA_DIR / ("logo" + extensao)
+    alvo.write_bytes(bruto)
+    # Os outros saem: a procura tem ordem (SVG antes de PNG), entao deixar o
+    # antigo faria alguem enviar um PNG novo e continuar vendo o SVG velho,
+    # sem nada na tela explicando.
+    for nome in NOMES:
+        outro = config.DATA_DIR / nome
+        if outro != alvo and outro.is_file():
+            outro.unlink()
+    _cache.clear()
+    return situacao()
+
+
+def remover() -> dict[str, Any]:
+    """Tira o logotipo. As duas letras voltam."""
+    for nome in NOMES:
+        alvo = config.DATA_DIR / nome
+        if alvo.is_file():
+            alvo.unlink()
+    _cache.clear()
+    return situacao()

@@ -1146,6 +1146,38 @@ def route_producao_importar(ctx: "Context") -> Any:
     return resultado
 
 
+def route_marca(ctx: "Context") -> Any:
+    """Se ha logotipo, onde ele esta, e o que houve se nao entrou."""
+    auth.require(ctx.user, "leitura")
+    return marca.situacao()
+
+
+def route_marca_gravar(ctx: "Context") -> Any:
+    """Recebe o logotipo enviado pela propria tela.
+
+    Vem como data: URI porque e o que o `FileReader` do navegador produz --
+    e porque assim o corpo continua sendo JSON, como todas as outras rotas.
+    Quem cuida do laboratorio nao tem por que abrir um terminal e copiar um
+    arquivo para uma pasta para trocar uma imagem.
+    """
+    user = auth.require(ctx.user, "coordenacao")
+    from . import hooks
+
+    corpo = ctx.body or {}
+    if corpo.get("remover"):
+        estado = marca.remover()
+        hooks.emit(ctx.db, "marca.trocada", detail="logotipo removido",
+                   actor=user.get("full_name"))
+        return estado
+    try:
+        estado = marca.gravar(corpo.get("arquivo") or "")
+    except marca.Recusado as erro:
+        raise ApiError(400, str(erro)) from None
+    hooks.emit(ctx.db, "marca.trocada", detail="logotipo do laboratório atualizado",
+               actor=user.get("full_name"))
+    return estado
+
+
 def route_citacoes(ctx: "Context") -> Any:
     """Retrato da conexao com Scopus e Web of Science, antes de tentar."""
     auth.require(ctx.user, "leitura")
@@ -1298,6 +1330,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/ponto/equipe/?$", route_ponto_equipe, "coordenacao"),
     ("GET", r"^/api/producao/?$", route_producao, "leitura"),
     ("POST", r"^/api/producao/importar/?$", route_producao_importar, "coordenacao"),
+    ("GET", r"^/api/marca/?$", route_marca, "leitura"),
+    ("POST", r"^/api/marca/?$", route_marca_gravar, "coordenacao"),
     ("GET", r"^/api/citacoes/?$", route_citacoes, "leitura"),
     ("POST", r"^/api/citacoes/atualizar/?$", route_citacoes_atualizar, "coordenacao"),
     ("GET", r"^/api/panorama/?$", route_panorama, "leitura"),

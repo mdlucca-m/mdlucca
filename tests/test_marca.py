@@ -204,3 +204,108 @@ class TestAsTelasQueUsam(unittest.TestCase):
         self.assertIn(".logo-img { background: #fff; }", css)
         # e sem seguir o tema do sistema: o painel e escuro por padrao
         self.assertNotIn("prefers-color-scheme: light", css)
+
+
+class TestReceberPelaTela(BaseMarca):
+    """A imagem entra pelo navegador, de onde ela já está.
+
+    "Abra o terminal e copie o arquivo para a pasta data" é um pedido que
+    não se atende sozinho -- e quem cuida do laboratório usa este sistema
+    pelo navegador, num computador Windows.
+    """
+
+    def uri(self, bruto, prefixo="data:image/png;base64,"):
+        return prefixo + base64.b64encode(bruto).decode()
+
+    def test_grava_o_png_com_a_extensao_certa(self):
+        marca.gravar(self.uri(PNG_MINIMO))
+        self.assertTrue((self.pasta / "logo.png").is_file())
+        self.assertEqual((self.pasta / "logo.png").read_bytes(), PNG_MINIMO)
+
+    def test_a_extensao_vem_dos_bytes_e_nao_do_nome(self):
+        """Um PNG anunciado como SVG viraria data/logo.svg -- e um <img>
+        quebrado, que não dá erro nenhum na página.
+        """
+        marca.gravar(self.uri(PNG_MINIMO, "data:image/svg+xml;base64,"))
+        self.assertTrue((self.pasta / "logo.png").is_file())
+        self.assertFalse((self.pasta / "logo.svg").exists())
+
+    def test_o_svg_e_reconhecido_mesmo_com_declaracao_xml(self):
+        bruto = b'<?xml version="1.0"?>\n<svg xmlns="http://www.w3.org/2000/svg"></svg>'
+        marca.gravar(self.uri(bruto))
+        self.assertTrue((self.pasta / "logo.svg").is_file())
+
+    def test_o_arquivo_novo_apaga_o_antigo(self):
+        """A procura tem ordem: SVG vence PNG.
+
+        Sem apagar, quem enviasse um PNG novo continuaria vendo o SVG velho
+        -- e não haveria nada na tela explicando por quê.
+        """
+        marca.gravar(self.uri(SVG_MINIMO))
+        self.assertTrue((self.pasta / "logo.svg").is_file())
+        marca.gravar(self.uri(PNG_MINIMO))
+        self.assertFalse((self.pasta / "logo.svg").exists())
+        self.assertTrue((self.pasta / "logo.png").is_file())
+        self.assertEqual(marca.caminho().name, "logo.png")
+
+    def test_o_que_nao_e_imagem_e_recusado_com_nome(self):
+        with self.assertRaises(marca.Recusado) as caso:
+            marca.gravar(self.uri(b"nao sou imagem nenhuma"))
+        self.assertIn("PNG", str(caso.exception))
+        self.assertEqual(list(self.pasta.iterdir()), [])
+
+    def test_gif_e_recusado_dizendo_que_e_gif(self):
+        # recusar "não reconheci" um formato que se reconhece perfeitamente
+        # manda a pessoa procurar defeito no arquivo dela
+        with self.assertRaises(marca.Recusado) as caso:
+            marca.gravar(self.uri(b"GIF89a" + b"\x00" * 20))
+        self.assertIn("GIF", str(caso.exception))
+
+    def test_grande_demais_e_recusado_antes_de_gravar(self):
+        with self.assertRaises(marca.Recusado) as caso:
+            marca.gravar(self.uri(b"\x89PNG\r\n\x1a\n" + b"x" * marca.LIMITE_BYTES))
+        self.assertIn("limite", str(caso.exception))
+        self.assertEqual(list(self.pasta.iterdir()), [])
+
+    def test_vazio_e_corrompido_nao_viram_arquivo(self):
+        for ruim in ("", "data:image/png;base64,", "data:image/png;base64,%%%"):
+            with self.subTest(entrada=ruim):
+                with self.assertRaises(marca.Recusado):
+                    marca.gravar(ruim)
+        self.assertEqual(list(self.pasta.iterdir()), [])
+
+    def test_remover_devolve_as_duas_letras(self):
+        marca.gravar(self.uri(PNG_MINIMO))
+        self.assertTrue(marca.situacao()["tem"])
+        marca.remover()
+        self.assertFalse(marca.situacao()["tem"])
+        self.assertEqual(marca.marcador(), "LP")
+
+    def test_remover_sem_nada_para_remover_nao_quebra(self):
+        self.assertFalse(marca.remover()["tem"])
+
+
+class TestAsRotasDaMarca(unittest.TestCase):
+    """Quem pode trocar a marca, e o que a tela recebe de volta."""
+
+    def test_a_rota_de_gravar_pede_coordenacao(self):
+        fonte = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
+        self.assertIn('("POST", r"^/api/marca/?$", route_marca_gravar, "coordenacao")',
+                      fonte)
+        self.assertIn('("GET", r"^/api/marca/?$", route_marca, "leitura")', fonte)
+
+    def test_a_recusa_vira_400_e_nao_500(self):
+        # erro de arquivo é do usuário, não do servidor: 500 mandaria a
+        # pessoa procurar defeito no sistema em vez de no arquivo
+        fonte = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
+        corpo = fonte[fonte.index("def route_marca_gravar"):fonte.index("def route_citacoes")]
+        self.assertIn("except marca.Recusado", corpo)
+        self.assertIn("ApiError(400", corpo)
+
+    def test_a_tela_confere_o_tamanho_antes_de_mandar(self):
+        # mandar 4 MB pela rede para ouvir "não" é uma espera evitável
+        js = (TEMPLATES / "panorama.js").read_text(encoding="utf-8")
+        corpo = js[js.index("function cartaoDaMarca"):js.index("function verLaboratorio")]
+        self.assertIn("arquivo.size >", corpo)
+        self.assertIn("readAsDataURL", corpo)
+        self.assertIn('api("/api/marca", "POST"', corpo)

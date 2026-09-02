@@ -593,6 +593,111 @@ function cartaoDasCitacoes() {
   return corpo;
 }
 
+/* ------------------------------------------------------------------ */
+/* A marca do laboratório                                               */
+/* O arquivo poderia ser copiado à mão para data/logo.png, e por muito
+   tempo foi só isso. Mas quem cuida do laboratório usa este sistema pelo
+   navegador, num computador Windows, e "abra o terminal e copie o arquivo
+   para a pasta data" é um pedido que não se atende sozinho. A imagem entra
+   por aqui, do mesmo lugar onde ela já está. */
+function cartaoDaMarca() {
+  const est = (D.laboratorio || {}).marca || {};
+  const podeGravar = ["coordenacao", "admin"]
+    .indexOf(((D.usuario || {}).papel) || "leitura") >= 0;
+  const corpo = el("div", {});
+
+  const mostra = el("div", { class: "marca-previa" });
+  function desenharPrevia() {
+    mostra.innerHTML = "";
+    const src = (D.laboratorio || {}).logo;
+    mostra.appendChild(src
+      ? el("img", { class: "logo-img", src: src,
+          alt: (D.laboratorio || {}).nome || "LAPE" })
+      : el("span", { class: "sem-logo", text: "LP" }));
+  }
+  desenharPrevia();
+
+  const estado = el("p", { class: "hint" });
+  function dizer(texto) { estado.textContent = texto; }
+  dizer(est.tem ? "Aparece no painel, no panorama, no mural, na entrada e no convite."
+    : "Sem arquivo, as telas ficam com as duas letras.");
+
+  corpo.appendChild(el("div", { class: "marca-linha" }, [mostra, estado]));
+
+  if (est.erro) {
+    corpo.appendChild(nota("<b>O arquivo que está lá não entrou.</b> " + est.erro + "."));
+  }
+
+  if (!podeGravar) {
+    corpo.appendChild(el("p", { class: "hint", style: "margin-top:8px",
+      text: "Quem troca a marca é a coordenação." }));
+    return corpo;
+  }
+
+  const escolher = el("input", { type: "file", accept: ".png,.svg,.webp,.jpg,.jpeg,image/*",
+    style: "display:none", id: "arquivoDaMarca" });
+  const botao = el("button", { class: "botao-destino", style: "margin-top:10px" },
+    [Icons.get("baixar", 15),
+     el("span", { text: est.tem ? "Trocar a imagem" : "Enviar a imagem" })]);
+  botao.onclick = function () { escolher.click(); };
+
+  escolher.onchange = function () {
+    const arquivo = escolher.files && escolher.files[0];
+    if (!arquivo) return;
+    /* O teto é conferido aqui TAMBÉM, e não só no servidor: mandar 4 MB
+       pela rede para ouvir "não" é uma espera que não precisava existir. */
+    if (arquivo.size > (est.limite_kb || 512) * 1024) {
+      dizer("Esse arquivo tem " + Math.round(arquivo.size / 1024) + " kB e o limite é "
+        + (est.limite_kb || 512) + " kB. Ele entra embutido em cada página e em cada "
+        + "instantâneo que sai daqui.");
+      escolher.value = "";
+      return;
+    }
+    const leitor = new FileReader();
+    leitor.onerror = function () { dizer("Não consegui ler o arquivo."); };
+    leitor.onload = async function () {
+      botao.disabled = true;
+      dizer("Enviando…");
+      try {
+        const r = await api("/api/marca", "POST", { arquivo: String(leitor.result) });
+        /* a resposta traz a situação, mas não a imagem: recarregar é o que
+           faz a marca nova aparecer nesta tela e no menu ao lado */
+        dizer(r.tem ? "Pronto. A marca já está em todas as telas."
+          : "O arquivo não entrou.");
+        await recarregar();
+        desenhar();
+      } catch (erro) {
+        dizer("Não deu: " + erro.message);
+      } finally { botao.disabled = false; escolher.value = ""; }
+    };
+    leitor.readAsDataURL(arquivo);
+  };
+  corpo.appendChild(escolher);
+  corpo.appendChild(botao);
+
+  if (est.tem) {
+    const tirar = el("button", { class: "ghost", style: "margin:10px 0 0 8px" },
+      [Icons.get("filtro", 14), el("span", { text: "Tirar" })]);
+    tirar.onclick = async function () {
+      tirar.disabled = true;
+      try {
+        await api("/api/marca", "POST", { remover: true });
+        await recarregar();
+        desenhar();
+      } catch (erro) { dizer("Não deu: " + erro.message); }
+      finally { tirar.disabled = false; }
+    };
+    corpo.appendChild(tirar);
+  }
+
+  corpo.appendChild(el("p", { class: "hint", style: "margin-top:10px", html:
+    "PNG, SVG, WEBP ou JPG, até " + (est.limite_kb || 512) + " kB. O SVG é o que "
+    + "não perde nitidez no mural, que roda numa tela grande. A imagem viaja "
+    + "<b>dentro</b> de cada página — é o que faz a marca aparecer também no "
+    + "instantâneo que você manda por e-mail e no mural rodando sem rede." }));
+  return corpo;
+}
+
 function verLaboratorio(palco) {
   const lab = D.laboratorio || {};
   palco.appendChild(cabeca("instituicao", lab.nome || "O laboratório",
@@ -603,6 +708,11 @@ function verLaboratorio(palco) {
     "O Lattes pede captcha e só sai do navegador. A PubMed entrega a mesma "
     + "produção por programa — com DOI, resumo e a afiliação que preenche o mapa.",
     cartaoDaProducao()));
+
+  palco.appendChild(cartao("etiqueta", "A marca do laboratório",
+    "O logotipo aparece no painel, no panorama, no mural, na tela de entrada e no "
+    + "convite. Sem arquivo, ficam as duas letras.",
+    cartaoDaMarca()));
 
   palco.appendChild(cartao("citacao", "Citações na Scopus e na Web of Science",
     "As duas bases fechadas não deixam contar de fora: pedem chave, e a chave "
