@@ -20,7 +20,7 @@ RESUMO=(
 "41,7. O vigor recuou 4,33 pontos contra um piso de 0,61 e a fadiga avançou 4,28 contra 0,76; as sete séries superaram "
 "o respectivo piso, com razões que vão de 7,1, no vigor, a 1,6, na depressão. As transições de choque concentraram-se "
 "nas duas extremidades da semana e deixaram um platô de quatro dias entre elas. O perfil iceberg recuou de "
-"37,0% para 19,0% e a barbatana de tubarão avançou de 11,1% para 28,6%; a faixa de risco passou de 22,2% para "
+"44,4% para 19,0% e a barbatana de tubarão avançou de 3,7% para 23,8%; a faixa de risco passou de 14,8% para "
 "52,4%. O teste formal de cruzamento reconheceu inversão estabelecida entre vigor e fadiga no quinto dia e "
 "entre vigor e perturbação total no sexto, mas recusou a inversão aparente entre tensão e raiva. A base "
 "passou por duas auditorias: a de procedência, que fixou a unidade de análise no par atleta-dia, e a de "
@@ -46,8 +46,8 @@ ABSTRACT=(
 "at the minimum value. On the normative scale, fatigue reached 57.7 and anger 55.4, whereas vigour fell to "
 "43.7 and tension to 41.6. Vigour dropped 2.98 points against a floor of 0.59 and fatigue rose 3.62 against "
 "0.76; depression was the only series whose change did not exceed its floor. Shock transitions concentrated at "
-"both ends of the week, leaving a four-day plateau between them. The iceberg profile retreated from 37.0% to "
-"19.0% and the shark fin advanced from 11.1% to 28.6%; the risk band went from 22.2% to 52.4%. The formal "
+"both ends of the week, leaving a four-day plateau between them. The iceberg profile retreated from 44.4% to "
+"19.0% and the shark fin advanced from 3.7% to 23.8%; the risk band went from 14.8% to 52.4%. The formal "
 "crossing test recognised an established inversion between vigour and fatigue on day five and between vigour "
 "and total mood disturbance on day six, but rejected the apparent inversion between tension and anger. Mood "
 "deterioration in the terminal microcycle is not gradual but concentrated in two discrete events, and telling "
@@ -141,8 +141,9 @@ INTRO=[
 "que separe sinal de ruído. A conjunção dos dois problemas define o objetivo geral desta investigação: "
 "descrever o perfil e o comportamento das variáveis do BRUMS ao longo da última semana de pré-temporada de "
 "atletas de handebol de elite, com comparação diária entre a manhã e a noite e contraste permanente com a "
-"linha de base, por meio de um tratamento de séries que combina suavização, análise de derivadas, piso de "
-"ruído e teste formal de cruzamento entre trajetórias.",
+"linha de base, por meio de um tratamento de séries que combina suavização por filtro binomial, derivadas de "
+"primeira e de segunda ordem, piso de ruído declarado, anatomia formal dos cruzamentos entre trajetórias, com "
+"velocidade, aceleração e zona de indecisão, e decomposição da variação observada nas parcelas que a compõem.",
 ]
 
 METODO=[
@@ -835,6 +836,33 @@ DISCUSSAO=[
  "mundial, perfis psicológicos que também não replicavam o padrão ansioso esperado, e Bird et al. (2025) "
  "documentaram dissociação semelhante entre marcadores de bem-estar e de ativação. A convergência sugere que "
  "atletas de alto rendimento reconhecem e nomeiam a fadiga com facilidade maior do que a tensão."]),
+("Inversão estabelecida e data determinada: duas perguntas que o cruzamento separa",[
+ "O teste formal de cruzamento responde a uma pergunta que a inspeção visual do gráfico não distingue de outra, "
+ "muito próxima e de resposta independente. A primeira pergunta indaga se houve inversão, isto é, se as duas "
+ "séries se separam por mais que o limiar combinado no primeiro dia e voltam a separar-se, em sentido oposto, no "
+ "sétimo. A segunda indaga quando a inversão ocorreu, e a sua resposta depende de outra propriedade da curva: a "
+ "rapidez com que a diferença atravessa o zero. Uma travessia lenta permanece longo tempo dentro do limiar, "
+ "intervalo em que a diferença não se distingue de zero e a data do cruzamento fica indeterminada. Esse intervalo "
+ "recebe aqui o nome de zona de indecisão, e a sua largura mede a determinação da data com a mesma economia com "
+ "que o piso de ruído mede a existência do deslocamento.",
+ "As três comparações examinadas separam-se nitidamente por esse critério. O par formado pelo vigor e pela fadiga "
+ "constitui inversão estabelecida, e a sua abscissa cai em 5,13; a velocidade da travessia, porém, é de apenas "
+ "0,86 limiar por dia, e a zona de indecisão estende-se de 2,59 a 6,11, ou seja, por 3,52 dias. O par formado pelo "
+ "vigor e pela perturbação total cruza-se em 6,01 a 2,14 limiares por dia, com zona de 1,42 dia, e é a única "
+ "travessia nítida do conjunto. O par formado pela fadiga e pela perturbação total não separa nos extremos, de "
+ "modo que a troca de posição observada em 6,41 recebe o veredito de divergência, coerentemente com uma zona de "
+ "indecisão de 5,35 dias, quase a semana inteira.",
+ "A segunda derivada acrescenta a essa leitura a informação sobre o regime da travessia. No par entre vigor e "
+ "fadiga a aceleração vale −1,15 limiar por dia ao quadrado no ponto de cruzamento, valor que indica separação "
+ "que se abre a taxa crescente: as duas séries não apenas trocam de posição, elas afastam-se cada vez mais "
+ "depressa depois de trocar. A distinção importa para o planejamento, porque uma inversão que se estabiliza "
+ "logo após o cruzamento e outra que continua a aprofundar-se pedem decisões diferentes na véspera da estreia.",
+ "Decorre daí uma recomendação de relato que a literatura de monitoramento não formula. Afirmar que o vigor e a "
+ "fadiga se cruzaram no quinto dia é preciso em excesso e, nessa medida, incorreto: o dado sustenta que a "
+ "inversão existe e que a sua data se situa em algum ponto do terço central da semana. A afirmação defensável "
+ "declara as duas coisas, o veredito de inversão e a largura da zona de indecisão, tal como a afirmação sobre "
+ "um deslocamento declara a magnitude e o piso contra o qual foi medida. Onde apenas a abscissa é reportada, o "
+ "leitor recebe uma data cuja incerteza permanece invisível."]),
 ("Sinal e ruído: uma exigência anterior à interpretação",[
  "A contribuição metodológica deste estudo consiste em tornar explícito um compromisso que a literatura de "
  "monitoramento costuma manter tácito. Antes de examinar uma série, o analista precisa declarar qual magnitude "
@@ -861,6 +889,112 @@ DISCUSSAO=[
  "que o analista assume consigo mesmo antes de olhar, e o seu valor epistemológico reside exatamente aí: "
  "restringe o espaço de histórias que os mesmos números autorizam. Nenhum critério elimina o julgamento; o que "
  "um critério explícito faz é torná-lo auditável."]),
+("A hierarquia das componentes: o objeto deste estudo é a menor das parcelas",[
+ "Um modelo de efeitos aleatórios cruzados, com atleta e dia como fontes independentes de variação, permite "
+ "situar o objeto deste estudo dentro da variação total que os dados contêm. O resultado convida à modéstia. A "
+ "parcela atribuível ao dia, que é exatamente o movimento do elenco de uma jornada para a outra, é a menor das "
+ "três componentes em todas as sete variáveis, com valores que vão de 0,6% na depressão a 15,6% no vigor. A "
+ "maior parcela cabe às diferenças estáveis entre atletas, entre 33,8% e 66,6%, e a parcela residual, que reúne "
+ "a resposta idiossincrática do atleta naquele dia e o erro de medida, ocupa entre 27,0% e 64,7%.",
+ "A leitura correta desse resultado não anula os achados anteriores, e sim os enquadra. Quando se afirma que a "
+ "fadiga do elenco avançou 4,28 pontos ao longo da semana, afirma-se algo sobre uma componente que responde por "
+ "8,5% da variação observada nos pares atleta-dia. O deslocamento é real, porque supera o piso de ruído em mais "
+ "de cinco vezes, e ainda assim é pequeno diante da distância que separa dois atletas quaisquer do mesmo elenco "
+ "no mesmo dia. Toda recomendação derivada da série do grupo herda essa proporção, e o monitoramento que "
+ "pretenda agir sobre o indivíduo precisa da série individual, não da média.",
+ "A variância entre as sete médias diárias comporta uma segunda decomposição, mais direta. Ela contém a variação "
+ "verdadeira somada à média dos erros-padrão ao quadrado; subtraída a segunda parcela, resta a primeira, e a razão "
+ "entre ela e o total exprime quanto da oscilação diária sobreviveria a uma medida sem erro. Apenas o vigor, com "
+ "0,78, e a fadiga, com 0,62, sustentam leitura de série no sentido pleno. A perturbação total fica em 0,48, a "
+ "tensão e a confusão em 0,33, a raiva em 0,08, e a estimativa da depressão é nula, porque a variância entre as "
+ "suas sete médias, de 0,094, é menor que a variância de erro, de 0,227.",
+ "Convém não confundir esse critério com o piso de ruído, ainda que ambos comparem movimento com erro de "
+ "amostragem. O piso confronta o deslocamento entre os dois extremos da série; a fidedignidade confronta a "
+ "dispersão das sete médias. Uma variável pode superar o primeiro e falhar no segundo, e a depressão é "
+ "precisamente esse caso: ela move-se pouco de um dia para o outro, sempre no mesmo sentido, e acumula ao longo "
+ "da semana um deslocamento que ultrapassa o próprio piso sem nunca produzir dispersão apreciável entre as "
+ "médias. A repartição do deslocamento entre choque e deriva completa o quadro e mostra o contraste em números: "
+ "90,7% do movimento absoluto do vigor concentra-se em transições que excedem o piso, contra 71,0% na perturbação "
+ "total, 65,9% na fadiga e nenhum por cento na depressão, cujo deslocamento inteiro é deriva."]),
+("A perturbação total como composto que se degrada",[
+ "A perturbação total é o indicador mais empregado em contextos aplicados, e a razão dessa preferência é a "
+ "conveniência de resumir seis dimensões em um número. A conveniência, porém, não se mantém constante ao longo "
+ "do microciclo. A correlação entre a fadiga e o composto parte de 0,671 no dia basal e alcança 0,858 no sétimo "
+ "dia, de modo que a variância partilhada entre os dois sobe de 45,0% para 73,7%. Em termos operacionais, o "
+ "escalar do primeiro dia agrega informação de várias dimensões; o do sétimo reproduz, em boa medida, a "
+ "subescala de fadiga.",
+ "A afirmação exige uma reserva que a própria série impõe. A tendência do coeficiente ao longo dos sete dias "
+ "resulta em ρ de 0,714 com p de 0,071, valor que não atinge o limiar convencional. Com sete pontos, a série de "
+ "coeficientes carece de potência para sustentar um teste de tendência, e o achado permanece descritivo: a "
+ "direção é consistente, o crescimento entre os extremos é substancial, e a inferência formal não se completa. "
+ "A distinção entre relatar a direção e declarar tendência estatística é a mesma exigida em toda esta "
+ "investigação, e não se suspende quando o resultado agrada.",
+ "A consequência prática independe do teste. Quem acompanha apenas o composto na fase terminal da pré-temporada "
+ "acompanha, na prática, a fadiga, e perde a informação que as demais dimensões ainda carregam. A recomendação "
+ "que decorre é a de reportar o perfil completo, e não o escalar isolado, sobretudo quando a carga acumulada se "
+ "aproxima do máximo do ciclo. O resultado dialoga ainda com a crítica metanalítica ao poder preditivo do humor "
+ "sobre o desempenho, que converge na conclusão de que o efeito existe e é modesto (BEEDIE; TERRY; LANE, 2000; "
+ "LOCHBAUM et al., 2021). Uma explicação possível para essa modéstia reside na degradação do próprio composto: "
+ "se a perturbação total mede coisas distintas em momentos distintos da temporada, a agregação de estudos "
+ "conduzidos em fases diferentes dilui necessariamente o efeito. A hipótese não se testa com os presentes dados, "
+ "e recomenda que estudos futuros declarem a fase do ciclo em que a medida foi obtida."]),
+("A tensão como ativação, e a alternativa métrica que não se descarta",[
+ "A tensão comporta-se neste grupo de modo que a teoria do afeto negativo não prevê. Ela decresce ao longo da "
+ "semana, com tendência confirmada pelo teste de Page (z = −3,041; p = 0,002), exatamente no período em que a "
+ "fadiga cresce e o vigor cai, e o seu deslocamento de 1,26 ponto supera com folga o piso de ruído de 0,36. Uma "
+ "variável que se move em sentido contrário ao das demais dimensões negativas, no mesmo intervalo e com sinal "
+ "acima do próprio ruído, pede explicação que a rotulação de afeto negativo não fornece.",
+ "A separação da associação em dois planos esclarece a natureza do fenômeno. Entre atletas, a tensão e o vigor "
+ "não se associam (ρ = 0,207; p = 0,300); dentro do atleta, associam-se de modo claro (ρ = 0,329; p < 0,001). "
+ "Os dias de maior tensão de um mesmo atleta são, portanto, os seus dias de maior vigor, ao passo que atletas "
+ "mais tensos não são, em média, mais vigorosos. O mesmo contraste aparece com a fadiga, cuja associação com a "
+ "tensão é nula entre atletas (ρ = −0,128; p = 0,526) e negativa dentro do atleta (ρ = −0,186; p = 0,017). Mais "
+ "revelador ainda é o comportamento diante do composto: a correlação agregada entre tensão e perturbação total, "
+ "de 0,200 com p de 0,010, desaparece por completo no plano intraindividual (ρ = 0,015; p = 0,846), o que "
+ "significa que ela é carregada inteiramente por diferenças estáveis entre pessoas e nada informa sobre a "
+ "variação do dia.",
+ "A leitura mais econômica atribui à tensão, neste contexto, a função de ativação. A distinção entre ansiedade "
+ "facilitadora e ansiedade debilitadora percorre a psicologia do esporte há décadas, e o padrão observado sugere "
+ "que os itens de tensão da escala captam, em atletas de elite em pré-temporada, prontidão e não sofrimento. "
+ "Belgacem et al. (2026) documentaram, em atletas jovens de caratê, associação entre ansiedade competitiva e "
+ "alterações de humor e de sono que aponta em direção distinta, o que reforça a hipótese de que a função da "
+ "tensão depende do nível competitivo e da fase da temporada.",
+ "Cabe, todavia, uma explicação alternativa de natureza métrica, e ela não se descarta com os presentes dados. A "
+ "tensão apresenta efeito de piso de 41,6%, e a sua média em escala normativa é de 41,7, quase um desvio-padrão "
+ "abaixo da referência. Uma variável comprimida contra o limite inferior da escala perde variância e, com ela, "
+ "capacidade de correlacionar-se, de modo que a anomalia pode ser artefato de piso e não propriedade "
+ "psicológica. As duas explicações não se excluem, e a arbitragem entre elas exige instrumento com maior "
+ "amplitude na faixa baixa."]),
+("O perfil comunica bem e detecta mal: o custo da quantização",[
+ "A atribuição de perfil resulta da menor distância entre o vetor de seis escores normativos e seis centroides "
+ "fixos. O procedimento é, por construção, uma quantização: ele mapeia um espaço contínuo de seis dimensões em "
+ "seis rótulos. Toda quantização descarta informação, e a informação descartada é justamente a contida em "
+ "deslocamentos que não atravessam uma fronteira de decisão. Um atleta cuja fadiga sobe dois pontos e cujo vigor "
+ "cai um ponto permanece no mesmo perfil se o seu vetor não cruzar a fronteira entre duas regiões do espaço. Em "
+ "um elenco de vinte e sete atletas, o número de vetores próximos a fronteiras é pequeno, e a capacidade da "
+ "classificação para detectar deslocamentos moderados é, por consequência, baixa.",
+ "Os presentes dados exibem essa propriedade em dois lugares. O primeiro é o contraste entre tipos de estímulo, "
+ "em que a distribuição dos perfis não difere (χ² = 6,384; p = 0,782) e a das três faixas tampouco (χ² = 3,030; "
+ "p = 0,553). O segundo é o teste de estabilidade da classificação ao longo dos sete dias, restrito aos "
+ "dezenove atletas presentes em todos eles, no qual apenas um dos seis perfis atinge o limiar convencional, o "
+ "superfície, com p de 0,049, ao passo que a faixa de risco não o atinge, com p de 0,109. A mesma semana, lida "
+ "no plano das prevalências contra o próprio piso de ruído, mostra deslocamento inequívoco: o iceberg recua 25,4 "
+ "pontos percentuais contra um piso de 9,2, a barbatana de tubarão avança 20,1 contra 8,6 e a faixa de risco "
+ "avança 37,6 contra 9,8.",
+ "A coexistência dos dois quadros não é contradição, e sim informação sobre o instrumento de classificação. O "
+ "teste categórico aplicado a casos completos exige um número de observações que um elenco não fornece, ao passo "
+ "que a série de prevalências, confrontada com o erro de amostragem que lhe é próprio, já basta para reconhecer "
+ "o movimento. A constatação ultrapassa o presente estudo. A literatura sobre os seis perfis consolidou-se sobre "
+ "estimativas de prevalência em grandes amostras transversais (PARSONS-SMITH; TERRY; MACHIN, 2017; HAN; "
+ "PARSONS-SMITH; TERRY, 2020; LEW et al., 2023), condição na qual o tamanho amostral compensa a perda de "
+ "resolução da quantização. O transporte da mesma classificação para o acompanhamento longitudinal de um elenco "
+ "reduzido não herda essa propriedade.",
+ "A recomendação que decorre dos dados é direta e não pede escolha entre os dois planos. Os perfis servem para "
+ "descrever o estado do grupo e para comunicar esse estado à comissão técnica, função em que a legibilidade do "
+ "rótulo é uma virtude e não um defeito. A detecção de resposta a estímulos específicos, ao contrário, deve "
+ "permanecer no plano das variáveis contínuas, onde o piso de ruído fornece critério e nenhuma fronteira de "
+ "decisão descarta movimento. O perfil comunica bem e detecta mal; a variável contínua detecta bem e comunica "
+ "mal. O uso conjunto dos dois é o que os presentes resultados recomendam."]),
 ("A unidade de análise como fonte silenciosa de divergência",[
  "A auditoria que precedeu este estudo revelou algo que merece registro na literatura, e não apenas no "
  "apêndice metodológico. Sete versões anteriores deste conjunto de dados chegaram a valores divergentes para a mesma quantidade, a variação da prevalência do perfil iceberg entre o "
@@ -972,9 +1106,9 @@ LIMITACOES=[
 
 CONCLUSAO=[
 "O humor de atletas de handebol de elite deteriorou-se de modo consistente ao longo da última semana de "
-"pré-temporada. O vigor recuou 2,98 pontos e a fadiga avançou 3,62, ambos muito acima do respectivo piso de "
-"ruído, com tendência monotônica confirmada pelo teste de Page. O perfil iceberg recuou de 37,0% para 19,0% "
-"dos pares atleta-dia e a faixa de risco avançou de 22,2% para 52,4%. A deterioração, contudo, não se "
+"pré-temporada. O vigor recuou 4,33 pontos e a fadiga avançou 4,28, ambos muito acima do respectivo piso de "
+"ruído, com tendência monotônica confirmada pelo teste de Page. O perfil iceberg recuou de 44,4% para 19,0% "
+"dos pares atleta-dia e a faixa de risco avançou de 14,8% para 52,4%. A deterioração, contudo, não se "
 "distribuiu de modo uniforme: concentrou-se em duas transições, a primeira na saída do dia basal e a segunda "
 "na véspera da estreia, e deixou entre elas um platô de quatro dias.",
 "O tratamento de séries proposto, que reúne filtro binomial, derivadas de primeira e segunda ordem expressas em "

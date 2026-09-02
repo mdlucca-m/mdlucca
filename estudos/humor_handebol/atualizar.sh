@@ -9,6 +9,7 @@ echo "▶ 2/8  classificação nos perfis e matriz de reconciliação"
 python3 analise/V2_perfis.py
 echo "▶ 3/8  análises (descritiva, séries, não paramétrica, paramétrica, modelo misto)"
 python3 analise/V2_a1.py && python3 analise/V2_a2.py && python3 analise/V2_a3.py && python3 analise/V2_audit.py
+python3 analise/V2_assoc.py
 echo "▶ 4/8  banco único"
 python3 scripts/construir_base.py
 echo "▶ 5/8  acervo das planilhas, referências e índice de busca"

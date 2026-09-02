@@ -159,6 +159,25 @@ def semear() -> int:
          "deslocamento entre extremos com o erro de amostragem; a fidedignidade compara a dispersão das sete "
          "médias com esse mesmo erro. Uma variável pode ter deslocamento acima do piso e série de fidedignidade "
          "nula, como a depressão: ela se move pouco por dia, mas na mesma direção o tempo todo.", "handebol"),
+        ("correção do resumo e da conclusão do Artigo 1", "Em 02/09/2026 verificou-se que o resumo, o "
+         "abstract e a conclusão do Artigo 1 ainda traziam as prevalências do dia basal calculadas pela regra "
+         "anterior, além do deslocamento antigo do vigor e da fadiga. Os valores corretos, conferidos na tabela "
+         "prevalencia da base: iceberg 44,4% para 19,0%, barbatana de tubarão 3,7% para 23,8%, faixa de risco "
+         "14,8% para 52,4%; vigor −4,33 e fadiga +4,28. O corpo do artigo já estava certo; falhou a propagação "
+         "para as peças de abertura e fechamento. Lição: ao mudar a base, conferir resumo, abstract e conclusão "
+         "à parte, porque eles repetem números sem os recalcular.", "handebol"),
+        ("associação em dois planos", "A correlação agregada dos 166 pares mistura o que separa atletas do que "
+         "varia dentro do atleta, e os dois planos podem divergir. Cinco dos vinte e um pares só se associam "
+         "dentro do atleta. O caso decisivo é a tensão: com o vigor, ρ = 0,207 e p = 0,300 entre atletas, contra "
+         "ρ = 0,329 e p < 0,001 dentro do atleta; com a perturbação total, o ρ agregado de 0,200 desaparece no "
+         "plano intraindividual (ρ = 0,015; p = 0,846). A tensão funciona neste elenco como ativação, e não como "
+         "sofrimento, com a ressalva de que o efeito de piso de 41,6% oferece explicação métrica alternativa. "
+         "Calculado em analise/V2_assoc.py.", "handebol"),
+        ("o composto que se degrada", "A correlação entre fadiga e perturbação total sobe de 0,671 no basal a "
+         "0,858 no sétimo dia, e a variância partilhada de 45,0% a 73,7%. A tendência do coeficiente ao longo dos "
+         "sete dias dá ρ = 0,714 com p = 0,071, portanto não conclusiva: relatar direção e extremos, nunca "
+         "tendência significativa. Consequência prática: na fase terminal do ciclo, quem acompanha só o escalar "
+         "acompanha a fadiga.", "handebol"),
         ("reconferência", "Os números dos três documentos foram recalculados por um segundo caminho de "
          "código, partindo do item do formulário: 65 de 65 conferências coincidem. Não repetir a "
          "reconferência sem motivo; consultar ana_qualidade(parte='reconferencia').", "handebol"),

@@ -186,6 +186,22 @@ for k,d in A3['MAT'].items():
     add(dominio='associação',via='paramétrica',unidade='U-AD',variavel=k,recorte='geral',
         teste='Pearson',estatistica=d['r'],rotulo_estatistica='r',p=d['pr'],p_ajustado=d['phr'],
         metodo_ajuste='Holm',n=166,artigo='A2')
+AS=j("V2_assoc.json")
+for x in AS['ACOPL']['dias']:
+    add(dominio='associação',via='não paramétrica',unidade='U-AD',variavel='Fadiga×TMD',
+        recorte=f"D{x['dia']}",teste='Spearman',estatistica=x['rho'],rotulo_estatistica='ρ',
+        p=x['p'],n=x['n'],artigo='A1')
+add(dominio='tendência',via='não paramétrica',unidade='U-AD',variavel='Fadiga×TMD',
+    recorte='acoplamento D1→D7',teste='Spearman sobre os sete coeficientes',
+    estatistica=AS['ACOPL']['tendencia_rho'],rotulo_estatistica='ρ',
+    p=AS['ACOPL']['tendencia_p'],n=7,artigo='A1')
+for k,d in AS['PLANOS'].items():
+    add(dominio='associação',via='não paramétrica',unidade='atleta',variavel=k,recorte='entre atletas',
+        teste='Spearman sobre as médias individuais',estatistica=d['entre_rho'],
+        rotulo_estatistica='ρ',p=d['entre_p'],n=d['entre_n'],artigo='A1')
+    add(dominio='associação',via='não paramétrica',unidade='U-AD',variavel=k,recorte='dentro do atleta',
+        teste='Spearman sobre os desvios da média do atleta',estatistica=d['dentro_rho'],
+        rotulo_estatistica='ρ',p=d['dentro_p'],n=d['dentro_n'],artigo='A1')
 for nm,d in A3['CQ'].items():
     add(dominio='categórica',via='não paramétrica',unidade='U-AD',variavel=nm,recorte='estabilidade D1..D7',
         teste='Q de Cochran',estatistica=d['Q'],rotulo_estatistica='Q',gl='6',p=d['p'],n=d['n'],artigo='ambos')
