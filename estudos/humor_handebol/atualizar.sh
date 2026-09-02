@@ -10,6 +10,7 @@ python3 analise/V2_perfis.py
 echo "▶ 3/8  análises (descritiva, séries, não paramétrica, paramétrica, modelo misto)"
 python3 analise/V2_a1.py && python3 analise/V2_a2.py && python3 analise/V2_a3.py && python3 analise/V2_audit.py
 python3 analise/V2_assoc.py
+python3 analise/V2_expl.py
 echo "▶ 4/8  banco único"
 python3 scripts/construir_base.py
 echo "▶ 5/8  acervo das planilhas, referências e índice de busca"
@@ -30,11 +31,12 @@ echo "▶ 8/8  exportações, painel e figuras"
 python3 scripts/exportar.py
 python3 scripts/exportar_painel.py
 python3 scripts/montar_painel.py
-for f in figuras/UV*.py figuras/UM*.py figuras/UQ*.py figuras/UP*.py; do [ -e "$f" ] && python3 "$f"; done
+for f in figuras/UV*.py figuras/UM*.py figuras/UQ*.py figuras/UP*.py figuras/UX*.py; do [ -e "$f" ] && python3 "$f"; done
 python3 scripts/montar_artigo1.py && python3 scripts/montar_artigo2.py
 python3 scripts/montar_anexo.py && python3 scripts/montar_qualidade.py
 python3 scripts/montar_sintese.py
 python3 scripts/montar_curto.py
 python3 scripts/montar_descritivo8.py
+python3 scripts/montar_completo.py
 python3 scripts/conferir_figuras.py > /dev/null || echo "  ATENÇÃO: referência de figura ou tabela inexistente"
 echo "✔ pronto — consulte com ./scripts/consultar.py resumo"

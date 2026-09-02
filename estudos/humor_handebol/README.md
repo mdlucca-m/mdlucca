@@ -13,6 +13,7 @@ abril de 2024.
 | Síntese executiva, quatro a seis páginas | `SINTESE_HUMOR_HANDEBOL.docx` |
 | Artigo curto, seis páginas, só os perfis | `ARTIGO_CURTO_PERFIS_HUMOR_HANDEBOL.docx` |
 | Artigo descritivo e não paramétrico, oito páginas | `ARTIGO_DESCRITIVO_EXPLORATORIO_PERFIS_HUMOR_HANDEBOL.docx` |
+| Relatório exploratório completo, por etapa de análise | `RELATORIO_EXPLORATORIO_COMPLETO_PERFIS_HUMOR_HANDEBOL.docx` |
 
 ## O que há aqui
 
