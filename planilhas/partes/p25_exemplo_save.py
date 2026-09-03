@@ -256,7 +256,7 @@ def limpar(ws, r1, r2, cols):
         for c in cols:
             ws.cell(r, c).value = None
 
-limpar(wsC, CAD_F, CAD_L, [c for c in range(2, 70) if c not in (5, 15, 16, 17, 35, 36, 50, 64)])
+limpar(wsC, CAD_F, CAD_L, [c for c in range(2, 66) if c not in (5, 15, 16, 17, 46, 60)])
 limpar(wsAn, ANT_F, ANT_L, list(range(1, 33)))
 limpar(wsT, TST_F, TST_L, [c for c in range(1, 30) if c not in (9, 10, 16, 17, 19, 28)])
 limpar(wsR, RM_F, RM_L, [1, 3, 4, 5, 6, 7, 13, 14])

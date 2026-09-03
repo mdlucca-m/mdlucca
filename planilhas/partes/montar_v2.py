@@ -98,16 +98,16 @@ m1 = A.index("]\n", A.index('("Volume × Intensidade"'))
 A = A[:m1] + METRICAS_NOVAS + A[m1:]
 
 # --------------------------------------------------------------- patches C --
-C = C.replace("Cadastro!$T$", "Cadastro!$BP$")
-for _a, _b in (("$BP${3}:$T${4}","$BP${3}:$BP${4}"),("$BP${0}:$T${1}","$BP${0}:$BP${1}"),
-               ("$BP${}:$T${}","$BP${}:$BP${}")):
+C = C.replace("Cadastro!$T$", "Cadastro!$BL$")
+for _a, _b in (("$BL${3}:$T${4}","$BL${3}:$BL${4}"),("$BL${0}:$T${1}","$BL${0}:$BL${1}"),
+               ("$BL${}:$T${}","$BL${}:$BL${}")):
     C = C.replace(_a, _b)
-C = C.replace("Cadastro!$T{1}", "Cadastro!$BP{1}")
+C = C.replace("Cadastro!$T{1}", "Cadastro!$BL{1}")
 C = C.replace("'=IF($A{}=\"\",\"\",Cadastro!$F{})'", "'=IF($A{}=\"\",\"\",Cadastro!$L{})'")
 PERFIL_NOVO = '''PERFIL = [("ID","A",None),("Idade","E",'0" anos"'),("Posição","L",None),("Categoria","K",None),
           ("Nº Camisa","J",'0'),("Estatura (cm)","O",'0.0'),("Massa (kg)","P",'0.0'),("IMC","Q",'0.0'),
-          ("Dominância","M",None),("Perna de Impulsão","N",None),("Anos de Prática","AX",'0" anos"'),
-          ("Status","BP",None)]'''
+          ("Dominância","M",None),("Perna de Impulsão","N",None),("Anos de Prática","AT",'0" anos"'),
+          ("Status","BL",None)]'''
 p0 = C.index("PERFIL = [")
 p1 = C.index("]\n", C.index('("Status","T",None)'))
 C = C[:p0] + PERFIL_NOVO + C[p1 + 1:]

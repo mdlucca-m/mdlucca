@@ -108,17 +108,13 @@ CREATE TABLE atleta_socioeconomico (
     trabalha                  BOOLEAN,
     horas_trabalho_semana     SMALLINT,
     ocupacao                  TEXT,
-    renda_familiar            NUMERIC(10,2),
     pessoas_domicilio         SMALLINT CHECK (pessoas_domicilio > 0),
-    renda_per_capita          NUMERIC(10,2)
-                              GENERATED ALWAYS AS (renda_familiar / NULLIF(pessoas_domicilio,0)) STORED,
     classe_economica          TEXT CHECK (classe_economica IN ('A','B1','B2','C1','C2','D-E')),
     tipo_moradia              TEXT,
     reside_com                TEXT,
     transporte_treino         TEXT,
     tempo_deslocamento_min    SMALLINT,
     recebe_bolsa              BOOLEAN,
-    valor_bolsa               NUMERIC(10,2),
     beneficio_social          BOOLEAN,
     plano_saude               BOOLEAN,
     internet_domicilio        BOOLEAN,
@@ -128,7 +124,9 @@ CREATE TABLE atleta_socioeconomico (
     UNIQUE (atleta_id, data_referencia)
 );
 COMMENT ON TABLE atleta_socioeconomico IS
-  'Histórico: um registro por atualização, para acompanhar mudança de condição ao longo das temporadas.';
+  'Um registro por atualização, para acompanhar a mudança de condição ao longo das temporadas. '
+  'NENHUM valor financeiro do atleta é armazenado: a condição socioeconomica e representada pela '
+  'classe economica (Criterio Brasil), moradia, transporte e existencia de bolsa.';
 
 -- 2.2) Bloco histórico esportivo ---------------------------------------------
 CREATE TABLE atleta_historico_esportivo (
