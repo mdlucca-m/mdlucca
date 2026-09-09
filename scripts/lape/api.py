@@ -1262,6 +1262,7 @@ def payload_do_panorama(db, desde: int | None = None,
         "lacunas": analise.lacunas(db, dados),
         "artigos": _artigos_do_panorama(db),
         "linhas": _linhas_com_icone(db),
+        "organograma": metrics.organograma_publico(db),
         "laboratorio": {
             "nome": config.LAB_NAME, "instituicao": config.LAB_INSTITUTION,
             "site": getattr(config, "LAB_SITE", None),

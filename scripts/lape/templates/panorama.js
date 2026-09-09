@@ -11,7 +11,12 @@ const C = Charts;
 
 const D = { pronto: false };
 const ST = { aba: "visao", variavel: null, busca: "", ordem: "ano", desc: true,
-             so_multi: false, linha: "", abertos: {}, pais: null };
+             so_multi: false, linha: "", abertos: {}, pais: null,
+             /* recortes que vêm de um desenho e carregam consigo o CONJUNTO,
+                e não um texto para a busca reprocurar: `pessoa` traz os ids
+                dos artigos de quem foi clicado no organograma, e `recorteVar`
+                traz os códigos das variáveis da folha da árvore de decisão. */
+             pessoa: null, recorteVar: null };
 
 async function api(caminho, metodo, corpo) {
   const r = await fetch(caminho, {
@@ -194,10 +199,37 @@ function montarNav() {
   });
 }
 
+/* O número ao lado da aba conta o que a aba MOSTRA agora.
+   Contar sempre o acervo inteiro deixava "Extração 160" cravado ao lado
+   de uma tabela com quatro linhas: quem chegou ali pelo mapa via o
+   recorte, e o menu ao lado insistia que havia cento e sessenta.
+   Só entram os recortes que vêm da navegação -- país, pessoa, ponta da
+   árvore. A busca digitada fica de fora de propósito: ela muda a cada
+   tecla e o menu não se redesenha junto, e um número que envelhece a
+   cada letra mente mais do que o total. */
 function contaDaAba(id) {
   const p = D.panorama || {};
-  if (id === "variaveis") return (p.variaveis || []).length;
-  if (id === "extracao") return (D.artigos || []).length;
+  if (id === "variaveis") {
+    const todas = (p.variaveis || []).length;
+    if (!ST.recorteVar) return todas;
+    const dentro = {};
+    (ST.recorteVar.codigos || []).forEach(function (c) { dentro[c] = true; });
+    return (p.variaveis || []).filter(function (v) { return dentro[v.code]; }).length;
+  }
+  if (id === "extracao") {
+    let lista = D.artigos || [];
+    if (ST.pais) {
+      const doPais = {};
+      artigosDoPais(ST.pais).forEach(function (a) { doPais[a.id] = true; });
+      lista = lista.filter(function (a) { return doPais[a.id]; });
+    }
+    if (ST.pessoa) {
+      const dela = {};
+      (ST.pessoa.artigos || []).forEach(function (i) { dela[i] = true; });
+      lista = lista.filter(function (a) { return dela[a.id]; });
+    }
+    return lista.length;
+  }
   if (id === "lacunas") return ((D.lacunas || {}).achados || []).length;
   if (id === "rede") return ((p.rede || {}).arestas || []).length;
   return null;
@@ -866,6 +898,11 @@ function verLaboratorio(palco) {
     "Linha de pesquisa → variável → artigo. Clique para descer um nível.",
     arvoreHierarquica())));
 
+  /* Dois organogramas, e não um repetido: o de cima organiza o ASSUNTO, o
+     de baixo organiza a GENTE. Confundir os dois é o que faz um painel
+     responder "quem estuda o quê" com uma lista de nomes sem hierarquia. */
+  palco.appendChild(el("div", { style: "margin-top:14px" }, cartaoDoOrganograma()));
+
   palco.appendChild(el("h2", { style: "margin:26px 0 12px;font-size:19px",
     text: "Linha do tempo" }));
   const porAno = {};
@@ -983,12 +1020,39 @@ function verVariaveis(palco) {
     "Cada assunto que a produção do laboratório toca, com o peso e o comportamento "
     + "no tempo. Clique num selo para filtrar a extração por ele.",
     [el("button", {
-      text: ST.variavel ? "Limpar filtro" : "Nenhum filtro",
-      onclick: function () { ST.variavel = null; desenhar(); },
+      text: (ST.variavel || ST.recorteVar) ? "Limpar filtro" : "Nenhum filtro",
+      onclick: function () { ST.variavel = null; ST.recorteVar = null; desenhar(); },
     })]));
 
+  /* O recorte que veio da árvore de decisão. Ele aparece como faixa no
+     topo, e não como filtro silencioso: quem chega aqui com 40 variáveis
+     reduzidas a 6 precisa ler POR QUE, e desligar no mesmo lugar. */
+  let lista = p.variaveis || [];
+  if (ST.recorteVar) {
+    const dentro = {};
+    (ST.recorteVar.codigos || []).forEach(function (c) { dentro[c] = true; });
+    lista = lista.filter(function (v) { return dentro[v.code]; });
+    palco.appendChild(el("div", { class: "recorte-pais", "data-recorte": "arvore" }, [
+      el("div", { class: "recorte-topo" }, [
+        el("h3", {}, [Icons.get("processo", null),
+          el("span", { text: lista.length + " variável(is) desta ponta da árvore" })]),
+        el("span", { class: "badge", text: ST.recorteVar.porque }),
+        el("button", { type: "button", class: "chip-pais ativo",
+          title: "Mostrar todas as variáveis de novo",
+          onclick: function () { ST.recorteVar = null; desenhar(); } },
+          [el("span", { text: "ver todas" }), Icons.get("filtro", 11)]),
+      ]),
+    ]));
+    if (!lista.length) {
+      palco.appendChild(nota("<b>A árvore contou variáveis nesta ponta e nenhuma "
+        + "chegou aqui.</b> É desencontro entre o cálculo e a lista, e não ausência "
+        + "de dado — vale recarregar a página."));
+      return;
+    }
+  }
+
   const porGrupo = {};
-  (p.variaveis || []).forEach(function (v) {
+  lista.forEach(function (v) {
     (porGrupo[v.grupo || "Outras"] = porGrupo[v.grupo || "Outras"] || []).push(v); });
 
   Object.keys(porGrupo).forEach(function (grupo) {
@@ -1432,6 +1496,130 @@ function cartaoDoDendrograma() {
     ]));
 }
 
+/* ---- organograma de quem responde a quem ---- */
+/* Os mesmos tons que o `fluxo` usa. A legenda precisa apontar para a
+   MESMA variável do tema: repetir a cor à mão faria a bolinha e o fio
+   descolarem no dia em que o tema mudasse. */
+const TOM_DO_FIO = { entrada: "--series-1", passo: "--accent-strong",
+                     decisao: "--series-4", saida: "--good",
+                     descarte: "--ink-muted", alerta: "--warning" };
+
+/* "Guilherme Torres Vilarino" não cabe na caixa e sai como "Guilherme
+   Torres …", que é o nome de outra pessoa. Primeiro nome e último
+   sobrenome cabem e continuam sendo quem é. */
+function nomeDeCaixa(pessoa) {
+  if (pessoa.short_name) return pessoa.short_name;
+  const partes = String(pessoa.full_name || "").trim().split(/\s+/);
+  if (partes.length < 3) return partes.join(" ");
+  return partes[0] + " " + partes[partes.length - 1];
+}
+
+/* O desenho não é mantido à mão: cai do `advisor_id` de cada ficha. Por
+   isso ele é também o retrato do que o cadastro tem -- e é por isso que a
+   contagem do que falta vem ANTES do desenho, e não numa nota de rodapé.
+   Um organograma que esconde quinze fichas em branco não está organizando
+   coisa nenhuma: está afirmando uma hierarquia que ninguém declarou. */
+function cartaoDoOrganograma() {
+  const org = D.organograma || {};
+  const gente = (org.people || []).filter(function (p) { return p.active !== 0; });
+  if (!gente.length) {
+    return cartao("hierarquia", "Quem responde a quem",
+      "Sai do campo Orientador de cada ficha.",
+      el("p", { class: "hint", text: "Nenhum integrante cadastrado ainda." }));
+  }
+
+  /* As colunas são os degraus que EXISTEM, e não os treze vínculos que o
+     sistema conhece. Reservar coluna para vínculo que ninguém ocupa abre
+     um corredor vazio no meio do desenho. */
+  const degraus = [];
+  gente.forEach(function (p) {
+    if (degraus.indexOf(p.level) < 0) degraus.push(p.level); });
+  degraus.sort(function (a, b) { return a - b; });
+
+  /* Nenhum degrau usa o tom de estado. "saida" neste desenho é --good, e
+     pintar doutorandos de verde faria a tela emitir um juízo sobre gente
+     onde só há um nível de formação. Os tons aqui são de identidade: um
+     por degrau, e cinza para quem ainda não declarou o vínculo. */
+  const TOM = { coordenacao: "entrada", professor: "passo", pos_doutorado: "passo",
+                doutorado: "decisao", mestrado: "decisao", graduacao: "decisao" };
+  const nos = gente.map(function (p) {
+    return {
+      id: "m" + p.id,
+      label: nomeDeCaixa(p),
+      valor: p.n_articles || 0,
+      nota: p.role_label,
+      tom: p.role ? (TOM[p.role] || "decisao") : "descarte",
+      coluna: degraus.indexOf(p.level),
+      dica: [p.full_name,
+             p.research_line ? "Linha: " + p.research_line : null,
+             p.advisor ? "Orienta: " + p.advisor : null,
+             p.orientandos ? p.orientandos + " orientando(s)" : null,
+             (p.n_articles || 0) + " artigo(s) — clique para vê-los"]
+        .filter(Boolean).join(" · "),
+      onClick: function () {
+        ST.pessoa = { id: p.id, nome: nomeDeCaixa(p),
+                      artigos: p.artigos || [] };
+        ST.aba = "extracao";
+        desenhar();
+      },
+    };
+  });
+
+  const vivo = {};
+  nos.forEach(function (n) { vivo[n.id] = true; });
+  const ROTULO = { orientacao: "orientação", coorientacao: "coorientação",
+                   coordenacao: "coordenação" };
+  const FIO = { orientacao: "passo", coorientacao: "decisao", coordenacao: "entrada" };
+  const arestas = (org.edges || [])
+    .filter(function (e) { return vivo["m" + e.from] && vivo["m" + e.to]; });
+
+  /* O tipo do fio vai para a LEGENDA, e não em cima de cada fio. Escrito
+     em cada um, "coordenação" saía dezesseis vezes empilhado na mesma
+     faixa vertical, uma etiqueta por cima da outra, e o que era para
+     explicar o desenho passou a tapá-lo. Dito uma vez, diz o mesmo. */
+  const fios = arestas.map(function (e) {
+    return { de: "m" + e.from, para: "m" + e.to, tom: FIO[e.kind] || "passo" };
+  });
+
+  const semVinculo = (org.sem_vinculo || []).length;
+  const semOrientador = (org.sem_orientador || []).length;
+  const corpo = el("div", {});
+
+  if (semVinculo || semOrientador) {
+    const faltas = [];
+    if (semVinculo) {
+      faltas.push("<b>" + semVinculo + " de " + gente.length + "</b> sem vínculo "
+        + "declarado (mestrado, doutorado, professor…)");
+    }
+    if (semOrientador) {
+      faltas.push("<b>" + semOrientador + "</b> orientando(s) sem orientador apontado");
+    }
+    corpo.appendChild(nota("<b>O organograma está desenhado com o que o cadastro "
+      + "tem.</b> " + faltas.join("; ") + ". Quem não tem vínculo aparece no degrau "
+      + "de baixo, em cinza — não é erro do painel, é campo em branco na ficha, e "
+      + "preencher na <a href='/app#equipe'>Área do integrante</a> reorganiza o "
+      + "desenho sozinho."));
+  }
+
+  const tipos = [];
+  arestas.forEach(function (e) {
+    if (tipos.indexOf(e.kind) < 0) tipos.push(e.kind); });
+  if (tipos.length) {
+    corpo.appendChild(C.legend(tipos.map(function (k) {
+      return { label: ROTULO[k] || k, color: C.token(TOM_DO_FIO[FIO[k] || "passo"]) };
+    }), { line: true }));
+  }
+
+  corpo.appendChild(C.fluxo({
+    caption: null, file: "organograma", nodes: nos, links: fios,
+    emptyMessage: "Sem ninguém para desenhar.",
+  }));
+  return cartao("hierarquia", "Quem responde a quem",
+    "Cada caixa é uma pessoa, com quantos artigos assina. Clique num nome e a "
+    + "Extração abre com a produção dela — pelos artigos, e não pela grafia.",
+    corpo);
+}
+
 /* ---- organograma do método, no formato de nós ligados ---- */
 /* Cada caixa carrega o valor REAL do passo, não um rótulo genérico: um
    fluxograma que diz "suavização" e nada mais é um desenho de manual. O
@@ -1495,9 +1683,22 @@ function cartaoDaDecisao(todas) {
   const virou = limpa.filter(function (v) { return (v.inflexoes || []).length; });
   const lisa = limpa.filter(function (v) { return !(v.inflexoes || []).length; });
 
+  /* Cada folha leva às variáveis que ela conta. Sem isso a árvore é um
+     beco: diz que 35 variáveis não têm série e não há como chegar a
+     nenhuma delas -- quem quer saber quais são volta a percorrer a lista
+     inteira à mão, procurando o que a árvore acabou de separar. */
+  const folha = function (lista, porque) {
+    return function () {
+      ST.recorteVar = { porque: porque,
+        codigos: lista.map(function (v) { return v.code; }) };
+      ST.aba = "variaveis";
+      desenhar();
+    };
+  };
+
   return cartao("processo", "A árvore que decide se a curva pode ser lida",
     "As mesmas três perguntas que o cálculo faz, com quantas variáveis caem de cada "
-    + "lado. É por aqui que se vê o que falta para uma variável ganhar curva.",
+    + "lado. Clique numa ponta e as Variáveis abrem com exatamente as que caíram ali.",
     C.fluxo({
       caption: null, file: "decisao",
       nodes: [
@@ -1507,18 +1708,25 @@ function cartaoDaDecisao(todas) {
           nota: "mínimo para série", tom: "decisao", coluna: 1 },
         { id: "curta", label: "Sem série", valor: semAnos.length,
           nota: "falta história", tom: "descarte", coluna: 2,
-          dica: "A produção anterior está no Lattes da equipe." },
+          dica: "A produção anterior está no Lattes da equipe. Clique para ver quais.",
+          onClick: folha(semAnos, "menos de 3 anos com dado no recorte") },
         { id: "q2", label: "Ruído domina?", valor: ruidosa.length + " de " + comAnos.length,
           nota: "razão ≥ 0,8", tom: "decisao", coluna: 2 },
         { id: "ruido", label: "Só variação", valor: ruidosa.length,
           nota: "sem tendência", tom: "alerta", coluna: 3,
-          dica: "A linha existe, mas o que ela desenha é balanço, não tendência." },
+          dica: "A linha existe, mas o que ela desenha é balanço, não tendência. "
+            + "Clique para ver quais.",
+          onClick: folha(ruidosa, "o ruído responde por 0,8 ou mais da série") },
         { id: "q3", label: "Tem inflexão?", valor: virou.length + " de " + limpa.length,
           nota: "Δ² troca de sinal", tom: "decisao", coluna: 3 },
         { id: "virada", label: "Curva com virada", valor: virou.length,
-          nota: "há ano a explicar", tom: "saida", coluna: 4 },
+          nota: "há ano a explicar", tom: "saida", coluna: 4,
+          dica: "Clique para ver quais mudaram de direção.",
+          onClick: folha(virou, "a aceleração troca de sinal em algum ano") },
         { id: "lisa", label: "Tendência lisa", valor: lisa.length,
-          nota: "sobe ou desce sem virar", tom: "saida", coluna: 4 },
+          nota: "sobe ou desce sem virar", tom: "saida", coluna: 4,
+          dica: "Clique para ver quais.",
+          onClick: folha(lisa, "série legível, sem troca de direção") },
       ],
       links: [
         { de: "raiz", para: "q1" },
@@ -2067,6 +2275,16 @@ function artigosFiltrados(soMulti) {
     artigosDoPais(ST.pais).forEach(function (a) { doPais[a.id] = true; });
     lista = lista.filter(function (a) { return doPais[a.id]; });
   }
+  /* Mesma regra para a pessoa, e pelo mesmo motivo. Procurar o nome no
+     campo de autores acharia só quem assina daquela maneira: quem assina
+     "Torres Vilarino G" num artigo e "Vilarino, Guilherme Torres" noutro
+     apareceria com metade da produção, e a tabela viria curta sem dizer
+     por quê. O organograma manda os ids, que a autoria já resolveu. */
+  if (ST.pessoa) {
+    const dela = {};
+    (ST.pessoa.artigos || []).forEach(function (id) { dela[id] = true; });
+    lista = lista.filter(function (a) { return dela[a.id]; });
+  }
   const busca = ST.busca.trim().toLowerCase();
   if (busca) {
     lista = lista.filter(function (a) {
@@ -2120,6 +2338,12 @@ function verExtracao(palco) {
       title: "Mostrar todos os países de novo",
       onclick: function () { ST.pais = null; desenhar(); },
     }, [Icons.get("mapa", 12), el("span", { text: ST.pais }),
+        Icons.get("filtro", 11)]) : null,
+    ST.pessoa ? el("button", {
+      type: "button", class: "chip-pais ativo", "data-recorte": "pessoa",
+      title: "Mostrar a produção de todo o laboratório de novo",
+      onclick: function () { ST.pessoa = null; desenhar(); },
+    }, [Icons.get("pessoa", 12), el("span", { text: ST.pessoa.nome }),
         Icons.get("filtro", 11)]) : null,
     el("div", { class: "selos", style: "flex:1" },
       (D.panorama.variaveis || []).slice(0, 12).map(function (v) {

@@ -366,6 +366,42 @@ def organograma(db: Database) -> dict[str, Any]:
     }
 
 
+# Campos que o organograma completo carrega e que so a coordenacao ve. O
+# panorama e rota de leitura, e o instantaneo dele sai por e-mail: bolsa e
+# prazo de defesa nao viajam nesse envelope.
+SO_DA_COORDENACAO = ("scholarship", "scholarship_until", "thesis_due_on",
+                     "thesis_status", "thesis_title", "thesis_kind")
+
+
+def organograma_publico(db: Database) -> dict[str, Any]:
+    """O organograma sem o que e da coordenacao, e com os artigos de cada um.
+
+    Duas diferencas para o `organograma`, e as duas tem motivo. A primeira e
+    o que sai: valor de bolsa, prazo de defesa e titulo de tese ficam de
+    fora, porque esta versao alimenta o painel de leitura e o instantaneo
+    que sai por e-mail.
+
+    A segunda e o que entra: cada pessoa leva os IDs dos seus artigos. Sem
+    eles, clicar num nome so poderia escrever o nome na caixa de busca --
+    e a busca procura a palavra escrita, nao a pessoa. Quem assina "Torres
+    Vilarino G" num artigo e "Vilarino, Guilherme Torres" noutro perderia
+    metade da propria producao, e a tabela viria curta sem dizer por que.
+    """
+    dados = organograma(db)
+    por_pessoa: dict[int, list[int]] = {}
+    for linha in db.dicts(
+            "SELECT member_id, article_id FROM article_authors"
+            " WHERE member_id IS NOT NULL"):
+        por_pessoa.setdefault(linha["member_id"], []).append(linha["article_id"])
+
+    pessoas = []
+    for pessoa in dados["people"]:
+        limpa = {k: v for k, v in pessoa.items() if k not in SO_DA_COORDENACAO}
+        limpa["artigos"] = sorted(por_pessoa.get(pessoa["id"], []))
+        pessoas.append(limpa)
+    return {**dados, "people": pessoas, "teses": []}
+
+
 def collaboration_network(db: Database, min_weight: int = 1) -> dict[str, Any]:
     """Rede de coautoria: nos = integrantes, arestas = artigos em comum."""
     rows = db.dicts(

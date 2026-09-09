@@ -12,6 +12,8 @@ from __future__ import annotations
 import io
 import json
 import re
+import shutil
+import subprocess
 import sys
 import tempfile
 import threading
@@ -24,10 +26,26 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from lape import api, auth, ingest_excel, variaveis  # noqa: E402
+from lape import api, auth, ingest_excel, metrics, variaveis  # noqa: E402
 from lape.db import Database  # noqa: E402
+from lape.util import norm_key  # noqa: E402
 
 TEMPLATES = ROOT / "scripts" / "lape" / "templates"
+NODE = shutil.which("node")
+
+
+def _rodar_js(script: str):
+    """Roda um trecho recortado dos templates e devolve o JSON que ele imprime.
+
+    Vale para o que é conta pura. O que toca o DOM continua sendo verificado
+    na fonte -- rodar meio `charts.js` sem navegador daria a falsa sensação
+    de teste onde só há import quebrado.
+    """
+    pronto = subprocess.run([NODE, "--input-type=module", "-e", script],
+                            capture_output=True, text=True)
+    if pronto.returncode != 0:
+        raise AssertionError(pronto.stderr)
+    return json.loads(pronto.stdout)
 
 
 class BasePanorama(unittest.TestCase):
@@ -1160,6 +1178,241 @@ class TestOsIconesDasLinhas(unittest.TestCase):
         regra = html[html.index(".cartao.clicavel"):]
         regra = regra[:regra.index("}")]
         self.assertNotIn("box-shadow", regra)
+
+
+class TestOOrganogramaDaGente(unittest.TestCase):
+    """O organograma de quem responde a quem, na aba do laboratório.
+
+    O desenho cai do `advisor_id` de cada ficha, e por isso é também o
+    retrato do que o cadastro tem. Um organograma que esconde as fichas em
+    branco não organiza nada: afirma uma hierarquia que ninguém declarou.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.db = Database(Path(self.tmp.name) / "org.sqlite")
+        self.addCleanup(self.db.close)
+        self.db.migrate()
+
+    def js(self, nome):
+        return (TEMPLATES / nome).read_text(encoding="utf-8")
+
+    def corpo(self):
+        js = self.js("panorama.js")
+        return js[js.index("function cartaoDoOrganograma()"):
+                  js.index("/* ---- organograma do método")]
+
+    def pessoa(self, nome, papel=None, orientador=None, artigos=()):
+        mid = self.db.member_id(nome, create=True)
+        self.db.execute("UPDATE members SET role = ?, advisor_id = ? WHERE id = ?",
+                        (papel, orientador, mid))
+        for titulo in artigos:
+            cur = self.db.execute(
+                "INSERT INTO articles (title, title_key, status)"
+                " VALUES (?, ?, 'publicado')", (titulo, norm_key(titulo)))
+            self.db.execute(
+                "INSERT INTO article_authors (article_id, member_id, author_name,"
+                "                              author_order) VALUES (?, ?, ?, 1)",
+                (cur.lastrowid, mid, nome))
+        self.db.conn.commit()
+        return mid
+
+    # -- o que o payload leva -------------------------------------------
+    def test_o_painel_recebe_o_organograma(self):
+        from lape.api import payload_do_panorama
+        self.pessoa("Alexandro Andrade", "coordenacao")
+        self.assertIn("organograma", payload_do_panorama(self.db))
+
+    def test_a_bolsa_e_o_prazo_de_defesa_nao_viajam(self):
+        """O panorama é rota de leitura, e o instantâneo dele sai por e-mail.
+
+        Valor de bolsa e prazo de defesa são da coordenação; mandá-los
+        neste envelope alargaria em silêncio quem os vê.
+        """
+        chefe = self.pessoa("Alexandro Andrade", "coordenacao")
+        aluno = self.pessoa("Fulano de Tal", "mestrado", orientador=chefe)
+        self.db.execute(
+            "UPDATE members SET scholarship = ?, scholarship_until = ?,"
+            "       thesis_title = ?, thesis_due_on = ? WHERE id = ?",
+            ("CAPES 2.100,00", "2027-03-01", "Título da dissertação", "2027-02-01", aluno))
+        self.db.conn.commit()
+
+        completo = metrics.organograma(self.db)
+        bruto = json.dumps(completo, default=str)
+        self.assertIn("CAPES 2.100,00", bruto)          # a versão da coordenação tem
+
+        publico = metrics.organograma_publico(self.db)
+        magro = json.dumps(publico, default=str)
+        for segredo in ("CAPES 2.100,00", "2027-03-01", "Título da dissertação"):
+            with self.subTest(campo=segredo):
+                self.assertNotIn(segredo, magro)
+
+    def test_cada_pessoa_leva_os_ids_dos_seus_artigos(self):
+        """Sem os ids, clicar num nome só poderia escrever o nome na busca.
+
+        E a busca procura a palavra escrita, não a pessoa: quem assina de
+        duas maneiras apareceria com metade da produção.
+        """
+        chefe = self.pessoa("Alexandro Andrade", "coordenacao",
+                            artigos=("Primeiro artigo", "Segundo artigo"))
+        publico = metrics.organograma_publico(self.db)
+        dele = next(p for p in publico["people"] if p["id"] == chefe)
+        self.assertEqual(len(dele["artigos"]), 2)
+        self.assertTrue(all(isinstance(i, int) for i in dele["artigos"]))
+
+    def test_quem_nao_assinou_nada_leva_lista_vazia_e_nao_falta_a_chave(self):
+        # `p.artigos || []` na tela esconderia a chave ausente; melhor ela
+        # existir sempre, para o clique nunca cair em undefined
+        self.pessoa("Alguém Sem Artigo", "mestrado")
+        publico = metrics.organograma_publico(self.db)
+        self.assertTrue(all("artigos" in p for p in publico["people"]))
+
+    # -- o que a tela faz com ele ---------------------------------------
+    def test_o_cartao_conta_o_que_falta_antes_de_desenhar(self):
+        corpo = self.corpo()
+        self.assertIn("sem vínculo", corpo)
+        self.assertIn("sem orientador apontado", corpo)
+        # a nota entra antes do desenho, e não depois
+        self.assertLess(corpo.index("corpo.appendChild(nota("),
+                        corpo.index("corpo.appendChild(C.fluxo("))
+
+    def test_clicar_num_nome_recorta_por_ids_e_nao_por_texto(self):
+        corpo = self.corpo()
+        self.assertIn("ST.pessoa = { id: p.id", corpo)
+        self.assertIn("artigos: p.artigos || []", corpo)
+        self.assertNotIn("ST.busca", corpo)
+
+    def test_o_recorte_por_pessoa_filtra_a_tabela_pelos_ids(self):
+        js = self.js("panorama.js")
+        filtro = js[js.index("function artigosFiltrados("):]
+        filtro = filtro[:filtro.index("const busca = ")]
+        self.assertIn("ST.pessoa", filtro)
+        self.assertIn("(ST.pessoa.artigos || []).forEach", filtro)
+
+    def test_a_pastilha_do_recorte_aparece_e_desliga(self):
+        # tabela com 4 de 138 linhas e nada explicando o sumiço dos 134
+        js = self.js("panorama.js")
+        self.assertIn('"data-recorte": "pessoa"', js)
+        self.assertIn("onclick: function () { ST.pessoa = null; desenhar(); }", js)
+
+    def test_o_degrau_nao_usa_tom_de_estado(self):
+        # "saida" neste desenho é --good: pintar doutorandos de verde faria
+        # a tela emitir juízo sobre gente onde só há nível de formação
+        corpo = self.corpo()
+        tabela = corpo[corpo.index("const TOM = {"):corpo.index("const nos =")]
+        for proibido in ('"saida"', '"alerta"'):
+            with self.subTest(tom=proibido):
+                self.assertNotIn(proibido, tabela)
+
+    def test_o_tipo_do_fio_vai_para_a_legenda(self):
+        """Escrito em cada fio, "coordenação" saía dezesseis vezes empilhado.
+
+        A etiqueta que era para explicar o desenho passou a tapá-lo.
+        """
+        corpo = self.corpo()
+        self.assertIn("C.legend(", corpo)
+        fios = corpo[corpo.index("const fios = arestas.map"):]
+        fios = fios[:fios.index("});")]
+        self.assertNotIn("rotulo:", fios)
+
+    def test_o_nome_comprido_encolhe_sem_virar_outra_pessoa(self):
+        js = self.js("panorama.js")
+        fonte = js[js.index("function nomeDeCaixa(pessoa)"):]
+        fonte = fonte[:fonte.index("\n}") + 2]
+        saida = _rodar_js(fonte + '\nprocess.stdout.write(JSON.stringify(['
+                          '  nomeDeCaixa({ full_name: "Guilherme Torres Vilarino" }),'
+                          '  nomeDeCaixa({ full_name: "Alexandro Andrade" }),'
+                          '  nomeDeCaixa({ full_name: "Ana", short_name: "Ana C. B. Ribas" }),'
+                          '  nomeDeCaixa({}) ]));')
+        self.assertEqual(saida, ["Guilherme Vilarino", "Alexandro Andrade",
+                                 "Ana C. B. Ribas", ""])
+
+
+@unittest.skipIf(NODE is None, "node não está disponível nesta máquina")
+class TestOLayoutDoFluxo(unittest.TestCase):
+    """Duas caixas nunca ocupam a mesma faixa da mesma coluna.
+
+    A média dos filhos põe o pai no meio deles, e é o que faz a bifurcação
+    se ver. O que ela não faz é olhar para os vizinhos: num fluxo em cadeia
+    cada coluna tinha uma caixa só e isso nunca apareceu; no organograma da
+    equipe, três professores da mesma coluna saíram um por cima do outro na
+    primeira vez que o desenho encontrou dados de verdade.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        js = (TEMPLATES / "charts.js").read_text(encoding="utf-8")
+        inicio = js.index("    const porId = {};")
+        fecho = "      return Math.max(a, faixa[n.id]); }, 0);"
+        cls.bloco = js[inicio:js.index(fecho) + len(fecho)]
+
+    def situar(self, nodes, links):
+        script = ("const nodes = " + json.dumps(nodes) + ";\n"
+                  + "const links = " + json.dumps(links) + ";\n"
+                  + self.bloco
+                  + "\nprocess.stdout.write(JSON.stringify({ faixa: faixa, fundo: fundo }));")
+        return _rodar_js(script)
+
+    def test_pais_com_filhos_vizinhos_nao_se_sobrepoem(self):
+        """O caso que aconteceu: três professores no mesmo degrau.
+
+        Eles dividem orientandos -- coorientação é isso --, e por dividir,
+        as três médias caem quase no mesmo y. Sem filho em comum não há
+        colisão nenhuma, e um teste montado assim passaria com o conserto
+        desligado.
+        """
+        nodes = [{"id": "chefe", "coluna": 0}]
+        links = []
+        alunos = ["f0", "f1", "f2", "f3"]
+        for aluno in alunos:
+            nodes.append({"id": aluno, "coluna": 2})
+        for prof in ("a", "b", "c"):
+            nodes.append({"id": prof, "coluna": 1})
+            links.append({"de": "chefe", "para": prof})
+            for aluno in alunos:                       # todos orientam todos
+                links.append({"de": prof, "para": aluno})
+        saida = self.situar(nodes, links)
+
+        porColuna = {}
+        for no in nodes:
+            porColuna.setdefault(no["coluna"], []).append(saida["faixa"][no["id"]])
+        for coluna, faixas in porColuna.items():
+            with self.subTest(coluna=coluna):
+                self.assertEqual(len(faixas), len(set(faixas)),
+                                 f"coluna {coluna} tem caixas na mesma faixa: {faixas}")
+
+    def test_duas_caixas_da_mesma_coluna_ficam_a_uma_faixa_de_distancia(self):
+        # encostar é o suficiente; empurrar mais abriria buraco no desenho
+        nodes = [{"id": "r", "coluna": 0},
+                 {"id": "p1", "coluna": 1}, {"id": "p2", "coluna": 1},
+                 {"id": "f", "coluna": 2}]
+        links = [{"de": "r", "para": "p1"}, {"de": "r", "para": "p2"},
+                 {"de": "p1", "para": "f"}, {"de": "p2", "para": "f"}]
+        saida = self.situar(nodes, links)
+        distancia = abs(saida["faixa"]["p1"] - saida["faixa"]["p2"])
+        self.assertGreaterEqual(distancia, 1)
+        self.assertEqual(distancia, 1)
+
+    def test_a_altura_cobre_a_caixa_que_desceu(self):
+        """Contar folhas deixava o desenho mais curto do que ele ficou.
+
+        O que passasse do fim era recortado sem aviso nenhum na tela.
+        """
+        nodes = [{"id": "r", "coluna": 0},
+                 {"id": "p1", "coluna": 1}, {"id": "p2", "coluna": 1},
+                 {"id": "f", "coluna": 2}]
+        links = [{"de": "r", "para": "p1"}, {"de": "r", "para": "p2"},
+                 {"de": "p1", "para": "f"}, {"de": "p2", "para": "f"}]
+        saida = self.situar(nodes, links)
+        self.assertGreaterEqual(saida["fundo"], max(saida["faixa"].values()))
+
+    def test_a_cadeia_simples_continua_reta(self):
+        # o fluxo do método é uma cadeia: o conserto não pode entortá-la
+        nodes = [{"id": chr(97 + i), "coluna": i} for i in range(5)]
+        links = [{"de": chr(97 + i), "para": chr(98 + i)} for i in range(4)]
+        saida = self.situar(nodes, links)
+        self.assertEqual(set(saida["faixa"].values()), {0})
 
 
 if __name__ == "__main__":

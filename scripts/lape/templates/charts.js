@@ -2060,6 +2060,34 @@ const Charts = (function () {
       .forEach(function (n) { situar(n.id); });
     nodes.forEach(function (n) { if (faixa[n.id] === undefined) situar(n.id); });
 
+    /* A média dos filhos põe o pai no meio deles, e é o que faz a
+       bifurcação se ver. O que ela NÃO faz é olhar para os vizinhos: dois
+       pais da mesma coluna cujos filhos estão em faixas próximas recebem
+       médias próximas, e as duas caixas saem uma por cima da outra. Num
+       fluxo em cadeia isso nunca acontecia, porque cada coluna tinha uma
+       caixa só; num organograma de gente acontece na primeira vez.
+       Aqui cada coluna é varrida de cima para baixo e a caixa que ficaria
+       em cima da anterior desce o mínimo para encostar nela -- a ordem que
+       a média escolheu fica de pé, e a sobreposição, não. */
+    const naColuna = {};
+    nodes.forEach(function (n) {
+      (naColuna[n.coluna || 0] = naColuna[n.coluna || 0] || []).push(n); });
+    Object.keys(naColuna).forEach(function (col) {
+      const fila = naColuna[col].slice().sort(function (a, b) {
+        return faixa[a.id] - faixa[b.id]; });
+      let piso = -Infinity;
+      fila.forEach(function (n) {
+        if (faixa[n.id] < piso) faixa[n.id] = piso;
+        piso = faixa[n.id] + 1;
+      });
+    });
+    /* A altura sai da faixa mais baixa que sobrou, e não da contagem de
+       folhas: depois de empurrar caixa para baixo, contar folhas deixaria
+       o desenho mais curto do que ele ficou, e o que passou do fim seria
+       recortado sem aviso. */
+    const fundo = nodes.reduce(function (a, n) {
+      return Math.max(a, faixa[n.id]); }, 0);
+
     /* A caixa tem largura FIXA, e o desenho fica do tamanho que precisar.
        Espremer sete passos em 760px encolhe a letra até ninguém ler o
        rótulo -- e um fluxograma ilegível não é um fluxograma. Quando não
@@ -2068,7 +2096,7 @@ const Charts = (function () {
       return Math.max(a, n.coluna || 0); }, 0) + 1;
     const NW = 116, NH = 58, VGAP = 20, HGAP = 24;
     const W = 24 + colunas * NW + (colunas - 1) * HGAP;
-    const H = 20 + Math.max(1, Math.round(livre)) * (NH + VGAP) + 8;
+    const H = 20 + (fundo + 1) * (NH + VGAP) + 8;
     const svg = svgRoot(W, H, spec.caption || "fluxo");
     svg.classList.add("fluxo");
     svg.setAttribute("width", W);
