@@ -127,10 +127,48 @@ function fmt(v) { return C.fmt(v); }
 function citacoes(a) {
   return Math.max(a.openalex_citations || 0, a.scopus_citations || 0, a.wos_citations || 0);
 }
-/* A Web of Science é uma base entre três, e a única que o laboratório
-   informa à mão. Onde a tela promete "citações na WoS" é este número que
-   entra — nunca o da melhor fonte, que costuma ser maior e diria outra coisa. */
+/* A Web of Science é uma base entre três. Onde a tela promete "citações na
+   WoS" é este número que entra — nunca o da melhor fonte, que costuma ser
+   maior e diria outra coisa. */
 function citacoesWos(a) { return a.wos_citations || 0; }
+
+/* As três bases, na ordem em que o laboratório prefere ser contado: Web of
+   Science e Scopus são as que a avaliação usa; a OpenAlex é aberta, entra
+   sozinha na importação e cobre o que as outras duas só respondem com
+   chave. */
+const BASES = [
+  { campo: "wos_citations", rotulo: "Web of Science", curto: "WoS" },
+  { campo: "scopus_citations", rotulo: "Scopus", curto: "Scopus" },
+  { campo: "openalex_citations", rotulo: "OpenAlex", curto: "OpenAlex" },
+];
+
+/* A base que a tela vai mostrar: a primeira da ordem acima que tenha
+   número em algum artigo.
+
+   Fixar a WoS aqui foi o que pôs "0 citações" numa parede de laboratório
+   com quatro mil. O acervo tinha os números — na OpenAlex, que a
+   importação traz sozinha —, a tela pedia só a coluna da WoS, que ninguém
+   havia preenchido, e anunciava zero sem nada dizer que estava olhando
+   para uma base só. Zero e "não perguntei a esta base" são coisas
+   diferentes, e a parede dizia a primeira. */
+function baseDeCitacao(arts) {
+  for (let i = 0; i < BASES.length; i++) {
+    const base = BASES[i];
+    const tem = arts.some(function (a) { return (a[base.campo] || 0) > 0; });
+    if (tem) return base;
+  }
+  return null;
+}
+
+function citacoesDe(a, base) { return base ? (a[base.campo] || 0) : 0; }
+
+/* Quantas bases têm número, para a tela poder dizer "e as outras duas
+   ainda não responderam" em vez de deixar a impressão de que só existe uma. */
+function basesComNumero(arts) {
+  return BASES.filter(function (base) {
+    return arts.some(function (a) { return (a[base.campo] || 0) > 0; });
+  });
+}
 function cortar(texto, n) {
   const t = String(texto || "");
   return t.length > n ? t.slice(0, n - 1) + "…" : t;
@@ -683,11 +721,13 @@ function slideBancada() {
    pesando agora. Sem a segunda, um artigo de 2009 esconderia para sempre o
    que o laboratório publicou depois.
    ========================================================================== */
-function placarDeCitacoes(lista) {
+function placarDeCitacoes(lista, base) {
   return el("table", { class: "placar citado" }, [
     el("thead", {}, el("tr", {}, [
       el("th", { text: "Artigo" }), el("th", { class: "num", text: "Ano" }),
-      el("th", { class: "num", text: "Citações WoS" }),
+      /* o cabeçalho nomeia a base: "Citações" sozinho deixaria a coluna
+         parecer a soma das três, que é outro número */
+      el("th", { class: "num", text: "Citações " + (base ? base.curto : "WoS") }),
     ])),
     el("tbody", {}, lista.map(function (a, i) {
       return el("tr", {}, [
@@ -696,7 +736,7 @@ function placarDeCitacoes(lista) {
           el("span", { title: a.title, text: a.title }),
         ])),
         el("td", { class: "num", text: a.year_published ? String(a.year_published) : "—" }),
-        el("td", { class: "num forte", text: fmt(citacoesWos(a)) }),
+        el("td", { class: "num forte", text: fmt(citacoesDe(a, base)) }),
       ]);
     })),
   ]);
@@ -705,55 +745,61 @@ function placarDeCitacoes(lista) {
 /* Do mais citado ao menos citado, e só quem tem citação: um artigo com zero
    não está no fim do pódio, está fora dele. `desdeOAno` recorta a janela —
    e recorta pelo ano de publicação, que é o que o rótulo da tela promete. */
-function maisCitados(arts, desdeOAno) {
+function maisCitados(arts, desdeOAno, base) {
   return arts.filter(function (a) {
-    if (citacoesWos(a) <= 0) return false;
+    if (citacoesDe(a, base) <= 0) return false;
     if (!desdeOAno) return true;
     return Number(a.year_published) >= desdeOAno;
-  }).sort(function (a, b) { return citacoesWos(b) - citacoesWos(a); });
+  }).sort(function (a, b) { return citacoesDe(b, base) - citacoesDe(a, base); });
 }
 
 function slideCitados() {
   const arts = artigos();
-  const comWos = maisCitados(arts);
+  const base = baseDeCitacao(arts);
+  const bases = basesComNumero(arts);
+
+  if (!base) {
+    return escalonar(el("div", { class: "slide" }, [
+      quadro("Os mais citados", "fogo",
+        vazio("Ainda sem citações registradas em nenhuma base. As três entram "
+          + "com o DOI do artigo: a OpenAlex vem sozinha na importação, a "
+          + "Scopus e a Web of Science pedem a chave da universidade."), ""),
+    ]));
+  }
+
+  const citados = maisCitados(arts, null, base);
   const corte = new Date().getFullYear() - (JANELA - 1);
-  const recentes = maisCitados(arts, corte);
+  const recentes = maisCitados(arts, corte, base);
+  const total = arts.reduce(function (s, a) { return s + citacoesDe(a, base); }, 0);
 
-  const totalWos = arts.reduce(function (s, a) { return s + citacoesWos(a); }, 0);
-  const totalMelhor = arts.reduce(function (s, a) { return s + citacoes(a); }, 0);
-
-  /* O caso do acervo sem WoS preenchida não é "zero citações": é um campo em
-     branco. Dizer "0" na parede seria mentir sobre o laboratório, então a tela
-     conta o que há nas outras bases e diz de onde viria o número que falta. */
-  const semWos = !comWos.length;
-  const recado = semWos
-    ? vazio(totalMelhor
-      ? "Nenhum artigo com citações da Web of Science registradas. Nas outras bases "
-        + "o acervo soma " + fmt(totalMelhor) + " citações; o número da WoS entra "
-        + "pela planilha, na coluna citacoes_wos."
-      : "Ainda sem citações registradas em nenhuma base.")
-    : null;
+  /* A parede diz de QUAL base é o número. Sem isso, quem lê compara com a
+     contagem que viu no Lattes ou no Currículo e não entende a diferença --
+     e a diferença entre bases é grande e legítima. */
+  const outras = bases.filter(function (b) { return b.campo !== base.campo; });
+  const rodape = outras.length
+    ? "também há número em " + outras.map(function (b) { return b.rotulo; }).join(" e ")
+    : "as outras bases ainda não responderam";
 
   const kpis = el("div", { class: "linha-kpi" }, [
-    tile({ nome: "Citações na WoS", valor: totalWos, icone: "citacao", serie: 7,
-      pastilha: "violeta", pe: "no acervo inteiro" }),
-    tile({ nome: "Artigos citados", valor: comWos.length, icone: "livro", serie: 1,
+    tile({ nome: "Citações na " + base.curto, valor: total, icone: "citacao", serie: 7,
+      pastilha: "violeta", pe: "no acervo inteiro · " + rodape }),
+    tile({ nome: "Artigos citados", valor: citados.length, icone: "livro", serie: 1,
       pe: "de <b>" + fmt(arts.length) + "</b> no acervo" }),
-    tile({ nome: "Mais citado", valor: comWos.length ? citacoesWos(comWos[0]) : 0,
+    tile({ nome: "Mais citado", valor: citados.length ? citacoesDe(citados[0], base) : 0,
       icone: "trofeu", serie: 6, pastilha: "bom",
-      pe: comWos.length ? cortar(comWos[0].title, 46) : "sem citações ainda" }),
+      pe: citados.length ? cortar(citados[0].title, 46) : "sem citações ainda" }),
   ]);
 
   return escalonar(el("div", { class: "slide" }, [
     kpis,
     el("div", { class: "painel-duplo igual" }, [
       quadro("Artigos mais citados", "fogo",
-        recado || placarDeCitacoes(comWos.slice(0, 6)),
-        semWos ? "" : "todos os anos"),
+        placarDeCitacoes(citados.slice(0, 6), base),
+        "todos os anos · " + base.rotulo),
       quadro("Mais citados nos últimos " + JANELA + " anos", "subida",
-        recentes.length ? placarDeCitacoes(recentes.slice(0, 6))
-          : vazio(semWos ? "Sem citações da WoS para o período."
-            : "Nenhum artigo publicado de " + corte + " para cá tem citações na WoS."),
+        recentes.length ? placarDeCitacoes(recentes.slice(0, 6), base)
+          : vazio("Nenhum artigo publicado de " + corte + " para cá tem citações "
+            + "na " + base.rotulo + "."),
         recentes.length ? "publicados de " + corte + " a " + new Date().getFullYear() : ""),
     ]),
   ]));

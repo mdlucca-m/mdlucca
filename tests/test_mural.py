@@ -59,6 +59,18 @@ def _roda(fonte: str):
     return json.loads(pronto.stdout)
 
 
+def _bases() -> str:
+    """A tabela BASES, lida do mural -- e não recopiada aqui.
+
+    Recopiar faria o teste continuar verde no dia em que a ordem das bases
+    mudasse no arquivo publicado.
+    """
+    texto = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
+    inicio = texto.index("const BASES = [")
+    fim = texto.index("];", inicio) + 1
+    return texto[inicio + len("const BASES = "):fim]
+
+
 def _no_node(fonte: str, expressao: str):
     return _roda(fonte + "\nprocess.stdout.write(JSON.stringify("
                  + expressao + "));\n")
@@ -333,14 +345,35 @@ class TestTempoDecorrido(unittest.TestCase):
 
 
 class TestOsMaisCitados(unittest.TestCase):
-    """Titulo, ano e o numero da Web of Science -- e so o dela."""
+    """Uma base por vez, e a tela diz qual.
+
+    A regra antiga era "só a Web of Science", e ela guardava algo certo:
+    exibir o maior de três bases sob o rótulo de uma faria a parede
+    anunciar um número que ninguém encontra ao conferir. O que ela não
+    previa era o acervo sem WoS -- e foi o que aconteceu: um laboratório
+    com quatro mil citações na OpenAlex viu "0 citações" na parede, porque
+    a tela perguntava a uma base só e a coluna dela estava em branco.
+
+    A regra agora é: escolher UMA base, a primeira que tenha número, e
+    escrever o nome dela ao lado de cada número. Misturar continua proibido.
+    """
 
     @classmethod
     def setUpClass(cls):
-        cls.fonte = _recorta("citacoesWos") + "\n" + _recorta("maisCitados")
+        cls.fonte = ("const BASES = " + _bases() + ";\n"
+                     + _recorta("baseDeCitacao") + "\n"
+                     + _recorta("citacoesDe") + "\n"
+                     + _recorta("basesComNumero") + "\n"
+                     + _recorta("maisCitados"))
+
+    def base(self, arts):
+        return _no_node(self.fonte, f"baseDeCitacao({json.dumps(arts)})")
 
     def ranking(self, arts, desde=None):
-        return _no_node(self.fonte, f"maisCitados({json.dumps(arts)}, {json.dumps(desde)})")
+        return _no_node(
+            self.fonte,
+            f"maisCitados({json.dumps(arts)}, {json.dumps(desde)},"
+            f" baseDeCitacao({json.dumps(arts)}))")
 
     ACERVO = [
         {"title": "velho", "year_published": 2011, "wos_citations": 90},
@@ -360,29 +393,76 @@ class TestOsMaisCitados(unittest.TestCase):
         recentes = [a["title"] for a in self.ranking(self.ACERVO, 2022)]
         self.assertEqual(recentes, ["recente", "novo"])
 
-    def test_a_wos_nao_e_substituida_pela_melhor_fonte(self):
-        """O numero prometido na tela e o da WoS, e ele costuma ser o menor.
+    # -- a escolha da base -----------------------------------------------
+    def test_com_wos_preenchida_e_a_wos_que_manda(self):
+        # é a base da avaliação: onde ela responde, é ela que a parede mostra
+        self.assertEqual(self.base(self.ACERVO)["curto"], "WoS")
 
-        Trocar em silencio pelo maior de tres bases faria a parede exibir
-        um numero que ninguem encontra ao conferir na Web of Science.
+    def test_acervo_so_com_openalex_nao_anuncia_zero(self):
+        """O defeito que este bloco guarda: 4.051 citações e "0" na parede.
+
+        O acervo tinha os números na OpenAlex, que a importação traz
+        sozinha; a tela pedia só a coluna da WoS e anunciava zero sem nada
+        dizer que estava olhando para uma base só.
+        """
+        acervo = [{"title": "aberto", "year_published": 2024,
+                   "wos_citations": 0, "openalex_citations": 4051}]
+        self.assertEqual(self.base(acervo)["curto"], "OpenAlex")
+        self.assertEqual([a["title"] for a in self.ranking(acervo)], ["aberto"])
+
+    def test_scopus_vem_antes_da_openalex(self):
+        acervo = [{"title": "x", "year_published": 2024,
+                   "scopus_citations": 12, "openalex_citations": 300}]
+        self.assertEqual(self.base(acervo)["curto"], "Scopus")
+
+    def test_o_numero_exibido_e_o_da_base_escolhida_e_nao_o_maior(self):
+        """Misturar continua proibido.
+
+        Trocar em silêncio pelo maior de três faria a parede exibir um
+        número que ninguém encontra ao conferir na base que está escrita
+        ao lado dele.
         """
         acervo = [{"title": "so scopus", "year_published": 2024,
                    "wos_citations": 0, "scopus_citations": 300,
                    "openalex_citations": 280}]
+        base = self.base(acervo)
+        self.assertEqual(base["curto"], "Scopus")
+        valor = _no_node(self.fonte,
+                         f"citacoesDe({json.dumps(acervo[0])}, {json.dumps(base)})")
+        self.assertEqual(valor, 300)          # o da Scopus, não o de 280 nem uma soma
+
+    def test_acervo_sem_base_nenhuma_devolve_nulo(self):
+        acervo = [{"title": "nada", "year_published": 2024}]
+        self.assertIsNone(self.base(acervo))
         self.assertEqual(self.ranking(acervo), [])
 
-    def test_wos_ausente_conta_como_zero_e_nao_quebra(self):
-        acervo = [{"title": "sem campo", "year_published": 2024},
-                  {"title": "com campo", "year_published": 2024, "wos_citations": 3}]
-        self.assertEqual([a["title"] for a in self.ranking(acervo)], ["com campo"])
+    def test_a_tela_diz_quais_outras_bases_tem_numero(self):
+        # sem isso, quem lê compara com o que viu no Lattes e não entende a
+        # diferença -- e a diferença entre bases é grande e legítima
+        acervo = [{"title": "x", "year_published": 2024,
+                   "wos_citations": 5, "openalex_citations": 9}]
+        nomes = [b["curto"] for b in
+                 _no_node(self.fonte, f"basesComNumero({json.dumps(acervo)})")]
+        self.assertEqual(nomes, ["WoS", "OpenAlex"])
 
-    def test_acervo_sem_wos_explica_de_onde_viria_o_numero(self):
-        # zero na parede seria mentira sobre o laboratorio: o campo esta em
-        # branco, e a tela precisa dizer isso e por onde ele entra
+    # -- o que a tela escreve --------------------------------------------
+    def test_o_placar_nomeia_a_base_na_coluna(self):
+        # "Citações" sozinho deixaria a coluna parecer a soma das três
+        js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
+        corpo = js[js.index("function placarDeCitacoes"):]
+        corpo = corpo[:corpo.index("\n}\n")]
+        self.assertIn('"Citações " + (base ? base.curto : "WoS")', corpo)
+
+    def test_sem_base_nenhuma_a_tela_diz_por_onde_o_numero_entra(self):
         js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
         corpo = js[js.index("function slideCitados"):js.index("function slideDestaques")]
-        self.assertIn("citacoes_wos", corpo)
-        self.assertIn("Nenhum artigo com citações da Web of Science", corpo)
+        self.assertIn("Ainda sem citações registradas em nenhuma base", corpo)
+        self.assertIn("pedem a chave da universidade", corpo)
+
+    def test_o_kpi_carrega_o_nome_da_base(self):
+        js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
+        corpo = js[js.index("function slideCitados"):js.index("function slideDestaques")]
+        self.assertIn('"Citações na " + base.curto', corpo)
 
 
 class TestOQueAParedeSempreMostra(unittest.TestCase):

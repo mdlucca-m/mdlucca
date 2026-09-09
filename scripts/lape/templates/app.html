@@ -945,6 +945,18 @@ VIEWS.admin = {
     profBox.appendChild(h("div", {class: "actions"}, [profBotao]));
     VIEW.appendChild(profBox);
 
+    /* Fichas repetidas da mesma pessoa. A planilha lista os autores em
+       formato livre: num artigo saiu "Alexandro", em dezoito, "Andrade",
+       e viraram duas fichas -- a chave de autor é montada sobre o
+       sobrenome, e "alexandro" não encontra "andrade_a" de jeito nenhum.
+       O sistema PROPÕE e a coordenação confirma, uma de cada vez: um
+       laboratório de vinte pessoas tem dois Henriques com facilidade, e
+       juntar dois por engano apaga justamente a informação de qual artigo
+       era de quem. */
+    const dupBox = h("div", {class: "card sec"});
+    VIEW.appendChild(dupBox);
+    await desenharDuplicatas(dupBox);
+
     /* O convite é o que faz o laboratório entrar sozinho: um link para o
        grupo, cada pessoa escolhe a própria senha, ninguém transmite senha
        por mensagem e a coordenação não cria conta a conta. */
@@ -1033,6 +1045,65 @@ async function reviewDiscovery(button, id, action){
 }
 
 /* ---------- convites ---------- */
+async function desenharDuplicatas(caixa){
+  caixa.textContent = "";
+  caixa.appendChild(h("h3", {text: "Fichas repetidas"}));
+  let dados;
+  try {
+    dados = await api("/api/equipe/duplicatas");
+  } catch (e){
+    caixa.appendChild(h("p", {class: "hint", text: "Não deu para conferir: " + e.message}));
+    return;
+  }
+  const lista = dados.candidatos || [];
+  if (!lista.length){
+    caixa.appendChild(h("p", {class: "hint",
+      text: "Nenhuma ficha parece repetida. A busca procura sempre a mesma forma: "
+          + "uma ficha de um nome só que é o primeiro nome de outra mais completa, "
+          + "e que nunca assina artigo junto com ela."}));
+    return;
+  }
+  caixa.appendChild(h("p", {class: "hint", style: "margin:4px 0 12px",
+    text: lista.length + " par(es) parecem a mesma pessoa. Confira um por um: duas "
+        + "pessoas com o mesmo primeiro nome têm exatamente esta cara, e juntá-las "
+        + "por engano apaga de qual delas era cada artigo."}));
+
+  lista.forEach(function (c){
+    const estado = h("p", {class: "hint", style: "margin:6px 0 0", text: c.porque});
+    const botao = h("button", {class: "primary",
+      text: "Juntar em “" + c.manter.nome + "”",
+      onclick: async function (){
+        /* Fundir apaga uma ficha. O aviso diz o que some e o que fica --
+           e diz antes, que é quando ainda dá para não fazer. */
+        if (!confirm("Juntar a ficha “" + c.sumir.nome + "” (" + c.sumir.artigos
+            + " artigo(s)) dentro de “" + c.manter.nome + "”?\n\n"
+            + "Os artigos passam para " + c.manter.nome + ", a grafia “"
+            + c.sumir.nome + "” fica guardada como variação do nome, e a ficha "
+            + "antiga deixa de existir. Isto não se desfaz sozinho.")) return;
+        botao.disabled = true;
+        estado.textContent = "Juntando…";
+        try {
+          const r = await api("/api/equipe/duplicatas", "POST",
+                              {manter: c.manter.id, sumir: c.sumir.id});
+          toast(r.sumiu + " virou variação de " + r.manter + " · "
+                + r.artigos_agora + " artigo(s) na ficha", "ok");
+          await desenharDuplicatas(caixa);
+          await loadLookups();
+        } catch (e){
+          estado.textContent = c.porque;
+          toast(e.message, "erro");
+        } finally { botao.disabled = false; }
+      }});
+    caixa.appendChild(h("div", {class: "sec"}, [
+      h("p", {style: "margin:0", html:
+        "<b>" + c.sumir.nome + "</b> (" + c.sumir.artigos + " artigo(s)) parece ser "
+        + "<b>" + c.manter.nome + "</b> (" + c.manter.artigos + " artigo(s))"}),
+      estado,
+      h("div", {class: "actions", style: "margin-top:10px"}, [botao]),
+    ]));
+  });
+}
+
 async function desenharConvites(caixa){
   caixa.innerHTML = "";
   caixa.appendChild(h("h3", {text: "Convidar o laboratório"}));

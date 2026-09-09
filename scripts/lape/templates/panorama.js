@@ -652,13 +652,19 @@ function cartaoDasCitacoes() {
   const selos = el("div", { class: "selos", style: "margin-bottom:10px" },
     (cit.fontes || []).map(function (f) {
       const ligada = f.configurada;
+      /* A base que não pede chave não tem variável de ambiente para citar.
+         Escrever "falta a variável null" mandaria alguém procurar um
+         convênio para uma base aberta. */
+      const nota = !f.pede_chave ? " · aberta"
+        : (ligada ? " · ligada" : " · sem chave");
       return el("span", {
         class: "selo-var",
         style: "--tom:" + C.token(ligada ? "--good" : "--ink-muted"),
-        title: ligada ? "chave presente em " + f.variavel
-          : "falta a variável de ambiente " + f.variavel,
+        title: !f.pede_chave ? "responde por DOI sem chave nenhuma"
+          : (ligada ? "chave presente em " + f.variavel
+             : "falta a variável de ambiente " + f.variavel),
       }, [Icons.get(ligada ? "conectar" : "aviso", 12),
-        el("span", { text: f.rotulo + (ligada ? " · ligada" : " · sem chave") }),
+        el("span", { text: f.rotulo + nota }),
         f.artigos_com_numero
           ? el("small", { text: " " + f.artigos_com_numero + " artigo(s)" }) : null]);
     }));
@@ -680,12 +686,17 @@ function cartaoDasCitacoes() {
 
   /* A consulta é por DOI. Sem DOI não há o que perguntar, e este é o
      estado do banco hoje -- dizer isso aqui poupa a rodada inteira. */
-  const semChave = (cit.fontes || []).every(function (f) { return !f.configurada; });
+  /* "sem chave" é sobre as bases que PEDEM chave. Contar a OpenAlex aqui
+     tornaria a condição impossível -- ela está sempre configurada --, e as
+     instruções de como ligar Scopus e WoS nunca mais apareceriam. */
+  const semChave = (cit.fontes || [])
+    .filter(function (f) { return f.pede_chave; })
+    .every(function (f) { return !f.configurada; });
   const semDoi = !cit.com_doi;
 
   if (semDoi && cit.artigos) {
     corpo.appendChild(el("p", { class: "nota-honesta", style: "margin-top:10px", html:
-      "<b>Nenhum dos " + cit.artigos + " artigos tem DOI.</b> A consulta às duas bases é "
+      "<b>Nenhum dos " + cit.artigos + " artigos tem DOI.</b> A consulta às três bases é "
       + "por DOI — é a única chave que não confunde um artigo com o homônimo de outro "
       + "grupo. Preencha a coluna <code>doi</code> na planilha, ou traga a produção da "
       + "PubMed no cartão acima: ela vem com o DOI conferido." }));
@@ -699,7 +710,12 @@ function cartaoDasCitacoes() {
 
   if (semChave) {
     corpo.appendChild(el("p", { class: "hint", style: "margin-top:10px", html:
-      "<b>Como ligar.</b> Ponha as chaves no arquivo <code>.env</code>, na raiz do "
+      "<b>A OpenAlex já responde</b>, sem chave nenhuma, para todo artigo que tenha "
+      + "DOI — é dela que sai o número enquanto as outras duas não estiverem ligadas. "
+      + "Scopus e Web of Science contam conjuntos diferentes de revistas, e são as "
+      + "que a avaliação costuma pedir." }));
+    corpo.appendChild(el("p", { class: "hint", style: "margin-top:10px", html:
+      "<b>Como ligar as outras duas.</b> Ponha as chaves no arquivo <code>.env</code>, na raiz do "
       + "sistema, uma por linha:<br>"
       + "<code>SCOPUS_API_KEY=…</code> — grátis em dev.elsevier.com; a contagem "
       + "completa só sai de dentro da rede da universidade, ou com "
@@ -708,7 +724,8 @@ function cartaoDasCitacoes() {
       + "Clarivate; depende da assinatura da UDESC.<br>"
       + "Depois reinicie o sistema. As chaves ficam só nesta máquina — o "
       + "<code>.env</code> não vai para o repositório." }));
-    return corpo;
+    /* e o botão fica: sem chave a rodada não é vazia, ela consulta a
+       OpenAlex -- que é exatamente o que faltava fazer antes */
   }
 
   const botao = el("button", { class: "botao-destino", style: "margin-top:10px" },
@@ -723,7 +740,8 @@ function cartaoDasCitacoes() {
       D.citacoes = r.situacao || D.citacoes;
       const recusadas = Object.keys(r.recusadas || {});
       contar();
-      const linha = ["Scopus: " + r.scopus, "WoS: " + r.wos];
+      const linha = ["Scopus: " + r.scopus, "WoS: " + r.wos,
+                     "OpenAlex: " + (r.openalex || 0)];
       if (r.erros) linha.push(r.erros + " erro(s)");
       estado.textContent = linha.join(" · ") + " — de " + r.consultados + " DOI(s).";
       if (recusadas.length) {
@@ -869,8 +887,9 @@ function verLaboratorio(palco) {
     cartaoDaMarca()));
 
   palco.appendChild(cartao("citacao", "Citações na Scopus e na Web of Science",
-    "As duas bases fechadas não deixam contar de fora: pedem chave, e a chave "
-    + "vem da assinatura da universidade. Ligadas, elas respondem por DOI.",
+    "Três bases, e todas respondem por DOI. A OpenAlex é aberta e responde a "
+    + "qualquer um; Scopus e Web of Science pedem chave, e a chave vem da "
+    + "assinatura da universidade.",
     cartaoDasCitacoes()));
 
   palco.appendChild(el("div", { class: "grade g3" }, (D.linhas || []).map(function (l) {

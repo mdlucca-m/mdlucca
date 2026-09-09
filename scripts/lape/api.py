@@ -376,6 +376,38 @@ def route_professores(ctx: "Context") -> Any:
     return resultado
 
 
+def route_duplicatas(ctx: "Context") -> Any:
+    """As fichas que parecem a mesma pessoa -- so a proposta, sem mexer."""
+    auth.require(ctx.user, "coordenacao")
+    from . import duplicatas
+    return {"candidatos": duplicatas.candidatos(ctx.db)}
+
+
+def route_duplicatas_fundir(ctx: "Context") -> Any:
+    """Funde duas fichas, e so as duas que vieram no pedido.
+
+    Fundir tudo o que a busca propoe de uma vez seria decidir pela
+    coordenacao: "Henrique" e "Henrique Fukumasa" tem a mesma cara que
+    "Alexandro" e "Alexandro Andrade" e podem ser duas pessoas. Uma de
+    cada vez, com quem conhece a equipe olhando.
+    """
+    user = auth.require(ctx.user, "coordenacao")
+    from . import duplicatas
+    corpo = ctx.body or {}
+    try:
+        manter = int(corpo.get("manter"))
+        sumir = int(corpo.get("sumir"))
+    except (TypeError, ValueError):
+        raise ApiError(400, "informe as duas fichas: manter e sumir")
+    try:
+        resultado = duplicatas.fundir(ctx.db, manter, sumir)
+    except ValueError as erro:
+        raise ApiError(400, str(erro))
+    auth.log(ctx.db, user["id"], user.get("login"), "fichas_fundidas", "members",
+             detail=f"{resultado['sumiu']} -> {resultado['manter']}")
+    return resultado
+
+
 def route_researcher_detail(ctx: "Context", member_id: str) -> Any:
     db = ctx.db
     rows = db.dicts("SELECT * FROM v_researcher WHERE id = ?", (int(member_id),))
@@ -1374,6 +1406,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/producao/?$", route_producao, "leitura"),
     ("POST", r"^/api/producao/importar/?$", route_producao_importar, "coordenacao"),
     ("POST", r"^/api/equipe/professores/?$", route_professores, "coordenacao"),
+    ("GET", r"^/api/equipe/duplicatas/?$", route_duplicatas, "coordenacao"),
+    ("POST", r"^/api/equipe/duplicatas/?$", route_duplicatas_fundir, "coordenacao"),
     ("POST", r"^/api/research-lines/padrao/?$", route_linhas_padrao, "coordenacao"),
     ("GET", r"^/api/marca/?$", route_marca, "leitura"),
     ("POST", r"^/api/marca/?$", route_marca_gravar, "coordenacao"),

@@ -117,10 +117,33 @@ def fetch_wos(doi: str, api_key: str) -> dict[str, Any] | None:
     return {"citations": total, "wos_id": hit.get("uid")}
 
 
+def fetch_openalex(doi: str) -> dict[str, Any] | None:
+    """A contagem da OpenAlex, que responde por DOI e nao pede chave.
+
+    Ela entra aqui pelo mesmo motivo de existir: e a unica das tres que
+    responde hoje, para qualquer laboratorio, sem convenio nem cota. O
+    numero e menor que o da Scopus em umas areas e maior noutras, e nao
+    substitui nenhuma das duas -- mas e um numero conferivel, e a
+    alternativa a ele nao e um numero melhor, e um campo em branco.
+    """
+    from . import sources
+
+    achado = sources.openalex_by_doi(doi, getattr(config, "CONTACT_EMAIL", None))
+    if not achado or achado.get("citations") is None:
+        return None
+    # So a contagem: `articles` nao tem coluna para o id da OpenAlex, e
+    # abrir uma para um dado que nenhuma tela le seria peso sem leitor.
+    return {"citations": int(achado["citations"] or 0)}
+
+
+COLUNA = {"scopus": "scopus_citations", "wos": "wos_citations",
+          "openalex": "openalex_citations"}
+
+
 def _record(db: Database, article_id: int, source: str, citations: int,
             id_field: str, external_id: Any) -> None:
     today = date.today().isoformat()
-    column = "scopus_citations" if source == "scopus" else "wos_citations"
+    column = COLUNA[source]
     db.execute(
         f"UPDATE articles SET {column} = ?, citations_updated_at = ?"
         f"{', ' + id_field + ' = ?' if external_id else ''} WHERE id = ?",
@@ -133,9 +156,13 @@ def _record(db: Database, article_id: int, source: str, citations: int,
     )
 
 
+# (chave, rotulo, variavel de ambiente ou None, coluna do id externo)
+# `None` na terceira posicao quer dizer "nao pede chave": e o que separa a
+# fonte que so responde com convenio da que responde sempre.
 FONTES = (
     ("scopus", "Scopus", "SCOPUS_API_KEY", "scopus_id"),
     ("wos", "Web of Science", "WOS_API_KEY", "wos_id"),
+    ("openalex", "OpenAlex", None, None),
 )
 
 
@@ -155,7 +182,11 @@ def situacao(db: Database) -> dict[str, Any]:
             "chave": chave,
             "rotulo": rotulo,
             "variavel": variavel,
-            "configurada": bool(getattr(config, variavel, "")),
+            # A que nao pede chave esta sempre configurada. Marca-la como
+            # "falta configurar" mandaria a tela pedir uma chave que nao
+            # existe, e o botao ficaria bloqueado por um requisito imaginario.
+            "pede_chave": variavel is not None,
+            "configurada": (bool(getattr(config, variavel, "")) if variavel else True),
             "artigos_com_numero": int(db.scalar(
                 f"SELECT COUNT(*) FROM articles WHERE {chave}_citations > 0") or 0),
             "citacoes": int(db.scalar(
@@ -175,8 +206,8 @@ def situacao(db: Database) -> dict[str, Any]:
 def update_citations(db: Database, limit: int | None = None,
                      verbose: bool = True) -> dict[str, Any]:
     """Atualiza citacoes de todos os artigos que tenham DOI."""
-    stats: dict[str, Any] = {"scopus": 0, "wos": 0, "sem_doi": 0, "erros": 0,
-                             "consultados": 0, "recusadas": {}}
+    stats: dict[str, Any] = {"scopus": 0, "wos": 0, "openalex": 0, "sem_doi": 0,
+                             "erros": 0, "consultados": 0, "recusadas": {}}
     articles = db.dicts(
         "SELECT id, title, doi FROM articles WHERE doi IS NOT NULL AND TRIM(doi) <> ''"
         " ORDER BY COALESCE(year_published, 0) DESC" + (f" LIMIT {int(limit)}" if limit else "")
@@ -185,13 +216,17 @@ def update_citations(db: Database, limit: int | None = None,
         "SELECT COUNT(*) FROM articles WHERE doi IS NULL OR TRIM(doi) = ''") or 0)
     stats["consultados"] = len(articles)
 
-    chaves = {"scopus": config.SCOPUS_API_KEY, "wos": config.WOS_API_KEY}
-    if not any(chaves.values()):
-        db.log_ingest("citacoes", status="ignorado",
-                      message="SCOPUS_API_KEY/WOS_API_KEY nao configuradas")
-        if verbose:
-            print("  ! SCOPUS_API_KEY/WOS_API_KEY ausentes -- citacoes mantidas como estao na planilha")
-        return stats
+    chaves = {"scopus": config.SCOPUS_API_KEY, "wos": config.WOS_API_KEY,
+              "openalex": None}
+    # Nao ha mais o desvio "sem chave, sem coleta". Ele parava a rodada
+    # inteira quando faltavam Scopus e WoS -- e parava junto a OpenAlex,
+    # que nao pede chave nenhuma e responde por DOI para qualquer um. Um
+    # laboratorio sem convenio apertava o botao, lia "chaves ausentes" e
+    # ficava com a coluna de citacoes em branco tendo, na base aberta,
+    # milhares delas.
+    if not any(chaves.values()) and verbose:
+        print("  . sem chave de Scopus ou WoS -- consultando so a OpenAlex,"
+              " que responde por DOI sem chave")
     if not articles:
         db.log_ingest("citacoes", status="ignorado",
                       message=f"nenhum artigo com DOI ({stats['sem_doi']} sem)")
@@ -205,14 +240,16 @@ def update_citations(db: Database, limit: int | None = None,
     desligadas: dict[str, str] = {}
     for article in articles:
         doi = article["doi"].strip()
-        for chave, rotulo, _, id_field in FONTES:
-            if not chaves[chave] or chave in desligadas:
+        for chave, rotulo, variavel, id_field in FONTES:
+            if (variavel and not chaves[chave]) or chave in desligadas:
                 continue
             try:
                 if chave == "scopus":
                     result = fetch_scopus(doi, chaves[chave], config.SCOPUS_INST_TOKEN)
-                else:
+                elif chave == "wos":
                     result = fetch_wos(doi, chaves[chave])
+                else:
+                    result = fetch_openalex(doi)
                 if result:
                     _record(db, article["id"], chave, result["citations"],
                             id_field, result.get(id_field))
@@ -231,10 +268,12 @@ def update_citations(db: Database, limit: int | None = None,
     stats["recusadas"] = desligadas
     db.conn.commit()
     db.log_ingest("citacoes", target="articles", rows_read=len(articles),
-                  rows_written=stats["scopus"] + stats["wos"],
+                  rows_written=stats["scopus"] + stats["wos"] + stats["openalex"],
                   status="ok" if not (stats["erros"] or desligadas) else "parcial",
-                  message=f"scopus={stats['scopus']} wos={stats['wos']} erros={stats['erros']}")
+                  message=f"scopus={stats['scopus']} wos={stats['wos']}"
+                          f" openalex={stats['openalex']} erros={stats['erros']}")
     if verbose:
         print(f"  citacoes: scopus={stats['scopus']} wos={stats['wos']}"
+              f" openalex={stats['openalex']}"
               f" erros={stats['erros']} artigos_sem_doi={stats['sem_doi']}")
     return stats

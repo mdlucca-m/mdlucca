@@ -73,6 +73,16 @@ class BaseComServidor(unittest.TestCase):
         # servidor que roda dentro dele
         self.trocar(ingest_citations, "THROTTLE_SECONDS", 0)
 
+        # A OpenAlex nao pede chave, e por isso responde em TODA rodada.
+        # Deixa-la sair para a rede de verdade dentro do teste faria o
+        # resultado depender da internet e de uma contagem que muda sozinha.
+        # Por padrao ela nao acha nada, que e o comportamento antigo destes
+        # testes; quem quiser um numero chama `responder_openalex`.
+        import lape.sources as fontes
+        self.openalex = None
+        self.trocar(fontes, "openalex_by_doi",
+                    lambda doi, mailto=None: self.openalex)
+
     def trocar(self, modulo, nome, valor):
         antigo = getattr(modulo, nome)
         setattr(modulo, nome, valor)
@@ -104,6 +114,9 @@ class BaseComServidor(unittest.TestCase):
     def responder_scopus(self, citacoes, eid="2-s2.0-1"):
         BaseFalsa.respostas[self.SCOPUS] = (200, {"search-results": {"entry": [
             {"citedby-count": str(citacoes), "eid": eid}]}})
+
+    def responder_openalex(self, citacoes):
+        self.openalex = {"citations": citacoes, "external_id": "https://openalex.org/W1"}
 
     def responder_wos(self, citacoes, uid="WOS:000123"):
         BaseFalsa.respostas[self.WOS] = (200, {"hits": [
@@ -271,16 +284,65 @@ class TestAColeta(BaseComServidor):
         self.assertEqual(ultimo["status"], "ignorado")
         self.assertIn("DOI", ultimo["message"])
 
-    def test_sem_chave_nenhuma_nao_se_bate_na_porta(self):
+    def test_sem_chave_nao_se_bate_na_porta_de_quem_pede_chave(self):
         self.chaves(scopus="", wos="")
         db = self.banco([{"doi": "10.1000/a"}])
         r = ingest_citations.update_citations(db, verbose=False)
-        self.assertEqual(BaseFalsa.pedidos, [])
+        self.assertEqual(BaseFalsa.pedidos, [])       # Scopus e WoS, intactas
         self.assertEqual((r["scopus"], r["wos"]), (0, 0))
-        ultimo = db.dicts("SELECT status, message FROM ingest_log"
-                          " ORDER BY id DESC LIMIT 1")[0]
-        self.assertEqual(ultimo["status"], "ignorado")
-        self.assertIn("API_KEY", ultimo["message"])
+
+    def test_sem_chave_a_openalex_ainda_responde(self):
+        """A rodada nao para mais por falta de chave.
+
+        Parava, e parava junto a OpenAlex, que nao pede chave nenhuma. Um
+        laboratorio sem convenio apertava o botao, lia "chaves ausentes" e
+        ficava com a coluna em branco tendo, na base aberta, milhares de
+        citacoes -- foi o que pos "0 citacoes" numa parede com quatro mil.
+        """
+        self.chaves(scopus="", wos="")
+        self.responder_openalex(137)
+        db = self.banco([{"doi": "10.1000/a"}])
+        r = ingest_citations.update_citations(db, verbose=False)
+        self.assertEqual(r["openalex"], 1)
+        self.assertEqual(db.scalar("SELECT openalex_citations FROM articles"), 137)
+        self.assertEqual(BaseFalsa.pedidos, [])       # e sem tocar nas outras duas
+
+    def test_a_openalex_grava_na_coluna_dela_e_nao_na_das_outras(self):
+        self.chaves(scopus="", wos="")
+        self.responder_openalex(50)
+        db = self.banco([{"doi": "10.1000/a"}])
+        ingest_citations.update_citations(db, verbose=False)
+        linha = db.dicts("SELECT openalex_citations, scopus_citations,"
+                         "       wos_citations FROM articles")[0]
+        self.assertEqual(linha["openalex_citations"], 50)
+        self.assertIsNone(linha["scopus_citations"] or None)
+        self.assertIsNone(linha["wos_citations"] or None)
+
+    def test_as_tres_bases_convivem_no_mesmo_artigo(self):
+        # numeros diferentes na mesma referencia sao legitimos: cada base
+        # indexa um conjunto diferente de revistas
+        self.chaves()
+        self.responder_scopus(30)
+        self.responder_wos(21)
+        self.responder_openalex(44)
+        db = self.banco([{"doi": "10.1000/a"}])
+        r = ingest_citations.update_citations(db, verbose=False)
+        self.assertEqual((r["scopus"], r["wos"], r["openalex"]), (1, 1, 1))
+        linha = db.dicts("SELECT scopus_citations, wos_citations,"
+                         "       openalex_citations FROM articles")[0]
+        self.assertEqual((linha["scopus_citations"], linha["wos_citations"],
+                          linha["openalex_citations"]), (30, 21, 44))
+
+    def test_a_openalex_sem_resposta_nao_zera_o_que_ja_havia(self):
+        # artigo que a base aberta nao conhece nao pode apagar a contagem
+        # que a planilha ou outra rodada ja tinham posto ali
+        self.chaves(scopus="", wos="")
+        db = self.banco([{"doi": "10.1000/a"}])
+        db.execute("UPDATE articles SET openalex_citations = 12")
+        db.conn.commit()
+        self.openalex = None
+        ingest_citations.update_citations(db, verbose=False)
+        self.assertEqual(db.scalar("SELECT openalex_citations FROM articles"), 12)
 
     def test_so_uma_chave_configurada_consulta_so_aquela_base(self):
         self.responder_scopus(11)
@@ -323,8 +385,62 @@ class TestORetratoAntesDeApertar(BaseComServidor):
         # sem isso, "sem chave" na tela nao ensina o que fazer a respeito
         self.chaves(scopus="", wos="")
         db = self.banco([])
-        variaveis = {f["variavel"] for f in ingest_citations.situacao(db)["fontes"]}
+        variaveis = {f["variavel"] for f in ingest_citations.situacao(db)["fontes"]
+                     if f["pede_chave"]}
         self.assertEqual(variaveis, {"SCOPUS_API_KEY", "WOS_API_KEY"})
+
+    def test_a_base_que_nao_pede_chave_ja_esta_configurada(self):
+        """Marca-la como "falta configurar" bloquearia o botao a toa.
+
+        A tela pediria uma chave que nao existe, e quem lesse iria procurar
+        um convenio para uma base aberta.
+        """
+        self.chaves(scopus="", wos="")
+        db = self.banco([])
+        fontes = {f["chave"]: f for f in ingest_citations.situacao(db)["fontes"]}
+        self.assertFalse(fontes["openalex"]["pede_chave"])
+        self.assertTrue(fontes["openalex"]["configurada"])
+        self.assertFalse(fontes["scopus"]["configurada"])
+
+
+class TestOCartaoDaTela(unittest.TestCase):
+    """O que o cartao do painel diz agora que ha uma base sem chave."""
+
+    @classmethod
+    def setUpClass(cls):
+        js = (ROOT / "scripts" / "lape" / "templates" / "panorama.js").read_text(
+            encoding="utf-8")
+        # so a funcao, e nao ate o proximo divisor do arquivo: um recorte
+        # largo faria "o botao nao some" passar por causa de um `return`
+        # de outra funcao qualquer no meio do caminho
+        inicio = js.index("function cartaoDasCitacoes()")
+        cls.corpo = js[inicio:js.index("\n}\n", inicio) + 3]
+
+    def test_sem_chave_conta_so_quem_pede_chave(self):
+        """Contar a OpenAlex aqui tornaria a condicao impossivel.
+
+        Ela esta sempre configurada, e as instrucoes de como ligar Scopus
+        e WoS nunca mais apareceriam na tela.
+        """
+        self.assertIn("f.pede_chave", self.corpo)
+        self.assertNotIn(
+            'const semChave = (cit.fontes || []).every(function (f) { return !f.configurada; });',
+            self.corpo)
+
+    def test_a_base_aberta_nao_pede_variavel_de_ambiente(self):
+        # "falta a variavel null" mandaria alguem procurar convenio para
+        # uma base que responde a qualquer um
+        self.assertIn('!f.pede_chave ? " · aberta"', self.corpo)
+
+    def test_o_resultado_mostra_as_tres_bases(self):
+        self.assertIn('"OpenAlex: " + (r.openalex || 0)', self.corpo)
+
+    def test_o_botao_nao_some_mais_por_falta_de_chave(self):
+        # sem chave a rodada nao e vazia: ela consulta a base aberta
+        antes = self.corpo.index("if (semChave) {")
+        trecho = self.corpo[antes:self.corpo.index("Conferir as citações agora")]
+        self.assertNotIn("return corpo;", trecho,
+                         "o cartão volta antes do botão quando falta chave")
 
 
 class TestSemDependenciaDeRede(unittest.TestCase):
