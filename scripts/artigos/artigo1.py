@@ -1840,7 +1840,7 @@ BLOCOS += [
       f"{F.sinal(S.D1D7_VAR['PTH (TMD)']['dz'], 2)} e intervalo largo, de "
       f"[{F.sinal(S.D1D7_VAR['PTH (TMD)']['ic_inferior'], 2)}; "
       f"{F.sinal(S.D1D7_VAR['PTH (TMD)']['ic_superior'], 2)}]. A razão é "
-      "que ela soma seis subescalas e herda a variância de todas, incluindo "
+      "que ela soma seis subescalas e herda a variância de todas, entre elas "
       "as quatro que não mudam. O escore composto é, por isso, o menos "
       "sensível dos indicadores desta semana, apesar de ser o mais usado, e "
       "as subescalas isoladas do eixo energético descrevem melhor o que "
