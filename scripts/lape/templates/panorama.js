@@ -1163,12 +1163,25 @@ function desenharCurvas(palco, p, anos, todas) {
        + "período inteiro, então a linha cresce sem o gráfico pular. "
      : marcas.length ? "Séries filtradas, com os pontos de inflexão marcados sobre a "
        + "própria curva. " : "Séries filtradas. ")
-    + "Onde duas linhas se cruzam, uma passou a outra.",
+    + "Onde duas linhas se cruzam, uma passou a outra."
+    + (vivas.length === 1 && vivas[0].faixa
+       ? " A faixa em volta da curva tem a largura de 1,96 desvio do ruído: é onde "
+         + "os pontos crus caem. Ela cerca a observação, não a média — com "
+         + anos.length + " pontos anuais, prometer precisão sobre a média seria "
+         + "prometer mais do que a série tem."
+       : vivas.length > 1 ? " Deixe uma só variável no filtro para ver a faixa de "
+         + "incerteza dela." : ""),
     C.lines({
       labels: anos, max: teto,
+      /* A faixa em volta da curva só entra quando há UMA série no gráfico.
+         Com seis faixas sobrepostas não se lê nenhuma: o que era medida de
+         incerteza vira mancha. Quem quiser ver a sua filtra até sobrar uma. */
       series: vivas.map(function (v) {
+        const so = vivas.length === 1 && v.faixa;
         return { label: v.label, values: (v.suave || []).slice(0, ate),
-                 color: corDaVariavel(v.code), area: false }; }),
+                 color: corDaVariavel(v.code), area: false,
+                 band: so ? { baixo: v.faixa.baixo.slice(0, ate),
+                              alto: v.faixa.alto.slice(0, ate) } : null }; }),
       marks: marcas,
       height: 340, file: "curvas-variaveis",
       table: {
@@ -1556,7 +1569,13 @@ function botoesDePais(paises, redesenhar) {
         else { ST.pais = x.pais; MAPA.indice = i; }
         redesenhar();
       },
-    }, [el("span", { text: x.pais }), el("small", { text: String(x.n) })]));
+      /* A bandeira vem antes do nome porque é ela que se reconhece antes de
+         ler. Não é imagem nem endereço a buscar: são dois caracteres do
+         próprio Unicode, e por isso funcionam no mural sem rede e no
+         instantâneo que viaja por e-mail. País sem bandeira conhecida fica
+         só com o nome, e nada se desalinha. */
+    }, [x.bandeira ? el("span", { class: "bandeira", text: x.bandeira }) : null,
+        el("span", { text: x.pais }), el("small", { text: String(x.n) })]));
   });
   return caixa;
 }
@@ -1604,7 +1623,10 @@ function recorteDoPais(nome, redesenhar) {
   const caixa = el("div", { class: "recorte-pais" });
 
   caixa.appendChild(el("div", { class: "recorte-topo" }, [
-    el("h3", {}, [Icons.get("mapa", null), el("span", { text: nome })]),
+    el("h3", {}, [
+      ficha.bandeira ? el("span", { class: "bandeira grande", text: ficha.bandeira })
+        : Icons.get("mapa", null),
+      el("span", { text: nome })]),
     el("span", { class: "badge", text: artigos.length + " artigo(s)" }),
     ficha.instituicoes && ficha.instituicoes.length
       ? el("span", { class: "hint", text: ficha.instituicoes.join(" · ") }) : null,
@@ -1696,7 +1718,8 @@ function verMapa(palco) {
       const pe = (i === 0 ? "o país mais produtivo" : "artigos com autor daqui")
         + (x.instituicoes.length
           ? " · " + x.instituicoes.length + " instituição(ões)" : "");
-      return indicador(x.pais, x.n, pe, "mapa"); })));
+      return indicador((x.bandeira ? x.bandeira + " " : "") + x.pais,
+                       x.n, pe, "mapa"); })));
 
   const palcoMapa = el("div", { id: "palco-mapa", style: "margin-top:14px" });
   palco.appendChild(palcoMapa);
@@ -1726,7 +1749,8 @@ function verMapa(palco) {
           table: {
             cols: ["País", "Artigos", "Instituições"],
             rows: todos.map(function (x) {
-              return [x.pais, x.n, x.instituicoes.join("; ")]; }),
+              return [(x.bandeira ? x.bandeira + " " : "") + x.pais,
+                      x.n, x.instituicoes.join("; ")]; }),
           },
         }),
         controlesDoMapa(todos, redesenhar),

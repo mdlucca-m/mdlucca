@@ -439,6 +439,50 @@ PAISES: dict[str, tuple[str, float, float]] = {
     "north macedonia": ("Macedônia do Norte", 41.6, 21.7),
     "montenegro": ("Montenegro", 42.7, 19.4), "bulgaria": ("Bulgária", 42.7, 25.5),
 }
+# Codigo ISO de duas letras de cada pais, so para a bandeira. Nao ha imagem
+# nem endereco a buscar: a bandeira e feita com dois "indicadores regionais"
+# do proprio Unicode, e por isso viaja dentro do texto -- funciona no mural
+# sem rede, no instantaneo que vai por e-mail e no PDF que sai daqui. Um pais
+# fora desta lista simplesmente nao ganha bandeira, e nada quebra.
+ISO2: dict[str, str] = {
+    "Brasil": "BR", "Portugal": "PT", "Espanha": "ES", "França": "FR",
+    "Alemanha": "DE", "Itália": "IT", "Noruega": "NO", "Dinamarca": "DK",
+    "Suécia": "SE", "Islândia": "IS", "Croácia": "HR", "Sérvia": "RS",
+    "Eslovênia": "SI", "Hungria": "HU", "Polônia": "PL", "Romênia": "RO",
+    "Rússia": "RU", "Ucrânia": "UA", "Países Baixos": "NL", "Bélgica": "BE",
+    "Suíça": "CH", "Áustria": "AT", "Grécia": "GR", "Turquia": "TR",
+    "Reino Unido": "GB", "Irlanda": "IE", "Estados Unidos": "US",
+    "Canadá": "CA", "México": "MX", "Argentina": "AR", "Chile": "CL",
+    "Colômbia": "CO", "Uruguai": "UY", "Austrália": "AU",
+    "Nova Zelândia": "NZ", "Japão": "JP", "China": "CN",
+    "Coreia do Sul": "KR", "Índia": "IN", "Irã": "IR", "Israel": "IL",
+    "Catar": "QA", "Arábia Saudita": "SA", "Egito": "EG", "Tunísia": "TN",
+    "Argélia": "DZ", "Marrocos": "MA", "África do Sul": "ZA",
+    "Nigéria": "NG", "Tchéquia": "CZ", "Eslováquia": "SK",
+    "Finlândia": "FI", "Lituânia": "LT", "Bósnia e Herzegovina": "BA",
+    "Macedônia do Norte": "MK", "Montenegro": "ME", "Bulgária": "BG",
+}
+
+
+def bandeira(pais: Any) -> str:
+    """A bandeira do pais, como texto. Vazio quando nao se sabe.
+
+    Os dois caracteres saem do codigo ISO deslocado para o bloco dos
+    indicadores regionais (BR -> U+1F1E7 U+1F1F7). E aritmetica, nao
+    tabela de imagens.
+    """
+    codigo = ISO2.get(clean_text(pais) or "")
+    if not codigo:
+        # a lista de coordenadas conhece mais grafias do que a de bandeiras
+        for chave, (rotulo, _lat, _lon) in PAISES.items():
+            if _dobra(pais) in (_dobra(chave), _dobra(rotulo)):
+                codigo = ISO2.get(rotulo)
+                break
+    if not codigo:
+        return ""
+    return "".join(chr(0x1F1E6 + ord(letra) - ord("A")) for letra in codigo)
+
+
 # A afiliacao da Scopus termina no pais: "..., University of X, Oslo, Norway".
 # Ler o ultimo pedaco e o que funciona; ler o texto inteiro traria "New York"
 # como pais toda vez que alguem publicasse numa revista de Nova York.

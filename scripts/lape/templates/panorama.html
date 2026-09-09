@@ -192,6 +192,11 @@ a.selo-var { text-decoration: none; }
   cursor: pointer; white-space: nowrap; }
 .chip-pais small { font-variant-numeric: tabular-nums; font-weight: 700;
   color: var(--ink-muted); }
+/* A bandeira e texto, e por isso herda tamanho de fonte. Fixa-la aqui evita
+   que ela cresca junto com o titulo e desalinhe a linha inteira. */
+.bandeira { font-size: 15px; line-height: 1; flex: none;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
+.bandeira.grande { font-size: 22px; }
 .chip-pais:hover { border-color: var(--border-strong); color: var(--ink); }
 /* o país escolhido não muda de matiz -- ganha peso. A cor neste mapa
    significa quantidade de artigos, e um chip de outra cor faria a pessoa

@@ -22,25 +22,39 @@ from .db import Database
 # encontra a linha, e sao a ponte com o vocabulario de variaveis.
 LINHAS: tuple[tuple[str, str, str, str], ...] = (
     ("atividade_fisica_saude", "Atividade Física e Saúde",
-     "Prática de atividade física e seus desfechos de saúde na população geral.",
+     "Investiga a relação entre o movimento habitual e os desfechos de saúde na "
+     "população geral. Interessa o quanto uma pessoa se move, com que constância, "
+     "e o que disso se converte em aptidão física, autonomia e redução de risco.",
      "atividade física; saúde; sedentarismo; aptidão física; qualidade de vida"),
     ("psicologia_exercicio", "Psicologia do Exercício",
-     "Processos psicológicos associados à prática regular de exercício físico.",
+     "Examina os processos psicológicos que sustentam a prática regular de "
+     "exercício. A pergunta central não é o que o corpo faz, e sim o que leva "
+     "alguém a começar, a permanecer e a voltar depois da interrupção.",
      "exercício; motivação; aderência; humor; bem-estar; autoeficácia"),
     ("psicologia_do_esporte", "Psicologia do Esporte",
-     "Aspectos psicológicos do desempenho, do treinamento e da competição.",
+     "Estuda a mente sob competição. Ansiedade pré-competitiva, foco, coesão de "
+     "equipe e regulação emocional respondem por parte do desempenho que o "
+     "treinamento físico, sozinho, não explica.",
      "esporte; atletas; ansiedade competitiva; desempenho; coesão de equipe"),
     ("qualidade_do_ar", "Qualidade do ar e poluição no exercício e no esporte",
-     "Efeitos da poluição atmosférica sobre quem treina e compete ao ar livre.",
+     "Mede o custo de treinar no ar que há. O exercício multiplica o volume "
+     "respirado, e com ele a dose de material particulado que alcança o pulmão "
+     "de quem corre, pedala ou compete a céu aberto.",
      "poluição; qualidade do ar; material particulado; exercício ao ar livre; ozônio"),
     ("exercicio_fibromialgia", "Exercício na saúde física e mental na Fibromialgia",
-     "Exercício como tratamento da fibromialgia: dor, impacto da doença e saúde mental.",
+     "Trata o exercício como intervenção clínica na fibromialgia. Dor difusa, sono "
+     "fragmentado, fadiga e sintomas depressivos respondem à carga, à intensidade "
+     "e à progressão, e é essa dose que a linha procura estabelecer.",
      "fibromialgia; dor crônica; treinamento resistido; impacto da doença; sono"),
     ("exercicio_cancer", "Exercício na saúde mental no tratamento do câncer",
-     "Exercício durante e após o tratamento oncológico, com foco em saúde mental.",
+     "Acompanha o exercício ao longo do tratamento oncológico e depois dele. "
+     "Fadiga, ansiedade, sintomas depressivos e qualidade de vida constituem os "
+     "desfechos, em pacientes cuja tolerância ao esforço muda de semana para semana.",
      "câncer; oncologia; fadiga; depressão; ansiedade; qualidade de vida"),
     ("exercicio_envelhecimento", "Exercício na saúde mental no envelhecimento",
-     "Exercício e saúde mental ao longo do envelhecimento.",
+     "Observa o que o exercício preserva quando os anos avançam. Cognição, humor, "
+     "autonomia funcional e vínculo social envelhecem em ritmos distintos, e a "
+     "prática regular altera esse ritmo.",
      "envelhecimento; idosos; cognição; depressão; autonomia funcional"),
 )
 

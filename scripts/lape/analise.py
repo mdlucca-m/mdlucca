@@ -40,6 +40,7 @@ MIN_PONTOS = 4          # abaixo disso nao se fala em tendencia
 # ladeira bonita e o painel anuncia "subindo, confiavel" sobre nada.
 MIN_ANOS_COM_DADO = 3
 RUIDO_ALTO = 0.8        # ruido acima disso: a serie nao sustenta leitura
+K_FAIXA = 1.96          # a constante do 95%; ver `sinal_e_ruido` para o que ela cerca
 
 
 # ----------------------------------------------------------------------
@@ -87,8 +88,22 @@ def sinal_e_ruido(valores: list[float]) -> dict[str, Any]:
     # razao ruido/sinal: quanto o balanco pesa diante da variacao real
     razao = (desvio / amplitude) if amplitude > 1e-9 else (1.0 if desvio else 0.0)
     bastante = anos_com_dado >= MIN_ANOS_COM_DADO and len(valores) >= MIN_PONTOS
+    # A faixa em volta da curva filtrada. E o desvio do ruido multiplicado
+    # por 1,96 -- a mesma constante do intervalo de 95%, e por isso o nome.
+    # Mas o que ela cerca e a OBSERVACAO, nao a media: e uma faixa de
+    # predicao, e diz "e aqui que os pontos crus caem". Chama-la de
+    # intervalo de confianca da media seria prometer precisao que doze
+    # pontos anuais nao dao, e a tela escreve isso ao lado do grafico.
+    faixa = {
+        "baixo": [round(v - K_FAIXA * desvio, 3) for v in suave],
+        "alto": [round(v + K_FAIXA * desvio, 3) for v in suave],
+        "k": K_FAIXA,
+        "desvio": round(desvio, 3),
+        "vale": bastante,
+    } if desvio > 1e-9 else None
     return {"suave": [round(v, 3) for v in suave],
             "ruido": [round(v, 3) for v in ruido],
+            "faixa": faixa,
             "desvio_do_ruido": round(desvio, 3),
             "razao_ruido": round(razao, 3) if bastante else None,
             "anos_com_dado": anos_com_dado,
@@ -975,6 +990,7 @@ def paises(db: Database) -> dict[str, Any]:
         # palavra "Italia" no titulo -- que nao esta la, e o clique levava
         # a uma tabela vazia sem dizer por que.
         saida.append({"pais": item["pais"], "n": len(item["artigos"]),
+                      "bandeira": variaveis.bandeira(item["pais"]),
                       "artigos": sorted(item["artigos"]),
                       "instituicoes": sorted(item["instituicoes"]),
                       "latitude": item["latitude"], "longitude": item["longitude"]})
