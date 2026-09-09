@@ -12,6 +12,7 @@ AQUI = Path(__file__).resolve().parent
 sys.path.insert(0, str(AQUI))
 sys.path.insert(0, str(AQUI.parent / "artigo4p"))
 import curvas as C  # noqa: E402
+import perfil_t as PT  # noqa: E402
 import fonte as F  # noqa: E402
 from dados import (DIAS, N_DIA, N_PERFIL, PERFIL_DIA, PERFIS_T,
                    faixa)  # noqa: E402
@@ -434,7 +435,7 @@ TABELAS = {
           "e a de humor perturbado de "
           f"{F.br(PERFIL_DIA[1][1], 1)}% para {F.br(PERFIL_DIA[7][1], 1)}%; "
           "esse critério não classifica nos seis perfis e é discutido na "
-          "seção 4.6. Fonte primária: Tabela 12 do estudo de perfil e Tabela "
+          "seção 4.7. Fonte primária: Tabela 12 do estudo de perfil e Tabela "
           "20 do relatório completo."),
 },
 
@@ -460,6 +461,37 @@ TABELAS = {
           "por filtro binomial de três pontos, com pesos 1, 2 e 1. Fonte "
           "primária: Tabelas 20 e 52 do relatório completo."),
 },
+
+"perfil_t": {
+ "numero": 12,
+ "titulo": ("Perfil de humor do grupo em escores T em cada dia do "
+            "microciclo, com a amplitude do perfil e o eixo energético"),
+ "cabecalho": ["Dia"] + PT.SUBESCALAS + ["Amplitude", "Vigor − fadiga",
+                                         "Tem forma"],
+ "linhas": [
+  [str(d)]
+  + [F.br(PT.PERFIL_T_DIA[d][s], 1) for s in PT.SUBESCALAS]
+  + [F.br(PT.AMPLITUDE[d], 1), F.sinal(PT.GAP_ENERGIA[d], 1),
+     "Sim" if PT.AMPLITUDE[d] > 2 * PT.PISO_T[d] else "Não"]
+  for d in DIAS
+ ],
+ "nota": ("Nota: escores T de média 50 e desvio-padrão 10, calculados "
+          "contra a média e o desvio-padrão da própria amostra, conforme a "
+          "Tabela 2, que é o mesmo procedimento adotado pelo documento de "
+          "origem para classificar o dia 1 e o dia 7. A padronização é "
+          "interna e os valores não são comparáveis aos de estudos que "
+          "padronizam contra normas populacionais. A amplitude é a "
+          "distância entre a subescala mais alta e a mais baixa do dia, e "
+          "mede o quanto o perfil tem forma, não a direção dela. O "
+          "erro-padrão da média diária em unidades T vale 10 dividido pela "
+          "raiz do n do dia, e não depende da subescala; a coluna final "
+          "marca os dias em que a amplitude supera o dobro desse "
+          f"erro-padrão, cuja média na semana é de {F.br(PT.PISO_T_MEDIO, 2)} "
+          "pontos. Esta tabela descreve a forma do atleta médio, e não a "
+          "distribuição dos atletas pelos seis perfis, que é objeto das "
+          "Tabelas 8 e 10."),
+},
+
 }
 
 
@@ -744,7 +776,8 @@ BLOCOS = [
        "comparação intradia; a separação entre o nível do grupo e o nível do "
        "atleta; a análise da predominância dos perfis ao longo da semana; a "
        "análise das curvas de cada variável e dos pontos em que elas se "
-       "cruzam; e as decisões gerais de tratamento de dados. O nível de significância "
+       "cruzam; o perfil do grupo em escores T; e as decisões gerais de "
+       "tratamento de dados. O nível de significância "
        "adotado foi de 5% em todos os testes, sempre depois da correção para "
        "múltiplas comparações descrita em 3.8.7."),
 ("h3", "3.8.1 Descrição das subescalas e propriedades da medida"),
@@ -987,7 +1020,38 @@ BLOCOS = [
       "tensão e depressão, que identificam qual afeto negativo domina o "
       "quadro em cada momento da semana. Nenhum outro par foi testado, e a "
       "escolha foi registrada antes da inspeção das curvas."),
-("h3", "3.8.8 Decisões gerais de tratamento de dados"),
+("h3", "3.8.8 Perfil do grupo em escores T"),
+("p", "A classificação nos seis perfis é feita observação a observação, e "
+      "por isso a prevalência diária deles exige a base por atleta e por "
+      "dia. Para os sete dias existe a média diária de cada subescala, e "
+      "dela se obtém uma leitura complementar: a forma que o perfil do "
+      "atleta médio assume em cada dia. As duas análises respondem "
+      "perguntas diferentes e não se substituem, e o texto declara isso em "
+      "toda ocorrência, porque a média do grupo pode ter forma de iceberg "
+      "com metade do elenco fora dele."),
+("p", "Cada média diária foi convertida em escore T de média 50 e "
+      "desvio-padrão 10 contra a média e o desvio-padrão de toda a amostra, "
+      "que é o mesmo procedimento usado pelo documento de origem para "
+      "classificar o dia 1 e o dia 7. A padronização é interna, e os "
+      "escores T daqui não são comparáveis aos de estudos que padronizam "
+      "contra normas populacionais; foi a mistura desses dois referenciais "
+      "que produziu a divergência entre séries de classificação registrada "
+      "na seção 4.7. Como o desvio-padrão do denominador reúne a variância "
+      "entre atletas e a variância entre dias, e a primeira é maior, a "
+      "média de um dia se afasta pouco de 50 mesmo quando a mudança na "
+      "escala bruta é grande: os escores T descrevem a posição do dia "
+      "dentro da semana, e não a intensidade do estado."),
+("p", "Dois índices resumem cada perfil diário. A amplitude é a distância "
+      "entre a subescala mais alta e a mais baixa do dia, e mede o quanto o "
+      "perfil tem forma, sem informar a direção dela: um perfil achatado "
+      "tem amplitude próxima de zero, e o iceberg e o seu inverso têm "
+      "amplitude alta com sinais opostos. O eixo energético é a diferença "
+      "entre vigor e fadiga em unidades T, e informa a direção. O limiar "
+      "de forma foi fixado no dobro do erro-padrão da média diária, que em "
+      "unidades de escore T vale exatamente 10 dividido pela raiz do n "
+      "daquele dia e não depende da subescala, porque a conversão em T já "
+      "divide pelo desvio-padrão da amostra."),
+("h3", "3.8.9 Decisões gerais de tratamento de dados"),
 ("p", "Não houve imputação de dado faltante. Cada estimativa usa as "
       "observações efetivamente disponíveis, e o denominador de cada uma "
       "está declarado na nota da tabela correspondente, de modo que o leitor "
@@ -1334,7 +1398,68 @@ BLOCOS += [
       "humor perturbado caracteriza a maioria em seis dos sete dias. O dia 5, "
       "único dia de recuperação parcial, sucede um dia de volume máximo sem "
       "componente de alta intensidade."),
-("h2", "4.6 Concordância entre os dois critérios de classificação"),
+("h2", "4.6 O perfil do grupo em cada dia da semana"),
+("p0", "A prevalência dos seis perfis é conhecida apenas no dia 1 e no dia "
+       "7, porque a classificação é feita observação a observação e a base "
+       "por atleta e por dia não está disponível. O que existe para os sete "
+       "dias é a média diária de cada subescala, e dela sai a leitura desta "
+       "seção: a forma que o perfil do atleta médio assume em cada dia. A "
+       "distinção é declarada aqui e repetida na nota da Tabela 12, porque "
+       "as duas coisas não são intercambiáveis: uma média pode ter forma de "
+       "iceberg com metade do elenco fora dele."),
+("tab", "perfil_t"),
+("fig", "a1_perfil_diario.png", 16.4,
+ "Figura 9 - Perfil de humor do grupo em escores T em cada dia (A) e "
+ "amplitude do perfil e eixo energético ao longo da semana (B)"),
+("p", "O painel A da Figura 9 sobrepõe os sete perfis diários. O do dia 1 "
+      "tem a forma clássica descrita por Morgan: o vigor é a subescala mais "
+      f"alta, com escore T de {F.br(PT.PERFIL_T_DIA[1]['Vigor'], 1)}, e a "
+      "fadiga é a mais baixa, com "
+      f"{F.br(PT.PERFIL_T_DIA[1]['Fadiga'], 1)}. O do dia 7 é a imagem "
+      f"espelhada: a fadiga sobe a {F.br(PT.PERFIL_T_DIA[7]['Fadiga'], 1)} e "
+      f"o vigor cai a {F.br(PT.PERFIL_T_DIA[7]['Vigor'], 1)}, com a raiva em "
+      f"{F.br(PT.PERFIL_T_DIA[7]['Raiva'], 1)} logo atrás da fadiga. Entre "
+      "um e outro, os perfis dos dias 2 a 6 ficam quase todos dentro da "
+      "faixa de erro-padrão da média, isto é, sem forma distinguível de uma "
+      "linha reta sobre o valor 50."),
+("p", "O painel B quantifica essa observação. A amplitude do perfil, "
+      "definida como a distância entre a subescala mais alta e a mais baixa "
+      f"do dia, vale {F.br(PT.AMPLITUDE[1], 1)} pontos no dia 1 e "
+      f"{F.br(PT.AMPLITUDE[7], 1)} pontos no dia 7, e fica entre "
+      f"{F.br(min(PT.AMPLITUDE[d] for d in DIAS[1:6]), 1)} e "
+      f"{F.br(max(PT.AMPLITUDE[d] for d in DIAS[1:6]), 1)} pontos nos cinco "
+      "dias intermediários. Apenas o primeiro e o último dia superam o "
+      "limiar de forma, definido como o dobro do erro-padrão da média "
+      "diária, que em unidades de escore T vale 10 dividido pela raiz do n "
+      f"do dia e tem média de {F.br(PT.PISO_T_MEDIO, 2)} pontos na semana. "
+      "O perfil do grupo, portanto, não se desloca gradualmente de uma "
+      "forma para a outra: ele perde a forma no segundo dia, permanece "
+      "achatado por cinco dias e recompõe forma na véspera da competição, "
+      "com o sinal invertido."),
+("p", "O eixo energético mede a mesma coisa com sinal. A diferença entre "
+      f"vigor e fadiga em unidades T vale {F.sinal(PT.GAP_ENERGIA[1], 1)} "
+      f"pontos no dia 1 e {F.sinal(PT.GAP_ENERGIA[7], 1)} no dia 7, e "
+      "oscila em torno de zero nos dias intermediários. Essa é a mesma "
+      "inversão descrita na seção 4.3 em escores brutos, agora expressa em "
+      "unidades comparáveis entre subescalas, e ela concorda com o "
+      "deslocamento da prevalência descrito na seção 4.5: a forma do dia 7, "
+      "com o vigor mais baixo e a fadiga mais alta do conjunto, é a "
+      "definição do perfil barbatana de tubarão, que passa de "
+      f"{F.br(PERFIS_T['Barbatana de tubarão'][1], 1)}% a "
+      f"{F.br(PERFIS_T['Barbatana de tubarão'][3], 1)}% das observações no "
+      "mesmo intervalo. As duas análises, a de contagem e a de forma, "
+      "chegam ao mesmo lugar por caminhos independentes."),
+("p", "Resta declarar o que esta seção não entrega. A prevalência diária "
+      "de cada um dos seis perfis, que seria a informação mais útil à "
+      "comissão técnica, exige classificar cada observação de cada dia, e "
+      "isso depende de duas coisas ausentes: a base por atleta e por dia, e "
+      "a declaração explícita dos centroides usados para classificar o dia "
+      "1 e o dia 7. A rotina de cálculo está escrita e versionada, e a "
+      "análise passa a ser um comando assim que as duas existirem. Até lá, "
+      "a série diária disponível é a do critério de Morgan, com dois "
+      "estados em vez de seis, apresentada na seção 4.5."),
+
+("h2", "4.7 Concordância entre os dois critérios de classificação"),
 ("p", "Os dois critérios não concordam entre si, e a diferença é grande. No "
       "primeiro dia, o critério de Morgan classifica 71,4% das observações "
       "como perfil iceberg, contra 40,5% pelo critério dos seis perfis. A "
@@ -1658,22 +1783,39 @@ BLOCOS += [
       "classificação isolada e porque esses três perfis são os que a "
       "literatura associa a risco."),
 ("h2", "5.8 Limitações"),
-("p", "Cinco limitações restringem a generalização. A amostra tem 27 atletas "
-      "de uma única equipe, dos quais 19 completaram todas as coletas, e o "
-      "período monitorado é um único microciclo, o que concentra a observação "
-      "em um momento particular da temporada e impede separar o efeito desta "
-      "A classificação por regra de forma sobre escore T não reproduz a "
-      "análise de agrupamento original: o procedimento indicado para amostras "
-      "deste tamanho é a k-médias semeada com os centroides canônicos, "
-      "adotada na amostra brasileira de referência (Rohlfs, Noce e Wilke, "
-      "2024), e a diferença entre os procedimentos ainda não foi quantificada "
-      "nestes dados. A conversão para escore T foi feita sobre a própria "
+("p", "Seis limitações restringem a generalização. A primeira é o alcance da "
+      "amostra: 27 atletas de uma única equipe, dos quais 19 completaram "
+      "todas as coletas, ao longo de um único microciclo, o que concentra a "
+      "observação em um momento particular da temporada e impede separar o "
+      "efeito desta semana do efeito do ciclo preparatório que a "
+      "antecedeu."),
+("p", "A segunda é de procedimento de classificação. A regra de forma sobre "
+      "escore T não reproduz a análise de agrupamento original: o "
+      "procedimento indicado para amostras deste tamanho é a k-médias "
+      "semeada com os centroides canônicos, adotada na amostra brasileira de "
+      "referência (Rohlfs, Noce e Wilke, 2024), e a diferença entre os "
+      "procedimentos ainda não foi quantificada nestes dados. A terceira é a "
+      "padronização: a conversão para escore T foi feita sobre a própria "
       "amostra, na ausência de normas da modalidade, o que torna a linha de "
-      "50 uma referência interna e não populacional. A classificação existe "
-      "apenas para o primeiro e o último dia, de modo que a curva diária dos "
-      "perfis permanece por calcular. A amostra é masculina, o que impede "
-      "extensão aos achados de sexo relatados na literatura. E o estudo não "
-      "mediu desempenho, de modo que nenhuma afirmação sobre consequência "
+      "50 uma referência interna e não populacional, e impede comparar estes "
+      "escores T com os de estudos que padronizam contra normas de "
+      "população."),
+("p", "A quarta é a mais consequente para o uso prático, e merece ser "
+      "declarada com precisão. A classificação nos seis perfis existe apenas "
+      "para o primeiro e para o último dia, de modo que a prevalência diária "
+      "de cada perfil, que é a informação de maior valor para a comissão "
+      "técnica, permanece por calcular. Duas coisas faltam para calculá-la: "
+      "a base de respostas por atleta e por dia, que não integra o material "
+      "disponível para este estudo, e a declaração explícita dos centroides "
+      "usados para classificar o dia 1 e o dia 7, sem a qual a série diária "
+      "não seria comparável às duas pontas já publicadas. A rotina de "
+      "cálculo está escrita e versionada junto com o material de análise, e "
+      "recusa-se a devolver número enquanto as duas condições não forem "
+      "atendidas. A seção 4.6 entrega, no lugar dela, a leitura de grupo, "
+      "que é informativa mas não substitui a contagem. A quinta limitação é "
+      "que a amostra é masculina, o que impede extensão aos achados de sexo "
+      "relatados na literatura. E a sexta é que o estudo não mediu "
+      "desempenho, de modo que nenhuma afirmação sobre consequência "
       "competitiva dos perfis é sustentada por estes dados."),
 
 ("h1", "6 CONCLUSÃO"),

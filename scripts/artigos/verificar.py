@@ -185,6 +185,23 @@ def checar_a1(texto, celulas):
          all(x in texto for x in ("ponto de inversão", "afeto negativo ao "
                                   "longo da semana", "percentual do dia 1")),
          ""),
+        ("perfil diário do grupo em escores T presente",
+         "4.6 O perfil do grupo em cada dia da semana" in texto
+         and any("Vigor − fadiga" in c for c in celulas), ""),
+        ("limite da análise de grupo declarado",
+         "não a distribuição dos atletas pelos seis perfis" in texto
+         and "base por atleta e por dia" in texto, ""),
+        ("limitação da curva diária declarada com o que falta",
+         "permanece por calcular" in texto
+         and "declaração explícita dos centroides" in texto, ""),
+        ("seis limitações enumeradas",
+         "Seis limitações" in texto, ""),
+        ("padronização interna declarada como não comparável",
+         "não são comparáveis aos" in texto, ""),
+        ("amplitude do perfil só tem forma no primeiro e no último dia",
+         [linha[-1] for linha in artigo1.TABELAS["perfil_t"]["linhas"]]
+         == ["Sim", "Não", "Não", "Não", "Não", "Não", "Sim"]
+         and "limiar de forma" in texto, ""),
         ("discussão situa a produção recente do handebol",
          "Ratz-Sulyok" in texto and "Skarbalius" in texto, ""),
         ("tabela sociodemográfica presente",
@@ -248,7 +265,7 @@ def checar_a2(texto, celulas):
 def main() -> int:
     falhas = conferir("Artigo 1",
                       RAIZ / "data" / "ARTIGO1_PERFIS_HUMOR_HANDEBOL.docx",
-                      artigo1, checar_a1, n_figuras=8)
+                      artigo1, checar_a1, n_figuras=9)
     falhas += conferir("Artigo 2", RAIZ / "data" / "ARTIGO2_FADIGA_PERFIS_HANDEBOL.docx",
                        artigo2, checar_a2)
     print("OK: os dois manuscritos conferem" if not falhas

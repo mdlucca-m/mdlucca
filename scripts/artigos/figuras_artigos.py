@@ -24,6 +24,7 @@ sys.path.insert(0, str(AQUI.parent / "artigo4p"))
 sys.path.insert(0, str(AQUI.parent / "comum"))
 import estilo as E  # noqa: E402
 import curvas as C  # noqa: E402
+import perfil_t as T  # noqa: E402
 import fonte as F  # noqa: E402
 from estilo import (AZUL, BARRA_A, BARRA_B, CORAL, FAIXA, GRADE, OCRE, ROXO,
                     TEAL, TINTA, TINTA_FRACA, VERDE, aplicar, legenda, salvar,
@@ -634,12 +635,83 @@ def fig_indice(destino: Path) -> Path:
     return salvar(fig, destino, "a1_indice.png")
 
 
+def fig_perfil_diario(destino: Path) -> Path:
+    """O perfil do grupo em escores T, dia a dia, e a amplitude dele.
+
+    É a leitura de grupo do que a prevalência dos seis perfis mostra na
+    contagem: forma de iceberg no dia 1, perfil achatado no miolo da
+    semana e forma invertida na véspera.
+    """
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(17.4 / 2.54, 8.6 / 2.54),
+                                 dpi=DPI,
+                                 gridspec_kw={"width_ratios": [1.25, 1]})
+    fig.patch.set_facecolor("white")
+    xs = list(range(len(T.SUBESCALAS)))
+
+    # A. os sete perfis diários sobrepostos
+    aplicar(a1)
+    a1.axhspan(50 - T.PISO_T_MEDIO, 50 + T.PISO_T_MEDIO, color=FAIXA,
+               zorder=1, label=f"Ruído da média (±{vg(T.PISO_T_MEDIO, 1)})")
+    a1.axhline(50, color=TINTA, linewidth=1.0, zorder=2)
+    for d in T.DIAS:
+        ys = [T.PERFIL_T_DIA[d][s] for s in T.SUBESCALAS]
+        if d == 1:
+            a1.plot(xs, ys, color=TEAL, linewidth=2.2, marker="o",
+                    markersize=4.4, zorder=5, label="Dia 1, repouso")
+        elif d == 7:
+            a1.plot(xs, ys, color=CORAL, linewidth=2.2, marker="s",
+                    markersize=4.4, zorder=5, label="Dia 7, véspera")
+        else:
+            a1.plot(xs, ys, color="#B4B4B0", linewidth=1.0, zorder=3)
+    a1.plot([], [], color="#B4B4B0", linewidth=1.0, label="Dias 2 a 6")
+    a1.set_xticks(xs)
+    a1.set_xticklabels(T.SUBESCALAS, fontsize=7.6, rotation=18, ha="right")
+    a1.set_xlim(-0.35, len(xs) - 0.65)
+    a1.set_ylim(43.6, 60.6)
+    a1.set_ylabel("Escore T do grupo", fontsize=8.8, color=TINTA)
+    titulo(a1, "A. O perfil do grupo em cada dia")
+    legenda(a1, loc="upper right", fontsize=7.0)
+
+    # B. amplitude do perfil e eixo energético
+    aplicar(a2)
+    limite = [2 * T.PISO_T[d] for d in T.DIAS]
+    for d, lim in zip(T.DIAS, limite):
+        amp = T.AMPLITUDE[d]
+        forma = amp > lim
+        a2.bar(d, amp, width=0.62, color=AZUL if forma else "#C8C8C4",
+               zorder=3)
+        a2.annotate(vg(amp, 1), xy=(d, amp), xytext=(0, 4),
+                    textcoords="offset points", ha="center", fontsize=7.4,
+                    color=TINTA if forma else TINTA_FRACA,
+                    fontweight="bold" if forma else "normal", zorder=7,
+                    bbox=dict(boxstyle="square,pad=0.12", facecolor="white",
+                              edgecolor="none"))
+    a2.plot(T.DIAS, limite, color=TINTA_FRACA, linewidth=1.2,
+            linestyle=(0, (4, 3)), zorder=5,
+            label="Limiar de forma (2 erros-padrão)")
+    a2.plot(T.DIAS, [T.GAP_ENERGIA[d] for d in T.DIAS], color=CORAL,
+            linewidth=1.9, marker="o", markersize=4.0, zorder=6,
+            label="Vigor menos fadiga")
+    a2.axhline(0, color=TINTA, linewidth=0.9, zorder=4)
+    a2.set_xticks(T.DIAS)
+    a2.set_xticklabels([str(d) for d in T.DIAS], fontsize=8.2)
+    a2.set_xlim(0.4, 7.6)
+    a2.set_ylim(-11.5, 12.6)
+    a2.set_xlabel("Dia do microciclo", fontsize=8.8, color=TINTA)
+    a2.set_ylabel("Pontos de escore T", fontsize=8.8, color=TINTA)
+    titulo(a2, "B. Amplitude do perfil e eixo energético")
+    legenda(a2, loc="lower left", fontsize=6.9, ncol=1)
+
+    fig.tight_layout(w_pad=2.0)
+    return salvar(fig, destino, "a1_perfil_diario.png")
+
+
 def gerar_artigo1(destino: Path) -> list[Path]:
     print("figuras do Artigo 1:")
     return [fig_distribuicao(destino), fig_psicometria(destino),
             fig_curvas_energia(destino), fig_curvas_negativas(destino),
             fig_indice(destino), fig_prevalencia_semana(destino),
-            fig_sinal(destino)]
+            fig_sinal(destino), fig_perfil_diario(destino)]
 
 
 def gerar_artigo2(destino: Path) -> list[Path]:
