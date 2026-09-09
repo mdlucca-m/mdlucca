@@ -207,6 +207,26 @@ def checar_a1(texto, celulas):
         ("série diária traz n de observações e de atletas",
          all(str(artigo1.K.N_DIA_OBS[d]) in celulas for d in artigo1.DIAS)
          and any("n de atletas" in c for c in celulas), ""),
+        ("decomposição das séries presente",
+         "4.7 Decomposição das séries" in texto
+         and any("Inclinação por dia" in c for c in celulas), ""),
+        ("inclinação da barbatana com IC que exclui o zero",
+         not artigo1.S.DECOMP_PERFIL["Barbatana de tubarão"]["cruza_zero"]
+         and artigo1.F.sinal(
+             artigo1.S.DECOMP_PERFIL["Barbatana de tubarão"]["inclinacao"], 2)
+         in texto, ""),
+        ("ausência de tendência do iceberg declarada",
+         artigo1.S.DECOMP_PERFIL["Iceberg"]["cruza_zero"]
+         and "não tem tendência" in texto, ""),
+        ("duas comparações entre o dia 1 e o dia 7 presentes",
+         "4.8 As duas comparações" in texto
+         and any("n de pares" in c for c in celulas)
+         and any("Diferença (p.p.)" in c for c in celulas), ""),
+        ("IC do iceberg que contém o zero declarado no texto",
+         "contém o zero" in texto and "não a afirma" in texto, ""),
+        ("método declara a reamostragem por atleta",
+         "reamostragem" in texto and "10 mil" in texto
+         and "unidade reamostrada é o atleta" in texto, ""),
         ("sensibilidade por k-médias semeada declarada",
          "k-médias semeada" in texto and "sensibilidade" in texto, ""),
         ("seis limitações enumeradas",
@@ -285,7 +305,7 @@ def checar_a2(texto, celulas):
 def main() -> int:
     falhas = conferir("Artigo 1",
                       RAIZ / "data" / "ARTIGO1_PERFIS_HUMOR_HANDEBOL.docx",
-                      artigo1, checar_a1, n_figuras=9)
+                      artigo1, checar_a1, n_figuras=12)
     falhas += conferir("Artigo 2", RAIZ / "data" / "ARTIGO2_FADIGA_PERFIS_HANDEBOL.docx",
                        artigo2, checar_a2)
     print("OK: os dois manuscritos conferem" if not falhas

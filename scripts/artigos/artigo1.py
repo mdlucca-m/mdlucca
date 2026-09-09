@@ -14,6 +14,7 @@ sys.path.insert(0, str(AQUI.parent / "artigo4p"))
 sys.path.insert(0, str(AQUI.parent / "comum"))
 import curvas as C  # noqa: E402
 import classificar as K  # noqa: E402
+import serie as S  # noqa: E402
 import perfil_t as PT  # noqa: E402
 import fonte as F  # noqa: E402
 from dados import (DIAS, N_DIA, N_PERFIL, PERFIL_DIA, PERFIS_T,
@@ -38,47 +39,7 @@ NORMATIVO = {"Iceberg": 29.4, "Submerso": 25.5, "Barbatana de tubarão": 17.3,
              "Superfície": 14.8, "Iceberg invertido": 10.3,
              "Everest invertido": 2.7}
 
-ABERTURA = [
- ("RESUMO",
-  "A oposição entre o perfil iceberg e o seu inverso orientou meio século de "
-  "monitoramento psicológico no esporte, mas perdeu poder discriminativo "
-  "quando se verificou que o iceberg é o padrão típico de atletas, "
-  "bem-sucedidos ou não. A análise de agrupamento sobre as seis subescalas da "
-  "Escala de Humor de Brunel substituiu essa dicotomia por seis perfis, três "
-  "deles associados a risco à saúde mental. Nenhum estudo os aplicou ao "
-  "handebol. Este estudo descreve o perfil de humor de 27 atletas de handebol "
-  "masculino de primeira divisão ao longo dos sete dias da última semana de "
-  "pré-temporada, com 452 respostas ao instrumento, e caracteriza cada "
-  "subescala "
-  "nesta população. No dia de repouso o perfil iceberg predominou, com "
-  f"{F.br(PERFIS_T['Iceberg'][1], 1)}% das observações, e os três perfis de "
-  "risco somaram "
-  f"{F.br(_RISCO1, 1)}%. Na véspera da competição o iceberg caiu para "
-  f"{F.br(PERFIS_T['Iceberg'][3], 1)}%, a barbatana de tubarão subiu de "
-  f"{F.br(PERFIS_T['Barbatana de tubarão'][1], 1)}% para "
-  f"{F.br(PERFIS_T['Barbatana de tubarão'][3], 1)}% e a faixa de risco "
-  f"alcançou {F.br(_RISCO7, 1)}% das observações. A classificação foi "
-  f"calculada nos sete dias sobre as {len(K.OBS)} observações da base, e as "
-  "curvas do iceberg e da barbatana de tubarão cruzam-se no dia "
-  f"{F.br(K.cruzar(K.SUAVE['Iceberg'], K.SUAVE['Barbatana de tubarão'])[0], 1)}. "
-  "Pelo critério de Morgan, aplicado em paralelo sobre escores brutos, a "
-  f"proporção em perfil iceberg caiu de {F.br(PERFIL_DIA[1][0], 1)}% para "
-  f"{F.br(PERFIL_DIA[7][0], 1)}% ao longo da semana, e a análise da derivada da série mostra que a perda não é "
-  "gradual: duas quedas ultrapassam o piso de ruído de 10,0 pontos "
-  "percentuais, a primeira no dia seguinte à sessão inicial de alta "
-  "intensidade e a segunda na véspera da competição, com um platô entre elas. "
-  f"Quatro das seis subescalas apresentaram efeito piso entre "
-  f"{F.br(min([F.DESCRITIVA[s][6] for s in ('Tensão', 'Depressão', 'Raiva', 'Confusão')]), 1)}% e {F.br(max([F.DESCRITIVA[s][6] for s in ('Tensão', 'Depressão', 'Raiva', 'Confusão')]), 1)}%, "
-  "mais de três vezes o limite de 15%. Nenhuma subescala foi confiável em uma "
-  "leitura isolada, com ICC entre 0,31 e 0,59, faixa compatível com a "
-  "estabilidade publicada do instrumento, e todas passaram de 0,76 na média "
-  "de sete dias. O estudo entrega a primeira descrição dos seis perfis em "
-  "handebol, os primeiros percentis de referência da modalidade e um método "
-  "de leitura da predominância semanal que separa sinal de ruído."),
- ("PALAVRAS-CHAVE",
-  "humor; handebol; Escala de Humor de Brunel; perfil de humor; "
-  "monitoramento; pré-temporada."),
-]
+
 
 FONTE_TABELA = "Fonte: dados da pesquisa (2026)."
 FONTE_FIGURA = "Fonte: elaborada pelos autores (2026)."
@@ -106,6 +67,57 @@ _EP = [_erro_padrao(v, N_DIA[d]) for v, d in zip(_ICE, DIAS)]
 _PISO = sum(_EP) / len(_EP)
 _SUAVE = _suavizar(_ICE)
 _DERIV = [_SUAVE[i] - _SUAVE[i - 1] for i in range(1, len(DIAS))]
+
+ABERTURA = [
+ ("RESUMO",
+  "A oposição entre o perfil iceberg e o seu inverso orientou meio século de "
+  "monitoramento psicológico no esporte, mas perdeu poder discriminativo "
+  "quando se verificou que o iceberg é o padrão típico de atletas, "
+  "bem-sucedidos ou não. A análise de agrupamento sobre as seis subescalas da "
+  "Escala de Humor de Brunel substituiu essa dicotomia por seis perfis, três "
+  "deles associados a risco à saúde mental. Nenhum estudo os aplicou ao "
+  "handebol. Este estudo descreve o perfil de humor de 27 atletas de handebol "
+  "masculino de primeira divisão ao longo dos sete dias da última semana de "
+  "pré-temporada, com 452 respostas ao instrumento, e caracteriza cada "
+  "subescala "
+  "nesta população. No dia de repouso o perfil iceberg predominou, com "
+  f"{F.br(PERFIS_T['Iceberg'][1], 1)}% das observações, e os três perfis de "
+  "risco somaram "
+  f"{F.br(_RISCO1, 1)}%. Na véspera da competição o iceberg caiu para "
+  f"{F.br(PERFIS_T['Iceberg'][3], 1)}%, a barbatana de tubarão subiu de "
+  f"{F.br(PERFIS_T['Barbatana de tubarão'][1], 1)}% para "
+  f"{F.br(PERFIS_T['Barbatana de tubarão'][3], 1)}% e a faixa de risco "
+  f"alcançou {F.br(_RISCO7, 1)}% das observações. A classificação foi "
+  f"calculada nos sete dias sobre as {len(K.OBS)} observações da base, e as "
+  "curvas do iceberg e da barbatana de tubarão cruzam-se no dia "
+  f"{F.br(K.cruzar(K.SUAVE['Iceberg'], K.SUAVE['Barbatana de tubarão'])[0], 1)}. "
+  "Pelo critério de Morgan, aplicado em paralelo sobre escores brutos, a "
+  f"proporção em perfil iceberg caiu de {F.br(PERFIL_DIA[1][0], 1)}% para "
+  f"{F.br(PERFIL_DIA[7][0], 1)}% ao longo da semana, e a análise da derivada da série mostra que a perda não é "
+  f"gradual: duas quedas ultrapassam o piso de ruído de {F.br(_PISO, 1)} "
+  "pontos percentuais, a primeira no dia seguinte à sessão inicial de alta "
+  "intensidade e a segunda na véspera da competição, com um platô entre "
+  "elas. A decomposição das séries por reamostragem separa duas dinâmicas: "
+  f"a barbatana de tubarão sobe {F.sinal(S.DECOMP_PERFIL['Barbatana de tubarão']['inclinacao'], 2)} "
+  "pontos percentuais por dia, com intervalo que não contém o zero e R² de "
+  f"{F.br(S.DECOMP_PERFIL['Barbatana de tubarão']['r2'], 2)}, ao passo que "
+  f"o perfil iceberg tem R² de {F.br(S.DECOMP_PERFIL['Iceberg']['r2'], 2)} e "
+  "cai por degrau. Na comparação pareada entre as duas pontas, seis das "
+  "nove variáveis mudam com intervalo que exclui o zero, com o maior efeito "
+  f"na fadiga física, de dz {F.sinal(S.D1D7_VAR['Fadiga física']['dz'], 2)}; "
+  "entre os perfis, só a barbatana de tubarão o faz. "
+  f"Quatro das seis subescalas apresentaram efeito piso entre "
+  f"{F.br(min([F.DESCRITIVA[s][6] for s in ('Tensão', 'Depressão', 'Raiva', 'Confusão')]), 1)}% e {F.br(max([F.DESCRITIVA[s][6] for s in ('Tensão', 'Depressão', 'Raiva', 'Confusão')]), 1)}%, "
+  "mais de três vezes o limite de 15%. Nenhuma subescala foi confiável em uma "
+  "leitura isolada, com ICC entre 0,31 e 0,59, faixa compatível com a "
+  "estabilidade publicada do instrumento, e todas passaram de 0,76 na média "
+  "de sete dias. O estudo entrega a primeira descrição dos seis perfis em "
+  "handebol, os primeiros percentis de referência da modalidade e um método "
+  "de leitura da predominância semanal que separa sinal de ruído."),
+ ("PALAVRAS-CHAVE",
+  "humor; handebol; Escala de Humor de Brunel; perfil de humor; "
+  "monitoramento; pré-temporada."),
+]
 
 
 # ══════════════════════════════════════════════════════════════ tabelas ═══
@@ -445,7 +457,7 @@ TABELAS = {
           "e a de humor perturbado de "
           f"{F.br(PERFIL_DIA[1][1], 1)}% para {F.br(PERFIL_DIA[7][1], 1)}%; "
           "esse critério não classifica nos seis perfis e é discutido na "
-          "seção 4.7. Fonte primária: Tabela 12 do estudo de perfil e Tabela "
+          "seção 4.9. Fonte primária: Tabela 12 do estudo de perfil e Tabela "
           "20 do relatório completo."),
 },
 
@@ -533,6 +545,111 @@ TABELAS = {
           "pontos. Esta tabela descreve a forma do atleta médio, e não a "
           "distribuição dos atletas pelos seis perfis, que é objeto das "
           "Tabelas 8 e 10."),
+},
+
+
+"tendencia_var": {
+ "numero": 14,
+ "titulo": ("Decomposição da série de cada variável: reta sobre o dia com "
+            "intervalo de confiança, fração explicada, piso de ruído, dias "
+            "de choque e pontos de virada"),
+ "cabecalho": ["Variável", "Inclinação por dia", "IC 95%", "R²", "p",
+               "Piso de ruído", "Dias de choque", "Viradas"],
+ "linhas": [
+  [nome, F.sinal(d["inclinacao"], 3),
+   f"[{F.sinal(d['ic_inferior'], 3)}; {F.sinal(d['ic_superior'], 3)}]",
+   F.br(d["r2"], 2), F.br(d["p"], 3), F.br(d["piso"], 2),
+   ", ".join(str(x) for x in d["choques"]) or "nenhum",
+   ", ".join(f"{v['dia']}{'*' if v['sustentada'] else ''}"
+             for v in d["viradas"]) or "nenhuma"]
+  for nome, d in sorted(S.DECOMP_VAR.items(),
+                        key=lambda kv: -abs(kv[1]["inclinacao"]))
+ ],
+ "nota": ("Nota: a inclinação é de mínimos quadrados sobre o dia, em pontos "
+          "da escala por dia, e o intervalo de confiança vem de 10 mil "
+          "reamostragens por atleta, com a semente declarada no método. O R² "
+          "é a fração da variância da série diária que a reta explica, e "
+          "mede quanto do movimento é monótono; o restante é o desvio em "
+          "relação à reta, onde ficam os platôs e as reversões. O piso de "
+          "ruído é o erro-padrão médio da série pela mesma reamostragem. Um "
+          "dia é de choque quando a derivada que parte dele supera o piso. "
+          "Uma virada é um dia em que a derivada troca de sinal, e o "
+          "asterisco marca a virada sustentada, isto é, aquela em que ao "
+          "menos uma das duas derivadas supera o piso."),
+},
+
+"tendencia_perfil": {
+ "numero": 15,
+ "titulo": ("Decomposição da série de cada perfil, com os mesmos índices "
+            "aplicados às prevalências diárias"),
+ "cabecalho": ["Perfil", "Inclinação (p.p. por dia)", "IC 95%", "R²", "p",
+               "Piso de ruído", "Dias de choque", "Viradas"],
+ "linhas": [
+  [nome, F.sinal(d["inclinacao"], 2),
+   f"[{F.sinal(d['ic_inferior'], 2)}; {F.sinal(d['ic_superior'], 2)}]",
+   F.br(d["r2"], 2), F.br(d["p"], 3), F.br(d["piso"], 2),
+   ", ".join(str(x) for x in d["choques"]) or "nenhum",
+   ", ".join(f"{v['dia']}{'*' if v['sustentada'] else ''}"
+             for v in d["viradas"]) or "nenhuma"]
+  for nome, d in sorted(S.DECOMP_PERFIL.items(),
+                        key=lambda kv: -abs(kv[1]["inclinacao"]))
+ ],
+ "nota": ("Nota: as definições são as da Tabela 14, aplicadas à prevalência "
+          "diária de cada perfil, em pontos percentuais. A reamostragem é a "
+          "mesma, por atleta, de modo que a incerteza da prevalência herda a "
+          "estrutura de medidas repetidas e não trata como independentes as "
+          "várias respostas do mesmo participante no mesmo dia."),
+},
+
+"d1d7_var": {
+ "numero": 16,
+ "titulo": ("Comparação entre o primeiro e o último dia para cada variável, "
+            "restrita aos atletas com registro nos dois dias"),
+ "cabecalho": ["Variável", "n de pares", "Dia 1", "Dia 7", "Diferença",
+               "IC 95%", "dz", "p"],
+ "linhas": [
+  [nome, str(x["n"]), F.br(x["dia1"], 2), F.br(x["dia7"], 2),
+   F.sinal(x["diferenca"], 2),
+   f"[{F.sinal(x['ic_inferior'], 2)}; {F.sinal(x['ic_superior'], 2)}]",
+   F.sinal(x["dz"], 2), F.br(x["p"], 3)]
+  for nome, x in sorted(S.D1D7_VAR.items(),
+                        key=lambda kv: -abs(kv[1]["dz"]))
+ ],
+ "nota": ("Nota: a comparação é pareada e usa apenas os atletas com "
+          "observação válida no dia 1 e no dia 7, o que evita atribuir à "
+          "passagem do tempo o que é efeito de quem respondeu em cada dia. O "
+          "dz é a média das diferenças individuais dividida pelo "
+          "desvio-padrão dessas diferenças. O intervalo e o p vêm de 10 mil "
+          "reamostragens das diferenças individuais. Em vigor a diferença "
+          "negativa é desfavorável; nas demais variáveis a diferença "
+          "positiva é que o é."),
+},
+
+"d1d7_perfil": {
+ "numero": 17,
+ "titulo": ("Comparação entre o primeiro e o último dia para cada perfil, em "
+            "pontos percentuais"),
+ "cabecalho": ["Perfil", "Dia 1 (%)", "Dia 7 (%)", "Diferença (p.p.)",
+               "IC 95%", "p"],
+ "linhas": [
+  [nome, F.br(x["dia1"], 1), F.br(x["dia7"], 1),
+   F.sinal(x["diferenca"], 1),
+   f"[{F.sinal(x['ic_inferior'], 1)}; {F.sinal(x['ic_superior'], 1)}]",
+   F.br(x["p"], 3)]
+  for nome, x in sorted(S.D1D7_PERFIL.items(),
+                        key=lambda kv: -abs(kv[1]["diferenca"]))
+ ] + [["**Faixas de significado**", "", "", "", "", ""]]
+   + [[nome, F.br(K.faixa(nome, 1), 1), F.br(K.faixa(nome, 7), 1),
+       F.sinal(K.faixa(nome, 7) - K.faixa(nome, 1), 1), "", ""]
+      for nome in ("Favorável", "Neutro", "De risco")],
+ "nota": ("Nota: a diferença é a prevalência do dia 7 menos a do dia 1, em "
+          "pontos percentuais, e o intervalo vem de 10 mil reamostragens por "
+          "atleta. Apenas a barbatana de tubarão tem intervalo que não "
+          "contém o zero; com 27 atletas, a queda do perfil iceberg é grande "
+          "mas não distinguível de zero, e o texto diz isso. As linhas de "
+          "faixa não trazem intervalo porque somam perfis correlacionados "
+          "entre si, e a reamostragem da soma exigiria tratamento "
+          "multinomial que este estudo não conduziu."),
 },
 
 }
@@ -847,8 +964,9 @@ BLOCOS = [
        "comparação intradia; a separação entre o nível do grupo e o nível do "
        "atleta; a análise da predominância dos perfis ao longo da semana; a "
        "análise das curvas de cada variável e dos pontos em que elas se "
-       "cruzam; o perfil do grupo em escores T; e as decisões gerais de "
-       "tratamento de dados. O nível de significância "
+       "cruzam; o perfil do grupo em escores T; a decomposição das séries "
+       "entre tendência e desvio, com a incerteza de cada parte; e as "
+       "decisões gerais de tratamento de dados. O nível de significância "
        "adotado foi de 5% em todos os testes, sempre depois da correção para "
        "múltiplas comparações descrita em 3.8.7."),
 ("h3", "3.8.1 Descrição das subescalas e propriedades da medida"),
@@ -1107,7 +1225,7 @@ BLOCOS = [
       "escores T daqui não são comparáveis aos de estudos que padronizam "
       "contra normas populacionais; foi a mistura desses dois referenciais "
       "que produziu a divergência entre séries de classificação registrada "
-      "na seção 4.7. Como o desvio-padrão do denominador reúne a variância "
+      "na seção 4.9. Como o desvio-padrão do denominador reúne a variância "
       "entre atletas e a variância entre dias, e a primeira é maior, a "
       "média de um dia se afasta pouco de 50 mesmo quando a mudança na "
       "escala bruta é grande: os escores T descrevem a posição do dia "
@@ -1122,7 +1240,58 @@ BLOCOS = [
       "unidades de escore T vale exatamente 10 dividido pela raiz do n "
       "daquele dia e não depende da subescala, porque a conversão em T já "
       "divide pelo desvio-padrão da amostra."),
-("h3", "3.8.9 Decisões gerais de tratamento de dados"),
+("h3", "3.8.9 Decomposição das séries, incerteza e tendência"),
+("p", "Cada série diária, de variável ou de perfil, recebeu três leituras "
+      "encadeadas: a banda de incerteza em torno de cada ponto, a tendência "
+      "linear sobre o dia, e a decomposição entre o que a reta explica e o "
+      "que ela deixa de fora."),
+("p", "A incerteza vem de reamostragem, e a unidade reamostrada é o atleta. "
+      "Sorteia-se, com reposição, um conjunto de atletas do mesmo tamanho do "
+      "elenco, e cada atleta sorteado entra com todas as observações dele; "
+      "a série é então recalculada sobre esse conjunto. O procedimento "
+      "repete-se 10 mil vezes, com semente fixa e declarada no código, e a "
+      "banda de 95% é o intervalo entre os percentis 2,5 e 97,5 das séries "
+      "reamostradas. Reamostrar observações soltas, em vez de atletas, "
+      "trataria como independentes respostas do mesmo participante e "
+      "produziria banda estreita demais. A escolha da reamostragem em lugar "
+      "de distribuição tabelada decorre do tamanho da amostra, da assimetria "
+      "das distribuições e do efeito piso em quatro das seis subescalas, que "
+      "violam os pressupostos das fórmulas usuais."),
+("p", "A tendência é a reta de mínimos quadrados da série diária sobre o "
+      "dia, e a inclinação é reportada em unidades da variável por dia, ou "
+      "em pontos percentuais por dia no caso dos perfis. O intervalo de "
+      "confiança da inclinação e a faixa de confiança da própria reta vêm da "
+      "mesma reamostragem por atleta, de modo que a incerteza da tendência "
+      "herda a estrutura de medidas repetidas. Uma inclinação é interpretada "
+      "apenas quando o intervalo dela não contém o zero, e o valor de p "
+      "reportado é bilateral, obtido da fração de reamostras cuja inclinação "
+      "tem sinal oposto ao da estimativa."),
+("p", "A decomposição separa a série em duas partes que somam o observado: "
+      "a reta e o desvio em relação a ela. A fração da variância da série "
+      "que a reta explica, o R², mede quanto do movimento é monótono. Um R² "
+      "alto autoriza a leitura de tendência e a projeção do valor de um dia "
+      "futuro; um R² baixo com derivadas grandes indica deslocamento por "
+      "degraus, que não admite projeção e exige agir sobre o dia que produz "
+      "o degrau. As duas situações aparecem nesta amostra e levam a condutas "
+      "diferentes, o que é a razão de reportar o R² ao lado da inclinação."),
+("p", "Sobre a série suavizada calculam-se ainda a derivada e os pontos de "
+      "virada. Um ponto de virada é um dia em que a derivada troca de sinal, "
+      "isto é, um máximo ou um mínimo local. Ele é classificado como "
+      "sustentado quando ao menos uma das duas derivadas que o formam supera "
+      "o piso de ruído da série, e apenas os sustentados são interpretados. "
+      "A qualificação é necessária porque uma série de sete pontos com "
+      "adesão desigual produz trocas de sinal por acaso com frequência "
+      "alta, e a inspeção visual não as distingue das reais."),
+("p", "A comparação entre o primeiro e o último dia foi conduzida em duas "
+      "formas. Para as variáveis contínuas, ela é pareada por atleta e "
+      "restrita a quem respondeu nos dois dias, com o tamanho de efeito para "
+      "medidas pareadas e intervalo por reamostragem das diferenças "
+      "individuais. Para os perfis, ela é a diferença entre as prevalências "
+      "dos dois dias, em pontos percentuais, com intervalo pela reamostragem "
+      "por atleta. As duas respondem perguntas distintas: a primeira mede "
+      "quanto mudou o atleta médio, a segunda quanto mudou a composição do "
+      "elenco."),
+("h3", "3.8.10 Decisões gerais de tratamento de dados"),
 ("p", "Não houve imputação de dado faltante. Cada estimativa usa as "
       "observações efetivamente disponíveis, e o denominador de cada uma "
       "está declarado na nota da tabela correspondente, de modo que o leitor "
@@ -1554,7 +1723,155 @@ BLOCOS += [
       "a série diária disponível é a do critério de Morgan, com dois "
       "estados em vez de seis, apresentada na seção 4.5."),
 
-("h2", "4.7 Concordância entre os dois critérios de classificação"),
+("h2", "4.7 Decomposição das séries: tendência, ruído e viradas"),
+("p0", "As seções anteriores descreveram cada série pela sua forma. Esta "
+       "separa, em cada uma delas, o que é tendência do que é desvio, e "
+       "acompanha cada parte de um intervalo de confiança. O objetivo é "
+       "responder a uma pergunta que a inspeção visual não responde: quando "
+       "uma variável muda ao longo da semana, ela muda de modo regular, "
+       "caso em que a reta descreve o movimento, ou muda por degraus, caso "
+       "em que a reta é enganosa e a derivada é a leitura correta."),
+("tab", "tendencia_var"),
+("fig", "a1_decomposicao_variaveis.png", 16.6,
+ "Figura 10 - Decomposição de cada variável ao longo dos sete dias, com a "
+ "banda de 95% da série, a reta sobre o dia e o intervalo de confiança dela, "
+ "e os pontos de virada sustentados"),
+("p", "Quatro variáveis têm inclinação cujo intervalo de confiança não "
+      "contém o zero, e as quatro são do eixo energético. A fadiga do BRUMS "
+      f"sobe {F.sinal(S.DECOMP_VAR['Fadiga (BRUMS)']['inclinacao'], 3)} ponto "
+      "por dia, com intervalo de "
+      f"[{F.sinal(S.DECOMP_VAR['Fadiga (BRUMS)']['ic_inferior'], 3)}; "
+      f"{F.sinal(S.DECOMP_VAR['Fadiga (BRUMS)']['ic_superior'], 3)}] e R² de "
+      f"{F.br(S.DECOMP_VAR['Fadiga (BRUMS)']['r2'], 2)}; a fadiga física "
+      f"sobe {F.sinal(S.DECOMP_VAR['Fadiga física']['inclinacao'], 3)} por "
+      f"dia, com o maior R² do conjunto, "
+      f"{F.br(S.DECOMP_VAR['Fadiga física']['r2'], 2)}; o vigor cai "
+      f"{F.sinal(S.DECOMP_VAR['Vigor']['inclinacao'], 3)} por dia; e a "
+      f"perturbação total sobe {F.sinal(S.DECOMP_VAR['PTH (TMD)']['inclinacao'], 3)}. "
+      "A tensão é a quinta, e a única cuja tendência é favorável: cai "
+      f"{F.sinal(S.DECOMP_VAR['Tensão']['inclinacao'], 3)} ponto por dia, com "
+      f"R² de {F.br(S.DECOMP_VAR['Tensão']['r2'], 2)}. Depressão, raiva, "
+      "confusão e fadiga mental têm intervalo que contém o zero, e para elas "
+      "a semana não tem direção."),
+("p", "O R² separa os dois regimes anunciados. A fadiga física, com "
+      f"{F.br(S.DECOMP_VAR['Fadiga física']['r2'], 2)}, e a fadiga do BRUMS, "
+      f"com {F.br(S.DECOMP_VAR['Fadiga (BRUMS)']['r2'], 2)}, têm a maior "
+      "parte do movimento capturada por uma reta: elas sobem de modo "
+      "regular, dia após dia, e a comissão técnica pode projetá-las. A "
+      f"perturbação total, com {F.br(S.DECOMP_VAR['PTH (TMD)']['r2'], 2)}, "
+      "deixa mais da metade da variância fora da reta, e o painel dela na "
+      "Figura 10 mostra por quê: a série tem platô nos cinco primeiros dias "
+      "e degrau no fim, e o único dia de choque está no dia 6. Projetar a "
+      "perturbação total por reta subestimaria o valor da véspera."),
+("p", "As viradas sustentadas são raras, e é isso que se espera de uma "
+      "série curta lida com critério. Das nove variáveis, apenas a raiva "
+      "tem uma virada que supera o piso de ruído, um mínimo no dia 5, o "
+      f"dia em que ela cai a {F.br(C.SERIE['Raiva'][4], 2)} ponto antes de "
+      f"subir a {F.br(C.SERIE['Raiva'][-1], 2)} na véspera. As demais "
+      "viradas visíveis nos painéis ficam abaixo do piso e não são "
+      "interpretadas. A distinção importa porque uma série de sete pontos "
+      "com adesão desigual produz muitas trocas de sinal por acaso."),
+("tab", "tendencia_perfil"),
+("fig", "a1_decomposicao_perfis.png", 16.6,
+ "Figura 11 - Decomposição da prevalência de cada perfil ao longo dos sete "
+ "dias, com os mesmos elementos da Figura 10"),
+("p", "O resultado mais importante desta seção está na Tabela 15, e ele "
+      "qualifica tudo o que as seções anteriores descreveram. De todos os "
+      "seis perfis, apenas a barbatana de tubarão tem tendência linear cujo "
+      f"intervalo não contém o zero: ela sobe "
+      f"{F.sinal(S.DECOMP_PERFIL['Barbatana de tubarão']['inclinacao'], 2)} "
+      "pontos percentuais por dia, com intervalo de "
+      f"[{F.sinal(S.DECOMP_PERFIL['Barbatana de tubarão']['ic_inferior'], 2)}; "
+      f"{F.sinal(S.DECOMP_PERFIL['Barbatana de tubarão']['ic_superior'], 2)}] "
+      f"e R² de {F.br(S.DECOMP_PERFIL['Barbatana de tubarão']['r2'], 2)}, o "
+      "mais alto de todas as séries do estudo, de variável ou de perfil."),
+("p", "O perfil iceberg, em contraste, não tem tendência: a inclinação é de "
+      f"{F.sinal(S.DECOMP_PERFIL['Iceberg']['inclinacao'], 2)} ponto "
+      "percentual por dia, com intervalo que contém o zero com folga, e R² "
+      f"de {F.br(S.DECOMP_PERFIL['Iceberg']['r2'], 2)}, isto é, a reta não "
+      "explica praticamente nada da série. O painel do iceberg na Figura 11 "
+      "mostra a razão: a prevalência oscila entre 32% e 44% nos seis "
+      "primeiros dias e cai apenas no sétimo, e o único dia de choque é o "
+      "dia 6. Os dois perfis que dominam a leitura desta semana, portanto, "
+      "têm dinâmicas opostas e não são a mesma história vista de dois "
+      "lados: a barbatana de tubarão cresce por acúmulo, de modo regular e "
+      "previsível desde o segundo dia, e o iceberg desaba de uma vez, na "
+      "véspera. Essa distinção não aparece na comparação entre as duas "
+      "pontas e é o principal ganho de acompanhar os sete dias."),
+("p", "A consequência prática é direta. Uma tendência regular admite "
+      "projeção e intervenção antecipada: com a inclinação da barbatana de "
+      "tubarão conhecida desde o meio da semana, a comissão técnica pode "
+      "estimar a prevalência da véspera antes de chegar nela. Um degrau não "
+      "admite: ele só é observável depois de acontecer, e a única defesa "
+      "contra ele é agir sobre o que o produz, que na seção 4.5 é o dia de "
+      "maior acúmulo."),
+
+("h2", "4.8 As duas comparações entre o primeiro e o último dia"),
+("p0", "Esta seção responde à pergunta mais direta do estudo, em duas "
+       "formas complementares: quanto cada variável e cada perfil mudam "
+       "entre o dia de repouso e a véspera da competição. A comparação de "
+       "variáveis é pareada por atleta, o que isola a mudança individual; a "
+       "de perfis é de prevalência, o que descreve a composição do grupo. "
+       "As duas trazem intervalo de confiança pela mesma reamostragem, e a "
+       "leitura conjunta delas está na Figura 12."),
+("tab", "d1d7_var"),
+("tab", "d1d7_perfil"),
+("fig", "a1_d1_d7.png", 16.4,
+ "Figura 12 - Diferença entre o dia 7 e o dia 1 para cada variável, pareada "
+ "por atleta (A), e para cada perfil, em pontos percentuais (B), com "
+ "intervalo de confiança de 95%"),
+("p", "Seis das nove variáveis mudam com intervalo que não contém o zero, e "
+      "a ordenação por tamanho de efeito é informativa. A fadiga física tem "
+      f"o maior dz, {F.sinal(S.D1D7_VAR['Fadiga física']['dz'], 2)}, com "
+      f"aumento de {F.sinal(S.D1D7_VAR['Fadiga física']['diferenca'], 2)} "
+      "ponto; o vigor vem em seguida, com "
+      f"{F.sinal(S.D1D7_VAR['Vigor']['dz'], 2)} e queda de "
+      f"{F.sinal(S.D1D7_VAR['Vigor']['diferenca'], 2)}; depois a fadiga do "
+      f"BRUMS, com {F.sinal(S.D1D7_VAR['Fadiga (BRUMS)']['dz'], 2)}. A "
+      "tensão e a confusão mudam na direção favorável, com dz de "
+      f"{F.sinal(S.D1D7_VAR['Tensão']['dz'], 2)} e "
+      f"{F.sinal(S.D1D7_VAR['Confusão']['dz'], 2)}. Depressão, raiva e "
+      "fadiga mental não mudam. Todas as comparações usam os mesmos "
+      f"{S.D1D7_VAR['Vigor']['n']} atletas, que são os que responderam nos "
+      "dois dias."),
+("p", "A perturbação total do humor merece nota separada. Ela sobe "
+      f"{F.sinal(S.D1D7_VAR['PTH (TMD)']['diferenca'], 2)} pontos, o maior "
+      "aumento absoluto do conjunto, mas com dz de apenas "
+      f"{F.sinal(S.D1D7_VAR['PTH (TMD)']['dz'], 2)} e intervalo largo, de "
+      f"[{F.sinal(S.D1D7_VAR['PTH (TMD)']['ic_inferior'], 2)}; "
+      f"{F.sinal(S.D1D7_VAR['PTH (TMD)']['ic_superior'], 2)}]. A razão é "
+      "que ela soma seis subescalas e herda a variância de todas, incluindo "
+      "as quatro que não mudam. O escore composto é, por isso, o menos "
+      "sensível dos indicadores desta semana, apesar de ser o mais usado, e "
+      "as subescalas isoladas do eixo energético descrevem melhor o que "
+      "aconteceu."),
+("p", "No painel B, a leitura é mais sóbria e precisa ser dita com "
+      "clareza. De todos os seis perfis, apenas a barbatana de tubarão tem "
+      "diferença cujo intervalo não contém o zero: ela sobe "
+      f"{F.sinal(S.D1D7_PERFIL['Barbatana de tubarão']['diferenca'], 1)} "
+      "pontos percentuais, com intervalo de "
+      f"[{F.sinal(S.D1D7_PERFIL['Barbatana de tubarão']['ic_inferior'], 1)}; "
+      f"{F.sinal(S.D1D7_PERFIL['Barbatana de tubarão']['ic_superior'], 1)}]. "
+      "A queda do perfil iceberg, de "
+      f"{F.sinal(S.D1D7_PERFIL['Iceberg']['diferenca'], 1)} pontos, é grande "
+      "em magnitude mas tem intervalo de "
+      f"[{F.sinal(S.D1D7_PERFIL['Iceberg']['ic_inferior'], 1)}; "
+      f"{F.sinal(S.D1D7_PERFIL['Iceberg']['ic_superior'], 1)}], que contém o "
+      "zero. Com 27 atletas e prevalências de ordem intermediária, o estudo "
+      "não tem precisão para afirmar que a queda do iceberg é diferente de "
+      "zero, e este texto não a afirma."),
+("p", "A assimetria entre os dois resultados tem explicação, e ela não é "
+      "de conveniência. Uma proporção que parte de zero, como a barbatana "
+      "de tubarão no dia 1, tem variância nula na partida, e por isso "
+      "qualquer aumento é estimado com precisão alta. Uma proporção que "
+      "parte de perto de 40%, como o iceberg, está na região de variância "
+      "máxima da distribuição binomial, e o intervalo é largo por "
+      "construção. A conclusão sustentada, portanto, é a do ganho da "
+      "barbatana de tubarão, e a queda do iceberg é o complemento "
+      "aritmético dela, coerente com os dados mas sem sustentação "
+      "inferencial própria."),
+
+("h2", "4.9 Concordância entre os dois critérios de classificação"),
 ("p", "Os dois critérios não concordam entre si, e a diferença é grande. No "
       f"primeiro dia, o critério de Morgan classifica {F.br(PERFIL_DIA[1][0], 1)}% "
       "das observações "
@@ -1603,9 +1920,15 @@ BLOCOS += [
       "não se distribui pelos três perfis de risco: ele se concentra na "
       "barbatana de tubarão, que salta de "
       f"{F.br(PERFIS_T['Barbatana de tubarão'][1], 1)}% para "
-      f"{F.br(PERFIS_T['Barbatana de tubarão'][3], 1)}% e se torna, empatada "
-      "com o superfície, o perfil mais frequente do último dia. Os outros "
-      "dois perfis de risco, iceberg invertido e Everest invertido, recuam."),
+      f"{F.br(PERFIS_T['Barbatana de tubarão'][3], 1)}% e se torna o perfil "
+      "mais frequente do último dia. Os outros dois perfis de risco, "
+      "iceberg invertido e Everest invertido, recuam. Convém registrar "
+      "desde já o que a seção 4.8 estabelece: das seis mudanças de "
+      "prevalência entre as duas pontas, apenas a da barbatana de tubarão "
+      "tem intervalo de confiança que não contém o zero. A queda do "
+      "iceberg é grande, é coerente com todas as outras análises deste "
+      "estudo, e ainda assim não é, isoladamente, distinguível de zero "
+      "com 27 atletas."),
 ("p", "Essa concentração é o achado clinicamente mais relevante do estudo, "
       "porque a barbatana de tubarão tem definição própria: é o perfil com o "
       "vigor mais baixo de todos os seis, combinado a fadiga superior à de "
@@ -1633,7 +1956,7 @@ BLOCOS += [
       "que muda é a magnitude."),
 ("h2", "5.2 Duas quedas, e não uma erosão"),
 ("p", "O resultado metodologicamente mais interessante do estudo é o da "
-      "seção 4.4. A curva bruta do perfil iceberg sugere declínio contínuo ao "
+      "seção 4.5. A curva bruta do perfil iceberg sugere declínio contínuo ao "
       "longo da semana, e é assim que séries desse tipo costumam ser "
       "descritas. A análise da derivada contra o piso de ruído contradiz essa "
       "leitura: das seis variações diárias, quatro ficam dentro da faixa de "
@@ -1651,13 +1974,28 @@ BLOCOS += [
       "modelo multicomponente de avaliação do sofrimento de treino propõe "
       "como objeto do monitoramento (Main e Grove, 2009), e a série de perfis "
       "captura as duas com um instrumento de dois minutos."),
+("p", "A decomposição da seção 4.7 confirma essa leitura por outro caminho "
+      "e acrescenta o contraste que lhe dá força. Das seis séries de perfil, "
+      "apenas a barbatana de tubarão tem tendência linear cujo intervalo não "
+      f"contém o zero, com {F.sinal(S.DECOMP_PERFIL['Barbatana de tubarão']['inclinacao'], 2)} "
+      "pontos percentuais por dia e R² de "
+      f"{F.br(S.DECOMP_PERFIL['Barbatana de tubarão']['r2'], 2)}, ao passo "
+      f"que o perfil iceberg tem R² de {F.br(S.DECOMP_PERFIL['Iceberg']['r2'], 2)} "
+      "e inclinação indistinguível de zero. Os dois perfis que dominam a "
+      "semana não têm a mesma dinâmica: um cresce por acúmulo regular, o "
+      "outro desaba de uma vez. A consequência prática separa-se na mesma "
+      "linha. Uma tendência regular é projetável, e permite antecipar a "
+      "prevalência da véspera a partir do meio da semana. Um degrau não é, e "
+      "só se defende pela intervenção sobre o dia que o produz."),
 ("p", "Vale registrar o que a análise não autoriza. Com sete pontos, a "
-      "derivada é uma estimativa grosseira, e o piso de ruído derivado do "
-      "erro-padrão binomial pressupõe independência entre atletas dentro do "
-      "dia, o que é discutível em um elenco que convive. O resultado deve ser "
-      "lido como demonstração de que a distinção entre erosão e choque é "
-      "acessível a partir de dados de rotina, e não como estimativa precisa "
-      "das taxas."),
+      "derivada é uma estimativa grosseira. O piso de ruído da série de "
+      "Morgan vem do erro-padrão binomial e pressupõe independência entre "
+      "atletas dentro do dia, o que é discutível em um elenco que convive; "
+      "as bandas da seção 4.7 corrigem esse ponto, porque reamostram o "
+      "atleta inteiro e não a observação isolada, e são por isso mais "
+      "largas. O resultado deve ser lido como demonstração de que a "
+      "distinção entre erosão e choque é acessível a partir de dados de "
+      "rotina, e não como estimativa precisa das taxas."),
 ("h2", "5.3 A inversão do eixo energético e o que ela diz sobre a carga"),
 ("p", "O achado de maior densidade analítica deste estudo não está na "
       "prevalência dos perfis, e sim no dia em que o eixo energético se "

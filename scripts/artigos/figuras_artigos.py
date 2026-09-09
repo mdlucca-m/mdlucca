@@ -24,6 +24,7 @@ sys.path.insert(0, str(AQUI.parent / "artigo4p"))
 sys.path.insert(0, str(AQUI.parent / "comum"))
 import estilo as E  # noqa: E402
 import classificar as K  # noqa: E402
+import serie as S  # noqa: E402
 import curvas as C  # noqa: E402
 import perfil_t as T  # noqa: E402
 import fonte as F  # noqa: E402
@@ -813,12 +814,208 @@ def fig_curva_perfis(destino: Path) -> Path:
     return salvar(fig, destino, "a1_curva_perfis.png")
 
 
+# ────────────────────── decomposição de série, painéis ─────────────────
+BANDA, CONTORNO = "#E8E8E6", "#C9C9C5"
+RETA = "#4A4A4A"
+
+
+def _painel_decomposicao(ax, nome, d, cor, *, rotulo_y=None, escala=None):
+    """Um painel: banda de reamostragem, série, reta com IC e viradas."""
+    aplicar(ax)
+    dias = list(K.DIAS)
+    # banda de 95% da série, com contorno
+    ax.fill_between(dias, d["inferior"], d["superior"], color=BANDA,
+                    zorder=1, linewidth=0)
+    ax.plot(dias, d["inferior"], color=CONTORNO, linewidth=0.7, zorder=2)
+    ax.plot(dias, d["superior"], color=CONTORNO, linewidth=0.7, zorder=2)
+    # reta de mínimos quadrados e o IC dela
+    ax.fill_between(dias, d["faixa_inferior"], d["faixa_superior"],
+                    color=RETA, alpha=0.10, zorder=3, linewidth=0)
+    ax.plot(dias, d["ajustado"], color=RETA, linewidth=1.2,
+            linestyle=(0, (5, 3)), zorder=5)
+    # série suavizada e observações
+    ax.plot(dias, S.suavizar(d["serie"]), color=cor, linewidth=1.9, zorder=6)
+    ax.plot(dias, d["serie"], linestyle="none", marker="o", markersize=3.4,
+            markerfacecolor="white", markeredgecolor=cor,
+            markeredgewidth=1.0, zorder=7)
+    # viradas sustentadas
+    for v in d["viradas"]:
+        if not v["sustentada"]:
+            continue
+        i = dias.index(v["dia"])
+        ax.plot([v["dia"]], [d["serie"][i]], marker="D", markersize=5.2,
+                color="white", markeredgecolor=TINTA, markeredgewidth=1.2,
+                zorder=8)
+    ax.set_xlim(0.6, 7.4)
+    ax.set_xticks(dias)
+    ax.set_xticklabels([str(x) for x in dias], fontsize=6.8)
+    if escala:
+        ax.set_ylim(*escala)
+    ax.tick_params(labelsize=6.8)
+    if rotulo_y:
+        ax.set_ylabel(rotulo_y, fontsize=7.4, color=TINTA)
+    marca = "" if d["cruza_zero"] else "*"
+    titulo(ax, f"{nome}: {sg(d['inclinacao'], 2)}/dia{marca}", tamanho=7.6)
+
+
+def _legenda_decomposicao(fig, y=0.055):
+    """Legenda horizontal ao pé da figura, fora da grade de painéis."""
+    itens = [
+        Patch(facecolor=BANDA, edgecolor=CONTORNO,
+              label="Banda de 95% da série"),
+        Patch(facecolor=RETA, alpha=0.10, label="IC 95% da reta"),
+        Line2D([0], [0], color=RETA, linewidth=1.2, linestyle=(0, (5, 3)),
+               label="Reta sobre o dia"),
+        Line2D([0], [0], color=TINTA_FRACA, linewidth=1.9,
+               label="Série suavizada"),
+        Line2D([0], [0], color=TINTA_FRACA, linewidth=0, marker="o",
+               markersize=3.4, markerfacecolor="white",
+               markeredgecolor=TINTA_FRACA, label="Média diária observada"),
+        Line2D([0], [0], color="white", marker="D", markersize=5.2,
+               markeredgecolor=TINTA, markeredgewidth=1.2, linewidth=0,
+               label="Ponto de virada sustentado"),
+    ]
+    leg = fig.legend(handles=itens, loc="lower center", ncol=3,
+                     bbox_to_anchor=(0.5, y), frameon=True, fontsize=7.0,
+                     edgecolor=GRADE, facecolor="white", handlelength=1.9,
+                     columnspacing=1.6, labelspacing=0.5, borderpad=0.6,
+                     labelcolor=TINTA_FRACA)
+    leg.get_frame().set_linewidth(0.8)
+    fig.text(0.5, 0.012, "O asterisco no título marca a inclinação cujo "
+             "intervalo de confiança não contém o zero.", ha="center",
+             fontsize=6.9, color=TINTA_FRACA)
+
+
+def fig_decomposicao_variaveis(destino: Path) -> Path:
+    """Cada variável com banda, reta e viradas, na mesma grade."""
+    ordem = ["PTH (TMD)", "Vigor", "Fadiga (BRUMS)", "Fadiga física",
+             "Fadiga mental", "Tensão", "Depressão", "Raiva", "Confusão"]
+    curto = {"PTH (TMD)": "PTH", "Fadiga (BRUMS)": "Fadiga"}
+    cores = {"Vigor": TEAL, "PTH (TMD)": CORAL, "Fadiga (BRUMS)": "#C4553B",
+             "Fadiga física": "#9E4530", "Fadiga mental": "#6B94B8",
+             "Tensão": AZUL, "Depressão": ROXO, "Raiva": OCRE,
+             "Confusão": "#8A8A86"}
+    fig, eixos = plt.subplots(3, 3, figsize=(17.4 / 2.54, 14.4 / 2.54),
+                              dpi=DPI)
+    fig.patch.set_facecolor("white")
+    planos = eixos.ravel()
+    for i, nome in enumerate(ordem):
+        _painel_decomposicao(planos[i], curto.get(nome, nome),
+                             S.DECOMP_VAR[nome], cores[nome],
+                             rotulo_y="Escore" if i % 3 == 0 else None)
+    fig.supxlabel("Dia do microciclo", fontsize=8.8, color=TINTA, y=0.125)
+    fig.tight_layout(h_pad=1.5, w_pad=1.4, rect=(0, 0.165, 1, 1))
+    _legenda_decomposicao(fig, y=0.020)
+    return salvar(fig, destino, "a1_decomposicao_variaveis.png")
+
+
+def fig_decomposicao_perfis(destino: Path) -> Path:
+    """Cada perfil com banda, reta e viradas, na mesma grade."""
+    curto = {"Barbatana de tubarão": "Barbatana",
+             "Iceberg invertido": "Iceberg inv.",
+             "Everest invertido": "Everest inv."}
+    fig, eixos = plt.subplots(2, 3, figsize=(17.4 / 2.54, 11.4 / 2.54),
+                              dpi=DPI)
+    fig.patch.set_facecolor("white")
+    planos = eixos.ravel()
+    for i, p in enumerate(K.ORDEM):
+        _painel_decomposicao(planos[i], curto.get(p, p), S.DECOMP_PERFIL[p],
+                             CORES_PERFIL[p],
+                             rotulo_y="Observações (%)" if i % 3 == 0 else None,
+                             escala=(-6, 58))
+    fig.supxlabel("Dia do microciclo", fontsize=8.8, color=TINTA, y=0.155)
+    fig.tight_layout(h_pad=1.5, w_pad=1.4, rect=(0, 0.205, 1, 1))
+    _legenda_decomposicao(fig, y=0.024)
+    return salvar(fig, destino, "a1_decomposicao_perfis.png")
+
+
+def _floresta(ax, itens, *, unidade, titulo_painel, direcao=None):
+    """Gráfico de floresta: diferença e IC 95%, uma linha por item."""
+    aplicar(ax)
+    ys = list(range(len(itens)))[::-1]
+    for y, (nome, x) in zip(ys, itens):
+        lo, hi, dif = x["ic_inferior"], x["ic_superior"], x["diferenca"]
+        if x["cruza_zero"]:
+            cor = "#9A9A96"
+        elif direcao is None:
+            cor = CORAL if dif > 0 else TEAL
+        else:
+            cor = TEAL if (dif > 0) == direcao(nome) else CORAL
+        ax.plot([lo, hi], [y, y], color=cor, linewidth=2.0,
+                solid_capstyle="round", zorder=4)
+        ax.plot([lo, lo], [y - 0.16, y + 0.16], color=cor, linewidth=1.2,
+                zorder=4)
+        ax.plot([hi, hi], [y - 0.16, y + 0.16], color=cor, linewidth=1.2,
+                zorder=4)
+        ax.plot([dif], [y], marker="o", markersize=5.2, color=cor,
+                markeredgecolor="white", markeredgewidth=0.9, zorder=6)
+    ax.axvline(0, color=TINTA, linewidth=1.0, zorder=3)
+    ax.set_yticks(ys)
+    ax.set_yticklabels([n for n, _ in itens], fontsize=7.8)
+    ax.set_ylim(-0.7, len(itens) - 0.3)
+    ax.set_xlabel(unidade, fontsize=8.4, color=TINTA)
+    titulo(ax, titulo_painel, tamanho=9.2)
+
+
+def fig_d1_d7(destino: Path) -> Path:
+    """As duas comparações entre o primeiro e o último dia.
+
+    À esquerda as variáveis, pareadas por atleta; à direita os perfis, em
+    pontos percentuais. Cinza marca o intervalo que contém o zero.
+    """
+    curto = {"PTH (TMD)": "PTH", "Fadiga (BRUMS)": "Fadiga",
+             "Barbatana de tubarão": "Barbatana",
+             "Iceberg invertido": "Iceberg inv.",
+             "Everest invertido": "Everest inv."}
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(17.4 / 2.54, 8.8 / 2.54),
+                                 dpi=DPI)
+    fig.patch.set_facecolor("white")
+
+    ordem_v = ["PTH (TMD)", "Fadiga (BRUMS)", "Fadiga física", "Vigor",
+               "Tensão", "Confusão", "Raiva", "Depressão", "Fadiga mental"]
+    itens = [(curto.get(v, v), S.D1D7_VAR[v]) for v in ordem_v]
+    _floresta(a1, itens, unidade="Diferença do dia 7 para o dia 1 (pontos)",
+              titulo_painel="A. Variáveis, pareadas por atleta",
+              direcao=lambda n: n == "Vigor")
+    for y, (nome, x) in zip(range(len(itens))[::-1], itens):
+        a1.annotate(f"dz {sg(x['dz'], 2)}", xy=(x["ic_superior"], y),
+                    xytext=(6, 0), textcoords="offset points", va="center",
+                    fontsize=6.9, color=TINTA_FRACA)
+    a1.set_xlim(-6.2, 14.6)
+
+    itens_p = [(curto.get(p, p), S.D1D7_PERFIL[p]) for p in K.ORDEM]
+    _floresta(a2, itens_p,
+              unidade="Diferença do dia 7 para o dia 1 (p.p.)",
+              titulo_painel="B. Perfis, em pontos percentuais",
+              direcao=lambda n: n == "Iceberg")
+    for y, (nome, x) in zip(range(len(itens_p))[::-1], itens_p):
+        a2.annotate(f"{vg(x['dia1'], 1)} para {vg(x['dia7'], 1)}%",
+                    xy=(x["ic_superior"], y), xytext=(6, 0),
+                    textcoords="offset points", va="center", fontsize=6.9,
+                    color=TINTA_FRACA)
+    a2.set_xlim(-42, 74)
+
+    legenda(a1, handles=[
+        Line2D([0], [0], color=TEAL, linewidth=2.0, marker="o",
+               markersize=5.2, label="Mudança favorável"),
+        Line2D([0], [0], color=CORAL, linewidth=2.0, marker="o",
+               markersize=5.2, label="Mudança desfavorável"),
+        Line2D([0], [0], color="#9A9A96", linewidth=2.0, marker="o",
+               markersize=5.2, label="IC contém o zero")],
+        loc="upper left", fontsize=6.9)
+    fig.tight_layout(w_pad=2.4)
+    return salvar(fig, destino, "a1_d1_d7.png")
+
+
 def gerar_artigo1(destino: Path) -> list[Path]:
     print("figuras do Artigo 1:")
     return [fig_distribuicao(destino), fig_psicometria(destino),
             fig_curvas_energia(destino), fig_curvas_negativas(destino),
             fig_indice(destino), fig_prevalencia_semana(destino),
-            fig_curva_perfis(destino), fig_sinal(destino),
+            fig_curva_perfis(destino),
+            fig_decomposicao_variaveis(destino),
+            fig_decomposicao_perfis(destino), fig_d1_d7(destino),
+            fig_sinal(destino),
             fig_perfil_diario(destino)]
 
 
