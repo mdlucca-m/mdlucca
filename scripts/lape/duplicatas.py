@@ -78,6 +78,32 @@ def candidatos(db: Database) -> list[dict[str, Any]]:
     return achados
 
 
+def e_fantasma_de(db: Database, ficha_id: int, pessoa_id: int) -> bool:
+    """A ficha `ficha_id` e so um pedaco do nome de `pessoa_id`?
+
+    As mesmas duas perguntas de `candidatos`, feitas sobre um par ja
+    escolhido: a ficha suspeita tem UM nome so, e esse nome e o primeiro
+    nome da outra? E as duas nunca assinam o mesmo artigo?
+
+    Serve ao caso em que a coordenacao ja declarou a grafia -- ai nao ha o
+    que propor a ninguem, porque a resposta ja foi dada por escrito.
+    """
+    fichas = {p["id"]: p for p in db.dicts(
+        "SELECT id, full_name FROM members WHERE id IN (?, ?)", (ficha_id, pessoa_id))}
+    if ficha_id not in fichas or pessoa_id not in fichas or ficha_id == pessoa_id:
+        return False
+    curto, cheio = fichas[ficha_id]["full_name"], fichas[pessoa_id]["full_name"]
+    if len(_tokens(curto)) != 1 or len(_tokens(cheio)) < 2:
+        return False
+    if norm_key(curto) != _primeiro_nome(cheio):
+        return False
+    juntos = db.scalar(
+        "SELECT COUNT(*) FROM article_authors a JOIN article_authors b"
+        "    ON a.article_id = b.article_id"
+        " WHERE a.member_id = ? AND b.member_id = ?", (ficha_id, pessoa_id))
+    return not juntos
+
+
 def fundir(db: Database, manter_id: int, sumir_id: int) -> dict[str, Any]:
     """Junta as duas fichas e guarda a grafia que sumiu como variacao.
 

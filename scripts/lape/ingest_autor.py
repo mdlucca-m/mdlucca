@@ -53,7 +53,13 @@ PESQUISADORES: tuple[dict[str, Any], ...] = (
     {"nome": "Alexandro Andrade", "afiliacao": "UDESC",
      "papel": "Coordenador do LAPE", "lattes": "5577164706111568",
      "vinculo": "coordenacao", "orienta_por_padrao": True,
-     "grafias": ("Andrade A", "Andrade, Alexandro")},
+     # "Alexandro" sozinho e ele: a planilha listou os autores de um artigo
+     # so pelo primeiro nome, e a ficha "Alexandro" nasceu dai, separada da
+     # de "Andrade" que assina os outros dezoito. Declarado aqui, o sistema
+     # junta as duas na subida e nao as deixa nascer de novo na proxima
+     # importacao da mesma planilha. Alguem que chegue como "Alexandro
+     # Silva" nao e afetado: a chave dele e outra.
+     "grafias": ("Andrade A", "Andrade, Alexandro", "Alexandro")},
     {"nome": "Guilherme Torres Vilarino", "afiliacao": "UDESC",
      "papel": "Pesquisador do LAPE", "lattes": None,
      "vinculo": "professor",
@@ -253,13 +259,30 @@ def declarar_grafias(db: Database, pessoa: dict[str, Any]) -> list[str]:
     membro = db.member_id(pessoa["nome"])
     if not membro:
         return []
+    from . import duplicatas
+
     postas = []
     for grafia in grafias:
         try:
             db.register_alias(grafia, membro)
         except ValueError:
-            # a grafia ja e o nome de outra pessoa: juntar cadastros e
-            # destrutivo e nao se faz sozinho, no meio de uma importacao
+            # A grafia ja e o nome de OUTRA ficha. Antes isto era o fim da
+            # linha, e por bom motivo: juntar cadastros e destrutivo e nao
+            # se faz por conta propria no meio de uma importacao.
+            #
+            # Ha um caso, porem, em que nao ha nada a decidir. A planilha
+            # listou os autores em formato livre e num artigo saiu so o
+            # primeiro nome -- "Alexandro" onde nos outros saiu "Andrade".
+            # Quando a ficha que colide e exatamente isso (um nome so, que
+            # e o primeiro nome desta pessoa, e as duas nunca assinam o
+            # mesmo artigo) e quando a coordenacao JA DECLAROU aqui que a
+            # grafia e desta pessoa, a fusao nao esta adivinhando nada:
+            # esta obedecendo ao que foi escrito. Fora desse encaixe,
+            # continua sendo a coordenacao quem decide, na tela.
+            outra = db.member_id(grafia, create=False)
+            if outra and duplicatas.e_fantasma_de(db, outra, membro):
+                duplicatas.fundir(db, manter_id=membro, sumir_id=outra)
+                postas.append(grafia)
             continue
         postas.append(grafia)
     db.conn.commit()

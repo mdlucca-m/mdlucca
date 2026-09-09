@@ -198,6 +198,82 @@ class TestAFusao(BaseFichas):
             duplicatas.fundir(self.db, manter_id=mid, sumir_id=99999)
 
 
+class TestAGrafiaDeclaradaJuntaSozinha(BaseFichas):
+    """A coordenacao escreveu que a grafia e daquela pessoa.
+
+    Quando isso esta declarado em `PESQUISADORES`, nao ha o que propor a
+    ninguem: a resposta ja foi dada por escrito, e a fusao so obedece. Foi
+    assim que a ficha "Alexandro" se juntou a "Alexandro Andrade" sem
+    ninguem precisar clicar em nada.
+
+    O que NAO pode e a declaracao virar licenca para juntar qualquer
+    coisa: o encaixe continua exigindo ficha de um nome so, primeiro nome
+    igual, e nenhum artigo assinado em comum.
+    """
+
+    def declarar(self, nome, grafias):
+        from lape import ingest_autor
+        pessoa = {"nome": nome, "vinculo": "coordenacao", "grafias": grafias}
+        return ingest_autor.declarar_grafias(self.db, pessoa)
+
+    def test_o_fantasma_declarado_e_absorvido(self):
+        fantasma = self.pessoa("Alexandro", ["Artigo solto"])
+        andrade = self.pessoa("Alexandro Andrade", ["A", "B"])
+        self.declarar("Alexandro Andrade", ("Alexandro",))
+        self.assertEqual(self.db.dicts("SELECT id FROM members WHERE id = ?",
+                                       (fantasma,)), [])
+        self.assertEqual(
+            self.db.scalar("SELECT COUNT(*) FROM article_authors WHERE member_id = ?",
+                           (andrade,)), 3)
+
+    def test_declarar_de_novo_nao_quebra(self):
+        # roda a cada arranque do servico: tem de ser inofensivo na segunda vez
+        self.pessoa("Alexandro", ["A"])
+        andrade = self.pessoa("Alexandro Andrade", ["B"])
+        self.declarar("Alexandro Andrade", ("Alexandro",))
+        self.declarar("Alexandro Andrade", ("Alexandro",))
+        self.assertEqual(self.db.member_id("Alexandro", create=False), andrade)
+
+    def test_nao_absorve_quem_assina_o_mesmo_artigo(self):
+        """A trava vale tambem para a grafia declarada.
+
+        Se as duas fichas dividem um artigo, ou sao pessoas diferentes ou
+        a autoria esta errada -- e uma declaracao no codigo nao sabe qual
+        das duas coisas e.
+        """
+        fantasma = self.pessoa("Alexandro", ["Artigo dividido"])
+        artigo = self.db.scalar(
+            "SELECT article_id FROM article_authors WHERE member_id = ?", (fantasma,))
+        andrade = self.pessoa("Alexandro Andrade", ["Outro"])
+        self.db.execute(
+            "INSERT INTO article_authors (article_id, member_id, author_name,"
+            "                             author_order) VALUES (?, ?, ?, 2)",
+            (artigo, andrade, "Alexandro Andrade"))
+        self.db.conn.commit()
+        self.declarar("Alexandro Andrade", ("Alexandro",))
+        self.assertTrue(self.db.dicts("SELECT id FROM members WHERE id = ?", (fantasma,)))
+
+    def test_nao_absorve_ficha_de_nome_completo(self):
+        # "Alexandro Vilarino" nao e um pedaco de "Alexandro Andrade"
+        outro = self.pessoa("Alexandro Vilarino", ["A"])
+        self.pessoa("Alexandro Andrade", ["B"])
+        self.declarar("Alexandro Andrade", ("Alexandro Vilarino",))
+        self.assertTrue(self.db.dicts("SELECT id FROM members WHERE id = ?", (outro,)))
+
+    def test_o_par_ambiguo_continua_esperando_gente(self):
+        """"Henrique" e "Henrique Fukumasa" nao estao declarados.
+
+        Ninguem escreveu que sao a mesma pessoa, e o sistema nao decide
+        isso sozinho -- continua na lista de propostas, para quem conhece
+        a equipe resolver.
+        """
+        from lape import ingest_autor
+        self.pessoa("Henrique", ["A"])
+        self.pessoa("Henrique Fukumasa", ["B"])
+        ingest_autor.garantir_professores(self.db, criar=False)
+        self.assertEqual(self.pares(), [("Henrique", "Henrique Fukumasa")])
+
+
 class TestAPorta(unittest.TestCase):
     """As rotas existem, e só a coordenação chega nelas."""
 
