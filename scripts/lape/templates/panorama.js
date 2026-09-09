@@ -297,15 +297,131 @@ function formatarMedida(valor) {
   return Number.isInteger(n) ? String(n) : n.toFixed(1).replace(".", ",");
 }
 
-function indicador(rotulo, valor, pe, icone) {
-  return el("div", { class: "cartao" }, [
+/* `ir` transforma o cartão num botão que leva à aba onde o número pode ser
+   investigado; `link` o transforma num endereço externo, que abre em outra
+   aba. Um número sem caminho para o que está por trás dele é um número que
+   só se pode acreditar -- e o painel inteiro existe para o contrário. */
+function indicador(rotulo, valor, pe, icone, destino) {
+  destino = destino || {};
+  const dentro = [
     el("div", { style: "display:flex;align-items:center;gap:9px" }, [
       icone ? Icons.get(icone, null) : null,
       el("div", { class: "rotulo", text: rotulo }),
     ]),
     el("div", { class: "numero", style: "margin-top:8px", text: String(valor) }),
     pe ? el("div", { class: "pe", text: pe }) : null,
+  ];
+  if (destino.link) {
+    dentro.push(el("div", { class: "ir" },
+      [el("span", { text: destino.rotulo || "abrir" }), Icons.get("conectar", 12)]));
+    return el("a", { class: "cartao clicavel", href: destino.link,
+      target: "_blank", rel: "noopener",
+      title: "Abre em outra aba: " + destino.link }, dentro);
+  }
+  if (destino.ir) {
+    const aba = ABAS.find(function (a) { return a.id === destino.ir; }) || {};
+    dentro.push(el("div", { class: "ir" },
+      [el("span", { text: destino.rotulo || ("ver em " + (aba.rotulo || destino.ir)) }),
+       Icons.get("proximo", 12)]));
+    return el("button", { type: "button", class: "cartao clicavel",
+      title: "Abrir " + (aba.rotulo || destino.ir),
+      onclick: function () {
+        if (destino.antes) destino.antes();
+        ST.aba = destino.ir;
+        desenhar();
+      } }, dentro);
+  }
+  return el("div", { class: "cartao" }, dentro);
+}
+
+/* ------------------------------------------------------------------ */
+/* Os números que exigem uma conta, e não uma contagem                  */
+function medianaDe(valores) {
+  const l = valores.filter(function (v) { return v !== null && v !== undefined; })
+    .map(Number).filter(function (v) { return !isNaN(v); }).sort(function (a, b) { return a - b; });
+  if (!l.length) return null;
+  const meio = Math.floor(l.length / 2);
+  return l.length % 2 ? l[meio] : (l[meio - 1] + l[meio]) / 2;
+}
+
+function kpisAnaliticos() {
+  const arts = D.artigos || [];
+  const paises = ((D.panorama || {}).paises || {}).todos || [];
+
+  /* Internacionalização: artigo com autor de fora, e não artigo publicado
+     fora. São coisas diferentes, e a segunda é a que costuma ser confundida
+     com esta -- publicar numa revista estrangeira não é colaborar. */
+  const laFora = {};
+  paises.forEach(function (x) {
+    if (x.pais !== "Brasil") (x.artigos || []).forEach(function (id) { laFora[id] = true; });
+  });
+  const comParceria = Object.keys(laFora).length;
+  const paisesFora = paises.filter(function (x) { return x.pais !== "Brasil"; }).length;
+
+  /* Manuscrito parado: em escrita há mais de um ano. Não é o mesmo que a
+     mediana de dias até a publicação, que o Raio-X já mostra -- aquela é a
+     média do caminho inteiro, e esta é a fila de quem não saiu do lugar.
+     Uma diz como o laboratório anda; a outra, quem precisa de conversa. */
+  const hoje = new Date();
+  const parados = arts.filter(function (a) {
+    if (a.status !== "em_producao" || !a.started_on) return false;
+    const ini = new Date(String(a.started_on).slice(0, 10) + "T00:00:00");
+    return !isNaN(ini) && (hoje - ini) / 86400000 > 365;
+  }).length;
+  const emEscrita = arts.filter(function (a) { return a.status === "em_producao"; }).length;
+
+  /* Citações por artigo publicado, na mediana. A média seria dominada pelo
+     artigo de 200 citações que todo laboratório tem um. */
+  const citados = arts.filter(function (a) { return a.status === "publicado"; })
+    .map(function (a) {
+      return Math.max(a.wos_citations || 0, a.scopus_citations || 0,
+                      a.openalex_citations || 0); });
+  const citacaoMediana = citados.length ? medianaDe(citados) : null;
+  const semVariavel = arts.filter(function (a) { return !(a.variaveis || []).length; }).length;
+
+  return el("div", { class: "grade g4", style: "margin-top:14px" }, [
+    indicador("Internacionalização",
+      arts.length ? Math.round(100 * comParceria / arts.length) + "%" : "—",
+      comParceria + " artigo(s) com autor de fora, em " + paisesFora + " país(es)",
+      "mapa", { ir: "mapa", rotulo: "ver no mapa" }),
+    indicador("Parados na escrita", parados,
+      parados ? "de " + emEscrita + " em produção, há mais de um ano"
+        : "nenhum manuscrito passou de um ano em escrita",
+      "prazo", { ir: "extracao", rotulo: "ver quais" }),
+    indicador("Citações por artigo",
+      citacaoMediana === null ? "—" : String(citacaoMediana).replace(".", ","),
+      citacaoMediana === null ? "nenhum artigo publicado ainda"
+        : "mediana entre os " + citados.length + " publicados",
+      "citacao", { ir: "laboratorio", rotulo: "conferir nas bases" }),
+    indicador("Sem variável marcada", semVariavel,
+      semVariavel ? "não entram em nenhuma curva" : "todo o acervo está classificado",
+      "aviso", { ir: "extracao", rotulo: "ver quais" }),
   ]);
+}
+
+/* Endereços que não são deste sistema abrem em OUTRA aba, sempre. Levar o
+   painel embora no meio de uma consulta é perder o recorte, o filtro e o
+   ano em que a pessoa estava -- e ela volta pelo botão do navegador para
+   um painel que recomeçou do zero. */
+function linksExternos() {
+  const lab = D.laboratorio || {};
+  const fora = [];
+  if (lab.site) {
+    fora.push({ rotulo: "Site do LAPE", url: lab.site, icone: "instituicao" });
+  }
+  /* A produção do laboratório na PubMed, montada com o mesmo termo de busca
+     que a importação usa. Serve para conferir de fora o que entrou aqui. */
+  const termo = (D.producao && D.producao.termo_pubmed)
+    || "Andrade Alexandro[Author] OR Vilarino Guilherme[Author]"
+    + " OR Torres Vilarino G[Author]";
+  fora.push({ rotulo: "Conferir na PubMed", icone: "explorar",
+    url: "https://pubmed.ncbi.nlm.nih.gov/?term=" + encodeURIComponent(termo) });
+  return fora.map(function (x) {
+    return el("a", { class: "botao-destino", href: x.url, target: "_blank",
+      rel: "noopener", title: "Abre em outra aba" },
+      [Icons.get(x.icone, 15), el("span", { text: x.rotulo }),
+       Icons.get("conectar", 12)]);
+  });
 }
 
 function nota(html) {
@@ -322,7 +438,8 @@ function verVisao(palco) {
     "O que o laboratório estuda, como isso se move no tempo e o que ainda não foi "
     + "olhado — calculado do banco a cada acesso.",
     [seloAoVivo(),
-     el("a", { class: "botao-destino", href: "/painel", text: "Indicadores" })]));
+     el("a", { class: "botao-destino", href: "/painel", text: "Indicadores" }),
+     ...linksExternos()]));
 
   palco.appendChild(el("div", { class: "tese" }, [
     el("h3", {}, [Icons.get("alvo", null), el("span", { text: "O que este painel responde" })]),
@@ -340,13 +457,18 @@ function verVisao(palco) {
   const publicados = (s.situacoes || {}).publicado || 0;
   const emAvaliacao = ((s.situacoes || {}).submetido || 0) + ((s.situacoes || {}).em_revisao || 0);
   palco.appendChild(el("div", { class: "grade g4" }, [
-    indicador("Artigos no acervo", p.total_artigos, p.no_recorte + " no recorte", "producao"),
+    indicador("Artigos no acervo", p.total_artigos, p.no_recorte + " no recorte",
+      "producao", { ir: "extracao", rotulo: "abrir a tabela" }),
     indicador("Variáveis ativas", (p.variaveis || []).length,
-      "de " + (D.vocabulario || []).length + " no vocabulário", "alvo"),
-    indicador("Integrantes", lab.integrantes || 0, (lab.projetos || 0) + " projeto(s)", "pessoas"),
-    indicador("Publicados", publicados, emAvaliacao + " em avaliação", "trofeu"),
+      "de " + (D.vocabulario || []).length + " no vocabulário",
+      "alvo", { ir: "variaveis" }),
+    indicador("Integrantes", lab.integrantes || 0, (lab.projetos || 0) + " projeto(s)",
+      "pessoas", { ir: "projetos", rotulo: "ver projetos" }),
+    indicador("Publicados", publicados, emAvaliacao + " em avaliação",
+      "trofeu", { ir: "curvas", rotulo: "ver a curva" }),
   ]));
 
+  palco.appendChild(kpisAnaliticos());
   palco.appendChild(raioX());
 
   /* velocímetros: cada um responde "quanto do caminho já andamos" */
@@ -721,7 +843,7 @@ function verLaboratorio(palco) {
 
   palco.appendChild(el("div", { class: "grade g3" }, (D.linhas || []).map(function (l) {
     return el("div", { class: "cartao" }, [
-      el("h3", {}, [Icons.get("linha", null), el("span", { text: l.name })]),
+      el("h3", {}, [Icons.get(l.icone || "linha", null), el("span", { text: l.name })]),
       el("div", { class: "hint", style: "margin-top:5px;line-height:1.55",
         text: l.description || l.keywords || "" }),
       el("div", { class: "numero", style: "margin-top:12px", text: String(l.n) }),

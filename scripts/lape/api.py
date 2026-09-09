@@ -1261,10 +1261,7 @@ def payload_do_panorama(db, desde: int | None = None,
         "sintese": analise.sintese(db, dados),
         "lacunas": analise.lacunas(db, dados),
         "artigos": _artigos_do_panorama(db),
-        "linhas": db.dicts(
-            "SELECT rl.code, rl.name, rl.description, rl.keywords,"
-            "       (SELECT COUNT(*) FROM articles a WHERE a.research_line_id = rl.id) AS n"
-            "  FROM research_lines rl ORDER BY n DESC"),
+        "linhas": _linhas_com_icone(db),
         "laboratorio": {
             "nome": config.LAB_NAME, "instituicao": config.LAB_INSTITUTION,
             "site": getattr(config, "LAB_SITE", None),
@@ -1277,6 +1274,24 @@ def payload_do_panorama(db, desde: int | None = None,
         "vocabulario": variaveis.lista(db),
         "citacoes": _situacao_das_citacoes(db),
     }
+
+
+def _linhas_com_icone(db) -> list[dict[str, Any]]:
+    """As linhas, cada uma com o icone do seu assunto quando ha um.
+
+    O icone vem do vocabulario, e nao do banco: e cromo da tela, e nao dado
+    do laboratorio -- guardar isso numa coluna faria alguem ter de escolher
+    "corrida" ou "halteres" num formulario de cadastro.
+    """
+    from . import linhas as vocabulario
+
+    achadas = db.dicts(
+        "SELECT rl.code, rl.name, rl.description, rl.keywords,"
+        "       (SELECT COUNT(*) FROM articles a WHERE a.research_line_id = rl.id) AS n"
+        "  FROM research_lines rl ORDER BY n DESC")
+    for linha in achadas:
+        linha["icone"] = vocabulario.icone_de(linha["code"], linha["name"])
+    return achadas
 
 
 def _situacao_das_citacoes(db) -> dict[str, Any]:

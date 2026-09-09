@@ -352,10 +352,36 @@ class TestAsLinhasDoLape(BaseIdentidade):
 
     def test_toda_linha_tem_palavras_chave(self):
         # é por elas que a busca da tela encontra a linha
-        for codigo, nome, descricao, palavras in linhas.LINHAS:
+        for _codigo, nome, descricao, palavras, _icone in linhas.LINHAS:
             with self.subTest(linha=nome):
                 self.assertTrue(palavras.strip(), f"{nome} sem palavras-chave")
                 self.assertTrue(descricao.strip(), f"{nome} sem descrição")
+
+    def test_toda_linha_tem_icone_e_o_icone_existe(self):
+        corpo = (TEMPLATES / "icons.js").read_text(encoding="utf-8")
+        for _codigo, nome, _d, _p, icone in linhas.LINHAS:
+            with self.subTest(linha=nome):
+                self.assertTrue(icone.strip(), f"{nome} sem ícone")
+                self.assertIn(f"{icone}:", corpo,
+                              f"{nome} aponta para o ícone {icone}, que não existe")
+
+    def test_o_icone_vem_pelo_codigo_ou_pelo_nome(self):
+        """Uma linha instalada pelo nome guarda o código antigo.
+
+        Foi o caso de "Psicologia do Esporte": achada pelo nome, ficou com
+        o código que já tinha. Procurar só por código devolveria o ícone
+        genérico para uma linha que tem o seu.
+        """
+        self.assertEqual(linhas.icone_de("exercicio_cancer", None), "fita")
+        self.assertEqual(linhas.icone_de("codigo_antigo", "Psicologia do Esporte"),
+                         "trofeu")
+        self.assertEqual(linhas.icone_de(None, "psicologia do exercício"), "halteres")
+
+    def test_linha_de_fora_do_vocabulario_fica_com_o_icone_neutro(self):
+        # inventar "corrida" para uma linha que ninguém descreveu seria a
+        # tela afirmar o que não sabe
+        self.assertEqual(linhas.icone_de("outra", "Biomecânica do salto"), "linha")
+        self.assertEqual(linhas.icone_de(None, None), "linha")
 
     def test_o_botao_existe_na_tela(self):
         html = (TEMPLATES / "app.html").read_text(encoding="utf-8")

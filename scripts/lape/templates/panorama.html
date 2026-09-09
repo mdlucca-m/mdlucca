@@ -197,6 +197,25 @@ a.selo-var { text-decoration: none; }
 .bandeira { font-size: 15px; line-height: 1; flex: none;
   font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
 .bandeira.grande { font-size: 22px; }
+
+/* ---- cartão que leva a algum lugar ----
+   Continua sendo um cartão: o que muda é o rodapé com o destino e a borda
+   que responde ao ponteiro. Nada de sombra nova -- o realce vive na borda
+   e no acento, que é onde ele não compete com número nenhum. */
+button.cartao.clicavel, a.cartao.clicavel {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  font: inherit; color: inherit; text-decoration: none;
+  transition: border-color .16s ease, transform .16s ease; }
+.cartao.clicavel:hover { border-color: var(--accent-strong); transform: translateY(-1px); }
+.cartao.clicavel:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 2px; }
+.cartao .ir { display: flex; align-items: center; gap: 5px; margin-top: 10px;
+  font-size: 12px; font-weight: 650; color: var(--ink-muted); }
+.cartao.clicavel:hover .ir { color: var(--accent); gap: 8px; }
+@media (prefers-reduced-motion: reduce) {
+  .cartao.clicavel { transition: none; }
+  .cartao.clicavel:hover { transform: none; }
+  .cartao.clicavel:hover .ir { gap: 5px; }
+}
 .chip-pais:hover { border-color: var(--border-strong); color: var(--ink); }
 /* o país escolhido não muda de matiz -- ganha peso. A cor neste mapa
    significa quantidade de artigos, e um chip de outra cor faria a pessoa

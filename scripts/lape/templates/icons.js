@@ -128,6 +128,44 @@ const Icons = (function () {
       ["line", 19, 9.5, 19, 19.5], ["line", 9.3, 12.4, 9.3, 17],
       ["line", 14.7, 12.4, 14.7, 17], ["line", 2.5, 20.5, 21.5, 20.5]],
 
+    /* ---- o domínio do laboratório ----
+       Não são enfeite: cada um nomeia uma linha de pesquisa ou um objeto
+       de estudo do LAPE, e é por eles que a tela deixa de parecer o painel
+       de qualquer coisa. Mesmo traço de 1.75 em caixa de 24 dos demais --
+       um ícone com outra espessura salta da fila e vira erro de impressão. */
+    halteres: [["line", 3, 12, 5, 12], ["line", 19, 12, 21, 12],
+      ["rect", 5, 8.6, 3, 6.8, 1.2], ["rect", 16, 8.6, 3, 6.8, 1.2],
+      ["line", 8, 12, 16, 12]],
+    corrida: [["circle", 15.4, 4.6, 1.9],
+      ["path", "M13.6 8.4L10 10.6l1.6 3.4-2.4 5.4"],
+      ["path", "M11.6 14l3.6 1.4 1.4 4.4"],
+      ["path", "M10 10.6L6.4 9.4"], ["path", "M17.2 9.6l2.6 2.2"]],
+    coracao: [["path", "M12 20.4S3.8 15 3.8 9.4a4.4 4.4 0 0 1 8.2-2.3 4.4 4.4 0 0 1 8.2 2.3c0 5.6-8.2 11-8.2 11z"],
+      ["path", "M3.4 12.4h4l1.4-2.6 2 5 1.6-3.2 1.2 2 1-1.2h4"]],
+    cerebro: [["path", "M12 5.2a3 3 0 0 0-5.6 1.1A2.8 2.8 0 0 0 4.6 9c0 1 .5 1.9 1.2 2.4A2.8 2.8 0 0 0 5 13.8c0 1.5 1.2 2.7 2.7 2.7.4 1.4 1.7 2.3 3.2 2.3.6 0 1.1-.1 1.1-.1V5.2z"],
+      ["path", "M12 5.2a3 3 0 0 1 5.6 1.1A2.8 2.8 0 0 1 19.4 9c0 1-.5 1.9-1.2 2.4A2.8 2.8 0 0 1 19 13.8c0 1.5-1.2 2.7-2.7 2.7-.4 1.4-1.7 2.3-3.2 2.3-.6 0-1.1-.1-1.1-.1"],
+      ["line", 12, 5.2, 12, 21]],
+    dor: [["circle", 12, 12, 3.2],
+      ["line", 12, 2.6, 12, 6.2], ["line", 12, 17.8, 12, 21.4],
+      ["line", 2.6, 12, 6.2, 12], ["line", 17.8, 12, 21.4, 12],
+      ["line", 5.4, 5.4, 7.9, 7.9], ["line", 16.1, 16.1, 18.6, 18.6],
+      ["line", 18.6, 5.4, 16.1, 7.9], ["line", 7.9, 16.1, 5.4, 18.6]],
+    pulmao: [["path", "M12 3.4v8.2"],
+      ["path", "M12 8.6c-1.6 0-2.6-1-3.4-1-1.6 0-2.8 2.2-3.2 4.6-.4 2.6-.2 5.6 1.2 6.4 1.6.9 3.6-.6 4.2-2.6.4-1.4.4-3.4.4-4.8"],
+      ["path", "M12 8.6c1.6 0 2.6-1 3.4-1 1.6 0 2.8 2.2 3.2 4.6.4 2.6.2 5.6-1.2 6.4-1.6.9-3.6-.6-4.2-2.6-.4-1.4-.4-3.4-.4-4.8"]],
+    fita: [["circle", 12, 9, 5.2], ["path", "M9.2 13.4L7 21.4l5-2.6 5 2.6-2.2-8"],
+      ["path", "M10.2 9l1.3 1.4 2.3-2.6"]],
+    envelhecimento: [["circle", 11, 6.4, 2.6],
+      ["path", "M11 9.6v5.2"], ["path", "M8 12.4h6"],
+      ["path", "M11 14.8l-2.6 6.2"], ["path", "M11 14.8l2.2 6.2"],
+      ["line", 17.4, 8.6, 17.4, 21], ["path", "M15.6 8.6h3.6"]],
+    celula: [["circle", 12, 12, 8.4], ["circle", 12, 12, 3],
+      ["circle", 8.4, 8.6, 1], ["circle", 15.8, 9.2, 1], ["circle", 9.2, 16, 1],
+      ["circle", 16, 15.4, 1]],
+    balanca: [["line", 12, 3.6, 12, 20.4], ["line", 7, 20.4, 17, 20.4],
+      ["line", 4.4, 7.4, 19.6, 7.4], ["path", "M4.4 7.4L2 13.4h4.8z"],
+      ["path", "M19.6 7.4L17.2 13.4H22z"], ["circle", 12, 5.4, 1.2]],
+
     /* controles do mural */
     tocar: [["path", "M8 5.2l10 6.8-10 6.8z"]],
     pausa: [["rect", 7.4, 5, 3.4, 14, 1.2], ["rect", 13.2, 5, 3.4, 14, 1.2]],
@@ -154,6 +192,13 @@ const Icons = (function () {
     etiqueta: "magenta", filtro: "azul", pessoa: "violeta", mensagem: "azul",
     instituicao: "verde", tocar: "azul", pausa: "azul", proximo: "azul",
     anterior: "azul", telaCheia: "azul",
+    /* o domínio do laboratório */
+    halteres: "azul", corrida: "verde", coracao: "magenta", cerebro: "violeta",
+    /* "dor" fica em magenta, e nao no tom de alerta: a linha de
+       fibromialgia e um assunto de pesquisa, e nao um aviso na tela.
+       Os tons de estado ficam reservados para estado. */
+    dor: "magenta", pulmao: "azul", fita: "ambar", envelhecimento: "laranja",
+    celula: "violeta", balanca: "verde",
   };
 
   function draw(spec) {

@@ -112,9 +112,13 @@ LINKS_MORTOS = (
      '   ["Triagem de revisão", "/triagem", "filtro"],\n'
      '   ["Área do integrante", "/app", "pessoa"]].forEach(function (x) {',
      '  [].forEach(function (x) {'),
+    # O selo ao vivo e o link do painel morrem; os endereços de fora
+    # sobrevivem -- apontam para outros sites, e num arquivo solto
+    # continuam sendo a única saída para conferir o que está na tela.
     ('    [seloAoVivo(),\n'
-     '     el("a", { class: "botao-destino", href: "/painel", text: "Indicadores" })]));',
-     '    []));'),
+     '     el("a", { class: "botao-destino", href: "/painel", text: "Indicadores" }),\n'
+     '     ...linksExternos()]));',
+     '    [...linksExternos()]));'),
 )
 
 

@@ -855,11 +855,6 @@ class TestCartoesQueNavegam(unittest.TestCase):
         css = (TEMPLATES / "theme.css").read_text(encoding="utf-8")
         self.assertIn(".kpi-ir", css)
         self.assertIn("button.kpi", css)
-
-if __name__ == "__main__":
-    unittest.main(verbosity=2)
-
-
 class TestOMapaQueSegmenta(unittest.TestCase):
     """Clicar num pais e chegar aos artigos daquele pais.
 
@@ -1052,3 +1047,120 @@ class TestOMapaQueGira(unittest.TestCase):
         corpo = self.js[self.js.index("function recorteDoPais"):
                         self.js.index("function verMapa")]
         self.assertIn("mas nenhum deles chegou à tabela", corpo)
+
+
+class TestOsKpisAnaliticos(unittest.TestCase):
+    """Quatro números que o painel ainda não respondia.
+
+    A regra deste bloco é a que já custou uma rodada: um KPI novo só entra
+    se disser algo que nenhum outro cartão da MESMA tela já diga. A primeira
+    versão trazia "Concentração temática 50%" e "Da escrita ao prelo 18,4
+    meses" ao lado de um Raio-X que mostrava "50" e "560,5 dias" -- dois
+    cartões bonitos repetindo o vizinho.
+    """
+
+    def js(self, nome):
+        return (TEMPLATES / nome).read_text(encoding="utf-8")
+
+    def corpo(self):
+        js = self.js("panorama.js")
+        return js[js.index("function kpisAnaliticos()"):
+                  js.index("function linksExternos()")]
+
+    def test_os_quatro_cartoes_estao_na_visao_geral(self):
+        corpo = self.corpo()
+        for rotulo in ("Internacionalização", "Parados na escrita",
+                       "Citações por artigo", "Sem variável marcada"):
+            with self.subTest(kpi=rotulo):
+                self.assertIn('indicador("' + rotulo + '"', corpo)
+
+    def test_a_grade_entra_antes_do_raio_x(self):
+        js = self.js("panorama.js")
+        visao = js[js.index("function verVisao(palco)"):]
+        visao = visao[:visao.index("\nfunction ", 10)]
+        self.assertLess(visao.index("kpisAnaliticos()"), visao.index("raioX()"),
+                        "os KPIs entraram depois do raio-x")
+
+    def test_todo_cartao_leva_a_alguma_aba(self):
+        # número grande sem porta de saída levanta "quais são esses treze?"
+        corpo = self.corpo()
+        self.assertEqual(corpo.count('indicador("'), corpo.count("{ ir: \""),
+                         "há KPI analítico sem destino")
+
+    def test_os_destinos_sao_abas_registradas(self):
+        js = self.js("panorama.js")
+        destinos = set(re.findall(r'\{ ir: "(\w+)"', self.corpo()))
+        registradas = set(re.findall(r'id: "(\w+)", rotulo:', js))
+        self.assertTrue(destinos)
+        self.assertEqual(destinos - registradas, set(),
+                         "KPI aponta para aba que não existe")
+
+    def test_a_mediana_nao_virou_media(self):
+        # um artigo de 200 citações domina a média de qualquer laboratório
+        corpo = self.corpo()
+        self.assertIn("medianaDe(citados)", corpo)
+
+    def test_internacionalizacao_conta_coautor_e_nao_revista(self):
+        # publicar numa revista estrangeira não é colaborar com estrangeiro
+        corpo = self.corpo()
+        self.assertIn("autor de fora", corpo)
+
+
+class TestOsLinksQueSaemDoSistema(unittest.TestCase):
+
+    def js(self, nome):
+        return (TEMPLATES / nome).read_text(encoding="utf-8")
+
+    def test_endereco_de_fora_abre_em_outra_aba(self):
+        # levar o painel embora no meio da consulta perde recorte e filtro
+        js = self.js("panorama.js")
+        corpo = js[js.index("function linksExternos()"):js.index("function nota(")]
+        self.assertIn('target: "_blank"', corpo)
+        self.assertIn('rel: "noopener"', corpo)
+
+    def test_o_link_da_pubmed_usa_o_termo_da_importacao(self):
+        # conferir de fora só vale se a pergunta for a mesma
+        js = self.js("panorama.js")
+        corpo = js[js.index("function linksExternos()"):js.index("function nota(")]
+        self.assertIn("termo_pubmed", corpo)
+        self.assertIn("encodeURIComponent(termo)", corpo)
+
+
+class TestOsIconesDasLinhas(unittest.TestCase):
+
+    def test_a_tela_pede_o_icone_da_linha_com_recuo(self):
+        js = (TEMPLATES / "panorama.js").read_text(encoding="utf-8")
+        self.assertIn('Icons.get(l.icone || "linha", null)', js)
+
+    def test_icone_de_assunto_nao_usa_tom_de_estado(self):
+        """Tom de estado fica reservado para estado.
+
+        "dor" saiu em tom de alerta na primeira versão, e a linha de
+        fibromialgia aparecia no cartão com a cor que a tela usa para
+        avisar que algo deu errado -- um assunto de pesquisa pintado de
+        problema.
+        """
+        import sys
+        sys.path.insert(0, str(TEMPLATES.parents[2]))
+        from lape import linhas as vocabulario
+
+        js = (TEMPLATES / "icons.js").read_text(encoding="utf-8")
+        tom = js[js.index("const TOM = {"):js.index("function draw")]
+        for _c, nome, _d, _p, icone in vocabulario.LINHAS:
+            achado = re.search(r"\b" + icone + r': "(\w+)"', tom)
+            with self.subTest(linha=nome):
+                self.assertIsNotNone(achado, icone + " sem tom declarado")
+                self.assertNotIn(achado.group(1), ("alerta", "bom"),
+                                 nome + " usa um tom reservado para estado")
+
+    def test_o_cartao_clicavel_nao_ganhou_sombra(self):
+        # sombra sob marca de dado é o que a régua de gráficos proíbe; o
+        # relevo do cartão é borda e deslocamento, e nada mais
+        html = (TEMPLATES / "panorama.html").read_text(encoding="utf-8")
+        regra = html[html.index(".cartao.clicavel"):]
+        regra = regra[:regra.index("}")]
+        self.assertNotIn("box-shadow", regra)
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
