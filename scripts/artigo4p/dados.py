@@ -1,30 +1,28 @@
 #!/usr/bin/env python3
-"""Dados dos gráficos analíticos, transcritos das tabelas do estudo.
+"""Dados dos gráficos analíticos do projeto.
 
-Cada bloco declara a tabela de origem no relatório completo
+Depois que a base por atleta e por dia foi disponibilizada, as séries que
+podem ser calculadas passaram a vir dela, por scripts/comum/classificar.py,
+e não mais transcritas das tabelas do relatório: as médias diárias, o número
+de atletas por dia e a classificação nos seis perfis. As séries que dependem
+de modelos ajustados fora deste repositório continuam transcritas, e cada
+bloco declara a tabela de origem no relatório completo
 (data/ARTIGO_HUMOR_VERSAO_FINAL.docx). Nenhum valor é estimado ou suavizado.
-As médias diárias aqui têm duas casas decimais porque vêm da Tabela 20, mais
-precisa que a Tabela 53 usada no corpo do artigo; as duas são consistentes
-depois do arredondamento.
 """
 from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "comum"))
+import classificar as _C  # noqa: E402
 
 DIAS = [1, 2, 3, 4, 5, 6, 7]
 DIAS_HIIT = [2, 4, 7]
 DIAS_JOGO = [3, 5]
 
-# ── Tabela 20: média diária de cada variável ao longo do microciclo ────────
-DIARIO = {
-    "PTH (TMD)":      [2.52, 4.61, 2.87, 4.76, 2.19, 4.80, 8.28],
-    "Vigor":          [7.61, 5.66, 5.71, 5.28, 5.56, 5.74, 4.49],
-    "Fadiga (BRUMS)": [3.96, 5.17, 5.00, 5.76, 5.27, 5.75, 7.46],
-    "Fadiga física":  [4.20, 5.59, 5.94, 6.53, 5.93, 6.28, 7.56],
-    "Fadiga mental":  [4.63, 4.44, 4.49, 4.38, 4.39, 4.62, 5.05],
-    "Tensão":         [2.17, 1.64, 1.13, 1.37, 1.01, 1.49, 0.94],
-    "Depressão":      [1.04, 1.23, 0.70, 1.13, 0.69, 1.06, 1.27],
-    "Raiva":          [1.98, 1.72, 1.44, 1.37, 0.60, 1.66, 2.59],
-    "Confusão":       [0.98, 0.52, 0.30, 0.41, 0.19, 0.59, 0.51],
-}
+# ── Média diária de cada variável, calculada da base bruta ───────────────
+DIARIO = _C.medias_diarias()
 # Aumento do escore é desfavorável em todas as variáveis, menos no vigor.
 AUMENTO_DESFAVORAVEL = {k: k != "Vigor" for k in
                         list(DIARIO) + ["Sonolência", "PSS (estresse)"]}
@@ -42,39 +40,43 @@ EFEITO_DIA = {  # F, eta² parcial, p com FDR, ICC do atleta
     "Depressão":      (1.55, 0.020, "0,160", 0.68),
 }
 
-# ── Tabela 21: perfil de Morgan dia a dia ─────────────────────────────────
-PERFIL_DIA = {                                    # dia: (% iceberg, % PTH > 0)
-    1: (71.4, 47.6), 2: (48.9, 64.9), 3: (44.0, 54.7), 4: (41.7, 65.0),
-    5: (53.5, 50.7), 6: (47.1, 55.9), 7: (32.6, 71.7),
-}
+# ── Perfil de Morgan dia a dia, calculado da base bruta ──────────────────
+PERFIL_DIA = _C.perfil_morgan()
 
-# Tabela 52: número de atletas com coleta válida em cada dia.
-N_DIA = {1: 27, 2: 26, 3: 26, 4: 21, 5: 23, 6: 22, 7: 21}
+# Número de atletas com coleta válida em cada dia, da base bruta.
+N_DIA = {d: _C.N_DIA_ATLETAS[d] for d in _C.DIAS}
 
 # ── Classificação nos seis perfis, série adotada ──────────────────────────
 # Tabela 12 de Artigo_Perfil_de_humor__handebol.docx. O método daquele
 # documento converte os escores em T, com média 50 e desvio 10, que é a escala
 # sobre a qual os seis perfis foram definidos na literatura. É a série que a
 # auditoria de scripts/auditoria/ elegeu; ver data/AUDITORIA_PERFIS_HUMOR.docx.
+# ── Classificação nos seis perfis, calculada a partir da base bruta ──────
+# Antes desta versão, os valores vinham da Tabela 12 do documento de origem,
+# cujo método de classificação nunca foi declarado, e existiam apenas para o
+# primeiro e o último dia. Com a base por atleta e por dia disponível, a
+# classificação passou a ser calculada aqui, pelo centroide publicado mais
+# próximo sobre escores T internos. O procedimento está em
+# scripts/comum/classificar.py e a comparação com a série anterior está
+# registrada em data/AUDITORIA_PERFIS_HUMOR.docx.
 PERFIS_T = {              # perfil: (n dia 1, % dia 1, n dia 7, % dia 7)
-    "Iceberg":              (17, 40.5, 8, 17.4),
-    "Superfície":           (11, 26.2, 13, 28.3),
-    "Everest invertido":    (6, 14.3, 4, 8.7),
-    "Iceberg invertido":    (4, 9.5, 3, 6.5),
-    "Submerso":             (3, 7.1, 5, 10.9),
-    "Barbatana de tubarão": (1, 2.4, 13, 28.3),
+    p: (_C.contagem(1)[p], _C.percentual(1)[p],
+        _C.contagem(7)[p], _C.percentual(7)[p])
+    for p in _C.ORDEM
 }
-N_PERFIL = {1: 42, 7: 46}   # denominadores declarados na Tabela 12
-FAVORAVEL = ["Iceberg"]
-NEUTRO = ["Superfície", "Submerso"]
-RISCO = ["Barbatana de tubarão", "Iceberg invertido", "Everest invertido"]
+N_PERFIL = {d: _C.N_DIA_OBS[d] for d in _C.DIAS}
+FAVORAVEL = _C.FAVORAVEL
+NEUTRO = _C.NEUTRO
+RISCO = _C.RISCO
 
 
 def faixa(nome: str, dia: int) -> float:
-    """Soma dos perfis de uma faixa de significado, em percentual."""
-    i = 1 if dia == 1 else 3
-    perfis = {"Favorável": FAVORAVEL, "Neutro": NEUTRO, "De risco": RISCO}[nome]
-    return sum(PERFIS_T[p][i] for p in perfis)
+    """Soma dos perfis de uma faixa de significado, em percentual.
+
+    Vale para qualquer um dos sete dias, e não apenas para o primeiro e o
+    último, desde que a classificação passou a ser calculada da base bruta.
+    """
+    return _C.faixa(nome, dia)
 
 
 # ── Tabela 22: classificação por centroide, série substituída ─────────────

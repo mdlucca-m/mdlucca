@@ -112,7 +112,9 @@ def checar_a1(texto, celulas):
          f"ausentes: {prev[:3]}"),
         ("texto compara a amostra com a norma",
          "11,1" in texto and "11,6" in texto, ""),
-        ("texto cita o piso da confusão", "80,5" in texto, ""),
+        ("texto cita o piso da confusão",
+         artigo1.F.br(artigo1.F.DESCRITIVA["Confusão"][6], 1) in texto,
+         ""),
         ("texto cita o ganho de estabilidade da média semanal",
          "0,76" in texto or "sete dias" in texto, ""),
         ("texto soma a faixa de risco nos dois dias",
@@ -121,15 +123,22 @@ def checar_a1(texto, celulas):
          f"esperado {artigo1.F.br(artigo1._RISCO1, 1)}% e "
          f"{artigo1.F.br(artigo1._RISCO7, 1)}%"),
         ("texto relata a explosão da barbatana de tubarão",
-         "2,4" in texto and "28,3" in texto, ""),
-        ("texto registra a série de classificação substituída",
-         "proximidade ao centroide" in texto, ""),
+         artigo1.F.br(artigo1.PERFIS_T["Barbatana de tubarão"][1], 1) in texto
+         and artigo1.F.br(artigo1.PERFIS_T["Barbatana de tubarão"][3], 1)
+         in texto, ""),
+        ("método declara os três passos da classificação",
+         all(x in texto for x in ("centroide publicado", "k-médias semeada",
+                                  "Amostra A de Parsons-Smith")), ""),
+        ("texto registra o histórico das séries de classificação",
+         "AUDITORIA_PERFIS_HUMOR" in texto
+         and "proximidade a centroide" in texto, ""),
         ("texto compara com a amostra brasileira",
          "26,5" in texto and "Rohlfs" in texto, ""),
         ("texto declara o limite de piso de 15%",
          "15%" in texto and "Terwee" in texto, ""),
         ("texto relata a divergência entre os dois critérios",
-         "71,4" in texto and "40,5" in texto and "30,9" in texto, ""),
+         artigo1.F.br(artigo1.PERFIL_DIA[1][0], 1) in texto
+         and artigo1.F.br(artigo1.PERFIS_T["Iceberg"][1], 1) in texto, ""),
         ("método declara aprovação ética",
          "comitê de ética" in texto and "consentimento" in texto, ""),
         ("método declara a instrução de resposta",
@@ -191,9 +200,15 @@ def checar_a1(texto, celulas):
         ("limite da análise de grupo declarado",
          "não a distribuição dos atletas pelos seis perfis" in texto
          and "base por atleta e por dia" in texto, ""),
-        ("limitação da curva diária declarada com o que falta",
-         "permanece por calcular" in texto
-         and "declaração explícita dos centroides" in texto, ""),
+        ("curva diária dos seis perfis presente",
+         "Prevalência diária de cada um dos seis perfis" in texto
+         and all(any(artigo1.F.br(artigo1.K.SERIE[p][3], 1) in c
+                     for c in celulas) for p in artigo1.K.ORDEM), ""),
+        ("série diária traz n de observações e de atletas",
+         all(str(artigo1.K.N_DIA_OBS[d]) in celulas for d in artigo1.DIAS)
+         and any("n de atletas" in c for c in celulas), ""),
+        ("sensibilidade por k-médias semeada declarada",
+         "k-médias semeada" in texto and "sensibilidade" in texto, ""),
         ("seis limitações enumeradas",
          "Seis limitações" in texto, ""),
         ("padronização interna declarada como não comparável",
@@ -207,9 +222,12 @@ def checar_a1(texto, celulas):
         ("tabela sociodemográfica presente",
          "Escolaridade" in celulas and "Renda mensal" in celulas, ""),
         ("procedimento de coleta descrito",
-         all(t in texto for t in ("linha de base", "pré-sessão",
-                                  "pós-sessão", "duas coletas diárias")),
+         all(x in texto for x in ("linha de base", "pré-sessão",
+                                  "pós-sessão", "formulário eletrônico")),
          ""),
+        ("densidade desigual da coleta declarada",
+         "densidade da coleta não foi uniforme" in texto
+         and str(min(artigo1.K.N_DIA_OBS.values())) in texto, ""),
         ("primeiro contato com a equipe descrito",
          "primeiro contato" in texto.lower(), ""),
         ("análise de sinal, ruído e derivada descrita",
@@ -223,11 +241,13 @@ def checar_a1(texto, celulas):
          artigo1.F.sinal(artigo1._DERIV[0], 1) in texto
          and artigo1.F.sinal(artigo1._DERIV[5], 1) in texto, ""),
         ("figura de composição do grupo presente",
-         "Composição do grupo" in texto, ""),
+         "composição do grupo em" in texto.lower(), ""),
         ("texto lê a migração da faixa de risco",
-         "26,2" in texto and "43,5" in texto, ""),
+         artigo1.F.br(artigo1._RISCO1, 1) in texto
+         and artigo1.F.br(artigo1._RISCO7, 1) in texto, ""),
         ("prevalência do iceberg correta nos dois dias",
-         "40,5" in texto and "17,4" in texto, ""),
+         artigo1.F.br(artigo1.PERFIS_T["Iceberg"][1], 1) in texto
+         and artigo1.F.br(artigo1.PERFIS_T["Iceberg"][3], 1) in texto, ""),
         ("série diária completa na Tabela 8",
          all(artigo1.F.br(v, 1) in celulas
              for d in artigo1.DIAS for v in artigo1.PERFIL_DIA[d]), ""),

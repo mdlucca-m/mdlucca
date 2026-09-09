@@ -23,6 +23,7 @@ sys.path.insert(0, str(AQUI))
 sys.path.insert(0, str(AQUI.parent / "artigo4p"))
 sys.path.insert(0, str(AQUI.parent / "comum"))
 import estilo as E  # noqa: E402
+import classificar as K  # noqa: E402
 import curvas as C  # noqa: E402
 import perfil_t as T  # noqa: E402
 import fonte as F  # noqa: E402
@@ -706,12 +707,119 @@ def fig_perfil_diario(destino: Path) -> Path:
     return salvar(fig, destino, "a1_perfil_diario.png")
 
 
+CORES_PERFIL = {
+    "Iceberg": TEAL, "Superfície": "#B4B4B0", "Submerso": AZUL,
+    "Barbatana de tubarão": CORAL, "Iceberg invertido": OCRE,
+    "Everest invertido": ROXO,
+}
+MARCA_PERFIL = {"Iceberg": "o", "Superfície": "v", "Submerso": "^",
+                "Barbatana de tubarão": "s", "Iceberg invertido": "D",
+                "Everest invertido": "P"}
+
+
+def fig_curva_perfis(destino: Path) -> Path:
+    """A curva diária de cada um dos seis perfis, e a composição do grupo.
+
+    É a análise que a base bruta destravou: até então a classificação
+    existia só no primeiro e no último dia.
+    """
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(17.4 / 2.54, 8.8 / 2.54),
+                                 dpi=DPI,
+                                 gridspec_kw={"width_ratios": [1.32, 1]})
+    fig.patch.set_facecolor("white")
+
+    # A. seis curvas, com rótulo à direita e afastamento automático
+    aplicar(a1)
+    fim = {}
+    for p in K.ORDEM:
+        suave = K.SUAVE[p]
+        fim[p] = suave[-1]
+        a1.plot(K.DIAS, K.SERIE[p], linestyle="none",
+                marker=MARCA_PERFIL[p], markersize=4.0,
+                markerfacecolor="white", markeredgecolor=CORES_PERFIL[p],
+                markeredgewidth=1.0, zorder=3)
+        a1.plot(K.DIAS, suave, color=CORES_PERFIL[p],
+                linewidth=2.1 if p in ("Iceberg", "Barbatana de tubarão")
+                else 1.2, zorder=4)
+    curto = {"Iceberg": "Iceberg", "Superfície": "Superfície",
+             "Submerso": "Submerso", "Barbatana de tubarão": "Barbatana",
+             "Iceberg invertido": "Iceberg inv.",
+             "Everest invertido": "Everest inv."}
+    for p, y in _afastar(fim, minimo=4.4):
+        a1.annotate(curto[p], xy=(7.16, y), va="center", fontsize=7.0,
+                    color=CORES_PERFIL[p], fontweight="bold")
+        a1.plot([7.03, 7.13], [fim[p], y], color=CORES_PERFIL[p],
+                linewidth=0.7, zorder=2)
+    cruz = K.cruzar(K.SUAVE["Iceberg"], K.SUAVE["Barbatana de tubarão"])
+    if cruz:
+        i = int(cruz[0]) - 1
+        f = cruz[0] - int(cruz[0])
+        valor = K.SUAVE["Iceberg"][i] + f * (K.SUAVE["Iceberg"][i + 1]
+                                             - K.SUAVE["Iceberg"][i])
+        _marcar_cruzamento(a1, cruz[0], valor,
+                           f"cruzam\ndia {vg(cruz[0], 1)}", frac=0.99,
+                           dx=-0.14, ha="right")
+    a1.set_xlim(0.75, 8.55)
+    a1.set_ylim(-2.5, 50)
+    a1.set_xticks(K.DIAS)
+    a1.set_xticklabels([str(d) for d in K.DIAS], fontsize=8.2)
+    a1.set_xlabel("Dia do microciclo", fontsize=8.8, color=TINTA)
+    a1.set_ylabel("Observações no perfil (%)", fontsize=8.8, color=TINTA)
+    titulo(a1, "A. Prevalência diária dos seis perfis")
+
+    # B. composição do grupo em faixas, área empilhada
+    aplicar(a2)
+    faixas = [("Favorável", FAVORAVEL), ("Neutro", NEUTRO),
+              ("De risco", RISCO)]
+    base = [0.0] * len(K.DIAS)
+    for nome, cor in faixas:
+        v = K.SERIE_FAIXA[nome]
+        topo = [b + x for b, x in zip(base, v)]
+        a2.fill_between(K.DIAS, base, topo, color=cor, zorder=3,
+                        label=nome, linewidth=0)
+        base = topo
+    for d, y in ((1, None), (7, None)):
+        i = d - 1
+        acumulado = 0.0
+        for nome, _ in faixas:
+            v = K.SERIE_FAIXA[nome][i]
+            if v > 6:
+                a2.annotate(vg(v, 1), xy=(d, acumulado + v / 2),
+                            ha="left" if d == 1 else "right",
+                            va="center", fontsize=7.4, color="white",
+                            fontweight="bold",
+                            xytext=(3 if d == 1 else -3, 0),
+                            textcoords="offset points", zorder=6)
+            acumulado += v
+    a2.set_xlim(1, 7)
+    a2.set_ylim(0, 100)
+    a2.set_xticks(K.DIAS)
+    a2.set_xticklabels([str(d) for d in K.DIAS], fontsize=8.2)
+    a2.set_xlabel("Dia do microciclo", fontsize=8.8, color=TINTA)
+    a2.set_ylabel("Observações (%)", fontsize=8.8, color=TINTA)
+    # rótulo direto dentro de cada faixa, no meio da semana, no lugar da
+    # legenda: a caixa da legenda cobriria a própria área que nomeia.
+    meio = 3
+    acumulado = 0.0
+    for nome, _ in faixas:
+        v = K.SERIE_FAIXA[nome][meio]
+        a2.annotate(nome, xy=(meio + 1, acumulado + v / 2), ha="center",
+                    va="center", fontsize=7.8, color="white",
+                    fontweight="bold", zorder=6)
+        acumulado += v
+    titulo(a2, "B. Composição do grupo, dia a dia")
+
+    fig.tight_layout(w_pad=2.0)
+    return salvar(fig, destino, "a1_curva_perfis.png")
+
+
 def gerar_artigo1(destino: Path) -> list[Path]:
     print("figuras do Artigo 1:")
     return [fig_distribuicao(destino), fig_psicometria(destino),
             fig_curvas_energia(destino), fig_curvas_negativas(destino),
             fig_indice(destino), fig_prevalencia_semana(destino),
-            fig_sinal(destino), fig_perfil_diario(destino)]
+            fig_curva_perfis(destino), fig_sinal(destino),
+            fig_perfil_diario(destino)]
 
 
 def gerar_artigo2(destino: Path) -> list[Path]:

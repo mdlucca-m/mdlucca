@@ -12,7 +12,8 @@ AQUI = Path(__file__).resolve().parent
 sys.path.insert(0, str(AQUI))
 sys.path.insert(0, str(AQUI.parent / "artigo4p"))
 import fonte as F  # noqa: E402
-from dados import METRICAS_PERFIL, PERFIL_DIA, PERFIS_T  # noqa: E402
+from dados import (METRICAS_PERFIL, PERFIL_DIA, PERFIS_T,
+                   faixa)  # noqa: E402
 
 TITULO = ("Impacto da fadiga sobre os perfis de humor em atletas de handebol "
           "de elite: assinatura de sobrecarga e recomendações de "
@@ -28,7 +29,8 @@ ABERTURA = [
   "primeira divisão ao longo do microciclo de sete dias que antecede a "
   "competição, com três sessões equivalentes de treinamento intervalado de "
   "alta intensidade. A proporção de atletas em perfil iceberg caiu de 71,4% "
-  "para 32,6% e a de humor perturbado subiu de 47,6% para 71,7%. Entre a "
+  f"para {F.br(PERFIL_DIA[7][0], 1)}% e a de humor perturbado subiu de "
+  f"{F.br(PERFIL_DIA[1][1], 1)}% para {F.br(PERFIL_DIA[7][1], 1)}%. Entre a "
   "primeira e a terceira sessão de HIIT, a frequência cardíaca de pico caiu "
   "de 184 para 181 batimentos por minuto enquanto o esforço percebido subiu "
   "de 8,5 para 9,1 e a perturbação total do humor subiu 1,76 ponto por "
@@ -298,8 +300,11 @@ BLOCOS = [
 ("tab", "recuperacao"),
 ("h2", "3.3 Migração dos perfis"),
 ("p", "A proporção de atletas em perfil iceberg cai de 71,4% no dia 1 para "
-      "32,6% no dia 7, perda de 38,8 pontos percentuais, e a de humor "
-      "perturbado sobe de 47,6% para 71,7%, ganho de 24,1 pontos (Tabela 6). "
+      f"{F.br(PERFIL_DIA[7][0], 1)}% no dia 7, perda de "
+      f"{F.br(PERFIL_DIA[1][0] - PERFIL_DIA[7][0], 1)} pontos percentuais, e "
+      f"a de humor perturbado sobe de {F.br(PERFIL_DIA[1][1], 1)}% para "
+      f"{F.br(PERFIL_DIA[7][1], 1)}%, ganho de "
+      f"{F.br(PERFIL_DIA[7][1] - PERFIL_DIA[1][1], 1)} pontos (Tabela 6). "
       "A queda não é gradual: o iceberg despenca já no dia 2, primeiro dia de "
       "HIIT, recupera parte no dia 5 e volta a cair nos dois últimos dias. As "
       "duas curvas se cruzam entre os dias 4 e 5, momento em que a maioria da "
@@ -310,11 +315,14 @@ BLOCOS = [
  "os perfis de Parsons-Smith (B) e efeito do dia de HIIT sobre as métricas do "
  "perfil (C)"),
 ("p", "Pela classificação de Parsons-Smith, o deslocamento tem direção única: "
-      "o perfil iceberg recua 23,1 pontos percentuais e a barbatana de tubarão "
-      "avança 25,9 pontos, e passa a dividir com o superfície a primeira "
+      f"o perfil iceberg recua {F.br(PERFIS_T['Iceberg'][1] - PERFIS_T['Iceberg'][3], 1)} "
+      "pontos percentuais e a barbatana de tubarão avança "
+      f"{F.br(PERFIS_T['Barbatana de tubarão'][3] - PERFIS_T['Barbatana de tubarão'][1], 1)} "
+      "pontos, e passa a ocupar a primeira "
       "posição no último dia. A faixa de risco, que reúne barbatana de "
-      "tubarão, iceberg invertido e Everest invertido, sobe de 26,2% para "
-      "43,5% das observações. O quadro é de migração para o esgotamento "
+      f"tubarão, iceberg invertido e Everest invertido, sobe de "
+      f"{F.br(faixa('De risco', 1), 1)}% para {F.br(faixa('De risco', 7), 1)}% "
+      "das observações. O quadro é de migração para o esgotamento "
       "energético, e não para o sofrimento psíquico: os outros dois perfis de "
       "risco recuam no mesmo intervalo."),
 
@@ -374,7 +382,8 @@ BLOCOS = [
 ("h1", "6 CONCLUSÃO"),
 ("p", "Ao longo de um microciclo pré-competitivo de sete dias, atletas de "
       "handebol de elite perderam o perfil de humor favorável em 38,8 pontos "
-      "percentuais e passaram a apresentar humor perturbado em 71,7% das "
+      f"percentuais e passaram a apresentar humor perturbado em "
+      f"{F.br(PERFIL_DIA[7][1], 1)}% das "
       "observações. Entre três sessões equivalentes de HIIT, o estímulo "
       "externo entregue caiu enquanto o custo psicológico quase dobrou. Mais "
       "da metade dos atletas ultrapassou o menor valor detectável em "

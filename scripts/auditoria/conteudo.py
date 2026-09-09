@@ -9,8 +9,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from reconciliar import (N_A, SERIE_A, SERIE_B, SERIE_C, br, faixas,
-                         sinal)  # noqa: E402
+from reconciliar import (N_A, N_D, SERIE_A, SERIE_B, SERIE_C, SERIE_D,
+                         br, faixas, sinal)  # noqa: E402
 
 TITULO = ("Auditoria das classificações de perfil de humor no projeto de "
           "handebol")
@@ -39,8 +39,8 @@ TABELAS = {
 
 "series": {
  "numero": 1,
- "titulo": ("As três séries de classificação encontradas, com a regra de cada "
-            "uma e o documento de origem"),
+ "titulo": ("As quatro séries de classificação, com a regra de cada uma e "
+            "a origem"),
  "cabecalho": ["Série", "Regra de classificação", "Documento de origem",
                "Iceberg no dia 1", "Iceberg no dia 7"],
  "linhas": [
@@ -57,13 +57,24 @@ TABELAS = {
    "Artigo_Final_.docx, Tabela 20",
    f"{br(SERIE_C['Perfil iceberg'][0])}%",
    f"{br(SERIE_C['Perfil iceberg'][1])}%"],
+  ["**D**", "**Escores convertidos em T contra a própria amostra e "
+            "atribuição ao centroide publicado mais próximo, com os "
+            "centroides da Amostra A de Parsons-Smith, Terry e Machin "
+            "(2017)**",
+   "**Calculada da base bruta por scripts/comum/classificar.py, sobre 452 "
+   "observações de 27 atletas**",
+   f"**{br(SERIE_D['Iceberg'][1])}%**", f"**{br(SERIE_D['Iceberg'][3])}%**"],
  ],
  "nota": ("Nota: a série C não classifica nos seis perfis. Ela apenas separa "
           "iceberg de não iceberg pela ordem entre o vigor e as cinco "
           "negativas, sobre escores brutos. Como quatro dessas subescalas têm "
           "mediana zero nesta amostra, a condição é satisfeita com "
           "facilidade, e por isso a série C produz o valor mais alto das "
-          "três. Ela não é comparável às séries A e B."),
+          "quatro. Ela não é comparável às demais. A série D é a adotada: é "
+          "a única calculada a partir da base de respostas por atleta e por "
+          "dia, a única cujo procedimento está inteiramente declarado, e a "
+          "única que existe nos sete dias e não apenas nas duas pontas. As "
+          "séries A, B e C ficam registradas como histórico."),
 },
 
 "comparacao": {
@@ -121,26 +132,43 @@ TABELAS = {
    "27 atletas, 2 coletas",
    "Máximo teórico de 27 no dia 1 e de 54 no dia 7"],
   ["Resumo do manuscrito", "456 observações no total", "",
-   "O desenho comporta no máximo 351"],
+   "O desenho declarado comportaria no máximo 351"],
+  ["**Base bruta, série D**", f"**{N_D[0]} observações, 27 atletas**",
+   f"**{N_D[1]} observações, 21 atletas**",
+   "**457 respostas registradas, 452 analisáveis**"],
  ],
- "nota": ("Nota: nenhuma das combinações fecha. Se o dia 1 é de coleta única, "
-          "o máximo é 27 observações e não 42. Se o dia 7 tem 21 atletas, o "
-          "máximo é 42 observações e não 46. A auditoria não consegue "
-          "resolver isso sem a planilha de fluxo de dados, e por isso as "
-          "percentagens de qualquer série permanecem provisórias até que o "
-          "denominador seja publicado."),
+ "nota": ("Nota: a base de respostas por atleta e por dia resolveu a "
+          "incoerência. Ela contém 457 registros entre 21 e 27 de abril de "
+          "2024, dos quais 4 sem identificação do atleta e 1 fora da janela "
+          f"de sete dias, o que deixa {N_D[0] + N_D[1]} observações nos dois "
+          "dias extremos e 452 na semana. Os denominadores da série A, de 42 "
+          "e 46, batem exatamente com os da base, o que confirma que aquela "
+          "série foi calculada sobre estes mesmos dados. O que não se "
+          "sustenta é a descrição do delineamento: o dia 1 não teve coleta "
+          "única, teve 42 respostas de 27 atletas, isto é, 1,6 por atleta, e "
+          "o número de coletas por dia variou ao longo da semana. A seção de "
+          "método do manuscrito foi corrigida para descrever a coleta como "
+          "ela ocorreu."),
 },
 }
 
 BLOCOS = [
 
 ("h1", "1 A RESPOSTA CURTA"),
-("p", "**O perfil iceberg no dia de repouso é de 40,5%, e não de 71,4%.** No "
-      "último dia ele cai para 17,4%. Os dois números vêm da Tabela 12 do "
-      "documento Artigo_Perfil_de_humor__handebol.docx, que classifica os "
-      "seis perfis sobre escores T, conforme o procedimento da literatura. A "
-      "lembrança do orientador, de algo entre 40% e 42% na partida e cerca de "
-      "19% na chegada, está correta."),
+("p", "**Esta auditoria foi refeita depois que a base de respostas por atleta "
+      "e por dia ficou disponível.** Com ela, a classificação deixou de ser "
+      "transcrita de terceiros e passou a ser calculada, o que produziu uma "
+      "quarta série, a série D, adotada em todo o projeto. No dia de repouso "
+      f"o perfil iceberg é de **{br(SERIE_D['Iceberg'][1])}%**, e no último "
+      f"dia cai para **{br(SERIE_D['Iceberg'][3])}%**. A lembrança do "
+      "orientador, de algo entre 40% e 42% na partida e cerca de 19% na "
+      "chegada, é próxima destes valores e coincide com a série A, que era a "
+      "melhor aproximação disponível antes da base."),
+("p", "As quatro séries apontam na mesma direção e discordam na magnitude. O "
+      "que muda com a série D não é a conclusão, é o estatuto dela: pela "
+      "primeira vez o número tem procedimento declarado, base versionada e "
+      "rotina que qualquer pessoa pode reexecutar, e existe nos sete dias em "
+      "vez de apenas nas duas pontas."),
 ("p", "O valor de 71,4% que circula nos manuscritos pertence a outro "
       "critério. Ele é o critério de Morgan aplicado sobre escores brutos, "
       "que apenas verifica se o vigor supera as cinco subescalas negativas. "

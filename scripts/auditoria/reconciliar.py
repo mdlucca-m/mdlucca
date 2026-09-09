@@ -45,6 +45,18 @@ SERIE_B = {                        # perfil: (% dia 1, % dia 7)
 # separa iceberg de não iceberg pela ordem entre vigor e as cinco negativas.
 SERIE_C = {"Perfil iceberg": (71.4, 32.6), "Humor perturbado": (47.6, 71.7)}
 
+# Série D: calculada da base bruta, disponibilizada depois desta auditoria.
+# É a única com procedimento inteiramente declarado e a única que existe nos
+# sete dias. Ver scripts/comum/classificar.py.
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent.parent / "comum"))
+import classificar as _D  # noqa: E402
+
+SERIE_D = {p: (_D.contagem(1)[p], _D.percentual(1)[p],
+               _D.contagem(7)[p], _D.percentual(7)[p]) for p in _D.ORDEM}
+N_D = (_D.N_DIA_OBS[1], _D.N_DIA_OBS[7])
+
 FAVORAVEL = ["Iceberg"]
 NEUTRO = ["Superfície", "Submerso"]
 RISCO = ["Barbatana de tubarão", "Iceberg invertido", "Everest invertido"]

@@ -6,6 +6,12 @@ Nenhum valor é estimado.
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "comum"))
+import classificar as _C  # noqa: E402
+
 MENOS = "−"
 
 
@@ -26,26 +32,12 @@ def sinal(v, casas=2):
 SUBESCALAS = ["Tensão", "Depressão", "Raiva", "Vigor", "Fadiga", "Confusão"]
 
 # ── Tabela 3: descritivas e efeito piso ───────────────────────────────────
-DESCRITIVA = {  # média, DP, mediana, IQR, assimetria, curtose, % piso
-    "PTH (TMD)":      (4.39, 9.64, 2, 10, 1.48, 3.31, 21.9),
-    "Vigor":          (5.70, 3.12, 6, 4, 0.03, -0.24, 8.6),
-    "Fadiga":         (5.65, 3.89, 5, 5, 0.59, -0.40, 7.7),
-    "Tensão":         (1.39, 1.84, 1, 2, 1.43, 1.50, 49.6),
-    "Depressão":      (1.00, 2.31, 0, 1, 3.63, 14.93, 67.1),
-    "Raiva":          (1.60, 2.73, 0, 2, 2.07, 4.22, 59.6),
-    "Confusão":       (0.45, 1.19, 0, 0, 3.73, 16.96, 80.5),
-}
+# Calculada da base bruta por scripts/comum/classificar.py.
+DESCRITIVA = {("Fadiga" if k == "Fadiga" else k): v
+              for k, v in _C.descritivas().items()}
 
-# ── Tabela 74: percentis observados ───────────────────────────────────────
-PERCENTIS = {
-    "Tensão":    (0, 0, 1, 2, 6),
-    "Depressão": (0, 0, 0, 1, 5),
-    "Raiva":     (0, 0, 0, 2, 8),
-    "Vigor":     (0, 4, 6, 8, 11),
-    "Fadiga":    (0, 3, 5, 8, 13),
-    "Confusão":  (0, 0, 0, 0, 3),
-    "PTH (TMD)": (-6, -2, 2, 8, 22),
-}
+# Percentis observados, calculados da base bruta.
+PERCENTIS = _C.percentis()
 
 # ── Tabela 6: confiabilidade interna ──────────────────────────────────────
 CONFIABILIDADE = {  # alfa, alfa ordinal, ômega ordinal, split-half, item-total

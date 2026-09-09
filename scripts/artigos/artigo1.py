@@ -11,7 +11,9 @@ from pathlib import Path
 AQUI = Path(__file__).resolve().parent
 sys.path.insert(0, str(AQUI))
 sys.path.insert(0, str(AQUI.parent / "artigo4p"))
+sys.path.insert(0, str(AQUI.parent / "comum"))
 import curvas as C  # noqa: E402
+import classificar as K  # noqa: E402
 import perfil_t as PT  # noqa: E402
 import fonte as F  # noqa: E402
 from dados import (DIAS, N_DIA, N_PERFIL, PERFIL_DIA, PERFIS_T,
@@ -46,19 +48,27 @@ ABERTURA = [
   "deles associados a risco à saúde mental. Nenhum estudo os aplicou ao "
   "handebol. Este estudo descreve o perfil de humor de 27 atletas de handebol "
   "masculino de primeira divisão ao longo dos sete dias da última semana de "
-  "pré-temporada, com duas coletas diárias, e caracteriza cada subescala "
-  "nesta população. No dia de repouso o perfil iceberg predominou, com 40,5% "
-  "das observações, e os três perfis de risco somaram 26,2%, valor quase "
-  "idêntico aos 26,5% da única amostra brasileira classificada pelo mesmo "
-  "critério. Na véspera da competição o iceberg caiu para 17,4%, a barbatana "
-  "de tubarão subiu de 2,4% para 28,3% e a faixa de risco alcançou 43,5% das "
-  "observações. Pelo critério de Morgan, aplicado em paralelo sobre escores "
-  "brutos, a proporção em perfil iceberg caiu de 71,4% para 32,6% ao longo "
-  "da semana, e a análise da derivada da série mostra que a perda não é "
+  "pré-temporada, com 452 respostas ao instrumento, e caracteriza cada "
+  "subescala "
+  "nesta população. No dia de repouso o perfil iceberg predominou, com "
+  f"{F.br(PERFIS_T['Iceberg'][1], 1)}% das observações, e os três perfis de "
+  "risco somaram "
+  f"{F.br(_RISCO1, 1)}%. Na véspera da competição o iceberg caiu para "
+  f"{F.br(PERFIS_T['Iceberg'][3], 1)}%, a barbatana de tubarão subiu de "
+  f"{F.br(PERFIS_T['Barbatana de tubarão'][1], 1)}% para "
+  f"{F.br(PERFIS_T['Barbatana de tubarão'][3], 1)}% e a faixa de risco "
+  f"alcançou {F.br(_RISCO7, 1)}% das observações. A classificação foi "
+  f"calculada nos sete dias sobre as {len(K.OBS)} observações da base, e as "
+  "curvas do iceberg e da barbatana de tubarão cruzam-se no dia "
+  f"{F.br(K.cruzar(K.SUAVE['Iceberg'], K.SUAVE['Barbatana de tubarão'])[0], 1)}. "
+  "Pelo critério de Morgan, aplicado em paralelo sobre escores brutos, a "
+  f"proporção em perfil iceberg caiu de {F.br(PERFIL_DIA[1][0], 1)}% para "
+  f"{F.br(PERFIL_DIA[7][0], 1)}% ao longo da semana, e a análise da derivada da série mostra que a perda não é "
   "gradual: duas quedas ultrapassam o piso de ruído de 10,0 pontos "
   "percentuais, a primeira no dia seguinte à sessão inicial de alta "
   "intensidade e a segunda na véspera da competição, com um platô entre elas. "
-  "Quatro das seis subescalas apresentaram efeito piso entre 49,6% e 80,5%, "
+  f"Quatro das seis subescalas apresentaram efeito piso entre "
+  f"{F.br(min([F.DESCRITIVA[s][6] for s in ('Tensão', 'Depressão', 'Raiva', 'Confusão')]), 1)}% e {F.br(max([F.DESCRITIVA[s][6] for s in ('Tensão', 'Depressão', 'Raiva', 'Confusão')]), 1)}%, "
   "mais de três vezes o limite de 15%. Nenhuma subescala foi confiável em uma "
   "leitura isolada, com ICC entre 0,31 e 0,59, faixa compatível com a "
   "estabilidade publicada do instrumento, e todas passaram de 0,76 na média "
@@ -155,7 +165,7 @@ TABELAS = {
  "cabecalho": ["Subescala", "Média", "Desvio-padrão", "Mediana",
                "Intervalo interquartil", "Assimetria", "Curtose",
                "Piso (%)"],
- "linhas": [[n] + [F.br(v, 2) if isinstance(v, float) else str(v)
+ "linhas": [[n] + ["n.a." if v is None else F.br(v, 2)
                    for v in F.DESCRITIVA[n]]
             for n in ["PTH (TMD)"] + _ORDEM],
  "nota": ("Nota: PTH é a Perturbação Total do Humor, calculada pela soma das "
@@ -439,8 +449,41 @@ TABELAS = {
           "20 do relatório completo."),
 },
 
-"sinal": {
+"serie_perfis": {
  "numero": 11,
+ "titulo": ("Prevalência diária de cada um dos seis perfis de humor ao longo "
+            "do microciclo, com o piso de ruído e os dias de choque"),
+ "cabecalho": (["Perfil"] + [f"Dia {d}" for d in DIAS]
+               + ["Semana", "Norma (%)", "Piso", "Choques"]),
+ "linhas": [
+  [p] + [f"{K.CONTAGEM[p][i]} ({F.br(K.SERIE[p][i], 1)})"
+         for i in range(len(DIAS))]
+  + [F.br(100 * sum(K.CONTAGEM[p]) / len(K.OBS), 1),
+     F.br(100 * K.NORMATIVO[p] / K.N_NORMATIVO, 1),
+     F.br(K.PISO[p], 1),
+     ", ".join(str(d) for d in K.dias_de_choque(p)) or "nenhum"]
+  for p in K.ORDEM
+ ] + [["**Faixas de significado**"] + [""] * (len(DIAS) + 4)]
+   + [[nome] + [F.br(K.SERIE_FAIXA[nome][i], 1) for i in range(len(DIAS))]
+      + ["", "", "", ""]
+      for nome in ("Favorável", "Neutro", "De risco")]
+   + [["**n de observações**"] + [str(K.N_DIA_OBS[d]) for d in DIAS]
+      + [str(len(K.OBS)), "", "", ""]]
+   + [["**n de atletas**"] + [str(K.N_DIA_ATLETAS[d]) for d in DIAS]
+      + [str(len(K.ATLETAS)), "", "", ""]],
+ "nota": ("Nota: cada célula traz o número de observações e, entre "
+          "parênteses, o percentual daquele dia. A classificação atribui "
+          "cada observação ao centroide publicado mais próximo sobre escores "
+          "T internos, conforme a seção 3.7. A coluna de norma traz a "
+          "prevalência da Amostra A de Parsons-Smith, Terry e Machin (2017), "
+          "com 2364 respondentes. O piso de ruído é o erro-padrão binomial "
+          "médio da série, e um dia é de choque quando a derivada que parte "
+          "dele supera esse piso. As faixas somam perfis com denominadores "
+          "idênticos e por isso trazem apenas o percentual."),
+},
+
+"sinal": {
+ "numero": 12,
  "titulo": ("Predominância diária dos perfis, erro-padrão da proporção e "
             "derivada da série suavizada"),
  "cabecalho": ["Dia", "Iceberg (%)", "Erro-padrão", "Perturbado (%)",
@@ -463,7 +506,7 @@ TABELAS = {
 },
 
 "perfil_t": {
- "numero": 12,
+ "numero": 13,
  "titulo": ("Perfil de humor do grupo em escores T em cada dia do "
             "microciclo, com a amplitude do perfil e o eixo energético"),
  "cabecalho": ["Dia"] + PT.SUBESCALAS + ["Amplitude", "Vigor − fadiga",
@@ -710,17 +753,27 @@ BLOCOS = [
       "retrospectiva, o que torna as duas versões não intercambiáveis para "
       "fins de comparação de prevalência (Rohlfs, Noce e Wilke, 2024)."),
 ("h2", "3.6 Procedimento de coleta"),
-("p", "A coleta seguiu um protocolo fixo ao longo dos sete dias. No dia 1, "
-      "domingo de repouso, houve coleta única, tomada como linha de base e "
-      "aplicada [inserir período do dia] sem que tivesse havido esforço "
-      "físico organizado nas horas anteriores. Nos dias 2 a 7, houve duas "
-      "coletas diárias: a primeira pela manhã, antes do início da primeira "
-      "sessão do dia, tomada como medida pré-sessão, e a última à noite, ao "
-      "fim da última sessão do dia, tomada como medida pós-sessão. O intervalo "
-      "entre a última coleta de um dia e a primeira do dia seguinte "
-      "corresponde ao período de recuperação noturna, o que permite separar a "
-      "variação intradia, atribuível à sessão, da variação entre dias, "
-      "atribuível ao acúmulo."),
+("p", "A coleta ocorreu entre 21 e 27 de abril de 2024, por formulário "
+      f"eletrônico, e produziu {len(K.OBS)} respostas analisáveis de "
+      f"{len(K.ATLETAS)} atletas. O dia 1, domingo de repouso, foi tomado "
+      "como linha de base: as 42 respostas daquele dia foram todas dadas no "
+      "período da noite, sem que tivesse havido esforço físico organizado nas "
+      "horas anteriores. Do dia 2 ao dia 7 a coleta acompanhou a rotina de "
+      "treino, com respostas antes da primeira sessão, tomadas como medida "
+      "pré-sessão, entre sessões, e ao fim do dia, tomadas como medida "
+      "pós-sessão, o que permite separar a variação intradia, atribuível à "
+      "sessão, da variação entre dias, atribuível ao acúmulo."),
+("p", "A densidade da coleta não foi uniforme, e isso é declarado porque "
+      "afeta a precisão de cada dia. O número de respostas por dia variou de "
+      f"{min(K.N_DIA_OBS.values())} a {max(K.N_DIA_OBS.values())}, e o de "
+      f"atletas de {min(K.N_DIA_ATLETAS.values())} a "
+      f"{max(K.N_DIA_ATLETAS.values())}, com média de 1,6 resposta por atleta "
+      "no dia de linha de base e entre 2,2 e 3,6 nos demais dias. O dia 7 "
+      "não teve coleta noturna, porque a equipe se deslocou para a "
+      "competição. Todas as estimativas de média diária agregam primeiro por "
+      "atleta e só depois por dia, justamente para que essa variação de "
+      "densidade não pese na média, e o denominador de cada análise está "
+      "declarado na tabela correspondente."),
 ("p", "As duas coletas diárias foram aplicadas presencialmente, no mesmo "
       "espaço e pelo mesmo pesquisador, sempre antes de qualquer orientação "
       "da comissão técnica, de modo a reduzir a influência de conversa "
@@ -740,33 +793,51 @@ BLOCOS = [
       "aplica o critério de Morgan: há perfil iceberg quando o escore de "
       "vigor supera o de todas as cinco subescalas negativas; há humor "
       "perturbado quando a Perturbação Total do Humor é maior que zero. É um "
-      "critério de ordem, que não depende de norma externa."),
-("p", "A segunda aplica o critério de Parsons-Smith. O procedimento original "
-      "padroniza as seis subescalas em escore T contra normas populacionais e "
-      "aplica análise de agrupamento hierárquica aglomerativa com distância "
-      "euclidiana quadrática pelo método de Ward, com o número de "
-      "agrupamentos verificado por inspeção do gráfico de sedimentação, "
-      "seguida de k-médias para refino das fronteiras e de análise "
-      "discriminante para confirmação (Parsons-Smith, Terry e Machin, 2017). "
-      "Nesta amostra o tamanho não comporta a derivação de agrupamentos "
-      "próprios. Os escores das seis subescalas foram convertidos em escore "
-      "T, com média 50 e desvio-padrão 10, que é a escala sobre a qual os "
-      "seis perfis foram definidos, e cada observação foi atribuída pelo "
-      "padrão de forma do perfil, isto é, pela posição relativa do vigor e "
-      "das cinco subescalas negativas em relação à linha de 50."),
-("p", "Registra-se, por transparência, que uma análise anterior deste mesmo "
-      "conjunto de dados classificou as observações por proximidade ao "
-      "centroide canônico, sobre escores padronizados dentro da amostra, e "
-      "chegou a uma distribuição distinta, com predomínio do perfil "
-      "superfície. Uma auditoria das duas classificações mostrou que submerso "
-      "e iceberg invertido recebem valores idênticos nas duas regras, nos "
-      "dois dias, o que localiza a divergência na fronteira entre perfis e "
-      "não nos dados. A regra por proximidade a centroide concentra as "
-      "observações no centro da distribuição, que é onde fica o centroide do "
-      "perfil superfície, e por isso apaga o deslocamento entre perfis. "
-      "Adotou-se a classificação sobre escore T, que segue o procedimento da "
-      "literatura e reproduz a forma esperada dos perfis. A limitação que "
-      "decorre dessa escolha está na seção 5.7."),
+      "critério de ordem, que não depende de norma externa e por isso é "
+      "calculável em qualquer amostra."),
+("p", "A segunda aplica o critério dos seis perfis, em três passos "
+      "declarados. No primeiro, os escores das seis subescalas foram "
+      f"convertidos em escore T de média 50 e desvio-padrão 10 contra a "
+      f"média e o desvio-padrão das {len(K.OBS)} observações desta amostra. "
+      "A padronização é interna porque não existem normas de escore T para "
+      "handebol, e a consequência está declarada na seção 5.8: estes "
+      "escores T não são comparáveis aos de estudos que padronizam contra "
+      "normas de população."),
+("p", "No segundo passo, cada observação foi atribuída ao perfil cujo "
+      "centroide publicado está a menor distância euclidiana quadrática no "
+      "espaço das seis subescalas. Os centroides são os da Amostra A de "
+      "Parsons-Smith, Terry e Machin (2017), com 2364 respondentes, "
+      "reproduzidos na Tabela 8 daquele artigo, e a correspondência entre "
+      "número de agrupamento e nome de perfil vem da matriz de classificação "
+      "da Tabela 7 do mesmo artigo, que é diagonal. Nenhum agrupamento foi "
+      "derivado desta amostra: o tamanho dela não comporta a derivação, e o "
+      "propósito de usar os seis perfis é justamente falar a linguagem já "
+      "estabelecida na literatura."),
+("p", "No terceiro passo, a solução foi submetida a análise de "
+      "sensibilidade por k-médias semeada, que é o procedimento das amostras "
+      "grandes (Rohlfs, Noce e Wilke, 2024, com 898 atletas): os centroides "
+      "publicados entram como sementes e o algoritmo itera até convergir. "
+      f"Ele convergiu, com concordância de {F.br(100 * K.CONCORDANCIA, 1)}% "
+      "em relação à atribuição por centroide publicado, mas deslocou o "
+      "centroide do perfil superfície em "
+      f"{F.br(K.DESLOCAMENTO['Superfície'], 1)} pontos T e o do Everest "
+      f"invertido em {F.br(K.DESLOCAMENTO['Everest invertido'], 1)}, porque "
+      "esta amostra tem poucos casos extremos para sustentá-los. Centroides "
+      "deslocados nessa magnitude deixam de significar o que a literatura "
+      "definiu, e o rótulo perde a comparabilidade que é a razão de usar os "
+      "seis perfis. Adotou-se, por isso, a atribuição ao centroide "
+      "publicado, e a k-médias semeada fica registrada como sensibilidade."),
+("p", "Registra-se, por transparência, o histórico desta classificação. "
+      "Duas análises anteriores do mesmo conjunto de dados chegaram a "
+      "distribuições distintas: uma padronizou os escores dentro da amostra "
+      "e classificou por proximidade a centroide sem declarar quais "
+      "centroides usou, e outra aplicou uma regra de forma sobre a posição "
+      "relativa das subescalas em relação à linha de 50. As três séries "
+      "estão comparadas em AUDITORIA_PERFIS_HUMOR e apontam na mesma "
+      "direção; o que varia entre elas é a magnitude. A série aqui adotada é "
+      "a única calculada a partir da base bruta por procedimento inteiramente "
+      "declarado, e a rotina que a produz está versionada junto com os "
+      "dados anonimizados."),
 ("h2", "3.8 Plano de análise"),
 ("p0", "O plano de análise está descrito com o detalhe necessário à "
        "reprodução integral do estudo. Ele se organiza em oito blocos, na "
@@ -1114,7 +1185,8 @@ BLOCOS += [
 ("p", "A Figura 1 mostra o alcance do problema. Em confusão, o percentil 75 "
       "ainda é zero: três quartos das observações estão no mínimo da escala. "
       "Em depressão e raiva, o percentil 50 é zero. Quatro das seis "
-      "subescalas ficam entre 49,6% e 80,5% de respostas no piso, mais de "
+      f"subescalas ficam entre {F.br(min([F.DESCRITIVA[s][6] for s in ('Tensão', 'Depressão', 'Raiva', 'Confusão')]), 1)}% e "
+      f"{F.br(max([F.DESCRITIVA[s][6] for s in ('Tensão', 'Depressão', 'Raiva', 'Confusão')]), 1)}% de respostas no piso, mais de "
       "três vezes o limite de 15% a partir do qual o efeito é considerado "
       "presente (Terwee e outros, 2007), o que significa que elas não têm "
       "margem para registrar aumento de sintoma nesta população. Os percentis "
@@ -1348,33 +1420,56 @@ BLOCOS += [
       "percentuais, e a de humor perturbado sobe de "
       f"{F.br(PERFIL_DIA[1][1], 1)}% para {F.br(PERFIL_DIA[7][1], 1)}%, ganho "
       f"de {F.br(abs(PERFIL_DIA[7][1] - PERFIL_DIA[1][1]), 1)} pontos "
-      "(Tabela 11). Pela classificação nos seis perfis, no mesmo intervalo, o "
-      "perfil iceberg recua 23,1 pontos percentuais e a barbatana de tubarão "
-      "avança 25,9 pontos, que são os dois maiores deslocamentos da "
-      "distribuição (Tabela 10)."),
+      "(Tabela 12). Pela classificação nos seis perfis, no mesmo intervalo, o "
+      "perfil iceberg recua "
+      f"{F.br(abs(PERFIS_T['Iceberg'][3] - PERFIS_T['Iceberg'][1]), 1)} "
+      "pontos percentuais e a barbatana de tubarão avança "
+      f"{F.br(PERFIS_T['Barbatana de tubarão'][3] - PERFIS_T['Barbatana de tubarão'][1], 1)} "
+      "pontos, que são os dois maiores deslocamentos da distribuição "
+      "(Tabela 10)."),
 ("tab", "distribuicao"),
-("fig", "a1_prevalencia_semana.png", 16.0,
- "Figura 7 - Composição do grupo em faixas de significado ao longo da semana "
- "(A) e prevalência dos seis perfis no primeiro e no último dia (B)"),
-("p", "A Figura 7 reúne a leitura de grupo. O painel A agrega os seis perfis "
-      "em três faixas: favorável, que reúne o iceberg; neutra, que reúne "
-      "superfície e submerso; e de risco, que reúne barbatana de tubarão, "
-      "iceberg invertido e Everest invertido. As três faixas se movem na "
-      f"mesma direção: a favorável cai de {F.br(_FAV1, 1)}% para "
-      f"{F.br(_FAV7, 1)}%, a neutra sobe de {F.br(_NEU1, 1)}% para "
-      f"{F.br(_NEU7, 1)}% e a de risco sobe de {F.br(_RISCO1, 1)}% para "
-      f"{F.br(_RISCO7, 1)}%. Na véspera da competição, quase metade das "
-      "observações está em um dos três perfis que a literatura associa a "
-      "risco à saúde mental."),
-("p", "O painel B mostra que esse aumento não se distribui pelos três perfis "
-      "de risco. Ele se concentra na barbatana de tubarão, que passa de "
+("p", "Os dois dias extremos, porém, não contam a semana inteira. Com a base "
+      "por atleta e por dia, a classificação foi calculada nos sete dias, e a "
+      "Tabela 11 traz a série completa. Ela mostra que a trajetória não é "
+      "monótona: o perfil iceberg cai nos dois primeiros dias, recupera-se "
+      f"até {F.br(max(K.SERIE['Iceberg']), 1)}% no dia "
+      f"{K.DIAS[K.SERIE['Iceberg'].index(max(K.SERIE['Iceberg']))]}, e só "
+      f"então despenca para {F.br(K.SERIE['Iceberg'][-1], 1)}% na véspera. A "
+      "barbatana de tubarão faz o percurso inverso e mais regular: parte de "
+      f"{F.br(K.SERIE['Barbatana de tubarão'][0], 1)}%, isto é, de nenhuma "
+      "observação no dia de repouso, e sobe em todos os dias até "
+      f"{F.br(K.SERIE['Barbatana de tubarão'][-1], 1)}%."),
+("tab", "serie_perfis"),
+("fig", "a1_curva_perfis.png", 16.4,
+ "Figura 7 - Prevalência diária de cada um dos seis perfis, com o dia em que "
+ "o iceberg e a barbatana de tubarão se cruzam (A), e composição do grupo em "
+ "faixas de significado ao longo da semana (B)"),
+("p", "O painel A da Figura 7 mostra as seis curvas. O ponto de encontro "
+      "entre o perfil iceberg e a barbatana de tubarão ocorre no dia "
+      f"{F.br(K.cruzar(K.SUAVE['Iceberg'], K.SUAVE['Barbatana de tubarão'])[0], 1)}, "
+      "isto é, já dentro do último dia, e é o único cruzamento entre os dois "
+      "na semana. Até ali o iceberg é o perfil mais frequente em todos os "
+      "dias; a partir dali não é mais. O teste do piso de ruído qualifica a "
+      "leitura de cada curva: a queda do iceberg concentra-se em um único "
+      f"choque, do dia 6 para o dia 7, e a subida da barbatana de tubarão tem "
+      f"choques nos dias {', '.join(str(d) for d in K.dias_de_choque('Barbatana de tubarão'))}. "
+      "As curvas dos outros quatro perfis permanecem, na maior parte da "
+      "semana, dentro da faixa em que a variação não é distinguível de "
+      "flutuação amostral."),
+("p", "O painel B agrega os seis perfis em três faixas: favorável, que reúne "
+      "o iceberg; neutra, que reúne superfície e submerso; e de risco, que "
+      "reúne barbatana de tubarão, iceberg invertido e Everest invertido. A "
+      f"faixa favorável cai de {F.br(_FAV1, 1)}% para {F.br(_FAV7, 1)}%, a "
+      f"neutra de {F.br(_NEU1, 1)}% para {F.br(_NEU7, 1)}% e a de risco sobe "
+      f"de {F.br(_RISCO1, 1)}% para {F.br(_RISCO7, 1)}%, o que quase triplica "
+      "a proporção inicial. O aumento não se distribui pelos três perfis de "
+      "risco: ele se concentra na barbatana de tubarão, que passa de "
       f"{PERFIS_T['Barbatana de tubarão'][0]} para "
-      f"{PERFIS_T['Barbatana de tubarão'][2]} observações e se torna, "
-      "empatada com o superfície, o perfil mais frequente do último dia. O "
-      "iceberg invertido e o Everest invertido recuam no mesmo intervalo. A "
-      "leitura é específica: o elenco não migra para o sofrimento psíquico, "
-      "migra para o esgotamento energético, que é a definição da barbatana de "
-      "tubarão."),
+      f"{PERFIS_T['Barbatana de tubarão'][2]} observações e se torna o perfil "
+      "mais frequente do último dia. O iceberg invertido recua e o Everest "
+      "invertido fica estável. A leitura é específica: o elenco não migra "
+      "para o sofrimento psíquico, migra para o esgotamento energético, que é "
+      "a definição da barbatana de tubarão."),
 ("tab", "sinal"),
 ("fig", "a1_sinal.png", 15.0,
  "Figura 8 - Predominância diária dos dois critérios de Morgan, com a curva "
@@ -1461,8 +1556,10 @@ BLOCOS += [
 
 ("h2", "4.7 Concordância entre os dois critérios de classificação"),
 ("p", "Os dois critérios não concordam entre si, e a diferença é grande. No "
-      "primeiro dia, o critério de Morgan classifica 71,4% das observações "
-      "como perfil iceberg, contra 40,5% pelo critério dos seis perfis. A "
+      f"primeiro dia, o critério de Morgan classifica {F.br(PERFIL_DIA[1][0], 1)}% "
+      "das observações "
+      "como perfil iceberg, contra "
+      f"{F.br(PERFIS_T['Iceberg'][1], 1)}% pelo critério dos seis perfis. A "
       "discrepância é esperada e decorre da definição: o critério de Morgan "
       "exige apenas que o vigor supere as cinco subescalas negativas, "
       "condição que quatro subescalas presas ao piso tornam fácil de "
@@ -1487,20 +1584,22 @@ BLOCOS += [
       "monitoramento diário, e o que a comparação com a literatura corrobora "
       "e o que ela contraria."),
 ("h2", "5.1 O que os perfis dizem sobre esta equipe"),
-("p", f"No dia de repouso, os três perfis de risco somam "
-      f"{F.br(_RISCO1, 1)}% das observações, isto é, aproximadamente uma em "
-      "cada quatro. O número é quase idêntico aos "
-      "26,5% relatados na única amostra brasileira classificada pelos mesmos "
-      "seis perfis, com 898 atletas de elite e de base de um clube do Rio de "
-      "Janeiro (Rohlfs, Noce e Wilke, 2024). A coincidência é notável e "
-      "sustenta a validade externa da classificação adotada aqui, com a "
-      "ressalva de que a amostra brasileira reúne os dois sexos, uma faixa "
-      "etária de 12 a 44 anos e também a instrução de semana anterior, que "
-      "produz escores mais altos que a de momento presente."),
+("p", f"No dia de repouso, os três perfis de risco somam apenas "
+      f"{F.br(_RISCO1, 1)}% das observações, isto é, cerca de uma em cada "
+      "oito. O valor está bem abaixo dos 26,5% relatados na única amostra "
+      "brasileira classificada pelos mesmos seis perfis, com 898 atletas de "
+      "elite e de base de um clube do Rio de Janeiro (Rohlfs, Noce e Wilke, "
+      "2024). A equipe começa a semana, portanto, em condição psicológica "
+      "melhor que a da referência nacional disponível, o que é o esperado "
+      "de um dia de repouso e reforça que o dia 1 funciona como linha de "
+      "base. A comparação tem ressalvas: a amostra brasileira reúne os dois "
+      "sexos, faixa etária de 12 a 44 anos e também a instrução de semana "
+      "anterior, que produz escores mais altos que a de momento presente."),
 ("p", f"O que muda a leitura é o dia 7. A faixa de risco sobe de "
       f"{F.br(_RISCO1, 1)}% para {F.br(_RISCO7, 1)}% das observações, um "
-      f"ganho de {F.br(_RISCO7 - _RISCO1, 1)} pontos percentuais, e passa a "
-      "abranger quase metade do elenco na véspera da competição. O aumento "
+      f"ganho de {F.br(_RISCO7 - _RISCO1, 1)} pontos percentuais, que "
+      "quase triplica a proporção inicial e ultrapassa os 26,5% da amostra "
+      "brasileira de referência. O aumento "
       "não se distribui pelos três perfis de risco: ele se concentra na "
       "barbatana de tubarão, que salta de "
       f"{F.br(PERFIS_T['Barbatana de tubarão'][1], 1)}% para "
@@ -1513,8 +1612,11 @@ BLOCOS += [
       "qualquer outro perfil exceto o Everest invertido. Ele não é um perfil "
       "de sofrimento psíquico, é um perfil de esgotamento energético, e "
       "corresponde exatamente ao que o eixo vigor e fadiga desta amostra faz "
-      "esperar: vigor em queda de 7,61 para 4,49 e fadiga em alta de 3,96 "
-      "para 7,46 entre o primeiro e o último dia. A migração dos perfis e o "
+      "esperar: vigor em queda de "
+      f"{F.br(C.SERIE['Vigor'][0], 2)} para {F.br(C.SERIE['Vigor'][-1], 2)} "
+      f"e fadiga em alta de {F.br(C.SERIE['Fadiga'][0], 2)} para "
+      f"{F.br(C.SERIE['Fadiga'][-1], 2)} entre o primeiro e o último dia. "
+      "A migração dos perfis e o "
       "comportamento das subescalas contam, portanto, a mesma história, por "
       "dois caminhos independentes."),
 ("p", "A composição por faixas, no painel A da Figura 7, resume o "
@@ -1522,12 +1624,13 @@ BLOCOS += [
       f"{F.br(_FAV7, 1)}%, a neutra sobe de {F.br(_NEU1, 1)}% para "
       f"{F.br(_NEU7, 1)}% e a de risco sobe de {F.br(_RISCO1, 1)}% para "
       f"{F.br(_RISCO7, 1)}%. As três se movem na mesma direção: perda de "
-      "prontidão com ganho de risco. Uma versão anterior desta análise, "
-      "baseada em classificação por proximidade a centroide sobre escores "
-      "padronizados dentro da amostra, indicava faixa de risco estável e "
-      "levava à conclusão oposta. A auditoria das classificações do projeto "
-      "mostrou que aquela regra concentra as observações no perfil superfície "
-      "e apaga o deslocamento; a seção 3.7 registra a decisão."),
+      "prontidão com ganho de risco. Duas versões anteriores desta análise "
+      "usaram séries de classificação de terceiros, uma delas com regra não "
+      "declarada, e chegaram a valores distintos destes. A classificação "
+      "aqui reportada é calculada da base bruta pelo procedimento da seção "
+      "3.7, e a comparação entre as três séries está registrada em "
+      "AUDITORIA_PERFIS_HUMOR. A direção do achado é a mesma nas três; o "
+      "que muda é a magnitude."),
 ("h2", "5.2 Duas quedas, e não uma erosão"),
 ("p", "O resultado metodologicamente mais interessante do estudo é o da "
       "seção 4.4. A curva bruta do perfil iceberg sugere declínio contínuo ao "
@@ -1566,7 +1669,9 @@ BLOCOS += [
       "são definidos por combinações de vigor e das cinco negativas, e a "
       "barbatana de tubarão é exatamente o padrão em que o vigor é o mais "
       "baixo dos seis e a fadiga a mais alta depois do Everest invertido "
-      "(Parsons-Smith, Terry e Machin, 2017). A migração de 2,4% para 28,3% "
+      "(Parsons-Smith, Terry e Machin, 2017). A migração de "
+      f"{F.br(PERFIS_T['Barbatana de tubarão'][1], 1)}% para "
+      f"{F.br(PERFIS_T['Barbatana de tubarão'][3], 1)}% "
       "nesse perfil, descrita na seção 5.1, deixa de ser um achado de "
       "contagem e passa a ter mecanismo: ela é a consequência, no nível da "
       "classificação, do cruzamento observado no nível das variáveis "
@@ -1611,7 +1716,8 @@ BLOCOS += [
       "longo do período (Bird e outros, 2025), e diverge da leitura "
       "corrente de que a proximidade competitiva eleva a ativação. Duas "
       "explicações concorrem e este estudo não as separa. A primeira é o "
-      "efeito piso: com 49,6% das respostas de tensão no valor mínimo, "
+      f"efeito piso: com {F.br(F.DESCRITIVA['Tensão'][6], 1)}% das respostas "
+      "de tensão no valor mínimo, "
       "a subescala tem pouca margem para subir e muita para descer. A "
       "segunda é a de que a tensão do dia 1 seja antecipatória da retomada, "
       "e não da competição, hipótese que só um desenho com coleta anterior "
@@ -1630,7 +1736,8 @@ BLOCOS += [
       "a curva, e é o procedimento que este estudo propõe incorporar ao "
       "monitoramento de rotina."),
 ("h2", "5.4 O efeito piso: defeito do instrumento ou retrato da população?"),
-("p", "Quatro subescalas concentram entre 49,6% e 80,5% das respostas no "
+("p", f"Quatro subescalas concentram entre {F.br(min([F.DESCRITIVA[s][6] for s in ('Tensão', 'Depressão', 'Raiva', 'Confusão')]), 1)}% e "
+      f"{F.br(max([F.DESCRITIVA[s][6] for s in ('Tensão', 'Depressão', 'Raiva', 'Confusão')]), 1)}% das respostas no "
       "valor mínimo, mais de três vezes o limite convencional de 15% (Terwee "
       "e outros, 2007). A leitura imediata é a de falha psicométrica, e ela "
       "tem consequências reais: a matriz policórica não converge em duas "
@@ -1709,22 +1816,23 @@ BLOCOS += [
       "perfis é o contraponto mais informativo disponível. Na amostra de 898 "
       "atletas de base e de elite de um clube do Rio de Janeiro, 26,5% "
       "ficaram em algum dos três perfis de risco (Rohlfs, Noce e Wilke, "
-      f"2024), valor praticamente idêntico aos {F.br(_RISCO1, 1)}% desta "
-      "equipe no dia de repouso. A convergência sustenta duas leituras "
-      "combinadas: a de que o dia 1 desta série descreve um estado basal "
-      "comparável ao de atletas brasileiros medidos fora de janela de carga "
-      f"aguda, e a de que os {F.br(_RISCO7, 1)}% da véspera de competição "
-      "são afastamento desse basal, e não característica da população. Na "
+      "2024). Esta equipe atravessa esse patamar no meio da semana: parte "
+      f"de {F.br(_RISCO1, 1)}% no dia de repouso, bem abaixo da "
+      "referência, e chega a "
+      f"{F.br(_RISCO7, 1)}% na véspera, bem acima dela. O achado é mais "
+      "informativo que uma coincidência de valores: ele mostra que uma "
+      "semana de carga desloca um elenco de um extremo ao outro da faixa "
+      "em que se distribuem os atletas brasileiros de um clube inteiro. Na "
       "segunda coorte, de 417 atletas de alto rendimento acompanhados ao "
       "longo de um ano, a barbatana de tubarão foi o perfil mais frequente, "
-      "com 28,3% (Rohlfs e outros, 2025), valor que coincide com os "
+      "com 28,3% (Rohlfs e outros, 2025), valor próximo dos "
       f"{F.br(PERFIS_T['Barbatana de tubarão'][3], 1)}% do último dia desta "
-      "série. A coincidência numérica é notável, mas não é evidência: os "
-      "delineamentos diferem, e a coorte brasileira agrega medidas de doze "
-      "meses, ao passo que aqui o valor descreve um único dia. O que a "
-      "comparação autoriza dizer é que o patamar alcançado por esta equipe na "
-      "véspera da estreia equivale ao patamar médio anual de uma amostra "
-      "brasileira de alto rendimento, o que é, por si, informação de carga."),
+      "série. A proximidade não é evidência, porque os delineamentos "
+      "diferem: a coorte brasileira agrega medidas de doze meses e aqui o "
+      "valor descreve um único dia. O que a comparação autoriza dizer é que "
+      "o patamar alcançado por esta equipe na véspera da estreia se "
+      "aproxima do patamar médio anual de uma amostra brasileira de alto "
+      "rendimento, o que é, por si, informação de carga."),
 ("p", "Dois achados externos ajudam a interpretar a direção do deslocamento. "
       "Em 652 finlandeses classificados pelos mesmos seis perfis, os que se "
       "declararam atletas ficaram sobre-representados no iceberg invertido, "
@@ -1789,34 +1897,32 @@ BLOCOS += [
       "observação em um momento particular da temporada e impede separar o "
       "efeito desta semana do efeito do ciclo preparatório que a "
       "antecedeu."),
-("p", "A segunda é de procedimento de classificação. A regra de forma sobre "
-      "escore T não reproduz a análise de agrupamento original: o "
-      "procedimento indicado para amostras deste tamanho é a k-médias "
-      "semeada com os centroides canônicos, adotada na amostra brasileira de "
-      "referência (Rohlfs, Noce e Wilke, 2024), e a diferença entre os "
-      "procedimentos ainda não foi quantificada nestes dados. A terceira é a "
+("p", "A segunda é de procedimento de classificação. A atribuição ao "
+      "centroide publicado mais próximo não reproduz a análise de "
+      "agrupamento original, que derivou os agrupamentos dos próprios dados, "
+      "e nenhuma amostra deste tamanho poderia derivá-los. A k-médias "
+      "semeada, que é o procedimento das amostras grandes, foi calculada "
+      f"como sensibilidade e concorda em {F.br(100 * K.CONCORDANCIA, 1)}% "
+      "das observações, mas desloca dois centroides em cerca de 20 pontos T, "
+      "o que a seção 3.7 discute. A terceira é a "
       "padronização: a conversão para escore T foi feita sobre a própria "
       "amostra, na ausência de normas da modalidade, o que torna a linha de "
       "50 uma referência interna e não populacional, e impede comparar estes "
       "escores T com os de estudos que padronizam contra normas de "
       "população."),
-("p", "A quarta é a mais consequente para o uso prático, e merece ser "
-      "declarada com precisão. A classificação nos seis perfis existe apenas "
-      "para o primeiro e para o último dia, de modo que a prevalência diária "
-      "de cada perfil, que é a informação de maior valor para a comissão "
-      "técnica, permanece por calcular. Duas coisas faltam para calculá-la: "
-      "a base de respostas por atleta e por dia, que não integra o material "
-      "disponível para este estudo, e a declaração explícita dos centroides "
-      "usados para classificar o dia 1 e o dia 7, sem a qual a série diária "
-      "não seria comparável às duas pontas já publicadas. A rotina de "
-      "cálculo está escrita e versionada junto com o material de análise, e "
-      "recusa-se a devolver número enquanto as duas condições não forem "
-      "atendidas. A seção 4.6 entrega, no lugar dela, a leitura de grupo, "
-      "que é informativa mas não substitui a contagem. A quinta limitação é "
-      "que a amostra é masculina, o que impede extensão aos achados de sexo "
-      "relatados na literatura. E a sexta é que o estudo não mediu "
-      "desempenho, de modo que nenhuma afirmação sobre consequência "
-      "competitiva dos perfis é sustentada por estes dados."),
+("p", "A quarta diz respeito à densidade desigual da coleta. O número de "
+      f"observações por dia varia de {min(K.N_DIA_OBS.values())} a "
+      f"{max(K.N_DIA_OBS.values())}, e o de atletas de "
+      f"{min(K.N_DIA_ATLETAS.values())} a {max(K.N_DIA_ATLETAS.values())}, "
+      "porque a adesão caiu ao longo da semana e porque o número de coletas "
+      "por dia não foi uniforme. O piso de ruído de cada série incorpora "
+      "essa variação, mas ela reduz a precisão dos dias finais, que são "
+      "justamente os de maior interesse. Quatro respostas foram descartadas "
+      "por não identificarem o atleta, e uma por cair fora da janela de sete "
+      "dias. A quinta limitação é que a amostra é masculina, o que impede "
+      "extensão aos achados de sexo relatados na literatura. E a sexta é que "
+      "o estudo não mediu desempenho, de modo que nenhuma afirmação sobre "
+      "consequência competitiva dos perfis é sustentada por estes dados."),
 
 ("h1", "6 CONCLUSÃO"),
 ("p", "Em atletas de handebol masculino de elite, na última semana de "
