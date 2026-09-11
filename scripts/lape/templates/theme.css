@@ -1,9 +1,9 @@
 /* ==========================================================================
-   LAPE — sistema de design  ·  claro por padrão, fosco, alta densidade
+   LAPE — sistema de design  ·  escuro por padrão, fosco, alta densidade
 
    A paleta categórica foi verificada por script para daltonismo e contraste
    sobre as superfícies em que o painel realmente desenha:
-     escuro (#14161c): pior par adjacente ΔE 8,4 (protanopia) · 19,3 (normal)
+     escuro (#070c14): pior par adjacente ΔE 8,4 (protanopia) · 19,3 (normal)
      claro  (#fcfcfb): pior par adjacente ΔE 9,1 (protanopia) · 19,6 (normal)
    Três slots (azul, laranja, verde-água) também passam em "todos os pares",
    exigido por dispersão, bolha e mapa — por isso essas formas param em três.
@@ -40,7 +40,7 @@
   --div-neg: #3987e5; --div-pos: #e66767;
 }
 
-:root[data-theme="dark"] {
+:root, :root[data-theme="dark"] {
   color-scheme: dark;
 
   /* --- superfícies e tinta ---------------------------------------------
@@ -48,19 +48,19 @@
      degraus curtos. A área de plotagem (--surface) é opaca de propósito:
      nenhum degradê passa por baixo de marca de dado, senão a mesma altura
      de barra muda de cor conforme onde ela cai na tela.
-     A paleta de séries foi reconferida contra esta superfície nova — o
-     validador aprova as cinco checagens sobre #0b1018. */
-  --surface:        #0b1018;   /* cartões e área de plotagem — cor verificada */
-  --surface-raised: #121a25;   /* cabeçalho de tabela, chips, campos */
-  --surface-hover:  #182231;
-  --surface-sunken: #05070d;   /* plano da página */
-  --ink:            #eaf0fa;
-  --ink-2:          #a7b4c9;
-  --ink-muted:      #77869b;
-  --grid:           #1b2533;
-  --axis:           #2a3648;
-  --border:         #1a2432;
-  --border-strong:  #2a3648;
+     A paleta de séries foi reconferida contra esta superfície — o validador
+     aprova as cinco checagens sobre #070c14. */
+  --surface:        #070c14;   /* cartões e área de plotagem — cor verificada */
+  --surface-raised: #0f1724;   /* cabeçalho de tabela, chips, campos */
+  --surface-hover:  #16202e;
+  --surface-sunken: #02040a;   /* plano da página */
+  --ink:            #f3f7ff;
+  --ink-2:          #bccada;
+  --ink-muted:      #8e9db3;
+  --grid:           #1f2b3c;
+  --axis:           #38485f;
+  --border:         #26344a;
+  --border-strong:  #38485f;
 
   /* --- degradês da moldura (nunca sob marcas de dado) ---
      Duas luzes frias nas quinas altas e uma quente embaixo: a leitura é a
@@ -68,25 +68,25 @@
   --grad-page: radial-gradient(1100px 620px at 12% -10%, rgba(47,168,221,.16) 0%, transparent 60%),
                radial-gradient(900px 560px at 92% 2%, rgba(144,133,233,.14) 0%, transparent 58%),
                radial-gradient(1000px 700px at 60% 108%, rgba(217,89,38,.09) 0%, transparent 62%),
-               linear-gradient(180deg, #070b12 0%, #05070d 46%);
-  --grad-bar:  linear-gradient(180deg, rgba(47,168,221,.13) 0%, rgba(11,16,24,0) 100%);
+               linear-gradient(180deg, #04070e 0%, #02040a 46%);
+  --grad-bar:  linear-gradient(180deg, rgba(47,168,221,.13) 0%, rgba(7,12,20,0) 100%);
   --grad-card: linear-gradient(180deg, rgba(255,255,255,.045) 0%, rgba(255,255,255,0) 62%);
-  --grad-kpi:  linear-gradient(135deg, rgba(47,168,221,.15) 0%, rgba(11,16,24,0) 58%);
+  --grad-kpi:  linear-gradient(135deg, rgba(47,168,221,.15) 0%, rgba(7,12,20,0) 58%);
   /* malha fina de fundo: dá profundidade sem competir com nada */
   --grad-malha: linear-gradient(rgba(47,168,221,.045) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(47,168,221,.045) 1px, transparent 1px);
 
   /* --- ação --- */
-  --accent:        #5ec8f2;   /* 10:1 sobre a superfície — cor de texto/link */
+  --accent:        #6fd0f6;   /* 11,2:1 sobre a superfície — cor de texto/link */
   --accent-solid:  #12799f;   /* fundo de botão; texto branco a 4,9:1 */
-  --accent-strong: #2fa8dd;   /* 7:1 — aro, traço, barra de progresso */
-  --accent-wash:   #0c2735;
+  --accent-strong: #3bb4e8;   /* 8,3:1 — aro, traço, barra de progresso */
+  --accent-wash:   #0a2331;
   /* brilho: só em cromo, e curto. Halo permanente vira ruído. */
   --glow:      0 0 0 1px rgba(47,168,221,.28), 0 0 22px -6px rgba(47,168,221,.55);
   --glow-forte: 0 0 0 1px rgba(47,168,221,.42), 0 0 34px -6px rgba(47,168,221,.75);
 
   /* --- séries categóricas (ordem fixa; nunca reciclar) ---
-     Conferidas pelo validador sobre #0b1018: faixa de luminosidade, piso de
+     Conferidas pelo validador sobre #070c14: faixa de luminosidade, piso de
      croma, separação para daltonismo e contraste — as cinco passam. */
   --series-1: #3987e5;  /* azul       */
   --series-2: #d95926;  /* laranja    */
@@ -115,19 +115,26 @@
   --ring:      inset 0 1px 0 rgba(255,255,255,.055);
 }
 
-/* O CLARO é o padrão, e continua não sendo o que o sistema mandar.
+/* O CLARO é a ESCOLHA, e o escuro voltou a ser o padrão.
 
-   Esta folha já foi das duas maneiras, e o motivo de cada volta importa.
+   Esta folha já foi das duas maneiras mais de uma vez, e o motivo de cada
+   volta importa mais do que qual está valendo agora.
+
    No começo ela seguia `prefers-color-scheme`, e no Windows do laboratório
    -- que está no claro -- o tema escuro nunca aparecia para ninguém. A
    correção foi fixar um padrão em vez de perguntar ao sistema, e o padrão
-   escolhido foi o escuro. O laboratório pediu o claro: muda o padrão, não
-   a regra. Continuamos sem perguntar ao sistema -- é o que faz a tela ser
-   a mesma na sala, no projetor e no PDF que sai daqui.
+   escolhido foi o escuro. Depois o laboratório pediu o claro, e o padrão
+   virou claro. Agora pediu escuro de novo, mais fundo e mais contrastado,
+   e o padrão voltou.
 
-   O escuro continua inteiro, e agora é ele a ESCOLHA: entra com
-   data-theme="dark" no elemento raiz, pelo botão do painel. */
-:root, :root[data-theme="light"] {
+   O que NÃO mudou em nenhuma das voltas, e é a regra de verdade: não se
+   pergunta ao sistema operacional. É isso que faz a tela ser a mesma na
+   sala, no projetor e no PDF que sai daqui -- e é isso que não se deve
+   desfazer numa próxima troca de padrão.
+
+   O claro continua inteiro, e entra com data-theme="light" no elemento
+   raiz, pelo botão do painel. */
+:root[data-theme="light"] {
   color-scheme: light;
   --surface:        #fcfcfb;
   --surface-raised: #f2f1ee;

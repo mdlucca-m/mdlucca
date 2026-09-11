@@ -1004,28 +1004,36 @@ class TestTokensDoTema(unittest.TestCase):
 
         A folha já seguiu `prefers-color-scheme`, e no Windows do
         laboratório -- que está no claro -- o tema escuro nunca aparecia
-        para ninguém. Depois disso o padrão foi escuro; hoje é claro. O que
-        não pode voltar é a pergunta ao sistema: é ela que fazia a mesma
-        tela sair diferente na sala, no projetor e no PDF.
+        para ninguém. O padrão já foi escuro, depois claro, e agora é
+        escuro de novo. O que não pode voltar é a pergunta ao sistema: é
+        ela que fazia a mesma tela sair diferente na sala, no projetor e no
+        PDF -- e por isso o teste guarda a regra, não qual tema vence.
         """
         tema = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
         self.assertNotIn("prefers-color-scheme: light", tema)
         self.assertNotIn("prefers-color-scheme: dark", tema)
-        padrao = tema[tema.index(":root, :root[data-theme=\"light\"]"):]
-        padrao = padrao[:padrao.index("\n}")]
-        self.assertIn("color-scheme: light", padrao)
-        self.assertIn("--surface:", padrao)
+        # o bloco padrão é o que responde por `:root` puro, seja ele qual for:
+        # o teste guarda a REGRA, e não qual dos dois está valendo hoje
+        padrao = [sel for sel in (':root, :root[data-theme="dark"] {',
+                                  ':root, :root[data-theme="light"] {') if sel in tema]
+        self.assertEqual(len(padrao), 1, "deve haver exatamente um tema padrão")
+        bloco = tema[tema.index(padrao[0]):]
+        bloco = bloco[:bloco.index("\n}")]
+        self.assertIn("color-scheme:", bloco)
+        self.assertIn("--surface:", bloco)
 
     def test_os_dois_temas_continuam_inteiros(self):
-        # trocar o padrão não pode ser o mesmo que apagar o outro modo
+        """Trocar o padrão não pode ser o mesmo que apagar o outro modo."""
         tema = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
-        for seletor in (':root, :root[data-theme="light"]', ':root[data-theme="dark"]'):
-            with self.subTest(tema=seletor):
-                self.assertIn(seletor, tema)
-                bloco = tema[tema.index(seletor):]
+        for modo in ("dark", "light"):
+            seletor = [sel for sel in (f':root, :root[data-theme="{modo}"] {{',
+                                       f':root[data-theme="{modo}"] {{') if sel in tema]
+            with self.subTest(tema=modo):
+                self.assertTrue(seletor, f"o tema {modo} sumiu da folha")
+                bloco = tema[tema.index(seletor[0]):]
                 bloco = bloco[:bloco.index("\n}")]
                 for token in ("--surface", "--ink", "--accent", "--series-1", "--seq-100"):
-                    self.assertIn(token + ":", bloco, f"{token} falta em {seletor}")
+                    self.assertIn(token + ":", bloco, f"{token} falta em {modo}")
 
     def test_o_que_nao_e_de_tema_fica_fora_dos_dois(self):
         """Cor de estado significa a mesma coisa nos dois fundos.
@@ -1056,13 +1064,29 @@ class TestTokensDoTema(unittest.TestCase):
         self.assertNotIn("grid-template-columns: 1fr;", bloco)
 
     def test_o_botao_de_tema_sabe_qual_e_o_padrao(self):
-        # perguntando ao sistema, o primeiro clique num Windows escuro
-        # "trocava para claro" estando já claro, e nada acontecia
+        """O botão lê o ATRIBUTO, e nunca o sistema operacional.
+
+        Perguntando ao sistema, o primeiro clique numa máquina cujo tema
+        não bate com o padrão da folha não fazia nada -- ele "trocava"
+        para o que já estava valendo. Ler o atributo é o que faz o botão
+        sobreviver a uma troca de padrão, e o padrão já trocou três vezes.
+        """
         js = (self.TEMPLATES / "dashboard.js").read_text(encoding="utf-8")
         corpo = js[js.index("function setupTheme"):]
         corpo = corpo[:corpo.index("\n}")]
         self.assertNotIn("prefers-color-scheme", corpo)
-        self.assertIn('!== "dark"', corpo)
+        self.assertIn('getAttribute("data-theme") !==', corpo)
+
+    def test_o_escuro_e_o_padrao_da_folha(self):
+        """Sem atributo nenhum, a tela abre escura -- e sem piscar.
+
+        O padrão mora no CSS e não no JavaScript: posto pelo script, a
+        página pintaria clara por um quadro antes de escurecer.
+        """
+        css = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        self.assertIn(':root, :root[data-theme="dark"] {', css)
+        self.assertIn(':root[data-theme="light"] {', css)
+        self.assertNotIn(':root, :root[data-theme="light"] {', css)
 
 
 if __name__ == "__main__":
