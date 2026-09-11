@@ -538,6 +538,46 @@ def route_vinculo_marcar(ctx: "Context") -> Any:
     return resultado
 
 
+def route_metas(ctx: "Context") -> Any:
+    """Metas do ano, progresso, ritmo e projecao."""
+    auth.require(ctx.user, "integrante")
+    from . import metas as _metas
+    try:
+        ano = int(ctx.query.get("ano", [0])[0]) or None
+    except (TypeError, ValueError):
+        ano = None
+    return {"indicadores": [{"codigo": c, "rotulo": r, "ajuda": a}
+                            for c, r, a in _metas.INDICADORES],
+            **_metas.progresso(ctx.db, ano)}
+
+
+def route_metas_declarar(ctx: "Context") -> Any:
+    """Grava a meta de um indicador no ano. So a coordenacao declara."""
+    user = auth.require(ctx.user, "coordenacao")
+    from . import metas as _metas
+    corpo = ctx.body or {}
+    codigo = clean_text(corpo.get("codigo")) or ""
+    try:
+        ano = int(corpo.get("ano"))
+    except (TypeError, ValueError):
+        raise ApiError(400, "informe o ano")
+    bruto = corpo.get("meta")
+    alvo = None
+    if bruto not in (None, ""):
+        try:
+            alvo = int(bruto)
+        except (TypeError, ValueError):
+            raise ApiError(400, "a meta precisa ser um número inteiro")
+    try:
+        resultado = _metas.declarar(ctx.db, ano, codigo, alvo,
+                                    por=user.get("full_name") or user.get("login"))
+    except ValueError as erro:
+        raise ApiError(400, str(erro))
+    auth.log(ctx.db, user["id"], user.get("login"), "meta_declarada", "goals",
+             None, f"{ano} {codigo}: {alvo if alvo is not None else 'sem meta'}")
+    return resultado
+
+
 def route_indice_h(ctx: "Context") -> Any:
     """Indice h de cada pesquisador: o declarado e as estimativas ao lado."""
     auth.require(ctx.user, "coordenacao")
@@ -1608,6 +1648,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("DELETE", r"^/api/articles/(?P<article_id>\d+)/?$", route_excluir_artigo, "coordenacao"),
     ("GET", r"^/api/equipe/vinculo/?$", route_vinculo, "coordenacao"),
     ("POST", r"^/api/equipe/vinculo/?$", route_vinculo_marcar, "coordenacao"),
+    ("GET", r"^/api/metas/?$", route_metas, "integrante"),
+    ("POST", r"^/api/metas/?$", route_metas_declarar, "coordenacao"),
     ("GET", r"^/api/equipe/indice-h/?$", route_indice_h, "coordenacao"),
     ("POST", r"^/api/equipe/indice-h/?$", route_indice_h_declarar, "coordenacao"),
     ("POST", r"^/api/research-lines/padrao/?$", route_linhas_padrao, "coordenacao"),

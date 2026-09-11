@@ -714,3 +714,54 @@ textarea:focus-visible, [tabindex]:focus-visible {
 .tremula.grande .bandeira-svg { width: 30px; height: 20px; }
 /* a pastilha do pais sem desenho: o codigo, mas de proposito */
 .bandeira-svg.sem-desenho { opacity: .85; }
+
+/* Progresso contra a meta do ano.
+
+   Três coisas no mesmo trilho: o que já saiu (barra cheia), onde o ano
+   provavelmente termina (faixa) e onde está a meta (marca). Separá-las em
+   três números obrigaria quem lê a fazer a comparação de cabeça, e a
+   pergunta é sempre a mesma -- a faixa alcança a marca?
+
+   A faixa é deliberadamente pálida e listrada: ela é palpite, e palpite
+   não pode ter o mesmo peso visual do que aconteceu. */
+.meta-trilho {
+  position: relative;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.meta-trilho .feito {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: var(--accent-strong);
+  width: var(--feito, 0%);
+}
+.meta-trilho .faixa {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--de, 0%);
+  width: var(--largura, 0%);
+  background: repeating-linear-gradient(
+    135deg, var(--ink-muted) 0 2px, transparent 2px 6px);
+  opacity: .38;
+}
+.meta-trilho .marca {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  left: var(--meta, 100%);
+  width: 2px;
+  background: var(--ink);
+}
+.meta-linha { display: grid; gap: 6px; margin-bottom: 18px; }
+.meta-linha .topo {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+}
+.meta-linha .topo b { font-size: 16px; }
+.meta-legenda { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; }
+.meta-legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.meta-legenda i { width: 14px; height: 10px; border-radius: 3px; display: inline-block; }

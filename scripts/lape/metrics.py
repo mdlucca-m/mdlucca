@@ -856,6 +856,16 @@ def _catalog() -> dict[str, Any]:
         return {"measures": [], "dimensions": [], "filters": []}
 
 
+def _metas(db: Database) -> dict[str, Any]:
+    """Metas do ano no painel. Falhar aqui nao pode derrubar o painel."""
+    try:
+        from . import metas
+
+        return metas.progresso(db)
+    except Exception:                       # noqa: BLE001 -- painel acima de tudo
+        return {"indicadores": [], "ano": None, "corrente": False}
+
+
 def build_payload(db: Database, window: int = config.WINDOW_YEARS) -> dict[str, Any]:
     pubs = publications_by_year(db, window)
     subs = submission_metrics(db)
@@ -888,6 +898,7 @@ def build_payload(db: Database, window: int = config.WINDOW_YEARS) -> dict[str, 
         "agenda": agenda_data,
         "spatial": spatial(db),
         "cenario": _cenario(db),
+        "metas": _metas(db),
         "temporal": temporal_grid(db, window),
         "quality": data_quality(db),
         "history": measured_history(db),

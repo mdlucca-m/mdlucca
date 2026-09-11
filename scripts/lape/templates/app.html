@@ -1132,6 +1132,12 @@ VIEWS.admin = {
     VIEW.appendChild(hBox);
     await desenharIndiceH(hBox);
 
+    /* Onde o laboratório quer chegar no ano. Sem isso o painel conta e não
+       avalia — e um número sem meta ao lado não se interpreta. */
+    const metaBox = h("div", {class: "card sec"});
+    VIEW.appendChild(metaBox);
+    await desenharMetas(metaBox);
+
     /* O convite é o que faz o laboratório entrar sozinho: um link para o
        grupo, cada pessoa escolhe a própria senha, ninguém transmite senha
        por mensagem e a coordenação não cria conta a conta. */
@@ -1343,6 +1349,55 @@ async function desenharVinculo(caixa){
         acao(true, "É coautor", "primary"),
         acao(false, "É do LAPE", ""),
       ]),
+    ]));
+  });
+}
+
+async function desenharMetas(caixa){
+  caixa.textContent = "";
+  caixa.appendChild(h("h3", {text: "Metas do ano"}));
+  let dados;
+  try {
+    dados = await api("/api/metas");
+  } catch (e){
+    caixa.appendChild(h("p", {class: "hint", text: "Não deu para carregar: " + e.message}));
+    return;
+  }
+  caixa.appendChild(h("p", {class: "hint", style: "margin:4px 0 12px",
+    text: "O painel conta o que aconteceu; sem meta ao lado, o número não se "
+        + "interpreta — 13 publicações é muito ou pouco dependendo de quanto se "
+        + "pretendia. A meta é decisão da coordenação: o sistema não sugere, só "
+        + "mede a distância e projeta onde o ano deve terminar. Deixe em branco "
+        + "para o indicador ficar sem meta."}));
+
+  (dados.indicadores || []).forEach(function (ind){
+    const linha = (dados.indicadores || []).find(function (x){ return x.codigo === ind.codigo; });
+    const campo = h("input", {type: "number", min: "0", max: "1000", style: "width:90px",
+      value: linha && linha.meta !== null && linha.meta !== undefined
+        ? String(linha.meta) : ""});
+    const estado = h("p", {class: "hint", style: "margin:6px 0 0",
+      text: linha ? (linha.realizado + " até agora · " + linha.veredito) : ind.ajuda});
+    const botao = h("button", {class: "primary", text: "Gravar", onclick: async function (){
+      botao.disabled = true;
+      const antes = estado.textContent;
+      estado.textContent = "Gravando…";
+      try {
+        await api("/api/metas", "POST",
+          {ano: dados.ano, codigo: ind.codigo, meta: campo.value});
+        toast(ind.rotulo + (campo.value ? " — meta " + campo.value : " sem meta"), "ok");
+        await desenharMetas(caixa);
+      } catch (e){
+        estado.textContent = antes;
+        toast(e.message, "erro");
+        botao.disabled = false;
+      }
+    }});
+    caixa.appendChild(h("div", {class: "sec"}, [
+      h("div", {style: "display:flex;gap:10px;align-items:center;flex-wrap:wrap"}, [
+        h("b", {text: ind.rotulo, style: "min-width:210px"}), campo, botao,
+      ]),
+      h("p", {class: "hint", style: "margin:6px 0 0", text: ind.ajuda}),
+      estado,
     ]));
   });
 }

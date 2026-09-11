@@ -1022,6 +1022,116 @@ view("visao", "Painel", "", "Retrato do laboratório no recorte atual.", functio
   ]));
 });
 
+/* Onde o laboratório quer chegar, e se vai.
+
+   O painel sabia contar o que aconteceu e não sabia dizer se isso é muito
+   ou pouco -- 13 publicações só se interpreta ao lado de quanto se
+   pretendia. A meta é declarada pela coordenação em Administração; aqui
+   ela só é medida. */
+view("metas", "Objetivos do ano", "", "O que o laboratório declarou como meta, "
+  + "quanto já saiu, em que ritmo, e onde o ano provavelmente termina.",
+  function (host) {
+    const M = D.metas || {};
+    const itens = M.indicadores || [];
+    if (!itens.length) {
+      host.appendChild(card("Objetivos do ano", null,
+        el("div", { class: "empty", text: "Nenhum indicador disponível." })));
+      return;
+    }
+
+    const comMeta = itens.filter(function (i) { return i.meta; });
+    if (!comMeta.length) {
+      host.appendChild(card("Nenhuma meta declarada para " + M.ano, null, [
+        el("p", { class: "hint", text: "A coordenação declara as metas do ano em "
+          + "Área do integrante › Conta › Administração. Sem meta, o painel conta "
+          + "o que aconteceu mas não tem como dizer se é perto ou longe de onde o "
+          + "laboratório queria chegar." }),
+      ]));
+    }
+
+    /* O veredito é estado, e estado leva cor reservada com rótulo e ícone
+       ao lado -- nunca cor sozinha. */
+    const TOM = {
+      "alcançada": { tom: "good", icone: "aceite" },
+      "no ritmo atual, alcança": { tom: "good", icone: "subida" },
+      "depende do fim do ano": { tom: "warning", icone: "aviso" },
+      "no ritmo atual, não alcança": { tom: "serious", icone: "aviso" },
+      "não alcançada": { tom: "serious", icone: "aviso" },
+      "sem meta declarada": { tom: null, icone: "alvo" },
+    };
+
+    const linhas = itens.map(function (i) {
+      const pj = i.projecao || {};
+      /* A escala do trilho tem de caber a meta E o topo da faixa: se o
+         trilho terminasse na meta, uma projeção que a ultrapassa sairia
+         encostada na borda e pareceria empate. */
+      const teto = Math.max(i.meta || 0, pj.ate || 0, i.realizado || 0, 1);
+      const pct = function (v) { return (100 * (v || 0) / teto).toFixed(1) + "%"; };
+      const trilho = el("div", { class: "meta-trilho" }, [
+        el("div", { class: "faixa" }),
+        el("div", { class: "feito" }),
+        i.meta ? el("div", { class: "marca" }) : null,
+      ].filter(Boolean));
+      trilho.style.setProperty("--feito", pct(i.realizado));
+      trilho.style.setProperty("--de", pct(pj.de));
+      trilho.style.setProperty("--largura",
+        (100 * Math.max(0, (pj.ate || 0) - (pj.de || 0)) / teto).toFixed(1) + "%");
+      if (i.meta) trilho.style.setProperty("--meta", pct(i.meta));
+
+      const estado = TOM[i.veredito] || {};
+      const recado = [];
+      if (i.meta) {
+        recado.push(i.realizado + " de " + i.meta);
+        if (i.precisa_por_mes)
+          recado.push("precisa de " + C.fmt(i.precisa_por_mes) + "/mês até dezembro");
+      } else {
+        recado.push(i.realizado + " no ano");
+      }
+      if (i.ritmo_mes) recado.push("ritmo atual " + C.fmt(i.ritmo_mes) + "/mês");
+
+      return el("div", { class: "meta-linha" }, [
+        el("div", { class: "topo" }, [
+          el("span", {}, [el("b", { text: i.rotulo }),
+            el("span", { class: "hint", text: "  " + i.ajuda })]),
+          el("span", { class: "badge" + (estado.tom ? " " + estado.tom : ""),
+            text: i.veredito }),
+        ]),
+        trilho,
+        el("div", { class: "hint", text: recado.join(" · ") }),
+        /* De onde veio a faixa. Projeção sem método declarado é palpite
+           passando por medida -- e a diferença entre os dois métodos muda
+           o número, às vezes muito. */
+        pj.metodo === "sazonal"
+          ? el("div", { class: "hint", text: "projeção " + pj.de + "–" + pj.ate
+              + " · pelo histórico do próprio laboratório: em " + pj.anos_de_base
+              + " ano(s) anteriores, " + Math.round(100 * pj.fatia) + "% do ano já "
+              + "tinha acontecido a esta altura" })
+          : (pj.metodo === "linear"
+            ? el("div", { class: "hint", text: "projeção " + pj.de + "–" + pj.ate
+                + " · regra proporcional ao tempo decorrido, porque ainda não há "
+                + "histórico com mês suficiente para medir como os anos do "
+                + "laboratório se distribuem" })
+            : null),
+      ].filter(Boolean));
+    });
+
+    host.appendChild(card("Objetivos de " + M.ano,
+      M.corrente ? "faltam " + M.meses_restantes + " mês(es) para fechar o ano"
+                 : "ano fechado",
+      [
+        el("div", {}, linhas),
+        el("div", { class: "meta-legenda hint" }, [
+          el("span", {}, [el("i", { style: "background:var(--accent-strong)" }),
+            el("span", { text: "já aconteceu" })]),
+          el("span", {}, [el("i", { style: "background:repeating-linear-gradient("
+            + "135deg,var(--ink-muted) 0 2px,transparent 2px 6px)" }),
+            el("span", { text: "onde o ano deve terminar" })]),
+          el("span", {}, [el("i", { style: "background:var(--ink);width:2px" }),
+            el("span", { text: "meta" })]),
+        ]),
+      ]));
+  });
+
 view("explorar", "Explorar dados", "", "Escolha a medida, o recorte e a quebra: o gráfico e a tabela "
   + "se refazem na hora, direto da camada analítica.", function (host) {
     const cat = D.catalog || { measures: [], dimensions: [] };
@@ -2932,7 +3042,7 @@ function aplicarSegmento(label) {
    leitura siga o assunto e não a estrutura do menu. */
 const SECTIONS = [
   { id: "geral", label: "Visão geral", icon: "painel",
-    views: ["visao", "explorar"] },
+    views: ["visao", "metas", "explorar"] },
   { id: "producao", label: "Produção", icon: "producao",
     views: ["producao", "submetidos", "publicacoes", "citacoes"] },
   { id: "pessoas", label: "Pessoas", icon: "pessoas",
@@ -2945,7 +3055,7 @@ const SECTIONS = [
     views: ["descobertas", "qualidade", "automacao"] },
 ];
 const VIEW_ICON = {
-  visao: "painel", explorar: "explorar",
+  visao: "painel", metas: "alvo", explorar: "explorar",
   producao: "producao", submetidos: "submissao", publicacoes: "livro", citacoes: "citacao",
   pesquisadores: "pessoas", organograma: "hierarquia", equipe: "barras", rede: "rede",
   linhas: "linhas", projetos: "projeto",
@@ -2955,7 +3065,8 @@ const VIEW_ICON = {
 };
 /* atalhos entre sub-abas de seções diferentes — a ponte que o menu não faz */
 const RELATED = {
-  visao: ["explorar", "publicacoes", "tempos"],
+  visao: ["metas", "explorar", "publicacoes"],
+  metas: ["visao", "publicacoes", "tempos"],
   explorar: ["equipe", "publicacoes", "qualidade"],
   producao: ["tempos", "equipe", "submetidos"],
   submetidos: ["submissoes", "tempos", "aceites"],

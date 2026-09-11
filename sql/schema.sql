@@ -218,6 +218,23 @@ CREATE TABLE IF NOT EXISTS cleared_fields (
   PRIMARY KEY (entity, record_id, field)
 );
 
+/* As metas do ano, declaradas pela coordenacao.
+
+   O painel sabia contar o que ja aconteceu e nao sabia dizer se o
+   laboratorio vai chegar aonde quer -- e um numero sem meta ao lado nao
+   se interpreta: 13 publicacoes e muito ou pouco depende de quanto se
+   pretendia. A meta nao e calculada nem sugerida: quem decide quanto o
+   laboratorio quer publicar no ano e a coordenacao, e o sistema so mede
+   a distancia. */
+CREATE TABLE IF NOT EXISTS goals (
+  year       INTEGER NOT NULL,
+  code       TEXT NOT NULL,
+  target     INTEGER NOT NULL,
+  set_on     TEXT NOT NULL DEFAULT (datetime('now')),
+  set_by     TEXT,
+  PRIMARY KEY (year, code)
+);
+
 CREATE TABLE IF NOT EXISTS article_authors (
   article_id       INTEGER NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
   member_id        INTEGER REFERENCES members(id) ON DELETE SET NULL,
