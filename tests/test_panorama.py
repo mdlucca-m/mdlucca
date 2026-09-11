@@ -693,9 +693,17 @@ class TestCurvasAoVivo(unittest.TestCase):
         self.assertIn('"data-aba"', corpo[:1400])
 
     def test_a_biblioteca_publica_as_duas_formas_novas(self):
+        """Pela CHAVE exportada, e não pela grafia do valor ao lado dela.
+
+        A asserção era sobre o texto "dendrograma: dendrograma", e passou a
+        falhar quando a forma ganhou um envoltório que a desenha no tamanho
+        do container -- sem que nada tivesse deixado de ser exportado.
+        """
         graficos = self.js("charts.js")
-        self.assertIn("dendrograma: dendrograma", graficos)
-        self.assertIn("fluxo: fluxo", graficos)
+        bloco = graficos[graficos.rindex("  return {"):]
+        for forma in ("dendrograma", "fluxo"):
+            with self.subTest(forma=forma):
+                self.assertRegex(bloco, forma + r":\s*\w")
 
     def test_o_dendrograma_tem_regua_de_distancia(self):
         # sem eixo, a largura do colchete não significa nada

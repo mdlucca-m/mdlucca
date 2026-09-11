@@ -317,13 +317,17 @@ function buildForm(spec, values, onSubmit){
     for (const key in inputs){
       const {input, spec: f} = inputs[key];
       let value = f.type === "checkbox" ? (input.checked ? "Sim" : "Não") : input.value.trim();
-      /* Ao EDITAR, o campo vazio vai junto. Sem ele o servidor não tem como
+      /* O campo vazio vai junto, SEMPRE. Sem ele o servidor não tem como
          saber a diferença entre "a pessoa apagou este valor" e "esta coluna
          não veio" -- e como a gravação descarta vazios de propósito (para
          que uma planilha de meia dúzia de colunas não limpe o cadastro
          inteiro), apagar na tela não apagava nada: o Qualis voltava sozinho.
-         No cadastro novo continua de fora: não há o que apagar. */
-      if (value !== "" || spec.edicao) payload[key] = value;
+
+         No cadastro de registro novo mandar o vazio não muda nada: aquele
+         caminho descarta vazio de qualquer jeito. Mandar sempre é o que
+         faz o formulário de cima também apagar, quando ele descobre que o
+         título já existe e a pessoa confirma que quer atualizar. */
+      payload[key] = value;
     }
     if (spec.extra) Object.assign(payload, spec.extra(values));
     button.disabled = true;
@@ -625,6 +629,26 @@ function crudView(config){
         formHost.appendChild(titulo);
         const spec = {fields: config.fields, submitLabel: config.submitLabel || "Cadastrar"};
         const gravar = async function (payload){
+          /* O formulário de cima é de CADASTRO, mas gravar um título que
+             já existe atualiza o registro existente em silêncio -- é como
+             a importação de planilha funciona, e na tela vira armadilha:
+             a pessoa acha que está criando, está editando outro registro,
+             e o campo que ela esvaziou não é apagado, porque a gravação
+             por título descarta vazios de propósito.
+
+             Então se pergunta. E quando a resposta é sim, o pedido vai com
+             o id do registro -- que é o caminho onde apagar apaga. */
+          if (config.mesmoNome && !payload.registro_id){
+            const achado = config.mesmoNome(payload);
+            if (achado){
+              if (!confirm("Já existe “" + (achado.title || achado.name) + "”.\n\n"
+                  + "Atualizar esse registro com o que você preencheu? "
+                  + "Campo deixado em branco será apagado.\n\n"
+                  + "Cancele se queria cadastrar um registro novo — nesse caso "
+                  + "mude o título.")) return;
+              payload = Object.assign({}, payload, {registro_id: achado.id});
+            }
+          }
           const result = await api("/api/" + config.entity, "POST", payload);
           toast(result.written + " registro(s) gravado(s).");
           await loadLookups();
@@ -639,7 +663,6 @@ function crudView(config){
         config.__carregar = function (row, rotulo){
           const novo = buildForm(Object.assign({}, spec, row ? {
             submitLabel: "Salvar alterações",
-            edicao: true,
             /* O id da ficha aberta viaja junto. Sem ele a identidade do
                registro era o título, e renomear criava um SEGUNDO registro
                deixando o original intacto -- a tela dizia "1 registro
@@ -706,6 +729,11 @@ VIEWS.artigos = crudView({
     field("Título", "Título", "text", {required: true, span: "full", from: "title"}),
     field("Autores", "Autores", "text", {required: true, span: "full", from: "authors",
       hint: "Separe por ponto e vírgula, na ordem de autoria. Marque o correspondente com *."}),
+    /* O código faltava, e a coluna "ID" da lista ficava vazia justamente
+       nos artigos cadastrados na tela. Em branco o sistema atribui o
+       próximo da sequência que o laboratório já usa. */
+    field("Código", "Código do artigo", "text", {from: "internal_code",
+      hint: "Em branco, o sistema usa o próximo da sequência (LAPE-15, LAPE-16…)."}),
     field("Responsável", "Responsável", "text", {from: "lead_name"}),
     field("Status", "Situação", "select", {options: STATUS_OPTS, from: "__situacao"}),
     field("Linha de pesquisa", "Linha de pesquisa", "select",
@@ -740,6 +768,15 @@ VIEWS.artigos = crudView({
   editavel: true,
   aoEditar: function (row){
     return Object.assign({}, row, {__situacao: SITUACAO_ROTULO[row.status] || ""});
+  },
+  /* O título é a identidade do artigo: cadastrar um que já existe é, na
+     verdade, editar o que existe. Perguntar antes evita a pessoa achar
+     que criou um registro novo quando alterou outro. */
+  mesmoNome: function (payload){
+    const chave = String(payload["Título"] || "").trim().toLowerCase();
+    if (!chave) return null;
+    return (CACHE.articles || []).find(function (a){
+      return String(a.title || "").trim().toLowerCase() === chave; }) || null;
   },
   /* Excluir existia como necessidade e não como botão: até agora renomear
      um artigo criava uma CÓPIA em vez de alterar o original, e não havia

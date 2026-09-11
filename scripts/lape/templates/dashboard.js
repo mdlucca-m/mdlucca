@@ -287,6 +287,27 @@ function kpi(spec) {
         + (spec.deltaNote ? " " + spec.deltaNote : ""),
     }));
   }
+  /* Do que este número é feito. Um KPI que mostra só o total obriga quem
+     lê a abrir outra tela para saber a composição -- e a composição é
+     quase sempre a pergunta seguinte: "116 artigos, mas quantos saíram?".
+     A faixa responde sem clique nenhum, e a legenda diz qual parte é qual,
+     porque cor sozinha não nomeia coisa alguma. */
+  const seg = (spec.segmentos || []).filter(function (x) { return x.valor > 0; });
+  if (seg.length > 1) {
+    const soma = seg.reduce(function (t, x) { return t + x.valor; }, 0);
+    const faixa = el("div", { class: "kpi-seg" }, seg.map(function (x, i) {
+      const parte = el("i", { title: x.rotulo + ": " + C.fmt(x.valor) });
+      parte.style.width = (100 * x.valor / soma).toFixed(2) + "%";
+      parte.style.background = x.cor || C.serie(i);
+      return parte;
+    }));
+    node.appendChild(faixa);
+    node.appendChild(el("div", { class: "kpi-seg-leg" }, seg.map(function (x, i) {
+      const ponto = el("i");
+      ponto.style.background = x.cor || C.serie(i);
+      return el("span", {}, [ponto, el("span", { text: x.rotulo + " " + C.fmt(x.valor) })]);
+    })));
+  }
   if (spec.foot) node.appendChild(el("div", { class: "foot", text: spec.foot }));
   if (navega) {
     const seta = el("span", { class: "kpi-ir", "aria-hidden": "true" },
@@ -883,25 +904,8 @@ view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
     const emEscrita = rows.filter(function (a) { return a.status === "em_producao"; });
     const idadeMediana = median(emEscrita.map(function (a) {
       return daysSince(a.started_on); }).filter(function (d) { return d !== null; }));
-    const numeros = card("O LAPE em números", "toda a produção registrada", [
-      el("div", { class: "resumo-nums" }, [
-        numero(rows.length, "artigos", "no banco"),
-        numero(o.n_published, "publicados"),
-        numero(o.n_in_progress, "em produção"),
-        numero(o.n_submitted, "em avaliação"),
-        numero(Math.max(o.scopus_total || 0, o.wos_total || 0, o.openalex_total || 0),
-          "citações", "na melhor base"),
-        numero(o.n_members, "pesquisadores"),
-        numero(o.n_collaborators, "coautores"),
-        numero(o.n_projects_active, "projetos ativos"),
-      ]),
-      idadeMediana !== null && emEscrita.length
-        ? leituraDe({ sinal: "parado", forte: "Metade do que está em produção",
-            texto: "começou há mais de " + dur(idadeMediana) + "." })
-        : null,
-    ].filter(Boolean));
-
-    /* ---------------- produção do ano ---------------- */
+    /* A série por ano e a meta são usadas pelos indicadores E pelo gráfico
+       de produção; ficam aqui em cima, antes dos dois. */
     const anos = [];
     for (let y = ano - 5; y <= ano; y++) anos.push(y);
     const serie = anos.map(function (y) {
@@ -910,8 +914,64 @@ view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
     const metaPub = (M.indicadores || []).find(function (i) {
       return i.codigo === "publicacoes"; }) || {};
     const variacao = anterior ? Math.round(100 * (noAno - anterior) / anterior) : null;
+
+    /* Indicadores, e não números soltos. Cada um traz de que é feito
+       (a faixa), como vem se comportando (o minigráfico) e quanto mudou
+       (a variação) -- que é o que separa um número exibido de um número
+       lido. */
+    const porAno = function (filtro) {
+      return anos.map(function (y) {
+        return rows.filter(function (a) {
+          return Number(a.year_published) === y && filtro(a); }).length; });
+    };
+    const citTotal = Math.max(o.scopus_total || 0, o.wos_total || 0, o.openalex_total || 0);
+    const campoCit = (o.scopus_total || 0) >= (o.wos_total || 0)
+      ? "scopus_citations" : "wos_citations";
+    const citPorAno = anos.map(function (y) {
+      return rows.filter(function (a) { return Number(a.year_published) === y; })
+        .reduce(function (t, a) { return t + (a[campoCit] || a.openalex_citations || 0); }, 0);
+    });
+    const orientandos = (D.members || []).filter(function (m) {
+      return !m.is_external && m.active !== 0 && !m.left_on
+        && ["doutorando", "mestrando", "bolsista_ic", "graduando",
+            "bolsista_extensao"].indexOf(m.role) >= 0; }).length;
+
+    const numeros = card("O LAPE em números", "toda a produção registrada", [
+      el("div", { class: "grid g3" }, [
+        kpi({ label: "Artigos", value: C.fmt(rows.length), icon: "producao",
+          ir: "explorar", foot: "registrados no banco",
+          segmentos: [
+            { rotulo: "publicados", valor: o.n_published || 0 },
+            { rotulo: "em produção", valor: o.n_in_progress || 0 },
+            { rotulo: "em avaliação", valor: o.n_submitted || 0 },
+          ] }),
+        kpi({ label: "Publicados em " + ano, value: C.fmt(noAno), icon: "livro",
+          ir: "publicacoes",
+          delta: anterior ? noAno - anterior : null, deltaNote: "vs " + (ano - 1),
+          spark: porAno(function (a) { return a.status === "publicado"; }),
+          sparkColor: C.token("--accent-strong"),
+          foot: metaPub.meta ? "meta do ano: " + metaPub.meta : "sem meta declarada" }),
+        kpi({ label: "Citações", value: C.fmt(citTotal), icon: "citacao",
+          ir: "citacoes", spark: citPorAno, sparkColor: C.token("--accent-strong"),
+          foot: citTotal ? "na melhor base disponível" : "nenhuma base respondeu ainda" }),
+        kpi({ label: "Pessoas", value: C.fmt((o.n_members || 0) + (o.n_collaborators || 0)),
+          icon: "pessoas", ir: "pesquisadores",
+          foot: orientandos + " em formação",
+          segmentos: [
+            { rotulo: "do LAPE", valor: o.n_members || 0 },
+            { rotulo: "coautores", valor: o.n_collaborators || 0 },
+          ] }),
+      ]),
+      idadeMediana !== null && emEscrita.length
+        ? leituraDe({ sinal: "parado", forte: "Metade do que está em produção",
+            texto: "começou há mais de " + dur(idadeMediana) + "." })
+        : null,
+    ].filter(Boolean));
+
+    /* ---------------- produção do ano ---------------- */
     const producao = card("Produção científica", "publicações por ano", [
-      C.columns({ labels: anos.map(String), series: [{ label: "Publicados", values: serie }],
+      C.columns({ labels: anos.map(String),
+        series: [{ label: "Publicados", values: serie }],
         mono: true, height: 220, caption: null }),
       leituraDe({
         sinal: variacao === null ? "parado" : (variacao >= 0 ? "sobe" : "desce"),
@@ -955,6 +1015,15 @@ view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
         numero(o.best_h_index || "—", "maior índice h",
           o.best_h_index ? null : "ainda não declarado"),
       ]),
+      /* A curva mostra o que três números não mostram: a citação chega
+         com atraso, então o ano recente aparece baixo por ser recente e
+         não por ser fraco. Sem a curva, alguém lê o último ano como queda
+         de qualidade. */
+      citPorAno.some(function (v) { return v > 0; })
+        ? C.area({ labels: anos.map(String),
+            series: [{ label: "Citações", values: citPorAno }],
+            mono: true, height: 150, caption: "citações recebidas, por ano de publicação" })
+        : null,
       topo ? el("div", { class: "resumo-topo" }, [
         el("div", { class: "hint", text: "artigo mais citado" }),
         el("b", { text: topo.title }),
@@ -975,7 +1044,9 @@ view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
       const meus = rows.filter(function (a) { return a.research_line === l.name; });
       return { nome: l.name, ativa: l.active !== 0, total: meus.length,
         publicados: meus.filter(function (a) { return a.status === "publicado"; }).length,
-        producao: meus.filter(function (a) { return a.status === "em_producao"; }).length };
+        producao: meus.filter(function (a) { return a.status === "em_producao"; }).length,
+        avaliacao: meus.filter(function (a) {
+          return a.status === "submetido" || a.status === "em_revisao"; }).length };
     }).filter(function (x) { return x.ativa || x.total; })
       .sort(function (a, b) { return b.total - a.total; });
     const semLinha = rows.filter(function (a) { return !a.research_line; }).length;
@@ -985,14 +1056,30 @@ view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
     const comArtigo = linhas.filter(function (x) { return x.total > 0; });
     const areas = card("Por linha de pesquisa", "onde a produção está", [
       comArtigo.length
+        /* Barra horizontal, e composta. Horizontal porque "Fibromialgia e
+           doenças reumáticas" não cabe embaixo de uma coluna -- em
+           coluna o rótulo gira e colide com a legenda. Composta porque
+           duas linhas com dez artigos cada não são a mesma coisa se uma
+           tem dez publicados e a outra tem dez ainda em produção, e o
+           total sozinho apaga essa diferença. */
         ? C.bars({ items: comArtigo.slice(0, 8).map(function (x) {
-            return { label: x.nome, value: x.total,
-              note: x.publicados + " publicados" }; }),
-            unit: "artigos", mono: true, labelWidth: 190, rowH: 30 })
+            return { label: x.nome, value: x.total, partes: [
+              { rotulo: "publicados", valor: x.publicados },
+              { rotulo: "em produção", valor: x.producao },
+              { rotulo: "em avaliação", valor: x.avaliacao },
+            ] }; }),
+            unit: "artigos", labelWidth: 210, labelChars: 30, rowH: 32,
+            caption: "artigos por linha, repartidos por situação" })
         : el("div", { class: "empty",
             text: "Nenhum artigo está associado a uma linha de pesquisa." }),
       /* O que está fora de qualquer linha é a informação que falta, e ela
          não aparece em gráfico nenhum de composição. */
+      comArtigo.length ? el("div", { class: "kpi-seg-leg", style: "margin-top:2px" },
+        ["publicados", "em produção", "em avaliação"].map(function (rotulo, i) {
+          const ponto = el("i");
+          ponto.style.background = C.serie(i);
+          return el("span", {}, [ponto, el("span", { text: rotulo })]);
+        })) : null,
       semLinha ? leituraDe({ sinal: "parado",
         forte: semLinha + " artigo(s)",
         texto: "estão sem linha de pesquisa e não entram em nenhuma barra acima" })
@@ -1090,6 +1177,7 @@ view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
     /* Os cartões com gráfico ocupam duas colunas. Numa coluna só as
        barras saem com dez pixels de altura e o rótulo do ano ilegível --
        gráfico que não se lê é enfeite ocupando o lugar de um número. */
+    numeros.classList.add("largo");
     producao.classList.add("largo");
     areas.classList.add("largo");
     objetivos.classList.add("largo");

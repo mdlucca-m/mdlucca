@@ -339,5 +339,101 @@ class TestOResumoNumaPagina(unittest.TestCase):
         self.assertIn("90 dias", self.corpo)
 
 
+class TestADefinicaoDosGraficos(unittest.TestCase):
+    """Gráfico desenhado no tamanho real, e não esticado pelo CSS.
+
+    Todo gráfico era autorado num sistema de 760 pixels e o CSS esticava o
+    SVG para a largura do container. Num cartão de 300px isso é escala
+    0,39: o rótulo de 10,5px vira 4,1px e o traço de 1px vira 0,4px. É daí
+    que vinha o aspecto apagado -- SVG é vetorial, mas vetorial não
+    conserta tipografia reduzida a um terço.
+    """
+
+    def setUp(self):
+        self.charts = (TEMPLATES / "charts.js").read_text(encoding="utf-8")
+        self.dash = (TEMPLATES / "dashboard.js").read_text(encoding="utf-8")
+
+    def test_nenhum_grafico_tem_largura_fixa(self):
+        self.assertNotIn("const W = 760", self.charts)
+        self.assertIn("const W = spec.width || 760", self.charts)
+
+    def test_a_propria_biblioteca_mede_o_container(self):
+        """O envoltório fica na biblioteca, e não em cada chamada.
+
+        Envolver aqui é o que faz as vinte e três telas herdarem a
+        correção de uma vez -- e o que impede a próxima tela de nascer com
+        o mesmo defeito.
+        """
+        self.assertIn("function responsivo(", self.charts)
+        self.assertIn("caixa.clientWidth", self.charts)
+        self.assertIn("ResizeObserver", self.charts)
+
+    def test_as_formas_largas_saem_envolvidas(self):
+        bloco = self.charts[self.charts.rindex("  return {"):]
+        for forma in ("columns", "bars", "lines", "area", "scatter", "network"):
+            with self.subTest(forma=forma):
+                self.assertRegex(bloco, forma + r":\s*responsivo\(")
+
+    def test_as_formas_de_tamanho_proprio_ficam_de_fora(self):
+        """Rosca, medidor e radar não são esticados -- são centrados.
+
+        Deixá-los crescer até a largura do cartão é que estragaria.
+        """
+        bloco = self.charts[self.charts.rindex("  return {"):]
+        for forma in ("donut", "gauge", "radar", "sparkline"):
+            with self.subTest(forma=forma):
+                self.assertNotRegex(bloco, forma + r":\s*responsivo\(")
+
+    def test_o_envoltorio_nao_entra_em_laco(self):
+        """Redesenhar troca o conteúdo, o observador acorda de novo.
+
+        Sem um limiar de largura isso não pararia nunca.
+        """
+        corpo = self.charts[self.charts.index("function responsivo("):]
+        corpo = corpo[:corpo.index("\n  return {")]
+        self.assertIn("Math.abs(largura - ultima)", corpo)
+
+    def test_quem_passa_largura_desenha_na_hora(self):
+        """Quem exporta para imagem não tem container nenhum para medir."""
+        corpo = self.charts[self.charts.index("function responsivo("):]
+        corpo = corpo[:corpo.index("\n  return {")]
+        self.assertIn("if (spec.width) return fn(spec);", corpo)
+
+
+class TestOsIndicadoresSegmentados(unittest.TestCase):
+
+    def setUp(self):
+        self.dash = (TEMPLATES / "dashboard.js").read_text(encoding="utf-8")
+        self.css = (TEMPLATES / "theme.css").read_text(encoding="utf-8")
+
+    def test_o_indicador_mostra_do_que_o_numero_e_feito(self):
+        """"116 artigos, mas quantos saíram?" é a pergunta seguinte."""
+        self.assertIn("spec.segmentos", self.dash)
+        self.assertIn("kpi-seg", self.dash)
+
+    def test_a_composicao_vem_com_legenda(self):
+        # cor sozinha não nomeia coisa alguma
+        self.assertIn("kpi-seg-leg", self.dash)
+
+    def test_os_pedacos_tem_intervalo_entre_si(self):
+        """Sem intervalo, duas cores vizinhas leem-se como uma faixa só."""
+        bloco = self.css[self.css.index(".kpi-seg {"):]
+        bloco = bloco[:bloco.index("}")]
+        self.assertIn("gap: 2px", bloco)
+
+    def test_o_minigrafico_nao_cresce_ate_competir_com_o_numero(self):
+        bloco = self.css[self.css.index(".kpi .spark {"):]
+        bloco = bloco[:bloco.index("}")]
+        self.assertIn("max-width", bloco)
+
+    def test_a_barra_horizontal_aceita_composicao(self):
+        charts = (TEMPLATES / "charts.js").read_text(encoding="utf-8")
+        corpo = charts[charts.index("function bars(spec)"):]
+        corpo = corpo[:corpo.index("function lines(spec)")]
+        self.assertIn("item.partes", corpo)
+        # o mesmo intervalo de 2px do indicador, pelo mesmo motivo
+        self.assertIn("x += pw + 2", corpo)
+
+
 if __name__ == "__main__":
     unittest.main()

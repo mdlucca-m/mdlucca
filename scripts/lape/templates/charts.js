@@ -294,7 +294,7 @@ const Charts = (function () {
     const series = spec.series || [{ label: spec.name || "", values: spec.values || [] }];
     if (!labels.length) return figure(spec, empty(spec.emptyMessage));
 
-    const W = 760, MR = 16, MT = 20, ML = 52;
+    const W = spec.width || 760, MR = 16, MT = 20, ML = 52;
     /* rótulo que não cabe na faixa é girado; aí o rodapé precisa de mais altura */
     const maisLongo = labels.reduce(function (a, l) { return Math.max(a, String(l).length); }, 0);
     const girado = (W - ML - MR) / labels.length - 6 < maisLongo * 5.6;
@@ -402,7 +402,7 @@ const Charts = (function () {
     const items = spec.items || [];
     if (!items.length) return figure(spec, empty(spec.emptyMessage));
     const rowH = spec.rowH || 26;
-    const W = 760, ML = spec.labelWidth || 190, MR = 62;
+    const W = spec.width || 760, ML = spec.labelWidth || 190, MR = 62;
     const H = items.length * rowH + 12;
     const iw = W - ML - MR;
     const peak = Math.max.apply(null, items.map(function (d) { return d.value; }).concat([0]));
@@ -427,6 +427,31 @@ const Charts = (function () {
       if (item.rank) {
         svg.appendChild(txt(s("text", { class: "tick", x: 6, y: y + barH / 2 + 4 }), item.rank + "º"));
       }
+      /* A barra pode ser composta: "dez artigos" nao e a mesma coisa
+         quando sao dez publicados ou dez ainda em producao, e o total
+         sozinho apaga justamente essa diferenca. Os 2px de intervalo
+         entre os pedacos sao o que impede duas cores vizinhas de se
+         lerem como uma faixa continua. */
+      const partes = (item.partes || []).filter(function (x) { return x.valor > 0; });
+      if (partes.length > 1) {
+        let x = ML;
+        partes.forEach(function (parte, k) {
+          const pw = Math.max(1, (w - 2 * (partes.length - 1)) * parte.valor / item.value);
+          const ultimo = k === partes.length - 1;
+          const cor = parte.cor || serie(k);
+          const pedaco = s("path", {
+            class: "mark",
+            d: ultimo ? capRight(x, y, pw, barH)
+                      : "M" + x + "," + y + " h" + pw + " v" + barH + " h" + (-pw) + " Z",
+            fill: cor });
+          hoverable(pedaco, item.label,
+            [{ value: fmt(parte.valor), name: parte.rotulo, color: cor }]);
+          svg.appendChild(pedaco);
+          x += pw + 2;
+        });
+        svg.appendChild(txt(s("text", { class: "val", x: ML + w + 8, y: y + barH / 2 + 4 }), fmt(item.value)));
+        return;
+      }
       const node = s("path", { class: "mark", d: capRight(ML, y, w, barH), fill: color });
       const rows = [{ value: fmt(item.value), name: spec.unit || "", color: color }];
       if (item.note) rows.push({ value: "", name: item.note });
@@ -444,7 +469,7 @@ const Charts = (function () {
     const labels = spec.labels || [];
     const series = spec.series || [];
     if (!labels.length || !series.length) return figure(spec, empty(spec.emptyMessage));
-    const W = 760, H = spec.height || 250, ML = 52, MR = 20, MT = 18, MB = 38;
+    const W = spec.width || 760, H = spec.height || 250, ML = 52, MR = 20, MT = 18, MB = 38;
     const iw = W - ML - MR, ih = H - MT - MB;
     const all = series.reduce(function (acc, x) { return acc.concat(x.values); }, []);
     /* `spec.max` trava o topo do eixo. Sem ele, uma serie desenhada
@@ -656,7 +681,7 @@ const Charts = (function () {
     if (!steps.length) return figure(spec, empty(spec.emptyMessage));
     /* rowH aberto: no mural, quatro etapas precisam ocupar a altura do quadro */
     const rowH = spec.rowH || 46;
-    const W = 760, H = steps.length * rowH + 10, ML = 176, MR = 130;
+    const W = spec.width || 760, H = steps.length * rowH + 10, ML = 176, MR = 130;
     const peak = Math.max.apply(null, steps.map(function (x) { return x.value; }).concat([1]));
     const svg = svgRoot(W, H, spec.caption || "funil");
     steps.forEach(function (step, i) {
@@ -686,7 +711,7 @@ const Charts = (function () {
   function scatter(spec) {
     const points = spec.points || [];
     if (!points.length) return figure(spec, empty(spec.emptyMessage));
-    const W = 760, H = spec.height || 320, ML = 56, MR = 24, MT = 18, MB = 46;
+    const W = spec.width || 760, H = spec.height || 320, ML = 56, MR = 24, MT = 18, MB = 46;
     const iw = W - ML - MR, ih = H - MT - MB;
     const xs = points.map(function (p) { return p.x; }), ys = points.map(function (p) { return p.y; });
     const sx = niceTicks(Math.max.apply(null, xs.concat([0])), 4);
@@ -735,7 +760,7 @@ const Charts = (function () {
   function dumbbell(spec) {
     const items = spec.items || [];
     if (!items.length) return figure(spec, empty(spec.emptyMessage));
-    const rowH = 30, W = 760, ML = spec.labelWidth || 210, MR = 70;
+    const rowH = 30, W = spec.width || 760, ML = spec.labelWidth || 210, MR = 70;
     const H = items.length * rowH + 30;
     const iw = W - ML - MR;
     const peak = Math.max.apply(null, items.reduce(function (a, d) { return a.concat([d.from, d.to]); }, [0]));
@@ -785,6 +810,14 @@ const Charts = (function () {
     const W = ML + 12 * cell + 8, H = MT + years.length * cell + 10;
     const peak = Math.max.apply(null, values.concat([1]));
     const svg = svgRoot(W, H, spec.caption || "mapa de calor");
+    svg.classList.add("natural");
+    /* O atributo, e nao so a classe. `width: auto` num SVG inline NAO
+       significa "use o teu tamanho": pela regra de dimensionamento de
+       elemento substituido, auto cai para 100% do container -- foi o que
+       manteve este grafico ampliado ao dobro mesmo com a classe posta. So
+       o atributo explicito faz o navegador respeitar o tamanho autorado. */
+    svg.setAttribute("width", W);
+    svg.setAttribute("height", H);
 
     MESES.forEach(function (m, i) {
       svg.appendChild(txt(s("text", { class: "tick", x: ML + i * cell + cell / 2, y: MT - 8, "text-anchor": "middle" }), m));
@@ -823,7 +856,7 @@ const Charts = (function () {
   function distribution(spec) {
     const groups = (spec.groups || []).filter(function (g) { return g.values && g.values.length; });
     if (!groups.length) return figure(spec, empty(spec.emptyMessage));
-    const rowH = 54, W = 760, ML = spec.labelWidth || 180, MR = 26;
+    const rowH = 54, W = spec.width || 760, ML = spec.labelWidth || 180, MR = 26;
     const H = groups.length * rowH + 34;
     const iw = W - ML - MR;
     const peak = Math.max.apply(null, groups.reduce(function (a, g) { return a.concat(g.values); }, [0]));
@@ -882,7 +915,7 @@ const Charts = (function () {
     const items = (spec.items || []).filter(function (d) { return d.value > 0; })
       .sort(function (a, b) { return b.value - a.value; });
     if (!items.length) return figure(spec, empty(spec.emptyMessage));
-    const W = 760, H = spec.height || 300;
+    const W = spec.width || 760, H = spec.height || 300;
     const total = items.reduce(function (a, b) { return a + b.value; }, 0);
     const svg = svgRoot(W, H, spec.caption || "participação");
 
@@ -937,7 +970,7 @@ const Charts = (function () {
     const nodes = spec.nodes || [];
     const links = spec.links || [];
     if (!nodes.length || !links.length) return figure(spec, empty(spec.emptyMessage));
-    const W = 760, H = spec.height || 340, PAD = 16, NODE_W = 14;
+    const W = spec.width || 760, H = spec.height || 340, PAD = 16, NODE_W = 14;
     const depths = Array.from(new Set(nodes.map(function (n) { return n.depth; }))).sort();
     const colX = {};
     depths.forEach(function (d, i) {
@@ -1019,7 +1052,7 @@ const Charts = (function () {
   function network(spec) {
     const nodes = spec.nodes || [], links = spec.links || [];
     if (!nodes.length) return figure(spec, empty(spec.emptyMessage));
-    const W = 760, H = spec.height || 470;
+    const W = spec.width || 760, H = spec.height || 470;
     /* Fruchterman–Reingold determinístico: o mesmo dado gera o mesmo desenho */
     const k = Math.sqrt(W * H / nodes.length);
     const pos = new Map();
@@ -1094,7 +1127,7 @@ const Charts = (function () {
       return p.lat !== null && p.lat !== undefined && p.lon !== null && p.lon !== undefined;
     });
     if (!points.length) return figure(spec, empty(spec.emptyMessage || "Sem coordenadas cadastradas."));
-    const W = 760, H = spec.height || 400, pad = 54;
+    const W = spec.width || 760, H = spec.height || 400, pad = 54;
     let latMin = Math.min.apply(null, points.map(function (p) { return p.lat; }));
     let latMax = Math.max.apply(null, points.map(function (p) { return p.lat; }));
     let lonMin = Math.min.apply(null, points.map(function (p) { return p.lon; }));
@@ -1490,7 +1523,7 @@ const Charts = (function () {
     const labels = spec.labels || [];
     const series = spec.series || [];
     if (!labels.length || !series.length) return figure(spec, empty(spec.emptyMessage));
-    const W = 760, H = spec.height || 260, ML = 52, MR = 20, MT = 18, MB = 38;
+    const W = spec.width || 760, H = spec.height || 260, ML = 52, MR = 20, MT = 18, MB = 38;
     const iw = W - ML - MR, ih = H - MT - MB;
 
     /* pilha acumulada por índice */
@@ -1679,7 +1712,7 @@ const Charts = (function () {
   function waterfall(spec) {
     const items = spec.items || [];
     if (!items.length) return figure(spec, empty(spec.emptyMessage));
-    const W = 760, H = spec.height || 280, ML = 56, MR = 20, MT = 20, MB = 52;
+    const W = spec.width || 760, H = spec.height || 280, ML = 56, MR = 20, MT = 20, MB = 52;
     const iw = W - ML - MR, ih = H - MT - MB;
 
     let run = 0, low = 0, high = 0;
@@ -1746,7 +1779,7 @@ const Charts = (function () {
   function bullet(spec) {
     const items = spec.items || [];
     if (!items.length) return figure(spec, empty(spec.emptyMessage));
-    const W = 760, ML = spec.labelWidth || 190, MR = 58, MT = 8;
+    const W = spec.width || 760, ML = spec.labelWidth || 190, MR = 58, MT = 8;
     const row = 34, H = MT + row * items.length + 10;
     const iw = W - ML - MR;
     const svg = svgRoot(W, H, spec.caption || "realizado contra meta");
@@ -1808,6 +1841,14 @@ const Charts = (function () {
     const weeks = Math.ceil((firstDow + total) / 7);
     const W = ML + weeks * (cell + gap) + 8, H = MT + 7 * (cell + gap) + 20;
     const svg = svgRoot(W, H, spec.caption || "calendário do ano");
+    svg.classList.add("natural");
+    /* O atributo, e nao so a classe. `width: auto` num SVG inline NAO
+       significa "use o teu tamanho": pela regra de dimensionamento de
+       elemento substituido, auto cai para 100% do container -- foi o que
+       manteve este grafico ampliado ao dobro mesmo com a classe posta. So
+       o atributo explicito faz o navegador respeitar o tamanho autorado. */
+    svg.setAttribute("width", W);
+    svg.setAttribute("height", H);
     const ramp = [seq(200), seq(400), seq(600), seq(700)];
     const shade = function (v) {
       if (!v) return token("--grid");
@@ -1856,7 +1897,7 @@ const Charts = (function () {
     const depth = series.reduce(function (acc, x) {
       return Math.max(acc, Math.max.apply(null, x.values.filter(function (v) { return v; })));
     }, 1);
-    const W = 760, MT = 24, MB = 40, ML = 168, MR = 168;
+    const W = spec.width || 760, MT = 24, MB = 40, ML = 168, MR = 168;
     const H = MT + MB + depth * 30;
     const iw = W - ML - MR, ih = H - MT - MB;
     const X = function (i) { return ML + iw * i / (labels.length - 1); };
@@ -2054,7 +2095,7 @@ const Charts = (function () {
     const maisLongo = folhas.reduce(function (a, f) {
       return Math.max(a, String(f.label || "").length); }, 0);
     const ML = Math.max(120, Math.min(250, maisLongo * 6.1 + 34));
-    const W = 760, H = MT + MB + folhas.length * linha;
+    const W = spec.width || 760, H = MT + MB + folhas.length * linha;
     const iw = W - ML - MR, ih = folhas.length * linha;
     const topo = spec.altura_maxima || 1;
     const X = function (d) { return ML + iw * (topo ? d / topo : 0); };
@@ -2293,15 +2334,63 @@ const Charts = (function () {
   }
 
   /* --------------------------------------------------------------- API */
+  /* ==================================================================== */
+  /* desenhar no tamanho de quem recebe                                   */
+  /* ==================================================================== */
+  /* Todo grafico largo era autorado num sistema de 760 pixels e o CSS
+     esticava o SVG ate a largura do container. Quando o container e menor
+     -- um cartao de um terco de tela, um celular --, o navegador ENCOLHE
+     tudo junto: o rotulo de 10,5px vira 4,1px, o traco de 1px vira 0,4px,
+     e o resultado e aquele aspecto apagado que nao se le. SVG e vetorial,
+     mas vetorial nao conserta tipografia reduzida a um terco.
+
+     Envolver aqui, e nao em cada chamada, e o que faz as vinte e tres
+     telas herdarem a correcao de uma vez -- e o que impede a proxima tela
+     de nascer com o mesmo defeito.
+
+     Quem passa `width` explicito continua desenhando na hora: e o caso de
+     quem exporta o grafico para imagem, que nao tem container nenhum para
+     medir.
+
+     Os graficos de tamanho proprio -- rosca, medidor, radar, minigrafico,
+     globo, mapa -- ficam de fora: eles nao sao esticados, sao centrados, e
+     deixa-los crescer ate a largura do cartao e que estragaria. */
+  function responsivo(fn) {
+    return function (spec) {
+      spec = spec || {};
+      if (spec.width) return fn(spec);
+      const caixa = el("div", { class: "plotbox" });
+      let ultima = 0;
+      const desenhar = function () {
+        const largura = Math.round(caixa.clientWidth || 0);
+        /* o limiar e o que impede o laco: redesenhar troca o conteudo da
+           caixa e acorda o observador de novo */
+        if (!largura || Math.abs(largura - ultima) < 12) return;
+        ultima = largura;
+        caixa.textContent = "";
+        caixa.appendChild(fn(Object.assign({}, spec, { width: largura })));
+      };
+      requestAnimationFrame(desenhar);
+      if (window.ResizeObserver) {
+        new ResizeObserver(function () { requestAnimationFrame(desenhar); }).observe(caixa);
+      }
+      return caixa;
+    };
+  }
+
   return {
-    columns: columns, bars: bars, lines: lines, donut: donut, funnel: funnel,
-    scatter: scatter, dumbbell: dumbbell, heatmap: heatmap, distribution: distribution,
-    treemap: treemap, sankey: sankey, network: network, geo: geo,
+    columns: responsivo(columns), bars: responsivo(bars), lines: responsivo(lines),
+    donut: donut, funnel: responsivo(funnel),
+    scatter: responsivo(scatter), dumbbell: responsivo(dumbbell), heatmap: heatmap,
+    distribution: responsivo(distribution),
+    treemap: responsivo(treemap), sankey: responsivo(sankey),
+    network: responsivo(network), geo: responsivo(geo),
     mapaMundi: mapaMundi, globo: globo,
-    dendrograma: dendrograma, fluxo: fluxo,
+    dendrograma: responsivo(dendrograma), fluxo: fluxo,
     sparkline: sparkline, meter: meter,
-    area: area, radar: radar, gauge: gauge, waterfall: waterfall, bullet: bullet,
-    calendarHeat: calendarHeat, bump: bump, gradFill: gradFill,
+    area: responsivo(area), radar: radar, gauge: gauge,
+    waterfall: responsivo(waterfall), bullet: responsivo(bullet),
+    calendarHeat: calendarHeat, bump: responsivo(bump), gradFill: gradFill,
     legend: legendOf, scaleLegend: scaleLegend, table: plainTable, csv: downloadCsv,
     token: token, serie: serie, seq: seq, ord: ord, fmt: fmt, compact: compact,
     el: el, svg: s, txt: txt, hideTip: hideTip, empty: empty, MESES: MESES,

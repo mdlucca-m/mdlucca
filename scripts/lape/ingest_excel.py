@@ -655,6 +655,36 @@ def gravar_registro(db: Database, tabela: str, dados: dict, conflito: tuple[str,
     return _atualizar(db, tabela, alvo, dados, row, origem or {}, sempre)
 
 
+def proximo_codigo(db: Database) -> str | None:
+    """O proximo codigo interno, no formato que o laboratorio ja usa.
+
+    Os artigos que vieram da planilha tem LAPE-06, LAPE-09, LAPE-14. Os
+    cadastrados na tela nasciam SEM codigo nenhum, porque o formulario nao
+    tinha o campo e nada gerava um -- e a coluna "ID" da lista ficava vazia
+    justamente nos artigos novos, que sao os que mais se procura.
+
+    O prefixo e a largura saem do que ja existe, e nao de uma constante:
+    um laboratorio que numera "ART001" continua numerando "ART001".
+    """
+    import re as _re
+
+    usados = db.dicts(
+        "SELECT internal_code FROM articles"
+        " WHERE internal_code IS NOT NULL AND TRIM(internal_code) <> ''")
+    prefixos: dict[str, list[int]] = {}
+    for linha in usados:
+        casa = _re.match(r"^(.*?)(\d+)$", str(linha["internal_code"]).strip())
+        if not casa:
+            continue
+        prefixos.setdefault(casa.group(1), []).append(int(casa.group(2)))
+    if not prefixos:
+        return "LAPE-01"
+    prefixo = max(prefixos, key=lambda k: len(prefixos[k]))
+    numeros = prefixos[prefixo]
+    largura = max(len(str(n)) for n in numeros)
+    return f"{prefixo}{max(numeros) + 1:0{largura}d}"
+
+
 def ingest_articles(db: Database, rows: list[dict]) -> int:
     written = 0
     for row in rows:
@@ -717,6 +747,12 @@ def ingest_articles(db: Database, rows: list[dict]) -> int:
         }
         if alvo is None:
             dados["source"] = "planilha"
+            # Codigo so para ficha NOVA e sem codigo: uma vez atribuido ele
+            # nao muda, senao o "LAPE-14" que alguem citou num e-mail
+            # passaria a apontar para outro artigo.
+            if not dados.get("internal_code") and not db.scalar(
+                    "SELECT 1 FROM articles WHERE title_key = ?", (title_key(title),)):
+                dados["internal_code"] = proximo_codigo(db)
         article_id = gravar_registro(db, "articles", dados, ("title_key",), row,
                                      origem=ORIGEM_DO_CAMPO, sempre=SEMPRE_NA_EDICAO,
                                      rotulo="title")

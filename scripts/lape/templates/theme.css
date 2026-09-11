@@ -406,7 +406,12 @@ button:disabled:active { transform: none; }
 .kpi .value { font-size: 28px; font-weight: 650; letter-spacing: -.03em; line-height: 1.12;
   margin-top: 3px; }
 .kpi .foot { font-size: 11.5px; color: var(--ink-muted); }
-.kpi .spark { margin-top: 7px; }
+/* O minigráfico é referência, não protagonista: ele mostra a forma dos
+   últimos anos ao lado do número, e não pode crescer até competir com
+   ele. Sem o teto, o SVG de 132x30 esticava para a largura do cartão --
+   ampliação de duas vezes e meia, com o traço engrossando junto. */
+.kpi .spark { margin-top: 7px; max-width: 168px; }
+.kpi .spark svg { max-height: 32px; }
 /* tom do indicador: a cor reforça o rodapé, nunca informa sozinha */
 .kpi.t-good { border-color: color-mix(in srgb, var(--good) 34%, var(--border)); }
 .kpi.t-good .label svg.icon { color: var(--good); }
@@ -488,6 +493,10 @@ figure.chart figcaption { font-size: 12px; color: var(--ink-2); margin-bottom: 1
 svg.plot { display: block; width: 100%; height: auto; overflow: visible; }
 /* formas redondas crescem em círculo: sem teto, viram um disco gigante no cartão */
 svg.plot.round { max-width: 380px; margin-inline: auto; }
+/* Gráfico cuja largura sai do conteúdo -- uma célula por mês, uma por
+   semana. Esticá-lo até o container o amplia duas vezes, e a célula vira
+   um bloco com o rótulo engrossado junto. */
+svg.plot.natural { width: auto; max-width: 100%; margin-inline: auto; }
 /* O organograma tem a largura que a equipe tiver. Encolher tudo até caber
    deixaria o nome ilegível; quem rola é a caixa, nunca a página. */
 .scrollx { overflow-x: auto; overflow-y: hidden; padding-bottom: 6px; }
@@ -793,3 +802,29 @@ textarea:focus-visible, [tabindex]:focus-visible {
   display: grid; gap: 3px;
 }
 .resumo-topo b { font-size: 13px; line-height: 1.35; }
+
+/* A caixa que o gráfico mede antes de se desenhar. Precisa ter largura
+   própria e não pode ser encolhida pelo conteúdo: `min-width: 0` numa
+   grade é o que impede o SVG de empurrar a coluna. */
+.plotbox { width: 100%; min-width: 0; }
+
+/* A composição de um indicador, numa faixa só.
+
+   Fina de propósito: ela explica o número que está acima, não compete com
+   ele. O intervalo de 2px entre as partes é o que impede duas cores
+   vizinhas de se lerem como uma faixa contínua. */
+.kpi-seg {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+  margin-top: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.kpi-seg i { display: block; height: 100%; border-radius: 2px; }
+.kpi-seg-leg {
+  display: flex; flex-wrap: wrap; gap: 4px 12px;
+  margin-top: 7px; font-size: 11px; color: var(--ink-2);
+}
+.kpi-seg-leg span { display: inline-flex; align-items: center; gap: 5px; }
+.kpi-seg-leg i { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }

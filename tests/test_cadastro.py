@@ -143,16 +143,35 @@ class TestOFormularioDeEdicao(Base):
         super().setUp()
         self.html = (TEMPLATES / "app.html").read_text(encoding="utf-8")
 
-    def test_o_campo_vazio_e_enviado_quando_se_edita(self):
+    def test_o_campo_vazio_e_sempre_enviado(self):
+        """Sem ele o servidor não distingue "apaguei" de "não veio".
+
+        No cadastro de registro novo mandar o vazio não muda nada -- aquele
+        caminho descarta vazio de qualquer jeito. Mandar sempre é o que faz
+        o formulário de cima também apagar, quando descobre que o título já
+        existe e a pessoa confirma que quer atualizar.
+        """
         trecho = self.html[self.html.index("const payload = {};"):]
         trecho = trecho[:trecho.index("if (spec.extra)")]
-        self.assertIn("spec.edicao", trecho,
-                      "o campo vazio não é enviado, então apagar na tela não apaga")
+        self.assertIn("payload[key] = value;", trecho)
+        self.assertNotIn('if (value !== "")', trecho)
+
+    def test_o_titulo_repetido_pergunta_antes_de_atualizar(self):
+        """Gravar um título que já existe alterava outro registro em silêncio.
+
+        Na importação de planilha isso é a regra certa; na tela é
+        armadilha -- a pessoa acha que está criando, está editando, e o
+        campo que ela esvaziou não some.
+        """
+        trecho = self.html[self.html.index("const gravar = async function"):]
+        trecho = trecho[:trecho.index("let formulario")]
+        self.assertIn("config.mesmoNome", trecho)
+        self.assertIn("registro_id: achado.id", trecho)
+        self.assertIn("confirm(", trecho)
 
     def test_a_ficha_aberta_manda_o_proprio_id(self):
         trecho = self.html[self.html.index("config.__carregar = function"):]
         trecho = trecho[:trecho.index("titulo.textContent")]
-        self.assertIn("edicao: true", trecho)
         self.assertIn("registro_id: row.id", trecho)
 
     def test_o_cadastro_novo_nao_entra_em_modo_de_edicao(self):
@@ -160,6 +179,84 @@ class TestOFormularioDeEdicao(Base):
         trecho = self.html[self.html.index("config.__carregar = function"):]
         trecho = trecho[:trecho.index("titulo.textContent")]
         self.assertIn("row ?", trecho)
+
+    def test_o_artigo_novo_recebe_codigo(self):
+        """A coluna "ID" ficava vazia justamente nos artigos da tela."""
+        from lape.ingest_excel import proximo_codigo
+
+        for titulo, codigo in (("A", "LAPE-06"), ("B", "LAPE-09"), ("C", "LAPE-14")):
+            self.db.insert("articles", {"title": titulo, "title_key": titulo.lower(),
+                                        "internal_code": codigo})
+        self.db.conn.commit()
+        self.assertEqual(proximo_codigo(self.db), "LAPE-15")
+        curator.register(self.db, "articles", {"Título": "Novo na tela", "Autores": "X"})
+        self.assertEqual(self.db.scalar(
+            "SELECT internal_code FROM articles WHERE title = 'Novo na tela'"), "LAPE-15")
+
+    def test_o_codigo_digitado_manda_mais_que_a_sequencia(self):
+        curator.register(self.db, "articles", {"Título": "Com código", "Autores": "X",
+                                               "Código": "TCC-2026-1"})
+        self.assertEqual(self.db.scalar(
+            "SELECT internal_code FROM articles WHERE title = 'Com código'"), "TCC-2026-1")
+
+    def test_o_codigo_de_um_artigo_nunca_muda(self):
+        """"LAPE-14" citado num e-mail não pode passar a ser outro artigo."""
+        curator.register(self.db, "articles", {"Título": "Estável", "Autores": "X"})
+        alvo = self.db.scalar("SELECT id FROM articles WHERE title = 'Estável'")
+        antes = self.db.scalar("SELECT internal_code FROM articles WHERE id = ?", (alvo,))
+        curator.register(self.db, "articles", {"Título": "Estável", "Autores": "X; Y"})
+        self.assertEqual(
+            self.db.scalar("SELECT internal_code FROM articles WHERE id = ?", (alvo,)), antes)
+
+    def test_a_exclusao_nao_depende_do_esquema_ter_cascata(self):
+        """Tabela criada por versão anterior ficou com a chave em NO ACTION.
+
+        `CREATE TABLE IF NOT EXISTS` nunca recria uma tabela que já existe
+        para acrescentar `ON DELETE CASCADE` -- e num banco em uso desde
+        antes da regra, apagar um artigo devolvia "FOREIGN KEY constraint
+        failed": erro 500 na tela de quem só queria tirar uma ficha
+        repetida.
+        """
+        import sqlite3
+        import tempfile as _tmp
+        from pathlib import Path as _Path
+
+        from lape.db import Database as _Db
+
+        caminho = _Path(_tmp.mkdtemp()) / "velho.sqlite"
+        cru = sqlite3.connect(caminho)
+        cru.executescript("""
+            PRAGMA foreign_keys = ON;
+            CREATE TABLE articles (id INTEGER PRIMARY KEY, title TEXT NOT NULL,
+              title_key TEXT UNIQUE NOT NULL, status TEXT DEFAULT 'em_producao');
+            CREATE TABLE article_authors (
+              article_id INTEGER NOT NULL REFERENCES articles(id),
+              member_id INTEGER, author_name TEXT NOT NULL,
+              author_order INTEGER NOT NULL DEFAULT 1,
+              PRIMARY KEY (article_id, author_order));
+            CREATE TABLE events (id INTEGER PRIMARY KEY, title TEXT,
+              article_id INTEGER REFERENCES articles(id));
+            INSERT INTO articles (title, title_key) VALUES ('X','x');
+            INSERT INTO article_authors (article_id, author_name) VALUES (1,'Andrade');
+            INSERT INTO events (title, article_id) VALUES ('Reunião', 1);
+        """)
+        cru.commit()
+        cru.close()
+        antigo = _Db(caminho)
+        self.addCleanup(antigo.close)
+        antigo.migrate()
+        self.assertEqual(
+            [dict(r)["on_delete"] for r in
+             antigo.query("PRAGMA foreign_key_list(article_authors)")],
+            ["NO ACTION"], "o cenário do teste deixou de ser o cenário real")
+
+        levados = antigo.apagar_em_cascata("articles", 1)
+        self.assertEqual(antigo.scalar("SELECT COUNT(*) FROM articles"), 0)
+        self.assertEqual(antigo.scalar("SELECT COUNT(*) FROM article_authors"), 0)
+        self.assertEqual(levados.get("article_authors"), 1)
+        # coluna opcional: a reunião aconteceu, e continua tendo acontecido
+        self.assertEqual(antigo.scalar("SELECT COUNT(*) FROM events"), 1)
+        self.assertIsNone(antigo.scalar("SELECT article_id FROM events"))
 
     def test_ha_como_excluir_um_artigo(self):
         """Sem exclusão, as cópias que o defeito criou não saem da tela."""

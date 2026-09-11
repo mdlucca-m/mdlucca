@@ -331,6 +331,68 @@ class Database:
             self.conn.execute("UPDATE members SET full_name = ? WHERE id = ?", (display, match["id"]))
         return match
 
+    def dependentes_de(self, tabela: str) -> list[tuple[str, str, bool]]:
+        """Quem aponta para esta tabela: (tabela, coluna, a coluna e obrigatoria).
+
+        Sai do proprio banco, e nao de uma lista escrita a mao: uma tabela
+        nova que passe a apontar para artigos entra aqui sozinha, e nao
+        fica de fora ate alguem lembrar.
+        """
+        achados = []
+        for linha in self.query(
+                "SELECT name FROM sqlite_master WHERE type = 'table'"
+                " AND name NOT LIKE 'sqlite_%'"):
+            nome = linha["name"]
+            for fk in self.query(f"PRAGMA foreign_key_list({nome})"):
+                if (fk["table"] or "").lower() != tabela.lower():
+                    continue
+                coluna = fk["from"]
+                obrigatoria = any(
+                    c["name"] == coluna and c["notnull"]
+                    for c in self.query(f"PRAGMA table_info({nome})"))
+                achados.append((nome, coluna, bool(obrigatoria)))
+        return achados
+
+    def apagar_em_cascata(self, tabela: str, registro_id: int,
+                          profundidade: int = 4) -> dict[str, int]:
+        """Apaga um registro e o que depende dele, sem contar com o esquema.
+
+        O banco DECLARA `ON DELETE CASCADE` nas chaves estrangeiras, mas
+        isso so vale para tabela criada com a regra: `CREATE TABLE IF NOT
+        EXISTS` nunca recria uma tabela que ja existe para acrescenta-la.
+        Num banco em uso desde antes da regra, a chave ficou em `NO
+        ACTION`, e apagar um artigo devolvia "FOREIGN KEY constraint
+        failed" -- um erro 500 na tela de quem so queria tirar uma ficha
+        repetida.
+
+        Entao aqui nao se confia na regra: pergunta-se ao banco quem
+        aponta para o registro e apaga-se na ordem. Coluna obrigatoria
+        leva a linha junto; coluna opcional so perde a referencia, porque
+        a linha continua fazendo sentido sem ela -- um evento nao deixa de
+        ter acontecido porque o artigo saiu.
+        """
+        levados: dict[str, int] = {}
+        if profundidade <= 0:
+            return levados
+        for dependente, coluna, obrigatoria in self.dependentes_de(tabela):
+            if dependente == tabela:
+                continue
+            alvos = [r[0] for r in self.query(
+                f"SELECT rowid FROM {dependente} WHERE {coluna} = ?", (registro_id,))]
+            if not alvos:
+                continue
+            if obrigatoria:
+                self.conn.execute(
+                    f"DELETE FROM {dependente} WHERE {coluna} = ?", (registro_id,))
+                levados[dependente] = len(alvos)
+            else:
+                self.conn.execute(
+                    f"UPDATE {dependente} SET {coluna} = NULL WHERE {coluna} = ?",
+                    (registro_id,))
+        self.conn.execute(f"DELETE FROM {tabela} WHERE id = ?", (registro_id,))
+        self.conn.commit()
+        return levados
+
     def merge_members(self, source_id: int, target_id: int) -> None:
         """Funde dois registros da mesma pessoa criados por grafias diferentes."""
         if source_id == target_id:

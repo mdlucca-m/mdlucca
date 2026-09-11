@@ -494,8 +494,15 @@ def route_excluir_artigo(ctx: "Context", article_id: str) -> Any:
         "submissoes": int(ctx.db.scalar(
             "SELECT COUNT(*) FROM submissions WHERE article_id = ?", (alvo,)) or 0),
     }
-    ctx.db.execute("DELETE FROM articles WHERE id = ?", (alvo,))
-    ctx.db.conn.commit()
+    # Nao se conta com o ON DELETE CASCADE do esquema: num banco em uso
+    # desde antes da regra, a chave ficou em NO ACTION e o apagar devolvia
+    # "FOREIGN KEY constraint failed" -- um erro 500 na tela de quem so
+    # queria tirar uma ficha repetida.
+    try:
+        levados = ctx.db.apagar_em_cascata("articles", alvo)
+    except Exception as erro:                       # noqa: BLE001
+        raise ApiError(400, f"não deu para excluir: {erro}")
+    junto["tabelas"] = levados
     auth.log(ctx.db, user["id"], user.get("login"), "artigo_excluido", "articles",
              str(alvo),
              f"\u201c{artigo['title']}\u201d ({junto['autores']} autor(es),"
