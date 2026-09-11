@@ -523,6 +523,74 @@ CREATE TABLE IF NOT EXISTS screenings (
 
 /* Termos realcados no titulo e no resumo: o olho acha em um segundo o
    que levaria a leitura inteira para encontrar. */
+/* ---------- Biblioteca: o acervo que o laboratorio le ----------
+
+   Nao e uma revisao. A revisao responde UMA pergunta, tem triagem em
+   duplicata, criterio de exclusao e fecha. A biblioteca fica aberta: e o
+   acervo de leitura da equipe sobre um assunto, atualizado sozinho, para
+   ninguem ter de repetir a mesma busca toda semana.
+
+   Por isso as duas tabelas sao separadas das de revisao, mesmo parecendo.
+   Misturar faria a triagem de uma revisao aparecer como "artigo novo na
+   biblioteca", e um artigo excluido da revisao sumir do acervo de leitura
+   -- que sao duas coisas que ninguem pediu. */
+CREATE TABLE IF NOT EXISTS biblioteca (
+  id               INTEGER PRIMARY KEY,
+  code             TEXT UNIQUE NOT NULL,
+  title            TEXT NOT NULL,
+  descricao        TEXT,
+  -- A que linha de pesquisa este acervo pertence. E por aqui que a tela
+  -- segmenta, e e o que liga a leitura da equipe ao que o laboratorio faz.
+  research_line_id INTEGER REFERENCES research_lines(id) ON DELETE SET NULL,
+  -- O eixo em que o acervo se divide na tela: "esporte", "pais", "faixa".
+  eixo             TEXT,
+  ativa            INTEGER NOT NULL DEFAULT 1,
+  atualizada_em    TEXT,
+  criada_em        TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+/* Cada busca guardada: a estrategia inteira, por base e por segmento.
+   Guardar a query, e nao so o resultado, e o que permite conferir de fora
+   o que entrou -- e refazer a busca daqui a um ano exatamente igual. */
+CREATE TABLE IF NOT EXISTS biblioteca_busca (
+  id            INTEGER PRIMARY KEY,
+  biblioteca_id INTEGER NOT NULL REFERENCES biblioteca(id) ON DELETE CASCADE,
+  base          TEXT NOT NULL DEFAULT 'pubmed',
+  segmento      TEXT,
+  query         TEXT NOT NULL,
+  rodada_em     TEXT,
+  achados       INTEGER NOT NULL DEFAULT 0,
+  novos         INTEGER NOT NULL DEFAULT 0,
+  erro          TEXT,
+  UNIQUE (biblioteca_id, base, segmento)
+);
+
+CREATE TABLE IF NOT EXISTS biblioteca_item (
+  id            INTEGER PRIMARY KEY,
+  biblioteca_id INTEGER NOT NULL REFERENCES biblioteca(id) ON DELETE CASCADE,
+  chave         TEXT NOT NULL,
+  segmento      TEXT,
+  title         TEXT,
+  abstract      TEXT,
+  authors       TEXT,
+  journal       TEXT,
+  year          INTEGER,
+  doi           TEXT,
+  pmid          TEXT,
+  pmc           TEXT,
+  url           TEXT,
+  oa_url        TEXT,
+  paises        TEXT,
+  base          TEXT NOT NULL DEFAULT 'pubmed',
+  achado_em     TEXT NOT NULL DEFAULT (datetime('now')),
+  -- A mesma referencia pode chegar por dois segmentos (um estudo com
+  -- nadadores E handebolistas). A chave de uniao e por biblioteca, e o
+  -- segundo segmento entra na coluna `segmento` como lista.
+  UNIQUE (biblioteca_id, chave)
+);
+CREATE INDEX IF NOT EXISTS ix_biblioteca_item_ano ON biblioteca_item(biblioteca_id, year);
+CREATE INDEX IF NOT EXISTS ix_biblioteca_item_seg ON biblioteca_item(biblioteca_id, segmento);
+
 CREATE TABLE IF NOT EXISTS review_terms (
   id        INTEGER PRIMARY KEY,
   review_id INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,

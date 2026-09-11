@@ -376,6 +376,47 @@ def route_professores(ctx: "Context") -> Any:
     return resultado
 
 
+# ----------------------------------------------------------------------
+# Biblioteca: o acervo de leitura da equipe
+# ----------------------------------------------------------------------
+def route_bibliotecas(ctx: "Context") -> Any:
+    """Os acervos que existem, para a tela listar."""
+    auth.require(ctx.user, "leitura")
+    from . import biblioteca
+    return {"bibliotecas": biblioteca.todas(ctx.db)}
+
+
+def route_biblioteca(ctx: "Context", code: str) -> Any:
+    """Um acervo: o retrato e os artigos, recortados ou nao."""
+    auth.require(ctx.user, "leitura")
+    from . import biblioteca
+    segmento = (ctx.query.get("segmento") or [None])[0]
+    busca = (ctx.query.get("q") or [None])[0]
+    try:
+        return {**biblioteca.panorama(ctx.db, code),
+                **biblioteca.listar(ctx.db, code, segmento=segmento, busca=busca)}
+    except ValueError as erro:
+        raise ApiError(404, str(erro))
+
+
+def route_biblioteca_atualizar(ctx: "Context", code: str) -> Any:
+    """Roda as buscas do acervo agora.
+
+    E da coordenacao porque sai para a rede quatorze vezes seguidas: quem
+    aperta precisa saber que esta fazendo isso, e duas pessoas apertando ao
+    mesmo tempo so gastariam a cota da base.
+    """
+    user = auth.require(ctx.user, "coordenacao")
+    from . import biblioteca
+    try:
+        resultado = biblioteca.atualizar(ctx.db, code)
+    except ValueError as erro:
+        raise ApiError(404, str(erro))
+    auth.log(ctx.db, user["id"], user.get("login"), "biblioteca_atualizada", "biblioteca",
+             detail=f"{code}: {resultado['novos']} novo(s)")
+    return resultado
+
+
 def route_duplicatas(ctx: "Context") -> Any:
     """As fichas que parecem a mesma pessoa -- so a proposta, sem mexer."""
     auth.require(ctx.user, "coordenacao")
@@ -1429,6 +1470,10 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/producao/?$", route_producao, "leitura"),
     ("POST", r"^/api/producao/importar/?$", route_producao_importar, "coordenacao"),
     ("POST", r"^/api/equipe/professores/?$", route_professores, "coordenacao"),
+    ("GET", r"^/api/bibliotecas/?$", route_bibliotecas, "leitura"),
+    ("GET", r"^/api/bibliotecas/(?P<code>[\w-]+)/?$", route_biblioteca, "leitura"),
+    ("POST", r"^/api/bibliotecas/(?P<code>[\w-]+)/atualizar/?$",
+     route_biblioteca_atualizar, "coordenacao"),
     ("GET", r"^/api/equipe/duplicatas/?$", route_duplicatas, "coordenacao"),
     ("POST", r"^/api/equipe/duplicatas/?$", route_duplicatas_fundir, "coordenacao"),
     ("POST", r"^/api/research-lines/padrao/?$", route_linhas_padrao, "coordenacao"),
@@ -2156,6 +2201,13 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
         from . import linhas as _linhas
 
         _linhas.instalar(db)
+        # Os acervos de leitura entram junto das linhas, e pelo mesmo
+        # motivo: sao a estrategia de busca escrita pelo laboratorio, e
+        # depender de alguem lembrar de apertar um botao e depender de nao
+        # esquecer. Instalar nao sai para a rede -- so deixa as buscas
+        # prontas; quem sai e o botao "Atualizar agora".
+        from . import biblioteca as _biblioteca
+        _biblioteca.instalar(db)
         # O mesmo argumento vale para o campo "Orientador", que sem vinculo
         # cadastrado abre sem uma unica opcao. `criar=False`: aqui so se
         # ajusta quem ja esta no banco -- inventar duas pessoas num banco

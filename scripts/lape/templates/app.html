@@ -93,6 +93,36 @@ button.sair-ponto:hover{border-color:var(--ink-2);background:var(--surface-hover
 .searchbar{max-width:280px}
 .pick{cursor:pointer}
 .pick:hover{color:var(--accent-strong)}
+/* ---- biblioteca ---- */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;
+  border-radius:999px;border:1px solid var(--border);background:var(--surface);
+  color:var(--ink-2);font-size:12.5px;font-weight:600;cursor:pointer;
+  white-space:nowrap}
+.chip:hover{border-color:var(--border-strong);color:var(--ink)}
+/* O escolhido ganha PESO, e não outro matiz: trocar a cor faria parecer
+   que o segmento mudou de categoria, e não que ele está selecionado. */
+.chip.on{border-color:var(--accent-strong);color:var(--accent-strong);font-weight:720}
+/* Segmento que a busca não achou continua na tela, apagado: sumir com ele
+   faria a tela afirmar que ninguém estuda o assunto. */
+.chip.vazio{opacity:.5}
+.bib-item{margin-bottom:10px;padding:14px 16px}
+.bib-topo{display:flex;flex-direction:column;gap:3px}
+.bib-autores{margin:6px 0 0;font-size:12px;line-height:1.5}
+.bib-item details{margin-top:8px}
+.bib-item summary{cursor:pointer;font-size:12.5px;color:var(--ink-2)}
+.bib-links{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.bib-link{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;
+  border-radius:7px;border:1px solid var(--border);background:var(--surface);
+  color:var(--ink-2);font-size:12px;font-weight:600;text-decoration:none}
+.bib-link:hover{border-color:var(--border-strong);color:var(--ink)}
+/* O que abre o ARTIGO tem peso; o que abre uma busca, não. Quem clica
+   esperando o artigo e cai numa busca passa a conferir todos os botões,
+   e aí nenhum deles serve para nada. */
+.bib-link.direto{border-color:var(--accent-strong);color:var(--accent-strong)}
+.bib-link.livre::after{content:"livre";font-size:9.5px;opacity:.75;
+  text-transform:uppercase;letter-spacing:.04em}
+
 @media (max-width:860px){
   .layout{grid-template-columns:1fr}
   nav.side{border-right:none;border-bottom:1px solid var(--border);
@@ -1221,7 +1251,8 @@ async function preencherLista(destino){
 const ICONE = {
   ponto: "relogio",
   perfil: "pessoas", artigos: "producao", submissoes: "submissao", projetos: "projeto",
-  linhas: "linhas", eventos: "calendario", senha: "qualidade", admin: "dados",
+  linhas: "linhas", biblioteca: "livro", eventos: "calendario",
+  senha: "qualidade", admin: "dados",
 };
 
 /* ==================================================================== */
@@ -1290,6 +1321,163 @@ function pulsarPonto(ligado){
     if (document.hidden) return;
     api("/api/ponto/presente", "POST", {}).catch(function (){ /* volta no proximo */ });
   }, 5 * 60 * 1000);
+}
+
+/* ------------------------------------------------------------------ */
+/* A biblioteca: o acervo de leitura, por assunto e por segmento         */
+/* ------------------------------------------------------------------ */
+/* Existe para a equipe parar de refazer a mesma busca. O acervo e uma
+   busca GUARDADA que roda sozinha, e a tela mostra onde procurar antes de
+   mostrar o que ha: uma lista de quatrocentos artigos sem recorte e
+   exatamente o que as pessoas ja tinham antes de existir biblioteca. */
+const BIB = { code: null, segmento: null, q: "" };
+
+VIEWS.biblioteca = {
+  label: "Biblioteca", group: "Laboratório",
+  async render(){
+    VIEW.innerHTML = "";
+    VIEW.appendChild(tituloDaTela("livro", "Biblioteca"));
+    VIEW.appendChild(h("p", {class: "view", text:
+      "O que o laboratório lê sobre cada assunto, recolhido das bases e atualizado "
+      + "sozinho. Não é triagem de revisão: um artigo estar aqui quer dizer que ele "
+      + "está no assunto, e não que responde à pergunta de alguém."}));
+
+    const lista = (await api("/api/bibliotecas")).bibliotecas || [];
+    if (!lista.length){
+      VIEW.appendChild(h("p", {class: "hint",
+        text: "Nenhum acervo instalado ainda."}));
+      return;
+    }
+    if (!BIB.code || !lista.some(function (b){ return b.code === BIB.code; })){
+      BIB.code = lista[0].code;
+    }
+
+    /* um acervo por cartão, quando houver mais de um */
+    if (lista.length > 1){
+      VIEW.appendChild(h("div", {class: "chips"}, lista.map(function (b){
+        const c = h("button", {class: "chip" + (b.code === BIB.code ? " on" : ""),
+          text: b.title + " (" + b.n + ")"});
+        c.onclick = function (){ BIB.code = b.code; BIB.segmento = null; show("biblioteca"); };
+        return c;
+      })));
+    }
+
+    const url = "/api/bibliotecas/" + encodeURIComponent(BIB.code)
+      + "?" + new URLSearchParams(
+        Object.assign({}, BIB.segmento ? {segmento: BIB.segmento} : {},
+                      BIB.q ? {q: BIB.q} : {})).toString();
+    const d = await api(url);
+    VIEW.appendChild(desenharAcervo(d));
+  },
+};
+
+function desenharAcervo(d){
+  const caixa = h("div", {});
+  const b = d.biblioteca;
+
+  caixa.appendChild(h("div", {class: "card sec"}, [
+    h("h3", {text: b.title}),
+    h("p", {class: "hint", style: "margin:6px 0 10px", text: b.descricao || ""}),
+    h("p", {class: "hint", text:
+      d.total + " artigo(s) · " + d.com_doi + " com DOI · " + d.livres
+      + " com texto livre" + (b.linha ? " · linha: " + b.linha : "")
+      + (b.atualizada_em ? " · atualizado em " + b.atualizada_em
+         : " · ainda não atualizado")}),
+    botaoDeAtualizar(b),
+  ]));
+
+  /* ---- onde procurar: os segmentos, com o tamanho de cada um ---- */
+  const segs = h("div", {class: "chips", style: "margin:12px 0"});
+  const todos = h("button", {class: "chip" + (BIB.segmento ? "" : " on"),
+    text: "Todos (" + d.total + ")"});
+  todos.onclick = function (){ BIB.segmento = null; show("biblioteca"); };
+  segs.appendChild(todos);
+  (d.segmentos || []).forEach(function (s){
+    /* Segmento vazio aparece com zero, e desligado. Sumir com ele faria a
+       tela afirmar que ninguém estuda humor no remo -- quando o certo é
+       que a busca não achou, que é outra coisa e merece busca melhor. */
+    const c = h("button", {class: "chip" + (s.segmento === BIB.segmento ? " on" : "")
+        + (s.n ? "" : " vazio"),
+      title: s.erro ? "a última busca falhou: " + s.erro
+        : (s.n ? s.n + " artigo(s)" : "a busca não achou nada neste segmento"),
+      text: s.segmento + " (" + s.n + ")"});
+    if (s.erro) c.appendChild(Icons.get("aviso", 12));
+    c.onclick = function (){ BIB.segmento = s.segmento; show("biblioteca"); };
+    segs.appendChild(c);
+  });
+  caixa.appendChild(segs);
+
+  /* ---- a busca dentro do acervo ---- */
+  const campo = h("input", {type: "search", placeholder: "procurar no acervo…",
+    value: BIB.q});
+  campo.onchange = function (){ BIB.q = campo.value.trim(); show("biblioteca"); };
+  caixa.appendChild(h("div", {class: "acao-ponto", style: "margin-bottom:12px"}, [campo]));
+
+  /* ---- os artigos ---- */
+  const itens = d.itens || [];
+  if (!itens.length){
+    caixa.appendChild(h("p", {class: "hint", text: b.atualizada_em
+      ? "Nenhum artigo neste recorte."
+      : "O acervo ainda não foi atualizado. A coordenação aperta \"Atualizar agora\" "
+        + "e as buscas saem para a PubMed."}));
+    return caixa;
+  }
+  caixa.appendChild(h("p", {class: "hint", style: "margin-bottom:8px",
+    text: itens.length + " artigo(s)" + (BIB.segmento ? " em " + BIB.segmento : "")
+      + (BIB.q ? " com \"" + BIB.q + "\"" : "")}));
+  itens.forEach(function (x){ caixa.appendChild(cartaoDeArtigo(x)); });
+  return caixa;
+}
+
+function cartaoDeArtigo(x){
+  const topo = h("div", {class: "bib-topo"}, [
+    h("b", {text: x.title || "(sem título)"}),
+    h("small", {class: "hint", text:
+      [x.journal, x.year, (x.segmentos || []).join(" · ")].filter(Boolean).join(" · ")}),
+  ]);
+  const links = h("div", {class: "bib-links"}, (x.links || []).map(function (l){
+    /* O que abre o artigo e o que abre uma BUSCA ficam visualmente
+       separados: quem clica esperando o artigo e cai numa busca passa a
+       conferir todos os botões, e aí nenhum serve. */
+    return h("a", {class: "bib-link" + (l.tipo === "direto" ? " direto" : "")
+        + (l.livre ? " livre" : ""),
+      href: l.url, target: "_blank", rel: "noopener", title: l.dica,
+      text: l.base + (l.tipo === "busca" ? " ↗" : "")});
+  }));
+  const corpo = [topo];
+  if (x.authors) corpo.push(h("p", {class: "hint bib-autores", text: x.authors}));
+  if (x.abstract){
+    const resumo = h("details", {}, [h("summary", {text: "Resumo"}),
+                                     h("p", {class: "hint", text: x.abstract})]);
+    corpo.push(resumo);
+  }
+  corpo.push(links);
+  return h("div", {class: "card bib-item"}, corpo);
+}
+
+function botaoDeAtualizar(b){
+  if (!can("coordenacao")) return h("p", {class: "hint",
+    text: "Quem atualiza o acervo é a coordenação."});
+  const estado = h("span", {class: "hint"});
+  const botao = h("button", {class: "primary"});
+  botao.appendChild(Icons.get("atualizar", 15));
+  botao.appendChild(h("span", {text: "Atualizar agora"}));
+  botao.onclick = async function (){
+    botao.disabled = true;
+    estado.textContent = "Perguntando à PubMed, uma busca por segmento… "
+      + "isto leva alguns minutos.";
+    try {
+      const r = await api("/api/bibliotecas/" + encodeURIComponent(b.code)
+                          + "/atualizar", "POST", {});
+      estado.textContent = r.novos + " artigo(s) novo(s) de " + r.achados
+        + " achado(s), em " + r.buscas + " busca(s)"
+        + (r.erros ? " — " + r.erros + " busca(s) falharam" : "") + ".";
+      await show("biblioteca");
+    } catch (e){
+      estado.textContent = "Não deu: " + e.message;
+    } finally { botao.disabled = false; }
+  };
+  return h("div", {class: "acao-ponto"}, [botao, estado]);
 }
 
 VIEWS.ponto = {
@@ -1445,8 +1633,11 @@ function tituloDaTela(id, texto){
 }
 
 /* ---------- navegação ---------- */
+/* A ordem do menu e explicita, e uma tela que nao esteja aqui simplesmente
+   nao aparece -- registrar em VIEWS nao basta. Custou uma tela invisivel
+   para descobrir isso. */
 const ORDER = ["ponto", "perfil", "artigos", "submissoes", "projetos", "linhas",
-               "eventos", "senha", "admin"];
+               "biblioteca", "eventos", "senha", "admin"];
 
 function buildMenu(){
   MENU.innerHTML = "";

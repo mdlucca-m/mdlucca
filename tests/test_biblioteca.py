@@ -1,0 +1,432 @@
+#!/usr/bin/env python3
+"""Testes da biblioteca: o acervo de leitura atualizado sozinho.
+
+    python3 -m unittest tests.test_biblioteca -v
+
+A biblioteca nao e uma revisao, e a diferenca e o que estes testes
+guardam primeiro. A revisao responde UMA pergunta, tria em duplicata e
+fecha; a biblioteca fica aberta e so recolhe. Um artigo entrar aqui nao
+diz que ele responde a pergunta de ninguem -- diz que a equipe deveria
+saber que ele existe.
+
+Depois vem a parte que ja custou caro em buscas de verdade: `POMS` solto
+na PubMed e traduzido para `"prod oper manag"[Journal]`, e a revista
+Production & Operations Management entra num acervo de psicologia do
+esporte sem nenhum aviso.
+"""
+from __future__ import annotations
+
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+
+from lape import biblioteca, linhas  # noqa: E402
+from lape.db import Database  # noqa: E402
+
+
+class BaseBiblioteca(unittest.TestCase):
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.db = Database(Path(tmp.name) / "b.sqlite")
+        self.addCleanup(self.db.close)
+        self.db.migrate()
+        linhas.instalar(self.db)
+
+    def trocar(self, modulo, nome, valor):
+        antigo = getattr(modulo, nome)
+        setattr(modulo, nome, valor)
+        self.addCleanup(setattr, modulo, nome, antigo)
+
+
+class TestAEstrategiaDeBusca(unittest.TestCase):
+    """A busca fica escrita, e nao digitada a cada vez."""
+
+    def test_poms_nunca_vai_solto(self):
+        """Solto, a PubMed o confunde com o nome de uma revista.
+
+        `POMS AND athletes` traduz para `("prod oper manag"[Journal] OR
+        "poms"[All Fields]) AND ...` e devolve 362 registros, entre eles
+        artigos de Production & Operations Management. Medido na base, nao
+        suposto.
+        """
+        for decl in biblioteca.BIBLIOTECAS:
+            with self.subTest(acervo=decl["code"]):
+                self.assertNotIn('"POMS"[All Fields]', decl["construto"])
+                self.assertIn('"POMS"[Title/Abstract]', decl["construto"])
+
+    def test_a_populacao_e_atleta_e_nao_esporte_em_geral(self):
+        """`"sports"[MeSH]` traz programa comunitario de caminhada.
+
+        Sao estudos com estado de humor medido e nenhum atleta dentro. A
+        busca dobrava de 431 para 847 registros por causa disso.
+        """
+        for decl in biblioteca.BIBLIOTECAS:
+            with self.subTest(acervo=decl["code"]):
+                self.assertNotIn('"sports"[MeSH Terms]', decl["populacao"])
+                self.assertIn('"athletes"[MeSH Terms]', decl["populacao"])
+
+    def test_a_query_junta_construto_populacao_e_segmento(self):
+        decl = biblioteca.BIBLIOTECAS[0]
+        geral = biblioteca.query_de(decl)
+        self.assertEqual(geral.count(" AND "), 1)
+        com_segmento = biblioteca.query_de(decl, "handball[Title/Abstract]")
+        self.assertEqual(com_segmento.count(" AND "), 2)
+        self.assertTrue(com_segmento.startswith(geral))
+
+    def test_todo_segmento_tem_termo(self):
+        # segmento sem termo viraria a busca geral com outro nome, e o
+        # mesmo acervo apareceria repetido em quatorze abas
+        for nome, termo in biblioteca.ESPORTES:
+            with self.subTest(esporte=nome):
+                self.assertTrue(termo.strip())
+                self.assertIn("[Title/Abstract]", termo)
+
+    def test_toda_biblioteca_aponta_para_uma_linha_de_pesquisa(self):
+        codigos = {c for c, *_ in linhas.LINHAS}
+        for decl in biblioteca.BIBLIOTECAS:
+            with self.subTest(acervo=decl["code"]):
+                self.assertIn(decl["linha"], codigos)
+
+
+class TestOsLinksParaAsBases(unittest.TestCase):
+    """Cada artigo, e o caminho ate ele em cada base."""
+
+    def test_o_doi_vem_primeiro_porque_nao_erra(self):
+        """A ordem e a da certeza, e nao a do prestigio da base.
+
+        O DOI aponta para UM artigo; a busca por titulo na Scopus pode
+        trazer outro. Pôr a Scopus em primeiro mandaria a pessoa para o
+        caminho mais incerto primeiro.
+        """
+        achados = biblioteca.links({"doi": "10.1000/x", "title": "Um estudo"})
+        self.assertEqual(achados[0]["base"], "DOI")
+        self.assertTrue(achados[0]["forte"])
+
+    def test_as_cinco_bases_aparecem(self):
+        bases = {l["base"] for l in biblioteca.links(
+            {"doi": "10.1000/x", "pmid": "1", "title": "Um estudo"})}
+        for esperada in ("DOI", "PubMed", "Scopus", "Web of Science", "LILACS"):
+            with self.subTest(base=esperada):
+                self.assertIn(esperada, bases)
+
+    def test_a_busca_nao_se_disfarca_de_link_direto(self):
+        # quem clica esperando o artigo e cai numa busca perde a confianca
+        # no botao, e passa a conferir todos
+        for link in biblioteca.links({"doi": "10.1000/x", "title": "Um estudo"}):
+            with self.subTest(base=link["base"]):
+                if link["base"] in ("Scopus", "Web of Science", "LILACS",
+                                    "Google Acadêmico"):
+                    self.assertEqual(link["tipo"], biblioteca.BUSCA)
+                    self.assertTrue(link["dica"])
+
+    def test_sem_doi_a_scopus_vai_por_titulo_e_avisa(self):
+        achados = {l["base"]: l for l in biblioteca.links({"title": "Um estudo"})}
+        self.assertIn("Scopus", achados)
+        self.assertIn("confira", achados["Scopus"]["dica"])
+        self.assertNotIn("Web of Science", achados)   # sem DOI nao ha busca confiavel
+
+    def test_o_texto_livre_e_marcado(self):
+        # a equipe procura primeiro o que da para ler hoje
+        achados = biblioteca.links({"pmc": "PMC123", "title": "Um estudo"})
+        pmc = next(l for l in achados if l["base"] == "PMC")
+        self.assertTrue(pmc["livre"])
+
+    def test_artigo_sem_nada_nao_inventa_link(self):
+        self.assertEqual(biblioteca.links({}), [])
+
+    def test_o_doi_entra_normalizado(self):
+        achados = biblioteca.links({"doi": "https://doi.org/10.1000/X", "title": "t"})
+        self.assertEqual(achados[0]["url"], "https://doi.org/10.1000/x")
+
+
+class TestInstalar(BaseBiblioteca):
+
+    def test_o_acervo_entra_com_uma_busca_por_segmento(self):
+        biblioteca.instalar(self.db)
+        n = self.db.scalar("SELECT COUNT(*) FROM biblioteca_busca")
+        # uma geral mais uma por esporte
+        self.assertEqual(n, 1 + len(biblioteca.ESPORTES))
+
+    def test_instalar_de_novo_nao_duplica(self):
+        biblioteca.instalar(self.db)
+        segunda = biblioteca.instalar(self.db)
+        self.assertEqual(segunda["novas"], [])
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM biblioteca"), 1)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM biblioteca_busca"),
+                         1 + len(biblioteca.ESPORTES))
+
+    def test_o_acervo_fica_ligado_a_linha_de_pesquisa(self):
+        biblioteca.instalar(self.db)
+        linha = self.db.scalar(
+            "SELECT rl.code FROM biblioteca b"
+            " JOIN research_lines rl ON rl.id = b.research_line_id")
+        self.assertEqual(linha, "psicologia_do_esporte")
+
+
+MEDLINE_HANDEBOL = """PMID- 42506832
+TI  - Associations Between Endocrine Status and Stress, Mood and Psychosomatic
+      Status in Elite Handball Players.
+AB  - This study aimed to investigate the associations between endocrine status
+      and mood in elite handball players.
+FAU - Ratz-Sulyok, Fanny Zselyke
+FAU - Zsakai, Annamaria
+AD  - Hungarian Handball Federation, Budapest, Hungary.
+TA  - Sports (Basel)
+DP  - 2026 Jul 8
+LID - 10.3390/sports14070289 [doi]
+PMC - PMC13417319
+
+"""
+
+MEDLINE_NATACAO = """PMID- 41889694
+TI  - Mood states across a competitive season in elite swimmers.
+AB  - Mood was measured with BRUMS across a season in elite swimmers.
+FAU - Silva, Ana
+AD  - Universidade do Estado de Santa Catarina, Florianopolis, Brazil.
+TA  - J Sports Sci
+DP  - 2025
+LID - 10.1000/swim.2025 [doi]
+
+"""
+
+
+class TestAAtualizacao(BaseBiblioteca):
+    """O motor que recolhe, sem sair para a rede de verdade.
+
+    A base fica de mentira de proposito: o teste nao pode depender da
+    internet nem de uma contagem que muda sozinha na PubMed. O que se
+    verifica aqui e o que o sistema FAZ com o que a base devolve.
+    """
+
+    def setUp(self):
+        super().setUp()
+        biblioteca.instalar(self.db)
+        from lape import sources
+        self.respostas = {}
+        self.pedidos = []
+
+        def busca_falsa(query, retmax=400, **kwargs):
+            self.pedidos.append(query)
+            return list(self.respostas.get(query, {}).keys())
+
+        def medline_falsa(pmids):
+            texto = ""
+            for resposta in self.respostas.values():
+                for pmid, corpo in resposta.items():
+                    if pmid in pmids:
+                        texto += corpo
+            return texto
+
+        self.trocar(sources, "pubmed_search", busca_falsa)
+        self.trocar(sources, "pubmed_medline", medline_falsa)
+
+    def responder(self, segmento, registros):
+        """Liga uma resposta a busca daquele segmento."""
+        query = self.db.scalar(
+            "SELECT query FROM biblioteca_busca WHERE segmento IS ?", (segmento,))
+        self.respostas[query] = registros
+
+    def test_o_que_a_base_devolve_entra_no_acervo(self):
+        self.responder("Handebol", {"42506832": MEDLINE_HANDEBOL})
+        r = biblioteca.atualizar(self.db, "humor_esporte")
+        self.assertEqual(r["novos"], 1)
+        item = self.db.dicts("SELECT * FROM biblioteca_item")[0]
+        self.assertIn("Handball", item["title"])
+        self.assertEqual(item["doi"], "10.3390/sports14070289")
+        self.assertEqual(item["segmento"], "Handebol")
+
+    def test_rodar_de_novo_nao_traz_o_mesmo_artigo_duas_vezes(self):
+        self.responder("Handebol", {"42506832": MEDLINE_HANDEBOL})
+        biblioteca.atualizar(self.db, "humor_esporte")
+        segunda = biblioteca.atualizar(self.db, "humor_esporte")
+        self.assertEqual(segunda["novos"], 0)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM biblioteca_item"), 1)
+
+    def test_artigo_de_dois_esportes_pertence_aos_dois(self):
+        """Um estudo com nadadores E handebolistas e dos dois segmentos.
+
+        Guardar so o primeiro faria o segundo parecer vazio -- e quem
+        abrisse "Natação" nao encontraria um artigo sobre natacao que o
+        sistema tinha.
+        """
+        self.responder("Handebol", {"42506832": MEDLINE_HANDEBOL})
+        self.responder("Natação", {"42506832": MEDLINE_HANDEBOL})
+        r = biblioteca.atualizar(self.db, "humor_esporte")
+        self.assertEqual(r["novos"], 1)          # um artigo, nao dois
+        item = self.db.dicts("SELECT segmento FROM biblioteca_item")[0]
+        self.assertEqual(item["segmento"], "Handebol; Natação")
+
+    def test_o_recorte_por_segmento_acha_o_artigo_nos_dois(self):
+        self.responder("Handebol", {"42506832": MEDLINE_HANDEBOL})
+        self.responder("Natação", {"42506832": MEDLINE_HANDEBOL})
+        biblioteca.atualizar(self.db, "humor_esporte")
+        for esporte in ("Handebol", "Natação"):
+            with self.subTest(esporte=esporte):
+                achado = biblioteca.listar(self.db, "humor_esporte", segmento=esporte)
+                self.assertEqual(len(achado["itens"]), 1)
+
+    def test_uma_busca_que_falha_nao_derruba_as_outras(self):
+        """A rede cai no meio de quatorze modalidades.
+
+        Perder as treze que ja tinham voltado por causa da decima quarta
+        seria trocar um acervo por um erro.
+        """
+        from lape import sources
+
+        def as_vezes_quebra(query, retmax=400, **kwargs):
+            if "handball" in query:
+                raise RuntimeError("a rede caiu")
+            return list(self.respostas.get(query, {}).keys())
+
+        self.responder("Natação", {"41889694": MEDLINE_NATACAO})
+        self.trocar(sources, "pubmed_search", as_vezes_quebra)
+        r = biblioteca.atualizar(self.db, "humor_esporte")
+        self.assertEqual(r["erros"], 1)
+        self.assertEqual(r["novos"], 1)
+        erro = self.db.scalar(
+            "SELECT erro FROM biblioteca_busca WHERE segmento = 'Handebol'")
+        self.assertIn("a rede caiu", erro)
+
+    def test_o_erro_fica_gravado_ao_lado_da_busca_que_falhou(self):
+        # sem isso, "0 achados" e indistinguivel de "a base nao respondeu"
+        from lape import sources
+        self.trocar(sources, "pubmed_search",
+                    lambda *a, **k: (_ for _ in ()).throw(RuntimeError("403")))
+        biblioteca.atualizar(self.db, "humor_esporte")
+        p = biblioteca.panorama(self.db, "humor_esporte")
+        self.assertTrue(all(s["erro"] for s in p["segmentos"]))
+
+    def test_o_erro_some_quando_a_busca_volta_a_funcionar(self):
+        from lape import sources
+        self.trocar(sources, "pubmed_search",
+                    lambda *a, **k: (_ for _ in ()).throw(RuntimeError("403")))
+        biblioteca.atualizar(self.db, "humor_esporte")
+        self.trocar(sources, "pubmed_search", lambda q, retmax=400, **k: [])
+        biblioteca.atualizar(self.db, "humor_esporte")
+        self.assertIsNone(self.db.scalar(
+            "SELECT erro FROM biblioteca_busca WHERE segmento = 'Handebol'"))
+
+
+class TestOQueATelaLe(BaseBiblioteca):
+
+    def setUp(self):
+        super().setUp()
+        biblioteca.instalar(self.db)
+        bid = self.db.scalar("SELECT id FROM biblioteca")
+        for i, (titulo, ano, seg, doi, pais) in enumerate((
+                ("Humor em handebol", 2024, "Handebol", "10.1/a", '["Hungria"]'),
+                ("Humor em natação", 2023, "Natação", "10.1/b", '["Brasil"]'),
+                ("Humor em nadadores brasileiros", 2025, "Natação", None, '["Brasil"]'),
+        ), 1):
+            self.db.execute(
+                "INSERT INTO biblioteca_item (biblioteca_id, chave, segmento, title,"
+                "        year, doi, paises) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (bid, f"k{i}", seg, titulo, ano, doi, pais))
+        self.db.conn.commit()
+
+    def test_o_segmento_vazio_aparece_com_zero(self):
+        """Some-lo faria a tela dizer que ninguem estuda humor no remo.
+
+        O certo e que a busca nao achou -- que e outra coisa, e e a que
+        merece uma busca melhor.
+        """
+        p = biblioteca.panorama(self.db, "humor_esporte")
+        nomes = {s["segmento"] for s in p["segmentos"]}
+        self.assertEqual(nomes, {nome for nome, _ in biblioteca.ESPORTES})
+        remo = next(s for s in p["segmentos"] if s["segmento"] == "Remo e canoagem")
+        self.assertEqual(remo["n"], 0)
+
+    def test_o_panorama_conta_o_que_da_para_ler_hoje(self):
+        p = biblioteca.panorama(self.db, "humor_esporte")
+        self.assertEqual(p["total"], 3)
+        self.assertEqual(p["com_doi"], 2)
+
+    def test_a_busca_em_texto_procura_titulo_e_autor(self):
+        achado = biblioteca.listar(self.db, "humor_esporte", busca="nadadores")
+        self.assertEqual(len(achado["itens"]), 1)
+
+    def test_cada_item_ja_vem_com_os_links(self):
+        achado = biblioteca.listar(self.db, "humor_esporte", segmento="Handebol")
+        item = achado["itens"][0]
+        self.assertTrue(item["links"])
+        self.assertEqual(item["direto"], "https://doi.org/10.1/a")
+
+    def test_os_paises_saem_da_afiliacao(self):
+        p = biblioteca.panorama(self.db, "humor_esporte")
+        contagem = {x["pais"]: x["n"] for x in p["paises"]}
+        self.assertEqual(contagem, {"Brasil": 2, "Hungria": 1})
+
+    def test_acervo_que_nao_existe_da_erro_e_nao_lista_vazia(self):
+        # lista vazia seria indistinguivel de acervo ainda nao atualizado
+        with self.assertRaises(ValueError):
+            biblioteca.listar(self.db, "nao_existe")
+
+
+class TestAsPortas(unittest.TestCase):
+
+    def test_as_rotas_existem_com_o_perfil_certo(self):
+        from lape import api
+        achadas = {(m, padrao.split("(?P")[0], perfil)
+                   for m, padrao, _f, perfil in api.ROUTES if "bibliotecas" in padrao}
+        # ler e de quem tem leitura; sair para a rede quatorze vezes e da
+        # coordenacao -- duas pessoas apertando ao mesmo tempo so gastariam
+        # a cota da base
+        perfis = {(m, perfil) for m, _p, perfil in achadas}
+        self.assertIn(("GET", "leitura"), perfis)
+        self.assertIn(("POST", "coordenacao"), perfis)
+
+    def test_a_subida_instala_os_acervos_sem_sair_para_a_rede(self):
+        """Instalar deixa as buscas prontas; quem sai e o botao.
+
+        Sair para a PubMed a cada arranque do servico atrasaria a subida em
+        minutos e gastaria a cota da base sem ninguem ter pedido.
+        """
+        fonte = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
+        self.assertIn("_biblioteca.instalar(db)", fonte)
+        self.assertNotIn("_biblioteca.atualizar(db", fonte)
+
+    def test_a_tela_esta_na_ordem_do_menu(self):
+        """Registrar em VIEWS nao basta: a ordem do menu e explicita.
+
+        Uma tela que nao esteja na lista simplesmente nao aparece, e nao
+        ha erro nenhum dizendo isso.
+        """
+        tela = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
+            encoding="utf-8")
+        ordem = tela[tela.index("const ORDER = ["):]
+        ordem = ordem[:ordem.index("];")]
+        self.assertIn('"biblioteca"', ordem)
+        self.assertIn("VIEWS.biblioteca = {", tela)
+
+    def test_a_tela_separa_o_link_direto_da_busca(self):
+        # quem clica esperando o artigo e cai numa busca passa a conferir
+        # todos os botoes, e ai nenhum serve
+        tela = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
+            encoding="utf-8")
+        self.assertIn('l.tipo === "direto" ? " direto"', tela)
+        self.assertIn(".bib-link.direto{", tela)
+
+    def test_o_segmento_vazio_fica_na_tela_apagado(self):
+        tela = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
+            encoding="utf-8")
+        self.assertIn('(s.n ? "" : " vazio")', tela)
+        self.assertIn(".chip.vazio{", tela)
+
+    def test_a_tela_diz_que_nao_e_triagem(self):
+        """A confusao com revisao sistematica custaria caro.
+
+        Alguem trataria o acervo como "estudos incluidos" e citaria como
+        se tivesse havido triagem -- que nao houve.
+        """
+        tela = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
+            encoding="utf-8")
+        self.assertIn("Não é triagem de revisão", tela)
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
