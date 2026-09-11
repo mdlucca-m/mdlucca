@@ -423,6 +423,28 @@ def organograma_publico(db: Database) -> dict[str, Any]:
     return {**dados, "people": pessoas, "teses": []}
 
 
+def sem_dados_da_coordenacao(org: dict[str, Any]) -> dict[str, Any]:
+    """O mesmo corte de `organograma_publico`, num organograma ja montado.
+
+    Bolsa e prazo de defesa sao o unico dado do painel que nao e sobre
+    producao -- e sobre a vida de uma pessoa. Ele viaja no payload, e o
+    payload vai inteiro para dentro do HTML: para o arquivo exportado que
+    e commitado em docs/, para o mural que fica numa TV, e para qualquer
+    um que abra o painel se LAPE_PUBLIC_DASHBOARD estiver ligado. Ver a
+    tela nao e a unica forma de ler um JSON embutido na pagina.
+
+    Por isso o corte e o padrao, e nao a excecao: quem quiser esses campos
+    pede por eles (ver `build_payload(..., com_dados_da_coordenacao=True)`),
+    e so a sessao autenticada da coordenacao pede.
+    """
+    pessoas = [{k: v for k, v in pessoa.items() if k not in SO_DA_COORDENACAO}
+               for pessoa in org.get("people", [])]
+    # `restrito` e o que separa "ninguem declarou prazo" de "voce nao pode
+    # ver os prazos". Sem essa marca a tela diria a primeira coisa quando a
+    # verdade e a segunda, e alguem sairia cadastrando o que ja existe.
+    return {**org, "people": pessoas, "teses": [], "restrito": True}
+
+
 def collaboration_network(db: Database, min_weight: int = 1) -> dict[str, Any]:
     """Rede de coautoria: nos = integrantes, arestas = artigos em comum."""
     rows = db.dicts(
@@ -866,7 +888,15 @@ def _metas(db: Database) -> dict[str, Any]:
         return {"indicadores": [], "ano": None, "corrente": False}
 
 
-def build_payload(db: Database, window: int = config.WINDOW_YEARS) -> dict[str, Any]:
+def build_payload(db: Database, window: int = config.WINDOW_YEARS,
+                  com_dados_da_coordenacao: bool = False) -> dict[str, Any]:
+    """O payload do painel.
+
+    `com_dados_da_coordenacao` liga bolsa, prazo e titulo de tese. Fica
+    desligado por padrao de proposito: quem exporta o arquivo para docs/ e
+    quem monta o mural nao precisa pedir para ficar seguro -- precisa
+    pedir para deixar de estar. Ver `sem_dados_da_coordenacao`.
+    """
     pubs = publications_by_year(db, window)
     subs = submission_metrics(db)
     network = collaboration_network(db)
@@ -909,6 +939,8 @@ def build_payload(db: Database, window: int = config.WINDOW_YEARS) -> dict[str, 
             " COALESCE(year,0) DESC LIMIT 60"
         ),
     }
+    if not com_dados_da_coordenacao:
+        payload["org"] = sem_dados_da_coordenacao(payload["org"])
     payload["submissions"]["attempts_distribution"] = [
         {"attempts": k, "n": v}
         for k, v in sorted(payload["submissions"]["attempts_distribution"].items())

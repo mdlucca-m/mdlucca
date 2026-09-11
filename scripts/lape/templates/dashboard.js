@@ -253,6 +253,39 @@ function leituraDe(spec) {
   return node;
 }
 
+/* Uma curva que se explica.
+
+   Um gráfico de linhas mostra o percurso e cala sobre o percurso: quem
+   lê tem de achar a olho onde a série virou, onde duas se cruzaram e
+   onde uma passou da meta -- e é exatamente aí que está a notícia.
+
+   Aqui o desenho vem com os três achados marcados em cima da curva e
+   escritos por extenso embaixo dela. As frases saem do MESMO corte das
+   marcas, então o texto nunca fala de um ponto que o gráfico não está
+   marcando.
+
+   `opts.limites` desenha as linhas de referência e também procura as
+   travessias delas. */
+function linhaAnalitica(spec, opts) {
+  opts = opts || {};
+  const leitura = C.marcosDaCurva(spec.labels || [], spec.series || [], opts);
+  const cheio = {};
+  for (const k in spec) cheio[k] = spec[k];
+  cheio.marks = (spec.marks || []).concat(leitura.marks);
+  if (opts.limites) cheio.limites = opts.limites;
+  const grafico = C.lines(cheio);
+  if (!leitura.notas.length) return grafico;
+  return el("div", {}, [
+    grafico,
+    el("ul", { class: "achados" }, leitura.notas.map(function (nota) {
+      return el("li", { text: nota }); })),
+    leitura.total > leitura.notas.length
+      ? el("div", { class: "hint", text: "Mostrando os " + leitura.notas.length
+          + " achados mais recentes, de " + leitura.total + "." })
+      : null,
+  ].filter(Boolean));
+}
+
 /* O número sobe até o seu valor quando aparece.
 
    Dá vida ao painel sem custar honestidade, com três cuidados. O texto
@@ -965,8 +998,7 @@ view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
     });
     const orientandos = (D.members || []).filter(function (m) {
       return !m.is_external && m.active !== 0 && !m.left_on
-        && ["doutorando", "mestrando", "bolsista_ic", "graduando",
-            "bolsista_extensao"].indexOf(m.role) >= 0; }).length;
+        && EM_FORMACAO.indexOf(m.role) >= 0; }).length;
 
     const numeros = card("O LAPE em números", "toda a produção registrada", [
       el("div", { class: "grid g3" }, [
@@ -1380,9 +1412,41 @@ function hanimar(host) {
   return host;
 }
 
+/* Os capítulos. A história inteira continua aqui -- o que muda é que ela
+   deixou de ser uma página de rolagem longa e virou navegação: um índice
+   de ícones-botão, e cada capítulo com a sua própria página, com voltar,
+   anterior e próximo.
+
+   O motivo é de leitura, não de estética. Uma página de dois metros de
+   altura é lida pelo primeiro terço e abandonada; ninguém manda o link
+   dela para um avaliador dizendo "veja o parágrafo sete". Em capítulo,
+   cada parte cabe numa tela, tem endereço próprio (#historia/equipe) e
+   pode ser mandada sozinha.
+
+   `monta` recebe o hospedeiro e desenha o conteúdo do capítulo -- o mesmo
+   conteúdo que antes estava empilhado na página única. */
+const CAPITULOS = [
+  { id: "origem", icone: "semente", titulo: "De onde viemos",
+    resumo: "Três nomes, um laboratório: do núcleo de pesquisa de 1989 ao LAPE." },
+  { id: "fazemos", icone: "experimento", titulo: "O que fazemos",
+    resumo: "Ensino, pesquisa e extensão — as três pernas, cada uma com entrega." },
+  { id: "linhas", icone: "linhas", titulo: "As linhas de pesquisa",
+    resumo: "O território da Psicologia do Esporte e do Exercício onde trabalhamos." },
+  { id: "objetivo", icone: "alvo", titulo: "Nosso objetivo",
+    resumo: "O que as ações do laboratório se propõem a mudar, e em quem." },
+  { id: "publico", icone: "comunidade", titulo: "Quem atendemos",
+    resumo: "O público que passa pelos projetos de pesquisa e de extensão." },
+  { id: "efeitos", icone: "coracao", titulo: "O que o exercício muda",
+    resumo: "Os oito efeitos observados em quem é atendido pelo programa." },
+  { id: "equipe", icone: "pessoas", titulo: "A equipe e a coordenação",
+    resumo: "Quem faz, de onde vêm as bolsas e quem orienta o conjunto." },
+];
+function capituloDe(id) {
+  return CAPITULOS.find(function (c) { return c.id === id; }) || null;
+}
+
 view("historia", "Nossa história", "",
-  "Trinta e cinco anos de laboratório em caixas: de onde viemos, o que "
-  + "fazemos, para quem, e o que isso muda na vida das pessoas.",
+  "Trinta e cinco anos de laboratório em capítulos: escolha por onde entrar.",
   function (host) {
     const o = D.overview || {};
     const rows = D.articles || [];
@@ -1390,40 +1454,115 @@ view("historia", "Nossa história", "",
     const anos = ano - HISTORIA.fundado_em;
     const publicados = rows.filter(function (a) { return a.status === "publicado"; }).length;
 
+    /* O capítulo aberto vive no endereço: #historia/equipe abre direto na
+       equipe, e o botão "voltar" do navegador funciona. */
+    const aberto = capituloDe((location.hash || "").split("/")[1] || "");
+
+    function irPara(id) {
+      history.replaceState(null, "", "#historia" + (id ? "/" + id : ""));
+      render();
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }
+
     /* ------------------------------------------------------------------
        capa — a identidade, e quatro números que o banco atualiza sozinho
        ------------------------------------------------------------------ */
-    host.appendChild(el("div", { class: "card hcapa" }, [
-      el("div", { class: "marca" }, [
-        Icons.badge("raizes", null, 52),
-        el("div", {}, [
-          el("h3", { text: o.lab_name
-            || "Laboratório de Psicologia do Esporte e do Exercício" }),
-          el("div", { class: "hint", text: (o.institution || "CEFID / UDESC")
-            + " · desde " + HISTORIA.fundado_em }),
+    if (!aberto) {
+      host.appendChild(el("div", { class: "card hcapa" }, [
+        el("div", { class: "marca" }, [
+          Icons.badge("raizes", null, 52),
+          el("div", {}, [
+            el("h3", { text: o.lab_name
+              || "Laboratório de Psicologia do Esporte e do Exercício" }),
+            el("div", { class: "hint", text: (o.institution || "CEFID / UDESC")
+              + " · desde " + HISTORIA.fundado_em }),
+          ]),
         ]),
-      ]),
-      el("p", { class: "lema", text: "Um laboratório e grupo de pesquisa que "
-        + "reflete o esforço de dezenas de estudantes e pesquisadores ao longo "
-        + "de sua existência. Ensino, pesquisa e extensão: produzir "
-        + "conhecimento, atender a comunidade e formar gente." }),
-    ]));
+        el("p", { class: "lema", text: "Um laboratório e grupo de pesquisa que "
+          + "reflete o esforço de dezenas de estudantes e pesquisadores ao longo "
+          + "de sua existência. Ensino, pesquisa e extensão: produzir "
+          + "conhecimento, atender a comunidade e formar gente." }),
+      ]));
 
-    host.appendChild(el("div", { class: "grid g4", style: "margin-top:16px" }, [
-      kpi({ label: "Anos de história", value: C.fmt(anos), icon: "raizes",
-        foot: "fundado em outubro de " + HISTORIA.fundado_em }),
-      kpi({ label: "Linhas de pesquisa", value: C.fmt(HISTORIA.linhas.length),
-        icon: "linhas", ir: "linhas", foot: "na Psicologia do Esporte e do Exercício" }),
-      kpi({ label: "Publicações", value: C.fmt(publicados), icon: "livro",
-        ir: "publicacoes", foot: "registradas no banco do LAPE" }),
-      kpi({ label: "Pessoas", value: C.fmt((o.n_members || 0) + (o.n_collaborators || 0)),
-        icon: "pessoas", ir: "pesquisadores",
-        foot: "pesquisadores e coautores" }),
-    ]));
+      host.appendChild(el("div", { class: "grid g4", style: "margin-top:16px" }, [
+        kpi({ label: "Anos de história", value: C.fmt(anos), icon: "raizes",
+          foot: "fundado em outubro de " + HISTORIA.fundado_em }),
+        kpi({ label: "Linhas de pesquisa", value: C.fmt(HISTORIA.linhas.length),
+          icon: "linhas", ir: "linhas", foot: "na Psicologia do Esporte e do Exercício" }),
+        kpi({ label: "Publicações", value: C.fmt(publicados), icon: "livro",
+          ir: "publicacoes", foot: "registradas no banco do LAPE" }),
+        kpi({ label: "Pessoas", value: C.fmt((o.n_members || 0) + (o.n_collaborators || 0)),
+          icon: "pessoas", ir: "pesquisadores",
+          foot: "pesquisadores e coautores" }),
+      ]));
+
+      /* --------------------------- o índice --------------------------- */
+      host.appendChild(el("div", { style: "margin-top:16px" }, card(
+        "A história completa, em sete capítulos",
+        "Cada ícone abre um capítulo com a sua própria página.",
+        el("div", { class: "capgrade" }, CAPITULOS.map(function (cap, i) {
+          const botao = el("button", { class: "capcard", type: "button",
+            title: "Abrir: " + cap.titulo,
+            onclick: function () { irPara(cap.id); } });
+          botao.appendChild(el("span", { class: "capnum", text: String(i + 1) }));
+          botao.appendChild(Icons.badge(cap.icone, null, 38));
+          botao.appendChild(el("b", { text: cap.titulo }));
+          botao.appendChild(el("p", { text: cap.resumo }));
+          botao.appendChild(el("span", { class: "abrir" }, [
+            el("span", { text: "ler o capítulo" }), Icons.get("proximo", 13)]));
+          return botao;
+        })))));
+      hanimar(host);
+      return;
+    }
 
     /* ------------------------------------------------------------------
-       linha do tempo — três nomes, um laboratório
+       a página de um capítulo
        ------------------------------------------------------------------ */
+    const posicao = CAPITULOS.indexOf(aberto);
+    host.appendChild(el("div", { class: "capbarra no-print" }, [
+      el("button", { type: "button", class: "capvoltar",
+        onclick: function () { irPara(""); } }, [
+        Icons.get("anterior", 14), el("span", { text: "Todos os capítulos" })]),
+      el("span", { class: "hint", text: "Capítulo " + (posicao + 1)
+        + " de " + CAPITULOS.length }),
+    ]));
+    host.appendChild(el("div", { class: "captopo" }, [
+      Icons.badge(aberto.icone, null, 46),
+      el("div", {}, [
+        el("h3", { text: aberto.titulo }),
+        el("p", { class: "hint", text: aberto.resumo }),
+      ]),
+    ]));
+
+    const palco = el("div", { style: "margin-top:16px" });
+    host.appendChild(palco);
+    desenharCapitulo(aberto.id, palco);
+    hanimar(palco);
+
+    /* --------------------------- anterior / próximo --------------------------- */
+    const nav = el("nav", { class: "capnav no-print",
+      "aria-label": "Navegar entre capítulos" });
+    const anterior = CAPITULOS[posicao - 1], proximo = CAPITULOS[posicao + 1];
+    [[anterior, "←", "Anterior"], [proximo, "→", "Próximo"]].forEach(function (par, k) {
+      const alvo = par[0];
+      if (!alvo) { nav.appendChild(el("span")); return; }
+      const botao = el("button", { type: "button", class: "navbtn",
+        onclick: function () { irPara(alvo.id); } });
+      if (!k) botao.appendChild(el("span", { class: "arrow", text: par[1] }));
+      botao.appendChild(Icons.get(alvo.icone, 14));
+      botao.appendChild(el("span", { text: alvo.titulo }));
+      if (k) botao.appendChild(el("span", { class: "arrow", text: par[1] }));
+      nav.appendChild(botao);
+    });
+    host.appendChild(nav);
+  });
+
+/* O conteúdo de cada capítulo. É o mesmo texto da coordenação que estava
+   na página única -- separado aqui para que o índice e a página do
+   capítulo compartilhem a mesma fonte, e não duas cópias que divergem. */
+function desenharCapitulo(id, host) {
+  if (id === "origem") {
     const trilho = el("ol", { class: "htempo" }, HISTORIA.marcos.map(function (m) {
       return el("li", { class: "hmarco" }, [
         el("span", { class: "hponto" }, Icons.badge(m.icone, null, 38)),
@@ -1432,36 +1571,28 @@ view("historia", "Nossa história", "",
         el("p", { text: m.texto }),
       ]);
     }));
-    host.appendChild(el("div", { style: "margin-top:16px" },
-      card("Da semente ao LAPE",
-        "O laboratório mudou de nome duas vezes; a data de fundação é uma só.",
-        trilho)));
-
-    /* ------------------------------------------------------------------
-       o tripé
-       ------------------------------------------------------------------ */
-    host.appendChild(el("div", { style: "margin-top:16px" },
-      card("O que o LAPE faz",
-        "Ensino, pesquisa e extensão — as três pernas, cada uma com entrega própria.",
-        el("div", { class: "hgrade tres" },
-          HISTORIA.pilares.map(hcaixa)))));
-
-    /* ------------------------------------------------------------------
-       linhas de pesquisa
-       ------------------------------------------------------------------ */
-    host.appendChild(el("div", { style: "margin-top:16px" },
-      card("As linhas de pesquisa",
-        "O território da Psicologia do Esporte e do Exercício (PEE) onde o "
-        + "laboratório trabalha.", [
-          el("div", { class: "hgrade" }, HISTORIA.linhas.map(hcaixa)),
-          el("div", { class: "hint", style: "margin-top:12px",
-            text: HISTORIA.menor_grau }),
-        ])));
-
-    /* ------------------------------------------------------------------
-       objetivo — o parágrafo que a coordenação escreveu, inteiro
-       ------------------------------------------------------------------ */
-    host.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" }, [
+    host.appendChild(card("Da semente ao LAPE",
+      "O laboratório mudou de nome duas vezes; a data de fundação é uma só.",
+      trilho));
+    return;
+  }
+  if (id === "fazemos") {
+    host.appendChild(card("Ensino, pesquisa e extensão",
+      "As três pernas, cada uma com entrega própria.",
+      el("div", { class: "hgrade tres" }, HISTORIA.pilares.map(hcaixa))));
+    return;
+  }
+  if (id === "linhas") {
+    host.appendChild(card("As linhas de pesquisa",
+      "O território da Psicologia do Esporte e do Exercício (PEE) onde o "
+      + "laboratório trabalha.", [
+        el("div", { class: "hgrade" }, HISTORIA.linhas.map(hcaixa)),
+        el("div", { class: "hint", style: "margin-top:12px", text: HISTORIA.menor_grau }),
+      ]));
+    return;
+  }
+  if (id === "objetivo") {
+    host.appendChild(el("div", { class: "grid g2" }, [
       card("Nosso objetivo", null, [
         el("p", { class: "hprosa", text: "Pensar, planejar, desenvolver e "
           + "avaliar ações que promovam saúde e bem-estar da população "
@@ -1483,38 +1614,29 @@ view("historia", "Nossa história", "",
         ]),
         el("p", { class: "hprosa", text: "O exercício físico estruturado e "
           + "orientado é o que carrega o programa: é dele que vêm os "
-          + "benefícios listados ao lado, medidos nos estudos do "
+          + "benefícios do capítulo seguinte, medidos nos estudos do "
           + "laboratório." }),
       ]),
     ]));
-
-    /* ------------------------------------------------------------------
-       quem atendemos
-       ------------------------------------------------------------------ */
-    host.appendChild(el("div", { style: "margin-top:16px" },
-      card("Quem o LAPE atende",
-        "O público que passa pelos projetos de pesquisa e de extensão.",
-        el("div", { class: "hgrade compacta" },
-          HISTORIA.publico.map(hcaixa)))));
-
-    /* ------------------------------------------------------------------
-       o que muda
-       ------------------------------------------------------------------ */
-    host.appendChild(el("div", { style: "margin-top:16px" },
-      card("O que o exercício orientado muda",
-        "Os efeitos observados em quem é atendido pelo programa.",
-        el("div", { class: "hgrade compacta" },
-          HISTORIA.beneficios.map(hcaixa)))));
-
-    /* ------------------------------------------------------------------
-       equipe e coordenação
-       ------------------------------------------------------------------ */
+    return;
+  }
+  if (id === "publico") {
+    host.appendChild(card("Quem o LAPE atende",
+      "O público que passa pelos projetos de pesquisa e de extensão.",
+      el("div", { class: "hgrade compacta" }, HISTORIA.publico.map(hcaixa))));
+    return;
+  }
+  if (id === "efeitos") {
+    host.appendChild(card("O que o exercício orientado muda",
+      "Os efeitos observados em quem é atendido pelo programa.",
+      el("div", { class: "hgrade compacta" }, HISTORIA.beneficios.map(hcaixa))));
+    return;
+  }
+  if (id === "equipe") {
     const formacao = (D.members || []).filter(function (m) {
       return !m.is_external && m.active !== 0 && !m.left_on
-        && ["pos_doutorado", "doutorando", "mestrando", "bolsista_ic",
-            "graduando", "bolsista_extensao"].indexOf(m.role) >= 0; }).length;
-
-    host.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" }, [
+        && EM_FORMACAO.indexOf(m.role) >= 0; }).length;
+    host.appendChild(el("div", { class: "grid g2" }, [
       card("A equipe", "Pesquisadores de diferentes instituições.", [
         el("p", { class: "hprosa", text: "Doutores, doutorandos, mestrandos e "
           + "alunos de graduação, todos envolvidos no programa de extensão, "
@@ -1544,9 +1666,198 @@ view("historia", "Nossa história", "",
         ]),
       ]),
     ]));
+  }
+}
 
-    hanimar(host);
+/* ====================================================================== */
+/* infográfico por linha de pesquisa                                      */
+/* ====================================================================== */
+/* O painel sabia dizer quanto o laboratório produz. Não sabia dizer o que
+   ele ESTUDA -- e a linha de pesquisa é justamente o recorte pelo qual a
+   coordenação pensa, o avaliador pergunta e o bolsista escolhe onde
+   entrar.
+
+   Cada linha ganha um cartão com desenho próprio: o ícone não é enfeite,
+   é o que faz "Fibromialgia" e "Qualidade do ar" se distinguirem sem ler
+   a palavra. O cartão inteiro é botão: abre a tabela dinâmica com os
+   artigos daquela linha, que é a pergunta seguinte de quem olha. */
+
+/* O desenho de cada linha. A chave é normalizada (sem acento, minúscula)
+   e casa por PALAVRA INTEIRA, nunca por trecho solto: com busca por
+   trecho, "ar" achava "sedentário" e "declarada", e duas linhas que nada
+   têm com qualidade do ar ganhavam o desenho de pulmão. Frase de mais de
+   uma palavra continua valendo -- "psicologia do esporte" casa dentro de
+   "Psicologia do Esporte e do Exercício".
+
+   Sem verbete, o ícone é neutro: linha nova não fica sem cartão, fica sem
+   desenho próprio. */
+const ICONE_DA_LINHA = [
+  ["fibromialgia", "dor"], ["dor", "dor"], ["reumatic|reumatolog", "dor"],
+  ["qualidade do ar", "pulmao"], ["poluicao|poluentes", "pulmao"],
+  ["respirator|pulmonar", "pulmao"],
+  ["cancer|oncolog", "fita"], ["mama", "fita"],
+  ["envelhecimento|envelhecer", "envelhecimento"], ["idoso|idosos", "envelhecimento"],
+  ["fisioterapia|reabilitacao", "coracao"],
+  ["exergame|exergames", "apresentacao"], ["escola|escolar|escolas", "apresentacao"],
+  ["psicologia do esporte", "trofeu"],
+  /* "Desempenho no Esporte" contém as duas palavras; a mais específica
+     ganha, senão toda linha de rendimento vira troféu genérico. */
+  ["desempenho|rendimento|performance", "subida"],
+  ["esporte|esportiva|atleta|atletas", "trofeu"],
+  ["psicologia do exercicio", "halteres"], ["exercicio", "halteres"],
+  ["atividade fisica|sedentario|sedentarismo", "corrida"],
+  ["cognicao|neurociencia", "cerebro"], ["saude mental|depressao|ansiedade|humor", "cerebro"],
+  ["treinamento", "halteres"], ["qualidade de vida|bem-estar|saude", "coracao"],
+];
+function iconeDaLinha(nome) {
+  const bruto = String(nome || "");
+  if (/sem linha/i.test(bruto)) return "aviso";
+  const chave = bruto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const achado = ICONE_DA_LINHA.find(function (par) {
+    return new RegExp("(^|[^a-z])(" + par[0] + ")([^a-z]|$)").test(chave);
   });
+  return achado ? achado[1] : "linhas";
+}
+
+/* A tabela dinâmica de uma linha, na gaveta. É a mesma `dataTable` do
+   resto do painel -- com ordenação, busca e exportação -- e não uma
+   listinha de leitura: quem abre isto quer trabalhar o recorte. */
+function abrirLinha(nome, doSet) {
+  const publicados = doSet.filter(function (a) { return a.status === "publicado"; });
+  const citacoes = doSet.map(bestCitations);
+  const anos = Array.from(new Set(publicados.map(function (a) { return a.year_published; })
+    .filter(Boolean))).sort();
+  const pessoas = new Set();
+  (D.authorship || []).forEach(function (l) {
+    if (doSet.some(function (a) { return a.id === l.a; })) pessoas.add(l.m); });
+
+  openDrawer(nome, [
+    el("div", { class: "drawer-sub", text: doSet.length + " artigo(s) nesta linha, "
+      + publicados.length + " publicado(s)." }),
+    el("div", { class: "grid g4", style: "margin:16px 0" }, [
+      kpi({ label: "Artigos", value: C.fmt(doSet.length), icon: "producao" }),
+      kpi({ label: "Publicados", value: C.fmt(publicados.length), icon: "livro" }),
+      kpi({ label: "Citações", value: C.fmt(citacoes.reduce(function (a, b) { return a + b; }, 0)),
+        icon: "citacao" }),
+      kpi({ label: "Pessoas", value: C.fmt(pessoas.size), icon: "pessoas" }),
+    ]),
+    anos.length > 1 ? card("Publicações por ano nesta linha", null, C.columns({
+      labels: anos.map(String),
+      series: [{ label: "Publicados", values: anos.map(function (y) {
+        return publicados.filter(function (a) { return a.year_published === y; }).length; }) }],
+      mono: true, height: 170, file: "linha-" + nome.slice(0, 20) })) : null,
+    el("div", { style: "margin-top:14px" }, dataTable({
+      file: "artigos-da-linha", sortKey: "citacoes", sortDir: -1, pageSize: 12,
+      /* a linha inteira abre o artigo -- o mesmo gesto do resto do painel */
+      onRow: function (r) { showArticle(r); },
+      cols: [
+        { k: "title", label: "Artigo", wide: true, render: function (r) {
+          return cut(r.title, 72); } },
+        { k: "status", label: "Situação", render: function (r) { return badge(r.status); } },
+        { k: "year_published", label: "Ano", num: true },
+        { k: "journal", label: "Periódico", render: function (r) {
+          return r.journal ? cut(r.journal, 30) : "—"; } },
+        { k: "citacoes", label: "Citações", num: true,
+          sortValue: bestCitations, render: function (r) {
+            return C.fmt(bestCitations(r)); } },
+      ],
+      rows: doSet,
+    })),
+    el("div", { style: "margin-top:14px;display:flex;gap:8px;flex-wrap:wrap" }, [
+      el("button", { type: "button", class: "primary", text: "Filtrar o painel por esta linha",
+        onclick: function () {
+          STATE.linha = nome; buildToolbar(); closeDrawer(); render(); } }),
+      el("button", { type: "button", text: "Ver todas as linhas",
+        onclick: function () { closeDrawer(); go("linhas"); } }),
+    ]),
+  ].filter(Boolean));
+}
+
+/* Os cartões, um por linha. Ordenados pelo tamanho, porque a primeira
+   pergunta é sempre "qual é a maior" -- e cortados em doze, porque um
+   mosaico de quarenta cartões não é um infográfico, é uma lista. */
+function infograficoDasLinhas(rows) {
+  const porLinha = new Map();
+  rows.forEach(function (a) {
+    const nome = a.research_line || "Sem linha declarada";
+    if (!porLinha.has(nome)) porLinha.set(nome, []);
+    porLinha.get(nome).push(a);
+  });
+  const linhas = Array.from(porLinha.entries())
+    .sort(function (a, b) { return b[1].length - a[1].length; })
+    .slice(0, 12);
+  if (!linhas.length) return null;
+
+  const maior = linhas[0][1].length;
+  return el("div", { class: "linhagrade" }, linhas.map(function (par, i) {
+    const nome = par[0], doSet = par[1];
+    const publicados = doSet.filter(function (a) { return a.status === "publicado"; }).length;
+    const producao = doSet.filter(function (a) { return a.status === "em_producao"; }).length;
+    const avaliacao = doSet.length - publicados - producao;
+    const citacoes = doSet.reduce(function (t, a) { return t + bestCitations(a); }, 0);
+    const cor = C.serie(i);
+    const cartao = el("button", {
+      class: "linhacard", type: "button",
+      title: "Abrir os artigos de " + nome,
+      onclick: function () { abrirLinha(nome, doSet); },
+    });
+    cartao.style.setProperty("--cor", cor);
+    cartao.appendChild(el("div", { class: "topo" }, [
+      Icons.badge(iconeDaLinha(nome), null, 34),
+      el("b", { text: nome }),
+    ]));
+    cartao.appendChild(el("div", { class: "numeros" }, [
+      el("span", {}, [el("b", { text: C.fmt(doSet.length) }), el("i", { text: "artigos" })]),
+      el("span", {}, [el("b", { text: C.fmt(publicados) }), el("i", { text: "publicados" })]),
+      el("span", {}, [el("b", { text: C.fmt(citacoes) }), el("i", { text: "citações" })]),
+    ]));
+    /* A barra é a única comparação entre cartões: sem ela, doze caixas do
+       mesmo tamanho dizem que as doze linhas têm o mesmo peso. */
+    const trilho = el("div", { class: "linhatrilho" });
+    [[publicados, "Publicados", C.token("--seq-600")],
+     [producao, "Em produção", C.token("--seq-400")],
+     [avaliacao, "Em avaliação", C.token("--seq-200")]].forEach(function (parte) {
+      if (parte[0] <= 0) return;
+      const pedaco = el("i", { title: parte[1] + ": " + parte[0] });
+      pedaco.style.width = (100 * parte[0] / maior) + "%";
+      pedaco.style.background = parte[2];
+      trilho.appendChild(pedaco);
+    });
+    cartao.appendChild(trilho);
+    cartao.appendChild(el("span", { class: "abrir" }, [
+      Icons.get("explorar", 13), el("span", { text: "ver os artigos" })]));
+    return cartao;
+  }));
+}
+
+/* Quantas publicações cada linha somou, ano a ano. É aqui que aparece o
+   cruzamento: a linha que passou a outra, e em que ano -- a informação
+   que nem o mosaico nem a rosca conseguem dar, porque nenhum dos dois
+   tem eixo do tempo. */
+function corridaDasLinhas(rows) {
+  const publicados = rows.filter(function (a) {
+    return a.status === "publicado" && a.year_published; });
+  if (publicados.length < 4) return null;
+  const anos = Array.from(new Set(publicados.map(function (a) {
+    return Number(a.year_published); }))).sort(function (a, b) { return a - b; });
+  if (anos.length < 3) return null;
+  const porLinha = counter(publicados, function (a) {
+    return a.research_line || "Sem linha declarada"; }).slice(0, 5);
+  if (porLinha.length < 2) return null;
+  const series = porLinha.map(function (x, i) {
+    let soma = 0;
+    return { label: cut(x.label, 26), color: C.serie(i),
+      values: anos.map(function (y) {
+        soma += publicados.filter(function (a) {
+          return Number(a.year_published) === y
+            && (a.research_line || "Sem linha declarada") === x.label; }).length;
+        return soma;
+      }) };
+  });
+  return { labels: anos.map(String), series: series, height: 280,
+    file: "corrida-das-linhas",
+    caption: "publicações acumuladas por linha de pesquisa" };
+}
 
 view("visao", "Painel", "", "Retrato do laboratório no recorte atual.", function (host) {
   const o = D.overview;
@@ -1664,6 +1975,110 @@ view("visao", "Painel", "", "Retrato do laboratório no recorte atual.", functio
       + "vem o histórico medido. Rode <span class='mono'>lape_agent.py lake</span>." }));
   }
 
+  /* ---- segunda fileira: os indicadores que contagem não dá ------------
+     Os oito de cima dizem QUANTO. Estes dizem o que o quanto não diz:
+     se o laboratório lidera ou participa, se o impacto está concentrado
+     em poucos artigos, se a produção depende de poucas pessoas e se ela
+     é recente. Nenhum deles é contagem -- e é por isso que valem o
+     espaço de uma segunda fileira. */
+  const citados = published.map(bestCitations).filter(function (c) { return c > 0; });
+  const semCitacao = published.length - citados.length;
+  /* Índice h da COLEÇÃO, e não de uma pessoa: h artigos com pelo menos h
+     citações cada. É o número que se pede de um grupo de pesquisa, e o
+     painel só tinha o de pessoa. */
+  const ordenadas = published.map(bestCitations).sort(function (a, b) { return b - a; });
+  let hLab = 0;
+  while (hLab < ordenadas.length && ordenadas[hLab] >= hLab + 1) hLab++;
+  /* Primeira autoria: alguém do LAPE assina em primeiro lugar.
+
+     O indicador que eu queria era "primeiro OU último autor", que é como
+     a área lê liderança. O último autor não é calculável aqui: a tabela
+     de autoria só guarda quem é do laboratório, então o maior
+     `author_order` que ela conhece é o último DOS NOSSOS, e não o último
+     da lista -- um integrante em terceiro lugar entre oito autores seria
+     contado como sênior. Medir primeiro autor é menos, e é verdade. */
+  const daCasa = new Set((D.researchers || []).filter(function (r) { return !r.is_external; })
+    .map(function (r) { return r.id; }));
+  const lideranca = rows.filter(function (a) {
+    return (D.authorship || []).some(function (l) {
+      return l.a === a.id && l.o === 1 && daCasa.has(l.m); });
+  }).length;
+  /* Concentração: quanto da produção sai das três pessoas mais ativas.
+     Alta concentração não é mérito nem defeito -- é risco, e é o tipo de
+     coisa que nenhum outro número do painel mostra. */
+  const porPessoa = new Map();
+  (D.authorship || []).forEach(function (l) {
+    if (!daCasa.has(l.m)) return;
+    porPessoa.set(l.m, (porPessoa.get(l.m) || 0) + 1);
+  });
+  const topo3 = Array.from(porPessoa.values()).sort(function (a, b) { return b - a; })
+    .slice(0, 3).reduce(function (a, b) { return a + b; }, 0);
+  const totalAssinaturas = Array.from(porPessoa.values())
+    .reduce(function (a, b) { return a + b; }, 0);
+  const concentracao = totalAssinaturas ? Math.round(100 * topo3 / totalAssinaturas) : null;
+  /* Renovação: quanto da produção total saiu no último triênio. */
+  const trienio = published.filter(function (a) {
+    return Number(a.year_published) >= currentYear - 2; }).length;
+  const instituicoes = new Set((D.researchers || [])
+    .filter(function (r) { return r.is_external && r.institution; })
+    .map(function (r) { return r.institution; }));
+  const nLinhas = new Set(rows.map(function (a) { return a.research_line; })
+    .filter(Boolean)).size;
+  const medianaCit = median(published.map(bestCitations));
+
+  host.appendChild(el("div", { class: "grid g4 fixed4", style: "margin-top:13px" }, [
+    kpi({ label: "Índice h do laboratório", icon: "citacao",
+      value: hLab ? C.fmt(hLab) : "—", ir: "citacoes",
+      foot: hLab ? hLab + " artigos com " + hLab + "+ citações cada"
+        : "nenhuma citação registrada ainda",
+      leitura: { texto: "É o h da coleção do LAPE, e não o de uma pessoa — "
+        + "é este que se pede de um grupo de pesquisa." } }),
+    kpi({ label: "Primeira autoria", icon: "orientacao",
+      value: rows.length ? Math.round(100 * lideranca / rows.length) + "%" : "—",
+      ir: "equipe", foot: C.fmt(lideranca) + " de " + C.fmt(rows.length) + " artigos",
+      leitura: { texto: "Artigos em que alguém do LAPE assina em primeiro lugar. "
+        + "Separa produção do laboratório de participação na produção dos "
+        + "outros. Autoria sênior exigiria saber quantos autores o artigo "
+        + "tem ao todo, e o banco só guarda os nossos." } }),
+    kpi({ label: "Citações por artigo", icon: "barras",
+      value: medianaCit === null ? "—" : dec(medianaCit, 1), ir: "citacoes",
+      foot: "mediana entre os publicados",
+      leitura: published.length ? {
+        sinal: semCitacao > published.length / 2 ? "desce" : "parado",
+        forte: C.fmt(semCitacao) + " sem citação",
+        texto: "de " + published.length + " publicados. A mediana não se deixa "
+          + "levar por um artigo muito citado; a média sim.",
+      } : null }),
+    kpi({ label: "Concentração da produção", icon: "aviso",
+      value: concentracao === null ? "—" : concentracao + "%",
+      ir: "equipe", tone: concentracao !== null && concentracao >= 70 ? "bad" : null,
+      foot: "assinada pelas 3 pessoas mais ativas",
+      leitura: { texto: "Quanto maior, mais a produção depende de poucas pessoas — "
+        + "é risco, e não mérito nem defeito." } }),
+    kpi({ label: "Renovação", icon: "atualizar",
+      value: published.length ? Math.round(100 * trienio / published.length) + "%" : "—",
+      ir: "temporal", foot: C.fmt(trienio) + " nos últimos três anos",
+      leitura: { texto: "Quanto da produção total saiu no último triênio: diz se o "
+        + "laboratório produz hoje ou vive de acervo." } }),
+    kpi({ label: "Instituições parceiras", icon: "instituicao",
+      value: C.fmt(instituicoes.size), ir: "rede",
+      foot: C.fmt(o.n_collaborators) + " coautores de fora",
+      leitura: { texto: "Coautoria externa é o que leva o trabalho do laboratório "
+        + "para fora dele." } }),
+    kpi({ label: "Linhas com produção", icon: "linhas",
+      value: C.fmt(nLinhas), ir: "linhas",
+      foot: "no recorte atual",
+      leitura: { texto: "Linha declarada sem nenhum artigo é linha que existe no "
+        + "cadastro e não na bancada." } }),
+    kpi({ label: "Em formação", icon: "tese",
+      value: C.fmt((D.members || []).filter(function (m) {
+        return !m.is_external && m.active !== 0 && !m.left_on
+          && EM_FORMACAO.indexOf(m.role) >= 0; }).length),
+      ir: "formacao", foot: "orientandos ativos",
+      leitura: { texto: "Cada um com uma entrega e um prazo — em Pessoas → "
+        + "Formação e prazos." } }),
+  ]));
+
   const segItems = topN(counter(rows, segmentOf), 7);
   const segLabel = (SEGMENTOS.find(function (x) { return x.id === STATE.segmento; }) || {}).label || "";
   host.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" }, [
@@ -1757,6 +2172,28 @@ view("visao", "Painel", "", "Retrato do laboratório no recorte atual.", functio
       "A espessura é o número de artigos; a coluna da direita, onde eles estão.",
       C.sankey(fluxoDasLinhas(rows))),
   ]));
+
+  /* ---- o que o laboratório estuda, linha por linha -------------------- */
+  const mosaico = infograficoDasLinhas(rows);
+  if (mosaico) {
+    host.appendChild(el("div", { style: "margin-top:16px" }, card(
+      "As linhas de pesquisa, uma a uma",
+      "Cada cartão abre os artigos daquela linha numa tabela que ordena, "
+      + "busca e exporta. A barra compara o tamanho entre as linhas.",
+      mosaico)));
+  }
+
+  /* A corrida: qual linha passou qual, e em que ano. É a única figura do
+     painel com eixo do tempo E identidade de linha ao mesmo tempo -- o
+     mosaico e a rosca mostram o hoje, e o hoje não conta a virada. */
+  const corrida = corridaDasLinhas(rows);
+  if (corrida) {
+    host.appendChild(el("div", { style: "margin-top:16px" }, card(
+      "A corrida entre as linhas",
+      "Publicações acumuladas por linha. Os anéis marcam onde uma passou a "
+      + "outra e onde cada uma virou.",
+      linhaAnalitica(corrida, { maximo: 5 }))));
+  }
 });
 
 /* Onde o laboratório quer chegar, e se vai.
@@ -2061,6 +2498,17 @@ view("organograma", "Organograma", "Pessoas e projetos",
         }))));
     }
 
+    /* Tabela vazia por falta de dado e tabela vazia por falta de permissão
+       são coisas diferentes, e dizer a primeira quando é a segunda faz
+       alguém recadastrar o que já está lá. */
+    if (org.restrito) {
+      host.appendChild(el("div", { style: "margin-top:18px" }, el("div", { class: "note",
+        html: "<b>Teses e prazos ficam com a coordenação.</b> Eles não viajam "
+          + "no arquivo exportado nem no mural; na sessão de quem coordena "
+          + "aparecem em <b>Pessoas → Formação e prazos</b>." })));
+      return;
+    }
+
     const teses = org.teses || [];
     host.appendChild(el("div", { style: "margin-top:18px" }, card(
       "Teses, dissertações e planos de trabalho",
@@ -2191,6 +2639,289 @@ function organogramaEmColunas(org) {
   caixa.appendChild(el("div", { class: "org-scroll" }, trilho));
   return caixa;
 }
+
+/* ====================================================================== */
+/* formação e prazos                                                      */
+/* ====================================================================== */
+/* O organograma responde "quem responde a quem". Esta tela responde a
+   outra pergunta, que nenhuma das vinte e quatro respondia: QUANDO.
+
+   Bolsa que vence e defesa que chega são os dois únicos compromissos do
+   laboratório com data marcada e sem volta -- um artigo atrasado sai no
+   mês seguinte, uma bolsa vencida não volta. Até aqui esses dois campos
+   estavam no banco, apareciam numa coluna de tabela ordenável, e não
+   existia nenhum lugar onde alguém visse "faltam doze dias".
+
+   Quem vê esta tela é só a coordenação: ver bolsa e prazo de defesa de
+   uma pessoa é diferente de ver a produção dela, e o corte já estava
+   declarado no servidor (ver SO_DA_COORDENACAO em metrics.py). */
+
+/* Quem está em formação. Mesma lista de mapping.ORIENTADOS -- há teste
+   que reprova a divergência --, e daqui saem tanto esta tela quanto a
+   contagem "em formação" do Resumo, que antes tinha a sua própria cópia
+   sem pós-doutorado nem voluntário. */
+const EM_FORMACAO = ["pos_doutorado", "doutorando", "mestrando", "bolsista_ic",
+  "bolsista_extensao", "voluntario", "graduando"];
+
+/* Situações em que o prazo parou de correr. Contar uma tese defendida
+   como "prazo vencido" é transformar quem entregou em pendência. */
+const TESE_ENCERRADA = ["concluida", "trancada"];
+
+/* As faixas de urgência. Aqui a cor É estado -- é para isso que a paleta
+   de estado existe -- e vem sempre com rótulo e desenho ao lado, porque
+   cor sozinha não nomeia nada e não sobrevive a uma impressão. */
+const FAIXAS_DE_PRAZO = [
+  { id: "vencido", rotulo: "Prazo vencido", cor: "--critical", icone: "aviso",
+    cabe: function (d) { return d !== null && d < 0; } },
+  { id: "noventa", rotulo: "Vence em até 90 dias", cor: "--warning", icone: "prazo",
+    cabe: function (d) { return d !== null && d >= 0 && d <= 90; } },
+  { id: "ano", rotulo: "Vence dentro de um ano", cor: "--series-1", icone: "calendario",
+    cabe: function (d) { return d !== null && d > 90 && d <= 365; } },
+  { id: "longe", rotulo: "Mais de um ano", cor: "--good", icone: "relogio",
+    cabe: function (d) { return d !== null && d > 365; } },
+  { id: "sem", rotulo: "Sem prazo declarado", cor: "--ink-muted", icone: "aviso",
+    cabe: function (d) { return d === null; } },
+];
+
+/* Dias que faltam. Negativo é atraso -- e o sinal importa, porque "faltam
+   -40 dias" e "venceu há 40 dias" são a mesma conta e leituras diferentes. */
+function diasAte(iso) {
+  const passados = daysSince(iso);
+  return passados === null ? null : -passados;
+}
+function faixaDe(dias) {
+  return FAIXAS_DE_PRAZO.find(function (f) { return f.cabe(dias); }) || FAIXAS_DE_PRAZO[4];
+}
+/* "faltam 12 dias" / "venceu há 3 meses" / "sem prazo" */
+function quantoFalta(dias) {
+  if (dias === null) return "sem prazo";
+  if (dias < 0) return "venceu há " + dur(-dias);
+  if (dias === 0) return "é hoje";
+  return "faltam " + dur(dias);
+}
+
+view("formacao", "Formação e prazos", "Pessoas e projetos",
+  "Bolsa que vence e defesa que chega: o que tem data marcada e não espera "
+  + "a próxima reunião.", function (host) {
+    const org = D.org || {};
+
+    /* Sem os campos, a tela não tem do que falar -- e o motivo muda a
+       frase: ou a coordenação não está logada, ou ninguém declarou nada. */
+    if (org.restrito) {
+      host.appendChild(el("div", { class: "note", html:
+        "<b>Prazos e bolsas são visíveis só para a coordenação.</b> "
+        + "Estes campos não viajam no arquivo exportado nem no mural — eles "
+        + "aparecem apenas na sessão autenticada de quem coordena. "
+        + (LIVE ? "Entre com um acesso de coordenação para vê-los."
+          : "Abra o painel pelo servidor do laboratório, com login.") }));
+      return;
+    }
+
+    const gente = (org.people || []).filter(function (p) {
+      return p.active !== 0 && EM_FORMACAO.indexOf(p.role) >= 0; });
+
+    if (!gente.length) {
+      host.appendChild(el("div", { class: "note", html:
+        "<b>Ninguém em formação no cadastro.</b> Orientandos entram pela "
+        + "<a href='/app#equipe'>área do integrante</a>, apontando o orientador. "
+        + "Sem isso, nem o organograma nem esta tela têm o que mostrar." }));
+      return;
+    }
+
+    /* Cada pessoa ganha as duas contas que a tela inteira usa. */
+    const linhas = gente.map(function (p) {
+      const encerrada = TESE_ENCERRADA.indexOf(p.thesis_status) >= 0;
+      const dias = encerrada ? null : diasAte(p.thesis_due_on);
+      return {
+        id: p.id, nome: p.full_name, vinculo: p.role_label,
+        orientador: p.advisor, titulo: p.thesis_title, tipo: p.thesis_kind,
+        situacao: p.thesis_status, encerrada: encerrada,
+        prazo: encerrada ? null : (p.thesis_due_on || null), dias: dias,
+        faixa: encerrada ? null : faixaDe(dias).id,
+        bolsa: p.scholarship || null, bolsa_ate: p.scholarship_until || null,
+        bolsa_dias: p.scholarship_until ? diasAte(p.scholarship_until) : null,
+        linha: p.research_line, artigos: p.n_articles || 0,
+      };
+    });
+
+    const ativas = linhas.filter(function (r) { return !r.encerrada; });
+    const conta = function (teste) { return ativas.filter(teste).length; };
+    const vencidos = conta(function (r) { return r.faixa === "vencido"; });
+    const noventa = conta(function (r) { return r.faixa === "noventa"; });
+    const noAno = conta(function (r) {
+      return r.dias !== null && r.dias >= 0 && r.dias <= 365; });
+    const semPrazo = conta(function (r) { return r.dias === null; });
+    const comBolsa = linhas.filter(function (r) { return r.bolsa; });
+    const bolsaVencendo = comBolsa.filter(function (r) {
+      return r.bolsa_dias !== null && r.bolsa_dias <= 90; });
+    const proxima = ativas.filter(function (r) { return r.dias !== null && r.dias >= 0; })
+      .sort(function (a, b) { return a.dias - b.dias; })[0];
+
+    /* ------------------------------ indicadores ------------------------------ */
+    const porNivel = counter(gente, function (p) { return p.role_label; });
+    host.appendChild(el("div", { class: "grid g5" }, [
+      kpi({ label: "Em formação", value: C.fmt(gente.length), icon: "orientacao",
+        ir: "organograma", foot: porNivel.length + " níveis de vínculo",
+        segmentos: porNivel.slice(0, 4).map(function (x) {
+          return { rotulo: x.label, valor: x.value }; }) }),
+      kpi({ label: "Entregam em 12 meses", value: C.fmt(noAno), icon: "tese",
+        foot: proxima ? "a próxima: " + dt(proxima.prazo) + " · " + quantoFalta(proxima.dias)
+          : "nenhuma data à frente" }),
+      kpi({ label: "Prazo vencido", value: C.fmt(vencidos), icon: "aviso",
+        tone: vencidos ? "bad" : null,
+        foot: vencidos ? "sem conclusão registrada" : "nenhum prazo estourado" }),
+      kpi({ label: "Bolsa vence em 90 dias", value: C.fmt(bolsaVencendo.length),
+        icon: "bolsa",
+        foot: comBolsa.length ? "de " + comBolsa.length + " com bolsa declarada"
+          : "nenhuma bolsa declarada" }),
+      kpi({ label: "Sem prazo declarado", value: C.fmt(semPrazo), icon: "prazo",
+        foot: "prazo em branco não cobra" }),
+    ]));
+
+    /* ------------------------------ urgência ------------------------------ */
+    /* A leitura mais honesta desta tela num parágrafo, antes dos gráficos. */
+    host.appendChild(el("div", { style: "margin-top:16px" }, card(
+      "Em que pé está cada prazo",
+      "A cor aqui é estado, e não identidade — vem sempre com rótulo ao lado.",
+      [
+        C.bars({
+          items: FAIXAS_DE_PRAZO.map(function (f) {
+            return { label: f.rotulo, color: C.token(f.cor),
+              value: ativas.filter(function (r) { return r.faixa === f.id; }).length };
+          }).filter(function (x) { return x.value > 0; }),
+          unit: "pessoa(s)", labelWidth: 220, labelChars: 30, file: "prazos-por-faixa",
+          emptyMessage: "Ninguém com trabalho em andamento.",
+        }),
+        leituraDe(vencidos
+          ? { sinal: "desce", forte: vencidos + " prazo(s) vencido(s)",
+              texto: "sem conclusão registrada. Prazo vencido que na verdade já "
+                + "foi defendido é cadastro desatualizado, não atraso." }
+          : (noventa
+            ? { sinal: "parado", forte: noventa + " entrega(s) nos próximos 90 dias",
+                texto: "e nenhum prazo estourado." }
+            : { sinal: "sobe", forte: "Nenhum prazo estourado",
+                texto: "e nada vencendo nos próximos 90 dias." })),
+      ])));
+
+    /* ------------------------------ calendário ------------------------------ */
+    /* Doze meses à frente, mês a mês. A contagem por faixa diz quantos;
+       só o calendário diz se eles estão espalhados ou empilhados em
+       novembro -- e é isso que decide se a banca cabe na agenda. */
+    const hoje = new Date();
+    const meses = [];
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
+      meses.push({ chave: d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"),
+        rotulo: C.MESES[d.getMonth()] + (d.getMonth() === 0 || i === 0
+          ? "/" + String(d.getFullYear()).slice(2) : "") });
+    }
+    const noMes = function (lista, campo) {
+      return meses.map(function (m) {
+        return lista.filter(function (r) {
+          return r[campo] && String(r[campo]).slice(0, 7) === m.chave; }).length;
+      });
+    };
+    const defesas = noMes(ativas, "prazo");
+    const bolsas = noMes(comBolsa, "bolsa_ate");
+    host.appendChild(el("div", { style: "margin-top:16px" }, card(
+      "Os próximos doze meses",
+      "Entregas e fins de bolsa, mês a mês. Duas medidas diferentes, duas cores.",
+      [
+        C.columns({ labels: meses.map(function (m) { return m.rotulo; }),
+          series: [
+            { label: "Entregas previstas", values: defesas },
+            { label: "Bolsas terminando", values: bolsas },
+          ],
+          height: 230, unit: "pessoa(s)", file: "calendario-da-formacao",
+          caption: "prazos declarados nos próximos doze meses" }),
+        defesas.concat(bolsas).some(function (v) { return v > 0; }) ? null
+          : el("div", { class: "hint", text: "Nenhuma data declarada cai nos "
+              + "próximos doze meses." }),
+      ].filter(Boolean))));
+
+    /* ------------------------------ bolsas e carga ------------------------------ */
+    const porAgencia = counter(comBolsa, "bolsa");
+    /* A carga total já está no organograma. O que falta lá é o tempo:
+       seis orientandos com entrega em 2029 e três com entrega neste
+       semestre são cargas iguais na contagem e nada parecidas na agenda
+       de quem vai para a banca. A barra dividida mostra as duas. */
+    const orientadores = [];
+    counter(gente, function (p) { return p.advisor || "sem orientador apontado"; })
+      .forEach(function (o) {
+        const seus = gente.filter(function (p) {
+          return (p.advisor || "sem orientador apontado") === o.label; });
+        const perto = seus.filter(function (p) {
+          const d = TESE_ENCERRADA.indexOf(p.thesis_status) >= 0
+            ? null : diasAte(p.thesis_due_on);
+          return d !== null && d <= 365; }).length;
+        orientadores.push({ label: o.label, value: o.value, partes: [
+          { rotulo: "entrega em até 12 meses", valor: perto, cor: C.token("--seq-600") },
+          { rotulo: "depois disso ou sem prazo", valor: o.value - perto,
+            cor: C.token("--seq-200") },
+        ] });
+      });
+    host.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" }, [
+      card("Bolsas por agência", comBolsa.length
+        ? "Quem paga a formação da equipe."
+        : "Nenhuma bolsa declarada no cadastro.",
+        C.bars({ items: topN(porAgencia, 7), mono: true, unit: "bolsista(s)",
+          labelWidth: 190, file: "bolsas-por-agencia",
+          emptyMessage: "Nenhuma bolsa declarada." })),
+      card("De quem é a carga que vence",
+        "Cada barra é um orientador; a primeira parte são as entregas dos "
+        + "próximos 12 meses.",
+        [
+          C.bars({ items: orientadores.slice(0, 8), mono: true, unit: "orientando(s)",
+            labelWidth: 210, file: "carga-por-orientador",
+            emptyMessage: "Ninguém com orientador apontado." }),
+          C.legend([
+            { label: "Entrega em até 12 meses", color: C.token("--seq-600") },
+            { label: "Depois disso ou sem prazo", color: C.token("--seq-200") },
+          ]),
+        ]),
+    ]));
+
+    /* ------------------------------ a agenda ------------------------------ */
+    host.appendChild(el("div", { style: "margin-top:16px" }, card(
+      "Agenda de formação",
+      "Uma linha por pessoa, da mais urgente para a mais folgada. "
+      + "Ordene por qualquer coluna.",
+      dataTable({
+        file: "formacao", sortKey: "dias", sortDir: 1, pageSize: 20,
+        cols: [
+          { k: "nome", label: "Pessoa", wide: true, render: function (r) {
+            return el("div", {}, [
+              r.nome,
+              el("small", { text: [r.vinculo, r.orientador ? "orienta: " + r.orientador : null]
+                .filter(Boolean).join(" · ") })]); } },
+          { k: "titulo", label: "Trabalho", wide: true, render: function (r) {
+            return r.titulo ? cut(r.titulo, 56) : "título em definição"; } },
+          { k: "situacao", label: "Situação", render: function (r) {
+            return TESE_SITUACAO[r.situacao] || r.situacao || "—"; } },
+          { k: "prazo", label: "Prazo", render: function (r) { return dt(r.prazo); } },
+          { k: "dias", label: "Quanto falta",
+            sortValue: function (r) {
+              /* sem prazo vai para o fim, e não para o começo: quem não
+                 declarou data não é o caso mais urgente da lista */
+              return r.dias === null ? 1e9 : r.dias; },
+            render: function (r) {
+              if (r.encerrada) return el("span", { class: "hint", text: "entregue" });
+              const f = faixaDe(r.dias);
+              const chip = el("span", { class: "prazo-chip" });
+              chip.style.setProperty("--faixa", "var(" + f.cor + ")");
+              chip.appendChild(Icons.get(f.icone, 13));
+              chip.appendChild(el("span", { text: quantoFalta(r.dias) }));
+              return chip; } },
+          { k: "bolsa", label: "Bolsa", render: function (r) {
+            if (!r.bolsa) return "—";
+            return el("div", {}, [r.bolsa, r.bolsa_ate
+              ? el("small", { text: "até " + dt(r.bolsa_ate)
+                  + " · " + quantoFalta(r.bolsa_dias) })
+              : el("small", { text: "sem vigência declarada" })]); } },
+        ],
+        rows: linhas,
+      }))));
+  });
 
 const TESE_SITUACAO = {
   em_andamento: "Em andamento", coleta: "Coleta de dados", analise: "Análise de dados",
@@ -3138,7 +3869,7 @@ view("temporal", "Linha do tempo", "Espaço-temporal",
     });
     host.appendChild(el("div", { style: "margin-top:16px" }, card(
       "Evolução anual comparada", "As três séries no mesmo eixo, para comparação direta.",
-      C.lines({ labels: t.years.map(String), series: totais, height: 280,
+      linhaAnalitica({ labels: t.years.map(String), series: totais, height: 280,
         file: "evolucao-anual" }))));
 
     const hist = (D.history && D.history.series) || {};
@@ -3148,7 +3879,7 @@ view("temporal", "Linha do tempo", "Espaço-temporal",
       host.appendChild(el("div", { style: "margin-top:16px" }, card(
         "Histórico medido dos indicadores",
         "Cada ponto é uma execução do lakehouse — número medido, não estimado.",
-        C.lines({
+        linhaAnalitica({
           labels: hist[medidas[0]].dates.map(function (d) { return dt(d).slice(0, 5); }),
           series: medidas.map(function (m) {
             return { label: m.charAt(0).toUpperCase() + m.slice(1), values: hist[m].values }; }),
@@ -3566,6 +4297,138 @@ view("qualidade", "Qualidade", "Governança",
     }
   });
 
+/* ====================================================================== */
+/* árvore de ícones — o organograma hierárquico reaproveitável            */
+/* ====================================================================== */
+/* Peça de framework, e não desenho de uma tela só: recebe uma raiz com
+   filhos e devolve a hierarquia inteira, em qualquer profundidade.
+
+   Por que trilho e recuo, e não caixas ligadas por linhas desenhadas:
+   uma árvore com vinte folhas desenhada em SVG fica com três mil pixels
+   de largura e a raiz -- centrada sobre todos os filhos -- vai parar no
+   meio, fora da tela. Foi a mesma razão que pôs o organograma das pessoas
+   em colunas. O trilho cabe em 390px e continua sendo hierarquia.
+
+   Cada nó pode ser botão: `ir` leva a uma aba, `onClick` faz qualquer
+   coisa, e sem os dois o nó é um <div> inerte -- nó que parece clicável e
+   não é custa mais que nó inerte.
+
+   { icone, rotulo, nota, valor, tom, ir, filtro, onClick, filhos: [] } */
+function arvoreDeIcones(raiz, opts) {
+  opts = opts || {};
+  function no(item, nivel) {
+    const navega = !!(item.ir || item.onClick);
+    const node = el(navega ? "button" : "div", {
+      class: "arv-no" + (navega ? " clicavel" : "") + (item.classe ? " " + item.classe : ""),
+      type: navega ? "button" : null,
+      title: item.titulo || (item.ir ? "Abrir " + labelOf(item.ir) : null),
+      onclick: navega ? function () {
+        if (item.onClick) return item.onClick(item);
+        if (item.filtro) { Object.assign(STATE, item.filtro); buildToolbar(); updateCount(); }
+        go(item.ir);
+      } : null,
+    });
+    node.appendChild(Icons.badge(item.icone || "linhas", item.tom || null,
+      nivel === 0 ? 38 : 28));
+    const texto = el("span", { class: "arv-texto" }, [
+      el("b", { text: item.rotulo }),
+      item.nota ? el("small", { text: item.nota }) : null,
+    ].filter(Boolean));
+    node.appendChild(texto);
+    if (item.valor !== undefined && item.valor !== null) {
+      node.appendChild(el("em", { class: "arv-valor", text: String(item.valor) }));
+    }
+    if (navega) node.appendChild(Icons.get("proximo", 13));
+
+    const filhos = item.filhos || [];
+    if (!filhos.length) return el("li", { class: "arv-item" }, node);
+    return el("li", { class: "arv-item" }, [
+      node,
+      el("ul", { class: "arv-ramo" }, filhos.map(function (f) { return no(f, nivel + 1); })),
+    ]);
+  }
+  return el("ul", { class: "arv" + (opts.compacta ? " compacta" : "") }, [no(raiz, 0)]);
+}
+
+/* O caminho de um evento até o n8n, desenhado.
+
+   A aba de automação tinha tudo em tabela: os eventos numa lista, os
+   destinos noutra, as entregas numa terceira. Nenhuma das três mostra o
+   que alguém precisa saber antes de montar um fluxo -- QUE evento sai de
+   onde, e QUEM está escutando. É uma hierarquia, e hierarquia se lê em
+   árvore, não em três tabelas que o leitor cruza de cabeça.
+
+   Os eventos vêm agrupados por família (o prefixo antes do ponto), porque
+   treze eventos numa fila só é lista; em cinco famílias é mapa. */
+const FAMILIA_DO_EVENTO = {
+  artigo: { rotulo: "Artigos", icone: "producao" },
+  submissao: { rotulo: "Submissões", icone: "submissao" },
+  projeto: { rotulo: "Projetos", icone: "projeto" },
+  integrante: { rotulo: "Pessoas", icone: "pessoas" },
+  evento: { rotulo: "Agenda", icone: "calendario" },
+  descoberta: { rotulo: "Achados", icone: "achado" },
+  agente: { rotulo: "Agentes", icone: "automacao" },
+  lake: { rotulo: "Camada analítica", icone: "dados" },
+  dados: { rotulo: "Painel", icone: "atualizar" },
+};
+/* Para onde cada família leva quem clicar: o ícone é botão de navegação,
+   e não enfeite — é o que transforma o mapa em atalho. */
+const ABA_DA_FAMILIA = {
+  artigo: "publicacoes", submissao: "submissoes", projeto: "projetos",
+  integrante: "pesquisadores", evento: "calendario", descoberta: "descobertas",
+  agente: "automacao", lake: "qualidade", dados: "visao",
+};
+
+function arvoreDaAutomacao(a) {
+  const porEvento = counter(a.recent || [], "event");
+  const quantos = new Map(porEvento.map(function (x) { return [x.label, x.value]; }));
+  const familias = new Map();
+  (a.events || []).forEach(function (ev) {
+    const chave = String(ev.id).split(".")[0];
+    if (!familias.has(chave)) familias.set(chave, []);
+    familias.get(chave).push(ev);
+  });
+
+  const ramos = Array.from(familias.entries()).map(function (par) {
+    const chave = par[0], eventos = par[1];
+    const meta = FAMILIA_DO_EVENTO[chave] || { rotulo: chave, icone: "raio" };
+    const somaDaFamilia = eventos.reduce(function (t, ev) {
+      return t + (quantos.get(ev.id) || 0); }, 0);
+    return {
+      icone: meta.icone, rotulo: meta.rotulo,
+      nota: eventos.length + " evento(s) no catálogo",
+      valor: somaDaFamilia || null,
+      ir: ABA_DA_FAMILIA[chave] || null,
+      filhos: eventos.map(function (ev) {
+        /* Quem escuta este evento: o destino assinado nele, mais os que
+           assinaram "*" — sem isso, um fluxo que escuta tudo aparecia
+           como se não escutasse nada. */
+        const ouvintes = (a.webhooks || []).filter(function (w) {
+          return w.active && (w.event === ev.id || w.event === "*"); });
+        return {
+          icone: "raio", rotulo: ev.id, nota: ev.label,
+          valor: quantos.get(ev.id) || null,
+          classe: ouvintes.length ? null : "mudo",
+          titulo: ouvintes.length
+            ? "Escutado por: " + ouvintes.map(function (w) { return w.name; }).join(", ")
+            : "Nenhum destino escuta este evento",
+          filhos: ouvintes.map(function (w) {
+            return { icone: "conectar", rotulo: w.name, tom: "verde",
+              nota: cut(w.url, 52) + (w.event === "*" ? " · assina tudo" : ""),
+              valor: w.deliveries || null };
+          }),
+        };
+      }),
+    };
+  });
+
+  return arvoreDeIcones({
+    icone: "painel", rotulo: "LAPE", tom: "acento",
+    nota: "o banco emite; o n8n escuta",
+    filhos: ramos,
+  });
+}
+
 view("automacao", "Automação", "Governança",
   "Os eventos que o LAPE emite, para onde eles vão e o que voltou de cada entrega.",
   function (host) {
@@ -3621,6 +4484,14 @@ view("automacao", "Automação", "Governança",
         kpi({ label: "Painéis ao vivo", value: C.fmt(a.subscribers), icon: "atualizar",
           foot: a.signing ? "mensagens assinadas" : "sem segredo configurado" }),
       ]));
+
+      /* O mapa antes das tabelas: quem chega aqui precisa ver QUE evento
+         sai de onde e QUEM escuta, antes de cadastrar mais um destino. */
+      box.appendChild(el("div", { style: "margin-top:16px" }, card(
+        "O caminho de um evento até o n8n",
+        "Família do evento, evento e quem o escuta. O evento apagado é o que "
+        + "nenhum destino assina. Clique numa família para abrir a tela dela.",
+        arvoreDaAutomacao(a))));
 
       /* cadastro — o mesmo que o curl do README faz, sem linha de comando */
       const nome = el("input", { class: "search", placeholder: "n8n — publicações", value: "n8n" });
@@ -3783,7 +4654,8 @@ const SECTIONS = [
   { id: "producao", label: "Produção", icon: "producao",
     views: ["producao", "submetidos", "publicacoes", "citacoes"] },
   { id: "pessoas", label: "Pessoas", icon: "pessoas",
-    views: ["pesquisadores", "organograma", "equipe", "rede", "linhas", "projetos"] },
+    views: ["pesquisadores", "organograma", "formacao", "equipe", "rede", "linhas",
+      "projetos"] },
   { id: "processo", label: "Processo", icon: "processo",
     views: ["tempos", "submissoes", "aceites"] },
   { id: "espaco", label: "Espaço-tempo", icon: "espaco",
@@ -3796,7 +4668,7 @@ const VIEW_ICON = {
   explorar: "explorar",
   producao: "producao", submetidos: "submissao", publicacoes: "livro", citacoes: "citacao",
   pesquisadores: "pessoas", organograma: "hierarquia", equipe: "barras", rede: "rede",
-  linhas: "linhas", projetos: "projeto",
+  linhas: "linhas", projetos: "projeto", formacao: "prazo",
   tempos: "relogio", submissoes: "submissao", aceites: "aceite",
   calendario: "calendario", temporal: "tempo", espacial: "mapa",
   descobertas: "achado", qualidade: "qualidade", automacao: "automacao",
@@ -3805,7 +4677,7 @@ const VIEW_ICON = {
    ano, de linha e de integrante em cima de uma página que não muda com
    eles é controle que mente, e o contador "19 de 19 artigos" fala de uma
    tabela que não está ali. */
-const SEM_FILTROS = ["historia"];
+const SEM_FILTROS = ["historia", "formacao"];
 
 /* atalhos entre sub-abas de seções diferentes — a ponte que o menu não faz */
 const RELATED = {
@@ -3819,7 +4691,8 @@ const RELATED = {
   publicacoes: ["citacoes", "temporal", "equipe"],
   citacoes: ["publicacoes", "pesquisadores", "descobertas"],
   pesquisadores: ["organograma", "equipe", "rede"],
-  organograma: ["pesquisadores", "projetos", "linhas"],
+  organograma: ["formacao", "pesquisadores", "projetos"],
+  formacao: ["organograma", "pesquisadores", "calendario"],
   equipe: ["rede", "pesquisadores", "producao"],
   rede: ["equipe", "linhas", "projetos"],
   linhas: ["projetos", "publicacoes", "equipe"],
@@ -3908,9 +4781,19 @@ function buildSubnav() {
   });
 }
 
+/* O endereço pode ter uma segunda parte: "#historia/equipe" é a aba
+   `historia` aberta no capítulo `equipe`. Quem roteia só entende a
+   primeira; a segunda é da aba, que a lê de `location.hash`. Sem esta
+   separação, colar o link de um capítulo caía no Resumo -- porque
+   `viewOf("historia/equipe")` não existe e o roteador desistia. */
+function abaDe(hash) {
+  return String(hash || "").replace("#", "").split("/")[0];
+}
+
 function go(id) {
-  if (!viewOf(id)) id = ORDER[0];
-  current = id;
+  if (!viewOf(abaDe(id))) id = ORDER[0];
+  current = abaDe(id);
+  /* o endereço guarda o id inteiro, com a segunda parte quando houver */
   if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
   buildNav();
   buildSubnav();
@@ -4172,7 +5055,7 @@ function setupTheme() {
 function boot() {
   buildHeader();
   buildToolbar();
-  const asked = (location.hash || "").replace("#", "");
+  const asked = abaDe(location.hash);
   current = viewOf(asked) ? asked : ORDER[0];
   buildNav();
   buildSubnav();
@@ -4183,8 +5066,9 @@ function boot() {
   document.getElementById("scrim").addEventListener("click", closeDrawer);
   addEventListener("keydown", function (ev) { if (ev.key === "Escape") closeDrawer(); });
   addEventListener("hashchange", function () {
-    const id = (location.hash || "").replace("#", "");
+    const id = abaDe(location.hash);
     if (id && id !== current) go(id);
+    else if (id === current) render();   /* mudou só o capítulo */
   });
   /* teclado: alterna a seção sem tirar a mão do teclado */
   addEventListener("keydown", function (ev) {

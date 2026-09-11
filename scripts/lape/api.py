@@ -137,6 +137,8 @@ def route_index(ctx: "Context") -> Any:
             "POST /api/invites                (coordenação) gera link de convite",
             "GET  /api/convite/<token>        estado do convite (público)",
             "POST /api/convite/<token>/aceitar  a pessoa cria o próprio acesso",
+            "GET  /api/linhas/sugerir        (coordenação) liga artigo a linha pelo título",
+            "POST /api/linhas/ligar          (coordenação) grava as ligações aprovadas",
             "GET  /api/automation             (coordenação) webhooks e entregas",
             "POST /api/webhooks               (coordenação) cadastra destino n8n",
             "POST /api/hooks/n8n              porta de entrada do n8n (HMAC ou token)",
@@ -508,6 +510,29 @@ def route_excluir_artigo(ctx: "Context", article_id: str) -> Any:
              f"\u201c{artigo['title']}\u201d ({junto['autores']} autor(es),"
              f" {junto['submissoes']} submissao(oes))")
     return {"excluido": artigo, "junto": junto}
+
+
+def route_linhas_sugerir(ctx: "Context") -> Any:
+    """Que linha o titulo de cada artigo sem linha esta pedindo -- so a proposta."""
+    auth.require(ctx.user, "coordenacao")
+    from . import classificar
+    return classificar.sugerir(ctx.db)
+
+
+def route_linhas_ligar(ctx: "Context") -> Any:
+    """Grava as ligacoes aprovadas. Nunca sobrescreve linha ja declarada."""
+    user = auth.require(ctx.user, "coordenacao")
+    from . import classificar
+    corpo = ctx.body or {}
+    pares = corpo.get("ligacoes") or corpo.get("pares") or []
+    if not isinstance(pares, list) or not pares:
+        raise ApiError(400, "informe 'ligacoes': [{artigo_id, linha_id}]")
+    if len(pares) > 500:
+        raise ApiError(400, "no máximo 500 ligações por vez")
+    resultado = classificar.aplicar(ctx.db, pares, actor=user.get("login"))
+    auth.log(ctx.db, user["id"], user.get("login"), "linha_ligada_por_titulo",
+             "articles", None, f"{resultado['ligados']} artigo(s)")
+    return resultado
 
 
 def route_vinculo(ctx: "Context") -> Any:
@@ -1653,6 +1678,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/equipe/duplicatas/?$", route_duplicatas, "coordenacao"),
     ("POST", r"^/api/equipe/duplicatas/?$", route_duplicatas_fundir, "coordenacao"),
     ("DELETE", r"^/api/articles/(?P<article_id>\d+)/?$", route_excluir_artigo, "coordenacao"),
+    ("GET", r"^/api/linhas/sugerir/?$", route_linhas_sugerir, "coordenacao"),
+    ("POST", r"^/api/linhas/ligar/?$", route_linhas_ligar, "coordenacao"),
     ("GET", r"^/api/equipe/vinculo/?$", route_vinculo, "coordenacao"),
     ("POST", r"^/api/equipe/vinculo/?$", route_vinculo_marcar, "coordenacao"),
     ("GET", r"^/api/metas/?$", route_metas, "integrante"),
@@ -1943,7 +1970,12 @@ class Handler(BaseHTTPRequestHandler):
             user, _ = self._resolve_user(db)
             if user is None and not PUBLIC_DASHBOARD:
                 return self._redirect("/entrar")
-            payload = metrics.build_payload(db)
+            # Bolsa e prazo de defesa so entram na sessao autenticada da
+            # coordenacao. O mural fica de fora mesmo com a coordenacao
+            # logada: numa TV, quem esta na sala nao fez login nenhum.
+            da_coordenacao = not mural and auth.ROLE_RANK.get(
+                (user or {}).get("user_role", "leitura"), 0) >= auth.ROLE_RANK["coordenacao"]
+            payload = metrics.build_payload(db, com_dados_da_coordenacao=da_coordenacao)
             payload["session"] = {"live": True, "user": user}
             html = report.render_mural(payload) if mural else report.render_html(payload)
         except Exception as exc:

@@ -508,6 +508,29 @@ const Charts = (function () {
       svg.appendChild(txt(s("text", { class: "lab", x: X(i), y: H - MB + 16, "text-anchor": "middle" }), label));
     });
 
+    /* Limites: a linha horizontal contra a qual a curva e lida. Uma serie
+       sozinha sobe e desce; contra uma meta, um piso ou uma media
+       historica, ela passa a dizer se esta acima ou abaixo -- e e disso
+       que sai a leitura. Fica ATRAS das series: referencia nao disputa
+       tinta com o dado. `limites: [{valor, rotulo, cor, dash}]`. */
+    (spec.limites || []).forEach(function (lim) {
+      if (lim.valor === null || lim.valor === undefined) return;
+      const y = Y(lim.valor);
+      if (y < MT - 1 || y > MT + ih + 1) return;      /* limite fora da escala */
+      const cor = lim.cor || token("--axis");
+      svg.appendChild(s("line", {
+        x1: ML, x2: W - MR, y1: y, y2: y, stroke: cor, "stroke-width": 1.4,
+        "stroke-dasharray": lim.dash === null ? null : (lim.dash || "6 4"),
+        "stroke-opacity": 0.9,
+      }));
+      if (lim.rotulo) {
+        svg.appendChild(txt(s("text", {
+          class: "tick", x: ML + 6, y: y - 5,
+          style: "fill:" + cor + ";font-weight:700",
+        }), lim.rotulo));
+      }
+    });
+
     const crosshair = s("line", { class: "crosshair", y1: MT, y2: MT + ih, x1: -99, x2: -99 });
     svg.appendChild(crosshair);
 
@@ -539,7 +562,10 @@ const Charts = (function () {
       }
       svg.appendChild(s("path", {
         d: path, fill: "none", stroke: color,
-        "stroke-width": serieSpec.width || 2,
+        /* 2px era o traco de um grafico impresso em papel. Numa tela de
+           parede e num telefone a curva sumia contra a grade; 2.6 e o
+           ponto em que ela lidera a figura sem virar mancha. */
+        "stroke-width": serieSpec.width || spec.traco || 2.6,
         /* `dash`: o que ainda nao aconteceu nao pode ser desenhado com a
            mesma tinta do que aconteceu. */
         "stroke-dasharray": serieSpec.dash || null,
@@ -609,8 +635,18 @@ const Charts = (function () {
       idx = Math.max(0, Math.min(labels.length - 1, idx));
       crosshair.setAttribute("x1", X(idx));
       crosshair.setAttribute("x2", X(idx));
+      /* A leitura que faltava: quanto variou desde o ponto anterior.
+         E a derivada discreta da serie, dita no lugar onde alguem esta
+         justamente perguntando "e ai, subiu?" -- e sem custar um segundo
+         eixo, que e o erro classico deste grafico. */
       showTip(ev, labels[idx], series.map(function (x, si) {
-        return { value: fmt(x.values[idx]), name: x.label, color: x.color || serie(si) };
+        const v = x.values[idx], ant = idx > 0 ? x.values[idx - 1] : null;
+        const delta = (ant === null || ant === undefined || v === null || v === undefined)
+          ? null : v - ant;
+        return { value: fmt(v), name: x.label + (delta === null ? ""
+          : "  (" + (delta > 0 ? "+" : (delta < 0 ? "\u2212" : "\u00b1"))
+            + fmt(Math.abs(delta)) + " vs. " + labels[idx - 1] + ")"),
+          color: x.color || serie(si) };
       }));
     }
     hit.addEventListener("pointermove", readAt);
@@ -625,6 +661,127 @@ const Charts = (function () {
       ? [legendOf(series.map(function (x, i) { return { label: x.label, color: x.color || serie(i) }; }), { line: true })]
       : [];
     return figure(spec, svg, extras);
+  }
+
+
+  /* ==================================================================== */
+  /* leitura da curva — viradas, cruzamentos e travessias de limite       */
+  /* ==================================================================== */
+  /* Uma linha desenhada mostra o percurso; ela nao diz o que aconteceu no
+     percurso. Quem le tem de achar a olho onde a serie virou, onde duas
+     series trocaram de posicao e onde uma delas passou da meta -- e e
+     exatamente nesses tres pontos que esta a noticia.
+
+     Esta funcao acha os tres e devolve `marks` no formato que o `lines`
+     ja sabe desenhar, mais `notas` em portugues para o texto do cartao.
+
+     Tres cuidados que separam anotacao util de poluicao:
+
+     1. Ruido nao e virada. Uma serie que faz 4, 5, 4, 5 tem tres viradas
+        e nenhuma noticia; por isso a virada so conta quando o movimento
+        de ida ou de volta passa de `minimo` (padrao: 8% da amplitude da
+        serie). Sem esse corte, o grafico fica pintado de anel.
+     2. Marca demais e marca nenhuma. O limite de `maximo` (padrao 6)
+        mantem a figura legivel, e o corte e pelo FIM: o que aconteceu
+        ano passado interessa mais do que o que aconteceu ha oito anos.
+     3. A marca diz o que e, por extenso. "pico", "cruzou" e "passou da
+        meta" cabem no grafico; a frase inteira vai no `title`, que o
+        navegador mostra ao parar o ponteiro. */
+  function marcosDaCurva(labels, series, opts) {
+    opts = opts || {};
+    const maximo = opts.maximo === undefined ? 6 : opts.maximo;
+    const limites = opts.limites || [];
+    /* Marca e frase andam juntas num achado so. Guardar as duas em listas
+       separadas e cortar cada uma pelo fim produzia cartoes em que o texto
+       falava de um ponto que o grafico nao estava marcando. */
+    const achados = [];
+    /* Buraco na serie nao e zero. `3 - null` da 3 em JavaScript, e era
+       assim que um mes sem coleta virava um vale inventado. */
+    const num = function (x) { return typeof x === "number" && isFinite(x); };
+
+    series.forEach(function (serieSpec, si) {
+      const v = serieSpec.values || [];
+      if (v.length < 3) return;
+      const finitos = v.filter(num);
+      if (finitos.length < 3) return;
+      const amplitude = Math.max.apply(null, finitos) - Math.min.apply(null, finitos);
+      const minimo = opts.minimo === undefined ? amplitude * 0.08 : opts.minimo;
+
+      /* --- viradas: a primeira derivada troca de sinal --- */
+      for (let i = 1; i < v.length - 1; i++) {
+        if (!num(v[i - 1]) || !num(v[i]) || !num(v[i + 1])) continue;
+        const sobe = v[i] - v[i - 1], desce = v[i + 1] - v[i];
+        if (sobe === 0 || desce === 0) continue;
+        if ((sobe > 0) === (desce > 0)) continue;
+        /* Ruido nao e virada: 4, 5, 4, 5 tem tres viradas e nenhuma
+           noticia. So conta quando a ida ou a volta passa de `minimo`
+           -- por padrao 8% da amplitude da propria serie. */
+        if (Math.abs(sobe) < minimo && Math.abs(desce) < minimo) continue;
+        const pico = sobe > 0;
+        achados.push({
+          i: i,
+          marca: { serie: si, i: i, label: pico ? "pico" : "vale",
+            title: serieSpec.label + ": " + (pico ? "ponto mais alto do trecho"
+              : "ponto mais baixo do trecho") + " em " + labels[i]
+              + " (" + fmt(v[i]) + ")." },
+          nota: serieSpec.label + " virou em " + labels[i]
+            + (pico ? ", depois de subir" : ", depois de cair") + ".",
+        });
+      }
+
+      /* --- travessia de limite: onde a serie passa a meta ou o piso --- */
+      limites.forEach(function (lim) {
+        if (!num(lim.valor)) return;
+        for (let i = 1; i < v.length; i++) {
+          if (!num(v[i - 1]) || !num(v[i])) continue;
+          const antes = v[i - 1] - lim.valor, agora = v[i] - lim.valor;
+          if (antes === 0 || agora === 0) continue;
+          if ((antes > 0) === (agora > 0)) continue;
+          const subiu = agora > 0;
+          achados.push({
+            i: i,
+            marca: { serie: si, i: i, color: lim.cor,
+              label: subiu ? "passou" : "caiu",
+              title: serieSpec.label + " " + (subiu ? "passou de" : "caiu abaixo de")
+                + " " + (lim.rotulo || fmt(lim.valor)) + " em " + labels[i] + "." },
+            nota: serieSpec.label + " " + (subiu ? "passou de " : "caiu abaixo de ")
+              + (lim.rotulo || fmt(lim.valor)) + " em " + labels[i] + ".",
+          });
+        }
+      });
+    });
+
+    /* --- cruzamentos: duas series trocam de posicao --- */
+    for (let a = 0; a < series.length; a++) {
+      for (let b = a + 1; b < series.length; b++) {
+        const va = series[a].values || [], vb = series[b].values || [];
+        for (let i = 1; i < Math.min(va.length, vb.length); i++) {
+          if (!num(va[i - 1]) || !num(va[i]) || !num(vb[i - 1]) || !num(vb[i])) continue;
+          const antes = va[i - 1] - vb[i - 1], agora = va[i] - vb[i];
+          if (antes === 0 || agora === 0) continue;
+          if ((antes > 0) === (agora > 0)) continue;
+          const quemSubiu = agora > 0 ? series[a] : series[b];
+          const quemCedeu = agora > 0 ? series[b] : series[a];
+          achados.push({
+            i: i,
+            marca: { serie: agora > 0 ? a : b, i: i, label: "cruzou",
+              title: quemSubiu.label + " passou " + quemCedeu.label
+                + " em " + labels[i] + "." },
+            nota: quemSubiu.label + " passou " + quemCedeu.label + " em " + labels[i] + ".",
+          });
+        }
+      }
+    }
+
+    /* O fim da serie e o que interessa: o corte e pela frente. Marca e
+       frase saem do mesmo corte, na mesma ordem. */
+    achados.sort(function (x, y) { return x.i - y.i; });
+    const vistos = achados.slice(-maximo);
+    return {
+      marks: vistos.map(function (x) { return x.marca; }),
+      notas: vistos.map(function (x) { return x.nota; }),
+      total: achados.length,
+    };
   }
 
   /* ==================================================================== */
@@ -2418,6 +2575,7 @@ const Charts = (function () {
     waterfall: responsivo(waterfall), bullet: responsivo(bullet),
     calendarHeat: calendarHeat, bump: responsivo(bump), gradFill: gradFill,
     legend: legendOf, scaleLegend: scaleLegend, table: plainTable, csv: downloadCsv,
+    marcosDaCurva: marcosDaCurva,
     token: token, serie: serie, seq: seq, ord: ord, fmt: fmt, compact: compact,
     el: el, svg: s, txt: txt, hideTip: hideTip, empty: empty, MESES: MESES,
   };

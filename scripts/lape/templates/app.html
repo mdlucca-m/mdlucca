@@ -1162,6 +1162,15 @@ VIEWS.admin = {
     VIEW.appendChild(vincBox);
     await desenharVinculo(vincBox);
 
+    /* Artigo sem linha declarada some de toda leitura que a coordenação
+       faz por linha: do mosaico do painel, do funil, da corrida entre as
+       linhas e do relatório que o avaliador pede. O título já diz a que
+       linha o artigo pertence -- é só comparar com as palavras-chave que
+       cada linha declara. */
+    const ligaBox = h("div", {class: "card sec"});
+    VIEW.appendChild(ligaBox);
+    await desenharLinhasPorTitulo(ligaBox);
+
     /* O índice h que vale é o conferido por gente. Antes não havia onde
        dizê-lo: duas estimativas brigavam pela mesma coluna e a que
        ganhasse por último ficava na tela. */
@@ -1320,6 +1329,117 @@ async function desenharDuplicatas(caixa){
       h("div", {class: "actions", style: "margin-top:10px"}, [botao]),
     ]));
   });
+}
+
+/* Ligar artigo a linha de pesquisa pelo título.
+
+   A proposta sai do servidor com a evidência ao lado -- quais palavras do
+   título casaram com quais palavras-chave da linha --, e nada é gravado
+   sem alguém mandar. Vem em três blocos, e os três dizem alguma coisa: o
+   que dá para ligar, o que ficou ambíguo entre duas linhas, e o que
+   nenhuma palavra alcançou. Os dois últimos não são falha do método: são
+   onde falta palavra-chave na linha, ou onde o título é genérico demais
+   para decidir sem ler o artigo. */
+async function desenharLinhasPorTitulo(caixa){
+  caixa.textContent = "";
+  caixa.appendChild(h("h3", {text: "Ligar artigos às linhas de pesquisa pelo título"}));
+  let dados;
+  try {
+    dados = await api("/api/linhas/sugerir");
+  } catch (e){
+    caixa.appendChild(h("p", {class: "hint", text: "Não deu para conferir: " + e.message}));
+    return;
+  }
+  if (!dados.linhas){
+    caixa.appendChild(h("p", {class: "hint",
+      text: "Nenhuma linha de pesquisa ativa cadastrada. Instale as linhas do LAPE "
+          + "antes de ligar artigo nenhum."}));
+    return;
+  }
+  const sug = dados.sugestoes || [], amb = dados.ambiguos || [], nada = dados.sem_indicio || [];
+  caixa.appendChild(h("div", {class: "grid g3 sec"}, [
+    kpi("Sem linha declarada", dados.total_sem_linha),
+    kpi("Dá para ligar", sug.length),
+    kpi("Precisam de leitura", amb.length + nada.length),
+  ]));
+  if (!dados.total_sem_linha){
+    caixa.appendChild(h("p", {class: "hint",
+      text: "Todos os artigos já têm linha declarada."}));
+    return;
+  }
+  if (!sug.length){
+    caixa.appendChild(h("p", {class: "hint",
+      text: "Nenhum título deu evidência suficiente. Quando um assunto se repete e "
+          + "não é reconhecido, acrescente a palavra às palavras-chave da linha, "
+          + "em Linhas de pesquisa — é de lá que a comparação sai."}));
+  } else {
+    caixa.appendChild(h("p", {class: "hint", style: "margin:4px 0 12px",
+      text: sug.length + " artigo(s) têm no título as palavras de uma linha só. "
+          + "Confira e desmarque o que não couber: o que ficar marcado é gravado, "
+          + "e artigo que já tem linha nunca é sobrescrito."}));
+
+    const marcados = new Map(sug.map(function (x){ return [x.artigo_id, x.linha_id]; }));
+    sug.forEach(function (x){
+      const alvo = h("input", {type: "checkbox", checked: true});
+      alvo.addEventListener("change", function (){
+        if (alvo.checked) marcados.set(x.artigo_id, x.linha_id);
+        else marcados.delete(x.artigo_id);
+      });
+      caixa.appendChild(h("label", {class: "sugestao"}, [
+        alvo,
+        h("span", {}, [
+          h("b", {text: x.titulo}),
+          h("small", {text: "→ " + x.linha + "  ·  casou em: "
+            + (x.termos || []).join(", ")
+            + (x.segundo ? "  ·  2ª colocada: " + x.segundo : "")}),
+        ]),
+      ]));
+    });
+
+    const estado = h("p", {class: "hint", style: "margin:10px 0 0"});
+    const gravar = h("button", {class: "primary", text: "Ligar os marcados",
+      onclick: async function (){
+        const pares = Array.from(marcados, function (par){
+          return {artigo_id: par[0], linha_id: par[1]}; });
+        if (!pares.length){ estado.textContent = "Nada marcado."; return; }
+        gravar.disabled = true;
+        estado.textContent = "Gravando…";
+        try {
+          const r = await api("/api/linhas/ligar", "POST", {ligacoes: pares});
+          estado.textContent = r.ligados + " artigo(s) ligados."
+            + (r.pulados && r.pulados.length ? " " + r.pulados.length + " pulado(s)." : "");
+          await desenharLinhasPorTitulo(caixa);
+        } catch (e){
+          estado.textContent = "Não deu para gravar: " + e.message;
+          gravar.disabled = false;
+        }
+      }});
+    caixa.appendChild(h("div", {style: "margin-top:12px"}, [gravar]));
+    caixa.appendChild(estado);
+  }
+
+  if (amb.length){
+    caixa.appendChild(h("details", {class: "sec"}, [
+      h("summary", {text: amb.length + " ambíguo(s): duas linhas disputam o mesmo título"}),
+      h("p", {class: "hint", text: "Nenhum deles foi proposto. Um título que fala de "
+        + "dor e de idosos ao mesmo tempo pertence a quem escreveu o artigo, não a "
+        + "esta conta."}),
+      h("ul", {class: "listinha"}, amb.slice(0, 40).map(function (x){
+        return h("li", {}, [h("b", {text: x.titulo}),
+          h("small", {text: (x.disputam || []).join("  ×  ")})]);
+      })),
+    ]));
+  }
+  if (nada.length){
+    caixa.appendChild(h("details", {class: "sec"}, [
+      h("summary", {text: nada.length + " sem indício no título"}),
+      h("p", {class: "hint", text: "Nenhuma palavra-chave das linhas apareceu. "
+        + "Ou o título é genérico, ou falta palavra na linha."}),
+      h("ul", {class: "listinha"}, nada.slice(0, 40).map(function (x){
+        return h("li", {}, [h("b", {text: x.titulo})]);
+      })),
+    ]));
+  }
 }
 
 async function desenharVinculo(caixa){

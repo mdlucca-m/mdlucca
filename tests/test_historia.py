@@ -185,11 +185,19 @@ class TestAFolhaDeEstilo(unittest.TestCase):
         self.assertNotRegex(regra.group(1), r"\b(both|forwards)\b")
 
     def test_o_movimento_da_historia_e_desligavel(self):
-        """Quem pediu menos movimento nao pode receber cascata nenhuma."""
-        reduzido = TEMA[TEMA.rindex("@media (prefers-reduced-motion: reduce)"):]
-        self.assertIn(".hcaixa.entrando", reduzido)
-        self.assertIn(".hmarco.entrando", reduzido)
-        self.assertIn("animation: none", reduzido)
+        """Quem pediu menos movimento nao pode receber cascata nenhuma.
+
+        A guarda e procurada em TODOS os blocos de `prefers-reduced-motion`,
+        e nao no ultimo: o tema cresce por baixo, e ancorar no ultimo bloco
+        fazia este teste quebrar sempre que outra tela acrescentava CSS --
+        sem nada ter acontecido com a historia.
+        """
+        guardas = "\n".join(
+            TEMA[m.start():].split("\n}\n")[0]
+            for m in re.finditer(r"@media \(prefers-reduced-motion: reduce\)", TEMA))
+        self.assertIn(".hcaixa.entrando", guardas)
+        self.assertIn(".hmarco.entrando", guardas)
+        self.assertIn("animation: none", guardas)
 
     def test_nada_da_historia_fica_invisivel_sem_animacao(self):
         """A caixa entra de uma opacidade 0; se a animacao nao rodar, ela
