@@ -129,6 +129,48 @@ class TestAsLinhasQueSairam(Base):
         self.assertIn("fora da lista", trecho)
 
 
+class TestOFormularioDeEdicao(Base):
+    """A metade da correção que mora no navegador.
+
+    O servidor já sabe editar por id e apagar com vazio, mas quem decide
+    mandar o id e mandar o vazio é o formulário. Sem esta metade o
+    servidor nunca recebe nem um nem outro, e o defeito continua igual --
+    foi o que as mutações mostraram: revertendo só o formulário, todo
+    teste de servidor continuava passando.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.html = (TEMPLATES / "app.html").read_text(encoding="utf-8")
+
+    def test_o_campo_vazio_e_enviado_quando_se_edita(self):
+        trecho = self.html[self.html.index("const payload = {};"):]
+        trecho = trecho[:trecho.index("if (spec.extra)")]
+        self.assertIn("spec.edicao", trecho,
+                      "o campo vazio não é enviado, então apagar na tela não apaga")
+
+    def test_a_ficha_aberta_manda_o_proprio_id(self):
+        trecho = self.html[self.html.index("config.__carregar = function"):]
+        trecho = trecho[:trecho.index("titulo.textContent")]
+        self.assertIn("edicao: true", trecho)
+        self.assertIn("registro_id: row.id", trecho)
+
+    def test_o_cadastro_novo_nao_entra_em_modo_de_edicao(self):
+        """`row` nulo é o formulário em branco: não há id nem o que apagar."""
+        trecho = self.html[self.html.index("config.__carregar = function"):]
+        trecho = trecho[:trecho.index("titulo.textContent")]
+        self.assertIn("row ?", trecho)
+
+    def test_ha_como_excluir_um_artigo(self):
+        """Sem exclusão, as cópias que o defeito criou não saem da tela."""
+        trecho = self.html[self.html.index("VIEWS.artigos = crudView"):]
+        trecho = trecho[:trecho.index("columns: [")]
+        self.assertIn('"/api/articles/"', trecho)
+        self.assertIn('"DELETE"', trecho)
+        self.assertIn("confirm(", trecho)
+        self.assertIn('can("coordenacao")', trecho)
+
+
 # ----------------------------------------------------------------------
 # 2. Tipo de estudo
 # ----------------------------------------------------------------------

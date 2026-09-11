@@ -464,6 +464,45 @@ def route_duplicatas_fundir(ctx: "Context") -> Any:
     return resultado
 
 
+def route_excluir_artigo(ctx: "Context", article_id: str) -> Any:
+    """Apaga um artigo e tudo que pendia dele.
+
+    Existe por causa de um defeito: ate agora a identidade do artigo era o
+    titulo, e renomear na tela criava um SEGUNDO artigo em vez de alterar o
+    primeiro. As copias ficaram no banco e nao havia como tira-las -- nao
+    havia rota de exclusao em lugar nenhum do sistema.
+
+    Nao e arquivamento: o artigo arquivado continua contando. O que a
+    resposta devolve e o que foi junto, para o registro de atividade poder
+    dizer depois o que existia ali.
+    """
+    user = auth.require(ctx.user, "coordenacao")
+    try:
+        alvo = int(article_id)
+    except (TypeError, ValueError):
+        raise ApiError(400, "artigo inválido")
+    linha = ctx.db.dicts(
+        "SELECT id, title, internal_code, doi, status FROM articles WHERE id = ?", (alvo,))
+    if not linha:
+        raise ApiError(404, "artigo não encontrado")
+    artigo = linha[0]
+    junto = {
+        "autores": int(ctx.db.scalar(
+            "SELECT COUNT(*) FROM article_authors WHERE article_id = ?", (alvo,)) or 0),
+        "marcos": int(ctx.db.scalar(
+            "SELECT COUNT(*) FROM article_milestones WHERE article_id = ?", (alvo,)) or 0),
+        "submissoes": int(ctx.db.scalar(
+            "SELECT COUNT(*) FROM submissions WHERE article_id = ?", (alvo,)) or 0),
+    }
+    ctx.db.execute("DELETE FROM articles WHERE id = ?", (alvo,))
+    ctx.db.conn.commit()
+    auth.log(ctx.db, user["id"], user.get("login"), "artigo_excluido", "articles",
+             str(alvo),
+             f"\u201c{artigo['title']}\u201d ({junto['autores']} autor(es),"
+             f" {junto['submissoes']} submissao(oes))")
+    return {"excluido": artigo, "junto": junto}
+
+
 def route_vinculo(ctx: "Context") -> Any:
     """Fichas marcadas como do LAPE sem nenhum sinal de vinculo -- so a proposta."""
     auth.require(ctx.user, "coordenacao")
@@ -1566,6 +1605,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
      route_biblioteca_atualizar, "coordenacao"),
     ("GET", r"^/api/equipe/duplicatas/?$", route_duplicatas, "coordenacao"),
     ("POST", r"^/api/equipe/duplicatas/?$", route_duplicatas_fundir, "coordenacao"),
+    ("DELETE", r"^/api/articles/(?P<article_id>\d+)/?$", route_excluir_artigo, "coordenacao"),
     ("GET", r"^/api/equipe/vinculo/?$", route_vinculo, "coordenacao"),
     ("POST", r"^/api/equipe/vinculo/?$", route_vinculo_marcar, "coordenacao"),
     ("GET", r"^/api/equipe/indice-h/?$", route_indice_h, "coordenacao"),
@@ -1771,6 +1811,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         self._handle("POST")
+
+    def do_DELETE(self) -> None:
+        self._handle("DELETE")
 
     def _handle(self, method: str) -> None:
         parsed = urllib.parse.urlparse(self.path)

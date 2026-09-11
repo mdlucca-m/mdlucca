@@ -493,6 +493,84 @@ class TestCadastroPelaRede(unittest.TestCase):
         self.assertEqual(status, 400)
         self.assertIn("inteiro", body["error"])
 
+    def test_editar_o_titulo_altera_o_artigo_e_nao_cria_uma_copia(self):
+        """Aconteceu de verdade: "mudo o título, diz que salva, mas fica igual".
+
+        A identidade do artigo era o título. Renomear gerava title_key
+        novo, o upsert INSERIA um segundo artigo e deixava o original
+        intacto -- a tela respondia "1 registro gravado", a lista
+        continuava igual, e o trabalho de quem editou ia junto.
+        """
+        token = self.entrar("coord@udesc.br", "senhaforte123")
+        _, lista, _ = self.call("/api/articles?limit=50", cookie=token)
+        antes = lista["count"]
+        alvo = [a for a in lista["items"] if a["title"] == "Humor e natação"][0]
+
+        status, body, _ = self.call("/api/articles", "POST", {
+            "registro_id": alvo["id"], "Título": "Humor e natação em jovens",
+            "Autores": "Andrade; Sofia Verschuren"}, token)
+        self.assertEqual(status, 200)
+
+        _, depois, _ = self.call("/api/articles?limit=50", cookie=token)
+        self.assertEqual(depois["count"], antes, "criou uma cópia em vez de renomear")
+        titulos = [a["title"] for a in depois["items"]]
+        self.assertIn("Humor e natação em jovens", titulos)
+        self.assertNotIn("Humor e natação", titulos)
+
+    def test_editar_apagando_um_campo_apaga_de_verdade(self):
+        """O Qualis limpado na tela voltava sozinho.
+
+        A gravação descarta vazios de propósito -- uma planilha de meia
+        dúzia de colunas não pode limpar o cadastro inteiro --, e o
+        formulário nem enviava o campo vazio, então não havia como o
+        servidor saber que alguém tinha apagado.
+        """
+        token = self.entrar("coord@udesc.br", "senhaforte123")
+        self.call("/api/articles", "POST",
+                  {"Título": "Sono e humor", "Autores": "Andrade", "Qualis": "A2"}, token)
+        _, lista, _ = self.call("/api/articles?limit=50", cookie=token)
+        alvo = [a for a in lista["items"] if a["title"] == "Sono e humor"][0]
+        self.assertEqual(alvo["qualis"], "A2")
+
+        self.call("/api/articles", "POST", {"registro_id": alvo["id"],
+                  "Título": "Sono e humor", "Autores": "Andrade", "Qualis": ""}, token)
+        _, depois, _ = self.call("/api/articles?limit=50", cookie=token)
+        agora = [a for a in depois["items"] if a["title"] == "Sono e humor"][0]
+        self.assertIsNone(agora["qualis"])
+
+    def test_renomear_por_cima_de_outro_artigo_e_recusado(self):
+        """Deixar passar juntaria dois trabalhos num registro só."""
+        token = self.entrar("coord@udesc.br", "senhaforte123")
+        self.call("/api/articles", "POST", {"Título": "Artigo A", "Autores": "Andrade"}, token)
+        self.call("/api/articles", "POST", {"Título": "Artigo B", "Autores": "Andrade"}, token)
+        _, lista, _ = self.call("/api/articles?limit=50", cookie=token)
+        a = [x for x in lista["items"] if x["title"] == "Artigo A"][0]
+        status, body, _ = self.call("/api/articles", "POST",
+                                    {"registro_id": a["id"], "Título": "Artigo B",
+                                     "Autores": "Andrade"}, token)
+        self.assertEqual(status, 400)
+        self.assertIn("Artigo B", body["error"])
+
+    def test_excluir_artigo_leva_junto_o_que_pendia_dele(self):
+        token = self.entrar("coord@udesc.br", "senhaforte123")
+        self.call("/api/articles", "POST",
+                  {"Título": "Cópia para apagar", "Autores": "Andrade; Loiane"}, token)
+        _, lista, _ = self.call("/api/articles?limit=50", cookie=token)
+        alvo = [a for a in lista["items"] if a["title"] == "Cópia para apagar"][0]
+        status, body, _ = self.call(f"/api/articles/{alvo['id']}", "DELETE", cookie=token)
+        self.assertEqual(status, 200)
+        self.assertEqual(body["excluido"]["title"], "Cópia para apagar")
+        self.assertEqual(body["junto"]["autores"], 2)
+        _, depois, _ = self.call("/api/articles?limit=50", cookie=token)
+        self.assertNotIn("Cópia para apagar", [a["title"] for a in depois["items"]])
+
+    def test_excluir_artigo_exige_coordenacao(self):
+        token = self.entrar("loiane2@udesc.br", "senhaforte123")
+        _, lista, _ = self.call("/api/articles?limit=50", cookie=token)
+        status, _, _ = self.call(f"/api/articles/{lista['items'][0]['id']}", "DELETE",
+                                 cookie=token)
+        self.assertEqual(status, 403)
+
     def test_o_botao_das_linhas_encerra_as_que_sairam(self):
         token = self.entrar("coord@udesc.br", "senhaforte123")
         status, body, _ = self.call("/api/research-lines/padrao", "POST", {}, token)

@@ -178,9 +178,7 @@ def ingest_research_lines(db: Database, rows: list[dict]) -> int:
         if not name:
             continue
         code = norm_key(row.get("code") or name)
-        db.upsert(
-            "research_lines",
-            {
+        gravar_registro(db, "research_lines", {
                 "code": code,
                 "name": name,
                 "description": clean_text(row.get("description")),
@@ -188,9 +186,8 @@ def ingest_research_lines(db: Database, rows: list[dict]) -> int:
                 "started_on": parse_date(row.get("started_on")),
                 "keywords": clean_text(row.get("keywords")),
                 "active": to_bool(row.get("active"), default=1),
-            },
-            conflict=("code",),
-        )
+            }, ("code",), row, origem=ORIGEM_DA_LINHA,
+            sempre=("code", "name", "active"))
         written += 1
     return written
 
@@ -400,10 +397,20 @@ MILESTONES: tuple[tuple[str, str, str], ...] = (
 )
 
 
-def _save_milestones(db: Database, article_id: int, values: dict[str, str | None]) -> None:
+def _save_milestones(db: Database, article_id: int, values: dict[str, str | None],
+                     limpar: bool = False) -> None:
+    """Grava as datas do artigo.
+
+    `limpar` vale para a edicao na tela: apagar a data ali tem de apagar o
+    marco. Na importacao de planilha e o contrario -- uma planilha que nao
+    traz a coluna da 1a versao nao esta dizendo que ela nao existe.
+    """
     for seq, (field, code, label) in enumerate(MILESTONES):
         occurred = values.get(field)
         if occurred is None:
+            if limpar:
+                db.execute("DELETE FROM article_milestones"
+                           " WHERE article_id = ? AND milestone = ?", (article_id, code))
             continue
         db.upsert(
             "article_milestones",
@@ -425,9 +432,7 @@ def ingest_projects(db: Database, rows: list[dict]) -> int:
         if not name:
             continue
         coordinator = clean_text(row.get("coordinator"))
-        project_id = db.upsert(
-            "projects",
-            {
+        project_id = gravar_registro(db, "projects", {
                 "code": norm_key(row.get("code") or name)[:60],
                 "name": name,
                 "description": clean_text(row.get("description")),
@@ -443,9 +448,8 @@ def ingest_projects(db: Database, rows: list[dict]) -> int:
                 "status": map_value(row.get("status"), PROJECT_STATUS_MAP, default="em_andamento"),
                 "ethics_approval": clean_text(row.get("ethics_approval")),
                 "url": clean_text(row.get("url")),
-            },
-            conflict=("code",),
-        )
+            }, ("code",), row, origem=ORIGEM_DO_PROJETO,
+            sempre=("code", "name", "status"))
         team = split_authors(row.get("members"))
         if coordinator and not any(clean_text(t) == coordinator for t in team):
             team = [coordinator, *team]
@@ -497,12 +501,139 @@ def _article_status(row: dict, published_on: str | None, accepted_on: str | None
     return "em_producao"
 
 
+# Coluna do banco -> chave que a alimenta no formulario e na planilha.
+# Serve para distinguir "a tela apagou este campo" de "a planilha nem traz
+# esta coluna". Sem a distincao, apagar um valor na tela nao apagava nada:
+# o upsert descarta vazios de proposito, para que uma planilha com meia
+# duzia de colunas nao limpe o cadastro inteiro -- regra certa para a
+# importacao e errada para quem esta editando a ficha na tela.
+ORIGEM_DO_CAMPO: dict[str, str] = {
+    "internal_code": "internal_code",
+    "research_line_id": "research_line",
+    "study_type": "study_type",
+    "language": "language",
+    "started_on": "started_on",
+    "first_submission_on": "first_submission_on",
+    "accepted_on": "accepted_on",
+    "published_on": "published_on",
+    "journal": "journal",
+    "issn": "issn",
+    "qualis": "qualis",
+    "impact_factor": "impact_factor",
+    "doi": "doi",
+    "url": "url",
+    "wos_id": "wos_id",
+    "scopus_id": "scopus_id",
+    "wos_citations": "wos_citations",
+    "scopus_citations": "scopus_citations",
+    "open_access": "open_access",
+    "notes": "notes",
+    "lead_name": "lead",
+    "lead_member_id": "lead",
+    "internal_review_on": "internal_review",
+}
+ORIGEM_DO_PROJETO: dict[str, str] = {
+    "description": "description", "research_line_id": "research_line",
+    "coordinator_id": "coordinator", "coordinator_name": "coordinator",
+    "kind": "kind", "funder": "funder", "grant_number": "grant_number",
+    "amount": "amount", "started_on": "started_on", "ended_on": "ended_on",
+    "ethics_approval": "ethics_approval", "url": "url",
+}
+ORIGEM_DA_LINHA: dict[str, str] = {
+    "description": "description", "coordinator": "coordinator",
+    "started_on": "started_on", "keywords": "keywords",
+}
+# Derivados: nao saem de um campo da tela, saem das datas e da situacao.
+# Numa edicao sao sempre reescritos.
+SEMPRE_NA_EDICAO = ("title", "title_key", "status", "status_locked", "year_published")
+
+
+ROTULO_DA_TABELA = {"articles": "artigo", "projects": "projeto",
+                    "research_lines": "linha de pesquisa", "events": "atividade"}
+
+
+def _alvo_da_edicao(db: Database, tabela: str, row: dict) -> int | None:
+    """O registro que a tela mandou alterar, quando mandou.
+
+    Sem isto a identidade do registro era o proprio nome: renomear gerava
+    uma chave nova, o upsert INSERIA um segundo registro e deixava o
+    original intacto. A tela respondia "1 registro gravado", a lista
+    continuava igual, e o trabalho de quem editou ia junto. Agora a tela
+    manda o id da ficha que ela abriu.
+    """
+    alvo = to_int(row.get("registro_id"))
+    if alvo is None:
+        return None
+    if not db.scalar(f"SELECT 1 FROM {tabela} WHERE id = ?", (alvo,)):
+        raise ValueError(f"{ROTULO_DA_TABELA.get(tabela, 'registro')} {alvo} nao existe mais")
+    return alvo
+
+
+def _chave_cabe(db: Database, tabela: str, alvo: int, chave: str,
+                valor: Any, rotulo: str) -> None:
+    """Recusa a renomeacao que cairia em cima de outro registro.
+
+    Deixar passar juntaria dois trabalhos num registro so, e desfazer isso
+    depois exige saber qual dado era de qual -- que e exatamente o que a
+    fusao apaga.
+    """
+    choque = db.scalar(
+        f"SELECT {rotulo} FROM {tabela} WHERE {chave} = ? AND id <> ?", (valor, alvo))
+    if choque:
+        raise ValueError(
+            f"ja existe outro(a) {ROTULO_DA_TABELA.get(tabela, 'registro')} com este nome:"
+            f" \u201c{choque}\u201d. Renomeie um dos dois antes de continuar.")
+
+
+def _atualizar(db: Database, tabela: str, alvo: int, dados: dict, row: dict,
+               origem: dict[str, str], sempre: tuple[str, ...]) -> int:
+    """Grava a edicao na ficha que a pessoa abriu -- vazio inclusive.
+
+    `sempre` sao os campos derivados (a chave, a situacao calculada das
+    datas): nao saem de um campo da tela e por isso sao sempre reescritos.
+    Os demais so viram NULL quando a tela mandou a coluna vazia -- se a
+    origem nem veio no pedido, nao ha nada sendo apagado.
+    """
+    escrever = {}
+    for coluna, valor in dados.items():
+        if coluna in sempre or valor is not None:
+            escrever[coluna] = valor
+        elif origem.get(coluna) in row:
+            escrever[coluna] = None
+    colunas = ", ".join(f"{c} = ?" for c in escrever)
+    tem_updated = any(c["name"] == "updated_at"
+                      for c in db.dicts(f"PRAGMA table_info({tabela})"))
+    carimbo = ", updated_at = datetime('now')" if tem_updated else ""
+    db.execute(f"UPDATE {tabela} SET {colunas}{carimbo} WHERE id = ?",
+               [*escrever.values(), alvo])
+    return alvo
+
+
+def gravar_registro(db: Database, tabela: str, dados: dict, conflito: tuple[str, ...],
+                    row: dict, origem: dict[str, str] | None = None,
+                    sempre: tuple[str, ...] = (), rotulo: str = "name") -> int:
+    """Cadastra um registro novo ou edita o que a tela abriu.
+
+    Sao dois caminhos de proposito. A planilha identifica pelo nome e nunca
+    apaga com vazio -- uma planilha de meia duzia de colunas nao pode
+    limpar o cadastro inteiro. A tela identifica pelo id e apaga com vazio
+    -- quem apagou o campo ali queria apagar.
+    """
+    alvo = _alvo_da_edicao(db, tabela, row)
+    if alvo is None:
+        return db.upsert(tabela, dados, conflict=conflito)
+    if len(conflito) == 1 and conflito[0] in dados:
+        _chave_cabe(db, tabela, alvo, conflito[0], dados[conflito[0]], rotulo)
+    return _atualizar(db, tabela, alvo, dados, row, origem or {}, sempre)
+
+
 def ingest_articles(db: Database, rows: list[dict]) -> int:
     written = 0
     for row in rows:
         title = clean_text(row.get("title"))
         if not title:
             continue
+        alvo = _alvo_da_edicao(db, "articles", row)
         published_on = parse_date(row.get("published_on"))
         accepted_on = parse_date(row.get("accepted_on"))
         submitted_on = parse_date(row.get("first_submission_on"))
@@ -526,9 +657,7 @@ def ingest_articles(db: Database, rows: list[dict]) -> int:
             "published_on": published_on,
         }
 
-        article_id = db.upsert(
-            "articles",
-            {
+        dados = {
                 "title": title,
                 "title_key": title_key(title),
                 "internal_code": clean_text(row.get("internal_code")),
@@ -557,11 +686,13 @@ def ingest_articles(db: Database, rows: list[dict]) -> int:
                 "lead_member_id": lead_member_id,
                 "status_locked": status_locked,
                 "internal_review_on": internal_review,
-                "source": "planilha",
-            },
-            conflict=("title_key",),
-        )
-        _save_milestones(db, article_id, milestones)
+        }
+        if alvo is None:
+            dados["source"] = "planilha"
+        article_id = gravar_registro(db, "articles", dados, ("title_key",), row,
+                                     origem=ORIGEM_DO_CAMPO, sempre=SEMPRE_NA_EDICAO,
+                                     rotulo="title")
+        _save_milestones(db, article_id, milestones, limpar=alvo is not None)
         _link_authors(db, article_id, split_authors(row.get("authors")), lead=lead_name)
         _inline_submission(db, article_id, row, submitted_on, accepted_on, status)
         written += 1

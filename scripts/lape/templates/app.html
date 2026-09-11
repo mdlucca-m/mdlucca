@@ -317,7 +317,13 @@ function buildForm(spec, values, onSubmit){
     for (const key in inputs){
       const {input, spec: f} = inputs[key];
       let value = f.type === "checkbox" ? (input.checked ? "Sim" : "Não") : input.value.trim();
-      if (value !== "") payload[key] = value;
+      /* Ao EDITAR, o campo vazio vai junto. Sem ele o servidor não tem como
+         saber a diferença entre "a pessoa apagou este valor" e "esta coluna
+         não veio" -- e como a gravação descarta vazios de propósito (para
+         que uma planilha de meia dúzia de colunas não limpe o cadastro
+         inteiro), apagar na tela não apagava nada: o Qualis voltava sozinho.
+         No cadastro novo continua de fora: não há o que apagar. */
+      if (value !== "" || spec.edicao) payload[key] = value;
     }
     if (spec.extra) Object.assign(payload, spec.extra(values));
     button.disabled = true;
@@ -631,10 +637,17 @@ function crudView(config){
            a pessoa redigite tudo para "atualizar". É o mesmo formulário e o
            mesmo caminho de gravação — só que já preenchido. */
         config.__carregar = function (row, rotulo){
-          const novo = buildForm(Object.assign({}, spec, {
+          const novo = buildForm(Object.assign({}, spec, row ? {
             submitLabel: "Salvar alterações",
+            edicao: true,
+            /* O id da ficha aberta viaja junto. Sem ele a identidade do
+               registro era o título, e renomear criava um SEGUNDO registro
+               deixando o original intacto -- a tela dizia "1 registro
+               gravado", a lista continuava igual, e o trabalho de quem
+               editou ia junto. */
+            extra: function (){ return {registro_id: row.id}; },
             onCancel: function (){ config.__carregar(null); },
-          }), row || {}, gravar);
+          } : {}), row || {}, gravar);
           titulo.textContent = row ? (rotulo || "Editando registro") : config.formTitle;
           formHost.replaceChild(novo, formulario);
           formulario = novo;
@@ -727,6 +740,31 @@ VIEWS.artigos = crudView({
   editavel: true,
   aoEditar: function (row){
     return Object.assign({}, row, {__situacao: SITUACAO_ROTULO[row.status] || ""});
+  },
+  /* Excluir existia como necessidade e não como botão: até agora renomear
+     um artigo criava uma CÓPIA em vez de alterar o original, e não havia
+     rota de exclusão em lugar nenhum do sistema — as cópias ficavam. */
+  acao: function (row, recarregar){
+    if (!can("coordenacao")) return null;
+    return h("button", {class: "ghost", text: "Excluir", onclick: async function (ev){
+      /* O aviso diz o que some ANTES, que é quando ainda dá para não
+         fazer. Arquivar não serve aqui: artigo arquivado continua no
+         banco e continua contando. */
+      if (!confirm("Excluir “" + row.title + "”?\n\n"
+          + "Vão junto a autoria, as datas e as submissões deste artigo. "
+          + "Isto não se desfaz.")) return;
+      ev.target.disabled = true;
+      try {
+        const r = await api("/api/articles/" + row.id, "DELETE");
+        toast("“" + r.excluido.title + "” excluído ("
+              + r.junto.autores + " autor(es), " + r.junto.submissoes + " submissão(ões))", "ok");
+        await loadLookups();
+        recarregar();
+      } catch (e){
+        toast(e.message, "erro");
+        ev.target.disabled = false;
+      }
+    }});
   },
   columns: [
     {k: "internal_code", label: "ID"},
