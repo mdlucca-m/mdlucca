@@ -29,6 +29,7 @@ import os
 import queue
 import re
 import threading
+import time
 import traceback
 import urllib.parse
 from http import cookies
@@ -256,6 +257,50 @@ def route_create_user(ctx: "Context") -> Any:
                                role=body.get("perfil", "integrante"))
 
 
+# ----------------------------------------------------------------------
+# O servidor velho rodando codigo novo
+# ----------------------------------------------------------------------
+# As TELAS sao lidas do disco a cada acesso; as ROTAS sao carregadas uma
+# vez, quando o processo sobe. Depois de um `git pull` sem reiniciar, o
+# navegador recebe a tela nova e ela bate numa API antiga -- e o erro que
+# aparece e "rota nao encontrada", que nao diz a ninguem o que fazer.
+#
+# Ja aconteceu duas vezes no laboratorio, e as duas custaram meia hora de
+# gente conferindo cadastro achando que o sistema tinha quebrado. Daqui
+# para a frente o proprio servidor percebe: ele guarda o instante em que
+# subiu e compara com a data dos arquivos .py em disco. Arquivo mais novo
+# que o processo significa uma coisa so.
+_SUBIU_EM = time.time()
+
+
+def codigo_desatualizado() -> dict[str, Any]:
+    """Ha .py em disco mais novo do que o processo que esta rodando?"""
+    pasta = Path(__file__).resolve().parent
+    mais_novo, quais = 0.0, []
+    try:
+        for arquivo in pasta.rglob("*.py"):
+            quando = arquivo.stat().st_mtime
+            # 2s de folga: salvar o proprio arquivo durante a subida do
+            # servidor nao pode contar como versao nova
+            if quando > _SUBIU_EM + 2:
+                quais.append(arquivo.name)
+                mais_novo = max(mais_novo, quando)
+    except OSError:                       # pasta somiu: nao e problema desta funcao
+        return {"desatualizado": False}
+    if not quais:
+        return {"desatualizado": False}
+    return {
+        "desatualizado": True,
+        "arquivos": sorted(quais)[:8],
+        "quantos": len(quais),
+        "subiu_em": datetime.fromtimestamp(_SUBIU_EM).isoformat(timespec="seconds"),
+        "codigo_de": datetime.fromtimestamp(mais_novo).isoformat(timespec="seconds"),
+        "aviso": "O servidor está rodando uma versão anterior à que está na pasta. "
+                 "As telas já são as novas, mas as rotas não — feche a janela do "
+                 "LAPE e suba o sistema de novo.",
+    }
+
+
 def route_health(ctx: "Context") -> Any:
     db = ctx.db
     return {
@@ -272,6 +317,7 @@ def route_health(ctx: "Context") -> Any:
         "users": int(db.scalar("SELECT COUNT(*) FROM members WHERE login IS NOT NULL") or 0),
         "last_ingest": db.dicts(
             "SELECT run_at, source, status FROM ingest_log ORDER BY id DESC LIMIT 1"),
+        "codigo": codigo_desatualizado(),
     }
 
 

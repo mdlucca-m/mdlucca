@@ -217,8 +217,41 @@ async function api(path, method, body){
   });
   if (response.status === 401){ location.href = "/entrar?next=/app"; throw new Error("sessão expirada"); }
   const data = await response.json().catch(function (){ return {}; });
+  /* "rota não encontrada" quase nunca é a tela pedindo coisa errada: é o
+     servidor rodando código anterior ao da pasta. As telas são lidas do
+     disco a cada acesso e as rotas só quando o processo sobe, então um
+     `git pull` sem reiniciar deixa a tela nova batendo numa API velha.
+     Vale a pena conferir antes de devolver um erro que não diz o que
+     fazer. */
+  if (response.status === 404 && /rota n[ãa]o encontrada/i.test(data.error || "")){
+    avisarServidorVelho();
+  }
   if (!response.ok) throw new Error(data.error || ("erro " + response.status));
   return data;
+}
+
+/* O aviso aparece uma vez, no alto da página, e só depois de confirmar
+   com o servidor -- acusar "versão velha" por causa de um 404 qualquer
+   seria trocar um erro confuso por outro. */
+let avisouVelho = false;
+async function avisarServidorVelho(){
+  if (avisouVelho) return;
+  avisouVelho = true;
+  let saude;
+  try {
+    saude = await (await fetch("/api/health")).json();
+  } catch (e){ return; }
+  const c = (saude || {}).codigo || {};
+  if (!c.desatualizado) return;
+  const faixa = h("div", {class: "faixa-velha"}, [
+    h("b", {text: "O servidor está numa versão anterior à da pasta."}),
+    h("span", {text: " As telas já são as novas, mas as rotas não — por isso "
+      + "algumas partes desta página dizem “rota não encontrada”. "
+      + "Feche a janela preta do LAPE e dê duplo clique em “Subir LAPE” de novo."}),
+    h("small", {text: "no ar desde " + (c.subiu_em || "?").replace("T", " ")
+      + " · código na pasta de " + (c.codigo_de || "?").replace("T", " ")}),
+  ]);
+  document.body.insertBefore(faixa, document.body.firstChild);
 }
 let toastTimer = null;
 function toast(message, kind){

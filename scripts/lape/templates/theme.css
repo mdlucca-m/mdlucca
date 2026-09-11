@@ -1294,3 +1294,22 @@ button.primary:hover::after { animation: facho .62s ease-out 1; }
 .listinha { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 6px; }
 .listinha li b { font-size: 12.5px; font-weight: 600; display: block; }
 .listinha li small { font-size: 11.5px; color: var(--ink-muted); }
+
+/* ======================================================================
+   SERVIDOR VELHO — a faixa que explica o "rota não encontrada"
+   ----------------------------------------------------------------------
+   As telas são lidas do disco a cada acesso; as rotas, só quando o
+   processo sobe. Depois de um `git pull` sem reiniciar, a tela nova bate
+   numa API antiga e o erro que aparece não diz a ninguém o que fazer.
+   Esta faixa diz. Fica no topo, atravessa a página e não se fecha: ela
+   descreve um estado que só some reiniciando.
+   ---------------------------------------------------------------------- */
+.faixa-velha {
+  display: grid; gap: 3px;
+  padding: 12px 18px; font-size: 13px; line-height: 1.5;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--warning) 14%, var(--surface));
+  border-bottom: 2px solid var(--warning);
+}
+.faixa-velha b { font-weight: 750; }
+.faixa-velha small { font-size: 11.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }

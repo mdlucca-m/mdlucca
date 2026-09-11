@@ -1144,3 +1144,115 @@ SELECT
   (SELECT COUNT(*) FROM refs r
     WHERE r.review_id = rv.id AND r.stage = 'incluido') AS incluidos
 FROM reviews rv;
+
+/* ============================================================
+   A BANCADA: coleta de dados com participantes
+
+   Aqui deixa de ser bibliometria e passa a ser dado de saude de
+   pessoa identificavel. As regras mudam, e o esquema as carrega:
+
+   1. NAO EXISTE COLUNA DE NOME. O participante e um codigo, e a
+      lista que liga o codigo a pessoa fica fora deste banco, com
+      quem coordena o estudo. Este arquivo e commitado num
+      repositorio, viaja em backup e ja esteve publico -- e o
+      unico jeito seguro de nao vazar um nome e nao ter onde
+      guarda-lo. Nao ha e-mail, telefone, CPF nem endereco pela
+      mesma razao.
+   2. A data de nascimento tambem nao entra: ano basta para
+      idade, e dia e mes reidentificam.
+   3. Quem apaga um estudo apaga as medidas dele. ON DELETE
+      CASCADE aqui e deliberado -- medida orfa de participante e
+      dado de saude sem dono nem consentimento.
+   ============================================================ */
+
+/* O instrumento: BRUMS, escala de dor, questionario de sono.
+   `direcao` diz para que lado e melhoria -- sem isso, "caiu 4
+   pontos" nao se interpreta: em dor e bom, em qualidade de vida
+   e ruim. */
+CREATE TABLE IF NOT EXISTS instrumentos (
+  id           INTEGER PRIMARY KEY,
+  code         TEXT UNIQUE NOT NULL,
+  nome         TEXT NOT NULL,
+  descricao    TEXT,
+  unidade      TEXT,
+  minimo       REAL,
+  maximo       REAL,
+  direcao      TEXT NOT NULL DEFAULT 'maior_melhor',
+  subescalas   TEXT,
+  ativo        INTEGER NOT NULL DEFAULT 1,
+  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+/* O protocolo de um projeto: que momentos a coleta tem.
+   "linha de base, 8 semanas, 16 semanas, seguimento de 6 meses"
+   e o que permite dizer que falta medida -- sem momentos
+   declarados, nao existe lacuna, so existe o que foi coletado. */
+CREATE TABLE IF NOT EXISTS protocolos (
+  id           INTEGER PRIMARY KEY,
+  project_id   INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+  code         TEXT NOT NULL,
+  nome         TEXT NOT NULL,
+  descricao    TEXT,
+  ativo        INTEGER NOT NULL DEFAULT 1,
+  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (code)
+);
+
+CREATE TABLE IF NOT EXISTS momentos (
+  id           INTEGER PRIMARY KEY,
+  protocolo_id INTEGER NOT NULL REFERENCES protocolos(id) ON DELETE CASCADE,
+  code         TEXT NOT NULL,
+  nome         TEXT NOT NULL,
+  ordem        INTEGER NOT NULL DEFAULT 1,
+  dias_apos    INTEGER,
+  janela_dias  INTEGER NOT NULL DEFAULT 14,
+  UNIQUE (protocolo_id, code)
+);
+
+/* O participante. Codigo, e nada que o identifique. */
+CREATE TABLE IF NOT EXISTS participantes (
+  id            INTEGER PRIMARY KEY,
+  codigo        TEXT UNIQUE NOT NULL,
+  protocolo_id  INTEGER REFERENCES protocolos(id) ON DELETE CASCADE,
+  grupo         TEXT,
+  sexo          TEXT,
+  ano_nascimento INTEGER,
+  entrou_em     TEXT,
+  saiu_em       TEXT,
+  motivo_saida  TEXT,
+  situacao      TEXT NOT NULL DEFAULT 'ativo',
+  observacao    TEXT,
+  created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+/* A medida: um participante, um instrumento, um momento, um valor. */
+CREATE TABLE IF NOT EXISTS coletas (
+  id             INTEGER PRIMARY KEY,
+  participante_id INTEGER NOT NULL REFERENCES participantes(id) ON DELETE CASCADE,
+  instrumento_id  INTEGER NOT NULL REFERENCES instrumentos(id) ON DELETE CASCADE,
+  momento_id      INTEGER REFERENCES momentos(id) ON DELETE SET NULL,
+  subescala      TEXT,
+  valor          REAL,
+  coletado_em    TEXT,
+  coletado_por   INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  observacao     TEXT,
+  created_at     TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at     TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+/* A mesma medida nao pode entrar duas vezes. Um UNIQUE de tabela NAO
+   garante isso aqui: em SQL, NULL nao colide com NULL, e momento e
+   subescala ficam em branco no caso mais comum -- um instrumento de
+   escala unica, coletado fora de um protocolo declarado. O resultado
+   seria a duplicata justamente onde ela e mais provavel.
+   COALESCE fecha o buraco, dando a NULL um valor que colide. */
+CREATE UNIQUE INDEX IF NOT EXISTS idx_coletas_unica ON coletas(
+  participante_id, instrumento_id,
+  COALESCE(momento_id, -1), COALESCE(subescala, ''));
+
+CREATE INDEX IF NOT EXISTS idx_coletas_part ON coletas(participante_id);
+CREATE INDEX IF NOT EXISTS idx_coletas_inst ON coletas(instrumento_id, momento_id);
+CREATE INDEX IF NOT EXISTS idx_part_protocolo ON participantes(protocolo_id, situacao);
