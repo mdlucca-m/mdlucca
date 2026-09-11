@@ -1914,6 +1914,126 @@ const Charts = (function () {
      algoritmo não decidiu. Onde cortar a árvore é escolha de quem lê.
 
      spec: { raiz, altura_maxima, corte?, height, unit } */
+  /* ---------------------------------------------------------- globo */
+  /* Projeção ortográfica: a Terra vista de longe, com metade escondida.
+     O mapa plano continua existindo e serve para OUTRA coisa -- comparar
+     todos os países de uma vez. O globo não compara: ele mostra de onde
+     se está olhando, e por isso gira.
+
+     A face oculta não é desenhada, e isso não é economia: desenhar os dois
+     lados sobrepostos faria o Brasil aparecer em cima da Indonésia, e o
+     leitor não teria como saber qual das duas está na frente. */
+  function globo(spec) {
+    const mundo = spec.world || [];
+    const valores = spec.values || {};
+    const R = 300, W = 2 * R + 80, H = 2 * R + 80;
+    const CX = W / 2, CY = H / 2;
+    const lon0 = Number(spec.rotacao || 0);      // graus, positivo para leste
+    const lat0 = Number(spec.inclinacao === undefined ? 12 : spec.inclinacao);
+    const svg = svgRoot(W, H, spec.caption || "globo da produção");
+    svg.classList.add("globo");
+    /* `svgRoot` dá só o viewBox. Sem largura e altura declaradas, o SVG
+       ocupa zero e os trezentos caminhos ficam no DOM sem aparecer -- um
+       gráfico invisível que não dá erro nenhum. O mapa plano já fazia
+       isto; o globo tinha esquecido. */
+    svg.setAttribute("width", W);
+    svg.setAttribute("height", H);
+    svg.style.maxWidth = "100%";
+
+    if (!mundo.length) {
+      return figure(spec, el("p", { class: "hint",
+        text: spec.loadingMessage || "Carregando o contorno do mundo…" }));
+    }
+
+    const rad = Math.PI / 180;
+    const sinLat0 = Math.sin(lat0 * rad), cosLat0 = Math.cos(lat0 * rad);
+    /* Devolve null quando o ponto está do outro lado: é o que permite
+       cortar os polígonos no horizonte em vez de dobrá-los por cima. */
+    function projetar(lon, lat) {
+      const dl = (lon - lon0) * rad, la = lat * rad;
+      const cosC = sinLat0 * Math.sin(la) + cosLat0 * Math.cos(la) * Math.cos(dl);
+      if (cosC < 0) return null;
+      return { x: CX + R * Math.cos(la) * Math.sin(dl),
+               y: CY - R * (cosLat0 * Math.sin(la) - sinLat0 * Math.cos(la) * Math.cos(dl)) };
+    }
+
+    /* o disco do oceano, e o contorno que dá a borda do planeta */
+    svg.appendChild(s("circle", { cx: CX, cy: CY, r: R,
+      fill: token("--surface-raised"), stroke: token("--border"), "stroke-width": 1.5 }));
+
+    const teto = Math.max.apply(null,
+      Object.keys(valores).map(function (k) { return valores[k]; }).concat([1]));
+    const tinta = function (n) {
+      /* Um matiz só, do fraco ao forte: é magnitude, não identidade. País
+         sem registro fica sem tinta -- zero não é o tom mais claro, é a
+         ausência de dado. */
+      return n ? "color-mix(in srgb, " + token("--accent-strong") + " "
+        + Math.round(16 + 64 * n / teto) + "%, transparent)" : token("--surface");
+    };
+
+    const aceso = spec.foco;
+    mundo.forEach(function (pais) {
+      const n = valores[pais.nome] || valores[pais.en] || valores[pais.id] || 0;
+      const ehFoco = aceso && (pais.nome === aceso || pais.en === aceso || pais.id === aceso);
+      /* `d` já vem como lista de anéis de [lon, lat] -- as coordenadas
+         cruas, e não um path projetado. É o que permite reprojetar para a
+         esfera sem voltar à fonte. */
+      (pais.d || []).forEach(function (anel) {
+        /* Um polígono que cruza o horizonte vira VÁRIOS traços, e não um
+           só: ligar o último ponto visível ao primeiro do outro lado
+           desenharia uma corda atravessando o planeta. */
+        let atual = [];
+        const partes = [];
+        anel.forEach(function (ponto) {
+          const p = projetar(ponto[0], ponto[1]);
+          if (p) { atual.push(p); }
+          else if (atual.length) { partes.push(atual); atual = []; }
+        });
+        if (atual.length) partes.push(atual);
+        partes.forEach(function (parte) {
+          if (parte.length < 2) return;
+          const d = parte.map(function (p, i) {
+            return (i ? "L" : "M") + p.x.toFixed(1) + "," + p.y.toFixed(1); }).join("");
+          svg.appendChild(s("path", {
+            class: "mark" + (ehFoco ? " emfoco" : ""),
+            d: d + (parte.length === anel.length ? "Z" : ""),
+            fill: parte.length === anel.length ? tinta(n) : "none",
+            stroke: ehFoco ? token("--accent-strong") : token("--border"),
+            "stroke-width": ehFoco ? 2 : 0.7,
+          }));
+        });
+      });
+    });
+
+    /* O país em foco ganha um alfinete: num globo, um país pequeno some
+       mesmo aceso, e a cor sozinha não diz onde olhar. */
+    if (aceso) {
+      const ficha = mundo.find(function (p) {
+        return p.nome === aceso || p.en === aceso || p.id === aceso; });
+      /* O centro sai da média dos pontos do maior anel. Não é o centroide
+         geográfico rigoroso, e não precisa ser: serve para pousar o
+         alfinete dentro do país, não para medir área. */
+      let centro = null;
+      if (ficha && (ficha.d || []).length) {
+        const maior = ficha.d.slice().sort(function (a, b) {
+          return b.length - a.length; })[0];
+        let sl = 0, sa = 0;
+        maior.forEach(function (pt) { sl += pt[0]; sa += pt[1]; });
+        centro = [sl / maior.length, sa / maior.length];
+      }
+      if (centro) {
+        const p = projetar(centro[0], centro[1]);
+        if (p) {
+          svg.appendChild(s("circle", { class: "mira-foco", cx: p.x, cy: p.y, r: 13,
+            fill: "none", stroke: token("--accent-strong"), "stroke-width": 2 }));
+          svg.appendChild(s("circle", { cx: p.x, cy: p.y, r: 3.5,
+            fill: token("--accent-strong") }));
+        }
+      }
+    }
+    return figure(spec, svg);
+  }
+
   function dendrograma(spec) {
     const raiz = spec.raiz;
     if (!raiz) return figure(spec, empty(spec.emptyMessage));
@@ -2177,7 +2297,7 @@ const Charts = (function () {
     columns: columns, bars: bars, lines: lines, donut: donut, funnel: funnel,
     scatter: scatter, dumbbell: dumbbell, heatmap: heatmap, distribution: distribution,
     treemap: treemap, sankey: sankey, network: network, geo: geo,
-    mapaMundi: mapaMundi,
+    mapaMundi: mapaMundi, globo: globo,
     dendrograma: dendrograma, fluxo: fluxo,
     sparkline: sparkline, meter: meter,
     area: area, radar: radar, gauge: gauge, waterfall: waterfall, bullet: bullet,

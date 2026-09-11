@@ -137,6 +137,36 @@ button.sair-ponto:hover{border-color:var(--ink-2);background:var(--surface-hover
 table.matriz th{font-weight:650;font-size:12px}
 table.matriz td.celula{text-align:center;font-variant-numeric:tabular-nums}
 
+/* ---- globo ---- */
+.globo-palco{display:flex;justify-content:center}
+.globo-palco svg{max-width:min(100%,480px);height:auto}
+.globo-controles{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+.linha-tempo{flex:1;min-width:180px;accent-color:var(--accent-strong)}
+.bandeiras{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.bandeira-btn{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;
+  border-radius:999px;border:1px solid var(--border);background:var(--surface);
+  color:var(--ink-2);font-size:12.5px;cursor:pointer}
+.bandeira-btn:hover{border-color:var(--accent-strong);color:var(--ink)}
+.bandeira-btn .nome{font-weight:620}
+.bandeira-btn small{font-variant-numeric:tabular-nums;color:var(--ink-muted)}
+/* A bandeira treme de leve, como pano ao vento. É enfeite, e por isso fica
+   longe do dado: nenhuma marca de gráfico se mexe aqui -- número que balança
+   é número difícil de ler. */
+.tremula{display:inline-block;font-size:15px;line-height:1;
+  animation:tremular 2.4s ease-in-out infinite;transform-origin:left center}
+@keyframes tremular{
+  0%,100%{transform:perspective(60px) rotateY(0deg) skewY(0deg)}
+  25%{transform:perspective(60px) rotateY(-14deg) skewY(1.2deg)}
+  50%{transform:perspective(60px) rotateY(0deg) skewY(0deg)}
+  75%{transform:perspective(60px) rotateY(14deg) skewY(-1.2deg)}
+}
+/* Quem pediu menos movimento não recebe bandeira tremendo nem globo girando.
+   O giro tem a sua própria guarda no JavaScript, porque é um relógio e não
+   uma animação de CSS. */
+@media (prefers-reduced-motion:reduce){
+  .tremula{animation:none}
+}
+
 @media (max-width:860px){
   .layout{grid-template-columns:1fr}
   nav.side{border-right:none;border-bottom:1px solid var(--border);
@@ -1344,7 +1374,8 @@ function pulsarPonto(ligado){
    busca GUARDADA que roda sozinha, e a tela mostra onde procurar antes de
    mostrar o que ha: uma lista de quatrocentos artigos sem recorte e
    exatamente o que as pessoas ja tinham antes de existir biblioteca. */
-const BIB = { code: null, segmento: null, q: "", pais: null, aba: "acervo" };
+const BIB = { code: null, segmento: null, q: "", pais: null, aba: "acervo",
+              desenho: null, intervencao: null };
 
 VIEWS.biblioteca = {
   label: "Biblioteca", group: "Laboratório",
@@ -1403,6 +1434,8 @@ VIEWS.biblioteca = {
       + "?" + new URLSearchParams(
         Object.assign({}, BIB.segmento ? {segmento: BIB.segmento} : {},
                       BIB.pais ? {pais: BIB.pais} : {},
+                      BIB.desenho ? {desenho: BIB.desenho} : {},
+                      BIB.intervencao ? {intervencao: BIB.intervencao} : {},
                       BIB.q ? {q: BIB.q} : {})).toString();
     const d = await api(url);
     VIEW.appendChild(desenharAcervo(d));
@@ -1454,14 +1487,17 @@ function desenharAcervo(d){
      12 de 431 artigos e nada explica o sumiço dos outros 419 -- quem chegou
      pelo mapa sabe por quê, quem voltou dez minutos depois, não. E ela se
      desliga no mesmo lugar. */
-  if (BIB.pais){
-    const chip = h("button", {class: "chip on", title: "Mostrar todos os países"});
-    chip.appendChild(Icons.get("mapa", 12));
-    chip.appendChild(h("span", {text: BIB.pais}));
+  [["pais", "mapa", "Mostrar todos os países"],
+   ["desenho", "experimento", "Mostrar todos os desenhos"],
+   ["intervencao", "halteres", "Mostrar todas as intervenções"]].forEach(function (x){
+    if (!BIB[x[0]]) return;
+    const chip = h("button", {class: "chip on", title: x[2]});
+    chip.appendChild(Icons.get(x[1], 12));
+    chip.appendChild(h("span", {text: BIB[x[0]]}));
     chip.appendChild(Icons.get("filtro", 11));
-    chip.onclick = function (){ BIB.pais = null; show("biblioteca"); };
+    chip.onclick = function (){ BIB[x[0]] = null; show("biblioteca"); };
     linhaDeBusca.push(chip);
-  }
+  });
   caixa.appendChild(h("div", {class: "acao-ponto", style: "margin-bottom:12px"},
                       linhaDeBusca));
 
@@ -1477,6 +1513,8 @@ function desenharAcervo(d){
   caixa.appendChild(h("p", {class: "hint", style: "margin-bottom:8px",
     text: itens.length + " artigo(s)" + (BIB.segmento ? " em " + BIB.segmento : "")
       + (BIB.pais ? " com autor de " + BIB.pais : "")
+      + (BIB.desenho ? " · " + BIB.desenho : "")
+      + (BIB.intervencao ? " · " + BIB.intervencao : "")
       + (BIB.q ? " com \"" + BIB.q + "\"" : "")}));
   itens.forEach(function (x){ caixa.appendChild(cartaoDeArtigo(x)); });
   return caixa;
@@ -1490,7 +1528,16 @@ function desenharAcervo(d){
    série é o que o LAPE publicou, aqui é a literatura mundial sobre um
    assunto, e a pergunta deixa de ser "como vamos" para ser "o que o campo
    está fazendo, e onde ele parou de crescer". */
-const MUNDO = { contorno: null, girando: true, i: 0, relogio: null };
+/* Quem pediu menos movimento no sistema não recebe um globo girando. A
+   bandeira tem guarda no CSS; o giro é um relógio em JavaScript, e por isso
+   precisa da sua própria -- uma animação que o CSS não vê é uma animação
+   que a preferência de acessibilidade não alcança. */
+const MENOS_MOVIMENTO = window.matchMedia
+  && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const MUNDO = { contorno: null, girando: !MENOS_MOVIMENTO, relogio: null,
+                /* graus de longitude; cresce sozinho e nunca zera, porque o
+                   resto da divisão já dá a volta */
+                lon: -50, ano: null };
 
 async function desenharAnalise(caixa, code){
   let a;
@@ -1513,6 +1560,7 @@ async function desenharAnalise(caixa, code){
 
   caixa.appendChild(cartaoDaCurva(a));
   caixa.appendChild(cartaoDoMapa(a, code));
+  caixa.appendChild(cartaoDasLeituras(a));
   caixa.appendChild(cartaoDaArvore(a));
   caixa.appendChild(cartaoDasModalidades(a));
   caixa.appendChild(cartaoDoTriangulo(a));
@@ -1573,94 +1621,184 @@ function kpiSimples(rotulo, valor, pe){
 /* ---- o mapa, girando, e o clique que recorta o acervo ---- */
 function cartaoDoMapa(a, code){
   const paises = a.paises.todos || [];
-  const valores = {};
-  paises.forEach(function (p){ valores[p.pais] = p.n; });
-  const palco = h("div", {});
+  const quadros = (a.espaco_tempo || {}).quadros || [];
+  const palco = h("div", {class: "globo-palco"});
   const corpo = h("div", {});
+  const legenda = h("p", {class: "hint", style: "margin:8px 0 0"});
 
-  function pintar(foco){
-    palco.innerHTML = "";
-    palco.appendChild(C.mapaMundi({
-      world: MUNDO.contorno || [], values: valores, foco: foco || null,
-      caption: null, file: "biblioteca-mapa",
-      loadingMessage: "Carregando o contorno do mundo…",
-      onSelect: function (nome){
-        /* Clicar no país recorta o ACERVO por ele, e não escreve o nome
-           numa caixa de busca: "Itália" não está no título nem no resumo
-           da maioria dos artigos feitos na Itália, e a busca em texto
-           devolveria uma lista vazia com o nome do país escrito em cima. */
-        pararDeGirar();
-        BIB.pais = nome; BIB.aba = "acervo"; show("biblioteca");
-      },
-    }));
+  /* O quadro do ano é ACUMULADO: o mapa de um ano só pisca, porque a maior
+     parte dos países publica um artigo a cada três anos. Acumulado responde
+     "quanto já se produziu até aqui", que é a leitura que um mapa sustenta. */
+  function valoresDoAno(ano){
+    if (ano === null) {
+      const v = {};
+      paises.forEach(function (p){ v[p.pais] = p.n; });
+      return v;
+    }
+    const quadro = quadros.find(function (q){ return q.ano === ano; });
+    return quadro ? quadro.paises : {};
   }
 
-  function pararDeGirar(){
+  let foco = null;
+  function pintar(){
+    palco.innerHTML = "";
+    palco.appendChild(C.globo({
+      world: MUNDO.contorno || [], values: valoresDoAno(MUNDO.ano),
+      rotacao: MUNDO.lon, foco: foco, caption: null, file: "biblioteca-globo",
+      loadingMessage: "Carregando o contorno do mundo…",
+    }));
+    const v = valoresDoAno(MUNDO.ano);
+    const quantos = Object.keys(v).filter(function (k){ return v[k]; }).length;
+    legenda.textContent = MUNDO.ano === null
+      ? quantos + " país(es) no acervo inteiro"
+      : "até " + MUNDO.ano + ": " + quantos + " país(es), "
+        + Object.keys(v).reduce(function (t, k){ return t + v[k]; }, 0) + " artigo(s)";
+  }
+
+  function parar(){
     MUNDO.girando = false;
     if (MUNDO.relogio){ clearInterval(MUNDO.relogio); MUNDO.relogio = null; }
   }
   function girar(){
+    if (MENOS_MOVIMENTO) return;
     if (MUNDO.relogio) clearInterval(MUNDO.relogio);
-    if (!paises.length) return;
     MUNDO.relogio = setInterval(function (){
-      /* Aba escondida não anima: o navegador mantém o relógio rodando com
-         a janela minimizada, e girar um mapa que ninguém vê é gastar
-         bateria para nada. */
+      /* Aba escondida não anima. O navegador mantém o relógio rodando com a
+         janela minimizada, e girar um globo que ninguém vê é gastar bateria
+         para nada -- num laboratório com a tela ligada o dia inteiro, isso
+         não é detalhe. */
       if (document.hidden) return;
-      MUNDO.i = (MUNDO.i + 1) % paises.length;
-      pintar(paises[MUNDO.i].pais);
-    }, 3200);
+      MUNDO.lon = (MUNDO.lon + 1.6) % 360;
+      pintar();
+    }, 80);
   }
 
-  const controles = h("div", {class: "chips", style: "margin-top:10px"});
+  /* ---- controles: girar, e a linha do tempo ---- */
+  const controles = h("div", {class: "globo-controles"});
   const alterna = h("button", {class: "chip on"});
-  function rotuloDoBotao(){
+  function rotulo(){
     alterna.textContent = "";
     alterna.appendChild(Icons.get(MUNDO.girando ? "pausa" : "tocar", 13));
-    alterna.appendChild(h("span", {text: MUNDO.girando ? "Parar o giro" : "Girar"}));
+    alterna.appendChild(h("span", {text: MUNDO.girando ? "Parar" : "Girar"}));
   }
   alterna.onclick = function (){
-    if (MUNDO.girando){ pararDeGirar(); } else { MUNDO.girando = true; girar(); }
-    rotuloDoBotao();
+    if (MUNDO.girando) parar(); else { MUNDO.girando = true; girar(); }
+    rotulo();
   };
-  rotuloDoBotao();
+  rotulo();
   controles.appendChild(alterna);
-  paises.slice(0, 14).forEach(function (p){
-    const c = h("button", {class: "chip", title: p.n + " artigo(s)"});
-    if (p.bandeira) c.appendChild(h("span", {class: "bandeira", text: p.bandeira}));
-    c.appendChild(h("span", {text: p.pais + " (" + p.n + ")"}));
-    c.onclick = function (){
-      pararDeGirar(); rotuloDoBotao();
-      MUNDO.i = paises.indexOf(p); pintar(p.pais);
-    };
-    controles.appendChild(c);
-  });
 
+  if (quadros.length){
+    const anos = quadros.map(function (q){ return q.ano; });
+    const faixa = h("input", {type: "range", class: "linha-tempo",
+      min: String(anos[0]), max: String(anos[anos.length - 1]),
+      value: String(MUNDO.ano === null ? anos[anos.length - 1] : MUNDO.ano)});
+    const tudo = h("button", {class: "chip" + (MUNDO.ano === null ? " on" : ""),
+      text: "Acervo inteiro"});
+    faixa.oninput = function (){
+      MUNDO.ano = Number(faixa.value);
+      tudo.classList.remove("on");
+      pintar();
+    };
+    tudo.onclick = function (){ MUNDO.ano = null; tudo.classList.add("on"); pintar(); };
+    controles.appendChild(tudo);
+    controles.appendChild(faixa);
+  }
   corpo.appendChild(palco);
   corpo.appendChild(controles);
+  corpo.appendChild(legenda);
+
+  /* ---- as bandeiras: clicar recorta o acervo por país ---- */
+  const bandeiras = h("div", {class: "bandeiras"});
+  paises.slice(0, 24).forEach(function (p){
+    const b = h("button", {class: "bandeira-btn", title: p.n + " artigo(s) de " + p.pais});
+    if (p.bandeira) b.appendChild(h("span", {class: "tremula", text: p.bandeira}));
+    b.appendChild(h("span", {class: "nome", text: p.pais}));
+    b.appendChild(h("small", {text: String(p.n)}));
+    b.onmouseenter = function (){ parar(); rotulo(); foco = p.pais; pintar(); };
+    b.onclick = function (){
+      /* Clicar no país recorta o ACERVO por ele, e não escreve o nome numa
+         caixa de busca: "Itália" não está no título nem no resumo da maioria
+         dos artigos feitos na Itália. */
+      BIB.pais = p.pais; BIB.aba = "acervo"; show("biblioteca");
+    };
+    bandeiras.appendChild(b);
+  });
+  corpo.appendChild(bandeiras);
+
   if (a.paises.sem_pais){
     corpo.appendChild(h("p", {class: "hint", style: "margin-top:8px", text:
       a.paises.sem_pais + " artigo(s) sem país: a base não trouxe a afiliação de "
       + "quem assina. Não é que o estudo não tenha país — é que não sabemos qual."}));
   }
-  pintar(null);
+
+  pintar();
   if (MUNDO.girando) girar();
-  /* O contorno é grande e vem uma vez só; até chegar, o mapa mostra que
-     está carregando em vez de desenhar um retângulo vazio. */
   if (!MUNDO.contorno){
     fetch("/api/geo/mundo.json").then(function (r){ return r.json(); })
-      .then(function (d){ MUNDO.contorno = d.paises || d; pintar(null); })
-      .catch(function (){ /* o mapa segue dizendo que está carregando */ });
+      .then(function (d){ MUNDO.contorno = d.paises || d; pintar(); })
+      .catch(function (){ /* o globo segue dizendo que está carregando */ });
   }
   return h("div", {class: "card sec"}, [
-    h("h3", {}, [Icons.get("mapa", 16), h("span", {text: "Onde o assunto é estudado"})]),
+    h("h3", {}, [Icons.get("mapa", 16), h("span", {text: "Onde, e desde quando"})]),
     h("p", {class: "hint", style: "margin:4px 0 10px", text:
       "O país vem da afiliação de quem assina, e não da revista: uma revista "
       + "holandesa publica o mundo inteiro, e contar por revista responderia "
-      + "\"onde se publica\", que é outra pergunta. Clique num país e o acervo "
-      + "abre recortado por ele."}),
+      + "\"onde se publica\", que é outra pergunta. Arraste a linha do tempo para "
+      + "ver o campo crescer; passe o ponteiro numa bandeira para localizar o país "
+      + "no globo; clique para abrir o acervo dele."}),
     corpo,
   ]);
+}
+
+/* ---- desenho do estudo e intervenção ---- */
+/* Duas leituras que vêm do que a BASE declara -- tipo de publicação e
+   descritor MeSH, que são curadoria da PubMed. Quem não tem essa curadoria
+   aparece como "não classificado", e não diluído nos outros: um acervo em
+   que 40% dos estudos viram "transversal" por omissão é pior do que um que
+   admite o buraco. */
+function cartaoDasLeituras(a){
+  function grade(titulo, dados, campo, icone, explica){
+    const chips = h("div", {class: "chips"}, (dados.todos || [])
+      .filter(function (x){ return x.n; })
+      .map(function (x){
+        const c = h("button", {class: "chip", text: x.rotulo + " (" + x.n + ")"});
+        c.onclick = function (){
+          BIB[campo] = x.rotulo; BIB.aba = "acervo"; show("biblioteca"); };
+        return c;
+      }));
+    const corpo = [h("p", {class: "hint", style: "margin:4px 0 10px", text: explica})];
+    if (dados.com_leitura){
+      corpo.push(C.bars({
+        items: (dados.todos || []).filter(function (x){ return x.n; })
+          .map(function (x){ return {label: x.rotulo, value: x.n}; }),
+        mono: true, labelWidth: 170, unit: "artigos", caption: null,
+        file: "biblioteca-" + campo,
+      }));
+    }
+    corpo.push(chips);
+    if (dados.sem_leitura){
+      corpo.push(h("p", {class: "hint", style: "margin-top:10px", text:
+        dados.sem_leitura + " de " + (dados.sem_leitura + dados.com_leitura)
+        + " artigo(s) sem leitura: vieram da Scopus ou da Web of Science, que não "
+        + "devolvem tipo de publicação nem descritor na busca. Não é que sejam de "
+        + "outro desenho — é que ninguém disse qual."}));
+    }
+    return h("div", {class: "card sec"}, [
+      h("h3", {}, [Icons.get(icone, 16), h("span", {text: titulo})]),
+    ].concat(corpo));
+  }
+
+  const caixa = h("div", {});
+  caixa.appendChild(grade("Desenho do estudo", a.desenhos || {}, "desenho", "experimento",
+    "Um desenho por artigo, o mais forte que a base declarou: meta-análise ganha "
+    + "de revisão, revisão de ensaio. Somar os dois faria o total dos desenhos "
+    + "passar do total de artigos, e aí nenhum percentual significa nada."));
+  caixa.appendChild(grade("Intervenção testada", a.intervencoes || {}, "intervencao",
+    "halteres",
+    "Aqui um artigo pode ser de várias: um ensaio que compara treino resistido "
+    + "com mindfulness é dos dois."));
+  return caixa;
 }
 
 /* ---- a árvore que decide se a curva de uma modalidade pode ser lida ---- */
@@ -1813,7 +1951,8 @@ function cartaoDeArtigo(x){
   const topo = h("div", {class: "bib-topo"}, [
     h("b", {text: x.title || "(sem título)"}),
     h("small", {class: "hint", text:
-      [x.journal, x.year, (x.segmentos || []).join(" · ")].filter(Boolean).join(" · ")}),
+      [x.journal, x.year, (x.segmentos || []).join(" · "),
+       x.desenho, x.intervencao].filter(Boolean).join(" · ")}),
   ]);
   const links = h("div", {class: "bib-links"}, (x.links || []).map(function (l){
     /* O que abre o artigo e o que abre uma BUSCA ficam visualmente

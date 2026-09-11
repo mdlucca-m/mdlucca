@@ -426,6 +426,10 @@ def atualizar(db: Database, code: str, limite: int = 400,
     # Antes de trazer mais, junta o que ja esta repetido. Acervo com
     # duplicata recebendo artigo novo so acumula duplicata.
     limpeza = limpar_duplicatas(db, code)
+    # E le de novo o desenho de quem ja estava aqui: o vocabulario pode ter
+    # ganhado termos desde a ultima vez, e nao ha por que o acervo antigo
+    # ficar com a leitura velha enquanto o novo entra com a nova.
+    reclassificar(db, code)
     resumo = {"biblioteca": titulo, "buscas": 0, "achados": 0, "novos": 0,
               "erros": 0, "sem_chave": [], "por_base": {}, "segmentos": [],
               "repetidos_juntados": limpeza["juntados"]}
@@ -553,6 +557,36 @@ def limpar_duplicatas(db: Database, code: str) -> dict[str, Any]:
             "titulos": sumiram[:20]}
 
 
+def reclassificar(db: Database, code: str) -> dict[str, Any]:
+    """Le de novo desenho e intervencao do que ja esta guardado.
+
+    Nao sai para a rede: o cru -- tipos de publicacao e descritores -- fica
+    na linha justamente para isto. Quando o vocabulario ganha um termo, o
+    acervo inteiro se atualiza em segundos, e nao em quarenta e cinco
+    buscas.
+    """
+    bid = db.scalar("SELECT id FROM biblioteca WHERE code = ?", (code,))
+    if not bid:
+        raise ValueError(f"biblioteca “{code}” não existe")
+    mudaram = 0
+    for item in db.dicts(
+            "SELECT id, pub_types, keywords, desenho, intervencao"
+            "  FROM biblioteca_item WHERE biblioteca_id = ?", (bid,)):
+        lido = classificar(item)
+        if (lido["desenho"], lido["intervencao"]) == (item["desenho"], item["intervencao"]):
+            continue
+        db.execute("UPDATE biblioteca_item SET desenho = ?, intervencao = ? WHERE id = ?",
+                   (lido["desenho"], lido["intervencao"], item["id"]))
+        mudaram += 1
+    db.conn.commit()
+    com_desenho = int(db.scalar(
+        "SELECT COUNT(*) FROM biblioteca_item WHERE biblioteca_id = ?"
+        "   AND desenho IS NOT NULL", (bid,)) or 0)
+    total = int(db.scalar("SELECT COUNT(*) FROM biblioteca_item WHERE biblioteca_id = ?",
+                          (bid,)) or 0)
+    return {"mudaram": mudaram, "com_desenho": com_desenho, "total": total}
+
+
 def _colher(base: str, query: str, limite: int) -> list[dict[str, Any]]:
     """Os registros de uma busca, na base pedida."""
     if base == PUBMED:
@@ -609,11 +643,12 @@ def _gravar(db: Database, biblioteca_id: int, segmento: str | None,
 
     paises = variaveis.paises_da_afiliacao(
         registro.get("afiliacoes") or registro.get("affiliation"))
+    lido = classificar(registro)
     db.execute(
         "INSERT INTO biblioteca_item (biblioteca_id, chave, chave_titulo, segmento,"
         "        title, abstract, authors, journal, year, doi, pmid, pmc, url,"
-        "        oa_url, paises, base)"
-        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "        oa_url, paises, pub_types, keywords, desenho, intervencao, base)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (biblioteca_id, chave, por_titulo, segmento, clean_text(registro.get("title")),
          clean_text(registro.get("abstract")),
          "; ".join(registro.get("authors") or []) if isinstance(registro.get("authors"), list)
@@ -622,6 +657,8 @@ def _gravar(db: Database, biblioteca_id: int, segmento: str | None,
          norm_doi(registro.get("doi")), clean_text(registro.get("pmid")),
          clean_text(registro.get("pmc")), clean_text(registro.get("url")),
          clean_text(registro.get("oa_url")), json.dumps(paises, ensure_ascii=False),
+         clean_text(registro.get("pub_types")), clean_text(registro.get("keywords")),
+         lido["desenho"], lido["intervencao"],
          registro.get("base") or PUBMED))
     return True
 
@@ -646,6 +683,7 @@ def _item(linha: dict[str, Any]) -> dict[str, Any]:
 
 def listar(db: Database, code: str, segmento: str | None = None,
            busca: str | None = None, pais: str | None = None,
+           desenho: str | None = None, intervencao: str | None = None,
            limite: int = 300) -> dict[str, Any]:
     """O acervo, inteiro ou recortado por segmento."""
     dados = db.dicts(
@@ -662,6 +700,12 @@ def listar(db: Database, code: str, segmento: str | None = None,
         # numa lista -- e o recorte tem de achar o item nos dois.
         onde.append("('; ' || segmento || '; ') LIKE ?")
         params.append(f"%; {segmento}; %")
+    if desenho:
+        onde.append("('; ' || desenho || '; ') LIKE ?")
+        params.append(f"%; {desenho}; %")
+    if intervencao:
+        onde.append("('; ' || intervencao || '; ') LIKE ?")
+        params.append(f"%; {intervencao}; %")
     if pais:
         # Os paises viajam como JSON na coluna. Procurar o nome entre aspas
         # evita que "Chile" case com um pais cujo nome o contenha, e evita
@@ -678,7 +722,8 @@ def listar(db: Database, code: str, segmento: str | None = None,
         f"SELECT * FROM biblioteca_item WHERE {' AND '.join(onde)}"
         f" ORDER BY COALESCE(year, 0) DESC, title LIMIT ?", params + [limite])
     return {"biblioteca": biblioteca, "itens": [_item(i) for i in itens],
-            "segmento": segmento, "busca": busca, "pais": pais}
+            "segmento": segmento, "busca": busca, "pais": pais,
+            "desenho": desenho, "intervencao": intervencao}
 
 
 def panorama(db: Database, code: str) -> dict[str, Any]:
@@ -887,10 +932,74 @@ def analitico(db: Database, code: str, desde: int | None = None) -> dict[str, An
         "total": len(itens), "no_recorte": len(dentro),
         "geral": geral, "segmentos": por_segmento,
         "paises": _paises_do_acervo(dentro),
+        "desenhos": _contar(dentro, "desenho", DESENHOS),
+        "intervencoes": _contar(dentro, "intervencao", INTERVENCOES),
+        "espaco_tempo": _espaco_tempo(dentro, anos),
         "rede": _rede_do_acervo(dentro),
         "triangulo": _triangulo(dentro),
         "decisao": _decisao(por_segmento),
     }
+
+
+def _contar(itens: list[dict[str, Any]], campo: str,
+            vocabulario: tuple) -> dict[str, Any]:
+    """Quantos artigos em cada rotulo, e quantos ficaram sem leitura.
+
+    O "sem leitura" sai a parte, e nao vira uma fatia chamada "outros".
+    Sao artigos que vieram da Scopus ou da WoS, que nao devolvem tipo de
+    publicacao nem descritor na busca -- entao nao e que o estudo seja de
+    outro desenho: e que ninguem disse qual. Um acervo em que 40% dos
+    estudos aparecem como "transversal" por omissao e pior do que um que
+    admite o buraco.
+    """
+    contagem: dict[str, dict[str, Any]] = {}
+    for _codigo, rotulo, _termos in vocabulario:
+        contagem[rotulo] = {"rotulo": rotulo, "n": 0, "artigos": []}
+    sem = 0
+    for item in itens:
+        rotulos = [r for r in str(item.get(campo) or "").split("; ") if r]
+        if not rotulos:
+            sem += 1
+            continue
+        for rotulo in rotulos:
+            if rotulo in contagem:
+                contagem[rotulo]["n"] += 1
+                contagem[rotulo]["artigos"].append(item["id"])
+    achados = sorted(contagem.values(), key=lambda x: -x["n"])
+    return {"todos": achados, "sem_leitura": sem,
+            "com_leitura": len(itens) - sem,
+            "quantos": sum(1 for a in achados if a["n"])}
+
+
+def _espaco_tempo(itens: list[dict[str, Any]],
+                  anos: list[int]) -> dict[str, Any]:
+    """Quantos artigos por pais em cada ano.
+
+    E o que faz o globo ter tempo: girando, ele mostra ONDE; avancando o
+    ano, mostra QUANDO aquele onde aconteceu. Separado do total porque a
+    pergunta e outra -- "quem estuda isso" e "quem passou a estudar isso"
+    tem respostas diferentes, e a segunda e a que diz para onde o campo
+    esta indo.
+    """
+    por_ano: dict[int, dict[str, int]] = {ano: {} for ano in anos}
+    for item in itens:
+        ano = int(item.get("year") or 0)
+        if ano not in por_ano:
+            continue
+        for pais in item.get("paises") or []:
+            por_ano[ano][pais] = por_ano[ano].get(pais, 0) + 1
+    # O acumulado responde "quanto ja se produziu ate aqui", que e a
+    # leitura que faz sentido num mapa: o mapa de um ano so pisca, porque
+    # a maior parte dos paises publica um artigo a cada tres anos.
+    acumulado: dict[str, int] = {}
+    quadros = []
+    for ano in anos:
+        for pais, n in por_ano[ano].items():
+            acumulado[pais] = acumulado.get(pais, 0) + n
+        quadros.append({"ano": ano, "paises": dict(acumulado),
+                        "no_ano": dict(por_ano[ano]),
+                        "total": sum(acumulado.values())})
+    return {"quadros": quadros, "anos": anos}
 
 
 def _paises_do_acervo(itens: list[dict[str, Any]]) -> dict[str, Any]:
@@ -1026,4 +1135,102 @@ def _decisao(segmentos: list[dict[str, Any]]) -> dict[str, Any]:
         "viraram": {"n": len(viraram), "quais": nomes(viraram)},
         "lisos": {"n": len(lisos), "quais": nomes(lisos)},
         "min_anos": analise.MIN_ANOS_COM_DADO, "ruido_alto": analise.RUIDO_ALTO,
+    }
+
+
+# ----------------------------------------------------------------------
+# Desenho do estudo e intervencao
+# ----------------------------------------------------------------------
+# A leitura sai do que a BASE declara, e nao de um palpite sobre o texto.
+# Tipo de publicacao e descritor MeSH sao curadoria da PubMed, feita por
+# indexador humano -- dizer "ensaio randomizado" porque o resumo tem a
+# palavra "randomized" seria outra coisa, e erraria justamente nos artigos
+# que discutem randomizacao sem serem randomizados.
+#
+# Por isso tudo aqui procura em `pub_types` e `keywords`, e nao no resumo.
+# O preco e que artigo vindo so da Scopus ou da WoS fica SEM desenho -- as
+# duas nao devolvem esses campos na busca. A tela diz "não classificado" em
+# vez de chutar, porque um acervo em que 40% dos estudos aparecem como
+# "transversal" por omissao e pior do que um que admite o buraco.
+DESENHOS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
+    # (codigo, rotulo, termos que a base declara)
+    # A ordem e a da forca da evidencia: um artigo que e meta-analise E
+    # revisao sistematica conta como meta-analise, que e o que ele tem de
+    # mais forte. Sem ordem, o rotulo dependeria de qual termo a base
+    # escreveu primeiro.
+    ("meta_analise", "Meta-análise", ("Meta-Analysis",)),
+    ("revisao_sistematica", "Revisão sistemática",
+     ("Systematic Review", "Systematic Reviews as Topic")),
+    ("ensaio_randomizado", "Ensaio randomizado",
+     ("Randomized Controlled Trial", "Randomized Controlled Trials as Topic")),
+    ("ensaio_controlado", "Ensaio controlado",
+     ("Controlled Clinical Trial", "Clinical Trial")),
+    ("coorte", "Coorte", ("Cohort Studies", "Prospective Studies",
+                          "Follow-Up Studies", "Longitudinal Studies")),
+    ("caso_controle", "Caso-controle", ("Case-Control Studies",)),
+    ("transversal", "Transversal", ("Cross-Sectional Studies",)),
+    ("revisao", "Revisão narrativa", ("Review",)),
+    ("validacao", "Validação de instrumento",
+     ("Validation Study", "Psychometrics", "Reproducibility of Results")),
+    ("relato", "Relato de caso", ("Case Reports",)),
+)
+
+# As intervencoes que a literatura de humor no esporte de fato testa. Saem
+# do MeSH, que e onde a PubMed registra o que foi feito -- e nao de uma
+# lista de tudo que existe, que encheria a tela de segmentos vazios.
+INTERVENCOES: tuple[tuple[str, str, tuple[str, ...]], ...] = (
+    ("resistido", "Treinamento resistido",
+     ("Resistance Training", "Weight Lifting", "Muscle Strength")),
+    ("aerobio", "Exercício aeróbio",
+     ("Exercise", "Running", "Physical Endurance", "Physical Conditioning, Human")),
+    ("alta_intensidade", "Alta intensidade",
+     ("High-Intensity Interval Training",)),
+    ("mental", "Treino mental e psicológico",
+     ("Imagery, Psychotherapy", "Cognitive Behavioral Therapy", "Psychotherapy",
+      "Relaxation Therapy", "Biofeedback, Psychology", "Hypnosis")),
+    ("mindfulness", "Mindfulness e meditação", ("Mindfulness", "Meditation", "Yoga")),
+    ("recuperacao", "Recuperação e sono",
+     ("Sleep", "Rest", "Muscle Stretching Exercises", "Massage", "Hydrotherapy",
+      "Cryotherapy")),
+    ("nutricao", "Nutrição e suplementação",
+     ("Dietary Supplements", "Caffeine", "Carbohydrates", "Creatine",
+      "Sports Nutritional Physiological Phenomena")),
+    ("carga", "Carga e periodização",
+     ("Physical Exertion", "Workload", "Athletic Performance", "Overtraining")),
+    ("musica", "Música", ("Music", "Music Therapy")),
+)
+
+NAO_CLASSIFICADO = "não classificado"
+
+
+def _ler_declarado(termos: str, vocabulario: tuple, limite: int = 0) -> str | None:
+    """Os rotulos cujo termo a base declarou, na ordem do vocabulario."""
+    if not termos:
+        return None
+    baixo = termos.lower()
+    achados = []
+    for _codigo, rotulo, chaves in vocabulario:
+        if any(chave.lower() in baixo for chave in chaves):
+            achados.append(rotulo)
+            if limite and len(achados) >= limite:
+                break
+    return "; ".join(achados) or None
+
+
+def classificar(registro: dict[str, Any]) -> dict[str, str | None]:
+    """Desenho e intervencao de um registro, pelo que a base declarou.
+
+    O desenho e UM so -- o mais forte --, porque um artigo tem um desenho.
+    "Meta-analise e tambem transversal" nao e uma frase sobre metodo, e
+    somar as duas contagens faria o total dos desenhos passar do total de
+    artigos, o que deixa qualquer percentual sem sentido.
+
+    A intervencao pode ser varias: um ensaio compara treino resistido com
+    mindfulness, e ele e dos dois.
+    """
+    declarado = "; ".join(
+        str(registro.get(campo) or "") for campo in ("pub_types", "keywords"))
+    return {
+        "desenho": _ler_declarado(declarado, DESENHOS, limite=1),
+        "intervencao": _ler_declarado(declarado, INTERVENCOES),
     }

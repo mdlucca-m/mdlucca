@@ -855,6 +855,206 @@ class TestOMapeamentoAnalitico(BaseBiblioteca):
         self.assertIn("Natação", a["decisao"]["curtos"]["quais"])
 
 
+class TestOQueABaseDeclara(BaseBiblioteca):
+    """Desenho e intervencao saem do que a BASE declara.
+
+    Dizer "ensaio randomizado" porque o resumo tem a palavra "randomized"
+    erraria justamente nos artigos que DISCUTEM randomizacao sem serem
+    randomizados. Tipo de publicacao e descritor MeSH sao curadoria da
+    PubMed, feita por indexador humano.
+    """
+
+    def test_o_desenho_e_um_so_e_o_mais_forte(self):
+        """Um artigo tem UM desenho.
+
+        "Meta-analise e tambem transversal" nao e frase sobre metodo, e
+        somar as duas contagens faria o total dos desenhos passar do total
+        de artigos -- o que deixa qualquer percentual sem sentido.
+        """
+        lido = biblioteca.classificar({
+            "pub_types": "Journal Article; Meta-Analysis",
+            "keywords": "Cross-Sectional Studies; Cohort Studies"})
+        self.assertEqual(lido["desenho"], "Meta-análise")
+
+    def test_o_ensaio_ganha_do_transversal(self):
+        lido = biblioteca.classificar({
+            "pub_types": "Journal Article; Randomized Controlled Trial",
+            "keywords": "Cross-Sectional Studies"})
+        self.assertEqual(lido["desenho"], "Ensaio randomizado")
+
+    def test_a_intervencao_pode_ser_varias(self):
+        # um ensaio compara treino resistido com mindfulness, e e dos dois
+        lido = biblioteca.classificar({
+            "pub_types": "", "keywords": "Resistance Training; Mindfulness"})
+        self.assertIn("Treinamento resistido", lido["intervencao"])
+        self.assertIn("Mindfulness e meditação", lido["intervencao"])
+
+    def test_sem_curadoria_nao_se_chuta(self):
+        """Artigo da Scopus vem sem tipo e sem descritor.
+
+        Marca-lo como transversal por omissao encheria o acervo de um
+        desenho que ninguem declarou.
+        """
+        lido = biblioteca.classificar({"pub_types": None, "keywords": None})
+        self.assertIsNone(lido["desenho"])
+        self.assertIsNone(lido["intervencao"])
+
+    def test_a_leitura_nao_olha_o_resumo(self):
+        # a palavra no resumo nao vale: "we did not randomize" viraria
+        # ensaio randomizado
+        lido = biblioteca.classificar({
+            "pub_types": "Journal Article", "keywords": "",
+            "abstract": "This was not a randomized controlled trial.",
+            "title": "A systematic review is needed"})
+        self.assertIsNone(lido["desenho"])
+
+    def test_todos_os_tipos_de_publicacao_sao_guardados(self):
+        """O primeiro PT e quase sempre "Journal Article", que nao diz nada.
+
+        Os que dizem vem depois, e eram descartados por `_primeiro`.
+        """
+        from lape import referencias
+        medline = ("PMID- 1\nTI  - Um estudo.\nPT  - Journal Article\n"
+                   "PT  - Randomized Controlled Trial\nDP  - 2024\n\n")
+        r = referencias.ler_nbib(medline)[0]
+        self.assertIn("Randomized Controlled Trial", r["pub_types"])
+
+    def test_o_cru_fica_guardado_para_reclassificar_sem_rede(self):
+        """Quando o vocabulario ganha um termo, o acervo se atualiza em
+        segundos -- e nao em quarenta e cinco buscas."""
+        biblioteca.instalar(self.db)
+        bid = self.db.scalar("SELECT id FROM biblioteca")
+        self.db.execute(
+            "INSERT INTO biblioteca_item (biblioteca_id, chave, title, year,"
+            "        pub_types, keywords) VALUES (?, 'k1', 'Um estudo', 2024, ?, ?)",
+            (bid, "Journal Article; Meta-Analysis", "Mindfulness"))
+        self.db.conn.commit()
+        r = biblioteca.reclassificar(self.db, "humor_esporte")
+        self.assertEqual(r["mudaram"], 1)
+        linha = self.db.dicts("SELECT desenho, intervencao FROM biblioteca_item")[0]
+        self.assertEqual(linha["desenho"], "Meta-análise")
+        self.assertEqual(linha["intervencao"], "Mindfulness e meditação")
+
+    def test_o_sem_leitura_sai_a_parte_e_nao_vira_outros(self):
+        itens = [{"id": 1, "desenho": "Coorte"}, {"id": 2, "desenho": None},
+                 {"id": 3, "desenho": None}]
+        r = biblioteca._contar(itens, "desenho", biblioteca.DESENHOS)
+        self.assertEqual(r["sem_leitura"], 2)
+        self.assertEqual(r["com_leitura"], 1)
+        rotulos = [x["rotulo"] for x in r["todos"]]
+        self.assertNotIn("Outros", rotulos)
+        self.assertNotIn(biblioteca.NAO_CLASSIFICADO, rotulos)
+
+
+class TestOEspacoTempo(BaseBiblioteca):
+
+    def test_o_quadro_do_ano_e_acumulado(self):
+        """O mapa de um ano so pisca.
+
+        A maior parte dos paises publica um artigo a cada tres anos, e um
+        mapa que acende e apaga nao se le.
+        """
+        itens = [{"id": 1, "year": 2020, "paises": ["Brasil"]},
+                 {"id": 2, "year": 2022, "paises": ["Brasil", "Espanha"]}]
+        r = biblioteca._espaco_tempo(itens, [2020, 2021, 2022])
+        quadros = {q["ano"]: q for q in r["quadros"]}
+        self.assertEqual(quadros[2020]["paises"], {"Brasil": 1})
+        self.assertEqual(quadros[2021]["paises"], {"Brasil": 1})   # nao zera
+        self.assertEqual(quadros[2022]["paises"], {"Brasil": 2, "Espanha": 1})
+
+    def test_o_ano_a_ano_fica_do_lado_do_acumulado(self):
+        # "quem estuda isso" e "quem passou a estudar isso" sao perguntas
+        # diferentes, e a segunda diz para onde o campo esta indo
+        itens = [{"id": 1, "year": 2020, "paises": ["Brasil"]}]
+        r = biblioteca._espaco_tempo(itens, [2020, 2021])
+        quadros = {q["ano"]: q for q in r["quadros"]}
+        self.assertEqual(quadros[2020]["no_ano"], {"Brasil": 1})
+        self.assertEqual(quadros[2021]["no_ano"], {})
+
+
+class TestOGlobo(unittest.TestCase):
+    """A projecao ortografica, e o que ela nao pode desenhar."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.js = (ROOT / "scripts" / "lape" / "templates" / "charts.js").read_text(
+            encoding="utf-8")
+        inicio = cls.js.index("function globo(spec)")
+        cls.corpo = cls.js[inicio:cls.js.index("function dendrograma(spec)")]
+
+    def test_o_globo_esta_na_api(self):
+        self.assertIn("globo: globo", self.js)
+
+    def test_a_face_oculta_nao_e_desenhada(self):
+        """Desenhar os dois lados sobrepostos poria o Brasil em cima da
+        Indonesia, e o leitor nao teria como saber qual esta na frente."""
+        self.assertIn("if (cosC < 0) return null;", self.corpo)
+
+    def test_o_poligono_que_cruza_o_horizonte_vira_varios_tracos(self):
+        """Ligar o ultimo ponto visivel ao primeiro do outro lado
+        desenharia uma corda atravessando o planeta."""
+        self.assertIn("partes.push(atual)", self.corpo)
+        self.assertIn("parte.length === anel.length", self.corpo)
+
+    def test_o_svg_tem_tamanho(self):
+        """Sem largura e altura, o SVG ocupa zero e os trezentos caminhos
+        ficam no DOM sem aparecer -- um grafico invisivel que nao da erro."""
+        self.assertIn('svg.setAttribute("width", W)', self.corpo)
+        self.assertIn('svg.setAttribute("height", H)', self.corpo)
+
+    def test_a_magnitude_e_um_matiz_so(self):
+        # cor por categoria num mapa de quantidade e o erro classico
+        self.assertIn("--accent-strong", self.corpo)
+        self.assertNotIn("serie(", self.corpo)
+
+    def test_pais_sem_registro_fica_sem_tinta(self):
+        # zero nao e o tom mais claro, e a ausencia de dado
+        self.assertIn('n ? "color-mix', self.corpo)
+
+    def test_o_contorno_vem_do_campo_que_existe(self):
+        # `d` ja e lista de aneis de [lon, lat]: sao as coordenadas cruas,
+        # e e o que permite reprojetar para a esfera
+        self.assertIn("(pais.d || [])", self.corpo)
+
+
+class TestOMovimentoRespeitaAPreferencia(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tela = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
+            encoding="utf-8")
+
+    def test_o_giro_tem_guarda_propria(self):
+        """A bandeira tem guarda no CSS; o giro e um relogio em JavaScript.
+
+        Uma animacao que o CSS nao ve e uma animacao que a preferencia de
+        acessibilidade nao alcanca.
+        """
+        self.assertIn("MENOS_MOVIMENTO", self.tela)
+        self.assertIn("if (MENOS_MOVIMENTO) return;", self.tela)
+
+    def test_a_bandeira_para_de_tremer(self):
+        corpo = self.tela[self.tela.index("@media (prefers-reduced-motion:reduce){"):]
+        self.assertIn(".tremula{animation:none}", corpo[:200])
+
+    def test_aba_escondida_nao_gira(self):
+        # girar um globo que ninguem ve gasta bateria para nada
+        corpo = self.tela[self.tela.index("function girar()"):]
+        self.assertIn("document.hidden", corpo[:600])
+
+    def test_nenhuma_marca_de_grafico_treme(self):
+        """Numero que balanca e numero dificil de ler.
+
+        O enfeite fica longe do dado: a bandeira treme, a barra nao.
+        """
+        css = self.tela[:self.tela.index("</style>")]
+        bloco = css[css.index("@keyframes tremular"):]
+        bloco = bloco[:bloco.index("}\n}") + 3]
+        for proibido in (".bar", ".mark", "svg", ".plot"):
+            with self.subTest(alvo=proibido):
+                self.assertNotIn(proibido, bloco)
+
+
 class TestAsPortas(unittest.TestCase):
 
     def test_as_rotas_existem_com_o_perfil_certo(self):
@@ -920,14 +1120,27 @@ class TestAsPortas(unittest.TestCase):
         """
         tela = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
             encoding="utf-8")
-        corpo = tela[tela.index("function cartaoDoMapa("):tela.index("function cartaoDaArvore(")]
-        self.assertIn("BIB.pais = nome", corpo)
+        corpo = tela[tela.index("function cartaoDoMapa("):
+                     tela.index("function cartaoDasLeituras(")]
+        self.assertIn("BIB.pais = p.pais", corpo)
         self.assertNotIn("BIB.q =", corpo)
 
-    def test_a_pastilha_do_recorte_por_pais_desliga_no_mesmo_lugar(self):
+    def test_todo_recorte_desliga_no_mesmo_lugar(self):
+        """Lista com 12 de 689 e nada explicando o sumico dos outros 677.
+
+        Quem chegou pelo globo sabe por que; quem voltou dez minutos
+        depois, nao -- e a pastilha e onde ele desliga.
+        """
         tela = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
             encoding="utf-8")
-        self.assertIn("BIB.pais = null; show(\"biblioteca\")", tela)
+        corpo = tela[tela.index('[["pais", "mapa"'):]
+        # o fim e a linha que fecha o forEach, e nao o primeiro "});" -- que
+        # aparece antes, dentro de `h("span", {...}))`
+        corpo = corpo[:corpo.index("linhaDeBusca.push(chip);")]
+        for recorte in ("pais", "desenho", "intervencao"):
+            with self.subTest(recorte=recorte):
+                self.assertIn(f'"{recorte}"', corpo)
+        self.assertIn("BIB[x[0]] = null; show(\"biblioteca\")", corpo)
 
     def test_o_mapa_nao_gira_com_a_aba_escondida(self):
         # girar um mapa que ninguem ve e gastar bateria para nada

@@ -150,6 +150,12 @@ def ler_nbib(texto: str) -> list[dict[str, Any]]:
         registro["authors"] = "; ".join(
             _todos(pares, ("FAU",)) or _todos(pares, ("AU",)))[:4000] or None
         registro["keywords"] = "; ".join(_todos(pares, ("MH", "OT"))) or None
+        # TODOS os tipos de publicacao, e nao so o primeiro. O primeiro PT e
+        # quase sempre "Journal Article", que nao diz nada sobre o estudo --
+        # e os que dizem ("Randomized Controlled Trial", "Meta-Analysis",
+        # "Systematic Review") vem depois, e eram descartados. `pub_type`
+        # continua existindo para quem ja o lia.
+        registro["pub_types"] = "; ".join(_todos(pares, ("PT",))) or None
         # AD se repete: uma linha por autor. Guardar so a primeira faz um
         # artigo Brasil-Noruega parecer so brasileiro -- e o mapa da
         # producao e feito exatamente desses paises.

@@ -393,10 +393,13 @@ def route_biblioteca(ctx: "Context", code: str) -> Any:
     segmento = (ctx.query.get("segmento") or [None])[0]
     busca = (ctx.query.get("q") or [None])[0]
     pais = (ctx.query.get("pais") or [None])[0]
+    desenho = (ctx.query.get("desenho") or [None])[0]
+    intervencao = (ctx.query.get("intervencao") or [None])[0]
     try:
         return {**biblioteca.panorama(ctx.db, code),
                 **biblioteca.listar(ctx.db, code, segmento=segmento,
-                                    busca=busca, pais=pais)}
+                                    busca=busca, pais=pais, desenho=desenho,
+                                    intervencao=intervencao)}
     except ValueError as erro:
         raise ApiError(404, str(erro))
 

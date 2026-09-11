@@ -587,6 +587,15 @@ CREATE TABLE IF NOT EXISTS biblioteca_item (
   url           TEXT,
   oa_url        TEXT,
   paises        TEXT,
+  -- O que a BASE declara sobre o estudo, guardado cru. Os tipos de
+  -- publicacao e os descritores MeSH sao curadoria da PubMed, feita por
+  -- gente -- nao sao palpite sobre o texto. Guardar o cru e o que permite
+  -- reclassificar depois sem sair de novo para a rede.
+  pub_types     TEXT,
+  keywords      TEXT,
+  -- O que se leu deles: desenho do estudo e intervencao, separados por ";".
+  desenho       TEXT,
+  intervencao   TEXT,
   base          TEXT NOT NULL DEFAULT 'pubmed',
   achado_em     TEXT NOT NULL DEFAULT (datetime('now')),
   -- A mesma referencia pode chegar por dois segmentos (um estudo com
@@ -597,6 +606,7 @@ CREATE TABLE IF NOT EXISTS biblioteca_item (
 CREATE INDEX IF NOT EXISTS ix_biblioteca_item_ano ON biblioteca_item(biblioteca_id, year);
 CREATE INDEX IF NOT EXISTS ix_biblioteca_item_seg ON biblioteca_item(biblioteca_id, segmento);
 CREATE INDEX IF NOT EXISTS ix_biblioteca_item_tit ON biblioteca_item(biblioteca_id, chave_titulo);
+CREATE INDEX IF NOT EXISTS ix_biblioteca_item_des ON biblioteca_item(biblioteca_id, desenho);
 
 CREATE TABLE IF NOT EXISTS review_terms (
   id        INTEGER PRIMARY KEY,
