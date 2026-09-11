@@ -715,6 +715,67 @@ class TestOTunelQueAbriuMasNaoFoiVisto(unittest.TestCase):
         self.assertTrue(casou)
         self.assertIn("authentication failed", casou[0])
 
+    # O log REAL da segunda falha: o plano gratuito do ngrok deixou de
+    # permitir endereco fixo proprio.
+    LOG_PLANO_GRATUITO = (
+        "ERROR:  failed to start tunnel: Only paid plans may create endpoints "
+        "with custom hostnames.\n"
+        "ERROR:  Failed to create an endpoint with the custom hostname 'x' for "
+        "the account 'mdlucca-m'.\n"
+        "ERROR:  This account is on the 'Free' plan.\n"
+        "ERROR:  ERR_NGROK_314\n")
+
+    def test_o_plano_gratuito_e_reconhecido(self):
+        """Mandar reservar o dominio no painel nao resolve: nao ha o que
+        reservar. A pessoa tentaria de novo, com o mesmo resultado."""
+        corpo = self.diagnostico()
+        padroes = re.findall(r"\$texto -match '([^']+)'", corpo)
+        casou = [p for p in padroes if re.search(p, self.LOG_PLANO_GRATUITO, re.I)]
+        self.assertTrue(casou, "o diagnóstico não reconhece ERR_NGROK_314")
+        self.assertIn("314", casou[0])
+        # e responde por ele, e nao pelo ramo generico de dominio
+        self.assertLess(corpo.index("ERR_NGROK_314"),
+                        corpo.index("is not reserved"))
+
+    def test_o_plano_gratuito_aponta_os_dois_caminhos_sem_custo(self):
+        ps1 = PS1.read_text(encoding="utf-8")
+        corpo = ps1[ps1.index('"plano_gratuito" {'):]
+        corpo = corpo[:corpo.index('"dominio" {')]
+        self.assertIn("-Sorteado", corpo)
+        self.assertIn("-Permanente", corpo)
+        self.assertIn("nenhum deles custa nada", corpo)
+
+    def test_marcador_de_texto_nao_passa_por_endereco(self):
+        """Aconteceu: um marcador de instrucao foi colado como dominio.
+
+        Ele saiu pela rede e voltou como um erro do ngrok sobre planos
+        pagos -- e a pessoa foi ler sobre assinatura por causa de um texto
+        que era para ter sido substituido. Todo endereco tem ponto.
+        """
+        ps1 = PS1.read_text(encoding="utf-8")
+        self.assertIn("$Dominio -notmatch '\\.'", ps1)
+        corpo = ps1[ps1.index("$Dominio -notmatch"):]
+        corpo = corpo[:corpo.index("Erro ") + 80]
+        self.assertIn("falta o ponto", corpo)
+
+    def test_a_conferencia_do_ponto_vem_antes_de_sair_para_a_rede(self):
+        # conferir depois seria conferir quando o estrago ja aconteceu
+        ps1 = PS1.read_text(encoding="utf-8")
+        self.assertLess(ps1.index("$Dominio -notmatch"),
+                        ps1.index("Abrindo o tunel fixo..."))
+
+    def test_os_exemplos_de_endereco_tem_ponto(self):
+        """Um exemplo sem ponto seria copiado e recusado pela propria trava.
+
+        E quem copiou leria que o proprio exemplo do script nao serve.
+        """
+        ps1 = PS1.read_text(encoding="utf-8")
+        for linha in ps1.splitlines():
+            if "-Dominio " in linha and "Write-Host" in linha:
+                valor = linha.split("-Dominio ")[1].split('"')[0].strip()
+                with self.subTest(linha=linha.strip()[:60]):
+                    self.assertIn(".", valor, "exemplo de endereço sem ponto")
+
     def test_a_falha_oferece_o_endereco_sorteado(self):
         """O laboratorio nao pode ficar sem endereco por causa de uma conta.
 

@@ -566,6 +566,13 @@ function Diagnostico-Do-Tunel {
     return @{ causa = "sessao_dupla"
               recado = "Ja ha outra sessao do ngrok aberta nesta conta. A conta gratuita permite uma so." }
   }
+  # O ngrok mudou o plano gratuito: endereco fixo proprio virou recurso pago.
+  # Sem este ramo, a mensagem mandava reservar o dominio no painel -- e nao ha
+  # o que reservar. A pessoa tentaria de novo, com o mesmo resultado.
+  if ($texto -match 'ERR_NGROK_314|paid plans may create endpoints with custom hostnames|on the .Free. plan') {
+    return @{ causa = "plano_gratuito"
+              recado = "A conta gratuita do ngrok nao permite mais endereco fixo proprio." }
+  }
   if ($texto -match 'ERR_NGROK_(3[0-9]{2}|8[0-9]{2})|not found|is not reserved|Failed to bind') {
     return @{ causa = "dominio"
               recado = "O dominio nao foi aceito: ou nao esta reservado nesta conta, ou esta escrito diferente." }
@@ -629,6 +636,20 @@ if ($Fixo) {
   }
   $Dominio = ($Dominio -replace '^https?://', '').Trim().TrimEnd('/')
   if (-not $Dominio) { Erro "Sem dominio reservado nao da para fixar o endereco." }
+  # Todo endereco da internet tem ponto. Sem esta conferencia, um marcador de
+  # texto copiado de uma instrucao -- "o-endereco-que-aparece-la", "seu-dominio"
+  # -- e aceito como se fosse endereco, sai pela rede, e volta como um erro do
+  # ngrok sobre planos pagos. A pessoa entao vai ler sobre assinatura por causa
+  # de um texto que era para ter sido substituido. Aconteceu.
+  if ($Dominio -notmatch '\.') {
+    Write-Host ""
+    Aviso "“$Dominio” nao parece um endereco: falta o ponto."
+    Aviso "O endereco da sua conta tem esta cara, e esta em"
+    Write-Host "      https://dashboard.ngrok.com/domains"
+    Write-Host "      exemplo:  tres-palavras-assim.ngrok-free.dev"
+    Write-Host ""
+    Erro "Rode de novo com o endereco que aparece la."
+  }
 
   # Duas tentativas, e a segunda existe por um motivo especifico: o
   # authtoken fica guardado no ngrok.yml da maquina. Um token errado gravado
@@ -718,10 +739,24 @@ if ($Fixo) {
         Write-Host "  Para trocar de endereco:"
         Write-Host "      .\deploy\publicar.ps1 -Fixo -Dominio o-seu-endereco.ngrok-free.dev"
       }
+      "plano_gratuito" {
+        Write-Host "  Ha dois caminhos, e nenhum deles custa nada:"
+        Write-Host ""
+        Write-Host "  1. Endereco sorteado -- sobe agora, sem conta nenhuma."
+        Write-Host "     Muda a cada reinicio, o que serve para usar hoje e nao"
+        Write-Host "     serve para divulgar:"
+        Write-Host "         .\deploy\publicar.ps1 -Sorteado"
+        Write-Host ""
+        Write-Host "  2. Endereco fixo de verdade, pela Cloudflare, que nao cobra"
+        Write-Host "     pelo tunel. Precisa de um dominio: lape.udesc.br, se a"
+        Write-Host "     universidade delegar, ou um .com.br por poucos reais ao ano:"
+        Write-Host "         .\deploy\publicar.ps1 -Permanente -Dominio lape.seu-dominio.br"
+      }
       "dominio" {
         Write-Host "  Reserve ou confira o endereco em"
         Write-Host "      https://dashboard.ngrok.com/domains"
-        Write-Host "  e rode:  .\deploy\publicar.ps1 -Fixo -Dominio o-seu-endereco"
+        Write-Host "  e rode com o endereco que aparecer la (ele tem ponto):"
+        Write-Host "      .\deploy\publicar.ps1 -Fixo -Dominio tres-palavras.ngrok-free.dev"
       }
       "sessao_dupla" {
         Write-Host "  Feche a outra janela do ngrok, ou encerre tudo e suba de novo:"
