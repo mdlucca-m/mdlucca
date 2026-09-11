@@ -123,6 +123,20 @@ button.sair-ponto:hover{border-color:var(--ink-2);background:var(--surface-hover
 .bib-link.livre::after{content:"livre";font-size:9.5px;opacity:.75;
   text-transform:uppercase;letter-spacing:.04em}
 
+.kpis{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.kpi-simples{flex:1 1 160px;border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;background:var(--surface)}
+.kpi-simples .rot{font-size:10.5px;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--ink-muted)}
+.kpi-simples .num{font-size:22px;font-weight:750;margin:4px 0 2px;
+  font-variant-numeric:tabular-nums}
+.grade-bib{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+.card.mini{padding:12px 14px;margin:0}
+.card.mini .num{font-size:24px;font-weight:750;font-variant-numeric:tabular-nums}
+.card.mini:hover{border-color:var(--accent-strong)}
+table.matriz th{font-weight:650;font-size:12px}
+table.matriz td.celula{text-align:center;font-variant-numeric:tabular-nums}
+
 @media (max-width:860px){
   .layout{grid-template-columns:1fr}
   nav.side{border-right:none;border-bottom:1px solid var(--border);
@@ -1330,7 +1344,7 @@ function pulsarPonto(ligado){
    busca GUARDADA que roda sozinha, e a tela mostra onde procurar antes de
    mostrar o que ha: uma lista de quatrocentos artigos sem recorte e
    exatamente o que as pessoas ja tinham antes de existir biblioteca. */
-const BIB = { code: null, segmento: null, q: "" };
+const BIB = { code: null, segmento: null, q: "", pais: null, aba: "acervo" };
 
 VIEWS.biblioteca = {
   label: "Biblioteca", group: "Laboratório",
@@ -1362,9 +1376,33 @@ VIEWS.biblioteca = {
       })));
     }
 
+    /* Duas leituras do mesmo acervo: a lista, para quem quer chegar a um
+       artigo, e o mapeamento, para quem quer saber o que o campo está
+       fazendo. Separadas porque são perguntas diferentes -- e porque
+       desenhar mapa, rede e árvore para quem só queria um PDF é fazer a
+       pessoa esperar por algo que ela não pediu. */
+    const abas = h("div", {class: "chips", style: "margin:12px 0"});
+    [["acervo", "Os artigos", "dados"],
+     ["analise", "O mapeamento", "barras"]].forEach(function (x){
+      const c = h("button", {class: "chip" + (BIB.aba === x[0] ? " on" : "")});
+      c.appendChild(Icons.get(x[2], 13));
+      c.appendChild(h("span", {text: x[1]}));
+      c.onclick = function (){ BIB.aba = x[0]; show("biblioteca"); };
+      abas.appendChild(c);
+    });
+    VIEW.appendChild(abas);
+
+    if (BIB.aba === "analise"){
+      const caixa = h("div", {});
+      VIEW.appendChild(caixa);
+      await desenharAnalise(caixa, BIB.code);
+      return;
+    }
+
     const url = "/api/bibliotecas/" + encodeURIComponent(BIB.code)
       + "?" + new URLSearchParams(
         Object.assign({}, BIB.segmento ? {segmento: BIB.segmento} : {},
+                      BIB.pais ? {pais: BIB.pais} : {},
                       BIB.q ? {q: BIB.q} : {})).toString();
     const d = await api(url);
     VIEW.appendChild(desenharAcervo(d));
@@ -1411,7 +1449,21 @@ function desenharAcervo(d){
   const campo = h("input", {type: "search", placeholder: "procurar no acervo…",
     value: BIB.q});
   campo.onchange = function (){ BIB.q = campo.value.trim(); show("biblioteca"); };
-  caixa.appendChild(h("div", {class: "acao-ponto", style: "margin-bottom:12px"}, [campo]));
+  const linhaDeBusca = [campo];
+  /* O recorte que veio do mapa aparece AQUI: sem a pastilha, a lista mostra
+     12 de 431 artigos e nada explica o sumiço dos outros 419 -- quem chegou
+     pelo mapa sabe por quê, quem voltou dez minutos depois, não. E ela se
+     desliga no mesmo lugar. */
+  if (BIB.pais){
+    const chip = h("button", {class: "chip on", title: "Mostrar todos os países"});
+    chip.appendChild(Icons.get("mapa", 12));
+    chip.appendChild(h("span", {text: BIB.pais}));
+    chip.appendChild(Icons.get("filtro", 11));
+    chip.onclick = function (){ BIB.pais = null; show("biblioteca"); };
+    linhaDeBusca.push(chip);
+  }
+  caixa.appendChild(h("div", {class: "acao-ponto", style: "margin-bottom:12px"},
+                      linhaDeBusca));
 
   /* ---- os artigos ---- */
   const itens = d.itens || [];
@@ -1424,9 +1476,337 @@ function desenharAcervo(d){
   }
   caixa.appendChild(h("p", {class: "hint", style: "margin-bottom:8px",
     text: itens.length + " artigo(s)" + (BIB.segmento ? " em " + BIB.segmento : "")
+      + (BIB.pais ? " com autor de " + BIB.pais : "")
       + (BIB.q ? " com \"" + BIB.q + "\"" : "")}));
   itens.forEach(function (x){ caixa.appendChild(cartaoDeArtigo(x)); });
   return caixa;
+}
+
+/* ------------------------------------------------------------------ */
+/* O mapeamento analítico do acervo                                      */
+/* ------------------------------------------------------------------ */
+/* As contas são as MESMAS do painel da produção — elas moram no servidor,
+   em `analise`, e não são recalculadas aqui. O que muda é o objeto: lá a
+   série é o que o LAPE publicou, aqui é a literatura mundial sobre um
+   assunto, e a pergunta deixa de ser "como vamos" para ser "o que o campo
+   está fazendo, e onde ele parou de crescer". */
+const MUNDO = { contorno: null, girando: true, i: 0, relogio: null };
+
+async function desenharAnalise(caixa, code){
+  let a;
+  try { a = await api("/api/bibliotecas/" + encodeURIComponent(code) + "/analise"); }
+  catch (e){
+    caixa.appendChild(h("p", {class: "hint", text: "Não deu para analisar: " + e.message}));
+    return;
+  }
+  if (a.vazio){
+    caixa.appendChild(h("p", {class: "hint", text:
+      "Ainda não dá para mapear: " + a.porque + "."}));
+    return;
+  }
+
+  caixa.appendChild(h("p", {class: "hint", style: "margin:2px 0 12px", text:
+    a.no_recorte + " de " + a.total + " artigos entram no recorte de "
+    + a.janela.de + " a " + a.janela.ate + ". Literatura de trinta anos atrás foi "
+    + "feita com outro instrumento e sobre outra população — misturar tudo numa "
+    + "curva só faz a curva não significar nada."}));
+
+  caixa.appendChild(cartaoDaCurva(a));
+  caixa.appendChild(cartaoDoMapa(a, code));
+  caixa.appendChild(cartaoDaArvore(a));
+  caixa.appendChild(cartaoDasModalidades(a));
+  caixa.appendChild(cartaoDoTriangulo(a));
+  caixa.appendChild(cartaoDaRede(a));
+}
+
+/* ---- a curva do campo, com a faixa e as derivadas ---- */
+function cartaoDaCurva(a){
+  const g = a.geral;
+  const series = [{label: "artigos por ano", values: g.suave,
+                   band: g.faixa ? {baixo: g.faixa.baixo, alto: g.faixa.alto} : null}];
+  const corpo = h("div", {});
+  corpo.appendChild(C.lines({
+    labels: a.janela.anos.map(String), series: series, mono: true,
+    caption: null, file: "biblioteca-curva",
+  }));
+  /* A faixa cerca a OBSERVAÇÃO, e não a média. Chamá-la de intervalo de
+     confiança da média prometeria uma precisão que vinte pontos anuais não
+     dão — e é a mesma ressalva do painel, escrita do mesmo jeito. */
+  corpo.appendChild(h("p", {class: "hint", style: "margin-top:8px", text:
+    g.faixa ? "A faixa é ±" + g.faixa.k + " desvios do ruído: é onde os pontos "
+      + "crus caem, e não um intervalo de confiança da média."
+      : "Sem faixa: o ruído da série é pequeno demais para desenhá-la."}));
+
+  const linha = [];
+  linha.push(kpiSimples("Tendência", g.tendencia,
+    g.crescimento_ao_ano !== null ? g.crescimento_ao_ano + "%/ano" : "sem taxa estimável"));
+  linha.push(kpiSimples("Ruído sobre sinal", g.ruido === null ? "—" : g.ruido,
+    g.legivel ? "a curva sustenta leitura" : (g.porque || "série curta")));
+  linha.push(kpiSimples("Inflexões", g.inflexoes.length,
+    g.inflexoes.length ? "anos em que o campo mudou de direção" : "nenhuma virada"));
+  corpo.appendChild(h("div", {class: "kpis"}, linha));
+
+  if (g.inflexoes.length){
+    corpo.appendChild(h("ul", {class: "hint"}, g.inflexoes.slice(-4).map(function (i){
+      return h("li", {text: i.ano + ": " + i.leitura});
+    })));
+  }
+  return h("div", {class: "card sec"}, [
+    h("h3", {}, [Icons.get("linhas", 16),
+                 h("span", {text: "Como o campo se move"})]),
+    h("p", {class: "hint", style: "margin:4px 0 10px", text:
+      "A série é anual e discreta: o que se calcula são diferenças finitas "
+      + "centrais, não derivadas contínuas. Antes de derivar, a série passa por "
+      + "mediana móvel e suavização, e o que sobra da subtração é o ruído."}),
+    corpo,
+  ]);
+}
+
+function kpiSimples(rotulo, valor, pe){
+  return h("div", {class: "kpi-simples"}, [
+    h("div", {class: "rot", text: rotulo}),
+    h("div", {class: "num", text: String(valor)}),
+    h("small", {class: "hint", text: pe || ""}),
+  ]);
+}
+
+/* ---- o mapa, girando, e o clique que recorta o acervo ---- */
+function cartaoDoMapa(a, code){
+  const paises = a.paises.todos || [];
+  const valores = {};
+  paises.forEach(function (p){ valores[p.pais] = p.n; });
+  const palco = h("div", {});
+  const corpo = h("div", {});
+
+  function pintar(foco){
+    palco.innerHTML = "";
+    palco.appendChild(C.mapaMundi({
+      world: MUNDO.contorno || [], values: valores, foco: foco || null,
+      caption: null, file: "biblioteca-mapa",
+      loadingMessage: "Carregando o contorno do mundo…",
+      onSelect: function (nome){
+        /* Clicar no país recorta o ACERVO por ele, e não escreve o nome
+           numa caixa de busca: "Itália" não está no título nem no resumo
+           da maioria dos artigos feitos na Itália, e a busca em texto
+           devolveria uma lista vazia com o nome do país escrito em cima. */
+        pararDeGirar();
+        BIB.pais = nome; BIB.aba = "acervo"; show("biblioteca");
+      },
+    }));
+  }
+
+  function pararDeGirar(){
+    MUNDO.girando = false;
+    if (MUNDO.relogio){ clearInterval(MUNDO.relogio); MUNDO.relogio = null; }
+  }
+  function girar(){
+    if (MUNDO.relogio) clearInterval(MUNDO.relogio);
+    if (!paises.length) return;
+    MUNDO.relogio = setInterval(function (){
+      /* Aba escondida não anima: o navegador mantém o relógio rodando com
+         a janela minimizada, e girar um mapa que ninguém vê é gastar
+         bateria para nada. */
+      if (document.hidden) return;
+      MUNDO.i = (MUNDO.i + 1) % paises.length;
+      pintar(paises[MUNDO.i].pais);
+    }, 3200);
+  }
+
+  const controles = h("div", {class: "chips", style: "margin-top:10px"});
+  const alterna = h("button", {class: "chip on"});
+  function rotuloDoBotao(){
+    alterna.textContent = "";
+    alterna.appendChild(Icons.get(MUNDO.girando ? "pausa" : "tocar", 13));
+    alterna.appendChild(h("span", {text: MUNDO.girando ? "Parar o giro" : "Girar"}));
+  }
+  alterna.onclick = function (){
+    if (MUNDO.girando){ pararDeGirar(); } else { MUNDO.girando = true; girar(); }
+    rotuloDoBotao();
+  };
+  rotuloDoBotao();
+  controles.appendChild(alterna);
+  paises.slice(0, 14).forEach(function (p){
+    const c = h("button", {class: "chip", title: p.n + " artigo(s)"});
+    if (p.bandeira) c.appendChild(h("span", {class: "bandeira", text: p.bandeira}));
+    c.appendChild(h("span", {text: p.pais + " (" + p.n + ")"}));
+    c.onclick = function (){
+      pararDeGirar(); rotuloDoBotao();
+      MUNDO.i = paises.indexOf(p); pintar(p.pais);
+    };
+    controles.appendChild(c);
+  });
+
+  corpo.appendChild(palco);
+  corpo.appendChild(controles);
+  if (a.paises.sem_pais){
+    corpo.appendChild(h("p", {class: "hint", style: "margin-top:8px", text:
+      a.paises.sem_pais + " artigo(s) sem país: a base não trouxe a afiliação de "
+      + "quem assina. Não é que o estudo não tenha país — é que não sabemos qual."}));
+  }
+  pintar(null);
+  if (MUNDO.girando) girar();
+  /* O contorno é grande e vem uma vez só; até chegar, o mapa mostra que
+     está carregando em vez de desenhar um retângulo vazio. */
+  if (!MUNDO.contorno){
+    fetch("/api/geo/mundo.json").then(function (r){ return r.json(); })
+      .then(function (d){ MUNDO.contorno = d.paises || d; pintar(null); })
+      .catch(function (){ /* o mapa segue dizendo que está carregando */ });
+  }
+  return h("div", {class: "card sec"}, [
+    h("h3", {}, [Icons.get("mapa", 16), h("span", {text: "Onde o assunto é estudado"})]),
+    h("p", {class: "hint", style: "margin:4px 0 10px", text:
+      "O país vem da afiliação de quem assina, e não da revista: uma revista "
+      + "holandesa publica o mundo inteiro, e contar por revista responderia "
+      + "\"onde se publica\", que é outra pergunta. Clique num país e o acervo "
+      + "abre recortado por ele."}),
+    corpo,
+  ]);
+}
+
+/* ---- a árvore que decide se a curva de uma modalidade pode ser lida ---- */
+function cartaoDaArvore(a){
+  const d = a.decisao;
+  const quais = function (lista){ return lista.length ? lista.join(", ") : null; };
+  return h("div", {class: "card sec"}, [
+    h("h3", {}, [Icons.get("processo", 16),
+                 h("span", {text: "A árvore que decide se a curva pode ser lida"})]),
+    h("p", {class: "hint", style: "margin:4px 0 10px", text:
+      "As mesmas três perguntas que o cálculo faz, com quantas modalidades caem "
+      + "de cada lado. É por aqui que se vê POR QUE uma modalidade não tem curva, "
+      + "em vez de descobrir isso um cartão vazio de cada vez."}),
+    C.fluxo({
+      caption: null, file: "biblioteca-decisao",
+      nodes: [
+        {id: "raiz", label: "Modalidades", valor: d.total, nota: "no recorte",
+         tom: "entrada", coluna: 0},
+        {id: "q1", label: d.min_anos + " anos com dado?",
+         valor: (d.total - d.curtos.n) + "/" + d.total, nota: "mínimo para série",
+         tom: "decisao", coluna: 1},
+        {id: "curta", label: "Sem série", valor: d.curtos.n, nota: "falta história",
+         tom: "descarte", coluna: 2, dica: quais(d.curtos.quais)},
+        {id: "q2", label: "Ruído domina?", valor: d.ruidosos.n,
+         nota: "razão ≥ " + d.ruido_alto, tom: "decisao", coluna: 2},
+        {id: "ruido", label: "Só variação", valor: d.ruidosos.n, nota: "sem tendência",
+         tom: "alerta", coluna: 3, dica: quais(d.ruidosos.quais)},
+        {id: "q3", label: "Tem inflexão?", valor: d.viraram.n, nota: "Δ² troca de sinal",
+         tom: "decisao", coluna: 3},
+        {id: "virada", label: "Curva com virada", valor: d.viraram.n,
+         nota: "há ano a explicar", tom: "saida", coluna: 4,
+         dica: quais(d.viraram.quais)},
+        {id: "lisa", label: "Tendência lisa", valor: d.lisos.n,
+         nota: "sobe ou desce sem virar", tom: "saida", coluna: 4,
+         dica: quais(d.lisos.quais)},
+      ],
+      links: [
+        {de: "raiz", para: "q1"},
+        {de: "q1", para: "curta", rotulo: "não", tom: "descarte"},
+        {de: "q1", para: "q2", rotulo: "sim", tom: "saida"},
+        {de: "q2", para: "ruido", rotulo: "sim", tom: "alerta"},
+        {de: "q2", para: "q3", rotulo: "não", tom: "saida"},
+        {de: "q3", para: "virada", rotulo: "sim", tom: "saida"},
+        {de: "q3", para: "lisa", rotulo: "não", tom: "passo"},
+      ],
+    }),
+  ]);
+}
+
+/* ---- uma curva por modalidade ---- */
+function cartaoDasModalidades(a){
+  const grade = h("div", {class: "grade-bib"});
+  (a.segmentos || []).forEach(function (s){
+    const corpo = [
+      h("div", {class: "num", text: String(s.n)}),
+      h("small", {class: "hint", text: "artigo(s)"}),
+      C.sparkline(s.suave, {}),
+      h("small", {class: "hint", text: s.legivel
+        ? s.tendencia + (s.crescimento_ao_ano !== null
+            ? " · " + s.crescimento_ao_ano + "%/ano" : "")
+        : (s.porque || "série curta")}),
+    ];
+    if (s.inflexoes && s.inflexoes.length){
+      const ultima = s.inflexoes[s.inflexoes.length - 1];
+      corpo.push(h("small", {class: "hint", text: "inflexão em " + ultima.ano}));
+    }
+    const cartao = h("div", {class: "card mini"}, [h("b", {text: s.segmento})].concat(corpo));
+    cartao.onclick = function (){ BIB.segmento = s.segmento; BIB.aba = "acervo"; show("biblioteca"); };
+    cartao.style.cursor = "pointer";
+    grade.appendChild(cartao);
+  });
+  return h("div", {class: "card sec"}, [
+    h("h3", {}, [Icons.get("trofeu", 16), h("span", {text: "Cada modalidade no tempo"})]),
+    h("p", {class: "hint", style: "margin:4px 0 10px",
+      text: "Clique numa modalidade para abrir o acervo dela."}),
+    grade,
+  ]);
+}
+
+/* ---- modalidade x país ---- */
+function cartaoDoTriangulo(a){
+  const t = a.triangulo;
+  const conta = {};
+  (t.celulas || []).forEach(function (c){ conta[c.x + "||" + c.y] = c.n; });
+  const teto = Math.max.apply(null, (t.celulas || []).map(function (c){ return c.n; })
+                                     .concat([1]));
+  const cabeca = h("tr", {}, [h("th", {text: t.eixo_y + " ↓ / " + t.eixo_x + " →"})]
+    .concat(t.colunas.map(function (x){ return h("th", {class: "num", text: x}); })));
+  const corpo = h("tbody", {}, t.linhas.map(function (y){
+    return h("tr", {}, [h("th", {text: y})].concat(t.colunas.map(function (x){
+      const n = conta[x + "||" + y] || 0;
+      /* Um matiz só, do fraco ao forte: é magnitude, não identidade.
+         Célula vazia fica sem tinta — zero não é o tom mais claro, é a
+         ausência de cruzamento. */
+      return h("td", {class: "num celula",
+        style: n ? "background:color-mix(in srgb, " + C.token("--accent-strong")
+          + " " + Math.round(14 + 62 * n / teto) + "%, transparent)" : null,
+        title: n ? y + " × " + x + ": " + n + " artigo(s)" : "sem cruzamento",
+        text: n ? String(n) : ""});
+    })));
+  }));
+  return h("div", {class: "card sec"}, [
+    h("h3", {}, [Icons.get("hierarquia", 16),
+                 h("span", {text: "Modalidade × país"})]),
+    h("p", {class: "hint", style: "margin:4px 0 10px", text:
+      "É a face que o acervo sustenta. Triangular construto × intervenção × "
+      + "desfecho, como o painel faz com a produção do LAPE, exigiria ler os "
+      + "métodos de cada artigo — e isso o título e o resumo não dizem de maneira "
+      + "confiável. Prometer a triangulação completa a partir do resumo seria dar "
+      + "rigor de fachada a um palpite."}),
+    h("div", {class: "tw"}, h("table", {class: "matriz"},
+      [h("thead", {}, cabeca), corpo])),
+  ]);
+}
+
+/* ---- quem escreve com quem ---- */
+function cartaoDaRede(a){
+  const r = a.rede;
+  const corpo = h("div", {});
+  if (!r.nos.length){
+    corpo.appendChild(h("p", {class: "hint", text:
+      "Nenhum par de autores assina " + r.minimo + " artigos ou mais neste acervo."}));
+  } else {
+    /* O contrato do gráfico é `links` com `source`/`target`, e `weight` nos
+       nós -- não `edges`/`value`. Com os nomes errados o desenho não dá
+       erro: ele calcula raio a partir de `undefined` e escreve NaN no
+       atributo, e o navegador some com o círculo. Uma rede vazia que não
+       reclama é exatamente o tipo de defeito que passa despercebido. */
+    corpo.appendChild(C.network({
+      nodes: r.nos.map(function (n){
+        return {id: n.id, label: n.nome, weight: n.n, degree: n.n}; }),
+      links: r.arestas.map(function (e){
+        return {source: e.de, target: e.para, weight: e.peso}; }),
+      unit: "artigos", caption: null, file: "biblioteca-rede",
+    }));
+  }
+  /* A ressalva vem do servidor junto com o dado, e não é escrita aqui:
+     quem consumir este payload por outro caminho precisa recebê-la junto. */
+  corpo.appendChild(h("p", {class: "hint", style: "margin-top:8px", text: r.ressalva}));
+  return h("div", {class: "card sec"}, [
+    h("h3", {}, [Icons.get("rede", 16), h("span", {text: "Quem escreve com quem"})]),
+    h("p", {class: "hint", style: "margin:4px 0 10px", text:
+      "Pares que assinam pelo menos " + r.minimo + " artigos juntos, entre os "
+      + r.autores + " autores do acervo."}),
+    corpo,
+  ]);
 }
 
 function cartaoDeArtigo(x){

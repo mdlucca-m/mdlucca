@@ -52,12 +52,31 @@ class TestAEstrategiaDeBusca(unittest.TestCase):
         `POMS AND athletes` traduz para `("prod oper manag"[Journal] OR
         "poms"[All Fields]) AND ...` e devolve 362 registros, entre eles
         artigos de Production & Operations Management. Medido na base, nao
-        suposto.
+        suposto. O recorte em titulo-resumo e o que resolve, e ele sai da
+        `frase` -- por isso o teste olha a query montada, e nao a lista.
         """
-        for decl in biblioteca.BIBLIOTECAS:
-            with self.subTest(acervo=decl["code"]):
-                self.assertNotIn('"POMS"[All Fields]', decl["construto"])
-                self.assertIn('"POMS"[Title/Abstract]', decl["construto"])
+        decl = biblioteca.BIBLIOTECAS[0]
+        self.assertIn("POMS", decl["construto"])
+        for base in biblioteca.BASES:
+            with self.subTest(base=base):
+                query = biblioteca.query_de(decl, base=base)
+                self.assertNotIn('"POMS"[All Fields]', query)
+                self.assertNotIn("ALL(", query)
+
+    def test_a_busca_e_sempre_em_titulo_e_resumo(self):
+        """"Todos os campos" acha o termo em volta do texto, e nao nele.
+
+        Na Scopus, `ALL()` casa com a lista de referencias de artigos que
+        nao sao do assunto: um artigo de cardiologia que cita um estudo de
+        humor entraria no acervo de psicologia do esporte.
+        """
+        campos = {biblioteca.PUBMED: "[Title/Abstract]",
+                  biblioteca.SCOPUS: "TITLE-ABS-KEY(",
+                  biblioteca.WOS: "TS=("}
+        decl = biblioteca.BIBLIOTECAS[0]
+        for base, marca in campos.items():
+            with self.subTest(base=base):
+                self.assertIn(marca, biblioteca.query_de(decl, base=base))
 
     def test_a_populacao_e_atleta_e_nao_esporte_em_geral(self):
         """`"sports"[MeSH]` traz programa comunitario de caminhada.
@@ -65,26 +84,48 @@ class TestAEstrategiaDeBusca(unittest.TestCase):
         Sao estudos com estado de humor medido e nenhum atleta dentro. A
         busca dobrava de 431 para 847 registros por causa disso.
         """
-        for decl in biblioteca.BIBLIOTECAS:
-            with self.subTest(acervo=decl["code"]):
-                self.assertNotIn('"sports"[MeSH Terms]', decl["populacao"])
-                self.assertIn('"athletes"[MeSH Terms]', decl["populacao"])
+        query = biblioteca.query_de(biblioteca.BIBLIOTECAS[0], base=biblioteca.PUBMED)
+        self.assertNotIn('"sports"[MeSH Terms]', query)
+        self.assertIn('"athletes"[MeSH Terms]', query)
+
+    def test_o_mesh_so_vai_para_a_pubmed(self):
+        """`TITLE-ABS-KEY("athletes[MeSH Terms]")` nao acha nada.
+
+        A Scopus procuraria essa sequencia literal de caracteres num
+        resumo. Nao daria erro -- daria zero, que e pior.
+        """
+        decl = biblioteca.BIBLIOTECAS[0]
+        for base in (biblioteca.SCOPUS, biblioteca.WOS):
+            with self.subTest(base=base):
+                self.assertNotIn("MeSH", biblioteca.query_de(decl, base=base))
 
     def test_a_query_junta_construto_populacao_e_segmento(self):
         decl = biblioteca.BIBLIOTECAS[0]
         geral = biblioteca.query_de(decl)
         self.assertEqual(geral.count(" AND "), 1)
-        com_segmento = biblioteca.query_de(decl, "handball[Title/Abstract]")
+        com_segmento = biblioteca.query_de(decl, ("handball",))
         self.assertEqual(com_segmento.count(" AND "), 2)
         self.assertTrue(com_segmento.startswith(geral))
 
-    def test_todo_segmento_tem_termo(self):
-        # segmento sem termo viraria a busca geral com outro nome, e o
+    def test_o_vocabulario_e_declarado_uma_vez_para_as_tres_bases(self):
+        """Escrever a estrategia tres vezes seria garantir que divergissem.
+
+        Alguem acrescenta um termo na da PubMed, esquece as outras duas, e
+        o acervo passa a ter tres tamanhos sem que nada explique por que.
+        """
+        decl = biblioteca.BIBLIOTECAS[0]
+        for termo in decl["construto"]:
+            for base in biblioteca.BASES:
+                with self.subTest(termo=termo, base=base):
+                    self.assertIn(termo, biblioteca.query_de(decl, base=base))
+
+    def test_todo_segmento_tem_palavra(self):
+        # segmento sem palavra viraria a busca geral com outro nome, e o
         # mesmo acervo apareceria repetido em quatorze abas
-        for nome, termo in biblioteca.ESPORTES:
+        for nome, palavras in biblioteca.ESPORTES:
             with self.subTest(esporte=nome):
-                self.assertTrue(termo.strip())
-                self.assertIn("[Title/Abstract]", termo)
+                self.assertTrue(palavras)
+                self.assertTrue(all(p.strip() for p in palavras))
 
     def test_toda_biblioteca_aponta_para_uma_linha_de_pesquisa(self):
         codigos = {c for c, *_ in linhas.LINHAS}
@@ -149,8 +190,9 @@ class TestInstalar(BaseBiblioteca):
     def test_o_acervo_entra_com_uma_busca_por_segmento(self):
         biblioteca.instalar(self.db)
         n = self.db.scalar("SELECT COUNT(*) FROM biblioteca_busca")
-        # uma geral mais uma por esporte
-        self.assertEqual(n, 1 + len(biblioteca.ESPORTES))
+        # uma geral mais uma por esporte, em cada uma das tres bases
+        por_base = 1 + len(biblioteca.ESPORTES)
+        self.assertEqual(n, por_base * len(biblioteca.BASES))
 
     def test_instalar_de_novo_nao_duplica(self):
         biblioteca.instalar(self.db)
@@ -158,7 +200,7 @@ class TestInstalar(BaseBiblioteca):
         self.assertEqual(segunda["novas"], [])
         self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM biblioteca"), 1)
         self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM biblioteca_busca"),
-                         1 + len(biblioteca.ESPORTES))
+                         (1 + len(biblioteca.ESPORTES)) * len(biblioteca.BASES))
 
     def test_o_acervo_fica_ligado_a_linha_de_pesquisa(self):
         biblioteca.instalar(self.db)
@@ -225,15 +267,24 @@ class TestAAtualizacao(BaseBiblioteca):
         self.trocar(sources, "pubmed_search", busca_falsa)
         self.trocar(sources, "pubmed_medline", medline_falsa)
 
-    def responder(self, segmento, registros):
-        """Liga uma resposta a busca daquele segmento."""
+    def responder(self, segmento, registros, base=None):
+        """Liga uma resposta a busca daquele segmento, numa base.
+
+        A base e obrigatoria na pratica: depois que o acervo passou a ter
+        tres, `WHERE segmento IS ?` casava com tres linhas e o teste
+        passava pela primeira que o SQLite devolvesse. Passar acertando
+        por acidente e pior do que falhar.
+        """
+        base = base or biblioteca.PUBMED
         query = self.db.scalar(
-            "SELECT query FROM biblioteca_busca WHERE segmento IS ?", (segmento,))
+            "SELECT query FROM biblioteca_busca WHERE base = ? AND segmento IS ?",
+            (base, segmento))
+        self.assertIsNotNone(query, f"não há busca de {segmento} em {base}")
         self.respostas[query] = registros
 
     def test_o_que_a_base_devolve_entra_no_acervo(self):
         self.responder("Handebol", {"42506832": MEDLINE_HANDEBOL})
-        r = biblioteca.atualizar(self.db, "humor_esporte")
+        r = biblioteca.atualizar(self.db, "humor_esporte", bases=(biblioteca.PUBMED,))
         self.assertEqual(r["novos"], 1)
         item = self.db.dicts("SELECT * FROM biblioteca_item")[0]
         self.assertIn("Handball", item["title"])
@@ -242,8 +293,8 @@ class TestAAtualizacao(BaseBiblioteca):
 
     def test_rodar_de_novo_nao_traz_o_mesmo_artigo_duas_vezes(self):
         self.responder("Handebol", {"42506832": MEDLINE_HANDEBOL})
-        biblioteca.atualizar(self.db, "humor_esporte")
-        segunda = biblioteca.atualizar(self.db, "humor_esporte")
+        biblioteca.atualizar(self.db, "humor_esporte", bases=(biblioteca.PUBMED,))
+        segunda = biblioteca.atualizar(self.db, "humor_esporte", bases=(biblioteca.PUBMED,))
         self.assertEqual(segunda["novos"], 0)
         self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM biblioteca_item"), 1)
 
@@ -256,7 +307,7 @@ class TestAAtualizacao(BaseBiblioteca):
         """
         self.responder("Handebol", {"42506832": MEDLINE_HANDEBOL})
         self.responder("Natação", {"42506832": MEDLINE_HANDEBOL})
-        r = biblioteca.atualizar(self.db, "humor_esporte")
+        r = biblioteca.atualizar(self.db, "humor_esporte", bases=(biblioteca.PUBMED,))
         self.assertEqual(r["novos"], 1)          # um artigo, nao dois
         item = self.db.dicts("SELECT segmento FROM biblioteca_item")[0]
         self.assertEqual(item["segmento"], "Handebol; Natação")
@@ -264,7 +315,7 @@ class TestAAtualizacao(BaseBiblioteca):
     def test_o_recorte_por_segmento_acha_o_artigo_nos_dois(self):
         self.responder("Handebol", {"42506832": MEDLINE_HANDEBOL})
         self.responder("Natação", {"42506832": MEDLINE_HANDEBOL})
-        biblioteca.atualizar(self.db, "humor_esporte")
+        biblioteca.atualizar(self.db, "humor_esporte", bases=(biblioteca.PUBMED,))
         for esporte in ("Handebol", "Natação"):
             with self.subTest(esporte=esporte):
                 achado = biblioteca.listar(self.db, "humor_esporte", segmento=esporte)
@@ -285,7 +336,7 @@ class TestAAtualizacao(BaseBiblioteca):
 
         self.responder("Natação", {"41889694": MEDLINE_NATACAO})
         self.trocar(sources, "pubmed_search", as_vezes_quebra)
-        r = biblioteca.atualizar(self.db, "humor_esporte")
+        r = biblioteca.atualizar(self.db, "humor_esporte", bases=(biblioteca.PUBMED,))
         self.assertEqual(r["erros"], 1)
         self.assertEqual(r["novos"], 1)
         erro = self.db.scalar(
@@ -297,7 +348,7 @@ class TestAAtualizacao(BaseBiblioteca):
         from lape import sources
         self.trocar(sources, "pubmed_search",
                     lambda *a, **k: (_ for _ in ()).throw(RuntimeError("403")))
-        biblioteca.atualizar(self.db, "humor_esporte")
+        biblioteca.atualizar(self.db, "humor_esporte", bases=(biblioteca.PUBMED,))
         p = biblioteca.panorama(self.db, "humor_esporte")
         self.assertTrue(all(s["erro"] for s in p["segmentos"]))
 
@@ -305,11 +356,125 @@ class TestAAtualizacao(BaseBiblioteca):
         from lape import sources
         self.trocar(sources, "pubmed_search",
                     lambda *a, **k: (_ for _ in ()).throw(RuntimeError("403")))
-        biblioteca.atualizar(self.db, "humor_esporte")
+        biblioteca.atualizar(self.db, "humor_esporte", bases=(biblioteca.PUBMED,))
         self.trocar(sources, "pubmed_search", lambda q, retmax=400, **k: [])
-        biblioteca.atualizar(self.db, "humor_esporte")
+        biblioteca.atualizar(self.db, "humor_esporte", bases=(biblioteca.PUBMED,))
         self.assertIsNone(self.db.scalar(
             "SELECT erro FROM biblioteca_busca WHERE segmento = 'Handebol'"))
+
+
+class TestAsBasesQuePedemChave(BaseBiblioteca):
+    """Scopus e WoS como FONTE do acervo, e nao so como link de saida.
+
+    E o que faz a biblioteca cobrir o que a PubMed nao indexa -- e a
+    psicologia do esporte publica bastante fora dela, em revistas de
+    ciencias do esporte que so a Scopus cataloga.
+    """
+
+    def setUp(self):
+        super().setUp()
+        biblioteca.instalar(self.db)
+
+    def sem_chaves(self):
+        alvo = biblioteca.config
+        for nome in ("SCOPUS_API_KEY", "WOS_API_KEY", "SCOPUS_INST_TOKEN"):
+            self.trocar(alvo, nome, "")
+
+    def test_sem_chave_a_base_e_pulada_com_o_nome_da_variavel(self):
+        """Zero calado seria indistinguivel de "a base nao tem o assunto".
+
+        E quem lesse iria procurar termos melhores para uma busca que
+        nunca saiu da maquina.
+        """
+        self.sem_chaves()
+        from lape import sources
+        self.trocar(sources, "pubmed_search", lambda *a, **k: [])
+        r = biblioteca.atualizar(self.db, "humor_esporte")
+        faltando = {x["base"]: x["porque"] for x in r["sem_chave"]}
+        self.assertIn("scopus", faltando)
+        self.assertIn("SCOPUS_API_KEY", faltando["scopus"])
+        self.assertIn("wos", faltando)
+        self.assertIn("WOS_API_KEY", faltando["wos"])
+
+    def test_a_chave_que_falta_e_uma_noticia_so_e_nao_quinze(self):
+        """Sao quinze buscas por base.
+
+        Sem desligar a base na primeira, a tela mostraria a mesma frase
+        quinze vezes e a pessoa leria quinze erros onde ha um recado.
+        """
+        self.sem_chaves()
+        from lape import sources
+        self.trocar(sources, "pubmed_search", lambda *a, **k: [])
+        r = biblioteca.atualizar(self.db, "humor_esporte")
+        bases = [x["base"] for x in r["sem_chave"]]
+        self.assertEqual(sorted(bases), ["scopus", "wos"])   # uma linha por base
+
+    def test_falta_de_chave_nao_conta_como_erro_de_busca(self):
+        # "3 buscas falharam" sugere defeito; "falta a chave" diz o que fazer
+        self.sem_chaves()
+        from lape import sources
+        self.trocar(sources, "pubmed_search", lambda *a, **k: [])
+        r = biblioteca.atualizar(self.db, "humor_esporte")
+        self.assertEqual(r["erros"], 0)
+        self.assertTrue(r["sem_chave"])
+
+    def test_a_pubmed_roda_mesmo_sem_as_outras_duas(self):
+        # a base aberta nao pode ficar de fora por falta de convenio
+        self.sem_chaves()
+        from lape import sources
+        chamou = []
+        self.trocar(sources, "pubmed_search",
+                    lambda q, retmax=400, **k: chamou.append(q) or [])
+        biblioteca.atualizar(self.db, "humor_esporte")
+        self.assertEqual(len(chamou), 1 + len(biblioteca.ESPORTES))
+
+    # -- a leitura do que cada base devolve ------------------------------
+    def test_a_scopus_vira_registro(self):
+        entrada = {
+            "dc:title": "Mood states in elite rowers",
+            "dc:creator": "Silva A.",
+            "prism:publicationName": "J Sports Sci",
+            "prism:coverDate": "2024-03-01",
+            "prism:doi": "10.1000/row.2024",
+            "pubmed-id": "39999999",
+        }
+        achado = biblioteca._do_scopus(entrada)
+        self.assertEqual(achado["title"], "Mood states in elite rowers")
+        self.assertEqual(achado["year"], 2024)
+        self.assertEqual(achado["doi"], "10.1000/row.2024")
+        self.assertEqual(achado["base"], biblioteca.SCOPUS)
+
+    def test_a_scopus_sem_data_nao_inventa_ano(self):
+        achado = biblioteca._do_scopus({"dc:title": "x", "prism:coverDate": ""})
+        self.assertIsNone(achado["year"])
+
+    def test_a_wos_vira_registro(self):
+        hit = {
+            "title": "Mood profile across a season",
+            "source": {"sourceTitle": "Front Psychol", "publishYear": "2023"},
+            "identifiers": {"doi": "10.1000/wos.1", "pmid": "12345"},
+            "names": {"authors": [{"displayName": "Andrade A"},
+                                  {"displayName": "Vilarino GT"}]},
+        }
+        achado = biblioteca._do_wos(hit)
+        self.assertEqual(achado["year"], 2023)
+        self.assertEqual(achado["authors"], "Andrade A; Vilarino GT")
+        self.assertEqual(achado["base"], biblioteca.WOS)
+
+    def test_o_registro_guarda_de_qual_base_veio(self):
+        """Saber a origem e o que permite conferir e comparar depois.
+
+        Sem isso, um acervo de tres fontes viraria um acervo sem fonte, e
+        nao haveria como responder "quanto a Scopus acrescentou".
+        """
+        bid = self.db.scalar("SELECT id FROM biblioteca")
+        from lape.revisao import chave_de_uniao
+        biblioteca._gravar(self.db, bid, "Remo e canoagem",
+                           {"title": "Da Scopus", "base": biblioteca.SCOPUS},
+                           chave_de_uniao)
+        self.db.conn.commit()
+        self.assertEqual(self.db.scalar("SELECT base FROM biblioteca_item"),
+                         biblioteca.SCOPUS)
 
 
 class TestOQueATelaLe(BaseBiblioteca):
@@ -341,6 +506,44 @@ class TestOQueATelaLe(BaseBiblioteca):
         remo = next(s for s in p["segmentos"] if s["segmento"] == "Remo e canoagem")
         self.assertEqual(remo["n"], 0)
 
+    def test_o_segmento_aparece_uma_vez_e_nao_uma_por_base(self):
+        """Ha uma busca por segmento POR BASE, e o segmento e um so.
+
+        Sem juntar, a tela listava "Handebol" tres vezes seguidas, e o que
+        era divisao por modalidade virava lista com repeticao.
+        """
+        p = biblioteca.panorama(self.db, "humor_esporte")
+        nomes = [s["segmento"] for s in p["segmentos"]]
+        self.assertEqual(len(nomes), len(set(nomes)))
+        self.assertEqual(len(nomes), len(biblioteca.ESPORTES))
+
+    def test_a_data_do_segmento_e_a_mais_recente_das_bases(self):
+        """Se a PubMed rodou hoje e a Scopus na semana passada, vale hoje.
+
+        Dizer "semana passada" faria o acervo parecer mais velho do que e.
+        """
+        self.db.execute(
+            "UPDATE biblioteca_busca SET rodada_em = '2026-01-01'"
+            " WHERE segmento = 'Handebol' AND base = ?", (biblioteca.SCOPUS,))
+        self.db.execute(
+            "UPDATE biblioteca_busca SET rodada_em = '2026-09-11'"
+            " WHERE segmento = 'Handebol' AND base = ?", (biblioteca.PUBMED,))
+        self.db.conn.commit()
+        p = biblioteca.panorama(self.db, "humor_esporte")
+        handebol = next(s for s in p["segmentos"] if s["segmento"] == "Handebol")
+        self.assertEqual(handebol["rodada_em"], "2026-09-11")
+
+    def test_o_erro_do_segmento_diz_qual_base_falhou(self):
+        # erro solto nao diz onde procurar
+        self.db.execute(
+            "UPDATE biblioteca_busca SET erro = 'cota estourada'"
+            " WHERE segmento = 'Handebol' AND base = ?", (biblioteca.SCOPUS,))
+        self.db.conn.commit()
+        p = biblioteca.panorama(self.db, "humor_esporte")
+        handebol = next(s for s in p["segmentos"] if s["segmento"] == "Handebol")
+        self.assertIn("Scopus", handebol["erro"])
+        self.assertIn("cota estourada", handebol["erro"])
+
     def test_o_panorama_conta_o_que_da_para_ler_hoje(self):
         p = biblioteca.panorama(self.db, "humor_esporte")
         self.assertEqual(p["total"], 3)
@@ -365,6 +568,144 @@ class TestOQueATelaLe(BaseBiblioteca):
         # lista vazia seria indistinguivel de acervo ainda nao atualizado
         with self.assertRaises(ValueError):
             biblioteca.listar(self.db, "nao_existe")
+
+
+class TestOMapeamentoAnalitico(BaseBiblioteca):
+    """As contas sao as MESMAS do painel da producao, e nao uma copia.
+
+    Uma segunda implementacao de mediana movel divergiria da primeira no
+    dia em que alguem corrigisse uma das duas, e o sistema passaria a ter
+    duas definicoes de "curva legivel" -- uma para a producao do
+    laboratorio e outra para a literatura -- sem nada na tela dizendo isso.
+    """
+
+    def setUp(self):
+        super().setUp()
+        biblioteca.instalar(self.db)
+        self.bid = self.db.scalar("SELECT id FROM biblioteca")
+
+    def artigo(self, ano, segmento="Handebol", paises=("Brasil",), autores="A B; C D"):
+        import json
+        n = self.db.scalar("SELECT COUNT(*) FROM biblioteca_item") or 0
+        self.db.execute(
+            "INSERT INTO biblioteca_item (biblioteca_id, chave, segmento, title,"
+            "        year, authors, paises) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (self.bid, f"x{n}", segmento, f"Estudo {n}", ano, autores,
+             json.dumps(list(paises), ensure_ascii=False)))
+        self.db.conn.commit()
+
+    def test_os_limiares_nao_sao_redeclarados(self):
+        """Uma segunda copia de "0,8" divergiria da primeira."""
+        fonte = (ROOT / "scripts" / "lape" / "biblioteca.py").read_text(encoding="utf-8")
+        self.assertNotIn("RUIDO_ALTO = ", fonte)
+        self.assertNotIn("MIN_ANOS = ", fonte)
+        self.assertIn("analise.RUIDO_ALTO", fonte)
+        self.assertIn("analise.MIN_ANOS_COM_DADO", fonte)
+
+    def test_a_serie_nao_passa_pelo_filtro_duas_vezes(self):
+        """`sinal_e_ruido` ja aplica a mediana movel por dentro.
+
+        Filtrar antes de chama-la daria uma curva mais lisa do que o dado
+        permite -- menos ruido medido e menos inflexoes do que existem --,
+        e o campo pareceria mais estavel do que e.
+        """
+        fonte = (ROOT / "scripts" / "lape" / "biblioteca.py").read_text(encoding="utf-8")
+        corpo = fonte[fonte.index("def _curva("):fonte.index("def analitico(")]
+        self.assertNotIn("mediana_movel", corpo)
+        self.assertIn("analise.sinal_e_ruido(serie)", corpo)
+
+    def test_acervo_sem_ano_diz_por_que_nao_da_para_mapear(self):
+        # cartao vazio faria quem olha concluir que o assunto nao existe
+        self.artigo(None)
+        a = biblioteca.analitico(self.db, "humor_esporte")
+        self.assertTrue(a["vazio"])
+        self.assertIn("ano", a["porque"])
+
+    def test_a_curva_traz_derivadas_ruido_e_inflexoes(self):
+        for ano in range(2012, 2026):
+            for _ in range(1 + (ano % 4)):
+                self.artigo(ano)
+        a = biblioteca.analitico(self.db, "humor_esporte")
+        g = a["geral"]
+        for chave in ("suave", "velocidade", "aceleracao", "ruido", "inflexoes",
+                      "tendencia", "faixa"):
+            with self.subTest(chave=chave):
+                self.assertIn(chave, g)
+        self.assertEqual(len(g["velocidade"]), len(g["suave"]))
+
+    def test_serie_curta_nao_ganha_inflexao_nem_curva(self):
+        """Duas inflexoes sobre dois pontos seriam desenho, nao achado."""
+        self.artigo(2024)
+        self.artigo(2025)
+        a = biblioteca.analitico(self.db, "humor_esporte")
+        self.assertFalse(a["geral"]["legivel"])
+        self.assertEqual(a["geral"]["inflexoes"], [])
+        self.assertTrue(a["geral"]["porque"])
+
+    def test_o_recorte_por_ano_deixa_a_literatura_antiga_de_fora(self):
+        """O POMS de 65 itens e outro instrumento, e a populacao e outra."""
+        self.artigo(1978)
+        self.artigo(2024)
+        a = biblioteca.analitico(self.db, "humor_esporte")
+        self.assertEqual(a["total"], 2)
+        self.assertEqual(a["no_recorte"], 1)
+
+    def test_o_pais_vem_da_afiliacao_e_leva_os_artigos(self):
+        self.artigo(2024, paises=("Brasil", "Espanha"))
+        self.artigo(2024, paises=("Brasil",))
+        a = biblioteca.analitico(self.db, "humor_esporte")
+        contagem = {p["pais"]: p["n"] for p in a["paises"]["todos"]}
+        self.assertEqual(contagem, {"Brasil": 2, "Espanha": 1})
+        brasil = next(p for p in a["paises"]["todos"] if p["pais"] == "Brasil")
+        self.assertEqual(len(brasil["artigos"]), 2)
+
+    def test_artigo_sem_pais_e_contado_a_parte_e_nao_somem(self):
+        # "sem pais" nao e "sem importancia": e o que a base nao trouxe
+        self.artigo(2024, paises=())
+        a = biblioteca.analitico(self.db, "humor_esporte")
+        self.assertEqual(a["paises"]["sem_pais"], 1)
+
+    def test_a_rede_avisa_que_os_nos_sao_grafias_e_nao_pessoas(self):
+        """Uma rede apresentada como verdade sobre pessoas, construida
+        sobre grafias, e uma afirmacao que o dado nao sustenta."""
+        for _ in range(3):
+            self.artigo(2024, autores="Andrade A; Vilarino GT")
+        a = biblioteca.analitico(self.db, "humor_esporte")
+        self.assertIn("grafias", a["rede"]["ressalva"])
+        self.assertTrue(a["rede"]["nos"])
+
+    def test_a_rede_so_liga_quem_assina_junto_o_bastante(self):
+        # um par que dividiu UM artigo nao e colaboracao, e coincidencia
+        self.artigo(2024, autores="Solo X; Outro Y")
+        a = biblioteca.analitico(self.db, "humor_esporte")
+        self.assertEqual(a["rede"]["arestas"], [])
+
+    def test_o_triangulo_cruza_o_que_o_acervo_sustenta(self):
+        """Construto x intervencao x desfecho exigiria ler os metodos.
+
+        Titulo e resumo nao dizem isso de maneira confiavel, e prometer a
+        triangulacao completa a partir do resumo seria dar rigor de
+        fachada a um palpite.
+        """
+        self.artigo(2024, segmento="Handebol", paises=("Brasil",))
+        a = biblioteca.analitico(self.db, "humor_esporte")
+        self.assertEqual(a["triangulo"]["eixo_y"], "modalidade")
+        self.assertEqual(a["triangulo"]["eixo_x"], "país")
+
+    def test_a_arvore_reparte_as_modalidades_sem_perder_nenhuma(self):
+        for ano in range(2015, 2026):
+            self.artigo(ano, segmento="Handebol")
+        self.artigo(2024, segmento="Natação")
+        a = biblioteca.analitico(self.db, "humor_esporte")
+        d = a["decisao"]
+        somado = d["curtos"]["n"] + d["ruidosos"]["n"] + d["viraram"]["n"] + d["lisos"]["n"]
+        self.assertEqual(somado, d["total"])
+
+    def test_a_arvore_diz_QUAIS_modalidades_cairam_de_cada_lado(self):
+        # o numero sozinho manda a pessoa procurar na mao quais sao
+        self.artigo(2024, segmento="Natação")
+        a = biblioteca.analitico(self.db, "humor_esporte")
+        self.assertIn("Natação", a["decisao"]["curtos"]["quais"])
 
 
 class TestAsPortas(unittest.TestCase):
@@ -416,6 +757,49 @@ class TestAsPortas(unittest.TestCase):
             encoding="utf-8")
         self.assertIn('(s.n ? "" : " vazio")', tela)
         self.assertIn(".chip.vazio{", tela)
+
+    def test_a_rota_da_analise_existe(self):
+        from lape import api
+        achadas = {(m, perfil) for m, padrao, _f, perfil in api.ROUTES
+                   if "analise" in padrao and "biblioteca" in padrao}
+        self.assertEqual(achadas, {("GET", "leitura")})
+
+    def test_o_clique_no_mapa_recorta_por_pais_e_nao_por_texto(self):
+        """"Itália" nao esta no titulo nem no resumo da maioria dos
+        artigos feitos na Italia.
+
+        Escrever o nome numa caixa de busca devolveria lista vazia com o
+        nome do pais escrito em cima -- foi o defeito do mapa do painel.
+        """
+        tela = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
+            encoding="utf-8")
+        corpo = tela[tela.index("function cartaoDoMapa("):tela.index("function cartaoDaArvore(")]
+        self.assertIn("BIB.pais = nome", corpo)
+        self.assertNotIn("BIB.q =", corpo)
+
+    def test_a_pastilha_do_recorte_por_pais_desliga_no_mesmo_lugar(self):
+        tela = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
+            encoding="utf-8")
+        self.assertIn("BIB.pais = null; show(\"biblioteca\")", tela)
+
+    def test_o_mapa_nao_gira_com_a_aba_escondida(self):
+        # girar um mapa que ninguem ve e gastar bateria para nada
+        tela = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
+            encoding="utf-8")
+        corpo = tela[tela.index("function girar()"):]
+        corpo = corpo[:corpo.index("\n  }")]
+        self.assertIn("document.hidden", corpo)
+
+    def test_a_rede_usa_o_contrato_do_grafico(self):
+        """Com os nomes errados o desenho nao da erro: calcula raio de
+        `undefined` e escreve NaN no atributo, e o circulo some."""
+        tela = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
+            encoding="utf-8")
+        corpo = tela[tela.index("function cartaoDaRede("):]
+        corpo = corpo[:corpo.index("function cartaoDeArtigo(")]
+        self.assertIn("source:", corpo)
+        self.assertIn("weight:", corpo)
+        self.assertNotIn("edges:", corpo)
 
     def test_a_tela_diz_que_nao_e_triagem(self):
         """A confusao com revisao sistematica custaria caro.

@@ -392,9 +392,21 @@ def route_biblioteca(ctx: "Context", code: str) -> Any:
     from . import biblioteca
     segmento = (ctx.query.get("segmento") or [None])[0]
     busca = (ctx.query.get("q") or [None])[0]
+    pais = (ctx.query.get("pais") or [None])[0]
     try:
         return {**biblioteca.panorama(ctx.db, code),
-                **biblioteca.listar(ctx.db, code, segmento=segmento, busca=busca)}
+                **biblioteca.listar(ctx.db, code, segmento=segmento,
+                                    busca=busca, pais=pais)}
+    except ValueError as erro:
+        raise ApiError(404, str(erro))
+
+
+def route_biblioteca_analise(ctx: "Context", code: str) -> Any:
+    """O mapeamento analitico do acervo: curvas, mapa, rede e a arvore."""
+    auth.require(ctx.user, "leitura")
+    from . import biblioteca
+    try:
+        return biblioteca.analitico(ctx.db, code)
     except ValueError as erro:
         raise ApiError(404, str(erro))
 
@@ -1472,6 +1484,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/equipe/professores/?$", route_professores, "coordenacao"),
     ("GET", r"^/api/bibliotecas/?$", route_bibliotecas, "leitura"),
     ("GET", r"^/api/bibliotecas/(?P<code>[\w-]+)/?$", route_biblioteca, "leitura"),
+    ("GET", r"^/api/bibliotecas/(?P<code>[\w-]+)/analise/?$",
+     route_biblioteca_analise, "leitura"),
     ("POST", r"^/api/bibliotecas/(?P<code>[\w-]+)/atualizar/?$",
      route_biblioteca_atualizar, "coordenacao"),
     ("GET", r"^/api/equipe/duplicatas/?$", route_duplicatas, "coordenacao"),
