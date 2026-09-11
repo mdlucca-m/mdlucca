@@ -477,6 +477,153 @@ class TestAsBasesQuePedemChave(BaseBiblioteca):
                          biblioteca.SCOPUS)
 
 
+class TestOMesmoArtigoVindoDeDuasBases(BaseBiblioteca):
+    """As bases discordam sobre o DOI, e isso ja gravou dado errado.
+
+    A PubMed traz o artigo com DOI; a Scopus traz o mesmo sem. A primeira
+    versao comparava so a chave principal -- que e o DOI quando existe --,
+    e o segundo virava artigo novo. O acervo contava duas vezes a mesma
+    leitura, e a equipe leria o mesmo resumo duas vezes achando que sao
+    dois estudos.
+
+    O modulo de revisao ja sabia disso e resolvia com DUAS chaves. O
+    defeito foi usar a funcao errada das duas.
+    """
+
+    def setUp(self):
+        super().setUp()
+        biblioteca.instalar(self.db)
+        self.bid = self.db.scalar("SELECT id FROM biblioteca")
+
+    def gravar(self, registro, segmento="Handebol"):
+        from lape.revisao import chaves_de_uniao
+        novo = biblioteca._gravar(self.db, self.bid, segmento, registro, chaves_de_uniao)
+        self.db.conn.commit()
+        return novo
+
+    MESMO = {"title": "Mood states across a season in elite swimmers", "year": 2024}
+
+    def test_com_doi_e_sem_doi_sao_o_mesmo_artigo(self):
+        self.assertTrue(self.gravar({**self.MESMO, "doi": "10.1000/a"}))
+        self.assertFalse(self.gravar({**self.MESMO}))          # sem DOI, da Scopus
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM biblioteca_item"), 1)
+
+    def test_a_ordem_inversa_tambem_une(self):
+        # sem DOI primeiro, com DOI depois: a base lenta nao pode duplicar
+        self.assertTrue(self.gravar({**self.MESMO}))
+        self.assertFalse(self.gravar({**self.MESMO, "doi": "10.1000/a"}))
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM biblioteca_item"), 1)
+
+    def test_o_segmento_da_segunda_base_e_somado(self):
+        self.gravar({**self.MESMO, "doi": "10.1000/a"}, segmento="Natação")
+        self.gravar({**self.MESMO}, segmento="Handebol")
+        self.assertEqual(self.db.scalar("SELECT segmento FROM biblioteca_item"),
+                         "Handebol; Natação")
+
+    def test_as_duas_chaves_ficam_gravadas(self):
+        # guardar so a principal e o que impedia o casamento pela outra
+        self.gravar({**self.MESMO, "doi": "10.1000/a"})
+        linha = self.db.dicts("SELECT chave, chave_titulo FROM biblioteca_item")[0]
+        self.assertTrue(linha["chave"].startswith("doi:"))
+        self.assertTrue(linha["chave_titulo"].startswith("tit:"))
+
+    def test_o_ano_separa_o_resumo_de_congresso_do_artigo(self):
+        """Saem com o mesmo titulo em anos diferentes.
+
+        Junta-los esconderia um dos dois -- e o ano entra na chave de
+        titulo justamente por isso.
+        """
+        self.assertTrue(self.gravar({"title": "Mood and performance", "year": 2023}))
+        self.assertTrue(self.gravar({"title": "Mood and performance", "year": 2024}))
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM biblioteca_item"), 2)
+
+    def test_dois_dois_artigos_diferentes_continuam_dois(self):
+        self.assertTrue(self.gravar({"title": "Humor em nadadores", "year": 2024}))
+        self.assertTrue(self.gravar({"title": "Humor em ciclistas", "year": 2024}))
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM biblioteca_item"), 2)
+
+
+class TestLimparOQueJaEntrouRepetido(BaseBiblioteca):
+    """O conserto na gravacao nao desfaz o que ja esta no banco.
+
+    E refazer o acervo inteiro nao e resposta: sao quarenta e cinco buscas
+    e alguns minutos.
+    """
+
+    def setUp(self):
+        super().setUp()
+        biblioteca.instalar(self.db)
+        self.bid = self.db.scalar("SELECT id FROM biblioteca")
+
+    def antigo(self, chave, titulo, ano, doi=None, segmento=None, abstract=None):
+        """Item como a versao ANTIGA gravava: sem `chave_titulo`."""
+        self.db.execute(
+            "INSERT INTO biblioteca_item (biblioteca_id, chave, segmento, title,"
+            "        year, doi, abstract) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (self.bid, chave, segmento, titulo, ano, doi, abstract))
+        self.db.conn.commit()
+
+    def test_junta_o_que_a_versao_antiga_duplicou(self):
+        self.antigo("doi:10.1000/a", "Mood in swimmers", 2024, doi="10.1000/a",
+                    segmento="Natação")
+        self.antigo("tit:mood in swimmers|2024", "Mood in swimmers", 2024,
+                    segmento="Handebol")
+        r = biblioteca.limpar_duplicatas(self.db, "humor_esporte")
+        self.assertEqual(r["juntados"], 1)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM biblioteca_item"), 1)
+
+    def test_o_registro_mais_completo_e_o_que_fica(self):
+        """Ficar com o pior seria trocar o DOI por nada.
+
+        Com DOI primeiro; entre os que tem, o que tem resumo.
+        """
+        self.antigo("tit:x|2024", "Mood in swimmers", 2024)               # sem DOI
+        self.antigo("doi:10.1000/a", "Mood in swimmers", 2024, doi="10.1000/a",
+                    abstract="Mood was measured.")
+        biblioteca.limpar_duplicatas(self.db, "humor_esporte")
+        linha = self.db.dicts("SELECT doi, abstract FROM biblioteca_item")[0]
+        self.assertEqual(linha["doi"], "10.1000/a")
+        self.assertTrue(linha["abstract"])
+
+    def test_os_segmentos_dos_dois_sobrevivem(self):
+        # um item achado em Natação por uma base e em Handebol por outra
+        # pertence aos dois, e a fusao nao pode perder metade
+        self.antigo("doi:10.1000/a", "Mood in swimmers", 2024, doi="10.1000/a",
+                    segmento="Natação")
+        self.antigo("tit:x|2024", "Mood in swimmers", 2024, segmento="Handebol")
+        biblioteca.limpar_duplicatas(self.db, "humor_esporte")
+        self.assertEqual(self.db.scalar("SELECT segmento FROM biblioteca_item"),
+                         "Handebol; Natação")
+
+    def test_rodar_duas_vezes_da_o_mesmo(self):
+        self.antigo("doi:10.1000/a", "Mood in swimmers", 2024, doi="10.1000/a")
+        self.antigo("tit:x|2024", "Mood in swimmers", 2024)
+        biblioteca.limpar_duplicatas(self.db, "humor_esporte")
+        segunda = biblioteca.limpar_duplicatas(self.db, "humor_esporte")
+        self.assertEqual(segunda["juntados"], 0)
+
+    def test_acervo_limpo_nao_perde_nada(self):
+        self.antigo("doi:10.1000/a", "Humor em nadadores", 2024, doi="10.1000/a")
+        self.antigo("doi:10.1000/b", "Humor em ciclistas", 2023, doi="10.1000/b")
+        r = biblioteca.limpar_duplicatas(self.db, "humor_esporte")
+        self.assertEqual(r["juntados"], 0)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM biblioteca_item"), 2)
+
+    def test_a_limpeza_preenche_a_chave_que_faltava(self):
+        # item da versao antiga nao tem `chave_titulo`; sem preenche-la, a
+        # proxima gravacao duplicaria de novo pelo mesmo motivo
+        self.antigo("doi:10.1000/a", "Humor em nadadores", 2024, doi="10.1000/a")
+        biblioteca.limpar_duplicatas(self.db, "humor_esporte")
+        self.assertTrue(self.db.scalar("SELECT chave_titulo FROM biblioteca_item"))
+
+    def test_atualizar_limpa_antes_de_trazer_mais(self):
+        """Acervo com duplicata recebendo artigo novo so acumula duplicata."""
+        fonte = (ROOT / "scripts" / "lape" / "biblioteca.py").read_text(encoding="utf-8")
+        corpo = fonte[fonte.index("def atualizar("):fonte.index("def limpar_duplicatas(")]
+        self.assertIn("limpar_duplicatas(db, code)", corpo)
+        self.assertIn("repetidos_juntados", corpo)
+
+
 class TestOQueATelaLe(BaseBiblioteca):
 
     def setUp(self):

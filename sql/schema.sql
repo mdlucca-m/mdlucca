@@ -569,6 +569,12 @@ CREATE TABLE IF NOT EXISTS biblioteca_item (
   id            INTEGER PRIMARY KEY,
   biblioteca_id INTEGER NOT NULL REFERENCES biblioteca(id) ON DELETE CASCADE,
   chave         TEXT NOT NULL,
+  -- A SEGUNDA chave do mesmo trabalho: titulo normalizado mais ano. As duas
+  -- ficam gravadas porque as bases discordam sobre o DOI -- a PubMed traz o
+  -- artigo com DOI, a Scopus traz o mesmo sem. Guardando so a principal, o
+  -- que chegasse pela segunda base viraria um artigo novo, e o acervo
+  -- contaria duas vezes a mesma leitura.
+  chave_titulo  TEXT,
   segmento      TEXT,
   title         TEXT,
   abstract      TEXT,
@@ -590,6 +596,7 @@ CREATE TABLE IF NOT EXISTS biblioteca_item (
 );
 CREATE INDEX IF NOT EXISTS ix_biblioteca_item_ano ON biblioteca_item(biblioteca_id, year);
 CREATE INDEX IF NOT EXISTS ix_biblioteca_item_seg ON biblioteca_item(biblioteca_id, segmento);
+CREATE INDEX IF NOT EXISTS ix_biblioteca_item_tit ON biblioteca_item(biblioteca_id, chave_titulo);
 
 CREATE TABLE IF NOT EXISTS review_terms (
   id        INTEGER PRIMARY KEY,

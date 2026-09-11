@@ -408,7 +408,7 @@ def atualizar(db: Database, code: str, limite: int = 400,
     decima quarta seria trocar um acervo por um erro. O erro fica gravado
     ao lado da busca que falhou, e a tela o mostra.
     """
-    from .revisao import chave_de_uniao
+    from .revisao import chaves_de_uniao
 
     dados = db.dicts("SELECT id, title FROM biblioteca WHERE code = ?", (code,))
     if not dados:
@@ -423,8 +423,12 @@ def atualizar(db: Database, code: str, limite: int = 400,
         buscas = [b for b in buscas if b["base"] in bases]
 
     hoje = date.today().isoformat()
+    # Antes de trazer mais, junta o que ja esta repetido. Acervo com
+    # duplicata recebendo artigo novo so acumula duplicata.
+    limpeza = limpar_duplicatas(db, code)
     resumo = {"biblioteca": titulo, "buscas": 0, "achados": 0, "novos": 0,
-              "erros": 0, "sem_chave": [], "por_base": {}, "segmentos": []}
+              "erros": 0, "sem_chave": [], "por_base": {}, "segmentos": [],
+              "repetidos_juntados": limpeza["juntados"]}
 
     # Uma chave que falta e uma noticia so, e nao quinze. Antes de rodar as
     # quinze buscas de uma base, pergunta-se pela chave dela: sem isso, a
@@ -458,7 +462,7 @@ def atualizar(db: Database, code: str, limite: int = 400,
 
         novos = 0
         for registro in registros:
-            if _gravar(db, bid, busca["segmento"], registro, chave_de_uniao):
+            if _gravar(db, bid, busca["segmento"], registro, chaves_de_uniao):
                 novos += 1
         db.execute(
             "UPDATE biblioteca_busca SET rodada_em = ?, achados = ?, novos = ?,"
@@ -486,6 +490,69 @@ def atualizar(db: Database, code: str, limite: int = 400,
     return resumo
 
 
+def limpar_duplicatas(db: Database, code: str) -> dict[str, Any]:
+    """Junta itens que sao o mesmo trabalho e entraram duas vezes.
+
+    Existe por causa de um defeito que ja gravou dado: a primeira versao
+    comparava so a chave principal, e um artigo que a PubMed trouxe com DOI
+    e a Scopus trouxe sem virava dois. O conserto na gravacao nao desfaz o
+    que ja esta no banco, e refazer o acervo inteiro nao e resposta -- sao
+    quarenta e cinco buscas e alguns minutos.
+
+    Junta pelo titulo normalizado com o ano, que e a chave que os dois lados
+    tem em comum quando o DOI falta num deles. O que sobrevive e o registro
+    MAIS COMPLETO -- o que tem DOI, e entre os que tem, o que tem resumo --,
+    e os segmentos dos dois se somam: um item achado em "Natação" por uma
+    base e em "Handebol" por outra pertence aos dois.
+    """
+    from .revisao import chaves_de_uniao
+
+    bid = db.scalar("SELECT id FROM biblioteca WHERE code = ?", (code,))
+    if not bid:
+        raise ValueError(f"biblioteca “{code}” não existe")
+
+    grupos: dict[str, list[dict[str, Any]]] = {}
+    for item in db.dicts(
+            "SELECT id, chave, chave_titulo, segmento, title, year, doi, abstract"
+            "  FROM biblioteca_item WHERE biblioteca_id = ? ORDER BY id", (bid,)):
+        alvo_ = item["chave_titulo"]
+        if not alvo_:
+            # Item gravado pela versao antiga: a chave de titulo nao existe
+            # na linha, e sai do proprio registro.
+            chaves = chaves_de_uniao({"title": item["title"], "year": item["year"],
+                                      "doi": item["doi"]})
+            alvo_ = next((c for c in chaves if c.startswith("tit:")), None)
+            if alvo_:
+                db.execute("UPDATE biblioteca_item SET chave_titulo = ? WHERE id = ?",
+                           (alvo_, item["id"]))
+        if alvo_:
+            grupos.setdefault(alvo_, []).append(item)
+
+    juntados, sumiram = 0, []
+    for chave_titulo, itens in grupos.items():
+        if len(itens) < 2:
+            continue
+        # O mais completo fica: com DOI primeiro, depois com resumo, e por
+        # fim o mais antigo -- que e o que ja pode estar linkado em algum
+        # lugar. Desempate estavel, para rodar duas vezes dar o mesmo.
+        itens.sort(key=lambda i: (0 if i["doi"] else 1,
+                                  0 if i["abstract"] else 1, i["id"]))
+        fica, saem = itens[0], itens[1:]
+        segmentos = set()
+        for item in itens:
+            segmentos.update(s for s in (item["segmento"] or "").split("; ") if s)
+        db.execute(
+            "UPDATE biblioteca_item SET segmento = ?, chave_titulo = ? WHERE id = ?",
+            ("; ".join(sorted(segmentos)) or None, chave_titulo, fica["id"]))
+        for item in saem:
+            db.execute("DELETE FROM biblioteca_item WHERE id = ?", (item["id"],))
+            sumiram.append(item["title"])
+        juntados += len(saem)
+    db.conn.commit()
+    return {"juntados": juntados, "grupos": sum(1 for g in grupos.values() if len(g) > 1),
+            "titulos": sumiram[:20]}
+
+
 def _colher(base: str, query: str, limite: int) -> list[dict[str, Any]]:
     """Os registros de uma busca, na base pedida."""
     if base == PUBMED:
@@ -505,16 +572,28 @@ def _colher(base: str, query: str, limite: int) -> list[dict[str, Any]]:
 
 
 def _gravar(db: Database, biblioteca_id: int, segmento: str | None,
-            registro: dict[str, Any], chave_de_uniao: Any) -> bool:
-    """Grava um registro. Devolve True se ele ainda nao estava aqui."""
+            registro: dict[str, Any], chaves_de_uniao: Any) -> bool:
+    """Grava um registro. Devolve True se ele ainda nao estava aqui.
+
+    Procura pelas DUAS chaves, e nao so pela principal. As bases discordam
+    sobre o DOI: a PubMed traz o artigo com DOI, a Scopus traz o mesmo sem,
+    e comparando so a chave principal o segundo vira artigo novo. O acervo
+    passaria a contar duas vezes a mesma leitura, e a equipe leria o mesmo
+    resumo duas vezes achando que sao dois estudos.
+    """
     from . import variaveis
 
-    chave = chave_de_uniao(registro)
-    if not chave:
+    chaves = chaves_de_uniao(registro)
+    if not chaves:
         return False
+    chave = chaves[0]
+    por_titulo = next((c for c in chaves if c.startswith("tit:")), None)
     achado = db.dicts(
-        "SELECT id, segmento FROM biblioteca_item WHERE biblioteca_id = ? AND chave = ?",
-        (biblioteca_id, chave))
+        "SELECT id, segmento FROM biblioteca_item"
+        " WHERE biblioteca_id = ? AND (chave IN (%s) OR (chave_titulo IS NOT NULL"
+        "   AND chave_titulo IN (%s)))" % (",".join("?" * len(chaves)),
+                                           ",".join("?" * len(chaves))),
+        (biblioteca_id, *chaves, *chaves))
     if achado:
         # Ja esta aqui, mas pode ter chegado agora por outro segmento: um
         # estudo com nadadores E handebolistas pertence aos dois, e guardar
@@ -531,10 +610,11 @@ def _gravar(db: Database, biblioteca_id: int, segmento: str | None,
     paises = variaveis.paises_da_afiliacao(
         registro.get("afiliacoes") or registro.get("affiliation"))
     db.execute(
-        "INSERT INTO biblioteca_item (biblioteca_id, chave, segmento, title, abstract,"
-        "        authors, journal, year, doi, pmid, pmc, url, oa_url, paises, base)"
-        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (biblioteca_id, chave, segmento, clean_text(registro.get("title")),
+        "INSERT INTO biblioteca_item (biblioteca_id, chave, chave_titulo, segmento,"
+        "        title, abstract, authors, journal, year, doi, pmid, pmc, url,"
+        "        oa_url, paises, base)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (biblioteca_id, chave, por_titulo, segmento, clean_text(registro.get("title")),
          clean_text(registro.get("abstract")),
          "; ".join(registro.get("authors") or []) if isinstance(registro.get("authors"), list)
          else clean_text(registro.get("authors")),
