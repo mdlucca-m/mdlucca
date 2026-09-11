@@ -95,6 +95,20 @@ CREATE TABLE IF NOT EXISTS members (
   i10_index        INTEGER,
   citations_total  INTEGER,
   metrics_updated_at TEXT,
+
+  /* O indice h conferido por gente, e a unica coluna que o recalculo
+     automatico nao pode encostar. As outras sao estimativas: `h_index`
+     calculado so com os artigos deste banco ignora a carreira anterior ao
+     laboratorio e sai baixo; o perfil do OpenAlex traz a carreira inteira
+     mas junta homonimo e conta duplicata, e sai alto. Nenhum dos dois e o
+     numero que a pessoa poe no Lattes.
+     A base e a data ficam gravadas porque indice h sem fonte e sem data
+     nao se confere: 16 na Scopus e 21 no Google Academico sao os dois
+     certos, de coisas diferentes. */
+  h_index_declarado      INTEGER,
+  h_index_declarado_base TEXT,
+  h_index_declarado_em   TEXT,
+  h_index_declarado_por  TEXT,
   login            TEXT UNIQUE,
   password_hash    TEXT,
   user_role        TEXT NOT NULL DEFAULT 'integrante',
@@ -975,6 +989,10 @@ SELECT
   m.h_index_source,
   m.h_index_scopus,
   m.h_index_wos,
+  m.h_index_declarado,
+  m.h_index_declarado_base,
+  m.h_index_declarado_em,
+  m.h_index_declarado_por,
   m.i10_index,
   m.citations_total,
   m.metrics_updated_at,

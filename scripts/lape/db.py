@@ -250,7 +250,8 @@ class Database:
         cache[code] = reason_id
         return reason_id
 
-    def member_id(self, name: Any, create: bool = True, **extra: Any) -> int | None:
+    def member_id(self, name: Any, create: bool = True,
+                  ao_criar: dict[str, Any] | None = None, **extra: Any) -> int | None:
         """Resolve um integrante pela chave canonica de autor.
 
         Faz a ponte entre grafias diferentes da mesma pessoa: 'Andrade'
@@ -258,6 +259,13 @@ class Database:
         mesmo registro, desde que o sobrenome seja unico no laboratorio.
         Sobrenomes ambiguos nao sao fundidos -- use a coluna 'variacoes'
         da aba de integrantes para desambiguar.
+
+        `extra` vale sempre: e o cadastro da pessoa chegando e preenchendo
+        o que faltava. `ao_criar` vale SO quando a ficha nasce agora, e
+        existe para o vinculo com o laboratorio: quem aparece pela primeira
+        vez como autor de um artigo nasce coautor, mas passar isso em
+        `extra` rebaixaria a professora do laboratorio a coautora no dia em
+        que ela assinasse mais um artigo.
         """
         from .util import author_key, display_name
 
@@ -294,6 +302,7 @@ class Database:
         if not create:
             return None
         data = {"name_key": key, "full_name": display_name(name) or str(name)}
+        data.update({k: v for k, v in (ao_criar or {}).items() if v is not None})
         data.update({k: v for k, v in extra.items() if v is not None})
         member = self.upsert("members", data, conflict=("name_key",))
         cache[key] = member

@@ -18,8 +18,9 @@ import io
 import re
 from typing import Any, Iterable
 
+from . import mapping
 from .db import Database
-from .util import author_key
+from .util import author_key, norm_key
 
 FORMATOS = ("csv", "bibtex", "ris")
 
@@ -60,11 +61,19 @@ COLUNAS: tuple[tuple[str, str], ...] = (
     ("LAPE — Recusas", "rejections"),
 )
 
+# O tipo de documento como Scopus e Web of Science o nomeiam. A chave e o
+# CODIGO do delineamento, nao o rotulo: casar por texto nunca funcionou --
+# a comparacao era `study_type.lower()` contra "revisao sistematica", sem
+# tirar acento, e "Revisão sistemática" caia fora em silencio, saindo como
+# "Article" em todo relatorio exportado.
 TIPO_DE_DOCUMENTO = {
-    "revisao sistematica": "Review",
-    "revisao": "Review",
-    "metanalise": "Review",
-    "protocolo de estudo": "Article",
+    "revisao_sistematica": "Review",
+    "revisao_narrativa": "Review",
+    "meta_analise": "Review",
+    "editorial": "Editorial",
+    "carta_ao_editor": "Letter",
+    "comunicacao_curta": "Short Survey",
+    "protocolo": "Article",
 }
 
 ESTAGIO = {
@@ -127,7 +136,7 @@ def linhas(db: Database, apenas_publicados: bool = False) -> list[dict[str, Any]
                              int(r.get("wos_citations") or 0),
                              int(r.get("openalex_citations") or 0))
         r["document_type"] = TIPO_DE_DOCUMENTO.get(
-            (r.get("study_type") or "").strip().lower(), "Article")
+            mapping.ESTUDO_MAP.get(norm_key(r.get("study_type"))) or "", "Article")
         r["estagio"] = ESTAGIO.get(r.get("status") or "", "")
         aberto = r.get("open_access")
         r["open_access_texto"] = "" if aberto is None else ("All Open Access" if aberto else "")

@@ -179,36 +179,57 @@ def i10_index(citations: Iterable[Any]) -> int:
     return sum(1 for c in citations if c is not None and int(c) >= 10)
 
 
+def recalcular_um(db: Database, member_id: int) -> bool:
+    """Recalcula os indices de UMA pessoa a partir dos artigos deste banco.
+
+    O indice h so e escrito quando ninguem declarou o seu. Um numero
+    conferido a mao na Scopus nao pode ser trocado por uma estimativa
+    tirada dos artigos que este banco por acaso conhece -- era isso que
+    acontecia, e bastava rodar o curador para o valor certo sumir.
+
+    As demais colunas (h por base, i10, citacoes) sao sempre recalculadas:
+    sao estimativas assumidas, ninguem as declara, e sao elas que deixam a
+    divergencia visivel ao lado do numero declarado.
+    """
+    rows = db.dicts(
+        "SELECT a.scopus_citations, a.wos_citations, a.openalex_citations"
+        " FROM article_authors aa JOIN articles a ON a.id = aa.article_id"
+        " WHERE aa.member_id = ?", (member_id,))
+    if not rows:
+        return False
+    best = [max((r["openalex_citations"] or 0, r["scopus_citations"] or 0,
+                 r["wos_citations"] or 0)) for r in rows]
+    db.execute(
+        "UPDATE members SET"
+        "   h_index = CASE"
+        "     WHEN h_index_declarado IS NOT NULL THEN h_index_declarado"
+        "     WHEN h_index_source = 'openalex_author' THEN COALESCE(h_index, ?)"
+        "     ELSE ? END,"
+        "   h_index_source = CASE"
+        "     WHEN h_index_declarado IS NOT NULL THEN 'declarado'"
+        "     ELSE COALESCE(h_index_source, 'banco_lape') END,"
+        "   h_index_scopus = ?, h_index_wos = ?, i10_index = ?, citations_total = ?,"
+        "   metrics_updated_at = date('now') WHERE id = ?",
+        (h_index(best), h_index(best),
+         h_index(r["scopus_citations"] for r in rows),
+         h_index(r["wos_citations"] for r in rows),
+         i10_index(best), sum(best), member_id),
+    )
+    return True
+
+
 def compute_h_indexes(db: Database) -> dict[str, int]:
     """Recalcula indice h, i10 e citacoes de cada integrante a partir do banco.
 
-    O calculo usa apenas os artigos cadastrados aqui. Quando o agente
-    rastreador consegue ler o perfil publico do autor no OpenAlex, ele
-    sobrescreve `h_index` com o valor global (que inclui producao anterior
-    ao laboratorio) e marca a origem em `h_index_source`.
+    O calculo usa apenas os artigos cadastrados aqui, e por isso sai baixo:
+    ignora tudo que a pessoa publicou antes de entrar no laboratorio. E uma
+    estimativa, e perde para o indice declarado pela coordenacao sempre que
+    houver um.
     """
     updated = 0
     for member in db.dicts("SELECT id FROM members"):
-        rows = db.dicts(
-            "SELECT a.scopus_citations, a.wos_citations, a.openalex_citations"
-            " FROM article_authors aa JOIN articles a ON a.id = aa.article_id"
-            " WHERE aa.member_id = ?", (member["id"],))
-        if not rows:
-            continue
-        best = [max((r["openalex_citations"] or 0, r["scopus_citations"] or 0,
-                     r["wos_citations"] or 0)) for r in rows]
-        db.execute(
-            "UPDATE members SET h_index = COALESCE(CASE WHEN h_index_source = 'openalex_author'"
-            "   THEN h_index ELSE ? END, ?),"
-            " h_index_source = COALESCE(h_index_source, 'banco_lape'),"
-            " h_index_scopus = ?, h_index_wos = ?, i10_index = ?, citations_total = ?,"
-            " metrics_updated_at = date('now') WHERE id = ?",
-            (h_index(best), h_index(best),
-             h_index(r["scopus_citations"] for r in rows),
-             h_index(r["wos_citations"] for r in rows),
-             i10_index(best), sum(best), member["id"]),
-        )
-        updated += 1
+        if recalcular_um(db, int(member["id"])):
+            updated += 1
     db.conn.commit()
     return {"members": updated}
 

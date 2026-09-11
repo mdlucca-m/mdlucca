@@ -464,6 +464,77 @@ def route_duplicatas_fundir(ctx: "Context") -> Any:
     return resultado
 
 
+def route_vinculo(ctx: "Context") -> Any:
+    """Fichas marcadas como do LAPE sem nenhum sinal de vinculo -- so a proposta."""
+    auth.require(ctx.user, "coordenacao")
+    from . import vinculo
+    return {"contagem": vinculo.contagem(ctx.db),
+            "candidatos": vinculo.candidatos(ctx.db)}
+
+
+def route_vinculo_marcar(ctx: "Context") -> Any:
+    """Move UMA ficha entre pesquisador do LAPE e coautor.
+
+    Uma de cada vez, e nao um botao que aplica a proposta inteira: a ficha
+    vazia da professora que ninguem terminou de cadastrar e identica a do
+    coautor de outra universidade, e so quem conhece a equipe sabe qual e
+    qual. Vale nos dois sentidos -- promover de volta e o mesmo pedido com
+    `coautor: false`.
+    """
+    user = auth.require(ctx.user, "coordenacao")
+    from . import vinculo
+    corpo = ctx.body or {}
+    try:
+        member_id = int(corpo.get("id"))
+    except (TypeError, ValueError):
+        raise ApiError(400, "informe a ficha em 'id'")
+    if "coautor" not in corpo:
+        raise ApiError(400, "informe 'coautor': true para coautor, false para integrante")
+    try:
+        resultado = vinculo.marcar(ctx.db, member_id, bool(corpo.get("coautor")))
+    except ValueError as erro:
+        raise ApiError(400, str(erro))
+    auth.log(ctx.db, user["id"], user.get("login"), "vinculo_alterado", "members",
+             detail=f"{resultado['quem']} -> {resultado['categoria']}")
+    return resultado
+
+
+def route_indice_h(ctx: "Context") -> Any:
+    """Indice h de cada pesquisador: o declarado e as estimativas ao lado."""
+    auth.require(ctx.user, "coordenacao")
+    from . import indice_h
+    return {"bases": list(indice_h.BASES), "validade_meses": indice_h.VALIDADE_MESES,
+            "itens": indice_h.painel(ctx.db)}
+
+
+def route_indice_h_declarar(ctx: "Context") -> Any:
+    """Grava o indice h conferido por gente -- o unico que o recalculo respeita."""
+    user = auth.require(ctx.user, "coordenacao")
+    from . import indice_h
+    corpo = ctx.body or {}
+    try:
+        member_id = int(corpo.get("id"))
+    except (TypeError, ValueError):
+        raise ApiError(400, "informe a ficha em 'id'")
+    bruto = corpo.get("h_index")
+    valor = None
+    if bruto not in (None, ""):
+        try:
+            valor = int(bruto)
+        except (TypeError, ValueError):
+            raise ApiError(400, "o índice h precisa ser um número inteiro")
+    try:
+        resultado = indice_h.declarar(
+            ctx.db, member_id, valor,
+            base=clean_text(corpo.get("base")),
+            por=user.get("full_name") or user.get("login"))
+    except ValueError as erro:
+        raise ApiError(400, str(erro))
+    auth.log(ctx.db, user["id"], user.get("login"), "indice_h_declarado", "members",
+             detail=f"{resultado['quem']}: {valor if valor is not None else 'sem declaração'}")
+    return resultado
+
+
 def route_researcher_detail(ctx: "Context", member_id: str) -> Any:
     db = ctx.db
     rows = db.dicts("SELECT * FROM v_researcher WHERE id = ?", (int(member_id),))
@@ -1275,7 +1346,9 @@ def route_linhas_padrao(ctx: "Context") -> Any:
     user = auth.require(ctx.user, "coordenacao")
     from . import hooks, linhas
 
-    resultado = linhas.instalar(ctx.db)
+    # Pelo botao a coordenacao esta declarando a lista inteira, e nao so
+    # acrescentando: o que nao esta nela sai das opcoes (sem ser apagado).
+    resultado = linhas.instalar(ctx.db, encerrar_as_que_sairam=True)
     if resultado["novas"]:
         hooks.emit(ctx.db, "linhas.instaladas", entity="research_lines",
                    detail=f"{len(resultado['novas'])} linha(s) de pesquisa",
@@ -1493,6 +1566,10 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
      route_biblioteca_atualizar, "coordenacao"),
     ("GET", r"^/api/equipe/duplicatas/?$", route_duplicatas, "coordenacao"),
     ("POST", r"^/api/equipe/duplicatas/?$", route_duplicatas_fundir, "coordenacao"),
+    ("GET", r"^/api/equipe/vinculo/?$", route_vinculo, "coordenacao"),
+    ("POST", r"^/api/equipe/vinculo/?$", route_vinculo_marcar, "coordenacao"),
+    ("GET", r"^/api/equipe/indice-h/?$", route_indice_h, "coordenacao"),
+    ("POST", r"^/api/equipe/indice-h/?$", route_indice_h_declarar, "coordenacao"),
     ("POST", r"^/api/research-lines/padrao/?$", route_linhas_padrao, "coordenacao"),
     ("GET", r"^/api/marca/?$", route_marca, "leitura"),
     ("POST", r"^/api/marca/?$", route_marca_gravar, "coordenacao"),
@@ -2207,15 +2284,17 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
     db = Database(db_path)
     db.migrate()
     # O vocabulario do laboratorio entra na subida, e nao num botao. Sao as
-    # sete linhas de pesquisa declaradas pelo LAPE, e elas nao sao dado de
+    # oito linhas de pesquisa declaradas pelo LAPE, e elas nao sao dado de
     # ninguem: sao a lista de opcoes que a ficha de cadastro precisa ter
     # PRONTA quando a primeira pessoa chegar pelo link do convite. Depender
     # de alguem lembrar de apertar um botao antes de sair da sala e depender
     # de nao esquecer -- e quem chega encontra um seletor com tres opcoes
-    # velhas, sem saber que faltam sete.
+    # velhas, sem saber que faltam oito.
     #
     # E seguro repetir: procura por codigo e por nome, nao duplica, nao
-    # renomeia o que foi ajustado a mao e nao apaga linha nenhuma.
+    # renomeia o que foi ajustado a mao e nao apaga linha nenhuma. Aqui ele
+    # tambem NAO encerra as linhas fora da lista -- tirar opcao do ar e
+    # decisao da coordenacao no botao, nao efeito de reiniciar a maquina.
     try:
         from . import ingest_autor as _autor
         from . import linhas as _linhas
@@ -2257,6 +2336,13 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
             print(f"  ficha \u201c{feita['sumiu']}\u201d juntada em"
                   f" \u201c{feita['manter']}\u201d"
                   f" ({feita['artigos_agora']} artigo(s))")
+        # Os indices h que a coordenacao conferiu na base. Entram so onde
+        # ninguem declarou nada ainda: assim que o numero for gravado pela
+        # tela, a lista do codigo nao tem mais o que dizer sobre a pessoa.
+        from . import indice_h as _indice_h
+        for posto in _indice_h.instalar_declarados(db):
+            print(f"  indice h de {posto['quem']}: {posto['h_index']}"
+                  f" (conferido na {posto['base']})")
     except Exception as erro:  # noqa: BLE001 -- vocabulario nao derruba o servico
         print(f"  ! nao consegui preparar linhas e orientadores: {erro}")
     try:

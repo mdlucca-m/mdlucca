@@ -24,7 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from lape import api, auth, ingest_excel, metrics, preflight  # noqa: E402
+from lape import api, auth, ingest_excel, linhas, metrics, preflight  # noqa: E402
 from lape.db import Database  # noqa: E402
 
 
@@ -406,6 +406,102 @@ class TestApi(unittest.TestCase):
         for marcador in ("__BASE_CSS__", "__ICONS_JS__"):
             self.assertNotIn(marcador, html, f"marcador nao substituido: {marcador}")
         self.assertIn("const Icons", html)   # o menu monta os icones a partir daqui
+
+
+class TestCadastroPelaRede(unittest.TestCase):
+    """As rotas novas contra o servidor de verdade, com cookie.
+
+    Os modulos ja tem teste proprio; o que se verifica aqui e o caminho
+    inteiro -- perfil exigido, corpo recusado quando vem errado, e a
+    resposta que a tela consome.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.db_path = Path(cls.tmp.name) / "cad.sqlite"
+        db = Database(cls.db_path)
+        db.migrate()
+        ingest_excel.ingest_articles(db, [
+            {"title": "Humor e natação", "authors": "Andrade; Sofia Verschuren"},
+        ])
+        auth.create_account(db, "Alexandro Andrade", "coord@udesc.br", "senhaforte123",
+                            role="coordenacao")
+        auth.create_account(db, "Loiane", "loiane2@udesc.br", "senhaforte123",
+                            role="integrante")
+        db.close()
+        api.Handler.db_path = cls.db_path
+        api.Handler.log_message = lambda *args, **kwargs: None
+        cls.server = ThreadingHTTPServer(("127.0.0.1", 0), api.Handler)
+        cls.port = cls.server.server_address[1]
+        cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
+        cls.thread.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.shutdown()
+        cls.server.server_close()
+        cls.tmp.cleanup()
+
+    call = TestApi.call
+    entrar = TestApi.entrar
+
+    def test_a_revisao_de_vinculo_exige_coordenacao(self):
+        token = self.entrar("loiane2@udesc.br", "senhaforte123")
+        status, _, _ = self.call("/api/equipe/vinculo", cookie=token)
+        self.assertEqual(status, 403)
+
+    def test_a_revisao_traz_contagem_e_candidatos(self):
+        token = self.entrar("coord@udesc.br", "senhaforte123")
+        status, body, _ = self.call("/api/equipe/vinculo", cookie=token)
+        self.assertEqual(status, 200)
+        self.assertIn("pesquisadores", body["contagem"])
+        self.assertIn("coautores", body["contagem"])
+        # quem entrou so pela lista de autores ja nasce coautor
+        self.assertEqual(body["contagem"]["coautores"], 1)
+
+    def test_marcar_vinculo_sem_dizer_qual_lado_e_recusado(self):
+        token = self.entrar("coord@udesc.br", "senhaforte123")
+        pessoa = self.call("/api/equipe/vinculo", cookie=token)[1]
+        alvo = (pessoa["candidatos"] or [{}])[0].get("id") or 1
+        status, body, _ = self.call("/api/equipe/vinculo", "POST", {"id": alvo}, token)
+        self.assertEqual(status, 400)
+        self.assertIn("coautor", body["error"])
+
+    def test_o_indice_h_declarado_vai_e_volta(self):
+        token = self.entrar("coord@udesc.br", "senhaforte123")
+        status, body, _ = self.call("/api/equipe/indice-h", cookie=token)
+        self.assertEqual(status, 200)
+        self.assertIn("Scopus", body["bases"])
+        alvo = body["itens"][0]
+        status, gravado, _ = self.call("/api/equipe/indice-h", "POST",
+                                       {"id": alvo["id"], "h_index": 16, "base": "Scopus"},
+                                       token)
+        self.assertEqual(status, 200)
+        self.assertEqual(gravado["h_index"], 16)
+        _, depois, _ = self.call("/api/equipe/indice-h", cookie=token)
+        linha = [i for i in depois["itens"] if i["id"] == alvo["id"]][0]
+        self.assertEqual(linha["h_index_declarado"], 16)
+        self.assertEqual(linha["situacao"]["origem"], "declarado")
+        self.assertFalse(linha["situacao"]["a_conferir"])
+
+    def test_o_indice_h_recusa_o_que_nao_e_numero(self):
+        token = self.entrar("coord@udesc.br", "senhaforte123")
+        alvo = self.call("/api/equipe/indice-h", cookie=token)[1]["itens"][0]
+        status, body, _ = self.call("/api/equipe/indice-h", "POST",
+                                    {"id": alvo["id"], "h_index": "dezesseis"}, token)
+        self.assertEqual(status, 400)
+        self.assertIn("inteiro", body["error"])
+
+    def test_o_botao_das_linhas_encerra_as_que_sairam(self):
+        token = self.entrar("coord@udesc.br", "senhaforte123")
+        status, body, _ = self.call("/api/research-lines/padrao", "POST", {}, token)
+        self.assertEqual(status, 200)
+        self.assertIn("desativadas", body)
+        _, listadas, _ = self.call("/api/research-lines?limit=200", cookie=token)
+        ativas = [l["name"] for l in listadas["items"] if l.get("active")]
+        self.assertEqual(sorted(ativas),
+                         sorted(nome for _c, nome, _d, _p, _i in linhas.LINHAS))
 
 
 class TestCacheDoNavegador(unittest.TestCase):

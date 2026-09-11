@@ -334,9 +334,17 @@ def profiles(db: Database, verbose: bool = True) -> dict[str, Any]:
             continue
         if not member["orcid"] and author_key(profile["display_name"]) != author_key(member["full_name"]):
             continue  # provavel homonimo: nao grava
+        # O h do OpenAlex nao encosta em quem tem indice declarado. O perfil
+        # publico junta homonimo, conta preprint e duplicata, e vinha por
+        # cima do numero conferido a mao sem aviso nenhum -- foi assim que
+        # um 16 conferido na Scopus virou 17 na tela.
         db.execute(
             "UPDATE members SET openalex_id = COALESCE(openalex_id, ?), orcid = COALESCE(orcid, ?),"
-            " h_index = ?, h_index_source = 'openalex_author', i10_index = ?,"
+            " h_index = CASE WHEN h_index_declarado IS NOT NULL"
+            "                THEN h_index_declarado ELSE ? END,"
+            " h_index_source = CASE WHEN h_index_declarado IS NOT NULL"
+            "                       THEN 'declarado' ELSE 'openalex_author' END,"
+            " i10_index = ?,"
             " citations_total = ?, metrics_updated_at = date('now') WHERE id = ?",
             (profile["openalex_id"], profile["orcid"], profile["h_index"], profile["i10_index"],
              profile["citations_total"], member["id"]),

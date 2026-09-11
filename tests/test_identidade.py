@@ -293,24 +293,42 @@ class TestOsProfessoresDoLaboratorio(BaseIdentidade):
 
 class TestAsLinhasDoLape(BaseIdentidade):
 
-    def test_as_sete_entram(self):
+    def test_todas_as_declaradas_entram(self):
+        # O número sai da própria lista: escrevê-lo à mão obriga a editar o
+        # teste a cada linha que o laboratório abre ou encerra, e um teste
+        # que se edita junto com o código deixa de ser verificação.
         resultado = linhas.instalar(self.db)
-        self.assertEqual(len(resultado["novas"]), 7)
+        self.assertEqual(len(resultado["novas"]), len(linhas.LINHAS))
         nomes = [r["name"] for r in self.db.dicts("SELECT name FROM research_lines")]
-        for esperado in ("Atividade Física e Saúde", "Psicologia do Exercício",
-                         "Psicologia do Esporte",
-                         "Qualidade do ar e poluição no exercício e no esporte",
-                         "Exercício na saúde física e mental na Fibromialgia",
-                         "Exercício na saúde mental no tratamento do câncer",
-                         "Exercício na saúde mental no envelhecimento"):
+        for _c, esperado, _d, _p, _i in linhas.LINHAS:
             with self.subTest(linha=esperado):
                 self.assertIn(esperado, nomes)
+
+    def test_sao_as_oito_que_a_coordenacao_declarou(self):
+        """A lista é fechada: estas oito, e nenhuma outra.
+
+        Está escrita aqui, e não só em linhas.py, porque acrescentar uma
+        nona opção ao seletor de artigo é decisão da coordenação -- e uma
+        lista que muda sem ninguém notar é exatamente o que produziu duas
+        grafias da mesma linha contadas como duas linhas.
+        """
+        self.assertEqual([nome for _c, nome, _d, _p, _i in linhas.LINHAS], [
+            "Psicologia do esporte",
+            "Psicologia do exercício",
+            "Fibromialgia e doenças reumáticas",
+            "Qualidade do ar",
+            "Câncer",
+            "Envelhecimento",
+            "Fisioterapia",
+            "Exergames e escolas",
+        ])
 
     def test_instalar_de_novo_nao_duplica(self):
         linhas.instalar(self.db)
         segunda = linhas.instalar(self.db)
         self.assertEqual(segunda["novas"], [])
-        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM research_lines"), 7)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM research_lines"),
+                         len(linhas.LINHAS))
 
     def test_o_nome_que_alguem_reescreveu_fica(self):
         # instalar de novo não pode desfazer o que a coordenação ajustou
@@ -325,7 +343,7 @@ class TestAsLinhasDoLape(BaseIdentidade):
             "Psicologia do Esporte (CEFID)")
 
     def test_linha_antiga_com_o_mesmo_codigo_nao_engole_a_nova(self):
-        """Aconteceu de verdade: entraram 6 das 7.
+        """Aconteceu de verdade: entrou uma a menos.
 
         O banco já tinha "Psicologia do Esporte e do Exercício" no código
         `psicologia_esporte`, e a busca só por código deu por instalada a
@@ -336,9 +354,9 @@ class TestAsLinhasDoLape(BaseIdentidade):
             ("psicologia_esporte", "Psicologia do Esporte e do Exercício"))
         self.db.conn.commit()
         resultado = linhas.instalar(self.db)
-        self.assertEqual(len(resultado["novas"]), 7, resultado)
+        self.assertEqual(len(resultado["novas"]), len(linhas.LINHAS), resultado)
         nomes = [r["name"] for r in self.db.dicts("SELECT name FROM research_lines")]
-        self.assertIn("Psicologia do Esporte", nomes)
+        self.assertIn("Psicologia do esporte", nomes)
         self.assertIn("Psicologia do Esporte e do Exercício", nomes)
 
     def test_o_mesmo_nome_com_outra_caixa_nao_duplica(self):

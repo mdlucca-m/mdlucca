@@ -288,12 +288,18 @@ def ingest_file(db: Database, path: Path, with_conferences: bool = True,
         )
         if not existing_authors and article["authors"]:
             for order, name in enumerate(article["authors"], start=1):
-                member_id = db.member_id(name, create=True)
+                # Um curriculo Lattes traz a carreira inteira da pessoa,
+                # com coautores de outras instituicoes e de antes do LAPE.
+                # Nascer integrante ali enchia a equipe de gente que nunca
+                # pisou no laboratorio. Quem so assina nasce coautor.
+                member_id = db.member_id(name, create=True, ao_criar={"is_external": 1})
+                externo = db.scalar(
+                    "SELECT is_external FROM members WHERE id = ?", (member_id,)) or 0
                 db.execute(
                     "INSERT OR REPLACE INTO article_authors"
                     " (article_id, member_id, author_name, author_order, is_corresponding, is_external)"
-                    " VALUES (?, ?, ?, ?, 0, 0)",
-                    (article_id, member_id, display_name(name) or name, order),
+                    " VALUES (?, ?, ?, ?, 0, ?)",
+                    (article_id, member_id, display_name(name) or name, order, externo),
                 )
         written += 1
 

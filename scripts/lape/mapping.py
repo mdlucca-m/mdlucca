@@ -288,6 +288,81 @@ VINCULOS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     ("colaborador", "Colaborador(a) externo",
      ("colaboradora", "externo", "externa", "parceiro", "parceira", "convidado")),
 )
+# Os delineamentos que o laboratorio registra, como a coordenacao os
+# declarou. A lista e fechada e o campo e um seletor: antes era texto
+# livre, e texto livre num campo de classificacao nao produz classificacao
+# nenhuma -- "ECR", "ensaio clinico randomizado" e "Randomized Controlled
+# Trial" sao a mesma coisa escrita de tres jeitos, e o painel contava tres
+# delineamentos onde havia um.
+#
+# Os rotulos daqui conversam com biblioteca.DESENHOS, que le o mesmo
+# conceito do campo de tipo de publicacao da PubMed. Sao listas separadas
+# de proposito -- uma e o que o LAPE escreve sobre o proprio artigo, a
+# outra e o que a base declara sobre o artigo dos outros -- mas onde as
+# duas falam do mesmo delineamento elas falam com a mesma palavra.
+#
+# (codigo, rotulo, grafias que ja apareceram ou podem aparecer)
+DESENHOS_DE_ESTUDO: tuple[tuple[str, str, tuple[str, ...]], ...] = (
+    ("ensaio_randomizado", "Ensaio clínico controlado e randomizado",
+     ("ensaio clinico randomizado", "ensaio clinico controlado e randomizado",
+      "ensaio clinico controlado randomizado", "ensaio randomizado",
+      "ensaio controlado randomizado", "ensaio controlado aleatorizado",
+      "ensaio clinico", "ecr", "rct", "randomized controlled trial",
+      "randomised controlled trial", "controlled clinical trial", "clinical trial")),
+    ("transversal", "Estudo transversal",
+     ("transversal", "estudo transversal", "corte transversal", "seccional",
+      "cross-sectional", "cross sectional", "cross-sectional study")),
+    ("coorte", "Estudo de coorte",
+     ("coorte", "estudo de coorte", "cohort", "cohort study", "longitudinal",
+      "estudo longitudinal", "estudo prospectivo", "prospectivo")),
+    ("revisao_sistematica", "Revisão sistemática",
+     ("revisao sistematica", "revisao sistematica da literatura",
+      "systematic review", "revisao sistematica sem metanalise")),
+    ("meta_analise", "Meta-análise",
+     ("meta-analise", "metanalise", "meta analise", "meta-analysis",
+      "meta analysis", "revisao sistematica e metanalise",
+      "revisao sistematica com metanalise")),
+    ("revisao_narrativa", "Revisão narrativa",
+     ("revisao narrativa", "revisao", "revisao de literatura", "review",
+      "narrative review", "revisao critica")),
+    ("editorial", "Editorial", ("editorial", "editoriais")),
+    ("carta_ao_editor", "Carta ao editor",
+     ("carta ao editor", "carta", "letter to the editor", "letter",
+      "carta ao leitor")),
+    ("comunicacao_curta", "Comunicação curta",
+     ("comunicacao curta", "comunicacao breve", "short communication",
+      "brief report", "brief communication", "short report")),
+    ("protocolo", "Estudo de protocolo",
+     ("protocolo", "estudo de protocolo", "protocolo de estudo",
+      "protocolo de pesquisa", "study protocol", "protocol")),
+)
+ESTUDO_LABEL: dict[str, str] = {c: rotulo for c, rotulo, _ in DESENHOS_DE_ESTUDO}
+ESTUDO_MAP: dict[str, str] = {}
+for _codigo, _rotulo, _grafias in DESENHOS_DE_ESTUDO:
+    ESTUDO_MAP[_codigo] = _codigo
+    ESTUDO_MAP[norm_key(_rotulo)] = _codigo
+    for _grafia in _grafias:
+        ESTUDO_MAP.setdefault(norm_key(_grafia), _codigo)
+
+
+def desenho_de_estudo(valor: Any) -> str | None:
+    """O rotulo canonico do delineamento -- ou o texto original, intacto.
+
+    Devolver None para o que nao reconhece apagaria o que alguem escreveu
+    a mao: "estudo piloto com adolescentes" nao esta na lista, mas e a
+    unica descricao que existe daquele artigo, e trocar isso por vazio e
+    perder dado para ganhar arrumacao. O que nao se reconhece volta como
+    veio, e aparece na tela marcado como fora da lista.
+    """
+    from .util import clean_text
+
+    texto = clean_text(valor)
+    if not texto:
+        return None
+    codigo = ESTUDO_MAP.get(norm_key(texto))
+    return ESTUDO_LABEL[codigo] if codigo else texto
+
+
 ROLE_MAP: dict[str, str] = {
     codigo: codigo for codigo, _, _ in VINCULOS
 }

@@ -158,6 +158,14 @@ def create_account(db: Database, full_name: str, login: str, password: str | Non
     member_id = db.member_id(full_name, create=True, **extra)
     if member_id is None:
         raise AuthError("nao foi possivel identificar o nome informado", 400)
+    # Dar conta a alguem e declarar que a pessoa e do laboratorio. Quem
+    # aparece primeiro como autor de um artigo nasce coautor, e sem esta
+    # linha continuaria coautor depois de entrar no sistema com senha
+    # propria -- fora da contagem da equipe e fora do organograma.
+    if not extra.get("is_external"):
+        db.execute("UPDATE members SET is_external = 0 WHERE id = ?", (member_id,))
+        db.execute("UPDATE article_authors SET is_external = 0 WHERE member_id = ?",
+                   (member_id,))
     guardado = db.scalar("SELECT full_name FROM members WHERE id = ?", (member_id,))
     if _nome_mais_completo(guardado, full_name):
         db.execute("UPDATE members SET full_name = ?, updated_at = datetime('now')"

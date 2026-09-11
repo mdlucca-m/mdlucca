@@ -271,6 +271,17 @@ function buildForm(spec, values, onSubmit){
         f = Object.assign({}, f, {hint: f.vazio});
       }
       const vazio = preset === null || preset === undefined || preset === "";
+      /* O que está gravado e não está na lista entra na lista, marcado.
+         Sem isto o navegador simplesmente ignora o valor desconhecido, o
+         seletor abre em "— selecione —" e salvar o registro APAGA o que
+         lá estava: um artigo cujo tipo de estudo foi digitado à mão antes
+         de o campo virar lista, ou cuja linha de pesquisa saiu das opções,
+         perderia o dado ao ser editado por qualquer outro motivo. */
+      if (!vazio && !options.some(function (opt){
+            return String(typeof opt === "object" ? opt.value : opt) === String(preset); })){
+        input.appendChild(h("option", {value: String(preset),
+          text: String(preset) + " (fora da lista)"}));
+      }
       const sugerido = typeof f.padrao === "function" ? f.padrao() : f.padrao;
       input.value = vazio && sugerido && options.indexOf(sugerido) >= 0
         ? sugerido
@@ -350,7 +361,14 @@ async function loadLookups(){
     api("/api/projects?limit=300").catch(function (){ return {items: []}; }),
     api("/api/equipe").catch(function (){ return {items: []}; }),
   ]);
-  CACHE.lines = lines.items.map(function (l){ return l.name; });
+  /* Só as linhas ativas viram opção. Uma linha que saiu da lista continua
+     no banco e continua contando os artigos que já apontavam para ela --
+     mas oferecê-la em artigo novo é convidar a coordenação a repovoar
+     justamente o que ela acabou de encerrar. A tela de Linhas de pesquisa
+     mostra as duas, com selo de encerrada. */
+  CACHE.lines = lines.items.filter(function (l){
+    return l.active === undefined || l.active === null || !!l.active;
+  }).map(function (l){ return l.name; });
   CACHE.articles = articles.items;
   CACHE.reasons = reasons.items.map(function (r){ return r.label; });
   CACHE.projects = projects.items;
@@ -404,6 +422,13 @@ const TESE_SITUACAO_OPTS = [
 ];
 const STATUS_OPTS = ["Em produção", "Submetido", "Em revisão", "Aceito", "Publicado",
                      "Rejeitado", "Arquivado"];
+/* Os dez delineamentos que o laboratório registra, na ordem em que a
+   coordenação os declarou. A mesma lista está em mapping.DESENHOS_DE_ESTUDO,
+   que é por onde a importação de planilha faz "ECR" e "RCT" caírem aqui. */
+const DESENHO_OPTS = ["Ensaio clínico controlado e randomizado", "Estudo transversal",
+                      "Estudo de coorte", "Revisão sistemática", "Meta-análise",
+                      "Revisão narrativa", "Editorial", "Carta ao editor",
+                      "Comunicação curta", "Estudo de protocolo"];
 const DECISION_OPTS = ["Em avaliação", "Revisão solicitada", "Aceito", "Rejeitado",
                        "Desk rejection", "Retirado"];
 const EVENT_OPTS = ["Reunião", "Coleta", "Defesa", "Qualificação", "Congresso", "Curso",
@@ -427,9 +452,18 @@ VIEWS.perfil = {
     ]));
     if (me.h_index_source)
       VIEW.appendChild(h("p", {class: "hint sec", text:
-        "Índice h calculado a partir de " + (me.h_index_source === "openalex_author"
-          ? "perfil público do OpenAlex (carreira completa)"
-          : "artigos deste banco") + (me.metrics_updated_at ? " · atualizado em " + dt(me.metrics_updated_at) : "")}));
+        me.h_index_source === "declarado"
+          ? "Índice h conferido pela coordenação"
+            + (me.h_index_declarado_base ? " na " + me.h_index_declarado_base : "")
+            + (me.h_index_declarado_em ? " em " + dt(me.h_index_declarado_em) : "")
+            + ". Nenhum recálculo automático o altera."
+          : "Índice h estimado a partir de " + (me.h_index_source === "openalex_author"
+              ? "perfil público do OpenAlex — traz a carreira inteira, mas junta "
+                + "homônimo e conta duplicata"
+              : "artigos deste banco — sai baixo, porque ignora o que você publicou "
+                + "antes do laboratório")
+            + (me.metrics_updated_at ? " · atualizado em " + dt(me.metrics_updated_at) : "")
+            + ". A coordenação pode gravar o número conferido."}));
 
     const spec = {fields: [
       field("Nome completo", "Nome completo", "text", {from: "full_name", required: true, span: "full"}),
@@ -664,8 +698,12 @@ VIEWS.artigos = crudView({
     field("Linha de pesquisa", "Linha de pesquisa", "select",
       {options: function (){ return CACHE.lines; }, from: "research_line",
        vazio: "Nenhuma linha de pesquisa cadastrada ainda. A coordenação instala as sete do LAPE de uma vez em Conta › Administração › Preparar o laboratório."}),
-    field("Tipo de estudo", "Tipo de estudo", "text",
-      {placeholder: "Ensaio clínico, revisão…", from: "study_type"}),
+    /* Era texto livre, e texto livre num campo de classificação não
+       classifica nada: "ECR", "ensaio clínico randomizado" e "RCT" são a
+       mesma coisa escrita de três jeitos, e o painel contava três
+       delineamentos onde havia um. */
+    field("Tipo de estudo", "Tipo de estudo", "select",
+      {options: DESENHO_OPTS, from: "study_type"}),
     field("Data de início", "Início do artigo", "date", {from: "started_on"}),
     field("Data da primeira versão", "1ª versão", "date"),
     field("Data segunda versão", "2ª versão", "date"),
@@ -853,19 +891,37 @@ VIEWS.linhas = crudView({
   id: "linhas", entity: "research-lines", label: "Linhas de pesquisa", group: "Laboratório",
   minimum: "coordenacao",
   lead: "As linhas organizam artigos, projetos, pessoas e atividades no painel.",
-  /* As sete linhas do LAPE ficam escritas no código e entram por um botão.
+  /* As oito linhas do LAPE ficam escritas no código e entram por um botão.
      Digitá-las a cada instalação é convite à divergência: uma máquina com
      "Psicologia do Esporte", outra com "Psicologia do esporte", e o painel
      contando duas linhas onde há uma. */
   atalho: {
-    rotulo: "Instalar as 7 linhas do LAPE",
-    dica: "Atividade física e saúde, psicologia do exercício, psicologia do esporte, "
-        + "qualidade do ar, fibromialgia, câncer e envelhecimento. Rodar de novo não "
-        + "desfaz o que você tiver mexido.",
+    rotulo: "Instalar as 8 linhas do LAPE",
+    dica: "Psicologia do esporte, psicologia do exercício, fibromialgia e doenças "
+        + "reumáticas, qualidade do ar, câncer, envelhecimento, fisioterapia e "
+        + "exergames e escolas. Linha que não está nessa lista sai das opções, mas "
+        + "não é apagada: os artigos que já apontavam para ela continuam lá.",
     rota: "/api/research-lines/padrao",
     contar: function (r){
-      if (!r.novas.length) return "As 7 já estavam cadastradas.";
-      return r.novas.length + " linha(s) incluída(s): " + r.novas.join(", ") + ".";
+      const partes = [];
+      if (r.novas.length) partes.push(r.novas.length + " incluída(s): " + r.novas.join(", "));
+      if ((r.renomeadas || []).length)
+        partes.push((r.renomeadas || []).map(function (x){
+          return "\u201c" + x.de + "\u201d passou a " + x.para; }).join("; "));
+      /* Desativar em silêncio seria o pior desfecho possível: a linha some
+         da tela levando junto a contagem de quem publicou nela, e ninguém
+         descobre até o relatório do ano sair errado. */
+      (r.desativadas || []).forEach(function (d){
+        const pendurado = Object.keys(d.aponta || {}).map(function (k){
+          return d.aponta[k] + " " + k.toLowerCase(); }).join(", ");
+        partes.push("\u201c" + d.nome + "\u201d saiu das opções"
+          + (pendurado ? " — ainda tem " + pendurado + " apontando para ela" : ""));
+      });
+      (r.nome_proprio || []).forEach(function (n){
+        partes.push("\u201c" + n.gravado + "\u201d ficou com o nome que você deu "
+          + "(o declarado é \u201c" + n.declarado + "\u201d)");
+      });
+      return partes.length ? partes.join(" · ") : "As 8 já estavam cadastradas.";
     },
   },
   formTitle: "Nova linha de pesquisa", listTitle: "Linhas cadastradas",
@@ -881,6 +937,13 @@ VIEWS.linhas = crudView({
   columns: [
     {k: "code", label: "Código"},
     {k: "name", label: "Linha"},
+    /* A lista mostra as encerradas junto com as ativas, com selo. Escondê-las
+       faria a coordenação procurar no banco por que um artigo antigo aponta
+       para uma linha que a tela jura não existir. */
+    {k: "active", label: "Situação", render: function (r){
+      return r.active === 0
+        ? h("span", {class: "badge", text: "fora das opções"})
+        : h("span", {class: "badge ok", text: "ativa"}); }},
     {k: "coordinator", label: "Coordenação"},
     {k: "keywords", label: "Palavras-chave"},
   ],
@@ -973,7 +1036,7 @@ VIEWS.admin = {
     const profEstado = h("p", {class: "hint", style: "margin:4px 0 12px",
       text: "Duas coisas que a ficha de quem chega pelo link precisa encontrar prontas: "
           + "os professores com vínculo (é de lá que sai a lista de orientadores) e as "
-          + "sete linhas de pesquisa (é de lá que saem as opções ao cadastrar projeto, "
+          + "oito linhas de pesquisa (é de lá que saem as opções ao cadastrar projeto, "
           + "artigo ou perfil). Não passa por cima do que você já tiver ajustado."});
     const profBotao = h("button", {class: "primary", text: "Preparar o laboratório",
       onclick: async function (){
@@ -989,7 +1052,7 @@ VIEWS.admin = {
           });
           recado.push(linhas.novas.length
             ? linhas.novas.length + " linha(s) de pesquisa incluída(s)"
-            : "as 7 linhas já estavam cadastradas");
+            : "as 8 linhas já estavam cadastradas");
           profEstado.textContent = recado.join(" · ");
           /* recarrega as listas que a própria página usa nos formulários,
              senão o cadastro ao lado continua com as opções de antes */
@@ -1015,6 +1078,21 @@ VIEWS.admin = {
     const dupBox = h("div", {class: "card sec"});
     VIEW.appendChild(dupBox);
     await desenharDuplicatas(dupBox);
+
+    /* Quem é do laboratório e quem assinou um artigo com o laboratório.
+       Eram a mesma coisa para o sistema: qualquer nome na lista de autores
+       virava ficha de integrante, e o painel contava como equipe o
+       orientador de fora e o coautor de outra universidade. */
+    const vincBox = h("div", {class: "card sec"});
+    VIEW.appendChild(vincBox);
+    await desenharVinculo(vincBox);
+
+    /* O índice h que vale é o conferido por gente. Antes não havia onde
+       dizê-lo: duas estimativas brigavam pela mesma coluna e a que
+       ganhasse por último ficava na tela. */
+    const hBox = h("div", {class: "card sec"});
+    VIEW.appendChild(hBox);
+    await desenharIndiceH(hBox);
 
     /* O convite é o que faz o laboratório entrar sozinho: um link para o
        grupo, cada pessoa escolhe a própria senha, ninguém transmite senha
@@ -1160,6 +1238,151 @@ async function desenharDuplicatas(caixa){
       estado,
       h("div", {class: "actions", style: "margin-top:10px"}, [botao]),
     ]));
+  });
+}
+
+async function desenharVinculo(caixa){
+  caixa.textContent = "";
+  caixa.appendChild(h("h3", {text: "Pesquisadores do LAPE e coautores"}));
+  let dados;
+  try {
+    dados = await api("/api/equipe/vinculo");
+  } catch (e){
+    caixa.appendChild(h("p", {class: "hint", text: "Não deu para conferir: " + e.message}));
+    return;
+  }
+  const c = dados.contagem || {};
+  caixa.appendChild(h("div", {class: "grid g3 sec"}, [
+    kpi("Pesquisadores do LAPE", c.pesquisadores),
+    kpi("Coautores", c.coautores),
+    kpi("A confirmar", c.a_confirmar),
+  ]));
+
+  const lista = dados.candidatos || [];
+  if (!lista.length){
+    caixa.appendChild(h("p", {class: "hint",
+      text: "Nenhuma ficha pendente. Daqui para a frente, quem aparece só como autor "
+          + "de um artigo entra como coautor — assinar um artigo com o laboratório "
+          + "não torna ninguém integrante dele."}));
+    return;
+  }
+  caixa.appendChild(h("p", {class: "hint", style: "margin:4px 0 12px",
+    text: lista.length + " ficha(s) estão contando como pesquisador do LAPE sem "
+        + "nenhum sinal de vínculo: sem função, sem e-mail, sem Lattes, sem data de "
+        + "entrada, sem conta, sem projeto e sem atividade — só artigos assinados. "
+        + "Pode ser coautor de fora, e pode ser gente da casa que ninguém terminou "
+        + "de cadastrar: as duas fichas são idênticas daqui. Confira uma por uma."}));
+
+  lista.forEach(function (p){
+    const estado = h("p", {class: "hint", style: "margin:6px 0 0",
+      text: (p.exemplos || "").split(" | ").slice(0, 2).join(" · ")});
+    const acao = function (coautor, rotulo, classe){
+      const botao = h("button", {class: classe, text: rotulo, onclick: async function (){
+        botao.disabled = true;
+        estado.textContent = "Gravando…";
+        try {
+          const r = await api("/api/equipe/vinculo", "POST", {id: p.id, coautor: coautor});
+          toast(r.quem + " agora é " + r.categoria, "ok");
+          await desenharVinculo(caixa);
+          await loadLookups();
+        } catch (e){
+          toast(e.message, "erro");
+          botao.disabled = false;
+        }
+      }});
+      return botao;
+    };
+    caixa.appendChild(h("div", {class: "sec"}, [
+      h("p", {style: "margin:0", html:
+        "<b>" + p.full_name + "</b> — " + p.n_artigos + " artigo(s), nenhum outro vínculo"}),
+      estado,
+      /* Os dois botões lado a lado, e não um só. Um botão "marcar como
+         coautor" sozinho faria a tela parecer ter uma resposta certa; a
+         ficha vazia da professora tem exatamente esta cara, e confirmá-la
+         como integrante é uma decisão tão válida quanto a outra -- e tira
+         a pessoa da lista, que é o que encerra a revisão. */
+      h("div", {class: "actions", style: "margin-top:10px"}, [
+        acao(true, "É coautor", "primary"),
+        acao(false, "É do LAPE", ""),
+      ]),
+    ]));
+  });
+}
+
+async function desenharIndiceH(caixa){
+  caixa.textContent = "";
+  caixa.appendChild(h("h3", {text: "Índice h dos pesquisadores"}));
+  let dados;
+  try {
+    dados = await api("/api/equipe/indice-h");
+  } catch (e){
+    caixa.appendChild(h("p", {class: "hint", text: "Não deu para carregar: " + e.message}));
+    return;
+  }
+  caixa.appendChild(h("p", {class: "hint", style: "margin:4px 0 12px",
+    text: "O número que vale é o que a coordenação confere na base e escreve aqui — "
+        + "nenhum recálculo o sobrescreve. As colunas ao lado são estimativas do "
+        + "próprio sistema: o cálculo com os artigos deste banco sai baixo porque "
+        + "ignora a carreira anterior ao laboratório, e o perfil público do OpenAlex "
+        + "sai alto porque junta homônimo e conta duplicata. Divergência entre eles é "
+        + "informação, por isso ficam à vista. Deixe o campo vazio para tirar a "
+        + "declaração e voltar à estimativa."}));
+
+  const linhas = dados.itens || [];
+  if (!linhas.length){
+    caixa.appendChild(h("p", {class: "hint", text: "Nenhum pesquisador do LAPE cadastrado."}));
+    return;
+  }
+  linhas.forEach(function (p){
+    const sit = p.situacao || {};
+    const campo = h("input", {type: "number", min: "0", max: "300",
+      style: "width:84px", value: p.h_index_declarado === null
+        || p.h_index_declarado === undefined ? "" : String(p.h_index_declarado)});
+    const base = h("select", {});
+    base.appendChild(h("option", {value: "", text: "— base —"}));
+    (dados.bases || []).forEach(function (b){
+      base.appendChild(h("option", {value: b, text: b}));
+    });
+    base.value = p.h_index_declarado_base || "";
+    const estado = h("p", {class: "hint", style: "margin:6px 0 0", text: sit.recado || ""});
+    const botao = h("button", {class: "primary", text: "Gravar", onclick: async function (){
+      botao.disabled = true;
+      const antes = estado.textContent;
+      estado.textContent = "Gravando…";
+      try {
+        const r = await api("/api/equipe/indice-h", "POST",
+          {id: p.id, h_index: campo.value, base: base.value});
+        toast(r.quem + (r.h_index === null ? " voltou para a estimativa"
+                                           : " — índice h " + r.h_index), "ok");
+        await desenharIndiceH(caixa);
+      } catch (e){
+        estado.textContent = antes;
+        toast(e.message, "erro");
+        botao.disabled = false;
+      }
+    }});
+    const est = sit.estimativas || {};
+    /* As estimativas ficam em texto apagado ao lado, e não numa coluna com
+       o mesmo peso do declarado: são referência para conferir, não
+       alternativas entre as quais escolher. */
+    const comparar = [
+      est.scopus === null || est.scopus === undefined ? null : "Scopus " + est.scopus,
+      est.wos === null || est.wos === undefined ? null : "WoS " + est.wos,
+      p.h_index_source === "openalex_author" ? "OpenAlex " + p.h_index : null,
+      p.h_index_source === "banco_lape" ? "artigos deste banco " + p.h_index : null,
+    ].filter(Boolean).join(" · ");
+
+    caixa.appendChild(h("div", {class: "sec"}, [
+      h("div", {style: "display:flex;gap:10px;align-items:center;flex-wrap:wrap"}, [
+        h("b", {text: p.full_name, style: "min-width:180px"}),
+        campo, base, botao,
+        sit.a_conferir ? h("span", {class: "badge", text: sit.origem === "declarado"
+          ? "a reconferir" : "não conferido"}) : h("span", {class: "badge ok", text: "conferido"}),
+      ]),
+      comparar ? h("p", {class: "hint", style: "margin:6px 0 0",
+        text: "o sistema estima: " + comparar}) : null,
+      estado,
+    ].filter(Boolean)));
   });
 }
 

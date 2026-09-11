@@ -19,6 +19,7 @@ from .mapping import (
     THESIS_KIND_MAP,
     THESIS_STATUS_MAP,
     build_column_map,
+    desenho_de_estudo,
     map_value,
     resolve_sheet,
 )
@@ -533,7 +534,7 @@ def ingest_articles(db: Database, rows: list[dict]) -> int:
                 "internal_code": clean_text(row.get("internal_code")),
                 "status": status,
                 "research_line_id": db.research_line_id(row.get("research_line")),
-                "study_type": clean_text(row.get("study_type")),
+                "study_type": desenho_de_estudo(row.get("study_type")),
                 "language": clean_text(row.get("language")),
                 "started_on": started_on,
                 "first_submission_on": submitted_on,
@@ -584,7 +585,13 @@ def _link_authors(db: Database, article_id: int, authors: list[str],
             continue
         corresponding = 1 if "*" in name else 0
         name = name.replace("*", "").strip()
-        member_id = db.member_id(name, create=True)
+        # Assinar um artigo com o laboratorio nao torna ninguem integrante
+        # do laboratorio. Antes a ficha nascia com is_external = 0, o padrao
+        # da coluna, e o orientador de fora, o colega de outra universidade
+        # e o estatistico convidado viravam "pesquisador do LAPE" -- inflando
+        # a equipe no painel e no organograma. Quem so assina nasce coautor;
+        # promover a integrante e ato da coordenacao, na aba de integrantes.
+        member_id = db.member_id(name, create=True, ao_criar={"is_external": 1})
         is_external = db.scalar("SELECT is_external FROM members WHERE id = ?", (member_id,)) or 0
         db.execute(
             "INSERT OR REPLACE INTO article_authors"
@@ -637,7 +644,14 @@ def ingest_authors(db: Database, rows: list[dict]) -> int:
         db.execute("DELETE FROM article_authors WHERE article_id = ?", (article_id,))
         for order, row in enumerate(entries, start=1):
             name = clean_text(row.get("author_name"))
-            member_id = db.member_id(name, create=True, is_external=to_bool(row.get("is_external")) or None)
+            # `to_bool(...) or None` dizia "externo" e engolia "nao
+            # externo": 0 vira None e o None e descartado. Agora a coluna
+            # ausente deixa o padrao decidir (coautor), e a coluna
+            # preenchida vale como declaracao, inclusive quando diz 0.
+            declarado = (to_bool(row.get("is_external"))
+                         if clean_text(row.get("is_external")) is not None else None)
+            member_id = db.member_id(name, create=True, is_external=declarado,
+                                     ao_criar={"is_external": 1})
             db.execute(
                 "INSERT OR REPLACE INTO article_authors"
                 " (article_id, member_id, author_name, author_order, is_corresponding, is_external)"
