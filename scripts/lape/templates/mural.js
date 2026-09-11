@@ -47,6 +47,18 @@ const TIPO_TRABALHO = {
   relatorio: "Relatório de IC", projeto: "Projeto de pesquisa",
 };
 
+/* O vínculo de cada pessoa, para a parede dizer quem é quem. Terceira
+   cópia deste vocabulário (as outras estão em mapping.VINCULOS e no
+   formulário), e há teste que reprova a divergência entre as três. */
+const VINCULO_NOME = {
+  coordenacao: "Coordenação", professor: "Professor(a)",
+  pos_doutorado: "Pós-doutorado", doutorando: "Doutorando(a)",
+  mestrando: "Mestrando(a)", bolsista_ic: "Bolsista de IC",
+  bolsista_extensao: "Bolsista de extensão", voluntario: "Voluntário(a)",
+  graduando: "Graduando(a)", tecnico: "Técnico(a)",
+  colaborador: "Colaborador(a) externo",
+};
+
 const ICONE_EVENTO = {
   reuniao: "reuniao", congresso: "anuncio", seminario: "apresentacao",
   coleta: "experimento", curso: "livro", palestra: "anuncio", workshop: "livro",
@@ -483,7 +495,14 @@ function slideAreas() {
       citacoes: meus.reduce(function (s, a) { return s + citacoes(a); }, 0),
       pessoas: l.n_members || 0,
       total: meus.length,
+      ativa: l.active !== 0,
     };
+  }).filter(function (x) {
+    /* Linha encerrada só continua na parede se ainda tiver artigo: a
+       produção de quem publicou ali é história do laboratório e não
+       desaparece porque a linha saiu da lista de opções. Encerrada e
+       vazia é só uma fileira de zeros ocupando a tela. */
+    return x.ativa || x.total > 0;
   }).sort(function (a, b) { return b.total - a.total; }).slice(0, 8);
 
   const empilhado = porLinha.length ? C.columns({
@@ -496,23 +515,28 @@ function slideAreas() {
     mode: "empilhado", height: 520, caption: "produção por linha de pesquisa",
   }) : vazio("Nenhuma linha de pesquisa cadastrada.");
 
-  const teto = Math.max.apply(null, porLinha.map(function (x) { return x.citacoes; }).concat([1]));
+  /* Sem a coluna de citações por linha. O número existe, mas só para o
+     artigo que tem DOI indexado -- e como boa parte do acervo não tem, a
+     soma por linha sai sistematicamente por baixo. Na parede isso não se
+     lê como "faltam DOIs": lê-se como "esta linha não é citada", que é
+     uma afirmação que o dado não sustenta. A barra passa a ser o número
+     de artigos, que o laboratório conhece inteiro. */
+  const teto = Math.max.apply(null, porLinha.map(function (x) { return x.total; }).concat([1]));
   const tabela = el("table", { class: "placar" }, [
     el("thead", {}, el("tr", {}, [
-      el("th", { text: "Linha de pesquisa" }), el("th", { text: "Citações" }),
-      el("th", { class: "num", text: "Artigos" }), el("th", { class: "num", text: "Pessoas" }),
+      el("th", { text: "Linha de pesquisa" }), el("th", { text: "Artigos" }),
+      el("th", { class: "num", text: "Pessoas" }),
     ])),
     el("tbody", {}, porLinha.map(function (x, i) {
       const barra = el("i");
-      barra.style.setProperty("--pct", (100 * x.citacoes / teto).toFixed(1) + "%");
+      barra.style.setProperty("--pct", (100 * x.total / teto).toFixed(1) + "%");
       const trilho = el("div", { class: "trilho" }, barra);
       trilho.style.setProperty("--tom", "var(--series-" + ((i % 8) + 1) + ")");
       return el("tr", {}, [
         el("td", {}, el("div", { class: "quem" }, [
           Icons.badge("linhas", null, 22), el("span", { text: x.nome })])),
         el("td", {}, el("div", { class: "quem" }, [
-          trilho, el("span", { text: fmt(x.citacoes) })])),
-        el("td", { class: "num", text: fmt(x.total) }),
+          trilho, el("span", { text: fmt(x.total) })])),
         el("td", { class: "num", text: fmt(x.pessoas) }),
       ]);
     })),
@@ -522,7 +546,7 @@ function slideAreas() {
     el("div", { class: "painel-duplo igual" }, [
       quadro("Publicados, em avaliação e em produção", "barras", empilhado,
         fmt(arts.length) + " artigos"),
-      quadro("Alcance de cada área", "citacao", tabela, "citações, artigos e equipe"),
+      quadro("Alcance de cada área", "linhas", tabela, "artigos e equipe por linha"),
     ]),
   ]));
 }
@@ -806,7 +830,7 @@ function slideCitados() {
 }
 
 /* Os mais citados saíram daqui para a tela `citados`, onde o número é o da
-   WoS. Esta ficou com as pessoas: quem assina, quanto, e com quem. */
+   WoS. Esta ficou com as pessoas -- quem são, não quanto produzem. */
 function slideDestaques() {
   const arts = artigos();
 
@@ -819,13 +843,36 @@ function slideDestaques() {
     return !m.is_external && m.active !== 0 && !m.left_on
       && (!AREA || m.research_line === AREA);
   }).slice(0, 8);
-  const ranking = equipe.length ? C.bars({
-    items: equipe.map(function (m) {
-      return { label: m.short_name || m.full_name, value: m.n_articles || 0,
-        note: (m.n_published || 0) + " publicados" };
-    }),
-    unit: "artigos", mono: true, labelWidth: 200, rowH: 54, caption: "produção por pessoa",
-  }) : vazio("Nenhum integrante com produção registrada.");
+
+  /* Quem é quem, e não quanto cada um produziu. Era um ranking de artigos
+     por pessoa; a parede fica no corredor do laboratório e ordenar colegas
+     por número de publicação ali não informa nada que a equipe já não
+     saiba -- só expõe quem entrou este ano ao lado de quem está há dez.
+     O que a parede tem a dizer sobre a equipe é quem ela é: o nome, o
+     vínculo e a linha em que a pessoa trabalha. */
+  /* Oito é o que cabe no cartão sem rolar. A parede não tem quem role: o
+     que passa da borda simplesmente não existe para quem olha, e o
+     cabeçalho sai junto -- foi o que aconteceu com doze. */
+  const elenco = equipe.length ? el("table", { class: "placar" }, [
+    el("thead", {}, el("tr", {}, [
+      el("th", { text: "Integrante" }), el("th", { text: "Vínculo" }),
+    ])),
+    el("tbody", {}, equipe.map(function (m) {
+      return el("tr", {}, [
+        el("td", {}, el("div", { class: "quem" }, [
+          Icons.badge("pessoa", null, 22),
+          el("span", { text: m.short_name || m.full_name })])),
+        /* Sem vínculo declarado fica o travessão. Inventar "Graduando(a)"
+           para quem ninguém classificou seria a parede afirmando o que não
+           sabe, na frente da própria pessoa. */
+        /* Só o nome e o vínculo. A linha de pesquisa também esteve aqui e
+           saiu: no cartão de meia largura ela cabia como "Psicologi…", que
+           não é informação -- é ruído ocupando a largura que o nome da
+           pessoa precisa. */
+        el("td", { text: VINCULO_NOME[m.role] || "—" }),
+      ]);
+    })),
+  ]) : vazio("Nenhum integrante cadastrado.");
 
   const porLinha = contar(arts, "research_line").slice(0, 6);
   const reparte = porLinha.length
@@ -847,9 +894,10 @@ function slideDestaques() {
         serie: 6, pastilha: "bom", pe: "no laboratório" }),
     ]),
     el("div", { class: "painel-duplo igual" }, [
-      quadro("Produção por integrante", "pessoas", ranking,
+      quadro("Nossa equipe", "pessoas", elenco,
         equipe.length + " de "
-          + fmt((D.members || []).filter(function (m) { return !m.is_external; }).length)
+          + fmt((D.members || []).filter(function (m) {
+              return !m.is_external && m.active !== 0 && !m.left_on; }).length)
           + " integrantes"),
       quadro("Onde a produção está", "linhas", reparte, fmt(arts.length) + " artigos"),
     ]),
@@ -868,7 +916,7 @@ const SLIDES = [
   { id: "prazos", titulo: "Prazos e pendências", icone: "prazo", montar: slidePrazos },
   { id: "areas", titulo: "Produção por área", icone: "linhas", montar: slideAreas },
   { id: "andamento", titulo: "Em andamento", icone: "projeto", montar: slideAndamento },
-  { id: "destaques", titulo: "Quem está produzindo", icone: "pessoas", montar: slideDestaques },
+  { id: "destaques", titulo: "Nossa equipe", icone: "pessoas", montar: slideDestaques },
 ];
 
 /* ?slides=agora,prazos escolhe quais telas entram no ciclo */

@@ -19,6 +19,7 @@ MURAL_HTML = TEMPLATE_DIR / "mural.html"
 MURAL_JS = TEMPLATE_DIR / "mural.js"
 CHARTS_TEMPLATE = TEMPLATE_DIR / "charts.js"
 ICONS_TEMPLATE = TEMPLATE_DIR / "icons.js"
+BANDEIRAS_TEMPLATE = TEMPLATE_DIR / "bandeiras.js"
 THEME_TEMPLATE = TEMPLATE_DIR / "theme.css"
 
 
@@ -95,6 +96,11 @@ def render_mural(payload: dict[str, Any]) -> str:
     html = html.replace("__TITLE__", f"{payload['overview']['lab_name']} — Mural")
     html = html.replace("__THEME_CSS__", THEME_TEMPLATE.read_text(encoding="utf-8"))
     html = html.replace("__ICONS_JS__", ICONS_TEMPLATE.read_text(encoding="utf-8"))
+    # O mural nao passa pelo _serve_page da API -- ele e montado aqui, e a
+    # substituicao das bandeiras tinha sido ligada so la. O marcador
+    # sobrevivia literal dentro do <script> e virava ReferenceError ao
+    # carregar: o bloco morria e `Bandeiras` ficava indefinido na parede.
+    html = html.replace("__BANDEIRAS_JS__", BANDEIRAS_TEMPLATE.read_text(encoding="utf-8"))
     html = html.replace("__LOGO__", marca.marcador())
     html = html.replace("__CHARTS_JS__", CHARTS_TEMPLATE.read_text(encoding="utf-8"))
     html = html.replace("__SCRIPT__", MURAL_JS.read_text(encoding="utf-8"))

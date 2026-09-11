@@ -99,14 +99,55 @@ class TestMontagemDoMural(unittest.TestCase):
         cls.tmp.cleanup()
 
     def test_nenhum_marcador_sobrou(self):
-        # um "__DATA__" na pagina publicada seria a tela em branco na parede
-        for marcador in ("__TITLE__", "__THEME_CSS__", "__ICONS_JS__",
-                         "__CHARTS_JS__", "__SCRIPT__", "__DATA__"):
-            self.assertNotIn(marcador, self.html, f"marcador {marcador} nao foi substituido")
+        """Todo marcador do modelo tem de ter sido trocado por conteudo.
+
+        A lista sai do PROPRIO modelo, e nao escrita a mao aqui. Escrita a
+        mao ela envelhece calada: foi assim que `__BANDEIRAS_JS__` passou
+        -- o marcador entrou no mural.html, a substituicao foi ligada so na
+        outra rota, e o teste continuou verde conferindo os cinco de antes.
+        Na parede, o marcador sobrevivia literal dentro do <script>, virava
+        ReferenceError ao carregar, o bloco morria e `Bandeiras` ficava
+        indefinido.
+        """
+        modelo = (TEMPLATES / "mural.html").read_text(encoding="utf-8")
+        marcadores = set(re.findall(r"__[A-Z][A-Z0-9_]*__", modelo))
+        self.assertIn("__DATA__", marcadores, "o modelo do mural mudou de forma")
+        for marcador in sorted(marcadores):
+            with self.subTest(marcador=marcador):
+                self.assertNotIn(marcador, self.html,
+                                 f"marcador {marcador} nao foi substituido")
+
+    def test_a_parede_nao_conta_citacao_por_linha_de_pesquisa(self):
+        """O número existe, mas só para o artigo com DOI indexado.
+
+        Como boa parte do acervo não tem, a soma por linha sai por baixo.
+        Na parede isso não se lê como "faltam DOIs": lê-se como "esta
+        linha não é citada", que é uma afirmação que o dado não sustenta.
+        """
+        js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
+        corpo = js[js.index("function slideAreas()"):]
+        corpo = corpo[:corpo.index("function slideDentroDaArea")]
+        self.assertNotIn('text: "Citações"', corpo)
+
+    def test_a_lamina_da_equipe_diz_quem_e_e_nao_quanto_produz(self):
+        js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
+        corpo = js[js.index("function slideDestaques()"):]
+        corpo = corpo[:corpo.index("\nconst SLIDES")]
+        self.assertIn("VINCULO_NOME", corpo)
+        self.assertNotIn("produção por pessoa", corpo)
+        self.assertNotIn("n_articles", corpo)
+
+    def test_linha_encerrada_e_vazia_sai_da_parede(self):
+        """Encerrada COM artigo fica: a produção é história do laboratório."""
+        js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
+        corpo = js[js.index("function slideAreas()"):]
+        corpo = corpo[:corpo.index("function slideDentroDaArea")]
+        self.assertIn("x.ativa || x.total > 0", corpo)
 
     def test_leva_tudo_embutido(self):
         self.assertIn("const Icons", self.html)
         self.assertIn("const Charts", self.html)
+        self.assertIn("const Bandeiras", self.html)
         self.assertIn("const ROTEIRO", self.html)
         self.assertIn("--surface-sunken", self.html)
 

@@ -250,6 +250,19 @@ class TestVocabularioDaPagina(unittest.TestCase):
         self.assertEqual(self.opcoes("VINCULO_OPTS"),
                          [codigo for codigo, _, _ in mapping.VINCULOS])
 
+    def test_o_mural_nomeia_todo_vinculo(self):
+        """Terceira cópia do mesmo vocabulário, e a que fica na parede.
+
+        Um vínculo que o Python conhece e o mural não vira travessão na
+        tela do corredor, ao lado do nome da pessoa -- e ninguém que passa
+        ali tem como saber que é falha de cadastro do sistema e não da
+        pessoa.
+        """
+        texto = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
+        bloco = texto.split("const VINCULO_NOME = {", 1)[1].split("\n};", 1)[0]
+        nomeados = set(re.findall(r"(\w+):", bloco))
+        self.assertEqual(nomeados, {codigo for codigo, _, _ in mapping.VINCULOS})
+
     def test_tipos_de_trabalho(self):
         self.assertEqual(set(self.opcoes("TESE_TIPO_OPTS")),
                          set(mapping.THESIS_KIND_MAP.values()))
