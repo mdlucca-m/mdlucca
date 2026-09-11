@@ -435,5 +435,93 @@ class TestOsIndicadoresSegmentados(unittest.TestCase):
         self.assertIn("x += pw + 2", corpo)
 
 
+class TestOsRotulosQueSeEncontravam(unittest.TestCase):
+    """Rótulo que colide não é estilo: é o número ficando ilegível."""
+
+    def setUp(self):
+        self.charts = (TEMPLATES / "charts.js").read_text(encoding="utf-8")
+        self.corpo = self.charts[self.charts.index("function funnel(spec)"):]
+        self.corpo = self.corpo[:self.corpo.index("function scatter(spec)")]
+
+    def test_o_funil_encolhe_o_texto_em_vez_de_deixar_colidir(self):
+        """O valor e a porcentagem vinham de pontas opostas e se encontravam.
+
+        Num cartão estreito saía "1072%" -- o "107" da barra colado no
+        "92% da etapa anterior".
+        """
+        self.assertIn("porExtenso", self.corpo)
+        self.assertIn("MR = porExtenso", self.corpo)
+
+    def test_a_fatia_dominante_da_rosca_diz_de_que_ela_e(self):
+        """"89%" sozinho não diz de quê.
+
+        Quem olha de longe lê um número solto e precisa procurar a legenda
+        para saber se aquilo é bom ou ruim.
+        """
+        corpo = self.charts[self.charts.index("function donut(spec)"):]
+        corpo = corpo[:corpo.index("function funnel(spec)")]
+        self.assertIn("pct >= 30 && item.label", corpo)
+
+
+class TestOMovimento(unittest.TestCase):
+    """Efeito que atrapalha quem pediu para não ter efeito é defeito."""
+
+    def setUp(self):
+        self.charts = (TEMPLATES / "charts.js").read_text(encoding="utf-8")
+        self.dash = (TEMPLATES / "dashboard.js").read_text(encoding="utf-8")
+        self.css = (TEMPLATES / "theme.css").read_text(encoding="utf-8")
+
+    def test_a_marca_entra_escalonada(self):
+        self.assertIn('class: "mark cresce"', self.charts)
+        self.assertIn('style.setProperty("--passo"', self.charts)
+
+    def test_o_escalonamento_tem_teto(self):
+        """Trinta barras a 45ms cada seriam um segundo e meio de espera.
+
+        Esperar um gráfico carregar não é efeito, é lentidão com música.
+        """
+        # a âncora é a DECLARAÇÃO, não a linha homônima dentro da guarda
+        # de movimento reduzido, que aparece antes no arquivo
+        bloco = self.css[self.css.index(".plot .cresce {\n  animation: entra"):]
+        bloco = bloco[:bloco.index("}")]
+        self.assertIn("min(var(--passo, 0), 9)", bloco)
+
+    def test_a_marca_repousa_no_tamanho_do_dado(self):
+        """Marca que para menor do que o valor é gráfico mentindo."""
+        bloco = self.css[self.css.index("@keyframes entra {"):]
+        bloco = bloco[:bloco.index("\n}")]
+        self.assertIn("to   { opacity: 1; transform: scale(1); }", bloco)
+
+    def test_o_movimento_para_para_quem_pediu(self):
+        guarda = self.css[self.css.index("@media (prefers-reduced-motion: reduce) {"):]
+        self.assertIn(".plot .cresce { animation: none; }", guarda)
+        self.assertIn("prefers-reduced-motion", self.dash)
+
+    def test_o_numero_do_indicador_comeca_certo(self):
+        """A contagem acontece POR CIMA de um texto que já está correto.
+
+        Quem tem o movimento desligado, ou um leitor de tela, lê o número
+        certo desde o primeiro quadro.
+        """
+        bloco = self.dash[self.dash.index("function contarAte("):]
+        bloco = bloco[:bloco.index("\nfunction kpi(")]
+        # o nó é criado com o texto final e só depois é animado
+        criacao = self.dash[self.dash.index('const valor = el("div", { class: "value"'):]
+        criacao = criacao[:criacao.index("\n")]
+        self.assertIn("text: spec.value", criacao)
+        self.assertIn("prefers-reduced-motion", bloco)
+
+    def test_a_contagem_termina_no_valor_e_nao_perto_dele(self):
+        bloco = self.dash[self.dash.index("function contarAte("):]
+        bloco = bloco[:bloco.index("\nfunction kpi(")]
+        self.assertIn("t < 1 ? C.fmt(Math.round(alvo * suave)) : bruto", bloco)
+
+    def test_a_contagem_nao_mexe_em_texto_que_nao_e_numero(self):
+        """"16,3 meses" e "—" ficam como estão."""
+        bloco = self.dash[self.dash.index("function contarAte("):]
+        bloco = bloco[:bloco.index("\nfunction kpi(")]
+        self.assertIn("test(bruto)", bloco)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -571,6 +571,7 @@ button.kpi:focus-visible .kpi-ir { color: var(--accent); }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .plot .cresce { animation: none; }
   .plot .acendeu { animation: none; }
   .plot .emfoco { animation: none; }
   .plot .mira-foco { animation: none; opacity: 1; }
@@ -599,6 +600,26 @@ svg.plot.tree .tick { font-size: 11px; }
 /* entrada dos gráficos: a marca cresce da linha de base ao ser desenhada */
 .plot .grow { animation: grow .42s cubic-bezier(.22,.9,.3,1) both; transform-origin: center bottom; }
 @keyframes grow { from { transform: scaleY(.02); opacity: .35; } to { transform: scaleY(1); opacity: 1; } }
+
+/* A marca entra, uma depois da outra, na ordem em que é lida.
+
+   O escalonamento tem teto: a partir da décima marca o atraso para de
+   crescer. Sem o teto, um gráfico de trinta barras levaria dois segundos
+   para terminar de aparecer, e esperar um gráfico carregar não é efeito
+   -- é lentidão com música.
+
+   A animação é de OPACIDADE e escala, e termina em 1: nenhuma marca fica
+   parada num tamanho que não seja o do seu valor, em nenhum quadro depois
+   do fim. Marca que repousa menor do que o dado é gráfico mentindo. */
+.plot .cresce {
+  animation: entra .5s cubic-bezier(.22,.9,.3,1) both;
+  animation-delay: calc(min(var(--passo, 0), 9) * 45ms);
+  transform-origin: center;
+}
+@keyframes entra {
+  from { opacity: 0; transform: scale(.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
 
 .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 11px;
   font-size: 12px; color: var(--ink-2); }

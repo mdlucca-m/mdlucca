@@ -336,9 +336,11 @@ const Charts = (function () {
           const x = center - barW / 2;
           const isTop = cursor + v >= totals[i] - 1e-9;
           const node = s("path", {
-            class: "mark", d: isTop ? capTop(x, y0, barW, h) : capTop(x, y0, barW, h, 0),
+            class: "mark cresce",
+            d: isTop ? capTop(x, y0, barW, h) : capTop(x, y0, barW, h, 0),
             fill: serieSpec.color || serie(si),
           });
+          node.style.setProperty("--passo", i);
           hoverable(node, label, [{ value: fmt(v), name: serieSpec.label, color: serieSpec.color || serie(si) }],
             spec.onSelect && function () { spec.onSelect(label, serieSpec.label); });
           svg.appendChild(node);
@@ -356,8 +358,10 @@ const Charts = (function () {
           const h = Math.max(v > 0 ? 2 : 0, Y(0) - Y(v));
           if (h <= 0) return;
           const node = s("path", {
-            class: "mark", d: capTop(x, Y(v), barW, h), fill: serieSpec.color || serie(si),
+            class: "mark cresce",
+            d: capTop(x, Y(v), barW, h), fill: serieSpec.color || serie(si),
           });
+          node.style.setProperty("--passo", i);
           hoverable(node, label, [{ value: fmt(v), name: serieSpec.label, color: serieSpec.color || serie(si) }],
             spec.onSelect && function () { spec.onSelect(label, serieSpec.label); });
           svg.appendChild(node);
@@ -440,10 +444,11 @@ const Charts = (function () {
           const ultimo = k === partes.length - 1;
           const cor = parte.cor || serie(k);
           const pedaco = s("path", {
-            class: "mark",
+            class: "mark cresce",
             d: ultimo ? capRight(x, y, pw, barH)
                       : "M" + x + "," + y + " h" + pw + " v" + barH + " h" + (-pw) + " Z",
             fill: cor });
+          pedaco.style.setProperty("--passo", i);
           hoverable(pedaco, item.label,
             [{ value: fmt(parte.valor), name: parte.rotulo, color: cor }]);
           svg.appendChild(pedaco);
@@ -452,7 +457,8 @@ const Charts = (function () {
         svg.appendChild(txt(s("text", { class: "val", x: ML + w + 8, y: y + barH / 2 + 4 }), fmt(item.value)));
         return;
       }
-      const node = s("path", { class: "mark", d: capRight(ML, y, w, barH), fill: color });
+      const node = s("path", { class: "mark cresce", d: capRight(ML, y, w, barH), fill: color });
+      node.style.setProperty("--passo", i);
       const rows = [{ value: fmt(item.value), name: spec.unit || "", color: color }];
       if (item.note) rows.push({ value: "", name: item.note });
       hoverable(node, item.label, rows, item.onSelect || (spec.onSelect && function () { spec.onSelect(item); }));
@@ -651,13 +657,25 @@ const Charts = (function () {
       hoverable(path, item.label, [{ value: fmt(item.value) + " (" + pct + "%)", name: spec.unit || "", color: color }],
         item.onSelect || (spec.onSelect && function () { spec.onSelect(item); }));
       svg.appendChild(path);
-      /* chamada só nas fatias que comportam o texto */
+      /* Chamada so nas fatias que comportam o texto. E na fatia dominante
+         vai tambem o NOME: "89%" sozinho nao diz de que -- quem olha de
+         longe le um numero solto e precisa procurar a legenda para saber
+         se aquilo e bom ou ruim. */
       if (pct >= 8) {
         const mid = (a0 + a1) / 2, rr = (R + r) / 2;
+        const x = cx + rr * Math.cos(mid), y = cy + rr * Math.sin(mid);
+        const manda = pct >= 30 && item.label;
         svg.appendChild(txt(s("text", {
-          x: cx + rr * Math.cos(mid), y: cy + rr * Math.sin(mid) + 4,
-          "text-anchor": "middle", style: "font-size:11px;font-weight:700;fill:#fff",
+          x: x, y: y + (manda ? -2 : 4), "text-anchor": "middle",
+          style: "font-size:11px;font-weight:700;fill:#fff",
         }), pct + "%"));
+        if (manda) {
+          svg.appendChild(txt(s("text", {
+            x: x, y: y + 11, "text-anchor": "middle",
+            style: "font-size:9.5px;font-weight:600;fill:#fff;opacity:.88",
+          }), String(item.label).length > 13
+              ? String(item.label).slice(0, 12) + "…" : String(item.label)));
+        }
       }
       angle += span;
     });
@@ -681,7 +699,15 @@ const Charts = (function () {
     if (!steps.length) return figure(spec, empty(spec.emptyMessage));
     /* rowH aberto: no mural, quatro etapas precisam ocupar a altura do quadro */
     const rowH = spec.rowH || 46;
-    const W = spec.width || 760, H = steps.length * rowH + 10, ML = 176, MR = 130;
+    const W = spec.width || 760, H = steps.length * rowH + 10, ML = 176;
+    /* A porcentagem e o valor eram ancorados em pontas opostas e se
+       encontravam no meio: num cartao estreito saia "1072%" -- o "107" da
+       barra colado no "92% da etapa anterior". A margem da direita agora
+       acompanha a largura, e o texto encolhe junto: num espaco curto sobra
+       so a porcentagem, que e a informacao, e o resto esta na legenda e na
+       dica do mouse. */
+    const porExtenso = W >= 620;
+    const MR = porExtenso ? 130 : 52;
     const peak = Math.max.apply(null, steps.map(function (x) { return x.value; }).concat([1]));
     const svg = svgRoot(W, H, spec.caption || "funil");
     steps.forEach(function (step, i) {
@@ -699,7 +725,7 @@ const Charts = (function () {
       svg.appendChild(txt(s("text", { class: "val", x: ML + w + 9, y: y + h / 2 + 4 }), fmt(step.value)));
       if (i) {
         svg.appendChild(txt(s("text", { class: "tick", x: W - 8, y: y + h / 2 + 4, "text-anchor": "end" }),
-          share + "% da etapa anterior"));
+          share + (porExtenso ? "% da etapa anterior" : "%")));
       }
     });
     return figure(spec, svg);

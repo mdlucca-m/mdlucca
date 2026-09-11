@@ -253,6 +253,36 @@ function leituraDe(spec) {
   return node;
 }
 
+/* O número sobe até o seu valor quando aparece.
+
+   Dá vida ao painel sem custar honestidade, com três cuidados. O texto
+   COMEÇA já escrito com o valor final: quem tem o movimento desligado, ou
+   um leitor de tela, lê o número certo desde o primeiro quadro -- a
+   contagem só acontece por cima de algo que já está correto. Ela dura
+   meio segundo e termina exatamente no valor, nunca perto dele. E só
+   entra em número puro: "16,3 meses" e "—" ficam como estão, porque
+   animar um texto que não é número é remexer em texto.
+
+   Sem a guarda de `prefers-reduced-motion` isto seria exatamente o tipo
+   de efeito que atrapalha quem pediu para não ter efeito. */
+function contarAte(node, texto) {
+  if (typeof texto !== "string" && typeof texto !== "number") return;
+  const bruto = String(texto);
+  const limpo = bruto.replace(/\./g, "").replace(",", ".");
+  const alvo = Number(limpo);
+  if (!isFinite(alvo) || alvo <= 0 || !/^[\d.,]+$/.test(bruto)) return;
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const inicio = performance.now();
+  const passo = function (agora) {
+    const t = Math.min(1, (agora - inicio) / 520);
+    /* desacelera no fim: o número chega, não freia de repente */
+    const suave = 1 - Math.pow(1 - t, 3);
+    node.textContent = t < 1 ? C.fmt(Math.round(alvo * suave)) : bruto;
+    if (t < 1) requestAnimationFrame(passo);
+  };
+  requestAnimationFrame(passo);
+}
+
 function kpi(spec) {
   /* Um numero grande num painel de parede levanta sempre a mesma
      pergunta: "quais sao esses treze?". Com `ir`, o cartao inteiro vira
@@ -277,7 +307,9 @@ function kpi(spec) {
     spec.tone === "good" ? "bom" : (spec.tone === "bad" ? "critico" : null), null));
   label.appendChild(el("span", { text: spec.label }));
   node.appendChild(label);
-  node.appendChild(el("div", { class: "value", text: spec.value }));
+  const valor = el("div", { class: "value", text: spec.value });
+  node.appendChild(valor);
+  contarAte(valor, spec.value);
   if (spec.delta !== undefined && spec.delta !== null && spec.delta !== 0) {
     const up = spec.delta > 0;
     const good = spec.lowerIsBetter ? !up : up;
