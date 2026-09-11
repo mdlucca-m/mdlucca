@@ -1034,8 +1034,12 @@ class TestOMovimentoRespeitaAPreferencia(unittest.TestCase):
         self.assertIn("if (MENOS_MOVIMENTO) return;", self.tela)
 
     def test_a_bandeira_para_de_tremer(self):
-        corpo = self.tela[self.tela.index("@media (prefers-reduced-motion:reduce){"):]
-        self.assertIn(".tremula{animation:none}", corpo[:200])
+        # a animacao mora no tema, que as duas telas usam -- a guarda com ela
+        tema = (ROOT / "scripts" / "lape" / "templates" / "theme.css").read_text(
+            encoding="utf-8")
+        corpo = tema[tema.index("@keyframes tremular"):]
+        self.assertIn("prefers-reduced-motion", corpo)
+        self.assertIn(".tremula { animation: none; }", corpo)
 
     def test_aba_escondida_nao_gira(self):
         # girar um globo que ninguem ve gasta bateria para nada
@@ -1047,8 +1051,9 @@ class TestOMovimentoRespeitaAPreferencia(unittest.TestCase):
 
         O enfeite fica longe do dado: a bandeira treme, a barra nao.
         """
-        css = self.tela[:self.tela.index("</style>")]
-        bloco = css[css.index("@keyframes tremular"):]
+        tema = (ROOT / "scripts" / "lape" / "templates" / "theme.css").read_text(
+            encoding="utf-8")
+        bloco = tema[tema.index("@keyframes tremular"):]
         bloco = bloco[:bloco.index("}\n}") + 3]
         for proibido in (".bar", ".mark", "svg", ".plot"):
             with self.subTest(alvo=proibido):

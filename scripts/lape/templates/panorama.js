@@ -1843,7 +1843,45 @@ function pedirMundo() {
    mapa ser lido -- parado, ele e uma figura; girando, e a pergunta "de onde
    vem isto?" sendo respondida pais a pais. Quem pediu menos movimento
    recebe o mapa parado, e os botoes continuam ali. */
-const MAPA = { girando: false, indice: 0 };
+const MAPA = { girando: false, indice: 0, lon: -40, alvo: null, roda: null };
+
+/* A longitude do centro de um país, tirada do contorno. É o que permite o
+   globo GIRAR ATÉ o país em foco: sem isso, o rodízio acende o Japão
+   enquanto o globo mostra a América, e quem olha não vê nada acontecer --
+   o país aceso está do outro lado do planeta. */
+function longitudeDoPais(nome) {
+  const ficha = (D.mundo || []).find(function (p) {
+    return p.nome === nome || p.en === nome || p.id === nome; });
+  if (!ficha || !(ficha.d || []).length) return null;
+  const maior = ficha.d.slice().sort(function (a, b) { return b.length - a.length; })[0];
+  let soma = 0;
+  maior.forEach(function (pt) { soma += pt[0]; });
+  return soma / maior.length;
+}
+
+/* Gira de verdade: um passo por quadro. Quando há país em foco, o globo
+   caminha até ele pelo lado mais curto -- dar a volta ao contrário para
+   chegar ao mesmo lugar é mais tempo de tela dizendo nada. */
+function rodarOGlobo(redesenhar) {
+  if (MAPA.roda) clearInterval(MAPA.roda);
+  if (MENOS_MOVIMENTO_PAINEL) return;
+  MAPA.roda = setInterval(function () {
+    if (document.hidden) return;
+    if (MAPA.alvo !== null) {
+      let dif = ((MAPA.alvo - MAPA.lon + 540) % 360) - 180;
+      if (Math.abs(dif) < 0.6) { MAPA.lon = MAPA.alvo; MAPA.alvo = null; }
+      else { MAPA.lon += dif * 0.09; }
+    } else if (MAPA.girando || !ST.pais) {
+      MAPA.lon = (MAPA.lon + 1.4) % 360;
+    } else {
+      return;                       // parado num país escolhido a mão
+    }
+    redesenhar();
+  }, 80);
+}
+
+const MENOS_MOVIMENTO_PAINEL = window.matchMedia
+  && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 let relogioDoMapa = null;
 const SEGUNDOS_POR_PAIS = 3200;
 
@@ -1864,6 +1902,8 @@ function girarOMapa(paises, redesenhar) {
     if (!document.getElementById("palco-mapa")) { pararORodizio(); return; }
     MAPA.indice = (MAPA.indice + 1) % paises.length;
     ST.pais = paises[MAPA.indice].pais;
+    const lon = longitudeDoPais(ST.pais);
+    if (lon !== null) MAPA.alvo = lon;
     redesenhar();
   }, SEGUNDOS_POR_PAIS);
 }
@@ -1915,7 +1955,11 @@ function botoesDePais(paises, redesenhar) {
         const escolhaMinha = !MAPA.girando && ST.pais === x.pais;
         pararORodizio();
         if (escolhaMinha) { ST.pais = null; }
-        else { ST.pais = x.pais; MAPA.indice = i; }
+        else {
+          ST.pais = x.pais; MAPA.indice = i;
+          const lon = longitudeDoPais(x.pais);
+          if (lon !== null) MAPA.alvo = lon;
+        }
         redesenhar();
       },
       /* A bandeira vem antes do nome porque é ela que se reconhece antes de
@@ -1923,7 +1967,7 @@ function botoesDePais(paises, redesenhar) {
          próprio Unicode, e por isso funcionam no mural sem rede e no
          instantâneo que viaja por e-mail. País sem bandeira conhecida fica
          só com o nome, e nada se desalinha. */
-    }, [x.bandeira ? el("span", { class: "bandeira", text: x.bandeira }) : null,
+    }, [x.bandeira ? el("span", { class: "bandeira tremula", text: x.bandeira }) : null,
         el("span", { text: x.pais }), el("small", { text: String(x.n) })]));
   });
   return caixa;
@@ -1931,10 +1975,29 @@ function botoesDePais(paises, redesenhar) {
 
 function controlesDoMapa(paises, redesenhar) {
   const caixa = el("div", { class: "nav-mapa" });
+  /* Trocar de projeção não é enfeite: o globo mostra de onde se olha e o
+     plano compara todos de uma vez. Quem precisa comparar precisa do plano,
+     e substituí-lo em silêncio tiraria dele a única vista que compara. */
+  caixa.appendChild(el("button", {
+    type: "button", class: "ghost", "data-nav": "projecao",
+    title: MAPA.projecao === "globo"
+      ? "Ver o mapa plano, que mostra todos os países de uma vez"
+      : "Ver o globo, que gira até o país em foco",
+    onclick: function () {
+      MAPA.projecao = MAPA.projecao === "globo" ? "plano" : "globo";
+      if (MAPA.projecao !== "globo" && MAPA.roda) {
+        clearInterval(MAPA.roda); MAPA.roda = null;
+      }
+      redesenhar();
+    },
+  }, [Icons.get(MAPA.projecao === "globo" ? "mapa" : "espaco", 14),
+      el("span", { text: MAPA.projecao === "globo" ? "Plano" : "Globo" })]));
   const irPara = function (i) {
     pararORodizio();
     MAPA.indice = (i + paises.length) % paises.length;
     ST.pais = paises[MAPA.indice].pais;
+    const lon = longitudeDoPais(ST.pais);
+    if (lon !== null) MAPA.alvo = lon;
     redesenhar();
   };
   caixa.appendChild(el("button", {
@@ -1973,7 +2036,7 @@ function recorteDoPais(nome, redesenhar) {
 
   caixa.appendChild(el("div", { class: "recorte-topo" }, [
     el("h3", {}, [
-      ficha.bandeira ? el("span", { class: "bandeira grande", text: ficha.bandeira })
+      ficha.bandeira ? el("span", { class: "bandeira grande tremula", text: ficha.bandeira })
         : Icons.get("mapa", null),
       el("span", { text: nome })]),
     el("span", { class: "badge", text: artigos.length + " artigo(s)" }),
@@ -2071,37 +2134,71 @@ function verMapa(palco) {
                        x.n, pe, "mapa"); })));
 
   const palcoMapa = el("div", { id: "palco-mapa", style: "margin-top:14px" });
+  /* Duas projeções, e cada uma responde a uma pergunta. O globo mostra de
+     ONDE se está olhando e por isso gira; o plano mostra TODOS os países de
+     uma vez e por isso não gira. Trocar um pelo outro em silêncio tiraria
+     de quem compara a única vista que compara. */
+  if (MAPA.projecao === undefined) MAPA.projecao = "globo";
   palco.appendChild(palcoMapa);
 
   function redesenhar() {
     palcoMapa.innerHTML = "";
+    if (MAPA.projecao === "globo" && !MAPA.roda) rodarOGlobo(redesenhar);
     palcoMapa.appendChild(cartao("mapa",
       ST.pais ? "A produção, com " + ST.pais + " em foco" : "Onde a produção acontece",
       "Um artigo com autores de dois países conta para os dois — foi produzido nos dois.",
       el("div", {}, [
-        C.mapaMundi({
-          world: D.mundo || [],
-          values: valores,
-          foco: ST.pais,
-          unit: "artigos",
-          file: "mapa-producao",
-          emptyMessage: "Nenhum país registrado ainda.",
-          emptyHint: "Falta ligar cada coautor à instituição dele.",
-          onSelect: function (nome) {
-            /* mesma regra do chip: com o mapa girando, o clique escolhe;
-               parado, ele alterna */
-            const escolhaMinha = !MAPA.girando && ST.pais === nome;
-            pararORodizio();
-            ST.pais = escolhaMinha ? null : nome;
-            redesenhar();
-          },
-          table: {
-            cols: ["País", "Artigos", "Instituições"],
-            rows: todos.map(function (x) {
-              return [(x.bandeira ? x.bandeira + " " : "") + x.pais,
-                      x.n, x.instituicoes.join("; ")]; }),
-          },
-        }),
+        MAPA.projecao === "globo"
+          ? C.globo({
+              world: D.mundo || [],
+              values: valores,
+              foco: ST.pais,
+              rotacao: MAPA.lon || 0,
+              file: "globo-producao",
+              emptyMessage: "Nenhum país registrado ainda.",
+            })
+          : C.mapaMundi({
+              world: D.mundo || [],
+              values: valores,
+              foco: ST.pais,
+              unit: "artigos",
+              file: "mapa-producao",
+              emptyMessage: "Nenhum país registrado ainda.",
+              emptyHint: "Falta ligar cada coautor à instituição dele.",
+              onSelect: function (nome) {
+                /* mesma regra do chip: com o mapa girando, o clique escolhe;
+                   parado, ele alterna */
+                const escolhaMinha = !MAPA.girando && ST.pais === nome;
+                pararORodizio();
+                ST.pais = escolhaMinha ? null : nome;
+                redesenhar();
+              },
+              table: {
+                cols: ["País", "Artigos", "Instituições"],
+                rows: todos.map(function (x) {
+                  return [(x.bandeira ? x.bandeira + " " : "") + x.pais,
+                          x.n, x.instituicoes.join("; ")]; }),
+              },
+            }),
+        /* A tabela sai do próprio mapa quando ele é plano. No globo ela
+           precisa vir à parte: um gráfico sem leitura em texto é um gráfico
+           que exclui quem usa leitor de tela -- e aqui ela serve também a
+           quem quer o número exato, que o globo não dá. */
+        MAPA.projecao === "globo"
+          ? C.table(
+              /* `table` recebe as colunas e as linhas POSICIONADAS, e cada
+                 coluna é um objeto com rótulo e leitor. Passar um objeto
+                 com `cols`/`rows` não dá erro de tipo aqui: estoura lá
+                 dentro, num `cols.map` -- e a exceção mata o desenho
+                 inteiro do mapa, que foi como o globo sumiu da tela sem
+                 deixar nada escrito. */
+              [{ label: "País", k: "pais" },
+               { label: "Artigos", k: "n", num: true },
+               { label: "Instituições", k: "inst" }],
+              todos.map(function (x) {
+                return { pais: (x.bandeira ? x.bandeira + " " : "") + x.pais,
+                         n: x.n, inst: x.instituicoes.join("; ") }; }))
+          : null,
         controlesDoMapa(todos, redesenhar),
         botoesDePais(todos, redesenhar),
       ])));

@@ -149,23 +149,7 @@ table.matriz td.celula{text-align:center;font-variant-numeric:tabular-nums}
 .bandeira-btn:hover{border-color:var(--accent-strong);color:var(--ink)}
 .bandeira-btn .nome{font-weight:620}
 .bandeira-btn small{font-variant-numeric:tabular-nums;color:var(--ink-muted)}
-/* A bandeira treme de leve, como pano ao vento. É enfeite, e por isso fica
-   longe do dado: nenhuma marca de gráfico se mexe aqui -- número que balança
-   é número difícil de ler. */
-.tremula{display:inline-block;font-size:15px;line-height:1;
-  animation:tremular 2.4s ease-in-out infinite;transform-origin:left center}
-@keyframes tremular{
-  0%,100%{transform:perspective(60px) rotateY(0deg) skewY(0deg)}
-  25%{transform:perspective(60px) rotateY(-14deg) skewY(1.2deg)}
-  50%{transform:perspective(60px) rotateY(0deg) skewY(0deg)}
-  75%{transform:perspective(60px) rotateY(14deg) skewY(-1.2deg)}
-}
-/* Quem pediu menos movimento não recebe bandeira tremendo nem globo girando.
-   O giro tem a sua própria guarda no JavaScript, porque é um relógio e não
-   uma animação de CSS. */
-@media (prefers-reduced-motion:reduce){
-  .tremula{animation:none}
-}
+
 
 @media (max-width:860px){
   .layout{grid-template-columns:1fr}

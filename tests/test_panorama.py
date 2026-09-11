@@ -1415,5 +1415,115 @@ class TestOLayoutDoFluxo(unittest.TestCase):
         self.assertEqual(set(saida["faixa"].values()), {0})
 
 
+
+class TestOGloboNoPainel(unittest.TestCase):
+    """O mapa da producao passa a ter as duas projecoes.
+
+    O globo mostra de ONDE se esta olhando e por isso gira; o plano mostra
+    TODOS os paises de uma vez e por isso nao gira. Trocar um pelo outro em
+    silencio tiraria de quem compara a unica vista que compara.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.js = (TEMPLATES / "panorama.js").read_text(encoding="utf-8")
+
+    def test_as_duas_projecoes_existem(self):
+        self.assertIn("C.globo({", self.js)
+        self.assertIn("C.mapaMundi({", self.js)
+
+    def test_da_para_trocar_de_projecao(self):
+        self.assertIn('"data-nav": "projecao"', self.js)
+        self.assertIn('MAPA.projecao === "globo" ? "plano" : "globo"', self.js)
+
+    def test_a_tabela_usa_a_assinatura_do_grafico(self):
+        """`table` recebe colunas e linhas POSICIONADAS.
+
+        Passar `{cols, rows}` nao da erro de tipo na chamada: estoura la
+        dentro, num `cols.map is not a function` -- e a excecao mata o
+        desenho inteiro do mapa. Foi assim que o globo sumiu da tela sem
+        deixar nada escrito.
+        """
+        corpo = self.js[self.js.index("MAPA.projecao === \"globo\"\n          ? C.table("):]
+        corpo = corpo[:corpo.index("          : null,")]
+        self.assertNotIn("cols:", corpo)
+        self.assertNotIn("rows:", corpo)
+        self.assertIn('{ label: "País"', corpo)
+
+    def test_o_globo_leva_a_tabela_junto(self):
+        """O mapa plano ja embute a tabela; o globo nao.
+
+        Grafico sem leitura em texto exclui quem usa leitor de tela -- e
+        aqui ela serve tambem a quem quer o numero exato, que o globo nao
+        da.
+        """
+        corpo = self.js[self.js.index('MAPA.projecao === "globo"'):]
+        corpo = corpo[:corpo.index("controlesDoMapa(")]
+        self.assertIn("C.table(", corpo)
+
+    def test_o_globo_gira_ate_o_pais_em_foco(self):
+        """Sem isso, o rodizio acende o Japao e o globo mostra a America.
+
+        Quem olha nao ve nada acontecer: o pais aceso esta do outro lado
+        do planeta.
+        """
+        self.assertIn("function longitudeDoPais(", self.js)
+        corpo = self.js[self.js.index("function rodarOGlobo("):]
+        corpo = corpo[:corpo.index("\n}")]
+        # caminha pelo lado mais curto
+        self.assertIn("+ 540) % 360) - 180", corpo)
+
+    def test_o_giro_para_com_a_aba_escondida(self):
+        corpo = self.js[self.js.index("function rodarOGlobo("):]
+        self.assertIn("document.hidden", corpo[:700])
+
+    def test_o_giro_respeita_quem_pediu_menos_movimento(self):
+        # e um relogio em JavaScript: o CSS nao o alcanca
+        corpo = self.js[self.js.index("function rodarOGlobo("):]
+        self.assertIn("MENOS_MOVIMENTO_PAINEL", corpo[:400])
+
+
+class TestABandeiraQueTreme(unittest.TestCase):
+
+    def test_a_animacao_mora_no_tema(self):
+        """O painel e a area do integrante mostram as MESMAS bandeiras.
+
+        Com a animacao numa tela so, metade do sistema ficaria com pano
+        parado ao lado de pano ao vento.
+        """
+        tema = (TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        self.assertIn("@keyframes tremular", tema)
+        self.assertIn(".tremula", tema)
+
+    def test_as_duas_telas_usam(self):
+        painel = (TEMPLATES / "panorama.js").read_text(encoding="utf-8")
+        area = (TEMPLATES / "app.html").read_text(encoding="utf-8")
+        self.assertIn("tremula", painel)
+        self.assertIn("tremula", area)
+
+    def test_a_animacao_nao_esta_duplicada(self):
+        # duas copias divergem no dia em que alguem ajustar uma
+        area = (TEMPLATES / "app.html").read_text(encoding="utf-8")
+        self.assertNotIn("@keyframes tremular", area)
+
+    def test_quem_pediu_menos_movimento_ve_pano_parado(self):
+        tema = (TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        corpo = tema[tema.index("@keyframes tremular"):]
+        self.assertIn("prefers-reduced-motion", corpo)
+        self.assertIn(".tremula { animation: none; }", corpo)
+
+    def test_nenhuma_marca_de_grafico_treme(self):
+        """Numero que balanca e numero dificil de ler.
+
+        O enfeite fica longe do dado: a bandeira treme, a barra nao.
+        """
+        tema = (TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        bloco = tema[tema.index("@keyframes tremular"):]
+        bloco = bloco[:bloco.index("}\n}") + 3]
+        for proibido in (".bar", ".mark", "svg", ".plot", ".numero"):
+            with self.subTest(alvo=proibido):
+                self.assertNotIn(proibido, bloco)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

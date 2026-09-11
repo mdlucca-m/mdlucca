@@ -684,3 +684,23 @@ textarea:focus-visible, [tabindex]:focus-visible {
   .card::before, .kpi::before { display: none; }
   section { break-inside: avoid; page-break-inside: avoid; }
 }
+
+
+/* ---- a bandeira que treme ----
+   Fica no tema, e nao numa tela so: o painel e a area do integrante mostram
+   as mesmas bandeiras, e ter a animacao em um lugar deixaria metade do
+   sistema com pano parado ao lado de pano ao vento.
+
+   E enfeite, e por isso fica LONGE do dado: nenhuma marca de grafico se
+   mexe -- numero que balanca e numero dificil de ler. */
+.tremula { display: inline-block; line-height: 1; transform-origin: left center;
+  animation: tremular 2.4s ease-in-out infinite; }
+@keyframes tremular {
+  0%, 100% { transform: perspective(60px) rotateY(0deg) skewY(0deg); }
+  25%      { transform: perspective(60px) rotateY(-14deg) skewY(1.2deg); }
+  50%      { transform: perspective(60px) rotateY(0deg) skewY(0deg); }
+  75%      { transform: perspective(60px) rotateY(14deg) skewY(-1.2deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tremula { animation: none; }
+}
