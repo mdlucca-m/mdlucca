@@ -171,6 +171,120 @@ class TestOFormularioDeEdicao(Base):
         self.assertIn('can("coordenacao")', trecho)
 
 
+class TestOQueOAgenteNaoPodeInventar(Base):
+    """Manuscrito em produção não tem DOI, e apagar é uma decisão.
+
+    Os dois defeitos foram relatados juntos: "aparece o DOI e o link, só
+    que esse artigo não foi publicado ainda [...] e quando eu apago,
+    continua com DOI e com o link".
+    """
+
+    def test_manuscrito_nao_e_procurado_pelo_titulo_nas_bases(self):
+        """Procurar o que não existe só pode achar outra coisa.
+
+        Um manuscrito ainda em produção não tem registro em base nenhuma,
+        então todo casamento por título ali é falso por construção -- e
+        carimba o DOI, o periódico e o link de OUTRO artigo num trabalho
+        que a equipe ainda está escrevendo.
+        """
+        from lape.agents import tracker
+
+        chamadas = []
+
+        def espiao(doi=None, title=None, mailto=None):
+            chamadas.append({"doi": doi, "title": title})
+            return None
+
+        curator.register(self.db, "articles", {
+            "Título": "Manuscrito em produção", "Autores": "Andrade"})
+        curator.register(self.db, "articles", {
+            "Título": "Artigo já publicado", "Autores": "Andrade",
+            "Status": "Publicado", "Ano": "2025"})
+
+        original = tracker.sources.best_metadata
+        tracker.sources.best_metadata = espiao
+        try:
+            tracker.enrich(self.db, verbose=False)
+        finally:
+            tracker.sources.best_metadata = original
+
+        procurados = [c["title"] for c in chamadas if c["title"]]
+        self.assertIn("Artigo já publicado", procurados)
+        self.assertNotIn("Manuscrito em produção", procurados)
+
+    def test_manuscrito_com_doi_digitado_ainda_e_consultado(self):
+        """O DOI que o laboratório digitou é legítimo em qualquer situação.
+
+        Cortar a consulta inteira para quem não publicou tiraria também o
+        caminho certo -- e um artigo aceito com DOI emitido ficaria sem
+        periódico para sempre.
+        """
+        from lape.agents import tracker
+
+        chamadas = []
+
+        def espiao(doi=None, title=None, mailto=None):
+            chamadas.append({"doi": doi, "title": title})
+            return None
+
+        curator.register(self.db, "articles", {
+            "Título": "Em produção mas com DOI", "Autores": "Andrade", "DOI": "10.1/x"})
+        original = tracker.sources.best_metadata
+        tracker.sources.best_metadata = espiao
+        try:
+            tracker.enrich(self.db, verbose=False)
+        finally:
+            tracker.sources.best_metadata = original
+        self.assertEqual([c["doi"] for c in chamadas], ["10.1/x"])
+        self.assertEqual([c["title"] for c in chamadas], [None])
+
+    def _artigo_com_doi(self):
+        curator.register(self.db, "articles", {
+            "Título": "Com DOI e link", "Autores": "Andrade",
+            "DOI": "10.9/errado", "Link": "https://errado.org"})
+        return self.db.scalar("SELECT id FROM articles WHERE title = 'Com DOI e link'")
+
+    def test_o_campo_apagado_na_tela_nao_volta_no_enriquecimento(self):
+        from lape.agents import tracker
+
+        alvo = self._artigo_com_doi()
+        curator.register(self.db, "articles", {
+            "registro_id": alvo, "Título": "Com DOI e link", "Autores": "Andrade",
+            "DOI": "", "Link": ""})
+        tracker._fill_missing(self.db, alvo, {"doi": "10.1/palpite",
+                                              "url": "https://palpite.org"})
+        self.db.conn.commit()
+        self.assertIsNone(self.db.scalar("SELECT doi FROM articles WHERE id = ?", (alvo,)))
+        self.assertIsNone(self.db.scalar("SELECT url FROM articles WHERE id = ?", (alvo,)))
+
+    def test_campo_que_ninguem_apagou_continua_sendo_preenchido(self):
+        """A anotação não pode virar um freio geral no enriquecimento."""
+        from lape.agents import tracker
+
+        alvo = self._artigo_com_doi()
+        curator.register(self.db, "articles", {
+            "registro_id": alvo, "Título": "Com DOI e link", "Autores": "Andrade",
+            "DOI": "", "Link": ""})
+        tracker._fill_missing(self.db, alvo, {"journal": "Revista que faltava"})
+        self.db.conn.commit()
+        self.assertEqual(
+            self.db.scalar("SELECT journal FROM articles WHERE id = ?", (alvo,)),
+            "Revista que faltava")
+
+    def test_digitar_o_valor_de_novo_desfaz_a_anotacao(self):
+        alvo = self._artigo_com_doi()
+        curator.register(self.db, "articles", {
+            "registro_id": alvo, "Título": "Com DOI e link", "Autores": "Andrade",
+            "DOI": "", "Link": ""})
+        curator.register(self.db, "articles", {
+            "registro_id": alvo, "Título": "Com DOI e link", "Autores": "Andrade",
+            "DOI": "10.5/certo", "Link": ""})
+        apagados = {r["field"] for r in self.db.dicts(
+            "SELECT field FROM cleared_fields WHERE record_id = ?", (alvo,))}
+        self.assertNotIn("doi", apagados)
+        self.assertIn("url", apagados)
+
+
 # ----------------------------------------------------------------------
 # 2. Tipo de estudo
 # ----------------------------------------------------------------------

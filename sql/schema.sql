@@ -198,6 +198,26 @@ CREATE TABLE IF NOT EXISTS articles (
   updated_at          TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+/* Campos que alguem apagou de proposito na tela.
+
+   Apagar e uma decisao, e o preenchimento automatico precisa saber disso.
+   Sem este registro o agente rastreador via o campo vazio, concluia que
+   era lacuna e repunha o valor no enriquecimento seguinte -- e quem tinha
+   apagado jurava que a tela nao salvava. Foi exatamente o que aconteceu
+   com o DOI e o link de um manuscrito ainda em producao.
+
+   A planilha continua mandando: ela e gente escrevendo, e o agente e
+   palpite. Gravar valor de novo no campo apaga o registro, porque a
+   decisao de apagar deixou de valer. */
+CREATE TABLE IF NOT EXISTS cleared_fields (
+  entity      TEXT NOT NULL,
+  record_id   INTEGER NOT NULL,
+  field       TEXT NOT NULL,
+  cleared_on  TEXT NOT NULL DEFAULT (datetime('now')),
+  cleared_by  TEXT,
+  PRIMARY KEY (entity, record_id, field)
+);
+
 CREATE TABLE IF NOT EXISTS article_authors (
   article_id       INTEGER NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
   member_id        INTEGER REFERENCES members(id) ON DELETE SET NULL,

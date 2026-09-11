@@ -122,6 +122,12 @@ def discover(db: Database, since_year: int | None = None, limit_per_author: int 
 
 # ----------------------------------------------------------------------
 # Enriquecimento
+# As situacoes em que o trabalho ja saiu -- e so nelas existe registro
+# dele numa base externa para ser encontrado pelo titulo. "Aceito" entra
+# porque o periodico costuma emitir o DOI no aceite, antes de publicar.
+PUBLICOS = ("publicado", "aceito")
+
+
 # ----------------------------------------------------------------------
 def enrich(db: Database, limit: int | None = None, verbose: bool = True) -> dict[str, Any]:
     """Completa metadados faltantes dos artigos ja cadastrados."""
@@ -134,8 +140,19 @@ def enrich(db: Database, limit: int | None = None, verbose: bool = True) -> dict
     updated = 0
     errors: list[str] = []
     for article in pending:
+        # Buscar pelo TITULO um manuscrito que ainda nao foi publicado e
+        # procurar o que nao existe: nao ha registro dele em base nenhuma,
+        # entao todo casamento ali e falso por construcao -- e carimba o
+        # DOI, o periodico e o link de OUTRO artigo num trabalho que a
+        # equipe ainda esta escrevendo. Sem titulo, sobra a consulta pelo
+        # DOI que o proprio laboratorio digitou, que e legitima em
+        # qualquer situacao.
+        por_titulo = article["status"] in PUBLICOS
+        if not por_titulo and not clean_text(article["doi"]):
+            continue
         try:
-            meta = sources.best_metadata(article["doi"], article["title"], mailto=MAILTO)
+            meta = sources.best_metadata(
+                article["doi"], article["title"] if por_titulo else None, mailto=MAILTO)
         except sources.SourceError as exc:
             errors.append(f"{article['title'][:50]}: {exc}")
             continue
@@ -246,6 +263,13 @@ def _fill_missing(db: Database, article_id: int, values: dict[str, Any]) -> None
     externas -- o agente completa lacunas, nunca corrige o laboratorio.
     """
     payload = {k: v for k, v in values.items() if v is not None}
+    # O que a coordenacao apagou na tela fica apagado. Preencher de novo
+    # seria o agente desfazendo, calado, uma decisao de quem conhece o
+    # trabalho -- e o campo voltava na rodada seguinte, sem aviso.
+    apagados = {row["field"] for row in db.dicts(
+        "SELECT field FROM cleared_fields WHERE entity = 'articles' AND record_id = ?",
+        (article_id,))}
+    payload = {k: v for k, v in payload.items() if k not in apagados}
     if not payload:
         return
     assignments = ", ".join(f"{c} = COALESCE({c}, ?)" for c in payload)

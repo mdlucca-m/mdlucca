@@ -600,6 +600,7 @@ def _atualizar(db: Database, tabela: str, alvo: int, dados: dict, row: dict,
             escrever[coluna] = valor
         elif origem.get(coluna) in row:
             escrever[coluna] = None
+    _anotar_o_que_foi_apagado(db, tabela, alvo, escrever)
     colunas = ", ".join(f"{c} = ?" for c in escrever)
     tem_updated = any(c["name"] == "updated_at"
                       for c in db.dicts(f"PRAGMA table_info({tabela})"))
@@ -607,6 +608,33 @@ def _atualizar(db: Database, tabela: str, alvo: int, dados: dict, row: dict,
     db.execute(f"UPDATE {tabela} SET {colunas}{carimbo} WHERE id = ?",
                [*escrever.values(), alvo])
     return alvo
+
+
+def _anotar_o_que_foi_apagado(db: Database, tabela: str, alvo: int,
+                              escrever: dict[str, Any]) -> None:
+    """Guarda quais campos a pessoa esvaziou, e quais ela voltou a preencher.
+
+    O agente rastreador preenche todo campo vazio que encontra. Sem esta
+    anotacao ele nao distingue "ninguem soube este dado ainda" de "a
+    coordenacao apagou este dado de proposito", e repoe o segundo no
+    enriquecimento seguinte -- entao apagar na tela nao durava ate a
+    proxima rodada, e quem apagou jurava que a tela nao salvava.
+    """
+    antes = db.dicts(f"SELECT * FROM {tabela} WHERE id = ?", (alvo,))
+    if not antes:
+        return
+    antes = antes[0]
+    for coluna, valor in escrever.items():
+        tinha = antes.get(coluna) not in (None, "")
+        if valor in (None, "") and tinha:
+            db.execute(
+                "INSERT OR REPLACE INTO cleared_fields (entity, record_id, field)"
+                " VALUES (?, ?, ?)", (tabela, alvo, coluna))
+        elif valor not in (None, ""):
+            # voltou a ter valor: a decisao de apagar deixou de valer
+            db.execute("DELETE FROM cleared_fields"
+                       " WHERE entity = ? AND record_id = ? AND field = ?",
+                       (tabela, alvo, coluna))
 
 
 def gravar_registro(db: Database, tabela: str, dados: dict, conflito: tuple[str, ...],
