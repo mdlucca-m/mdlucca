@@ -1217,6 +1217,337 @@ view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
       [capa, numeros, producao, impacto, areas, pessoas, objetivos, seguir]));
   });
 
+/* A produção de cada linha de pesquisa, e para onde ela foi.
+
+   Devolve a especificação de um fluxo: à esquerda uma faixa por linha,
+   com espessura proporcional ao número de artigos; à direita as três
+   situações. O que estiver fora de qualquer linha entra como "Sem linha",
+   porque o que falta classificar é informação e não pode sumir do
+   desenho -- num mosaico de áreas ele simplesmente não aparecia. */
+function fluxoDasLinhas(rows) {
+  const SITUACAO = [
+    { id: "sit_publicado", rotulo: "Publicado",
+      casa: function (a) { return a.status === "publicado"; } },
+    { id: "sit_producao", rotulo: "Em produção",
+      casa: function (a) { return a.status === "em_producao"; } },
+    { id: "sit_avaliacao", rotulo: "Em avaliação",
+      casa: function (a) { return a.status === "submetido" || a.status === "em_revisao"; } },
+  ];
+  const porLinha = new Map();
+  rows.forEach(function (a) {
+    const nome = a.research_line || "Sem linha";
+    if (!porLinha.has(nome)) porLinha.set(nome, []);
+    porLinha.get(nome).push(a);
+  });
+  /* Oito faixas é o que se lê; o resto vira uma só. Vinte faixas de dois
+     pixels não são um gráfico, são um pente. */
+  const ordenadas = Array.from(porLinha.entries())
+    .sort(function (a, b) { return b[1].length - a[1].length; });
+  const principais = ordenadas.slice(0, 8);
+  const resto = ordenadas.slice(8);
+  if (resto.length) {
+    principais.push(["Outras " + resto.length + " linhas",
+      resto.reduce(function (t, x) { return t.concat(x[1]); }, [])]);
+  }
+
+  const nodes = [];
+  const links = [];
+  principais.forEach(function (par, i) {
+    const id = "linha_" + i;
+    nodes.push({ id: id, label: cut(par[0], 26), depth: 0, color: C.serie(i) });
+    SITUACAO.forEach(function (sit) {
+      const quantos = par[1].filter(sit.casa).length;
+      if (quantos) links.push({ source: id, target: sit.id, value: quantos });
+    });
+  });
+  SITUACAO.forEach(function (sit, i) {
+    const usada = links.some(function (l) { return l.target === sit.id; });
+    if (usada) nodes.push({ id: sit.id, label: sit.rotulo, depth: 1, color: C.serie(i) });
+  });
+  return { nodes: nodes, links: links, height: 320, unit: "artigos", file: "linhas",
+    caption: "artigos por linha de pesquisa e situação" };
+}
+
+/* ====================================================================== */
+/* a história do laboratório                                              */
+/* ====================================================================== */
+/* Todo painel de dados responde "como estamos". Nenhum responde "quem
+   somos" -- e é essa a primeira pergunta de quem chega: o bolsista no
+   primeiro dia, o avaliador da Capes, o parceiro que abre o link.
+
+   Daí esta aba ser feita de caixa e ícone, e não de gráfico. O texto é
+   da coordenação e está aqui inteiro, mas quebrado em unidades que se
+   leem de relance: um marco, um pilar, uma linha, um público, um
+   benefício. Quem tem trinta segundos lê os desenhos; quem tem cinco
+   minutos lê os parágrafos. As duas leituras contam a mesma história.
+
+   Os números vêm do banco, não do texto: "37 anos" e "116 publicações"
+   se corrigem sozinhos no ano que vem, enquanto uma data escrita à mão
+   envelhece calada. */
+const HISTORIA = {
+  fundado_em: 1989,
+  /* Três nomes, um laboratório. A sequência é o que explica por que o
+     LAPE é mais velho do que o nome LAPE. */
+  marcos: [
+    { quando: "Outubro de 1989", icone: "semente",
+      titulo: "O primeiro núcleo de pesquisa do CEFID",
+      texto: "O Prof. Dr. Alexandro Andrade cria o 1º Núcleo de Pesquisa do "
+        + "CEFID/UDESC — a semente de tudo o que veio depois." },
+    { quando: "Agosto de 1990", icone: "cerebro",
+      titulo: "Laboratório de Aprendizagem Motora",
+      texto: "O núcleo vira laboratório e assume a aprendizagem motora como "
+        + "primeiro campo de trabalho." },
+    { quando: "Março de 1999", icone: "foguete",
+      titulo: "Nasce o LAPE",
+      texto: "A atualização para Laboratório de Psicologia do Esporte e do "
+        + "Exercício fixa o nome e o escopo que o laboratório tem até hoje." },
+    { quando: "2024", icone: "trofeu",
+      titulo: "35 anos",
+      texto: "Trinta e cinco anos completados, e o esforço de dezenas de "
+        + "estudantes e pesquisadores ao longo deles." },
+  ],
+  /* O tripé universitário. Não é enfeite institucional: é o que o LAPE
+     faz de fato, e cada perna tem entrega própria. */
+  pilares: [
+    { icone: "experimento", titulo: "Pesquisa", tom: "verde",
+      texto: "Estudos nas linhas do laboratório, produzindo conhecimento "
+        + "publicado e revisado por pares." },
+    { icone: "tese", titulo: "Ensino", tom: "violeta",
+      texto: "Formação de estudantes e profissionais, da graduação ao "
+        + "pós-doutorado, dentro das linhas de pesquisa." },
+    { icone: "comunidade", titulo: "Extensão", tom: "magenta",
+      texto: "Serviços e atendimento à comunidade, com acesso gratuito à "
+        + "assistência especializada." },
+  ],
+  /* As linhas da Psicologia do Esporte e do Exercício (PEE). */
+  linhas: [
+    { icone: "coracao", titulo: "Atividade física e saúde" },
+    { icone: "halteres", titulo: "Psicologia do exercício" },
+    { icone: "cerebro", titulo: "Psicologia do esporte" },
+    { icone: "trofeu", titulo: "Desempenho no esporte" },
+    { icone: "pulmao", titulo: "Qualidade do ar e poluição" },
+  ],
+  menor_grau: "Em menor grau, o laboratório também desenvolve estudos em "
+    + "epistemologia, inovação e tecnologia.",
+  /* Quem senta na cadeira do outro lado. */
+  publico: [
+    { icone: "dor", titulo: "Doenças reumáticas, fibromialgia e dor" },
+    { icone: "cerebro", titulo: "Depressão, ansiedade e transtornos de humor" },
+    { icone: "fita", titulo: "Sobreviventes de câncer de mama" },
+    { icone: "envelhecimento", titulo: "Pessoas idosas" },
+    { icone: "corrida", titulo: "Atletas" },
+    { icone: "pessoas", titulo: "Crianças e adolescentes" },
+    { icone: "pulmao", titulo: "Praticantes expostos à poluição" },
+  ],
+  /* O que o exercício estruturado e orientado muda em quem é atendido.
+     A seta é do efeito, não do número: quem quiser o número abre a
+     produção do laboratório. */
+  beneficios: [
+    { icone: "cerebro", seta: "desce", titulo: "Sintomas depressivos" },
+    { icone: "serenidade", seta: "desce", titulo: "Ansiedade" },
+    { icone: "raio", seta: "desce", titulo: "Estresse" },
+    { icone: "dor", seta: "desce", titulo: "Dor" },
+    { icone: "sono", seta: "sobe", titulo: "Qualidade do sono" },
+    { icone: "humor", seta: "sobe", titulo: "Estado de humor" },
+    { icone: "halteres", seta: "sobe", titulo: "Capacidade funcional" },
+    { icone: "coracao", seta: "sobe", titulo: "Qualidade de vida" },
+  ],
+  bolsas: ["Capes", "CNPq", "UDESC"],
+};
+
+/* Uma caixa: pastilha com o ícone em cima, título, e texto opcional.
+   É a peça de que a aba inteira é feita -- muda o conteúdo, não a forma. */
+function hcaixa(spec) {
+  return el("div", { class: "hcaixa" + (spec.classe ? " " + spec.classe : "") }, [
+    Icons.badge(spec.icone, spec.tom || null, null),
+    el("b", { text: spec.titulo }),
+    spec.texto ? el("p", { text: spec.texto }) : null,
+    spec.seta ? el("span", { class: "hseta " + spec.seta,
+      text: spec.seta === "sobe" ? "▲ aumenta" : "▼ reduz" }) : null,
+  ].filter(Boolean));
+}
+
+/* A entrada escalonada. Um cartão que aparece de uma vez é um cartão;
+   dezoito que aparecem em cascata são uma história sendo contada. Custa
+   um índice por caixa, para no fim e não volta -- e some por inteiro
+   para quem pediu menos movimento (ver `prefers-reduced-motion` no
+   tema). */
+function hanimar(host) {
+  host.querySelectorAll(".hcaixa, .hmarco").forEach(function (node, i) {
+    node.classList.add("entrando");
+    node.style.setProperty("--passo", String(i % 10));
+  });
+  return host;
+}
+
+view("historia", "Nossa história", "",
+  "Trinta e cinco anos de laboratório em caixas: de onde viemos, o que "
+  + "fazemos, para quem, e o que isso muda na vida das pessoas.",
+  function (host) {
+    const o = D.overview || {};
+    const rows = D.articles || [];
+    const ano = new Date().getFullYear();
+    const anos = ano - HISTORIA.fundado_em;
+    const publicados = rows.filter(function (a) { return a.status === "publicado"; }).length;
+
+    /* ------------------------------------------------------------------
+       capa — a identidade, e quatro números que o banco atualiza sozinho
+       ------------------------------------------------------------------ */
+    host.appendChild(el("div", { class: "card hcapa" }, [
+      el("div", { class: "marca" }, [
+        Icons.badge("raizes", null, 52),
+        el("div", {}, [
+          el("h3", { text: o.lab_name
+            || "Laboratório de Psicologia do Esporte e do Exercício" }),
+          el("div", { class: "hint", text: (o.institution || "CEFID / UDESC")
+            + " · desde " + HISTORIA.fundado_em }),
+        ]),
+      ]),
+      el("p", { class: "lema", text: "Um laboratório e grupo de pesquisa que "
+        + "reflete o esforço de dezenas de estudantes e pesquisadores ao longo "
+        + "de sua existência. Ensino, pesquisa e extensão: produzir "
+        + "conhecimento, atender a comunidade e formar gente." }),
+    ]));
+
+    host.appendChild(el("div", { class: "grid g4", style: "margin-top:16px" }, [
+      kpi({ label: "Anos de história", value: C.fmt(anos), icon: "raizes",
+        foot: "fundado em outubro de " + HISTORIA.fundado_em }),
+      kpi({ label: "Linhas de pesquisa", value: C.fmt(HISTORIA.linhas.length),
+        icon: "linhas", ir: "linhas", foot: "na Psicologia do Esporte e do Exercício" }),
+      kpi({ label: "Publicações", value: C.fmt(publicados), icon: "livro",
+        ir: "publicacoes", foot: "registradas no banco do LAPE" }),
+      kpi({ label: "Pessoas", value: C.fmt((o.n_members || 0) + (o.n_collaborators || 0)),
+        icon: "pessoas", ir: "pesquisadores",
+        foot: "pesquisadores e coautores" }),
+    ]));
+
+    /* ------------------------------------------------------------------
+       linha do tempo — três nomes, um laboratório
+       ------------------------------------------------------------------ */
+    const trilho = el("ol", { class: "htempo" }, HISTORIA.marcos.map(function (m) {
+      return el("li", { class: "hmarco" }, [
+        el("span", { class: "hponto" }, Icons.badge(m.icone, null, 38)),
+        el("span", { class: "hquando", text: m.quando }),
+        el("b", { text: m.titulo }),
+        el("p", { text: m.texto }),
+      ]);
+    }));
+    host.appendChild(el("div", { style: "margin-top:16px" },
+      card("Da semente ao LAPE",
+        "O laboratório mudou de nome duas vezes; a data de fundação é uma só.",
+        trilho)));
+
+    /* ------------------------------------------------------------------
+       o tripé
+       ------------------------------------------------------------------ */
+    host.appendChild(el("div", { style: "margin-top:16px" },
+      card("O que o LAPE faz",
+        "Ensino, pesquisa e extensão — as três pernas, cada uma com entrega própria.",
+        el("div", { class: "hgrade tres" },
+          HISTORIA.pilares.map(hcaixa)))));
+
+    /* ------------------------------------------------------------------
+       linhas de pesquisa
+       ------------------------------------------------------------------ */
+    host.appendChild(el("div", { style: "margin-top:16px" },
+      card("As linhas de pesquisa",
+        "O território da Psicologia do Esporte e do Exercício (PEE) onde o "
+        + "laboratório trabalha.", [
+          el("div", { class: "hgrade" }, HISTORIA.linhas.map(hcaixa)),
+          el("div", { class: "hint", style: "margin-top:12px",
+            text: HISTORIA.menor_grau }),
+        ])));
+
+    /* ------------------------------------------------------------------
+       objetivo — o parágrafo que a coordenação escreveu, inteiro
+       ------------------------------------------------------------------ */
+    host.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" }, [
+      card("Nosso objetivo", null, [
+        el("p", { class: "hprosa", text: "Pensar, planejar, desenvolver e "
+          + "avaliar ações que promovam saúde e bem-estar da população "
+          + "atingida pelos projetos e resultados: a educação de crianças, "
+          + "jovens, adultos e idosos, a melhoria da performance, a "
+          + "recuperação e a prevenção de lesões em atletas." }),
+        el("p", { class: "hprosa", text: "Uma das bases do LAPE é a saúde "
+          + "mental, o bem-estar psicológico e o desenvolvimento de "
+          + "habilidades psicológicas para o pleno exercício físico — no "
+          + "lazer ativo, na busca de saúde e bem-estar e nas mais diversas "
+          + "atividades profissionais e esportivas." }),
+      ]),
+      card("Impacto social", null, [
+        el("div", { class: "hdestaque" }, [
+          Icons.badge("comunidade", null, 38),
+          el("p", { text: "O acesso à assistência especializada é gratuito. "
+            + "Isso reduz a demanda sobre os serviços privados e públicos de "
+            + "saúde e leva exercício orientado a quem não o compraria." }),
+        ]),
+        el("p", { class: "hprosa", text: "O exercício físico estruturado e "
+          + "orientado é o que carrega o programa: é dele que vêm os "
+          + "benefícios listados ao lado, medidos nos estudos do "
+          + "laboratório." }),
+      ]),
+    ]));
+
+    /* ------------------------------------------------------------------
+       quem atendemos
+       ------------------------------------------------------------------ */
+    host.appendChild(el("div", { style: "margin-top:16px" },
+      card("Quem o LAPE atende",
+        "O público que passa pelos projetos de pesquisa e de extensão.",
+        el("div", { class: "hgrade compacta" },
+          HISTORIA.publico.map(hcaixa)))));
+
+    /* ------------------------------------------------------------------
+       o que muda
+       ------------------------------------------------------------------ */
+    host.appendChild(el("div", { style: "margin-top:16px" },
+      card("O que o exercício orientado muda",
+        "Os efeitos observados em quem é atendido pelo programa.",
+        el("div", { class: "hgrade compacta" },
+          HISTORIA.beneficios.map(hcaixa)))));
+
+    /* ------------------------------------------------------------------
+       equipe e coordenação
+       ------------------------------------------------------------------ */
+    const formacao = (D.members || []).filter(function (m) {
+      return !m.is_external && m.active !== 0 && !m.left_on
+        && ["pos_doutorado", "doutorando", "mestrando", "bolsista_ic",
+            "graduando", "bolsista_extensao"].indexOf(m.role) >= 0; }).length;
+
+    host.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" }, [
+      card("A equipe", "Pesquisadores de diferentes instituições.", [
+        el("p", { class: "hprosa", text: "Doutores, doutorandos, mestrandos e "
+          + "alunos de graduação, todos envolvidos no programa de extensão, "
+          + "nos projetos de pesquisa e no âmbito do ensino. Vários dos "
+          + "estudantes trazem o olhar crítico e atento da pesquisa, e a "
+          + "maioria é bolsista." }),
+        el("div", { class: "hchips" }, HISTORIA.bolsas.map(function (nome) {
+          return el("span", { class: "hchip" }, [Icons.get("bolsa", 14),
+            el("span", { text: nome })]);
+        })),
+        formacao ? leituraDe({ sinal: "parado", forte: formacao + " pessoa(s)",
+          texto: "em formação no laboratório neste momento." }) : null,
+        el("p", { class: "hprosa", text: "Os projetos são coordenados e "
+          + "orientados pelo professor Alexandro Andrade e desenvolvidos com "
+          + "seus orientandos e professores colaboradores — a troca entre "
+          + "pós-graduação, pesquisadores e graduandos é parte do método." }),
+      ].filter(Boolean)),
+      card("Coordenação", null, [
+        el("div", { class: "hdestaque" }, [
+          Icons.badge("orientacao", null, 38),
+          el("div", {}, [
+            el("b", { text: "Prof. Dr. Alexandro Andrade" }),
+            el("p", { text: "Professor Titular da UDESC · Pesquisador PQ do CNPq" }),
+            el("p", { text: "Fundador do laboratório, em outubro de "
+              + HISTORIA.fundado_em + "." }),
+          ]),
+        ]),
+      ]),
+    ]));
+
+    hanimar(host);
+  });
+
 view("visao", "Painel", "", "Retrato do laboratório no recorte atual.", function (host) {
   const o = D.overview;
   const rows = articles();
@@ -1411,12 +1742,20 @@ view("visao", "Painel", "", "Retrato do laboratório no recorte atual.", functio
       C.funnel({ steps: steps, file: "funil",
         table: { cols: [{ label: "Etapa", k: "label" }, { label: "Artigos", k: "value", num: true }],
           rows: steps } })),
-    card("Peso de cada linha de pesquisa", "Área proporcional ao número de artigos.",
-      C.treemap({ items: linhas, unit: "artigos", height: 300, file: "linhas",
-        onSelect: function (item) {
-          if (!item.muted) { STATE.linha = item.label; buildToolbar(); render(); } },
-        table: { cols: [{ label: "Linha", k: "label" }, { label: "Artigos", k: "value", num: true }],
-          rows: linhas } })),
+    /* Era um treemap: retângulos coloridos proporcionais ao número de
+       artigos. Ele respondia UMA pergunta -- qual linha é maior -- e
+       ocupava um cartão inteiro para isso, num mosaico em que comparar
+       duas áreas vizinhas de formatos diferentes é justamente o que o
+       olho faz pior.
+
+       O fluxo responde duas no mesmo espaço: o peso de cada linha (a
+       espessura da faixa) e para onde essa produção foi (a coluna da
+       direita). Uma linha com quinze artigos dos quais quatro ainda estão
+       em produção não é a mesma coisa que uma com quinze publicados, e o
+       mosaico pintava as duas com o mesmo tamanho de caixa. */
+    card("Da linha de pesquisa à prateleira",
+      "A espessura é o número de artigos; a coluna da direita, onde eles estão.",
+      C.sankey(fluxoDasLinhas(rows))),
   ]));
 });
 
@@ -3440,7 +3779,7 @@ function aplicarSegmento(label) {
    leitura siga o assunto e não a estrutura do menu. */
 const SECTIONS = [
   { id: "geral", label: "Visão geral", icon: "painel",
-    views: ["resumo", "visao", "metas", "explorar"] },
+    views: ["resumo", "historia", "visao", "metas", "explorar"] },
   { id: "producao", label: "Produção", icon: "producao",
     views: ["producao", "submetidos", "publicacoes", "citacoes"] },
   { id: "pessoas", label: "Pessoas", icon: "pessoas",
@@ -3453,7 +3792,8 @@ const SECTIONS = [
     views: ["descobertas", "qualidade", "automacao"] },
 ];
 const VIEW_ICON = {
-  resumo: "painel", visao: "barras", metas: "alvo", explorar: "explorar",
+  resumo: "painel", historia: "raizes", visao: "barras", metas: "alvo",
+  explorar: "explorar",
   producao: "producao", submetidos: "submissao", publicacoes: "livro", citacoes: "citacao",
   pesquisadores: "pessoas", organograma: "hierarquia", equipe: "barras", rede: "rede",
   linhas: "linhas", projetos: "projeto",
@@ -3461,9 +3801,16 @@ const VIEW_ICON = {
   calendario: "calendario", temporal: "tempo", espacial: "mapa",
   descobertas: "achado", qualidade: "qualidade", automacao: "automacao",
 };
+/* Telas que não respondem a filtro nenhum. A barra some nelas: seletor de
+   ano, de linha e de integrante em cima de uma página que não muda com
+   eles é controle que mente, e o contador "19 de 19 artigos" fala de uma
+   tabela que não está ali. */
+const SEM_FILTROS = ["historia"];
+
 /* atalhos entre sub-abas de seções diferentes — a ponte que o menu não faz */
 const RELATED = {
-  resumo: ["metas", "visao", "publicacoes"],
+  resumo: ["historia", "metas", "visao"],
+  historia: ["resumo", "linhas", "pesquisadores"],
   visao: ["metas", "explorar", "publicacoes"],
   metas: ["visao", "publicacoes", "tempos"],
   explorar: ["equipe", "publicacoes", "qualidade"],
@@ -3574,6 +3921,8 @@ function go(id) {
 /* Plotagem sob demanda: só a sub-aba visível é desenhada, com o recorte atual. */
 function render() {
   const v = viewOf(current) || VIEWS[0];
+  const barra = document.getElementById("toolbar");
+  if (barra) barra.hidden = SEM_FILTROS.indexOf(v.id) >= 0;
   C.hideTip();
   HOST.innerHTML = "";
   const title = el("h2", {});

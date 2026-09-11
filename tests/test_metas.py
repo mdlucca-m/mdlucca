@@ -523,5 +523,54 @@ class TestOMovimento(unittest.TestCase):
         self.assertIn("test(bruto)", bloco)
 
 
+class TestOFluxoDasLinhasDePesquisa(unittest.TestCase):
+    """A caixa de áreas virou fluxo.
+
+    O mapa de área respondia UMA pergunta -- qual linha é a maior -- e a
+    respondia pela comparação que o olho faz pior, a de áreas de formatos
+    diferentes. O fluxo responde duas no mesmo espaço: o tamanho de cada
+    linha E onde os artigos dela estão parados. A espessura é comprimento,
+    e comprimento o olho compara bem.
+    """
+
+    def setUp(self):
+        self.dash = (TEMPLATES / "dashboard.js").read_text(encoding="utf-8")
+
+    def test_a_caixa_de_areas_saiu_do_painel(self):
+        """Só do Painel. No "Explorar dados" a árvore continua, porque lá
+        quem escolhe a forma é quem está lendo -- e escolher é diferente
+        de receber."""
+        painel = self.dash[self.dash.index('view("visao"'):
+                           self.dash.index('view("metas"')]
+        self.assertNotIn("C.treemap(", painel)
+
+    def test_o_fluxo_entrou_no_lugar(self):
+        self.assertIn("function fluxoDasLinhas(", self.dash)
+        self.assertIn("C.sankey(fluxoDasLinhas(", self.dash)
+
+    def test_o_fluxo_vai_da_linha_para_a_situacao(self):
+        """Duas colunas: sem a segunda, é um gráfico de barras torto."""
+        bloco = self.dash[self.dash.index("function fluxoDasLinhas("):
+                          self.dash.index("const HISTORIA = {")]
+        self.assertIn("depth: 0", bloco)
+        self.assertIn("depth: 1", bloco)
+
+    def test_a_cauda_de_linhas_pequenas_e_somada_e_nomeada(self):
+        """Uma faixa por linha, com quarenta linhas, vira um pente ilegível.
+
+        O resto vai para uma faixa só -- e a faixa DIZ quantas linhas
+        carrega, para que ninguém a leia como uma linha de pesquisa.
+        """
+        bloco = self.dash[self.dash.index("function fluxoDasLinhas("):
+                          self.dash.index("const HISTORIA = {")]
+        self.assertIn("Outras ", bloco)
+
+    def test_artigo_sem_linha_aparece_em_vez_de_sumir(self):
+        """Some calado é como uma lacuna de cadastro deixa de ser vista."""
+        bloco = self.dash[self.dash.index("function fluxoDasLinhas("):
+                          self.dash.index("const HISTORIA = {")]
+        self.assertIn("Sem linha", bloco)
+
+
 if __name__ == "__main__":
     unittest.main()

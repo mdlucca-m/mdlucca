@@ -89,6 +89,9 @@ header.page .meta { margin-top: 8px; }
 .head-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
 
 /* barra de filtros: uma só, acima de tudo o que ela recorta */
+/* `display: flex` venceria o [hidden] do HTML, que e apenas display:none
+   na folha do navegador. Sem esta linha, esconder a barra nao esconde. */
+.toolbar[hidden] { display: none; }
 .toolbar { position: sticky; top: 0; z-index: 20; display: flex; gap: 9px; align-items: center;
   flex-wrap: wrap; padding: 11px 0 12px; margin-bottom: 18px;
   background: color-mix(in srgb, var(--surface-sunken) 82%, transparent);

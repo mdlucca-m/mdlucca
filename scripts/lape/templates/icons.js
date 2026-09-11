@@ -166,6 +166,31 @@ const Icons = (function () {
       ["line", 4.4, 7.4, 19.6, 7.4], ["path", "M4.4 7.4L2 13.4h4.8z"],
       ["path", "M19.6 7.4L17.2 13.4H22z"], ["circle", 12, 5.4, 1.2]],
 
+    /* ------------------------------------------------------------------
+       A historia do laboratorio. Um marco de linha do tempo nao e um
+       numero: quem le a aba de historia le desenho antes de ler texto, e
+       estes seis existem para que cada caixa se reconheca de longe.
+       ------------------------------------------------------------------ */
+    raizes: [["line", 12, 4.8, 12, 19],
+      ["path", "M12 9.6L8.4 6.4"], ["path", "M12 12.6l3.6-3.2"],
+      ["circle", 12, 3.4, 1.6], ["circle", 7.2, 5.2, 1.5], ["circle", 16.8, 7.9, 1.5],
+      ["path", "M12 19c-1.6 0-2.8.7-3.6 2.1"], ["path", "M12 19c1.6 0 2.8.7 3.6 2.1"]],
+    semente: [["line", 7.5, 21, 16.5, 21], ["path", "M12 21v-6.6"],
+      ["path", "M12 14.4c0-3.2-2.4-5.2-5.6-5.2 0 3.2 2.4 5.2 5.6 5.2z"],
+      ["path", "M12 15c0-3.5 2.6-5.7 6-5.7 0 3.5-2.6 5.7-6 5.7z"]],
+    sono: [["path", "M20 14.4A8.2 8.2 0 0 1 9.6 4a8.6 8.6 0 1 0 10.4 10.4z"],
+      ["path", "M14.6 3.4h3.8l-3.8 4.2h3.8"]],
+    humor: [["circle", 12, 12, 8.5],
+      ["path", "M8.4 14.2c.9 1.2 2.1 1.8 3.6 1.8s2.7-.6 3.6-1.8"],
+      ["circle", 9.3, 9.8, 1], ["circle", 14.7, 9.8, 1]],
+    serenidade: [["circle", 12, 7.4, 3.4],
+      ["path", "M3 15c2-1.6 3.4-1.6 5.4 0s3.4 1.6 5.4 0 3.4-1.6 5.2 0"],
+      ["path", "M3 19.2c2-1.6 3.4-1.6 5.4 0s3.4 1.6 5.4 0 3.4-1.6 5.2 0"]],
+    comunidade: [["path", "M12 11.6S9 9.7 9 8a1.7 1.7 0 0 1 3-1 1.7 1.7 0 0 1 3 1c0 1.7-3 3.6-3 3.6z"],
+      ["path", "M3.5 14.6c1.8-1 3.4-.6 4.6.6l3.9 3.9"],
+      ["path", "M20.5 14.6c-1.8-1-3.4-.6-4.6.6L12 19.1"],
+      ["line", 3.5, 14.6, 3.5, 20.4], ["line", 20.5, 14.6, 20.5, 20.4]],
+
     /* controles do mural */
     tocar: [["path", "M8 5.2l10 6.8-10 6.8z"]],
     pausa: [["rect", 7.4, 5, 3.4, 14, 1.2], ["rect", 13.2, 5, 3.4, 14, 1.2]],
@@ -199,6 +224,9 @@ const Icons = (function () {
        Os tons de estado ficam reservados para estado. */
     dor: "magenta", pulmao: "azul", fita: "ambar", envelhecimento: "laranja",
     celula: "violeta", balanca: "verde",
+    /* a historia */
+    raizes: "verde", semente: "verde", sono: "violeta", humor: "ambar",
+    serenidade: "azul", comunidade: "magenta",
   };
 
   function draw(spec) {

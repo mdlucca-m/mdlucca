@@ -856,3 +856,218 @@ textarea:focus-visible, [tabindex]:focus-visible {
 }
 .kpi-seg-leg span { display: inline-flex; align-items: center; gap: 5px; }
 .kpi-seg-leg i { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }
+
+/* ==========================================================================
+   VIDA: ícone que reage e botão que responde
+   ==========================================================================
+   O que se anima aqui é CROMO -- selo de ícone, botão, aba. Nunca marca de
+   dado: uma barra que pulsa muda de tamanho aos olhos de quem olha, e o
+   tamanho da barra é o próprio dado.
+
+   Toda regra desta seção é de `transition` ou de animação curta disparada
+   por hover ou por foco. Nada fica pulsando sozinho para sempre: halo
+   permanente vira ruído, e numa tela de parede que fica ligada o dia
+   inteiro vira ruído que ninguém consegue desligar. */
+
+.ibadge {
+  transition: transform .18s cubic-bezier(.22,.9,.3,1),
+              box-shadow .18s, border-color .18s;
+}
+/* O selo responde ao passar do mouse no que o contém -- no cartão, na
+   linha da tabela, no botão. Reagir só sobre si mesmo faria o alvo ser o
+   ícone de 34px em vez do cartão inteiro. */
+.kpi:hover .ibadge,
+button:hover .ibadge,
+.navitem:hover .ibadge,
+tr:hover .ibadge {
+  transform: translateY(-1px) scale(1.06);
+  border-color: color-mix(in srgb, var(--tone) 68%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--tone) 34%, transparent),
+              0 10px 22px -10px color-mix(in srgb, var(--tone) 95%, transparent);
+}
+/* A aba ativa mantém o selo um pouco à frente: é sinal de ONDE se está,
+   e por isso não é hover -- é estado. */
+.navitem.active .ibadge {
+  transform: scale(1.04);
+  border-color: color-mix(in srgb, var(--tone) 72%, transparent);
+}
+
+/* O traço do ícone engrossa de leve junto: dá a sensação de foco sem
+   mexer no tamanho do desenho. */
+.ibadge svg.icon { transition: stroke-width .18s; }
+.kpi:hover .ibadge svg.icon,
+button:hover .ibadge svg.icon { stroke-width: 2.2; }
+
+/* ---- botões ---- */
+/* O brilho entra na borda e cresce por baixo; o corpo do botão não muda de
+   cor no hover além do que já mudava. Botão que troca de cor inteira a
+   cada passada de mouse cansa numa tela usada o dia todo. */
+button, a.botao-destino {
+  transition: background .12s, border-color .12s, color .12s,
+              transform .1s, box-shadow .18s;
+}
+button:hover, a.botao-destino:hover {
+  box-shadow: var(--ring), 0 0 0 1px color-mix(in srgb, var(--accent-strong) 34%, transparent),
+              0 8px 20px -12px color-mix(in srgb, var(--accent-strong) 90%, transparent);
+}
+button:focus-visible, a.botao-destino:focus-visible {
+  outline: none;
+  box-shadow: var(--ring), 0 0 0 2px var(--accent-strong);
+}
+/* O primário ganha um facho que atravessa uma vez ao ser apontado. Uma
+   vez: laço infinito num botão é pisca-pisca. */
+button.primary { position: relative; overflow: hidden; }
+button.primary::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 38%,
+              color-mix(in srgb, #fff 26%, transparent) 50%, transparent 62%);
+  transform: translateX(-130%);
+  pointer-events: none;
+}
+button.primary:hover::after { animation: facho .62s ease-out 1; }
+@keyframes facho { to { transform: translateX(130%); } }
+
+/* ---- a aba e o item de menu ---- */
+.navitem { transition: background .14s, color .14s, transform .12s; }
+.navitem:hover { transform: translateX(2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ibadge,
+  .kpi:hover .ibadge,
+  button:hover .ibadge,
+  .navitem:hover .ibadge,
+  tr:hover .ibadge,
+  .navitem:hover { transform: none; transition: none; }
+  .ibadge svg.icon,
+  .kpi:hover .ibadge svg.icon,
+  button:hover .ibadge svg.icon { stroke-width: 1.9; transition: none; }
+  button.primary:hover::after { animation: none; }
+}
+
+/* ======================================================================
+   HISTÓRIA — a aba que se lê por desenho antes de texto
+   ======================================================================
+   Um painel de dados inteiro em gráfico não sabe dizer quem é o
+   laboratório. Esta seção veste a aba de história: caixa com pastilha,
+   trilho de linha do tempo e prosa em largura de leitura. Nada aqui é
+   marca de dado -- as cores são as mesmas pastilhas de cromo já usadas
+   no menu e nos KPIs, e a paleta validada continua mandando no gráfico.
+   ---------------------------------------------------------------------- */
+.hcapa { display: grid; gap: 12px; }
+.hcapa .marca { display: flex; gap: 14px; align-items: center; }
+.hcapa .marca h3 { margin: 0; font-size: 19px; line-height: 1.25; }
+.hcapa .lema {
+  margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--ink-2);
+  max-width: 78ch;
+}
+
+/* ---- a caixa, peça de que a aba é feita ---- */
+.hgrade {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+}
+.hgrade.tres { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+.hgrade.compacta { grid-template-columns: repeat(auto-fit, minmax(min(100%, 196px), 1fr)); }
+.hcaixa {
+  display: grid; gap: 7px; align-content: start; min-width: 0;
+  padding: 15px 15px 16px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  transition: border-color .16s, transform .16s, box-shadow .16s;
+}
+.hcaixa:hover {
+  border-color: color-mix(in srgb, var(--accent-strong) 32%, var(--border));
+  transform: translateY(-2px);
+  box-shadow: var(--glow);
+}
+.hcaixa b { font-size: 13.5px; line-height: 1.35; color: var(--ink); }
+.hcaixa p { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); }
+/* A seta diz o sentido do efeito, e o texto ao lado o repete: seta
+   sozinha é sinal por forma só, e forma só não se lê em impressão. */
+.hseta {
+  font-size: 11.5px; font-weight: 650; color: var(--ink-muted);
+  letter-spacing: .01em;
+}
+
+/* ---- o trilho da linha do tempo ---- */
+.htempo {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+}
+.hmarco {
+  display: grid; gap: 6px; align-content: start; min-width: 0;
+  padding-top: 46px; position: relative;
+}
+/* O fio que liga um marco ao seguinte. Ele nasce no ponto e morre antes
+   do próximo, para que a linha do tempo seja lida como sequência e não
+   como quatro cartões soltos; o último não tem fio, porque não há para
+   onde ir. */
+.hmarco::before {
+  content: ""; position: absolute; left: 0; right: -12px; top: 19px;
+  height: 2px; background: linear-gradient(90deg,
+    color-mix(in srgb, var(--accent-strong) 55%, transparent), var(--border));
+}
+.hmarco:last-child::before { right: auto; width: 38px; }
+.hponto {
+  position: absolute; top: 0; left: 0;
+  background: var(--surface); border-radius: 12px;
+}
+.hquando {
+  font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--accent);
+}
+.hmarco b { font-size: 14px; line-height: 1.3; }
+.hmarco p { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); }
+@media (max-width: 720px) {
+  .htempo { grid-template-columns: 1fr; gap: 24px; }
+  .hmarco { padding-top: 2px; padding-left: 52px; }
+  .hmarco::before {
+    left: 18px; right: auto; top: 44px; bottom: -26px;
+    width: 2px; height: auto;
+    background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent-strong) 55%, transparent), var(--border));
+  }
+  .hmarco:last-child::before { display: none; }
+  .hponto { top: 0; }
+}
+
+/* ---- prosa, destaque e etiquetas ---- */
+.hprosa {
+  margin: 0 0 10px; font-size: 13px; line-height: 1.65; color: var(--ink-2);
+  max-width: 68ch;
+}
+.hprosa:last-child { margin-bottom: 0; }
+.hdestaque {
+  display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px;
+  padding: 13px 14px; border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--accent-strong) 26%, var(--border));
+  background: var(--accent-wash);
+}
+.hdestaque p { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); }
+.hdestaque b { display: block; font-size: 14px; margin-bottom: 3px; color: var(--ink); }
+.hdestaque p + p { margin-top: 5px; }
+.hchips { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 12px; }
+.hchip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; font-size: 11.5px; font-weight: 650;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface-raised); color: var(--ink-2);
+}
+.hchip svg.icon { color: var(--accent); }
+
+/* ---- a entrada em cascata ----
+   O quadro final da animação NÃO fixa transform: se fixasse, o valor da
+   animação venceria o `translateY` do :hover no cascata e a caixa
+   deixaria de levantar depois de entrar. Por isso `backwards` (que só
+   pinta o estado inicial durante o atraso) e um keyframe com `from`
+   apenas -- o `to` é o estilo próprio do elemento. */
+.hcaixa.entrando, .hmarco.entrando {
+  animation: surge .42s cubic-bezier(.16,.84,.3,1) backwards;
+  animation-delay: calc(var(--passo, 0) * 45ms);
+}
+@keyframes surge { from { opacity: 0; transform: translateY(9px); } }
+@media (prefers-reduced-motion: reduce) {
+  .hcaixa.entrando, .hmarco.entrando { animation: none; }
+  .hcaixa, .hcaixa:hover { transition: none; transform: none; box-shadow: none; }
+}

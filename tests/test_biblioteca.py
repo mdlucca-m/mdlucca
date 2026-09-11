@@ -16,6 +16,7 @@ esporte sem nenhum aviso.
 """
 from __future__ import annotations
 
+import re
 import sys
 import tempfile
 import unittest
@@ -1023,6 +1024,8 @@ class TestOMovimentoRespeitaAPreferencia(unittest.TestCase):
     def setUpClass(cls):
         cls.tela = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
             encoding="utf-8")
+        cls.tema = (ROOT / "scripts" / "lape" / "templates" / "theme.css").read_text(
+            encoding="utf-8")
 
     def test_o_giro_tem_guarda_propria(self):
         """A bandeira tem guarda no CSS; o giro e um relogio em JavaScript.
@@ -1045,6 +1048,32 @@ class TestOMovimentoRespeitaAPreferencia(unittest.TestCase):
         # girar um globo que ninguem ve gasta bateria para nada
         corpo = self.tela[self.tela.index("function girar()"):]
         self.assertIn("document.hidden", corpo[:600])
+
+    def test_o_icone_e_o_botao_so_se_mexem_quando_apontados(self):
+        """Vida no cromo é transição; vida em laço é pisca-pisca.
+
+        Uma pastilha que respira sozinha numa TV de mural, oito horas por
+        dia, não é vida -- é distração permanente. Aqui o movimento só
+        existe enquanto o ponteiro está em cima.
+        """
+        bloco = self.tema[self.tema.index("VIDA: ícone que reage"):]
+        for seletor, corpo in re.findall(r"([^\n{}]+)\{([^}]*)\}", bloco):
+            if "infinite" in corpo:
+                self.fail("laço infinito em %s" % seletor.strip())
+
+    def test_o_facho_do_botao_atravessa_uma_vez_so(self):
+        regra = re.search(r"button\.primary:hover::after \{([^}]*)\}", self.tema)
+        self.assertIsNotNone(regra)
+        self.assertRegex(regra.group(1), r"animation:\s*facho[^;]*\s1;")
+
+    def test_toda_a_vida_do_cromo_e_desligavel(self):
+        """Cada guarda cobre o seu trecho; o que importa é a soma delas."""
+        guardas = "\n".join(
+            self.tema[m.start():] .split("\n}\n")[0]
+            for m in re.finditer(r"@media \(prefers-reduced-motion: reduce\)", self.tema))
+        for alvo in (".ibadge", ".navitem", "button.primary:hover::after"):
+            with self.subTest(alvo=alvo):
+                self.assertIn(alvo, guardas)
 
     def test_nenhuma_marca_de_grafico_treme(self):
         """Numero que balanca e numero dificil de ler.
