@@ -31,6 +31,13 @@ LIMITE_HORAS = 12
 # Abaixo disto e clique errado, nao sessao de trabalho.
 MINIMO_MINUTOS = 2
 
+# Quanto tempo sem sinal de vida ja conta como "nao esta mais ai". A tela do
+# ponto avisa que continua aberta a cada poucos minutos enquanto a pessoa
+# tem a pagina aberta; passado este intervalo sem nenhum aviso, ou a pessoa
+# fechou o navegador ou o sistema caiu -- e nos dois casos ela nao esta
+# trabalhando desde entao.
+SILENCIO_MINUTOS = 20
+
 FORMATO = "%Y-%m-%d %H:%M:%S"
 
 
@@ -61,11 +68,23 @@ def duracao_horas(entrada: Any, saida: Any) -> float | None:
 
 
 def _linha(registro: dict[str, Any]) -> dict[str, Any]:
-    """Acrescenta a duracao e diz se ela conta."""
+    """Acrescenta a duracao, diz se ela conta e se foi estimada."""
     horas = duracao_horas(registro.get("entrada"), registro.get("saida"))
     registro["horas"] = round(horas, 2) if horas is not None else None
-    # Fechada pelo sistema: houve trabalho, mas nao se sabe quanto.
-    registro["conta"] = bool(horas is not None and not registro.get("fechado_sozinho"))
+
+    # Fechada pelo sistema no ultimo sinal de vida: houve trabalho e sabe-se
+    # aproximadamente quanto. Antes, TODA sessao fechada pelo sistema era
+    # descartada -- e foi assim que uma tarde inteira de trabalho, cortada
+    # por falta de luz, virou zero hora sem que nada na tela explicasse.
+    # Estimada e a sessao que o sistema fechou no ultimo sinal de vida. E o
+    # `visto_em` que distingue, e nao a duracao: sem sinal nenhum o unico
+    # horario conhecido e o da entrada, e ai a sessao vale zero -- houve
+    # trabalho, mas nao ha como dizer quanto sem inventar.
+    registro["estimado"] = bool(registro.get("fechado_sozinho")
+                                and registro.get("visto_em"))
+    registro["conta"] = bool(horas is not None
+                             and (registro["estimado"]
+                                  or not registro.get("fechado_sozinho")))
     return registro
 
 
@@ -77,14 +96,67 @@ def fechar_esquecidos(db: Database, limite_horas: int = LIMITE_HORAS) -> int:
 
     Roda antes de qualquer leitura: uma sessao de tres dias aberta na tela
     apareceria como "trabalhando ha 72 horas", e entraria em toda soma.
+
+    Fecha no ULTIMO SINAL DE VIDA, e nao na hora da entrada. Fechar na
+    entrada era descartar a sessao inteira: quem entrou as 13h, trabalhou
+    ate as 18h e perdeu o registro numa queda de energia recebia zero hora,
+    sem nada na tela dizendo que aquelas cinco horas existiram. O ultimo
+    sinal e uma estimativa, e a tela a marca como estimativa -- que e
+    diferente de inventar e diferente de apagar.
     """
     corte = (datetime.now() - timedelta(hours=limite_horas)).strftime(FORMATO)
     cursor = db.execute(
-        "UPDATE ponto SET saida = entrada, fechado_sozinho = 1"
+        "UPDATE ponto SET saida = COALESCE(visto_em, entrada), fechado_sozinho = 1"
         " WHERE saida IS NULL AND entrada < ?", (corte,))
     if cursor.rowcount:
         db.conn.commit()
     return cursor.rowcount
+
+
+def marcar_presenca(db: Database, member_id: int) -> None:
+    """Anota que a pessoa ainda esta aqui.
+
+    A tela do ponto chama isto enquanto estiver aberta. E o unico jeito de
+    o sistema saber depois, olhando para tras, ate que horas alguem ficou
+    quando a sessao nao foi encerrada a mao.
+    """
+    cursor = db.execute(
+        "UPDATE ponto SET visto_em = ? WHERE member_id = ? AND saida IS NULL",
+        (_agora(), int(member_id)))
+    if cursor.rowcount:
+        db.conn.commit()
+
+
+def fechar_na_volta(db: Database, silencio_minutos: int = SILENCIO_MINUTOS) -> list[dict[str, Any]]:
+    """Fecha o que ficou aberto enquanto o sistema esteve fora do ar.
+
+    Roda na subida. Se o servico caiu -- falta de luz, maquina desligada,
+    reinicio --, ninguem estava batendo ponto nesse intervalo, e esperar as
+    doze horas do limite deixaria a sessao contando tempo que nao houve.
+
+    A janela de silencio existe para o reinicio rapido: quem esta com a
+    tela aberta e deu sinal de vida ha dois minutos continua trabalhando, e
+    subir o sistema de novo nao pode expulsar essa pessoa do proprio turno.
+    """
+    corte = (datetime.now() - timedelta(minutes=silencio_minutos)).strftime(FORMATO)
+    abertas = db.dicts(
+        "SELECT p.id, p.member_id, p.entrada, p.visto_em, m.full_name AS quem"
+        "  FROM ponto p JOIN members m ON m.id = p.member_id"
+        " WHERE p.saida IS NULL AND COALESCE(p.visto_em, p.entrada) < ?", (corte,))
+    if not abertas:
+        return []
+    db.execute(
+        "UPDATE ponto SET saida = COALESCE(visto_em, entrada), fechado_sozinho = 1"
+        " WHERE saida IS NULL AND COALESCE(visto_em, entrada) < ?", (corte,))
+    db.conn.commit()
+    fechadas = []
+    for linha in abertas:
+        horas = duracao_horas(linha["entrada"], linha["visto_em"] or linha["entrada"])
+        fechadas.append({"quem": linha["quem"], "entrada": linha["entrada"],
+                         "saida": linha["visto_em"] or linha["entrada"],
+                         "horas": round(horas or 0, 2),
+                         "sem_sinal": not linha["visto_em"]})
+    return fechadas
 
 
 def aberto(db: Database, member_id: int) -> dict[str, Any] | None:
@@ -186,8 +258,8 @@ def _somar(db: Database, member_id: int | None, de: str, ate: str) -> dict[str, 
         onde += " AND p.member_id = ?"
         params.append(member_id)
     linhas = db.dicts(
-        f"SELECT p.entrada, p.saida, p.fechado_sozinho FROM ponto p WHERE {onde}",
-        params)
+        f"SELECT p.entrada, p.saida, p.fechado_sozinho, p.visto_em"
+        f"  FROM ponto p WHERE {onde}", params)
     horas, sessoes, esquecidas = 0.0, 0, 0
     for linha in linhas:
         pronta = _linha(dict(linha))
@@ -269,8 +341,8 @@ def serie(db: Database, member_id: int | None = None, dias: int = 30,
         params.append(member_id)
     por_dia: dict[str, float] = {}
     for linha in db.dicts(
-            f"SELECT p.entrada, p.saida, p.fechado_sozinho FROM ponto p WHERE {onde}",
-            params):
+            f"SELECT p.entrada, p.saida, p.fechado_sozinho, p.visto_em"
+            f"  FROM ponto p WHERE {onde}", params):
         pronta = _linha(dict(linha))
         if not pronta["conta"]:
             continue
@@ -302,7 +374,7 @@ def por_pessoa(db: Database, dias: int = 30,
     inicio = _dia_txt(hoje - timedelta(days=dias - 1))
     linhas = db.dicts(
         "SELECT p.member_id, m.full_name AS quem, m.role AS vinculo,"
-        "       p.entrada, p.saida, p.fechado_sozinho"
+        "       p.entrada, p.saida, p.fechado_sozinho, p.visto_em"
         "  FROM ponto p JOIN members m ON m.id = p.member_id"
         " WHERE p.entrada >= ?", (inicio,))
     por_id: dict[int, dict[str, Any]] = {}

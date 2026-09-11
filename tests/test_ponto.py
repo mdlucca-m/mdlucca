@@ -154,6 +154,205 @@ class TestCheckOutEsquecido(BasePonto):
         self.assertIsNotNone(ponto.aberto(self.db, self.eu))
 
 
+class TestAQuedaDeEnergia(BasePonto):
+    """A tarde que virou zero hora.
+
+    Aconteceu numa quarta-feira: a pessoa entrou as 13h, trabalhou, e a luz
+    caiu no fim da tarde. O sistema so sabia a hora da ENTRADA, entao
+    fechou a sessao ali mesmo -- `saida = entrada` --, e cinco horas de
+    trabalho sumiram da conta sem que nada na tela dissesse que elas
+    existiram.
+
+    O conserto e o sinal de vida: enquanto a tela do ponto esta aberta,
+    ela avisa de poucos em poucos minutos que a pessoa continua ai. Fechar
+    no ultimo sinal e uma estimativa, e a tela a marca como estimativa --
+    que e diferente de inventar e diferente de apagar.
+    """
+
+    def aberta_com_sinal(self, entrada, visto, member_id=None):
+        self.db.execute(
+            "INSERT INTO ponto (member_id, entrada, visto_em, atividade)"
+            " VALUES (?, ?, ?, 'escrevendo')",
+            (member_id or self.eu, entrada, visto))
+        self.db.conn.commit()
+
+    def test_fecha_no_ultimo_sinal_de_vida_e_nao_na_entrada(self):
+        entrada = (datetime.now() - timedelta(days=2, hours=6)).strftime(ponto.FORMATO)
+        visto = (datetime.now() - timedelta(days=2, hours=1)).strftime(ponto.FORMATO)
+        self.aberta_com_sinal(entrada, visto)
+        ponto.fechar_esquecidos(self.db)
+        linha = self.db.dicts("SELECT entrada, saida, fechado_sozinho FROM ponto")[0]
+        self.assertEqual(linha["saida"], visto)
+        self.assertNotEqual(linha["saida"], linha["entrada"])
+        self.assertEqual(linha["fechado_sozinho"], 1)
+
+    def test_as_horas_estimadas_contam_na_soma(self):
+        # e o que devolve a tarde de quarta-feira para o total do mes
+        hoje = date.today()
+        dia = hoje.replace(day=1)
+        self.db.execute(
+            "INSERT INTO ponto (member_id, entrada, saida, visto_em,"
+            "                   fechado_sozinho, atividade)"
+            " VALUES (?, ?, ?, ?, 1, 'escrevendo')",
+            (self.eu, f"{dia.isoformat()} 13:00:00", f"{dia.isoformat()} 18:00:00",
+             f"{dia.isoformat()} 18:00:00"))
+        self.db.conn.commit()
+        resumo = ponto.resumo(self.db, self.eu, hoje=hoje)
+        self.assertEqual(resumo["mes"]["horas"], 5.0)
+
+    def test_sem_sinal_nenhum_continua_valendo_zero(self):
+        """A regra antiga sobrevive onde ela estava certa.
+
+        Sem um unico sinal, o unico horario conhecido e o da entrada.
+        Contar as horas ali seria inventar -- e inventar hora de trabalho
+        e pior do que admitir que nao se sabe.
+        """
+        hoje = date.today()
+        dia = hoje.replace(day=1)
+        self.esquecida(dia.isoformat(), "08:00", "20:00")     # sem visto_em
+        resumo = ponto.resumo(self.db, self.eu, hoje=hoje)
+        self.assertEqual(resumo["mes"]["horas"], 0.0)
+        self.assertGreaterEqual(resumo["mes"]["esquecidas"], 1)
+
+    def test_a_tela_sabe_que_a_hora_foi_estimada(self):
+        # numero estimado exibido como medido e pior que numero ausente
+        hoje = date.today().isoformat()
+        self.db.execute(
+            "INSERT INTO ponto (member_id, entrada, saida, visto_em,"
+            "                   fechado_sozinho) VALUES (?, ?, ?, ?, 1)",
+            (self.eu, f"{hoje} 13:00:00", f"{hoje} 18:00:00", f"{hoje} 18:00:00"))
+        self.db.conn.commit()
+        linha = ponto.historico(self.db, self.eu)[0]
+        self.assertTrue(linha["estimado"])
+        self.assertTrue(linha["conta"])
+        self.assertEqual(linha["horas"], 5.0)
+
+    def test_sessao_normal_nao_sai_marcada_como_estimada(self):
+        hoje = date.today().isoformat()
+        self.sessao(hoje, "09:00", "12:00")
+        linha = ponto.historico(self.db, self.eu)[0]
+        self.assertFalse(linha["estimado"])
+        self.assertTrue(linha["conta"])
+
+    # -- o sinal de vida ------------------------------------------------
+    def test_marcar_presenca_anota_a_hora_na_sessao_aberta(self):
+        ponto.entrar(self.db, self.eu, "lendo")
+        self.db.execute("UPDATE ponto SET visto_em = NULL")
+        self.db.conn.commit()
+        ponto.marcar_presenca(self.db, self.eu)
+        self.assertIsNotNone(self.db.scalar("SELECT visto_em FROM ponto"))
+
+    def test_marcar_presenca_nao_abre_sessao_para_quem_esta_fora(self):
+        # seria bater ponto por quem nao bateu
+        ponto.marcar_presenca(self.db, self.eu)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM ponto"), 0)
+
+    def test_marcar_presenca_nao_mexe_em_sessao_ja_fechada(self):
+        hoje = date.today().isoformat()
+        self.sessao(hoje, "09:00", "12:00")
+        ponto.marcar_presenca(self.db, self.eu)
+        self.assertIsNone(self.db.scalar("SELECT visto_em FROM ponto"))
+
+    # -- a volta do sistema ---------------------------------------------
+    def test_a_subida_fecha_o_que_ficou_aberto(self):
+        """Se o servico caiu, ninguem estava batendo ponto nesse intervalo.
+
+        Esperar as doze horas do limite deixaria a sessao somando tempo que
+        nao houve.
+        """
+        entrada = (datetime.now() - timedelta(hours=5)).strftime(ponto.FORMATO)
+        visto = (datetime.now() - timedelta(hours=2)).strftime(ponto.FORMATO)
+        self.aberta_com_sinal(entrada, visto)
+        fechadas = ponto.fechar_na_volta(self.db)
+        self.assertEqual(len(fechadas), 1)
+        self.assertEqual(fechadas[0]["horas"], 3.0)
+        self.assertFalse(fechadas[0]["sem_sinal"])
+        self.assertIsNotNone(self.db.scalar("SELECT saida FROM ponto"))
+
+    def test_a_subida_nao_expulsa_quem_acabou_de_dar_sinal(self):
+        """Reinicio rapido nao pode tirar ninguem do proprio turno.
+
+        Quem esta com a tela aberta e deu sinal de vida ha dois minutos
+        continua trabalhando -- subir o sistema de novo, depois de um
+        `git pull`, nao e motivo para encerrar o ponto dessa pessoa.
+        """
+        entrada = (datetime.now() - timedelta(hours=3)).strftime(ponto.FORMATO)
+        visto = (datetime.now() - timedelta(minutes=2)).strftime(ponto.FORMATO)
+        self.aberta_com_sinal(entrada, visto)
+        self.assertEqual(ponto.fechar_na_volta(self.db), [])
+        self.assertIsNotNone(ponto.aberto(self.db, self.eu))
+
+    def test_a_subida_avisa_quando_nao_ha_como_estimar(self):
+        entrada = (datetime.now() - timedelta(hours=5)).strftime(ponto.FORMATO)
+        self.aberta(entrada)
+        fechadas = ponto.fechar_na_volta(self.db)
+        self.assertEqual(len(fechadas), 1)
+        self.assertTrue(fechadas[0]["sem_sinal"])
+        self.assertEqual(fechadas[0]["horas"], 0)
+
+    def test_a_subida_e_silenciosa_quando_nao_ha_nada_aberto(self):
+        self.sessao(date.today().isoformat(), "09:00", "12:00")
+        self.assertEqual(ponto.fechar_na_volta(self.db), [])
+
+
+class TestAPortaDoSinalDeVida(unittest.TestCase):
+
+    def test_a_rota_existe_para_o_integrante(self):
+        from lape import api
+        achadas = {(m, perfil) for m, padrao, _f, perfil in api.ROUTES
+                   if "ponto/presente" in padrao}
+        self.assertEqual(achadas, {("POST", "integrante")})
+
+    def test_ler_o_proprio_ponto_ja_marca_presenca(self):
+        # a tela consulta esta rota enquanto estiver aberta: aproveitar o
+        # que ja passa por ali poupa metade das chamadas
+        fonte = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
+        corpo = fonte[fonte.index("def route_ponto(ctx"):]
+        corpo = corpo[:corpo.index("\ndef ")]
+        self.assertIn("ponto.marcar_presenca(ctx.db, eu)", corpo)
+        self.assertIn("if alvo == eu:", corpo)
+
+    def test_ver_o_ponto_de_outra_pessoa_nao_marca_presenca_dela(self):
+        # seria a coordenacao batendo ponto por quem nao esta
+        fonte = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
+        corpo = fonte[fonte.index("def route_ponto(ctx"):]
+        corpo = corpo[:corpo.index("\ndef ")]
+        marca = corpo.index("ponto.marcar_presenca")
+        guarda = corpo.index("if alvo == eu:")
+        self.assertLess(guarda, marca)
+
+    def test_a_subida_do_servico_fecha_o_que_ficou_aberto(self):
+        fonte = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
+        self.assertIn("ponto.fechar_na_volta(db)", fonte)
+
+    def test_a_tela_pulsa_so_com_sessao_aberta(self):
+        tela = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
+            encoding="utf-8")
+        self.assertIn("/api/ponto/presente", tela)
+        self.assertIn("pulsarPonto(!!(d.resumo || {}).aberto)", tela)
+
+    def test_aba_escondida_nao_conta_como_presenca(self):
+        """O navegador mantem o relogio rodando com a janela minimizada.
+
+        Sem esta guarda, uma aba esquecida aberta a noite inteira
+        registraria como trabalho o tempo em que ninguem estava.
+        """
+        tela = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
+            encoding="utf-8")
+        corpo = tela[tela.index("function pulsarPonto("):]
+        corpo = corpo[:corpo.index("\n}")]
+        self.assertIn("document.hidden", corpo)
+
+    def test_um_relogio_so(self):
+        # trocar de aba e voltar chamava render de novo, e cada visita
+        # deixaria mais um relogio batendo
+        tela = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
+            encoding="utf-8")
+        corpo = tela[tela.index("function pulsarPonto("):]
+        corpo = corpo[:corpo.index("\n}")]
+        self.assertIn("clearInterval(PULSO_PONTO)", corpo)
+
+
 class TestComparacaoDePeriodos(BasePonto):
     def test_a_semana_e_comparada_ate_o_mesmo_ponto(self):
         # comparar uma semana de três dias com uma de sete acusa queda toda

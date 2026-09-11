@@ -1271,10 +1271,32 @@ function quadroDeAgora(lista, eu){
   return caixa;
 }
 
+/* O sinal de vida. Enquanto a tela do ponto estiver aberta e houver uma
+   entrada em aberto, avisa o servidor de tempos em tempos que a pessoa
+   continua aqui -- e e so por isso que, depois de uma queda de energia, da
+   para dizer ate que horas ela ficou. Sem ele, a unica hora conhecida e a
+   da entrada, e a sessao inteira se perde.
+
+   Um intervalo so, guardado fora da tela: trocar de aba e voltar chamava
+   `render` de novo, e cada visita deixava mais um relogio batendo. */
+let PULSO_PONTO = null;
+function pulsarPonto(ligado){
+  if (PULSO_PONTO){ clearInterval(PULSO_PONTO); PULSO_PONTO = null; }
+  if (!ligado) return;
+  PULSO_PONTO = setInterval(function (){
+    /* Aba em segundo plano nao e sinal de presenca: o navegador mantem o
+       relogio rodando com a janela minimizada a noite inteira, e isso
+       registraria como trabalho o tempo em que ninguem estava. */
+    if (document.hidden) return;
+    api("/api/ponto/presente", "POST", {}).catch(function (){ /* volta no proximo */ });
+  }, 5 * 60 * 1000);
+}
+
 VIEWS.ponto = {
   label: "Meu ponto", group: "Meu dia",
   async render(){
     const d = await api("/api/ponto");
+    pulsarPonto(!!(d.resumo || {}).aberto);
     const r = d.resumo;
     VIEW.innerHTML = "";
     VIEW.appendChild(tituloDaTela("ponto", "Meu ponto"));
@@ -1385,16 +1407,31 @@ VIEWS.ponto = {
         h("td", {text: String(x.entrada).slice(0, 10)}),
         h("td", {text: String(x.entrada).slice(11, 16)}),
         h("td", {text: x.saida ? String(x.saida).slice(11, 16) : "em aberto"}),
-        h("td", {text: x.fechado_sozinho ? "não medida" : horasTexto(x.horas)}),
+        /* Sessão que o sistema fechou sozinho mostra a hora COM a marca de
+           estimativa. Antes dizia só "não medida" e valia zero -- uma tarde
+           inteira de trabalho cortada por falta de luz desaparecia da conta
+           sem que nada na tela dissesse que ela existiu. */
+        h("td", {}, x.estimado
+          ? [h("span", {text: horasTexto(x.horas)}),
+             h("small", {class: "hint", style: "margin-left:6px", text: "estimada"})]
+          : [h("span", {text: x.horas ? horasTexto(x.horas)
+              : (x.fechado_sozinho ? "sem sinal" : "—")})]),
         h("td", {text: x.atividade || "—"}),
       ]));
     });
     tabela.appendChild(tbody);
+    const temEstimada = d.historico.some(function (x){ return x.estimado; });
     VIEW.appendChild(h("div", {class: "card sec"}, [
       h("h3", {}, [Icons.get("dados", 16), h("span", {text: "Minhas sessões"})]),
       h("div", {class: "tw"}, tabela),
-      h("p", {class: "hint", text: "\"Não medida\" é entrada sem saída que o sistema "
-        + "fechou depois de 12 horas: houve trabalho, mas não dá para dizer quanto."}),
+      h("p", {class: "hint", text: temEstimada
+        ? "\"Estimada\" é sessão que você não encerrou e o sistema fechou no último "
+          + "minuto em que soube que você ainda estava aqui — foi assim que a tarde "
+          + "interrompida pela falta de luz não virou zero. Conta nas somas, e dá "
+          + "para corrigir à mão se o horário não estiver certo."
+        : "Sessão que você não encerrar é fechada pelo sistema no último minuto em "
+          + "que ele soube que você ainda estava aqui, e aparece marcada como "
+          + "estimada."}),
     ]));
   },
 };

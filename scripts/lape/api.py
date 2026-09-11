@@ -1096,6 +1096,13 @@ def route_ponto(ctx: "Context") -> Any:
         auth.require(ctx.user, "coordenacao")
     alvo = quem or eu
     dias = to_int((ctx.query.get("dias") or ["30"])[0]) or 30
+    # Ler o proprio ponto e sinal de vida: a tela consulta esta rota
+    # enquanto estiver aberta, e e por aqui que o sistema fica sabendo ate
+    # que horas alguem ficou quando a sessao nao for encerrada a mao.
+    # Consultar o ponto de OUTRA pessoa nao marca presenca dela -- seria a
+    # coordenacao batendo ponto por quem nao esta.
+    if alvo == eu:
+        ponto.marcar_presenca(ctx.db, eu)
     return {
         "de": alvo,
         "sou_eu": alvo == eu,
@@ -1121,6 +1128,21 @@ def route_ponto_sair(ctx: "Context") -> Any:
     if resultado.get("fechou"):
         _avisar_ponto(ctx, "ponto.saida", f"{resultado['horas']} h")
     return resultado
+
+
+def route_ponto_presente(ctx: "Context") -> Any:
+    """Sinal de vida: a pessoa ainda esta trabalhando.
+
+    A tela chama isto de poucos em poucos minutos enquanto tiver uma
+    entrada em aberto. Nao abre nem fecha nada -- so anota a hora --, e e o
+    que permite fechar a sessao no lugar certo quando o sistema cai: sem
+    ele, a unica hora conhecida e a da entrada, e a tarde inteira se perde.
+    """
+    eu = _eu(ctx)
+    ponto.marcar_presenca(ctx.db, eu)
+    atual = ponto.aberto(ctx.db, eu)
+    return {"aberto": bool(atual),
+            "ha_horas": round(atual["ha_horas"], 2) if atual and atual.get("ha_horas") else None}
 
 
 def route_ponto_anotar(ctx: "Context") -> Any:
@@ -1401,6 +1423,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/ponto/?$", route_ponto, "integrante"),
     ("POST", r"^/api/ponto/entrar/?$", route_ponto_entrar, "integrante"),
     ("POST", r"^/api/ponto/sair/?$", route_ponto_sair, "integrante"),
+    ("POST", r"^/api/ponto/presente/?$", route_ponto_presente, "integrante"),
     ("POST", r"^/api/ponto/anotar/?$", route_ponto_anotar, "integrante"),
     ("GET", r"^/api/ponto/equipe/?$", route_ponto_equipe, "coordenacao"),
     ("GET", r"^/api/producao/?$", route_producao, "leitura"),
@@ -2137,6 +2160,18 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
         # cadastrado abre sem uma unica opcao. `criar=False`: aqui so se
         # ajusta quem ja esta no banco -- inventar duas pessoas num banco
         # recem-instalado seria outra coisa.
+        # O que ficou aberto enquanto o sistema esteve fora do ar. Se o
+        # servico caiu, ninguem estava batendo ponto nesse intervalo, e
+        # esperar as doze horas do limite deixaria a sessao somando tempo
+        # que nao houve.
+        for fechada in ponto.fechar_na_volta(db):
+            if fechada["sem_sinal"]:
+                print(f"  ! ponto de {fechada['quem']} aberto em"
+                      f" {fechada['entrada']} fechado sem horas: nao houve"
+                      f" nenhum sinal de vida para estimar")
+            else:
+                print(f"  ponto de {fechada['quem']} fechado em"
+                      f" {fechada['saida']} ({fechada['horas']} h estimada(s))")
         preparo = _autor.garantir_professores(db, criar=False)
         for feita in preparo.get("fusoes") or ():
             print(f"  ficha \u201c{feita['sumiu']}\u201d juntada em"

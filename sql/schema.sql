@@ -680,6 +680,12 @@ CREATE TABLE IF NOT EXISTS ponto (
   article_id   INTEGER REFERENCES articles(id) ON DELETE SET NULL,
   observacao   TEXT,
   fechado_sozinho INTEGER NOT NULL DEFAULT 0,
+  -- O ultimo instante em que se soube que a pessoa ainda estava trabalhando.
+  -- Existe por causa da queda de energia: sem ele, uma sessao interrompida so
+  -- podia ser fechada na hora da ENTRADA, e a tarde inteira de trabalho virava
+  -- zero hora. Com ele, fecha-se no ultimo sinal de vida, que e uma estimativa
+  -- honesta -- e a tela diz que e estimativa.
+  visto_em     TEXT,
   criado_em    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS ix_ponto_membro ON ponto(member_id, entrada);
