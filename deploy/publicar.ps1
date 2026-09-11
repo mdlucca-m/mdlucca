@@ -539,6 +539,46 @@ function Mostrar-Log-Do-Tunel {
   Get-Content (Join-Path $Exec "tunel.log") -Tail 20 -ErrorAction SilentlyContinue
 }
 
+function Diagnostico-Do-Tunel {
+  # O QUE o log diz, e nao o que se supoe dele.
+  #
+  # A versao anterior tinha uma saida so: "confira o authtoken e o dominio
+  # reservado". Ela era dita mesmo quando o log trazia, em letras claras,
+  # `client session established` e `tunnel session started` -- que sao a
+  # PROVA de que o authtoken funcionou. A pessoa ia conferir uma credencial
+  # certa enquanto o problema estava no dominio, e voltava meia hora depois
+  # com o mesmo erro. Um diagnostico que aponta o lugar errado custa mais
+  # caro do que nenhum.
+  $texto = ""
+  foreach ($arquivo in @("tunel.err", "tunel.log")) {
+    $caminho = Join-Path $Exec $arquivo
+    if (Test-Path $caminho) { $texto += (Get-Content $caminho -Raw -ErrorAction SilentlyContinue) }
+  }
+  if (-not $texto.Trim()) {
+    return @{ causa = "sem_log"
+              recado = "O ngrok nao chegou a escrever nada. Ou ele nao abriu, ou o antivirus o bloqueou." }
+  }
+  if ($texto -match 'ERR_NGROK_105|authentication failed|Your authtoken is invalid') {
+    return @{ causa = "authtoken"
+              recado = "O authtoken guardado nesta maquina nao serve." }
+  }
+  if ($texto -match 'ERR_NGROK_108|simultaneous ngrok agent sessions') {
+    return @{ causa = "sessao_dupla"
+              recado = "Ja ha outra sessao do ngrok aberta nesta conta. A conta gratuita permite uma so." }
+  }
+  if ($texto -match 'ERR_NGROK_(3[0-9]{2}|8[0-9]{2})|not found|is not reserved|Failed to bind') {
+    return @{ causa = "dominio"
+              recado = "O dominio nao foi aceito: ou nao esta reservado nesta conta, ou esta escrito diferente." }
+  }
+  if ($texto -match 'tunnel session started|client session established') {
+    # Sessao de pe e nenhuma linha `url=`: o ngrok entrou na conta e nao
+    # conseguiu publicar NESTE endereco. O authtoken esta fora de suspeita.
+    return @{ causa = "sessao_sem_tunel"
+              recado = "O ngrok entrou na sua conta -- o authtoken esta certo -- mas nao publicou neste endereco." }
+  }
+  return @{ causa = "desconhecida"; recado = "O ngrok nao publicou o endereco, e nao disse por que." }
+}
+
 # ---------------------------------------------- 5a. endereco fixo gratuito
 if ($Fixo) {
   $NG = Join-Path $Exec "ngrok.exe"
@@ -666,8 +706,41 @@ if ($Fixo) {
   }
   if (-not $Link) {
     Mostrar-Log-Do-Tunel
-    Aviso "Confira o authtoken e o dominio reservado."
-    Aviso "Para voltar ao endereco sorteado, que nao pede conta nenhuma:"
+    $dx = Diagnostico-Do-Tunel
+    Aviso $dx.recado
+    Write-Host ""
+    switch ($dx.causa) {
+      "sessao_sem_tunel" {
+        Write-Host "  O endereco que este script tentou publicar:"
+        Write-Host "      $Dominio"
+        Write-Host "  Confira se e exatamente esse que aparece em"
+        Write-Host "      https://dashboard.ngrok.com/domains"
+        Write-Host "  Para trocar de endereco:"
+        Write-Host "      .\deploy\publicar.ps1 -Fixo -Dominio o-seu-endereco.ngrok-free.dev"
+      }
+      "dominio" {
+        Write-Host "  Reserve ou confira o endereco em"
+        Write-Host "      https://dashboard.ngrok.com/domains"
+        Write-Host "  e rode:  .\deploy\publicar.ps1 -Fixo -Dominio o-seu-endereco"
+      }
+      "sessao_dupla" {
+        Write-Host "  Feche a outra janela do ngrok, ou encerre tudo e suba de novo:"
+        Write-Host "      .\deploy\publicar.ps1 -Parar"
+      }
+      "authtoken" {
+        Write-Host "  O authtoken certo esta em"
+        Write-Host "      https://dashboard.ngrok.com/get-started/your-authtoken"
+      }
+      default {
+        Write-Host "  Para ver o erro do proprio ngrok, sem o script no meio:"
+        Write-Host "      .lape-run\ngrok.exe http --url=https://$Dominio 127.0.0.1:$Porta"
+      }
+    }
+    Write-Host ""
+    # O laboratorio nao pode ficar sem endereco por causa de uma conta de
+    # servico. O sorteado nao pede conta nenhuma e sobe na hora; muda a cada
+    # reinicio, o que e ruim para divulgar e otimo para hoje.
+    Aviso "Para subir agora, com endereco sorteado (nao pede conta nenhuma):"
     Write-Host "    .\deploy\publicar.ps1 -Sorteado"
     Erro "O tunel fixo nao abriu."
   }

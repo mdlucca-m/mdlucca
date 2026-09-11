@@ -652,6 +652,87 @@ class TestOTunelQueAbriuMasNaoFoiVisto(unittest.TestCase):
         todos = re.findall(self.padrao(), self.LINHA_REAL)
         self.assertEqual(todos, ["https://stucco-impending-haggler.ngrok-free.dev"])
 
+    # O log REAL de uma falha que aconteceu: a sessao subiu e o tunel nao.
+    # Esta colado aqui inteiro de proposito -- um teste escrito sobre um log
+    # inventado guarda o que eu imagino que o ngrok escreve, e nao o que ele
+    # escreve.
+    LOG_SESSAO_SEM_TUNEL = (
+        'lvl=info msg="no configuration paths supplied"\n'
+        'lvl=info msg="using configuration at default config path"\n'
+        'lvl=info msg="open config file" err=<nil>\n'
+        'lvl=info msg="FIPS 140 mode" enabled=false\n'
+        'lvl=info msg="starting web service" obj=web addr=127.0.0.1:4040\n'
+        'lvl=info msg="client session established" obj=tunnels.session\n'
+        'lvl=info msg="tunnel session started" obj=tunnels.session\n')
+
+    def diagnostico(self):
+        """O corpo da funcao que decide o recado, lido do script."""
+        ps1 = PS1.read_text(encoding="utf-8")
+        inicio = ps1.index("function Diagnostico-Do-Tunel")
+        return ps1[inicio:ps1.index("\n# ---", inicio)]
+
+    def test_sessao_de_pe_nao_e_culpa_do_authtoken(self):
+        """A acusacao errada custa mais caro que nenhum diagnostico.
+
+        `client session established` e a PROVA de que o authtoken funcionou:
+        o ngrok entrou na conta. O script dizia "confira o authtoken" assim
+        mesmo, e mandava conferir uma credencial certa enquanto o problema
+        estava no dominio.
+        """
+        corpo = self.diagnostico()
+        ordem = corpo.index("tunnel session started|client session established")
+        # o padrao do authtoken e testado ANTES, senao ele nunca seria
+        # alcancado -- mas quando so ha sessao, quem responde e o outro ramo
+        self.assertLess(corpo.index("authentication failed"), ordem)
+        self.assertIn("sessao_sem_tunel", corpo)
+        self.assertIn("o authtoken esta certo", corpo)
+
+    def test_cada_causa_tem_um_recado_proprio(self):
+        corpo = self.diagnostico()
+        for causa in ("sem_log", "authtoken", "sessao_dupla", "dominio",
+                      "sessao_sem_tunel"):
+            with self.subTest(causa=causa):
+                self.assertIn(f'causa = "{causa}"', corpo)
+
+    def test_o_log_real_cai_no_ramo_da_sessao_sem_tunel(self):
+        """Roda os padroes do script contra o log que aconteceu."""
+        corpo = self.diagnostico()
+        padroes = re.findall(r"\$texto -match '([^']+)'", corpo)
+        self.assertTrue(padroes, "o diagnóstico deixou de olhar o log")
+        casou = [p for p in padroes
+                 if re.search(p, self.LOG_SESSAO_SEM_TUNEL, re.I)]
+        # casa com UM padrao so: o da sessao estabelecida
+        self.assertEqual(len(casou), 1, f"padrões que casaram: {casou}")
+        self.assertIn("tunnel session started", casou[0])
+
+    def test_o_erro_de_authtoken_continua_sendo_reconhecido(self):
+        # o ramo novo nao pode engolir o caso que ja funcionava
+        corpo = self.diagnostico()
+        padroes = re.findall(r"\$texto -match '([^']+)'", corpo)
+        ruim = ('lvl=eror msg="failed to auth" err="authentication failed: '
+                'Your authtoken is invalid" ERR_NGROK_105\n')
+        casou = [p for p in padroes if re.search(p, ruim, re.I)]
+        self.assertTrue(casou)
+        self.assertIn("authentication failed", casou[0])
+
+    def test_a_falha_oferece_o_endereco_sorteado(self):
+        """O laboratorio nao pode ficar sem endereco por causa de uma conta.
+
+        O sorteado nao pede conta nenhuma e sobe na hora.
+        """
+        ps1 = PS1.read_text(encoding="utf-8")
+        corpo = ps1[ps1.index("if (-not $Link) {"):]
+        corpo = corpo[:corpo.index("Erro \"O tunel fixo nao abriu.\"")]
+        self.assertIn("-Sorteado", corpo)
+
+    def test_a_falha_mostra_qual_endereco_foi_tentado(self):
+        # sem isso, quem tem dois enderecos na conta nao sabe qual conferir
+        ps1 = PS1.read_text(encoding="utf-8")
+        corpo = ps1[ps1.index('"sessao_sem_tunel" {'):]
+        corpo = corpo[:corpo.index("}")]
+        self.assertIn("$Dominio", corpo)
+        self.assertIn("dashboard.ngrok.com/domains", corpo)
+
     def test_o_log_e_perguntado_junto_com_o_painel(self):
         corpo = self.trecho()
         self.assertIn("127.0.0.1:4040", corpo)      # o painel continua valendo
