@@ -604,6 +604,104 @@ class TestSubirComOWindows(unittest.TestCase):
         self.assertIn("Get-ScheduledTask", corpo)
         self.assertIn("Test-Path (Caminho-Inicializar)", corpo)
 
+
+class TestAsChavesDasBases(unittest.TestCase):
+    """Gravar as chaves sem abrir o .env.
+
+    Editar a mao um arquivo cujo nome COMECA COM PONTO e, no Windows, um
+    problema de verdade: o Explorer esconde a extensao, o Bloco de Notas
+    salva como ".env.txt" sem avisar, e o sistema segue sem as chaves
+    reclamando que a base nao respondeu.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.ps1 = PS1.read_text(encoding="utf-8")
+
+    def bloco(self):
+        inicio = self.ps1.index("if ($Chaves) {")
+        return self.ps1[inicio:self.ps1.index("\n  exit 0", inicio)]
+
+    def test_a_opcao_existe(self):
+        self.assertIn("[switch]$Chaves", self.ps1)
+
+    def test_pergunta_as_duas_chaves(self):
+        corpo = self.bloco()
+        self.assertIn("SCOPUS_API_KEY", corpo)
+        self.assertIn("WOS_API_KEY", corpo)
+
+    def test_nao_baixa_nada_para_perguntar_uma_chave(self):
+        """Quem so quer gravar uma chave nao espera um download.
+
+        O bloco roda antes do Python conferido e do cloudflared baixado.
+        """
+        self.assertLess(self.ps1.index("if ($Chaves) {"),
+                        self.ps1.index("# ---", self.ps1.index("0. atualizacao") - 80))
+        self.assertLess(self.ps1.index("if ($Chaves) {"),
+                        self.ps1.index("2. cloudflared"))
+
+    def test_a_chave_nunca_volta_escrita_na_tela(self):
+        """A tela do laboratorio costuma estar num projetor.
+
+        O que a pessoa precisa saber e se HA uma chave guardada, e nao
+        qual e -- por isso so os quatro ultimos caracteres.
+        """
+        corpo = self.ps1[self.ps1.index("function Perguntar-Chave"):]
+        corpo = corpo[:corpo.index("\n}")]
+        self.assertIn("Substring", corpo)
+        self.assertIn("...$(", corpo)
+        # e nunca a variavel inteira num Write-Host
+        for linha in corpo.splitlines():
+            if "Write-Host" in linha:
+                with self.subTest(linha=linha.strip()[:50]):
+                    self.assertNotIn("$Atual\"", linha)
+
+    def test_enter_mantem_a_chave_que_ja_havia(self):
+        # apagar a chave por apertar Enter seria o oposto do esperado
+        corpo = self.ps1[self.ps1.index("function Perguntar-Chave"):]
+        corpo = corpo[:corpo.index("\n}")]
+        self.assertIn("if (-not $novo) { return $false }", corpo)
+
+    def test_valor_com_espaco_e_recusado(self):
+        # chave colada junto com outra coisa
+        corpo = self.ps1[self.ps1.index("function Perguntar-Chave"):]
+        self.assertIn("$novo -match '\\s'", corpo)
+
+    def test_o_env_e_gravado_sem_bom(self):
+        """Com BOM, a primeira variavel do arquivo chega ao Python com tres
+        bytes invisiveis grudados no nome, e ela simplesmente nao existe."""
+        corpo = self.ps1[self.ps1.index("function Gravar-Chave"):]
+        corpo = corpo[:corpo.index("\n}")]
+        self.assertIn("UTF8Encoding $false", corpo)
+
+    def test_gravar_nao_apaga_o_resto_do_env(self):
+        # o .env guarda senha do primeiro administrador e outras coisas
+        corpo = self.ps1[self.ps1.index("function Gravar-Chave"):]
+        corpo = corpo[:corpo.index("\n}")]
+        self.assertIn("Where-Object", corpo)
+        self.assertIn("Get-Content $arq", corpo)
+
+    def test_gravar_a_mesma_chave_de_novo_nao_duplica_a_linha(self):
+        corpo = self.ps1[self.ps1.index("function Gravar-Chave"):]
+        corpo = corpo[:corpo.index("\n}")]
+        self.assertIn("-notmatch \"^\\s*$Nome\\s*=\"", corpo)
+
+    def test_diz_onde_conseguir_cada_chave(self):
+        corpo = self.bloco()
+        self.assertIn("dev.elsevier.com", corpo)
+        self.assertIn("developer.clarivate.com", corpo)
+
+    def test_lembra_que_o_env_nao_sobe_para_o_repositorio(self):
+        self.assertIn("nao vai para o repositorio", self.bloco())
+
+    def test_o_env_esta_no_gitignore(self):
+        # a frase acima so e verdade se isto for verdade
+        ignorados = (ROOT / ".gitignore").read_text(encoding="utf-8")
+        self.assertIn(".env", ignorados)
+
+    def test_termina_dizendo_qual_e_o_proximo_passo(self):
+        self.assertIn("Atualizar agora", self.bloco())
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
 

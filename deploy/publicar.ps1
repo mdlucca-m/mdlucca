@@ -60,6 +60,7 @@
 #>
 param(
   [int]$Porta = 8000,
+  [switch]$Chaves,
   [switch]$Fixo,
   [switch]$Permanente,
   [switch]$Sorteado,
@@ -281,6 +282,82 @@ function Mostrar-Versao {
 if ($Versao) { Mostrar-Versao; exit 0 }
 
 New-Item -ItemType Directory -Force -Path $Exec | Out-Null
+
+# ------------------------------------------- 0a. as chaves das bases fechadas
+# Vem ANTES de tudo de proposito: perguntar duas chaves nao precisa de
+# Python conferido, nem de cloudflared baixado, nem de servico no ar --
+# e quem so quer gravar uma chave nao tem por que esperar um download.
+#
+# Existe porque editar a mao um arquivo cujo nome COMECA COM PONTO e, no
+# Windows, um problema de verdade: o Explorer esconde a extensao, o Bloco de
+# Notas salva como ".env.txt" sem avisar, e o sistema segue sem as chaves
+# reclamando que a base nao respondeu. Perguntar e gravar tira o arquivo do
+# caminho.
+function Gravar-Chave {
+  param([string]$Nome, [string]$Valor)
+  $arq = Join-Path $Raiz ".env"
+  $linhas = @()
+  if (Test-Path $arq) {
+    $linhas = @(Get-Content $arq | Where-Object { $_ -notmatch "^\s*$Nome\s*=" })
+  }
+  $linhas += "$Nome=$Valor"
+  # UTF8 sem BOM: com BOM, a primeira variavel do arquivo chega ao Python com
+  # tres bytes invisiveis grudados no nome, e ela simplesmente nao existe.
+  [IO.File]::WriteAllLines($arq, $linhas, (New-Object Text.UTF8Encoding $false))
+  [Environment]::SetEnvironmentVariable($Nome, $Valor, "Process")
+}
+
+function Perguntar-Chave {
+  param([string]$Nome, [string]$Onde, [string]$Atual)
+  Write-Host ""
+  if ($Atual) {
+    # Nunca se escreve a chave de volta na tela. O que a pessoa precisa saber
+    # e se ha uma guardada, e nao qual e -- e a tela do laboratorio costuma
+    # estar num projetor.
+    Write-Host "  $Nome ja esta configurada (termina em ...$($Atual.Substring([Math]::Max(0,$Atual.Length-4))))"
+    Write-Host "  Enter para manter, ou cole uma nova."
+  } else {
+    Write-Host "  $Nome ainda nao esta configurada."
+    Write-Host "  Ela sai de $Onde"
+  }
+  $novo = (Read-Host "  $Nome").Trim()
+  if (-not $novo) { return $false }
+  if ($novo -match '\s') {
+    Aviso "Essa chave tem espaco no meio -- provavelmente veio colada com outra coisa."
+    return $false
+  }
+  if ($novo.Length -lt 16) {
+    Aviso "Essa chave e curta demais para ser uma chave de API. Nada foi gravado."
+    return $false
+  }
+  Gravar-Chave $Nome $novo
+  Verde "$Nome gravada no .env"
+  return $true
+}
+
+if ($Chaves) {
+  # O .env ainda nao foi lido nesta altura: le-se aqui so o que interessa,
+  # para a pergunta saber dizer se ja ha chave guardada.
+  if (Test-Path (Join-Path $Raiz ".env")) {
+    Get-Content (Join-Path $Raiz ".env") | ForEach-Object {
+      if ($_ -match '^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*)$') {
+        [Environment]::SetEnvironmentVariable($Matches[1], $Matches[2].Trim('"'), "Process")
+      }
+    }
+  }
+  Write-Host ""
+  Write-Host "  As chaves das bases fechadas. Elas ficam so nesta maquina:"
+  Write-Host "  o .env nao vai para o repositorio."
+  Perguntar-Chave "SCOPUS_API_KEY" "https://dev.elsevier.com/apikey/manage" `
+    $env:SCOPUS_API_KEY | Out-Null
+  Perguntar-Chave "WOS_API_KEY" "https://developer.clarivate.com/apis/wos-starter" `
+    $env:WOS_API_KEY | Out-Null
+  Write-Host ""
+  Write-Host "  Pronto. Suba o sistema e aperte Atualizar agora na Biblioteca:"
+  Write-Host "      .\deploy\publicar.ps1 -Sorteado"
+  Write-Host ""
+  exit 0
+}
 
 # ------------------------------------------------------------ 0. atualizacao
 # Quem liga o computador quer o sistema no ar, nao um comando para decorar.
