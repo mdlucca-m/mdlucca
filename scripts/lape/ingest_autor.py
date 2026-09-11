@@ -219,6 +219,7 @@ def garantir_professores(db: Database, criar: bool = True) -> dict[str, Any]:
     vinculo para alguem, o dela fica.
     """
     saida = []
+    fusoes: list[dict[str, Any]] = []
     for pessoa in PESQUISADORES:
         # `criar=False` na subida do servico: ajustar quem ja esta cadastrado
         # e conserto; INVENTAR duas pessoas num banco recem-instalado seria
@@ -239,15 +240,20 @@ def garantir_professores(db: Database, criar: bool = True) -> dict[str, Any]:
             db.execute("UPDATE members SET role = ? WHERE id = ?",
                        (pessoa["vinculo"], membro))
             mudou.append("vínculo")
-        grafias = declarar_grafias(db, pessoa)
+        grafias = declarar_grafias(db, pessoa, fusoes)
         saida.append({"quem": pessoa["nome"], "id": membro,
                       "vinculo": atual["role"] or pessoa["vinculo"],
                       "ajustes": mudou, "grafias": len(grafias)})
     db.conn.commit()
-    return {"professores": saida, "orientador_padrao": orientador_padrao()}
+    # `fusoes` sai junto porque fundir apaga uma ficha, e quem chamou precisa
+    # poder dizer isso na tela. Uma fusao silenciosa e indistinguivel de um
+    # cadastro que desapareceu sozinho.
+    return {"professores": saida, "orientador_padrao": orientador_padrao(),
+            "fusoes": fusoes}
 
 
-def declarar_grafias(db: Database, pessoa: dict[str, Any]) -> list[str]:
+def declarar_grafias(db: Database, pessoa: dict[str, Any],
+                    fusoes: list[dict[str, Any]] | None = None) -> list[str]:
     """Garante o cadastro da pessoa e prega nele as grafias conhecidas.
 
     Nao apaga o que ja existir: a coordenacao pode ter acrescentado outras
@@ -261,7 +267,11 @@ def declarar_grafias(db: Database, pessoa: dict[str, Any]) -> list[str]:
         return []
     from . import duplicatas
 
-    postas = []
+    postas: list[str] = []
+    # Fundir apaga uma ficha. Quem roda o sistema tem de ver isso escrito na
+    # tela -- uma fusao silenciosa e indistinguivel de um cadastro que
+    # desapareceu sozinho.
+    fundidas: list[dict[str, Any]] = fusoes if fusoes is not None else []
     for grafia in grafias:
         try:
             db.register_alias(grafia, membro)
@@ -281,7 +291,7 @@ def declarar_grafias(db: Database, pessoa: dict[str, Any]) -> list[str]:
             # continua sendo a coordenacao quem decide, na tela.
             outra = db.member_id(grafia, create=False)
             if outra and duplicatas.e_fantasma_de(db, outra, membro):
-                duplicatas.fundir(db, manter_id=membro, sumir_id=outra)
+                fundidas.append(duplicatas.fundir(db, manter_id=membro, sumir_id=outra))
                 postas.append(grafia)
             continue
         postas.append(grafia)

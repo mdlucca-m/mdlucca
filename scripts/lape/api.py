@@ -2137,7 +2137,19 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
         # cadastrado abre sem uma unica opcao. `criar=False`: aqui so se
         # ajusta quem ja esta no banco -- inventar duas pessoas num banco
         # recem-instalado seria outra coisa.
-        _autor.garantir_professores(db, criar=False)
+        preparo = _autor.garantir_professores(db, criar=False)
+        for feita in preparo.get("fusoes") or ():
+            print(f"  ficha \u201c{feita['sumiu']}\u201d juntada em"
+                  f" \u201c{feita['manter']}\u201d"
+                  f" ({feita['artigos_agora']} artigo(s))")
+        # As fichas repetidas que a coordenacao ja conferiu. Sao silenciosas
+        # da segunda vez em diante -- nao ha mais o que juntar --, e o que
+        # nao foi conferido continua esperando gente na tela.
+        from . import duplicatas as _duplicatas
+        for feita in _duplicatas.aplicar_declaradas(db):
+            print(f"  ficha \u201c{feita['sumiu']}\u201d juntada em"
+                  f" \u201c{feita['manter']}\u201d"
+                  f" ({feita['artigos_agora']} artigo(s))")
     except Exception as erro:  # noqa: BLE001 -- vocabulario nao derruba o servico
         print(f"  ! nao consegui preparar linhas e orientadores: {erro}")
     try:

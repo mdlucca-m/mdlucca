@@ -1,0 +1,22 @@
+# A ordem importa: a ULTIMA regra que casa e a que vale. Por isso o
+# curinga vem primeiro e as excecoes depois -- ao contrario, ele
+# atropelaria todas elas em silencio.
+* text=auto eol=lf
+
+# O .bat e lido pelo cmd.exe, que precisa de CRLF: com LF puro ele engole o
+# ultimo caractere de algumas linhas, e o erro que aparece na tela nao tem
+# relacao nenhuma com a causa. Sem esta declaracao, o git normaliza a quebra
+# de linha conforme a configuracao de cada maquina -- e o arquivo chega
+# quebrado justamente em quem vai usa-lo.
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Banco e planilha nao sao texto: normalizar quebra de linha dentro deles
+# corromperia o arquivo.
+*.sqlite binary
+*.xlsx binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gz binary

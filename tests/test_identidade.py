@@ -473,8 +473,22 @@ class TestOQueOServicoPreparaSozinho(unittest.TestCase):
         self.assertEqual(db.scalar("SELECT COUNT(*) FROM members"), 2)
 
     def test_falhar_a_preparacao_nao_derruba_o_servico(self):
-        # vocabulário é conveniência; o laboratório sem ele ainda abre
+        """Vocabulário é conveniência; o laboratório sem ele ainda abre.
+
+        A garantia é o `except` que FECHA este bloco, e não a distância
+        entre as duas linhas no arquivo: medir por caracteres fazia o
+        teste quebrar toda vez que alguém escrevia um passo novo no meio
+        — e quebrar por um motivo que não é o que ele guarda.
+        """
         corpo = self.serve()
         trecho = corpo[corpo.index("_linhas.instalar(db)"):]
-        self.assertIn("except Exception", trecho[:600])
-        self.assertNotIn("raise", trecho[:600])
+        fecho = trecho.index("except Exception")
+        # nada entre a preparação e o `except` deixa a exceção escapar
+        self.assertNotIn("raise", trecho[:fecho])
+        # e o bloco está dentro de um `try` aberto e ainda não fechado:
+        # há imports entre o `try:` e a primeira chamada, então o que vale
+        # é não existir `except` no caminho
+        antes = corpo[:corpo.index("_linhas.instalar(db)")]
+        abertura = antes.rindex("try:")
+        self.assertNotIn("except", antes[abertura:],
+                         "a preparação está fora do try que a protegeria")

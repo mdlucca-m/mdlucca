@@ -274,6 +274,70 @@ class TestAGrafiaDeclaradaJuntaSozinha(BaseFichas):
         self.assertEqual(self.pares(), [("Henrique", "Henrique Fukumasa")])
 
 
+class TestAsFusoesDeclaradas(BaseFichas):
+    """O que a coordenacao ja conferiu se resolve na subida do servico.
+
+    A lista nao dispensa a conferencia do banco: uma linha ali diz "ja
+    perguntamos a quem sabe", e nao "junte de qualquer maneira". O encaixe
+    de `e_fantasma_de` continua valendo, e e o que impede uma linha
+    desatualizada de juntar duas pessoas de verdade.
+    """
+
+    def test_o_par_declarado_se_junta(self):
+        sai = self.pessoa("Henrique", ["Um artigo"])
+        fica = self.pessoa("Henrique Fukumasa", ["Outro"])
+        feitas = duplicatas.aplicar_declaradas(self.db)
+        self.assertEqual(len(feitas), 1)
+        self.assertEqual(self.db.dicts("SELECT id FROM members WHERE id = ?", (sai,)), [])
+        self.assertEqual(
+            self.db.scalar("SELECT COUNT(*) FROM article_authors WHERE member_id = ?",
+                           (fica,)), 2)
+
+    def test_rodar_de_novo_nao_faz_nada(self):
+        # roda a cada arranque: a segunda vez tem de ser silenciosa
+        self.pessoa("Henrique", ["A"])
+        self.pessoa("Henrique Fukumasa", ["B"])
+        duplicatas.aplicar_declaradas(self.db)
+        self.assertEqual(duplicatas.aplicar_declaradas(self.db), [])
+
+    def test_banco_sem_o_par_nao_quebra(self):
+        # instalacao de outro laboratorio, ou banco recem-criado
+        self.pessoa("Alguem Outro", ["A"])
+        self.assertEqual(duplicatas.aplicar_declaradas(self.db), [])
+
+    def test_so_uma_das_duas_fichas_nao_junta_nada(self):
+        self.pessoa("Henrique Fukumasa", ["A"])
+        self.assertEqual(duplicatas.aplicar_declaradas(self.db), [])
+
+    def test_a_trava_vale_para_a_lista_tambem(self):
+        """Se as duas assinam o mesmo artigo, a lista nao manda.
+
+        Sao pessoas diferentes, ou a autoria esta errada -- e uma linha
+        escrita meses antes nao sabe dizer qual das duas coisas e.
+        """
+        sai = self.pessoa("Henrique", ["Artigo dividido"])
+        artigo = self.db.scalar(
+            "SELECT article_id FROM article_authors WHERE member_id = ?", (sai,))
+        fica = self.pessoa("Henrique Fukumasa", ["Outro"])
+        self.db.execute(
+            "INSERT INTO article_authors (article_id, member_id, author_name,"
+            "                             author_order) VALUES (?, ?, ?, 2)",
+            (artigo, fica, "Henrique Fukumasa"))
+        self.db.conn.commit()
+        self.assertEqual(duplicatas.aplicar_declaradas(self.db), [])
+        self.assertTrue(self.db.dicts("SELECT id FROM members WHERE id = ?", (sai,)))
+
+    def test_a_grafia_que_saiu_fica_guardada(self):
+        self.pessoa("Henrique", ["A"])
+        fica = self.pessoa("Henrique Fukumasa", ["B"])
+        duplicatas.aplicar_declaradas(self.db)
+        self.assertEqual(self.db.member_id("Henrique", create=False), fica)
+
+    def test_a_subida_do_servico_aplica_a_lista(self):
+        fonte = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
+        self.assertIn("_duplicatas.aplicar_declaradas(db)", fonte)
+
+
 class TestAPorta(unittest.TestCase):
     """As rotas existem, e só a coordenação chega nelas."""
 

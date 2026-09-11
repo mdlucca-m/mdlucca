@@ -78,6 +78,43 @@ def candidatos(db: Database) -> list[dict[str, Any]]:
     return achados
 
 
+# Fusoes que a coordenacao ja conferiu e confirmou. Ficam escritas aqui
+# pelo mesmo motivo das linhas de pesquisa e das grafias dos professores:
+# sao decisao do laboratorio, valem para toda instalacao e nao se
+# redigitam. Cada par e (ficha que fica, ficha que sai) POR NOME.
+#
+# Entrar nesta lista nao dispensa a conferencia: a fusao so acontece se o
+# encaixe de `e_fantasma_de` continuar valendo no banco em que ela roda --
+# ficha de um nome so, primeiro nome igual, nenhum artigo em comum. Uma
+# linha aqui diz "ja perguntamos a quem sabe"; nao diz "junte de qualquer
+# maneira".
+FUSOES_DECLARADAS: tuple[tuple[str, str], ...] = (
+    # Um artigo trouxe "Henrique" e outro, "Henrique Fukumasa": a planilha
+    # listou os autores so pelo primeiro nome num deles. Sao a mesma
+    # pessoa, conferido com a coordenacao do LAPE.
+    ("Henrique Fukumasa", "Henrique"),
+)
+
+
+def aplicar_declaradas(db: Database) -> list[dict[str, Any]]:
+    """Junta as fichas da lista acima, se ainda houver o que juntar.
+
+    Roda na subida do servico. E silenciosa quando nao ha nada a fazer, o
+    que e o caso na segunda vez em diante: a ficha antiga deixou de
+    existir e a grafia dela ja esta guardada como variacao do nome.
+    """
+    feitas = []
+    for nome_fica, nome_sai in FUSOES_DECLARADAS:
+        fica = db.member_id(nome_fica, create=False)
+        sai = db.member_id(nome_sai, create=False)
+        if not fica or not sai or fica == sai:
+            continue
+        if not e_fantasma_de(db, sai, fica):
+            continue
+        feitas.append(fundir(db, manter_id=fica, sumir_id=sai))
+    return feitas
+
+
 def e_fantasma_de(db: Database, ficha_id: int, pessoa_id: int) -> bool:
     """A ficha `ficha_id` e so um pedaco do nome de `pessoa_id`?
 
