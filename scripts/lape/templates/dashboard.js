@@ -814,10 +814,288 @@ function updateCount() {
 /* ==================================================================== */
 /* abas                                                                  */
 /* ==================================================================== */
+/* O vínculo de cada pessoa. Terceira cópia deste vocabulário (as outras
+   estão em mapping.VINCULOS e no formulário da área do integrante), e há
+   teste que reprova a divergência entre elas. */
+const VINCULO_NOME = {
+  coordenacao: "Coordenação", professor: "Professor(a)",
+  pos_doutorado: "Pós-doutorado", doutorando: "Doutorando(a)",
+  mestrando: "Mestrando(a)", bolsista_ic: "Bolsista de IC",
+  bolsista_extensao: "Bolsista de extensão", voluntario: "Voluntário(a)",
+  graduando: "Graduando(a)", tecnico: "Técnico(a)",
+  colaborador: "Colaborador(a) externo",
+};
+
 const VIEWS = [];
 function view(id, label, group, lead, render) {
   VIEWS.push({ id: id, label: label, group: group, lead: lead, render: render });
 }
+
+/* O laboratório inteiro numa página.
+
+   O painel é navegado: vinte e uma telas, uma de cada vez, cada uma
+   respondendo bem a uma pergunta. Isso serve para trabalhar e não serve
+   para olhar -- quem chega querendo saber como o laboratório está teria
+   de percorrer seis seções e juntar de cabeça.
+
+   Esta tela é o contrário: tudo à vista, cada cartão com UMA pergunta e a
+   resposta lida em segundos. O que ela não é: um amontoado de números. Um
+   número sozinho não informa -- 13 publicações é muito ou pouco conforme
+   a meta, o ano anterior e o tamanho da equipe --, então cada cartão traz
+   a leitura junto, que é o que o modelo que inspirou esta tela não tinha. */
+view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
+  + "para onde vai e o que vence primeiro.", function (host) {
+    const o = D.overview || {};
+    const M = D.metas || {};
+    const rows = articles();
+    const publicados = rows.filter(function (a) { return a.status === "publicado"; });
+    const ano = new Date().getFullYear();
+    const noAno = publicados.filter(function (a) {
+      return Number(a.year_published) === ano; }).length;
+    const anterior = publicados.filter(function (a) {
+      return Number(a.year_published) === ano - 1; }).length;
+
+    /* ---------------- identidade ---------------- */
+    const capa = el("div", { class: "card resumo-capa" }, [
+      el("div", { class: "marca" }, [
+        Icons.badge("painel", null, 30),
+        el("div", {}, [
+          el("h3", { style: "margin:0", text: o.lab_name || "LAPE" }),
+          el("div", { class: "hint", text: o.institution || "" }),
+        ]),
+      ]),
+      el("p", { class: "lema", text: "Ciência para pessoas mais ativas e saudáveis." }),
+      el("div", { class: "hint", text: "Atualizado em " + dt(o.generated_at) }),
+    ]);
+
+    /* ---------------- números ---------------- */
+    const numero = function (valor, rotulo, pe) {
+      return el("div", { class: "resumo-num" }, [
+        el("b", { text: C.fmt(valor) }),
+        el("span", { text: rotulo }),
+        pe ? el("i", { text: pe }) : null,
+      ].filter(Boolean));
+    };
+    /* Contagem sozinha não informa. O que se quer saber olhando este
+       cartão não é quantos manuscritos estão em produção -- é se eles
+       estão andando, e a mediana da idade responde isso: metade está há
+       mais tempo do que ela na bancada. */
+    const emEscrita = rows.filter(function (a) { return a.status === "em_producao"; });
+    const idadeMediana = median(emEscrita.map(function (a) {
+      return daysSince(a.started_on); }).filter(function (d) { return d !== null; }));
+    const numeros = card("O LAPE em números", "toda a produção registrada", [
+      el("div", { class: "resumo-nums" }, [
+        numero(rows.length, "artigos", "no banco"),
+        numero(o.n_published, "publicados"),
+        numero(o.n_in_progress, "em produção"),
+        numero(o.n_submitted, "em avaliação"),
+        numero(Math.max(o.scopus_total || 0, o.wos_total || 0, o.openalex_total || 0),
+          "citações", "na melhor base"),
+        numero(o.n_members, "pesquisadores"),
+        numero(o.n_collaborators, "coautores"),
+        numero(o.n_projects_active, "projetos ativos"),
+      ]),
+      idadeMediana !== null && emEscrita.length
+        ? leituraDe({ sinal: "parado", forte: "Metade do que está em produção",
+            texto: "começou há mais de " + dur(idadeMediana) + "." })
+        : null,
+    ].filter(Boolean));
+
+    /* ---------------- produção do ano ---------------- */
+    const anos = [];
+    for (let y = ano - 5; y <= ano; y++) anos.push(y);
+    const serie = anos.map(function (y) {
+      return publicados.filter(function (a) { return Number(a.year_published) === y; }).length;
+    });
+    const metaPub = (M.indicadores || []).find(function (i) {
+      return i.codigo === "publicacoes"; }) || {};
+    const variacao = anterior ? Math.round(100 * (noAno - anterior) / anterior) : null;
+    const producao = card("Produção científica", "publicações por ano", [
+      C.columns({ labels: anos.map(String), series: [{ label: "Publicados", values: serie }],
+        mono: true, height: 220, caption: null }),
+      leituraDe({
+        sinal: variacao === null ? "parado" : (variacao >= 0 ? "sobe" : "desce"),
+        forte: noAno + " em " + ano,
+        texto: anterior
+          ? "contra " + anterior + " em " + (ano - 1)
+            + (variacao !== null ? " (" + (variacao >= 0 ? "+" : "") + variacao + "%)" : "")
+          : "primeiro ano com publicação registrada",
+      }),
+      metaPub.projecao && metaPub.projecao.metodo !== "fechado"
+        ? el("div", { class: "hint", text: "o ano deve terminar entre "
+            + metaPub.projecao.de + " e " + metaPub.projecao.ate
+            + (metaPub.meta ? " · meta " + metaPub.meta : "") })
+        : null,
+    ].filter(Boolean));
+
+    /* ---------------- impacto ---------------- */
+    const base = (o.scopus_total || 0) >= (o.wos_total || 0)
+      ? { total: o.scopus_total, campo: "scopus_citations", nome: "Scopus" }
+      : { total: o.wos_total, campo: "wos_citations", nome: "Web of Science" };
+    if (!base.total && o.openalex_total)
+      base = { total: o.openalex_total, campo: "openalex_citations", nome: "OpenAlex" };
+    const citados = rows.filter(function (a) { return (a[base.campo] || 0) > 0; })
+      .sort(function (a, b) { return (b[base.campo] || 0) - (a[base.campo] || 0); });
+    const topo = citados[0];
+    /* Sem citação nenhuma o cartão virava três zeros lado a lado, que não
+       é informação -- é a ausência dela ocupando o lugar de um cartão.
+       Aqui ele diz o que falta para o número existir. */
+    const impacto = !base.total ? card("Impacto científico", null, [
+      el("div", { class: "empty", text: "Ainda sem citação registrada em nenhuma base." }),
+      el("div", { class: "hint", text: "As citações entram pelo DOI do artigo: a "
+        + "OpenAlex vem sozinha na atualização, a Scopus e a Web of Science pedem a "
+        + "chave da universidade. " + rows.filter(function (a) { return !a.doi; }).length
+        + " artigo(s) ainda estão sem DOI." }),
+    ]) : card("Impacto científico", "citações na " + base.nome, [
+      el("div", { class: "resumo-nums" }, [
+        numero(base.total || 0, "citações"),
+        numero(citados.length, "artigos citados", "de " + rows.length),
+        /* Índice h zero ao lado de mil citações não é zero -- é ninguém
+           ter calculado nem declarado ainda, e são coisas diferentes. */
+        numero(o.best_h_index || "—", "maior índice h",
+          o.best_h_index ? null : "ainda não declarado"),
+      ]),
+      topo ? el("div", { class: "resumo-topo" }, [
+        el("div", { class: "hint", text: "artigo mais citado" }),
+        el("b", { text: topo.title }),
+        el("div", { class: "hint", text: (topo[base.campo] || 0) + " citações"
+          + (topo.journal ? " · " + topo.journal : "")
+          + (topo.year_published ? " · " + topo.year_published : "") }),
+      ]) : null,
+      /* Citação demora: o artigo deste ano ainda não teve tempo de ser
+         citado, e comparar a colheita dele com a de 2019 puniria o
+         trabalho novo por ser novo. */
+      citados.length ? el("div", { class: "hint",
+        text: "a citação chega com atraso — o artigo recente ainda não teve "
+            + "tempo de ser citado, e isso não é sinal de qualidade" }) : null,
+    ].filter(Boolean));
+
+    /* ---------------- linhas de pesquisa ---------------- */
+    const linhas = (D.research_lines || []).map(function (l) {
+      const meus = rows.filter(function (a) { return a.research_line === l.name; });
+      return { nome: l.name, ativa: l.active !== 0, total: meus.length,
+        publicados: meus.filter(function (a) { return a.status === "publicado"; }).length,
+        producao: meus.filter(function (a) { return a.status === "em_producao"; }).length };
+    }).filter(function (x) { return x.ativa || x.total; })
+      .sort(function (a, b) { return b.total - a.total; });
+    const semLinha = rows.filter(function (a) { return !a.research_line; }).length;
+    /* Uma fileira de barras de comprimento zero parece gráfico e não diz
+       nada. Quando nenhuma linha tem artigo, o que há para contar é
+       justamente que a classificação não foi feita. */
+    const comArtigo = linhas.filter(function (x) { return x.total > 0; });
+    const areas = card("Por linha de pesquisa", "onde a produção está", [
+      comArtigo.length
+        ? C.bars({ items: comArtigo.slice(0, 8).map(function (x) {
+            return { label: x.nome, value: x.total,
+              note: x.publicados + " publicados" }; }),
+            unit: "artigos", mono: true, labelWidth: 190, rowH: 30 })
+        : el("div", { class: "empty",
+            text: "Nenhum artigo está associado a uma linha de pesquisa." }),
+      /* O que está fora de qualquer linha é a informação que falta, e ela
+         não aparece em gráfico nenhum de composição. */
+      semLinha ? leituraDe({ sinal: "parado",
+        forte: semLinha + " artigo(s)",
+        texto: "estão sem linha de pesquisa e não entram em nenhuma barra acima" })
+        : null,
+    ].filter(Boolean));
+
+    /* ---------------- equipe ---------------- */
+    const equipe = (D.members || []).filter(function (m) {
+      return !m.is_external && m.active !== 0 && !m.left_on; });
+    const porVinculo = {};
+    equipe.forEach(function (m) {
+      const nome = VINCULO_NOME[m.role] || "sem vínculo declarado";
+      porVinculo[nome] = (porVinculo[nome] || 0) + 1;
+    });
+    const semVinculo = equipe.filter(function (m) { return !m.role; }).length;
+    const pessoas = card("Nossa equipe", equipe.length + " integrantes e "
+      + (o.n_collaborators || 0) + " coautores", [
+      el("table", { class: "facts" },
+        Object.keys(porVinculo).sort(function (a, b) {
+          return porVinculo[b] - porVinculo[a]; }).map(function (nome) {
+          return el("tr", {}, [el("th", { text: nome }),
+            el("td", { text: String(porVinculo[nome]) })]);
+        })),
+      /* Coautor não é integrante: quem assinou um artigo com o laboratório
+         não virou parte dele, e contar os dois juntos inflava a equipe. */
+      el("div", { class: "hint", text: "coautor é quem assinou artigo conosco sem "
+        + "ser do grupo — os dois números são contados separados" }),
+      semVinculo ? leituraDe({ sinal: "parado", forte: semVinculo + " pessoa(s)",
+        texto: "estão sem vínculo declarado, e por isso não aparecem no organograma" })
+        : null,
+    ].filter(Boolean));
+
+    /* ---------------- objetivos ---------------- */
+    const comMeta = (M.indicadores || []).filter(function (i) { return i.meta; });
+    const objetivos = card("Objetivos de " + (M.ano || ano),
+      M.corrente ? "faltam " + M.meses_restantes + " mês(es)" : "ano fechado",
+      comMeta.length ? comMeta.map(function (i) {
+        const pj = i.projecao || {};
+        const teto = Math.max(i.meta || 0, pj.ate || 0, i.realizado || 0, 1);
+        const pct = function (v) { return (100 * (v || 0) / teto).toFixed(1) + "%"; };
+        const trilho = el("div", { class: "meta-trilho", style: "height:14px" }, [
+          el("div", { class: "faixa" }), el("div", { class: "feito" }),
+          el("div", { class: "marca" }),
+        ]);
+        trilho.style.setProperty("--feito", pct(i.realizado));
+        trilho.style.setProperty("--de", pct(pj.de));
+        trilho.style.setProperty("--largura",
+          (100 * Math.max(0, (pj.ate || 0) - (pj.de || 0)) / teto).toFixed(1) + "%");
+        trilho.style.setProperty("--meta", pct(i.meta));
+        return el("div", { class: "meta-linha", style: "margin-bottom:12px" }, [
+          el("div", { class: "topo" }, [
+            el("span", { text: i.rotulo }),
+            el("span", { class: "hint", text: i.realizado + " de " + i.meta }),
+          ]),
+          trilho,
+          el("div", { class: "hint", text: i.veredito
+            + (i.precisa_por_mes ? " · precisa de " + C.fmt(i.precisa_por_mes)
+                + "/mês" : "") }),
+        ]);
+      }) : [el("div", { class: "empty",
+        text: "Nenhuma meta declarada. A coordenação declara em Área do "
+            + "integrante › Administração." })]);
+
+    /* ---------------- o que vem a seguir ---------------- */
+    const proximos = ((D.agenda || {}).upcoming || []).slice(0, 5);
+    const parados = (D.submitted || []).map(function (a) {
+      /* `daysSince` devolve fração de dia. Sem arredondar, a tela mostrava
+         "550.8450484837963 d" ao lado do título -- treze casas decimais
+         para uma espera que ninguém mede em segundos. */
+      return { titulo: a.title,
+        dias: Math.round(daysSince(a.last_submitted_on || a.first_submission_on)) };
+    }).filter(function (x) { return x.dias !== null && x.dias > 90; })
+      .sort(function (a, b) { return b.dias - a.dias; }).slice(0, 4);
+    const seguir = card("O que vem a seguir", "compromissos e o que está esperando", [
+      proximos.length ? el("ul", { class: "agenda" }, proximos.map(function (e) {
+        return el("li", {}, [
+          el("span", { class: "hint", text: dt(e.starts_on || e.date) }),
+          el("span", { text: e.title || e.titulo }),
+        ]);
+      })) : el("div", { class: "hint", text: "Nenhum compromisso nos próximos dias." }),
+      /* Submissão parada é o que some do radar: ninguém é lembrado do
+         artigo que não deu notícia, e é justamente ele que precisa de
+         cobrança. */
+      parados.length ? el("div", { style: "margin-top:12px" }, [
+        el("div", { class: "hint", text: "esperando resposta há mais de 90 dias" }),
+        el("ul", { class: "agenda" }, parados.map(function (x) {
+          return el("li", {}, [
+            el("span", { class: "badge warning", text: x.dias + " d" }),
+            el("span", { text: x.titulo }),
+          ]);
+        })),
+      ]) : null,
+    ].filter(Boolean));
+
+    /* Os cartões com gráfico ocupam duas colunas. Numa coluna só as
+       barras saem com dez pixels de altura e o rótulo do ano ilegível --
+       gráfico que não se lê é enfeite ocupando o lugar de um número. */
+    producao.classList.add("largo");
+    areas.classList.add("largo");
+    objetivos.classList.add("largo");
+    host.appendChild(el("div", { class: "grid resumo" },
+      [capa, numeros, producao, impacto, areas, pessoas, objetivos, seguir]));
+  });
 
 view("visao", "Painel", "", "Retrato do laboratório no recorte atual.", function (host) {
   const o = D.overview;
@@ -3042,7 +3320,7 @@ function aplicarSegmento(label) {
    leitura siga o assunto e não a estrutura do menu. */
 const SECTIONS = [
   { id: "geral", label: "Visão geral", icon: "painel",
-    views: ["visao", "metas", "explorar"] },
+    views: ["resumo", "visao", "metas", "explorar"] },
   { id: "producao", label: "Produção", icon: "producao",
     views: ["producao", "submetidos", "publicacoes", "citacoes"] },
   { id: "pessoas", label: "Pessoas", icon: "pessoas",
@@ -3055,7 +3333,7 @@ const SECTIONS = [
     views: ["descobertas", "qualidade", "automacao"] },
 ];
 const VIEW_ICON = {
-  visao: "painel", metas: "alvo", explorar: "explorar",
+  resumo: "painel", visao: "barras", metas: "alvo", explorar: "explorar",
   producao: "producao", submetidos: "submissao", publicacoes: "livro", citacoes: "citacao",
   pesquisadores: "pessoas", organograma: "hierarquia", equipe: "barras", rede: "rede",
   linhas: "linhas", projetos: "projeto",
@@ -3065,6 +3343,7 @@ const VIEW_ICON = {
 };
 /* atalhos entre sub-abas de seções diferentes — a ponte que o menu não faz */
 const RELATED = {
+  resumo: ["metas", "visao", "publicacoes"],
   visao: ["metas", "explorar", "publicacoes"],
   metas: ["visao", "publicacoes", "tempos"],
   explorar: ["equipe", "publicacoes", "qualidade"],

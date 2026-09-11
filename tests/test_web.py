@@ -1041,6 +1041,20 @@ class TestTokensDoTema(unittest.TestCase):
             with self.subTest(token=token):
                 self.assertIn(token + ":", comum)
 
+    def test_o_painel_nao_rola_na_horizontal_no_celular(self):
+        """`1fr` tem largura mínima automática, e por isso vazava.
+
+        Qualquer filho largo -- uma tabela, a barra de filtros -- empurrava
+        a coluna inteira, e a PÁGINA passava a rolar de lado. Valia para o
+        painel todo, em qualquer tela estreita. A regra do desktop já usava
+        minmax; a do celular, não.
+        """
+        html = (self.TEMPLATES / "dashboard.html").read_text(encoding="utf-8")
+        bloco = html[html.index("@media (max-width: 980px)"):]
+        bloco = bloco[:bloco.index("\n}")]
+        self.assertIn("minmax(0, 1fr)", bloco)
+        self.assertNotIn("grid-template-columns: 1fr;", bloco)
+
     def test_o_botao_de_tema_sabe_qual_e_o_padrao(self):
         # perguntando ao sistema, o primeiro clique num Windows escuro
         # "trocava para claro" estando já claro, e nada acontecia

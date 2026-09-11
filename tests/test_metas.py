@@ -274,5 +274,70 @@ class TestATelaDoPainel(unittest.TestCase):
         self.assertIn("text: i.veredito", self.corpo)
 
 
+class TestOResumoNumaPagina(unittest.TestCase):
+    """A tela que mostra o laboratório inteiro de uma vez.
+
+    O painel é navegado: vinte e uma telas, uma por vez, cada uma boa para
+    trabalhar e nenhuma boa para olhar. Esta é a que responde "como o
+    laboratório está" sem obrigar a percorrer seis seções e juntar de
+    cabeça -- e o que se cobra aqui é que ela não vire um amontoado de
+    números, que é o que ela seria fácil de ser.
+    """
+
+    def setUp(self):
+        self.js = (TEMPLATES / "dashboard.js").read_text(encoding="utf-8")
+        self.corpo = self.js[self.js.index('view("resumo"'):]
+        self.corpo = self.corpo[:self.corpo.index('view("visao"')]
+
+    def test_abre_primeiro(self):
+        """Uma tela de visão geral que não é a primeira não é visão geral."""
+        bloco = self.js[self.js.index('{ id: "geral"'):]
+        bloco = bloco[:bloco.index("},")]
+        self.assertIn('views: ["resumo"', bloco)
+
+    def test_cada_cartao_traz_uma_leitura_e_nao_so_o_numero(self):
+        """13 publicações é muito ou pouco conforme a meta e o ano anterior.
+
+        Sem a leitura ao lado, cada pessoa interpreta sozinha -- e é aí
+        que um painel vira enfeite.
+        """
+        self.assertGreaterEqual(self.corpo.count("leituraDe("), 4)
+
+    def test_compara_o_ano_com_o_anterior(self):
+        self.assertIn("ano - 1", self.corpo)
+
+    def test_mostra_a_projecao_como_faixa(self):
+        self.assertIn("metaPub.projecao.de", self.corpo)
+        self.assertIn("metaPub.projecao.ate", self.corpo)
+
+    def test_conta_o_que_esta_sem_classificacao(self):
+        """O que falta não aparece em gráfico de composição nenhum."""
+        self.assertIn("sem linha de pesquisa", self.corpo)
+        self.assertIn("sem vínculo declarado", self.corpo)
+
+    def test_separa_pesquisador_de_coautor(self):
+        self.assertIn("n_collaborators", self.corpo)
+        self.assertIn("ser do grupo", self.corpo)
+
+    def test_sem_citacao_nenhuma_diz_o_que_falta_em_vez_de_tres_zeros(self):
+        """Três zeros lado a lado é a ausência de informação ocupando um cartão."""
+        self.assertIn("Ainda sem citação registrada", self.corpo)
+        self.assertIn("sem DOI", self.corpo)
+
+    def test_sem_linha_classificada_nao_desenha_barra_de_zeros(self):
+        """Barra de comprimento zero parece gráfico e não diz nada."""
+        self.assertIn("comArtigo.length", self.corpo)
+
+    def test_o_grafico_nao_fica_espremido_numa_coluna(self):
+        # gráfico que não se lê é enfeite ocupando o lugar de um número
+        self.assertIn('producao.classList.add("largo")', self.corpo)
+        css = (TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        self.assertIn(".resumo .largo", css)
+
+    def test_avisa_o_manuscrito_parado(self):
+        """Ninguém é lembrado do artigo que não deu notícia."""
+        self.assertIn("90 dias", self.corpo)
+
+
 if __name__ == "__main__":
     unittest.main()

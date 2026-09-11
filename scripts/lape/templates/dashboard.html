@@ -319,7 +319,12 @@ footer { border-top: 1px solid var(--border); padding-top: 18px; margin-top: 30p
 #toTop.on { opacity: 1; pointer-events: auto; }
 
 @media (max-width: 980px) {
-  .layout { grid-template-columns: 1fr; }
+  /* `minmax(0, 1fr)`, e não `1fr`. Uma faixa `1fr` tem largura mínima
+     automática: qualquer filho largo -- uma tabela, uma barra de filtros --
+     empurra a coluna inteira e a PÁGINA passa a rolar na horizontal. A
+     regra do desktop já usava minmax; a do celular não, e o painel inteiro
+     vazava 23px em qualquer tela estreita. */
+  .layout { grid-template-columns: minmax(0, 1fr); }
   nav.side { position: static; height: auto; border-right: none;
     border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 3px; padding: 12px; }
   nav.side .brand, nav.side .railfoot { width: 100%; }
