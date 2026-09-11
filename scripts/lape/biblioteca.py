@@ -1009,13 +1009,16 @@ def _paises_do_acervo(itens: list[dict[str, Any]]) -> dict[str, Any]:
     publica o mundo inteiro, e contar por revista responderia "onde se
     publica", que e outra pergunta.
     """
-    from .variaveis import bandeira
+    from .variaveis import bandeira, iso2
 
     contagem: dict[str, dict[str, Any]] = {}
     for item in itens:
         for pais in item.get("paises") or []:
+            # `iso` viaja junto com `bandeira`: o emoji nao aparece no
+            # Windows, e e do codigo que a tela desenha a bandeira em SVG.
             alvo = contagem.setdefault(pais, {"pais": pais, "n": 0, "artigos": [],
-                                              "bandeira": bandeira(pais)})
+                                              "bandeira": bandeira(pais),
+                                              "iso": iso2(pais)})
             alvo["n"] += 1
             alvo["artigos"].append(item["id"])
     todos = sorted(contagem.values(), key=lambda x: (-x["n"], x["pais"]))

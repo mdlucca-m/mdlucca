@@ -1963,11 +1963,13 @@ function botoesDePais(paises, redesenhar) {
         redesenhar();
       },
       /* A bandeira vem antes do nome porque é ela que se reconhece antes de
-         ler. Não é imagem nem endereço a buscar: são dois caracteres do
-         próprio Unicode, e por isso funcionam no mural sem rede e no
-         instantâneo que viaja por e-mail. País sem bandeira conhecida fica
-         só com o nome, e nada se desalinha. */
-    }, [x.bandeira ? el("span", { class: "bandeira tremula", text: x.bandeira }) : null,
+         ler. É desenhada em SVG, e não emoji: o Windows não tem bandeira de
+         país no conjunto de emoji -- ele mostra o par de indicadores
+         regionais como as duas LETRAS do código, e a lista aparecia como
+         "US BR AU". Desenhada aqui, ela não depende de fonte nem de rede,
+         e continua valendo no mural e no instantâneo que viaja por e-mail.
+         País sem desenho fica com a pastilha do código, de propósito. */
+    }, [x.iso ? el("span", { class: "tremula" }, Bandeiras.get(x.iso, x.pais)) : null,
         el("span", { text: x.pais }), el("small", { text: String(x.n) })]));
   });
   return caixa;
@@ -2036,7 +2038,7 @@ function recorteDoPais(nome, redesenhar) {
 
   caixa.appendChild(el("div", { class: "recorte-topo" }, [
     el("h3", {}, [
-      ficha.bandeira ? el("span", { class: "bandeira grande tremula", text: ficha.bandeira })
+      ficha.iso ? el("span", { class: "tremula grande" }, Bandeiras.get(ficha.iso, ficha.pais))
         : Icons.get("mapa", null),
       el("span", { text: nome })]),
     el("span", { class: "badge", text: artigos.length + " artigo(s)" }),
@@ -2130,8 +2132,10 @@ function verMapa(palco) {
       const pe = (i === 0 ? "o país mais produtivo" : "artigos com autor daqui")
         + (x.instituicoes.length
           ? " · " + x.instituicoes.length + " instituição(ões)" : "");
-      return indicador((x.bandeira ? x.bandeira + " " : "") + x.pais,
-                       x.n, pe, "mapa"); })));
+      /* O rótulo é texto: pôr o emoji aqui traria de volta as duas letras.
+         O nome do país sozinho basta -- a bandeira aparece nas pastilhas,
+         onde há lugar para um desenho. */
+      return indicador(x.pais, x.n, pe, "mapa"); })));
 
   const palcoMapa = el("div", { id: "palco-mapa", style: "margin-top:14px" });
   /* Duas projeções, e cada uma responde a uma pergunta. O globo mostra de
@@ -2176,8 +2180,7 @@ function verMapa(palco) {
               table: {
                 cols: ["País", "Artigos", "Instituições"],
                 rows: todos.map(function (x) {
-                  return [(x.bandeira ? x.bandeira + " " : "") + x.pais,
-                          x.n, x.instituicoes.join("; ")]; }),
+                  return [x.pais, x.n, x.instituicoes.join("; ")]; }),
               },
             }),
         /* A tabela sai do próprio mapa quando ele é plano. No globo ela
@@ -2196,8 +2199,8 @@ function verMapa(palco) {
                { label: "Artigos", k: "n", num: true },
                { label: "Instituições", k: "inst" }],
               todos.map(function (x) {
-                return { pais: (x.bandeira ? x.bandeira + " " : "") + x.pais,
-                         n: x.n, inst: x.instituicoes.join("; ") }; }))
+                return { pais: x.pais, n: x.n,
+                         inst: x.instituicoes.join("; ") }; }))
           : null,
         controlesDoMapa(todos, redesenhar),
         botoesDePais(todos, redesenhar),

@@ -464,6 +464,24 @@ ISO2: dict[str, str] = {
 }
 
 
+def iso2(pais: Any) -> str:
+    """O codigo de duas letras do pais. Vazio quando nao se sabe.
+
+    Sai a parte da bandeira porque a tela precisa DELE, e nao do emoji: o
+    Windows nao tem bandeira de pais no conjunto de emoji -- o Segoe UI
+    Emoji desenha o par de indicadores regionais como as duas letras --, e
+    entao o desenho e feito em SVG a partir deste codigo.
+    """
+    codigo = ISO2.get(clean_text(pais) or "")
+    if codigo:
+        return codigo
+    # a lista de coordenadas conhece mais grafias do que a de bandeiras
+    for chave, (rotulo, _lat, _lon) in PAISES.items():
+        if _dobra(pais) in (_dobra(chave), _dobra(rotulo)):
+            return ISO2.get(rotulo) or ""
+    return ""
+
+
 def bandeira(pais: Any) -> str:
     """A bandeira do pais, como texto. Vazio quando nao se sabe.
 
@@ -471,13 +489,7 @@ def bandeira(pais: Any) -> str:
     indicadores regionais (BR -> U+1F1E7 U+1F1F7). E aritmetica, nao
     tabela de imagens.
     """
-    codigo = ISO2.get(clean_text(pais) or "")
-    if not codigo:
-        # a lista de coordenadas conhece mais grafias do que a de bandeiras
-        for chave, (rotulo, _lat, _lon) in PAISES.items():
-            if _dobra(pais) in (_dobra(chave), _dobra(rotulo)):
-                codigo = ISO2.get(rotulo)
-                break
+    codigo = iso2(pais)
     if not codigo:
         return ""
     return "".join(chr(0x1F1E6 + ord(letra) - ord("A")) for letra in codigo)

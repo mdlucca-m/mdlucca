@@ -704,3 +704,13 @@ textarea:focus-visible, [tabindex]:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .tremula { animation: none; }
 }
+
+
+/* ---- a bandeira desenhada ----
+   Vem em SVG, e nao como emoji: o Windows nao tem bandeira de pais no
+   conjunto de emoji -- ele desenha o par de indicadores regionais como as
+   duas letras do codigo, e a lista aparecia como "US BR AU". */
+.bandeira-svg { width: 21px; height: 14px; display: block; border-radius: 2px; }
+.tremula.grande .bandeira-svg { width: 30px; height: 20px; }
+/* a pastilha do pais sem desenho: o codigo, mas de proposito */
+.bandeira-svg.sem-desenho { opacity: .85; }

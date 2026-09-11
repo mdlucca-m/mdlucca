@@ -176,6 +176,7 @@ table.matriz td.celula{text-align:center;font-variant-numeric:tabular-nums}
 <div class="toast" id="toast"></div>
 <script>
 __ICONS_JS__
+__BANDEIRAS_JS__
 </script>
 <script>
 __CHARTS_JS__
@@ -1696,7 +1697,10 @@ function cartaoDoMapa(a, code){
   const bandeiras = h("div", {class: "bandeiras"});
   paises.slice(0, 24).forEach(function (p){
     const b = h("button", {class: "bandeira-btn", title: p.n + " artigo(s) de " + p.pais});
-    if (p.bandeira) b.appendChild(h("span", {class: "tremula", text: p.bandeira}));
+    /* O desenho, e não o emoji: o Windows mostra o par de indicadores
+       regionais como as duas letras do código, e a lista de países aparecia
+       como "US BR AU" onde deviam estar as bandeiras. */
+    if (p.iso) { const f = h("span", {class: "tremula"}); f.appendChild(Bandeiras.get(p.iso, p.pais)); b.appendChild(f); }
     b.appendChild(h("span", {class: "nome", text: p.pais}));
     b.appendChild(h("small", {text: String(p.n)}));
     b.onmouseenter = function (){ parar(); rotulo(); foco = p.pais; pintar(); };

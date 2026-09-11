@@ -1839,6 +1839,9 @@ class Handler(BaseHTTPRequestHandler):
         html = html.replace("__LOGO__", marca.marcador())
         if "__ICONS_JS__" in html:
             html = html.replace("__ICONS_JS__", (TEMPLATES / "icons.js").read_text(encoding="utf-8"))
+        if "__BANDEIRAS_JS__" in html:
+            html = html.replace("__BANDEIRAS_JS__",
+                                (TEMPLATES / "bandeiras.js").read_text(encoding="utf-8"))
         if "__CHARTS_JS__" in html:
             html = html.replace("__CHARTS_JS__",
                                 (TEMPLATES / "charts.js").read_text(encoding="utf-8"))

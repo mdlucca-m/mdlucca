@@ -991,6 +991,9 @@ def paises(db: Database) -> dict[str, Any]:
         # a uma tabela vazia sem dizer por que.
         saida.append({"pais": item["pais"], "n": len(item["artigos"]),
                       "bandeira": variaveis.bandeira(item["pais"]),
+                      # o codigo viaja junto: e dele que a tela desenha a
+                      # bandeira, porque o emoji nao aparece no Windows
+                      "iso": variaveis.iso2(item["pais"]),
                       "artigos": sorted(item["artigos"]),
                       "instituicoes": sorted(item["instituicoes"]),
                       "latitude": item["latitude"], "longitude": item["longitude"]})
