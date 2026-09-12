@@ -22,6 +22,8 @@ import artigo1  # noqa: E402
 import artigo2  # noqa: E402
 import fonte as F  # noqa: E402
 from dados import PERFIL_DIA, PERFIS_T  # noqa: E402
+import classificar as K  # noqa: E402
+import serie as S  # noqa: E402
 
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 
@@ -93,7 +95,29 @@ def conferir(nome: str, caminho: Path, mod, checagens,
     return falhas
 
 
+def _nenhum_supera_o_iceberg() -> bool:
+    """Nenhum perfil é melhor que o iceberg em nenhuma medida externa.
+
+    Melhor significa recuperação maior ou, nas outras quatro medidas, valor
+    menor, sempre com intervalo que não contém o zero.
+    """
+    for perfil in K.ORDEM:
+        if perfil == "Iceberg":
+            continue
+        for var in S.EXTERNAS + ["Fadiga física", "Fadiga mental"]:
+            c = S.contraste(var, perfil, "Iceberg")
+            if c["cruza_zero"]:
+                continue
+            melhor = (c["diferenca"] > 0
+                      if var == "Qualidade da recuperação (TQR)"
+                      else c["diferenca"] < 0)
+            if melhor:
+                return False
+    return True
+
+
 def checar_a1(texto, celulas):
+    celulas_juntas = "\n".join(celulas)
     faltando = [f"{n}:{F.br(v, 2)}" for n, vals in F.DESCRITIVA.items()
                 for v in vals[:2] if F.br(v, 2) not in celulas]
     percentis = [f"{n}:{v}" for n, vals in F.PERCENTIS.items()
@@ -170,7 +194,7 @@ def checar_a1(texto, celulas):
                                   "Valdesalici e outros, 2026",
                                   "Bird e outros, 2025")), ""),
         ("plano de análise com o bloco de tratamento de dados",
-         "3.8.7" in texto and "Benjamini" in texto
+         "3.9.7" in texto and "Benjamini" in texto
          and "menor valor detectável" in texto, ""),
         ("plano de análise declara o software e a ausência de imputação",
          "Não houve imputação" in texto and "lavaan" in texto, ""),
@@ -189,7 +213,7 @@ def checar_a1(texto, celulas):
          "Divergência a partir de ponto comum" in celulas
          and "divergência a partir de ponto comum" in texto, ""),
         ("método descreve o teste de inversão",
-         "3.8.7" in texto and "limiar de ruído do par" in texto, ""),
+         "3.9.7" in texto and "limiar de ruído do par" in texto, ""),
         ("figuras de curvas presentes",
          all(x in texto for x in ("ponto de inversão", "afeto negativo ao "
                                   "longo da semana", "percentual do dia 1")),
@@ -229,8 +253,44 @@ def checar_a1(texto, celulas):
          and "unidade reamostrada é o atleta" in texto, ""),
         ("sensibilidade por k-médias semeada declarada",
          "k-médias semeada" in texto and "sensibilidade" in texto, ""),
-        ("seis limitações enumeradas",
-         "Seis limitações" in texto, ""),
+        ("sete limitações enumeradas",
+         "Sete limitações" in texto, ""),
+        ("seção de medidas externas ao humor presente",
+         "4.10 O que separa os perfis fora do humor" in texto
+         and "3.6 Medidas externas ao humor" in texto, ""),
+        ("as três séries externas conferem com o cálculo",
+         all(f"{S.DECOMP_EXT[v]['serie'][0]:.2f}".replace(".", ",") in texto
+             and f"{S.DECOMP_EXT[v]['serie'][-1]:.2f}".replace(".", ",")
+             in texto
+             for v in ("Qualidade da recuperação (TQR)",
+                       "Sonolência diurna (Epworth)")), ""),
+        ("recuperação e sonolência têm IC que exclui o zero e estresse não",
+         not S.DECOMP_EXT["Qualidade da recuperação (TQR)"]["cruza_zero"]
+         and not S.DECOMP_EXT["Sonolência diurna (Epworth)"]["cruza_zero"]
+         and S.DECOMP_EXT["Estresse percebido (PSS)"]["cruza_zero"], ""),
+        ("dissociação da barbatana confere com o cálculo",
+         not S.contraste("Qualidade da recuperação (TQR)",
+                         "Barbatana de tubarão", "Iceberg")["cruza_zero"]
+         and not S.contraste("Sonolência diurna (Epworth)",
+                             "Barbatana de tubarão", "Iceberg")["cruza_zero"]
+         and S.contraste("Estresse percebido (PSS)", "Barbatana de tubarão",
+                         "Iceberg")["cruza_zero"], ""),
+        ("recuperação ordena os perfis como o humor",
+         [p for p in sorted(
+             K.ORDEM,
+             key=lambda x: -S.CARACTERIZACAO[x][
+                 "Qualidade da recuperação (TQR)"]["media"])]
+         == ["Iceberg", "Superfície", "Submerso", "Iceberg invertido",
+             "Barbatana de tubarão", "Everest invertido"], ""),
+        ("nenhum perfil supera o iceberg nas cinco medidas externas",
+         _nenhum_supera_o_iceberg()
+         and "Nenhum perfil superou o iceberg" in texto + celulas_juntas, ""),
+        ("uso fora da especificação das duas escalas declarado",
+         "fora da especificação" in texto
+         and "validação brasileira" in texto, ""),
+        ("discussão distingue déficit de recuperação de reação de estresse",
+         "déficit de recuperação" in texto
+         and "pedem manejos" in texto, ""),
         ("padronização interna declarada como não comparável",
          "não são comparáveis aos" in texto, ""),
         ("amplitude do perfil só tem forma no primeiro e no último dia",
@@ -305,7 +365,7 @@ def checar_a2(texto, celulas):
 def main() -> int:
     falhas = conferir("Artigo 1",
                       RAIZ / "data" / "ARTIGO1_PERFIS_HUMOR_HANDEBOL.docx",
-                      artigo1, checar_a1, n_figuras=12)
+                      artigo1, checar_a1, n_figuras=14)
     falhas += conferir("Artigo 2", RAIZ / "data" / "ARTIGO2_FADIGA_PERFIS_HANDEBOL.docx",
                        artigo2, checar_a2)
     print("OK: os dois manuscritos conferem" if not falhas

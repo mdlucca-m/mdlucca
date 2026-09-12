@@ -34,6 +34,15 @@ _REV_FF = C.reversao("Fadiga mental", "Fadiga física")
 _DIA_VF = C.cruzar(C.SUAVE["Vigor"], C.SUAVE["Fadiga"])[0][0]
 _RISCO1, _RISCO7 = faixa("De risco", 1), faixa("De risco", 7)
 
+def _contraste_celula(variavel: str, perfil: str) -> str:
+    """Diferença do perfil para o iceberg, com IC e marca de significado."""
+    c = S.contraste(variavel, perfil, "Iceberg")
+    marca = "" if c["cruza_zero"] else "*"
+    return (f"{F.sinal(c['diferenca'], 2)} "
+            f"[{F.sinal(c['ic_inferior'], 1)}; "
+            f"{F.sinal(c['ic_superior'], 1)}]{marca}")
+
+
 def _correlacao(a, b):
     """Correlação de Pearson entre duas subescalas nas observações brutas."""
     import statistics
@@ -46,6 +55,13 @@ def _correlacao(a, b):
 
 
 _R_TD = _correlacao("Tensão", "Depressão")
+_EXT = S.DECOMP_EXT
+_CAR = S.CARACTERIZACAO
+
+
+def _C(variavel: str, perfil: str) -> dict:
+    """Contraste do perfil contra o iceberg, memorizado por chamada."""
+    return S.contraste(variavel, perfil, "Iceberg")
 _FAV1, _FAV7 = faixa("Favorável", 1), faixa("Favorável", 7)
 _NEU1, _NEU7 = faixa("Neutro", 1), faixa("Neutro", 7)
 NORMATIVO = {"Iceberg": 29.4, "Submerso": 25.5, "Barbatana de tubarão": 17.3,
@@ -124,12 +140,27 @@ ABERTURA = [
   "mais de três vezes o limite de 15%. Nenhuma subescala foi confiável em uma "
   "leitura isolada, com ICC entre 0,31 e 0,59, faixa compatível com a "
   "estabilidade publicada do instrumento, e todas passaram de 0,76 na média "
-  "de sete dias. O estudo entrega a primeira descrição dos seis perfis em "
-  "handebol, os primeiros percentis de referência da modalidade e um método "
-  "de leitura da predominância semanal que separa sinal de ruído."),
+  "de sete dias. Cinco medidas externas à classificação separaram os perfis "
+  "de modo ordenado, sem que qualquer delas tivesse participado da "
+  "atribuição: a recuperação decresceu do iceberg ao Everest invertido na "
+  "mesma ordem em que o humor piorou. No conjunto da semana a recuperação "
+  f"caiu {F.br(abs(S.D1D7_EXT['Qualidade da recuperação (TQR)']['diferenca']), 2)} "
+  "ponto e a sonolência diurna subiu "
+  f"{F.br(S.D1D7_EXT['Sonolência diurna (Epworth)']['diferenca'], 2)} ponto, "
+  "as duas com intervalo que exclui o zero, ao passo que o estresse "
+  "percebido não se moveu. A barbatana de tubarão, perfil que passou a "
+  "dominar a véspera da estreia, reuniu a maior perda de recuperação e a "
+  "maior sonolência com estresse percebido igual ao do iceberg, ao passo "
+  "que os "
+  "dois perfis invertidos concentraram o estresse percebido e a fadiga "
+  "mental. O padrão indica déficit de recuperação, e não reação de "
+  "estresse. O estudo entrega a primeira descrição dos seis perfis em "
+  "handebol, os primeiros percentis de referência da modalidade, um método "
+  "de leitura da predominância semanal que separa sinal de ruído e "
+  "evidência de que os perfis ordenam medidas externas ao humor."),
  ("PALAVRAS-CHAVE",
   "humor; handebol; Escala de Humor de Brunel; perfil de humor; "
-  "monitoramento; pré-temporada."),
+  "monitoramento; recuperação; pré-temporada."),
 ]
 
 
@@ -499,7 +530,7 @@ TABELAS = {
  "nota": ("Nota: cada célula traz o número de observações e, entre "
           "parênteses, o percentual daquele dia. A classificação atribui "
           "cada observação ao centroide publicado mais próximo sobre escores "
-          "T internos, conforme a seção 3.7. A coluna de norma traz a "
+          "T internos, conforme a seção 3.8. A coluna de norma traz a "
           "prevalência da Amostra A de Parsons-Smith, Terry e Machin (2017), "
           "com 2364 respondentes. O piso de ruído é o erro-padrão binomial "
           "médio da série, e um dia é de choque quando a derivada que parte "
@@ -665,6 +696,78 @@ TABELAS = {
           "multinomial que este estudo não conduziu."),
 },
 
+"serie_externa": {
+ "numero": 18,
+ "titulo": ("Série diária das três variáveis externas ao humor, com banda de "
+            "95% por reamostragem e tendência sobre o dia"),
+ "cabecalho": ["Variável"] + [f"Dia {d}" for d in K.DIAS]
+              + ["Inclinação/dia", "IC 95%", "R²"],
+ "linhas": [
+  [nome] + [F.br(v, 2) for v in S.DECOMP_EXT[nome]["serie"]]
+  + [F.sinal(S.DECOMP_EXT[nome]["inclinacao"], 3),
+     f"[{F.sinal(S.DECOMP_EXT[nome]['ic_inferior'], 3)}; "
+     f"{F.sinal(S.DECOMP_EXT[nome]['ic_superior'], 3)}]",
+     F.br(S.DECOMP_EXT[nome]["r2"], 3)]
+  for nome in S.EXTERNAS
+ ],
+ "nota": ("Nota: a média de cada dia agrega primeiro por atleta, como nas "
+          "demais séries deste estudo. A inclinação vem de mínimos quadrados "
+          "sobre o dia e o intervalo, de 10 mil reamostragens por atleta. "
+          "Amplitude e sentido de cada escala: recuperação de 6 a 20, e "
+          "valor alto é favorável; estresse percebido de 0 a 40 e "
+          "sonolência de 0 a 24, e nas duas o valor alto é desfavorável. A "
+          "recuperação tem 124 respostas em branco entre as "
+          f"{len(K.OBS)}, distribuídas de modo semelhante entre os dias, e "
+          "as demais não têm falta."),
+},
+
+"caracterizacao": {
+ "numero": 19,
+ "titulo": ("Caracterização de cada perfil por medidas que não entraram na "
+            "classificação, com intervalo de 95%"),
+ "cabecalho": ["Perfil", "Obs.", "Recuperação (TQR)",
+               "Estresse (PSS)", "Sonolência (Epworth)",
+               "Fadiga física", "Fadiga mental"],
+ "linhas": [
+  [nome, str(S.CARACTERIZACAO[nome]["Fadiga física"]["n"])]
+  + [(f"{F.br(S.CARACTERIZACAO[nome][v]['media'], 2)} "
+      f"[{F.br(S.CARACTERIZACAO[nome][v]['ic_inferior'], 1)}; "
+      f"{F.br(S.CARACTERIZACAO[nome][v]['ic_superior'], 1)}]")
+     if S.CARACTERIZACAO[nome][v]["n"] else "n.a."
+     for v in S.EXTERNAS + ["Fadiga física", "Fadiga mental"]]
+  for nome in K.ORDEM
+ ],
+ "nota": ("Nota: as cinco medidas são externas ao critério de classificação, "
+          "que usou apenas as seis subescalas da Escala de Humor de Brunel. "
+          "A coluna de observações traz o total de observações do perfil na "
+          "semana, e a de recuperação usa menos que esse total, pela falta "
+          "de resposta ao item. O intervalo vem de 10 mil reamostragens por "
+          "atleta, e é largo no Everest invertido porque o perfil tem apenas "
+          "sete observações. Fadiga física e fadiga mental são escalas "
+          "visuais de 0 a 10."),
+},
+
+"contraste": {
+ "numero": 20,
+ "titulo": ("Diferença de cada perfil em relação ao iceberg nas medidas "
+            "externas à classificação"),
+ "cabecalho": ["Perfil", "Recuperação (TQR)", "Estresse (PSS)",
+               "Sonolência (Epworth)", "Fadiga física", "Fadiga mental"],
+ "linhas": [
+  [nome] + [_contraste_celula(v, nome)
+            for v in S.EXTERNAS + ["Fadiga física", "Fadiga mental"]]
+  for nome in K.ORDEM if nome != "Iceberg"
+ ],
+ "nota": ("Nota: a diferença é a média do perfil menos a média do iceberg, "
+          "nas observações em que cada perfil ocorreu, e o intervalo vem de "
+          "10 mil reamostragens por atleta. O asterisco marca o intervalo "
+          "que não contém o zero. Em recuperação a diferença negativa é "
+          "desfavorável; nas outras quatro medidas a positiva é que o é. O "
+          "iceberg é a referência porque é o perfil de melhor humor e o mais "
+          "frequente no dia de repouso. Nenhum perfil superou o iceberg em "
+          "nenhuma das cinco medidas."),
+},
+
 }
 
 
@@ -803,9 +906,12 @@ BLOCOS = [
   "descrever a distribuição das observações nos seis perfis de humor no "
   "primeiro e no último dia da semana, e a proporção de observações em "
   "perfil de risco em cada um deles;",
-  "descrever, para cada perfil observado nesta amostra, os correlatos "
-  "físicos e psicológicos que a literatura lhe atribui, de modo a traduzir a "
-  "prevalência em consequência prática para a comissão técnica;",
+  "caracterizar cada perfil observado por medidas físicas e psicológicas "
+  "que não participaram da classificação, a saber a qualidade da "
+  "recuperação, o estresse percebido, a sonolência diurna e a fadiga física "
+  "e mental, de modo a verificar se os perfis separam algo além do humor e "
+  "a traduzir a prevalência em consequência prática para a comissão "
+  "técnica;",
   "quantificar a predominância diária dos perfis ao longo dos sete dias, com "
   "separação explícita entre sinal e ruído, e localizar os dias em que a "
   "mudança acontece;",
@@ -907,7 +1013,42 @@ BLOCOS = [
       "baixo o bastante para que as duas subescalas sejam tratadas como "
       "medidas distintas, apesar das trajetórias diárias semelhantes "
       "descritas na seção 4.3."),
-("h2", "3.6 Procedimento de coleta"),
+("h2", "3.6 Medidas externas ao humor"),
+("p", "O mesmo formulário diário trouxe quatro medidas que não entram na "
+      "Escala de Humor de Brunel e não participaram da classificação dos "
+      "perfis. Elas existem no estudo para responder a uma pergunta que o "
+      "humor sozinho não responde: se os perfis separam apenas estados "
+      "afetivos ou se separam também condição física e de sono."),
+("p", "A qualidade da recuperação foi medida pela escala de Recuperação "
+      "Total de Qualidade, construída sobre a mesma lógica da escala de "
+      "esforço percebido e destinada a ser lida contra ela: o esforço "
+      "descreve a quebra e a recuperação descreve a reposição (Kenttä e "
+      "Hassmén, 1998). A amplitude vai de 6 a 20, valor alto indica melhor "
+      "recuperação, e o autor propõe 13 como limite abaixo do qual a "
+      "recuperação é insuficiente para a carga imposta."),
+("p", "O estresse percebido foi medido pela versão de dez itens da Escala de "
+      "Estresse Percebido (Cohen, Kamarck e Mermelstein, 1983), com "
+      "amplitude de 0 a 40, na tradução brasileira de Luft e outros (2007). "
+      "A sonolência diurna foi medida pela Escala de Sonolência de Epworth, "
+      "de oito itens e amplitude de 0 a 24, que pede a probabilidade de "
+      "cochilar em oito situações do cotidiano (Johns, 1991), na versão "
+      "brasileira de Bertolazi e outros (2009), na qual escore acima de 10 "
+      "indica sonolência diurna excessiva. A fadiga física e a fadiga mental "
+      "foram medidas por escalas visuais analógicas de 0 a 10."),
+("p", "Duas ressalvas de uso precisam ficar declaradas antes dos resultados, "
+      "porque afetam a leitura. A Escala de Estresse Percebido pergunta "
+      "pelo último mês e a Escala de Epworth pergunta por hábitos recentes, "
+      "e nenhuma das duas foi construída para aplicação diária. A "
+      "readministração em sete dias seguidos é uso fora da especificação "
+      "original, e a consequência esperada é que ambas se movam menos que "
+      "uma medida de estado. Isso muda a interpretação em direções "
+      "opostas: a estabilidade do estresse percebido, relatada na seção "
+      "4.10, é em parte efeito do próprio instrumento e não sustenta "
+      "conclusão forte; já a subida da sonolência é achado apesar do "
+      "instrumento, e não por causa dele. A validação brasileira do "
+      "estresse percebido, além disso, foi conduzida em idosos, e não em "
+      "atletas jovens."),
+("h2", "3.7 Procedimento de coleta"),
 ("p", "A coleta ocorreu entre 21 e 27 de abril de 2024, por formulário "
       f"eletrônico, e produziu {len(K.OBS)} respostas analisáveis de "
       f"{len(K.ATLETAS)} atletas. O dia 1, domingo de repouso, foi tomado "
@@ -943,7 +1084,7 @@ BLOCOS = [
       "mesmo dia e submetidos a dupla conferência por dois pesquisadores "
       "independentes, com resolução de divergência por consulta ao "
       "formulário original."),
-("h2", "3.7 Classificação dos perfis"),
+("h2", "3.8 Classificação dos perfis"),
 ("p", "Cada observação recebeu duas classificações independentes. A primeira "
       "aplica o critério de Morgan: há perfil iceberg quando o escore de "
       "vigor supera o de todas as cinco subescalas negativas; há humor "
@@ -955,7 +1096,7 @@ BLOCOS = [
       f"convertidos em escore T de média 50 e desvio-padrão 10 contra a "
       f"média e o desvio-padrão das {len(K.OBS)} observações desta amostra. "
       "A padronização é interna porque não existem normas de escore T para "
-      "handebol, e a consequência está declarada na seção 5.8: estes "
+      "handebol, e a consequência está declarada na seção 5.9: estes "
       "escores T não são comparáveis aos de estudos que padronizam contra "
       "normas de população."),
 ("p", "No segundo passo, cada observação foi atribuída ao perfil cujo "
@@ -993,7 +1134,7 @@ BLOCOS = [
       "a única calculada a partir da base bruta por procedimento inteiramente "
       "declarado, e a rotina que a produz está versionada junto com os "
       "dados anonimizados."),
-("h2", "3.8 Plano de análise"),
+("h2", "3.9 Plano de análise"),
 ("p0", "O plano de análise está descrito com o detalhe necessário à "
        "reprodução integral do estudo. Ele se organiza em oito blocos, na "
        "ordem em que as perguntas do objetivo foram respondidas: a descrição "
@@ -1006,8 +1147,8 @@ BLOCOS = [
        "entre tendência e desvio, com a incerteza de cada parte; e as "
        "decisões gerais de tratamento de dados. O nível de significância "
        "adotado foi de 5% em todos os testes, sempre depois da correção para "
-       "múltiplas comparações descrita em 3.8.7."),
-("h3", "3.8.1 Descrição das subescalas e propriedades da medida"),
+       "múltiplas comparações descrita em 3.9.7."),
+("h3", "3.9.1 Descrição das subescalas e propriedades da medida"),
 ("p", "Cada uma das seis subescalas foi descrita por média, desvio-padrão, "
       "erro-padrão da média, mediana, primeiro e terceiro quartis, intervalo "
       "interquartil, valores mínimo e máximo observados, assimetria, curtose "
@@ -1052,7 +1193,7 @@ BLOCOS = [
       "erro-padrão de medida, dado pelo desvio-padrão multiplicado pela raiz "
       "de um menos o ICC, e o menor valor detectável a 95%, dado pelo "
       "erro-padrão de medida multiplicado por 1,96 e pela raiz de dois. O "
-      "menor valor detectável é o limiar usado em 3.8.5 para contar quantos "
+      "menor valor detectável é o limiar usado em 3.9.5 para contar quantos "
       "atletas mudaram de fato."),
 ("p", "A estrutura de seis fatores correlacionados foi testada por análise "
       "fatorial confirmatória sobre a matriz policórica, com estimador de "
@@ -1066,7 +1207,7 @@ BLOCOS = [
       "0,95, 0,95, 0,06 e 0,08. As correlações entre as seis subescalas "
       "foram descritas por matriz de Spearman, escolhida pela assimetria das "
       "distribuições."),
-("h3", "3.8.2 Comparação entre o primeiro e o último dia"),
+("h3", "3.9.2 Comparação entre o primeiro e o último dia"),
 ("p", "O contraste entre o dia 1 e o dia 7 é o de maior interesse prático, "
       "porque opõe o estado de repouso, medido em coleta única no domingo, "
       "ao estado de véspera de competição, e responde à pergunta que a "
@@ -1076,7 +1217,7 @@ BLOCOS = [
       "em pontos percentuais entre os dois dias, acompanhada do erro-padrão "
       "binomial de cada proporção, dado pela raiz de p vezes um menos p "
       "sobre n, com o n de observações válidas daquele dia. A diferença só é "
-      "interpretada quando excede o piso de ruído definido em 3.8.6. Não se "
+      "interpretada quando excede o piso de ruído definido em 3.9.6. Não se "
       "aplicou teste de qui-quadrado à tabela de contingência dos seis "
       "perfis por dois dias porque quatro das doze caselas têm frequência "
       "esperada inferior a cinco, o que invalida a aproximação, e porque as "
@@ -1093,7 +1234,7 @@ BLOCOS = [
       "comparar composições amostrais diferentes e atribuir à passagem do "
       "tempo o que é efeito de quem respondeu em cada dia. O número de pares "
       "efetivamente disponíveis está declarado na nota de cada tabela."),
-("h3", "3.8.3 Comparação entre os sete dias"),
+("h3", "3.9.3 Comparação entre os sete dias"),
 ("p", "O efeito do dia sobre cada subescala foi testado por modelo linear "
       "misto com intercepto aleatório por atleta e o dia como fator fixo de "
       "sete níveis. O intercepto aleatório corrige a pseudorreplicação "
@@ -1119,7 +1260,7 @@ BLOCOS = [
       "duas séries, bruta e em dois passos, foram calculadas, e a divergência "
       "entre elas está registrada; a série em dois passos é a adotada em "
       "todo o artigo."),
-("h3", "3.8.4 Comparação intradia, entre o momento pré e o pós-sessão"),
+("h3", "3.9.4 Comparação intradia, entre o momento pré e o pós-sessão"),
 ("p", "A variação dentro da sessão foi estimada pelo contraste entre a "
       "primeira coleta do dia, aplicada antes do início do trabalho, e a "
       "última, aplicada ao término da sessão da noite. Cada par pré e "
@@ -1139,14 +1280,14 @@ BLOCOS = [
       "aumento é desfavorável. Essa direção governa a interpretação e a "
       "codificação de cores das figuras, e está declarada porque a leitura "
       "de sinal puramente aritmética inverteria o significado do vigor."),
-("h3", "3.8.5 Nível de grupo e nível do atleta"),
+("h3", "3.9.5 Nível de grupo e nível do atleta"),
 ("p", "Toda análise foi conduzida em dois níveis, e a distinção é decisiva "
       "para o uso prático. No nível do grupo, o interesse é a média e a "
       "proporção, e a inferência responde se a equipe mudou. No nível do "
       "atleta, o interesse é quantos atletas mudaram, e a resposta exige um "
       "limiar de mudança confiável: a variação individual entre o primeiro e "
       "o último dia só é contada como mudança quando excede o menor valor "
-      "detectável a 95% daquela subescala, calculado em 3.8.1. Cada atleta "
+      "detectável a 95% daquela subescala, calculado em 3.9.1. Cada atleta "
       "recebe, para cada subescala, uma de três classificações: mudança "
       "favorável, mudança desfavorável ou variação dentro do erro de medida. "
       "A classificação respeita a direção da subescala, de modo que uma "
@@ -1158,7 +1299,7 @@ BLOCOS = [
       "é individual e a leitura de grupo não a indicaria. Por isso as duas "
       "leituras são reportadas juntas, e nenhuma conclusão prática se apoia "
       "apenas na média."),
-("h3", "3.8.6 Predominância dos perfis ao longo da semana"),
+("h3", "3.9.6 Predominância dos perfis ao longo da semana"),
 ("p", "A proporção diária de atletas em cada perfil constitui uma série "
       "temporal de sete pontos, e foi tratada como tal, em quatro passos "
       "encadeados: piso de ruído, filtragem, derivada e limiar. A sequência "
@@ -1206,7 +1347,7 @@ BLOCOS = [
       "dias adjacentes das séries suavizadas, e é reportado em fração de "
       "dia, o que permite dizer se a inversão acontece no início ou no fim "
       "do intervalo entre duas coletas."),
-("h3", "3.8.7 Curvas das variáveis contínuas e pontos de cruzamento"),
+("h3", "3.9.7 Curvas das variáveis contínuas e pontos de cruzamento"),
 ("p", "A série diária de cada subescala recebeu o mesmo tratamento aplicado "
       "às proporções de perfil, com uma adaptação necessária. O piso de "
       "ruído de uma proporção vem do erro-padrão binomial; o de uma média "
@@ -1247,7 +1388,7 @@ BLOCOS = [
       "tensão e depressão, que identificam qual afeto negativo domina o "
       "quadro em cada momento da semana. Nenhum outro par foi testado, e a "
       "escolha foi registrada antes da inspeção das curvas."),
-("h3", "3.8.8 Perfil do grupo em escores T"),
+("h3", "3.9.8 Perfil do grupo em escores T"),
 ("p", "A classificação nos seis perfis é feita observação a observação, e "
       "por isso a prevalência diária deles exige a base por atleta e por "
       "dia. Para os sete dias existe a média diária de cada subescala, e "
@@ -1278,7 +1419,7 @@ BLOCOS = [
       "unidades de escore T vale exatamente 10 dividido pela raiz do n "
       "daquele dia e não depende da subescala, porque a conversão em T já "
       "divide pelo desvio-padrão da amostra."),
-("h3", "3.8.9 Decomposição das séries, incerteza e tendência"),
+("h3", "3.9.9 Decomposição das séries, incerteza e tendência"),
 ("p", "Cada série diária, de variável ou de perfil, recebeu três leituras "
       "encadeadas: a banda de incerteza em torno de cada ponto, a tendência "
       "linear sobre o dia, e a decomposição entre o que a reta explica e o "
@@ -1329,7 +1470,7 @@ BLOCOS = [
       "por atleta. As duas respondem perguntas distintas: a primeira mede "
       "quanto mudou o atleta médio, a segunda quanto mudou a composição do "
       "elenco."),
-("h3", "3.8.10 Decisões gerais de tratamento de dados"),
+("h3", "3.9.10 Decisões gerais de tratamento de dados"),
 ("p", "Não houve imputação de dado faltante. Cada estimativa usa as "
       "observações efetivamente disponíveis, e o denominador de cada uma "
       "está declarado na nota da tabela correspondente, de modo que o leitor "
@@ -1500,7 +1641,7 @@ BLOCOS += [
       f"relação está invertida, e a fadiga supera o vigor em "
       f"{F.br(abs(_REV_VF['dif_dia7']), 2)} pontos, também acima do limiar. "
       "As duas pontas superam o ruído e têm sinais opostos, e por isso a "
-      "inversão é dada por estabelecida pelo critério da seção 3.8.7. O "
+      "inversão é dada por estabelecida pelo critério da seção 3.9.7. O "
       f"cruzamento das curvas suavizadas ocorre no dia {F.br(_DIA_VF, 2)}, "
       "isto é, praticamente sobre o segundo dia de jogo. A partir dali a "
       "equipe passa a semana com mais fadiga do que vigor declarados, "
@@ -1519,7 +1660,7 @@ BLOCOS += [
       f"{F.br(abs(_REV_FF['dif_dia1']), 2)} ponto, valor abaixo do limiar de "
       f"ruído de {F.br(_REV_FF['limiar'], 2)}, e terminam a "
       f"{F.br(abs(_REV_FF['dif_dia7']), 2)} pontos uma da outra. O teste da "
-      "seção 3.8.7 classifica isso como divergência a partir de ponto "
+      "seção 3.9.7 classifica isso como divergência a partir de ponto "
       "comum, e não como inversão: as duas não trocam de posição, elas se "
       "afastam. A leitura prática é que a carga da semana produz desgaste "
       "físico sem custo mental proporcional, o que é o padrão esperado de "
@@ -1552,7 +1693,7 @@ BLOCOS += [
       "o de erosão gradual."),
 ("tab", "cruzamentos"),
 ("p", "A Tabela 7 aplica o teste de inversão aos quatro pares de leitura "
-      "clínica definidos a priori na seção 3.8.7, e o resultado é sóbrio: dos quatro, "
+      "clínica definidos a priori na seção 3.9.7, e o resultado é sóbrio: dos quatro, "
       "apenas o par vigor e fadiga tem inversão estabelecida. O par tensão e "
       "raiva cruza três vezes ao longo da semana, nos dias "
       f"{', '.join(F.br(d, 2) for d, _, _ in C.cruzar(C.SUAVE['Tensão'], C.SUAVE['Raiva']))}, "
@@ -1924,6 +2065,104 @@ BLOCOS += [
       "padrão favorável, e a magnitude dessa superestimativa, de 30,9 pontos "
       "percentuais no primeiro dia, desaconselha o uso dele como critério "
       "único de triagem."),
+
+("h2", "4.10 O que separa os perfis fora do humor"),
+("p", "As seções anteriores descrevem os perfis por aquilo que os define. "
+      "Esta seção faz o oposto: descreve-os por cinco medidas que não "
+      "entraram na classificação, colhidas no mesmo formulário. A pergunta "
+      "é se a partição em seis grupos, obtida apenas das seis subescalas de "
+      "humor, separa também condição física, recuperação e sono. Se separar, "
+      "os perfis deixam de ser um rearranjo de escores de humor e passam a "
+      "descrever estados com correlato mensurável fora do afeto."),
+("p", "A Tabela 18 e a Figura 13 trazem a série diária das três medidas "
+      "externas. As três se comportam de modo distinto, e a diferença entre "
+      "elas é o achado. A qualidade da recuperação cai de "
+      f"{F.br(_EXT['Qualidade da recuperação (TQR)']['serie'][0], 2)} no dia "
+      f"de repouso para "
+      f"{F.br(_EXT['Qualidade da recuperação (TQR)']['serie'][-1], 2)} na "
+      "véspera da estreia, com inclinação de "
+      f"{F.sinal(_EXT['Qualidade da recuperação (TQR)']['inclinacao'], 3)} "
+      "por dia cujo intervalo não contém o zero. A equipe parte meio ponto "
+      "acima de 13, que o autor da escala propõe como fronteira da "
+      "recuperação insuficiente, cruza esse limite já no segundo dia e "
+      "termina "
+      f"{F.br(13.0 - _EXT['Qualidade da recuperação (TQR)']['serie'][-1], 2)} "
+      "pontos abaixo dele. A sonolência "
+      f"diurna sobe de {F.br(_EXT['Sonolência diurna (Epworth)']['serie'][0], 2)} "
+      f"para {F.br(_EXT['Sonolência diurna (Epworth)']['serie'][-1], 2)}, com "
+      f"inclinação de {F.sinal(_EXT['Sonolência diurna (Epworth)']['inclinacao'], 3)} "
+      "por dia, também com intervalo que não contém o zero. A série bruta "
+      "toca o corte de 10 no quinto dia, recua no sexto e o ultrapassa com "
+      "folga no sétimo; na série suavizada a passagem acontece uma única "
+      "vez, entre o sexto e o sétimo dia. O estresse percebido não se move: "
+      f"a inclinação é de {F.sinal(_EXT['Estresse percebido (PSS)']['inclinacao'], 3)} "
+      "por dia, o intervalo contém o zero, e a série permanece a distância "
+      "do corte de 27 nos sete dias."),
+("fig", "a1_externas.png", 16.6,
+ "Figura 13 - Série diária da recuperação, do estresse percebido e da "
+ "sonolência diurna, com banda de 95%, tendência e ponto de corte de cada "
+ "escala"),
+("tab", "serie_externa"),
+("p", "A leitura conjunta das três séries desfaz uma ambiguidade que as "
+      "seções anteriores deixam em aberto. A deterioração do humor ao longo "
+      "da semana poderia ser reação de estresse diante da estreia próxima ou "
+      "consequência de carga acumulada sem reposição. As três séries "
+      "respondem: o que se deteriora é a recuperação e o sono, e o estresse "
+      "percebido fica onde estava. A ressalva declarada na seção 3.6 vale "
+      "aqui e limita a força da afirmação: a escala de estresse pergunta "
+      "pelo último mês e move-se pouco por construção."),
+("p", "A Tabela 19 descreve cada perfil pelas cinco medidas externas, e a "
+      "Tabela 20 com a Figura 14 trazem a diferença de cada um em relação ao "
+      "iceberg. A ordenação da recuperação acompanha a do humor sem que "
+      "nada na classificação a tenha imposto: o iceberg tem a melhor "
+      f"recuperação, com {F.br(_CAR['Iceberg']['Qualidade da recuperação (TQR)']['media'], 2)}, "
+      "e a barbatana de tubarão e o Everest invertido têm as piores, com "
+      f"{F.br(_CAR['Barbatana de tubarão']['Qualidade da recuperação (TQR)']['media'], 2)} e "
+      f"{F.br(_CAR['Everest invertido']['Qualidade da recuperação (TQR)']['media'], 2)}. "
+      "Apenas o iceberg e o perfil de superfície ficam próximos do limite de "
+      "13; os quatro restantes estão abaixo dele. Nenhum perfil superou o "
+      "iceberg em qualquer das cinco medidas, o que é coerente com o lugar "
+      "que a literatura lhe atribui."),
+("tab", "caracterizacao"),
+("p", "O contraste contra o iceberg identifica o que cada perfil carrega. A "
+      "barbatana de tubarão tem a maior perda de recuperação, de "
+      f"{F.sinal(_C('Qualidade da recuperação (TQR)', 'Barbatana de tubarão')['diferenca'], 2)} "
+      "pontos, a maior fadiga física, de "
+      f"{F.sinal(_C('Fadiga física', 'Barbatana de tubarão')['diferenca'], 2)}, "
+      "e a maior sonolência, de "
+      f"{F.sinal(_C('Sonolência diurna (Epworth)', 'Barbatana de tubarão')['diferenca'], 2)}, "
+      "os três com intervalo que não contém o zero. O estresse percebido, "
+      "porém, é o mesmo do iceberg: "
+      f"{F.sinal(_C('Estresse percebido (PSS)', 'Barbatana de tubarão')['diferenca'], 2)} "
+      f"ponto, com intervalo de "
+      f"{F.sinal(_C('Estresse percebido (PSS)', 'Barbatana de tubarão')['ic_inferior'], 2)} a "
+      f"{F.sinal(_C('Estresse percebido (PSS)', 'Barbatana de tubarão')['ic_superior'], 2)}, "
+      "que contém o zero com folga dos dois lados."),
+("p", "Os dois perfis invertidos fazem o caminho contrário. O iceberg "
+      "invertido tem estresse percebido "
+      f"{F.sinal(_C('Estresse percebido (PSS)', 'Iceberg invertido')['diferenca'], 2)} "
+      "pontos acima do iceberg e o Everest invertido, "
+      f"{F.sinal(_C('Estresse percebido (PSS)', 'Everest invertido')['diferenca'], 2)}, "
+      "ambos com intervalo que não contém o zero, e o Everest invertido é o "
+      "único perfil cuja média de estresse percebido, de "
+      f"{F.br(_CAR['Everest invertido']['Estresse percebido (PSS)']['media'], 2)}, "
+      "ultrapassa o corte de 27. Os dois também lideram a fadiga mental, com "
+      f"{F.sinal(_C('Fadiga mental', 'Iceberg invertido')['diferenca'], 2)} e "
+      f"{F.sinal(_C('Fadiga mental', 'Everest invertido')['diferenca'], 2)} "
+      "pontos acima do iceberg."),
+("fig", "a1_caracterizacao.png", 16.6,
+ "Figura 14 - Diferença de cada perfil em relação ao iceberg nas três "
+ "medidas externas ao humor, com intervalo de 95%"),
+("tab", "contraste"),
+("p", "Duas ressalvas fecham a seção. O Everest invertido tem apenas "
+      f"{_CAR['Everest invertido']['Fadiga física']['n']} observações, e por "
+      "isso três dos seus cinco intervalos contêm o zero mesmo com "
+      "diferenças pontuais grandes; o perfil aparece aqui pela descrição, e "
+      "não como resultado inferencial. E a comparação é entre observações, "
+      "não entre atletas: o mesmo atleta muda de perfil ao longo da semana e "
+      "aparece nos dois lados de cada contraste, o que a reamostragem por "
+      "atleta preserva, mas que impede ler estes valores como diferenças "
+      "entre pessoas."),
 ]
 
 BLOCOS += [
@@ -1931,13 +2170,14 @@ BLOCOS += [
 ("p", "Até onde alcança o levantamento descrito na introdução, este é o "
       "primeiro estudo a aplicar os seis perfis de humor ao handebol e o "
       "primeiro a acompanhá-los dia a dia ao longo de uma semana de "
-      "pré-temporada. A discussão que segue organiza-se em torno de cinco "
+      "pré-temporada. A discussão que segue organiza-se em torno de seis "
       "questões, e nenhuma delas tem resposta simples: o que os perfis dizem "
       "sobre esta equipe, por que a perda do padrão favorável se concentra em "
       "dois dias, se o efeito piso é defeito de instrumento ou retrato de "
       "população, se a instabilidade da medida isolada invalida o "
-      "monitoramento diário, e o que a comparação com a literatura corrobora "
-      "e o que ela contraria."),
+      "monitoramento diário, o que a comparação com a literatura corrobora "
+      "e o que ela contraria, e o que as medidas externas ao humor dizem "
+      "sobre a natureza do que a semana produziu."),
 ("h2", "5.1 O que os perfis dizem sobre esta equipe"),
 ("p", f"No dia de repouso, os três perfis de risco somam apenas "
       f"{F.br(_RISCO1, 1)}% das observações, isto é, cerca de uma em cada "
@@ -2245,14 +2485,72 @@ BLOCOS += [
       "trabalhos citados permite comparação direta de prevalência na "
       "modalidade, o que é, em si, a medida do vazio que este estudo começa "
       "a preencher."),
-("h2", "5.7 Aplicação prática"),
+("h2", "5.7 Recuperação, e não estresse: o que separa os perfis fora do humor"),
+("p", "A seção 4.10 apresenta o resultado que mais altera a leitura do "
+      "estudo, e ele não vem da Escala de Humor de Brunel. Cinco medidas "
+      "que não participaram da classificação separam os seis perfis, e "
+      "separam de modo ordenado. A recuperação decresce do iceberg ao "
+      "Everest invertido na mesma ordem em que o humor piora, sem que nada "
+      "no procedimento tenha imposto essa correspondência: a atribuição usou "
+      "seis escores de humor e os centroides publicados, e a recuperação "
+      "nunca entrou na conta. Uma partição obtida de um construto que "
+      "ordena outro construto é evidência de que os perfis descrevem estado "
+      "do atleta, e não arranjo aritmético de escores."),
+("p", "O padrão das diferenças tem consequência prática maior que a "
+      "ordenação. A barbatana de tubarão, que é o perfil que domina a "
+      "véspera da estreia, apresenta a maior perda de recuperação entre as "
+      "que têm intervalo fora do zero, a maior fadiga física e a maior "
+      "sonolência, e apresenta estresse percebido indistinguível do "
+      "iceberg. Os dois perfis invertidos fazem o "
+      "contrário: carregam o estresse percebido e a fadiga mental, e o "
+      "Everest invertido é o único a ultrapassar o corte de 27 da escala de "
+      "estresse. Os perfis de risco, portanto, não formam um bloco "
+      "homogêneo, e a distinção entre eles é a distinção entre dois "
+      "problemas que pedem respostas opostas."),
+("p", "A consequência para esta equipe é direta. O deslocamento descrito na "
+      "seção 4.5, do iceberg para a barbatana de tubarão ao longo da semana, "
+      "é acompanhado de queda da recuperação e de aumento da sonolência, e "
+      "não é acompanhado de aumento do estresse percebido. A leitura que os "
+      "dados sustentam é a de déficit de recuperação, e não a de reação "
+      "psicológica à proximidade da competição. As duas hipóteses previam a "
+      "mesma piora do humor e previam coisas diferentes fora dele, e é fora "
+      "dele que elas se separam."),
+("p", "A separação não é gratuita para a prática. Déficit de recuperação e "
+      "reação de estresse pedem manejos que se contradizem: o primeiro pede "
+      "redução de carga, proteção do sono e alongamento do intervalo entre "
+      "sessões; o segundo pediria manejo psicológico, com a carga "
+      "preservada. Uma comissão técnica que lesse apenas a piora do humor "
+      "não teria como escolher entre os dois, e a escolha errada custa "
+      "justamente a semana que antecede a estreia. Duas medidas de "
+      "responder rápido, a escala de recuperação e a de sonolência, "
+      "resolvem a ambiguidade a custo baixo."),
+("p", "Um resultado externo apoia a leitura. Na coorte brasileira de 417 "
+      "atletas, o perfil mais negativo teve razão de chances de 2,90 para "
+      "lesão em relação ao iceberg, e vigor e raiva foram os preditores "
+      "principais (Rohlfs e outros, 2025). O achado daquela coorte é de "
+      "desfecho, e o desta série é de mecanismo possível: os perfis que lá "
+      "predizem lesão são, aqui, os que acumulam déficit de recuperação e "
+      "sonolência, que são fatores de risco de lesão reconhecidos de forma "
+      "independente. A convergência é sugestiva e não é demonstração, porque "
+      "este estudo não mediu lesão."),
+("p", "Três limites contêm a afirmação. O primeiro é o do desenho: a "
+      "associação é transversal dentro de cada dia, e nada nos dados "
+      "estabelece que o déficit de recuperação preceda o perfil em vez de "
+      "acompanhá-lo. O segundo é o do instrumento, declarado na seção 3.6: "
+      "a escala de estresse percebido pergunta pelo último mês e a "
+      "estabilidade dela é em parte esperada por construção, de modo que a "
+      "ausência de aumento do estresse é achado fraco e a presença de queda "
+      "da recuperação é achado forte, e a conclusão apoia-se na segunda. O "
+      "terceiro é o do Everest invertido, com sete observações, cuja "
+      "descrição não sustenta inferência."),
+("h2", "5.8 Aplicação prática"),
 ("p", "A distinção corrente entre triagem, que é avaliação pontual do risco "
       "de base, e monitoramento, que é acompanhamento contínuo da condição "
       "que muda, com coleta próxima do momento da decisão, organiza o uso "
       "prático destes resultados (Jimenez e Verhagen, 2025). O que este "
-      "estudo mede é monitoramento, e as três recomendações abaixo decorrem "
+      "estudo mede é monitoramento, e as recomendações abaixo decorrem "
       "disso."),
-("p", "Para a comissão técnica, quatro decisões decorrem destes resultados. A "
+("p", "Para a comissão técnica, cinco decisões decorrem destes resultados. A "
       "primeira é o que medir: no acompanhamento diário bastam vigor, fadiga "
       "e o índice total, porque as demais subescalas não variam o suficiente "
       "para informar. A segunda é como ler: a média móvel de sete dias, e não "
@@ -2266,8 +2564,22 @@ BLOCOS += [
       "conversa individual, porque a repetição atenua a instabilidade da "
       "classificação isolada e porque esses três perfis são os que a "
       "literatura associa a risco."),
-("h2", "5.8 Limitações"),
-("p", "Seis limitações restringem a generalização. A primeira é o alcance da "
+("p", "A quinta decorre da seção 4.10 e é a de melhor relação entre custo e "
+      "informação: colher, junto do humor, uma medida de recuperação e uma "
+      "de sonolência. Sem elas, a piora do humor não distingue déficit de "
+      "recuperação de reação de estresse, e as duas pedem manejos opostos. "
+      "Com elas, a distinção se faz em dois itens por dia. Para esta "
+      "equipe, o par identificou queda de "
+      f"{F.br(abs(S.D1D7_EXT['Qualidade da recuperação (TQR)']['diferenca']), 2)} "
+      "ponto na recuperação e alta de "
+      f"{F.br(S.D1D7_EXT['Sonolência diurna (Epworth)']['diferenca'], 2)} "
+      "ponto na sonolência entre o primeiro e o último dia, ambas com "
+      "intervalo que não contém o zero, ao lado de estresse percebido "
+      "estável. Dois limiares publicados servem de gatilho imediato: "
+      "recuperação abaixo de 13 e sonolência acima de 10, os dois cruzados "
+      "por esta equipe antes da estreia."),
+("h2", "5.9 Limitações"),
+("p", "Sete limitações restringem a generalização. A primeira é o alcance da "
       "amostra: 27 atletas de uma única equipe, dos quais 19 completaram "
       "todas as coletas, ao longo de um único microciclo, o que concentra a "
       "observação em um momento particular da temporada e impede separar o "
@@ -2280,7 +2592,7 @@ BLOCOS += [
       "semeada, que é o procedimento das amostras grandes, foi calculada "
       f"como sensibilidade e concorda em {F.br(100 * K.CONCORDANCIA, 1)}% "
       "das observações, mas desloca dois centroides em cerca de 20 pontos T, "
-      "o que a seção 3.7 discute. A terceira é a "
+      "o que a seção 3.8 discute. A terceira é a "
       "padronização: a conversão para escore T foi feita sobre a própria "
       "amostra, na ausência de normas da modalidade, o que torna a linha de "
       "50 uma referência interna e não populacional, e impede comparar estes "
@@ -2296,9 +2608,25 @@ BLOCOS += [
       "justamente os de maior interesse. Quatro respostas foram descartadas "
       "por não identificarem o atleta, e uma por cair fora da janela de sete "
       "dias. A quinta limitação é que a amostra é masculina, o que impede "
-      "extensão aos achados de sexo relatados na literatura. E a sexta é que "
+      "extensão aos achados de sexo relatados na literatura. A sexta é que "
       "o estudo não mediu desempenho, de modo que nenhuma afirmação sobre "
       "consequência competitiva dos perfis é sustentada por estes dados."),
+("p", "A sétima limitação recai sobre as medidas externas da seção 4.10. "
+      "Duas delas foram aplicadas fora da especificação original: a escala "
+      "de estresse percebido pergunta pelo último mês e a de sonolência "
+      "pergunta por hábitos recentes, e nenhuma foi construída para "
+      "aplicação em sete dias seguidos. A consequência é assimétrica e o "
+      "texto a respeita: a estabilidade do estresse percebido é resultado "
+      "fraco, porque o instrumento tende a essa estabilidade por "
+      "construção, e a subida da sonolência é resultado forte, porque "
+      "ocorre contra essa tendência. A escala de recuperação, que é medida "
+      "de estado e foi construída para uso diário, não tem essa ressalva, "
+      "mas tem 124 respostas em branco entre as "
+      f"{len(K.OBS)}, distribuídas de modo semelhante entre os dias e "
+      "tratadas como ausência aleatória, hipótese que os dados não "
+      "permitem testar. Por fim, a validação brasileira da escala de "
+      "estresse percebido foi conduzida em idosos, e não em atletas "
+      "jovens."),
 
 ("h1", "6 CONCLUSÃO"),
 ("p", "Em atletas de handebol masculino de elite, na última semana de "
@@ -2328,11 +2656,28 @@ BLOCOS += [
       "instrumento, e todas passam a ser na média de sete dias. Os percentis "
       "de referência apresentados aqui são a primeira régua específica da "
       "modalidade e são a contribuição de uso imediato deste estudo."),
+("p", "Cinco medidas que não participaram da classificação separam os seis "
+      "perfis de modo ordenado, e essa separação é a evidência mais forte de "
+      "que os perfis descrevem estado do atleta, e não arranjo de escores. A "
+      "recuperação decresce do iceberg ao Everest invertido na mesma ordem em "
+      "que o humor piora, e quatro dos seis perfis situam-se abaixo do limite "
+      "de recuperação insuficiente. Ao longo da semana a recuperação cai e a "
+      "sonolência diurna sobe, as duas com intervalo que exclui o zero, e o "
+      "estresse percebido permanece estável. A barbatana de tubarão, perfil "
+      "que passa a dominar a véspera da estreia, reúne a maior perda de "
+      "recuperação com intervalo fora do zero e a maior sonolência, e tem "
+      "estresse percebido idêntico ao do iceberg. O que "
+      "esta semana produziu, portanto, tem a assinatura de déficit de "
+      "recuperação e não a de reação psicológica à competição, e a distinção "
+      "importa porque as duas condições pedem manejos opostos."),
 
 ("h1", "REFERÊNCIAS"),
 ("nota", "BEEDIE, C. J.; TERRY, P. C.; LANE, A. M. The profile of mood states "
          "and athletic performance: two meta-analyses. Journal of Applied "
          "Sport Psychology, v. 12, n. 1, p. 49-68, 2000."),
+("nota", "BERTOLAZI, A. N. e outros. Portuguese-language version of the "
+         "Epworth sleepiness scale: validation for use in Brazil. Jornal "
+         "Brasileiro de Pneumologia, v. 35, n. 9, p. 877-883, 2009."),
 ("nota", "BIRD, S. P. e outros. Wellness, mood, sleep, and performance in a "
          "women's national basketball team during international "
          "competition. Journal of Human Kinetics, v. 96, p. 163-175, "
@@ -2343,6 +2688,9 @@ BLOCOS += [
 ("nota", "BUDGETT, R. Fatigue and underperformance in athletes: the "
          "overtraining syndrome. British Journal of Sports Medicine, v. 32, "
          "n. 2, p. 107-110, 1998."),
+("nota", "COHEN, S.; KAMARCK, T.; MERMELSTEIN, R. A global measure of "
+         "perceived stress. Journal of Health and Social Behavior, v. 24, "
+         "n. 4, p. 385-396, 1983."),
 ("nota", "HAN, C. S. Y. e outros. Mood profiling in Singapore: cross-cultural "
          "validation and potential applications of mood profile clusters. "
          "Frontiers in Psychology, v. 11, art. 665, 2020."),
@@ -2355,6 +2703,10 @@ BLOCOS += [
 ("nota", "JIMENEZ, C.; VERHAGEN, E. Reimagining athlete monitoring for true "
          "indicative injury prevention. BMJ Open Sport and Exercise "
          "Medicine, v. 11, n. 2, art. e002479, 2025."),
+("nota", "JOHNS, M. W. A new method for measuring daytime sleepiness: the "
+         "Epworth sleepiness scale. Sleep, v. 14, n. 6, p. 540-545, 1991."),
+("nota", "KENTTÄ, G.; HASSMÉN, P. Overtraining and recovery: a conceptual "
+         "model. Sports Medicine, v. 26, n. 1, p. 1-16, 1998."),
 ("nota", "LANE, A. M.; TERRY, P. C. The nature of mood: development of a "
          "conceptual model with a focus on depression. Journal of Applied "
          "Sport Psychology, v. 12, n. 1, p. 16-33, 2000."),
@@ -2362,6 +2714,9 @@ BLOCOS += [
          "Mood Scale and tests of between-group mood differences. "
          "International Journal of Environmental Research and Public "
          "Health, v. 20, n. 4, art. 3348, 2023."),
+("nota", "LUFT, C. D. B. e outros. Versão brasileira da Escala de Estresse "
+         "Percebido: tradução e validação para idosos. Revista de Saúde "
+         "Pública, v. 41, n. 4, p. 606-615, 2007."),
 ("nota", "LUOJUMÄKI, R. J. e outros. Exploring mood profile clusters across "
          "physical activity level, gender and age in a Finnish population. "
          "European Journal of Sport Science, v. 26, n. 2, art. e70131, "

@@ -31,6 +31,7 @@ virada o que é oscilação amostral, que com sete pontos é frequente.
 from __future__ import annotations
 
 import sys
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -71,7 +72,9 @@ def _matriz_perfil(perfil: str) -> tuple[np.ndarray, np.ndarray]:
     return acerto, total
 
 
-MATRIZ = {v: _matriz_media(c) for v, c in K.CAMPO_DIARIO.items()}
+EXTERNAS = list(K.CAMPO_EXTERNO)
+MATRIZ = {v: _matriz_media(c)
+          for v, c in {**K.CAMPO_DIARIO, **K.CAMPO_EXTERNO}.items()}
 MATRIZ_PERFIL = {p: _matriz_perfil(p) for p in K.ORDEM}
 
 
@@ -257,6 +260,81 @@ def d1_d7_perfil(perfil: str) -> dict:
             "cruza_zero": bool(lo <= 0 <= hi)}
 
 
+def caracterizar(perfil: str, nome: str) -> dict:
+    """Média da variável entre as observações de um perfil, com IC de 95%.
+
+    A reamostragem sorteia atletas, e não observações, pelo mesmo motivo das
+    demais bandas deste módulo. Um atleta contribui com todas as observações
+    dele que caíram no perfil, e a média é a das observações reunidas. Quando
+    a reamostragem devolve um conjunto sem nenhuma observação no perfil, a
+    repetição é descartada, e o número de repetições válidas é devolvido.
+    """
+    campo = {**K.CAMPO_DIARIO, **K.CAMPO_EXTERNO}[nome]
+    por_atleta = {a: [] for a in ATLETAS}
+    for o, p in zip(K.OBS, K.PERFIL):
+        if p == perfil and o.get(campo) is not None:
+            por_atleta[o["atleta"]].append(float(o[campo]))
+    valores = [v for a in ATLETAS for v in por_atleta[a]]
+    n_obs = len(valores)
+    n_atl = sum(1 for a in ATLETAS if por_atleta[a])
+    if n_obs == 0:
+        return {"n": 0, "atletas": 0, "media": float("nan"),
+                "ic_inferior": float("nan"), "ic_superior": float("nan"),
+                "repeticoes": 0}
+    lista = [por_atleta[a] for a in ATLETAS]
+    amostras = []
+    for b in range(REPETICOES):
+        junto = [v for i in _SORTEIOS[b] for v in lista[i]]
+        if junto:
+            amostras.append(sum(junto) / len(junto))
+    arr = np.array(amostras)
+    lo, hi = np.percentile(arr, [2.5, 97.5])
+    return {"n": n_obs, "atletas": n_atl,
+            "media": float(np.mean(valores)),
+            "ic_inferior": float(lo), "ic_superior": float(hi),
+            "repeticoes": len(arr)}
+
+
+@lru_cache(maxsize=None)
+def contraste(nome: str, perfil_a: str, perfil_b: str) -> dict:
+    """Diferença da variável entre dois perfis, com IC por reamostragem.
+
+    A comparação é entre observações, e não entre atletas, porque o mesmo
+    atleta muda de perfil ao longo da semana e aparece nos dois lados. A
+    reamostragem por atleta preserva essa dependência.
+    """
+    campo = {**K.CAMPO_DIARIO, **K.CAMPO_EXTERNO}[nome]
+    la = {a: [] for a in ATLETAS}
+    lb = {a: [] for a in ATLETAS}
+    for o, p in zip(K.OBS, K.PERFIL):
+        if o.get(campo) is None:
+            continue
+        if p == perfil_a:
+            la[o["atleta"]].append(float(o[campo]))
+        elif p == perfil_b:
+            lb[o["atleta"]].append(float(o[campo]))
+    va = [v for a in ATLETAS for v in la[a]]
+    vb = [v for a in ATLETAS for v in lb[a]]
+    if not va or not vb:
+        return {"diferenca": float("nan"), "ic_inferior": float("nan"),
+                "ic_superior": float("nan"), "cruza_zero": True,
+                "n_a": len(va), "n_b": len(vb)}
+    obs = sum(va) / len(va) - sum(vb) / len(vb)
+    lista_a = [la[a] for a in ATLETAS]
+    lista_b = [lb[a] for a in ATLETAS]
+    amostras = []
+    for b in range(REPETICOES):
+        ja = [v for i in _SORTEIOS[b] for v in lista_a[i]]
+        jb = [v for i in _SORTEIOS[b] for v in lista_b[i]]
+        if ja and jb:
+            amostras.append(sum(ja) / len(ja) - sum(jb) / len(jb))
+    arr = np.array(amostras)
+    lo, hi = np.percentile(arr, [2.5, 97.5])
+    return {"diferenca": float(obs), "ic_inferior": float(lo),
+            "ic_superior": float(hi), "cruza_zero": bool(lo <= 0 <= hi),
+            "n_a": len(va), "n_b": len(vb)}
+
+
 DECOMP_VAR = {v: decomposicao(v) for v in VARIAVEIS}
 DECOMP_PERFIL = {p: decomposicao(p, perfil=True) for p in K.ORDEM}
 D1D7_VAR = {v: d1_d7_variavel(v) for v in VARIAVEIS}
@@ -304,3 +382,10 @@ if __name__ == "__main__":
         print(f'{p:22s}{f(x["dia1"], 1):>7s}{f(x["dia7"], 1):>7s}'
               f'{f(x["diferenca"], 1):>8s}{ic(x, c=1):>20s}'
               f'{f(x["p"], 3):>8s}')
+
+DECOMP_EXT = {v: decomposicao(v) for v in EXTERNAS}
+D1D7_EXT = {v: d1_d7_variavel(v) for v in EXTERNAS}
+CARACTERIZACAO = {p: {v: caracterizar(p, v)
+                      for v in EXTERNAS + ["Fadiga física", "Fadiga mental",
+                                           "PTH (TMD)"]}
+                  for p in K.ORDEM}

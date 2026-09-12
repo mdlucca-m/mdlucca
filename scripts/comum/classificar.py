@@ -155,6 +155,26 @@ CAMPO_DIARIO = {
     "Confusão": "Confusão",
 }
 
+# Variáveis colhidas no mesmo formulário, fora da Escala de Humor de Brunel.
+# Elas não entram na classificação de perfil e servem para caracterizar os
+# perfis por medidas de recuperação, de estresse e de sono.
+CAMPO_EXTERNO = {
+    "Qualidade da recuperação (TQR)": "TQR",
+    "Estresse percebido (PSS)": "PSS",
+    "Sonolência diurna (Epworth)": "Epworth",
+}
+
+# Amplitude, sentido e ponto de corte publicado de cada variável externa.
+# O sentido diz se valor alto é favorável (1) ou desfavorável (-1).
+REFERENCIA_EXTERNA = {
+    "Qualidade da recuperação (TQR)": (6, 20, 1, 13.0,
+        "abaixo de 13 indica recuperação insuficiente"),
+    "Estresse percebido (PSS)": (0, 40, -1, 27.0,
+        "acima de 27 indica estresse percebido alto"),
+    "Sonolência diurna (Epworth)": (0, 24, -1, 10.0,
+        "acima de 10 indica sonolência diurna excessiva"),
+}
+
 
 def medias_diarias() -> dict:
     """Média diária de cada variável, pela estimativa em dois passos.

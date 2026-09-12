@@ -1007,6 +1007,92 @@ def fig_d1_d7(destino: Path) -> Path:
     return salvar(fig, destino, "a1_d1_d7.png")
 
 
+CORES_EXTERNA = {"Qualidade da recuperação (TQR)": TEAL,
+                 "Estresse percebido (PSS)": ROXO,
+                 "Sonolência diurna (Epworth)": OCRE}
+
+
+def fig_externas(destino: Path) -> Path:
+    """As três variáveis externas ao humor, com banda, reta e corte clínico.
+
+    A linha pontilhada horizontal é o ponto de corte publicado de cada
+    instrumento, e a faixa sombreada além dela é a região desfavorável. Sem
+    ela os três painéis seriam apenas curvas; com ela, cada painel diz se a
+    equipe cruzou o limiar e em que dia.
+    """
+    curto = {"Qualidade da recuperação (TQR)": "Recuperação (TQR)",
+             "Estresse percebido (PSS)": "Estresse percebido (PSS)",
+             "Sonolência diurna (Epworth)": "Sonolência (Epworth)"}
+    escala = {"Qualidade da recuperação (TQR)": (7.4, 15.4),
+              "Estresse percebido (PSS)": (17.4, 28.8),
+              "Sonolência diurna (Epworth)": (6.0, 14.6)}
+    fig, eixos = plt.subplots(1, 3, figsize=(17.4 / 2.54, 6.6 / 2.54),
+                              dpi=DPI)
+    fig.patch.set_facecolor("white")
+    for ax, nome in zip(eixos, S.EXTERNAS):
+        _painel_decomposicao(ax, curto[nome], S.DECOMP_EXT[nome],
+                             CORES_EXTERNA[nome], escala=escala[nome])
+        _, _, sentido, corte, _ = K.REFERENCIA_EXTERNA[nome]
+        baixo, alto = escala[nome]
+        ruim = (baixo, corte) if sentido > 0 else (corte, alto)
+        ax.axhspan(*ruim, color=CORAL, alpha=0.05, zorder=0, linewidth=0)
+        ax.axhline(corte, color=CORAL, linewidth=1.0,
+                   linestyle=(0, (2, 2)), zorder=4)
+        ax.annotate(f"corte {vg(corte, 0)}", xy=(2.2, corte),
+                    xytext=(0, 4), textcoords="offset points",
+                    ha="center", fontsize=6.4,
+                    color=CORAL,
+                    bbox=dict(boxstyle="square,pad=0.12", facecolor="white",
+                              edgecolor="none"))
+    eixos[0].set_ylabel("Escore", fontsize=7.4, color=TINTA)
+    fig.tight_layout(w_pad=1.6, rect=(0, 0.325, 1, 1))
+    fig.text(0.5, 0.255, "Dia do microciclo", ha="center", fontsize=8.8,
+             color=TINTA)
+    _legenda_decomposicao(fig, y=0.045)
+    return salvar(fig, destino, "a1_externas.png")
+
+
+def fig_caracterizacao(destino: Path) -> Path:
+    """Cada perfil descrito por medidas que não entraram na classificação.
+
+    Três painéis de floresta, um por variável externa, com a diferença de
+    cada perfil em relação ao iceberg. Como a classificação usou apenas as
+    seis subescalas de humor, toda separação aqui é externa ao critério.
+    """
+    curto = {"Barbatana de tubarão": "Barbatana",
+             "Iceberg invertido": "Iceberg inv.",
+             "Everest invertido": "Everest inv."}
+    ordem = ["Barbatana de tubarão", "Iceberg invertido", "Everest invertido",
+             "Submerso", "Superfície"]
+    painel = [("Qualidade da recuperação (TQR)", "A. Recuperação (TQR)", True),
+              ("Estresse percebido (PSS)", "B. Estresse (PSS)", False),
+              ("Sonolência diurna (Epworth)", "C. Sonolência (Epworth)",
+               False)]
+    fig, eixos = plt.subplots(1, 3, figsize=(17.4 / 2.54, 7.8 / 2.54),
+                              dpi=DPI)
+    fig.patch.set_facecolor("white")
+    for ax, (nome, rotulo, alto_bom) in zip(eixos, painel):
+        itens = [(curto.get(p, p), S.contraste(nome, p, "Iceberg"))
+                 for p in ordem]
+        _floresta(ax, itens, unidade="", titulo_painel=rotulo,
+                  direcao=lambda n: alto_bom)
+        ax.set_xlabel("")
+        ax.tick_params(labelsize=7.0)
+    for ax in eixos[1:]:
+        ax.set_yticklabels([])
+    fig.tight_layout(w_pad=1.2, rect=(0, 0.185, 1, 1))
+    fig.text(0.5, 0.125, "Diferença para o perfil iceberg, em pontos da "
+                         "escala", ha="center", fontsize=8.2, color=TINTA)
+    fig.legend(handles=[
+        Line2D([0], [0], color=CORAL, linewidth=2.0, marker="o",
+               markersize=5.2, label="Pior que o iceberg"),
+        Line2D([0], [0], color="#9A9A96", linewidth=2.0, marker="o",
+               markersize=5.2, label="IC 95% contém o zero")],
+        loc="lower center", ncol=2, frameon=True, fontsize=7.2,
+        bbox_to_anchor=(0.5, 0.012))
+    return salvar(fig, destino, "a1_caracterizacao.png")
+
+
 def gerar_artigo1(destino: Path) -> list[Path]:
     print("figuras do Artigo 1:")
     return [fig_distribuicao(destino), fig_psicometria(destino),
@@ -1016,7 +1102,8 @@ def gerar_artigo1(destino: Path) -> list[Path]:
             fig_decomposicao_variaveis(destino),
             fig_decomposicao_perfis(destino), fig_d1_d7(destino),
             fig_sinal(destino),
-            fig_perfil_diario(destino)]
+            fig_perfil_diario(destino),
+            fig_externas(destino), fig_caracterizacao(destino)]
 
 
 def gerar_artigo2(destino: Path) -> list[Path]:
