@@ -903,6 +903,18 @@ function updateCount() {
 /* O vínculo de cada pessoa. Terceira cópia deste vocabulário (as outras
    estão em mapping.VINCULOS e no formulário da área do integrante), e há
    teste que reprova a divergência entre elas. */
+/* O desenho de cada vínculo no cartão da equipe. Chaveado pelo RÓTULO
+   porque é o rótulo que a contagem agrupa -- e há teste que reprova a
+   divergência entre este mapa e o VINCULO_NOME logo abaixo. */
+const ICONE_DO_VINCULO = {
+  "Coordenação": "orientacao", "Professor(a)": "tese",
+  "Pós-doutorado": "experimento", "Doutorando(a)": "tese",
+  "Mestrando(a)": "tese", "Bolsista de IC": "bolsa",
+  "Bolsista de extensão": "comunidade", "Voluntário(a)": "coracao",
+  "Graduando(a)": "pessoa", "Técnico(a)": "processo",
+  "Colaborador(a) externo": "conectar",
+};
+
 const VINCULO_NOME = {
   coordenacao: "Coordenação", professor: "Professor(a)",
   pos_doutorado: "Pós-doutorado", doutorando: "Doutorando(a)",
@@ -1159,22 +1171,46 @@ view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
       porVinculo[nome] = (porVinculo[nome] || 0) + 1;
     });
     const semVinculo = equipe.filter(function (m) { return !m.role; }).length;
+    /* Era uma tabela de duas colunas dentro de um cartão de 300px: os
+       vínculos ficavam espremidos num canto, com o número colado no rótulo,
+       e não se lia nada de longe. Agora cada vínculo é um cartão com
+       desenho e número grande, e o conjunto ocupa a largura toda — é a
+       mesma peça que o resto do painel usa para contar coisa. */
+    const ordem = Object.keys(porVinculo).sort(function (a, b) {
+      return porVinculo[b] - porVinculo[a]; });
     const pessoas = card("Nossa equipe", equipe.length + " integrantes e "
       + (o.n_collaborators || 0) + " coautores", [
-      el("table", { class: "facts" },
-        Object.keys(porVinculo).sort(function (a, b) {
-          return porVinculo[b] - porVinculo[a]; }).map(function (nome) {
-          return el("tr", {}, [el("th", { text: nome }),
-            el("td", { text: String(porVinculo[nome]) })]);
-        })),
+      el("div", { class: "grid g4" }, ordem.map(function (nome) {
+        const semDeclarar = nome === "sem vínculo declarado";
+        return kpi({
+          label: nome, value: C.fmt(porVinculo[nome]),
+          icon: semDeclarar ? "aviso" : (ICONE_DO_VINCULO[nome] || "pessoa"),
+          tone: semDeclarar ? "bad" : null,
+          ir: "organograma",
+          foot: semDeclarar ? "não aparecem no organograma" : null,
+        });
+      })),
       /* Coautor não é integrante: quem assinou um artigo com o laboratório
          não virou parte dele, e contar os dois juntos inflava a equipe. */
-      el("div", { class: "hint", text: "coautor é quem assinou artigo conosco sem "
+      el("div", { class: "hint", style: "margin-top:12px",
+        text: "coautor é quem assinou artigo conosco sem "
         + "ser do grupo — os dois números são contados separados" }),
-      semVinculo ? leituraDe({ sinal: "parado", forte: semVinculo + " pessoa(s)",
-        texto: "estão sem vínculo declarado, e por isso não aparecem no organograma" })
-        : null,
+      /* Sem vínculo declarado quase nunca é gente da casa que esqueceu de
+         preencher: é coautor que entrou pela lista de autores de um artigo.
+         Por isso a leitura não para no diagnóstico e diz onde se resolve —
+         em lote, e sem apagar ficha nenhuma. */
+      semVinculo ? el("div", { class: "note", style: "margin-top:12px" }, [
+        el("b", { text: semVinculo + " pessoa(s) sem vínculo declarado. " }),
+        el("span", { text: "Elas contam como integrantes e não aparecem no "
+          + "organograma. Quase sempre são coautores que entraram pela lista "
+          + "de autores de um artigo — " }),
+        LIVE ? el("a", { href: "/app#admin",
+          text: "dá para separá-las de uma vez em Administração" })
+          : el("span", { text: "separe-as em Administração" }),
+        el("span", { text: ", sem apagar ficha nenhuma." }),
+      ]) : null,
     ].filter(Boolean));
+    pessoas.className = "card largo";
 
     /* ---------------- objetivos ---------------- */
     const comMeta = (M.indicadores || []).filter(function (i) { return i.meta; });

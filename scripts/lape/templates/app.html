@@ -1486,11 +1486,62 @@ async function desenharVinculo(caixa){
     return;
   }
   const c = dados.contagem || {};
-  caixa.appendChild(h("div", {class: "grid g3 sec"}, [
+  caixa.appendChild(h("div", {class: "grid g4 sec"}, [
     kpi("Pesquisadores do LAPE", c.pesquisadores),
     kpi("Coautores", c.coautores),
     kpi("A confirmar", c.a_confirmar),
+    kpi("Fichas vazias", c.soltas || 0),
   ]));
+
+  /* A ficha sem vínculo E sem artigo nenhum não é coautor de coisa alguma
+     — chamá-la assim seria inventar uma autoria. Também não é integrante:
+     é resto de importação, nome digitado duas vezes, cadastro começado e
+     abandonado. Enquanto fica ativa, conta na equipe e aparece como "sem
+     vínculo declarado" no painel. O lugar dela não é o lixo: é arquivada,
+     que some de toda contagem e deixa a ficha no banco. */
+  const vazias = dados.soltas || [];
+  if (vazias.length){
+    const estadoVazias = h("p", {class: "hint", style: "margin:8px 0 0"});
+    const arquivar = h("button", {text: "Arquivar as " + vazias.length + " fichas vazias",
+      onclick: async function (){
+        if (!confirm("Arquivar " + vazias.length + " ficha(s) sem vínculo e sem "
+            + "artigo nenhum?\n\nElas somem da contagem de equipe e continuam "
+            + "no banco. Dá para desfazer.")) return;
+        arquivar.disabled = true;
+        estadoVazias.textContent = "Arquivando…";
+        try {
+          const r = await api("/api/equipe/vinculo/lote", "POST",
+            {acao: "arquivar", ids: vazias.map(function (p){ return p.id; })});
+          estadoVazias.textContent = r.movidas + " ficha(s) arquivadas.";
+          if (r.desfazer.length){
+            estadoVazias.appendChild(document.createTextNode("  "));
+            estadoVazias.appendChild(h("button", {text: "Desfazer",
+              onclick: async function (){
+                await api("/api/equipe/vinculo/lote", "POST",
+                  {acao: "arquivar", ativo: true, ids: r.desfazer});
+                await desenharVinculo(caixa);
+              }}));
+          }
+        } catch (e){
+          estadoVazias.textContent = "Não deu para arquivar: " + e.message;
+          arquivar.disabled = false;
+        }
+      }});
+    caixa.appendChild(h("div", {class: "sec"}, [
+      h("p", {class: "hint", text: vazias.length + " ficha(s) estão sem vínculo "
+        + "declarado E sem nenhum artigo assinado. Não são coautores — não "
+        + "assinaram nada — e não são integrantes. São registros que viraram "
+        + "nada, e enquanto ficam ativos inflam a contagem da equipe."}),
+      h("details", {}, [
+        h("summary", {text: "ver os nomes"}),
+        h("ul", {class: "listinha"}, vazias.slice(0, 80).map(function (p){
+          return h("li", {}, [h("b", {text: p.full_name})]);
+        })),
+      ]),
+      h("div", {style: "margin-top:10px"}, [arquivar]),
+      estadoVazias,
+    ]));
+  }
 
   const lista = dados.candidatos || [];
   if (!lista.length){
@@ -1506,6 +1557,45 @@ async function desenharVinculo(caixa){
         + "entrada, sem conta, sem projeto e sem atividade — só artigos assinados. "
         + "Pode ser coautor de fora, e pode ser gente da casa que ninguém terminou "
         + "de cadastrar: as duas fichas são idênticas daqui. Confira uma por uma."}));
+
+  /* Uma de cada vez é o cuidado certo com três fichas e o jeito de não
+     fazer nada com cinquenta e quatro — e enquanto não se faz, o
+     organograma fica com cinquenta e quatro pessoas sem vínculo no meio.
+     O botão de lote existe para esse caso, e vem com a volta ao lado:
+     marcar como coautor não apaga ficha, artigo nem autoria, então
+     desfazer é um pedido só. */
+  if (lista.length >= 5){
+    const estadoLote = h("p", {class: "hint", style: "margin:10px 0 0"});
+    const emLote = h("button", {text: "Marcar as " + lista.length + " como coautores",
+      onclick: async function (){
+        if (!confirm("Marcar " + lista.length + " ficha(s) como coautores?\n\n"
+            + "Elas saem do organograma e da contagem de integrantes, e continuam "
+            + "ligadas aos artigos que assinaram. Dá para desfazer.")) return;
+        emLote.disabled = true;
+        estadoLote.textContent = "Marcando…";
+        try {
+          const r = await api("/api/equipe/vinculo/lote", "POST",
+            {ids: lista.map(function (p){ return p.id; }), coautor: true});
+          estadoLote.textContent = r.movidos + " ficha(s) marcadas como coautores."
+            + (r.recusados.length ? "  " + r.recusados.length + " recusada(s): "
+               + r.recusados.map(function (x){ return x.motivo; })[0] : "");
+          if (r.desfazer.length){
+            estadoLote.appendChild(document.createTextNode("  "));
+            estadoLote.appendChild(h("button", {text: "Desfazer",
+              onclick: async function (){
+                await api("/api/equipe/vinculo/lote", "POST",
+                  {ids: r.desfazer, coautor: false});
+                await desenharVinculo(caixa);
+              }}));
+          }
+        } catch (e){
+          estadoLote.textContent = "Não deu para marcar: " + e.message;
+          emLote.disabled = false;
+        }
+      }});
+    caixa.appendChild(h("div", {style: "margin:6px 0 4px"}, [emLote]));
+    caixa.appendChild(estadoLote);
+  }
 
   lista.forEach(function (p){
     const estado = h("p", {class: "hint", style: "margin:6px 0 0",

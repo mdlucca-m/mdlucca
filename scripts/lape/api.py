@@ -666,6 +666,30 @@ def route_bancada_gravar(ctx: "Context") -> Any:
     return saida
 
 
+def route_vinculo_lote(ctx: "Context") -> Any:
+    """Move varias fichas de uma vez entre integrante e coautor."""
+    user = auth.require(ctx.user, "coordenacao")
+    from . import vinculo
+    corpo = ctx.body or {}
+    ids = corpo.get("ids")
+    if not isinstance(ids, list) or not ids:
+        raise ApiError(400, "informe 'ids': [1, 2, 3]")
+    if len(ids) > 500:
+        raise ApiError(400, "no máximo 500 fichas por vez")
+    # Duas acoes na mesma porta: mover entre integrante e coautor, e
+    # arquivar a ficha que nao e nem uma coisa nem outra.
+    if corpo.get("acao") == "arquivar":
+        saida = vinculo.arquivar_em_lote(ctx.db, ids, bool(corpo.get("ativo", False)))
+        auth.log(ctx.db, user["id"], user.get("login"), "vinculo_arquivamento",
+                 "members", None,
+                 "%d ficha(s) %s" % (saida["movidas"], saida["para"]))
+        return saida
+    saida = vinculo.marcar_em_lote(ctx.db, ids, bool(corpo.get("coautor", True)))
+    auth.log(ctx.db, user["id"], user.get("login"), "vinculo_em_lote", "members",
+             None, "%d ficha(s) para %s" % (saida["movidos"], saida["para"]))
+    return saida
+
+
 def route_linhas_sugerir(ctx: "Context") -> Any:
     """Que linha o titulo de cada artigo sem linha esta pedindo -- so a proposta."""
     auth.require(ctx.user, "coordenacao")
@@ -694,7 +718,8 @@ def route_vinculo(ctx: "Context") -> Any:
     auth.require(ctx.user, "coordenacao")
     from . import vinculo
     return {"contagem": vinculo.contagem(ctx.db),
-            "candidatos": vinculo.candidatos(ctx.db)}
+            "candidatos": vinculo.candidatos(ctx.db),
+            "soltas": vinculo.soltas(ctx.db)}
 
 
 def route_vinculo_marcar(ctx: "Context") -> Any:
@@ -1841,6 +1866,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/linhas/ligar/?$", route_linhas_ligar, "coordenacao"),
     ("GET", r"^/api/equipe/vinculo/?$", route_vinculo, "coordenacao"),
     ("POST", r"^/api/equipe/vinculo/?$", route_vinculo_marcar, "coordenacao"),
+    ("POST", r"^/api/equipe/vinculo/lote/?$", route_vinculo_lote, "coordenacao"),
     ("GET", r"^/api/metas/?$", route_metas, "integrante"),
     ("POST", r"^/api/metas/?$", route_metas_declarar, "coordenacao"),
     ("GET", r"^/api/equipe/indice-h/?$", route_indice_h, "coordenacao"),

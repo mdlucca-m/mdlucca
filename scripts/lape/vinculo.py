@@ -117,6 +117,115 @@ def marcar(db: Database, member_id: int, coautor: bool) -> dict[str, Any]:
             "sinais": sinais_de(db, member_id)}
 
 
+def soltas(db: Database) -> list[dict[str, Any]]:
+    """Fichas sem sinal de vinculo E sem artigo nenhum.
+
+    `candidatos` nao as inclui de proposito: quem nao assinou nada nao e
+    coautor de coisa alguma, e propor que vire "coautor" seria inventar
+    uma autoria que nao existe.
+
+    So que elas tambem nao sao integrantes. Sao registros que viraram
+    nada -- restos de importacao, nome digitado duas vezes, cadastro
+    comecado e abandonado -- e enquanto ficam ativos contam na equipe e
+    aparecem como "sem vinculo declarado" no painel, que foi exatamente a
+    queixa que trouxe isto aqui.
+
+    O lugar certo delas nao e o lixo: e `active = 0`. A ficha continua no
+    banco, para o caso de alguem reconhecer o nome depois, e some de toda
+    contagem de equipe -- que e o que se queria.
+    """
+    condicao = " OR ".join(f"({c})" for c, _ in SINAIS)
+    return db.dicts(
+        f"""
+        SELECT m.id, m.full_name, m.short_name, m.created_at
+          FROM members m
+         WHERE COALESCE(m.is_external, 0) = 0
+           AND COALESCE(m.active, 1) = 1
+           AND NOT ({condicao})
+           AND NOT EXISTS (SELECT 1 FROM article_authors aa WHERE aa.member_id = m.id)
+         ORDER BY m.full_name
+        """)
+
+
+def arquivar_em_lote(db: Database, ids: list[int], ativo: bool = False) -> dict[str, Any]:
+    """Tira da equipe sem apagar. `ativo=True` traz de volta.
+
+    So aceita ids que estao na lista de soltas AGORA -- entre a tela abrir
+    e o botao ser clicado, uma delas pode ter ganhado artigo ou vinculo, e
+    arquivar essa seria esconder gente de verdade.
+    """
+    elegiveis = {f["id"] for f in soltas(db)} if not ativo else None
+    movidas, recusadas = [], []
+    for bruto in ids or []:
+        try:
+            member_id = int(bruto)
+        except (TypeError, ValueError):
+            continue
+        if elegiveis is not None and member_id not in elegiveis:
+            recusadas.append({"id": member_id,
+                              "motivo": "deixou de ser ficha solta desde que a "
+                                        "lista foi montada"})
+            continue
+        pessoa = db.dicts("SELECT full_name FROM members WHERE id = ?", (member_id,))
+        if not pessoa:
+            recusadas.append({"id": member_id, "motivo": "ficha não encontrada"})
+            continue
+        db.execute("UPDATE members SET active = ?, updated_at = datetime('now')"
+                   " WHERE id = ?", (1 if ativo else 0, member_id))
+        movidas.append({"id": member_id, "quem": pessoa[0]["full_name"]})
+    if movidas:
+        db.conn.commit()
+    return {"movidas": len(movidas), "quais": movidas, "recusadas": recusadas,
+            "desfazer": [m["id"] for m in movidas],
+            "para": "ativa" if ativo else "arquivada"}
+
+
+def marcar_em_lote(db: Database, ids: list[int], coautor: bool = True) -> dict[str, Any]:
+    """Move varias fichas de uma vez, e devolve o que mover de volta.
+
+    A tela nasceu de uma em uma de proposito: a ficha vazia da professora
+    que ninguem terminou de cadastrar e identica a do coautor de outra
+    universidade, e so quem conhece a equipe sabe qual e qual.
+
+    So que "de uma em uma" com cinquenta e quatro fichas nao e cuidado --
+    e a garantia de que ninguem vai fazer, e de que o organograma fica
+    para sempre com cinquenta e quatro pessoas sem vinculo no meio. Entao
+    o lote existe, com tres amarras:
+
+      1. So aceita ids que estao na proposta AGORA. Um id que ganhou sinal
+         de vinculo entre a tela abrir e o botao ser clicado -- porque a
+         pessoa acabou de se cadastrar -- e recusado, e nao movido.
+      2. Devolve `desfazer`, a lista do que mudou de fato, para que a volta
+         seja um pedido so e nao cinquenta e quatro.
+      3. Nao apaga nada. `is_external` e uma coluna; a ficha, os artigos e
+         a autoria continuam todos la.
+    """
+    elegiveis = {c["id"] for c in candidatos(db)}
+    movidos, recusados = [], []
+    for bruto in ids or []:
+        try:
+            member_id = int(bruto)
+        except (TypeError, ValueError):
+            continue
+        if coautor and member_id not in elegiveis:
+            pessoa = db.dicts("SELECT full_name FROM members WHERE id = ?", (member_id,))
+            recusados.append({
+                "id": member_id,
+                "quem": pessoa[0]["full_name"] if pessoa else None,
+                "motivo": "ganhou sinal de vínculo desde que a lista foi montada"
+                          if pessoa else "ficha não encontrada"})
+            continue
+        try:
+            movidos.append(marcar(db, member_id, coautor))
+        except ValueError as erro:
+            recusados.append({"id": member_id, "quem": None, "motivo": str(erro)})
+    return {
+        "movidos": len(movidos), "quais": movidos, "recusados": recusados,
+        "desfazer": [m["id"] for m in movidos],
+        "para": "coautor" if coautor else "pesquisador do LAPE",
+    }
+
+
 def contagem(db: Database) -> dict[str, int]:
     """Quantos de cada lado -- e quantos esperam confirmacao."""
     return {
@@ -126,4 +235,5 @@ def contagem(db: Database) -> dict[str, int]:
         "coautores": int(db.scalar(
             "SELECT COUNT(*) FROM members WHERE is_external = 1") or 0),
         "a_confirmar": len(candidatos(db)),
+        "soltas": len(soltas(db)),
     }
