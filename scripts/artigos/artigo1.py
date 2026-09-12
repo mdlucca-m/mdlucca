@@ -33,6 +33,19 @@ _REV_VF = C.reversao("Vigor", "Fadiga")
 _REV_FF = C.reversao("Fadiga mental", "Fadiga física")
 _DIA_VF = C.cruzar(C.SUAVE["Vigor"], C.SUAVE["Fadiga"])[0][0]
 _RISCO1, _RISCO7 = faixa("De risco", 1), faixa("De risco", 7)
+
+def _correlacao(a, b):
+    """Correlação de Pearson entre duas subescalas nas observações brutas."""
+    import statistics
+    x = [o[a] for o in K.OBS]
+    y = [o[b] for o in K.OBS]
+    mx, my = statistics.fmean(x), statistics.fmean(y)
+    num = sum((i - mx) * (j - my) for i, j in zip(x, y))
+    den = (sum((i - mx) ** 2 for i in x) * sum((j - my) ** 2 for j in y)) ** 0.5
+    return num / den
+
+
+_R_TD = _correlacao("Tensão", "Depressão")
 _FAV1, _FAV7 = faixa("Favorável", 1), faixa("Favorável", 7)
 _NEU1, _NEU7 = faixa("Neutro", 1), faixa("Neutro", 7)
 NORMATIVO = {"Iceberg": 29.4, "Submerso": 25.5, "Barbatana de tubarão": 17.3,
@@ -869,6 +882,31 @@ BLOCOS = [
       "o mesmo instrumento produz escores mais altos sob a instrução "
       "retrospectiva, o que torna as duas versões não intercambiáveis para "
       "fins de comparação de prevalência (Rohlfs, Noce e Wilke, 2024)."),
+("p", "A base psicométrica do instrumento não se restringe ao contexto "
+      "brasileiro e sustenta duas propriedades que o presente delineamento "
+      "exige. A primeira é a validade fatorial em atletas: em 2548 "
+      "respondentes chineses, dos quais 954 atletas, a análise fatorial "
+      "confirmatória sustentou a estrutura de seis fatores com invariância "
+      "de medida nos níveis configural, métrico, forte e estrutural entre "
+      "os quatro subgrupos, e a comparação de médias latentes mostrou que "
+      "atletas relatam fadiga mais alta que estudantes sem perda de vigor "
+      "(Zhang e outros, 2014). Achado semelhante foi obtido em 746 "
+      "lituanos (Terry e outros, 2022), em 1786 adultos gregos "
+      "(Vlachopoulos, Lane e Terry, 2023) e em amostra malaia (Lew e "
+      "outros, 2023). A segunda propriedade é a estabilidade temporal, "
+      "condição para que sete medidas seguidas sejam interpretadas como "
+      "variação de estado e não como ruído do instrumento: em 1015 "
+      "respondentes, os coeficientes de correlação intraclasse de reteste "
+      "variaram de 0,71 a 0,91 entre as seis subescalas, e a invariância "
+      "por sexo foi plena (Hasan e Khan, 2022). A ressalva conhecida "
+      "dessa base é que a distinção empírica entre tensão e depressão nem "
+      "sempre se sustenta, e adaptações em amostras adolescentes pequenas "
+      "já propuseram fundir os dois fatores. A ressalva foi verificada "
+      f"nesta amostra e não se confirma: nas {len(K.OBS)} observações, a "
+      f"correlação entre tensão e depressão é de {F.br(_R_TD, 2)}, valor "
+      "baixo o bastante para que as duas subescalas sejam tratadas como "
+      "medidas distintas, apesar das trajetórias diárias semelhantes "
+      "descritas na seção 4.3."),
 ("h2", "3.6 Procedimento de coleta"),
 ("p", "A coleta ocorreu entre 21 e 27 de abril de 2024, por formulário "
       f"eletrônico, e produziu {len(K.OBS)} respostas analisáveis de "
@@ -2267,18 +2305,22 @@ BLOCOS += [
       "pré-temporada, os seis perfis de humor descritos na literatura são "
       "identificáveis. No dia de repouso, o perfil iceberg predomina, com "
       f"{F.br(PERFIS_T['Iceberg'][1], 1)}% das observações, e os três perfis "
-      f"de risco somam {F.br(_RISCO1, 1)}%, valor quase idêntico ao da única "
-      "amostra brasileira classificada pelo mesmo critério. Na véspera da "
+      f"de risco somam {F.br(_RISCO1, 1)}%, menos da metade dos 26,5% da "
+      "única amostra brasileira classificada pelo mesmo critério. Na véspera "
+      "da "
       "competição o quadro se inverte: o iceberg cai para "
       f"{F.br(PERFIS_T['Iceberg'][3], 1)}%, a barbatana de tubarão sobe de "
       f"{F.br(PERFIS_T['Barbatana de tubarão'][1], 1)}% para "
       f"{F.br(PERFIS_T['Barbatana de tubarão'][3], 1)}% e passa a dividir a "
       f"primeira posição, e a faixa de risco alcança {F.br(_RISCO7, 1)}% das "
       "observações."),
-("p", "Ao longo da semana, a proporção de atletas em perfil iceberg cai 38,8 "
-      "pontos percentuais, e a análise da derivada mostra que essa perda se "
-      "concentra em dois dias, o primeiro de alta intensidade e a véspera da "
-      "competição, com um platô entre eles. Quatro das seis subescalas "
+("p", "Ao longo da semana, a proporção de observações em perfil iceberg cai "
+      f"{F.br(PERFIS_T['Iceberg'][1] - PERFIS_T['Iceberg'][3], 1)} pontos "
+      "percentuais, diferença cujo intervalo de confiança de 95% contém o "
+      "zero e que, por isso, não é afirmada como efeito populacional. A "
+      "análise da derivada mostra que essa perda se concentra em dois dias, "
+      "o primeiro de alta intensidade e a véspera da competição, com um "
+      "platô entre eles. Quatro das seis subescalas "
       "apresentam efeito piso acima de 49% e não têm margem de medida útil "
       "para o acompanhamento diário, ainda que preservem utilidade para "
       "triagem de caso individual. Nenhuma subescala é confiável em uma "
@@ -2304,26 +2346,29 @@ BLOCOS += [
 ("nota", "HAN, C. S. Y. e outros. Mood profiling in Singapore: cross-cultural "
          "validation and potential applications of mood profile clusters. "
          "Frontiers in Psychology, v. 11, art. 665, 2020."),
+("nota", "HASAN, M. M.; KHAN, M. H. A. Bangla version of the Brunel Mood "
+         "Scale (BRUMS): validity, measurement invariance and normative data "
+         "in non-clinical sample. Heliyon, v. 8, n. 6, art. e09666, 2022."),
+("nota", "HENZE, A. S. e outros. Athlete monitoring in handball (ATHMON HB): "
+         "a systematic review protocol. Systematic Reviews, v. 14, n. 1, "
+         "art. 64, 2025."),
 ("nota", "JIMENEZ, C.; VERHAGEN, E. Reimagining athlete monitoring for true "
          "indicative injury prevention. BMJ Open Sport and Exercise "
          "Medicine, v. 11, n. 2, art. e002479, 2025."),
 ("nota", "LANE, A. M.; TERRY, P. C. The nature of mood: development of a "
          "conceptual model with a focus on depression. Journal of Applied "
          "Sport Psychology, v. 12, n. 1, p. 16-33, 2000."),
-("nota", "HENZE, A. S. e outros. Athlete monitoring in handball (ATHMON HB): "
-         "a systematic review protocol. Systematic Reviews, v. 14, n. 1, "
-         "art. 64, 2025."),
 ("nota", "LEW, P. C. F. e outros. Cross-cultural validation of the Malaysian "
          "Mood Scale and tests of between-group mood differences. "
          "International Journal of Environmental Research and Public "
          "Health, v. 20, n. 4, art. 3348, 2023."),
-("nota", "MAIN, L. C.; GROVE, J. R. A multi-component assessment model for "
-         "monitoring training distress among athletes. European Journal of "
-         "Sport Science, v. 9, n. 4, p. 195-202, 2009."),
 ("nota", "LUOJUMÄKI, R. J. e outros. Exploring mood profile clusters across "
          "physical activity level, gender and age in a Finnish population. "
          "European Journal of Sport Science, v. 26, n. 2, art. e70131, "
          "2026."),
+("nota", "MAIN, L. C.; GROVE, J. R. A multi-component assessment model for "
+         "monitoring training distress among athletes. European Journal of "
+         "Sport Science, v. 9, n. 4, p. 195-202, 2009."),
 ("nota", "MORGAN, W. P. Test of champions: the iceberg profile. Psychology "
          "Today, v. 14, p. 92-108, 1980."),
 ("nota", "MORGAN, W. P. Selected psychological factors limiting performance: "
@@ -2400,6 +2445,9 @@ BLOCOS += [
          "and overtraining syndrome on psychological and cognitive "
          "functioning in elite athletes: a systematic review. Psychology of "
          "Sport and Exercise, v. 84, art. 103079, 2026."),
+("nota", "VAN WIJK, C. H. e outros. The Brunel Mood Scale as a screening tool "
+         "for post-traumatic stress risk in military populations. Military "
+         "Medicine, v. 178, n. 4, p. 372-376, 2013."),
 ("nota", "VLACHOPOULOS, S. P.; LANE, A. M.; TERRY, P. C. A Greek translation "
          "of the Brunel Mood Scale: initial validation among exercise "
          "participants and inactive adults. Sports, v. 11, n. 12, art. 234, "
@@ -2407,7 +2455,7 @@ BLOCOS += [
 ("nota", "YANG, W.; CHEN, T.; CHEN, G. The impact of mental fatigue on "
          "repeated sprint and change-of-direction performance in soccer. "
          "Frontiers in Psychology, v. 17, art. 1842345, 2026."),
-("nota", "VAN WIJK, C. H. e outros. The Brunel Mood Scale as a screening tool "
-         "for post-traumatic stress risk in military populations. Military "
-         "Medicine, v. 178, n. 4, p. 372-376, 2013."),
+("nota", "ZHANG, C. Q. e outros. Psychometric properties of the Brunel Mood "
+         "Scale in Chinese adolescents and adults. Journal of Sports "
+         "Sciences, v. 32, n. 15, p. 1465-1476, 2014."),
 ]
