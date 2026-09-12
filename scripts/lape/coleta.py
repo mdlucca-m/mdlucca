@@ -35,6 +35,11 @@ from datetime import date, datetime
 from typing import Any
 
 from .db import Database
+from .estatistica import (  # noqa: F401 -- reexportados de proposito
+    beta_regularizada, f_cdf, friedman, levene, mann_whitney, normalidade,
+    anova_medidas_repetidas, plano_amostral, poder, qui2_cdf, t_cdf, t_critico,
+    t_independente, t_pareado, wilcoxon, menor_efeito_detectavel,
+    amostra_necessaria)
 
 # Abaixo disto o tamanho de efeito e ruido com casa decimal. Nao e um
 # limiar de publicacao -- e o ponto a partir do qual a conta para de
@@ -107,81 +112,9 @@ SITUACOES = {
 # nenhuma: quando os dois concordam, o TLC esta valendo aqui; quando
 # discordam, ele nao esta, e e o de reamostragem que vale.
 
-def _beta_cf(a: float, b: float, x: float, iteracoes: int = 220) -> float:
-    """Fracao continuada de Lentz para a beta incompleta."""
-    minusculo = 1e-300
-    qab, qap, qam = a + b, a + 1.0, a - 1.0
-    c, d = 1.0, 1.0 - qab * x / qap
-    if abs(d) < minusculo:
-        d = minusculo
-    d = 1.0 / d
-    h = d
-    for m in range(1, iteracoes + 1):
-        m2 = 2 * m
-        aa = m * (b - m) * x / ((qam + m2) * (a + m2))
-        d = 1.0 + aa * d
-        if abs(d) < minusculo:
-            d = minusculo
-        c = 1.0 + aa / c
-        if abs(c) < minusculo:
-            c = minusculo
-        d = 1.0 / d
-        h *= d * c
-        aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2))
-        d = 1.0 + aa * d
-        if abs(d) < minusculo:
-            d = minusculo
-        c = 1.0 + aa / c
-        if abs(c) < minusculo:
-            c = minusculo
-        d = 1.0 / d
-        delta = d * c
-        h *= delta
-        if abs(delta - 1.0) < 1e-14:
-            break
-    return h
-
-
-def _beta_regularizada(a: float, b: float, x: float) -> float:
-    if x <= 0:
-        return 0.0
-    if x >= 1:
-        return 1.0
-    frente = math.exp(math.lgamma(a + b) - math.lgamma(a) - math.lgamma(b)
-                      + a * math.log(x) + b * math.log1p(-x))
-    if x < (a + 1.0) / (a + b + 2.0):
-        return frente * _beta_cf(a, b, x) / a
-    return 1.0 - frente * _beta_cf(b, a, 1.0 - x) / b
-
-
-def t_cdf(t: float, gl: float) -> float:
-    """P(T <= t) para t de Student com `gl` graus de liberdade."""
-    x = gl / (gl + t * t)
-    cauda = 0.5 * _beta_regularizada(gl / 2.0, 0.5, x)
-    return 1.0 - cauda if t > 0 else cauda
-
-
-def t_critico(gl: int, conf: float = 0.95) -> float:
-    """O t que deixa `conf` no meio. Sem scipy: a casa nao tem scipy.
-
-    Confere com a tabela publicada ate a quarta casa (t(0,975; 10) =
-    2,2281) e converge para 1,96 quando os graus de liberdade crescem,
-    que e a normal -- o mesmo numero que quase toda tabela de artigo usa
-    sem perguntar se podia.
-    """
-    if gl <= 0:
-        return float("nan")
-    alvo = 1.0 - (1.0 - conf) / 2.0
-    baixo, alto = 0.0, 400.0
-    for _ in range(200):
-        meio = (baixo + alto) / 2.0
-        if t_cdf(meio, gl) < alvo:
-            baixo = meio
-        else:
-            alto = meio
-    return (baixo + alto) / 2.0
-
-
+# As contas moram em `estatistica`, e nao aqui. Ter duas implementacoes da
+# mesma distribuicao e o comeco de duas que divergem -- e a que diverge e
+# sempre a que ninguem esta olhando.
 def _hoje() -> date:
     return date.today()
 
@@ -824,3 +757,142 @@ def exportar_longo(db: Database, protocolo_id: int | None = None) -> list[dict]:
         "  LEFT JOIN momentos m ON m.id = c.momento_id"
         "  LEFT JOIN protocolos pr ON pr.id = p.protocolo_id" + onde
         + " ORDER BY p.codigo, i.code, m.ordem", args)
+
+
+# ----------------------------------------------------------------------
+# O teste, escolhido pelos dados
+# ----------------------------------------------------------------------
+def testar(db: Database, protocolo_id: int, instrumento_id: int,
+           subescala: str | None = None) -> dict[str, Any]:
+    """Roda o teste que os dados PERMITEM, e nao o que se roda por habito.
+
+    Tres perguntas, e as tres sao do estudo:
+
+      1. Cada grupo mudou do primeiro para o ultimo momento? -> pareado.
+         Pareado de verdade: so entram as pessoas medidas nos DOIS
+         momentos. Comparar a media de quem foi medido no inicio com a
+         media de quem foi medido no fim nao e teste pareado -- sao
+         pessoas diferentes, e quem desistiu costuma ser justamente quem
+         piorou.
+      2. Os grupos diferem no fim? -> independente.
+      3. Com tres ou mais momentos, houve mudanca ao longo deles? ->
+         medidas repetidas.
+
+    Antes de cada uma, a suposicao e conferida e ANUNCIADA. Um teste t
+    rodado sobre dado torto sai com quatro casas decimais e aparencia de
+    verdade, e e assim que ele chega ao artigo.
+    """
+    momentos = db.dicts(
+        "SELECT * FROM momentos WHERE protocolo_id = ? ORDER BY ordem, id",
+        (protocolo_id,))
+    if len(momentos) < 2:
+        return {"aviso": "o protocolo precisa de ao menos dois momentos declarados"}
+
+    args: list = [protocolo_id, instrumento_id]
+    filtro = ""
+    if subescala:
+        filtro = " AND c.subescala = ?"
+        args.append(subescala)
+    linhas = db.dicts(
+        "SELECT c.valor, c.momento_id, c.participante_id, p.grupo"
+        "  FROM coletas c JOIN participantes p ON p.id = c.participante_id"
+        " WHERE p.protocolo_id = ? AND c.instrumento_id = ?" + filtro, tuple(args))
+    if not linhas:
+        return {"aviso": "sem medidas neste recorte"}
+
+    por_grupo: dict[str, dict[int, dict[int, float]]] = {}
+    for linha in linhas:
+        grupo = linha["grupo"] or "sem grupo"
+        por_grupo.setdefault(grupo, {}).setdefault(
+            linha["participante_id"], {})[linha["momento_id"]] = linha["valor"]
+
+    primeiro, ultimo = momentos[0]["id"], momentos[-1]["id"]
+    dentro = []
+    for grupo in sorted(por_grupo):
+        pessoas = por_grupo[grupo]
+        pares = [(v[primeiro], v[ultimo]) for v in pessoas.values()
+                 if primeiro in v and ultimo in v]
+        bloco: dict[str, Any] = {
+            "grupo": grupo, "pares": len(pares),
+            "medidos_no_inicio": sum(1 for v in pessoas.values() if primeiro in v),
+            "medidos_no_fim": sum(1 for v in pessoas.values() if ultimo in v),
+        }
+        if len(pares) >= 2:
+            difs = [b - a for a, b in pares]
+            checagem = normalidade(difs)
+            bloco["normalidade"] = checagem
+            # A normalidade que importa no pareado e a das DIFERENCAS, e
+            # nao a dos valores brutos: e a diferenca que o teste modela.
+            if checagem.get("normal") is False:
+                bloco["teste"] = wilcoxon([a for a, _ in pares], [b for _, b in pares])
+                bloco["porque"] = ("as diferenças não passaram no teste de "
+                                   "normalidade (p = %s), então o caminho é o "
+                                   "não paramétrico" % checagem.get("p"))
+            else:
+                bloco["teste"] = t_pareado([a for a, _ in pares], [b for _, b in pares])
+                bloco["porque"] = ("as diferenças são compatíveis com a normal"
+                                   if checagem.get("normal")
+                                   else "sem n para testar normalidade; "
+                                        "seguindo pelo t, com ressalva")
+        else:
+            bloco["aviso"] = ("só %d pessoa(s) foram medidas nos dois momentos"
+                              % len(pares))
+        # tres ou mais momentos: a trajetoria inteira
+        if len(momentos) >= 3:
+            completas = [[v[m["id"]] for m in momentos] for v in pessoas.values()
+                         if all(m["id"] in v for m in momentos)]
+            if len(completas) >= 2:
+                bloco["ao_longo"] = anova_medidas_repetidas(completas)
+                bloco["ao_longo_sem_suposicao"] = friedman(completas)
+        dentro.append(bloco)
+
+    # entre grupos, no ultimo momento
+    entre: dict[str, Any] | None = None
+    grupos = sorted(por_grupo)
+    if len(grupos) == 2:
+        a = [v[ultimo] for v in por_grupo[grupos[0]].values() if ultimo in v]
+        b = [v[ultimo] for v in por_grupo[grupos[1]].values() if ultimo in v]
+        if len(a) >= 2 and len(b) >= 2:
+            na, nb = normalidade(a), normalidade(b)
+            variancias = levene(a, b)
+            normais = na.get("normal") is not False and nb.get("normal") is not False
+            if normais:
+                teste = t_independente(a, b,
+                                       variancias_iguais=variancias.get("iguais") is not False)
+                porque = ("os dois grupos são compatíveis com a normal; "
+                          + ("variâncias iguais pelo Levene"
+                             if variancias.get("iguais") is not False
+                             else "variâncias diferentes pelo Levene, então Welch"))
+            else:
+                teste = mann_whitney(a, b)
+                porque = "ao menos um grupo não passou no teste de normalidade"
+            entre = {"momento": momentos[-1]["nome"], "grupos": grupos,
+                     "normalidade": {grupos[0]: na, grupos[1]: nb},
+                     "variancias": variancias, "teste": teste, "porque": porque}
+    return {"momentos": [m["nome"] for m in momentos], "dentro": dentro,
+            "entre": entre, "grupos": grupos}
+
+
+def poder_do_estudo(db: Database, protocolo_id: int,
+                    pareado: bool = False) -> dict[str, Any]:
+    """O que a amostra deste protocolo alcanca, e o que ela exigiria.
+
+    Nao devolve "poder observado" -- o poder calculado a partir do efeito
+    que se mediu e funcao monotona do proprio valor-p, entao nao
+    acrescenta informacao nenhuma e da a impressao de acrescentar. A
+    pergunta que vale e a outra: qual e o menor efeito que este n consegue
+    detectar.
+    """
+    gente = participantes(db, protocolo_id)
+    ativos = [p for p in gente if p["situacao"] in ("ativo", "concluiu")]
+    por_grupo: dict[str, int] = {}
+    for pessoa in ativos:
+        chave = pessoa.get("grupo") or "sem grupo"
+        por_grupo[chave] = por_grupo.get(chave, 0) + 1
+    # o menor grupo e o que manda: e ele que limita a comparacao
+    menor = min(por_grupo.values()) if por_grupo else 0
+    return {
+        "por_grupo": [{"grupo": g, "n": n} for g, n in sorted(por_grupo.items())],
+        "menor_grupo": menor, "total": len(ativos),
+        "plano": plano_amostral(menor or None, pareado=pareado),
+    }

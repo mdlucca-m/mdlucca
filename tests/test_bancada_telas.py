@@ -37,6 +37,13 @@ API = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
 AS_SETE = ["coleta", "monitoramento", "medidas", "ano_bancada",
            "relatorios", "exportar", "bancada_admin"]
 
+# Telas que vieram depois, pedidas à parte. Ficam declaradas aqui, e não
+# somadas a AS_SETE, para que as sete continuem sendo exatamente as sete
+# que foram encomendadas -- e para que uma tela nova entre na seção de
+# propósito, nunca por descuido.
+ALEM_DAS_SETE = ["poder"]
+DA_BANCADA = AS_SETE + ALEM_DAS_SETE
+
 
 class TestQuemAlcanca(unittest.TestCase):
 
@@ -105,7 +112,7 @@ class TestQuemAlcanca(unittest.TestCase):
 class TestAsSeteTelas(unittest.TestCase):
 
     def test_as_sete_existem(self):
-        for tela in AS_SETE:
+        for tela in DA_BANCADA:
             with self.subTest(tela=tela):
                 self.assertIn('view("%s"' % tela, DASHBOARD)
 
@@ -115,12 +122,12 @@ class TestAsSeteTelas(unittest.TestCase):
         bancada = re.search(r'id: "bancada".*?views: \[(.*?)\]', secoes, re.S)
         self.assertIsNotNone(bancada)
         declaradas = set(re.findall(r'"(\w+)"', bancada.group(1)))
-        self.assertEqual(declaradas, set(AS_SETE))
+        self.assertEqual(declaradas, set(DA_BANCADA))
 
     def test_cada_uma_tem_icone(self):
         mapa = DASHBOARD[DASHBOARD.index("const VIEW_ICON = {"):
                          DASHBOARD.index("/* A bancada inteira também")]
-        for tela in AS_SETE:
+        for tela in DA_BANCADA:
             with self.subTest(tela=tela):
                 self.assertRegex(mapa, tela + r':\s*"\w+"')
 
@@ -128,12 +135,12 @@ class TestAsSeteTelas(unittest.TestCase):
         """Ano, linha de pesquisa e integrante não recortam participante."""
         lista = re.search(r"const SEM_FILTROS = \[(.*?)\];", DASHBOARD, re.S)
         declaradas = set(re.findall(r'"(\w+)"', lista.group(1)))
-        for tela in AS_SETE:
+        for tela in DA_BANCADA:
             with self.subTest(tela=tela):
                 self.assertIn(tela, declaradas)
 
     def test_cada_uma_aponta_para_vizinhas(self):
-        for tela in AS_SETE:
+        for tela in DA_BANCADA:
             with self.subTest(tela=tela):
                 self.assertRegex(DASHBOARD, r"\n  " + tela + r":\s*\[")
 

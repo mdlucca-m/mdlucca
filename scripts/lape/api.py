@@ -142,6 +142,7 @@ def route_index(ctx: "Context") -> Any:
             "POST /api/bancada               (coordenação) grava instrumento, "
             "protocolo, momento, participante, saída ou medida",
             "GET  /api/bancada/analise       (coordenação) ?protocolo=&instrumento=",
+            "GET  /api/bancada/poder        (coordenação) ?protocolo=&pareado=",
             "GET  /api/bancada/ano           (coordenação) ?ano=",
             "GET  /api/bancada/exportar      (coordenação) medidas em formato longo",
             "GET  /api/linhas/sugerir        (coordenação) liga artigo a linha pelo título",
@@ -598,11 +599,29 @@ def route_bancada_analise(ctx: "Context") -> Any:
     instrumento = to_int(ctx.query.get("instrumento", [None])[0])
     if not protocolo or not instrumento:
         raise ApiError(400, "informe protocolo e instrumento")
+    subescala = ctx.query.get("subescala", [None])[0]
     try:
-        return coleta.analise(ctx.db, protocolo, instrumento,
-                              ctx.query.get("subescala", [None])[0])
+        saida = coleta.analise(ctx.db, protocolo, instrumento, subescala)
     except ValueError as erro:
         raise ApiError(400, str(erro)) from erro
+    # O teste vem junto: media sem teste nao publica, e teste em tela
+    # separada da media e o jeito de ler um sem o outro.
+    saida["teste"] = coleta.testar(ctx.db, protocolo, instrumento, subescala)
+    return saida
+
+
+def route_bancada_poder(ctx: "Context") -> Any:
+    """O que a amostra alcança, e o que cada efeito exigiria."""
+    auth.require(ctx.user, "coordenacao")
+    from . import coleta
+    protocolo = to_int(ctx.query.get("protocolo", [None])[0])
+    pareado = ctx.query.get("pareado", ["0"])[0] in ("1", "true", "sim")
+    if not protocolo:
+        # sem protocolo a tela ainda serve para planejar um estudo que
+        # nao existe: a tabela de tamanho de efeito nao depende de dado
+        return {"plano": coleta.plano_amostral(None, pareado=pareado),
+                "por_grupo": [], "menor_grupo": 0, "total": 0}
+    return coleta.poder_do_estudo(ctx.db, protocolo, pareado=pareado)
 
 
 def route_bancada_ano(ctx: "Context") -> Any:
@@ -1860,6 +1879,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/bancada/?$", route_bancada, "coordenacao"),
     ("POST", r"^/api/bancada/?$", route_bancada_gravar, "coordenacao"),
     ("GET", r"^/api/bancada/analise/?$", route_bancada_analise, "coordenacao"),
+    ("GET", r"^/api/bancada/poder/?$", route_bancada_poder, "coordenacao"),
     ("GET", r"^/api/bancada/ano/?$", route_bancada_ano, "coordenacao"),
     ("GET", r"^/api/bancada/exportar/?$", route_bancada_exportar, "coordenacao"),
     ("GET", r"^/api/linhas/sugerir/?$", route_linhas_sugerir, "coordenacao"),

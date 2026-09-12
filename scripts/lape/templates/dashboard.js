@@ -4693,7 +4693,8 @@ function aplicarSegmento(label) {
    2. NINGUÉM É NOMEADO. O participante é um código. Não há nome no banco,
       não há nome na API e não há nome aqui. */
 
-const BANCADA = { dados: null, protocolo: null, instrumento: null, erro: null };
+const BANCADA = { dados: null, protocolo: null, instrumento: null,
+  pareado: false, erro: null };
 
 function bancadaBuscar(caminho) {
   return fetch(caminho, { headers: { Accept: "application/json" } })
@@ -5172,6 +5173,14 @@ function desenharAnalise(a, host) {
       ])));
   });
 
+  /* O teste fica ENTRE as médias e o efeito, que é a ordem em que se lê:
+     o que mudou, se a mudança se sustenta, e de que tamanho ela foi. */
+  if (a.teste) {
+    const palco = el("div", { style: "margin-top:16px" });
+    host.appendChild(palco);
+    desenharTestes(a.teste, palco);
+  }
+
   host.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" },
     a.series.map(function (s) {
       const e = s.efeito || {};
@@ -5221,6 +5230,159 @@ function desenharAnalise(a, host) {
           ]) : null,
         ].filter(Boolean));
     })));
+}
+
+/* O resultado do teste, e por que foi ESTE teste.
+
+   O valor-p sozinho é a metade que engana: um p de 0,03 obtido com teste
+   t sobre dado torto não vale mais do que nenhum. Por isso cada bloco
+   traz, na mesma altura, o que foi conferido e o caminho que isso abriu.
+
+   E o p vem SEM estrela, sem negrito e sem "significativo". A palavra faz
+   o trabalho todo de interpretação sozinha, e quase sempre faz errado:
+   0,049 e 0,051 são o mesmo estudo. O que decide é o intervalo do efeito,
+   que está no cartão ao lado. */
+function pValor(p) {
+  if (p === null || p === undefined) return "—";
+  return p < 0.001 ? "< 0,001" : dec(p, 3);
+}
+
+function blocoDeTeste(t, porque, extra) {
+  if (!t) return null;
+  if (t.p === null || t.p === undefined) {
+    return el("div", { class: "hint", text: t.aviso || "sem dados para o teste" });
+  }
+  const partes = [];
+  if (t.t !== undefined) partes.push("t = " + dec(t.t, 3) + " · gl = " + t.gl);
+  if (t.z !== undefined) partes.push("z = " + dec(t.z, 3));
+  if (t.u !== undefined) partes.push("U = " + t.u);
+  if (t.w !== undefined && t.z !== undefined) partes.push("W = " + t.w);
+  if (t.f !== undefined) partes.push("F = " + dec(t.f, 3)
+    + " · gl = " + t.gl1 + ", " + t.gl2);
+  if (t.qui2 !== undefined) partes.push("χ² = " + dec(t.qui2, 3) + " · gl = " + t.gl);
+  if (t.eta2_parcial !== undefined) partes.push("η² parcial = " + dec(t.eta2_parcial, 3));
+  return el("div", { class: "teste" }, [
+    el("div", { class: "teste-topo" }, [
+      el("b", { text: t.teste }),
+      /* "p = < 0,001" é um sinal a mais do que cabe: quando o valor é um
+         limite, o próprio "<" é o operador. */
+      el("span", { class: "teste-p" }, [
+        el("i", { text: "p" }),
+        el("span", { text: (t.p < 0.001 ? " " : " = ") + pValor(t.p) })]),
+    ]),
+    partes.length ? el("div", { class: "hint", text: partes.join("  ·  ") }) : null,
+    porque ? el("div", { class: "hint", text: "Por que este teste: " + porque })
+      : null,
+    t.aviso ? el("div", { class: "hint", text: "⚠ " + t.aviso }) : null,
+    extra || null,
+  ].filter(Boolean));
+}
+
+/* O Q-Q: cada ponto é um valor; a linha é onde ele cairia se a
+   distribuição fosse normal. Quanto mais os pontos se afastam dela, menos
+   o teste paramétrico se sustenta — e isso se vê num relance, enquanto o
+   valor-p do teste de normalidade não diz nada com n pequeno e reprova
+   tudo com n grande. */
+function desenharQQ(checagem) {
+  const pontos = (checagem || {}).qq || [];
+  if (pontos.length < 3) return null;
+  return C.scatter({
+    points: pontos.map(function (p) {
+      return { x: p.esperado, y: p.observado }; }),
+    xLabel: "esperado sob normalidade", yLabel: "observado",
+    height: 200, diagonal: true, mono: true, deZero: false,
+    file: "qq", caption: "cada ponto é uma medida; a diagonal é a normal perfeita",
+  });
+}
+
+function desenharTestes(teste, host) {
+  if (!teste || teste.aviso) {
+    host.appendChild(el("div", { class: "note",
+      text: (teste && teste.aviso) || "sem teste para este recorte" }));
+    return;
+  }
+  /* ---- dentro de cada grupo: mudou do começo ao fim? ---- */
+  host.appendChild(el("div", { class: "grid g2" }, (teste.dentro || [])
+    .map(function (b) {
+      return card("Mudança dentro de " + b.grupo,
+        b.pares + " pessoa(s) medidas nos dois momentos"
+        + (b.medidos_no_inicio !== b.pares || b.medidos_no_fim !== b.pares
+          ? " · " + b.medidos_no_inicio + " no início e " + b.medidos_no_fim
+            + " no fim" : ""),
+        [
+          /* Perder gente entre os momentos não é detalhe: quem desistiu
+             costuma ser justamente quem piorou, e a média do fim fica
+             melhor do que o tratamento foi. */
+          (b.medidos_no_inicio > b.pares) ? el("div", { class: "note" }, [
+            el("b", { text: (b.medidos_no_inicio - b.pares) + " pessoa(s) saíram "
+              + "entre os dois momentos. " }),
+            el("span", { text: "Elas ficam de fora do teste pareado, que compara "
+              + "cada pessoa com ela mesma. Se quem saiu foi quem piorou, o que "
+              + "sobra parece melhor do que o tratamento foi." }),
+          ]) : null,
+          b.teste ? blocoDeTeste(b.teste, b.porque) : el("div", { class: "hint",
+            text: b.aviso || "sem pares suficientes" }),
+          b.ao_longo ? el("div", { style: "margin-top:14px" }, [
+            el("div", { class: "hint", text: "Ao longo dos " + teste.momentos.length
+              + " momentos:" }),
+            blocoDeTeste(b.ao_longo, null),
+            b.ao_longo_sem_suposicao ? blocoDeTeste(b.ao_longo_sem_suposicao,
+              "o mesmo sem supor normalidade nem esfericidade — se os dois "
+              + "discordam, vale este") : null,
+          ]) : null,
+          b.normalidade && b.normalidade.qq ? el("details", { style: "margin-top:12px" }, [
+            el("summary", { text: "conferir a normalidade das diferenças" }),
+            el("div", { class: "hint", style: "margin:8px 0",
+              text: b.normalidade.p === null
+                ? (b.normalidade.aviso || "")
+                : "D'Agostino-Pearson: p = " + pValor(b.normalidade.p)
+                  + " · assimetria " + dec(b.normalidade.assimetria, 2)
+                  + " · curtose " + dec(b.normalidade.curtose, 2)
+                  + (b.normalidade.aviso ? " — " + b.normalidade.aviso : "") }),
+            desenharQQ(b.normalidade),
+          ]) : null,
+        ].filter(Boolean));
+    })));
+
+  /* ---- entre os grupos, no fim ---- */
+  const e = teste.entre;
+  if (e) {
+    host.appendChild(el("div", { style: "margin-top:16px" }, card(
+      "Diferença entre os grupos em " + e.momento,
+      e.grupos.join(" × "),
+      [
+        blocoDeTeste(e.teste, e.porque),
+        el("details", { style: "margin-top:12px" }, [
+          el("summary", { text: "conferir as suposições" }),
+          el("div", { class: "hint", style: "margin-top:8px",
+            text: "Levene (variâncias): p = " + pValor((e.variancias || {}).p)
+              + ((e.variancias || {}).iguais === false
+                ? " — diferentes, então o teste usou Welch"
+                : " — compatíveis com variâncias iguais") }),
+          el("div", { class: "grid g2", style: "margin-top:10px" },
+            e.grupos.map(function (g) {
+              const chk = (e.normalidade || {})[g] || {};
+              return el("div", {}, [
+                el("div", { class: "hint", text: g + ": "
+                  + (chk.p === null || chk.p === undefined
+                    ? (chk.aviso || "sem n para testar")
+                    : "p = " + pValor(chk.p)) }),
+                desenharQQ(chk),
+              ].filter(Boolean));
+            })),
+        ]),
+      ].filter(Boolean))));
+  }
+
+  /* A nota que evita o uso errado do que está acima. */
+  host.appendChild(el("div", { class: "note", style: "margin-top:16px" }, [
+    el("b", { text: "O valor-p não mede o tamanho do efeito. " }),
+    el("span", { text: "Ele responde “com que frequência eu veria uma diferença "
+      + "destas se não houvesse diferença nenhuma” — e com muita gente até uma "
+      + "diferença irrelevante sai com p pequeno. Quanto o exercício mudou está "
+      + "no cartão de efeito, com o intervalo ao lado. Os dois juntos é que se "
+      + "leem; 0,049 e 0,051 são o mesmo estudo." }),
+  ]));
 }
 
 /* ---------------------------------------------------------------- 4/7 */
@@ -5565,6 +5727,158 @@ view("bancada_admin", "Gerenciamento avançado", "Bancada",
     }, { sempre: true });
   });
 
+/* ---------------------------------------------------------------- 8/8 */
+/* A conta que deveria vir ANTES da coleta, e que quase sempre é feita
+   depois — quando já não muda nada.
+
+   Um estudo com seis por grupo só detecta efeito gigante. Se o efeito
+   real for médio, ele vai dar "sem diferença significativa" com altíssima
+   probabilidade, e essa frase será lida como "o exercício não funcionou".
+   Não foi: o estudo nunca teve como saber.
+
+   Esta tela não mostra "poder observado" — o poder calculado a partir do
+   efeito que se mediu. Ele é função monótona do próprio valor-p: não
+   acrescenta informação nenhuma e dá a impressão de acrescentar. A
+   pergunta que vale é a outra, e é a que está aqui: qual é o MENOR efeito
+   que este n consegue detectar. */
+view("poder", "Poder e amostra", "Bancada",
+  "De quantos participantes o estudo precisa, e o que a amostra de hoje alcança.",
+  function (host) {
+    if (!LIVE) {
+      host.appendChild(el("div", { class: "note", text:
+        "Esta tela lê o servidor ao vivo." }));
+      return;
+    }
+    const caixa = el("div");
+    host.appendChild(caixa);
+    caixa.appendChild(el("div", { class: "empty", text: "Calculando…" }));
+
+    bancadaBuscar("/api/bancada" + (BANCADA.protocolo
+      ? "?protocolo=" + BANCADA.protocolo : "")).then(function (dados) {
+      BANCADA.dados = dados;
+      if (!BANCADA.protocolo && (dados.protocolos || []).length) {
+        BANCADA.protocolo = dados.protocolos[0].id;
+      }
+      return bancadaBuscar("/api/bancada/poder"
+        + (BANCADA.protocolo ? "?protocolo=" + BANCADA.protocolo : "")
+        + "&pareado=" + (BANCADA.pareado ? "1" : "0"));
+    }).then(function (r) {
+      caixa.innerHTML = "";
+      caixa.appendChild(seletorDeProtocolo());
+
+      /* O desenho muda a conta, e muda muito: medir a mesma pessoa duas
+         vezes precisa de quase metade da gente, porque cada uma é o
+         próprio controle. Por isso a escolha fica no alto, e não escondida
+         num rodapé. */
+      const escolha = el("div", { class: "segmented", role: "group",
+        "aria-label": "Desenho do estudo" }, [
+        ["", "Dois grupos independentes"], ["1", "Mesma pessoa, antes e depois"],
+      ].map(function (par) {
+        const ligado = !!BANCADA.pareado === !!par[0];
+        return el("button", { type: "button", text: par[1],
+          class: ligado ? "on" : null, "aria-pressed": String(ligado),
+          onclick: function () { BANCADA.pareado = !!par[0]; render(); } });
+      }));
+      caixa.appendChild(el("div", { class: "bancbarra" }, [
+        el("span", { class: "flabel", text: "Desenho" }), escolha]));
+
+      const plano = r.plano || {};
+      const linhas = plano.linhas || [];
+
+      if (r.menor_grupo) {
+        caixa.appendChild(el("div", { class: "grid g4", style: "margin-top:16px" }, [
+          kpi({ label: "No menor grupo", value: C.fmt(r.menor_grupo), icon: "pessoas",
+            ir: "monitoramento",
+            foot: (r.por_grupo || []).map(function (g) {
+              return g.grupo + ": " + g.n; }).join(" · ") }),
+          kpi({ label: "Menor efeito detectável", icon: "alvo",
+            value: plano.menor_detectavel_80 === null
+              || plano.menor_detectavel_80 === undefined
+              ? "—" : "d = " + dec(plano.menor_detectavel_80, 2),
+            foot: "com 80% de poder",
+            leitura: { texto: "Abaixo disto, o estudo provavelmente vai dizer "
+              + "“sem diferença” mesmo que a diferença exista." } }),
+          kpi({ label: "Com 90% de poder", icon: "alvo",
+            value: plano.menor_detectavel_90 === null
+              || plano.menor_detectavel_90 === undefined
+              ? "—" : "d = " + dec(plano.menor_detectavel_90, 2),
+            foot: "exigência mais dura" }),
+          kpi({ label: "Participantes ao todo", value: C.fmt(r.total),
+            icon: "coracao", ir: "coleta", foot: "ativos ou que concluíram" }),
+        ]));
+      } else {
+        caixa.appendChild(el("div", { class: "note", style: "margin-top:16px", text:
+          "Nenhum participante inscrito ainda — a tabela abaixo continua "
+          + "valendo para planejar o estudo antes de começar a coletar." }));
+      }
+
+      /* A tabela de planejamento. */
+      caixa.appendChild(el("div", { style: "margin-top:16px" }, card(
+        "Quantos participantes cada efeito exige",
+        (BANCADA.pareado
+          ? "Mesma pessoa medida duas vezes: o número é de pessoas."
+          : "Dois grupos independentes: o número é POR GRUPO — dobre para o total.")
+        + " Nível de significância de 5%.",
+        [
+          C.table([
+            { label: "Tamanho do efeito", get: function (x) {
+              return "d = " + dec(x.d, 1) + " (" + x.rotulo + ")"; } },
+            { label: "Para 80% de poder", k: "n80", num: true },
+            { label: "Para 90% de poder", k: "n90", num: true },
+          ].concat(r.menor_grupo ? [{ label: "Poder com o n de hoje",
+            get: function (x) {
+              return x.poder_atual === undefined ? "—"
+                : Math.round(x.poder_atual * 100) + "%"; } }] : []), linhas),
+          /* A leitura que a tabela sozinha não entrega. */
+          r.menor_grupo ? leituraDe(_leituraDoPoder(linhas, r, plano)) : null,
+        ].filter(Boolean))));
+
+      caixa.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" }, [
+        card("O que é “poder”",
+          "A chance de o estudo encontrar um efeito que existe de verdade.", [
+            el("p", { class: "hprosa", text: "Com 80% de poder, um em cada cinco "
+              + "estudos sobre um efeito real vai dar “sem diferença” só por "
+              + "azar de amostra. Com 50%, é um em cada dois — jogar uma moeda." }),
+            el("p", { class: "hprosa", text: "Por isso o número entra no projeto "
+              + "e no parecer do comitê de ética: coletar de menos gente não é "
+              + "economia, é coletar sem poder concluir." }),
+          ]),
+        card("Por que não mostro “poder observado”",
+          "O número que quase toda tela deste tipo mostra.", [
+            el("p", { class: "hprosa", text: "Poder calculado depois, a partir do "
+              + "efeito que se mediu, é função direta do próprio valor-p: p alto "
+              + "sempre devolve poder baixo. Ele não acrescenta informação — só "
+              + "repete o resultado com outra roupa, e soa como “faltou gente” "
+              + "mesmo quando a leitura certa é “não há efeito”." }),
+            el("p", { class: "hprosa", text: "O menor efeito detectável, no alto "
+              + "desta tela, responde a mesma preocupação sem esse defeito." }),
+          ]),
+      ]));
+    }).catch(function (err) {
+      caixa.innerHTML = "";
+      caixa.appendChild(el("div", { class: "note", text: err.message === "permissao"
+        ? "O planejamento da bancada é só da coordenação."
+        : "Não foi possível calcular: " + err.message }));
+    });
+  });
+
+function _leituraDoPoder(linhas, r, plano) {
+  const medio = linhas.find(function (x) { return x.d === 0.5; }) || {};
+  const alcanca = (medio.poder_atual || 0) >= 0.8;
+  if (alcanca) {
+    return { sinal: "sobe", forte: "A amostra alcança um efeito médio.",
+      texto: "Com " + r.menor_grupo + " no menor grupo, um efeito de d = 0,5 "
+        + "seria detectado em " + Math.round(medio.poder_atual * 100) + "% das vezes." };
+  }
+  return { sinal: "desce",
+    forte: "A amostra só alcança efeito a partir de d = "
+      + dec(plano.menor_detectavel_80, 2) + ".",
+    texto: "Um efeito médio (d = 0,5) seria detectado em apenas "
+      + Math.round((medio.poder_atual || 0) * 100) + "% das vezes com "
+      + r.menor_grupo + " no menor grupo. Para chegar a 80% seriam precisos "
+      + (medio.n80 || "—") + (r.plano && r.plano.pareado ? " pessoas." : " por grupo.") };
+}
+
 /* Um formulário de uma linha para cada coisa que se declara. Os seis
    formulários desta tela têm a mesma forma e mudam só os campos; escrever
    seis à mão seria seis lugares para divergir. */
@@ -5634,7 +5948,7 @@ const SECTIONS = [
      medido para escrevê-lo. Fica por último porque é a que menos gente
      abre, e é a única que exige coordenação inteira. */
   { id: "bancada", label: "Bancada", icon: "experimento",
-    views: ["coleta", "monitoramento", "medidas", "ano_bancada",
+    views: ["coleta", "monitoramento", "medidas", "poder", "ano_bancada",
             "relatorios", "exportar", "bancada_admin"] },
 ];
 const VIEW_ICON = {
@@ -5647,7 +5961,7 @@ const VIEW_ICON = {
   calendario: "calendario", temporal: "tempo", espacial: "mapa",
   descobertas: "achado", qualidade: "qualidade", automacao: "automacao",
   coleta: "experimento", monitoramento: "coracao", medidas: "linha",
-  ano_bancada: "calendario", relatorios: "livro", exportar: "baixar",
+  poder: "alvo", ano_bancada: "calendario", relatorios: "livro", exportar: "baixar",
   bancada_admin: "processo",
 };
 /* Telas que não respondem a filtro nenhum. A barra some nelas: seletor de
@@ -5657,7 +5971,7 @@ const VIEW_ICON = {
 /* A bancada inteira também: nenhuma das sete telas responde ao ano, à
    linha de pesquisa nem ao integrante -- elas falam de participante. */
 const SEM_FILTROS = ["historia", "formacao", "coleta", "monitoramento",
-  "medidas", "ano_bancada", "relatorios", "exportar", "bancada_admin"];
+  "medidas", "poder", "ano_bancada", "relatorios", "exportar", "bancada_admin"];
 
 /* atalhos entre sub-abas de seções diferentes — a ponte que o menu não faz */
 const RELATED = {
@@ -5688,7 +6002,8 @@ const RELATED = {
   automacao: ["descobertas", "qualidade", "visao"],
   coleta: ["monitoramento", "medidas", "bancada_admin"],
   monitoramento: ["coleta", "medidas", "ano_bancada"],
-  medidas: ["coleta", "monitoramento", "exportar"],
+  medidas: ["poder", "coleta", "exportar"],
+  poder: ["medidas", "monitoramento", "coleta"],
   ano_bancada: ["medidas", "relatorios", "monitoramento"],
   relatorios: ["ano_bancada", "exportar", "automacao"],
   exportar: ["medidas", "relatorios", "qualidade"],

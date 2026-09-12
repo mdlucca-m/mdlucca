@@ -903,27 +903,69 @@ const Charts = (function () {
   /* ==================================================================== */
   /* dispersão — no máximo 3 séries (limite de "todos os pares")          */
   /* ==================================================================== */
+  /* Uma casa decimal, para o eixo que nao comeca do zero: "7" e "8" no
+     lugar de 7,4 e 8,1 fazem dois pontos distintos parecerem o mesmo. */
+  function dec1(v) {
+    return (Math.round(v * 10) / 10).toString().replace(".", ",");
+  }
+
   function scatter(spec) {
     const points = spec.points || [];
     if (!points.length) return figure(spec, empty(spec.emptyMessage));
     const W = spec.width || 760, H = spec.height || 320, ML = 56, MR = 24, MT = 18, MB = 46;
     const iw = W - ML - MR, ih = H - MT - MB;
     const xs = points.map(function (p) { return p.x; }), ys = points.map(function (p) { return p.y; });
-    const sx = niceTicks(Math.max.apply(null, xs.concat([0])), 4);
-    const sy = niceTicks(Math.max.apply(null, ys.concat([0])), 4);
-    const X = function (v) { return ML + iw * v / sx.max; };
-    const Y = function (v) { return MT + ih - ih * v / sy.max; };
+    /* `deZero: false` solta o eixo do zero. Num Q-Q os valores ficam em
+       torno de 7 e 9; comecar do zero espreme a figura inteira no alto e
+       apaga justamente o afastamento que se foi olhar. Fora esse caso, o
+       zero continua sendo o padrao -- num grafico de contagem, cortar a
+       base e exagerar diferenca. */
+    const solto = spec.deZero === false;
+    const piso = solto
+      ? Math.min.apply(null, xs.concat(ys))
+      : 0;
+    const teto = Math.max.apply(null, xs.concat(ys).concat([0]));
+    const folga = solto ? Math.max((teto - piso) * 0.08, 1e-9) : 0;
+    const sx = solto ? null : niceTicks(Math.max.apply(null, xs.concat([0])), 4);
+    const sy = solto ? null : niceTicks(Math.max.apply(null, ys.concat([0])), 4);
+    const lo = piso - folga, hi = teto + folga;
+    const X = solto
+      ? function (v) { return ML + iw * (v - lo) / (hi - lo); }
+      : function (v) { return ML + iw * v / sx.max; };
+    const Y = solto
+      ? function (v) { return MT + ih - ih * (v - lo) / (hi - lo); }
+      : function (v) { return MT + ih - ih * v / sy.max; };
+    const marcas = solto
+      ? (function () {
+          const passo = (hi - lo) / 4, saida = [];
+          for (let i = 0; i <= 4; i++) saida.push(lo + passo * i);
+          return saida;
+        })()
+      : null;
     const svg = svgRoot(W, H, spec.caption || "dispersão");
 
-    sy.ticks.forEach(function (t) {
+    const marcasY = solto ? marcas : sy.ticks;
+    const marcasX = solto ? marcas : sx.ticks;
+    const rotulo = function (v) { return solto ? dec1(v) : fmt(v); };
+    marcasY.forEach(function (t) {
       svg.appendChild(s("line", { class: "grid-line", x1: ML, x2: W - MR, y1: Y(t), y2: Y(t) }));
-      svg.appendChild(txt(s("text", { class: "tick", x: ML - 8, y: Y(t) + 3.5, "text-anchor": "end" }), fmt(t)));
+      svg.appendChild(txt(s("text", { class: "tick", x: ML - 8, y: Y(t) + 3.5, "text-anchor": "end" }), rotulo(t)));
     });
-    sx.ticks.forEach(function (t) {
+    marcasX.forEach(function (t) {
       svg.appendChild(s("line", { class: "grid-line", x1: X(t), x2: X(t), y1: MT, y2: MT + ih }));
-      svg.appendChild(txt(s("text", { class: "tick", x: X(t), y: H - MB + 16, "text-anchor": "middle" }), fmt(t)));
+      svg.appendChild(txt(s("text", { class: "tick", x: X(t), y: H - MB + 16, "text-anchor": "middle" }), rotulo(t)));
     });
-    svg.appendChild(s("line", { class: "axis-line", x1: ML, x2: W - MR, y1: Y(0), y2: Y(0) }));
+    svg.appendChild(s("line", { class: "axis-line", x1: ML, x2: W - MR,
+      y1: solto ? MT + ih : Y(0), y2: solto ? MT + ih : Y(0) }));
+    /* A diagonal do Q-Q: onde os pontos cairiam se a distribuicao fosse
+       normal perfeita. E referencia, entao vai ANTES dos pontos e em
+       tracejado -- se disputasse tinta com o dado, seria mais uma serie. */
+    if (spec.diagonal) {
+      svg.appendChild(s("line", {
+        x1: X(lo), y1: Y(lo), x2: X(hi), y2: Y(hi),
+        stroke: token("--axis"), "stroke-width": 1.4, "stroke-dasharray": "6 4",
+      }));
+    }
     svg.appendChild(s("line", { class: "axis-line", x1: ML, x2: ML, y1: MT, y2: MT + ih }));
     if (spec.xLabel) svg.appendChild(txt(s("text", { class: "lab", x: ML + iw / 2, y: H - 6, "text-anchor": "middle" }), spec.xLabel));
     if (spec.yLabel) svg.appendChild(txt(s("text", {
