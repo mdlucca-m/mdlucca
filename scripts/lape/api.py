@@ -138,6 +138,12 @@ def route_index(ctx: "Context") -> Any:
             "POST /api/invites                (coordenação) gera link de convite",
             "GET  /api/convite/<token>        estado do convite (público)",
             "POST /api/convite/<token>/aceitar  a pessoa cria o próprio acesso",
+            "GET  /api/bancada               (coordenação) coleta: catálogo e estado",
+            "POST /api/bancada               (coordenação) grava instrumento, "
+            "protocolo, momento, participante, saída ou medida",
+            "GET  /api/bancada/analise       (coordenação) ?protocolo=&instrumento=",
+            "GET  /api/bancada/ano           (coordenação) ?ano=",
+            "GET  /api/bancada/exportar      (coordenação) medidas em formato longo",
             "GET  /api/linhas/sugerir        (coordenação) liga artigo a linha pelo título",
             "POST /api/linhas/ligar          (coordenação) grava as ligações aprovadas",
             "GET  /api/automation             (coordenação) webhooks e entregas",
@@ -556,6 +562,108 @@ def route_excluir_artigo(ctx: "Context", article_id: str) -> Any:
              f"\u201c{artigo['title']}\u201d ({junto['autores']} autor(es),"
              f" {junto['submissoes']} submissao(oes))")
     return {"excluido": artigo, "junto": junto}
+
+
+# ----------------------------------------------------------------------
+# A bancada: coleta com participantes
+# ----------------------------------------------------------------------
+# TODAS de coordenacao, sem excecao -- inclusive as de leitura. O resto do
+# painel e sobre producao cientifica, que e publica por natureza; isto aqui
+# e escala de dor e sintoma depressivo de gente. Nao entra no payload do
+# painel, nao sai no arquivo exportado e nao aparece no mural.
+def route_bancada(ctx: "Context") -> Any:
+    """O catalogo e o estado geral da bancada."""
+    auth.require(ctx.user, "coordenacao")
+    from . import coleta
+    protocolo = ctx.query.get("protocolo", [None])[0]
+    saida: dict[str, Any] = {
+        "instrumentos": coleta.instrumentos(ctx.db, incluir_inativos=True),
+        "protocolos": coleta.protocolos(ctx.db),
+        "situacoes": [{"code": k, "label": v} for k, v in coleta.SITUACOES.items()],
+        "direcoes": [{"code": k, "label": v} for k, v in coleta.DIRECOES.items()],
+    }
+    if protocolo:
+        pid = to_int(protocolo)
+        if pid:
+            saida["participantes"] = coleta.participantes(ctx.db, pid)
+            saida["matriz"] = coleta.matriz(ctx.db, pid)
+            saida["aderencia"] = coleta.aderencia(ctx.db, pid)
+    return saida
+
+
+def route_bancada_analise(ctx: "Context") -> Any:
+    auth.require(ctx.user, "coordenacao")
+    from . import coleta
+    protocolo = to_int(ctx.query.get("protocolo", [None])[0])
+    instrumento = to_int(ctx.query.get("instrumento", [None])[0])
+    if not protocolo or not instrumento:
+        raise ApiError(400, "informe protocolo e instrumento")
+    try:
+        return coleta.analise(ctx.db, protocolo, instrumento,
+                              ctx.query.get("subescala", [None])[0])
+    except ValueError as erro:
+        raise ApiError(400, str(erro)) from erro
+
+
+def route_bancada_ano(ctx: "Context") -> Any:
+    auth.require(ctx.user, "coordenacao")
+    from . import coleta
+    return coleta.resumo_anual(ctx.db, to_int(ctx.query.get("ano", [None])[0]))
+
+
+def route_bancada_exportar(ctx: "Context") -> Any:
+    """Formato longo -- o que R, SPSS e jamovi leem sem reescrever nada."""
+    auth.require(ctx.user, "coordenacao")
+    from . import coleta
+    linhas = coleta.exportar_longo(ctx.db, to_int(ctx.query.get("protocolo", [None])[0]))
+    return {"formato": "longo", "linhas": len(linhas), "itens": linhas}
+
+
+def route_bancada_gravar(ctx: "Context") -> Any:
+    """Uma porta para as cinco gravacoes, escolhida por `o_que`."""
+    user = auth.require(ctx.user, "coordenacao")
+    from . import coleta
+    corpo = ctx.body or {}
+    o_que = corpo.get("o_que")
+    try:
+        if o_que == "instrumento":
+            saida = coleta.declarar_instrumento(
+                ctx.db, corpo.get("code"), corpo.get("nome"),
+                **{k: v for k, v in corpo.items() if k not in ("o_que", "code", "nome")})
+        elif o_que == "protocolo":
+            saida = coleta.declarar_protocolo(
+                ctx.db, corpo.get("code"), corpo.get("nome"),
+                descricao=corpo.get("descricao"), project_id=corpo.get("project_id"))
+        elif o_que == "momento":
+            saida = coleta.declarar_momento(
+                ctx.db, to_int(corpo.get("protocolo_id")), corpo.get("code"),
+                corpo.get("nome"), to_int(corpo.get("ordem")) or 1,
+                to_int(corpo.get("dias_apos")),
+                to_int(corpo.get("janela_dias")) or 14)
+        elif o_que == "participante":
+            saida = coleta.inscrever(
+                ctx.db, corpo.get("codigo"), to_int(corpo.get("protocolo_id")),
+                **{k: v for k, v in corpo.items()
+                   if k not in ("o_que", "codigo", "protocolo_id")})
+        elif o_que == "saida":
+            saida = coleta.encerrar(
+                ctx.db, to_int(corpo.get("participante_id")), corpo.get("situacao"),
+                corpo.get("motivo"), corpo.get("em"))
+        elif o_que == "medida":
+            saida = coleta.registrar(
+                ctx.db, to_int(corpo.get("participante_id")),
+                to_int(corpo.get("instrumento_id")), corpo.get("valor"),
+                to_int(corpo.get("momento_id")), corpo.get("subescala"),
+                coletado_em=corpo.get("coletado_em"),
+                coletado_por=user.get("id"), observacao=corpo.get("observacao"))
+        else:
+            raise ApiError(400, "informe 'o_que': instrumento, protocolo, momento, "
+                                "participante, saida ou medida")
+    except ValueError as erro:
+        raise ApiError(400, str(erro)) from erro
+    auth.log(ctx.db, user["id"], user.get("login"), "bancada_" + str(o_que),
+             "coletas", saida.get("id"), None)
+    return saida
 
 
 def route_linhas_sugerir(ctx: "Context") -> Any:
@@ -1724,6 +1832,11 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/equipe/duplicatas/?$", route_duplicatas, "coordenacao"),
     ("POST", r"^/api/equipe/duplicatas/?$", route_duplicatas_fundir, "coordenacao"),
     ("DELETE", r"^/api/articles/(?P<article_id>\d+)/?$", route_excluir_artigo, "coordenacao"),
+    ("GET", r"^/api/bancada/?$", route_bancada, "coordenacao"),
+    ("POST", r"^/api/bancada/?$", route_bancada_gravar, "coordenacao"),
+    ("GET", r"^/api/bancada/analise/?$", route_bancada_analise, "coordenacao"),
+    ("GET", r"^/api/bancada/ano/?$", route_bancada_ano, "coordenacao"),
+    ("GET", r"^/api/bancada/exportar/?$", route_bancada_exportar, "coordenacao"),
     ("GET", r"^/api/linhas/sugerir/?$", route_linhas_sugerir, "coordenacao"),
     ("POST", r"^/api/linhas/ligar/?$", route_linhas_ligar, "coordenacao"),
     ("GET", r"^/api/equipe/vinculo/?$", route_vinculo, "coordenacao"),

@@ -4641,6 +4641,836 @@ function aplicarSegmento(label) {
   render();
 }
 
+/* ====================================================================== */
+/* A BANCADA — coleta de dados com participantes                          */
+/* ====================================================================== */
+/* O painel inteiro até aqui é sobre o artigo pronto. Esta seção é sobre o
+   que foi medido para escrevê-lo: a escala de dor de quarenta mulheres com
+   fibromialgia, na linha de base e depois de dezesseis semanas.
+
+   Duas decisões atravessam as sete telas:
+
+   1. ELAS LEEM DO SERVIDOR, SEMPRE. Nada daqui entra no payload do painel
+      — e é por isso que participante nenhum viaja no arquivo exportado que
+      vai para docs/, nem no mural que fica numa TV. No arquivo exportado
+      estas telas aparecem vazias, dizendo por quê.
+   2. NINGUÉM É NOMEADO. O participante é um código. Não há nome no banco,
+      não há nome na API e não há nome aqui. */
+
+const BANCADA = { dados: null, protocolo: null, instrumento: null, erro: null };
+
+function bancadaBuscar(caminho) {
+  return fetch(caminho, { headers: { Accept: "application/json" } })
+    .then(function (r) {
+      if (r.status === 401 || r.status === 403) throw new Error("permissao");
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    });
+}
+
+/* Todas as sete telas começam igual: exigem servidor ao vivo, exigem
+   coordenação e precisam do catálogo. Em vez de repetir isso sete vezes,
+   `bancadaTela` cuida da moldura e chama `desenhar(dados, host)` quando
+   há o que desenhar. */
+function bancadaTela(host, desenhar, opts) {
+  opts = opts || {};
+  if (!LIVE) {
+    host.appendChild(el("div", { class: "note", text:
+      "Esta tela lê o servidor ao vivo. No arquivo exportado ela fica vazia — "
+      + "e isso é de propósito: dado de participante não viaja em arquivo que "
+      + "se manda por e-mail ou se publica." }));
+    return;
+  }
+  const caixa = el("div");
+  host.appendChild(caixa);
+  caixa.appendChild(el("div", { class: "empty", text: "Consultando a bancada…" }));
+
+  /* O protocolo escolhido precisa estar decidido ANTES da busca: é ele que
+     traz a matriz e a aderência. Quando ninguém escolheu ainda -- e ninguém
+     escolheu na primeira tela que se abre --, a primeira ida ao servidor
+     traz só o catálogo, o primeiro protocolo vira o escolhido, e a segunda
+     traz o que a tela desenha. Custa um pedido a mais uma vez por sessão;
+     desenhar sem a matriz custava a tela inteira dizendo "sem momentos
+     declarados" num protocolo que tem três. */
+  function buscar(segundaTentativa) {
+    const alvo = "/api/bancada"
+      + (BANCADA.protocolo ? "?protocolo=" + BANCADA.protocolo : "");
+    return bancadaBuscar(alvo).then(function (dados) {
+      BANCADA.dados = dados;
+      if (!BANCADA.protocolo && (dados.protocolos || []).length && !segundaTentativa) {
+        BANCADA.protocolo = dados.protocolos[0].id;
+        return buscar(true);
+      }
+      return dados;
+    });
+  }
+
+  buscar(false).then(function (dados) {
+    caixa.innerHTML = "";
+    if (!opts.semSeletor) caixa.appendChild(seletorDeProtocolo());
+    if (!(dados.protocolos || []).length) {
+      caixa.appendChild(el("div", { class: "note", html:
+        "<b>Nenhum protocolo declarado ainda.</b> Um protocolo é o estudo e os "
+        + "momentos em que ele mede — linha de base, 16 semanas, seguimento. "
+        + "Sem momentos declarados não existe “falta medir”: existe só o que "
+        + "já foi coletado. Comece em <b>Gerenciamento avançado</b>." }));
+      if (!opts.sempre) return;
+    }
+    desenhar(dados, caixa);
+  }).catch(function (err) {
+    caixa.innerHTML = "";
+    caixa.appendChild(el("div", { class: "note", text: err.message === "permissao"
+      ? "A bancada é só da coordenação. Dado de participante não é produção "
+        + "científica: é escala de dor e sintoma depressivo de gente."
+      : "Não foi possível ler a bancada agora: " + err.message }));
+  });
+}
+
+function seletorDeProtocolo() {
+  const dados = BANCADA.dados || {};
+  const lista = dados.protocolos || [];
+  if (!lista.length) return el("span");
+  if (!BANCADA.protocolo && lista.length) BANCADA.protocolo = lista[0].id;
+  const escolha = el("select", {}, lista.map(function (p) {
+    return el("option", { value: String(p.id),
+      text: p.nome + " · " + p.n_participantes + " participante(s)" });
+  }));
+  escolha.value = String(BANCADA.protocolo);
+  escolha.addEventListener("change", function () {
+    BANCADA.protocolo = Number(escolha.value);
+    BANCADA.instrumento = null;
+    render();
+  });
+  return el("div", { class: "bancbarra" }, [
+    el("span", { class: "flabel", text: "Protocolo" }), escolha,
+  ]);
+}
+
+function protocoloAtual() {
+  const dados = BANCADA.dados || {};
+  return (dados.protocolos || []).find(function (p) {
+    return p.id === BANCADA.protocolo; }) || null;
+}
+
+/* ---------------------------------------------------------------- 1/7 */
+view("coleta", "Coleta de dados", "Bancada",
+  "Quem já foi medido, em que momento, e onde está o buraco.", function (host) {
+    bancadaTela(host, function (dados, caixa) {
+      const m = dados.matriz;
+      if (!m || !m.momentos.length) {
+        caixa.appendChild(el("div", { class: "note", text:
+          "Este protocolo não tem momentos declarados. Sem eles não há o que "
+          + "cobrar: declare linha de base e seguimento em Gerenciamento avançado." }));
+        return;
+      }
+      caixa.appendChild(el("div", { class: "grid g4" }, [
+        kpi({ label: "Participantes", value: C.fmt((dados.participantes || []).length),
+          icon: "pessoas", foot: (dados.aderencia || {}).total + " inscritos no protocolo" }),
+        kpi({ label: "Medidas feitas", value: C.fmt(m.feitas), icon: "experimento",
+          foot: "de " + m.total_celulas + " previstas",
+          /* Os quatro estados, e não três: sem "fora do estudo" a faixa
+             fechava em 38 de 42 previstas e as outras quatro sumiam. */
+          segmentos: [
+            { rotulo: "feitas", valor: m.feitas },
+            { rotulo: "a fazer", valor: m.faltam },
+            { rotulo: "atrasadas", valor: m.atrasadas },
+            { rotulo: "fora do estudo", valor: m.fora || 0 },
+          ] }),
+        kpi({ label: "Completude", value: m.completude === null ? "—" : m.completude + "%",
+          icon: "qualidade", foot: "do previsto pelo protocolo" }),
+        kpi({ label: "Atrasadas", value: C.fmt(m.atrasadas), icon: "prazo",
+          tone: m.atrasadas ? "bad" : null,
+          foot: m.atrasadas ? "passaram da janela do momento" : "nenhuma fora da janela" }),
+      ]));
+
+      /* A matriz. É a tela de trabalho: cada célula é um participante num
+         momento, e a cor diz o estado — com a legenda ao lado, porque cor
+         sozinha não nomeia nada. */
+      const tabela = el("table", { class: "matriz" });
+      const cabeca = el("tr", {}, [el("th", { text: "Participante" }),
+        el("th", { text: "Grupo" })].concat(m.momentos.map(function (mo) {
+          return el("th", { text: mo.nome }); })));
+      tabela.appendChild(el("thead", {}, cabeca));
+      tabela.appendChild(el("tbody", {}, m.linhas.map(function (linha) {
+        return el("tr", {}, [
+          el("td", {}, el("b", { text: linha.codigo })),
+          el("td", { text: linha.grupo || "—" }),
+        ].concat(linha.celulas.map(function (c) {
+          const pastilha = el("span", { class: "cel cel-" + c.estado,
+            title: c.estado === "atrasada" && c.vence_em
+              ? "venceu em " + dt(c.vence_em)
+              : (c.vence_em ? "janela até " + dt(c.vence_em) : "") });
+          pastilha.appendChild(el("span", { text: ESTADO_DA_CELULA[c.estado] || c.estado }));
+          return el("td", {}, pastilha);
+        })));
+      })));
+      caixa.appendChild(el("div", { style: "margin-top:16px" }, card(
+        "Participante por momento",
+        "Cada linha é um código; cada coluna, um momento do protocolo.",
+        [
+          el("div", { class: "tw" }, tabela),
+          el("div", { class: "legenda-cel" }, Object.keys(ESTADO_DA_CELULA)
+            .map(function (chave) {
+              return el("span", {}, [
+                el("i", { class: "cel cel-" + chave }),
+                el("span", { text: ESTADO_DA_CELULA[chave] })]);
+            })),
+        ])));
+      caixa.appendChild(el("div", { style: "margin-top:16px" },
+        formularioDeMedida(dados)));
+    });
+  });
+
+const ESTADO_DA_CELULA = {
+  feita: "feita", falta: "a fazer", atrasada: "atrasada", fora: "fora do estudo",
+};
+
+/* Registrar uma medida sem sair da tela. O formulário é curto de propósito:
+   quem está com a prancheta na mão não preenche doze campos. */
+function formularioDeMedida(dados) {
+  const gente = dados.participantes || [];
+  const instrumentos = (dados.instrumentos || []).filter(function (i) { return i.ativo; });
+  const momentos = (dados.matriz || {}).momentos || [];
+  if (!gente.length || !instrumentos.length) {
+    return card("Registrar uma medida", null, el("div", { class: "empty", text:
+      !gente.length ? "Nenhum participante inscrito neste protocolo."
+        : "Nenhum instrumento declarado." }));
+  }
+  const quem = el("select", {}, gente.map(function (p) {
+    return el("option", { value: String(p.id),
+      text: p.codigo + (p.grupo ? " · " + p.grupo : "") }); }));
+  const oque = el("select", {}, instrumentos.map(function (i) {
+    return el("option", { value: String(i.id),
+      text: i.nome + (i.unidade ? " (" + i.unidade + ")" : "") }); }));
+  const quando = el("select", {}, momentos.map(function (mo) {
+    return el("option", { value: String(mo.id), text: mo.nome }); }));
+  const valor = el("input", { type: "number", step: "any", class: "search",
+    placeholder: "valor" });
+  const aviso = el("div", { class: "hint", style: "margin-top:8px" });
+  const gravar = el("button", { class: "primary", type: "button", text: "Gravar medida",
+    onclick: function () {
+      if (valor.value === "") { valor.focus(); return; }
+      gravar.disabled = true;
+      aviso.textContent = "Gravando…";
+      fetch("/api/bancada", { method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ o_que: "medida",
+          participante_id: Number(quem.value), instrumento_id: Number(oque.value),
+          momento_id: Number(quando.value), valor: Number(valor.value) }) })
+        .then(function (r) { return r.json().then(function (d) {
+          if (!r.ok) throw new Error(d.error || ("HTTP " + r.status)); return d; }); })
+        .then(function () { valor.value = ""; render(); })
+        .catch(function (err) { aviso.textContent = "Não deu para gravar: " + err.message; })
+        .finally(function () { gravar.disabled = false; });
+    } });
+  return card("Registrar uma medida",
+    "O valor é conferido contra a faixa declarada do instrumento — 77 numa "
+    + "escala de 0 a 10 é recusado aqui, e não descoberto na análise.", [
+      el("div", { class: "explorer-controls" }, [
+        el("div", { class: "field" }, [el("label", { text: "Participante" }), quem]),
+        el("div", { class: "field" }, [el("label", { text: "Instrumento" }), oque]),
+        el("div", { class: "field" }, [el("label", { text: "Momento" }), quando]),
+        el("div", { class: "field" }, [el("label", { text: "Valor" }), valor]),
+        gravar,
+      ]),
+      aviso,
+    ]);
+}
+
+/* ---------------------------------------------------------------- 2/7 */
+view("monitoramento", "Monitoramento", "Bancada",
+  "Quem segue, quem parou, e o que vence antes da próxima reunião.",
+  function (host) {
+    bancadaTela(host, function (dados, caixa) {
+      const a = dados.aderencia || {};
+      const m = dados.matriz || { linhas: [], momentos: [] };
+      const gente = dados.participantes || [];
+      const ativos = gente.filter(function (p) { return p.situacao === "ativo"; });
+      const atrasados = m.linhas.filter(function (linha) {
+        return linha.celulas.some(function (c) { return c.estado === "atrasada"; }); });
+
+      caixa.appendChild(el("div", { class: "grid g4" }, [
+        kpi({ label: "Em seguimento", value: C.fmt(ativos.length), icon: "coracao",
+          foot: "de " + gente.length + " que entraram",
+          segmentos: (a.por_situacao || []).map(function (s) {
+            return { rotulo: s.label, valor: s.n }; }) }),
+        kpi({ label: "Perda de amostra", value: a.perda === null || a.perda === undefined
+            ? "—" : a.perda + "%", icon: "aviso",
+          tone: (a.perda || 0) >= 20 ? "bad" : null,
+          foot: "desistências e perdas de seguimento" }),
+        kpi({ label: "Com medida atrasada", value: C.fmt(atrasados.length),
+          icon: "prazo", tone: atrasados.length ? "bad" : null,
+          foot: "passaram da janela de algum momento" }),
+        kpi({ label: "Grupos", value: C.fmt((a.grupos || []).length), icon: "pessoas",
+          foot: (a.grupos || []).map(function (g) {
+            return g.chave + ": " + g.n; }).join(" · ") || "sem grupo declarado" }),
+      ]));
+
+      if ((a.por_situacao || []).length) {
+        caixa.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" }, [
+          card("Onde cada um está", "A situação declarada de cada participante.",
+            C.bars({ items: a.por_situacao.map(function (s) {
+              return { label: s.label, value: s.n }; }),
+              mono: true, unit: "pessoa(s)", labelWidth: 190, file: "situacoes" })),
+          card("Por que saíram", (a.motivos || []).length
+            ? "Motivo declarado na saída — é o que o CONSORT pede."
+            : "Nenhuma saída com motivo declarado.",
+            (a.motivos || []).length ? C.bars({
+              items: a.motivos.map(function (x) {
+                return { label: x.motivo, value: x.n }; }),
+              mono: true, unit: "pessoa(s)", labelWidth: 190, file: "motivos-de-saida",
+            }) : el("div", { class: "empty", text:
+              "Desistência sem motivo vira n menor sem explicação." })),
+        ]));
+      }
+
+      if (atrasados.length) {
+        caixa.appendChild(el("div", { style: "margin-top:16px" }, card(
+          "O que vence primeiro",
+          "Participantes com medida fora da janela do momento.",
+          dataTable({
+            file: "atrasos-da-coleta", pageSize: 15, search: false,
+            cols: [
+              { k: "codigo", label: "Participante" },
+              { k: "grupo", label: "Grupo" },
+              { k: "quais", label: "Momentos atrasados", wide: true,
+                render: function (r) { return r.quais; } },
+            ],
+            rows: atrasados.map(function (linha) {
+              return { codigo: linha.codigo, grupo: linha.grupo || "—",
+                quais: linha.celulas.filter(function (c) {
+                  return c.estado === "atrasada"; })
+                  .map(function (c) { return c.momento; }).join(", ") };
+            }),
+          }))));
+      }
+
+      caixa.appendChild(el("div", { style: "margin-top:16px" }, card(
+        "Todos os participantes", "Código, grupo, situação e quantas medidas já tem.",
+        dataTable({
+          file: "participantes", sortKey: "n_coletas", sortDir: -1, pageSize: 20,
+          cols: [
+            { k: "codigo", label: "Código" },
+            { k: "grupo", label: "Grupo" },
+            { k: "situacao_label", label: "Situação" },
+            { k: "entrou_em", label: "Entrou", render: function (r) {
+              return dt(r.entrou_em); } },
+            { k: "idade", label: "Idade", num: true, render: function (r) {
+              return r.idade === null ? "—" : r.idade; } },
+            { k: "n_coletas", label: "Medidas", num: true },
+            { k: "motivo_saida", label: "Motivo da saída", wide: true,
+              render: function (r) { return r.motivo_saida || "—"; } },
+          ],
+          rows: gente,
+        }))));
+    });
+  });
+
+/* ---------------------------------------------------------------- 3/7 */
+view("medidas", "Visualização do painel", "Bancada",
+  "O que mudou entre os momentos, por grupo, com o tamanho do efeito ao lado.",
+  function (host) {
+    bancadaTela(host, function (dados, caixa) {
+      const instrumentos = (dados.instrumentos || []).filter(function (i) {
+        return i.ativo && i.n_coletas; });
+      if (!instrumentos.length) {
+        caixa.appendChild(el("div", { class: "note", text:
+          "Nenhum instrumento com medida registrada. A análise aparece quando "
+          + "houver o que analisar." }));
+        return;
+      }
+      if (!BANCADA.instrumento) BANCADA.instrumento = instrumentos[0].id;
+      const escolha = el("select", {}, instrumentos.map(function (i) {
+        return el("option", { value: String(i.id),
+          text: i.nome + " · " + i.n_coletas + " medida(s)" }); }));
+      escolha.value = String(BANCADA.instrumento);
+      escolha.addEventListener("change", function () {
+        BANCADA.instrumento = Number(escolha.value); render(); });
+      caixa.appendChild(el("div", { class: "bancbarra" }, [
+        el("span", { class: "flabel", text: "Instrumento" }), escolha]));
+
+      const palco = el("div", { style: "margin-top:16px" });
+      caixa.appendChild(palco);
+      palco.appendChild(el("div", { class: "empty", text: "Calculando…" }));
+      bancadaBuscar("/api/bancada/analise?protocolo=" + BANCADA.protocolo
+        + "&instrumento=" + BANCADA.instrumento)
+        .then(function (a) { palco.innerHTML = ""; desenharAnalise(a, palco); })
+        .catch(function (err) {
+          palco.innerHTML = "";
+          palco.appendChild(el("div", { class: "note", text: err.message }));
+        });
+    });
+  });
+
+function desenharAnalise(a, host) {
+  if (a.aviso) {
+    host.appendChild(el("div", { class: "note", text: a.aviso }));
+    return;
+  }
+  if (!a.series.length) {
+    host.appendChild(el("div", { class: "empty", text: "Sem medidas neste recorte." }));
+    return;
+  }
+  /* A curva por grupo. É aqui que o gráfico analítico ganha sentido: os
+     anéis marcam onde os grupos se cruzaram, que é a pergunta do estudo. */
+  const series = a.series.map(function (s, i) {
+    return { label: s.grupo, color: C.serie(i),
+      values: s.pontos.map(function (p) { return p.media; }) };
+  });
+  host.appendChild(card(a.instrumento.nome,
+    (a.direcao ? a.direcao.charAt(0).toUpperCase() + a.direcao.slice(1) + ". " : "")
+    + "A média de cada grupo em cada momento.",
+    linhaAnalitica({
+      labels: a.momentos.map(function (m) { return m.nome; }),
+      series: series, height: 280, file: "analise-" + a.instrumento.code,
+      caption: a.instrumento.nome + " por momento e grupo",
+    }, { maximo: 4 })));
+
+  /* A tabela é obrigatória aqui, e não um extra: média sem n e sem desvio
+     não se publica, não se confere e não entra em meta-análise. */
+  const linhas = [];
+  a.series.forEach(function (s) {
+    s.pontos.forEach(function (p) {
+      linhas.push({ grupo: s.grupo, momento: p.momento, n: p.n,
+        media: p.media, dp: p.dp, mediana: p.mediana,
+        minimo: p.minimo, maximo: p.maximo });
+    });
+  });
+  host.appendChild(el("div", { style: "margin-top:16px" }, card(
+    "Os números", "Média sem n e sem desvio não se confere nem se publica.",
+    dataTable({
+      file: "medidas-" + a.instrumento.code, search: false, pageSize: 20,
+      cols: [
+        { k: "grupo", label: "Grupo" }, { k: "momento", label: "Momento" },
+        { k: "n", label: "n", num: true },
+        { k: "media", label: "Média", num: true, render: function (r) {
+          return r.media === null ? "—" : dec(r.media, 2); } },
+        { k: "dp", label: "DP", num: true, render: function (r) {
+          return r.dp === null ? "—" : dec(r.dp, 2); } },
+        { k: "mediana", label: "Mediana", num: true, render: function (r) {
+          return r.mediana === null ? "—" : dec(r.mediana, 2); } },
+        { k: "minimo", label: "Mín.", num: true },
+        { k: "maximo", label: "Máx.", num: true },
+      ],
+      rows: linhas,
+    }))));
+
+  host.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" },
+    a.series.map(function (s) {
+      const e = s.efeito || {};
+      return card("Efeito em " + s.grupo,
+        "Do primeiro ao último momento declarado.", [
+          el("div", { class: "resumo-nums" }, [
+            el("div", { class: "resumo-num" }, [
+              el("b", { text: e.d === null || e.d === undefined ? "—" : dec(e.d, 2) }),
+              el("span", { text: "d de Cohen" }),
+              el("i", { text: "desvio agrupado" })]),
+            el("div", { class: "resumo-num" }, [
+              el("b", { text: e.delta === undefined || e.delta === null
+                ? "—" : dec(e.delta, 2) }),
+              el("span", { text: "diferença das médias" })]),
+            el("div", { class: "resumo-num" }, [
+              el("b", { text: C.fmt(Math.min((e.antes || {}).n || 0,
+                (e.depois || {}).n || 0)) }),
+              el("span", { text: "menor n" })]),
+          ]),
+          /* O aviso não é rodapé: um d de 0,82 calculado com seis pessoas
+             se parece exatamente com um calculado com sessenta, e vai para
+             a dissertação do mesmo jeito. */
+          e.instavel ? el("div", { class: "note", style: "margin-top:12px" }, [
+            el("b", { text: "Número instável. " }),
+            el("span", { text: e.motivo || "gente de menos para esta conta." }),
+          ]) : null,
+        ].filter(Boolean));
+    })));
+}
+
+/* ---------------------------------------------------------------- 4/7 */
+view("ano_bancada", "Resumo anual da análise", "Bancada",
+  "O ano da bancada numa página: quem entrou, quem saiu e o que se mediu.",
+  function (host) {
+    if (!LIVE) {
+      host.appendChild(el("div", { class: "note", text:
+        "Esta tela lê o servidor ao vivo." }));
+      return;
+    }
+    const ano = new Date().getFullYear();
+    const caixa = el("div");
+    host.appendChild(caixa);
+    caixa.appendChild(el("div", { class: "empty", text: "Somando o ano…" }));
+    bancadaBuscar("/api/bancada/ano?ano=" + ano).then(function (r) {
+      caixa.innerHTML = "";
+      const saiu = (r.sairam || []).reduce(function (t, x) { return t + x.n; }, 0);
+      caixa.appendChild(el("div", { class: "grid g4" }, [
+        kpi({ label: "Entraram em " + r.ano, value: C.fmt(r.entraram), icon: "pessoas",
+          foot: "participantes inscritos no ano" }),
+        kpi({ label: "Em seguimento hoje", value: C.fmt(r.ativos), icon: "coracao",
+          foot: "somando todos os protocolos" }),
+        kpi({ label: "Saíram no ano", value: C.fmt(saiu), icon: "aviso",
+          tone: saiu > r.entraram / 4 ? "bad" : null,
+          foot: saiu ? "com situação declarada" : "nenhuma saída registrada" }),
+        kpi({ label: "Medidas coletadas", value: C.fmt(r.medidas), icon: "experimento",
+          foot: r.protocolos + " protocolo(s) ativo(s)" }),
+      ]));
+
+      const meses = C.MESES.map(function (m) { return m; });
+      caixa.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" }, [
+        card("Quando se coletou", "Medidas por mês — a coleta tem estação.",
+          C.columns({ labels: meses,
+            series: [{ label: "Medidas", values: r.por_mes }],
+            mono: true, height: 220, unit: "medida(s)", file: "coleta-por-mes" })),
+        card("Com que se mediu", (r.por_instrumento || []).length
+          ? "Instrumentos usados no ano." : "Nenhuma medida no ano.",
+          (r.por_instrumento || []).length ? C.bars({
+            items: r.por_instrumento.map(function (x) {
+              return { label: x.nome, value: x.n }; }),
+            mono: true, unit: "medida(s)", labelWidth: 200, file: "instrumentos-do-ano",
+          }) : el("div", { class: "empty", text: "Nada coletado neste ano." })),
+      ]));
+
+      if ((r.sairam || []).length) {
+        caixa.appendChild(el("div", { style: "margin-top:16px" }, card(
+          "Quem saiu, e por quê",
+          "O fluxo de participantes é parte do resultado, e não um detalhe "
+          + "administrativo: é o que o CONSORT pede no diagrama.",
+          dataTable({
+            search: false, pageSize: 12, file: "saidas-do-ano",
+            cols: [
+              { k: "situacao", label: "Situação" },
+              { k: "motivo_saida", label: "Motivo", wide: true, render: function (x) {
+                return x.motivo_saida || "não declarado"; } },
+              { k: "n", label: "Pessoas", num: true },
+            ],
+            rows: r.sairam,
+          }))));
+      }
+    }).catch(function (err) {
+      caixa.innerHTML = "";
+      caixa.appendChild(el("div", { class: "note", text: err.message === "permissao"
+        ? "O resumo da bancada é só da coordenação."
+        : "Não foi possível somar o ano: " + err.message }));
+    });
+  });
+
+/* ---------------------------------------------------------------- 5/7 */
+view("relatorios", "Relatórios automatizados", "Bancada",
+  "Gerar o relatório da bancada agora, e deixar o computador gerando sozinho.",
+  function (host) {
+    if (!LIVE) {
+      host.appendChild(el("div", { class: "note", text:
+        "Esta tela lê o servidor ao vivo." }));
+      return;
+    }
+    const caixa = el("div");
+    host.appendChild(caixa);
+    caixa.appendChild(el("div", { class: "empty", text: "Montando…" }));
+    Promise.all([
+      bancadaBuscar("/api/bancada"),
+      bancadaBuscar("/api/bancada/ano?ano=" + new Date().getFullYear()),
+    ]).then(function (par) {
+      const dados = par[0], ano = par[1];
+      caixa.innerHTML = "";
+
+      /* O relatório é montado na tela e sai por impressão ou PDF. Não
+         invento um agendador que eu não escrevi: o que agenda de verdade
+         está embaixo, com o comando e onde pô-lo. */
+      const corpo = el("div", { class: "relatorio" }, [
+        el("h3", { text: "Relatório da bancada — " + ano.ano }),
+        el("p", { class: "hint", text: "Gerado em " + dtm(new Date().toISOString())
+          + " · " + ((D.overview || {}).lab_name || "LAPE") }),
+        el("ul", { class: "achados" }, [
+          el("li", { text: ano.entraram + " participante(s) entraram em " + ano.ano
+            + ", e " + ano.ativos + " seguem em acompanhamento." }),
+          el("li", { text: ano.medidas + " medida(s) coletadas, em "
+            + (ano.por_instrumento || []).length + " instrumento(s)." }),
+          el("li", { text: (dados.protocolos || []).length + " protocolo(s) declarados, "
+            + (dados.instrumentos || []).filter(function (i) { return i.ativo; }).length
+            + " instrumento(s) ativos." }),
+        ]),
+        (dados.protocolos || []).length ? el("table", { class: "placar" }, [
+          el("thead", {}, el("tr", {}, [
+            el("th", { text: "Protocolo" }), el("th", { text: "Momentos" }),
+            el("th", { text: "Participantes" })])),
+          el("tbody", {}, (dados.protocolos || []).map(function (p) {
+            return el("tr", {}, [
+              el("td", { text: p.nome }),
+              el("td", { text: String((p.momentos || []).length) }),
+              el("td", { text: String(p.n_participantes) })]);
+          })),
+        ]) : null,
+      ].filter(Boolean));
+
+      caixa.appendChild(card("O relatório de agora", null, [
+        corpo,
+        el("div", { class: "chart-tools no-print" }, [
+          el("button", { class: "primary", type: "button", text: "Imprimir ou salvar em PDF",
+            onclick: function () { window.print(); } }),
+          el("button", { type: "button", text: "Baixar os dados (JSON)",
+            onclick: function () {
+              const blob = new Blob([JSON.stringify({ ano: ano, catalogo: dados }, null, 2)],
+                { type: "application/json" });
+              const a = document.createElement("a");
+              a.href = URL.createObjectURL(blob);
+              a.download = "relatorio-bancada-" + ano.ano + ".json";
+              a.click();
+              URL.revokeObjectURL(a.href);
+            } }),
+        ]),
+      ]));
+
+      caixa.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" }, [
+        card("Deixar o computador gerando sozinho",
+          "O LAPE não tem agendador próprio — quem agenda no Windows é o "
+          + "Agendador de Tarefas, e é ele que deve chamar o comando abaixo.", [
+            el("p", { class: "hint", text: "Painel e planilha atualizados, e o "
+              + "instantâneo que sai por e-mail:" }),
+            el("div", { class: "mono", style: "display:block;padding:10px;"
+              + "background:var(--surface-raised);border-radius:8px;margin-top:8px",
+              text: "python3 scripts/lape_agent.py instantaneo" }),
+            el("p", { class: "hint", style: "margin-top:10px", text:
+              "No Agendador de Tarefas: Criar Tarefa Básica, semanal, ação "
+              + "“Iniciar um programa”, e apontar para a pasta do LAPE." }),
+          ]),
+        card("Ou por evento, em vez de por hora",
+          "O LAPE emite eventos a cada mudança; um fluxo do n8n pode escutá-los "
+          + "e montar o relatório na hora em que o dado muda, e não na hora do "
+          + "relógio.", [
+            el("p", { class: "hint", text: "O mapa de quem escuta o quê está em "
+              + "Dados → Automação." }),
+            el("button", { type: "button", text: "Abrir a automação",
+              onclick: function () { go("automacao"); } }),
+          ]),
+      ]));
+    }).catch(function (err) {
+      caixa.innerHTML = "";
+      caixa.appendChild(el("div", { class: "note", text: err.message === "permissao"
+        ? "O relatório da bancada é só da coordenação."
+        : "Não foi possível montar: " + err.message }));
+    });
+  });
+
+/* ---------------------------------------------------------------- 6/7 */
+view("exportar", "Exportação de dados", "Bancada",
+  "As medidas em formato longo, que é o que R, SPSS e jamovi leem.",
+  function (host) {
+    if (!LIVE) {
+      host.appendChild(el("div", { class: "note", text:
+        "A exportação da bancada lê o servidor ao vivo — de propósito: dado "
+        + "de participante não viaja dentro de arquivo publicado." }));
+      return;
+    }
+    bancadaTela(host, function (dados, caixa) {
+      const palco = el("div", { style: "margin-top:16px" });
+      caixa.appendChild(palco);
+      palco.appendChild(el("div", { class: "empty", text: "Preparando…" }));
+      bancadaBuscar("/api/bancada/exportar"
+        + (BANCADA.protocolo ? "?protocolo=" + BANCADA.protocolo : ""))
+        .then(function (r) {
+          palco.innerHTML = "";
+          const itens = r.itens || [];
+          palco.appendChild(el("div", { class: "grid g4" }, [
+            kpi({ label: "Linhas", value: C.fmt(itens.length), icon: "dados",
+              foot: "uma por medida" }),
+            kpi({ label: "Participantes", value: C.fmt(new Set(itens.map(function (x) {
+              return x.participante; })).size), icon: "pessoas", foot: "códigos distintos" }),
+            kpi({ label: "Instrumentos", value: C.fmt(new Set(itens.map(function (x) {
+              return x.instrumento; })).size), icon: "experimento", foot: "medidos" }),
+            kpi({ label: "Momentos", value: C.fmt(new Set(itens.map(function (x) {
+              return x.momento; }).filter(Boolean)).size), icon: "tempo",
+              foot: "do protocolo" }),
+          ]));
+
+          palco.appendChild(el("div", { style: "margin-top:16px" }, card(
+            "Formato longo, e não largo",
+            "Uma linha por medida. Largo (uma coluna por momento) quebra assim "
+            + "que o protocolo ganha um momento, e obriga a reescrever a análise; "
+            + "longo cresce sem mudar de forma.", [
+              itens.length ? dataTable({
+                file: "medidas-formato-longo", pageSize: 15,
+                cols: [
+                  { k: "participante", label: "Participante" },
+                  { k: "grupo", label: "Grupo" },
+                  { k: "instrumento", label: "Instrumento" },
+                  { k: "subescala", label: "Subescala", render: function (x) {
+                    return x.subescala || "—"; } },
+                  { k: "momento", label: "Momento" },
+                  { k: "valor", label: "Valor", num: true },
+                  { k: "coletado_em", label: "Coletado", render: function (x) {
+                    return dt(x.coletado_em); } },
+                ],
+                rows: itens,
+              }) : el("div", { class: "empty", text: "Nenhuma medida registrada ainda." }),
+              el("div", { class: "note", style: "margin-top:14px" }, [
+                el("b", { text: "Nenhum nome sai daqui. " }),
+                el("span", { text: "Não porque a exportação os remova, mas porque "
+                  + "não há nome no banco: o participante é um código, e a lista "
+                  + "que liga código e pessoa fica com quem coordena o estudo." }),
+              ]),
+            ])));
+
+          palco.appendChild(el("div", { style: "margin-top:16px" }, card(
+            "O resto do laboratório",
+            "As exportações que já existiam, num lugar só.",
+            el("div", { class: "hgrade compacta" }, [
+              { icone: "dados", titulo: "Banco inteiro (SQLite)",
+                texto: "Tudo, para quem vai analisar fora.", url: "/api/export/sqlite" },
+              { icone: "producao", titulo: "Artigos (CSV)",
+                texto: "A produção científica registrada.", url: "/api/export/artigos" },
+              { icone: "livro", titulo: "Planilha do laboratório",
+                texto: "O arquivo de cadastro, atualizado.", url: "/api/export/planilha" },
+            ].map(function (x) {
+              const botao = el("a", { class: "hcaixa", href: x.url, download: "" });
+              botao.appendChild(Icons.badge(x.icone, null, null));
+              botao.appendChild(el("b", { text: x.titulo }));
+              botao.appendChild(el("p", { text: x.texto }));
+              return botao;
+            })))));
+        })
+        .catch(function (err) {
+          palco.innerHTML = "";
+          palco.appendChild(el("div", { class: "note", text: err.message }));
+        });
+    }, { sempre: true });
+  });
+
+/* ---------------------------------------------------------------- 7/7 */
+view("bancada_admin", "Gerenciamento avançado", "Bancada",
+  "Declarar instrumentos, protocolos, momentos e participantes.",
+  function (host) {
+    bancadaTela(host, function (dados, caixa) {
+      caixa.appendChild(el("div", { style: "margin-top:16px" }, card(
+        "Instrumentos",
+        "A faixa declarada é o que permite recusar um valor impossível; a "
+        + "direção é o que permite ler “caiu 4 pontos” — em dor é bom, em "
+        + "qualidade de vida é ruim.", [
+          (dados.instrumentos || []).length ? dataTable({
+            search: false, pageSize: 10, file: "instrumentos",
+            cols: [
+              { k: "code", label: "Código" }, { k: "nome", label: "Nome", wide: true },
+              { k: "unidade", label: "Unidade", render: function (r) {
+                return r.unidade || "—"; } },
+              { k: "faixa", label: "Faixa", render: function (r) {
+                return r.minimo === null && r.maximo === null ? "livre"
+                  : (r.minimo === null ? "?" : r.minimo) + " a "
+                    + (r.maximo === null ? "?" : r.maximo); } },
+              { k: "direcao_label", label: "Direção" },
+              { k: "n_coletas", label: "Medidas", num: true },
+              { k: "ativo", label: "Ativo", render: function (r) {
+                return r.ativo ? "sim" : "não"; } },
+            ],
+            rows: dados.instrumentos,
+          }) : el("div", { class: "empty", text: "Nenhum instrumento declarado." }),
+          formularioSimples("instrumento", [
+            { campo: "code", rotulo: "Código", exemplo: "brums" },
+            { campo: "nome", rotulo: "Nome", exemplo: "BRUMS" },
+            { campo: "unidade", rotulo: "Unidade", exemplo: "pontos" },
+            { campo: "minimo", rotulo: "Mínimo", tipo: "number" },
+            { campo: "maximo", rotulo: "Máximo", tipo: "number" },
+            { campo: "direcao", rotulo: "Direção", opcoes: dados.direcoes },
+          ]),
+        ])));
+
+      caixa.appendChild(el("div", { style: "margin-top:16px" }, card(
+        "Protocolos e momentos",
+        "Sem momento declarado não existe “falta medir”: existe só o que já "
+        + "foi coletado, para sempre.", [
+          (dados.protocolos || []).length
+            ? arvoreDeIcones({
+                icone: "experimento", rotulo: "Protocolos", tom: "acento",
+                nota: (dados.protocolos || []).length + " declarado(s)",
+                filhos: (dados.protocolos || []).map(function (p) {
+                  return {
+                    icone: "projeto", rotulo: p.nome,
+                    nota: (p.projeto ? p.projeto + " · " : "") + p.code,
+                    valor: p.n_participantes,
+                    onClick: function () {
+                      BANCADA.protocolo = p.id; go("coleta"); },
+                    filhos: (p.momentos || []).map(function (mo) {
+                      return { icone: "relogio", rotulo: mo.nome,
+                        nota: (mo.dias_apos === null ? "sem prazo declarado"
+                          : "dia " + mo.dias_apos + " · janela de "
+                            + mo.janela_dias + " dias") };
+                    }),
+                  };
+                }),
+              }, { compacta: true })
+            : el("div", { class: "empty", text: "Nenhum protocolo declarado." }),
+          formularioSimples("protocolo", [
+            { campo: "code", rotulo: "Código", exemplo: "fibro16" },
+            { campo: "nome", rotulo: "Nome", exemplo: "Fibromialgia 16 semanas" },
+          ]),
+          (dados.protocolos || []).length ? formularioSimples("momento", [
+            { campo: "protocolo_id", rotulo: "Protocolo",
+              opcoes: (dados.protocolos || []).map(function (p) {
+                return { code: String(p.id), label: p.nome }; }) },
+            { campo: "code", rotulo: "Código", exemplo: "s16" },
+            { campo: "nome", rotulo: "Nome", exemplo: "16 semanas" },
+            { campo: "ordem", rotulo: "Ordem", tipo: "number" },
+            { campo: "dias_apos", rotulo: "Dias após a entrada", tipo: "number" },
+            { campo: "janela_dias", rotulo: "Janela (dias)", tipo: "number" },
+          ]) : null,
+        ].filter(Boolean))));
+
+      caixa.appendChild(el("div", { style: "margin-top:16px" }, card(
+        "Inscrever um participante",
+        "Só o código. O sistema recusa nome, e-mail e telefone — a lista que "
+        + "liga código e pessoa fica fora daqui, com quem coordena o estudo.",
+        formularioSimples("participante", [
+          { campo: "codigo", rotulo: "Código", exemplo: "P01" },
+          { campo: "protocolo_id", rotulo: "Protocolo",
+            opcoes: (dados.protocolos || []).map(function (p) {
+              return { code: String(p.id), label: p.nome }; }) },
+          { campo: "grupo", rotulo: "Grupo", exemplo: "intervenção" },
+          { campo: "sexo", rotulo: "Sexo" },
+          { campo: "ano_nascimento", rotulo: "Ano de nascimento", tipo: "number" },
+        ]))));
+    }, { sempre: true });
+  });
+
+/* Um formulário de uma linha para cada coisa que se declara. Os seis
+   formulários desta tela têm a mesma forma e mudam só os campos; escrever
+   seis à mão seria seis lugares para divergir. */
+function formularioSimples(oQue, campos) {
+  const entradas = {};
+  const linha = el("div", { class: "explorer-controls" });
+  campos.forEach(function (spec) {
+    let node;
+    if (spec.opcoes) {
+      node = el("select", {}, (spec.opcoes || []).map(function (o) {
+        return el("option", { value: o.code, text: o.label }); }));
+    } else {
+      node = el("input", { class: "search", type: spec.tipo || "text",
+        placeholder: spec.exemplo || "" });
+    }
+    entradas[spec.campo] = node;
+    linha.appendChild(el("div", { class: "field" },
+      [el("label", { text: spec.rotulo }), node]));
+  });
+  const aviso = el("div", { class: "hint", style: "margin-top:8px" });
+  const gravar = el("button", { class: "primary", type: "button", text: "Gravar",
+    onclick: function () {
+      const corpo = { o_que: oQue };
+      for (const chave in entradas) {
+        const bruto = entradas[chave].value;
+        if (bruto === "") continue;
+        corpo[chave] = isNaN(Number(bruto)) || entradas[chave].type !== "number"
+          ? bruto : Number(bruto);
+      }
+      gravar.disabled = true;
+      aviso.textContent = "Gravando…";
+      fetch("/api/bancada", { method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(corpo) })
+        .then(function (r) { return r.json().then(function (d) {
+          if (!r.ok) throw new Error(d.error || ("HTTP " + r.status)); return d; }); })
+        .then(function () { render(); })
+        .catch(function (err) { aviso.textContent = "Não deu para gravar: " + err.message; })
+        .finally(function () { gravar.disabled = false; });
+    } });
+  linha.appendChild(gravar);
+  return el("div", { style: "margin-top:14px" }, [linha, aviso]);
+}
+
 /* ==================================================================== */
 /* navegação: seis seções com ícone, cada uma com suas sub-abas          */
 /* ==================================================================== */
@@ -4662,6 +5492,12 @@ const SECTIONS = [
     views: ["calendario", "temporal", "espacial"] },
   { id: "dados", label: "Dados", icon: "dados",
     views: ["descobertas", "qualidade", "automacao"] },
+  /* A bancada é a única seção que não fala de artigo: fala do que foi
+     medido para escrevê-lo. Fica por último porque é a que menos gente
+     abre, e é a única que exige coordenação inteira. */
+  { id: "bancada", label: "Bancada", icon: "experimento",
+    views: ["coleta", "monitoramento", "medidas", "ano_bancada",
+            "relatorios", "exportar", "bancada_admin"] },
 ];
 const VIEW_ICON = {
   resumo: "painel", historia: "raizes", visao: "barras", metas: "alvo",
@@ -4672,12 +5508,18 @@ const VIEW_ICON = {
   tempos: "relogio", submissoes: "submissao", aceites: "aceite",
   calendario: "calendario", temporal: "tempo", espacial: "mapa",
   descobertas: "achado", qualidade: "qualidade", automacao: "automacao",
+  coleta: "experimento", monitoramento: "coracao", medidas: "linha",
+  ano_bancada: "calendario", relatorios: "livro", exportar: "baixar",
+  bancada_admin: "processo",
 };
 /* Telas que não respondem a filtro nenhum. A barra some nelas: seletor de
    ano, de linha e de integrante em cima de uma página que não muda com
    eles é controle que mente, e o contador "19 de 19 artigos" fala de uma
    tabela que não está ali. */
-const SEM_FILTROS = ["historia", "formacao"];
+/* A bancada inteira também: nenhuma das sete telas responde ao ano, à
+   linha de pesquisa nem ao integrante -- elas falam de participante. */
+const SEM_FILTROS = ["historia", "formacao", "coleta", "monitoramento",
+  "medidas", "ano_bancada", "relatorios", "exportar", "bancada_admin"];
 
 /* atalhos entre sub-abas de seções diferentes — a ponte que o menu não faz */
 const RELATED = {
@@ -4706,6 +5548,13 @@ const RELATED = {
   descobertas: ["citacoes", "qualidade", "automacao"],
   qualidade: ["automacao", "descobertas", "explorar"],
   automacao: ["descobertas", "qualidade", "visao"],
+  coleta: ["monitoramento", "medidas", "bancada_admin"],
+  monitoramento: ["coleta", "medidas", "ano_bancada"],
+  medidas: ["coleta", "monitoramento", "exportar"],
+  ano_bancada: ["medidas", "relatorios", "monitoramento"],
+  relatorios: ["ano_bancada", "exportar", "automacao"],
+  exportar: ["medidas", "relatorios", "qualidade"],
+  bancada_admin: ["coleta", "monitoramento", "medidas"],
 };
 
 /* ordem de leitura do painel inteiro — governa as setas "anterior/próxima" */

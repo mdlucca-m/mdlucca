@@ -1313,3 +1313,53 @@ button.primary:hover::after { animation: facho .62s ease-out 1; }
 }
 .faixa-velha b { font-weight: 750; }
 .faixa-velha small { font-size: 11.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+/* ======================================================================
+   A BANCADA — matriz de coleta e barra de protocolo
+   ----------------------------------------------------------------------
+   A matriz é a tela de trabalho de quem coleta: uma linha por código, uma
+   coluna por momento. A cor diz o estado e vem SEMPRE com a palavra
+   dentro da pastilha — quem imprime a matriz para levar à sala de coleta
+   leva em preto e branco, e cor sozinha não sobrevive a isso.
+   ---------------------------------------------------------------------- */
+.bancbarra {
+  display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.bancbarra select { width: auto; min-width: 240px; }
+
+.matriz { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.matriz th, .matriz td {
+  padding: 7px 10px; text-align: left; white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+.matriz thead th {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--ink-muted);
+  background: var(--surface-raised); position: sticky; top: 0;
+}
+.matriz tbody tr:hover { background: var(--surface-hover); }
+
+.cel {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 9px; border-radius: 999px;
+  font-size: 11px; font-weight: 650; white-space: nowrap;
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--tomcel, var(--border)) 45%, transparent);
+  background: color-mix(in srgb, var(--tomcel, var(--surface)) 13%, transparent);
+}
+.cel-feita    { --tomcel: var(--good); }
+.cel-falta    { --tomcel: var(--axis); }
+.cel-atrasada { --tomcel: var(--critical); }
+.cel-fora     { --tomcel: var(--ink-muted); opacity: .7; }
+.legenda-cel {
+  display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px;
+  font-size: 11.5px; color: var(--ink-2);
+}
+.legenda-cel span { display: inline-flex; align-items: center; gap: 6px; }
+.legenda-cel i.cel { width: 14px; height: 11px; padding: 0; border-radius: 3px; }
+
+/* O relatório é feito para sair impresso: sem cromo, com o texto largo. */
+.relatorio h3 { margin: 0 0 4px; font-size: 18px; }
+.relatorio .achados { margin-top: 14px; }
+.relatorio .placar { margin-top: 16px; width: 100%; }
