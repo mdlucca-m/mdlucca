@@ -477,7 +477,19 @@ const Charts = (function () {
     if (!labels.length || !series.length) return figure(spec, empty(spec.emptyMessage));
     const W = spec.width || 760, H = spec.height || 250, ML = 52, MR = 20, MT = 18, MB = 38;
     const iw = W - ML - MR, ih = H - MT - MB;
-    const all = series.reduce(function (acc, x) { return acc.concat(x.values); }, []);
+    /* A escala precisa enxergar a FAIXA, e nao so a linha. Calculada so
+       com as medias, uma banda de intervalo de confianca mais alta que a
+       maior media era desenhada para fora da area e saia cortada no topo
+       -- e faixa cortada mente por baixo justamente onde a incerteza e
+       maior. Vale para o cenario projetado e para o IC da bancada. */
+    const all = series.reduce(function (acc, x) {
+      let tudo = acc.concat(x.values);
+      if (x.band) {
+        if (x.band.alto) tudo = tudo.concat(x.band.alto);
+        if (x.band.baixo) tudo = tudo.concat(x.band.baixo);
+      }
+      return tudo;
+    }, []).filter(function (v) { return typeof v === "number" && isFinite(v); });
     /* `spec.max` trava o topo do eixo. Sem ele, uma serie desenhada
        ponto a ponto reescala a cada quadro e a curva parece pular. */
     const scale = niceTicksSigned(

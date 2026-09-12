@@ -28,6 +28,8 @@ Este modulo e o outro lado do laboratorio. Tres cuidados o atravessam:
 """
 from __future__ import annotations
 
+import math
+import random
 import statistics
 from datetime import date, datetime
 from typing import Any
@@ -38,6 +40,25 @@ from .db import Database
 # limiar de publicacao -- e o ponto a partir do qual a conta para de
 # dizer mais do que os numeros crus ja dizem.
 N_MINIMO_PARA_EFEITO = 10
+
+# Abaixo disto NENHUM dos dois intervalos e confiavel, e dizer qual vale
+# seria escolher entre dois numeros errados. O t alarga demais porque paga
+# a incerteza de um desvio estimado com quase nada; a reamostragem ESTREITA
+# demais, e esse e o modo de falhar menos conhecido dos dois -- com quatro
+# medidas ha poucas amostras distintas possiveis, e a distribuicao
+# reamostrada nao alcanca as caudas que existiriam na populacao. O numero
+# sai bonito e cobre menos do que promete.
+#
+# Dez e um piso, e nao um aval: a regra de bolso da area pede n >= 30
+# quando a variavel e torta, e o proprio cartao mostra o formato para que
+# isso se veja em vez de se supor.
+N_MINIMO_PARA_INTERVALO = 10
+
+# Quanto as larguras podem diferir antes de os intervalos serem
+# considerados discordantes. Comparar so as pontas deixava passar um par
+# em que um intervalo tem o dobro da largura do outro -- foi o que
+# aconteceu com o grupo controle da massa de teste.
+TOLERANCIA_DE_LARGURA = 0.25
 
 # Para que lado de cada instrumento e melhora. Sem isso "caiu 4 pontos"
 # nao se interpreta: em dor e bom, em qualidade de vida e ruim.
@@ -54,6 +75,111 @@ SITUACOES = {
     "excluido": "Excluído por critério",
     "perdido": "Perda de seguimento",
 }
+
+
+# ----------------------------------------------------------------------
+# O que o desvio padrao NAO diz, e o intervalo de confianca diz
+# ----------------------------------------------------------------------
+# Tres coisas diferentes que se confundem o tempo todo numa tabela de
+# artigo:
+#
+#   DESVIO PADRAO (DP) descreve as PESSOAS. "7,6 +/- 1,5" quer dizer que
+#   as participantes espalham-se cerca de 1,5 ponto em torno de 7,6. Ele
+#   nao encolhe com mais gente -- com o dobro de participantes ele
+#   continua o mesmo, porque a variacao entre pessoas e a mesma.
+#
+#   ERRO PADRAO (EP = DP/raiz(n)) descreve a MEDIA. E o quanto a media
+#   desta amostra tende a errar a media da populacao. Esse encolhe: com
+#   quatro vezes mais gente, cai pela metade.
+#
+#   INTERVALO DE CONFIANCA usa o erro padrao para dizer a faixa. Ler um
+#   IC95% de [6,1; 9,0] como "95% das participantes estao entre 6,1 e
+#   9,0" e o erro mais comum da area: isso e o DP que descreve, nao o IC.
+#
+# E o TEOREMA DO LIMITE CENTRAL e o que autoriza a conta: a media de uma
+# amostra distribui-se aproximadamente normal ainda que a variavel nao
+# seja normal, desde que a amostra seja grande o bastante. "Grande o
+# bastante" nao tem numero magico -- depende de quao torta e a
+# distribuicao. Com n pequeno usa-se t de Student em vez da normal, que
+# alarga o intervalo justamente para pagar essa incerteza; e, quando a
+# amostra e pequena E torta, nem o t salva. Por isso este modulo devolve
+# TAMBEM um intervalo por reamostragem, que nao supoe normalidade
+# nenhuma: quando os dois concordam, o TLC esta valendo aqui; quando
+# discordam, ele nao esta, e e o de reamostragem que vale.
+
+def _beta_cf(a: float, b: float, x: float, iteracoes: int = 220) -> float:
+    """Fracao continuada de Lentz para a beta incompleta."""
+    minusculo = 1e-300
+    qab, qap, qam = a + b, a + 1.0, a - 1.0
+    c, d = 1.0, 1.0 - qab * x / qap
+    if abs(d) < minusculo:
+        d = minusculo
+    d = 1.0 / d
+    h = d
+    for m in range(1, iteracoes + 1):
+        m2 = 2 * m
+        aa = m * (b - m) * x / ((qam + m2) * (a + m2))
+        d = 1.0 + aa * d
+        if abs(d) < minusculo:
+            d = minusculo
+        c = 1.0 + aa / c
+        if abs(c) < minusculo:
+            c = minusculo
+        d = 1.0 / d
+        h *= d * c
+        aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2))
+        d = 1.0 + aa * d
+        if abs(d) < minusculo:
+            d = minusculo
+        c = 1.0 + aa / c
+        if abs(c) < minusculo:
+            c = minusculo
+        d = 1.0 / d
+        delta = d * c
+        h *= delta
+        if abs(delta - 1.0) < 1e-14:
+            break
+    return h
+
+
+def _beta_regularizada(a: float, b: float, x: float) -> float:
+    if x <= 0:
+        return 0.0
+    if x >= 1:
+        return 1.0
+    frente = math.exp(math.lgamma(a + b) - math.lgamma(a) - math.lgamma(b)
+                      + a * math.log(x) + b * math.log1p(-x))
+    if x < (a + 1.0) / (a + b + 2.0):
+        return frente * _beta_cf(a, b, x) / a
+    return 1.0 - frente * _beta_cf(b, a, 1.0 - x) / b
+
+
+def t_cdf(t: float, gl: float) -> float:
+    """P(T <= t) para t de Student com `gl` graus de liberdade."""
+    x = gl / (gl + t * t)
+    cauda = 0.5 * _beta_regularizada(gl / 2.0, 0.5, x)
+    return 1.0 - cauda if t > 0 else cauda
+
+
+def t_critico(gl: int, conf: float = 0.95) -> float:
+    """O t que deixa `conf` no meio. Sem scipy: a casa nao tem scipy.
+
+    Confere com a tabela publicada ate a quarta casa (t(0,975; 10) =
+    2,2281) e converge para 1,96 quando os graus de liberdade crescem,
+    que e a normal -- o mesmo numero que quase toda tabela de artigo usa
+    sem perguntar se podia.
+    """
+    if gl <= 0:
+        return float("nan")
+    alvo = 1.0 - (1.0 - conf) / 2.0
+    baixo, alto = 0.0, 400.0
+    for _ in range(200):
+        meio = (baixo + alto) / 2.0
+        if t_cdf(meio, gl) < alvo:
+            baixo = meio
+        else:
+            alto = meio
+    return (baixo + alto) / 2.0
 
 
 def _hoje() -> date:
@@ -380,18 +506,99 @@ def _contar(linhas: list[dict], campo: str) -> list[dict]:
 # ----------------------------------------------------------------------
 # A analise
 # ----------------------------------------------------------------------
-def _resumo(valores: list[float]) -> dict:
+def _resumo(valores: list[float], conf: float = 0.95) -> dict:
+    """Descreve as pessoas (DP) e a media (EP e IC), sem confundir as duas."""
     limpos = [float(v) for v in valores if v is not None]
     if not limpos:
         return {"n": 0, "media": None, "dp": None, "mediana": None,
-                "minimo": None, "maximo": None}
+                "minimo": None, "maximo": None, "erro_padrao": None,
+                "ic": None, "gl": None}
+    n = len(limpos)
+    media = statistics.fmean(limpos)
+    dp = statistics.stdev(limpos) if n > 1 else None
+    # Com uma pessoa so nao ha dispersao para estimar, e um intervalo
+    # calculado ali seria um numero inventado com aparencia de conta.
+    erro = dp / math.sqrt(n) if dp is not None else None
+    ic = None
+    if erro is not None and n > 1:
+        t = t_critico(n - 1, conf)
+        ic = {"de": round(media - t * erro, 3), "ate": round(media + t * erro, 3),
+              "conf": conf, "t": round(t, 3)}
     return {
-        "n": len(limpos),
-        "media": round(statistics.fmean(limpos), 3),
-        "dp": round(statistics.stdev(limpos), 3) if len(limpos) > 1 else None,
+        "n": n,
+        "media": round(media, 3),
+        "dp": round(dp, 3) if dp is not None else None,
+        "erro_padrao": round(erro, 3) if erro is not None else None,
+        "ic": ic, "gl": n - 1 if n > 1 else None,
         "mediana": round(statistics.median(limpos), 3),
         "minimo": min(limpos), "maximo": max(limpos),
     }
+
+
+def distribuicao_das_medias(valores: list[float], reamostras: int = 2000,
+                            conf: float = 0.95, semente: int = 20260912) -> dict:
+    """O teorema do limite central com os dados do proprio laboratorio.
+
+    Sorteia `reamostras` amostras do mesmo tamanho, com reposicao, e
+    calcula a media de cada uma. A distribuicao dessas medias e o que o
+    TLC descreve -- e aqui ela e mostrada em vez de suposta.
+
+    Serve para duas coisas ao mesmo tempo:
+
+    1. Da um intervalo de confianca por PERCENTIL, que nao supoe
+       normalidade nenhuma. Quando ele bate com o intervalo por t, o TLC
+       esta valendo nestes dados; quando nao bate, o de t esta errado, e
+       este e o que vale.
+    2. Mostra o formato. Uma distribuicao de medias visivelmente torta
+       com n pequeno e o aviso de que a tabela do artigo nao deveria
+       trazer "media +/- DP" como se fosse simetrica.
+
+    A semente e fixa de proposito: um intervalo que muda a cada vez que
+    se abre a tela nao e um intervalo, e um sorteio -- e ninguem confere
+    um numero que nao para quieto.
+    """
+    limpos = [float(v) for v in valores if v is not None]
+    n = len(limpos)
+    if n < 2:
+        return {"n": n, "reamostras": 0, "medias": [], "ic": None,
+                "aviso": "gente de menos para reamostrar"}
+    sorteio = random.Random(semente)
+    medias = []
+    for _ in range(reamostras):
+        amostra = [limpos[sorteio.randrange(n)] for _ in range(n)]
+        medias.append(statistics.fmean(amostra))
+    medias.sort()
+    corte = (1.0 - conf) / 2.0
+    def percentil(p: float) -> float:
+        pos = p * (len(medias) - 1)
+        baixo = int(pos)
+        alto = min(baixo + 1, len(medias) - 1)
+        peso = pos - baixo
+        return medias[baixo] * (1 - peso) + medias[alto] * peso
+    return {
+        "n": n, "reamostras": reamostras,
+        "media_das_medias": round(statistics.fmean(medias), 3),
+        "dp_das_medias": round(statistics.stdev(medias), 3),
+        "ic": {"de": round(percentil(corte), 3),
+               "ate": round(percentil(1 - corte), 3), "conf": conf},
+        "histograma": _histograma(medias),
+    }
+
+
+def _histograma(valores: list[float], caixas: int = 24) -> list[dict]:
+    if not valores:
+        return []
+    menor, maior = min(valores), max(valores)
+    if maior == menor:
+        return [{"de": round(menor, 3), "ate": round(maior, 3), "n": len(valores)}]
+    largura = (maior - menor) / caixas
+    contas = [0] * caixas
+    for v in valores:
+        indice = min(caixas - 1, int((v - menor) / largura))
+        contas[indice] += 1
+    return [{"de": round(menor + i * largura, 3),
+             "ate": round(menor + (i + 1) * largura, 3), "n": contas[i]}
+            for i in range(caixas)]
 
 
 def efeito(antes: list[float], depois: list[float]) -> dict:
@@ -412,14 +619,96 @@ def efeito(antes: list[float], depois: list[float]) -> dict:
                 "motivo": "sem variação entre as medidas"}
     d = (b["media"] - a["media"]) / agrupado
     menor = min(a["n"], b["n"])
+    na, nb = a["n"], b["n"]
+
+    # Hedges: o d de Cohen e ENVIESADO PARA CIMA em amostra pequena --
+    # com dez pessoas por grupo ele exagera o efeito em cerca de 4%, e o
+    # exagero cresce conforme a amostra encolhe. A correcao J e conhecida
+    # desde 1981 e custa uma linha; nao aplica-la e publicar um efeito
+    # maior do que o que se mediu.
+    gl = na + nb - 2
+    correcao = 1.0 - 3.0 / (4.0 * gl - 1.0) if gl > 1 else None
+    g = d * correcao if correcao else None
+
+    # Intervalo do proprio tamanho de efeito. Um d sem intervalo parece
+    # um numero medido; com o intervalo ao lado ve-se na hora quando ele
+    # abrange o zero -- que e quando "houve efeito" nao se sustenta.
+    erro_d = math.sqrt((na + nb) / (na * nb) + d * d / (2.0 * (na + nb)))
+    z = statistics.NormalDist().inv_cdf(0.975)
+    ic_d = {"de": round(d - z * erro_d, 3), "ate": round(d + z * erro_d, 3),
+            "conf": 0.95}
     return {
         "antes": a, "depois": b,
         "delta": round(b["media"] - a["media"], 3),
-        "d": round(d, 3), "dp_agrupado": round(agrupado, 3),
+        "d": round(d, 3), "g": round(g, 3) if g is not None else None,
+        "dp_agrupado": round(agrupado, 3),
+        "erro_padrao_d": round(erro_d, 3), "ic_d": ic_d,
+        "cruza_zero": ic_d["de"] <= 0 <= ic_d["ate"],
         "instavel": menor < N_MINIMO_PARA_EFEITO,
         "motivo": ("calculado com %d participante(s) por momento -- "
                    "abaixo de %d o número é instável"
                    % (menor, N_MINIMO_PARA_EFEITO)) if menor < N_MINIMO_PARA_EFEITO else None,
+    }
+
+
+def comparar_intervalos(resumo: dict, reamostragem: dict) -> dict:
+    """O intervalo por t e o por reamostragem dizem a mesma coisa?
+
+    Tres respostas, e a primeira e a mais importante:
+
+    "poucos"     -- n abaixo do piso. Nao ha o que comparar: os dois
+                    numeros estao errados, cada um para um lado. Dizer
+                    "vale o de reamostragem" aqui seria endossar o que
+                    falha pior.
+    "discordam"  -- ha n, e as contas divergem. A distribuicao e torta o
+                    bastante para que a aproximacao normal nao valha, e o
+                    intervalo por t esta errado.
+    "concordam"  -- as duas contas chegam ao mesmo lugar. O teorema esta
+                    valendo com este n e esta distribuicao.
+
+    A comparacao e de LARGURA, e nao so das pontas: dois intervalos podem
+    ter extremos parecidos e larguras muito diferentes, e a largura e
+    justamente o que o intervalo afirma.
+    """
+    if not resumo or not resumo.get("ic") or not reamostragem or not reamostragem.get("ic"):
+        return {"veredito": "poucos", "n": (resumo or {}).get("n", 0),
+                "texto": "não há medidas suficientes para construir um intervalo."}
+    n = resumo["n"]
+    if n < N_MINIMO_PARA_INTERVALO:
+        return {
+            "veredito": "poucos", "n": n,
+            "texto": "com %d medida(s), nenhum dos dois intervalos é confiável: o "
+                     "de t alarga demais e o de reamostragem estreita demais, "
+                     "porque há poucas amostras distintas possíveis. O que este "
+                     "cartão mostra é que não há n para afirmar coisa alguma — a "
+                     "regra de bolso pede pelo menos %d, e mais quando a "
+                     "distribuição é torta." % (n, N_MINIMO_PARA_INTERVALO),
+        }
+    largura_t = resumo["ic"]["ate"] - resumo["ic"]["de"]
+    largura_r = reamostragem["ic"]["ate"] - reamostragem["ic"]["de"]
+    if largura_t <= 0:
+        return {"veredito": "poucos", "n": n,
+                "texto": "sem variação entre as medidas."}
+    razao = abs(largura_t - largura_r) / largura_t
+    centro_t = (resumo["ic"]["ate"] + resumo["ic"]["de"]) / 2
+    centro_r = (reamostragem["ic"]["ate"] + reamostragem["ic"]["de"]) / 2
+    deslocado = abs(centro_t - centro_r) > largura_t * TOLERANCIA_DE_LARGURA
+    if razao > TOLERANCIA_DE_LARGURA or deslocado:
+        return {
+            "veredito": "discordam", "n": n,
+            "razao_de_largura": round(razao, 3),
+            "texto": "as duas contas divergem (%d%% de diferença na largura). "
+                     "Com esta amostra a média ainda não se comporta como normal, "
+                     "e o intervalo por t não vale. Quem vale é o de reamostragem "
+                     "— e a tabela do artigo não deveria trazer “média ± DP” como "
+                     "se fosse simétrica." % round(razao * 100),
+        }
+    return {
+        "veredito": "concordam", "n": n, "razao_de_largura": round(razao, 3),
+        "texto": "as duas contas chegam ao mesmo lugar (%d%% de diferença na "
+                 "largura). O teorema está valendo com este n e esta "
+                 "distribuição, então a conta por t é confiável aqui."
+                 % round(razao * 100),
     }
 
 
@@ -458,8 +747,17 @@ def analise(db: Database, protocolo_id: int, instrumento_id: int,
                            **_resumo(valores)})
         primeiro = [x["valor"] for x in do_grupo if x["momento_id"] == momentos[0]["id"]]
         ultimo = [x["valor"] for x in do_grupo if x["momento_id"] == momentos[-1]["id"]]
+        # A reamostragem sai do ULTIMO momento com medida: e sobre ele que
+        # a conclusao do estudo e escrita, e e o intervalo dele que vale a
+        # pena conferir contra o que o t supoe.
+        alvo = ultimo if len(ultimo) > 1 else primeiro
+        reamostrada = distribuicao_das_medias(alvo)
+        resumo_do_alvo = _resumo(alvo)
         series.append({"grupo": grupo, "pontos": pontos,
-                       "efeito": efeito(primeiro, ultimo)})
+                       "efeito": efeito(primeiro, ultimo),
+                       "reamostragem": reamostrada,
+                       "veredito_do_tlc": comparar_intervalos(resumo_do_alvo,
+                                                              reamostrada)})
     return {"instrumento": inst, "momentos": momentos, "series": series,
             "direcao": DIRECOES.get(inst.get("direcao") or "", ""),
             "subescala": subescala}

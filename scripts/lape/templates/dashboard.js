@@ -5011,19 +5011,28 @@ function desenharAnalise(a, host) {
     host.appendChild(el("div", { class: "empty", text: "Sem medidas neste recorte." }));
     return;
   }
-  /* A curva por grupo. É aqui que o gráfico analítico ganha sentido: os
-     anéis marcam onde os grupos se cruzaram, que é a pergunta do estudo. */
+  /* A curva por grupo, com a FAIXA do intervalo de confiança em volta.
+     Uma linha de médias desenhada sozinha afirma que a média é o valor;
+     ela é uma estimativa, e a largura da faixa é o quanto ela pode estar
+     errada. Duas curvas cujas faixas se sobrepõem inteiras não estão
+     separadas, por mais que as linhas pareçam distantes — e é isso que o
+     gráfico sem faixa escondia. */
   const series = a.series.map(function (s, i) {
-    return { label: s.grupo, color: C.serie(i),
-      values: s.pontos.map(function (p) { return p.media; }) };
+    const medias = s.pontos.map(function (p) { return p.media; });
+    const alto = s.pontos.map(function (p) {
+      return p.ic ? p.ic.ate : p.media; });
+    const baixo = s.pontos.map(function (p) {
+      return p.ic ? p.ic.de : p.media; });
+    return { label: s.grupo, color: C.serie(i), values: medias,
+      band: { alto: alto, baixo: baixo } };
   });
   host.appendChild(card(a.instrumento.nome,
     (a.direcao ? a.direcao.charAt(0).toUpperCase() + a.direcao.slice(1) + ". " : "")
-    + "A média de cada grupo em cada momento.",
+    + "A linha é a média; a faixa, o intervalo de confiança de 95% dela.",
     linhaAnalitica({
       labels: a.momentos.map(function (m) { return m.nome; }),
       series: series, height: 280, file: "analise-" + a.instrumento.code,
-      caption: a.instrumento.nome + " por momento e grupo",
+      caption: a.instrumento.nome + " por momento e grupo, com IC95%",
     }, { maximo: 4 })));
 
   /* A tabela é obrigatória aqui, e não um extra: média sem n e sem desvio
@@ -5032,28 +5041,100 @@ function desenharAnalise(a, host) {
   a.series.forEach(function (s) {
     s.pontos.forEach(function (p) {
       linhas.push({ grupo: s.grupo, momento: p.momento, n: p.n,
-        media: p.media, dp: p.dp, mediana: p.mediana,
-        minimo: p.minimo, maximo: p.maximo });
+        media: p.media, dp: p.dp, ep: p.erro_padrao, ic: p.ic,
+        mediana: p.mediana, minimo: p.minimo, maximo: p.maximo });
     });
   });
   host.appendChild(el("div", { style: "margin-top:16px" }, card(
-    "Os números", "Média sem n e sem desvio não se confere nem se publica.",
-    dataTable({
-      file: "medidas-" + a.instrumento.code, search: false, pageSize: 20,
-      cols: [
-        { k: "grupo", label: "Grupo" }, { k: "momento", label: "Momento" },
-        { k: "n", label: "n", num: true },
-        { k: "media", label: "Média", num: true, render: function (r) {
-          return r.media === null ? "—" : dec(r.media, 2); } },
-        { k: "dp", label: "DP", num: true, render: function (r) {
-          return r.dp === null ? "—" : dec(r.dp, 2); } },
-        { k: "mediana", label: "Mediana", num: true, render: function (r) {
-          return r.mediana === null ? "—" : dec(r.mediana, 2); } },
-        { k: "minimo", label: "Mín.", num: true },
-        { k: "maximo", label: "Máx.", num: true },
-      ],
-      rows: linhas,
-    }))));
+    "Os números",
+    "DP descreve as participantes; EP e IC descrevem a média. Confundir os "
+    + "dois é o erro mais comum destas tabelas.",
+    [
+      dataTable({
+        file: "medidas-" + a.instrumento.code, search: false, pageSize: 20,
+        cols: [
+          { k: "grupo", label: "Grupo" }, { k: "momento", label: "Momento" },
+          { k: "n", label: "n", num: true },
+          { k: "media", label: "Média", num: true, render: function (r) {
+            return r.media === null ? "—" : dec(r.media, 2); } },
+          { k: "dp", label: "DP", num: true, render: function (r) {
+            return r.dp === null ? "—" : dec(r.dp, 2); } },
+          { k: "ep", label: "EP", num: true, render: function (r) {
+            return r.ep === null || r.ep === undefined ? "—" : dec(r.ep, 2); } },
+          { k: "ic", label: "IC 95% da média", sortValue: function (r) {
+            return r.ic ? r.ic.de : null; },
+            render: function (r) {
+              return r.ic ? dec(r.ic.de, 2) + " a " + dec(r.ic.ate, 2) : "—"; } },
+          { k: "mediana", label: "Mediana", num: true, render: function (r) {
+            return r.mediana === null ? "—" : dec(r.mediana, 2); } },
+          { k: "minimo", label: "Mín.", num: true },
+          { k: "maximo", label: "Máx.", num: true },
+        ],
+        rows: linhas,
+      }),
+      /* O mal-entendido que esta nota existe para evitar é o mais comum da
+         área: ler "IC95% de 6,1 a 9,0" como "95% das participantes estão
+         entre 6,1 e 9,0". Isso é o DP que descreve; o IC é sobre a média. */
+      el("div", { class: "note", style: "margin-top:14px" }, [
+        el("b", { text: "DP, EP e IC não são a mesma coisa. " }),
+        el("span", { text: "O DP diz o quanto as participantes se espalham, "
+          + "e não encolhe com mais gente. O EP (DP dividido pela raiz de n) "
+          + "diz o quanto esta média tende a errar a média da população, e "
+          + "esse encolhe. O IC é a faixa construída a partir do EP — e "
+          + "“IC de 6,1 a 9,0” nunca quer dizer que 95% das participantes "
+          + "estão entre 6,1 e 9,0." }),
+      ]),
+    ])));
+
+  /* ---- o teorema do limite central, com os dados desta coleta ---- */
+  a.series.forEach(function (s) {
+    const r = s.reamostragem;
+    if (!r || !r.ic || !(r.histograma || []).length) return;
+    const ponto = s.pontos.slice().reverse().find(function (p) { return p.ic; });
+    if (!ponto) return;
+    /* O veredito vem do servidor, e não de uma comparação feita aqui: ele
+       compara LARGURAS e não só as pontas -- a primeira versão desta tela
+       dizia "concordam" para um par em que um intervalo tinha o dobro da
+       largura do outro -- e conhece o caso em que nenhum dos dois vale. */
+    const v = s.veredito_do_tlc || { veredito: "poucos", texto: "" };
+    host.appendChild(el("div", { style: "margin-top:16px" }, card(
+      "O teorema do limite central em " + s.grupo,
+      "Reamostrando " + C.fmt(r.reamostras) + " vezes as " + r.n
+      + " medidas do último momento: cada sorteio dá uma média, e é a "
+      + "distribuição dessas médias que o teorema descreve. Aqui ela é "
+      + "mostrada, e não suposta.",
+      [
+        C.columns({
+          labels: r.histograma.map(function (h) { return dec(h.de, 1); }),
+          series: [{ label: "Reamostragens", values: r.histograma.map(function (h) {
+            return h.n; }) }],
+          mono: true, height: 200, file: "tlc-" + s.grupo,
+          caption: "médias de " + C.fmt(r.reamostras) + " amostras sorteadas com reposição",
+        }),
+        el("div", { class: "resumo-nums", style: "margin-top:14px" }, [
+          el("div", { class: "resumo-num" }, [
+            el("b", { text: dec(ponto.ic.de, 2) + " a " + dec(ponto.ic.ate, 2) }),
+            el("span", { text: "IC 95% por t de Student" }),
+            el("i", { text: "supõe a média aproximadamente normal" })]),
+          el("div", { class: "resumo-num" }, [
+            el("b", { text: dec(r.ic.de, 2) + " a " + dec(r.ic.ate, 2) }),
+            el("span", { text: "IC 95% por reamostragem" }),
+            el("i", { text: "não supõe distribuição nenhuma" })]),
+          el("div", { class: "resumo-num" }, [
+            el("b", { text: dec(r.dp_das_medias, 3) }),
+            el("span", { text: "DP das médias sorteadas" }),
+            el("i", { text: "é o erro padrão, medido" })]),
+        ]),
+        leituraDe({
+          sinal: v.veredito === "concordam" ? "sobe"
+            : (v.veredito === "discordam" ? "desce" : "parado"),
+          forte: v.veredito === "concordam" ? "Os dois intervalos concordam."
+            : (v.veredito === "discordam" ? "Os dois intervalos discordam."
+              : "Não há n para comparar."),
+          texto: v.texto,
+        }),
+      ])));
+  });
 
   host.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" },
     a.series.map(function (s) {
@@ -5062,9 +5143,22 @@ function desenharAnalise(a, host) {
         "Do primeiro ao último momento declarado.", [
           el("div", { class: "resumo-nums" }, [
             el("div", { class: "resumo-num" }, [
-              el("b", { text: e.d === null || e.d === undefined ? "—" : dec(e.d, 2) }),
-              el("span", { text: "d de Cohen" }),
-              el("i", { text: "desvio agrupado" })]),
+              el("b", { text: e.g === null || e.g === undefined
+                ? (e.d === null || e.d === undefined ? "—" : dec(e.d, 2))
+                : dec(e.g, 2) }),
+              el("span", { text: e.g === null || e.g === undefined
+                ? "d de Cohen" : "g de Hedges" }),
+              /* Cohen exagera o efeito em amostra pequena — cerca de 4%
+                 com dez por grupo, e mais conforme encolhe. A correção é
+                 conhecida desde 1981; não aplicá-la é publicar um efeito
+                 maior do que o medido. O d fica ao lado para conferência. */
+              el("i", { text: e.d === null || e.d === undefined ? ""
+                : "corrigido do viés · d = " + dec(e.d, 2) })]),
+            el("div", { class: "resumo-num" }, [
+              el("b", { text: e.ic_d ? dec(e.ic_d.de, 2) + " a " + dec(e.ic_d.ate, 2)
+                : "—" }),
+              el("span", { text: "IC 95% do efeito" }),
+              el("i", { text: e.cruza_zero ? "atravessa o zero" : "não atravessa o zero" })]),
             el("div", { class: "resumo-num" }, [
               el("b", { text: e.delta === undefined || e.delta === null
                 ? "—" : dec(e.delta, 2) }),
@@ -5074,6 +5168,14 @@ function desenharAnalise(a, host) {
                 (e.depois || {}).n || 0)) }),
               el("span", { text: "menor n" })]),
           ]),
+          /* Intervalo que abrange o zero é o mesmo que dizer "pode não ter
+             havido efeito nenhum" -- e é exatamente a frase que o d
+             sozinho, exibido com duas casas, não deixa ninguém ler. */
+          e.cruza_zero ? el("div", { class: "note", style: "margin-top:12px" }, [
+            el("b", { text: "O intervalo atravessa o zero. " }),
+            el("span", { text: "Com estes dados, “não houve efeito” continua "
+              + "sendo uma explicação compatível com o que foi medido." }),
+          ]) : null,
           /* O aviso não é rodapé: um d de 0,82 calculado com seis pessoas
              se parece exatamente com um calculado com sessenta, e vai para
              a dissertação do mesmo jeito. */
