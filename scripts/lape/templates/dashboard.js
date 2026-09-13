@@ -6158,6 +6158,183 @@ view("fomento", "Fomento", "Processo",
   });
 
 /* ======================================================================
+   IMPORTAR A PLANILHA DA BANCADA
+   ----------------------------------------------------------------------
+   Onze telas na Bancada e nenhum jeito de encher: 40 participantes x 10
+   itens x 3 momentos são 1.200 digitações. Ninguém faz, e o laboratório
+   já tem tudo em Excel.
+
+   Copiar e colar, e não subir arquivo: funciona de qualquer máquina, não
+   depende de o arquivo estar no servidor, e o pesquisador já sabe fazer.
+
+   E dois passos, sempre. O primeiro CONFERE e mostra o que entendeu de
+   cada coluna, o que vai criar e o que vai SOBRESCREVER. Só o segundo
+   grava. Dado de participante não se desfaz com Ctrl+Z.
+   ====================================================================== */
+var IMPORTE = { plano: null, texto: "", erro: null, feito: null };
+
+function blocoDaConferencia(p) {
+  const caixa = el("div");
+
+  caixa.appendChild(leituraDe({
+    sinal: "neutro",
+    forte: "Formato " + p.formato + ", " + p.participantes.length
+      + " participante(s) e " + p.n_medidas + " medida(s).",
+    texto: "Nada foi gravado ainda. Confira o que o sistema entendeu de cada "
+      + "coluna antes de aplicar.",
+  }));
+
+  caixa.appendChild(el("div", { class: "grid g4", style: "margin:14px 0" }, [
+    kpi({ label: "Participantes novos", value: C.fmt(p.participantes_novos) }),
+    kpi({ label: "Já inscritos", value: C.fmt(p.participantes_existentes) }),
+    kpi({ label: "Medidas a criar", value: C.fmt(p.medidas_a_criar) }),
+    kpi({ label: "Medidas a sobrescrever", value: C.fmt(p.medidas_a_sobrescrever),
+          tone: p.medidas_a_sobrescrever ? "bad" : null }),
+  ]));
+
+  if (p.medidas_a_sobrescrever) {
+    caixa.appendChild(el("div", { class: "note" }, [
+      el("b", { text: "Isto vai por cima de medida que já existe. " }),
+      el("span", { text: p.medidas_a_sobrescrever + " valor(es) já estão no banco "
+        + "para as mesmas pessoas, instrumentos e momentos, e serão substituídos "
+        + "pelos da planilha. Se a intenção era acrescentar, e não corrigir, "
+        + "confira antes de aplicar." }),
+    ]));
+  }
+
+  if ((p.instrumentos_novos || []).length || (p.momentos_novos || []).length) {
+    caixa.appendChild(el("div", { class: "note" }, [
+      el("b", { text: "Vai declarar o que ainda não existe. " }),
+      el("span", { text: [
+        p.instrumentos_novos.length ? "Instrumentos: " + p.instrumentos_novos.join(", ") : null,
+        p.momentos_novos.length ? "Momentos: " + p.momentos_novos.join(", ") : null,
+      ].filter(Boolean).join(" · ") + ". Um erro de digitação no cabeçalho vira "
+        + "um instrumento novo — vale conferir os nomes." }),
+    ]));
+  }
+
+  /* A ordem dos momentos decide o que é "antes" e o que é "depois" no
+     gráfico e no teste pareado. Quando ela veio da ordem das linhas, e
+     não de um sufixo reconhecido, a tela pede conferência em vez de
+     fingir que sabe. */
+  if (p.momentos.length > 1) {
+    caixa.appendChild(el("div", { class: "hint",
+      text: "Ordem dos momentos: " + p.momentos.join(" → ")
+        + " (" + p.ordem_dos_momentos + ")."
+        + (p.ordem_dos_momentos === "sufixo das colunas" ? ""
+           : " Confira: é ela que define o antes e o depois.") }));
+  }
+
+  caixa.appendChild(card("O que o sistema entendeu de cada coluna", null,
+    el("div", { class: "fom-lista" }, (p.colunas || []).map(function (c) {
+      const marcado = (p.preenchimento || []).find(function (x) {
+        return x.coluna === c.coluna; });
+      return el("div", { class: "fom-item" }, [
+        el("div", { class: "fom-corpo" }, [
+          el("b", { text: c.coluna }),
+          el("small", { text: c.papel === "medida"
+            ? "medida de " + c.instrumento
+              + (c.momento_no_nome ? " · momento " + c.momento_no_nome : "")
+            : (c.papel === "ignorada" ? "ignorada — não é medida nem identificação"
+                                      : c.papel) }),
+        ]),
+        marcado ? el("span", { class: "prazo-chip",
+          text: marcado.faltam ? "faltam " + marcado.faltam + " de " + marcado.linhas
+                               : marcado.linhas + " preenchidas" }) : el("span"),
+      ]);
+    }))));
+
+  if ((p.problemas || []).length) {
+    caixa.appendChild(card("O que não deu para ler",
+      "Estas linhas não entram. Nada aqui é adivinhado.",
+      el("ul", { class: "listinha" }, p.problemas.slice(0, 40).map(function (x) {
+        return el("li", {}, el("small", { text: x })); }))));
+  }
+  return caixa;
+}
+
+view("importar_bancada", "Importar planilha", "Bancada",
+  "Cole a planilha do estudo: o sistema mostra o que entendeu antes de gravar.",
+  function (host) {
+    if (!LIVE) {
+      host.appendChild(el("div", { class: "note", text:
+        "Esta tela grava no servidor: precisa dele ao vivo." }));
+      return;
+    }
+    const caixa = el("div");
+    host.appendChild(caixa);
+
+    bancadaBuscar("/api/bancada").then(function (dados) {
+      BANCADA.dados = dados;
+      caixa.innerHTML = "";
+      const protocolos = dados.protocolos || [];
+      if (!protocolos.length) {
+        caixa.appendChild(el("div", { class: "empty", text:
+          "Declare um protocolo antes: a planilha entra dentro de um estudo." }));
+        return;
+      }
+      if (!BANCADA.protocolo) BANCADA.protocolo = protocolos[0].id;
+      caixa.appendChild(seletorDeProtocolo());
+
+      const area = el("textarea", { rows: "8", class: "search",
+        style: "width:100%;font-family:var(--mono);font-size:12px",
+        placeholder: "Codigo\tGrupo\tEVA_pre\tEVA_pos\n"
+          + "P01\tintervencao\t7\t4\nP02\tcontrole\t6\t6" });
+      area.value = IMPORTE.texto;
+      area.addEventListener("input", function () { IMPORTE.texto = area.value; });
+
+      const aviso = el("div", { class: "hint", style: "margin-top:8px" });
+      const resultado = el("div", { style: "margin-top:16px" });
+
+      function chamar(aplicar) {
+        aviso.textContent = aplicar ? "Gravando…" : "Conferindo…";
+        resultado.innerHTML = "";
+        return fetch("/api/bancada/importar", { method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ protocolo_id: BANCADA.protocolo,
+            texto: IMPORTE.texto, aplicar: !!aplicar }) })
+          .then(function (r) { return r.json().then(function (d) {
+            if (!r.ok) throw new Error(d.error || ("HTTP " + r.status)); return d; }); })
+          .then(function (d) {
+            aviso.textContent = "";
+            if (d.passo === "aplicado") {
+              IMPORTE.plano = null;
+              resultado.appendChild(leituraDe({ sinal: "sobe",
+                forte: "Importado: " + d.medidas + " medida(s) de "
+                       + d.participantes + " participante(s).",
+                texto: "As telas de Medidas, Correlações e Poder já leem estes "
+                  + "dados." }));
+              return;
+            }
+            IMPORTE.plano = d;
+            resultado.appendChild(blocoDaConferencia(d));
+            resultado.appendChild(el("div", { style: "margin-top:14px" }, [
+              el("button", { class: "primary", type: "button",
+                text: "Aplicar ao banco",
+                onclick: function () { chamar(true); } }),
+            ]));
+          })
+          .catch(function (err) { aviso.textContent = "Não deu: " + err.message; });
+      }
+
+      caixa.appendChild(card("Cole aqui",
+        "Copie do Excel com o cabeçalho. Uma coluna precisa identificar o "
+        + "participante (código, participante, sujeito…).",
+        el("div", {}, [area,
+          el("div", { style: "margin-top:10px" }, [
+            el("button", { type: "button", text: "Conferir",
+              onclick: function () { chamar(false); } }),
+          ]), aviso])));
+      caixa.appendChild(resultado);
+    }).catch(function (err) {
+      caixa.innerHTML = "";
+      caixa.appendChild(el("div", { class: "empty", text:
+        err.message === "permissao" ? "A bancada é só da coordenação."
+                                    : "Não foi possível abrir: " + err.message }));
+    });
+  });
+
+/* ======================================================================
    CONFIABILIDADE — alfa de Cronbach
    ----------------------------------------------------------------------
    A pergunta que vem ANTES de qualquer teste: "este questionário está
@@ -6406,8 +6583,13 @@ function leituraDaMatriz(r) {
         + " só por sorteio, e nenhuma resistiu ao ajuste. Ler qualquer uma "
         + "delas como achado seria ler ruído." };
   }
-  return { sinal: "sobe",
-    forte: forte.a + " e " + forte.b + " andam juntos (r = " + dec(forte.r, 2) + ").",
+  /* "andam juntos" com r negativo diz o CONTRÁRIO do número: eles andam
+     em sentidos opostos, e no VO2 essa é justamente a boa notícia --
+     mais aptidão, menos dor. A frase segue o sinal. */
+  return { sinal: "neutro",
+    forte: forte.a + (forte.r < 0 ? " e " + forte.b + " andam em sentidos opostos (r = "
+                                  : " e " + forte.b + " andam juntos (r = ")
+           + dec(forte.r, 2) + ").",
     texto: "Com " + forte.n + " pares completos, o intervalo de 95% vai de "
       + dec(forte.ic[0], 2) + " a " + dec(forte.ic[1], 2) + ". "
       + r.sobreviventes + " de " + r.testes + " pares sobrevivem à correção." };
@@ -6604,7 +6786,8 @@ const SECTIONS = [
      medido para escrevê-lo. Fica por último porque é a que menos gente
      abre, e é a única que exige coordenação inteira. */
   { id: "bancada", label: "Bancada", icon: "experimento",
-    views: ["coleta", "monitoramento", "medidas", "poder", "confiabilidade",
+    views: ["coleta", "importar_bancada", "monitoramento", "medidas", "poder",
+            "confiabilidade",
             "correlacoes",
             "ano_bancada",
             "relatorios", "exportar", "bancada_admin"] },
@@ -6619,7 +6802,8 @@ const VIEW_ICON = {
   calendario: "calendario", temporal: "tempo", espacial: "mapa",
   descobertas: "achado", qualidade: "qualidade", automacao: "automacao",
   coleta: "experimento", monitoramento: "coracao", medidas: "linha",
-  fomento: "financiamento", poder: "alvo", confiabilidade: "qualidade",
+  importar_bancada: "baixar", fomento: "financiamento", poder: "alvo",
+  confiabilidade: "qualidade",
   correlacoes: "rede", ano_bancada: "calendario", relatorios: "livro", exportar: "baixar",
   bancada_admin: "processo",
 };
@@ -6631,6 +6815,7 @@ const VIEW_ICON = {
    linha de pesquisa nem ao integrante -- elas falam de participante. */
 const SEM_FILTROS = ["historia", "formacao", "coleta", "monitoramento",
   "medidas", "poder", "confiabilidade", "correlacoes", "fomento",
+  "importar_bancada",
   "ano_bancada", "relatorios",
   "exportar", "bancada_admin"];
 
@@ -6667,6 +6852,7 @@ const RELATED = {
   poder: ["medidas", "monitoramento", "coleta"],
   correlacoes: ["medidas", "poder", "coleta"],
   confiabilidade: ["medidas", "correlacoes", "coleta"],
+  importar_bancada: ["coleta", "medidas", "monitoramento"],
   ano_bancada: ["medidas", "relatorios", "monitoramento"],
   relatorios: ["ano_bancada", "exportar", "automacao"],
   exportar: ["medidas", "relatorios", "qualidade"],

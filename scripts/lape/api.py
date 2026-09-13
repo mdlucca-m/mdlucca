@@ -145,6 +145,7 @@ def route_index(ctx: "Context") -> Any:
             "GET  /api/bancada/poder        (coordenação) ?protocolo=&pareado=",
             "GET  /api/fomento               (integrante) editais, prazos e vigência",
             "POST /api/fomento               (coordenação) {o_que: edital|submissao}",
+            "POST /api/bancada/importar      (coordenação) {protocolo_id, texto, aplicar}",
             "GET  /api/bancada/confiabilidade (coordenação) ?instrumento=&momento=",
             "GET  /api/bancada/correlacoes   (coordenação) ?protocolo=&momento=&metodo=",
             "GET  /api/bancada/ano           (coordenação) ?ano=",
@@ -695,6 +696,35 @@ def route_fomento_gravar(ctx: "Context") -> Any:
             raise ApiError(400, str(erro))
         return {"ok": True, "submissao": linha}
     raise ApiError(400, "o_que deve ser 'edital' ou 'submissao'")
+
+
+def route_bancada_importar(ctx: "Context") -> Any:
+    """Confere a planilha, e so grava quando mandam gravar.
+
+    Dois passos de proposito. Importador que grava direto estraga o banco
+    em silencio, e dado de participante nao se desfaz com Ctrl+Z: o
+    primeiro passo devolve o PLANO -- o que entendeu de cada coluna, o
+    que vai criar, o que vai SOBRESCREVER e o que nao conseguiu ler --,
+    e so a segunda chamada aplica.
+    """
+    auth.require(ctx.user, "coordenacao")
+    from . import ingest_bancada
+    corpo = ctx.body or {}
+    protocolo = to_int(corpo.get("protocolo_id"))
+    if not protocolo:
+        raise ApiError(400, "informe 'protocolo_id': a planilha entra dentro de um protocolo")
+    try:
+        linhas = ingest_bancada.ler_texto(corpo.get("texto") or "")
+        plano = ingest_bancada.planejar(linhas)
+        conferido = ingest_bancada.conferir(ctx.db, plano, protocolo)
+        if not corpo.get("aplicar"):
+            return {"passo": "conferencia", **conferido}
+        resultado = ingest_bancada.aplicar(
+            ctx.db, plano, protocolo,
+            criar_faltantes=bool(corpo.get("criar_faltantes", True)))
+    except ingest_bancada.ImportError_ as erro:
+        raise ApiError(400, str(erro)) from erro
+    return {"passo": "aplicado", **resultado}
 
 
 def route_bancada_confiabilidade(ctx: "Context") -> Any:
@@ -2019,6 +2049,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/bancada/poder/?$", route_bancada_poder, "coordenacao"),
     ("GET", r"^/api/fomento/?$", route_fomento, "integrante"),
     ("POST", r"^/api/fomento/?$", route_fomento_gravar, "coordenacao"),
+    ("POST", r"^/api/bancada/importar/?$", route_bancada_importar, "coordenacao"),
     ("GET", r"^/api/bancada/confiabilidade/?$", route_bancada_confiabilidade, "coordenacao"),
     ("GET", r"^/api/bancada/correlacoes/?$", route_bancada_correlacoes, "coordenacao"),
     ("GET", r"^/api/bancada/ano/?$", route_bancada_ano, "coordenacao"),

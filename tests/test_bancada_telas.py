@@ -41,7 +41,7 @@ AS_SETE = ["coleta", "monitoramento", "medidas", "ano_bancada",
 # somadas a AS_SETE, para que as sete continuem sendo exatamente as sete
 # que foram encomendadas -- e para que uma tela nova entre na seção de
 # propósito, nunca por descuido.
-ALEM_DAS_SETE = ["poder", "correlacoes", "confiabilidade"]
+ALEM_DAS_SETE = ["poder", "correlacoes", "confiabilidade", "importar_bancada"]
 DA_BANCADA = AS_SETE + ALEM_DAS_SETE
 
 

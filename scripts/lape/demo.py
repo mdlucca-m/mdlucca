@@ -741,6 +741,12 @@ def seed(db, seed_value: int = 20260826, n_artigos: int = 160,
         if verbose:
             print(f"  {rotulo:22} {len(massa[chave]):4} linhas -> {gravados} gravadas")
 
+    # Bancada e fomento nao passam pelos ingestores de planilha: nao ha
+    # planilha de participante no LAPE, e nao deveria haver -- o dado
+    # entra pela tela ou pelo importador, e aqui pela mesma porta que eles
+    # usam, para que a demonstracao exercite o caminho de verdade.
+    resumo["bancada"] = _bancada(db, seed_value, hoje=hoje, verbose=verbose)
+    resumo["fomento"] = _fomento(db, seed_value, hoje=hoje, verbose=verbose)
     resumo["citation_snapshots"] = _citacoes(db, massa, hoje)
     resumo["discoveries"] = _achados(db, massa, hoje)
     resumo["h_index"] = metrics.compute_h_indexes(db)
@@ -798,3 +804,182 @@ def run(db, seed_value: int = 20260826, n_artigos: int = 160,
               f"{o['n_members']} integrantes | {o['n_projects']} projetos")
         print(f"  painel: {html}")
     return resumo
+
+
+# ----------------------------------------------------------------------
+# Bancada e fomento na massa de teste
+# ----------------------------------------------------------------------
+# A demonstracao cobria artigo, citacao e achado -- e nada da bancada. O
+# efeito pratico: as onze telas de coleta, medida, poder, confiabilidade
+# e correlacao so podiam ser vistas por quem ja tivesse dado real, que e
+# exatamente quem ainda nao tem. Ninguem consegue decidir se uma tela
+# serve olhando para "sem dados".
+#
+# O dado gerado aqui e PLAUSIVEL de proposito, e nao bonito: tem perda de
+# seguimento, tem gente que desiste, tem celula faltando e tem um efeito
+# de tamanho realista. Massa perfeita esconde exatamente os avisos que
+# essas telas existem para dar.
+
+_INSTRUMENTOS_DEMO = (
+    ("eva", "Dor (EVA)", "cm", 0, 10, "menor_melhor"),
+    ("pss", "Estresse percebido (PSS-10)", "pontos", 0, 40, "menor_melhor"),
+    ("psqi", "Qualidade do sono (PSQI)", "pontos", 0, 21, "menor_melhor"),
+    ("vo2", "VO2 máximo", "ml/kg/min", 10, 70, "maior_melhor"),
+)
+_ITENS_BRUMS = (
+    ("T1", "Tensão", 0, "Sinto-me tenso"),
+    ("T2", "Tensão", 0, "Sinto-me nervoso"),
+    ("T3", "Tensão", 1, "Sinto-me tranquilo"),
+    ("T4", "Tensão", 0, "Sinto-me ansioso"),
+    ("V1", "Vigor", 0, "Sinto-me disposto"),
+    ("V2", "Vigor", 0, "Sinto-me animado"),
+    ("V3", "Vigor", 0, "Sinto-me com energia"),
+    ("F1", "Fadiga", 0, "Sinto-me cansado"),
+    ("F2", "Fadiga", 0, "Sinto-me esgotado"),
+    ("F3", "Fadiga", 1, "Sinto-me descansado"),
+)
+
+
+def _bancada(db, seed_value: int = 20260826, n_pessoas: int = 46,
+             hoje: date | None = None, verbose: bool = True) -> dict[str, int]:
+    """Um ensaio de 16 semanas, com a bagunça que um ensaio tem."""
+    from . import coleta
+
+    hoje = hoje or date.today()
+    rng = random.Random(seed_value + 77)
+    prot = coleta.declarar_protocolo(
+        db, "fibro16", "Exercício e fibromialgia · 16 semanas",
+        descricao="Ensaio clínico de demonstração: massa gerada, não é gente real.")
+    momentos = [
+        coleta.declarar_momento(db, prot["id"], "base", "Linha de base", 1,
+                                dias_apos=0, janela_dias=7),
+        coleta.declarar_momento(db, prot["id"], "s08", "8 semanas", 2,
+                                dias_apos=56, janela_dias=14),
+        coleta.declarar_momento(db, prot["id"], "s16", "16 semanas", 3,
+                                dias_apos=112, janela_dias=14),
+    ]
+    instrumentos = {
+        code: coleta.declarar_instrumento(db, code, nome, unidade=unidade,
+                                          minimo=mi, maximo=ma, direcao=direcao)
+        for code, nome, unidade, mi, ma, direcao in _INSTRUMENTOS_DEMO}
+    brums = coleta.declarar_instrumento(db, "brums", "BRUMS", unidade="pontos",
+                                        minimo=0, maximo=4)
+    itens = [coleta.declarar_item(db, brums["id"], code, subescala=sub,
+                                  invertido=inv, enunciado=texto)
+             for code, sub, inv, texto in _ITENS_BRUMS]
+
+    medidas = respostas = saidas = 0
+    for i in range(n_pessoas):
+        grupo = "intervencao" if i % 2 == 0 else "controle"
+        entrou = hoje - timedelta(days=140 + rng.randint(0, 40))
+        pessoa = coleta.inscrever(db, "FIB%03d" % (i + 1), prot["id"], grupo=grupo,
+                                  entrou_em=entrou.isoformat(),
+                                  ano_nascimento=rng.randint(1962, 1996))
+        # quem sai, sai: 15% de perda, concentrada depois da 8a semana --
+        # e o padrao real, e e o que faz o `n` mudar de momento para momento
+        ate = len(momentos)
+        if rng.random() < 0.15:
+            ate = rng.choice([1, 2])
+            # "desistiu" e "perdido" sao coisas diferentes num ensaio, e a
+            # tela de aderencia conta as duas separado: quem avisou que
+            # saiu, e quem simplesmente parou de aparecer
+            saiu_por, motivo = rng.choice([
+                ("desistiu", "mudou de cidade"),
+                ("desistiu", "sem tempo para as sessões"),
+                ("perdido", "não respondeu aos contatos")])
+            coleta.encerrar(db, pessoa["id"], saiu_por, motivo,
+                            (entrou + timedelta(days=60 * ate)).isoformat())
+            saidas += 1
+
+        gravidade = rng.gauss(0, 1)          # o quanto a pessoa comeca pior
+        resposta = rng.gauss(1.0, 0.5) if grupo == "intervencao" else rng.gauss(0.15, 0.4)
+        for passo, momento in enumerate(momentos[:ate]):
+            melhora = resposta * passo
+            valores = {
+                "eva": 6.4 + 1.6 * gravidade - 1.30 * melhora + rng.gauss(0, 0.6),
+                "pss": 24.0 + 5.0 * gravidade - 3.20 * melhora + rng.gauss(0, 2.2),
+                "psqi": 11.0 + 3.0 * gravidade - 1.60 * melhora + rng.gauss(0, 1.4),
+                "vo2": 27.0 - 4.0 * gravidade + 1.90 * melhora + rng.gauss(0, 2.0),
+            }
+            for code, valor in valores.items():
+                if rng.random() < 0.06:      # celula faltando acontece
+                    continue
+                inst = instrumentos[code]
+                limitado = max(inst["minimo"], min(inst["maximo"], valor))
+                coleta.registrar(db, pessoa["id"], inst["id"], round(limitado, 1),
+                                 momento["id"],
+                                 coletado_em=(entrou + timedelta(
+                                     days=momento["dias_apos"])).isoformat())
+                medidas += 1
+
+            fatores = {"Tensão": 2.4 + 0.7 * gravidade - 0.45 * melhora,
+                       "Vigor": 1.9 - 0.5 * gravidade + 0.50 * melhora,
+                       "Fadiga": 2.6 + 0.6 * gravidade - 0.40 * melhora}
+            for item, (code, sub, invertido, _) in zip(itens, _ITENS_BRUMS):
+                if rng.random() < 0.04:
+                    continue
+                bruto = max(0, min(4, round(fatores[sub] + rng.gauss(0, 0.55))))
+                # o item invertido e gravado COMO A PESSOA RESPONDE: e o
+                # importador/analise que desfaz, e e isso que se quer testar
+                coleta.responder(db, pessoa["id"], item["id"],
+                                 float(4 - bruto if invertido else bruto),
+                                 momento["id"])
+                respostas += 1
+
+    if verbose:
+        print("  bancada                     %d medidas, %d respostas de item, "
+              "%d saída(s)" % (medidas, respostas, saidas))
+    return {"participantes": n_pessoas, "medidas": medidas,
+            "respostas": respostas, "saidas": saidas}
+
+
+_EDITAIS_DEMO = (
+    ("cnpq-universal", "Universal CNPq", "CNPq", "projeto", 60, 150000.0),
+    ("capes-print", "CAPES PrInt — mobilidade", "CAPES", "bolsa", 18, 80000.0),
+    ("fapesc-universal", "FAPESC Universal", "FAPESC", "projeto", 120, 120000.0),
+    ("cnpq-pibic", "PIBIC — iniciação científica", "CNPq", "bolsa", None, None),
+)
+
+
+def _fomento(db, seed_value: int = 20260826, hoje: date | None = None,
+             verbose: bool = True) -> dict[str, int]:
+    """Editais com prazo e submissoes com as RECUSAS incluidas."""
+    from . import fomento
+
+    hoje = hoje or date.today()
+    rng = random.Random(seed_value + 99)
+    editais = []
+    for code, nome, agencia, modalidade, dias, teto in _EDITAIS_DEMO:
+        editais.append(fomento.declarar_edital(
+            db, code, nome, agencia=agencia, modalidade=modalidade,
+            fecha_em=(hoje + timedelta(days=dias)).isoformat() if dias else None,
+            valor_teto=teto))
+
+    titulos = ("Exercício e dor crônica", "Poluição do ar e desempenho",
+               "Sono, humor e treinamento", "Ansiedade pré-competitiva",
+               "Reabilitação cardíaca supervisionada", "Atividade física e idosos",
+               "Psicologia do esporte escolar", "Imagética motora e precisão",
+               "Treino de força e depressão", "Qualidade do ar em corrida de rua",
+               "Motivação em atletas jovens", "Carga interna e recuperação")
+    n = 0
+    for i, titulo in enumerate(titulos):
+        edital = editais[i % len(editais)]
+        submetido = hoje - timedelta(days=rng.randint(120, 900))
+        pedido = round(rng.uniform(40000, 160000), -3)
+        # A recusa e a metade da informacao: sem ela nao ha taxa de
+        # aprovacao, so a lembranca de quem aprovou.
+        pendente = (hoje - submetido).days < 180
+        aprovada = (not pendente) and rng.random() < 0.42
+        situacao = "submetida" if pendente else ("aprovada" if aprovada else "recusada")
+        fomento.registrar_submissao(
+            db, titulo, edital_id=edital["id"], submetido_em=submetido.isoformat(),
+            situacao=situacao,
+            decidido_em=None if pendente
+            else (submetido + timedelta(days=rng.randint(90, 200))).isoformat(),
+            valor_pedido=pedido,
+            valor_aprovado=round(pedido * rng.uniform(0.6, 1.0), -3) if aprovada else None)
+        n += 1
+    if verbose:
+        print("  fomento                     %d editais, %d submissão(ões)"
+              % (len(editais), n))
+    return {"editais": len(editais), "submissoes": n}

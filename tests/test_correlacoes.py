@@ -349,6 +349,14 @@ class TestATelaDeCorrelacoes(unittest.TestCase):
         self.assertIn("if (!LIVE)", bloco)
         self.assertIn("não viaja em arquivo", bloco)
 
+    def test_a_frase_segue_o_sinal_da_correlacao(self):
+        """"Andam juntos" com r negativo diz o contrário do número. E o
+        caso aparece de verdade: mais aptidão aeróbia, menos dor."""
+        bloco = DASHBOARD[DASHBOARD.index("function leituraDaMatriz("):]
+        bloco = bloco[:bloco.index('view("correlacoes"')]
+        self.assertIn("sentidos opostos", bloco)
+        self.assertIn("forte.r < 0", bloco)
+
     def test_a_tela_avisa_que_correlacao_nao_e_causa(self):
         bloco = DASHBOARD[DASHBOARD.index('view("correlacoes"'):]
         bloco = bloco[:bloco.index("function _leituraDoPoder")]
