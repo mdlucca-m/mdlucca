@@ -2615,6 +2615,199 @@ const Charts = (function () {
     };
   }
 
+
+  /* ====================================================================
+     MATRIZ DE CORRELACAO
+     --------------------------------------------------------------------
+     Escala DIVERGENTE, e nao sequencial: -1 e +1 sao dois fenomenos
+     opostos, nao "pouco" e "muito" da mesma coisa. Dois matizes com
+     cinza neutro no meio, nunca um arco-iris -- e nunca as cores de
+     estado, que aqui significariam que correlacao negativa e ruim, e ela
+     nao e: no VO2 ela e a boa noticia.
+
+     Cada celula carrega o `n` junto do `r`, porque o n MUDA de celula
+     para celula (quem respondeu os dois instrumentos), e um r de 0,80
+     com cinco pessoas nao e o mesmo achado que um r de 0,40 com
+     cinquenta. E o que nao sobrevive a correcao de multiplos testes sai
+     hachurado: continua visivel -- esconder seria pior --, mas nao se
+     parece com um achado.
+     ==================================================================== */
+  function casas(v, n) {
+    if (v === null || v === undefined || !isFinite(v)) return "—";
+    return v.toFixed(n).replace(".", ",");
+  }
+  function pCurto(p) {
+    if (p === null || p === undefined) return "—";
+    return p < 0.001 ? "< 0,001" : casas(p, 3);
+  }
+  function divCor(r) {
+    if (r === null || r === undefined) return token("--div-mid");
+    const passo = Math.min(4, Math.max(1, Math.ceil(Math.abs(r) / 0.25)));
+    return token((r < 0 ? "--div-neg-" : "--div-pos-") + passo);
+  }
+  function divTinta(r) {
+    const passo = r === null || r === undefined
+      ? 0 : Math.min(4, Math.max(1, Math.ceil(Math.abs(r) / 0.25)));
+    return token(passo >= 4 ? "--div-tinta-forte" : "--div-tinta-fraca");
+  }
+  function hachura(svg) {
+    if (svg.querySelector("#hachuraFraca")) return "url(#hachuraFraca)";
+    const defs = s("defs", {});
+    const pat = s("pattern", {
+      id: "hachuraFraca", width: 6, height: 6,
+      patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)",
+    });
+    pat.appendChild(s("rect", { width: 6, height: 6, fill: token("--surface-raised") }));
+    pat.appendChild(s("line", {
+      x1: 0, y1: 0, x2: 0, y2: 6, stroke: token("--grid"), "stroke-width": 2.5,
+    }));
+    defs.appendChild(pat);
+    svg.appendChild(defs);
+    return "url(#hachuraFraca)";
+  }
+
+  function matriz(spec) {
+    const nomes = spec.nomes || [];
+    const pares = spec.pares || [];
+    if (nomes.length < 2) return figure(spec, empty(spec.emptyMessage));
+
+    /* procura nos dois sentidos: a matriz e simetrica, mas a lista de
+       pares so traz cada par uma vez */
+    const mapa = {};
+    pares.forEach(function (par) {
+      mapa[par.a + "||" + par.b] = par;
+      mapa[par.b + "||" + par.a] = par;
+    });
+
+    function curto(nome) {
+      return nome.length > 17 ? nome.slice(0, 16) + "…" : nome;
+    }
+    /* O rotulo do topo e inclinado, e texto inclinado ocupa largura PARA
+       A DIREITA do ponto onde comeca. Na ultima coluna essa sobra cai
+       fora do SVG e o nome aparece cortado -- foi o que aconteceu na
+       largura de celular. A margem da direita e calculada a partir do
+       nome mais longo, e nao fixada num numero que um dia deixa de
+       servir. */
+    const GRAU = 42, POR_LETRA = 5.9;
+    const maiorRotulo = nomes.reduce(function (m, n) {
+      return Math.max(m, curto(n).length);
+    }, 0) * POR_LETRA;
+    const cell = 62, ML = 132, PAD = 10;
+    const sobraX = maiorRotulo * Math.cos(GRAU * Math.PI / 180);
+    const sobraY = maiorRotulo * Math.sin(GRAU * Math.PI / 180);
+    const MT = Math.ceil(sobraY) + 26;
+    const MR = Math.max(PAD, Math.ceil(sobraX - cell / 2) + PAD);
+    const W = ML + nomes.length * cell + MR;
+    const H = MT + nomes.length * cell + PAD;
+    const svg = svgRoot(W, H, spec.caption || "matriz de correlação");
+    svg.classList.add("natural");
+    svg.setAttribute("width", W);
+    svg.setAttribute("height", H);
+    const tramaFraca = hachura(svg);
+
+    /* rotulos do topo, inclinados: na horizontal eles se atropelam a
+       partir do quarto instrumento */
+    nomes.forEach(function (nome, c) {
+      const x = ML + c * cell + cell / 2;
+      const rot = s("text", {
+        class: "tick", x: x, y: MT - 10, "text-anchor": "start",
+        transform: "rotate(-" + GRAU + " " + x + " " + (MT - 10) + ")",
+      });
+      svg.appendChild(txt(rot, curto(nome)));
+    });
+    nomes.forEach(function (nome, r) {
+      svg.appendChild(txt(s("text", {
+        class: "tick", x: ML - 10, y: MT + r * cell + cell * 0.56,
+        "text-anchor": "end",
+      }), curto(nome)));
+    });
+
+    nomes.forEach(function (linha, r) {
+      nomes.forEach(function (coluna, c) {
+        const x = ML + c * cell + GAP / 2;
+        const y = MT + r * cell + GAP / 2;
+        const lado = cell - GAP;
+
+        if (linha === coluna) {                       /* a diagonal */
+          svg.appendChild(s("rect", {
+            x: x, y: y, width: lado, height: lado, rx: 6,
+            fill: token("--surface-raised"),
+            stroke: token("--grid"), "stroke-width": 1,
+          }));
+          svg.appendChild(txt(s("text", {
+            x: x + lado / 2, y: y + lado / 2 + 4, "text-anchor": "middle",
+            style: "font-size:12px;fill:" + token("--ink-muted"),
+          }), "—"));
+          return;
+        }
+
+        const par = mapa[linha + "||" + coluna];
+        if (!par || par.r === null || par.r === undefined) {
+          svg.appendChild(s("rect", {
+            x: x, y: y, width: lado, height: lado, rx: 6,
+            fill: token("--surface-raised"),
+            stroke: token("--grid"), "stroke-width": 1,
+          }));
+          return;
+        }
+
+        const forte = par.sobrevive;
+        const node = s("rect", {
+          class: "mark", x: x, y: y, width: lado, height: lado, rx: 6,
+          fill: forte ? divCor(par.r) : tramaFraca,
+          stroke: forte ? "none" : token("--grid"),
+          "stroke-width": forte ? 0 : 1,
+        });
+        const detalhe = [
+          { value: casas(par.r, 2), name: "r", color: divCor(par.r) },
+          { value: String(par.n), name: "pares" },
+        ];
+        if (par.ic) {
+          detalhe.push({ value: casas(par.ic[0], 2) + " a " + casas(par.ic[1], 2),
+                         name: "intervalo de 95%" });
+        }
+        if (par.p_ajustado !== null && par.p_ajustado !== undefined) {
+          detalhe.push({ value: pCurto(par.p_ajustado), name: "p corrigido" });
+        }
+        if (!forte) detalhe.push({ value: "não sobrevive à correção", name: "" });
+        if (par.discorda) {
+          detalhe.push({ value: "Pearson dá " + casas(par.r_alternativo, 2),
+                         name: "olhe a dispersão" });
+        }
+        hoverable(node, linha + " × " + coluna, detalhe,
+          spec.onSelect && function () { spec.onSelect(par); });
+        svg.appendChild(node);
+
+        svg.appendChild(txt(s("text", {
+          x: x + lado / 2, y: y + lado / 2, "text-anchor": "middle",
+          style: "font-size:13px;font-weight:700;fill:"
+                 + (forte ? divTinta(par.r) : token("--ink-2")),
+        }), casas(par.r, 2)));
+        svg.appendChild(txt(s("text", {
+          x: x + lado / 2, y: y + lado / 2 + 15, "text-anchor": "middle",
+          style: "font-size:10.5px;fill:"
+                 + (forte ? divTinta(par.r) : token("--ink-muted")),
+        }), "n=" + par.n));
+      });
+    });
+
+    /* legenda: divergente, com o meio neutro nomeado */
+    const faixa = el("span", {
+      class: "ramp",
+      style: "background:linear-gradient(90deg," + token("--div-neg-4") + ","
+             + token("--div-mid") + "," + token("--div-pos-4") + ")",
+    });
+    const escala = el("div", { class: "scale" }, [
+      txt(el("span", {}), "−1 opostos"), faixa, txt(el("span", {}), "+1 juntos"),
+    ]);
+    const nota = el("div", { class: "scale-nota" }, [
+      el("span", { class: "amostra-hachura" }),
+      txt(el("span", {}), "hachurado: não sobrevive à correção de "
+        + (spec.testes || pares.length) + " testes"),
+    ]);
+    return figure(spec, svg, [escala, nota]);
+  }
+
   return {
     columns: responsivo(columns), bars: responsivo(bars), lines: responsivo(lines),
     donut: donut, funnel: responsivo(funnel),
@@ -2628,6 +2821,7 @@ const Charts = (function () {
     area: responsivo(area), radar: radar, gauge: gauge,
     waterfall: responsivo(waterfall), bullet: responsivo(bullet),
     calendarHeat: calendarHeat, bump: responsivo(bump), gradFill: gradFill,
+    matriz: responsivo(matriz),
     legend: legendOf, scaleLegend: scaleLegend, table: plainTable, csv: downloadCsv,
     marcosDaCurva: marcosDaCurva,
     token: token, serie: serie, seq: seq, ord: ord, fmt: fmt, compact: compact,

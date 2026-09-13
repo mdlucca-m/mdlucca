@@ -143,6 +143,9 @@ def route_index(ctx: "Context") -> Any:
             "protocolo, momento, participante, saída ou medida",
             "GET  /api/bancada/analise       (coordenação) ?protocolo=&instrumento=",
             "GET  /api/bancada/poder        (coordenação) ?protocolo=&pareado=",
+            "GET  /api/fomento               (integrante) editais, prazos e vigência",
+            "POST /api/fomento               (coordenação) {o_que: edital|submissao}",
+            "GET  /api/bancada/correlacoes   (coordenação) ?protocolo=&momento=&metodo=",
             "GET  /api/bancada/ano           (coordenação) ?ano=",
             "GET  /api/bancada/exportar      (coordenação) medidas em formato longo",
             "GET  /api/linhas/sugerir        (coordenação) liga artigo a linha pelo título",
@@ -622,6 +625,75 @@ def route_bancada_poder(ctx: "Context") -> Any:
         return {"plano": coleta.plano_amostral(None, pareado=pareado),
                 "por_grupo": [], "menor_grupo": 0, "total": 0}
     return coleta.poder_do_estudo(ctx.db, protocolo, pareado=pareado)
+
+
+def route_bancada_correlacoes(ctx: "Context") -> Any:
+    """Como os instrumentos andam juntos, dentro de um mesmo momento."""
+    auth.require(ctx.user, "coordenacao")
+    from . import coleta
+    protocolo = to_int(ctx.query.get("protocolo", [None])[0])
+    if not protocolo:
+        # "escolha um protocolo" e um beco sem saida quando nao existe
+        # protocolo nenhum: manda fazer o que nao da para fazer nesta
+        # tela. A mensagem tem de dizer ONDE se declara.
+        from . import coleta
+        if not coleta.protocolos(ctx.db):
+            return {"nomes": [], "pares": [], "momentos": [],
+                    "aviso": "Nenhum protocolo declarado ainda. A coordenação "
+                             "declara um em Coleta de dados, e as correlações "
+                             "aparecem assim que houver dois instrumentos "
+                             "medidos no mesmo momento."}
+        return {"nomes": [], "pares": [], "momentos": [],
+                "aviso": "Escolha um protocolo acima."}
+    momento = to_int(ctx.query.get("momento", [None])[0])
+    metodo = ctx.query.get("metodo", ["spearman"])[0]
+    if metodo not in ("spearman", "pearson"):
+        metodo = "spearman"
+    return coleta.correlacoes(ctx.db, protocolo, momento, metodo)
+
+
+def route_fomento(ctx: "Context") -> Any:
+    """Editais, prazos, submissões e vigência."""
+    auth.require(ctx.user, "integrante")
+    from . import fomento
+    ano = to_int(ctx.query.get("ano", [None])[0])
+    saida = fomento.painel(ctx.db, ano)
+    # A tela precisa saber se ADIANTA mostrar o formulario. Mostrar um
+    # formulario que o servidor vai recusar e pior do que nao mostrar:
+    # a pessoa preenche tudo e so descobre no botao.
+    saida["pode_declarar"] = (
+        auth.ROLE_RANK.get((ctx.user or {}).get("user_role", "leitura"), 0)
+        >= auth.ROLE_RANK["coordenacao"])
+    return saida
+
+
+def route_fomento_gravar(ctx: "Context") -> Any:
+    """Declara um edital ou registra uma submissão."""
+    auth.require(ctx.user, "coordenacao")
+    from . import fomento
+    corpo = ctx.body or {}
+    oque = corpo.get("o_que")
+    if oque == "edital":
+        if not corpo.get("code") or not corpo.get("nome"):
+            raise ApiError(400, "informe o código e o nome do edital")
+        # `code` e `nome` sao posicionais: mande-os tambem no **resto e o
+        # Python reclama de argumento repetido -- e o formulario devolve
+        # 400 sem que ninguem entenda por que
+        resto = {k: v for k, v in corpo.items()
+                 if k not in ("code", "nome", "o_que")}
+        return {"ok": True, "edital": fomento.declarar_edital(
+            ctx.db, corpo["code"], corpo["nome"], **resto)}
+    if oque == "submissao":
+        if not corpo.get("titulo"):
+            raise ApiError(400, "informe o título da proposta")
+        try:
+            resto = {k: v for k, v in corpo.items()
+                     if k not in ("titulo", "o_que")}
+            linha = fomento.registrar_submissao(ctx.db, corpo["titulo"], **resto)
+        except ValueError as erro:
+            raise ApiError(400, str(erro))
+        return {"ok": True, "submissao": linha}
+    raise ApiError(400, "o_que deve ser 'edital' ou 'submissao'")
 
 
 def route_bancada_ano(ctx: "Context") -> Any:
@@ -1880,6 +1952,9 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/bancada/?$", route_bancada_gravar, "coordenacao"),
     ("GET", r"^/api/bancada/analise/?$", route_bancada_analise, "coordenacao"),
     ("GET", r"^/api/bancada/poder/?$", route_bancada_poder, "coordenacao"),
+    ("GET", r"^/api/fomento/?$", route_fomento, "integrante"),
+    ("POST", r"^/api/fomento/?$", route_fomento_gravar, "coordenacao"),
+    ("GET", r"^/api/bancada/correlacoes/?$", route_bancada_correlacoes, "coordenacao"),
     ("GET", r"^/api/bancada/ano/?$", route_bancada_ano, "coordenacao"),
     ("GET", r"^/api/bancada/exportar/?$", route_bancada_exportar, "coordenacao"),
     ("GET", r"^/api/linhas/sugerir/?$", route_linhas_sugerir, "coordenacao"),

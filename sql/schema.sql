@@ -1256,3 +1256,60 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_coletas_unica ON coletas(
 CREATE INDEX IF NOT EXISTS idx_coletas_part ON coletas(participante_id);
 CREATE INDEX IF NOT EXISTS idx_coletas_inst ON coletas(instrumento_id, momento_id);
 CREATE INDEX IF NOT EXISTS idx_part_protocolo ON participantes(protocolo_id, situacao);
+
+
+/* ======================================================================
+   FOMENTO — editais, submissoes e vigencia
+   ----------------------------------------------------------------------
+   A tabela `projects` ja guardava o dinheiro que ENTROU: financiador,
+   numero do processo, valor e vigencia. Falta o resto do ciclo, que e
+   onde o laboratorio de fato perde dinheiro:
+
+     · o edital que fecha semana que vem e ninguem viu;
+     · a vigencia que termina em dois meses, com prestacao de contas
+       junto, e que so vira assunto quando ja e urgencia;
+     · as submissoes RECUSADAS, que nao viram projeto e por isso somem do
+       sistema -- e sem elas nao existe taxa de aprovacao, so a lembranca
+       otimista de quem aprovou.
+
+   Por isso a submissao e uma entidade propria, e nao um campo do
+   projeto: ela existe antes do projeto e continua existindo quando o
+   projeto nunca nasce.
+   ====================================================================== */
+CREATE TABLE IF NOT EXISTS editais (
+  id           INTEGER PRIMARY KEY,
+  code         TEXT UNIQUE NOT NULL,
+  nome         TEXT NOT NULL,
+  agencia      TEXT,
+  modalidade   TEXT,                    -- projeto, bolsa, auxilio, evento
+  abre_em      TEXT,
+  fecha_em     TEXT,
+  valor_teto   REAL,
+  url          TEXT,
+  observacao   TEXT,
+  arquivado    INTEGER NOT NULL DEFAULT 0,
+  created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS submissoes_fomento (
+  id            INTEGER PRIMARY KEY,
+  edital_id     INTEGER REFERENCES editais(id) ON DELETE SET NULL,
+  project_id    INTEGER REFERENCES projects(id) ON DELETE SET NULL,
+  titulo        TEXT NOT NULL,
+  proponente_id INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  linha_id      INTEGER REFERENCES research_lines(id) ON DELETE SET NULL,
+  submetido_em  TEXT,
+  -- submetida | aprovada | recusada | retirada
+  situacao      TEXT NOT NULL DEFAULT 'submetida',
+  decidido_em   TEXT,
+  valor_pedido  REAL,
+  valor_aprovado REAL,
+  observacao    TEXT,
+  created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_editais_prazo ON editais(fecha_em, arquivado);
+CREATE INDEX IF NOT EXISTS idx_subm_situacao ON submissoes_fomento(situacao, submetido_em);
+CREATE INDEX IF NOT EXISTS idx_subm_edital ON submissoes_fomento(edital_id);

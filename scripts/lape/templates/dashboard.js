@@ -5862,6 +5862,358 @@ view("poder", "Poder e amostra", "Bancada",
     });
   });
 
+/* ======================================================================
+   FOMENTO — editais, prazos e vigencia
+   ----------------------------------------------------------------------
+   A aba existe por causa de UMA coisa: prazo. Dinheiro de pesquisa se
+   perde de duas maneiras, e nenhuma delas e "o projeto era ruim" --
+   e o edital que fechou sem ninguem ver, e a vigencia que terminou com
+   a prestacao de contas por fazer.
+
+   Por isso o alto da tela nao e o total captado (que e passado e nao se
+   pode mudar): sao os dois relogios.
+
+   Aqui as cores de estado SAO legitimas, ao contrario da matriz de
+   correlacao: "fecha em cinco dias" e um ESTADO, e nao a identidade de
+   uma serie. E o caso para que --warning e --critical existem.
+   ====================================================================== */
+var FOMENTO = { dados: null, carregando: false, erro: null, aba: "prazos" };
+
+function dinheiro(v) {
+  if (v === null || v === undefined) return "—";
+  return "R$ " + Number(v).toLocaleString("pt-BR",
+    { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+/* O chip de prazo é o mesmo da aba de Formação, e de propósito: bolsa
+   que vence, defesa que chega e edital que fecha são a mesma pergunta
+   ("quanto falta?") e devem ter a mesma aparência. Reescrever um
+   segundo chip aqui criaria dois jeitos de mostrar urgência no mesmo
+   painel -- e um deles ia divergir do outro na primeira mudança. */
+function chipDePrazo(dias) {
+  const f = faixaDe(dias);
+  const chip = el("span", { class: "prazo-chip" });
+  chip.style.setProperty("--faixa", "var(" + f.cor + ")");
+  chip.appendChild(Icons.get(f.icone, 13));
+  chip.appendChild(el("span", { text: quantoFalta(dias) }));
+  return chip;
+}
+
+function linhaDeEdital(e) {
+  const corpo = el("div", { class: "fom-corpo" }, [
+    el("b", { text: e.nome }),
+    el("small", { text: [e.agencia, e.modalidade,
+      e.valor_teto ? "até " + dinheiro(e.valor_teto) : null]
+      .filter(Boolean).join(" · ") || "sem detalhes declarados" }),
+  ]);
+  const item = el("div", { class: "fom-item" }, [
+    corpo, chipDePrazo(e.dias),
+  ]);
+  if (e.url) {
+    const link = el("a", { href: e.url, target: "_blank",
+      rel: "noopener noreferrer", text: "abrir edital" });
+    corpo.appendChild(link);
+  }
+  return item;
+}
+
+function linhaDeVigencia(v) {
+  return el("div", { class: "fom-item" }, [
+    el("div", { class: "fom-corpo" }, [
+      el("b", { text: v.name }),
+      el("small", { text: [v.funder, v.grant_number,
+        v.amount ? dinheiro(v.amount) : null].filter(Boolean).join(" · ") }),
+    ]),
+    chipDePrazo(v.dias),
+  ]);
+}
+
+function blocoDeAprovacao(a) {
+  /* Uma taxa de aprovacao com poucas submissoes julgadas nao e taxa: e
+     acaso com sinal de porcentagem. O servidor recusa o numero e manda o
+     porque; a tela mostra o porque, e nao um traco mudo. */
+  if (!a.decididas && !a.pendentes) {
+    /* "seriam 0% ou 100% conforme a próxima" não faz sentido quando não
+       há nenhuma: a frase do mínimo é para quem já começou. */
+    return el("div", { class: "empty", text:
+      "Nenhuma submissão registrada ainda. Registre também as recusadas: "
+      + "sem elas não existe taxa de aprovação, só a lembrança de quem "
+      + "aprovou." });
+  }
+  if (a.taxa === null) {
+    return el("div", { class: "note" }, [
+      el("b", { text: "Ainda não há taxa de aprovação. " }),
+      el("span", { text: a.aviso }),
+    ]);
+  }
+  /* Sem seta: não há valor de referência para taxa de aprovação em
+     edital -- ela varia com a agência, a modalidade e o ano, e 50% pode
+     ser excelente num Universal e ruim num interno. Apontar para cima ou
+     para baixo seria inventar um padrão que o sistema não tem. */
+  return leituraDe({
+    sinal: "neutro",
+    forte: "Taxa de aprovação de " + dec(a.taxa, 1) + "%.",
+    texto: a.aprovadas + " aprovada(s) em " + a.decididas + " julgada(s)"
+      + (a.pendentes ? ", com " + a.pendentes + " ainda sem resposta "
+         + "(pendente não é recusa, e por isso não entra na conta)." : "."),
+  });
+}
+
+view("fomento", "Fomento", "Processo",
+  "Editais com prazo, vigências que terminam e o que foi captado.",
+  function (host) {
+    if (!LIVE) {
+      host.appendChild(el("div", { class: "note", text:
+        "Esta tela lê o servidor ao vivo." }));
+      return;
+    }
+    const caixa = el("div");
+    host.appendChild(caixa);
+    caixa.appendChild(el("div", { class: "empty", text: "Carregando…" }));
+
+    bancadaBuscar("/api/fomento").then(function (f) {
+      FOMENTO.dados = f;
+      caixa.innerHTML = "";
+
+      /* os dois relógios primeiro: é para isso que a aba existe */
+      caixa.appendChild(el("div", { class: "grid g4", style: "margin-bottom:16px" }, [
+        kpi({ label: "Editais fechando", value: C.fmt(f.fecham_logo.length),
+              tone: f.fecham_logo.length ? "bad" : null }),
+        kpi({ label: "Vigências terminando", value: C.fmt(f.terminam_logo.length),
+              tone: f.terminam_logo.length ? "bad" : null }),
+        kpi({ label: "Submetidas sem resposta",
+              value: C.fmt(f.aprovacao.pendentes) }),
+        kpi({ label: "Captado (todos os anos)", value: dinheiro(f.captado_total) }),
+      ]));
+
+      if (f.captado_anos && f.captado_anos[0] !== f.captado_anos[1]) {
+        /* Somar reais de anos diferentes como se fossem a mesma moeda
+           infla o total, e não há deflator nesta casa. Inventar um seria
+           pior do que não ter -- então o total sai com os anos ao lado,
+           e quem lê decide o que fazer com isso. */
+        caixa.appendChild(el("div", { class: "hint", text:
+          "O total soma valores de " + f.captado_anos[0] + " a "
+          + f.captado_anos[1] + " sem corrigir a inflação: reais de anos "
+          + "diferentes não valem o mesmo, e o sistema não tem índice para "
+          + "corrigir. Compare os anos no gráfico, não o total." }));
+      }
+
+      caixa.appendChild(card("Editais abertos",
+        "Quanto falta para cada um fechar.",
+        f.editais.length
+          ? el("div", { class: "fom-lista" }, f.editais.map(linhaDeEdital))
+          : el("div", { class: "empty", text: f.pode_declarar
+              ? "Nenhum edital declarado. Use o formulário abaixo."
+              : "Nenhum edital declarado. A coordenação declara nesta tela." })));
+
+      caixa.appendChild(card("Vigências",
+        "Projetos com financiamento e o fim do prazo.",
+        f.vigencias.length
+          ? el("div", { class: "fom-lista" }, f.vigencias.map(linhaDeVigencia))
+          : el("div", { class: "empty", text:
+              "Nenhum projeto com financiador declarado." })));
+
+      const aprov = el("div");
+      aprov.appendChild(blocoDeAprovacao(f.aprovacao));
+      caixa.appendChild(card("Submissões", null, aprov));
+
+      if (f.captado_por_ano.length) {
+        caixa.appendChild(card("Captado por ano", null, C.columns({
+          caption: "Valor aprovado, por ano da decisão",
+          mono: true, unit: "R$",
+          labels: f.captado_por_ano.map(function (x) { return String(x.ano); }),
+          values: f.captado_por_ano.map(function (x) { return x.valor; }),
+          name: "Valor aprovado",
+          table: { cols: [{ k: "ano", label: "Ano" },
+                          { k: "valor", label: "Aprovado",
+                            get: function (x) { return dinheiro(x.valor); } },
+                          { k: "n", label: "Propostas" }],
+                   rows: f.captado_por_ano },
+        })));
+      }
+      if (f.pode_declarar) {
+        caixa.appendChild(card("Declarar edital",
+          "O que o laboratório pretende disputar, e até quando.",
+          formularioSimples("edital", [
+            { campo: "code", rotulo: "Código", exemplo: "cnpq-universal-2026" },
+            { campo: "nome", rotulo: "Nome", exemplo: "Universal CNPq 2026" },
+            { campo: "agencia", rotulo: "Agência", exemplo: "CNPq" },
+            { campo: "modalidade", rotulo: "Modalidade", exemplo: "projeto" },
+            { campo: "fecha_em", rotulo: "Fecha em", tipo: "date" },
+            { campo: "valor_teto", rotulo: "Teto (R$)", tipo: "number" },
+            { campo: "url", rotulo: "Link", exemplo: "https://…" },
+          ], "/api/fomento")));
+
+        caixa.appendChild(card("Registrar submissão",
+          "Inclusive as recusadas — sem elas não há taxa de aprovação.",
+          formularioSimples("submissao", [
+            { campo: "titulo", rotulo: "Título da proposta" },
+            { campo: "submetido_em", rotulo: "Submetida em", tipo: "date" },
+            { campo: "situacao", rotulo: "Situação", opcoes: f.situacoes },
+            { campo: "decidido_em", rotulo: "Decidida em", tipo: "date" },
+            { campo: "valor_pedido", rotulo: "Pedido (R$)", tipo: "number" },
+            { campo: "valor_aprovado", rotulo: "Aprovado (R$)", tipo: "number" },
+          ], "/api/fomento")));
+      }
+    }).catch(function (err) {
+      caixa.innerHTML = "";
+      caixa.appendChild(el("div", { class: "empty", text:
+        "Não foi possível carregar o fomento: " + err.message }));
+    });
+  });
+
+/* ======================================================================
+   CORRELACAO ENTRE INSTRUMENTOS
+   ----------------------------------------------------------------------
+   Nao e um mapa de calor bonito: e a tela onde mais se inventa achado.
+   Tres defesas, todas visiveis na propria tela em vez de escondidas num
+   rodape que ninguem le:
+
+     · o n de cada celula, porque ele MUDA de par para par;
+     · a correcao de multiplos testes, porque 28 pares a 5% produzem
+       uma correlacao "significativa" e meia por puro sorteio;
+     · o intervalo, porque com vinte pessoas um r de 0,45 vai de 0,00 a
+       0,75 -- ou seja, nao se sabe quase nada.
+   ====================================================================== */
+function seletorDeMomento(r) {
+  const lista = r.momentos || [];
+  if (lista.length < 2) return el("span");
+  const escolha = el("select", {}, lista.map(function (m) {
+    return el("option", { value: String(m.id), text: m.nome });
+  }));
+  escolha.value = String(r.momento_id);
+  escolha.addEventListener("change", function () {
+    BANCADA.momento = Number(escolha.value);
+    render();
+  });
+  return el("div", { class: "bancbarra" }, [
+    el("span", { class: "flabel", text: "Momento" }), escolha,
+  ]);
+}
+
+function leituraDaMatriz(r) {
+  if (!r.pares || !r.pares.length) return null;
+  const forte = r.pares.filter(function (x) { return x.sobrevive; })
+    .sort(function (a, b) { return Math.abs(b.r) - Math.abs(a.r); })[0];
+  if (!forte) {
+    return { sinal: "desce", forte: "Nenhuma correlação sobrevive à correção.",
+      texto: "Foram " + r.testes + " pares testados de uma vez. A " + r.brutos
+        + " com p abaixo de 0,05 esperava-se " + dec(r.esperados_por_sorteio, 1)
+        + " só por sorteio, e nenhuma resistiu ao ajuste. Ler qualquer uma "
+        + "delas como achado seria ler ruído." };
+  }
+  return { sinal: "sobe",
+    forte: forte.a + " e " + forte.b + " andam juntos (r = " + dec(forte.r, 2) + ").",
+    texto: "Com " + forte.n + " pares completos, o intervalo de 95% vai de "
+      + dec(forte.ic[0], 2) + " a " + dec(forte.ic[1], 2) + ". "
+      + r.sobreviventes + " de " + r.testes + " pares sobrevivem à correção." };
+}
+
+view("correlacoes", "Correlações", "Bancada",
+  "Como os instrumentos andam juntos, com o n de cada par e a correção de múltiplos testes.",
+  function (host) {
+    if (!LIVE) {
+      host.appendChild(el("div", { class: "note", text:
+        "Esta tela lê o servidor ao vivo: medida de participante não viaja em arquivo." }));
+      return;
+    }
+    const caixa = el("div");
+    host.appendChild(caixa);
+    caixa.appendChild(el("div", { class: "empty", text: "Calculando…" }));
+
+    bancadaBuscar("/api/bancada" + (BANCADA.protocolo
+      ? "?protocolo=" + BANCADA.protocolo : "")).then(function (dados) {
+      BANCADA.dados = dados;
+      if (!BANCADA.protocolo && (dados.protocolos || []).length) {
+        BANCADA.protocolo = dados.protocolos[0].id;
+      }
+      return bancadaBuscar("/api/bancada/correlacoes?protocolo=" + BANCADA.protocolo
+        + (BANCADA.momento ? "&momento=" + BANCADA.momento : "")
+        + "&metodo=" + (BANCADA.metodoCorr || "spearman"));
+    }).then(function (r) {
+      caixa.innerHTML = "";
+      const barra = el("div", { class: "explorer-controls" });
+      barra.appendChild(seletorDeProtocolo());
+      barra.appendChild(seletorDeMomento(r));
+
+      /* Spearman por padrao porque escala clinica e ordinal. A troca fica
+         a vista: quem quiser a relacao reta pede, e compara. */
+      const metodo = BANCADA.metodoCorr || "spearman";
+      barra.appendChild(el("div", { class: "segmented", role: "group",
+        "aria-label": "Método de correlação" }, [
+        el("button", { type: "button", class: metodo === "spearman" ? "on" : "",
+          text: "Spearman (postos)", onclick: function () {
+            BANCADA.metodoCorr = "spearman"; render(); } }),
+        el("button", { type: "button", class: metodo === "pearson" ? "on" : "",
+          text: "Pearson (reta)", onclick: function () {
+            BANCADA.metodoCorr = "pearson"; render(); } }),
+      ]));
+      caixa.appendChild(barra);
+
+      if (r.aviso) {
+        caixa.appendChild(el("div", { class: "empty", text: r.aviso }));
+        return;
+      }
+
+      const leitura = leituraDaMatriz(r);
+      if (leitura) caixa.appendChild(leituraDe(leitura));
+
+      caixa.appendChild(el("div", { class: "grid g4", style: "margin:16px 0" }, [
+        kpi({ label: "Pares testados", value: C.fmt(r.testes) }),
+        kpi({ label: "Com p < 0,05", value: C.fmt(r.brutos) }),
+        kpi({ label: "Sobrevivem à correção", value: C.fmt(r.sobreviventes),
+              tone: r.sobreviventes ? "good" : null }),
+        kpi({ label: "Esperados por sorteio", value: dec(r.esperados_por_sorteio, 1) }),
+      ]));
+
+      caixa.appendChild(C.matriz({
+        caption: "Correlação de " + (metodo === "spearman" ? "Spearman" : "Pearson")
+          + (r.momento ? " · " + r.momento : ""),
+        nomes: r.nomes, pares: r.pares, testes: r.testes,
+        emptyMessage: "sem instrumentos suficientes neste momento",
+        table: {
+          cols: [{ k: "a", label: "Instrumento" }, { k: "b", label: "Instrumento" },
+                 { k: "n", label: "Pares" },
+                 // o r cru sai com ponto decimal; o resto da tabela usa
+                 // vírgula, e duas convenções na mesma linha é erro de leitura
+                 { k: "r", label: "r", get: function (x) { return dec(x.r, 2); } },
+                 { k: "ic", label: "IC 95%", get: function (x) {
+                     return x.ic ? dec(x.ic[0], 2) + " a " + dec(x.ic[1], 2) : "—"; } },
+                 { k: "p", label: "p", get: function (x) { return pValor(x.p); } },
+                 { k: "p_ajustado", label: "p corrigido",
+                   get: function (x) { return pValor(x.p_ajustado); } }],
+          rows: r.pares,
+        },
+      }));
+
+      /* Onde os dois metodos discordam, o numero nao e o problema: o
+         dado e. Discordancia grande aponta valor distante ou relacao
+         curva, e as duas se veem no diagrama de dispersao, nunca na
+         matriz. */
+      const discordam = (r.pares || []).filter(function (x) { return x.discorda; });
+      if (discordam.length) {
+        caixa.appendChild(el("div", { class: "note" }, [
+          el("b", { text: "Olhe a dispersão destes pares. " }),
+          el("span", { text: "Spearman e Pearson discordam em "
+            + discordam.length + " par(es): "
+            + discordam.map(function (x) { return x.a + " × " + x.b; }).join("; ")
+            + ". A diferença costuma ser um valor distante puxando a reta, ou uma "
+            + "relação que sobe e depois desce — nenhuma das duas aparece na matriz." }),
+        ]));
+      }
+
+      caixa.appendChild(el("div", { class: "hint", text:
+        "Correlação não é causa, e aqui menos ainda: todas as medidas são do mesmo "
+        + "momento, então nenhuma vem antes da outra no tempo." }));
+    }).catch(function (err) {
+      caixa.innerHTML = "";
+      caixa.appendChild(el("div", { class: "empty", text:
+        err.status === 403
+          ? "A bancada é só da coordenação."
+          : "Não foi possível calcular: " + err.message }));
+    });
+  });
+
 function _leituraDoPoder(linhas, r, plano) {
   const medio = linhas.find(function (x) { return x.d === 0.5; }) || {};
   const alcanca = (medio.poder_atual || 0) >= 0.8;
@@ -5882,7 +6234,7 @@ function _leituraDoPoder(linhas, r, plano) {
 /* Um formulário de uma linha para cada coisa que se declara. Os seis
    formulários desta tela têm a mesma forma e mudam só os campos; escrever
    seis à mão seria seis lugares para divergir. */
-function formularioSimples(oQue, campos) {
+function formularioSimples(oQue, campos, rota) {
   const entradas = {};
   const linha = el("div", { class: "explorer-controls" });
   campos.forEach(function (spec) {
@@ -5910,7 +6262,7 @@ function formularioSimples(oQue, campos) {
       }
       gravar.disabled = true;
       aviso.textContent = "Gravando…";
-      fetch("/api/bancada", { method: "POST",
+      fetch(rota || "/api/bancada", { method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(corpo) })
         .then(function (r) { return r.json().then(function (d) {
@@ -5939,7 +6291,7 @@ const SECTIONS = [
     views: ["pesquisadores", "organograma", "formacao", "equipe", "rede", "linhas",
       "projetos"] },
   { id: "processo", label: "Processo", icon: "processo",
-    views: ["tempos", "submissoes", "aceites"] },
+    views: ["tempos", "submissoes", "aceites", "fomento"] },
   { id: "espaco", label: "Espaço-tempo", icon: "espaco",
     views: ["calendario", "temporal", "espacial"] },
   { id: "dados", label: "Dados", icon: "dados",
@@ -5948,7 +6300,8 @@ const SECTIONS = [
      medido para escrevê-lo. Fica por último porque é a que menos gente
      abre, e é a única que exige coordenação inteira. */
   { id: "bancada", label: "Bancada", icon: "experimento",
-    views: ["coleta", "monitoramento", "medidas", "poder", "ano_bancada",
+    views: ["coleta", "monitoramento", "medidas", "poder", "correlacoes",
+            "ano_bancada",
             "relatorios", "exportar", "bancada_admin"] },
 ];
 const VIEW_ICON = {
@@ -5961,7 +6314,7 @@ const VIEW_ICON = {
   calendario: "calendario", temporal: "tempo", espacial: "mapa",
   descobertas: "achado", qualidade: "qualidade", automacao: "automacao",
   coleta: "experimento", monitoramento: "coracao", medidas: "linha",
-  poder: "alvo", ano_bancada: "calendario", relatorios: "livro", exportar: "baixar",
+  fomento: "financiamento", poder: "alvo", correlacoes: "rede", ano_bancada: "calendario", relatorios: "livro", exportar: "baixar",
   bancada_admin: "processo",
 };
 /* Telas que não respondem a filtro nenhum. A barra some nelas: seletor de
@@ -5971,7 +6324,8 @@ const VIEW_ICON = {
 /* A bancada inteira também: nenhuma das sete telas responde ao ano, à
    linha de pesquisa nem ao integrante -- elas falam de participante. */
 const SEM_FILTROS = ["historia", "formacao", "coleta", "monitoramento",
-  "medidas", "poder", "ano_bancada", "relatorios", "exportar", "bancada_admin"];
+  "medidas", "poder", "correlacoes", "fomento", "ano_bancada", "relatorios",
+  "exportar", "bancada_admin"];
 
 /* atalhos entre sub-abas de seções diferentes — a ponte que o menu não faz */
 const RELATED = {
@@ -6004,6 +6358,7 @@ const RELATED = {
   monitoramento: ["coleta", "medidas", "ano_bancada"],
   medidas: ["poder", "coleta", "exportar"],
   poder: ["medidas", "monitoramento", "coleta"],
+  correlacoes: ["medidas", "poder", "coleta"],
   ano_bancada: ["medidas", "relatorios", "monitoramento"],
   relatorios: ["ano_bancada", "exportar", "automacao"],
   exportar: ["medidas", "relatorios", "qualidade"],

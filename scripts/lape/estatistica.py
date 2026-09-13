@@ -573,3 +573,153 @@ def plano_amostral(n_por_grupo: int | None = None, alfa: float = 0.05,
         saida["menor_detectavel_90"] = menor_efeito_detectavel(
             n_por_grupo, 0.90, alfa, pareado)
     return saida
+
+
+# ----------------------------------------------------------------------
+# Correlacao
+# ----------------------------------------------------------------------
+# Uma matriz de correlacao e o grafico mais facil de fazer errado que
+# existe, por tres motivos, e os tres estao tratados aqui:
+#
+#   1. O n muda de celula para celula. Quem respondeu BRUMS e PSS nao e
+#      o mesmo conjunto de quem respondeu BRUMS e VO2. Um r de 0,80 com
+#      quatro pessoas nao vale o pixel que ocupa, e a celula tem de dizer
+#      com quantos foi feito.
+#   2. Sao muitos testes de uma vez. Oito instrumentos dao 28 pares; a 5%,
+#      espera-se UMA E MEIA correlacao "significativa" so por sorteio. Sem
+#      correcao, a matriz fabrica achado.
+#   3. r de Pearson mede relacao RETA. Escala clinica costuma ser ordinal
+#      e torta, e um unico valor distante inventa -- ou apaga -- um r.
+#      Por isso sai tambem o de Spearman, e a discordancia entre os dois
+#      e informacao: e onde olhar o diagrama de dispersao antes de crer.
+
+N_MINIMO_PARA_CORRELACAO = 6
+
+
+def _fisher_ic(r: float, n: int, conf: float = 0.95) -> tuple[float, float] | None:
+    """Intervalo do r pela transformacao z de Fisher."""
+    if n < 4 or abs(r) >= 1.0:
+        return None
+    z = 0.5 * math.log((1.0 + r) / (1.0 - r))
+    erro = 1.0 / math.sqrt(n - 3.0)
+    corte = statistics.NormalDist().inv_cdf(1.0 - (1.0 - conf) / 2.0)
+    baixo, alto = z - corte * erro, z + corte * erro
+    return (math.tanh(baixo), math.tanh(alto))
+
+
+def _r_para_p(r: float, n: int) -> float | None:
+    """p bicaudal do r, pelo t com n-2 graus de liberdade."""
+    if n < 3 or abs(r) >= 1.0:
+        return None
+    t = r * math.sqrt((n - 2.0) / (1.0 - r * r))
+    return p_bicaudal_t(t, n - 2)
+
+
+def _pares_completos(x: Sequence[Any], y: Sequence[Any]) -> tuple[list[float], list[float]]:
+    """So quem tem os DOIS valores. Descarte par a par, nao linha a linha:
+    jogar fora a pessoa inteira porque faltou um instrumento encolheria a
+    matriz ao menor denominador comum de todos eles."""
+    xs, ys = [], []
+    for a, b in zip(x, y):
+        if a is None or b is None:
+            continue
+        a, b = float(a), float(b)
+        if math.isfinite(a) and math.isfinite(b):
+            xs.append(a)
+            ys.append(b)
+    return xs, ys
+
+
+def correlacao(x: Sequence[Any], y: Sequence[Any], metodo: str = "pearson",
+               conf: float = 0.95) -> dict[str, Any]:
+    """r de Pearson ou rho de Spearman, com n, p e intervalo."""
+    xs, ys = _pares_completos(x, y)
+    n = len(xs)
+    saida: dict[str, Any] = {"metodo": metodo, "n": n, "r": None, "p": None,
+                             "ic": None, "aviso": None}
+    if n < 3:
+        saida["aviso"] = "são precisos ao menos três pares completos"
+        return saida
+    if metodo == "spearman":
+        xs, _ = _postos(xs)
+        ys, _ = _postos(ys)
+    mx, my = statistics.fmean(xs), statistics.fmean(ys)
+    sxy = sum((a - mx) * (b - my) for a, b in zip(xs, ys))
+    sxx = sum((a - mx) ** 2 for a in xs)
+    syy = sum((b - my) ** 2 for b in ys)
+    if sxx <= 0 or syy <= 0:
+        saida["aviso"] = "um dos instrumentos não variou: sem variação não há correlação"
+        return saida
+    r = max(-1.0, min(1.0, sxy / math.sqrt(sxx * syy)))
+    ic = _fisher_ic(r, n, conf)
+    saida.update({
+        "r": round(r, 4), "p": _r_para_p(r, n),
+        "ic": [round(ic[0], 4), round(ic[1], 4)] if ic else None,
+        "aviso": ("com %d pares o intervalo é largo demais para concluir" % n)
+                 if n < N_MINIMO_PARA_CORRELACAO else None,
+    })
+    if saida["p"] is not None:
+        saida["p"] = round(saida["p"], 4)
+    return saida
+
+
+def benjamini_hochberg(ps: Sequence[float | None], alfa: float = 0.05) -> list[dict]:
+    """Controla a proporcao de falsos positivos entre os achados.
+
+    Bonferroni seria o outro caminho, e e severo demais para matriz de
+    correlacao: com 28 pares ele exige p < 0,0018 e apaga tudo o que nao
+    for enorme. Benjamini-Hochberg aceita que uma fatia dos achados seja
+    falsa -- 5% deles -- e e a escolha usual para exploracao.
+
+    Devolve, na ordem de entrada, o p corrigido e se sobrevive a `alfa`.
+    """
+    validos = [(i, p) for i, p in enumerate(ps) if p is not None]
+    m = len(validos)
+    saida: list[dict] = [{"p": p, "p_ajustado": None, "sobrevive": None} for p in ps]
+    if not m:
+        return saida
+    validos.sort(key=lambda par: par[1])
+    # do maior p para o menor, mantendo o ajustado nao crescente
+    menor_ate_aqui = 1.0
+    for posto in range(m, 0, -1):
+        i, p = validos[posto - 1]
+        ajustado = min(menor_ate_aqui, p * m / posto)
+        menor_ate_aqui = ajustado
+        saida[i] = {"p": p, "p_ajustado": round(ajustado, 4),
+                    "sobrevive": ajustado <= alfa}
+    return saida
+
+
+def matriz_de_correlacao(colunas: dict[str, Sequence[Any]], metodo: str = "spearman",
+                         alfa: float = 0.05) -> dict[str, Any]:
+    """Todos os pares, com n proprio, intervalo e p corrigido.
+
+    O metodo padrao e o de Spearman, e nao o de Pearson, porque o dado
+    tipico daqui e escala ordinal: humor, dor, percepcao de esforco. Quem
+    quiser a relacao reta pede `pearson` e compara.
+    """
+    nomes = list(colunas.keys())
+    pares, celulas = [], {}
+    for i, a in enumerate(nomes):
+        for b in nomes[i + 1:]:
+            r = correlacao(colunas[a], colunas[b], metodo)
+            outro = correlacao(colunas[a], colunas[b],
+                               "pearson" if metodo == "spearman" else "spearman")
+            r["discorda"] = (r["r"] is not None and outro["r"] is not None
+                             and abs(r["r"] - outro["r"]) >= 0.2)
+            r["r_alternativo"] = outro["r"]
+            pares.append((a, b, r))
+            celulas[(a, b)] = r
+    ajuste = benjamini_hochberg([p[2]["p"] for p in pares], alfa)
+    for (a, b, r), corr in zip(pares, ajuste):
+        r["p_ajustado"] = corr["p_ajustado"]
+        r["sobrevive"] = corr["sobrevive"]
+    return {
+        "metodo": metodo, "alfa": alfa, "nomes": nomes,
+        "pares": [{"a": a, "b": b, **r} for a, b, r in pares],
+        "testes": len(pares),
+        "esperados_por_sorteio": round(len(pares) * alfa, 1),
+        "sobreviventes": sum(1 for _, _, r in pares if r.get("sobrevive")),
+        "brutos": sum(1 for _, _, r in pares
+                      if r["p"] is not None and r["p"] <= alfa),
+    }

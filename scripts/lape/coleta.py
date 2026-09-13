@@ -34,12 +34,13 @@ import statistics
 from datetime import date, datetime
 from typing import Any
 
+from . import estatistica
 from .db import Database
 from .estatistica import (  # noqa: F401 -- reexportados de proposito
     beta_regularizada, f_cdf, friedman, levene, mann_whitney, normalidade,
     anova_medidas_repetidas, plano_amostral, poder, qui2_cdf, t_cdf, t_critico,
     t_independente, t_pareado, wilcoxon, menor_efeito_detectavel,
-    amostra_necessaria)
+    amostra_necessaria, correlacao, matriz_de_correlacao, benjamini_hochberg)
 
 # Abaixo disto o tamanho de efeito e ruido com casa decimal. Nao e um
 # limiar de publicacao -- e o ponto a partir do qual a conta para de
@@ -896,3 +897,71 @@ def poder_do_estudo(db: Database, protocolo_id: int,
         "menor_grupo": menor, "total": len(ativos),
         "plano": plano_amostral(menor or None, pareado=pareado),
     }
+
+
+# ----------------------------------------------------------------------
+# Correlacao entre instrumentos
+# ----------------------------------------------------------------------
+
+def correlacoes(db: Database, protocolo_id: int, momento_id: int | None = None,
+                metodo: str = "spearman", alfa: float = 0.05) -> dict:
+    """Como os instrumentos andam juntos, NUM MOMENTO SO.
+
+    O momento importa e nao e detalhe: misturar a linha de base com o fim
+    da intervencao infla a correlacao, porque ai o que os dois
+    instrumentos tem em comum e so o fato de a intervencao ter mexido nos
+    dois. A pergunta "humor e dor andam juntos?" so tem resposta dentro
+    de um mesmo momento. Sem momento escolhido, usa o primeiro.
+    """
+    momentos = db.dicts(
+        "SELECT * FROM momentos WHERE protocolo_id = ? ORDER BY ordem, id",
+        (protocolo_id,))
+    if momento_id is None and momentos:
+        momento_id = momentos[0]["id"]
+    gente = participantes(db, protocolo_id)
+    ordem = {p["id"]: i for i, p in enumerate(gente)}
+
+    args: list = [protocolo_id]
+    filtro = ""
+    if momento_id is not None:
+        filtro = " AND c.momento_id = ?"
+        args.append(momento_id)
+    linhas = db.dicts(
+        "SELECT c.participante_id, c.valor, c.subescala,"
+        "       i.nome AS instrumento, i.code AS code, i.unidade"
+        "  FROM coletas c"
+        "  JOIN participantes p ON p.id = c.participante_id"
+        "  JOIN instrumentos  i ON i.id = c.instrumento_id"
+        " WHERE p.protocolo_id = ? AND c.valor IS NOT NULL" + filtro, tuple(args))
+
+    # uma coluna por instrumento (ou por subescala, quando ha), alinhada
+    # pela MESMA ordem de participantes -- e o alinhamento que faz o par
+    colunas: dict[str, list] = {}
+    rotulos: dict[str, dict] = {}
+    for linha in linhas:
+        chave = linha["instrumento"]
+        if linha["subescala"]:
+            chave += " · " + linha["subescala"]
+        if chave not in colunas:
+            colunas[chave] = [None] * len(gente)
+            rotulos[chave] = {"code": linha["code"], "unidade": linha["unidade"],
+                              "subescala": linha["subescala"]}
+        pos = ordem.get(linha["participante_id"])
+        if pos is not None:
+            colunas[chave][pos] = linha["valor"]
+
+    # coluna sem gente suficiente nao entra: ela so encheria a matriz de
+    # celula vazia e faria a tela parecer mais completa do que e
+    colunas = {k: v for k, v in colunas.items()
+               if sum(1 for x in v if x is not None) >= 3}
+    nome_do_momento = next((m["nome"] for m in momentos if m["id"] == momento_id), None)
+    if len(colunas) < 2:
+        return {"momentos": momentos, "momento_id": momento_id,
+                "momento": nome_do_momento, "nomes": [], "pares": [],
+                "aviso": "são precisos ao menos dois instrumentos com medida "
+                         "neste momento para haver correlação"}
+    saida = estatistica.matriz_de_correlacao(colunas, metodo, alfa)
+    saida.update({"momentos": momentos, "momento_id": momento_id,
+                  "momento": nome_do_momento, "rotulos": rotulos,
+                  "participantes": len(gente), "aviso": None})
+    return saida
