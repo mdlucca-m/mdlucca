@@ -2353,7 +2353,36 @@ view("explorar", "Explorar dados", "", "Escolha a medida, o recorte e a quebra: 
     const box = el("div", { class: "card" });
     const controls = el("div", { class: "explorer-controls" });
     const out = el("div", { style: "margin-top:18px" });
-    const state = { medida: "artigos", por: "linha", quebra: "", forma: "colunas" };
+    /* Até aqui o explorador só conhecia ARTIGO, e as listas de medida e
+       recorte vinham soltas no catálogo. Agora há três conjuntos, cada um
+       com as suas — e trocar de conjunto tem de trocar as duas listas
+       JUNTO: uma medida de fomento com um recorte de artigo não é uma
+       combinação inválida que o servidor recusa, é uma tela que oferece o
+       que não existe. */
+    /* O payload nunca traz o conjunto da bancada -- ele viaja para docs/
+       e para o link público, e lá o dado deixa de ter dono. Quem alcança
+       a bancada descobre o conjunto perguntando ao servidor, que sabe
+       quem está do outro lado. É a mesma regra das telas da bancada. */
+    let conjuntos = cat.datasets || [];
+    if (LIVE) {
+      fetch("/api/catalog", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (vivo) {
+          if (!vivo || !vivo.datasets) return;
+          if (vivo.datasets.length === conjuntos.length) return;
+          conjuntos = vivo.datasets;
+          montarControles();
+        })
+        .catch(function () { /* sem servidor, fica o que veio no arquivo */ });
+    }
+    const state = { conjunto: "artigos", medida: "artigos", por: "linha",
+                    quebra: "", forma: "colunas" };
+
+    function conjuntoAtual() {
+      return conjuntos.find(function (c) { return c.id === state.conjunto; })
+        || { measures: cat.measures, dimensions: cat.dimensions,
+             padrao_medida: "artigos", padrao_recorte: "linha" };
+    }
 
     function pick(label, options, key, onChange) {
       const sel = el("select", { "aria-label": label, onchange: function (ev) {
@@ -2369,20 +2398,44 @@ view("explorar", "Explorar dados", "", "Escolha a medida, o recorte e a quebra: 
       out.classList.add("reloading");
       let result;
       if (LIVE) {
-        const params = new URLSearchParams({ medida: state.medida, por: state.por, limite: "40" });
+        const params = new URLSearchParams({ conjunto: state.conjunto,
+          medida: state.medida, por: state.por, limite: "40" });
         if (state.quebra) params.set("quebra", state.quebra);
-        if (STATE.linha) params.set("linha", STATE.linha);
-        if (STATE.ano) params.set("ano", STATE.ano);
-        if (STATE.status) params.set("status", STATE.status);
-        if (STATE.integrante) params.set("integrante", STATE.integrante);
+        /* Os filtros do painel são de ARTIGO. Mandá-los para os outros
+           conjuntos daria 400 em "filtro desconhecido" -- e a tela cairia
+           no cálculo local, que nem sabe fazer estas contas. */
+        if (state.conjunto === "artigos") {
+          if (STATE.linha) params.set("linha", STATE.linha);
+          if (STATE.ano) params.set("ano", STATE.ano);
+          if (STATE.status) params.set("status", STATE.status);
+          if (STATE.integrante) params.set("integrante", STATE.integrante);
+        }
         try {
           const response = await fetch("/api/query?" + params.toString());
-          result = response.ok ? await response.json() : localQuery(state.medida, state.por, state.quebra);
+          if (response.ok) {
+            result = await response.json();
+          } else if (state.conjunto === "artigos") {
+            result = localQuery(state.medida, state.por, state.quebra);
+          } else {
+            /* O cálculo no navegador só sabe somar artigos. Cair nele
+               para bancada ou fomento devolveria números de outro
+               assunto, com aparência de resposta -- pior do que dizer que
+               não deu. */
+            const erro = await response.json().catch(function () { return {}; });
+            result = { rows: [], erro: response.status === 403
+              ? "As medidas da bancada são da coordenação."
+              : (erro.error || "não foi possível consultar") };
+          }
         } catch (err) {
-          result = localQuery(state.medida, state.por, state.quebra);
+          result = state.conjunto === "artigos"
+            ? localQuery(state.medida, state.por, state.quebra)
+            : { rows: [], erro: "sem conexão com o servidor" };
         }
-      } else {
+      } else if (state.conjunto === "artigos") {
         result = localQuery(state.medida, state.por, state.quebra);
+      } else {
+        result = { rows: [], erro:
+          "Bancada e fomento leem o servidor ao vivo: não viajam em arquivo." };
       }
       draw(result);
       out.classList.remove("reloading");
@@ -2390,6 +2443,10 @@ view("explorar", "Explorar dados", "", "Escolha a medida, o recorte e a quebra: 
 
     function draw(result) {
       out.innerHTML = "";
+      if (result.erro) {
+        out.appendChild(C.empty(result.erro));
+        return;
+      }
       const rows = result.rows.filter(function (r) { return r.valor !== null; });
       if (!rows.length) {
         out.appendChild(C.empty("Nenhum resultado para esta combinação."));
@@ -2450,25 +2507,63 @@ view("explorar", "Explorar dados", "", "Escolha a medida, o recorte e a quebra: 
           caption: result.measure_label + " por " + result.by_label.toLowerCase() + ".",
         }));
       }
+      /* Média e taxa não somam entre recortes: 40% + 60% não são 100% de
+         nada. O servidor devolve `total: null` nesses casos, e a linha
+         some -- em vez de mostrar um número que não quer dizer nada. */
+      const onde = result.local ? " · calculado no navegador"
+                                : " · calculado na camada analítica";
       out.appendChild(el("div", { class: "hint", style: "margin-top:12px",
-        text: "Total no recorte: " + C.fmt(Math.round(result.total * 100) / 100) + " " + (result.unit || "")
-          + (result.local ? " · calculado no navegador" : " · calculado na camada analítica") }));
+        text: (result.total === null || result.total === undefined
+          ? "Medida que não se soma entre recortes" + onde
+          : "Total no recorte: " + C.fmt(Math.round(result.total * 100) / 100)
+            + " " + (result.unit || "") + onde) }));
+      if (result.nota) {
+        out.appendChild(el("div", { class: "hint", text: result.nota }));
+      }
     }
 
-    controls.appendChild(pick("Medida", cat.measures, "medida", run));
-    controls.appendChild(pick("Recortar por", cat.dimensions, "por", run));
-    controls.appendChild(pick("Quebrar por",
-      [{ id: "", label: "— sem quebra —" }].concat(cat.dimensions), "quebra", run));
-    controls.appendChild(pick("Forma", [
-      { id: "colunas", label: "Colunas" }, { id: "barras", label: "Barras" },
-      { id: "rosca", label: "Rosca" }, { id: "arvore", label: "Treemap" },
-    ], "forma", run));
+    /* A barra do painel recorta ARTIGO: ano, linha, situação, integrante.
+       Ela ficava visível nesta tela em qualquer conjunto, e anunciava
+       "19 de 19 artigos" ao lado de um gráfico de 461 medições -- dois
+       números verdadeiros dizendo coisas diferentes, um contradizendo o
+       outro. Fora de artigos ela sai: filtro que não filtra nada só
+       confunde. */
+    function ajustarBarra() {
+      const barra = document.getElementById("toolbar");
+      if (barra) barra.hidden = state.conjunto !== "artigos";
+    }
+
+    function montarControles() {
+      controls.innerHTML = "";
+      const conj = conjuntoAtual();
+      if (conjuntos.length > 1) {
+        controls.appendChild(pick("Conjunto", conjuntos, "conjunto", function () {
+          const novo = conjuntoAtual();
+          state.medida = novo.padrao_medida;
+          state.por = novo.padrao_recorte;
+          state.quebra = "";
+          ajustarBarra();
+          ajustarBarra();
+    montarControles();
+          run();
+        }));
+      }
+      controls.appendChild(pick("Medida", conj.measures, "medida", run));
+      controls.appendChild(pick("Recortar por", conj.dimensions, "por", run));
+      controls.appendChild(pick("Quebrar por",
+        [{ id: "", label: "— sem quebra —" }].concat(conj.dimensions), "quebra", run));
+      controls.appendChild(pick("Forma", [
+        { id: "colunas", label: "Colunas" }, { id: "barras", label: "Barras" },
+        { id: "rosca", label: "Rosca" }, { id: "arvore", label: "Treemap" },
+      ], "forma", run));
+    }
+    montarControles();
     box.appendChild(controls);
     box.appendChild(out);
     host.appendChild(box);
     host.appendChild(el("div", { class: "note info", style: "margin-top:16px", html:
-      "As mesmas combinações estão na API: <span class='mono'>GET /api/query?medida=publicados"
-      + "&por=linha&quebra=ano</span> — útil para levar os números para o Excel, o R ou o Power BI." }));
+      "As mesmas combinações estão na API: <span class='mono'>GET /api/query?conjunto=fomento"
+      + "&medida=captado&por=agencia</span> — útil para levar os números para o Excel, o R ou o Power BI." }));
     run();
   });
 

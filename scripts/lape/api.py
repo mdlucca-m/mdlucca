@@ -958,11 +958,22 @@ def route_state(ctx: "Context") -> Any:
     }
 
 
+def _alcanca(ctx: "Context", nivel: str) -> bool:
+    """Se o usuário chega a esse nível — sem levantar erro."""
+    return (auth.ROLE_RANK.get((ctx.user or {}).get("user_role", "leitura"), 0)
+            >= auth.ROLE_RANK[nivel])
+
+
 def route_catalog(ctx: "Context") -> Any:
-    """Medidas, dimensões e filtros aceitos pela camada ouro."""
+    """Medidas, dimensões e filtros aceitos pela camada ouro.
+
+    O catálogo é o que monta o explorador na tela. Quem não alcança a
+    bancada não recebe o conjunto dela aqui: um seletor com uma opção que
+    o servidor vai recusar é pior do que um seletor sem ela.
+    """
     from . import lake
 
-    return lake.catalog()
+    return lake.catalog(com_restritos=_alcanca(ctx, "coordenacao"))
 
 
 def route_query(ctx: "Context") -> Any:
@@ -974,15 +985,28 @@ def route_query(ctx: "Context") -> Any:
     from . import lake
 
     query = ctx.query
+    dataset = query.get("conjunto", ["artigos"])[0]
+    conj = lake.DATASETS.get(dataset)
+    if conj is None:
+        raise ApiError(400, "conjunto desconhecido: %s. Use um de: %s"
+                            % (dataset, ", ".join(sorted(lake.DATASETS))))
+    # A bancada é da coordenação em toda parte do sistema; pelo lake não
+    # pode ser diferente. Esta rota é de LEITURA -- sem esta linha, o
+    # agregado de medida de participante sairia para qualquer um que
+    # soubesse trocar um parâmetro na URL.
+    if conj.get("restrito"):
+        auth.require(ctx.user, "coordenacao")
+
     filters = {}
-    for key in lake.FILTERS:
+    for key in conj["filters"]:
         if key in query and query[key][0] not in ("", None):
             filters[key] = query[key][0]
     try:
         return lake.query(
             ctx.db,
-            measure=query.get("medida", ["artigos"])[0],
-            by=query.get("por", ["linha"])[0],
+            dataset=dataset,
+            measure=query.get("medida", [lake.PADRAO_DA_MEDIDA[dataset]])[0],
+            by=query.get("por", [lake.PADRAO_DO_RECORTE[dataset]])[0],
             split=(query.get("quebra", [None])[0] or None),
             filters=filters,
             limit=int(query.get("limite", [40])[0]),

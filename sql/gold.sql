@@ -23,6 +23,11 @@ DROP TABLE IF EXISTS fact_authorship;
 DROP TABLE IF EXISTS fact_submission;
 DROP TABLE IF EXISTS fact_citation;
 DROP TABLE IF EXISTS fact_event;
+DROP TABLE IF EXISTS dim_instrument;
+DROP TABLE IF EXISTS dim_protocol;
+DROP TABLE IF EXISTS dim_agency;
+DROP TABLE IF EXISTS fact_measurement;
+DROP TABLE IF EXISTS fact_funding;
 
 /* ---------- dimensões ---------- */
 
@@ -215,3 +220,112 @@ CREATE INDEX idx_fs_article ON fact_submission(article_id);
 CREATE INDEX idx_fs_decision ON fact_submission(decision);
 CREATE INDEX idx_fe_year ON fact_event(year_month);
 CREATE INDEX IF NOT EXISTS idx_ms_metric ON metric_snapshot(metric, snapshot_on);
+
+
+/* ============================================================
+   BANCADA E FOMENTO — os dois domínios que a camada ouro não via
+
+   Até aqui o modelo dimensional cobria só ARTIGO. Medida de
+   participante e dinheiro de edital ficavam apenas na camada prata,
+   fora de qualquer cruzamento rápido.
+   ============================================================ */
+
+CREATE TABLE dim_instrument (
+  instrument_id INTEGER PRIMARY KEY,
+  code          TEXT,
+  name          TEXT NOT NULL,
+  unit          TEXT,
+  direction     TEXT,          /* maior_melhor | menor_melhor */
+  min_value     REAL,
+  max_value     REAL,
+  active        INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE TABLE dim_protocol (
+  protocol_key  TEXT PRIMARY KEY,   /* protocolo:momento, ou protocolo:- */
+  protocol_id   INTEGER NOT NULL,
+  protocol_code TEXT,
+  protocol_name TEXT NOT NULL,
+  moment_id     INTEGER,
+  moment_name   TEXT,
+  moment_order  INTEGER,
+  days_after    INTEGER
+);
+
+/* ------------------------------------------------------------
+   fact_measurement — AGREGADO, e nunca uma linha por pessoa.
+
+   Esta é a única decisão de desenho desta tabela, e ela não é
+   estética: a camada ouro mora dentro de data/db.sqlite, que é um
+   arquivo VERSIONADO. Uma linha por participante aqui viajaria para
+   o repositório no próximo commit. Um grão de (protocolo, momento,
+   instrumento, subescala, grupo) responde tudo o que o painel
+   pergunta -- "como o grupo mudou entre os momentos" -- sem que
+   exista uma linha que seja de alguém.
+
+   E mesmo agregado, célula de uma pessoa só É aquela pessoa: com n
+   abaixo de N_MINIMO_DA_CELULA as estatísticas saem nulas e só o n
+   permanece, para que a contagem continue honesta.
+   ------------------------------------------------------------ */
+CREATE TABLE fact_measurement (
+  protocol_key  TEXT NOT NULL,
+  protocol_id   INTEGER NOT NULL,
+  moment_id     INTEGER,
+  instrument_id INTEGER NOT NULL,
+  /* NOT NULL com padrao vazio, e nao TEXT anulavel: em SQL, NULL nao
+     colide com NULL nem numa PRIMARY KEY, e a chave abaixo deixaria
+     entrar duas linhas do mesmo instrumento de escala unica -- que e o
+     caso MAIS COMUM. O mesmo buraco ja custou uma duplicata na camada
+     prata (ver idx_coletas_unica em schema.sql).
+
+     O DEFAULT nao e enfeite: com INSERT OR REPLACE, uma violacao de NOT
+     NULL faz o SQLite SUBSTITUIR o nulo pelo padrao em vez de recusar a
+     linha. Ou seja, este par NOT NULL + DEFAULT protege a chave sozinho,
+     independente do que o Python mandar -- e e por isso que nao ha teste
+     capaz de distinguir as duas versoes do construtor. */
+  subscale      TEXT NOT NULL DEFAULT '',
+  group_name    TEXT NOT NULL DEFAULT 'sem grupo',
+  n             INTEGER NOT NULL,
+  mean          REAL,
+  sd            REAL,
+  min_value     REAL,
+  max_value     REAL,
+  suppressed    INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (protocol_key, instrument_id, subscale, group_name)
+);
+
+CREATE TABLE dim_agency (
+  agency_key TEXT PRIMARY KEY,
+  agency     TEXT NOT NULL
+);
+
+/* Dinheiro de edital é dado institucional, não pessoal: aqui a linha
+   por submissão é legítima -- e necessária, porque a RECUSADA é
+   metade da informação. */
+CREATE TABLE fact_funding (
+  submission_id  INTEGER PRIMARY KEY,
+  call_id        INTEGER,
+  call_name      TEXT,
+  agency_key     TEXT,
+  agency         TEXT,
+  modality       TEXT,
+  project_id     INTEGER,
+  line_id        INTEGER,
+  research_line  TEXT,
+  proposer_id    INTEGER,
+  proposer_name  TEXT,
+  title          TEXT NOT NULL,
+  submitted_on   TEXT,
+  decided_on     TEXT,
+  situation      TEXT NOT NULL,
+  is_decided     INTEGER NOT NULL DEFAULT 0,
+  is_approved    INTEGER NOT NULL DEFAULT 0,
+  amount_asked   REAL,
+  amount_granted REAL,
+  days_to_decide INTEGER,
+  year_submitted INTEGER,
+  year_decided   INTEGER
+);
+
+CREATE INDEX IF NOT EXISTS idx_fact_meas_prot ON fact_measurement(protocol_id, instrument_id);
+CREATE INDEX IF NOT EXISTS idx_fact_fund_ano ON fact_funding(year_decided, situation);

@@ -869,13 +869,24 @@ def measured_history(db: Database, limit: int = 60) -> dict[str, Any]:
 
 
 def _catalog() -> dict[str, Any]:
-    """Medidas e dimensões do explorador — também na exportação estática."""
+    """Medidas e dimensões do explorador — também na exportação estática.
+
+    NUNCA com os conjuntos restritos, e nem sequer para a coordenação.
+    O corte aqui não é de PERFIL, é de DESTINO: este payload viaja inteiro
+    para docs/, para o mural e para o link público, e o que entra nele
+    deixa de ter dono. Até o NOME de uma dimensão da bancada
+    ("subescala") conta algo sobre um estudo em andamento.
+
+    Quem alcança a bancada recebe o conjunto dela pela rota ao vivo
+    (/api/catalog), que sabe quem está perguntando. É a mesma regra das
+    telas da bancada: elas leem do servidor, não do arquivo.
+    """
     try:
         from . import lake
 
-        return lake.catalog()
+        return lake.catalog(com_restritos=False)
     except Exception:
-        return {"measures": [], "dimensions": [], "filters": []}
+        return {"measures": [], "dimensions": [], "filters": [], "datasets": []}
 
 
 def _metas(db: Database) -> dict[str, Any]:

@@ -44,6 +44,13 @@ GOLD_SCHEMA = config.SQL_DIR / "gold.sql"
 MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho",
          "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
 
+# Célula agregada de uma pessoa só É aquela pessoa: a média de n=1 é o
+# valor dela. Abaixo deste n as estatísticas saem nulas e sobra o n, para
+# que a contagem continue honesta sem que o valor de ninguém apareça.
+# Isto não é excesso de zelo: a camada ouro mora em data/db.sqlite, que é
+# um arquivo versionado.
+N_MINIMO_DA_CELULA = 3
+
 
 # ----------------------------------------------------------------------
 # Esquema
@@ -177,6 +184,12 @@ def build_gold(db: Database, verbose: bool = True) -> dict[str, int]:
         "        e.city, e.state, e.country, e.latitude, e.longitude, rl.name,"
         "        (SELECT COUNT(*) FROM event_participants ep WHERE ep.event_id = e.id)"
         " FROM events e LEFT JOIN research_lines rl ON rl.id = e.research_line_id").rowcount
+
+    counts["dim_instrument"] = _build_dim_instrument(db)
+    counts["dim_protocol"] = _build_dim_protocol(db)
+    counts["fact_measurement"] = _build_fact_measurement(db)
+    counts["dim_agency"] = _build_dim_agency(db)
+    counts["fact_funding"] = _build_fact_funding(db)
 
     db.conn.commit()
     db.log_ingest("lake", target="gold", rows_written=sum(counts.values()),
@@ -372,7 +385,167 @@ SNAPSHOT_METRICS: dict[str, str] = {
     "dias_ate_publicar_mediana": (
         "SELECT COALESCE(AVG(days_start_to_publication), 0) FROM fact_article"
         " WHERE days_start_to_publication IS NOT NULL"),
+
+    # Bancada e fomento. Sao CONTAGENS e TOTAIS, nunca um valor medido de
+    # alguem: o historico e publico dentro do laboratorio, e "quantas
+    # medicoes ja foram feitas" nao conta nada sobre ninguem.
+    "medicoes": "SELECT COALESCE(SUM(n), 0) FROM fact_measurement",
+    # Sem guarda de tabela ausente: a consulta falha, e quem trata isso e
+    # o try de take_snapshot. Um EXISTS aqui NAO protegeria -- o FROM e
+    # resolvido antes do WHERE --, e guarda que nao guarda e pior do que
+    # nenhuma, porque parece protecao.
+    "participantes_medidos": "SELECT COUNT(DISTINCT participante_id) FROM coletas",
+    "propostas": "SELECT COUNT(*) FROM fact_funding",
+    "propostas_aprovadas": "SELECT COALESCE(SUM(is_approved), 0) FROM fact_funding",
+    "captado": "SELECT COALESCE(SUM(amount_granted), 0) FROM fact_funding",
+    "editais_abertos": (
+        "SELECT COUNT(*) FROM editais WHERE arquivado = 0"
+        "   AND (fecha_em IS NULL OR fecha_em >= date('now'))"),
 }
+
+
+# ----------------------------------------------------------------------
+# Bancada e fomento
+# ----------------------------------------------------------------------
+def _tem_tabela(db: Database, nome: str) -> bool:
+    """A camada ouro nao pode exigir que a prata ja tenha migrado tudo.
+
+    Um banco antigo, aberto antes de a bancada existir, nao tem `coletas`
+    -- e a reconstrucao do ouro nao pode quebrar por isso. Devolve zero
+    linhas em vez de explodir.
+    """
+    return bool(db.dicts(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?", (nome,)))
+
+
+def _build_dim_instrument(db: Database) -> int:
+    if not _tem_tabela(db, "instrumentos"):
+        return 0
+    return db.execute(
+        "INSERT INTO dim_instrument"
+        "  (instrument_id, code, name, unit, direction, min_value, max_value, active)"
+        " SELECT id, code, nome, unidade, direcao, minimo, maximo, ativo"
+        " FROM instrumentos").rowcount
+
+
+def _build_dim_protocol(db: Database) -> int:
+    """Uma linha por protocolo E por momento.
+
+    O protocolo sem momento tambem entra (chave `<id>:-`), porque existe
+    medida coletada fora de um momento declarado, e ela nao pode sumir da
+    camada ouro so por nao ter etapa.
+    """
+    if not _tem_tabela(db, "protocolos"):
+        return 0
+    linhas = db.execute(
+        "INSERT INTO dim_protocol"
+        "  (protocol_key, protocol_id, protocol_code, protocol_name,"
+        "   moment_id, moment_name, moment_order, days_after)"
+        " SELECT p.id || ':' || m.id, p.id, p.code, p.nome,"
+        "        m.id, m.nome, m.ordem, m.dias_apos"
+        "   FROM protocolos p JOIN momentos m ON m.protocolo_id = p.id").rowcount
+    linhas += db.execute(
+        "INSERT INTO dim_protocol"
+        "  (protocol_key, protocol_id, protocol_code, protocol_name,"
+        "   moment_id, moment_name, moment_order, days_after)"
+        " SELECT p.id || ':-', p.id, p.code, p.nome, NULL, 'Sem momento', NULL, NULL"
+        "   FROM protocolos p").rowcount
+    return linhas
+
+
+def _build_fact_measurement(db: Database) -> int:
+    """Medida AGREGADA por protocolo, momento, instrumento, subescala e grupo.
+
+    Nao existe aqui uma linha que seja de alguem -- ver o comentario da
+    tabela em sql/gold.sql. A supressao de celula pequena e feita em
+    Python, e nao em SQL, porque precisa apagar as estatisticas MANTENDO
+    o n: um CASE no SELECT faria isso tambem, mas espalhado por cinco
+    colunas, e a regra ficaria facil de quebrar sem querer.
+    """
+    if not _tem_tabela(db, "coletas"):
+        return 0
+    linhas = db.dicts(
+        "SELECT p.protocolo_id AS protocolo_id,"
+        "       p.protocolo_id || ':' || COALESCE(c.momento_id, '-') AS chave,"
+        "       c.momento_id AS momento_id, c.instrumento_id AS instrumento_id,"
+        "       COALESCE(c.subescala, '') AS subescala,"
+        "       COALESCE(p.grupo, 'sem grupo') AS grupo,"
+        "       COUNT(*) AS n, AVG(c.valor) AS media,"
+        "       MIN(c.valor) AS minimo, MAX(c.valor) AS maximo,"
+        "       SUM(c.valor) AS soma, SUM(c.valor * c.valor) AS soma2"
+        "  FROM coletas c JOIN participantes p ON p.id = c.participante_id"
+        " WHERE c.valor IS NOT NULL"
+        " GROUP BY chave, c.instrumento_id, subescala, grupo")
+    gravadas = 0
+    for linha in linhas:
+        n = int(linha["n"])
+        pequena = n < N_MINIMO_DA_CELULA
+        dp = None
+        if not pequena and n > 1:
+            # variancia amostral a partir das somas, sem trazer os valores
+            var = (linha["soma2"] - linha["soma"] ** 2 / n) / (n - 1)
+            dp = round(var ** 0.5, 4) if var > 0 else 0.0
+        db.execute(
+            "INSERT OR REPLACE INTO fact_measurement"
+            "  (protocol_key, protocol_id, moment_id, instrument_id, subscale,"
+            "   group_name, n, mean, sd, min_value, max_value, suppressed)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (linha["chave"], linha["protocolo_id"], linha["momento_id"],
+             linha["instrumento_id"], linha["subescala"] or "", linha["grupo"], n,
+             None if pequena else round(linha["media"], 4), dp,
+             None if pequena else linha["minimo"],
+             None if pequena else linha["maximo"], 1 if pequena else 0))
+        gravadas += 1
+    return gravadas
+
+
+def _build_dim_agency(db: Database) -> int:
+    if not _tem_tabela(db, "editais"):
+        return 0
+    return db.execute(
+        "INSERT OR REPLACE INTO dim_agency (agency_key, agency)"
+        " SELECT DISTINCT LOWER(TRIM(agencia)), TRIM(agencia) FROM editais"
+        "  WHERE agencia IS NOT NULL AND TRIM(agencia) <> ''").rowcount
+
+
+def _build_fact_funding(db: Database) -> int:
+    if not _tem_tabela(db, "submissoes_fomento"):
+        return 0
+    linhas = db.dicts(
+        "SELECT s.*, e.nome AS edital, e.agencia, e.modalidade,"
+        "       m.full_name AS proponente, l.name AS linha"
+        "  FROM submissoes_fomento s"
+        "  LEFT JOIN editais e ON e.id = s.edital_id"
+        "  LEFT JOIN members m ON m.id = s.proponente_id"
+        "  LEFT JOIN research_lines l ON l.id = s.linha_id")
+    gravadas = 0
+    for x in linhas:
+        decidida = x["situacao"] in ("aprovada", "recusada")
+        agencia = (x["agencia"] or "").strip()
+        db.execute(
+            "INSERT OR REPLACE INTO fact_funding"
+            "  (submission_id, call_id, call_name, agency_key, agency, modality,"
+            "   project_id, line_id, research_line, proposer_id, proposer_name, title,"
+            "   submitted_on, decided_on, situation, is_decided, is_approved,"
+            "   amount_asked, amount_granted, days_to_decide, year_submitted, year_decided)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (x["id"], x["edital_id"], x["edital"], agencia.lower() or None,
+             agencia or None, x["modalidade"], x["project_id"], x["linha_id"], x["linha"],
+             x["proponente_id"], x["proponente"], x["titulo"],
+             x["submetido_em"], x["decidido_em"], x["situacao"],
+             1 if decidida else 0, 1 if x["situacao"] == "aprovada" else 0,
+             x["valor_pedido"], x["valor_aprovado"],
+             _days(x["submetido_em"], x["decidido_em"]),
+             _ano(x["submetido_em"]), _ano(x["decidido_em"])))
+        gravadas += 1
+    return gravadas
+
+
+def _ano(valor: Any) -> int | None:
+    try:
+        return int(str(valor)[:4]) if valor else None
+    except (TypeError, ValueError):
+        return None
 
 
 def take_snapshot(db: Database, when: str | None = None, verbose: bool = True) -> dict[str, Any]:
@@ -381,7 +554,15 @@ def take_snapshot(db: Database, when: str | None = None, verbose: bool = True) -
     stamp = when or date.today().isoformat()
     payload: list[tuple] = []
     for metric, sql in SNAPSHOT_METRICS.items():
-        payload.append((stamp, metric, "total", "total", float(db.scalar(sql) or 0)))
+        try:
+            valor = float(db.scalar(sql) or 0)
+        except Exception:
+            # Banco anterior a bancada ou ao fomento nao tem a tabela. Um
+            # indicador que ainda nao existe nao pode derrubar o historico
+            # inteiro dos que existem -- e gravar zero seria mentira, entao
+            # ele simplesmente nao entra na serie.
+            continue
+        payload.append((stamp, metric, "total", "total", valor))
     for row in db.dicts(
         "SELECT COALESCE(research_line, 'Sem linha') AS linha, COUNT(*) AS n,"
         "       SUM(CASE WHEN status = 'publicado' THEN 1 ELSE 0 END) AS publicados"
@@ -459,16 +640,16 @@ MEASURES: dict[str, dict[str, Any]] = {
     "citacoes":       {"sql": "COALESCE(SUM(a.best_citations), 0)",
                        "label": "Citações", "unit": "citações"},
     "citacoes_media": {"sql": "ROUND(AVG(a.best_citations), 2)",
-                       "label": "Citações por artigo", "unit": "citações"},
+                       "label": "Citações por artigo", "unit": "citações", "somavel": False},
     "tentativas":     {"sql": "COALESCE(SUM(a.submission_attempts), 0)",
                        "label": "Tentativas de submissão", "unit": "tentativas"},
     "recusas":        {"sql": "COALESCE(SUM(a.rejections), 0)", "label": "Recusas", "unit": "recusas"},
     "dias_ate_publicar": {"sql": "ROUND(AVG(a.days_start_to_publication), 1)",
-                          "label": "Dias do início à publicação", "unit": "dias"},
+                          "label": "Dias do início à publicação", "unit": "dias", "somavel": False},
     "dias_ate_aceite":   {"sql": "ROUND(AVG(a.days_submission_to_acceptance), 1)",
-                          "label": "Dias da submissão ao aceite", "unit": "dias"},
+                          "label": "Dias da submissão ao aceite", "unit": "dias", "somavel": False},
     "autores_medio":  {"sql": "ROUND(AVG(a.n_authors), 2)", "label": "Autores por artigo",
-                       "unit": "autores"},
+                       "unit": "autores", "somavel": False},
 }
 
 FILTERS: dict[str, str] = {
@@ -483,6 +664,107 @@ FILTERS: dict[str, str] = {
     "ate": "COALESCE(a.published_on, a.started_on) <= ?",
 }
 
+# ----------------------------------------------------------------------
+# Os tres conjuntos que o explorador alcanca
+# ----------------------------------------------------------------------
+# Ate aqui `query` respondia por UM fato -- o artigo -- com o FROM escrito
+# na mao. Medida de participante e dinheiro de edital ficavam de fora, e
+# nao por decisao: por nao haver onde encaixa-los. DATASETS da a cada
+# dominio o seu proprio conjunto de medidas, recortes e filtros, e o SQL
+# continua sendo montado num lugar so.
+#
+# `artigos` e o padrao, e as constantes MEASURES/DIMENSIONS/FILTERS
+# continuam sendo as dele: quem ja chamava `query(medida, por)` nao muda.
+
+MEDIDAS_BANCADA: dict[str, dict[str, Any]] = {
+    "medicoes":   {"sql": "COALESCE(SUM(f.n), 0)", "label": "Medições", "unit": "medições"},
+    "media":      {"sql": "ROUND(AVG(f.mean), 3)", "label": "Média do valor", "unit": "",
+                 "somavel": False},
+    "desvio":     {"sql": "ROUND(AVG(f.sd), 3)", "label": "Desvio-padrão médio", "unit": "",
+                 "somavel": False},
+    "celulas":    {"sql": "COUNT(*)", "label": "Células", "unit": "células"},
+    "suprimidas": {"sql": "SUM(f.suppressed)", "label": "Células suprimidas",
+                   "unit": "células"},
+}
+RECORTES_BANCADA: dict[str, dict[str, str]] = {
+    "protocolo":  {"sql": "d.protocol_name", "label": "Protocolo"},
+    "momento":    {"sql": "COALESCE(d.moment_name, 'Sem momento')", "label": "Momento"},
+    "instrumento": {"sql": "i.name", "label": "Instrumento"},
+    "subescala":  {"sql": "CASE WHEN COALESCE(f.subscale, '') = '' THEN 'Escala única'"
+                          " ELSE f.subscale END", "label": "Subescala"},
+    "grupo":      {"sql": "COALESCE(f.group_name, 'sem grupo')", "label": "Grupo"},
+    "total":      {"sql": "'Total'", "label": "Total"},
+}
+FILTROS_BANCADA: dict[str, str] = {
+    "protocolo": "d.protocol_name = ?",
+    "instrumento": "i.name = ?",
+    "momento": "d.moment_name = ?",
+    "grupo": "f.group_name = ?",
+}
+
+MEDIDAS_FOMENTO: dict[str, dict[str, Any]] = {
+    "propostas":  {"sql": "COUNT(*)", "label": "Propostas", "unit": "propostas"},
+    "aprovadas":  {"sql": "SUM(a.is_approved)", "label": "Aprovadas", "unit": "propostas"},
+    "julgadas":   {"sql": "SUM(a.is_decided)", "label": "Julgadas", "unit": "propostas"},
+    "captado":    {"sql": "COALESCE(SUM(a.amount_granted), 0)", "label": "Valor aprovado",
+                   "unit": "R$"},
+    "pedido":     {"sql": "COALESCE(SUM(a.amount_asked), 0)", "label": "Valor pedido",
+                   "unit": "R$"},
+    # Aprovadas sobre JULGADAS, e nunca sobre o total: quem ainda nao foi
+    # julgado nao e recusa. E a mesma regra do modulo de fomento -- se as
+    # duas divergirem, a tela e o lake passam a discordar sobre o mesmo
+    # numero, e ninguem sabe qual esta certo.
+    "taxa":       {"sql": "CASE WHEN SUM(a.is_decided) > 0 THEN"
+                          " ROUND(100.0 * SUM(a.is_approved) / SUM(a.is_decided), 1) END",
+                   "label": "Taxa de aprovação", "unit": "%", "somavel": False},
+    "dias_decisao": {"sql": "ROUND(AVG(a.days_to_decide), 1)",
+                     "label": "Dias até a decisão", "unit": "dias", "somavel": False},
+}
+RECORTES_FOMENTO: dict[str, dict[str, str]] = {
+    "agencia":   {"sql": "COALESCE(a.agency, 'Sem agência')", "label": "Agência"},
+    "edital":    {"sql": "COALESCE(a.call_name, 'Sem edital')", "label": "Edital"},
+    "situacao":  {"sql": "a.situation", "label": "Situação"},
+    "linha":     {"sql": "COALESCE(a.research_line, 'Sem linha')", "label": "Linha de pesquisa"},
+    "modalidade": {"sql": "COALESCE(a.modality, 'Não informada')", "label": "Modalidade"},
+    "proponente": {"sql": "COALESCE(a.proposer_name, 'Sem proponente')", "label": "Proponente"},
+    "ano":       {"sql": "CAST(COALESCE(a.year_decided, a.year_submitted) AS TEXT)",
+                  "label": "Ano"},
+    "total":     {"sql": "'Total'", "label": "Total"},
+}
+FILTROS_FOMENTO: dict[str, str] = {
+    "agencia": "a.agency = ?",
+    "situacao": "a.situation = ?",
+    "linha": "a.research_line = ?",
+    "ano": "CAST(COALESCE(a.year_decided, a.year_submitted) AS TEXT) = ?",
+    "de": "COALESCE(a.decided_on, a.submitted_on) >= ?",
+    "ate": "COALESCE(a.decided_on, a.submitted_on) <= ?",
+}
+
+DATASETS: dict[str, dict[str, Any]] = {
+    "artigos": {
+        "label": "Artigos", "from": "fact_article a",
+        "measures": MEASURES, "dimensions": DIMENSIONS, "filters": FILTERS,
+    },
+    "medidas": {
+        "label": "Medidas da bancada",
+        "from": ("fact_measurement f"
+                 " JOIN dim_protocol d ON d.protocol_key = f.protocol_key"
+                 " JOIN dim_instrument i ON i.instrument_id = f.instrument_id"),
+        "measures": MEDIDAS_BANCADA, "dimensions": RECORTES_BANCADA,
+        "filters": FILTROS_BANCADA,
+        # A bancada e da coordenacao em toda parte do sistema; aqui nao
+        # seria diferente so por ser o lake.
+        "restrito": True,
+        "nota": "valores agregados: não há linha por participante, e célula "
+                "com menos de %d medições sai sem estatística" % N_MINIMO_DA_CELULA,
+    },
+    "fomento": {
+        "label": "Fomento", "from": "fact_funding a",
+        "measures": MEDIDAS_FOMENTO, "dimensions": RECORTES_FOMENTO,
+        "filters": FILTROS_FOMENTO,
+    },
+}
+
 
 class QueryError(ValueError):
     """Pedido de consulta fora do que a camada ouro expõe."""
@@ -490,39 +772,54 @@ class QueryError(ValueError):
 
 def query(db: Database, measure: str = "artigos", by: str = "linha",
           split: str | None = None, filters: dict[str, Any] | None = None,
-          limit: int = 40, order: str = "valor") -> dict[str, Any]:
-    """Agrega uma medida por uma (ou duas) dimensões.
+          limit: int = 40, order: str = "valor",
+          dataset: str = "artigos") -> dict[str, Any]:
+    """Agrega uma medida por uma (ou duas) dimensões, num dos conjuntos.
 
     `split` produz uma segunda quebra — é o que permite barras empilhadas
     e tabelas cruzadas no painel sem escrever SQL novo a cada gráfico.
+
+    `dataset` escolhe o fato: artigos (o padrão, e o que sempre existiu),
+    medidas da bancada ou fomento. Só o conjunto muda; a montagem do SQL
+    é a mesma, e é isso que impede que cada domínio ganhe um dialeto
+    próprio de filtro.
     """
     _ready(db)
-    if measure not in MEASURES:
-        raise QueryError(f"medida desconhecida: {measure}. Use uma de: {', '.join(sorted(MEASURES))}")
-    if by not in DIMENSIONS:
-        raise QueryError(f"dimensão desconhecida: {by}. Use uma de: {', '.join(sorted(DIMENSIONS))}")
-    if split is not None and split not in DIMENSIONS:
-        raise QueryError(f"dimensão de quebra desconhecida: {split}")
+    if dataset not in DATASETS:
+        raise QueryError(
+            f"conjunto desconhecido: {dataset}. Use um de: {', '.join(sorted(DATASETS))}")
+    conj = DATASETS[dataset]
+    medidas, recortes, filtros = conj["measures"], conj["dimensions"], conj["filters"]
+
+    if measure not in medidas:
+        raise QueryError(f"medida desconhecida em {dataset}: {measure}."
+                         f" Use uma de: {', '.join(sorted(medidas))}")
+    if by not in recortes:
+        raise QueryError(f"dimensão desconhecida em {dataset}: {by}."
+                         f" Use uma de: {', '.join(sorted(recortes))}")
+    if split is not None and split not in recortes:
+        raise QueryError(f"dimensão de quebra desconhecida em {dataset}: {split}")
 
     where: list[str] = []
     params: list[Any] = []
     for key, value in (filters or {}).items():
         if value in (None, "", []):
             continue
-        if key not in FILTERS:
-            raise QueryError(f"filtro desconhecido: {key}. Use um de: {', '.join(sorted(FILTERS))}")
-        where.append(FILTERS[key])
+        if key not in filtros:
+            raise QueryError(f"filtro desconhecido em {dataset}: {key}."
+                             f" Use um de: {', '.join(sorted(filtros))}")
+        where.append(filtros[key])
         params.append(value)
 
-    select = [DIMENSIONS[by]["sql"] + " AS dim1"]
+    select = [recortes[by]["sql"] + " AS dim1"]
     group = ["dim1"]
     if split:
-        select.append(DIMENSIONS[split]["sql"] + " AS dim2")
+        select.append(recortes[split]["sql"] + " AS dim2")
         group.append("dim2")
-    select.append(MEASURES[measure]["sql"] + " AS valor")
+    select.append(medidas[measure]["sql"] + " AS valor")
 
     sql = (
-        "SELECT " + ", ".join(select) + " FROM fact_article a"
+        "SELECT " + ", ".join(select) + " FROM " + conj["from"]
         + (" WHERE " + " AND ".join(where) if where else "")
         + " GROUP BY " + ", ".join(group)
         + (" ORDER BY valor DESC" if order == "valor" else " ORDER BY dim1")
@@ -530,21 +827,55 @@ def query(db: Database, measure: str = "artigos", by: str = "linha",
     )
     rows = db.dicts(sql, params)
     return {
-        "measure": measure, "measure_label": MEASURES[measure]["label"],
-        "unit": MEASURES[measure]["unit"],
-        "by": by, "by_label": DIMENSIONS[by]["label"],
-        "split": split, "split_label": DIMENSIONS[split]["label"] if split else None,
+        "dataset": dataset, "dataset_label": conj["label"],
+        "measure": measure, "measure_label": medidas[measure]["label"],
+        "unit": medidas[measure]["unit"],
+        "by": by, "by_label": recortes[by]["label"],
+        "split": split, "split_label": recortes[split]["label"] if split else None,
         "filters": {k: v for k, v in (filters or {}).items() if v not in (None, "", [])},
-        "rows": rows, "total": sum(float(r["valor"] or 0) for r in rows),
+        "nota": conj.get("nota"),
+        "rows": rows,
+        # Somar uma taxa ou uma média entre os recortes dá um número sem
+        # sentido: 40% + 60% não são 100% de nada. O total só sai quando
+        # a medida é somável.
+        "total": (sum(float(r["valor"] or 0) for r in rows)
+                  if medidas[measure].get("somavel", True) else None),
     }
 
 
-def catalog() -> dict[str, Any]:
-    """O que a camada ouro aceita — o painel monta o explorador a partir disto."""
+# O que cada conjunto mostra quando ninguem pediu nada.
+PADRAO_DA_MEDIDA = {"artigos": "artigos", "medidas": "medicoes", "fomento": "propostas"}
+PADRAO_DO_RECORTE = {"artigos": "linha", "medidas": "instrumento", "fomento": "agencia"}
+
+
+def catalog(com_restritos: bool = True) -> dict[str, Any]:
+    """O que a camada ouro aceita — o painel monta o explorador a partir disto.
+
+    As chaves `measures`, `dimensions` e `filters` no topo continuam sendo
+    as de ARTIGO, e de propósito: quem já lia este catálogo antes dos
+    outros conjuntos existirem continua lendo a mesma coisa.
+    """
+    conjuntos = []
+    for chave, conj in DATASETS.items():
+        if conj.get("restrito") and not com_restritos:
+            continue
+        conjuntos.append({
+            "id": chave, "label": conj["label"],
+            "restrito": bool(conj.get("restrito")), "nota": conj.get("nota"),
+            "padrao_medida": PADRAO_DA_MEDIDA[chave],
+            "padrao_recorte": PADRAO_DO_RECORTE[chave],
+            "measures": [{"id": k, "label": v["label"], "unit": v["unit"],
+                          "somavel": v.get("somavel", True)}
+                         for k, v in conj["measures"].items()],
+            "dimensions": [{"id": k, "label": v["label"]}
+                           for k, v in conj["dimensions"].items() if k != "total"],
+            "filters": sorted(conj["filters"]),
+        })
     return {
         "measures": [{"id": k, "label": v["label"], "unit": v["unit"]} for k, v in MEASURES.items()],
         "dimensions": [{"id": k, "label": v["label"]} for k, v in DIMENSIONS.items() if k != "total"],
         "filters": sorted(FILTERS),
+        "datasets": conjuntos,
     }
 
 
@@ -553,7 +884,8 @@ def catalog() -> dict[str, Any]:
 # ----------------------------------------------------------------------
 GOLD_TABLES = ("dim_date", "dim_researcher", "dim_line", "dim_journal", "dim_project",
                "fact_article", "fact_authorship", "fact_submission", "fact_citation",
-               "fact_event", "metric_snapshot")
+               "fact_event", "dim_instrument", "dim_protocol", "dim_agency",
+               "fact_measurement", "fact_funding", "metric_snapshot")
 
 
 def export(db: Database, out_dir: Path = GOLD_DIR, verbose: bool = True) -> dict[str, Any]:
