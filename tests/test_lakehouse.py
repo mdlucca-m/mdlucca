@@ -308,8 +308,16 @@ class TestQuemAlcancaOConjuntoRestrito(BaseDoLakehouse):
 class TestOLakeAguentaBancoAntigo(BaseDoLakehouse):
 
     def apagar_bancada(self):
+        """Simula um banco aberto antes de a bancada existir.
+
+        A ordem importa: quem REFERENCIA vai primeiro. Derrubar `momentos`
+        deixando `respostas_itens` apontando para ele deixa uma
+        referência pendurada, e o SQLite reclama na instrução seguinte --
+        foi o que aconteceu quando as tabelas de item entraram."""
         self.db.conn.executescript(
-            "DROP TABLE IF EXISTS coletas; DROP TABLE IF EXISTS participantes;"
+            "DROP TABLE IF EXISTS respostas_itens;"
+            " DROP TABLE IF EXISTS itens_instrumento;"
+            " DROP TABLE IF EXISTS coletas; DROP TABLE IF EXISTS participantes;"
             " DROP TABLE IF EXISTS momentos; DROP TABLE IF EXISTS protocolos;"
             " DROP TABLE IF EXISTS instrumentos; DROP TABLE IF EXISTS editais;"
             " DROP TABLE IF EXISTS submissoes_fomento;")

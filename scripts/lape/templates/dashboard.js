@@ -6158,6 +6158,215 @@ view("fomento", "Fomento", "Processo",
   });
 
 /* ======================================================================
+   CONFIABILIDADE — alfa de Cronbach
+   ----------------------------------------------------------------------
+   A pergunta que vem ANTES de qualquer teste: "este questionário está
+   medindo uma coisa só, com esta amostra?". Instrumento inconsistente
+   invalida a média, o efeito e a correlação calculados em cima dele.
+
+   O alfa sai por SUBESCALA, e não só no total: subescalas medem coisas
+   diferentes de propósito, e o alfa do instrumento inteiro mistura
+   construtos. O número que o revisor pede é o de cada subescala.
+
+   A tela diz três coisas que a planilha comum não diz: que o alfa é
+   LIMITE INFERIOR (não a confiabilidade em si), que ele CRESCE com o
+   número de itens, e que acima de 0,95 costuma ser redundância.
+   ====================================================================== */
+function faixaDoAlfa(a) {
+  /* Faixas de leitura, não de aprovação. O ponto de corte "0,70" virou
+     regra de bolso sem que ninguém verifique o k: 0,70 com quatro itens
+     é outra coisa que 0,70 com quarenta. Por isso a tela sempre mostra
+     o k ao lado. */
+  if (a === null || a === undefined) return { rotulo: "—", tom: null };
+  if (a >= 0.95) return { rotulo: "possivelmente redundante", tom: "alerta" };
+  if (a >= 0.80) return { rotulo: "boa", tom: "bom" };
+  if (a >= 0.70) return { rotulo: "aceitável", tom: "bom" };
+  if (a >= 0.60) return { rotulo: "limítrofe", tom: "alerta" };
+  return { rotulo: "baixa", tom: "critico" };
+}
+
+function blocoDaEscala(e) {
+  const caixa = el("div", { class: "card" });
+  const faixa = faixaDoAlfa(e.alfa);
+  caixa.appendChild(el("h3", { text: e.escala }));
+
+  if (e.alfa === null) {
+    caixa.appendChild(el("div", { class: "empty",
+      text: e.aviso || "sem dados suficientes" }));
+    return caixa;
+  }
+
+  caixa.appendChild(el("div", { class: "grid g4", style: "margin:12px 0" }, [
+    /* Sem `hero`: o cartão grande ocupa duas colunas e empurrava o
+       intervalo sozinho para a linha de baixo -- e o intervalo é
+       justamente o que impede de ler o alfa como número exato. Os
+       quatro ficam lado a lado, que é como se comparam. */
+    kpi({ label: "Alfa de Cronbach", value: dec(e.alfa, 2),
+          tone: faixa.tom === "bom" ? "good" : (faixa.tom === "critico" ? "bad" : null) }),
+    kpi({ label: "Itens", value: C.fmt(e.k) }),
+    kpi({ label: "Pessoas", value: C.fmt(e.n) }),
+    kpi({ label: "Intervalo de 95%",
+          value: e.ic ? dec(e.ic[0], 2) + " a " + dec(e.ic[1], 2) : "—" }),
+  ]));
+
+  caixa.appendChild(leituraDe({
+    sinal: "neutro",
+    forte: "Consistência " + faixa.rotulo + " (α = " + dec(e.alfa, 2)
+           + ", com " + e.k + " itens).",
+    texto: "O alfa é um LIMITE INFERIOR da confiabilidade, e não a "
+      + "confiabilidade: ele supõe que todos os itens medem a mesma coisa "
+      + "com o mesmo peso, e quando isso não vale ele subestima. Leia "
+      + "como \u201cpelo menos " + dec(e.alfa, 2) + "\u201d. E ele cresce com o "
+      + "número de itens: compare só com instrumentos de tamanho parecido.",
+  }));
+
+  if (e.aviso) {
+    caixa.appendChild(el("div", { class: "note", text: e.aviso }));
+  }
+
+  /* O item que atrapalha. "Alfa sem ele" acima do alfa atual é o sinal:
+     ou o item mede outra coisa, ou está invertido e ninguém marcou. */
+  const problemas = (e.itens || []).filter(function (i) {
+    return i.alfa_sem_ele !== null && i.alfa_sem_ele > e.alfa + 0.02;
+  });
+  if (problemas.length) {
+    caixa.appendChild(el("div", { class: "note" }, [
+      el("b", { text: "Item que puxa para baixo. " }),
+      el("span", { text: "Tirar " + problemas.map(function (i) {
+        return i.code; }).join(", ") + " subiria o alfa. Antes de tirar, "
+        + "confira se o item não é invertido sem estar marcado: é a causa "
+        + "mais comum, e a que não se resolve apagando a pergunta." }),
+    ]));
+  }
+
+  caixa.appendChild(C.table(
+    [{ label: "Item", k: "code" },
+     { label: "Enunciado", k: "enunciado",
+       get: function (i) { return i.enunciado || "—"; } },
+     { label: "Invertido", k: "invertido",
+       get: function (i) { return i.invertido ? "sim" : "—"; } },
+     { label: "r com o resto", k: "r_com_o_resto", num: true,
+       get: function (i) { return dec(i.r_com_o_resto, 2); } },
+     { label: "Alfa sem ele", k: "alfa_sem_ele", num: true,
+       get: function (i) { return i.alfa_sem_ele === null ? "—" : dec(i.alfa_sem_ele, 2); } }],
+    e.itens || []));
+  return caixa;
+}
+
+view("confiabilidade", "Confiabilidade", "Bancada",
+  "O questionário está medindo uma coisa só? O alfa de cada subescala, e "
+  + "qual item atrapalha.",
+  function (host) {
+    if (!LIVE) {
+      host.appendChild(el("div", { class: "note", text:
+        "Esta tela lê o servidor ao vivo: resposta de participante não viaja em arquivo." }));
+      return;
+    }
+    const caixa = el("div");
+    host.appendChild(caixa);
+    caixa.appendChild(el("div", { class: "empty", text: "Calculando…" }));
+
+    bancadaBuscar("/api/bancada").then(function (dados) {
+      BANCADA.dados = dados;
+      const lista = dados.instrumentos || [];
+      if (!lista.length) {
+        caixa.innerHTML = "";
+        caixa.appendChild(el("div", { class: "empty", text:
+          "Nenhum instrumento declarado. Declare um em Gerenciamento avançado." }));
+        return null;
+      }
+      if (!BANCADA.instrumentoAlfa) BANCADA.instrumentoAlfa = lista[0].id;
+      return bancadaBuscar("/api/bancada/confiabilidade?instrumento="
+        + BANCADA.instrumentoAlfa
+        + (BANCADA.momentoAlfa ? "&momento=" + BANCADA.momentoAlfa : ""));
+    }).then(function (r) {
+      if (!r) return;
+      caixa.innerHTML = "";
+      const barra = el("div", { class: "explorer-controls" });
+      const escolha = el("select", {}, (BANCADA.dados.instrumentos || []).map(function (i) {
+        return el("option", { value: String(i.id), text: i.nome });
+      }));
+      escolha.value = String(BANCADA.instrumentoAlfa);
+      escolha.addEventListener("change", function () {
+        BANCADA.instrumentoAlfa = Number(escolha.value);
+        BANCADA.momentoAlfa = null;
+        render();
+      });
+      barra.appendChild(el("div", { class: "field" },
+        [el("label", { text: "Instrumento" }), escolha]));
+
+      if ((r.momentos || []).length > 1) {
+        const qual = el("select", {}, r.momentos.map(function (m) {
+          return el("option", { value: String(m.id), text: m.nome }); }));
+        qual.value = String(r.momento_id);
+        qual.addEventListener("change", function () {
+          BANCADA.momentoAlfa = Number(qual.value); render(); });
+        barra.appendChild(el("div", { class: "field" },
+          [el("label", { text: "Momento" }), qual]));
+      }
+      caixa.appendChild(barra);
+
+      if (r.aviso) {
+        caixa.appendChild(el("div", { class: "note" }, [
+          el("b", { text: "Sem itens declarados. " }),
+          el("span", { text: r.aviso }),
+        ]));
+      }
+      (r.escalas || []).forEach(function (e) {
+        caixa.appendChild(blocoDaEscala(e));
+      });
+      caixa.appendChild(formularioDeItens(r));
+    }).catch(function (err) {
+      caixa.innerHTML = "";
+      caixa.appendChild(el("div", { class: "empty", text:
+        err.message === "permissao" ? "A bancada é só da coordenação."
+                                    : "Não foi possível calcular: " + err.message }));
+    });
+  });
+
+/* Declarar item a item um questionário de trinta perguntas seriam trinta
+   formulários. Aqui se cola a lista inteira: uma linha por item, com o
+   que o laboratório já tem escrito no papel. */
+function formularioDeItens(r) {
+  const area = el("textarea", { rows: "6", class: "search",
+    style: "width:100%;font-family:var(--mono);font-size:12px",
+    placeholder: "T1 | Tensão | Sinto-me tenso\nT2 | Tensão | Sinto-me nervoso\n"
+      + "T3* | Tensão | Sinto-me calmo\nV1 | Vigor | Sinto-me animado" });
+  const aviso = el("div", { class: "hint", style: "margin-top:8px" });
+  const gravar = el("button", { class: "primary", type: "button",
+    text: "Declarar itens", onclick: function () {
+      const itens = area.value.split("\n").map(function (linha) {
+        const partes = linha.split("|").map(function (x) { return x.trim(); });
+        if (!partes[0]) return null;
+        /* O asterisco marca o item invertido. É a notação que cabe numa
+           linha colada -- e o item invertido é o que mais derruba alfa
+           sem que ninguém entenda por quê. */
+        const invertido = /\*\s*$/.test(partes[0]);
+        return { code: partes[0].replace(/\*\s*$/, ""),
+                 subescala: partes[1] || null, enunciado: partes[2] || null,
+                 invertido: invertido };
+      }).filter(Boolean);
+      if (!itens.length) { aviso.textContent = "Cole ao menos um item."; return; }
+      gravar.disabled = true;
+      aviso.textContent = "Gravando…";
+      fetch("/api/bancada", { method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ o_que: "itens",
+          instrumento_id: BANCADA.instrumentoAlfa, itens: itens }) })
+        .then(function (resp) { return resp.json().then(function (d) {
+          if (!resp.ok) throw new Error(d.error || ("HTTP " + resp.status));
+          return d; }); })
+        .then(function () { render(); })
+        .catch(function (err) { aviso.textContent = "Não deu para gravar: " + err.message; })
+        .finally(function () { gravar.disabled = false; });
+    } });
+  return card("Declarar os itens deste instrumento",
+    "Uma linha por item: código | subescala | enunciado. "
+    + "Um asterisco no código marca item invertido (T3*).",
+    el("div", {}, [area, el("div", { style: "margin-top:10px" }, [gravar]), aviso]));
+}
+
+/* ======================================================================
    CORRELACAO ENTRE INSTRUMENTOS
    ----------------------------------------------------------------------
    Nao e um mapa de calor bonito: e a tela onde mais se inventa achado.
@@ -6395,7 +6604,8 @@ const SECTIONS = [
      medido para escrevê-lo. Fica por último porque é a que menos gente
      abre, e é a única que exige coordenação inteira. */
   { id: "bancada", label: "Bancada", icon: "experimento",
-    views: ["coleta", "monitoramento", "medidas", "poder", "correlacoes",
+    views: ["coleta", "monitoramento", "medidas", "poder", "confiabilidade",
+            "correlacoes",
             "ano_bancada",
             "relatorios", "exportar", "bancada_admin"] },
 ];
@@ -6409,7 +6619,8 @@ const VIEW_ICON = {
   calendario: "calendario", temporal: "tempo", espacial: "mapa",
   descobertas: "achado", qualidade: "qualidade", automacao: "automacao",
   coleta: "experimento", monitoramento: "coracao", medidas: "linha",
-  fomento: "financiamento", poder: "alvo", correlacoes: "rede", ano_bancada: "calendario", relatorios: "livro", exportar: "baixar",
+  fomento: "financiamento", poder: "alvo", confiabilidade: "qualidade",
+  correlacoes: "rede", ano_bancada: "calendario", relatorios: "livro", exportar: "baixar",
   bancada_admin: "processo",
 };
 /* Telas que não respondem a filtro nenhum. A barra some nelas: seletor de
@@ -6419,7 +6630,8 @@ const VIEW_ICON = {
 /* A bancada inteira também: nenhuma das sete telas responde ao ano, à
    linha de pesquisa nem ao integrante -- elas falam de participante. */
 const SEM_FILTROS = ["historia", "formacao", "coleta", "monitoramento",
-  "medidas", "poder", "correlacoes", "fomento", "ano_bancada", "relatorios",
+  "medidas", "poder", "confiabilidade", "correlacoes", "fomento",
+  "ano_bancada", "relatorios",
   "exportar", "bancada_admin"];
 
 /* atalhos entre sub-abas de seções diferentes — a ponte que o menu não faz */
@@ -6454,6 +6666,7 @@ const RELATED = {
   medidas: ["poder", "coleta", "exportar"],
   poder: ["medidas", "monitoramento", "coleta"],
   correlacoes: ["medidas", "poder", "coleta"],
+  confiabilidade: ["medidas", "correlacoes", "coleta"],
   ano_bancada: ["medidas", "relatorios", "monitoramento"],
   relatorios: ["ano_bancada", "exportar", "automacao"],
   exportar: ["medidas", "relatorios", "qualidade"],

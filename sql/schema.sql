@@ -1313,3 +1313,59 @@ CREATE TABLE IF NOT EXISTS submissoes_fomento (
 CREATE INDEX IF NOT EXISTS idx_editais_prazo ON editais(fecha_em, arquivado);
 CREATE INDEX IF NOT EXISTS idx_subm_situacao ON submissoes_fomento(situacao, submetido_em);
 CREATE INDEX IF NOT EXISTS idx_subm_edital ON submissoes_fomento(edital_id);
+
+
+/* ======================================================================
+   ITENS DO INSTRUMENTO — o que faltava para existir consistência interna
+   ----------------------------------------------------------------------
+   `coletas` guarda UM escore por instrumento. Serve para tudo o que a
+   bancada ja fazia -- media, efeito, teste, correlacao --, mas nao serve
+   para o alfa de Cronbach: consistencia interna e a relacao ENTRE OS
+   ITENS, e um escore ja e a soma deles. Sem o item, a conta nao existe.
+
+   Por isso o item e uma entidade propria, e a resposta a ele tambem. O
+   escore continua em `coletas`, e nao e apagado: quem so tem o escore
+   (planilha antiga, instrumento de medida unica como o VO2) continua
+   funcionando exatamente como antes.
+
+   `invertido` nao e detalhe de cadastro. Num questionario com
+   "sinto-me bem" e "sinto-me mal", o segundo anda ao contrario -- e sem
+   marcar isso o alfa despenca e o instrumento leva a culpa por um erro
+   de digitacao. A inversao usa `minimo` e `maximo` do instrumento.
+   ====================================================================== */
+CREATE TABLE IF NOT EXISTS itens_instrumento (
+  id             INTEGER PRIMARY KEY,
+  instrumento_id INTEGER NOT NULL REFERENCES instrumentos(id) ON DELETE CASCADE,
+  code           TEXT NOT NULL,
+  ordem          INTEGER NOT NULL DEFAULT 0,
+  enunciado      TEXT,
+  subescala      TEXT,
+  invertido      INTEGER NOT NULL DEFAULT 0,
+  ativo          INTEGER NOT NULL DEFAULT 1,
+  created_at     TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at     TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS respostas_itens (
+  id             INTEGER PRIMARY KEY,
+  participante_id INTEGER NOT NULL REFERENCES participantes(id) ON DELETE CASCADE,
+  item_id        INTEGER NOT NULL REFERENCES itens_instrumento(id) ON DELETE CASCADE,
+  momento_id     INTEGER REFERENCES momentos(id) ON DELETE SET NULL,
+  valor          REAL,
+  respondido_em  TEXT,
+  created_at     TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at     TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_item_unico
+  ON itens_instrumento(instrumento_id, code);
+
+/* COALESCE pela mesma razao de idx_coletas_unica: em SQL, NULL nao
+   colide com NULL, e `momento_id` fica em branco no caso de instrumento
+   aplicado fora de um protocolo declarado -- que e onde a duplicata e
+   mais provavel. */
+CREATE UNIQUE INDEX IF NOT EXISTS idx_resposta_unica
+  ON respostas_itens(participante_id, item_id, COALESCE(momento_id, -1));
+
+CREATE INDEX IF NOT EXISTS idx_resposta_item ON respostas_itens(item_id, momento_id);
+CREATE INDEX IF NOT EXISTS idx_item_instrumento ON itens_instrumento(instrumento_id, ordem);

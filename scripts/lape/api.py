@@ -145,6 +145,7 @@ def route_index(ctx: "Context") -> Any:
             "GET  /api/bancada/poder        (coordenação) ?protocolo=&pareado=",
             "GET  /api/fomento               (integrante) editais, prazos e vigência",
             "POST /api/fomento               (coordenação) {o_que: edital|submissao}",
+            "GET  /api/bancada/confiabilidade (coordenação) ?instrumento=&momento=",
             "GET  /api/bancada/correlacoes   (coordenação) ?protocolo=&momento=&metodo=",
             "GET  /api/bancada/ano           (coordenação) ?ano=",
             "GET  /api/bancada/exportar      (coordenação) medidas em formato longo",
@@ -696,6 +697,18 @@ def route_fomento_gravar(ctx: "Context") -> Any:
     raise ApiError(400, "o_que deve ser 'edital' ou 'submissao'")
 
 
+def route_bancada_confiabilidade(ctx: "Context") -> Any:
+    """Alfa de Cronbach do instrumento e de cada subescala."""
+    auth.require(ctx.user, "coordenacao")
+    from . import coleta
+    instrumento = to_int(ctx.query.get("instrumento", [None])[0])
+    if not instrumento:
+        return {"escalas": [], "momentos": [],
+                "aviso": "escolha um instrumento"}
+    return coleta.confiabilidade(ctx.db, instrumento,
+                                 to_int(ctx.query.get("momento", [None])[0]))
+
+
 def route_bancada_ano(ctx: "Context") -> Any:
     auth.require(ctx.user, "coordenacao")
     from . import coleta
@@ -747,9 +760,37 @@ def route_bancada_gravar(ctx: "Context") -> Any:
                 to_int(corpo.get("momento_id")), corpo.get("subescala"),
                 coletado_em=corpo.get("coletado_em"),
                 coletado_por=user.get("id"), observacao=corpo.get("observacao"))
+        elif o_que == "itens":
+            # Declarar item a item um questionario de trinta perguntas e
+            # trinta formularios. A porta aceita a LISTA inteira: e o
+            # unico jeito de isto ser usado de verdade.
+            lista = corpo.get("itens")
+            if not isinstance(lista, list) or not lista:
+                raise ApiError(400, "informe 'itens': [{code, subescala, invertido}]")
+            if len(lista) > 300:
+                raise ApiError(400, "no máximo 300 itens por vez")
+            instrumento_id = to_int(corpo.get("instrumento_id"))
+            if not instrumento_id:
+                raise ApiError(400, "informe 'instrumento_id'")
+            gravados = []
+            for ordem, item in enumerate(lista, start=1):
+                if not isinstance(item, dict) or not item.get("code"):
+                    raise ApiError(400, "cada item precisa de 'code'")
+                gravados.append(coleta.declarar_item(
+                    ctx.db, instrumento_id, str(item["code"]),
+                    ordem=item.get("ordem", ordem),
+                    enunciado=item.get("enunciado"),
+                    subescala=item.get("subescala") or None,
+                    invertido=1 if item.get("invertido") else 0))
+            saida = {"id": instrumento_id, "itens": gravados, "n": len(gravados)}
+        elif o_que == "resposta":
+            saida = coleta.responder(
+                ctx.db, to_int(corpo.get("participante_id")),
+                to_int(corpo.get("item_id")), corpo.get("valor"),
+                to_int(corpo.get("momento_id")), corpo.get("respondido_em"))
         else:
             raise ApiError(400, "informe 'o_que': instrumento, protocolo, momento, "
-                                "participante, saida ou medida")
+                                "participante, saida, medida, itens ou resposta")
     except ValueError as erro:
         raise ApiError(400, str(erro)) from erro
     auth.log(ctx.db, user["id"], user.get("login"), "bancada_" + str(o_que),
@@ -1978,6 +2019,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/bancada/poder/?$", route_bancada_poder, "coordenacao"),
     ("GET", r"^/api/fomento/?$", route_fomento, "integrante"),
     ("POST", r"^/api/fomento/?$", route_fomento_gravar, "coordenacao"),
+    ("GET", r"^/api/bancada/confiabilidade/?$", route_bancada_confiabilidade, "coordenacao"),
     ("GET", r"^/api/bancada/correlacoes/?$", route_bancada_correlacoes, "coordenacao"),
     ("GET", r"^/api/bancada/ano/?$", route_bancada_ano, "coordenacao"),
     ("GET", r"^/api/bancada/exportar/?$", route_bancada_exportar, "coordenacao"),

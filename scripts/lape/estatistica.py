@@ -723,3 +723,169 @@ def matriz_de_correlacao(colunas: dict[str, Sequence[Any]], metodo: str = "spear
         "brutos": sum(1 for _, _, r in pares
                       if r["p"] is not None and r["p"] <= alfa),
     }
+
+
+# ----------------------------------------------------------------------
+# Consistencia interna
+# ----------------------------------------------------------------------
+# O alfa responde "este questionario esta medindo UMA coisa so, com ESTA
+# amostra?" -- e a pergunta que vem antes de qualquer teste: instrumento
+# inconsistente invalida o que se calcula em cima dele.
+#
+# Quatro coisas que quase toda planilha de alfa erra, e que estao
+# tratadas aqui:
+#
+#   1. ITEM INVERTIDO. Num questionario com "sinto-me bem" e "sinto-me
+#      mal", o segundo anda ao contrario. Sem inverter antes, o alfa
+#      despenca e o instrumento leva a culpa por um erro de digitacao.
+#   2. ALFA E LIMITE INFERIOR da confiabilidade, e nao a confiabilidade.
+#      Ele supõe tau-equivalencia -- que todos os itens medem a mesma
+#      coisa com o mesmo peso --, e quando isso nao vale ele SUBESTIMA.
+#      "0,68" nao quer dizer "ruim": quer dizer "pelo menos 0,68".
+#   3. ALFA CRESCE COM O NUMERO DE ITENS. 0,90 com quarenta itens diz
+#      menos que 0,80 com cinco, e a leitura tem de mostrar o k.
+#   4. ALFA ALTO DEMAIS E SINTOMA. Acima de 0,95 costuma ser redundancia
+#      -- varios itens perguntando a mesma coisa com outras palavras --,
+#      e nao excelencia.
+
+N_MINIMO_PARA_ALFA = 10
+K_MINIMO_DE_ITENS = 2
+ALFA_REDUNDANTE = 0.95
+
+
+def _variancia(valores: Sequence[float]) -> float:
+    n = len(valores)
+    if n < 2:
+        return 0.0
+    return statistics.variance(valores)
+
+
+def _inverter(valor: float, minimo: float, maximo: float) -> float:
+    """Espelha o valor dentro da escala: 1 vira 5 numa escala de 1 a 5."""
+    return minimo + maximo - valor
+
+
+def alfa_de_cronbach(respostas: Sequence[Sequence[Any]],
+                     invertidos: Sequence[bool] | None = None,
+                     escala: tuple[float, float] | None = None
+                     ) -> dict[str, Any]:
+    """Consistencia interna a partir da matriz PESSOA x ITEM.
+
+    `respostas` e uma lista por PESSOA, cada uma com um valor por item, na
+    mesma ordem. So entram as pessoas que responderam TODOS os itens:
+    alfa se calcula sobre a matriz de covariancia, e uma matriz com
+    buracos nao tem covariancia definida -- imputar a media aqui
+    inflaria o alfa de graca.
+    """
+    invertidos = list(invertidos or [])
+    completas: list[list[float]] = []
+    for linha in respostas:
+        valores = list(linha)
+        if any(v is None or not math.isfinite(float(v)) for v in valores):
+            continue
+        valores = [float(v) for v in valores]
+        if escala:
+            for i, marcado in enumerate(invertidos[:len(valores)]):
+                if marcado:
+                    valores[i] = _inverter(valores[i], escala[0], escala[1])
+        completas.append(valores)
+
+    n = len(completas)
+    k = len(completas[0]) if completas else 0
+    saida: dict[str, Any] = {
+        "alfa": None, "k": k, "n": n, "ic": None, "itens": [],
+        "invertidos": sum(1 for x in invertidos if x), "aviso": None,
+    }
+    if k < K_MINIMO_DE_ITENS:
+        saida["aviso"] = "são precisos ao menos dois itens: consistência é entre itens"
+        return saida
+    if n < 3:
+        saida["aviso"] = "são precisas ao menos três pessoas com todos os itens"
+        return saida
+    if any(len(linha) != k for linha in completas):
+        saida["aviso"] = "as pessoas responderam números diferentes de itens"
+        return saida
+
+    colunas = [[linha[j] for linha in completas] for j in range(k)]
+    variancias = [_variancia(c) for c in colunas]
+    totais = [sum(linha) for linha in completas]
+    var_total = _variancia(totais)
+    if var_total <= 0:
+        saida["aviso"] = "todos os escores totais são iguais: sem variação não há alfa"
+        return saida
+
+    alfa = (k / (k - 1.0)) * (1.0 - sum(variancias) / var_total)
+    saida["alfa"] = round(alfa, 4)
+    saida["ic"] = _ic_do_alfa(alfa, n, k)
+    saida["itens"] = _diagnostico_dos_itens(colunas, totais, k, n)
+    saida["aviso"] = _aviso_do_alfa(alfa, n, k)
+    return saida
+
+
+def _ic_do_alfa(alfa: float, n: int, k: int, conf: float = 0.95) -> list[float] | None:
+    """Intervalo de Feldt: (1 - alfa) segue uma F com (n-1) e (n-1)(k-1) gl."""
+    if n < 3 or k < 2 or alfa >= 1.0:
+        return None
+    gl1, gl2 = n - 1, (n - 1) * (k - 1)
+    cauda = (1.0 - conf) / 2.0
+    baixo = 1.0 - (1.0 - alfa) * _f_critico(gl1, gl2, 1.0 - cauda)
+    alto = 1.0 - (1.0 - alfa) * _f_critico(gl1, gl2, cauda)
+    return [round(max(-1.0, baixo), 4), round(min(1.0, alto), 4)]
+
+
+def _f_critico(gl1: int, gl2: int, p: float) -> float:
+    """Quantil da F por busca binaria sobre a propria f_cdf.
+
+    Sem scipy, e sem tabela: a F ja esta implementada neste modulo, e
+    inverte-la por bisseccao e exato o bastante -- o erro fica abaixo da
+    quarta casa, que e onde o intervalo e arredondado de qualquer jeito.
+    """
+    baixo, alto = 1e-6, 1e6
+    for _ in range(200):
+        meio = (baixo + alto) / 2.0
+        if f_cdf(meio, gl1, gl2) < p:
+            baixo = meio
+        else:
+            alto = meio
+    return (baixo + alto) / 2.0
+
+
+def _diagnostico_dos_itens(colunas: list[list[float]], totais: list[float],
+                           k: int, n: int) -> list[dict]:
+    """Por item: correlacao com o resto, e o alfa SEM ele.
+
+    A correlacao e com o TOTAL MENOS O PROPRIO ITEM. Correlacionar o item
+    com um total que o contem infla a conta -- o item esta correlacionado
+    consigo mesmo --, e o efeito e maior justamente onde ha poucos itens.
+    """
+    saida = []
+    for j in range(k):
+        resto = [totais[i] - colunas[j][i] for i in range(n)]
+        r = correlacao(colunas[j], resto, "pearson")["r"]
+        sem_ele = None
+        if k > 2:
+            outras = [colunas[m] for m in range(k) if m != j]
+            var_itens = sum(_variancia(c) for c in outras)
+            var_resto = _variancia(resto)
+            if var_resto > 0:
+                sem_ele = round(((k - 1) / (k - 2.0))
+                                * (1.0 - var_itens / var_resto), 4)
+        saida.append({
+            "item": j, "r_com_o_resto": r, "alfa_sem_ele": sem_ele,
+            "variancia": round(_variancia(colunas[j]), 4),
+        })
+    return saida
+
+
+def _aviso_do_alfa(alfa: float, n: int, k: int) -> str | None:
+    if n < N_MINIMO_PARA_ALFA:
+        return ("com %d pessoas o alfa balança muito: o intervalo é largo "
+                "demais para decidir sobre o instrumento" % n)
+    if alfa >= ALFA_REDUNDANTE:
+        return ("alfa acima de %.2f costuma ser redundância -- vários itens "
+                "perguntando a mesma coisa com outras palavras -- e não "
+                "excelência" % ALFA_REDUNDANTE)
+    if k > 20:
+        return ("com %d itens o alfa sobe por tamanho: compare com "
+                "instrumentos de número parecido de itens" % k)
+    return None

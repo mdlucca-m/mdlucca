@@ -965,3 +965,148 @@ def correlacoes(db: Database, protocolo_id: int, momento_id: int | None = None,
                   "momento": nome_do_momento, "rotulos": rotulos,
                   "participantes": len(gente), "aviso": None})
     return saida
+
+
+# ----------------------------------------------------------------------
+# Itens e consistencia interna
+# ----------------------------------------------------------------------
+
+def itens(db: Database, instrumento_id: int, incluir_inativos: bool = False) -> list[dict]:
+    filtro = "" if incluir_inativos else " AND ativo = 1"
+    return db.dicts(
+        "SELECT * FROM itens_instrumento WHERE instrumento_id = ?" + filtro
+        + " ORDER BY ordem, id", (instrumento_id,))
+
+
+def declarar_item(db: Database, instrumento_id: int, code: str, **extra: Any) -> dict:
+    """Declara (ou atualiza) um item do instrumento."""
+    campos: dict[str, Any] = {"instrumento_id": instrumento_id, "code": code}
+    for chave in ("ordem", "enunciado", "subescala", "invertido", "ativo"):
+        if chave in extra and extra[chave] is not None:
+            campos[chave] = extra[chave]
+    if "ordem" not in campos:
+        campos["ordem"] = 1 + (db.scalar(
+            "SELECT COALESCE(MAX(ordem), 0) FROM itens_instrumento"
+            " WHERE instrumento_id = ?", (instrumento_id,)) or 0)
+    novo_id = db.upsert("itens_instrumento", campos,
+                        conflict=("instrumento_id", "code"))
+    return db.dicts("SELECT * FROM itens_instrumento WHERE id = ?", (novo_id,))[0]
+
+
+def responder(db: Database, participante_id: int, item_id: int, valor: float,
+              momento_id: int | None = None, respondido_em: str | None = None) -> dict:
+    """Grava a resposta de uma pessoa a um item.
+
+    Busca-e-atualiza explicito, e nao ON CONFLICT: a unicidade vem de um
+    indice de EXPRESSAO (com COALESCE no momento), e ON CONFLICT nao sabe
+    apontar para expressao -- a mesma razao de `registrar`.
+    """
+    achada = db.dicts(
+        "SELECT id FROM respostas_itens"
+        " WHERE participante_id = ? AND item_id = ?"
+        "   AND COALESCE(momento_id, -1) = COALESCE(?, -1)",
+        (participante_id, item_id, momento_id))
+    campos = {"valor": valor,
+              "respondido_em": respondido_em or _hoje().isoformat()}
+    if achada:
+        db.update_row("respostas_itens", achada[0]["id"], campos)
+        alvo = achada[0]["id"]
+    else:
+        campos.update({"participante_id": participante_id, "item_id": item_id,
+                       "momento_id": momento_id})
+        alvo = db.insert("respostas_itens", campos)
+    return db.dicts("SELECT * FROM respostas_itens WHERE id = ?", (alvo,))[0]
+
+
+def _matriz_de_itens(db: Database, instrumento_id: int, momento_id: int | None,
+                     subescala: str | None = None) -> tuple[list[dict], list[list]]:
+    """Pessoa x item, na mesma ordem de itens para toda linha."""
+    lista = [i for i in itens(db, instrumento_id)
+             if subescala is None or (i["subescala"] or "") == subescala]
+    if not lista:
+        return [], []
+    ids = [i["id"] for i in lista]
+    marcas = ",".join("?" * len(ids))
+    args: list = list(ids)
+    filtro = ""
+    if momento_id is not None:
+        filtro = " AND r.momento_id = ?"
+        args.append(momento_id)
+    linhas = db.dicts(
+        "SELECT r.participante_id, r.item_id, r.valor FROM respostas_itens r"
+        " WHERE r.item_id IN (" + marcas + ")" + filtro, tuple(args))
+    por_pessoa: dict[int, dict[int, float]] = {}
+    for linha in linhas:
+        por_pessoa.setdefault(linha["participante_id"], {})[linha["item_id"]] = linha["valor"]
+    matriz = [[respostas.get(i) for i in ids] for respostas in por_pessoa.values()]
+    return lista, matriz
+
+
+def confiabilidade(db: Database, instrumento_id: int,
+                   momento_id: int | None = None) -> dict:
+    """Alfa do instrumento inteiro e de cada subescala.
+
+    Por subescala TAMBEM, e nao so no total: subescalas medem coisas
+    diferentes de proposito -- e o alfa do instrumento inteiro, quando ha
+    subescalas, mistura construtos e diz pouco. O numero que interessa ao
+    revisor e o de cada subescala.
+    """
+    instrumento = db.dicts("SELECT * FROM instrumentos WHERE id = ?",
+                           (instrumento_id,))
+    if not instrumento:
+        return {"aviso": "instrumento não encontrado"}
+    instrumento = instrumento[0]
+    momentos = db.dicts(
+        "SELECT DISTINCT m.id, m.nome, m.ordem FROM respostas_itens r"
+        "  JOIN momentos m ON m.id = r.momento_id"
+        "  JOIN itens_instrumento i ON i.id = r.item_id"
+        " WHERE i.instrumento_id = ? ORDER BY m.ordem, m.id", (instrumento_id,))
+    if momento_id is None and momentos:
+        momento_id = momentos[0]["id"]
+
+    todos = itens(db, instrumento_id)
+    if not todos:
+        return {"instrumento": instrumento["nome"], "momentos": momentos,
+                "momento_id": momento_id, "escalas": [], "itens_declarados": 0,
+                "aviso": "Consistência interna é a relação ENTRE OS ITENS, e "
+                         "este instrumento guarda só o escore final. Declare os "
+                         "itens abaixo para que o alfa possa ser calculado."}
+
+    escala = None
+    if instrumento.get("minimo") is not None and instrumento.get("maximo") is not None:
+        escala = (float(instrumento["minimo"]), float(instrumento["maximo"]))
+
+    grupos: list[tuple[str, str | None]] = [("Instrumento inteiro", None)]
+    nomes = sorted({(i["subescala"] or "") for i in todos} - {""})
+    grupos += [(nome, nome) for nome in nomes]
+
+    escalas = []
+    for rotulo, sub in grupos:
+        lista, matriz = _matriz_de_itens(db, instrumento_id, momento_id, sub)
+        if not lista:
+            continue
+        invertidos = [bool(i["invertido"]) for i in lista]
+        if any(invertidos) and escala is None:
+            # inverter sem saber a escala e impossivel, e adivinhar pelo
+            # maior valor observado inventaria um teto que o instrumento
+            # nao declarou
+            escalas.append({
+                "escala": rotulo, "subescala": sub, "k": len(lista),
+                "alfa": None, "n": 0, "itens": [],
+                "aviso": "há item invertido, mas o instrumento não declara "
+                         "mínimo e máximo: sem a escala não dá para inverter"})
+            continue
+        r = estatistica.alfa_de_cronbach(matriz, invertidos, escala)
+        for diag, item in zip(r["itens"], lista):
+            diag.update({"code": item["code"], "enunciado": item["enunciado"],
+                         "invertido": bool(item["invertido"])})
+        r.update({"escala": rotulo, "subescala": sub})
+        escalas.append(r)
+
+    return {
+        "instrumento": instrumento["nome"], "instrumento_id": instrumento_id,
+        "momentos": momentos, "momento_id": momento_id,
+        "momento": next((m["nome"] for m in momentos if m["id"] == momento_id), None),
+        "itens_declarados": len(todos), "escalas": escalas,
+        "tem_escala": escala is not None, "aviso": None,
+    }
