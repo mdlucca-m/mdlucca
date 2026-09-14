@@ -104,6 +104,19 @@ body { background: var(--surface-sunken); }
 
 .linha-kpi { display: grid; gap: clamp(8px, .9vw, 14px);
   grid-template-columns: repeat(auto-fit, minmax(clamp(150px, 13vw, 230px), 1fr)); }
+/* Faixa curta nao estica. `auto-fit` com `1fr` reparte a parede inteira
+   entre os cartoes que houver: com seis dá cartao, com dois dá dois
+   banners de meia parede cada, e o numero fica perdido num campo de
+   branco do tamanho dele. O teto devolve aos cartoes a largura que eles
+   tem nas telas de seis, e a fileira fica centrada em vez de esticada.
+   O seletor casa quando o ultimo filho esta entre os tres primeiros --
+   ou seja, tres cartoes ou menos. Onde `:has` nao existir, volta a
+   esticar: torto, e nao quebrado. */
+.linha-kpi:has(> :nth-child(-n+3):last-child) {
+  grid-template-columns:
+    repeat(auto-fit, minmax(clamp(150px, 13vw, 230px), clamp(230px, 24vw, 400px)));
+  justify-content: center;
+}
 .tile { position: relative; overflow: hidden; border-radius: var(--radius);
   border: 1px solid var(--border); background: var(--grad-card), var(--surface);
   box-shadow: var(--shadow); padding: clamp(11px, 1.3vh, 20px) clamp(13px, 1.1vw, 20px);

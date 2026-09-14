@@ -125,8 +125,8 @@ class TestMontagemDoMural(unittest.TestCase):
         linha não é citada", que é uma afirmação que o dado não sustenta.
         """
         js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
-        corpo = js[js.index("function slideAreas()"):]
-        corpo = corpo[:corpo.index("function slideDentroDaArea")]
+        corpo = js[js.index("function graficoDasAreas()"):]
+        corpo = corpo[:corpo.index("function slideCitados")]
         self.assertNotIn('text: "Citações"', corpo)
 
     def test_a_lamina_da_equipe_diz_quem_e_e_nao_quanto_produz(self):
@@ -136,13 +136,51 @@ class TestMontagemDoMural(unittest.TestCase):
         self.assertIn("VINCULO_NOME", corpo)
         self.assertNotIn("produção por pessoa", corpo)
         self.assertNotIn("n_articles", corpo)
+        # o maior indice h saiu: numa parede lida pela propria equipe ele e
+        # sempre da mesma pessoa, e transforma a tela de quem-e-quem em podio
+        self.assertNotIn("best_h_index", corpo)
+        self.assertNotIn("h_index", corpo)
 
-    def test_linha_encerrada_e_vazia_sai_da_parede(self):
-        """Encerrada COM artigo fica: a produção é história do laboratório."""
+    def test_a_lamina_da_equipe_e_so_de_quem_e_do_lape(self):
+        """Coautor de fora assina o artigo e nao e integrante.
+
+        Ele entra na producao e na rede de colaboracao -- e a faixa de
+        numeros desta mesma tela conta esses pares de proposito. O que ele
+        nao pode e aparecer na lista de quem trabalha aqui, nem na conta
+        de "8 de 20 integrantes", que e o que a sala confere de cabeca.
+        """
         js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
-        corpo = js[js.index("function slideAreas()"):]
-        corpo = corpo[:corpo.index("function slideDentroDaArea")]
-        self.assertIn("x.ativa || x.total > 0", corpo)
+        corpo = js[js.index("function slideDestaques()"):]
+        corpo = corpo[:corpo.index("\nconst SLIDES")]
+        self.assertIn("!m.is_external", corpo)
+        # a mesma lista filtrada serve a tabela, a contagem do rodape e as
+        # linhas de pesquisa: tres numeros que tem de fechar entre si
+        self.assertEqual(corpo.count("!m.is_external"), 1,
+                         "mais de um filtro de equipe: eles vao divergir")
+        self.assertIn("doLape.length", corpo)
+        self.assertIn("agrupadosPorLinha(doLape", corpo)
+
+    def test_cada_linha_de_pesquisa_mostra_quem_trabalha_nela(self):
+        """Era uma rosca de ARTIGOS por linha, e virou gente.
+
+        Diante de uma linha de pesquisa, quem passa no corredor pergunta
+        "quem toca isso" -- quantos papeis sairam dali a tela das citacoes
+        ja responde, em barras.
+        """
+        js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
+        corpo = js[js.index("function slideDestaques()"):]
+        corpo = corpo[:corpo.index("\nconst SLIDES")]
+        self.assertIn("Integrantes de cada linha", corpo)
+        self.assertNotIn("Onde a produção está", corpo)
+        self.assertNotIn("C.donut", corpo)
+
+    def test_a_producao_por_area_e_renderizada_e_nao_so_calculada(self):
+        """Calcular e nao desenhar deixaria a tela vazia sem erro nenhum."""
+        js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
+        corpo = js[js.index("function slideCitados"):js.index("function agrupadosPorLinha")]
+        self.assertIn("area.grafico", corpo)
+        self.assertIn("area.titulo", corpo)
+
 
     def test_leva_tudo_embutido(self):
         self.assertIn("const Icons", self.html)
@@ -269,6 +307,81 @@ class TestRotaDoMural(unittest.TestCase):
         self.assertIn("const ROTEIRO", corpo)
 
 
+class TestIntegrantesDeCadaLinha(unittest.TestCase):
+    """O agrupamento da equipe por linha de pesquisa, rodado de verdade."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.fonte = _recorta("agrupadosPorLinha")
+
+    def agrupa(self, gente, linhas):
+        return _no_node(self.fonte, f"agrupadosPorLinha({json.dumps(gente)},"
+                                    f" {json.dumps(linhas)})")
+
+    # "Exergames" vem ANTES na lista da coordenacao e tem MENOS gente: e o
+    # que separa "ordenou" de "saiu na ordem em que estava cadastrado"
+    LINHAS = [{"name": "Exergames"}, {"name": "Dor crônica"}, {"name": "Câncer"}]
+    EQUIPE = [
+        {"short_name": "A", "research_line": "Dor crônica"},
+        {"short_name": "B", "research_line": "Exergames"},
+        {"short_name": "C", "research_line": "Dor crônica"},
+        {"short_name": "D", "research_line": None},
+    ]
+
+    def test_da_linha_mais_cheia_para_a_mais_vazia(self):
+        saida = self.agrupa(self.EQUIPE, self.LINHAS)
+        self.assertEqual([x["nome"] for x in saida],
+                         ["Dor crônica", "Exergames", "Sem linha declarada"])
+
+    def test_linha_sem_ninguem_nao_vira_fileira_vazia(self):
+        # "Câncer" está cadastrada e não tem ninguém: uma linha em branco
+        # na parede ocupa a altura de quem tem gente e não diz nada
+        nomes = [x["nome"] for x in self.agrupa(self.EQUIPE, self.LINHAS)]
+        self.assertNotIn("Câncer", nomes)
+
+    def test_quem_nao_tem_linha_declarada_nao_some_da_conta(self):
+        """Escondido, a soma das linhas nao bate com o total da equipe.
+
+        Quem confere de cabeca acharia que a parede perdeu alguem -- e a
+        parede nao teria como avisar que nao perdeu. Hoje, no banco do
+        LAPE, este e o caso de TODO MUNDO: ninguem tem linha declarada, e
+        sem esta regra o quadro sairia vazio com quinze pessoas dentro.
+        """
+        saida = self.agrupa(self.EQUIPE, self.LINHAS)
+        gente = [m["short_name"] for x in saida for m in x["gente"]]
+        self.assertEqual(sorted(gente), ["A", "B", "C", "D"])
+        self.assertEqual(saida[-1]["nome"], "Sem linha declarada")
+
+    def test_o_balde_dos_sem_linha_fica_no_fim_mesmo_sendo_o_maior(self):
+        """Ele e um resto, e nao a maior linha de pesquisa do laboratorio."""
+        equipe = [{"short_name": str(i), "research_line": None} for i in range(9)]
+        equipe.append({"short_name": "x", "research_line": "Dor crônica"})
+        saida = self.agrupa(equipe, self.LINHAS)
+        self.assertEqual(saida[0]["nome"], "Dor crônica")
+        self.assertEqual(saida[-1]["nome"], "Sem linha declarada")
+
+    def test_linha_que_a_pessoa_declara_e_que_nao_esta_na_lista_conta(self):
+        """A pessoa esta la de todo jeito.
+
+        Cair no "sem linha declarada" por causa de um nome que a
+        coordenacao ainda nao cadastrou seria a parede dizer que ela nao
+        declarou -- quando ela declarou.
+        """
+        saida = self.agrupa([{"short_name": "Z", "research_line": "Qualidade do ar"}],
+                            self.LINHAS)
+        self.assertEqual([x["nome"] for x in saida], ["Qualidade do ar"])
+
+    def test_equipe_vazia_nao_inventa_balde(self):
+        self.assertEqual(self.agrupa([], self.LINHAS), [])
+
+    def test_linha_encerrada_e_vazia_sai_da_parede(self):
+        """Encerrada COM artigo fica: a produção é história do laboratório."""
+        js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
+        corpo = js[js.index("function graficoDasAreas()"):]
+        corpo = corpo[:corpo.index("function slideCitados")]
+        self.assertIn("x.ativa || x.total > 0", corpo)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
 
@@ -319,7 +432,7 @@ process.stdout.write(JSON.stringify(original.map(function (x) { return x.title; 
 
     def test_as_duas_listas_saem_de_status_diferentes(self):
         js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
-        corpo = js[js.index("function slideBancada"):js.index("function maisCitados")]
+        corpo = js[js.index("function slideBancada"):js.index("function graficoDasAreas")]
         self.assertIn('a.status === "em_producao"', corpo)
         self.assertIn('a.status === "submetido" || a.status === "em_revisao"', corpo)
         # a data que cada lista promete no titulo e a data que ela usa
@@ -329,7 +442,7 @@ process.stdout.write(JSON.stringify(original.map(function (x) { return x.title; 
     def test_o_artigo_sem_data_diz_que_esta_sem_data(self):
         # "1 jan" inventado seria pior do que nao mostrar nada
         js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
-        corpo = js[js.index("function slideBancada"):js.index("function maisCitados")]
+        corpo = js[js.index("function slideBancada"):js.index("function graficoDasAreas")]
         self.assertIn("sem data de início registrada", corpo)
         self.assertIn("sem data de submissão registrada", corpo)
 
@@ -337,7 +450,7 @@ process.stdout.write(JSON.stringify(original.map(function (x) { return x.title; 
         # no tema escuro --series-4 e --warning sao quase a mesma cor: a
         # distincao precisa estar em palavra, ou nao existe a tres metros
         js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
-        corpo = js[js.index("function slideBancada"):js.index("function maisCitados")]
+        corpo = js[js.index("function slideBancada"):js.index("function graficoDasAreas")]
         self.assertIn("ESPERA_LONGA", corpo)
         self.assertIn("sem resposta", corpo)
 
@@ -385,125 +498,117 @@ class TestTempoDecorrido(unittest.TestCase):
         self.assertEqual(self.diz(-533), "há 1 ano e 6 meses")
 
 
-class TestOsMaisCitados(unittest.TestCase):
+class TestCitacoesNaParede(unittest.TestCase):
     """Uma base por vez, e a tela diz qual.
 
-    A regra antiga era "só a Web of Science", e ela guardava algo certo:
-    exibir o maior de três bases sob o rótulo de uma faria a parede
-    anunciar um número que ninguém encontra ao conferir. O que ela não
-    previa era o acervo sem WoS -- e foi o que aconteceu: um laboratório
-    com quatro mil citações na OpenAlex viu "0 citações" na parede, porque
-    a tela perguntava a uma base só e a coluna dela estava em branco.
+    A regra antiga era "so a Web of Science", e ela guardava algo certo:
+    exibir o maior de tres bases sob o rotulo de uma faria a parede
+    anunciar um numero que ninguem encontra ao conferir. O que ela nao
+    previa era o acervo sem WoS -- e foi o que aconteceu: um laboratorio
+    com quatro mil citacoes na OpenAlex viu "0 citacoes" na parede, porque
+    a tela perguntava a uma base so e a coluna dela estava em branco.
 
-    A regra agora é: escolher UMA base, a primeira que tenha número, e
-    escrever o nome dela ao lado de cada número. Misturar continua proibido.
+    A parede escolhia UMA base e mostrava o ranking dela. A coordenacao
+    pediu as DUAS que a avaliacao usa, lado a lado, e tirou os dois quadros
+    de artigo mais citado. Entao nao ha mais base escolhida -- ha WoS e
+    Scopus, cada uma com o seu proprio numero. O que nao mudou, e e o que
+    estes testes guardam: misturar continua proibido, e zero continua
+    tendo de se distinguir de "nao perguntei a esta base".
     """
 
     @classmethod
     def setUpClass(cls):
         cls.fonte = ("const BASES = " + _bases() + ";\n"
-                     + _recorta("baseDeCitacao") + "\n"
                      + _recorta("citacoesDe") + "\n"
-                     + _recorta("basesComNumero") + "\n"
-                     + _recorta("maisCitados"))
+                     + _recorta("basesComNumero"))
+        cls.js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
 
-    def base(self, arts):
-        return _no_node(self.fonte, f"baseDeCitacao({json.dumps(arts)})")
+    @property
+    def tela(self):
+        return self.js[self.js.index("function slideCitados"):
+                       self.js.index("function slideDestaques")]
 
-    def ranking(self, arts, desde=None):
-        return _no_node(
-            self.fonte,
-            f"maisCitados({json.dumps(arts)}, {json.dumps(desde)},"
-            f" baseDeCitacao({json.dumps(arts)}))")
-
-    ACERVO = [
-        {"title": "velho", "year_published": 2011, "wos_citations": 90},
-        {"title": "novo", "year_published": 2024, "wos_citations": 40},
-        {"title": "recente", "year_published": 2023, "wos_citations": 55},
-        {"title": "sem citacao", "year_published": 2022, "wos_citations": 0},
-    ]
-
-    def test_do_mais_citado_para_o_menos(self):
-        self.assertEqual([a["title"] for a in self.ranking(self.ACERVO)],
-                         ["velho", "recente", "novo"])
-
-    def test_artigo_sem_citacao_fica_fora_do_podio(self):
-        self.assertNotIn("sem citacao", [a["title"] for a in self.ranking(self.ACERVO)])
-
-    def test_a_janela_corta_pelo_ano_de_publicacao(self):
-        recentes = [a["title"] for a in self.ranking(self.ACERVO, 2022)]
-        self.assertEqual(recentes, ["recente", "novo"])
-
-    # -- a escolha da base -----------------------------------------------
-    def test_com_wos_preenchida_e_a_wos_que_manda(self):
-        # é a base da avaliação: onde ela responde, é ela que a parede mostra
-        self.assertEqual(self.base(self.ACERVO)["curto"], "WoS")
-
-    def test_acervo_so_com_openalex_nao_anuncia_zero(self):
-        """O defeito que este bloco guarda: 4.051 citações e "0" na parede.
-
-        O acervo tinha os números na OpenAlex, que a importação traz
-        sozinha; a tela pedia só a coluna da WoS e anunciava zero sem nada
-        dizer que estava olhando para uma base só.
-        """
-        acervo = [{"title": "aberto", "year_published": 2024,
-                   "wos_citations": 0, "openalex_citations": 4051}]
-        self.assertEqual(self.base(acervo)["curto"], "OpenAlex")
-        self.assertEqual([a["title"] for a in self.ranking(acervo)], ["aberto"])
-
-    def test_scopus_vem_antes_da_openalex(self):
-        acervo = [{"title": "x", "year_published": 2024,
-                   "scopus_citations": 12, "openalex_citations": 300}]
-        self.assertEqual(self.base(acervo)["curto"], "Scopus")
-
-    def test_o_numero_exibido_e_o_da_base_escolhida_e_nao_o_maior(self):
+    # -- o numero de cada base -------------------------------------------
+    def test_o_numero_e_o_da_base_pedida_e_nunca_o_maior(self):
         """Misturar continua proibido.
 
-        Trocar em silêncio pelo maior de três faria a parede exibir um
-        número que ninguém encontra ao conferir na base que está escrita
-        ao lado dele.
+        Trocar em silencio pelo maior de tres faria a parede exibir um
+        numero que ninguem encontra ao conferir na base escrita ao lado.
         """
-        acervo = [{"title": "so scopus", "year_published": 2024,
-                   "wos_citations": 0, "scopus_citations": 300,
-                   "openalex_citations": 280}]
-        base = self.base(acervo)
-        self.assertEqual(base["curto"], "Scopus")
-        valor = _no_node(self.fonte,
-                         f"citacoesDe({json.dumps(acervo[0])}, {json.dumps(base)})")
-        self.assertEqual(valor, 300)          # o da Scopus, não o de 280 nem uma soma
+        artigo = {"title": "so scopus", "wos_citations": 0,
+                  "scopus_citations": 300, "openalex_citations": 280}
+        wos = {"campo": "wos_citations", "rotulo": "Web of Science", "curto": "WoS"}
+        scopus = {"campo": "scopus_citations", "rotulo": "Scopus", "curto": "Scopus"}
+        self.assertEqual(
+            _no_node(self.fonte, f"citacoesDe({json.dumps(artigo)}, {json.dumps(scopus)})"),
+            300)
+        # e a WoS continua zero, e nao os 300 da vizinha nem os 280 da outra
+        self.assertEqual(
+            _no_node(self.fonte, f"citacoesDe({json.dumps(artigo)}, {json.dumps(wos)})"),
+            0)
 
-    def test_acervo_sem_base_nenhuma_devolve_nulo(self):
-        acervo = [{"title": "nada", "year_published": 2024}]
-        self.assertIsNone(self.base(acervo))
-        self.assertEqual(self.ranking(acervo), [])
-
-    def test_a_tela_diz_quais_outras_bases_tem_numero(self):
-        # sem isso, quem lê compara com o que viu no Lattes e não entende a
-        # diferença -- e a diferença entre bases é grande e legítima
-        acervo = [{"title": "x", "year_published": 2024,
-                   "wos_citations": 5, "openalex_citations": 9}]
+    def test_a_tela_diz_quais_bases_tem_numero(self):
+        # sem isso, quem le compara com o que viu no Lattes e nao entende a
+        # diferenca -- e a diferenca entre bases e grande e legitima
+        acervo = [{"title": "x", "wos_citations": 5, "openalex_citations": 9}]
         nomes = [b["curto"] for b in
                  _no_node(self.fonte, f"basesComNumero({json.dumps(acervo)})")]
         self.assertEqual(nomes, ["WoS", "OpenAlex"])
 
+    def test_acervo_sem_base_nenhuma_nao_inventa_fonte(self):
+        acervo = [{"title": "nada"}]
+        self.assertEqual(_no_node(self.fonte, f"basesComNumero({json.dumps(acervo)})"), [])
+
     # -- o que a tela escreve --------------------------------------------
-    def test_o_placar_nomeia_a_base_na_coluna(self):
-        # "Citações" sozinho deixaria a coluna parecer a soma das três
-        js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
-        corpo = js[js.index("function placarDeCitacoes"):]
-        corpo = corpo[:corpo.index("\n}\n")]
-        self.assertIn('"Citações " + (base ? base.curto : "WoS")', corpo)
+    def test_a_parede_mostra_as_duas_bases_da_avaliacao(self):
+        """WoS e Scopus, cada uma com o seu numero e o seu nome escrito."""
+        self.assertIn('"Citações na " + b.curto', self.tela)
+        self.assertIn("wos_citations:", self.tela)
+        self.assertIn("scopus_citations:", self.tela)
 
-    def test_sem_base_nenhuma_a_tela_diz_por_onde_o_numero_entra(self):
-        js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
-        corpo = js[js.index("function slideCitados"):js.index("function slideDestaques")]
-        self.assertIn("Ainda sem citações registradas em nenhuma base", corpo)
-        self.assertIn("pedem a chave da universidade", corpo)
+    def test_base_que_nao_respondeu_nao_anuncia_zero_calado(self):
+        """O defeito que este teste guarda: 4.051 citacoes e "0" na parede.
 
-    def test_o_kpi_carrega_o_nome_da_base(self):
-        js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
-        corpo = js[js.index("function slideCitados"):js.index("function slideDestaques")]
-        self.assertIn('"Citações na " + base.curto', corpo)
+        Com DUAS bases fixas na tela, o defeito voltaria pela porta da
+        frente: a UDESC pode nao ter chave da WoS, e a coluna fica em
+        branco para o acervo inteiro. Um "0" ali se le como "este
+        laboratorio nao e citado". O pe do numero tem de dizer que a
+        pergunta nao foi feita.
+        """
+        self.assertIn("esta base ainda não respondeu", self.tela)
+        self.assertIn("respondeu ?", self.tela)
+
+    def test_os_dois_quadros_de_ranking_sairam(self):
+        """Nenhum artigo e destacado pelo nome na parede do corredor."""
+        for sumiu in ("placarDeCitacoes", "maisCitados", "Artigos mais citados",
+                      "Mais citado"):
+            with self.subTest(sumiu=sumiu):
+                self.assertNotIn(sumiu, self.js)
+
+    def test_linha_cadastrada_sem_artigo_nao_vira_grafico_vazio(self):
+        """Ter linha cadastrada e ter artigo LIGADO a ela sao coisas diferentes.
+
+        Com as linhas declaradas e nenhum artigo apontando para elas, o
+        grafico saia: um quadro do tamanho da parede, os nomes das linhas
+        no eixo e nenhuma barra em cima. Quem olha nao le "ninguem
+        classificou os artigos ainda" -- le "este laboratorio nao produziu
+        nada". E o estado real do banco do LAPE hoje.
+        """
+        corpo = self.js[self.js.index("function graficoDasAreas"):
+                        self.js.index("function slideCitados")]
+        self.assertIn("comArtigo", corpo)
+        self.assertIn("porLinha.length && comArtigo", corpo)
+        self.assertIn("nenhum dos", corpo)
+        # a frase nao pode afirmar QUANTAS linhas existem: `porLinha` ja veio
+        # cortado em oito, e o laboratorio cadastrou onze
+        self.assertNotIn('"As " + porLinha.length', corpo)
+
+    def test_a_producao_por_area_mora_nesta_tela(self):
+        """Era uma tela so dela, tres telas adiante; virou o grafico daqui."""
+        self.assertIn("graficoDasAreas()", self.tela)
+        roteiro = self.js[self.js.index("const SLIDES = ["):]
+        roteiro = roteiro[:roteiro.index("];")]
+        self.assertNotIn('id: "areas"', roteiro)
 
 
 class TestOQueAParedeSempreMostra(unittest.TestCase):
@@ -533,13 +638,30 @@ class TestOQueAParedeSempreMostra(unittest.TestCase):
             with self.subTest(tela=tela):
                 self.assertIn('id: "' + tela + '"', roteiro)
 
-    def test_a_janela_de_cinco_anos_e_uma_so(self):
-        """O grafico por ano e o recorte dos mais citados andam juntos.
+    def test_o_grafico_do_ano_e_de_barras_com_o_numero_escrito(self):
+        """A parede e lida de longe e de passagem.
 
-        Com duas constantes, um dia alguem mexe numa e a parede passa a
-        dizer "ultimos 5 anos" num quadro e mostrar oito no outro.
+        A pergunta que se faz dela e "quantos naquele ano", nao "qual o
+        desenho da curva" -- e uma area obriga quem olha a seguir a linha
+        ate o eixo para responder. Com barras de uma serie so, o numero
+        vai escrito em cima de cada uma.
+        """
+        corpo = self.js[self.js.index("function slideAgora"):
+                        self.js.index("function slidePrazos")]
+        self.assertIn("C.columns", corpo)
+        self.assertNotIn("C.area", corpo)
+
+    def test_a_janela_de_cinco_anos_e_uma_so(self):
+        """Quem escreve "ultimos N anos" e quem corta em N e a mesma constante.
+
+        Com duas, um dia alguem mexe numa e a parede passa a dizer
+        "ultimos 5 anos" num quadro e mostrar oito no outro. O segundo
+        dono da janela era o recorte dos mais citados, que saiu da parede
+        junto com os dois quadros de ranking; sobrou o grafico por ano, e
+        a constante continua uma so -- que e a regra, e nao o numero de
+        quem a usa.
         """
         self.assertIn("const JANELA", self.js)
         self.assertIn("anos.slice(-JANELA)", self.js)
-        self.assertIn("JANELA - 1", self.js)
-        self.assertIn('"Mais citados nos últimos " + JANELA + " anos"', self.js)
+        self.assertEqual(self.js.count("JANELA"), 2,
+                         "a janela ganhou outro dono: confira se os dois cortam igual")

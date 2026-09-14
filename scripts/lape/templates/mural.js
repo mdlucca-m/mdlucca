@@ -139,11 +139,6 @@ function fmt(v) { return C.fmt(v); }
 function citacoes(a) {
   return Math.max(a.openalex_citations || 0, a.scopus_citations || 0, a.wos_citations || 0);
 }
-/* A Web of Science é uma base entre três. Onde a tela promete "citações na
-   WoS" é este número que entra — nunca o da melhor fonte, que costuma ser
-   maior e diria outra coisa. */
-function citacoesWos(a) { return a.wos_citations || 0; }
-
 /* As três bases, na ordem em que o laboratório prefere ser contado: Web of
    Science e Scopus são as que a avaliação usa; a OpenAlex é aberta, entra
    sozinha na importação e cobre o que as outras duas só respondem com
@@ -153,24 +148,6 @@ const BASES = [
   { campo: "scopus_citations", rotulo: "Scopus", curto: "Scopus" },
   { campo: "openalex_citations", rotulo: "OpenAlex", curto: "OpenAlex" },
 ];
-
-/* A base que a tela vai mostrar: a primeira da ordem acima que tenha
-   número em algum artigo.
-
-   Fixar a WoS aqui foi o que pôs "0 citações" numa parede de laboratório
-   com quatro mil. O acervo tinha os números — na OpenAlex, que a
-   importação traz sozinha —, a tela pedia só a coluna da WoS, que ninguém
-   havia preenchido, e anunciava zero sem nada dizer que estava olhando
-   para uma base só. Zero e "não perguntei a esta base" são coisas
-   diferentes, e a parede dizia a primeira. */
-function baseDeCitacao(arts) {
-  for (let i = 0; i < BASES.length; i++) {
-    const base = BASES[i];
-    const tem = arts.some(function (a) { return (a[base.campo] || 0) > 0; });
-    if (tem) return base;
-  }
-  return null;
-}
 
 function citacoesDe(a, base) { return base ? (a[base.campo] || 0) : 0; }
 
@@ -385,8 +362,13 @@ function slideAgora() {
      configurada. Aqui vale a série longa, cortada na janela do mural. */
   const anos = (D.publications && (D.publications.full_series || D.publications.series)) || [];
   const recentes = anos.slice(-JANELA);
+  /* Barras, e não área: a parede é lida de longe e de passagem, e a
+     pergunta que se faz dela é "quantos naquele ano", não "qual o
+     desenho da curva". Com uma série só, o número vai escrito em cima
+     de cada barra -- quem olha do corredor lê o valor sem precisar
+     seguir a linha até o eixo. */
   const grafico = recentes.length
-    ? C.area({
+    ? C.columns({
       labels: recentes.map(function (r) { return String(r.year); }),
       series: [{ label: "Publicações", values: recentes.map(function (r) { return r.n_articles; }) }],
       height: 460, caption: "publicações por ano",
@@ -443,8 +425,15 @@ function slideAgenda() {
     return d && d >= meiaNoite(agora);
   }).sort(function (a, b) { return String(a.start_at).localeCompare(String(b.start_at)); });
 
+  /* Só a pauta, em toda a largura. O quadro ao lado desenhava os doze
+     meses seguintes em colunas, e a coordenação pediu que saísse: a
+     agenda de um laboratório é rala e irregular, e doze colunas quase
+     todas em zero se leem como um laboratório parado -- quando o que a
+     tela tinha a dizer eram os três ou quatro compromissos da lista.
+     Com a largura inteira cabem dez, em vez de seis. */
+  const cabem = 10;
   const pauta = proximos.length
-    ? el("ul", { class: "pauta" }, proximos.slice(0, 6).map(function (e) {
+    ? el("ul", { class: "pauta" }, proximos.slice(0, cabem).map(function (e) {
       return linhaDePauta({
         titulo: e.title,
         detalhe: [TIPO_EVENTO[e.kind] || e.kind, e.location_name || e.city,
@@ -455,196 +444,9 @@ function slideAgenda() {
     }))
     : vazio("Nenhum compromisso marcado daqui para a frente.");
 
-  /* doze meses à frente, para a tela mostrar o desenho do semestre */
-  const rotulos = [], valores = [];
-  for (let i = 0; i < 12; i += 1) {
-    const m = new Date(agora.getFullYear(), agora.getMonth() + i, 1);
-    const chave = m.getFullYear() + "-" + String(m.getMonth() + 1).padStart(2, "0");
-    rotulos.push(MESES_EXT[m.getMonth()].slice(0, 3) + (m.getMonth() === 0 ? "/" + String(m.getFullYear()).slice(2) : ""));
-    valores.push(proximos.filter(function (e) {
-      return String(e.start_at).slice(0, 7) === chave; }).length);
-  }
-  const colunas = C.columns({
-    labels: rotulos, series: [{ label: "Compromissos", values: valores }],
-    height: 430, caption: "compromissos por mês",
-  });
-
   return escalonar(el("div", { class: "slide" }, [
-    el("div", { class: "painel-duplo" }, [
-      quadro("Próximos compromissos", "calendario", pauta,
-        proximos.length > 6 ? "e mais " + (proximos.length - 6) : ""),
-      quadro("Os próximos doze meses", "tempo", colunas),
-    ]),
-  ]));
-}
-
-function slideAreas() {
-  /* Com ?area=, comparar linhas de pesquisa deixaria uma barra sozinha na
-     tela. Aí o corte que interessa é o de dentro da área: por tipo de estudo. */
-  if (AREA) return slideDentroDaArea();
-  const linhas = D.research_lines || [];
-  const arts = artigos();
-  const porLinha = linhas.map(function (l) {
-    const meus = arts.filter(function (a) { return a.research_line === l.name; });
-    return {
-      nome: l.name,
-      publicados: meus.filter(function (a) { return a.status === "publicado"; }).length,
-      avaliacao: meus.filter(function (a) {
-        return a.status === "submetido" || a.status === "em_revisao"; }).length,
-      producao: meus.filter(function (a) { return a.status === "em_producao"; }).length,
-      citacoes: meus.reduce(function (s, a) { return s + citacoes(a); }, 0),
-      pessoas: l.n_members || 0,
-      total: meus.length,
-      ativa: l.active !== 0,
-    };
-  }).filter(function (x) {
-    /* Linha encerrada só continua na parede se ainda tiver artigo: a
-       produção de quem publicou ali é história do laboratório e não
-       desaparece porque a linha saiu da lista de opções. Encerrada e
-       vazia é só uma fileira de zeros ocupando a tela. */
-    return x.ativa || x.total > 0;
-  }).sort(function (a, b) { return b.total - a.total; }).slice(0, 8);
-
-  const empilhado = porLinha.length ? C.columns({
-    labels: porLinha.map(function (x) { return cortar(x.nome, 22); }),
-    series: [
-      { label: "Publicados", values: porLinha.map(function (x) { return x.publicados; }) },
-      { label: "Em avaliação", values: porLinha.map(function (x) { return x.avaliacao; }) },
-      { label: "Em produção", values: porLinha.map(function (x) { return x.producao; }) },
-    ],
-    mode: "empilhado", height: 520, caption: "produção por linha de pesquisa",
-  }) : vazio("Nenhuma linha de pesquisa cadastrada.");
-
-  /* Sem a coluna de citações por linha. O número existe, mas só para o
-     artigo que tem DOI indexado -- e como boa parte do acervo não tem, a
-     soma por linha sai sistematicamente por baixo. Na parede isso não se
-     lê como "faltam DOIs": lê-se como "esta linha não é citada", que é
-     uma afirmação que o dado não sustenta. A barra passa a ser o número
-     de artigos, que o laboratório conhece inteiro. */
-  const teto = Math.max.apply(null, porLinha.map(function (x) { return x.total; }).concat([1]));
-  const tabela = el("table", { class: "placar" }, [
-    el("thead", {}, el("tr", {}, [
-      el("th", { text: "Linha de pesquisa" }), el("th", { text: "Artigos" }),
-      el("th", { class: "num", text: "Pessoas" }),
-    ])),
-    el("tbody", {}, porLinha.map(function (x, i) {
-      const barra = el("i");
-      barra.style.setProperty("--pct", (100 * x.total / teto).toFixed(1) + "%");
-      const trilho = el("div", { class: "trilho" }, barra);
-      trilho.style.setProperty("--tom", "var(--series-" + ((i % 8) + 1) + ")");
-      return el("tr", {}, [
-        el("td", {}, el("div", { class: "quem" }, [
-          Icons.badge("linhas", null, 22), el("span", { text: x.nome })])),
-        el("td", {}, el("div", { class: "quem" }, [
-          trilho, el("span", { text: fmt(x.total) })])),
-        el("td", { class: "num", text: fmt(x.pessoas) }),
-      ]);
-    })),
-  ]);
-
-  return escalonar(el("div", { class: "slide" }, [
-    el("div", { class: "painel-duplo igual" }, [
-      quadro("Publicados, em avaliação e em produção", "barras", empilhado,
-        fmt(arts.length) + " artigos"),
-      quadro("Alcance de cada área", "linhas", tabela, "artigos e equipe por linha"),
-    ]),
-  ]));
-}
-
-/* Segmentação dentro de uma área: mesmos números, outra dimensão. */
-function slideDentroDaArea() {
-  const arts = artigos();
-  const porTipo = contar(arts, function (a) { return a.study_type || "Não informado"; });
-  const porPeriodico = contar(arts.filter(function (a) { return a.status === "publicado"; }),
-    "journal").slice(0, 8);
-
-  const colunas = porTipo.length ? C.columns({
-    labels: porTipo.slice(0, 8).map(function (x) { return cortar(x.label, 22); }),
-    series: [{ label: "Artigos", values: porTipo.slice(0, 8).map(function (x) { return x.value; }) }],
-    height: 520, caption: "artigos por tipo de estudo",
-  }) : vazio("Sem artigos nesta área.");
-
-  const barras = porPeriodico.length ? C.bars({
-    items: porPeriodico.map(function (x) { return { label: x.label, value: x.value }; }),
-    unit: "publicações", mono: true, labelWidth: 240, rowH: 62, caption: "por periódico",
-  }) : vazio("Nenhuma publicação nesta área ainda.");
-
-  return escalonar(el("div", { class: "slide" }, [
-    el("div", { class: "painel-duplo igual" }, [
-      quadro("Por tipo de estudo", "barras", colunas, fmt(arts.length) + " artigos"),
-      quadro("Onde esta área publica", "livro", barras),
-    ]),
-  ]));
-}
-
-function slideAndamento() {
-  const emCurso = projetos().filter(function (p) { return p.status === "em_andamento"; });
-  const hoje = new Date();
-  const cartoes = emCurso.map(function (p) {
-    const ini = comoData(p.started_on), fim = comoData(p.ended_on);
-    let pct = null;
-    if (ini && fim && fim > ini) {
-      pct = Math.max(0, Math.min(100, 100 * (hoje - ini) / (fim - ini)));
-    }
-    return { p: p, pct: pct, dias: diasAte(p.ended_on) };
-  }).sort(function (a, b) {
-    if (a.dias === null) return 1;
-    if (b.dias === null) return -1;
-    return a.dias - b.dias;
-  });
-
-  const tabela = cartoes.length ? el("table", { class: "placar" }, [
-    el("thead", {}, el("tr", {}, [
-      el("th", { text: "Projeto" }), el("th", { text: "Andamento" }),
-      el("th", { class: "num", text: "Equipe" }), el("th", { class: "num", text: "Prazo" }),
-    ])),
-    el("tbody", {}, cartoes.slice(0, 7).map(function (x) {
-      const tom = tomDoPrazo(x.dias);
-      const barra = el("i");
-      barra.style.setProperty("--pct", (x.pct === null ? 0 : x.pct).toFixed(1) + "%");
-      const trilho = el("div", { class: "trilho" }, barra);
-      trilho.style.setProperty("--tom", "var(--" + tomToken(tom) + ")");
-      /* projeto sem data de término não ganha barra: uma barra vazia seria
-         lida como "parado", e o que há é ausência de prazo, não de trabalho */
-      const andamento = x.pct === null
-        ? el("span", { text: x.p.started_on ? "desde " + mesCurto(x.p.started_on) + "/"
-            + String(x.p.started_on).slice(0, 4) : "sem datas" })
-        : el("div", { class: "quem" }, [trilho, el("span", { text: Math.round(x.pct) + "%" })]);
-      return el("tr", {}, [
-        el("td", {}, el("div", { class: "quem" }, [
-          Icons.badge("projeto", tom, 22), el("span", { text: x.p.name })])),
-        el("td", {}, andamento),
-        el("td", { class: "num", text: fmt(x.p.n_members || 0) }),
-        el("td", { class: "num", text: x.dias === null ? "—" : porExtenso(x.dias) }),
-      ]);
-    })),
-  ]) : vazio("Nenhum projeto em andamento cadastrado.");
-
-  const arts = artigos();
-  const etapas = [
-    { label: "Em produção", value: arts.filter(function (a) { return a.status === "em_producao"; }).length },
-    { label: "Em avaliação", value: arts.filter(function (a) {
-      return a.status === "submetido" || a.status === "em_revisao"; }).length },
-    { label: "Aceito", value: arts.filter(function (a) { return a.status === "aceito"; }).length },
-    { label: "Publicado", value: arts.filter(function (a) { return a.status === "publicado"; }).length },
-  ];
-  /* Barras, e não funil: os quatro números são um retrato de agora, não um
-     fluxo. "52% da etapa anterior" compararia coisas que não se sucedem —
-     um artigo publicado em 2019 não saiu dos 41 que estão em escrita hoje. */
-  const retrato = etapas.some(function (e) { return e.value; })
-    ? C.bars({
-      items: etapas.map(function (e, i) { return { label: e.label, value: e.value,
-        color: C.ord(i) }; }),
-      unit: "artigos", labelWidth: 190, rowH: 96, caption: "situação dos manuscritos",
-    })
-    : vazio("Sem manuscritos em andamento.");
-
-  return escalonar(el("div", { class: "slide" }, [
-    el("div", { class: "painel-duplo igual" }, [
-      quadro("Projetos em andamento", "projeto", tabela,
-        cartoes.length > 7 ? "e mais " + (cartoes.length - 7) : fmt(cartoes.length) + " ativos"),
-      quadro("Do rascunho ao prelo", "processo", retrato),
-    ]),
+    quadro("Próximos compromissos", "calendario", pauta,
+      proximos.length > cabem ? "e mais " + (proximos.length - cabem) : ""),
   ]));
 }
 
@@ -739,110 +541,173 @@ function slideBancada() {
   ]));
 }
 
-/* ==========================================================================
-   Os mais citados — na Web of Science
-   Duas leituras do mesmo acervo: a obra que pesa desde sempre e a que está
-   pesando agora. Sem a segunda, um artigo de 2009 esconderia para sempre o
-   que o laboratório publicou depois.
-   ========================================================================== */
-function placarDeCitacoes(lista, base) {
-  return el("table", { class: "placar citado" }, [
-    el("thead", {}, el("tr", {}, [
-      el("th", { text: "Artigo" }), el("th", { class: "num", text: "Ano" }),
-      /* o cabeçalho nomeia a base: "Citações" sozinho deixaria a coluna
-         parecer a soma das três, que é outro número */
-      el("th", { class: "num", text: "Citações " + (base ? base.curto : "WoS") }),
-    ])),
-    el("tbody", {}, lista.map(function (a, i) {
-      return el("tr", {}, [
-        el("td", {}, el("div", { class: "quem" }, [
-          el("span", { class: "posto", text: String(i + 1) }),
-          el("span", { title: a.title, text: a.title }),
-        ])),
-        el("td", { class: "num", text: a.year_published ? String(a.year_published) : "—" }),
-        el("td", { class: "num forte", text: fmt(citacoesDe(a, base)) }),
-      ]);
-    })),
-  ]);
+/* O gráfico da produção por linha de pesquisa -- ou, quando a parede está
+   filtrada por uma área só, o corte que faz sentido dentro dela. Comparar
+   linhas com `?area=` deixaria uma barra sozinha na tela. */
+function graficoDasAreas() {
+  const arts = artigos();
+  if (AREA) {
+    const porTipo = contar(arts, function (a) { return a.study_type || "Não informado"; }).slice(0, 8);
+    return {
+      titulo: "Por tipo de estudo", icone: "barras",
+      nota: fmt(arts.length) + " artigos",
+      grafico: porTipo.length ? C.columns({
+        labels: porTipo.map(function (x) { return cortar(x.label, 22); }),
+        series: [{ label: "Artigos", values: porTipo.map(function (x) { return x.value; }) }],
+        height: 520, caption: "artigos por tipo de estudo",
+      }) : vazio("Sem artigos nesta área."),
+    };
+  }
+  const porLinha = (D.research_lines || []).map(function (l) {
+    const meus = arts.filter(function (a) { return a.research_line === l.name; });
+    return {
+      nome: l.name,
+      publicados: meus.filter(function (a) { return a.status === "publicado"; }).length,
+      avaliacao: meus.filter(function (a) {
+        return a.status === "submetido" || a.status === "em_revisao"; }).length,
+      producao: meus.filter(function (a) { return a.status === "em_producao"; }).length,
+      total: meus.length,
+      ativa: l.active !== 0,
+    };
+  }).filter(function (x) {
+    /* Linha encerrada só continua na parede se ainda tiver artigo: a
+       produção de quem publicou ali é história do laboratório e não
+       desaparece porque a linha saiu da lista de opções. Encerrada e
+       vazia é só uma fileira de zeros ocupando a tela. */
+    return x.ativa || x.total > 0;
+  }).sort(function (a, b) { return b.total - a.total; }).slice(0, 8);
+
+  /* Ter linha cadastrada e ter artigo LIGADO a uma linha são coisas
+     diferentes, e a parede precisa distinguir as duas. Com as linhas
+     declaradas e nenhum artigo apontando para elas, o gráfico saía: um
+     quadro do tamanho da parede, com os nomes das oito linhas no eixo e
+     nenhuma barra em cima. Quem olha não lê "ninguém classificou os
+     artigos ainda" -- lê "este laboratório não produziu nada", que é o
+     contrário do que o dado diz. */
+  const comArtigo = porLinha.some(function (x) { return x.total > 0; });
+
+  return {
+    titulo: "Publicados, em avaliação e em produção", icone: "barras",
+    nota: fmt(arts.length) + " artigos",
+    grafico: (porLinha.length && comArtigo) ? C.columns({
+      labels: porLinha.map(function (x) { return cortar(x.nome, 22); }),
+      series: [
+        { label: "Publicados", values: porLinha.map(function (x) { return x.publicados; }) },
+        { label: "Em avaliação", values: porLinha.map(function (x) { return x.avaliacao; }) },
+        { label: "Em produção", values: porLinha.map(function (x) { return x.producao; }) },
+      ],
+      mode: "empilhado", height: 520, caption: "produção por linha de pesquisa",
+    /* Sem número de linhas na frase: `porLinha` já veio cortado em oito,
+       e dizer "as 8 linhas" num laboratório que cadastrou onze seria a
+       parede errando uma conta que qualquer um ali confere. */
+    }) : vazio(porLinha.length
+      ? "As linhas de pesquisa estão cadastradas, e nenhum dos "
+        + fmt(arts.length) + " artigos está ligado a uma delas. A linha se "
+        + "escolhe na ficha do artigo, no painel."
+      : "Nenhuma linha de pesquisa cadastrada."),
+  };
 }
 
-/* Do mais citado ao menos citado, e só quem tem citação: um artigo com zero
-   não está no fim do pódio, está fora dele. `desdeOAno` recorta a janela —
-   e recorta pelo ano de publicação, que é o que o rótulo da tela promete. */
-function maisCitados(arts, desdeOAno, base) {
-  return arts.filter(function (a) {
-    if (citacoesDe(a, base) <= 0) return false;
-    if (!desdeOAno) return true;
-    return Number(a.year_published) >= desdeOAno;
-  }).sort(function (a, b) { return citacoesDe(b, base) - citacoesDe(a, base); });
-}
-
+/* Citações e produção por área na mesma tela.
+   Esta tela já foi "Os mais citados", com dois quadros de ranking de
+   artigo. Os dois saíram a pedido da coordenação: numa parede de
+   corredor, uma lista dos artigos campeões diz menos do que ocupa, e o
+   número que interessa é o do acervo. O espaço que sobrou é onde a
+   produção por área passou a morar -- ela era uma tela só dela, e vinha
+   três telas adiante. */
 function slideCitados() {
   const arts = artigos();
-  const base = baseDeCitacao(arts);
-  const bases = basesComNumero(arts);
+  const area = graficoDasAreas();
 
-  if (!base) {
-    return escalonar(el("div", { class: "slide" }, [
-      quadro("Os mais citados", "fogo",
-        vazio("Ainda sem citações registradas em nenhuma base. As três entram "
-          + "com o DOI do artigo: a OpenAlex vem sozinha na importação, a "
-          + "Scopus e a Web of Science pedem a chave da universidade."), ""),
-    ]));
-  }
+  /* A parede promete "citações na WoS" e "citações na Scopus", e é o
+     número DAQUELA base que entra em cada uma -- nunca o da melhor
+     fonte, que costuma ser maior e diria outra coisa.
 
-  const citados = maisCitados(arts, null, base);
-  const corte = new Date().getFullYear() - (JANELA - 1);
-  const recentes = maisCitados(arts, corte, base);
-  const total = arts.reduce(function (s, a) { return s + citacoesDe(a, base); }, 0);
+     Zero e "não perguntei a esta base" são coisas diferentes, e é essa
+     diferença que já pôs "0 citações" numa parede de laboratório com
+     milhares. Por isso o pé de cada número diz qual dos dois é: uma base
+     sem nenhum número em nenhum artigo não respondeu -- falta a chave --,
+     e a tela fala isso em vez de deixar o zero mentir sozinho. */
+  const cores = { wos_citations: { serie: 7, pastilha: "violeta" },
+                  scopus_citations: { serie: 4, pastilha: "ambar" } };
+  const duas = BASES.filter(function (b) { return cores[b.campo]; }).map(function (b) {
+    const total = arts.reduce(function (soma, a) { return soma + citacoesDe(a, b); }, 0);
+    const respondeu = arts.some(function (a) { return citacoesDe(a, b) > 0; });
+    return tile({ nome: "Citações na " + b.curto, valor: total, icone: "citacao",
+      serie: cores[b.campo].serie, pastilha: cores[b.campo].pastilha,
+      pe: respondeu ? "no acervo inteiro"
+        : "esta base ainda não respondeu — falta a chave" });
+  });
 
-  /* A parede diz de QUAL base é o número. Sem isso, quem lê compara com a
-     contagem que viu no Lattes ou no Currículo e não entende a diferença --
-     e a diferença entre bases é grande e legítima. */
-  const outras = bases.filter(function (b) { return b.campo !== base.campo; });
-  const rodape = outras.length
-    ? "também há número em " + outras.map(function (b) { return b.rotulo; }).join(" e ")
-    : "as outras bases ainda não responderam";
-
-  const kpis = el("div", { class: "linha-kpi" }, [
-    tile({ nome: "Citações na " + base.curto, valor: total, icone: "citacao", serie: 7,
-      pastilha: "violeta", pe: "no acervo inteiro · " + rodape }),
-    tile({ nome: "Artigos citados", valor: citados.length, icone: "livro", serie: 1,
-      pe: "de <b>" + fmt(arts.length) + "</b> no acervo" }),
-    tile({ nome: "Mais citado", valor: citados.length ? citacoesDe(citados[0], base) : 0,
-      icone: "trofeu", serie: 6, pastilha: "bom",
-      pe: citados.length ? cortar(citados[0].title, 46) : "sem citações ainda" }),
-  ]);
+  /* "Artigos citados" conta por artigo e pela melhor fonte de cada um:
+     um artigo que a OpenAlex conhece e a WoS não continua sendo um
+     artigo citado. O pé diz de onde veio, para ninguém somar este
+     número com os dois de cima. */
+  const citados = arts.filter(function (a) { return citacoes(a) > 0; }).length;
+  const responderam = basesComNumero(arts);
+  const fonte = responderam.length
+    ? "melhor fonte por artigo · " + responderam.map(function (b) { return b.curto; }).join(", ")
+    : "nenhuma base respondeu ainda";
 
   return escalonar(el("div", { class: "slide" }, [
-    kpis,
-    el("div", { class: "painel-duplo igual" }, [
-      quadro("Artigos mais citados", "fogo",
-        placarDeCitacoes(citados.slice(0, 6), base),
-        "todos os anos · " + base.rotulo),
-      quadro("Mais citados nos últimos " + JANELA + " anos", "subida",
-        recentes.length ? placarDeCitacoes(recentes.slice(0, 6), base)
-          : vazio("Nenhum artigo publicado de " + corte + " para cá tem citações "
-            + "na " + base.rotulo + "."),
-        recentes.length ? "publicados de " + corte + " a " + new Date().getFullYear() : ""),
-    ]),
+    el("div", { class: "linha-kpi" }, duas.concat([
+      tile({ nome: "Artigos citados", valor: citados, icone: "livro", serie: 1,
+        pe: "de <b>" + fmt(arts.length) + "</b> no acervo · " + fonte }),
+    ])),
+    quadro(area.titulo, area.icone, area.grafico, area.nota),
   ]));
 }
 
 /* Os mais citados saíram daqui para a tela `citados`, onde o número é o da
    WoS. Esta ficou com as pessoas -- quem são, não quanto produzem. */
-function slideDestaques() {
-  const arts = artigos();
+/* Quem trabalha em cada linha. Aqui havia uma rosca de ARTIGOS por linha,
+   e a coordenação trocou: a parede do corredor é lida pela própria equipe e
+   por quem visita o laboratório, e a pergunta que fazem diante de uma linha
+   de pesquisa é "quem toca isso", não "quantos papéis saíram dali" -- que a
+   tela das citações já mostra, em barras, ao lado da produção por área.
 
+   Quem está no laboratório e não tem linha declarada entra também, e entra
+   nomeado como o que é. Escondê-lo faria a soma das linhas não bater com o
+   total da equipe, e quem confere de cabeça acharia que a parede perdeu
+   alguém -- sem a parede ter como avisar que não perdeu. Hoje, no banco do
+   LAPE, ESTE é o caso de todo mundo: ninguém tem linha declarada.
+
+   Linha sem ninguém não vira fileira vazia; linha declarada que não está
+   na lista da coordenação também conta, porque a pessoa está lá de todo
+   jeito. Fora do desenho, para poder ser testada de verdade. */
+function agrupadosPorLinha(gente, linhas) {
+  const porNome = new Map();
+  linhas.forEach(function (l) { porNome.set(l.name, []); });
+  const semLinha = [];
+  gente.forEach(function (m) {
+    if (!m.research_line) { semLinha.push(m); return; }
+    if (!porNome.has(m.research_line)) porNome.set(m.research_line, []);
+    porNome.get(m.research_line).push(m);
+  });
+  const saida = [];
+  porNome.forEach(function (quem, nome) {
+    if (quem.length) saida.push({ nome: nome, gente: quem });
+  });
+  saida.sort(function (a, b) { return b.gente.length - a.gente.length; });
+  if (semLinha.length) saida.push({ nome: "Sem linha declarada", gente: semLinha });
+  return saida;
+}
+
+function slideDestaques() {
   /* "Quem está produzindo" é uma frase no presente, e a parede é lida por
      quem passa. Alguém que saiu do laboratório escreveu de fato o que
      escreveu -- por isso continua nas tabelas de histórico do painel --,
      mas anunciá-lo hoje como quem está produzindo é dizer uma coisa que
-     não é verdade, e ninguém na sala tem como saber que não é. */
-  const equipe = (D.members || []).filter(function (m) {
+     não é verdade, e ninguém na sala tem como saber que não é.
+
+     `is_external` é o que separa o laboratório de quem assina junto: o
+     coautor de outra instituição entra nos artigos e na rede de
+     colaboração, e não entra aqui. Esta tela é a do pessoal do LAPE. */
+  const doLape = (D.members || []).filter(function (m) {
     return !m.is_external && m.active !== 0 && !m.left_on
       && (!AREA || m.research_line === AREA);
-  }).slice(0, 8);
+  });
+  const equipe = doLape.slice(0, 8);
 
   /* Quem é quem, e não quanto cada um produziu. Era um ranking de artigos
      por pessoa; a parede fica no corredor do laboratório e ordenar colegas
@@ -868,17 +733,36 @@ function slideDestaques() {
         /* Só o nome e o vínculo. A linha de pesquisa também esteve aqui e
            saiu: no cartão de meia largura ela cabia como "Psicologi…", que
            não é informação -- é ruído ocupando a largura que o nome da
-           pessoa precisa. */
+           pessoa precisa. Ela voltou ao lado, com a linha inteira e as
+           pessoas dela juntas. */
         el("td", { text: VINCULO_NOME[m.role] || "—" }),
       ]);
     })),
   ]) : vazio("Nenhum integrante cadastrado.");
 
-  const porLinha = contar(arts, "research_line").slice(0, 6);
-  const reparte = porLinha.length
-    ? C.donut({ items: porLinha, unit: "artigos", caption: "por linha de pesquisa" })
-    : vazio("Sem linha de pesquisa informada nos artigos.");
+  const linhas = agrupadosPorLinha(doLape, D.research_lines || []);
 
+  /* Oito linhas, e quatro nomes por linha: é o que cabe sem rolar, e a
+     parede não tem quem role. O resto vira "+3", que é informação -- ao
+     contrário de um nome cortado no meio. */
+  const CABEM = 4;
+  const porLinha = linhas.slice(0, 8).length ? el("table", { class: "placar" }, [
+    el("thead", {}, el("tr", {}, [
+      el("th", { text: "Linha de pesquisa" }), el("th", { text: "Integrantes" }),
+    ])),
+    el("tbody", {}, linhas.slice(0, 8).map(function (x) {
+      const nomes = x.gente.map(function (m) { return m.short_name || m.full_name; });
+      const mostra = nomes.slice(0, CABEM).join(", ")
+        + (nomes.length > CABEM ? " +" + (nomes.length - CABEM) : "");
+      return el("tr", {}, [
+        el("td", {}, el("div", { class: "quem" }, [
+          Icons.badge("linhas", null, 22), el("span", { text: cortar(x.nome, 34) })])),
+        el("td", { text: mostra }),
+      ]);
+    })),
+  ]) : vazio("Nenhuma linha de pesquisa com integrante declarado.");
+
+  const arts = artigos();
   const noventa = arts.filter(function (a) {
     const d = diasAte(a.accepted_on || a.published_on);
     return d !== null && d >= -90 && d <= 0;
@@ -888,34 +772,38 @@ function slideDestaques() {
     el("div", { class: "linha-kpi" }, [
       tile({ nome: "Aceites em 90 dias", valor: noventa, icone: "trofeu", serie: 4,
         pastilha: "ambar", pe: "aceitos ou publicados" }),
+      /* O "Maior índice h" ficava aqui e saiu a pedido da coordenação:
+         numa parede lida pela própria equipe, o maior h é sempre da mesma
+         pessoa, e anunciá-lo todo dia ao lado da lista de quem é quem faz
+         desta tela um pódio -- que é justamente o que ela deixou de ser
+         quando o ranking de artigos por pessoa saiu. */
       tile({ nome: "Colaborações", valor: (D.network && D.network.n_edges) || 0,
         icone: "rede", serie: 7, pastilha: "violeta", pe: "pares que assinam juntos" }),
-      tile({ nome: "Maior índice h", valor: (D.overview || {}).best_h_index || 0, icone: "subida",
-        serie: 6, pastilha: "bom", pe: "no laboratório" }),
     ]),
     el("div", { class: "painel-duplo igual" }, [
       quadro("Nossa equipe", "pessoas", elenco,
-        equipe.length + " de "
-          + fmt((D.members || []).filter(function (m) {
-              return !m.is_external && m.active !== 0 && !m.left_on; }).length)
-          + " integrantes"),
-      quadro("Onde a produção está", "linhas", reparte, fmt(arts.length) + " artigos"),
+        equipe.length + " de " + fmt(doLape.length) + " integrantes"),
+      quadro("Integrantes de cada linha", "linhas", porLinha,
+        linhas.length + (linhas.length === 1 ? " linha" : " linhas")),
     ]),
   ]));
 }
 
 /* A ordem é a de quem passa na frente da tela: primeiro o retrato de agora,
    depois o que está na mão de alguém (em produção, submetido), depois o que
-   já rendeu (citações), depois o que vem (agenda e prazos), e por fim os
-   cortes por área e por pessoa. */
+   já rendeu -- citações e a produção por área, na mesma tela --, depois o
+   que vem (agenda e prazos), e por fim quem é a equipe.
+
+   Saíram daqui duas telas, a pedido da coordenação: "Produção por área",
+   que virou o gráfico da tela das citações, e "Em andamento", que repetia
+   em lista o que os números de "Agora no laboratório" já dizem. Seis telas
+   a quinze segundos dão um minuto e meio de volta -- oito davam dois. */
 const SLIDES = [
   { id: "agora", titulo: "Agora no laboratório", icone: "painel", montar: slideAgora },
   { id: "bancada", titulo: "Na bancada", icone: "experimento", montar: slideBancada },
-  { id: "citados", titulo: "Os mais citados", icone: "fogo", montar: slideCitados },
+  { id: "citados", titulo: "Citações e produção por área", icone: "citacao", montar: slideCitados },
   { id: "agenda", titulo: "O que vem a seguir", icone: "calendario", montar: slideAgenda },
   { id: "prazos", titulo: "Prazos e pendências", icone: "prazo", montar: slidePrazos },
-  { id: "areas", titulo: "Produção por área", icone: "linhas", montar: slideAreas },
-  { id: "andamento", titulo: "Em andamento", icone: "projeto", montar: slideAndamento },
   { id: "destaques", titulo: "Nossa equipe", icone: "pessoas", montar: slideDestaques },
 ];
 
