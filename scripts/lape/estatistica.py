@@ -889,3 +889,193 @@ def _aviso_do_alfa(alfa: float, n: int, k: int) -> str | None:
         return ("com %d itens o alfa sobe por tamanho: compare com "
                 "instrumentos de número parecido de itens" % k)
     return None
+
+
+# ----------------------------------------------------------------------
+# A curva: integral, derivada e limiar
+# ----------------------------------------------------------------------
+# Tres leituras de uma mesma serie no tempo, e cada uma responde a uma
+# pergunta diferente que o valor final sozinho nao responde:
+#
+#   INTEGRAL (area sob a curva)  "quanto de dor ela carregou ao todo?"
+#       Duas pessoas podem terminar no mesmo ponto tendo passado por
+#       caminhos muito diferentes. A area distingue.
+#
+#   DERIVADA (taxa de variacao)  "esta melhorando depressa ou devagar?"
+#       E onde acelerou ou parou de melhorar -- que e o que decide se
+#       vale prorrogar a intervencao.
+#
+#   LIMIAR (cruzamento)          "quando saiu da faixa ruim, e ficou?"
+#       O desfecho que o paciente entende. "Caiu 1,8 cm na EVA" nao diz
+#       nada a ninguem; "saiu da dor moderada na oitava semana" diz.
+#
+# O QUE ESTAS CONTAS NAO PODEM FAZER com tres momentos:
+#
+#   · achar o ponto de quebra da curva (o "limiar" do teste de rampa, em
+#     fisiologia). Ajustar duas retas a tres pontos e um exercicio sem
+#     graus de liberdade: qualquer conjunto de tres pontos tem uma quebra
+#     perfeita, e ela nao quer dizer nada. Precisa de cinco ou mais.
+#   · dizer QUANDO exatamente o limiar foi cruzado. O que ha entre duas
+#     coletas e interpolacao, e ela SUPOE que a mudanca foi constante no
+#     intervalo -- o que quase nunca e verdade. A data sai marcada como
+#     estimada, e nao medida.
+
+N_MINIMO_PARA_QUEBRA = 5
+
+
+def _serie_limpa(tempos: Sequence[Any], valores: Sequence[Any]
+                 ) -> tuple[list[float], list[float]]:
+    """Pares completos, em ordem de tempo. Sem isso a area sai errada."""
+    pares = []
+    for t, v in zip(tempos, valores):
+        if t is None or v is None:
+            continue
+        t, v = float(t), float(v)
+        if math.isfinite(t) and math.isfinite(v):
+            pares.append((t, v))
+    pares.sort(key=lambda p: p[0])
+    return [p[0] for p in pares], [p[1] for p in pares]
+
+
+def area_sob_a_curva(tempos: Sequence[Any], valores: Sequence[Any],
+                     base: float | None = None) -> dict[str, Any]:
+    """Integral pela regra do trapezio, com e sem a linha de base.
+
+    A area BRUTA e dominada pelo nivel de partida: quem comeca com dor 8
+    acumula mais area que quem comeca com 4, ainda que os dois melhorem
+    igual. Ela mede EXPOSICAO -- quanto de sintoma a pessoa carregou --,
+    e nao mudanca.
+
+    A area INCREMENTAL desconta a linha de base e mede o que a
+    intervencao fez. E quase sempre a que se quer, e quase sempre a que
+    nao e calculada: soma-se a bruta, compara-se entre grupos que
+    partiram de niveis diferentes, e a conclusao sai do nivel inicial em
+    vez do efeito.
+    """
+    t, v = _serie_limpa(tempos, valores)
+    saida: dict[str, Any] = {"n_pontos": len(t), "bruta": None,
+                             "incremental": None, "duracao": None,
+                             "media_no_tempo": None, "aviso": None}
+    if len(t) < 2:
+        saida["aviso"] = "são precisos ao menos dois momentos para haver área"
+        return saida
+    duracao = t[-1] - t[0]
+    if duracao <= 0:
+        saida["aviso"] = "os momentos têm a mesma data: sem tempo não há área"
+        return saida
+
+    bruta = 0.0
+    for i in range(len(t) - 1):
+        bruta += (v[i] + v[i + 1]) / 2.0 * (t[i + 1] - t[i])
+    partida = v[0] if base is None else float(base)
+    saida.update({
+        "bruta": round(bruta, 3),
+        "incremental": round(bruta - partida * duracao, 3),
+        "duracao": round(duracao, 1),
+        # a area dividida pelo tempo e o VALOR MEDIO no periodo, na mesma
+        # unidade do instrumento -- o unico numero desta funcao que se le
+        # sem pensar em integral
+        "media_no_tempo": round(bruta / duracao, 3),
+        "base": round(partida, 3),
+    })
+    return saida
+
+
+def taxa_de_variacao(tempos: Sequence[Any], valores: Sequence[Any],
+                     por: float = 7.0) -> dict[str, Any]:
+    """Derivada: quanto muda por unidade de tempo, trecho a trecho.
+
+    `por` e a janela do relato -- 7 para "por semana", que e como um
+    ensaio de 16 semanas se discute. Falar em "por dia" numa intervencao
+    de meses produz numeros com quatro zeros depois da virgula, e ninguem
+    compara numeros assim de cabeca.
+    """
+    t, v = _serie_limpa(tempos, valores)
+    saida: dict[str, Any] = {"trechos": [], "geral": None, "por": por,
+                             "maior_queda": None, "maior_subida": None,
+                             "aviso": None}
+    if len(t) < 2:
+        saida["aviso"] = "são precisos ao menos dois momentos para haver taxa"
+        return saida
+    for i in range(len(t) - 1):
+        dt = t[i + 1] - t[i]
+        if dt <= 0:
+            continue
+        saida["trechos"].append({
+            "de": t[i], "ate": t[i + 1], "dias": round(dt, 1),
+            "delta": round(v[i + 1] - v[i], 3),
+            "taxa": round((v[i + 1] - v[i]) / dt * por, 4),
+        })
+    if not saida["trechos"]:
+        saida["aviso"] = "os momentos têm a mesma data"
+        return saida
+    saida["geral"] = round((v[-1] - v[0]) / (t[-1] - t[0]) * por, 4)
+    saida["maior_queda"] = min(saida["trechos"], key=lambda x: x["taxa"])
+    saida["maior_subida"] = max(saida["trechos"], key=lambda x: x["taxa"])
+    # Com dois trechos ja da para dizer se acelerou ou desacelerou, e e a
+    # leitura que decide prorrogar ou nao a intervencao.
+    if len(saida["trechos"]) >= 2:
+        primeiro, ultimo = saida["trechos"][0]["taxa"], saida["trechos"][-1]["taxa"]
+        saida["acelerou"] = abs(ultimo) > abs(primeiro) * 1.15
+        saida["estagnou"] = abs(ultimo) < abs(primeiro) * 0.5
+    return saida
+
+
+def cruzamento_do_limiar(tempos: Sequence[Any], valores: Sequence[Any],
+                         limiar: float, menor_e_melhor: bool = True
+                         ) -> dict[str, Any]:
+    """Quando saiu da faixa ruim -- e se ficou fora dela.
+
+    `menor_e_melhor` NAO e detalhe: numa escala de dor, cruzar para baixo
+    e a boa noticia; num VO2, e a ma. Errar isto inverte a conclusao do
+    estudo sem mudar um numero sequer, e por isso o sentido vem do
+    instrumento (campo `direcao`), e nunca de um palpite.
+    """
+    t, v = _serie_limpa(tempos, valores)
+    limiar = float(limiar)
+
+    def do_lado_bom(valor: float) -> bool:
+        return valor <= limiar if menor_e_melhor else valor >= limiar
+
+    saida: dict[str, Any] = {
+        "limiar": limiar, "menor_e_melhor": menor_e_melhor,
+        "comecou_do_lado_bom": None, "terminou_do_lado_bom": None,
+        "cruzou_em": None, "estimado": False, "tempo_do_lado_bom": None,
+        "voltou": False, "aviso": None,
+    }
+    if len(t) < 2:
+        saida["aviso"] = "são precisos ao menos dois momentos"
+        return saida
+
+    lados = [do_lado_bom(x) for x in v]
+    saida["comecou_do_lado_bom"] = lados[0]
+    saida["terminou_do_lado_bom"] = lados[-1]
+    # voltar para a faixa ruim depois de ter saido e informacao clinica, e
+    # some quando se olha so o comeco e o fim
+    saida["voltou"] = any(lados[i] and not lados[i + 1] for i in range(len(lados) - 1))
+
+    for i in range(len(t) - 1):
+        if lados[i] or not lados[i + 1]:
+            continue
+        # interpolacao linear dentro do intervalo: e uma ESTIMATIVA, e
+        # supoe que a mudanca foi constante entre as duas coletas
+        v0, v1 = v[i], v[i + 1]
+        if v1 == v0:
+            saida["cruzou_em"] = round(t[i + 1], 1)
+        else:
+            fracao = (limiar - v0) / (v1 - v0)
+            saida["cruzou_em"] = round(t[i] + fracao * (t[i + 1] - t[i]), 1)
+        saida["estimado"] = True
+        break
+
+    # quanto tempo passou do lado bom, contando por trapezio de presenca
+    dentro = 0.0
+    for i in range(len(t) - 1):
+        dt = t[i + 1] - t[i]
+        if lados[i] and lados[i + 1]:
+            dentro += dt
+        elif lados[i] != lados[i + 1] and v[i] != v[i + 1]:
+            fracao = (limiar - v[i]) / (v[i + 1] - v[i])
+            dentro += dt * (fracao if lados[i + 1] else 1 - fracao)
+    saida["tempo_do_lado_bom"] = round(dentro, 1)
+    return saida

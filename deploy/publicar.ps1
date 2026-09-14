@@ -86,9 +86,22 @@ $arqEnd   = Join-Path $Exec "endereco.txt"
 # nenhuma trocaria o endereco fixo por um sorteado -- e o link que o
 # laboratorio inteiro tem salvo morreria em silencio.
 if ($Sorteado) {
-  # esquece o modo gravado: e a saida de quem configurou endereco fixo e
-  # precisa subir agora, sem depender de conta nem de dominio
-  Remove-Item $arqNgrok, $arqCF -ErrorAction SilentlyContinue
+  # Ignora o modo gravado SO NESTA EXECUCAO -- nao o apaga.
+  #
+  # A versao anterior apagava os arquivos de configuracao, e isso punia
+  # quem pediu ajuda: `-Sorteado` e a saida de emergencia de quem tem o
+  # endereco fixo quebrado e precisa de um link agora, para mandar a
+  # alguem. Quem esta nessa situacao nao quer, de quebra, perder a
+  # configuracao do endereco que o laboratorio inteiro tem salvo -- e
+  # descobria isso depois, quando o proximo `Subir LAPE.bat` subisse num
+  # endereco sorteado sem ninguem ter mandado.
+  #
+  # Emergencia de uma vez nao pode virar mudanca permanente em silencio.
+  # Write-Host direto, e nao a funcao Azul: ela so e definida mais
+  # abaixo, e o PowerShell executa de cima para baixo -- chamar aqui
+  # quebraria o script logo na primeira linha util.
+  Write-Host "Endereco sorteado, so desta vez. A configuracao do endereco fixo" -ForegroundColor Cyan
+  Write-Host "continua guardada: o proximo 'Subir LAPE.bat' volta a usa-la." -ForegroundColor Cyan
 } elseif (-not $Fixo -and -not $Permanente) {
   if (Test-Path $arqCF)        { $Permanente = $true }
   elseif (Test-Path $arqNgrok) { $Fixo = $true }

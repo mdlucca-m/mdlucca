@@ -884,6 +884,46 @@ class TestOTunelQueAbriuMasNaoFoiVisto(unittest.TestCase):
         corpo = corpo[:corpo.index("Erro \"O tunel fixo nao abriu.\"")]
         self.assertIn("-Sorteado", corpo)
 
+    def test_o_sorteado_nao_apaga_a_configuracao_do_endereco_fixo(self):
+        """`-Sorteado` é a saída de emergência de quem está com o endereço
+        fixo quebrado e precisa de um link AGORA, para mandar a alguém.
+
+        A versão anterior apagava os arquivos de configuração -- punia
+        justamente quem pediu ajuda. E o estrago só aparecia depois: o
+        próximo `Subir LAPE.bat` subia num endereço sorteado sem ninguém
+        ter mandado, e o link que o laboratório inteiro tinha salvo
+        morria em silêncio.
+
+        Emergência de uma vez não pode virar mudança permanente."""
+        ps1 = PS1.read_text(encoding="utf-8")
+        bloco = ps1[ps1.index("if ($Sorteado) {"):]
+        bloco = bloco[:bloco.index("} elseif")]
+        self.assertNotIn("Remove-Item", bloco)
+        # e a pessoa precisa SABER que é só desta vez
+        self.assertIn("so desta vez", bloco)
+
+    def test_o_sorteado_ainda_ignora_o_modo_gravado_nesta_execucao(self):
+        """Não apagar não pode virar não funcionar: o pedido é justamente
+        para NÃO usar o modo gravado agora."""
+        ps1 = PS1.read_text(encoding="utf-8")
+        inicio = ps1.index("if ($Sorteado) {")
+        bloco = ps1[inicio:ps1.index("function Azul")]
+        # o ramo que liga -Fixo/-Permanente pelo arquivo gravado tem de
+        # ser um ELSE do -Sorteado, e nao rodar sempre
+        self.assertIn("} elseif (-not $Fixo -and -not $Permanente) {", bloco)
+        self.assertLess(bloco.index("if ($Sorteado) {"),
+                        bloco.index("} elseif"))
+
+    def test_o_sorteado_nao_chama_funcao_antes_de_ela_existir(self):
+        """O PowerShell executa de cima para baixo: uma função chamada
+        antes da sua definição quebra o script na primeira linha útil --
+        e este bloco é a primeira linha útil do arquivo."""
+        ps1 = PS1.read_text(encoding="utf-8")
+        bloco = ps1[ps1.index("if ($Sorteado) {"):ps1.index("} elseif")]
+        for funcao in ("Azul", "Verde", "Aviso", "Erro"):
+            with self.subTest(funcao=funcao):
+                self.assertNotIn(funcao + ' "', bloco)
+
     def test_a_falha_mostra_qual_endereco_foi_tentado(self):
         # sem isso, quem tem dois enderecos na conta nao sabe qual conferir
         ps1 = PS1.read_text(encoding="utf-8")
