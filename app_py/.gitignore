@@ -1,0 +1,6 @@
+# O banco é dado do elenco: fica na máquina, não no repositório.
+elase.db
+elase.db-wal
+elase.db-shm
+__pycache__/
+*.pyc
