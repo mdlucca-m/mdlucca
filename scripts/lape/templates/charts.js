@@ -2615,15 +2615,33 @@ const Charts = (function () {
       spec = spec || {};
       if (spec.width) return fn(spec);
       const caixa = el("div", { class: "plotbox" });
-      let ultima = 0;
+      let ultima = 0, ultimaAlt = 0;
       const desenhar = function () {
         const largura = Math.round(caixa.clientWidth || 0);
+        /* `fill` so vale onde a caixa TEM altura propria -- o mural, cujo
+           cartao e do tamanho da tela. Ali, desenhar sempre com a altura
+           que o autor pediu (520) dentro de um cartao de 250 fazia o SVG
+           encolher inteiro para caber: o grafico ficava encaixotado no
+           meio do cartao, com metade da largura vazia dos dois lados e a
+           letra do eixo ilegivel a um metro.
+
+           Fora do mural isto fica DESLIGADO de proposito: no painel a
+           caixa nao tem altura propria -- ela vem do conteudo --, e medir
+           a altura para redesenhar com ela e um laco: o desenho define a
+           altura, a altura redefine o desenho. */
+        const altura = spec.fill ? Math.round(caixa.clientHeight || 0) : 0;
         /* o limiar e o que impede o laco: redesenhar troca o conteudo da
            caixa e acorda o observador de novo */
-        if (!largura || Math.abs(largura - ultima) < 12) return;
+        if (!largura || (Math.abs(largura - ultima) < 12
+                         && Math.abs(altura - ultimaAlt) < 12)) return;
         ultima = largura;
-        caixa.textContent = "";
-        caixa.appendChild(fn(Object.assign({}, spec, { width: largura })));
+        ultimaAlt = altura;
+        const medidas = { width: largura };
+        /* piso: uma caixa de 40px nao vira grafico, vira risco. Abaixo
+           disso vale a altura que o autor pediu, e o cartao rola. */
+        if (altura >= 160) medidas.height = altura;
+        caixa.appendChild(fn(Object.assign({}, spec, medidas)));
+        while (caixa.firstChild !== caixa.lastChild) caixa.removeChild(caixa.firstChild);
       };
       requestAnimationFrame(desenhar);
       if (window.ResizeObserver) {

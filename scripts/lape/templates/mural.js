@@ -371,7 +371,10 @@ function slideAgora() {
     ? C.columns({
       labels: recentes.map(function (r) { return String(r.year); }),
       series: [{ label: "Publicações", values: recentes.map(function (r) { return r.n_articles; }) }],
-      height: 460, caption: "publicações por ano",
+      /* `fill`: o cartao do mural tem altura propria, e o grafico desenha
+         COM ela em vez de desenhar em 460 e encolher para caber. A altura
+         aqui e so o que vale se a caixa nao tiver altura nenhuma. */
+      fill: true, height: 460, caption: "publicações por ano",
     })
     : vazio("Sem histórico de publicação ainda.");
 
@@ -554,7 +557,7 @@ function graficoDasAreas() {
       grafico: porTipo.length ? C.columns({
         labels: porTipo.map(function (x) { return cortar(x.label, 22); }),
         series: [{ label: "Artigos", values: porTipo.map(function (x) { return x.value; }) }],
-        height: 520, caption: "artigos por tipo de estudo",
+        fill: true, height: 520, caption: "artigos por tipo de estudo",
       }) : vazio("Sem artigos nesta área."),
     };
   }
@@ -596,7 +599,7 @@ function graficoDasAreas() {
         { label: "Em avaliação", values: porLinha.map(function (x) { return x.avaliacao; }) },
         { label: "Em produção", values: porLinha.map(function (x) { return x.producao; }) },
       ],
-      mode: "empilhado", height: 520, caption: "produção por linha de pesquisa",
+      mode: "empilhado", fill: true, height: 520, caption: "produção por linha de pesquisa",
     /* Sem número de linhas na frase: `porLinha` já veio cortado em oito,
        e dizer "as 8 linhas" num laboratório que cadastrou onze seria a
        parede errando uma conta que qualquer um ali confere. */

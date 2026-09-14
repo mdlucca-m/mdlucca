@@ -1065,14 +1065,22 @@ view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
     ].filter(Boolean));
 
     /* ---------------- impacto ---------------- */
-    const base = (o.scopus_total || 0) >= (o.wos_total || 0)
+    /* `let`, e nao `const`: a linha de baixo REATRIBUI. Com `const` isto e
+       `TypeError: Assignment to constant variable`, e o Resumo -- a
+       primeira tela do painel -- morre inteiro, em branco.
+
+       E o defeito so acordava no dia bom: exige Scopus e WoS zeradas E a
+       OpenAlex com numero, que e exatamente o estado de quem acabou de
+       apertar "Conferir as citacoes agora" sem ter as chaves das duas
+       pagas. Ou seja: a tela quebrava no primeiro sucesso. */
+    let base = (o.scopus_total || 0) >= (o.wos_total || 0)
       ? { total: o.scopus_total, campo: "scopus_citations", nome: "Scopus" }
       : { total: o.wos_total, campo: "wos_citations", nome: "Web of Science" };
     if (!base.total && o.openalex_total)
       base = { total: o.openalex_total, campo: "openalex_citations", nome: "OpenAlex" };
     const citados = rows.filter(function (a) { return (a[base.campo] || 0) > 0; })
       .sort(function (a, b) { return (b[base.campo] || 0) - (a[base.campo] || 0); });
-    const topo = citados[0];
+    const cinco = citados.slice(0, 5);
     /* Sem citação nenhuma o cartão virava três zeros lado a lado, que não
        é informação -- é a ausência dela ocupando o lugar de um cartão.
        Aqui ele diz o que falta para o número existir. */
@@ -1100,13 +1108,35 @@ view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
             series: [{ label: "Citações", values: citPorAno }],
             mono: true, height: 150, caption: "citações recebidas, por ano de publicação" })
         : null,
-      topo ? el("div", { class: "resumo-topo" }, [
-        el("div", { class: "hint", text: "artigo mais citado" }),
-        el("b", { text: topo.title }),
-        el("div", { class: "hint", text: (topo[base.campo] || 0) + " citações"
-          + (topo.journal ? " · " + topo.journal : "")
-          + (topo.year_published ? " · " + topo.year_published : "") }),
-      ]) : null,
+      /* Cinco, e nao um. Um artigo campeao sozinho nao responde a pergunta
+         que se faz olhando este cartao -- se o impacto do laboratorio esta
+         concentrado num trabalho ou espalhado. O trilho de cada linha e
+         proporcional ao primeiro colocado: cinco trilhos parecidos contam
+         uma historia, um trilho cheio e quatro tocos contam outra.
+
+         Sao os cinco do RECORTE atual, e nao do acervo inteiro: filtrou
+         por ano ou por linha de pesquisa, o cartao acompanha. E chegam
+         sozinhos, sem recarregar: a tela inteira se redesenha quando o
+         servidor avisa que a citacao mudou. */
+      cinco.length ? el("div", { class: "top5" },
+        [el("div", { class: "hint", text: "os mais citados na " + base.nome })].concat(
+          cinco.map(function (a, i) {
+            const n = a[base.campo] || 0;
+            const barra = el("i");
+            barra.style.setProperty("--pct", (100 * n / (cinco[0][base.campo] || 1)) + "%");
+            const linha = el("div", { class: "linha", title: a.title }, [
+              el("div", { class: "posto", text: String(i + 1) }),
+              el("div", {}, [
+                el("div", { class: "titulo", text: a.title }),
+                el("div", { class: "pe", text: [a.journal, a.year_published]
+                  .filter(Boolean).join(" · ") }),
+                el("div", { class: "trilho" }, barra),
+              ]),
+              el("div", { class: "n", text: C.fmt(n) }),
+            ]);
+            linha.onclick = function () { showArticle(a); };
+            return linha;
+          }))) : null,
       /* Citação demora: o artigo deste ano ainda não teve tempo de ser
          citado, e comparar a colheita dele com a de 2019 puniria o
          trabalho novo por ser novo. */

@@ -19,7 +19,7 @@ body { background: var(--surface-sunken); }
 /* Fundo em movimento lento. Fica atrás de tudo e nunca sob marca de dado —
    as áreas de plotagem têm superfície própria e opaca. */
 .aurora { position: fixed; inset: -18%; z-index: 0; pointer-events: none; filter: blur(58px);
-  opacity: .5; background:
+  opacity: var(--aurora, .5); background:
     radial-gradient(38% 44% at 18% 22%, color-mix(in srgb, var(--series-1) 60%, transparent), transparent 68%),
     radial-gradient(34% 40% at 82% 30%, color-mix(in srgb, var(--series-7) 46%, transparent), transparent 66%),
     radial-gradient(40% 46% at 60% 88%, color-mix(in srgb, var(--series-3) 40%, transparent), transparent 68%);

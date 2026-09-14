@@ -1090,6 +1090,100 @@ class TestTokensDoTema(unittest.TestCase):
         self.assertIn(':root[data-theme="dark"] {', css)
         self.assertNotIn(':root, :root[data-theme="dark"] {', css)
 
+    def test_o_fundo_claro_e_branco_e_nao_creme(self):
+        """Pedido "claro", o padrao saiu creme com degrade azulado por cima.
+
+        O creme (#f6f6f3) veio de quando o claro era a excecao e precisava
+        "ter vida", e o degrade punha uma nuvem azul no alto da pagina.
+        Num mural de corredor, a dois metros, e o tingimento que se ve
+        primeiro -- nao o dado. Este teste guarda o branco: a pagina e o
+        cartao sao os dois #ffffff, e o degrade da pagina nao tem matiz
+        nenhum dentro.
+        """
+        css = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        bloco = css[css.index(':root, :root[data-theme="light"] {'):]
+        bloco = bloco[:bloco.index("\n}")]
+        for token in ("--surface", "--surface-sunken"):
+            with self.subTest(token=token):
+                linha = [l for l in bloco.splitlines() if l.strip().startswith(token + ":")]
+                self.assertTrue(linha, token)
+                self.assertIn("#ffffff", linha[0].lower())
+        # o degrade da pagina existe (o escuro usa o dele), mas aqui ele e
+        # branco sobre branco -- nenhuma cor que nao seja #fff pode aparecer
+        grad = bloco[bloco.index("--grad-page:"):]
+        grad = grad[:grad.index(";")]
+        cores = re.findall(r"#[0-9a-fA-F]{3,6}", grad)
+        self.assertTrue(cores, "o degrade da pagina sumiu")
+        for cor in cores:
+            with self.subTest(cor=cor):
+                self.assertIn(cor.lower(), ("#fff", "#ffffff"))
+
+    def test_o_borrao_colorido_do_mural_nao_pinta_o_branco(self):
+        """No escuro e um brilho; no branco e uma mancha azul-lilas.
+
+        O mural tem um borrao em movimento atras de tudo, feito das cores
+        de serie 1, 7 e 3 a 50% -- desenhado para brilhar sobre preto. Com
+        o fundo branco ele toma a parede inteira, e a `.aurora` fica na
+        frente de tudo que nao tem superficie propria. A forca virou token,
+        para cada tema responder pelo seu.
+        """
+        css = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        html = (self.TEMPLATES / "mural.html").read_text(encoding="utf-8")
+        self.assertIn("opacity: var(--aurora", html)
+        for modo, esperado in (("light", "0"), ("dark", ".5")):
+            sel = (':root, :root[data-theme="light"] {' if modo == "light"
+                   else ':root[data-theme="dark"] {')
+            bloco = css[css.index(sel):]
+            bloco = bloco[:bloco.index("\n}")]
+            with self.subTest(tema=modo):
+                linha = [l for l in bloco.splitlines() if l.strip().startswith("--aurora:")]
+                self.assertTrue(linha, f"--aurora falta em {modo}")
+                self.assertIn(esperado, linha[0])
+
+    def test_a_caixa_que_mede_o_grafico_nao_impoe_altura(self):
+        """O "nao da para ver nada" era um div sem regra de CSS.
+
+        `plotbox` nasce em JavaScript so para o grafico medir a largura do
+        cartao antes de desenhar. Sem regra nenhuma ele entrava na coluna
+        flexivel do cartao como bloco de `min-height: auto` -- um bloco que
+        se recusa a encolher abaixo do conteudo. Num cartao mais baixo que
+        o grafico ele empurrava o SVG para fora em cima e embaixo, e o
+        `overflow: hidden` do cartao cortava os dois extremos: sumia o topo
+        das barras, sumiam os nomes do eixo, e o titulo do cartao ficava
+        atras da barra.
+
+        Nao aparecia em tela grande, onde o cartao calha de ser mais alto
+        que o grafico -- aparecia em notebook e com a escala do Windows em
+        125%, que e a maioria das telas de quem usa isto.
+        """
+        css = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        self.assertIn(".plotbox {", css)
+        bloco = css[css.index(".plotbox {"):]
+        bloco = bloco[:bloco.index("}")]
+        self.assertIn("min-height: 0", bloco)
+        self.assertIn("flex: 1 1 0", bloco)
+
+    def test_o_grafico_do_mural_desenha_do_tamanho_do_cartao(self):
+        """Desenhar em 520 e encolher para caber nao e caber.
+
+        O SVG guarda a proporcao do que foi desenhado: pedido 520 de altura
+        dentro de um cartao de 250, ele encolhe INTEIRO -- sobra metade da
+        largura vazia dos dois lados e a letra do eixo fica ilegivel a um
+        metro da parede. Com `fill`, a caixa mede a altura que tem e o
+        grafico desenha com ela.
+
+        E so no mural: la o cartao tem altura propria, vinda da tela. No
+        painel a caixa nao tem altura propria -- ela vem do conteudo --, e
+        medi-la para redesenhar e um laco: o desenho define a altura, a
+        altura redefine o desenho.
+        """
+        charts = (self.TEMPLATES / "charts.js").read_text(encoding="utf-8")
+        self.assertIn("spec.fill ?", charts)
+        mural = (self.TEMPLATES / "mural.js").read_text(encoding="utf-8")
+        self.assertIn("fill: true", mural)
+        painel = (self.TEMPLATES / "dashboard.js").read_text(encoding="utf-8")
+        self.assertNotIn("fill: true", painel)
+
     def test_o_botao_nomeia_o_tema_que_nao_e_o_padrao(self):
         """O botão compara com o OUTRO tema, nunca com o padrão.
 
