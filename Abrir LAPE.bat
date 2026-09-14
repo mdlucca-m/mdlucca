@@ -18,6 +18,10 @@ rem
 rem  DIFERENCA PARA O 'Subir LAPE.bat': aquele publica o endereco fixo
 rem  para o laboratorio inteiro (e depende do tunel do ngrok). Este aqui
 rem  serve so NESTE computador, e por isso sempre funciona.
+rem
+rem  Os dois buscam atualizacao antes de subir. So este aqui nao buscava,
+rem  e quem so usa este ficava para tras sem nada avisar: o sistema subia
+rem  igual, com o codigo da semana passada.
 rem ===================================================================
 setlocal
 title LAPE - neste computador
@@ -40,6 +44,22 @@ if not exist "scripts\lape_agent.py" (
   pause
   exit /b 1
 )
+
+where git >nul 2>nul
+if errorlevel 1 (
+  echo   . git nao encontrado -- seguindo sem buscar atualizacao.
+  echo     O sistema sobe com a versao que ja esta nesta pasta.
+) else (
+  echo   buscando atualizacao...
+  git pull --ff-only
+  if errorlevel 1 (
+    echo.
+    echo   . nao deu para atualizar agora. Seguindo com a versao desta
+    echo     pasta -- nada foi perdido, e da para tentar de novo depois.
+    echo.
+  )
+)
+echo.
 
 rem O navegador abre ANTES do servidor de proposito: ele leva um segundo
 rem para carregar, e nesse tempo o servidor ja subiu. Se aparecer erro de

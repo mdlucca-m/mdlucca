@@ -79,6 +79,32 @@ class TestOsAtalhosLocais(unittest.TestCase):
             with self.subTest(arquivo=nome):
                 self.assertTrue((ROOT / nome).exists(), nome)
 
+    def test_quem_sobe_o_sistema_de_verdade_busca_atualizacao(self):
+        """Dois botoes sobem o LAPE, e so um deles atualizava.
+
+        Quem usa o "Subir LAPE" vinha recebendo o codigo novo sozinho; quem
+        so usa o "Abrir LAPE" -- que e quem esta sem tunel, ou seja, quem
+        esta com algum problema -- ficava para tras sem nada avisar. O
+        sistema subia igual, com o codigo da semana passada, e a pessoa
+        relatava um defeito ja consertado.
+
+        A demonstracao fica de fora de proposito: ela gera a propria massa
+        a cada vez e nao e o sistema do laboratorio -- atualizar antes de
+        mostrar a alguem so acrescenta uma coisa que pode dar errado na
+        frente da plateia.
+        """
+        for nome in ("Subir LAPE.bat", "Abrir LAPE.bat"):
+            with self.subTest(arquivo=nome):
+                corpo = self.corpo(nome)
+                self.assertIn("git pull --ff-only", corpo)
+                # `--ff-only` e o que separa "trazer" de "misturar": sem ele,
+                # um pull com alteracao local abre um merge dentro de um .bat,
+                # que ninguem tem como resolver naquela janela
+                self.assertNotIn("git merge", corpo)
+                # e nao pode DERRUBAR a subida: sem internet, ou com alteracao
+                # local, o sistema sobe assim mesmo com o que ja esta no disco
+                self.assertIn("errorlevel 1", corpo)
+
     def test_cada_um_abre_o_navegador_na_sua_porta(self):
         """O endereço ir parar no terminal em vez do navegador foi o que
         mais atrapalhou. Aqui quem digita é o arquivo."""
