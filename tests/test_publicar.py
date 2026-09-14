@@ -525,9 +525,7 @@ class TestOsArquivosDeTeste(unittest.TestCase):
     # estiver nesta lista, o módulo não tem teste nenhum. A lista existe
     # para que a dívida seja visível e para que um módulo NOVO não entre
     # sem teste — não para dar a entender que está tudo coberto.
-    SEM_TESTE_AINDA = {
-        "config",             # só caminhos e constantes lidos do ambiente
-    }
+    SEM_TESTE_AINDA: set[str] = set()
 
     def test_todo_modulo_novo_chega_com_teste(self):
         modulos = {caminho.stem for caminho in (ROOT / "scripts" / "lape").glob("*.py")

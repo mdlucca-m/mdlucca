@@ -138,6 +138,12 @@ def montar(db: Database, quando: datetime | None = None) -> str:
     miolo = miolo.replace("__BASE_CSS__", _ler("theme.css"))
     miolo = miolo.replace("__ICONS_JS__", _ler("icons.js"))
     miolo = miolo.replace("__CHARTS_JS__", _ler("charts.js"))
+    # Este marcador ficou de fora quando as bandeiras entraram, e a pagina
+    # abria com `__BANDEIRAS_JS__ is not defined` no console -- o mapa nao
+    # desenhava, e mais nada depois dele tambem nao. Ninguem via o erro
+    # porque esta pagina viaja por WhatsApp e ninguem abre o console de
+    # um anexo. O `api.py` ja fazia esta troca; faltava aqui.
+    miolo = miolo.replace("__BANDEIRAS_JS__", _ler("bandeiras.js"))
     # O marcador da tela sai do miolo: a versao remendada dela entra
     # depois, ja com os dados dentro. Deixar os dois faria o original
     # rodar primeiro e estourar em `__PANORAMA_JS__ is not defined`.

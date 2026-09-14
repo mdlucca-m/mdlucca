@@ -455,13 +455,19 @@ ABAS = (
 )
 
 ESTILO = """
+/* Esta pagina e clara, e os valores abaixo sao os MESMOS do tema claro de
+   `templates/theme.css` -- quem olha o painel no computador e o panorama no
+   celular ve a mesma paleta. Se aquela folha mudar de tom, este bloco muda
+   junto: e uma copia, porque esta pagina viaja sozinha por WhatsApp e nao
+   pode depender de baixar um CSS. Aqui nao ha alternador: a pagina e gravada
+   uma vez e aberta offline, entao o tema e escolhido na hora de gravar. */
 :root {
-  color-scheme: dark;
-  --fundo: #05070d; --superficie: #0b1018; --alta: #141d29;
-  --tinta: #eaf0fa; --tinta2: #a7b4c9; --fraca: #77869b;
-  --borda: #1c2634; --borda-forte: #2a3648;
-  --tom: #5ec8f2; --tom-forte: #2fa8dd; --tom-lavado: #0c2735;
-  --bom: #34c759; --alerta: #fab219;
+  color-scheme: light;
+  --fundo: #f6f6f3; --superficie: #fcfcfb; --alta: #f2f1ee;
+  --tinta: #0b0b0b; --tinta2: #52514e; --fraca: #898781;
+  --borda: #dedcd4; --borda-forte: #c3c2b7;
+  --tom: #0e6f96; --tom-forte: #0b6386; --tom-lavado: #e6f4fa;
+  --bom: #0ca30c; --alerta: #fab219;
   --raio: 16px;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
@@ -487,7 +493,7 @@ header {
 header .marca {
   width: 34px; height: 34px; border-radius: 10px; flex: none;
   display: grid; place-items: center; font-weight: 800; font-size: 12.5px;
-  background: linear-gradient(150deg, var(--tom-forte), #1b6ea8); color: #04121a;
+  background: linear-gradient(150deg, var(--tom), #1b6ea8); color: #eaf4fa;
 }
 header b { display: block; font-size: 14.5px; letter-spacing: -.01em; }
 header small { display: block; font-size: 11.5px; color: var(--fraca); }
@@ -501,7 +507,7 @@ main { max-width: 560px; margin: 0 auto; padding: 14px 14px 24px; }
   padding: 22px 18px 18px; margin-bottom: 14px;
   border-radius: var(--raio); border: 1px solid var(--borda-forte);
   background:
-    radial-gradient(420px 220px at 18% -30%, rgba(94,200,242,.20), transparent 66%),
+    radial-gradient(420px 220px at 18% -30%, rgba(14,111,150,.10), transparent 66%),
     var(--superficie);
 }
 .rotulo {
@@ -813,7 +819,7 @@ def escrever(db: Database, destino: Path,
               '<meta charset="utf-8">\n'
               '<meta name="viewport" content="width=device-width, initial-scale=1,'
               ' viewport-fit=cover">\n'
-              '<meta name="theme-color" content="#05070d">\n'
+              '<meta name="theme-color" content="#f6f6f3">\n'
               '<meta name="apple-mobile-web-app-capable" content="yes">\n'
               "<title>Panorama do LAPE</title>\n</head>\n<body>\n"
               + miolo + "</body>\n</html>\n")

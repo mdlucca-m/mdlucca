@@ -457,10 +457,22 @@ class TestOsRotulosQueSeEncontravam(unittest.TestCase):
 
         Quem olha de longe lê um número solto e precisa procurar a legenda
         para saber se aquilo é bom ou ruim.
+
+        O nome já esteve DENTRO da fatia, e não cabia: o anel tem 32px de
+        largura e o nome tem uns 60. Ele transbordava sempre, para o furo
+        de um lado e para fora do anel do outro; no fundo escuro isso
+        passava porque branco sobre escuro se lê em qualquer lugar onde
+        caia. O fundo claro virou o padrão e a metade que transborda ficou
+        branca sobre branca. Por isso o nome agora vai no miolo, com tinta
+        de texto -- e por isso este teste cobra as duas coisas: que o nome
+        exista, e que ele NÃO esteja pintado de branco dentro da fatia.
         """
         corpo = self.charts[self.charts.index("function donut(spec)"):]
         corpo = corpo[:corpo.index("function funnel(spec)")]
         self.assertIn("pct >= 30 && item.label", corpo)
+        self.assertIn('token("--ink-2")', corpo)
+        # a porcentagem continua branca sobre a fatia; o nome, nunca mais
+        self.assertEqual(corpo.count("fill:#fff"), 1, "só a porcentagem é branca")
 
 
 class TestOMovimento(unittest.TestCase):

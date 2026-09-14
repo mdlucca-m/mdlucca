@@ -1077,16 +1077,41 @@ class TestTokensDoTema(unittest.TestCase):
         self.assertNotIn("prefers-color-scheme", corpo)
         self.assertIn('getAttribute("data-theme") !==', corpo)
 
-    def test_o_escuro_e_o_padrao_da_folha(self):
-        """Sem atributo nenhum, a tela abre escura -- e sem piscar.
+    def test_o_claro_e_o_padrao_da_folha(self):
+        """Sem atributo nenhum, a tela abre clara -- e sem piscar.
 
         O padrão mora no CSS e não no JavaScript: posto pelo script, a
-        página pintaria clara por um quadro antes de escurecer.
+        página pintaria do outro tema por um quadro antes de trocar. É
+        também por morar aqui que o padrão vale no instantâneo, no
+        relatório e no mural, que leem esta folha e nunca rodam o painel.
         """
         css = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
-        self.assertIn(':root, :root[data-theme="dark"] {', css)
-        self.assertIn(':root[data-theme="light"] {', css)
-        self.assertNotIn(':root, :root[data-theme="light"] {', css)
+        self.assertIn(':root, :root[data-theme="light"] {', css)
+        self.assertIn(':root[data-theme="dark"] {', css)
+        self.assertNotIn(':root, :root[data-theme="dark"] {', css)
+
+    def test_o_botao_nomeia_o_tema_que_nao_e_o_padrao(self):
+        """O botão compara com o OUTRO tema, nunca com o padrão.
+
+        Quem não escolheu nada não tem atributo, e `getAttribute` devolve
+        `null`. Comparar com o padrão dá "diferente" para quem está no
+        padrão, e o primeiro clique grava o tema que já estava valendo:
+        aperta e nada muda. O padrão da folha já trocou quatro vezes, e
+        nas trocas anteriores esta linha ficou para trás -- então o teste
+        lê da própria folha qual é o tema não-padrão e cobra o JavaScript.
+        """
+        css = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        # o seletor do padrão TERMINA em `:root[data-theme="..."] {`, então
+        # procurar a agulha solta acha os dois: ancora-se no começo da linha
+        outro = [modo for modo in ("dark", "light")
+                 if f'\n:root[data-theme="{modo}"] {{' in css]
+        self.assertEqual(len(outro), 1, "deve haver exatamente um tema não-padrão")
+        js = (self.TEMPLATES / "dashboard.js").read_text(encoding="utf-8")
+        corpo = js[js.index("function setupTheme"):]
+        corpo = corpo[:corpo.index("\n}")]
+        clique = corpo[corpo.index("addEventListener"):]
+        self.assertIn(f'getAttribute("data-theme") !== "{outro[0]}"', clique,
+                      "o botão está comparando com o tema padrão")
 
 
 if __name__ == "__main__":

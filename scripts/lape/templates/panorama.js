@@ -724,6 +724,27 @@ function cartaoDasCitacoes() {
       + "Clarivate; depende da assinatura da UDESC.<br>"
       + "Depois reinicie o sistema. As chaves ficam só nesta máquina — o "
       + "<code>.env</code> não vai para o repositório." }));
+    /* "Falta configurar" tem duas causas com a mesma cara na tela: não há
+       arquivo, ou há e a linha da chave é que está errada. Sem dizer qual
+       das duas, quem lê refaz o arquivo que já estava certo. */
+    if (d.env) {
+      /* o nome do arquivo vem do servidor: entra por `text`, e nao por
+         `html`, que e a regra desta casa para tudo que nao escrevi aqui */
+      const achou = el("p", { class: "hint", style: "margin-top:10px" },
+        [el("b", { text: "O sistema leu o arquivo " }),
+         el("code", { text: d.env }),
+         el("span", { text: " ao subir. Então o arquivo existe e chegou: o que "
+           + "falta é a linha da chave dentro dele — confira o nome da variável "
+           + "e que não há espaço antes do sinal de igual." })]);
+      corpo.appendChild(achou);
+    } else {
+      corpo.appendChild(el("p", { class: "hint", style: "margin-top:10px", html:
+        "O sistema <b>não encontrou nenhum <code>.env</code></b> na raiz ao subir. "
+        + "Crie o arquivo ali, ao lado de <code>Abrir LAPE.bat</code>. Atenção: o "
+        + "Bloco de Notas grava <code>.env.txt</code> quando se pede "
+        + "<code>.env</code> — este sistema aceita os dois, mas um "
+        + "<code>.env.txt.txt</code> não." }));
+    }
     /* e o botão fica: sem chave a rodada não é vazia, ela consulta a
        OpenAlex -- que é exatamente o que faltava fazer antes */
   }

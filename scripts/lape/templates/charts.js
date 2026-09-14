@@ -807,6 +807,7 @@ const Charts = (function () {
     const svg = svgRoot(W, H, spec.caption || "distribuição");
     svg.setAttribute("class", "plot round");
     let angle = -Math.PI / 2;
+    let dominante = null;
 
     items.forEach(function (item, i) {
       const color = item.color || serie(i);
@@ -833,18 +834,24 @@ const Charts = (function () {
       if (pct >= 8) {
         const mid = (a0 + a1) / 2, rr = (R + r) / 2;
         const x = cx + rr * Math.cos(mid), y = cy + rr * Math.sin(mid);
-        const manda = pct >= 30 && item.label;
         svg.appendChild(txt(s("text", {
-          x: x, y: y + (manda ? -2 : 4), "text-anchor": "middle",
+          x: x, y: y + 4, "text-anchor": "middle",
           style: "font-size:11px;font-weight:700;fill:#fff",
         }), pct + "%"));
-        if (manda) {
-          svg.appendChild(txt(s("text", {
-            x: x, y: y + 11, "text-anchor": "middle",
-            style: "font-size:9.5px;font-weight:600;fill:#fff;opacity:.88",
-          }), String(item.label).length > 13
-              ? String(item.label).slice(0, 12) + "…" : String(item.label)));
-        }
+      }
+      /* O NOME da fatia dominante vai para o miolo, e nao para dentro da
+         fatia. O anel tem 32px de largura e o nome tem uns 60: escrito na
+         fatia, ele SEMPRE transbordava -- para dentro do furo de um lado e
+         para fora do anel do outro. No fundo escuro isso passava, porque
+         branco sobre escuro continua legivel onde quer que caia; no fundo
+         claro a metade que transborda vira branco sobre branco e some.
+         No miolo ele cabe, usa tinta de texto e vale nos dois fundos. */
+      /* `>` e nao `>=`: mais de uma fatia pode passar de 30%, e o miolo so
+         comporta um nome. Sem a comparacao ficava o da ULTIMA fatia que
+         passou, que e a ordem do array -- e o nome saia trocado sempre que
+         a maior nao fosse a ultima. */
+      if (pct >= 30 && item.label && (!dominante || item.value > dominante.valor)) {
+        dominante = { rotulo: item.label, valor: item.value, cor: color };
       }
       angle += span;
     });
@@ -854,6 +861,17 @@ const Charts = (function () {
     }), compact(total)));
     svg.appendChild(txt(s("text", { class: "tick", x: cx, y: cy + 20, "text-anchor": "middle" }),
       spec.unit || "total"));
+    if (dominante) {
+      /* a bolinha na cor da fatia e o que liga este nome ao anel -- sem
+         ela, um nome no meio de uma rosca se le como rotulo do TOTAL */
+      const nome = String(dominante.rotulo);
+      svg.appendChild(s("circle", { cx: cx - 30, cy: cy + 33, r: 3.5,
+                                    fill: dominante.cor }));
+      svg.appendChild(txt(s("text", {
+        x: cx - 22, y: cy + 37, "text-anchor": "start",
+        style: "font-size:10px;font-weight:600;fill:" + token("--ink-2"),
+      }), nome.length > 13 ? nome.slice(0, 12) + "\u2026" : nome));
+    }
 
     return figure(spec, svg, [legendOf(items.map(function (d, i) {
       return { label: d.label + " · " + fmt(d.value), color: d.color || serie(i) };

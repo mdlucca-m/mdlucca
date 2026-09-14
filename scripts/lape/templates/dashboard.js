@@ -7190,13 +7190,15 @@ function setupTheme() {
   try { stored = localStorage.getItem("lape-theme"); } catch (e) { /* janela privada */ }
   if (stored) document.documentElement.setAttribute("data-theme", stored);
   toggle.addEventListener("click", function () {
-    /* Sem escolha gravada, o painel está ESCURO -- a folha não segue o
+    /* Sem escolha gravada, o painel está CLARO -- a folha não segue o
        sistema. Perguntar ao sistema aqui faria o primeiro clique num
-       Windows claro "trocar para escuro" estando já escuro, e nada mudava.
-       A leitura é do atributo, e é por isso que ela sobrevive à troca do
-       padrão: quem não escolheu nada não tem atributo, e cai no escuro. */
-    const escuro = document.documentElement.getAttribute("data-theme") !== "light";
-    const next = escuro ? "light" : "dark";
+       Windows escuro "trocar para claro" estando já claro, e nada mudava.
+       A leitura é do atributo, e é por isso que ela acompanha a troca do
+       padrão: quem não escolheu nada não tem atributo, e cai no padrão --
+       basta que a comparação aqui nomeie o OUTRO tema, o que está no
+       `:root[data-theme="..."]` da folha, e nunca o padrão. */
+    const claro = document.documentElement.getAttribute("data-theme") !== "dark";
+    const next = claro ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", next);
     try { localStorage.setItem("lape-theme", next); } catch (e) { /* ignora */ }
     render();   /* os gráficos leem as cores dos tokens: basta redesenhar */

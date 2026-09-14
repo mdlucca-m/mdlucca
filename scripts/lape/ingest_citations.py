@@ -200,6 +200,12 @@ def situacao(db: Database) -> dict[str, Any]:
         "atualizado_em": db.scalar(
             "SELECT MAX(citations_updated_at) FROM articles"),
         "token_institucional": bool(config.SCOPUS_INST_TOKEN),
+        # Sem isto, "falta configurar" tem duas causas com a mesma cara:
+        # nao existe arquivo `.env`, ou ele existe, foi lido, e a linha da
+        # chave e que esta errada. Uma se resolve criando o arquivo, a
+        # outra conferindo uma linha -- e quem le a tela nao tem como
+        # saber em qual dos dois casos esta.
+        "env": getattr(config, "ENV_LIDO", ""),
     }
 
 

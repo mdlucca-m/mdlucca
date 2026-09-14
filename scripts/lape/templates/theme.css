@@ -40,7 +40,7 @@
   --div-neg: #3987e5; --div-pos: #e66767;
 }
 
-:root, :root[data-theme="dark"] {
+:root[data-theme="dark"] {
   color-scheme: dark;
 
   /* --- superfícies e tinta ---------------------------------------------
@@ -127,7 +127,7 @@
   --ring:      inset 0 1px 0 rgba(255,255,255,.055);
 }
 
-/* O CLARO é a ESCOLHA, e o escuro voltou a ser o padrão.
+/* O CLARO é o PADRÃO, e o escuro é a escolha.
 
    Esta folha já foi das duas maneiras mais de uma vez, e o motivo de cada
    volta importa mais do que qual está valendo agora.
@@ -136,17 +136,25 @@
    -- que está no claro -- o tema escuro nunca aparecia para ninguém. A
    correção foi fixar um padrão em vez de perguntar ao sistema, e o padrão
    escolhido foi o escuro. Depois o laboratório pediu o claro, e o padrão
-   virou claro. Agora pediu escuro de novo, mais fundo e mais contrastado,
-   e o padrão voltou.
+   virou claro. Depois pediu escuro de novo, mais fundo e mais contrastado.
+   Agora pediu claro outra vez, e o padrão voltou para cá.
 
    O que NÃO mudou em nenhuma das voltas, e é a regra de verdade: não se
    pergunta ao sistema operacional. É isso que faz a tela ser a mesma na
    sala, no projetor e no PDF que sai daqui -- e é isso que não se deve
    desfazer numa próxima troca de padrão.
 
-   O claro continua inteiro, e entra com data-theme="light" no elemento
-   raiz, pelo botão do painel. */
-:root[data-theme="light"] {
+   COMO A TROCA É FEITA, para a próxima volta ser de uma linha: o padrão é
+   o bloco de seletor NU (`:root`), e a escolha é o bloco com atributo
+   (`:root[data-theme="..."]`). Inverter o padrão é mover o `:root` de um
+   cabeçalho para o outro -- e nada mais. A especificidade resolve o
+   resto: `:root[data-theme="dark"]` (0,2,0) sempre vence o `:root` (0,1,0),
+   qualquer que seja a ordem no arquivo.
+
+   Trocar o padrão aqui, e não no JavaScript, é o que faz o claro valer
+   TAMBÉM no instantâneo, no relatório e no mural -- que leem esta folha e
+   nunca executam o painel. */
+:root, :root[data-theme="light"] {
   color-scheme: light;
   --surface:        #fcfcfb;
   --surface-raised: #f2f1ee;
