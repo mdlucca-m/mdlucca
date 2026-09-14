@@ -1396,8 +1396,8 @@ const Charts = (function () {
 
     for (let i = 0; i <= 4; i++) {
       const lat = latMin + (latMax - latMin) * i / 4, lon = lonMin + (lonMax - lonMin) * i / 4;
-      svg.appendChild(s("line", { class: "grid-line", x1: pad, x2: W - pad, y1: Y(lat), y2: Y(lat) }));
-      svg.appendChild(s("line", { class: "grid-line", y1: pad, y2: H - pad, x1: X(lon), x2: X(lon) }));
+      svg.appendChild(s("line", { class: "estrutura", x1: pad, x2: W - pad, y1: Y(lat), y2: Y(lat) }));
+      svg.appendChild(s("line", { class: "estrutura", y1: pad, y2: H - pad, x1: X(lon), x2: X(lon) }));
       svg.appendChild(txt(s("text", { class: "tick", x: pad - 8, y: Y(lat) + 3, "text-anchor": "end" }), lat.toFixed(1) + "°"));
       svg.appendChild(txt(s("text", { class: "tick", x: X(lon), y: H - pad + 16, "text-anchor": "middle" }), lon.toFixed(1) + "°"));
     }
@@ -1878,11 +1878,11 @@ const Charts = (function () {
         const p = point(i, t);
         return (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1);
       }).join(" ") + " Z";
-      svg.appendChild(s("path", { class: "grid-line", d: ring, fill: "none" }));
+      svg.appendChild(s("path", { class: "estrutura", d: ring, fill: "none" }));
     });
     axes.forEach(function (label, i) {
       const edge = point(i, scale.max);
-      svg.appendChild(s("line", { class: "grid-line", x1: cx, y1: cy, x2: edge[0], y2: edge[1] }));
+      svg.appendChild(s("line", { class: "estrutura", x1: cx, y1: cy, x2: edge[0], y2: edge[1] }));
       const a = step(i);
       const lx = cx + (R + 18) * Math.cos(a), ly = cy + (R + 18) * Math.sin(a);
       const anchor = Math.abs(Math.cos(a)) < 0.2 ? "middle" : (Math.cos(a) > 0 ? "start" : "end");

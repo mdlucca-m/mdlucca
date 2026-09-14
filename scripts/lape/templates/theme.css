@@ -653,7 +653,21 @@ svg.plot.fluxo { width: auto; max-width: none; }
 svg.plot.tree .node { cursor: default; }
 svg.plot.tree .lab { font-size: 13px; fill: var(--ink); }
 svg.plot.tree .tick { font-size: 11px; }
-.plot .grid-line { stroke: var(--grid); stroke-width: 1; shape-rendering: crispEdges; }
+/* Sem linhas de grade, a pedido da coordenacao. A regra fica aqui, e nao
+   apagada la no charts.js, porque e uma decisao de aparencia e nao de
+   dado: para trazer de volta basta apagar o `display: none`.
+
+   O que NAO sai junto: os numeros da escala (`.tick`), a linha do zero
+   (`.axis-line`) e o rotulo em cima de cada barra. Sao eles que respondem
+   "quanto" depois que a grade some -- tirar a grade sem eles nao deixaria
+   o grafico limpo, deixaria o grafico mudo.
+
+   `.estrutura` e o esqueleto de quem nao tem eixo: a teia do radar diz
+   onde fica cada variavel, e os meridianos do globo sao a geografia. Sem
+   eles nao sobra um grafico limpo -- sobra uma mancha solta no branco. */
+.plot .grid-line { display: none; }
+.plot .estrutura { stroke: var(--grid); stroke-width: 1; fill: none;
+  shape-rendering: crispEdges; }
 .plot .axis-line { stroke: var(--axis); stroke-width: 1; shape-rendering: crispEdges; }
 .plot .tick { font-size: 10.5px; fill: var(--ink-muted); font-variant-numeric: tabular-nums; }
 .plot .lab { font-size: 10.5px; fill: var(--ink-2); }
@@ -688,6 +702,24 @@ svg.plot.tree .tick { font-size: 11px; }
 @keyframes entra {
   from { opacity: 0; transform: scale(.94); }
   to   { opacity: 1; transform: scale(1); }
+}
+
+/* A tabela entra linha a linha, no mesmo ritmo das marcas do grafico.
+   Vale a cada repintura -- ordenar, filtrar, virar pagina, ou o servidor
+   avisar que o dado mudou --, que e quando o movimento informa: sem ele,
+   reordenar uma tabela de doze linhas nao se distingue de nada ter
+   acontecido. Sem deslocamento horizontal e com opacidade terminando em
+   1: linha que repousa translucida e tabela parecendo carregando. */
+tbody tr.entra-linha {
+  animation: entra-linha .34s cubic-bezier(.22,.9,.3,1) both;
+  animation-delay: calc(min(var(--passo, 0), 9) * 28ms);
+}
+@keyframes entra-linha {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  tbody tr.entra-linha { animation: none; }
 }
 
 .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 11px;

@@ -1184,6 +1184,70 @@ class TestTokensDoTema(unittest.TestCase):
         painel = (self.TEMPLATES / "dashboard.js").read_text(encoding="utf-8")
         self.assertNotIn("fill: true", painel)
 
+    def test_os_graficos_nao_tem_linha_de_grade(self):
+        """Pedido da coordenacao. O que nao sai junto e o que responde "quanto".
+
+        Tirar a grade sem os numeros da escala, a linha do zero e o rotulo
+        em cima da barra nao deixaria o grafico limpo -- deixaria o grafico
+        mudo. A regra mora no CSS, e nao apagada no charts.js, porque e
+        decisao de aparencia: para trazer de volta, apaga-se uma linha.
+        """
+        css = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        bloco = css[css.index(".plot .grid-line {"):]
+        bloco = bloco[:bloco.index("}")]
+        self.assertIn("display: none", bloco)
+        # o que RESPONDE quanto continua de pe
+        self.assertIn(".plot .axis-line", css)
+        charts = (self.TEMPLATES / "charts.js").read_text(encoding="utf-8")
+        self.assertIn('class: "tick"', charts)
+        self.assertIn('class: "val"', charts)
+
+    def test_o_radar_e_o_globo_nao_perdem_o_esqueleto(self):
+        """A teia do radar nao e grade: e onde fica cada variavel.
+
+        Escondida junto com as grades, o radar vira uma mancha solta no
+        branco e ninguem sabe qual ponta e qual medida. O mesmo vale para
+        os meridianos do globo, que sao a geografia. Por isso os dois usam
+        `.estrutura`, e nao `.grid-line`.
+        """
+        charts = (self.TEMPLATES / "charts.js").read_text(encoding="utf-8")
+        for fn in ("radar", "geo"):
+            corpo = charts[charts.index("function " + fn + "(spec)"):]
+            corpo = corpo[:corpo.index("\n  }\n")]
+            with self.subTest(grafico=fn):
+                self.assertIn('class: "estrutura"', corpo)
+                self.assertNotIn('class: "grid-line"', corpo)
+        css = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        bloco = css[css.index(".plot .estrutura {"):]
+        bloco = bloco[:bloco.index("}")]
+        self.assertIn("stroke:", bloco)
+        self.assertNotIn("display: none", bloco)
+
+    def test_a_tabela_entra_linha_a_linha_a_cada_repintura(self):
+        """`paint()` roda a cada ordenacao, filtro, pagina e aviso do servidor.
+
+        Sem o movimento, reordenar uma tabela de doze linhas nao se
+        distingue de nada ter acontecido -- e quem clicou no cabecalho fica
+        sem saber se o clique pegou. O escalonamento usa o mesmo `--passo`
+        e o mesmo teto dos graficos: da decima linha em diante o atraso
+        para de crescer, senao uma pagina de cinquenta levaria dois
+        segundos para terminar de aparecer.
+        """
+        js = (self.TEMPLATES / "dashboard.js").read_text(encoding="utf-8")
+        self.assertIn("entra-linha", js)
+        self.assertIn('tr.style.setProperty("--passo"', js)
+        css = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        bloco = css[css.index("tbody tr.entra-linha {"):]
+        bloco = bloco[:bloco.index("}")]
+        self.assertIn("min(var(--passo, 0), 9)", bloco)
+        # opacidade termina em 1: linha parada translucida e tabela
+        # parecendo que ainda esta carregando
+        quadros = css[css.index("@keyframes entra-linha {"):]
+        quadros = quadros[:quadros.index("\n}")]
+        self.assertIn("opacity: 1", quadros)
+        # e quem pediu para nao ter movimento continua sem movimento
+        self.assertIn("tbody tr.entra-linha { animation: none; }", css)
+
     def test_o_botao_nomeia_o_tema_que_nao_e_o_padrao(self):
         """O botão compara com o OUTRO tema, nunca com o padrão.
 

@@ -432,7 +432,17 @@ function dataTable(spec) {
     const slice = rows.slice(state.page * state.size, (state.page + 1) * state.size);
     tbody.innerHTML = "";
     slice.forEach(function (row, i) {
-      const tr = el("tr", spec.onRow ? { class: "clickable", tabindex: "0" } : {});
+      /* A tabela entra linha a linha, como as marcas do grafico entram
+         barra a barra. Nao e enfeite: `paint()` roda de novo a cada
+         ordenacao, a cada filtro, a cada troca de pagina e a cada vez que
+         o servidor avisa que o dado mudou -- e sem o movimento, trocar a
+         ordem de uma tabela de doze linhas nao se distingue de nada ter
+         acontecido. O `--passo` e o mesmo dos graficos, com o mesmo teto:
+         a partir da decima linha o atraso para de crescer, senao uma
+         pagina de cinquenta levaria dois segundos para terminar. */
+      const tr = el("tr", spec.onRow ? { class: "clickable entra-linha", tabindex: "0" }
+                                     : { class: "entra-linha" });
+      tr.style.setProperty("--passo", String(i));
       if (spec.onRow) {
         tr.addEventListener("click", function () { spec.onRow(row); });
         tr.addEventListener("keydown", function (ev) {
