@@ -4,3 +4,7 @@ elase.db-wal
 elase.db-shm
 __pycache__/
 *.pyc
+
+# binário baixado pelo abrir.py
+cloudflared
+cloudflared.exe

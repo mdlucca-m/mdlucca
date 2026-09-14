@@ -4,7 +4,20 @@ Voleibol masculino adulto. Python e SQLite, **sem instalar nada**.
 
 ```bash
 cd app_py
-python3 elase.py
+python3 abrir.py
+```
+
+Sobe o servidor **e** procura sozinho um endereço para os atletas: tenta o
+`cloudflared` que já exista, baixa o certo para o seu sistema se não existir, e
+cai no `ssh` (localhost.run) se o download não for. Cada falha diz o motivo e o
+que fazer — nenhuma delas deixa você sem saída, porque o endereço da **rede
+local** aparece antes de qualquer túnel e não depende de internet.
+
+Para não tentar túnel nenhum:
+
+```bash
+python3 abrir.py --rede      # só a rede local (mesmo wi-fi)
+python3 elase.py             # só localhost, o modo mais simples
 ```
 
 Abre em <http://localhost:8000>. O banco (`elase.db`) é criado na primeira
@@ -47,15 +60,26 @@ Não serve para: o atleta preencher em casa.
 
 ### 2. Um túnel temporário — endereço público sem hospedar
 
-Com `cloudflared` ou `ngrok` instalado:
-
 ```bash
-cloudflared tunnel --url http://localhost:8000
+python3 abrir.py
 ```
 
-Ele devolve um endereço `https://...` que funciona de qualquer lugar,
-**enquanto o comando estiver rodando**. Bom para a primeira rodada de
-cadastros; ruim como solução permanente (o endereço muda a cada vez).
+Faz tudo sozinho. Se der certo, imprime o endereço `https://...` numa caixa,
+com o link do cadastro pronto para copiar. Vale **enquanto o programa estiver
+aberto**, e o endereço muda a cada vez que você abre — bom para a primeira
+rodada de cadastros, ruim como solução permanente.
+
+**Se não abrir**, o programa diz o motivo que leu do próprio túnel. Os três
+casos comuns:
+
+| O que aparece | O que é | O que fazer |
+|---|---|---|
+| `not in allowlist`, `403`, `connection refused` | a rede bloqueia | teste no 4G do celular compartilhando internet |
+| `esta máquina não tem ssh` e o download falhou | sem saída para a internet | use a rede local (caminho 1) |
+| trava sem dizer nada | antivírus barrou o cloudflared | libere, ou use a rede local |
+
+Em qualquer um deles a **rede local continua funcionando** e basta para
+cadastrar o elenco no ginásio.
 
 ### 3. Hospedagem de verdade — endereço fixo, sempre no ar
 
