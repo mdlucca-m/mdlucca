@@ -150,6 +150,21 @@ table.matriz td.celula{text-align:center;font-variant-numeric:tabular-nums}
 .bandeira-btn .nome{font-weight:620}
 .bandeira-btn small{font-variant-numeric:tabular-nums;color:var(--ink-muted)}
 
+/* A atualizacao dos acervos: os botoes, a trilha e o recado.
+   A trilha usa --accent-strong, e nao a cor de estado: "em andamento"
+   nao e bom nem ruim, e pintar de verde faria a barra dizer que o
+   resultado veio bom antes de ele existir. */
+.atz{display:flex;flex-direction:column;gap:9px;margin-top:10px}
+.atz .botoes{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.atz .trilha{height:7px;border-radius:99px;background:var(--grid);overflow:hidden}
+.atz .trilha i{display:block;height:100%;width:0;border-radius:99px;
+  background:var(--accent-strong);transition:width .4s ease}
+.atz .trilha.indefinida i{width:35%;animation:atz-vai 1.5s ease-in-out infinite}
+@keyframes atz-vai{0%{margin-left:-35%}100%{margin-left:100%}}
+.atz .recado{font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.atz .recado b{color:var(--ink)}
+.atz .parciais{font-size:12px;color:var(--ink-muted);display:flex;gap:10px;
+  flex-wrap:wrap}
 
 @media (max-width:860px){
   .layout{grid-template-columns:1fr}
@@ -2039,7 +2054,8 @@ function pulsarPonto(ligado){
    mostrar o que ha: uma lista de quatrocentos artigos sem recorte e
    exatamente o que as pessoas ja tinham antes de existir biblioteca. */
 const BIB = { code: null, segmento: null, q: "", pais: null, aba: "acervo",
-              desenho: null, intervencao: null };
+              desenho: null, intervencao: null, lista: [],
+              recarregarAoFim: false };
 
 /* As bases que o sistema nao alcanca: a estrategia para copiar, e o campo
    para colar de volta o que a base exportar.
@@ -2206,6 +2222,9 @@ VIEWS.biblioteca = {
     if (!BIB.code || !lista.some(function (b){ return b.code === BIB.code; })){
       BIB.code = lista[0].code;
     }
+    /* Guardada porque o botão "Atualizar tudo" precisa saber QUANTOS são,
+       e ele é desenhado lá embaixo, dentro do cartão do acervo. */
+    BIB.lista = lista;
 
     /* um acervo por cartão, quando houver mais de um */
     if (lista.length > 1){
@@ -2805,29 +2824,136 @@ function cartaoDeArtigo(x){
   return h("div", {class: "card bib-item"}, corpo);
 }
 
+/* Atualizar um acervo, ou todos, acompanhando de fora.
+   A atualização roda no servidor e a tela PERGUNTA como vai — em vez de
+   ficar pendurada numa requisição de dez minutos, que o navegador
+   desiste de esperar. Era o que acontecia antes: a barra do navegador
+   girava, o pedido morria no caminho, e quem apertou não tinha como
+   saber se as buscas aconteceram. Apertava de novo, e as noventa buscas
+   saíam duas vezes. */
 function botaoDeAtualizar(b){
   if (!can("coordenacao")) return h("p", {class: "hint",
     text: "Quem atualiza o acervo é a coordenação."});
-  const estado = h("span", {class: "hint"});
-  const botao = h("button", {class: "primary"});
-  botao.appendChild(Icons.get("atualizar", 15));
-  botao.appendChild(h("span", {text: "Atualizar agora"}));
-  botao.onclick = async function (){
-    botao.disabled = true;
-    estado.textContent = "Perguntando à PubMed, uma busca por segmento… "
-      + "isto leva alguns minutos.";
+
+  const lista = BIB.lista || [];
+  const trilha = h("div", {class: "trilha"}, [h("i", {})]);
+  const recado = h("div", {class: "recado"});
+  const parciais = h("div", {class: "parciais"});
+  const este = h("button", {class: "primary"});
+  este.appendChild(Icons.get("atualizar", 15));
+  este.appendChild(h("span", {text: "Atualizar este acervo"}));
+  const botoes = h("div", {class: "botoes"}, [este]);
+
+  let tudo = null;
+  if (lista.length > 1){
+    tudo = h("button", {class: "ghost"});
+    tudo.appendChild(Icons.get("atualizar", 15));
+    tudo.appendChild(h("span", {text: "Atualizar tudo (" + lista.length + " acervos)"}));
+    botoes.appendChild(tudo);
+  }
+
+  const painel = h("div", {class: "atz"}, [botoes, trilha, recado, parciais]);
+  trilha.style.display = "none";
+
+  function desenhar(e){
+    const rodando = !!e.rodando;
+    este.disabled = rodando;
+    if (tudo) tudo.disabled = rodando;
+    trilha.style.display = (rodando || e.terminou_em) ? "" : "none";
+
+    const total = e.total || 0;
+    const feitas = e.feitas || 0;
+    /* Enquanto o total não foi contado ainda, a barra anda sem prometer
+       fração: mostrar 0% faria a tela parecer travada no primeiro
+       segundo, que é justamente quando a pessoa está olhando. */
+    const indefinida = rodando && !total;
+    trilha.classList.toggle("indefinida", indefinida);
+    trilha.firstChild.style.width = indefinida ? ""
+      : Math.min(100, total ? Math.round(feitas * 100 / total) : 100) + "%";
+
+    if (rodando){
+      const a = e.agora || {};
+      const onde = [a.rotulo, a.segmento].filter(Boolean).join(" · ");
+      recado.innerHTML = "";
+      recado.appendChild(h("b", {text: total
+        ? feitas + " de " + total + " busca(s)" : "começando"}));
+      recado.appendChild(h("span", {text: (onde ? " — " + onde : "")
+        + (e.novos ? " · " + e.novos + " novo(s) até agora" : "")}));
+    } else if (e.erro){
+      recado.innerHTML = "";
+      recado.appendChild(h("span", {text: "Não deu: " + e.erro}));
+    } else if (e.terminou_em){
+      recado.innerHTML = "";
+      recado.appendChild(h("b", {text: (e.novos || 0) + " artigo(s) novo(s)"}));
+      recado.appendChild(h("span", {text: " de " + (e.achados || 0)
+        + " achado(s)" + (e.erros ? " — " + e.erros + " busca(s) falharam" : "")
+        + " · terminou às " + String(e.terminou_em).slice(11, 16)}));
+    } else {
+      recado.textContent = "";
+    }
+
+    parciais.innerHTML = "";
+    (e.acervos || []).forEach(function (x){
+      parciais.appendChild(h("span", {text: (x.titulo || x.code) + ": "
+        + (x.erro ? x.erro : (x.novos + " novo(s)"))}));
+    });
+  }
+
+  let acompanhando = false;
+  async function acompanhar(){
+    if (acompanhando) return;
+    acompanhando = true;
     try {
-      const r = await api("/api/bibliotecas/" + encodeURIComponent(b.code)
-                          + "/atualizar", "POST", {});
-      estado.textContent = r.novos + " artigo(s) novo(s) de " + r.achados
-        + " achado(s), em " + r.buscas + " busca(s)"
-        + (r.erros ? " — " + r.erros + " busca(s) falharam" : "") + ".";
-      await show("biblioteca");
+      /* Para quando o painel sai da tela: quem navegou para outra aba não
+         precisa que o navegador siga perguntando para sempre. */
+      while (document.body.contains(painel)){
+        await new Promise(function (ok){ setTimeout(ok, 2000); });
+        if (!document.body.contains(painel)) return;
+        const e = await api("/api/bibliotecas/atualizar");
+        desenhar(e);
+        if (!e.rodando){
+          /* Recarrega a tela para os números do acervo entrarem, mas só
+             ao terminar — recarregar a cada dois segundos apagaria o
+             painel e a barra junto com ele. */
+          if (BIB.recarregarAoFim){ BIB.recarregarAoFim = false; await show("biblioteca"); }
+          return;
+        }
+      }
     } catch (e){
-      estado.textContent = "Não deu: " + e.message;
-    } finally { botao.disabled = false; }
-  };
-  return h("div", {class: "acao-ponto"}, [botao, estado]);
+      recado.textContent = "Perdi o acompanhamento: " + e.message
+        + " — a atualização pode estar seguindo no servidor.";
+    } finally { acompanhando = false; }
+  }
+
+  async function comecar(acervos){
+    este.disabled = true;
+    if (tudo) tudo.disabled = true;
+    recado.textContent = "Perguntando às bases, uma busca por segmento…";
+    trilha.style.display = "";
+    try {
+      const e = await api("/api/bibliotecas/atualizar", "POST",
+                          acervos ? {acervos: acervos} : {});
+      BIB.recarregarAoFim = true;
+      desenhar(e);
+      acompanhar();
+    } catch (err){
+      recado.textContent = "Não deu: " + err.message;
+      este.disabled = false;
+      if (tudo) tudo.disabled = false;
+    }
+  }
+
+  este.onclick = function (){ comecar([b.code]); };
+  if (tudo) tudo.onclick = function (){ comecar(null); };
+
+  /* Se já havia uma atualização rodando quando a tela abriu, ela aparece
+     aqui — inclusive a que outra pessoa da coordenação começou. */
+  api("/api/bibliotecas/atualizar").then(function (e){
+    if (e.rodando || e.terminou_em) desenhar(e);
+    if (e.rodando) acompanhar();
+  }).catch(function (){ /* sem acompanhamento, os botões seguem servindo */ });
+
+  return painel;
 }
 
 VIEWS.ponto = {

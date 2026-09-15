@@ -214,6 +214,59 @@ def cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_biblioteca(args: argparse.Namespace) -> int:
+    """Lista os acervos, ou roda as buscas de um, ou de todos.
+
+    Existe porque a tela exige que o servidor esteja de pe e alguem
+    logado como coordenacao, e nem sempre esta: quem quer deixar o acervo
+    atualizado antes de uma reuniao roda isto pelo cmd e vai fazer outra
+    coisa. Imprime busca por busca de proposito -- noventa buscas em
+    silencio sao indistinguiveis de um travamento.
+    """
+    from lape import biblioteca
+
+    db = Database(args.db)
+    db.migrate()
+    biblioteca.instalar(db)
+    acervos = biblioteca.todas(db, perfil="admin")
+    if not args.atualizar:
+        print(f"Banco: {args.db}")
+        for x in acervos:
+            print(f"  {x['code']:16s} {x['n']:6d} artigo(s)  "
+                  f"{'restrito' if x.get('restrita') else 'aberto':9s} "
+                  f"{x.get('atualizada_em') or 'nunca atualizado'}")
+        print("\n  para atualizar:  python scripts\\lape_agent.py biblioteca --atualizar")
+        db.close()
+        return 0
+
+    escolhidos = [x["code"] for x in acervos]
+    if args.code:
+        escolhidos = [c for c in escolhidos if c in set(args.code)]
+        if not escolhidos:
+            print(f"! nenhum acervo com esse codigo: {', '.join(args.code)}")
+            db.close()
+            return 1
+
+    total_novos = 0
+    falhou = False
+    for code in escolhidos:
+        print(f"\n== {code}")
+        try:
+            r = biblioteca.atualizar(db, code, verbose=True)
+        except Exception as erro:  # noqa: BLE001 -- um acervo nao derruba os outros
+            print(f"  ! {type(erro).__name__}: {erro}")
+            falhou = True
+            continue
+        total_novos += r["novos"]
+        print(f"  -> {r['novos']} novo(s) de {r['achados']} achado(s)"
+              f" em {r['buscas']} busca(s)")
+        for aviso in r["sem_chave"]:
+            print(f"  . {aviso['rotulo']}: {aviso['porque']}")
+    print(f"\n{total_novos} artigo(s) novo(s) em {len(escolhidos)} acervo(s).")
+    db.close()
+    return 1 if falhou else 0
+
+
 def cmd_demo(args: argparse.Namespace) -> int:
     """Gera a massa de teste num banco separado e publica o painel de demonstração."""
     from lape import demo
@@ -751,6 +804,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--para", type=Path, default=Path("docs/panorama-instantaneo.html"),
         metavar="ARQUIVO", help="onde gravar (padrao: docs/panorama-instantaneo.html)")
     instantaneo_parser.set_defaults(func=cmd_instantaneo)
+
+    bib_parser = subparsers.add_parser(
+        "biblioteca", help="os acervos de artigos: listar ou rodar as buscas")
+    bib_parser.add_argument(
+        "--atualizar", action="store_true",
+        help="roda as buscas (sem --code, roda de todos os acervos)")
+    bib_parser.add_argument(
+        "--code", action="append", metavar="CODIGO",
+        help="limita a este acervo (pode repetir)")
+    bib_parser.set_defaults(func=cmd_biblioteca)
 
     status_parser = subparsers.add_parser("status", help="resumo do banco e das lacunas")
     status_parser.set_defaults(func=cmd_status)

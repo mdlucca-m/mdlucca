@@ -413,6 +413,10 @@ docker compose -f docker-compose.prod.yml exec lape \
 docker compose -f docker-compose.prod.yml exec lape \
   python3 scripts/lape_agent.py usuarios --criar "Nome" email@udesc.br
 
+# atualizar os acervos da biblioteca (todos, um por um, imprimindo cada busca)
+docker compose -f docker-compose.prod.yml exec lape \
+  python3 scripts/lape_agent.py biblioteca --atualizar
+
 # acompanhar
 docker compose -f docker-compose.prod.yml logs -f lape
 ```
@@ -613,6 +617,17 @@ sobrescrito por fonte externa. Os agentes só preenchem campos vazios.
 | `/api/webhooks/<id>/testar` | POST | coordenação | Dispara um teste e devolve o resultado na hora |
 | `/api/webhooks/<id>/remover` | POST | coordenação | Remove o destino |
 | `/api/hooks/n8n` | POST | HMAC ou token | Porta de entrada do n8n: `curador`, `rastreador`, `lake`, `cadastrar` |
+| `/api/bibliotecas` | GET | leitura | Os acervos que esta pessoa pode ver |
+| `/api/bibliotecas/<code>` | GET | leitura | Um acervo: artigos, segmentos, contagens |
+| `/api/bibliotecas/<code>/analise` | GET | leitura | O mapeamento do acervo (mapa, rede, triângulo) |
+| `/api/bibliotecas/<code>/atualizar` | POST | coordenação | Roda as buscas de UM acervo e espera pelo resultado |
+| `/api/bibliotecas/atualizar` | POST | coordenação | Roda as buscas de todos (ou de `{"acervos":[...]}`) **ao lado**, e volta na hora |
+| `/api/bibliotecas/atualizar` | GET | coordenação | Como vai a atualização que está rodando |
+| `/api/bibliotecas/<code>/estrategias` | GET | leitura | As estratégias de busca guardadas, para publicar na revisão |
+| `/api/bibliotecas/<code>/colar` | POST | coordenação | Importa o que uma base sem API exportou |
+| `/api/bibliotecas/<code>/dono` | POST | coordenação | Declara de quem é o acervo, e se ele é restrito |
+| `/api/equipe/perfis` | GET | coordenação | As contas e o perfil de permissão de cada uma |
+| `/api/equipe/<id>/perfil` | POST | coordenação | Muda o perfil de permissão de alguém |
 | `/api/export/sqlite` | GET | admin | Baixa o banco |
 
 O `POST` aceita **os mesmos nomes de coluna das planilhas**:

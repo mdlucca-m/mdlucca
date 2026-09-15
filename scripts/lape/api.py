@@ -519,6 +519,59 @@ def route_biblioteca_atualizar(ctx: "Context", code: str) -> Any:
     return resultado
 
 
+def _acervos_que_pode_atualizar(ctx: "Context", user: dict) -> list[str]:
+    """Os acervos que esta pessoa pode mandar atualizar, na ordem declarada.
+
+    Passa pelo mesmo `todas` que a lista da tela usa -- e nao pela tabela
+    crua -- para que um acervo restrito nao seja atualizavel por quem nao
+    pode nem ve-lo.
+    """
+    from . import biblioteca
+
+    return [x["code"] for x in biblioteca.todas(
+        ctx.db, quem=user.get("id"), perfil=user.get("user_role"))]
+
+
+def route_atualizar_tudo(ctx: "Context") -> Any:
+    """Roda as buscas de TODOS os acervos, ao lado, e volta na hora.
+
+    Volta antes de terminar porque noventa buscas levam minutos e uma
+    requisicao de minutos nao chega ao fim -- o navegador desiste antes.
+    Quem apertou acompanha por GET nesta mesma rota.
+
+    O corpo pode trazer `acervos` com os codigos desejados; sem isso, vao
+    todos os que a pessoa pode ver. Codigo que ela nao pode ver e
+    ignorado em silencio -- responder "esse acervo existe, mas nao e seu"
+    seria contar que ele existe.
+    """
+    from . import atualizacao
+
+    user = auth.require(ctx.user, "coordenacao")
+    permitidos = _acervos_que_pode_atualizar(ctx, user)
+    pedidos = ctx.body.get("acervos") if isinstance(ctx.body, dict) else None
+    if pedidos:
+        codes = [c for c in permitidos if c in set(pedidos)]
+    else:
+        codes = permitidos
+    if not codes:
+        raise ApiError(404, "nenhum acervo para atualizar")
+    try:
+        estado = atualizacao.iniciar(ctx.db.path, codes,
+                                     quem=user.get("login") or "")
+    except atualizacao.JaRodando as erro:
+        raise ApiError(409, str(erro))
+    auth.log(ctx.db, user["id"], user.get("login"), "acervos_atualizando",
+             "biblioteca", detail=", ".join(codes))
+    return estado
+
+
+def route_atualizacao(ctx: "Context") -> Any:
+    """Como vai a atualizacao que esta rodando -- ou como foi a ultima."""
+    from . import atualizacao
+
+    return atualizacao.estado()
+
+
 def route_perfil_de_acesso(ctx: "Context", member_id: str) -> Any:
     """Muda o PERFIL DE PERMISSAO de alguem -- e nao o vinculo academico.
 
@@ -2243,6 +2296,12 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/producao/importar/?$", route_producao_importar, "coordenacao"),
     ("POST", r"^/api/equipe/professores/?$", route_professores, "coordenacao"),
     ("GET", r"^/api/bibliotecas/?$", route_bibliotecas, "leitura"),
+    # Estas duas vem ANTES da rota de um acervo so: "atualizar" casa com
+    # [\w-]+, e na ordem inversa um GET aqui viraria "mostre o acervo de
+    # codigo atualizar". O preco e que nenhum acervo pode se chamar
+    # "atualizar" -- e nenhum se chama.
+    ("GET", r"^/api/bibliotecas/atualizar/?$", route_atualizacao, "coordenacao"),
+    ("POST", r"^/api/bibliotecas/atualizar/?$", route_atualizar_tudo, "coordenacao"),
     ("GET", r"^/api/bibliotecas/(?P<code>[\w-]+)/?$", route_biblioteca, "leitura"),
     ("GET", r"^/api/bibliotecas/(?P<code>[\w-]+)/analise/?$",
      route_biblioteca_analise, "leitura"),

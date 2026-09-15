@@ -20,7 +20,7 @@ from __future__ import annotations
 import json
 import time
 from datetime import date
-from typing import Any
+from typing import Any, Callable
 
 from . import config, referencias
 from .db import Database
@@ -681,15 +681,41 @@ THROTTLE = 0.4
 # ----------------------------------------------------------------------
 # A atualizacao
 # ----------------------------------------------------------------------
+def quantas_buscas(db: Database, code: str,
+                   bases: tuple[str, ...] | None = None) -> int:
+    """Quantas buscas o acervo tem guardadas -- o tamanho da tarefa.
+
+    Serve para a barra de progresso saber o total ANTES de comecar. Sem
+    isto, "atualizando..." e uma mensagem que nao diz se falta um minuto
+    ou quinze, e quem espera fecha a janela no meio.
+    """
+    dados = db.dicts("SELECT id FROM biblioteca WHERE code = ?", (code,))
+    if not dados:
+        raise ValueError(f"biblioteca \u201c{code}\u201d n\u00e3o existe")
+    if bases:
+        marcas = ",".join("?" * len(bases))
+        return int(db.scalar(
+            "SELECT COUNT(*) FROM biblioteca_busca WHERE biblioteca_id = ?"
+            f"   AND base IN ({marcas})", (dados[0]["id"], *bases)) or 0)
+    return int(db.scalar(
+        "SELECT COUNT(*) FROM biblioteca_busca WHERE biblioteca_id = ?",
+        (dados[0]["id"],)) or 0)
+
+
 def atualizar(db: Database, code: str, limite: int = 400,
               bases: tuple[str, ...] | None = None,
-              verbose: bool = False) -> dict[str, Any]:
+              verbose: bool = False,
+              progresso: Callable[[dict[str, Any]], None] | None = None) -> dict[str, Any]:
     """Roda as buscas do acervo e recolhe o que ainda nao estava aqui.
 
     Uma busca falhar nao derruba as outras: a rede cai no meio de quatorze
     modalidades, e perder as treze que ja tinham voltado por causa da
     decima quarta seria trocar um acervo por um erro. O erro fica gravado
     ao lado da busca que falhou, e a tela o mostra.
+
+    `progresso` e chamado a cada busca terminada, com o que acabou de
+    acontecer. E opcional de proposito: pelo terminal o `verbose` ja
+    imprime, e quem chama de um script nao quer nem um nem outro.
     """
     from .revisao import chaves_de_uniao
 
@@ -722,10 +748,26 @@ def atualizar(db: Database, code: str, limite: int = 400,
     # tela mostraria "SCOPUS_API_KEY nao configurada" quinze vezes e a
     # pessoa leria quinze erros onde ha um recado.
     desligadas: dict[str, str] = {}
+    feitas = 0
+    total = len(buscas)
+
+    def avisar(base: str, segmento: str | None, situacao: str,
+               achados: int = 0, novos: int = 0, recado: str = "") -> None:
+        if progresso is None:
+            return
+        progresso({"acervo": code, "titulo": titulo, "base": base,
+                   "rotulo": ROTULO_BASE.get(base, base),
+                   "segmento": segmento, "situacao": situacao,
+                   "achados": achados, "novos": novos, "recado": recado,
+                   "feitas": feitas, "total": total})
 
     for busca in buscas:
         base = busca["base"]
         if base in desligadas:
+            # Nao vai a rede, mas conta: a barra precisa chegar ao fim.
+            feitas += 1
+            avisar(base, busca["segmento"], "pulada",
+                   recado=desligadas[base])
             continue
         resumo["buscas"] += 1
         try:
@@ -738,6 +780,8 @@ def atualizar(db: Database, code: str, limite: int = 400,
                        "   AND base = ?", (str(erro)[:300], bid, base))
             if verbose:
                 print(f"  . {ROTULO_BASE.get(base, base)}: {erro}")
+            feitas += 1
+            avisar(base, busca["segmento"], "sem_chave", recado=str(erro))
             continue
         except Exception as erro:  # noqa: BLE001 -- uma busca nao derruba as outras
             db.execute("UPDATE biblioteca_busca SET rodada_em = ?, erro = ? WHERE id = ?",
@@ -745,6 +789,8 @@ def atualizar(db: Database, code: str, limite: int = 400,
             resumo["erros"] += 1
             if verbose:
                 print(f"  ! {base}/{busca['segmento'] or 'geral'}: {erro}")
+            feitas += 1
+            avisar(base, busca["segmento"], "erro", recado=str(erro))
             continue
 
         novos = 0
@@ -767,6 +813,8 @@ def atualizar(db: Database, code: str, limite: int = 400,
         if verbose:
             print(f"  {base}/{busca['segmento'] or 'geral'}: {len(registros)} achado(s),"
                   f" {novos} novo(s)")
+        feitas += 1
+        avisar(base, busca["segmento"], "ok", achados=len(registros), novos=novos)
 
     db.execute("UPDATE biblioteca SET atualizada_em = ? WHERE id = ?", (hoje, bid))
     db.conn.commit()
