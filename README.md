@@ -179,6 +179,43 @@ está escrevendo é como trocar o pneu com o carro andando.
 Numa instalação sem a API no ar, `deploy/backup.sh` faz o mesmo pelo cron —
 chamando a mesma implementação, para as duas não divergirem.
 
+### O banco do laboratório não vai para o Git
+
+O `data/db.sqlite` está versionado desde o primeiro commit. A cópia que está
+no repositório é de 19 artigos e 17 primeiros nomes, **sem login, sem senha,
+sem e-mail e sem telefone** — conferidas as dez versões do histórico, uma por
+uma, e há teste que cobra isso de agora em diante.
+
+O risco não é ela: é a próxima. Um `git add -A` na máquina do laboratório
+empurraria o banco vivo — com os hashes de senha de quem tem conta — e commit
+apagado continua no histórico.
+
+Tirar o arquivo do versionamento **não resolve**: um commit que o remove faz o
+`git pull` da máquina do laboratório abortar para sempre, porque o banco de lá
+está modificado e o merge quereria apagá-lo. O "Abrir LAPE" passaria a dizer
+"não deu para atualizar agora" em toda subida. Medido, não suposto — há teste
+que reproduz.
+
+Então esconde em vez de tirar, com duas travas:
+
+```bash
+python3 scripts/lape_agent.py proteger              # liga as duas
+python3 scripts/lape_agent.py proteger --conferir   # só mostra como estão
+```
+
+1. `skip-worktree` no arquivo: o git para de ver as modificações locais dele.
+   Não aparece no `git status`, o `git add -A` não o pega, e o `git pull`
+   continua funcionando com o banco vivo intacto no lugar;
+2. um gancho de pre-commit que recusa um commit cujo banco em fila tenha login,
+   senha, e-mail ou telefone — para quando a primeira trava for desfeita.
+
+O "Abrir LAPE" e o "Subir LAPE" ligam as duas em toda subida, antes de buscar
+atualização. Nada para lembrar.
+
+> **Nenhuma das duas troca o repositório de público para privado.** Isso é um
+> clique em Settings → General → Change visibility, e é o único jeito de fechar
+> o que já está no histórico.
+
 ### Gerenciar acessos pela linha de comando
 
 ```bash
@@ -412,6 +449,11 @@ docker compose -f docker-compose.prod.yml exec lape \
 # liberar acesso a um integrante (ou faça pela web, em /app → Administração)
 docker compose -f docker-compose.prod.yml exec lape \
   python3 scripts/lape_agent.py usuarios --criar "Nome" email@udesc.br
+
+# travar o banco para ele nunca ir num commit (ver "O banco do laboratorio
+# nao vai para o Git"); os lancadores do Windows fazem isto sozinhos
+docker compose -f docker-compose.prod.yml exec lape \
+  python3 scripts/lape_agent.py proteger
 
 # atualizar os acervos da biblioteca (todos, um por um, imprimindo cada busca)
 docker compose -f docker-compose.prod.yml exec lape \

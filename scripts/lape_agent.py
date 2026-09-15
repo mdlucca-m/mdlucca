@@ -214,6 +214,58 @@ def cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_proteger(args: argparse.Namespace) -> int:
+    """Liga as travas que impedem o banco de ir para o repositorio publico.
+
+    Existe porque o `data/db.sqlite` esta versionado desde o primeiro
+    commit e nao da para tirar sem quebrar a atualizacao automatica -- um
+    commit que o remove faz o `git pull` da maquina do laboratorio abortar
+    para sempre. Em vez de tirar, esconde: o git passa a ignorar o arquivo,
+    e um gancho recusa o commit que levaria dados de pessoas.
+    """
+    from lape import banco_protegido
+
+    raiz = Path(__file__).resolve().parents[1]
+    if args.conferir:
+        estado = banco_protegido.situacao(raiz)
+        print(f"Pasta: {raiz}")
+        if not estado["repositorio"]:
+            print("  . nao e um repositorio git -- nada a proteger")
+            return 0
+        print(f"  banco versionado ..... {'sim' if estado['versionado'] else 'nao'}")
+        print(f"  git ignora o banco ... {'sim' if estado['skip_worktree'] else 'NAO'}")
+        print(f"  gancho de pre-commit . {'sim' if estado['gancho'] else 'NAO'}")
+        vivo = estado["segredo_no_banco_vivo"]
+        print(f"  banco vivo tem ....... {', '.join(vivo) if vivo else 'nenhum dado de pessoa'}")
+        if not (estado["skip_worktree"] and estado["gancho"]):
+            print("\n  para ligar:  python scripts\\lape_agent.py proteger")
+            return 1
+        return 0
+
+    feito = banco_protegido.proteger(raiz)
+    if feito["porque"]:
+        print(f"  . {feito['porque']}")
+        return 0
+    print(f"  git ignora o banco ... {feito['skip_worktree']}")
+    print(f"  gancho de pre-commit . {feito['gancho']}")
+    vivo = banco_protegido.tem_dados_de_pessoas(raiz / banco_protegido.BANCO_NO_GIT)
+    if vivo:
+        print(f"  . o banco desta pasta tem {', '.join(vivo)} -- e por isso"
+              " que ele nao pode ir para o Git.")
+    return 0
+
+
+def cmd_conferir_commit(args: argparse.Namespace) -> int:
+    """Chamado pelo gancho de pre-commit. Silencioso quando esta tudo bem."""
+    from lape import banco_protegido
+
+    codigo, recado = banco_protegido.conferir_o_que_vai_no_commit(
+        Path(__file__).resolve().parents[1])
+    if recado:
+        print(recado)
+    return codigo
+
+
 def cmd_biblioteca(args: argparse.Namespace) -> int:
     """Lista os acervos, ou roda as buscas de um, ou de todos.
 
@@ -804,6 +856,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--para", type=Path, default=Path("docs/panorama-instantaneo.html"),
         metavar="ARQUIVO", help="onde gravar (padrao: docs/panorama-instantaneo.html)")
     instantaneo_parser.set_defaults(func=cmd_instantaneo)
+
+    proteger_parser = subparsers.add_parser(
+        "proteger",
+        help="impede o banco do laboratorio de ir para o repositorio publico")
+    proteger_parser.add_argument(
+        "--conferir", action="store_true",
+        help="so mostra como estao as travas, sem mexer em nada")
+    proteger_parser.set_defaults(func=cmd_proteger)
+
+    conferir_parser = subparsers.add_parser(
+        "conferir-commit",
+        help="usado pelo gancho de pre-commit; recusa banco com dados de pessoas")
+    conferir_parser.set_defaults(func=cmd_conferir_commit)
 
     bib_parser = subparsers.add_parser(
         "biblioteca", help="os acervos de artigos: listar ou rodar as buscas")

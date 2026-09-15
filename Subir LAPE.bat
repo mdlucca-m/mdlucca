@@ -39,6 +39,11 @@ if errorlevel 1 (
   echo   . git nao encontrado -- seguindo sem buscar atualizacao.
   echo     O sistema sobe com a versao que ja esta nesta pasta.
 ) else (
+  rem O banco do laboratorio NAO vai para o repositorio, que e publico.
+  rem Isto liga as duas travas e e silencioso quando ja estao ligadas.
+  rem Roda ANTES do pull de proposito: uma subida que atualiza o codigo
+  rem e so depois liga a trava e uma subida inteira sem trava.
+  python scripts\lape_agent.py proteger >nul 2>nul
   echo   buscando atualizacao...
   git pull --ff-only
   if errorlevel 1 (
