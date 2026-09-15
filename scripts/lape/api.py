@@ -1864,6 +1864,24 @@ def route_marca_gravar(ctx: "Context") -> Any:
     return estado
 
 
+def route_curva(ctx: "Context") -> Any:
+    """Derivada, aceleracao, integral e limiar de uma curva do laboratorio.
+
+    O calculo mora no Python -- `estatistica.py`, que tem os testes -- e
+    nao no navegador. Refazer a conta em JavaScript daria duas
+    implementacoes da mesma integral, e as duas divergem no dia em que
+    alguem consertar uma.
+    """
+    from . import curva
+
+    code = (ctx.query.get("serie") or ["acervo"])[0]
+    try:
+        janela = max(2, min(30, int((ctx.query.get("anos") or ["10"])[0])))
+    except (TypeError, ValueError):
+        janela = 10
+    return curva.analisar(ctx.db, code, janela=janela)
+
+
 def route_citacoes(ctx: "Context") -> Any:
     """Retrato da conexao com Scopus e Web of Science, antes de tentar."""
     auth.require(ctx.user, "leitura")
@@ -2066,6 +2084,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/research-lines/padrao/?$", route_linhas_padrao, "coordenacao"),
     ("GET", r"^/api/marca/?$", route_marca, "leitura"),
     ("POST", r"^/api/marca/?$", route_marca_gravar, "coordenacao"),
+    ("GET", r"^/api/curva/?$", route_curva, "leitura"),
     ("GET", r"^/api/citacoes/?$", route_citacoes, "leitura"),
     ("POST", r"^/api/citacoes/atualizar/?$", route_citacoes_atualizar, "coordenacao"),
     ("GET", r"^/api/panorama/?$", route_panorama, "leitura"),

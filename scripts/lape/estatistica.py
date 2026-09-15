@@ -1079,3 +1079,59 @@ def cruzamento_do_limiar(tempos: Sequence[Any], valores: Sequence[Any],
             dentro += dt * (fracao if lados[i + 1] else 1 - fracao)
     saida["tempo_do_lado_bom"] = round(dentro, 1)
     return saida
+
+
+def aceleracao(tempos: Sequence[Any], valores: Sequence[Any],
+               por: float = 7.0) -> dict[str, Any]:
+    """Segunda derivada: a taxa esta aumentando ou perdendo forca.
+
+    `taxa_de_variacao` responde "quanto muda por unidade de tempo". Esta
+    responde "e essa mudanca, esta mudando?" -- que e outra pergunta, e e
+    a que decide prorrogar ou encerrar. Uma serie pode estar subindo
+    (derivada positiva) e desacelerando (aceleracao negativa) ao mesmo
+    tempo: continua melhorando, mas cada vez menos. Olhando so a derivada,
+    isso passa como "vai bem" ate o dia em que para.
+
+    A taxa de cada trecho e atribuida ao MEIO do trecho, e nao a uma das
+    pontas: a diferenca finita entre duas taxas so e centrada se as taxas
+    estiverem centradas. Ancorar no fim de cada trecho desloca toda a
+    segunda derivada meio intervalo para a frente -- o que, numa serie
+    anual, e seis meses de erro na resposta a "quando comecou a
+    desacelerar".
+
+    `agora` e o numero do ponteiro: a aceleracao entre os dois trechos
+    MAIS RECENTES. `geral` compara o primeiro trecho com o ultimo, e
+    responde pela serie inteira. Os dois podem discordar, e a discordancia
+    e informacao: geral negativa com `agora` positiva e uma serie que
+    desacelerou por anos e voltou a ganhar forca.
+    """
+    taxa = taxa_de_variacao(tempos, valores, por=por)
+    saida: dict[str, Any] = {"trechos": [], "agora": None, "geral": None,
+                             "por": por, "aviso": None}
+    trechos = taxa.get("trechos") or []
+    if len(trechos) < 2:
+        saida["aviso"] = ("são precisos ao menos três momentos para haver "
+                          "aceleração: duas taxas para comparar")
+        return saida
+
+    meios = [(t["de"] + t["ate"]) / 2.0 for t in trechos]
+    for i in range(len(trechos) - 1):
+        dt = meios[i + 1] - meios[i]
+        if dt <= 0:
+            continue
+        saida["trechos"].append({
+            "de": round(meios[i], 1), "ate": round(meios[i + 1], 1),
+            "dias": round(dt, 1),
+            "de_taxa": trechos[i]["taxa"], "para_taxa": trechos[i + 1]["taxa"],
+            "aceleracao": round((trechos[i + 1]["taxa"] - trechos[i]["taxa"]) / dt * por, 4),
+        })
+    if not saida["trechos"]:
+        saida["aviso"] = "os trechos têm o mesmo meio: sem tempo não há aceleração"
+        return saida
+
+    saida["agora"] = saida["trechos"][-1]["aceleracao"]
+    intervalo = meios[-1] - meios[0]
+    if intervalo > 0:
+        saida["geral"] = round(
+            (trechos[-1]["taxa"] - trechos[0]["taxa"]) / intervalo * por, 4)
+    return saida

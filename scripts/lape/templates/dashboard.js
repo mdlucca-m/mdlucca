@@ -3542,6 +3542,249 @@ view("citacoes", "Mais citados", "Produção",
       + "de impacto enquanto Scopus e Web of Science não estiverem configurados." }));
   });
 
+/* ======================================================================
+   CÁLCULO DA CURVA — derivada, aceleração, integral e limiar
+   ======================================================================
+   Um mapa visual: cada painel responde UMA pergunta sobre a mesma curva,
+   e cada pergunta é uma operação diferente sobre ela.
+
+     nível      onde estamos          a curva
+     derivada   a que velocidade      velocímetro
+     2ª deriv.  acelerando ou freando acelerômetro
+     integral   quanto se acumulou    área (só onde ela significa algo)
+     limiar     quando cruzou a meta  a linha de corte
+
+   O CÁLCULO NÃO MORA AQUI. Ele vem de `/api/curva`, que chama o
+   `estatistica.py` -- o mesmo código que tem os testes. Refazer a
+   integral em JavaScript daria duas implementações da mesma conta, e as
+   duas divergiriam no dia em que alguém consertasse uma. */
+const ESTADO_DO_CALCULO = { serie: "acervo" };
+
+view("calculo", "Cálculo da curva", "Produção",
+  "A mesma curva lida de quatro maneiras: nível, velocidade, aceleração e "
+  + "acumulado. Cada painel é uma operação, e cada operação responde uma "
+  + "pergunta que as outras não respondem.", function (host) {
+    /* A curva escolhida sobrevive ao redesenho da tela -- e a tela
+       redesenha a cada aviso do servidor. Sem isto, quem escolhesse
+       "Citacoes" voltaria para "Acervo" sozinho no primeiro evento de
+       tempo real, no meio da leitura. */
+    const estado = { serie: (ESTADO_DO_CALCULO.serie || "acervo") };
+    const palco = el("div");
+    host.appendChild(palco);
+
+    function desenhar(d) {
+      palco.textContent = "";
+      const serie = d.serie || {};
+      const pontos = d.pontos || [];
+      const anos = pontos.map(function (p) { return String(p.t); });
+      const valores = pontos.map(function (p) { return p.v; });
+
+      /* --------------- escolher a curva --------------- */
+      const escolha = el("select", { "aria-label": "Curva a analisar",
+        onchange: function (ev) {
+          estado.serie = ev.target.value;
+          ESTADO_DO_CALCULO.serie = estado.serie;
+          buscar();
+        } },
+        (d.disponiveis || []).map(function (x) {
+          return el("option", { value: x.code, text: x.rotulo,
+            selected: x.code === serie.code ? "selected" : null });
+        }));
+      palco.appendChild(el("div", { class: "toolbar", style: "margin-bottom:14px" }, [
+        el("span", { class: "lab", text: "CURVA" }), escolha,
+        el("span", { class: "hint", text: serie.kind === "estoque"
+          ? "é um nível: sobe e não desce"
+          : "é um ritmo: pode subir e descer" }),
+      ]));
+
+      if (d.aviso) {
+        palco.appendChild(card(null, null, el("div", { class: "empty", text: d.aviso })));
+        return;
+      }
+
+      /* --------------- 1. a curva --------------- */
+      const limiar = d.limiar;
+      const aCurva = card("A curva — " + serie.rotulo, serie.explica, [
+        C.area({ labels: anos,
+          series: [{ label: serie.rotulo, values: valores }],
+          mono: true, height: 260,
+          reference: limiar ? limiar.valor : null,
+          referenceLabel: limiar ? "meta" : null,
+          caption: serie.unidade + " por ano" }),
+      ]);
+
+      /* --------------- 2. velocímetro --------------- */
+      const taxas = (d.derivada && d.derivada.trechos) || [];
+      const agora = taxas.length ? taxas[taxas.length - 1].taxa : null;
+      const teto = Math.max.apply(null, taxas.map(function (t) {
+        return Math.abs(t.taxa); }).concat([1]));
+      /* A régua do ponteiro é o MAIOR ritmo que este laboratório já teve,
+         e não um número redondo escolhido por mim. Um velocímetro com
+         escala inventada mede a invenção: a agulha em 60% de 20 não diz
+         nada se ninguém nunca chegou perto de 20. Em 60% do próprio
+         recorde, diz. */
+      const velocimetro = card("Derivada — a que velocidade",
+        "O ritmo do último ano, contra o maior ritmo da janela.", [
+        agora === null
+          ? C.empty("Sem dois anos seguidos não há velocidade.")
+          : C.gauge({ value: Math.max(0, agora), max: Math.ceil(teto),
+              display: (agora > 0 ? "+" : "") + C.fmt(agora),
+              unit: serie.unidade_taxa || "por ano",
+              color: C.token(agora < 0 ? "--div-neg-4" : "--accent-strong"),
+              caption: "velocidade atual" }),
+        leituraDe({
+          sinal: agora === null ? "parado" : (agora > 0 ? "sobe" : (agora < 0 ? "desce" : "parado")),
+          forte: agora === null ? "—" : (agora > 0 ? "+" : "") + C.fmt(agora) + " por ano",
+          texto: agora === null ? "" : (d.derivada.geral !== null
+            ? "média da janela: " + (d.derivada.geral > 0 ? "+" : "")
+              + C.fmt(d.derivada.geral) + " por ano"
+            : ""),
+        }),
+        /* Ritmo negativo num velocímetro de zero a máximo encosta no zero
+           e se lê "parado", que é outra coisa. Então quando ele é negativo
+           a frase diz, com todas as letras, para onde está indo. */
+        agora !== null && agora < 0 ? el("div", { class: "note warn", text:
+          "Ritmo negativo: a curva está DESCENDO. O ponteiro encosta no zero "
+          + "porque a escala começa nele — o número ao lado é o que vale." }) : null,
+      ].filter(Boolean));
+
+      /* --------------- 3. acelerômetro --------------- */
+      const ace = d.aceleracao || {};
+      const limiteAce = Math.max.apply(null, (ace.trechos || []).map(function (t) {
+        return Math.abs(t.aceleracao); }).concat([1]));
+      const acelerometro = card("Aceleração — acelerando ou freando",
+        "A derivada da derivada. Uma curva pode estar subindo e perdendo "
+        + "força ao mesmo tempo, e isso a velocidade sozinha não mostra.", [
+        ace.agora === null || ace.agora === undefined
+          ? C.empty(ace.aviso || "Sem três anos não há aceleração.")
+          : C.acelerometro({ value: ace.agora, limite: Math.ceil(limiteAce),
+              unit: serie.unidade_taxa || "por ano²", caption: "aceleração" }),
+        ace.agora !== null && ace.agora !== undefined ? leituraDe({
+          sinal: ace.agora > 0 ? "sobe" : (ace.agora < 0 ? "desce" : "parado"),
+          forte: ace.agora > 0 ? "ganhando força"
+            : (ace.agora < 0 ? "perdendo força" : "ritmo constante"),
+          texto: agora !== null && agora > 0 && ace.agora < 0
+            ? "ainda sobe, mas cada ano sobe menos do que o anterior"
+            : (agora !== null && agora < 0 && ace.agora > 0
+               ? "ainda desce, mas a queda está diminuindo"
+               : (ace.geral !== null && ace.geral !== undefined
+                  ? "na janela inteira: " + (ace.geral > 0 ? "+" : "") + C.fmt(ace.geral)
+                  : "")),
+        }) : null,
+      ].filter(Boolean));
+
+      /* --------------- 4. a derivada, trecho a trecho --------------- */
+      const daTaxa = taxas.length ? card("A derivada ano a ano",
+        "Cada coluna é a variação de um ano para o outro. Acima do zero "
+        + "cresceu, abaixo encolheu.", [
+        C.columns({ labels: taxas.map(function (t) { return String(t.ate); }),
+          series: [{ label: "variação", values: taxas.map(function (t) { return t.taxa; }) }],
+          mono: true, height: 200, caption: serie.unidade_taxa || "por ano" }),
+      ]) : null;
+
+      /* --------------- 5. integral ou soma --------------- */
+      let acumulado;
+      if (d.integral && d.integral.bruta !== null) {
+        acumulado = card("Integral — área sob a curva",
+          "Num nível, a área mede EXPOSIÇÃO: quanto de produção o "
+          + "laboratório manteve de pé ao longo da janela.", [
+          el("div", { class: "resumo-nums" }, [
+            el("div", { class: "resumo-num" }, [
+              el("b", { text: C.fmt(d.integral.bruta) }),
+              el("span", { text: d.integral.unidade || "área" }),
+              el("i", { text: "área bruta" })]),
+            el("div", { class: "resumo-num" }, [
+              el("b", { text: C.fmt(d.integral.media_no_tempo) }),
+              el("span", { text: serie.unidade }),
+              el("i", { text: "média no período" })]),
+            el("div", { class: "resumo-num" }, [
+              el("b", { text: C.fmt(d.integral.duracao) }),
+              el("span", { text: "anos" }),
+              el("i", { text: "duração da janela" })]),
+          ]),
+          /* A área incremental desconta o ponto de partida, e é a que
+             responde "o que ESTE período fez" -- num laboratório de vinte
+             anos, a bruta é dominada pelo acervo que já existia antes da
+             janela e premia o passado. */
+          el("div", { class: "note info", html:
+            "<b>" + C.fmt(d.integral.incremental) + " " + (d.integral.unidade || "")
+            + "</b> descontando o nível de partida ("
+            + C.fmt(d.integral.base) + "). É esta que responde o que a janela "
+            + "acrescentou — a bruta é dominada pelo que já existia antes dela." }),
+        ]);
+      } else if (d.soma) {
+        acumulado = card("Acumulado — a soma, e não a integral",
+          "Aqui a integral seria um erro, e por isso ela não aparece.", [
+          el("div", { class: "resumo-nums" }, [
+            el("div", { class: "resumo-num" }, [
+              el("b", { text: C.fmt(d.soma.total) }),
+              el("span", { text: d.soma.unidade }),
+              el("i", { text: "somados na janela" })]),
+          ]),
+          el("div", { class: "note info", text: d.soma.porque }),
+        ]);
+      } else {
+        acumulado = null;
+      }
+
+      /* --------------- 6. limiar --------------- */
+      let oLimiar;
+      if (limiar) {
+        oLimiar = card("Limiar — a meta declarada",
+          limiar.de_onde + ": " + C.fmt(limiar.valor) + " " + serie.unidade, [
+          leituraDe({
+            sinal: limiar.terminou_do_lado_bom ? "sobe" : "desce",
+            forte: limiar.terminou_do_lado_bom ? "acima da meta" : "abaixo da meta",
+            texto: limiar.cruzou_em
+              ? "cruzou por volta de " + C.fmt(limiar.cruzou_em)
+                + (limiar.estimado ? " (estimado entre duas medições)" : "")
+              : (limiar.comecou_do_lado_bom
+                 ? "já estava acima no início da janela"
+                 : "ainda não cruzou nesta janela"),
+          }),
+          limiar.voltou ? el("div", { class: "note warn", text:
+            "Cruzou e voltou: passou da meta em algum ano e caiu abaixo "
+            + "depois. Olhando só o começo e o fim, isso desaparece." }) : null,
+        ].filter(Boolean));
+      } else {
+        /* Sem meta declarada NÃO se desenha uma linha de corte. Uma linha
+           num número redondo que ninguém escolheu é pior que nenhuma:
+           quem olha supõe que o laboratório a declarou, e passa a se
+           comparar com ela. */
+        oLimiar = card("Limiar — sem meta declarada",
+          "Não há linha de corte para esta curva.", [
+          el("div", { class: "note info", html:
+            "O limiar sai da <b>meta declarada pela coordenação</b>, em "
+            + "\"Objetivos do ano\" — e de nenhum outro lugar. Desenhar uma linha "
+            + "num número redondo escolhido por mim faria quem olha supor que o "
+            + "laboratório a declarou, e se comparar com ela." }),
+        ]);
+      }
+
+      aCurva.classList.add("largo");
+      palco.appendChild(el("div", { class: "grid resumo" },
+        [aCurva, velocimetro, acelerometro, daTaxa, acumulado, oLimiar].filter(Boolean)));
+    }
+
+    function buscar() {
+      palco.textContent = "";
+      palco.appendChild(el("div", { class: "hint", text: "calculando…" }));
+      fetch("/api/curva?serie=" + encodeURIComponent(estado.serie),
+            { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d) { palco.textContent = ""; palco.appendChild(
+            C.empty("Não deu para calcular a curva agora.")); return; }
+          desenhar(d);
+        })
+        .catch(function () {
+          palco.textContent = "";
+          palco.appendChild(C.empty("Não deu para calcular a curva agora."));
+        });
+    }
+    buscar();
+  });
+
 view("equipe", "Por integrante", "Métricas internas",
   "Envolvimento de cada pessoa nos artigos do recorte atual.", function (host) {
     const rows = articles();
@@ -6812,7 +7055,7 @@ const SECTIONS = [
   { id: "geral", label: "Visão geral", icon: "painel",
     views: ["resumo", "historia", "visao", "metas", "explorar"] },
   { id: "producao", label: "Produção", icon: "producao",
-    views: ["producao", "submetidos", "publicacoes", "citacoes"] },
+    views: ["producao", "submetidos", "publicacoes", "citacoes", "calculo"] },
   { id: "pessoas", label: "Pessoas", icon: "pessoas",
     views: ["pesquisadores", "organograma", "formacao", "equipe", "rede", "linhas",
       "projetos"] },
@@ -6836,6 +7079,7 @@ const VIEW_ICON = {
   resumo: "painel", historia: "raizes", visao: "barras", metas: "alvo",
   explorar: "explorar",
   producao: "producao", submetidos: "submissao", publicacoes: "livro", citacoes: "citacao",
+  calculo: "subida",
   pesquisadores: "pessoas", organograma: "hierarquia", equipe: "barras", rede: "rede",
   linhas: "linhas", projetos: "projeto", formacao: "prazo",
   tempos: "relogio", submissoes: "submissao", aceites: "aceite",

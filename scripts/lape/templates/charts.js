@@ -178,6 +178,18 @@ const Charts = (function () {
       + " L" + (x + w - r) + "," + y + " Q" + (x + w) + "," + y + " " + (x + w) + "," + (y + r)
       + " L" + (x + w) + "," + (y + h) + " Z";
   }
+  /* Coluna que desce: a ponta de dado fica EMBAIXO, e e ela que leva o
+     arredondamento. Usar `capTop` numa coluna negativa arredonda a ponta
+     colada na linha do zero e deixa quadrada a ponta livre -- o contrario
+     de toda outra marca do sistema. */
+  function capBottom(x, y, w, h, r) {
+    r = Math.max(0, Math.min(r === undefined ? R_END : r, w / 2, h));
+    return "M" + x + "," + y + " L" + x + "," + (y + h - r)
+      + " Q" + x + "," + (y + h) + " " + (x + r) + "," + (y + h)
+      + " L" + (x + w - r) + "," + (y + h)
+      + " Q" + (x + w) + "," + (y + h) + " " + (x + w) + "," + (y + h - r)
+      + " L" + (x + w) + "," + y + " Z";
+  }
   function capRight(x, y, w, h, r) {
     r = Math.max(0, Math.min(r === undefined ? R_END : r, h / 2, w));
     return "M" + x + "," + y + " L" + (x + w - r) + "," + y
@@ -309,8 +321,23 @@ const Charts = (function () {
         : Math.max.apply(null, series.map(function (x) { return x.values[i] || 0; }));
     });
     const peak = Math.max.apply(null, totals.concat(spec.reference ? [spec.reference] : []).concat([0]));
-    const scale = niceTicks(peak, 4);
-    const Y = function (v) { return MT + ih - ih * v / scale.max; };
+    /* A escala atravessa o zero quando ha valor negativo.
+       Antes ela ia SEMPRE de 0 ao maximo, e a coluna negativa nao era
+       desenhada: `h = Math.max(0, Y(0) - Y(v))` da zero para v < 0, e o
+       `if (h <= 0) return` descartava a marca. Sem erro, sem aviso -- o
+       ano em que o laboratorio encolheu simplesmente nao existia no
+       grafico. Num grafico de DERIVADA isso nao e um detalhe: metade da
+       informacao de uma derivada esta abaixo da linha.
+       Pilha e agrupamento ficam de fora: somar positivo com negativo numa
+       pilha nao tem leitura unica, e inventar uma seria pior. */
+    const menor = (stacked || grouped) ? 0 : Math.min.apply(null,
+      labels.map(function (_, i) {
+        return Math.min.apply(null, series.map(function (x) {
+          return Number(x.values[i]) || 0; }));
+      }).concat([0]));
+    const scale = niceTicksSigned(menor, peak, 4);
+    const vao = (scale.hi - scale.lo) || 1;
+    const Y = function (v) { return MT + ih - ih * (v - scale.lo) / vao; };
 
     const svg = svgRoot(W, H, spec.caption || "colunas");
     scale.ticks.forEach(function (t) {
@@ -355,11 +382,14 @@ const Charts = (function () {
           const x = grouped
             ? center - bandInner / 2 + si * (barW + GAP)
             : center - barW / 2;
-          const h = Math.max(v > 0 ? 2 : 0, Y(0) - Y(v));
+          const zero = Y(0), ponta = Y(v);
+          const alto = Math.min(zero, ponta), baixo = Math.max(zero, ponta);
+          const h = Math.max(v !== 0 ? 2 : 0, baixo - alto);
           if (h <= 0) return;
           const node = s("path", {
             class: "mark cresce",
-            d: capTop(x, Y(v), barW, h), fill: serieSpec.color || serie(si),
+            d: v < 0 ? capBottom(x, alto, barW, h) : capTop(x, alto, barW, h),
+            fill: serieSpec.color || serie(si),
           });
           node.style.setProperty("--passo", i);
           hoverable(node, label, [{ value: fmt(v), name: serieSpec.label, color: serieSpec.color || serie(si) }],
@@ -367,7 +397,11 @@ const Charts = (function () {
           svg.appendChild(node);
           /* rótulo direto só quando há uma série — com várias, a legenda + dica carregam */
           if (series.length === 1 && v) {
-            svg.appendChild(txt(s("text", { class: "val", x: x + barW / 2, y: Y(v) - 7, "text-anchor": "middle" }), fmt(v)));
+            /* acima da coluna que sobe, abaixo da que desce: em cima de
+               uma coluna negativa o numero cai dentro dela, sobre a
+               propria cor, e deixa de se ler */
+            svg.appendChild(txt(s("text", { class: "val", x: x + barW / 2,
+              y: v < 0 ? baixo + 13 : alto - 7, "text-anchor": "middle" }), fmt(v)));
           }
         });
       }
@@ -1846,6 +1880,30 @@ const Charts = (function () {
     });
     svg.appendChild(hit);
 
+    /* Linha de referência — a meta. Existia em `columns` e não aqui, e
+       quem passasse `reference` para uma área não recebia erro nenhum:
+       recebia um gráfico sem a linha, igualzinho ao de antes. Um
+       parâmetro que não faz nada e não reclama é pior que um parâmetro
+       ausente, porque quem o escreveu passa a acreditar que a meta está
+       desenhada. Desenhada por ÚLTIMO, para ficar acima do preenchimento
+       da área e não sumir por baixo dele. */
+    /* `area` SEMPRE empilha (ela existe para parte-e-todo), e numa pilha a
+       linha da meta e ambigua: meta do total, ou da faixa de baixo? Com
+       uma serie so nao ha pilha, e a linha diz exatamente uma coisa. */
+    if (spec.reference !== null && spec.reference !== undefined
+        && series.length === 1) {
+      const yRef = Y(Number(spec.reference));
+      if (isFinite(yRef)) {
+        svg.appendChild(s("line", {
+          x1: ML, x2: W - MR, y1: yRef, y2: yRef, stroke: token("--ink-muted"),
+          "stroke-width": 1.5, "stroke-dasharray": "5 4",
+        }));
+        svg.appendChild(txt(s("text", {
+          class: "val", x: W - MR, y: yRef - 6, "text-anchor": "end",
+        }), (spec.referenceLabel || "meta") + " " + fmt(spec.reference)));
+      }
+    }
+
     const extras = series.length > 1
       ? [legendOf(series.map(function (x, i) { return { label: x.label, color: x.color || serie(i) }; }))]
       : [];
@@ -1957,6 +2015,82 @@ const Charts = (function () {
     }
     svg.appendChild(txt(s("text", { class: "tick", x: cx - R, y: cy + 18, "text-anchor": "middle" }), "0"));
     svg.appendChild(txt(s("text", { class: "tick", x: cx + R, y: cy + 18, "text-anchor": "middle" }), fmt(max)));
+    return figure(spec, svg);
+  }
+
+  /* ==================================================================== */
+  /* acelerômetro — uma medida COM SINAL, centrada no zero                */
+  /* ==================================================================== */
+  /* O `gauge` acima trava o valor em zero para baixo (`Math.max(0, ...)`)
+     porque ele mede quanto de um alvo já se andou, e andar menos que nada
+     não existe. Aceleração não é isso: o número mais importante que ela
+     produz é NEGATIVO -- a série que continua subindo e está perdendo
+     força. Num gauge comum ele apareceria como zero, que se lê "parado",
+     quando o que está acontecendo é "freando".
+
+     Então o zero fica no meio, e o ponteiro anda para os dois lados.
+     Escala DIVERGENTE: um matiz de cada lado e cinza no meio -- nunca a
+     cor de estado, porque acelerar não é "bom" por si. Numa curva de
+     publicação acelerar é ótimo; numa de dias de espera é péssimo. O
+     julgamento vai na frase ao lado, que conhece a série; a cor aqui diz
+     só de que lado do zero está. */
+  function acelerometro(spec) {
+    const limite = Math.abs(Number(spec.limite) || 0);
+    const valor = Number(spec.value) || 0;
+    if (!limite) return figure(spec, empty(spec.emptyMessage));
+    const W = 260, H = 168, cx = W / 2, cy = 138, R = 96, grossura = 17;
+    /* recorta no limite em vez de estourar o desenho: o ponteiro encostado
+       na ponta com o número escrito ao lado diz "saiu da escala", que é a
+       informação -- um ponteiro desenhado fora do arco não diz nada */
+    const fatia = Math.max(-1, Math.min(1, valor / limite));
+    const meio = 0.5, alvo = meio + fatia * 0.5;
+    const ang = function (u) { return Math.PI + Math.PI * u; };
+    const ponto = function (u, raio) {
+      return [cx + raio * Math.cos(ang(u)), cy + raio * Math.sin(ang(u))];
+    };
+    const arco = function (de, ate, raio) {
+      const a = ponto(de, raio), b = ponto(ate, raio);
+      return "M" + a[0].toFixed(1) + " " + a[1].toFixed(1) + " A" + raio + " " + raio
+        + " 0 0 1 " + b[0].toFixed(1) + " " + b[1].toFixed(1);
+    };
+    const svg = svgRoot(W, H, spec.caption || "acelerômetro");
+    svg.setAttribute("class", "plot round");
+    svg.appendChild(s("path", { d: arco(0, 1, R), fill: "none", stroke: token("--grid"),
+      "stroke-width": grossura, "stroke-linecap": "round" }));
+    /* os dois lados marcados por fora, finos: quem olha sabe para que lado
+       é o positivo antes de ler o número */
+    svg.appendChild(s("path", { d: arco(0, 0.485, R + grossura / 2 + 5), fill: "none",
+      stroke: token("--div-neg-3"), "stroke-width": 3 }));
+    svg.appendChild(s("path", { d: arco(0.515, 1, R + grossura / 2 + 5), fill: "none",
+      stroke: token("--div-pos-3"), "stroke-width": 3 }));
+    const cor = fatia === 0 ? token("--ink-muted")
+      : (fatia < 0 ? token("--div-neg-4") : token("--div-pos-4"));
+    if (Math.abs(fatia) > 0.004) {
+      svg.appendChild(s("path", {
+        d: fatia < 0 ? arco(alvo, meio, R) : arco(meio, alvo, R),
+        fill: "none", stroke: cor, "stroke-width": grossura, "stroke-linecap": "butt",
+      }));
+    }
+    /* o traço do zero atravessa a faixa: sem ele, um ponteiro quase no
+       meio não se distingue de um ponteiro no meio */
+    const z0 = ponto(meio, R - grossura / 2 - 2), z1 = ponto(meio, R + grossura / 2 + 2);
+    svg.appendChild(s("line", { x1: z0[0], y1: z0[1], x2: z1[0], y2: z1[1],
+      stroke: token("--ink-muted"), "stroke-width": 1.5 }));
+    const p = ponto(alvo, R - grossura / 2 - 6);
+    svg.appendChild(s("line", { class: "cresce", x1: cx, y1: cy, x2: p[0], y2: p[1],
+      stroke: token("--ink"), "stroke-width": 2.5, "stroke-linecap": "round" }));
+    svg.appendChild(s("circle", { cx: cx, cy: cy, r: 4, fill: token("--ink") }));
+    svg.appendChild(txt(s("text", { class: "hero", x: cx, y: cy - 26, "text-anchor": "middle" }),
+      spec.display || (valor > 0 ? "+" : "") + fmt(valor)));
+    if (spec.unit) {
+      svg.appendChild(txt(s("text", { class: "lab", x: cx, y: cy - 8, "text-anchor": "middle" }),
+        spec.unit));
+    }
+    svg.appendChild(txt(s("text", { class: "tick", x: cx - R, y: cy + 18, "text-anchor": "middle" }),
+      "\u2212" + fmt(limite)));
+    svg.appendChild(txt(s("text", { class: "tick", x: cx, y: cy + 18, "text-anchor": "middle" }), "0"));
+    svg.appendChild(txt(s("text", { class: "tick", x: cx + R, y: cy + 18, "text-anchor": "middle" }),
+      "+" + fmt(limite)));
     return figure(spec, svg);
   }
 
@@ -2855,6 +2989,7 @@ const Charts = (function () {
     dendrograma: responsivo(dendrograma), fluxo: fluxo,
     sparkline: sparkline, meter: meter,
     area: responsivo(area), radar: radar, gauge: gauge,
+    acelerometro: acelerometro,
     waterfall: responsivo(waterfall), bullet: responsivo(bullet),
     calendarHeat: calendarHeat, bump: responsivo(bump), gradFill: gradFill,
     matriz: responsivo(matriz),

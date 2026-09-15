@@ -1248,6 +1248,110 @@ class TestTokensDoTema(unittest.TestCase):
         # e quem pediu para nao ter movimento continua sem movimento
         self.assertIn("tbody tr.entra-linha { animation: none; }", css)
 
+    def test_a_coluna_negativa_e_desenhada(self):
+        """O ano em que o laboratorio encolheu nao existia no grafico.
+
+        `columns` escalava SEMPRE de zero ao maximo, e a coluna negativa
+        era descartada: `h = Math.max(0, Y(0) - Y(v))` da zero para v < 0,
+        e o `if (h <= 0) return` jogava a marca fora. Sem erro, sem aviso.
+        Num grafico de DERIVADA isso nao e detalhe -- metade da informacao
+        de uma derivada esta abaixo da linha.
+        """
+        charts = (self.TEMPLATES / "charts.js").read_text(encoding="utf-8")
+        corpo = charts[charts.index("function columns(spec)"):]
+        corpo = corpo[:corpo.index("\n  function ")]
+        self.assertIn("niceTicksSigned", corpo)
+        self.assertIn("capBottom", corpo)
+        # a altura passa a ser a distancia ate a linha do ZERO, nos dois
+        # sentidos -- e nao "Y(0) menos Y(v)", que so e positivo subindo
+        self.assertIn("Math.min(zero, ponta)", corpo)
+        self.assertIn("Math.max(zero, ponta)", corpo)
+        # a expressao ANTIGA, e nao a string solta: ela aparece no
+        # comentario que conta o defeito, e o comentario deve ficar
+        self.assertNotIn("Math.max(v > 0 ? 2 : 0, Y(0) - Y(v))", corpo)
+
+    def test_a_ponta_arredondada_da_coluna_que_desce_fica_embaixo(self):
+        """Senao arredonda a ponta colada no zero e deixa quadrada a livre.
+
+        Que e o contrario de toda outra marca do sistema.
+        """
+        charts = (self.TEMPLATES / "charts.js").read_text(encoding="utf-8")
+        self.assertIn("function capBottom(", charts)
+        corpo = charts[charts.index("function columns(spec)"):]
+        corpo = corpo[:corpo.index("\n  function ")]
+        self.assertIn("v < 0 ? capBottom(", corpo)
+
+    def test_o_rotulo_da_coluna_negativa_fica_por_baixo_dela(self):
+        """Em cima, o numero cai dentro da coluna, sobre a propria cor."""
+        charts = (self.TEMPLATES / "charts.js").read_text(encoding="utf-8")
+        corpo = charts[charts.index("function columns(spec)"):]
+        corpo = corpo[:corpo.index("\n  function ")]
+        self.assertIn("v < 0 ? baixo + 13 : alto - 7", corpo)
+
+    def test_o_acelerometro_mostra_sinal_e_o_gauge_nao(self):
+        """O numero mais importante da aceleracao e NEGATIVO.
+
+        A serie que continua subindo e esta perdendo forca. Num `gauge`
+        comum ele aparece como zero -- `Math.max(0, ...)` --, e zero se le
+        "parado", quando o que esta acontecendo e "freando". Por isso o
+        acelerometro e outro grafico, com o zero no meio.
+        """
+        charts = (self.TEMPLATES / "charts.js").read_text(encoding="utf-8")
+        self.assertIn("function acelerometro(spec)", charts)
+        corpo = charts[charts.index("function acelerometro(spec)"):]
+        corpo = corpo[:corpo.index("\n  /* =")]
+        # o zero no meio, e o ponteiro para os dois lados
+        self.assertIn("meio = 0.5", corpo)
+        self.assertIn("Math.max(-1, Math.min(1,", corpo)
+        # escala DIVERGENTE: um matiz de cada lado, e nunca cor de estado
+        self.assertIn("--div-neg", corpo)
+        self.assertIn("--div-pos", corpo)
+        for estado in ("--good", "--critical", "--warning", "--serious"):
+            with self.subTest(token=estado):
+                self.assertNotIn(estado, corpo,
+                                 "acelerar nao e 'bom' por si: depende da serie")
+        # e o `gauge` continua travando em zero, que e o certo PARA ELE
+        self.assertIn("Math.max(0, Number(spec.value) || 0)", charts)
+
+    def test_a_area_desenha_a_linha_da_meta_que_recebe(self):
+        """Parametro que nao faz nada e nao reclama e pior que ausente.
+
+        `reference` existia em `columns` e nao em `area`: quem passasse a
+        meta para uma area nao recebia erro nenhum -- recebia o grafico
+        sem a linha, igualzinho ao de antes, e passava a acreditar que a
+        meta estava desenhada.
+        """
+        charts = (self.TEMPLATES / "charts.js").read_text(encoding="utf-8")
+        corpo = charts[charts.index("function area(spec)"):]
+        corpo = corpo[:corpo.index("\n  function ")]
+        self.assertIn("spec.reference", corpo)
+        self.assertIn("referenceLabel", corpo)
+        # numa pilha a linha e ambigua (meta do total, ou da faixa de baixo?)
+        self.assertIn("series.length === 1", corpo)
+
+    def test_o_calculo_da_curva_nao_e_refeito_no_navegador(self):
+        """Duas implementacoes da mesma integral divergem.
+
+        Elas divergem no dia em que alguem consertar uma -- e a que tem
+        teste e a do Python. A tela pede o resultado e desenha.
+        """
+        js = (self.TEMPLATES / "dashboard.js").read_text(encoding="utf-8")
+        corpo = js[js.index('view("calculo"'):]
+        corpo = corpo[:corpo.index('view("equipe"')]
+        self.assertIn("/api/curva", corpo)
+        # nenhuma conta de trapezio nem de diferenca finita aqui
+        for conta in ("/ 2 *", "trapez", "(v[i + 1] + v[i])"):
+            with self.subTest(conta=conta):
+                self.assertNotIn(conta, corpo)
+
+    def test_sem_meta_declarada_a_tela_nao_desenha_linha_de_corte(self):
+        """Linha inventada e pior que nenhuma: quem olha supoe que e meta."""
+        js = (self.TEMPLATES / "dashboard.js").read_text(encoding="utf-8")
+        corpo = js[js.index('view("calculo"'):]
+        corpo = corpo[:corpo.index('view("equipe"')]
+        self.assertIn("sem meta declarada", corpo)
+        self.assertIn("meta declarada pela coordenação", corpo)
+
     def test_o_botao_nomeia_o_tema_que_nao_e_o_padrao(self):
         """O botão compara com o OUTRO tema, nunca com o padrão.
 
