@@ -160,7 +160,19 @@ ATLETA_TERMOS = ("athlete", "athletes", "elite sport", "competitive sport")
 # comum: gerar `TITLE-ABS-KEY("athletes[MeSH Terms]")` para a Scopus
 # mandaria a base procurar essa sequencia literal de caracteres num
 # resumo, e ela nao acharia nada -- sem erro, so zero.
-SO_NA_PUBMED = '"athletes"[MeSH Terms]'
+#
+# E o MeSH e DE CADA ACERVO, nunca do modulo. Este valor estava fixo aqui
+# e somado com OR a populacao de QUALQUER acervo -- o que funcionava por
+# acidente, enquanto houve um acervo so, cuja populacao era "atleta".
+#
+# Com o segundo acervo o acidente virou defeito: OR entre `athletes[MeSH]`
+# e a lista de esportes esteticos ALARGA a populacao de volta para atleta
+# em geral, e o recorte estetico desaparece sem deixar erro. Conferido na
+# PubMed, mesma janela de humor: 11 registros pela lista de termos
+# esteticos, 17 pelo MeSH das modalidades -- e 139 com o `athletes[MeSH]`
+# somado, quase todos humor em atleta de outra modalidade. Dez vezes mais
+# acervo, e do assunto errado.
+MESH_DE_ATLETA = ('"athletes"[MeSH Terms]',)
 
 # Os esportes em que o acervo se divide, com as palavras de cada um. A
 # lista sai do que a literatura de humor no esporte de fato estuda -- nao
@@ -184,6 +196,68 @@ ESPORTES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Triatlo", ("triathlon", "triathletes")),
 )
 
+# ----------------------------------------------------------------------
+# Esportes esteticos
+# ----------------------------------------------------------------------
+# "Estetico" aqui e a categoria da literatura, e nao um juizo: modalidade
+# em que a NOTA depende da aparencia do movimento -- e nao do tempo, da
+# distancia ou do gol. E o que junta ginastica, nado artistico, patinacao
+# e ballet numa mesma pergunta: as quatro premiam linha corporal, e e por
+# isso que a literatura de humor nelas gira em torno de imagem corporal,
+# peso e alimentacao, e nao em torno de carga aerobica.
+#
+# TRES ARMADILHAS DE TERMO, cada uma custou um pedaco de acervo:
+#
+#   "diving" sozinho traz mergulho autonomo -- descompressao, nitrogenio,
+#   mergulhador tecnico. Nada disso e salto ornamental. Vai qualificado.
+#
+#   "dance" sozinho traz aula de danca em casa de repouso, danca como
+#   intervencao em Parkinson e danca recreativa na escola. Sao trabalhos
+#   legitimos e sao de OUTRA pergunta -- este acervo e de quem COMPETE ou
+#   treina em nivel de performance. Vai qualificado tambem.
+#
+#   "synchronized swimming" continua indispensavel: a modalidade mudou de
+#   nome para "artistic swimming" em 2017, e vinte anos de literatura
+#   estao sob o nome antigo. Buscar so pelo novo apaga a metade mais
+#   antiga do acervo sem avisar.
+ESTETICOS_TERMOS = (
+    "aesthetic sport", "aesthetic sports",
+    "artistic gymnastics", "rhythmic gymnastics", "gymnastics", "gymnast", "gymnasts",
+    "trampoline gymnastics", "acrobatic gymnastics",
+    "artistic swimming", "synchronized swimming",
+    "figure skating", "figure skater", "figure skaters",
+    "springboard diving", "platform diving", "competitive diving",
+    "ballet", "ballet dancer", "ballet dancers",
+    "dance sport", "dancesport", "competitive dance", "professional dancer",
+    "cheerleading",
+)
+
+# Os temas em que o acervo se divide. Aqui o eixo NAO e a modalidade -- a
+# modalidade e a populacao, e ficaria repetida em todos os segmentos. O
+# eixo e a pergunta, e a lista sai do que a literatura de humor em
+# esporte estetico de fato tem: imagem corporal e alimentacao dominam, e
+# e justamente o que nao aparece na biblioteca de humor em geral.
+TEMAS_ESTETICOS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Imagem corporal e alimentação",
+     ("body image", "body dissatisfaction", "disordered eating", "eating disorder",
+      "eating disorders", "eating attitudes", "weight control", "weight pressure",
+      "relative energy deficiency", "RED-S", "female athlete triad")),
+    ("Ansiedade e perfeccionismo",
+     ("competitive anxiety", "competitive state anxiety", "perfectionism",
+      "fear of failure", "self-presentation", "social physique anxiety")),
+    ("Carga, recuperação e overtraining",
+     ("overtraining", "overreaching", "training load", "training monotony",
+      "recovery", "burnout", "staleness")),
+    ("Desempenho e competição",
+     ("performance", "competition", "precompetitive", "pre-competitive",
+      "competitive season")),
+    ("Maturação e idade",
+     ("maturation", "puberty", "pubertal", "adolescent athletes",
+      "young athletes", "youth sport", "early specialization")),
+    ("Lesão e dor",
+     ("injury", "injuries", "pain", "low back pain", "return to sport")),
+)
+
 BIBLIOTECAS: tuple[dict[str, Any], ...] = (
     {
         "code": "humor_esporte",
@@ -197,7 +271,40 @@ BIBLIOTECAS: tuple[dict[str, Any], ...] = (
             "responde de maneira diferente num esporte coletivo e num de resistência.",
         "construto": HUMOR_TERMOS,
         "populacao": ATLETA_TERMOS,
+        "mesh": MESH_DE_ATLETA,
         "segmentos": ESPORTES,
+    },
+    {
+        "code": "humor_estetico",
+        "title": "Estado de humor nos esportes estéticos",
+        "linha": "psicologia_do_esporte",
+        "eixo": "tema",
+        "descricao":
+            "Humor em quem compete em modalidade julgada pela aparência do movimento "
+            "— ginástica artística e rítmica, nado artístico, patinação, saltos "
+            "ornamentais, ballet e dança de competição. É o acervo de base para uma "
+            "revisão sistemática, e por isso se divide por TEMA e não por modalidade: "
+            "a modalidade é a população, e repetir-se-ia em todo segmento. Nestas "
+            "modalidades a nota depende da linha corporal, e a literatura de humor "
+            "gira em torno de imagem corporal, peso e alimentação — que é justamente "
+            "o que não aparece no acervo de humor no esporte em geral.",
+        # O MESMO vocabulario de humor do outro acervo, de proposito. Sao
+        # os instrumentos que este laboratorio usa (POMS e BRUMS), e um
+        # segundo vocabulario para o mesmo construto seria dois lugares
+        # para consertar e um para esquecer.
+        "construto": HUMOR_TERMOS,
+        "populacao": ESTETICOS_TERMOS,
+        # O MeSH das MODALIDADES, e nunca `athletes[MeSH]`: este acervo e
+        # de quem compete em esporte julgado, e nao de atleta em geral.
+        # Os tres foram conferidos na PubMed e existem. `Diving[MeSH]`
+        # fica de fora de proposito: na PubMed, Diving e mergulho
+        # subaquatico -- descompressao, apneia --, e nao salto ornamental.
+        # E a mesma armadilha do termo livre "diving", pela porta do
+        # vocabulario controlado. `Swimming[MeSH]` tambem fica fora:
+        # alargaria para natacao de piscina inteira.
+        "mesh": ('"Gymnastics"[MeSH Terms]', '"Dancing"[MeSH Terms]',
+                 '"Skating"[MeSH Terms]'),
+        "segmentos": TEMAS_ESTETICOS,
     },
 )
 
@@ -206,8 +313,8 @@ def query_de(decl: dict[str, Any], segmento_termos: tuple[str, ...] | None = Non
              base: str = PUBMED) -> str:
     """A busca inteira, montada do vocabulario, na sintaxe da base."""
     populacao = frase(decl["populacao"], base)
-    if base == PUBMED:
-        populacao = f"{SO_NA_PUBMED} OR {populacao}"
+    if base == PUBMED and decl.get("mesh"):
+        populacao = " OR ".join(list(decl["mesh"]) + [populacao])
     partes = [f"({frase(decl['construto'], base)})", f"({populacao})"]
     if segmento_termos:
         partes.append(f"({frase(segmento_termos, base)})")

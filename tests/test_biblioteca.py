@@ -188,20 +188,33 @@ class TestOsLinksParaAsBases(unittest.TestCase):
 
 class TestInstalar(BaseBiblioteca):
 
+    # Contado a partir das DECLARACOES, e nao de um numero escrito aqui:
+    # com o numero fixo, o teste quebrava ao se declarar o segundo acervo
+    # -- e o que ele tem a dizer nao e quantos acervos existem, e que cada
+    # um entra com uma busca geral mais uma por segmento, em cada base.
+    def esperadas(self) -> int:
+        return sum(1 + len(d["segmentos"]) for d in biblioteca.BIBLIOTECAS) \
+            * len(biblioteca.BASES)
+
     def test_o_acervo_entra_com_uma_busca_por_segmento(self):
         biblioteca.instalar(self.db)
-        n = self.db.scalar("SELECT COUNT(*) FROM biblioteca_busca")
-        # uma geral mais uma por esporte, em cada uma das tres bases
-        por_base = 1 + len(biblioteca.ESPORTES)
-        self.assertEqual(n, por_base * len(biblioteca.BASES))
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM biblioteca_busca"),
+                         self.esperadas())
 
     def test_instalar_de_novo_nao_duplica(self):
         biblioteca.instalar(self.db)
         segunda = biblioteca.instalar(self.db)
         self.assertEqual(segunda["novas"], [])
-        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM biblioteca"), 1)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM biblioteca"),
+                         len(biblioteca.BIBLIOTECAS))
         self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM biblioteca_busca"),
-                         (1 + len(biblioteca.ESPORTES)) * len(biblioteca.BASES))
+                         self.esperadas())
+
+    def test_cada_acervo_tem_o_seu_proprio_code(self):
+        biblioteca.instalar(self.db)
+        codes = [r["code"] for r in self.db.dicts("SELECT code FROM biblioteca")]
+        self.assertEqual(sorted(codes), sorted(d["code"] for d in biblioteca.BIBLIOTECAS))
+        self.assertEqual(len(set(codes)), len(codes))
 
     def test_o_acervo_fica_ligado_a_linha_de_pesquisa(self):
         biblioteca.instalar(self.db)
@@ -1204,6 +1217,125 @@ class TestAsPortas(unittest.TestCase):
         tela = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
             encoding="utf-8")
         self.assertIn("Não é triagem de revisão", tela)
+
+
+class TestOAcervoDosEsportesEsteticos(BaseBiblioteca):
+    """Humor em modalidade julgada pela aparencia do movimento.
+
+    Ginastica, nado artistico, patinacao, saltos ornamentais, ballet. E a
+    base de uma revisao sistematica, e por isso se divide por TEMA e nao
+    por modalidade: a modalidade e a populacao, e repetir-se-ia em todo
+    segmento.
+    """
+
+    DECL = next(d for d in biblioteca.BIBLIOTECAS if d["code"] == "humor_estetico")
+
+    def test_o_construto_e_o_MESMO_do_acervo_de_humor_em_geral(self):
+        """Um segundo vocabulario para o mesmo construto seria dois lugares
+        para consertar e um para esquecer. Sao os instrumentos que este
+        laboratorio usa: POMS e BRUMS.
+        """
+        geral = next(d for d in biblioteca.BIBLIOTECAS if d["code"] == "humor_esporte")
+        self.assertIs(self.DECL["construto"], geral["construto"])
+
+    def test_o_mesh_e_o_das_modalidades_e_nao_o_de_atleta(self):
+        """`athletes[MeSH]` somado com OR alargaria de volta para atleta em geral.
+
+        Conferido na PubMed, mesma janela de humor: 11 registros pela
+        lista de termos esteticos, 17 pelo MeSH das modalidades -- e 139
+        com `athletes[MeSH]` somado, quase todos humor em atleta de outra
+        modalidade. Dez vezes mais acervo, e do assunto errado, sem erro
+        nenhum na tela.
+        """
+        q = biblioteca.query_de(self.DECL, base=biblioteca.PUBMED)
+        self.assertNotIn('"athletes"[MeSH Terms]', q)
+        self.assertIn('"Gymnastics"[MeSH Terms]', q)
+        self.assertIn('"Dancing"[MeSH Terms]', q)
+        self.assertIn('"Skating"[MeSH Terms]', q)
+
+    def test_o_mesh_de_um_acervo_nao_vaza_para_o_outro(self):
+        """O defeito era o MeSH morar no MODULO, e nao na declaracao.
+
+        Funcionava por acidente enquanto houve um acervo so, cuja
+        populacao era justamente "atleta".
+        """
+        geral = next(d for d in biblioteca.BIBLIOTECAS if d["code"] == "humor_esporte")
+        q = biblioteca.query_de(geral, base=biblioteca.PUBMED)
+        self.assertIn('"athletes"[MeSH Terms]', q)
+        self.assertNotIn('"Gymnastics"[MeSH Terms]', q)
+
+    def test_o_mesh_nao_sai_da_pubmed(self):
+        """Na Scopus, `TITLE-ABS-KEY("Gymnastics[MeSH Terms]")` manda a base
+        procurar essa sequencia literal num resumo. Nao acha nada, e nao
+        reclama: devolve zero como se o assunto nao existisse.
+        """
+        for base in (biblioteca.SCOPUS, biblioteca.WOS):
+            with self.subTest(base=base):
+                self.assertNotIn("MeSH", biblioteca.query_de(self.DECL, base=base))
+
+    def test_mergulho_subaquatico_fica_de_fora_pelos_dois_caminhos(self):
+        """"diving" sozinho traz descompressao e apneia, que nao e salto.
+
+        E `Diving[MeSH]` e a mesma armadilha pela porta do vocabulario
+        controlado: na PubMed, Diving E mergulho subaquatico.
+        """
+        self.assertNotIn("diving", self.DECL["populacao"])
+        for termo in self.DECL["populacao"]:
+            if "diving" in termo:
+                with self.subTest(termo=termo):
+                    self.assertNotEqual(termo.strip(), "diving")
+        self.assertNotIn('"Diving"[MeSH Terms]', self.DECL["mesh"])
+
+    def test_o_nome_antigo_da_modalidade_continua_na_busca(self):
+        """O nado artistico se chamava "synchronized swimming" ate 2017.
+
+        Vinte anos de literatura estao sob o nome antigo. Buscar so pelo
+        novo apaga a metade mais velha do acervo sem avisar.
+        """
+        self.assertIn("synchronized swimming", self.DECL["populacao"])
+        self.assertIn("artistic swimming", self.DECL["populacao"])
+
+    def test_o_eixo_e_o_tema_e_os_temas_nao_repetem_modalidade(self):
+        self.assertEqual(self.DECL["eixo"], "tema")
+        nomes = [n for n, _ in self.DECL["segmentos"]]
+        self.assertEqual(len(set(nomes)), len(nomes))
+        for nome, termos in self.DECL["segmentos"]:
+            with self.subTest(tema=nome):
+                self.assertTrue(termos, "tema sem termo nao filtra nada")
+                # nenhum tema pode ser uma modalidade: isso repetiria a
+                # populacao dentro do segmento e nao recortaria nada
+                for t in termos:
+                    self.assertNotIn(t, self.DECL["populacao"])
+
+    def test_imagem_corporal_e_alimentacao_esta_entre_os_temas(self):
+        """E o tema que domina esta literatura, e o que NAO aparece no
+        acervo de humor no esporte em geral -- se ele faltasse, o acervo
+        novo seria o antigo com outro nome.
+        """
+        nomes = " | ".join(n for n, _ in self.DECL["segmentos"]).lower()
+        self.assertIn("imagem corporal", nomes)
+        termos = [t for n, ts in self.DECL["segmentos"] if "Imagem" in n for t in ts]
+        self.assertIn("disordered eating", termos)
+        self.assertIn("body image", termos)
+
+    def test_a_busca_geral_pede_as_tres_coisas_ao_mesmo_tempo(self):
+        """Construto E populacao. Um OR entre os dois traria humor de
+        qualquer um e esporte estetico sem humor nenhum.
+        """
+        q = biblioteca.query_de(self.DECL, base=biblioteca.WOS)
+        self.assertEqual(q.count(" AND "), 1)
+        com_tema = biblioteca.query_de(
+            self.DECL, self.DECL["segmentos"][0][1], biblioteca.WOS)
+        self.assertEqual(com_tema.count(" AND "), 2)
+
+    def test_o_acervo_entra_no_banco_com_as_buscas_dos_temas(self):
+        biblioteca.instalar(self.db)
+        bid = self.db.scalar("SELECT id FROM biblioteca WHERE code = ?",
+                             ("humor_estetico",))
+        self.assertIsNotNone(bid)
+        n = self.db.scalar(
+            "SELECT COUNT(*) FROM biblioteca_busca WHERE biblioteca_id = ?", (bid,))
+        self.assertEqual(n, (1 + len(self.DECL["segmentos"])) * len(biblioteca.BASES))
 
 
 if __name__ == "__main__":
