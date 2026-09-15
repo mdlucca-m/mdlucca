@@ -440,15 +440,32 @@ def route_professores(ctx: "Context") -> Any:
 # Biblioteca: o acervo de leitura da equipe
 # ----------------------------------------------------------------------
 def route_bibliotecas(ctx: "Context") -> Any:
-    """Os acervos que existem, para a tela listar."""
-    auth.require(ctx.user, "leitura")
+    """Os acervos que ESTA pessoa pode listar."""
+    user = auth.require(ctx.user, "leitura")
     from . import biblioteca
-    return {"bibliotecas": biblioteca.todas(ctx.db)}
+    return {"bibliotecas": biblioteca.todas(
+        ctx.db, quem=user.get("id"), perfil=user.get("role") or "leitura")}
+
+
+def _acervo_permitido(ctx: "Context", user: dict, code: str) -> None:
+    """Esconder na lista e deixar a rota aberta nao esconde nada.
+
+    O endereco de um acervo e o titulo em minusculas: quem quisesse o
+    restrito acertaria o `code` na primeira tentativa. Responde 404, e nao
+    403 -- 403 confirmaria que o acervo existe, que e metade do que quem
+    procura queria saber.
+    """
+    from . import biblioteca
+
+    if not biblioteca.pode_ver(ctx.db, code, quem=user.get("id"),
+                               perfil=user.get("role") or "leitura"):
+        raise ApiError(404, f"biblioteca “{code}” não existe")
 
 
 def route_biblioteca(ctx: "Context", code: str) -> Any:
     """Um acervo: o retrato e os artigos, recortados ou nao."""
-    auth.require(ctx.user, "leitura")
+    user = auth.require(ctx.user, "leitura")
+    _acervo_permitido(ctx, user, code)
     from . import biblioteca
     segmento = (ctx.query.get("segmento") or [None])[0]
     busca = (ctx.query.get("q") or [None])[0]
@@ -466,7 +483,8 @@ def route_biblioteca(ctx: "Context", code: str) -> Any:
 
 def route_biblioteca_analise(ctx: "Context", code: str) -> Any:
     """O mapeamento analitico do acervo: curvas, mapa, rede e a arvore."""
-    auth.require(ctx.user, "leitura")
+    user = auth.require(ctx.user, "leitura")
+    _acervo_permitido(ctx, user, code)
     from . import biblioteca
     try:
         return biblioteca.analitico(ctx.db, code)
@@ -482,6 +500,7 @@ def route_biblioteca_atualizar(ctx: "Context", code: str) -> Any:
     mesmo tempo so gastariam a cota da base.
     """
     user = auth.require(ctx.user, "coordenacao")
+    _acervo_permitido(ctx, user, code)
     from . import biblioteca
     try:
         resultado = biblioteca.atualizar(ctx.db, code)

@@ -193,8 +193,9 @@ class TestInstalar(BaseBiblioteca):
     # -- e o que ele tem a dizer nao e quantos acervos existem, e que cada
     # um entra com uma busca geral mais uma por segmento, em cada base.
     def esperadas(self) -> int:
-        return sum(1 + len(d["segmentos"]) for d in biblioteca.BIBLIOTECAS) \
-            * len(biblioteca.BASES)
+        return sum((1 + len(d["segmentos"]))
+                   * (len(biblioteca.BASES) + len(d.get("manuais") or ()))
+                   for d in biblioteca.BIBLIOTECAS)
 
     def test_o_acervo_entra_com_uma_busca_por_segmento(self):
         biblioteca.instalar(self.db)
@@ -481,7 +482,8 @@ class TestAsBasesQuePedemChave(BaseBiblioteca):
         Sem isso, um acervo de tres fontes viraria um acervo sem fonte, e
         nao haveria como responder "quanto a Scopus acrescentou".
         """
-        bid = self.db.scalar("SELECT id FROM biblioteca")
+        bid = self.db.scalar("SELECT id FROM biblioteca WHERE code = ?",
+                                ("humor_esporte",))
         from lape.revisao import chave_de_uniao
         biblioteca._gravar(self.db, bid, "Remo e canoagem",
                            {"title": "Da Scopus", "base": biblioteca.SCOPUS},
@@ -507,7 +509,8 @@ class TestOMesmoArtigoVindoDeDuasBases(BaseBiblioteca):
     def setUp(self):
         super().setUp()
         biblioteca.instalar(self.db)
-        self.bid = self.db.scalar("SELECT id FROM biblioteca")
+        self.bid = self.db.scalar("SELECT id FROM biblioteca WHERE code = ?",
+                                ("humor_esporte",))
 
     def gravar(self, registro, segmento="Handebol"):
         from lape.revisao import chaves_de_uniao
@@ -567,7 +570,8 @@ class TestLimparOQueJaEntrouRepetido(BaseBiblioteca):
     def setUp(self):
         super().setUp()
         biblioteca.instalar(self.db)
-        self.bid = self.db.scalar("SELECT id FROM biblioteca")
+        self.bid = self.db.scalar("SELECT id FROM biblioteca WHERE code = ?",
+                                ("humor_esporte",))
 
     def antigo(self, chave, titulo, ano, doi=None, segmento=None, abstract=None):
         """Item como a versao ANTIGA gravava: sem `chave_titulo`."""
@@ -643,7 +647,8 @@ class TestOQueATelaLe(BaseBiblioteca):
     def setUp(self):
         super().setUp()
         biblioteca.instalar(self.db)
-        bid = self.db.scalar("SELECT id FROM biblioteca")
+        bid = self.db.scalar("SELECT id FROM biblioteca WHERE code = ?",
+                                ("humor_esporte",))
         for i, (titulo, ano, seg, doi, pais) in enumerate((
                 ("Humor em handebol", 2024, "Handebol", "10.1/a", '["Hungria"]'),
                 ("Humor em natação", 2023, "Natação", "10.1/b", '["Brasil"]'),
@@ -731,6 +736,17 @@ class TestOQueATelaLe(BaseBiblioteca):
             biblioteca.listar(self.db, "nao_existe")
 
 
+# `SELECT id FROM biblioteca` -- sem ORDER BY e sem WHERE -- funcionou
+# enquanto houve um acervo so, e passou a responder outro no dia em que
+# entrou o terceiro: com tres linhas o SQLite satisfaz a consulta pelo
+# indice unico de `code`, e devolve em ordem de CODE. "fibromialgia" vem
+# antes de "humor_esporte" no alfabeto, e os testes passaram a escrever
+# artigo num acervo e a conferir noutro -- que responde "vazio", porque
+# estava mesmo.
+#
+# Nao houve erro nenhum: a consulta e valida e a resposta e legitima. O
+# defeito era o teste supor ordem onde nao pediu ordem. Por isso todos os
+# fixtures daqui em diante pedem o acervo pelo CODE.
 class TestOMapeamentoAnalitico(BaseBiblioteca):
     """As contas sao as MESMAS do painel da producao, e nao uma copia.
 
@@ -743,7 +759,8 @@ class TestOMapeamentoAnalitico(BaseBiblioteca):
     def setUp(self):
         super().setUp()
         biblioteca.instalar(self.db)
-        self.bid = self.db.scalar("SELECT id FROM biblioteca")
+        self.bid = self.db.scalar("SELECT id FROM biblioteca WHERE code = ?",
+                                ("humor_esporte",))
 
     def artigo(self, ano, segmento="Handebol", paises=("Brasil",), autores="A B; C D"):
         import json
@@ -937,7 +954,8 @@ class TestOQueABaseDeclara(BaseBiblioteca):
         """Quando o vocabulario ganha um termo, o acervo se atualiza em
         segundos -- e nao em quarenta e cinco buscas."""
         biblioteca.instalar(self.db)
-        bid = self.db.scalar("SELECT id FROM biblioteca")
+        bid = self.db.scalar("SELECT id FROM biblioteca WHERE code = ?",
+                                ("humor_esporte",))
         self.db.execute(
             "INSERT INTO biblioteca_item (biblioteca_id, chave, title, year,"
             "        pub_types, keywords) VALUES (?, 'k1', 'Um estudo', 2024, ?, ?)",
@@ -1336,6 +1354,223 @@ class TestOAcervoDosEsportesEsteticos(BaseBiblioteca):
         n = self.db.scalar(
             "SELECT COUNT(*) FROM biblioteca_busca WHERE biblioteca_id = ?", (bid,))
         self.assertEqual(n, (1 + len(self.DECL["segmentos"])) * len(biblioteca.BASES))
+
+
+class TestOAcervoDeFibromialgia(BaseBiblioteca):
+    """Tudo que existe sobre a condicao -- e a condicao E a populacao."""
+
+    DECL = next(d for d in biblioteca.BIBLIOTECAS if d["code"] == "fibromialgia")
+
+    def test_bloco_de_populacao_vazio_nao_gera_busca_invalida(self):
+        """O defeito: `(...) AND ()`.
+
+        A base recusa -- ou, pior, aceita e responde outra coisa. Bloco sem
+        termo nao virava zero: virava uma busca invalida com cara de busca.
+        """
+        for base in biblioteca.BASES + biblioteca.BASES_MANUAIS:
+            with self.subTest(base=base):
+                q = biblioteca.query_de(self.DECL, base=base)
+                self.assertNotIn("()", q)
+                self.assertNotIn("OR )", q)
+                self.assertFalse(q.rstrip().endswith("AND"))
+
+    def test_sem_populacao_a_busca_geral_e_um_bloco_so(self):
+        q = biblioteca.query_de(self.DECL, base=biblioteca.WOS)
+        self.assertEqual(q.count(" AND "), 0)
+        com_tema = biblioteca.query_de(
+            self.DECL, self.DECL["segmentos"][0][1], biblioteca.WOS)
+        self.assertEqual(com_tema.count(" AND "), 1)
+
+    def test_o_nome_antigo_da_doenca_continua_na_busca(self):
+        """`fibrositis` e o nome usado ate os anos 80.
+
+        E como esta indexada a literatura mais velha. Tirar nao muda quase
+        nada no total e apaga justamente os trabalhos historicos, que e o
+        que uma revisao usa para datar o inicio do campo.
+        """
+        self.assertIn("fibrositis", self.DECL["construto"])
+
+    def test_dor_cronica_generalizada_NAO_entra(self):
+        """E diagnostico vizinho e mais amplo, com criterio proprio.
+
+        Somar os dois num acervo so faz a pergunta deixar de ser sobre
+        fibromialgia. Quem quiser os dois cruza dois acervos -- que e uma
+        decisao, e nao efeito colateral de um termo a mais.
+        """
+        juntos = " ".join(self.DECL["construto"]).lower()
+        self.assertNotIn("chronic widespread pain", juntos)
+
+    def test_a_BVS_busca_em_portugues_e_espanhol(self):
+        """Sem isto, a revisao brasileira busca a America Latina em ingles.
+
+        E a literatura que ela mais perde e a de casa: a LILACS indexa
+        resumo no idioma de origem.
+        """
+        q = biblioteca.query_de(self.DECL, base=biblioteca.LILACS)
+        self.assertIn("fibromialgia", q)
+        self.assertIn("síndrome fibromiálgica", q)
+        # e as outras bases NAO levam os termos regionais: na PubMed eles
+        # nao acham nada e so incham a string
+        for base in (biblioteca.PUBMED, biblioteca.SCOPUS, biblioteca.WOS):
+            with self.subTest(base=base):
+                self.assertNotIn("síndrome fibromiálgica",
+                                 biblioteca.query_de(self.DECL, base=base))
+
+    def test_o_mesh_da_condicao_entra_junto_do_construto(self):
+        """Sem populacao, ele precisa de bloco -- pendurado no AND anterior
+        alargaria a busca inteira. Conferido na PubMed: a busca geral
+        devolve 17.115 registros, que e o acervo da condicao.
+        """
+        q = biblioteca.query_de(self.DECL, base=biblioteca.PUBMED)
+        self.assertIn('"Fibromyalgia"[MeSH Terms]', q)
+        self.assertEqual(q.count(" AND "), 0)
+
+
+class TestAsBasesSemApi(BaseBiblioteca):
+    """Cinco bases que o sistema nao alcanca, e a estrategia delas.
+
+    Uma revisao sistematica tem de publicar a estrategia de CADA base, com
+    a data e o numero de registros. Montada a mao na hora, ela sai
+    diferente em cada base e ninguem refaz um ano depois -- que e
+    exatamente o que o revisor da banca pede para conferir.
+    """
+
+    def test_as_manuais_nao_estao_entre_as_automaticas(self):
+        self.assertEqual(set(biblioteca.BASES) & set(biblioteca.BASES_MANUAIS), set())
+
+    def test_cada_base_manual_tem_rotulo_e_o_que_fazer(self):
+        for base in biblioteca.BASES_MANUAIS:
+            with self.subTest(base=base):
+                self.assertIn(base, biblioteca.ROTULO_BASE)
+                recado = biblioteca.PORQUE_MANUAL[base]
+                # "sem API" nao e instrucao: a frase tem de dizer o que
+                # fazer, e dizer com um verbo
+                self.assertTrue(
+                    "cole" in recado.lower() or "colar" in recado.lower(),
+                    f"{base}: o recado nao diz o que fazer")
+
+    def test_a_sintaxe_de_cada_base_e_a_dela(self):
+        t = ("fibromyalgia",)
+        self.assertIn("':ti,ab,kw", biblioteca.frase(t, biblioteca.EMBASE))
+        self.assertIn('":ti,ab,kw', biblioteca.frase(t, biblioteca.COCHRANE))
+        self.assertIn("TI ", biblioteca.frase(t, biblioteca.PSYCINFO))
+        self.assertIn("AB ", biblioteca.frase(t, biblioteca.CINAHL))
+        self.assertIn('ti:("', biblioteca.frase(t, biblioteca.LILACS))
+
+    def test_o_mesh_nao_vaza_para_base_nenhuma_alem_da_pubmed(self):
+        decl = next(d for d in biblioteca.BIBLIOTECAS if d["code"] == "fibromialgia")
+        for base in biblioteca.BASES_MANUAIS + (biblioteca.SCOPUS, biblioteca.WOS):
+            with self.subTest(base=base):
+                self.assertNotIn("MeSH", biblioteca.query_de(decl, base=base))
+
+    def test_a_coleta_RECUSA_a_base_manual_em_vez_de_devolver_zero(self):
+        """Zero seria indistinguivel de "a Embase nao tem nada sobre isto".
+
+        E alguem escreveria isso numa revisao.
+        """
+        for base in biblioteca.BASES_MANUAIS:
+            with self.subTest(base=base):
+                with self.assertRaises(biblioteca.SemApi):
+                    biblioteca._colher(base, "qualquer coisa", 10)
+
+    def test_SemApi_entra_pelo_caminho_de_SemChave(self):
+        """Mesmo caminho: avisa UMA vez por base e nao derruba as outras."""
+        self.assertTrue(issubclass(biblioteca.SemApi, biblioteca.SemChave))
+
+    def test_a_atualizacao_avisa_uma_vez_por_base_e_nao_conta_erro(self):
+        biblioteca.instalar(self.db)
+        r = biblioteca.atualizar(self.db, "fibromialgia", limite=5,
+                                 bases=biblioteca.BASES_MANUAIS)
+        self.assertEqual(r["erros"], 0, "base sem API nao e erro de busca")
+        # cinco bases, cinco recados -- e nao um por busca de cada base
+        self.assertEqual(len(r["sem_chave"]), len(biblioteca.BASES_MANUAIS))
+        self.assertEqual(r["buscas"], len(biblioteca.BASES_MANUAIS))
+
+    def test_a_estrategia_manual_fica_guardada_no_banco(self):
+        biblioteca.instalar(self.db)
+        bid = self.db.scalar("SELECT id FROM biblioteca WHERE code = ?", ("fibromialgia",))
+        for base in biblioteca.BASES_MANUAIS:
+            with self.subTest(base=base):
+                n = self.db.scalar(
+                    "SELECT COUNT(*) FROM biblioteca_busca"
+                    " WHERE biblioteca_id = ? AND base = ?", (bid, base))
+                self.assertEqual(n, 1 + len(
+                    next(d for d in biblioteca.BIBLIOTECAS
+                         if d["code"] == "fibromialgia")["segmentos"]))
+
+    def test_acervo_que_nao_declara_manuais_nao_ganha_busca_delas(self):
+        biblioteca.instalar(self.db)
+        bid = self.db.scalar("SELECT id FROM biblioteca WHERE code = ?", ("humor_esporte",))
+        n = self.db.scalar(
+            "SELECT COUNT(*) FROM biblioteca_busca WHERE biblioteca_id = ?"
+            "   AND base NOT IN (?, ?, ?)", (bid, *biblioteca.BASES))
+        self.assertEqual(n, 0)
+
+
+class TestAcervoRestrito(BaseBiblioteca):
+    """Acervo de uma pessoa so -- e o que isso NAO e."""
+
+    def setUp(self):
+        super().setUp()
+        biblioteca.instalar(self.db)
+        self.dono = self.db.insert("members", {
+            "full_name": "Dona do acervo", "name_key": "dona-do-acervo"})
+        self.outro = self.db.insert("members", {
+            "full_name": "Outra pessoa", "name_key": "outra-pessoa"})
+        biblioteca.declarar_dono(self.db, "fibromialgia", self.dono)
+
+    def test_o_dono_ve_e_o_resto_da_equipe_nao(self):
+        vistos = [b["code"] for b in biblioteca.todas(
+            self.db, quem=self.dono, perfil="integrante")]
+        self.assertIn("fibromialgia", vistos)
+        vistos = [b["code"] for b in biblioteca.todas(
+            self.db, quem=self.outro, perfil="integrante")]
+        self.assertNotIn("fibromialgia", vistos)
+
+    def test_a_coordenacao_ve_e_a_tela_nao_finge_o_contrario(self):
+        """Quem coordena tem o arquivo do banco na propria maquina.
+
+        Esconder dela na tela nao esconderia nada -- seria teatro, e teatro
+        de privacidade e pior que nenhuma, porque quem acredita nele guarda
+        ali o que nao guardaria.
+        """
+        vistos = [b["code"] for b in biblioteca.todas(
+            self.db, quem=self.outro, perfil="coordenacao")]
+        self.assertIn("fibromialgia", vistos)
+
+    def test_sem_usuario_o_padrao_e_conservador(self):
+        """Tela nova que esqueca de passar o usuario nao pode abrir tudo.
+
+        E o tipo de descuido que nao da erro nenhum e so se descobre depois.
+        """
+        vistos = [b["code"] for b in biblioteca.todas(self.db)]
+        self.assertNotIn("fibromialgia", vistos)
+
+    def test_esconder_na_lista_sem_fechar_a_rota_nao_esconde_nada(self):
+        """O endereco de um acervo e o titulo em minusculas.
+
+        Quem quisesse o restrito acertaria o `code` na primeira tentativa.
+        """
+        self.assertTrue(biblioteca.pode_ver(
+            self.db, "fibromialgia", quem=self.dono, perfil="integrante"))
+        self.assertFalse(biblioteca.pode_ver(
+            self.db, "fibromialgia", quem=self.outro, perfil="integrante"))
+        self.assertTrue(biblioteca.pode_ver(
+            self.db, "fibromialgia", quem=self.outro, perfil="coordenacao"))
+
+    def test_os_acervos_abertos_continuam_abertos(self):
+        for code in ("humor_esporte", "humor_estetico"):
+            with self.subTest(code=code):
+                self.assertTrue(biblioteca.pode_ver(
+                    self.db, code, quem=self.outro, perfil="leitura"))
+
+    def test_acervo_que_nao_existe_nao_vira_permissao(self):
+        self.assertFalse(biblioteca.pode_ver(self.db, "nao-existe", perfil="admin"))
+
+    def test_tirar_o_dono_reabre_o_acervo(self):
+        biblioteca.declarar_dono(self.db, "fibromialgia", None)
+        self.assertTrue(biblioteca.pode_ver(
+            self.db, "fibromialgia", quem=self.outro, perfil="leitura"))
 
 
 if __name__ == "__main__":

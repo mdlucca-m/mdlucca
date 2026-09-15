@@ -116,8 +116,47 @@ def links(item: dict[str, Any]) -> list[dict[str, Any]]:
 # nada na tela explique por que. Um termo novo entra aqui, numa linha, e
 # vale para as tres.
 PUBMED, SCOPUS, WOS = "pubmed", "scopus", "wos"
+# As tres que o sistema consulta sozinho, porque tem API.
 BASES = (PUBMED, SCOPUS, WOS)
-ROTULO_BASE = {PUBMED: "PubMed", SCOPUS: "Scopus", WOS: "Web of Science"}
+
+# As que NAO tem API aberta -- ou tem e a universidade nao assina o acesso
+# por programa. A estrategia delas e montada e GUARDADA do mesmo jeito, e
+# quem tem acesso cola na base e traz o resultado.
+#
+# Por que guardar uma busca que o sistema nao roda: porque uma revisao
+# sistematica tem de publicar a estrategia de CADA base, com a data e o
+# numero de registros. Montada a mao na hora, ela sai diferente em cada
+# base e ninguem consegue refazer um ano depois -- que e exatamente o que
+# o revisor da banca pede para conferir.
+#
+# E porque uma revisao de fibromialgia sem Embase e sem PsycINFO nao esta
+# completa, e dizer "o sistema so alcanca tres bases" nao muda isso: muda
+# so de quem e o trabalho.
+EMBASE, PSYCINFO, CINAHL = "embase", "psycinfo", "cinahl"
+COCHRANE, LILACS = "cochrane", "lilacs"
+BASES_MANUAIS = (EMBASE, PSYCINFO, CINAHL, COCHRANE, LILACS)
+
+ROTULO_BASE = {
+    PUBMED: "PubMed", SCOPUS: "Scopus", WOS: "Web of Science",
+    EMBASE: "Embase", PSYCINFO: "PsycINFO", CINAHL: "CINAHL",
+    COCHRANE: "Cochrane CENTRAL", LILACS: "LILACS / BVS",
+}
+
+# O que dizer de cada base que o sistema nao roda. A frase e o recado da
+# tela, e ela precisa dizer O QUE FAZER -- "sem API" nao e instrucao.
+PORQUE_MANUAL = {
+    EMBASE: "A Embase não tem API aberta. Cole a estratégia em embase.com, "
+            "com o acesso da universidade.",
+    PSYCINFO: "A PsycINFO é vendida pela EBSCO e pela ProQuest, e a sintaxe "
+              "muda entre as duas. A estratégia aqui está em EBSCO — confira "
+              "por qual plataforma a UDESC assina antes de colar.",
+    CINAHL: "A CINAHL é da EBSCO e não tem API aberta. Cole a estratégia na "
+            "interface, com o acesso da universidade.",
+    COCHRANE: "A Cochrane Library não tem API aberta. Cole a estratégia em "
+              "cochranelibrary.com — a CENTRAL é onde estão os ensaios.",
+    LILACS: "A BVS não tem API estável. Cole em pesquisa.bvsalud.org — e é "
+            "a única busca deste acervo em português e espanhol.",
+}
 
 
 def frase(termos: tuple[str, ...], base: str) -> str:
@@ -139,6 +178,18 @@ def frase(termos: tuple[str, ...], base: str) -> str:
     if base == WOS:
         # A WoS agrupa o campo de fora: TS=(a OR b), e nao TS=(a) OR TS=(b).
         return "TS=(" + " OR ".join(f'"{t}"' for t in limpos) + ")"
+    if base == EMBASE:
+        # Embase.com: aspas simples e os campos depois dos dois-pontos.
+        return " OR ".join(f"'{t}':ti,ab,kw" for t in limpos)
+    if base == COCHRANE:
+        # Cochrane Library: igual na ideia, aspas duplas.
+        return " OR ".join(f'"{t}":ti,ab,kw' for t in limpos)
+    if base in (PSYCINFO, CINAHL):
+        # EBSCO: um codigo de campo por termo, e os dois campos separados.
+        return " OR ".join(f'TI "{t}" OR AB "{t}"' for t in limpos)
+    if base == LILACS:
+        # BVS: campo minusculo com o termo entre parenteses.
+        return " OR ".join(f'ti:("{t}") OR ab:("{t}")' for t in limpos)
     raise ValueError(f"base desconhecida: {base}")
 
 
@@ -258,6 +309,64 @@ TEMAS_ESTETICOS: tuple[tuple[str, tuple[str, ...]], ...] = (
      ("injury", "injuries", "pain", "low back pain", "return to sport")),
 )
 
+# ----------------------------------------------------------------------
+# Fibromialgia
+# ----------------------------------------------------------------------
+# Aqui a condicao E a populacao: nao ha um segundo bloco para cruzar. O
+# acervo e tudo que existe sobre fibromialgia, e o recorte vem dos temas.
+#
+# O nome da doenca mudou de forma tres vezes na literatura, e as tres
+# formas continuam valendo em bases diferentes: "fibromyalgia",
+# "fibromyalgia syndrome" e "fibrositis" -- esta ultima e o nome antigo,
+# usado ate os anos 80, e e como esta indexada a literatura mais velha.
+# Tirar `fibrositis` nao muda quase nada no total e apaga justamente os
+# trabalhos historicos, que e o que uma revisao usa para datar o inicio
+# do campo.
+#
+# "chronic widespread pain" NAO entra: e um diagnostico vizinho e mais
+# amplo, com criterio proprio, e somar os dois num acervo so faz a
+# pergunta deixar de ser sobre fibromialgia. Quem quiser os dois cruza
+# dois acervos -- que e uma decisao, e nao um efeito colateral de um
+# termo a mais.
+FIBROMIALGIA_TERMOS = (
+    "fibromyalgia", "fibromyalgia syndrome", "fibromyalgic", "fibrositis",
+)
+
+# EM PORTUGUES E ESPANHOL, para a BVS. Sem isto, uma revisao brasileira de
+# fibromialgia busca a America Latina em ingles e nao acha nada -- e a
+# literatura que ela mais perde e justamente a de casa. A LILACS indexa
+# resumo no idioma de origem.
+FIBROMIALGIA_REGIONAIS = (
+    "fibromialgia", "síndrome fibromiálgica", "sindrome fibromialgica",
+    "fibromiálgica", "fibromialgico",
+)
+
+# Os temas em que o acervo se divide. Sai do que a literatura de
+# fibromialgia tem, e nao de uma lista de desfechos possiveis: exercicio
+# e dor dominam, e saude mental vem logo depois -- que e o cruzamento
+# desta linha de pesquisa com a psicologia do exercicio.
+TEMAS_FIBROMIALGIA: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Exercício e atividade física",
+     ("exercise", "physical activity", "aerobic training", "resistance training",
+      "strength training", "aquatic exercise", "hydrotherapy", "physical exercise")),
+    ("Dor e sintomas",
+     ("pain", "pain threshold", "hyperalgesia", "tender points", "central sensitization",
+      "widespread pain", "pain catastrophizing")),
+    ("Saúde mental e humor",
+     ("depression", "anxiety", "mood", "mood states", "psychological distress",
+      "quality of life", "catastrophizing", "self-efficacy")),
+    ("Sono e fadiga",
+     ("sleep", "sleep quality", "insomnia", "fatigue", "non-restorative sleep")),
+    ("Tratamento e medicamento",
+     ("pregabalin", "duloxetine", "amitriptyline", "pharmacological treatment",
+      "drug therapy", "cannabidiol")),
+    ("Diagnóstico e critérios",
+     ("diagnosis", "diagnostic criteria", "ACR criteria", "classification criteria",
+      "FIQ", "Fibromyalgia Impact Questionnaire", "prevalence")),
+    ("Trabalho e incapacidade",
+     ("disability", "work ability", "absenteeism", "sick leave", "functional capacity")),
+)
+
 BIBLIOTECAS: tuple[dict[str, Any], ...] = (
     {
         "code": "humor_esporte",
@@ -306,16 +415,66 @@ BIBLIOTECAS: tuple[dict[str, Any], ...] = (
                  '"Skating"[MeSH Terms]'),
         "segmentos": TEMAS_ESTETICOS,
     },
+    {
+        "code": "fibromialgia",
+        "title": "Fibromialgia — tudo que existe",
+        "linha": "exercicio_fibromialgia",
+        "eixo": "tema",
+        "descricao":
+            "O acervo inteiro da condição, e não um cruzamento: aqui a fibromialgia "
+            "é a população, e o recorte vem dos temas. É o acervo de base para "
+            "revisão, e por isso a estratégia é montada também para as bases que o "
+            "sistema não alcança sozinho — Embase, PsycINFO, CINAHL, Cochrane e BVS. "
+            "Essas cinco ficam guardadas para quem tem o acesso colar na base: uma "
+            "revisão de fibromialgia sem Embase e sem PsycINFO não está completa, e "
+            "o sistema não chegar lá não muda isso — muda de quem é o trabalho.",
+        "construto": FIBROMIALGIA_TERMOS,
+        # A condicao e a populacao: nao ha segundo bloco para cruzar, e
+        # inventar um ("humanos", "adultos") so cortaria acervo sem
+        # responder nada.
+        "populacao": (),
+        "regionais": FIBROMIALGIA_REGIONAIS,
+        "mesh": ('"Fibromyalgia"[MeSH Terms]',),
+        "segmentos": TEMAS_FIBROMIALGIA,
+        "manuais": BASES_MANUAIS,
+    },
 )
 
 
 def query_de(decl: dict[str, Any], segmento_termos: tuple[str, ...] | None = None,
              base: str = PUBMED) -> str:
-    """A busca inteira, montada do vocabulario, na sintaxe da base."""
-    populacao = frase(decl["populacao"], base)
+    """A busca inteira, montada do vocabulario, na sintaxe da base.
+
+    Cada bloco so entra se tiver termo. Um acervo pode nao ter populacao
+    separada -- na fibromialgia a condicao E a populacao --, e o bloco
+    vazio gerava `(...) AND ()`, que a base recusa ou, pior, aceita e
+    responde outra coisa. Bloco sem termo nao virava zero: virava uma
+    busca invalida com cara de busca.
+    """
+    construto = list(decl["construto"])
+    # Na BVS entram tambem os termos em portugues e espanhol. Ela indexa o
+    # resumo no idioma de origem, e buscar a America Latina em ingles la
+    # e nao achar a literatura de casa.
+    if base == LILACS and decl.get("regionais"):
+        construto += list(decl["regionais"])
+
+    partes = [f"({frase(tuple(construto), base)})"]
+
+    populacao = frase(decl.get("populacao") or (), base)
     if base == PUBMED and decl.get("mesh"):
-        populacao = " OR ".join(list(decl["mesh"]) + [populacao])
-    partes = [f"({frase(decl['construto'], base)})", f"({populacao})"]
+        # O MeSH entra no bloco da populacao quando ha populacao, e faz o
+        # seu proprio bloco quando nao ha -- na fibromialgia ele e o termo
+        # controlado da CONDICAO, e somar com OR ao construto seria
+        # perfeito, mas fora de um bloco proprio ele ficaria pendurado no
+        # AND anterior e alargaria a busca inteira.
+        mesh = " OR ".join(decl["mesh"])
+        populacao = f"{mesh} OR {populacao}" if populacao else mesh
+        if not decl.get("populacao"):
+            # sem populacao, o MeSH da condicao vai junto do construto
+            partes = [f"({frase(tuple(construto), base)} OR {mesh})"]
+            populacao = ""
+    if populacao:
+        partes.append(f"({populacao})")
     if segmento_termos:
         partes.append(f"({frase(segmento_termos, base)})")
     return " AND ".join(partes)
@@ -350,7 +509,10 @@ def instalar(db: Database) -> dict[str, Any]:
 
         # Uma busca por base e por segmento. A geral, sem segmento, e a
         # que define o tamanho do acervo naquela base.
-        for base in BASES:
+        # As tres com API, mais as que o acervo declarar como manuais. A
+        # estrategia manual e guardada igual: e ela que a revisao publica,
+        # e e ela que quem tem o acesso cola na base.
+        for base in tuple(BASES) + tuple(decl.get("manuais") or ()):
             _guardar_busca(db, bid, base, None, query_de(decl, base=base))
             for nome, termos in decl["segmentos"]:
                 _guardar_busca(db, bid, base, nome, query_de(decl, termos, base))
@@ -496,6 +658,20 @@ class SemChave(RuntimeError):
     Separada do erro de rede porque o recado e outro: nao adianta tentar de
     novo, e a tela precisa dizer QUAL variavel falta em vez de mostrar um
     zero que parece resposta.
+    """
+
+
+class SemApi(SemChave):
+    """A base existe, a estrategia esta pronta, e nao ha por onde chamar.
+
+    Irma de `SemChave` de proposito: o caminho e o mesmo -- avisar UMA vez
+    por base, gravar o recado ao lado da busca, e nao derrubar as outras.
+    O que muda e o remedio, e por isso a mensagem diz o que fazer em vez
+    de dizer que faltou algo.
+
+    O que ela NAO pode ser e um zero. Uma busca da Embase que devolvesse
+    lista vazia seria indistinguivel de "a Embase nao tem nada sobre
+    fibromialgia", e alguem escreveria isso numa revisao.
     """
 
 
@@ -709,6 +885,9 @@ def _colher(base: str, query: str, limite: int) -> list[dict[str, Any]]:
         return buscar_scopus(query, limite)
     if base == WOS:
         return buscar_wos(query, limite)
+    if base in BASES_MANUAIS:
+        raise SemApi(PORQUE_MANUAL.get(
+            base, f"{ROTULO_BASE.get(base, base)} não tem API: cole a estratégia na base."))
     raise ValueError(f"base desconhecida: {base}")
 
 
@@ -925,14 +1104,69 @@ def panorama(db: Database, code: str) -> dict[str, Any]:
     }
 
 
-def todas(db: Database) -> list[dict[str, Any]]:
-    """Os acervos, para a tela listar."""
+def todas(db: Database, quem: int | None = None,
+          perfil: str = "leitura") -> list[dict[str, Any]]:
+    """Os acervos que ESTA pessoa pode ver.
+
+    Acervo restrito e do dono, e da coordenacao. Nao e um cofre: quem
+    coordena tem o arquivo do banco na propria maquina, e esconder dela na
+    tela nao esconderia nada -- seria teatro, e teatro de privacidade e
+    pior que nenhuma, porque quem acredita nele guarda ali o que nao
+    guardaria.
+
+    O padrao e conservador de proposito: chamada sem `quem`, devolve so os
+    acervos abertos. Uma tela nova que esquecesse de passar o usuario
+    mostraria acervo restrito a todo mundo -- e esse e o tipo de descuido
+    que nao da erro nenhum e so se descobre depois.
+    """
+    manda = perfil in ("coordenacao", "admin")
     return db.dicts(
         "SELECT b.code, b.title, b.descricao, b.eixo, b.atualizada_em,"
+        "       b.restrita, b.dono_id, m.short_name AS dono,"
         "       rl.name AS linha,"
         "       (SELECT COUNT(*) FROM biblioteca_item i WHERE i.biblioteca_id = b.id) AS n"
-        "  FROM biblioteca b LEFT JOIN research_lines rl ON rl.id = b.research_line_id"
-        " WHERE b.ativa = 1 ORDER BY b.title")
+        "  FROM biblioteca b"
+        "  LEFT JOIN research_lines rl ON rl.id = b.research_line_id"
+        "  LEFT JOIN members m ON m.id = b.dono_id"
+        " WHERE b.ativa = 1"
+        "   AND (b.restrita = 0 OR ? = 1 OR b.dono_id IS ?)"
+        " ORDER BY b.title",
+        (1 if manda else 0, quem))
+
+
+def pode_ver(db: Database, code: str, quem: int | None = None,
+             perfil: str = "leitura") -> bool:
+    """Se esta pessoa pode abrir ESTE acervo, pelo code.
+
+    Existe separada de `todas` porque as rotas de um acervo so -- o
+    retrato, a analise, a atualizacao -- entram pelo `code` e nunca
+    passariam pela lista. Sem esta, esconder na lista e deixar a rota
+    aberta: quem tivesse o endereco veria o acervo restrito, e o endereco
+    e o titulo em minusculas.
+    """
+    linha = db.dicts(
+        "SELECT restrita, dono_id FROM biblioteca WHERE code = ?", (code,))
+    if not linha:
+        return False
+    if not linha[0]["restrita"]:
+        return True
+    if perfil in ("coordenacao", "admin"):
+        return True
+    return quem is not None and linha[0]["dono_id"] == quem
+
+
+def declarar_dono(db: Database, code: str, member_id: int | None,
+                  restrita: bool | None = None) -> dict[str, Any]:
+    """Diz de quem e o acervo, e se ele e so dessa pessoa."""
+    achada = db.scalar("SELECT id FROM biblioteca WHERE code = ?", (code,))
+    if not achada:
+        raise ValueError(f"biblioteca “{code}” não existe")
+    if restrita is None:
+        restrita = member_id is not None
+    db.execute("UPDATE biblioteca SET dono_id = ?, restrita = ? WHERE id = ?",
+               (member_id, 1 if restrita else 0, achada))
+    db.conn.commit()
+    return {"code": code, "dono_id": member_id, "restrita": bool(restrita)}
 
 
 # ----------------------------------------------------------------------

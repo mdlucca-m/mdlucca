@@ -596,6 +596,14 @@ CREATE TABLE IF NOT EXISTS biblioteca (
   -- O eixo em que o acervo se divide na tela: "esporte", "pais", "faixa".
   eixo             TEXT,
   ativa            INTEGER NOT NULL DEFAULT 1,
+  -- De quem e o acervo, e se ele e so dessa pessoa.
+  --
+  -- `restrita = 1` esconde o acervo de quem nao e o dono. NAO esconde da
+  -- coordenacao: quem coordena tem o arquivo do banco na propria maquina,
+  -- e uma tela que finge o contrario e teatro -- pior que nada, porque
+  -- quem confia nela guarda ali o que nao guardaria.
+  dono_id          INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  restrita         INTEGER NOT NULL DEFAULT 0,
   atualizada_em    TEXT,
   criada_em        TEXT NOT NULL DEFAULT (datetime('now'))
 );
