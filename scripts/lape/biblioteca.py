@@ -691,7 +691,7 @@ def quantas_buscas(db: Database, code: str,
     """
     dados = db.dicts("SELECT id FROM biblioteca WHERE code = ?", (code,))
     if not dados:
-        raise ValueError(f"biblioteca \u201c{code}\u201d n\u00e3o existe")
+        raise ValueError(f"biblioteca “{code}” não existe")
     if bases:
         marcas = ",".join("?" * len(bases))
         return int(db.scalar(

@@ -951,6 +951,166 @@ function view(id, label, group, lead, render) {
    número sozinho não informa -- 13 publicações é muito ou pouco conforme
    a meta, o ano anterior e o tamanho da equipe --, então cada cartão traz
    a leitura junto, que é o que o modelo que inspirou esta tela não tinha. */
+/* Qual curva está sendo lida -- e a escolha vale para as DUAS telas que
+   a leem, o Resumo e o "Cálculo da curva". Quem troca para "Citações" no
+   Resumo e abre o cálculo completo encontra Citações lá: a alternativa
+   seria a tela de detalhe mostrar outra curva que não a que fez a pessoa
+   clicar. */
+const ESTADO_DO_CALCULO = { serie: "acervo" };
+
+/* A leitura em cálculo, em tamanho de canto de tela.
+
+   Os mesmos números da tela "Cálculo da curva" -- velocidade, aceleração,
+   limiar e acumulado -- no lugar onde o painel já é olhado todo dia. A
+   tela cheia continua existindo, com a curva, a derivada trecho a trecho
+   e a explicação de cada operação; daqui sai o link para ela.
+
+   O CÁLCULO NÃO MORA AQUI, nem aqui nem lá: vem de `/api/curva`, que
+   chama o `estatistica.py`. Refazer a derivada em JavaScript daria duas
+   implementações da mesma conta, e elas divergiriam no dia em que alguém
+   consertasse uma só.
+
+   Sem API -- que é o caso da página estática exportada -- o bloco
+   simplesmente não aparece. Não fica um recado de erro no cartão de
+   identidade do laboratório por causa de um enfeite. */
+function leituraEmCalculo() {
+  const bloco = el("div", {});
+
+  function desenhar(d) {
+    bloco.textContent = "";
+    bloco.setAttribute("class", "leitura-calculo");
+    const serie = d.serie || {};
+
+    const escolha = el("select", { "aria-label": "Curva a ler",
+      onchange: function (ev) {
+        ESTADO_DO_CALCULO.serie = ev.target.value;
+        buscar();
+      } },
+      (d.disponiveis || []).map(function (x) {
+        return el("option", { value: x.code, text: x.rotulo,
+          selected: x.code === serie.code ? "selected" : null });
+      }));
+    bloco.appendChild(el("div", { class: "topo" }, [
+      el("span", { class: "lab", text: "COMO VAI" }), escolha]));
+
+    if (d.aviso) {
+      bloco.appendChild(el("div", { class: "hint", text: d.aviso }));
+      return;
+    }
+
+    /* ---- velocidade: o último trecho da derivada ---- */
+    /* `derivada.agora` não existe: `taxa_de_variacao` devolve `trechos` e
+       `geral`, e a velocidade de agora é o último trecho. Ler `.agora`
+       aqui daria `undefined` e o medidor desenharia zero -- que se lê
+       "parado", e é outra coisa. */
+    const taxas = (d.derivada && d.derivada.trechos) || [];
+    const vel = taxas.length ? taxas[taxas.length - 1].taxa : null;
+    /* A régua é o maior ritmo da própria janela, e não um número redondo
+       escolhido por mim: a agulha em 60% do próprio recorde diz algo; em
+       60% de um 20 inventado, não diz nada. É a mesma régua da tela
+       cheia, de propósito -- dois medidores da mesma coisa com escalas
+       diferentes fazem a pessoa achar que os números discordam. */
+    const teto = Math.max.apply(null, taxas.map(function (t) {
+      return Math.abs(t.taxa); }).concat([1]));
+    const ace = d.aceleracao || {};
+    const limiteAce = Math.max.apply(null, (ace.trechos || []).map(function (t) {
+      return Math.abs(t.aceleracao); }).concat([1]));
+
+    const medidores = el("div", { class: "medidores" });
+    /* Sem unidade DENTRO destes dois: a 146px de largura, "publicações/ano³"
+       não cabe no desenho e vaza para fora do quadro. A unidade vai na
+       frase abaixo, onde a linha tem a largura do cartão -- e a legenda de
+       cada medidor já diz qual dos dois é qual. */
+    medidores.appendChild(vel === null
+      ? C.empty("sem dois anos não há velocidade")
+      : C.gauge({ value: Math.max(0, vel), max: Math.ceil(teto),
+          display: (vel > 0 ? "+" : "") + C.fmt(vel),
+          color: C.token(vel < 0 ? "--div-neg-4" : "--accent-strong"),
+          caption: "velocidade" }));
+    medidores.appendChild(ace.agora === null || ace.agora === undefined
+      ? C.empty("sem três anos não há aceleração")
+      : C.acelerometro({ value: ace.agora, limite: Math.ceil(limiteAce),
+          caption: "aceleração" }));
+    bloco.appendChild(medidores);
+
+    /* ---- a frase, que é o que a pessoa de fato lê ---- */
+    /* Subir e perder força ao mesmo tempo é o caso que o número sozinho
+       esconde, e é o caso mais comum num laboratório que vem crescendo. */
+    const sobe = vel !== null && vel > 0, desce = vel !== null && vel < 0;
+    const freia = ace.agora < 0, ganha = ace.agora > 0;
+    bloco.appendChild(leituraDe({
+      sinal: vel === null ? "parado" : (sobe ? "sobe" : (desce ? "desce" : "parado")),
+      forte: vel === null ? "sem leitura"
+        : (sobe ? "+" : "") + C.fmt(vel) + " " + (serie.unidade_taxa || "por ano"),
+      texto: vel === null ? ""
+        : (sobe && freia ? "— ainda sobe, mas cada ano sobe menos"
+           : (sobe && ganha ? "— e ganhando força"
+              : (desce && ganha ? "— ainda desce, mas a queda diminui"
+                 : (desce && freia ? "— e caindo mais rápido"
+                    : "— ritmo constante")))),
+    }));
+
+    /* O velocímetro trava em zero para baixo -- ele mede quanto de um
+       alvo se andou, e andar menos que nada não existe. Com ritmo
+       negativo o ponteiro encosta no zero, e ponteiro no zero se lê
+       "parado", que é outra coisa: o número ao lado é o que vale. A tela
+       cheia diz isso num aviso; aqui cabe uma linha. */
+    if (desce) {
+      bloco.appendChild(el("div", { class: "note warn", text:
+        "o ponteiro encosta no zero porque a escala começa nele — "
+        + "a curva está descendo" }));
+    }
+
+    if (ace.agora !== null && ace.agora !== undefined) {
+      bloco.appendChild(el("div", { class: "hint", text: "aceleração: "
+        + (ace.agora > 0 ? "+" : "") + C.fmt(ace.agora) + " "
+        + (serie.unidade_aceleracao || "por ano²") }));
+    }
+
+    /* ---- limiar: só o que a coordenação declarou ---- */
+    if (d.limiar) {
+      bloco.appendChild(leituraDe({
+        sinal: d.limiar.terminou_do_lado_bom ? "sobe" : "desce",
+        forte: d.limiar.terminou_do_lado_bom ? "acima da meta" : "abaixo da meta",
+        texto: "de " + C.fmt(d.limiar.valor) + " " + (serie.unidade || ""),
+      }));
+    } else {
+      /* Sem meta declarada não se inventa linha de corte. Uma linha num
+         número redondo que ninguém escolheu é pior que nenhuma: quem olha
+         supõe que o laboratório a declarou, e passa a se comparar com ela. */
+      bloco.appendChild(el("div", { class: "hint",
+        text: "sem meta declarada para esta curva" }));
+    }
+
+    /* ---- acumulado: integral onde ela significa algo, soma onde não ---- */
+    /* "acumulado na janela: 50 publicações", e não "50 publicações
+       somados": o particípio teria de concordar com a unidade, que muda
+       de série para série -- publicações e citações são femininas,
+       artigos-ano é masculino. Com a unidade no fim da frase, não há
+       concordância para errar. */
+    const acum = d.integral && d.integral.incremental !== null
+      ? "acumulado na janela: " + C.fmt(d.integral.incremental)
+        + " " + (d.integral.unidade || "")
+      : (d.soma ? "acumulado na janela: " + C.fmt(d.soma.total)
+          + " " + d.soma.unidade : null);
+    if (acum) bloco.appendChild(el("div", { class: "hint", text: acum }));
+
+    bloco.appendChild(el("button", { class: "ghost mini", type: "button",
+      onclick: function () { go("calculo"); } },
+      [el("span", { text: "ver o cálculo completo" }), Icons.get("proximo", 13)]));
+  }
+
+  function buscar() {
+    fetch("/api/curva?serie=" + encodeURIComponent(ESTADO_DO_CALCULO.serie || "acervo"),
+          { headers: { Accept: "application/json" } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d) desenhar(d); })
+      .catch(function () { /* sem API, sem bloco -- e sem recado de erro */ });
+  }
+  buscar();
+  return bloco;
+}
+
 view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
   + "para onde vai e o que vence primeiro.", function (host) {
     const o = D.overview || {};
@@ -964,6 +1124,12 @@ view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
       return Number(a.year_published) === ano - 1; }).length;
 
     /* ---------------- identidade ---------------- */
+    /* O nome, a instituição e o lema ocupam uns 180px, e este cartão é
+       esticado pela grade até a altura do vizinho -- que é o cartão dos
+       indicadores, alto. Sobravam uns 320px de cartão vazio no canto mais
+       visível da primeira tela do painel, e cartão vazio num painel de
+       parede não se lê como "sobrou espaço": lê-se como "não carregou".
+       O espaço agora leva a leitura em cálculo da curva do laboratório. */
     const capa = el("div", { class: "card resumo-capa" }, [
       el("div", { class: "marca" }, [
         Icons.badge("painel", null, 30),
@@ -974,6 +1140,7 @@ view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
       ]),
       el("p", { class: "lema", text: "Ciência para pessoas mais ativas e saudáveis." }),
       el("div", { class: "hint", text: "Atualizado em " + dt(o.generated_at) }),
+      leituraEmCalculo(),
     ]);
 
     /* ---------------- números ---------------- */
@@ -1037,9 +1204,17 @@ view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
           spark: porAno(function (a) { return a.status === "publicado"; }),
           sparkColor: C.token("--accent-strong"),
           foot: metaPub.meta ? "meta do ano: " + metaPub.meta : "sem meta declarada" }),
+        /* O minigráfico deste cartão DESCE, e descia sem explicação: são
+           citações por ano de PUBLICAÇÃO, e o artigo de 2026 ainda não
+           teve tempo de ser citado. Sem a frase, a linha caindo se lê
+           como perda de qualidade -- e é o contrário: é o trabalho novo
+           aparecendo baixo por ser novo. */
         kpi({ label: "Citações", value: C.fmt(citTotal), icon: "citacao",
           ir: "citacoes", spark: citPorAno, sparkColor: C.token("--accent-strong"),
-          foot: citTotal ? "na melhor base disponível" : "nenhuma base respondeu ainda" }),
+          foot: citTotal ? "na melhor base disponível" : "nenhuma base respondeu ainda",
+          leitura: citTotal ? { sinal: "parado", forte: "por ano de publicação",
+            texto: "— o ano recente aparece baixo por ser recente, e não por ser fraco" }
+            : null }),
         kpi({ label: "Pessoas", value: C.fmt((o.n_members || 0) + (o.n_collaborators || 0)),
           icon: "pessoas", ir: "pesquisadores",
           foot: orientandos + " em formação",
@@ -3558,7 +3733,6 @@ view("citacoes", "Mais citados", "Produção",
    `estatistica.py` -- o mesmo código que tem os testes. Refazer a
    integral em JavaScript daria duas implementações da mesma conta, e as
    duas divergiriam no dia em que alguém consertasse uma. */
-const ESTADO_DO_CALCULO = { serie: "acervo" };
 
 view("calculo", "Cálculo da curva", "Produção",
   "A mesma curva lida de quatro maneiras: nível, velocidade, aceleração e "
@@ -3657,8 +3831,14 @@ view("calculo", "Cálculo da curva", "Produção",
         + "força ao mesmo tempo, e isso a velocidade sozinha não mostra.", [
         ace.agora === null || ace.agora === undefined
           ? C.empty(ace.aviso || "Sem três anos não há aceleração.")
+          /* `unidade_aceleracao`, e nao `unidade_taxa`: derivar muda a
+             unidade. Com a da taxa, este medidor mostrava aceleração
+             rotulada "artigos/ano" -- a unidade da VELOCIDADE. O
+             ponteiro estava certo e o rótulo mentia, que é o pior dos
+             dois: quem lê confere o número no rótulo. */
           : C.acelerometro({ value: ace.agora, limite: Math.ceil(limiteAce),
-              unit: serie.unidade_taxa || "por ano²", caption: "aceleração" }),
+              unit: serie.unidade_aceleracao || "por ano²",
+              caption: "aceleração" }),
         ace.agora !== null && ace.agora !== undefined ? leituraDe({
           sinal: ace.agora > 0 ? "sobe" : (ace.agora < 0 ? "desce" : "parado"),
           forte: ace.agora > 0 ? "ganhando força"
@@ -3719,7 +3899,10 @@ view("calculo", "Cálculo da curva", "Produção",
             el("div", { class: "resumo-num" }, [
               el("b", { text: C.fmt(d.soma.total) }),
               el("span", { text: d.soma.unidade }),
-              el("i", { text: "somados na janela" })]),
+              /* "acumulado", e nao "somados": a unidade muda de genero de
+                 uma serie para outra, e o participio concordaria errado
+                 em metade delas. */
+              el("i", { text: "acumulado na janela" })]),
           ]),
           el("div", { class: "note info", text: d.soma.porque }),
         ]);

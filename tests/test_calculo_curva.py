@@ -234,6 +234,40 @@ class TestOQueATelaRecebe(BaseDoBanco):
             with self.subTest(serie=x["code"]):
                 self.assertIn(x["kind"], ("estoque", "fluxo"))
 
+    def test_cada_curva_traz_a_unidade_das_TRES_leituras(self):
+        """Derivar muda a unidade -- e a tela reaproveitava a mesma.
+
+        O acelerometro do painel era rotulado com `unidade_taxa`, a
+        unidade da VELOCIDADE: o ponteiro mostrava aceleracao e o rotulo
+        dizia "artigos/ano". Ponteiro certo com rotulo errado e o pior
+        dos dois, porque quem le confere o numero no rotulo.
+        """
+        d = curva.analisar(self.db, "acervo", janela=6)
+        for x in curva.series(self.db, janela=6):
+            with self.subTest(serie=x["code"]):
+                self.assertTrue(x["unidade"])
+                self.assertTrue(x["unidade_taxa"])
+                self.assertTrue(x["unidade_aceleracao"])
+                # as tres sao diferentes entre si: sao tres grandezas
+                self.assertEqual(len({x["unidade"], x["unidade_taxa"],
+                                      x["unidade_aceleracao"]}), 3)
+        self.assertEqual(d["serie"]["unidade_aceleracao"], "artigos/ano²")
+
+    def test_num_fluxo_a_unidade_ja_comeca_um_degrau_adiante(self):
+        """"Publicacoes por ano" e ela mesma um ritmo.
+
+        Logo a derivada dela e uma aceleracao (ano^2) e a segunda
+        derivada vai a ano^3. Tratar as duas curvas com a mesma regra
+        faria o painel rotular a derivada do fluxo como se fosse
+        velocidade de um nivel.
+        """
+        por_code = {x["code"]: x for x in curva.series(self.db, janela=6)}
+        self.assertEqual(por_code["acervo"]["unidade_taxa"], "artigos/ano")
+        self.assertEqual(por_code["publicacoes"]["unidade_taxa"],
+                         "publicações/ano²")
+        self.assertEqual(por_code["publicacoes"]["unidade_aceleracao"],
+                         "publicações/ano³")
+
     def test_banco_sem_artigo_nenhum_nao_derruba_o_calculo(self):
         vazio = Database(Path(self.tmp.name) / "vazio.sqlite")
         vazio.migrate()

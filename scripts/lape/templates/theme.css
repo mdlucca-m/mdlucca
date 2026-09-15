@@ -924,7 +924,27 @@ textarea:focus-visible, [tabindex]:focus-visible {
 /* O cartão com gráfico ocupa duas colunas; numa tela que só cabe uma, a
    regra se desfaz sozinha e ele volta a ocupar a largura inteira. */
 @media (min-width: 1000px) { .resumo .largo { grid-column: span 2; } }
-.resumo-capa { display: grid; gap: 10px; align-content: center; }
+/* `align-content: start`, e nao `center`: com a leitura em calculo dentro,
+   o cartao tem conteudo do topo ao pe. Centrado, ele empurrava tudo para
+   o meio e deixava folga igual em cima e embaixo -- o que fazia o nome do
+   laboratorio flutuar longe da borda do cartao. */
+.resumo-capa { display: grid; gap: 10px; align-content: start; }
+
+/* A leitura em calculo no pe do cartao de identidade: os dois medidores
+   lado a lado, e as frases embaixo. Os medidores sao SVG com viewBox, e
+   por isso encolhem sozinhos para a largura da coluna -- 150px cada numa
+   coluna de 330. */
+.leitura-calculo { display: grid; gap: 7px; margin-top: 4px; padding-top: 12px;
+  border-top: 1px solid var(--border); }
+.leitura-calculo .topo { display: flex; align-items: center; gap: 8px; }
+.leitura-calculo .topo select { flex: 1 1 0; min-width: 0; }
+.leitura-calculo .medidores { display: grid; grid-template-columns: 1fr 1fr;
+  gap: 4px; align-items: end; }
+.leitura-calculo .medidores > figure { margin: 0; min-width: 0; }
+.leitura-calculo .medidores figcaption { font-size: 11px; }
+.leitura-calculo .leitura { margin: 0; }
+.leitura-calculo button.mini { justify-self: start; padding: 5px 9px;
+  font-size: 12.5px; }
 .resumo-capa .marca { display: flex; gap: 12px; align-items: center; }
 .resumo-capa .lema { margin: 0; font-size: 15px; color: var(--ink-2); }
 .resumo-nums {

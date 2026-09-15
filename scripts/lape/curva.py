@@ -65,6 +65,14 @@ def series(db: Database, janela: int = 10) -> list[dict[str, Any]]:
     """As curvas que este banco tem, cada uma com o que ela e.
 
     `kind` decide a leitura: "estoque" ganha integral, "fluxo" ganha soma.
+
+    Cada curva traz TRES unidades, e nao uma: a do nivel, a da derivada e
+    a da aceleracao. Sao tres porque derivar muda a unidade, e a tela que
+    reaproveita a unidade da derivada no acelerometro passa a rotular
+    aceleracao com unidade de velocidade -- o medidor fica certo e o
+    rotulo mente. Numa curva de FLUXO isso ja comeca um degrau adiante:
+    "publicacoes por ano" e ela mesma um ritmo, logo a sua derivada e uma
+    aceleracao (por ano quadrado) e a sua segunda derivada vai a ano cubo.
     """
     anos = _anos_da_janela(db, janela)
 
@@ -97,17 +105,20 @@ def series(db: Database, janela: int = 10) -> list[dict[str, Any]]:
     return [
         {"code": "acervo", "rotulo": "Acervo publicado", "kind": "estoque",
          "unidade": "artigos", "unidade_taxa": "artigos/ano",
+         "unidade_aceleracao": "artigos/ano²",
          "anos": anos, "valores": acervo,
          "explica": "Quantos artigos publicados o laboratório tinha ao fim de "
                     "cada ano. Sobe e nunca desce: é um nível, e não um ritmo.",
          "base_fora_da_janela": antes},
         {"code": "publicacoes", "rotulo": "Publicações por ano", "kind": "fluxo",
          "unidade": "publicações", "unidade_taxa": "publicações/ano²",
+         "unidade_aceleracao": "publicações/ano³",
          "anos": anos, "valores": publicadas,
          "explica": "Quantos artigos saíram em cada ano. É a derivada do acervo "
                     "— por isso a derivada DESTA curva é a aceleração da produção."},
         {"code": "citacoes", "rotulo": "Citações por ano de publicação",
          "kind": "fluxo", "unidade": "citações", "unidade_taxa": "citações/ano²",
+         "unidade_aceleracao": "citações/ano³",
          "anos": anos, "valores": citadas,
          "explica": "Citações somadas dos artigos publicados em cada ano, pela "
                     "melhor base de cada artigo. O ano recente aparece baixo por "

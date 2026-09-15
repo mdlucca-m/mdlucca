@@ -1344,6 +1344,66 @@ class TestTokensDoTema(unittest.TestCase):
             with self.subTest(conta=conta):
                 self.assertNotIn(conta, corpo)
 
+    @staticmethod
+    def _so_codigo(texto):
+        """Comentario citando `derivada.agora` nao e `derivada.agora` sendo lido.
+
+        Estes testes olham o codigo-fonte, e um comentario que EXPLICA por
+        que algo nao se faz contem literalmente o que eles procuram. Sem
+        tirar os comentarios, o teste ou reprova o codigo certo ou aprova
+        o errado -- e as duas ja aconteceram aqui.
+        """
+        return re.sub(r"/\*.*?\*/", "", texto, flags=re.S)
+
+    def _trecho(self, inicio, fim):
+        js = (self.TEMPLATES / "dashboard.js").read_text(encoding="utf-8")
+        corpo = js[js.index(inicio):]
+        return self._so_codigo(corpo[:corpo.index(fim)])
+
+    def test_o_acelerometro_nao_e_rotulado_com_unidade_de_velocidade(self):
+        """Derivar muda a unidade -- nas DUAS telas que medem aceleracao.
+
+        As duas liam `unidade_taxa`, que e a unidade da velocidade: o
+        acelerometro mostrava aceleracao e escrevia "artigos/ano". Este
+        teste olha o codigo porque o defeito e de rotulo: a tela desenha
+        certo, passa em qualquer teste de valor, e mente por escrito.
+        """
+        for onde, inicio, fim in (
+                ("tela cheia", 'view("calculo"', 'view("equipe"'),
+                ("resumo", "function leituraEmCalculo", 'view("resumo"')):
+            corpo = self._trecho(inicio, fim)
+            chamada = corpo[corpo.index("C.acelerometro("):]
+            chamada = chamada[:chamada.index("})")]
+            with self.subTest(onde=onde):
+                self.assertNotIn("unidade_taxa", chamada)
+
+    def test_o_resumo_pede_o_calculo_e_nao_o_refaz(self):
+        """O mesmo motivo da tela cheia, no bloco pequeno do Resumo.
+
+        Sao duas telas lendo a mesma curva agora, e a tentacao de fazer a
+        derivada "so desta vez" em JavaScript vale para as duas.
+        """
+        corpo = self._trecho("function leituraEmCalculo", 'view("resumo"')
+        self.assertIn("/api/curva", corpo)
+        for conta in ("/ 2 *", "trapez", "(v[i + 1] + v[i])"):
+            with self.subTest(conta=conta):
+                self.assertNotIn(conta, corpo)
+
+    def test_o_resumo_le_a_velocidade_do_ultimo_trecho_e_nao_de_agora(self):
+        """`taxa_de_variacao` nao devolve `agora` -- so `trechos` e `geral`.
+
+        Ler `derivada.agora` daria `undefined`, e o medidor desenharia
+        zero: um ponteiro parado onde a curva anda. A tela cheia ja lia o
+        ultimo trecho; o bloco do Resumo tem de ler o mesmo, senao os dois
+        medidores da mesma curva mostram numeros diferentes.
+        """
+        from lape import estatistica
+        saida = estatistica.taxa_de_variacao([1, 2, 3], [0, 5, 9], por=1.0)
+        self.assertNotIn("agora", saida)
+        corpo = self._trecho("function leituraEmCalculo", 'view("resumo"')
+        self.assertIn("taxas[taxas.length - 1].taxa", corpo)
+        self.assertNotIn("derivada.agora", corpo)
+
     def test_sem_meta_declarada_a_tela_nao_desenha_linha_de_corte(self):
         """Linha inventada e pior que nenhuma: quem olha supoe que e meta."""
         js = (self.TEMPLATES / "dashboard.js").read_text(encoding="utf-8")
@@ -1351,6 +1411,9 @@ class TestTokensDoTema(unittest.TestCase):
         corpo = corpo[:corpo.index('view("equipe"')]
         self.assertIn("sem meta declarada", corpo)
         self.assertIn("meta declarada pela coordenação", corpo)
+        # o bloco pequeno do Resumo tem a mesma regra: sem meta, sem linha
+        self.assertIn("sem meta declarada",
+                      self._trecho("function leituraEmCalculo", 'view("resumo"'))
 
     def test_o_botao_nomeia_o_tema_que_nao_e_o_padrao(self):
         """O botão compara com o OUTRO tema, nunca com o padrão.
