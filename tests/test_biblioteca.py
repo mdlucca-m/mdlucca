@@ -1711,10 +1711,184 @@ class TestARotaDoAcervoRestrito(unittest.TestCase):
                                self.entrar("coord@udesc.br"), {"dono_id": 999999})
         self.assertEqual(status, 404)
 
+    def test_a_rota_de_colar_e_da_coordenacao(self):
+        """Escreve no acervo da equipe: arquivo colado na base errada poe
+        registro de PsycINFO na conta da Embase, e o numero por base e o
+        que vai no PRISMA."""
+        status, _ = self.pedir("/api/bibliotecas/humor_estetico/colar",
+                               self.entrar("outra@udesc.br"),
+                               {"base": "embase", "texto": "TY  - JOUR\nTI  - x\nER  -"})
+        self.assertEqual(status, 403)
+
+    def test_a_rota_de_colar_exige_dizer_a_base(self):
+        status, _ = self.pedir("/api/bibliotecas/humor_estetico/colar",
+                               self.entrar("coord@udesc.br"),
+                               {"texto": "TY  - JOUR\nTI  - x\nER  -"})
+        self.assertEqual(status, 400)
+        status, _ = self.pedir("/api/bibliotecas/humor_estetico/colar",
+                               self.entrar("coord@udesc.br"),
+                               {"base": "uma qualquer", "texto": "x"})
+        self.assertEqual(status, 400)
+
+    def test_texto_ilegivel_responde_400_e_nao_500(self):
+        """"Nao reconheci nenhuma referencia" e recado para quem colou.
+
+        Nao e falha do servidor, e tratar como 500 esconderia a instrucao
+        atras de "erro interno".
+        """
+        status, corpo = self.pedir("/api/bibliotecas/humor_estetico/colar",
+                                   self.entrar("coord@udesc.br"),
+                                   {"base": "embase", "texto": "1. Artigo qualquer. 2023."})
+        self.assertEqual(status, 400)
+        self.assertIn("RIS", corpo.get("error", ""))
+
+    def test_as_estrategias_do_acervo_restrito_tambem_ficam_fechadas(self):
+        status, _ = self.pedir("/api/bibliotecas/fibromialgia/estrategias",
+                               self.entrar("outra@udesc.br"))
+        self.assertEqual(status, 404)
+        status, corpo = self.pedir("/api/bibliotecas/fibromialgia/estrategias?manuais=1",
+                                   self.entrar("dona@udesc.br"))
+        self.assertEqual(status, 200)
+        self.assertEqual({x["base"] for x in corpo["estrategias"]},
+                         set(biblioteca.BASES_MANUAIS))
+
     def test_dono_que_nao_e_numero_e_recusado(self):
         status, _ = self.pedir("/api/bibliotecas/humor_estetico/dono",
                                self.entrar("coord@udesc.br"), {"dono_id": "o Vilarinho"})
         self.assertEqual(status, 400)
+
+
+RIS_DA_BASE = """TY  - JOUR
+TI  - Aerobic exercise and mood states in fibromyalgia
+AU  - Vilarino, G T
+JO  - Clinical Rheumatology
+PY  - 2023
+DO  - 10.1007/s10067-023-06512-z
+AB  - Effect of aerobic exercise on mood states in fibromyalgia.
+ER  -
+
+TY  - JOUR
+TI  - Resistance training and depressive symptoms in fibromyalgia
+AU  - Andrade, A
+JO  - Pain Medicine
+PY  - 2021
+DO  - 10.1093/pm/pnab001
+ER  -
+"""
+
+
+class TestColarOQueABaseExportou(BaseBiblioteca):
+    """O outro lado das bases sem API.
+
+    Sem ele a estrategia guardada seria so um texto bonito: o resultado
+    voltaria numa planilha na maquina de alguem e o acervo ficaria em zero
+    para sempre. Acervo em zero ao lado de uma estrategia bem escrita e
+    pior que nenhum dos dois -- parece feito.
+    """
+
+    def setUp(self):
+        super().setUp()
+        biblioteca.instalar(self.db)
+
+    def itens(self):
+        return self.db.scalar(
+            "SELECT COUNT(*) FROM biblioteca_item bi JOIN biblioteca b"
+            "    ON b.id = bi.biblioteca_id WHERE b.code = ?", ("fibromialgia",))
+
+    def test_o_arquivo_colado_entra_no_acervo(self):
+        r = biblioteca.importar_colado(self.db, "fibromialgia", biblioteca.EMBASE,
+                                       RIS_DA_BASE, nome="embase.ris")
+        self.assertEqual(r["achados"], 2)
+        self.assertEqual(r["novos"], 2)
+        self.assertEqual(self.itens(), 2)
+
+    def test_colar_duas_vezes_nao_duplica(self):
+        """E o erro natural de quem nao tem certeza se o primeiro clique pegou."""
+        biblioteca.importar_colado(self.db, "fibromialgia", biblioteca.EMBASE, RIS_DA_BASE)
+        r = biblioteca.importar_colado(self.db, "fibromialgia", biblioteca.EMBASE, RIS_DA_BASE)
+        self.assertEqual(r["achados"], 2)
+        self.assertEqual(r["novos"], 0)
+        self.assertEqual(r["repetidos"], 2)
+        self.assertEqual(self.itens(), 2)
+
+    def test_o_mesmo_artigo_com_titulo_diferente_casa_pelo_doi(self):
+        """As bases discordam sobre o titulo, e concordam sobre o DOI."""
+        biblioteca.importar_colado(self.db, "fibromialgia", biblioteca.EMBASE, RIS_DA_BASE)
+        outro = RIS_DA_BASE.replace("Aerobic exercise", "Hydrotherapy")
+        r = biblioteca.importar_colado(self.db, "fibromialgia", biblioteca.PSYCINFO, outro)
+        self.assertEqual(r["novos"], 0)
+        self.assertEqual(self.itens(), 2)
+
+    def test_a_contabilidade_da_busca_daquela_base_e_atualizada(self):
+        """O numero por base, com a data, e o que vai no PRISMA."""
+        biblioteca.importar_colado(self.db, "fibromialgia", biblioteca.EMBASE, RIS_DA_BASE)
+        linha = self.db.dicts(
+            "SELECT achados, novos, rodada_em FROM biblioteca_busca bb"
+            "  JOIN biblioteca b ON b.id = bb.biblioteca_id"
+            " WHERE b.code = ? AND bb.base = ? AND bb.segmento IS NULL",
+            ("fibromialgia", biblioteca.EMBASE))[0]
+        self.assertEqual(linha["achados"], 2)
+        self.assertEqual(linha["novos"], 2)
+        self.assertTrue(linha["rodada_em"])
+
+    def test_a_busca_GERAL_e_a_que_tem_segmento_nulo(self):
+        """`= NULL` nao casa com nada em SQL, e a geral e justamente a nula.
+
+        Com `=` em vez de `IS`, o UPDATE nao acertava linha nenhuma: o
+        arquivo entrava no acervo e a contabilidade da base ficava em
+        zero, com data nenhuma -- e e a contabilidade que vai no PRISMA.
+        """
+        fonte = (ROOT / "scripts" / "lape" / "biblioteca.py").read_text(encoding="utf-8")
+        trecho = fonte[fonte.index("def importar_colado"):]
+        trecho = trecho[:trecho.index("\ndef ")]
+        self.assertIn("segmento IS ?", trecho)
+        self.assertNotIn("segmento = ?", trecho)
+
+    def test_colar_num_segmento_nao_mexe_na_conta_da_geral(self):
+        biblioteca.importar_colado(self.db, "fibromialgia", biblioteca.EMBASE,
+                                   RIS_DA_BASE, segmento="Dor e sintomas")
+        geral = self.db.dicts(
+            "SELECT achados FROM biblioteca_busca bb JOIN biblioteca b"
+            "    ON b.id = bb.biblioteca_id WHERE b.code = ? AND bb.base = ?"
+            "   AND bb.segmento IS NULL", ("fibromialgia", biblioteca.EMBASE))[0]
+        self.assertEqual(geral["achados"], 0)
+
+    def test_texto_que_nao_e_arquivo_de_base_diz_o_que_fazer(self):
+        """A pessoa pode colar a TELA de resultados em vez do arquivo.
+
+        Dizer "0 novos" a ela seria dizer que a busca nao achou nada.
+        """
+        with self.assertRaises(ValueError) as erro:
+            biblioteca.importar_colado(self.db, "fibromialgia", biblioteca.EMBASE,
+                                       "1. Fibromyalgia and exercise. Autor A. 2023.")
+        self.assertIn("RIS", str(erro.exception))
+
+    def test_texto_vazio_e_recusado(self):
+        with self.assertRaises(ValueError):
+            biblioteca.importar_colado(self.db, "fibromialgia", biblioteca.EMBASE, "   ")
+
+    def test_acervo_que_nao_existe_nao_engole_o_arquivo(self):
+        with self.assertRaises(ValueError):
+            biblioteca.importar_colado(self.db, "nao-existe", biblioteca.EMBASE, RIS_DA_BASE)
+
+    # -- a lista de estrategias, que a tela mostra e o PRISMA publica ----
+    def test_as_estrategias_vem_com_rotulo_e_o_que_fazer(self):
+        so_manuais = biblioteca.estrategias(self.db, "fibromialgia", so_manuais=True)
+        bases = {x["base"] for x in so_manuais}
+        self.assertEqual(bases, set(biblioteca.BASES_MANUAIS))
+        for x in so_manuais:
+            with self.subTest(base=x["base"]):
+                self.assertTrue(x["manual"])
+                self.assertTrue(x["query"])
+                self.assertTrue(x["porque_manual"])
+                self.assertEqual(x["rotulo"], biblioteca.ROTULO_BASE[x["base"]])
+
+    def test_a_lista_inteira_traz_as_automaticas_tambem(self):
+        todas = biblioteca.estrategias(self.db, "fibromialgia")
+        bases = {x["base"] for x in todas}
+        self.assertTrue(set(biblioteca.BASES) <= bases)
+        automaticas = [x for x in todas if x["base"] in biblioteca.BASES]
+        self.assertFalse(any(x["manual"] for x in automaticas))
 
 
 if __name__ == "__main__":

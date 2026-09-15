@@ -519,6 +519,45 @@ def route_biblioteca_atualizar(ctx: "Context", code: str) -> Any:
     return resultado
 
 
+def route_biblioteca_estrategias(ctx: "Context", code: str) -> Any:
+    """As buscas guardadas do acervo, para copiar e para o PRISMA."""
+    user = auth.require(ctx.user, "leitura")
+    _acervo_permitido(ctx, user, code)
+    from . import biblioteca
+
+    so_manuais = (ctx.query.get("manuais") or ["0"])[0] in ("1", "true", "sim")
+    return {"estrategias": biblioteca.estrategias(ctx.db, code, so_manuais=so_manuais)}
+
+
+def route_biblioteca_colar(ctx: "Context", code: str) -> Any:
+    """O arquivo que a pessoa exportou da base, colado de volta.
+
+    E da coordenacao porque ESCREVE no acervo da equipe: um arquivo colado
+    na base errada poe registros de PsycINFO na conta da Embase, e o numero
+    por base e o que vai no PRISMA.
+    """
+    user = auth.require(ctx.user, "coordenacao")
+    _acervo_permitido(ctx, user, code)
+    from . import biblioteca
+
+    corpo = ctx.body if isinstance(ctx.body, dict) else {}
+    base = (corpo.get("base") or "").strip()
+    if base not in biblioteca.BASES + biblioteca.BASES_MANUAIS:
+        raise ApiError(400, "diga de que base é este arquivo")
+    segmento = corpo.get("segmento") or None
+    try:
+        saida = biblioteca.importar_colado(
+            ctx.db, code, base, corpo.get("texto") or "",
+            segmento=segmento, nome=corpo.get("nome") or "")
+    except ValueError as erro:
+        # 400 e nao 500: "não reconheci nenhuma referência" e um recado
+        # para quem colou, e nao uma falha do servidor
+        raise ApiError(400, str(erro))
+    auth.log(ctx.db, user["id"], user.get("login"), "biblioteca_colada", "biblioteca",
+             detail=f"{code}/{base}: {saida['novos']} novo(s) de {saida['achados']}")
+    return saida
+
+
 def route_biblioteca_dono(ctx: "Context", code: str) -> Any:
     """Diz de quem e o acervo, e se ele e so dessa pessoa.
 
@@ -2122,6 +2161,10 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
      route_biblioteca_analise, "leitura"),
     ("POST", r"^/api/bibliotecas/(?P<code>[\w-]+)/atualizar/?$",
      route_biblioteca_atualizar, "coordenacao"),
+    ("GET", r"^/api/bibliotecas/(?P<code>[\w-]+)/estrategias/?$",
+     route_biblioteca_estrategias, "leitura"),
+    ("POST", r"^/api/bibliotecas/(?P<code>[\w-]+)/colar/?$",
+     route_biblioteca_colar, "coordenacao"),
     ("POST", r"^/api/bibliotecas/(?P<code>[\w-]+)/dono/?$",
      route_biblioteca_dono, "coordenacao"),
     ("GET", r"^/api/equipe/duplicatas/?$", route_duplicatas, "coordenacao"),

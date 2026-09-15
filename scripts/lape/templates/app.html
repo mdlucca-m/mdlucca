@@ -1958,6 +1958,93 @@ function pulsarPonto(ligado){
 const BIB = { code: null, segmento: null, q: "", pais: null, aba: "acervo",
               desenho: null, intervencao: null };
 
+/* As bases que o sistema nao alcanca: a estrategia para copiar, e o campo
+   para colar de volta o que a base exportar.
+
+   Sem este segundo lado, a estrategia guardada seria so um texto bonito:
+   o resultado voltaria numa planilha na maquina de alguem, e o acervo
+   ficaria em zero para sempre. E o acervo em zero ao lado de uma
+   estrategia bem escrita e pior que nenhum dos dois -- parece feito.
+
+   Fica fora do `<details>` do dono porque nao e decisao rara: e o
+   trabalho em si, e quem abre este acervo abre para fazer isso. */
+async function basesSemApi(code){
+  const caixa = h("div", {});
+  const r = await api("/api/bibliotecas/" + encodeURIComponent(code)
+                      + "/estrategias?manuais=1").catch(function (){ return {}; });
+  const lista = (r.estrategias || []).filter(function (x){ return !x.segmento; });
+  if (!lista.length) return caixa;
+
+  const bloco = h("details", {class: "cartao", style: "margin:12px 0"});
+  bloco.appendChild(h("summary", {text: "Bases sem API — " + lista.length
+    + " estratégias para rodar à mão"}));
+  const corpo = h("div", {style: "margin-top:10px"});
+  bloco.appendChild(corpo);
+  corpo.appendChild(h("p", {class: "hint", text:
+    "Estas bases não têm API aberta. A estratégia está montada na sintaxe de "
+    + "cada uma: copie, rode na base com o seu acesso, exporte em RIS, BibTeX, "
+    + "nbib ou CSV, e cole o conteúdo do arquivo de volta aqui."}));
+
+  lista.forEach(function (x){
+    const item = h("div", {class: "cartao", style: "margin-top:10px"});
+    item.appendChild(h("h4", {style: "margin:0", text: x.rotulo}));
+    if (x.porque_manual) item.appendChild(h("p", {class: "hint", text: x.porque_manual}));
+    if (x.rodada_em){
+      item.appendChild(h("p", {class: "hint", text: "Última vez: " + x.rodada_em
+        + " — " + x.achados + " registro(s), " + x.novos + " novo(s)."}));
+    }
+
+    const estrategia = h("textarea", {rows: "4", readonly: "readonly",
+      style: "width:100%;font-family:var(--mono);font-size:11.5px"});
+    estrategia.value = x.query;
+    item.appendChild(estrategia);
+
+    const copiar = h("button", {class: "botao", text: "Copiar a estratégia"});
+    const aviso = h("span", {class: "hint"});
+    copiar.onclick = async function (){
+      try {
+        await navigator.clipboard.writeText(x.query);
+        aviso.textContent = "copiada";
+      } catch (erro){
+        /* sem permissão de área de transferência -- e ela some em página
+           servida sem HTTPS. Seleciona, e a pessoa dá Ctrl+C: melhor que
+           um botão que não faz nada e não diz por quê. */
+        estrategia.focus(); estrategia.select();
+        aviso.textContent = "selecionada — aperte Ctrl+C";
+      }
+    };
+    item.appendChild(h("div", {class: "globo-controles"}, [copiar, aviso]));
+
+    if (can("coordenacao")){
+      const colado = h("textarea", {rows: "4", placeholder:
+        "Cole aqui o conteúdo do arquivo exportado (RIS, BibTeX, nbib ou CSV)",
+        style: "width:100%;margin-top:8px"});
+      item.appendChild(colado);
+      const enviar = h("button", {class: "botao", text: "Trazer para o acervo"});
+      const saida = h("span", {class: "hint"});
+      enviar.onclick = async function (){
+        if (!colado.value.trim()){ saida.textContent = "cole o arquivo primeiro"; return; }
+        enviar.disabled = true; saida.textContent = "lendo…";
+        try {
+          const d = await api("/api/bibliotecas/" + encodeURIComponent(code) + "/colar",
+                              "POST", {base: x.base, texto: colado.value});
+          saida.textContent = d.achados + " registro(s), " + d.novos + " novo(s), "
+            + d.repetidos + " já estavam.";
+          colado.value = "";
+          show("biblioteca");
+        } catch (erro){
+          saida.textContent = erro.message || "não deu para ler esse arquivo";
+        }
+        enviar.disabled = false;
+      };
+      item.appendChild(h("div", {class: "globo-controles"}, [enviar, saida]));
+    }
+    corpo.appendChild(item);
+  });
+  caixa.appendChild(bloco);
+  return caixa;
+}
+
 /* De quem e o acervo, e se ele e so dessa pessoa.
 
    Fica atras de um `<details>` fechado de proposito: e uma decisao rara e
@@ -2063,6 +2150,7 @@ VIEWS.biblioteca = {
       ]));
     }
     if (can("coordenacao")) VIEW.appendChild(await donoDoAcervo(atual));
+    VIEW.appendChild(await basesSemApi(BIB.code));
 
     /* Duas leituras do mesmo acervo: a lista, para quem quer chegar a um
        artigo, e o mapeamento, para quem quer saber o que o campo está

@@ -22,7 +22,7 @@ import time
 from datetime import date
 from typing import Any
 
-from . import config
+from . import config, referencias
 from .db import Database
 from .util import clean_text, norm_doi
 
@@ -775,6 +775,95 @@ def atualizar(db: Database, code: str, limite: int = 400,
                   status="ok" if not (resumo["erros"] or desligadas) else "parcial",
                   message=f"{resumo['novos']} novo(s) em {resumo['buscas']} busca(s)")
     return resumo
+
+
+def estrategias(db: Database, code: str,
+                so_manuais: bool = False) -> list[dict[str, Any]]:
+    """As buscas guardadas do acervo, para a tela mostrar e copiar.
+
+    E o que uma revisao sistematica publica: a estrategia de cada base,
+    com a data e o numero de registros. Sai daqui e nao da memoria de
+    ninguem -- montada a mao na hora, ela sai diferente de uma vez para a
+    outra e ninguem refaz um ano depois.
+    """
+    linhas = db.dicts(
+        "SELECT bb.id, bb.base, bb.segmento, bb.query, bb.rodada_em,"
+        "       bb.achados, bb.novos, bb.erro"
+        "  FROM biblioteca_busca bb JOIN biblioteca b ON b.id = bb.biblioteca_id"
+        " WHERE b.code = ? ORDER BY bb.base, bb.segmento IS NULL DESC, bb.segmento",
+        (code,))
+    if so_manuais:
+        linhas = [x for x in linhas if x["base"] in BASES_MANUAIS]
+    for x in linhas:
+        x["rotulo"] = ROTULO_BASE.get(x["base"], x["base"])
+        x["manual"] = x["base"] in BASES_MANUAIS
+        x["porque_manual"] = PORQUE_MANUAL.get(x["base"])
+    return linhas
+
+
+def importar_colado(db: Database, code: str, base: str, texto: str,
+                    segmento: str | None = None, nome: str = "",
+                    formato: str | None = None) -> dict[str, Any]:
+    """O que a pessoa exportou da base, colado de volta no acervo.
+
+    E o outro lado das cinco bases sem API: a estrategia sai daqui, a
+    pessoa roda na base com o acesso dela, exporta e cola o arquivo aqui.
+    Sem isto, a estrategia guardada seria so um texto bonito -- o
+    resultado voltaria numa planilha na maquina de alguem, e o acervo
+    ficaria em zero para sempre.
+
+    Le RIS, nbib, BibTeX e CSV, que e o que essas cinco exportam, e o
+    formato e detectado pelo conteudo: pedir a pessoa para saber se a
+    Embase entregou RIS ou BibTeX e transferir para ela um problema que o
+    arquivo ja responde.
+
+    Reimportar o mesmo arquivo NAO duplica: `_gravar` procura pelas duas
+    chaves do registro. E isso importa aqui mais do que na coleta
+    automatica, porque colar duas vezes e o erro natural de quem nao tem
+    certeza se o primeiro clique pegou.
+
+    A contabilidade da busca e atualizada -- `achados`, `novos`,
+    `rodada_em` --, pelo mesmo motivo de existir: o numero por base, com a
+    data, e o que vai no PRISMA.
+    """
+    from .revisao import chaves_de_uniao
+
+    bid = db.scalar("SELECT id FROM biblioteca WHERE code = ?", (code,))
+    if not bid:
+        raise ValueError(f"biblioteca “{code}” não existe")
+    if not (texto or "").strip():
+        raise ValueError("não veio nada para importar")
+
+    registros = referencias.ler(texto, nome, formato)
+    if not registros:
+        # Nem tudo que parece arquivo de base e arquivo de base: a pessoa
+        # pode colar a TELA de resultados em vez do arquivo exportado, e
+        # dizer "0 novos" a ela seria dizer que a busca nao achou nada.
+        raise ValueError(
+            "não reconheci nenhuma referência nesse texto. Exporte da base em "
+            "RIS, BibTeX, nbib ou CSV e cole o conteúdo do arquivo — a tela de "
+            "resultados da base, copiada, não traz os campos.")
+
+    novos = 0
+    for registro in registros:
+        registro.setdefault("base", base)
+        if _gravar(db, bid, segmento, registro, chaves_de_uniao):
+            novos += 1
+
+    hoje = date.today().isoformat()
+    # A busca a que este arquivo pertence -- a geral, ou a do segmento.
+    # `IS` e nao `=`: segmento nulo nao casa com `= NULL` em SQL, e a
+    # busca geral e justamente a que tem segmento nulo.
+    db.execute(
+        "UPDATE biblioteca_busca SET rodada_em = ?, achados = ?, novos = ?,"
+        "       erro = NULL"
+        " WHERE biblioteca_id = ? AND base = ? AND segmento IS ?",
+        (hoje, len(registros), novos, bid, base, segmento))
+    db.execute("UPDATE biblioteca SET atualizada_em = ? WHERE id = ?", (hoje, bid))
+    db.conn.commit()
+    return {"base": base, "rotulo": ROTULO_BASE.get(base, base),
+            "segmento": segmento, "achados": len(registros), "novos": novos,
+            "repetidos": len(registros) - novos, "quando": hoje}
 
 
 def limpar_duplicatas(db: Database, code: str) -> dict[str, Any]:
