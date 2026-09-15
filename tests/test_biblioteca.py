@@ -16,16 +16,21 @@ esporte sem nenhum aviso.
 """
 from __future__ import annotations
 
+import json
 import re
 import sys
 import tempfile
+import threading
 import unittest
+import urllib.error
+import urllib.request
+from http.server import ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from lape import biblioteca, linhas  # noqa: E402
+from lape import api, auth, biblioteca, linhas  # noqa: E402
 from lape.db import Database  # noqa: E402
 
 
@@ -1571,6 +1576,145 @@ class TestAcervoRestrito(BaseBiblioteca):
         biblioteca.declarar_dono(self.db, "fibromialgia", None)
         self.assertTrue(biblioteca.pode_ver(
             self.db, "fibromialgia", quem=self.outro, perfil="leitura"))
+
+
+class TestARotaDoAcervoRestrito(unittest.TestCase):
+    """A rota, e nao so a funcao.
+
+    Foi por aqui que o defeito passou: `pode_ver` e `todas` estavam
+    certos, e a rota lia o campo errado do usuario. `public_user` devolve
+    `user_role` -- o perfil de permissao -- E `role` -- o vinculo
+    academico, "Professor(a)", "Mestrando(a)". Lendo `role`, o perfil
+    nunca casava com "coordenacao", e quem coordena deixava de ver o
+    acervo restrito que acabou de criar. Testar so a funcao nao pega isso.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.db_path = Path(cls.tmp.name) / "rotas.sqlite"
+        db = Database(cls.db_path)
+        db.migrate()
+        linhas.instalar(db)
+        biblioteca.instalar(db)
+        auth.create_account(db, "Coordena", "coord@udesc.br", "senhaforte123",
+                            role="coordenacao")
+        cls.dono = auth.create_account(db, "Dona", "dona@udesc.br", "senhaforte123",
+                                       role="integrante")["member_id"]
+        cls.outro = auth.create_account(db, "Outra", "outra@udesc.br", "senhaforte123",
+                                        role="integrante")["member_id"]
+        # o vinculo academico de propósito DIFERENTE do perfil: e ele que
+        # seria lido por engano
+        db.execute("UPDATE members SET role = 'professor' WHERE login = ?",
+                   ("coord@udesc.br",))
+        biblioteca.declarar_dono(db, "fibromialgia", cls.dono)
+        db.close()
+
+        api.Handler.db_path = cls.db_path
+        api.Handler.log_message = lambda *a, **k: None
+        cls.server = ThreadingHTTPServer(("127.0.0.1", 0), api.Handler)
+        cls.port = cls.server.server_address[1]
+        cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
+        cls.thread.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.shutdown()
+        cls.server.server_close()
+        cls.tmp.cleanup()
+
+    def entrar(self, login):
+        corpo = json.dumps({"login": login, "senha": "senhaforte123"}).encode()
+        pedido = urllib.request.Request(
+            f"http://127.0.0.1:{self.port}/api/auth/login", data=corpo, method="POST",
+            headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(pedido, timeout=30) as r:
+            return (r.headers.get("Set-Cookie") or "").split("=")[1].split(";")[0]
+
+    def pedir(self, caminho, cookie, corpo=None):
+        dados = json.dumps(corpo).encode() if corpo is not None else None
+        pedido = urllib.request.Request(
+            f"http://127.0.0.1:{self.port}{caminho}", data=dados,
+            method="POST" if dados is not None else "GET",
+            headers={"Cookie": f"{api.COOKIE_NAME}={cookie}",
+                     **({"Content-Type": "application/json"} if dados else {})})
+        try:
+            with urllib.request.urlopen(pedido, timeout=30) as r:
+                return r.status, json.loads(r.read().decode() or "{}")
+        except urllib.error.HTTPError as exc:
+            return exc.code, json.loads(exc.read().decode() or "{}")
+
+    def acervos(self, login):
+        status, corpo = self.pedir("/api/bibliotecas", self.entrar(login))
+        self.assertEqual(status, 200)
+        return [b["code"] for b in corpo["bibliotecas"]]
+
+    def test_o_dono_recebe_o_acervo_na_lista(self):
+        self.assertIn("fibromialgia", self.acervos("dona@udesc.br"))
+
+    def test_o_resto_da_equipe_nao_recebe(self):
+        self.assertNotIn("fibromialgia", self.acervos("outra@udesc.br"))
+
+    def test_a_COORDENACAO_recebe(self):
+        """O teste que faltava.
+
+        A funcao devolvia certo e a rota lia o campo errado do usuario.
+        """
+        self.assertIn("fibromialgia", self.acervos("coord@udesc.br"))
+
+    def test_os_acervos_abertos_chegam_a_todo_mundo(self):
+        for login in ("dona@udesc.br", "outra@udesc.br", "coord@udesc.br"):
+            with self.subTest(login=login):
+                vistos = self.acervos(login)
+                self.assertIn("humor_esporte", vistos)
+                self.assertIn("humor_estetico", vistos)
+
+    def test_a_rota_de_um_acervo_so_tambem_fecha(self):
+        """Esconder na lista e deixar a rota aberta nao esconde nada."""
+        status, _ = self.pedir("/api/bibliotecas/fibromialgia",
+                               self.entrar("outra@udesc.br"))
+        self.assertEqual(status, 404)
+        status, _ = self.pedir("/api/bibliotecas/fibromialgia",
+                               self.entrar("dona@udesc.br"))
+        self.assertEqual(status, 200)
+
+    def test_responde_404_e_nao_403(self):
+        """403 confirmaria que o acervo existe.
+
+        Que e metade do que quem procura queria saber.
+        """
+        status, corpo = self.pedir("/api/bibliotecas/fibromialgia/analise",
+                                   self.entrar("outra@udesc.br"))
+        self.assertEqual(status, 404)
+        self.assertNotIn("perfil", (corpo.get("error") or "").lower())
+
+    def test_declarar_dono_e_da_coordenacao(self):
+        status, _ = self.pedir("/api/bibliotecas/humor_estetico/dono",
+                               self.entrar("outra@udesc.br"), {"dono_id": None})
+        self.assertEqual(status, 403)
+
+    def test_a_coordenacao_declara_e_o_acervo_fecha_e_reabre(self):
+        cookie = self.entrar("coord@udesc.br")
+        status, corpo = self.pedir("/api/bibliotecas/humor_estetico/dono",
+                                   cookie, {"dono_id": self.dono})
+        self.assertEqual(status, 200)
+        self.assertTrue(corpo["restrita"])
+        self.assertNotIn("humor_estetico", self.acervos("outra@udesc.br"))
+        status, corpo = self.pedir("/api/bibliotecas/humor_estetico/dono",
+                                   cookie, {"dono_id": None})
+        self.assertEqual(status, 200)
+        self.assertFalse(corpo["restrita"])
+        self.assertIn("humor_estetico", self.acervos("outra@udesc.br"))
+
+    def test_dono_que_nao_existe_e_recusado(self):
+        status, _ = self.pedir("/api/bibliotecas/humor_estetico/dono",
+                               self.entrar("coord@udesc.br"), {"dono_id": 999999})
+        self.assertEqual(status, 404)
+
+    def test_dono_que_nao_e_numero_e_recusado(self):
+        status, _ = self.pedir("/api/bibliotecas/humor_estetico/dono",
+                               self.entrar("coord@udesc.br"), {"dono_id": "o Vilarinho"})
+        self.assertEqual(status, 400)
 
 
 if __name__ == "__main__":

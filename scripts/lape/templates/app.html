@@ -1958,6 +1958,65 @@ function pulsarPonto(ligado){
 const BIB = { code: null, segmento: null, q: "", pais: null, aba: "acervo",
               desenho: null, intervencao: null };
 
+/* De quem e o acervo, e se ele e so dessa pessoa.
+
+   Fica atras de um `<details>` fechado de proposito: e uma decisao rara e
+   de consequencia -- restringir esconde o acervo do resto da equipe --, e
+   um seletor sempre aberto ao lado da lista de artigos convida ao clique
+   distraido.
+
+   O que esta caixa NAO promete: sigilo. O banco deste sistema vai
+   versionado no repositorio, e enquanto o repositorio for publico um
+   acervo "restrito" chega ao GitHub junto com os outros. A frase esta na
+   tela porque quem le "restrito" supoe outra coisa, e supor errado aqui
+   e guardar no lugar errado. */
+async function donoDoAcervo(acervo){
+  const caixa = h("details", {class: "cartao", style: "margin:12px 0"});
+  caixa.appendChild(h("summary", {text: acervo.restrita
+    ? "Acervo restrito — mudar o dono" : "Deixar este acervo com uma pessoa só"}));
+  const corpo = h("div", {style: "margin-top:10px"});
+  caixa.appendChild(corpo);
+
+  const equipe = ((await api("/api/equipe").catch(function (){ return {}; })).items) || [];
+  const quem = h("select", {}, [h("option", {value: "", text: "— acervo aberto à equipe —"})]
+    .concat(equipe.filter(function (p){ return !p.is_external; }).map(function (p){
+      const o = h("option", {value: String(p.id),
+        text: p.full_name || p.short_name || ("#" + p.id)});
+      if (String(p.id) === String(acervo.dono_id)) o.selected = true;
+      return o;
+    })));
+  const linha = h("div", {class: "globo-controles"}, [
+    h("label", {class: "hint", text: "Dono"}), quem]);
+  corpo.appendChild(linha);
+
+  const botao = h("button", {class: "botao", text: "Gravar"});
+  const recado = h("span", {class: "hint"});
+  botao.onclick = async function (){
+    botao.disabled = true;
+    recado.textContent = "gravando…";
+    try {
+      const r = await api("/api/bibliotecas/" + encodeURIComponent(acervo.code) + "/dono",
+                          "POST", {dono_id: quem.value || null});
+      recado.textContent = r.restrita
+        ? "Restrito ao dono e à coordenação."
+        : "Aberto à equipe.";
+      show("biblioteca");
+    } catch (erro){
+      recado.textContent = erro.message || "não deu para gravar";
+      botao.disabled = false;
+    }
+  };
+  corpo.appendChild(h("div", {class: "globo-controles"}, [botao, recado]));
+  corpo.appendChild(h("p", {class: "hint", style: "margin-top:10px", html:
+    "Sem dono, o acervo aparece para toda a equipe. Com dono, aparece só para "
+    + "ele e para a coordenação.<br>"
+    + "<b>Isto não é sigilo.</b> O banco deste sistema vai versionado no "
+    + "repositório: enquanto ele for público, um acervo restrito chega ao "
+    + "GitHub junto com os outros. Para o acervo ser de uma pessoa de verdade, "
+    + "o repositório precisa ser privado."}));
+  return caixa;
+}
+
 VIEWS.biblioteca = {
   label: "Biblioteca", group: "Laboratório",
   async render(){
@@ -1982,11 +2041,28 @@ VIEWS.biblioteca = {
     if (lista.length > 1){
       VIEW.appendChild(h("div", {class: "chips"}, lista.map(function (b){
         const c = h("button", {class: "chip" + (b.code === BIB.code ? " on" : ""),
-          text: b.title + " (" + b.n + ")"});
+          text: b.title + (b.restrita ? " 🔒" : "") + " (" + b.n + ")"});
         c.onclick = function (){ BIB.code = b.code; BIB.segmento = null; show("biblioteca"); };
         return c;
       })));
     }
+
+    const atual = lista.find(function (b){ return b.code === BIB.code; }) || {};
+    if (atual.restrita){
+      /* Quem abre um acervo restrito precisa saber que ele É restrito, e
+         de quem. Sem isso, a pessoa recolhe leitura num acervo achando
+         que a equipe está vendo, ou o contrário. */
+      /* O nome do dono vem do banco: entra por `text`, e nunca por
+         `html`. É a regra desta casa para tudo que não foi escrito aqui. */
+      VIEW.appendChild(h("p", {class: "aviso"}, [
+        h("b", {text: "Acervo restrito"}),
+        h("span", {text: " — aparece só para "
+          + (atual.dono || "o dono")
+          + " e para a coordenação. A coordenação vê porque tem o arquivo do "
+          + "banco na própria máquina: esconder dela aqui não esconderia nada."}),
+      ]));
+    }
+    if (can("coordenacao")) VIEW.appendChild(await donoDoAcervo(atual));
 
     /* Duas leituras do mesmo acervo: a lista, para quem quer chegar a um
        artigo, e o mapeamento, para quem quer saber o que o campo está

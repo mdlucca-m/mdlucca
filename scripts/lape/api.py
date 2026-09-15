@@ -443,8 +443,16 @@ def route_bibliotecas(ctx: "Context") -> Any:
     """Os acervos que ESTA pessoa pode listar."""
     user = auth.require(ctx.user, "leitura")
     from . import biblioteca
+    # `user_role`, e nunca `role`. `public_user` devolve os DOIS, e os
+    # nomes se parecem: `user_role` e o perfil de permissao
+    # (leitura/integrante/coordenacao/admin) e `role` e o VINCULO
+    # academico -- "Professor(a)", "Mestrando(a)". Lido `role`, o perfil
+    # nunca casava com "coordenacao" e quem coordena deixava de ver o
+    # acervo restrito que acabou de criar. Aqui falhou fechado, que e o
+    # lado seguro; a mesma troca num `if` invertido falharia aberto. E o
+    # mesmo campo que `auth.require` usa.
     return {"bibliotecas": biblioteca.todas(
-        ctx.db, quem=user.get("id"), perfil=user.get("role") or "leitura")}
+        ctx.db, quem=user.get("id"), perfil=user.get("user_role") or "leitura")}
 
 
 def _acervo_permitido(ctx: "Context", user: dict, code: str) -> None:
@@ -458,7 +466,7 @@ def _acervo_permitido(ctx: "Context", user: dict, code: str) -> None:
     from . import biblioteca
 
     if not biblioteca.pode_ver(ctx.db, code, quem=user.get("id"),
-                               perfil=user.get("role") or "leitura"):
+                               perfil=user.get("user_role") or "leitura"):
         raise ApiError(404, f"biblioteca “{code}” não existe")
 
 
@@ -509,6 +517,43 @@ def route_biblioteca_atualizar(ctx: "Context", code: str) -> Any:
     auth.log(ctx.db, user["id"], user.get("login"), "biblioteca_atualizada", "biblioteca",
              detail=f"{code}: {resultado['novos']} novo(s)")
     return resultado
+
+
+def route_biblioteca_dono(ctx: "Context", code: str) -> Any:
+    """Diz de quem e o acervo, e se ele e so dessa pessoa.
+
+    E da coordenacao porque muda QUEM VE o que: quem pudesse se declarar
+    dono de um acervo poderia fecha-lo para o resto da equipe, e um acervo
+    de leitura comum que some da lista do laboratorio nao e um acervo
+    restrito -- e um acervo perdido.
+
+    Fica no log de auditoria pelo mesmo motivo: restringir e uma decisao, e
+    daqui a seis meses alguem vai perguntar quem restringiu e quando.
+    """
+    user = auth.require(ctx.user, "coordenacao")
+    from . import biblioteca
+
+    corpo = ctx.body if isinstance(ctx.body, dict) else {}
+    bruto = corpo.get("dono_id")
+    dono = None
+    if bruto not in (None, "", "0", 0):
+        try:
+            dono = int(bruto)
+        except (TypeError, ValueError):
+            raise ApiError(400, "dono_id precisa ser o número do integrante")
+        if not ctx.db.scalar("SELECT id FROM members WHERE id = ?", (dono,)):
+            raise ApiError(404, "esse integrante não existe")
+    restrita = corpo.get("restrita")
+    if restrita is not None:
+        restrita = bool(restrita)
+    try:
+        saida = biblioteca.declarar_dono(ctx.db, code, dono, restrita=restrita)
+    except ValueError as erro:
+        raise ApiError(404, str(erro))
+    auth.log(ctx.db, user["id"], user.get("login"),
+             "biblioteca_restrita" if saida["restrita"] else "biblioteca_aberta",
+             "biblioteca", detail=f"{code}: dono={dono}")
+    return saida
 
 
 def route_duplicatas(ctx: "Context") -> Any:
@@ -2077,6 +2122,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
      route_biblioteca_analise, "leitura"),
     ("POST", r"^/api/bibliotecas/(?P<code>[\w-]+)/atualizar/?$",
      route_biblioteca_atualizar, "coordenacao"),
+    ("POST", r"^/api/bibliotecas/(?P<code>[\w-]+)/dono/?$",
+     route_biblioteca_dono, "coordenacao"),
     ("GET", r"^/api/equipe/duplicatas/?$", route_duplicatas, "coordenacao"),
     ("POST", r"^/api/equipe/duplicatas/?$", route_duplicatas_fundir, "coordenacao"),
     ("DELETE", r"^/api/articles/(?P<article_id>\d+)/?$", route_excluir_artigo, "coordenacao"),
