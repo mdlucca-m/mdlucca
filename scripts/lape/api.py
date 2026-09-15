@@ -519,6 +519,93 @@ def route_biblioteca_atualizar(ctx: "Context", code: str) -> Any:
     return resultado
 
 
+def route_perfil_de_acesso(ctx: "Context", member_id: str) -> Any:
+    """Muda o PERFIL DE PERMISSAO de alguem -- e nao o vinculo academico.
+
+    Nao havia tela para isto, e a unica maneira era a linha de comando ou
+    um convite. Pior: a lista de VINCULO tem a opcao "Coordenação", e quem
+    a marcasse acreditaria ter dado acesso -- o vinculo e o cargo na
+    equipe, e nao permite nada.
+
+    Quatro travas, e cada uma existe por um jeito de se dar mal:
+
+      1. Ninguem muda o proprio perfil. Sem isso, quem tem coordenacao se
+         promove a admin sozinho, e quem se rebaixa por engano nao tem como
+         voltar -- nao ha quem o promova de volta se ele era o unico.
+      2. Ninguem da um perfil acima do proprio. Coordenacao criando admin e
+         coordenacao virando admin pela porta do lado.
+      3. O laboratorio nao fica sem ninguem de coordenacao -- e esta trava
+         HOJE NAO DISPARA, de proposito declarado.
+
+         Conferido: ela e inalcancavel enquanto a trava 1 existir. Quem
+         rebaixa precisa de coordenacao e nao pode se rebaixar, entao
+         sobra sempre ele -- a conta nunca chega a zero por esta rota.
+
+         Ela fica porque a trava 1 e uma escolha, e nao uma lei: no dia em
+         que alguem permitir mudar o proprio perfil -- para a coordenacao
+         poder se rebaixar ao sair do laboratorio, que e um pedido
+         razoavel --, o travamento de fora volta na hora. Sem ela, esse dia
+         terminaria com o laboratorio sem ninguem que pudesse dar acesso a
+         alguem, e o remedio seria a linha de comando na maquina do
+         laboratorio. Cinto para uma mudanca previsivel, e nao codigo
+         morto por descuido.
+      4. So quem TEM CONTA recebe perfil. Perfil em ficha sem login e um
+         numero que nao governa nada, e da a impressao de acesso concedido.
+    """
+    user = auth.require(ctx.user, "coordenacao")
+    corpo = ctx.body if isinstance(ctx.body, dict) else {}
+    novo_perfil = (corpo.get("user_role") or "").strip()
+    if novo_perfil not in auth.ROLE_RANK:
+        raise ApiError(400, "perfil desconhecido: use leitura, integrante, "
+                            "coordenacao ou admin")
+    try:
+        alvo = int(member_id)
+    except (TypeError, ValueError):
+        raise ApiError(400, "integrante inválido")
+
+    if alvo == int(user["id"]):
+        raise ApiError(403, "você não pode mudar o seu próprio perfil — "
+                            "pedir a outra pessoa da coordenação é o caminho")
+    if auth.ROLE_RANK[novo_perfil] > auth.ROLE_RANK[user["user_role"]]:
+        raise ApiError(403, "você não pode dar um perfil acima do seu")
+
+    linhas = ctx.db.dicts(
+        "SELECT id, full_name, login, user_role FROM members WHERE id = ?", (alvo,))
+    if not linhas:
+        raise ApiError(404, "esse integrante não existe")
+    pessoa = linhas[0]
+    if not pessoa["login"]:
+        raise ApiError(400, "essa pessoa ainda não tem conta. Crie o acesso "
+                            "primeiro (por convite), e depois escolha o perfil.")
+
+    manda = auth.ROLE_RANK["coordenacao"]
+    if (auth.ROLE_RANK.get(pessoa["user_role"] or "leitura", 0) >= manda
+            and auth.ROLE_RANK[novo_perfil] < manda):
+        restantes = int(ctx.db.scalar(
+            "SELECT COUNT(*) FROM members WHERE id <> ? AND login IS NOT NULL"
+            "   AND user_role IN ('coordenacao', 'admin')", (alvo,)) or 0)
+        if restantes == 0:
+            raise ApiError(409, "esta é a última conta com coordenação. "
+                                "Rebaixá-la deixaria o laboratório sem ninguém "
+                                "que possa dar acesso a alguém.")
+
+    ctx.db.execute("UPDATE members SET user_role = ? WHERE id = ?", (novo_perfil, alvo))
+    ctx.db.conn.commit()
+    auth.log(ctx.db, user["id"], user.get("login"), "perfil_de_acesso", "members",
+             detail=f"#{alvo} {pessoa['full_name']}: "
+                    f"{pessoa['user_role'] or 'leitura'} -> {novo_perfil}")
+    return {"id": alvo, "full_name": pessoa["full_name"], "user_role": novo_perfil,
+            "antes": pessoa["user_role"] or "leitura"}
+
+
+def route_perfis_de_acesso(ctx: "Context") -> Any:
+    """Quem tem conta, e com que perfil -- para a tela listar."""
+    auth.require(ctx.user, "coordenacao")
+    return {"contas": ctx.db.dicts(
+        "SELECT id, full_name, short_name, login, user_role, role"
+        "  FROM members WHERE login IS NOT NULL ORDER BY full_name")}
+
+
 def route_biblioteca_estrategias(ctx: "Context", code: str) -> Any:
     """As buscas guardadas do acervo, para copiar e para o PRISMA."""
     user = auth.require(ctx.user, "leitura")
@@ -2161,6 +2248,9 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
      route_biblioteca_analise, "leitura"),
     ("POST", r"^/api/bibliotecas/(?P<code>[\w-]+)/atualizar/?$",
      route_biblioteca_atualizar, "coordenacao"),
+    ("GET", r"^/api/equipe/perfis/?$", route_perfis_de_acesso, "coordenacao"),
+    ("POST", r"^/api/equipe/(?P<member_id>\d+)/perfil/?$",
+     route_perfil_de_acesso, "coordenacao"),
     ("GET", r"^/api/bibliotecas/(?P<code>[\w-]+)/estrategias/?$",
      route_biblioteca_estrategias, "leitura"),
     ("POST", r"^/api/bibliotecas/(?P<code>[\w-]+)/colar/?$",

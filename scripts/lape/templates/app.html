@@ -1111,6 +1111,87 @@ VIEWS.senha = {
   },
 };
 
+/* Quem manda no sistema, e nao quem e o que na equipe.
+
+   Nao havia tela para isto: o perfil de permissao so se escolhia na linha
+   de comando ou num convite. E a lista de VINCULO tem a opcao
+   "Coordenação" -- quem a marcasse acreditaria ter dado acesso, e o
+   vinculo e o cargo, nao permite nada. Os dois campos ficam lado a lado
+   aqui justamente para a diferenca ser vista. */
+const PERFIS = [
+  {value: "leitura", label: "Só leitura", ajuda: "vê o painel; não grava nada"},
+  {value: "integrante", label: "Integrante",
+   ajuda: "bate ponto, edita o próprio cadastro, lança medida"},
+  {value: "coordenacao", label: "Coordenação",
+   ajuda: "tudo do laboratório: metas, bancada, bibliotecas — inclusive as restritas"},
+  {value: "admin", label: "Administração", ajuda: "coordenação, mais as contas"},
+];
+
+async function perfilDeAcesso(){
+  const caixa = h("div", {class: "card sec"});
+  caixa.appendChild(h("h3", {text: "Perfil de acesso"}));
+  caixa.appendChild(h("p", {class: "hint", style: "margin:4px 0 12px", text:
+    "O que cada pessoa PODE fazer no sistema. É outra coisa que o vínculo: "
+    + "vínculo é o cargo na equipe (Professor(a), Mestrando(a)) e não dá "
+    + "permissão nenhuma. Quem precisa ver acervo restrito precisa de "
+    + "Coordenação aqui."}));
+
+  const r = await api("/api/equipe/perfis").catch(function (){ return {}; });
+  const contas = r.contas || [];
+  if (!contas.length){
+    caixa.appendChild(h("p", {class: "hint", text:
+      "Ninguém tem conta ainda. O acesso se cria por convite, no cartão abaixo."}));
+    return caixa;
+  }
+
+  /* `table` puro: o estilo base vem do theme.css. Uma classe que nao
+     existe no CSS daria a impressao de haver estilo proprio. */
+  const tabela = h("table", {});
+  tabela.appendChild(h("thead", {}, h("tr", {}, [
+    h("th", {text: "Integrante"}), h("th", {text: "Vínculo"}),
+    h("th", {text: "Perfil de acesso"}), h("th", {text: ""})])));
+  const corpo = h("tbody");
+  contas.forEach(function (p){
+    const eu = ME && Number(p.id) === Number(ME.id);
+    const escolha = h("select", {}, PERFIS.map(function (x){
+      const o = h("option", {value: x.value, text: x.label});
+      if (x.value === (p.user_role || "integrante")) o.selected = true;
+      return o;
+    }));
+    escolha.disabled = !!eu;
+    const recado = h("span", {class: "hint"});
+    const gravar = h("button", {text: "Gravar"});
+    gravar.disabled = !!eu;
+    gravar.onclick = async function (){
+      gravar.disabled = true; recado.textContent = "gravando…";
+      try {
+        const d = await api("/api/equipe/" + p.id + "/perfil", "POST",
+                            {user_role: escolha.value});
+        recado.textContent = "agora é " + d.user_role;
+      } catch (erro){
+        recado.textContent = erro.message || "não deu";
+      }
+      gravar.disabled = false;
+    };
+    corpo.appendChild(h("tr", {}, [
+      h("td", {}, [h("div", {text: p.full_name || p.short_name}),
+                   h("small", {class: "hint", text: p.login || ""})]),
+      /* o vinculo aparece SÓ para leitura, ao lado da permissão: é a
+         confusão entre os dois que faz alguém achar que já deu acesso */
+      h("td", {}, h("span", {class: "hint",
+        text: (VINCULO_OPTS.find(function (v){ return v.value === p.role; }) || {})
+          .label || p.role || "—"})),
+      h("td", {}, escolha),
+      h("td", {}, eu
+        ? h("span", {class: "hint", text: "você — pede a outra pessoa"})
+        : h("div", {class: "globo-controles"}, [gravar, recado])),
+    ]));
+  });
+  tabela.appendChild(corpo);
+  caixa.appendChild(tabela);
+  return caixa;
+}
+
 VIEWS.admin = {
   label: "Administração", group: "Conta", minimum: "coordenacao",
   async render(){
@@ -1118,6 +1199,8 @@ VIEWS.admin = {
     VIEW.appendChild(tituloDaTela("admin", "Administração"));
     VIEW.appendChild(h("p", {class: "view",
       text: "Rodar os agentes, revisar o que o rastreador encontrou e liberar acesso a novos integrantes."}));
+
+    VIEW.appendChild(await perfilDeAcesso());
 
     const agentBox = h("div", {class: "card sec"}, [
       h("h3", {text: "Agentes"}),

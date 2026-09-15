@@ -438,9 +438,29 @@ def resolve_sheet(sheet_name: str) -> str | None:
     return None
 
 
+# Colunas que NUNCA vem de planilha nem de cadastro, por mais parecido que
+# o cabecalho seja.
+#
+# `user_role` -- o perfil de PERMISSAO -- casava com o campo `role`, que e o
+# VINCULO academico, pela segunda passada do mapeador: ela aceita
+# correspondencia parcial (`alias in key`), e "user_role" contem "role".
+# Isso existe de proposito, para cabecalho de planilha baguncado, e aqui
+# juntava as duas colunas mais perigosas de confundir do sistema.
+#
+# Nao havia escalada de privilegio: `user_role` nao era escrito, e sim
+# `role`. O que havia era pior de achar -- quem mandasse `user_role:
+# "admin"` recebia "gravado com sucesso", o vinculo da pessoa virava
+# "admin" (que nao existe na lista de vinculos) e a permissao nao mudava
+# nada. Permissao nao e campo de cadastro: ela tem rota propria, com log.
+PROTEGIDAS: dict[str, tuple[str, ...]] = {
+    "members": ("user_role", "password_hash", "must_change_password", "login"),
+}
+
+
 def build_column_map(sheet: str, headers: list) -> dict[str, str]:
     """Mapeia cabecalhos reais da planilha -> campos canonicos."""
     aliases = COLUMN_ALIASES.get(sheet, {})
+    protegidas = {norm_key(x) for x in PROTEGIDAS.get(sheet, ())}
     reverse: dict[str, str] = {}
     for field, names in aliases.items():
         reverse[field] = field
@@ -449,7 +469,8 @@ def build_column_map(sheet: str, headers: list) -> dict[str, str]:
 
     mapping: dict[str, str] = {}
     used: set[str] = set()
-    normalized = [(h, norm_key(h)) for h in headers]
+    normalized = [(h, norm_key(h)) for h in headers
+                  if norm_key(h) not in protegidas]
 
     for original, key in normalized:  # 1a passada: correspondencia exata
         field = reverse.get(key)
