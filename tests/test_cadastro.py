@@ -12,6 +12,8 @@ uma estimativa que se sobrescrevia sozinha por cima do numero conferido.
 """
 from __future__ import annotations
 
+import contextlib
+import io
 import sys
 import tempfile
 import unittest
@@ -20,7 +22,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from lape import indice_h, linhas, mapping, metrics, vinculo  # noqa: E402
+from lape import (indice_h, ingest_excel, linhas, mapping, metrics,  # noqa: E402
+                  vinculo)
 from lape.agents import curator  # noqa: E402
 from lape.db import Database  # noqa: E402
 
@@ -266,6 +269,158 @@ class TestOFormularioDeEdicao(Base):
         self.assertIn('"DELETE"', trecho)
         self.assertIn("confirm(", trecho)
         self.assertIn('can("coordenacao")', trecho)
+
+
+class TestOCodigoInternoRepetido(Base):
+    """Uma célula errada derrubava a importação inteira.
+
+    `internal_code` é UNIQUE -- e tem de ser, porque "LAPE-14" citado num
+    e-mail precisa apontar para um artigo só. Quando a planilha trazia um
+    código que já era de outro artigo, o `INSERT` estourava
+    `IntegrityError: UNIQUE constraint failed: articles.internal_code`, o
+    curador morria no meio e NENHUM artigo entrava -- nem os duzentos
+    corretos. E a mensagem citava uma coluna do banco, não os dois artigos.
+    """
+
+    def _codigos(self):
+        return dict(self.db.conn.execute(
+            "SELECT title, internal_code FROM articles ORDER BY id").fetchall())
+
+    def test_a_planilha_com_codigo_de_outro_artigo_nao_derruba_a_importacao(self):
+        curator.register(self.db, "articles", {"Título": "Dono", "Código": "LAPE-14"})
+        with contextlib.redirect_stdout(io.StringIO()):
+            ingest_excel.ingest_articles(self.db, [
+                {"title": "Repetido", "internal_code": "LAPE-14"},
+                {"title": "Seguinte", "internal_code": "LAPE-99"},
+            ])
+        codigos = self._codigos()
+        self.assertEqual(codigos["Dono"], "LAPE-14")
+        # a linha seguinte entrou: e ela que o IntegrityError levava junto
+        self.assertEqual(codigos["Seguinte"], "LAPE-99")
+
+    def test_reimportar_a_mesma_planilha_nao_apaga_os_codigos(self):
+        """O artigo não é repetição de si mesmo.
+
+        A primeira versão da conferência comparava o código contra
+        QUALQUER artigo -- inclusive o próprio, que a linha estava
+        atualizando. Reimportar a planilha, que é a operação mais comum do
+        curador, limpava o código de todos os dezenove artigos.
+        """
+        linhas = [{"title": "Primeiro", "internal_code": "LAPE-06"},
+                  {"title": "Segundo", "internal_code": "LAPE-09"}]
+        ingest_excel.ingest_articles(self.db, linhas)
+        with contextlib.redirect_stdout(io.StringIO()) as saida:
+            ingest_excel.ingest_articles(self.db, linhas)
+        self.assertEqual(self._codigos(), {"Primeiro": "LAPE-06", "Segundo": "LAPE-09"})
+        self.assertNotIn("repetido", saida.getvalue())
+
+    def test_regravar_pela_tela_com_o_proprio_codigo_nao_e_repeticao(self):
+        """Sem registro_id, quem identifica a ficha é o título."""
+        curator.register(self.db, "articles", {"Título": "Único", "Código": "LAPE-14"})
+        curator.register(self.db, "articles", {"Título": "Único", "Código": "LAPE-14",
+                                               "Revista": "Motriz"})
+        self.assertEqual(self._codigos(), {"Único": "LAPE-14"})
+
+    def test_o_artigo_da_linha_repetida_entra_sem_codigo(self):
+        """Sem código, e não com "o próximo livre".
+
+        Um código inventado aqui passaria a valer como se fosse do
+        laboratório -- alguém o citaria num e-mail -- e taparia o erro de
+        digitação em vez de mostrá-lo.
+        """
+        curator.register(self.db, "articles", {"Título": "Dono", "Código": "LAPE-14"})
+        with contextlib.redirect_stdout(io.StringIO()):
+            ingest_excel.ingest_articles(self.db, [
+                {"title": "Repetido", "internal_code": "LAPE-14"}])
+        self.assertIsNone(self._codigos()["Repetido"])
+
+    def test_duas_linhas_da_mesma_planilha_com_o_mesmo_codigo(self):
+        """A colisão não precisa de um artigo antigo para acontecer."""
+        with contextlib.redirect_stdout(io.StringIO()):
+            ingest_excel.ingest_articles(self.db, [
+                {"title": "Primeira", "internal_code": "LAPE-07"},
+                {"title": "Segunda", "internal_code": "LAPE-07"},
+            ])
+        codigos = self._codigos()
+        self.assertEqual(codigos["Primeira"], "LAPE-07")
+        self.assertIsNone(codigos["Segunda"])
+
+    def test_o_espaco_em_branco_conta_como_repeticao(self):
+        """" LAPE-09 " chega da planilha e o clean_text apara -- então colide."""
+        curator.register(self.db, "articles", {"Título": "Dono", "Código": "LAPE-09"})
+        with contextlib.redirect_stdout(io.StringIO()):
+            ingest_excel.ingest_articles(self.db, [
+                {"title": "Com espaço", "internal_code": "  LAPE-09  "}])
+        self.assertIsNone(self._codigos()["Com espaço"])
+
+    def test_o_aviso_nomeia_os_dois_artigos_e_fica_no_log(self):
+        """Quem lê o aviso precisa saber QUAL código e QUAIS artigos."""
+        curator.register(self.db, "articles", {"Título": "Dono", "Código": "LAPE-14"})
+        with contextlib.redirect_stdout(io.StringIO()) as saida:
+            ingest_excel.ingest_articles(self.db, [
+                {"title": "Repetido", "internal_code": "LAPE-14"}])
+        impresso = saida.getvalue()
+        for pedaco in ("LAPE-14", "Dono", "Repetido"):
+            self.assertIn(pedaco, impresso)
+        registrado = self.db.scalar(
+            "SELECT message FROM ingest_log WHERE status = 'aviso'"
+            " ORDER BY id DESC LIMIT 1")
+        self.assertIsNotNone(registrado)
+        for pedaco in ("LAPE-14", "Dono", "Repetido"):
+            self.assertIn(pedaco, registrado)
+
+    def test_a_tela_e_recusada_em_voz_alta_ao_cadastrar(self):
+        """Quem está com o formulário aberto corrige agora.
+
+        Gravar a ficha sem o código que a pessoa digitou seria pior: ela
+        não veria, e o dado que ela declarou não estaria lá.
+        """
+        curator.register(self.db, "articles", {"Título": "Dono", "Código": "LAPE-14"})
+        with self.assertRaises(ValueError) as caso:
+            curator.register(self.db, "articles",
+                             {"Título": "Novo na tela", "Código": "LAPE-14"})
+        self.assertIn("LAPE-14", str(caso.exception))
+        self.assertIn("Dono", str(caso.exception))
+        self.assertIsNone(self.db.scalar(
+            "SELECT 1 FROM articles WHERE title = 'Novo na tela'"))
+
+    def test_a_tela_e_recusada_em_voz_alta_ao_editar(self):
+        curator.register(self.db, "articles", {"Título": "Dono", "Código": "LAPE-14"})
+        curator.register(self.db, "articles", {"Título": "Outro", "Código": "LAPE-15"})
+        alvo = self.db.scalar("SELECT id FROM articles WHERE title = 'Outro'")
+        with self.assertRaises(ValueError):
+            curator.register(self.db, "articles", {"registro_id": alvo, "Título": "Outro",
+                                                   "Código": "LAPE-14"})
+        self.assertEqual(self._codigos()["Outro"], "LAPE-15")
+
+    def test_editar_mantendo_o_proprio_codigo_continua_valendo(self):
+        """A recusa não pode pegar o artigo no próprio código."""
+        curator.register(self.db, "articles", {"Título": "Dono", "Código": "LAPE-14"})
+        alvo = self.db.scalar("SELECT id FROM articles WHERE title = 'Dono'")
+        curator.register(self.db, "articles", {"registro_id": alvo, "Título": "Dono",
+                                               "Código": "LAPE-14", "Revista": "Motriz"})
+        self.assertEqual(self.db.scalar(
+            "SELECT journal FROM articles WHERE id = ?", (alvo,)), "Motriz")
+        self.assertEqual(self.db.scalar(
+            "SELECT internal_code FROM articles WHERE id = ?", (alvo,)), "LAPE-14")
+
+    def test_a_sequencia_respeita_o_zero_da_frente(self):
+        """Um laboratório que numera "LAPE-07" recebia "LAPE-8" de volta.
+
+        A largura saía de `len(str(7))`, e o zero se perdia no `int`. Além
+        de feio, o formato misturado é o que produz dois códigos para o
+        mesmo número ("LAPE-08" e "LAPE-8") -- cada um livre para o UNIQUE,
+        e os dois iguais para quem lê.
+        """
+        curator.register(self.db, "articles", {"Título": "Base", "Código": "LAPE-07"})
+        self.assertEqual(ingest_excel.proximo_codigo(self.db), "LAPE-08")
+
+    def test_a_sequencia_continua_do_maior_e_nao_da_quantidade(self):
+        """Com uma lacuna no meio, contar os artigos devolveria um código já usado."""
+        for codigo in ("LAPE-01", "LAPE-02", "LAPE-40"):
+            curator.register(self.db, "articles",
+                             {"Título": f"Artigo {codigo}", "Código": codigo})
+        self.assertEqual(ingest_excel.proximo_codigo(self.db), "LAPE-41")
 
 
 class TestOQueOAgenteNaoPodeInventar(Base):

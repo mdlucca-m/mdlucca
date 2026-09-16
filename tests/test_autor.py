@@ -13,6 +13,9 @@ do PubMed.
 """
 from __future__ import annotations
 
+import contextlib
+import io
+import sqlite3
 import sys
 import tempfile
 import unittest
@@ -593,6 +596,107 @@ class TestAOrdemQueAViewDevolve(unittest.TestCase):
         """Com dois autores, metade das duplas e alfabetica por acaso."""
         self.semear(1, ["Ana", "Bruno"])
         self.assertEqual(ingest_autor.autoria_em_ordem_alfabetica(self.db), [])
+
+
+class TestOComandoDeAutoria(unittest.TestCase):
+    """`lape_agent.py autoria` -- para o caso "atualizei e não mudou nada".
+
+    A correção da ordem mora numa VIEW, e view corrigida no `sql/` não é
+    view corrigida no BANCO: quem atualizou a pasta e não conseguiu rodar
+    o migrate (o sistema no ar segura o banco) continuou lendo a ordem
+    errada, e com razão achou que a correção não tinha chegado.
+
+    O comando existe para dizer, na máquina de quem pergunta, qual dos
+    dois defeitos é: a view que lê errado, ou a ordem que já foi gravada
+    alfabética por cima da verdadeira.
+    """
+
+    VIEW_ANTIGA = """CREATE VIEW v_articles_full AS
+SELECT a.*,
+  (SELECT group_concat(aa.author_name, '; ')
+     FROM (SELECT author_name, article_id FROM article_authors
+            ORDER BY author_order) aa
+    WHERE aa.article_id = a.id) AS authors,
+  NULL AS research_line, NULL AS research_line_code, NULL AS pmid, NULL AS pmc,
+  NULL AS oa_status, NULL AS oa_url, NULL AS openalex_citations,
+  0 AS submission_attempts, 0 AS rejections, NULL AS days_start_to_publication
+FROM articles a"""
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.caminho = Path(tmp.name) / "a.sqlite"
+        db = Database(self.caminho)
+        db.migrate()
+        # dois artigos: um fora da ordem alfabética, outro dentro dela
+        for codigo, autores in (("LAPE-01", ["Vilarino", "Andrade", "Bevilacqua"]),
+                                ("LAPE-02", ["Andrade", "Bevilacqua", "Vilarino"])):
+            db.execute("INSERT INTO articles (title, title_key, internal_code, status)"
+                       " VALUES (?, ?, ?, 'publicado')", (codigo, codigo.lower(), codigo))
+            aid = db.scalar("SELECT id FROM articles WHERE internal_code = ?", (codigo,))
+            for ordem, nome in enumerate(autores, start=1):
+                db.execute("INSERT INTO article_authors (article_id, member_id,"
+                           " author_name, author_order) VALUES (?, NULL, ?, ?)",
+                           (aid, nome, ordem))
+        db.conn.commit()
+        db.close()
+
+    def _instalar_a_view_antiga(self):
+        """Instala a forma que perdia a ordem, sem cobrar dela a ordem errada.
+
+        Com duas linhas na tabela o plano acerta por sorte -- é o que o
+        `TestAOrdemQueAViewDevolve` mediu e é por isso que ele cria 60
+        artigos. Aqui o que se cobra é outra coisa: que o comando VEJA a
+        view antiga e a troque. A ordem em si é assunto daquele teste.
+        """
+        conexao = sqlite3.connect(self.caminho)
+        conexao.execute("DROP VIEW IF EXISTS v_articles_full")
+        conexao.executescript(self.VIEW_ANTIGA + ";")
+        conexao.commit()
+        conexao.close()
+
+    def _rodar(self):
+        import lape_agent
+
+        args = lape_agent.build_parser().parse_args(["--db", str(self.caminho), "autoria"])
+        with contextlib.redirect_stdout(io.StringIO()) as saida:
+            codigo = args.func(args)
+        self.assertEqual(codigo, 0)
+        return saida.getvalue()
+
+    def test_a_marca_que_o_comando_procura_existe_no_esquema(self):
+        """Sem isto o comando diria "não tem a correção" para todo mundo."""
+        fonte = (ROOT / "scripts" / "lape_agent.py").read_text(encoding="utf-8")
+        trecho = fonte[fonte.index("def cmd_autoria"):]
+        trecho = trecho[:trecho.index("def cmd_biblioteca")]
+        marca = trecho[trecho.index('marca = "') + len('marca = "'):]
+        marca = marca[:marca.index('"')]
+        self.assertIn(marca, (ROOT / "sql" / "schema.sql").read_text(encoding="utf-8"))
+
+    def test_diz_que_a_view_estava_antiga_e_a_troca(self):
+        self._instalar_a_view_antiga()
+        saida = self._rodar()
+        self.assertIn("ANTIGA", saida)
+        db = Database(self.caminho)
+        self.addCleanup(db.close)
+        definicao = db.scalar("SELECT sql FROM sqlite_master"
+                              " WHERE type = 'view' AND name = 'v_articles_full'")
+        self.assertIn("WHERE article_id = a.id ORDER BY author_order", definicao)
+        self.assertEqual(
+            db.scalar("SELECT authors FROM v_articles_full WHERE internal_code = 'LAPE-01'"),
+            "Vilarino; Andrade; Bevilacqua")
+
+    def test_com_a_view_certa_nao_acusa_defeito_de_leitura(self):
+        saida = self._rodar()
+        self.assertIn("já estava com a correção", saida)
+        self.assertNotIn("ANTIGA", saida)
+
+    def test_lista_a_autoria_gravada_em_ordem_alfabetica(self):
+        """A suspeita que sobra depois de consertar a leitura."""
+        saida = self._rodar()
+        self.assertIn("LAPE-02", saida)
+        self.assertNotIn("LAPE-01 ", saida)
+        self.assertIn("suspeita", saida)
 
 
 class TestLimparAutoriaRepetida(unittest.TestCase):

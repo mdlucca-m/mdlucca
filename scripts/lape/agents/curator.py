@@ -70,6 +70,11 @@ def register(db: Database, entity: str, payload: dict[str, Any] | list[dict[str,
     handler, table = REGISTRARS[entity]
     items = payload if isinstance(payload, list) else [payload]
     rows = [normalize_payload(entity, item) for item in items]
+    if entity == "articles" and not isinstance(payload, list):
+        # UM registro veio: quem mandou esta olhando a resposta e corrige o
+        # codigo repetido agora. Numa LISTA e o contrario -- ali a linha
+        # errada perde o codigo e as outras entram (ingest_excel).
+        ingest_excel.recusar_codigo_repetido(db, rows[0])
     written = handler(db, rows)
     db.conn.commit()
     db.log_ingest(NAME, target=table, file="api", rows_read=len(rows), rows_written=written)

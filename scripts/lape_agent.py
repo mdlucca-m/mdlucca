@@ -13,6 +13,7 @@
     python3 scripts/lape_agent.py identificar         # DOI, PMID, PMC e acesso aberto
     python3 scripts/lape_agent.py lattes --conferir    # ve o que o Lattes traria
     python3 scripts/lape_agent.py planilha            # reescreve a planilha do laboratorio
+    python3 scripts/lape_agent.py autoria             # confere a ordem dos autores
     python3 scripts/lape_agent.py status              # resumo do banco
 
 Agentes:
@@ -264,6 +265,71 @@ def cmd_conferir_commit(args: argparse.Namespace) -> int:
     if recado:
         print(recado)
     return codigo
+
+
+def cmd_autoria(args: argparse.Namespace) -> int:
+    """Diz se a ordem de autoria esta certa nesta maquina -- e qual e o defeito.
+
+    Sao dois problemas com o mesmo sintoma, "a ordem nao muda", e a
+    correcao de um nao resolve o outro:
+
+      1. a VIEW devolve a autoria fora de ordem. E defeito de leitura: a
+         ordem gravada esta certa, e recriar a view conserta tudo de uma
+         vez. O `migrate` abaixo recria -- e para isso o servidor precisa
+         estar parado, porque trocar uma view exige o banco livre.
+
+      2. a ordem GRAVADA ja e a alfabetica. Enquanto a tela relia a ordem
+         errada, cada edicao salvava a alfabetica por cima da de autoria.
+         Isso nao tem conserto automatico: a ordem verdadeira esta no
+         artigo publicado, e nao no banco. Aqui sai a lista para conferir
+         a mao -- uma vez cada, e agora fica.
+    """
+    from lape import ingest_autor
+
+    def definicao_da_view(banco: Database) -> str:
+        return banco.scalar("SELECT sql FROM sqlite_master"
+                            " WHERE type = 'view' AND name = 'v_articles_full'") or ""
+
+    db = Database(args.db)
+    print(f"Banco: {args.db}")
+    # Antes do migrate, de proposito: e a resposta para "atualizei e nao
+    # mudou nada". Se a view deste banco ainda era a antiga, a correcao
+    # estava na pasta e nao no banco -- e e o migrate abaixo que a aplica.
+    antes = definicao_da_view(db)
+    db.migrate()
+    depois = definicao_da_view(db)
+    marca = "WHERE article_id = a.id ORDER BY author_order"
+    if marca in antes:
+        print("  view v_articles_full ... já estava com a correção")
+    elif marca in depois:
+        print("  view v_articles_full ... estava ANTIGA -- acabei de trocar agora")
+        print("      (era daqui que vinha a ordem errada na tela)")
+    else:
+        print("  view v_articles_full ... NÃO tem a correção -- o sql/schema.sql"
+              " desta pasta está velho")
+
+    divergentes = ingest_autor.conferir_ordem_de_autoria(db)
+    if divergentes:
+        print(f"  leitura ............... {len(divergentes)} artigo(s) saem fora da ordem GRAVADA")
+        for caso in divergentes[:5]:
+            print(f"      artigo {caso['article_id']}")
+            print(f"        gravado: {caso['gravada']}")
+            print(f"        a tela lê: {caso['da_view']}")
+        print("    -> isto e defeito de leitura. Pare o servidor e rode este comando de novo.")
+    else:
+        print("  leitura ............... a tela lê exatamente a ordem gravada")
+
+    alfabeticos = ingest_autor.autoria_em_ordem_alfabetica(db)
+    if not alfabeticos:
+        print("  ordem gravada ......... nenhum artigo em ordem alfabética exata")
+        return 0
+    print(f"\n{len(alfabeticos)} artigo(s) com a autoria gravada em ordem alfabética exata.")
+    print("E suspeita, nao acusacao: ha lista de autores que e alfabetica de verdade.")
+    print("Nos que nao forem, corrija a ordem na tela uma vez -- agora ela fica.\n")
+    for caso in alfabeticos:
+        print(f"  {caso['code'] or '(sem código)':12s} {caso['titulo'][:58]}")
+        print(f"               {caso['autores']}")
+    return 0
 
 
 def cmd_biblioteca(args: argparse.Namespace) -> int:
@@ -869,6 +935,10 @@ def build_parser() -> argparse.ArgumentParser:
         "conferir-commit",
         help="usado pelo gancho de pre-commit; recusa banco com dados de pessoas")
     conferir_parser.set_defaults(func=cmd_conferir_commit)
+
+    autoria_parser = subparsers.add_parser(
+        "autoria", help="confere a ordem de autoria: a que a tela le e a que esta gravada")
+    autoria_parser.set_defaults(func=cmd_autoria)
 
     bib_parser = subparsers.add_parser(
         "biblioteca", help="os acervos de artigos: listar ou rodar as buscas")

@@ -655,6 +655,91 @@ def gravar_registro(db: Database, tabela: str, dados: dict, conflito: tuple[str,
     return _atualizar(db, tabela, alvo, dados, row, origem or {}, sempre)
 
 
+def dono_do_codigo(db: Database, codigo: str, proprio: int | None = None) -> str | None:
+    """O titulo do artigo que JA usa este codigo interno -- ou None.
+
+    `proprio` e o artigo que a gravacao vai escrever: o dele mesmo nunca
+    conta como repetido.
+    """
+    linha = db.dicts(
+        "SELECT title FROM articles WHERE internal_code = ? AND (? IS NULL OR id <> ?)",
+        (codigo, proprio, proprio))
+    return linha[0]["title"] if linha else None
+
+
+def _artigo_desta_linha(db: Database, alvo: int | None, titulo: str) -> int | None:
+    """Qual artigo esta linha vai escrever -- por id, ou pelo titulo.
+
+    Sem isto reimportar a MESMA planilha limpava todos os codigos: a linha
+    do LAPE-14 vinha de novo, o upsert ia atualizar o proprio LAPE-14, e a
+    conferencia de codigo repetido apontava o artigo contra ele mesmo.
+    Reimportar a planilha e a operacao mais comum do curador.
+    """
+    if alvo is not None:
+        return alvo
+    return db.scalar("SELECT id FROM articles WHERE title_key = ?", (title_key(titulo),))
+
+
+def _recusa_do_codigo(codigo: str, outro: str) -> ValueError:
+    return ValueError(
+        f"o c\u00f3digo interno \u201c{codigo}\u201d j\u00e1 \u00e9 do artigo"
+        f" \u201c{outro}\u201d. Use outro c\u00f3digo, ou deixe o campo em branco.")
+
+
+def recusar_codigo_repetido(db: Database, row: dict) -> None:
+    """Recusa, em voz alta, o codigo interno que ja e de outro artigo.
+
+    Vale para quem cadastra UM registro: a tela, a API. Quem esta com o
+    formulario aberto corrige agora, e nao gravar e melhor do que gravar a
+    ficha sem o codigo que a pessoa digitou -- ela nao veria.
+
+    Na planilha e o contrario, e por isso os dois caminhos existem: la uma
+    linha errada nao pode derrubar as outras duzentas.
+    """
+    codigo = clean_text(row.get("internal_code"))
+    titulo = clean_text(row.get("title"))
+    if not codigo or not titulo:
+        return
+    proprio = _artigo_desta_linha(db, to_int(row.get("registro_id")), titulo)
+    outro = dono_do_codigo(db, codigo, proprio)
+    if outro:
+        raise _recusa_do_codigo(codigo, outro)
+
+
+def _codigo_interno_livre(db: Database, alvo: int | None, codigo: str | None,
+                          titulo: str) -> str | None:
+    """Devolve o codigo interno se ele for deste artigo -- e nada se for de outro.
+
+    `internal_code` e UNIQUE, e tem de ser: "LAPE-14" citado num e-mail
+    precisa apontar para um artigo so. So que quando a planilha repetia um
+    codigo -- duas linhas com o mesmo, ou uma linha trazendo o codigo que
+    ja e de outro artigo, ou " LAPE-14" que o clean_text apara e faz
+    colidir -- a IMPORTACAO INTEIRA morria com "UNIQUE constraint failed:
+    articles.internal_code". Uma celula errada e nenhum artigo entrava, e a
+    mensagem citava uma coluna do banco em vez de citar os dois artigos.
+
+    Agora a planilha perde o codigo repetido e ganha o artigo, com um aviso
+    que nomeia os dois. Nao se inventa "o proximo livre" no lugar: um
+    codigo inventado aqui seria citado por fora como se fosse do
+    laboratorio, e taparia o erro de digitacao em vez de mostra-lo.
+
+    Com um `alvo` -- alguem mandou alterar ESTA ficha -- a gravacao e
+    recusada, como ja acontece com o titulo em `_chave_cabe`.
+    """
+    if not codigo:
+        return codigo
+    outro = dono_do_codigo(db, codigo, _artigo_desta_linha(db, alvo, titulo))
+    if not outro:
+        return codigo
+    if alvo is not None:
+        raise _recusa_do_codigo(codigo, outro)
+    aviso = (f"c\u00f3digo interno repetido: \u201c{codigo}\u201d j\u00e1 \u00e9 de"
+             f" \u201c{outro}\u201d -- \u201c{titulo}\u201d foi gravado SEM c\u00f3digo")
+    db.log_ingest("excel", target="articles", status="aviso", message=aviso[:300])
+    print(f"  ! {aviso}")
+    return None
+
+
 def proximo_codigo(db: Database) -> str | None:
     """O proximo codigo interno, no formato que o laboratorio ja usa.
 
@@ -671,18 +756,21 @@ def proximo_codigo(db: Database) -> str | None:
     usados = db.dicts(
         "SELECT internal_code FROM articles"
         " WHERE internal_code IS NOT NULL AND TRIM(internal_code) <> ''")
-    prefixos: dict[str, list[int]] = {}
+    prefixos: dict[str, list[str]] = {}
     for linha in usados:
         casa = _re.match(r"^(.*?)(\d+)$", str(linha["internal_code"]).strip())
         if not casa:
             continue
-        prefixos.setdefault(casa.group(1), []).append(int(casa.group(2)))
+        prefixos.setdefault(casa.group(1), []).append(casa.group(2))
     if not prefixos:
         return "LAPE-01"
     prefixo = max(prefixos, key=lambda k: len(prefixos[k]))
-    numeros = prefixos[prefixo]
-    largura = max(len(str(n)) for n in numeros)
-    return f"{prefixo}{max(numeros) + 1:0{largura}d}"
+    digitos = prefixos[prefixo]
+    # A largura sai dos DIGITOS como estao escritos, e nao do numero: um
+    # laboratorio que numera "LAPE-07" recebia "LAPE-8" de volta, porque
+    # len(str(7)) e 1 e o zero da frente se perdia no int.
+    largura = max(len(d) for d in digitos)
+    return f"{prefixo}{max(int(d) for d in digitos) + 1:0{largura}d}"
 
 
 def ingest_articles(db: Database, rows: list[dict]) -> int:
@@ -699,6 +787,7 @@ def ingest_articles(db: Database, rows: list[dict]) -> int:
         year = to_int(row.get("year_published")) or year_of(published_on)
         status = _article_status(row, published_on, accepted_on, submitted_on, year)
         status_locked = 1 if map_value(row.get("status"), STATUS_MAP) else 0
+        codigo_declarado = clean_text(row.get("internal_code"))
         lead_name = clean_text(row.get("lead"))
         lead_member_id = db.member_id(lead_name, create=True) if lead_name else None
         internal_review = parse_date(row.get("internal_review"))
@@ -718,7 +807,8 @@ def ingest_articles(db: Database, rows: list[dict]) -> int:
         dados = {
                 "title": title,
                 "title_key": title_key(title),
-                "internal_code": clean_text(row.get("internal_code")),
+                "internal_code": _codigo_interno_livre(
+                    db, alvo, codigo_declarado, title),
                 "status": status,
                 "research_line_id": db.research_line_id(row.get("research_line")),
                 "study_type": desenho_de_estudo(row.get("study_type")),
@@ -750,7 +840,12 @@ def ingest_articles(db: Database, rows: list[dict]) -> int:
             # Codigo so para ficha NOVA e sem codigo: uma vez atribuido ele
             # nao muda, senao o "LAPE-14" que alguem citou num e-mail
             # passaria a apontar para outro artigo.
-            if not dados.get("internal_code") and not db.scalar(
+            # `codigo_declarado` no lugar de `dados[...]`: se a planilha
+            # trouxe um codigo e ele foi recusado por ser de outro artigo,
+            # a ficha fica SEM codigo. Gerar um aqui taparia o erro de
+            # digitacao com um codigo novo, que ninguem citou em lugar
+            # nenhum e que passaria a valer como se fosse do laboratorio.
+            if not codigo_declarado and not db.scalar(
                     "SELECT 1 FROM articles WHERE title_key = ?", (title_key(title),)):
                 dados["internal_code"] = proximo_codigo(db)
         article_id = gravar_registro(db, "articles", dados, ("title_key",), row,
