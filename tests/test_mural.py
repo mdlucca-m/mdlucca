@@ -83,6 +83,67 @@ class _SemRedirecionar(urllib.request.HTTPRedirectHandler):
         return None
 
 
+class TestOMuralNaTelaDeParede(unittest.TestCase):
+    """4K: o texto tem de crescer junto com a tela.
+
+    Medido antes de escrever: num monitor de 3840px o layout preenchia a
+    largura inteira -- nao ha `max-width` --, mas o texto ficava nos
+    MESMOS 15px de um Full HD, porque cada `clamp` tem um maximo e os
+    maximos foram escolhidos para 1920. Os graficos, que sao SVG com
+    viewBox, continuavam crescendo. O resultado era uma tela
+    desequilibrada: uma rosca enorme e rotulos ilegiveis do outro lado da
+    sala -- que e de onde um mural e lido.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.css = (TEMPLATES / "mural.html").read_text(encoding="utf-8")
+
+    def test_todo_teto_de_fonte_acompanha_a_tela(self):
+        """Um teto esquecido e um rotulo que fica pequeno so naquele lugar."""
+        sem_zoom = [t for t in re.findall(r"font-size: clamp\([^;]*", self.css)
+                    if "var(--zoom" not in t]
+        self.assertEqual(sem_zoom, [])
+
+    def test_abaixo_da_tela_de_parede_nada_muda(self):
+        """`--zoom` vale 1 por padrao, e por isso 1080 e 1440 ficam iguais.
+
+        Sem o `, 1)` no `var()`, o navegador cai no valor inicial de uma
+        propriedade nao registrada -- que e vazio -- e o `calc` inteiro se
+        torna invalido: o teto desaparece e o texto cresce sem limite em
+        QUALQUER largura.
+        """
+        for teto in re.findall(r"calc\([0-9.]+px \* var\(--zoom[^)]*\)\)", self.css):
+            with self.subTest(teto=teto):
+                self.assertIn("var(--zoom, 1)", teto)
+
+    def test_o_zoom_so_liga_em_tela_larga(self):
+        self.assertIn("@media (min-width: 2200px) { :root { --zoom: 1.65; } }", self.css)
+        self.assertIn("@media (min-width: 3200px) { :root { --zoom: 1.95; } }", self.css)
+        # e nao ha `--zoom` diferente de 1 fora de media query
+        fora = re.search(r"^:root \{[^}]*--zoom", self.css, re.M)
+        self.assertIsNone(fora, "--zoom declarado fora de media query")
+
+    def test_a_faixa_de_noticias_nao_tem_altura_fixa(self):
+        """Ela cortava a noticia no meio quando o texto cresceu.
+
+        Foi o defeito que a propria mudanca causou: fonte ampliada dentro
+        de uma faixa de 26px fixos. A altura passou a acompanhar o zoom.
+        """
+        trecho = self.css[self.css.index(".fita {"):]
+        trecho = trecho[:trecho.index("}")]
+        self.assertIn("var(--zoom", trecho)
+        self.assertNotIn("height: 26px", trecho)
+
+    def test_o_que_e_pequeno_de_longe_tambem_cresce(self):
+        """Ponto de 9px numa parede de 4K nao existe para quem olha."""
+        for alvo in (".pontos button {", ".selo.vivo .ponto {", ".trilho {"):
+            with self.subTest(regra=alvo):
+                trecho = self.css[self.css.index(alvo):]
+                trecho = trecho[:trecho.index("}")]
+                self.assertIn("var(--zoom", trecho)
+
+
 class TestOHorarioNaPauta(unittest.TestCase):
     """"Esta cadastrado, mas nao aparece".
 
