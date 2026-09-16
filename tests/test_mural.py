@@ -83,6 +83,90 @@ class _SemRedirecionar(urllib.request.HTTPRedirectHandler):
         return None
 
 
+class TestAFaixaDeCotacao(unittest.TestCase):
+    """Os indicadores correndo no topo, no formato de painel de bolsa.
+
+    Tres decisoes que nao sao esteticas, e sao o que estes testes guardam:
+
+      1. variacao SO com duas medicoes. O `delta_30d` do payload e `null`
+         enquanto o lakehouse tiver rodado uma vez so -- e um "▲ 0" ali
+         diria a parede inteira que nada mudou, quando a verdade e que
+         nada foi medido duas vezes;
+      2. a BASE da comparacao vai escrita: "30 d" e medido, "vs 2025" e
+         contado. Uma seta sem base e uma seta sobre o que a pessoa
+         imaginar;
+      3. subir nao e bom para todo indicador. Publicacao e citacao subindo
+         e bom -- e ai o verde de painel de bolsa e legitimo. "Em escrita"
+         subindo pode ser produtividade ou gargalo, e o laboratorio nao
+         declarou qual: pintar de verde seria a tela julgando por conta
+         propria.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
+        cls.corpo = js[js.index("function cotacoes()"):js.index("function desenharFita()")]
+        cls.html = (TEMPLATES / "mural.html").read_text(encoding="utf-8")
+
+    def test_nulo_nao_vira_zero(self):
+        """A trava mais importante: `!= null` e nao um teste de verdade.
+
+        Com `if (x.delta)` um zero MEDIDO -- que e informacao, "nao mudou
+        em 30 dias" -- desapareceria, e com `??` um nulo viraria zero. Os
+        dois casos sao diferentes e a faixa tem de distingui-los.
+        """
+        self.assertIn("delta_30d !== null", self.corpo)
+        self.assertIn("delta_30d !== undefined", self.corpo)
+        # e na hora de desenhar, o mesmo cuidado
+        self.assertIn("x.delta !== null", self.corpo)
+        self.assertNotIn("x.delta ??", self.corpo)
+
+    def test_sem_segunda_medicao_a_faixa_diz_em_vez_de_calar(self):
+        self.assertIn('class: "var sem"', self.corpo)
+
+    def test_a_base_da_comparacao_viaja_com_a_variacao(self):
+        self.assertIn('base: "30 d"', self.corpo)
+        self.assertIn('base: "vs "', self.corpo)
+        # e e impressa junto do numero
+        self.assertIn('+ " " + x.base', self.corpo)
+
+    def test_indicador_ambiguo_nao_ganha_cor_de_estado(self):
+        """"Em escrita" e "em avaliacao" sobem por motivos opostos."""
+        for sigla in ('"ESCRITA"', '"AVAL"'):
+            trecho = self.corpo[self.corpo.index("sigla: " + sigla):]
+            trecho = trecho[:trecho.index("},")]
+            with self.subTest(sigla=sigla):
+                self.assertIn("bom: null", trecho)
+
+    def test_indicador_de_direcao_acordada_ganha(self):
+        for sigla in ('"ACERVO"', '"CIT"', '"H"'):
+            trecho = self.corpo[self.corpo.index("sigla: " + sigla):]
+            trecho = trecho[:trecho.index("},")]
+            with self.subTest(sigla=sigla):
+                self.assertIn('bom: "sobe"', trecho)
+
+    def test_a_cor_de_estado_depende_do_bom_declarado(self):
+        """Sem o `!x.bom`, todo indicador que sobe ficaria verde."""
+        self.assertIn("!x.bom ? \"neutro\"", self.corpo)
+
+    def test_indicador_que_o_laboratorio_nao_tem_sai_da_faixa(self):
+        """Zero de indice h nao e zero -- e ninguem ter declarado."""
+        self.assertIn("x.valor !== 0", self.corpo)
+
+    def test_a_faixa_se_esconde_quando_nao_ha_o_que_cotar(self):
+        self.assertIn("faixa.hidden = true", self.corpo)
+
+    def test_a_faixa_acompanha_a_tela_de_parede_e_sai_na_pequena(self):
+        """As duas regras que o resto do mural ja segue."""
+        trecho = self.html[self.html.index(".cotacao {"):]
+        trecho = trecho[:trecho.index("}")]
+        self.assertIn("var(--zoom", trecho)
+        self.assertIn(".fita, .cotacao { display: none; }", self.html)
+
+    def test_quem_pede_menos_movimento_nao_recebe_a_faixa_correndo(self):
+        self.assertIn(".cotacao .trilha { animation: none; }", self.html)
+
+
 class TestOMuralNaTelaDeParede(unittest.TestCase):
     """4K: o texto tem de crescer junto com a tela.
 

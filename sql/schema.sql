@@ -892,9 +892,33 @@ SELECT
   a.*,
   rl.name AS research_line,
   rl.code AS research_line_code,
-  (SELECT group_concat(aa.author_name, '; ')
-     FROM (SELECT author_name, article_id FROM article_authors ORDER BY author_order) aa
-    WHERE aa.article_id = a.id) AS authors,
+  /* ORDEM DE AUTORIA -- e o `LIMIT -1` nao e enfeite.
+     A forma anterior era
+         FROM (SELECT author_name, article_id FROM article_authors
+                ORDER BY author_order) aa WHERE aa.article_id = a.id
+     e ela DEVOLVIA A ORDEM ERRADA. O sqlite achata uma subconsulta dessas
+     dentro da consulta de agregacao e descarta o ORDER BY -- o
+     EXPLAIN QUERY PLAN mostra a busca indo direto pelo indice --, e
+     `group_concat` recebe as linhas na ordem que o plano quis. Medido: 60
+     de 60 artigos com a ordem invertida num banco de volume.
+     Nao era erro teorico: a coordenacao viu o professor como primeiro
+     autor de tudo, e reordenar na tela nao mudava nada, porque a tela
+     relia a ordem errada e a salvava de volta.
+     O QUE CONSERTA, medido: trazer o `WHERE article_id` para DENTRO da
+     subconsulta. Com o filtro dentro, o sqlite 3.45 mantem a ordenacao.
+     O `LIMIT -1` nao limita nada e e uma barreira A MAIS contra o
+     achatamento -- e HONESTAMENTE: no 3.45 a consulta passa sem ele
+     tambem, conferido por mutacao. Ele fica porque a regra de achatamento
+     e do planejador e varia entre versoes, e o laboratorio roda com o
+     sqlite que o Python do Windows tiver -- nao com este.
+     `ORDER BY` dentro do proprio group_concat e o unico jeito GARANTIDO
+     pela linguagem, e nao esta aqui porque exige 3.44+.
+     Por isso o que de fato protege nao e esta linha: e o teste de volume
+     cobrando a ordem, e a CONFERENCIA NA SUBIDA, que compara a view com a
+     ordem gravada no banco de verdade e grita se discordarem. */
+  (SELECT group_concat(author_name, '; ') FROM
+     (SELECT author_name FROM article_authors
+       WHERE article_id = a.id ORDER BY author_order LIMIT -1)) AS authors,
   (SELECT COUNT(*) FROM submissions s WHERE s.article_id = a.id) AS submission_attempts,
   (SELECT COUNT(*) FROM submissions s WHERE s.article_id = a.id
      AND s.decision IN ('rejeitado', 'desk_reject')) AS rejections,

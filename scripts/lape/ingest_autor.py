@@ -280,6 +280,71 @@ def limpar_autoria_repetida(db: Database) -> list[dict[str, Any]]:
     return limpas
 
 
+def conferir_ordem_de_autoria(db: Database) -> list[dict[str, Any]]:
+    """A view devolve a autoria na ordem gravada? -- conferido, nao suposto.
+
+    Existe porque ja devolveu ERRADO e ninguem viu. A `v_articles_full`
+    monta a lista de autores com `group_concat`, e a ordem que o
+    `group_concat` recebe depende do PLANO da consulta: o sqlite achata
+    uma subconsulta com ORDER BY dentro de uma agregacao e descarta a
+    ordenacao. O resultado foi o professor aparecendo como primeiro autor
+    de tudo -- e reordenar na tela nao consertava, porque a tela relia a
+    ordem errada e a salvava de volta.
+
+    A forma atual usa `LIMIT -1` para impedir o achatamento, e isso
+    depende de uma REGRA DE OTIMIZADOR, nao de uma garantia de linguagem.
+    Entao a subida confere na pratica, contra o banco de verdade: se algum
+    dia uma versao do sqlite mudar de ideia, a tela grita em vez de
+    corromper a autoria em silencio.
+
+    Devolve a lista de divergencias -- vazia quando esta tudo bem.
+    """
+    suspeitos = db.dicts(
+        "SELECT a.id, v.authors FROM articles a"
+        "  JOIN v_articles_full v ON v.id = a.id"
+        " WHERE (SELECT COUNT(*) FROM article_authors aa"
+        "          WHERE aa.article_id = a.id) > 1"
+        " LIMIT 40")
+    ruins: list[dict[str, Any]] = []
+    for linha in suspeitos:
+        certo = "; ".join(
+            r["author_name"] for r in db.dicts(
+                "SELECT author_name FROM article_authors"
+                " WHERE article_id = ? ORDER BY author_order", (linha["id"],)))
+        if certo and linha["authors"] != certo:
+            ruins.append({"article_id": linha["id"],
+                          "da_view": linha["authors"], "gravada": certo})
+    return ruins
+
+
+def autoria_em_ordem_alfabetica(db: Database) -> list[dict[str, Any]]:
+    """Artigos cuja autoria gravada esta em ordem EXATAMENTE alfabetica.
+
+    E uma suspeita, e nao uma acusacao: existe lista de autores que e
+    alfabetica de verdade. Mas enquanto a tela relia a ordem errada e a
+    salvava de volta, cada edicao gravava a ordem alfabetica por cima da
+    de autoria -- e essa ordem original nao esta em lugar nenhum para ser
+    recuperada. Esta lista e por onde comecar a conferir a mao.
+
+    So conta com tres autores ou mais: com dois, metade das duplas esta em
+    ordem alfabetica por acaso.
+    """
+    saida: list[dict[str, Any]] = []
+    for linha in db.dicts(
+            "SELECT a.id, a.internal_code, a.title FROM articles a"
+            " WHERE (SELECT COUNT(*) FROM article_authors aa"
+            "          WHERE aa.article_id = a.id) >= 3"
+            " ORDER BY a.id"):
+        nomes = [r["author_name"] for r in db.dicts(
+            "SELECT author_name FROM article_authors"
+            " WHERE article_id = ? ORDER BY author_order", (linha["id"],))]
+        chaves = [n.strip().lower() for n in nomes]
+        if chaves == sorted(chaves):
+            saida.append({"id": linha["id"], "code": linha["internal_code"],
+                          "titulo": linha["title"], "autores": "; ".join(nomes)})
+    return saida
+
+
 def garantir_professores(db: Database, criar: bool = True) -> dict[str, Any]:
     """Poe os dois professores no banco, com vinculo, nome inteiro e grafias.
 

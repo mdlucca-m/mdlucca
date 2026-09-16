@@ -190,6 +190,32 @@ body { background: var(--surface-sunken); }
   letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .pauta .quando small { display: block; font-size: clamp(9.5px, .68vw, calc(11.5px * var(--zoom, 1)));
   text-transform: uppercase; letter-spacing: .07em; color: var(--ink-2); }
+/* A faixa de cotacao, logo abaixo do topo: sigla, valor e variacao
+   correndo, no formato de painel de bolsa.
+
+   Numero em fonte tabular para a virgula nao dancar enquanto passa. A cor
+   da variacao vem do JavaScript por classe -- e "neutro" existe porque
+   subir nao e bom para todo indicador, e pintar de verde faria a tela
+   julgar por conta propria (ver `cotacoes()` no mural.js). */
+.cotacao { overflow: hidden; position: relative; margin: 0 clamp(18px, 2.4vw, 40px);
+  height: calc(30px * var(--zoom, 1)); border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent); }
+.cotacao .trilha { position: absolute; display: flex; gap: clamp(22px, 2vw, 40px);
+  white-space: nowrap; align-items: center; height: 100%;
+  animation: corre 58s linear infinite; }
+.cotacao .cot { display: inline-flex; align-items: baseline; gap: 7px;
+  font-size: clamp(11.5px, .82vw, calc(14px * var(--zoom, 1)));
+  font-variant-numeric: tabular-nums; }
+.cotacao .cot .sigla { font-style: normal; font-weight: 700; letter-spacing: .06em;
+  color: var(--ink-2); font-size: .86em; }
+.cotacao .cot b { color: var(--ink); font-weight: 700; }
+.cotacao .cot .var { font-weight: 650; }
+.cotacao .cot .var.bom { color: var(--good); }
+.cotacao .cot .var.ruim { color: var(--critical); }
+.cotacao .cot .var.neutro { color: var(--ink-2); }
+.cotacao .cot .var.sem { color: var(--ink-muted); }
+
 /* A hora, na mesma etiqueta do dia: "quando" e uma informacao so, e
    partir dia/mes de um lado e hora do outro obriga quem le a juntar os
    dois com o olho. Em numero tabular, sem caixa alta -- "14:00" nao e
@@ -285,14 +311,14 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora, .fita .trem { animation: none; }
+  .aurora, .fita .trem, .cotacao .trilha { animation: none; }
   .trilho i { width: var(--pct, 0%); }
   svg.plot.revela, svg.plot.surge { animation: none; clip-path: none; }
 }
 @media (max-width: 780px) {
   .painel-duplo, .painel-duplo.igual { grid-template-columns: minmax(0, 1fr); }
   .mtopo .titulo h1 { font-size: 17px; }
-  .fita { display: none; }
+  .fita, .cotacao { display: none; }
 }
 </style>
 </head>
@@ -316,6 +342,7 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
         <div class="relogio"><b id="hora">--:--</b><small id="data"></small></div>
       </div>
     </header>
+    <div class="cotacao" aria-hidden="true" hidden><div class="trilha" id="cotacao"></div></div>
   </div>
 
   <div class="palco" id="palco" aria-live="polite"></div>

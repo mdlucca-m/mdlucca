@@ -3145,6 +3145,15 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
         # Os indices h que a coordenacao conferiu na base. Entram so onde
         # ninguem declarou nada ainda: assim que o numero for gravado pela
         # tela, a lista do codigo nao tem mais o que dizer sobre a pessoa.
+        # A view devolve a autoria na ordem gravada? Ja devolveu errado, e
+        # ninguem viu -- a ordem que o `group_concat` recebe depende do
+        # plano da consulta. Se uma versao do sqlite mudar de ideia, isto
+        # grita em vez de corromper a autoria em silencio.
+        for ruim in ingest_autor.conferir_ordem_de_autoria(db):
+            print(f"  ! ORDEM DE AUTORIA ERRADA no artigo #{ruim['article_id']}:"
+                  f" a tela mostraria \u201c{ruim['da_view']}\u201d e o banco"
+                  f" guarda \u201c{ruim['gravada']}\u201d. NAO edite autoria"
+                  f" nesta tela ate isto ser consertado.")
         # O autor que aparece duas vezes no mesmo artigo. Ninguem assina
         # duas vezes: e marca do defeito que punha o "Responsavel" como
         # primeiro autor quando a comparacao de nomes nao o achava na

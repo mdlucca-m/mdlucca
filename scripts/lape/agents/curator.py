@@ -19,7 +19,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from .. import config, hooks, ingest_excel, ingest_lattes, lake, metrics, report
+from .. import (config, hooks, ingest_autor, ingest_excel, ingest_lattes, lake,
+                metrics, report)
 from ..db import Database
 from ..mapping import build_column_map
 from ..util import clean_text, norm_key, title_key
@@ -239,6 +240,12 @@ def validate(db: Database) -> dict[str, Any]:
         "articles_without_authors": int(db.scalar(
             "SELECT COUNT(*) FROM articles a WHERE NOT EXISTS"
             " (SELECT 1 FROM article_authors aa WHERE aa.article_id = a.id)") or 0),
+        # Autoria gravada em ordem exatamente alfabetica: suspeita, e nao
+        # acusacao. Enquanto a tela relia a ordem errada e a salvava de
+        # volta, cada edicao gravava a alfabetica por cima da de autoria --
+        # e a original nao esta em lugar nenhum. E por onde comecar a
+        # conferir a mao.
+        "autoria_alfabetica": ingest_autor.autoria_em_ordem_alfabetica(db),
     }
 
 

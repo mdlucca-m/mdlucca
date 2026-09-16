@@ -470,6 +470,131 @@ class TestAOrdemDaAutoria(unittest.TestCase):
             "Andrade")
 
 
+class TestAOrdemQueAViewDevolve(unittest.TestCase):
+    """A `v_articles_full` devolve a autoria na ordem GRAVADA?
+
+    Devolvia errado, e nenhum teste pegava. A view monta a lista com
+    `group_concat`, e a ordem que o `group_concat` recebe depende do PLANO
+    da consulta: o sqlite achata uma subconsulta com ORDER BY dentro de
+    uma agregacao e descarta a ordenacao -- o EXPLAIN QUERY PLAN mostra a
+    busca indo direto pelo indice.
+
+    Com 19 artigos e poucos autores o plano escolhido acertava por
+    coincidencia, e foi por isso que passou: os testes de antes tinham
+    tres autores num artigo. Com VOLUME o plano muda e a ordem inverte --
+    60 de 60 artigos errados, medido. Por isso este teste cria volume: e a
+    unica forma de exercer o plano que o laboratorio de verdade exerce.
+
+    Na tela o efeito foi pior do que uma lista fora de ordem: a coordenacao
+    reordenava os autores, a tela relia a ordem errada e a SALVAVA DE
+    VOLTA -- entao editar "nao mudava nada", e a ordem de autoria original
+    foi sobrescrita.
+    """
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.db = Database(Path(tmp.name) / "v.sqlite")
+        self.addCleanup(self.db.close)
+        self.db.migrate()
+
+    def semear(self, n_artigos, nomes):
+        for n in range(1, n_artigos + 1):
+            self.db.execute(
+                "INSERT INTO articles (title, title_key, status)"
+                " VALUES (?, ?, 'em_producao')", (f"A{n}", f"a_{n}"))
+            aid = self.db.scalar("SELECT id FROM articles WHERE title_key = ?",
+                                 (f"a_{n}",))
+            for ordem, nome in enumerate(nomes, start=1):
+                self.db.execute(
+                    "INSERT INTO article_authors (article_id, member_id,"
+                    "        author_name, author_order) VALUES (?, NULL, ?, ?)",
+                    (aid, nome, ordem))
+        self.db.conn.commit()
+
+    def test_com_volume_a_ordem_continua_a_gravada(self):
+        """O teste que faltava. Sem volume, o plano acerta por sorte."""
+        nomes = ["Zilda", "Yara", "Xavier", "Walter", "Vera", "Ubirajara", "Tania"]
+        self.semear(60, nomes)
+        esperado = "; ".join(nomes)
+        erradas = [r["id"] for r in self.db.dicts(
+            "SELECT id, authors FROM v_articles_full") if r["authors"] != esperado]
+        self.assertEqual(erradas, [])
+
+    def test_a_ordem_de_autoria_nao_e_a_alfabetica(self):
+        """O sintoma que a coordenacao viu, escrito como teste.
+
+        Se a view voltar a ordenar por nome, isto reprova -- e nao um
+        teste que compara com uma lista que por acaso ja estava em ordem.
+        """
+        nomes = ["Zilda", "Ana", "Marcos"]
+        self.semear(30, nomes)
+        vindo = self.db.scalar("SELECT authors FROM v_articles_full LIMIT 1")
+        self.assertEqual(vindo, "Zilda; Ana; Marcos")
+        self.assertNotEqual(vindo, "; ".join(sorted(nomes)))
+
+    def test_a_subida_confere_e_nao_supoe(self):
+        """A forma nova depende de REGRA DE OTIMIZADOR, nao de garantia.
+
+        E este teste nao defende o detalhe: por mutacao, tirar o
+        `LIMIT -1` do schema NAO reprova nada no sqlite 3.45 -- o que
+        conserta e o `WHERE` estar dentro da subconsulta. O `LIMIT` fica
+        como barreira a mais para outras versoes de planejador, e quem
+        garante de verdade e esta conferencia, que roda contra o banco e a
+        versao que o laboratorio tem -- nao contra as do teste.
+        """
+        nomes = ["Zilda", "Ana", "Marcos"]
+        self.semear(5, nomes)
+        self.assertEqual(ingest_autor.conferir_ordem_de_autoria(self.db), [])
+        fonte = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
+        self.assertIn("conferir_ordem_de_autoria(db)", fonte)
+
+    def test_o_conferidor_acusa_quando_a_view_discorda(self):
+        """Sem isto, o conferidor podia estar sempre devolvendo vazio."""
+        self.semear(3, ["Zilda", "Ana", "Marcos"])
+        # troca a view por uma que ordena por nome -- o defeito, de volta
+        self.db.execute("DROP VIEW v_articles_full")
+        self.db.execute(
+            "CREATE VIEW v_articles_full AS SELECT a.*,"
+            " (SELECT group_concat(author_name, '; ') FROM"
+            "   (SELECT author_name FROM article_authors"
+            "     WHERE article_id = a.id ORDER BY author_name LIMIT -1)) AS authors"
+            " FROM articles a")
+        self.db.conn.commit()
+        ruins = ingest_autor.conferir_ordem_de_autoria(self.db)
+        self.assertEqual(len(ruins), 3)
+        self.assertIn("Ana", ruins[0]["da_view"])
+        self.assertTrue(ruins[0]["gravada"].startswith("Zilda"))
+
+    def test_lista_os_suspeitos_de_ordem_alfabetica(self):
+        """Suspeita, e nao acusacao: ha lista de autores alfabetica de verdade.
+
+        Ela existe porque a ordem original foi sobrescrita e nao esta em
+        lugar nenhum -- e por onde comecar a conferir a mao.
+        """
+        for titulo, nomes in (("Alfabetico", ["Ana", "Bruno", "Carla"]),
+                              ("De autoria", ["Carla", "Ana", "Bruno"]),
+                              ("So dois", ["Ana", "Bruno"])):
+            self.db.execute(
+                "INSERT INTO articles (title, title_key, status)"
+                " VALUES (?, ?, 'em_producao')", (titulo, titulo.lower()))
+            aid = self.db.scalar("SELECT id FROM articles WHERE title = ?", (titulo,))
+            for ordem, nome in enumerate(nomes, start=1):
+                self.db.execute(
+                    "INSERT INTO article_authors (article_id, member_id,"
+                    "        author_name, author_order) VALUES (?, NULL, ?, ?)",
+                    (aid, nome, ordem))
+        self.db.conn.commit()
+        achados = [x["titulo"] for x in
+                   ingest_autor.autoria_em_ordem_alfabetica(self.db)]
+        self.assertEqual(achados, ["Alfabetico"])
+
+    def test_dupla_nao_entra_na_suspeita(self):
+        """Com dois autores, metade das duplas e alfabetica por acaso."""
+        self.semear(1, ["Ana", "Bruno"])
+        self.assertEqual(ingest_autor.autoria_em_ordem_alfabetica(self.db), [])
+
+
 class TestLimparAutoriaRepetida(unittest.TestCase):
     """O reparo do que o defeito deixou gravado.
 
