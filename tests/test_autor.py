@@ -388,6 +388,197 @@ class TestIdentificadores(unittest.TestCase):
         self.assertIsNone(registro.get("oa_url"))
 
 
+class TestAOrdemDaAutoria(unittest.TestCase):
+    """O sistema nao inventa autoria, e nao mexe na ordem declarada.
+
+    O "Responsavel" entrava como PRIMEIRO AUTOR quando nao estava na
+    lista. A intencao era que o artigo aparecesse nas metricas de quem o
+    conduz; o resultado era falsificar a autoria -- o professor que
+    orienta aparecia como primeiro autor de tudo, quando primeiro autor e
+    quem fez o trabalho. Ordem de autoria e o dado mais consequente de um
+    artigo: e o que a CAPES le e o que vale num concurso.
+
+    E a comparacao de nomes era por `author_key`, que trata "Alexandro
+    Andrade" ("andrade_a") e "Andrade" ("andrade") como pessoas
+    diferentes. Quem assinava so com o sobrenome era acrescentado DE NOVO
+    na frente, e o mesmo autor ficava duas vezes no artigo.
+    """
+
+    def setUp(self):
+        from lape import linhas
+
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.db = Database(Path(tmp.name) / "a.sqlite")
+        self.addCleanup(self.db.close)
+        self.db.migrate()
+        linhas.instalar(self.db)
+
+    def autoria(self, titulo):
+        aid = self.db.scalar("SELECT id FROM articles WHERE title = ?", (titulo,))
+        return [r["author_name"] for r in self.db.dicts(
+            "SELECT author_name FROM article_authors WHERE article_id = ?"
+            " ORDER BY author_order", (aid,))]
+
+    def gravar(self, titulo, autores, responsavel=None):
+        from lape.agents import curator
+
+        dados = {"Título": titulo, "Autores": autores}
+        if responsavel:
+            dados["Responsável"] = responsavel
+        curator.register(self.db, "articles", dados)
+
+    def test_o_responsavel_nao_entra_como_primeiro_autor(self):
+        """O caso que a coordenacao viu: o professor primeiro em todos."""
+        self.gravar("A", "Loiane; Nayara; Vilarino", responsavel="Andrade")
+        self.assertEqual(self.autoria("A"), ["Loiane", "Nayara", "Vilarino"])
+
+    def test_nem_com_o_nome_escrito_de_outro_jeito(self):
+        """"Alexandro Andrade" e "Andrade" sao a mesma pessoa.
+
+        Era aqui que nascia a autoria repetida: a chave nao casava, o
+        responsavel era acrescentado na frente, e o autor de verdade
+        continuava no fim.
+        """
+        self.gravar("B", "Angelise; Carla; Vilarino; Andrade",
+                    responsavel="Alexandro Andrade")
+        self.assertEqual(self.autoria("B"),
+                         ["Angelise", "Carla", "Vilarino", "Andrade"])
+
+    def test_a_ordem_digitada_e_a_ordem_gravada(self):
+        """Inclusive quando o responsavel assina, e assina por ultimo."""
+        self.gravar("C", "Loiane; Vilarino; Andrade", responsavel="Andrade")
+        self.assertEqual(self.autoria("C"), ["Loiane", "Vilarino", "Andrade"])
+
+    def test_reeditar_nao_reordena(self):
+        """"Fiz isso desde ontem e nao muda": editar tinha de valer."""
+        self.gravar("D", "Loiane; Vilarino; Andrade", responsavel="Andrade")
+        aid = self.db.scalar("SELECT id FROM articles WHERE title = 'D'")
+        from lape.agents import curator
+        curator.register(self.db, "articles", {
+            "registro_id": aid, "Título": "D",
+            "Autores": "Nayara; Loiane; Vilarino; Andrade",
+            "Responsável": "Andrade"})
+        self.assertEqual(self.autoria("D"),
+                         ["Nayara", "Loiane", "Vilarino", "Andrade"])
+
+    def test_o_responsavel_continua_gravado_no_artigo(self):
+        """Ele nao e autoria -- mas e um campo legitimo, e nao se perde."""
+        self.gravar("E", "Loiane; Vilarino", responsavel="Andrade")
+        self.assertEqual(
+            self.db.scalar("SELECT lead_name FROM articles WHERE title = 'E'"),
+            "Andrade")
+
+
+class TestLimparAutoriaRepetida(unittest.TestCase):
+    """O reparo do que o defeito deixou gravado.
+
+    Ninguem assina um artigo duas vezes, entao a repeticao e sempre marca
+    de gravacao errada -- e da para conserta-la sem adivinhar nada.
+    """
+
+    def setUp(self):
+        from lape import linhas
+
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.db = Database(Path(tmp.name) / "r.sqlite")
+        self.addCleanup(self.db.close)
+        self.db.migrate()
+        linhas.instalar(self.db)
+        from lape.agents import curator
+        curator.register(self.db, "articles", {"Título": "X"})
+        self.aid = self.db.scalar("SELECT id FROM articles WHERE title = 'X'")
+
+    def semear(self, linhas_de_autoria):
+        """Grava o estado que o defeito produzia, por baixo do mapeador."""
+        self.db.execute("DELETE FROM article_authors WHERE article_id = ?", (self.aid,))
+        for ordem, (nome, member_id) in enumerate(linhas_de_autoria, start=1):
+            self.db.execute(
+                "INSERT INTO article_authors (article_id, member_id, author_name,"
+                "        author_order, is_corresponding, is_external)"
+                " VALUES (?, ?, ?, ?, 0, 0)",
+                (self.aid, member_id, nome, ordem))
+        self.db.conn.commit()
+
+    def autoria(self):
+        return [(r["author_order"], r["author_name"]) for r in self.db.dicts(
+            "SELECT author_order, author_name FROM article_authors"
+            " WHERE article_id = ? ORDER BY author_order", (self.aid,))]
+
+    def test_fica_a_ultima_ocorrencia_e_nao_a_primeira(self):
+        """A inventada entrava na frente; a digitada esta onde a escreveram."""
+        mid = self.db.member_id("Alexandro Andrade", create=True)
+        self.semear([("Alexandro Andrade", mid), ("Angelise", None),
+                     ("Carla", None), ("Andrade", mid)])
+        saiu = ingest_autor.limpar_autoria_repetida(self.db)
+        self.assertEqual([x["quem"] for x in saiu], ["Alexandro Andrade"])
+        self.assertEqual([n for _o, n in self.autoria()],
+                         ["Angelise", "Carla", "Andrade"])
+
+    def test_a_ordem_e_renumerada_sem_buracos(self):
+        """Com buraco, "primeiro autor" passa a depender do numero que sobrou."""
+        mid = self.db.member_id("Andrade", create=True)
+        self.semear([("Andrade", mid), ("Loiane", None), ("Andrade", mid)])
+        ingest_autor.limpar_autoria_repetida(self.db)
+        self.assertEqual([o for o, _n in self.autoria()], [1, 2])
+
+    def test_autor_sem_ficha_nao_e_juntado(self):
+        """Dois externos homonimos existem; juntar apagaria um autor.
+
+        Aqui ha uma armadilha medida: o `GROUP BY` do sqlite trata NULLs
+        como IGUAIS, entao tres coautores sem ficha saem do agrupamento
+        como "a mesma pessoa, tres vezes" -- inclusive pessoas de nomes
+        DIFERENTES. Hoje nada acontece por dois motivos, e so um deles e
+        intencional: o filtro no SQL, e o `= NULL` do SELECT de dentro que
+        nunca casa. Por isso a trava esta tambem em Python, e por isso o
+        teste seguinte olha o agrupamento de frente.
+        """
+        self.semear([("J. Silva", None), ("Loiane", None), ("J. Silva", None)])
+        self.assertEqual(ingest_autor.limpar_autoria_repetida(self.db), [])
+        self.assertEqual([n for _o, n in self.autoria()],
+                         ["J. Silva", "Loiane", "J. Silva"])
+
+    def test_o_agrupamento_junta_NULLs_e_por_isso_ha_trava_em_python(self):
+        """O que faz a trava dupla necessaria, escrito e conferido.
+
+        Sem isto, quem ler o filtro no SQL o acha redundante e o tira --
+        e o estrago nao aparece em teste nenhum, porque outro acidente o
+        esconde.
+        """
+        self.semear([("J. Silva", None), ("Loiane", None), ("Ana", None)])
+        juntou = self.db.dicts(
+            "SELECT member_id, COUNT(*) AS n FROM article_authors"
+            " WHERE article_id = ? GROUP BY member_id HAVING COUNT(*) > 1",
+            (self.aid,))
+        self.assertEqual([x["n"] for x in juntou], [3],
+                         "o sqlite deixou de agrupar NULLs -- reveja a trava")
+        fonte = (ROOT / "scripts" / "lape" / "ingest_autor.py").read_text(
+            encoding="utf-8")
+        corpo = fonte[fonte.index("def limpar_autoria_repetida("):]
+        corpo = corpo[:corpo.index("\ndef ")]
+        self.assertIn('if caso["member_id"] is None:', corpo)
+
+    def test_autoria_sadia_nao_e_tocada(self):
+        mid = self.db.member_id("Andrade", create=True)
+        self.semear([("Loiane", None), ("Vilarino", None), ("Andrade", mid)])
+        self.assertEqual(ingest_autor.limpar_autoria_repetida(self.db), [])
+        self.assertEqual([n for _o, n in self.autoria()],
+                         ["Loiane", "Vilarino", "Andrade"])
+
+    def test_rodar_duas_vezes_nao_muda_mais_nada(self):
+        """A subida roda isto sempre -- na segunda tem de ficar calada."""
+        mid = self.db.member_id("Andrade", create=True)
+        self.semear([("Andrade", mid), ("Loiane", None), ("Andrade", mid)])
+        self.assertEqual(len(ingest_autor.limpar_autoria_repetida(self.db)), 1)
+        self.assertEqual(ingest_autor.limpar_autoria_repetida(self.db), [])
+
+    def test_a_subida_faz_a_limpeza(self):
+        """Quem nunca reimporta planilha so ve o conserto por aqui."""
+        fonte = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
+        self.assertIn("limpar_autoria_repetida(db)", fonte)
+
+
 class TestOrdemDosDestinos(unittest.TestCase):
     """Para onde o clique leva, na ordem de quem quer LER."""
 

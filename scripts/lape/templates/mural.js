@@ -90,6 +90,24 @@ function mesCurto(iso) {
   const d = comoData(iso);
   return d ? MESES_EXT[d.getMonth()].slice(0, 3) : "";
 }
+/* A hora, quando existe -- e vazio quando nao.
+   "Está cadastrado, mas não aparece": a etiqueta de data mostrava dia e
+   mês, e o horário ficava no banco sem chegar à parede. Quem lê o mural
+   precisa saber se a qualificação é às 9h ou às 14h, e é justamente para
+   isso que o mural existe.
+   Meia-noite exata NÃO vira "00:00": o campo aceita só a data, e nesse
+   caso a hora gravada é zero por omissão -- escrever "00:00" afirmaria
+   uma hora que ninguém marcou. Evento de dia inteiro também não mostra
+   hora, mesmo que o horário tenha vindo preenchido. */
+function horaDe(iso, diaInteiro) {
+  if (diaInteiro) return "";
+  const texto = String(iso || "");
+  if (texto.length <= 10) return "";
+  const hm = texto.slice(11, 16);
+  if (!/^\d{2}:\d{2}$/.test(hm) || hm === "00:00") return "";
+  return hm;
+}
+
 function porExtenso(dias) {
   if (dias === null) return "sem data";
   if (dias === 0) return "hoje";
@@ -301,7 +319,8 @@ function linhaDePauta(item) {
   const li = el("li", {}, [
     el("div", { class: "quando" }, [
       el("b", { text: dia(item.data) }), el("small", { text: mesCurto(item.data) }),
-    ]),
+      item.hora ? el("small", { class: "hora", text: item.hora }) : null,
+    ].filter(Boolean)),
     Icons.badge(item.icone, tom, null),
     el("div", { class: "oque" }, [
       el("b", { text: item.titulo }), el("small", { text: item.detalhe }),
@@ -442,6 +461,7 @@ function slideAgenda() {
         detalhe: [TIPO_EVENTO[e.kind] || e.kind, e.location_name || e.city,
           e.research_line].filter(Boolean).join(" · "),
         data: e.start_at, dias: diasAte(e.start_at),
+        hora: horaDe(e.start_at, e.all_day),
         icone: ICONE_EVENTO[e.kind] || "calendario",
       });
     }))

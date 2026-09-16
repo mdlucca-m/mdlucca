@@ -206,6 +206,80 @@ def trazer(db: Database, nome: str, afiliacao: str | None = None,
     return {"quem": nome, "resumo": resumo_, "gravado": gravado}
 
 
+def limpar_autoria_repetida(db: Database) -> list[dict[str, Any]]:
+    """Tira o autor que aparece DUAS VEZES no mesmo artigo.
+
+    Ninguem assina um artigo duas vezes, entao a repeticao e sempre marca
+    de gravacao errada -- e havia uma: o "Responsavel" era acrescentado
+    como primeiro autor quando a comparacao de nomes nao o encontrava na
+    lista, o que acontecia sempre que ele assinava so com o sobrenome.
+
+    Fica a ULTIMA ocorrencia, e nao a primeira: a inventada entrava na
+    frente, e a que a coordenacao digitou esta no lugar onde ela a
+    escreveu. Depois a ordem e renumerada de 1 em diante, senao sobram
+    buracos e "primeiro autor" passa a depender do numero que sobrou.
+
+    Compara por `member_id`, e nao por nome: "Alexandro Andrade" e
+    "Andrade" sao textos diferentes e a mesma pessoa -- e e justamente
+    esse par que o defeito produzia.
+
+    LINHA SEM `member_id` NAO ENTRA, e a trava esta em DOIS lugares de
+    proposito. O `GROUP BY` do sqlite trata NULLs como IGUAIS entre si:
+    tres coautores externos sem ficha saem do agrupamento como "a mesma
+    pessoa, tres vezes". Hoje nada acontece porque o SELECT de dentro usa
+    `= ?`, e `= NULL` nunca casa -- ou seja, o que salva a autoria e um
+    acidente, e nao a intencao. Trocar aquele `= ?` por `IS ?` -- que e a
+    correcao obvia para quem ler a linha sem ler isto -- passaria a
+    apagar autores externos DIFERENTES, mantendo so o ultimo. Medido.
+
+    Entao o filtro no SQL diz a intencao, e o `continue` abaixo a garante
+    mesmo que alguem mexa no SELECT.
+    """
+    repetidos = db.dicts(
+        "SELECT article_id, member_id, COUNT(*) AS n"
+        "  FROM article_authors"
+        " WHERE member_id IS NOT NULL"
+        " GROUP BY article_id, member_id HAVING COUNT(*) > 1")
+    limpas: list[dict[str, Any]] = []
+    for caso in repetidos:
+        if caso["member_id"] is None:
+            continue
+        linhas = db.dicts(
+            "SELECT author_order, author_name FROM article_authors"
+            " WHERE article_id = ? AND member_id = ? ORDER BY author_order",
+            (caso["article_id"], caso["member_id"]))
+        for linha in linhas[:-1]:
+            db.execute(
+                "DELETE FROM article_authors WHERE article_id = ?"
+                "   AND author_order = ?",
+                (caso["article_id"], linha["author_order"]))
+            limpas.append({
+                "article_id": caso["article_id"],
+                "quem": linha["author_name"],
+                "era_a_ordem": linha["author_order"],
+                "ficou": linhas[-1]["author_name"],
+            })
+    # Renumera so os artigos mexidos, e de uma vez: `author_order` e parte
+    # da chave primaria, e um UPDATE linha a linha colide com a ordem que
+    # ainda nao foi movida.
+    for article_id in {x["article_id"] for x in limpas}:
+        nomes = db.dicts(
+            "SELECT author_order, member_id, author_name, is_corresponding,"
+            "       is_external FROM article_authors"
+            " WHERE article_id = ? ORDER BY author_order", (article_id,))
+        db.execute("DELETE FROM article_authors WHERE article_id = ?", (article_id,))
+        for ordem, linha in enumerate(nomes, start=1):
+            db.execute(
+                "INSERT INTO article_authors (article_id, member_id, author_name,"
+                "        author_order, is_corresponding, is_external)"
+                " VALUES (?, ?, ?, ?, ?, ?)",
+                (article_id, linha["member_id"], linha["author_name"], ordem,
+                 linha["is_corresponding"], linha["is_external"]))
+    if limpas:
+        db.conn.commit()
+    return limpas
+
+
 def garantir_professores(db: Database, criar: bool = True) -> dict[str, Any]:
     """Poe os dois professores no banco, com vinculo, nome inteiro e grafias.
 

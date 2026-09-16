@@ -3117,6 +3117,15 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
         # Os indices h que a coordenacao conferiu na base. Entram so onde
         # ninguem declarou nada ainda: assim que o numero for gravado pela
         # tela, a lista do codigo nao tem mais o que dizer sobre a pessoa.
+        # O autor que aparece duas vezes no mesmo artigo. Ninguem assina
+        # duas vezes: e marca do defeito que punha o "Responsavel" como
+        # primeiro autor quando a comparacao de nomes nao o achava na
+        # lista -- o que acontecia sempre que ele assinava so com o
+        # sobrenome. O defeito saiu; isto limpa o que ele deixou.
+        for limpa in ingest_autor.limpar_autoria_repetida(db):
+            print(f"  autoria repetida no artigo #{limpa['article_id']}:"
+                  f" \u201c{limpa['quem']}\u201d saiu da posicao"
+                  f" {limpa['era_a_ordem']} (fica \u201c{limpa['ficou']}\u201d)")
         # O vocabulario de delineamento reaplicado ao que ja esta gravado.
         # A lista muda -- rotulo renomeado, grafia nova aceita --, e sem
         # isto as linhas antigas ficam com o texto velho: na tela viram um

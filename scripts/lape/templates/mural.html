@@ -167,6 +167,13 @@ body { background: var(--surface-sunken); }
   letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .pauta .quando small { display: block; font-size: clamp(9.5px, .68vw, 11.5px);
   text-transform: uppercase; letter-spacing: .07em; color: var(--ink-2); }
+/* A hora, na mesma etiqueta do dia: "quando" e uma informacao so, e
+   partir dia/mes de um lado e hora do outro obriga quem le a juntar os
+   dois com o olho. Em numero tabular, sem caixa alta -- "14:00" nao e
+   sigla -- e no tom do acento, para nao competir com o dia. */
+.pauta .quando small.hora { margin-top: 2px; text-transform: none;
+  letter-spacing: 0; font-variant-numeric: tabular-nums; font-weight: 650;
+  color: var(--accent-strong); }
 .pauta .oque { min-width: 0; flex: 1; }
 .pauta .oque b { display: block; font-size: clamp(13px, 1.05vw, 18px); font-weight: 620;
   letter-spacing: -.014em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

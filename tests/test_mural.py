@@ -83,6 +83,57 @@ class _SemRedirecionar(urllib.request.HTTPRedirectHandler):
         return None
 
 
+class TestOHorarioNaPauta(unittest.TestCase):
+    """"Esta cadastrado, mas nao aparece".
+
+    A etiqueta de data mostrava dia e mes, e o horario ficava no banco sem
+    chegar a parede -- e saber se a qualificacao e as 9h ou as 14h e
+    exatamente para o que o mural serve.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.fonte = _recorta("horaDe")
+
+    def hora(self, iso, dia_inteiro=0):
+        return _no_node(self.fonte,
+                        f"horaDe({json.dumps(iso)}, {dia_inteiro})")
+
+    def test_a_hora_marcada_aparece(self):
+        self.assertEqual(self.hora("2026-09-17 09:00"), "09:00")
+        self.assertEqual(self.hora("2026-09-16 14:00"), "14:00")
+
+    def test_data_sem_hora_nao_inventa_hora(self):
+        self.assertEqual(self.hora("2026-09-17"), "")
+
+    def test_meia_noite_exata_nao_vira_00_00(self):
+        """O campo aceita so a data, e ai a hora gravada e zero por omissao.
+
+        Escrever "00:00" afirmaria uma hora que ninguem marcou -- e num
+        mural de parede isso manda o laboratorio para a reuniao errada.
+        """
+        self.assertEqual(self.hora("2026-09-17 00:00"), "")
+
+    def test_evento_de_dia_inteiro_nao_mostra_hora(self):
+        """Mesmo com horario preenchido: `all_day` e uma declaracao."""
+        self.assertEqual(self.hora("2026-10-02 09:00", 1), "")
+
+    def test_lixo_no_campo_nao_estoura_nem_aparece(self):
+        for ruim in ("", "2026-09-17 9:0", "sem data nenhuma"):
+            with self.subTest(valor=ruim):
+                self.assertEqual(self.hora(ruim), "")
+
+    def test_a_pauta_passa_a_hora_para_a_etiqueta(self):
+        """A funcao existir nao basta: alguem tem de chama-la."""
+        js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
+        trecho = js[js.index("function linhaDePauta("):]
+        trecho = trecho[:trecho.index("\n}")]
+        self.assertIn("item.hora", trecho)
+        montagem = js[js.index("const pauta = proximos.length"):]
+        montagem = montagem[:montagem.index("vazio(")]
+        self.assertIn("horaDe(e.start_at, e.all_day)", montagem)
+
+
 class TestMontagemDoMural(unittest.TestCase):
     """A pagina sai inteira do renderizador, sem depender de rede."""
 

@@ -765,11 +765,25 @@ def ingest_articles(db: Database, rows: list[dict]) -> int:
 
 def _link_authors(db: Database, article_id: int, authors: list[str],
                   replace: bool = True, lead: str | None = None) -> None:
-    """Grava a autoria; o responsavel entra como 1o autor se ja nao estiver."""
-    from .util import author_key
+    """Grava a autoria EXATAMENTE como foi declarada, e nada mais.
 
-    if lead and not any(author_key(a) == author_key(lead) for a in authors):
-        authors = [lead, *authors]
+    Antes, o "Responsavel" entrava como PRIMEIRO AUTOR quando nao estava na
+    lista. A intencao era boa -- que o artigo aparecesse nas metricas de
+    quem o conduz -- e o resultado era falsificar a autoria: o professor
+    que orienta e responde pelo manuscrito aparecia como primeiro autor de
+    tudo, quando o primeiro autor e quem fez o trabalho. Ordem de autoria
+    e o dado mais consequente de um artigo -- e o que a CAPES le, e o que
+    vale num concurso --, e o sistema nao pode inventa-la.
+
+    Pior: a comparacao era por `author_key`, e "Alexandro Andrade" nao casa
+    com "Andrade" ("andrade_a" contra "andrade"). Entao quem assinava so
+    com o sobrenome era acrescentado DE NOVO na frente, e o mesmo autor
+    ficava duas vezes no artigo -- uma vez no lugar inventado, outra no
+    lugar real.
+
+    `lead` continua no parametro porque quem chama passa, e porque o
+    "Responsavel" e um campo legitimo do artigo -- ele so nao e autoria.
+    """
     if not authors:
         return
     if replace:
