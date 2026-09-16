@@ -398,7 +398,7 @@ class TestOTipoDeEstudo(Base):
         self.assertEqual([r for _c, r, _g in mapping.DESENHOS_DE_ESTUDO], [
             "Ensaio clínico controlado e randomizado", "Estudo transversal",
             "Estudo de coorte", "Revisão sistemática", "Meta-análise",
-            "Revisão de escopo", "Revisão narrativa", "Estudo bibliométrico",
+            "Revisão de escopo", "Revisão narrativa", "Bibliometria",
             "Editorial", "Carta ao editor",
             "Comunicação curta", "Estudo de protocolo",
         ])
@@ -419,12 +419,15 @@ class TestOTipoDeEstudo(Base):
 
     def test_bibliometria_tem_lugar_proprio(self):
         """Ela mede a LITERATURA, e nao o efeito de algo em pessoas."""
+        # "Estudo bibliométrico" foi o rotulo por algumas horas. Continua
+        # na lista de grafias de proposito: planilha que ja tenha esse
+        # texto tem de cair no mesmo lugar, e nao virar um tipo a parte.
         for grafia in ("bibliometria", "Estudo bibliométrico",
                        "análise bibliométrica", "bibliometric analysis",
                        "cientometria", "scientometrics"):
             with self.subTest(grafia=grafia):
                 self.assertEqual(mapping.desenho_de_estudo(grafia),
-                                 "Estudo bibliométrico")
+                                 "Bibliometria")
 
     def test_nenhuma_grafia_serve_a_dois_delineamentos(self):
         """Duas entradas disputando a mesma grafia: a primeira ganha.
@@ -483,6 +486,64 @@ class TestOTipoDeEstudo(Base):
         trecho = trecho[:trecho.index("\n")+200]
         self.assertIn('"select"', trecho)
         self.assertIn("DESENHO_OPTS", trecho)
+
+    def test_o_banco_acompanha_quando_o_rotulo_e_renomeado(self):
+        """Renomear o rotulo sem tocar no banco deixa dois tipos na tela.
+
+        "Estudo bibliometrico" foi rotulo por algumas horas e virou
+        "Bibliometria". As linhas gravadas com o texto velho apareciam
+        como um tipo A PARTE, com contagem propria, ao lado do tipo certo
+        com zero: dois botoes para a mesma coisa, e a soma certa pelo
+        motivo errado.
+        """
+        for titulo, tipo in (("A", "Estudo bibliométrico"),
+                             ("B", "Bibliometria"),
+                             ("C", "ECR")):
+            curator.register(self.db, "articles",
+                             {"Título": titulo, "Tipo de estudo": tipo})
+        # grava o rotulo velho direto, por baixo do mapeador -- e o estado
+        # em que um banco de ontem esta
+        self.db.execute("UPDATE articles SET study_type = ?"
+                        " WHERE title = ?", ("Estudo bibliométrico", "A"))
+        self.db.conn.commit()
+
+        mudadas = mapping.renormalizar_delineamentos(self.db)
+        self.assertEqual([m["para"] for m in mudadas], ["Bibliometria"])
+        tipos = {r["title"]: r["study_type"] for r in
+                 self.db.dicts("SELECT title, study_type FROM articles")}
+        self.assertEqual(tipos["A"], "Bibliometria")
+        self.assertEqual(tipos["B"], "Bibliometria")
+        self.assertEqual(tipos["C"], "Ensaio clínico controlado e randomizado")
+
+    def test_a_renormalizacao_nao_encosta_no_que_alguem_escreveu(self):
+        """Mesma regra de `desenho_de_estudo`, um nivel acima.
+
+        "estudo piloto com adolescentes" nao esta na lista e e a unica
+        descricao que existe daquele artigo. Trocar por vazio -- ou por um
+        palpite -- e perder dado para ganhar arrumacao.
+        """
+        curator.register(self.db, "articles",
+                         {"Título": "Z", "Tipo de estudo": "estudo piloto com adolescentes"})
+        self.assertEqual(mapping.renormalizar_delineamentos(self.db), [])
+        self.assertEqual(
+            self.db.scalar("SELECT study_type FROM articles WHERE title = 'Z'"),
+            "estudo piloto com adolescentes")
+
+    def test_rodar_duas_vezes_nao_muda_mais_nada(self):
+        """A subida roda isto sempre -- na segunda tem de ficar calada."""
+        # pelo `register`, e nao por INSERT cru: o `title_key` sai de la, e
+        # sem ele o banco recusa a linha
+        curator.register(self.db, "articles", {"Título": "Y"})
+        self.db.execute("UPDATE articles SET study_type = ? WHERE title = ?",
+                        ("scoping review", "Y"))
+        self.db.conn.commit()
+        self.assertEqual(len(mapping.renormalizar_delineamentos(self.db)), 1)
+        self.assertEqual(mapping.renormalizar_delineamentos(self.db), [])
+
+    def test_a_subida_reaplica_o_vocabulario(self):
+        """Se nao rodar na subida, quem nunca reimporta planilha nao vê."""
+        fonte = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
+        self.assertIn("renormalizar_delineamentos(db)", fonte)
 
     def test_a_lista_de_artigos_tem_um_botao_por_delineamento(self):
         """Filtrar por tipo era digitar no campo de busca e torcer.

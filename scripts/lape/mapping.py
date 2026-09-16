@@ -6,6 +6,8 @@ a forma normalizada (sem acento, minuscula, separadores virando '_').
 """
 from __future__ import annotations
 
+from typing import Any
+
 from .util import norm_key
 
 # ----------------------------------------------------------------------
@@ -338,7 +340,10 @@ DESENHOS_DE_ESTUDO: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     # termo cresce --, e nao o efeito de uma intervencao em pessoas. E o
     # delineamento de metade do que sai de um laboratorio que mantem
     # acervo, e nao tinha lugar na lista.
-    ("bibliometria", "Estudo bibliométrico",
+    ("bibliometria", "Bibliometria",
+     # "estudo bibliometrico" fica na lista de grafias, e nao como rotulo:
+     # foi o rotulo por algumas horas, e planilha que ja tenha esse texto
+     # tem de continuar caindo aqui.
      ("bibliometria", "estudo bibliometrico", "analise bibliometrica",
       "bibliometrico", "bibliometrica", "bibliometric", "bibliometric study",
       "bibliometric analysis", "cientometria", "estudo cientometrico",
@@ -379,6 +384,37 @@ def desenho_de_estudo(valor: Any) -> str | None:
         return None
     codigo = ESTUDO_MAP.get(norm_key(texto))
     return ESTUDO_LABEL[codigo] if codigo else texto
+
+
+def renormalizar_delineamentos(db: Any) -> list[dict[str, Any]]:
+    """Reaplica o vocabulario de delineamento ao que ja esta gravado.
+
+    O campo virou seletor DEPOIS de anos de texto livre, e a lista ainda
+    muda: "Estudo bibliometrico" foi rotulo por algumas horas e virou
+    "Bibliometria" -- e renomear o rotulo sem tocar no banco deixa as
+    linhas antigas com o texto velho. Na tela isso aparece como um tipo a
+    parte, com contagem propria, ao lado do tipo certo com zero: dois
+    botoes para a mesma coisa.
+
+    So muda o que o vocabulario RECONHECE. "estudo piloto com
+    adolescentes" nao esta na lista e continua intacto, porque e a unica
+    descricao que existe daquele artigo -- a mesma regra de
+    `desenho_de_estudo`. Rodar duas vezes nao faz nada na segunda.
+    """
+    mudadas: list[dict[str, Any]] = []
+    linhas = db.dicts(
+        "SELECT id, study_type FROM articles"
+        " WHERE study_type IS NOT NULL AND study_type != ''")
+    for linha in linhas:
+        antes = linha["study_type"]
+        depois = desenho_de_estudo(antes)
+        if depois and depois != antes:
+            db.execute("UPDATE articles SET study_type = ? WHERE id = ?",
+                       (depois, linha["id"]))
+            mudadas.append({"id": linha["id"], "de": antes, "para": depois})
+    if mudadas:
+        db.conn.commit()
+    return mudadas
 
 
 ROLE_MAP: dict[str, str] = {

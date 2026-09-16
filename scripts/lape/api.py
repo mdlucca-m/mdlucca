@@ -3117,6 +3117,15 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
         # Os indices h que a coordenacao conferiu na base. Entram so onde
         # ninguem declarou nada ainda: assim que o numero for gravado pela
         # tela, a lista do codigo nao tem mais o que dizer sobre a pessoa.
+        # O vocabulario de delineamento reaplicado ao que ja esta gravado.
+        # A lista muda -- rotulo renomeado, grafia nova aceita --, e sem
+        # isto as linhas antigas ficam com o texto velho: na tela viram um
+        # tipo a parte, com contagem propria, ao lado do tipo certo com
+        # zero. So mexe no que o vocabulario reconhece.
+        from . import mapping as _mapping
+        for trocada in _mapping.renormalizar_delineamentos(db):
+            print(f"  tipo de estudo do artigo #{trocada['id']}:"
+                  f" \u201c{trocada['de']}\u201d -> \u201c{trocada['para']}\u201d")
         from . import indice_h as _indice_h
         for posto in _indice_h.instalar_declarados(db):
             print(f"  indice h de {posto['quem']}: {posto['h_index']}"
