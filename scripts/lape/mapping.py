@@ -322,9 +322,27 @@ DESENHOS_DE_ESTUDO: tuple[tuple[str, str, tuple[str, ...]], ...] = (
      ("meta-analise", "metanalise", "meta analise", "meta-analysis",
       "meta analysis", "revisao sistematica e metanalise",
       "revisao sistematica com metanalise")),
+    # Revisao de escopo NAO e revisao narrativa nem sistematica: ela
+    # mapeia o que existe sobre um tema sem julgar risco de vies, e tem
+    # protocolo proprio (PRISMA-ScR). Caia em "narrativa" enquanto nao
+    # estava na lista, e a contagem do painel dizia narrativa onde havia
+    # escopo.
+    ("revisao_de_escopo", "Revisão de escopo",
+     ("revisao de escopo", "revisao de escopo (scoping review)", "escopo",
+      "scoping review", "scoping", "revisao exploratoria",
+      "prisma-scr", "prisma scr")),
     ("revisao_narrativa", "Revisão narrativa",
      ("revisao narrativa", "revisao", "revisao de literatura", "review",
       "narrative review", "revisao critica")),
+    # Bibliometria mede a LITERATURA -- quem publica, quem cita quem, que
+    # termo cresce --, e nao o efeito de uma intervencao em pessoas. E o
+    # delineamento de metade do que sai de um laboratorio que mantem
+    # acervo, e nao tinha lugar na lista.
+    ("bibliometria", "Estudo bibliométrico",
+     ("bibliometria", "estudo bibliometrico", "analise bibliometrica",
+      "bibliometrico", "bibliometrica", "bibliometric", "bibliometric study",
+      "bibliometric analysis", "cientometria", "estudo cientometrico",
+      "scientometrics", "mapeamento da literatura")),
     ("editorial", "Editorial", ("editorial", "editoriais")),
     ("carta_ao_editor", "Carta ao editor",
      ("carta ao editor", "carta", "letter to the editor", "letter",

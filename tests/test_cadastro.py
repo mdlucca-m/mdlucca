@@ -387,13 +387,68 @@ class TestOQueOAgenteNaoPodeInventar(Base):
 # ----------------------------------------------------------------------
 class TestOTipoDeEstudo(Base):
 
-    def test_as_dez_opcoes_declaradas(self):
+    def test_as_doze_opcoes_declaradas(self):
+        """A ordem tambem esta no teste, e nao so o conjunto.
+
+        Os botoes de filtro da lista de artigos saem desta ordem. Ordenar
+        por contagem faria um botao mudar de lugar quando alguem cadastra
+        um artigo -- e quem clicou em "Revisao de escopo" na semana
+        passada teria de procurar de novo.
+        """
         self.assertEqual([r for _c, r, _g in mapping.DESENHOS_DE_ESTUDO], [
             "Ensaio clínico controlado e randomizado", "Estudo transversal",
             "Estudo de coorte", "Revisão sistemática", "Meta-análise",
-            "Revisão narrativa", "Editorial", "Carta ao editor",
+            "Revisão de escopo", "Revisão narrativa", "Estudo bibliométrico",
+            "Editorial", "Carta ao editor",
             "Comunicação curta", "Estudo de protocolo",
         ])
+
+    def test_revisao_de_escopo_nao_cai_em_narrativa(self):
+        """Era onde ela caia antes de existir na lista.
+
+        Escopo tem protocolo proprio (PRISMA-ScR) e nao julga risco de
+        vies. Contada como narrativa, o painel dizia narrativa onde havia
+        escopo -- e a diferenca e justamente o que uma revisao de escopo
+        se propoe a nao fazer.
+        """
+        for grafia in ("revisão de escopo", "Scoping Review", "scoping",
+                       "revisão exploratória", "PRISMA-ScR"):
+            with self.subTest(grafia=grafia):
+                self.assertEqual(mapping.desenho_de_estudo(grafia),
+                                 "Revisão de escopo")
+
+    def test_bibliometria_tem_lugar_proprio(self):
+        """Ela mede a LITERATURA, e nao o efeito de algo em pessoas."""
+        for grafia in ("bibliometria", "Estudo bibliométrico",
+                       "análise bibliométrica", "bibliometric analysis",
+                       "cientometria", "scientometrics"):
+            with self.subTest(grafia=grafia):
+                self.assertEqual(mapping.desenho_de_estudo(grafia),
+                                 "Estudo bibliométrico")
+
+    def test_nenhuma_grafia_serve_a_dois_delineamentos(self):
+        """Duas entradas disputando a mesma grafia: a primeira ganha.
+
+        `ESTUDO_MAP` usa `setdefault`, entao a colisao nao estoura -- ela
+        fica silenciosa, e o delineamento que perdeu passa a ser
+        inalcancavel por aquela palavra. Este teste e o que faz a colisao
+        falar.
+        """
+        from lape.mapping import norm_key
+
+        # Colisao e a mesma grafia servindo a CODIGOS DIFERENTES. O rotulo
+        # repetir uma das grafias do proprio delineamento e normal --
+        # "Comunicação curta" e "comunicacao curta" dao a mesma chave, e
+        # apontam para o mesmo lugar.
+        visto: dict[str, str] = {}
+        colisoes = []
+        for codigo, rotulo, grafias in mapping.DESENHOS_DE_ESTUDO:
+            for grafia in (rotulo,) + grafias:
+                chave = norm_key(grafia)
+                if chave in visto and visto[chave] != codigo:
+                    colisoes.append(f"“{grafia}”: {visto[chave]} / {codigo}")
+                visto.setdefault(chave, codigo)
+        self.assertEqual(colisoes, [])
 
     def test_a_tela_oferece_exatamente_as_mesmas(self):
         """Duas listas que divergem sao pior do que uma lista so.
@@ -428,6 +483,53 @@ class TestOTipoDeEstudo(Base):
         trecho = trecho[:trecho.index("\n")+200]
         self.assertIn('"select"', trecho)
         self.assertIn("DESENHO_OPTS", trecho)
+
+    def test_a_lista_de_artigos_tem_um_botao_por_delineamento(self):
+        """Filtrar por tipo era digitar no campo de busca e torcer.
+
+        A busca livre procura o termo no registro inteiro: "revisão"
+        traz sistemática, narrativa e de escopo juntas, e nada diz
+        QUANTOS ha de cada. Os botoes saem da mesma lista declarada, com
+        a contagem de cada um.
+        """
+        html = (TEMPLATES / "app.html").read_text(encoding="utf-8")
+        trecho = html[html.index("VIEWS.artigos = crudView({"):]
+        trecho = trecho[:trecho.index("\n  fields:")]
+        self.assertIn("chips:", trecho)
+        self.assertIn('campo: "study_type"', trecho)
+        # da MESMA lista do seletor -- duas listas divergem
+        self.assertIn("valores: DESENHO_OPTS", trecho)
+
+    def test_os_botoes_e_a_busca_se_combinam(self):
+        """Um filtro que zera o outro faz a pessoa perder o que ja tinha."""
+        html = (TEMPLATES / "app.html").read_text(encoding="utf-8")
+        trecho = html[html.index("function visiveis()"):]
+        trecho = trecho[:trecho.index("function repintar()")]
+        # o botao recorta, e a busca recorta DEPOIS, no que sobrou
+        self.assertIn("filtro.valor", trecho)
+        self.assertIn("filtro.termo", trecho)
+
+    def test_ha_um_botao_para_quem_nao_tem_tipo_declarado(self):
+        """Sem ele, esses artigos so aparecem em "Todos" -- e se perdem.
+
+        E sao justamente os que precisam de alguem: artigo sem
+        delineamento declarado nao entra em nenhuma contagem do painel.
+        """
+        html = (TEMPLATES / "app.html").read_text(encoding="utf-8")
+        trecho = html[html.index("VIEWS.artigos = crudView({"):]
+        trecho = trecho[:trecho.index("\n  fields:")]
+        self.assertIn("sem tipo declarado", trecho)
+
+    def test_valor_fora_da_lista_tambem_ganha_botao(self):
+        """O que alguem escreveu a mao antes de o campo virar seletor.
+
+        Esconder esses registros faria a soma dos botoes nao fechar com o
+        total -- e quem olha confere a soma.
+        """
+        html = (TEMPLATES / "app.html").read_text(encoding="utf-8")
+        trecho = html[html.index("let botoes = null;"):]
+        trecho = trecho[:trecho.index("const bar = h(")]
+        self.assertIn("declarados.indexOf(v) < 0", trecho)
 
     def test_o_caminho_de_gravacao_normaliza(self):
         """Tela, planilha e API entram todas pelo mesmo `ingest_articles`."""
@@ -641,6 +743,58 @@ class TestOIndiceH(Base):
     def test_quem_nao_esta_no_banco_nao_vira_ficha(self):
         indice_h.instalar_declarados(self.db)
         self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM members"), 0)
+
+
+# ----------------------------------------------------------------------
+# 5. O rotulo, e nao a forma canonica
+# ----------------------------------------------------------------------
+class TestORotuloNaTela(unittest.TestCase):
+    """O banco guarda "em_producao"; a tela mostrava esse mesmo texto.
+
+    Em cinco lugares -- lista de artigos, meus artigos, submissoes e as
+    duas de projetos -- a etiqueta imprimia a forma canonica. Quem le
+    "em_producao" no painel do laboratorio le um erro de sistema; e nao
+    era erro, era a traducao que faltava. Os mapas ja existiam e eram
+    usados so no formulario.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.html = (TEMPLATES / "app.html").read_text(encoding="utf-8")
+
+    def test_nenhuma_etiqueta_imprime_a_forma_canonica(self):
+        for cru in ("text: r.status", "text: r.decision",
+                    "text: row.status", "text: row.decision"):
+            with self.subTest(trecho=cru):
+                self.assertNotIn(cru, self.html)
+
+    def test_as_tres_situacoes_tem_mapa(self):
+        for mapa in ("SITUACAO_ROTULO", "DECISAO_ROTULO", "PROJETO_ROTULO"):
+            with self.subTest(mapa=mapa):
+                self.assertIn("const " + mapa + " = {", self.html)
+
+    def test_o_mapa_de_projetos_cobre_o_que_a_tela_oferece(self):
+        """Duas listas que divergem devolvem a forma canonica na tela."""
+        trecho = self.html[self.html.index("const PROJETO_ROTULO = {"):]
+        trecho = trecho[:trecho.index("};")]
+        for rotulo in ("Em andamento", "Planejado", "Concluído", "Suspenso"):
+            with self.subTest(rotulo=rotulo):
+                self.assertIn(rotulo, trecho)
+        opcoes = self.html[self.html.index("const PROJECT_OPTS = ["):]
+        opcoes = opcoes[:opcoes.index("];")]
+        for rotulo in ("Em andamento", "Planejado", "Concluído", "Suspenso"):
+            self.assertIn(rotulo, opcoes)
+
+    def test_valor_sem_traducao_volta_como_veio(self):
+        """Nunca desaparecer da tela por nao estar no mapa.
+
+        Um status novo no banco e um rotulo que falta -- e melhor mostrar
+        "em_analise" do que mostrar nada, que e o que `mapa[valor]`
+        sozinho faria.
+        """
+        trecho = self.html[self.html.index("function rotuloDe("):]
+        trecho = trecho[:trecho.index("\n}")]
+        self.assertIn("mapa[valor] || valor", trecho)
 
 
 if __name__ == "__main__":

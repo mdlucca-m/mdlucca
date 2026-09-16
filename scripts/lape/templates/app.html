@@ -480,12 +480,14 @@ const TESE_SITUACAO_OPTS = [
 ];
 const STATUS_OPTS = ["Em produção", "Submetido", "Em revisão", "Aceito", "Publicado",
                      "Rejeitado", "Arquivado"];
-/* Os dez delineamentos que o laboratório registra, na ordem em que a
+/* Os doze delineamentos que o laboratório registra, na ordem em que a
    coordenação os declarou. A mesma lista está em mapping.DESENHOS_DE_ESTUDO,
-   que é por onde a importação de planilha faz "ECR" e "RCT" caírem aqui. */
+   que é por onde a importação de planilha faz "ECR" e "RCT" caírem aqui —
+   e há teste que reprova se as duas divergirem. */
 const DESENHO_OPTS = ["Ensaio clínico controlado e randomizado", "Estudo transversal",
                       "Estudo de coorte", "Revisão sistemática", "Meta-análise",
-                      "Revisão narrativa", "Editorial", "Carta ao editor",
+                      "Revisão de escopo", "Revisão narrativa",
+                      "Estudo bibliométrico", "Editorial", "Carta ao editor",
                       "Comunicação curta", "Estudo de protocolo"];
 const DECISION_OPTS = ["Em avaliação", "Revisão solicitada", "Aceito", "Rejeitado",
                        "Desk rejection", "Retirado"];
@@ -606,7 +608,7 @@ VIEWS.perfil = {
         {k: "role", label: "Papel"},
         {k: "status", label: "Situação", render: function (r){
           return h("span", {class: "badge" + (r.status === "em_andamento" ? " ok" : ""),
-            text: r.status}); }},
+            text: rotuloDe(PROJETO_ROTULO, r.status)}); }},
       ], me.project_list, "Você ainda não está vinculado a nenhum projeto."),
     ]));
 
@@ -615,7 +617,8 @@ VIEWS.perfil = {
       table([
         {k: "title", label: "Título"},
         {k: "status", label: "Situação", render: function (r){
-          return h("span", {class: "badge", text: r.status}); }},
+          return h("span", {class: "badge",
+            text: rotuloDe(SITUACAO_ROTULO, r.status)}); }},
         {k: "year_published", label: "Ano", num: true},
         {k: "journal", label: "Periódico"},
         {label: "Citações", num: true, render: function (r){
@@ -726,17 +729,6 @@ function crudView(config){
         };
       }
       const data = await api("/api/" + config.entity + "?limit=" + (config.limit || 400));
-      const bar = h("div", {class: "rowbar"}, [
-        h("h3", {text: config.listTitle + " (" + data.count + ")"}),
-        h("input", {class: "searchbar", type: "search", placeholder: "Filtrar…",
-          oninput: function (ev){
-            const term = ev.target.value.toLowerCase();
-            host.innerHTML = "";
-            host.appendChild(table(colunas, data.items.filter(function (row){
-              return JSON.stringify(row).toLowerCase().includes(term);
-            }), "Nenhum registro corresponde ao filtro."));
-          }}),
-      ]);
       /* Coluna de ação: um botão por linha, para mexer no registro que já
          existe sem redigitá-lo. Sem isso, "atualizar" significa preencher o
          formulário de novo — e ninguém faz isso, então o dado envelhece. */
@@ -760,14 +752,108 @@ function crudView(config){
             return h("div", {style: "display:flex;gap:6px;justify-content:flex-end"},
               acoes.map(function (fn){ return fn(row); })); } }])
         : config.columns;
-      const host = h("div", {}, table(colunas, data.items));
+      /* ---- os dois filtros, que se combinam ---- */
+      /* Eram um só: uma caixa de texto que procurava o termo no registro
+         inteiro. Para achar os bibliométricos você digitava "bibliom" e
+         torcia. Os botões dizem QUE tipos existem e quantos há de cada um
+         antes de você clicar — e isso a caixa de texto não faz, porque
+         para ela o que não foi digitado não existe. */
+      const filtro = {termo: "", valor: null};
+      const host = h("div", {});
+      const contador = h("h3", {});
+
+      function visiveis(){
+        return data.items.filter(function (row){
+          if (filtro.valor !== null){
+            const v = String(row[config.chips.campo] || "");
+            /* `""` é o botão "sem tipo declarado": ele não é um valor, é a
+               AUSÊNCIA dele, e sem um botão próprio esses registros só
+               apareciam em "Todos" — onde se perdem no meio. */
+            if (filtro.valor === "" ? v !== "" : v !== filtro.valor) return false;
+          }
+          if (!filtro.termo) return true;
+          return JSON.stringify(row).toLowerCase().includes(filtro.termo);
+        });
+      }
+
+      function repintar(){
+        const lista = visiveis();
+        host.innerHTML = "";
+        host.appendChild(table(colunas, lista,
+          "Nenhum registro corresponde ao filtro."));
+        contador.textContent = config.listTitle
+          + (lista.length === data.count
+             ? " (" + data.count + ")"
+             : " (" + lista.length + " de " + data.count + ")");
+        if (botoes) botoes.forEach(function (b){
+          b.classList.toggle("on", b.__valor === filtro.valor); });
+      }
+
+      let botoes = null;
+      const barraDeChips = h("div", {class: "chips", style: "margin:0 0 10px"});
+      if (config.chips){
+        const campo = config.chips.campo;
+        const conta = {};
+        data.items.forEach(function (row){
+          const v = String(row[campo] || "");
+          conta[v] = (conta[v] || 0) + 1;
+        });
+        /* A ordem é a da lista declarada, e não a da contagem: um botão que
+           muda de lugar quando alguém cadastra um artigo obriga a pessoa a
+           procurar de novo o que ela clicou na semana passada. */
+        const declarados = (config.chips.valores || []).slice();
+        /* O que está no banco fora da lista entra no fim: é o texto que
+           alguém escreveu à mão antes de o campo virar seletor, e esconder
+           esses registros faria a soma dos botões não fechar com o total. */
+        Object.keys(conta).forEach(function (v){
+          if (v !== "" && declarados.indexOf(v) < 0) declarados.push(v);
+        });
+
+        const definir = function (valor){
+          filtro.valor = valor;
+          repintar();
+        };
+        botoes = [];
+        const fazer = function (valor, rotulo, n){
+          const b = h("button", {class: "chip" + (n ? "" : " vazio"),
+            title: n ? null : "nenhum registro com este tipo ainda",
+            text: rotulo + " (" + n + ")"});
+          b.__valor = valor;
+          b.onclick = function (){ definir(valor); };
+          botoes.push(b);
+          barraDeChips.appendChild(b);
+        };
+        fazer(null, "Todos", data.count);
+        declarados.forEach(function (v){ fazer(v, v, conta[v] || 0); });
+        if (conta[""]) fazer("", config.chips.vazio || "sem declarar", conta[""]);
+        VIEW.appendChild(h("div", {class: "sec"}, [
+          h("div", {class: "lab", style: "margin-bottom:6px",
+            text: config.chips.rotulo || "FILTRAR POR"}),
+          barraDeChips,
+        ]));
+      }
+
+      const bar = h("div", {class: "rowbar"}, [
+        contador,
+        h("input", {class: "searchbar", type: "search", placeholder: "Filtrar…",
+          oninput: function (ev){
+            filtro.termo = ev.target.value.toLowerCase();
+            repintar();
+          }}),
+      ]);
       VIEW.appendChild(h("div", {class: "sec"}, [bar, host]));
+      repintar();
     },
   };
 }
 
 VIEWS.artigos = crudView({
   id: "artigos", entity: "articles", label: "Artigos", group: "Produção",
+  /* Um botão por delineamento, com a contagem de cada um. É a pergunta que
+     se faz olhando esta lista -- "quais são os bibliométricos?" -- e que
+     antes exigia digitar e torcer. */
+  chips: {campo: "study_type", valores: DESENHO_OPTS, rotulo: "TIPO DE ESTUDO",
+          vazio: "sem tipo declarado"},
   lead: "Cadastre um artigo novo ou atualize um existente — o título é a chave, então repetir o mesmo título atualiza o registro.",
   formTitle: "Novo artigo / atualizar existente", listTitle: "Artigos no banco",
   /* `from` é o que permite carregar um artigo existente no formulário: sem
@@ -858,7 +944,8 @@ VIEWS.artigos = crudView({
       return r.authors && r.authors.length > 46 ? r.authors.slice(0, 45) + "…" : r.authors; }},
     {k: "status", label: "Situação", render: function (r){
       return h("span", {class: "badge" + (r.status === "publicado" ? " ok" :
-        (r.status === "rejeitado" ? " bad" : "")), text: r.status}); }},
+        (r.status === "rejeitado" ? " bad" : "")),
+        text: rotuloDe(SITUACAO_ROTULO, r.status)}); }},
     {k: "year_published", label: "Ano", num: true},
     {k: "submission_attempts", label: "Tentativas", num: true},
   ],
@@ -877,6 +964,23 @@ const SITUACAO_ROTULO = {
   aceito: "Aceito", publicado: "Publicado", rejeitado: "Rejeitado",
   arquivado: "Arquivado",
 };
+
+const PROJETO_ROTULO = {
+  em_andamento: "Em andamento", planejado: "Planejado",
+  concluido: "Concluído", suspenso: "Suspenso",
+};
+
+/* O rótulo, e não a forma canônica.
+   O banco guarda "em_producao" porque é isso que não muda de acento nem de
+   maiúscula. A tela mostrava esse mesmo texto dentro de uma etiqueta, em
+   cinco lugares -- lista de artigos, meus artigos, submissões e as duas de
+   projetos. Quem lê "em_producao" no painel do laboratório lê um erro de
+   sistema; e não era erro, era tradução que faltava. Valor sem tradução
+   volta como veio, para nunca desaparecer da tela por não estar no mapa. */
+function rotuloDe(mapa, valor){
+  if (!valor) return "—";
+  return mapa[valor] || valor;
+}
 
 const DECISAO_ROTULO = {
   em_avaliacao: "Em avaliação", revisao_solicitada: "Revisão solicitada",
@@ -967,7 +1071,7 @@ VIEWS.submissoes = crudView({
     {k: "decision", label: "Decisão", render: function (r){
       return h("span", {class: "badge" + (r.decision === "aceito" ? " ok" :
         (r.decision && r.decision.includes("reje") || r.decision === "desk_reject" ? " bad" : " warn")),
-        text: r.decision || "—"}); }},
+        text: rotuloDe(DECISAO_ROTULO, r.decision)}); }},
     {k: "decision_on", label: "Decisão em", render: function (r){ return dt(r.decision_on); }},
     {k: "rejection_reason_label", label: "Motivo"},
   ],
@@ -1006,7 +1110,7 @@ VIEWS.projetos = crudView({
     {k: "n_members", label: "Integrantes", num: true},
     {k: "status", label: "Situação", render: function (r){
       return h("span", {class: "badge" + (r.status === "em_andamento" ? " ok" : ""),
-        text: r.status}); }},
+        text: rotuloDe(PROJETO_ROTULO, r.status)}); }},
   ],
 });
 
