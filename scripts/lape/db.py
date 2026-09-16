@@ -11,6 +11,22 @@ from . import config
 from .util import clean_text, norm_key
 
 
+class BancoOcupado(RuntimeError):
+    """Outro programa esta segurando o banco -- quase sempre o LAPE no ar."""
+
+
+def _so_o_essencial(sql: str | None) -> str:
+    """A definicao sem o que nao muda o sentido: espaco e `IF NOT EXISTS`.
+
+    O sqlite guarda o CREATE VIEW como foi escrito, menos o `IF NOT
+    EXISTS`. Comparar texto cru acusaria diferenca em toda reindentacao.
+    """
+    import re
+
+    limpo = re.sub(r"IF NOT EXISTS\s+", "", sql or "")
+    return re.sub(r"\s+", " ", limpo).strip().rstrip(";")
+
+
 class Database:
     """Wrapper fino sobre sqlite3 com upserts idempotentes.
 
@@ -27,6 +43,12 @@ class Database:
         self.conn.row_factory = sqlite3.Row
         self.conn.execute("PRAGMA foreign_keys = ON")
         self.conn.execute("PRAGMA journal_mode = WAL")
+        # Cinco segundos e o padrao do sqlite3, e e pouco para este uso: o
+        # servico do laboratorio fica no ar gravando ponto, citacao e copia
+        # de seguranca, e um comando de linha que caia na primeira colisao
+        # obriga a desligar o sistema para rodar o curador. Trinta segundos
+        # e mais do que qualquer escrita daqui leva.
+        self.conn.execute("PRAGMA busy_timeout = 30000")
         self._cache: dict[str, dict[str, int]] = {}
 
     # ------------------------------------------------------------------
@@ -43,7 +65,19 @@ class Database:
     def migrate(self, schema_path: Path = config.SCHEMA_PATH) -> None:
         if not schema_path.exists():
             raise FileNotFoundError(f"schema nao encontrado: {schema_path}")
-        self._drop_views()
+        try:
+            self._drop_views(schema_path)
+        except sqlite3.OperationalError as erro:
+            if "locked" not in str(erro).lower():
+                raise
+            # A mensagem crua e "database is locked", e ela nao diz a quem
+            # perguntar. Esta diz.
+            raise BancoOcupado(
+                "o banco esta ocupado por outro programa, e esta atualizacao"
+                " precisa recriar as views.\n"
+                "  Quase sempre e o proprio LAPE no ar: feche a janela preta"
+                " do sistema, rode este comando, e suba o LAPE de novo.\n"
+                f"  ({erro})") from erro
         # As colunas novas entram ANTES do script: um indice criado sobre uma
         # coluna que ainda nao existe faz o executescript inteiro falhar, e o
         # banco antigo nao migra. Foi assim que a coluna advisor_id quebrou a
@@ -52,14 +86,58 @@ class Database:
         self.conn.executescript(schema_path.read_text(encoding="utf-8"))
         self.conn.commit()
 
-    def _drop_views(self) -> None:
-        """Views sao recriadas a cada migracao.
+    def _drop_views(self, schema_path: Path = config.SCHEMA_PATH) -> None:
+        """Derruba SO as views cuja definicao mudou.
 
         'CREATE VIEW IF NOT EXISTS' manteria a definicao antiga em bancos
-        ja existentes, escondendo colunas novas do esquema.
+        ja existentes, escondendo colunas novas do esquema -- por isso a
+        view mudada tem de cair antes.
+
+        Mas derrubar TODAS a cada migracao custava caro, e o preco aparecia
+        longe daqui: `DROP VIEW` e a UNICA operacao desta migracao que
+        precisa da trava exclusiva do banco. Medido: com o LAPE no ar e
+        gravando, o `executescript` inteiro passa -- e tudo
+        `CREATE ... IF NOT EXISTS` -- e so o DROP falha com "database is
+        locked". Resultado pratico: `python scripts/lape_agent.py curador`
+        morria com um traceback sempre que o sistema estivesse de pe e
+        escrevendo, e a saida era desligar o laboratorio para rodar o
+        curador.
+
+        Comparando a definicao guardada com a declarada, a migracao comum
+        -- nada mudou no esquema -- deixa de precisar da trava, e os dois
+        convivem.
+
+        Quando NAO DA PARA COMPARAR, derruba. O padrao seguro e o
+        comportamento antigo: uma view que ficou com definicao velha
+        esconde coluna nova e o painel mostra dado errado em silencio,
+        que e pior do que um comando que espera a vez.
         """
-        for row in self.query("SELECT name FROM sqlite_master WHERE type = 'view'"):
-            self.conn.execute(f"DROP VIEW IF EXISTS {row['name']}")
+        declaradas = self._views_declaradas(schema_path)
+        for row in self.query("SELECT name, sql FROM sqlite_master WHERE type = 'view'"):
+            nome = row["name"]
+            esperada = declaradas.get(nome)
+            if esperada is not None and esperada == _so_o_essencial(row["sql"]):
+                continue
+            self.conn.execute(f"DROP VIEW IF EXISTS {nome}")
+
+    def _views_declaradas(self, schema_path: Path) -> dict[str, str]:
+        """Nome -> definicao normalizada de cada view do schema.
+
+        View que este metodo nao consegue recortar fica FORA do dicionario,
+        e quem chama a derruba -- e nao a mantem por otimismo.
+        """
+        import re
+
+        texto = schema_path.read_text(encoding="utf-8")
+        saida: dict[str, str] = {}
+        for nome in re.findall(r"CREATE VIEW(?:\s+IF NOT EXISTS)?\s+(\w+)\s+AS\b",
+                               texto):
+            achado = re.search(
+                rf"CREATE VIEW(?:\s+IF NOT EXISTS)?\s+{nome}\s+AS.*?;\s*$",
+                texto, re.S | re.M)
+            if achado:
+                saida[nome] = _so_o_essencial(achado.group(0))
+        return saida
 
     def _add_missing_columns(self, schema_path: Path) -> None:
         """Adiciona colunas novas a bancos criados por versoes anteriores.

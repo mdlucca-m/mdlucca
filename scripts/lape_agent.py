@@ -886,8 +886,16 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    from lape.db import BancoOcupado
+
     args = build_parser().parse_args()
-    return args.func(args)
+    try:
+        return args.func(args)
+    except BancoOcupado as erro:
+        # Sem traceback: a pessoa que roda isto nao le pilha de chamada, e
+        # a mensagem ja diz o que fazer.
+        print(f"\n  ! {erro}\n")
+        return 1
 
 
 if __name__ == "__main__":
