@@ -7061,6 +7061,247 @@ function leituraDaMatriz(r) {
       + r.sobreviventes + " de " + r.testes + " pares sobrevivem à correção." };
 }
 
+/* O perfil de PERMISSAO de quem esta olhando -- `user_role`, e nao `role`.
+   `role` e o vinculo academico ("Professor(a)", "Mestrando(a)") e nao
+   concede nada; ler o campo errado ja custou dois defeitos nesta casa,
+   nos dois casos deixando a coordenacao sem ver o que e dela. */
+const RANQUE = { leitura: 0, integrante: 1, coordenacao: 2, admin: 3 };
+function podeVer(minimo) {
+  const meu = USER && USER.user_role;
+  return (RANQUE[meu] || 0) >= (RANQUE[minimo] || 0);
+}
+
+/* ======================================================================
+   O LAPE se sustenta?
+   ----------------------------------------------------------------------
+   Um laboratorio academico nao e limitado por dinheiro antes de ser
+   limitado por GENTE COM PRAZO: bolsa termina, tese e defendida, e a
+   pessoa vai embora levando o manuscrito que estava escrevendo.
+
+   A pergunta que esta tela responde nao e "quantos vao sair" -- a lista
+   de integrantes ja responde. E quantos manuscritos EM CURSO ficam sem
+   ninguem quando os prazos chegarem. Um manuscrito em que todos os
+   autores do laboratorio saem nao tem quem o termine; um em que alguem
+   fica tem. A diferenca entre os dois e a unica coisa aqui que muda uma
+   decisao -- e nenhuma media de "producao por pesquisador" a mostra,
+   porque media trata pessoas como intercambiaveis.
+
+   O CALCULO NAO MORA AQUI: vem de `/api/sustentabilidade`, que chama o
+   `sustentabilidade.py` -- o que tem os testes.
+
+   E a tela e SO DA COORDENACAO, por rota ao vivo. Bolsa e prazo de tese
+   nao sao dado de producao, sao dado da vida de uma pessoa, e o payload
+   do painel vai inteiro para dentro do HTML exportado e para a TV do
+   mural. E a mesma regra do `metrics.SO_DA_COORDENACAO`.
+   ====================================================================== */
+const ESTADO_SUSTENTA = { meses: 12 };
+
+view("sustenta", "O LAPE se sustenta?", "Pessoas",
+  "Quem tem prazo para sair, e quais manuscritos em curso ficam sem dono quando "
+  + "esses prazos chegarem.", function (host) {
+    if (!LIVE) {
+      host.appendChild(el("div", { class: "note", text:
+        "Esta tela lê o servidor ao vivo: prazo de bolsa e de tese não viajam "
+        + "em arquivo exportado." }));
+      return;
+    }
+    if (!podeVer("coordenacao")) {
+      host.appendChild(el("div", { class: "note", text:
+        "Só a coordenação vê esta tela: ela mostra prazo de bolsa e de tese "
+        + "de cada pessoa, que é dado da vida de alguém e não de produção." }));
+      return;
+    }
+    const palco = el("div");
+    host.appendChild(palco);
+
+    function desenhar(d) {
+      palco.textContent = "";
+      const t = d.trabalho, p = d.pessoas;
+
+      /* ---- a janela, que muda a resposta ---- */
+      palco.appendChild(el("div", { class: "toolbar", style: "margin-bottom:14px" }, [
+        el("span", { class: "lab", text: "JANELA" }),
+        el("div", { class: "segmented", role: "group", "aria-label": "Janela" },
+          [6, 12, 24].map(function (m) {
+            return el("button", { type: "button",
+              class: d.janela_meses === m ? "on" : "",
+              text: m + " meses", onclick: function () {
+                ESTADO_SUSTENTA.meses = m; buscar(); } });
+          })),
+        el("span", { class: "hint", text: "de hoje até " + dt(p.limite) }),
+      ]));
+
+      /* ---- as tres caixas, e a primeira e a que decide ---- */
+      /* Cor de estado aqui é legítima: "sem dono" É um estado ruim, e não
+         a identidade de uma série. Órfão em crítico, parcial em alerta,
+         firme em bom -- e o número ao lado de cada um, porque cor sozinha
+         não nomeia coisa alguma. */
+      palco.appendChild(el("div", { class: "grid g3 sec" }, [
+        kpi({ label: "Ficam sem dono", value: C.fmt(t.orfaos.length),
+          icon: "aviso", tone: t.orfaos.length ? "bad" : "good",
+          foot: "todos os autores do LAPE saem na janela",
+          leitura: { sinal: t.orfaos.length ? "desce" : "parado",
+            forte: t.orfaos.length
+              ? t.orfaos.length + " de " + t.em_curso + " em curso"
+              : "nenhum",
+            texto: t.orfaos.length
+              ? "— não há quem termine" : "— todo manuscrito tem quem o termine" } }),
+        kpi({ label: "Perdem gente", value: C.fmt(t.parciais.length),
+          icon: "pessoas", tone: t.parciais.length ? "warn" : null,
+          foot: "alguém sai, alguém fica",
+          leitura: { sinal: "parado", forte: "perdem tempo",
+            texto: "— não perdem dono" } }),
+        kpi({ label: "Firmes", value: C.fmt(t.firmes.length),
+          icon: "aceite", tone: "good",
+          foot: "ninguém sai na janela" }),
+      ]));
+
+      /* ---- o que fazer agora ---- */
+      if (t.orfaos.length) {
+        palco.appendChild(card("Sem dono quando o prazo chegar",
+          "Cada um destes precisa de uma decisão: quem assume, ou o que se "
+          + "faz com o manuscrito.",
+          el("div", {}, t.orfaos.map(function (x) {
+            return el("div", { class: "note warn" }, [
+              el("b", { text: (x.code ? x.code + " · " : "") + x.titulo }),
+              el("div", { class: "hint", text: "saem: " + x.saindo.map(function (s) {
+                return s.quem + " (" + dt(s.quando) + ", " + s.motivo + ")"; })
+                .join(" · ") }),
+            ]);
+          }))));
+      }
+
+      /* ---- de quem depende o que esta em curso ---- */
+      /* Um "18" sozinho convida a pergunta "18 de quem?". A contagem por
+         PESSOA responde onde agir: um unico prazo pode tocar quase tudo
+         que esta na bancada, e nesse caso a decisao e sobre aquela pessoa
+         -- nao sobre dezoito manuscritos. */
+      const toca = {};
+      t.orfaos.concat(t.parciais).forEach(function (x) {
+        x.saindo.forEach(function (sai) {
+          const a = toca[sai.quem] || (toca[sai.quem] = {
+            quem: sai.quem, quando: sai.quando, motivo: sai.motivo, n: 0 });
+          a.n += 1;
+        });
+      });
+      const porPessoa = Object.keys(toca).map(function (k) { return toca[k]; })
+        .sort(function (a, b) { return b.n - a.n; });
+      if (porPessoa.length) {
+        palco.appendChild(card("De quem depende o que está em curso",
+          "Quantos manuscritos em curso têm esta pessoa entre os autores — "
+          + "e ela tem prazo dentro da janela.",
+          [
+            C.bars({ items: porPessoa.map(function (x) {
+                return { label: x.quem, value: x.n }; }),
+              mono: true, caption: "manuscritos em curso" }),
+            el("div", { class: "hint", text: porPessoa.map(function (x) {
+              return x.quem + ": " + x.motivo + " em " + dt(x.quando);
+            }).join(" · ") }),
+          ]));
+      }
+
+      /* ---- quem sai ---- */
+      palco.appendChild(card("Quem tem prazo nos próximos " + d.janela_meses + " meses",
+        p.saem.length ? null : "Ninguém, pelas datas declaradas.",
+        p.saem.length ? dataTable({
+          cols: [
+            { k: "quem", label: "Quem" },
+            { k: "vinculo", label: "Vínculo" },
+            { k: "quando", label: "Quando", render: function (r) { return dt(r.quando); } },
+            { k: "motivo", label: "Motivo" },
+            { k: "dias", label: "Faltam", num: true, render: function (r) {
+              return r.ja_passou ? el("span", { class: "badge bad",
+                text: "venceu há " + Math.abs(r.dias) + " d" })
+                : dur(r.dias); } },
+          ],
+          rows: p.saem, sortKey: "quando", sortDir: 1, pageSize: 20,
+          file: "prazos-do-lape",
+        }) : null));
+
+      /* ---- entradas e saidas: o saldo, com sinal ---- */
+      /* O saldo, e não duas séries: a pergunta é se o laboratório repõe
+         quem forma. Acima do zero cresceu, abaixo encolheu -- e os dois
+         números crus vão na legenda, porque saldo zero com 5 entradas e 5
+         saídas não é o mesmo laboratório que saldo zero com 0 e 0. */
+      const r = d.renovacao || [];
+      palco.appendChild(card("Repõe quem forma?",
+        "Formar gente é perder gente por construção — a saída de quem "
+        + "defendeu é um sucesso. O que a série mostra é se a reposição acompanha.",
+        [
+          C.columns({ labels: r.map(function (x) { return String(x.ano); }),
+            series: [{ label: "saldo", values: r.map(function (x) { return x.saldo; }) }],
+            mono: true, height: 200, caption: "entradas menos saídas, por ano" }),
+          el("div", { class: "hint", text: r.map(function (x) {
+            return x.ano + ": " + x.entraram + " entraram, " + x.sairam + " saíram";
+          }).join(" · ") }),
+        ]));
+
+      /* ---- a ressalva, que não é rodapé ---- */
+      if (p.sem_prazo.length) {
+        palco.appendChild(card("Sem prazo declarado (" + p.sem_prazo.length + ")",
+          "Estes NÃO contam como quem fica.",
+          [
+            el("div", { class: "note info", text: p.sem_prazo.map(function (x) {
+              return x.quem; }).join(", ") }),
+            el("div", { class: "hint", text:
+              "Ausência de data não é permanência: é ausência de data. Declarar "
+              + "o fim da bolsa e o prazo da tese no cadastro de cada pessoa é o "
+              + "que faz esta tela responder de verdade." }),
+          ]));
+      }
+      palco.appendChild(el("div", { class: "hint", style: "margin-top:4px" }, [
+        el("span", { text: "Esta tela cruza prazo com manuscrito em curso. A lista "
+          + "de quem está em formação, com bolsa e defesa de cada um, está em " }),
+        el("button", { class: "ghost mini", type: "button",
+          text: "Formação e prazos",
+          onclick: function () { go("formacao"); } }),
+      ]));
+
+      if (t.sem_autoria_interna) {
+        palco.appendChild(el("div", { class: "note info", text:
+          t.sem_autoria_interna + " manuscrito(s) em curso não têm nenhum autor "
+          + "do LAPE identificado — nem entram como firmes nem como órfãos, "
+          + "porque não há o que afirmar. Confira a autoria deles." }));
+      }
+
+      /* ---- o dinheiro tem dono, e é outra tela ---- */
+      const dinheiro = d.dinheiro;
+      if (dinheiro) {
+        const fecham = (dinheiro.fecham_logo || []).length;
+        const terminam = (dinheiro.terminam_logo || []).length;
+        const ir = el("button", { class: "ghost", type: "button",
+          onclick: function () { go("fomento"); } },
+          [el("span", { text: "abrir Fomento" }), Icons.get("proximo", 13)]);
+        palco.appendChild(card("E o dinheiro",
+          "A captação tem tela própria — aqui fica só o que vence.",
+          [
+            leituraDe({ sinal: (fecham || terminam) ? "desce" : "parado",
+              forte: fecham + " edital(is) fechando",
+              texto: "· " + terminam + " vigência(s) terminando" }),
+            ir,
+          ]));
+      }
+    }
+
+    function buscar() {
+      palco.textContent = "";
+      palco.appendChild(el("div", { class: "hint", text: "lendo os prazos…" }));
+      fetch("/api/sustentabilidade?meses=" + encodeURIComponent(ESTADO_SUSTENTA.meses),
+            { headers: { Accept: "application/json" } })
+        .then(function (resp) { return resp.ok ? resp.json() : null; })
+        .then(function (d) {
+          if (!d) { palco.textContent = ""; palco.appendChild(
+            C.empty("Não deu para ler os prazos agora.")); return; }
+          desenhar(d);
+        })
+        .catch(function () {
+          palco.textContent = "";
+          palco.appendChild(C.empty("Não deu para ler os prazos agora."));
+        });
+    }
+    buscar();
+  });
+
 view("correlacoes", "Correlações", "Bancada",
   "Como os instrumentos andam juntos, com o n de cada par e a correção de múltiplos testes.",
   function (host) {
@@ -7241,7 +7482,7 @@ const SECTIONS = [
     views: ["producao", "submetidos", "publicacoes", "citacoes", "calculo"] },
   { id: "pessoas", label: "Pessoas", icon: "pessoas",
     views: ["pesquisadores", "organograma", "formacao", "equipe", "rede", "linhas",
-      "projetos"] },
+      "projetos", "sustenta"] },
   { id: "processo", label: "Processo", icon: "processo",
     views: ["tempos", "submissoes", "aceites", "fomento"] },
   { id: "espaco", label: "Espaço-tempo", icon: "espaco",
@@ -7259,6 +7500,7 @@ const SECTIONS = [
             "relatorios", "exportar", "bancada_admin"] },
 ];
 const VIEW_ICON = {
+  sustenta: "prazo",
   resumo: "painel", historia: "raizes", visao: "barras", metas: "alvo",
   explorar: "explorar",
   producao: "producao", submetidos: "submissao", publicacoes: "livro", citacoes: "citacao",

@@ -572,6 +572,33 @@ def route_atualizacao(ctx: "Context") -> Any:
     return atualizacao.estado()
 
 
+def route_sustentabilidade(ctx: "Context") -> Any:
+    """O laboratorio se sustenta? -- gente com prazo, e o que fica sem dono.
+
+    SO DA COORDENACAO, e por rota ao vivo em vez de payload. As duas
+    coisas pelo mesmo motivo, que o `metrics.SO_DA_COORDENACAO` ja
+    declara: bolsa e prazo de tese nao sao dado de producao, sao dado da
+    vida de uma pessoa. O payload vai inteiro para dentro do HTML -- para
+    o arquivo exportado em docs/, para o mural que fica numa TV, e para
+    qualquer um que abra o painel com LAPE_PUBLIC_DASHBOARD ligado. Ver a
+    tela nao e a unica forma de ler um JSON embutido na pagina.
+
+    Por isso esta tela pede os dados quando alguem da coordenacao a abre,
+    e eles nao ficam em lugar nenhum depois.
+    """
+    from . import sustentabilidade
+
+    auth.require(ctx.user, "coordenacao")
+    try:
+        meses = int(ctx.query.get("meses", [sustentabilidade.MESES_DA_JANELA])[0])
+    except (TypeError, ValueError):
+        meses = sustentabilidade.MESES_DA_JANELA
+    # Uma janela negativa ou de dez anos nao responde pergunta nenhuma: a
+    # primeira olha para tras, a segunda e ficcao.
+    meses = max(1, min(60, meses))
+    return sustentabilidade.panorama(ctx.db, meses=meses)
+
+
 def route_perfil_de_acesso(ctx: "Context", member_id: str) -> Any:
     """Muda o PERFIL DE PERMISSAO de alguem -- e nao o vinculo academico.
 
@@ -2343,6 +2370,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/marca/?$", route_marca, "leitura"),
     ("POST", r"^/api/marca/?$", route_marca_gravar, "coordenacao"),
     ("GET", r"^/api/curva/?$", route_curva, "leitura"),
+    ("GET", r"^/api/sustentabilidade/?$", route_sustentabilidade, "coordenacao"),
     ("GET", r"^/api/citacoes/?$", route_citacoes, "leitura"),
     ("POST", r"^/api/citacoes/atualizar/?$", route_citacoes_atualizar, "coordenacao"),
     ("GET", r"^/api/panorama/?$", route_panorama, "leitura"),
