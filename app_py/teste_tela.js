@@ -85,7 +85,7 @@ const ok = (c, m, e) => { n++; if (c) console.log("  OK    · " + m);
   await p.reload({ waitUntil: "networkidle" });
   await p.waitForTimeout(600);
   r = await p.evaluate(() => [...document.querySelectorAll("#abas button")].map(b => b.textContent.trim()));
-  ok(r.length === 10, "com o PIN aparecem as 10 abas", r.join("|"));
+  ok(r.length === 11, "com o PIN aparecem as 11 abas", r.join("|"));
   ok(r.includes("Prescrição") && r.includes("Sistema") && r.includes("SQL"),
      "incluindo as de comando");
 
@@ -173,6 +173,82 @@ const ok = (c, m, e) => { n++; if (c) console.log("  OK    · " + m);
   await p.waitForTimeout(700);
   ok(await p.evaluate(() => /leitura/i.test(document.getElementById("sqlSaida")?.innerText || "")),
      "e um DELETE é recusado com explicação");
+
+  console.log("\n═══ 8b · MOBILIDADE, EDUCATIVO E VÍDEO NA SESSÃO ═══");
+  /* O microciclo treina segunda, quarta e sexta. Se hoje for terça, quinta ou
+     fim de semana, não há sessão — e o teste mediria o calendário em vez do
+     app. Aqui uma sessão de HOJE é criada de propósito, a partir do próprio
+     gerador, para a verificação não depender do dia da semana. */
+  const criada = await p.evaluate(async () => {
+    const hoje = new Date().toISOString().slice(0, 10);
+    const ja = await (await fetch(`/api/prescricoes?de=${hoje}&ate=${hoje}`)).json();
+    if (ja.length) return "já havia";
+    /* o modelo vem das sessões JÁ prescritas: a prévia do gerador volta vazia
+       depois que o teste anterior gerou o macrociclo inteiro */
+    const todas = await (await fetch("/api/prescricoes")).json();
+    const modelo = todas.find(x => x.objetivo === "Força máxima") || todas[0];
+    if (!modelo) return "sem modelo";
+    await api("/api/prescricoes", {method: "POST", body: JSON.stringify({
+      data: hoje, hora: modelo.hora, tipo: modelo.tipo, objetivo: modelo.objetivo,
+      bloco: modelo.bloco, notas: modelo.notas, exercicios: modelo.exercicios})});
+    return "criada";
+  });
+  console.log("      sessão de hoje: " + criada);
+  await p.click('[data-aba="sessao"]');
+  await p.waitForTimeout(1200);
+  /* os blocos de exercício só existem DEPOIS do check-in: antes dele a tela
+     mostra a tabela de pré-visualização do treino */
+  if (await p.evaluate(() => !!document.getElementById("btAbrir"))) {
+    await p.click("#btAbrir");
+    await p.waitForTimeout(1200);
+  }
+  r = await p.evaluate(() => {
+    const cab = [...document.querySelectorAll(".exercicio > header")];
+    const nomes = cab.map(h => h.querySelector("b")?.textContent || "");
+    const grupos = cab.map(h => h.querySelectorAll(".pilula")[0]?.textContent || "");
+    return {
+      total: cab.length,
+      mobilidade: grupos.filter(g => /Mobilidade/.test(g)).length,
+      educativo: grupos.filter(g => /Educativo/.test(g)).length,
+      primeiro: grupos[0] || "",
+      dicas: document.querySelectorAll(".dica").length,
+      videos: document.querySelectorAll('.exercicio a[href*="youtube"]').length,
+      /* a linha de mobilidade não pode ter campo de quilo */
+      levesComKg: [...document.querySelectorAll(".serie.leve")]
+        .filter(f => f.querySelector('[data-f="carga"]')).length,
+      alvoBranco: [...document.querySelectorAll('.exercicio a.pilula')]
+        .every(a => a.target === "_blank" && /noopener/.test(a.rel || "")),
+    };
+  });
+  console.log(`      ${r.total} exercícios · ${r.mobilidade} mobilidade · ${r.educativo} educativos`);
+  ok(r.mobilidade >= 3, "a sessão traz mobilidade articular", r.mobilidade);
+  ok(/Mobilidade/.test(r.primeiro), "e ela vem PRIMEIRO", r.primeiro);
+  ok(r.educativo >= 2, "com educativos de LPO", r.educativo);
+  ok(r.dicas >= 5, "cada um com a dica técnica na tela", r.dicas);
+  ok(r.videos === r.total, "e link de vídeo em todos", `${r.videos}/${r.total}`);
+  ok(r.levesComKg === 0, "mobilidade NÃO pede carga em quilos", r.levesComKg);
+  ok(r.alvoBranco, "os links de vídeo abrem em aba nova, com rel=noopener");
+
+  console.log("\n═══ 8c · FIXAR UM VÍDEO ═══");
+  await p.click('[data-aba="exercicios"]');
+  await p.waitForTimeout(900);
+  r = await p.evaluate(async () => {
+    const campo = document.querySelector('[data-video="Agachamento cossaco"]');
+    if (!campo) return {semCampo: true};
+    campo.value = "https://www.youtube.com/watch?v=EXEMPLO";
+    document.querySelector('[data-salvar="Agachamento cossaco"]').click();
+    await new Promise(r => setTimeout(r, 900));
+    return {aviso: document.getElementById("aviso")?.textContent};
+  });
+  ok(/fixado/i.test(r.aviso || ""), "o preparador fixa o vídeo dele", r.aviso);
+  r = await p.evaluate(async () => {
+    const campo = document.querySelector('[data-video="Hip airplane"]');
+    campo.value = "javascript:alert(1)";
+    document.querySelector('[data-salvar="Hip airplane"]').click();
+    await new Promise(r => setTimeout(r, 900));
+    return {aviso: document.getElementById("aviso")?.textContent};
+  });
+  ok(/http/i.test(r.aviso || ""), "e um endereço que não é http é recusado", r.aviso);
 
   console.log("\n═══ 9 · TODAS AS ABAS, SEM QUEBRAR ═══");
   const abas = await p.evaluate(() => [...document.querySelectorAll("#abas button")].map(b => b.dataset.aba));

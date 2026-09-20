@@ -136,9 +136,15 @@ def prescricoes(con, de=None, ate=None, atleta_id=None):
     sql += " ORDER BY data, hora"
     fora = banco.dics(con.execute(sql, p).fetchall())
     for pr in fora:
+        # a dica e o vídeo vêm da biblioteca, por NOME: assim, corrigir a dica de
+        # um exercício conserta todas as sessões já prescritas de uma vez
         pr["exercicios"] = banco.dics(con.execute(
-            "SELECT * FROM presc_exercicios WHERE prescricao_id=? ORDER BY ordem",
-            (pr["id"],)).fetchall())
+            "SELECT pe.*, ex.dica, ex.video_url"
+            " FROM presc_exercicios pe"
+            " LEFT JOIN exercicios ex ON ex.nome = pe.nome"
+            " WHERE pe.prescricao_id=? ORDER BY pe.ordem", (pr["id"],)).fetchall())
+        for e in pr["exercicios"]:
+            e["busca"] = banco.busca_video(e["nome"])
         pr["plano"] = banco.plano_sessao(pr["exercicios"], pr["tipo"], pr["dur_prev"])
     return fora
 
@@ -399,6 +405,12 @@ class Handler(BaseHTTPRequestHandler):
                                int(um("atleta")) if um("atleta") else None)
         if caminho == "/api/analise":
             return analise_atleta(con, int(um("atleta")))
+        if caminho == "/api/exercicios":
+            exs = banco.dics(con.execute(
+                "SELECT * FROM exercicios ORDER BY grupo, nome").fetchall())
+            for e in exs:
+                e["busca"] = banco.busca_video(e["nome"])
+            return exs
         if caminho == "/api/sessoes":
             return banco.dics(con.execute(
                 "SELECT s.*, a.apelido FROM sessoes s JOIN atletas a ON a.id=s.atleta_id"
@@ -453,6 +465,19 @@ class Handler(BaseHTTPRequestHandler):
         if caminho == "/api/atleta/status":
             con.execute("UPDATE atletas SET status=? WHERE id=?",
                         (d["status"], int(d["id"])))
+            return {"ok": True}
+        if caminho == "/api/exercicio/video":
+            url = (d.get("video_url") or "").strip() or None
+            # só http(s): um "javascript:" aqui viraria link ativo na tela do
+            # atleta, e o campo é livre para quem tem o PIN
+            if url and not re.match(r"^https?://", url, re.I):
+                raise ErroPedido("O endereço do vídeo precisa começar com http:// ou https://")
+            con.execute("UPDATE exercicios SET video_url=? WHERE nome=?",
+                        (url, d["nome"]))
+            return {"ok": True, "video_url": url}
+        if caminho == "/api/exercicio/dica":
+            con.execute("UPDATE exercicios SET dica=? WHERE nome=?",
+                        (d.get("dica") or "", d["nome"]))
             return {"ok": True}
         if caminho == "/api/testes":
             con.execute("INSERT INTO testes (atleta_id,data,tipo,exercicio,valor,unidade)"

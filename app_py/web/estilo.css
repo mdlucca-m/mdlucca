@@ -189,3 +189,12 @@ label.c input:focus,label.c select:focus{border-color:rgba(78,147,220,.6);outlin
   table{font-size:12px} th,td{padding:7px 9px}
   input,select,textarea{font-size:16px}  /* evita o zoom do iOS ao focar */
 }
+
+/* ── Dica técnica e exercício leve ──────────────────────────────────────── */
+.dica{font-size:12.5px;color:var(--ink-2);background:var(--inset);
+  border-left:3px solid var(--teal);padding:9px 13px;margin:0;line-height:1.5}
+.exercicio.leve>header{background:linear-gradient(180deg,#232F3C,#1C2630)}
+.exercicio.leve>header b{font-size:15px;color:var(--ink-2)}
+.serie.leve{grid-template-columns:36px 1fr 46px}
+.exercicio a.pilula{text-decoration:none}
+.exercicio a.pilula:hover{border-color:rgba(78,147,220,.55);color:var(--blue-2)}

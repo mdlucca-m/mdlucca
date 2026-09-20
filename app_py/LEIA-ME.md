@@ -100,7 +100,7 @@ prescrição sem querer. Não é autenticação forte e o app não finge que é.
 
 ---
 
-## As dez abas
+## As onze abas
 
 | Aba | Quem usa | O que faz |
 |---|---|---|
@@ -110,6 +110,7 @@ prescrição sem querer. Não é autenticação forte e o app não finge que é.
 | **Bem-estar** | atleta | Sono, dor, estresse, KSS e os 24 itens da BRUMS |
 | **Análise** | todos | ACWR, monotonia, strain, prontidão e Z por subescala |
 | **Testes** | todos | Bateria específica do voleibol: saltos, 1RM, sprints, agilidade |
+| **Exercícios** | preparador | Biblioteca com dica técnica e o vídeo de cada movimento |
 | **Elenco** | preparador | Quem está no grupo, ativação e configuração |
 | **Prescrição** | preparador | O que está montado, com carga prevista e contatos |
 | **Sistema** | preparador | Gera o microciclo semana após semana, sem teto |
@@ -120,9 +121,56 @@ prescrição sem querer. Não é autenticação forte e o app não finge que é.
 Três sessões de sala por semana (segunda, quarta, sexta). O resto é quadra, e a
 carga de quadra entra pela PSE do check-out.
 
+Toda sessão tem a mesma ordem: **mobilidade → educativo de LPO → barra**.
+
 - **A · Força máxima** — arranco, agachamento, supino, posterior, ombro, core
 - **B · Potência** — clean, jump squat, drop jump, caixote, dorsais
 - **C · Força-velocidade** — snatch pull, agachamento frontal, barreiras, sprints
+
+### Mobilidade articular
+
+Tornozelo, quadril e ombro em **toda** sessão, cada um pelo motivo dele:
+
+| Articulação | Por que entra | Exemplos |
+|---|---|---|
+| **Tornozelo** | sem dorsiflexão não se agacha fundo nem se aterrissa bem — e aterrissagem é o gesto mais repetido do voleibol | knee-to-wall, panturrilha no step, agachamento profundo sustentado |
+| **Quadril** | fecha a profundidade do agachamento e absorve o salto | 90/90 com rotação, cossaco, psoas ajoelhado, hip airplane |
+| **Ombro e torácica** | quem ataca centenas de bolas por semana perde amplitude e rotação interna do lado dominante | passagem de bastão, deslizamento na parede, cross-body, open book, extensão no rolo |
+
+Os exercícios giram entre as três sessões: mesma articulação, estímulo
+diferente, e ninguém repete a mesma coisa três vezes por semana até enjoar.
+
+**"Rotadores do ombro com elástico" não é mobilidade** — é força do manguito, e
+continua no grupo Força. As duas coisas entram, e são diferentes.
+
+### Educativos de LPO
+
+A progressão vai da **posição** ao movimento inteiro. Quem pula etapa aprende a
+compensar, e compensação sob carga é como se machuca.
+
+- **Arranco** — agachamento overhead → arranco de força → snatch balance → arranco do alto
+- **Clean** — front rack → tall clean → clean de força → clean do joelho
+- **Impulsão** — tríplice extensão com bastão → push press → split jerk educativo
+
+Entram **antes** da barra pesada: é com o sistema nervoso descansado que se
+aprende técnica. O volume cai conforme o macrociclo avança (4 educativos na
+acumulação, 2 na realização) mas **nunca chega a zero** — a técnica do arranco
+se perde em duas semanas sem toque.
+
+### Vídeos
+
+Cada exercício tem um botão de vídeo na tela do atleta, e uma dica técnica
+escrita ao lado do nome.
+
+Os vídeos **não vêm preenchidos com links prontos**, e isso é deliberado: eu não
+consigo assistir a um vídeo para conferir se ele mostra o movimento certo, e
+demonstração errada num app de treino não é link quebrado — é risco de lesão.
+Então o botão abre uma **busca**, que sempre funciona e mostra várias fontes
+para comparar.
+
+Na aba **Exercícios** você fixa o vídeo que quiser em cada um; a partir daí é o
+seu que o atleta vê. O melhor de todos é filmar um atleta do próprio elenco
+executando: é o padrão que você quer que copiem, com a sua linguagem.
 
 Séries, repetições e %1RM saem da posição no macrociclo; os contatos
 pliométricos saem do campo `plio` do bloco, repartidos **entre os exercícios**
@@ -151,8 +199,8 @@ Gerar nunca sobrescreve: dia que já tem sessão prescrita é pulado.
 ## Testes
 
 ```bash
-python3 testes.py                       # 42 testes: banco, análise, sistema, API
-node teste_tela.js                      # 30 verificações no navegador (servidor de pé)
+python3 testes.py                       # 52 testes: banco, análise, sistema, API
+node teste_tela.js                      # 35 verificações no navegador (servidor de pé)
 ```
 
 O teste de navegador precisa do Playwright e do servidor rodando na porta 8777

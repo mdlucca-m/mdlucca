@@ -298,7 +298,153 @@ class TestSistema(Base):
         ret = [x for x in s if "RETESTE" in x["notas"]]
         self.assertEqual(len(ret), 1)
         self.assertIn("1RM", ret[0]["objetivo"])
-        self.assertLessEqual(sum(e["series"] for e in ret[0]["exercicios"]), 12)
+        # O que tem de ser baixo é o volume de TRABALHO. Mobilidade antes de um
+        # 1RM é preparação, e contá-la aqui mediria a coisa errada — aquecer
+        # antes de testar é correto, não volume extra.
+        trabalho = sum(e["series"] for e in ret[0]["exercicios"]
+                       if e["grupo"] not in banco.SEM_CARGA)
+        self.assertLessEqual(trabalho, 12, "o reteste mede, não treina")
+        self.assertTrue(any(e["grupo"] == "Mobilidade" for e in ret[0]["exercicios"]),
+                        "mas ele PRECISA abrir com mobilidade: medir sem preparar "
+                        "mede o aquecimento, não a força")
+
+
+class TestMobilidadeEducativo(Base):
+    """Mobilidade articular e educativos de LPO dentro das sessões geradas."""
+
+    def blocos(self):
+        with self.con() as con:
+            return banco.blocos(con)
+
+    def test_toda_sessao_abre_com_mobilidade(self):
+        bl = self.blocos()
+        s, _ = sistema.gerar(bl, banco.segunda_desta_semana(), 1, 8)
+        for x in s:
+            primeiro = x["exercicios"][0]
+            self.assertEqual(primeiro["grupo"], "Mobilidade",
+                             f"{x['data']} começa com {primeiro['nome']}")
+
+    def test_as_tres_articulacoes_em_toda_sessao(self):
+        """Tornozelo, quadril e ombro. Se uma some, some para a temporada
+        inteira — e é justamente a que vai cobrar."""
+        chaves = {
+            "tornozelo": ("tornozelo", "panturrilha", "agachamento profundo"),
+            "quadril": ("quadril", "psoas", "cossaco", "airplane"),
+            "ombro": ("ombro", "bastão", "parede com elástico", "torácica",
+                      "cross-body", "y-t-w"),
+        }
+        bl = self.blocos()
+        s, _ = sistema.gerar(bl, banco.segunda_desta_semana(), 1, 4)
+        for x in s:
+            mob = " ".join(e["nome"].lower() for e in x["exercicios"]
+                           if e["grupo"] == "Mobilidade")
+            for junta, palavras in chaves.items():
+                self.assertTrue(any(w in mob for w in palavras),
+                                f"{x['notas'][:40]}: falta {junta} em «{mob}»")
+
+    def test_educativos_de_lpo_presentes_e_antes_da_barra(self):
+        bl = self.blocos()
+        s, _ = sistema.gerar(bl, banco.segunda_desta_semana(), 1, 1)
+        sessao_a = next(x for x in s if x["objetivo"] == "Força máxima")
+        grupos = [e["grupo"] for e in sessao_a["exercicios"]]
+        self.assertIn("Educativo", grupos)
+        # todo educativo vem ANTES do primeiro LPO com carga
+        i_edu = max(i for i, g in enumerate(grupos) if g == "Educativo")
+        i_lpo = min(i for i, g in enumerate(grupos) if g == "LPO")
+        self.assertLess(i_edu, i_lpo,
+                        "educativo depois da barra pesada não ensina nada")
+
+    def test_volume_de_educativo_cai_com_a_intensidade(self):
+        """Na acumulação o educativo é treino; na realização é rampa."""
+        self.assertEqual(sistema.quantos_educativos(1), 4)
+        self.assertEqual(sistema.quantos_educativos(3), 4)
+        self.assertGreater(sistema.quantos_educativos(1),
+                           sistema.quantos_educativos(8))
+        self.assertGreaterEqual(sistema.quantos_educativos(8), 1,
+                                "nunca chega a zero: a técnica se perde")
+
+    def test_mobilidade_nao_conta_como_contato(self):
+        """Contato pliométrico é impacto. Alongamento não é."""
+        exs = [{"series": 3, "reps": "30 s", "grupo": "Mobilidade", "pausa": 30},
+               {"series": 4, "reps": "5", "grupo": "Pliometria", "pausa": 120}]
+        p = banco.plano_sessao(exs, "Potência")
+        self.assertEqual(p["contatos"], 20)
+
+    def test_permanencia_em_segundos_nao_vira_repeticao(self):
+        """"30 s" é meio minuto, não 30 repetições de 4 segundos."""
+        self.assertEqual(banco._segundos_de_trabalho("30 s"), 30)
+        self.assertEqual(banco._segundos_de_trabalho("30 s cada lado"), 30)
+        self.assertEqual(banco._segundos_de_trabalho("8 cada lado"), 32)
+        self.assertEqual(banco._segundos_de_trabalho("3"), 12)
+        um = banco.plano_sessao(
+            [{"series": 2, "reps": "30 s", "grupo": "Mobilidade", "pausa": 30}], "Força")
+        # 2 * (30 pausa + 30 trabalho) = 120 s = 2 min
+        self.assertEqual(um["dur"], 2)
+
+    def test_tempo_de_preparacao_vem_separado(self):
+        bl = self.blocos()
+        s, _ = sistema.gerar(bl, banco.segunda_desta_semana(), 1, 1)
+        for x in s:
+            p = banco.plano_sessao(x["exercicios"], x["tipo"])
+            self.assertGreater(p["dur_prep"], 0, "há preparação na sessão")
+            self.assertLess(p["dur_prep"], p["dur"],
+                            "mas ela não é a sessão inteira")
+
+
+class TestVideos(Base):
+    def test_todo_exercicio_tem_link_que_funciona(self):
+        """Busca, e não vídeo cravado: não consigo assistir a um vídeo para
+        conferir se mostra o movimento certo, e demonstração errada num app de
+        treino é risco de lesão."""
+        with self.con() as con:
+            for e in banco.dics(con.execute("SELECT nome FROM exercicios").fetchall()):
+                u = banco.busca_video(e["nome"])
+                self.assertTrue(u.startswith("https://www.youtube.com/results?"))
+                self.assertNotIn(" ", u, "o endereço tem de estar codificado")
+
+    def test_exercicios_de_mobilidade_e_educativo_tem_dica(self):
+        """Um nome sozinho não ensina: "90/90 de quadril" não diz o que fazer."""
+        with self.con() as con:
+            sem = [e["nome"] for e in con.execute(
+                "SELECT nome FROM exercicios WHERE grupo IN ('Mobilidade','Educativo')"
+                " AND (dica IS NULL OR dica='')").fetchall()]
+        self.assertEqual(sem, [], f"sem dica técnica: {sem}")
+
+    def test_migracao_de_banco_antigo(self):
+        """Banco criado antes tinha CHECK na coluna grupo, e SQLite não altera
+        CHECK: 'Mobilidade' seria recusada para sempre."""
+        import sqlite3
+        velho = self.db + ".velho"
+        c = sqlite3.connect(velho)
+        c.executescript("""
+            CREATE TABLE exercicios (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              nome TEXT NOT NULL UNIQUE,
+              grupo TEXT NOT NULL CHECK (grupo IN
+                ('Força','Potência','LPO','Pliometria','Técnico-Tático','Recuperação')),
+              ref1rm TEXT);
+            INSERT INTO exercicios (nome,grupo) VALUES ('Invenção do treinador','Força');
+        """)
+        c.commit()
+        c.close()
+        try:
+            banco.criar(velho)
+            with banco.conectar(velho) as con:
+                cols = {x["name"] for x in con.execute("PRAGMA table_info(exercicios)")}
+                self.assertIn("video_url", cols)
+                self.assertIn("dica", cols)
+                n = con.execute("SELECT COUNT(*) x FROM exercicios"
+                                " WHERE grupo='Mobilidade'").fetchone()["x"]
+                self.assertGreater(n, 5, "os exercícios novos entraram")
+                sobrou = con.execute("SELECT 1 FROM exercicios"
+                                     " WHERE nome='Invenção do treinador'").fetchone()
+                self.assertIsNotNone(sobrou, "o que ELE criou não pode sumir")
+        finally:
+            for suf in ("", "-wal", "-shm"):
+                try:
+                    os.unlink(velho + suf)
+                except OSError:
+                    pass
 
 
 class TestAPI(Base):

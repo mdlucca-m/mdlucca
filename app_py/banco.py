@@ -14,6 +14,7 @@ Duas decisões que valem explicação:
   ninguém guarde isso por engano.
 """
 
+import re
 import sqlite3
 import os
 import json
@@ -48,12 +49,17 @@ CREATE TABLE IF NOT EXISTS blocos (
 );
 
 -- ── Biblioteca de exercícios ────────────────────────────────────────────────
+-- O grupo NÃO tem CHECK de propósito. Ele tinha, e isso quase me custou caro:
+-- acrescentar 'Mobilidade' e 'Educativo' exigiria reconstruir a tabela inteira,
+-- porque SQLite não altera CHECK. A lista válida vive em GRUPOS, no Python, e é
+-- conferida antes de gravar — onde dá para mudar sem migração.
 CREATE TABLE IF NOT EXISTS exercicios (
-  id      INTEGER PRIMARY KEY AUTOINCREMENT,
-  nome    TEXT NOT NULL UNIQUE,
-  grupo   TEXT NOT NULL CHECK (grupo IN
-            ('Força','Potência','LPO','Pliometria','Técnico-Tático','Recuperação')),
-  ref1rm  TEXT
+  id        INTEGER PRIMARY KEY AUTOINCREMENT,
+  nome      TEXT NOT NULL UNIQUE,
+  grupo     TEXT NOT NULL,
+  ref1rm    TEXT,
+  dica      TEXT NOT NULL DEFAULT '',   -- instrução técnica, aparece na tela
+  video_url TEXT                        -- vídeo do PREPARADOR; vazio = busca
 );
 
 -- ── Elenco ──────────────────────────────────────────────────────────────────
@@ -206,10 +212,18 @@ ITEM_SUB = {i: s for s, itens in BRUMS_ITENS for i in itens}
 
 POSICOES = ["Levantador", "Oposto", "Ponteiro (Ponta)", "Central", "Líbero"]
 TIPOS = ["Força", "Potência", "LPO", "Pliometria", "Técnico-Tático", "Recuperação"]
+# Grupos de EXERCÍCIO (diferente de tipo de SESSÃO). Mobilidade e Educativo são
+# trabalho de amplitude e de técnica: entram na duração da sessão, não geram
+# carga mecânica, e nunca contam como contato pliométrico.
+GRUPOS = ["Força", "Potência", "LPO", "Pliometria", "Técnico-Tático",
+          "Recuperação", "Mobilidade", "Educativo"]
+# Grupos que NÃO somam tonelagem nem contato: o que se faz aqui é amplitude e
+# padrão de movimento, e contar isso como carga mecânica falseia a conta.
+SEM_CARGA = ("Mobilidade", "Educativo", "Recuperação")
 # PSE presumida por tipo, usada só para ESTIMAR a carga da sessão prescrita.
 # A carga que vale é a do check-out, com a PSE que o atleta informou.
 PSE_TIPO = {"Força": 7, "Potência": 6.5, "LPO": 7, "Pliometria": 7,
-            "Técnico-Tático": 7, "Recuperação": 3}
+            "Técnico-Tático": 7, "Recuperação": 3, "Mobilidade": 2}
 
 BLOCOS_PADRAO = [
     (1, "Acumulação", "Incorporação", "Adaptação anatômica e técnica de LPO", 0.62, 0.75, 60),
@@ -242,8 +256,129 @@ EXERCICIOS_PADRAO = [
     ("Drop jump 40 cm", "Pliometria", None),
     ("Salto no caixote", "Pliometria", None),
     ("Saltos consecutivos sobre barreiras", "Pliometria", None),
-    ("Mobilidade de tornozelo e quadril", "Recuperação", None),
+
+    # ── Mobilidade articular ────────────────────────────────────────────────
+    # Tornozelo, quadril e ombro. No voleibol as três têm endereço certo:
+    # dorsiflexão trava o agachamento e a aterrissagem; quadril fecha a
+    # profundidade e a absorção; ombro e torácica são a articulação que mais
+    # cobra num atleta que ataca centenas de bolas por semana.
+    ("Mobilização de tornozelo na parede (knee-to-wall)", "Mobilidade", None),
+    ("Agachamento profundo sustentado", "Mobilidade", None),
+    ("Panturrilha alongada no step", "Mobilidade", None),
+    ("90/90 de quadril com rotação", "Mobilidade", None),
+    ("Agachamento cossaco", "Mobilidade", None),
+    ("Alongamento de psoas ajoelhado", "Mobilidade", None),
+    ("Hip airplane", "Mobilidade", None),
+    ("Rotação torácica deitado (open book)", "Mobilidade", None),
+    ("Passagem de bastão sobre a cabeça", "Mobilidade", None),
+    ("Deslizamento na parede com elástico", "Mobilidade", None),
+    ("Adução horizontal de ombro (cross-body)", "Mobilidade", None),
+    ("Extensão torácica no rolo", "Mobilidade", None),
+    ("Y-T-W no banco inclinado", "Mobilidade", None),
+
+    # ── Educativos de LPO ───────────────────────────────────────────────────
+    # A ordem é a da progressão: primeiro a posição, depois o puxar, depois o
+    # receber, e só então o movimento inteiro. Quem pula etapa aprende a
+    # compensar, e compensação sob carga é como se machuca.
+    ("Agachamento overhead", "Educativo", None),
+    ("Passagem de bastão no agachamento", "Educativo", None),
+    ("Arranco de força (muscle snatch)", "Educativo", None),
+    ("Snatch balance", "Educativo", None),
+    ("Arranco do alto (high hang)", "Educativo", None),
+    ("Arranco do joelho (hang)", "Educativo", None),
+    ("Posição de recepção do clean (front rack)", "Educativo", None),
+    ("Clean do alto (tall clean)", "Educativo", None),
+    ("Clean de força (muscle clean)", "Educativo", None),
+    ("Clean do joelho (hang)", "Educativo", None),
+    ("Tríplice extensão com bastão", "Educativo", None),
+    ("Push press", "Educativo", None),
+    ("Split jerk educativo", "Educativo", None),
 ]
+
+# Dicas técnicas: aparecem na tela do atleta, ao lado do exercício. É o que
+# transforma um nome numa instrução — "90/90 de quadril" não ensina nada
+# sozinho, e o atleta está lendo isso no celular, sozinho, na sala.
+DICAS = {
+    "Mobilização de tornozelo na parede (knee-to-wall)":
+        "Joelho à frente até tocar a parede SEM levantar o calcanhar. Afaste o pé "
+        "até o limite. É a dorsiflexão que permite agachar fundo e aterrissar.",
+    "Agachamento profundo sustentado":
+        "Desça e FIQUE. Cotovelos por dentro dos joelhos, empurrando-os para fora. "
+        "Peito alto. Respire fundo três vezes em cada permanência.",
+    "Panturrilha alongada no step":
+        "Calcanhar caindo abaixo do degrau. Perna estendida alonga o gastrocnêmio; "
+        "joelho dobrado alonga o sóleo — faça os dois.",
+    "90/90 de quadril com rotação":
+        "Sentado, uma perna 90° à frente e outra 90° ao lado. Gire de um lado ao "
+        "outro sem tirar as mãos do chão. Rotação interna e externa na mesma série.",
+    "Agachamento cossaco":
+        "Desça sobre uma perna com a outra estendida ao lado, pé apontado para "
+        "cima. Trabalha adutor e profundidade ao mesmo tempo.",
+    "Alongamento de psoas ajoelhado":
+        "Joelho de trás no chão, glúteo APERTADO — sem isso você alonga a lombar "
+        "e não o psoas. Quem passa o dia sentado precisa desta.",
+    "Hip airplane":
+        "Em apoio numa perna, tronco à frente, gire a pelve abrindo e fechando. "
+        "Controle de quadril em apoio único — que é como se ataca e se aterrissa.",
+    "Rotação torácica deitado (open book)":
+        "Deitado de lado, joelhos dobrados à frente, abra o braço de cima e "
+        "acompanhe com o olhar. A rotação é do tronco, o quadril fica parado.",
+    "Passagem de bastão sobre a cabeça":
+        "Pegada larga, braços estendidos, leve o bastão de frente para trás sem "
+        "dobrar o cotovelo. Vá fechando a pegada conforme ganhar amplitude.",
+    "Deslizamento na parede com elástico":
+        "Costas e braços na parede, deslize para cima sem perder o contato da "
+        "lombar. É o padrão do braço acima da cabeça, que é o do ataque.",
+    "Adução horizontal de ombro (cross-body)":
+        "Braço cruzando o peito, puxado pelo outro. Ombro do braço que alonga "
+        "fica BAIXO. Para o lado dominante, que perde rotação interna com a temporada.",
+    "Extensão torácica no rolo":
+        "Rolo na altura das escápulas, mãos na nuca, estenda para trás. Amplitude "
+        "acima da cabeça vem da torácica antes de vir do ombro.",
+    "Y-T-W no banco inclinado":
+        "Peito no banco, braços desenhando Y, T e W. Movimento das escápulas, não "
+        "dos braços. Carga leve ou nenhuma.",
+
+    "Agachamento overhead":
+        "Bastão ou barra vazia acima da cabeça, braços travados. É o teste que diz "
+        "se você pode arrancar: se não desce, o problema é mobilidade, não força.",
+    "Passagem de bastão no agachamento":
+        "No fundo do agachamento, passe o bastão de frente para trás. Junta "
+        "profundidade de quadril com amplitude de ombro num gesto só.",
+    "Arranco de força (muscle snatch)":
+        "Puxada até acima da cabeça SEM flexionar os joelhos para receber. Ensina "
+        "a puxar alto e a fechar o braço rápido.",
+    "Snatch balance":
+        "Barra na nuca, pegada de arranco: empurre o corpo para baixo e receba no "
+        "agachamento. Ensina a VELOCIDADE de entrar embaixo da barra.",
+    "Arranco do alto (high hang)":
+        "Começa da coxa. Curso curto obriga a extensão rápida — é aqui que se "
+        "aprende o gesto antes de complicar com a subida do chão.",
+    "Arranco do joelho (hang)":
+        "Da altura do joelho. O passo seguinte ao alto: mais curso, mesma exigência "
+        "de velocidade na extensão.",
+    "Posição de recepção do clean (front rack)":
+        "Barra apoiada nos deltoides, cotovelos ALTOS, mãos soltas se precisar. "
+        "Quem não sustenta esta posição não recebe o clean — nem agacha na frente.",
+    "Clean do alto (tall clean)":
+        "Na ponta dos pés, sem puxada: só caia embaixo da barra e receba. Isola a "
+        "parte que todo mundo erra, que é entrar embaixo rápido.",
+    "Clean de força (muscle clean)":
+        "Puxada até a recepção sem dobrar os joelhos. Ensina a altura real da "
+        "puxada e a fechar os cotovelos.",
+    "Clean do joelho (hang)":
+        "Da altura do joelho, com recepção completa. É o educativo mais próximo do "
+        "movimento inteiro.",
+    "Tríplice extensão com bastão":
+        "Tornozelo, joelho e quadril estendendo JUNTOS, encolhendo os ombros no "
+        "fim. É o motor de todo levantamento olímpico, treinado sem carga.",
+    "Push press":
+        "Flexão curta de joelhos e empurra acima da cabeça. Ensina a usar a perna "
+        "para o que está sobre a cabeça — e serve de acessório de ombro.",
+    "Split jerk educativo":
+        "Só a entrada do passo, com bastão. Pé da frente chapado, de trás na ponta, "
+        "tronco entre os pés. Sem carga até o passo sair automático.",
+}
 
 
 def segunda_desta_semana(hoje=None):
@@ -272,6 +407,7 @@ def criar(caminho=None, macro_inicio=None):
     """Cria o esquema e semeia config, blocos e biblioteca. Idempotente."""
     with conectar(caminho) as con:
         con.executescript(ESQUEMA)
+        migrar(con)
         if not con.execute("SELECT 1 FROM config WHERE id=1").fetchone():
             con.execute(
                 "INSERT INTO config (id, macro_inicio) VALUES (1, ?)",
@@ -281,10 +417,64 @@ def criar(caminho=None, macro_inicio=None):
             con.executemany(
                 "INSERT INTO blocos (posicao,bloco,micro,enfase,intensidade,volume,plio)"
                 " VALUES (?,?,?,?,?,?,?)", BLOCOS_PADRAO)
-        if not con.execute("SELECT 1 FROM exercicios").fetchone():
-            con.executemany(
-                "INSERT INTO exercicios (nome,grupo,ref1rm) VALUES (?,?,?)",
-                EXERCICIOS_PADRAO)
+        # A biblioteca é semeada por nome e ATUALIZADA a cada versão: exercício
+        # novo entra, dica nova aparece, e o video_url que o preparador tiver
+        # posto NUNCA é tocado — é dele, não meu.
+        for nome, grupo, ref in EXERCICIOS_PADRAO:
+            con.execute(
+                "INSERT INTO exercicios (nome,grupo,ref1rm,dica) VALUES (?,?,?,?)"
+                " ON CONFLICT(nome) DO UPDATE SET grupo=excluded.grupo,"
+                " ref1rm=excluded.ref1rm, dica=excluded.dica",
+                (nome, grupo, ref, DICAS.get(nome, "")))
+
+
+def migrar(con):
+    """Leva um banco antigo até o esquema de hoje.
+
+    SQLite aceita ADD COLUMN, então coluna nova é barata. O que ele NÃO aceita
+    é alterar CHECK — por isso a lista de grupos saiu da tabela para o Python.
+    Um banco criado antes disso continua com o CHECK velho e recusaria
+    'Mobilidade'; aqui a tabela é reconstruída, preservando o conteúdo."""
+    cols = {c["name"] for c in con.execute("PRAGMA table_info(exercicios)")}
+    if not cols:
+        return
+    for nova, tipo in (("dica", "TEXT NOT NULL DEFAULT ''"), ("video_url", "TEXT")):
+        if nova not in cols:
+            con.execute(f"ALTER TABLE exercicios ADD COLUMN {nova} {tipo}")
+
+    sql = (con.execute("SELECT sql FROM sqlite_master WHERE type='table'"
+                       " AND name='exercicios'").fetchone() or {"sql": ""})["sql"] or ""
+    if "CHECK" not in sql.upper():
+        return
+    con.executescript("""
+        CREATE TABLE exercicios_novo (
+          id        INTEGER PRIMARY KEY AUTOINCREMENT,
+          nome      TEXT NOT NULL UNIQUE,
+          grupo     TEXT NOT NULL,
+          ref1rm    TEXT,
+          dica      TEXT NOT NULL DEFAULT '',
+          video_url TEXT
+        );
+        INSERT INTO exercicios_novo (id,nome,grupo,ref1rm,dica,video_url)
+          SELECT id,nome,grupo,ref1rm,
+                 COALESCE(dica,''), video_url FROM exercicios;
+        DROP TABLE exercicios;
+        ALTER TABLE exercicios_novo RENAME TO exercicios;
+    """)
+
+
+def busca_video(nome):
+    """Link de BUSCA no YouTube para um exercício.
+
+    De propósito uma busca, e não um vídeo específico: eu não consigo assistir a
+    um vídeo para conferir se mostra o movimento certo, e demonstração errada
+    num app de treino é risco de lesão, não só link quebrado. Busca sempre
+    funciona, nunca quebra, e mostra várias fontes para o atleta comparar.
+    O preparador pode fixar o vídeo que ELE quer em cada exercício — aí é o dele
+    que aparece."""
+    from urllib.parse import quote_plus
+    return "https://www.youtube.com/results?search_query=" + quote_plus(
+        nome.split("(")[0].strip() + " exercício técnica")
 
 
 def dic(linha):
@@ -318,21 +508,45 @@ def semana_de(data, macro_inicio):
     return (d(data) - d(macro_inicio)).days // 7 + 1
 
 
+def _segundos_de_trabalho(reps):
+    """Quanto tempo leva UMA série.
+
+    "30 s" é uma permanência de 30 segundos, não 30 repetições. Tratar os dois
+    igual fazia um alongamento de meio minuto virar 2 minutos na conta — e a
+    mobilidade inteira inflava a duração prevista da sessão."""
+    txt = str(reps).lower()
+    n = _primeiro_numero(txt)
+    if not n:
+        return 6 * 4
+    # "30 s", "30s", "30 seg", "30 segundos" — tempo, não repetição
+    if re.search(r"\d\s*s(eg|egundos)?\b", txt):
+        return n
+    return n * 4
+
+
 def plano_sessao(exercicios, tipo, dur_prev=None):
     """Duração, séries, contatos e carga prevista de uma sessão prescrita.
 
     A UA sai da duração ARREDONDADA de propósito: é o número que aparece na
-    tela, e quem refizer a conta na mão tem de chegar no mesmo lugar."""
+    tela, e quem refizer a conta na mão tem de chegar no mesmo lugar.
+
+    A duração é a TOTAL, preparação incluída — é a mesma base do check-out, que
+    mede o relógio de parede. `dur_prep` vem separado só para a tela poder dizer
+    quanto do tempo é mobilidade e educativo."""
     series = sum(int(e["series"]) for e in exercicios)
     seg = 0.0
+    seg_prep = 0.0
     for e in exercicios:
-        r = _primeiro_numero(e["reps"]) or 6
-        seg += int(e["series"]) * ((e.get("pausa") or 90) + r * 4)
+        t = int(e["series"]) * ((e.get("pausa") or 90) + _segundos_de_trabalho(e["reps"]))
+        seg += t
+        if e["grupo"] in ("Mobilidade", "Educativo"):
+            seg_prep += t
     minutos = int(round(dur_prev if dur_prev else seg / 60))
     contatos = sum(int(e["series"]) * (_primeiro_numero(e["reps"]) or 0)
                    for e in exercicios if e["grupo"] == "Pliometria")
     pse = PSE_TIPO.get(tipo, 6)
     return {"series": series, "dur": minutos, "contatos": contatos,
+            "dur_prep": int(round(seg_prep / 60)),
             "pse": pse, "ua": int(round(minutos * pse)),
             "estimada": not dur_prev}
 

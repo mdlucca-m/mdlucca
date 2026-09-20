@@ -46,6 +46,7 @@ const ABAS = [
   {id: "bemestar",   rot: "Bem-estar"},
   {id: "analise",    rot: "Análise"},
   {id: "testes",     rot: "Testes"},
+  {id: "exercicios", rot: "Exercícios", chefe: true},
   {id: "elenco",     rot: "Elenco",     chefe: true},
   {id: "prescricao", rot: "Prescrição", chefe: true},
   {id: "sistema",    rot: "Sistema",    chefe: true},
@@ -317,25 +318,45 @@ TELAS.sessao = async () => {
     treino não entra na conta da semana — e é essa conta que alimenta ACWR, monotonia e strain.</div></div>`}`;
 };
 
+/* Mobilidade, educativo e recuperação não pedem quilo: o que se faz ali é
+   amplitude e padrão de movimento. Um campo "kg" ao lado de uma permanência de
+   30 s é formulário errado, e formulário errado faz o atleta inventar número
+   para preencher. Ali vai só a marca de feito. */
+const SEM_CARGA = ["Mobilidade", "Educativo", "Recuperação"];
+
 function exercicioHTML(e, i, fechada) {
+  const leve = SEM_CARGA.includes(e.grupo);
   let linhas = "";
   for (let s = 1; s <= e.series; s++) {
     const r = E.series[i + "_" + s] || {};
-    linhas += `<div class="serie ${r.feita ? "feita" : ""}" data-ex="${i}" data-s="${s}">
-      <span class="n">${s}ª</span>
-      <input type="number" step="0.5" placeholder="kg" value="${r.carga ?? ""}" data-f="carga" ${fechada ? "disabled" : ""}>
-      <input type="number" placeholder="${esc(e.reps)}" value="${r.reps ?? ""}" data-f="reps" ${fechada ? "disabled" : ""}>
-      <input type="number" step="0.5" placeholder="RIR" value="${r.rir ?? ""}" data-f="rir" ${fechada ? "disabled" : ""}>
-      <input type="number" step="0.01" placeholder="m/s" value="${r.vel ?? ""}" data-f="vel" ${fechada ? "disabled" : ""}>
-      <button class="tique ${r.feita ? "on" : ""}" data-tique ${fechada ? "disabled" : ""}>✓</button></div>`;
+    const tique = `<button class="tique ${r.feita ? "on" : ""}" data-tique ${fechada ? "disabled" : ""}>✓</button>`;
+    linhas += leve
+      ? `<div class="serie leve ${r.feita ? "feita" : ""}" data-ex="${i}" data-s="${s}">
+          <span class="n">${s}ª</span>
+          <span class="sub" style="grid-column:2/-2">${esc(e.reps)}</span>
+          ${tique}</div>`
+      : `<div class="serie ${r.feita ? "feita" : ""}" data-ex="${i}" data-s="${s}">
+          <span class="n">${s}ª</span>
+          <input type="number" step="0.5" placeholder="kg" value="${r.carga ?? ""}" data-f="carga" ${fechada ? "disabled" : ""}>
+          <input type="number" placeholder="${esc(e.reps)}" value="${r.reps ?? ""}" data-f="reps" ${fechada ? "disabled" : ""}>
+          <input type="number" step="0.5" placeholder="RIR" value="${r.rir ?? ""}" data-f="rir" ${fechada ? "disabled" : ""}>
+          <input type="number" step="0.01" placeholder="m/s" value="${r.vel ?? ""}" data-f="vel" ${fechada ? "disabled" : ""}>
+          ${tique}</div>`;
   }
-  return `<div class="exercicio"><header><b>${esc(e.nome)}</b>
+  const video = e.video_url || e.busca;
+  const proprio = !!e.video_url;
+  return `<div class="exercicio ${leve ? "leve" : ""}"><header><b>${esc(e.nome)}</b>
       <span class="pilula">${esc(e.grupo)}</span>
       <span class="pilula">${e.series}×${esc(e.reps)}</span>
-      <span class="pilula">pausa ${e.pausa}s</span>
+      ${leve ? "" : `<span class="pilula">pausa ${e.pausa}s</span>`}
       ${e.pct_rm ? `<span class="pilula info">${Math.round(e.pct_rm * 100)}% 1RM</span>` : ""}
-      ${e.tempo ? `<span class="pilula">cadência ${esc(e.tempo)}</span>` : ""}</header>
-    <div class="cabeserie"><span></span><span>Carga kg</span><span>Reps</span><span>RIR</span><span>Vel m/s</span><span></span></div>
+      ${e.tempo ? `<span class="pilula">cadência ${esc(e.tempo)}</span>` : ""}
+      ${video ? `<a class="pilula ${proprio ? "good" : ""}" href="${esc(video)}"
+        target="_blank" rel="noopener noreferrer"
+        title="${proprio ? "vídeo escolhido pelo preparador" : "busca no YouTube — o preparador ainda não fixou um vídeo"}"
+        >▶ ${proprio ? "vídeo" : "buscar vídeo"}</a>` : ""}</header>
+    ${e.dica ? `<div class="dica">${esc(e.dica)}</div>` : ""}
+    ${leve ? "" : `<div class="cabeserie"><span></span><span>Carga kg</span><span>Reps</span><span>RIR</span><span>Vel m/s</span><span></span></div>`}
     ${linhas}
     ${e.obs ? `<div class="sub" style="padding:8px 14px 12px">${esc(e.obs)}</div>` : ""}</div>`;
 }
@@ -353,6 +374,7 @@ TELAS.sessao.depois = async () => {
   const gravar = async (fila) => {
     const d = {sessao_id: E.sessao.id, exercicio: +fila.dataset.ex, numero: +fila.dataset.s,
       feita: fila.classList.contains("feita")};
+    /* exercício leve não tem campo nenhum: só a marca de feito, e é isso que vai */
     fila.querySelectorAll("input").forEach(i => { d[i.dataset.f] = i.value === "" ? null : +i.value; });
     try { await api("/api/sessao/serie", {method: "POST", body: JSON.stringify(d)}); }
     catch (e) { aviso(e.message, "crit"); }
@@ -631,6 +653,64 @@ TELAS.testes.depois = async () => {
       el("tsValor").value = "";
     } catch (e) { aviso(e.message, "crit"); }
   };
+};
+
+/* ═══ EXERCÍCIOS ═══════════════════════════════════════════════════════════ */
+TELAS.exercicios = async () => {
+  const exs = await api("/api/exercicios");
+  const grupos = [...new Set(exs.map(e => e.grupo))];
+  const comVideo = exs.filter(e => e.video_url).length;
+  return cabeca("Biblioteca de <em>exercícios</em>",
+    "A dica técnica e o vídeo aparecem na tela do atleta, dentro da sessão.") + `
+  <div class="cartao acc-salto">
+    <header><h3>${exs.length} exercícios · ${comVideo} com vídeo fixado</h3></header>
+    <div class="nota" style="--acc:var(--warn)">
+      <b>Por que os vídeos não vêm preenchidos.</b> Eu não consigo assistir a um
+      vídeo para conferir se ele mostra o movimento certo, e demonstração errada
+      num app de treino não é link quebrado — é risco de lesão. Então cada
+      exercício já vem com um link de <b>busca</b>, que sempre funciona e mostra
+      várias fontes; quando você fixa um vídeo aqui, é o <b>seu</b> que o atleta
+      vê. O melhor de todos é você filmar um atleta do elenco executando: é o
+      padrão que você quer que copiem.</div>
+  </div>
+
+  ${grupos.map(g => `<div class="cartao ${
+      {Mobilidade: "acc-salto", Educativo: "acc-lpo", LPO: "acc-lpo",
+       Pliometria: "acc-tec", Potência: "acc-forca"}[g] || "acc-carga"}">
+    <header><h3>${esc(g)}</h3>
+      <span class="sub">${exs.filter(e => e.grupo === g).length} exercícios</span></header>
+    <div class="rolagem"><table><thead><tr>
+      <th>Exercício</th><th>Dica técnica</th><th>Vídeo</th><th></th>
+    </tr></thead><tbody>
+      ${exs.filter(e => e.grupo === g).map(e => `<tr>
+        <td><b>${esc(e.nome)}</b></td>
+        <td style="white-space:normal;max-width:38ch;font-size:12px">
+          ${e.dica ? esc(e.dica) : `<span class="sub">—</span>`}</td>
+        <td><input data-video="${esc(e.nome)}" value="${esc(e.video_url || "")}"
+          placeholder="cole aqui o link do vídeo"
+          style="width:100%;min-width:190px;border:1px solid var(--line);
+          background:var(--inset);border-radius:8px;padding:7px 9px;font-size:12.5px"></td>
+        <td style="white-space:nowrap">
+          <a class="btn mini" href="${esc(e.video_url || e.busca)}" target="_blank"
+             rel="noopener noreferrer">▶ ver</a>
+          <button class="btn mini primario" data-salvar="${esc(e.nome)}">Salvar</button>
+        </td></tr>`).join("")}
+    </tbody></table></div></div>`).join("")}`;
+};
+TELAS.exercicios.depois = async () => {
+  const salvar = async nome => {
+    const campo = document.querySelector(`[data-video="${CSS.escape(nome)}"]`);
+    try {
+      const r = await api("/api/exercicio/video", {method: "POST",
+        body: JSON.stringify({nome, video_url: campo.value})});
+      aviso(r.video_url ? `Vídeo fixado em ${nome}.` : `Vídeo removido de ${nome}.`, "good");
+      desenhar();
+    } catch (e) { aviso(e.message, "crit"); }
+  };
+  document.querySelectorAll("[data-salvar]").forEach(b =>
+    b.onclick = () => salvar(b.dataset.salvar));
+  document.querySelectorAll("[data-video]").forEach(i =>
+    i.onkeydown = ev => { if (ev.key === "Enter") salvar(i.dataset.video); });
 };
 
 /* ═══ ELENCO ═══════════════════════════════════════════════════════════════ */

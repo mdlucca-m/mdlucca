@@ -69,15 +69,89 @@ def _saltos(b, fatia, por_serie):
 
 def _ombro():
     return _ex("Rotadores do ombro com elástico", "Força", 3, 15, 60, rir=3,
-               obs="Antes de qualquer trabalho de ombro. No voleibol isto não é "
-                   "aquecimento, é manutenção.")
+               obs="Fortalecimento do manguito — isto NÃO é mobilidade, é força "
+                   "do estabilizador. As duas coisas entram, e são diferentes.")
+
+
+# ── Mobilidade articular ─────────────────────────────────────────────────────
+# Tornozelo, quadril e ombro em TODA sessão, e cada um pelo motivo dele:
+#   · tornozelo — sem dorsiflexão não se agacha fundo nem se aterrissa bem, e
+#     aterrissagem é o que o voleibolista mais repete;
+#   · quadril — fecha a profundidade do agachamento e absorve o salto;
+#   · ombro e torácica — quem ataca centenas de bolas por semana perde amplitude
+#     e rotação interna do lado dominante ao longo da temporada.
+# Os exercícios giram entre as três sessões: mesma articulação, estímulo
+# diferente, e ninguém faz a mesma coisa três vezes por semana até enjoar.
+MOBILIDADE = {
+    "A": [("Mobilização de tornozelo na parede (knee-to-wall)", 2, "8 cada lado", 30),
+          ("90/90 de quadril com rotação", 2, "6 cada lado", 30),
+          ("Passagem de bastão sobre a cabeça", 2, "10", 30),
+          ("Rotação torácica deitado (open book)", 2, "8 cada lado", 30)],
+    "B": [("Panturrilha alongada no step", 2, "30 s", 20),
+          ("Alongamento de psoas ajoelhado", 2, "30 s cada lado", 20),
+          ("Deslizamento na parede com elástico", 2, "10", 30),
+          ("Extensão torácica no rolo", 2, "8", 30)],
+    "C": [("Agachamento profundo sustentado", 3, "30 s", 30),
+          ("Agachamento cossaco", 2, "6 cada lado", 30),
+          ("Adução horizontal de ombro (cross-body)", 2, "30 s cada lado", 20),
+          ("Y-T-W no banco inclinado", 2, "8 de cada", 30)],
+}
+
+
+def bloco_mobilidade(sessao):
+    """Abre toda sessão. Grupo 'Mobilidade': entra na duração, não soma
+    tonelagem nem contato pliométrico."""
+    return [_ex(nome, "Mobilidade", series, reps, pausa)
+            for nome, series, reps, pausa in MOBILIDADE[sessao]]
+
+
+# ── Educativos de LPO ────────────────────────────────────────────────────────
+# A progressão vai da POSIÇÃO ao movimento inteiro. Quem pula etapa aprende a
+# compensar, e compensação sob carga é como se machuca.
+#
+# O volume cai conforme o macrociclo avança: na acumulação o educativo é
+# treino, na realização é só a rampa antes da barra pesada. Nunca chega a zero
+# — a técnica do arranco se perde em duas semanas sem toque.
+EDUCATIVOS = {
+    "A": [("Agachamento overhead", 3, "5", 60),
+          ("Arranco de força (muscle snatch)", 3, "3", 60),
+          ("Snatch balance", 3, "3", 60),
+          ("Arranco do alto (high hang)", 3, "3", 90)],
+    "B": [("Posição de recepção do clean (front rack)", 2, "30 s", 45),
+          ("Clean do alto (tall clean)", 3, "3", 60),
+          ("Clean de força (muscle clean)", 3, "3", 60),
+          ("Clean do joelho (hang)", 3, "3", 90)],
+    "C": [("Tríplice extensão com bastão", 3, "6", 45),
+          ("Push press", 3, "5", 90)],
+}
+
+
+def quantos_educativos(pos):
+    """Na acumulação o educativo é treino; na realização é rampa."""
+    if pos <= 3:
+        return 4
+    if pos == 4:
+        return 3          # descarga: volume baixo, técnica mantida
+    if pos <= 6:
+        return 3
+    return 2              # choque e polimento: só o que aquece o padrão
+
+
+def bloco_educativo(sessao, pos):
+    """Vem depois da mobilidade e ANTES do levantamento principal: é com o
+    sistema nervoso descansado que se aprende técnica."""
+    lista = EDUCATIVOS[sessao][:quantos_educativos(pos)]
+    return [_ex(nome, "Educativo", series, reps, pausa,
+                obs="Carga leve ou bastão. O que se treina aqui é o padrão, "
+                    "não o peso.")
+            for nome, series, reps, pausa in lista]
 
 
 def sessao_a(b, pos):
     s, r, pausa = PRINCIPAL[pos]
     os_, orr, opct = OLIMPICO[pos]
     i = b["intensidade"]
-    return [
+    return bloco_mobilidade("A") + bloco_educativo("A", pos) + [
         _ombro(),
         _ex("Arranco", "LPO", os_, orr, pausa, round(i + opct, 2), "Arranco",
             obs="Primeiro exercício com barra: o mais técnico e o mais neural. "
@@ -103,7 +177,7 @@ def sessao_b(b, pos, semana, n_blocos):
     tudo = e_semana_reteste(semana, n_blocos)
     dj = _saltos(b, 0.65 if tudo else 0.40, 5)
     cx = _saltos(b, 0.35 if tudo else 0.20, 5)
-    return [
+    return bloco_mobilidade("B") + bloco_educativo("B", pos) + [
         _ombro(),
         _ex("Clean", "LPO", os_, orr, 180, round(i + opct, 2), "Clean",
             obs="Velocidade da barra manda. Se cair, a série acabou — mesmo que "
@@ -126,7 +200,7 @@ def sessao_c(b, pos):
     s, r, _ = PRINCIPAL[pos]
     os_, _orr, _opct = OLIMPICO[pos]
     i = b["intensidade"]
-    return [
+    return bloco_mobilidade("C") + bloco_educativo("C", pos) + [
         _ombro(),
         _ex("Snatch pull / Hang high pull", "LPO", os_, 3, 150, round(i - 0.02, 2),
             "Clean pull", obs="Puxada alta: a parte do arranco que aguenta mais carga."),
@@ -147,7 +221,7 @@ def sessao_c(b, pos):
 
 def sessao_reteste():
     """A sexta da Realização não treina: mede. É o que reabastece o ciclo."""
-    return [
+    return bloco_mobilidade("A") + [
         _ombro(),
         _ex("Agachamento", "Força", 1, 1, 300, ref="Agachamento",
             obs="1RM. De 3 a 5 tentativas, 3 a 5 min entre elas. Lançar em Testes."),
