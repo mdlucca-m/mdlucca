@@ -308,6 +308,12 @@ TELAS.sessao = async () => {
   </div>
   ${p.exercicios.map((e, i) => exercicioHTML(e, i, fechada)).join("")}
   ${fechada ? "" : `<div class="cartao acc-forca"><header><h3>Encerrar o treino</h3></header>
+    <label class="c" style="max-width:320px">Quanto tempo durou? (minutos)
+      <input type="number" id="durMin" inputmode="numeric" min="1" max="300"
+        value="${Math.max(1, Math.round((Date.now() - new Date(E.sessao.check_in).getTime()) / 60000))}"></label>
+    <div class="nota" style="margin:10px 0 14px">O relógio já preencheu com o tempo
+    desde o check-in. <b>Corrija se esqueceu de fechar o treino</b> — a carga da
+    semana sai daqui, e um número errado atrapalha por 28 dias.</div>
     <label class="c" style="max-width:320px">Como foi o esforço da sessão? (PSE 0 a 10)
       <select id="pse">${[...Array(11).keys()].map(v =>
         `<option value="${v}">${v} — ${["repouso","muito leve","leve","moderado","um pouco difícil","difícil",
@@ -407,7 +413,8 @@ TELAS.sessao.depois = async () => {
   if (fechar) fechar.onclick = async () => {
     try {
       const r = await api("/api/sessao/fechar", {method: "POST", body: JSON.stringify({
-        sessao_id: E.sessao.id, pse: +el("pse").value})});
+        sessao_id: E.sessao.id, pse: +el("pse").value,
+        dur_min: +el("durMin").value || null})});
       aviso(`Treino encerrado: ${fmt(r.carga_ua)} UA em ${r.dur_min} min.`, "good");
       E.analise = null; desenhar();
     } catch (e) { aviso(e.message, "crit"); }

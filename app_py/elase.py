@@ -224,7 +224,19 @@ def salvar_serie(con, sessao_id, exercicio, numero, d):
     return {"ok": True}
 
 
-def fechar_sessao(con, sessao_id, pse, brums=None):
+# Teto de duração de uma sessão. Acima disso não é treino: é check-out
+# esquecido. Deixar passar grava uma carga inventada que envenena ACWR,
+# monotonia e strain pelos 28 dias seguintes.
+DUR_MAX = 300
+
+
+def fechar_sessao(con, sessao_id, pse, brums=None, dur_min=None):
+    """Encerra a sessão.
+
+    A duração é a do relógio entre check-in e check-out, MAS o atleta pode
+    corrigi-la — e é ele quem manda. Esquecer de fechar o treino e lembrar
+    horas depois é o erro mais provável na academia, e sem isto o app gravaria
+    o esquecimento como carga."""
     s = con.execute("SELECT * FROM sessoes WHERE id=?", (sessao_id,)).fetchone()
     if not s:
         raise ErroPedido("Sessão não encontrada.", 404)
@@ -232,7 +244,19 @@ def fechar_sessao(con, sessao_id, pse, brums=None):
         raise ErroPedido("Esta sessão já foi encerrada.")
     agora = datetime.now()
     entrada = datetime.fromisoformat(s["check_in"]) if s["check_in"] else agora
-    dur = max(1, int((agora - entrada).total_seconds() // 60))
+    medido = max(1, int((agora - entrada).total_seconds() // 60))
+    if dur_min is not None:
+        dur = int(dur_min)
+        if not 1 <= dur <= DUR_MAX:
+            raise ErroPedido(f"Duração fora do razoável: {dur} min. "
+                             f"Informe entre 1 e {DUR_MAX}.")
+    elif medido > DUR_MAX:
+        raise ErroPedido(
+            f"O relógio marcou {medido} min entre o check-in e agora — quase "
+            "certamente o check-out ficou esquecido. Informe quanto o treino "
+            "realmente durou; sem isso a carga da semana fica errada.")
+    else:
+        dur = medido
     # Tonelagem conta SÓ série marcada como feita: série digitada e não
     # concluída é intenção, não trabalho.
     ton = con.execute(
@@ -252,8 +276,8 @@ def fechar_sessao(con, sessao_id, pse, brums=None):
          ton, contatos, sessao_id))
     if brums:
         salvar_brums(con, s["atleta_id"], s["data"], brums, "pos")
-    return {"dur_min": dur, "carga_ua": dur * float(pse),
-            "tonelagem": ton, "contatos": contatos}
+    return {"dur_min": dur, "medido": medido, "corrigido": dur != medido,
+            "carga_ua": dur * float(pse), "tonelagem": ton, "contatos": contatos}
 
 
 def salvar_wellness(con, atleta_id, data, d):
@@ -515,7 +539,9 @@ class Handler(BaseHTTPRequestHandler):
                                 int(d["numero"]), d)
         if caminho == "/api/sessao/fechar":
             _exige(d, "sessao_id", "pse")
-            return fechar_sessao(con, int(d["sessao_id"]), float(d["pse"]), d.get("brums"))
+            return fechar_sessao(con, int(d["sessao_id"]), float(d["pse"]),
+                                 d.get("brums"),
+                                 d.get("dur_min") if d.get("dur_min") not in (None, "") else None)
 
         # daqui para baixo, só o preparador
         self._treinador(con)

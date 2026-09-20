@@ -243,11 +243,15 @@ Gerar nunca sobrescreve: dia que já tem sessão prescrita é pulado.
   zero. Quem não respondeu a BRUMS não é quem está com o humor péssimo.
 - **Nenhum dado financeiro.** Não há coluna de salário ou renda no banco, e um
   teste automatizado garante que não volte a haver.
+- **Check-out esquecido não vira carga.** A duração vem do relógio, mas o
+  atleta confere antes de fechar. Acima de 300 min o app recusa e pede o tempo
+  real: esquecer de fechar o treino é o erro mais provável na academia, e um
+  número inventado ali envenena ACWR, monotonia e strain por 28 dias.
 
 ## Testes
 
 ```bash
-python3 testes.py                       # 58 testes: banco, análise, sistema, API
+python3 testes.py                       # 64 testes: banco, análise, sistema, API
 node teste_tela.js                      # 41 verificações no navegador (servidor de pé)
 ```
 

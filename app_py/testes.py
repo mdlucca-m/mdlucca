@@ -563,6 +563,49 @@ class TestAPI(Base):
         self.assertGreater(an["prontidao"], 0)
         self.assertIn("sono", an["componentes"])
 
+    def test_checkout_esquecido_nao_vira_carga(self):
+        """Esquecer de fechar o treino e lembrar horas depois é o erro mais
+        provável na academia. Sem guarda, o app gravaria o esquecimento como
+        carga — e um número inventado envenena ACWR, monotonia e strain pelos
+        28 dias seguintes."""
+        _, a = self.pedir("/api/cadastro", {"nome": "Esquecido da Silva"})
+        self.pedir("/api/sistema/gerar", {"de": 1, "ate": 1}, pin=self.pin)
+        _, ps = self.pedir(f"/api/prescricoes?de={banco.segunda_desta_semana()}"
+                           f"&ate={banco.mais_dias(banco.segunda_desta_semana(), 6)}")
+        _, s = self.pedir("/api/sessao/abrir",
+                          {"atleta_id": a["id"], "prescricao_id": ps[0]["id"]})
+        sid = s["sessao_id"]
+        # o relógio marca 8 horas: check-in de ontem à noite
+        from datetime import datetime, timedelta
+        with self.con() as con:
+            con.execute("UPDATE sessoes SET check_in=? WHERE id=?",
+                        ((datetime.now() - timedelta(hours=8)).isoformat(
+                            timespec="seconds"), sid))
+        cod, d = self.pedir("/api/sessao/fechar", {"sessao_id": sid, "pse": 7})
+        self.assertEqual(cod, 400, "480 min não pode passar calado")
+        self.assertIn("esquecido", d["erro"])
+
+        # com a duração informada, fecha normalmente
+        cod, d = self.pedir("/api/sessao/fechar",
+                            {"sessao_id": sid, "pse": 7, "dur_min": 75})
+        self.assertEqual(cod, 200)
+        self.assertEqual(d["dur_min"], 75)
+        self.assertEqual(d["carga_ua"], 75 * 7)
+        self.assertTrue(d["corrigido"])
+        self.assertGreater(d["medido"], 400, "e o app lembra o que o relógio viu")
+
+    def test_duracao_informada_fora_do_razoavel(self):
+        _, a = self.pedir("/api/cadastro", {"nome": "Duracao Absurda"})
+        self.pedir("/api/sistema/gerar", {"de": 1, "ate": 1}, pin=self.pin)
+        _, ps = self.pedir(f"/api/prescricoes?de={banco.segunda_desta_semana()}"
+                           f"&ate={banco.mais_dias(banco.segunda_desta_semana(), 6)}")
+        _, s = self.pedir("/api/sessao/abrir",
+                          {"atleta_id": a["id"], "prescricao_id": ps[0]["id"]})
+        for ruim in (0, -5, 999):
+            cod, d = self.pedir("/api/sessao/fechar",
+                                {"sessao_id": s["sessao_id"], "pse": 7, "dur_min": ruim})
+            self.assertEqual(cod, 400, f"aceitou {ruim} min")
+
     def test_nao_fecha_duas_vezes(self):
         _, a = self.pedir("/api/cadastro", {"nome": "Dois Checkouts"})
         self.pedir("/api/sistema/gerar", {"de": 1, "ate": 1}, pin=self.pin)
