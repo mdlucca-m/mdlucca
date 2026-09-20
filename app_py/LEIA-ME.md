@@ -172,6 +172,39 @@ Na aba **Exercícios** você fixa o vídeo que quiser em cada um; a partir daí 
 seu que o atleta vê. O melhor de todos é filmar um atleta do próprio elenco
 executando: é o padrão que você quer que copiem, com a sua linguagem.
 
+Há sugestões prontas para os **educativos de arranco**, da Exercise Library da
+Catalyst Athletics (Greg Everett) — uma fonte só, um vídeo curto por exercício:
+
+```bash
+python3 videos_sugeridos.py            # mostra a lista, não grava nada
+python3 videos_sugeridos.py --aplicar  # grava, depois de você confirmar
+```
+
+Ele nunca sobrescreve um vídeo que você já fixou.
+
+**Para a mobilidade de ombro não há sugestão pronta**, e o motivo está no
+arquivo: não existe uma biblioteca única equivalente à da Catalyst, e espalhar
+links de canais avulsos numa tela que o atleta segue sozinho é o contrário do
+que este projeto faz. Filme os seus.
+
+### Por que o ombro entra em toda sessão
+
+O que sustenta a escolha, para quando alguém perguntar:
+
+- **GIRD** (déficit de rotação interna glenoumeral) é o achado mais comum no
+  atleta de gesto acima da cabeça, e vem da repetição do ataque e do saque.
+  Há ensaio randomizado em **voleibolistas masculinos** com déficit de rotação
+  interna testando exercício com faixa elástica ([Springer, BMC Musculoskelet
+  Disord 2020](https://link.springer.com/article/10.1186/s12891-020-03414-y)).
+- **A torácica vem antes do ombro.** Amplitude acima da cabeça depende de
+  extensão torácica; déficit ali joga o estresse para o resto da cadeia
+  ([revisão de triagem, NASM](https://www.nasm.org/resource-center/blog/training/shoulder-mobility-for-overhead-athletes-a-screening-guide)).
+  Há ensaio randomizado de mobilidade torácica em voleibolistas adolescentes
+  ([BMC Sports Sci Med Rehabil](https://link.springer.com/article/10.1186/s13102-026-01618-8)).
+- **Mobilidade e estabilidade são coisas diferentes** e as duas entram: a
+  amplitude pelo alongamento e pela torácica, o controle pelo wall slide, Y-T-W
+  e rotação externa com faixa — que no app estão no grupo Força, não Mobilidade.
+
 Séries, repetições e %1RM saem da posição no macrociclo; os contatos
 pliométricos saem do campo `plio` do bloco, repartidos **entre os exercícios**
 da semana. A periodização é editável na aba Elenco e o gerador acompanha.
@@ -216,6 +249,7 @@ app_py/
   sistema.py      gerador do microciclo, sem limite de semanas
   testes.py       testes de unidade e de API
   teste_tela.js   teste de interface no navegador
+  videos_sugeridos.py  sugestões de vídeo para os educativos de arranco
   web/            index.html, app.js, estilo.css
   elase.db        banco (criado ao rodar; não vai para o repositório)
 ```
