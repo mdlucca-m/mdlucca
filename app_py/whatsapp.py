@@ -94,22 +94,37 @@ def _numero(s):
     return float(m.group(0)) if m else None
 
 
+def _variantes(opcao):
+    """Os nomes pelos quais uma opção pode ser escrita.
+
+    "Ponteiro (Ponta)" é UMA posição com DOIS nomes de quadra, e o atleta
+    escreve o que ele usa. Enquanto o que está entre parênteses não contava
+    como nome próprio, "ponta" não casava com nada — e é o mais provável de vir.
+    """
+    base = sem_acento(opcao).strip()
+    fora = [base, re.sub(r"\(.*?\)", "", base).strip()]
+    dentro = re.search(r"\(([^)]*)\)", base)
+    if dentro:
+        fora.append(dentro.group(1).strip())
+    return [x for x in fora if x]
+
+
 def _casar(valor, opcoes):
     """"libero", "PONTEIRO", "ponta" caem todos na opção certa."""
     v = sem_acento(valor).strip()
     if not v:
         return None
     for o in opcoes:
-        if sem_acento(o) == v:
+        if v in _variantes(o):
             return o
     for o in opcoes:
-        so = sem_acento(o)
-        if so.startswith(v) or v.startswith(so.split()[0]):
-            return o
+        for s in _variantes(o):
+            if s.startswith(v) or v.startswith(s.split()[0]):
+                return o
     for o in opcoes:
-        so = re.sub(r"\(.*?\)", "", sem_acento(o)).strip()
-        if v in so or so in v:
-            return o
+        for s in _variantes(o):
+            if v in s or s in v:
+                return o
     return None
 
 

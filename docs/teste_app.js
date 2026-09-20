@@ -1,0 +1,542 @@
+/* Testes do app hospedado: motor + tela, num Chromium emulando iPhone 13.
+   Sem banco (claude.use ausente) => modo "neste aparelho", que é o pior caso
+   para a tela e o melhor para testar a lógica sem rede. */
+const { chromium, devices } = require("playwright");
+const http = require("http");
+const fs = require("fs");
+const path = require("path");
+
+const ARQ = "/home/user/mdlucca/docs/app.html";
+const PORTA = 8931;
+let falhas = 0, passes = 0;
+
+function ok(cond, nome, extra) {
+  if (cond) { passes++; }
+  else { falhas++; console.log("  ✗ " + nome + (extra ? "  →  " + extra : "")); }
+}
+function perto(a, b, tol, nome) {
+  const d = Math.abs(a - b);
+  ok(d <= tol, nome, `esperado ${b} ± ${tol}, veio ${a}`);
+}
+
+/* O mesmo esqueleto que o publicador embrulha em volta da página — copiado da
+   leitura do artifact publicado. Servir o arquivo cru mentiria: sem a meta de
+   viewport o Chromium usa 980px de largura e nenhum defeito de celular aparece. */
+const ESQUELETO_ABRE = `<!doctype html><html><head><meta charset=utf8>` +
+  `<meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">` +
+  `<style>:root{color-scheme:light;box-sizing:border-box;` +
+  `padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}` +
+  `html{scroll-padding-top:env(safe-area-inset-top,0px)}` +
+  `body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;` +
+  `background:#faf9f5;color:#141413}img{max-width:100%}` +
+  `[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>\n`;
+const ESQUELETO_FECHA = `\n</body></html>`;
+
+const servidor = http.createServer((req, res) => {
+  res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+  res.end(ESQUELETO_ABRE + fs.readFileSync(ARQ, "utf8") + ESQUELETO_FECHA);
+});
+
+(async () => {
+  await new Promise(r => servidor.listen(PORTA, r));
+  const navegador = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" });
+  const ctx = await navegador.newContext(Object.assign({}, devices["iPhone 13"]));
+  const pag = await ctx.newPage();
+
+  const erros = [];
+  pag.on("console", m => { if (m.type() === "error") erros.push(m.text()); });
+  pag.on("pageerror", e => erros.push("pageerror: " + e.message));
+
+  await pag.goto(`http://127.0.0.1:${PORTA}/`, { waitUntil: "load" });
+  await pag.waitForTimeout(400);
+
+  console.log("\n── Motor ──────────────────────────────────────────────");
+
+  const m = await pag.evaluate(() => {
+    const R = {};
+    // "30 s" é permanência, não 30 repetições
+    R.seg30s = segundosDeTrabalho("30 s");
+    R.seg30seg = segundosDeTrabalho("30 segundos");
+    R.seg8lado = segundosDeTrabalho("8 cada lado");
+    R.seg3 = segundosDeTrabalho("3");
+    R.segVazio = segundosDeTrabalho("");
+
+    // Spearman sem empates: r = 1 - 6Σd²/(n(n²-1)); a=1..7, b troca dois pares
+    const a = [1,2,3,4,5,6,7], b = [1,3,2,4,5,7,6];   // Σd² = 4
+    R.sp = spearman(a, b);
+    R.spCurto = spearman([1,2,3,4,5], [1,2,3,4,5]);   // < 6 pares → null
+
+    // Postos com empate recebem a média
+    R.postos = postos([10, 20, 20, 30]);
+
+    // Desvio amostral (n−1)
+    R.desvio = desvio([2, 4, 4, 4, 5, 5, 7, 9]);
+    R.desvio1 = desvio([5]);
+
+    // Quartis: menos de 5 pontos não é faixa
+    R.q4 = quartis([1,2,3,4]);
+    R.q5 = quartis([1,2,3,4,5]);
+
+    // Monotonia indefinida com carga idêntica todo dia
+    const iguais = [];
+    for (let i = 0; i < 7; i++) iguais.push({ data: maisDias("2026-09-20", -i), carga_ua: 300 });
+    R.cargaIgual = carga(iguais, "2026-09-20");
+
+    // Carga com variação
+    const varia = [
+      { data: "2026-09-14", carga_ua: 400 }, { data: "2026-09-16", carga_ua: 600 },
+      { data: "2026-09-18", carga_ua: 300 }, { data: "2026-09-20", carga_ua: 500 },
+    ];
+    R.cargaVaria = carga(varia, "2026-09-20");
+
+    // Zona do ACWR só existe com 21 dias de histórico
+    R.zonaCurta = zonaACWR(1.1, 10);
+    R.zonaIdeal = zonaACWR(1.1, 30);
+    R.zonaRisco = zonaACWR(1.7, 30);
+    R.zonaSub = zonaACWR(0.5, 30);
+
+    // Z móvel: a janela NÃO inclui o próprio ponto
+    const datas = [], vals = [];
+    for (let i = 0; i < 8; i++) { datas.push(maisDias("2026-09-01", i)); vals.push(10 + (i % 3)); }
+    vals[7] = 40;                                     // salto no último
+    R.zs = zMovel(datas, vals, 30, 5);
+
+    // Geração do sistema: contatos por semana contra o alvo do bloco
+    const bl = BLOCOS_PADRAO;
+    const g = gerarSistema(bl, "2026-09-21", 1, 8, []);
+    const porSem = {};
+    for (const s of g.sessoes) {
+      const sem = semanaDe(s.data, "2026-09-21");
+      const p = planoSessao(s.exercicios, s.tipo, s.dur_prev);
+      porSem[sem] = porSem[sem] || { contatos: 0, n: 0, min: 0, series: 0 };
+      porSem[sem].contatos += p.contatos;
+      porSem[sem].min += p.dur;
+      porSem[sem].series += p.series;
+      porSem[sem].n++;
+    }
+    R.semanas = Object.keys(porSem).map(k => ({
+      sem: +k, contatos: porSem[k].contatos, alvo: bl[(+k - 1) % bl.length].plio,
+      n: porSem[k].n, min: porSem[k].min,
+    }));
+    R.totalSessoes = g.sessoes.length;
+
+    // Regerar não sobrescreve dia ocupado
+    const g2 = gerarSistema(bl, "2026-09-21", 1, 1, ["2026-09-21"]);
+    R.pulados = g2.pulados.length;
+    R.geradas2 = g2.sessoes.length;
+
+    // Toda sessão abre com mobilidade das três articulações
+    const prim = g.sessoes[0].exercicios;
+    R.primMob = prim.filter(e => e.grupo === "Mobilidade").map(e => e.nome);
+    R.primEdu = prim.filter(e => e.grupo === "Educativo").length;
+    R.mobAntesDaBarra = prim.findIndex(e => e.grupo === "LPO" || e.pct_rm) >
+                        prim.map(e => e.grupo).lastIndexOf("Mobilidade");
+
+    // A semana de reteste não perde contatos: a B carrega a semana inteira
+    const sem8 = g.sessoes.filter(s => semanaDe(s.data, "2026-09-21") === 8);
+    R.reteste = sem8.map(s => ({ tipo: s.tipo, obj: s.objetivo,
+      contatos: planoSessao(s.exercicios, s.tipo).contatos }));
+
+    // Mobilidade e educativo não somam contato nem tonelagem
+    R.planoMob = planoSessao(blocoMobilidade("A"), "Mobilidade");
+
+    // Ficha do WhatsApp
+    const ficha = [
+      "🏐 CADASTRO ELASE VOLEIBOL", "",
+      "1. Nome completo — João da Silva Pereira",
+      "2. Como prefere ser chamado — Joca",
+      "3. Data de nascimento — 14/03/2001",
+      "4. Posição — ponta",
+      "5. Número da camisa — 12",
+      "6. Telefone (WhatsApp) — (41) 99999-0000",
+      "7. Estatura em cm — 198,5",
+      "8. Massa corporal em kg — 92",
+      "9. Anos de prática no voleibol — 11",
+      "10. Mão dominante — destro",
+      "11. Perna de impulsão — ",
+      "12. Contato de emergência — Maria (41) 98888-0000",
+      "13. Lesões anteriores ou limitações — ombro direito 2024",
+      "14. Algo mais que a comissão deva saber — ",
+      "15. Escolaridade — superior em andamento",
+    ].join("\n");
+    R.wa = lerWA(ficha);
+
+    // Ficha com valor ilegível: fica em branco E é reportado, nunca chutado
+    R.waRuim = lerWA("1. Nome completo — Pedro\n7. Estatura em cm — alto\n3. Data de nascimento — ontem");
+
+    // Duas fichas coladas juntas
+    R.waDuas = lerVariasWA(ficha + "\n" + ficha.replace("João da Silva Pereira", "Outro Atleta")).length;
+
+    // Prontidão: componente ausente é EXCLUÍDO, não vira zero
+    const semNada = prontidao([], { w: {}, b: {} }, "2026-09-20");
+    R.prSemNada = { valor: semNada.valor, comps: Object.keys(semNada.componentes) };
+    const soDor = prontidao([], { w: { "2026-09-20": { dor: 0 } }, b: {} }, "2026-09-20");
+    R.prSoDor = { valor: soDor.valor, comps: Object.keys(soDor.componentes) };
+
+    // Bandeira crítica quando a carga é idêntica todos os dias
+    const prIgual = prontidao(iguais, { w: {}, b: {} }, "2026-09-20");
+    R.prIgual = prIgual.bandeiras.map(b => b[1]);
+
+    // BRUMS: TMD = negativas − Vigor + 100
+    const vals24 = new Array(24).fill(0);
+    BRUMS_LISTA.forEach((x, i) => { if (x[1] === "Vigor") vals24[i] = 4; });
+    const pd = brumsPorData({ b: { "2026-09-20|pre": vals24 } }, "pre");
+    R.tmd = pd["2026-09-20"].TMD;             // 0 − 16 + 100 = 84
+    R.vigor = pd["2026-09-20"].Vigor;
+
+    // Z do humor exige 6 coletas COM variação
+    const diario = { w: {}, b: {} };
+    for (let i = 0; i < 5; i++) {
+      const v = new Array(24).fill(1);
+      diario.b[maisDias("2026-09-01", i) + "|pre"] = v;
+    }
+    R.zPoucas = zHoje(diario).map(z => z.z);
+
+    return R;
+  });
+
+  ok(m.seg30s === 30, "'30 s' conta como 30 segundos", m.seg30s);
+  ok(m.seg30seg === 30, "'30 segundos' também", m.seg30seg);
+  ok(m.seg8lado === 32, "'8 cada lado' = 8 reps × 4 s", m.seg8lado);
+  ok(m.seg3 === 12, "'3' = 3 reps × 4 s", m.seg3);
+  ok(m.segVazio === 24, "sem número cai no padrão de 6 reps", m.segVazio);
+
+  perto(m.sp.r, 0.9286, 0.001, "Spearman sem empates bate a fórmula");
+  ok(m.sp.n === 7, "Spearman conta os pares", m.sp.n);
+  ok(m.spCurto === null, "menos de 6 pares não conclui nada");
+  ok(JSON.stringify(m.postos) === "[1,2.5,2.5,4]", "empate recebe o posto médio", JSON.stringify(m.postos));
+  perto(m.desvio, 2.13809, 0.0001, "desvio é amostral (n−1)");
+  ok(m.desvio1 === 0, "com n<2 não existe desvio");
+  ok(m.q4 === null, "menos de 5 pontos não é faixa");
+  ok(m.q5 && m.q5.mediana === 3, "quartis com 5 pontos", JSON.stringify(m.q5));
+
+  ok(m.cargaIgual.monotonia === null, "carga idêntica → monotonia INDEFINIDA, não zero",
+     String(m.cargaIgual.monotonia));
+  ok(m.cargaIgual.monotonia_indefinida === true, "a tela é avisada da indefinição");
+  ok(m.cargaIgual.strain === null, "sem monotonia não há strain");
+  ok(m.cargaIgual.semanal === 2100, "semanal soma os 7 dias", m.cargaIgual.semanal);
+  ok(m.cargaVaria.monotonia > 0, "com variação a monotonia existe", m.cargaVaria.monotonia);
+  perto(m.cargaVaria.aguda, 1800, 0.01, "aguda = 7 dias");
+  perto(m.cargaVaria.cronica, 450, 0.01, "crônica = 28 dias ÷ 4");
+  perto(m.cargaVaria.acwr, 4, 0.01, "ACWR = aguda ÷ crônica");
+
+  ok(m.zonaCurta.t === "Histórico curto", "abaixo de 21 dias não há zona", m.zonaCurta.t);
+  ok(m.zonaIdeal.c === "good", "1,10 é zona ideal");
+  ok(m.zonaRisco.c === "crit", "1,70 é risco elevado");
+  ok(m.zonaSub.c === "info", "0,50 é subcarga");
+
+  ok(m.zs.slice(0, 5).every(z => z === null), "sem base mínima não sai Z");
+  ok(m.zs[7] !== null && m.zs[7] > 3, "o salto do último dia aparece como Z alto", m.zs[7]);
+
+  console.log("\n── Periodização ───────────────────────────────────────");
+  ok(m.totalSessoes === 24, "8 semanas × 3 sessões", m.totalSessoes);
+  for (const s of m.semanas) {
+    const erro = Math.abs(s.contatos - s.alvo) / s.alvo;
+    ok(erro <= 0.16, `semana ${s.sem}: contatos perto do alvo`,
+       `${s.contatos} vs alvo ${s.alvo} (${(erro * 100).toFixed(0)}%)`);
+    ok(s.min >= 45 && s.min <= 420, `semana ${s.sem}: duração semanal plausível`, s.min + " min");
+  }
+  ok(m.pulados === 1 && m.geradas2 === 2, "dia ocupado é PULADO, nunca sobrescrito",
+     `pulados ${m.pulados}, geradas ${m.geradas2}`);
+  ok(m.primMob.length === 4, "toda sessão abre com 4 mobilizações", m.primMob.length);
+  ok(m.primMob.join(" ").match(/tornozelo/i) && m.primMob.join(" ").match(/quadril/i)
+     && m.primMob.join(" ").match(/bastão|torácica/i),
+     "tornozelo, quadril e ombro/torácica na mesma sessão", m.primMob.join(" · "));
+  ok(m.primEdu === 4, "na acumulação o educativo é treino (4 exercícios)", m.primEdu);
+  ok(m.mobAntesDaBarra === true, "mobilidade e educativo vêm ANTES da barra");
+  const cRet = m.reteste.find(r => /Reteste/.test(r.obj));
+  ok(!!cRet, "a semana 8 tem reteste");
+  ok(m.reteste.reduce((a, r) => a + r.contatos, 0) >= 60,
+     "a semana de reteste não perde os contatos do bloco",
+     m.reteste.map(r => r.contatos).join("+"));
+  ok(m.planoMob.contatos === 0, "mobilidade não gera contato pliométrico", m.planoMob.contatos);
+  ok(m.planoMob.dur > 0 && m.planoMob.dur < 20, "mas entra na duração", m.planoMob.dur + " min");
+
+  console.log("\n── Ficha do WhatsApp ──────────────────────────────────");
+  ok(m.wa.dados.nome === "João da Silva Pereira", "nome", m.wa.dados.nome);
+  ok(m.wa.dados.nasc === "2001-03-14", "data vira aaaa-mm-dd", m.wa.dados.nasc);
+  ok(m.wa.dados.posicao === "Ponteiro (Ponta)", "'ponta' casa com Ponteiro (Ponta)", m.wa.dados.posicao);
+  ok(m.wa.dados.estatura === 198.5, "vírgula decimal preservada", m.wa.dados.estatura);
+  ok(m.wa.dados.dominancia === "Destro", "'destro' casa", m.wa.dados.dominancia);
+  ok(m.wa.dados.perna_impulsao === "", "campo vazio fica vazio");
+  ok(m.wa.faltam.length === 0, "nada obrigatório faltando", JSON.stringify(m.wa.faltam));
+  ok(m.waRuim.dados.estatura === null, "'alto' NÃO vira número");
+  ok(m.waRuim.naoLidos.length === 2, "o que não deu para ler é reportado",
+     JSON.stringify(m.waRuim.naoLidos));
+  ok(m.waRuim.faltam.length > 0, "e o obrigatório que sumiu é cobrado");
+  ok(m.waDuas === 2, "duas fichas coladas juntas são separadas", m.waDuas);
+
+  console.log("\n── Prontidão e humor ──────────────────────────────────");
+  ok(m.prSemNada.comps.length === 1 && m.prSemNada.comps[0] === "carga",
+     "sem coleta só a carga entra", JSON.stringify(m.prSemNada.comps));
+  ok(m.prSoDor.valor === 100, "dor 0 + carga sem histórico = 100, não diluído por zeros",
+     m.prSoDor.valor);
+  ok(m.prIgual.indexOf("crit") >= 0, "carga idêntica levanta bandeira crítica",
+     JSON.stringify(m.prIgual));
+  ok(m.tmd === 84, "TMD = negativas − Vigor + 100", m.tmd);
+  ok(m.vigor === 16, "Vigor soma os 4 itens", m.vigor);
+  ok(m.zPoucas.every(z => z === null), "5 coletas ainda não dão Z");
+
+  console.log("\n── Tela ───────────────────────────────────────────────");
+
+  // Nenhum campo de dinheiro em lugar nenhum
+  const textoTodo = await pag.evaluate(() => document.documentElement.innerHTML.toLowerCase());
+  ok(!/sal[áa]rio|renda|remunera|pagamento|mensalidade/.test(textoTodo),
+     "nenhum campo de dinheiro na página inteira");
+
+  ok(erros.length === 0, "nenhum erro de console no arranque", erros.join(" | "));
+
+  // Abas públicas presentes, abas da comissão escondidas
+  const abas = await pag.$$eval("#navRolo button", bs => bs.map(b => b.textContent.trim()));
+  ok(abas.includes("Início") && abas.includes("Sessão") && abas.includes("Análise"),
+     "abas públicas visíveis", abas.join(" · "));
+  ok(!abas.includes("Prescrição") && !abas.includes("Elenco"),
+     "abas da comissão escondidas antes do PIN", abas.join(" · "));
+  ok(abas.some(a => /Comissão/.test(a)), "há porta para a comissão");
+
+  // Entrar com o PIN
+  await pag.click('#navRolo button[data-aba="__pin"]');
+  await pag.fill("#pinCampo", "9999");
+  await pag.click("#btPin");
+  ok(await pag.isVisible("#avPin"), "PIN errado é recusado");
+  await pag.fill("#pinCampo", "1234");
+  await pag.click("#btPin");
+  await pag.waitForTimeout(250);
+  const abas2 = await pag.$$eval("#navRolo button", bs => bs.map(b => b.textContent.trim()));
+  ok(abas2.includes("Prescrição") && abas2.includes("Sistema"),
+     "com o PIN as abas da comissão aparecem", abas2.join(" · "));
+
+  // Cadastrar um atleta pela ficha do WhatsApp
+  await pag.click('#navRolo button[data-aba="whatsapp"]');
+  await pag.fill("#waTexto", [
+    "1. Nome completo — Rafael Moreira", "2. Como prefere ser chamado — Rafa",
+    "3. Data de nascimento — 02/05/1999", "4. Posição — central",
+    "5. Número da camisa — 7", "7. Estatura em cm — 201",
+    "8. Massa corporal em kg — 95", "9. Anos de prática no voleibol — 12",
+    "12. Contato de emergência — Ana (41) 97777-0000",
+  ].join("\n"));
+  await pag.click("#btLerWA");
+  await pag.waitForTimeout(200);
+  ok(await pag.isVisible('[data-import="0"]'), "a ficha lida vira um cartão");
+  /* O valor lido não pode estar fora do quadro: uma tabela que rola esconde a
+     coluna do número, e quem confere a ficha vê só os rótulos. */
+  const valoresCortados = await pag.$$eval(".rolagem.estreita td.num", tds =>
+    tds.filter(td => {
+      const caixa = td.getBoundingClientRect();
+      const pai = td.closest(".rolagem").getBoundingClientRect();
+      return caixa.right > pai.right + 1;
+    }).map(td => td.textContent.trim()));
+  ok(valoresCortados.length === 0, "nenhum valor da ficha fica fora do quadro",
+     valoresCortados.slice(0, 5).join(" | "));
+  await pag.click('[data-import="0"]');
+  await pag.waitForTimeout(300);
+
+  // Gerar as semanas
+  await pag.click('#navRolo button[data-aba="sistema"]');
+  await pag.waitForTimeout(200);
+  await pag.fill("#sisDe", "1");
+  await pag.fill("#sisAte", "2");
+  await pag.waitForTimeout(150);
+  await pag.click("#btGerar");
+  await pag.waitForTimeout(1400);
+  const diag = await pag.evaluate(() => ({
+    n: prescricoes().length, datas: prescricoes().map(p => p.data),
+    de: UI.sisDe, ate: UI.sisAte, macro: cfg().macro_inicio,
+  }));
+  ok(diag.n === 6, "2 semanas geram 6 sessões", JSON.stringify(diag));
+
+  /* Regressão do toque perdido: digitar num campo e tocar NO PRIMEIRO TOQUE
+     num botão tem de valer. O `change` do campo dispara no blur, ou seja no
+     instante do toque; se a tela for redesenhada ali, o clique não nasce. */
+  await pag.fill("#sisAte", "4");                // digita, e tudo que vem depois
+  await pag.tap("#btGerar");                     // é UM toque só, de verdade
+  await pag.waitForTimeout(1400);
+  const depoisDoToque = await pag.evaluate(() => prescricoes().length);
+  ok(depoisDoToque === 12, "o primeiro toque depois de digitar num campo vale",
+     `${depoisDoToque} sessões (esperado 12: semanas 1 a 4)`);
+
+  /* O início do macrociclo é encaixado na segunda-feira: os dias de treino são
+     contados a partir dele (0, 2, 4), e começar numa quarta jogaria o treino
+     para quarta, sexta e domingo sem ninguém pedir. */
+  await pag.click('#navRolo button[data-aba="ajustes"]');
+  await pag.waitForTimeout(200);
+  const hoje = await pag.evaluate(() => hojeISO());
+  await pag.fill("#cfMacro", hoje);
+  await pag.click("#btCfg");
+  await pag.waitForTimeout(600);
+  const macroGravado = await pag.evaluate(() => cfg().macro_inicio);
+  const ehSegunda = await pag.evaluate(m => new Date(m + "T00:00:00").getDay() === 1, macroGravado);
+  ok(ehSegunda, "o início do macrociclo é encaixado numa segunda-feira", macroGravado);
+  await pag.waitForTimeout(1200);
+
+  // Semear a sessão de hoje com o próprio gerador, para poder treiná-la
+  await pag.evaluate(async () => {
+    const s = gerarSistema(blocos(), hojeISO(), 1, 1, []).sessoes[0];
+    await Store.set("prescricoes", hojeISO(), {
+      data: hojeISO(), hora: s.hora, tipo: s.tipo, objetivo: s.objetivo,
+      bloco: s.bloco, notas: s.notas, exercicios: s.exercicios });
+  });
+  await pag.waitForTimeout(300);
+  const temHoje = await pag.evaluate(() => !!prescDoDia(hojeISO()));
+  ok(temHoje, "há sessão prescrita para hoje");
+
+  // A sessão: check-in, séries, check-out
+  await pag.click('#navRolo button[data-aba="sessao"]');
+  await pag.waitForTimeout(250);
+  ok(await pag.isVisible("#btCheckin"), "a sessão de hoje abre com check-in");
+  const exVisiveis = await pag.$$eval(".ex", e => e.length);
+  ok(exVisiveis > 8, "os exercícios aparecem antes do check-in", exVisiveis);
+  const temDica = await pag.$$eval(".ex .dica", e => e.length);
+  ok(temDica > 0, "a instrução técnica aparece junto do exercício", temDica);
+
+  await pag.click("#btCheckin");
+  await pag.waitForTimeout(400);
+  const ticks = await pag.$$(".tick");
+  ok(ticks.length > 0, "depois do check-in aparecem as séries", ticks.length);
+
+  // Preencher a primeira série com carga real de um exercício com barra
+  const campos = await pag.$$('input[data-campo="carga"]');
+  if (campos.length) {
+    await campos[0].fill("100");
+    const reps = await pag.$$('input[data-campo="reps"]');
+    await reps[0].fill("5");
+    const chave = await campos[0].getAttribute("data-serie");
+    await pag.click(`[data-tick="${chave}"]`);
+    await pag.waitForTimeout(300);
+  }
+
+  // Encerrar sem PSE é recusado
+  await pag.evaluate(() => document.getElementById("fechamento").scrollIntoView());
+  const btFechar = await pag.$("#btFechar");
+  ok(await btFechar.isDisabled(), "sem PSE o botão de encerrar fica travado");
+  await pag.click('[data-pse="7"]');
+  await pag.waitForTimeout(120);
+  ok(!(await btFechar.isDisabled()), "com PSE escolhida o botão libera");
+
+  // Duração absurda é recusada — é o check-out esquecido
+  await pag.fill("#durFim", "480");
+  await pag.click("#btFechar");
+  await pag.waitForTimeout(250);
+  ok(await pag.isVisible("#avFechar"), "duração acima do teto é recusada");
+  const aindaAberta = await pag.evaluate(() => {
+    const a = meuAtleta(); return !sessaoDe(a.id, hojeISO()).check_out;
+  });
+  ok(aindaAberta, "e a sessão continua aberta");
+
+  await pag.fill("#durFim", "75");
+  await pag.click("#btFechar");
+  await pag.waitForTimeout(600);
+
+  const s = await pag.evaluate(() => {
+    const a = meuAtleta(); return sessaoDe(a.id, hojeISO());
+  });
+  ok(!!s.check_out, "o check-out grava");
+  ok(s.dur_min === 75 && s.pse === 7, "duração e PSA gravadas", `${s.dur_min} min, PSE ${s.pse}`);
+  ok(s.carga_ua === 525, "carga = duração × PSE", s.carga_ua);
+  ok(s.tonelagem === 500, "tonelagem = carga × reps das séries feitas", s.tonelagem);
+
+  // Bem-estar e BRUMS
+  await pag.click('#navRolo button[data-aba="bemestar"]');
+  await pag.waitForTimeout(250);
+  await pag.click('[data-escala="sq"] [data-v="4"]');
+  await pag.fill("#wSh", "7,5");
+  await pag.click('[data-escala="dor"] [data-v="3"]');
+  await pag.click('[data-escala="es"] [data-v="2"]');
+  await pag.click('[data-escala="kss"] [data-v="3"]');
+  await pag.click("#btWell");
+  await pag.waitForTimeout(400);
+  const w = await pag.evaluate(() => {
+    const a = meuAtleta(); return diarioDe(a.id).w[hojeISO()];
+  });
+  ok(w && w.sq === 4 && w.dor === 3 && w.kss === 3 && w.sh === 7.5,
+     "check-in de bem-estar grava tudo", JSON.stringify(w));
+
+  // BRUMS incompleta é recusada
+  await pag.click('[data-brums="0"] [data-v="1"]');
+  await pag.click("#btBrums");
+  await pag.waitForTimeout(250);
+  ok(await pag.isVisible("#avBrums"), "BRUMS com item faltando é recusada");
+  await pag.evaluate(() => {
+    for (let i = 0; i < 24; i++) {
+      const b = document.querySelector(`[data-brums="${i}"] [data-v="2"]`);
+      b.click();
+    }
+  });
+  await pag.click("#btBrums");
+  await pag.waitForTimeout(500);
+  const temBrums = await pag.evaluate(() => {
+    const a = meuAtleta(); return !!diarioDe(a.id).b[hojeISO() + "|pre"];
+  });
+  ok(temBrums, "BRUMS inteira grava");
+
+  // Análise
+  await pag.click('#navRolo button[data-aba="analise"]');
+  await pag.waitForTimeout(400);
+  const txtAnalise = await pag.innerText("#s-analise");
+  ok(/Hist[óo]rico curto|—/.test(txtAnalise),
+     "com 1 sessão o ACWR não finge diagnóstico");
+  ok(/Spearman|6 dias/.test(txtAnalise), "a recusa da correlação é explicada");
+  ok(/exclu[íi]do/i.test(txtAnalise), "a regra do componente ausente está na tela");
+  const temGrafico = await pag.$$eval("#s-analise svg", e => e.length);
+  ok(temGrafico >= 1, "o gráfico de carga desenha", temGrafico);
+  const comps = await pag.$$eval(".pares div", ds => ds.map(d => d.textContent.trim()));
+  ok(comps.length === 5, "os 5 componentes da prontidão aparecem", comps.length);
+  ok(comps.every(t => /\d/.test(t.replace(/peso \d+%/, "")) || /sem coleta/.test(t)),
+     "cada componente mostra o valor ou diz que não houve coleta", JSON.stringify(comps));
+  const compsCortados = await pag.$$eval(".pares b", bs =>
+    bs.filter(b => b.getBoundingClientRect().right >
+                   b.closest(".cartao").getBoundingClientRect().right).length);
+  ok(compsCortados === 0, "nenhum valor de componente fica fora do cartão", compsCortados);
+  // O rótulo direto do gráfico tem de caber dentro do desenho
+  const rotuloFora = await pag.$$eval("#s-analise svg text.valor", ts =>
+    ts.filter(t => {
+      const c = t.getBoundingClientRect(), s = t.closest("svg").getBoundingClientRect();
+      return c.left < s.left - 1 || c.right > s.right + 1 || c.top < s.top - 1;
+    }).length);
+  ok(rotuloFora === 0, "o rótulo do gráfico fica dentro do desenho", rotuloFora);
+
+  // Testes / 1RM, e o percentual virando quilo na sessão
+  await pag.click('#navRolo button[data-aba="testes"]');
+  await pag.waitForTimeout(250);
+  await pag.fill("#tEx", "Agachamento");
+  await pag.fill("#tValor", "150");
+  await pag.click("#btTeste");
+  await pag.waitForTimeout(400);
+  const rm = await pag.evaluate(() => melhor1RM(meuAtleta().id, "Agachamento"));
+  ok(rm === 150, "1RM lançado", rm);
+
+  // Layout no celular
+  const larguraDemais = await pag.evaluate(() =>
+    document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  ok(larguraDemais <= 1, "não há rolagem horizontal da página", larguraDemais + "px");
+
+  const alvosPequenos = await pag.$$eval("button:not([hidden]), a.bt, input, select", els =>
+    els.filter(e => {
+      const r = e.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 && r.height < 38;
+    }).map(e => (e.id || e.className || e.tagName) + ":" + Math.round(e.getBoundingClientRect().height)));
+  ok(alvosPequenos.length === 0, "todo alvo de toque tem pelo menos 38px",
+     alvosPequenos.slice(0, 6).join(", "));
+
+  // O tema é pintado, não herdado
+  const fundo = await pag.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  ok(fundo !== "rgba(0, 0, 0, 0)" && fundo !== "transparent", "o body pinta o próprio fundo", fundo);
+
+  ok(erros.length === 0, "nenhum erro de console no fluxo inteiro", erros.join(" | "));
+
+  const PASTA = "/tmp/claude-0/-home-user/02bc64c7-556e-5b07-a28e-82ffa0d966cd/scratchpad/";
+  await pag.click('#navRolo button[data-aba="inicio"]');
+  await pag.waitForTimeout(350);
+  await pag.screenshot({ path: PASTA + "tela-inicio.png", fullPage: true });
+  await pag.click('#navRolo button[data-aba="analise"]');
+  await pag.waitForTimeout(350);
+  await pag.screenshot({ path: PASTA + "tela-analise.png", fullPage: true });
+  await pag.click('#navRolo button[data-aba="sessao"]');
+  await pag.waitForTimeout(350);
+  await pag.screenshot({ path: PASTA + "tela-sessao.png", fullPage: false });
+
+  console.log(`\n${passes} passaram, ${falhas} falharam.\n`);
+  await navegador.close();
+  servidor.close();
+  process.exit(falhas ? 1 : 0);
+})().catch(e => { console.error(e); process.exit(2); });

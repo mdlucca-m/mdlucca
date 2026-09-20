@@ -1,0 +1,2128 @@
+<title>ELASE Preparação Física</title>
+<style>
+/* Identidade do clube: um só mundo escuro, pintado explicitamente, para a
+   página não pegar emprestado o fundo de quem a hospeda. */
+:root{
+  color-scheme: dark;
+  --plane:#141C27; --card:#1C2733; --card-2:#202B38; --inset:#172029;
+  --ink:#FFF; --ink-2:#D6E1ED; --ink-3:#A7B7C9; --ink-4:#8394A7;
+  --line:#2E3E52; --line-2:#26323F;
+  --blue:#5AA0E8; --blue-2:#96C4F2; --blue-fundo:#2E6DB4;
+  --quente:#E8845A; --neutro:#6B7C90;
+  --good:#12B54A; --good-i:#5BE87A; --warn:#8A6B16; --warn-i:#FFD166;
+  --crit:#9B3B3B; --crit-i:#FF8F8F;
+  --relevo: inset 0 1px 0 rgba(255,255,255,.07), 0 12px 26px -18px rgba(0,0,0,.8);
+  --cavado: inset 0 2px 6px rgba(0,0,0,.4);
+  --r:14px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--plane);color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:15px;line-height:1.5;font-weight:500;
+  background-image:radial-gradient(900px 520px at 85% -14%, rgba(38,104,180,.22), transparent 62%);
+  background-attachment:fixed}
+h1,h2,h3{margin:0;text-wrap:balance}
+button{font-family:inherit}
+
+/* ── Moldura ───────────────────────────────────────────────────────────── */
+.topo{position:sticky;top:env(safe-area-inset-top, 0px);z-index:20;
+  background:rgba(20,27,37,.97);border-bottom:1px solid var(--line);
+  backdrop-filter:blur(10px)}
+.topo .linha{max-width:1000px;margin:0 auto;padding:11px 16px;
+  display:flex;align-items:center;gap:12px}
+.marca b{display:block;font-size:16px;letter-spacing:.03em;line-height:1.2}
+.marca span{display:block;font-size:9px;letter-spacing:.17em;text-transform:uppercase;
+  color:var(--blue);font-weight:700}
+.modo{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-4);border:1px solid var(--line);
+  border-radius:999px;padding:5px 10px;white-space:nowrap}
+.modo.ok{color:var(--good-i);border-color:#20503A}
+nav{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+  border-top:1px solid var(--line-2)}
+nav::-webkit-scrollbar{display:none}
+nav .rolo{max-width:1000px;margin:0 auto;display:flex;gap:6px;padding:8px 16px}
+nav button{flex:0 0 auto;background:transparent;border:1px solid transparent;
+  color:var(--ink-3);border-radius:999px;padding:8px 13px;font-size:13px;
+  font-weight:700;cursor:pointer;min-height:38px;white-space:nowrap}
+nav button[aria-current="true"]{background:var(--blue-fundo);color:#fff;
+  border-color:#3E82CF}
+nav button:focus-visible,.bt:focus-visible,input:focus-visible,select:focus-visible,
+textarea:focus-visible{outline:2px solid var(--blue-2);outline-offset:2px}
+main{max-width:1000px;margin:0 auto;padding-block:18px 60px;padding-inline:16px}
+section[hidden]{display:none !important}
+
+/* ── Peças ─────────────────────────────────────────────────────────────── */
+.cabeca{margin-bottom:16px}
+.cabeca h2{font-size:22px;line-height:1.15}
+.cabeca p{color:var(--ink-3);font-size:13.5px;margin:5px 0 0;max-width:62ch}
+.cartao{background:linear-gradient(180deg,var(--card-2),var(--card));
+  border:1px solid var(--line);border-radius:var(--r);padding:15px;
+  box-shadow:var(--relevo);margin-bottom:14px}
+.cartao > h3{font-size:11px;font-weight:800;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--blue-2);margin-bottom:11px}
+/* 145px e não 215: num celular de 390 o mínimo maior cabia UMA coluna, e os
+   quatro números da sessão viravam quatro telas de rolagem. */
+.grade{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(145px,1fr))}
+.dupla{display:grid;gap:11px;grid-template-columns:1fr 1fr}
+@media (max-width:430px){ .dupla{grid-template-columns:1fr} }
+
+label{display:block;margin-bottom:11px}
+label > span{display:block;font-size:10px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-4);margin-bottom:5px}
+input,select,textarea{width:100%;max-width:100%;border:1px solid var(--line);
+  background:var(--inset);border-radius:10px;padding:11px;font-size:16px;
+  font-weight:600;color:var(--ink);box-shadow:var(--cavado);min-height:46px;
+  font-family:inherit}
+textarea{min-height:64px}
+input:focus,select:focus,textarea:focus{border-color:rgba(78,147,220,.6);outline:none}
+.bt{border:0;border-radius:11px;padding:13px 16px;font-size:15px;font-weight:800;
+  cursor:pointer;color:#fff;background:var(--blue-fundo);box-shadow:var(--relevo);
+  min-height:48px;display:inline-flex;align-items:center;justify-content:center;
+  gap:8px}
+.bt.larga{width:100%}
+.bt.alt{background:linear-gradient(180deg,#2A3746,#212C38);border:1px solid var(--line)}
+.bt.zap{background:var(--good);color:#06210f}
+.bt.mini{padding:8px 11px;font-size:13px;min-height:38px;border-radius:9px}
+.bt:active{transform:translateY(1px)}
+.bt[disabled]{opacity:.45;cursor:not-allowed}
+
+.nota{font-size:13px;color:var(--ink-2);background:var(--inset);
+  border-left:3px solid var(--blue);padding:11px 13px;border-radius:0 10px 10px 0;
+  margin:0 0 13px}
+.nota b{color:var(--ink)}
+.nota.bom{border-left-color:var(--good)}
+.nota.aten{border-left-color:var(--warn-i)}
+.nota.crit{border-left-color:var(--crit-i)}
+.vazio{color:var(--ink-4);font-size:13.5px;padding:18px 2px;text-align:center}
+
+.selo{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;
+  letter-spacing:.05em;text-transform:uppercase;border-radius:999px;
+  padding:4px 9px;border:1px solid var(--line);color:var(--ink-3)}
+.selo.good{color:var(--good-i);border-color:#245B3E;background:#12321F}
+.selo.warn{color:var(--warn-i);border-color:#6B5514;background:#332A0D}
+.selo.crit{color:var(--crit-i);border-color:#7A3232;background:#33191A}
+.selo.info{color:var(--blue-2);border-color:#2C5A8C;background:#14293F}
+
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--ink-4);font-weight:800;padding:0 8px 8px 0;white-space:nowrap}
+td{padding:9px 8px 9px 0;border-top:1px solid var(--line-2);vertical-align:top}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:0}
+.rolagem{overflow-x:auto}
+.rolagem table{min-width:460px}
+/* Tabela de poucas colunas não precisa de largura mínima — com ela, a coluna do
+   número sai do quadro e o dado fica invisível sem ninguém perceber. */
+.rolagem.estreita table{min-width:0}
+/* Par rótulo/valor: não é tabela, é uma lista. Assim o número nunca escapa. */
+.pares{display:flex;flex-direction:column}
+.pares div{display:flex;justify-content:space-between;gap:12px;align-items:baseline;
+  padding:9px 0;border-top:1px solid var(--line-2)}
+.pares b{font-variant-numeric:tabular-nums;font-size:15px}
+.pares span{color:var(--ink-3);font-size:13.5px}
+.pares .sem{color:var(--ink-4);font-size:12.5px;font-weight:600}
+
+.numerao{font-size:34px;font-weight:800;line-height:1;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums}
+.numerao small{font-size:14px;font-weight:700;color:var(--ink-4);margin-left:3px}
+.rotulo{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-4);margin-bottom:7px}
+
+/* ── Exercício na sessão ───────────────────────────────────────────────── */
+.ex{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;
+  background:var(--card)}
+.ex.prep{background:var(--inset);border-style:dashed}
+.ex .tit{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;margin-bottom:3px}
+.ex .tit b{font-size:15px}
+.ex .pres{font-size:12.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.ex .dica{font-size:12.5px;color:var(--ink-2);background:var(--inset);
+  border-radius:9px;padding:9px 11px;margin-top:9px;line-height:1.45}
+.ex .obs{font-size:12.5px;color:var(--ink-4);margin-top:5px;font-style:italic}
+.series{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.serie{display:grid;grid-template-columns:26px 1fr 1fr 44px;gap:7px;align-items:center}
+.serie .n{font-size:11px;font-weight:800;color:var(--ink-4);text-align:center}
+.serie input{min-height:42px;padding:8px;font-size:15px;text-align:center}
+.tick{min-height:42px;width:100%;border-radius:9px;border:1px solid var(--line);
+  background:var(--inset);color:var(--ink-4);font-size:17px;font-weight:800;
+  cursor:pointer}
+.tick[aria-pressed="true"]{background:#12321F;border-color:#245B3E;color:var(--good-i)}
+
+/* ── Gráficos ──────────────────────────────────────────────────────────── */
+figure{margin:0}
+figcaption{font-size:12px;color:var(--ink-3);margin-bottom:9px}
+.eixo{font-size:9.5px;fill:var(--ink-4);font-weight:700;letter-spacing:.05em}
+.valor{font-size:10.5px;fill:var(--ink-2);font-weight:800;
+  font-variant-numeric:tabular-nums}
+.grade-linha{stroke:var(--line-2);stroke-width:1}
+
+/* ── Likert ────────────────────────────────────────────────────────────── */
+.likert{display:flex;gap:5px}
+.likert button{flex:1;min-height:44px;border-radius:9px;border:1px solid var(--line);
+  background:var(--inset);color:var(--ink-3);font-size:14px;font-weight:800;
+  cursor:pointer}
+.likert button[aria-pressed="true"]{background:var(--blue-fundo);color:#fff;
+  border-color:#3E82CF}
+.brums-item{display:grid;grid-template-columns:1fr auto;gap:9px;align-items:center;
+  padding:7px 0;border-top:1px solid var(--line-2)}
+.brums-item .nome{font-size:14px;font-weight:600}
+.brums-item .likert{width:min(250px,56vw)}
+.brums-item .likert button{min-width:30px;font-size:13px}
+
+.aviso{font-size:13px;font-weight:700;margin-top:9px}
+.aviso.erro{color:var(--crit-i)}
+.aviso.ok{color:var(--good-i)}
+pre.ficha{white-space:pre-wrap;word-break:break-word;background:var(--inset);
+  border:1px solid var(--line);border-radius:10px;padding:12px;font-size:12px;
+  color:var(--ink-2);font-family:ui-monospace,Menlo,monospace;max-height:40vh;
+  overflow:auto}
+</style>
+
+<div class="topo">
+  <div class="linha">
+    <div class="marca"><b id="mcEquipe">ELASE VOLEIBOL</b><span id="mcCat">Masculino · Adulto</span></div>
+    <div class="modo" id="mcModo">abrindo…</div>
+  </div>
+  <nav><div class="rolo" id="navRolo"></div></nav>
+</div>
+
+<main>
+  <section id="s-inicio"></section>
+  <section id="s-sessao" hidden></section>
+  <section id="s-bemestar" hidden></section>
+  <section id="s-analise" hidden></section>
+  <section id="s-testes" hidden></section>
+  <section id="s-exercicios" hidden></section>
+  <section id="s-elenco" hidden></section>
+  <section id="s-prescricao" hidden></section>
+  <section id="s-sistema" hidden></section>
+  <section id="s-whatsapp" hidden></section>
+  <section id="s-ajustes" hidden></section>
+</main>
+
+<script>
+"use strict";
+/* ═══════════════════════════════════════════════════════════════════════════
+   ELASE — preparação física do voleibol masculino adulto.
+
+   Porte fiel do sistema em Python: as contas são as mesmas, inclusive as
+   RECUSAS. A regra que atravessa o arquivo inteiro é que um número inventado
+   é pior do que número nenhum — ACWR com pouco histórico, Z sem base, humor
+   sem coleta: tudo isso aparece como "—" com o motivo, nunca como zero.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Datas ──────────────────────────────────────────────────────────────── */
+const hojeISO = () => new Date().toLocaleDateString("sv-SE");   // aaaa-mm-dd local
+function dObj(s){ const [a,m,d] = s.split("-").map(Number); return new Date(a, m-1, d); }
+function maisDias(s, n){
+  const d = dObj(s); d.setDate(d.getDate() + n);
+  return d.toLocaleDateString("sv-SE");
+}
+function diffDias(a, b){ return Math.round((dObj(a) - dObj(b)) / 86400000); }
+function segundaDe(s){ const d = dObj(s); return maisDias(s, -((d.getDay() + 6) % 7)); }
+function semanaDe(data, macro){ return Math.floor(diffDias(data, macro) / 7) + 1; }
+function dataBR(s){ return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s.slice(8,10)+"/"+s.slice(5,7)+"/"+s.slice(0,4) : (s||""); }
+const DIA_SEM = ["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
+function diaSemana(s){ return DIA_SEM[dObj(s).getDay()]; }
+
+/* ── Estatística de bolso ───────────────────────────────────────────────── */
+const media = v => v.length ? v.reduce((a,b)=>a+b,0)/v.length : 0;
+function desvio(v){                       // AMOSTRAL (n−1); com n<2 não existe
+  if (v.length < 2) return 0;
+  const m = media(v);
+  return Math.sqrt(v.reduce((a,x)=>a+(x-m)*(x-m),0) / (v.length-1));
+}
+function quartis(v){                      // menos de 5 pontos não é faixa
+  const x = v.filter(i => i !== null && i !== undefined).map(Number).sort((a,b)=>a-b);
+  if (x.length < 5) return null;
+  const q = p => {
+    const i = (x.length-1)*p, lo = Math.floor(i), hi = Math.ceil(i);
+    return lo === hi ? x[lo] : x[lo] + (x[hi]-x[lo])*(i-lo);
+  };
+  const q1 = q(.25), med = q(.5), q3 = q(.75), iqr = q3-q1;
+  return {q1, mediana:med, q3, iqr, n:x.length, inf:q1-1.5*iqr, sup:q3+1.5*iqr};
+}
+function postos(v){                       // empate recebe a média — Spearman exige
+  const ord = v.map((_,i)=>i).sort((a,b)=>v[a]-v[b]);
+  const r = new Array(v.length).fill(0);
+  let i = 0;
+  while (i < ord.length){
+    let j = i;
+    while (j+1 < ord.length && v[ord[j+1]] === v[ord[i]]) j++;
+    const p = (i+j)/2 + 1;
+    for (let k=i; k<=j; k++) r[ord[k]] = p;
+    i = j+1;
+  }
+  return r;
+}
+function spearman(a, b){
+  /* Spearman e não Pearson: PSE e BRUMS são escalas ORDINAIS, e um único dia
+     extremo entorta um Pearson inteiro. Menos de 6 pares não conclui nada. */
+  const pares = [];
+  for (let i=0;i<a.length;i++)
+    if (a[i] !== null && a[i] !== undefined && b[i] !== null && b[i] !== undefined)
+      pares.push([a[i], b[i]]);
+  if (pares.length < 6) return null;
+  const ra = postos(pares.map(p=>p[0])), rb = postos(pares.map(p=>p[1]));
+  const ma = media(ra), mb = media(rb);
+  let sxy=0, sxx=0, syy=0;
+  for (let i=0;i<ra.length;i++){
+    sxy += (ra[i]-ma)*(rb[i]-mb); sxx += (ra[i]-ma)**2; syy += (rb[i]-mb)**2;
+  }
+  if (!sxx || !syy) return null;
+  const r = sxy/Math.sqrt(sxx*syy), n = pares.length;
+  const t = Math.abs(r)*Math.sqrt((n-2)/Math.max(1e-9, 1-r*r));
+  return {r, n, t, forte: Math.abs(r) >= .5 && t >= 2};
+}
+
+/* ── Periodização ───────────────────────────────────────────────────────── */
+/* Os 8 blocos são UM macrociclo, não a temporada: eles voltam ao começo quantas
+   vezes for preciso. O que faz o ciclo seguinte valer mais não é mudar o
+   percentual — é o 1RM ter subido. Por isso a última sessão de cada Realização
+   é um RETESTE. */
+const BLOCOS_PADRAO = [
+  {posicao:1, bloco:"Acumulação",   micro:"Incorporação", enfase:"Adaptação anatômica e técnica de LPO", intensidade:.62, volume:.75, plio:60},
+  {posicao:2, bloco:"Acumulação",   micro:"Ordinário",    enfase:"Força máxima de base",                 intensidade:.72, volume:.88, plio:90},
+  {posicao:3, bloco:"Acumulação",   micro:"CHOQUE",       enfase:"Pico de volume da acumulação",         intensidade:.78, volume:1.0,  plio:120},
+  {posicao:4, bloco:"Descarga",     micro:"Recuperativo", enfase:"Assimilação e supercompensação",       intensidade:.66, volume:.45, plio:45},
+  {posicao:5, bloco:"Transmutação", micro:"Ordinário",    enfase:"Força máxima",                         intensidade:.85, volume:.75, plio:90},
+  {posicao:6, bloco:"Transmutação", micro:"Ordinário",    enfase:"Força-velocidade",                     intensidade:.90, volume:.70, plio:110},
+  {posicao:7, bloco:"Transmutação", micro:"CHOQUE",       enfase:"Sobrecarga concentrada de potência",   intensidade:.93, volume:.85, plio:140},
+  {posicao:8, bloco:"Realização",   micro:"Polimento",    enfase:"Expressão de potência",                intensidade:.95, volume:.42, plio:70},
+];
+const DIAS = [
+  {off:0, hora:"09:00", tipo:"Força",    nome:"A", obj:"Força máxima"},
+  {off:2, hora:"09:00", tipo:"Potência", nome:"B", obj:"Potência"},
+  {off:4, hora:"09:00", tipo:"LPO",      nome:"C", obj:"Força-velocidade"},
+];
+/* Séries × reps do levantamento principal, escritos à mão e não derivados de
+   fórmula — para você poder discordar de um número sem ter de entender uma conta. */
+const PRINCIPAL = {1:[4,"6",150],2:[5,"5",180],3:[5,"4",180],4:[3,"4",150],
+                   5:[5,"3",180],6:[4,"3",180],7:[4,"2",210],8:[3,"2",210]};
+/* O levantamento olímpico anda atrás em percentual: quem trava a barra é a
+   técnica, não a força. */
+const OLIMPICO = {1:[4,"3",-.14],2:[5,"3",-.12],3:[5,"3",-.10],4:[3,"3",-.14],
+                  5:[5,"2",-.08],6:[5,"2",-.06],7:[4,"2",-.05],8:[3,"2",-.05]};
+
+const MOBILIDADE = {
+  A:[["Mobilização de tornozelo na parede (knee-to-wall)",2,"8 cada lado",30],
+     ["90/90 de quadril com rotação",2,"6 cada lado",30],
+     ["Passagem de bastão sobre a cabeça",2,"10",30],
+     ["Rotação torácica deitado (open book)",2,"8 cada lado",30]],
+  B:[["Panturrilha alongada no step",2,"30 s",20],
+     ["Alongamento de psoas ajoelhado",2,"30 s cada lado",20],
+     ["Deslizamento na parede com elástico",2,"10",30],
+     ["Extensão torácica no rolo",2,"8",30]],
+  C:[["Agachamento profundo sustentado",3,"30 s",30],
+     ["Agachamento cossaco",2,"6 cada lado",30],
+     ["Adução horizontal de ombro (cross-body)",2,"30 s cada lado",20],
+     ["Y-T-W no banco inclinado",2,"8 de cada",30]],
+};
+const EDUCATIVOS = {
+  A:[["Agachamento overhead",3,"5",60],["Arranco de força (muscle snatch)",3,"3",60],
+     ["Snatch balance",3,"3",60],["Arranco do alto (high hang)",3,"3",90]],
+  B:[["Posição de recepção do clean (front rack)",2,"30 s",45],
+     ["Clean do alto (tall clean)",3,"3",60],["Clean de força (muscle clean)",3,"3",60],
+     ["Clean do joelho (hang)",3,"3",90]],
+  C:[["Tríplice extensão com bastão",3,"6",45],["Push press",3,"5",90]],
+};
+
+function ex(nome, grupo, series, reps, pausa, o){
+  return Object.assign({nome, grupo, series, reps:String(reps), pausa,
+    pct_rm:null, ref1rm:null, tempo:null, rir:null, vel:null, obs:""}, o||{});
+}
+const posicaoNoCiclo = (sem, n) => ((sem-1) % n) + 1;
+const cicloDe         = (sem, n) => Math.floor((sem-1)/n) + 1;
+const eSemanaReteste  = (sem, n) => posicaoNoCiclo(sem, n) === n;
+const vol = (b, n) => Math.max(2, Math.round(n * b.volume));
+/* Contatos: o bloco define o TOTAL da semana, repartido entre os EXERCÍCIOS.
+   Repartir por sessão e pôr dois exercícios pliométricos dentro dela estoura o
+   alvo, porque cada um receberia a fatia inteira. */
+const saltos = (b, fatia, porSerie) => Math.max(2, Math.round(b.plio * fatia / porSerie));
+
+const ombro = () => ex("Rotadores do ombro com elástico","Força",3,15,60,{rir:3,
+  obs:"Fortalecimento do manguito — isto NÃO é mobilidade, é força do estabilizador. As duas coisas entram, e são diferentes."});
+
+const blocoMobilidade = s => MOBILIDADE[s].map(([n,se,r,p]) => ex(n,"Mobilidade",se,r,p));
+function quantosEducativos(pos){   // na acumulação é treino; na realização é rampa
+  if (pos <= 3) return 4;
+  if (pos === 4) return 3;
+  if (pos <= 6) return 3;
+  return 2;
+}
+const blocoEducativo = (s, pos) => EDUCATIVOS[s].slice(0, quantosEducativos(pos))
+  .map(([n,se,r,p]) => ex(n,"Educativo",se,r,p,
+    {obs:"Carga leve ou bastão. O que se treina aqui é o padrão, não o peso."}));
+
+function sessaoA(b, pos){
+  const [s, r, pausa] = PRINCIPAL[pos], [os_, orr, opct] = OLIMPICO[pos], i = b.intensidade;
+  return [...blocoMobilidade("A"), ...blocoEducativo("A", pos), ombro(),
+    ex("Arranco","LPO",os_,orr,pausa,{pct_rm:+(i+opct).toFixed(2), ref1rm:"Arranco",
+      obs:"Primeiro exercício com barra: o mais técnico e o mais neural. Parar a série se a barra desacelerar."}),
+    ex("Agachamento","Força",s,r,pausa,{pct_rm:i, ref1rm:"Agachamento",
+      obs:"Exercício-âncora do bloco. É por ele que se mede se a semana rendeu."}),
+    ex("Supino","Força",s,r,pausa,{pct_rm:i, ref1rm:"Supino"}),
+    ex("Stiff com barra","Força",vol(b,4),6,120,{pct_rm:+(i-.18).toFixed(2),
+      ref1rm:"Stiff com barra", tempo:"3-0-1-0", obs:"Excêntrica de 3 s."}),
+    ex("Nórdico de isquiotibiais (excêntrico)","Força",vol(b,3),6,90,{rir:2,
+      obs:"É a dose que reduz lesão de posterior."}),
+    ex("Abdominal reto com braços esticados","Força",vol(b,3),25,45,{rir:2})];
+}
+function sessaoB(b, pos, semana, n){
+  const [os_, orr, opct] = OLIMPICO[pos], i = b.intensidade;
+  /* Em semana normal a B leva 60% dos contatos e a C os outros 40%. Na semana de
+     Realização a C vira reteste e não salta — e os contatos do bloco são
+     justamente o que mantém a reatividade antes de competir. Então a B carrega
+     a semana inteira. */
+  const tudo = eSemanaReteste(semana, n);
+  const dj = saltos(b, tudo ? .65 : .40, 5), cx = saltos(b, tudo ? .35 : .20, 5);
+  return [...blocoMobilidade("B"), ...blocoEducativo("B", pos), ombro(),
+    ex("Clean","LPO",os_,orr,180,{pct_rm:+(i+opct).toFixed(2), ref1rm:"Clean",
+      obs:"Velocidade da barra manda. Se cair, a série acabou — mesmo que sobre repetição."}),
+    ex("Agachamento com salto sob carga (jump squat)","Potência",4,4,180,
+      {pct_rm:.25, ref1rm:"Agachamento", vel:"1,0",
+       obs:"Acima de 1,0 m/s. Carga leve: aqui se treina velocidade."}),
+    ex("Drop jump 40 cm","Pliometria",dj,5,120,
+      {obs:"Contato curto com o solo. Qualidade acima da contagem."}),
+    ex("Salto no caixote","Pliometria",cx,5,90,
+      {obs:"Subir saltando, DESCER andando — a descida do caixote é contato extra sem ganho."}),
+    ex("Remada serrote","Força",vol(b,4),8,90,{pct_rm:+(i-.20).toFixed(2), ref1rm:"Remada serrote"}),
+    ex("Dorsal perdigueiro","Força",vol(b,3),12,45,{rir:2})];
+}
+function sessaoC(b, pos){
+  const [s, r] = PRINCIPAL[pos], [os_] = OLIMPICO[pos], i = b.intensidade;
+  return [...blocoMobilidade("C"), ...blocoEducativo("C", pos), ombro(),
+    ex("Snatch pull / Hang high pull","LPO",os_,3,150,{pct_rm:+(i-.02).toFixed(2),
+      ref1rm:"Clean pull", obs:"Puxada alta: a parte do arranco que aguenta mais carga."}),
+    ex("Agachamento frontal","Força",Math.max(3,s-1),r,150,{pct_rm:+(i-.10).toFixed(2),
+      ref1rm:"Agachamento frontal", obs:"Mais exigência de tronco, menos carga."}),
+    ex("Saltos consecutivos sobre barreiras","Pliometria",saltos(b,.40,6),6,120,
+      {obs:"Sem pausa entre as barreiras. É aqui que se treina a rigidez do tornozelo."}),
+    ex("Sprints de 10 e 20 m com mudança de direção","Potência",6,1,120,
+      {obs: b.micro === "CHOQUE" ? "Semana de choque: cortar se a sessão já estiver longa."
+                                 : "Recuperação completa entre tiros."}),
+    ex("Afundo frontal sem passada","Força",vol(b,3),8,90,{rir:2, obs:"Oito de cada perna."}),
+    ex("Elevação de calcanhares","Força",vol(b,3),8,60,{tempo:"3-0-1-0", obs:"Descida lenta de 3 s."})];
+}
+function sessaoReteste(){
+  /* A sexta da Realização não treina: mede. É o que reabastece o ciclo. */
+  return [...blocoMobilidade("A"), ombro(),
+    ex("Agachamento","Força",1,1,300,{ref1rm:"Agachamento",
+      obs:"1RM. De 3 a 5 tentativas, 3 a 5 min entre elas. Lançar em Testes."}),
+    ex("Supino","Força",1,1,300,{ref1rm:"Supino", obs:"1RM, mesmo protocolo."}),
+    ex("Clean","LPO",1,1,300,{ref1rm:"Clean",
+      obs:"1RM técnico: a maior carga com a recepção ainda limpa, não a maior que sobe de qualquer jeito."}),
+    ex("Salto no caixote","Pliometria",3,1,120,
+      {obs:"CMJ para o registro de salto. Três tentativas, vale a melhor."})];
+}
+function gerarSistema(blocos, macro, deSem, ateSem, ocupadasIn){
+  /* Dia já prescrito é PULADO, nunca sobrescrito: regerar depois de ajustar um
+     bloco não desfaz o seu ajuste. */
+  const n = blocos.length;
+  if (!n) return {sessoes:[], pulados:[]};
+  const ocupadas = new Set(ocupadasIn || []);
+  const sessoes = [], pulados = [];
+  for (let semana = deSem; semana <= ateSem; semana++){
+    const pos = posicaoNoCiclo(semana, n), b = blocos[pos-1], ciclo = cicloDe(semana, n);
+    const inicio = maisDias(macro, 7*(semana-1));
+    for (const dia of DIAS){
+      const data = maisDias(inicio, dia.off);
+      if (ocupadas.has(data)){ pulados.push(data); continue; }
+      const reteste = eSemanaReteste(semana, n) && dia.nome === "C";
+      const exs = reteste ? sessaoReteste()
+                : dia.nome === "A" ? sessaoA(b, pos)
+                : dia.nome === "B" ? sessaoB(b, pos, semana, n)
+                : sessaoC(b, pos);
+      sessoes.push({
+        data, hora:dia.hora, tipo: reteste ? "Força" : dia.tipo,
+        objetivo: reteste ? "Reteste de 1RM e salto" : dia.obj,
+        bloco:b.bloco,
+        notas:`Ciclo ${ciclo} · semana ${semana} (${pos}/${n}) · ${b.micro} · ${b.enfase}`
+              + (reteste ? " · RETESTE" : ` · sessão ${dia.nome}`),
+        exercicios: exs,
+      });
+      ocupadas.add(data);
+    }
+  }
+  return {sessoes, pulados};
+}
+
+/* ── Custo de uma sessão ────────────────────────────────────────────────── */
+/* Mobilidade, Educativo e Recuperação entram na DURAÇÃO, mas não somam
+   tonelagem nem contato pliométrico: o que se faz ali é amplitude e padrão de
+   movimento, e contar isso como carga mecânica falseia a conta. */
+const SEM_CARGA = ["Mobilidade","Educativo","Recuperação"];
+const PSE_TIPO = {"Força":7,"Potência":6.5,"LPO":7,"Pliometria":7,
+                  "Técnico-Tático":7,"Recuperação":3,"Mobilidade":2};
+function primeiroNumero(txt){
+  const m = String(txt).match(/\d+/);
+  return m ? parseInt(m[0], 10) : 0;
+}
+function segundosDeTrabalho(reps){
+  /* "30 s" é uma PERMANÊNCIA de 30 segundos, não 30 repetições. Tratar os dois
+     igual fazia um alongamento de meio minuto virar 2 min na conta, e a
+     mobilidade inteira inflava a duração prevista da sessão. */
+  const txt = String(reps).toLowerCase(), n = primeiroNumero(txt);
+  if (!n) return 24;
+  if (/\d\s*s(eg|egundos)?\b/.test(txt)) return n;
+  return n * 4;
+}
+function planoSessao(exs, tipo, durPrev){
+  let series = 0, seg = 0, segPrep = 0, contatos = 0;
+  for (const e of exs){
+    const s = parseInt(e.series, 10);
+    series += s;
+    const t = s * ((e.pausa || 90) + segundosDeTrabalho(e.reps));
+    seg += t;
+    if (e.grupo === "Mobilidade" || e.grupo === "Educativo") segPrep += t;
+    if (e.grupo === "Pliometria") contatos += s * primeiroNumero(e.reps);
+  }
+  /* A UA sai da duração ARREDONDADA de propósito: é o número que aparece na
+     tela, e quem refizer a conta na mão tem de chegar no mesmo lugar. */
+  const minutos = Math.round(durPrev ? durPrev : seg/60);
+  const pse = PSE_TIPO[tipo] !== undefined ? PSE_TIPO[tipo] : 6;
+  return {series, dur:minutos, contatos, dur_prep:Math.round(segPrep/60),
+          pse, ua:Math.round(minutos*pse), estimada: !durPrev};
+}
+
+/* ── Carga ──────────────────────────────────────────────────────────────── */
+function carga(sessoes, hoje){
+  /* ACWR = aguda (7 d) ÷ crônica (média semanal de 28 d).
+     Monotonia = média ÷ desvio das cargas diárias. Strain = monotonia × semanal. */
+  const h = hoje || hojeISO();
+  const linhas = sessoes.filter(s => s.carga_ua > 0).sort((a,b)=>a.data<b.data?-1:1);
+  if (!linhas.length)
+    return {n:0, total:0, aguda:0, cronica:0, acwr:0, monotonia:0,
+            monotonia_indefinida:false, strain:0, semanal:0, hist_dias:0,
+            diarias:[0,0,0,0,0,0,0], datas:[]};
+  const soma = (ini, fim) => linhas.filter(x => x.data >= ini && x.data <= fim)
+    .reduce((a,x)=>a+x.carga_ua, 0);
+  const aguda = soma(maisDias(h,-6), h), cronica = soma(maisDias(h,-27), h)/4;
+  const diarias = [], datas = [];
+  for (let i=6;i>=0;i--){
+    const dia = maisDias(h,-i);
+    datas.push(dia);
+    diarias.push(linhas.filter(x=>x.data===dia).reduce((a,x)=>a+x.carga_ua,0));
+  }
+  const md = media(diarias), sd = desvio(diarias), semanal = diarias.reduce((a,b)=>a+b,0);
+  /* Com desvio ZERO a monotonia é matematicamente indefinida — e devolver 0
+     seria a pior resposta possível: 0 se lê como "ótima variação" quando é o
+     caso MÁXIMO, carga idêntica todo dia. */
+  const mono = sd > 0 ? md/sd : (semanal > 0 ? null : 0);
+  return {n:linhas.length, total:linhas.reduce((a,x)=>a+x.carga_ua,0),
+    aguda, cronica, acwr: cronica > 0 ? aguda/cronica : 0,
+    monotonia:mono, monotonia_indefinida: mono === null,
+    strain: mono === null ? null : mono*semanal, semanal,
+    hist_dias: diffDias(h, linhas[0].data) + 1, diarias, datas};
+}
+function zonaACWR(valor, hist){
+  /* Ressalva que fica na tela: o ACWR é apoio à decisão, não diagnóstico — a
+     literatura tem crítica metodológica séria a ele (Impellizzeri, 2020). */
+  if (!valor) return {t:"Sem histórico", c:""};
+  if (hist < 21) return {t:"Histórico curto", c:""};
+  if (valor < .80) return {t:"Subcarga", c:"info"};
+  if (valor <= 1.30) return {t:"Zona ideal", c:"good"};
+  if (valor <= 1.50) return {t:"Atenção", c:"warn"};
+  return {t:"Risco elevado", c:"crit"};
+}
+
+/* ── Humor (BRUMS) ──────────────────────────────────────────────────────── */
+const BRUMS_ITENS = [
+  ["Tensão",   ["Apreensivo","Nervoso","Ansioso","Preocupado"]],
+  ["Depressão",["Deprimido","Infeliz","Desanimado","Triste"]],
+  ["Raiva",    ["Irritado","Zangado","Mal-humorado","Com raiva"]],
+  ["Vigor",    ["Animado","Com energia","Ativo","Disposto"]],
+  ["Fadiga",   ["Esgotado","Sonolento","Cansado","Sem energia"]],
+  ["Confusão", ["Confuso","Indeciso","Desnorteado","Inseguro"]],
+];
+const SUBESCALAS = BRUMS_ITENS.map(x=>x[0]);
+const NEGATIVAS = ["Tensão","Depressão","Raiva","Fadiga","Confusão"];
+const BRUMS_LISTA = [];                       // 24 itens, na ordem gravada
+BRUMS_ITENS.forEach(([sub, itens]) => itens.forEach(i => BRUMS_LISTA.push([i, sub])));
+
+function brumsPorData(diario, momento){
+  /* {data: {subescala: soma, TMD}}. TMD = negativas − Vigor + 100; o 100 existe
+     só para o número não ficar negativo, não tem significado clínico. */
+  const fora = {};
+  for (const chave of Object.keys(diario.b || {})){
+    const [data, mom] = chave.split("|");
+    if (mom !== (momento || "pre")) continue;
+    const vals = diario.b[chave];
+    if (!Array.isArray(vals) || vals.length !== 24) continue;
+    const sub = {};
+    SUBESCALAS.forEach(s => sub[s] = 0);
+    vals.forEach((v, i) => sub[BRUMS_LISTA[i][1]] += (v || 0));
+    sub.TMD = NEGATIVAS.reduce((a,s)=>a+sub[s],0) - sub.Vigor + 100;
+    fora[data] = sub;
+  }
+  return fora;
+}
+function zMovel(datas, valores, janela, minimo){
+  /* Z de cada ponto contra a janela ANTERIOR a ele. A janela não inclui o
+     próprio ponto de propósito: comparar um valor com uma média que já o contém
+     encolhe o desvio e esconde justamente o desvio que se quer enxergar. */
+  janela = janela || 30; minimo = minimo || 5;
+  return valores.map((x, i) => {
+    const base = [];
+    for (let j=0;j<i;j++) if (diffDias(datas[i], datas[j]) <= janela) base.push(valores[j]);
+    if (base.length < minimo) return null;
+    const s = desvio(base);
+    return s > 0 ? (x - media(base))/s : null;
+  });
+}
+function zHoje(diario, janela){
+  /* Norma de GRUPO em humor engana: a Fadiga 10 do líbero pode ser a
+     segunda-feira normal do central. A comparação é sempre dele com ele mesmo. */
+  janela = janela || 30;
+  const porData = brumsPorData(diario, "pre"), datas = Object.keys(porData).sort();
+  return SUBESCALAS.concat(["TMD"]).map(sub => {
+    const vals = datas.map(dt => porData[dt][sub]);
+    if (vals.length < 6)
+      return {subescala:sub, z:null, n:vals.length, valor: vals.length?vals[vals.length-1]:null,
+              media:null, desvio:null, faixa:null, ruim:0};
+    const zs = zMovel(datas, vals, janela);
+    let ultimo = null;
+    for (let i=zs.length-1;i>=0;i--) if (zs[i] !== null){ ultimo = zs[i]; break; }
+    const i = vals.length-1, base = [];
+    for (let j=0;j<i;j++) if (diffDias(datas[i], datas[j]) <= janela) base.push(vals[j]);
+    return {subescala:sub, z:ultimo, valor:vals[i], n:base.length,
+      media: base.length ? media(base) : null,
+      desvio: base.length > 1 ? desvio(base) : null,
+      faixa: quartis(vals),
+      /* no Vigor, CAIR é que é ruim: o alerta é para baixo */
+      ruim: sub === "Vigor" ? -(ultimo || 0) : (ultimo || 0)};
+  });
+}
+
+/* ── Prontidão ──────────────────────────────────────────────────────────── */
+const PESOS = {sono:.20, alerta:.15, dor:.15, humor:.25, carga:.15};
+function prontidao(sessoes, diario, hoje){
+  /* Componente que FALTA é excluído da média e o peso redistribuído — não entra
+     como zero. Um atleta que não respondeu a BRUMS não é um atleta com humor
+     péssimo. */
+  const c = carga(sessoes, hoje);
+  const datasW = Object.keys(diario.w || {}).sort();
+  const w = datasW.length ? diario.w[datasW[datasW.length-1]] : {};
+  const zs = {}; zHoje(diario).forEach(x => zs[x.subescala] = x);
+  const zTmd = zs.TMD ? zs.TMD.z : null;
+
+  const comp = {};
+  const lim = x => Math.max(0, Math.min(100, x));
+  if (w.sq !== undefined && w.sq !== null)
+    comp.sono = lim((w.sq/5)*60 + Math.min((w.sh||0)/8, 1)*40);
+  if (w.kss !== undefined && w.kss !== null) comp.alerta = lim((9-w.kss)/8*100);
+  if (w.dor !== undefined && w.dor !== null) comp.dor = lim((10-w.dor)/10*100);
+  if (zTmd !== null) comp.humor = lim(50 - zTmd*20 + 25);
+  const z = zonaACWR(c.acwr, c.hist_dias);
+  comp.carga = {good:100, warn:72, crit:45, info:78}[z.c] !== undefined
+             ? {good:100, warn:72, crit:45, info:78}[z.c] : 100;
+
+  const peso = Object.keys(comp).reduce((a,k)=>a+PESOS[k], 0);
+  const valor = peso ? Object.keys(comp).reduce((a,k)=>a+comp[k]*PESOS[k], 0)/peso : null;
+
+  const band = [];
+  if (c.hist_dias >= 21 && c.acwr > 1.5) band.push(["ACWR acima de 1,50","crit"]);
+  else if (c.hist_dias >= 21 && c.acwr > 0 && c.acwr < .8) band.push(["ACWR abaixo de 0,80","warn"]);
+  if (c.monotonia === null && c.semanal > 0)
+    band.push(["Carga idêntica todos os dias — nenhuma variação","crit"]);
+  else if (c.monotonia !== null && c.monotonia > 2) band.push(["Monotonia acima de 2,0","warn"]);
+  if (zTmd !== null && zTmd > 2) band.push(["Humor a mais de 2 desvios da própria base","crit"]);
+  const comZ = zHoje(diario).filter(x => x.z !== null);
+  const pior = comZ.length ? comZ.reduce((a,b)=> b.ruim > a.ruim ? b : a) : null;
+  if (pior && pior.ruim >= 1.5) band.push([`${pior.subescala} atípica para ele`,"warn"]);
+  if (w.dor !== undefined && w.dor !== null && w.dor >= 7)
+    band.push(["Dor alta no último check-in","warn"]);
+
+  const criticas = band.filter(b => b[1] === "crit").length;
+  const nivel = (criticas || band.length >= 3) ? 2 : (band.length ? 1 : 0);
+  return {valor, componentes:comp, carga:c, zona:z, bandeiras:band, nivel, z_tmd:zTmd};
+}
+const NIVEIS = [
+  ["Liberado","good","Seguir a prescrição como está."],
+  ["Atenção","warn","Manter a sessão, reduzir acessórios e reavaliar no próximo check-in."],
+  ["Alerta","crit","Reduzir carga, cortar pliometria e conversar com o atleta hoje."],
+];
+
+/* ── Biblioteca de exercícios ───────────────────────────────────────────── */
+const EXERCICIOS = [
+  ["Agachamento","Força","Agachamento"],["Agachamento frontal","Força","Agachamento frontal"],
+  ["Supino","Força","Supino"],["Stiff com barra","Força","Stiff com barra"],
+  ["Remada serrote","Força","Remada serrote"],["Afundo frontal sem passada","Força",null],
+  ["Elevação de calcanhares","Força",null],["Nórdico de isquiotibiais (excêntrico)","Força",null],
+  ["Rotadores do ombro com elástico","Força",null],["Abdominal reto com braços esticados","Força",null],
+  ["Dorsal perdigueiro","Força",null],["Arranco","LPO","Arranco"],["Clean","LPO","Clean"],
+  ["Snatch pull / Hang high pull","LPO","Clean pull"],
+  ["Agachamento com salto sob carga (jump squat)","Potência","Agachamento"],
+  ["Sprints de 10 e 20 m com mudança de direção","Potência",null],
+  ["Drop jump 40 cm","Pliometria",null],["Salto no caixote","Pliometria",null],
+  ["Saltos consecutivos sobre barreiras","Pliometria",null],
+  ["Mobilização de tornozelo na parede (knee-to-wall)","Mobilidade",null],
+  ["Agachamento profundo sustentado","Mobilidade",null],["Panturrilha alongada no step","Mobilidade",null],
+  ["90/90 de quadril com rotação","Mobilidade",null],["Agachamento cossaco","Mobilidade",null],
+  ["Alongamento de psoas ajoelhado","Mobilidade",null],["Hip airplane","Mobilidade",null],
+  ["Rotação torácica deitado (open book)","Mobilidade",null],
+  ["Passagem de bastão sobre a cabeça","Mobilidade",null],
+  ["Deslizamento na parede com elástico","Mobilidade",null],
+  ["Adução horizontal de ombro (cross-body)","Mobilidade",null],
+  ["Extensão torácica no rolo","Mobilidade",null],["Y-T-W no banco inclinado","Mobilidade",null],
+  ["Agachamento overhead","Educativo",null],["Passagem de bastão no agachamento","Educativo",null],
+  ["Arranco de força (muscle snatch)","Educativo",null],["Snatch balance","Educativo",null],
+  ["Arranco do alto (high hang)","Educativo",null],["Arranco do joelho (hang)","Educativo",null],
+  ["Posição de recepção do clean (front rack)","Educativo",null],
+  ["Clean do alto (tall clean)","Educativo",null],["Clean de força (muscle clean)","Educativo",null],
+  ["Clean do joelho (hang)","Educativo",null],["Tríplice extensão com bastão","Educativo",null],
+  ["Push press","Educativo",null],["Split jerk educativo","Educativo",null],
+];
+/* As dicas são o que transforma um nome numa instrução. O atleta está lendo
+   isto no celular, sozinho, na sala: "90/90 de quadril" não ensina nada. */
+const DICAS = {
+"Mobilização de tornozelo na parede (knee-to-wall)":"Joelho à frente até tocar a parede SEM levantar o calcanhar. Afaste o pé até o limite. É a dorsiflexão que permite agachar fundo e aterrissar.",
+"Agachamento profundo sustentado":"Desça e FIQUE. Cotovelos por dentro dos joelhos, empurrando-os para fora. Peito alto. Respire fundo três vezes em cada permanência.",
+"Panturrilha alongada no step":"Calcanhar caindo abaixo do degrau. Perna estendida alonga o gastrocnêmio; joelho dobrado alonga o sóleo — faça os dois.",
+"90/90 de quadril com rotação":"Sentado, uma perna 90° à frente e outra 90° ao lado. Gire de um lado ao outro sem tirar as mãos do chão. Rotação interna e externa na mesma série.",
+"Agachamento cossaco":"Desça sobre uma perna com a outra estendida ao lado, pé apontado para cima. Trabalha adutor e profundidade ao mesmo tempo.",
+"Alongamento de psoas ajoelhado":"Joelho de trás no chão, glúteo APERTADO — sem isso você alonga a lombar e não o psoas. Quem passa o dia sentado precisa desta.",
+"Hip airplane":"Em apoio numa perna, tronco à frente, gire a pelve abrindo e fechando. Controle de quadril em apoio único — que é como se ataca e se aterrissa.",
+"Rotação torácica deitado (open book)":"Deitado de lado, joelhos dobrados à frente, abra o braço de cima e acompanhe com o olhar. A rotação é do tronco, o quadril fica parado.",
+"Passagem de bastão sobre a cabeça":"Pegada larga, braços estendidos, leve o bastão de frente para trás sem dobrar o cotovelo. Vá fechando a pegada conforme ganhar amplitude.",
+"Deslizamento na parede com elástico":"Costas e braços na parede, deslize para cima sem perder o contato da lombar. É o padrão do braço acima da cabeça, que é o do ataque.",
+"Adução horizontal de ombro (cross-body)":"Braço cruzando o peito, puxado pelo outro. Ombro do braço que alonga fica BAIXO. Para o lado dominante, que perde rotação interna com a temporada.",
+"Extensão torácica no rolo":"Rolo na altura das escápulas, mãos na nuca, estenda para trás. Amplitude acima da cabeça vem da torácica antes de vir do ombro.",
+"Y-T-W no banco inclinado":"Peito no banco, braços desenhando Y, T e W. Movimento das escápulas, não dos braços. Carga leve ou nenhuma.",
+"Agachamento overhead":"Bastão ou barra vazia acima da cabeça, braços travados. É o teste que diz se você pode arrancar: se não desce, o problema é mobilidade, não força.",
+"Passagem de bastão no agachamento":"No fundo do agachamento, passe o bastão de frente para trás. Junta profundidade de quadril com amplitude de ombro num gesto só.",
+"Arranco de força (muscle snatch)":"Puxada até acima da cabeça SEM flexionar os joelhos para receber. Ensina a puxar alto e a fechar o braço rápido.",
+"Snatch balance":"Barra na nuca, pegada de arranco: empurre o corpo para baixo e receba no agachamento. Ensina a VELOCIDADE de entrar embaixo da barra.",
+"Arranco do alto (high hang)":"Começa da coxa. Curso curto obriga a extensão rápida — é aqui que se aprende o gesto antes de complicar com a subida do chão.",
+"Arranco do joelho (hang)":"Da altura do joelho. O passo seguinte ao alto: mais curso, mesma exigência de velocidade na extensão.",
+"Posição de recepção do clean (front rack)":"Barra apoiada nos deltoides, cotovelos ALTOS, mãos soltas se precisar. Quem não sustenta esta posição não recebe o clean — nem agacha na frente.",
+"Clean do alto (tall clean)":"Na ponta dos pés, sem puxada: só caia embaixo da barra e receba. Isola a parte que todo mundo erra, que é entrar embaixo rápido.",
+"Clean de força (muscle clean)":"Puxada até a recepção sem dobrar os joelhos. Ensina a altura real da puxada e a fechar os cotovelos.",
+"Clean do joelho (hang)":"Da altura do joelho, com recepção completa. É o educativo mais próximo do movimento inteiro.",
+"Tríplice extensão com bastão":"Tornozelo, joelho e quadril estendendo JUNTOS, encolhendo os ombros no fim. É o motor de todo levantamento olímpico, treinado sem carga.",
+"Push press":"Flexão curta de joelhos e empurra acima da cabeça. Ensina a usar a perna para o que está sobre a cabeça — e serve de acessório de ombro.",
+"Split jerk educativo":"Só a entrada do passo, com bastão. Pé da frente chapado, de trás na ponta, tronco entre os pés. Sem carga até o passo sair automático.",
+};
+function buscaVideo(nome){
+  /* De propósito uma BUSCA, e não um vídeo fixo: eu não consigo assistir a um
+     vídeo para conferir se ele mostra o movimento certo, e demonstração errada
+     num app de treino é risco de lesão, não só link quebrado. O preparador fixa
+     o vídeo dele na aba Exercícios — aí é o dele que aparece. */
+  return "https://www.youtube.com/results?search_query=" +
+    encodeURIComponent(nome.split("(")[0].trim() + " exercício técnica");
+}
+
+/* ── Ficha do WhatsApp ──────────────────────────────────────────────────── */
+/* Regra do bloco inteiro: o que não deu para entender fica EM BRANCO e é
+   reportado. Chutar aqui significa um atleta com a estatura errada entrando no
+   cálculo de carga, e ninguém percebendo. */
+const CAMPOS_WA = [
+  [1,"nome","Nome completo","txt",true],[2,"apelido","Como prefere ser chamado","txt",false],
+  [3,"nasc","Data de nascimento","data",true],[4,"posicao","Posição","opc",true],
+  [5,"camisa","Número da camisa","int",false],[6,"telefone","Telefone (WhatsApp)","txt",false],
+  [7,"estatura","Estatura em cm","num",true],[8,"massa","Massa corporal em kg","num",true],
+  [9,"anos_pratica","Anos de prática no voleibol","int",true],
+  [10,"dominancia","Mão dominante","opc",false],
+  [11,"perna_impulsao","Perna de impulsão","opc",false],
+  [12,"emergencia","Contato de emergência","txt",true],
+  [13,"lesoes","Lesões anteriores ou limitações","txt",false],
+  [14,"obs","Algo mais que a comissão deva saber","txt",false],
+  [15,"escolaridade","Escolaridade","opc",false],
+];
+const POSICOES = ["Levantador","Oposto","Ponteiro (Ponta)","Central","Líbero"];
+const OPCOES = {
+  posicao: POSICOES,
+  dominancia: ["Destro","Canhoto","Ambidestro"],
+  perna_impulsao: ["Esquerda","Direita","Simétrica"],
+  escolaridade: ["Fundamental","Médio completo","Superior em andamento","Superior completo","Pós-graduação"],
+};
+const semAcento = s => String(s==null?"":s).toLowerCase().normalize("NFD")
+  .replace(/[̀-ͯ]/g, "");
+function limparWA(bruto, rotulo){
+  let t = String(bruto==null?"":bruto).trim().replace(/^\s*\d{1,2}\s*[.)\]\-–—:]?\s*/, "");
+  const i = t.lastIndexOf("—");                 // o separador da página é o travessão
+  if (i >= 0) return t.slice(i+1).trim();
+  const prim = semAcento(rotulo).replace(/\(/g," ").split(/\s+/)[0];
+  if (prim && semAcento(t).startsWith(prim)){
+    const m = t.match(/^[^:\-–]{0,70}[:\-–]\s*/);
+    return m ? t.slice(m[0].length).trim() : "";
+  }
+  return t.trim();
+}
+function separarWA(texto){       // uma colada pode trazer vários atletas
+  const blocos = []; let atual = null;
+  for (const linha of String(texto||"").split("\n")){
+    if (/^\s*1\s*[.)\]\-–—:]/.test(linha)){ atual = []; blocos.push(atual); }
+    if (atual) atual.push(linha);
+  }
+  return blocos.filter(b=>b.length).map(b=>b.join("\n"));
+}
+function dataWA(s){
+  const m = String(s||"").match(/(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})/);
+  if (!m){ const t = String(s||"").trim(); return /^\d{4}-\d{2}-\d{2}$/.test(t) ? t : ""; }
+  let [, d, mes, a] = m;
+  if (a.length === 2) a = (parseInt(a,10) > 40 ? "19" : "20") + a;
+  return `${a}-${String(+mes).padStart(2,"0")}-${String(+d).padStart(2,"0")}`;
+}
+function numeroWA(s){
+  const m = String(s==null?"":s).trim().replace(",",".").match(/-?\d+(\.\d+)?/);
+  return m ? parseFloat(m[0]) : null;
+}
+function variantesWA(opcao){
+  /* "Ponteiro (Ponta)" é UMA posição com DOIS nomes de quadra, e o atleta
+     escreve o que ele usa. Sem contar o que está entre parênteses como nome
+     próprio, "ponta" não casava com nada — e era o mais provável de vir. */
+  const base = semAcento(opcao).trim();
+  const fora = [base, base.replace(/\(.*?\)/g, "").trim()];
+  const dentro = base.match(/\(([^)]*)\)/);
+  if (dentro) fora.push(dentro[1].trim());
+  return fora.filter(Boolean);
+}
+function casarWA(valor, opcoes){       // "libero", "PONTEIRO", "ponta" caem certo
+  const v = semAcento(valor).trim();
+  if (!v) return null;
+  for (const o of opcoes) if (variantesWA(o).indexOf(v) >= 0) return o;
+  for (const o of opcoes)
+    for (const s of variantesWA(o))
+      if (s.startsWith(v) || v.startsWith(s.split(/\s+/)[0])) return o;
+  for (const o of opcoes)
+    for (const s of variantesWA(o))
+      if (v.indexOf(s) >= 0 || s.indexOf(v) >= 0) return o;
+  return null;
+}
+function lerWA(texto){
+  const cru = {};
+  for (const linha of String(texto||"").split("\n")){
+    const m = linha.match(/^\s*(\d{1,2})\s*[.)\]\-–—:]/);
+    if (!m) continue;
+    const campo = CAMPOS_WA.find(c => c[0] === parseInt(m[1],10));
+    if (campo && cru[campo[1]] === undefined) cru[campo[1]] = limparWA(linha, campo[2]);
+  }
+  const dados = {}, naoLidos = [];
+  for (const [, chave, rotulo, tipo] of CAMPOS_WA){
+    const v = (cru[chave] || "").trim();
+    if (!v){ dados[chave] = (tipo === "num" || tipo === "int") ? null : ""; continue; }
+    if (tipo === "num" || tipo === "int"){
+      const x = numeroWA(v);
+      dados[chave] = x === null ? null : (tipo === "int" ? Math.round(x) : x);
+      if (x === null) naoLidos.push(`${rotulo} («${v}»)`);
+    } else if (tipo === "data"){
+      const x = dataWA(v); dados[chave] = x;
+      if (!x) naoLidos.push(`${rotulo} («${v}»)`);
+    } else if (tipo === "opc"){
+      const x = casarWA(v, OPCOES[chave]); dados[chave] = x || "";
+      if (!x) naoLidos.push(`${rotulo} («${v}»)`);
+    } else dados[chave] = v;
+  }
+  const faltam = CAMPOS_WA.filter(([,ch,,,obr]) => obr && !String(dados[ch]==null?"":dados[ch]).trim())
+    .map(c => c[2]);
+  const vazio = !Object.keys(cru).some(k => String(cru[k]||"").trim());
+  return {dados, faltam, naoLidos, vazio};
+}
+const lerVariasWA = texto =>
+  (separarWA(texto).length ? separarWA(texto) : [texto]).map(lerWA).filter(r => !r.vazio);
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Armazenamento
+   ───────────────────────────────────────────────────────────────────────────
+   Dois modos, e a tela diz qual está valendo:
+   · EQUIPE  — a capability `db`. Todo mundo que abre o app vê o mesmo banco,
+               ao vivo. É o modo normal.
+   · NESTE APARELHO — sem `db`. Tudo fica no navegador de quem abriu, e não
+               chega a mais ninguém. Serve para experimentar sem estragar nada.
+   ═══════════════════════════════════════════════════════════════════════════ */
+const COLS = ["config","atletas","prescricoes","sessoes","diario","testes","biblioteca"];
+const Store = {
+  db: null, modo: "local", podeGravar: true, pronto: false,
+  cache: {}, subs: [],
+  _chaveLocal: "elase_v1",
+
+  iniciarCache(){ COLS.forEach(c => this.cache[c] = this.cache[c] || {}); },
+
+  lerLocal(){
+    try {
+      const cru = localStorage.getItem(this._chaveLocal);
+      if (cru) Object.assign(this.cache, JSON.parse(cru));
+    } catch (e) { /* aba anônima, armazenamento bloqueado: segue vazio */ }
+    this.iniciarCache();
+  },
+  gravarLocal(){
+    try { localStorage.setItem(this._chaveLocal, JSON.stringify(this.cache)); }
+    catch (e) { /* sem espaço ou bloqueado: o app continua funcionando na memória */ }
+  },
+
+  all(col){ return Object.values(this.cache[col] || {}); },
+  get(col, id){ return (this.cache[col] || {})[id] || null; },
+
+  async set(col, id, obj){
+    const corpo = Object.assign({}, obj);
+    this.cache[col] = this.cache[col] || {};
+    this.cache[col][id] = Object.assign({}, corpo, {id});
+    if (this.db){
+      try { await this.db.doc(col + "/" + id).set(corpo); }
+      catch (e){ this.tratarErro(e); throw e; }
+    } else this.gravarLocal();
+    return this.cache[col][id];
+  },
+  async remover(col, id){
+    delete (this.cache[col] || {})[id];
+    if (this.db){
+      try { await this.db.doc(col + "/" + id).delete(); }
+      catch (e){ this.tratarErro(e); throw e; }
+    } else this.gravarLocal();
+  },
+  tratarErro(e){
+    const c = e && e.code;
+    if (c === "invalid_argument"){
+      /* Escrita bem-formada recusada = este visitante é leitor. Vira somente
+         leitura pelo resto da visita, em vez de repetir o erro a cada toque. */
+      this.podeGravar = false;
+      pintarModo();
+      avisarGlobal("Este link abriu em modo leitura: o que você digitar não é gravado para a equipe.");
+    } else if (c === "quota_exceeded"){
+      avisarGlobal("O banco do app está cheio. Apague sessões antigas na aba Prescrição.");
+    } else if (c === "revoked"){
+      this.db = null; this.modo = "local"; pintarModo();
+      avisarGlobal("O acesso ao banco foi encerrado durante o uso. Recarregue a página.");
+    }
+  },
+
+  async ligar(){
+    let db = null, user = null;
+    try { db = await claude.use("db"); } catch (e) { db = null; }
+    try { user = await claude.use("user"); } catch (e) { user = null; }
+    if (!db){ this.pronto = true; return; }
+    this.db = db; this.modo = "equipe";
+    if (user){
+      const pode = await user.can("data.write").catch(()=>null);
+      /* null = a plataforma não disse nada. Mantém os campos e deixa a primeira
+         recusa decidir — nunca desabilitar por suposição. */
+      if (pode === false) this.podeGravar = false;
+    }
+    /* UMA assinatura por coleção, no arranque. Nunca dentro de render. */
+    for (const col of COLS){
+      const un = db.collection(col).onSnapshot(snap => {
+        const novo = {};
+        snap.docs.forEach(d => { if (d.exists) novo[d.id] = Object.assign({}, d.data(), {id:d.id}); });
+        this.cache[col] = novo;
+        if (this.pronto) render();
+      }, e => this.tratarErro(e));
+      this.subs.push(un);
+    }
+    this.pronto = true;
+  },
+};
+
+/* ── Modelo ─────────────────────────────────────────────────────────────── */
+const novoId = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+function cfg(){
+  const c = Store.get("config","main") || {};
+  return {
+    /* Curto de propósito: o nome vive numa faixa fixa no topo do celular, e
+       "ELASE Voleibol Masculino" quebra em duas linhas ali, roubando um quinto
+       da tela. "Masculino" vai para o subtítulo, onde já cabe. */
+    equipe: c.equipe || "ELASE Voleibol",
+    categoria: c.categoria || "Masculino · Adulto",
+    temporada: c.temporada || String(new Date().getFullYear()),
+    macro_inicio: c.macro_inicio || segundaDe(hojeISO()),
+    pin: c.pin || "1234",
+  };
+}
+const blocos = () => (Store.get("config","blocos") || {}).lista || BLOCOS_PADRAO;
+const atletas = () => Store.all("atletas").sort((a,b) =>
+  (a.apelido||a.nome||"").localeCompare(b.apelido||b.nome||"", "pt-BR"));
+const ativos = () => atletas().filter(a => a.status !== "Inativo");
+const atleta = id => Store.get("atletas", id);
+const prescricoes = () => Store.all("prescricoes").sort((a,b)=>a.data<b.data?-1:1);
+const prescDoDia = d => prescricoes().find(p => p.data === d) || null;
+
+function diarioDe(id){
+  const d = Store.get("diario", id) || {};
+  return {w: d.w || {}, b: d.b || {}};
+}
+function sessoesDe(id){
+  /* Um documento por atleta e ANO: 12 documentos por temporada em vez de dois
+     mil. O teto do banco é 5 000 documentos, e uma sessão por linha o estouraria
+     em pouco mais de duas temporadas. */
+  const fora = [];
+  for (const doc of Store.all("sessoes")){
+    if (doc.atleta !== id) continue;
+    for (const data of Object.keys(doc.s || {}))
+      fora.push(Object.assign({data}, doc.s[data]));
+  }
+  return fora.sort((a,b)=>a.data<b.data?-1:1);
+}
+const sessaoDe = (id, data) => sessoesDe(id).find(s => s.data === data) || null;
+async function gravarSessao(id, data, dados){
+  const ano = data.slice(0,4), docId = id + "_" + ano;
+  const doc = Store.get("sessoes", docId) || {atleta:id, ano, s:{}};
+  const s = Object.assign({}, doc.s || {});
+  s[data] = Object.assign({}, s[data] || {}, dados);
+  await Store.set("sessoes", docId, {atleta:id, ano, s});
+}
+async function gravarDiario(id, ramo, chave, valor){
+  const d = diarioDe(id), copia = {w:Object.assign({},d.w), b:Object.assign({},d.b)};
+  copia[ramo][chave] = valor;
+  await Store.set("diario", id, copia);
+}
+const testesDe = id => ((Store.get("testes", id) || {}).lista || [])
+  .slice().sort((a,b)=>a.data<b.data?1:-1);
+function melhor1RM(id, exercicio){
+  const l = testesDe(id).filter(t => t.tipo === "1RM" && t.exercicio === exercicio);
+  return l.length ? l[0].valor : null;        // o MAIS RECENTE, não o maior
+}
+const bibl = () => (Store.get("biblioteca","lib") || {}).itens || {};
+function infoEx(nome){
+  const base = EXERCICIOS.find(e => e[0] === nome);
+  const over = bibl()[nome] || {};
+  return {nome, grupo: over.grupo || (base ? base[1] : "Força"),
+    ref1rm: base ? base[2] : null,
+    dica: over.dica !== undefined && over.dica !== "" ? over.dica : (DICAS[nome] || ""),
+    video: over.video || ""};
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Tela
+   ═══════════════════════════════════════════════════════════════════════════ */
+const ABAS = [
+  {id:"inicio",     rot:"Início",     pin:false},
+  {id:"sessao",     rot:"Sessão",     pin:false},
+  {id:"bemestar",   rot:"Bem-estar",  pin:false},
+  {id:"analise",    rot:"Análise",    pin:false},
+  {id:"testes",     rot:"Testes",     pin:false},
+  {id:"exercicios", rot:"Exercícios", pin:false},
+  {id:"elenco",     rot:"Elenco",     pin:true},
+  {id:"prescricao", rot:"Prescrição", pin:true},
+  {id:"sistema",    rot:"Sistema",    pin:true},
+  {id:"whatsapp",   rot:"WhatsApp",   pin:true},
+  {id:"ajustes",    rot:"Ajustes",    pin:true},
+];
+const UI = {aba:"inicio", eu:null, liberado:false, aviso:"", data:hojeISO()};
+function lerPrefs(){
+  try {
+    UI.eu = localStorage.getItem("elase_eu") || null;
+    UI.liberado = sessionStorage.getItem("elase_pin") === "1";
+  } catch (e) { /* armazenamento bloqueado: começa deslogado, e tudo bem */ }
+}
+function guardar(ch, v, sessao){
+  try { (sessao ? sessionStorage : localStorage).setItem(ch, v); } catch (e) {}
+}
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,
+  c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const plural = (n, um, muitos) => `${n} ${n === 1 ? um : muitos}`;
+const num = (v, casas) => v === null || v === undefined || Number.isNaN(v)
+  ? "—" : Number(v).toLocaleString("pt-BR", {minimumFractionDigits:casas||0, maximumFractionDigits:casas||0});
+function avisarGlobal(t){ UI.aviso = t; render(); }
+
+function pintarModo(){
+  const el = document.getElementById("mcModo");
+  if (!el) return;
+  if (!Store.pronto){ el.textContent = "abrindo…"; el.className = "modo"; return; }
+  if (Store.modo === "equipe" && Store.podeGravar){
+    el.textContent = "Banco da equipe"; el.className = "modo ok";
+  } else if (Store.modo === "equipe"){
+    el.textContent = "Somente leitura"; el.className = "modo";
+  } else {
+    el.textContent = "Neste aparelho"; el.className = "modo";
+  }
+}
+
+function pintarNav(){
+  const rolo = document.getElementById("navRolo");
+  const visiveis = ABAS.filter(a => !a.pin || UI.liberado);
+  rolo.innerHTML = visiveis.map(a =>
+    `<button data-aba="${a.id}" aria-current="${UI.aba===a.id}">${esc(a.rot)}</button>`).join("")
+    + (UI.liberado ? "" : `<button data-aba="__pin" aria-current="false">🔒 Comissão</button>`);
+}
+
+function ir(aba){
+  UI.aba = aba;
+  render();
+  window.scrollTo({top:0, behavior:"instant"});
+}
+
+/* ── Gráfico: carga diária dos 7 dias ───────────────────────────────────── */
+function barrasCarga(diarias, datas){
+  /* Uma série só: o título já diz o que é, então não leva legenda. Rótulo
+     direto apenas no maior valor — número em cima de toda barra vira ruído. */
+  const L = 32, R = 8, T = 16, B = 26, A = 108, W = 320;
+  const max = Math.max(...diarias, 1);
+  const larg = (W - L - R) / 7, barra = larg - 2;   // 2px de respiro entre barras
+  const iMax = diarias.indexOf(max);
+  const barras = diarias.map((v, i) => {
+    const h = Math.max(v > 0 ? 3 : 0, (v/max) * (A - T - B));
+    const x = L + i*larg + 1, y = A - B - h;
+    const cor = v > 0 ? "var(--blue)" : "transparent";
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barra.toFixed(1)}"
+      height="${h.toFixed(1)}" rx="4" fill="${cor}"><title>${dataBR(datas[i])}: ${num(v)} UA</title></rect>`;
+  }).join("");
+  const rotulos = datas.map((d, i) =>
+    `<text class="eixo" x="${(L + i*larg + larg/2).toFixed(1)}" y="${A-9}"
+      text-anchor="middle">${DIA_SEM[dObj(d).getDay()].slice(0,3).toUpperCase()}</text>`).join("");
+  const destaque = max > 0
+    ? `<text class="valor" x="${(L + iMax*larg + larg/2).toFixed(1)}"
+        y="${(A - B - Math.max(3,(A-T-B)) - 4).toFixed(1)}" text-anchor="middle">${num(max)}</text>` : "";
+  return `<figure>
+    <figcaption>Carga diária dos últimos 7 dias, em unidades arbitrárias (minutos × PSE)</figcaption>
+    <svg viewBox="0 0 ${W} ${A}" width="100%" height="${A}" role="img"
+      aria-label="Carga diária dos últimos sete dias">
+      <line class="grade-linha" x1="${L}" y1="${A-B}" x2="${W-R}" y2="${A-B}"/>
+      ${barras}${rotulos}${destaque}
+      <text class="eixo" x="0" y="${T}">UA</text>
+    </svg></figure>`;
+}
+
+/* ── Gráfico: desvio do humor ───────────────────────────────────────────── */
+function faixaZ(linhas){
+  /* Divergente de propósito: o zero tem significado (a própria média do atleta),
+     e o sinal separa "pior que o normal dele" de "melhor". Dois tons e um
+     cinza neutro no meio — nunca um arco-íris. */
+  const com = linhas.filter(l => l.z !== null);
+  if (!com.length) return "";
+  const W = 320, LH = 22, L = 74, R = 14, A = com.length*LH + 30;
+  const meio = L + (W - L - R)/2, escala = (W - L - R)/2 / 3;   // ±3 desvios
+  const corpo = com.map((l, i) => {
+    const y = 22 + i*LH, z = Math.max(-3, Math.min(3, l.ruim));
+    const larg = Math.abs(z)*escala, x = z >= 0 ? meio : meio - larg;
+    const cor = z >= 0 ? "var(--quente)" : "var(--blue)";
+    return `<text class="eixo" x="0" y="${y+11}">${esc(l.subescala)}</text>
+      <rect x="${x.toFixed(1)}" y="${y+3}" width="${Math.max(larg,2).toFixed(1)}" height="13"
+        rx="4" fill="${cor}"><title>${esc(l.subescala)}: ${l.z.toFixed(2)} desvios (n=${l.n})</title></rect>
+      <text class="valor" x="${W-R+2}" y="${y+14}" text-anchor="end">${l.z.toFixed(1)}</text>`;
+  }).join("");
+  return `<figure>
+    <figcaption>Desvio de hoje em relação à base do próprio atleta. À direita é
+    pior que o normal dele; no Vigor o sinal já está invertido.</figcaption>
+    <svg viewBox="0 0 ${W} ${A}" width="100%" height="${A}" role="img"
+      aria-label="Desvio do humor em relação à base do atleta">
+      <line x1="${meio}" y1="14" x2="${meio}" y2="${A-8}" stroke="var(--neutro)" stroke-width="2"/>
+      <text class="eixo" x="${meio}" y="10" text-anchor="middle">MÉDIA DELE</text>
+      ${corpo}</svg></figure>`;
+}
+
+/* ── Quem sou eu ────────────────────────────────────────────────────────── */
+function seletorAtleta(){
+  const lista = ativos();
+  if (!lista.length) return "";
+  return `<label for="selEu"><span>Atleta</span>
+    <select id="selEu">${lista.map(a =>
+      `<option value="${a.id}" ${a.id===UI.eu?"selected":""}>${esc(a.apelido||a.nome)}</option>`
+    ).join("")}</select></label>`;
+}
+function meuAtleta(){
+  const l = ativos();
+  if (!l.length) return null;
+  const achado = l.find(a => a.id === UI.eu);
+  return achado || l[0];
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Abas
+   ═══════════════════════════════════════════════════════════════════════════ */
+function telaInicio(){
+  const c = cfg(), lista = ativos(), hoje = hojeISO();
+  const p = prescDoDia(hoje);
+  const sem = semanaDe(hoje, c.macro_inicio), bl = blocos();
+  const pos = posicaoNoCiclo(sem, bl.length), b = bl[pos-1];
+  const plano = p ? planoSessao(p.exercicios || [], p.tipo, p.dur_prev) : null;
+
+  const painel = lista.map(a => {
+    const pr = prontidao(sessoesDe(a.id), diarioDe(a.id), hoje);
+    const [rot, cor] = NIVEIS[pr.nivel];
+    const feita = sessaoDe(a.id, hoje);
+    return {a, pr, rot, cor, feita};
+  }).sort((x,y) => (y.pr.nivel - x.pr.nivel) || ((x.pr.valor||101) - (y.pr.valor||101)));
+
+  const alertas = painel.filter(x => x.pr.nivel > 0);
+
+  return `<div class="cabeca">
+      <h2>${esc(c.equipe)}</h2>
+      <p>${dataBR(hoje)}, ${diaSemana(hoje)} · semana ${sem} da temporada ·
+      ciclo ${cicloDe(sem, bl.length)}, posição ${pos} de ${bl.length} ·
+      ${esc(b.bloco)} / ${esc(b.micro)}</p>
+    </div>
+
+    ${p ? `<div class="cartao">
+      <h3>Sessão de hoje</h3>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:baseline">
+        <div><div class="rotulo">Tipo</div><b style="font-size:17px">${esc(p.tipo)}</b></div>
+        <div><div class="rotulo">Objetivo</div><b style="font-size:17px">${esc(p.objetivo||"—")}</b></div>
+        <div><div class="rotulo">Previsto</div><b style="font-size:17px">${plano.dur} min</b></div>
+        <div><div class="rotulo">Séries</div><b style="font-size:17px">${plano.series}</b></div>
+        ${plano.contatos ? `<div><div class="rotulo">Contatos</div><b style="font-size:17px">${plano.contatos}</b></div>` : ""}
+      </div>
+      <p style="color:var(--ink-3);font-size:13px;margin:11px 0 0">${esc(p.notas||"")}</p>
+      <button class="bt larga" data-ir="sessao" style="margin-top:12px">Abrir a sessão</button>
+    </div>` : `<div class="nota">Não há sessão prescrita para hoje.
+      ${UI.liberado ? "Gere as semanas na aba <b>Sistema</b>." : "Fale com a comissão."}</div>`}
+
+    ${alertas.length ? `<div class="cartao">
+      <h3>Quem precisa de olho hoje</h3>
+      ${alertas.map(x => `<div class="nota ${x.cor==="crit"?"crit":"aten"}">
+        <b>${esc(x.a.apelido||x.a.nome)}</b> — ${esc(NIVEIS[x.pr.nivel][2])}
+        <br>${x.pr.bandeiras.map(bb => esc(bb[0])).join(" · ")}</div>`).join("")}
+    </div>` : ""}
+
+    <div class="cartao">
+      <h3>Elenco · prontidão de hoje</h3>
+      ${lista.length ? `<div class="rolagem estreita"><table>
+        <thead><tr><th>Atleta</th><th>Estado</th><th class="num">Prontidão</th>
+        <th class="num">ACWR</th></tr></thead><tbody>
+        ${painel.map(x => `<tr>
+          <td><b>${esc(x.a.apelido||x.a.nome)}</b><br>
+            <span style="color:var(--ink-4);font-size:11.5px">${esc(x.a.posicao||"")}</span>
+            ${x.feita && x.feita.check_out ? '<br><span class="selo good">feita</span>'
+              : x.feita ? '<br><span class="selo info">em curso</span>' : ""}</td>
+          <td><span class="selo ${x.cor}">${esc(x.rot)}</span></td>
+          <td class="num">${x.pr.valor===null?"—":num(x.pr.valor)}</td>
+          <td class="num">${x.pr.carga.hist_dias<21?"—":num(x.pr.carga.acwr,2)}</td>
+        </tr>`).join("")}
+      </tbody></table></div>` : `<div class="vazio">Nenhum atleta cadastrado ainda.
+        ${UI.liberado ? "Cole as fichas do WhatsApp na aba <b>WhatsApp</b>." : ""}</div>`}
+    </div>`;
+}
+
+function telaSessao(){
+  const a = meuAtleta();
+  if (!a) return `<div class="cabeca"><h2>Sessão</h2></div>
+    <div class="vazio">Nenhum atleta cadastrado ainda.</div>`;
+  const hoje = hojeISO(), p = prescDoDia(hoje), s = sessaoDe(a.id, hoje);
+
+  if (!p) return `<div class="cabeca"><h2>Sessão</h2>
+    <p>Marque quem você é; o treino do dia aparece aqui.</p></div>
+    <div class="cartao">${seletorAtleta()}</div>
+    <div class="nota">Não há sessão prescrita para ${dataBR(hoje)}.</div>`;
+
+  const exs = p.exercicios || [];
+  const plano = planoSessao(exs, p.tipo, p.dur_prev);
+
+  if (!s) {                                     /* ainda não fez check-in */
+    const pr = prontidao(sessoesDe(a.id), diarioDe(a.id), hoje);
+    const [rot, cor, conduta] = NIVEIS[pr.nivel];
+    return `<div class="cabeca"><h2>${esc(p.tipo)} · ${dataBR(hoje)}</h2>
+      <p>${esc(p.objetivo||"")} · ${plano.dur} min previstos, ${plano.series} séries
+      (${plano.dur_prep} min de mobilidade e educativo)</p></div>
+      <div class="cartao">${seletorAtleta()}
+        <div class="nota ${cor==="good"?"bom":cor==="crit"?"crit":"aten"}">
+          <b>${esc(rot)}.</b> ${esc(conduta)}
+          ${pr.bandeiras.length ? "<br>" + pr.bandeiras.map(b=>esc(b[0])).join(" · ") : ""}</div>
+        <button class="bt larga" id="btCheckin">Fazer check-in e começar</button>
+      </div>
+      ${listaExercicios(exs, null, a, true)}`;
+  }
+
+  if (s.check_out){
+    return `<div class="cabeca"><h2>Sessão encerrada</h2>
+      <p>${esc(p.tipo)} · ${dataBR(hoje)}</p></div>
+      <div class="cartao">${seletorAtleta()}
+      <div class="grade">
+        <div><div class="rotulo">Duração</div><div class="numerao">${num(s.dur_min)}<small>min</small></div></div>
+        <div><div class="rotulo">PSE</div><div class="numerao">${num(s.pse,1)}</div></div>
+        <div><div class="rotulo">Carga</div><div class="numerao">${num(s.carga_ua)}<small>UA</small></div></div>
+        <div><div class="rotulo">Tonelagem</div><div class="numerao">${num(s.tonelagem)}<small>kg</small></div></div>
+      </div></div>
+      ${listaExercicios(exs, s, a, true)}`;
+  }
+
+  return `<div class="cabeca"><h2>${esc(p.tipo)} · em curso</h2>
+      <p>Check-in às ${esc((s.check_in||"").slice(11,16))} ·
+      ${plano.dur} min previstos · ${esc(p.notas||"")}</p></div>
+    <div class="cartao">${seletorAtleta()}</div>
+    ${listaExercicios(exs, s, a, false)}
+    <div class="cartao" id="fechamento">
+      <h3>Encerrar</h3>
+      <label><span>Quanto durou, em minutos</span>
+        <input id="durFim" inputmode="numeric" value="${plano.dur}"></label>
+      <label><span>PSE da sessão — o quanto ela pesou, de 0 a 10</span></label>
+      <div class="likert" id="psePicker">
+        ${[0,1,2,3,4,5,6,7,8,9,10].map(n =>
+          `<button type="button" data-pse="${n}" aria-pressed="false">${n}</button>`).join("")}
+      </div>
+      <p class="nota" style="margin-top:12px">A carga da sessão é <b>duração × PSE</b>.
+      Por isso a duração é confirmada por você e não pelo relógio: um check-out
+      esquecido transformaria oito horas de expediente em 2 500 UA e envenenaria
+      a sua análise por 28 dias.</p>
+      <button class="bt larga" id="btFechar" disabled>Encerrar a sessão</button>
+      <p class="aviso erro" id="avFechar" hidden></p>
+    </div>`;
+}
+
+function listaExercicios(exs, s, a, soLeitura){
+  const feitas = (s && s.series) || {};
+  return exs.map((e, i) => {
+    const info = infoEx(e.nome);
+    const prep = SEM_CARGA.indexOf(e.grupo) >= 0;
+    const rm = e.ref1rm ? melhor1RM(a.id, e.ref1rm) : null;
+    const alvo = (rm && e.pct_rm) ? Math.round(rm * e.pct_rm / 2.5) * 2.5 : null;
+    const pres = [
+      `${e.series} × ${esc(e.reps)}`,
+      e.pct_rm ? `${Math.round(e.pct_rm*100)}%` : "",
+      alvo ? `≈ ${num(alvo,1)} kg` : (e.pct_rm && !rm ? "sem 1RM lançado" : ""),
+      e.rir !== null && e.rir !== undefined ? `RIR ${e.rir}` : "",
+      e.tempo ? `tempo ${esc(e.tempo)}` : "",
+      e.vel ? `${esc(e.vel)} m/s` : "",
+      `pausa ${e.pausa}s`,
+    ].filter(Boolean).join(" · ");
+
+    let linhas = "";
+    if (!soLeitura){
+      linhas = `<div class="series">` + Array.from({length: e.series}, (_, k) => {
+        const f = feitas[i + "_" + (k+1)] || {};
+        return `<div class="serie">
+          <span class="n">${k+1}</span>
+          ${prep ? `<span style="grid-column:2/4;font-size:12.5px;color:var(--ink-4)">${esc(e.reps)}</span>`
+                 : `<input inputmode="decimal" placeholder="kg" data-serie="${i}_${k+1}" data-campo="carga" value="${f.carga!==undefined&&f.carga!==null?f.carga:(alvo||"")}">
+                    <input inputmode="numeric" placeholder="reps" data-serie="${i}_${k+1}" data-campo="reps" value="${f.reps!==undefined&&f.reps!==null?f.reps:""}">`}
+          <button type="button" class="tick" data-tick="${i}_${k+1}"
+            aria-pressed="${f.feita?"true":"false"}" aria-label="marcar série ${k+1} como feita">✓</button>
+        </div>`;
+      }).join("") + `</div>`;
+    }
+
+    return `<div class="ex ${prep?"prep":""}">
+      <div class="tit"><b>${esc(e.nome)}</b>
+        <span class="selo">${esc(e.grupo)}</span></div>
+      <div class="pres">${pres}</div>
+      ${e.obs ? `<div class="obs">${esc(e.obs)}</div>` : ""}
+      ${info.dica ? `<div class="dica">${esc(info.dica)}</div>` : ""}
+      <div style="margin-top:9px">
+        <a class="bt alt mini" href="${esc(info.video || buscaVideo(e.nome))}"
+          target="_blank" rel="noopener">${info.video ? "▶ Vídeo do clube" : "▶ Ver o movimento"}</a>
+      </div>
+      ${linhas}
+    </div>`;
+  }).join("");
+}
+
+function telaBemestar(){
+  const a = meuAtleta();
+  if (!a) return `<div class="cabeca"><h2>Bem-estar</h2></div>
+    <div class="vazio">Nenhum atleta cadastrado ainda.</div>`;
+  const hoje = hojeISO(), d = diarioDe(a.id), w = d.w[hoje] || {};
+  const jaBrums = !!d.b[hoje + "|pre"];
+  const resp = d.b[hoje + "|pre"] || new Array(24).fill(null);
+
+  const escala = (chave, de, ate, rot, atual) => `
+    <label><span>${esc(rot)}</span></label>
+    <div class="likert" data-escala="${chave}">
+      ${Array.from({length: ate-de+1}, (_,i) => de+i).map(n =>
+        `<button type="button" data-v="${n}" aria-pressed="${atual===n?"true":"false"}">${n}</button>`).join("")}
+    </div>`;
+
+  return `<div class="cabeca"><h2>Bem-estar de hoje</h2>
+      <p>Trinta segundos antes de começar. É o que permite comparar você com você
+      mesmo — não com a média do elenco, que não significa nada em humor.</p></div>
+    <div class="cartao">${seletorAtleta()}</div>
+
+    <div class="cartao"><h3>Check-in diário</h3>
+      ${escala("sq", 1, 5, "Qualidade do sono (1 péssima · 5 ótima)", w.sq)}
+      <label style="margin-top:12px"><span>Horas dormidas</span>
+        <input id="wSh" inputmode="decimal" value="${w.sh!==undefined&&w.sh!==null?w.sh:""}" placeholder="7,5"></label>
+      ${escala("dor", 0, 10, "Dor muscular (0 nenhuma · 10 muita)", w.dor)}
+      <div style="height:12px"></div>
+      ${escala("es", 0, 10, "Estresse (0 nenhum · 10 muito)", w.es)}
+      <div style="height:12px"></div>
+      ${escala("kss", 1, 9, "Sonolência agora — KSS (1 bem desperto · 9 lutando para não dormir)", w.kss)}
+      <button class="bt larga" id="btWell" style="margin-top:14px">Gravar o check-in</button>
+    </div>
+
+    <div class="cartao"><h3>Humor · BRUMS</h3>
+      ${jaBrums ? `<div class="nota bom">Respondida hoje. Pode responder de novo:
+        a última substitui.</div>` : ""}
+      <p style="color:var(--ink-3);font-size:13px;margin:0 0 12px">
+        Como você se sente <b>agora</b>: 0 nada · 1 um pouco · 2 moderadamente ·
+        3 bastante · 4 extremamente.</p>
+      ${BRUMS_ITENS.map(([sub, itens]) => `
+        <div class="rotulo" style="margin-top:13px">${esc(sub)}</div>
+        ${itens.map(it => {
+          const i = BRUMS_LISTA.findIndex(x => x[0] === it);
+          return `<div class="brums-item"><span class="nome">${esc(it)}</span>
+            <div class="likert" data-brums="${i}">
+              ${[0,1,2,3,4].map(n => `<button type="button" data-v="${n}"
+                aria-pressed="${resp[i]===n?"true":"false"}">${n}</button>`).join("")}
+            </div></div>`;
+        }).join("")}`).join("")}
+      <button class="bt larga" id="btBrums" style="margin-top:14px">Gravar o humor</button>
+      <p class="aviso erro" id="avBrums" hidden></p>
+    </div>`;
+}
+
+function telaAnalise(){
+  const a = meuAtleta();
+  if (!a) return `<div class="cabeca"><h2>Análise</h2></div>
+    <div class="vazio">Nenhum atleta cadastrado ainda.</div>`;
+  const ses = sessoesDe(a.id), d = diarioDe(a.id);
+  const pr = prontidao(ses, d, hojeISO()), c = pr.carga;
+  const [rot, cor, conduta] = NIVEIS[pr.nivel];
+  const zs = zHoje(d);
+
+  /* Correlação PSE × TMD: pergunta se o humor dele acompanha a carga. */
+  const porData = brumsPorData(d, "pre");
+  const datasComum = ses.filter(s => porData[s.data]).map(s => s.data);
+  const corr = spearman(datasComum.map(dt => (ses.find(s=>s.data===dt)||{}).pse),
+                        datasComum.map(dt => porData[dt].TMD));
+
+  return `<div class="cabeca"><h2>Análise · ${esc(a.apelido||a.nome)}</h2>
+      <p>${plural(c.n, "sessão registrada", "sessões registradas")},
+      ${plural(c.hist_dias, "dia de histórico", "dias de histórico")}.</p></div>
+    <div class="cartao">${seletorAtleta()}</div>
+
+    <div class="cartao"><h3>Prontidão</h3>
+      <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+        <div><div class="numerao">${pr.valor===null?"—":num(pr.valor)}<small>/100</small></div></div>
+        <span class="selo ${cor}">${esc(rot)}</span>
+      </div>
+      <div class="nota ${cor==="good"?"bom":cor==="crit"?"crit":"aten"}" style="margin-top:13px">
+        ${esc(conduta)}
+        ${pr.bandeiras.length ? "<br>" + pr.bandeiras.map(b=>esc(b[0])).join("<br>") : ""}</div>
+      <div class="rotulo">Componentes que entraram</div>
+      <div class="pares">
+        ${Object.keys(PESOS).map(k => `<div><span>${esc(k)} ·
+          peso ${Math.round(PESOS[k]*100)}%</span>
+          ${pr.componentes[k]===undefined ? '<span class="sem">sem coleta</span>'
+            : `<b>${num(pr.componentes[k])}</b>`}</div>`).join("")}
+      </div>
+      <p style="color:var(--ink-4);font-size:12px;margin:9px 0 0">Componente sem
+      coleta é <b>excluído</b> da média e o peso redistribuído — não entra como
+      zero. Quem não respondeu a BRUMS não é quem está com o humor péssimo.</p>
+    </div>
+
+    <div class="cartao"><h3>Carga</h3>
+      <div class="grade">
+        <div><div class="rotulo">Aguda · 7 dias</div><div class="numerao">${num(c.aguda)}<small>UA</small></div></div>
+        <div><div class="rotulo">Crônica · 28 d ÷ 4</div><div class="numerao">${num(c.cronica)}<small>UA</small></div></div>
+        <div><div class="rotulo">ACWR</div>
+          <div class="numerao">${c.hist_dias<21?"—":num(c.acwr,2)}</div>
+          <span class="selo ${pr.zona.c}">${esc(pr.zona.t)}</span></div>
+        <div><div class="rotulo">Monotonia</div>
+          <div class="numerao">${c.monotonia===null?"—":num(c.monotonia,2)}</div></div>
+        <div><div class="rotulo">Strain</div>
+          <div class="numerao">${c.strain===null?"—":num(c.strain)}</div></div>
+      </div>
+      ${c.monotonia_indefinida ? `<div class="nota crit" style="margin-top:13px">
+        <b>Monotonia indefinida.</b> A carga foi idêntica todos os dias, então o
+        desvio é zero e a divisão não existe. Isso não é "ótima variação" — é o
+        caso máximo, e é o que se quer evitar.</div>` : ""}
+      ${c.hist_dias < 21 && c.n ? `<div class="nota aten" style="margin-top:13px">
+        <b>Histórico curto.</b> ACWR com menos de 21 dias parece um diagnóstico e
+        não é. O número volta quando houver base.</div>` : ""}
+      <div style="margin-top:14px">${barrasCarga(c.diarias, c.datas)}</div>
+      <p style="color:var(--ink-4);font-size:12px;margin:9px 0 0">O ACWR é apoio à
+      decisão, não diagnóstico: há crítica metodológica séria a ele na literatura
+      (Impellizzeri e colegas, 2020). Ele entra aqui ao lado do resto, nunca sozinho.</p>
+    </div>
+
+    <div class="cartao"><h3>Humor</h3>
+      ${zs.some(z => z.z !== null) ? faixaZ(zs) : `<div class="nota">
+        <b>Ainda sem base.</b> O Z compara cada coleta com as anteriores dele, e
+        para isso são precisas pelo menos 6 coletas com variação. Hoje há
+        ${Object.keys(porData).length}.</div>`}
+      <div class="rolagem"><table>
+        <thead><tr><th>Subescala</th><th class="num">Hoje</th><th class="num">Média dele</th>
+        <th class="num">Z</th><th class="num">n</th></tr></thead><tbody>
+        ${zs.map(z => `<tr><td>${esc(z.subescala)}</td>
+          <td class="num">${z.valor===null?"—":num(z.valor)}</td>
+          <td class="num">${z.media===null?"—":num(z.media,1)}</td>
+          <td class="num">${z.z===null?"—":num(z.z,2)}</td>
+          <td class="num">${z.n}</td></tr>`).join("")}
+      </tbody></table></div>
+    </div>
+
+    <div class="cartao"><h3>A carga explica o humor dele?</h3>
+      ${corr ? `<p>Correlação de postos entre a PSE da sessão e o TMD do dia:
+        <b>r = ${num(corr.r,2)}</b> em ${corr.n} pares.
+        ${corr.forte ? "Relação consistente: a carga está acompanhando o humor."
+                     : "Relação fraca ou instável: não dá para atribuir o humor à carga."}</p>`
+      : `<div class="nota">Menos de 6 dias com PSE <b>e</b> BRUMS no mesmo dia.
+        Spearman com menos que isso não conclui nada, então não mostro número.</div>`}
+      <p style="color:var(--ink-4);font-size:12px;margin:9px 0 0">Spearman, não
+      Pearson: PSE e BRUMS são escalas ordinais, e um único dia extremo entorta
+      um Pearson inteiro.</p>
+    </div>`;
+}
+
+function telaTestes(){
+  const a = meuAtleta();
+  if (!a) return `<div class="cabeca"><h2>Testes</h2></div>
+    <div class="vazio">Nenhum atleta cadastrado ainda.</div>`;
+  const lista = testesDe(a.id);
+  const refs = ["Agachamento","Agachamento frontal","Supino","Stiff com barra",
+                "Remada serrote","Arranco","Clean","Clean pull"];
+  return `<div class="cabeca"><h2>Testes e 1RM</h2>
+      <p>O que reabastece o ciclo. Sem 1RM lançado, o percentual da prescrição
+      não vira quilo nenhum na tela do atleta.</p></div>
+    <div class="cartao">${seletorAtleta()}</div>
+    <div class="cartao"><h3>Lançar</h3>
+      <div class="dupla">
+        <label for="tTipo"><span>Tipo</span><select id="tTipo">
+          <option>1RM</option><option>Salto</option><option>Velocidade</option>
+          <option>Alcance</option></select></label>
+        <label for="tData"><span>Data</span><input id="tData" type="date" value="${hojeISO()}"></label>
+      </div>
+      <label for="tEx"><span>Exercício ou medida</span>
+        <input id="tEx" list="listaRefs" placeholder="Agachamento">
+        <datalist id="listaRefs">${refs.map(r=>`<option value="${esc(r)}">`).join("")}
+          <option value="CMJ"><option value="Salto de ataque"><option value="Salto de bloqueio">
+          <option value="Alcance em pé"><option value="Sprint 10 m"><option value="Sprint 20 m">
+        </datalist></label>
+      <div class="dupla">
+        <label for="tValor"><span>Valor</span><input id="tValor" inputmode="decimal"></label>
+        <label for="tUni"><span>Unidade</span><select id="tUni">
+          <option>kg</option><option>cm</option><option>s</option><option>m/s</option></select></label>
+      </div>
+      <button class="bt larga" id="btTeste">Lançar</button>
+      <p class="aviso erro" id="avTeste" hidden></p>
+    </div>
+    <div class="cartao"><h3>Histórico</h3>
+      ${lista.length ? `<div class="rolagem"><table>
+        <thead><tr><th>Data</th><th>Tipo</th><th>Medida</th><th class="num">Valor</th><th></th></tr></thead>
+        <tbody>${lista.map((t,i) => `<tr>
+          <td>${dataBR(t.data)}</td><td>${esc(t.tipo)}</td><td>${esc(t.exercicio)}</td>
+          <td class="num">${num(t.valor,1)} ${esc(t.unidade)}</td>
+          <td class="num"><button class="bt alt mini" data-apagar-teste="${i}">apagar</button></td>
+        </tr>`).join("")}</tbody></table></div>`
+      : `<div class="vazio">Nada lançado ainda.</div>`}
+    </div>`;
+}
+
+function telaExercicios(){
+  const over = bibl();
+  const grupos = ["Mobilidade","Educativo","LPO","Força","Potência","Pliometria"];
+  return `<div class="cabeca"><h2>Biblioteca</h2>
+      <p>${EXERCICIOS.length} exercícios com a instrução que o atleta lê no
+      celular, sozinho, na sala. O vídeo abre uma busca até você fixar o seu.</p></div>
+    ${grupos.map(g => {
+      const l = EXERCICIOS.filter(e => e[1] === g);
+      if (!l.length) return "";
+      return `<div class="cartao"><h3>${esc(g)} · ${l.length}</h3>
+        ${l.map(([nome]) => {
+          const i = infoEx(nome);
+          return `<div class="ex">
+            <div class="tit"><b>${esc(nome)}</b>${i.ref1rm?`<span class="selo info">1RM</span>`:""}</div>
+            ${i.dica ? `<div class="dica">${esc(i.dica)}</div>` : ""}
+            <div style="margin-top:9px;display:flex;gap:7px;flex-wrap:wrap">
+              <a class="bt alt mini" href="${esc(i.video || buscaVideo(nome))}"
+                target="_blank" rel="noopener">${i.video?"▶ Vídeo do clube":"▶ Buscar"}</a>
+              ${UI.liberado ? `<button class="bt alt mini" data-video="${esc(nome)}">
+                ${i.video?"trocar o vídeo":"fixar um vídeo"}</button>` : ""}
+            </div></div>`;
+        }).join("")}</div>`;
+    }).join("")}
+    ${UI.liberado ? `<p style="color:var(--ink-4);font-size:12px">O vídeo é um
+      endereço livre: o seu canal, um link do clube, o que você quiser. Eu não
+      fixo vídeo de terceiro sem ter assistido — demonstração errada num app de
+      treino é risco de lesão, não só link quebrado.</p>` : ""}`;
+}
+
+function telaElenco(){
+  const lista = atletas();
+  return `<div class="cabeca"><h2>Elenco</h2>
+      <p>${lista.length} atletas. Nenhum campo de dinheiro, aqui nem em lugar
+      nenhum: o sistema não tem onde guardar isso.</p></div>
+    <div class="cartao"><h3>Acrescentar à mão</h3>
+      <div class="dupla">
+        <label for="eNome"><span>Nome completo</span><input id="eNome"></label>
+        <label for="eApelido"><span>Como é chamado</span><input id="eApelido"></label>
+      </div>
+      <div class="dupla">
+        <label for="ePos"><span>Posição</span><select id="ePos">
+          <option value="">—</option>${POSICOES.map(p=>`<option>${esc(p)}</option>`).join("")}
+        </select></label>
+        <label for="eNasc"><span>Nascimento</span><input id="eNasc" type="date"></label>
+      </div>
+      <div class="dupla">
+        <label for="eEst"><span>Estatura (cm)</span><input id="eEst" inputmode="decimal"></label>
+        <label for="eMassa"><span>Massa (kg)</span><input id="eMassa" inputmode="decimal"></label>
+      </div>
+      <button class="bt larga" id="btAtleta">Acrescentar</button>
+      <p class="aviso erro" id="avAtleta" hidden></p>
+    </div>
+    ${lista.map(a => `<div class="cartao">
+      <div style="display:flex;justify-content:space-between;gap:11px;align-items:flex-start">
+        <div><b style="font-size:17px">${esc(a.nome)}</b>
+          <div style="color:var(--ink-3);font-size:13px">${esc(a.apelido||"")} ·
+          ${esc(a.posicao||"posição não informada")}${a.camisa?` · camisa ${esc(a.camisa)}`:""}</div></div>
+        <span class="selo ${a.status==="Ativo"?"good":""}">${esc(a.status||"Ativo")}</span>
+      </div>
+      <div class="rolagem estreita" style="margin-top:11px"><table><tbody>
+        <tr><td>Nascimento</td><td class="num">${a.nasc?dataBR(a.nasc):"—"}</td>
+            <td>Estatura</td><td class="num">${a.estatura?num(a.estatura,1)+" cm":"—"}</td></tr>
+        <tr><td>Massa</td><td class="num">${a.massa?num(a.massa,1)+" kg":"—"}</td>
+            <td>Prática</td><td class="num">${a.anos_pratica?a.anos_pratica+" anos":"—"}</td></tr>
+        <tr><td>Alcance de ataque</td><td class="num">${a.alcance_ataque?num(a.alcance_ataque,0)+" cm":"—"}</td>
+            <td>Bloqueio</td><td class="num">${a.alcance_bloqueio?num(a.alcance_bloqueio,0)+" cm":"—"}</td></tr>
+      </tbody></table></div>
+      ${a.lesoes ? `<div class="nota aten" style="margin-top:11px"><b>Lesões:</b> ${esc(a.lesoes)}</div>` : ""}
+      ${a.emergencia ? `<div class="nota" style="margin-top:0"><b>Emergência:</b> ${esc(a.emergencia)}</div>` : ""}
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:11px">
+        <button class="bt alt mini" data-alcance="${a.id}">lançar alcances</button>
+        <button class="bt alt mini" data-status="${a.id}">${a.status==="Inativo"?"reativar":"inativar"}</button>
+        <button class="bt alt mini" data-apagar-atleta="${a.id}">apagar</button>
+      </div>
+    </div>`).join("") || `<div class="vazio">Elenco vazio.</div>`}`;
+}
+
+function telaPrescricao(){
+  const c = cfg(), hoje = hojeISO();
+  const janela = prescricoes().filter(p => p.data >= maisDias(hoje,-14));
+  return `<div class="cabeca"><h2>Prescrição</h2>
+      <p>As sessões de equipe, de duas semanas atrás em diante.
+      ${prescricoes().length} no total.</p></div>
+    ${janela.length ? janela.map(p => {
+      const plano = planoSessao(p.exercicios||[], p.tipo, p.dur_prev);
+      const sem = semanaDe(p.data, c.macro_inicio);
+      return `<div class="cartao">
+        <div style="display:flex;justify-content:space-between;gap:11px;flex-wrap:wrap">
+          <div><b style="font-size:16px">${dataBR(p.data)} · ${diaSemana(p.data)}</b>
+            <div style="color:var(--ink-3);font-size:12.5px">${esc(p.notas||"")}</div></div>
+          <span class="selo ${p.data===hoje?"good":"info"}">${esc(p.tipo)}</span>
+        </div>
+        <div style="display:flex;gap:15px;flex-wrap:wrap;margin-top:11px">
+          <div><div class="rotulo">Semana</div><b>${sem}</b></div>
+          <div><div class="rotulo">Duração</div><b>${plano.dur} min</b></div>
+          <div><div class="rotulo">Séries</div><b>${plano.series}</b></div>
+          <div><div class="rotulo">Contatos</div><b>${plano.contatos}</b></div>
+          <div><div class="rotulo">Carga prevista</div><b>${plano.ua} UA</b></div>
+        </div>
+        <div style="display:flex;gap:7px;margin-top:11px">
+          <button class="bt alt mini" data-ver-presc="${esc(p.data)}">ver exercícios</button>
+          <button class="bt alt mini" data-apagar-presc="${esc(p.data)}">apagar</button>
+        </div>
+        <div id="pex-${esc(p.data)}" hidden style="margin-top:11px">
+          ${(p.exercicios||[]).map(e => `<div style="font-size:13px;padding:5px 0;
+            border-top:1px solid var(--line-2)">
+            <b>${esc(e.nome)}</b> — ${e.series} × ${esc(e.reps)}
+            ${e.pct_rm?` · ${Math.round(e.pct_rm*100)}%`:""} · pausa ${e.pausa}s</div>`).join("")}
+        </div>
+      </div>`;
+    }).join("") : `<div class="vazio">Nenhuma sessão nessa janela.
+      Gere as semanas na aba <b>Sistema</b>.</div>`}`;
+}
+
+function telaSistema(){
+  const c = cfg(), bl = blocos(), hoje = hojeISO();
+  const semAtual = Math.max(1, semanaDe(hoje, c.macro_inicio));
+  const ocupadas = prescricoes().map(p => p.data);
+  const de = UI.sisDe || semAtual, ate = UI.sisAte || (semAtual + 7);
+  const previa = gerarSistema(bl, c.macro_inicio, de, ate, ocupadas);
+
+  const porSemana = {};
+  for (const s of previa.sessoes){
+    const sem = semanaDe(s.data, c.macro_inicio);
+    const p = planoSessao(s.exercicios, s.tipo, s.dur_prev);
+    const r = porSemana[sem] || (porSemana[sem] = {sem, ua:0, contatos:0, min:0, n:0});
+    r.ua += p.ua; r.contatos += p.contatos; r.min += p.dur; r.n++;
+  }
+  const semanas = Object.keys(porSemana).map(Number).sort((a,b)=>a-b).map(s => {
+    const r = porSemana[s], pos = posicaoNoCiclo(s, bl.length);
+    return Object.assign(r, {pos, ciclo:cicloDe(s, bl.length), bloco:bl[pos-1],
+      alvo: bl[pos-1].plio, reteste: eSemanaReteste(s, bl.length)});
+  });
+
+  return `<div class="cabeca"><h2>Sistema de treinamento</h2>
+      <p>Os ${bl.length} blocos são um macrociclo, não a temporada: eles voltam
+      ao começo sem teto. O que faz o ciclo seguinte valer mais não é mudar o
+      percentual — é o 1RM ter subido, e por isso a última sessão de cada
+      Realização é um reteste.</p></div>
+
+    <div class="cartao"><h3>Gerar</h3>
+      <div class="dupla">
+        <label for="sisDe"><span>Da semana</span>
+          <input id="sisDe" inputmode="numeric" value="${de}"></label>
+        <label for="sisAte"><span>Até a semana</span>
+          <input id="sisAte" inputmode="numeric" value="${ate}"></label>
+      </div>
+      <p style="color:var(--ink-3);font-size:13px;margin:0 0 12px">
+        Início do macrociclo: <b>${dataBR(c.macro_inicio)}</b> ·
+        hoje é a semana <b>${semAtual}</b>.
+        ${previa.pulados.length ? `<br><b>${previa.pulados.length} dia(s) já prescrito(s)</b>
+          serão pulados, nunca sobrescritos.` : ""}</p>
+      <button class="bt larga" id="btGerar">Gerar ${previa.sessoes.length} sessões</button>
+      <p class="aviso" id="avGerar" hidden></p>
+    </div>
+
+    <div class="cartao"><h3>O que isso custa, semana a semana</h3>
+      <div class="rolagem"><table>
+        <thead><tr><th>Sem</th><th>Bloco</th><th class="num">Sessões</th>
+          <th class="num">Minutos</th><th class="num">UA</th>
+          <th class="num">Contatos</th><th class="num">Alvo</th></tr></thead>
+        <tbody>${semanas.map(s => {
+          const erro = s.alvo ? Math.abs(s.contatos - s.alvo) / s.alvo : 0;
+          return `<tr>
+            <td>${s.sem}${s.reteste?' <span class="selo warn">reteste</span>':""}</td>
+            <td>${esc(s.bloco.bloco)}<br><span style="color:var(--ink-4);font-size:11.5px">${esc(s.bloco.micro)}</span></td>
+            <td class="num">${s.n}</td><td class="num">${s.min}</td><td class="num">${num(s.ua)}</td>
+            <td class="num" style="color:${erro>.15?"var(--warn-i)":"var(--ink)"}">${s.contatos}</td>
+            <td class="num" style="color:var(--ink-4)">${s.alvo}</td></tr>`;
+        }).join("")}</tbody></table></div>
+      <p style="color:var(--ink-4);font-size:12px;margin:9px 0 0">Contatos
+      pliométricos contra o alvo do bloco. O total da semana é repartido entre os
+      exercícios, não entre as sessões — repartir por sessão e pôr dois exercícios
+      pliométricos dentro dela estoura o alvo.</p>
+    </div>
+
+    <div class="cartao"><h3>Os blocos</h3>
+      <div class="rolagem"><table>
+        <thead><tr><th>#</th><th>Bloco</th><th>Micro</th><th class="num">Int.</th>
+          <th class="num">Vol.</th><th class="num">Contatos</th></tr></thead>
+        <tbody>${bl.map(b => `<tr><td>${b.posicao}</td><td>${esc(b.bloco)}</td>
+          <td>${esc(b.micro)}<br><span style="color:var(--ink-4);font-size:11.5px">${esc(b.enfase)}</span></td>
+          <td class="num">${Math.round(b.intensidade*100)}%</td>
+          <td class="num">${num(b.volume,2)}</td><td class="num">${b.plio}</td></tr>`).join("")}
+        </tbody></table></div>
+    </div>`;
+}
+
+function telaWhatsApp(){
+  return `<div class="cabeca"><h2>Fichas do WhatsApp</h2>
+      <p>Cole aqui o que os atletas mandaram. Pode ser tudo de uma vez: cada
+      linha que recomeça no item 1 vira uma ficha nova.</p></div>
+    <div class="cartao">
+      <div class="nota"><b>Como o atleta recebe a ficha.</b> Mande a ele a página
+      de cadastro — ela é pública, abre em qualquer celular, sem conta e sem
+      instalar nada. Ele preenche, toca em enviar, e o WhatsApp abre com a ficha
+      escrita. Você cola aqui.</div>
+      <label for="waTexto"><span>Colar as fichas</span>
+        <textarea id="waTexto" rows="8" placeholder="🏐 CADASTRO ELASE VOLEIBOL&#10;&#10;1. Nome completo — ..."></textarea></label>
+      <button class="bt larga" id="btLerWA">Ler as fichas</button>
+      <div id="waSaida" style="margin-top:14px"></div>
+    </div>`;
+}
+
+function telaAjustes(){
+  const c = cfg();
+  return `<div class="cabeca"><h2>Ajustes</h2></div>
+    <div class="cartao"><h3>Equipe</h3>
+      <label for="cfEquipe"><span>Nome</span><input id="cfEquipe" value="${esc(c.equipe)}"></label>
+      <div class="dupla">
+        <label for="cfCat"><span>Categoria</span><input id="cfCat" value="${esc(c.categoria)}"></label>
+        <label for="cfTemp"><span>Temporada</span><input id="cfTemp" value="${esc(c.temporada)}"></label>
+      </div>
+      <label for="cfMacro"><span>Início do macrociclo (uma segunda-feira)</span>
+        <input id="cfMacro" type="date" value="${esc(c.macro_inicio)}"></label>
+      <label for="cfPin"><span>PIN da comissão</span><input id="cfPin" value="${esc(c.pin)}"></label>
+      <button class="bt larga" id="btCfg">Gravar</button>
+      <p class="aviso ok" id="avCfg" hidden></p>
+    </div>
+    <div class="cartao"><h3>O que este PIN é e o que não é</h3>
+      <p style="font-size:13.5px;color:var(--ink-2)">Ele esconde as abas da
+      comissão de quem pega o celular na sala — é uma porta de casa, não um cofre.
+      Quem abrir o código da página o encontra. Para o que ele serve (evitar que
+      um atleta mexa na prescrição por curiosidade) basta; para guardar segredo,
+      não serve, e eu não vou fingir que serve.</p>
+    </div>
+    <div class="cartao"><h3>Onde estão os dados</h3>
+      <p style="font-size:13.5px;color:var(--ink-2)">
+      ${Store.modo === "equipe"
+        ? "No banco da equipe: todo mundo que abre este app vê o mesmo, ao vivo. Fecha o celular, abre o computador, está lá."
+        : "Só no navegador deste aparelho. Nada disto chega a outra pessoa. É o modo de experimentar sem estragar nada."}</p>
+      <button class="bt alt" id="btSair">Sair da área da comissão</button>
+    </div>`;
+}
+
+function telaPin(){
+  return `<div class="cabeca"><h2>Área da comissão</h2>
+      <p>Prescrição, elenco, sistema e importação ficam aqui.</p></div>
+    <div class="cartao">
+      <label for="pinCampo"><span>PIN</span>
+        <input id="pinCampo" inputmode="numeric" type="password" autocomplete="off"></label>
+      <button class="bt larga" id="btPin">Entrar</button>
+      <p class="aviso erro" id="avPin" hidden></p>
+    </div>`;
+}
+
+/* ── Render ─────────────────────────────────────────────────────────────── */
+/* NUNCA redesenhar entre o dedo encostar e o dedo soltar.
+   O `change` de um campo de texto dispara no BLUR — quer dizer, no instante em
+   que o dedo toca o botão ao lado. Se esse change redesenha a tela, o botão é
+   destruído entre o pointerdown e o pointerup, o navegador não tem mais em que
+   disparar o `click`, e o primeiro toque simplesmente não faz nada. O atleta
+   toca, não acontece nada, ele toca de novo. Encontrei isto rodando o app, não
+   lendo o código: o teste clicava e a sessão não era gerada.
+   O adiamento vai para um setTimeout e não para o próprio pointerup, porque o
+   `click` nasce no MESMO turno do pointerup — redesenhar ali teria o mesmo
+   efeito. */
+let emToque = false, renderAdiado = false, relogioToque = null;
+function render(){
+  if (emToque){ renderAdiado = true; return; }
+  desenhar();
+}
+function iniciarToque(){
+  emToque = true;
+  clearTimeout(relogioToque);
+  /* Se nenhum clique vier — rolagem, toque longo, dedo arrastado para fora —
+     o desenho não pode ficar preso para sempre. */
+  relogioToque = setTimeout(liberarToque, 700);
+}
+function liberarToque(){
+  clearTimeout(relogioToque);
+  emToque = false;
+  if (renderAdiado){ renderAdiado = false; desenhar(); }
+}
+/* Abre no primeiro sinal de dedo, pelos DOIS caminhos: um celular pode mandar
+   só `touchstart`, e o navegador sintetiza os eventos de ponteiro depois. */
+document.addEventListener("pointerdown", iniciarToque, true);
+document.addEventListener("touchstart", iniciarToque, true);
+/* Solta no CLIQUE, que é o último evento da sequência — soltar no pointerup
+   não bastaria, porque o clique nasce no mesmo turno dele. O setTimeout deixa
+   o manipulador de clique do app terminar antes do desenho. */
+const soltarDepois = () => setTimeout(liberarToque, 0);
+document.addEventListener("click", soltarDepois, true);
+document.addEventListener("pointercancel", soltarDepois, true);
+document.addEventListener("touchcancel", soltarDepois, true);
+
+function desenhar(){
+  const c = cfg();
+  document.getElementById("mcEquipe").textContent = (c.equipe || "").toUpperCase();
+  document.getElementById("mcCat").textContent = c.categoria + " · " + c.temporada;
+  pintarModo();
+  pintarNav();
+
+  for (const a of ABAS) document.getElementById("s-" + a.id).hidden = true;
+  const alvo = UI.aba === "__pin" ? "inicio" : UI.aba;
+  const el = document.getElementById("s-" + (ABAS.find(a=>a.id===alvo) ? alvo : "inicio"));
+  el.hidden = false;
+
+  const conteudo = UI.aba === "__pin" ? telaPin()
+    : alvo === "inicio" ? telaInicio()
+    : alvo === "sessao" ? telaSessao()
+    : alvo === "bemestar" ? telaBemestar()
+    : alvo === "analise" ? telaAnalise()
+    : alvo === "testes" ? telaTestes()
+    : alvo === "exercicios" ? telaExercicios()
+    : alvo === "elenco" ? telaElenco()
+    : alvo === "prescricao" ? telaPrescricao()
+    : alvo === "sistema" ? telaSistema()
+    : alvo === "whatsapp" ? telaWhatsApp()
+    : alvo === "ajustes" ? telaAjustes() : telaInicio();
+
+  const aviso = UI.aviso ? `<div class="nota crit">${esc(UI.aviso)}</div>` : "";
+  const leitura = (Store.modo === "equipe" && !Store.podeGravar)
+    ? `<div class="nota aten"><b>Somente leitura.</b> Este acesso não grava no
+       banco da equipe. Você vê tudo; o que digitar não é guardado.</div>` : "";
+  el.innerHTML = aviso + leitura + conteudo;
+}
+
+/* ── Eventos ────────────────────────────────────────────────────────────── */
+function valor(id){ const e = document.getElementById(id); return e ? e.value.trim() : ""; }
+function numDe(id){ const v = valor(id).replace(",", "."); const n = parseFloat(v); return Number.isFinite(n) ? n : null; }
+function mostrarAviso(id, texto, ok){
+  const e = document.getElementById(id);
+  if (!e) return;
+  e.textContent = texto;
+  e.className = "aviso " + (ok ? "ok" : "erro");
+  e.hidden = !texto;
+}
+
+document.addEventListener("click", async ev => {
+  const alvo = ev.target.closest("[data-aba],[data-ir],button,a");
+  if (!alvo) return;
+
+  const aba = alvo.getAttribute("data-aba") || alvo.getAttribute("data-ir");
+  if (aba){ UI.aviso = ""; ir(aba); return; }
+
+  /* Likert e ticks: estado no próprio botão, gravação no botão de gravar. */
+  const grupoEscala = alvo.closest("[data-escala],[data-brums]");
+  if (grupoEscala && alvo.hasAttribute("data-v")){
+    grupoEscala.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed","false"));
+    alvo.setAttribute("aria-pressed","true");
+    return;
+  }
+  if (alvo.hasAttribute("data-pse")){
+    alvo.closest(".likert").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed","false"));
+    alvo.setAttribute("aria-pressed","true");
+    const bt = document.getElementById("btFechar");
+    if (bt) bt.disabled = false;
+    return;
+  }
+  if (alvo.hasAttribute("data-tick")){
+    const ligado = alvo.getAttribute("aria-pressed") === "true";
+    alvo.setAttribute("aria-pressed", ligado ? "false" : "true");
+    await gravarSerieDaTela(alvo.getAttribute("data-tick"));
+    return;
+  }
+
+  const id = alvo.id;
+
+  if (id === "btPin"){
+    if (valor("pinCampo") === cfg().pin){
+      UI.liberado = true; guardar("elase_pin","1",true); ir("elenco");
+    } else mostrarAviso("avPin","PIN incorreto.");
+    return;
+  }
+  if (id === "btSair"){
+    UI.liberado = false;
+    try { sessionStorage.removeItem("elase_pin"); } catch (e) {}
+    ir("inicio"); return;
+  }
+
+  if (id === "btCheckin"){
+    const a = meuAtleta();
+    await gravarSessao(a.id, hojeISO(), {
+      tipo: (prescDoDia(hojeISO())||{}).tipo || "", check_in: new Date().toISOString(),
+      check_out: null, dur_min: 0, pse: null, carga_ua: 0, tonelagem: 0,
+      contatos: 0, series: {}});
+    render(); return;
+  }
+
+  if (id === "btFechar"){ await fecharSessao(); return; }
+  if (id === "btWell"){ await gravarWellness(); return; }
+  if (id === "btBrums"){ await gravarBrums(); return; }
+  if (id === "btTeste"){ await lancarTeste(); return; }
+  if (id === "btAtleta"){ await criarAtleta(); return; }
+  if (id === "btGerar"){ await gerarSemanas(); return; }
+  if (id === "btLerWA"){ lerFichas(); return; }
+  if (id === "btCfg"){ await gravarConfig(); return; }
+
+  const verP = alvo.getAttribute("data-ver-presc");
+  if (verP){ const d = document.getElementById("pex-"+verP); if (d) d.hidden = !d.hidden; return; }
+
+  const apagarP = alvo.getAttribute("data-apagar-presc");
+  if (apagarP){
+    if (!confirm("Apagar a sessão de " + dataBR(apagarP) + "?")) return;
+    await Store.remover("prescricoes", apagarP); render(); return;
+  }
+  const apagarA = alvo.getAttribute("data-apagar-atleta");
+  if (apagarA){
+    const at = atleta(apagarA);
+    if (!confirm("Apagar " + (at.apelido||at.nome) + " e tudo que ele registrou?")) return;
+    await Store.remover("atletas", apagarA);
+    await Store.remover("diario", apagarA).catch(()=>{});
+    render(); return;
+  }
+  const trocar = alvo.getAttribute("data-status");
+  if (trocar){
+    const at = atleta(trocar);
+    await Store.set("atletas", trocar,
+      Object.assign({}, at, {status: at.status === "Inativo" ? "Ativo" : "Inativo"}));
+    render(); return;
+  }
+  const alc = alvo.getAttribute("data-alcance");
+  if (alc){ await lancarAlcances(alc); return; }
+
+  const vid = alvo.getAttribute("data-video");
+  if (vid){
+    const atualI = infoEx(vid);
+    const novo = prompt("Endereço do vídeo para «" + vid + "»:", atualI.video || "");
+    if (novo === null) return;
+    const itens = Object.assign({}, bibl());
+    itens[vid] = Object.assign({}, itens[vid] || {}, {video: novo.trim()});
+    await Store.set("biblioteca","lib",{itens});
+    render(); return;
+  }
+  const apagarT = alvo.getAttribute("data-apagar-teste");
+  if (apagarT !== null && apagarT !== undefined && apagarT !== ""){
+    const a = meuAtleta(), lista = testesDe(a.id).slice();
+    lista.splice(parseInt(apagarT,10), 1);
+    await Store.set("testes", a.id, {lista});
+    render(); return;
+  }
+});
+
+document.addEventListener("change", async ev => {
+  if (ev.target.id === "selEu"){
+    UI.eu = ev.target.value; guardar("elase_eu", UI.eu); render(); return;
+  }
+  if (ev.target.id === "sisDe"){ UI.sisDe = parseInt(ev.target.value,10) || 1; render(); return; }
+  if (ev.target.id === "sisAte"){ UI.sisAte = parseInt(ev.target.value,10) || 1; render(); return; }
+  if (ev.target.hasAttribute && ev.target.hasAttribute("data-serie"))
+    await gravarSerieDaTela(ev.target.getAttribute("data-serie"));
+});
+
+async function gravarSerieDaTela(chave){
+  const a = meuAtleta(), hoje = hojeISO(), s = sessaoDe(a.id, hoje);
+  if (!s || s.check_out) return;
+  const campoC = document.querySelector(`[data-serie="${chave}"][data-campo="carga"]`);
+  const campoR = document.querySelector(`[data-serie="${chave}"][data-campo="reps"]`);
+  const tick = document.querySelector(`[data-tick="${chave}"]`);
+  const series = Object.assign({}, s.series || {});
+  const carga = campoC ? parseFloat(String(campoC.value).replace(",",".")) : null;
+  const reps = campoR ? parseInt(campoR.value, 10) : null;
+  series[chave] = {
+    carga: Number.isFinite(carga) ? carga : null,
+    reps: Number.isFinite(reps) ? reps : null,
+    feita: tick ? tick.getAttribute("aria-pressed") === "true" : false,
+  };
+  await gravarSessao(a.id, hoje, {series});
+}
+
+const DUR_MAX = 300;
+async function fecharSessao(){
+  const a = meuAtleta(), hoje = hojeISO(), s = sessaoDe(a.id, hoje);
+  if (!s) return;
+  const escolhido = document.querySelector('[data-pse][aria-pressed="true"]');
+  if (!escolhido){ mostrarAviso("avFechar","Escolha a PSE antes de encerrar."); return; }
+  const pse = parseFloat(escolhido.getAttribute("data-pse"));
+  const dur = parseInt(valor("durFim"), 10);
+  if (!Number.isFinite(dur) || dur < 1 || dur > DUR_MAX){
+    mostrarAviso("avFechar", `A duração precisa estar entre 1 e ${DUR_MAX} minutos.`);
+    return;
+  }
+  const p = prescDoDia(hoje), exs = (p && p.exercicios) || [];
+  let tonelagem = 0, contatos = 0;
+  for (const chave of Object.keys(s.series || {})){
+    const [iEx] = chave.split("_").map(Number);
+    const e = exs[iEx];
+    if (!e) continue;
+    const f = s.series[chave];
+    if (!f.feita) continue;
+    if (SEM_CARGA.indexOf(e.grupo) < 0 && f.carga && f.reps) tonelagem += f.carga * f.reps;
+    if (e.grupo === "Pliometria") contatos += f.reps || primeiroNumero(e.reps);
+  }
+  await gravarSessao(a.id, hoje, {
+    check_out: new Date().toISOString(), dur_min: dur, pse,
+    carga_ua: Math.round(dur * pse), tonelagem: Math.round(tonelagem), contatos});
+  ir("analise");
+}
+
+async function gravarWellness(){
+  const a = meuAtleta(), hoje = hojeISO();
+  const pega = ch => {
+    const b = document.querySelector(`[data-escala="${ch}"] [aria-pressed="true"]`);
+    return b ? parseInt(b.getAttribute("data-v"), 10) : null;
+  };
+  const w = {sq: pega("sq"), dor: pega("dor"), es: pega("es"), kss: pega("kss"),
+             sh: numDe("wSh")};
+  await gravarDiario(a.id, "w", hoje, w);
+  render();
+}
+async function gravarBrums(){
+  const a = meuAtleta(), hoje = hojeISO();
+  const vals = BRUMS_LISTA.map((_, i) => {
+    const b = document.querySelector(`[data-brums="${i}"] [aria-pressed="true"]`);
+    return b ? parseInt(b.getAttribute("data-v"), 10) : null;
+  });
+  if (vals.some(v => v === null)){
+    /* Uma BRUMS com item faltando não é uma BRUMS: a soma da subescala fica
+       menor sem que ninguém veja, e o Z compara laranja com maçã. */
+    mostrarAviso("avBrums",
+      `Faltam ${vals.filter(v=>v===null).length} itens. A escala só vale inteira.`);
+    return;
+  }
+  await gravarDiario(a.id, "b", hoje + "|pre", vals);
+  render();
+}
+async function lancarTeste(){
+  const a = meuAtleta();
+  const v = numDe("tValor"), exn = valor("tEx");
+  if (!exn || v === null){ mostrarAviso("avTeste","Informe a medida e o valor."); return; }
+  const lista = testesDe(a.id).slice();
+  lista.push({data: valor("tData") || hojeISO(), tipo: valor("tTipo"),
+              exercicio: exn, valor: v, unidade: valor("tUni")});
+  await Store.set("testes", a.id, {lista});
+  render();
+}
+async function lancarAlcances(id){
+  const at = atleta(id);
+  const pe = prompt("Alcance em pé, em cm:", at.alcance_pe || "");
+  if (pe === null) return;
+  const atq = prompt("Alcance de ataque, em cm:", at.alcance_ataque || "");
+  if (atq === null) return;
+  const blq = prompt("Alcance de bloqueio, em cm:", at.alcance_bloqueio || "");
+  if (blq === null) return;
+  const n = s => { const x = parseFloat(String(s).replace(",",".")); return Number.isFinite(x) ? x : null; };
+  await Store.set("atletas", id, Object.assign({}, at,
+    {alcance_pe: n(pe), alcance_ataque: n(atq), alcance_bloqueio: n(blq)}));
+  render();
+}
+async function criarAtleta(){
+  const nome = valor("eNome");
+  if (!nome){ mostrarAviso("avAtleta","O nome é obrigatório."); return; }
+  const id = novoId("a");
+  await Store.set("atletas", id, {
+    nome, apelido: valor("eApelido") || nome.split(/\s+/)[0], posicao: valor("ePos"),
+    nasc: valor("eNasc"), estatura: numDe("eEst"), massa: numDe("eMassa"),
+    status: "Ativo", criado_em: new Date().toISOString()});
+  render();
+}
+async function gerarSemanas(){
+  const c = cfg(), de = parseInt(valor("sisDe"),10), ate = parseInt(valor("sisAte"),10);
+  if (!Number.isFinite(de) || !Number.isFinite(ate) || de < 1 || ate < de){
+    mostrarAviso("avGerar","Informe um intervalo de semanas válido."); return;
+  }
+  if (ate - de > 51){ mostrarAviso("avGerar","No máximo 52 semanas por vez."); return; }
+  const ocupadas = prescricoes().map(p => p.data);
+  const {sessoes, pulados} = gerarSistema(blocos(), c.macro_inicio, de, ate, ocupadas);
+  for (const s of sessoes)
+    await Store.set("prescricoes", s.data, {
+      data: s.data, hora: s.hora, tipo: s.tipo, objetivo: s.objetivo,
+      bloco: s.bloco, notas: s.notas, exercicios: s.exercicios});
+  mostrarAviso("avGerar",
+    `${sessoes.length} sessões gravadas` + (pulados.length ? `, ${pulados.length} dia(s) já ocupado(s) foram pulados.` : "."), true);
+  setTimeout(render, 900);
+}
+function lerFichas(){
+  const fichas = lerVariasWA(valor("waTexto"));
+  const saida = document.getElementById("waSaida");
+  if (!fichas.length){
+    saida.innerHTML = `<div class="nota crit">Não achei nenhuma ficha aí.
+      Ela precisa ter as linhas numeradas, começando em <b>1.</b></div>`;
+    return;
+  }
+  UI.fichas = fichas;
+  saida.innerHTML = fichas.map((f, i) => `<div class="cartao">
+    <h3>Ficha ${i+1}${f.dados.nome ? " · " + esc(f.dados.nome) : ""}</h3>
+    ${f.faltam.length ? `<div class="nota crit"><b>Falta o obrigatório:</b>
+      ${f.faltam.map(esc).join(", ")}. Peça ao atleta e cole de novo.</div>` : ""}
+    ${f.naoLidos.length ? `<div class="nota aten"><b>Não consegui entender:</b>
+      ${f.naoLidos.map(esc).join(", ")}. Fica em branco — chutar aqui seria pior.</div>` : ""}
+    <div class="rolagem estreita"><table><tbody>
+      ${CAMPOS_WA.map(([,ch,rot]) => `<tr><td>${esc(rot)}</td>
+        <td class="num">${f.dados[ch] === null || f.dados[ch] === "" ? "—" :
+          esc(ch === "nasc" ? dataBR(f.dados[ch]) : f.dados[ch])}</td></tr>`).join("")}
+    </tbody></table></div>
+    <button class="bt larga" data-import="${i}" style="margin-top:12px"
+      ${f.faltam.length ? "disabled" : ""}>Cadastrar este atleta</button>
+  </div>`).join("");
+}
+document.addEventListener("click", async ev => {
+  const bt = ev.target.closest("[data-import]");
+  if (!bt) return;
+  const f = (UI.fichas || [])[parseInt(bt.getAttribute("data-import"), 10)];
+  if (!f) return;
+  const d = f.dados, id = novoId("a");
+  await Store.set("atletas", id, {
+    nome: d.nome, apelido: d.apelido || String(d.nome).split(/\s+/)[0],
+    nasc: d.nasc, posicao: d.posicao, camisa: d.camisa, telefone: d.telefone,
+    estatura: d.estatura, massa: d.massa, anos_pratica: d.anos_pratica,
+    dominancia: d.dominancia, perna_impulsao: d.perna_impulsao,
+    escolaridade: d.escolaridade, emergencia: d.emergencia, lesoes: d.lesoes,
+    obs: d.obs, status: "Ativo", criado_em: new Date().toISOString()});
+  bt.textContent = "Cadastrado ✓";
+  bt.disabled = true;
+});
+async function gravarConfig(){
+  /* O gerador conta os dias a partir do início do macrociclo: sessão A no dia
+     0, B no 2, C no 4. Começar numa quarta jogaria o treino para quarta, sexta
+     e domingo sem ninguém pedir, então a data é encaixada na segunda daquela
+     semana — e a tela diz que encaixou, em vez de mudar por baixo. */
+  const pedido = valor("cfMacro") || hojeISO();
+  const macro = segundaDe(pedido);
+  await Store.set("config","main",{
+    equipe: valor("cfEquipe") || "ELASE Voleibol",
+    categoria: valor("cfCat") || "Masculino · Adulto",
+    temporada: valor("cfTemp") || String(new Date().getFullYear()),
+    macro_inicio: macro,
+    pin: valor("cfPin") || "1234"});
+  mostrarAviso("avCfg", macro === pedido ? "Gravado."
+    : `Gravado. O início foi encaixado na segunda-feira da semana: ${dataBR(macro)}.`, true);
+  setTimeout(render, 1400);
+}
+
+/* ── Arranque ───────────────────────────────────────────────────────────── */
+/* A página pinta IMEDIATAMENTE com o que houver, e o banco da equipe acende
+   depois, quando (e se) responder. Nada aqui espera permissão para aparecer. */
+Store.iniciarCache();
+Store.lerLocal();
+lerPrefs();
+render();
+
+(async () => {
+  try { await Store.ligar(); }
+  catch (e) { Store.pronto = true; }
+  if (!Store.get("config","main") && Store.podeGravar){
+    /* Primeira abertura: a temporada começa na segunda desta semana. */
+    try { await Store.set("config","main", cfg()); } catch (e) {}
+  }
+  render();
+})();
+</script>
