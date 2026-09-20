@@ -775,6 +775,22 @@ TELAS.elenco = async () => {
     </tbody></table></div>` : `<div class="vazio">Nenhum atleta ainda. Mande o link do cadastro — está na aba Início.</div>`}
   </div>
 
+  <div class="cartao acc-lpo"><header><h3>Receber cadastro pelo WhatsApp</h3>
+    <span class="sub">cole a ficha que o atleta mandou</span></header>
+    <div class="nota">O atleta preenche a página de cadastro no celular e o WhatsApp
+    abre com a ficha pronta. Aqui você cola o que ele mandou — pode ser <b>vários de
+    uma vez</b>, com rótulo ou só os números, fora de ordem. Reenvio do mesmo nome
+    <b>atualiza</b> a ficha em vez de duplicar.</div>
+    <label class="c" style="margin-top:12px">Cole aqui
+      <textarea id="waTexto" rows="6" placeholder="1. Nome completo — João Pedro da Silva&#10;2. Como prefere ser chamado — João&#10;…"
+        style="font-family:ui-monospace,monospace;font-size:13px;resize:vertical"></textarea></label>
+    <div class="linha" style="margin-top:12px">
+      <button class="btn" id="waLer">Ler</button>
+      <button class="btn primario" id="waImportar" disabled>Incluir no elenco</button>
+    </div>
+    <div id="waPrevia" style="margin-top:14px"></div>
+  </div>
+
   <div class="cartao acc-forca"><header><h3>Configuração</h3></header>
     <div class="formulario">
       <label class="c largo">Equipe<input id="cfEquipe" value="${esc(E.estado.config.equipe)}"></label>
@@ -799,6 +815,62 @@ TELAS.elenco.depois = async () => {
   };
   document.querySelectorAll("[data-ativa]").forEach(b => b.onclick = () => mudar(b.dataset.ativa, "Ativo"));
   document.querySelectorAll("[data-inativa]").forEach(b => b.onclick = () => mudar(b.dataset.inativa, "Inativo"));
+  const previa = el("waPrevia");
+  el("waLer").onclick = async () => {
+    const texto = el("waTexto").value;
+    if (!texto.trim()) { aviso("Cole a ficha primeiro.", "crit"); return; }
+    try {
+      const r = await api("/api/whatsapp/ler", {method: "POST",
+        body: JSON.stringify({texto})});
+      if (!r.fichas.length) {
+        previa.innerHTML = `<div class="nota" style="--acc:var(--crit)">
+          Não achei ficha numerada nesse texto. A mensagem da página de cadastro
+          começa com <b>1.</b> e vai até <b>15.</b></div>`;
+        el("waImportar").disabled = true;
+        return;
+      }
+      previa.innerHTML = r.fichas.map(f => {
+        const d = f.dados;
+        const lin = (r, v) => `<tr><td>${esc(r)}</td><td class="n">${
+          v === null || v === "" ? `<span class="sub">—</span>` : esc(String(v))}</td></tr>`;
+        return `<div class="cartao ${f.faltam.length ? "acc-risco" : "acc-bom"}"
+            style="margin-bottom:12px">
+          <header><h3>${esc(d.nome || "sem nome")}</h3>
+            ${f.faltam.length
+              ? `<span class="pilula crit">falta ${f.faltam.length}</span>`
+              : `<span class="pilula good">completa</span>`}</header>
+          ${f.faltam.length ? `<div class="nota" style="--acc:var(--crit);margin-bottom:10px">
+            <b>Faltando:</b> ${f.faltam.map(esc).join(", ")}. Dá para incluir assim
+            mesmo e completar depois.</div>` : ""}
+          ${f.nao_lidos.length ? `<div class="nota" style="--acc:var(--warn);margin-bottom:10px">
+            <b>Não entendi:</b> ${f.nao_lidos.map(esc).join(", ")}. Confira na mensagem
+            original — nada foi chutado.</div>` : ""}
+          <div class="rolagem"><table class="ficha"><tbody>
+            ${lin("Chamado de", d.apelido)}${lin("Nascimento", d.nasc)}
+            ${lin("Posição", d.posicao)}${lin("Camisa", d.camisa)}
+            ${lin("Telefone", d.telefone)}${lin("Estatura", d.estatura ? d.estatura + " cm" : "")}
+            ${lin("Massa", d.massa ? d.massa + " kg" : "")}
+            ${lin("Anos de prática", d.anos_pratica)}
+            ${lin("Mão dominante", d.dominancia)}${lin("Perna de impulsão", d.perna_impulsao)}
+            ${lin("Emergência", d.emergencia)}${lin("Lesões", d.lesoes)}
+            ${lin("Observações", d.obs)}${lin("Escolaridade", d.escolaridade)}
+          </tbody></table></div></div>`;
+      }).join("");
+      el("waImportar").disabled = false;
+      aviso(r.fichas.length > 1 ? `${r.fichas.length} fichas lidas.` : "Ficha lida.", "good");
+    } catch (e) { aviso(e.message, "crit"); }
+  };
+  el("waImportar").onclick = async () => {
+    try {
+      const r = await api("/api/whatsapp/importar", {method: "POST",
+        body: JSON.stringify({texto: el("waTexto").value})});
+      const n = r.criados.length, u = r.atualizados.length;
+      aviso([n ? `${n} no elenco` : "", u ? `${u} atualizado(s)` : ""]
+        .filter(Boolean).join(" · ") || "Nada a incluir.", "good");
+      await carregar(); desenhar();
+    } catch (e) { aviso(e.message, "crit"); }
+  };
+
   el("cfSalvar").onclick = async () => {
     try {
       await api("/api/config", {method: "POST", body: JSON.stringify({

@@ -21,6 +21,7 @@ import banco
 import analise
 import sistema
 import elase
+import whatsapp
 
 
 def dia(n):
@@ -674,6 +675,79 @@ class TestAPI(Base):
             self.assertNotIn("..", saida)
         self.assertEqual(elase._nome_de_arquivo("Y-T-W no banco inclinado"),
                          "y-t-w-no-banco-inclinado")
+
+    def test_importar_ficha_do_whatsapp(self):
+        """O caminho inteiro: a página de cadastro monta a mensagem, o atleta
+        manda no WhatsApp, o preparador cola aqui e o atleta entra no elenco."""
+        msg = ("🏐 CADASTRO ELASE VOLEIBOL\n\n"
+               "1. Nome completo — Vitor Hugo Prado\n"
+               "2. Como prefere ser chamado — Vitor\n"
+               "3. Data de nascimento — 03/08/1999\n"
+               "4. Posição — Oposto\n5. Número da camisa — 9\n"
+               "6. Telefone (WhatsApp) — (41) 97777-1111\n"
+               "7. Estatura em cm — 198\n8. Massa corporal em kg — 94,5\n"
+               "9. Anos de prática no voleibol — 11\n"
+               "10. Mão dominante — Canhoto\n11. Perna de impulsão — Direita\n"
+               "12. Contato de emergência — Lúcia Prado 41 93333-4444\n"
+               "13. Lesões anteriores ou limitações — \n"
+               "14. Algo mais que a comissão deva saber — \n"
+               "15. Escolaridade — Superior em andamento")
+        cod, d = self.pedir("/api/whatsapp/ler", {"texto": msg}, pin=self.pin)
+        self.assertEqual(cod, 200)
+        self.assertEqual(len(d["fichas"]), 1)
+        self.assertEqual(d["fichas"][0]["faltam"], [])
+        self.assertEqual(d["fichas"][0]["nao_lidos"], [])
+
+        cod, d = self.pedir("/api/whatsapp/importar", {"texto": msg}, pin=self.pin)
+        self.assertEqual(d["criados"], ["Vitor Hugo Prado"])
+        _, est = self.pedir("/api/estado")
+        a = next(x for x in est["atletas"] if x["nome"] == "Vitor Hugo Prado")
+        self.assertEqual(a["posicao"], "Oposto")
+        self.assertEqual(a["estatura"], 198)
+        self.assertEqual(a["massa"], 94.5)
+
+        # reenvio com a massa corrigida ATUALIZA, não duplica
+        cod, d = self.pedir("/api/whatsapp/importar",
+                            {"texto": msg.replace("94,5", "96")}, pin=self.pin)
+        self.assertEqual(d["criados"], [])
+        self.assertEqual(d["atualizados"], ["Vitor Hugo Prado"])
+        _, est = self.pedir("/api/estado")
+        iguais = [x for x in est["atletas"] if x["nome"] == "Vitor Hugo Prado"]
+        self.assertEqual(len(iguais), 1, "não pode duplicar")
+        self.assertEqual(iguais[0]["massa"], 96)
+
+    def test_importar_varios_de_uma_vez(self):
+        msg = "\n\n".join(
+            f"1. Nome completo — Atleta {n}\n4. Posição — Central\n"
+            f"7. Estatura em cm — 20{i}\n8. Massa corporal em kg — 9{i}"
+            for i, n in enumerate("ABC"))
+        cod, d = self.pedir("/api/whatsapp/importar", {"texto": msg}, pin=self.pin)
+        self.assertEqual(len(d["criados"]), 3)
+        _, est = self.pedir("/api/estado")
+        alturas = sorted(x["estatura"] for x in est["atletas"]
+                         if x["nome"].startswith("Atleta "))
+        self.assertEqual(alturas, [200, 201, 202],
+                         "a altura de um não pode vazar para o outro")
+
+    def test_conversa_solta_nao_vira_atleta(self):
+        cod, d = self.pedir("/api/whatsapp/importar",
+                            {"texto": "bom dia professor, mando depois"}, pin=self.pin)
+        self.assertEqual(d["criados"], [])
+        _, est = self.pedir("/api/estado")
+        self.assertEqual(est["atletas"], [])
+
+    def test_o_que_nao_entendeu_nao_e_chutado(self):
+        msg = ("1. Nome completo — Lucas Martins\n"
+               "4. Posição — meio de rede\n"
+               "7. Estatura em cm — um e noventa\n"
+               "3. Data de nascimento — semana que vem")
+        cod, d = self.pedir("/api/whatsapp/ler", {"texto": msg}, pin=self.pin)
+        f = d["fichas"][0]
+        self.assertEqual(f["dados"]["nome"], "Lucas Martins")
+        self.assertIsNone(f["dados"]["estatura"], "não inventa estatura")
+        self.assertEqual(f["dados"]["nasc"], "")
+        self.assertEqual(f["dados"]["posicao"], "")
+        self.assertEqual(len(f["nao_lidos"]), 3, f["nao_lidos"])
 
     def test_rota_desconhecida(self):
         cod, d = self.pedir("/api/nao-existe")

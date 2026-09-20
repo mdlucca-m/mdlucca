@@ -26,6 +26,7 @@ from urllib.parse import urlparse, parse_qs
 import banco
 import analise
 import sistema
+import whatsapp
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 WEB = os.path.join(AQUI, "web")
@@ -544,6 +545,33 @@ class Handler(BaseHTTPRequestHandler):
             con.execute("UPDATE exercicios SET video_url=? WHERE nome=?",
                         (url, d["nome"]))
             return {"ok": True, "video_url": url}
+        if caminho == "/api/whatsapp/ler":
+            # só lê e devolve a prévia; não grava nada
+            return {"fichas": whatsapp.ler_varias(d.get("texto") or "")}
+        if caminho == "/api/whatsapp/importar":
+            criados, atualizados, recusados = [], [], []
+            for ficha in whatsapp.ler_varias(d.get("texto") or ""):
+                dd = ficha["dados"]
+                if not (dd.get("nome") or "").strip():
+                    recusados.append("ficha sem nome")
+                    continue
+                ja = con.execute(
+                    "SELECT id FROM atletas WHERE lower(nome)=lower(?)",
+                    (dd["nome"].strip(),)).fetchone()
+                if ja:
+                    # reenvio do mesmo atleta ATUALIZA, não duplica — e só
+                    # sobrescreve campo que veio preenchido
+                    campos = [k for k in dd if dd[k] not in (None, "")]
+                    if campos:
+                        con.execute(
+                            "UPDATE atletas SET " + ",".join(f"{k}=?" for k in campos)
+                            + " WHERE id=?", [dd[k] for k in campos] + [ja["id"]])
+                    atualizados.append(dd["nome"])
+                else:
+                    criar_atleta(con, dd)
+                    criados.append(dd["nome"])
+            return {"criados": criados, "atualizados": atualizados,
+                    "recusados": recusados}
         if caminho == "/api/exercicio/video-arquivo":
             return self._subir_video(con)
         if caminho == "/api/exercicio/dica":
