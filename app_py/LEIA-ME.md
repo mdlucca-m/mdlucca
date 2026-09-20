@@ -185,7 +185,22 @@ Ele nunca sobrescreve um vídeo que você já fixou.
 **Para a mobilidade de ombro não há sugestão pronta**, e o motivo está no
 arquivo: não existe uma biblioteca única equivalente à da Catalyst, e espalhar
 links de canais avulsos numa tela que o atleta segue sozinho é o contrário do
-que este projeto faz. Filme os seus.
+que este projeto faz.
+
+### Filme os seus
+
+Melhor que qualquer link: o atleta reconhece o companheiro, a sala e a sua
+correção. Na aba **Exercícios**, botão **📹 Filmei** em cada linha — escolha o
+arquivo e pronto; o vídeo passa a tocar **dentro da sessão**, sem sair do app e
+sem internet.
+
+Aceita MP4, MOV, WEBM e M4V, até 120 MB. Os arquivos ficam em
+`web/videos/` e não vão para o repositório: são grandes, e são imagem dos seus
+atletas.
+
+**[FILMAR.md](FILMAR.md)** tem o roteiro dos seis vídeos de ombro — de onde
+filmar cada um, o que tem de aparecer no quadro e o que falar enquanto grava.
+Vinte minutos com um atleta.
 
 ### Por que o ombro entra em toda sessão
 
@@ -232,8 +247,8 @@ Gerar nunca sobrescreve: dia que já tem sessão prescrita é pulado.
 ## Testes
 
 ```bash
-python3 testes.py                       # 52 testes: banco, análise, sistema, API
-node teste_tela.js                      # 35 verificações no navegador (servidor de pé)
+python3 testes.py                       # 58 testes: banco, análise, sistema, API
+node teste_tela.js                      # 41 verificações no navegador (servidor de pé)
 ```
 
 O teste de navegador precisa do Playwright e do servidor rodando na porta 8777
@@ -250,6 +265,8 @@ app_py/
   testes.py       testes de unidade e de API
   teste_tela.js   teste de interface no navegador
   videos_sugeridos.py  sugestões de vídeo para os educativos de arranco
+  FILMAR.md       roteiro para filmar a mobilidade de ombro com o elenco
+  web/videos/     vídeos enviados por você (fora do repositório)
   web/            index.html, app.js, estilo.css
   elase.db        banco (criado ao rodar; não vai para o repositório)
 ```

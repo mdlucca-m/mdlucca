@@ -345,16 +345,23 @@ function exercicioHTML(e, i, fechada) {
   }
   const video = e.video_url || e.busca;
   const proprio = !!e.video_url;
+  /* vídeo do próprio clube toca na tela; link de fora abre em aba nova.
+     Na sala, abrir outra aba e voltar é toque a mais com a mão ocupada. */
+  const local = proprio && e.video_url.startsWith("/videos/");
   return `<div class="exercicio ${leve ? "leve" : ""}"><header><b>${esc(e.nome)}</b>
       <span class="pilula">${esc(e.grupo)}</span>
       <span class="pilula">${e.series}×${esc(e.reps)}</span>
       ${leve ? "" : `<span class="pilula">pausa ${e.pausa}s</span>`}
       ${e.pct_rm ? `<span class="pilula info">${Math.round(e.pct_rm * 100)}% 1RM</span>` : ""}
       ${e.tempo ? `<span class="pilula">cadência ${esc(e.tempo)}</span>` : ""}
-      ${video ? `<a class="pilula ${proprio ? "good" : ""}" href="${esc(video)}"
-        target="_blank" rel="noopener noreferrer"
-        title="${proprio ? "vídeo escolhido pelo preparador" : "busca no YouTube — o preparador ainda não fixou um vídeo"}"
-        >▶ ${proprio ? "vídeo" : "buscar vídeo"}</a>` : ""}</header>
+      ${local
+        ? `<button class="pilula good" data-ver="${i}">▶ ver o vídeo</button>`
+        : video ? `<a class="pilula ${proprio ? "good" : ""}" href="${esc(video)}"
+            target="_blank" rel="noopener noreferrer"
+            title="${proprio ? "vídeo escolhido pelo preparador" : "busca no YouTube — o preparador ainda não fixou um vídeo"}"
+            >▶ ${proprio ? "vídeo" : "buscar vídeo"}</a>` : ""}</header>
+    ${local ? `<video id="vid_${i}" src="${esc(e.video_url)}" controls playsinline
+        preload="none" hidden class="videoEx"></video>` : ""}
     ${e.dica ? `<div class="dica">${esc(e.dica)}</div>` : ""}
     ${leve ? "" : `<div class="cabeserie"><span></span><span>Carga kg</span><span>Reps</span><span>RIR</span><span>Vel m/s</span><span></span></div>`}
     ${linhas}
@@ -387,6 +394,14 @@ TELAS.sessao.depois = async () => {
       t.classList.toggle("on");
       gravar(fila);
     };
+  });
+  document.querySelectorAll("[data-ver]").forEach(b => b.onclick = () => {
+    const v = el("vid_" + b.dataset.ver);
+    if (!v) return;
+    v.hidden = !v.hidden;
+    b.textContent = v.hidden ? "▶ ver o vídeo" : "▼ esconder";
+    if (!v.hidden) v.play().catch(() => {});
+    else v.pause();
   });
   const fechar = el("btFechar");
   if (fechar) fechar.onclick = async () => {
@@ -694,6 +709,9 @@ TELAS.exercicios = async () => {
           <a class="btn mini" href="${esc(e.video_url || e.busca)}" target="_blank"
              rel="noopener noreferrer">▶ ver</a>
           <button class="btn mini primario" data-salvar="${esc(e.nome)}">Salvar</button>
+          <label class="btn mini" style="cursor:pointer">📹 Filmei
+            <input type="file" accept="video/*" data-subir="${esc(e.nome)}" hidden>
+          </label>
         </td></tr>`).join("")}
     </tbody></table></div></div>`).join("")}`;
 };
@@ -711,6 +729,30 @@ TELAS.exercicios.depois = async () => {
     b.onclick = () => salvar(b.dataset.salvar));
   document.querySelectorAll("[data-video]").forEach(i =>
     i.onkeydown = ev => { if (ev.key === "Enter") salvar(i.dataset.video); });
+
+  /* O arquivo vai no corpo do pedido, cru. O nome do exercício e o do arquivo
+     vão no cabeçalho — sem multipart, que na biblioteca padrão do Python é
+     código chato e cheio de canto escuro. */
+  document.querySelectorAll("[data-subir]").forEach(inp => inp.onchange = async () => {
+    const f = inp.files[0];
+    if (!f) return;
+    const nome = inp.dataset.subir;
+    const mb = (f.size / 1048576).toFixed(1);
+    aviso(`Enviando ${mb} MB de ${nome}…`, "info");
+    try {
+      const r = await fetch("/api/exercicio/video-arquivo", {
+        method: "POST",
+        headers: {"X-Pin": E.pin, "X-Exercicio": encodeURIComponent(nome),
+                  "X-Arquivo": encodeURIComponent(f.name)},
+        body: f,
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.erro || ("Erro " + r.status));
+      aviso(`Vídeo de ${nome} no ar (${mb} MB).`, "good");
+      desenhar();
+    } catch (e) { aviso(e.message, "crit"); }
+    inp.value = "";
+  });
 };
 
 /* ═══ ELENCO ═══════════════════════════════════════════════════════════════ */

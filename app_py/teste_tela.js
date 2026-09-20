@@ -229,6 +229,48 @@ const ok = (c, m, e) => { n++; if (c) console.log("  OK    · " + m);
   ok(r.levesComKg === 0, "mobilidade NÃO pede carga em quilos", r.levesComKg);
   ok(r.alvoBranco, "os links de vídeo abrem em aba nova, com rel=noopener");
 
+  console.log("\n═══ 8bb · O VÍDEO DO CLUBE TOCA DENTRO DA SESSÃO ═══");
+  /* Envia um vídeo pelo caminho real (aba Exercícios) e confere que ele aparece
+     como player na sessão, e não como link para outra aba: na sala, sair do app
+     e voltar é toque a mais com a mão ocupada. */
+  await p.click('[data-aba="exercicios"]');
+  await p.waitForTimeout(900);
+  const alvo = await p.evaluate(async () => {
+    const inp = document.querySelector('[data-subir]');
+    if (!inp) return null;
+    const nome = inp.dataset.subir;
+    const dt = new DataTransfer();
+    dt.items.add(new File([new Uint8Array(4096)], "clube.mp4", {type: "video/mp4"}));
+    inp.files = dt.files;
+    inp.dispatchEvent(new Event("change"));
+    await new Promise(r => setTimeout(r, 1600));
+    return nome;
+  });
+  ok(!!alvo, "o preparador envia o vídeo que filmou", alvo);
+  await p.click('[data-aba="sessao"]');
+  await p.waitForTimeout(1300);
+  r = await p.evaluate(nome => {
+    const bloco = [...document.querySelectorAll(".exercicio")]
+      .find(x => x.querySelector("header b")?.textContent.trim() === nome);
+    if (!bloco) return {semBloco: true};
+    const v = bloco.querySelector("video.videoEx");
+    const bt = bloco.querySelector("[data-ver]");
+    return {temPlayer: !!v, escondido: v ? v.hidden : null,
+            src: v ? v.getAttribute("src") : null,
+            rotulo: bt ? bt.textContent.trim() : null};
+  }, alvo);
+  ok(r.temPlayer, "e ele vira um player DENTRO da sessão, não link para fora");
+  ok((r.src || "").startsWith("/videos/"), "servido pelo próprio app", r.src);
+  ok(r.escondido === true, "fechado por padrão — não baixa 8 MB sem ninguém pedir");
+  ok(/ver o v/i.test(r.rotulo || ""), "com o botão para abrir", r.rotulo);
+  r = await p.evaluate(async () => {
+    document.querySelector("[data-ver]").click();
+    await new Promise(r => setTimeout(r, 400));
+    const v = document.querySelector("video.videoEx");
+    return {abriu: !v.hidden, rotulo: document.querySelector("[data-ver]").textContent.trim()};
+  });
+  ok(r.abriu, "o toque abre o vídeo", r.rotulo);
+
   console.log("\n═══ 8c · FIXAR UM VÍDEO ═══");
   await p.click('[data-aba="exercicios"]');
   await p.waitForTimeout(900);

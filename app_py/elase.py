@@ -29,6 +29,25 @@ import sistema
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 WEB = os.path.join(AQUI, "web")
+VIDEOS = os.path.join(WEB, "videos")
+VIDEO_EXT = (".mp4", ".mov", ".webm", ".m4v")
+# Um educativo bem filmado tem 15 segundos. 120 MB é folga larga para vídeo de
+# celular nessa duração, e um teto existe para um envio errado não encher o
+# disco da máquina que roda o app.
+VIDEO_MAX = 120 * 1024 * 1024
+
+
+def _nome_de_arquivo(nome):
+    """Nome de exercício vira nome de arquivo seguro.
+
+    Acento, barra e espaço fora: "Rotação torácica deitado (open book)" não
+    pode virar caminho com barra, nem depender de o sistema de arquivos
+    aceitar acento."""
+    import unicodedata
+    base = unicodedata.normalize("NFD", nome)
+    base = "".join(c for c in base if unicodedata.category(c) != "Mn")
+    base = re.sub(r"[^A-Za-z0-9]+", "-", base).strip("-").lower()
+    return base[:80] or "exercicio"
 
 
 class ErroPedido(Exception):
@@ -351,15 +370,23 @@ class Handler(BaseHTTPRequestHandler):
         if not destino.startswith(WEB) or not os.path.isfile(destino):
             self.send_error(404)
             return
+        ext = os.path.splitext(destino)[1].lower()
         tipo = {".html": "text/html; charset=utf-8",
                 ".js": "text/javascript; charset=utf-8",
                 ".css": "text/css; charset=utf-8",
-                ".json": "application/json"}.get(os.path.splitext(destino)[1],
-                                                 "application/octet-stream")
+                ".json": "application/json",
+                ".mp4": "video/mp4", ".mov": "video/quicktime",
+                ".webm": "video/webm", ".m4v": "video/x-m4v",
+                ".jpg": "image/jpeg", ".png": "image/png"}.get(
+                    ext, "application/octet-stream")
         dados = open(destino, "rb").read()
         self.send_response(200)
         self.send_header("Content-Type", tipo)
         self.send_header("Content-Length", str(len(dados)))
+        # o vídeo do exercício não muda: deixe o celular guardar em cache, senão
+        # cada atleta baixa os mesmos 8 MB toda vez que abre a sessão
+        if ext in VIDEO_EXT:
+            self.send_header("Cache-Control", "public, max-age=604800")
         self.end_headers()
         self.wfile.write(dados)
 
@@ -370,8 +397,50 @@ class Handler(BaseHTTPRequestHandler):
             return self._estatico(u.path)
         self._rodar(lambda con: self._get(con, u.path, parse_qs(u.query)))
 
+    def _subir_video(self, con):
+        """Recebe o vídeo como corpo binário puro, com o exercício no cabeçalho.
+
+        Sem multipart de propósito: analisar multipart à mão na biblioteca
+        padrão é código chato e cheio de canto escuro, e aqui o navegador manda
+        o arquivo direto no corpo com um `fetch`. Menos código, menos erro."""
+        from urllib.parse import unquote
+
+        nome = unquote(self.headers.get("X-Exercicio") or "")
+        if not nome:
+            raise ErroPedido("Faltou dizer de qual exercício é o vídeo.")
+        ex = con.execute("SELECT 1 FROM exercicios WHERE nome=?", (nome,)).fetchone()
+        if not ex:
+            raise ErroPedido(f"Exercício não está na biblioteca: {nome}")
+
+        ext = os.path.splitext(unquote(self.headers.get("X-Arquivo") or ""))[1].lower()
+        if ext not in VIDEO_EXT:
+            raise ErroPedido("Formato não aceito. Use MP4, MOV, WEBM ou M4V — "
+                             "é o que o celular grava.")
+        n = int(self.headers.get("Content-Length") or 0)
+        if not n:
+            raise ErroPedido("O arquivo chegou vazio.")
+        if n > VIDEO_MAX:
+            raise ErroPedido(f"O vídeo tem {n // (1024*1024)} MB e o teto é "
+                             f"{VIDEO_MAX // (1024*1024)} MB. Um educativo bem "
+                             "filmado tem 15 segundos — corte antes de subir.")
+        dados = self.rfile.read(n)
+        if len(dados) != n:
+            raise ErroPedido("O envio foi interrompido no meio. Tente de novo.")
+
+        os.makedirs(VIDEOS, exist_ok=True)
+        arquivo = _nome_de_arquivo(nome) + ext
+        with open(os.path.join(VIDEOS, arquivo), "wb") as f:
+            f.write(dados)
+        url = "/videos/" + arquivo
+        con.execute("UPDATE exercicios SET video_url=? WHERE nome=?", (url, nome))
+        return {"ok": True, "video_url": url, "bytes": len(dados)}
+
     def do_POST(self):
         u = urlparse(self.path)
+        if u.path == "/api/exercicio/video-arquivo":
+            # corpo binário: não passa pelo leitor de JSON
+            self._rodar(lambda con: (self._treinador(con), self._subir_video(con))[1])
+            return
         self._rodar(lambda con: self._post(con, u.path, self._corpo()))
 
     def do_DELETE(self):
@@ -475,6 +544,8 @@ class Handler(BaseHTTPRequestHandler):
             con.execute("UPDATE exercicios SET video_url=? WHERE nome=?",
                         (url, d["nome"]))
             return {"ok": True, "video_url": url}
+        if caminho == "/api/exercicio/video-arquivo":
+            return self._subir_video(con)
         if caminho == "/api/exercicio/dica":
             con.execute("UPDATE exercicios SET dica=? WHERE nome=?",
                         (d.get("dica") or "", d["nome"]))

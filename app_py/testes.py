@@ -607,6 +607,74 @@ class TestAPI(Base):
         self.assertEqual(cod, 400)
         self.assertIn("SQL:", d["erro"])
 
+    def _subir(self, nome, arquivo, dados, pin=None):
+        import urllib.parse
+        url = f"http://127.0.0.1:{self.porta}/api/exercicio/video-arquivo"
+        req = urllib.request.Request(url, data=dados, method="POST")
+        req.add_header("X-Exercicio", urllib.parse.quote(nome))
+        req.add_header("X-Arquivo", urllib.parse.quote(arquivo))
+        if pin:
+            req.add_header("X-Pin", pin)
+        try:
+            with urllib.request.urlopen(req) as r:
+                return r.status, json.loads(r.read())
+        except urllib.error.HTTPError as e:
+            return e.code, json.loads(e.read())
+
+    def test_video_proprio_sobe_e_fica_servido(self):
+        """O vídeo do próprio clube vale mais que qualquer link: o atleta
+        reconhece o companheiro, a sala e a correção do preparador."""
+        cod, d = self._subir("Agachamento cossaco", "treino.mp4", b"\x00" * 2048,
+                             pin=self.pin)
+        self.assertEqual(cod, 200, d)
+        self.assertTrue(d["video_url"].startswith("/videos/"))
+        self.assertEqual(d["bytes"], 2048)
+        # ficou gravado no exercício
+        with self.con() as con:
+            u = con.execute("SELECT video_url FROM exercicios WHERE nome=?",
+                            ("Agachamento cossaco",)).fetchone()["video_url"]
+        self.assertEqual(u, d["video_url"])
+        # e é servido pelo app, com o tipo certo
+        with urllib.request.urlopen(
+                f"http://127.0.0.1:{self.porta}{d['video_url']}") as r:
+            self.assertEqual(r.status, 200)
+            self.assertEqual(r.headers["Content-Type"], "video/mp4")
+            self.assertIn("max-age", r.headers.get("Cache-Control", ""))
+            self.assertEqual(len(r.read()), 2048)
+        os.unlink(os.path.join(elase.VIDEOS, os.path.basename(d["video_url"])))
+
+    def test_video_exige_pin(self):
+        cod, d = self._subir("Agachamento cossaco", "x.mp4", b"\x00" * 10)
+        self.assertEqual(cod, 403)
+
+    def test_video_recusa_formato_estranho(self):
+        cod, d = self._subir("Agachamento cossaco", "planilha.xlsx", b"\x00" * 10,
+                             pin=self.pin)
+        self.assertEqual(cod, 400)
+        self.assertIn("MP4", d["erro"])
+
+    def test_video_recusa_exercicio_inexistente(self):
+        cod, d = self._subir("Cambalhota olímpica", "x.mp4", b"\x00" * 10,
+                             pin=self.pin)
+        self.assertEqual(cod, 400)
+        self.assertIn("biblioteca", d["erro"])
+
+    def test_video_recusa_arquivo_vazio(self):
+        cod, d = self._subir("Agachamento cossaco", "x.mp4", b"", pin=self.pin)
+        self.assertEqual(cod, 400)
+
+    def test_nome_de_arquivo_nao_escapa_da_pasta(self):
+        """Nome de exercício vira nome de arquivo. Sem isto, um nome com barra
+        escreveria fora da pasta de vídeos."""
+        for entrada, proibido in [("../../etc/passwd", "/"),
+                                  ("a\\b", "\\"),
+                                  ("Rotação torácica (open book)", "ç")]:
+            saida = elase._nome_de_arquivo(entrada)
+            self.assertNotIn(proibido, saida)
+            self.assertNotIn("..", saida)
+        self.assertEqual(elase._nome_de_arquivo("Y-T-W no banco inclinado"),
+                         "y-t-w-no-banco-inclinado")
+
     def test_rota_desconhecida(self):
         cod, d = self.pedir("/api/nao-existe")
         self.assertEqual(cod, 404)
