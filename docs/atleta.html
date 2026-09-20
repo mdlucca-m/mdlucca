@@ -1,0 +1,1035 @@
+<title>Área do Atleta ELASE</title>
+<style>
+/* Mesma identidade do app da comissão, um só mundo escuro, pintado
+   explicitamente para não pegar emprestado o fundo de quem hospeda. */
+:root{
+  color-scheme: dark;
+  --plane:#141C27; --card:#1C2733; --card-2:#202B38; --inset:#172029;
+  --ink:#FFF; --ink-2:#D6E1ED; --ink-3:#A7B7C9; --ink-4:#8394A7;
+  --line:#2E3E52; --line-2:#26323F;
+  --blue:#5AA0E8; --blue-2:#96C4F2; --blue-fundo:#2E6DB4;
+  --good:#12B54A; --good-i:#5BE87A; --warn-i:#FFD166; --crit-i:#FF8F8F;
+  --zap:#25D366;
+  --relevo: inset 0 1px 0 rgba(255,255,255,.07), 0 12px 26px -18px rgba(0,0,0,.8);
+  --cavado: inset 0 2px 6px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--ink);font-size:16px;line-height:1.5;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-weight:500;
+  background-image:radial-gradient(900px 520px at 85% -14%, rgba(38,104,180,.22), transparent 62%);
+  background-attachment:fixed;padding-bottom:40px}
+h1,h2,h3{margin:0;text-wrap:balance}
+button{font-family:inherit}
+
+.topo{position:sticky;top:env(safe-area-inset-top, 0px);z-index:20;
+  background:rgba(20,27,37,.97);border-bottom:1px solid var(--line);backdrop-filter:blur(10px)}
+.topo .linha{max-width:680px;margin:0 auto;padding:11px 16px;display:flex;align-items:center;gap:12px}
+.marca b{display:block;font-size:16px;letter-spacing:.03em;line-height:1.2}
+.marca span{display:block;font-size:9px;letter-spacing:.17em;text-transform:uppercase;
+  color:var(--blue);font-weight:700}
+.eu{margin-left:auto;font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--ink-3);
+  border:1px solid var(--line);border-radius:999px;padding:6px 11px;white-space:nowrap;
+  background:transparent;cursor:pointer;min-height:36px}
+nav{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-top:1px solid var(--line-2)}
+nav::-webkit-scrollbar{display:none}
+nav .rolo{max-width:680px;margin:0 auto;display:flex;gap:6px;padding:8px 16px}
+nav button{flex:0 0 auto;background:transparent;border:1px solid transparent;color:var(--ink-3);
+  border-radius:999px;padding:8px 13px;font-size:13px;font-weight:700;cursor:pointer;
+  min-height:38px;white-space:nowrap}
+nav button[aria-current="true"]{background:var(--blue-fundo);color:#fff;border-color:#3E82CF}
+nav button:focus-visible,.bt:focus-visible,input:focus-visible,select:focus-visible,
+textarea:focus-visible,.eu:focus-visible{outline:2px solid var(--blue-2);outline-offset:2px}
+main{max-width:680px;margin:0 auto;padding-block:18px 30px;padding-inline:16px}
+section[hidden]{display:none !important}
+
+.cabeca{margin-bottom:16px}
+.cabeca h2{font-size:23px;line-height:1.15}
+.cabeca p{color:var(--ink-3);font-size:13.5px;margin:5px 0 0;max-width:60ch}
+.cartao{background:linear-gradient(180deg,var(--card-2),var(--card));border:1px solid var(--line);
+  border-radius:14px;padding:15px;box-shadow:var(--relevo);margin-bottom:14px}
+.cartao > h3{font-size:11px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--blue-2);margin-bottom:11px}
+fieldset{border:1px solid var(--line);border-radius:14px;padding:15px;margin:0 0 14px;
+  background:linear-gradient(180deg,var(--card-2),var(--card));box-shadow:var(--relevo)}
+legend{font-size:11px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--blue-2);padding:0 8px}
+label{display:block;margin-bottom:12px}
+label > span{display:block;font-size:10px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-4);margin-bottom:5px}
+label .obr{color:var(--warn-i);font-style:normal}
+input,select,textarea{width:100%;max-width:100%;border:1px solid var(--line);background:var(--inset);
+  border-radius:10px;padding:11px;font-size:16px;font-weight:600;color:var(--ink);
+  box-shadow:var(--cavado);min-height:46px;font-family:inherit}
+textarea{min-height:62px}
+input:focus,select:focus,textarea:focus{border-color:rgba(78,147,220,.6);outline:none}
+.dupla{display:grid;gap:11px;grid-template-columns:1fr 1fr}
+@media (max-width:430px){ .dupla{grid-template-columns:1fr} }
+.grade{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(145px,1fr))}
+
+.bt{border:0;border-radius:11px;padding:14px 16px;font-size:16px;font-weight:800;cursor:pointer;
+  color:#fff;background:var(--blue-fundo);box-shadow:var(--relevo);min-height:50px;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.bt.larga{width:100%}
+.bt.zap{background:var(--zap);color:#06210f}
+.bt.alt{background:linear-gradient(180deg,#2A3746,#212C38);border:1px solid var(--line);
+  color:var(--ink);font-size:14px;min-height:44px}
+.bt.mini{padding:8px 11px;font-size:13px;min-height:38px;border-radius:9px}
+.bt:active{transform:translateY(1px)}
+.bt[disabled]{opacity:.45;cursor:not-allowed}
+
+.nota{font-size:13px;color:var(--ink-2);background:var(--inset);border-left:3px solid var(--blue);
+  padding:11px 13px;border-radius:0 10px 10px 0;margin:0 0 13px;line-height:1.5}
+.nota b{color:var(--ink)}
+.nota.bom{border-left-color:var(--good)}
+.nota.aten{border-left-color:var(--warn-i)}
+.vazio{color:var(--ink-4);font-size:13.5px;padding:18px 2px;text-align:center}
+.selo{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;
+  letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:4px 9px;
+  border:1px solid var(--line);color:var(--ink-3)}
+.selo.good{color:var(--good-i);border-color:#245B3E;background:#12321F}
+.selo.info{color:var(--blue-2);border-color:#2C5A8C;background:#14293F}
+.rotulo{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-4);margin-bottom:6px}
+.numerao{font-size:30px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.numerao small{font-size:13px;font-weight:700;color:var(--ink-4);margin-left:3px}
+.pares{display:flex;flex-direction:column}
+.pares div{display:flex;justify-content:space-between;gap:12px;align-items:baseline;
+  padding:9px 0;border-top:1px solid var(--line-2)}
+.pares b{font-variant-numeric:tabular-nums}
+.pares span{color:var(--ink-3);font-size:13.5px}
+
+.ex{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--card)}
+.ex.prep{background:var(--inset);border-style:dashed}
+.ex .tit{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;margin-bottom:3px}
+.ex .tit b{font-size:15px}
+.ex .pres{font-size:12.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.ex .dica{font-size:12.5px;color:var(--ink-2);background:var(--inset);border-radius:9px;
+  padding:9px 11px;margin-top:9px;line-height:1.45}
+.ex .obs{font-size:12.5px;color:var(--ink-4);margin-top:5px;font-style:italic}
+
+.likert{display:flex;gap:5px}
+.likert button{flex:1;min-height:44px;border-radius:9px;border:1px solid var(--line);
+  background:var(--inset);color:var(--ink-3);font-size:14px;font-weight:800;cursor:pointer}
+.likert button[aria-pressed="true"]{background:var(--blue-fundo);color:#fff;border-color:#3E82CF}
+.brums-item{display:grid;grid-template-columns:1fr auto;gap:9px;align-items:center;
+  padding:7px 0;border-top:1px solid var(--line-2)}
+.brums-item .nome{font-size:14px;font-weight:600}
+.brums-item .likert{width:min(240px,54vw)}
+.brums-item .likert button{min-width:28px;font-size:13px}
+
+.aviso{font-size:13px;font-weight:700;margin-top:9px}
+.aviso.erro{color:var(--crit-i)}
+.aviso.ok{color:var(--good-i)}
+pre.ficha{white-space:pre-wrap;word-break:break-word;background:var(--inset);border:1px solid var(--line);
+  border-radius:10px;padding:12px;font-size:12px;color:var(--ink-2);
+  font-family:ui-monospace,Menlo,monospace;max-height:38vh;overflow:auto;margin:12px 0 0}
+footer{max-width:680px;margin:0 auto;padding-inline:16px;color:var(--ink-4);font-size:12px;
+  text-align:center;line-height:1.6}
+</style>
+
+<div class="topo">
+  <div class="linha">
+    <div class="marca"><b>ELASE VOLEIBOL</b><span>Masculino · Adulto</span></div>
+    <button class="eu" id="btEu" hidden></button>
+  </div>
+  <nav><div class="rolo" id="navRolo"></div></nav>
+</div>
+
+<main>
+  <section id="s-cadastro"></section>
+  <section id="s-hoje" hidden></section>
+  <section id="s-checkin" hidden></section>
+  <section id="s-semana" hidden></section>
+  <section id="s-meus" hidden></section>
+</main>
+
+<footer id="rodape">ELASE Voleibol Masculino · Preparação física</footer>
+
+<script>
+"use strict";
+/* ═══════════════════════════════════════════════════════════════════════════
+   ÁREA DO ATLETA
+   ───────────────────────────────────────────────────────────────────────────
+   Esta página é PÚBLICA de propósito: qualquer celular abre, sem conta e sem
+   instalar. O preço disso é que ela não tem banco compartilhado — um app com
+   banco não pode ser público. Então:
+
+   · o que o atleta escreve fica NO CELULAR DELE e vai para o preparador pelo
+     WhatsApp, que é o canal que todo mundo já tem;
+   · o treino do dia não vem de servidor nenhum: a periodização é uma FUNÇÃO
+     PURA DA DATA, e o celular calcula exatamente a mesma sessão que o app da
+     comissão calcula. Mesmos blocos, mesma conta, mesmo resultado.
+
+   O que isso não faz, e está escrito na tela para ninguém se enganar: se o
+   preparador mudar uma sessão à mão no app dele, a mudança não chega aqui.
+   Aqui aparece o plano gerado.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Datas ──────────────────────────────────────────────────────────────── */
+const hojeISO = () => new Date().toLocaleDateString("sv-SE");
+function dObj(s){ const [a,m,d] = s.split("-").map(Number); return new Date(a, m-1, d); }
+function maisDias(s, n){ const d = dObj(s); d.setDate(d.getDate()+n); return d.toLocaleDateString("sv-SE"); }
+function diffDias(a, b){ return Math.round((dObj(a) - dObj(b)) / 86400000); }
+function segundaDe(s){ const d = dObj(s); return maisDias(s, -((d.getDay()+6)%7)); }
+function semanaDe(data, macro){ return Math.floor(diffDias(data, macro)/7) + 1; }
+function dataBR(s){ return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s.slice(8,10)+"/"+s.slice(5,7)+"/"+s.slice(0,4) : (s||""); }
+const DIA_SEM = ["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
+const diaSemana = s => DIA_SEM[dObj(s).getDay()];
+
+/* ── Periodização — o MESMO motor do app da comissão ────────────────────── */
+/* Os 8 blocos são um macrociclo, não a temporada: voltam ao começo sem teto.
+   Qualquer mudança aqui tem de ser feita também em app.html, e há teste que
+   compara as duas páginas dia a dia justamente para pegar a divergência. */
+const BLOCOS = [
+  {posicao:1, bloco:"Acumulação",   micro:"Incorporação", enfase:"Adaptação anatômica e técnica de LPO", intensidade:.62, volume:.75, plio:60},
+  {posicao:2, bloco:"Acumulação",   micro:"Ordinário",    enfase:"Força máxima de base",                 intensidade:.72, volume:.88, plio:90},
+  {posicao:3, bloco:"Acumulação",   micro:"CHOQUE",       enfase:"Pico de volume da acumulação",         intensidade:.78, volume:1.0,  plio:120},
+  {posicao:4, bloco:"Descarga",     micro:"Recuperativo", enfase:"Assimilação e supercompensação",       intensidade:.66, volume:.45, plio:45},
+  {posicao:5, bloco:"Transmutação", micro:"Ordinário",    enfase:"Força máxima",                         intensidade:.85, volume:.75, plio:90},
+  {posicao:6, bloco:"Transmutação", micro:"Ordinário",    enfase:"Força-velocidade",                     intensidade:.90, volume:.70, plio:110},
+  {posicao:7, bloco:"Transmutação", micro:"CHOQUE",       enfase:"Sobrecarga concentrada de potência",   intensidade:.93, volume:.85, plio:140},
+  {posicao:8, bloco:"Realização",   micro:"Polimento",    enfase:"Expressão de potência",                intensidade:.95, volume:.42, plio:70},
+];
+const DIAS = [
+  {off:0, hora:"09:00", tipo:"Força",    nome:"A", obj:"Força máxima"},
+  {off:2, hora:"09:00", tipo:"Potência", nome:"B", obj:"Potência"},
+  {off:4, hora:"09:00", tipo:"LPO",      nome:"C", obj:"Força-velocidade"},
+];
+const PRINCIPAL = {1:[4,"6",150],2:[5,"5",180],3:[5,"4",180],4:[3,"4",150],
+                   5:[5,"3",180],6:[4,"3",180],7:[4,"2",210],8:[3,"2",210]};
+const OLIMPICO = {1:[4,"3",-.14],2:[5,"3",-.12],3:[5,"3",-.10],4:[3,"3",-.14],
+                  5:[5,"2",-.08],6:[5,"2",-.06],7:[4,"2",-.05],8:[3,"2",-.05]};
+const MOBILIDADE = {
+  A:[["Mobilização de tornozelo na parede (knee-to-wall)",2,"8 cada lado",30],
+     ["90/90 de quadril com rotação",2,"6 cada lado",30],
+     ["Passagem de bastão sobre a cabeça",2,"10",30],
+     ["Rotação torácica deitado (open book)",2,"8 cada lado",30]],
+  B:[["Panturrilha alongada no step",2,"30 s",20],
+     ["Alongamento de psoas ajoelhado",2,"30 s cada lado",20],
+     ["Deslizamento na parede com elástico",2,"10",30],
+     ["Extensão torácica no rolo",2,"8",30]],
+  C:[["Agachamento profundo sustentado",3,"30 s",30],
+     ["Agachamento cossaco",2,"6 cada lado",30],
+     ["Adução horizontal de ombro (cross-body)",2,"30 s cada lado",20],
+     ["Y-T-W no banco inclinado",2,"8 de cada",30]],
+};
+const EDUCATIVOS = {
+  A:[["Agachamento overhead",3,"5",60],["Arranco de força (muscle snatch)",3,"3",60],
+     ["Snatch balance",3,"3",60],["Arranco do alto (high hang)",3,"3",90]],
+  B:[["Posição de recepção do clean (front rack)",2,"30 s",45],
+     ["Clean do alto (tall clean)",3,"3",60],["Clean de força (muscle clean)",3,"3",60],
+     ["Clean do joelho (hang)",3,"3",90]],
+  C:[["Tríplice extensão com bastão",3,"6",45],["Push press",3,"5",90]],
+};
+function ex(nome, grupo, series, reps, pausa, o){
+  return Object.assign({nome, grupo, series, reps:String(reps), pausa,
+    pct_rm:null, ref1rm:null, tempo:null, rir:null, vel:null, obs:""}, o||{});
+}
+const posicaoNoCiclo = (sem, n) => ((sem-1)%n)+1;
+const cicloDe = (sem, n) => Math.floor((sem-1)/n)+1;
+const eSemanaReteste = (sem, n) => posicaoNoCiclo(sem, n) === n;
+const vol = (b, n) => Math.max(2, Math.round(n*b.volume));
+const saltos = (b, fatia, porSerie) => Math.max(2, Math.round(b.plio*fatia/porSerie));
+const ombro = () => ex("Rotadores do ombro com elástico","Força",3,15,60,{rir:3,
+  obs:"Fortalecimento do manguito — isto NÃO é mobilidade, é força do estabilizador."});
+const blocoMobilidade = s => MOBILIDADE[s].map(([n,se,r,p]) => ex(n,"Mobilidade",se,r,p));
+function quantosEducativos(pos){ return pos <= 3 ? 4 : pos === 4 ? 3 : pos <= 6 ? 3 : 2; }
+const blocoEducativo = (s, pos) => EDUCATIVOS[s].slice(0, quantosEducativos(pos))
+  .map(([n,se,r,p]) => ex(n,"Educativo",se,r,p,
+    {obs:"Carga leve ou bastão. O que se treina aqui é o padrão, não o peso."}));
+
+function sessaoA(b, pos){
+  const [s,r,pausa] = PRINCIPAL[pos], [os_,orr,opct] = OLIMPICO[pos], i = b.intensidade;
+  return [...blocoMobilidade("A"), ...blocoEducativo("A",pos), ombro(),
+    ex("Arranco","LPO",os_,orr,pausa,{pct_rm:+(i+opct).toFixed(2), ref1rm:"Arranco",
+      obs:"Primeiro exercício com barra: o mais técnico e o mais neural. Parar a série se a barra desacelerar."}),
+    ex("Agachamento","Força",s,r,pausa,{pct_rm:i, ref1rm:"Agachamento",
+      obs:"Exercício-âncora do bloco. É por ele que se mede se a semana rendeu."}),
+    ex("Supino","Força",s,r,pausa,{pct_rm:i, ref1rm:"Supino"}),
+    ex("Stiff com barra","Força",vol(b,4),6,120,{pct_rm:+(i-.18).toFixed(2),
+      ref1rm:"Stiff com barra", tempo:"3-0-1-0", obs:"Excêntrica de 3 s."}),
+    ex("Nórdico de isquiotibiais (excêntrico)","Força",vol(b,3),6,90,{rir:2,
+      obs:"É a dose que reduz lesão de posterior."}),
+    ex("Abdominal reto com braços esticados","Força",vol(b,3),25,45,{rir:2})];
+}
+function sessaoB(b, pos, semana, n){
+  const [os_,orr,opct] = OLIMPICO[pos], i = b.intensidade;
+  const tudo = eSemanaReteste(semana, n);
+  const dj = saltos(b, tudo ? .65 : .40, 5), cx = saltos(b, tudo ? .35 : .20, 5);
+  return [...blocoMobilidade("B"), ...blocoEducativo("B",pos), ombro(),
+    ex("Clean","LPO",os_,orr,180,{pct_rm:+(i+opct).toFixed(2), ref1rm:"Clean",
+      obs:"Velocidade da barra manda. Se cair, a série acabou — mesmo que sobre repetição."}),
+    ex("Agachamento com salto sob carga (jump squat)","Potência",4,4,180,
+      {pct_rm:.25, ref1rm:"Agachamento", vel:"1,0",
+       obs:"Acima de 1,0 m/s. Carga leve: aqui se treina velocidade."}),
+    ex("Drop jump 40 cm","Pliometria",dj,5,120,{obs:"Contato curto com o solo. Qualidade acima da contagem."}),
+    ex("Salto no caixote","Pliometria",cx,5,90,
+      {obs:"Subir saltando, DESCER andando — a descida do caixote é contato extra sem ganho."}),
+    ex("Remada serrote","Força",vol(b,4),8,90,{pct_rm:+(i-.20).toFixed(2), ref1rm:"Remada serrote"}),
+    ex("Dorsal perdigueiro","Força",vol(b,3),12,45,{rir:2})];
+}
+function sessaoC(b, pos){
+  const [s,r] = PRINCIPAL[pos], [os_] = OLIMPICO[pos], i = b.intensidade;
+  return [...blocoMobilidade("C"), ...blocoEducativo("C",pos), ombro(),
+    ex("Snatch pull / Hang high pull","LPO",os_,3,150,{pct_rm:+(i-.02).toFixed(2),
+      ref1rm:"Clean pull", obs:"Puxada alta: a parte do arranco que aguenta mais carga."}),
+    ex("Agachamento frontal","Força",Math.max(3,s-1),r,150,{pct_rm:+(i-.10).toFixed(2),
+      ref1rm:"Agachamento frontal", obs:"Mais exigência de tronco, menos carga."}),
+    ex("Saltos consecutivos sobre barreiras","Pliometria",saltos(b,.40,6),6,120,
+      {obs:"Sem pausa entre as barreiras. É aqui que se treina a rigidez do tornozelo."}),
+    ex("Sprints de 10 e 20 m com mudança de direção","Potência",6,1,120,
+      {obs: b.micro === "CHOQUE" ? "Semana de choque: cortar se a sessão já estiver longa."
+                                 : "Recuperação completa entre tiros."}),
+    ex("Afundo frontal sem passada","Força",vol(b,3),8,90,{rir:2, obs:"Oito de cada perna."}),
+    ex("Elevação de calcanhares","Força",vol(b,3),8,60,{tempo:"3-0-1-0", obs:"Descida lenta de 3 s."})];
+}
+function sessaoReteste(){
+  return [...blocoMobilidade("A"), ombro(),
+    ex("Agachamento","Força",1,1,300,{ref1rm:"Agachamento",
+      obs:"1RM. De 3 a 5 tentativas, 3 a 5 min entre elas."}),
+    ex("Supino","Força",1,1,300,{ref1rm:"Supino", obs:"1RM, mesmo protocolo."}),
+    ex("Clean","LPO",1,1,300,{ref1rm:"Clean",
+      obs:"1RM técnico: a maior carga com a recepção ainda limpa, não a maior que sobe de qualquer jeito."}),
+    ex("Salto no caixote","Pliometria",3,1,120,{obs:"CMJ para o registro de salto. Três tentativas, vale a melhor."})];
+}
+function sessaoDoDia(data, macro){
+  /* A sessão daquele dia, ou null se não é dia de sala. Puro: mesma entrada,
+     mesma saída, aqui e no app da comissão. */
+  const sem = semanaDe(data, macro);
+  if (sem < 1) return null;
+  const n = BLOCOS.length, pos = posicaoNoCiclo(sem, n), b = BLOCOS[pos-1];
+  const inicioSem = maisDias(macro, 7*(sem-1));
+  const dia = DIAS.find(d => maisDias(inicioSem, d.off) === data);
+  if (!dia) return null;
+  const reteste = eSemanaReteste(sem, n) && dia.nome === "C";
+  const exs = reteste ? sessaoReteste()
+            : dia.nome === "A" ? sessaoA(b, pos)
+            : dia.nome === "B" ? sessaoB(b, pos, sem, n) : sessaoC(b, pos);
+  return {data, hora:dia.hora, tipo: reteste ? "Força" : dia.tipo,
+    objetivo: reteste ? "Reteste de 1RM e salto" : dia.obj, bloco:b.bloco, micro:b.micro,
+    enfase:b.enfase, semana:sem, ciclo:cicloDe(sem,n), posicao:pos, nblocos:n,
+    sessao:dia.nome, reteste, exercicios:exs};
+}
+function proximaSessao(deData, macro){
+  for (let i = 0; i <= 14; i++){
+    const s = sessaoDoDia(maisDias(deData, i), macro);
+    if (s) return s;
+  }
+  return null;
+}
+const SEM_CARGA = ["Mobilidade","Educativo","Recuperação"];
+function primeiroNumero(txt){ const m = String(txt).match(/\d+/); return m ? parseInt(m[0],10) : 0; }
+function segundosDeTrabalho(reps){
+  const txt = String(reps).toLowerCase(), n = primeiroNumero(txt);
+  if (!n) return 24;
+  if (/\d\s*s(eg|egundos)?\b/.test(txt)) return n;     // "30 s" é permanência
+  return n*4;
+}
+function planoSessao(exs){
+  let series = 0, seg = 0, segPrep = 0;
+  for (const e of exs){
+    const s = parseInt(e.series,10);
+    series += s;
+    const t = s*((e.pausa||90) + segundosDeTrabalho(e.reps));
+    seg += t;
+    if (e.grupo === "Mobilidade" || e.grupo === "Educativo") segPrep += t;
+  }
+  return {series, dur:Math.round(seg/60), dur_prep:Math.round(segPrep/60)};
+}
+
+/* ── Dicas ──────────────────────────────────────────────────────────────── */
+const DICAS = {
+"Mobilização de tornozelo na parede (knee-to-wall)":"Joelho à frente até tocar a parede SEM levantar o calcanhar. Afaste o pé até o limite. É a dorsiflexão que permite agachar fundo e aterrissar.",
+"Agachamento profundo sustentado":"Desça e FIQUE. Cotovelos por dentro dos joelhos, empurrando-os para fora. Peito alto. Respire fundo três vezes em cada permanência.",
+"Panturrilha alongada no step":"Calcanhar caindo abaixo do degrau. Perna estendida alonga o gastrocnêmio; joelho dobrado alonga o sóleo — faça os dois.",
+"90/90 de quadril com rotação":"Sentado, uma perna 90° à frente e outra 90° ao lado. Gire de um lado ao outro sem tirar as mãos do chão. Rotação interna e externa na mesma série.",
+"Agachamento cossaco":"Desça sobre uma perna com a outra estendida ao lado, pé apontado para cima. Trabalha adutor e profundidade ao mesmo tempo.",
+"Alongamento de psoas ajoelhado":"Joelho de trás no chão, glúteo APERTADO — sem isso você alonga a lombar e não o psoas. Quem passa o dia sentado precisa desta.",
+"Rotação torácica deitado (open book)":"Deitado de lado, joelhos dobrados à frente, abra o braço de cima e acompanhe com o olhar. A rotação é do tronco, o quadril fica parado.",
+"Passagem de bastão sobre a cabeça":"Pegada larga, braços estendidos, leve o bastão de frente para trás sem dobrar o cotovelo. Vá fechando a pegada conforme ganhar amplitude.",
+"Deslizamento na parede com elástico":"Costas e braços na parede, deslize para cima sem perder o contato da lombar. É o padrão do braço acima da cabeça, que é o do ataque.",
+"Adução horizontal de ombro (cross-body)":"Braço cruzando o peito, puxado pelo outro. Ombro do braço que alonga fica BAIXO. Para o lado dominante, que perde rotação interna com a temporada.",
+"Extensão torácica no rolo":"Rolo na altura das escápulas, mãos na nuca, estenda para trás. Amplitude acima da cabeça vem da torácica antes de vir do ombro.",
+"Y-T-W no banco inclinado":"Peito no banco, braços desenhando Y, T e W. Movimento das escápulas, não dos braços. Carga leve ou nenhuma.",
+"Agachamento overhead":"Bastão ou barra vazia acima da cabeça, braços travados. É o teste que diz se você pode arrancar: se não desce, o problema é mobilidade, não força.",
+"Arranco de força (muscle snatch)":"Puxada até acima da cabeça SEM flexionar os joelhos para receber. Ensina a puxar alto e a fechar o braço rápido.",
+"Snatch balance":"Barra na nuca, pegada de arranco: empurre o corpo para baixo e receba no agachamento. Ensina a VELOCIDADE de entrar embaixo da barra.",
+"Arranco do alto (high hang)":"Começa da coxa. Curso curto obriga a extensão rápida — é aqui que se aprende o gesto antes de complicar com a subida do chão.",
+"Posição de recepção do clean (front rack)":"Barra apoiada nos deltoides, cotovelos ALTOS, mãos soltas se precisar. Quem não sustenta esta posição não recebe o clean — nem agacha na frente.",
+"Clean do alto (tall clean)":"Na ponta dos pés, sem puxada: só caia embaixo da barra e receba. Isola a parte que todo mundo erra, que é entrar embaixo rápido.",
+"Clean de força (muscle clean)":"Puxada até a recepção sem dobrar os joelhos. Ensina a altura real da puxada e a fechar os cotovelos.",
+"Clean do joelho (hang)":"Da altura do joelho, com recepção completa. É o educativo mais próximo do movimento inteiro.",
+"Tríplice extensão com bastão":"Tornozelo, joelho e quadril estendendo JUNTOS, encolhendo os ombros no fim. É o motor de todo levantamento olímpico, treinado sem carga.",
+"Push press":"Flexão curta de joelhos e empurra acima da cabeça. Ensina a usar a perna para o que está sobre a cabeça — e serve de acessório de ombro.",
+};
+const buscaVideo = nome => "https://www.youtube.com/results?search_query=" +
+  encodeURIComponent(nome.split("(")[0].trim() + " exercício técnica");
+
+/* ── BRUMS ──────────────────────────────────────────────────────────────── */
+const BRUMS_ITENS = [
+  ["Tensão",   ["Apreensivo","Nervoso","Ansioso","Preocupado"]],
+  ["Depressão",["Deprimido","Infeliz","Desanimado","Triste"]],
+  ["Raiva",    ["Irritado","Zangado","Mal-humorado","Com raiva"]],
+  ["Vigor",    ["Animado","Com energia","Ativo","Disposto"]],
+  ["Fadiga",   ["Esgotado","Sonolento","Cansado","Sem energia"]],
+  ["Confusão", ["Confuso","Indeciso","Desnorteado","Inseguro"]],
+];
+const BRUMS_LISTA = [];
+BRUMS_ITENS.forEach(([sub, itens]) => itens.forEach(i => BRUMS_LISTA.push([i, sub])));
+
+/* ── Ficha de cadastro ──────────────────────────────────────────────────── */
+const CAMPOS = [
+  ["nome","Nome completo",true],["apelido","Como prefere ser chamado",false],
+  ["nasc","Data de nascimento",true],["posicao","Posição",true],
+  ["camisa","Número da camisa",false],["telefone","Telefone (WhatsApp)",false],
+  ["estatura","Estatura em cm",true],["massa","Massa corporal em kg",true],
+  ["anos_pratica","Anos de prática no voleibol",true],["dominancia","Mão dominante",false],
+  ["perna_impulsao","Perna de impulsão",false],["emergencia","Contato de emergência",true],
+  ["lesoes","Lesões anteriores ou limitações",false],
+  ["obs","Algo mais que a comissão deva saber",false],["escolaridade","Escolaridade",false],
+];
+const POSICOES = ["Levantador","Oposto","Ponteiro (Ponta)","Central","Líbero"];
+const REFS_1RM = ["Agachamento","Agachamento frontal","Supino","Stiff com barra",
+                  "Remada serrote","Arranco","Clean","Clean pull"];
+
+/* ── Estado, só neste aparelho ──────────────────────────────────────────── */
+/* localStorage e nada mais: o que ele escreve é dele, fica no celular dele, e
+   vai para a comissão quando ELE manda. Cada leitura e escrita num try: numa
+   janela anônima o armazenamento simplesmente não existe, e a página tem de
+   continuar funcionando. */
+const CH = "elase_atleta_v1";
+let S = {ficha:null, rm:{}, registros:{}};
+function carregar(){
+  try {
+    const cru = localStorage.getItem(CH);
+    if (cru) S = Object.assign(S, JSON.parse(cru));
+  } catch (e) {}
+  S.rm = S.rm || {}; S.registros = S.registros || {};
+}
+function guardar(){
+  try { localStorage.setItem(CH, JSON.stringify(S)); } catch (e) {}
+}
+
+/* Parâmetros do link: ?m=aaaa-mm-dd é o início do macrociclo, ?p=<telefone> é
+   o WhatsApp do preparador. Sem eles a página funciona igual — só que o atleta
+   escolhe o contato na hora de enviar. */
+function param(n){
+  try { return new URLSearchParams(location.search).get(n) || ""; } catch (e) { return ""; }
+}
+const MACRO = (() => {
+  const m = param("m");
+  return /^\d{4}-\d{2}-\d{2}$/.test(m) ? segundaDe(m) : segundaDe(hojeISO());
+})();
+const ZAP_PREPARADOR = param("p").replace(/\D/g, "");
+
+/* ── Mensagens para o WhatsApp ──────────────────────────────────────────── */
+/* Numeradas de propósito: legível para quem recebe E automática para o app da
+   comissão importar. Sem o número seria preciso adivinhar qual linha é qual. */
+function mensagem(titulo, linhas){
+  const quem = S.ficha ? (S.ficha.apelido || S.ficha.nome) : "";
+  return `🏐 ${titulo} ELASE VOLEIBOL\n${quem ? quem + " · " : ""}${dataBR(hojeISO())}\n\n`
+    + linhas.map((l, i) => `${i+1}. ${l[0]} — ${l[1]}`).join("\n");
+}
+function fichaCadastro(d){
+  return "🏐 CADASTRO ELASE VOLEIBOL\n\n" + CAMPOS.map(([k, rot], i) => {
+    let v = String(d[k] == null ? "" : d[k]).trim().replace(/\s*\n\s*/g, " ");
+    if (k === "nasc") v = dataBR(v);
+    return `${i+1}. ${rot} — ${v}`;
+  }).join("\n");
+}
+const linkZap = texto => "https://wa.me/" + ZAP_PREPARADOR + "?text=" + encodeURIComponent(texto);
+
+/* ── Tela ───────────────────────────────────────────────────────────────── */
+const ABAS = [
+  {id:"hoje",     rot:"Hoje"},
+  {id:"checkin",  rot:"Check-in"},
+  {id:"semana",   rot:"Minha semana"},
+  {id:"meus",     rot:"Meus dados"},
+];
+const UI = {aba:"hoje", saida:"", saidaTitulo:"", editando:false};
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,
+  c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num = (v, casas) => v === null || v === undefined || Number.isNaN(v) ? "—"
+  : Number(v).toLocaleString("pt-BR", {minimumFractionDigits:casas||0, maximumFractionDigits:casas||0});
+
+function valor(id){ const e = document.getElementById(id); return e ? e.value.trim() : ""; }
+function numDe(id){ const n = parseFloat(valor(id).replace(",", ".")); return Number.isFinite(n) ? n : null; }
+function mostrarAviso(id, texto, ok){
+  const e = document.getElementById(id);
+  if (!e) return;
+  e.textContent = texto; e.className = "aviso " + (ok ? "ok" : "erro"); e.hidden = !texto;
+}
+
+/* Cartão de envio: o texto na tela SEMPRE, e o botão do WhatsApp ao lado.
+   Navegação disparada por script é bloqueada onde esta página roda, então quem
+   abre o WhatsApp é um link que o atleta toca — e se nem isso funcionar, o
+   texto está ali para copiar. */
+function cartaoEnvio(texto, titulo){
+  return `<div class="cartao">
+    <h3>${esc(titulo || "Pronto para enviar")}</h3>
+    <a class="bt zap larga" href="${esc(linkZap(texto))}" target="_blank" rel="noopener">
+      Enviar no WhatsApp</a>
+    <button class="bt alt larga" data-copiar="1" style="margin-top:9px">Copiar o texto</button>
+    <p class="aviso ok" id="avCopia" hidden></p>
+    <pre class="ficha" id="textoEnvio">${esc(texto)}</pre>
+  </div>`;
+}
+
+/* ── Cadastro ───────────────────────────────────────────────────────────── */
+function telaCadastro(){
+  const d = (UI.editando && S.ficha) ? S.ficha : {};
+  const v = k => esc(d[k] == null ? "" : d[k]);
+  const op = (k, lista) => lista.map(o =>
+    `<option ${d[k] === o ? "selected" : ""}>${esc(o)}</option>`).join("");
+  return `<div class="cabeca">
+      <h1 style="font-size:25px">${UI.editando ? "Meus dados" : "Cadastro do atleta"}</h1>
+      <p>${UI.editando ? "Altere o que mudou e mande de novo para a comissão."
+        : "Dois minutos, uma vez só. Depois este link vira a sua área: o treino do dia, os vídeos e o check-in."}</p>
+    </div>
+    <form id="f" novalidate>
+      <fieldset><legend>Quem é você</legend>
+        <label for="c-nome"><span>Nome completo <i class="obr">•</i></span></label>
+        <input id="c-nome" name="nome" autocomplete="name" value="${v("nome")}">
+        <label for="c-apelido"><span>Como prefere ser chamado</span></label>
+        <input id="c-apelido" name="apelido" autocomplete="nickname" value="${v("apelido")}">
+        <div class="dupla">
+          <div><label for="c-nasc"><span>Nascimento <i class="obr">•</i></span></label>
+            <input id="c-nasc" name="nasc" type="date" value="${v("nasc")}"></div>
+          <div><label for="c-camisa"><span>Camisa</span></label>
+            <input id="c-camisa" name="camisa" inputmode="numeric" value="${v("camisa")}"></div>
+        </div>
+        <label for="c-posicao"><span>Posição <i class="obr">•</i></span></label>
+        <select id="c-posicao" name="posicao">
+          <option value="">— escolha —</option>${op("posicao", POSICOES)}</select>
+        <label for="c-telefone"><span>Telefone (WhatsApp)</span></label>
+        <input id="c-telefone" name="telefone" inputmode="tel" autocomplete="tel"
+          placeholder="(00) 00000-0000" value="${v("telefone")}">
+      </fieldset>
+
+      <fieldset><legend>Seu corpo</legend>
+        <div class="dupla">
+          <div><label for="c-estatura"><span>Estatura em cm <i class="obr">•</i></span></label>
+            <input id="c-estatura" name="estatura" inputmode="decimal" placeholder="198" value="${v("estatura")}"></div>
+          <div><label for="c-massa"><span>Massa em kg <i class="obr">•</i></span></label>
+            <input id="c-massa" name="massa" inputmode="decimal" placeholder="92" value="${v("massa")}"></div>
+        </div>
+        <label for="c-anos"><span>Anos de prática no voleibol <i class="obr">•</i></span></label>
+        <input id="c-anos" name="anos_pratica" inputmode="numeric" value="${v("anos_pratica")}">
+        <div class="dupla">
+          <div><label for="c-dom"><span>Mão dominante</span></label>
+            <select id="c-dom" name="dominancia"><option value="">—</option>
+              ${op("dominancia", ["Destro","Canhoto","Ambidestro"])}</select></div>
+          <div><label for="c-perna"><span>Perna de impulsão</span></label>
+            <select id="c-perna" name="perna_impulsao"><option value="">—</option>
+              ${op("perna_impulsao", ["Esquerda","Direita","Simétrica"])}</select></div>
+        </div>
+        <div class="nota" style="margin-top:13px">Os alcances (em pé, de ataque, de
+        bloqueio) não entram aqui: são medidos com fita na quadra.</div>
+      </fieldset>
+
+      <fieldset><legend>Saúde e segurança</legend>
+        <label for="c-emerg"><span>Contato de emergência — nome e telefone <i class="obr">•</i></span></label>
+        <input id="c-emerg" name="emergencia" placeholder="Maria Silva (41) 98888-0000" value="${v("emergencia")}">
+        <label for="c-lesoes"><span>Lesões anteriores ou limitações</span></label>
+        <textarea id="c-lesoes" name="lesoes" rows="2"
+          placeholder="ombro direito em 2024, tornozelo esquerdo…">${v("lesoes")}</textarea>
+        <label for="c-obs"><span>Algo mais que a comissão deva saber</span></label>
+        <textarea id="c-obs" name="obs" rows="2"
+          placeholder="alergia, medicação de uso contínuo, cirurgia…">${v("obs")}</textarea>
+        <label for="c-esc"><span>Escolaridade</span></label>
+        <select id="c-esc" name="escolaridade"><option value="">—</option>
+          ${op("escolaridade", ["Fundamental","Médio completo","Superior em andamento",
+                                "Superior completo","Pós-graduação"])}</select>
+      </fieldset>
+
+      <div class="nota bom"><b>O que é feito com isto.</b> Estatura, massa e anos de
+      prática entram no cálculo do salto e da carga. Contato de emergência e histórico
+      de lesão existem para te <b>proteger</b> em quadra.
+      <br><br><b>Dinheiro, nunca.</b> Não perguntamos salário nem renda, e o sistema
+      não tem onde guardar isso.</div>
+
+      <button class="bt larga" type="submit" id="btEntrar">
+        ${UI.editando ? "Gravar e gerar a ficha" : "Entrar na minha área"}</button>
+      <p class="aviso erro" id="avCad" hidden></p>
+    </form>
+`;
+}
+
+/* ── Hoje ───────────────────────────────────────────────────────────────── */
+function telaHoje(){
+  const hoje = hojeISO(), s = sessaoDoDia(hoje, MACRO);
+  const reg = S.registros[hoje] || {};
+
+  if (!s){
+    const prox = proximaSessao(hoje, MACRO);
+    return `<div class="cabeca"><h2>Hoje não tem sala</h2>
+        <p>${dataBR(hoje)}, ${diaSemana(hoje)}. O trabalho de sala é segunda, quarta
+        e sexta; o resto é quadra.</p></div>
+      ${prox ? `<div class="cartao"><h3>Próxima sessão</h3>
+        <div class="numerao">${dataBR(prox.data)}<small>${diaSemana(prox.data)}</small></div>
+        <p style="color:var(--ink-3);font-size:13.5px;margin:10px 0 0">
+          ${esc(prox.tipo)} · ${esc(prox.objetivo)} · ${esc(prox.bloco)} / ${esc(prox.micro)}</p>
+        </div>` : ""}
+      <div class="cartao"><h3>Treinou hoje mesmo assim?</h3>
+        <p style="font-size:13.5px;color:var(--ink-2);margin:0 0 12px">
+          ${reg.sessao ? `Já enviado: ${reg.sessao.dur} min, PSE ${num(reg.sessao.pse,1)}
+            — carga ${num(reg.sessao.dur*reg.sessao.pse)} UA.`
+          : `Quadra conta. Num voleibolista a maior parte da carga da semana vem da
+             quadra, não da sala — se ela não entrar, a análise de carga da comissão
+             enxerga metade da sua semana.`}</p>
+        ${reg.sessao ? "" : `<button class="bt larga" data-ir="fim">Enviar a PSE de hoje</button>`}
+      </div>
+      <div class="cartao"><h3>Mesmo sem sala</h3>
+        <p style="font-size:13.5px;color:var(--ink-2);margin:0 0 12px">A mobilidade
+        de ombro, quadril e tornozelo rende mais feita todo dia do que só nos dias
+        de sala. São dez minutos.</p>
+        <button class="bt alt larga" data-ir="semana">Ver a mobilidade</button>
+      </div>
+      ${blocoCheckinAtalho(reg)}`;
+  }
+
+  const plano = planoSessao(s.exercicios);
+  const feito = reg.sessao;
+
+  return `<div class="cabeca">
+      <h2>${esc(s.tipo)} · ${esc(s.objetivo)}</h2>
+      <p>${dataBR(hoje)}, ${diaSemana(hoje)} · semana ${s.semana} · ciclo ${s.ciclo},
+      posição ${s.posicao} de ${s.nblocos} · ${esc(s.bloco)} / ${esc(s.micro)}
+      ${s.reteste ? " · <b>RETESTE</b>" : ""}</p></div>
+
+    <div class="cartao"><h3>A sessão</h3>
+      <div class="grade">
+        <div><div class="rotulo">Previsto</div><div class="numerao">${plano.dur}<small>min</small></div></div>
+        <div><div class="rotulo">Séries</div><div class="numerao">${plano.series}</div></div>
+        <div><div class="rotulo">Preparação</div><div class="numerao">${plano.dur_prep}<small>min</small></div></div>
+      </div>
+      ${s.reteste ? `<div class="nota aten" style="margin-top:13px"><b>Hoje é dia de
+        medir, não de treinar.</b> Agachamento, supino e clean a 1RM, e três saltos.
+        O ciclo seguinte inteiro sai destes números — se você não medir, os próximos
+        85% valem os mesmos quilos de hoje e a temporada anda parada.</div>` : ""}
+      ${feito ? `<div class="nota bom" style="margin-top:13px"><b>Já encerrada hoje:</b>
+        ${feito.dur} min, PSE ${num(feito.pse,1)} — carga ${num(feito.dur*feito.pse)} UA.</div>`
+      : `<button class="bt larga" data-ir="fim" style="margin-top:13px">Terminei — enviar a PSE</button>`}
+    </div>
+
+    ${blocoCheckinAtalho(reg)}
+
+    <div class="cabeca" style="margin-top:22px"><h3 style="font-size:12px;
+      letter-spacing:.13em;text-transform:uppercase;color:var(--blue-2)">Os exercícios</h3></div>
+    ${listaExercicios(s.exercicios)}
+
+    <div class="nota" style="margin-top:14px">Este é o plano <b>gerado</b> pela
+    periodização. Se a comissão mudou alguma coisa à mão hoje, vale o que ela
+    disser na sala.</div>`;
+}
+function blocoCheckinAtalho(reg){
+  const temW = !!reg.wellness, temB = !!reg.brums;
+  if (temW && temB) return `<div class="nota bom"><b>Check-in e humor já feitos hoje.</b>
+    Pode refazer em Check-in se quiser — o último vale.</div>`;
+  return `<div class="cartao"><h3>Antes de começar</h3>
+    <p style="font-size:13.5px;color:var(--ink-2);margin:0 0 12px">
+      ${temW ? "Falta o humor." : temB ? "Falta o check-in de sono e dor."
+        : "Trinta segundos de check-in. É o que deixa comparar você com você mesmo."}</p>
+    <button class="bt larga" data-ir="checkin">${temW || temB ? "Terminar o check-in" : "Fazer o check-in"}</button>
+  </div>`;
+}
+function listaExercicios(exs){
+  return exs.map(e => {
+    const prep = SEM_CARGA.indexOf(e.grupo) >= 0;
+    const rm = e.ref1rm ? S.rm[e.ref1rm] : null;
+    const alvo = (rm && e.pct_rm) ? Math.round(rm * e.pct_rm / 2.5) * 2.5 : null;
+    const pres = [
+      `${e.series} × ${esc(e.reps)}`,
+      e.pct_rm ? `${Math.round(e.pct_rm*100)}%` : "",
+      alvo ? `≈ ${num(alvo,1)} kg` : (e.pct_rm && !rm ? "lance o seu 1RM em Meus dados" : ""),
+      (e.rir !== null && e.rir !== undefined) ? `RIR ${e.rir}` : "",
+      e.tempo ? `tempo ${esc(e.tempo)}` : "",
+      e.vel ? `${esc(e.vel)} m/s` : "",
+      `pausa ${e.pausa}s`,
+    ].filter(Boolean).join(" · ");
+    const dica = DICAS[e.nome] || "";
+    return `<div class="ex ${prep ? "prep" : ""}">
+      <div class="tit"><b>${esc(e.nome)}</b><span class="selo">${esc(e.grupo)}</span></div>
+      <div class="pres">${pres}</div>
+      ${e.obs ? `<div class="obs">${esc(e.obs)}</div>` : ""}
+      ${dica ? `<div class="dica">${esc(dica)}</div>` : ""}
+      <div style="margin-top:9px">
+        <a class="bt alt mini" href="${esc(buscaVideo(e.nome))}" target="_blank"
+          rel="noopener">▶ Ver o movimento</a></div>
+    </div>`;
+  }).join("");
+}
+
+/* ── Check-in ───────────────────────────────────────────────────────────── */
+function telaCheckin(){
+  const hoje = hojeISO(), reg = S.registros[hoje] || {};
+  const w = reg.wellness || {}, b = reg.brums || new Array(24).fill(null);
+  const escala = (chave, de, ate, rot, atual) => `
+    <label><span>${esc(rot)}</span></label>
+    <div class="likert" data-escala="${chave}">
+      ${Array.from({length: ate-de+1}, (_,i) => de+i).map(n =>
+        `<button type="button" data-v="${n}" aria-pressed="${atual===n?"true":"false"}">${n}</button>`).join("")}
+    </div>`;
+  return `<div class="cabeca"><h2>Check-in de hoje</h2>
+      <p>Trinta segundos. A comparação é sempre você com você mesmo — a média do
+      elenco não diz nada sobre o seu humor.</p></div>
+
+    <div class="cartao"><h3>Sono, dor e cansaço</h3>
+      ${escala("sq", 1, 5, "Qualidade do sono (1 péssima · 5 ótima)", w.sq)}
+      <label style="margin-top:12px" for="wSh"><span>Horas dormidas</span></label>
+      <input id="wSh" inputmode="decimal" placeholder="7,5" value="${w.sh!==undefined&&w.sh!==null?w.sh:""}">
+      ${escala("dor", 0, 10, "Dor muscular (0 nenhuma · 10 muita)", w.dor)}
+      <div style="height:12px"></div>
+      ${escala("es", 0, 10, "Estresse (0 nenhum · 10 muito)", w.es)}
+      <div style="height:12px"></div>
+      ${escala("kss", 1, 9, "Sonolência agora — KSS (1 bem desperto · 9 lutando para não dormir)", w.kss)}
+      <button class="bt larga" id="btWell" style="margin-top:14px">Gravar e gerar a mensagem</button>
+      <p class="aviso erro" id="avWell" hidden></p>
+    </div>
+
+
+    <div class="cartao"><h3>Humor · BRUMS</h3>
+      <p style="color:var(--ink-3);font-size:13px;margin:0 0 12px">Como você se sente
+        <b>agora</b>: 0 nada · 1 um pouco · 2 moderadamente · 3 bastante · 4 extremamente.</p>
+      ${BRUMS_ITENS.map(([sub, itens]) => `
+        <div class="rotulo" style="margin-top:13px">${esc(sub)}</div>
+        ${itens.map(it => {
+          const i = BRUMS_LISTA.findIndex(x => x[0] === it);
+          return `<div class="brums-item"><span class="nome">${esc(it)}</span>
+            <div class="likert" data-brums="${i}">
+              ${[0,1,2,3,4].map(n => `<button type="button" data-v="${n}"
+                aria-pressed="${b[i]===n?"true":"false"}">${n}</button>`).join("")}
+            </div></div>`;
+        }).join("")}`).join("")}
+      <button class="bt larga" id="btBrums" style="margin-top:14px">Gravar e gerar a mensagem</button>
+      <p class="aviso erro" id="avBrums" hidden></p>
+    </div>
+`;
+}
+
+/* ── Fim de sessão ──────────────────────────────────────────────────────── */
+const DUR_MAX = 300;
+function telaFim(){
+  const hoje = hojeISO(), s = sessaoDoDia(hoje, MACRO);
+  /* Sem sala prescrita a sessão é de quadra, e 90 min é o palpite honesto de um
+     treino técnico-tático — ele corrige no campo. */
+  const plano = s ? planoSessao(s.exercicios) : {dur:90};
+  return `<div class="cabeca"><h2>Terminei</h2>
+      <p>Dois toques e a comissão tem a carga do seu dia.
+      ${s ? "" : "Hoje não teve sala, então isto entra como <b>quadra</b>."}</p></div>
+    <div class="cartao">
+      <label for="durFim"><span>Quanto durou, em minutos</span></label>
+      <input id="durFim" inputmode="numeric" value="${plano.dur}">
+      <label style="margin-top:12px"><span>PSE — o quanto a sessão pesou, de 0 a 10</span></label>
+      <div class="likert" id="psePicker">
+        ${[0,1,2,3,4,5,6,7,8,9,10].map(n =>
+          `<button type="button" data-pse="${n}" aria-pressed="false">${n}</button>`).join("")}
+      </div>
+      <div class="nota" style="margin-top:13px">A sua carga do dia é
+      <b>duração × PSE</b>. Por isso a duração é você que confirma, e não o
+      relógio: um app que contasse sozinho transformaria um celular esquecido no
+      bolso em oito horas de treino, e isso estragaria a sua análise por 28 dias.</div>
+      <button class="bt larga" id="btFim" disabled>Gerar a mensagem</button>
+      <p class="aviso erro" id="avFim" hidden></p>
+    </div>`;
+}
+
+/* ── Minha semana ───────────────────────────────────────────────────────── */
+function telaSemana(){
+  const hoje = hojeISO(), seg = segundaDe(hoje);
+  const dias = [];
+  for (let i = 0; i < 7; i++){
+    const d = maisDias(seg, i);
+    dias.push({data:d, s: sessaoDoDia(d, MACRO), reg: S.registros[d] || {}});
+  }
+  const sem = semanaDe(hoje, MACRO), n = BLOCOS.length;
+  const b = BLOCOS[posicaoNoCiclo(Math.max(sem,1), n) - 1];
+  return `<div class="cabeca"><h2>Minha semana</h2>
+      <p>Semana ${sem} da temporada · ${esc(b.bloco)} / ${esc(b.micro)} —
+      ${esc(b.enfase)}.</p></div>
+    <div class="cartao"><h3>Os dias</h3>
+      <div class="pares">
+        ${dias.map(d => `<div>
+          <span>${diaSemana(d.data)} · ${dataBR(d.data)}
+            ${d.data === hoje ? '<span class="selo info">hoje</span>' : ""}</span>
+          <b>${d.s ? esc(d.s.tipo) + (d.s.reteste ? " · reteste" : "")
+               : '<span style="color:var(--ink-4);font-weight:600">quadra</span>'}
+            ${d.reg.sessao ? ' <span class="selo good">feita</span>' : ""}</b>
+        </div>`).join("")}
+      </div>
+    </div>
+    <div class="cartao"><h3>Mobilidade · os doze que giram na semana</h3>
+      <p style="font-size:13.5px;color:var(--ink-2);margin:0 0 12px">Tornozelo,
+      quadril e ombro em toda sessão, e cada um pelo motivo dele: sem dorsiflexão
+      não se agacha fundo nem se aterrissa bem; o quadril fecha a profundidade e
+      absorve o salto; quem ataca centenas de bolas por semana perde amplitude e
+      rotação interna do lado dominante ao longo da temporada.</p>
+      ${["A","B","C"].map(k => `<div class="rotulo" style="margin-top:12px">Sessão ${k}</div>
+        ${listaExercicios(blocoMobilidade(k))}`).join("")}
+    </div>`;
+}
+
+/* ── Meus dados ─────────────────────────────────────────────────────────── */
+function telaMeus(){
+  const d = S.ficha || {};
+  return `<div class="cabeca"><h2>Meus dados</h2>
+      <p>Tudo isto está no seu celular, e só sai daqui quando você manda.</p></div>
+
+    <div class="cartao"><h3>Ficha</h3>
+      <div class="pares">
+        ${CAMPOS.map(([k, rot]) => `<div><span>${esc(rot)}</span>
+          <b>${d[k] === undefined || d[k] === "" || d[k] === null ? "—"
+             : esc(k === "nasc" ? dataBR(d[k]) : d[k])}</b></div>`).join("")}
+      </div>
+      <button class="bt alt larga" id="btEditar" style="margin-top:13px">Corrigir e reenviar</button>
+    </div>
+
+    <div class="cartao"><h3>Meus 1RM</h3>
+      <p style="font-size:13.5px;color:var(--ink-2);margin:0 0 12px">Lance aqui o que
+      você levantou no último reteste. É o que faz os percentuais do treino virarem
+      quilos na sua tela — sem eles, "85%" não vira número nenhum.</p>
+      ${REFS_1RM.map(r => `<div class="dupla" style="align-items:end;margin-bottom:8px">
+        <label style="margin:0" for="rm-${esc(r)}"><span>${esc(r)}</span></label>
+        <input id="rm-${esc(r)}" data-rm="${esc(r)}" inputmode="decimal" placeholder="kg"
+          value="${S.rm[r] !== undefined && S.rm[r] !== null ? S.rm[r] : ""}">
+      </div>`).join("")}
+      <button class="bt larga" id="btRM" style="margin-top:10px">Gravar os meus 1RM</button>
+      <p class="aviso ok" id="avRM" hidden></p>
+    </div>
+
+    <div class="cartao"><h3>Onde isto fica</h3>
+      <p style="font-size:13.5px;color:var(--ink-2)">No navegador deste aparelho, e
+      em nenhum outro lugar. Se você limpar os dados do navegador ou trocar de
+      celular, some — e aí é só preencher de novo, que leva dois minutos. Nada
+      disto é enviado sozinho: o WhatsApp só abre quando você toca no botão.</p>
+      <button class="bt alt larga" id="btApagar" style="margin-top:12px">Apagar tudo deste aparelho</button>
+    </div>`;
+}
+
+/* ── Render ─────────────────────────────────────────────────────────────── */
+/* Nunca redesenhar entre o dedo encostar e o dedo soltar: o `change` de um campo
+   dispara no blur, quer dizer, no instante em que o dedo toca o botão ao lado.
+   Redesenhar ali destrói o botão entre o pointerdown e o pointerup, o navegador
+   não tem mais em que disparar o clique, e o primeiro toque não faz nada. */
+let emToque = false, renderAdiado = false, relogioToque = null;
+function render(){ if (emToque){ renderAdiado = true; return; } desenhar(); }
+function iniciarToque(){
+  emToque = true;
+  clearTimeout(relogioToque);
+  relogioToque = setTimeout(liberarToque, 700);   // rolagem, toque longo, dedo fora
+}
+function liberarToque(){
+  clearTimeout(relogioToque);
+  emToque = false;
+  if (renderAdiado){ renderAdiado = false; desenhar(); }
+}
+document.addEventListener("pointerdown", iniciarToque, true);
+document.addEventListener("touchstart", iniciarToque, true);
+const soltarDepois = () => setTimeout(liberarToque, 0);
+document.addEventListener("click", soltarDepois, true);
+document.addEventListener("pointercancel", soltarDepois, true);
+document.addEventListener("touchcancel", soltarDepois, true);
+
+const SECOES = ["cadastro","hoje","checkin","semana","meus"];
+function desenhar(){
+  const dentro = !!S.ficha && !UI.editando;
+  const btEu = document.getElementById("btEu");
+  btEu.hidden = !dentro;
+  if (dentro) btEu.textContent = (S.ficha.apelido || S.ficha.nome || "").split(/\s+/)[0];
+
+  const rolo = document.getElementById("navRolo");
+  rolo.innerHTML = dentro ? ABAS.map(a =>
+    `<button data-ir="${a.id}" aria-current="${UI.aba===a.id}">${esc(a.rot)}</button>`).join("") : "";
+
+  const alvo = dentro ? (UI.aba === "fim" ? "hoje" : UI.aba) : "cadastro";
+  /* Esvaziar as seções que saem, e não só escondê-las: o HTML antigo continuava
+     no documento com os MESMOS ids, e getElementById devolve o primeiro em
+     ordem de documento — que era o escondido. A mensagem nova era gravada e a
+     tela mostrava a velha. */
+  for (const s of SECOES){
+    const sec = document.getElementById("s-" + s);
+    sec.hidden = true;
+    if (s !== alvo) sec.innerHTML = "";
+  }
+  const el = document.getElementById("s-" + alvo);
+  el.hidden = false;
+  const conteudo = !dentro ? telaCadastro()
+    : UI.aba === "hoje" ? telaHoje()
+    : UI.aba === "fim" ? telaFim()
+    : UI.aba === "checkin" ? telaCheckin()
+    : UI.aba === "semana" ? telaSemana()
+    : telaMeus();
+  /* O cartão de envio é montado UMA vez, aqui, e não dentro de cada tela: o
+     cadastro grava e já joga o atleta na área, então quem mostra a ficha é a
+     aba Hoje, que não sabia disso. A ficha simplesmente não aparecia. */
+  el.innerHTML = conteudo + (UI.saida ? cartaoEnvio(UI.saida, UI.saidaTitulo) : "");
+
+  document.getElementById("rodape").innerHTML = dentro
+    ? `ELASE Voleibol Masculino · Preparação física<br>Os seus dados ficam neste aparelho.`
+    : `ELASE Voleibol Masculino · Preparação física<br>Esta página não guarda nada em servidor nenhum.`;
+}
+function ir(aba){ UI.aba = aba; UI.saida = ""; UI.saidaTitulo = ""; render(); window.scrollTo({top:0, behavior:"instant"}); }
+
+/* ── Eventos ────────────────────────────────────────────────────────────── */
+document.addEventListener("click", async ev => {
+  const alvo = ev.target.closest("button,a");
+  if (!alvo) return;
+
+  const grupo = alvo.closest("[data-escala],[data-brums]");
+  if (grupo && alvo.hasAttribute("data-v")){
+    grupo.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed","false"));
+    alvo.setAttribute("aria-pressed","true");
+    return;
+  }
+  if (alvo.hasAttribute("data-pse")){
+    alvo.closest(".likert").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed","false"));
+    alvo.setAttribute("aria-pressed","true");
+    const bt = document.getElementById("btFim");
+    if (bt) bt.disabled = false;
+    return;
+  }
+  const aba = alvo.getAttribute("data-ir");
+  if (aba){ ir(aba); return; }
+
+  if (alvo.hasAttribute("data-copiar")){
+    const pre = document.getElementById("textoEnvio");
+    try {
+      await navigator.clipboard.writeText(pre.textContent);
+      mostrarAviso("avCopia", "Copiado. Cole na conversa com o preparador.", true);
+    } catch (e) {
+      mostrarAviso("avCopia", "Não deu para copiar sozinho: selecione o texto abaixo.", true);
+    }
+    return;
+  }
+
+  const id = alvo.id;
+  if (id === "btEu"){ ir("meus"); return; }
+  if (id === "btEditar"){ UI.editando = true; UI.saida = ""; UI.saidaTitulo = ""; render(); window.scrollTo({top:0}); return; }
+  if (id === "btWell"){ gravarWellness(); return; }
+  if (id === "btBrums"){ gravarBrums(); return; }
+  if (id === "btFim"){ gravarFim(); return; }
+  if (id === "btRM"){ gravarRM(); return; }
+  if (id === "btApagar"){ apagarTudo(); return; }
+});
+
+document.addEventListener("submit", ev => {
+  if (ev.target.id !== "f") return;
+  ev.preventDefault();
+  const f = ev.target, d = {};
+  for (const [k] of CAMPOS) d[k] = (f.elements[k] ? String(f.elements[k].value).trim() : "");
+  const faltam = CAMPOS.filter(([k,,obr]) => obr && !d[k]).map(c => c[1]);
+  if (faltam.length){
+    mostrarAviso("avCad", "Falta preencher: " + faltam.join(", "));
+    const primeiro = CAMPOS.find(c => c[1] === faltam[0]);
+    const campo = f.elements[primeiro[0]];
+    campo.focus();
+    campo.scrollIntoView({behavior:"smooth", block:"center"});
+    return;
+  }
+  mostrarAviso("avCad", "");
+  if (!d.apelido) d.apelido = d.nome.split(/\s+/)[0];
+  S.ficha = d;
+  guardar();
+  UI.editando = false;
+  UI.aba = "hoje";
+  UI.saida = fichaCadastro(d);
+  UI.saidaTitulo = "Mande esta ficha para a comissão";
+  render();
+  /* A ficha aparece na aba Hoje, no fim: ele já está DENTRO da área, e o envio
+     é o próximo passo, não uma parede. */
+  setTimeout(() => {
+    const c = document.querySelector("#s-hoje .cartao:last-of-type");
+    if (c) c.scrollIntoView({behavior:"smooth", block:"start"});
+  }, 60);
+});
+
+function registroDeHoje(){
+  const hoje = hojeISO();
+  S.registros[hoje] = S.registros[hoje] || {};
+  return S.registros[hoje];
+}
+function gravarWellness(){
+  const pega = ch => {
+    const b = document.querySelector(`[data-escala="${ch}"] [aria-pressed="true"]`);
+    return b ? parseInt(b.getAttribute("data-v"), 10) : null;
+  };
+  const w = {sq:pega("sq"), dor:pega("dor"), es:pega("es"), kss:pega("kss"), sh:numDe("wSh")};
+  if (w.sq === null || w.dor === null || w.kss === null){
+    mostrarAviso("avWell", "Faltam o sono, a dor ou a sonolência.");
+    return;
+  }
+  registroDeHoje().wellness = w;
+  guardar();
+  UI.saida = mensagem("CHECK-IN", [
+    ["Sono (1 a 5)", w.sq],
+    ["Horas dormidas", w.sh === null ? "" : String(w.sh).replace(".", ",")],
+    ["Dor (0 a 10)", w.dor],
+    ["Estresse (0 a 10)", w.es === null ? "" : w.es],
+    ["Sonolência KSS (1 a 9)", w.kss],
+  ]);
+  UI.saidaTitulo = "Mande o seu check-in";
+  render();
+}
+function gravarBrums(){
+  const vals = BRUMS_LISTA.map((_, i) => {
+    const b = document.querySelector(`[data-brums="${i}"] [aria-pressed="true"]`);
+    return b ? parseInt(b.getAttribute("data-v"), 10) : null;
+  });
+  const faltam = vals.filter(v => v === null).length;
+  if (faltam){
+    /* Uma BRUMS com item faltando não é uma BRUMS: a soma da subescala fica
+       menor sem que ninguém veja, e a comparação passa a ser laranja com maçã. */
+    mostrarAviso("avBrums", `Faltam ${faltam} itens. A escala só vale inteira.`);
+    return;
+  }
+  registroDeHoje().brums = vals;
+  guardar();
+  UI.saida = mensagem("HUMOR", BRUMS_LISTA.map((x, i) => [x[0], vals[i]]));
+  UI.saidaTitulo = "Mande o seu humor";
+  render();
+}
+function gravarFim(){
+  const escolhido = document.querySelector('[data-pse][aria-pressed="true"]');
+  if (!escolhido){ mostrarAviso("avFim", "Escolha a PSE."); return; }
+  const pse = parseFloat(escolhido.getAttribute("data-pse"));
+  const dur = parseInt(valor("durFim"), 10);
+  if (!Number.isFinite(dur) || dur < 1 || dur > DUR_MAX){
+    mostrarAviso("avFim", `A duração precisa estar entre 1 e ${DUR_MAX} minutos.`);
+    return;
+  }
+  const s = sessaoDoDia(hojeISO(), MACRO);
+  registroDeHoje().sessao = {dur, pse};
+  guardar();
+  UI.saida = mensagem("FIM DE SESSÃO", [
+    ["Duração em minutos", dur],
+    ["PSE (0 a 10)", String(pse).replace(".", ",")],
+    ["Tipo da sessão", s ? s.tipo : "Quadra"],
+  ]);
+  UI.saidaTitulo = "Mande a carga da sua sessão";
+  render();
+}
+function gravarRM(){
+  let n = 0;
+  document.querySelectorAll("[data-rm]").forEach(el => {
+    const nome = el.getAttribute("data-rm");
+    const v = parseFloat(String(el.value).replace(",", "."));
+    if (Number.isFinite(v) && v > 0){ S.rm[nome] = v; n++; }
+    else delete S.rm[nome];
+  });
+  guardar();
+  mostrarAviso("avRM", n ? `${n} marca(s) gravada(s). Os percentuais já viram quilos em Hoje.`
+    : "Nenhuma marca gravada.", true);
+}
+function apagarTudo(){
+  if (!confirm("Apagar a sua ficha, os seus 1RM e os check-ins deste aparelho?")) return;
+  S = {ficha:null, rm:{}, registros:{}};
+  try { localStorage.removeItem(CH); } catch (e) {}
+  UI.aba = "hoje"; UI.saida = ""; UI.saidaTitulo = ""; UI.editando = false;
+  render();
+  window.scrollTo({top:0});
+}
+
+/* ── Arranque ───────────────────────────────────────────────────────────── */
+carregar();
+render();
+</script>

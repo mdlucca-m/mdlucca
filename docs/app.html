@@ -821,6 +821,119 @@ function lerWA(texto){
 const lerVariasWA = texto =>
   (separarWA(texto).length ? separarWA(texto) : [texto]).map(lerWA).filter(r => !r.vazio);
 
+/* ── As quatro mensagens que a área do atleta produz ────────────────────── */
+/* Cadastro, check-in, humor e fim de sessão. Todas numeradas pelo mesmo motivo:
+   legíveis para quem recebe no WhatsApp E automáticas para importar aqui. O
+   cabeçalho diz o TIPO e DE QUEM, que é o que permite colar a semana inteira do
+   elenco de uma vez. */
+const TIPOS_WA = [
+  {chave:"cadastro", rot:"Cadastro",       re:/cadastro/i},
+  {chave:"checkin",  rot:"Check-in",       re:/check\s*-?\s*in/i},
+  {chave:"humor",    rot:"Humor (BRUMS)",  re:/humor|brums/i},
+  {chave:"sessao",   rot:"Fim de sessão",  re:/fim\s+de\s+sess/i},
+];
+const CABECALHO_WA = /^\s*🏐\s*(.+?)\s+ELASE\b/i;
+
+function separarMensagens(texto){
+  /* Cada linha de cabeçalho começa uma mensagem nova. Sem nenhum cabeçalho,
+     trata tudo como cadastro — é o caso de quem copiou só as linhas. */
+  const linhas = String(texto || "").split("\n");
+  const blocos = [];
+  let atual = null;
+  for (const linha of linhas){
+    const m = linha.match(CABECALHO_WA);
+    if (m){
+      const achado = TIPOS_WA.find(t => t.re.test(m[1]));
+      atual = {tipo: achado ? achado.chave : "cadastro", linhas: []};
+      blocos.push(atual);
+    }
+    if (atual) atual.linhas.push(linha);
+  }
+  if (!blocos.length)
+    return separarWA(texto).map(c => ({tipo:"cadastro", corpo:c}));
+  return blocos.map(b => ({tipo:b.tipo, corpo:b.linhas.join("\n")}));
+}
+function cabecalhoWA(corpo){
+  /* A segunda linha é "Apelido · dd/mm/aaaa". Sem ela, fica sem dono e sem data
+     — e aí a tela pergunta, em vez de adivinhar. */
+  const linhas = String(corpo || "").split("\n");
+  for (const l of linhas.slice(1, 4)){
+    const m = l.match(/^\s*(.*?)\s*·\s*(\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4})\s*$/);
+    if (m) return {quem: m[1].trim(), data: dataWA(m[2])};
+  }
+  return {quem:"", data:""};
+}
+function numeradasWA(corpo){
+  const fora = {};
+  for (const linha of String(corpo || "").split("\n")){
+    const m = linha.match(/^\s*(\d{1,2})\s*[.)\]\-–—:]/);
+    if (!m) continue;
+    const n = parseInt(m[1], 10);
+    if (fora[n] === undefined) fora[n] = limparWA(linha, "");
+  }
+  return fora;
+}
+function lerMensagemWA(bloco){
+  const {tipo, corpo} = bloco;
+  if (tipo === "cadastro"){
+    const r = lerWA(corpo);
+    return Object.assign({tipo, corpo}, r, {quem: r.dados.apelido || r.dados.nome, data: ""});
+  }
+  const cab = cabecalhoWA(corpo), n = numeradasWA(corpo);
+  const naoLidos = [];
+  const inteiro = (i, rot, min, max) => {
+    const v = (n[i] || "").trim();
+    if (!v) return null;
+    const x = numeroWA(v);
+    if (x === null || x < min || x > max){ naoLidos.push(`${rot} («${v}»)`); return null; }
+    return Math.round(x);
+  };
+  if (tipo === "checkin"){
+    const dados = {
+      sq: inteiro(1, "Sono", 1, 5),
+      sh: n[2] ? numeroWA(n[2]) : null,
+      dor: inteiro(3, "Dor", 0, 10),
+      es: inteiro(4, "Estresse", 0, 10),
+      kss: inteiro(5, "Sonolência", 1, 9),
+    };
+    const faltam = [];
+    if (dados.sq === null) faltam.push("Sono");
+    if (dados.dor === null) faltam.push("Dor");
+    if (dados.kss === null) faltam.push("Sonolência");
+    return {tipo, corpo, quem:cab.quem, data:cab.data, dados, faltam, naoLidos,
+            vazio: !Object.keys(n).length};
+  }
+  if (tipo === "humor"){
+    const vals = BRUMS_LISTA.map((_, i) => inteiro(i+1, BRUMS_LISTA[i][0], 0, 4));
+    const faltam = vals.filter(v => v === null).length
+      ? [`${vals.filter(v => v === null).length} dos 24 itens`] : [];
+    return {tipo, corpo, quem:cab.quem, data:cab.data, dados:{vals}, faltam, naoLidos,
+            vazio: !Object.keys(n).length};
+  }
+  const dur = inteiro(1, "Duração", 1, DUR_MAX);
+  const pseTxt = (n[2] || "").trim();
+  const pse = pseTxt ? numeroWA(pseTxt) : null;
+  if (pseTxt && (pse === null || pse < 0 || pse > 10)) naoLidos.push(`PSE («${pseTxt}»)`);
+  const faltam = [];
+  if (dur === null) faltam.push("Duração");
+  if (pse === null || pse < 0 || pse > 10) faltam.push("PSE");
+  return {tipo, corpo, quem:cab.quem, data:cab.data,
+          dados:{dur, pse, tipoSessao:(n[3] || "").trim()}, faltam, naoLidos,
+          vazio: !Object.keys(n).length};
+}
+function acharAtleta(quem){
+  /* Casa pelo apelido ou pelo primeiro nome, sem acento. Duas pessoas com o
+     mesmo primeiro nome devolvem nada, e a tela pergunta — dois atletas com
+     dados trocados é pior que um clique a mais. */
+  const q = semAcento(quem).trim();
+  if (!q) return null;
+  const lista = ativos();
+  const casa = a => [a.apelido, a.nome, String(a.nome || "").split(/\s+/)[0]]
+    .filter(Boolean).map(semAcento).indexOf(q) >= 0;
+  const achados = lista.filter(casa);
+  return achados.length === 1 ? achados[0] : null;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    Armazenamento
    ───────────────────────────────────────────────────────────────────────────
@@ -1673,19 +1786,90 @@ function telaSistema(){
 }
 
 function telaWhatsApp(){
-  return `<div class="cabeca"><h2>Fichas do WhatsApp</h2>
-      <p>Cole aqui o que os atletas mandaram. Pode ser tudo de uma vez: cada
-      linha que recomeça no item 1 vira uma ficha nova.</p></div>
+  return `<div class="cabeca"><h2>Do WhatsApp para o sistema</h2>
+      <p>Cole aqui o que os atletas mandaram — cadastro, check-in, humor ou a PSE
+      do dia. Pode ser tudo de uma vez, do elenco inteiro: cada mensagem tem
+      cabeçalho e é separada sozinha.</p></div>
     <div class="cartao">
-      <div class="nota"><b>Como o atleta recebe a ficha.</b> Mande a ele a página
-      de cadastro — ela é pública, abre em qualquer celular, sem conta e sem
-      instalar nada. Ele preenche, toca em enviar, e o WhatsApp abre com a ficha
-      escrita. Você cola aqui.</div>
-      <label for="waTexto"><span>Colar as fichas</span>
-        <textarea id="waTexto" rows="8" placeholder="🏐 CADASTRO ELASE VOLEIBOL&#10;&#10;1. Nome completo — ..."></textarea></label>
-      <button class="bt larga" id="btLerWA">Ler as fichas</button>
+      <div class="nota"><b>Como o atleta manda.</b> Ele abre a área do atleta —
+      pública, em qualquer celular, sem conta e sem instalar — preenche, e o
+      WhatsApp abre com a mensagem escrita. Você cola aqui.</div>
+      <label for="waTexto"><span>Colar as mensagens</span>
+        <textarea id="waTexto" rows="8" placeholder="🏐 CHECK-IN ELASE VOLEIBOL&#10;Rafa · 20/09/2026&#10;&#10;1. Sono (1 a 5) — 4&#10;..."></textarea></label>
+      <button class="bt larga" id="btLerWA">Ler as mensagens</button>
       <div id="waSaida" style="margin-top:14px"></div>
     </div>`;
+}
+function seletorDono(i, sugerido){
+  const lista = ativos();
+  if (!lista.length) return `<div class="nota crit">Não há atleta cadastrado para
+    receber isto. Cadastre primeiro.</div>`;
+  return `<label for="dono-${i}"><span>De quem é</span>
+    <select id="dono-${i}" data-dono="${i}">
+      ${sugerido ? "" : `<option value="">— escolha —</option>`}
+      ${lista.map(a => `<option value="${a.id}" ${sugerido && sugerido.id === a.id ? "selected" : ""}
+        >${esc(a.apelido || a.nome)}</option>`).join("")}
+    </select></label>`;
+}
+function cartaoMensagem(m, i){
+  const dono = m.tipo === "cadastro" ? null : acharAtleta(m.quem);
+  const tipoRot = (TIPOS_WA.find(t => t.chave === m.tipo) || {rot:m.tipo}).rot;
+  const problemas = `
+    ${m.faltam.length ? `<div class="nota crit"><b>Falta o obrigatório:</b>
+      ${m.faltam.map(esc).join(", ")}. Peça ao atleta e cole de novo.</div>` : ""}
+    ${m.naoLidos.length ? `<div class="nota aten"><b>Não consegui entender:</b>
+      ${m.naoLidos.map(esc).join(", ")}. Fica em branco — chutar aqui seria pior.</div>` : ""}`;
+
+  let corpo = "";
+  if (m.tipo === "cadastro"){
+    corpo = `<div class="rolagem estreita"><table><tbody>
+      ${CAMPOS_WA.map(([,ch,rot]) => `<tr><td>${esc(rot)}</td>
+        <td class="num">${m.dados[ch] === null || m.dados[ch] === "" ? "—"
+          : esc(ch === "nasc" ? dataBR(m.dados[ch]) : m.dados[ch])}</td></tr>`).join("")}
+    </tbody></table></div>`;
+  } else if (m.tipo === "checkin"){
+    const d = m.dados;
+    corpo = `<div class="pares">
+      <div><span>Sono (1 a 5)</span><b>${d.sq === null ? "—" : d.sq}</b></div>
+      <div><span>Horas dormidas</span><b>${d.sh === null ? "—" : num(d.sh,1)}</b></div>
+      <div><span>Dor (0 a 10)</span><b>${d.dor === null ? "—" : d.dor}</b></div>
+      <div><span>Estresse (0 a 10)</span><b>${d.es === null ? "—" : d.es}</b></div>
+      <div><span>Sonolência KSS</span><b>${d.kss === null ? "—" : d.kss}</b></div>
+    </div>`;
+  } else if (m.tipo === "humor"){
+    const soma = {};
+    SUBESCALAS.forEach(s => soma[s] = 0);
+    let completos = 0;
+    m.dados.vals.forEach((v, k) => { if (v !== null){ soma[BRUMS_LISTA[k][1]] += v; completos++; } });
+    const tmd = NEGATIVAS.reduce((a,s)=>a+soma[s],0) - soma.Vigor + 100;
+    corpo = `<div class="pares">
+      ${SUBESCALAS.map(s => `<div><span>${esc(s)}</span><b>${soma[s]}</b></div>`).join("")}
+      <div><span>TMD</span><b>${completos === 24 ? tmd : "—"}</b></div>
+    </div>`;
+  } else {
+    const d = m.dados;
+    corpo = `<div class="pares">
+      <div><span>Duração</span><b>${d.dur === null ? "—" : d.dur + " min"}</b></div>
+      <div><span>PSE</span><b>${d.pse === null ? "—" : num(d.pse,1)}</b></div>
+      <div><span>Carga</span><b>${d.dur === null || d.pse === null ? "—"
+        : num(Math.round(d.dur * d.pse)) + " UA"}</b></div>
+      <div><span>Tipo</span><b>${esc(d.tipoSessao || "—")}</b></div>
+    </div>`;
+  }
+
+  const semData = m.tipo !== "cadastro" && !m.data;
+  return `<div class="cartao">
+    <h3>${esc(tipoRot)}${m.quem ? " · " + esc(m.quem) : ""}${m.data ? " · " + dataBR(m.data) : ""}</h3>
+    ${problemas}
+    ${semData ? `<div class="nota crit">Esta mensagem veio sem a data no cabeçalho.
+      Não dá para saber de que dia é, e gravar no dia errado envenena a análise.</div>` : ""}
+    ${corpo}
+    ${m.tipo === "cadastro" ? "" : seletorDono(i, dono)}
+    <button class="bt larga" data-import="${i}" style="margin-top:12px"
+      ${m.faltam.length || semData || (m.tipo !== "cadastro" && !ativos().length) ? "disabled" : ""}
+      >${m.tipo === "cadastro" ? "Cadastrar este atleta" : "Lançar no sistema"}</button>
+    <p class="aviso" id="avImp-${i}" hidden></p>
+  </div>`;
 }
 
 function telaAjustes(){
@@ -1777,9 +1961,17 @@ function desenhar(){
   pintarModo();
   pintarNav();
 
-  for (const a of ABAS) document.getElementById("s-" + a.id).hidden = true;
   const alvo = UI.aba === "__pin" ? "inicio" : UI.aba;
-  const el = document.getElementById("s-" + (ABAS.find(a=>a.id===alvo) ? alvo : "inicio"));
+  const nome = ABAS.find(a => a.id === alvo) ? alvo : "inicio";
+  /* Esvaziar as abas que saem, e não só escondê-las: o HTML antigo continuaria
+     no documento com os MESMOS ids, e getElementById devolve o primeiro em
+     ordem de documento — que seria o escondido. */
+  for (const a of ABAS){
+    const sec = document.getElementById("s-" + a.id);
+    sec.hidden = true;
+    if (a.id !== nome) sec.innerHTML = "";
+  }
+  const el = document.getElementById("s-" + nome);
   el.hidden = false;
 
   const conteudo = UI.aba === "__pin" ? telaPin()
@@ -2051,44 +2243,65 @@ async function gerarSemanas(){
   setTimeout(render, 900);
 }
 function lerFichas(){
-  const fichas = lerVariasWA(valor("waTexto"));
+  const blocos = separarMensagens(valor("waTexto"));
+  const msgs = blocos.map(lerMensagemWA).filter(m => !m.vazio);
   const saida = document.getElementById("waSaida");
-  if (!fichas.length){
-    saida.innerHTML = `<div class="nota crit">Não achei nenhuma ficha aí.
-      Ela precisa ter as linhas numeradas, começando em <b>1.</b></div>`;
+  if (!msgs.length){
+    saida.innerHTML = `<div class="nota crit">Não achei nenhuma mensagem aí.
+      Elas precisam ter as linhas numeradas, começando em <b>1.</b></div>`;
     return;
   }
-  UI.fichas = fichas;
-  saida.innerHTML = fichas.map((f, i) => `<div class="cartao">
-    <h3>Ficha ${i+1}${f.dados.nome ? " · " + esc(f.dados.nome) : ""}</h3>
-    ${f.faltam.length ? `<div class="nota crit"><b>Falta o obrigatório:</b>
-      ${f.faltam.map(esc).join(", ")}. Peça ao atleta e cole de novo.</div>` : ""}
-    ${f.naoLidos.length ? `<div class="nota aten"><b>Não consegui entender:</b>
-      ${f.naoLidos.map(esc).join(", ")}. Fica em branco — chutar aqui seria pior.</div>` : ""}
-    <div class="rolagem estreita"><table><tbody>
-      ${CAMPOS_WA.map(([,ch,rot]) => `<tr><td>${esc(rot)}</td>
-        <td class="num">${f.dados[ch] === null || f.dados[ch] === "" ? "—" :
-          esc(ch === "nasc" ? dataBR(f.dados[ch]) : f.dados[ch])}</td></tr>`).join("")}
-    </tbody></table></div>
-    <button class="bt larga" data-import="${i}" style="margin-top:12px"
-      ${f.faltam.length ? "disabled" : ""}>Cadastrar este atleta</button>
-  </div>`).join("");
+  UI.msgs = msgs;
+  const contagem = TIPOS_WA.map(t => {
+    const n = msgs.filter(m => m.tipo === t.chave).length;
+    return n ? `${n} ${t.rot.toLowerCase()}` : "";
+  }).filter(Boolean).join(" · ");
+  saida.innerHTML = `<div class="nota bom">Li <b>${msgs.length}</b> mensagem(ns):
+    ${esc(contagem)}.</div>` + msgs.map(cartaoMensagem).join("");
 }
 document.addEventListener("click", async ev => {
   const bt = ev.target.closest("[data-import]");
   if (!bt) return;
-  const f = (UI.fichas || [])[parseInt(bt.getAttribute("data-import"), 10)];
-  if (!f) return;
-  const d = f.dados, id = novoId("a");
-  await Store.set("atletas", id, {
-    nome: d.nome, apelido: d.apelido || String(d.nome).split(/\s+/)[0],
-    nasc: d.nasc, posicao: d.posicao, camisa: d.camisa, telefone: d.telefone,
-    estatura: d.estatura, massa: d.massa, anos_pratica: d.anos_pratica,
-    dominancia: d.dominancia, perna_impulsao: d.perna_impulsao,
-    escolaridade: d.escolaridade, emergencia: d.emergencia, lesoes: d.lesoes,
-    obs: d.obs, status: "Ativo", criado_em: new Date().toISOString()});
-  bt.textContent = "Cadastrado ✓";
+  const i = parseInt(bt.getAttribute("data-import"), 10);
+  const m = (UI.msgs || [])[i];
+  if (!m) return;
+  const aviso = "avImp-" + i;
+
+  if (m.tipo === "cadastro"){
+    const d = m.dados, id = novoId("a");
+    await Store.set("atletas", id, {
+      nome: d.nome, apelido: d.apelido || String(d.nome).split(/\s+/)[0],
+      nasc: d.nasc, posicao: d.posicao, camisa: d.camisa, telefone: d.telefone,
+      estatura: d.estatura, massa: d.massa, anos_pratica: d.anos_pratica,
+      dominancia: d.dominancia, perna_impulsao: d.perna_impulsao,
+      escolaridade: d.escolaridade, emergencia: d.emergencia, lesoes: d.lesoes,
+      obs: d.obs, status: "Ativo", criado_em: new Date().toISOString()});
+    bt.textContent = "Cadastrado ✓";
+    bt.disabled = true;
+    return;
+  }
+
+  const sel = document.querySelector(`[data-dono="${i}"]`);
+  const atletaId = sel ? sel.value : "";
+  if (!atletaId){ mostrarAviso(aviso, "Escolha de quem é esta mensagem."); return; }
+
+  if (m.tipo === "checkin"){
+    await gravarDiario(atletaId, "w", m.data, m.dados);
+  } else if (m.tipo === "humor"){
+    await gravarDiario(atletaId, "b", m.data + "|pre", m.dados.vals);
+  } else {
+    /* A sessão vem do atleta sem as séries: o que ele manda é o que conta para a
+       carga — duração × PSE. Tonelagem e contatos ficam zerados, e é honesto que
+       fiquem: ninguém os mediu. */
+    const d = m.dados;
+    await gravarSessao(atletaId, m.data, {
+      tipo: d.tipoSessao || "", check_in: null, check_out: new Date().toISOString(),
+      dur_min: d.dur, pse: d.pse, carga_ua: Math.round(d.dur * d.pse),
+      tonelagem: 0, contatos: 0, series: {}});
+  }
+  bt.textContent = "Lançado ✓";
   bt.disabled = true;
+  mostrarAviso(aviso, "", true);
 });
 async function gravarConfig(){
   /* O gerador conta os dias a partir do início do macrociclo: sessão A no dia

@@ -505,6 +505,73 @@ const servidor = http.createServer((req, res) => {
   const rm = await pag.evaluate(() => melhor1RM(meuAtleta().id, "Agachamento"));
   ok(rm === 150, "1RM lançado", rm);
 
+  console.log("\n── As mensagens da área do atleta ─────────────────────");
+  /* O laço inteiro: o atleta manda check-in, humor e PSE pelo WhatsApp, e isso
+     tem de virar dado aqui dentro sem digitação. Colados TODOS DE UMA VEZ, que
+     é como chegam de um elenco. */
+  await pag.click('#navRolo button[data-aba="whatsapp"]');
+  await pag.waitForTimeout(250);
+  const ontem = await pag.evaluate(() => maisDias(hojeISO(), -3));
+  const dBR = await pag.evaluate(d => dataBR(d), ontem);
+  const brums24 = await pag.evaluate(() =>
+    BRUMS_LISTA.map((x, i) => `${i+1}. ${x[0]} — ${x[1] === "Vigor" ? 3 : 1}`).join("\n"));
+  const colada = [
+    `🏐 CHECK-IN ELASE VOLEIBOL`, `Rafa · ${dBR}`, ``,
+    `1. Sono (1 a 5) — 5`, `2. Horas dormidas — 8,5`, `3. Dor (0 a 10) — 2`,
+    `4. Estresse (0 a 10) — 1`, `5. Sonolência KSS (1 a 9) — 2`, ``,
+    `🏐 HUMOR ELASE VOLEIBOL`, `Rafa · ${dBR}`, ``, brums24, ``,
+    `🏐 FIM DE SESSÃO ELASE VOLEIBOL`, `Rafa · ${dBR}`, ``,
+    `1. Duração em minutos — 90`, `2. PSE (0 a 10) — 6`, `3. Tipo da sessão — Quadra`,
+  ].join("\n");
+  await pag.fill("#waTexto", colada);
+  await pag.click("#btLerWA");
+  await pag.waitForTimeout(400);
+
+  const cartoes = await pag.$$eval("#waSaida [data-import]", bs => bs.length);
+  ok(cartoes === 3, "as três mensagens coladas juntas são separadas", cartoes);
+  const resumoWA = await pag.textContent("#waSaida .nota");
+  ok(/check-in/i.test(resumoWA) && /humor/i.test(resumoWA) && /fim de sess/i.test(resumoWA),
+     "e a tela diz o que leu de cada tipo", resumoWA.trim().replace(/\s+/g, " "));
+  const donoSugerido = await pag.inputValue('[data-dono="0"]');
+  const idAtleta = await pag.evaluate(() => ativos()[0].id);
+  ok(donoSugerido === idAtleta, "o apelido do cabeçalho já escolhe o atleta");
+
+  for (const i of [0, 1, 2]){
+    await pag.click(`[data-import="${i}"]`);
+    await pag.waitForTimeout(400);
+  }
+  const lancado = await pag.evaluate(d => {
+    const a = ativos()[0], diario = diarioDe(a.id);
+    const ses = sessoesDe(a.id).find(s => s.data === d);
+    return {w: diario.w[d], b: diario.b[d + "|pre"], ses};
+  }, ontem);
+  ok(lancado.w && lancado.w.sq === 5 && lancado.w.dor === 2 && lancado.w.kss === 2,
+     "o check-in do WhatsApp vira wellness", JSON.stringify(lancado.w));
+  ok(lancado.w.sh === 8.5, "com a vírgula decimal lida certo", lancado.w.sh);
+  ok(Array.isArray(lancado.b) && lancado.b.length === 24,
+     "o humor vira as 24 respostas", lancado.b && lancado.b.length);
+  ok(lancado.ses && lancado.ses.dur_min === 90 && lancado.ses.pse === 6,
+     "a PSE vira sessão", JSON.stringify(lancado.ses && {d: lancado.ses.dur_min, p: lancado.ses.pse}));
+  ok(lancado.ses.carga_ua === 540, "com a carga calculada — 90 × 6", lancado.ses.carga_ua);
+  ok(lancado.ses.tonelagem === 0,
+     "e tonelagem ZERO, porque ninguém mediu série nenhuma", lancado.ses.tonelagem);
+
+  // Uma mensagem sem data no cabeçalho não pode ser lançada às cegas
+  await pag.fill("#waTexto", "🏐 CHECK-IN ELASE VOLEIBOL\nRafa\n\n1. Sono (1 a 5) — 4\n3. Dor (0 a 10) — 2\n5. Sonolência KSS (1 a 9) — 3");
+  await pag.click("#btLerWA");
+  await pag.waitForTimeout(350);
+  const semDataBloqueado = await pag.$eval('[data-import="0"]', b => b.disabled);
+  ok(semDataBloqueado, "mensagem sem data no cabeçalho não é lançada");
+  ok(/sem a data/i.test(await pag.textContent("#waSaida")), "e a tela diz por quê");
+
+  // Valor fora da escala é recusado, não truncado
+  await pag.fill("#waTexto", `🏐 CHECK-IN ELASE VOLEIBOL\nRafa · ${dBR}\n\n1. Sono (1 a 5) — 9\n3. Dor (0 a 10) — 2\n5. Sonolência KSS (1 a 9) — 3`);
+  await pag.click("#btLerWA");
+  await pag.waitForTimeout(350);
+  const txtFora = await pag.textContent("#waSaida");
+  ok(/Não consegui entender/i.test(txtFora) && /Sono/.test(txtFora),
+     "sono 9 numa escala de 1 a 5 é reportado, não aceito");
+
   // Layout no celular
   const larguraDemais = await pag.evaluate(() =>
     document.documentElement.scrollWidth - document.documentElement.clientWidth);
