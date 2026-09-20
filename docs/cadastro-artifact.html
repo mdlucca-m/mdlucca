@@ -1,0 +1,264 @@
+<title>Cadastro ELASE Voleibol</title>
+<style>
+/* Mesma página do docs/index.html, re-escrita no esqueleto do artifact:
+   sem <html>/<head>/<body>, título e estilo no topo. Nada externo: nenhuma
+   fonte, nenhuma biblioteca, nenhuma chamada de rede. Abre offline. */
+:root{
+  color-scheme: dark;
+  --plane:#141C27; --surface:#1E2937; --inset:#172029;
+  --ink:#FFF; --ink-2:#D6E1ED; --ink-3:#A7B7C9; --ink-4:#8A9BAE;
+  --line:#33445A;
+  --blue:#5AA0E8; --blue-2:#96C4F2; --good:#12B54A;
+  --warn-i:#FFD166; --crit-i:#FF908E; --zap:#25D366;
+  --relevo: inset 0 1px 0 rgba(255,255,255,.09), 0 12px 26px -18px rgba(0,0,0,.8);
+  --cavado: inset 0 2px 6px rgba(0,0,0,.42);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--plane);color:var(--ink);font-size:16px;line-height:1.5;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-weight:500;
+  background-image:radial-gradient(900px 520px at 80% -12%, rgba(38,104,180,.26), transparent 62%);
+  background-attachment:fixed;padding-bottom:40px}
+.faixa{background:rgba(24,32,43,.96);border-bottom:1px solid var(--line);padding:14px 18px;
+  position:sticky;top:env(safe-area-inset-top, 0px);z-index:5;backdrop-filter:blur(10px)}
+.faixa b{font-size:19px;letter-spacing:.03em;display:block}
+.faixa span{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--blue);font-weight:700}
+main{max-width:620px;margin:0 auto;padding-block:20px;padding-inline:16px}
+h1{font-size:25px;margin:0 0 6px;line-height:1.15;text-wrap:balance}
+h1 em{font-style:normal;color:var(--blue-2)}
+.apoio{color:var(--ink-3);font-size:14px;margin:0 0 18px}
+.regua{height:3px;border-radius:3px;margin:0 0 22px;
+  background:linear-gradient(90deg,var(--blue) 0 60px,#1B5FA8 60px 92px,var(--line) 92px 100%)}
+fieldset{border:1px solid var(--line);border-radius:15px;padding:16px;margin:0 0 16px;
+  background:linear-gradient(180deg,#202B38,#1A242F);box-shadow:var(--relevo)}
+legend{font-size:11px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--blue-2);padding:0 8px}
+label{display:block;margin-bottom:13px}
+label span{display:block;font-size:10.5px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-4);margin-bottom:5px}
+label .obr{color:var(--warn-i);font-style:normal}
+input,select,textarea{width:100%;max-width:100%;border:1px solid var(--line);background:var(--inset);
+  border-radius:10px;padding:12px;font-size:16px;font-weight:600;color:var(--ink);
+  box-shadow:var(--cavado);min-height:48px;font-family:inherit}
+input:focus-visible,select:focus-visible,textarea:focus-visible,
+.btn:focus-visible{outline:2px solid var(--blue-2);outline-offset:2px}
+input:focus,select:focus,textarea:focus{border-color:rgba(78,147,220,.65)}
+.dupla{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.nota{font-size:13px;color:var(--ink-2);background:var(--inset);border-left:3px solid var(--blue);
+  padding:12px 14px;border-radius:0 10px 10px 0;line-height:1.5;margin:0 0 16px}
+.nota b{color:var(--ink)}
+.nota.verde{border-left-color:var(--good)}
+.btn{width:100%;border:0;border-radius:12px;padding:16px;font-size:17px;font-weight:800;
+  cursor:pointer;color:#06210f;background:var(--zap);box-shadow:var(--relevo);
+  display:flex;align-items:center;justify-content:center;gap:9px;min-height:56px;
+  font-family:inherit;text-decoration:none}
+.btn:active{transform:translateY(1px)}
+.btn.alt{background:linear-gradient(180deg,#2A3746,#212C38);color:var(--ink);
+  border:1px solid var(--line);font-size:15px;margin-top:10px;min-height:48px}
+.erro{color:var(--crit-i);font-size:13.5px;font-weight:700;margin:10px 0 0}
+.ok{color:#5BE87A;font-size:13.5px;font-weight:700;margin:10px 0 0}
+#saida{margin-top:18px}
+pre{white-space:pre-wrap;word-break:break-word;background:var(--inset);border:1px solid var(--line);
+  border-radius:11px;padding:13px;font-size:12.5px;color:var(--ink-2);
+  font-family:ui-monospace,Menlo,monospace;max-height:44vh;overflow:auto;box-shadow:var(--cavado)}
+footer{max-width:620px;margin:0 auto;padding-block:6px;padding-inline:16px;color:var(--ink-4);
+  font-size:12px;text-align:center;line-height:1.6}
+@media (max-width:420px){ .dupla{grid-template-columns:1fr} }
+@media (prefers-reduced-motion: reduce){ *{scroll-behavior:auto !important} }
+</style>
+
+<div class="faixa"><b>ELASE VOLEIBOL</b><span>Masculino · Adulto</span></div>
+
+<main>
+  <h1>Cadastro do <em>atleta</em></h1>
+  <p class="apoio">Dois minutos. No fim aparece a sua ficha pronta — é só mandar
+  no WhatsApp para o preparador.</p>
+  <div class="regua"></div>
+
+  <form id="f" novalidate>
+    <fieldset><legend>Quem é você</legend>
+      <label for="c-nome"><span>Nome completo <i class="obr">•</i></span></label>
+      <input id="c-nome" name="nome" autocomplete="name" required>
+      <label for="c-apelido"><span>Como prefere ser chamado</span></label>
+      <input id="c-apelido" name="apelido" autocomplete="nickname">
+      <div class="dupla">
+        <div>
+          <label for="c-nasc"><span>Nascimento <i class="obr">•</i></span></label>
+          <input id="c-nasc" name="nasc" type="date" required>
+        </div>
+        <div>
+          <label for="c-camisa"><span>Camisa</span></label>
+          <input id="c-camisa" name="camisa" inputmode="numeric">
+        </div>
+      </div>
+      <label for="c-posicao"><span>Posição <i class="obr">•</i></span></label>
+      <select id="c-posicao" name="posicao" required>
+        <option value="">— escolha —</option>
+        <option>Levantador</option><option>Oposto</option>
+        <option>Ponteiro (Ponta)</option><option>Central</option><option>Líbero</option>
+      </select>
+      <label for="c-telefone"><span>Telefone (WhatsApp)</span></label>
+      <input id="c-telefone" name="telefone" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000">
+    </fieldset>
+
+    <fieldset><legend>Seu corpo</legend>
+      <div class="dupla">
+        <div>
+          <label for="c-estatura"><span>Estatura em cm <i class="obr">•</i></span></label>
+          <input id="c-estatura" name="estatura" inputmode="decimal" required placeholder="198">
+        </div>
+        <div>
+          <label for="c-massa"><span>Massa em kg <i class="obr">•</i></span></label>
+          <input id="c-massa" name="massa" inputmode="decimal" required placeholder="92">
+        </div>
+      </div>
+      <label for="c-anos"><span>Anos de prática no voleibol <i class="obr">•</i></span></label>
+      <input id="c-anos" name="anos_pratica" inputmode="numeric" required>
+      <div class="dupla">
+        <div>
+          <label for="c-dom"><span>Mão dominante</span></label>
+          <select id="c-dom" name="dominancia"><option value="">—</option>
+            <option>Destro</option><option>Canhoto</option><option>Ambidestro</option></select>
+        </div>
+        <div>
+          <label for="c-perna"><span>Perna de impulsão</span></label>
+          <select id="c-perna" name="perna_impulsao"><option value="">—</option>
+            <option>Esquerda</option><option>Direita</option><option>Simétrica</option></select>
+        </div>
+      </div>
+      <div class="nota" style="margin-top:14px">Os alcances (em pé, de ataque, de bloqueio)
+      não entram aqui: são medidos com fita na quadra. O preparador completa depois.</div>
+    </fieldset>
+
+    <fieldset><legend>Saúde e segurança</legend>
+      <label for="c-emerg"><span>Contato de emergência — nome e telefone <i class="obr">•</i></span></label>
+      <input id="c-emerg" name="emergencia" required placeholder="Maria Silva (41) 98888-0000">
+      <label for="c-lesoes"><span>Lesões anteriores ou limitações</span></label>
+      <textarea id="c-lesoes" name="lesoes" rows="2" placeholder="ombro direito em 2024, tornozelo esquerdo…"></textarea>
+      <label for="c-obs"><span>Algo mais que a comissão deva saber</span></label>
+      <textarea id="c-obs" name="obs" rows="2" placeholder="alergia, medicação de uso contínuo, cirurgia…"></textarea>
+      <label for="c-esc"><span>Escolaridade</span></label>
+      <select id="c-esc" name="escolaridade"><option value="">—</option>
+        <option>Fundamental</option><option>Médio completo</option>
+        <option>Superior em andamento</option><option>Superior completo</option>
+        <option>Pós-graduação</option></select>
+    </fieldset>
+
+    <div class="nota verde"><b>O que é feito com isto.</b> Estatura, massa e anos de
+    prática entram no cálculo do salto e da carga. Contato de emergência e histórico de
+    lesão existem para te <b>proteger</b> em quadra.
+    <br><br><b>Dinheiro, nunca.</b> Não perguntamos salário nem renda, e o sistema não
+    tem onde guardar isso.</div>
+
+    <button class="btn" type="submit">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path fill="currentColor" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.87 9.87 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 18.13h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.18 8.18 0 0 1-1.26-4.36c0-4.54 3.7-8.23 8.24-8.23 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.82c0 4.54-3.69 8.21-8.24 8.21Z"/>
+      </svg>
+      Gerar a minha ficha
+    </button>
+    <p class="erro" id="erro" hidden></p>
+    <button class="btn alt" type="button" id="copiar">Copiar a ficha para colar à mão</button>
+  </form>
+
+  <div id="saida" hidden>
+    <div class="nota verde"><b>Ficha pronta.</b> Toque no botão verde para abrir o
+    WhatsApp com ela escrita. Se o WhatsApp não abrir, copie o texto abaixo e cole
+    você mesmo na conversa com o preparador.</div>
+    <a class="btn" id="zap" href="#" target="_blank" rel="noopener">Abrir o WhatsApp com a ficha</a>
+    <p class="ok" id="aviso" hidden></p>
+    <pre id="texto"></pre>
+  </div>
+</main>
+
+<footer>ELASE Voleibol Masculino · Preparação física<br>
+Esta página não guarda nada: a ficha sai do seu celular direto para o WhatsApp.</footer>
+
+<script>
+"use strict";
+/* Os campos, na ordem em que vão para a mensagem. O número na frente é o que
+   deixa a ficha legível para quem recebe E automática para o app importar —
+   sem ele, seria preciso adivinhar qual linha é qual. */
+const CAMPOS = [
+  ["nome",            "Nome completo",                        true],
+  ["apelido",         "Como prefere ser chamado",             false],
+  ["nasc",            "Data de nascimento",                   true],
+  ["posicao",         "Posição",                              true],
+  ["camisa",          "Número da camisa",                     false],
+  ["telefone",        "Telefone (WhatsApp)",                  false],
+  ["estatura",        "Estatura em cm",                       true],
+  ["massa",           "Massa corporal em kg",                 true],
+  ["anos_pratica",    "Anos de prática no voleibol",          true],
+  ["dominancia",      "Mão dominante",                        false],
+  ["perna_impulsao",  "Perna de impulsão",                    false],
+  ["emergencia",      "Contato de emergência",                true],
+  ["lesoes",          "Lesões anteriores ou limitações",      false],
+  ["obs",             "Algo mais que a comissão deva saber",  false],
+  ["escolaridade",    "Escolaridade",                         false],
+];
+
+const f = document.getElementById("f");
+const erro = document.getElementById("erro");
+const aviso = document.getElementById("aviso");
+
+/* data vem do input como aaaa-mm-dd; quem lê no WhatsApp espera dd/mm/aaaa */
+const dBR = s => /^\d{4}-\d{2}-\d{2}$/.test(s)
+  ? s.slice(8, 10) + "/" + s.slice(5, 7) + "/" + s.slice(0, 4) : s;
+
+function montar() {
+  const d = new FormData(f);
+  const faltam = CAMPOS.filter(([k, , obr]) => obr && !String(d.get(k) || "").trim())
+                       .map(([, rot]) => rot);
+  const linhas = CAMPOS.map(([k, rot], i) => {
+    let v = String(d.get(k) || "").trim().replace(/\s*\n\s*/g, " ");
+    if (k === "nasc") v = dBR(v);
+    return (i + 1) + ". " + rot + " — " + v;
+  });
+  const texto = "🏐 CADASTRO ELASE VOLEIBOL\n\n" + linhas.join("\n");
+  return { texto: texto, faltam: faltam };
+}
+
+/* Com ?p=<número> na URL o WhatsApp já abre a conversa certa. Sem ele, o
+   atleta escolhe o contato — que também funciona, e não obriga o preparador
+   a publicar o telefone dele numa página aberta. */
+function destino(texto) {
+  let p = "";
+  try { p = new URLSearchParams(location.search).get("p") || ""; } catch (e) { p = ""; }
+  return "https://wa.me/" + p.replace(/\D/g, "") + "?text=" + encodeURIComponent(texto);
+}
+
+function mostrar(texto) {
+  document.getElementById("texto").textContent = texto;
+  document.getElementById("zap").href = destino(texto);
+  document.getElementById("saida").hidden = false;
+}
+
+f.onsubmit = ev => {
+  ev.preventDefault();
+  const r = montar();
+  if (r.faltam.length) {
+    erro.textContent = "Falta preencher: " + r.faltam.join(", ");
+    erro.hidden = false;
+    const alvo = CAMPOS.find(c => c[1] === r.faltam[0]);
+    const campo = f.elements[alvo[0]];
+    campo.focus();
+    campo.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+  erro.hidden = true;
+  aviso.hidden = true;
+  mostrar(r.texto);
+  document.getElementById("saida").scrollIntoView({ behavior: "smooth", block: "start" });
+};
+
+document.getElementById("copiar").onclick = async () => {
+  const r = montar();
+  mostrar(r.texto);
+  erro.hidden = true;
+  try {
+    await navigator.clipboard.writeText(r.texto);
+    aviso.textContent = "Ficha copiada. Cole na conversa com o preparador.";
+  } catch (e) {
+    aviso.textContent = "Não deu para copiar sozinho: selecione o texto abaixo e copie.";
+  }
+  aviso.hidden = false;
+};
+</script>
