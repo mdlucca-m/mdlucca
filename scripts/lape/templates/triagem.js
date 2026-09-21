@@ -882,6 +882,56 @@ function desenharImportar(palco) {
     })(),
     el("div", { id: "resultadoImport", style: "margin-top:16px" }),
   ]));
+  palco.appendChild(el("div", { class: "solto" }, [
+    el("h3", { text: "Ou trazer um acervo da biblioteca" }),
+    el("div", { class: "hint", text:
+      "O acervo já foi buscado nas bases e já guarda a estratégia de cada uma — "
+      + "ela entra junto, por base, que é o que o PRISMA cobra. Exportar da "
+      + "PubMed para colar aqui seria refazer a mão o que a máquina já fez, e a "
+      + "busca refeita meses depois não devolve o mesmo conjunto." }),
+    el("div", { id: "acervosDaTriagem", class: "hint", text: "carregando…" }),
+  ]));
+  listarAcervosParaTriagem();
+}
+
+async function listarAcervosParaTriagem() {
+  const alvo = document.getElementById("acervosDaTriagem");
+  if (!alvo) return;
+  const d = await api("/api/bibliotecas").catch(function () { return {}; });
+  const lista = d.bibliotecas || [];
+  alvo.innerHTML = "";
+  if (!lista.length) {
+    alvo.textContent = "Nenhum acervo instalado.";
+    return;
+  }
+  lista.forEach(function (b) {
+    const botao = el("button", {
+      /* O tamanho vai no botão de propósito: um acervo com zero artigo
+         ainda não foi atualizado, e trazê-lo não traria nada -- melhor
+         ver isso antes de clicar do que depois. */
+      text: "Trazer “" + b.title + "” (" + b.n + ")",
+      disabled: !b.n,
+      onclick: async function () {
+        botao.disabled = true;
+        const linha = el("div", { class: "note info", text: "trazendo…" });
+        alvo.appendChild(linha);
+        try {
+          const r = await api("/api/revisoes/" + ESTADO.revisao.code + "/importar",
+                              "POST", { acervo: b.code });
+          linha.className = "note ok";
+          linha.textContent = r.acervo + ": " + r.novos + " nova(s), "
+            + r.duplicados + " repetida(s)"
+            + (r.aviso ? " — " + r.aviso : "");
+          await carregarFila(false);
+        } catch (erro) {
+          linha.className = "note erro";
+          linha.textContent = erro.message;
+        }
+        botao.disabled = false;
+      },
+    });
+    alvo.appendChild(el("div", { style: "margin-bottom:6px" }, botao));
+  });
 }
 
 async function mandarArquivos(arquivos) {

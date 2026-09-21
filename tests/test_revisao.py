@@ -304,6 +304,119 @@ class TestImportacao(unittest.TestCase):
         self.assertEqual(bases, {"Scopus", "PubMed", "Rayyan"})
 
 
+class TestOAcervoQueViraTriagem(unittest.TestCase):
+    """A biblioteca já buscou -- a triagem não precisa buscar de novo.
+
+    Mandar a pessoa exportar da PubMed e colar aqui seria refazer à mão o
+    que a máquina fez. E a busca refeita meses depois não devolve o mesmo
+    conjunto: é assim que uma revisão deixa de ser reproduzível sem
+    ninguém perceber.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.db = Database(Path(self.tmp.name) / "a.sqlite")
+        self.addCleanup(self.db.close)
+        self.db.migrate()
+        from lape import biblioteca, linhas
+        linhas.instalar(self.db)
+        biblioteca.instalar(self.db)
+        self.acervo = self.db.scalar(
+            "SELECT id FROM biblioteca WHERE code = ?", ("motivacao_handebol",))
+        self.db.execute("UPDATE biblioteca SET atualizada_em = '2026-09-21'"
+                        " WHERE id = ?", (self.acervo,))
+        self.rev = revisao.criar(self.db, "handebol", "Motivação no handebol")
+
+    def semear(self, *itens):
+        """A chave é por LINHA, e não pelo DOI.
+
+        O acervo real junta o repetido antes de gravar; aqui o teste
+        precisa guardar o mesmo trabalho vindo de duas bases, que é
+        justamente um dos casos a verificar.
+        """
+        for i, (base, titulo, doi, segmento) in enumerate(itens):
+            self.db.execute(
+                "INSERT INTO biblioteca_item (biblioteca_id, chave, segmento, title,"
+                " year, doi, base) VALUES (?,?,?,?,?,?,?)",
+                (self.acervo, f"{base}:{i}:{doi}", segmento, titulo, 2024, doi, base))
+        self.db.conn.commit()
+
+    def test_traz_o_acervo_sem_passar_por_arquivo(self):
+        self.semear(("pubmed", "Motivation in handball", "10.1/a", None),
+                    ("scopus", "Motivational climate", "10.1/b", None))
+        resumo = revisao.importar_do_acervo(self.db, self.rev, "motivacao_handebol")
+        self.assertEqual(resumo["novos"], 2)
+        self.assertEqual(
+            self.db.scalar("SELECT COUNT(*) FROM refs WHERE review_id = ?", (self.rev,)),
+            2)
+
+    def test_uma_busca_por_BASE_e_nao_uma_so(self):
+        """O PRISMA pede quantos vieram de onde.
+
+        Juntar tudo num "importado da biblioteca" apagaria justamente o
+        número que o fluxograma cobra.
+        """
+        self.semear(("pubmed", "A", "10.2/a", None), ("pubmed", "B", "10.2/b", None),
+                    ("scopus", "C", "10.2/c", None))
+        revisao.importar_do_acervo(self.db, self.rev, "motivacao_handebol")
+        buscas = self.db.dicts(
+            "SELECT base, n_retrieved, query, searched_on FROM review_searches"
+            " WHERE review_id = ? ORDER BY base", (self.rev,))
+        self.assertEqual([b["base"] for b in buscas], ["pubmed", "scopus"])
+        self.assertEqual([b["n_retrieved"] for b in buscas], [2, 1])
+
+    def test_a_estrategia_da_base_vai_junto(self):
+        """Revisão sem a estratégia gravada não é reproduzível por ninguém."""
+        self.semear(("pubmed", "A", "10.3/a", None))
+        revisao.importar_do_acervo(self.db, self.rev, "motivacao_handebol")
+        busca = self.db.dicts(
+            "SELECT query, searched_on FROM review_searches WHERE review_id = ?",
+            (self.rev,))[0]
+        self.assertIn("handball", busca["query"])
+        self.assertIn("[Title/Abstract]", busca["query"])
+        self.assertEqual(busca["searched_on"], "2026-09-21")
+
+    def test_trazer_duas_vezes_nao_duplica_a_leitura(self):
+        """Numa revisão a busca é refeita várias vezes até ficar boa."""
+        self.semear(("pubmed", "A", "10.4/a", None))
+        revisao.importar_do_acervo(self.db, self.rev, "motivacao_handebol")
+        segunda = revisao.importar_do_acervo(self.db, self.rev, "motivacao_handebol")
+        self.assertEqual(segunda["novos"], 0)
+        self.assertEqual(segunda["duplicados"], 1)
+        vivos = self.db.scalar(
+            "SELECT COUNT(*) FROM refs WHERE review_id = ? AND duplicate_of IS NULL",
+            (self.rev,))
+        self.assertEqual(vivos, 1)
+
+    def test_o_mesmo_trabalho_em_duas_bases_e_uma_leitura_so(self):
+        """A equipe não pode ler o mesmo resumo duas vezes."""
+        self.semear(("pubmed", "Motivation in handball", "10.5/x", None),
+                    ("scopus", "Motivation in handball", "10.5/x", None))
+        resumo = revisao.importar_do_acervo(self.db, self.rev, "motivacao_handebol")
+        self.assertEqual(resumo["novos"], 1)
+        self.assertEqual(resumo["duplicados"], 1)
+
+    def test_da_para_trazer_um_segmento_so(self):
+        self.semear(("pubmed", "A", "10.6/a", "Desempenho e competição"),
+                    ("pubmed", "B", "10.6/b", "Coesão e eficácia coletiva"))
+        resumo = revisao.importar_do_acervo(self.db, self.rev, "motivacao_handebol",
+                                            segmento="Coesão e eficácia coletiva")
+        self.assertEqual(resumo["lidos"], 1)
+        self.assertEqual(resumo["novos"], 1)
+
+    def test_o_acervo_vazio_diz_que_esta_vazio(self):
+        """Zero referência com cara de sucesso é o jeito de perder uma tarde."""
+        resumo = revisao.importar_do_acervo(self.db, self.rev, "motivacao_handebol")
+        self.assertEqual(resumo["novos"], 0)
+        self.assertIn("vazio", resumo["aviso"])
+
+    def test_acervo_que_nao_existe_e_erro_e_nao_silencio(self):
+        with self.assertRaises(ValueError) as caso:
+            revisao.importar_do_acervo(self.db, self.rev, "nao-existe")
+        self.assertIn("nao-existe", str(caso.exception))
+
+
 class TestConsolidacao(unittest.TestCase):
     """A decisão da equipe é derivada, nunca digitada."""
 

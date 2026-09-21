@@ -283,6 +283,66 @@ class TestPaginaDeTriagem(BaseWeb):
         self.assertIn("ESTADO.pendentes = lote.concat", corpo)
 
 
+class TestTrazerOAcervoPelaApi(BaseWeb):
+    """A biblioteca entra na triagem por um botão, e não por um arquivo."""
+
+    def setUp(self):
+        self.ana = self.entrar("ana@udesc.br")
+        self.code = f"acv-{self._testMethodName}"[:40]
+        status, _ = self.chamar("/api/revisoes", self.ana,
+                                {"titulo": "Motivação no handebol", "codigo": self.code})
+        self.assertEqual(status, 200)
+        # Os acervos entram na SUBIDA do serviço (api.serve), e aqui o
+        # servidor é montado à mão para não depender de porta fixa --
+        # então a instalação é explícita.
+        from lape import biblioteca, linhas
+        db = Database(self.db_path)
+        self.addCleanup(db.close)
+        linhas.instalar(db)
+        biblioteca.instalar(db)
+        alvo = db.scalar("SELECT id FROM biblioteca WHERE code = ?",
+                         ("motivacao_handebol",))
+        self.assertIsNotNone(alvo)
+        for i in range(3):
+            db.execute(
+                "INSERT OR IGNORE INTO biblioteca_item (biblioteca_id, chave, title,"
+                " year, doi, base) VALUES (?,?,?,?,?,?)",
+                (alvo, f"{self.code}:{i}", f"Motivation {self.code} {i}", 2024,
+                 f"10.7/{self.code}/{i}", "pubmed"))
+        db.conn.commit()
+
+    def test_a_rota_aceita_o_acervo_no_lugar_do_arquivo(self):
+        status, r = self.chamar(f"/api/revisoes/{self.code}/importar", self.ana,
+                                {"acervo": "motivacao_handebol"})
+        self.assertEqual(status, 200)
+        self.assertEqual(r["novos"], 3)
+        self.assertIn("pubmed", r["por_base"])
+        self.assertIn("prisma", r)
+
+    def test_acervo_que_nao_existe_responde_404(self):
+        status, r = self.chamar(f"/api/revisoes/{self.code}/importar", self.ana,
+                                {"acervo": "nao-existe"})
+        self.assertEqual(status, 404)
+        self.assertIn("nao-existe", r["error"])
+
+    def test_sem_conteudo_e_sem_acervo_o_recado_cita_os_dois(self):
+        """Antes ele mandava enviar o arquivo, e agora há dois caminhos."""
+        status, r = self.chamar(f"/api/revisoes/{self.code}/importar", self.ana,
+                                {"nome": "x.ris", "conteudo": "  "})
+        self.assertEqual(status, 400)
+        self.assertIn("acervo", r["error"])
+
+    def test_a_tela_oferece_o_botao_e_manda_o_codigo_do_acervo(self):
+        js = (ROOT / "scripts" / "lape" / "templates" / "triagem.js").read_text(
+            encoding="utf-8")
+        corpo = js[js.index("async function listarAcervosParaTriagem"):]
+        corpo = corpo[:corpo.index("\n}")]
+        self.assertIn("/api/bibliotecas", corpo)
+        self.assertIn("{ acervo: b.code }", corpo)
+        # acervo vazio não pode ser oferecido como se fosse trazer algo
+        self.assertIn("disabled: !b.n", corpo)
+
+
 class TestDownloadsDaRevisao(BaseWeb):
     """Exportar e o fluxograma: os dois respondem arquivo, não JSON."""
 

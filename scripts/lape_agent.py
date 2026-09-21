@@ -13,6 +13,7 @@
     python3 scripts/lape_agent.py identificar         # DOI, PMID, PMC e acesso aberto
     python3 scripts/lape_agent.py lattes --conferir    # ve o que o Lattes traria
     python3 scripts/lape_agent.py planilha            # reescreve a planilha do laboratorio
+    python3 scripts/lape_agent.py triagem --criar rev --titulo "..." --do-acervo acervo
     python3 scripts/lape_agent.py ana "quantos artigos publicamos"
     python3 scripts/lape_agent.py autoria             # confere a ordem dos autores
     python3 scripts/lape_agent.py status              # resumo do banco
@@ -267,6 +268,61 @@ def cmd_conferir_commit(args: argparse.Namespace) -> int:
     if recado:
         print(recado)
     return codigo
+
+
+def cmd_triagem(args: argparse.Namespace) -> int:
+    """Abre uma triagem e enche com o acervo da biblioteca.
+
+    A tela faz o mesmo, e continua sendo o caminho normal. Isto existe
+    para o momento em que a revisao NASCE: quem esta comecando quer a
+    pergunta, os criterios e as referencias dentro de uma vez so, e nao
+    cinco telas em sequencia -- e quer poder repetir o mesmo comando em
+    outra maquina e chegar na mesma revisao.
+    """
+    from lape import revisao
+
+    db = Database(args.db)
+    db.migrate()
+    if not args.criar:
+        revisoes = db.dicts(
+            "SELECT r.code, r.title,"
+            "  (SELECT COUNT(*) FROM refs f WHERE f.review_id = r.id"
+            "     AND f.duplicate_of IS NULL) AS refs"
+            "  FROM reviews r ORDER BY r.id")
+        if not revisoes:
+            print("Nenhuma triagem aberta. Para abrir uma:")
+            print('  python3 scripts/lape_agent.py triagem --criar codigo-da-revisao \\')
+            print('      --titulo "Titulo" --do-acervo motivacao_handebol')
+        for r in revisoes:
+            print(f"  {r['code']:28s} {r['refs']:5d} referencia(s)  {r['title'][:46]}")
+        db.close()
+        return 0
+
+    review_id = revisao.criar(
+        db, args.criar, args.titulo or args.criar,
+        question=args.pergunta, population=args.populacao,
+        intervention=args.intervencao, comparison=args.comparador,
+        outcome=args.desfecho, study_designs=args.delineamentos,
+        reviewers_needed=args.avaliadores)
+    print(f"  triagem ........ {args.criar}")
+    if args.do_acervo:
+        try:
+            resumo = revisao.importar_do_acervo(db, review_id, args.do_acervo)
+        except ValueError as erro:
+            print(f"  ! {erro}")
+            db.close()
+            return 1
+        print(f"  acervo ......... {resumo['acervo']}")
+        for base, conta in sorted(resumo["por_base"].items()):
+            print(f"      {base:8s} {conta['lidos']:4d} lido(s)"
+                  f"  {conta['novos']:4d} novo(s)  {conta['duplicados']:4d} repetido(s)")
+        if resumo.get("aviso"):
+            print(f"  ! {resumo['aviso']}")
+    quadro = revisao.prisma(db, review_id)
+    print(f"  na fila ........ {quadro['pendentes']} referencia(s) para triar")
+    print("\n  A triagem em si e na tela, em /triagem -- e de dois avaliadores.")
+    db.close()
+    return 0
 
 
 def cmd_ana(args: argparse.Namespace) -> int:
@@ -970,6 +1026,24 @@ def build_parser() -> argparse.ArgumentParser:
         "conferir-commit",
         help="usado pelo gancho de pre-commit; recusa banco com dados de pessoas")
     conferir_parser.set_defaults(func=cmd_conferir_commit)
+
+    triagem_parser = subparsers.add_parser(
+        "triagem", help="abre uma revisao e traz o acervo da biblioteca para ela")
+    triagem_parser.add_argument("--criar", metavar="CODIGO",
+                                help="codigo curto da revisao (sem acento)")
+    triagem_parser.add_argument("--titulo", help="titulo da revisao")
+    triagem_parser.add_argument("--pergunta", help="a pergunta da revisao")
+    triagem_parser.add_argument("--populacao", help="P do PICO")
+    triagem_parser.add_argument("--intervencao", help="I do PICO")
+    triagem_parser.add_argument("--comparador", help="C do PICO")
+    triagem_parser.add_argument("--desfecho", help="O do PICO")
+    triagem_parser.add_argument("--delineamentos",
+                                help="desenhos elegiveis, em texto")
+    triagem_parser.add_argument("--avaliadores", type=int, default=2,
+                                help="quantos triadores por referencia (padrao: 2)")
+    triagem_parser.add_argument("--do-acervo", metavar="CODIGO", dest="do_acervo",
+                                help="traz as referencias deste acervo da biblioteca")
+    triagem_parser.set_defaults(func=cmd_triagem)
 
     ana_parser = subparsers.add_parser(
         "ana", help="pergunta a Ana sobre o laboratorio, pela linha de comando")

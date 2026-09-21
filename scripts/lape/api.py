@@ -1696,9 +1696,25 @@ def route_review_import(ctx: "Context", review_id: str) -> Any:
     user = auth.require(ctx.user, "integrante")
     rev = _revisao(ctx, review_id)
     body = ctx.body or {}
+    if body.get("acervo"):
+        # O caminho sem arquivo: o acervo da biblioteca ja fez a busca e
+        # ja guarda a estrategia de cada base. Exportar da PubMed para
+        # colar aqui seria refazer a mao o que a maquina fez.
+        try:
+            resumo = revisao.importar_do_acervo(
+                ctx.db, rev["id"], str(body["acervo"]),
+                segmento=clean_text(body.get("segmento")))
+        except ValueError as exc:
+            raise ApiError(404, str(exc)) from exc
+        hooks.emit(ctx.db, "revisao.importada", entity="reviews", entity_id=rev["id"],
+                   detail=f"{resumo['novos']} da biblioteca ({body['acervo']})",
+                   actor=user.get("full_name"), payload=resumo)
+        resumo["prisma"] = revisao.prisma(ctx.db, rev["id"])
+        return resumo
     conteudo = body.get("conteudo")
     if not conteudo or not str(conteudo).strip():
-        raise ApiError(400, "envie o conteúdo do arquivo em 'conteudo'")
+        raise ApiError(400, "envie o conteúdo do arquivo em 'conteudo',"
+                            " ou o código do acervo em 'acervo'")
     try:
         resumo = revisao.importar(
             ctx.db, rev["id"], str(conteudo), nome=body.get("nome") or "",

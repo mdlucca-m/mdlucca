@@ -143,6 +143,26 @@ def importar(db: Database, review_id: int, texto: str, nome: str = "",
         "n_retrieved": len(registros),
     })
 
+    novos, repetidos, com_rayyan = _gravar_registros(
+        db, review_id, search_id, registros,
+        clean_text(base) or _base_pelo_nome(nome))
+    db.conn.commit()
+    return {"lidos": len(registros), "novos": novos, "duplicados": repetidos,
+            "com_triagem_do_rayyan": com_rayyan, "search_id": search_id,
+            "formato": formato or referencias.formato_de(nome, texto)}
+
+
+def _gravar_registros(db: Database, review_id: int, search_id: int,
+                      registros: list[dict[str, Any]],
+                      origem: str | None) -> tuple[int, int, int]:
+    """Grava o que ainda nao existe, e aponta o repetido para o original.
+
+    Esta parte e a mesma venha o registro de um arquivo ou de um acervo da
+    biblioteca, e por isso mora aqui: duplicar a deduplicacao seria
+    duplicar a regra mais delicada da revisao -- e a copia envelheceria
+    sozinha, que e o jeito de um sistema passar a contar diferente em dois
+    lugares.
+    """
     # O indice guarda as duas chaves de cada referencia que ficou, para o
     # registro novo casar por qualquer uma delas.
     existentes: dict[str, int] = {}
@@ -158,7 +178,7 @@ def importar(db: Database, review_id: int, texto: str, nome: str = "",
         ja_visto = next((existentes[k] for k in chaves if k in existentes), None)
         campos = {
             "review_id": review_id, "search_id": search_id, "dedup_key": chave or None,
-            "origem": clean_text(base) or _base_pelo_nome(nome),
+            "origem": origem,
         }
         for campo in ("title", "abstract", "authors", "journal", "volume", "issue",
                       "pages", "doi", "pmid", "issn", "language", "keywords", "url",
@@ -188,10 +208,72 @@ def importar(db: Database, review_id: int, texto: str, nome: str = "",
         if registro.get("rayyan"):
             com_rayyan += 1
             _trazer_do_rayyan(db, review_id, ref_id, registro["rayyan"])
+    return novos, repetidos, com_rayyan
+
+
+def importar_do_acervo(db: Database, review_id: int, code: str,
+                       segmento: str | None = None) -> dict[str, Any]:
+    """Leva o acervo da biblioteca para a triagem, sem passar por arquivo.
+
+    O acervo JA foi buscado nas bases, JA juntou o que veio repetido e JA
+    guarda a estrategia de cada base. Mandar a pessoa exportar da PubMed,
+    baixar um `.nbib` e colar aqui seria refazer a mao o que a maquina fez
+    -- e a busca refeita meses depois nao devolve o mesmo conjunto, que e
+    o jeito de uma revisao deixar de ser reproduzivel sem ninguem
+    perceber.
+
+    Uma busca por BASE, e nao uma so para o acervo inteiro: o PRISMA pede
+    quantos vieram de onde, e juntar tudo num "importado da biblioteca"
+    apagaria justamente o numero que o fluxograma cobra. A `query` gravada
+    e a estrategia daquela base -- a do segmento quando se pede um
+    segmento, a geral quando nao.
+
+    A deduplicacao e a mesma do arquivo, e de proposito: o registro que a
+    biblioteca trouxe pela Scopus e o que a triagem ja tinha pela PubMed
+    sao o mesmo trabalho, e a equipe nao pode ler o resumo duas vezes.
+    """
+    acervo = db.dicts(
+        "SELECT id, title, atualizada_em FROM biblioteca WHERE code = ?", (code,))
+    if not acervo:
+        raise ValueError(f"acervo “{code}” não existe")
+    acervo = acervo[0]
+    condicao = "biblioteca_id = ?"
+    params: list[Any] = [acervo["id"]]
+    if segmento:
+        condicao += " AND segmento = ?"
+        params.append(segmento)
+    itens = db.dicts(
+        "SELECT base, segmento, title, abstract, authors, journal, year, doi,"
+        "       pmid, url FROM " + "biblioteca_item"
+        f" WHERE {condicao} ORDER BY base, year DESC", params)
+    if not itens:
+        return {"acervo": acervo["title"], "lidos": 0, "novos": 0, "duplicados": 0,
+                "por_base": {}, "aviso": "o acervo está vazio -- atualize-o primeiro"}
+
+    por_base: dict[str, list[dict[str, Any]]] = {}
+    for item in itens:
+        por_base.setdefault(item["base"] or "biblioteca", []).append(item)
+
+    resumo = {"acervo": acervo["title"], "lidos": len(itens), "novos": 0,
+              "duplicados": 0, "por_base": {}, "aviso": None}
+    for base, registros in sorted(por_base.items()):
+        query = db.scalar(
+            "SELECT query FROM biblioteca_busca WHERE biblioteca_id = ? AND base = ?"
+            "   AND segmento IS ?", (acervo["id"], base, segmento))
+        search_id = db.insert("review_searches", {
+            "review_id": review_id, "base": base, "query": query,
+            "searched_on": acervo["atualizada_em"],
+            "file": f"acervo: {code}" + (f" / {segmento}" if segmento else ""),
+            "n_retrieved": len(registros),
+        })
+        novos, repetidos, _ = _gravar_registros(db, review_id, search_id,
+                                                registros, base)
+        resumo["novos"] += novos
+        resumo["duplicados"] += repetidos
+        resumo["por_base"][base] = {"lidos": len(registros), "novos": novos,
+                                    "duplicados": repetidos}
     db.conn.commit()
-    return {"lidos": len(registros), "novos": novos, "duplicados": repetidos,
-            "com_triagem_do_rayyan": com_rayyan, "search_id": search_id,
-            "formato": formato or referencias.formato_de(nome, texto)}
+    return resumo
 
 
 def _trazer_do_rayyan(db: Database, review_id: int, ref_id: int,
