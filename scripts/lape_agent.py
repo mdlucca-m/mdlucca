@@ -13,6 +13,7 @@
     python3 scripts/lape_agent.py identificar         # DOI, PMID, PMC e acesso aberto
     python3 scripts/lape_agent.py lattes --conferir    # ve o que o Lattes traria
     python3 scripts/lape_agent.py planilha            # reescreve a planilha do laboratorio
+    python3 scripts/lape_agent.py ana "quantos artigos publicamos"
     python3 scripts/lape_agent.py autoria             # confere a ordem dos autores
     python3 scripts/lape_agent.py status              # resumo do banco
 
@@ -265,6 +266,39 @@ def cmd_conferir_commit(args: argparse.Namespace) -> int:
     if recado:
         print(recado)
     return codigo
+
+
+def cmd_ana(args: argparse.Namespace) -> int:
+    """Pergunta a Ana pela janela preta, sem o sistema no ar.
+
+    A tela e o caminho normal, mas ela exige servidor de pe e alguem
+    logado. Quem esta com o cmd aberto -- conferindo um numero antes de
+    uma reuniao -- pergunta daqui.
+
+    Pela linha de comando quem esta perguntando e quem tem a pasta do
+    sistema na maquina, e por isso o perfil e o da coordenacao. A tela
+    continua respeitando o perfil de cada conta.
+    """
+    from lape import ana
+
+    db = Database(args.db)
+    db.migrate()
+    pergunta = " ".join(args.pergunta).strip()
+    saida = ana.responder(db, pergunta, perfil="coordenacao")
+    db.close()
+
+    if saida["resposta"]:
+        print(f"\n  {saida['resposta']}\n")
+    for item in saida["itens"]:
+        print(f"  {str(item['rotulo'])[:62]:62s} {item['valor']}")
+    if saida["fonte"]:
+        print(f"\n  de onde saiu: {saida['fonte']}")
+    if not saida["entendi"]:
+        print("  O que da para perguntar:")
+        for exemplo in saida["exemplos"]:
+            print(f"    {exemplo['pergunta']}")
+    print()
+    return 0
 
 
 def cmd_autoria(args: argparse.Namespace) -> int:
@@ -935,6 +969,12 @@ def build_parser() -> argparse.ArgumentParser:
         "conferir-commit",
         help="usado pelo gancho de pre-commit; recusa banco com dados de pessoas")
     conferir_parser.set_defaults(func=cmd_conferir_commit)
+
+    ana_parser = subparsers.add_parser(
+        "ana", help="pergunta a Ana sobre o laboratorio, pela linha de comando")
+    ana_parser.add_argument("pergunta", nargs="*",
+                            help="a pergunta, em portugues mesmo")
+    ana_parser.set_defaults(func=cmd_ana)
 
     autoria_parser = subparsers.add_parser(
         "autoria", help="confere a ordem de autoria: a que a tela le e a que esta gravada")

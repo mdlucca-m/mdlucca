@@ -1209,6 +1209,107 @@ VIEWS.eventos = crudView({
   ],
 });
 
+/* ==================================================================== */
+/* Ana — a pergunta em português, a resposta com a fonte junto          */
+/*                                                                      */
+/* Ana não adivinha: cada pergunta que ela entende está declarada no    */
+/* servidor, com a consulta que a responde. Por isso a tela mostra      */
+/* sempre três coisas na resposta — a frase, a lista por trás do número */
+/* e a FONTE. Sem a fonte, um número na tela é indistinguível de um     */
+/* palpite, e é esse número que acaba num relatório da CAPES.           */
+/*                                                                      */
+/* As perguntas de exemplo vêm do servidor, e não daqui: quem sabe o    */
+/* que Ana responde é ela, e uma lista escrita na tela envelheceria em  */
+/* silêncio a cada pergunta nova. Vêm já filtradas pelo perfil de quem  */
+/* está olhando — oferecer a quem tem leitura uma pergunta que vai ser  */
+/* recusada é ensinar o caminho da frustração.                          */
+VIEWS.ana = {
+  label: "Perguntar à Ana", group: "Laboratório",
+  async render(){
+    VIEW.innerHTML = "";
+    VIEW.appendChild(tituloDaTela("ana", "Perguntar à Ana"));
+    VIEW.appendChild(h("p", {class: "view", text:
+      "Pergunte em português sobre o laboratório. Ana responde com o que está "
+      + "no banco e diz de onde tirou cada número — e quando não sabe, ela diz "
+      + "que não sabe, em vez de estimar."}));
+
+    const campo = h("input", {type: "text", id: "ana-pergunta", autocomplete: "off",
+      placeholder: "Quantos artigos publicamos este ano?",
+      style: "flex:1 1 260px;min-width:0"});
+    const botao = h("button", {class: "primary", text: "Perguntar"});
+    const resposta = h("div", {id: "ana-resposta"});
+    const sugestoes = h("div", {class: "chips", style: "margin-top:12px"});
+
+    async function perguntar(texto){
+      if (texto !== undefined) campo.value = texto;
+      const pergunta = campo.value.trim();
+      resposta.innerHTML = "";
+      resposta.appendChild(h("div", {class: "empty", text: "Consultando o banco…"}));
+      let d;
+      try {
+        d = await api("/api/ana?pergunta=" + encodeURIComponent(pergunta));
+      } catch (e){
+        resposta.innerHTML = "";
+        resposta.appendChild(h("div", {class: "card"},
+          h("div", {class: "empty", text: e.message})));
+        return;
+      }
+      desenhar(d);
+    }
+
+    function desenhar(d){
+      resposta.innerHTML = "";
+      const cartao = h("div", {class: "card sec"});
+      cartao.appendChild(h("p", {style: "margin:0;font-size:15.5px;line-height:1.5",
+        text: d.resposta}));
+
+      /* A lista é a conferência: o número sozinho pede fé, e a lista
+         deixa quem pergunta discordar dele item a item. */
+      if (d.itens && d.itens.length){
+        /* Os rótulos das colunas vêm da resposta: "Motriz" embaixo de
+           "Quanto" faz a coluna mentir sobre o que há nela. */
+        const colunas = d.colunas || ["O quê", "Quanto"];
+        cartao.appendChild(table(
+          [{k: "rotulo", label: colunas[0]}, {k: "valor", label: colunas[1]}],
+          d.itens, "—"));
+      }
+      if (d.fonte){
+        cartao.appendChild(h("p", {class: "hint", style: "margin:10px 0 0",
+          text: "de onde saiu: " + d.fonte}));
+      }
+      resposta.appendChild(cartao);
+      preencherSugestoes(d.exemplos);
+    }
+
+    function preencherSugestoes(lista){
+      if (!lista || !lista.length) return;
+      sugestoes.innerHTML = "";
+      sugestoes.appendChild(h("span", {class: "hint",
+        style: "width:100%;margin:0 0 2px", text: "O que Ana sabe responder:"}));
+      lista.forEach(function (x){
+        sugestoes.appendChild(h("button", {class: "chip", text: x.pergunta,
+          onclick: function (){ perguntar(x.pergunta); }}));
+      });
+    }
+
+    botao.addEventListener("click", function (){ perguntar(); });
+    campo.addEventListener("keydown", function (e){
+      if (e.key === "Enter") perguntar();
+    });
+
+    VIEW.appendChild(h("div", {class: "card"}, [
+      h("div", {style: "display:flex;gap:8px;flex-wrap:wrap"}, [campo, botao]),
+      sugestoes,
+    ]));
+    VIEW.appendChild(resposta);
+    /* A pergunta vazia devolve a lista de exemplos: a tela abre já
+       dizendo o que dá para perguntar, em vez de um campo em branco. */
+    const inicial = await api("/api/ana?pergunta=").catch(function (){ return {}; });
+    preencherSugestoes(inicial.exemplos);
+    campo.focus();
+  },
+};
+
 VIEWS.senha = {
   label: "Trocar senha", group: "Conta",
   async render(){
@@ -2078,7 +2179,7 @@ async function preencherLista(destino){
 const ICONE = {
   ponto: "relogio",
   perfil: "pessoas", artigos: "producao", submissoes: "submissao", projetos: "projeto",
-  linhas: "linhas", biblioteca: "livro", eventos: "calendario",
+  linhas: "linhas", biblioteca: "livro", eventos: "calendario", ana: "explorar",
   senha: "qualidade", admin: "dados",
 };
 
@@ -3216,8 +3317,8 @@ function tituloDaTela(id, texto){
 /* A ordem do menu e explicita, e uma tela que nao esteja aqui simplesmente
    nao aparece -- registrar em VIEWS nao basta. Custou uma tela invisivel
    para descobrir isso. */
-const ORDER = ["ponto", "perfil", "artigos", "submissoes", "projetos", "linhas",
-               "biblioteca", "eventos", "senha", "admin"];
+const ORDER = ["ponto", "perfil", "artigos", "submissoes", "projetos", "ana",
+               "linhas", "biblioteca", "eventos", "senha", "admin"];
 
 function buildMenu(){
   MENU.innerHTML = "";

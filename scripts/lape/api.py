@@ -133,6 +133,7 @@ def route_index(ctx: "Context") -> Any:
             "GET  /api/catalog               medidas e dimensões disponíveis",
             "GET  /api/query                 ?medida=&por=&quebra=&linha=&ano=…",
             "GET  /api/history               ?metrica=publicados",
+            "GET  /api/ana                   ?pergunta=… a Ana responde, com a fonte",
             "GET  /api/lake/lineage          (coordenação) de onde veio cada carga",
             "GET  /api/stream                 eventos em tempo real (SSE)",
             "POST /api/invites                (coordenação) gera link de convite",
@@ -2186,6 +2187,20 @@ def route_versao(ctx: "Context") -> Any:
     return versao.atual()
 
 
+def route_ana(ctx: "Context") -> Any:
+    """A Ana responde -- com o perfil de quem pergunta, e nao com o dela.
+
+    O perfil vai para dentro de proposito: prazo de bolsa e etapa de tese
+    sao da coordenacao, e a recusa tem de acontecer ANTES da consulta, nao
+    depois, filtrando a resposta. Filtro depois vaza pelo total.
+    """
+    user = auth.require(ctx.user, "leitura")
+    from . import ana
+
+    pergunta = (ctx.query.get("pergunta", [""])[0] or "").strip()
+    return ana.responder(ctx.db, pergunta, perfil=user.get("user_role") or "leitura")
+
+
 def payload_do_panorama(db, desde: int | None = None,
                         ate: int | None = None) -> dict[str, Any]:
     """Tudo o que a tela do painel consome e que NAO depende de quem olha.
@@ -2313,6 +2328,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/agents/curator/?$", route_curator, "coordenacao"),
     ("GET", r"^/api/audit/?$", route_audit, "coordenacao"),
     ("GET", r"^/api/versao/?$", route_versao, "leitura"),
+    ("GET", r"^/api/ana/?$", route_ana, "leitura"),
     ("GET", r"^/api/ponto/?$", route_ponto, "integrante"),
     ("POST", r"^/api/ponto/entrar/?$", route_ponto_entrar, "integrante"),
     ("POST", r"^/api/ponto/sair/?$", route_ponto_sair, "integrante"),
