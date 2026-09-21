@@ -441,5 +441,178 @@ class TestExtracaoPelaApi(unittest.TestCase):
         self.assertIn("Estudo;", corpo)
 
 
+class TestOsFormulariosDeclarados(unittest.TestCase):
+    """A ficha fica ESCRITA, e nao montada a cada revisao.
+
+    Pela mesma razao das estrategias de busca: uma ficha montada na hora
+    sai diferente de uma revisao para a outra, e o campo que falta so
+    aparece quando alguem tenta preenche-lo -- com metade dos estudos ja
+    extraidos, e a unica saida sendo reler todos.
+    """
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.db = Database(Path(tmp.name) / "r.sqlite")
+        self.addCleanup(self.db.close)
+        self.db.migrate()
+        self.rev = revisao.criar(self.db, "r", "Revisão")
+
+    def test_o_completo_traz_o_que_o_prisma_pede_e_o_padrao_nao_tinha(self):
+        """Nao e lista de desejos: cada um destes e pedido por norma.
+
+        Financiamento e conflito de interesse sao exigencia de revista e
+        nao se acham depois; o resultado NAO significativo e o item 10 do
+        PRISMA 2020 -- sem campo proprio, a extracao copia o resumo, e o
+        resumo conta o que deu certo.
+        """
+        codigos = {c["code"] for c in extracao.FORMULARIO_COMPLETO}
+        for exigido in ("financiamento", "conflito", "etica", "registro",
+                        "idioma", "pais", "nao_significativos", "tamanho_efeito",
+                        "fidedignidade", "perdas", "n_analisado", "limitacoes",
+                        "relatos_irmaos", "texto_completo"):
+            with self.subTest(campo=exigido):
+                self.assertIn(exigido, codigos)
+
+    def test_a_ficha_da_autodeterminacao_contem_a_completa(self):
+        """O recorte acrescenta; nao substitui.
+
+        Uma ficha tematica que trocasse a generica perderia financiamento
+        e tamanho de efeito para ganhar as regulacoes -- e a revisao
+        deixaria de responder ao PRISMA para responder a teoria.
+        """
+        completo = [c["code"] for c in extracao.FORMULARIO_COMPLETO]
+        tematico = [c["code"] for c in extracao.FORMULARIO_AUTODETERMINACAO]
+        self.assertEqual(tematico[:len(completo)], completo)
+        for proprio in ("construtos_tad", "papel_tad", "instrumento_tad",
+                        "alfa_tad", "correlacoes_tad", "amostra_handebol",
+                        "proporcao_handebol", "nivel", "quem_respondeu"):
+            with self.subTest(campo=proprio):
+                self.assertIn(proprio, tematico)
+
+    def test_nenhum_formulario_tem_codigo_repetido(self):
+        """Codigo repetido faz o segundo campo sumir no UNIQUE, calado."""
+        for nome, forma in extracao.FORMULARIOS.items():
+            with self.subTest(formulario=nome):
+                codigos = [c["code"] for c in forma["campos"]]
+                self.assertEqual(len(codigos), len(set(codigos)))
+
+    def test_todo_campo_declarado_tem_tipo_que_a_tela_sabe_desenhar(self):
+        for nome, forma in extracao.FORMULARIOS.items():
+            for campo in forma["campos"]:
+                with self.subTest(formulario=nome, campo=campo["code"]):
+                    self.assertIn(campo.get("kind", "texto"), extracao.TIPOS)
+                    self.assertTrue(campo.get("grupo"), "campo sem grupo cai em “Geral”")
+                    if campo.get("kind") in ("escolha", "multipla"):
+                        self.assertTrue(campo.get("options"),
+                                        "escolha sem opções vira caixa vazia")
+
+    def test_preparar_aceita_o_formulario_pelo_nome_e_guarda_qual_foi(self):
+        extracao.preparar(self.db, self.rev, "mmat", formulario="autodeterminacao")
+        campos = extracao.campos(self.db, self.rev)
+        self.assertEqual(len(campos), len(extracao.FORMULARIO_AUTODETERMINACAO))
+        self.assertEqual(extracao.formulario_de(self.db, self.rev)["codigo"],
+                         "autodeterminacao")
+
+    def test_formulario_que_nao_existe_reclama_e_nao_instala_meio(self):
+        with self.assertRaises(ValueError) as erro:
+            extracao.preparar(self.db, self.rev, "rob2", formulario="inventado")
+        self.assertIn("inventado", str(erro.exception))
+        self.assertEqual(extracao.campos(self.db, self.rev), [])
+
+    def test_trocar_de_formulario_acrescenta_e_nao_apaga_o_que_foi_extraido(self):
+        """Começar no padrão e passar para o completo nao pode custar releitura."""
+        extracao.preparar(self.db, self.rev, "rob2", formulario="padrao")
+        revisao.importar(self.db, self.rev, RIS, "scopus.ris")
+        ref = self.db.scalar("SELECT id FROM refs LIMIT 1")
+        ana = self.db.member_id("Ana Souza")
+        extracao.gravar(self.db, ref, ana, {"n_total": "40"})
+
+        extracao.preparar(self.db, self.rev, "rob2", formulario="completo")
+        self.assertEqual(extracao.minha_extracao(self.db, ref, ana)["valores"]["n_total"],
+                         "40")
+        codigos = {c["code"] for c in extracao.campos(self.db, self.rev)}
+        self.assertIn("nao_significativos", codigos)
+
+
+class TestAMMAT(unittest.TestCase):
+    """A ferramenta e UMA por revisao, e ha revisao de desenhos misturados.
+
+    A da autodeterminacao no handebol e assim: transversais, um ensaio,
+    uma coorte, qualitativos e validacoes. Julgar tudo aquilo pela RoB 2
+    seria cobrar randomizacao de quem nao randomizou.
+    """
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.db = Database(Path(tmp.name) / "r.sqlite")
+        self.addCleanup(self.db.close)
+        self.db.migrate()
+        self.rev = revisao.criar(self.db, "r", "Revisão")
+
+    def test_tem_a_triagem_e_os_cinco_criterios_de_cada_categoria(self):
+        codigos = [c for c, _ in extracao.FERRAMENTAS_ROB["mmat"]["dominios"]]
+        self.assertEqual(codigos[:2], ["s1", "s2"])
+        for letra in ("q", "r", "n", "d", "m"):
+            with self.subTest(categoria=letra):
+                self.assertEqual([c for c in codigos if c.startswith(letra)],
+                                 [f"{letra}{i}" for i in range(1, 6)])
+        self.assertEqual(len(codigos), 27)
+
+    def test_tem_nao_se_aplica_porque_cada_estudo_responde_uma_categoria(self):
+        """Sem "nao se aplica", o criterio de outra categoria vira lacuna.
+
+        E lacuna, no semaforo, e circulo cinza -- indistinguivel de "a
+        equipe ainda nao julgou".
+        """
+        julgamentos = {j[0] for j in extracao.FERRAMENTAS_ROB["mmat"]["julgamentos"]}
+        self.assertEqual(julgamentos, {"sim", "nao", "indeterminado", "na"})
+
+    def test_a_mmat_nao_ganha_dominio_geral(self):
+        """A propria MMAT desaconselha o escore unico, por escrito.
+
+        Um numero esconde QUAL criterio falhou -- e e o criterio que muda
+        a leitura do estudo, nao a media dele.
+        """
+        extracao.preparar(self.db, self.rev, "mmat")
+        codigos = [d["code"] for d in extracao.dominios(self.db, self.rev)]
+        self.assertNotIn("geral", codigos)
+        self.assertEqual(len(codigos), 27)
+
+    def test_as_outras_ferramentas_continuam_com_o_geral(self):
+        extracao.preparar(self.db, self.rev, "rob2")
+        self.assertIn("geral", [d["code"] for d in extracao.dominios(self.db, self.rev)])
+
+    def test_o_instrumento_escolhido_sobrevive_a_um_protocolo_em_texto(self):
+        """`study_designs` e campo do protocolo, e foi usado como gaveta.
+
+        Uma revisao que escrevesse ali "transversais e ensaios" -- que e o
+        uso certo do campo -- voltava calada para a RoB 2, e passava a
+        cobrar randomizacao de estudo transversal.
+        """
+        rev = revisao.criar(self.db, "r2", "Revisão",
+                            study_designs="Transversais, ensaios e qualitativos")
+        extracao.preparar(self.db, rev, "mmat", formulario="completo")
+        self.assertEqual(extracao.ferramenta_da(self.db, rev)["codigo"], "mmat")
+        self.assertEqual(
+            self.db.scalar("SELECT study_designs FROM reviews WHERE id = ?", (rev,)),
+            "Transversais, ensaios e qualitativos",
+            "o protocolo nao pode ser sobrescrito pelo nome do instrumento")
+
+    def test_revisao_antiga_continua_lendo_o_instrumento_do_campo_velho(self):
+        """Antes da coluna propria, o instrumento morava em `study_designs`."""
+        rev = revisao.criar(self.db, "r3", "Revisão")
+        self.db.execute("UPDATE reviews SET study_designs = 'robins',"
+                        "       rob_tool = NULL WHERE id = ?", (rev,))
+        self.assertEqual(extracao.ferramenta_da(self.db, rev)["codigo"], "robins")
+
+    def test_o_semaforo_desenha_com_a_mmat(self):
+        extracao.preparar(self.db, self.rev, "mmat", formulario="autodeterminacao")
+        grade = extracao.semaforo(self.db, self.rev)
+        self.assertEqual(len(grade["dominios"]), 27)
+        self.assertIn("MMAT", grade["ferramenta"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

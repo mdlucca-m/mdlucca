@@ -452,18 +452,39 @@ async function desenharExtracao(palco) {
     alvo.appendChild(el("div", { class: "solto" }, [
       el("h3", { text: "Preparar a extração" }),
       el("div", { class: "hint", text:
-        "Escolha o instrumento de risco de viés. O formulário de extração vem "
-        + "com os campos que quase toda revisão precisa — dá para mexer depois." }),
+        "Duas escolhas, e as duas dá para mexer depois: o que se extrai de "
+        + "cada estudo, e com que instrumento se julga a qualidade dele. "
+        + "Trocar de formulário mais tarde acrescenta os campos que faltavam "
+        + "e não apaga nada do que já foi extraído." }),
       (function () {
+        const forma = el("select", {}, (dados.formularios || []).map(function (f) {
+          return el("option", { value: f.codigo,
+            text: f.nome + " — " + f.campos + " campos" }); }));
+        /* A descrição de cada formulário fica à vista e muda junto com a
+           escolha. "Padrão ouro" e "padrão" diferem em trinta campos por
+           estudo, em duplicata, e quem escolhe precisa saber disso ANTES
+           -- depois de metade dos estudos extraídos, trocar custa reler. */
+        const nota = el("div", { class: "hint" });
+        function contar() {
+          const f = (dados.formularios || []).find(function (x) {
+            return x.codigo === forma.value; }) || {};
+          nota.textContent = f.descricao || "";
+        }
+        forma.onchange = contar; contar();
         const escolha = el("select", {}, dados.ferramentas.map(function (f) {
           return el("option", { value: f.codigo,
             text: f.nome + " (" + f.dominios + " domínios)" }); }));
-        return el("div", { style: "display:grid;gap:9px;max-width:520px" }, [
+        return el("div", { style: "display:grid;gap:9px;max-width:620px" }, [
+          el("span", { style: "font-size:13px;font-weight:600",
+            text: "O que extrair de cada estudo" }),
+          forma, nota,
+          el("span", { style: "font-size:13px;font-weight:600;margin-top:6px",
+            text: "Como julgar a qualidade" }),
           escolha,
           el("button", { class: "primary", text: "Preparar", onclick: async function () {
             try {
               await api("/api/revisoes/" + ESTADO.revisao.code + "/formulario", "POST",
-                        { ferramenta: escolha.value });
+                        { ferramenta: escolha.value, formulario: forma.value });
               desenhar();
             } catch (erro) { aviso(erro.message); }
           } }),
@@ -482,8 +503,12 @@ async function desenharExtracao(palco) {
 
   if (!dados.incluidos.length) {
     alvo.appendChild(el("div", { class: "note info", text:
-      "Nenhum estudo chegou a incluído ainda. A extração começa quando a "
-      + "leitura de texto completo terminar." }));
+      "Nenhum estudo chegou a incluído ainda — a extração em si começa quando "
+      + "a leitura de texto completo terminar. Até lá, a ficha abaixo é para "
+      + "conferir e pilotar: o manual Cochrane manda testá-la em alguns "
+      + "estudos antes de valer, e é agora que mexer nela é barato. Depois de "
+      + "metade dos estudos extraídos, um campo que faltava custa reler tudo." }));
+    alvo.appendChild(fichaEmBranco(dados));
     return;
   }
 
@@ -495,6 +520,12 @@ async function desenharExtracao(palco) {
     el("h3", { text: "Estudos incluídos" }),
     el("div", { class: "hint", text: "Clique para extrair. O que você escrever "
       + "só aparece para a outra pessoa depois que ela também extrair." }),
+    /* Qual formulário e qual instrumento estão valendo, à vista e sempre.
+       São a coisa que a revisão publica no método, e quem abre a aba três
+       meses depois não tem de onde lembrar. */
+    el("div", { class: "hint", style: "margin-top:4px", text:
+      (dados.formulario || {}).nome + " · " + dados.campos.length + " campos · "
+      + dados.ferramenta.nome }),
     el("table", { class: "simples" }, [
       el("thead", {}, el("tr", {}, ["Estudo", "Extrações", "Conciliado"].map(
         function (c, i) { return el("th", { text: c, style: i ? "text-align:right" : null }); }))),
@@ -517,6 +548,67 @@ async function desenharExtracao(palco) {
       const moldura = document.getElementById("molduraSemaforo");
       if (moldura) moldura.innerHTML = svg;
     }).catch(function () { /* o botão de baixar continua valendo */ });
+}
+
+/* A ficha que vai valer, à vista antes de valer.
+
+   Sem isto a aba era um beco: quem preparava a extração via uma frase
+   dizendo para voltar depois, e a única maneira de saber o que seria
+   extraído era abrir um estudo -- que ainda não existe. E conferir a
+   ficha DEPOIS é conferir tarde: o campo que falta só aparece quando
+   alguém tenta preencher, e aí metade dos estudos já foi. */
+function fichaEmBranco(dados) {
+  const grupos = [];
+  dados.campos.forEach(function (campo) {
+    let g = grupos.find(function (x) { return x.nome === (campo.grupo || "Geral"); });
+    if (!g) { g = { nome: campo.grupo || "Geral", campos: [] }; grupos.push(g); }
+    g.campos.push(campo);
+  });
+  const obrigatorios = dados.campos.filter(function (c) { return c.required; }).length;
+
+  const caixa = el("div", { class: "solto", style: "margin-top:16px" }, [
+    el("h3", { text: "A ficha de extração" }),
+    el("div", { class: "hint", text: (dados.formulario || {}).nome + " — "
+      + dados.campos.length + " campos em " + grupos.length + " grupos, "
+      + obrigatorios + " obrigatórios. Cada estudo é extraído por duas "
+      + "pessoas em separado, e a versão final é uma terceira coisa." }),
+  ]);
+
+  grupos.forEach(function (grupo) {
+    const lista = el("table", { class: "simples" }, [
+      el("thead", {}, el("tr", {}, ["Campo", "Tipo"].map(function (c, i) {
+        return el("th", { text: c, style: i ? "text-align:right" : null }); }))),
+      el("tbody", {}, grupo.campos.map(function (campo) {
+        return el("tr", {}, [
+          el("td", {}, [
+            el("div", { text: campo.label + (campo.required ? " *" : "") }),
+            campo.help ? el("small", { class: "hint", text: campo.help }) : null,
+            /* As opções fechadas aparecem aqui porque vocabulário fechado só
+               serve se for combinado antes: descoberto no meio, cada pessoa
+               já escreveu o seu e a síntese não agrupa. */
+            campo.options ? el("small", { class: "hint",
+              text: "· " + String(campo.options).split(";").join(" · ") }) : null,
+          ]),
+          el("td", { class: "num" }, el("small", { class: "hint", text: campo.kind })),
+        ]);
+      })),
+    ]);
+    caixa.appendChild(el("details", { style: "margin-top:10px" }, [
+      el("summary", { text: grupo.nome + " (" + grupo.campos.length + ")" }),
+      lista,
+    ]));
+  });
+
+  caixa.appendChild(el("details", { style: "margin-top:10px" }, [
+    el("summary", { text: "Qualidade — " + dados.ferramenta.nome
+      + " (" + dados.dominios.length + ")" }),
+    el("div", { class: "hint", style: "margin-top:8px", text:
+      "Julgamentos: " + (dados.ferramenta.julgamentos || []).map(function (j) {
+        return j[1]; }).join(" · ") }),
+    el("ul", { style: "margin:8px 0 0 18px;font-size:13.5px;line-height:1.7" },
+      dados.dominios.map(function (d) { return el("li", { text: d.label }); })),
+  ]));
+  return caixa;
 }
 
 function saidasDaExtracao() {

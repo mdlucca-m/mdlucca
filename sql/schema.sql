@@ -484,6 +484,14 @@ CREATE TABLE IF NOT EXISTS reviews (
   comparison       TEXT,
   outcome          TEXT,
   study_designs    TEXT,
+  -- O instrumento de risco de vies e o formulario de extracao que ESTA
+  -- revisao usa. Ficavam os dois dependurados em `study_designs`, que e
+  -- campo de texto livre do protocolo: uma revisao que escrevesse ali
+  -- "transversais e ensaios" -- que e o uso certo do campo -- perdia o
+  -- instrumento escolhido e voltava calada para a RoB 2, julgando
+  -- transversal por randomizacao que ele nao tem.
+  rob_tool         TEXT,
+  extraction_form  TEXT,
   protocol_url     TEXT,
   blind            INTEGER NOT NULL DEFAULT 1,
   reviewers_needed INTEGER NOT NULL DEFAULT 2,

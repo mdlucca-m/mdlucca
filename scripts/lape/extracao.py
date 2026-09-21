@@ -75,6 +75,278 @@ FORMULARIO_PADRAO: tuple[dict[str, Any], ...] = (
     {"code": "conclusao", "label": "Conclusão dos autores", "kind": "texto_longo",
      "grupo": "Resultados"},
 )
+# ----------------------------------------------------------------------
+# O formulario completo -- o que uma revisao sistematica deve extrair
+# ----------------------------------------------------------------------
+# O de cima e um comeco. Este e a lista inteira, e ela nao e opiniao: sai
+# do item 10 do PRISMA 2020 (o que se buscou em cada estudo, e TODOS os
+# resultados, e nao so os significativos), do capitulo 5 do manual
+# Cochrane (o que uma ficha de coleta tem de ter) e das listas do JBI.
+#
+# Um campo aqui nao esta porque seria bonito te-lo: esta porque a sua
+# falta aparece depois, e sempre tarde. Financiamento e conflito de
+# interesse sao pedidos por revista e nao se acham mais quando a leitura
+# ja passou. Idioma e pais sao o que sustenta dizer de onde vem a
+# evidencia -- e uma revisao brasileira que nao consegue dizer isso perde
+# justamente o seu argumento. Fidedignidade NA AMOSTRA, e nao a do artigo
+# de validacao, e o que separa um achado de um ruido, e e o campo que
+# mais falta nas revisoes de psicologia do esporte. Resultado nao
+# significativo tem campo proprio porque, sem ele, a extracao copia o
+# resumo -- e o resumo so conta o que deu certo.
+#
+# Extrair tudo custa caro, e o custo e real: sao cinquenta e poucos
+# campos por estudo, em duplicata. Por isso ele e uma ESCOLHA, e nao o
+# padrao. Mas a escolha inversa custa mais: o campo que nao se extraiu na
+# primeira leitura so se recupera relendo os estudos todos.
+FORMULARIO_COMPLETO: tuple[dict[str, Any], ...] = (
+    # -- de onde veio o estudo, e o que ele declara sobre si -------------
+    {"code": "idioma", "label": "Idioma da publicação", "kind": "texto",
+     "grupo": "Identificação e procedência"},
+    {"code": "pais", "label": "País(es) da coleta", "kind": "texto",
+     "grupo": "Identificação e procedência",
+     "help": "Onde os dados foram coletados, que nem sempre é o país dos autores"},
+    {"code": "contexto", "label": "Contexto", "kind": "texto",
+     "grupo": "Identificação e procedência",
+     "help": "Clube, escola, seleção, federação, laboratório"},
+    {"code": "registro", "label": "Registro ou protocolo", "kind": "texto",
+     "grupo": "Identificação e procedência",
+     "help": "Número do registro, ou “não declarado”"},
+    {"code": "financiamento", "label": "Financiamento", "kind": "texto",
+     "grupo": "Identificação e procedência", "help": "Agência, ou “não declarado”"},
+    {"code": "conflito", "label": "Conflito de interesses", "kind": "texto",
+     "grupo": "Identificação e procedência",
+     "help": "O que os autores declaram — inclusive quando declaram que não há"},
+    {"code": "etica", "label": "Aprovação ética e consentimento", "kind": "texto",
+     "grupo": "Identificação e procedência"},
+    {"code": "dados_abertos", "label": "Dados ou materiais disponíveis", "kind": "texto",
+     "grupo": "Identificação e procedência",
+     "help": "Repositório e link, quando houver"},
+    {"code": "relatos_irmaos", "label": "Outros relatos do mesmo estudo",
+     "kind": "texto_longo", "grupo": "Identificação e procedência",
+     "help": "Dois artigos da mesma coleta são UM estudo. Sem este campo, a "
+             "mesma amostra entra duas vezes na síntese"},
+
+    # -- o desenho -------------------------------------------------------
+    {"code": "delineamento", "label": "Delineamento", "kind": "escolha",
+     "grupo": "Delineamento", "required": 1,
+     "options": "Transversal correlacional;Transversal comparativo;"
+                "Longitudinal (painel);Coorte prospectiva;Ensaio randomizado;"
+                "Ensaio não randomizado ou quase-experimental;"
+                "Delineamento de caso único;Qualitativo;Métodos mistos;"
+                "Validação de instrumento;Revisão"},
+    {"code": "unidade", "label": "Unidade de análise", "kind": "escolha",
+     "grupo": "Delineamento",
+     "options": "Atleta;Equipe;Díade treinador-atleta;Sessão ou jogo;Outra",
+     "help": "Atleta dentro de equipe é dado aninhado, e muda a análise que cabe"},
+    {"code": "momentos", "label": "Momentos de coleta", "kind": "texto",
+     "grupo": "Delineamento", "help": "Quantos, e quando — “único”, se for um só"},
+    {"code": "periodo", "label": "Período da coleta", "kind": "texto",
+     "grupo": "Delineamento",
+     "help": "Mês e ano, e onde da temporada — pré-temporada não é fim de campeonato"},
+    {"code": "amostragem", "label": "Amostragem", "kind": "escolha",
+     "grupo": "Delineamento",
+     "options": "Conveniência;Aleatória;Estratificada;Censo;Bola de neve;Não declarada"},
+    {"code": "calculo_amostral", "label": "Cálculo do tamanho amostral",
+     "kind": "texto", "grupo": "Delineamento",
+     "help": "O que foi declarado, ou “não declarado”"},
+    {"code": "elegibilidade", "label": "Critérios de elegibilidade do estudo",
+     "kind": "texto_longo", "grupo": "Delineamento"},
+
+    # -- quem ------------------------------------------------------------
+    {"code": "n_total", "label": "N recrutado", "kind": "numero",
+     "grupo": "Participantes", "required": 1},
+    {"code": "n_analisado", "label": "N analisado", "kind": "numero",
+     "grupo": "Participantes",
+     "help": "Quase nunca é o mesmo que o recrutado, e é este que vale"},
+    {"code": "perdas", "label": "Perdas e recusas", "kind": "texto",
+     "grupo": "Participantes", "help": "Quantos, e por quê"},
+    {"code": "idade", "label": "Idade", "kind": "texto", "grupo": "Participantes",
+     "help": "Média ± DP e faixa"},
+    {"code": "sexo", "label": "Sexo", "kind": "texto", "grupo": "Participantes",
+     "help": "n e % de cada — e não só “% mulheres”, que some quando não é binário"},
+    {"code": "populacao", "label": "Quem eram, e como chegaram ao estudo",
+     "kind": "texto_longo", "grupo": "Participantes"},
+
+    # -- o que foi medido ------------------------------------------------
+    {"code": "construtos", "label": "Construtos medidos", "kind": "texto_longo",
+     "grupo": "Medidas", "required": 1},
+    {"code": "instrumentos", "label": "Instrumentos", "kind": "texto_longo",
+     "grupo": "Medidas", "help": "Nome, sigla, número de itens e escala de resposta"},
+    {"code": "versao_instrumento", "label": "Versão, idioma e validação",
+     "kind": "texto_longo", "grupo": "Medidas",
+     "help": "Qual tradução, e a referência da validação naquele idioma"},
+    {"code": "fidedignidade", "label": "Fidedignidade NA AMOSTRA", "kind": "texto_longo",
+     "grupo": "Medidas",
+     "help": "α ou ω por subescala, medidos neste estudo — e não os do artigo "
+             "de validação. É o campo que mais falta, e o que separa achado de ruído"},
+    {"code": "validade", "label": "Evidência de validade relatada", "kind": "texto",
+     "grupo": "Medidas", "help": "AFC, invariância, validade convergente"},
+
+    # -- intervencao, quando houver --------------------------------------
+    {"code": "houve_intervencao", "label": "Houve intervenção?", "kind": "sim_nao",
+     "grupo": "Intervenção",
+     "help": "Não havendo, o resto deste grupo fica em branco de propósito"},
+    {"code": "intervencao", "label": "Intervenção", "kind": "texto_longo",
+     "grupo": "Intervenção",
+     "help": "O quê, quem aplicou, como, onde e quanto — o roteiro do TIDieR"},
+    {"code": "base_teorica", "label": "Base teórica declarada", "kind": "texto",
+     "grupo": "Intervenção"},
+    {"code": "duracao", "label": "Duração", "kind": "texto", "grupo": "Intervenção"},
+    {"code": "frequencia", "label": "Frequência e dose", "kind": "texto",
+     "grupo": "Intervenção"},
+    {"code": "comparador", "label": "Comparador", "kind": "texto_longo",
+     "grupo": "Intervenção", "help": "O que o outro grupo recebeu — “nada” também é resposta"},
+    {"code": "fidelidade", "label": "Fidelidade de implementação", "kind": "texto",
+     "grupo": "Intervenção", "help": "Como se verificou que a intervenção aconteceu como descrita"},
+
+    # -- como analisaram -------------------------------------------------
+    {"code": "analise", "label": "Método de análise", "kind": "texto_longo",
+     "grupo": "Análise", "required": 1},
+    {"code": "confundidores", "label": "Confundidores controlados", "kind": "texto",
+     "grupo": "Análise"},
+    {"code": "aninhamento", "label": "Aninhamento tratado?", "kind": "texto",
+     "grupo": "Análise",
+     "help": "Atletas da mesma equipe não são observações independentes. "
+             "Ignorar isso infla a significância"},
+    {"code": "faltantes", "label": "Dados faltantes", "kind": "texto",
+     "grupo": "Análise", "help": "Quantos, e o que fizeram com eles"},
+
+    # -- o que acharam ---------------------------------------------------
+    {"code": "desfecho_primario", "label": "Desfecho primário", "kind": "texto_longo",
+     "grupo": "Resultados", "required": 1},
+    {"code": "resultado", "label": "Resultado principal", "kind": "texto_longo",
+     "grupo": "Resultados", "required": 1},
+    {"code": "tamanho_efeito", "label": "Tamanhos de efeito", "kind": "texto_longo",
+     "grupo": "Resultados",
+     "help": "d, r, β, η², RR — com intervalo de confiança quando houver. "
+             "Valor de p sozinho não diz tamanho de nada"},
+    {"code": "nao_significativos", "label": "Resultados não significativos",
+     "kind": "texto_longo", "grupo": "Resultados",
+     "help": "O PRISMA pede TODOS os resultados. Sem este campo, a extração "
+             "copia o resumo — e o resumo conta o que deu certo"},
+    {"code": "subgrupos", "label": "Diferenças por subgrupo", "kind": "texto_longo",
+     "grupo": "Resultados", "help": "Sexo, idade, nível, categoria"},
+    {"code": "conclusao", "label": "Conclusão dos autores", "kind": "texto_longo",
+     "grupo": "Resultados"},
+    {"code": "limitacoes", "label": "Limitações declaradas", "kind": "texto_longo",
+     "grupo": "Resultados"},
+
+    # -- o registro da propria extracao ----------------------------------
+    {"code": "texto_completo", "label": "Texto completo obtido?", "kind": "sim_nao",
+     "grupo": "Registro da extração",
+     "help": "Extração feita só pelo resumo não vale, e precisa aparecer"},
+    {"code": "contato_autores", "label": "Contato com os autores", "kind": "texto",
+     "grupo": "Registro da extração",
+     "help": "Quando, o que se pediu e o que responderam"},
+    {"code": "observacoes", "label": "Observações de quem extraiu",
+     "kind": "texto_longo", "grupo": "Registro da extração"},
+)
+
+
+# ----------------------------------------------------------------------
+# A autodeterminacao no handebol
+# ----------------------------------------------------------------------
+# O completo, mais o que ESTA revisao pergunta. Um formulario generico
+# extrairia "construtos medidos: motivacao intrinseca" e pararia ai -- e
+# a revisao que quer saber o que a teoria da autodeterminacao ja disse
+# sobre o handebol precisa saber QUAL regulacao, medida por QUAL
+# instrumento, em QUE papel no modelo, e o que deu.
+#
+# Os campos da modalidade existem pela mesma razao. Metade da literatura
+# de handebol e de amostra misturada -- handebol, volei e basquete no
+# mesmo estudo --, e uma revisao que nao anota a proporcao acaba
+# descrevendo esporte coletivo em geral com o nome de handebol. Nivel
+# competitivo idem: suporte a autonomia em categoria de base escolar e
+# em selecao adulta nao sao o mesmo achado.
+FORMULARIO_AUTODETERMINACAO: tuple[dict[str, Any], ...] = FORMULARIO_COMPLETO + (
+    {"code": "amostra_handebol", "label": "A amostra é só de handebol?",
+     "kind": "sim_nao", "grupo": "Handebol", "required": 1},
+    {"code": "proporcao_handebol", "label": "Quantos jogavam handebol",
+     "kind": "texto", "grupo": "Handebol",
+     "help": "n e % — sem isso, amostra misturada vira “handebol” na síntese"},
+    {"code": "nivel", "label": "Nível competitivo", "kind": "escolha",
+     "grupo": "Handebol",
+     "options": "Escolar ou recreacional;Regional;Nacional;Internacional ou elite;"
+                "Misto;Não declarado"},
+    {"code": "categoria", "label": "Categoria etária", "kind": "texto",
+     "grupo": "Handebol", "help": "Sub-14, sub-16, sub-18, adulto, máster"},
+    {"code": "experiencia", "label": "Tempo de prática", "kind": "texto",
+     "grupo": "Handebol"},
+    {"code": "volume", "label": "Volume de treino", "kind": "texto",
+     "grupo": "Handebol", "help": "Horas e sessões por semana"},
+    {"code": "quem_respondeu", "label": "Quem respondeu", "kind": "escolha",
+     "grupo": "Handebol",
+     "options": "Atletas;Treinadores;Pais;Árbitros;Mais de um grupo",
+     "help": "Treinador respondendo sobre o próprio estilo não é o atleta "
+             "dizendo o que percebe, e a literatura mistura os dois"},
+
+    {"code": "construtos_tad", "label": "Construtos da TAD medidos",
+     "kind": "multipla", "grupo": "Autodeterminação", "required": 1,
+     "options": "Satisfação das necessidades;Frustração das necessidades;"
+                "Autonomia;Competência;Relacionamento;Motivação intrínseca;"
+                "Regulação integrada;Regulação identificada;Regulação introjetada;"
+                "Regulação externa;Amotivação;Motivação autônoma;"
+                "Motivação controlada;Índice de autonomia relativa;"
+                "Suporte à autonomia;Estilo controlador;Clima motivacional"},
+    {"code": "mini_teoria", "label": "Mini-teoria invocada", "kind": "escolha",
+     "grupo": "Autodeterminação",
+     "options": "Necessidades psicológicas básicas (BPNT);"
+                "Integração organísmica (OIT);Avaliação cognitiva (CET);"
+                "Conteúdo de metas (GCT);Motivação nas relações (RMT);"
+                "Orientações causais (COT);Não explicitada",
+     "help": "“Usamos a TAD” sem dizer qual mini-teoria é o caso mais comum, "
+             "e é um achado sobre a literatura"},
+    {"code": "papel_tad", "label": "Papel da TAD no modelo", "kind": "escolha",
+     "grupo": "Autodeterminação", "required": 1,
+     "options": "Variável dependente;Variável independente;Mediadora;Moderadora;"
+                "Apenas descritiva;Base da intervenção"},
+    {"code": "instrumento_tad", "label": "Instrumento da TAD", "kind": "texto_longo",
+     "grupo": "Autodeterminação", "required": 1,
+     "help": "BRSQ, SMS, SMS-II, BNSSS, BPNES, PNTS, SCQ, CCBS, PMCSQ-2, "
+             "IAR — com a versão e o número de itens"},
+    {"code": "alfa_tad", "label": "Fidedignidade das subescalas da TAD",
+     "kind": "texto_longo", "grupo": "Autodeterminação",
+     "help": "α ou ω de cada regulação, nesta amostra. Amotivação costuma ser "
+             "a subescala mais frágil, e o número raramente aparece no resumo"},
+    {"code": "correlacoes_tad", "label": "Coeficientes dos construtos da TAD",
+     "kind": "texto_longo", "grupo": "Autodeterminação",
+     "help": "r, β ou d de cada relação testada, com p e IC — é o que uma "
+             "meta-análise futura precisa, e não se recupera do resumo"},
+    {"code": "direcao", "label": "O achado sustenta a TAD?", "kind": "escolha",
+     "grupo": "Autodeterminação",
+     "options": "Sustenta;Sustenta em parte;Não sustenta;Misto;Não testa a teoria"},
+)
+
+
+# ----------------------------------------------------------------------
+# Os formularios, para a revisao escolher
+# ----------------------------------------------------------------------
+# Escolher fica com a revisao e nao com o codigo: uma revisao de
+# intervencao nao quer os campos da autodeterminacao, e uma revisao de
+# escopo nao quer nenhum dos dois inteiros. O que o codigo faz e ter os
+# tres ESCRITOS, para ninguem comecar da folha em branco -- que e como se
+# chega a metade dos estudos extraidos sem um campo que faltava.
+FORMULARIOS: dict[str, dict[str, Any]] = {
+    "padrao": {
+        "nome": "Padrão — revisão de intervenção",
+        "descricao": "O que quase toda revisão de intervenção precisa. Vinte campos.",
+        "campos": FORMULARIO_PADRAO,
+    },
+    "completo": {
+        "nome": "Completo — padrão ouro de revisão sistemática",
+        "descricao": "Tudo o que o PRISMA 2020, o manual Cochrane e o JBI pedem "
+                     "que se extraia de cada estudo, inclusive o que não deu "
+                     "significativo. Cinquenta e um campos, em duplicata.",
+        "campos": FORMULARIO_COMPLETO,
+    },
+    "autodeterminacao": {
+        "nome": "Completo + autodeterminação no esporte",
+        "descricao": "O completo, mais as regulações do continuum, os "
+                     "instrumentos da teoria e a proporção da amostra que "
+                     "joga a modalidade.",
+        "campos": FORMULARIO_AUTODETERMINACAO,
+    },
+}
 
 
 # ----------------------------------------------------------------------
@@ -119,6 +391,63 @@ FERRAMENTAS_ROB: dict[str, dict[str, Any]] = {
             ("d7", "Seleção do resultado relatado"),
         ),
     },
+    # A MMAT existe aqui por uma razao que a lista de cima nao resolve: a
+    # ferramenta e UMA POR REVISAO, e ha revisao cujos estudos nao tem
+    # todos o mesmo desenho. A da autodeterminacao no handebol e assim --
+    # vinte e poucos transversais, um ensaio randomizado, uma coorte,
+    # qualitativos e validacoes de instrumento. Avaliar tudo aquilo com a
+    # RoB 2 seria julgar transversal por randomizacao que ele nao tem, e
+    # com o JBI transversal seria deixar o ensaio sem julgamento.
+    #
+    # A MMAT foi feita exatamente para isso: duas perguntas de triagem que
+    # valem para todo estudo, e cinco criterios por categoria de desenho.
+    # Cada estudo responde as duas primeiras e os cinco da SUA categoria;
+    # os das outras ficam em "nao se aplica", que e resposta e nao lacuna.
+    #
+    # E nao tem dominio "geral". Isso nao e esquecimento: a propria MMAT
+    # desaconselha somar os criterios num escore unico, porque um numero
+    # esconde QUAL criterio falhou -- e e o criterio que muda a leitura do
+    # estudo, nao a media dele.
+    "mmat": {
+        "nome": "MMAT 2018 (desenhos mistos: qualitativo, ensaio, não randomizado, "
+                "descritivo e misto)",
+        "sem_geral": True,
+        "julgamentos": (
+            ("sim", "Sim", "good"),
+            ("nao", "Não", "critical"),
+            ("indeterminado", "Não dá para dizer", "warning"),
+            ("na", "Não se aplica", "neutro"),
+        ),
+        "dominios": (
+            ("s1", "T1. As perguntas de pesquisa estão claras?"),
+            ("s2", "T2. Os dados coletados permitem responder às perguntas?"),
+            ("q1", "1.1 Qualitativo — a abordagem é adequada à pergunta?"),
+            ("q2", "1.2 Qualitativo — os métodos de coleta são adequados?"),
+            ("q3", "1.3 Qualitativo — os achados derivam dos dados?"),
+            ("q4", "1.4 Qualitativo — a interpretação é sustentada pelos dados?"),
+            ("q5", "1.5 Qualitativo — há coerência entre dados, análise e interpretação?"),
+            ("r1", "2.1 Ensaio randomizado — a randomização foi bem feita?"),
+            ("r2", "2.2 Ensaio randomizado — os grupos eram comparáveis no início?"),
+            ("r3", "2.3 Ensaio randomizado — os dados de desfecho estão completos?"),
+            ("r4", "2.4 Ensaio randomizado — quem avaliou o desfecho estava cego?"),
+            ("r5", "2.5 Ensaio randomizado — os participantes aderiram à intervenção?"),
+            ("n1", "3.1 Não randomizado — os participantes representam a população-alvo?"),
+            ("n2", "3.2 Não randomizado — as medidas do desfecho e da exposição são adequadas?"),
+            ("n3", "3.3 Não randomizado — os dados de desfecho estão completos?"),
+            ("n4", "3.4 Não randomizado — os confundidores foram considerados?"),
+            ("n5", "3.5 Não randomizado — a exposição ocorreu como pretendido?"),
+            ("d1", "4.1 Descritivo — a estratégia de amostragem é pertinente?"),
+            ("d2", "4.2 Descritivo — a amostra representa a população-alvo?"),
+            ("d3", "4.3 Descritivo — as medidas são adequadas?"),
+            ("d4", "4.4 Descritivo — o risco de viés de não resposta é baixo?"),
+            ("d5", "4.5 Descritivo — a análise estatística responde à pergunta?"),
+            ("m1", "5.1 Misto — há justificativa para o delineamento misto?"),
+            ("m2", "5.2 Misto — os componentes estão integrados?"),
+            ("m3", "5.3 Misto — a integração é adequadamente interpretada?"),
+            ("m4", "5.4 Misto — divergências entre os componentes são tratadas?"),
+            ("m5", "5.5 Misto — cada componente cumpre os critérios da sua tradição?"),
+        ),
+    },
     "jbi_transversal": {
         "nome": "JBI — estudos transversais analíticos",
         "julgamentos": (
@@ -143,38 +472,80 @@ GERAL = ("geral", "Risco de viés geral")
 
 
 def preparar(db: Database, review_id: int, ferramenta: str = "rob2",
-             campos: tuple[dict[str, Any], ...] | None = None) -> dict[str, int]:
+             campos: tuple[dict[str, Any], ...] | None = None,
+             formulario: str = "padrao") -> dict[str, int]:
     """Instala o formulario e os dominios da ferramenta escolhida.
 
     Nao apaga o que ja existe: rodar de novo acrescenta o que faltava e
     deixa em paz o que a revisao ja mexeu. Trocar de instrumento no meio
     de uma revisao e decisao seria, e nao pode acontecer por engano.
+
+    Trocar de FORMULARIO no meio tambem nao apaga nada, e pela mesma
+    razao: os campos entram por codigo, e o que ja foi extraido continua
+    preso ao campo de onde saiu. Uma revisao que comecou no padrao e
+    passou para o completo ganha os campos que faltavam e nao perde
+    nenhuma linha do que ja tinha sido lido.
     """
     if ferramenta not in FERRAMENTAS_ROB:
         raise ValueError(f"instrumento desconhecido: {ferramenta}. "
                          f"Use {', '.join(FERRAMENTAS_ROB)}")
-    for seq, campo in enumerate(campos or FORMULARIO_PADRAO, start=1):
+    if campos is None:
+        if formulario not in FORMULARIOS:
+            raise ValueError(f"formulário desconhecido: {formulario}. "
+                             f"Use {', '.join(FORMULARIOS)}")
+        campos = FORMULARIOS[formulario]["campos"]
+    for seq, campo in enumerate(campos, start=1):
         db.upsert("extraction_fields", {
             "review_id": review_id, "code": campo["code"], "label": campo["label"],
             "kind": campo.get("kind", "texto"), "options": campo.get("options"),
             "help": campo.get("help"), "grupo": campo.get("grupo"),
             "seq": seq, "required": int(campo.get("required", 0)),
         }, conflict=("review_id", "code"), preserve=("label", "kind", "options", "help"))
-    dominios = list(FERRAMENTAS_ROB[ferramenta]["dominios"]) + [GERAL]
+    # O dominio "geral" e o julgamento do estudo inteiro, e nem toda
+    # ferramenta o tem: a MMAT desaconselha o escore unico por escrito, e
+    # acrescenta-lo seria pedir a equipe o que a ferramenta diz para nao
+    # fazer.
+    dominios = list(FERRAMENTAS_ROB[ferramenta]["dominios"])
+    if not FERRAMENTAS_ROB[ferramenta].get("sem_geral"):
+        dominios = dominios + [GERAL]
     for seq, (code, label) in enumerate(dominios, start=1):
         db.upsert("rob_domains", {
             "review_id": review_id, "code": code, "label": label, "seq": seq,
         }, conflict=("review_id", "code"), preserve=("label",))
-    db.execute("UPDATE reviews SET study_designs = COALESCE(study_designs, ?)"
-               " WHERE id = ?", (ferramenta, review_id))
+    db.execute("UPDATE reviews SET rob_tool = ?, extraction_form = ?,"
+               "       study_designs = COALESCE(study_designs, ?) WHERE id = ?",
+               (ferramenta, formulario, ferramenta, review_id))
     db.conn.commit()
-    return {"campos": len(campos or FORMULARIO_PADRAO), "dominios": len(dominios)}
+    return {"campos": len(campos), "dominios": len(dominios)}
 
 
 def ferramenta_da(db: Database, review_id: int) -> dict[str, Any]:
-    codigo = db.scalar("SELECT study_designs FROM reviews WHERE id = ?", (review_id,))
-    escolhida = FERRAMENTAS_ROB.get(str(codigo or ""), FERRAMENTAS_ROB["rob2"])
+    """O instrumento desta revisao.
+
+    Le `rob_tool` primeiro e `study_designs` depois, nesta ordem, por
+    causa das revisoes abertas antes de existir a coluna propria: nelas o
+    instrumento esta no campo antigo, e ler so o novo faria todas
+    voltarem para a RoB 2 de uma migracao para a outra.
+    """
+    linha = db.dicts("SELECT rob_tool, study_designs FROM reviews WHERE id = ?",
+                     (review_id,))
+    guardado = (linha[0]["rob_tool"] if linha else None) or \
+               (linha[0]["study_designs"] if linha else None)
+    codigo = str(guardado or "")
+    escolhida = FERRAMENTAS_ROB.get(codigo, FERRAMENTAS_ROB["rob2"])
     return {"codigo": codigo if codigo in FERRAMENTAS_ROB else "rob2", **escolhida}
+
+
+def formulario_de(db: Database, review_id: int) -> dict[str, Any]:
+    """Qual formulario esta revisao usa -- para a tela dizer o nome dele."""
+    codigo = str(db.scalar("SELECT extraction_form FROM reviews WHERE id = ?",
+                           (review_id,)) or "")
+    escolhido = FORMULARIOS.get(codigo)
+    if escolhido is None:
+        return {"codigo": None, "nome": "Formulário próprio desta revisão",
+                "descricao": "Os campos foram definidos aqui, e não por um "
+                             "formulário declarado."}
+    return {"codigo": codigo, **{k: v for k, v in escolhido.items() if k != "campos"}}
 
 
 # ----------------------------------------------------------------------

@@ -1867,6 +1867,10 @@ def route_review_form(ctx: "Context", review_id: str) -> Any:
         "ferramentas": [{"codigo": c, "nome": f["nome"],
                          "dominios": len(f["dominios"])}
                         for c, f in extracao.FERRAMENTAS_ROB.items()],
+        "formulario": extracao.formulario_de(ctx.db, rev["id"]),
+        "formularios": [{"codigo": c, "nome": f["nome"],
+                         "descricao": f["descricao"], "campos": len(f["campos"])}
+                        for c, f in extracao.FORMULARIOS.items()],
         "progresso": extracao.progresso(ctx.db, rev["id"]),
         "incluidos": ctx.db.dicts(
             "SELECT r.id, r.title, r.authors, r.journal, r.year, r.doi, r.url,"
@@ -1885,7 +1889,8 @@ def route_review_form_setup(ctx: "Context", review_id: str) -> Any:
     body = ctx.body or {}
     try:
         resultado = extracao.preparar(ctx.db, rev["id"],
-                                      body.get("ferramenta") or "rob2")
+                                      body.get("ferramenta") or "rob2",
+                                      formulario=body.get("formulario") or "padrao")
     except ValueError as exc:
         raise ApiError(400, str(exc)) from exc
     return {**resultado, "por": user.get("full_name")}
