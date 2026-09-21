@@ -1636,7 +1636,7 @@ class TestOAcervoDeMotivacaoNoHandebol(BaseBiblioteca):
 
 
 class TestAsBasesSemApi(BaseBiblioteca):
-    """Cinco bases que o sistema nao alcanca, e a estrategia delas.
+    """As bases que o sistema nao alcanca, e a estrategia delas.
 
     Uma revisao sistematica tem de publicar a estrategia de CADA base, com
     a data e o numero de registros. Montada a mao na hora, ela sai
@@ -1665,6 +1665,9 @@ class TestAsBasesSemApi(BaseBiblioteca):
         self.assertIn("TI ", biblioteca.frase(t, biblioteca.PSYCINFO))
         self.assertIn("AB ", biblioteca.frase(t, biblioteca.CINAHL))
         self.assertIn('ti:("', biblioteca.frase(t, biblioteca.LILACS))
+        # A SPORTDiscus é da EBSCO, como a PsycINFO e a CINAHL
+        self.assertIn("TI ", biblioteca.frase(t, biblioteca.SPORTDISCUS))
+        self.assertIn("AB ", biblioteca.frase(t, biblioteca.SPORTDISCUS))
 
     def test_o_mesh_nao_vaza_para_base_nenhuma_alem_da_pubmed(self):
         decl = next(d for d in biblioteca.BIBLIOTECAS if d["code"] == "fibromialgia")
@@ -1714,6 +1717,59 @@ class TestAsBasesSemApi(BaseBiblioteca):
             "SELECT COUNT(*) FROM biblioteca_busca WHERE biblioteca_id = ?"
             "   AND base NOT IN (?, ?, ?)", (bid, *biblioteca.BASES))
         self.assertEqual(n, 0)
+
+
+class TestASportDiscusNoHandebol(BaseBiblioteca):
+    """Para psicologia do esporte, a SPORTDiscus não é "mais uma" base.
+
+    É nela que estão as revistas do campo que a PubMed não indexa --
+    Journal of Sport and Exercise Psychology, The Sport Psychologist,
+    Psychology of Sport and Exercise. Uma revisão de motivação no esporte
+    sem ela deixa de fora justamente a literatura mais central, e o
+    revisor da banca pergunta por ela.
+    """
+
+    DECL = next(d for d in biblioteca.BIBLIOTECAS if d["code"] == "motivacao_handebol")
+
+    def test_o_acervo_declara_as_bases_manuais(self):
+        self.assertIn(biblioteca.SPORTDISCUS, self.DECL["manuais"])
+        for base in (biblioteca.EMBASE, biblioteca.PSYCINFO, biblioteca.LILACS):
+            with self.subTest(base=base):
+                self.assertIn(base, self.DECL["manuais"])
+
+    def test_a_estrategia_das_manuais_fica_gravada_como_as_outras(self):
+        """Guardada, e não montada à mão na hora de escrever o artigo."""
+        biblioteca.instalar(self.db)
+        alvo = self.db.scalar("SELECT id FROM biblioteca WHERE code = ?",
+                              ("motivacao_handebol",))
+        for base in self.DECL["manuais"]:
+            with self.subTest(base=base):
+                n = self.db.scalar(
+                    "SELECT COUNT(*) FROM biblioteca_busca"
+                    " WHERE biblioteca_id = ? AND base = ?", (alvo, base))
+                self.assertEqual(n, len(self.DECL["segmentos"]) + 1)
+
+    def test_a_bvs_busca_em_portugues_e_espanhol(self):
+        """Uma revisão brasileira que busca a América Latina em inglês
+        perde justamente a literatura de casa.
+        """
+        q = biblioteca.query_de(self.DECL, base=biblioteca.LILACS)
+        self.assertIn("motivação", q)
+        self.assertIn("motivación", q)
+        self.assertIn("handebol", q)
+        self.assertIn("balonmano", q)
+
+    def test_o_portugues_NAO_vaza_para_as_outras_bases(self):
+        """`regionais` é da BVS. Na PubMed seria termo morto no meio da busca."""
+        for base in (biblioteca.PUBMED, biblioteca.SCOPUS, biblioteca.WOS,
+                     biblioteca.SPORTDISCUS):
+            with self.subTest(base=base):
+                self.assertNotIn("motivação", biblioteca.query_de(self.DECL, base=base))
+
+    def test_a_coleta_nao_tenta_ir_sozinha_na_sportdiscus(self):
+        """Zero registro seria indistinguível de "não há nada sobre isto"."""
+        with self.assertRaises(biblioteca.SemChave):
+            biblioteca._colher(biblioteca.SPORTDISCUS, "qualquer coisa", 10)
 
 
 class TestAcervoRestrito(BaseBiblioteca):

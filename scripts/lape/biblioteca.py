@@ -134,12 +134,21 @@ BASES = (PUBMED, SCOPUS, WOS)
 # so de quem e o trabalho.
 EMBASE, PSYCINFO, CINAHL = "embase", "psycinfo", "cinahl"
 COCHRANE, LILACS = "cochrane", "lilacs"
-BASES_MANUAIS = (EMBASE, PSYCINFO, CINAHL, COCHRANE, LILACS)
+# A SPORTDiscus nao e "mais uma": para psicologia do esporte ela e a base
+# do campo. Indexa as revistas que a PubMed nao indexa -- Journal of Sport
+# and Exercise Psychology, The Sport Psychologist, International Journal
+# of Sport and Exercise Psychology, Psychology of Sport and Exercise --, e
+# uma revisao de motivacao no esporte sem ela deixa de fora justamente a
+# literatura mais central. E da EBSCO, como a PsycINFO e a CINAHL, e por
+# isso a estrategia sai na mesma sintaxe.
+SPORTDISCUS = "sportdiscus"
+BASES_MANUAIS = (EMBASE, PSYCINFO, CINAHL, COCHRANE, LILACS, SPORTDISCUS)
 
 ROTULO_BASE = {
     PUBMED: "PubMed", SCOPUS: "Scopus", WOS: "Web of Science",
     EMBASE: "Embase", PSYCINFO: "PsycINFO", CINAHL: "CINAHL",
     COCHRANE: "Cochrane CENTRAL", LILACS: "LILACS / BVS",
+    SPORTDISCUS: "SPORTDiscus",
 }
 
 # O que dizer de cada base que o sistema nao roda. A frase e o recado da
@@ -156,6 +165,10 @@ PORQUE_MANUAL = {
               "cochranelibrary.com — a CENTRAL é onde estão os ensaios.",
     LILACS: "A BVS não tem API estável. Cole em pesquisa.bvsalud.org — e é "
             "a única busca deste acervo em português e espanhol.",
+    SPORTDISCUS: "A SPORTDiscus é da EBSCO e não tem API aberta. Cole a "
+                 "estratégia na interface, com o acesso da universidade — é "
+                 "nela que estão as revistas de psicologia do esporte que a "
+                 "PubMed não indexa.",
 }
 
 
@@ -184,7 +197,7 @@ def frase(termos: tuple[str, ...], base: str) -> str:
     if base == COCHRANE:
         # Cochrane Library: igual na ideia, aspas duplas.
         return " OR ".join(f'"{t}":ti,ab,kw' for t in limpos)
-    if base in (PSYCINFO, CINAHL):
+    if base in (PSYCINFO, CINAHL, SPORTDISCUS):
         # EBSCO: um codigo de campo por termo, e os dois campos separados.
         return " OR ".join(f'TI "{t}" OR AB "{t}"' for t in limpos)
     if base == LILACS:
@@ -407,6 +420,17 @@ HANDEBOL_TERMOS = (
     "handball", "team handball", "balonmano", "handebol",
 )
 
+# O construto EM PORTUGUES E ESPANHOL, para a BVS. Sem isto, uma revisao
+# brasileira de handebol busca a America Latina em ingles e nao acha nada
+# -- e a literatura que ela mais perde e a de casa. A LILACS indexa o
+# resumo no idioma de origem, e a Espanha e o Brasil estao entre os que
+# mais publicam handebol.
+MOTIVACAO_REGIONAIS = (
+    "motivação", "motivacao", "motivación", "motivacion",
+    "clima motivacional", "motivação intrínseca", "motivacion intrinseca",
+    "autodeterminação", "autodeterminacion", "metas de logro",
+)
+
 # Os temas em que o acervo se divide. Os numeros ao lado foram MEDIDOS na
 # PubMed em 21/09/2026, e nao estimados -- mas foram medidos com uma
 # forma REDUZIDA desta estrategia (o construto encurtado, para caber no
@@ -561,14 +585,26 @@ BIBLIOTECAS: tuple[dict[str, Any], ...] = (
             "foi montado — pequeno e inteiro de ler, o que o torna bom para uma "
             "revisão de escopo: dá para dizer o que existe sem depender de "
             "amostragem. Scopus e Web of Science entram com a mesma estratégia, "
-            "escrita na sintaxe de cada uma.",
+            "escrita na sintaxe de cada uma — e mais seis bases que o sistema "
+            "não alcança sozinho ficam com a estratégia pronta para colar, "
+            "SPORTDiscus inclusive, que é onde está a psicologia do esporte "
+            "que a PubMed não indexa.",
         "construto": MOTIVACAO_TERMOS,
         "populacao": HANDEBOL_TERMOS,
+        "regionais": MOTIVACAO_REGIONAIS,
         # Sem MeSH de proposito: `"Handball"[MeSH Terms]` devolve zero na
         # PubMed -- o descritor nao existe --, e `"Sports"[MeSH]` alargaria
         # a populacao para esporte em geral.
         "mesh": (),
         "segmentos": TEMAS_MOTIVACAO_HANDEBOL,
+        # As seis que o sistema nao alcanca sozinho. A estrategia delas e
+        # montada e guardada do mesmo jeito, para quem tem o acesso colar
+        # na base -- e porque uma revisao sistematica publica a estrategia
+        # de CADA base, com a data e o numero de registros.
+        #
+        # A SPORTDiscus e a que mais importa aqui: e nela que estao as
+        # revistas de psicologia do esporte que a PubMed nao indexa.
+        "manuais": BASES_MANUAIS,
     },
 )
 
