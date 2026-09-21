@@ -1719,6 +1719,80 @@ class TestAsBasesSemApi(BaseBiblioteca):
         self.assertEqual(n, 0)
 
 
+class TestORecorteDaAutodeterminacao(BaseBiblioteca):
+    """Um recorte que devolve o acervo inteiro não é recorte.
+
+    Este acervo responde uma pergunta de TEORIA -- o que a
+    autodeterminação já disse sobre o handebol --, e por isso o
+    vocabulário é só o dela. Medido na PubMed: motivação em geral são 60
+    registros, autodeterminação são 22. Os 38 de diferença são clima
+    motivacional, metas de realização e coesão: literatura legítima, de
+    outra teoria, e é o que este acervo deixa de fora de propósito.
+    """
+
+    DECL = next(d for d in biblioteca.BIBLIOTECAS
+                if d["code"] == "autodeterminacao_handebol")
+    MAIOR = next(d for d in biblioteca.BIBLIOTECAS if d["code"] == "motivacao_handebol")
+
+    def test_a_palavra_motivation_sozinha_NAO_entra(self):
+        """Com ela, o recorte vira o acervo maior com outro nome."""
+        self.assertNotIn("motivation", self.DECL["construto"])
+        q = biblioteca.query_de(self.DECL, base=biblioteca.PUBMED)
+        self.assertNotIn('"motivation"[Title/Abstract]', q)
+        # e o acervo maior continua tendo, que é o que os separa
+        self.assertIn("motivation", self.MAIOR["construto"])
+
+    def test_o_construto_e_mais_estreito_que_o_do_acervo_maior(self):
+        """Não é uma cópia com outro nome: a teoria é que recorta."""
+        estreito = {t.lower() for t in self.DECL["construto"]}
+        largo = {t.lower() for t in self.MAIOR["construto"]}
+        self.assertTrue(estreito - largo, "o recorte não acrescenta termo nenhum")
+        for termo in ("self-determination theory", "need frustration",
+                      "autonomous motivation", "BRSQ"):
+            with self.subTest(termo=termo):
+                self.assertIn(termo.lower(), estreito)
+
+    def test_a_populacao_e_a_MESMA_do_acervo_maior(self):
+        """Dois vocabulários para o mesmo handebol seriam dois lugares
+        para consertar e um para esquecer.
+        """
+        self.assertIs(self.DECL["populacao"], self.MAIOR["populacao"])
+
+    def test_nenhum_segmento_repete_a_populacao(self):
+        populacao = {t.lower() for t in self.DECL["populacao"]}
+        nomes = [n for n, _ in self.DECL["segmentos"]]
+        self.assertEqual(len(set(nomes)), len(nomes))
+        for nome, termos in self.DECL["segmentos"]:
+            with self.subTest(tema=nome):
+                self.assertTrue(termos)
+                for t in termos:
+                    self.assertNotIn(t.lower(), populacao)
+
+    def test_entra_nas_nove_bases_como_o_acervo_maior(self):
+        biblioteca.instalar(self.db)
+        alvo = self.db.scalar("SELECT id FROM biblioteca WHERE code = ?",
+                              ("autodeterminacao_handebol",))
+        self.assertIsNotNone(alvo)
+        bases = {b["base"] for b in self.db.dicts(
+            "SELECT DISTINCT base FROM biblioteca_busca WHERE biblioteca_id = ?",
+            (alvo,))}
+        self.assertEqual(bases,
+                         set(biblioteca.BASES) | set(biblioteca.BASES_MANUAIS))
+
+    def test_a_bvs_busca_a_teoria_em_portugues_e_espanhol(self):
+        q = biblioteca.query_de(self.DECL, base=biblioteca.LILACS)
+        self.assertIn("autodeterminação", q)
+        self.assertIn("autodeterminación", q)
+        self.assertIn("handebol", q)
+
+    def test_os_dois_acervos_sao_independentes_no_banco(self):
+        """Recorte não é sub-acervo: cada um tem o seu próprio registro."""
+        biblioteca.instalar(self.db)
+        codigos = {b["code"] for b in self.db.dicts("SELECT code FROM biblioteca")}
+        self.assertIn("motivacao_handebol", codigos)
+        self.assertIn("autodeterminacao_handebol", codigos)
+
+
 class TestASportDiscusNoHandebol(BaseBiblioteca):
     """Para psicologia do esporte, a SPORTDiscus não é "mais uma" base.
 

@@ -501,6 +501,96 @@ TEMAS_MOTIVACAO_HANDEBOL: tuple[tuple[str, tuple[str, ...]], ...] = (
       "teamwork", "team climate")),
 )
 
+# ----------------------------------------------------------------------
+# Teoria da autodeterminacao no handebol
+# ----------------------------------------------------------------------
+# Este acervo e um RECORTE do de motivacao no handebol, e a relacao entre
+# os dois e a mesma que ha entre humor no esporte e humor nos esportes
+# esteticos: o de cima responde "o que move quem joga", e este responde
+# uma pergunta de teoria -- o que a autodeterminacao, especificamente,
+# ja disse sobre o handebol.
+#
+# A ARMADILHA AQUI E O CONSTRUTO, e ela e a razao de este bloco existir.
+# Se "motivation" entrasse na lista, o recorte devolveria praticamente o
+# acervo inteiro com outro nome: medido na PubMed, a motivacao em geral
+# da 60 registros e a autodeterminacao da 22. Os 38 de diferenca sao
+# clima motivacional, metas de realizacao, coesao -- literatura
+# legitima, de OUTRA teoria, e e justamente o que este acervo nao quer.
+#
+# Entao o vocabulario e so o da teoria: os nomes dela, as tres
+# necessidades, as regulacoes do continuum e os instrumentos que a medem.
+AUTODETERMINACAO_TERMOS = (
+    "self-determination theory", "self-determination", "self-determined motivation",
+    "basic psychological needs", "psychological need satisfaction",
+    "need satisfaction", "need frustration", "need thwarting",
+    "autonomy support", "autonomy-supportive", "controlling style",
+    "controlling coach behaviour", "controlling coach behavior",
+    "intrinsic motivation", "extrinsic motivation", "amotivation",
+    "autonomous motivation", "controlled motivation",
+    "identified regulation", "introjected regulation", "external regulation",
+    "integrated regulation", "behavioural regulation", "behavioral regulation",
+    # Os instrumentos: o artigo que diz "we applied the BRSQ" e nao repete
+    # o nome da teoria e o mais especifico do acervo, e era o que ficava
+    # de fora.
+    "Behavioural Regulation in Sport Questionnaire", "BRSQ",
+    "Basic Psychological Needs in Exercise Scale", "BPNES",
+    "Basic Needs Satisfaction in Sport Scale", "BNSSS",
+    "Sport Motivation Scale", "Perceived Autonomy Support",
+)
+
+# EM PORTUGUES E ESPANHOL, para a BVS -- e so para ela.
+AUTODETERMINACAO_REGIONAIS = (
+    "autodeterminação", "autodeterminacao", "autodeterminación", "autodeterminacion",
+    "teoria da autodeterminação", "teoría de la autodeterminación",
+    "necessidades psicológicas básicas", "necesidades psicológicas básicas",
+    "motivação intrínseca", "motivación intrínseca",
+    "apoio à autonomia", "apoyo a la autonomía",
+)
+
+# Os temas, com o que cada um tem na PubMed -- medido em 21/09/2026, com
+# uma forma reduzida da estrategia (o limite de operadores da consulta nao
+# deixou rodar a inteira). Sao um piso, e servem para uma coisa so: dizer
+# que nenhum segmento esta vazio. A base inteira deu 22.
+#
+# Num acervo deste tamanho os segmentos se sobrepoem muito -- um estudo de
+# suporte a autonomia em categoria de base conta em tres deles. Isso e
+# proposital: segmento aqui e recorte de leitura, e nao gaveta.
+TEMAS_AUTODETERMINACAO: tuple[tuple[str, tuple[str, ...]], ...] = (
+    # 15 registros
+    ("Formação e categorias de base",
+     ("youth", "youth sport", "adolescent", "adolescents", "young players",
+      "children", "school", "physical education")),
+    # 15
+    ("Desempenho, treino e nível competitivo",
+     ("performance", "effort", "training", "competitive level", "elite",
+      "professional", "season")),
+    # 11
+    ("Treinador: suporte à autonomia e estilo controlador",
+     ("coach", "coaches", "coaching", "autonomy-supportive", "controlling",
+      "coach-athlete relationship", "interpersonal style")),
+    # 10
+    ("Necessidades psicológicas básicas",
+     ("need satisfaction", "need frustration", "need thwarting", "autonomy",
+      "competence", "relatedness", "basic needs")),
+    # 10
+    ("Instrumentos e validação",
+     ("validation", "psychometric", "factor structure", "questionnaire", "scale",
+      "invariance", "reliability")),
+    # 8
+    ("Bem-estar, vitalidade e burnout",
+     ("well-being", "wellbeing", "ill-being", "vitality", "burnout", "enjoyment",
+      "satisfaction with life", "positive affect")),
+    # 8
+    ("Persistência, abandono e intenção de continuar",
+     ("dropout", "drop-out", "intention to continue", "persistence", "adherence",
+      "commitment", "engagement", "attrition")),
+    # 5
+    ("Regulações motivacionais: o continuum",
+     ("identified regulation", "introjected regulation", "external regulation",
+      "integrated regulation", "autonomous motivation", "controlled motivation",
+      "relative autonomy index")),
+)
+
 BIBLIOTECAS: tuple[dict[str, Any], ...] = (
     {
         "code": "humor_esporte",
@@ -604,6 +694,32 @@ BIBLIOTECAS: tuple[dict[str, Any], ...] = (
         #
         # A SPORTDiscus e a que mais importa aqui: e nela que estao as
         # revistas de psicologia do esporte que a PubMed nao indexa.
+        "manuais": BASES_MANUAIS,
+    },
+    {
+        "code": "autodeterminacao_handebol",
+        "title": "Teoria da autodeterminação no handebol",
+        "linha": "psicologia_do_esporte",
+        "eixo": "tema",
+        "descricao":
+            "O recorte teórico: o que a teoria da autodeterminação já disse sobre "
+            "o handebol — necessidades psicológicas básicas, as regulações do "
+            "continuum, suporte à autonomia e estilo controlador do treinador. É "
+            "um recorte do acervo de motivação no handebol, e não um acervo "
+            "paralelo: lá são 60 registros na PubMed, aqui 22. Os 38 de diferença "
+            "são clima motivacional, metas de realização e coesão — literatura "
+            "legítima, de outra teoria, e é justamente o que este acervo deixa de "
+            "fora de propósito. Por isso o vocabulário não tem a palavra "
+            "“motivation” sozinha: com ela, o recorte devolveria o acervo inteiro "
+            "com outro nome.",
+        "construto": AUTODETERMINACAO_TERMOS,
+        "populacao": HANDEBOL_TERMOS,
+        "regionais": AUTODETERMINACAO_REGIONAIS,
+        # Sem MeSH: `"Handball"[MeSH Terms]` devolve zero na PubMed -- o
+        # descritor nao existe -- e `Sports[MeSH]` alargaria a populacao
+        # para esporte em geral. Medido junto com o acervo maior.
+        "mesh": (),
+        "segmentos": TEMAS_AUTODETERMINACAO,
         "manuais": BASES_MANUAIS,
     },
 )
