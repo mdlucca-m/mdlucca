@@ -140,6 +140,7 @@ footer{max-width:680px;margin:0 auto;padding-inline:16px;color:var(--ink-4);font
   <section id="s-hoje" hidden></section>
   <section id="s-checkin" hidden></section>
   <section id="s-semana" hidden></section>
+  <section id="s-anamnese" hidden></section>
   <section id="s-meus" hidden></section>
 </main>
 
@@ -392,19 +393,73 @@ const POSICOES = ["Levantador","Oposto","Ponteiro (Ponta)","Central","Líbero"];
 const REFS_1RM = ["Agachamento","Agachamento frontal","Supino","Stiff com barra",
                   "Remada serrote","Arranco","Clean","Clean pull"];
 
+/* ── Anamnese ───────────────────────────────────────────────────────────── */
+/* O PAR-Q é uma triagem de prontidão para atividade física, não um diagnóstico.
+   A regra do instrumento é dura e a página a respeita: um "sim" em qualquer
+   pergunta significa conversar com um médico ANTES de receber carga.
+   Esta lista tem de ser idêntica à do app da comissão — há teste comparando. */
+const PARQ = [
+  "Algum médico já disse que você tem um problema no coração e que só deveria fazer atividade física sob supervisão médica?",
+  "Você sente dor no peito quando faz atividade física?",
+  "No último mês, você sentiu dor no peito quando NÃO estava fazendo atividade física?",
+  "Você perde o equilíbrio por tontura ou já perdeu a consciência?",
+  "Você tem algum problema ósseo ou articular que poderia piorar com a atividade física?",
+  "Seu médico receita atualmente algum remédio para pressão ou para o coração?",
+  "Você sabe de alguma outra razão pela qual não deveria fazer atividade física?",
+];
+const REGIOES = ["Ombro","Cotovelo","Punho ou mão","Lombar","Quadril","Coxa",
+                 "Joelho","Perna","Tornozelo","Pé"];
+const CONDICOES = ["Asma","Diabetes","Hipertensão","Problema cardíaco","Epilepsia",
+                   "Tireoide","Anemia"];
+const LADOS = ["Direito","Esquerdo","Os dois"];
+const STATUS_LESAO = ["Recuperado","Em tratamento","Ainda limita"];
+const EXP_LPO = ["Nenhuma","Iniciante","Intermediário","Avançado"];
+
+/* A ordem É o protocolo da mensagem: o número na frente liga os dois lados. */
+const CAMPOS_ANAMNESE = [].concat(
+  PARQ.map((p, i) => [i+1, "parq" + (i+1), "PAR-Q " + (i+1), "sn"]),
+  [[8,  "condicoes",   "Condições de saúde",             "lista"],
+   [9,  "cirurgias",   "Cirurgias",                      "txt"],
+   [10, "medicacao",   "Medicação contínua",             "txt"],
+   [11, "alergias",    "Alergias",                       "txt"],
+   [12, "lesoes",      "Lesões anteriores",              "lesoes"],
+   [13, "dor_recor",   "Regiões que costumam doer",      "lista"],
+   [14, "sono_hab",    "Horas de sono habitual",         "num"],
+   [15, "fuma",        "Fuma",                           "sn"],
+   [16, "alcool",      "Álcool",                         "txt"],
+   [17, "anos_muscu",  "Anos de musculação",             "int"],
+   [18, "exp_lpo",     "Experiência com levantamento olímpico", "opc"]]
+);
+
+function mensagemAnamnese(an){
+  const linhas = CAMPOS_ANAMNESE.map(([, chave, rot, tipo]) => {
+    const v = an[chave];
+    if (tipo === "sn") return [rot, v === true ? "sim" : v === false ? "não" : ""];
+    if (tipo === "lista") return [rot, (v && v.length) ? v.join("; ") : "nenhuma"];
+    if (tipo === "lesoes") return [rot, (v && v.length)
+      ? v.map(l => [l.regiao, l.lado, l.ano, l.dias === null ? "" : l.dias, l.status].join("|")).join(" ; ")
+      : "nenhuma"];
+    if (tipo === "num" || tipo === "int")
+      return [rot, v === null || v === undefined ? "" : String(v).replace(".", ",")];
+    return [rot, v == null ? "" : String(v)];
+  });
+  return mensagem("ANAMNESE", linhas);
+}
+
 /* ── Estado, só neste aparelho ──────────────────────────────────────────── */
 /* localStorage e nada mais: o que ele escreve é dele, fica no celular dele, e
    vai para a comissão quando ELE manda. Cada leitura e escrita num try: numa
    janela anônima o armazenamento simplesmente não existe, e a página tem de
    continuar funcionando. */
 const CH = "elase_atleta_v1";
-let S = {ficha:null, rm:{}, registros:{}};
+let S = {ficha:null, rm:{}, registros:{}, anamnese:null, lesoesRascunho:null};
 function carregar(){
   try {
     const cru = localStorage.getItem(CH);
     if (cru) S = Object.assign(S, JSON.parse(cru));
   } catch (e) {}
   S.rm = S.rm || {}; S.registros = S.registros || {};
+  S.anamnese = S.anamnese || null;
 }
 function guardar(){
   try { localStorage.setItem(CH, JSON.stringify(S)); } catch (e) {}
@@ -444,6 +499,7 @@ const ABAS = [
   {id:"hoje",     rot:"Hoje"},
   {id:"checkin",  rot:"Check-in"},
   {id:"semana",   rot:"Minha semana"},
+  {id:"anamnese", rot:"Anamnese"},
   {id:"meus",     rot:"Meus dados"},
 ];
 const UI = {aba:"hoje", saida:"", saidaTitulo:"", editando:false};
@@ -769,6 +825,110 @@ function telaSemana(){
     </div>`;
 }
 
+/* ── Anamnese ───────────────────────────────────────────────────────────── */
+function telaAnamnese(){
+  const an = S.anamnese || {};
+  const les = S.lesoesRascunho || an.lesoes || [];
+  const sn = (chave, atual) => `<div class="likert" data-sn="${chave}">
+      <button type="button" data-v="nao" aria-pressed="${atual===false?"true":"false"}">Não</button>
+      <button type="button" data-v="sim" aria-pressed="${atual===true?"true":"false"}">Sim</button>
+    </div>`;
+  const marcas = (chave, opcoes, atuais) => `<div class="likert" data-marcas="${chave}"
+      style="flex-wrap:wrap;gap:6px">
+      ${opcoes.map(o => `<button type="button" data-o="${esc(o)}"
+        aria-pressed="${(atuais||[]).indexOf(o)>=0?"true":"false"}"
+        style="flex:0 0 auto;padding:0 11px">${esc(o)}</button>`).join("")}
+    </div>`;
+
+  return `<div class="cabeca"><h2>Anamnese</h2>
+      <p>Uma vez só, e vale para a temporada inteira. É o que permite prescrever
+      carga sabendo do seu histórico em vez de adivinhando.</p></div>
+
+    ${an.enviada_em ? `<div class="nota bom">Você já preencheu em
+      ${dataBR(an.enviada_em)}. Pode refazer: a última vale.</div>` : ""}
+
+    <div class="cartao"><h3>Prontidão para atividade física (PAR-Q)</h3>
+      <p style="font-size:13px;color:var(--ink-3);margin:0 0 13px">Sete perguntas.
+      Responda com sinceridade — se alguma for "sim", não significa que você está
+      fora: significa que a comissão vai te orientar a passar por um médico antes
+      de pegar carga pesada. É proteção sua.</p>
+      ${PARQ.map((p, i) => `<div style="padding:11px 0;border-top:1px solid var(--line-2)">
+        <div style="font-size:14px;margin-bottom:9px">${i+1}. ${esc(p)}</div>
+        ${sn("parq" + (i+1), an["parq" + (i+1)])}
+      </div>`).join("")}
+    </div>
+
+    <div class="cartao"><h3>Saúde</h3>
+      <label><span>Alguma destas condições?</span></label>
+      ${marcas("condicoes", CONDICOES, an.condicoes)}
+      <label for="anCirurgias" style="margin-top:14px"><span>Cirurgias (quais e quando)</span></label>
+      <textarea id="anCirurgias" rows="2" placeholder="nenhuma">${esc(an.cirurgias||"")}</textarea>
+      <label for="anMedicacao"><span>Medicação de uso contínuo</span></label>
+      <textarea id="anMedicacao" rows="2" placeholder="nenhuma">${esc(an.medicacao||"")}</textarea>
+      <label for="anAlergias"><span>Alergias</span></label>
+      <input id="anAlergias" placeholder="nenhuma" value="${esc(an.alergias||"")}">
+    </div>
+
+    <div class="cartao"><h3>Lesões anteriores</h3>
+      <p style="font-size:13px;color:var(--ink-3);margin:0 0 12px">Acrescente uma
+      por vez. Lesão antiga é o melhor previsor de lesão nova — é por isso que
+      esta parte existe.</p>
+      ${les.length ? `<div class="pares" style="margin-bottom:12px">
+        ${les.map((l, i) => `<div>
+          <span>${esc(l.regiao)} ${esc(l.lado||"")} ${l.ano?"· "+esc(l.ano):""}
+            ${l.status?"· "+esc(l.status):""}</span>
+          <button class="bt alt mini" data-tira-lesao="${i}">tirar</button></div>`).join("")}
+      </div>` : `<div class="vazio" style="padding:8px 0">Nenhuma lesão registrada.</div>`}
+      <div class="dupla">
+        <div><label for="lRegiao"><span>Região</span></label>
+          <select id="lRegiao"><option value="">— escolha —</option>
+            ${REGIOES.map(r=>`<option>${esc(r)}</option>`).join("")}</select></div>
+        <div><label for="lLado"><span>Lado</span></label>
+          <select id="lLado"><option value="">—</option>
+            ${LADOS.map(r=>`<option>${esc(r)}</option>`).join("")}</select></div>
+      </div>
+      <div class="dupla">
+        <div><label for="lAno"><span>Ano</span></label>
+          <input id="lAno" inputmode="numeric" placeholder="${new Date().getFullYear()}"></div>
+        <div><label for="lDias"><span>Dias parado</span></label>
+          <input id="lDias" inputmode="numeric" placeholder="30"></div>
+      </div>
+      <label for="lStatus"><span>Como está hoje</span></label>
+      <select id="lStatus">${STATUS_LESAO.map(r=>`<option>${esc(r)}</option>`).join("")}</select>
+      <button class="bt alt larga" id="btAddLesao">Acrescentar esta lesão</button>
+      <p class="aviso erro" id="avLesao" hidden></p>
+    </div>
+
+    <div class="cartao"><h3>Dor recorrente</h3>
+      <p style="font-size:13px;color:var(--ink-3);margin:0 0 12px">Regiões que
+      costumam doer, mesmo sem lesão diagnosticada.</p>
+      ${marcas("dor_recor", REGIOES, an.dor_recor)}
+    </div>
+
+    <div class="cartao"><h3>Hábitos e histórico de treino</h3>
+      <div class="dupla">
+        <div><label for="anSono"><span>Horas de sono numa noite comum</span></label>
+          <input id="anSono" inputmode="decimal" placeholder="7,5"
+            value="${an.sono_hab!==undefined&&an.sono_hab!==null?String(an.sono_hab).replace(".",","):""}"></div>
+        <div><label for="anMuscu"><span>Anos de musculação</span></label>
+          <input id="anMuscu" inputmode="numeric"
+            value="${an.anos_muscu!==undefined&&an.anos_muscu!==null?an.anos_muscu:""}"></div>
+      </div>
+      <label><span>Fuma?</span></label>
+      ${sn("fuma", an.fuma)}
+      <label for="anAlcool" style="margin-top:14px"><span>Álcool</span></label>
+      <select id="anAlcool"><option value="">—</option>
+        ${["Não bebo","Raramente","Fim de semana","Frequentemente"].map(o =>
+          `<option ${an.alcool===o?"selected":""}>${esc(o)}</option>`).join("")}</select>
+      <label for="anLpo"><span>Experiência com levantamento olímpico</span></label>
+      <select id="anLpo">${EXP_LPO.map(o =>
+        `<option ${an.exp_lpo===o?"selected":""}>${esc(o)}</option>`).join("")}</select>
+    </div>
+
+    <button class="bt larga" id="btAnamnese">Gravar e gerar a mensagem</button>
+    <p class="aviso erro" id="avAnamnese" hidden></p>`;
+}
+
 /* ── Meus dados ─────────────────────────────────────────────────────────── */
 function telaMeus(){
   const d = S.ficha || {};
@@ -830,7 +990,7 @@ document.addEventListener("click", soltarDepois, true);
 document.addEventListener("pointercancel", soltarDepois, true);
 document.addEventListener("touchcancel", soltarDepois, true);
 
-const SECOES = ["cadastro","hoje","checkin","semana","meus"];
+const SECOES = ["cadastro","hoje","checkin","semana","anamnese","meus"];
 function desenhar(){
   const dentro = !!S.ficha && !UI.editando;
   const btEu = document.getElementById("btEu");
@@ -858,6 +1018,7 @@ function desenhar(){
     : UI.aba === "fim" ? telaFim()
     : UI.aba === "checkin" ? telaCheckin()
     : UI.aba === "semana" ? telaSemana()
+    : UI.aba === "anamnese" ? telaAnamnese()
     : telaMeus();
   /* O cartão de envio é montado UMA vez, aqui, e não dentro de cada tela: o
      cadastro grava e já joga o atleta na área, então quem mostra a ficha é a
@@ -875,10 +1036,15 @@ document.addEventListener("click", async ev => {
   const alvo = ev.target.closest("button,a");
   if (!alvo) return;
 
-  const grupo = alvo.closest("[data-escala],[data-brums]");
+  const grupo = alvo.closest("[data-escala],[data-brums],[data-sn]");
   if (grupo && alvo.hasAttribute("data-v")){
     grupo.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed","false"));
     alvo.setAttribute("aria-pressed","true");
+    return;
+  }
+  /* Marcas são de escolha MÚLTIPLA: alternam em vez de se excluírem. */
+  if (alvo.hasAttribute("data-o") && alvo.closest("[data-marcas]")){
+    alvo.setAttribute("aria-pressed", alvo.getAttribute("aria-pressed") === "true" ? "false" : "true");
     return;
   }
   if (alvo.hasAttribute("data-pse")){
@@ -910,7 +1076,78 @@ document.addEventListener("click", async ev => {
   if (id === "btFim"){ gravarFim(); return; }
   if (id === "btRM"){ gravarRM(); return; }
   if (id === "btApagar"){ apagarTudo(); return; }
+  if (id === "btAddLesao"){ acrescentarLesao(); return; }
+  if (id === "btAnamnese"){ gravarAnamnese(); return; }
+
+  const tira = alvo.getAttribute("data-tira-lesao");
+  if (tira !== null && tira !== undefined && tira !== ""){
+    const les = (S.lesoesRascunho || (S.anamnese && S.anamnese.lesoes) || []).slice();
+    les.splice(parseInt(tira, 10), 1);
+    S.lesoesRascunho = les;
+    render();
+    return;
+  }
 });
+
+function acrescentarLesao(){
+  const regiao = valor("lRegiao");
+  if (!regiao){ mostrarAviso("avLesao", "Escolha a região."); return; }
+  const les = (S.lesoesRascunho || (S.anamnese && S.anamnese.lesoes) || []).slice();
+  const dias = parseInt(valor("lDias"), 10);
+  les.push({regiao, lado: valor("lLado"), ano: valor("lAno"),
+            dias: Number.isFinite(dias) ? dias : null, status: valor("lStatus")});
+  S.lesoesRascunho = les;
+  mostrarAviso("avLesao", "");
+  render();
+}
+function gravarAnamnese(){
+  const sn = ch => {
+    const b = document.querySelector(`[data-sn="${ch}"] [aria-pressed="true"]`);
+    return b ? b.getAttribute("data-v") === "sim" : null;
+  };
+  const marcas = ch => Array.from(
+    document.querySelectorAll(`[data-marcas="${ch}"] [aria-pressed="true"]`))
+    .map(b => b.getAttribute("data-o"));
+
+  const an = {
+    condicoes: marcas("condicoes"),
+    cirurgias: valor("anCirurgias") || "nenhuma",
+    medicacao: valor("anMedicacao") || "nenhuma",
+    alergias: valor("anAlergias") || "nenhuma",
+    lesoes: S.lesoesRascunho || (S.anamnese && S.anamnese.lesoes) || [],
+    dor_recor: marcas("dor_recor"),
+    sono_hab: numDe("anSono"),
+    fuma: sn("fuma"),
+    alcool: valor("anAlcool"),
+    anos_muscu: (() => { const n = parseInt(valor("anMuscu"), 10); return Number.isFinite(n) ? n : null; })(),
+    exp_lpo: valor("anLpo"),
+  };
+  PARQ.forEach((_, i) => an["parq" + (i+1)] = sn("parq" + (i+1)));
+
+  const semResposta = PARQ.map((_, i) => an["parq" + (i+1)]).filter(v => v === null).length;
+  if (semResposta){
+    /* O PAR-Q pela metade não é uma triagem: a pergunta que ficou em branco é
+       justamente a que poderia mudar a conduta. */
+    mostrarAviso("avAnamnese",
+      `Faltam ${semResposta} das 7 perguntas do PAR-Q. Elas são a parte que não dá para pular.`);
+    return;
+  }
+  an.enviada_em = hojeISO();
+  S.anamnese = an;
+  S.lesoesRascunho = null;
+  guardar();
+  mostrarAviso("avAnamnese", "");
+  UI.saida = mensagemAnamnese(an);
+  UI.saidaTitulo = "Mande a sua anamnese";
+  render();
+  const sim = PARQ.map((_, i) => an["parq" + (i+1)]).filter(Boolean).length;
+  if (sim)
+    setTimeout(() => alert(
+      `Você respondeu "sim" em ${sim} pergunta(s) do PAR-Q.\n\n`
+      + `Isso não te tira do treino. Significa que a comissão vai te orientar a `
+      + `passar por um médico antes de pegar carga pesada — e é para o seu bem `
+      + `que essa conversa acontece antes, e não depois.`), 120);
+}
 
 document.addEventListener("submit", ev => {
   if (ev.target.id !== "f") return;
@@ -1022,7 +1259,7 @@ function gravarRM(){
 }
 function apagarTudo(){
   if (!confirm("Apagar a sua ficha, os seus 1RM e os check-ins deste aparelho?")) return;
-  S = {ficha:null, rm:{}, registros:{}};
+  S = {ficha:null, rm:{}, registros:{}, anamnese:null, lesoesRascunho:null};
   try { localStorage.removeItem(CH); } catch (e) {}
   UI.aba = "hoje"; UI.saida = ""; UI.saidaTitulo = ""; UI.editando = false;
   render();

@@ -394,6 +394,30 @@ const servidor = http.createServer((req, res) => {
   const ticks = await pag.$$(".tick");
   ok(ticks.length > 0, "depois do check-in aparecem as séries", ticks.length);
 
+  /* Campo extra aparece só onde a prescrição pediu. Hoje é sessão A, de força:
+     tem RIR prescrito em acessório, e não tem velocidade de barra. */
+  const extras = await pag.evaluate(() => ({
+    rir: document.querySelectorAll('[data-campo="rir"]').length,
+    vel: document.querySelectorAll('[data-campo="vel"]').length,
+  }));
+  ok(extras.rir > 0, "a sessão de força pede RIR onde prescreveu RIR", extras.rir);
+  ok(extras.vel === 0, "e não pede velocidade onde não prescreveu", extras.vel);
+
+  /* Preenche o RIR da MESMA série que já foi marcada acima — tocar no ✓ de novo
+     a desmarcaria, e a tonelagem cairia para zero. */
+  const campoRir = await pag.$('[data-campo="rir"]');
+  const chaveRir = await campoRir.getAttribute("data-serie");
+  await campoRir.fill("2");
+  await pag.click("#fechamento");           // tira o foco: o change dispara no blur
+  await pag.waitForTimeout(400);
+  const serieComRir = await pag.evaluate(c => {
+    const a = meuAtleta(); return sessaoDe(a.id, hojeISO()).series[c];
+  }, chaveRir);
+  ok(serieComRir && serieComRir.rir === 2, "o RIR é gravado na série",
+     JSON.stringify(serieComRir));
+  ok(!("vel" in serieComRir),
+     "e a velocidade não vira campo vazio no banco", JSON.stringify(serieComRir));
+
   // Preencher a primeira série com carga real de um exercício com barra
   const campos = await pag.$$('input[data-campo="carga"]');
   if (campos.length) {
@@ -571,6 +595,144 @@ const servidor = http.createServer((req, res) => {
   const txtFora = await pag.textContent("#waSaida");
   ok(/Não consegui entender/i.test(txtFora) && /Sono/.test(txtFora),
      "sono 9 numa escala de 1 a 5 é reportado, não aceito");
+
+  console.log("\n── Anamnese ───────────────────────────────────────────");
+  const anMsg = await pag.evaluate(d => [
+    "🏐 ANAMNESE ELASE VOLEIBOL", `Rafa · ${d}`, "",
+    "1. PAR-Q 1 — não", "2. PAR-Q 2 — não", "3. PAR-Q 3 — não", "4. PAR-Q 4 — não",
+    "5. PAR-Q 5 — sim", "6. PAR-Q 6 — não", "7. PAR-Q 7 — não",
+    "8. Condições de saúde — Asma", "9. Cirurgias — nenhuma",
+    "10. Medicação contínua — bombinha", "11. Alergias — nenhuma",
+    "12. Lesões anteriores — Ombro|Direito|2026|45|Em tratamento",
+    "13. Regiões que costumam doer — Lombar; Ombro",
+    "14. Horas de sono habitual — 7,5", "15. Fuma — não", "16. Álcool — Raramente",
+    "17. Anos de musculação — 6", "18. Experiência com levantamento olímpico — iniciante",
+  ].join("\n"), dBR);
+  await pag.fill("#waTexto", anMsg);
+  await pag.click("#btLerWA");
+  await pag.waitForTimeout(400);
+  const txtAn = await pag.textContent("#waSaida");
+  ok(/Anamnese/.test(txtAn), "a anamnese é reconhecida");
+  ok(/liberação médica/i.test(txtAn),
+     "o 'sim' no PAR-Q aparece como liberação médica antes de carga");
+  await pag.click('[data-import="0"]');
+  await pag.waitForTimeout(500);
+  const anGravada = await pag.evaluate(() => anamneseDe(ativos()[0].id));
+  ok(!!anGravada, "a anamnese grava");
+  ok(anGravada.parq5 === true && anGravada.anos_muscu === 6 && anGravada.exp_lpo === "Iniciante",
+     "com os valores certos", JSON.stringify([anGravada.parq5, anGravada.anos_muscu, anGravada.exp_lpo]));
+  ok(anGravada.lesoes.length === 1 && anGravada.lesoes[0].status === "Em tratamento",
+     "e a lesão decodificada", JSON.stringify(anGravada.lesoes));
+
+  // Ela precisa aparecer onde o preparador decide
+  await pag.click('#navRolo button[data-aba="inicio"]');
+  await pag.waitForTimeout(400);
+  const txtIni = await pag.innerText("#s-inicio");
+  ok(/Saúde declarada/i.test(txtIni), "a saúde declarada sobe para o Início");
+  ok(/liberação médica/i.test(txtIni), "com a bandeira crítica à vista");
+  await pag.click('#navRolo button[data-aba="elenco"]');
+  await pag.waitForTimeout(400);
+  const txtEle = await pag.innerText("#s-elenco");
+  ok(/Em tratamento/.test(txtEle), "e a lesão aparece na ficha do elenco");
+
+  console.log("\n── Desempenho ─────────────────────────────────────────");
+  await pag.click('#navRolo button[data-aba="desempenho"]');
+  await pag.waitForTimeout(400);
+  const txtDes = await pag.innerText("#s-desempenho");
+  ok(/Força relativa/i.test(txtDes), "a aba de desempenho abre");
+  const forcaRel = await pag.evaluate(() => {
+    const a = ativos()[0];
+    return {rm: melhor1RM(a.id, "Agachamento"), massa: a.massa};
+  });
+  ok(forcaRel.rm === 150 && forcaRel.massa === 95, "o 1RM e a massa estão lá",
+     JSON.stringify(forcaRel));
+  ok(txtDes.indexOf("1,58") >= 0, "força relativa = 150 ÷ 95 = 1,58×",
+     txtDes.replace(/\s+/g, " ").slice(0, 200));
+  ok(/poucos dados/i.test(txtDes),
+     "com um atleta só, a posição no elenco se recusa a existir");
+  ok(/Uma medida só não é evolução|Sem reteste/i.test(txtDes),
+     "e um 1RM só não vira curva de evolução");
+
+  // Com um segundo reteste a curva aparece
+  await pag.evaluate(async () => {
+    const a = ativos()[0], lista = testesDe(a.id).slice();
+    lista.push({data: maisDias(hojeISO(), -60), tipo: "1RM", exercicio: "Agachamento",
+                valor: 132.5, unidade: "kg"});
+    lista.push({data: maisDias(hojeISO(), -60), tipo: "Salto", exercicio: "CMJ",
+                valor: 52, unidade: "cm"});
+    lista.push({data: hojeISO(), tipo: "Salto", exercicio: "CMJ", valor: 57.5, unidade: "cm"});
+    await Store.set("testes", a.id, {lista});
+    render();     // no modo local a gravação não redesenha sozinha
+  });
+  await pag.waitForTimeout(600);
+  const svgs = await pag.$$eval("#s-desempenho svg", e => e.length);
+  ok(svgs >= 2, "com dois pontos, as curvas desenham", svgs);
+  const txtDes2 = await pag.innerText("#s-desempenho");
+  ok(/\+17,5 kg/.test(txtDes2), "e a curva diz o ganho: 132,5 → 150 kg",
+     (txtDes2.match(/[+−]\d+[,.]\d+ kg/) || [""])[0]);
+  ok(/\+5,5 cm/.test(txtDes2), "o salto também: 52 → 57,5 cm",
+     (txtDes2.match(/[+−]\d+[,.]\d+ cm/) || [""])[0]);
+  // Rótulos dentro do desenho
+  const foraDoSvg = await pag.$$eval("#s-desempenho svg text", ts =>
+    ts.filter(t => {
+      const c = t.getBoundingClientRect(), s = t.closest("svg").getBoundingClientRect();
+      return c.width > 0 && (c.left < s.left - 1 || c.right > s.right + 1 || c.top < s.top - 1);
+    }).length);
+  ok(foraDoSvg === 0, "nenhum rótulo escapa do desenho", foraDoSvg);
+
+  console.log("\n── Cópia de segurança ─────────────────────────────────");
+  await pag.click('#navRolo button[data-aba="ajustes"]');
+  await pag.waitForTimeout(400);
+  const pacote = await pag.evaluate(() => montarBackup());
+  ok(pacote.formato === "elase-backup", "a cópia tem formato declarado", pacote.formato);
+  ok(Object.keys(pacote.colecoes).length === 8, "e todas as coleções",
+     Object.keys(pacote.colecoes).join(","));
+  ok(Object.keys(pacote.colecoes.atletas).length === 1
+     && Object.keys(pacote.colecoes.anamnese).length === 1,
+     "com o atleta e a anamnese dentro");
+  const tamanho = await pag.evaluate(() => JSON.stringify(montarBackup()).length);
+  ok(tamanho > 1000, "a cópia tem conteúdo de verdade", tamanho + " bytes");
+
+  // Um arquivo errado NÃO pode ser restaurado por cima da temporada
+  const recusas = await pag.evaluate(() => [
+    validarBackup(null),
+    validarBackup({formato: "outra-coisa"}),
+    validarBackup({formato: "elase-backup"}),
+    validarBackup({formato: "elase-backup", colecoes: {invasor: {}}}),
+    validarBackup({formato: "elase-backup", colecoes: {atletas: {a1: "texto"}}}),
+    validarBackup({formato: "elase-backup", colecoes: {atletas: {a1: {nome: "ok"}}}}),
+  ]);
+  ok(recusas.slice(0, 5).every(r => r.length > 0), "arquivo errado é recusado com motivo",
+     JSON.stringify(recusas));
+  ok(recusas[5] === "", "e uma cópia válida passa");
+
+  // Restaurar de verdade: apaga e traz de volta
+  await pag.evaluate(async p => {
+    const a = ativos()[0];
+    await Store.remover("atletas", a.id);
+    await Store.remover("anamnese", a.id);
+    window.__pacote = p;
+  }, pacote);
+  await pag.waitForTimeout(400);
+  ok((await pag.evaluate(() => atletas().length)) === 0, "o elenco foi apagado");
+  await pag.evaluate(async () => {
+    for (const col of Object.keys(window.__pacote.colecoes))
+      for (const id of Object.keys(window.__pacote.colecoes[col])){
+        const corpo = Object.assign({}, window.__pacote.colecoes[col][id]);
+        delete corpo.id;
+        await Store.set(col, id, corpo);
+      }
+  });
+  await pag.waitForTimeout(600);
+  const depoisRestauro = await pag.evaluate(() => {
+    const a = atletas()[0];
+    return a ? {nome: a.nome, massa: a.massa, anamnese: !!anamneseDe(a.id),
+                testes: testesDe(a.id).length} : null;
+  });
+  ok(depoisRestauro && depoisRestauro.nome === "Rafael Moreira",
+     "e volta inteiro da cópia", JSON.stringify(depoisRestauro));
+  ok(depoisRestauro.anamnese && depoisRestauro.testes >= 3,
+     "com anamnese e testes juntos", JSON.stringify(depoisRestauro));
 
   // Layout no celular
   const larguraDemais = await pag.evaluate(() =>

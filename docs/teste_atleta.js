@@ -84,6 +84,21 @@ const MACRO = "2026-09-21";                      // uma segunda-feira
      "as duas páginas geram EXATAMENTE a mesma sessão em cada dia",
      divergentes.slice(0, 4).join(", "));
   ok(errosApp.length === 0, "o app da comissão abre sem erro", errosApp.join(" | "));
+
+  /* A anamnese também é protocolo compartilhado: as sete perguntas e a ordem
+     dos campos ligam os dois lados. Se uma página mudar sozinha, a mensagem
+     passa a ser lida com os valores trocados de lugar — em silêncio. */
+  const protocolo = p => p.evaluate(() => ({
+    parq: PARQ, campos: CAMPOS_ANAMNESE.map(c => [c[0], c[1], c[3]]),
+    regioes: REGIOES, condicoes: CONDICOES, lados: LADOS,
+    status: STATUS_LESAO, lpo: EXP_LPO,
+  }));
+  const protAtleta = await protocolo(pag), protApp = await protocolo(pag2);
+  ok(protAtleta.parq.length === 7, "o PAR-Q tem as 7 perguntas", protAtleta.parq.length);
+  for (const chave of ["parq","campos","regioes","condicoes","lados","status","lpo"])
+    ok(JSON.stringify(protAtleta[chave]) === JSON.stringify(protApp[chave]),
+       `o protocolo da anamnese bate nos dois lados: ${chave}`,
+       JSON.stringify(protAtleta[chave]) + " ≠ " + JSON.stringify(protApp[chave]));
   await pag2.close();
 
   console.log("\n── Cadastro ───────────────────────────────────────────");
@@ -123,8 +138,8 @@ const MACRO = "2026-09-21";                      // uma segunda-feira
   const nomeTopo = await pag.textContent("#btEu");
   ok(nomeTopo.trim() === "Rafael", "o apelido sai do primeiro nome quando não informado", nomeTopo);
   const abas = await pag.$$eval("#navRolo button", bs => bs.map(b => b.textContent.trim()));
-  ok(abas.join(" ") === "Hoje Check-in Minha semana Meus dados",
-     "a área do atleta abre com as quatro abas", abas.join(" · "));
+  ok(abas.join(" ") === "Hoje Check-in Minha semana Anamnese Meus dados",
+     "a área do atleta abre com as cinco abas", abas.join(" · "));
 
   const ficha = await pag.textContent("#textoEnvio");
   ok(/^🏐 CADASTRO ELASE VOLEIBOL/.test(ficha), "a ficha sai no formato que o app lê");
@@ -236,6 +251,79 @@ const MACRO = "2026-09-21";                      // uma segunda-feira
   ok(/1\. Duração em minutos — 75/.test(msgF), "duração na linha 1");
   ok(/2\. PSE \(0 a 10\) — 7/.test(msgF), "PSE na linha 2");
 
+  console.log("\n── Anamnese ───────────────────────────────────────────");
+  await pag.click('[data-ir="anamnese"]');
+  await pag.waitForTimeout(350);
+
+  // PAR-Q pela metade não é triagem
+  await pag.click('[data-sn="parq1"] [data-v="nao"]');
+  await pag.click("#btAnamnese");
+  await pag.waitForTimeout(250);
+  ok(await pag.isVisible("#avAnamnese"), "PAR-Q incompleto é recusado");
+  ok(/6 das 7/.test(await pag.textContent("#avAnamnese")), "e diz quantas faltam",
+     await pag.textContent("#avAnamnese"));
+
+  // Lesão sem região é recusada
+  await pag.click("#btAddLesao");
+  await pag.waitForTimeout(200);
+  ok(await pag.isVisible("#avLesao"), "lesão sem região é recusada");
+
+  await pag.selectOption("#lRegiao", "Ombro");
+  await pag.selectOption("#lLado", "Direito");
+  await pag.fill("#lAno", "2024");
+  await pag.fill("#lDias", "45");
+  await pag.selectOption("#lStatus", "Recuperado");
+  await pag.click("#btAddLesao");
+  await pag.waitForTimeout(400);
+  const lesoes1 = await pag.evaluate(() => (S.lesoesRascunho || []).length);
+  ok(lesoes1 === 1, "a lesão entra na lista", lesoes1);
+
+  await pag.selectOption("#lRegiao", "Tornozelo");
+  await pag.selectOption("#lLado", "Esquerdo");
+  await pag.fill("#lAno", "2022");
+  await pag.selectOption("#lStatus", "Ainda limita");
+  await pag.click("#btAddLesao");
+  await pag.waitForTimeout(400);
+  ok((await pag.evaluate(() => S.lesoesRascunho.length)) === 2, "e a segunda também");
+  await pag.click('[data-tira-lesao="0"]');
+  await pag.waitForTimeout(350);
+  ok((await pag.evaluate(() => S.lesoesRascunho.length)) === 1, "e dá para tirar uma");
+  // repõe a do ombro para o resto do teste
+  await pag.selectOption("#lRegiao", "Ombro");
+  await pag.selectOption("#lLado", "Direito");
+  await pag.fill("#lAno", "2024");
+  await pag.fill("#lDias", "45");
+  await pag.selectOption("#lStatus", "Recuperado");
+  await pag.click("#btAddLesao");
+  await pag.waitForTimeout(400);
+
+  await pag.evaluate(() => {
+    for (let i = 1; i <= 7; i++)
+      document.querySelector(`[data-sn="parq${i}"] [data-v="${i === 5 ? "sim" : "nao"}"]`).click();
+    document.querySelector('[data-marcas="condicoes"] [data-o="Asma"]').click();
+    document.querySelector('[data-marcas="dor_recor"] [data-o="Lombar"]').click();
+    document.querySelector('[data-sn="fuma"] [data-v="nao"]').click();
+  });
+  await pag.fill("#anCirurgias", "nenhuma");
+  await pag.fill("#anMedicacao", "bombinha para asma quando precisa");
+  await pag.fill("#anAlergias", "nenhuma");
+  await pag.fill("#anSono", "7,5");
+  await pag.fill("#anMuscu", "6");
+  await pag.selectOption("#anAlcool", "Raramente");
+  await pag.selectOption("#anLpo", "Iniciante");
+  await pag.click("#btAnamnese");
+  await pag.waitForTimeout(700);
+  pag.on("dialog", d => d.accept());
+
+  const msgAn = await pag.textContent("#textoEnvio");
+  ok(/^🏐 ANAMNESE ELASE VOLEIBOL/.test(msgAn), "a anamnese vira mensagem");
+  ok(/5\. PAR-Q 5 — sim/.test(msgAn), "o 'sim' do PAR-Q sai na linha certa",
+     (msgAn.match(/5\..*/) || [""])[0]);
+  ok(/12\. Lesões anteriores — Tornozelo\|Esquerdo\|2022\|\|Ainda limita ; Ombro\|Direito\|2024\|45\|Recuperado/.test(msgAn),
+     "as duas lesões saem codificadas e legíveis", (msgAn.match(/12\..*/) || [""])[0]);
+  ok(/13\. Regiões que costumam doer — Lombar/.test(msgAn), "a dor recorrente sai");
+  ok(/8\. Condições de saúde — Asma/.test(msgAn), "as condições saem");
+
   console.log("\n── O laço fecha? ──────────────────────────────────────");
   /* As três mensagens que o atleta acabou de produzir, coladas juntas no app da
      comissão. É o teste que importa: não que cada lado funcione sozinho, mas
@@ -246,11 +334,12 @@ const MACRO = "2026-09-21";                      // uma segunda-feira
   const volta = await pag4.evaluate(t => {
     const msgs = separarMensagens(t).map(lerMensagemWA).filter(m => !m.vazio);
     return msgs.map(m => ({tipo:m.tipo, quem:m.quem, data:m.data, faltam:m.faltam,
-      naoLidos:m.naoLidos, dados:m.dados}));
-  }, [msgW, msgB, msgF].join("\n\n"));
+      naoLidos:m.naoLidos, dados:m.dados,
+      bandeiras: m.tipo === "anamnese" ? bandeirasAnamnese(m.dados) : null}));
+  }, [msgW, msgB, msgF, msgAn].join("\n\n"));
 
-  ok(volta.length === 3, "as três mensagens do atleta são separadas pelo app", volta.length);
-  ok(volta.map(v => v.tipo).join(",") === "checkin,humor,sessao",
+  ok(volta.length === 4, "as quatro mensagens do atleta são separadas pelo app", volta.length);
+  ok(volta.map(v => v.tipo).join(",") === "checkin,humor,sessao,anamnese",
      "e cada uma é reconhecida pelo tipo", volta.map(v => v.tipo).join(","));
   ok(volta.every(v => v.quem === "Rafael"), "todas sabem de quem são",
      volta.map(v => v.quem).join(","));
@@ -266,6 +355,29 @@ const MACRO = "2026-09-21";                      // uma segunda-feira
   const fs_ = volta[2].dados;
   ok(fs_.dur === 75 && fs_.pse === 7, "a PSE chega com duração e intensidade",
      JSON.stringify(fs_));
+
+  const an = volta[3].dados, bandAn = volta[3].bandeiras;
+  ok(an.parq5 === true && an.parq1 === false, "o PAR-Q volta com os sins e nãos certos",
+     JSON.stringify([an.parq1, an.parq5]));
+  ok(an.lesoes.length === 2 && an.lesoes[1].regiao === "Ombro"
+     && an.lesoes[1].lado === "Direito" && an.lesoes[1].dias === 45,
+     "as lesões voltam decodificadas", JSON.stringify(an.lesoes));
+  ok(an.lesoes[0].dias === null,
+     "o campo em branco volta vazio, não como zero", an.lesoes[0].dias);
+  ok(an.condicoes.join() === "Asma" && an.dor_recor.join() === "Lombar",
+     "condições e dor recorrente voltam", JSON.stringify([an.condicoes, an.dor_recor]));
+  ok(an.sono_hab === 7.5 && an.anos_muscu === 6 && an.exp_lpo === "Iniciante",
+     "hábitos e histórico voltam", JSON.stringify([an.sono_hab, an.anos_muscu, an.exp_lpo]));
+  ok(bandAn.some(b => b[1] === "crit" && /PAR-Q/.test(b[0])),
+     "o 'sim' do PAR-Q levanta bandeira CRÍTICA — liberação médica antes de carga",
+     JSON.stringify(bandAn));
+  ok(bandAn.some(b => b[1] === "crit" && /ainda limita.*Tornozelo/i.test(b[0])),
+     "a lesão que ainda limita é crítica", JSON.stringify(bandAn));
+  /* O ombro é de 2024, recuperado: passou de um ano e não levanta nada. Isso é
+     o comportamento certo — sinalizar tudo para sempre é o mesmo que não
+     sinalizar nada, porque o preparador para de ler. */
+  ok(!bandAn.some(b => /Ombro/.test(b[0])),
+     "lesão recuperada e antiga não vira ruído", JSON.stringify(bandAn));
   await pag4.close();
 
   console.log("\n── Meus dados ─────────────────────────────────────────");

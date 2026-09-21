@@ -140,6 +140,8 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;padding-right:0
 .ex .obs{font-size:12.5px;color:var(--ink-4);margin-top:5px;font-style:italic}
 .series{display:flex;flex-direction:column;gap:7px;margin-top:10px}
 .serie{display:grid;grid-template-columns:26px 1fr 1fr 44px;gap:7px;align-items:center}
+.serie.extra{margin-top:-2px}
+.serie.extra input{background:var(--plane);font-size:14px;min-height:38px}
 .serie .n{font-size:11px;font-weight:800;color:var(--ink-4);text-align:center}
 .serie input{min-height:42px;padding:8px;font-size:15px;text-align:center}
 .tick{min-height:42px;width:100%;border-radius:9px;border:1px solid var(--line);
@@ -190,6 +192,7 @@ pre.ficha{white-space:pre-wrap;word-break:break-word;background:var(--inset);
   <section id="s-sessao" hidden></section>
   <section id="s-bemestar" hidden></section>
   <section id="s-analise" hidden></section>
+  <section id="s-desempenho" hidden></section>
   <section id="s-testes" hidden></section>
   <section id="s-exercicios" hidden></section>
   <section id="s-elenco" hidden></section>
@@ -821,13 +824,123 @@ function lerWA(texto){
 const lerVariasWA = texto =>
   (separarWA(texto).length ? separarWA(texto) : [texto]).map(lerWA).filter(r => !r.vazio);
 
-/* ── As quatro mensagens que a área do atleta produz ────────────────────── */
+/* ── Anamnese ───────────────────────────────────────────────────────────── */
+/* O PAR-Q é uma triagem de PRONTIDÃO PARA ATIVIDADE FÍSICA, não um diagnóstico.
+   A regra do próprio instrumento é dura e vale a pena respeitar: qualquer
+   resposta "sim" significa liberação médica ANTES de carga. Um preparador que
+   ignora isso está assumindo um risco que não é dele para assumir.
+   Esta lista tem de ser idêntica à da área do atleta — há teste comparando. */
+const PARQ = [
+  "Algum médico já disse que você tem um problema no coração e que só deveria fazer atividade física sob supervisão médica?",
+  "Você sente dor no peito quando faz atividade física?",
+  "No último mês, você sentiu dor no peito quando NÃO estava fazendo atividade física?",
+  "Você perde o equilíbrio por tontura ou já perdeu a consciência?",
+  "Você tem algum problema ósseo ou articular que poderia piorar com a atividade física?",
+  "Seu médico receita atualmente algum remédio para pressão ou para o coração?",
+  "Você sabe de alguma outra razão pela qual não deveria fazer atividade física?",
+];
+const REGIOES = ["Ombro","Cotovelo","Punho ou mão","Lombar","Quadril","Coxa",
+                 "Joelho","Perna","Tornozelo","Pé"];
+const CONDICOES = ["Asma","Diabetes","Hipertensão","Problema cardíaco","Epilepsia",
+                   "Tireoide","Anemia"];
+const LADOS = ["Direito","Esquerdo","Os dois"];
+const STATUS_LESAO = ["Recuperado","Em tratamento","Ainda limita"];
+const EXP_LPO = ["Nenhuma","Iniciante","Intermediário","Avançado"];
+
+/* A ordem É o protocolo da mensagem: o número na frente liga os dois lados. */
+const CAMPOS_ANAMNESE = [].concat(
+  PARQ.map((p, i) => [i+1, "parq" + (i+1), "PAR-Q " + (i+1), "sn"]),
+  [[8,  "condicoes",   "Condições de saúde",             "lista"],
+   [9,  "cirurgias",   "Cirurgias",                      "txt"],
+   [10, "medicacao",   "Medicação contínua",             "txt"],
+   [11, "alergias",    "Alergias",                       "txt"],
+   [12, "lesoes",      "Lesões anteriores",              "lesoes"],
+   [13, "dor_recor",   "Regiões que costumam doer",      "lista"],
+   [14, "sono_hab",    "Horas de sono habitual",         "num"],
+   [15, "fuma",        "Fuma",                           "sn"],
+   [16, "alcool",      "Álcool",                         "txt"],
+   [17, "anos_muscu",  "Anos de musculação",             "int"],
+   [18, "exp_lpo",     "Experiência com levantamento olímpico", "opc"]]
+);
+const OPC_ANAMNESE = {exp_lpo: EXP_LPO};
+
+function lerAnamnese(corpo){
+  const cab = cabecalhoWA(corpo), n = numeradasWA(corpo);
+  const dados = {}, naoLidos = [];
+  for (const [i, chave, rot, tipo] of CAMPOS_ANAMNESE){
+    const v = (n[i] || "").trim();
+    if (!v){ dados[chave] = tipo === "lista" || tipo === "lesoes" ? [] : (tipo === "num" || tipo === "int" ? null : ""); continue; }
+    if (tipo === "sn"){
+      const s = semAcento(v);
+      dados[chave] = /^s(im)?$/.test(s) ? true : /^n(ao)?$/.test(s) ? false : null;
+      if (dados[chave] === null) naoLidos.push(`${rot} («${v}»)`);
+    } else if (tipo === "num" || tipo === "int"){
+      const x = numeroWA(v);
+      dados[chave] = x === null ? null : (tipo === "int" ? Math.round(x) : x);
+      if (x === null) naoLidos.push(`${rot} («${v}»)`);
+    } else if (tipo === "lista"){
+      dados[chave] = /^(nenhum|nenhuma|nao|não|-)$/i.test(v.trim()) ? []
+        : v.split(";").map(s => s.trim()).filter(Boolean);
+    } else if (tipo === "lesoes"){
+      /* "Ombro|Direito|2024|30|Recuperado ; Tornozelo|Esquerdo|2023|10|Recuperado" */
+      dados[chave] = /^(nenhuma|nenhum|nao|não|-)$/i.test(v.trim()) ? []
+        : v.split(";").map(p => {
+            const c = p.split("|").map(x => x.trim());
+            if (c.length < 2) return null;
+            return {regiao:c[0], lado:c[1] || "", ano:c[2] || "",
+                    dias: c[3] ? Math.round(numeroWA(c[3]) || 0) : null,
+                    status: c[4] || ""};
+          }).filter(Boolean);
+    } else if (tipo === "opc"){
+      const x = casarWA(v, OPC_ANAMNESE[chave]);
+      dados[chave] = x || "";
+      if (!x) naoLidos.push(`${rot} («${v}»)`);
+    } else dados[chave] = v;
+  }
+  const faltam = PARQ.map((_, i) => "parq" + (i+1))
+    .filter(k => dados[k] === null || dados[k] === undefined).length
+    ? ["as 7 perguntas do PAR-Q"] : [];
+  return {tipo:"anamnese", corpo, quem:cab.quem, data:cab.data, dados, faltam,
+          naoLidos, vazio: !Object.keys(n).length};
+}
+
+function bandeirasAnamnese(a){
+  /* O que muda a conduta de hoje. Nada aqui é diagnóstico: é sinalização para
+     o preparador perguntar antes de carregar. */
+  if (!a) return [];
+  const fora = [];
+  const sins = PARQ.map((_, i) => a["parq" + (i+1)] === true);
+  if (sins.some(Boolean))
+    fora.push([`PAR-Q com ${sins.filter(Boolean).length} resposta(s) "sim" — `
+      + `precisa de liberação médica antes de carga`, "crit"]);
+  const ano = new Date().getFullYear();
+  for (const l of (a.lesoes || [])){
+    const recente = l.ano && (ano - parseInt(l.ano, 10)) <= 1;
+    if (l.status === "Ainda limita")
+      fora.push([`Lesão que ainda limita: ${l.regiao} ${l.lado || ""}`.trim(), "crit"]);
+    else if (l.status === "Em tratamento")
+      fora.push([`Em tratamento: ${l.regiao} ${l.lado || ""}`.trim(), "warn"]);
+    else if (recente)
+      fora.push([`Lesão no último ano: ${l.regiao} ${l.lado || ""} (${l.ano})`.trim(), "warn"]);
+  }
+  if ((a.dor_recor || []).length)
+    fora.push([`Dor recorrente: ${(a.dor_recor || []).join(", ")}`, "warn"]);
+  if (a.condicoes && a.condicoes.length)
+    fora.push([`Condição declarada: ${a.condicoes.join(", ")}`, "warn"]);
+  if (a.medicacao && !/^(nenhum|nenhuma|nao|não|-)$/i.test(a.medicacao.trim()))
+    fora.push([`Medicação contínua: ${a.medicacao}`, "warn"]);
+  return fora;
+}
+const anamneseDe = id => Store.get("anamnese", id);
+
+/* ── As mensagens que a área do atleta produz ───────────────────────────── */
 /* Cadastro, check-in, humor e fim de sessão. Todas numeradas pelo mesmo motivo:
    legíveis para quem recebe no WhatsApp E automáticas para importar aqui. O
    cabeçalho diz o TIPO e DE QUEM, que é o que permite colar a semana inteira do
    elenco de uma vez. */
 const TIPOS_WA = [
   {chave:"cadastro", rot:"Cadastro",       re:/cadastro/i},
+  {chave:"anamnese", rot:"Anamnese",       re:/anamnese/i},
   {chave:"checkin",  rot:"Check-in",       re:/check\s*-?\s*in/i},
   {chave:"humor",    rot:"Humor (BRUMS)",  re:/humor|brums/i},
   {chave:"sessao",   rot:"Fim de sessão",  re:/fim\s+de\s+sess/i},
@@ -879,6 +992,7 @@ function lerMensagemWA(bloco){
     const r = lerWA(corpo);
     return Object.assign({tipo, corpo}, r, {quem: r.dados.apelido || r.dados.nome, data: ""});
   }
+  if (tipo === "anamnese") return lerAnamnese(corpo);
   const cab = cabecalhoWA(corpo), n = numeradasWA(corpo);
   const naoLidos = [];
   const inteiro = (i, rot, min, max) => {
@@ -943,7 +1057,8 @@ function acharAtleta(quem){
    · NESTE APARELHO — sem `db`. Tudo fica no navegador de quem abriu, e não
                chega a mais ninguém. Serve para experimentar sem estragar nada.
    ═══════════════════════════════════════════════════════════════════════════ */
-const COLS = ["config","atletas","prescricoes","sessoes","diario","testes","biblioteca"];
+const COLS = ["config","atletas","anamnese","prescricoes","sessoes","diario",
+              "testes","biblioteca"];
 const Store = {
   db: null, modo: "local", podeGravar: true, pronto: false,
   cache: {}, subs: [],
@@ -1101,6 +1216,7 @@ const ABAS = [
   {id:"sessao",     rot:"Sessão",     pin:false},
   {id:"bemestar",   rot:"Bem-estar",  pin:false},
   {id:"analise",    rot:"Análise",    pin:false},
+  {id:"desempenho", rot:"Desempenho", pin:false},
   {id:"testes",     rot:"Testes",     pin:false},
   {id:"exercicios", rot:"Exercícios", pin:false},
   {id:"elenco",     rot:"Elenco",     pin:true},
@@ -1181,6 +1297,49 @@ function barrasCarga(diarias, datas){
       <line class="grade-linha" x1="${L}" y1="${A-B}" x2="${W-R}" y2="${A-B}"/>
       ${barras}${rotulos}${destaque}
       <text class="eixo" x="0" y="${T}">UA</text>
+    </svg></figure>`;
+}
+
+/* ── Gráfico: evolução de uma medida ────────────────────────────────────── */
+function linhaEvolucao(pontos, unidade, descricao){
+  /* Eixo x em TEMPO, não em ordem: dois retestes numa semana e um seis meses
+     depois não podem sair igualmente espaçados — isso faria uma estagnação
+     parecer progresso constante. Uma série só, então sem legenda; rótulo direto
+     no primeiro e no último ponto, que são os que a pessoa lê. */
+  if (pontos.length < 2)
+    return `<div class="nota">Uma medida só não é evolução. Lance o próximo
+      reteste e a curva aparece.</div>`;
+  const W = 320, A = 150, L = 8, R = 34, T = 22, B = 28;
+  const vals = pontos.map(p => p.valor);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const span = (max - min) || Math.max(1, Math.abs(max) * 0.1);
+  const lo = min - span * 0.2, hi = max + span * 0.2;
+  const t0 = pontos[0].data, tn = pontos[pontos.length-1].data;
+  const total = Math.max(1, diffDias(tn, t0));
+  const px = p => L + (W - L - R) * (diffDias(p.data, t0) / total);
+  const py = v => (A - B) - (A - B - T) * ((v - lo) / (hi - lo));
+  const caminho = pontos.map((p, i) => (i ? "L" : "M") + px(p).toFixed(1) + " " + py(p.valor).toFixed(1)).join(" ");
+  const marcas = pontos.map(p =>
+    `<circle cx="${px(p).toFixed(1)}" cy="${py(p.valor).toFixed(1)}" r="4.5"
+      fill="var(--blue)" stroke="var(--card)" stroke-width="2">
+      <title>${dataBR(p.data)}: ${num(p.valor,1)} ${esc(unidade)}</title></circle>`).join("");
+  const ult = pontos[pontos.length-1], prim = pontos[0];
+  const delta = ult.valor - prim.valor;
+  const rotulo = (p, anc) =>
+    `<text class="valor" x="${Math.min(W-2, Math.max(2, px(p) + (anc === "end" ? -7 : 7))).toFixed(1)}"
+      y="${Math.max(11, py(p.valor) - 9).toFixed(1)}" text-anchor="${anc}">${num(p.valor,1)}</text>`;
+  return `<figure>
+    <figcaption>${esc(descricao)} — de ${dataBR(prim.data)} a ${dataBR(ult.data)},
+      ${delta >= 0 ? "+" : "−"}${num(Math.abs(delta),1)} ${esc(unidade)}</figcaption>
+    <svg viewBox="0 0 ${W} ${A}" width="100%" height="${A}" role="img"
+      aria-label="${esc(descricao)} ao longo do tempo">
+      <line class="grade-linha" x1="${L}" y1="${A-B}" x2="${W-R}" y2="${A-B}"/>
+      <path d="${caminho}" fill="none" stroke="var(--blue)" stroke-width="2"
+        stroke-linejoin="round" stroke-linecap="round"/>
+      ${marcas}${rotulo(prim,"start")}${rotulo(ult,"end")}
+      <text class="eixo" x="${L}" y="${A-9}">${dataBR(prim.data)}</text>
+      <text class="eixo" x="${W-R}" y="${A-9}" text-anchor="end">${dataBR(ult.data)}</text>
+      <text class="eixo" x="${W-R+4}" y="${T}">${esc(unidade)}</text>
     </svg></figure>`;
 }
 
@@ -1268,6 +1427,23 @@ function telaInicio(){
     </div>` : `<div class="nota">Não há sessão prescrita para hoje.
       ${UI.liberado ? "Gere as semanas na aba <b>Sistema</b>." : "Fale com a comissão."}</div>`}
 
+    ${(() => {
+      /* Saúde declarada é uma condição PERMANENTE, não o estado de hoje: fica
+         num cartão próprio, acima da prontidão, porque muda o que pode ser
+         prescrito e não o quanto. Some quando não há nada. */
+      const saude = lista.map(a => ({a, band: bandeirasAnamnese(anamneseDe(a.id))}))
+        .filter(x => x.band.some(b => b[1] === "crit"));
+      const semAnamnese = lista.filter(a => !anamneseDe(a.id));
+      if (!saude.length && !semAnamnese.length) return "";
+      return `<div class="cartao"><h3>Saúde declarada</h3>
+        ${saude.map(x => `<div class="nota crit"><b>${esc(x.a.apelido||x.a.nome)}</b> —
+          ${x.band.filter(b => b[1]==="crit").map(b => esc(b[0])).join(" · ")}</div>`).join("")}
+        ${semAnamnese.length ? `<div class="nota aten"><b>Sem anamnese:</b>
+          ${semAnamnese.map(a => esc(a.apelido||a.nome)).join(", ")}.
+          Prescrever carga sem saber o histórico é assumir um risco que dá para não correr.</div>` : ""}
+      </div>`;
+    })()}
+
     ${alertas.length ? `<div class="cartao">
       <h3>Quem precisa de olho hoje</h3>
       ${alertas.map(x => `<div class="nota ${x.cor==="crit"?"crit":"aten"}">
@@ -1333,6 +1509,29 @@ function telaSessao(){
         <div><div class="rotulo">Carga</div><div class="numerao">${num(s.carga_ua)}<small>UA</small></div></div>
         <div><div class="rotulo">Tonelagem</div><div class="numerao">${num(s.tonelagem)}<small>kg</small></div></div>
       </div></div>
+      ${(() => {
+        /* Velocidade medida contra a prescrita: é o retorno que fecha o ciclo do
+           trabalho de potência. Só aparece se alguém mediu. */
+        const blocos = exs.map((e, i) => {
+          if (!e.vel) return null;
+          const vs = Object.keys(s.series || {})
+            .filter(k => parseInt(k.split("_")[0], 10) === i)
+            .map(k => s.series[k].vel)
+            .filter(v => v !== null && v !== undefined);
+          if (!vs.length) return null;
+          const alvo = parseFloat(String(e.vel).replace(",", "."));
+          const md = media(vs), pior = Math.min(...vs);
+          return {nome:e.nome, alvo, md, pior, n:vs.length};
+        }).filter(Boolean);
+        if (!blocos.length) return "";
+        return `<div class="cartao"><h3>Velocidade da barra</h3>
+          ${blocos.map(b => `<div class="nota ${b.md >= b.alvo ? "bom" : "aten"}">
+            <b>${esc(b.nome)}</b> — média ${num(b.md,2)} m/s em ${b.n} série(s),
+            prescrito ${num(b.alvo,2)}. Pior série: ${num(b.pior,2)}.
+            ${b.md >= b.alvo ? "Dentro do alvo."
+              : "Abaixo do alvo: a carga está pesada demais para o que se treina aqui, que é velocidade."}</div>`).join("")}
+        </div>`;
+      })()}
       ${listaExercicios(exs, s, a, true)}`;
   }
 
@@ -1376,18 +1575,34 @@ function listaExercicios(exs, s, a, soLeitura){
       `pausa ${e.pausa}s`,
     ].filter(Boolean).join(" · ");
 
+    /* Os campos extras aparecem só onde a prescrição pede. O jump squat manda
+       "acima de 1,0 m/s" e o acessório manda RIR 2 — sem um lugar para anotar,
+       o sistema pedia um dado e jogava fora. Mostrar os dois em todo exercício
+       encheria a tela de caixa vazia; mostrar onde foi prescrito faz a tela
+       perguntar exatamente o que ela cobrou. */
+    const extras = [];
+    if (e.vel) extras.push(["vel", "m/s", "decimal"]);
+    if (e.rir !== null && e.rir !== undefined) extras.push(["rir", "RIR", "decimal"]);
+
     let linhas = "";
     if (!soLeitura){
       linhas = `<div class="series">` + Array.from({length: e.series}, (_, k) => {
-        const f = feitas[i + "_" + (k+1)] || {};
+        const ch = i + "_" + (k+1), f = feitas[ch] || {};
         return `<div class="serie">
           <span class="n">${k+1}</span>
           ${prep ? `<span style="grid-column:2/4;font-size:12.5px;color:var(--ink-4)">${esc(e.reps)}</span>`
-                 : `<input inputmode="decimal" placeholder="kg" data-serie="${i}_${k+1}" data-campo="carga" value="${f.carga!==undefined&&f.carga!==null?f.carga:(alvo||"")}">
-                    <input inputmode="numeric" placeholder="reps" data-serie="${i}_${k+1}" data-campo="reps" value="${f.reps!==undefined&&f.reps!==null?f.reps:""}">`}
-          <button type="button" class="tick" data-tick="${i}_${k+1}"
+                 : `<input inputmode="decimal" placeholder="kg" data-serie="${ch}" data-campo="carga" value="${f.carga!==undefined&&f.carga!==null?f.carga:(alvo||"")}">
+                    <input inputmode="numeric" placeholder="reps" data-serie="${ch}" data-campo="reps" value="${f.reps!==undefined&&f.reps!==null?f.reps:""}">`}
+          <button type="button" class="tick" data-tick="${ch}"
             aria-pressed="${f.feita?"true":"false"}" aria-label="marcar série ${k+1} como feita">✓</button>
-        </div>`;
+        </div>
+        ${(!prep && extras.length) ? `<div class="serie extra">
+          <span class="n"></span>
+          ${extras.map(([campo, rot, modo]) =>
+            `<input inputmode="${modo}" placeholder="${esc(rot)}" data-serie="${ch}"
+              data-campo="${campo}" value="${f[campo]!==undefined&&f[campo]!==null?f[campo]:""}">`).join("")}
+          ${extras.length === 1 ? "<span></span>" : ""}<span></span>
+        </div>` : ""}`;
       }).join("") + `</div>`;
     }
 
@@ -1553,6 +1768,139 @@ function telaAnalise(){
     </div>`;
 }
 
+/* ── Desempenho ─────────────────────────────────────────────────────────── */
+function serieTeste(id, tipo, exercicio){
+  return testesDe(id).filter(t => t.tipo === tipo && t.exercicio === exercicio)
+    .map(t => ({data:t.data, valor:t.valor}))
+    .sort((a,b) => a.data < b.data ? -1 : 1);
+}
+function posicaoNoElenco(valores, meu){
+  /* Comparação INTERNA, com o próprio elenco. Não publico tabela normativa de
+     salto ou de força para voleibol: os valores variam demais por nível, sexo,
+     idade e função, e um número inventado com cara de norma é pior que nenhum.
+     Aqui o que se diz é "onde ele está entre os seus", que é verdade. */
+  const v = valores.filter(x => x !== null && x !== undefined).sort((a,b)=>a-b);
+  if (v.length < 3 || meu === null || meu === undefined) return null;
+  const abaixo = v.filter(x => x < meu).length;
+  return {pos: v.length - abaixo, de: v.length,
+          pct: Math.round(100 * abaixo / (v.length - 1 || 1)),
+          mediana: v[Math.floor(v.length/2)]};
+}
+function telaDesempenho(){
+  const a = meuAtleta();
+  if (!a) return `<div class="cabeca"><h2>Desempenho</h2></div>
+    <div class="vazio">Nenhum atleta cadastrado ainda.</div>`;
+  const lista = ativos();
+  const escolhido = UI.exDesemp || "Agachamento";
+  const refs = ["Agachamento","Agachamento frontal","Supino","Stiff com barra",
+                "Remada serrote","Arranco","Clean","Clean pull"];
+
+  /* Força relativa: quilos por quilo de corpo. É o número que compara um central
+     de 201 cm com um líbero de 178 — o absoluto não compara. */
+  const linhas = refs.map(r => {
+    const rm = melhor1RM(a.id, r);
+    const rel = (rm && a.massa) ? rm / a.massa : null;
+    const todos = lista.map(x => {
+      const m = melhor1RM(x.id, r);
+      return (m && x.massa) ? m / x.massa : null;
+    });
+    return {ref:r, rm, rel, rank: posicaoNoElenco(todos, rel)};
+  }).filter(x => x.rm !== null);
+
+  const ag = melhor1RM(a.id, "Agachamento"), sup = melhor1RM(a.id, "Supino");
+  const cmj = serieTeste(a.id, "Salto", "CMJ");
+  const evol = serieTeste(a.id, "1RM", escolhido);
+
+  const rankSalto = (() => {
+    const meu = cmj.length ? cmj[cmj.length-1].valor : null;
+    const todos = lista.map(x => {
+      const s = serieTeste(x.id, "Salto", "CMJ");
+      return s.length ? s[s.length-1].valor : null;
+    });
+    return posicaoNoElenco(todos, meu);
+  })();
+
+  return `<div class="cabeca"><h2>Desempenho · ${esc(a.apelido||a.nome)}</h2>
+      <p>O que os retestes dizem. Comparação sempre com o próprio elenco e com o
+      próprio histórico — nunca com uma tabela normativa, que para voleibol varia
+      demais por nível, sexo, idade e função.</p></div>
+    <div class="cartao">${seletorAtleta()}</div>
+
+    <div class="cartao"><h3>Força relativa</h3>
+      ${linhas.length ? `<div class="rolagem estreita"><table>
+        <thead><tr><th>Exercício</th><th class="num">1RM</th>
+          <th class="num">por kg</th><th>No elenco</th></tr></thead><tbody>
+        ${linhas.map(l => `<tr>
+          <td>${esc(l.ref)}</td>
+          <td class="num">${num(l.rm,1)} kg</td>
+          <td class="num">${l.rel === null ? "—" : num(l.rel,2) + "×"}</td>
+          <td>${l.rank ? `${l.rank.pos}º de ${l.rank.de}` : '<span style="color:var(--ink-4)">poucos dados</span>'}</td>
+        </tr>`).join("")}
+      </tbody></table></div>
+      <p style="color:var(--ink-4);font-size:12px;margin:9px 0 0">"Por kg" é o 1RM
+      dividido pela massa corporal: é o que compara um central de dois metros com
+      um líbero. A posição no elenco só aparece com pelo menos três atletas
+      medidos — com dois, "primeiro lugar" não significa nada.</p>`
+      : `<div class="nota">Nenhum 1RM lançado para este atleta. A aba
+        <b>Testes</b> é onde eles entram; sem eles, nada aqui tem o que comparar —
+        e o percentual da prescrição não vira quilo na tela dele.</div>`}
+    </div>
+
+    <div class="cartao"><h3>Equilíbrio entre os levantamentos</h3>
+      ${ag && sup ? `<div class="pares">
+        <div><span>Supino ÷ agachamento</span><b>${num(sup/ag,2)}</b></div>
+        <div><span>Agachamento ÷ massa</span><b>${a.massa ? num(ag/a.massa,2)+"×" : "—"}</b></div>
+        <div><span>Supino ÷ massa</span><b>${a.massa ? num(sup/a.massa,2)+"×" : "—"}</b></div>
+      </div>
+      <p style="color:var(--ink-4);font-size:12px;margin:9px 0 0">A razão entre os
+      dois é um retrato do que ele treinou até aqui, não uma meta: quem vem de
+      muito supino e pouco agachamento aparece alto nessa conta, e isso é uma
+      conversa a ter com ele, não um número a corrigir sozinho.</p>`
+      : `<div class="nota">Precisa de agachamento <b>e</b> supino lançados.</div>`}
+    </div>
+
+    <div class="cartao"><h3>Salto vertical · CMJ</h3>
+      ${cmj.length ? `${linhaEvolucao(cmj, "cm", "Salto contramovimento")}
+        <div class="pares" style="margin-top:11px">
+          <div><span>Última medida</span><b>${num(cmj[cmj.length-1].valor,1)} cm</b></div>
+          <div><span>No elenco</span><b>${rankSalto ? `${rankSalto.pos}º de ${rankSalto.de}` : "—"}</b></div>
+          ${a.alcance_ataque ? `<div><span>Alcance de ataque</span><b>${num(a.alcance_ataque,0)} cm</b></div>` : ""}
+        </div>`
+      : `<div class="nota">Nenhum salto lançado. Na aba Testes, tipo
+        <b>Salto</b>, medida <b>CMJ</b>, em cm. A sessão de reteste já manda medir
+        três tentativas e valer a melhor.</div>`}
+    </div>
+
+    <div class="cartao"><h3>Evolução do 1RM</h3>
+      <label for="exDesemp"><span>Exercício</span>
+        <select id="exDesemp">${refs.map(r =>
+          `<option ${r === escolhido ? "selected" : ""}>${esc(r)}</option>`).join("")}</select></label>
+      ${evol.length ? linhaEvolucao(evol, "kg", escolhido)
+        : `<div class="nota">Sem reteste lançado para ${esc(escolhido)}.</div>`}
+      <p style="color:var(--ink-4);font-size:12px;margin:9px 0 0">É isto que
+      reabastece o ciclo: os mesmos 85% só passam a significar mais quilos porque
+      a referência subiu. Um macrociclo que repete sem retestar repete a carga
+      também, e a temporada anda parada.</p>
+    </div>
+
+    <div class="cartao"><h3>O elenco, lado a lado</h3>
+      <div class="rolagem estreita"><table>
+        <thead><tr><th>Atleta</th><th class="num">Agach. / kg</th>
+          <th class="num">CMJ</th><th class="num">Carga 7 d</th></tr></thead><tbody>
+        ${lista.map(x => {
+          const rm = melhor1RM(x.id, "Agachamento");
+          const s = serieTeste(x.id, "Salto", "CMJ");
+          const c = carga(sessoesDe(x.id), hojeISO());
+          return `<tr${x.id === a.id ? ' style="background:rgba(90,160,232,.10)"' : ""}>
+            <td>${esc(x.apelido||x.nome)}</td>
+            <td class="num">${rm && x.massa ? num(rm/x.massa,2)+"×" : "—"}</td>
+            <td class="num">${s.length ? num(s[s.length-1].valor,1) : "—"}</td>
+            <td class="num">${num(c.aguda)}</td></tr>`;
+        }).join("")}
+      </tbody></table></div>
+    </div>`;
+}
+
 function telaTestes(){
   const a = meuAtleta();
   if (!a) return `<div class="cabeca"><h2>Testes</h2></div>
@@ -1664,8 +2012,33 @@ function telaElenco(){
         <tr><td>Alcance de ataque</td><td class="num">${a.alcance_ataque?num(a.alcance_ataque,0)+" cm":"—"}</td>
             <td>Bloqueio</td><td class="num">${a.alcance_bloqueio?num(a.alcance_bloqueio,0)+" cm":"—"}</td></tr>
       </tbody></table></div>
-      ${a.lesoes ? `<div class="nota aten" style="margin-top:11px"><b>Lesões:</b> ${esc(a.lesoes)}</div>` : ""}
+      ${a.lesoes ? `<div class="nota aten" style="margin-top:11px"><b>Lesões (cadastro):</b> ${esc(a.lesoes)}</div>` : ""}
       ${a.emergencia ? `<div class="nota" style="margin-top:0"><b>Emergência:</b> ${esc(a.emergencia)}</div>` : ""}
+      ${(() => {
+        const an = anamneseDe(a.id);
+        if (!an) return `<div class="nota aten" style="margin-top:11px"><b>Sem anamnese.</b>
+          Peça a ele para preencher na área do atleta, aba Anamnese.</div>`;
+        const band = bandeirasAnamnese(an);
+        return `<div class="rotulo" style="margin-top:13px">Anamnese
+            ${an.atualizada_em ? "· " + dataBR(an.atualizada_em) : ""}</div>
+          ${band.length ? band.map(b => `<div class="nota ${b[1]==="crit"?"crit":"aten"}"
+            style="margin-bottom:8px">${esc(b[0])}</div>`).join("")
+            : `<div class="nota bom" style="margin-bottom:8px">PAR-Q todo "não", sem lesão ativa.</div>`}
+          ${(an.lesoes||[]).length ? `<div class="rolagem estreita"><table>
+            <thead><tr><th>Região</th><th>Lado</th><th class="num">Ano</th>
+            <th class="num">Dias fora</th><th>Situação</th></tr></thead><tbody>
+            ${an.lesoes.map(l => `<tr><td>${esc(l.regiao)}</td><td>${esc(l.lado||"—")}</td>
+              <td class="num">${esc(l.ano||"—")}</td><td class="num">${l.dias===null?"—":l.dias}</td>
+              <td>${esc(l.status||"—")}</td></tr>`).join("")}
+          </tbody></table></div>` : ""}
+          <div class="pares" style="margin-top:9px">
+            <div><span>Cirurgias</span><b>${esc(an.cirurgias||"—")}</b></div>
+            <div><span>Alergias</span><b>${esc(an.alergias||"—")}</b></div>
+            <div><span>Sono habitual</span><b>${an.sono_hab===null?"—":num(an.sono_hab,1)+" h"}</b></div>
+            <div><span>Musculação</span><b>${an.anos_muscu===null?"—":an.anos_muscu+" anos"}</b></div>
+            <div><span>Levantamento olímpico</span><b>${esc(an.exp_lpo||"—")}</b></div>
+          </div>`;
+      })()}
       <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:11px">
         <button class="bt alt mini" data-alcance="${a.id}">lançar alcances</button>
         <button class="bt alt mini" data-status="${a.id}">${a.status==="Inativo"?"reativar":"inativar"}</button>
@@ -1827,6 +2200,21 @@ function cartaoMensagem(m, i){
         <td class="num">${m.dados[ch] === null || m.dados[ch] === "" ? "—"
           : esc(ch === "nasc" ? dataBR(m.dados[ch]) : m.dados[ch])}</td></tr>`).join("")}
     </tbody></table></div>`;
+  } else if (m.tipo === "anamnese"){
+    const d = m.dados, band = bandeirasAnamnese(d);
+    corpo = `${band.length ? band.map(b => `<div class="nota ${b[1] === "crit" ? "crit" : "aten"}">
+        ${esc(b[0])}</div>`).join("") : `<div class="nota bom">Nada que impeça carga:
+        PAR-Q todo "não", sem lesão ativa.</div>`}
+      <div class="pares">
+        <div><span>PAR-Q com "sim"</span><b>${PARQ.filter((_,i)=>d["parq"+(i+1)]===true).length}</b></div>
+        <div><span>Lesões no histórico</span><b>${(d.lesoes||[]).length}</b></div>
+        <div><span>Dor recorrente</span><b>${(d.dor_recor||[]).join(", ") || "—"}</b></div>
+        <div><span>Condições</span><b>${(d.condicoes||[]).join(", ") || "—"}</b></div>
+        <div><span>Medicação</span><b>${esc(d.medicacao || "—")}</b></div>
+        <div><span>Sono habitual</span><b>${d.sono_hab === null ? "—" : num(d.sono_hab,1) + " h"}</b></div>
+        <div><span>Musculação</span><b>${d.anos_muscu === null ? "—" : d.anos_muscu + " anos"}</b></div>
+        <div><span>Levantamento olímpico</span><b>${esc(d.exp_lpo || "—")}</b></div>
+      </div>`;
   } else if (m.tipo === "checkin"){
     const d = m.dados;
     corpo = `<div class="pares">
@@ -1857,7 +2245,9 @@ function cartaoMensagem(m, i){
     </div>`;
   }
 
-  const semData = m.tipo !== "cadastro" && !m.data;
+  /* A anamnese é um retrato, não um dia: ela substitui a anterior e não precisa
+     de data para ir ao lugar certo. Check-in, humor e sessão precisam. */
+  const semData = m.tipo !== "cadastro" && m.tipo !== "anamnese" && !m.data;
   return `<div class="cartao">
     <h3>${esc(tipoRot)}${m.quem ? " · " + esc(m.quem) : ""}${m.data ? " · " + dataBR(m.data) : ""}</h3>
     ${problemas}
@@ -1894,6 +2284,32 @@ function telaAjustes(){
       um atleta mexa na prescrição por curiosidade) basta; para guardar segredo,
       não serve, e eu não vou fingir que serve.</p>
     </div>
+    <div class="cartao"><h3>Cópia de segurança</h3>
+      <p style="font-size:13.5px;color:var(--ink-2);margin:0 0 12px">
+        A temporada inteira num arquivo: elenco, anamnese, prescrições, sessões,
+        bem-estar, humor e testes. <b>Faça isto toda semana.</b> É o único jeito de
+        a temporada existir fora daqui — e perder uma temporada de dados não tem volta.</p>
+      <div class="grade">
+        <div><div class="rotulo">Atletas</div><div class="numerao">${atletas().length}</div></div>
+        <div><div class="rotulo">Sessões prescritas</div><div class="numerao">${prescricoes().length}</div></div>
+        <div><div class="rotulo">Sessões feitas</div><div class="numerao">${
+          Store.all("sessoes").reduce((a,d)=>a+Object.keys(d.s||{}).length,0)}</div></div>
+      </div>
+      <button class="bt larga" id="btBackup" style="margin-top:13px">Baixar a cópia</button>
+      <p class="aviso" id="avBackup" hidden></p>
+      <pre class="ficha" id="backupTexto" hidden></pre>
+    </div>
+
+    <div class="cartao"><h3>Restaurar</h3>
+      <p style="font-size:13.5px;color:var(--ink-2);margin:0 0 12px">
+        Lê um arquivo de cópia e grava o que estiver nele. O que existe hoje com o
+        mesmo identificador é <b>substituído</b>; o resto fica. Serve para voltar de
+        um estrago e para levar a temporada para outro app.</p>
+      <label for="arqBackup"><span>Arquivo da cópia</span>
+        <input id="arqBackup" type="file" accept=".json,application/json"></label>
+      <p class="aviso" id="avRestaurar" hidden></p>
+    </div>
+
     <div class="cartao"><h3>Onde estão os dados</h3>
       <p style="font-size:13.5px;color:var(--ink-2)">
       ${Store.modo === "equipe"
@@ -1979,6 +2395,7 @@ function desenhar(){
     : alvo === "sessao" ? telaSessao()
     : alvo === "bemestar" ? telaBemestar()
     : alvo === "analise" ? telaAnalise()
+    : alvo === "desempenho" ? telaDesempenho()
     : alvo === "testes" ? telaTestes()
     : alvo === "exercicios" ? telaExercicios()
     : alvo === "elenco" ? telaElenco()
@@ -2064,6 +2481,7 @@ document.addEventListener("click", async ev => {
   if (id === "btGerar"){ await gerarSemanas(); return; }
   if (id === "btLerWA"){ lerFichas(); return; }
   if (id === "btCfg"){ await gravarConfig(); return; }
+  if (id === "btBackup"){ await baixarBackup(); return; }
 
   const verP = alvo.getAttribute("data-ver-presc");
   if (verP){ const d = document.getElementById("pex-"+verP); if (d) d.hidden = !d.hidden; return; }
@@ -2114,8 +2532,14 @@ document.addEventListener("change", async ev => {
   if (ev.target.id === "selEu"){
     UI.eu = ev.target.value; guardar("elase_eu", UI.eu); render(); return;
   }
+  if (ev.target.id === "exDesemp"){ UI.exDesemp = ev.target.value; render(); return; }
   if (ev.target.id === "sisDe"){ UI.sisDe = parseInt(ev.target.value,10) || 1; render(); return; }
   if (ev.target.id === "sisAte"){ UI.sisAte = parseInt(ev.target.value,10) || 1; render(); return; }
+  if (ev.target.id === "arqBackup"){
+    const arq = ev.target.files && ev.target.files[0];
+    if (arq) await restaurarBackup(arq);
+    return;
+  }
   if (ev.target.hasAttribute && ev.target.hasAttribute("data-serie"))
     await gravarSerieDaTela(ev.target.getAttribute("data-serie"));
 });
@@ -2123,17 +2547,27 @@ document.addEventListener("change", async ev => {
 async function gravarSerieDaTela(chave){
   const a = meuAtleta(), hoje = hojeISO(), s = sessaoDe(a.id, hoje);
   if (!s || s.check_out) return;
-  const campoC = document.querySelector(`[data-serie="${chave}"][data-campo="carga"]`);
-  const campoR = document.querySelector(`[data-serie="${chave}"][data-campo="reps"]`);
+  const decimal = campo => {
+    const el = document.querySelector(`[data-serie="${chave}"][data-campo="${campo}"]`);
+    if (!el) return undefined;
+    const x = parseFloat(String(el.value).replace(",", "."));
+    return Number.isFinite(x) ? x : null;
+  };
   const tick = document.querySelector(`[data-tick="${chave}"]`);
   const series = Object.assign({}, s.series || {});
-  const carga = campoC ? parseFloat(String(campoC.value).replace(",",".")) : null;
+  const campoR = document.querySelector(`[data-serie="${chave}"][data-campo="reps"]`);
   const reps = campoR ? parseInt(campoR.value, 10) : null;
-  series[chave] = {
-    carga: Number.isFinite(carga) ? carga : null,
+  const registro = {
+    carga: decimal("carga") === undefined ? null : decimal("carga"),
     reps: Number.isFinite(reps) ? reps : null,
     feita: tick ? tick.getAttribute("aria-pressed") === "true" : false,
   };
+  /* Só grava velocidade e RIR quando o exercício os pediu: campo ausente não
+     vira null no banco, senão toda série carregaria duas colunas vazias. */
+  const vel = decimal("vel"), rir = decimal("rir");
+  if (vel !== undefined) registro.vel = vel;
+  if (rir !== undefined) registro.rir = rir;
+  series[chave] = registro;
   await gravarSessao(a.id, hoje, {series});
 }
 
@@ -2285,7 +2719,10 @@ document.addEventListener("click", async ev => {
   const atletaId = sel ? sel.value : "";
   if (!atletaId){ mostrarAviso(aviso, "Escolha de quem é esta mensagem."); return; }
 
-  if (m.tipo === "checkin"){
+  if (m.tipo === "anamnese"){
+    await Store.set("anamnese", atletaId,
+      Object.assign({}, m.dados, {atualizada_em: m.data || hojeISO()}));
+  } else if (m.tipo === "checkin"){
     await gravarDiario(atletaId, "w", m.data, m.dados);
   } else if (m.tipo === "humor"){
     await gravarDiario(atletaId, "b", m.data + "|pre", m.dados.vals);
@@ -2303,6 +2740,86 @@ document.addEventListener("click", async ev => {
   bt.disabled = true;
   mostrarAviso(aviso, "", true);
 });
+/* ── Cópia de segurança ─────────────────────────────────────────────────── */
+const FORMATO_BACKUP = "elase-backup";
+function montarBackup(){
+  const colecoes = {};
+  for (const col of COLS) colecoes[col] = Store.cache[col] || {};
+  return {formato: FORMATO_BACKUP, versao: 1, gerado_em: new Date().toISOString(),
+          equipe: cfg().equipe, temporada: cfg().temporada, colecoes};
+}
+async function baixarBackup(){
+  const texto = JSON.stringify(montarBackup(), null, 1);
+  const nome = `elase-${cfg().temporada}-${hojeISO()}.json`;
+  let dl = null;
+  try { dl = await claude.use("downloads"); } catch (e) { dl = null; }
+  if (!dl){
+    /* Sem o canal de download, o arquivo vai para a tela para ser copiado —
+       melhor um texto feio do que nenhuma cópia. */
+    mostrarBackupNaTela(texto,
+      "Este visualizador não salva arquivos. Copie o texto abaixo e guarde num arquivo .json.");
+    return;
+  }
+  try {
+    await dl.save({filename: nome, data: texto});
+    mostrarAviso("avBackup", `Cópia de ${(texto.length/1024).toFixed(0)} KB salva.`, true);
+  } catch (e) {
+    const c = e && e.code;
+    if (c === "declined"){ mostrarAviso("avBackup", "Você cancelou. Nada foi salvo."); return; }
+    if (c === "rate_limited"){ mostrarAviso("avBackup", "Espere um instante e tente de novo."); return; }
+    mostrarBackupNaTela(texto, "Não deu para salvar o arquivo aqui. Copie o texto abaixo.");
+  }
+}
+function mostrarBackupNaTela(texto, motivo){
+  const pre = document.getElementById("backupTexto");
+  if (!pre) return;
+  pre.textContent = texto;
+  pre.hidden = false;
+  mostrarAviso("avBackup", motivo);
+}
+function validarBackup(obj){
+  /* Um arquivo errado restaurado por cima da temporada é pior que nenhum
+     backup. Confere o formato antes de tocar em qualquer coisa. */
+  if (!obj || obj.formato !== FORMATO_BACKUP) return "Este arquivo não é uma cópia do ELASE.";
+  if (!obj.colecoes || typeof obj.colecoes !== "object") return "A cópia está sem as coleções.";
+  for (const col of Object.keys(obj.colecoes)){
+    if (COLS.indexOf(col) < 0) return `A cópia traz uma coleção desconhecida: ${col}.`;
+    const c = obj.colecoes[col];
+    if (!c || typeof c !== "object" || Array.isArray(c)) return `A coleção ${col} está corrompida.`;
+    for (const id of Object.keys(c))
+      if (!c[id] || typeof c[id] !== "object" || Array.isArray(c[id]))
+        return `O documento ${col}/${id} está corrompido.`;
+  }
+  return "";
+}
+async function restaurarBackup(arquivo){
+  let obj;
+  try { obj = JSON.parse(await arquivo.text()); }
+  catch (e) { mostrarAviso("avRestaurar", "Não consegui ler o arquivo: não é JSON válido."); return; }
+  const erro = validarBackup(obj);
+  if (erro){ mostrarAviso("avRestaurar", erro); return; }
+
+  const conta = Object.keys(obj.colecoes)
+    .reduce((a,c) => a + Object.keys(obj.colecoes[c]).length, 0);
+  const quando = String(obj.gerado_em || "").slice(0, 10);
+  if (!confirm(`Restaurar ${conta} documento(s) da cópia de ${dataBR(quando) || "data desconhecida"}?`
+      + `\n\nO que existir hoje com o mesmo identificador será substituído.`)) return;
+
+  let n = 0, falhas = 0;
+  for (const col of Object.keys(obj.colecoes)){
+    for (const id of Object.keys(obj.colecoes[col])){
+      const corpo = Object.assign({}, obj.colecoes[col][id]);
+      delete corpo.id;
+      try { await Store.set(col, id, corpo); n++; }
+      catch (e) { falhas++; }
+    }
+  }
+  mostrarAviso("avRestaurar", falhas
+    ? `${n} documento(s) restaurado(s), ${falhas} falharam. Veja o aviso no topo da tela.`
+    : `${n} documento(s) restaurado(s).`, !falhas);
+  setTimeout(render, 1600);
+}
+
 async function gravarConfig(){
   /* O gerador conta os dias a partir do início do macrociclo: sessão A no dia
      0, B no 2, C no 4. Começar numa quarta jogaria o treino para quarta, sexta
