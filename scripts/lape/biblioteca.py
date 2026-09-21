@@ -367,6 +367,116 @@ TEMAS_FIBROMIALGIA: tuple[tuple[str, tuple[str, ...]], ...] = (
      ("disability", "work ability", "absenteeism", "sick leave", "functional capacity")),
 )
 
+# ----------------------------------------------------------------------
+# Motivacao no handebol
+# ----------------------------------------------------------------------
+# Aqui a MOTIVACAO e o construto e o HANDEBOL e a populacao -- e por isso
+# o acervo se divide por tema, e nao por modalidade: a modalidade e uma
+# so, e repetir-se-ia em todo segmento.
+#
+# Nao ha MeSH neste acervo, e isso foi CONFERIDO, nao suposto:
+# `"Handball"[MeSH Terms]` devolve ZERO na PubMed -- o descritor nao
+# existe. O que existe e `"Sports"[MeSH]`, e e justamente a armadilha que
+# ja custou acervo no humor no esporte: somado com OR, ele alarga a
+# populacao para esporte em geral e o recorte do handebol desaparece sem
+# deixar erro. Entao aqui o handebol entra so por termo livre.
+MOTIVACAO_TERMOS = (
+    "motivation", "motivational climate", "self-determination",
+    "self-determined motivation", "intrinsic motivation", "extrinsic motivation",
+    "amotivation", "basic psychological needs", "autonomy support",
+    "achievement goal", "achievement goals", "goal orientation",
+    "task orientation", "ego orientation",
+    # Os instrumentos, que e como a literatura de campo se cita. Sem eles,
+    # o artigo que diz "we applied the BRSQ" no resumo e nao repete
+    # "motivation" fica de fora -- e e o mais especifico do acervo.
+    "Sport Motivation Scale", "Behavioural Regulation in Sport Questionnaire",
+    "BRSQ", "TEOSQ", "PMCSQ",
+)
+
+# "team handball" existe porque nos Estados Unidos "handball" sozinho e
+# OUTRO esporte -- o de parede, jogado com a mao contra um frontao. Sem o
+# termo composto, parte da literatura americana do handebol de quadra
+# fica de fora; com ele, ela entra.
+#
+# "balonmano" e "handebol" dao ZERO na PubMed -- medido -- e ficam assim
+# mesmo: eles nao sao para a PubMed. A Scopus e a WoS indexam resumo em
+# espanhol e portugues, e a Espanha e o Brasil sao dois dos paises que
+# mais publicam handebol. Custam nada onde nao servem e trazem acervo
+# onde servem.
+HANDEBOL_TERMOS = (
+    "handball", "team handball", "balonmano", "handebol",
+)
+
+# Os temas em que o acervo se divide. Os numeros ao lado foram MEDIDOS na
+# PubMed em 21/09/2026, e nao estimados -- mas foram medidos com uma
+# forma REDUZIDA desta estrategia (o construto encurtado, para caber no
+# limite de operadores da consulta), e por isso sao um piso, e nao a
+# contagem final. Servem para uma coisa so, que e para o que foram
+# feitos: dizer que nenhum segmento esta vazio. O numero de verdade
+# aparece no acervo depois da primeira atualizacao, e e ele que vale.
+#
+# A base inteira -- motivacao E handebol -- deu 60. Os segmentos se
+# sobrepoem, porque um trabalho sobre clima motivacional em categoria de
+# base conta nos dois, e isso e proposital: segmento aqui e recorte de
+# leitura, nao gaveta.
+#
+# Nenhum segmento vazio entra: segmento sem nada faz a tela parecer
+# quebrada e faz quem olha desconfiar do acervo inteiro. A coesao, com
+# tres, e o menor que passou -- e fica porque num esporte coletivo a
+# pergunta se faz, mesmo que a literatura ainda nao a tenha respondido.
+# Um numero pequeno a vista vale mais do que um segmento escondido.
+TEMAS_MOTIVACAO_HANDEBOL: tuple[tuple[str, tuple[str, ...]], ...] = (
+    # 45 registros
+    ("Desempenho e competição",
+     ("performance", "competition", "competitive level", "elite", "match",
+      "training load", "season")),
+    # 31
+    ("Gênero e handebol feminino",
+     ("women", "female", "girls", "sex differences", "gender", "female athletes")),
+    # 29
+    ("Treinador, liderança e relação",
+     ("coach", "coaches", "coaching", "coaching style", "coach behaviour",
+      "coach behavior", "leadership", "coach-athlete relationship",
+      "autonomy-supportive", "controlling style")),
+    # 25
+    ("Formação e categorias de base",
+     ("youth", "youth sport", "adolescent", "adolescents", "young players",
+      "talent development", "talent identification", "relative age effect",
+      "early specialization")),
+    # 20
+    ("Clima motivacional e metas de realização",
+     ("motivational climate", "achievement goal", "achievement goals",
+      "goal orientation", "task orientation", "ego orientation",
+      "mastery climate", "performance climate", "task involvement",
+      "ego involvement")),
+    # 19
+    ("Autodeterminação e necessidades psicológicas",
+     ("self-determination", "self-determined motivation", "intrinsic motivation",
+      "extrinsic motivation", "amotivation", "basic psychological needs",
+      "need satisfaction", "need thwarting", "autonomy", "competence",
+      "relatedness", "autonomy support")),
+    # 9
+    ("Lesão e retorno ao jogo",
+     ("injury", "injuries", "rehabilitation", "return to play", "return to sport",
+      "fear of reinjury")),
+    # 8
+    ("Burnout, abandono e permanência",
+     ("burnout", "dropout", "drop-out", "withdrawal", "attrition", "adherence",
+      "retention", "engagement", "athlete burnout")),
+    # 7
+    ("Autoeficácia, ansiedade e confiança",
+     ("self-efficacy", "self-confidence", "competitive anxiety", "anxiety",
+      "mental toughness", "resilience", "self-esteem")),
+    # 6
+    ("Praia, escola e handebol adaptado",
+     ("beach handball", "physical education", "school", "wheelchair",
+      "disability", "para sport")),
+    # 3
+    ("Coesão e eficácia coletiva",
+     ("cohesion", "team cohesion", "collective efficacy", "group dynamics",
+      "teamwork", "team climate")),
+)
+
 BIBLIOTECAS: tuple[dict[str, Any], ...] = (
     {
         "code": "humor_esporte",
@@ -437,6 +547,28 @@ BIBLIOTECAS: tuple[dict[str, Any], ...] = (
         "mesh": ('"Fibromyalgia"[MeSH Terms]',),
         "segmentos": TEMAS_FIBROMIALGIA,
         "manuais": BASES_MANUAIS,
+    },
+    {
+        "code": "motivacao_handebol",
+        "title": "Motivação no handebol",
+        "linha": "psicologia_do_esporte",
+        "eixo": "tema",
+        "descricao":
+            "O que move quem joga handebol: por que entra, por que fica e por que "
+            "para. A motivação é o construto e o handebol é a população, e por isso "
+            "o acervo se divide por TEMA — a modalidade é uma só e se repetiria em "
+            "todo segmento. Eram cerca de 60 registros na PubMed quando o acervo "
+            "foi montado — pequeno e inteiro de ler, o que o torna bom para uma "
+            "revisão de escopo: dá para dizer o que existe sem depender de "
+            "amostragem. Scopus e Web of Science entram com a mesma estratégia, "
+            "escrita na sintaxe de cada uma.",
+        "construto": MOTIVACAO_TERMOS,
+        "populacao": HANDEBOL_TERMOS,
+        # Sem MeSH de proposito: `"Handball"[MeSH Terms]` devolve zero na
+        # PubMed -- o descritor nao existe --, e `"Sports"[MeSH]` alargaria
+        # a populacao para esporte em geral.
+        "mesh": (),
+        "segmentos": TEMAS_MOTIVACAO_HANDEBOL,
     },
 )
 

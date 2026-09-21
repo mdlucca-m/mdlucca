@@ -1431,6 +1431,127 @@ class TestOAcervoDeFibromialgia(BaseBiblioteca):
         self.assertEqual(q.count(" AND "), 0)
 
 
+class TestOAcervoDeMotivacaoNoHandebol(BaseBiblioteca):
+    """Motivação é o construto, handebol é a população.
+
+    Por isso o acervo se divide por TEMA: a modalidade é uma só e se
+    repetiria em todo segmento -- o mesmo raciocínio dos esportes
+    estéticos, e pelo mesmo motivo.
+    """
+
+    DECL = next(d for d in biblioteca.BIBLIOTECAS if d["code"] == "motivacao_handebol")
+
+    def test_nao_declara_mesh_porque_o_descritor_nao_existe(self):
+        """`"Handball"[MeSH Terms]` devolve ZERO na PubMed -- conferido.
+
+        E o que existe, `Sports[MeSH]`, é a armadilha que já custou
+        acervo no humor no esporte: somado com OR ele alarga a população
+        de volta para esporte em geral, e o recorte do handebol
+        desaparece sem deixar erro na tela.
+        """
+        self.assertEqual(tuple(self.DECL["mesh"]), ())
+        q = biblioteca.query_de(self.DECL, base=biblioteca.PUBMED)
+        self.assertNotIn("MeSH", q)
+
+    def test_o_handebol_americano_de_parede_nao_apaga_o_de_quadra(self):
+        """Nos Estados Unidos "handball" sozinho é o esporte de frontão.
+
+        Sem o termo composto, parte da literatura americana do handebol
+        de quadra fica de fora.
+        """
+        self.assertIn("team handball", self.DECL["populacao"])
+
+    def test_os_termos_em_espanhol_e_portugues_ficam(self):
+        """Dão zero na PubMed -- medido --, e não é para lá que servem.
+
+        Scopus e Web of Science indexam resumo em espanhol e português, e
+        Espanha e Brasil são dois dos países que mais publicam handebol.
+        """
+        for termo in ("balonmano", "handebol"):
+            with self.subTest(termo=termo):
+                self.assertIn(termo, self.DECL["populacao"])
+
+    def test_a_estrategia_sai_nas_tres_bases_com_a_sintaxe_de_cada_uma(self):
+        q = {base: biblioteca.query_de(self.DECL, base=base)
+             for base in (biblioteca.PUBMED, biblioteca.SCOPUS, biblioteca.WOS)}
+        self.assertIn("[Title/Abstract]", q[biblioteca.PUBMED])
+        self.assertIn("TITLE-ABS-KEY(", q[biblioteca.SCOPUS])
+        self.assertIn("TS=(", q[biblioteca.WOS])
+        for base, texto in q.items():
+            with self.subTest(base=base):
+                # construto E população, e nunca um só dos dois: sem o
+                # AND a busca deixa de ser sobre handebol
+                self.assertIn(") AND (", texto)
+                self.assertIn("handball", texto)
+                self.assertIn("motivation", texto)
+
+    def test_o_eixo_e_o_tema_e_nenhum_segmento_repete_a_modalidade(self):
+        """Segmento que repete a população não recorta nada.
+
+        A regra é sobre o termo NU: "handball" dentro de um segmento
+        devolveria o acervo inteiro com outro nome. Um composto como
+        "beach handball" é outra coisa -- é contexto de prática, e
+        estreita de verdade --, e por isso passa.
+        """
+        self.assertEqual(self.DECL["eixo"], "tema")
+        nomes = [n for n, _ in self.DECL["segmentos"]]
+        self.assertEqual(len(set(nomes)), len(nomes))
+        populacao = {t.lower() for t in self.DECL["populacao"]}
+        for nome, termos in self.DECL["segmentos"]:
+            with self.subTest(tema=nome):
+                self.assertTrue(termos, "tema sem termo não filtra nada")
+                for t in termos:
+                    self.assertNotIn(t.lower(), populacao,
+                                     f"{nome}: a modalidade é a população")
+
+    def test_os_instrumentos_estao_no_construto(self):
+        """O artigo que diz "we applied the BRSQ" e não repete "motivation"
+        é o mais específico do acervo, e era o que ficava de fora.
+        """
+        for sigla in ("BRSQ", "TEOSQ", "PMCSQ", "Sport Motivation Scale"):
+            with self.subTest(sigla=sigla):
+                self.assertIn(sigla, self.DECL["construto"])
+
+    def test_cada_segmento_vira_uma_busca_em_cada_base(self):
+        biblioteca.instalar(self.db)
+        alvo = self.db.scalar("SELECT id FROM biblioteca WHERE code = ?",
+                              ("motivacao_handebol",))
+        self.assertIsNotNone(alvo)
+        for base in (biblioteca.PUBMED, biblioteca.SCOPUS, biblioteca.WOS):
+            with self.subTest(base=base):
+                n = self.db.scalar(
+                    "SELECT COUNT(*) FROM biblioteca_busca"
+                    " WHERE biblioteca_id = ? AND base = ?", (alvo, base))
+                # a geral, mais uma por segmento
+                self.assertEqual(n, len(self.DECL["segmentos"]) + 1)
+
+    def test_a_busca_geral_tem_dois_blocos_e_a_do_segmento_tem_tres(self):
+        """A geral é que diz o tamanho do acervo naquela base.
+
+        Se ela levasse o recorte junto, o total mostrado na tela seria o
+        de um segmento com cara de acervo inteiro. A conferência é pela
+        ESTRUTURA e não por lista de termos: metade do vocabulário de
+        segmento também é construto legítimo -- "intrinsic motivation"
+        está nos dois --, e uma lista de exceções envelheceria a cada
+        termo novo.
+        """
+        geral = biblioteca.query_de(self.DECL, base=biblioteca.PUBMED)
+        self.assertEqual(geral.count(") AND ("), 1)     # construto AND população
+        for nome, termos in self.DECL["segmentos"]:
+            with self.subTest(tema=nome):
+                recorte = biblioteca.query_de(self.DECL, termos, biblioteca.PUBMED)
+                self.assertEqual(recorte.count(") AND ("), 2)
+                self.assertTrue(recorte.startswith(geral[:60]))
+
+    def test_esta_na_linha_de_psicologia_do_esporte(self):
+        biblioteca.instalar(self.db)
+        linha = self.db.scalar(
+            "SELECT rl.code FROM biblioteca b"
+            "  JOIN research_lines rl ON rl.id = b.research_line_id"
+            " WHERE b.code = ?", ("motivacao_handebol",))
+        self.assertEqual(linha, "psicologia_do_esporte")
+
+
 class TestAsBasesSemApi(BaseBiblioteca):
     """Cinco bases que o sistema nao alcanca, e a estrategia delas.
 

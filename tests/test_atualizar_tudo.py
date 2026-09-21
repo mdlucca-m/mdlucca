@@ -368,8 +368,12 @@ class TestARotaDeAtualizarTudo(unittest.TestCase):
                                    self.entrar("coord@udesc.br"), {})
         self.assertEqual(status, 200)
         self.assertTrue(corpo["rodando"])
-        # Os tres, inclusive o restrito: a coordenacao o ve.
-        self.assertEqual(len(corpo["pedidos"]), 3)
+        # TODOS os acervos declarados, inclusive o restrito: a
+        # coordenacao o ve. O numero vem da declaracao, e nao escrito
+        # aqui: com "3" na mao, cada acervo novo quebrava este teste sem
+        # que nada estivesse errado -- e um teste que quebra por motivo
+        # certo ensina a ignora-lo.
+        self.assertEqual(len(corpo["pedidos"]), len(biblioteca.BIBLIOTECAS))
 
     def test_o_GET_devolve_o_estado_e_nao_um_acervo_de_codigo_atualizar(self):
         """A ordem das rotas, que e o que faz esta rota existir."""
