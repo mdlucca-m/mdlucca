@@ -712,6 +712,15 @@ const DICAS = {
 "Push press":"Flexão curta de joelhos e empurra acima da cabeça. Ensina a usar a perna para o que está sobre a cabeça — e serve de acessório de ombro.",
 "Split jerk educativo":"Só a entrada do passo, com bastão. Pé da frente chapado, de trás na ponta, tronco entre os pés. Sem carga até o passo sair automático.",
 };
+/* ── Catálogo compartilhado com a área do atleta ────────────────────────── */
+/* Um plano ajustado viaja no link do atleta referenciando o exercício pelo
+   ÍNDICE nesta lista — é o que permite mandar uma semana inteira num endereço
+   em vez de um texto gigante. A ordem, portanto, é protocolo: mexer nela
+   renomeia os exercícios de todos os planos já enviados. Acrescentar no FIM é
+   seguro; inserir no meio não é. Há teste comparando as duas páginas item a
+   item, justamente para isso não acontecer em silêncio. */
+const CATALOGO = EXERCICIOS.map(e => e[0]);
+
 function buscaVideo(nome){
   /* De propósito uma BUSCA, e não um vídeo fixo: eu não consigo assistir a um
      vídeo para conferir se ele mostra o movimento certo, e demonstração errada
@@ -1160,6 +1169,7 @@ function cfg(){
     temporada: c.temporada || String(new Date().getFullYear()),
     macro_inicio: c.macro_inicio || segundaDe(hojeISO()),
     pin: c.pin || "1234",
+    link_atleta: c.link_atleta || "https://claude.ai/artifact/S1duNPw9Az1fR4RqjJCEj1",
   };
 }
 const blocos = () => (Store.get("config","blocos") || {}).lista || BLOCOS_PADRAO;
@@ -2155,9 +2165,54 @@ function telaPrescricao(){
   if (UI.editPresc) return telaEditarPresc();
   const c = cfg(), hoje = hojeISO();
   const janela = prescricoes().filter(p => p.data >= maisDias(hoje,-14));
+  const seg = segundaDe(hoje);
+  const de = UI.envDe || seg, ate = UI.envAte || maisDias(seg, 6);
+  const alvoEnv = UI.envAtleta || "";
+  const sessoesEnv = planoParaAtleta(alvoEnv, de, ate);
+  const {codigo, semCatalogo} = codificarPlano(sessoesEnv);
+  const link = linkDoAtleta(codigo);
+  const quem = alvoEnv ? (atleta(alvoEnv) || {}) : null;
+  const mensagemPlano = `🏐 PLANO ELASE VOLEIBOL\n`
+    + `${quem ? (quem.apelido || quem.nome) : "Equipe"} · ${dataBR(de)} a ${dataBR(ate)}\n\n`
+    + `Toque no link e o seu app carrega o plano ajustado:\n${link}\n\n`
+    + `Se o link não abrir, copie daqui para baixo e cole na aba Minha semana:\n${codigo}`;
+
   return `<div class="cabeca"><h2>Prescrição</h2>
       <p>As sessões de duas semanas atrás em diante. ${prescricoes().length} no
       total. Uma sessão individual substitui a da equipe só para aquele atleta.</p></div>
+
+    <div class="cartao"><h3>Mandar o plano ajustado</h3>
+      <div class="nota">O celular do atleta calcula a periodização sozinho, mas
+      <b>não enxerga os seus ajustes</b> — a área dele é pública e não lê o banco
+      da equipe. Então o plano vai no link: ele toca, e o app dele passa a mostrar
+      exatamente o que você ajustou. Mande de novo sempre que mexer.</div>
+      <label for="envAtleta"><span>Para quem</span>
+        <select id="envAtleta">
+          <option value="">A equipe (plano do grupo)</option>
+          ${ativos().map(a => `<option value="${a.id}" ${a.id===alvoEnv?"selected":""}
+            >${esc(a.apelido||a.nome)}${Store.get("prescricoes", idPresc(hoje, a.id)) ? " · tem plano próprio" : ""}</option>`).join("")}
+        </select></label>
+      <div class="dupla">
+        <label for="envDe"><span>De</span><input id="envDe" type="date" value="${esc(de)}"></label>
+        <label for="envAte"><span>Até</span><input id="envAte" type="date" value="${esc(ate)}"></label>
+      </div>
+      ${sessoesEnv.length ? `<div class="pares">
+          <div><span>Sessões no período</span><b>${sessoesEnv.length}</b></div>
+          <div><span>Tamanho do link</span><b>${link.length} caracteres</b></div>
+        </div>
+        ${link.length > 1900 ? `<div class="nota aten" style="margin-top:11px">
+          <b>Link comprido.</b> Alguns aparelhos cortam endereços muito longos.
+          Mande uma semana por vez, ou use o código colado.</div>` : ""}
+        ${semCatalogo.length ? `<div class="nota crit" style="margin-top:11px">
+          <b>Fora do catálogo:</b> ${semCatalogo.map(esc).join(", ")}.
+          Estes não viajam no link — o celular dele não sabe o que são.</div>` : ""}
+        <button class="bt zap larga" id="btCopiarPlano" style="margin-top:12px">
+          Copiar a mensagem para o WhatsApp</button>
+        <p class="aviso ok" id="avPlano" hidden></p>
+        <pre class="ficha" id="msgPlano">${esc(mensagemPlano)}</pre>`
+      : `<div class="nota crit">Nenhuma sessão prescrita nesse período
+         ${quem ? `para ${esc(quem.apelido||quem.nome)}` : "para a equipe"}.</div>`}
+    </div>
     ${janela.length ? janela.map(p => {
       const plano = planoSessao(p.exercicios||[], p.tipo, p.dur_prev);
       const sem = semanaDe(p.data, c.macro_inicio);
@@ -2383,6 +2438,11 @@ function telaAjustes(){
       <label for="cfMacro"><span>Início do macrociclo (uma segunda-feira)</span>
         <input id="cfMacro" type="date" value="${esc(c.macro_inicio)}"></label>
       <label for="cfPin"><span>PIN da comissão</span><input id="cfPin" value="${esc(c.pin)}"></label>
+      <label for="cfLink"><span>Endereço da área do atleta</span>
+        <input id="cfLink" value="${esc(c.link_atleta)}"></label>
+      <p style="color:var(--ink-4);font-size:12px;margin:-4px 0 12px">É sobre este
+      endereço que o plano ajustado viaja. Se você republicar a área do atleta em
+      outro lugar, troque aqui — senão o link que sai daqui aponta para o antigo.</p>
       <button class="bt larga" id="btCfg">Gravar</button>
       <p class="aviso ok" id="avCfg" hidden></p>
     </div>
@@ -2636,6 +2696,16 @@ document.addEventListener("click", async ev => {
       pct_rm: null, ref1rm: info.ref1rm, tempo: null, rir: null, vel: null, obs: ""});
     render(); return;
   }
+  if (id === "btCopiarPlano"){
+    const txt = document.getElementById("msgPlano").textContent;
+    try {
+      await navigator.clipboard.writeText(txt);
+      mostrarAviso("avPlano", "Copiado. Cole na conversa com o atleta.", true);
+    } catch (e) {
+      mostrarAviso("avPlano", "Não deu para copiar sozinho: selecione o texto abaixo.", true);
+    }
+    return;
+  }
   if (id === "btGravarPresc"){ await gravarPresc(); return; }
   if (id === "btCancelarPresc"){
     UI.editPresc = null; UI.rascunho = null; ir("prescricao"); return;
@@ -2695,6 +2765,9 @@ document.addEventListener("change", async ev => {
     UI.eu = ev.target.value; guardar("elase_eu", UI.eu); render(); return;
   }
   if (ev.target.id === "exDesemp"){ UI.exDesemp = ev.target.value; render(); return; }
+  if (ev.target.id === "envAtleta"){ UI.envAtleta = ev.target.value; render(); return; }
+  if (ev.target.id === "envDe"){ UI.envDe = ev.target.value; render(); return; }
+  if (ev.target.id === "envAte"){ UI.envAte = ev.target.value; render(); return; }
   if (ev.target.id === "sisDe"){ UI.sisDe = parseInt(ev.target.value,10) || 1; render(); return; }
   if (ev.target.id === "sisAte"){ UI.sisAte = parseInt(ev.target.value,10) || 1; render(); return; }
   if (ev.target.id === "arqBackup"){
@@ -2992,6 +3065,49 @@ async function restaurarBackup(arquivo){
   setTimeout(render, 1600);
 }
 
+/* ── Mandar o plano ajustado para o celular do atleta ───────────────────── */
+/* A área do atleta é PÚBLICA, e página pública não pode ler o banco da equipe.
+   Então o plano não é buscado: ele VIAJA. O que vai no link é o suficiente para
+   o celular dele montar exatamente a sessão que você ajustou, referenciando
+   cada exercício pelo índice no catálogo compartilhado.
+   É sincronização manual, e a tela diz isso: você manda quando ajusta. */
+const SEP_EX = ";", SEP_CAMPO = "|", SEP_SESSAO = "~";
+function limparCampo(s){
+  /* Os separadores não podem aparecer dentro de um valor, senão o outro lado
+     lê o campo partido ao meio. Trocados por espaço, e não removidos, para
+     "8 cada lado" nunca virar "8cadalado". */
+  return String(s == null ? "" : s).replace(/[;|~\n\r]/g, " ").trim();
+}
+function codificarPlano(sessoes){
+  const fora = [], semCatalogo = [];
+  for (const p of sessoes){
+    const exs = [];
+    for (const e of (p.exercicios || [])){
+      const i = CATALOGO.indexOf(e.nome);
+      if (i < 0){ semCatalogo.push(e.nome); continue; }
+      exs.push([i, parseInt(e.series, 10) || 1, limparCampo(e.reps),
+                parseInt(e.pausa, 10) || 0,
+                e.pct_rm ? Math.round(e.pct_rm * 100) : ""].join(SEP_CAMPO));
+    }
+    fora.push([p.data, limparCampo(p.tipo), limparCampo(p.objetivo),
+               exs.join(SEP_EX)].join(SEP_SESSAO));
+  }
+  return {codigo: fora.join("\n"), semCatalogo};
+}
+function planoParaAtleta(atletaId, de, ate){
+  const sessoes = [];
+  for (let d = de; d <= ate; d = maisDias(d, 1)){
+    const p = prescDoDia(d, atletaId || null);
+    if (p) sessoes.push(p);
+  }
+  return sessoes;
+}
+function linkDoAtleta(codigo){
+  const base = cfg().link_atleta;
+  const sep = base.indexOf("?") >= 0 ? "&" : "?";
+  return base + sep + "plano=" + encodeURIComponent(codigo);
+}
+
 /* ── Vídeo filmado pelo clube ───────────────────────────────────────────── */
 /* O vídeo do preparador vale mais que um do YouTube: o atleta reconhece o
    companheiro, a sala e o equipamento, e a correção é feita com as palavras
@@ -3104,7 +3220,8 @@ async function gravarConfig(){
     categoria: valor("cfCat") || "Masculino · Adulto",
     temporada: valor("cfTemp") || String(new Date().getFullYear()),
     macro_inicio: macro,
-    pin: valor("cfPin") || "1234"});
+    pin: valor("cfPin") || "1234",
+    link_atleta: valor("cfLink") || cfg().link_atleta});
   mostrarAviso("avCfg", macro === pedido ? "Gravado."
     : `Gravado. O início foi encaixado na segunda-feira da semana: ${dataBR(macro)}.`, true);
   setTimeout(render, 1400);

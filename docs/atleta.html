@@ -312,8 +312,9 @@ function sessaoDoDia(data, macro){
     sessao:dia.nome, reteste, exercicios:exs};
 }
 function proximaSessao(deData, macro){
-  for (let i = 0; i <= 14; i++){
-    const s = sessaoDoDia(maisDias(deData, i), macro);
+  for (let i = 1; i <= 14; i++){
+    const d = maisDias(deData, i);
+    const s = (S.planos && S.planos[d]) || sessaoDoDia(d, macro);
     if (s) return s;
   }
   return null;
@@ -393,6 +394,88 @@ const POSICOES = ["Levantador","Oposto","Ponteiro (Ponta)","Central","Líbero"];
 const REFS_1RM = ["Agachamento","Agachamento frontal","Supino","Stiff com barra",
                   "Remada serrote","Arranco","Clean","Clean pull"];
 
+/* ── Plano ajustado pela comissão ───────────────────────────────────────── */
+/* Esta página calcula a periodização sozinha — e é por isso que ela funciona
+   sem servidor. O que ela NÃO consegue adivinhar é um ajuste que o preparador
+   fez à mão. Esse ajuste chega no link (ou colado), referenciando cada
+   exercício pelo ÍNDICE neste catálogo. A ordem é protocolo compartilhado com o
+   app da comissão: há teste comparando item a item. */
+const CATALOGO = [
+  "Agachamento","Agachamento frontal","Supino","Stiff com barra","Remada serrote",
+  "Afundo frontal sem passada","Elevação de calcanhares",
+  "Nórdico de isquiotibiais (excêntrico)","Rotadores do ombro com elástico",
+  "Abdominal reto com braços esticados","Dorsal perdigueiro","Arranco","Clean",
+  "Snatch pull / Hang high pull","Agachamento com salto sob carga (jump squat)",
+  "Sprints de 10 e 20 m com mudança de direção","Drop jump 40 cm","Salto no caixote",
+  "Saltos consecutivos sobre barreiras",
+  "Mobilização de tornozelo na parede (knee-to-wall)","Agachamento profundo sustentado",
+  "Panturrilha alongada no step","90/90 de quadril com rotação","Agachamento cossaco",
+  "Alongamento de psoas ajoelhado","Hip airplane","Rotação torácica deitado (open book)",
+  "Passagem de bastão sobre a cabeça","Deslizamento na parede com elástico",
+  "Adução horizontal de ombro (cross-body)","Extensão torácica no rolo",
+  "Y-T-W no banco inclinado","Agachamento overhead","Passagem de bastão no agachamento",
+  "Arranco de força (muscle snatch)","Snatch balance","Arranco do alto (high hang)",
+  "Arranco do joelho (hang)","Posição de recepção do clean (front rack)",
+  "Clean do alto (tall clean)","Clean de força (muscle clean)","Clean do joelho (hang)",
+  "Tríplice extensão com bastão","Push press","Split jerk educativo",
+];
+/* O grupo sai do catálogo por faixa, na mesma ordem do app da comissão. */
+function grupoDoIndice(i){
+  if (i <= 10) return "Força";
+  if (i <= 13) return "LPO";
+  if (i <= 15) return "Potência";
+  if (i <= 18) return "Pliometria";
+  if (i <= 31) return "Mobilidade";
+  return "Educativo";
+}
+function dataValida(s){
+  /* Conferir o FORMATO não basta: "2026-13-99" passa por qualquer regex de
+     aaaa-mm-dd e não é um dia que existe. O construtor de data rola o excesso
+     para o mês seguinte em silêncio, então a checagem é montar e comparar de
+     volta — se não voltar igual, a data foi inventada. */
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const d = dObj(s);
+  return d.getFullYear() === +s.slice(0,4)
+      && d.getMonth() === +s.slice(5,7) - 1
+      && d.getDate() === +s.slice(8,10);
+}
+function decodificarPlano(texto){
+  /* Devolve {sessoes, erros}. Linha que não dá para entender é DESCARTADA e
+     reportada: um plano lido pela metade faria o atleta treinar o que ninguém
+     prescreveu. */
+  const sessoes = {}, erros = [];
+  for (const linha of String(texto || "").split("\n")){
+    const bruto = linha.trim();
+    if (!bruto) continue;
+    const partes = bruto.split("~");
+    if (partes.length < 4){ erros.push(bruto.slice(0, 30)); continue; }
+    const [data, tipo, objetivo, corpo] = partes;
+    if (!dataValida(data)){ erros.push(bruto.slice(0, 30)); continue; }
+    const exs = [];
+    for (const pedaco of corpo.split(";")){
+      if (!pedaco.trim()) continue;
+      const c = pedaco.split("|");
+      const i = parseInt(c[0], 10);
+      if (!(i >= 0 && i < CATALOGO.length)){ erros.push(pedaco.slice(0, 20)); continue; }
+      const pct = c[4] ? parseFloat(c[4]) : null;
+      exs.push(ex(CATALOGO[i], grupoDoIndice(i), parseInt(c[1], 10) || 1,
+        c[2] || "1", parseInt(c[3], 10) || 60,
+        {pct_rm: (pct && pct > 0) ? pct/100 : null, ref1rm: refDoNome(CATALOGO[i])}));
+    }
+    if (!exs.length){ erros.push(data); continue; }
+    sessoes[data] = {data, tipo, objetivo, exercicios: exs, ajustado: true};
+  }
+  return {sessoes, erros};
+}
+const REF_1RM_POR_NOME = {
+  "Agachamento":"Agachamento", "Agachamento frontal":"Agachamento frontal",
+  "Supino":"Supino", "Stiff com barra":"Stiff com barra",
+  "Remada serrote":"Remada serrote", "Arranco":"Arranco", "Clean":"Clean",
+  "Snatch pull / Hang high pull":"Clean pull",
+  "Agachamento com salto sob carga (jump squat)":"Agachamento",
+};
+const refDoNome = n => REF_1RM_POR_NOME[n] || null;
+
 /* ── Anamnese ───────────────────────────────────────────────────────────── */
 /* O PAR-Q é uma triagem de prontidão para atividade física, não um diagnóstico.
    A regra do instrumento é dura e a página a respeita: um "sim" em qualquer
@@ -452,7 +535,7 @@ function mensagemAnamnese(an){
    janela anônima o armazenamento simplesmente não existe, e a página tem de
    continuar funcionando. */
 const CH = "elase_atleta_v1";
-let S = {ficha:null, rm:{}, registros:{}, anamnese:null, lesoesRascunho:null};
+let S = {ficha:null, rm:{}, registros:{}, anamnese:null, lesoesRascunho:null, planos:{}, planoEm:null};
 function carregar(){
   try {
     const cru = localStorage.getItem(CH);
@@ -460,6 +543,7 @@ function carregar(){
   } catch (e) {}
   S.rm = S.rm || {}; S.registros = S.registros || {};
   S.anamnese = S.anamnese || null;
+  S.planos = S.planos || {};
 }
 function guardar(){
   try { localStorage.setItem(CH, JSON.stringify(S)); } catch (e) {}
@@ -612,8 +696,14 @@ function telaCadastro(){
 }
 
 /* ── Hoje ───────────────────────────────────────────────────────────────── */
+/* O ajuste da comissão GANHA do plano gerado: se ele mandou, é o que vale. */
+function sessaoValendo(data){
+  const ajustado = S.planos && S.planos[data];
+  if (ajustado) return ajustado;
+  return sessaoDoDia(data, MACRO);
+}
 function telaHoje(){
-  const hoje = hojeISO(), s = sessaoDoDia(hoje, MACRO);
+  const hoje = hojeISO(), s = sessaoValendo(hoje);
   const reg = S.registros[hoje] || {};
 
   if (!s){
@@ -649,9 +739,11 @@ function telaHoje(){
 
   return `<div class="cabeca">
       <h2>${esc(s.tipo)} · ${esc(s.objetivo)}</h2>
-      <p>${dataBR(hoje)}, ${diaSemana(hoje)} · semana ${s.semana} · ciclo ${s.ciclo},
-      posição ${s.posicao} de ${s.nblocos} · ${esc(s.bloco)} / ${esc(s.micro)}
-      ${s.reteste ? " · <b>RETESTE</b>" : ""}</p></div>
+      <p>${dataBR(hoje)}, ${diaSemana(hoje)}${s.ajustado ? ""
+        : ` · semana ${s.semana} · ciclo ${s.ciclo}, posição ${s.posicao} de ${s.nblocos}`
+          + ` · ${esc(s.bloco)} / ${esc(s.micro)}${s.reteste ? " · <b>RETESTE</b>" : ""}`}</p></div>
+    ${s.ajustado ? `<div class="nota bom"><b>Plano ajustado pela comissão.</b>
+      É este que vale hoje, não o do calendário${S.planoEm ? ` — recebido em ${dataBR(S.planoEm)}` : ""}.</div>` : ""}
 
     <div class="cartao"><h3>A sessão</h3>
       <div class="grade">
@@ -766,7 +858,7 @@ function telaCheckin(){
 /* ── Fim de sessão ──────────────────────────────────────────────────────── */
 const DUR_MAX = 300;
 function telaFim(){
-  const hoje = hojeISO(), s = sessaoDoDia(hoje, MACRO);
+  const hoje = hojeISO(), s = sessaoValendo(hoje);
   /* Sem sala prescrita a sessão é de quadra, e 90 min é o palpite honesto de um
      treino técnico-tático — ele corrige no campo. */
   const plano = s ? planoSessao(s.exercicios) : {dur:90};
@@ -796,7 +888,7 @@ function telaSemana(){
   const dias = [];
   for (let i = 0; i < 7; i++){
     const d = maisDias(seg, i);
-    dias.push({data:d, s: sessaoDoDia(d, MACRO), reg: S.registros[d] || {}});
+    dias.push({data:d, s: sessaoValendo(d), reg: S.registros[d] || {}});
   }
   const sem = semanaDe(hoje, MACRO), n = BLOCOS.length;
   const b = BLOCOS[posicaoNoCiclo(Math.max(sem,1), n) - 1];
@@ -814,6 +906,24 @@ function telaSemana(){
         </div>`).join("")}
       </div>
     </div>
+    <div class="cartao"><h3>Plano da comissão</h3>
+      ${Object.keys(S.planos || {}).length ? `<div class="nota bom">
+        <b>${Object.keys(S.planos).length} sessão(ões) ajustada(s)</b> guardada(s) neste
+        aparelho${S.planoEm ? `, recebidas em ${dataBR(S.planoEm)}` : ""}. Nos dias
+        que têm ajuste, é o ajuste que vale.</div>` : `<div class="nota">
+        Você ainda não recebeu nenhum ajuste. O que aparece aqui é o plano do
+        calendário, calculado pelo próprio app.</div>`}
+      <p style="font-size:13px;color:var(--ink-3);margin:0 0 12px">Quando a
+      comissão mandar um plano, toque no link que ela enviar. Se o link não abrir,
+      cole aqui o código que veio na mensagem.</p>
+      <label for="colaPlano"><span>Colar o código do plano</span>
+        <textarea id="colaPlano" rows="3" placeholder="2026-09-22~Força~Força máxima~19|2|8 cada lado|30|"></textarea></label>
+      <button class="bt alt larga" id="btColaPlano">Carregar o plano</button>
+      <p class="aviso" id="avPlanoAtleta" hidden></p>
+      ${Object.keys(S.planos || {}).length ? `<button class="bt alt larga" id="btLimparPlano"
+        style="margin-top:9px">Voltar ao plano do calendário</button>` : ""}
+    </div>
+
     <div class="cartao"><h3>Mobilidade · os doze que giram na semana</h3>
       <p style="font-size:13.5px;color:var(--ink-2);margin:0 0 12px">Tornozelo,
       quadril e ombro em toda sessão, e cada um pelo motivo dele: sem dorsiflexão
@@ -1023,13 +1133,20 @@ function desenhar(){
   /* O cartão de envio é montado UMA vez, aqui, e não dentro de cada tela: o
      cadastro grava e já joga o atleta na área, então quem mostra a ficha é a
      aba Hoje, que não sabia disso. A ficha simplesmente não aparecia. */
-  el.innerHTML = conteudo + (UI.saida ? cartaoEnvio(UI.saida, UI.saidaTitulo) : "");
+  const avisoPlano = UI.avisoPlano
+    ? `<div class="nota ${UI.avisoPlanoOk ? "bom" : "aten"}">${esc(UI.avisoPlano)}</div>` : "";
+  el.innerHTML = avisoPlano + conteudo + (UI.saida ? cartaoEnvio(UI.saida, UI.saidaTitulo) : "");
 
   document.getElementById("rodape").innerHTML = dentro
     ? `ELASE Voleibol Masculino · Preparação física<br>Os seus dados ficam neste aparelho.`
     : `ELASE Voleibol Masculino · Preparação física<br>Esta página não guarda nada em servidor nenhum.`;
 }
-function ir(aba){ UI.aba = aba; UI.saida = ""; UI.saidaTitulo = ""; render(); window.scrollTo({top:0, behavior:"instant"}); }
+function ir(aba){
+  UI.aba = aba; UI.saida = ""; UI.saidaTitulo = "";
+  UI.avisoPlano = "";           // o aviso do link é da primeira tela, não de todas
+  render();
+  window.scrollTo({top:0, behavior:"instant"});
+}
 
 /* ── Eventos ────────────────────────────────────────────────────────────── */
 document.addEventListener("click", async ev => {
@@ -1076,6 +1193,16 @@ document.addEventListener("click", async ev => {
   if (id === "btFim"){ gravarFim(); return; }
   if (id === "btRM"){ gravarRM(); return; }
   if (id === "btApagar"){ apagarTudo(); return; }
+  if (id === "btColaPlano"){
+    const r = receberPlano(valor("colaPlano"), "");
+    mostrarAviso("avPlanoAtleta", r.aviso, r.n > 0);
+    if (r.n) setTimeout(render, 900);
+    return;
+  }
+  if (id === "btLimparPlano"){
+    if (!confirm("Voltar ao plano do calendário e esquecer os ajustes recebidos?")) return;
+    S.planos = {}; S.planoEm = null; guardar(); render(); return;
+  }
   if (id === "btAddLesao"){ acrescentarLesao(); return; }
   if (id === "btAnamnese"){ gravarAnamnese(); return; }
 
@@ -1234,7 +1361,7 @@ function gravarFim(){
     mostrarAviso("avFim", `A duração precisa estar entre 1 e ${DUR_MAX} minutos.`);
     return;
   }
-  const s = sessaoDoDia(hojeISO(), MACRO);
+  const s = sessaoValendo(hojeISO());
   registroDeHoje().sessao = {dur, pse};
   guardar();
   UI.saida = mensagem("FIM DE SESSÃO", [
@@ -1259,14 +1386,38 @@ function gravarRM(){
 }
 function apagarTudo(){
   if (!confirm("Apagar a sua ficha, os seus 1RM e os check-ins deste aparelho?")) return;
-  S = {ficha:null, rm:{}, registros:{}, anamnese:null, lesoesRascunho:null};
+  S = {ficha:null, rm:{}, registros:{}, anamnese:null, lesoesRascunho:null, planos:{}, planoEm:null};
   try { localStorage.removeItem(CH); } catch (e) {}
   UI.aba = "hoje"; UI.saida = ""; UI.saidaTitulo = ""; UI.editando = false;
   render();
   window.scrollTo({top:0});
 }
 
+function receberPlano(texto, origem){
+  const {sessoes, erros} = decodificarPlano(texto);
+  const n = Object.keys(sessoes).length;
+  if (!n){
+    return {n: 0, erros, aviso: "Não reconheci nenhum plano nesse texto. "
+      + "Peça para a comissão mandar de novo."};
+  }
+  S.planos = Object.assign({}, S.planos || {}, sessoes);
+  S.planoEm = hojeISO();
+  guardar();
+  return {n, erros, aviso: `${n} sessão(ões) ajustada(s) recebida(s)${origem ? " " + origem : ""}.`
+    + (erros.length ? ` ${erros.length} linha(s) não deram para ler e foram descartadas.` : "")};
+}
+
 /* ── Arranque ───────────────────────────────────────────────────────────── */
 carregar();
+/* Um plano no endereço é carregado ANTES do primeiro desenho: o atleta tocou
+   no link do preparador e tem de ver o treino ajustado já na primeira tela,
+   não depois de um aviso. */
+(() => {
+  const vindo = param("plano");
+  if (!vindo) return;
+  const r = receberPlano(vindo, "pelo link");
+  UI.avisoPlano = r.aviso;
+  UI.avisoPlanoOk = r.n > 0;
+})();
 render();
 </script>

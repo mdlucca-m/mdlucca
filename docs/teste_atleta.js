@@ -99,6 +99,24 @@ const MACRO = "2026-09-21";                      // uma segunda-feira
     ok(JSON.stringify(protAtleta[chave]) === JSON.stringify(protApp[chave]),
        `o protocolo da anamnese bate nos dois lados: ${chave}`,
        JSON.stringify(protAtleta[chave]) + " ≠ " + JSON.stringify(protApp[chave]));
+  /* O catálogo é o que permite mandar uma semana ajustada dentro de um link:
+     cada exercício viaja como ÍNDICE. Se as listas divergirem, o atleta recebe
+     o plano com os exercícios TROCADOS — e nada avisa. */
+  const catAtleta = await pag.evaluate(() => CATALOGO);
+  const catApp = await pag2.evaluate(() => CATALOGO);
+  ok(catApp.length === catAtleta.length && catApp.every((n, i) => n === catAtleta[i]),
+     "o catálogo de exercícios é idêntico nas duas páginas",
+     `${catApp.length} vs ${catAtleta.length}`);
+  const grupoOk = await pag2.evaluate(async cat => {
+    const g = [];
+    for (let i = 0; i < cat.length; i++) g.push(infoEx(cat[i]).grupo);
+    return g;
+  }, catApp);
+  const grupoAtleta = await pag.evaluate(c => c.map((_, i) => grupoDoIndice(i)), catAtleta);
+  ok(grupoOk.every((g, i) => g === grupoAtleta[i]),
+     "e o grupo de cada um também",
+     grupoOk.map((g, i) => g === grupoAtleta[i] ? "" : `${i}:${g}≠${grupoAtleta[i]}`)
+       .filter(Boolean).slice(0, 5).join(", "));
   await pag2.close();
 
   console.log("\n── Cadastro ───────────────────────────────────────────");
@@ -406,6 +424,76 @@ const MACRO = "2026-09-21";                      // uma segunda-feira
   ok(await pag.isVisible("#btEu"), "recarregar mantém o atleta dentro da área");
   const rmDepois = await pag.evaluate(() => S.rm["Agachamento"]);
   ok(rmDepois === 150, "e mantém o 1RM", rmDepois);
+
+  console.log("\n── O plano ajustado chega no celular ──────────────────");
+  /* O teste de ponta a ponta: o preparador ajusta, gera o link, e o celular do
+     atleta tem de mostrar EXATAMENTE aquilo — não o plano do calendário. */
+  const pag5 = await ctx.newPage();
+  await pag5.goto(`http://127.0.0.1:${PORTA}/app`, { waitUntil: "load" });
+  await pag5.waitForTimeout(300);
+  const gerado = await pag5.evaluate(async m => {
+    /* Sessão da semana 1 gerada, depois AJUSTADA: menos exercícios, mais
+       séries no primeiro e um percentual mudado. */
+    const s = gerarSistema(BLOCOS_PADRAO, m, 1, 1, []).sessoes[0];
+    const exs = s.exercicios.slice(0, 6);
+    exs[0].series = 9;
+    exs[5].pct_rm = 0.55;
+    await Store.set("prescricoes", s.data, {
+      data: s.data, hora: s.hora, tipo: "Força", objetivo: "Ajustado na mão",
+      bloco: s.bloco, notas: s.notas, exercicios: exs});
+    const sessoes = planoParaAtleta(null, s.data, s.data);
+    const cod = codificarPlano(sessoes);
+    return {data: s.data, codigo: cod.codigo, semCatalogo: cod.semCatalogo,
+            link: linkDoAtleta(cod.codigo),
+            esperado: exs.map(e => [e.nome, e.series, e.reps, e.pausa, e.pct_rm])};
+  }, MACRO);
+  ok(gerado.semCatalogo.length === 0, "todos os exercícios cabem no catálogo",
+     gerado.semCatalogo.join(", "));
+  ok(gerado.link.length < 2000, "o link de uma sessão cabe num endereço",
+     gerado.link.length + " caracteres");
+  await pag5.close();
+
+  // Abrir a área do atleta PELO LINK, como ele faria
+  const cel = await ctx.newPage();
+  const errosCel = [];
+  cel.on("pageerror", e => errosCel.push(e.message));
+  await cel.goto(`http://127.0.0.1:${PORTA}/atleta?m=${MACRO}&plano=`
+    + encodeURIComponent(gerado.codigo), { waitUntil: "load" });
+  await cel.waitForTimeout(400);
+  const recebido = await cel.evaluate(d => {
+    const s = sessaoValendo(d);
+    return s ? {ajustado: !!s.ajustado, tipo: s.tipo, objetivo: s.objetivo,
+      exs: s.exercicios.map(e => [e.nome, e.series, e.reps, e.pausa, e.pct_rm])} : null;
+  }, gerado.data);
+  ok(recebido && recebido.ajustado, "o celular marca a sessão como ajustada");
+  ok(recebido.objetivo === "Ajustado na mão", "com o objetivo que o preparador escreveu",
+     recebido.objetivo);
+  ok(JSON.stringify(recebido.exs) === JSON.stringify(gerado.esperado),
+     "e com os exercícios EXATAMENTE como ele ajustou",
+     JSON.stringify(recebido.exs) + "\n≠\n" + JSON.stringify(gerado.esperado));
+  ok(recebido.exs.length === 6 && recebido.exs[0][1] === 9,
+     "séries mudadas e exercícios removidos chegam", JSON.stringify(recebido.exs[0]));
+  ok(recebido.exs[5][4] === 0.55, "e o percentual também", recebido.exs[5][4]);
+  ok(errosCel.length === 0, "sem erro ao abrir pelo link", errosCel.join(" | "));
+
+  // O dia sem ajuste continua no plano do calendário
+  const semAjuste = await cel.evaluate(d => {
+    const s = sessaoValendo(maisDias(d, 2));      // a quarta da mesma semana
+    return s ? {ajustado: !!s.ajustado, n: s.exercicios.length} : null;
+  }, gerado.data);
+  ok(semAjuste && !semAjuste.ajustado,
+     "e o dia sem ajuste continua com o plano do calendário", JSON.stringify(semAjuste));
+
+  // Código corrompido não pode virar treino inventado
+  const ruim = await cel.evaluate(() => {
+    const r = decodificarPlano("lixo sem separador\n2026-13-99~X~Y~0|1|1|1|\n"
+      + "2026-09-25~Força~Teste~999|3|5|90|");
+    return {n: Object.keys(r.sessoes).length, erros: r.erros.length};
+  });
+  ok(ruim.n === 0 && ruim.erros >= 3,
+     "linha corrompida é descartada e reportada, nunca vira exercício errado",
+     JSON.stringify(ruim));
+  await cel.close();
 
   console.log("\n── Celular ────────────────────────────────────────────");
   const sobra = await pag.evaluate(() =>
