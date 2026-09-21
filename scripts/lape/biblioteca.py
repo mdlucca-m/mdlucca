@@ -402,6 +402,17 @@ MOTIVACAO_TERMOS = (
     # Os instrumentos, que e como a literatura de campo se cita. Sem eles,
     # o artigo que diz "we applied the BRSQ" no resumo e nao repete
     # "motivation" fica de fora -- e e o mais especifico do acervo.
+    #
+    # A SIGLA e o que funciona, e o nome por extenso nao: medido na
+    # PubMed em 21/09/2026, "BRSQ" da 20 registros, "TEOSQ" 33 e "PMCSQ"
+    # 26, enquanto "Behavioural Regulation in Sport Questionnaire" da
+    # ZERO -- a PubMed descarta a expressao calada, como descarta
+    # "balonmano" e "handebol", e a busca roda sem ela sem dizer nada. O
+    # nome por extenso fica assim mesmo, pela mesma razao que os termos em
+    # espanhol ficam: ele nao e para a PubMed. E o nome oficial do
+    # instrumento, com a grafia britanica do autor, e e por ele que a
+    # Scopus, a WoS e a SPORTDiscus indexam o artigo que so o cita no
+    # texto. Custa nada onde nao serve.
     "Sport Motivation Scale", "Behavioural Regulation in Sport Questionnaire",
     "BRSQ", "TEOSQ", "PMCSQ",
 )
