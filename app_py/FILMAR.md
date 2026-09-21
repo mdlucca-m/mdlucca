@@ -67,16 +67,20 @@ Filme na ordem. Cada um: **15 segundos, 2 ou 3 repetições lentas.**
 ## Depois de filmar
 
 1. Corte o que sobrou no começo e no fim (o app do celular faz).
-2. Abra o ELASE no computador, aba **Exercícios**, grupo **Mobilidade**.
+2. Abra o **app da comissão**, aba **Exercícios**, grupo **Mobilidade**.
+   Precisa estar destrancado com o PIN.
 3. No exercício, botão **📹 Filmei** → escolha o arquivo.
-4. Pronto: o atleta vê o vídeo dentro da sessão, sem sair do app.
+4. Pronto: o atleta vê o vídeo tocando dentro da sessão, sem sair do app.
 
-Aceita MP4, MOV, WEBM e M4V — o que qualquer celular grava. Teto de 120 MB por
-vídeo, que é folga larga para 15 segundos. Se estourar, é porque não foi
-cortado.
+Aceita o que qualquer celular grava. **Teto de 20 MB por vídeo** — quinze
+segundos cabem com folga larga; se estourar, é porque não foi cortado.
 
-Os arquivos ficam em `app_py/web/videos/` e **não vão para o repositório**: são
-grandes, e são imagem dos seus atletas.
+Os arquivos ficam no armazenamento do próprio app e **não vão para o
+repositório**: são grandes, e são a imagem dos seus atletas.
+
+> Enviar arquivo exige ser o dono do app. Quem abre por um link de leitura vê
+> os vídeos, mas não envia — e o botão some para essa pessoa, em vez de dar
+> erro depois de escolher o arquivo.
 
 ---
 

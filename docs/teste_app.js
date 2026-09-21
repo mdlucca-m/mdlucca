@@ -596,7 +596,128 @@ const servidor = http.createServer((req, res) => {
   ok(/Não consegui entender/i.test(txtFora) && /Sono/.test(txtFora),
      "sono 9 numa escala de 1 a 5 é reportado, não aceito");
 
+  console.log("\n── Ajustar a sessão à mão ─────────────────────────────");
+  await pag.click('#navRolo button[data-aba="prescricao"]');
+  await pag.waitForTimeout(400);
+  const hojeId = await pag.evaluate(() => hojeISO());
+  const antes = await pag.evaluate(d => {
+    const p = Store.get("prescricoes", d);
+    return {n: p.exercicios.length, series0: p.exercicios[0].series};
+  }, hojeId);
+  await pag.click(`[data-editar-presc="${hojeId}"]`);
+  await pag.waitForTimeout(450);
+  ok(await pag.isVisible("#btGravarPresc"), "o editor abre");
+  const camposEd = await pag.$$eval('[data-ed="0"]', e => e.length);
+  ok(camposEd === 4, "cada exercício tem séries, reps, pausa e %", camposEd);
+
+  // Digitar NÃO pode redesenhar: o campo perderia o foco a cada letra
+  await pag.fill('[data-ed="0"][data-campo="series"]', "5");
+  await pag.fill('[data-ed="0"][data-campo="reps"]', "12");
+  const focoMantido = await pag.evaluate(() =>
+    document.activeElement.getAttribute("data-campo"));
+  ok(focoMantido === "reps", "o foco fica no campo enquanto se digita", focoMantido);
+  const rascunho = await pag.evaluate(() => ({s: UI.rascunho[0].series, r: UI.rascunho[0].reps}));
+  ok(rascunho.s === 5 && rascunho.r === "12", "e o rascunho acompanha", JSON.stringify(rascunho));
+
+  // Nada foi gravado ainda
+  const naoGravou = await pag.evaluate(d => Store.get("prescricoes", d).exercicios[0].series, hojeId);
+  ok(naoGravou === antes.series0, "enquanto edita, o documento no banco fica intacto",
+     `${naoGravou} (era ${antes.series0})`);
+
+  // Tirar, acrescentar e mover
+  await pag.click('[data-tirar-ex="0"]');
+  await pag.waitForTimeout(350);
+  ok((await pag.evaluate(() => UI.rascunho.length)) === antes.n - 1, "tirar exercício funciona");
+  await pag.selectOption("#novoEx", "Push press");
+  await pag.click("#btAddEx");
+  await pag.waitForTimeout(350);
+  const ultimo = await pag.evaluate(() => UI.rascunho[UI.rascunho.length-1].nome);
+  ok(ultimo === "Push press", "acrescentar do catálogo funciona", ultimo);
+  await pag.click(`[data-mover="${await pag.evaluate(() => UI.rascunho.length - 1)}:-1"]`);
+  await pag.waitForTimeout(350);
+  const penultimo = await pag.evaluate(() => UI.rascunho[UI.rascunho.length-2].nome);
+  ok(penultimo === "Push press", "mover para cima funciona", penultimo);
+
+  // Sair sem gravar sai sem gravar
+  await pag.click("#btCancelarPresc");
+  await pag.waitForTimeout(500);
+  const depoisCancelar = await pag.evaluate(d =>
+    Store.get("prescricoes", d).exercicios.length, hojeId);
+  ok(depoisCancelar === antes.n, "sair sem gravar não muda nada", depoisCancelar);
+
+  // Gravar grava
+  await pag.click(`[data-editar-presc="${hojeId}"]`);
+  await pag.waitForTimeout(400);
+  await pag.fill('[data-ed="0"][data-campo="series"]', "6");
+  await pag.fill('[data-ed="0"][data-campo="pct_rm"]', "70");
+  await pag.click('[data-tirar-ex="1"]');
+  await pag.waitForTimeout(350);
+  await pag.click("#btGravarPresc");
+  await pag.waitForTimeout(900);
+  const gravado = await pag.evaluate(d => {
+    const p = Store.get("prescricoes", d);
+    return {n: p.exercicios.length, series: p.exercicios[0].series, pct: p.exercicios[0].pct_rm};
+  }, hojeId);
+  ok(gravado.n === antes.n - 1 && gravado.series === 6 && gravado.pct === 0.7,
+     "gravar grava séries, % e a remoção", JSON.stringify(gravado));
+
+  // % em branco é "sem percentual", não zero
+  const semPct = await pag.evaluate(() => {
+    UI.rascunho = [{nome:"x", grupo:"Força", series:3, reps:"8", pausa:90, pct_rm:0.8}];
+    aplicarEdicao(0, "pct_rm", "");
+    return UI.rascunho[0].pct_rm;
+  });
+  ok(semPct === null, "percentual apagado vira 'sem percentual', não 0%", semPct);
+
+  console.log("\n── Prescrição individual ──────────────────────────────");
+  const idIndiv = await pag.evaluate(async d => {
+    const a = ativos()[0], base = Store.get("prescricoes", d);
+    const docId = idPresc(d, a.id);
+    await Store.set("prescricoes", docId, Object.assign({}, base,
+      {atleta_id: a.id, notas: "plano individual",
+       exercicios: base.exercicios.slice(0, 4)}));
+    render();
+    return docId;
+  }, hojeId);
+  await pag.waitForTimeout(500);
+  const qualSessao = await pag.evaluate(d => {
+    const a = ativos()[0];
+    return {dele: prescDoDia(d, a.id).exercicios.length,
+            equipe: prescDoDia(d).exercicios.length,
+            individual: ehIndividual(prescDoDia(d, a.id))};
+  }, hojeId);
+  ok(qualSessao.dele === 4 && qualSessao.equipe > 4 && qualSessao.individual,
+     "o plano individual substitui o da equipe só para aquele atleta",
+     JSON.stringify(qualSessao));
+  const outro = await pag.evaluate(d => {
+    const fake = "aNaoExiste";
+    return prescDoDia(d, fake).exercicios.length;
+  }, hojeId);
+  ok(outro === qualSessao.equipe, "e os outros continuam com o da equipe", outro);
+  await pag.evaluate(async id => { await Store.remover("prescricoes", id); render(); }, idIndiv);
+  await pag.waitForTimeout(400);
+
+  console.log("\n── Massa ao longo do tempo ────────────────────────────");
+  await pag.click('#navRolo button[data-aba="testes"]');
+  await pag.waitForTimeout(400);
+  await pag.selectOption("#tTipo", "Massa");
+  await pag.fill("#tEx", "Massa corporal");
+  await pag.fill("#tValor", "97,5");
+  await pag.selectOption("#tUni", "kg");
+  await pag.click("#btTeste");
+  await pag.waitForTimeout(600);
+  const massaNova = await pag.evaluate(() => ativos()[0].massa);
+  ok(massaNova === 97.5, "a pesagem de hoje vira a massa do atleta", massaNova);
+  const forcaDepois = await pag.evaluate(() => {
+    const a = ativos()[0];
+    return melhor1RM(a.id, "Agachamento") / a.massa;
+  });
+  ok(Math.abs(forcaDepois - 150/97.5) < 0.001,
+     "e a força relativa passa a dividir pelo peso de hoje", forcaDepois);
+
   console.log("\n── Anamnese ───────────────────────────────────────────");
+  await pag.click('#navRolo button[data-aba="whatsapp"]');
+  await pag.waitForTimeout(350);
   const anMsg = await pag.evaluate(d => [
     "🏐 ANAMNESE ELASE VOLEIBOL", `Rafa · ${d}`, "",
     "1. PAR-Q 1 — não", "2. PAR-Q 2 — não", "3. PAR-Q 3 — não", "4. PAR-Q 4 — não",
@@ -644,9 +765,9 @@ const servidor = http.createServer((req, res) => {
     const a = ativos()[0];
     return {rm: melhor1RM(a.id, "Agachamento"), massa: a.massa};
   });
-  ok(forcaRel.rm === 150 && forcaRel.massa === 95, "o 1RM e a massa estão lá",
-     JSON.stringify(forcaRel));
-  ok(txtDes.indexOf("1,58") >= 0, "força relativa = 150 ÷ 95 = 1,58×",
+  ok(forcaRel.rm === 150 && forcaRel.massa === 97.5,
+     "o 1RM e a massa (já a da pesagem de hoje) estão lá", JSON.stringify(forcaRel));
+  ok(txtDes.indexOf("1,54") >= 0, "força relativa = 150 ÷ 97,5 = 1,54×",
      txtDes.replace(/\s+/g, " ").slice(0, 200));
   ok(/poucos dados/i.test(txtDes),
      "com um atleta só, a posição no elenco se recusa a existir");
