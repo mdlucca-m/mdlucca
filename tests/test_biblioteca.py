@@ -1474,7 +1474,7 @@ class TestOBancoNaoFicaTravadoDuranteAAtualizacao(BaseBiblioteca):
         def colher_falso(base, query, limite):
             self.tentativas.append(self._outro_programa_consegue_gravar())
             return [{"title": f"Artigo de {base}", "doi": f"10.1/{len(self.tentativas)}",
-                     "year": 2024, "base": base}]
+                     "year": 2024, "base": base}], None
 
         self.trocar(biblioteca, "_colher", colher_falso)
         biblioteca.atualizar(self.db, "motivacao_handebol", verbose=False)
@@ -1501,7 +1501,7 @@ class TestOBancoNaoFicaTravadoDuranteAAtualizacao(BaseBiblioteca):
             if len(chamadas) > 2:
                 raise KeyboardInterrupt("fecharam a janela")
             return [{"title": f"Artigo {len(chamadas)}", "doi": f"10.2/{len(chamadas)}",
-                     "year": 2024, "base": base}]
+                     "year": 2024, "base": base}], None
 
         self.trocar(biblioteca, "_colher", colher_falso)
         with self.assertRaises(KeyboardInterrupt):
@@ -2223,6 +2223,150 @@ class TestColarOQueABaseExportou(BaseBiblioteca):
         self.assertTrue(set(biblioteca.BASES) <= bases)
         automaticas = [x for x in todas if x["base"] in biblioteca.BASES]
         self.assertFalse(any(x["manual"] for x in automaticas))
+
+
+class TestABuscaQueBateuNoTeto(BaseBiblioteca):
+    """400 de 17.128 nao e "400 achados" -- e um acervo pela metade.
+
+    O limite existe e e necessario: a fibromialgia tem dezessete mil
+    registros na PubMed e ninguem quer baixa-los para um acervo de
+    leitura. O defeito nunca foi o corte; foi o corte CALADO. Uma busca
+    que veio inteira e uma que bateu no teto gravavam o mesmo "achados",
+    e o numero do teto e o que alguem copia para a tabela de estrategias
+    de uma revisao sistematica -- onde ele vira uma afirmacao sobre a
+    literatura que a base nunca fez.
+    """
+
+    def setUp(self):
+        super().setUp()
+        biblioteca.instalar(self.db)
+        from lape import sources
+        self.perguntaram = []
+
+        def busca_falsa(query, retmax=400, **kwargs):
+            # A base tem sempre mais do que cabe: devolve o teto cheio.
+            return [str(n) for n in range(retmax)]
+
+        def quantos_falso(query):
+            self.perguntaram.append(query)
+            return 17128
+
+        self.trocar(sources, "pubmed_search", busca_falsa)
+        self.trocar(sources, "pubmed_medline", self.medline_falsa)
+        self.trocar(sources, "pubmed_quantos", quantos_falso)
+        self.trocar(biblioteca, "THROTTLE", 0)
+
+    @staticmethod
+    def medline_falsa(pmids):
+        return "".join(
+            f"PMID- {p}\nTI  - Artigo {p}\nDP  - 2024\nAID - 10.9/{p} [doi]\n\n"
+            for p in pmids)
+
+    def test_quem_encostou_no_teto_grava_quantos_a_base_tem(self):
+        r = biblioteca.atualizar(self.db, "motivacao_handebol", limite=5,
+                                 bases=(biblioteca.PUBMED,))
+        self.assertTrue(r["cortadas"], "a busca veio no limite e ninguém avisou")
+        corte = r["cortadas"][0]
+        self.assertEqual(corte["na_base"], 17128)
+        self.assertEqual(corte["base"], biblioteca.PUBMED)
+        self.assertGreater(corte["na_base"], corte["recolhidos"])
+        gravado = self.db.scalar(
+            "SELECT na_base FROM biblioteca_busca bb JOIN biblioteca b"
+            "    ON b.id = bb.biblioteca_id"
+            " WHERE b.code = ? AND bb.base = ? AND bb.segmento IS NULL",
+            ("motivacao_handebol", biblioteca.PUBMED))
+        self.assertEqual(gravado, 17128)
+
+    def test_quem_nao_encostou_no_teto_nao_pergunta_nem_grava(self):
+        """Sem teto tocado, `achados` JA e a contagem da base.
+
+        Perguntar de novo custaria uma chamada por busca e abriria a
+        chance de as duas discordarem -- e discordancia entre dois
+        numeros do mesmo sistema e o que faz ninguem confiar em nenhum.
+        """
+        from lape import sources
+        self.trocar(sources, "pubmed_search",
+                    lambda query, retmax=400, **k: ["1", "2"])
+        r = biblioteca.atualizar(self.db, "motivacao_handebol", limite=5,
+                                 bases=(biblioteca.PUBMED,))
+        self.assertEqual(r["cortadas"], [])
+        self.assertEqual(self.perguntaram, [])
+        na_base = self.db.dicts(
+            "SELECT na_base FROM biblioteca_busca bb JOIN biblioteca b"
+            "    ON b.id = bb.biblioteca_id WHERE b.code = ?",
+            ("motivacao_handebol",))
+        self.assertTrue(all(x["na_base"] is None for x in na_base))
+
+    def test_o_teto_se_mede_pelos_identificadores_e_nao_pelos_registros(self):
+        """O `efetch` devolve um registro a menos do que os PMIDs pedidos.
+
+        Medido numa busca de verdade: a fibromialgia pediu 400 e leu 396.
+        Medindo pelo fim da fila, essa busca passaria por completa --
+        justamente a que mais precisa do aviso.
+        """
+        from lape import sources
+        self.trocar(sources, "pubmed_medline",
+                    lambda pmids: self.medline_falsa(pmids[:-1]))
+        registros, na_base = biblioteca._colher(biblioteca.PUBMED, "seja o que for", 5)
+        self.assertEqual(len(registros), 4, "o efetch devolveu um a menos")
+        self.assertEqual(na_base, 17128)
+
+    def test_a_conta_que_falha_nao_derruba_o_que_ja_foi_recolhido(self):
+        """Os artigos ja estao gravados; perder isso pelo extra seria troca ruim."""
+        from lape import sources
+
+        def explodir(query):
+            raise RuntimeError("a rede caiu na pergunta seguinte")
+
+        self.trocar(sources, "pubmed_quantos", explodir)
+        registros, na_base = biblioteca._colher(biblioteca.PUBMED, "seja o que for", 5)
+        self.assertEqual(len(registros), 5)
+        self.assertIsNone(na_base, "sem resposta é “não se sabe”, e não “é tudo”")
+
+    def test_o_acervo_cortado_entra_no_log_como_parcial(self):
+        """“ok” tem de querer dizer que a busca acabou.
+
+        Quem le o log para saber se pode publicar o numero nao tem outro
+        lugar onde perguntar.
+        """
+        biblioteca.atualizar(self.db, "motivacao_handebol", limite=5,
+                             bases=(biblioteca.PUBMED,))
+        linha = self.db.dicts(
+            "SELECT status, message FROM ingest_log WHERE source = 'biblioteca'"
+            " ORDER BY id DESC LIMIT 1")[0]
+        self.assertEqual(linha["status"], "parcial")
+        self.assertIn("cortada", linha["message"])
+
+    def test_a_tela_do_acervo_continua_avisando_depois_da_atualizacao(self):
+        """O painel da atualização some; quem abre o acervo na quarta não o viu."""
+        biblioteca.atualizar(self.db, "motivacao_handebol", limite=5,
+                             bases=(biblioteca.PUBMED,))
+        p = biblioteca.panorama(self.db, "motivacao_handebol")
+        self.assertTrue(p["cortadas"])
+        pior = p["cortadas"][0]
+        self.assertEqual(pior["na_base"], 17128)
+        self.assertEqual(pior["rotulo"], biblioteca.ROTULO_BASE[biblioteca.PUBMED])
+
+    def test_a_estrategia_publicada_diz_que_o_numero_esta_cortado(self):
+        """É a tabela que a revisão publica: base, data e número de registros."""
+        biblioteca.atualizar(self.db, "motivacao_handebol", limite=5,
+                             bases=(biblioteca.PUBMED,))
+        estrategias = biblioteca.estrategias(self.db, "motivacao_handebol")
+        geral = [x for x in estrategias
+                 if x["base"] == biblioteca.PUBMED and not x["segmento"]][0]
+        self.assertTrue(geral["cortada"])
+        self.assertEqual(geral["na_base"], 17128)
+        manual = [x for x in estrategias if x["base"] == biblioteca.EMBASE][0]
+        self.assertFalse(manual["cortada"], "base que não rodou não está cortada")
+
+    def test_o_progresso_leva_o_corte_para_a_barra(self):
+        passos = []
+        biblioteca.atualizar(self.db, "motivacao_handebol", limite=5,
+                             bases=(biblioteca.PUBMED,), progresso=passos.append)
+        ok = [p for p in passos if p["situacao"] == "ok"]
+        self.assertTrue(ok)
+        self.assertTrue(all(p["cortada"] for p in ok))
+        self.assertTrue(all(p["na_base"] == 17128 for p in ok))
 
 
 if __name__ == "__main__":

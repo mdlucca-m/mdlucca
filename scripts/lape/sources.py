@@ -307,6 +307,21 @@ def pubmed_search(term: str, retmax: int = 50) -> list[str]:
     return (data.get("esearchresult") or {}).get("idlist", [])
 
 
+def pubmed_quantos(term: str) -> int:
+    """Quantos registros a PubMed tem para a busca -- so a conta.
+
+    `retmax=0` pede zero identificadores: a resposta vem com o `count` e
+    sem a lista, que e o mais barato que a base oferece. Serve para saber
+    se o que foi recolhido e tudo o que ha ou so o comeco -- e isso uma
+    lista truncada nao conta sobre si mesma.
+    """
+    data = _get(f"{PUBMED}/esearch.fcgi", {
+        "db": "pubmed", "term": term, "retmax": 0, "retmode": "json",
+    })
+    bruto = (data.get("esearchresult") or {}).get("count")
+    return int(bruto) if str(bruto).isdigit() else 0
+
+
 def pubmed_summaries(pmids: list[str]) -> list[dict[str, Any]]:
     if not pmids:
         return []

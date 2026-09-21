@@ -2494,6 +2494,29 @@ VIEWS.biblioteca = {
   },
 };
 
+/* O acervo que ficou pela metade, e a tela dizendo isso.
+
+   O total de artigos é o número que a pessoa lê primeiro e o único que ela
+   copia. Quando a busca bateu no teto, ele é o tamanho do balde e não o da
+   base -- a fibromialgia mostrava "400 artigo(s)" de uma busca com 17.128
+   registros na PubMed, com a mesma cara de um acervo inteiro. O aviso fica
+   junto do número, e não numa aba de detalhes: quem não procurou é
+   justamente quem vai publicá-lo. */
+function avisoDeCorte(cortadas){
+  const lista = cortadas || [];
+  if (!lista.length) return null;
+  const pior = lista[0];
+  const caixa = h("p", {class: "hint", style: "margin:8px 0 0;color:var(--critical)"});
+  caixa.appendChild(Icons.get("aviso", 13));
+  caixa.appendChild(h("span", {text: " O acervo está cortado: "
+    + (lista.length > 1 ? lista.length + " buscas trouxeram só o limite — a maior, "
+                        : "a busca ")
+    + pior.rotulo + (pior.segmento ? " · " + pior.segmento : "")
+    + ", trouxe " + pior.achados + " de " + pior.na_base
+    + " que a base tem. O total acima não é o tamanho da literatura."}));
+  return caixa;
+}
+
 function desenharAcervo(d){
   const caixa = h("div", {});
   const b = d.biblioteca;
@@ -2506,6 +2529,7 @@ function desenharAcervo(d){
       + " com texto livre" + (b.linha ? " · linha: " + b.linha : "")
       + (b.atualizada_em ? " · atualizado em " + b.atualizada_em
          : " · ainda não atualizado")}),
+    avisoDeCorte(d.cortadas),
     botaoDeAtualizar(b),
   ]));
 
@@ -3099,8 +3123,12 @@ function botaoDeAtualizar(b){
 
     parciais.innerHTML = "";
     (e.acervos || []).forEach(function (x){
+      const cortes = (x.cortadas || []).length;
       parciais.appendChild(h("span", {text: (x.titulo || x.code) + ": "
-        + (x.erro ? x.erro : (x.novos + " novo(s)"))}));
+        + (x.erro ? x.erro : (x.novos + " novo(s)"))
+        /* O corte anda junto do número que ele desmente, e não numa
+           linha própria que a pessoa lê depois de já ter anotado. */
+        + (cortes ? " · " + cortes + " busca(s) cortada(s) no teto" : "")}));
     });
   }
 

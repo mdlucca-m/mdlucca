@@ -471,6 +471,14 @@ def cmd_biblioteca(args: argparse.Namespace) -> int:
               f" em {r['buscas']} busca(s)")
         for aviso in r["sem_chave"]:
             print(f"  . {aviso['rotulo']}: {aviso['porque']}")
+        # O corte vai DEPOIS do total, e nao no meio das buscas: ali ele
+        # passa numa linha entre trinta iguais, e e justamente o numero que
+        # nao pode passar batido -- "400 achados" de uma base que tem
+        # 17.128 e o numero que alguem copia para a tabela da revisao.
+        for corte in r.get("cortadas", []):
+            onde = f"{corte['rotulo']}/{corte['segmento'] or 'geral'}"
+            print(f"  ! {onde}: veio {corte['recolhidos']}, a base tem "
+                  f"{corte['na_base']} — o acervo ficou cortado no teto")
     print(f"\n{total_novos} artigo(s) novo(s) em {len(escolhidos)} acervo(s).")
     db.close()
     return 1 if falhou else 0
