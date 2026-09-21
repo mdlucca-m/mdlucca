@@ -336,7 +336,7 @@ FORMULARIOS: dict[str, dict[str, Any]] = {
         "nome": "Completo — padrão ouro de revisão sistemática",
         "descricao": "Tudo o que o PRISMA 2020, o manual Cochrane e o JBI pedem "
                      "que se extraia de cada estudo, inclusive o que não deu "
-                     "significativo. Cinquenta e um campos, em duplicata.",
+                     "significativo. Quarenta e oito campos, em duplicata.",
         "campos": FORMULARIO_COMPLETO,
     },
     "autodeterminacao": {

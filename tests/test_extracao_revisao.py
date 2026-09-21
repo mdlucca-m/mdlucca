@@ -490,6 +490,24 @@ class TestOsFormulariosDeclarados(unittest.TestCase):
             with self.subTest(campo=proprio):
                 self.assertIn(proprio, tematico)
 
+    def test_a_descricao_nao_promete_um_numero_de_campos_que_mudou(self):
+        """A tela mostra a descricao E a contagem, lado a lado.
+
+        A descricao diz "quarenta e oito campos" e a contagem vem de
+        `len(campos)`: divergindo, a tela se contradiz sozinha na frente
+        de quem esta escolhendo a ficha. Ja divergiu uma vez.
+        """
+        escrito = {
+            "zero": 0, "vinte": 20, "quarenta e oito": 48, "sessenta e dois": 62,
+            "cinquenta e um": 51,
+        }
+        for nome, forma in extracao.FORMULARIOS.items():
+            texto = forma["descricao"].lower()
+            ditos = [n for n, valor in escrito.items() if n in texto]
+            for dito in ditos:
+                with self.subTest(formulario=nome, numero=dito):
+                    self.assertEqual(escrito[dito], len(forma["campos"]))
+
     def test_nenhum_formulario_tem_codigo_repetido(self):
         """Codigo repetido faz o segundo campo sumir no UNIQUE, calado."""
         for nome, forma in extracao.FORMULARIOS.items():
