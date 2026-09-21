@@ -27,6 +27,22 @@ def _so_o_essencial(sql: str | None) -> str:
     return re.sub(r"\s+", " ", limpo).strip().rstrip(";")
 
 
+# Quanto tempo uma conexao espera pelo banco antes de desistir.
+#
+# Cinco segundos e o padrao do sqlite3, e e pouco para este uso: o servico
+# do laboratorio fica no ar gravando ponto, citacao e copia de seguranca, e
+# um comando de linha que caia na primeira colisao obriga a desligar o
+# sistema para rodar o curador. Trinta segundos e mais do que qualquer
+# escrita daqui leva.
+#
+# E uma constante com nome, e nao um numero solto, por dois motivos: para
+# quem opera o sistema saber por quanto tempo uma tela pode ficar pensando
+# antes de dizer "ocupado", e para o teste do banco travado poder encurtar
+# a espera -- sem isso, cada teste de colisao custaria trinta segundos, e
+# um teste caro e um teste que ninguem roda.
+ESPERA_PELO_BANCO_MS = 30_000
+
+
 class Database:
     """Wrapper fino sobre sqlite3 com upserts idempotentes.
 
@@ -43,12 +59,7 @@ class Database:
         self.conn.row_factory = sqlite3.Row
         self.conn.execute("PRAGMA foreign_keys = ON")
         self.conn.execute("PRAGMA journal_mode = WAL")
-        # Cinco segundos e o padrao do sqlite3, e e pouco para este uso: o
-        # servico do laboratorio fica no ar gravando ponto, citacao e copia
-        # de seguranca, e um comando de linha que caia na primeira colisao
-        # obriga a desligar o sistema para rodar o curador. Trinta segundos
-        # e mais do que qualquer escrita daqui leva.
-        self.conn.execute("PRAGMA busy_timeout = 30000")
+        self.conn.execute(f"PRAGMA busy_timeout = {ESPERA_PELO_BANCO_MS}")
         self._cache: dict[str, dict[str, int]] = {}
 
     # ------------------------------------------------------------------

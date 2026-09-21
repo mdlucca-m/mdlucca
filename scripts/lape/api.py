@@ -28,6 +28,7 @@ import json
 import os
 import queue
 import re
+import sqlite3
 import threading
 import time
 import traceback
@@ -2651,6 +2652,23 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(exc.status, {"error": exc.message})
             except ApiError as exc:
                 return self._send(exc.status, {"error": exc.message})
+            except sqlite3.OperationalError as exc:
+                # "OperationalError: database is locked" chegava ASSIM na
+                # tela de entrar, em cima do campo de senha. Quem le
+                # entende que o sistema quebrou -- e nao que ele esta
+                # ocupado por alguns minutos e vai voltar sozinho.
+                #
+                # 503 e nao 500: o servico existe e esta temporariamente
+                # indisponivel, que e exatamente o caso. Um banco travado
+                # e quase sempre outra escrita longa em andamento.
+                if "locked" not in str(exc).lower():
+                    traceback.print_exc()
+                    return self._send(500, {"error": f"{type(exc).__name__}: {exc}"})
+                traceback.print_exc()
+                return self._send(503, {
+                    "error": "O sistema está ocupado gravando outra coisa — "
+                             "provavelmente uma atualização de biblioteca. "
+                             "Tente de novo em alguns instantes."})
             except Exception as exc:  # nunca derruba o servidor
                 traceback.print_exc()
                 return self._send(500, {"error": f"{type(exc).__name__}: {exc}"})

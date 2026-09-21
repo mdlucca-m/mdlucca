@@ -12,6 +12,7 @@ guardam e a diferenca entre elas.
 from __future__ import annotations
 
 import json
+import sqlite3
 import sys
 import tempfile
 import threading
@@ -361,6 +362,54 @@ class TestAColeta(BaseComServidor):
         db = self.banco([{"doi": f"10.1000/{i}"} for i in range(5)])
         r = ingest_citations.update_citations(db, limit=2, verbose=False)
         self.assertEqual(r["consultados"], 2)
+
+
+class TestOBancoNaoFicaTravadoDuranteAColeta(BaseComServidor):
+    """Mesmo defeito da biblioteca, no coletor de citações.
+
+    O commit era só no fim da rodada, e a rodada é um laço sobre TODOS os
+    artigos com DOI, com três consultas de rede e uma pausa em cada um. A
+    trava de escrita ficava presa o tempo todo, e quem tentasse gravar --
+    o login do sistema, inclusive -- morria com "database is locked".
+    """
+
+    def test_entre_um_artigo_e_o_seguinte_o_banco_fica_livre(self):
+        # As TRÊS fontes respondendo, de propósito. Com uma delas falhando,
+        # o `log_ingest` do erro comita por acidente e solta a trava -- e o
+        # teste passaria sem que nada estivesse consertado. Foi o que
+        # aconteceu na primeira versão deste teste.
+        self.responder_wos(7)
+        self.responder_scopus(11)
+        self.responder_openalex(3)
+        self.chaves()
+        db = self.banco([{"doi": f"10.1000/{i}"} for i in range(4)])
+
+        outra = Database(db.path)
+        self.addCleanup(outra.close)
+        outra.conn.execute("PRAGMA busy_timeout = 1500")
+        tentativas = []
+
+        original = ingest_citations.fetch_wos
+
+        def espiar(doi, chave):
+            """Roda ONDE a rede demora, que é onde a trava doía."""
+            try:
+                outra.execute(
+                    "INSERT INTO ingest_log (source, status) VALUES ('outro', 'ok')")
+                outra.conn.commit()
+                tentativas.append(True)
+            except sqlite3.OperationalError as erro:
+                if "locked" not in str(erro).lower():
+                    raise
+                tentativas.append(False)
+            return original(doi, chave)
+
+        self.trocar(ingest_citations, "fetch_wos", espiar)
+        ingest_citations.update_citations(db, verbose=False)
+        self.assertEqual(len(tentativas), 4)
+        self.assertTrue(all(tentativas[1:]),
+                        f"o banco ficou travado em {tentativas[1:].count(False)}"
+                        f" de {len(tentativas) - 1} artigos")
 
 
 class TestORetratoAntesDeApertar(BaseComServidor):

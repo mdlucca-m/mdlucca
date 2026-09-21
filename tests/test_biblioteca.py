@@ -17,6 +17,7 @@ esporte sem nenhum aviso.
 from __future__ import annotations
 
 import json
+import sqlite3
 import re
 import sys
 import tempfile
@@ -1429,6 +1430,88 @@ class TestOAcervoDeFibromialgia(BaseBiblioteca):
         q = biblioteca.query_de(self.DECL, base=biblioteca.PUBMED)
         self.assertIn('"Fibromyalgia"[MeSH Terms]', q)
         self.assertEqual(q.count(" AND "), 0)
+
+
+class TestOBancoNaoFicaTravadoDuranteAAtualizacao(BaseBiblioteca):
+    """A atualização não pode prender a escrita enquanto fala com a rede.
+
+    O sqlite3 abre a transação na primeira escrita e a segura até o
+    commit. Com o commit só no fim do acervo, a trava ficava presa
+    durante TODAS as buscas -- 36 no acervo de handebol, cada uma com ida
+    à base e pausa entre elas. Nesse intervalo o curador, a linha de
+    comando e o próprio login do sistema morriam com "database is
+    locked", depois de esperar os trinta segundos.
+
+    Ler continuava funcionando, porque o banco está em WAL -- e foi isso
+    que fez o defeito parecer coisa do comando, e não do servidor.
+    """
+
+    def setUp(self):
+        super().setUp()
+        biblioteca.instalar(self.db)
+        self.outra = Database(self.db.path)
+        self.addCleanup(self.outra.close)
+        # 1,5 s em vez dos 30 do sistema: aqui a espera é o que se está
+        # medindo, e esperar meio minuto por teste é o que faz ninguém
+        # rodar a suíte.
+        self.outra.conn.execute("PRAGMA busy_timeout = 1500")
+        self.tentativas = []
+
+    def _outro_programa_consegue_gravar(self):
+        """Alguém mais grava AGORA? É a pergunta que o defeito respondia não."""
+        try:
+            self.outra.execute(
+                "INSERT INTO ingest_log (source, status) VALUES ('outro', 'ok')")
+            self.outra.conn.commit()
+            return True
+        except sqlite3.OperationalError as erro:
+            if "locked" not in str(erro).lower():
+                raise
+            return False
+
+    def test_entre_uma_busca_e_a_seguinte_o_banco_fica_livre(self):
+        """A conferência acontece DENTRO da busca, que é onde a rede demora."""
+        def colher_falso(base, query, limite):
+            self.tentativas.append(self._outro_programa_consegue_gravar())
+            return [{"title": f"Artigo de {base}", "doi": f"10.1/{len(self.tentativas)}",
+                     "year": 2024, "base": base}]
+
+        self.trocar(biblioteca, "_colher", colher_falso)
+        biblioteca.atualizar(self.db, "motivacao_handebol", verbose=False)
+        self.assertGreater(len(self.tentativas), 3, "o acervo tem de ter várias buscas")
+        # a primeira é antes de qualquer escrita, e por isso não prova nada;
+        # o que importa são as seguintes, que acontecem depois de gravar
+        self.assertTrue(all(self.tentativas[1:]),
+                        f"o banco ficou travado em {self.tentativas[1:].count(False)}"
+                        f" de {len(self.tentativas) - 1} buscas")
+
+    def test_o_que_ja_veio_fica_gravado_se_o_programa_morrer_no_meio(self):
+        """Commit por busca também é o que salva o recolhido de uma queda.
+
+        Aqui a interrupção é um `KeyboardInterrupt` de propósito: é o
+        Ctrl-C e é o fechar da janela preta no meio da atualização, e é o
+        que o `except Exception` do laço NÃO segura -- ao contrário de um
+        erro de rede, que ele trata e segue. Com o commit só no fim, tudo
+        o que já tinha sido recolhido ia junto.
+        """
+        chamadas = []
+
+        def colher_falso(base, query, limite):
+            chamadas.append(query)
+            if len(chamadas) > 2:
+                raise KeyboardInterrupt("fecharam a janela")
+            return [{"title": f"Artigo {len(chamadas)}", "doi": f"10.2/{len(chamadas)}",
+                     "year": 2024, "base": base}]
+
+        self.trocar(biblioteca, "_colher", colher_falso)
+        with self.assertRaises(KeyboardInterrupt):
+            biblioteca.atualizar(self.db, "motivacao_handebol", verbose=False)
+        # a conferência é pela OUTRA conexão: o que ela enxerga é o que
+        # está comitado de verdade, e não o que esta transação ainda segura
+        gravados = self.outra.scalar(
+            "SELECT COUNT(*) FROM biblioteca_item bi JOIN biblioteca b ON b.id ="
+            " bi.biblioteca_id WHERE b.code = ?", ("motivacao_handebol",))
+        self.assertEqual(gravados, 2)
 
 
 class TestOAcervoDeMotivacaoNoHandebol(BaseBiblioteca):

@@ -259,6 +259,13 @@ def update_citations(db: Database, limit: int | None = None,
                 if result:
                     _record(db, article["id"], chave, result["citations"],
                             id_field, result.get(id_field))
+                    # Commit por FONTE, e nao por artigo e muito menos no
+                    # fim da rodada. Cada artigo consulta tres bases, e
+                    # gravar a primeira e so entao ir perguntar as outras
+                    # duas ja segura a trava de escrita durante duas
+                    # chamadas de rede. Medido: com o commit no fim do
+                    # artigo, o banco continuava travado em 3 de 3 artigos.
+                    db.conn.commit()
                     stats[chave] += 1
             except ChaveRecusada as exc:
                 desligadas[chave] = str(exc)[:300]

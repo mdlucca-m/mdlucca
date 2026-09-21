@@ -29,6 +29,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sqlite3
 import sys
 from pathlib import Path
 
@@ -1005,6 +1006,21 @@ def main() -> int:
         # Sem traceback: a pessoa que roda isto nao le pilha de chamada, e
         # a mensagem ja diz o que fazer.
         print(f"\n  ! {erro}\n")
+        return 1
+    except sqlite3.OperationalError as erro:
+        # O mesmo recado para o banco travado em QUALQUER comando, e nao
+        # so na migracao. O `BancoOcupado` cobre o momento de trocar as
+        # views; a trava aparece tambem numa gravacao comum, quando outro
+        # programa esta no meio de uma escrita longa -- e ali a pessoa
+        # recebia vinte linhas de rastreio de pilha terminando em
+        # "database is locked", que nao diz a ninguem o que fazer.
+        if "locked" not in str(erro).lower():
+            raise
+        print("\n  ! o banco esta ocupado por outro programa.\n"
+              "    Quase sempre e o proprio LAPE no ar, ou uma atualizacao de\n"
+              "    biblioteca em andamento. Espere ela terminar, ou feche a\n"
+              "    janela preta do sistema, e rode este comando de novo.\n"
+              f"    ({erro})\n")
         return 1
 
 

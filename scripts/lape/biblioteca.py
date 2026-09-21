@@ -883,8 +883,33 @@ def atualizar(db: Database, code: str, limite: int = 400,
     feitas = 0
     total = len(buscas)
 
-    def avisar(base: str, segmento: str | None, situacao: str,
-               achados: int = 0, novos: int = 0, recado: str = "") -> None:
+    def terminou(base: str, segmento: str | None, situacao: str,
+                 achados: int = 0, novos: int = 0, recado: str = "") -> None:
+        """Fecha a busca: grava o que ela trouxe, e so entao avisa.
+
+        O COMMIT E POR BUSCA, e nao no fim do acervo -- e essa e a
+        diferenca entre o sistema continuar utilizavel ou nao enquanto a
+        atualizacao roda.
+
+        O sqlite3 do Python abre uma transacao na primeira escrita e a
+        segura ate o commit. Com o commit so no fim, a trava de escrita
+        ficava presa DURANTE AS CHAMADAS DE REDE -- trinta e seis buscas,
+        cada uma com ida a base e 0,4 s de pausa, sao minutos de banco
+        travado. Nesse intervalo, qualquer outro programa que tentasse
+        gravar morria com "database is locked" depois dos trinta segundos
+        de espera. Foi o que aconteceu com o curador e com a propria linha
+        de comando da biblioteca, na maquina do laboratorio.
+
+        Medido: uma escrita sem commit numa conexao faz a outra estourar;
+        com o commit, a segunda grava em 0,00 s. Ler continua funcionando
+        nos dois casos, porque o banco esta em WAL -- e por isso a TELA
+        continuava normal enquanto o cmd morria, o que fazia o defeito
+        parecer coisa do comando.
+
+        Commitar por busca tambem e melhor quando a rede cai no meio: o
+        que ja foi recolhido fica, em vez de voltar tudo.
+        """
+        db.conn.commit()
         if progresso is None:
             return
         progresso({"acervo": code, "titulo": titulo, "base": base,
@@ -898,7 +923,7 @@ def atualizar(db: Database, code: str, limite: int = 400,
         if base in desligadas:
             # Nao vai a rede, mas conta: a barra precisa chegar ao fim.
             feitas += 1
-            avisar(base, busca["segmento"], "pulada",
+            terminou(base, busca["segmento"], "pulada",
                    recado=desligadas[base])
             continue
         resumo["buscas"] += 1
@@ -913,7 +938,7 @@ def atualizar(db: Database, code: str, limite: int = 400,
             if verbose:
                 print(f"  . {ROTULO_BASE.get(base, base)}: {erro}")
             feitas += 1
-            avisar(base, busca["segmento"], "sem_chave", recado=str(erro))
+            terminou(base, busca["segmento"], "sem_chave", recado=str(erro))
             continue
         except Exception as erro:  # noqa: BLE001 -- uma busca nao derruba as outras
             db.execute("UPDATE biblioteca_busca SET rodada_em = ?, erro = ? WHERE id = ?",
@@ -922,7 +947,7 @@ def atualizar(db: Database, code: str, limite: int = 400,
             if verbose:
                 print(f"  ! {base}/{busca['segmento'] or 'geral'}: {erro}")
             feitas += 1
-            avisar(base, busca["segmento"], "erro", recado=str(erro))
+            terminou(base, busca["segmento"], "erro", recado=str(erro))
             continue
 
         novos = 0
@@ -946,7 +971,7 @@ def atualizar(db: Database, code: str, limite: int = 400,
             print(f"  {base}/{busca['segmento'] or 'geral'}: {len(registros)} achado(s),"
                   f" {novos} novo(s)")
         feitas += 1
-        avisar(base, busca["segmento"], "ok", achados=len(registros), novos=novos)
+        terminou(base, busca["segmento"], "ok", achados=len(registros), novos=novos)
 
     db.execute("UPDATE biblioteca SET atualizada_em = ? WHERE id = ?", (hoje, bid))
     db.conn.commit()

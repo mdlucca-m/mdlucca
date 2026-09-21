@@ -9,6 +9,8 @@ cookie de sessao. Nenhuma chamada sai para a internet.
 """
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import re
 import sys
@@ -406,6 +408,87 @@ class TestApi(unittest.TestCase):
         for marcador in ("__BASE_CSS__", "__ICONS_JS__"):
             self.assertNotIn(marcador, html, f"marcador nao substituido: {marcador}")
         self.assertIn("const Icons", html)   # o menu monta os icones a partir daqui
+
+
+class TestOBancoTravadoNaTela(unittest.TestCase):
+    """"OperationalError: database is locked" chegava assim na tela.
+
+    Em cima do campo de senha, em vermelho, com o nome da classe de
+    exceção do Python. Quem lê entende que o sistema quebrou -- e não que
+    ele está ocupado por alguns minutos e volta sozinho.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.db_path = Path(cls.tmp.name) / "travado.sqlite"
+        db = Database(cls.db_path)
+        db.migrate()
+        auth.create_account(db, "Alexandro Andrade", "coord@udesc.br", "senhaforte123",
+                            role="coordenacao")
+        db.close()
+        api.Handler.db_path = cls.db_path
+        api.Handler.log_message = lambda *args, **kwargs: None
+        cls.server = ThreadingHTTPServer(("127.0.0.1", 0), api.Handler)
+        cls.port = cls.server.server_address[1]
+        cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
+        cls.thread.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.shutdown()
+        cls.server.server_close()
+        cls.tmp.cleanup()
+
+    call = TestApi.call
+
+    def setUp(self):
+        """Outro programa no meio de uma escrita longa -- que é o caso real."""
+        # O servidor espera 30 s pelo banco antes de desistir, e é o certo
+        # em produção: quase toda colisão passa em menos que isso. Aqui a
+        # espera é o que se está medindo, e três testes de meio minuto
+        # cada é o que faz ninguém rodar a suíte.
+        import lape.db as _db
+        antigo = _db.ESPERA_PELO_BANCO_MS
+        _db.ESPERA_PELO_BANCO_MS = 300
+        self.addCleanup(setattr, _db, "ESPERA_PELO_BANCO_MS", antigo)
+        # O servidor imprime o rastreio da pilha no log dele, e isso é de
+        # propósito -- quem opera precisa do detalhe. Aqui ele só sujaria
+        # a saída da suíte.
+        silencio = contextlib.redirect_stderr(io.StringIO())
+        silencio.__enter__()
+        self.addCleanup(silencio.__exit__, None, None, None)
+        self.travador = Database(self.db_path)
+        self.addCleanup(self.travador.close)
+        self.travador.execute(
+            "INSERT INTO ingest_log (source, status) VALUES ('escrita-longa', 'ok')")
+        # de propósito SEM commit: é assim que a atualização de biblioteca
+        # segurava a trava enquanto falava com a rede
+        self.addCleanup(self.travador.conn.rollback)
+
+    def test_entrar_com_o_banco_travado_responde_503_e_nao_500(self):
+        """O serviço existe e está ocupado, que é o que 503 quer dizer."""
+        status, corpo, _ = self.call("/api/auth/login", "POST",
+                                     {"login": "coord@udesc.br", "senha": "senhaforte123"})
+        self.assertEqual(status, 503)
+        self.assertNotIn("OperationalError", corpo["error"])
+        self.assertIn("ocupado", corpo["error"].lower())
+
+    def test_o_recado_diz_o_que_fazer(self):
+        status, corpo, _ = self.call("/api/auth/login", "POST",
+                                     {"login": "coord@udesc.br", "senha": "senhaforte123"})
+        self.assertEqual(status, 503)
+        self.assertIn("instantes", corpo["error"].lower())
+
+    def test_ler_continua_funcionando_com_a_escrita_travada(self):
+        """O banco está em WAL: leitor não espera escritor.
+
+        É por isso que o painel continuava desenhando enquanto o login
+        morria -- e foi isso que fez o defeito parecer outra coisa.
+        """
+        status, corpo, _ = self.call("/api/health")
+        self.assertEqual(status, 200)
+        self.assertEqual(corpo["status"], "ok")
 
 
 class TestCadastroPelaRede(unittest.TestCase):

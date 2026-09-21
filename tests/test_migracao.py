@@ -19,12 +19,15 @@ consegue, diz o que fazer em vez de despejar uma pilha de chamada.
 """
 from __future__ import annotations
 
+import contextlib
+import io
 import os
 import sqlite3
 import sys
 import tempfile
 import threading
 import time
+import unittest.mock
 import unittest
 from pathlib import Path
 
@@ -160,6 +163,73 @@ class TestORecadoQuandoNaoDa(BaseDoBancoMigrado):
         trecho = fonte[fonte.index("def main()"):]
         self.assertIn("except BancoOcupado", trecho)
         self.assertIn("return 1", trecho)
+
+
+class TestOBancoTravadoNaLinhaDeComando(unittest.TestCase):
+    """A janela preta também não pode responder com rastreio de pilha.
+
+    O `BancoOcupado` cobre o momento de trocar as views. A trava aparece
+    também numa gravação comum -- foi o que aconteceu com
+    `biblioteca --atualizar`, que morreu com vinte linhas de rastreio
+    terminando em "database is locked". Rastreio de pilha não diz a
+    ninguém o que fazer.
+    """
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.caminho = Path(tmp.name) / "trava.sqlite"
+        Database(self.caminho).migrate()
+
+    def _rodar(self, explodir):
+        import lape_agent
+
+        args = lape_agent.build_parser().parse_args(["--db", str(self.caminho), "status"])
+        args.func = lambda _args: explodir()
+        with contextlib.redirect_stdout(io.StringIO()) as saida:
+            with unittest.mock.patch.object(lape_agent, "build_parser",
+                                            return_value=_ParserFixo(args)):
+                codigo = lape_agent.main()
+        return codigo, saida.getvalue()
+
+    def test_o_banco_travado_vira_recado_e_nao_rastreio(self):
+        def explodir():
+            raise sqlite3.OperationalError("database is locked")
+
+        codigo, saida = self._rodar(explodir)
+        self.assertEqual(codigo, 1)
+        self.assertIn("ocupado", saida.lower())
+        self.assertNotIn("Traceback", saida)
+
+    def test_o_recado_diz_quem_costuma_estar_segurando(self):
+        def explodir():
+            raise sqlite3.OperationalError("database is locked")
+
+        _, saida = self._rodar(explodir)
+        self.assertIn("LAPE", saida)
+        self.assertIn("biblioteca", saida.lower())
+
+    def test_outro_erro_de_banco_continua_subindo(self):
+        """Engolir tudo esconderia defeito de verdade.
+
+        "no such column" é bug, e bug tem de aparecer inteiro -- com o
+        rastreio, que é o que diz onde consertar.
+        """
+        def explodir():
+            raise sqlite3.OperationalError("no such column: inventada")
+
+        with self.assertRaises(sqlite3.OperationalError):
+            self._rodar(explodir)
+
+
+class _ParserFixo:
+    """Devolve os argumentos já montados, sem reler a linha de comando."""
+
+    def __init__(self, args):
+        self._args = args
+
+    def parse_args(self):
+        return self._args
 
 
 class TestAComparacaoDeDefinicao(unittest.TestCase):
