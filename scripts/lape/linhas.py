@@ -11,6 +11,11 @@ nenhuma. Uma linha que sai da lista nao e apagada -- e desativada, e sai
 das opcoes continuando a existir para os artigos que ja apontavam para
 ela. Apagar tiraria do ar a historia de quem publicou naquilo.
 
+As tres linhas da planilha antiga -- "Psicologia do Esporte e do
+Exercicio", "Saude Mental e Exercicio Fisico" e "Dor Cronica e
+Fibromialgia" -- se fundem nas declaradas a cada instalacao (ver
+`FUNDIDAS`): os artigos passam junto e a antiga fica no banco, inativa.
+
 Instalar de novo nao apaga o que foi mexido: o `code` e a chave, e uma
 linha ja existente so tem preenchido o que estiver em branco. O nome e a
 excecao, e so quando a linha ainda tem um nome que este arquivo mesmo
@@ -95,6 +100,18 @@ NOMES_ANTERIORES: dict[str, tuple[str, ...]] = {
     "exercicio_envelhecimento": ("Exercício na saúde mental no envelhecimento",),
 }
 
+# As linhas da planilha antiga, e em qual das oito cada uma se funde. A
+# planilha que o curador reimporta ainda traz as tres; encerra-las na tela
+# nao bastava, porque os artigos ficavam pendurados nelas e a parede do
+# mural mostrava duas colunas onde ha uma linha. Instalar funde -- leva os
+# artigos junto, encerra a antiga, nao apaga nada -- e e seguro repetir:
+# uma antiga ja fundida e sem nada apontando para ela nao e tocada.
+FUNDIDAS: tuple[tuple[str, str], ...] = (
+    ("Psicologia do Esporte e do Exercício", "psicologia_do_esporte"),
+    ("Saúde Mental e Exercício Físico", "psicologia_exercicio"),
+    ("Dor Crônica e Fibromialgia", "exercicio_fibromialgia"),
+)
+
 # O que aponta para uma linha. Desativar nao apaga nada, mas a coordenacao
 # precisa saber quanta coisa ficou pendurada numa opcao que saiu da lista,
 # senao a linha some da tela levando junto a contagem de quem publicou ali.
@@ -104,6 +121,10 @@ APONTAM_PARA_LINHA: tuple[tuple[str, str], ...] = (
     ("projects", "Projetos"),
     ("events", "Atividades"),
 )
+# Os acervos tambem apontam, mas nao entram na conta de "pendurado" do
+# botao de encerrar: um acervo segue a linha por conveniencia de tela, e
+# fundir o leva junto.
+TAMBEM_APONTAM: tuple[tuple[str, str], ...] = (("biblioteca", "Acervos"),)
 
 
 def _achar(db: Database, codigo: str, nome: str):
@@ -121,13 +142,13 @@ def _achar(db: Database, codigo: str, nome: str):
     from .util import norm_key
 
     achado = db.dicts(
-        "SELECT id, name, code FROM research_lines WHERE code = ? OR name = ?",
+        "SELECT id, name, code, active FROM research_lines WHERE code = ? OR name = ?",
         (codigo, nome))
     if achado:
         return achado[0]
     alvos = {norm_key(nome)}
     alvos.update(norm_key(antigo) for antigo in NOMES_ANTERIORES.get(codigo, ()))
-    for linha in db.dicts("SELECT id, name, code FROM research_lines"):
+    for linha in db.dicts("SELECT id, name, code, active FROM research_lines"):
         if norm_key(linha["name"]) in alvos:
             return linha
     return None
@@ -149,10 +170,10 @@ def _pode_renomear(codigo: str, atual: str, novo: str) -> bool:
     return norm_key(atual) in se_iguala
 
 
-def _quanto_aponta(db: Database, linha_id: int) -> dict[str, int]:
+def _quanto_aponta(db: Database, linha_id: int, tabelas=APONTAM_PARA_LINHA) -> dict[str, int]:
     """Quantos registros de cada tipo ainda apontam para a linha."""
     quanto = {}
-    for tabela, rotulo in APONTAM_PARA_LINHA:
+    for tabela, rotulo in tabelas:
         n = db.scalar(
             f"SELECT COUNT(*) FROM {tabela} WHERE research_line_id = ?", (linha_id,))
         if n:
@@ -211,6 +232,24 @@ def instalar(db: Database, encerrar_as_que_sairam: bool = False) -> dict[str, An
         canonicas.add(int(criada))
         novas.append(nome)
 
+    # As tres da planilha antiga se fundem nas declaradas. So mexe na que
+    # ainda esta nas opcoes ou ainda tem algo apontando para ela: a ja
+    # fundida fica quieta, senao cada subida do servidor anunciaria uma
+    # fusao que nao houve.
+    fundidas = []
+    for nome_antigo, codigo in FUNDIDAS:
+        antiga = _linha_por(db, nome_antigo)
+        if antiga is None or int(antiga["id"]) in canonicas:
+            continue
+        declarada = next((l for l in LINHAS if l[0] == codigo), None)
+        destino = _achar(db, codigo, declarada[1]) if declarada else None
+        if destino is None or int(destino["id"]) == int(antiga["id"]):
+            continue
+        pendurado = _quanto_aponta(db, int(antiga["id"]), APONTAM_PARA_LINHA + TAMBEM_APONTAM)
+        if int(antiga["active"] or 0) == 0 and not pendurado:
+            continue
+        fundidas.append(fundir(db, antiga["id"], destino["id"]))
+
     # O que sobrou sai das opcoes sem ser apagado. Uma linha antiga com
     # trinta artigos pendurados continua existindo e continua contando --
     # so deixa de aparecer na lista de quem cadastra artigo novo.
@@ -226,7 +265,7 @@ def instalar(db: Database, encerrar_as_que_sairam: bool = False) -> dict[str, An
     db.conn.commit()
     return {"novas": novas, "ja_havia": ja_havia, "renomeadas": renomeadas,
             "nome_proprio": nome_proprio, "desativadas": desativadas,
-            "total": len(LINHAS)}
+            "fundidas": fundidas, "total": len(LINHAS)}
 
 
 def _linha_por(db: Database, ref: Any) -> dict[str, Any] | None:
@@ -269,7 +308,7 @@ def fundir(db: Database, de: Any, para: Any) -> dict[str, Any]:
     if int(origem["id"]) == int(destino["id"]):
         raise ValueError("a origem e o destino são a mesma linha")
     movidos: dict[str, int] = {}
-    for tabela, rotulo in APONTAM_PARA_LINHA + (("biblioteca", "Acervos"),):
+    for tabela, rotulo in APONTAM_PARA_LINHA + TAMBEM_APONTAM:
         n = int(db.scalar(f"SELECT COUNT(*) FROM {tabela} WHERE research_line_id = ?",
                           (origem["id"],)) or 0)
         if n:

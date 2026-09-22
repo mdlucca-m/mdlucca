@@ -417,7 +417,7 @@ def route_team(ctx: "Context") -> Any:
     a propria ficha precisa escolher o orientador numa lista, nao digitar o
     nome de cabeca. Aqui so sai o que ja aparece no painel: nome e vinculo.
     """
-    from .mapping import ORIENTAM, ROLE_LABEL
+    from .mapping import COORIENTAM, ORIENTAM, ROLE_LABEL
 
     pessoas = ctx.db.dicts(
         "SELECT id, full_name, short_name, role FROM members"
@@ -425,6 +425,8 @@ def route_team(ctx: "Context") -> Any:
     for pessoa in pessoas:
         pessoa["role_label"] = ROLE_LABEL.get(pessoa["role"] or "", pessoa["role"])
         pessoa["orienta"] = (pessoa["role"] or "") in ORIENTAM
+        # mestrandos e doutorandos coorientam os bolsistas
+        pessoa["coorienta"] = (pessoa["role"] or "") in COORIENTAM
     # O orientador que a ficha ja abre preenchido. So vale se a pessoa
     # existir e puder orientar -- um nome sugerido que nao esta na lista
     # seria um campo que se recusa a gravar o que mostra.
@@ -2401,6 +2403,40 @@ def route_aovivo(ctx: "Context") -> Any:
                          perfil=(ctx.user or {}).get("user_role", "leitura"))
 
 
+def route_rotina(ctx: "Context") -> Any:
+    """A rotina automatica: cada passo, quando rodou, o que trouxe, quando volta."""
+    from . import rotina
+
+    auth.require(ctx.user, "leitura")
+    return rotina.situacao(ctx.db)
+
+
+def route_rotina_rodar(ctx: "Context") -> Any:
+    """O botao "rodar agora": os passos pedidos (ou todos), ao lado."""
+    from . import rotina
+
+    user = auth.require(ctx.user, "coordenacao")
+    pedidos = (ctx.body or {}).get("passos") if isinstance(ctx.body, dict) else None
+    try:
+        saida = rotina.rodar_agora(ctx.db.path, pedidos if isinstance(pedidos, list) else None)
+    except RuntimeError as erro:
+        raise ApiError(409, str(erro))
+    except ValueError as erro:
+        raise ApiError(400, str(erro))
+    auth.log(ctx.db, user["id"], user.get("login"), "rotina_rodada", detail=", ".join(saida["passos"]))
+    return saida
+
+
+def route_buscar(ctx: "Context") -> Any:
+    """Um campo, tudo o que o laboratorio tem com aquele nome."""
+    from . import aovivo
+
+    auth.require(ctx.user, "leitura")
+    return aovivo.buscar(ctx.db, (ctx.query.get("q") or [""])[0],
+                         quem=(ctx.user or {}).get("id"),
+                         perfil=(ctx.user or {}).get("user_role", "leitura"))
+
+
 def route_panorama_marcar(ctx: "Context") -> Any:
     """Repassa o vocabulario sobre a producao. Nao apaga marcacao humana."""
     user = auth.require(ctx.user, "coordenacao")
@@ -2521,6 +2557,9 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/citacoes/atualizar/?$", route_citacoes_atualizar, "coordenacao"),
     ("GET", r"^/api/panorama/?$", route_panorama, "leitura"),
     ("GET", r"^/api/aovivo/?$", route_aovivo, "leitura"),
+    ("GET", r"^/api/buscar/?$", route_buscar, "leitura"),
+    ("GET", r"^/api/rotina/?$", route_rotina, "leitura"),
+    ("POST", r"^/api/rotina/rodar/?$", route_rotina_rodar, "coordenacao"),
     ("POST", r"^/api/panorama/marcar/?$", route_panorama_marcar, "coordenacao"),
     ("GET", r"^/api/revisoes/?$", route_reviews, "leitura"),
     ("POST", r"^/api/revisoes/?$", route_review_create, "coordenacao"),
@@ -3384,6 +3423,12 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
         print("      python3 scripts/lape_agent.py usuarios --criar 'Nome' email@udesc.br --perfil admin")
 
     parar_backup = _agendar_backup(Path(db_path))
+    # A rotina que traz a producao nova das bases, as citacoes e os acervos
+    # sem ninguem apertar botao. Ver `rotina.py`: cada passo tem o seu
+    # intervalo, contado da ultima rodada boa gravada no banco.
+    from . import rotina as _rotina
+    parar_rotina = _rotina.agendar(Path(db_path))
+    print(f"  rotina automática .. {'ligada' if _rotina.ligada() else 'desligada (LAPE_ROTINA=0)'}")
 
     server = ThreadingHTTPServer((host, port), Handler)
     try:
@@ -3392,4 +3437,5 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
         print("\nservidor encerrado")
     finally:
         parar_backup.set()
+        parar_rotina.set()
         server.server_close()

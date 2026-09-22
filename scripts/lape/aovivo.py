@@ -27,7 +27,7 @@ from collections import Counter
 from datetime import date, datetime
 from typing import Any
 
-from . import biblioteca, metas, padrao, revisao
+from . import biblioteca, metas, padrao, revisao, sinais
 from . import linhas as linhas_vocab
 from .db import Database
 
@@ -878,6 +878,320 @@ def bases(db: Database, quem: int | None = None,
 # ----------------------------------------------------------------------
 # Tudo junto
 # ----------------------------------------------------------------------
+# ----------------------------------------------------------------------
+# Temas: os indicadores tematicos e os graficos que faltavam
+# ----------------------------------------------------------------------
+# Cada KPI aqui e uma pergunta que o laboratorio faz de si e que os
+# quatro numeros do painel nao respondem: quanto tempo leva, quanto e
+# aceito, quanto e aberto, com quem se publica, o que se publica.
+EIXOS_DO_RADAR = ("Publicado", "Acesso aberto", "Com DOI", "Citado", "Internacional")
+ANOS_DO_BUMP = 5
+REVISTAS_NO_TREEMAP = 12
+TIPOS_NO_SANKEY = 6
+
+
+def _mediana(valores: list[float]) -> float | None:
+    if not valores:
+        return None
+    v = sorted(valores)
+    n = len(v)
+    return float(v[n // 2]) if n % 2 else (v[n // 2 - 1] + v[n // 2]) / 2.0
+
+
+def _paises_por_artigo(db: Database) -> dict[int, set[str]]:
+    """O pais de quem assina, por artigo -- cadastro e afiliacao juntos."""
+    saida: dict[int, set[str]] = {}
+    for l in db.dicts(
+            "SELECT DISTINCT aa.article_id, i.country FROM article_authors aa"
+            "  JOIN members m ON m.id = aa.member_id"
+            "  JOIN institutions i ON i.id = m.institution_id WHERE i.country IS NOT NULL"):
+        saida.setdefault(int(l["article_id"]), set()).add(l["country"])
+    for l in db.dicts("SELECT article_id, country FROM article_countries"):
+        saida.setdefault(int(l["article_id"]), set()).add(l["country"])
+    return saida
+
+
+def _e_internacional(paises: set[str]) -> bool:
+    from .util import norm_key
+    return any(norm_key(p) not in ("brasil", "brazil") for p in paises)
+
+
+def temas(db: Database, per: dict[str, Any], hoje: date) -> dict[str, Any]:
+    de, ate = per["de"], per["ate"]
+    publicados = db.dicts(
+        "SELECT id, journal, study_type, open_access, doi, days_start_to_publication,"
+        "       COALESCE(wos_citations, 0) AS wos, COALESCE(scopus_citations, 0) AS scopus,"
+        "       COALESCE(openalex_citations, 0) AS openalex"
+        "  FROM v_articles_full WHERE status = 'publicado' AND year_published BETWEEN ? AND ?",
+        (de, ate))
+    n_pub = len(publicados)
+    paises = _paises_por_artigo(db)
+
+    def pct(parte: int, todo: int) -> float | None:
+        return None if not todo else round(100.0 * parte / todo, 1)
+
+    dias = [float(a["days_start_to_publication"]) for a in publicados
+            if a["days_start_to_publication"] is not None and float(a["days_start_to_publication"]) >= 0]
+    decididas = db.dicts(
+        f"SELECT decision, COUNT(*) AS n FROM submissions WHERE decision IN ('aceito', 'rejeitado', 'desk_reject')"
+        f"   AND decision_on IS NOT NULL AND {ANO_SQL.format(c='decision_on')} BETWEEN ? AND ? GROUP BY 1", (de, ate))
+    aceites = sum(int(d["n"]) for d in decididas if d["decision"] == "aceito")
+    n_decididas = sum(int(d["n"]) for d in decididas)
+    abertos = sum(1 for a in publicados if a["open_access"])
+    internacionais = sum(1 for a in publicados if _e_internacional(paises.get(int(a["id"]), set())))
+    tipos = Counter(a["study_type"] for a in publicados if a["study_type"])
+    tipo, n_tipo = (tipos.most_common(1)[0] if tipos else (None, 0))
+    revistas = {a["journal"] for a in publicados if a["journal"]}
+    paises_do_periodo = set()
+    for a in publicados:
+        paises_do_periodo |= paises.get(int(a["id"]), set())
+    orientandos = metas.realizado(db, "orientandos_publicando", ate)
+
+    kpis = [
+        {"code": "tempo", "rotulo": "Do início à publicação", "icon": "relogio", "tom": "cyan",
+         "valor": None if not dias else round(_mediana(dias)), "unidade": "dias (mediana)",
+         "pe": f"{len(dias)} artigo(s) com as duas datas" if dias else "nenhum artigo com data de início e de publicação"},
+        {"code": "aceite", "rotulo": "Taxa de aceite", "icon": "aceite", "tom": "green",
+         "valor": pct(aceites, n_decididas), "unidade": "%",
+         "pe": f"{aceites} aceite(s) em {n_decididas} decisão(ões)" if n_decididas else "nenhuma decisão de revista no período"},
+        {"code": "acesso_aberto", "rotulo": "Acesso aberto", "icon": "livro", "tom": "yellow",
+         "valor": pct(abertos, n_pub), "unidade": "%",
+         "pe": f"{abertos} de {n_pub} publicado(s)" if n_pub else "nenhum publicado no período"},
+        {"code": "internacional", "rotulo": "Colaboração internacional", "icon": "mapa", "tom": "purple",
+         "valor": pct(internacionais, n_pub), "unidade": "%",
+         "pe": f"{internacionais} artigo(s) com autor fora do Brasil" if n_pub else "nenhum publicado no período"},
+        {"code": "tipo", "rotulo": "Desenho mais frequente", "icon": "experimento", "tom": "orange",
+         "valor": tipo or "—", "unidade": "",
+         "pe": f"{n_tipo} de {n_pub} publicado(s)" if tipo else "nenhum publicado com tipo de estudo"},
+        {"code": "orientandos", "rotulo": "Orientandos publicando", "icon": "orientacao", "tom": "magenta",
+         "valor": int(orientandos or 0), "unidade": "pessoas em " + str(ate),
+         "pe": "orientandos com ao menos um artigo publicado no ano"},
+        {"code": "revistas", "rotulo": "Revistas distintas", "icon": "citacao", "tom": "blue",
+         "valor": len(revistas), "unidade": "revistas", "pe": f"{n_pub} publicado(s) no período"},
+        {"code": "paises", "rotulo": "Países que assinam", "icon": "espaco", "tom": "cyan",
+         "valor": len(paises_do_periodo), "unidade": "países",
+         "pe": ", ".join(sorted(paises_do_periodo)[:4]) + (" …" if len(paises_do_periodo) > 4 else "") if paises_do_periodo else "sem país cadastrado nos autores"},
+    ]
+
+    # radar: as linhas mais produtivas, cada eixo em % dos artigos da linha
+    linhas = db.dicts(
+        "SELECT rl.id, rl.name, rl.code, COUNT(a.id) AS n FROM research_lines rl"
+        "  JOIN articles a ON a.research_line_id = rl.id"
+        " WHERE COALESCE(rl.active, 1) = 1 GROUP BY rl.id ORDER BY n DESC, rl.name LIMIT 4")
+    series_radar = []
+    for l in linhas:
+        arts = db.dicts(
+            "SELECT id, status, open_access, doi, COALESCE(wos_citations,0) AS wos,"
+            "       COALESCE(scopus_citations,0) AS scopus, COALESCE(openalex_citations,0) AS openalex"
+            "  FROM articles WHERE research_line_id = ?", (l["id"],))
+        n = len(arts) or 1
+        series_radar.append({"label": l["name"], "icone": linhas_vocab.icone_de(l["code"], l["name"]), "values": [
+            round(100.0 * sum(1 for a in arts if a["status"] == "publicado") / n, 1),
+            round(100.0 * sum(1 for a in arts if a["open_access"]) / n, 1),
+            round(100.0 * sum(1 for a in arts if a["doi"]) / n, 1),
+            round(100.0 * sum(1 for a in arts if max(a["wos"], a["scopus"], a["openalex"]) > 0) / n, 1),
+            round(100.0 * sum(1 for a in arts if _e_internacional(paises.get(int(a["id"]), set()))) / n, 1),
+        ]})
+
+    # dumbbell: cada linha, do periodo anterior para este
+    anterior = per.get("anterior")
+    haltere = []
+    if anterior:
+        agora = {l["name"]: int(l["n"]) for l in db.dicts(
+            "SELECT rl.name, COUNT(*) AS n FROM articles a JOIN research_lines rl ON rl.id = a.research_line_id"
+            " WHERE a.status = 'publicado' AND a.year_published BETWEEN ? AND ? GROUP BY rl.id", (de, ate))}
+        antes = {l["name"]: int(l["n"]) for l in db.dicts(
+            "SELECT rl.name, COUNT(*) AS n FROM articles a JOIN research_lines rl ON rl.id = a.research_line_id"
+            " WHERE a.status = 'publicado' AND a.year_published BETWEEN ? AND ? GROUP BY rl.id",
+            (anterior[0], anterior[1]))}
+        for nome in sorted(set(agora) | set(antes), key=lambda k: -(agora.get(k, 0) + antes.get(k, 0))):
+            haltere.append({"label": nome, "from": antes.get(nome, 0), "to": agora.get(nome, 0)})
+
+    # bump: a posicao de cada linha, ano a ano
+    anos = list(range(ate - ANOS_DO_BUMP + 1, ate + 1))
+    por_ano = db.dicts(
+        "SELECT rl.name, a.year_published AS ano, COUNT(*) AS n FROM articles a"
+        "  JOIN research_lines rl ON rl.id = a.research_line_id"
+        " WHERE a.status = 'publicado' AND a.year_published BETWEEN ? AND ? GROUP BY rl.id, ano",
+        (anos[0], anos[-1]))
+    tabela: dict[str, dict[int, int]] = {}
+    for l in por_ano:
+        tabela.setdefault(l["name"], {})[int(l["ano"])] = int(l["n"])
+    bump_series = []
+    for nome in tabela:
+        bump_series.append({"label": nome, "values": []})
+    for ano in anos:
+        ordem = sorted(tabela, key=lambda k: (-tabela[k].get(ano, 0), k))
+        posicao = {nome: i + 1 for i, nome in enumerate(ordem) if tabela[nome].get(ano, 0)}
+        for s in bump_series:
+            s["values"].append(posicao.get(s["label"]))
+    bump_series.sort(key=lambda s: -sum(tabela[s["label"]].values()))
+
+    # sankey: desenho do estudo -> situacao de hoje
+    fluxo = db.dicts(
+        "SELECT COALESCE(NULLIF(TRIM(study_type), ''), 'sem tipo') AS tipo, status, COUNT(*) AS n"
+        "  FROM articles WHERE status IS NOT NULL GROUP BY 1, 2")
+    por_tipo = Counter()
+    for l in fluxo:
+        por_tipo[l["tipo"]] += int(l["n"])
+    principais = [t for t, _ in por_tipo.most_common(TIPOS_NO_SANKEY)]
+    nos, ligacoes = [], []
+    rotulo_status = ROTULO_DA_SITUACAO
+    situacoes = []
+    for l in fluxo:
+        tipo = l["tipo"] if l["tipo"] in principais else "outros"
+        if l["status"] not in situacoes:
+            situacoes.append(l["status"])
+        ligacoes.append({"source": "t:" + tipo, "target": "s:" + l["status"], "value": int(l["n"])})
+    junta: dict[tuple[str, str], int] = {}
+    for lig in ligacoes:
+        junta[(lig["source"], lig["target"])] = junta.get((lig["source"], lig["target"]), 0) + lig["value"]
+    ligacoes = [{"source": a, "target": b, "value": v} for (a, b), v in junta.items()]
+    for t in principais + (["outros"] if any(k[0] == "t:outros" for k in junta) else []):
+        nos.append({"id": "t:" + t, "label": t, "depth": 0})
+    for st in situacoes:
+        nos.append({"id": "s:" + st, "label": rotulo_status.get(st, st.replace("_", " ")), "depth": 1})
+
+    # treemap: onde se publica
+    revistas_n = db.dicts(
+        "SELECT journal, COUNT(*) AS n FROM articles WHERE status = 'publicado'"
+        "   AND journal IS NOT NULL AND TRIM(journal) <> '' GROUP BY journal ORDER BY n DESC")
+    treemap = [{"label": r["journal"], "value": int(r["n"])} for r in revistas_n[:REVISTAS_NO_TREEMAP]]
+    resto = sum(int(r["n"]) for r in revistas_n[REVISTAS_NO_TREEMAP:])
+    if resto:
+        treemap.append({"label": f"outras {len(revistas_n) - REVISTAS_NO_TREEMAP} revistas", "value": resto})
+
+    # calendario: cada dia em que algo aconteceu no ano
+    dias_do_ano: Counter = Counter()
+    for sql in (
+        "SELECT substr(published_on, 1, 10) AS d FROM articles WHERE status = 'publicado' AND length(published_on) >= 10",
+        "SELECT substr(submitted_on, 1, 10) AS d FROM submissions WHERE length(submitted_on) >= 10",
+        "SELECT substr(accepted_on, 1, 10) AS d FROM articles WHERE length(accepted_on) >= 10",
+        "SELECT substr(decided_at, 1, 10) AS d FROM screenings WHERE length(decided_at) >= 10",
+        "SELECT substr(start_at, 1, 10) AS d FROM events WHERE length(start_at) >= 10",
+    ):
+        for l in db.dicts(sql):
+            if l["d"] and l["d"].startswith(str(ate)):
+                dias_do_ano[l["d"]] += 1
+
+    return {
+        "kpis": kpis,
+        "radar": {"axes": list(EIXOS_DO_RADAR), "series": series_radar},
+        "haltere": haltere,
+        "bump": {"labels": [str(a) for a in anos], "series": bump_series},
+        "sankey": {"nodes": nos, "links": ligacoes},
+        "treemap": treemap,
+        "calendario": {"year": ate, "days": dict(dias_do_ano), "total": sum(dias_do_ano.values())},
+    }
+
+
+# ----------------------------------------------------------------------
+# Mundo: de onde vem a producao, para o globo que gira
+# ----------------------------------------------------------------------
+SEDE = {"nome": "UDESC / CEFID", "cidade": "Florianópolis", "pais": "Brasil",
+        "latitude": -27.5949, "longitude": -48.5482}
+
+
+def mundo(db: Database) -> dict[str, Any]:
+    from . import analise
+
+    p = analise.paises(db)
+    paises = []
+    sem_coordenada = []
+    for item in p.get("todos", []):
+        if item["latitude"] is None or item["longitude"] is None:
+            sem_coordenada.append(item["pais"])
+            continue
+        paises.append({"pais": item["pais"], "iso": item.get("iso"), "n": int(item["n"]),
+                       "latitude": float(item["latitude"]), "longitude": float(item["longitude"]),
+                       "instituicoes": list(item.get("instituicoes") or [])[:5]})
+    instituicoes = db.dicts(
+        "SELECT i.name, i.acronym, i.city, i.country, i.latitude, i.longitude,"
+        "       (SELECT COUNT(*) FROM members m WHERE m.institution_id = i.id) AS pessoas"
+        "  FROM institutions i WHERE i.latitude IS NOT NULL AND i.longitude IS NOT NULL"
+        " ORDER BY pessoas DESC, i.name")
+    sede = dict(SEDE)
+    for i in instituicoes:
+        if (i["acronym"] or "").upper().startswith("UDESC") or "estado de santa catarina" in (i["name"] or "").lower():
+            sede.update({"nome": i["acronym"] or i["name"], "cidade": i["city"] or sede["cidade"],
+                         "latitude": float(i["latitude"]), "longitude": float(i["longitude"])})
+            break
+    artigos_com_pais = len(_paises_por_artigo(db))
+    return {"sede": sede, "paises": paises, "sem_coordenada": sem_coordenada,
+            "instituicoes": [{"nome": i["name"], "sigla": i["acronym"], "cidade": i["city"], "pais": i["country"],
+                              "latitude": float(i["latitude"]), "longitude": float(i["longitude"]),
+                              "pessoas": int(i["pessoas"] or 0)} for i in instituicoes],
+            "artigos_com_pais": artigos_com_pais}
+
+
+# ----------------------------------------------------------------------
+# Buscar: um campo, tudo o que o laboratorio tem com aquele nome
+# ----------------------------------------------------------------------
+POR_GRUPO = 8
+
+
+def buscar(db: Database, q: str, quem: int | None = None, perfil: str = "leitura") -> dict[str, Any]:
+    """Artigos, pessoas, projetos, linhas, acervos e temas com o termo.
+
+    A comparacao ignora caixa e acento dos dois lados: "motivacao" acha
+    "Motivação". O LIKE do SQLite so ignora caixa em ASCII, entao a
+    filtragem e feita aqui, em Python, sobre as tabelas -- que sao
+    pequenas: o maior e o de artigos, na casa das centenas.
+    """
+    from .util import norm_key
+
+    termo = norm_key(q or "")
+    saida: dict[str, Any] = {"q": q or "", "artigos": [], "pessoas": [], "projetos": [],
+                             "linhas": [], "acervos": [], "temas": [], "total": 0}
+    if len(termo) < 2:
+        return saida
+
+    def bate(*campos: Any) -> bool:
+        return any(termo in norm_key(c) for c in campos if c)
+
+    for a in db.dicts(
+            "SELECT id, title, year_published, status, journal, research_line, study_type, authors"
+            "  FROM v_articles_full ORDER BY COALESCE(year_published, 0) DESC, title"):
+        if bate(a["title"], a["journal"], a["authors"], a["study_type"]):
+            saida["artigos"].append({"id": a["id"], "titulo": a["title"], "ano": a["year_published"],
+                                     "situacao": a["status"], "revista": a["journal"], "linha": a["research_line"]})
+    for m in db.dicts("SELECT id, full_name, short_name, role FROM members WHERE COALESCE(active, 1) = 1"
+                      " ORDER BY full_name"):
+        if bate(m["full_name"], m["short_name"]):
+            saida["pessoas"].append({"id": m["id"], "nome": m["full_name"], "papel": m["role"]})
+    for pr in db.dicts("SELECT id, name, status FROM projects ORDER BY name"):
+        if bate(pr["name"]):
+            saida["projetos"].append({"id": pr["id"], "nome": pr["name"], "situacao": pr["status"]})
+    for l in db.dicts(
+            "SELECT rl.id, rl.name, rl.code, rl.keywords,"
+            "       (SELECT COUNT(*) FROM articles a WHERE a.research_line_id = rl.id) AS n"
+            "  FROM research_lines rl WHERE COALESCE(rl.active, 1) = 1 ORDER BY rl.name"):
+        if bate(l["name"], l["keywords"]):
+            saida["linhas"].append({"id": l["id"], "nome": l["name"], "code": l["code"], "n": int(l["n"] or 0),
+                                    "icone": linhas_vocab.icone_de(l["code"], l["name"])})
+    visiveis = biblioteca.todas(db, quem, perfil)
+    for b in visiveis:
+        if bate(b["title"], b["descricao"], b["linha"]):
+            saida["acervos"].append({"code": b["code"], "titulo": b["title"], "n": int(b["n"] or 0), "linha": b["linha"]})
+    # temas: os segmentos dos acervos visiveis e os tipos de estudo
+    codigos = {b["code"] for b in visiveis}
+    vistos = set()
+    for seg in db.dicts(
+            "SELECT DISTINCT b.code, b.title, bb.segmento FROM biblioteca_busca bb"
+            "  JOIN biblioteca b ON b.id = bb.biblioteca_id WHERE bb.segmento IS NOT NULL ORDER BY bb.segmento"):
+        if seg["code"] in codigos and bate(seg["segmento"]) and (seg["code"], seg["segmento"]) not in vistos:
+            vistos.add((seg["code"], seg["segmento"]))
+            saida["temas"].append({"tema": seg["segmento"], "acervo": seg["code"], "acervo_titulo": seg["title"], "tipo": "segmento"})
+    for t in db.dicts("SELECT study_type AS t, COUNT(*) AS n FROM articles WHERE study_type IS NOT NULL"
+                      " GROUP BY 1 ORDER BY n DESC"):
+        if bate(t["t"]):
+            saida["temas"].append({"tema": t["t"], "n": int(t["n"]), "tipo": "tipo de estudo"})
+    for grupo in ("artigos", "pessoas", "projetos", "linhas", "acervos", "temas"):
+        saida["total"] += len(saida[grupo])
+        saida[grupo] = saida[grupo][:POR_GRUPO]
+    return saida
+
+
 def montar(db: Database, periodo_code: str | None = None,
            hoje: date | None = None, quem: int | None = None,
            perfil: str = "leitura") -> dict[str, Any]:
@@ -899,6 +1213,9 @@ def montar(db: Database, periodo_code: str | None = None,
         "acervos": acervos(db, quem, perfil),
         "triagens": triagens(db),
         "bases": bases(db, quem, perfil),
+        "temas": temas(db, per, hoje),
+        "mundo": mundo(db),
+        "sinais": sinais.analisar(db, hoje),
         "aviso": ("As leituras são calculadas a partir do banco, e cada uma diz a regra "
                   "de onde saiu. Não há modelo de linguagem aqui: o que não pode ser "
                   "refeito a partir dos dados não entra."),

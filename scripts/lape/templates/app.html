@@ -438,6 +438,11 @@ async function loadLookups(){
   CACHE.orientadores = equipe.items
     .filter(function (p){ return p.orienta && p.id !== ME.id; })
     .map(function (p){ return p.full_name; });
+  /* Coorientação é mais larga: mestrandos e doutorandos coorientam os
+     bolsistas, e por isso entram aqui -- e não na lista de orientadores. */
+  CACHE.coorientadores = equipe.items
+    .filter(function (p){ return (p.coorienta || p.orienta) && p.id !== ME.id; })
+    .map(function (p){ return p.full_name; });
   /* No LAPE a orientação é de uma pessoa só. A ficha já abre com o nome
      dela preenchido -- é um select, quem tiver outro orientador troca. O
      servidor só manda o padrão se essa pessoa existir e puder orientar:
@@ -554,9 +559,10 @@ VIEWS.perfil = {
              + "define o vínculo de cada pessoa em Laboratório › Equipe, ou cada um "
              + "define o seu no campo “Vínculo com o laboratório”, aqui em cima."}),
       field("Coorientador", "Coorientador(a)", "select", {from: "co_advisor",
-        options: function (){ return CACHE.orientadores || []; },
-        vazio: "Mesma lista do orientador: ela se enche quando alguém tem vínculo "
-             + "de coordenação, professor ou pós-doutorado."}),
+        options: function (){ return CACHE.coorientadores || CACHE.orientadores || []; },
+        hint: "Quem orienta e também os mestrandos e doutorandos, que coorientam os bolsistas.",
+        vazio: "A lista se enche quando alguém tem vínculo de coordenação, professor, "
+             + "pós-doutorado, mestrando ou doutorando."}),
       field("Instituição", "Instituição", "text", {from: "institution"}),
       field("E-mail", "E-mail", "email", {from: "email"}),
       field("Telefone", "Telefone", "text", {from: "phone"}),
@@ -1152,6 +1158,12 @@ VIEWS.linhas = crudView({
         partes.push("\u201c" + d.nome + "\u201d saiu das opções"
           + (pendurado ? " — ainda tem " + pendurado + " apontando para ela" : ""));
       });
+      (r.fundidas || []).forEach(function (f){
+        const levou = Object.keys(f.movidos || {}).filter(function (k){ return f.movidos[k]; })
+          .map(function (k){ return f.movidos[k] + " " + k.toLowerCase(); }).join(", ");
+        partes.push("\u201c" + f.de.nome + "\u201d fundida em \u201c" + f.para.nome + "\u201d"
+          + (levou ? " (" + levou + " passaram junto)" : ""));
+      });
       (r.nome_proprio || []).forEach(function (n){
         partes.push("\u201c" + n.gravado + "\u201d ficou com o nome que você deu "
           + "(o declarado é \u201c" + n.declarado + "\u201d)");
@@ -1594,6 +1606,14 @@ VIEWS.admin = {
     profBox.appendChild(h("div", {class: "actions"}, [profBotao]));
     VIEW.appendChild(profBox);
 
+    /* A rotina que roda sozinha. "Novos artigos no Lattes do professor são
+       captados automaticamente?" -- o Lattes não tem API, mas a mesma
+       produção está na PubMed e na OpenAlex, e é de lá que a rotina traz,
+       todo dia, junto com as citações; os acervos, toda semana. */
+    const rotBox = h("div", {class: "card sec"});
+    VIEW.appendChild(rotBox);
+    await desenharRotina(rotBox);
+
     /* Fichas repetidas da mesma pessoa. A planilha lista os autores em
        formato livre: num artigo saiu "Alexandro", em dezoito, "Andrade",
        e viraram duas fichas -- a chave de autor é montada sobre o
@@ -1724,6 +1744,44 @@ async function reviewDiscovery(button, id, action){
 }
 
 /* ---------- convites ---------- */
+async function desenharRotina(box){
+  box.innerHTML = "";
+  box.appendChild(h("h3", {text: "O que roda sozinho"}));
+  let r;
+  try { r = await api("/api/rotina"); }
+  catch (e){ box.appendChild(h("p", {class: "hint", text: e.message})); return; }
+  box.appendChild(h("p", {class: "hint", style: "margin:4px 0 12px",
+    text: (r.ligada
+      ? "Ligada: o servidor confere a cada " + Math.round(r.checagem_s / 60) + " min se algum passo venceu e roda. "
+      : "Desligada (LAPE_ROTINA=0): nada roda sem o botão. ")
+      + "O Lattes não tem API — a produção nova vem da PubMed e da OpenAlex, para as pessoas declaradas em "
+      + "Produção › Importar. Nada é apagado nem sobrescrito: só entra o que falta."}));
+  const tabela = h("table", {}, [
+    h("thead", {}, [h("tr", {}, ["Passo", "A cada", "Última boa", "Trouxe", "Situação", "Próxima"].map(function (t){ return h("th", {text: t}); }))]),
+    h("tbody", {}, r.passos.map(function (p){
+      return h("tr", {}, [
+        h("td", {text: p.rotulo}),
+        h("td", {text: p.intervalo_h >= 24 ? (p.intervalo_h / 24) + " dia(s)" : p.intervalo_h + " h"}),
+        h("td", {text: p.ultima_boa ? String(p.ultima_boa).replace("T", " ").slice(0, 16) : "nunca"}),
+        h("td", {text: p.trouxe === null || p.trouxe === undefined ? "—" : String(p.trouxe)}),
+        h("td", {text: (p.status === "ok" ? "ok" : p.status) + (p.mensagem ? " — " + p.mensagem : ""), title: p.mensagem || ""}),
+        h("td", {text: p.vencido ? "vencida — roda na próxima checagem" : (p.proxima ? String(p.proxima).replace("T", " ") : "—")}),
+      ]);
+    })),
+  ]);
+  box.appendChild(h("div", {style: "overflow-x:auto"}, [tabela]));
+  const botao = h("button", {class: "primary", text: r.rodando ? "Rodando " + (r.passo || "") + "…" : "Rodar agora",
+    disabled: !!r.rodando, onclick: async function (){
+      botao.disabled = true;
+      try {
+        const s = await api("/api/rotina/rodar", "POST", {});
+        toast("Rotina iniciada: " + s.passos.join(", ") + ". Ela roda ao lado; volte aqui em alguns minutos.", "ok");
+        setTimeout(function (){ desenharRotina(box); }, 15000);
+      } catch (e){ toast(e.message, "erro"); botao.disabled = false; }
+    }});
+  box.appendChild(h("div", {class: "actions"}, [botao]));
+}
+
 async function desenharDuplicatas(caixa){
   caixa.textContent = "";
   caixa.appendChild(h("h3", {text: "Fichas repetidas"}));

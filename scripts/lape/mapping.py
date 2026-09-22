@@ -433,6 +433,11 @@ for _codigo, _rotulo, _ in VINCULOS:
 # Quem orienta. Um mestrando nao aparece como orientador de ninguem no
 # organograma, ainda que ajude a tocar o trabalho de um bolsista.
 ORIENTAM: tuple[str, ...] = ("coordenacao", "professor", "pos_doutorado")
+# Quem pode COORIENTAR: quem orienta, e mais os mestrandos e doutorandos --
+# sao eles que coorientam os bolsistas de iniciacao cientifica. Pedido da
+# coordenacao pelo WhatsApp: "coorientacao deixa como opcao todo mundo que
+# e mestrando e doutorando".
+COORIENTAM: tuple[str, ...] = ORIENTAM + ("mestrando", "doutorando")
 # Quem tem orientador. Nao e o complemento de ORIENTAM: tecnico e
 # colaborador externo nao sao orientados por ninguem, e cobrar deles um
 # orientador encheria a lista de pendencias com falso alarme.

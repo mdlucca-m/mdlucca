@@ -175,6 +175,12 @@ está escrevendo é como trocar o pneu com o carro andando.
 | `LAPE_BACKUP_KEEP_MIN` | `10` | cópias que nunca envelhecem |
 | `LAPE_BACKUP_INTERVALO_MIN` | `30` | intervalo mínimo entre cópias |
 | `LAPE_BACKUP_DIARIO_H` | `24` | cópia diária mesmo sem mudança |
+| `LAPE_ROTINA` | `1` | `0` desliga a rotina automática (produção nova das bases, citações e acervos) |
+| `LAPE_ROTINA_PRODUCAO_H` | `24` | horas entre importações da produção (PubMed/OpenAlex) |
+| `LAPE_ROTINA_CITACOES_H` | `24` | horas entre atualizações de citações |
+| `LAPE_ROTINA_ACERVOS_H` | `168` | horas entre rodadas das buscas dos acervos |
+| `LAPE_ROTINA_ATRASO_S` | `120` | espera depois da subida antes do primeiro passo |
+| `LAPE_ROTINA_CHECAGEM_S` | `900` | de quanto em quanto tempo conferir se algum passo venceu |
 
 Numa instalação sem a API no ar, `deploy/backup.sh` faz o mesmo pelo cron —
 chamando a mesma implementação, para as duas não divergirem.

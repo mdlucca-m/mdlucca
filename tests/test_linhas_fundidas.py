@@ -170,6 +170,108 @@ class TestFundir(BaseComDuasLinhas):
         self.assertEqual(icones["dor_cronica"], "linha")
 
 
+class TestInstalarFundeAsTresAntigas(unittest.TestCase):
+    """As três da planilha antiga se fundem sozinhas a cada instalação.
+
+    É o `instalar` da subida do servidor que faz isso -- e não o botão --
+    porque foi assim que as três voltaram: a reimportação as trouxe e
+    ninguém apertou botão nenhum.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.db = Database(Path(self.tmp.name) / "l.sqlite")
+        self.db.migrate()
+        self.addCleanup(self.tmp.cleanup)
+        self.addCleanup(self.db.close)
+        self.antigas = {
+            "Psicologia do Esporte e do Exercício": _linha(self.db, "psicologia_esporte",
+                                                             "Psicologia do Esporte e do Exercício"),
+            "Saúde Mental e Exercício Físico": _linha(self.db, "saude_mental_exercicio",
+                                                       "Saúde Mental e Exercício Físico"),
+            "Dor Crônica e Fibromialgia": _linha(self.db, "dor_cronica", "Dor Crônica e Fibromialgia"),
+        }
+        for i, linha in enumerate(self.antigas.values()):
+            for j in range(i + 1):
+                _artigo(self.db, f"artigo {i}-{j}", linha)
+        self.db.conn.commit()
+
+    def linha(self, code):
+        return self.db.dicts("SELECT id, name, active FROM research_lines WHERE code = ?", (code,))[0]
+
+    def artigos_em(self, linha_id):
+        return int(self.db.scalar("SELECT COUNT(*) FROM articles WHERE research_line_id = ?", (linha_id,)))
+
+    def test_as_tres_se_fundem_nas_declaradas_e_os_artigos_passam(self):
+        saida = linhas.instalar(self.db)
+        self.assertEqual([f["de"]["nome"] for f in saida["fundidas"]], [a for a, _c in linhas.FUNDIDAS])
+        for nome_antigo, code in linhas.FUNDIDAS:
+            with self.subTest(linha=nome_antigo):
+                antiga_id = self.antigas[nome_antigo]
+                nova = self.linha(code)
+                self.assertEqual(int(nova["active"]), 1)
+                self.assertEqual(self.artigos_em(antiga_id), 0)
+                self.assertGreater(self.artigos_em(int(nova["id"])), 0)
+                gravada = self.db.dicts("SELECT name, active FROM research_lines WHERE id = ?", (antiga_id,))[0]
+                self.assertEqual(int(gravada["active"]), 0)
+                self.assertEqual(gravada["name"], nome_antigo)  # nada apagado
+        self.assertEqual(self.artigos_em(int(self.linha("exercicio_fibromialgia")["id"])), 3)
+        ativas = [l["name"] for l in self.db.dicts(
+            "SELECT name FROM research_lines WHERE active = 1")]
+        self.assertEqual(len(ativas), len(linhas.LINHAS), ativas)
+
+    def test_a_antiga_ja_encerrada_mas_com_artigos_pendurados_tambem_se_funde(self):
+        """O caso da parede: a coordenação encerrou as três na tela, e os
+        artigos continuaram lá -- "Dor Crônica e Fibromialgia" com 6 ao lado
+        de "Fibromialgia e doenças reumáticas"."""
+        for linha in self.antigas.values():
+            self.db.execute("UPDATE research_lines SET active = 0 WHERE id = ?", (linha,))
+        self.db.conn.commit()
+        saida = linhas.instalar(self.db)
+        self.assertEqual(len(saida["fundidas"]), 3, saida["fundidas"])
+        self.assertEqual(saida["fundidas"][2]["movidos"]["Artigos"], 3)
+        for antiga in self.antigas.values():
+            self.assertEqual(self.artigos_em(antiga), 0)
+
+    def test_instalar_de_novo_nao_anuncia_a_fusao_outra_vez(self):
+        linhas.instalar(self.db)
+        segunda = linhas.instalar(self.db)
+        self.assertEqual(segunda["fundidas"], [])
+        self.assertEqual(segunda["novas"], [])
+
+    def test_a_antiga_que_a_reimportacao_reativou_e_fundida_de_novo(self):
+        """Mesmo já fundida, se a planilha voltar a acendê-la ela cai de novo."""
+        linhas.instalar(self.db)
+        antiga = self.antigas["Dor Crônica e Fibromialgia"]
+        self.db.execute("UPDATE research_lines SET active = 1 WHERE id = ?", (antiga,))
+        _artigo(self.db, "reimportado", antiga)
+        self.db.conn.commit()
+        saida = linhas.instalar(self.db)
+        self.assertEqual([f["de"]["nome"] for f in saida["fundidas"]], ["Dor Crônica e Fibromialgia"])
+        self.assertEqual(saida["fundidas"][0]["movidos"]["Artigos"], 1)
+        self.assertEqual(self.artigos_em(antiga), 0)
+        self.assertEqual(int(self.db.scalar("SELECT active FROM research_lines WHERE id = ?", (antiga,))), 0)
+
+    def test_sem_as_antigas_nao_ha_o_que_fundir(self):
+        self.db.execute("DELETE FROM articles")
+        self.db.execute("DELETE FROM research_lines")
+        self.db.conn.commit()
+        saida = linhas.instalar(self.db)
+        self.assertEqual(saida["fundidas"], [])
+        self.assertEqual(len(saida["novas"]), len(linhas.LINHAS))
+
+    def test_o_botao_da_tela_conta_a_fusao(self):
+        fonte = (TEMPLATES / "app.html").read_text(encoding="utf-8")
+        self.assertIn("r.fundidas", fonte)
+        self.assertIn("fundida em", fonte)
+
+    def test_cada_fusao_declarada_aponta_para_uma_das_oito(self):
+        codigos = {c for c, *_ in linhas.LINHAS}
+        for nome_antigo, code in linhas.FUNDIDAS:
+            with self.subTest(linha=nome_antigo):
+                self.assertIn(code, codigos)
+
+
 class TestPelaLinhaDeComando(BaseComDuasLinhas):
 
     def test_lista_e_funde(self):
