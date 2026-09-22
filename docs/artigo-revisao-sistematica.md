@@ -473,8 +473,9 @@ métodos exige.
 ### Nota para a equipe antes de submeter
 
 - Definir autoria e ordem, e preencher o bloco de afiliação.
-- Conferir todas as referências contra os originais — volume, número,
-  páginas e ano — antes do envio.
+- As referências já foram conferidas contra o registro da editora (ver nota
+  ao fim da lista). Resta adequá-las ao estilo de citação do periódico —
+  Vancouver numerada, APA ou outro — e conferir se ele exige DOI.
 - Ajustar resumo, palavras-chave e extensão às normas do periódico-alvo;
   muitos periódicos de método exigem resumo estruturado com rótulos
   distintos dos usados aqui.
@@ -488,39 +489,48 @@ métodos exige.
 
 ## Referências
 
-Aromataris E, Munn Z, editores. *JBI Manual for Evidence Synthesis*.
-Adelaide: JBI; 2020.
+Aromataris E, Lockwood C, Porritt K, Pilla B, Jordan Z, editores. *JBI Manual
+for Evidence Synthesis*. Adelaide: JBI; 2024. doi:10.46658/JBIMES-24-01
 
 Higgins JPT, Thomas J, Chandler J, Cumpston M, Li T, Page MJ, Welch VA,
-editores. *Cochrane Handbook for Systematic Reviews of Interventions*.
-Versão corrente. Londres: Cochrane.
+editores. *Cochrane Handbook for Systematic Reviews of Interventions*,
+versão 6.5 (2024). Londres: Cochrane; 2024. Disponível em:
+https://training.cochrane.org/handbook
 
 Hoffmann TC, Glasziou PP, Boutron I, Milne R, Perera R, Moher D, et al.
 Better reporting of interventions: template for intervention description
 and replication (TIDieR) checklist and guide. *BMJ*. 2014;348:g1687.
+doi:10.1136/bmj.g1687
 
 Hong QN, Fàbregues S, Bartlett G, Boardman F, Cargo M, Dagenais P, et al.
 The Mixed Methods Appraisal Tool (MMAT) version 2018 for information
 professionals and researchers. *Education for Information*.
-2018;34(4):285-291.
+2018;34(4):285-291. doi:10.3233/EFI-180221
 
 Landis JR, Koch GG. The measurement of observer agreement for categorical
-data. *Biometrics*. 1977;33(1):159-174.
+data. *Biometrics*. 1977;33(1):159-174. doi:10.2307/2529310
 
 Ouzzani M, Hammady H, Fedorowicz Z, Elmagarmid A. Rayyan — a web and mobile
-app for systematic reviews. *Systematic Reviews*. 2016;5:210.
+app for systematic reviews. *Systematic Reviews*. 2016;5(1):210.
+doi:10.1186/s13643-016-0384-4
 
 Page MJ, McKenzie JE, Bossuyt PM, Boutron I, Hoffmann TC, Mulrow CD, et al.
 The PRISMA 2020 statement: an updated guideline for reporting systematic
-reviews. *BMJ*. 2021;372:n71.
+reviews. *BMJ*. 2021;372:n71. doi:10.1136/bmj.n71
 
 Ryan RM, Deci EL. *Self-Determination Theory: Basic Psychological Needs in
 Motivation, Development, and Wellness*. Nova York: Guilford Press; 2017.
+doi:10.1521/978.14625/28806
 
 Sterne JA, Hernán MA, Reeves BC, Savović J, Berkman ND, Viswanathan M, et
 al. ROBINS-I: a tool for assessing risk of bias in non-randomised studies
-of interventions. *BMJ*. 2016;355:i4919.
+of interventions. *BMJ*. 2016;355:i4919. doi:10.1136/bmj.i4919
 
 Sterne JAC, Savović J, Page MJ, Elbers RG, Blencowe NS, Boutron I, et al.
 RoB 2: a revised tool for assessing risk of bias in randomised trials.
-*BMJ*. 2019;366:l4898.
+*BMJ*. 2019;366:l4898. doi:10.1136/bmj.l4898
+
+*Todas as referências acima foram conferidas em 22/09/2026 contra o
+registro da editora (Crossref) e, quando indexadas, contra o registro da
+PubMed: autoria, título, periódico, volume, número, páginas, ano e DOI.
+Os DOIs resolvem.*
