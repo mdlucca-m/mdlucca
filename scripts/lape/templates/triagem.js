@@ -153,6 +153,7 @@ function desenhar() {
   if (ESTADO.aba === "duplicados") return desenharDuplicados(palco);
   if (ESTADO.aba === "extracao") return desenharExtracao(palco);
   if (ESTADO.aba === "prisma") return desenharPrisma(palco);
+  if (ESTADO.aba === "padrao") return desenharPadrao(palco);
   if (ESTADO.aba === "importar") return desenharImportar(palco);
   desenharTriagem(palco);
 }
@@ -163,7 +164,7 @@ function desenharAbas() {
   if (!ESTADO.revisao) return;
   document.getElementById("qual").textContent = ESTADO.revisao.title;
   [["triar", "Triar"], ["conflitos", "Conflitos"], ["duplicados", "Duplicados"],
-   ["extracao", "Extração"], ["prisma", "PRISMA"],
+   ["extracao", "Extração"], ["prisma", "PRISMA"], ["padrao", "Padrão"],
    ["importar", "Importar"]].forEach(function (par) {
     barra.appendChild(el("button", {
       text: par[1], class: ESTADO.aba === par[0] ? "on" : "",
@@ -849,6 +850,68 @@ function secao(titulo, linhas, campos, cabecalhos) {
     el("h3", { text: titulo }), tabela]);
 }
 
+/* ---------------------------------------------------------------- padrão */
+/* O que o padrão desta revisão cobra, item a item -- e o que o sistema JÁ
+   conferiu sozinho no banco.
+
+   A diferença entre "falta" e "confira você" é a razão desta tela: uma
+   checklist que marca tudo como pendente é um PDF, e uma que marca tudo
+   como feito é mentira. Esta marca só o que pôde ver, e diz onde viu. */
+const SITUACAO = {
+  feito: {rotulo: "feito", classe: "ok"},
+  falta: {rotulo: "falta", classe: "erro"},
+  manual: {rotulo: "confira você", classe: "info"},
+  na: {rotulo: "não se aplica", classe: ""},
+};
+
+async function desenharPadrao(palco) {
+  palco.appendChild(el("div", {class: "hint", text: "conferindo…"}));
+  let d;
+  try {
+    d = await api("/api/revisoes/" + ESTADO.revisao.code + "/padrao");
+  } catch (erro) {
+    palco.innerHTML = "";
+    palco.appendChild(el("div", {class: "note erro", text: erro.message}));
+    return;
+  }
+  palco.innerHTML = "";
+
+  const topo = el("div", {class: "solto"}, [
+    el("h3", {text: d.tipo.rotulo + " · " + d.tipo.padrao}),
+    el("div", {class: "hint", text: d.tipo.resumo}),
+    el("div", {class: "hint", style: "margin-top:8px"}, [
+      el("a", {href: d.tipo.url, target: "_blank", rel: "noopener",
+               text: "a checklist oficial do " + d.tipo.padrao + " ↗"}),
+    ]),
+    el("div", {class: "hint", style: "margin-top:10px", text:
+      d.conta.feito + " feito(s) · " + d.conta.falta + " faltando · "
+      + d.conta.manual + " para você conferir"
+      + (d.conta.na ? " · " + d.conta.na + " não se aplica(m)" : "")}),
+  ]);
+  palco.appendChild(topo);
+
+  d.itens.forEach(function (item) {
+    const marca = SITUACAO[item.situacao] || SITUACAO.manual;
+    palco.appendChild(el("div", {class: "solto"}, [
+      el("div", {style: "display:flex;gap:10px;align-items:baseline"}, [
+        el("span", {class: "note " + marca.classe,
+                    style: "padding:2px 8px;font-size:11.5px;white-space:nowrap",
+                    text: marca.rotulo}),
+        el("b", {text: item.rotulo}),
+      ]),
+      el("div", {class: "hint", style: "margin-top:6px", text: item.detalhe}),
+      el("div", {class: "hint", style: "margin-top:4px;opacity:.75",
+                 text: item.porque}),
+    ]));
+  });
+
+  /* O aviso vai no FIM e não some: isto é um resumo do que o padrão
+     cobra, e não o instrumento oficial -- e quem submete o artigo
+     precisa saber disso. */
+  palco.appendChild(el("div", {class: "note info", style: "margin-top:14px",
+                               text: d.aviso}));
+}
+
 /* -------------------------------------------------------------- importar */
 function desenharImportar(palco) {
   palco.appendChild(el("div", { class: "solto" }, [
@@ -981,19 +1044,42 @@ async function desenharEscolha(palco) {
     (function () {
       const titulo = el("input", { placeholder: "Título da revisão" });
       const pergunta = el("input", { placeholder: "Pergunta (opcional)" });
+      /* O TIPO é a primeira escolha, e não um detalhe: ele decide o
+         padrão de relato que vai ser cobrado, se há risco de viés e como
+         se chama o que vem depois da triagem. Escolher depois é descobrir
+         no fim que a revisão foi conduzida por outra regra. */
+      const tipo = el("select", {}, [
+        el("option", { value: "sistematica",
+                       text: "Revisão sistemática — PRISMA 2020" }),
+        el("option", { value: "escopo",
+                       text: "Revisão de escopo — PRISMA-ScR" }),
+        el("option", { value: "mapping",
+                       text: "Mapping review — PRISMA-ScR adaptado" }),
+      ]);
+      const ajuda = el("div", { class: "hint" });
+      const RESUMO = {
+        sistematica: "Pergunta fechada, busca exaustiva, seleção e extração em "
+          + "duplicata e avaliação da qualidade de cada incluído.",
+        escopo: "Mapeia o que existe sobre um tema amplo. Pergunta aberta, e "
+          + "avaliação de qualidade opcional por definição.",
+        mapping: "Mapeia a cobertura: quanto existe de cada recorte, e o que "
+          + "não foi estudado. Fica no título e resumo.",
+      };
+      ajuda.textContent = RESUMO.sistematica;
+      tipo.onchange = function () { ajuda.textContent = RESUMO[tipo.value]; };
       const quantos = el("select", {}, [
         el("option", { value: "2", text: "2 avaliadores (recomendado)" }),
         el("option", { value: "1", text: "1 avaliador (revisão de escopo)" }),
         el("option", { value: "3", text: "3 avaliadores" }),
       ]);
       return el("div", { style: "display:grid;gap:9px;max-width:460px" }, [
-        titulo, pergunta, quantos,
+        titulo, pergunta, tipo, ajuda, quantos,
         el("button", { class: "primary", text: "Criar", onclick: async function () {
           if (!titulo.value.trim()) { aviso("Dê um título à revisão"); return; }
           try {
             const r = await api("/api/revisoes", "POST", {
               titulo: titulo.value.trim(), pergunta: pergunta.value.trim(),
-              avaliadores: Number(quantos.value) });
+              tipo: tipo.value, avaliadores: Number(quantos.value) });
             abrir(r.code || r.id);
           } catch (erro) { aviso(erro.message); }
         } }),

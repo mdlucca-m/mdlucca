@@ -77,6 +77,173 @@ FORMULARIO_PADRAO: tuple[dict[str, Any], ...] = (
 )
 
 
+# Os MODELOS de formulario. O de intervencao acima e o padrao porque e o
+# que este laboratorio mais usa; os outros existem porque extrair um
+# estudo transversal com campos de ensaio clinico produz tres quartos de
+# campo vazio e nenhum dos campos que importam -- e a tabela de
+# caracteristicas sai com "não se aplica" em coluna atras de coluna.
+#
+# Cada um segue o que a literatura de metodo cobra para aquele desenho: o
+# formulario de coleta da Cochrane para intervencao, o STROBE para
+# observacional, o JBI-QARI para qualitativo, o COSMIN para psicometria e
+# o "charting" do JBI para revisao de escopo. Sao ponto de partida, e nao
+# camisa de forca: cada revisao acrescenta e tira o que quiser -- mas
+# comecar da folha em branco e como metade dos estudos ja extraida quando
+# alguem descobre que faltava um campo.
+MODELO_OBSERVACIONAL: tuple[dict[str, Any], ...] = (
+    {"code": "pais", "label": "País", "kind": "texto", "grupo": "Identificação"},
+    {"code": "delineamento", "label": "Delineamento", "kind": "escolha",
+     "grupo": "Identificação",
+     "options": "Coorte prospectiva;Coorte retrospectiva;Caso-controle;"
+                "Transversal;Ecológico"},
+    {"code": "fonte", "label": "Fonte dos participantes", "kind": "texto_longo",
+     "grupo": "Identificação", "help": "De onde saiu a amostra, e como foi recrutada"},
+    {"code": "financiamento", "label": "Financiamento", "kind": "texto",
+     "grupo": "Identificação"},
+    {"code": "n_total", "label": "N analisado", "kind": "numero",
+     "grupo": "Participantes", "required": 1},
+    {"code": "idade", "label": "Idade (média ± DP)", "kind": "texto",
+     "grupo": "Participantes"},
+    {"code": "sexo", "label": "Sexo (% mulheres)", "kind": "texto",
+     "grupo": "Participantes"},
+    {"code": "elegibilidade", "label": "Critérios de elegibilidade",
+     "kind": "texto_longo", "grupo": "Participantes"},
+    {"code": "exposicao", "label": "Exposição / variável independente",
+     "kind": "texto_longo", "grupo": "Medidas", "required": 1},
+    {"code": "desfecho", "label": "Desfecho / variável dependente",
+     "kind": "texto_longo", "grupo": "Medidas", "required": 1},
+    {"code": "instrumentos", "label": "Instrumentos", "kind": "texto_longo",
+     "grupo": "Medidas"},
+    {"code": "seguimento", "label": "Tempo de seguimento", "kind": "texto",
+     "grupo": "Medidas", "help": "só para coorte"},
+    {"code": "confundidores", "label": "Confundidores considerados",
+     "kind": "texto_longo", "grupo": "Análise",
+     "help": "O STROBE cobra quais foram, e não só que houve ajuste"},
+    {"code": "ajuste", "label": "Modelo e ajuste", "kind": "texto_longo",
+     "grupo": "Análise"},
+    {"code": "medida", "label": "Medida de associação", "kind": "texto",
+     "grupo": "Resultados", "required": 1,
+     "help": "OR, RR, HR, beta ou r — com intervalo de confiança"},
+    {"code": "perdas", "label": "Perdas e dados faltantes", "kind": "texto",
+     "grupo": "Resultados"},
+    {"code": "conclusao", "label": "Conclusão dos autores", "kind": "texto_longo",
+     "grupo": "Resultados"},
+)
+
+MODELO_QUALITATIVO: tuple[dict[str, Any], ...] = (
+    {"code": "pais", "label": "País", "kind": "texto", "grupo": "Identificação"},
+    {"code": "metodologia", "label": "Metodologia", "kind": "escolha",
+     "grupo": "Identificação",
+     "options": "Fenomenologia;Teoria fundamentada;Etnografia;Estudo de caso;"
+                "Análise de conteúdo;Análise temática;Pesquisa-ação;Outra"},
+    {"code": "posicionamento", "label": "Posicionamento do pesquisador",
+     "kind": "texto_longo", "grupo": "Identificação",
+     "help": "O JBI cobra: quem pesquisou, e de que lugar"},
+    {"code": "participantes", "label": "Participantes e contexto",
+     "kind": "texto_longo", "grupo": "Participantes", "required": 1},
+    {"code": "amostragem", "label": "Amostragem", "kind": "texto",
+     "grupo": "Participantes", "help": "Intencional, bola de neve, por conveniência…"},
+    {"code": "coleta", "label": "Coleta de dados", "kind": "texto_longo",
+     "grupo": "Método", "required": 1,
+     "help": "Entrevista, grupo focal, observação — e por quanto tempo"},
+    {"code": "analise", "label": "Análise dos dados", "kind": "texto_longo",
+     "grupo": "Método", "required": 1},
+    {"code": "rigor", "label": "Critérios de rigor", "kind": "texto_longo",
+     "grupo": "Método", "help": "Triangulação, validação pelos participantes, saturação"},
+    {"code": "temas", "label": "Temas e categorias", "kind": "texto_longo",
+     "grupo": "Achados", "required": 1},
+    {"code": "citacoes", "label": "Falas ilustrativas", "kind": "texto_longo",
+     "grupo": "Achados", "help": "As citações que sustentam cada tema"},
+    {"code": "conclusao", "label": "Conclusão dos autores", "kind": "texto_longo",
+     "grupo": "Achados"},
+)
+
+MODELO_PSICOMETRIA: tuple[dict[str, Any], ...] = (
+    {"code": "instrumento", "label": "Instrumento", "kind": "texto",
+     "grupo": "Identificação", "required": 1},
+    {"code": "versao", "label": "Versão / idioma", "kind": "texto",
+     "grupo": "Identificação"},
+    {"code": "construto", "label": "Construto medido", "kind": "texto_longo",
+     "grupo": "Identificação", "required": 1},
+    {"code": "itens", "label": "Itens e fatores", "kind": "texto",
+     "grupo": "Estrutura", "help": "Quantos itens, em quantos fatores"},
+    {"code": "n_total", "label": "N da amostra", "kind": "numero",
+     "grupo": "Estrutura", "required": 1},
+    {"code": "estrutura", "label": "Estrutura fatorial", "kind": "texto_longo",
+     "grupo": "Estrutura", "help": "AFE/AFC, e os índices de ajuste"},
+    {"code": "consistencia", "label": "Consistência interna", "kind": "texto",
+     "grupo": "Confiabilidade", "help": "Alfa, ômega — por fator"},
+    {"code": "teste_reteste", "label": "Teste-reteste", "kind": "texto",
+     "grupo": "Confiabilidade", "help": "CCI, e o intervalo entre as medidas"},
+    {"code": "validade", "label": "Validade de construto", "kind": "texto_longo",
+     "grupo": "Validade", "help": "Convergente, discriminante, de critério"},
+    {"code": "invariancia", "label": "Invariância de medida", "kind": "texto",
+     "grupo": "Validade",
+     "help": "Entre sexos, idades ou modalidades — é o que permite comparar grupos"},
+    {"code": "erro", "label": "Erro de medida", "kind": "texto",
+     "grupo": "Validade", "help": "EPM, mínima mudança detectável"},
+    {"code": "conclusao", "label": "Conclusão dos autores", "kind": "texto_longo",
+     "grupo": "Validade"},
+)
+
+MODELO_ESCOPO: tuple[dict[str, Any], ...] = (
+    {"code": "pais", "label": "País", "kind": "texto", "grupo": "Identificação"},
+    {"code": "delineamento", "label": "Delineamento", "kind": "escolha",
+     "grupo": "Identificação",
+     "options": "Ensaio randomizado;Ensaio não randomizado;Coorte;Caso-controle;"
+                "Transversal;Qualitativo;Métodos mistos;Revisão;Ensaio teórico"},
+    {"code": "objetivo", "label": "Objetivo do estudo", "kind": "texto_longo",
+     "grupo": "Identificação", "required": 1},
+    {"code": "populacao", "label": "População", "kind": "texto_longo",
+     "grupo": "PCC", "required": 1},
+    {"code": "conceito", "label": "Conceito", "kind": "texto_longo",
+     "grupo": "PCC", "required": 1,
+     "help": "O que se estuda — na revisão de escopo é o C do PCC"},
+    {"code": "contexto", "label": "Contexto", "kind": "texto_longo",
+     "grupo": "PCC", "required": 1,
+     "help": "Onde: país, nível competitivo, ambiente"},
+    {"code": "n_total", "label": "N", "kind": "numero", "grupo": "Achados"},
+    {"code": "instrumentos", "label": "Instrumentos e medidas", "kind": "texto_longo",
+     "grupo": "Achados"},
+    {"code": "principais", "label": "Principais achados", "kind": "texto_longo",
+     "grupo": "Achados", "required": 1},
+    {"code": "lacuna", "label": "Lacuna apontada pelos autores",
+     "kind": "texto_longo", "grupo": "Achados",
+     "help": "Numa revisão de escopo, a lacuna é o produto"},
+)
+
+MODELOS: dict[str, dict[str, Any]] = {
+    "intervencao": {
+        "nome": "Intervenção (ensaios) — formulário de coleta da Cochrane",
+        "campos": FORMULARIO_PADRAO,
+        "para": "Ensaios randomizados e não randomizados.",
+    },
+    "observacional": {
+        "nome": "Observacional (STROBE) — coorte, caso-controle, transversal",
+        "campos": MODELO_OBSERVACIONAL,
+        "para": "Estudos sem intervenção, em que o que importa é a exposição, "
+                "os confundidores e a medida de associação.",
+    },
+    "qualitativo": {
+        "nome": "Qualitativo (JBI-QARI)",
+        "campos": MODELO_QUALITATIVO,
+        "para": "Entrevista, grupo focal, etnografia — método, rigor e temas.",
+    },
+    "psicometria": {
+        "nome": "Psicometria (COSMIN)",
+        "campos": MODELO_PSICOMETRIA,
+        "para": "Validação de instrumento: estrutura, confiabilidade, validade "
+                "e invariância.",
+    },
+    "escopo": {
+        "nome": "Revisão de escopo (charting JBI, população–conceito–contexto)",
+        "campos": MODELO_ESCOPO,
+        "para": "Charting de revisão de escopo e mapping review: descreve o "
+                "campo, e não o efeito.",
+    },
+}
+
+
 # ----------------------------------------------------------------------
 # Risco de vies
 # ----------------------------------------------------------------------
@@ -143,7 +310,8 @@ GERAL = ("geral", "Risco de viés geral")
 
 
 def preparar(db: Database, review_id: int, ferramenta: str = "rob2",
-             campos: tuple[dict[str, Any], ...] | None = None) -> dict[str, int]:
+             campos: tuple[dict[str, Any], ...] | None = None,
+             modelo: str | None = None) -> dict[str, int]:
     """Instala o formulario e os dominios da ferramenta escolhida.
 
     Nao apaga o que ja existe: rodar de novo acrescenta o que faltava e
@@ -153,6 +321,11 @@ def preparar(db: Database, review_id: int, ferramenta: str = "rob2",
     if ferramenta not in FERRAMENTAS_ROB:
         raise ValueError(f"instrumento desconhecido: {ferramenta}. "
                          f"Use {', '.join(FERRAMENTAS_ROB)}")
+    if modelo is not None and modelo not in MODELOS:
+        raise ValueError(f"modelo de extração desconhecido: {modelo}. "
+                         f"Use {', '.join(MODELOS)}")
+    if campos is None and modelo:
+        campos = MODELOS[modelo]["campos"]
     for seq, campo in enumerate(campos or FORMULARIO_PADRAO, start=1):
         db.upsert("extraction_fields", {
             "review_id": review_id, "code": campo["code"], "label": campo["label"],
@@ -168,7 +341,8 @@ def preparar(db: Database, review_id: int, ferramenta: str = "rob2",
     db.execute("UPDATE reviews SET study_designs = COALESCE(study_designs, ?)"
                " WHERE id = ?", (ferramenta, review_id))
     db.conn.commit()
-    return {"campos": len(campos or FORMULARIO_PADRAO), "dominios": len(dominios)}
+    return {"campos": len(campos or FORMULARIO_PADRAO), "dominios": len(dominios),
+            "modelo": modelo}
 
 
 def ferramenta_da(db: Database, review_id: int) -> dict[str, Any]:

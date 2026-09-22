@@ -53,7 +53,13 @@ MOTIVOS_PADRAO: tuple[tuple[str, str], ...] = (
 # ----------------------------------------------------------------------
 def criar(db: Database, code: str, title: str, **campos: Any) -> int:
     """Abre uma revisao, ja com a lista de motivos de exclusao."""
-    dados = {"code": _slug(code), "title": clean_text(title) or code}
+    from . import padrao
+
+    dados = {"code": _slug(code), "title": clean_text(title) or code,
+             # Tipo desconhecido vira o padrao em vez de erro: quem digita
+             # "sistemática" com acento, ou um tipo que ainda nao existe,
+             # nao pode ficar sem revisao por causa disso.
+             "tipo": padrao.tipo(campos.get("tipo"))["code"]}
     for campo in ("question", "population", "intervention", "comparison", "outcome",
                   "study_designs", "protocol_url", "status"):
         if campos.get(campo) is not None:

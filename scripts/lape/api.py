@@ -1670,6 +1670,7 @@ def route_review_create(ctx: "Context") -> Any:
     titulo = body.get("titulo") or body.get("title")
     review_id = revisao.criar(
         ctx.db, body.get("codigo") or body.get("code") or titulo, titulo,
+        tipo=body.get("tipo"),
         question=body.get("pergunta"), population=body.get("populacao"),
         intervention=body.get("intervencao"), comparison=body.get("comparador"),
         outcome=body.get("desfecho"), study_designs=body.get("delineamentos"),
@@ -1703,6 +1704,15 @@ def route_review_detail(ctx: "Context", review_id: str) -> Any:
             "SELECT m.id, m.full_name, rm.role FROM review_members rm"
             "  JOIN members m ON m.id = rm.member_id WHERE rm.review_id = ?", (rev["id"],)),
     }
+
+
+def route_review_padrao(ctx: "Context", review_id: str) -> Any:
+    """A conferencia do padrao desta revisao, item a item."""
+    from . import padrao
+
+    auth.require(ctx.user, "leitura")
+    rev = _revisao(ctx, review_id)
+    return padrao.conferir(ctx.db, rev["id"])
 
 
 def route_review_import(ctx: "Context", review_id: str) -> Any:
@@ -1877,6 +1887,18 @@ def route_review_unmerge(ctx: "Context", review_id: str) -> Any:
     return {**resultado, "prisma": revisao.prisma(ctx.db, rev["id"])}
 
 
+def route_modelos_de_extracao(ctx: "Context") -> Any:
+    """Os modelos de formulario que o sistema ja traz prontos."""
+    auth.require(ctx.user, "leitura")
+    return {"modelos": [
+        {"code": code, "nome": m["nome"], "para": m["para"],
+         "campos": len(m["campos"]),
+         "grupos": sorted({c.get("grupo") or "" for c in m["campos"]})}
+        for code, m in extracao.MODELOS.items()],
+        "ferramentas": [{"code": c, "nome": f["nome"]}
+                        for c, f in extracao.FERRAMENTAS_ROB.items()]}
+
+
 def route_review_form(ctx: "Context", review_id: str) -> Any:
     """O formulario de extracao e os dominios de risco de vies."""
     auth.require(ctx.user, "integrante")
@@ -1906,7 +1928,8 @@ def route_review_form_setup(ctx: "Context", review_id: str) -> Any:
     body = ctx.body or {}
     try:
         resultado = extracao.preparar(ctx.db, rev["id"],
-                                      body.get("ferramenta") or "rob2")
+                                      body.get("ferramenta") or "rob2",
+                                      modelo=body.get("modelo"))
     except ValueError as exc:
         raise ApiError(400, str(exc)) from exc
     return {**resultado, "por": user.get("full_name")}
@@ -2471,6 +2494,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/revisoes/?$", route_reviews, "leitura"),
     ("POST", r"^/api/revisoes/?$", route_review_create, "coordenacao"),
     ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/?$", route_review_detail, "leitura"),
+    ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/padrao/?$", route_review_padrao, "leitura"),
+    ("GET", r"^/api/extracao/modelos/?$", route_modelos_de_extracao, "leitura"),
     ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/importar/?$", route_review_import, "integrante"),
     ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/fila/?$", route_review_queue, "integrante"),
     ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/decidir/?$", route_review_decide, "integrante"),
