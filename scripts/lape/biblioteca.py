@@ -258,6 +258,15 @@ ESPORTES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Paradesporto", ("paralympic", "para athletes", "disability sport")),
     ("Rugby e futebol americano", ("rugby", "american football")),
     ("Triatlo", ("triathlon", "triathletes")),
+    # Medidos na PubMed em 22/09/2026 (forma reduzida; sao piso): 24, 7 e 6.
+    # Pequenos, e nao vazios -- e sao justamente as modalidades em que a
+    # literatura de humor esta nascendo.
+    ("Esportes de aventura", ("surfing", "surfers", "climbing", "climbers",
+                              "trail running", "ultramarathon")),
+    ("Esportes de inverno", ("skiing", "skiers", "ice hockey", "snowboard",
+                             "winter sports", "speed skating")),
+    ("Esportes eletrônicos", ("esports", "e-sports", "electronic sports", "gamers",
+                              "video game players")),
 )
 
 # ----------------------------------------------------------------------
@@ -519,6 +528,14 @@ TEMAS_MOTIVACAO_HANDEBOL: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Coesão e eficácia coletiva",
      ("cohesion", "team cohesion", "collective efficacy", "group dynamics",
       "teamwork", "team climate")),
+    # 9 -- quem nao e jogador de linha: o goleiro e o arbitro tem outra
+    # motivacao, e a literatura os trata a parte. Medido em 22/09/2026.
+    ("Goleiros e árbitros",
+     ("goalkeeper", "goalkeepers", "referee", "referees", "umpire")),
+    # 12 -- quem esta em volta de quem joga. Medido em 22/09/2026.
+    ("Pais, família e pares",
+     ("parents", "parental", "family", "parental support", "peer", "peers",
+      "siblings")),
 )
 
 # ----------------------------------------------------------------------
@@ -621,6 +638,353 @@ TEMAS_AUTODETERMINACAO: tuple[tuple[str, tuple[str, ...]], ...] = (
       "integrated regulation", "autonomous motivation", "controlled motivation",
       "relative autonomy index")),
 )
+
+# ======================================================================
+# Os acervos que faltavam: um por linha de pesquisa
+# ======================================================================
+# Ate aqui os acervos cobriam duas das oito linhas -- psicologia do esporte
+# e fibromialgia. As outras seis nao tinham acervo nenhum, e a tela de
+# bibliotecas dizia isso em silencio: uma linha sem acervo e uma linha que
+# nao le. Os oito abaixo (dois para o esporte, um para cada uma das outras)
+# foram medidos na PubMed em 22/09/2026, com a forma REDUZIDA da estrategia
+# (o limite de operadores da consulta) -- os numeros sao piso, e servem para
+# uma coisa so: dizer que nenhum segmento entra vazio. O numero de verdade
+# aparece depois da primeira atualizacao.
+#
+# Os acervos grandes (cancer, envelhecimento, cinesiofobia) tem milhares de
+# registros; `atualizar` traz ate 400 por busca. Sao acervos de LEITURA e
+# de recorte -- cada segmento e uma busca propria, e e por eles que se
+# chega ao pedaco que interessa --, e nao a base de uma revisao sistematica
+# inteira, que precisa das bases manuais e da estrategia colada la.
+
+# ----------------------------------------------------------------------
+# Ansiedade competitiva no esporte (psicologia do esporte, por modalidade)
+# ----------------------------------------------------------------------
+# O construto e a ansiedade DE COMPETICAO -- nao ansiedade em geral, que
+# traria a clinica inteira. Os instrumentos entram porque e como a
+# literatura de campo se cita: "we applied the CSAI-2".
+ANSIEDADE_TERMOS = (
+    "competitive anxiety", "sport anxiety", "precompetitive anxiety",
+    "pre-competitive anxiety", "competitive state anxiety", "competitive trait anxiety",
+    "somatic anxiety", "cognitive anxiety", "choking under pressure",
+    "CSAI-2", "Competitive State Anxiety Inventory", "Sport Anxiety Scale", "SAS-2",
+)
+ANSIEDADE_REGIONAIS = (
+    "ansiedade competitiva", "ansiedade pré-competitiva", "ansiedad competitiva",
+    "ansiedad precompetitiva", "ansiedade-estado",
+)
+# As modalidades em que a literatura de ansiedade competitiva de fato
+# existe. Medidas uma a uma (22/09/2026): futebol 62, basquete 32, tenis
+# 28, golfe/tiro/arco 28, lutas 25, atletismo 17, volei 16, natacao 15,
+# ginastica 14, rugby 13, handebol 10, remo 10, ciclismo 5, paradesporto 5.
+# Triatlo (1) e esportes eletronicos (2) ficaram de fora: um registro nao
+# faz segmento.
+ESPORTES_ANSIEDADE: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Futebol", ("soccer", "football")),
+    ("Basquete", ("basketball",)),
+    ("Tênis e raquete", ("tennis", "badminton", "table tennis")),
+    ("Golfe, tiro e arco", ("golf", "golfers", "shooting", "archery", "closed skill")),
+    ("Judô e lutas", ("judo", "wrestling", "combat sport", "combat sports",
+                      "taekwondo", "karate")),
+    ("Atletismo", ("track and field", "runners", "distance running")),
+    ("Vôlei", ("volleyball",)),
+    ("Natação", ("swimming", "swimmers")),
+    ("Ginástica", ("gymnastics", "gymnasts")),
+    ("Rugby e futebol americano", ("rugby", "american football")),
+    ("Handebol", ("handball",)),
+    ("Remo e canoagem", ("rowing", "rowers", "canoeing", "kayak")),
+    ("Ciclismo", ("cycling", "cyclists")),
+    ("Paradesporto", ("paralympic", "para athletes", "disability sport")),
+)
+
+# ----------------------------------------------------------------------
+# Coesao e clima de equipe (psicologia do esporte, por tema)
+# ----------------------------------------------------------------------
+COESAO_TERMOS = (
+    "team cohesion", "group cohesion", "Group Environment Questionnaire", "GEQ",
+    "collective efficacy", "team efficacy", "team climate", "team dynamics",
+    "coach-athlete relationship", "social cohesion", "task cohesion",
+)
+COESAO_REGIONAIS = (
+    "coesão de grupo", "coesão de equipe", "cohesión grupal", "cohesión de equipo",
+    "eficácia coletiva", "eficacia colectiva",
+)
+EQUIPE_TERMOS = ("team sport", "team sports", "athletes", "players", "teammates")
+# Medidos (22/09/2026): desempenho 246, treinador 226, sexo 188, instrumentos
+# 162, base 133, futebol 80, eficacia coletiva 65, handebol/basquete/volei 54.
+TEMAS_COESAO: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Desempenho e resultado",
+     ("performance", "success", "winning", "team performance", "competitive level")),
+    ("Treinador e liderança",
+     ("coach", "coaches", "coaching", "leadership", "coach behaviour", "coach behavior")),
+    ("Sexo e comparação",
+     ("women", "female", "men", "male", "gender differences", "sex differences")),
+    ("Instrumentos e validação",
+     ("validation", "psychometric", "questionnaire", "factor structure", "reliability")),
+    ("Formação e categorias de base",
+     ("youth", "adolescent", "adolescents", "junior", "young athletes", "youth sport")),
+    ("Futebol", ("soccer", "football")),
+    ("Eficácia coletiva",
+     ("collective efficacy", "team efficacy", "team confidence")),
+    ("Handebol, basquete e vôlei", ("handball", "basketball", "volleyball")),
+)
+
+# ----------------------------------------------------------------------
+# Adesao e motivacao para o exercicio (psicologia do exercicio)
+# ----------------------------------------------------------------------
+# A pergunta central da linha: o que leva alguem a comecar, a permanecer e
+# a voltar. "adherence" sozinho traz a adesao a remedio; o vocabulario e
+# todo composto com "exercise", e foi isso que fez a busca cair de 46 mil
+# registros (medido com "adherence" solto) para 5.400.
+ADESAO_TERMOS = (
+    "exercise adherence", "adherence to exercise", "adherence to physical activity",
+    "exercise motivation", "physical activity motivation", "motivation to exercise",
+    "exercise maintenance", "exercise dropout", "exercise self-efficacy",
+    "exercise intention", "exercise habit", "exercise enjoyment",
+)
+ADESAO_REGIONAIS = (
+    "adesão ao exercício", "aderência ao exercício", "adherencia al ejercicio",
+    "motivação para o exercício", "motivación para el ejercicio",
+)
+EXERCICIO_TERMOS = ("exercise", "physical activity", "exercise program",
+                    "exercise intervention", "physical exercise")
+# Medidos (22/09/2026): universitarios e adolescentes 3.917, mulheres 2.614,
+# idosos 2.236, instrumentos 2.019, humor 1.202, doenca cronica 958, tecnologia
+# 410, academia 391, autodeterminacao 334, abandono 307, intervencao 297,
+# populacoes especiais 268.
+TEMAS_ADESAO: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Universitários e adolescentes",
+     ("students", "university", "college", "undergraduate", "adolescents")),
+    ("Mulheres", ("women", "female", "middle-aged women", "postmenopausal")),
+    ("Idosos", ("older adults", "elderly", "aged")),
+    ("Instrumentos e validação",
+     ("validation", "psychometric", "questionnaire", "scale", "factor structure")),
+    ("Humor, prazer e bem-estar",
+     ("mood", "well-being", "enjoyment", "affect", "mental health")),
+    ("Doença crônica e reabilitação",
+     ("chronic disease", "diabetes", "hypertension", "obesity", "cardiac rehabilitation")),
+    ("Aplicativos e tecnologia",
+     ("app", "smartphone", "wearable", "mobile health", "digital", "web-based")),
+    ("Academia e treino de força",
+     ("gym", "fitness center", "fitness centre", "resistance training", "group exercise")),
+    ("Autodeterminação e teoria",
+     ("self-determination", "intrinsic motivation", "basic psychological needs",
+      "autonomous motivation", "theory of planned behavior")),
+    ("Abandono e recaída",
+     ("dropout", "attrition", "non-adherence", "relapse", "drop-out")),
+    ("Intervenção comportamental",
+     ("motivational interviewing", "goal setting", "counseling", "counselling",
+      "behavior change techniques")),
+    ("Gestação, câncer e transtorno mental",
+     ("pregnancy", "pregnant", "postpartum", "cancer survivors", "mental illness")),
+)
+
+# ----------------------------------------------------------------------
+# Cinesiofobia e medo do movimento na reabilitacao (fisioterapia)
+# ----------------------------------------------------------------------
+# O que a pessoa sente sobre o proprio corpo durante a recuperacao -- que
+# e o que a linha declara querer medir alem da amplitude e da forca.
+CINESIOFOBIA_TERMOS = (
+    "kinesiophobia", "fear of movement", "fear-avoidance", "fear avoidance beliefs",
+    "pain-related fear", "pain catastrophizing", "Tampa Scale", "TSK-11",
+    "Fear-Avoidance Beliefs Questionnaire", "fear of reinjury", "fear of re-injury",
+)
+CINESIOFOBIA_REGIONAIS = (
+    "cinesiofobia", "medo do movimento", "miedo al movimiento", "catastrofização da dor",
+    "catastrofización del dolor", "crenças de medo e evitação",
+)
+REABILITACAO_TERMOS = (
+    "rehabilitation", "physiotherapy", "physical therapy", "exercise therapy",
+    "physiotherapist", "return to sport",
+)
+# Medidos (22/09/2026): atividade e incapacidade 2.741, idosos 2.367,
+# instrumentos 1.756, dor cronica 1.731, lombalgia 1.439, cirurgia 1.202,
+# retorno ao esporte 839, ombro e cervical 817, joelho 691, educacao 687,
+# cardiaca 103.
+TEMAS_CINESIOFOBIA: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Atividade física e incapacidade",
+     ("physical activity", "activity level", "sedentary", "disability", "functional capacity")),
+    ("Idosos", ("older adults", "elderly", "aged")),
+    ("Instrumentos e validação",
+     ("Tampa Scale", "validation", "psychometric", "cross-cultural", "factor structure",
+      "reliability")),
+    ("Dor crônica e fibromialgia",
+     ("fibromyalgia", "chronic pain", "chronic musculoskeletal pain", "chronic widespread pain")),
+    ("Lombalgia", ("low back pain", "chronic low back pain", "lumbar")),
+    ("Cirurgia e pós-operatório", ("surgery", "postoperative", "arthroplasty", "total knee")),
+    ("Retorno ao esporte", ("return to sport", "return to play", "athletes", "sports injury")),
+    ("Ombro e cervical", ("shoulder", "neck pain", "cervical", "upper limb")),
+    ("Joelho e ligamento cruzado",
+     ("knee", "anterior cruciate ligament", "ACL", "knee osteoarthritis")),
+    ("Educação em dor e terapia cognitiva",
+     ("pain neuroscience education", "cognitive behavioral", "cognitive behavioural",
+      "graded exposure", "patient education")),
+    ("Reabilitação cardíaca",
+     ("cardiac rehabilitation", "heart failure", "coronary", "myocardial infarction")),
+)
+
+# ----------------------------------------------------------------------
+# Qualidade do ar e exercicio
+# ----------------------------------------------------------------------
+AR_TERMOS = (
+    "air pollution", "particulate matter", "PM2.5", "PM10", "ultrafine particles",
+    "ozone", "air quality", "black carbon", "traffic-related air pollution",
+    "nitrogen dioxide", "smog",
+)
+AR_REGIONAIS = (
+    "poluição do ar", "qualidade do ar", "material particulado", "contaminación del aire",
+    "calidad del aire", "material particulado",
+)
+AR_EXERCICIO_TERMOS = (
+    "exercise", "physical activity", "athletes", "outdoor exercise", "running",
+    "cycling", "marathon", "sports",
+)
+# Medidos (22/09/2026): criancas e escola 2.166, particulado 1.338, atletas
+# 1.193, cidade 1.182, pulmao 1.114, idosos 1.000, ozonio 726, coracao 689,
+# ciclismo e deslocamento 579, oxidativo 556, cognicao e humor 547, mascaras
+# 346, corrida 119.
+TEMAS_AR: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Crianças e escola", ("children", "school", "adolescents", "schoolchildren")),
+    ("Material particulado",
+     ("particulate matter", "PM2.5", "PM10", "ultrafine particles", "black carbon")),
+    ("Atletas e competição", ("athletes", "elite athletes", "competition", "sports performance")),
+    ("Cidade, parques e verde", ("urban", "green space", "parks", "built environment", "city")),
+    ("Pulmão e asma", ("lung function", "asthma", "respiratory", "airway inflammation")),
+    ("Idosos", ("older adults", "elderly", "aged")),
+    ("Ozônio", ("ozone",)),
+    ("Coração e vasos",
+     ("cardiovascular", "blood pressure", "heart rate variability", "endothelial function")),
+    ("Ciclismo e deslocamento ativo",
+     ("cycling", "cyclists", "commuting", "active commuting", "active travel")),
+    ("Estresse oxidativo e inflamação",
+     ("oxidative stress", "inflammation", "biomarkers", "inflammatory markers")),
+    ("Cognição e humor", ("cognition", "cognitive function", "mood", "mental health", "depression")),
+    ("Máscaras e mitigação",
+     ("mask", "face mask", "mitigation", "exposure reduction", "protective measures")),
+    ("Corrida e maratona", ("running", "marathon", "runners")),
+)
+
+# ----------------------------------------------------------------------
+# Exercicio e saude mental no cancer
+# ----------------------------------------------------------------------
+# A linha nao e "exercicio e cancer" -- que na PubMed sao 24 mil registros
+# de sobrevida, forca e caquexia. E o exercicio como resposta a fadiga,
+# ansiedade e depressao de quem trata. Por isso o construto e o EXERCICIO
+# e a populacao e o cancer, e o recorte de saude mental entra no proprio
+# construto pela terceira lista: sem ela, 24 mil; com ela, 7.700.
+CANCER_EXERCICIO_TERMOS = (
+    "exercise", "physical activity", "resistance training", "aerobic training",
+    "exercise program", "exercise intervention", "exercise oncology",
+)
+CANCER_TERMOS = (
+    "cancer", "neoplasms", "cancer survivors", "cancer patients", "oncology",
+    "chemotherapy", "radiotherapy",
+)
+CANCER_REGIONAIS = (
+    "câncer", "cancer", "oncologia", "sobreviventes de câncer", "supervivientes de cáncer",
+)
+# Medidos (22/09/2026, com o recorte de saude mental no proprio segmento):
+# adesao e supervisao 1.355, hematologico e pediatrico 1.072, sono 1.029,
+# cognicao 926. Os demais sao recortes de desfecho e de tumor dentro dos
+# 7.700 do acervo, e cada um e maior do que esses.
+TEMAS_CANCER: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Fadiga", ("cancer-related fatigue", "fatigue")),
+    ("Depressão e ansiedade",
+     ("depression", "anxiety", "psychological distress", "mental health", "mood")),
+    ("Qualidade de vida", ("quality of life", "health-related quality of life", "well-being")),
+    ("Mama", ("breast cancer", "breast neoplasms")),
+    ("Próstata", ("prostate cancer", "prostate neoplasms", "androgen deprivation")),
+    ("Colorretal e digestivo", ("colorectal cancer", "colon cancer", "gastrointestinal cancer")),
+    ("Hematológico e pediátrico",
+     ("leukemia", "lymphoma", "hematologic", "pediatric", "children")),
+    ("Durante o tratamento", ("chemotherapy", "radiotherapy", "during treatment", "neoadjuvant")),
+    ("Sobreviventes", ("survivors", "survivorship", "after treatment")),
+    ("Sono", ("sleep", "insomnia", "sleep quality")),
+    ("Adesão, supervisão e telessaúde",
+     ("adherence", "supervised", "home-based", "telehealth", "tele-rehabilitation")),
+    ("Cognição", ("cognition", "cognitive function", "cognitive impairment", "chemo brain")),
+)
+
+# ----------------------------------------------------------------------
+# Exercicio e saude mental no envelhecimento
+# ----------------------------------------------------------------------
+# "exercise" solto com "older adults" da 72 mil registros -- a geriatria
+# inteira. O construto aqui e o PROGRAMA de exercicio (a intervencao), e
+# a populacao e a pessoa idosa; o recorte de saude mental e cognicao entra
+# no proprio construto. Medido: 9.400.
+ENVELHECIMENTO_EXERCICIO_TERMOS = (
+    "exercise program", "exercise intervention", "exercise training",
+    "resistance training", "strength training", "aerobic training", "tai chi",
+    "multicomponent exercise", "walking program", "physical exercise",
+)
+IDOSOS_TERMOS = (
+    "older adults", "elderly", "older people", "community-dwelling", "nursing home",
+    "aged 60", "aged 65",
+)
+ENVELHECIMENTO_REGIONAIS = (
+    "idosos", "pessoas idosas", "envelhecimento", "adultos mayores", "envejecimiento",
+)
+# Medidos (22/09/2026): tecnologia e exergames 933, instituicao 261, vinculo
+# social 203. Os demais sao recortes de desfecho dentro dos 9.400.
+TEMAS_ENVELHECIMENTO: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Cognição e demência",
+     ("cognition", "cognitive function", "dementia", "mild cognitive impairment", "memory")),
+    ("Depressão e humor", ("depression", "depressive symptoms", "mood", "anxiety")),
+    ("Bem-estar e qualidade de vida", ("quality of life", "well-being", "life satisfaction")),
+    ("Quedas e equilíbrio", ("falls", "balance", "fall prevention", "gait")),
+    ("Sarcopenia, força e fragilidade",
+     ("sarcopenia", "muscle strength", "muscle mass", "frailty")),
+    ("Autonomia funcional",
+     ("functional capacity", "activities of daily living", "mobility", "functional fitness")),
+    ("Sono", ("sleep", "insomnia", "sleep quality")),
+    ("Vínculo social e solidão",
+     ("loneliness", "social isolation", "social support", "social participation")),
+    ("Treino de força", ("resistance training", "strength training")),
+    ("Aeróbio e caminhada", ("aerobic", "walking", "walking program")),
+    ("Tai chi, ioga e mente-corpo", ("tai chi", "yoga", "mind-body", "qigong")),
+    ("Exergames e tecnologia",
+     ("exergame", "video game", "virtual reality", "technology", "app")),
+    ("Instituição de longa permanência",
+     ("nursing home", "long-term care", "institutionalized", "care home")),
+)
+
+# ----------------------------------------------------------------------
+# Exergames e jogos ativos na escola
+# ----------------------------------------------------------------------
+EXERGAMES_TERMOS = (
+    "exergame", "exergames", "exergaming", "active video game", "active video games",
+    "active videogames", "movement-based video games", "active gaming",
+)
+EXERGAMES_REGIONAIS = (
+    "exergames", "jogos ativos", "videogames ativos", "videojuegos activos",
+)
+ESCOLA_TERMOS = (
+    "school", "schools", "schoolchildren", "children", "adolescents",
+    "physical education", "students",
+)
+# Medidos (22/09/2026): realidade virtual 593, motivacao 591, criancas 545,
+# educacao fisica 457, atencao 406, humor 405, coordenacao 389, adolescentes
+# 350, aptidao 341, obesidade 225, necessidades especiais 213.
+TEMAS_EXERGAMES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Realidade virtual e consoles",
+     ("virtual reality", "immersive", "Kinect", "Wii", "head-mounted")),
+    ("Motivação e engajamento", ("motivation", "engagement", "adherence", "intrinsic motivation")),
+    ("Crianças", ("children", "primary school", "preschool", "elementary school")),
+    ("Educação física", ("physical education", "teachers", "curriculum", "PE lessons")),
+    ("Atenção e cognição",
+     ("attention", "cognition", "executive function", "academic performance", "cognitive function")),
+    ("Humor e bem-estar", ("mood", "enjoyment", "well-being", "self-esteem", "affect")),
+    ("Coordenação motora",
+     ("motor skills", "motor competence", "coordination", "balance", "fundamental movement skills")),
+    ("Adolescentes", ("adolescents", "teenagers", "high school", "secondary school")),
+    ("Aptidão física",
+     ("physical fitness", "cardiorespiratory fitness", "energy expenditure",
+      "physical activity levels", "heart rate")),
+    ("Obesidade e peso", ("obesity", "overweight", "body mass index", "weight loss")),
+    ("Necessidades especiais",
+     ("autism", "cerebral palsy", "disability", "special needs", "ADHD")),
+)
+
 
 BIBLIOTECAS: tuple[dict[str, Any], ...] = (
     {
@@ -751,6 +1115,141 @@ BIBLIOTECAS: tuple[dict[str, Any], ...] = (
         # para esporte em geral. Medido junto com o acervo maior.
         "mesh": (),
         "segmentos": TEMAS_AUTODETERMINACAO,
+        "manuais": BASES_MANUAIS,
+    },
+    {
+        "code": "ansiedade_competitiva",
+        "title": "Ansiedade competitiva no esporte",
+        "linha": "psicologia_do_esporte",
+        "eixo": "esporte",
+        "descricao":
+            "O que se sabe da ansiedade de quem compete: como é medida (CSAI-2, SAS-2), "
+            "o que a antecede e o que ela faz com o desempenho. Divide-se por "
+            "modalidade, como o acervo de humor: a mesma ansiedade se comporta de um "
+            "jeito no futebol e de outro no tiro esportivo. Eram cerca de 440 registros "
+            "na PubMed quando foi montado.",
+        "construto": ANSIEDADE_TERMOS,
+        "populacao": ATLETA_TERMOS,
+        "regionais": ANSIEDADE_REGIONAIS,
+        "mesh": MESH_DE_ATLETA,
+        "segmentos": ESPORTES_ANSIEDADE,
+        "manuais": BASES_MANUAIS,
+    },
+    {
+        "code": "coesao_equipe",
+        "title": "Coesão e clima de equipe",
+        "linha": "psicologia_do_esporte",
+        "eixo": "tema",
+        "descricao":
+            "O grupo que compete: coesão, eficácia coletiva, clima de equipe e a relação "
+            "treinador-atleta — a parte do desempenho que não está em nenhum atleta "
+            "sozinho. Cerca de 425 registros na PubMed; divide-se por tema porque a "
+            "modalidade, num esporte coletivo, é a população.",
+        "construto": COESAO_TERMOS,
+        "populacao": EQUIPE_TERMOS,
+        "regionais": COESAO_REGIONAIS,
+        "mesh": MESH_DE_ATLETA,
+        "segmentos": TEMAS_COESAO,
+        "manuais": BASES_MANUAIS,
+    },
+    {
+        "code": "adesao_exercicio",
+        "title": "Adesão e motivação para o exercício",
+        "linha": "psicologia_exercicio",
+        "eixo": "tema",
+        "descricao":
+            "A pergunta central da linha: o que leva alguém a começar, a permanecer e a "
+            "voltar depois da interrupção. O vocabulário é todo composto com "
+            "“exercise” — “adherence” solto traz a adesão a remédio e multiplica o "
+            "acervo por dez sem trazer nada da pergunta. Cerca de 5.400 registros na "
+            "PubMed.",
+        "construto": ADESAO_TERMOS,
+        "populacao": EXERCICIO_TERMOS,
+        "regionais": ADESAO_REGIONAIS,
+        "mesh": ('"Exercise"[MeSH Terms]',),
+        "segmentos": TEMAS_ADESAO,
+        "manuais": BASES_MANUAIS,
+    },
+    {
+        "code": "cinesiofobia",
+        "title": "Cinesiofobia e medo do movimento na reabilitação",
+        "linha": "fisioterapia",
+        "eixo": "tema",
+        "descricao":
+            "O que a pessoa sente sobre o próprio corpo durante a recuperação: medo de "
+            "se mover, crenças de evitação e catastrofização da dor, e o que isso faz "
+            "com a função e com a volta ao esporte. Cerca de 4.900 registros na PubMed.",
+        "construto": CINESIOFOBIA_TERMOS,
+        "populacao": REABILITACAO_TERMOS,
+        "regionais": CINESIOFOBIA_REGIONAIS,
+        "mesh": ('"Kinesiophobia"[MeSH Terms]', '"Rehabilitation"[MeSH Terms]'),
+        "segmentos": TEMAS_CINESIOFOBIA,
+        "manuais": BASES_MANUAIS,
+    },
+    {
+        "code": "ar_exercicio",
+        "title": "Qualidade do ar e exercício",
+        "linha": "qualidade_do_ar",
+        "eixo": "tema",
+        "descricao":
+            "O custo de treinar no ar que há: material particulado, ozônio e o que eles "
+            "fazem com o pulmão, o coração e a cognição de quem corre, pedala ou compete "
+            "a céu aberto — e o que mitiga. Cerca de 9.200 registros na PubMed.",
+        "construto": AR_TERMOS,
+        "populacao": AR_EXERCICIO_TERMOS,
+        "regionais": AR_REGIONAIS,
+        "mesh": ('"Air Pollution"[MeSH Terms]', '"Particulate Matter"[MeSH Terms]'),
+        "segmentos": TEMAS_AR,
+        "manuais": BASES_MANUAIS,
+    },
+    {
+        "code": "cancer_exercicio",
+        "title": "Exercício e saúde mental no câncer",
+        "linha": "exercicio_cancer",
+        "eixo": "tema",
+        "descricao":
+            "O exercício ao longo do tratamento oncológico e depois dele, com a fadiga, "
+            "a ansiedade, a depressão e a qualidade de vida como desfechos. Não é "
+            "“exercício e câncer” — isso são 24 mil registros de sobrevida e força; com "
+            "o recorte de saúde mental são cerca de 7.700.",
+        "construto": CANCER_EXERCICIO_TERMOS,
+        "populacao": CANCER_TERMOS,
+        "regionais": CANCER_REGIONAIS,
+        "mesh": ('"Neoplasms"[MeSH Terms]',),
+        "segmentos": TEMAS_CANCER,
+        "manuais": BASES_MANUAIS,
+    },
+    {
+        "code": "envelhecimento_exercicio",
+        "title": "Exercício e saúde mental no envelhecimento",
+        "linha": "exercicio_envelhecimento",
+        "eixo": "tema",
+        "descricao":
+            "O que um programa de exercício preserva quando os anos avançam: cognição, "
+            "humor, autonomia funcional e vínculo social. O construto é o PROGRAMA — "
+            "“exercise” solto com “older adults” é a geriatria inteira, 72 mil "
+            "registros; assim são cerca de 9.400.",
+        "construto": ENVELHECIMENTO_EXERCICIO_TERMOS,
+        "populacao": IDOSOS_TERMOS,
+        "regionais": ENVELHECIMENTO_REGIONAIS,
+        "mesh": ('"Aged"[MeSH Terms]',),
+        "segmentos": TEMAS_ENVELHECIMENTO,
+        "manuais": BASES_MANUAIS,
+    },
+    {
+        "code": "exergames_escola",
+        "title": "Exergames e jogos ativos na escola",
+        "linha": "exergames_escolas",
+        "eixo": "tema",
+        "descricao":
+            "O jogo com movimento dentro da escola e o que ele produz em aptidão, "
+            "atenção, humor, coordenação e engajamento de crianças e adolescentes. Cerca "
+            "de 1.450 registros na PubMed.",
+        "construto": EXERGAMES_TERMOS,
+        "populacao": ESCOLA_TERMOS,
+        "regionais": EXERGAMES_REGIONAIS,
+        "mesh": ('"Exergaming"[MeSH Terms]',),
+        "segmentos": TEMAS_EXERGAMES,
         "manuais": BASES_MANUAIS,
     },
 )
