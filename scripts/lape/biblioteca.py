@@ -1606,7 +1606,11 @@ def todas(db: Database, quem: int | None = None,
         "  LEFT JOIN research_lines rl ON rl.id = b.research_line_id"
         "  LEFT JOIN members m ON m.id = b.dono_id"
         " WHERE b.ativa = 1"
-        "   AND (b.restrita = 0 OR ? = 1 OR b.dono_id IS ?)"
+        # `dono_id = ?`, e nao `IS ?`: com `IS`, a chamada sem `quem` casava
+        # o acervo restrito SEM dono (NULL IS NULL), e o acervo que ninguem
+        # declarou de ninguem aparecia para todo mundo -- o contrario do
+        # que "restrito" quer dizer.
+        "   AND (b.restrita = 0 OR ? = 1 OR (b.dono_id IS NOT NULL AND b.dono_id = ?))"
         " ORDER BY b.title",
         (1 if manda else 0, quem))
 

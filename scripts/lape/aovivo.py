@@ -27,7 +27,7 @@ from collections import Counter
 from datetime import date, datetime
 from typing import Any
 
-from . import metas
+from . import biblioteca, metas, padrao, revisao
 from .db import Database
 
 PERIODOS: tuple[dict[str, Any], ...] = (
@@ -686,11 +686,197 @@ def leituras(db: Database, per: dict[str, Any], kpis: list[dict[str, Any]],
     return saida
 
 
+
+# ----------------------------------------------------------------------
+# Os acervos, as triagens e as bases: o Observatorio dentro do LAPE
+# ----------------------------------------------------------------------
+# Quantos segmentos aparecem com nome proprio no mapa de calor. O acervo
+# de fibromialgia tem vinte e tantos; num mapa, doze linhas ja e o que se
+# le sem rolar, e o resto continua na lista da biblioteca.
+SEGMENTOS_NO_MAPA = 12
+
+# Quantos anos a curva do acervo mostra. Antes disso ha registro esparso
+# que so serve para achatar a escala.
+ANOS_DO_ACERVO = 15
+
+
+def _estado_da_base(buscas: int, rodadas: int, erros: int, manual: bool) -> str:
+    """ok, erro, pronta (para colar) ou nunca rodada -- nesta ordem de gravidade.
+
+    "Pronta" e o estado de uma base que o sistema nao alcanca sozinho: a
+    estrategia esta guardada e espera alguem com o acesso. Nao e falha, e
+    dizer "erro" mandaria consertar o que nao esta quebrado.
+    """
+    if erros:
+        return "erro"
+    if rodadas:
+        return "ok"
+    return "pronta" if manual else "nunca rodou"
+
+
+def acervos(db: Database, quem: int | None = None,
+            perfil: str = "leitura") -> list[dict[str, Any]]:
+    """Cada acervo que esta pessoa pode ver, com o retrato que o Observatorio pede.
+
+    Respeita o acervo restrito pela mesma regra da biblioteca: chamada sem
+    `quem`, so os abertos. Uma tela nova que esquecesse o usuario mostraria
+    acervo restrito a todo mundo, e esse descuido nao da erro nenhum.
+    """
+    saida = []
+    for b in biblioteca.todas(db, quem, perfil):
+        retrato = biblioteca.panorama(db, b["code"])
+        bid = retrato["biblioteca"]["id"]
+        por_base = db.dicts(
+            "SELECT base, COUNT(*) AS buscas, SUM(COALESCE(achados, 0)) AS achados,"
+            "       SUM(COALESCE(novos, 0)) AS novos, MAX(rodada_em) AS rodada_em,"
+            "       SUM(CASE WHEN erro IS NOT NULL AND erro <> '' THEN 1 ELSE 0 END) AS erros,"
+            "       SUM(CASE WHEN rodada_em IS NOT NULL THEN 1 ELSE 0 END) AS rodadas"
+            "  FROM biblioteca_busca WHERE biblioteca_id = ? GROUP BY base ORDER BY base", (bid,))
+        itens_por_base = {l["base"]: int(l["n"]) for l in db.dicts(
+            "SELECT base, COUNT(*) AS n FROM biblioteca_item WHERE biblioteca_id = ?"
+            " GROUP BY base", (bid,))}
+        bases = []
+        for l in por_base:
+            manual = l["base"] in biblioteca.BASES_MANUAIS
+            bases.append({
+                "base": l["base"], "rotulo": biblioteca.ROTULO_BASE.get(l["base"], l["base"]),
+                "itens": itens_por_base.get(l["base"], 0), "achados": int(l["achados"] or 0),
+                "novos": int(l["novos"] or 0), "rodada_em": l["rodada_em"],
+                "erros": int(l["erros"] or 0), "manual": manual,
+                "estado": _estado_da_base(int(l["buscas"]), int(l["rodadas"] or 0),
+                                          int(l["erros"] or 0), manual),
+            })
+
+        # O mapa segmento x base. Tres coisas diferentes numa celula, e as
+        # tres precisam sair diferentes: um numero (achou), "erro" (a base
+        # respondeu erro nesse segmento) e "lacuna" (a busca nunca rodou ali).
+        segmentos = retrato["segmentos"][:SEGMENTOS_NO_MAPA]
+        colunas = [x["base"] for x in bases if not x["manual"] or x["itens"]]
+        celulas = {(l["segmento"], l["base"]): (l["rodada_em"], l["erro"]) for l in db.dicts(
+            "SELECT segmento, base, rodada_em, erro FROM biblioteca_busca"
+            " WHERE biblioteca_id = ? AND segmento IS NOT NULL", (bid,))}
+        valores = []
+        for seg in segmentos:
+            linha = []
+            for base in colunas:
+                rodada, erro = celulas.get((seg["segmento"], base), (None, None))
+                if erro:
+                    linha.append("erro")
+                elif not rodada:
+                    linha.append(None)
+                else:
+                    linha.append(int(db.scalar(
+                        "SELECT COUNT(*) FROM biblioteca_item WHERE biblioteca_id = ?"
+                        "   AND base = ? AND ('; ' || segmento || '; ') LIKE ?",
+                        (bid, base, f"%; {seg['segmento']}; %")) or 0))
+            valores.append(linha)
+
+        anos = [int(a["ano"]) for a in retrato["anos"]]
+        ate = max(anos) if anos else date.today().year
+        eixo = list(range(ate - ANOS_DO_ACERVO + 1, ate + 1))
+        conta = {int(a["ano"]): int(a["n"]) for a in retrato["anos"]}
+        saida.append({
+            "code": b["code"], "title": b["title"], "descricao": b["descricao"],
+            "linha": b["linha"], "eixo": b["eixo"], "restrita": bool(b["restrita"]),
+            "dono": b["dono"], "atualizada_em": b["atualizada_em"],
+            "total": retrato["total"], "sem_ano": retrato["sem_ano"],
+            "livres": retrato["livres"], "com_doi": retrato["com_doi"],
+            "segmentos": [{"segmento": x["segmento"], "n": x["n"], "erro": x["erro"],
+                           "rodada_em": x["rodada_em"]} for x in retrato["segmentos"]],
+            "bases": bases,
+            "calor": {"rows": [x["segmento"] for x in segmentos],
+                      "cols": [biblioteca.ROTULO_BASE.get(c, c) for c in colunas],
+                      "values": valores},
+            "anos": {"labels": [str(a) for a in eixo], "values": [conta.get(a, 0) for a in eixo],
+                     "antes": sum(n for a, n in conta.items() if a < eixo[0])},
+            "paises": retrato["paises"][:8],
+        })
+    return saida
+
+
+def triagens(db: Database) -> list[dict[str, Any]]:
+    """Cada revisao aberta, com o fluxograma contado do banco e a concordancia.
+
+    O kappa e entre as DUAS pessoas que mais triaram: e o par que a revista
+    vai perguntar. Com uma pessoa so nao ha kappa, e a tela diz isso em vez
+    de mostrar 1,000.
+    """
+    saida = []
+    for rev in db.dicts("SELECT id, code, title, tipo, reviewers_needed, blind, status"
+                        "  FROM reviews ORDER BY id"):
+        fluxo = revisao.prisma(db, rev["id"]) or {}
+        decisoes = {l["decisao"]: int(l["n"]) for l in db.dicts(
+            "SELECT COALESCE(decision, 'pendente') AS decisao, COUNT(*) AS n FROM refs"
+            " WHERE review_id = ? AND duplicate_of IS NULL AND stage = 'titulo_resumo'"
+            " GROUP BY 1", (rev["id"],))}
+        equipe = [a for a in revisao.andamento(db, rev["id"]) if a["stage"] == "titulo_resumo"]
+        kappa = None
+        if len(equipe) >= 2:
+            kappa = revisao.concordancia(db, rev["id"], equipe[0]["member_id"],
+                                         equipe[1]["member_id"])
+            kappa["entre"] = [equipe[0]["quem"], equipe[1]["quem"]]
+        conferencia = padrao.conferir(db, rev["id"])
+        tipo = padrao.tipo(rev["tipo"])
+        saida.append({
+            "code": rev["code"], "title": rev["title"], "tipo": tipo["rotulo"],
+            "padrao": tipo["padrao"], "status": rev["status"],
+            "avaliadores": int(rev["reviewers_needed"] or 1), "as_cegas": bool(rev["blind"]),
+            "fluxo": {k: int(fluxo.get(k) or 0) for k in (
+                "identificados", "registros", "duplicados", "triados", "pendentes",
+                "excluidos_triagem", "texto_completo", "excluidos_texto", "incluidos")},
+            "motivos": [{"motivo": m["motivo"], "n": int(m["n"])} for m in fluxo.get("motivos", [])],
+            "por_base": [{"base": x["base"], "n": int(x["n"]), "duplicados": int(x["duplicados"] or 0)}
+                         for x in fluxo.get("por_base", [])],
+            "decisoes": {"incluir": decisoes.get("incluir", 0), "excluir": decisoes.get("excluir", 0),
+                         "talvez": decisoes.get("talvez", 0), "pendente": decisoes.get("pendente", 0)},
+            "equipe": [{"quem": a["quem"], "triadas": int(a["triadas"]),
+                        "incluiu": int(a["incluiu"]), "excluiu": int(a["excluiu"])} for a in equipe],
+            "kappa": kappa,
+            "conferencia": conferencia["conta"],
+        })
+    return saida
+
+
+def bases(db: Database, quem: int | None = None,
+          perfil: str = "leitura") -> list[dict[str, Any]]:
+    """Cada base, somada pelos acervos que esta pessoa ve: estado, ultima rodada, o que trouxe."""
+    codes = [b["code"] for b in biblioteca.todas(db, quem, perfil)]
+    if not codes:
+        return []
+    marcas = ",".join("?" for _ in codes)
+    linhas = db.dicts(
+        "SELECT s.base, COUNT(DISTINCT s.biblioteca_id) AS acervos, COUNT(*) AS buscas,"
+        "       SUM(CASE WHEN s.rodada_em IS NOT NULL THEN 1 ELSE 0 END) AS rodadas,"
+        "       SUM(CASE WHEN s.erro IS NOT NULL AND s.erro <> '' THEN 1 ELSE 0 END) AS erros,"
+        "       SUM(COALESCE(s.achados, 0)) AS achados, MAX(s.rodada_em) AS ultima,"
+        "       (SELECT COUNT(*) FROM biblioteca_item i JOIN biblioteca b2 ON b2.id = i.biblioteca_id"
+        f"         WHERE i.base = s.base AND b2.code IN ({marcas})) AS itens,"
+        "       (SELECT erro FROM biblioteca_busca e WHERE e.base = s.base AND e.erro IS NOT NULL"
+        "         AND e.erro <> '' ORDER BY e.rodada_em DESC LIMIT 1) AS ultimo_erro"
+        "  FROM biblioteca_busca s JOIN biblioteca b ON b.id = s.biblioteca_id"
+        f" WHERE b.code IN ({marcas}) GROUP BY s.base ORDER BY itens DESC, s.base",
+        (*codes, *codes))
+    saida = []
+    for l in linhas:
+        manual = l["base"] in biblioteca.BASES_MANUAIS
+        saida.append({
+            "base": l["base"], "rotulo": biblioteca.ROTULO_BASE.get(l["base"], l["base"]),
+            "acervos": int(l["acervos"]), "buscas": int(l["buscas"]), "rodadas": int(l["rodadas"] or 0),
+            "erros": int(l["erros"] or 0), "achados": int(l["achados"] or 0), "itens": int(l["itens"] or 0),
+            "ultima": l["ultima"], "ultimo_erro": l["ultimo_erro"], "manual": manual,
+            "estado": _estado_da_base(int(l["buscas"]), int(l["rodadas"] or 0),
+                                      int(l["erros"] or 0), manual),
+            "nota": biblioteca.PORQUE_MANUAL.get(l["base"]) if manual else None,
+        })
+    return saida
+
+
 # ----------------------------------------------------------------------
 # Tudo junto
 # ----------------------------------------------------------------------
 def montar(db: Database, periodo_code: str | None = None,
-           hoje: date | None = None) -> dict[str, Any]:
+           hoje: date | None = None, quem: int | None = None,
+           perfil: str = "leitura") -> dict[str, Any]:
     hoje = hoje or date.today()
     per = periodo(db, periodo_code, hoje)
     kpis = indicadores(db, per)
@@ -706,6 +892,9 @@ def montar(db: Database, periodo_code: str | None = None,
         "caminho": caminho(db),
         "doze": doze_olhares(db, per, hoje, linhas, evolucao_),
         "leituras": leituras(db, per, kpis, linhas, evolucao_),
+        "acervos": acervos(db, quem, perfil),
+        "triagens": triagens(db),
+        "bases": bases(db, quem, perfil),
         "aviso": ("As leituras são calculadas a partir do banco, e cada uma diz a regra "
                   "de onde saiu. Não há modelo de linguagem aqui: o que não pode ser "
                   "refeito a partir dos dados não entra."),

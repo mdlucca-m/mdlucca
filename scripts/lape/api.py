@@ -2377,7 +2377,9 @@ def route_aovivo(ctx: "Context") -> Any:
     from . import aovivo
 
     auth.require(ctx.user, "leitura")
-    return aovivo.montar(ctx.db, (ctx.query.get("periodo") or [None])[0])
+    return aovivo.montar(ctx.db, (ctx.query.get("periodo") or [None])[0],
+                         quem=(ctx.user or {}).get("id"),
+                         perfil=(ctx.user or {}).get("user_role", "leitura"))
 
 
 def route_panorama_marcar(ctx: "Context") -> Any:

@@ -31,7 +31,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from lape import aovivo, api, auth  # noqa: E402
+from lape import aovivo, api, auth, biblioteca, revisao  # noqa: E402
 from lape.db import Database  # noqa: E402
 
 TEMPLATES = ROOT / "scripts" / "lape" / "templates"
@@ -437,6 +437,148 @@ class TestAsLeituras(BaseComBanco):
         self.assertIn("Não há modelo de linguagem", aovivo.montar(self.db, "ano", HOJE)["aviso"])
 
 
+def _acervo_com_dados(db: Database, code: str, itens: int, base: str = "pubmed") -> int:
+    """Instala os acervos da casa e enche UM deles: buscas rodadas e registros."""
+    biblioteca.instalar(db)
+    bid = db.scalar("SELECT id FROM biblioteca WHERE code = ?", (code,))
+    db.execute("UPDATE biblioteca_busca SET rodada_em = '2026-09-01', achados = 3"
+               " WHERE biblioteca_id = ? AND base = ?", (bid, base))
+    segmentos = [l["segmento"] for l in db.dicts(
+        "SELECT segmento FROM biblioteca_busca WHERE biblioteca_id = ? AND base = ?"
+        "   AND segmento IS NOT NULL ORDER BY segmento", (bid, base))]
+    for i in range(itens):
+        db.execute("INSERT INTO biblioteca_item (biblioteca_id, chave, title, year, base, segmento, doi)"
+                   " VALUES (?, ?, ?, ?, ?, ?, ?)",
+                   (bid, f"{base}:{i}", f"Registro {i}", 2020 + i % 5, base,
+                    segmentos[i % len(segmentos)] if segmentos else None,
+                    f"10.1/{i}" if i % 2 else None))
+    db.conn.commit()
+    return bid
+
+
+class TestOsAcervosNoObservatorio(BaseComBanco):
+    """O retrato de cada acervo, com a mesma regra de quem pode ver."""
+
+    def test_acervo_restrito_so_aparece_para_quem_pode(self):
+        """Chamada sem `quem` devolve só os abertos -- o descuido que não dá
+        erro nenhum e só se descobre depois."""
+        biblioteca.instalar(self.db)
+        self.db.execute("UPDATE biblioteca SET restrita = 1 WHERE code = 'fibromialgia'")
+        self.gravar()
+        abertos = {a["code"] for a in aovivo.acervos(self.db)}
+        self.assertNotIn("fibromialgia", abertos)
+        self.assertTrue(abertos)
+        todos = {a["code"] for a in aovivo.acervos(self.db, None, "coordenacao")}
+        self.assertIn("fibromialgia", todos)
+
+    def test_o_retrato_conta_registros_segmentos_e_bases(self):
+        _acervo_com_dados(self.db, "humor_esporte", 10)
+        a = next(x for x in aovivo.acervos(self.db) if x["code"] == "humor_esporte")
+        self.assertEqual(a["total"], 10)
+        self.assertEqual(a["com_doi"], 5)
+        self.assertEqual(sum(a["anos"]["values"]), 10)
+        self.assertEqual(len(a["anos"]["labels"]), aovivo.ANOS_DO_ACERVO)
+        pubmed = next(b for b in a["bases"] if b["base"] == "pubmed")
+        self.assertEqual((pubmed["estado"], pubmed["itens"]), ("ok", 10))
+
+    def test_o_mapa_distingue_numero_erro_e_lacuna(self):
+        """Três coisas diferentes numa célula, e as três saem diferentes."""
+        bid = _acervo_com_dados(self.db, "humor_esporte", 6)
+        primeiro = self.db.scalar("SELECT MIN(segmento) FROM biblioteca_busca"
+                                  " WHERE biblioteca_id = ? AND segmento IS NOT NULL", (bid,))
+        self.db.execute("UPDATE biblioteca_busca SET rodada_em = '2026-09-01', erro = 'quota'"
+                        " WHERE biblioteca_id = ? AND base = 'scopus' AND segmento = ?", (bid, primeiro))
+        self.gravar()
+        a = next(x for x in aovivo.acervos(self.db) if x["code"] == "humor_esporte")
+        calor = a["calor"]
+        self.assertLessEqual(len(calor["rows"]), aovivo.SEGMENTOS_NO_MAPA)
+        linha = calor["values"][calor["rows"].index(primeiro)]
+        por_coluna = dict(zip(calor["cols"], linha))
+        self.assertIsInstance(por_coluna["PubMed"], int)
+        self.assertEqual(por_coluna["Scopus"], "erro")
+        self.assertIsNone(por_coluna["Web of Science"])
+
+    def test_base_manual_sem_rodada_e_pronta_e_nao_erro(self):
+        for buscas, rodadas, erros, manual, esperado in (
+                (3, 3, 0, False, "ok"), (3, 3, 1, False, "erro"), (3, 0, 0, True, "pronta"),
+                (3, 0, 0, False, "nunca rodou"), (3, 2, 1, True, "erro")):
+            with self.subTest(esperado=esperado):
+                self.assertEqual(aovivo._estado_da_base(buscas, rodadas, erros, manual), esperado)
+
+
+class TestAsTriagensNoObservatorio(BaseComBanco):
+
+    def revisao(self, duas_pessoas=True):
+        ris = "".join(f"TY  - JOUR\nTI  - Estudo {i}\nPY  - 2020\nDO  - 10.1/t{i}\nER  -\n\n" for i in range(6))
+        rev = revisao.criar(self.db, "r", "Revisão", reviewers_needed=2)
+        revisao.importar(self.db, rev, ris, "pubmed.ris")
+        ana, beto = self.db.member_id("Ana"), self.db.member_id("Beto")
+        motivo = self.db.scalar("SELECT id FROM exclusion_reasons WHERE review_id = ? LIMIT 1", (rev,))
+        for i, r in enumerate(self.db.dicts("SELECT id FROM refs WHERE review_id = ? ORDER BY id", (rev,))):
+            revisao.decidir(self.db, r["id"], ana, "incluir" if i < 4 else "excluir",
+                            reason_id=None if i < 4 else motivo)
+            if duas_pessoas:
+                revisao.decidir(self.db, r["id"], beto, "incluir" if i < 3 else "excluir",
+                                reason_id=None if i < 3 else motivo)
+        self.gravar()
+        return rev
+
+    def test_o_fluxograma_e_contado_do_banco(self):
+        self.revisao()
+        t = aovivo.triagens(self.db)[0]
+        self.assertEqual(t["fluxo"]["registros"], 6)
+        self.assertEqual(t["decisoes"]["incluir"] + t["decisoes"]["excluir"] + t["decisoes"]["pendente"], 6)
+        self.assertEqual(t["padrao"], "PRISMA 2020")
+        self.assertIn("feito", t["conferencia"])
+        self.assertEqual(len(t["equipe"]), 2)
+
+    def test_kappa_so_com_duas_pessoas(self):
+        """Com uma pessoa só não há kappa, e a tela diz isso em vez de 1,000."""
+        self.revisao(duas_pessoas=False)
+        t = aovivo.triagens(self.db)[0]
+        self.assertIsNone(t["kappa"])
+        self.assertEqual(len(t["equipe"]), 1)
+
+    def test_kappa_entre_as_duas_que_mais_triaram(self):
+        self.revisao()
+        k = aovivo.triagens(self.db)[0]["kappa"]
+        self.assertEqual(k["n"], 6)
+        self.assertIsNotNone(k["kappa"])
+        self.assertEqual(len(k["entre"]), 2)
+
+
+class TestAsBasesNoObservatorio(BaseComBanco):
+
+    def test_soma_por_base_atravessa_os_acervos_visiveis(self):
+        _acervo_com_dados(self.db, "humor_esporte", 4)
+        _acervo_com_dados(self.db, "humor_estetico", 3)
+        bases = {b["base"]: b for b in aovivo.bases(self.db)}
+        self.assertEqual(bases["pubmed"]["itens"], 7)
+        self.assertGreaterEqual(bases["pubmed"]["acervos"], 2)
+        self.assertEqual(bases["pubmed"]["estado"], "ok")
+        self.assertEqual(bases["pubmed"]["ultima"], "2026-09-01")
+
+    def test_base_que_o_sistema_nao_roda_vem_com_o_que_fazer(self):
+        biblioteca.instalar(self.db)
+        self.gravar()
+        bases = {b["base"]: b for b in aovivo.bases(self.db)}
+        manual = next(b for b in bases.values() if b["manual"])
+        self.assertEqual(manual["estado"], "pronta")
+        self.assertTrue(manual["nota"])
+        automatica = bases["pubmed"]
+        self.assertIsNone(automatica["nota"])
+        self.assertEqual(automatica["estado"], "nunca rodou")
+
+    def test_acervo_restrito_nao_entra_na_soma_de_quem_nao_pode(self):
+        _acervo_com_dados(self.db, "fibromialgia", 5)
+        self.db.execute("UPDATE biblioteca SET restrita = 1 WHERE code = 'fibromialgia'")
+        self.gravar()
+        de_fora = {b["base"]: b["itens"] for b in aovivo.bases(self.db)}
+        de_dentro = {b["base"]: b["itens"] for b in aovivo.bases(self.db, None, "coordenacao")}
+        self.assertEqual(de_fora.get("pubmed", 0), 0)
+        self.assertEqual(de_dentro["pubmed"], 5)
+
+
 class TestOPainelPelaRede(unittest.TestCase):
 
     @classmethod
@@ -445,7 +587,10 @@ class TestOPainelPelaRede(unittest.TestCase):
         cls.db_path = Path(cls.tmp.name) / "l.sqlite"
         db = _abrir(cls.db_path)
         auth.create_account(db, "Loiane", "loiane@udesc.br", "senhaforte123", role="leitura")
+        auth.create_account(db, "Alexandro", "coord@udesc.br", "senhaforte123", role="coordenacao")
         _artigo(db, "a", year_published=2026)
+        biblioteca.instalar(db)
+        db.execute("UPDATE biblioteca SET restrita = 1 WHERE code = 'fibromialgia'")
         db.conn.commit()
         db.close()
         api.Handler.db_path = cls.db_path
@@ -460,10 +605,10 @@ class TestOPainelPelaRede(unittest.TestCase):
         cls.server.server_close()
         cls.tmp.cleanup()
 
-    def entrar(self):
+    def entrar(self, login="loiane@udesc.br"):
         pedido = urllib.request.Request(
             f"http://127.0.0.1:{self.port}/api/auth/login",
-            data=json.dumps({"login": "loiane@udesc.br", "senha": "senhaforte123"}).encode(),
+            data=json.dumps({"login": login, "senha": "senhaforte123"}).encode(),
             headers={"Content-Type": "application/json"}, method="POST")
         with urllib.request.urlopen(pedido, timeout=30) as r:
             return (r.headers.get("Set-Cookie") or "").split(";")[0]
@@ -491,6 +636,17 @@ class TestOPainelPelaRede(unittest.TestCase):
         self.assertEqual(len(d["doze"]), 12)
         self.assertEqual(len(d["caminho"]), 6)
 
+    def test_o_acervo_restrito_segue_quem_esta_olhando(self):
+        """A rota passa a pessoa adiante. Sem isso, a lista de acervos seria a
+        de "ninguém" para todo mundo -- ou a de todo mundo para ninguém."""
+        _, _, corpo = self.chamar("/api/aovivo", self.entrar())
+        de_quem_le = {a["code"] for a in json.loads(corpo)["acervos"]}
+        _, _, corpo = self.chamar("/api/aovivo", self.entrar("coord@udesc.br"))
+        da_coordenacao = {a["code"] for a in json.loads(corpo)["acervos"]}
+        self.assertNotIn("fibromialgia", de_quem_le)
+        self.assertIn("fibromialgia", da_coordenacao)
+        self.assertTrue(json.loads(corpo)["bases"])
+
     def test_periodo_estranho_cai_no_padrao_em_vez_de_400(self):
         status, _, corpo = self.chamar("/api/aovivo?periodo=ontem", self.entrar())
         self.assertEqual(status, 200)
@@ -516,11 +672,48 @@ class TestATela(unittest.TestCase):
         cls.html = (TEMPLATES / "aovivo.html").read_text(encoding="utf-8")
 
     def test_as_abas_listadas_sao_as_desenhadas(self):
-        for aba in ("painel", "caminho", "doze"):
+        for aba in ("painel", "acervos", "triagens", "bases", "caminho", "doze"):
             with self.subTest(aba=aba):
                 self.assertIn(f'["{aba}", ', self.js)
-        self.assertIn('ST.aba === "caminho"', self.js)
-        self.assertIn('ST.aba === "doze"', self.js)
+                if aba != "painel":
+                    self.assertIn(f'ST.aba === "{aba}"', self.js)
+
+    def test_a_pagina_e_escura_por_natureza_e_o_neon_esta_definido(self):
+        """Néon sobre branco é só cor berrante: o tema é fixo, e não perguntado."""
+        self.assertIn('<html lang="pt-BR" data-theme="dark">', self.html)
+        self.assertIn('<filter id="neon"', self.html)
+        self.assertIn(".plot .mark { filter: url(#neon); }", self.html)
+        for token in ("--series-1", "--seq-100", "--good", "--critical", "--ink"):
+            with self.subTest(token=token):
+                self.assertIn(token + ":", self.html)
+
+    def test_o_mapa_de_calor_separa_lacuna_de_erro(self):
+        trecho = self.js[self.js.index("function calor("):]
+        trecho = trecho[:trecho.index("function miudos")]
+        self.assertIn('class: "erro"', trecho)
+        self.assertIn('class: "lacuna"', trecho)
+        self.assertIn(".calor td.lacuna", self.html)
+        self.assertIn(".calor td.erro", self.html)
+
+    def test_o_funil_tem_lugar_para_a_porcentagem(self):
+        """Sem a margem, "72% do anterior" saía cortado na borda do cartão."""
+        self.assertIn(".funil { list-style: none; margin: 0; padding: 0 118px 0 0;", self.html)
+        trecho = self.js[self.js.index("function funil("):]
+        trecho = trecho[:trecho.index("function calor(")]
+        self.assertIn("% do anterior", trecho)
+
+    def test_kappa_sem_duas_pessoas_e_um_traco(self):
+        trecho = self.js[self.js.index("function desenharTriagens"):]
+        trecho = trecho[:trecho.index("function desenharBases")]
+        self.assertIn("precisa de duas pessoas triando", trecho)
+        self.assertIn('t.kappa && t.kappa.kappa !== null', trecho)
+
+    def test_o_numero_sobe_mas_termina_no_valor_do_servidor(self):
+        trecho = self.js[self.js.index("function contar("):]
+        trecho = trecho[:trecho.index("function glass(")]
+        self.assertIn("prefers-reduced-motion", self.js)
+        self.assertIn("Math.round(fim * suave)", trecho)
+        self.assertIn("Math.min(1,", trecho)
 
     def test_cada_olhar_do_servidor_tem_desenho(self):
         trecho = self.js[self.js.index("function figuraDoOlhar"):]
@@ -535,7 +728,7 @@ class TestATela(unittest.TestCase):
 
     def test_a_seta_so_aparece_com_pct_e_o_zero_e_explicado(self):
         trecho = self.js[self.js.index("function cartaoKpi"):]
-        trecho = trecho[:trecho.index("function cartao(")]
+        trecho = trecho[:trecho.index("function figuraDaEvolucao")]
         self.assertIn("k.pct !== null", trecho)
         self.assertIn("sem base para comparar", trecho)
 
