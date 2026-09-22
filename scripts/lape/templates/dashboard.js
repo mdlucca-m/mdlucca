@@ -7850,6 +7850,11 @@ function buildHeader() {
           + "tempo e o que ainda não foi olhado" });
       analitico.appendChild(el("button", { type: "button", text: "Panorama" }));
       actions.appendChild(analitico);
+      const vivo = el("a", { href: "/aovivo",
+        title: "Uma tela só: os números de agora, comparados com o período "
+          + "anterior, redesenhados a cada mudança" });
+      vivo.appendChild(el("button", { type: "button", text: "Ao vivo" }));
+      actions.appendChild(vivo);
       const triagem = el("a", { href: "/triagem",
         title: "Triagem de revisão sistemática: importar as buscas, decidir "
           + "pelo teclado e ver o PRISMA sair sozinho" });

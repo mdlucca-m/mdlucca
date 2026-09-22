@@ -2372,6 +2372,14 @@ def route_panorama(ctx: "Context") -> Any:
     }
 
 
+def route_aovivo(ctx: "Context") -> Any:
+    """O painel ao vivo: os numeros do periodo pedido, com o anterior ao lado."""
+    from . import aovivo
+
+    auth.require(ctx.user, "leitura")
+    return aovivo.montar(ctx.db, (ctx.query.get("periodo") or [None])[0])
+
+
 def route_panorama_marcar(ctx: "Context") -> Any:
     """Repassa o vocabulario sobre a producao. Nao apaga marcacao humana."""
     user = auth.require(ctx.user, "coordenacao")
@@ -2490,6 +2498,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/citacoes/?$", route_citacoes, "leitura"),
     ("POST", r"^/api/citacoes/atualizar/?$", route_citacoes_atualizar, "coordenacao"),
     ("GET", r"^/api/panorama/?$", route_panorama, "leitura"),
+    ("GET", r"^/api/aovivo/?$", route_aovivo, "leitura"),
     ("POST", r"^/api/panorama/marcar/?$", route_panorama_marcar, "coordenacao"),
     ("GET", r"^/api/revisoes/?$", route_reviews, "leitura"),
     ("POST", r"^/api/revisoes/?$", route_review_create, "coordenacao"),
@@ -2707,6 +2716,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._serve_page("triagem.html")
         if method == "GET" and path in ("/panorama", "/analitico"):
             return self._serve_page("panorama.html")
+        if method == "GET" and path in ("/aovivo", "/ao-vivo", "/vivo"):
+            return self._serve_page("aovivo.html")
         if method == "GET" and path.startswith("/convite"):
             return self._serve_page("convite.html")
         if method == "GET" and path == "/api/stream":
@@ -2866,6 +2877,9 @@ class Handler(BaseHTTPRequestHandler):
         if "__PANORAMA_JS__" in html:
             html = html.replace("__PANORAMA_JS__",
                                 (TEMPLATES / "panorama.js").read_text(encoding="utf-8"))
+        if "__AOVIVO_JS__" in html:
+            html = html.replace("__AOVIVO_JS__",
+                                (TEMPLATES / "aovivo.js").read_text(encoding="utf-8"))
         if "__TRIAGEM_JS__" in html:
             html = html.replace("__TRIAGEM_JS__",
                                 (TEMPLATES / "triagem.js").read_text(encoding="utf-8"))

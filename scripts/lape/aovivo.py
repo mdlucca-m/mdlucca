@@ -1,0 +1,713 @@
+"""O painel ao vivo: uma tela, os numeros de agora, e o que mudou.
+
+O painel de indicadores responde a tudo, em sete secoes e quarenta telas.
+Esta pagina responde a UMA pergunta -- "como o laboratorio esta, e para
+onde vai?" -- e cabe num projetor. Cada numero vem com o mesmo numero do
+periodo anterior ao lado, porque um numero sozinho nao diz nada: 9
+publicados e bom ou ruim conforme o ano passado teve 12 ou 4.
+
+Tres regras, e as tres sao contra mentir com grafico:
+
+1. O periodo e ALINHADO AO ANO. O laboratorio preenche `year_published`
+   e nem sempre `published_on`; um recorte de "ultimos 12 meses" teria de
+   decidir em que mes cai um artigo que so tem o ano, e qualquer decisao
+   seria invencao. Por ano, a conta e exata.
+
+2. Comparacao so quando ha com o que comparar. Sem periodo anterior, ou
+   com zero nele, a seta nao aparece -- "+infinito%" nao e leitura, e
+   comparar com zero e o jeito mais facil de fabricar um crescimento.
+
+3. As "leituras" no fim sao CALCULADAS, e cada frase carrega o numero e a
+   regra de onde saiu. Nao ha modelo de linguagem aqui, e a tela diz isso.
+   Uma frase que nao possa ser refeita a partir do banco nao entra.
+"""
+from __future__ import annotations
+
+from collections import Counter
+from datetime import date, datetime
+from typing import Any
+
+from . import metas
+from .db import Database
+
+PERIODOS: tuple[dict[str, Any], ...] = (
+    {"code": "ano", "rotulo": "Este ano", "anos": 1},
+    {"code": "3a", "rotulo": "Últimos 3 anos", "anos": 3},
+    {"code": "5a", "rotulo": "Últimos 5 anos", "anos": 5},
+    {"code": "tudo", "rotulo": "Desde o início", "anos": None},
+)
+PADRAO = "ano"
+
+SITUACOES: tuple[tuple[str, str], ...] = (
+    ("em_producao", "Em produção"), ("submetido", "Submetido"),
+    ("em_revisao", "Em revisão"), ("aceito", "Aceito"),
+    ("publicado", "Publicado"), ("rejeitado", "Rejeitado"),
+    ("arquivado", "Arquivado"),
+)
+ROTULO_DA_SITUACAO = dict(SITUACOES)
+
+MESES = ("jan", "fev", "mar", "abr", "mai", "jun",
+         "jul", "ago", "set", "out", "nov", "dez")
+MESES_POR_EXTENSO = ("janeiro", "fevereiro", "março", "abril", "maio", "junho",
+                     "julho", "agosto", "setembro", "outubro", "novembro",
+                     "dezembro")
+
+# Faixas de citacao do histograma. Fechadas em cima, abertas na ultima.
+FAIXAS_DE_CITACAO: tuple[tuple[str, int, int | None], ...] = (
+    ("0", 0, 0), ("1–5", 1, 5), ("6–20", 6, 20), ("21–50", 21, 50),
+    ("51–100", 51, 100), ("> 100", 101, None),
+)
+
+# Quantas linhas de pesquisa aparecem com nome proprio nos graficos que
+# empilham; o resto vira "Outras". Oito series e o teto da paleta, e
+# seis ja e o que um olho separa numa area empilhada.
+LINHAS_COM_NOME = 6
+
+ANO_SQL = "CAST(strftime('%Y', {c}) AS INTEGER)"
+MES_SQL = "CAST(strftime('%m', {c}) AS INTEGER)"
+
+# A melhor base por artigo: o painel inteiro conta citacao assim, e este
+# painel nao pode contar de outro jeito, senao os dois discordam na tela.
+MELHOR_BASE = ("MAX(COALESCE(wos_citations, 0), COALESCE(scopus_citations, 0),"
+               " COALESCE(openalex_citations, 0))")
+
+
+# ----------------------------------------------------------------------
+# Periodo
+# ----------------------------------------------------------------------
+def periodo(db: Database, code: str | None, hoje: date | None = None) -> dict[str, Any]:
+    """O recorte pedido, sempre em anos inteiros, com o anterior do mesmo tamanho."""
+    hoje = hoje or date.today()
+    escolhido = next((p for p in PERIODOS if p["code"] == (code or PADRAO)), PERIODOS[0])
+    ate = hoje.year
+    if escolhido["anos"] is None:
+        primeiro = db.scalar(
+            "SELECT MIN(ano) FROM ("
+            "  SELECT MIN(year_published) AS ano FROM articles"
+            f"  UNION ALL SELECT MIN({ANO_SQL.format(c='started_on')}) FROM articles"
+            f"  UNION ALL SELECT MIN({ANO_SQL.format(c='submitted_on')}) FROM submissions)")
+        de = int(primeiro) if primeiro else ate
+        anterior = None
+    else:
+        de = ate - escolhido["anos"] + 1
+        anterior = (de - escolhido["anos"], de - 1)
+    return {
+        "code": escolhido["code"], "rotulo": escolhido["rotulo"],
+        "de": de, "ate": ate, "anterior": anterior,
+        "mensal": escolhido["anos"] == 1,
+        # O ano em curso nao acabou. A seta compara com o anterior INTEIRO,
+        # e a tela precisa dizer isso ao lado dela.
+        "meses_restantes": 12 - hoje.month,
+        "hoje": hoje.isoformat(),
+    }
+
+
+# ----------------------------------------------------------------------
+# As contagens que os indicadores usam
+# ----------------------------------------------------------------------
+def _publicados(db: Database, de: int, ate: int) -> int:
+    return int(db.scalar(
+        "SELECT COUNT(*) FROM articles WHERE status = 'publicado'"
+        "   AND year_published BETWEEN ? AND ?", (de, ate)) or 0)
+
+
+def _submetidos(db: Database, de: int, ate: int) -> int:
+    return int(db.scalar(
+        "SELECT COUNT(*) FROM submissions WHERE submitted_on IS NOT NULL"
+        f"   AND {ANO_SQL.format(c='submitted_on')} BETWEEN ? AND ?", (de, ate)) or 0)
+
+
+def _aceitos(db: Database, de: int, ate: int) -> int:
+    return int(db.scalar(
+        "SELECT COUNT(*) FROM articles WHERE accepted_on IS NOT NULL"
+        f"   AND {ANO_SQL.format(c='accepted_on')} BETWEEN ? AND ?", (de, ate)) or 0)
+
+
+def _citacoes_agora(db: Database) -> int:
+    return int(db.scalar(f"SELECT COALESCE(SUM({MELHOR_BASE}), 0) FROM articles") or 0)
+
+
+def _citacoes_em(db: Database, dia: str) -> int | None:
+    """A soma das citacoes no ultimo instantaneo ate `dia`, ou None sem historico.
+
+    A melhor base por artigo, como em `_citacoes_agora`: o mesmo criterio
+    nas duas pontas, senao a diferenca mede a troca de criterio e nao as
+    citacoes que chegaram.
+    """
+    ha = db.scalar("SELECT COUNT(*) FROM citation_snapshots WHERE snapshot_on <= ?", (dia,))
+    if not ha:
+        return None
+    return int(db.scalar(
+        "SELECT COALESCE(SUM(melhor), 0) FROM ("
+        "  SELECT article_id, MAX(citations) AS melhor FROM citation_snapshots s"
+        "   WHERE snapshot_on = (SELECT MAX(snapshot_on) FROM citation_snapshots s2"
+        "                         WHERE s2.article_id = s.article_id"
+        "                           AND s2.source = s.source AND s2.snapshot_on <= ?)"
+        "   GROUP BY article_id)", (dia,)) or 0)
+
+
+def _por_ano(db: Database, sql: str, de: int, ate: int) -> list[int]:
+    """Uma contagem por ano de `de` a `ate`, com zero onde nao houve nada."""
+    linhas = db.dicts(sql, (de, ate))
+    conta = {int(l["ano"]): int(l["n"]) for l in linhas if l["ano"] is not None}
+    return [conta.get(ano, 0) for ano in range(de, ate + 1)]
+
+
+def _variacao(agora: int, antes: int | None) -> dict[str, Any]:
+    """A seta. So existe com anterior maior que zero."""
+    if antes is None:
+        return {"anterior": None, "delta": None, "pct": None}
+    delta = agora - antes
+    pct = round(100.0 * delta / antes, 1) if antes else None
+    return {"anterior": antes, "delta": delta, "pct": pct}
+
+
+def indicadores(db: Database, per: dict[str, Any]) -> list[dict[str, Any]]:
+    de, ate = per["de"], per["ate"]
+    ant = per["anterior"]
+
+    saida = []
+    for code, rotulo, conta, sql_por_ano in (
+        ("publicacoes", "Publicados", _publicados,
+         "SELECT year_published AS ano, COUNT(*) AS n FROM articles"
+         " WHERE status = 'publicado' AND year_published BETWEEN ? AND ? GROUP BY 1"),
+        ("submissoes", "Submissões", _submetidos,
+         f"SELECT {ANO_SQL.format(c='submitted_on')} AS ano, COUNT(*) AS n FROM submissions"
+         f" WHERE submitted_on IS NOT NULL AND {ANO_SQL.format(c='submitted_on')}"
+         " BETWEEN ? AND ? GROUP BY 1"),
+        ("aceites", "Aceites", _aceitos,
+         f"SELECT {ANO_SQL.format(c='accepted_on')} AS ano, COUNT(*) AS n FROM articles"
+         f" WHERE accepted_on IS NOT NULL AND {ANO_SQL.format(c='accepted_on')}"
+         " BETWEEN ? AND ? GROUP BY 1"),
+    ):
+        agora = conta(db, de, ate)
+        antes = conta(db, ant[0], ant[1]) if ant else None
+        saida.append({
+            "code": code, "rotulo": rotulo, "valor": agora,
+            **_variacao(agora, antes),
+            "faisca": _por_ano(db, sql_por_ano, ate - 5, ate),
+            "faisca_de": ate - 5,
+            "fonte": metas.CONTAGEM[code].split(" WHERE")[0].replace("SELECT COUNT(*) FROM ", ""),
+        })
+
+    # Citacoes: o estoque de agora, e quanto entrou desde o comeco do
+    # periodo. Nao ha "periodo anterior" de citacao -- ha o que o
+    # laboratorio tinha no primeiro dia e o que tem hoje.
+    agora = _citacoes_agora(db)
+    no_comeco = _citacoes_em(db, f"{de}-01-01")
+    historico = db.dicts(
+        "SELECT snapshot_on AS dia, SUM(melhor) AS n FROM ("
+        "  SELECT snapshot_on, article_id, MAX(citations) AS melhor"
+        "    FROM citation_snapshots GROUP BY snapshot_on, article_id)"
+        " GROUP BY snapshot_on ORDER BY snapshot_on")
+    saida.append({
+        "code": "citacoes", "rotulo": "Citações", "valor": agora,
+        **_variacao(agora, no_comeco),
+        "faisca": [int(h["n"]) for h in historico[-12:]],
+        "faisca_de": historico[-12:][0]["dia"][:7] if historico else None,
+        "fonte": "articles (melhor base) e citation_snapshots",
+        "nota": f"recebidas desde 1º/jan/{de}" if no_comeco is not None
+                else "sem instantâneo anterior para comparar",
+    })
+    return saida
+
+
+# ----------------------------------------------------------------------
+# Evolucao no tempo
+# ----------------------------------------------------------------------
+def evolucao(db: Database, per: dict[str, Any]) -> dict[str, Any]:
+    """Mes a mes num periodo de um ano; ano a ano nos maiores.
+
+    Mes a mes so entra quem tem a data completa. Quem so tem o ano e
+    CONTADO a parte e dito na legenda -- espalhar esses artigos por um mes
+    qualquer daria uma curva bonita e falsa.
+    """
+    de, ate = per["de"], per["ate"]
+    if per["mensal"]:
+        rotulos = [f"{MESES[m]}/{str(ate)[2:]}" for m in range(12)]
+        series = []
+        for rotulo, sql in (
+            ("Publicados", f"SELECT {MES_SQL.format(c='published_on')} AS m, COUNT(*) AS n"
+                           " FROM articles WHERE status = 'publicado'"
+                           f" AND {ANO_SQL.format(c='published_on')} = ? GROUP BY 1"),
+            ("Submetidos", f"SELECT {MES_SQL.format(c='submitted_on')} AS m, COUNT(*) AS n"
+                           f" FROM submissions WHERE {ANO_SQL.format(c='submitted_on')} = ?"
+                           " GROUP BY 1"),
+            ("Aceitos", f"SELECT {MES_SQL.format(c='accepted_on')} AS m, COUNT(*) AS n"
+                        f" FROM articles WHERE {ANO_SQL.format(c='accepted_on')} = ? GROUP BY 1"),
+        ):
+            conta = {int(l["m"]): int(l["n"]) for l in db.dicts(sql, (ate,)) if l["m"]}
+            series.append({"label": rotulo, "values": [conta.get(m, 0) for m in range(1, 13)]})
+        sem_mes = int(db.scalar(
+            "SELECT COUNT(*) FROM articles WHERE status = 'publicado'"
+            "   AND year_published = ? AND published_on IS NULL", (ate,)) or 0)
+        return {"grao": "mes", "labels": rotulos, "series": series, "sem_mes": sem_mes}
+
+    rotulos = [str(a) for a in range(de, ate + 1)]
+    series = [
+        {"label": "Publicados", "values": _por_ano(
+            db, "SELECT year_published AS ano, COUNT(*) AS n FROM articles"
+                " WHERE status = 'publicado' AND year_published BETWEEN ? AND ? GROUP BY 1",
+            de, ate)},
+        {"label": "Submetidos", "values": _por_ano(
+            db, f"SELECT {ANO_SQL.format(c='submitted_on')} AS ano, COUNT(*) AS n"
+                " FROM submissions WHERE submitted_on IS NOT NULL"
+                f" AND {ANO_SQL.format(c='submitted_on')} BETWEEN ? AND ? GROUP BY 1",
+            de, ate)},
+        {"label": "Aceitos", "values": _por_ano(
+            db, f"SELECT {ANO_SQL.format(c='accepted_on')} AS ano, COUNT(*) AS n"
+                " FROM articles WHERE accepted_on IS NOT NULL"
+                f" AND {ANO_SQL.format(c='accepted_on')} BETWEEN ? AND ? GROUP BY 1",
+            de, ate)},
+    ]
+    return {"grao": "ano", "labels": rotulos, "series": series, "sem_mes": 0}
+
+
+# ----------------------------------------------------------------------
+# Recortes: linha e situacao
+# ----------------------------------------------------------------------
+def _publicados_por_linha(db: Database, de: int, ate: int) -> list[dict[str, Any]]:
+    return db.dicts(
+        "SELECT COALESCE(rl.name, 'Sem linha') AS linha, COUNT(*) AS n"
+        "  FROM articles a LEFT JOIN research_lines rl ON rl.id = a.research_line_id"
+        " WHERE a.status = 'publicado' AND a.year_published BETWEEN ? AND ?"
+        " GROUP BY 1 ORDER BY n DESC, linha", (de, ate))
+
+
+def por_linha(db: Database, per: dict[str, Any]) -> dict[str, Any]:
+    agora = _publicados_por_linha(db, per["de"], per["ate"])
+    antes = (_publicados_por_linha(db, *per["anterior"]) if per["anterior"] else [])
+    total = sum(int(l["n"]) for l in agora)
+    return {
+        "items": [{"label": l["linha"], "value": int(l["n"]),
+                   "pct": round(100.0 * int(l["n"]) / total, 1) if total else 0.0}
+                  for l in agora],
+        "anterior": {l["linha"]: int(l["n"]) for l in antes},
+        "total": total,
+    }
+
+
+def por_situacao(db: Database) -> list[dict[str, Any]]:
+    """Onde cada artigo esta AGORA -- e um retrato, nao um periodo."""
+    conta = {l["status"]: int(l["n"]) for l in db.dicts(
+        "SELECT status, COUNT(*) AS n FROM articles GROUP BY status")}
+    return [{"code": code, "label": rotulo, "value": conta.get(code, 0)}
+            for code, rotulo in SITUACOES if conta.get(code, 0)]
+
+
+# ----------------------------------------------------------------------
+# O caminho do artigo
+# ----------------------------------------------------------------------
+def caminho(db: Database) -> list[dict[str, Any]]:
+    """As seis etapas, com o que ha em cada uma AGORA e a tela que a faz.
+
+    Nao e um funil: cada etapa conta uma coisa diferente (referencia,
+    registro triado, artigo), e por isso nao ha porcentagem entre elas.
+    Uma porcentagem aqui compararia laranja com tijolo.
+    """
+    def n(sql: str) -> int:
+        return int(db.scalar(sql) or 0)
+
+    situacoes = {l["status"]: int(l["n"]) for l in db.dicts(
+        "SELECT status, COUNT(*) AS n FROM articles GROUP BY status")}
+    return [
+        {"code": "biblioteca", "rotulo": "Pesquisa bibliográfica",
+         "valor": n("SELECT COUNT(*) FROM biblioteca_item"), "unidade": "referências no acervo",
+         "faz": "as buscas rodam sozinhas nas bases, com a estratégia guardada",
+         "ferramenta": "Biblioteca", "href": "/app#biblioteca"},
+        {"code": "triagem", "rotulo": "Seleção dos estudos",
+         "valor": n("SELECT COUNT(*) FROM refs"), "unidade": "registros em triagem",
+         "detalhe": n("SELECT COUNT(*) FROM refs WHERE stage = 'incluido'"),
+         "detalhe_rotulo": "incluídos",
+         "faz": "dois avaliadores às cegas, PRISMA e risco de viés saindo sozinhos",
+         "ferramenta": "Triagem", "href": "/triagem"},
+        {"code": "producao", "rotulo": "Escrita",
+         "valor": situacoes.get("em_producao", 0), "unidade": "artigos em produção",
+         "faz": "cada manuscrito com responsável, linha e variáveis declaradas",
+         "ferramenta": "Artigos", "href": "/app#artigos"},
+        {"code": "submissao", "rotulo": "Submissão e revisão",
+         "valor": situacoes.get("submetido", 0) + situacoes.get("em_revisao", 0),
+         "unidade": "esperando resposta de revista",
+         "faz": "cada tentativa registrada, com o tempo de espera contado",
+         "ferramenta": "Submissões", "href": "/app#submissoes"},
+        {"code": "aceite", "rotulo": "Aceite",
+         "valor": situacoes.get("aceito", 0), "unidade": "aceitos, ainda não publicados",
+         "faz": "o aceite conta no ano em que aconteceu, mesmo publicando depois",
+         "ferramenta": "Metas", "href": "/#metas"},
+        {"code": "publicacao", "rotulo": "Publicação",
+         "valor": situacoes.get("publicado", 0), "unidade": "publicados",
+         "faz": "DOI, acesso aberto e citações conferidos nas bases",
+         "ferramenta": "Painel", "href": "/#publicacoes"},
+    ]
+
+
+# ----------------------------------------------------------------------
+# Os doze olhares
+# ----------------------------------------------------------------------
+def _calor(db: Database, ate: int) -> dict[str, Any]:
+    anos = list(range(ate - 4, ate + 1))
+    linhas = db.dicts(
+        f"SELECT {ANO_SQL.format(c='published_on')} AS ano,"
+        f"       {MES_SQL.format(c='published_on')} AS mes, COUNT(*) AS n"
+        "  FROM articles WHERE status = 'publicado' AND published_on IS NOT NULL"
+        f"   AND {ANO_SQL.format(c='published_on')} BETWEEN ? AND ? GROUP BY 1, 2",
+        (anos[0], anos[-1]))
+    conta = {(int(l["ano"]), int(l["mes"])): int(l["n"]) for l in linhas}
+    return {"years": anos,
+            "values": [conta.get((a, m), 0) for a in anos for m in range(1, 13)]}
+
+
+def _cascata(db: Database, per: dict[str, Any], linhas: dict[str, Any]) -> dict[str, Any] | None:
+    if not per["anterior"]:
+        return None
+    antes = linhas["anterior"]
+    agora = {i["label"]: i["value"] for i in linhas["items"]}
+    nomes = sorted(set(antes) | set(agora), key=lambda n: -(agora.get(n, 0) - antes.get(n, 0)))
+    items: list[dict[str, Any]] = [
+        {"label": f"{per['anterior'][0]}–{per['anterior'][1]}" if per["anterior"][0] != per["anterior"][1]
+                  else str(per["anterior"][0]),
+         "value": sum(antes.values()), "total": True}]
+    for nome in nomes:
+        diferenca = agora.get(nome, 0) - antes.get(nome, 0)
+        if diferenca:
+            items.append({"label": nome, "value": diferenca})
+    items.append({"label": f"{per['de']}–{per['ate']}" if per["de"] != per["ate"] else str(per["de"]),
+                  "value": sum(agora.values()), "total": True})
+    return {"items": items}
+
+
+def _empilhadas(db: Database, ate: int) -> dict[str, Any]:
+    """Artigos por ano e situacao. O ano e o de publicacao para quem publicou
+    e o de inicio para o resto -- e o unico ano que todo artigo tem."""
+    anos = list(range(ate - 5, ate + 1))
+    linhas = db.dicts(
+        "SELECT CASE WHEN status = 'publicado' THEN year_published"
+        f"            ELSE {ANO_SQL.format(c='started_on')} END AS ano, status, COUNT(*) AS n"
+        "  FROM articles GROUP BY 1, 2")
+    conta = {(int(l["ano"]), l["status"]): int(l["n"]) for l in linhas if l["ano"] is not None}
+    series = []
+    for code, rotulo in SITUACOES:
+        valores = [conta.get((a, code), 0) for a in anos]
+        if any(valores):
+            series.append({"label": rotulo, "code": code, "values": valores})
+    return {"labels": [str(a) for a in anos], "series": series}
+
+
+def _dispersao(db: Database, hoje: date) -> dict[str, Any]:
+    pontos = db.dicts(
+        f"SELECT title, year_published AS ano, {MELHOR_BASE} AS citacoes FROM articles"
+        " WHERE status = 'publicado' AND year_published IS NOT NULL")
+    return {"points": [{"x": hoje.year - int(p["ano"]), "y": int(p["citacoes"]),
+                        "label": str(p["title"] or "")[:80]} for p in pontos]}
+
+
+def _histograma(db: Database) -> dict[str, Any]:
+    valores = [int(l["c"]) for l in db.dicts(
+        f"SELECT {MELHOR_BASE} AS c FROM articles WHERE status = 'publicado'")]
+    conta = []
+    for rotulo, baixo, alto in FAIXAS_DE_CITACAO:
+        conta.append(sum(1 for v in valores if v >= baixo and (alto is None or v <= alto)))
+    return {"labels": [f[0] for f in FAIXAS_DE_CITACAO], "values": conta, "n": len(valores)}
+
+
+def _caixa(db: Database) -> dict[str, Any]:
+    """Dias ate a decisao, por decisao. Quartis, e nao media: uma revista
+    que demora dois anos puxa a media inteira e some na mediana."""
+    linhas = db.dicts(
+        "SELECT decision, CAST(julianday(decision_on) - julianday(submitted_on) AS INTEGER) AS dias"
+        "  FROM submissions WHERE submitted_on IS NOT NULL AND decision_on IS NOT NULL"
+        "   AND decision IN ('aceito', 'rejeitado', 'desk_reject', 'revisao_solicitada')")
+    grupos: dict[str, list[int]] = {}
+    for l in linhas:
+        if l["dias"] is not None and int(l["dias"]) >= 0:
+            grupos.setdefault(l["decision"], []).append(int(l["dias"]))
+    rotulo = {"aceito": "Aceito", "rejeitado": "Rejeitado após revisão",
+              "desk_reject": "Recusa sem revisão", "revisao_solicitada": "Revisão solicitada"}
+    return {"groups": [{"label": rotulo[d], "code": d, "values": sorted(v)}
+                       for d, v in grupos.items() if len(v) >= 1]}
+
+
+def _area(db: Database, ate: int) -> dict[str, Any]:
+    """Publicacoes acumuladas por linha, ano a ano."""
+    anos = list(range(ate - 7, ate + 1))
+    linhas = db.dicts(
+        "SELECT COALESCE(rl.name, 'Sem linha') AS linha, a.year_published AS ano, COUNT(*) AS n"
+        "  FROM articles a LEFT JOIN research_lines rl ON rl.id = a.research_line_id"
+        " WHERE a.status = 'publicado' AND a.year_published IS NOT NULL GROUP BY 1, 2")
+    por_linha_: dict[str, Counter] = {}
+    for l in linhas:
+        por_linha_.setdefault(l["linha"], Counter())[int(l["ano"])] += int(l["n"])
+    ordem = sorted(por_linha_, key=lambda n: -sum(por_linha_[n].values()))
+    com_nome, outras = ordem[:LINHAS_COM_NOME], ordem[LINHAS_COM_NOME:]
+    series = []
+    for nome in com_nome:
+        acumulado, valores = sum(v for a, v in por_linha_[nome].items() if a < anos[0]), []
+        for a in anos:
+            acumulado += por_linha_[nome].get(a, 0)
+            valores.append(acumulado)
+        series.append({"label": nome, "values": valores})
+    if outras:
+        junto: Counter = Counter()
+        for nome in outras:
+            junto.update(por_linha_[nome])
+        acumulado, valores = sum(v for a, v in junto.items() if a < anos[0]), []
+        for a in anos:
+            acumulado += junto.get(a, 0)
+            valores.append(acumulado)
+        series.append({"label": f"Outras ({len(outras)})", "values": valores})
+    return {"labels": [str(a) for a in anos], "series": series}
+
+
+def _bullet(db: Database, ano: int) -> dict[str, Any]:
+    """Realizado contra a meta do ano. Sem meta declarada, contra a media
+    dos tres anos anteriores -- e o item diz qual dos dois e."""
+    declaradas = metas.metas_declaradas(db, ano)
+    items = []
+    for code, rotulo, _ in metas.INDICADORES[:3]:
+        feito = metas.realizado(db, code, ano)
+        meta = declaradas.get(code)
+        if meta is None:
+            anteriores = [metas.realizado(db, code, a) for a in range(ano - 3, ano)]
+            referencia = round(sum(anteriores) / 3.0, 1) if any(anteriores) else None
+            items.append({"label": rotulo, "value": feito, "target": referencia,
+                          "referencia": "média 3 anos" if referencia is not None else None,
+                          "max": max(feito, referencia or 0, 1)})
+        else:
+            items.append({"label": rotulo, "value": feito, "target": meta,
+                          "referencia": "meta declarada", "max": max(feito, meta, 1)})
+    return {"ano": ano, "items": items}
+
+
+def _tendencia(db: Database, hoje: date) -> dict[str, Any]:
+    """Submissoes por mes nos ultimos 24 meses, com a media movel de tres.
+
+    A media movel e CALCULADA daqui, e nao lida: e a serie bruta suavizada,
+    e a legenda diz de quantos meses. Sem isso, "tendencia" e so uma
+    segunda linha bonita.
+    """
+    meses = []
+    ano, mes = hoje.year, hoje.month
+    for _ in range(24):
+        meses.append((ano, mes))
+        mes -= 1
+        if mes == 0:
+            ano, mes = ano - 1, 12
+    meses.reverse()
+    linhas = db.dicts(
+        f"SELECT {ANO_SQL.format(c='submitted_on')} AS ano, {MES_SQL.format(c='submitted_on')} AS mes,"
+        "       COUNT(*) AS n FROM submissions WHERE submitted_on IS NOT NULL GROUP BY 1, 2")
+    conta = {(int(l["ano"]), int(l["mes"])): int(l["n"]) for l in linhas if l["ano"]}
+    bruto = [conta.get(m, 0) for m in meses]
+    movel = [round(sum(bruto[max(0, i - 2):i + 1]) / min(3, i + 1), 2) for i in range(len(bruto))]
+    return {"labels": [f"{MESES[m - 1]}/{str(a)[2:]}" for a, m in meses],
+            "series": [{"label": "Submissões no mês", "values": bruto},
+                       {"label": "Média móvel de 3 meses", "values": movel}]}
+
+
+def _funil(db: Database) -> dict[str, Any]:
+    """Do acervo inteiro: quantos foram submetidos, aceitos e publicados.
+
+    E uma COORTE, e nao um retrato: quem esta publicado tambem foi
+    submetido e aceito, e por isso cada degrau contem o de baixo. Uma
+    porcentagem entre degraus so faz sentido assim.
+    """
+    total = int(db.scalar("SELECT COUNT(*) FROM articles WHERE status <> 'arquivado'") or 0)
+    submetidos = int(db.scalar(
+        "SELECT COUNT(*) FROM articles WHERE status <> 'arquivado' AND ("
+        "  first_submission_on IS NOT NULL"
+        "  OR status IN ('submetido', 'em_revisao', 'aceito', 'publicado', 'rejeitado')"
+        "  OR id IN (SELECT article_id FROM submissions))") or 0)
+    aceitos = int(db.scalar(
+        "SELECT COUNT(*) FROM articles WHERE status <> 'arquivado' AND ("
+        "  accepted_on IS NOT NULL OR status IN ('aceito', 'publicado'))") or 0)
+    publicados = int(db.scalar("SELECT COUNT(*) FROM articles WHERE status = 'publicado'") or 0)
+    return {"steps": [{"label": "Iniciados", "value": total},
+                      {"label": "Submetidos", "value": submetidos},
+                      {"label": "Aceitos", "value": aceitos},
+                      {"label": "Publicados", "value": publicados}]}
+
+
+def doze_olhares(db: Database, per: dict[str, Any], hoje: date,
+                 linhas: dict[str, Any], evolucao_: dict[str, Any]) -> list[dict[str, Any]]:
+    """Cada olhar responde uma pergunta escrita ao lado dele."""
+    return [
+        {"code": "calor", "tipo": "heatmap", "titulo": "Mapa de calor",
+         "pergunta": "Em que meses o laboratório publica?",
+         "nota": "só artigos com a data completa de publicação",
+         "dados": _calor(db, per["ate"])},
+        {"code": "cascata", "tipo": "waterfall", "titulo": "Cascata",
+         "pergunta": "Que linhas explicam a diferença para o período anterior?",
+         "dados": _cascata(db, per, linhas),
+         "vazio": "sem período anterior para comparar" if not per["anterior"] else None},
+        {"code": "linhas", "tipo": "lines", "titulo": "Série temporal",
+         "pergunta": "Como a produção evoluiu no período?",
+         "dados": evolucao_},
+        {"code": "empilhadas", "tipo": "columns", "titulo": "Barras empilhadas",
+         "pergunta": "De que é feito cada ano: publicado, em produção, recusado?",
+         "dados": _empilhadas(db, per["ate"])},
+        {"code": "rosca", "tipo": "donut", "titulo": "Rosca",
+         "pergunta": "Que fatia de cada linha há no que foi publicado?",
+         "dados": {"items": linhas["items"]}},
+        {"code": "dispersao", "tipo": "scatter", "titulo": "Dispersão",
+         "pergunta": "Artigo mais antigo é mais citado?",
+         "dados": _dispersao(db, hoje)},
+        {"code": "histograma", "tipo": "columns", "titulo": "Histograma",
+         "pergunta": "Quantos artigos há em cada faixa de citação?",
+         "dados": _histograma(db)},
+        {"code": "caixa", "tipo": "distribution", "titulo": "Caixa (box plot)",
+         "pergunta": "Quanto tempo a revista leva para decidir — e quanto isso varia?",
+         "dados": _caixa(db)},
+        {"code": "area", "tipo": "area", "titulo": "Área empilhada",
+         "pergunta": "Como o acumulado de cada linha cresceu?",
+         "dados": _area(db, per["ate"])},
+        {"code": "bullet", "tipo": "bullet", "titulo": "Bullet",
+         "pergunta": f"O ano de {per['ate']} está no ritmo da meta?",
+         "dados": _bullet(db, per["ate"])},
+        {"code": "tendencia", "tipo": "lines", "titulo": "Tendência",
+         "pergunta": "Tirando o sobe-e-desce do mês, as submissões sobem ou descem?",
+         "dados": _tendencia(db, hoje)},
+        {"code": "funil", "tipo": "funnel", "titulo": "Funil",
+         "pergunta": "De tudo o que foi começado, quanto chegou à publicação?",
+         "dados": _funil(db)},
+    ]
+
+
+# ----------------------------------------------------------------------
+# As leituras
+# ----------------------------------------------------------------------
+def _pct(v: float | None) -> str:
+    if v is None:
+        return ""
+    sinal = "+" if v > 0 else ""
+    return f"{sinal}{str(round(v, 1)).replace('.', ',')}%"
+
+
+def leituras(db: Database, per: dict[str, Any], kpis: list[dict[str, Any]],
+             linhas: dict[str, Any], evolucao_: dict[str, Any]) -> list[dict[str, Any]]:
+    """Frases calculadas. Cada uma traz o numero e a regra de onde saiu.
+
+    Nao ha modelo de linguagem aqui. Uma frase que nao possa ser refeita
+    a partir do banco por quem ler a regra nao entra.
+    """
+    saida: list[dict[str, Any]] = []
+    rotulo_do_periodo = (str(per["de"]) if per["de"] == per["ate"]
+                         else f"{per['de']}–{per['ate']}")
+
+    # 1. O indicador que mais mudou contra o periodo anterior.
+    com_seta = [k for k in kpis if k["code"] != "citacoes" and k.get("pct") is not None]
+    if com_seta:
+        maior = max(com_seta, key=lambda k: abs(k["pct"]))
+        ant = per["anterior"]
+        rotulo_ant = str(ant[0]) if ant[0] == ant[1] else f"{ant[0]}–{ant[1]}"
+        saida.append({
+            "code": "maior_variacao", "valor": maior["pct"],
+            "texto": (f"{maior['rotulo']}: {maior['valor']} em {rotulo_do_periodo} contra "
+                      f"{maior['anterior']} em {rotulo_ant} ({_pct(maior['pct'])})"
+                      + (f" — e {per['ate']} ainda tem {per['meses_restantes']} mês(es)."
+                         if per["meses_restantes"] and per["ate"] >= int(per["hoje"][:4]) else ".")),
+            "regra": "o indicador com a maior variação percentual entre os que têm anterior maior que zero",
+        })
+
+    # 2. A linha que mais cresceu em publicados.
+    if per["anterior"] and linhas["items"]:
+        antes = linhas["anterior"]
+        agora = {i["label"]: i["value"] for i in linhas["items"]}
+        nomes = set(antes) | set(agora)
+        nome = max(nomes, key=lambda n: (agora.get(n, 0) - antes.get(n, 0), agora.get(n, 0)))
+        diferenca = agora.get(nome, 0) - antes.get(nome, 0)
+        if diferenca > 0:
+            saida.append({
+                "code": "linha_que_cresceu", "valor": diferenca,
+                "texto": (f"A linha que mais cresceu foi {nome}: {agora.get(nome, 0)} "
+                          f"publicado(s) contra {antes.get(nome, 0)} no período anterior "
+                          f"(+{diferenca})."),
+                "regra": "maior diferença de publicados por linha entre os dois períodos",
+            })
+
+    # 3. O mes mais forte, quando o periodo e de um ano e ha data completa.
+    if evolucao_["grao"] == "mes":
+        publicados = next(s for s in evolucao_["series"] if s["label"] == "Publicados")["values"]
+        pico = max(publicados)
+        if pico > 0:
+            mes = publicados.index(pico)
+            empatados = sum(1 for v in publicados if v == pico)
+            saida.append({
+                "code": "mes_mais_forte", "valor": pico,
+                "texto": (f"{MESES_POR_EXTENSO[mes].capitalize()} foi o mês com mais "
+                          f"publicações em {per['ate']}: {pico}"
+                          + (f" (empatado com outros {empatados - 1})" if empatados > 1 else "")
+                          + (f"; {evolucao_['sem_mes']} publicado(s) só têm o ano e ficaram fora "
+                             "da conta por mês." if evolucao_["sem_mes"] else ".")),
+                "regra": "o mês com mais `published_on` no ano; empate é dito",
+            })
+
+    # 4. A submissao mais antiga sem resposta.
+    espera = db.dicts(
+        "SELECT s.journal, a.title, CAST(julianday(?) - julianday(s.submitted_on) AS INTEGER) AS dias"
+        "  FROM submissions s JOIN articles a ON a.id = s.article_id"
+        " WHERE s.decision = 'em_avaliacao' AND s.submitted_on IS NOT NULL"
+        " ORDER BY s.submitted_on LIMIT 1", (per["hoje"],))
+    if espera and espera[0]["dias"] is not None and int(espera[0]["dias"]) > 0:
+        e = espera[0]
+        saida.append({
+            "code": "espera_mais_longa", "valor": int(e["dias"]),
+            "texto": (f"A submissão mais antiga sem resposta espera há {int(e['dias'])} dias"
+                      f"{' na ' + e['journal'] if e['journal'] else ''}: "
+                      f"“{str(e['title'])[:70]}”."),
+            "regra": "a submissão em avaliação com o `submitted_on` mais antigo",
+        })
+
+    # 5. Citacoes que chegaram no periodo.
+    cit = next(k for k in kpis if k["code"] == "citacoes")
+    if cit.get("delta") is not None:
+        saida.append({
+            "code": "citacoes_no_periodo", "valor": cit["delta"],
+            "texto": (f"Os artigos receberam {cit['delta']} citação(ões) desde 1º de janeiro de "
+                      f"{per['de']}, de {cit['anterior']} para {cit['valor']}"
+                      f"{' (' + _pct(cit['pct']) + ')' if cit['pct'] is not None else ''}."),
+            "regra": "melhor base por artigo hoje, menos a melhor base no último instantâneo "
+                     "antes do período",
+        })
+
+    # 6. Qualis A entre os publicados do periodo.
+    total = _publicados(db, per["de"], per["ate"])
+    if total:
+        alto = int(db.scalar(
+            "SELECT COUNT(*) FROM articles WHERE status = 'publicado'"
+            "   AND year_published BETWEEN ? AND ?"
+            "   AND UPPER(TRIM(COALESCE(qualis, ''))) IN ('A1','A2','A3','A4')",
+            (per["de"], per["ate"])) or 0)
+        saida.append({
+            "code": "qualis_a", "valor": alto,
+            "texto": (f"{alto} de {total} publicado(s) em {rotulo_do_periodo} estão em "
+                      f"Qualis A ({round(100.0 * alto / total)}%)."),
+            "regra": "publicados no período com Qualis A1 a A4",
+        })
+    return saida
+
+
+# ----------------------------------------------------------------------
+# Tudo junto
+# ----------------------------------------------------------------------
+def montar(db: Database, periodo_code: str | None = None,
+           hoje: date | None = None) -> dict[str, Any]:
+    hoje = hoje or date.today()
+    per = periodo(db, periodo_code, hoje)
+    kpis = indicadores(db, per)
+    linhas = por_linha(db, per)
+    evolucao_ = evolucao(db, per)
+    return {
+        "periodo": per,
+        "periodos": [{"code": p["code"], "rotulo": p["rotulo"]} for p in PERIODOS],
+        "kpis": kpis,
+        "evolucao": evolucao_,
+        "por_linha": linhas,
+        "por_situacao": por_situacao(db),
+        "caminho": caminho(db),
+        "doze": doze_olhares(db, per, hoje, linhas, evolucao_),
+        "leituras": leituras(db, per, kpis, linhas, evolucao_),
+        "aviso": ("As leituras são calculadas a partir do banco, e cada uma diz a regra "
+                  "de onde saiu. Não há modelo de linguagem aqui: o que não pode ser "
+                  "refeito a partir dos dados não entra."),
+        "gerado_em": datetime.now().isoformat(timespec="seconds"),
+    }
