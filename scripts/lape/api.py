@@ -436,6 +436,16 @@ def route_team(ctx: "Context") -> Any:
     return {"items": pessoas, "count": len(pessoas), "orientador_padrao": padrao}
 
 
+def route_separar_conta(ctx: "Context") -> Any:
+    """Tira o acesso de uma ficha que virou de duas pessoas: {login, nome}."""
+    user = auth.require(ctx.user, "coordenacao")
+    corpo = ctx.body or {}
+    resultado = auth.separar_conta(ctx.db, corpo.get("login") or "", corpo.get("nome") or "")
+    auth.log(ctx.db, user["id"], user.get("login"), "conta_separada_pela_tela", "members",
+             resultado["para"]["id"], detail=resultado["login"])
+    return resultado
+
+
 def route_professores(ctx: "Context") -> Any:
     """Poe os dois professores no banco com vinculo, para a lista existir."""
     user = auth.require(ctx.user, "coordenacao")
@@ -2501,6 +2511,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/producao/?$", route_producao, "leitura"),
     ("POST", r"^/api/producao/importar/?$", route_producao_importar, "coordenacao"),
     ("POST", r"^/api/equipe/professores/?$", route_professores, "coordenacao"),
+    ("POST", r"^/api/equipe/separar/?$", route_separar_conta, "coordenacao"),
     ("GET", r"^/api/bibliotecas/?$", route_bibliotecas, "leitura"),
     # Estas duas vem ANTES da rota de um acervo so: "atualizar" casa com
     # [\w-]+, e na ordem inversa um GET aqui viraria "mostre o acervo de

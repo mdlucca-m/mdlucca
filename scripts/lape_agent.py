@@ -160,6 +160,16 @@ def cmd_usuarios(args: argparse.Namespace) -> int:
             auth.set_credentials(db, int(member_id), row[0]["login"] or args.login or "",
                                  senha, args.perfil, must_change=True)
             print(f"Senha de {row[0]['full_name']} redefinida para: {senha}")
+        elif args.separar:
+            login_value, nome = args.separar
+            saida = auth.separar_conta(db, login_value, nome)
+            print(f"Acesso de {saida['login']} saiu de \u201c{saida['de']['nome']}\u201d"
+                  f" (ficha {saida['de']['id']}) para \u201c{saida['para']['nome']}\u201d"
+                  f" (ficha {saida['para']['id']})")
+            for tabela, n in saida["movidos"].items():
+                if n:
+                    print(f"  {n} registro(s) de {tabela} foram junto")
+            print("  os artigos ficaram na ficha antiga: confira a autoria na tela")
         elif args.perfil_de:
             member_id, perfil = args.perfil_de
             db.execute("UPDATE members SET user_role = ? WHERE id = ?", (perfil, int(member_id)))
@@ -950,6 +960,9 @@ def build_parser() -> argparse.ArgumentParser:
                               help="redefine a senha de um integrante")
     users_parser.add_argument("--perfil-de", nargs=2, metavar=("ID", "PERFIL"),
                               dest="perfil_de")
+    users_parser.add_argument("--separar", nargs=2, metavar=("LOGIN", "NOME"),
+                              help="tira o acesso de uma ficha que virou de duas pessoas e o poe"
+                                   " numa ficha nova com o nome certo")
     users_parser.add_argument("--login", default=None)
     users_parser.set_defaults(func=cmd_usuarios)
 

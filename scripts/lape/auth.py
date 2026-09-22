@@ -147,6 +147,125 @@ def _nome_mais_completo(guardado: str | None, digitado: str) -> bool:
     return len(novas) > len(velhas) or inteiras(novas) > inteiras(velhas)
 
 
+def _ficha_para_a_conta(db: Database, full_name: str, extra: dict[str, Any]) -> int | None:
+    """A ficha que recebe o acesso -- e nunca a de outra pessoa.
+
+    Tres regras, na ordem, e todas por causa dos tres Vieiras: a ficha de
+    mesma chave (ou de grafia declarada), se ainda nao tem login; a ficha
+    de sobrenome sozinho ("Andrade", da planilha), se for a unica; senao,
+    uma ficha nova. O palpite por sobrenome do `member_id` -- bom para
+    casar autoria vinda de tres fontes -- nao entra aqui: com ele, quem se
+    cadastrava como "Fulano Vieira" caia na ficha de "Ericles de P Vieira",
+    e o ponto de um saia com o nome do outro.
+
+    Duas pessoas com a MESMA chave ("Eduardo Vieira" e "Elisa Vieira" dao
+    `vieira_e`) ganham fichas distintas: a segunda nasce com a chave do
+    nome inteiro, que nao colide.
+    """
+    from .util import author_key, display_name, norm_key
+
+    key = author_key(full_name)
+    if not key:
+        return None
+    nome = display_name(full_name) or clean_text(full_name)
+    achada = db.dicts("SELECT id, login, name_key FROM members WHERE name_key = ?", (key,))
+    if not achada:
+        achada = db.dicts(
+            "SELECT m.id, m.login, m.name_key FROM member_aliases a"
+            "  JOIN members m ON m.id = a.member_id WHERE a.name_key = ?", (key,))
+    if not achada and "_" in key:
+        # a ficha de sobrenome sozinho, que a planilha costuma trazer
+        sobrenome = key.split("_", 1)[0]
+        so_sobrenome = db.dicts("SELECT id, login, name_key FROM members WHERE name_key = ?",
+                                (sobrenome,))
+        if len(so_sobrenome) == 1:
+            achada = so_sobrenome
+    if not achada and "_" not in key and len(key) >= 4:
+        # o contrario: a pessoa digitou so o sobrenome ("Cardoso") e ha UMA
+        # ficha desse sobrenome. Um lado sem iniciais e o unico palpite
+        # seguro; iniciais dos dois lados que diferem sao duas pessoas.
+        do_sobrenome = [r for r in db.dicts(
+            "SELECT id, login, name_key FROM members WHERE name_key GLOB ?", (key + "_*",))
+            if r["name_key"].split("_", 1)[0] == key]
+        if len(do_sobrenome) == 1:
+            achada = do_sobrenome
+    if achada and not achada[0]["login"]:
+        member_id = int(achada[0]["id"])
+        if len(key) > len(achada[0]["name_key"] or ""):
+            # promove a chave: "andrade" -> "andrade_a"; nunca o contrario
+            db.execute("UPDATE members SET name_key = ? WHERE id = ?", (key, member_id))
+        db.update_row("members", member_id, extra)
+        return member_id
+    chave = key
+    if achada:
+        # mesma chave, outra pessoa com acesso: a nova nasce com a chave
+        # do nome inteiro, e se ate essa existir, numerada
+        chave = norm_key(nome)
+        n = 2
+        while db.dicts("SELECT id FROM members WHERE name_key = ?", (chave,)):
+            chave = f"{norm_key(nome)}_{n}"
+            n += 1
+    dados = {"name_key": chave, "full_name": nome}
+    dados.update({k: v for k, v in extra.items() if v is not None})
+    return int(db.upsert("members", dados, conflict=("name_key",)))
+
+
+def separar_conta(db: Database, login_value: str, nome: str) -> dict[str, Any]:
+    """Tira o acesso de uma ficha que virou de duas pessoas e o poe numa
+    ficha nova com o nome certo.
+
+    E o conserto do que o palpite por sobrenome fez: a pessoa entrou como
+    "Fulano Vieira", caiu na ficha de "Ericles de P Vieira", e o nome dela
+    nunca aparecia. O login, a senha, as sessoes, o ponto e o uso do
+    convite vao para a ficha nova -- sao da pessoa que entra com a senha.
+    Os artigos ficam: a autoria e da ficha antiga, e quem confere qual
+    artigo e de quem e a coordenacao, na tela.
+    """
+    from .util import norm_key
+
+    login_value = normalize_login(login_value)
+    nome = clean_text(nome)
+    if not nome:
+        raise AuthError("informe o nome certo da pessoa", 400)
+    antiga = db.dicts("SELECT * FROM members WHERE login = ?", (login_value,))
+    if not antiga:
+        raise AuthError(f"nenhum acesso com o login '{login_value}'", 404)
+    antiga = antiga[0]
+    chave = norm_key(nome)
+    n = 2
+    while db.dicts("SELECT id FROM members WHERE name_key = ?", (chave,)):
+        chave = f"{norm_key(nome)}_{n}"
+        n += 1
+    nova = int(db.upsert("members", {
+        "name_key": chave, "full_name": nome, "role": antiga.get("role"),
+        "research_line_id": antiga.get("research_line_id"), "is_external": 0, "active": 1,
+        "login": None,
+    }, conflict=("name_key",)))
+    # `user_role` nao aceita nulo: a ficha antiga volta ao perfil padrao,
+    # que sem login nao abre porta nenhuma
+    db.execute("UPDATE members SET login = NULL, password_hash = NULL, user_role = 'integrante',"
+               " must_change_password = 0, last_login_at = NULL, updated_at = datetime('now')"
+               " WHERE id = ?", (antiga["id"],))
+    db.execute("UPDATE members SET login = ?, password_hash = ?, user_role = ?,"
+               " must_change_password = ?, last_login_at = ?, updated_at = datetime('now')"
+               " WHERE id = ?",
+               (login_value, antiga["password_hash"], antiga["user_role"],
+                antiga["must_change_password"], antiga["last_login_at"], nova))
+    movidos = {}
+    for tabela in ("sessions", "invite_uses", "ponto"):
+        if not db.query(f"SELECT name FROM sqlite_master WHERE type = 'table' AND name = '{tabela}'"):
+            continue
+        n_ = int(db.scalar(f"SELECT COUNT(*) FROM {tabela} WHERE member_id = ?", (antiga["id"],)) or 0)
+        if n_:
+            db.execute(f"UPDATE {tabela} SET member_id = ? WHERE member_id = ?", (nova, antiga["id"]))
+        movidos[tabela] = n_
+    db.conn.commit()
+    log(db, nova, login_value, "conta_separada", "members", antiga["id"],
+        f"acesso de '{login_value}' saiu de \u201c{antiga['full_name']}\u201d para \u201c{nome}\u201d")
+    return {"de": {"id": int(antiga["id"]), "nome": antiga["full_name"]},
+            "para": {"id": nova, "nome": nome}, "login": login_value, "movidos": movidos}
+
+
 def create_account(db: Database, full_name: str, login: str, password: str | None = None,
                    role: str = "integrante", **extra: Any) -> dict[str, Any]:
     """Cria (ou reaproveita) o integrante e lhe da acesso.
@@ -155,7 +274,7 @@ def create_account(db: Database, full_name: str, login: str, password: str | Non
     da pessoa ligados a ele. Criar um segundo registro deixaria a producao
     dela orfa no painel.
     """
-    member_id = db.member_id(full_name, create=True, **extra)
+    member_id = _ficha_para_a_conta(db, full_name, extra)
     if member_id is None:
         raise AuthError("nao foi possivel identificar o nome informado", 400)
     # Dar conta a alguem e declarar que a pessoa e do laboratorio. Quem

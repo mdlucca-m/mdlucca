@@ -350,7 +350,7 @@ class TestRotaDaEquipe(unittest.TestCase):
         _, corpo = self.buscar("/api/equipe", cookie=self.entrar())
         for pessoa in corpo["items"]:
             self.assertEqual(set(pessoa),
-                             {"id", "full_name", "short_name", "role", "role_label", "orienta"})
+                             {"id", "full_name", "short_name", "role", "role_label", "orienta", "coorienta"})
 
 
 if __name__ == "__main__":

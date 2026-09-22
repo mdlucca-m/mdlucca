@@ -1626,6 +1626,14 @@ VIEWS.admin = {
     VIEW.appendChild(dupBox);
     await desenharDuplicatas(dupBox);
 
+    /* O contrário da ficha repetida: UMA ficha com DUAS pessoas. Aconteceu
+       com três alunos de sobrenome Vieira -- quem se cadastrava caía na
+       ficha do outro e o ponto saía com o nome errado. Aqui o acesso vai
+       para uma ficha nova, com o nome certo; os artigos ficam. */
+    const sepBox = h("div", {class: "card sec"});
+    VIEW.appendChild(sepBox);
+    await desenharSepararConta(sepBox);
+
     /* Quem é do laboratório e quem assinou um artigo com o laboratório.
        Eram a mesma coisa para o sistema: qualquer nome na lista de autores
        virava ficha de integrante, e o painel contava como equipe o
@@ -1780,6 +1788,36 @@ async function desenharRotina(box){
       } catch (e){ toast(e.message, "erro"); botao.disabled = false; }
     }});
   box.appendChild(h("div", {class: "actions"}, [botao]));
+}
+
+async function desenharSepararConta(caixa){
+  caixa.textContent = "";
+  caixa.appendChild(h("h3", {text: "Uma ficha com duas pessoas"}));
+  caixa.appendChild(h("p", {class: "hint", style: "margin:4px 0 12px",
+    text: "Quando alguém entrou e o nome que aparece é o de outra pessoa (aconteceu com "
+        + "os Vieiras), o acesso caiu na ficha errada. Escolha o login, escreva o nome certo, "
+        + "e o acesso, as sessões e o ponto vão para uma ficha nova. Os artigos ficam na antiga "
+        + "— confira a autoria depois."}));
+  let contas;
+  try { contas = (await api("/api/equipe/perfis")).contas || []; }
+  catch (e){ caixa.appendChild(h("p", {class: "hint", text: "Não deu para listar os acessos: " + e.message})); return; }
+  if (!contas.length){ caixa.appendChild(h("p", {class: "hint", text: "Ninguém tem acesso ainda."})); return; }
+  const sel = h("select", {}, contas.map(function (c){
+    return h("option", {value: c.login, text: (c.full_name || "?") + " — " + c.login}); }));
+  const nome = h("input", {type: "text", placeholder: "Nome certo da pessoa", style: "min-width:16rem"});
+  const botao = h("button", {class: "primary", text: "Separar", onclick: async function (){
+    if (!nome.value.trim()){ toast("Escreva o nome certo", "erro"); return; }
+    if (!confirm("Tirar o acesso " + sel.value + " da ficha atual e pô-lo numa ficha nova chamada \u201c" + nome.value.trim() + "\u201d?")) return;
+    botao.disabled = true;
+    try {
+      const r = await api("/api/equipe/separar", "POST", {login: sel.value, nome: nome.value.trim()});
+      toast("\u201c" + r.para.nome + "\u201d agora tem a própria ficha; \u201c" + r.de.nome + "\u201d ficou com os artigos.", "ok");
+      await loadLookups();
+      await desenharSepararConta(caixa);
+    } catch (e){ toast(e.message, "erro"); } finally { botao.disabled = false; }
+  }});
+  caixa.appendChild(h("div", {class: "actions", style: "display:flex;gap:8px;flex-wrap:wrap;align-items:center"},
+    [sel, nome, botao]));
 }
 
 async function desenharDuplicatas(caixa){

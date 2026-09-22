@@ -412,6 +412,14 @@ class Database:
         if len(rows) != 1:
             return None
         match = rows[0]
+        # Iniciais que existem dos dois lados e comecam diferente sao duas
+        # pessoas: "vieira_ep" (Ericles) nao e "vieira_f" (Fulano), mesmo
+        # sendo o unico Vieira do banco. Tres alunos com o mesmo sobrenome
+        # viravam uma ficha so, e o ponto de um saia com o nome do outro.
+        minhas = key.split("_", 1)[1] if "_" in key else ""
+        dele = match["name_key"].split("_", 1)[1] if "_" in match["name_key"] else ""
+        if minhas and dele and minhas[0] != dele[0]:
+            return None
         # promove a chave mais especifica ('andrade' -> 'andrade_a')
         if len(key) > len(match["name_key"]):
             self.conn.execute("UPDATE members SET name_key = ? WHERE id = ?", (key, match["id"]))
