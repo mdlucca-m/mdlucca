@@ -584,7 +584,7 @@ function graficoDasAreas() {
   const porLinha = (D.research_lines || []).map(function (l) {
     const meus = arts.filter(function (a) { return a.research_line === l.name; });
     return {
-      nome: l.name,
+      nome: l.name, icone: l.icone || "linhas",
       publicados: meus.filter(function (a) { return a.status === "publicado"; }).length,
       avaliacao: meus.filter(function (a) {
         return a.status === "submetido" || a.status === "em_revisao"; }).length,
@@ -612,23 +612,46 @@ function graficoDasAreas() {
   return {
     titulo: "Publicados, em avaliação e em produção", icone: "barras",
     nota: fmt(arts.length) + " artigos",
-    grafico: (porLinha.length && comArtigo) ? C.columns({
-      labels: porLinha.map(function (x) { return cortar(x.nome, 22); }),
-      series: [
-        { label: "Publicados", values: porLinha.map(function (x) { return x.publicados; }) },
-        { label: "Em avaliação", values: porLinha.map(function (x) { return x.avaliacao; }) },
-        { label: "Em produção", values: porLinha.map(function (x) { return x.producao; }) },
-      ],
-      mode: "empilhado", fill: true, height: 520, caption: "produção por linha de pesquisa",
-    /* Sem número de linhas na frase: `porLinha` já veio cortado em oito,
-       e dizer "as 8 linhas" num laboratório que cadastrou onze seria a
-       parede errando uma conta que qualquer um ali confere. */
-    }) : vazio(porLinha.length
-      ? "As linhas de pesquisa estão cadastradas, e nenhum dos "
-        + fmt(arts.length) + " artigos está ligado a uma delas. A linha se "
-        + "escolhe na ficha do artigo, no painel."
-      : "Nenhuma linha de pesquisa cadastrada."),
+    grafico: (porLinha.length && comArtigo) ? faixasPorLinha(porLinha)
+      : vazio(porLinha.length
+        ? "As linhas de pesquisa estão cadastradas, e nenhum dos "
+          + fmt(arts.length) + " artigos está ligado a uma delas. A linha se "
+          + "escolhe na ficha do artigo, no painel."
+        : "Nenhuma linha de pesquisa cadastrada."),
   };
+}
+
+/* Faixas horizontais, uma por linha, com o nome inteiro e o ícone da
+   linha. Era um gráfico de colunas: com duas linhas povoadas e seis
+   vazias saíam duas colunas magras num quadro do tamanho da parede, e os
+   nomes cortados em "Fibromialgia e doença…". Na horizontal o nome cabe,
+   cada linha ATIVA aparece -- com zero, que é informação --, e as três
+   situações se empilham na mesma faixa, na ordem em que o artigo anda:
+   em produção, em avaliação, publicado. */
+function faixasPorLinha(porLinha) {
+  const teto = Math.max(1, ...porLinha.map(function (x) { return x.total; }));
+  const partes = [
+    ["producao", "Em produção", "--series-3"],
+    ["avaliacao", "Em avaliação", "--series-2"],
+    ["publicados", "Publicados", "--series-1"],
+  ];
+  const lista = el("ul", { class: "faixas" }, porLinha.map(function (x, i) {
+    const trilho = el("div", { class: "trilho-faixa" }, partes.map(function (p) {
+      const largura = 100 * x[p[0]] / teto;
+      return el("i", { class: "parte", style: "--w:" + largura.toFixed(2) + "%;--c:var(" + p[2] + ")",
+        title: p[1] + ": " + fmt(x[p[0]]) }, x[p[0]] && largura >= 9 ? [el("b", { text: fmt(x[p[0]]) })] : []);
+    }));
+    return el("li", { style: "--i:" + i }, [
+      el("div", { class: "quem" }, [Icons.badge(x.icone, null, 26),
+        el("span", { text: x.nome, title: x.nome })]),
+      trilho,
+      el("span", { class: "total", text: fmt(x.total) }),
+    ]);
+  }));
+  const legenda = el("div", { class: "legenda-faixas" }, partes.map(function (p) {
+    return el("span", {}, [el("i", { style: "background:var(" + p[2] + ")" }), document.createTextNode(p[1])]);
+  }));
+  return el("div", { class: "faixas-caixa" }, [lista, legenda]);
 }
 
 /* Citações e produção por área na mesma tela.
@@ -730,7 +753,12 @@ function slideDestaques() {
     return !m.is_external && m.active !== 0 && !m.left_on
       && (!AREA || m.research_line === AREA);
   });
-  const equipe = doLape.slice(0, 8);
+  /* Quantas pessoas cabem depende da altura da parede: oito cabiam na TV
+     e não cabiam no monitor da sala, onde a tabela transbordava o cartão
+     e o cabeçalho, fixo no topo, cobria o primeiro nome. A conta usa a
+     altura de agora, e o cabeçalho deixou de ser fixo no mural. */
+  const CABEM_PESSOAS = Math.max(4, Math.min(8, Math.floor((window.innerHeight - 420) / 54)));
+  const equipe = doLape.slice(0, CABEM_PESSOAS);
 
   /* Quem é quem, e não quanto cada um produziu. Era um ranking de artigos
      por pessoa; a parede fica no corredor do laboratório e ordenar colegas
@@ -769,11 +797,11 @@ function slideDestaques() {
      parede não tem quem role. O resto vira "+3", que é informação -- ao
      contrário de um nome cortado no meio. */
   const CABEM = 4;
-  const porLinha = linhas.slice(0, 8).length ? el("table", { class: "placar" }, [
+  const porLinha = linhas.slice(0, CABEM_PESSOAS).length ? el("table", { class: "placar" }, [
     el("thead", {}, el("tr", {}, [
       el("th", { text: "Linha de pesquisa" }), el("th", { text: "Integrantes" }),
     ])),
-    el("tbody", {}, linhas.slice(0, 8).map(function (x) {
+    el("tbody", {}, linhas.slice(0, CABEM_PESSOAS).map(function (x) {
       const nomes = x.gente.map(function (m) { return m.short_name || m.full_name; });
       const mostra = nomes.slice(0, CABEM).join(", ")
         + (nomes.length > CABEM ? " +" + (nomes.length - CABEM) : "");

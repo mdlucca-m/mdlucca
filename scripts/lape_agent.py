@@ -358,6 +358,39 @@ def cmd_ana(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_linhas(args: argparse.Namespace) -> int:
+    """As linhas de pesquisa: listar, ou fundir uma na outra.
+
+        python3 scripts/lape_agent.py linhas
+        python3 scripts/lape_agent.py linhas --fundir "Dor Crônica e Fibromialgia" \
+            --em "Fibromialgia e doenças reumáticas"
+    """
+    from lape import linhas
+
+    db = Database(args.db)
+    try:
+        if args.fundir:
+            if not args.em:
+                print("diga em qual linha fundir: --em \"nome da linha\"")
+                return 2
+            saida = linhas.fundir(db, args.fundir, args.em)
+            print(f"“{saida['de']['nome']}” fundida em “{saida['para']['nome']}”")
+            for rotulo, n in saida["movidos"].items():
+                if n:
+                    print(f"  {n} {rotulo.lower()} passaram para a linha de destino")
+            print("  a linha antiga ficou no banco, inativa -- nada foi apagado")
+            return 0
+        for linha in db.dicts(
+                "SELECT rl.id, rl.name, rl.code, rl.active,"
+                "  (SELECT COUNT(*) FROM articles a WHERE a.research_line_id = rl.id) AS n"
+                "  FROM research_lines rl ORDER BY rl.active DESC, n DESC, rl.name"):
+            estado = "ativa" if linha["active"] else "encerrada"
+            print(f"  {linha['id']:>3}  {linha['name']}  [{estado}] — {linha['n']} artigo(s)")
+        return 0
+    finally:
+        db.close()
+
+
 def cmd_autoria(args: argparse.Namespace) -> int:
     """Diz se a ordem de autoria esta certa nesta maquina -- e qual e o defeito.
 
@@ -1054,6 +1087,12 @@ def build_parser() -> argparse.ArgumentParser:
     autoria_parser = subparsers.add_parser(
         "autoria", help="confere a ordem de autoria: a que a tela le e a que esta gravada")
     autoria_parser.set_defaults(func=cmd_autoria)
+
+    linhas_parser = subparsers.add_parser(
+        "linhas", help="as linhas de pesquisa: listar, ou fundir uma na outra")
+    linhas_parser.add_argument("--fundir", help="a linha que sai (id, código ou nome)")
+    linhas_parser.add_argument("--em", help="a linha que fica (id, código ou nome)")
+    linhas_parser.set_defaults(func=cmd_linhas)
 
     bib_parser = subparsers.add_parser(
         "biblioteca", help="os acervos de artigos: listar ou rodar as buscas")

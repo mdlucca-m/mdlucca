@@ -229,6 +229,61 @@ def instalar(db: Database, encerrar_as_que_sairam: bool = False) -> dict[str, An
             "total": len(LINHAS)}
 
 
+def _linha_por(db: Database, ref: Any) -> dict[str, Any] | None:
+    """Uma linha pelo id, pelo codigo ou pelo nome (sem caixa e sem acento)."""
+    from .util import norm_key
+
+    if ref is None or str(ref).strip() == "":
+        return None
+    if str(ref).isdigit():
+        achada = db.dicts("SELECT id, name, code, active FROM research_lines WHERE id = ?",
+                          (int(ref),))
+        if achada:
+            return achada[0]
+    alvo = norm_key(str(ref))
+    for linha in db.dicts("SELECT id, name, code, active FROM research_lines"):
+        if norm_key(linha["code"] or "") == alvo or norm_key(linha["name"] or "") == alvo:
+            return linha
+    return None
+
+
+def fundir(db: Database, de: Any, para: Any) -> dict[str, Any]:
+    """Junta uma linha na outra: tudo o que apontava para `de` passa a apontar
+    para `para`, e `de` sai das opcoes.
+
+    E o conserto para a linha em duplicata -- "Dor Cronica e Fibromialgia"
+    ao lado de "Fibromialgia e doencas reumaticas" -- que aparece quando a
+    planilha antiga e reimportada depois de a coordenacao ter redeclarado
+    a nomenclatura. Encerrar a antiga nao bastava: os artigos ficavam
+    pendurados nela, e a parede do mural mostrava duas colunas onde ha
+    uma linha.
+
+    Nada e apagado. A linha antiga fica no banco, inativa, com o nome que
+    tinha: e por ela que se sabe de onde os artigos vieram.
+    """
+    origem, destino = _linha_por(db, de), _linha_por(db, para)
+    if origem is None:
+        raise ValueError(f"linha de origem não encontrada: {de}")
+    if destino is None:
+        raise ValueError(f"linha de destino não encontrada: {para}")
+    if int(origem["id"]) == int(destino["id"]):
+        raise ValueError("a origem e o destino são a mesma linha")
+    movidos: dict[str, int] = {}
+    for tabela, rotulo in APONTAM_PARA_LINHA + (("biblioteca", "Acervos"),):
+        n = int(db.scalar(f"SELECT COUNT(*) FROM {tabela} WHERE research_line_id = ?",
+                          (origem["id"],)) or 0)
+        if n:
+            db.execute(f"UPDATE {tabela} SET research_line_id = ? WHERE research_line_id = ?",
+                       (destino["id"], origem["id"]))
+        movidos[rotulo] = n
+    db.execute("UPDATE research_lines SET active = 0 WHERE id = ?", (origem["id"],))
+    db.execute("UPDATE research_lines SET active = 1 WHERE id = ?", (destino["id"],))
+    db.conn.commit()
+    return {"de": {"id": int(origem["id"]), "nome": origem["name"]},
+            "para": {"id": int(destino["id"]), "nome": destino["name"]},
+            "movidos": movidos}
+
+
 def icone_de(codigo: str | None, nome: str | None) -> str:
     """O icone da linha, pelo codigo ou pelo nome -- "linha" quando nao ha.
 

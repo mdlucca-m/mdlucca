@@ -260,6 +260,43 @@ body { background: var(--surface-sunken); }
   font-size: clamp(11px, .82vw, calc(14px * var(--zoom, 1))); }
 .placar td.num.forte { font-size: clamp(15px, 1.35vw, calc(24px * var(--zoom, 1))); font-weight: 680;
   letter-spacing: -.02em; }
+/* O cabeçalho da tabela NÃO fica fixo no mural: a folha geral o prende
+   no topo para tabelas com rolagem, e aqui não há rolagem -- quando a
+   tabela transbordava o cartão, o cabeçalho fixo cobria o primeiro
+   nome da equipe. */
+.quadro .placar th { position: static; }
+/* o cartão alinha pelo topo: centrar uma tabela mais alta que o cartão
+   corta a primeira linha por cima e a última por baixo */
+.quadro .corpo:has(.placar) { justify-content: flex-start; }
+
+/* as faixas por linha de pesquisa */
+.faixas-caixa { display: flex; flex-direction: column; min-height: 0; flex: 1; justify-content: center; gap: 10px; }
+/* `--c` é a cor de cada parte, posta no elemento pelo mural.js; o padrão aqui
+   é para a folha nunca ter um token sem definição */
+.faixas { --c: var(--series-1); list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column;
+  gap: clamp(6px, 1vh, 14px); }
+.faixas li { display: grid; grid-template-columns: minmax(0, 34%) minmax(0, 1fr) auto; align-items: center;
+  gap: clamp(10px, 1vw, 18px); animation: sobe .5s cubic-bezier(.16, .84, .3, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms + 120ms); }
+.faixas .quem { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.faixas .quem span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: clamp(12px, 1vw, calc(17px * var(--zoom, 1))); font-weight: 620; }
+.trilho-faixa { display: flex; height: clamp(16px, 2.2vh, 30px); border-radius: 999px; overflow: hidden;
+  background: var(--surface-raised); border: 1px solid var(--border); }
+.trilho-faixa .parte { display: flex; align-items: center; justify-content: center; height: 100%;
+  width: 0; background: var(--c); animation: enche-faixa .9s cubic-bezier(.16, .84, .3, 1) forwards;
+  animation-delay: .3s; box-shadow: 0 0 10px color-mix(in srgb, var(--c) 50%, transparent); }
+.trilho-faixa .parte + .parte { border-left: 2px solid var(--surface); }
+.trilho-faixa .parte b { font-size: clamp(10px, .8vw, calc(13px * var(--zoom, 1))); color: #fff;
+  font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px rgba(0,0,0,.4); }
+@keyframes enche-faixa { to { width: var(--w, 0%); } }
+.faixas .total { font-size: clamp(14px, 1.3vw, calc(22px * var(--zoom, 1))); font-weight: 700;
+  font-variant-numeric: tabular-nums; min-width: 2.2ch; text-align: right; }
+.legenda-faixas { display: flex; gap: 16px; flex-wrap: wrap; font-size: clamp(11px, .8vw, calc(13.5px * var(--zoom, 1)));
+  color: var(--ink-2); }
+.legenda-faixas span { display: inline-flex; align-items: center; gap: 6px; }
+.legenda-faixas i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+@media (prefers-reduced-motion: reduce) { .trilho-faixa .parte { animation: none; width: var(--w, 0%); } .faixas li { animation: none; } }
 
 .trilho { height: calc(8px * var(--zoom, 1)); border-radius: 999px; background: var(--surface-raised); overflow: hidden;
   min-width: clamp(70px, 9vw, 190px); }

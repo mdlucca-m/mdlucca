@@ -178,16 +178,25 @@ def ingest_research_lines(db: Database, rows: list[dict]) -> int:
         if not name:
             continue
         code = norm_key(row.get("code") or name)
-        gravar_registro(db, "research_lines", {
-                "code": code,
-                "name": name,
-                "description": clean_text(row.get("description")),
-                "coordinator": clean_text(row.get("coordinator")),
-                "started_on": parse_date(row.get("started_on")),
-                "keywords": clean_text(row.get("keywords")),
-                "active": to_bool(row.get("active"), default=1),
-            }, ("code",), row, origem=ORIGEM_DA_LINHA,
-            sempre=("code", "name", "active"))
+        dados = {
+            "code": code,
+            "name": name,
+            "description": clean_text(row.get("description")),
+            "coordinator": clean_text(row.get("coordinator")),
+            "started_on": parse_date(row.get("started_on")),
+            "keywords": clean_text(row.get("keywords")),
+        }
+        # `active` so entra quando a planilha DIZ. Com a celula vazia, o
+        # padrao "1" reativava, a cada rodada do curador, toda linha que a
+        # coordenacao tinha encerrado na tela -- e as tres linhas da
+        # planilha antiga voltavam ao seletor de artigo todo dia. Linha
+        # nova nasce ativa pelo padrao da tabela.
+        sempre: tuple[str, ...] = ("code", "name")
+        if clean_text(row.get("active")) is not None:
+            dados["active"] = to_bool(row.get("active"), default=1)
+            sempre = sempre + ("active",)
+        gravar_registro(db, "research_lines", dados, ("code",), row,
+                        origem=ORIGEM_DA_LINHA, sempre=sempre)
         written += 1
     return written
 

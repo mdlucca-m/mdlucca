@@ -63,8 +63,15 @@ def _histogram(values: Iterable[float], bins: Sequence[tuple[float, float, str]]
 # Blocos do painel
 # ----------------------------------------------------------------------
 def research_lines(db: Database) -> list[dict]:
-    """Indice das linhas de pesquisa com producao associada."""
-    return db.dicts(
+    """Indice das linhas de pesquisa com producao associada.
+
+    O icone vai junto: e cromo da tela, e nao dado -- vem do vocabulario
+    das linhas, para o mural e o painel desenharem a mesma linha com o
+    mesmo desenho.
+    """
+    from . import linhas as vocabulario
+
+    achadas = db.dicts(
         """
         SELECT rl.id, rl.code, rl.name, rl.description, rl.coordinator,
                rl.keywords, rl.started_on, rl.active,
@@ -83,6 +90,9 @@ def research_lines(db: Database) -> list[dict]:
         ORDER BY n_articles DESC, rl.name
         """
     )
+    for linha in achadas:
+        linha["icone"] = vocabulario.icone_de(linha["code"], linha["name"])
+    return achadas
 
 
 def articles_by_status(db: Database, statuses: Sequence[str], order_by: str) -> list[dict]:

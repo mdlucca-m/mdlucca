@@ -676,6 +676,13 @@ function crudView(config){
           VIEW.appendChild(h("div", {class: "card sec"},
             [h("div", {class: "actions"}, [botao]), estado]));
         }
+        /* um painel próprio da tela, entre o atalho e o cadastro -- é onde
+           a tela de linhas põe o "fundir", que não é cadastro nem atalho */
+        if (config.painel && can("coordenacao")){
+          const casa = h("div", {class: "card sec"});
+          VIEW.appendChild(casa);
+          try { await config.painel(casa); } catch (e){ casa.appendChild(h("p", {class: "hint", text: e.message})); }
+        }
         const formHost = h("div", {class: "card sec"});
         const titulo = h("h3", {style: "margin-bottom:12px", text: config.formTitle});
         formHost.appendChild(titulo);
@@ -1151,6 +1158,43 @@ VIEWS.linhas = crudView({
       });
       return partes.length ? partes.join(" · ") : "As 8 já estavam cadastradas.";
     },
+  },
+  /* Fundir: a linha antiga da planilha ("Dor Crônica e Fibromialgia") ao
+     lado da declarada ("Fibromialgia e doenças reumáticas") são UMA linha
+     com dois nomes, e encerrar a antiga deixava os artigos pendurados
+     nela -- o mural mostrava duas colunas onde há uma. Fundir leva os
+     artigos junto e encerra a antiga; nada é apagado. */
+  painel: async function (casa){
+    const r = await api("/api/research-lines?limit=200");
+    const linhas = r.items.slice().sort(function (a, b){ return a.name.localeCompare(b.name, "pt-BR"); });
+    if (linhas.length < 2) return;
+    const opcao = function (l){
+      return h("option", {value: String(l.id), text: l.name + (l.active ? "" : " (encerrada)")});
+    };
+    const de = h("select", {}, linhas.map(opcao));
+    const para = h("select", {}, linhas.filter(function (l){ return l.active; }).map(opcao));
+    const estado = h("p", {class: "hint", style: "margin:8px 0 0",
+      text: "Tudo o que aponta para a primeira passa a apontar para a segunda, e a primeira "
+        + "sai das opções. Nada é apagado."});
+    const botao = h("button", {class: "primary", text: "Fundir", onclick: async function (){
+      if (de.value === para.value){ toast("Escolha duas linhas diferentes", "erro"); return; }
+      const nomeDe = de.options[de.selectedIndex].text, nomePara = para.options[para.selectedIndex].text;
+      if (!confirm("Fundir \u201c" + nomeDe + "\u201d em \u201c" + nomePara + "\u201d?\n\n"
+        + "Os artigos, pessoas, projetos e atividades passam para a segunda; a primeira sai das opções.")) return;
+      botao.disabled = true;
+      try {
+        const s = await api("/api/linhas/fundir", "POST", {de: de.value, para: para.value});
+        const partes = Object.keys(s.movidos).filter(function (k){ return s.movidos[k]; })
+          .map(function (k){ return s.movidos[k] + " " + k.toLowerCase(); });
+        toast("\u201c" + s.de.nome + "\u201d fundida em \u201c" + s.para.nome + "\u201d"
+          + (partes.length ? " — " + partes.join(", ") + " passaram junto" : ""), "ok");
+        await VIEWS.linhas.render();
+      } catch (e){ toast(e.message, "erro"); } finally { botao.disabled = false; }
+    }});
+    casa.appendChild(h("h3", {style: "margin-bottom:6px", text: "Fundir uma linha em outra"}));
+    casa.appendChild(h("div", {class: "actions", style: "display:flex;gap:8px;flex-wrap:wrap;align-items:center"},
+      [de, h("span", {class: "hint", text: "em"}), para, botao]));
+    casa.appendChild(estado);
   },
   formTitle: "Nova linha de pesquisa", listTitle: "Linhas cadastradas",
   fields: [

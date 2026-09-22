@@ -157,6 +157,7 @@ def route_index(ctx: "Context") -> Any:
             "GET  /api/bancada/exportar      (coordenação) medidas em formato longo",
             "GET  /api/linhas/sugerir        (coordenação) liga artigo a linha pelo título",
             "POST /api/linhas/ligar          (coordenação) grava as ligações aprovadas",
+            "POST /api/linhas/fundir         (coordenação) junta uma linha na outra: {de, para}",
             "GET  /api/automation             (coordenação) webhooks e entregas",
             "POST /api/webhooks               (coordenação) cadastra destino n8n",
             "POST /api/hooks/n8n              porta de entrada do n8n (HMAC ou token)",
@@ -2149,6 +2150,24 @@ def route_producao_importar(ctx: "Context") -> Any:
     return resultado
 
 
+def route_linhas_fundir(ctx: "Context") -> Any:
+    """Junta uma linha na outra. Nada e apagado: a antiga fica, inativa."""
+    from . import hooks, linhas
+
+    user = auth.require(ctx.user, "coordenacao")
+    corpo = ctx.body or {}
+    try:
+        resultado = linhas.fundir(ctx.db, corpo.get("de"), corpo.get("para"))
+    except ValueError as exc:
+        raise ApiError(400, str(exc)) from exc
+    auth.log(ctx.db, user["id"], user.get("login"), "linha_fundida", "research_lines",
+             resultado["de"]["id"], f"{resultado['de']['nome']} -> {resultado['para']['nome']}")
+    hooks.emit(ctx.db, "linhas.fundidas", entity="research_lines",
+               entity_id=resultado["para"]["id"], actor=user.get("login"),
+               detail=f"{resultado['de']['nome']} em {resultado['para']['nome']}")
+    return resultado
+
+
 def route_linhas_padrao(ctx: "Context") -> Any:
     """Instala as linhas de pesquisa declaradas pelo laboratorio."""
     user = auth.require(ctx.user, "coordenacao")
@@ -2485,6 +2504,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/bancada/exportar/?$", route_bancada_exportar, "coordenacao"),
     ("GET", r"^/api/linhas/sugerir/?$", route_linhas_sugerir, "coordenacao"),
     ("POST", r"^/api/linhas/ligar/?$", route_linhas_ligar, "coordenacao"),
+    ("POST", r"^/api/linhas/fundir/?$", route_linhas_fundir, "coordenacao"),
     ("GET", r"^/api/equipe/vinculo/?$", route_vinculo, "coordenacao"),
     ("POST", r"^/api/equipe/vinculo/?$", route_vinculo_marcar, "coordenacao"),
     ("POST", r"^/api/equipe/vinculo/lote/?$", route_vinculo_lote, "coordenacao"),
