@@ -298,11 +298,22 @@ def cmd_triagem(args: argparse.Namespace) -> int:
         db.close()
         return 0
 
+    from lape import linhas as linhas_de_pesquisa
+
+    # A linha entra por reconciliacao, e nao por `WHERE code = ?`: o banco
+    # de um laboratorio que veio de planilha guarda a mesma linha noutro
+    # codigo, e a busca crua devolve None calada -- a revisao nasce sem
+    # linha e some da segmentacao da tela.
+    linha_id = linhas_de_pesquisa.id_de(db, args.linha)
+    if args.linha and linha_id is None:
+        print(f"  ! nenhuma linha de pesquisa com o codigo “{args.linha}”."
+              f" A revisao vai ficar sem linha.")
     review_id = revisao.criar(
         db, args.criar, args.titulo or args.criar,
         question=args.pergunta, population=args.populacao,
         intervention=args.intervencao, comparison=args.comparador,
         outcome=args.desfecho, study_designs=args.delineamentos,
+        research_line_id=linha_id,
         reviewers_needed=args.avaliadores)
     print(f"  triagem ........ {args.criar}")
     if args.do_acervo:
@@ -318,6 +329,25 @@ def cmd_triagem(args: argparse.Namespace) -> int:
                   f"  {conta['novos']:4d} novo(s)  {conta['duplicados']:4d} repetido(s)")
         if resumo.get("aviso"):
             print(f"  ! {resumo['aviso']}")
+    # A extracao ja nasce preparada. Deixar para depois parece inofensivo e
+    # nao e: quem prepara a ficha com metade dos estudos ja lidos descobre
+    # o campo que falta relendo os estudos todos, e e sempre um campo que
+    # nao se acha no resumo -- financiamento, alfa na amostra, o resultado
+    # que nao deu significativo.
+    if args.formulario or args.rob:
+        from lape import extracao
+        try:
+            pronto = extracao.preparar(db, review_id, args.rob or "rob2",
+                                       formulario=args.formulario or "padrao")
+        except ValueError as erro:
+            print(f"  ! {erro}")
+            db.close()
+            return 1
+        forma = extracao.formulario_de(db, review_id)
+        print(f"  formulario ..... {forma['nome']} ({pronto['campos']} campos)")
+        print(f"  qualidade ...... {extracao.ferramenta_da(db, review_id)['nome']}")
+        print(f"                   {pronto['dominios']} dominio(s)")
+
     quadro = revisao.prisma(db, review_id)
     print(f"  na fila ........ {quadro['pendentes']} referencia(s) para triar")
     print("\n  A triagem em si e na tela, em /triagem -- e de dois avaliadores.")
@@ -471,6 +501,14 @@ def cmd_biblioteca(args: argparse.Namespace) -> int:
               f" em {r['buscas']} busca(s)")
         for aviso in r["sem_chave"]:
             print(f"  . {aviso['rotulo']}: {aviso['porque']}")
+        # O corte vai DEPOIS do total, e nao no meio das buscas: ali ele
+        # passa numa linha entre trinta iguais, e e justamente o numero que
+        # nao pode passar batido -- "400 achados" de uma base que tem
+        # 17.128 e o numero que alguem copia para a tabela da revisao.
+        for corte in r.get("cortadas", []):
+            onde = f"{corte['rotulo']}/{corte['segmento'] or 'geral'}"
+            print(f"  ! {onde}: veio {corte['recolhidos']}, a base tem "
+                  f"{corte['na_base']} — o acervo ficou cortado no teto")
     print(f"\n{total_novos} artigo(s) novo(s) em {len(escolhidos)} acervo(s).")
     db.close()
     return 1 if falhou else 0
@@ -1041,8 +1079,18 @@ def build_parser() -> argparse.ArgumentParser:
                                 help="desenhos elegiveis, em texto")
     triagem_parser.add_argument("--avaliadores", type=int, default=2,
                                 help="quantos triadores por referencia (padrao: 2)")
+    triagem_parser.add_argument(
+        "--linha", metavar="CODIGO",
+        help="a linha de pesquisa a que a revisao pertence")
     triagem_parser.add_argument("--do-acervo", metavar="CODIGO", dest="do_acervo",
                                 help="traz as referencias deste acervo da biblioteca")
+    triagem_parser.add_argument(
+        "--formulario", metavar="NOME",
+        help="ja prepara a extracao com este formulario: padrao, completo"
+             " ou autodeterminacao")
+    triagem_parser.add_argument(
+        "--rob", metavar="NOME",
+        help="instrumento de qualidade: rob2, robins, mmat ou jbi_transversal")
     triagem_parser.set_defaults(func=cmd_triagem)
 
     ana_parser = subparsers.add_parser(

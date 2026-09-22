@@ -1910,6 +1910,10 @@ def route_review_form(ctx: "Context", review_id: str) -> Any:
         "ferramentas": [{"codigo": c, "nome": f["nome"],
                          "dominios": len(f["dominios"])}
                         for c, f in extracao.FERRAMENTAS_ROB.items()],
+        "formulario": extracao.formulario_de(ctx.db, rev["id"]),
+        "formularios": [{"codigo": c, "nome": m["nome"],
+                         "descricao": m["para"], "campos": len(m["campos"])}
+                        for c, m in extracao.MODELOS.items()],
         "progresso": extracao.progresso(ctx.db, rev["id"]),
         "incluidos": ctx.db.dicts(
             "SELECT r.id, r.title, r.authors, r.journal, r.year, r.doi, r.url,"

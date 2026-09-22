@@ -124,7 +124,7 @@ class TestABarraChegaAoFim(BaseDosAcervos):
     """
 
     def test_um_aviso_por_busca_e_o_total_bate(self):
-        self.sem_rede(lambda base, query, limite: [_registro(1)])
+        self.sem_rede(lambda base, query, limite: ([_registro(1)], None))
         passos = []
         total = biblioteca.quantas_buscas(self.db, "humor_estetico")
         biblioteca.atualizar(self.db, "humor_estetico",
@@ -137,7 +137,7 @@ class TestABarraChegaAoFim(BaseDosAcervos):
     def test_base_sem_chave_avisa_das_puladas_tambem(self):
         def colher(base, query, limite):
             if base == biblioteca.PUBMED:
-                return [_registro(1)]
+                return [_registro(1)], None
             raise biblioteca.SemChave(f"{base}: sem chave")
 
         self.sem_rede(colher)
@@ -157,7 +157,7 @@ class TestABarraChegaAoFim(BaseDosAcervos):
             chamadas["n"] += 1
             if chamadas["n"] == 1:
                 raise RuntimeError("a rede caiu")
-            return [_registro(chamadas["n"])]
+            return [_registro(chamadas["n"])], None
 
         self.sem_rede(colher)
         passos = []
@@ -168,7 +168,7 @@ class TestABarraChegaAoFim(BaseDosAcervos):
 
     def test_sem_progresso_nada_muda(self):
         """O parametro e opcional, e quem chama de um script nao o passa."""
-        self.sem_rede(lambda base, query, limite: [_registro(1)])
+        self.sem_rede(lambda base, query, limite: ([_registro(1)], None))
         r = biblioteca.atualizar(self.db, "humor_estetico")
         self.assertGreater(r["novos"], 0)
 
@@ -177,7 +177,7 @@ class TestAAtualizacaoDeTudo(BaseDosAcervos):
     """Os tres acervos numa tacada, acompanhados de fora."""
 
     def test_roda_os_tres_e_soma_o_resultado(self):
-        self.sem_rede(lambda base, query, limite: [_registro(1), _registro(2)])
+        self.sem_rede(lambda base, query, limite: ([_registro(1), _registro(2)], None))
         codes = [x["code"] for x in biblioteca.todas(self.db, perfil="admin")]
         atualizacao.iniciar(self.db_path, codes)
         fim = self.esperar_o_fim()
@@ -192,7 +192,7 @@ class TestAAtualizacaoDeTudo(BaseDosAcervos):
 
         def colher(base, query, limite):
             liberar.wait(10)
-            return [_registro(1)]
+            return [_registro(1)], None
 
         self.sem_rede(colher)
         inicio = atualizacao.iniciar(self.db_path, ["humor_estetico"])
@@ -213,7 +213,7 @@ class TestAAtualizacaoDeTudo(BaseDosAcervos):
 
         def colher(base, query, limite):
             liberar.wait(10)
-            return [_registro(1)]
+            return [_registro(1)], None
 
         self.sem_rede(colher)
         atualizacao.iniciar(self.db_path, ["humor_estetico"])
@@ -223,7 +223,7 @@ class TestAAtualizacaoDeTudo(BaseDosAcervos):
         self.esperar_o_fim()
 
     def test_depois_de_terminar_da_para_rodar_de_novo(self):
-        self.sem_rede(lambda base, query, limite: [])
+        self.sem_rede(lambda base, query, limite: ([], None))
         atualizacao.iniciar(self.db_path, ["humor_estetico"])
         self.esperar_o_fim()
         atualizacao.iniciar(self.db_path, ["humor_estetico"])
@@ -238,7 +238,7 @@ class TestAAtualizacaoDeTudo(BaseDosAcervos):
             return de_verdade(db, code, **kw)
 
         self.sem_traceback()
-        self.sem_rede(lambda base, query, limite: [_registro(1)])
+        self.sem_rede(lambda base, query, limite: ([_registro(1)], None))
         self.trocar(biblioteca, "atualizar", atualizar)
         atualizacao.iniciar(self.db_path,
                             ["humor_estetico", "humor_esporte"])
@@ -269,7 +269,7 @@ class TestAAtualizacaoDeTudo(BaseDosAcervos):
         Devolver o dicionario vivo faria a tela ler um numero que muda no
         meio da serializacao -- e mexer no que ela leu mexeria no estado.
         """
-        self.sem_rede(lambda base, query, limite: [])
+        self.sem_rede(lambda base, query, limite: ([], None))
         atualizacao.iniciar(self.db_path, ["humor_estetico"])
         self.esperar_o_fim()
         copia = atualizacao.estado()
@@ -326,7 +326,7 @@ class TestARotaDeAtualizarTudo(unittest.TestCase):
     def setUp(self):
         # Sem rede: a rota de verdade seria noventa buscas.
         antigo = biblioteca._colher
-        biblioteca._colher = lambda base, query, limite: []
+        biblioteca._colher = lambda base, query, limite: ([], None)
         self.addCleanup(setattr, biblioteca, "_colher", antigo)
         passo = biblioteca.THROTTLE
         biblioteca.THROTTLE = 0
@@ -445,7 +445,7 @@ class TestARotaDeAtualizarTudo(unittest.TestCase):
 
         def colher(base, query, limite):
             liberar.wait(10)
-            return []
+            return [], None
 
         antigo = biblioteca._colher
         biblioteca._colher = colher

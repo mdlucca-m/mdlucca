@@ -402,6 +402,17 @@ MOTIVACAO_TERMOS = (
     # Os instrumentos, que e como a literatura de campo se cita. Sem eles,
     # o artigo que diz "we applied the BRSQ" no resumo e nao repete
     # "motivation" fica de fora -- e e o mais especifico do acervo.
+    #
+    # A SIGLA e o que funciona, e o nome por extenso nao: medido na
+    # PubMed em 21/09/2026, "BRSQ" da 20 registros, "TEOSQ" 33 e "PMCSQ"
+    # 26, enquanto "Behavioural Regulation in Sport Questionnaire" da
+    # ZERO -- a PubMed descarta a expressao calada, como descarta
+    # "balonmano" e "handebol", e a busca roda sem ela sem dizer nada. O
+    # nome por extenso fica assim mesmo, pela mesma razao que os termos em
+    # espanhol ficam: ele nao e para a PubMed. E o nome oficial do
+    # instrumento, com a grafia britanica do autor, e e por ele que a
+    # Scopus, a WoS e a SPORTDiscus indexam o artigo que so o cita no
+    # texto. Custa nada onde nao serve.
     "Sport Motivation Scale", "Behavioural Regulation in Sport Questionnaire",
     "BRSQ", "TEOSQ", "PMCSQ",
 )
@@ -431,23 +442,26 @@ MOTIVACAO_REGIONAIS = (
     "autodeterminação", "autodeterminacion", "metas de logro",
 )
 
-# Os temas em que o acervo se divide. Os numeros ao lado foram MEDIDOS na
-# PubMed em 21/09/2026, e nao estimados -- mas foram medidos com uma
-# forma REDUZIDA desta estrategia (o construto encurtado, para caber no
-# limite de operadores da consulta), e por isso sao um piso, e nao a
-# contagem final. Servem para uma coisa so, que e para o que foram
-# feitos: dizer que nenhum segmento esta vazio. O numero de verdade
-# aparece no acervo depois da primeira atualizacao, e e ele que vale.
+# Os temas em que o acervo se divide, com o que cada um TROUXE na PubMed
+# na busca de 21/09/2026 -- a estrategia inteira desta vez, rodada pelo
+# sistema, e nao a forma reduzida que se mediu a mao quando o acervo foi
+# escrito. Estes numeros substituem aqueles, e a diferenca entre os dois
+# e a razao de terem sido substituidos: a forma reduzida prometia ser um
+# PISO, e nao era. Desempenho, que se mediu com 45, trouxe 39; formacao,
+# com 25, trouxe 21; e autodeterminacao, com 19, trouxe 29. Um numero
+# medido com outra estrategia nao limita o desta -- ele so parece limitar,
+# que e pior.
 #
-# A base inteira -- motivacao E handebol -- deu 60. Os segmentos se
+# A base inteira -- motivacao E handebol -- deu 63. Os segmentos se
 # sobrepoem, porque um trabalho sobre clima motivacional em categoria de
 # base conta nos dois, e isso e proposital: segmento aqui e recorte de
-# leitura, nao gaveta.
+# leitura, nao gaveta. Por isso a soma deles passa de 63 e nao ha erro
+# nisso.
 #
 # Nenhum segmento vazio entra: segmento sem nada faz a tela parecer
 # quebrada e faz quem olha desconfiar do acervo inteiro. A coesao, com
-# tres, e o menor que passou -- e fica porque num esporte coletivo a
-# pergunta se faz, mesmo que a literatura ainda nao a tenha respondido.
+# seis, e o menor -- e fica porque num esporte coletivo a pergunta se
+# faz, mesmo que a literatura ainda a tenha respondido pouco. Um numero
 # Um numero pequeno a vista vale mais do que um segmento escondido.
 TEMAS_MOTIVACAO_HANDEBOL: tuple[tuple[str, tuple[str, ...]], ...] = (
     # 45 registros
@@ -468,7 +482,7 @@ TEMAS_MOTIVACAO_HANDEBOL: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Comparação entre os sexos",
      ("sex differences", "gender differences", "boys and girls", "men and women",
       "sex comparison")),
-    # 29
+    # 32
     ("Treinador, liderança e relação",
      ("coach", "coaches", "coaching", "coaching style", "coach behaviour",
       "coach behavior", "leadership", "coach-athlete relationship",
@@ -486,13 +500,13 @@ TEMAS_MOTIVACAO_HANDEBOL: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Adulto, profissional e seleção",
      ("adult", "senior", "professional", "first division", "national team",
       "international level")),
-    # 20
+    # 23
     ("Clima motivacional e metas de realização",
      ("motivational climate", "achievement goal", "achievement goals",
       "goal orientation", "task orientation", "ego orientation",
       "mastery climate", "performance climate", "task involvement",
       "ego involvement")),
-    # 19
+    # 29
     ("Autodeterminação e necessidades psicológicas",
      ("self-determination", "self-determined motivation", "intrinsic motivation",
       "extrinsic motivation", "amotivation", "basic psychological needs",
@@ -502,11 +516,11 @@ TEMAS_MOTIVACAO_HANDEBOL: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Lesão e retorno ao jogo",
      ("injury", "injuries", "rehabilitation", "return to play", "return to sport",
       "fear of reinjury")),
-    # 8
+    # 9
     ("Burnout, abandono e permanência",
      ("burnout", "dropout", "drop-out", "withdrawal", "attrition", "adherence",
       "retention", "engagement", "athlete burnout")),
-    # 7
+    # 10
     ("Autoeficácia, ansiedade e confiança",
      ("self-efficacy", "self-confidence", "competitive anxiety", "anxiety",
       "mental toughness", "resilience", "self-esteem")),
@@ -515,7 +529,7 @@ TEMAS_MOTIVACAO_HANDEBOL: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Praia e handebol adaptado",
      ("beach handball", "wheelchair", "disability", "para sport",
       "adapted handball", "goalball")),
-    # 3
+    # 6
     ("Coesão e eficácia coletiva",
      ("cohesion", "team cohesion", "collective efficacy", "group dynamics",
       "teamwork", "team climate")),
@@ -532,8 +546,8 @@ TEMAS_MOTIVACAO_HANDEBOL: tuple[tuple[str, tuple[str, ...]], ...] = (
 #
 # A ARMADILHA AQUI E O CONSTRUTO, e ela e a razao de este bloco existir.
 # Se "motivation" entrasse na lista, o recorte devolveria praticamente o
-# acervo inteiro com outro nome: medido na PubMed, a motivacao em geral
-# da 60 registros e a autodeterminacao da 22. Os 38 de diferenca sao
+# acervo inteiro com outro nome: buscado na PubMed, a motivacao em geral
+# da 63 registros e a autodeterminacao da 27. Os 36 de diferenca sao
 # clima motivacional, metas de realizacao, coesao -- literatura
 # legitima, de OUTRA teoria, e e justamente o que este acervo nao quer.
 #
@@ -567,13 +581,14 @@ AUTODETERMINACAO_REGIONAIS = (
     "apoio à autonomia", "apoyo a la autonomía",
 )
 
-# Os temas, com o que cada um tem na PubMed -- medido em 21/09/2026, com
-# uma forma reduzida da estrategia (o limite de operadores da consulta nao
-# deixou rodar a inteira). Sao um piso, e servem para uma coisa so: dizer
-# que nenhum segmento esta vazio. A base inteira deu 22.
+# Os temas, com o que cada um TROUXE na PubMed na busca de 21/09/2026 --
+# a estrategia inteira, rodada pelo sistema, e nao a forma reduzida que
+# se mediu a mao quando o acervo foi escrito. A base inteira deu 27,
+# contra os 22 daquela medida.
 #
 # Num acervo deste tamanho os segmentos se sobrepoem muito -- um estudo de
 # suporte a autonomia em categoria de base conta em tres deles. Isso e
+# proposital: segmento aqui e recorte de leitura, e nao gaveta, e e por
 # proposital: segmento aqui e recorte de leitura, e nao gaveta.
 TEMAS_AUTODETERMINACAO: tuple[tuple[str, tuple[str, ...]], ...] = (
     # 15 registros
@@ -591,23 +606,23 @@ TEMAS_AUTODETERMINACAO: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Adulto, profissional e seleção",
      ("adult", "senior", "professional", "national team", "first division",
       "international level")),
-    # 15
+    # 20
     ("Desempenho, treino e nível competitivo",
      ("performance", "effort", "training", "competitive level", "elite",
       "professional", "season")),
-    # 11
+    # 13
     ("Treinador: suporte à autonomia e estilo controlador",
      ("coach", "coaches", "coaching", "autonomy-supportive", "controlling",
       "coach-athlete relationship", "interpersonal style")),
-    # 10
+    # 14
     ("Necessidades psicológicas básicas",
      ("need satisfaction", "need frustration", "need thwarting", "autonomy",
       "competence", "relatedness", "basic needs")),
-    # 10
+    # 13
     ("Instrumentos e validação",
      ("validation", "psychometric", "factor structure", "questionnaire", "scale",
       "invariance", "reliability")),
-    # 8
+    # 12
     ("Bem-estar, vitalidade e burnout",
      ("well-being", "wellbeing", "ill-being", "vitality", "burnout", "enjoyment",
       "satisfaction with life", "positive affect")),
@@ -615,7 +630,7 @@ TEMAS_AUTODETERMINACAO: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Persistência, abandono e intenção de continuar",
      ("dropout", "drop-out", "intention to continue", "persistence", "adherence",
       "commitment", "engagement", "attrition")),
-    # 5
+    # 6
     ("Regulações motivacionais: o continuum",
      ("identified regulation", "introjected regulation", "external regulation",
       "integrated regulation", "autonomous motivation", "controlled motivation",
@@ -702,8 +717,8 @@ BIBLIOTECAS: tuple[dict[str, Any], ...] = (
             "O que move quem joga handebol: por que entra, por que fica e por que "
             "para. A motivação é o construto e o handebol é a população, e por isso "
             "o acervo se divide por TEMA — a modalidade é uma só e se repetiria em "
-            "todo segmento. Eram cerca de 60 registros na PubMed quando o acervo "
-            "foi montado — pequeno e inteiro de ler, o que o torna bom para uma "
+            "todo segmento. São 63 registros na PubMed na busca de setembro de 2026 "
+            "— pequeno e inteiro de ler, o que o torna bom para uma "
             "revisão de escopo: dá para dizer o que existe sem depender de "
             "amostragem. Scopus e Web of Science entram com a mesma estratégia, "
             "escrita na sintaxe de cada uma — e mais seis bases que o sistema "
@@ -737,7 +752,7 @@ BIBLIOTECAS: tuple[dict[str, Any], ...] = (
             "o handebol — necessidades psicológicas básicas, as regulações do "
             "continuum, suporte à autonomia e estilo controlador do treinador. É "
             "um recorte do acervo de motivação no handebol, e não um acervo "
-            "paralelo: lá são 60 registros na PubMed, aqui 22. Os 38 de diferença "
+            "paralelo: lá são 63 registros na PubMed, aqui 27. Os 36 de diferença "
             "são clima motivacional, metas de realização e coesão — literatura "
             "legítima, de outra teoria, e é justamente o que este acervo deixa de "
             "fora de propósito. Por isso o vocabulário não tem a palavra "
@@ -802,10 +817,15 @@ def instalar(db: Database) -> dict[str, Any]:
     buscas sao atualizadas pela estrategia escrita aqui, e o acervo ja
     recolhido continua onde esta.
     """
+    from . import linhas as linhas_de_pesquisa
+
     novas, ja_havia = [], []
     for decl in BIBLIOTECAS:
-        linha_id = db.scalar("SELECT id FROM research_lines WHERE code = ?",
-                             (decl["linha"],))
+        # Pela reconciliacao, e nao por `WHERE code = ?`: o banco veio de
+        # planilha e guarda a psicologia do esporte noutro codigo. A busca
+        # crua devolvia None, e None aqui nao da erro -- so faz o acervo
+        # nascer sem linha e sumir da segmentacao da tela.
+        linha_id = linhas_de_pesquisa.id_de(db, decl["linha"])
         achada = db.scalar("SELECT id FROM biblioteca WHERE code = ?", (decl["code"],))
         if achada:
             db.execute(
@@ -1056,6 +1076,10 @@ def atualizar(db: Database, code: str, limite: int = 400,
     reclassificar(db, code)
     resumo = {"biblioteca": titulo, "buscas": 0, "achados": 0, "novos": 0,
               "erros": 0, "sem_chave": [], "por_base": {}, "segmentos": [],
+              # As buscas que bateram no teto: o que veio nao e o que ha.
+              # Ficam separadas dos erros de proposito -- a busca funcionou,
+              # o acervo e que ficou pela metade, e o remedio e outro.
+              "cortadas": [],
               "repetidos_juntados": limpeza["juntados"]}
 
     # Uma chave que falta e uma noticia so, e nao quinze. Antes de rodar as
@@ -1067,7 +1091,8 @@ def atualizar(db: Database, code: str, limite: int = 400,
     total = len(buscas)
 
     def terminou(base: str, segmento: str | None, situacao: str,
-                 achados: int = 0, novos: int = 0, recado: str = "") -> None:
+                 achados: int = 0, novos: int = 0, recado: str = "",
+                 na_base: int | None = None) -> None:
         """Fecha a busca: grava o que ela trouxe, e so entao avisa.
 
         O COMMIT E POR BUSCA, e nao no fim do acervo -- e essa e a
@@ -1099,6 +1124,8 @@ def atualizar(db: Database, code: str, limite: int = 400,
                    "rotulo": ROTULO_BASE.get(base, base),
                    "segmento": segmento, "situacao": situacao,
                    "achados": achados, "novos": novos, "recado": recado,
+                   "na_base": na_base,
+                   "cortada": na_base is not None and na_base > achados,
                    "feitas": feitas, "total": total})
 
     for busca in buscas:
@@ -1111,7 +1138,7 @@ def atualizar(db: Database, code: str, limite: int = 400,
             continue
         resumo["buscas"] += 1
         try:
-            registros = _colher(base, busca["query"], limite)
+            registros, na_base = _colher(base, busca["query"], limite)
         except SemChave as erro:
             desligadas[base] = str(erro)
             resumo["sem_chave"].append({"base": base, "rotulo": ROTULO_BASE.get(base, base),
@@ -1139,8 +1166,13 @@ def atualizar(db: Database, code: str, limite: int = 400,
                 novos += 1
         db.execute(
             "UPDATE biblioteca_busca SET rodada_em = ?, achados = ?, novos = ?,"
-            "       erro = NULL WHERE id = ?",
-            (hoje, len(registros), novos, busca["id"]))
+            "       na_base = ?, erro = NULL WHERE id = ?",
+            (hoje, len(registros), novos, na_base, busca["id"]))
+        if na_base is not None and na_base > len(registros):
+            resumo["cortadas"].append({
+                "base": base, "rotulo": ROTULO_BASE.get(base, base),
+                "segmento": busca["segmento"],
+                "recolhidos": len(registros), "na_base": na_base})
         resumo["achados"] += len(registros)
         resumo["novos"] += novos
         conta = resumo["por_base"].setdefault(
@@ -1151,17 +1183,28 @@ def atualizar(db: Database, code: str, limite: int = 400,
             resumo["segmentos"].append({"base": base, "segmento": busca["segmento"],
                                         "achados": len(registros), "novos": novos})
         if verbose:
+            corte = (f" -- CORTADA: a base tem {na_base}"
+                     if na_base is not None and na_base > len(registros) else "")
             print(f"  {base}/{busca['segmento'] or 'geral'}: {len(registros)} achado(s),"
-                  f" {novos} novo(s)")
+                  f" {novos} novo(s){corte}")
         feitas += 1
-        terminou(base, busca["segmento"], "ok", achados=len(registros), novos=novos)
+        terminou(base, busca["segmento"], "ok", achados=len(registros), novos=novos,
+                 na_base=na_base)
 
     db.execute("UPDATE biblioteca SET atualizada_em = ? WHERE id = ?", (hoje, bid))
     db.conn.commit()
+    # Acervo cortado no teto entra no log como PARCIAL, junto com o erro e
+    # a chave que falta. Nao e preciosismo de rotulo: quem le o log depois
+    # para saber se pode publicar o numero precisa que "ok" queira dizer
+    # que a busca acabou.
+    inteiro = not (resumo["erros"] or desligadas or resumo["cortadas"])
+    corte = (f", {len(resumo['cortadas'])} cortada(s) no teto de {limite}"
+             if resumo["cortadas"] else "")
     db.log_ingest("biblioteca", target=code, rows_read=resumo["achados"],
                   rows_written=resumo["novos"],
-                  status="ok" if not (resumo["erros"] or desligadas) else "parcial",
-                  message=f"{resumo['novos']} novo(s) em {resumo['buscas']} busca(s)")
+                  status="ok" if inteiro else "parcial",
+                  message=f"{resumo['novos']} novo(s) em {resumo['buscas']}"
+                          f" busca(s){corte}")
     return resumo
 
 
@@ -1176,7 +1219,7 @@ def estrategias(db: Database, code: str,
     """
     linhas = db.dicts(
         "SELECT bb.id, bb.base, bb.segmento, bb.query, bb.rodada_em,"
-        "       bb.achados, bb.novos, bb.erro"
+        "       bb.achados, bb.na_base, bb.novos, bb.erro"
         "  FROM biblioteca_busca bb JOIN biblioteca b ON b.id = bb.biblioteca_id"
         " WHERE b.code = ? ORDER BY bb.base, bb.segmento IS NULL DESC, bb.segmento",
         (code,))
@@ -1186,6 +1229,10 @@ def estrategias(db: Database, code: str,
         x["rotulo"] = ROTULO_BASE.get(x["base"], x["base"])
         x["manual"] = x["base"] in BASES_MANUAIS
         x["porque_manual"] = PORQUE_MANUAL.get(x["base"])
+        # O numero que a revisao publica e `na_base` quando ele existe: o
+        # `achados` de uma busca cortada e o tamanho do balde, e nao o da
+        # base.
+        x["cortada"] = bool(x["na_base"] and x["na_base"] > (x["achados"] or 0))
     return linhas
 
 
@@ -1347,25 +1394,78 @@ def reclassificar(db: Database, code: str) -> dict[str, Any]:
     return {"mudaram": mudaram, "com_desenho": com_desenho, "total": total}
 
 
-def _colher(base: str, query: str, limite: int) -> list[dict[str, Any]]:
-    """Os registros de uma busca, na base pedida."""
+def _colher(base: str, query: str,
+            limite: int) -> tuple[list[dict[str, Any]], int | None]:
+    """Os registros de uma busca, e quantos a base diz ter ao todo.
+
+    O segundo numero so aparece quando a busca ENCOSTOU NO TETO -- veio
+    exatamente o limite pedido, que e o sinal de que a base tinha mais
+    para dar. Fora disso ele e `None`, e nao por economia: quando o que
+    veio e tudo o que ha, `achados` ja e a contagem da base, e perguntar
+    de novo so acrescentaria uma chamada e uma chance de as duas
+    discordarem.
+
+    Perguntar custa uma chamada a mais, e so nessa hora. O que ela evita
+    custa mais caro: uma busca cortada em 400 e indistinguivel de uma que
+    acabou, e o numero cortado e o que vai para a tabela de estrategias
+    de uma revisao sistematica.
+    """
     if base == PUBMED:
         from . import referencias, sources
         pmids = sources.pubmed_search(query, retmax=limite)
         if not pmids:
-            return []
+            return [], None
         registros = referencias.ler_nbib(sources.pubmed_medline(pmids))
         for r in registros:
             r["base"] = PUBMED
-        return registros
+        # O teto se mede pelos IDENTIFICADORES, e nao pelos registros
+        # lidos: o `efetch` as vezes devolve um registro a menos do que os
+        # PMIDs pedidos, e medindo pelo fim da fila uma busca de 400 que
+        # virou 396 passaria por completa.
+        return registros, _quantos(base, query) if len(pmids) >= limite else None
     if base == SCOPUS:
-        return buscar_scopus(query, limite)
+        achados = buscar_scopus(query, limite)
+        return achados, _quantos(base, query) if len(achados) >= limite else None
     if base == WOS:
-        return buscar_wos(query, limite)
+        achados = buscar_wos(query, limite)
+        return achados, _quantos(base, query) if len(achados) >= limite else None
     if base in BASES_MANUAIS:
         raise SemApi(PORQUE_MANUAL.get(
             base, f"{ROTULO_BASE.get(base, base)} não tem API: cole a estratégia na base."))
     raise ValueError(f"base desconhecida: {base}")
+
+
+def _quantos(base: str, query: str) -> int | None:
+    """Quantos a base diz ter para esta busca -- so a conta, sem os registros.
+
+    Falhar aqui NAO derruba a busca: os artigos ja foram recolhidos e
+    estao gravados, e perder isso por causa da pergunta seguinte seria
+    trocar o acervo por um detalhe do relatorio. Sem resposta, volta
+    `None` -- que a tela le como "nao se sabe", e nao como "e tudo".
+    """
+    try:
+        if base == PUBMED:
+            from . import sources
+            return sources.pubmed_quantos(query)
+        if base == SCOPUS:
+            from .ingest_citations import SCOPUS_SEARCH, _pedir
+            headers = {"X-ELS-APIKey": config.SCOPUS_API_KEY, "Accept": "application/json"}
+            if getattr(config, "SCOPUS_INST_TOKEN", ""):
+                headers["X-ELS-Insttoken"] = config.SCOPUS_INST_TOKEN
+            dados = _pedir(SCOPUS_SEARCH, {"query": query, "count": 1},
+                           headers, "Scopus")
+            bruto = (dados.get("search-results") or {}).get("opensearch:totalResults")
+            return int(bruto) if str(bruto).isdigit() else None
+        if base == WOS:
+            from .ingest_citations import WOS_SEARCH, _pedir
+            dados = _pedir(WOS_SEARCH, {"q": query, "db": "WOS", "limit": 1},
+                           {"X-ApiKey": config.WOS_API_KEY, "Accept": "application/json"},
+                           "WoS")
+            bruto = (dados.get("metadata") or {}).get("total")
+            return int(bruto) if str(bruto).isdigit() else None
+    except Exception:  # noqa: BLE001 -- a conta e o extra; o acervo ja veio
+        return None
+    return None
 
 
 def _gravar(db: Database, biblioteca_id: int, segmento: str | None,
@@ -1570,12 +1670,22 @@ def panorama(db: Database, code: str) -> dict[str, Any]:
         "SELECT COUNT(*) FROM biblioteca_item WHERE biblioteca_id = ?"
         "   AND doi IS NOT NULL AND TRIM(doi) <> ''", (bid,)) or 0)
 
+    # As buscas que bateram no teto, para o aviso ficar na tela do acervo e
+    # nao so no painel da atualizacao -- que some assim que ela termina.
+    # Quem abre o acervo tres dias depois ve "431 artigo(s)" e nao tem como
+    # saber que a base tinha mais, a menos que a tela diga.
+    cortadas = [dict(x, rotulo=ROTULO_BASE.get(x["base"], x["base"]))
+                for x in db.dicts(
+                    "SELECT base, segmento, achados, na_base FROM biblioteca_busca"
+                    " WHERE biblioteca_id = ? AND na_base > achados"
+                    " ORDER BY na_base DESC", (bid,))]
+
     return {
         "biblioteca": biblioteca, "total": total, "segmentos": segmentos,
         "anos": anos, "sem_ano": sem_ano, "paises": paises,
-        "livres": livres, "com_doi": com_doi,
+        "livres": livres, "com_doi": com_doi, "cortadas": cortadas,
         "buscas": db.dicts(
-            "SELECT segmento, query, rodada_em, achados, novos, erro"
+            "SELECT segmento, query, rodada_em, achados, na_base, novos, erro"
             "  FROM biblioteca_busca WHERE biblioteca_id = ?"
             " ORDER BY segmento IS NULL DESC, segmento", (bid,)),
     }

@@ -21,6 +21,7 @@ Exercício** (UDESC/CEFID).
 - [Publicar na nuvem — custo zero](#publicar-na-nuvem--custo-zero)
 - [Camadas de dados (lakehouse)](#camadas-de-dados-lakehouse)
 - [Os dois agentes digitais](#os-dois-agentes-digitais)
+- [Revisão sistemática: triagem e extração](#revisão-sistemática-triagem-e-extração)
 - [API REST](#api-rest)
 - [O que o painel mostra](#o-que-o-painel-mostra)
 - [Os dados de entrada](#os-dados-de-entrada)
@@ -623,6 +624,212 @@ sobrescrito por fonte externa. Os agentes só preenchem campos vazios.
 
 ---
 
+## Revisão sistemática: triagem e extração
+
+Uma revisão sistemática é meia dúzia de ferramentas que não se falam: o
+Rayyan tria e acaba ali, a extração vira planilha compartilhada, o
+fluxograma PRISMA é desenhado à mão num editor de imagem, e a tabela de
+características é digitada uma segunda vez. É daí que vem o clássico **o
+fluxograma não fecha com a tabela** — foram escritos em momentos
+diferentes, a partir da memória de alguém.
+
+Aqui o caminho inteiro fica no mesmo banco, e nenhum número é digitado
+duas vezes:
+
+```
+ acervo da biblioteca ─┐                                         ┌─► fluxograma PRISMA 2020
+ arquivo RIS / BibTeX ─┼─► triagem ─► texto completo ─► extração ┼─► semáforo de risco de viés
+ resultado colado ─────┘                                         └─► tabela de características
+```
+
+A tela é `/triagem`, com seis abas: **Triar**, **Conflitos**,
+**Duplicados**, **Extração**, **PRISMA** e **Importar**.
+
+### Abrir a revisão
+
+A tela faz o mesmo, mas quando a revisão *nasce* é mais rápido dizer tudo
+de uma vez — e o comando repetido em outra máquina chega na mesma revisão:
+
+```bash
+python3 scripts/lape_agent.py triagem \
+  --criar autodeterminacao-handebol \
+  --titulo "Teoria da autodeterminação no handebol" \
+  --pergunta "O que a teoria já descreveu sobre quem joga handebol?" \
+  --populacao "Praticantes de handebol de qualquer idade e nível" \
+  --intervencao "Construtos da teoria, medidos ou manipulados" \
+  --desfecho "Regulações do continuum, necessidades, e o que elas predizem" \
+  --avaliadores 2 \
+  --do-acervo autodeterminacao_handebol \
+  --formulario autodeterminacao --rob mmat
+
+python3 scripts/lape_agent.py triagem          # lista as revisões abertas
+```
+
+`--do-acervo` traz as referências de um acervo da biblioteca sem passar
+por arquivo nenhum: a busca já rodou, e exportar para RIS só para
+importar de volta seria copiar o que já está aqui. As referências entram
+com a base de origem, que é o que o PRISMA pede por número.
+
+`--formulario` e `--rob` já preparam a extração. Deixar para depois parece
+inofensivo: quem prepara a ficha com metade dos estudos lidos descobre o
+campo que falta relendo todos, e é sempre um campo que não está no
+resumo — financiamento, α na amostra, o resultado que não deu
+significativo.
+
+### As três etapas
+
+| Etapa | O que é | Como se sai dela |
+|---|---|---|
+| `titulo_resumo` | Título e resumo, às cegas | `avancar` leva os incluídos à leitura de texto completo |
+| `texto_completo` | O texto inteiro; ao excluir, a tela pede o motivo — é o que o PRISMA publica | `avancar` com `{"etapa": "texto_completo"}` fecha a leitura |
+| `incluido` | Entra na síntese, e aparece na aba de Extração | — |
+
+Avançar de etapa é um **passo explícito**, e não automático a cada
+decisão: a equipe fecha a triagem, confere o número, e só então abre a
+próxima fase. Sozinho, isso embaralharia as duas etapas no meio do
+trabalho.
+
+### Triagem às cegas, e sem voto de maioria
+
+Cada pessoa tem a própria fila, e a referência sai dela assim que ela
+decide — mesmo que a revisão ainda espere a outra. É isso que "às cegas"
+quer dizer: ninguém vê o que o outro achou antes de achar o seu.
+
+Com as opiniões divididas, a referência **não vai para a maioria**: ela
+fica em conflito, e alguém arbitra. Numa revisão, incluir por engano custa
+uma leitura de texto completo e excluir por engano custa um estudo — os
+dois erros não têm o mesmo preço, e média não é resposta. A arbitragem não
+apaga voto nenhum: a divergência fica registrada, que é o que permite
+calcular a concordância depois.
+
+`talvez` de todo mundo sobe para texto completo. Na dúvida, lê-se.
+
+Equipe de uma pessoa só (`--avaliadores 1`) é caso legítimo — a revisão de
+escopo de quem está sozinho. Aí a decisão dela é a decisão, e nunca há
+conflito.
+
+A aba **Conflitos** é o único lugar onde os votos aparecem com nome.
+
+### Concordância entre avaliadores
+
+O **kappa de Cohen** entre cada par, na escala de Landis e Koch (leve,
+razoável, moderada, substancial, quase perfeita) — que é a que as revistas
+citam. A concordância bruta engana: se as duas pessoas excluem 95% de
+tudo, elas concordam em 95% por acaso. O kappa desconta o acaso.
+
+### Duplicados
+
+A mesma referência chega por três bases com três grafias. A aba
+**Duplicados** junta o que é o mesmo trabalho e mostra **por que** casou —
+e dá para separar de novo, porque o sistema erra. Duplicado não some do
+banco: ele continua contando no PRISMA, que pede o número de registros
+removidos por duplicação.
+
+### A ficha de extração
+
+Depois da triagem vem a parte que ninguém gosta: ler cada estudo e tirar
+dele, campo a campo, o que a revisão precisa. O desenho é o mesmo da
+triagem, e pela mesma razão: **cada pessoa preenche a sua, e a versão
+final é uma terceira coisa**. Sem isso, "extração em duplicata" vira uma
+pessoa conferindo o que a outra digitou — que não é a mesma coisa e não
+vale como duplicata na hora de publicar.
+
+Três fichas ficam **escritas** no código, e a revisão escolhe. Uma ficha
+montada na hora sai diferente de uma revisão para a outra, e o campo que
+falta só aparece quando alguém tenta preenchê-lo:
+
+| `--formulario` | Campos | Para quê |
+|---|---|---|
+| `padrao` | 20 | Revisão de intervenção: população, intervenção, comparador, desfecho |
+| `completo` | 48 | O que o PRISMA 2020, o manual Cochrane e o JBI pedem que se extraia de cada estudo |
+| `autodeterminacao` | 62 | O completo **mais** as regulações do continuum, os instrumentos da teoria e a proporção da amostra que joga a modalidade |
+
+O temático **acrescenta** ao completo e nunca substitui — se trocasse,
+a revisão perderia financiamento e tamanho de efeito para ganhar as
+regulações, e deixaria de responder ao PRISMA para responder à teoria.
+
+Nenhum campo do completo está lá por ser bonito de ter:
+
+| Campo | Por que ele existe |
+|---|---|
+| Financiamento, conflito de interesses, ética, registro | Exigência de revista, e não se acham mais quando a leitura já passou |
+| Idioma e país da coleta | É o que sustenta dizer de onde vem a evidência |
+| N recrutado **e** N analisado | Quase nunca são o mesmo número, e é o segundo que vale |
+| Fidedignidade **na amostra** | O α medido neste estudo, não o do artigo de validação. É o que separa achado de ruído, e o que mais falta nas revisões do campo |
+| Tamanhos de efeito com IC | Valor de *p* sozinho não diz tamanho de nada |
+| Resultados **não** significativos | Item 10 do PRISMA 2020. Sem campo próprio, a extração copia o resumo — e o resumo conta o que deu certo |
+| Outros relatos do mesmo estudo | Dois artigos da mesma coleta são **um** estudo. Sem o campo, a mesma amostra entra duas vezes na síntese |
+| Texto completo obtido? | Extração feita só pelo resumo não vale, e precisa aparecer |
+
+Trocar de ficha no meio **não apaga nada**: os campos entram por código, e
+o que já foi extraído continua preso ao campo de onde saiu. Uma revisão
+que começou no padrão e passou para o completo ganha o que faltava sem
+custar releitura.
+
+Enquanto nenhum estudo chegou a incluído, a aba mostra a **ficha em
+branco** — grupo a grupo, com o vocabulário fechado de cada campo. É a
+hora de conferir e pilotar, que é o que o manual Cochrane manda fazer, e é
+agora que mexer nela é barato.
+
+### Conciliar, e o que vale em cada célula
+
+| Origem | Quando |
+|---|---|
+| `acordado` | Alguém conciliou as duas extrações e gravou a final |
+| `unanime` | As duas pessoas escreveram a mesma coisa — e isso **já é** consenso |
+| `provisorio` | Só uma pessoa extraiu, ou as duas discordam e ninguém conciliou |
+
+Exigir um clique para confirmar o que ninguém contesta é trabalho inútil,
+e trabalho inútil é pulado. A origem viaja junto com o valor porque a
+tabela precisa mostrar a diferença: célula vazia parece "não se aplica", e
+não "ainda não conferimos".
+
+### Risco de viés e qualidade
+
+Os instrumentos são padrão publicado, e ficam no código e não no banco —
+não cabe a cada revisão inventar os seus. O que vai para o banco é a
+**cópia** que aquela revisão usa, para uma revisão antiga não mudar de
+instrumento quando o código for atualizado.
+
+| `--rob` | Instrumento | Quando |
+|---|---|---|
+| `rob2` | RoB 2 (Cochrane) | Ensaios randomizados |
+| `robins` | ROBINS-I | Estudos não randomizados de intervenção |
+| `jbi_transversal` | JBI — transversais analíticos | Revisão só de transversais |
+| `mmat` | MMAT 2018 | **Desenhos misturados** no mesmo conjunto |
+
+A MMAT existe aqui porque a ferramenta é **uma por revisão**, e há revisão
+cujos estudos não têm todos o mesmo desenho. Julgar transversal pela RoB 2
+é cobrar randomização de quem não randomizou; julgar o ensaio pelo JBI
+transversal é deixá-lo sem julgamento. A MMAT tem duas perguntas de
+triagem que valem para todo estudo e cinco critérios por categoria: cada
+estudo responde os seus, e os das outras ficam em *não se aplica* — que é
+resposta, e não lacuna.
+
+Ela é a única sem domínio "geral", e isso não é esquecimento: a própria
+MMAT desaconselha o escore único, porque a média esconde **qual** critério
+falhou — e é o critério que muda a leitura do estudo.
+
+### O que sai daqui
+
+| Arquivo | O que é |
+|---|---|
+| `…/prisma.svg` | O fluxograma PRISMA 2020, desenhado dos números do banco |
+| `…/semaforo.svg` | O semáforo de risco de viés: estudos × domínios |
+| `…/caracteristicas.csv` | A tabela de características dos estudos incluídos |
+| `…/exportar?formato=ris&recorte=incluidos` | As referências em RIS, BibTeX ou CSV |
+
+SVG e não PNG de propósito: entra no Word e no LaTeX sem serrilhar, e
+continua sendo texto — dá para abrir e corrigir uma palavra sem
+redesenhar. E se um número mudar no banco, o desenho muda junto: não há o
+que conferir.
+
+Os recortes do `exportar` são `incluidos`, `texto_completo`, `excluidos`,
+`pendentes`, `duplicados` e `todos` — cada um com os votos de quem triou
+na planilha, que é o anexo que o revisor da revista pede.
+
+---
+
 ## API REST
 
 | Rota | Método | Perfil | Descrição |
@@ -668,6 +875,24 @@ sobrescrito por fonte externa. Os agentes só preenchem campos vazios.
 | `/api/bibliotecas/<code>/estrategias` | GET | leitura | As estratégias de busca guardadas, para publicar na revisão |
 | `/api/bibliotecas/<code>/colar` | POST | coordenação | Importa o que uma base sem API exportou |
 | `/api/bibliotecas/<code>/dono` | POST | coordenação | Declara de quem é o acervo, e se ele é restrito |
+| `/api/revisoes` | GET/POST | leitura / coordenação | As revisões abertas; cria uma |
+| `/api/revisoes/<code>` | GET | leitura | A revisão: PICO, números do PRISMA e andamento |
+| `/api/revisoes/<code>/importar` | POST | integrante | Importa RIS, BibTeX, nbib ou CSV — ou um acervo da biblioteca |
+| `/api/revisoes/<code>/fila` | GET | integrante | O que falta **esta** pessoa triar |
+| `/api/revisoes/<code>/decidir` | POST | integrante | `{"ref_id", "decisao": "incluir"\|"excluir"\|"talvez", "motivo"}` |
+| `/api/revisoes/<code>/conflitos` | GET | integrante | Onde a equipe divergiu, com os votos nomeados |
+| `/api/revisoes/<code>/arbitrar` | POST | coordenação | A palavra final sobre um conflito |
+| `/api/revisoes/<code>/avancar` | POST | coordenação | Fecha a etapa e abre a seguinte (`{"etapa": "titulo_resumo"\|"texto_completo"}`) |
+| `/api/revisoes/<code>/concordancia` | GET | integrante | Kappa de Cohen entre cada par |
+| `/api/revisoes/<code>/duplicados` | GET/POST | integrante | O que casou e por quê; `POST` separa de novo |
+| `/api/revisoes/<code>/termos` | POST | integrante | Termos que a tela destaca no resumo |
+| `/api/revisoes/<code>/formulario` | GET/POST | integrante / coordenação | A ficha e o instrumento; `POST` prepara com `{"formulario","ferramenta"}` |
+| `/api/revisoes/<code>/extracao` | GET/POST | integrante | A extração desta pessoa; `POST` grava, ou concilia com `{"acordar": true}` |
+| `/api/revisoes/<code>/caracteristicas` | GET | leitura | A tabela dos incluídos e o semáforo, em JSON |
+| `/api/revisoes/<code>/prisma.svg` | GET | leitura | O fluxograma PRISMA 2020 |
+| `/api/revisoes/<code>/semaforo.svg` | GET | leitura | O semáforo de risco de viés |
+| `/api/revisoes/<code>/caracteristicas.csv` | GET | leitura | A tabela de características |
+| `/api/revisoes/<code>/exportar` | GET | leitura | `?formato=ris\|bibtex\|csv&recorte=incluidos` |
 | `/api/equipe/perfis` | GET | coordenação | As contas e o perfil de permissão de cada uma |
 | `/api/equipe/<id>/perfil` | POST | coordenação | Muda o perfil de permissão de alguém |
 | `/api/export/sqlite` | GET | admin | Baixa o banco |
@@ -964,6 +1189,11 @@ scripts/
     lake.py                 lakehouse: bronze, ouro, histórico e consulta analítica
     demo.py                 massa de teste: dados fictícios com a forma dos reais
     metrics.py              indicadores, índice h, rede, séries temporais
+    referencias.py          lê e escreve RIS, BibTeX, nbib e CSV das bases
+    biblioteca.py           os acervos: estratégias escritas, buscas e panorama
+    revisao.py              revisão sistemática: triagem às cegas, kappa, duplicados
+    extracao.py             fichas de extração, risco de viés e conciliação
+    prisma.py               fluxograma PRISMA 2020 e semáforo, em SVG
     report.py               gera o painel HTML
     api.py                  site + API REST
     agents/tracker.py       agente rastreador
@@ -974,6 +1204,7 @@ scripts/
       charts.js             biblioteca de gráficos (sem dependências)
       dashboard.html/.js    painel
       login.html, app.html  acesso e área do integrante
+      triagem.html/.js      a tela da revisão: triar, conciliar, extrair, PRISMA
       convite.html          onde a pessoa convidada cria o próprio acesso
 data/raw/                   planilhas e XML do Lattes (entrada)
 data/geo/                   GeoJSON opcional para o mapa
@@ -993,7 +1224,7 @@ Dockerfile
 docker-compose.yml          desenvolvimento
 docker-compose.prod.yml     produção: aplicação + Caddy (+ túnel opcional)
 .env.example                modelo de configuração
-tests/                      197 testes, sem acesso à rede
+tests/                      2.300 testes, sem acesso à rede
 ```
 
 O `scripts/migrate.R` continua funcionando: aplica o mesmo `sql/schema.sql`,

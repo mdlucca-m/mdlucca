@@ -491,6 +491,14 @@ CREATE TABLE IF NOT EXISTS reviews (
   comparison       TEXT,
   outcome          TEXT,
   study_designs    TEXT,
+  -- O instrumento de risco de vies e o formulario de extracao que ESTA
+  -- revisao usa. Ficavam os dois dependurados em `study_designs`, que e
+  -- campo de texto livre do protocolo: uma revisao que escrevesse ali
+  -- "transversais e ensaios" -- que e o uso certo do campo -- perdia o
+  -- instrumento escolhido e voltava calada para a RoB 2, julgando
+  -- transversal por randomizacao que ele nao tem.
+  rob_tool         TEXT,
+  extraction_form  TEXT,
   protocol_url     TEXT,
   blind            INTEGER NOT NULL DEFAULT 1,
   reviewers_needed INTEGER NOT NULL DEFAULT 2,
@@ -626,6 +634,16 @@ CREATE TABLE IF NOT EXISTS biblioteca_busca (
   query         TEXT NOT NULL,
   rodada_em     TEXT,
   achados       INTEGER NOT NULL DEFAULT 0,
+  -- Quantos a BASE diz ter para esta busca, que nao e o mesmo que
+  -- `achados`: `achados` e quanto veio, e vem no maximo o limite pedido.
+  -- Sem esta coluna, uma busca que bateu no teto ficava indistinguivel de
+  -- uma que acabou -- e a diferenca e grande: a fibromialgia recolheu 400
+  -- de 17.128 registros, e a tela dizia "400 achados" com a mesma cara de
+  -- quem terminou. Numa revisao sistematica esse numero e publicado.
+  --
+  -- Fica NULL quando a busca nao encostou no teto (nao ha o que perguntar,
+  -- e o que veio e tudo) e quando a base nao respondeu quantos tem.
+  na_base       INTEGER,
   novos         INTEGER NOT NULL DEFAULT 0,
   erro          TEXT,
   UNIQUE (biblioteca_id, base, segmento)

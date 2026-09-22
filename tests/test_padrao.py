@@ -334,7 +334,12 @@ class TestOsModelosDeExtracao(unittest.TestCase):
     def test_so_ha_tipos_de_campo_que_a_tela_sabe_desenhar(self):
         """Um kind que a tela não conhece vira caixa de texto sem aviso."""
         js = (TEMPLATES / "triagem.js").read_text(encoding="utf-8")
-        conhecidos = {"texto", "texto_longo", "escolha", "sim_nao", "numero", "data"}
+        # `multipla` entrou quando um campo precisou de MAIS DE UMA resposta
+        # de vocabulário fechado (os construtos da TAD que um estudo mede).
+        # Ela só pode estar aqui porque a tela a desenha de verdade, em
+        # caixas de marcar -- a asserção logo abaixo é o que garante isso.
+        conhecidos = {"texto", "texto_longo", "escolha", "sim_nao", "numero",
+                      "data", "multipla"}
         for kind in conhecidos - {"texto"}:
             self.assertIn(f'"{kind}"', js, f"a tela não trata {kind}")
         for code, m in extracao.MODELOS.items():
@@ -538,3 +543,40 @@ class TestAAbaNaTela(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestOsSegmentosDeclarados(unittest.TestCase):
+    """Segmento repetido some no banco, e some calado.
+
+    A busca e guardada por (biblioteca, base, segmento). Declarar o mesmo
+    nome duas vezes nao cria duas buscas: a segunda sobrescreve a
+    primeira, e o acervo fica com um segmento a menos do que a lista diz
+    ter -- sem erro nenhum, e sem nada na tela que explique a diferenca.
+
+    Este teste existe porque aconteceu: ao juntar duas linhas de trabalho
+    que mexeram nos mesmos segmentos, dois nomes ficaram duplicados no
+    acervo de motivacao e um no da autodeterminacao. Todos os quatro
+    conflitos tinham sido resolvidos, o arquivo importava, a suite passava
+    -- e a lista estava errada.
+    """
+
+    def test_nenhum_acervo_declara_o_mesmo_segmento_duas_vezes(self):
+        from collections import Counter
+
+        from lape import biblioteca
+
+        for decl in biblioteca.BIBLIOTECAS:
+            nomes = [nome for nome, _ in decl["segmentos"]]
+            repetidos = [n for n, quantos in Counter(nomes).items() if quantos > 1]
+            with self.subTest(acervo=decl["code"]):
+                self.assertEqual(repetidos, [],
+                                 "segmento repetido vira um só no banco")
+
+    def test_nenhum_segmento_esta_sem_termo(self):
+        """Segmento sem termo gera `(...) AND ()`, que a base recusa."""
+        from lape import biblioteca
+
+        for decl in biblioteca.BIBLIOTECAS:
+            for nome, termos in decl["segmentos"]:
+                with self.subTest(acervo=decl["code"], segmento=nome):
+                    self.assertTrue([x for x in termos if x and x.strip()])

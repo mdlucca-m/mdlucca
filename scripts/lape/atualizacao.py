@@ -124,6 +124,7 @@ def _rodar(db_path: Path, codes: list[str]) -> None:
                     "buscas": r["buscas"], "achados": r["achados"],
                     "novos": r["novos"], "erros": r["erros"],
                     "sem_chave": r["sem_chave"],
+                    "cortadas": r.get("cortadas", []),
                     "repetidos_juntados": r.get("repetidos_juntados", 0),
                 })
                 _estado["novos"] = _estado.get("novos", 0) + r["novos"]

@@ -1,0 +1,47 @@
+name: Testes
+
+# A suíte sozinha, sem o pipeline em volta.
+#
+# Ela já existia — mas morava dentro do workflow do pipeline, que termina
+# dando `git push` no banco e no painel. Isso não pode rodar num pull
+# request vindo de fora, e por isso o pipeline inteiro só dispara em
+# push para a main. O efeito colateral era que PR nenhum tinha check: os
+# testes rodavam, mas só DEPOIS do merge, que é quando não adianta mais.
+#
+# Aqui ela fica só. E fica UMA VEZ: o pipeline chama este mesmo arquivo
+# em vez de repetir os passos, pelo mesmo motivo que a estratégia de
+# busca é declarada uma vez só — dois lugares com os mesmos passos são
+# dois lugares que divergem, e o que diverge em silêncio é o pior tipo.
+
+on:
+  pull_request:
+  workflow_dispatch:
+  workflow_call:     # é assim que o pipeline reaproveita esta suíte
+
+permissions:
+  contents: read
+
+concurrency:
+  # Empurrou de novo antes de terminar? A execução velha não interessa
+  # mais, e segurar a fila só atrasa o resultado que interessa.
+  group: testes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Suíte de testes
+        run: python3 -m unittest discover -s tests -v
+      - name: Sintaxe do front-end
+        run: |
+          for f in scripts/lape/templates/*.js; do
+            node --check "$f" || exit 1
+          done
+          echo "JavaScript sem erro de sintaxe."
