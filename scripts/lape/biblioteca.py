@@ -454,19 +454,38 @@ TEMAS_MOTIVACAO_HANDEBOL: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Desempenho e competição",
      ("performance", "competition", "competitive level", "elite", "match",
       "training load", "season")),
-    # 31
-    ("Gênero e handebol feminino",
-     ("women", "female", "girls", "sex differences", "gender", "female athletes")),
+    # 31 -- SEXO. Tres segmentos e nao um: "genero e handebol feminino"
+    # juntava a modalidade feminina com o estudo que COMPARA os dois, e sao
+    # perguntas diferentes -- uma e sobre quem joga, a outra e sobre a
+    # diferenca entre quem joga.
+    ("Handebol feminino",
+     ("women", "female", "girls", "female athletes", "women's handball",
+      "female players")),
+    # 27
+    ("Handebol masculino",
+     ("men", "male", "boys", "male athletes", "men's handball", "male players")),
+    # 4 -- o menor do acervo, e o mais especifico: so o que compara.
+    ("Comparação entre os sexos",
+     ("sex differences", "gender differences", "boys and girls", "men and women",
+      "sex comparison")),
     # 29
     ("Treinador, liderança e relação",
      ("coach", "coaches", "coaching", "coaching style", "coach behaviour",
       "coach behavior", "leadership", "coach-athlete relationship",
       "autonomy-supportive", "controlling style")),
-    # 25
+    # 25 -- CATEGORIA, primeiro degrau
     ("Formação e categorias de base",
      ("youth", "youth sport", "adolescent", "adolescents", "young players",
       "talent development", "talent identification", "relative age effect",
-      "early specialization")),
+      "early specialization", "junior", "cadet", "under-16", "under-18")),
+    # 12 -- CATEGORIA, o handebol que nao e de rendimento
+    ("Escolar, universitário e recreativo",
+     ("school", "physical education", "university", "college", "collegiate",
+      "recreational", "amateur", "leisure")),
+    # 8 -- CATEGORIA, o topo
+    ("Adulto, profissional e seleção",
+     ("adult", "senior", "professional", "first division", "national team",
+      "international level")),
     # 20
     ("Clima motivacional e metas de realização",
      ("motivational climate", "achievement goal", "achievement goals",
@@ -491,10 +510,11 @@ TEMAS_MOTIVACAO_HANDEBOL: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Autoeficácia, ansiedade e confiança",
      ("self-efficacy", "self-confidence", "competitive anxiety", "anxiety",
       "mental toughness", "resilience", "self-esteem")),
-    # 6
-    ("Praia, escola e handebol adaptado",
-     ("beach handball", "physical education", "school", "wheelchair",
-      "disability", "para sport")),
+    # 6 -- escola e universidade sairam daqui e ganharam segmento proprio
+    # de CATEGORIA; o que fica e o que muda a modalidade em si.
+    ("Praia e handebol adaptado",
+     ("beach handball", "wheelchair", "disability", "para sport",
+      "adapted handball", "goalball")),
     # 3
     ("Coesão e eficácia coletiva",
      ("cohesion", "team cohesion", "collective efficacy", "group dynamics",
@@ -560,6 +580,17 @@ TEMAS_AUTODETERMINACAO: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Formação e categorias de base",
      ("youth", "youth sport", "adolescent", "adolescents", "young players",
       "children", "school", "physical education")),
+    # 11 -- SEXO
+    ("Handebol feminino",
+     ("women", "female", "girls", "female athletes", "women's handball")),
+    # 5
+    ("Handebol masculino",
+     ("men", "male", "boys", "male athletes", "men's handball")),
+    # 3 -- CATEGORIA, o topo. Pequeno, e nao vazio: e onde estao os
+    # estudos com selecao e primeira divisao.
+    ("Adulto, profissional e seleção",
+     ("adult", "senior", "professional", "national team", "first division",
+      "international level")),
     # 15
     ("Desempenho, treino e nível competitivo",
      ("performance", "effort", "training", "competitive level", "elite",

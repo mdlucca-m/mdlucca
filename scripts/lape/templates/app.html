@@ -2537,7 +2537,8 @@ VIEWS.biblioteca = {
        pessoa esperar por algo que ela não pediu. */
     const abas = h("div", {class: "chips", style: "margin:12px 0"});
     [["acervo", "Os artigos", "dados"],
-     ["analise", "O mapeamento", "barras"]].forEach(function (x){
+     ["analise", "O mapeamento", "barras"],
+     ["grupos", "Os grupos", "rede"]].forEach(function (x){
       const c = h("button", {class: "chip" + (BIB.aba === x[0] ? " on" : "")});
       c.appendChild(Icons.get(x[2], 13));
       c.appendChild(h("span", {text: x[1]}));
@@ -2552,6 +2553,12 @@ VIEWS.biblioteca = {
       await desenharAnalise(caixa, BIB.code);
       return;
     }
+    if (BIB.aba === "grupos"){
+      const caixa = h("div", {});
+      VIEW.appendChild(caixa);
+      await desenharGrupos(caixa, BIB.code, BIB.segmento);
+      return;
+    }
 
     const url = "/api/bibliotecas/" + encodeURIComponent(BIB.code)
       + "?" + new URLSearchParams(
@@ -2564,6 +2571,67 @@ VIEWS.biblioteca = {
     VIEW.appendChild(desenharAcervo(d));
   },
 };
+
+/* Os grupos que o acervo forma SOZINHO, ao lado dos segmentos declarados.
+
+   Os segmentos são escritos por quem lê, e isso é proposital. O que esta
+   tela acrescenta é a pergunta seguinte: a literatura se divide mesmo
+   assim? Por isso cada grupo mostra em quais segmentos ele cai -- quando
+   os dois coincidem, a segmentação está descrevendo o campo; quando não,
+   há uma conversa para ter. */
+async function desenharGrupos(caixa, code, segmento){
+  caixa.appendChild(h("div", {class: "empty", text: "agrupando…"}));
+  const url = "/api/bibliotecas/" + encodeURIComponent(code) + "/grupos"
+    + (segmento ? "?segmento=" + encodeURIComponent(segmento) : "");
+  let d;
+  try {
+    d = await api(url);
+  } catch (e){
+    caixa.innerHTML = "";
+    caixa.appendChild(h("div", {class: "card"}, h("div", {class: "empty", text: e.message})));
+    return;
+  }
+  caixa.innerHTML = "";
+
+  const topo = h("div", {class: "card sec"}, [
+    h("h3", {text: "Os grupos que o acervo forma sozinho"}),
+    h("p", {class: "hint", style: "margin:6px 0 0", text:
+      "Ninguém escreveu estes grupos: eles saem das palavras que andam juntas "
+      + "nos títulos, resumos e palavras-chave. Compare-os com os segmentos "
+      + "declarados — é a diferença entre os dois que tem o que dizer."
+      + (segmento ? " Aqui, dentro do segmento “" + segmento + "”." : "")}),
+  ]);
+  caixa.appendChild(topo);
+
+  /* Recusa é resposta: com poucos artigos os grupos falam do sorteio, e
+     não da literatura. A tela diz isso em vez de desenhar três caixas. */
+  if (d.aviso){
+    topo.appendChild(h("p", {class: "aviso", style: "margin-top:10px", text: d.aviso}));
+    return;
+  }
+
+  /* A silhueta em palavras, e o número ao lado: sem ela, três grupos de
+     um borrão têm exatamente a mesma cara de três grupos de verdade. */
+  topo.appendChild(h("p", {class: "hint", style: "margin-top:10px", text:
+    d.n + " artigo(s) em " + d.k + " grupo(s) · separação: " + d.leitura
+    + " (silhueta " + d.silhueta + ")"}));
+
+  d.grupos.forEach(function (g, i){
+    const cartao = h("div", {class: "card sec"});
+    cartao.appendChild(h("h3", {text: "Grupo " + (i + 1) + " — " + g.n + " artigo(s)"
+      + (g.ano_de ? " · " + g.ano_de + "–" + g.ano_ate : "")}));
+    cartao.appendChild(h("div", {class: "chips", style: "margin:8px 0"},
+      g.termos.map(function (t){
+        return h("span", {class: "chip", style: "cursor:default", text: t}); })));
+    cartao.appendChild(h("p", {class: "hint", style: "margin:2px 0 8px", text:
+      "cai em: " + g.segmentos.map(function (s){
+        return s.segmento + " (" + s.n + ")"; }).join(" · ")}));
+    cartao.appendChild(table(
+      [{k: "title", label: "Exemplos"}, {k: "year", label: "Ano", num: true}],
+      g.exemplos, "—"));
+    caixa.appendChild(cartao);
+  });
+}
 
 function desenharAcervo(d){
   const caixa = h("div", {});

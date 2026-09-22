@@ -135,6 +135,7 @@ def route_index(ctx: "Context") -> Any:
             "GET  /api/query                 ?medida=&por=&quebra=&linha=&ano=…",
             "GET  /api/history               ?metrica=publicados",
             "GET  /api/ana                   ?pergunta=… a Ana responde, com a fonte",
+            "GET  /api/bibliotecas/<code>/grupos  ?segmento= agrupa o acervo por tema",
             "GET  /api/ao-ligar              (coordenação) sobe sozinho ao ligar o PC?",
             "POST /api/ao-ligar              (coordenação) {ligar: true|false}",
             "GET  /api/lake/lineage          (coordenação) de onde veio cada carga",
@@ -500,6 +501,24 @@ def route_biblioteca_analise(ctx: "Context", code: str) -> Any:
     from . import biblioteca
     try:
         return biblioteca.analitico(ctx.db, code)
+    except ValueError as erro:
+        raise ApiError(404, str(erro))
+
+
+def route_biblioteca_grupos(ctx: "Context", code: str) -> Any:
+    """Os grupos que o acervo forma sozinho, ao lado dos segmentos declarados.
+
+    `?segmento=` agrupa DENTRO de um recorte: perguntar como o handebol
+    feminino se divide por dentro e outra pergunta que a mesma conta
+    responde.
+    """
+    user = auth.require(ctx.user, "leitura")
+    _acervo_permitido(ctx, user, code)
+    from . import agrupamento
+    segmento = (ctx.query.get("segmento") or [None])[0]
+    k = to_int((ctx.query.get("k") or [None])[0])
+    try:
+        return agrupamento.agrupar(ctx.db, code, segmento=segmento, k=k)
     except ValueError as erro:
         raise ApiError(404, str(erro))
 
@@ -2404,6 +2423,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/bibliotecas/(?P<code>[\w-]+)/?$", route_biblioteca, "leitura"),
     ("GET", r"^/api/bibliotecas/(?P<code>[\w-]+)/analise/?$",
      route_biblioteca_analise, "leitura"),
+    ("GET", r"^/api/bibliotecas/(?P<code>[\w-]+)/grupos/?$",
+     route_biblioteca_grupos, "leitura"),
     ("POST", r"^/api/bibliotecas/(?P<code>[\w-]+)/atualizar/?$",
      route_biblioteca_atualizar, "coordenacao"),
     ("GET", r"^/api/equipe/perfis/?$", route_perfis_de_acesso, "coordenacao"),
