@@ -28,6 +28,7 @@ from datetime import date, datetime
 from typing import Any
 
 from . import biblioteca, metas, padrao, revisao
+from . import linhas as linhas_vocab
 from .db import Database
 
 PERIODOS: tuple[dict[str, Any], ...] = (
@@ -268,10 +269,10 @@ def evolucao(db: Database, per: dict[str, Any]) -> dict[str, Any]:
 # ----------------------------------------------------------------------
 def _publicados_por_linha(db: Database, de: int, ate: int) -> list[dict[str, Any]]:
     return db.dicts(
-        "SELECT COALESCE(rl.name, 'Sem linha') AS linha, COUNT(*) AS n"
+        "SELECT COALESCE(rl.name, 'Sem linha') AS linha, rl.code AS code, COUNT(*) AS n"
         "  FROM articles a LEFT JOIN research_lines rl ON rl.id = a.research_line_id"
         " WHERE a.status = 'publicado' AND a.year_published BETWEEN ? AND ?"
-        " GROUP BY 1 ORDER BY n DESC, linha", (de, ate))
+        " GROUP BY 1, 2 ORDER BY n DESC, linha", (de, ate))
 
 
 def por_linha(db: Database, per: dict[str, Any]) -> dict[str, Any]:
@@ -279,8 +280,11 @@ def por_linha(db: Database, per: dict[str, Any]) -> dict[str, Any]:
     antes = (_publicados_por_linha(db, *per["anterior"]) if per["anterior"] else [])
     total = sum(int(l["n"]) for l in agora)
     return {
+        # O icone vem do vocabulario das linhas: e o mesmo desenho que o
+        # mural e o painel usam, e nao um palpite desta tela.
         "items": [{"label": l["linha"], "value": int(l["n"]),
-                   "pct": round(100.0 * int(l["n"]) / total, 1) if total else 0.0}
+                   "pct": round(100.0 * int(l["n"]) / total, 1) if total else 0.0,
+                   "icone": linhas_vocab.icone_de(l["code"], l["linha"])}
                   for l in agora],
         "anterior": {l["linha"]: int(l["n"]) for l in antes},
         "total": total,

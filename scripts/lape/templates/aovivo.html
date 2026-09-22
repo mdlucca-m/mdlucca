@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR" data-theme="dark" data-paleta="marinho">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,48 +19,13 @@
    berrante. Por isso ela fixa `data-theme="dark"` e redefine os
    tokens dos gráficos logo abaixo, em vez de perguntar ao tema geral.
    ------------------------------------------------------------------ */
-:root[data-theme="dark"] {
-  --neon-orange: #FF7A18; --neon-magenta: #FF3D9A; --neon-purple: #8B5CF6;
-  --neon-blue: #3B82F6; --neon-cyan: #22D3EE; --neon-green: #34D399;
-  --neon-yellow: #FACC15; --neon-red: #F43F5E; --neon-amber: #F59E0B;
-  --navy-deep: #070d1f; --navy: #0b1533; --navy-raised: #111c3d;
-
-  --surface-sunken: var(--navy-deep); --surface: rgba(255,255,255,.05);
-  --surface-raised: rgba(255,255,255,.08);
-  --border: rgba(255,255,255,.10); --border-strong: rgba(255,255,255,.22);
-  --grid: rgba(255,255,255,.07); --axis: rgba(255,255,255,.28);
-  --ink: #f4f7ff; --ink-2: #b9c3de; --ink-muted: #8794b6;
-  --accent: var(--neon-cyan); --accent-strong: var(--neon-blue); --accent-solid: var(--neon-blue);
-  --accent-wash: rgba(59,130,246,.18);
-  --good: var(--neon-green); --warning: var(--neon-yellow); --serious: var(--neon-amber);
-  --critical: var(--neon-red);
-  /* as séries dos gráficos, na ordem do Observatório */
-  --series-1: var(--neon-blue); --series-2: var(--neon-orange); --series-3: var(--neon-green);
-  --series-4: var(--neon-yellow); --series-5: var(--neon-magenta); --series-6: var(--neon-cyan);
-  --series-7: var(--neon-purple); --series-8: var(--neon-red);
-  --ord-1: var(--neon-cyan); --ord-2: var(--neon-blue); --ord-3: var(--neon-purple); --ord-4: var(--neon-magenta);
-  --seq-100: #17264d; --seq-200: #1d3a75; --seq-300: #234f9d; --seq-400: #2a64c4;
-  --seq-500: #3b82f6; --seq-600: #60a5fa; --seq-700: #93c5fd;
-  --shadow: 0 8px 30px -14px rgba(0,0,0,.7); --ring: 0 0 0 0 transparent;
-  --shadow-lg: 0 20px 60px -20px rgba(0,0,0,.8);
-  --glow: 0 0 24px -6px rgba(59,130,246,.55);
-  --grad-kpi: none; --grad-malha: none;
-  --radius: 16px;
-  --display: "Sora", "Space Grotesk", "Segoe UI Variable Display", ui-sans-serif, system-ui, sans-serif;
-}
-html { color-scheme: dark; }
-body { margin: 0; color: var(--ink); background-color: var(--navy-deep);
-  background-image:
-    radial-gradient(900px 600px at 0% 0%, rgba(59,130,246,.22), transparent 60%),
-    radial-gradient(800px 600px at 100% 0%, rgba(139,92,246,.20), transparent 60%),
-    radial-gradient(900px 700px at 100% 100%, rgba(255,61,154,.12), transparent 60%),
-    radial-gradient(700px 600px at 0% 100%, rgba(34,211,238,.10), transparent 60%),
-    linear-gradient(180deg, #070d1f, #0d1838);
-  background-attachment: fixed; min-height: 100vh; }
+/* Os tokens de vidro e néon e as paletas de fundo moram na folha geral
+   (`:root[data-paleta]`, em theme.css): é a mesma escolha para o ao vivo e
+   para o mural. Aqui fica só o que é desta página. */
+body { margin: 0; min-height: 100vh; }
 body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background-image: radial-gradient(rgba(255,255,255,.07) 1px, transparent 1px);
   background-size: 26px 26px; }
-h1, h2, h3, h4 { font-family: var(--display); letter-spacing: -.01em; }
 ::selection { background: rgba(139,92,246,.5); }
 :focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 2px; border-radius: 6px; }
 
@@ -178,6 +143,7 @@ h2.secao { font-size: 17px; margin: 26px 0 12px; }
 /* ---- barras horizontais com trilho e brilho ---- */
 .hbars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .hbars li { display: grid; grid-template-columns: minmax(0, 12rem) 1fr auto; align-items: center; gap: 12px; font-size: 13px; }
+.hbars.com-icone li { grid-template-columns: 30px minmax(0, 11rem) 1fr auto; }
 .hbars .nome { color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hbars .trilho { height: 10px; border-radius: 99px; background: var(--surface); border: 1px solid var(--border); overflow: hidden; }
 .hbars .barra { height: 100%; border-radius: 99px; width: 0; transition: width .8s ease-out;
@@ -249,9 +215,7 @@ h2.secao { font-size: 17px; margin: 26px 0 12px; }
 .olhar figure.chart figcaption { display: none; }
 .olhar .vazio, .vazio { color: var(--ink-muted); font-size: 13px; padding: 28px 8px; text-align: center; }
 
-/* ---- os gráficos da casa, em néon ---- */
-.plot .mark { filter: url(#neon); }
-.plot .grid-line { display: block; stroke: var(--grid); }
+/* ---- os gráficos da casa, em néon (o filtro está no theme.css) ---- */
 figure.chart figcaption { color: var(--ink-muted); }
 .legend { color: var(--ink-2); }
 .chart-tools button { background: var(--surface); border: 1px solid var(--border); color: var(--ink-2); box-shadow: none; }
@@ -282,6 +246,42 @@ tbody tr:hover { background: rgba(59,130,246,.1); }
 .conferencia { display: flex; height: 10px; border-radius: 99px; overflow: hidden; border: 1px solid var(--border); margin-top: 8px; }
 .conferencia i { display: block; height: 100%; }
 .aviso-rodape { color: var(--ink-muted); font-size: 12px; margin-top: 22px; line-height: 1.5; }
+h2.secao .icone-tema { vertical-align: middle; margin-right: 8px; }
+.linhas-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.linhas-chips .chip { text-transform: none; letter-spacing: 0; font-weight: 600; padding: 3px 10px 3px 4px; gap: 8px; }
+.linhas-chips .chip .icone-tema { --tam: 22px; border-radius: 7px; }
+
+/* o cartão que "surge" ao clique: cresce e brilha por um instante */
+.glass.surgiu { animation: surge-cartao .55s cubic-bezier(.16,.84,.3,1) both; }
+@keyframes surge-cartao { 0% { transform: scale(.96); box-shadow: 0 0 0 0 transparent; }
+  40% { transform: scale(1.02); box-shadow: 0 0 0 1px rgba(34,211,238,.5), 0 0 40px -6px var(--accent-strong); }
+  100% { transform: none; } }
+
+/* ---- o modo apresentação: a caixa de texto e o "seguir" ---- */
+/* centrada por `left/right: 0` + margem automática, e não por `transform`:
+   a animação de chegada termina em `transform: none` e apagaria o
+   deslocamento -- foi assim que a caixa saiu pela borda direita. */
+.apresentacao { position: fixed; left: 0; right: 0; bottom: 18px; margin-inline: auto; z-index: 30;
+  width: min(880px, calc(100vw - 32px)); display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px; align-items: center; padding: 14px 16px 14px 18px; border-radius: 18px;
+  background: rgba(8,15,38,.82); backdrop-filter: blur(20px); border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-lg), 0 0 40px -10px var(--accent-strong); animation: chegar .4s ease-out both; }
+.apresentacao[hidden] { display: none; }
+.apresentacao .texto b { display: block; font-family: var(--display); font-size: 14px; margin-bottom: 3px; }
+.apresentacao .texto p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink-2); }
+.apresentacao .passos { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.apresentacao .passos button { padding: 8px 12px; font-size: 12.5px; background: var(--surface); border: 1px solid var(--border);
+  color: var(--ink); box-shadow: none; }
+.apresentacao .passos button.seguir { background: var(--grad-accent); border-color: transparent; color: #fff; font-weight: 700;
+  box-shadow: 0 0 18px -4px var(--accent-strong); }
+.apresentacao .passos button.on { border-color: var(--accent); color: var(--accent); }
+.apresentacao .pontos { display: flex; gap: 5px; margin-right: 6px; }
+.apresentacao .pontos i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.25); }
+.apresentacao .pontos i.on { background: var(--accent); box-shadow: 0 0 8px var(--accent); width: 18px; border-radius: 99px; }
+.apresentacao .barra { position: absolute; left: 18px; right: 18px; bottom: 6px; height: 2px; background: rgba(255,255,255,.1); border-radius: 2px; overflow: hidden; }
+.apresentacao .barra i { display: block; height: 100%; width: 0; background: var(--grad-accent); }
+body.apresentando main.palco { padding-bottom: 150px; }
+@media (max-width: 680px) { .apresentacao { grid-template-columns: minmax(0, 1fr); } }
 
 @media (max-width: 1100px) {
   .grade.meio, .grade.baixo, .grade.tres { grid-template-columns: minmax(0, 1fr); }

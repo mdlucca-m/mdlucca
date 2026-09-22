@@ -17,7 +17,27 @@ const C = Charts;
 const el = C.el;
 
 const D = { pronto: false };
-const ST = { periodo: "ano", aba: "painel", menuAberto: false };
+const ST = { periodo: "ano", aba: "painel", menuAberto: false, apresentando: false, auto: false };
+
+/* As paletas de fundo. A escolha vai para `lape-paleta` no navegador, que
+   é o mesmo lugar que o mural lê: quem escolhe aqui escolhe lá. */
+const PALETAS = [
+  ["marinho", "Marinho", "#0b1533"], ["aurora", "Aurora", "#1d1440"], ["oceano", "Oceano", "#0a3140"],
+  ["grafite", "Grafite", "#1a1e28"], ["brasa", "Brasa", "#2f170e"],
+];
+
+/* O que cada página apresenta -- a caixa de texto do modo apresentação.
+   É texto de apresentação, e não leitura dos dados: os números da tela
+   continuam vindo do banco, e a frase só diz o que se está olhando. */
+const APRESENTACAO = {
+  painel: ["Visão geral", "Os quatro números do período, comparados com o anterior; a evolução mês a mês; a fatia de cada linha; onde os artigos estão agora; e o que os números dizem, calculado do banco."],
+  acervos: ["Bibliotecas", "Cada acervo do laboratório: quantos registros, em que segmentos, que bases responderam, e o mapa segmento por base — onde há número, onde deu erro e onde a busca ainda não rodou."],
+  triagens: ["Triagens", "Cada revisão com o fluxograma PRISMA contado do banco, as decisões, os motivos de exclusão, quem está triando e o kappa entre as duas pessoas que mais triaram."],
+  bases: ["Bases de dados", "Cada base com o estado da última rodada, o que trouxe, e — nas que o sistema não alcança sozinho — o que fazer para colar a estratégia."],
+  caminho: ["O caminho do artigo", "Seis etapas, da pesquisa bibliográfica à publicação: o que há em cada uma agora e a tela do LAPE que a faz."],
+  doze: ["Doze olhares", "Os mesmos dados por doze gráficos diferentes, cada um respondendo uma pergunta escrita em cima dele."],
+};
+const AUTO_SEGUNDOS = 25;
 
 /* As páginas, na ordem do menu. O id é o que vai no #hash. */
 const ABAS = [
@@ -108,6 +128,14 @@ function glass(filhos, opts) {
   opts = opts || {};
   const n = el("section", { class: "glass" + (opts.class ? " " + opts.class : ""),
     style: "--i:" + (opts.i || 0) + (opts.style ? ";" + opts.style : "") }, filhos);
+  /* o clique faz o cartão surgir de novo: cresce e brilha por um instante.
+     Um clique num botão ou num link dentro dele é do botão, não do cartão. */
+  n.addEventListener("click", function (ev) {
+    if (ev.target.closest("a, button, input, select")) return;
+    n.classList.remove("surgiu");
+    void n.offsetWidth;
+    n.classList.add("surgiu");
+  });
   return n;
 }
 
@@ -146,10 +174,12 @@ function kpiNeon(o) {
 function hbars(itens, opts) {
   opts = opts || {};
   const max = opts.max || Math.max(1, ...itens.map(function (i) { return Number(i.valor) || 0; }));
-  const lista = el("ul", { class: "hbars", style: "--c:" + (opts.cor || NEON.blue) + ";--c2:" + (opts.cor2 || opts.cor || NEON.blue) });
-  itens.forEach(function (i) {
+  const lista = el("ul", { class: "hbars" + (opts.icones ? " com-icone" : ""),
+    style: "--c:" + (opts.cor || NEON.blue) + ";--c2:" + (opts.cor2 || opts.cor || NEON.blue) });
+  itens.forEach(function (i, n) {
     const w = Math.round(100 * (Number(i.valor) || 0) / max);
     lista.appendChild(el("li", { style: "--w:" + w + "%", title: i.nome }, [
+      opts.icones ? Icons.tema(i.nome, { tam: 28, tom: opts.cor, icone: i.icone }) : null,
       el("span", { class: "nome", text: i.nome }),
       el("div", { class: "trilho" }, [el("div", { class: "barra" })]),
       el("span", { class: "n", text: opts.fmt ? opts.fmt(i.valor) : C.fmt(i.valor) }),
@@ -238,6 +268,20 @@ function desenharLado() {
     ligacoes.appendChild(a);
   });
   lado.appendChild(ligacoes);
+
+  /* a paleta de fundo -- a mesma escolha vale para o mural */
+  const paletas = el("div", { class: "paletas", role: "group", "aria-label": "Paleta de fundo" });
+  PALETAS.forEach(function (p) {
+    paletas.appendChild(el("button", { type: "button", title: p[1], "aria-label": "Paleta " + p[1],
+      class: paletaAtual() === p[0] ? "on" : "", style: "--amostra:" + p[2],
+      onclick: function () { trocarPaleta(p[0]); } }));
+  });
+  lado.appendChild(el("div", { class: "rodape-lado" }, [
+    el("b", { text: "Fundo" }), paletas]));
+  lado.appendChild(el("button", { type: "button", class: "apresentar" + (ST.apresentando ? " on" : ""),
+    text: ST.apresentando ? "Sair da apresentação" : "Apresentar ▶",
+    style: "width:100%;font-size:12.5px;padding:9px 12px;background:var(--grad-accent);border:none;color:#fff;font-weight:700;box-shadow:0 0 18px -4px var(--accent-strong)",
+    onclick: function () { ST.apresentando = !ST.apresentando; if (!ST.apresentando) ST.auto = false; desenhar(); } }));
   lado.appendChild(el("div", { class: "rodape-lado" }, [
     el("b", { text: "Gerado em" }),
     document.createTextNode(D.gerado_em ? data(D.gerado_em) : "…"),
@@ -319,8 +363,14 @@ function desenharPainel(palco) {
     ev.sem_mes ? el("div", { class: "rodape", text: ev.sem_mes + " publicado(s) só têm o ano e não entram na conta por mês" }) : null,
   ], { i: 4 }));
   const itens = D.por_linha.items.map(function (i, n) { return { label: i.label, value: i.value, color: NEON_SEQ[n % NEON_SEQ.length] }; });
+  const chipsDasLinhas = el("div", { class: "linhas-chips" }, D.por_linha.items.map(function (i, n) {
+    return el("span", { class: "chip", style: "--tom:" + NEON_SEQ[n % NEON_SEQ.length] }, [
+      Icons.tema(i.label, { icone: i.icone === "linha" ? undefined : i.icone, tom: NEON_SEQ[n % NEON_SEQ.length] }),
+      document.createTextNode(i.label + " · " + i.value)]);
+  }));
   meio.appendChild(glass([
     cabecalho("Por linha de pesquisa", D.por_linha.total + " publicado(s) em " + rotuloDoPeriodo(per.de, per.ate)),
+    D.por_linha.total ? chipsDasLinhas : null,
     D.por_linha.total ? C.donut({ items: itens, caption: "publicados por linha" })
       : el("div", { class: "vazio", text: "nenhum publicado no período" }),
   ], { i: 5 }));
@@ -354,7 +404,8 @@ function desenharAcervos(palco) {
   }
   D.acervos.forEach(function (a, ai) {
     const base = ai * 10;
-    palco.appendChild(el("h2", { class: "secao" }, [document.createTextNode(a.title + " "),
+    palco.appendChild(el("h2", { class: "secao" }, [Icons.tema(a.title, { tam: 34 }),
+      document.createTextNode(a.title + " "),
       a.restrita ? chip(NEON.amber, "restrito") : null]));
     const ok = a.bases.filter(function (b) { return b.estado === "ok"; }).length;
     const kpis = el("div", { class: "grade kpis" }, [
@@ -381,7 +432,7 @@ function desenharAcervos(palco) {
     ], { i: base + 5 }));
     meio.appendChild(glass([
       cabecalho("Por segmento", "um registro pode estar em mais de um segmento"),
-      a.segmentos.length ? hbars(a.segmentos.map(function (s) { return { nome: s.segmento, valor: s.n }; }), { cor: NEON.purple, cor2: NEON.magenta })
+      a.segmentos.length ? hbars(a.segmentos.map(function (s) { return { nome: s.segmento, valor: s.n }; }), { cor: NEON.purple, cor2: NEON.magenta, icones: true })
         : el("div", { class: "vazio", text: "sem segmentos" }),
     ], { i: base + 6 }));
     palco.appendChild(meio);
@@ -626,6 +677,69 @@ function desenhar() {
   else if (ST.aba === "doze") desenharDoze(palco);
   else desenharPainel(palco);
   palco.appendChild(el("div", { class: "aviso-rodape", text: D.aviso + " Gerado em " + data(D.gerado_em) + "." }));
+  desenharApresentacao();
+}
+
+/* ------------------------------------------------------ apresentação */
+/* A caixa de texto embaixo, com o que se está olhando, e o "Seguir" para
+   a próxima página. "Auto" passa sozinho a cada AUTO_SEGUNDOS -- é o modo
+   do projetor: a pessoa aperta uma vez e a tela conduz. */
+let relogioAuto = null;
+function desenharApresentacao() {
+  let caixa = document.getElementById("apresentacao");
+  clearInterval(relogioAuto); relogioAuto = null;
+  document.body.classList.toggle("apresentando", ST.apresentando);
+  if (!ST.apresentando) { if (caixa) caixa.remove(); return; }
+  if (!caixa) { caixa = el("div", { class: "apresentacao", id: "apresentacao", role: "region", "aria-label": "Apresentação" }); document.body.appendChild(caixa); }
+  caixa.innerHTML = "";
+  const indice = ABAS.findIndex(function (a) { return a[0] === ST.aba; });
+  const texto = APRESENTACAO[ST.aba] || [ST.aba, ""];
+  caixa.appendChild(el("div", { class: "texto" }, [el("b", { text: (indice + 1) + " de " + ABAS.length + " · " + texto[0] }),
+    el("p", { text: texto[1] })]));
+  const pontos = el("span", { class: "pontos" }, ABAS.map(function (a, i) { return el("i", { class: i === indice ? "on" : "" }); }));
+  caixa.appendChild(el("div", { class: "passos" }, [
+    pontos,
+    el("button", { type: "button", text: "◀ Anterior", onclick: function () { irPara(indice - 1); } }),
+    el("button", { type: "button", class: "seguir", text: "Seguir ▶", onclick: function () { irPara(indice + 1); } }),
+    el("button", { type: "button", class: ST.auto ? "on" : "", text: ST.auto ? "Auto: ligado" : "Auto (" + AUTO_SEGUNDOS + " s)",
+      onclick: function () { ST.auto = !ST.auto; desenharApresentacao(); } }),
+  ]));
+  const barra = el("div", { class: "barra" }, [el("i")]);
+  caixa.appendChild(barra);
+  if (ST.auto) {
+    const t0 = performance.now();
+    relogioAuto = setInterval(function () {
+      const k = Math.min(1, (performance.now() - t0) / (AUTO_SEGUNDOS * 1000));
+      barra.firstChild.style.width = (k * 100).toFixed(1) + "%";
+      if (k >= 1) irPara(indice + 1);
+    }, 200);
+  }
+}
+
+function irPara(indice) {
+  const n = ABAS.length;
+  ST.aba = ABAS[((indice % n) + n) % n][0];
+  location.hash = ST.aba;
+  window.scrollTo(0, 0);
+  desenhar();
+}
+
+document.addEventListener("keydown", function (ev) {
+  if (!ST.apresentando || ev.target.tagName === "INPUT" || ev.target.tagName === "SELECT") return;
+  const indice = ABAS.findIndex(function (a) { return a[0] === ST.aba; });
+  if (ev.key === "ArrowRight" || ev.key === " ") { ev.preventDefault(); irPara(indice + 1); }
+  else if (ev.key === "ArrowLeft") irPara(indice - 1);
+  else if (ev.key === "Escape") { ST.apresentando = false; ST.auto = false; desenhar(); }
+});
+
+/* ------------------------------------------------------------ paleta */
+function paletaAtual() {
+  return document.documentElement.getAttribute("data-paleta") || "marinho";
+}
+function trocarPaleta(code) {
+  document.documentElement.setAttribute("data-paleta", code);
+  try { localStorage.setItem("lape-paleta", code); } catch (e) { /* janela privada */ }
+  desenhar();
 }
 
 async function carregar() {
@@ -670,6 +784,11 @@ function marcarPulso(texto, ligado) {
 }
 
 (function iniciar() {
+  let guardada = null;
+  try { guardada = localStorage.getItem("lape-paleta"); } catch (e) { /* janela privada */ }
+  if (guardada && PALETAS.some(function (p) { return p[0] === guardada; })) {
+    document.documentElement.setAttribute("data-paleta", guardada);
+  }
   const aba = location.hash.replace("#", "");
   if (ABAS.some(function (a) { return a[0] === aba; })) ST.aba = aba;
   desenhar();

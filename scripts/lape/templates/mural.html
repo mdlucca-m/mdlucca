@@ -59,8 +59,11 @@ body { background: var(--surface-sunken); }
    passa da borda some, e some justamente o relógio, que fica na ponta */
 .mtopo { min-width: 0; }
 .mtopo > * { min-width: 0; }
+/* a direita nunca encolhe: com o botão "Seguir" ao lado do relógio, era o
+   relógio que saía cortado pela borda -- quem cede é o título, com
+   reticências, e não a hora */
 .mtopo .direita { margin-left: auto; display: flex; align-items: center; gap: 14px;
-  flex: 0 1 auto; overflow: hidden; }
+  flex: 0 0 auto; }
 .relogio { font-variant-numeric: tabular-nums; text-align: right; flex: none; }
 .relogio b { display: block; font-size: clamp(20px, 1.9vw, calc(30px * var(--zoom, 1))); letter-spacing: -.03em;
   line-height: 1.05; }
@@ -352,6 +355,48 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
   .trilho i { width: var(--pct, 0%); }
   svg.plot.revela, svg.plot.surge { animation: none; clip-path: none; }
 }
+/* ==========================================================================
+   O mural no visual do Observatório: com `data-paleta` no <html>, os
+   cartões viram vidro com borda em degradê e brilho, a aurora fica em
+   néon e os gráficos ganham halo. Os tokens vêm do theme.css; aqui é só
+   o que muda de forma no mural.
+   ========================================================================== */
+:root[data-paleta] .aurora { opacity: .7; filter: blur(70px); }
+:root[data-paleta] .tile, :root[data-paleta] .quadro, :root[data-paleta] .pauta li {
+  background: var(--surface); backdrop-filter: blur(18px) saturate(140%); border-color: transparent;
+  box-shadow: none; }
+:root[data-paleta] .tile::before, :root[data-paleta] .quadro::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(135deg, rgba(255,255,255,.22), rgba(255,255,255,.05) 40%, rgba(139,92,246,.35) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude; }
+:root[data-paleta] .tile > *, :root[data-paleta] .quadro > * { position: relative; }
+:root[data-paleta] .tile::after { width: 4px; box-shadow: 0 0 14px var(--tom, var(--accent-strong)); }
+:root[data-paleta] .tile .n { text-shadow: 0 0 18px rgba(255,255,255,.35); font-family: var(--display); }
+:root[data-paleta] .pauta li { border-left-color: var(--tom, var(--accent-strong));
+  box-shadow: inset 4px 0 12px -6px var(--tom, var(--accent-strong)); }
+:root[data-paleta] .trilho i, :root[data-paleta] .trilho-faixa .parte {
+  box-shadow: 0 0 12px color-mix(in srgb, var(--tom, var(--c, var(--accent-strong))) 55%, transparent); }
+:root[data-paleta] .selo { background: var(--surface); }
+:root[data-paleta] .progresso i { background: var(--grad-accent); }
+:root[data-paleta] .pontos button.on { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+:root[data-paleta] .controles button { background: var(--surface); border: 1px solid var(--border); color: var(--ink); }
+
+/* a apresentação: o texto do que se está vendo, embaixo do título, e o
+   "Seguir" sempre à vista -- a parede troca sozinha, mas quem está na
+   frente dela pode conduzir */
+.mtopo .titulo { flex-wrap: wrap; row-gap: 2px; }
+.mtopo .titulo .apresenta { flex: 1 0 100%; margin: 0 0 0 46px; color: var(--ink-2);
+  font-size: clamp(11px, .82vw, calc(13.5px * var(--zoom, 1))); white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; }
+.seguir { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px;
+  border: none; font-weight: 700; font-size: clamp(12px, .9vw, calc(14px * var(--zoom, 1))); color: #fff;
+  background: var(--grad-accent); box-shadow: 0 0 18px -4px var(--accent-strong); }
+.seguir svg.icon { font-size: 15px; }
+.mrodape .paletas { margin-right: 6px; opacity: 0; transition: opacity .25s; }
+.mural.mexeu .paletas { opacity: 1; }
+
 @media (max-width: 780px) {
   .painel-duplo, .painel-duplo.igual { grid-template-columns: minmax(0, 1fr); }
   .mtopo .titulo h1 { font-size: 17px; }
@@ -360,6 +405,12 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="neon" x="-20%" y="-20%" width="140%" height="140%">
+    <feGaussianBlur stdDeviation="2.2" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+</svg>
 <div class="aurora" aria-hidden="true"></div>
 <div class="mural" id="mural">
   <div>
@@ -372,8 +423,10 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
       <div class="titulo">
         <span id="tituloIcone" aria-hidden="true"></span>
         <h1 id="tituloSlide"></h1>
+        <p class="apresenta" id="apresenta"></p>
       </div>
       <div class="direita">
+        <button class="seguir no-print" id="seguir" type="button" title="Próxima tela (seta para a direita)">Seguir</button>
         <span class="selo" id="seloVivo" hidden><span class="ponto"></span><span id="seloTexto">ao vivo</span></span>
         <span class="selo" id="seloFiltro" hidden></span>
         <div class="relogio"><b id="hora">--:--</b><small id="data"></small></div>
@@ -386,6 +439,7 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
 
   <footer class="mrodape">
     <div class="pontos" id="pontos" role="tablist" aria-label="Telas do mural"></div>
+    <div class="paletas no-print" id="paletas" role="group" aria-label="Paleta de fundo"></div>
     <div class="fita" aria-hidden="true"><div class="trem" id="fita"></div></div>
     <div class="controles no-print" id="controles"></div>
   </footer>

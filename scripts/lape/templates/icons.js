@@ -58,6 +58,40 @@ const Icons = (function () {
       ["circle", 18, 12, 2]],
     alvo: [["circle", 12, 12, 8.5], ["circle", 12, 12, 4.6], ["circle", 12, 12, 1]],
     subida: [["path", "M3 17l6-6 4 3.6L21 6"], ["path", "M15.5 6H21v5.3"]],
+
+    /* os esportes -- o que a Biblioteca segmenta e o que o LAPE estuda */
+    handebol: [["circle", 12, 12, 8.5], ["path", "M5.2 8.6c3 1.6 6.2 1.4 9.3-.9"],
+      ["path", "M7.4 19.6c1.4-3 4.6-5.1 8.9-5.5"], ["path", "M15.4 3.9c-1.2 2.6-1 5.6.6 8.6"]],
+    futebol: [["circle", 12, 12, 8.5], ["path", "M12 8.2l3.6 2.6-1.4 4.3h-4.4L8.4 10.8z"],
+      ["path", "M12 3.5v4.7"], ["path", "M15.6 10.8l4.3-1.4"], ["path", "M14.2 15.1l2.7 3.6"],
+      ["path", "M9.8 15.1l-2.7 3.6"], ["path", "M8.4 10.8L4.1 9.4"]],
+    volei: [["circle", 12, 12, 8.5], ["path", "M12 3.5c-1.6 4-1.6 8 0 12"],
+      ["path", "M4.2 10c4 1.6 8 1 11.5-1.6"], ["path", "M6.4 18.2c3-3 7.6-4 12.1-2.6"]],
+    basquete: [["circle", 12, 12, 8.5], ["line", 12, 3.5, 12, 20.5], ["line", 3.5, 12, 20.5, 12],
+      ["path", "M6.2 6.2c3 3 3 8.6 0 11.6"], ["path", "M17.8 6.2c-3 3-3 8.6 0 11.6"]],
+    natacao: [["path", "M3 16c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"],
+      ["path", "M3 20c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"], ["circle", 16.5, 8, 2],
+      ["path", "M4 12.5l6-6.5 4.5 4"]],
+    ginastica: [["circle", 12, 4.5, 1.8], ["path", "M12 6.5v6"], ["path", "M12 12.5l-4 7"],
+      ["path", "M12 12.5l4 7"], ["path", "M7 9.5l5-1.5 5 1.5"], ["path", "M17 9.5c2.4 1.2 3.2 4 1.6 6.6"]],
+    remo: [["path", "M3 15h18l-3 4H6z"], ["path", "M14.5 4L8.5 13"], ["path", "M14.5 4l3 .6"]],
+    ciclismo: [["circle", 6, 16, 3.5], ["circle", 18, 16, 3.5], ["path", "M6 16l4-7h5l3 7"],
+      ["path", "M10 9l2 7"], ["path", "M13 6h3"]],
+    tenis: [["path", "M15.5 4.5a5.5 6.5 0 1 1-7.8 9.2"], ["line", 8, 13.6, 3.5, 20.5],
+      ["circle", 18, 17.5, 2]],
+    luta: [["path", "M6 12V8a2 2 0 0 1 4 0v4"], ["path", "M10 11V7a2 2 0 0 1 4 0v4"],
+      ["path", "M14 11.5V8a2 2 0 0 1 4 0v5.5a6 6 0 0 1-12 0V12"], ["path", "M6 12H4.5a1.5 1.5 0 0 0 0 3H6"]],
+    praia: [["circle", 12, 8.5, 3.5], ["path", "M12 2v2"], ["path", "M4 8.5h2"], ["path", "M18 8.5h2"],
+      ["path", "M3 19c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"]],
+    escola: [["path", "M3 9l9-5 9 5-9 5z"], ["path", "M6.5 11v5c2 2.5 9 2.5 11 0v-5"],
+      ["line", 21, 9, 21, 15]],
+
+    /* os temas da psicologia do esporte e do exercicio */
+    ansiedade: [["path", "M7 17a4 4 0 0 1-.5-8 5.5 5.5 0 0 1 10.5-1.5A3.5 3.5 0 0 1 18 17H7z"],
+      ["path", "M12 10l-2 4h4l-2 4"]],
+    espelho: [["ellipse", 12, 9, 5.5, 7], ["path", "M12 16v5"], ["path", "M8 21h8"]],
+    maca: [["path", "M12 7c-2.5-1.5-6-.5-6 4 0 4 2.5 8 4.5 8 .8 0 1.2-.5 1.5-.5s.7.5 1.5.5c2 0 4.5-4 4.5-8 0-4.5-3.5-5.5-6-4z"],
+      ["path", "M12 7c0-2 1-3.5 3-4"]],
     livro: [["path", "M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z"],
       ["path", "M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"]],
     raio: [["path", "M13 2L4.5 13.5H11L10 22l8.5-11.5H12z"]],
@@ -227,7 +261,96 @@ const Icons = (function () {
     /* a historia */
     raizes: "verde", semente: "verde", sono: "violeta", humor: "ambar",
     serenidade: "azul", comunidade: "magenta",
+    /* os esportes e os temas */
+    handebol: "laranja", futebol: "verde", volei: "ambar", basquete: "laranja",
+    natacao: "azul", ginastica: "magenta", remo: "azul", ciclismo: "verde",
+    tenis: "ambar", luta: "violeta", praia: "ambar", escola: "verde",
+    ansiedade: "violeta", espelho: "magenta", maca: "verde",
   };
+
+  /* O icone TEMATICO: o que um nome de segmento, de acervo ou de linha
+     pede. "Handebol feminino" e a bola de handebol; "Ansiedade e humor"
+     e a nuvem; "Fibromialgia" e a dor. A lista e ordenada: a primeira
+     regra que casa vence, e as mais especificas vem antes. O que nao
+     casa com nada fica com o icone neutro -- inventar "corrida" para um
+     assunto que ninguem descreveu seria a tela afirmando o que nao sabe.
+
+     Cada icone pertence a uma FAMILIA, e a familia decide a animacao:
+     o esporte quica, a mente pulsa, o corpo balanca. */
+  const TEMAS = [
+    [/handebol|handball|balonmano/, "handebol"],
+    [/futebol|soccer|football|futsal/, "futebol"],
+    [/v[oô]lei|volleyball/, "volei"],
+    [/basquete|basketball/, "basquete"],
+    [/nata[cç][aã]o|nadador|swim/, "natacao"],
+    [/gin[aá]stica|est[eé]tic|r[ií]tmica|patina|dan[cç]a|ballet/, "ginastica"],
+    [/\bremo\b|rowing|canoagem/, "remo"],
+    [/ciclis|pedal|bike|cycling/, "ciclismo"],
+    [/t[eê]nis|tennis|badminton|raquete/, "tenis"],
+    [/jud[oô]|luta|jiu|karat|taekwondo|boxe|mma|wrestling/, "luta"],
+    [/praia|beach|areia/, "praia"],
+    [/corrida|atletismo|maratona|running|triatlo/, "corrida"],
+    [/muscula[cç][aã]o|for[cç]a|resistido|treino|treinamento|training/, "halteres"],
+    [/escola|school|escolar|crian[cç]a|adolescen|universit/, "escola"],
+    [/ansiedade|estresse|stress|anxiety|burnout|press[aã]o/, "ansiedade"],
+    [/humor|mood|depress|bem-estar|well-?being/, "humor"],
+    [/sono|sleep|fadiga|fatigue/, "sono"],
+    [/motiva|autodetermin|self-?determination|ades[aã]o|aderência|aderencia|abandono/, "fogo"],
+    [/imagem corporal|body image|apar[eê]ncia/, "espelho"],
+    [/alimenta|eating|nutri|dieta|peso/, "maca"],
+    [/cogni|aten[cç][aã]o|mem[oó]ria|neuro|c[eé]rebro|executiv/, "cerebro"],
+    [/dor|fibromialgia|reum|les[aã]o|injury|artrite/, "dor"],
+    [/cora[cç][aã]o|cardio|frequ[eê]ncia card/, "coracao"],
+    [/pulm|respirat|ar\b|polui/, "pulmao"],
+    [/c[aâ]ncer|oncol|quimio/, "fita"],
+    [/envelhec|idos|aging|older/, "envelhecimento"],
+    [/equipe|coes[aã]o|team|grupo|t[eé]cnico|treinador|coach/, "comunidade"],
+    [/competi|desempenho|performance|rendimento|elite|profissional|sele[cç][aã]o/, "trofeu"],
+    [/confian|autoefic|self-?efficacy|autoconceito|autoestima/, "achado"],
+    [/relaxa|mindful|medita|serenid/, "serenidade"],
+    [/sexo|feminin|mulher|masculin|homem|g[eê]nero/, "pessoa"],
+    [/exerc[ií]cio|atividade f[ií]sica|physical activity|sedentar/, "corrida"],
+    [/esporte|sport|atleta/, "trofeu"],
+  ];
+  const FAMILIA = {
+    handebol: "esporte", futebol: "esporte", volei: "esporte", basquete: "esporte",
+    natacao: "esporte", ginastica: "esporte", remo: "esporte", ciclismo: "esporte",
+    tenis: "esporte", luta: "esporte", praia: "esporte", corrida: "esporte", halteres: "esporte",
+    trofeu: "esporte", escola: "esporte",
+    ansiedade: "mente", humor: "mente", sono: "mente", fogo: "mente", espelho: "mente",
+    cerebro: "mente", achado: "mente", serenidade: "mente", comunidade: "mente",
+    dor: "corpo", coracao: "corpo", pulmao: "corpo", fita: "corpo", envelhecimento: "corpo",
+    maca: "corpo", pessoa: "corpo",
+  };
+
+  function semAcento(texto) {
+    return String(texto || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  }
+  function tematico(texto) {
+    const t = semAcento(texto);
+    for (let i = 0; i < TEMAS.length; i++) {
+      /* a regra tambem e comparada sem acento: "gin[aá]stica" casa das duas formas */
+      if (TEMAS[i][0].test(t) || TEMAS[i][0].test(String(texto || "").toLowerCase())) return TEMAS[i][1];
+    }
+    return "linhas";
+  }
+  function familia(name) { return FAMILIA[name] || ""; }
+
+  /* A pastilha tematica: o icone do tema numa pastilha com a familia na
+     classe, que e o que liga a animacao. `surgiu` faz o icone chegar
+     crescendo, para a lista parecer viva ao abrir. */
+  function tema(texto, opts) {
+    opts = opts || {};
+    const name = opts.icone || tematico(texto);
+    const wrap = document.createElement("span");
+    wrap.className = "icone-tema " + familia(name) + (opts.surgir === false ? "" : " surgiu");
+    if (opts.tam) wrap.style.setProperty("--tam", String(opts.tam) + "px");
+    if (opts.tom) wrap.style.setProperty("--tom", opts.tom);
+    wrap.setAttribute("title", String(texto || ""));
+    wrap.setAttribute("aria-hidden", "true");
+    wrap.appendChild(get(name, null));
+    return wrap;
+  }
 
   function draw(spec) {
     const kind = spec[0];
@@ -290,5 +413,6 @@ const Icons = (function () {
   function names() { return Object.keys(SET); }
   function tone(name) { return TOM[name] || "azul"; }
 
-  return { get: get, badge: badge, has: has, names: names, tone: tone };
+  return { get: get, badge: badge, has: has, names: names, tone: tone,
+    tematico: tematico, familia: familia, tema: tema };
 })();

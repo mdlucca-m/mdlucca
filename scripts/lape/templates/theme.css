@@ -1562,3 +1562,121 @@ button.primary:hover::after { animation: facho .62s ease-out 1; }
 .fom-corpo b { font-size: 13px; line-height: 1.35; overflow-wrap: anywhere; }
 .fom-corpo small { font-size: 11.5px; color: var(--ink-2); overflow-wrap: anywhere; }
 .fom-corpo a { font-size: 11.5px; justify-self: start; }
+
+/* ==========================================================================
+   As PALETAS do Observatório -- o mesmo fundo no ao vivo e no mural.
+
+   `data-paleta` no <html> liga o visual de vidro e néon: azul-marinho
+   profundo com brilhos de cor no fundo, cartões translúcidos, séries em
+   néon. Cada paleta troca o fundo e os brilhos; as séries dos gráficos
+   ficam as mesmas em todas, porque cor de série identifica entidade e
+   não pode mudar de paleta para paleta.
+
+   Fica aqui, e não em cada página, para o ao vivo e o mural lerem a
+   MESMA escolha: a paleta é guardada no navegador em `lape-paleta`, e
+   quem escolhe num escolhe nos dois.
+   ========================================================================== */
+:root[data-paleta] {
+  --neon-orange: #FF7A18; --neon-magenta: #FF3D9A; --neon-purple: #8B5CF6;
+  --neon-blue: #3B82F6; --neon-cyan: #22D3EE; --neon-green: #34D399;
+  --neon-yellow: #FACC15; --neon-red: #F43F5E; --neon-amber: #F59E0B;
+  --navy-deep: #070d1f; --navy: #0b1533; --navy-raised: #111c3d; --fundo-ate: #0d1838;
+  --brilho-1: rgba(59,130,246,.22); --brilho-2: rgba(139,92,246,.20);
+  --brilho-3: rgba(255,61,154,.12); --brilho-4: rgba(34,211,238,.10);
+
+  color-scheme: dark;
+  --surface-sunken: var(--navy-deep); --surface: rgba(255,255,255,.05);
+  --surface-raised: rgba(255,255,255,.08);
+  --border: rgba(255,255,255,.10); --border-strong: rgba(255,255,255,.22);
+  --grid: rgba(255,255,255,.07); --axis: rgba(255,255,255,.28);
+  --ink: #f4f7ff; --ink-2: #b9c3de; --ink-muted: #8794b6;
+  --accent: var(--neon-cyan); --accent-strong: var(--neon-blue); --accent-solid: var(--neon-blue);
+  --accent-wash: rgba(59,130,246,.18);
+  --good: var(--neon-green); --warning: var(--neon-yellow); --serious: var(--neon-amber);
+  --critical: var(--neon-red);
+  --series-1: var(--neon-blue); --series-2: var(--neon-orange); --series-3: var(--neon-green);
+  --series-4: var(--neon-yellow); --series-5: var(--neon-magenta); --series-6: var(--neon-cyan);
+  --series-7: var(--neon-purple); --series-8: var(--neon-red);
+  --ord-1: var(--neon-cyan); --ord-2: var(--neon-blue); --ord-3: var(--neon-purple); --ord-4: var(--neon-magenta);
+  --seq-100: #17264d; --seq-200: #1d3a75; --seq-300: #234f9d; --seq-400: #2a64c4;
+  --seq-500: #3b82f6; --seq-600: #60a5fa; --seq-700: #93c5fd;
+  --shadow: 0 8px 30px -14px rgba(0,0,0,.7); --ring: 0 0 0 0 transparent;
+  --shadow-lg: 0 20px 60px -20px rgba(0,0,0,.8);
+  --glow: 0 0 24px -6px rgba(59,130,246,.55);
+  --grad-kpi: none; --grad-malha: none; --grad-card: none;
+  --grad-accent: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+  --radius: 16px;
+  --display: "Sora", "Space Grotesk", "Segoe UI Variable Display", ui-sans-serif, system-ui, sans-serif;
+}
+:root[data-paleta="aurora"] {
+  --navy-deep: #0a0616; --navy: #150d2e; --navy-raised: #1d1440; --fundo-ate: #1a1040;
+  --brilho-1: rgba(139,92,246,.30); --brilho-2: rgba(255,61,154,.22);
+  --brilho-3: rgba(59,130,246,.14); --brilho-4: rgba(255,122,24,.10);
+  --accent: var(--neon-magenta); --accent-strong: var(--neon-purple); --accent-solid: var(--neon-purple);
+  --accent-wash: rgba(139,92,246,.2); --glow: 0 0 24px -6px rgba(139,92,246,.6);
+  --grad-accent: linear-gradient(90deg, var(--neon-purple), var(--neon-magenta));
+}
+:root[data-paleta="oceano"] {
+  --navy-deep: #03141a; --navy: #062430; --navy-raised: #0a3140; --fundo-ate: #072b36;
+  --brilho-1: rgba(34,211,238,.24); --brilho-2: rgba(52,211,153,.18);
+  --brilho-3: rgba(59,130,246,.14); --brilho-4: rgba(250,204,21,.08);
+  --accent: var(--neon-cyan); --accent-strong: var(--neon-cyan); --accent-solid: #0ea5c9;
+  --accent-wash: rgba(34,211,238,.18); --glow: 0 0 24px -6px rgba(34,211,238,.55);
+  --grad-accent: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
+}
+:root[data-paleta="grafite"] {
+  --navy-deep: #0a0c11; --navy: #12151d; --navy-raised: #1a1e28; --fundo-ate: #171b24;
+  --brilho-1: rgba(148,163,184,.14); --brilho-2: rgba(59,130,246,.14);
+  --brilho-3: rgba(139,92,246,.10); --brilho-4: rgba(255,255,255,.05);
+  --glow: 0 0 24px -6px rgba(148,163,184,.4);
+}
+:root[data-paleta="brasa"] {
+  --navy-deep: #140804; --navy: #24110a; --navy-raised: #2f170e; --fundo-ate: #2a1208;
+  --brilho-1: rgba(255,122,24,.26); --brilho-2: rgba(255,61,154,.18);
+  --brilho-3: rgba(250,204,21,.12); --brilho-4: rgba(139,92,246,.10);
+  --accent: var(--neon-orange); --accent-strong: var(--neon-orange); --accent-solid: #e0640f;
+  --accent-wash: rgba(255,122,24,.18); --glow: 0 0 24px -6px rgba(255,122,24,.6);
+  --grad-accent: linear-gradient(90deg, var(--neon-orange), var(--neon-magenta));
+}
+:root[data-paleta] body { color: var(--ink); background-color: var(--navy-deep);
+  background-image:
+    radial-gradient(900px 600px at 0% 0%, var(--brilho-1), transparent 60%),
+    radial-gradient(800px 600px at 100% 0%, var(--brilho-2), transparent 60%),
+    radial-gradient(900px 700px at 100% 100%, var(--brilho-3), transparent 60%),
+    radial-gradient(700px 600px at 0% 100%, var(--brilho-4), transparent 60%),
+    linear-gradient(180deg, var(--navy-deep), var(--fundo-ate));
+  background-attachment: fixed; }
+:root[data-paleta] h1, :root[data-paleta] h2, :root[data-paleta] h3, :root[data-paleta] h4 {
+  font-family: var(--display); letter-spacing: -.01em; }
+:root[data-paleta] .plot .mark { filter: url(#neon); }
+:root[data-paleta] .plot .grid-line { display: block; stroke: var(--grid); }
+
+/* o seletor de paleta: um ponto por paleta, o escolhido com anel */
+.paletas { display: inline-flex; align-items: center; gap: 6px; }
+.paletas button { --amostra: var(--navy); width: 18px; height: 18px; padding: 0; border-radius: 50%; border: 2px solid transparent;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.25) inset; background: var(--amostra); cursor: pointer; }
+.paletas button.on { border-color: #fff; box-shadow: 0 0 10px var(--amostra); }
+.paletas button:hover { transform: scale(1.15); }
+
+/* ícones temáticos: cada família tem o seu jeito de se mexer -- o esporte
+   quica, a mente pulsa, o corpo balança. Ao passar o mouse e ao chegar.
+   Duas voltas e para: vida no cromo é transição; vida em laço é
+   pisca-pisca, e a regra da casa não aceita `infinite` em cromo. */
+.icone-tema { display: inline-grid; place-items: center; width: var(--tam, 30px); height: var(--tam, 30px);
+  border-radius: 10px; color: var(--tom, var(--accent)); flex: none;
+  background: color-mix(in srgb, var(--tom, var(--accent)) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tom, var(--accent)) 35%, transparent);
+  transition: transform .2s ease, box-shadow .2s ease; }
+.icone-tema svg.icon { font-size: calc(var(--tam, 30px) * .58); }
+.icone-tema:hover { transform: translateY(-2px) scale(1.12); box-shadow: 0 0 16px -2px var(--tom, var(--accent)); }
+.icone-tema.esporte:hover svg { animation: quicar .6s ease-in-out 2; }
+.icone-tema.mente:hover svg { animation: pulsar 1.1s ease-in-out 2; }
+.icone-tema.corpo:hover svg { animation: balancar .8s ease-in-out 2; }
+.icone-tema.surgiu { animation: surgir .5s cubic-bezier(.16,.84,.3,1) both; }
+@keyframes quicar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes pulsar { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+@keyframes balancar { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+@keyframes surgir { from { opacity: 0; transform: scale(.4) rotate(-20deg); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .icone-tema:hover svg, .icone-tema.surgiu { animation: none; }
+}

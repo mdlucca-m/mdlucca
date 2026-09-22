@@ -215,7 +215,7 @@ class TestOsRecortes(BaseComBanco):
         _artigo(self.db, "c", year_published=2025, research_line_id=l2)
         self.gravar()
         d = aovivo.por_linha(self.db, aovivo.periodo(self.db, "ano", HOJE))
-        self.assertEqual(d["items"], [{"label": "Motivação", "value": 2, "pct": 100.0}])
+        self.assertEqual(d["items"], [{"label": "Motivação", "value": 2, "pct": 100.0, "icone": "linha"}])
         self.assertEqual(d["anterior"], {"Humor": 1})
 
     def test_por_situacao_e_um_retrato_de_hoje(self):
@@ -680,12 +680,14 @@ class TestATela(unittest.TestCase):
 
     def test_a_pagina_e_escura_por_natureza_e_o_neon_esta_definido(self):
         """Néon sobre branco é só cor berrante: o tema é fixo, e não perguntado."""
-        self.assertIn('<html lang="pt-BR" data-theme="dark">', self.html)
+        self.assertIn('<html lang="pt-BR" data-theme="dark" data-paleta="marinho">', self.html)
         self.assertIn('<filter id="neon"', self.html)
-        self.assertIn(".plot .mark { filter: url(#neon); }", self.html)
+        tema = (TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        self.assertIn(":root[data-paleta] .plot .mark { filter: url(#neon); }", tema)
+        bloco = tema[tema.index(":root[data-paleta] {"):]
         for token in ("--series-1", "--seq-100", "--good", "--critical", "--ink"):
             with self.subTest(token=token):
-                self.assertIn(token + ":", self.html)
+                self.assertIn(token + ":", bloco)
 
     def test_o_mapa_de_calor_separa_lacuna_de_erro(self):
         trecho = self.js[self.js.index("function calor("):]
@@ -756,6 +758,117 @@ class TestATela(unittest.TestCase):
         area = (TEMPLATES / "app.html").read_text(encoding="utf-8")
         self.assertIn('href: "/aovivo"', painel)
         self.assertIn('href="/aovivo"', area)
+
+
+class TestAPaletaEOModoApresentacao(unittest.TestCase):
+    """O mesmo fundo no ao vivo e no mural, e a apresentação que conduz."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.js = (TEMPLATES / "aovivo.js").read_text(encoding="utf-8")
+        cls.html = (TEMPLATES / "aovivo.html").read_text(encoding="utf-8")
+        cls.tema = (TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        cls.mural_js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
+        cls.mural_html = (TEMPLATES / "mural.html").read_text(encoding="utf-8")
+        cls.icones = (TEMPLATES / "icons.js").read_text(encoding="utf-8")
+
+    def paletas(self, fonte):
+        import re
+        trecho = fonte[fonte.index("const PALETAS = ["):]
+        trecho = trecho[:trecho.index("];")]
+        return re.findall(r'\["([a-z]+)", "', trecho)
+
+    def test_toda_paleta_oferecida_existe_na_folha(self):
+        """Um ponto no seletor que não existe na folha é um fundo que não muda."""
+        for pagina, fonte in (("aovivo", self.js), ("mural", self.mural_js)):
+            for code in self.paletas(fonte):
+                if code == "claro":
+                    continue
+                with self.subTest(pagina=pagina, paleta=code):
+                    self.assertTrue(code == "marinho" or f':root[data-paleta="{code}"]' in self.tema,
+                                    f"paleta {code} sem definição na folha")
+
+    def test_o_ao_vivo_e_o_mural_leem_a_mesma_escolha(self):
+        self.assertIn('localStorage.setItem("lape-paleta"', self.js)
+        self.assertIn('localStorage.getItem("lape-paleta")', self.js)
+        self.assertIn('localStorage.getItem("lape-paleta")', self.mural_js)
+        self.assertIn('localStorage.setItem("lape-paleta"', self.mural_js)
+        self.assertEqual(set(self.paletas(self.js)), set(self.paletas(self.mural_js)) - {"claro"})
+
+    def test_o_mural_volta_ao_claro_quando_pedido(self):
+        """A paleta é uma escolha; o claro da casa continua a um clique."""
+        self.assertIn('if (code === "claro") { raiz.removeAttribute("data-paleta")', self.mural_js)
+        self.assertIn('PARAMS.get("paleta")', self.mural_js)
+
+    def test_a_apresentacao_tem_texto_para_cada_pagina_e_o_seguir(self):
+        import re
+        abas = re.findall(r'^  \["([a-z]+)", "', self.js[self.js.index("const ABAS = ["):], re.M)
+        trecho = self.js[self.js.index("const APRESENTACAO = {"):]
+        trecho = trecho[:trecho.index("};")]
+        for aba in abas:
+            with self.subTest(aba=aba):
+                self.assertIn(f"  {aba}: [", trecho)
+        self.assertIn('text: "Seguir ▶"', self.js)
+        self.assertIn('text: "◀ Anterior"', self.js)
+        self.assertIn("AUTO_SEGUNDOS", self.js)
+        self.assertIn('ev.key === "ArrowRight"', self.js)
+
+    def test_o_auto_para_quando_a_apresentacao_fecha(self):
+        self.assertIn("if (!ST.apresentando) ST.auto = false;", self.js)
+        self.assertIn("clearInterval(relogioAuto)", self.js)
+
+    def test_o_mural_apresenta_cada_tela_e_tem_o_seguir_a_vista(self):
+        import re
+        trecho = self.mural_js[self.mural_js.index("const SLIDES = ["):]
+        trecho = trecho[:trecho.index("];")]
+        ids = re.findall(r'id: "([a-z]+)"', trecho)
+        self.assertGreaterEqual(len(ids), 6)
+        self.assertEqual(len(re.findall(r"apresenta: \"", trecho)), len(ids))
+        self.assertIn('<button class="seguir no-print" id="seguir"', self.mural_html)
+        self.assertIn('<p class="apresenta" id="apresenta"></p>', self.mural_html)
+        self.assertIn('seguir.onclick = function () { avancar(1); };', self.mural_js)
+
+    def test_o_clique_no_cartao_faz_surgir_sem_roubar_o_botao(self):
+        trecho = self.js[self.js.index("function glass("):]
+        trecho = trecho[:trecho.index("function chip(")]
+        self.assertIn('ev.target.closest("a, button, input, select")', trecho)
+        self.assertIn('n.classList.add("surgiu")', trecho)
+
+    def test_os_icones_tematicos_cobrem_esportes_e_temas(self):
+        for nome in ("handebol", "futebol", "volei", "basquete", "natacao", "ginastica", "remo",
+                     "ciclismo", "tenis", "luta", "praia", "escola", "ansiedade", "espelho", "maca"):
+            with self.subTest(icone=nome):
+                self.assertIn(f"    {nome}: [[", self.icones)
+                self.assertIn(f" {nome}: \"", self.icones)   # o tom
+        self.assertIn("tematico: tematico, familia: familia, tema: tema", self.icones)
+
+    def test_o_tematico_le_o_nome_e_nao_inventa(self):
+        """Handebol é a bola; fibromialgia é a dor; o que não casa fica neutro."""
+        script = (self.icones
+                  + "\nconst casos = ['Handebol feminino','Fibromialgia','Ansiedade e humor',"
+                  + "'Teoria da autodeterminação','Ginástica rítmica','coisa nenhuma'];"
+                  + "\nconsole.log(JSON.stringify(casos.map(function (c) { return Icons.tematico(c); })));")
+        import subprocess, shutil
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("sem node")
+        prelude = ("global.document={createElementNS:()=>({setAttribute(){},appendChild(){}}),"
+                   "createElement:()=>({setAttribute(){},appendChild(){},style:{setProperty(){}},className:''})};\n")
+        saida = subprocess.run([node, "-e", prelude + script], capture_output=True, text=True, timeout=60)
+        self.assertEqual(saida.returncode, 0, saida.stderr)
+        self.assertEqual(json.loads(saida.stdout.strip().splitlines()[-1]),
+                         ["handebol", "dor", "ansiedade", "fogo", "ginastica", "linhas"])
+
+    def test_cada_familia_tem_a_sua_animacao(self):
+        for familia in ("esporte", "mente", "corpo"):
+            with self.subTest(familia=familia):
+                self.assertIn(f".icone-tema.{familia}:hover svg", self.tema)
+        self.assertIn("prefers-reduced-motion", self.tema[self.tema.index(".icone-tema"):])
+
+    def test_os_segmentos_e_as_linhas_ganham_icone(self):
+        self.assertIn("icones: true", self.js)
+        self.assertIn('Icons.tema(a.title, { tam: 34 })', self.js)
+        self.assertIn('class: "linhas-chips"', self.js)
 
 
 if __name__ == "__main__":

@@ -849,14 +849,54 @@ function slideDestaques() {
    que virou o gráfico da tela das citações, e "Em andamento", que repetia
    em lista o que os números de "Agora no laboratório" já dizem. Seis telas
    a quinze segundos dão um minuto e meio de volta -- oito davam dois. */
+/* `apresenta` é a frase que fica embaixo do título enquanto a tela está
+   na parede: diz o que se está vendo, para quem chegou agora. É texto
+   de apresentação, e não leitura dos dados. */
 const SLIDES = [
-  { id: "agora", titulo: "Agora no laboratório", icone: "painel", montar: slideAgora },
-  { id: "bancada", titulo: "Na bancada", icone: "experimento", montar: slideBancada },
-  { id: "citados", titulo: "Citações e produção por área", icone: "citacao", montar: slideCitados },
-  { id: "agenda", titulo: "O que vem a seguir", icone: "calendario", montar: slideAgenda },
-  { id: "prazos", titulo: "Prazos e pendências", icone: "prazo", montar: slidePrazos },
-  { id: "destaques", titulo: "Nossa equipe", icone: "pessoas", montar: slideDestaques },
+  { id: "agora", titulo: "Agora no laboratório", icone: "painel", montar: slideAgora,
+    apresenta: "Os números de hoje: publicados, em produção, em avaliação, aceitos, citações e a equipe — e a produção ano a ano." },
+  { id: "bancada", titulo: "Na bancada", icone: "experimento", montar: slideBancada,
+    apresenta: "O que está sendo medido agora: coletas em andamento, participantes e instrumentos." },
+  { id: "citados", titulo: "Citações e produção por área", icone: "citacao", montar: slideCitados,
+    apresenta: "Quanto o acervo é citado em cada base, e como a produção se reparte pelas linhas de pesquisa." },
+  { id: "agenda", titulo: "O que vem a seguir", icone: "calendario", montar: slideAgenda,
+    apresenta: "Defesas, reuniões, cursos e visitas nos próximos dias, na ordem em que acontecem." },
+  { id: "prazos", titulo: "Prazos e pendências", icone: "prazo", montar: slidePrazos,
+    apresenta: "Datas de defesa, fim de projeto e de bolsa, e manuscritos parados há muito tempo com a revista." },
+  { id: "destaques", titulo: "Nossa equipe", icone: "pessoas", montar: slideDestaques,
+    apresenta: "Quem faz o laboratório: nome, vínculo e a linha em que cada pessoa trabalha." },
 ];
+
+/* As paletas de fundo, as mesmas do ao vivo. A escolha é lida de
+   `?paleta=` ou de `lape-paleta` no navegador -- que é onde o ao vivo
+   grava a dele: quem escolhe lá escolhe aqui. `?paleta=claro` volta ao
+   tema claro da casa. */
+const PALETAS = [
+  ["marinho", "Marinho", "#0b1533"], ["aurora", "Aurora", "#1d1440"], ["oceano", "Oceano", "#0a3140"],
+  ["grafite", "Grafite", "#1a1e28"], ["brasa", "Brasa", "#2f170e"], ["claro", "Claro", "#f4f6fb"],
+];
+function paletaEscolhida() {
+  const pedida = (PARAMS.get("paleta") || "").trim();
+  if (pedida) return pedida;
+  let guardada = null;
+  try { guardada = localStorage.getItem("lape-paleta"); } catch (e) { /* janela privada */ }
+  return guardada || "marinho";
+}
+function aplicarPaleta(code) {
+  const raiz = document.documentElement;
+  if (!PALETAS.some(function (p) { return p[0] === code; })) code = "marinho";
+  if (code === "claro") { raiz.removeAttribute("data-paleta"); raiz.setAttribute("data-theme", "light"); }
+  else { raiz.setAttribute("data-paleta", code); raiz.setAttribute("data-theme", "dark"); }
+  try { localStorage.setItem("lape-paleta", code); } catch (e) { /* ignora */ }
+  const casa = document.getElementById("paletas");
+  if (!casa) return;
+  casa.textContent = "";
+  PALETAS.forEach(function (p) {
+    casa.appendChild(el("button", { type: "button", title: p[1], "aria-label": "Paleta " + p[1],
+      class: p[0] === code ? "on" : "", style: "--amostra:" + p[2],
+      onclick: function () { aplicarPaleta(p[0]); } }));
+  });
+}
 
 /* ?slides=agora,prazos escolhe quais telas entram no ciclo */
 function ciclo() {
@@ -900,6 +940,8 @@ function desenhar(indice, direcao) {
   }
   palco.appendChild(node);
   document.getElementById("tituloSlide").textContent = slide.titulo;
+  const apresenta = document.getElementById("apresenta");
+  if (apresenta) apresenta.textContent = slide.apresenta || "";
   const casaIcone = document.getElementById("tituloIcone");
   casaIcone.textContent = "";
   casaIcone.appendChild(Icons.badge(slide.icone, null, 34));
@@ -1229,6 +1271,14 @@ function comecar() {
 
   relogio();
   setInterval(relogio, 15000);
+  aplicarPaleta(paletaEscolhida());
+  const seguir = document.getElementById("seguir");
+  if (seguir) {
+    seguir.textContent = "";
+    seguir.appendChild(document.createTextNode("Seguir "));
+    seguir.appendChild(Icons.get("proximo", 15));
+    seguir.onclick = function () { avancar(1); };
+  }
   desenharFita();
   desenharCotacao();
   desenharControles();
