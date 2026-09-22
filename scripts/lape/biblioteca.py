@@ -786,10 +786,15 @@ def instalar(db: Database) -> dict[str, Any]:
     buscas sao atualizadas pela estrategia escrita aqui, e o acervo ja
     recolhido continua onde esta.
     """
+    from . import linhas as linhas_de_pesquisa
+
     novas, ja_havia = [], []
     for decl in BIBLIOTECAS:
-        linha_id = db.scalar("SELECT id FROM research_lines WHERE code = ?",
-                             (decl["linha"],))
+        # Pela reconciliacao, e nao por `WHERE code = ?`: o banco veio de
+        # planilha e guarda a psicologia do esporte noutro codigo. A busca
+        # crua devolvia None, e None aqui nao da erro -- so faz o acervo
+        # nascer sem linha e sumir da segmentacao da tela.
+        linha_id = linhas_de_pesquisa.id_de(db, decl["linha"])
         achada = db.scalar("SELECT id FROM biblioteca WHERE code = ?", (decl["code"],))
         if achada:
             db.execute(

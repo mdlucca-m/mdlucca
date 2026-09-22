@@ -133,6 +133,29 @@ def _achar(db: Database, codigo: str, nome: str):
     return None
 
 
+def id_de(db: Database, codigo: str | None) -> int | None:
+    """O id da linha declarada com este codigo, como ela esta NO BANCO.
+
+    Existe porque `WHERE code = ?` nao basta, e o silencio dessa busca ja
+    custou caro: o banco do laboratorio veio de planilha e tem a
+    psicologia do esporte gravada no codigo `psicologia_esporte`, enquanto
+    este arquivo a declara como `psicologia_do_esporte`. Quem procurasse
+    so pelo codigo recebia `None` -- e `None` numa coluna de linha de
+    pesquisa nao da erro nenhum: o registro entra sem linha, some da
+    segmentacao da tela e ninguem descobre ate alguem perguntar por que a
+    aba esta vazia. Foi o que aconteceu com os cinco acervos da
+    biblioteca, que ficaram todos sem linha.
+
+    Aqui a pergunta e a mesma que a instalacao faz: codigo, nome atual ou
+    nome que este arquivo ja escreveu antes.
+    """
+    if not codigo:
+        return None
+    nome = next((n for c, n, *_ in LINHAS if c == codigo), codigo)
+    achada = _achar(db, codigo, nome)
+    return achada["id"] if achada else None
+
+
 def _pode_renomear(codigo: str, atual: str, novo: str) -> bool:
     """Se o nome gravado e um que este arquivo mesmo escreveu.
 

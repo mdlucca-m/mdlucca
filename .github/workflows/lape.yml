@@ -49,23 +49,11 @@ env:
   BUSCAR_EXTERNO: ${{ github.event.schedule == '0 12 * * 1' || inputs.descobrir }}
 
 jobs:
+  # A suíte mora em testes.yml, e é chamada daqui. Os passos ficavam
+  # escritos neste arquivo; agora existem uma vez só, e o pull request
+  # roda exatamente a mesma coisa que o pipeline exige antes de publicar.
   testes:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: pip
-      - run: pip install -r requirements.txt
-      - name: Suíte de testes
-        run: python3 -m unittest discover -s tests -v
-      - name: Sintaxe do front-end
-        run: |
-          for f in scripts/lape/templates/*.js; do
-            node --check "$f" || exit 1
-          done
-          echo "JavaScript sem erro de sintaxe."
+    uses: ./.github/workflows/testes.yml
 
   pipeline:
     needs: testes

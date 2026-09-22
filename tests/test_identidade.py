@@ -510,3 +510,51 @@ class TestOQueOServicoPreparaSozinho(unittest.TestCase):
         abertura = antes.rindex("try:")
         self.assertNotIn("except", antes[abertura:],
                          "a preparação está fora do try que a protegeria")
+
+
+class TestAcharALinhaGravada(unittest.TestCase):
+    """`WHERE code = ?` nao basta, e o silencio dessa busca custa caro.
+
+    Um banco que veio de planilha guarda a psicologia do esporte no codigo
+    `psicologia_esporte`; este arquivo a declara como
+    `psicologia_do_esporte`. Procurando so pelo codigo vem `None` -- e
+    `None` numa coluna de linha de pesquisa nao da erro: o registro entra
+    sem linha, some da segmentacao da tela, e ninguem descobre ate alguem
+    perguntar por que a aba esta vazia. Foi o que aconteceu com os cinco
+    acervos da biblioteca.
+    """
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.db = Database(Path(tmp.name) / "l.sqlite")
+        self.addCleanup(self.db.close)
+        self.db.migrate()
+
+    def test_acha_pelo_codigo_declarado(self):
+        linhas.instalar(self.db)
+        self.assertIsNotNone(linhas.id_de(self.db, "psicologia_do_esporte"))
+
+    def test_acha_a_linha_gravada_com_o_nome_anterior(self):
+        """O nome que este mesmo arquivo escreveu numa versao passada."""
+        alvo = self.db.insert("research_lines", {
+            "code": "outro_codigo", "name": "Psicologia do Esporte"})
+        self.assertEqual(linhas.id_de(self.db, "psicologia_do_esporte"), alvo)
+
+    def test_codigo_que_ninguem_declarou_devolve_nada(self):
+        linhas.instalar(self.db)
+        self.assertIsNone(linhas.id_de(self.db, "linha_inventada"))
+
+    def test_sem_codigo_devolve_nada_em_vez_de_estourar(self):
+        self.assertIsNone(linhas.id_de(self.db, None))
+        self.assertIsNone(linhas.id_de(self.db, ""))
+
+    def test_o_acervo_nasce_ligado_a_linha(self):
+        """Era o defeito: cinco acervos, cinco `research_line_id` nulos."""
+        from lape import biblioteca
+
+        linhas.instalar(self.db)
+        biblioteca.instalar(self.db)
+        sem_linha = self.db.dicts(
+            "SELECT code FROM biblioteca WHERE research_line_id IS NULL")
+        self.assertEqual(sem_linha, [], "acervo sem linha some da segmentação")

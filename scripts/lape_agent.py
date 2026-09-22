@@ -298,11 +298,22 @@ def cmd_triagem(args: argparse.Namespace) -> int:
         db.close()
         return 0
 
+    from lape import linhas as linhas_de_pesquisa
+
+    # A linha entra por reconciliacao, e nao por `WHERE code = ?`: o banco
+    # de um laboratorio que veio de planilha guarda a mesma linha noutro
+    # codigo, e a busca crua devolve None calada -- a revisao nasce sem
+    # linha e some da segmentacao da tela.
+    linha_id = linhas_de_pesquisa.id_de(db, args.linha)
+    if args.linha and linha_id is None:
+        print(f"  ! nenhuma linha de pesquisa com o codigo “{args.linha}”."
+              f" A revisao vai ficar sem linha.")
     review_id = revisao.criar(
         db, args.criar, args.titulo or args.criar,
         question=args.pergunta, population=args.populacao,
         intervention=args.intervencao, comparison=args.comparador,
         outcome=args.desfecho, study_designs=args.delineamentos,
+        research_line_id=linha_id,
         reviewers_needed=args.avaliadores)
     print(f"  triagem ........ {args.criar}")
     if args.do_acervo:
@@ -1068,6 +1079,9 @@ def build_parser() -> argparse.ArgumentParser:
                                 help="desenhos elegiveis, em texto")
     triagem_parser.add_argument("--avaliadores", type=int, default=2,
                                 help="quantos triadores por referencia (padrao: 2)")
+    triagem_parser.add_argument(
+        "--linha", metavar="CODIGO",
+        help="a linha de pesquisa a que a revisao pertence")
     triagem_parser.add_argument("--do-acervo", metavar="CODIGO", dest="do_acervo",
                                 help="traz as referencias deste acervo da biblioteca")
     triagem_parser.add_argument(
