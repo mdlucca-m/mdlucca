@@ -135,6 +135,8 @@ def route_index(ctx: "Context") -> Any:
             "GET  /api/query                 ?medida=&por=&quebra=&linha=&ano=…",
             "GET  /api/history               ?metrica=publicados",
             "GET  /api/ana                   ?pergunta=… a Ana responde, com a fonte",
+            "GET  /api/ao-ligar              (coordenação) sobe sozinho ao ligar o PC?",
+            "POST /api/ao-ligar              (coordenação) {ligar: true|false}",
             "GET  /api/lake/lineage          (coordenação) de onde veio cada carga",
             "GET  /api/stream                 eventos em tempo real (SSE)",
             "POST /api/invites                (coordenação) gera link de convite",
@@ -2204,6 +2206,41 @@ def route_versao(ctx: "Context") -> Any:
     return versao.atual()
 
 
+def route_aoligar(ctx: "Context") -> Any:
+    """O LAPE sobe sozinho quando o computador liga?
+
+    Da coordenacao porque mexe na MAQUINA, e nao no banco: quem aperta
+    esta decidindo que o laboratorio inteiro encontra o sistema no ar de
+    manha -- ou nao encontra.
+    """
+    from . import aoligar
+
+    auth.require(ctx.user, "coordenacao")
+    return aoligar.situacao()
+
+
+def route_aoligar_definir(ctx: "Context") -> Any:
+    from . import aoligar, hooks
+
+    user = auth.require(ctx.user, "coordenacao")
+    corpo = ctx.body or {}
+    if "ligar" not in corpo:
+        raise ApiError(400, "informe 'ligar': true ou false")
+    ligar = bool(corpo["ligar"])
+    saida = aoligar.definir(ligar)
+    if not saida.get("ok"):
+        # 409 e nao 500: o pedido esta certo, e foi a MAQUINA que recusou.
+        # 500 mandaria procurar defeito no sistema, quando o que ha e uma
+        # politica do Windows ou uma pasta fora do lugar.
+        raise ApiError(409, saida.get("recado") or "não consegui mudar o agendamento")
+    hooks.emit(ctx.db, "sistema.ao_ligar", entity="maquina",
+               detail="ligado" if ligar else "desligado",
+               actor=user.get("full_name"))
+    auth.log(ctx.db, user["id"], user.get("login"), "ao_ligar", "maquina",
+             None, "ligado" if ligar else "desligado")
+    return saida
+
+
 def route_ana(ctx: "Context") -> Any:
     """A Ana responde -- com o perfil de quem pergunta, e nao com o dela.
 
@@ -2346,6 +2383,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/audit/?$", route_audit, "coordenacao"),
     ("GET", r"^/api/versao/?$", route_versao, "leitura"),
     ("GET", r"^/api/ana/?$", route_ana, "leitura"),
+    ("GET", r"^/api/ao-ligar/?$", route_aoligar, "coordenacao"),
+    ("POST", r"^/api/ao-ligar/?$", route_aoligar_definir, "coordenacao"),
     ("GET", r"^/api/ponto/?$", route_ponto, "integrante"),
     ("POST", r"^/api/ponto/entrar/?$", route_ponto_entrar, "integrante"),
     ("POST", r"^/api/ponto/sair/?$", route_ponto_sair, "integrante"),

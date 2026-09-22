@@ -1347,6 +1347,76 @@ const PERFIS = [
   {value: "admin", label: "Administração", ajuda: "coordenação, mais as contas"},
 ];
 
+/* Subir sozinho ao ligar o computador.
+
+   Já existia como "Subir sozinho ao ligar.bat", ao lado do "Subir
+   LAPE.bat" -- e um arquivo que resolve um problema só serve a quem
+   lembra que ele existe. Os dois .bat ainda estão lá e continuam
+   valendo: quem aperta aqui e quem dá duplo clique lá mexem na MESMA
+   tarefa do Windows, porque o botão chama o mesmo script. */
+async function subirSozinho(){
+  const caixa = h("div", {class: "card sec"});
+  caixa.appendChild(h("h3", {text: "Subir sozinho ao ligar o computador"}));
+
+  const d = await api("/api/ao-ligar").catch(function (e){ return {erro: e.message}; });
+  if (d.erro){
+    caixa.appendChild(h("p", {class: "hint", text: d.erro}));
+    return caixa;
+  }
+  if (!d.windows){
+    /* Fora do Windows o botão não aparece, e a tela diz por quê em vez
+       de mostrar um botão que não faria nada. */
+    caixa.appendChild(h("p", {class: "hint", text: d.aviso}));
+    return caixa;
+  }
+
+  const estado = h("p", {style: "margin:4px 0 10px;font-weight:600"});
+  const detalhe = h("p", {class: "hint", style: "margin:0 0 12px"});
+  const acao = h("button", {});
+  const recado = h("div", {style: "margin-top:10px"});
+
+  function pintar(x){
+    estado.textContent = x.ligado
+      ? "Ligado — o LAPE sobe sozinho quando você entra no Windows."
+      : "Desligado — depois de ligar o computador, alguém precisa abrir o LAPE.";
+    detalhe.textContent = x.ligado
+      ? (x.como === "tarefa"
+         ? "Pela tarefa agendada: ela se reergue sozinha se cair e funciona com "
+           + "o notebook na bateria."
+         : "Pelo atalho na pasta Inicializar. É o caminho de quem não é "
+           + "administrador da máquina — sobe junto com o Windows, mas não se "
+           + "reergue sozinho se cair.")
+      : "A janela preta precisa ficar aberta enquanto o sistema estiver no ar: "
+        + "é ela que mantém o endereço de pé.";
+    acao.textContent = x.ligado ? "Desligar" : "Ligar";
+    acao.className = x.ligado ? "" : "primary";
+  }
+  pintar(d);
+
+  acao.onclick = async function (){
+    const ligar = acao.textContent === "Ligar";
+    acao.disabled = true;
+    recado.innerHTML = "";
+    try {
+      const r = await api("/api/ao-ligar", "POST", {ligar: ligar});
+      pintar(r);
+      toast(ligar ? "O LAPE passa a subir sozinho." : "O LAPE não sobe mais sozinho.");
+      /* O que o Windows respondeu vai junto: quando ele cai no atalho em
+         vez da tarefa agendada, é nessa linha que isso aparece. */
+      if (r.recado) recado.appendChild(h("p", {class: "hint", text: r.recado}));
+    } catch (e){
+      recado.appendChild(h("p", {class: "aviso", text: e.message}));
+    }
+    acao.disabled = false;
+  };
+
+  caixa.appendChild(estado);
+  caixa.appendChild(detalhe);
+  caixa.appendChild(acao);
+  caixa.appendChild(recado);
+  return caixa;
+}
+
 async function perfilDeAcesso(){
   const caixa = h("div", {class: "card sec"});
   caixa.appendChild(h("h3", {text: "Perfil de acesso"}));
@@ -1421,6 +1491,7 @@ VIEWS.admin = {
       text: "Rodar os agentes, revisar o que o rastreador encontrou e liberar acesso a novos integrantes."}));
 
     VIEW.appendChild(await perfilDeAcesso());
+    VIEW.appendChild(await subirSozinho());
 
     const agentBox = h("div", {class: "card sec"}, [
       h("h3", {text: "Agentes"}),
