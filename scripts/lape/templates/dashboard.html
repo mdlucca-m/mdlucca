@@ -135,6 +135,27 @@ header.page .meta { margin-top: 8px; }
   padding: 1px 6px; background: var(--surface-raised); pointer-events: none; }
 .buscabox input:focus ~ .atalho, .buscabox input:not(:placeholder-shown) ~ .atalho { display: none; }
 .buscabox:focus-within svg.icon { color: var(--accent); }
+/* o buscador do painel, no cabeçalho */
+.omni { position: relative; margin-top: 12px; max-width: 640px; }
+.omni-campo { position: relative; display: flex; align-items: center; }
+.omni-campo svg.icon { position: absolute; left: 12px; font-size: 16px; color: var(--ink-muted); pointer-events: none; }
+.omni-campo input { width: 100%; padding: 9px 40px 9px 36px; border: 1px solid var(--border-strong); border-radius: 999px;
+  background: var(--surface); color: var(--ink); font-size: 13.5px; }
+.omni-campo input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); outline: none; }
+.omni-campo .atalho { position: absolute; right: 12px; font-size: 10.5px; font-weight: 700; color: var(--ink-muted);
+  border: 1px solid var(--border); border-radius: 5px; padding: 1px 5px; }
+.omni-campo input:focus ~ .atalho, .omni-campo input:not(:placeholder-shown) ~ .atalho { display: none; }
+.omni-lista { position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 60; max-height: min(60vh, 520px); overflow: auto;
+  background: var(--surface-raised); border: 1px solid var(--border-strong); border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 6px; }
+.omni-lista[hidden] { display: none; }
+.omni-grupo { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-muted); padding: 8px 10px 4px; }
+.omni-item { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; align-items: center; width: 100%; text-align: left;
+  padding: 7px 10px; border: none; border-radius: var(--radius-sm); background: none; color: var(--ink); box-shadow: none; }
+.omni-item:hover, .omni-item:focus { background: var(--surface); color: var(--ink); }
+.omni-item svg.icon { color: var(--accent); }
+.omni-item b { display: block; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.omni-item small { display: block; font-size: 11.5px; color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.omni-vazio { padding: 10px 12px; font-size: 13px; color: var(--ink-muted); }
 
 /* botões de navegação entre sub-abas, com alvo maior e rumo explícito */
 .secnav .navbtn { border: 1px solid var(--border); background: var(--surface);

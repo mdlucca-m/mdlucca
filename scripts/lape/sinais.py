@@ -131,22 +131,35 @@ def integral(valores: list[float]) -> dict[str, Any]:
 
 
 def media_movel_centrada(valores: list[float], periodo: int = PERIODO) -> list[float]:
-    """2 x periodo quando o periodo e par; a janela encolhe nas pontas."""
+    """2 x periodo quando o periodo e par; nas pontas a janela encolhe
+    DOS DOIS LADOS por igual.
+
+    Encolher so do lado que falta deixaria a janela torta: no primeiro
+    ponto de uma reta, a media dos seis seguintes fica acima do ponto, e
+    a "estacao" ganharia um degrau que nao existe. Simetrica, a media de
+    uma reta e a propria reta em todo ponto -- e no extremo, com raio
+    zero, e o proprio valor.
+    """
     n = len(valores)
     if n == 0:
         return []
     meio = periodo // 2
 
     def media(de: int, ate: int) -> float:
-        de, ate = max(0, de), min(n, ate)
         fatia = valores[de:ate]
         return sum(fatia) / len(fatia) if fatia else 0.0
 
-    if periodo % 2 == 1:
-        return [round(media(i - meio, i + meio + 1), 4) for i in range(n)]
-    # par: media das duas medias moveis deslocadas, que e o 2xMA classico
-    return [round((media(i - meio, i + meio) + media(i - meio + 1, i + meio + 1)) / 2.0, 4)
-            for i in range(n)]
+    saida = []
+    for i in range(n):
+        if i < meio or i > n - 1 - meio:
+            r = min(i, n - 1 - i)
+            saida.append(round(media(i - r, i + r + 1), 4))
+        elif periodo % 2 == 1:
+            saida.append(round(media(i - meio, i + meio + 1), 4))
+        else:
+            # par: media das duas medias moveis deslocadas, o 2xMA classico
+            saida.append(round((media(i - meio, i + meio) + media(i - meio + 1, i + meio + 1)) / 2.0, 4))
+    return saida
 
 
 def _desvio(valores: list[float]) -> float:

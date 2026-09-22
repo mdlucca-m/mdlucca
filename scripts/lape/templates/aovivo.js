@@ -17,7 +17,8 @@ const C = Charts;
 const el = C.el;
 
 const D = { pronto: false };
-const ST = { periodo: "ano", aba: "painel", menuAberto: false, apresentando: false, auto: false };
+const ST = { periodo: "ano", aba: "painel", menuAberto: false, apresentando: false, auto: false,
+  busca: "", analise: "curva", autoAnalise: false, explicadas: 0, pausada: false };
 
 /* As paletas de fundo. A escolha vai para `lape-paleta` no navegador, que
    é o mesmo lugar que o mural lê: quem escolhe aqui escolhe lá. */
@@ -31,6 +32,10 @@ const PALETAS = [
    continuam vindo do banco, e a frase só diz o que se está olhando. */
 const APRESENTACAO = {
   painel: ["Visão geral", "Os quatro números do período, comparados com o anterior; a evolução mês a mês; a fatia de cada linha; onde os artigos estão agora; e o que os números dizem, calculado do banco."],
+  temas: ["Temas e indicadores", "Os indicadores que os quatro números não contam: quanto tempo leva, quanto é aceito, quanto é aberto, com quem se publica e o que se publica — e seis gráficos novos: radar, haltere, corrida de posições, fluxo, mosaico e calendário."],
+  sinais: ["Sinais e cálculo", "A curva mensal de publicações lida com cálculo: derivada, integral e área de crescimento, tendência separada da estação e do ruído, os pontos de inflexão e o limite à vista. Cada análise roda no seu botão, e a tela passa sozinha de uma para a outra."],
+  mundo: ["Mapa-múndi ao vivo", "O globo gira e pousa em cada país que assina com o laboratório: o arco sai da UDESC, o país acende, e a ficha diz quantos artigos e quais instituições."],
+  busca: ["Buscador temático", "Um campo para achar artigos, pessoas, projetos, linhas, acervos e temas — cada resultado com o seu ícone e os links para onde ele vive: painel, panorama e as bases."],
   acervos: ["Bibliotecas", "Cada acervo do laboratório: quantos registros, em que segmentos, que bases responderam, e o mapa segmento por base — onde há número, onde deu erro e onde a busca ainda não rodou."],
   triagens: ["Triagens", "Cada revisão com o fluxograma PRISMA contado do banco, as decisões, os motivos de exclusão, quem está triando e o kappa entre as duas pessoas que mais triaram."],
   bases: ["Bases de dados", "Cada base com o estado da última rodada, o que trouxe, e — nas que o sistema não alcança sozinho — o que fazer para colar a estratégia."],
@@ -39,9 +44,44 @@ const APRESENTACAO = {
 };
 const AUTO_SEGUNDOS = 25;
 
+/* O que a caixa explica quando se pede "mais": uma frase por clique. É
+   texto de apresentação, e não leitura dos dados -- os números continuam
+   vindo do banco. */
+const EXPLICA = {
+  painel: ["Cada número compara com o período anterior do mesmo tamanho: sem período anterior, a seta não aparece.",
+    "Na evolução mês a mês só entra quem tem a data completa; quem só tem o ano é contado à parte e dito na legenda.",
+    "As leituras são regras escritas, e cada uma diz de onde saiu — não há modelo de linguagem aqui."],
+  temas: ["O tempo do início à publicação é a mediana, e não a média: um artigo que levou cinco anos não puxa os outros.",
+    "Taxa de aceite conta só as decisões tomadas no período: aceite, rejeição e recusa de mesa.",
+    "Colaboração internacional é artigo com ao menos um autor fora do Brasil — pelo cadastro ou pela afiliação que veio da base.",
+    "O radar compara as quatro linhas mais produtivas em cinco eixos, todos em porcentagem dos artigos da linha."],
+  sinais: ["A derivada é a diferença central mês a mês: quanto a produção acelera ou freia.",
+    "A integral é a área sob o acumulado — artigo-mês: quanto de acervo ficou de pé ao longo da janela.",
+    "A tendência é uma média móvel centrada de doze meses; a estação é o que sobra por mês do calendário; o ruído é o resto.",
+    "Inflexão é onde a tendência troca de curvatura. O limite é o teto de uma logística ajustada ao acumulado — quando há um."],
+  mundo: ["A cor do país é o número de artigos com ao menos um autor de lá: um artigo Brasil–Portugal conta para os dois.",
+    "O arco sai da sede e chega ao país em foco; a ficha lista as instituições cadastradas.",
+    "Clique num país da lista para ir direto a ele; o botão pausa e retoma o giro."],
+  busca: ["A busca ignora caixa e acento: “motivacao” acha “Motivação”.",
+    "Cada resultado tem os links para onde ele vive — painel, panorama — e para as bases, com o termo já montado.",
+    "Sem texto no campo, a nuvem de temas mostra por onde começar: linhas, acervos e segmentos."],
+  acervos: ["Um registro pode estar em mais de um segmento: segmento é recorte de leitura, não gaveta.",
+    "Célula hachurada é busca que nunca rodou naquela base; vermelha é erro da base."],
+  triagens: ["O fluxograma PRISMA é contado do banco, e não digitado.",
+    "O kappa só aparece com duas pessoas que triaram as mesmas referências."],
+  bases: ["As três com API rodam sozinhas; as demais têm a estratégia pronta para colar."],
+  caminho: ["Seis etapas, e cada uma diz qual tela do LAPE a faz."],
+  doze: ["Os mesmos dados por doze gráficos: cada um responde uma pergunta escrita em cima dele."],
+};
+const AUTO_ANALISE_SEGUNDOS = 12;
+
 /* As páginas, na ordem do menu. O id é o que vai no #hash. */
 const ABAS = [
   ["painel", "Visão geral", "painel"],
+  ["temas", "Temas e KPIs", "achado"],
+  ["sinais", "Sinais e cálculo", "subida"],
+  ["mundo", "Mapa-múndi ao vivo", "mapa"],
+  ["busca", "Buscador temático", "explorar"],
   ["acervos", "Bibliotecas", "livro"],
   ["triagens", "Triagens", "submissao"],
   ["bases", "Bases", "qualidade"],
@@ -166,7 +206,8 @@ function kpiNeon(o) {
     o.extra || null,
     el("div", { class: "pe" }, [o.pe || el("span"), o.chip || null]),
   ], { i: o.i || 0, class: "kpi-neon" });
-  if (typeof o.valor === "number") contar(valor, o.valor); else valor.textContent = o.valor;
+  if (typeof o.valor === "number") contar(valor, o.valor);
+  else { valor.textContent = o.valor; if (String(o.valor).length > 6) valor.classList.add("texto"); }
   return n;
 }
 
@@ -305,6 +346,13 @@ function desenharTopo() {
     }));
   });
   topo.appendChild(chips);
+  /* o buscador no topo: digita, Enter, e cai na página de busca com o termo */
+  const campo = el("input", { type: "search", placeholder: "Buscar tema, artigo, pessoa…", "aria-label": "Buscar",
+    value: ST.busca || "" });
+  campo.addEventListener("keydown", function (ev) {
+    if (ev.key === "Enter") { ST.busca = campo.value; ST.aba = "busca"; location.hash = "busca"; desenhar(); }
+  });
+  topo.appendChild(el("label", { class: "busca-topo" }, [icone("explorar"), campo]));
   topo.appendChild(el("span", { class: "pulso on", id: "pulso" }, [el("i"), document.createTextNode("ao vivo")]));
 }
 
@@ -404,7 +452,7 @@ function desenharAcervos(palco) {
   }
   D.acervos.forEach(function (a, ai) {
     const base = ai * 10;
-    palco.appendChild(el("h2", { class: "secao" }, [Icons.tema(a.title, { tam: 34 }),
+    palco.appendChild(el("h2", { class: "secao", id: "acervo-" + a.code }, [Icons.tema(a.title, { tam: 34 }),
       document.createTextNode(a.title + " "),
       a.restrita ? chip(NEON.amber, "restrito") : null]));
     const ok = a.bases.filter(function (b) { return b.estado === "ok"; }).length;
@@ -663,6 +711,713 @@ function desenharDoze(palco) {
   palco.appendChild(grade);
 }
 
+/* ---------------------------------------------------------- temas */
+/* Os indicadores que os quatro números não contam, e os seis gráficos
+   que faltavam: radar, haltere, corrida de posições, fluxo, mosaico e
+   calendário. Cada KPI vem com o `pe` que diz de onde saiu. */
+const TOM_NEON = { cyan: NEON.cyan, green: NEON.green, yellow: NEON.yellow, purple: NEON.purple,
+  orange: NEON.orange, magenta: NEON.magenta, blue: NEON.blue, red: NEON.red };
+
+function desenharTemas(palco) {
+  const T = D.temas;
+  const per = D.periodo;
+  palco.appendChild(cabeca("achado", "Temas e indicadores",
+    "os KPIs temáticos de " + rotuloDoPeriodo(per.de, per.ate) + " e os gráficos que faltavam"));
+  const kpis = el("div", { class: "grade kpis" });
+  T.kpis.forEach(function (k, i) {
+    const tom = TOM_NEON[k.tom] || NEON.blue;
+    const valor = k.valor === null || k.valor === undefined ? "—"
+      : (typeof k.valor === "number" ? k.valor : String(k.valor));
+    kpis.appendChild(kpiNeon({ rotulo: k.rotulo, valor: valor, tom: tom, i: i, icon: k.icon,
+      extra: k.unidade ? el("span", { class: "unidade", text: k.unidade }) : null,
+      pe: el("span", { text: k.pe || "" }) }));
+  });
+  palco.appendChild(kpis);
+
+  const um = el("div", { class: "grade baixo" });
+  um.appendChild(glass([
+    cabecalho("Radar das linhas", "as quatro mais produtivas, em % dos artigos de cada uma"),
+    T.radar.series.length
+      ? C.radar({ axes: T.radar.axes, height: 360, caption: "radar por linha",
+        series: T.radar.series.map(function (s, i) { return { label: s.label, values: s.values, color: NEON_SEQ[i % NEON_SEQ.length] }; }) })
+      : el("div", { class: "vazio", text: "sem artigos ligados a linhas" }),
+  ], { i: 8 }));
+  um.appendChild(glass([
+    cabecalho("Haltere: de um período para o outro", per.anterior
+      ? "publicados por linha, " + rotuloDoPeriodo(per.anterior[0], per.anterior[1]) + " → " + rotuloDoPeriodo(per.de, per.ate)
+      : "sem período anterior para comparar"),
+    T.haltere.length
+      ? C.dumbbell({ items: T.haltere, caption: "antes e depois por linha", labelWidth: 230 })
+      : el("div", { class: "vazio", text: "nada publicado nos dois períodos" }),
+  ], { i: 9 }));
+  palco.appendChild(um);
+
+  const dois = el("div", { class: "grade baixo" });
+  dois.appendChild(glass([
+    cabecalho("Corrida de posições", "a posição de cada linha em publicados, ano a ano"),
+    T.bump.series.length
+      ? C.bump({ labels: T.bump.labels, caption: "posição por ano",
+        series: T.bump.series.map(function (s, i) { return { label: s.label, values: s.values, color: NEON_SEQ[i % NEON_SEQ.length] }; }) })
+      : el("div", { class: "vazio", text: "sem publicados nos últimos anos" }),
+  ], { i: 10 }));
+  dois.appendChild(glass([
+    cabecalho("Do desenho à situação", "que tipo de estudo está em que ponto do caminho — todo o acervo"),
+    T.sankey.links.length
+      ? C.sankey({ nodes: T.sankey.nodes, links: T.sankey.links, height: 360, caption: "tipo de estudo → situação" })
+      : el("div", { class: "vazio", text: "sem artigos com situação" }),
+  ], { i: 11 }));
+  palco.appendChild(dois);
+
+  const tres = el("div", { class: "grade baixo" });
+  tres.appendChild(glass([
+    cabecalho("Onde se publica", "mosaico das revistas — todo o acervo publicado"),
+    T.treemap.length
+      ? C.treemap({ items: T.treemap.map(function (t, i) { return { label: t.label, value: t.value, color: NEON_SEQ[i % NEON_SEQ.length] }; }),
+        height: 320, caption: "revistas" })
+      : el("div", { class: "vazio", text: "nenhum publicado com revista" }),
+  ], { i: 12 }));
+  tres.appendChild(glass([
+    cabecalho("Calendário de " + T.calendario.year, T.calendario.total + " acontecimento(s): publicação, submissão, aceite, triagem e atividade"),
+    T.calendario.total
+      ? C.calendarHeat({ days: T.calendario.days, year: T.calendario.year, unit: "acontecimentos", caption: "calendário" })
+      : el("div", { class: "vazio", text: "nada datado neste ano" }),
+  ], { i: 13 }));
+  palco.appendChild(tres);
+}
+
+/* --------------------------------------------------------- sinais */
+/* A curva mensal lida com cálculo. Cada análise tem o seu botão temático;
+   o gráfico se desenha em tempo real ao entrar ("Rodar"), e "Auto" passa
+   sozinho de uma análise para a outra, com anterior/seguinte. */
+const ANALISES = [
+  ["curva", "Curva", "subida", "Publicações por mês, com a tendência por cima: média móvel centrada de doze meses (2×12). A tendência é o sinal; o resto é estação e ruído."],
+  ["acumulado", "Acumulado", "barras", "O acervo publicado ao fim de cada mês — sobe e nunca desce. É o nível de que a curva mensal é a derivada."],
+  ["derivada", "Derivada", "raio", "Diferença central mês a mês: quanto a produção acelera (positivo) ou freia (negativo). A segunda derivada diz se a aceleração está aumentando."],
+  ["integral", "Integral e área", "espaco", "Área sob o acumulado, pelo trapézio: artigo-mês — quanto de acervo o laboratório manteve de pé ao longo da janela. A área acumulada mostra como ela cresce."],
+  ["decomposicao", "Sinal e ruído", "rede", "Tendência + estação + ruído. A estação é o que sobra, em média, em cada mês do calendário; o ruído é o que nenhuma das duas explica. A razão sinal/ruído diz quanto a curva é mais tendência do que acaso."],
+  ["inflexao", "Inflexões", "alvo", "Onde a tendência troca de curvatura: passa a acelerar ou a desacelerar. É a segunda derivada da tendência trocando de sinal — da série crua ela trocaria todo mês."],
+  ["limite", "Limite", "tempo", "O teto de uma logística ajustada ao acumulado, por busca em grade — quando o ajuste explica mais do que uma reta. Se não explica, o acumulado ainda cresce em linha e não há teto à vista."],
+];
+let relogioAnalise = null;
+
+function pararAnalise() { clearInterval(relogioAnalise); relogioAnalise = null; }
+
+function derivar(v) {
+  const n = v.length;
+  if (n < 2) return v.map(function () { return 0; });
+  return v.map(function (_, i) {
+    if (i === 0) return v[1] - v[0];
+    if (i === n - 1) return v[n - 1] - v[n - 2];
+    return (v[i + 1] - v[i - 1]) / 2;
+  });
+}
+
+/* o gráfico "roda": as linhas se desenham da esquerda para a direita, as
+   colunas crescem do chão e os pontos acendem em sequência */
+function rodar(fig) {
+  if (SEM_MOVIMENTO) return;
+  const caminhos = fig.querySelectorAll("path");
+  caminhos.forEach(function (p) {
+    let len = 0;
+    try { len = p.getTotalLength(); } catch (e) { return; }
+    if (!len) return;
+    const preenchido = p.getAttribute("fill") && p.getAttribute("fill") !== "none";
+    p.style.transition = "none";
+    p.style.strokeDasharray = len + " " + len;
+    p.style.strokeDashoffset = String(len);
+    if (preenchido) p.style.opacity = "0";
+    requestAnimationFrame(function () { requestAnimationFrame(function () {
+      p.style.transition = "stroke-dashoffset 1.8s ease-out, opacity 1.2s ease-out .5s";
+      p.style.strokeDashoffset = "0";
+      if (preenchido) p.style.opacity = "";
+    }); });
+  });
+  const pontos = fig.querySelectorAll("circle");
+  pontos.forEach(function (c, i) {
+    c.style.opacity = "0"; c.style.transition = "opacity .25s";
+    setTimeout(function () { c.style.opacity = ""; }, 150 + i * Math.min(60, 1600 / Math.max(1, pontos.length)));
+  });
+  fig.querySelectorAll("rect.mark").forEach(function (r, i) {
+    r.classList.remove("cresce"); void r.getBBox; r.classList.add("cresce");
+    r.style.animationDelay = Math.min(1200, i * 22) + "ms";
+  });
+}
+
+function figuraDaAnalise(code) {
+  const S = D.sinais;
+  const meses = S.meses;
+  const linha = function (label, values, color) { return { label: label, values: values, color: color }; };
+  switch (code) {
+    case "curva":
+      return [C.lines({ labels: meses, height: 320, caption: "publicações por mês e tendência",
+        series: [linha("publicados/mês", S.valores, NEON.cyan), linha("tendência (12 meses)", S.tendencia, NEON.orange)] })];
+    case "acumulado":
+      return [C.area({ labels: meses, height: 320, caption: "acumulado",
+        series: [linha("acervo publicado", S.acumulado, NEON.blue)] })];
+    case "derivada":
+      return [C.lines({ labels: meses, height: 320, caption: "derivada",
+        series: [linha("derivada (pub/mês por mês)", S.derivada, NEON.green), linha("segunda derivada", S.segunda_derivada, NEON.magenta)] })];
+    case "integral":
+      return [
+        C.area({ labels: meses, height: 260, caption: "área sob o acumulado",
+          series: [linha("acumulado (a área é o que fica embaixo)", S.acumulado, NEON.purple)] }),
+        C.lines({ labels: meses, height: 220, caption: "área acumulada",
+          series: [linha("área acumulada (artigo-mês)", S.integral.acumulada, NEON.yellow)] }),
+      ];
+    case "decomposicao":
+      return [
+        C.lines({ labels: meses, height: 240, caption: "observado e tendência",
+          series: [linha("observado", S.valores, NEON.cyan), linha("tendência", S.tendencia, NEON.orange)] }),
+        C.columns({ labels: ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"],
+          values: S.perfil_sazonal, name: "estação (desvio médio do mês)", height: 200, caption: "estação" }),
+        C.columns({ labels: meses, values: S.ruido, name: "ruído", height: 200, caption: "ruído" }),
+      ];
+    case "inflexao": {
+      const seg = derivar(derivar(S.tendencia));
+      return [
+        C.lines({ labels: meses, height: 260, caption: "tendência",
+          series: [linha("tendência", S.tendencia, NEON.orange)] }),
+        C.lines({ labels: meses, height: 200, caption: "curvatura da tendência",
+          series: [linha("segunda derivada da tendência", seg.map(function (x) { return Math.round(x * 1000) / 1000; }), NEON.magenta)] }),
+      ];
+    }
+    case "limite": {
+      const series = [linha("acumulado", S.acumulado, NEON.blue)];
+      if (S.limite && S.limite.K) {
+        series.push(linha("ajuste logístico", S.limite.ajuste, NEON.green));
+        series.push(linha("teto (K = " + C.fmt(S.limite.K) + ")", S.acumulado.map(function () { return S.limite.K; }), NEON.red));
+      }
+      return [C.lines({ labels: meses, height: 320, caption: "limite", series: series })];
+    }
+    default:
+      return [el("div", { class: "vazio", text: "análise desconhecida" })];
+  }
+}
+
+function leituraDaAnalise(code) {
+  const S = D.sinais;
+  const pt = function (n, casas) { return (Number(n) || 0).toFixed(casas === undefined ? 2 : casas).replace(".", ","); };
+  switch (code) {
+    case "curva": return "Ritmo dos últimos 12 meses: " + pt(S.ritmo) + " pub/mês"
+      + (S.ritmo_antes !== null ? " (antes: " + pt(S.ritmo_antes) + ")" : "") + " · " + S.soma + " publicado(s) na janela"
+      + (S.sem_mes ? " · " + S.sem_mes + " só com o ano ficam fora" : "");
+    case "acumulado": return "De " + C.fmt(S.base_antes) + " no início da janela a " + C.fmt(S.acumulado[S.acumulado.length - 1]) + " hoje.";
+    case "derivada": {
+      const u = S.derivada[S.derivada.length - 1];
+      return "Último valor: " + pt(u) + " — a produção " + (u > 0 ? "está acelerando" : (u < 0 ? "está freando" : "está estável")) + ".";
+    }
+    case "integral": return "Área sob o acumulado: " + C.fmt(Math.round(S.integral.area)) + " artigo-mês na janela.";
+    case "decomposicao": return S.sinal_ruido === null ? "Sem ruído mensurável."
+      : "Razão sinal/ruído " + pt(S.sinal_ruido) + " (desvio da tendência " + pt(S.dp_sinal) + " ÷ desvio do ruído " + pt(S.dp_ruido) + "): "
+        + (S.sinal_ruido >= 1 ? "mais sinal do que ruído." : "mais ruído do que sinal.");
+    case "inflexao": return S.inflexoes.length
+      ? S.inflexoes.length + " inflexão(ões); a última em " + S.inflexoes[S.inflexoes.length - 1].rotulo + ": a tendência " + S.inflexoes[S.inflexoes.length - 1].sentido + "."
+      : "Sem inflexão: a tendência não trocou de curvatura na janela.";
+    case "limite": return S.limite && S.limite.K
+      ? "Teto de " + C.fmt(S.limite.K) + " artigos, " + pt(S.limite.atingido, 0) + "% atingido (R² " + pt(S.limite.r2) + " contra " + pt(S.limite.r2_reta) + " da reta)."
+      : "Sem limite à vista: " + (S.limite ? S.limite.porque : "") + ".";
+    default: return "";
+  }
+}
+
+function desenharSinais(palco) {
+  const S = D.sinais;
+  palco.appendChild(cabeca("subida", "Sinais e cálculo",
+    "a curva mensal de publicações lida com cálculo — " + S.labels[0] + " a " + S.labels[S.labels.length - 1]));
+
+  const kpis = el("div", { class: "grade kpis" }, [
+    kpiNeon({ rotulo: "Ritmo (12 meses)", valor: S.ritmo, tom: NEON.cyan, i: 0, icon: "subida",
+      extra: el("span", { class: "unidade", text: "publicações por mês" }),
+      pe: el("span", { text: S.ritmo_antes !== null ? "antes: " + String(S.ritmo_antes).replace(".", ",") : "sem 12 meses anteriores" }) }),
+    kpiNeon({ rotulo: "Sinal / ruído", valor: S.sinal_ruido === null ? "—" : String(S.sinal_ruido).replace(".", ","), tom: NEON.orange, i: 1, icon: "rede",
+      pe: el("span", { text: S.sinal_ruido === null ? "sem ruído mensurável" : (S.sinal_ruido >= 1 ? "mais sinal do que ruído" : "mais ruído do que sinal") }) }),
+    kpiNeon({ rotulo: "Inflexões", valor: S.inflexoes.length, tom: NEON.magenta, i: 2, icon: "alvo",
+      pe: el("span", { text: S.inflexoes.length ? "última em " + S.inflexoes[S.inflexoes.length - 1].rotulo : "a tendência não trocou de curvatura" }) }),
+    kpiNeon({ rotulo: "Limite à vista", valor: S.limite && S.limite.K ? S.limite.K : "—", tom: NEON.green, i: 3, icon: "tempo",
+      extra: S.limite && S.limite.K ? el("span", { class: "unidade", text: String(S.limite.atingido).replace(".", ",") + "% atingido" }) : null,
+      pe: el("span", { text: S.limite && S.limite.K ? "teto do ajuste logístico" : (S.limite ? S.limite.porque : "") }) }),
+    kpiNeon({ rotulo: "Área (integral)", valor: Math.round(S.integral.area), tom: NEON.purple, i: 4, icon: "espaco",
+      extra: el("span", { class: "unidade", text: "artigo-mês" }), pe: el("span", { text: "sob o acumulado, na janela" }) }),
+  ]);
+  palco.appendChild(kpis);
+
+  const indice = Math.max(0, ANALISES.findIndex(function (a) { return a[0] === ST.analise; }));
+  const atual = ANALISES[indice];
+  const botoes = el("div", { class: "analises", role: "tablist" }, ANALISES.map(function (a, i) {
+    return el("button", { type: "button", class: "tematico" + (i === indice ? " on" : ""), style: "--tom:" + NEON_SEQ[i % NEON_SEQ.length],
+      role: "tab", "aria-selected": i === indice ? "true" : "false",
+      onclick: function () { ST.analise = a[0]; desenhar(); } }, [icone(a[2]), el("span", { text: a[1] })]);
+  }));
+  palco.appendChild(glass([botoes], { i: 5, class: "faixa-botoes" }));
+
+  const figuras = el("div", { class: "figuras" });
+  figuraDaAnalise(atual[0]).forEach(function (f) { figuras.appendChild(f); });
+  const barra = el("div", { class: "barra-analise" }, [el("i")]);
+  const controles = el("div", { class: "controles-analise" }, [
+    el("button", { type: "button", text: "◀", "aria-label": "análise anterior", onclick: function () { ST.analise = ANALISES[(indice - 1 + ANALISES.length) % ANALISES.length][0]; desenhar(); } }),
+    el("button", { type: "button", class: "rodar", text: "Rodar ▶", onclick: function () { rodar(figuras); } }),
+    el("button", { type: "button", class: ST.autoAnalise ? "on" : "", text: ST.autoAnalise ? "Auto: ligado" : "Auto (" + AUTO_ANALISE_SEGUNDOS + " s)",
+      onclick: function () { ST.autoAnalise = !ST.autoAnalise; desenhar(); } }),
+    el("button", { type: "button", text: "▶", "aria-label": "próxima análise", onclick: function () { ST.analise = ANALISES[(indice + 1) % ANALISES.length][0]; desenhar(); } }),
+  ]);
+  const cartao = glass([
+    cabecalho((indice + 1) + " de " + ANALISES.length + " · " + atual[1], atual[3], controles),
+    figuras,
+    el("div", { class: "leitura-analise" }, [icone("achado"), document.createTextNode(leituraDaAnalise(atual[0]))]),
+    atual[0] === "inflexao" && S.inflexoes.length ? el("div", { class: "linhas-chips" }, S.inflexoes.map(function (x, i) {
+      return chip(x.sentido.indexOf("acelerar") >= 0 ? NEON.green : NEON.red, x.rotulo + " · " + x.sentido); })) : null,
+    barra,
+  ], { i: 6, class: "cartao-analise" });
+  palco.appendChild(cartao);
+  requestAnimationFrame(function () { rodar(figuras); });
+
+  pararAnalise();
+  if (ST.autoAnalise) {
+    let decorrido = 0, ultimo = performance.now();
+    relogioAnalise = setInterval(function () {
+      const agora = performance.now();
+      if (!document.hidden) decorrido += agora - ultimo;
+      ultimo = agora;
+      const k = Math.min(1, decorrido / (AUTO_ANALISE_SEGUNDOS * 1000));
+      barra.firstChild.style.width = (k * 100).toFixed(1) + "%";
+      if (k >= 1) { ST.analise = ANALISES[(indice + 1) % ANALISES.length][0]; desenhar(); }
+    }, 200);
+  }
+}
+
+/* ---------------------------------------------------------- mundo */
+/* O globo em canvas, girando em tempo real. Não é o `Charts.globo`: aquele
+   monta um SVG de trezentos caminhos para uma foto parada, e refazê-lo a
+   sessenta quadros por segundo seria o navegador ocupado com DOM em vez de
+   com o desenho. Aqui é um canvas, e a Terra inteira (4.800 pontos) se
+   redesenha num milissegundo.
+
+   O roteiro: gira; a cada tantos segundos escolhe o próximo país que assina
+   com o laboratório, viaja até ele (o arco sai da sede), pousa — anéis, o
+   país aceso, a ficha ao lado — e volta a girar. */
+const TOUR_GIRO_MS = 2600, TOUR_VIAGEM_MS = 1900, TOUR_POUSO_MS = 4800;
+let GLOBO = null;
+
+function pararGlobo() { if (GLOBO) { GLOBO.parar(); GLOBO = null; } }
+
+function Globo(canvas, dados, ficha) {
+  this.canvas = canvas; this.ctx = canvas.getContext("2d");
+  this.dados = dados; this.ficha = ficha;
+  this.contorno = D.contorno || [];
+  this.sede = dados.sede;
+  this.lon0 = this.sede.longitude; this.lat0 = Math.max(-45, Math.min(45, this.sede.latitude));
+  this.roteiro = dados.paises.slice().sort(function (a, b) { return b.n - a.n; });
+  this.valores = {};
+  const self = this;
+  dados.paises.forEach(function (p) { self.valores[p.pais] = p.n; });
+  this.max = Math.max(1, ...dados.paises.map(function (p) { return p.n; }));
+  this.indice = -1; this.alvo = null; this.viagem = null; this.efeitos = [];
+  this.fase = SEM_MOVIMENTO ? "parado" : "girando";
+  this.girando = !SEM_MOVIMENTO;
+  this.proximaParada = performance.now() + TOUR_GIRO_MS;
+  this.ultimo = performance.now();
+  this.medir();
+  this.raf = requestAnimationFrame(this.laco.bind(this));
+  this.observador = new ResizeObserver(this.medir.bind(this));
+  this.observador.observe(canvas.parentElement);
+}
+Globo.prototype.medir = function () {
+  const largura = Math.max(240, Math.min(720, this.canvas.parentElement.clientWidth || 600));
+  const dpr = window.devicePixelRatio || 1;
+  this.W = largura; this.H = largura;
+  this.canvas.width = Math.round(largura * dpr); this.canvas.height = Math.round(largura * dpr);
+  this.canvas.style.width = largura + "px"; this.canvas.style.height = largura + "px";
+  this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  this.R = largura / 2 - 10; this.CX = largura / 2; this.CY = largura / 2;
+};
+Globo.prototype.parar = function () {
+  cancelAnimationFrame(this.raf); this.raf = null;
+  if (this.observador) this.observador.disconnect();
+};
+Globo.prototype.projetar = function (lon, lat) {
+  const rad = Math.PI / 180;
+  const dl = (lon - this.lon0) * rad, la = lat * rad, la0 = this.lat0 * rad;
+  const cosC = Math.sin(la0) * Math.sin(la) + Math.cos(la0) * Math.cos(la) * Math.cos(dl);
+  return { x: this.CX + this.R * Math.cos(la) * Math.sin(dl),
+           y: this.CY - this.R * (Math.cos(la0) * Math.sin(la) - Math.sin(la0) * Math.cos(la) * Math.cos(dl)),
+           visivel: cosC > 0, cosC: cosC };
+};
+Globo.prototype.irPara = function (pais, agora) {
+  agora = agora || performance.now();
+  this.alvo = pais;
+  this.viagem = { t0: agora, de: { lon: this.lon0, lat: this.lat0 }, para: { lon: pais.longitude, lat: Math.max(-55, Math.min(55, pais.latitude)) } };
+  this.fase = "viajando";
+  this.mostrarFicha(pais, false);
+};
+Globo.prototype.proximo = function (agora) {
+  if (!this.roteiro.length) return;
+  this.indice = (this.indice + 1) % this.roteiro.length;
+  this.irPara(this.roteiro[this.indice], agora);
+};
+Globo.prototype.alternar = function () {
+  this.girando = !this.girando;
+  if (this.girando && this.fase === "parado") { this.fase = "girando"; this.proximaParada = performance.now() + TOUR_GIRO_MS; }
+  if (!this.girando && this.fase === "girando") this.fase = "parado";
+};
+Globo.prototype.mostrarFicha = function (pais, chegou) {
+  if (!this.ficha) return;
+  this.ficha.innerHTML = "";
+  this.ficha.className = "ficha-pais" + (chegou ? " chegou" : " a-caminho");
+  const bandeira = (typeof Bandeiras !== "undefined" && pais.iso) ? Bandeiras.get(pais.iso, pais.pais) : null;
+  this.ficha.appendChild(el("div", { class: "cabeca-pais" }, [
+    bandeira ? el("span", { class: "bandeira" }, [bandeira]) : null,
+    el("div", {}, [el("b", { text: pais.pais }), el("small", { text: chegou ? "chegamos" : "a caminho…" })]),
+  ]));
+  const n = el("div", { class: "n-pais" });
+  this.ficha.appendChild(n);
+  if (chegou) contar(n, pais.n); else n.textContent = "…";
+  this.ficha.appendChild(el("div", { class: "sub", text: "artigo(s) com ao menos um autor de lá" }));
+  if (pais.instituicoes && pais.instituicoes.length) {
+    this.ficha.appendChild(el("div", { class: "linhas-chips" }, pais.instituicoes.map(function (i, k) {
+      return el("span", { class: "chip solto", style: "--tom:" + NEON_SEQ[k % NEON_SEQ.length] + ";--i:" + k }, [Icons.get("instituicao", 13), document.createTextNode(" " + i)]); })));
+  }
+};
+Globo.prototype.laco = function (t) {
+  this.raf = requestAnimationFrame(this.laco.bind(this));
+  if (document.hidden) { this.ultimo = t; return; }   /* girar um globo que ninguém vê gasta bateria para nada */
+  const dt = Math.min(100, t - this.ultimo); this.ultimo = t;
+  if (this.fase === "girando") {
+    this.lon0 += 9 * dt / 1000;                       /* nove graus por segundo */
+    if (this.lon0 > 180) this.lon0 -= 360;
+    if (this.girando && t >= this.proximaParada && this.roteiro.length) this.proximo(t);
+  } else if (this.fase === "viajando" && this.viagem) {
+    const k = Math.min(1, (t - this.viagem.t0) / TOUR_VIAGEM_MS);
+    const s = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    let dLon = this.viagem.para.lon - this.viagem.de.lon;
+    while (dLon > 180) dLon -= 360;
+    while (dLon < -180) dLon += 360;
+    this.lon0 = this.viagem.de.lon + dLon * s;
+    this.lat0 = this.viagem.de.lat + (this.viagem.para.lat - this.viagem.de.lat) * s;
+    if (k >= 1) {
+      this.fase = "pousado"; this.pousadoAte = t + TOUR_POUSO_MS;
+      this.efeitos.push({ lon: this.alvo.longitude, lat: this.alvo.latitude, t0: t });
+      this.mostrarFicha(this.alvo, true);
+    }
+  } else if (this.fase === "pousado") {
+    if (t >= this.pousadoAte) {
+      if (this.girando) { this.fase = "girando"; this.proximaParada = t + TOUR_GIRO_MS; }
+      else this.fase = "parado";
+    }
+  }
+  this.desenhar(t);
+};
+Globo.prototype.desenhar = function (t) {
+  const ctx = this.ctx, R = this.R, CX = this.CX, CY = this.CY, self = this;
+  ctx.clearRect(0, 0, this.W, this.H);
+  /* o brilho por trás do planeta */
+  const halo = ctx.createRadialGradient(CX, CY, R * 0.9, CX, CY, R + 10);
+  halo.addColorStop(0, "rgba(34,211,238,0)"); halo.addColorStop(1, "rgba(34,211,238,.35)");
+  ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(CX, CY, R + 10, 0, Math.PI * 2); ctx.fill();
+  /* o oceano */
+  const oceano = ctx.createRadialGradient(CX - R * 0.35, CY - R * 0.35, R * 0.1, CX, CY, R);
+  oceano.addColorStop(0, "rgba(59,130,246,.45)"); oceano.addColorStop(1, "rgba(7,13,31,.95)");
+  ctx.fillStyle = oceano; ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2); ctx.fill();
+  /* a grade de meridianos e paralelos */
+  ctx.strokeStyle = "rgba(255,255,255,.08)"; ctx.lineWidth = 1;
+  for (let lon = -180; lon < 180; lon += 30) this.traco(function (i) { return [lon, -90 + i * 3]; }, 61);
+  for (let lat = -60; lat <= 60; lat += 30) this.traco(function (i) { return [-180 + i * 3, lat]; }, 121);
+  /* os países */
+  const foco = this.alvo && (this.fase === "pousado" || this.fase === "viajando") ? this.alvo.pais : null;
+  const pulso = 0.5 + 0.5 * Math.sin(t / 260);
+  this.contorno.forEach(function (pais) {
+    const n = self.valores[pais.nome] || self.valores[pais.en] || 0;
+    const ehFoco = foco && (pais.nome === foco || pais.en === foco);
+    const forca = n ? 0.25 + 0.6 * n / self.max : 0;
+    (pais.d || []).forEach(function (anel) {
+      let atual = [];
+      const partes = [];
+      anel.forEach(function (pt) {
+        const p = self.projetar(pt[0], pt[1]);
+        if (p.visivel) atual.push(p); else if (atual.length) { partes.push(atual); atual = []; }
+      });
+      if (atual.length) partes.push(atual);
+      partes.forEach(function (parte) {
+        if (parte.length < 2) return;
+        ctx.beginPath();
+        parte.forEach(function (p, i) { if (i) ctx.lineTo(p.x, p.y); else ctx.moveTo(p.x, p.y); });
+        ctx.closePath();
+        if (ehFoco) {
+          ctx.fillStyle = "rgba(255,122,24," + (0.55 + 0.35 * pulso) + ")";
+          ctx.shadowColor = "#FF7A18"; ctx.shadowBlur = 18 + 12 * pulso;
+        } else if (n) {
+          ctx.fillStyle = "rgba(34,211,238," + forca.toFixed(2) + ")";
+          ctx.shadowColor = "#22D3EE"; ctx.shadowBlur = 6;
+        } else {
+          ctx.fillStyle = "rgba(255,255,255,.07)"; ctx.shadowBlur = 0;
+        }
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = ehFoco ? "#FFB27A" : (n ? "rgba(34,211,238,.7)" : "rgba(255,255,255,.16)");
+        ctx.lineWidth = ehFoco ? 1.6 : 0.7;
+        ctx.stroke();
+      });
+    });
+  });
+  /* o arco da sede até o país em foco */
+  if (this.alvo && (this.fase === "viajando" || this.fase === "pousado")) {
+    const k = this.fase === "pousado" ? 1 : Math.min(1, (t - this.viagem.t0) / TOUR_VIAGEM_MS);
+    this.arco(this.sede, this.alvo, k, t);
+  }
+  /* os anéis de chegada */
+  this.efeitos = this.efeitos.filter(function (e) { return t - e.t0 < 2400; });
+  this.efeitos.forEach(function (e) {
+    const p = self.projetar(e.lon, e.lat);
+    if (!p.visivel) return;
+    for (let i = 0; i < 3; i++) {
+      const k = ((t - e.t0) / 800 - i * 0.33);
+      if (k < 0 || k > 1) continue;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 6 + 44 * k, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(255,122,24," + (1 - k).toFixed(2) + ")"; ctx.lineWidth = 2.5 - 2 * k; ctx.stroke();
+    }
+  });
+  /* as instituições e a sede */
+  (this.dados.instituicoes || []).forEach(function (i) {
+    const p = self.projetar(i.longitude, i.latitude);
+    if (!p.visivel) return;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 2.2, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(250,204,21,.85)"; ctx.fill();
+  });
+  const s = this.projetar(this.sede.longitude, this.sede.latitude);
+  if (s.visivel) {
+    ctx.beginPath(); ctx.arc(s.x, s.y, 5 + 2 * pulso, 0, Math.PI * 2);
+    ctx.fillStyle = "#FACC15"; ctx.shadowColor = "#FACC15"; ctx.shadowBlur = 14; ctx.fill(); ctx.shadowBlur = 0;
+    ctx.fillStyle = "rgba(244,247,255,.9)"; ctx.font = "600 11px system-ui, sans-serif";
+    ctx.fillText(this.sede.nome, s.x + 9, s.y + 4);
+  }
+  /* o alfinete e o nome do país em foco */
+  if (foco) {
+    const p = this.projetar(this.alvo.longitude, this.alvo.latitude);
+    if (p.visivel) {
+      ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fillStyle = "#FF7A18"; ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x, p.y, 11 + 3 * pulso, 0, Math.PI * 2); ctx.strokeStyle = "#FF7A18"; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = "#fff"; ctx.font = "800 15px system-ui, sans-serif";
+      ctx.shadowColor = "rgba(0,0,0,.8)"; ctx.shadowBlur = 6;
+      ctx.fillText(this.alvo.pais + " · " + this.alvo.n, p.x + 16, p.y - 10);
+      ctx.shadowBlur = 0;
+    }
+  }
+  /* a borda do planeta por cima de tudo */
+  ctx.beginPath(); ctx.arc(CX, CY, R, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(34,211,238,.55)"; ctx.lineWidth = 1.5; ctx.stroke();
+};
+Globo.prototype.traco = function (ponto, n) {
+  const ctx = this.ctx;
+  let desenhando = false;
+  ctx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const pt = ponto(i);
+    const p = this.projetar(pt[0], pt[1]);
+    if (!p.visivel) { desenhando = false; continue; }
+    if (desenhando) ctx.lineTo(p.x, p.y); else ctx.moveTo(p.x, p.y);
+    desenhando = true;
+  }
+  ctx.stroke();
+};
+/* o arco do grande círculo, desenhado até a fração `k` da viagem, com um
+   "pulso de luz" correndo por ele */
+Globo.prototype.arco = function (de, para, k, t) {
+  const ctx = this.ctx, rad = Math.PI / 180;
+  const v = function (lon, lat) { return [Math.cos(lat * rad) * Math.cos(lon * rad), Math.cos(lat * rad) * Math.sin(lon * rad), Math.sin(lat * rad)]; };
+  const a = v(de.longitude, de.latitude), b = v(para.longitude, para.latitude);
+  const dot = Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]));
+  const ang = Math.acos(dot);
+  if (ang < 1e-4) return;
+  const N = 72;
+  const pontos = [];
+  for (let i = 0; i <= N; i++) {
+    const f = i / N;
+    const s1 = Math.sin((1 - f) * ang) / Math.sin(ang), s2 = Math.sin(f * ang) / Math.sin(ang);
+    const x = s1 * a[0] + s2 * b[0], y = s1 * a[1] + s2 * b[1], z = s1 * a[2] + s2 * b[2];
+    const lat = Math.atan2(z, Math.sqrt(x * x + y * y)) / rad, lon = Math.atan2(y, x) / rad;
+    const p = this.projetar(lon, lat);
+    /* o arco sobe um pouco acima da superfície: é voo, não estrada */
+    const lift = 1 + 0.12 * Math.sin(f * Math.PI);
+    pontos.push({ x: this.CX + (p.x - this.CX) * lift, y: this.CY + (p.y - this.CY) * lift, visivel: p.visivel, f: f });
+  }
+  ctx.save();
+  ctx.lineCap = "round";
+  const ate = Math.floor(k * N);
+  ctx.beginPath();
+  let desenhando = false;
+  for (let i = 0; i <= ate; i++) {
+    const p = pontos[i];
+    if (!p.visivel) { desenhando = false; continue; }
+    if (desenhando) ctx.lineTo(p.x, p.y); else ctx.moveTo(p.x, p.y);
+    desenhando = true;
+  }
+  ctx.strokeStyle = "rgba(255,122,24,.85)"; ctx.lineWidth = 2.2;
+  ctx.shadowColor = "#FF7A18"; ctx.shadowBlur = 10; ctx.stroke();
+  /* o pulso de luz que corre pelo arco */
+  const pos = pontos[Math.min(ate, Math.floor(((t / 900) % 1) * ate))];
+  if (pos && pos.visivel) {
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.shadowBlur = 16; ctx.fill();
+  }
+  ctx.restore();
+};
+
+let contornoPedido = false;
+function pedirContorno() {
+  if (contornoPedido) return;
+  contornoPedido = true;
+  fetch("/api/geo/mundo.json")
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (dados) { D.contorno = (dados || {}).paises || []; if (GLOBO) GLOBO.contorno = D.contorno; })
+    .catch(function () { contornoPedido = false; });
+}
+
+function desenharMundo(palco) {
+  const M = D.mundo;
+  pedirContorno();
+  palco.appendChild(cabeca("mapa", "Mapa-múndi ao vivo",
+    M.paises.length + " país(es) assinam com o laboratório · " + M.artigos_com_pais + " artigo(s) com país · o globo pousa em cada um"));
+  const grade = el("div", { class: "grade meio mundo" });
+  const canvas = el("canvas", { class: "globo-vivo", "aria-label": "globo com os países que assinam com o laboratório", role: "img" });
+  const ficha = el("div", { class: "ficha-pais vazia" }, [el("div", { class: "sub", text: M.paises.length ? "o globo vai pousar no primeiro país em instantes…" : "sem país com coordenada para pousar" })]);
+  const controles = el("div", { class: "controles-analise" });
+  const bGirar = el("button", { type: "button", text: SEM_MOVIMENTO ? "Girar" : "Pausar", onclick: function () {
+    if (!GLOBO) return; GLOBO.alternar(); bGirar.textContent = GLOBO.girando ? "Pausar" : "Girar"; } });
+  controles.appendChild(bGirar);
+  controles.appendChild(el("button", { type: "button", class: "rodar", text: "Próximo país ▶", onclick: function () { if (GLOBO) GLOBO.proximo(); } }));
+  grade.appendChild(glass([
+    cabecalho("O globo", "gira a nove graus por segundo; a cada parada, o arco sai da sede e o país acende", controles),
+    el("div", { class: "palco-globo" }, [canvas]),
+  ], { i: 0, class: "cartao-globo" }));
+  const lista = el("ul", { class: "paises" }, M.paises.slice().sort(function (a, b) { return b.n - a.n; }).map(function (p, i) {
+    const bandeira = (typeof Bandeiras !== "undefined" && p.iso) ? Bandeiras.get(p.iso, p.pais) : null;
+    return el("li", { style: "--i:" + i }, [el("button", { type: "button", onclick: function () { if (GLOBO) GLOBO.irPara(p); } }, [
+      bandeira ? el("span", { class: "bandeira" }, [bandeira]) : null,
+      el("span", { class: "nome", text: p.pais }),
+      el("span", { class: "n", text: C.fmt(p.n) })])]);
+  }));
+  grade.appendChild(glass([
+    cabecalho("Onde pousar", "clique num país para ir direto a ele"),
+    ficha,
+    M.paises.length ? lista : el("div", { class: "vazio", text: "nenhum país com coordenada ainda — cadastre a instituição de cada integrante" }),
+    M.sem_coordenada.length ? el("div", { class: "rodape", text: "sem coordenada: " + M.sem_coordenada.join(", ") }) : null,
+    M.instituicoes.length ? el("div", { class: "rodape", text: M.instituicoes.length + " instituição(ões) com coordenada aparecem como pontos amarelos" }) : null,
+  ], { i: 1 }));
+  palco.appendChild(grade);
+  pararGlobo();
+  GLOBO = new Globo(canvas, M, ficha);
+}
+
+/* ---------------------------------------------------------- busca */
+/* Um campo, tudo o que o laboratório tem com aquele nome. Cada resultado
+   traz o seu ícone temático e os links para onde ele vive; sem texto, a
+   nuvem de temas mostra por onde começar. */
+let buscaMarcada = null;
+const GRUPOS_DA_BUSCA = [
+  ["linhas", "Linhas de pesquisa", "linhas"], ["acervos", "Acervos", "livro"], ["temas", "Temas e segmentos", "achado"],
+  ["artigos", "Artigos", "producao"], ["pessoas", "Pessoas", "pessoas"], ["projetos", "Projetos", "projeto"],
+];
+
+function linksTematicos(termo) {
+  const q = encodeURIComponent(termo);
+  return el("div", { class: "links-tema" }, [
+    el("a", { href: "https://pubmed.ncbi.nlm.nih.gov/?term=" + q, target: "_blank", rel: "noopener", text: "PubMed" }),
+    el("a", { href: "https://openalex.org/works?filter=default.search:" + q, target: "_blank", rel: "noopener", text: "OpenAlex" }),
+    el("a", { href: "https://scholar.google.com/scholar?q=" + q, target: "_blank", rel: "noopener", text: "Scholar" }),
+    el("a", { href: "/?q=" + q + "#explorar", text: "Painel" }),
+    el("a", { href: "/panorama", text: "Panorama" }),
+  ]);
+}
+
+function resultadoDaBusca(grupo, r, i) {
+  const q = encodeURIComponent;
+  let titulo, sub, texto, href, tom = NEON_SEQ[i % NEON_SEQ.length];
+  switch (grupo) {
+    case "artigos":
+      titulo = r.titulo; texto = r.titulo;
+      sub = [r.ano, r.situacao ? r.situacao.replace("_", " ") : null, r.revista, r.linha].filter(Boolean).join(" · ");
+      href = "/?q=" + q(r.titulo) + "#" + (r.situacao === "publicado" ? "publicacoes" : (r.situacao === "em_producao" ? "producao" : "submetidos"));
+      break;
+    case "pessoas":
+      titulo = r.nome; texto = r.papel || "pessoa"; sub = r.papel || ""; href = "/?integrante=" + r.id + "#equipe"; break;
+    case "projetos":
+      titulo = r.nome; texto = r.nome; sub = r.situacao || ""; href = "/#projetos"; break;
+    case "linhas":
+      titulo = r.nome; texto = r.nome; sub = r.n + " artigo(s)"; href = "/?linha=" + q(r.nome) + "#linhas"; break;
+    case "acervos":
+      titulo = r.titulo; texto = r.titulo; sub = r.n + " registro(s)" + (r.linha ? " · " + r.linha : ""); href = "#acervos"; break;
+    case "temas":
+      titulo = r.tema; texto = r.tema; sub = r.tipo === "segmento" ? "segmento de " + r.acervo_titulo : r.tipo + " · " + r.n + " artigo(s)";
+      href = r.tipo === "segmento" ? "#acervos" : "/?q=" + q(r.tema) + "#explorar"; break;
+    default: titulo = String(r); texto = titulo; sub = ""; href = "#";
+  }
+  const icone_ = grupo === "linhas" && r.icone && r.icone !== "linha" ? r.icone : undefined;
+  const a = el("a", { class: "resultado", href: href, style: "--i:" + i + ";--tom:" + tom });
+  if (grupo === "acervos" || (grupo === "temas" && r.tipo === "segmento")) {
+    a.addEventListener("click", function (ev) {
+      ev.preventDefault(); ST.aba = "acervos"; location.hash = "acervos"; desenhar();
+      const alvo = document.getElementById("acervo-" + (r.code || r.acervo));
+      if (alvo) alvo.scrollIntoView({ behavior: SEM_MOVIMENTO ? "auto" : "smooth", block: "start" });
+    });
+  }
+  a.appendChild(Icons.tema(texto, { icone: icone_, tam: 34, tom: tom }));
+  a.appendChild(el("div", {}, [el("b", { text: titulo }), el("small", { text: sub })]));
+  return a;
+}
+
+function desenharBusca(palco) {
+  palco.appendChild(cabeca("explorar", "Buscador temático",
+    "artigos, pessoas, projetos, linhas, acervos e temas — sem caixa e sem acento"));
+  const campo = el("input", { type: "search", class: "campo-busca", value: ST.busca || "", autofocus: true,
+    placeholder: "Digite um tema, um nome, uma revista…", "aria-label": "Buscar" });
+  const resultados = el("div", { class: "resultados" });
+  const cabecalhoBusca = glass([el("label", { class: "busca-grande" }, [icone("explorar"), campo])], { i: 0 });
+  palco.appendChild(cabecalhoBusca);
+  palco.appendChild(resultados);
+
+  function nuvem() {
+    resultados.innerHTML = "";
+    const temas = [];
+    (D.por_linha.items || []).forEach(function (l) { temas.push({ t: l.label, icone: l.icone !== "linha" ? l.icone : undefined }); });
+    (D.acervos || []).forEach(function (a) {
+      temas.push({ t: a.title });
+      (a.segmentos || []).slice(0, 6).forEach(function (s) { temas.push({ t: s.segmento }); });
+    });
+    const vistos = {};
+    const chips = el("div", { class: "nuvem" }, temas.filter(function (x) {
+      if (!x.t || vistos[x.t]) return false; vistos[x.t] = true; return true; }).map(function (x, i) {
+      return el("button", { type: "button", class: "tema", style: "--i:" + i + ";--tom:" + NEON_SEQ[i % NEON_SEQ.length],
+        onclick: function () { campo.value = x.t; ST.busca = x.t; buscar(); } },
+        [Icons.tema(x.t, { icone: x.icone, tam: 26 }), el("span", { text: x.t })]);
+    }));
+    resultados.appendChild(glass([cabecalho("Por onde começar", "linhas, acervos e segmentos do laboratório — clique num tema"), chips], { i: 1 }));
+  }
+
+  async function buscar() {
+    const q = campo.value.trim();
+    ST.busca = q;
+    if (q.length < 2) { nuvem(); return; }
+    let r;
+    try { r = await api("/api/buscar?q=" + encodeURIComponent(q)); }
+    catch (erro) { resultados.innerHTML = ""; resultados.appendChild(glass([el("div", { class: "vazio", text: erro.message })])); return; }
+    if (campo.value.trim() !== q) return;    /* já digitou outra coisa */
+    resultados.innerHTML = "";
+    resultados.appendChild(glass([
+      cabecalho(r.total ? r.total + " resultado(s) para “" + q + "”" : "Nada com “" + q + "” no laboratório",
+        "e o mesmo termo nas bases, com um clique"),
+      linksTematicos(q),
+    ], { i: 0 }));
+    let n = 1;
+    GRUPOS_DA_BUSCA.forEach(function (g) {
+      const itens = r[g[0]] || [];
+      if (!itens.length) return;
+      const lista = el("div", { class: "lista-resultados" }, itens.map(function (item, i) { return resultadoDaBusca(g[0], item, i); }));
+      resultados.appendChild(glass([cabecalho(g[1], itens.length + " encontrado(s)", icone(g[2])), lista], { i: n++ }));
+    });
+  }
+  campo.addEventListener("input", function () { clearTimeout(buscaMarcada); buscaMarcada = setTimeout(buscar, 260); });
+  campo.addEventListener("keydown", function (ev) { if (ev.key === "Enter") { clearTimeout(buscaMarcada); buscar(); } });
+  buscar();
+}
+
 /* ------------------------------------------------------------- comum */
 function desenhar() {
   desenharLado();
@@ -670,7 +1425,13 @@ function desenhar() {
   const palco = document.getElementById("palco");
   palco.innerHTML = "";
   if (!D.pronto) { palco.appendChild(el("div", { class: "vazio", text: "carregando…" })); return; }
+  if (ST.aba !== "mundo") pararGlobo();
+  if (ST.aba !== "sinais") pararAnalise();
   if (ST.aba === "acervos") desenharAcervos(palco);
+  else if (ST.aba === "temas") desenharTemas(palco);
+  else if (ST.aba === "sinais") desenharSinais(palco);
+  else if (ST.aba === "mundo") desenharMundo(palco);
+  else if (ST.aba === "busca") desenharBusca(palco);
   else if (ST.aba === "triagens") desenharTriagens(palco);
   else if (ST.aba === "bases") desenharBases(palco);
   else if (ST.aba === "caminho") desenharCaminho(palco);
@@ -694,11 +1455,29 @@ function desenharApresentacao() {
   caixa.innerHTML = "";
   const indice = ABAS.findIndex(function (a) { return a[0] === ST.aba; });
   const texto = APRESENTACAO[ST.aba] || [ST.aba, ""];
-  caixa.appendChild(el("div", { class: "texto" }, [el("b", { text: (indice + 1) + " de " + ABAS.length + " · " + texto[0] }),
-    el("p", { text: texto[1] })]));
-  const pontos = el("span", { class: "pontos" }, ABAS.map(function (a, i) { return el("i", { class: i === indice ? "on" : "" }); }));
+  const mais = EXPLICA[ST.aba] || [];
+  /* o texto é interativo: cada clique em "Mais" (ou no próprio texto)
+     revela uma explicação a mais, com a sua animação */
+  const explicacoes = el("ul", { class: "explica" }, mais.slice(0, ST.explicadas).map(function (t, i) {
+    return el("li", { style: "--i:" + i }, [icone("achado"), document.createTextNode(t)]);
+  }));
+  const botaoMais = mais.length ? el("button", { type: "button", class: "mais",
+    text: ST.explicadas >= mais.length ? "Recolher" : "Mais ▸ " + (mais.length - ST.explicadas),
+    onclick: function () { ST.explicadas = ST.explicadas >= mais.length ? 0 : ST.explicadas + 1; desenharApresentacao(); } }) : null;
+  const bloco = el("div", { class: "texto" }, [
+    el("b", {}, [el("span", { class: "n", text: String(indice + 1) }), document.createTextNode(texto[0]),
+      el("small", { text: " · " + (indice + 1) + " de " + ABAS.length })]),
+    el("p", { text: texto[1] }), explicacoes]);
+  bloco.addEventListener("click", function (ev) {
+    if (ev.target.closest("button")) return;
+    ST.explicadas = ST.explicadas >= mais.length ? 0 : ST.explicadas + 1; desenharApresentacao();
+  });
+  caixa.appendChild(bloco);
+  const pontos = el("span", { class: "pontos" }, ABAS.map(function (a, i) {
+    return el("i", { class: i === indice ? "on" : "", title: a[1], onclick: function () { irPara(i); } }); }));
   caixa.appendChild(el("div", { class: "passos" }, [
     pontos,
+    botaoMais,
     el("button", { type: "button", text: "◀ Anterior", onclick: function () { irPara(indice - 1); } }),
     el("button", { type: "button", class: "seguir", text: "Seguir ▶", onclick: function () { irPara(indice + 1); } }),
     el("button", { type: "button", class: ST.auto ? "on" : "", text: ST.auto ? "Auto: ligado" : "Auto (" + AUTO_SEGUNDOS + " s)",
@@ -706,10 +1485,17 @@ function desenharApresentacao() {
   ]));
   const barra = el("div", { class: "barra" }, [el("i")]);
   caixa.appendChild(barra);
+  /* o ponteiro em cima da caixa segura o automático: quem está lendo não
+     quer a tela trocar no meio da frase */
+  caixa.onmouseenter = function () { ST.pausada = true; caixa.classList.add("pausada"); };
+  caixa.onmouseleave = function () { ST.pausada = false; caixa.classList.remove("pausada"); };
   if (ST.auto) {
-    const t0 = performance.now();
+    let decorrido = 0, ultimo = performance.now();
     relogioAuto = setInterval(function () {
-      const k = Math.min(1, (performance.now() - t0) / (AUTO_SEGUNDOS * 1000));
+      const agora = performance.now();
+      if (!ST.pausada) decorrido += agora - ultimo;
+      ultimo = agora;
+      const k = Math.min(1, decorrido / (AUTO_SEGUNDOS * 1000));
       barra.firstChild.style.width = (k * 100).toFixed(1) + "%";
       if (k >= 1) irPara(indice + 1);
     }, 200);
@@ -719,6 +1505,7 @@ function desenharApresentacao() {
 function irPara(indice) {
   const n = ABAS.length;
   ST.aba = ABAS[((indice % n) + n) % n][0];
+  ST.explicadas = 0;
   location.hash = ST.aba;
   window.scrollTo(0, 0);
   desenhar();
@@ -789,8 +1576,10 @@ function marcarPulso(texto, ligado) {
   if (guardada && PALETAS.some(function (p) { return p[0] === guardada; })) {
     document.documentElement.setAttribute("data-paleta", guardada);
   }
-  const aba = location.hash.replace("#", "");
+  const aba = location.hash.replace("#", "").split("?")[0];
   if (ABAS.some(function (a) { return a[0] === aba; })) ST.aba = aba;
+  const q = new URLSearchParams(location.search).get("q");
+  if (q) { ST.busca = q; ST.aba = "busca"; }
   desenhar();
   carregar();
   ligarAoVivo();

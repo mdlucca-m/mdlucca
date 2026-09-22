@@ -262,13 +262,38 @@ h2.secao .icone-tema { vertical-align: middle; margin-right: 8px; }
    a animação de chegada termina em `transform: none` e apagaria o
    deslocamento -- foi assim que a caixa saiu pela borda direita. */
 .apresentacao { position: fixed; left: 0; right: 0; bottom: 18px; margin-inline: auto; z-index: 30;
-  width: min(880px, calc(100vw - 32px)); display: grid; grid-template-columns: minmax(0, 1fr) auto;
-  gap: 14px; align-items: center; padding: 14px 16px 14px 18px; border-radius: 18px;
-  background: rgba(8,15,38,.82); backdrop-filter: blur(20px); border: 1px solid var(--border-strong);
-  box-shadow: var(--shadow-lg), 0 0 40px -10px var(--accent-strong); animation: chegar .4s ease-out both; }
+  width: min(920px, calc(100vw - 32px)); display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px; align-items: center; padding: 16px 18px 16px 20px; border-radius: 20px;
+  background: rgba(8,15,38,.88); backdrop-filter: blur(22px); border: 1px solid transparent;
+  box-shadow: var(--shadow-lg), 0 0 48px -8px var(--neon-magenta), 0 0 60px -20px var(--neon-cyan);
+  animation: chegar .4s ease-out both; }
+/* o contorno em degradê que corre em volta da caixa: laranja, magenta,
+   ciano -- as cores do painel. A animação é UMA volta por chegada, e
+   depois o contorno fica parado e aceso: o brilho é do contorno, não um
+   pisca-pisca. */
+.apresentacao::before { content: ""; position: absolute; inset: -2px; border-radius: 22px; padding: 2px; pointer-events: none;
+  background: conic-gradient(from var(--ang, 0deg), var(--neon-orange), var(--neon-magenta), var(--neon-cyan), var(--neon-purple), var(--neon-orange));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude; animation: contorno-gira 2.4s ease-out 1; }
+@property --ang { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@keyframes contorno-gira { from { --ang: 0deg; } to { --ang: 720deg; } }
+.apresentacao.pausada::before { filter: brightness(1.35) saturate(1.3); }
+.apresentacao .texto { cursor: pointer; }
+.apresentacao .texto b .n { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 8px; margin-right: 8px;
+  background: linear-gradient(135deg, var(--neon-orange), var(--neon-magenta)); color: var(--navy-deep); -webkit-text-fill-color: var(--navy-deep); font-size: 12px; }
+.apresentacao .texto b small { color: var(--ink-muted); -webkit-text-fill-color: var(--ink-muted); font-weight: 500; font-size: 12px; }
+.apresentacao .texto b { font-size: 16px; background: linear-gradient(90deg, #fff, var(--neon-cyan)); -webkit-background-clip: text; background-clip: text;
+  color: transparent; -webkit-text-fill-color: transparent; }
+.apresentacao .explica { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.apresentacao .explica li { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: var(--ink-2); line-height: 1.4;
+  padding: 6px 10px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--neon-cyan) 35%, transparent);
+  background: color-mix(in srgb, var(--neon-cyan) 8%, transparent); animation: chegar .35s ease-out both; animation-delay: calc(var(--i, 0) * 60ms); }
+.apresentacao .explica li svg.icon { color: var(--neon-yellow); flex: none; margin-top: 2px; }
+.apresentacao .passos button.mais { border-color: color-mix(in srgb, var(--neon-yellow) 60%, transparent); color: var(--neon-yellow); font-weight: 700; }
+.apresentacao .pontos i { cursor: pointer; }
 .apresentacao[hidden] { display: none; }
-.apresentacao .texto b { display: block; font-family: var(--display); font-size: 14px; margin-bottom: 3px; }
-.apresentacao .texto p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink-2); }
+.apresentacao .texto b { display: block; font-family: var(--display); margin-bottom: 4px; }
+.apresentacao .texto p { margin: 0; font-size: 13.5px; line-height: 1.45; color: rgba(244,247,255,.92); }
 .apresentacao .passos { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 .apresentacao .passos button { padding: 8px 12px; font-size: 12.5px; background: var(--surface); border: 1px solid var(--border);
   color: var(--ink); box-shadow: none; }
@@ -283,8 +308,92 @@ h2.secao .icone-tema { vertical-align: middle; margin-right: 8px; }
 body.apresentando main.palco { padding-bottom: 150px; }
 @media (max-width: 680px) { .apresentacao { grid-template-columns: minmax(0, 1fr); } }
 
+/* ---- o buscador no topo e a página de busca ---- */
+.busca-topo { display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid var(--border);
+  border-radius: 99px; background: rgba(255,255,255,.05); color: var(--ink-muted); min-width: 200px; }
+.busca-topo input { border: none; background: none; color: var(--ink); padding: 7px 0; font-size: 13px; width: 100%; box-shadow: none; outline: none; }
+.busca-topo:focus-within { border-color: var(--neon-cyan); box-shadow: 0 0 16px -4px var(--neon-cyan); color: var(--neon-cyan); }
+.busca-grande { display: flex; align-items: center; gap: 12px; color: var(--neon-cyan); }
+.busca-grande svg.icon { font-size: 22px; flex: none; }
+.busca-grande input { flex: 1; border: none; background: none; color: var(--ink); font-size: clamp(17px, 2vw, 22px); padding: 6px 0;
+  box-shadow: none; outline: none; font-family: var(--display); }
+.resultados { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; }
+.links-tema { display: flex; flex-wrap: wrap; gap: 8px; }
+.links-tema a { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 99px; font-size: 12.5px; font-weight: 700;
+  text-decoration: none; color: var(--ink); border: 1px solid var(--border-strong); background: var(--surface); transition: box-shadow .2s, border-color .2s; }
+.links-tema a:hover { border-color: var(--neon-cyan); box-shadow: 0 0 16px -4px var(--neon-cyan); color: var(--neon-cyan); }
+.lista-resultados { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+.resultado { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px 12px; border-radius: 14px;
+  text-decoration: none; color: var(--ink); border: 1px solid var(--border); background: var(--surface);
+  animation: chegar .4s ease-out both; animation-delay: calc(var(--i, 0) * 45ms); transition: box-shadow .25s, border-color .25s, transform .25s; }
+.resultado:hover { border-color: var(--tom, var(--neon-cyan)); box-shadow: 0 0 22px -6px var(--tom, var(--neon-cyan)); transform: translateY(-2px); }
+.resultado b { display: block; font-size: 13.5px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.resultado small { display: block; color: var(--ink-muted); font-size: 11.5px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nuvem { display: flex; flex-wrap: wrap; gap: 8px; }
+.nuvem .tema { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border-radius: 99px; font-size: 12.5px; font-weight: 600;
+  background: var(--surface); border: 1px solid color-mix(in srgb, var(--tom, var(--neon-cyan)) 40%, transparent); color: var(--ink); box-shadow: none;
+  animation: chegar .4s ease-out both; animation-delay: calc(var(--i, 0) * 30ms); }
+.nuvem .tema:hover { border-color: var(--tom, var(--neon-cyan)); box-shadow: 0 0 16px -4px var(--tom, var(--neon-cyan)); }
+.nuvem .tema .icone-tema { --tam: 26px; border-radius: 8px; }
+
+/* ---- temas: a unidade embaixo do número ---- */
+.kpi-neon .unidade { display: block; font-size: 11.5px; color: var(--ink-muted); margin-top: -4px; }
+/* um valor que é texto ("Estudo transversal") não cabe no corpo do número */
+.kpi-neon .valor.texto { font-size: clamp(17px, 1.6vw, 21px); line-height: 1.2; overflow-wrap: anywhere; }
+
+/* ---- sinais: os botões temáticos e o cartão da análise ---- */
+.faixa-botoes { padding: 12px 14px; }
+.analises { display: flex; flex-wrap: wrap; gap: 8px; }
+.tematico { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px 8px 10px; border-radius: 99px; font-size: 13px; font-weight: 700;
+  background: var(--surface); border: 1px solid color-mix(in srgb, var(--tom, var(--neon-cyan)) 45%, transparent); color: var(--ink-2); box-shadow: none;
+  transition: box-shadow .25s, transform .25s, color .25s, background .25s; }
+.tematico svg.icon { font-size: 17px; color: var(--tom, var(--neon-cyan)); }
+.tematico:hover { transform: translateY(-1px); box-shadow: 0 0 18px -4px var(--tom, var(--neon-cyan)); color: var(--ink); }
+.tematico.on { color: var(--navy-deep); background: var(--tom, var(--neon-cyan)); border-color: transparent; box-shadow: 0 0 24px -4px var(--tom, var(--neon-cyan)); }
+.tematico.on svg.icon { color: var(--navy-deep); }
+.cartao-analise { position: relative; padding-bottom: 22px; }
+.cartao-analise .figuras { display: flex; flex-direction: column; gap: 10px; }
+.cartao-analise .plotbox { flex: 0 0 auto; }
+.controles-analise { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.controles-analise button { padding: 7px 12px; font-size: 12.5px; background: var(--surface); border: 1px solid var(--border); color: var(--ink); box-shadow: none; }
+.controles-analise button.rodar { background: var(--grad-accent); border-color: transparent; color: #fff; font-weight: 700; box-shadow: 0 0 18px -4px var(--accent-strong); }
+.controles-analise button.on { border-color: var(--neon-green); color: var(--neon-green); }
+.leitura-analise { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; padding: 10px 14px; border-radius: 12px; font-size: 13.5px; line-height: 1.45;
+  border: 1px solid color-mix(in srgb, var(--neon-yellow) 40%, transparent); background: color-mix(in srgb, var(--neon-yellow) 8%, transparent); }
+.leitura-analise svg.icon { color: var(--neon-yellow); flex: none; margin-top: 2px; }
+.barra-analise { position: absolute; left: 20px; right: 20px; bottom: 8px; height: 3px; border-radius: 3px; background: rgba(255,255,255,.08); overflow: hidden; }
+.barra-analise i { display: block; height: 100%; width: 0; background: var(--grad-accent); }
+/* as colunas crescem do chão quando o gráfico "roda" */
+rect.mark.cresce { transform-box: fill-box; transform-origin: bottom; animation: cresce-coluna .7s cubic-bezier(.2,.8,.3,1) both; }
+@keyframes cresce-coluna { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+/* ---- mundo: o globo e a ficha do país ---- */
+.grade.mundo { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; }
+.palco-globo { display: grid; place-items: center; padding: 6px 0; }
+.globo-vivo { display: block; max-width: 100%; border-radius: 50%; }
+.ficha-pais { border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; border: 1px solid var(--border);
+  background: var(--surface); transition: border-color .3s, box-shadow .3s; min-height: 92px; }
+.ficha-pais.a-caminho { border-color: color-mix(in srgb, var(--neon-orange) 50%, transparent); }
+.ficha-pais.chegou { border-color: var(--neon-orange); box-shadow: 0 0 28px -6px var(--neon-orange); animation: surge-cartao .55s cubic-bezier(.16,.84,.3,1) both; }
+.ficha-pais .cabeca-pais { display: flex; align-items: center; gap: 10px; }
+.ficha-pais .cabeca-pais b { display: block; font-family: var(--display); font-size: 17px; }
+.ficha-pais .cabeca-pais small { color: var(--ink-muted); font-size: 11.5px; }
+.ficha-pais .bandeira svg, .paises .bandeira svg { width: 30px; height: 20px; border-radius: 3px; display: block; }
+.ficha-pais .n-pais { font-family: var(--display); font-size: 34px; font-weight: 800; line-height: 1.05; margin-top: 8px; font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--neon-orange) 60%, transparent); }
+.ficha-pais .sub { color: var(--ink-muted); font-size: 12px; margin-top: 2px; }
+.ficha-pais .linhas-chips { margin-top: 10px; margin-bottom: 0; }
+.ficha-pais .linhas-chips .chip { animation: chegar .35s ease-out both; animation-delay: calc(var(--i, 0) * 70ms); padding: 3px 10px; }
+.paises { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.paises li { animation: chegar .4s ease-out both; animation-delay: calc(var(--i, 0) * 40ms); }
+.paises button { width: 100%; display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 10px; align-items: center; text-align: left;
+  padding: 8px 12px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); color: var(--ink); box-shadow: none; font-size: 13px; }
+.paises button:hover { border-color: var(--neon-orange); box-shadow: 0 0 16px -4px var(--neon-orange); }
+.paises .nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.paises .n { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--neon-cyan); }
+
 @media (max-width: 1100px) {
-  .grade.meio, .grade.baixo, .grade.tres { grid-template-columns: minmax(0, 1fr); }
+  .grade.meio, .grade.baixo, .grade.tres, .grade.mundo { grid-template-columns: minmax(0, 1fr); }
   .doze { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 900px) {
@@ -299,6 +408,7 @@ body.apresentando main.palco { padding-bottom: 150px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .glass, .funil li { animation: none; } .hbars .barra { transition: none; } .pulso.batendo i { animation: none; }
+  .apresentacao::before, .apresentacao .explica li, .resultado, .nuvem .tema, .paises li, rect.mark.cresce { animation: none; }
 }
 @media print { nav.lado, header.topo { display: none; } .casca { display: block; } }
 </style>
@@ -312,6 +422,9 @@ body.apresentando main.palco { padding-bottom: 150px; }
 </svg>
 <script>
 __ICONS_JS__
+</script>
+<script>
+__BANDEIRAS_JS__
 </script>
 <script>
 __CHARTS_JS__

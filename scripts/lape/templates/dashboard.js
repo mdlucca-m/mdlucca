@@ -7919,8 +7919,98 @@ function setupTheme() {
   });
 }
 
+/* O buscador do painel: um campo no cabeçalho que pergunta ao servidor e
+   lista artigos, pessoas, projetos, linhas, acervos e temas num só lugar.
+   Cada resultado leva para a aba certa, já com o recorte aplicado. Só
+   existe ao vivo: o arquivo exportado não tem servidor para perguntar. */
+let buscaGlobalMarcada = null;
+function montarBuscador() {
+  const topo = document.getElementById("topo");
+  if (!topo || !LIVE || document.getElementById("omni")) return;
+  const campo = el("input", { type: "search", id: "omniCampo", placeholder: "Buscar no laboratório: tema, artigo, pessoa, projeto, acervo…",
+    "aria-label": "Buscar no laboratório", autocomplete: "off" });
+  const lista = el("div", { class: "omni-lista", role: "listbox", hidden: true });
+  const caixa = el("div", { class: "omni", id: "omni" }, [
+    el("label", { class: "omni-campo" }, [Icons.get("explorar", 16), campo, el("kbd", { class: "atalho", text: "/" })]), lista]);
+  topo.insertBefore(caixa, document.getElementById("actions"));
+
+  function fechar() { lista.hidden = true; lista.innerHTML = ""; }
+  function abrir(grupo, r) {
+    fechar(); campo.value = "";
+    if (grupo === "artigos") {
+      STATE.busca = String(r.titulo || "").toLowerCase(); STATE.linha = STATE.integrante = STATE.status = STATE.ano = "";
+      buildToolbar();
+      go(r.situacao === "publicado" ? "publicacoes" : (r.situacao === "em_producao" ? "producao" : "submetidos"));
+    } else if (grupo === "pessoas") {
+      STATE.integrante = String(r.id); STATE.busca = ""; buildToolbar(); go("equipe");
+    } else if (grupo === "projetos") {
+      go("projetos");
+    } else if (grupo === "linhas") {
+      STATE.linha = r.nome; STATE.busca = ""; buildToolbar(); go("linhas");
+    } else if (grupo === "acervos" || (grupo === "temas" && r.tipo === "segmento")) {
+      location.href = "/aovivo#acervos";
+    } else {
+      STATE.busca = String(r.tema || "").toLowerCase(); buildToolbar(); go("explorar");
+    }
+  }
+  const GRUPOS = [["linhas", "Linhas"], ["acervos", "Acervos"], ["temas", "Temas"], ["artigos", "Artigos"], ["pessoas", "Pessoas"], ["projetos", "Projetos"]];
+  function rotulo(grupo, r) {
+    if (grupo === "artigos") return [r.titulo, [r.ano, r.situacao, r.revista].filter(Boolean).join(" · ")];
+    if (grupo === "pessoas") return [r.nome, r.papel || "pessoa"];
+    if (grupo === "projetos") return [r.nome, r.situacao || "projeto"];
+    if (grupo === "linhas") return [r.nome, r.n + " artigo(s)"];
+    if (grupo === "acervos") return [r.titulo, r.n + " registro(s)"];
+    return [r.tema, r.tipo === "segmento" ? "segmento de " + r.acervo_titulo : r.tipo];
+  }
+  function buscar() {
+    const q = campo.value.trim();
+    if (q.length < 2) { fechar(); return; }
+    fetch("/api/buscar?q=" + encodeURIComponent(q), { headers: { Accept: "application/json" } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (r) {
+        if (!r || campo.value.trim() !== q) return;
+        lista.innerHTML = "";
+        if (!r.total) {
+          lista.appendChild(el("div", { class: "omni-vazio", text: "Nada com “" + q + "” no laboratório." }));
+        }
+        GRUPOS.forEach(function (g) {
+          const itens = r[g[0]] || [];
+          if (!itens.length) return;
+          lista.appendChild(el("div", { class: "omni-grupo", text: g[1] + " · " + itens.length }));
+          itens.forEach(function (item) {
+            const par = rotulo(g[0], item);
+            lista.appendChild(el("button", { type: "button", class: "omni-item", role: "option",
+              onclick: function () { abrir(g[0], item); } },
+              [Icons.get(VIEW_ICON[g[0] === "artigos" ? "publicacoes" : (g[0] === "pessoas" ? "pesquisadores" : (g[0] === "projetos" ? "projetos" : "linhas"))] || "linha", 14),
+                el("span", {}, [el("b", { text: par[0] }), el("small", { text: par[1] })])]));
+          });
+        });
+        lista.hidden = false;
+      })
+      .catch(function () { fechar(); });
+  }
+  campo.addEventListener("input", function () { clearTimeout(buscaGlobalMarcada); buscaGlobalMarcada = setTimeout(buscar, 240); });
+  campo.addEventListener("keydown", function (ev) {
+    if (ev.key === "Escape") { fechar(); campo.blur(); }
+    if (ev.key === "Enter") { clearTimeout(buscaGlobalMarcada); buscar(); }
+  });
+  document.addEventListener("click", function (ev) { if (!caixa.contains(ev.target)) fechar(); });
+}
+
+/* Os recortes podem vir pelo endereço: "/?q=motivação#publicacoes" abre
+   a aba já filtrada. É a ponte que o buscador temático do ao vivo usa. */
+function recortesDoEndereco() {
+  const p = new URLSearchParams(location.search);
+  if (p.get("q")) STATE.busca = String(p.get("q")).toLowerCase();
+  if (p.get("linha")) STATE.linha = p.get("linha");
+  if (p.get("integrante")) STATE.integrante = p.get("integrante");
+  if (p.get("ano")) STATE.ano = p.get("ano");
+}
+
 function boot() {
+  recortesDoEndereco();
   buildHeader();
+  montarBuscador();
   buildToolbar();
   const asked = abaDe(location.hash);
   current = viewOf(asked) ? asked : ORDER[0];

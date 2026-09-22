@@ -802,7 +802,9 @@ class TestAPaletaEOModoApresentacao(unittest.TestCase):
 
     def test_a_apresentacao_tem_texto_para_cada_pagina_e_o_seguir(self):
         import re
-        abas = re.findall(r'^  \["([a-z]+)", "', self.js[self.js.index("const ABAS = ["):], re.M)
+        bloco = self.js[self.js.index("const ABAS = ["):]
+        bloco = bloco[:bloco.index("];")]
+        abas = re.findall(r'^  \["([a-z]+)", "', bloco, re.M)
         trecho = self.js[self.js.index("const APRESENTACAO = {"):]
         trecho = trecho[:trecho.index("};")]
         for aba in abas:

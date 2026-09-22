@@ -387,9 +387,17 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
    "Seguir" sempre à vista -- a parede troca sozinha, mas quem está na
    frente dela pode conduzir */
 .mtopo .titulo { flex-wrap: wrap; row-gap: 2px; }
-.mtopo .titulo .apresenta { flex: 1 0 100%; margin: 0 0 0 46px; color: var(--ink-2);
+.mtopo .titulo .apresenta { flex: 1 0 100%; margin: 4px 0 0 46px; color: var(--ink);
   font-size: clamp(11px, .82vw, calc(13.5px * var(--zoom, 1))); white-space: nowrap; overflow: hidden;
-  text-overflow: ellipsis; }
+  text-overflow: ellipsis; padding: 4px 12px; border-radius: 999px; width: fit-content; max-width: calc(100% - 46px);
+  border: 1px solid color-mix(in srgb, var(--accent-strong) 55%, transparent);
+  background: color-mix(in srgb, var(--accent-strong) 10%, transparent); }
+.mtopo .titulo .apresenta:empty { display: none; }
+/* no néon a caixa ganha o contorno em degradê das três cores do painel */
+:root[data-paleta] .mtopo .titulo .apresenta { border-color: transparent; color: #fff;
+  background: linear-gradient(var(--navy-raised), var(--navy-raised)) padding-box,
+    linear-gradient(90deg, var(--neon-orange), var(--neon-magenta), var(--neon-cyan)) border-box;
+  box-shadow: 0 0 22px -6px var(--neon-magenta); }
 .seguir { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px;
   border: none; font-weight: 700; font-size: clamp(12px, .9vw, calc(14px * var(--zoom, 1))); color: #fff;
   background: var(--grad-accent); box-shadow: 0 0 18px -4px var(--accent-strong); }
