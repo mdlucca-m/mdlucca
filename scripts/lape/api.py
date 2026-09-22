@@ -135,6 +135,9 @@ def route_index(ctx: "Context") -> Any:
             "GET  /api/query                 ?medida=&por=&quebra=&linha=&ano=…",
             "GET  /api/history               ?metrica=publicados",
             "GET  /api/ana                   ?pergunta=… a Ana responde, com a fonte",
+            "GET  /api/bibliotecas/<code>/grupos  ?segmento= agrupa o acervo por tema",
+            "GET  /api/ao-ligar              (coordenação) sobe sozinho ao ligar o PC?",
+            "POST /api/ao-ligar              (coordenação) {ligar: true|false}",
             "GET  /api/lake/lineage          (coordenação) de onde veio cada carga",
             "GET  /api/stream                 eventos em tempo real (SSE)",
             "POST /api/invites                (coordenação) gera link de convite",
@@ -498,6 +501,24 @@ def route_biblioteca_analise(ctx: "Context", code: str) -> Any:
     from . import biblioteca
     try:
         return biblioteca.analitico(ctx.db, code)
+    except ValueError as erro:
+        raise ApiError(404, str(erro))
+
+
+def route_biblioteca_grupos(ctx: "Context", code: str) -> Any:
+    """Os grupos que o acervo forma sozinho, ao lado dos segmentos declarados.
+
+    `?segmento=` agrupa DENTRO de um recorte: perguntar como o handebol
+    feminino se divide por dentro e outra pergunta que a mesma conta
+    responde.
+    """
+    user = auth.require(ctx.user, "leitura")
+    _acervo_permitido(ctx, user, code)
+    from . import agrupamento
+    segmento = (ctx.query.get("segmento") or [None])[0]
+    k = to_int((ctx.query.get("k") or [None])[0])
+    try:
+        return agrupamento.agrupar(ctx.db, code, segmento=segmento, k=k)
     except ValueError as erro:
         raise ApiError(404, str(erro))
 
@@ -1649,6 +1670,7 @@ def route_review_create(ctx: "Context") -> Any:
     titulo = body.get("titulo") or body.get("title")
     review_id = revisao.criar(
         ctx.db, body.get("codigo") or body.get("code") or titulo, titulo,
+        tipo=body.get("tipo"),
         question=body.get("pergunta"), population=body.get("populacao"),
         intervention=body.get("intervencao"), comparison=body.get("comparador"),
         outcome=body.get("desfecho"), study_designs=body.get("delineamentos"),
@@ -1682,6 +1704,15 @@ def route_review_detail(ctx: "Context", review_id: str) -> Any:
             "SELECT m.id, m.full_name, rm.role FROM review_members rm"
             "  JOIN members m ON m.id = rm.member_id WHERE rm.review_id = ?", (rev["id"],)),
     }
+
+
+def route_review_padrao(ctx: "Context", review_id: str) -> Any:
+    """A conferencia do padrao desta revisao, item a item."""
+    from . import padrao
+
+    auth.require(ctx.user, "leitura")
+    rev = _revisao(ctx, review_id)
+    return padrao.conferir(ctx.db, rev["id"])
 
 
 def route_review_import(ctx: "Context", review_id: str) -> Any:
@@ -1856,6 +1887,18 @@ def route_review_unmerge(ctx: "Context", review_id: str) -> Any:
     return {**resultado, "prisma": revisao.prisma(ctx.db, rev["id"])}
 
 
+def route_modelos_de_extracao(ctx: "Context") -> Any:
+    """Os modelos de formulario que o sistema ja traz prontos."""
+    auth.require(ctx.user, "leitura")
+    return {"modelos": [
+        {"code": code, "nome": m["nome"], "para": m["para"],
+         "campos": len(m["campos"]),
+         "grupos": sorted({c.get("grupo") or "" for c in m["campos"]})}
+        for code, m in extracao.MODELOS.items()],
+        "ferramentas": [{"code": c, "nome": f["nome"]}
+                        for c, f in extracao.FERRAMENTAS_ROB.items()]}
+
+
 def route_review_form(ctx: "Context", review_id: str) -> Any:
     """O formulario de extracao e os dominios de risco de vies."""
     auth.require(ctx.user, "integrante")
@@ -1868,9 +1911,9 @@ def route_review_form(ctx: "Context", review_id: str) -> Any:
                          "dominios": len(f["dominios"])}
                         for c, f in extracao.FERRAMENTAS_ROB.items()],
         "formulario": extracao.formulario_de(ctx.db, rev["id"]),
-        "formularios": [{"codigo": c, "nome": f["nome"],
-                         "descricao": f["descricao"], "campos": len(f["campos"])}
-                        for c, f in extracao.FORMULARIOS.items()],
+        "formularios": [{"codigo": c, "nome": m["nome"],
+                         "descricao": m["para"], "campos": len(m["campos"])}
+                        for c, m in extracao.MODELOS.items()],
         "progresso": extracao.progresso(ctx.db, rev["id"]),
         "incluidos": ctx.db.dicts(
             "SELECT r.id, r.title, r.authors, r.journal, r.year, r.doi, r.url,"
@@ -1890,7 +1933,7 @@ def route_review_form_setup(ctx: "Context", review_id: str) -> Any:
     try:
         resultado = extracao.preparar(ctx.db, rev["id"],
                                       body.get("ferramenta") or "rob2",
-                                      formulario=body.get("formulario") or "padrao")
+                                      modelo=body.get("modelo"))
     except ValueError as exc:
         raise ApiError(400, str(exc)) from exc
     return {**resultado, "por": user.get("full_name")}
@@ -2209,6 +2252,41 @@ def route_versao(ctx: "Context") -> Any:
     return versao.atual()
 
 
+def route_aoligar(ctx: "Context") -> Any:
+    """O LAPE sobe sozinho quando o computador liga?
+
+    Da coordenacao porque mexe na MAQUINA, e nao no banco: quem aperta
+    esta decidindo que o laboratorio inteiro encontra o sistema no ar de
+    manha -- ou nao encontra.
+    """
+    from . import aoligar
+
+    auth.require(ctx.user, "coordenacao")
+    return aoligar.situacao()
+
+
+def route_aoligar_definir(ctx: "Context") -> Any:
+    from . import aoligar, hooks
+
+    user = auth.require(ctx.user, "coordenacao")
+    corpo = ctx.body or {}
+    if "ligar" not in corpo:
+        raise ApiError(400, "informe 'ligar': true ou false")
+    ligar = bool(corpo["ligar"])
+    saida = aoligar.definir(ligar)
+    if not saida.get("ok"):
+        # 409 e nao 500: o pedido esta certo, e foi a MAQUINA que recusou.
+        # 500 mandaria procurar defeito no sistema, quando o que ha e uma
+        # politica do Windows ou uma pasta fora do lugar.
+        raise ApiError(409, saida.get("recado") or "não consegui mudar o agendamento")
+    hooks.emit(ctx.db, "sistema.ao_ligar", entity="maquina",
+               detail="ligado" if ligar else "desligado",
+               actor=user.get("full_name"))
+    auth.log(ctx.db, user["id"], user.get("login"), "ao_ligar", "maquina",
+             None, "ligado" if ligar else "desligado")
+    return saida
+
+
 def route_ana(ctx: "Context") -> Any:
     """A Ana responde -- com o perfil de quem pergunta, e nao com o dela.
 
@@ -2351,6 +2429,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/audit/?$", route_audit, "coordenacao"),
     ("GET", r"^/api/versao/?$", route_versao, "leitura"),
     ("GET", r"^/api/ana/?$", route_ana, "leitura"),
+    ("GET", r"^/api/ao-ligar/?$", route_aoligar, "coordenacao"),
+    ("POST", r"^/api/ao-ligar/?$", route_aoligar_definir, "coordenacao"),
     ("GET", r"^/api/ponto/?$", route_ponto, "integrante"),
     ("POST", r"^/api/ponto/entrar/?$", route_ponto_entrar, "integrante"),
     ("POST", r"^/api/ponto/sair/?$", route_ponto_sair, "integrante"),
@@ -2370,6 +2450,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/bibliotecas/(?P<code>[\w-]+)/?$", route_biblioteca, "leitura"),
     ("GET", r"^/api/bibliotecas/(?P<code>[\w-]+)/analise/?$",
      route_biblioteca_analise, "leitura"),
+    ("GET", r"^/api/bibliotecas/(?P<code>[\w-]+)/grupos/?$",
+     route_biblioteca_grupos, "leitura"),
     ("POST", r"^/api/bibliotecas/(?P<code>[\w-]+)/atualizar/?$",
      route_biblioteca_atualizar, "coordenacao"),
     ("GET", r"^/api/equipe/perfis/?$", route_perfis_de_acesso, "coordenacao"),
@@ -2416,6 +2498,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/revisoes/?$", route_reviews, "leitura"),
     ("POST", r"^/api/revisoes/?$", route_review_create, "coordenacao"),
     ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/?$", route_review_detail, "leitura"),
+    ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/padrao/?$", route_review_padrao, "leitura"),
+    ("GET", r"^/api/extracao/modelos/?$", route_modelos_de_extracao, "leitura"),
     ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/importar/?$", route_review_import, "integrante"),
     ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/fila/?$", route_review_queue, "integrante"),
     ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/decidir/?$", route_review_decide, "integrante"),

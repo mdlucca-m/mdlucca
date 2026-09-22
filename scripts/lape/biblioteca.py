@@ -462,53 +462,73 @@ MOTIVACAO_REGIONAIS = (
 # quebrada e faz quem olha desconfiar do acervo inteiro. A coesao, com
 # seis, e o menor -- e fica porque num esporte coletivo a pergunta se
 # faz, mesmo que a literatura ainda a tenha respondido pouco. Um numero
-# pequeno a vista vale mais do que um segmento escondido.
+# Um numero pequeno a vista vale mais do que um segmento escondido.
 TEMAS_MOTIVACAO_HANDEBOL: tuple[tuple[str, tuple[str, ...]], ...] = (
-    # 39 registros
+    # 45 registros
     ("Desempenho e competição",
      ("performance", "competition", "competitive level", "elite", "match",
       "training load", "season")),
+    # 31 -- SEXO. Tres segmentos e nao um: "genero e handebol feminino"
+    # juntava a modalidade feminina com o estudo que COMPARA os dois, e sao
+    # perguntas diferentes -- uma e sobre quem joga, a outra e sobre a
+    # diferenca entre quem joga.
+    ("Handebol feminino",
+     ("women", "female", "girls", "female athletes", "women's handball",
+      "female players")),
+    # 27
+    ("Handebol masculino",
+     ("men", "male", "boys", "male athletes", "men's handball", "male players")),
+    # 4 -- o menor do acervo, e o mais especifico: so o que compara.
+    ("Comparação entre os sexos",
+     ("sex differences", "gender differences", "boys and girls", "men and women",
+      "sex comparison")),
     # 32
     ("Treinador, liderança e relação",
      ("coach", "coaches", "coaching", "coaching style", "coach behaviour",
       "coach behavior", "leadership", "coach-athlete relationship",
       "autonomy-supportive", "controlling style")),
-    # 30
-    ("Gênero e handebol feminino",
-     ("women", "female", "girls", "sex differences", "gender", "female athletes")),
-    # 29
-    ("Autodeterminação e necessidades psicológicas",
-     ("self-determination", "self-determined motivation", "intrinsic motivation",
-      "extrinsic motivation", "amotivation", "basic psychological needs",
-      "need satisfaction", "need thwarting", "autonomy", "competence",
-      "relatedness", "autonomy support")),
+    # 25 -- CATEGORIA, primeiro degrau
+    ("Formação e categorias de base",
+     ("youth", "youth sport", "adolescent", "adolescents", "young players",
+      "talent development", "talent identification", "relative age effect",
+      "early specialization", "junior", "cadet", "under-16", "under-18")),
+    # 12 -- CATEGORIA, o handebol que nao e de rendimento
+    ("Escolar, universitário e recreativo",
+     ("school", "physical education", "university", "college", "collegiate",
+      "recreational", "amateur", "leisure")),
+    # 8 -- CATEGORIA, o topo
+    ("Adulto, profissional e seleção",
+     ("adult", "senior", "professional", "first division", "national team",
+      "international level")),
     # 23
     ("Clima motivacional e metas de realização",
      ("motivational climate", "achievement goal", "achievement goals",
       "goal orientation", "task orientation", "ego orientation",
       "mastery climate", "performance climate", "task involvement",
       "ego involvement")),
-    # 21
-    ("Formação e categorias de base",
-     ("youth", "youth sport", "adolescent", "adolescents", "young players",
-      "talent development", "talent identification", "relative age effect",
-      "early specialization")),
-    # 10
-    ("Autoeficácia, ansiedade e confiança",
-     ("self-efficacy", "self-confidence", "competitive anxiety", "anxiety",
-      "mental toughness", "resilience", "self-esteem")),
-    # 10
-    ("Praia, escola e handebol adaptado",
-     ("beach handball", "physical education", "school", "wheelchair",
-      "disability", "para sport")),
-    # 9
-    ("Burnout, abandono e permanência",
-     ("burnout", "dropout", "drop-out", "withdrawal", "attrition", "adherence",
-      "retention", "engagement", "athlete burnout")),
+    # 29
+    ("Autodeterminação e necessidades psicológicas",
+     ("self-determination", "self-determined motivation", "intrinsic motivation",
+      "extrinsic motivation", "amotivation", "basic psychological needs",
+      "need satisfaction", "need thwarting", "autonomy", "competence",
+      "relatedness", "autonomy support")),
     # 9
     ("Lesão e retorno ao jogo",
      ("injury", "injuries", "rehabilitation", "return to play", "return to sport",
       "fear of reinjury")),
+    # 9
+    ("Burnout, abandono e permanência",
+     ("burnout", "dropout", "drop-out", "withdrawal", "attrition", "adherence",
+      "retention", "engagement", "athlete burnout")),
+    # 10
+    ("Autoeficácia, ansiedade e confiança",
+     ("self-efficacy", "self-confidence", "competitive anxiety", "anxiety",
+      "mental toughness", "resilience", "self-esteem")),
+    # 6 -- escola e universidade sairam daqui e ganharam segmento proprio
+    # de CATEGORIA; o que fica e o que muda a modalidade em si.
+    ("Praia e handebol adaptado",
+     ("beach handball", "wheelchair", "disability", "para sport",
+      "adapted handball", "goalball")),
     # 6
     ("Coesão e eficácia coletiva",
      ("cohesion", "team cohesion", "collective efficacy", "group dynamics",
@@ -569,24 +589,35 @@ AUTODETERMINACAO_REGIONAIS = (
 # Num acervo deste tamanho os segmentos se sobrepoem muito -- um estudo de
 # suporte a autonomia em categoria de base conta em tres deles. Isso e
 # proposital: segmento aqui e recorte de leitura, e nao gaveta, e e por
-# isso que a soma dos segmentos passa dos 27 do acervo.
+# proposital: segmento aqui e recorte de leitura, e nao gaveta.
 TEMAS_AUTODETERMINACAO: tuple[tuple[str, tuple[str, ...]], ...] = (
-    # 20 registros
-    ("Desempenho, treino e nível competitivo",
-     ("performance", "effort", "training", "competitive level", "elite",
-      "professional", "season")),
-    # 16
+    # 15 registros
     ("Formação e categorias de base",
      ("youth", "youth sport", "adolescent", "adolescents", "young players",
       "children", "school", "physical education")),
-    # 14
-    ("Necessidades psicológicas básicas",
-     ("need satisfaction", "need frustration", "need thwarting", "autonomy",
-      "competence", "relatedness", "basic needs")),
+    # 11 -- SEXO
+    ("Handebol feminino",
+     ("women", "female", "girls", "female athletes", "women's handball")),
+    # 5
+    ("Handebol masculino",
+     ("men", "male", "boys", "male athletes", "men's handball")),
+    # 3 -- CATEGORIA, o topo. Pequeno, e nao vazio: e onde estao os
+    # estudos com selecao e primeira divisao.
+    ("Adulto, profissional e seleção",
+     ("adult", "senior", "professional", "national team", "first division",
+      "international level")),
+    # 20
+    ("Desempenho, treino e nível competitivo",
+     ("performance", "effort", "training", "competitive level", "elite",
+      "professional", "season")),
     # 13
     ("Treinador: suporte à autonomia e estilo controlador",
      ("coach", "coaches", "coaching", "autonomy-supportive", "controlling",
       "coach-athlete relationship", "interpersonal style")),
+    # 14
+    ("Necessidades psicológicas básicas",
+     ("need satisfaction", "need frustration", "need thwarting", "autonomy",
+      "competence", "relatedness", "basic needs")),
     # 13
     ("Instrumentos e validação",
      ("validation", "psychometric", "factor structure", "questionnaire", "scale",

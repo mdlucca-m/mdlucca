@@ -1347,6 +1347,76 @@ const PERFIS = [
   {value: "admin", label: "Administração", ajuda: "coordenação, mais as contas"},
 ];
 
+/* Subir sozinho ao ligar o computador.
+
+   Já existia como "Subir sozinho ao ligar.bat", ao lado do "Subir
+   LAPE.bat" -- e um arquivo que resolve um problema só serve a quem
+   lembra que ele existe. Os dois .bat ainda estão lá e continuam
+   valendo: quem aperta aqui e quem dá duplo clique lá mexem na MESMA
+   tarefa do Windows, porque o botão chama o mesmo script. */
+async function subirSozinho(){
+  const caixa = h("div", {class: "card sec"});
+  caixa.appendChild(h("h3", {text: "Subir sozinho ao ligar o computador"}));
+
+  const d = await api("/api/ao-ligar").catch(function (e){ return {erro: e.message}; });
+  if (d.erro){
+    caixa.appendChild(h("p", {class: "hint", text: d.erro}));
+    return caixa;
+  }
+  if (!d.windows){
+    /* Fora do Windows o botão não aparece, e a tela diz por quê em vez
+       de mostrar um botão que não faria nada. */
+    caixa.appendChild(h("p", {class: "hint", text: d.aviso}));
+    return caixa;
+  }
+
+  const estado = h("p", {style: "margin:4px 0 10px;font-weight:600"});
+  const detalhe = h("p", {class: "hint", style: "margin:0 0 12px"});
+  const acao = h("button", {});
+  const recado = h("div", {style: "margin-top:10px"});
+
+  function pintar(x){
+    estado.textContent = x.ligado
+      ? "Ligado — o LAPE sobe sozinho quando você entra no Windows."
+      : "Desligado — depois de ligar o computador, alguém precisa abrir o LAPE.";
+    detalhe.textContent = x.ligado
+      ? (x.como === "tarefa"
+         ? "Pela tarefa agendada: ela se reergue sozinha se cair e funciona com "
+           + "o notebook na bateria."
+         : "Pelo atalho na pasta Inicializar. É o caminho de quem não é "
+           + "administrador da máquina — sobe junto com o Windows, mas não se "
+           + "reergue sozinho se cair.")
+      : "A janela preta precisa ficar aberta enquanto o sistema estiver no ar: "
+        + "é ela que mantém o endereço de pé.";
+    acao.textContent = x.ligado ? "Desligar" : "Ligar";
+    acao.className = x.ligado ? "" : "primary";
+  }
+  pintar(d);
+
+  acao.onclick = async function (){
+    const ligar = acao.textContent === "Ligar";
+    acao.disabled = true;
+    recado.innerHTML = "";
+    try {
+      const r = await api("/api/ao-ligar", "POST", {ligar: ligar});
+      pintar(r);
+      toast(ligar ? "O LAPE passa a subir sozinho." : "O LAPE não sobe mais sozinho.");
+      /* O que o Windows respondeu vai junto: quando ele cai no atalho em
+         vez da tarefa agendada, é nessa linha que isso aparece. */
+      if (r.recado) recado.appendChild(h("p", {class: "hint", text: r.recado}));
+    } catch (e){
+      recado.appendChild(h("p", {class: "aviso", text: e.message}));
+    }
+    acao.disabled = false;
+  };
+
+  caixa.appendChild(estado);
+  caixa.appendChild(detalhe);
+  caixa.appendChild(acao);
+  caixa.appendChild(recado);
+  return caixa;
+}
+
 async function perfilDeAcesso(){
   const caixa = h("div", {class: "card sec"});
   caixa.appendChild(h("h3", {text: "Perfil de acesso"}));
@@ -1421,6 +1491,7 @@ VIEWS.admin = {
       text: "Rodar os agentes, revisar o que o rastreador encontrou e liberar acesso a novos integrantes."}));
 
     VIEW.appendChild(await perfilDeAcesso());
+    VIEW.appendChild(await subirSozinho());
 
     const agentBox = h("div", {class: "card sec"}, [
       h("h3", {text: "Agentes"}),
@@ -2466,7 +2537,8 @@ VIEWS.biblioteca = {
        pessoa esperar por algo que ela não pediu. */
     const abas = h("div", {class: "chips", style: "margin:12px 0"});
     [["acervo", "Os artigos", "dados"],
-     ["analise", "O mapeamento", "barras"]].forEach(function (x){
+     ["analise", "O mapeamento", "barras"],
+     ["grupos", "Os grupos", "rede"]].forEach(function (x){
       const c = h("button", {class: "chip" + (BIB.aba === x[0] ? " on" : "")});
       c.appendChild(Icons.get(x[2], 13));
       c.appendChild(h("span", {text: x[1]}));
@@ -2479,6 +2551,12 @@ VIEWS.biblioteca = {
       const caixa = h("div", {});
       VIEW.appendChild(caixa);
       await desenharAnalise(caixa, BIB.code);
+      return;
+    }
+    if (BIB.aba === "grupos"){
+      const caixa = h("div", {});
+      VIEW.appendChild(caixa);
+      await desenharGrupos(caixa, BIB.code, BIB.segmento);
       return;
     }
 
@@ -2515,6 +2593,67 @@ function avisoDeCorte(cortadas){
     + ", trouxe " + pior.achados + " de " + pior.na_base
     + " que a base tem. O total acima não é o tamanho da literatura."}));
   return caixa;
+}
+
+/* Os grupos que o acervo forma SOZINHO, ao lado dos segmentos declarados.
+
+   Os segmentos são escritos por quem lê, e isso é proposital. O que esta
+   tela acrescenta é a pergunta seguinte: a literatura se divide mesmo
+   assim? Por isso cada grupo mostra em quais segmentos ele cai -- quando
+   os dois coincidem, a segmentação está descrevendo o campo; quando não,
+   há uma conversa para ter. */
+async function desenharGrupos(caixa, code, segmento){
+  caixa.appendChild(h("div", {class: "empty", text: "agrupando…"}));
+  const url = "/api/bibliotecas/" + encodeURIComponent(code) + "/grupos"
+    + (segmento ? "?segmento=" + encodeURIComponent(segmento) : "");
+  let d;
+  try {
+    d = await api(url);
+  } catch (e){
+    caixa.innerHTML = "";
+    caixa.appendChild(h("div", {class: "card"}, h("div", {class: "empty", text: e.message})));
+    return;
+  }
+  caixa.innerHTML = "";
+
+  const topo = h("div", {class: "card sec"}, [
+    h("h3", {text: "Os grupos que o acervo forma sozinho"}),
+    h("p", {class: "hint", style: "margin:6px 0 0", text:
+      "Ninguém escreveu estes grupos: eles saem das palavras que andam juntas "
+      + "nos títulos, resumos e palavras-chave. Compare-os com os segmentos "
+      + "declarados — é a diferença entre os dois que tem o que dizer."
+      + (segmento ? " Aqui, dentro do segmento “" + segmento + "”." : "")}),
+  ]);
+  caixa.appendChild(topo);
+
+  /* Recusa é resposta: com poucos artigos os grupos falam do sorteio, e
+     não da literatura. A tela diz isso em vez de desenhar três caixas. */
+  if (d.aviso){
+    topo.appendChild(h("p", {class: "aviso", style: "margin-top:10px", text: d.aviso}));
+    return;
+  }
+
+  /* A silhueta em palavras, e o número ao lado: sem ela, três grupos de
+     um borrão têm exatamente a mesma cara de três grupos de verdade. */
+  topo.appendChild(h("p", {class: "hint", style: "margin-top:10px", text:
+    d.n + " artigo(s) em " + d.k + " grupo(s) · separação: " + d.leitura
+    + " (silhueta " + d.silhueta + ")"}));
+
+  d.grupos.forEach(function (g, i){
+    const cartao = h("div", {class: "card sec"});
+    cartao.appendChild(h("h3", {text: "Grupo " + (i + 1) + " — " + g.n + " artigo(s)"
+      + (g.ano_de ? " · " + g.ano_de + "–" + g.ano_ate : "")}));
+    cartao.appendChild(h("div", {class: "chips", style: "margin:8px 0"},
+      g.termos.map(function (t){
+        return h("span", {class: "chip", style: "cursor:default", text: t}); })));
+    cartao.appendChild(h("p", {class: "hint", style: "margin:2px 0 8px", text:
+      "cai em: " + g.segmentos.map(function (s){
+        return s.segmento + " (" + s.n + ")"; }).join(" · ")}));
+    cartao.appendChild(table(
+      [{k: "title", label: "Exemplos"}, {k: "year", label: "Ano", num: true}],
+      g.exemplos, "—"));
+    caixa.appendChild(cartao);
+  });
 }
 
 function desenharAcervo(d){

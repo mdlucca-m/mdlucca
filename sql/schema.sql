@@ -478,6 +478,13 @@ CREATE TABLE IF NOT EXISTS reviews (
   id               INTEGER PRIMARY KEY,
   code             TEXT UNIQUE NOT NULL,
   title            TEXT NOT NULL,
+  -- sistematica | escopo | mapping. Muda o padrao de relato que a revisao
+  -- segue (PRISMA 2020 ou PRISMA-ScR), o nome do que se faz depois da
+  -- triagem (extracao de dados ou charting) e se a avaliacao de risco de
+  -- vies e cobrada. Sem este campo, as tres eram tratadas como uma so --
+  -- e a revisao de escopo saia com a conferencia da sistematica, pedindo
+  -- risco de vies que ela nao faz por definicao.
+  tipo             TEXT NOT NULL DEFAULT 'sistematica',
   question         TEXT,
   population       TEXT,
   intervention     TEXT,

@@ -441,7 +441,7 @@ class TestExtracaoPelaApi(unittest.TestCase):
         self.assertIn("Estudo;", corpo)
 
 
-class TestOsFormulariosDeclarados(unittest.TestCase):
+class TestOsModelosDeclarados(unittest.TestCase):
     """A ficha fica ESCRITA, e nao montada a cada revisao.
 
     Pela mesma razao das estrategias de busca: uma ficha montada na hora
@@ -501,8 +501,8 @@ class TestOsFormulariosDeclarados(unittest.TestCase):
             "zero": 0, "vinte": 20, "quarenta e oito": 48, "sessenta e dois": 62,
             "cinquenta e um": 51,
         }
-        for nome, forma in extracao.FORMULARIOS.items():
-            texto = forma["descricao"].lower()
+        for nome, forma in extracao.MODELOS.items():
+            texto = forma["para"].lower()
             ditos = [n for n, valor in escrito.items() if n in texto]
             for dito in ditos:
                 with self.subTest(formulario=nome, numero=dito):
@@ -510,13 +510,13 @@ class TestOsFormulariosDeclarados(unittest.TestCase):
 
     def test_nenhum_formulario_tem_codigo_repetido(self):
         """Codigo repetido faz o segundo campo sumir no UNIQUE, calado."""
-        for nome, forma in extracao.FORMULARIOS.items():
+        for nome, forma in extracao.MODELOS.items():
             with self.subTest(formulario=nome):
                 codigos = [c["code"] for c in forma["campos"]]
                 self.assertEqual(len(codigos), len(set(codigos)))
 
     def test_todo_campo_declarado_tem_tipo_que_a_tela_sabe_desenhar(self):
-        for nome, forma in extracao.FORMULARIOS.items():
+        for nome, forma in extracao.MODELOS.items():
             for campo in forma["campos"]:
                 with self.subTest(formulario=nome, campo=campo["code"]):
                     self.assertIn(campo.get("kind", "texto"), extracao.TIPOS)
@@ -526,7 +526,7 @@ class TestOsFormulariosDeclarados(unittest.TestCase):
                                         "escolha sem opções vira caixa vazia")
 
     def test_preparar_aceita_o_formulario_pelo_nome_e_guarda_qual_foi(self):
-        extracao.preparar(self.db, self.rev, "mmat", formulario="autodeterminacao")
+        extracao.preparar(self.db, self.rev, "mmat", modelo="autodeterminacao")
         campos = extracao.campos(self.db, self.rev)
         self.assertEqual(len(campos), len(extracao.FORMULARIO_AUTODETERMINACAO))
         self.assertEqual(extracao.formulario_de(self.db, self.rev)["codigo"],
@@ -534,19 +534,19 @@ class TestOsFormulariosDeclarados(unittest.TestCase):
 
     def test_formulario_que_nao_existe_reclama_e_nao_instala_meio(self):
         with self.assertRaises(ValueError) as erro:
-            extracao.preparar(self.db, self.rev, "rob2", formulario="inventado")
+            extracao.preparar(self.db, self.rev, "rob2", modelo="inventado")
         self.assertIn("inventado", str(erro.exception))
         self.assertEqual(extracao.campos(self.db, self.rev), [])
 
     def test_trocar_de_formulario_acrescenta_e_nao_apaga_o_que_foi_extraido(self):
         """Começar no padrão e passar para o completo nao pode custar releitura."""
-        extracao.preparar(self.db, self.rev, "rob2", formulario="padrao")
+        extracao.preparar(self.db, self.rev, "rob2", modelo="intervencao")
         revisao.importar(self.db, self.rev, RIS, "scopus.ris")
         ref = self.db.scalar("SELECT id FROM refs LIMIT 1")
         ana = self.db.member_id("Ana Souza")
         extracao.gravar(self.db, ref, ana, {"n_total": "40"})
 
-        extracao.preparar(self.db, self.rev, "rob2", formulario="completo")
+        extracao.preparar(self.db, self.rev, "rob2", modelo="completo")
         self.assertEqual(extracao.minha_extracao(self.db, ref, ana)["valores"]["n_total"],
                          "40")
         codigos = {c["code"] for c in extracao.campos(self.db, self.rev)}
@@ -611,7 +611,7 @@ class TestAMMAT(unittest.TestCase):
         """
         rev = revisao.criar(self.db, "r2", "Revisão",
                             study_designs="Transversais, ensaios e qualitativos")
-        extracao.preparar(self.db, rev, "mmat", formulario="completo")
+        extracao.preparar(self.db, rev, "mmat", modelo="completo")
         self.assertEqual(extracao.ferramenta_da(self.db, rev)["codigo"], "mmat")
         self.assertEqual(
             self.db.scalar("SELECT study_designs FROM reviews WHERE id = ?", (rev,)),
@@ -626,7 +626,7 @@ class TestAMMAT(unittest.TestCase):
         self.assertEqual(extracao.ferramenta_da(self.db, rev)["codigo"], "robins")
 
     def test_o_semaforo_desenha_com_a_mmat(self):
-        extracao.preparar(self.db, self.rev, "mmat", formulario="autodeterminacao")
+        extracao.preparar(self.db, self.rev, "mmat", modelo="autodeterminacao")
         grade = extracao.semaforo(self.db, self.rev)
         self.assertEqual(len(grade["dominios"]), 27)
         self.assertIn("MMAT", grade["ferramenta"])
