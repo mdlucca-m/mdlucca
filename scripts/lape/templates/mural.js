@@ -1566,12 +1566,15 @@ let quadroAnim = null;
 
 function desenhar(indice, direcao) {
   const slide = ROTEIRO[indice];
-  const antigo = palco.firstElementChild;
-  if (antigo) {
+  /* Marca TODOS os filhos atuais para sair, não só o primeiro -- se a troca
+     de slide acontecer mais rápido que os 320ms da animação (cliques
+     seguidos nos pontos), sobras que ficaram para trás também são
+     removidas aqui, em vez de se acumularem escondidas atrás do slide
+     novo para sempre. */
+  Array.from(palco.children).forEach(function (antigo) {
     antigo.classList.add("saindo");
-    const morto = antigo;
-    setTimeout(function () { if (morto.parentNode) morto.remove(); }, 320);
-  }
+    setTimeout(function () { if (antigo.parentNode) antigo.remove(); }, 320);
+  });
   let node;
   try {
     node = slide.montar();
