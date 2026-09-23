@@ -1654,9 +1654,11 @@ button.primary:hover::after { animation: facho .62s ease-out 1; }
 /* o seletor de paleta: um ponto por paleta, o escolhido com anel */
 .paletas { display: inline-flex; align-items: center; gap: 6px; }
 .paletas button { --amostra: var(--navy); width: 18px; height: 18px; padding: 0; border-radius: 50%; border: 2px solid transparent;
-  box-shadow: 0 0 0 1px rgba(255,255,255,.25) inset; background: var(--amostra); cursor: pointer; }
+  box-shadow: 0 0 0 1px rgba(255,255,255,.25) inset; background: var(--amostra); cursor: pointer;
+  transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), box-shadow .2s ease; }
 .paletas button.on { border-color: #fff; box-shadow: 0 0 10px var(--amostra); }
-.paletas button:hover { transform: scale(1.15); }
+.paletas button:hover { transform: scale(1.22); }
+.paletas button:active { transform: scale(.9); }
 
 /* ícones temáticos: cada família tem o seu jeito de se mexer -- o esporte
    quica, a mente pulsa, o corpo balança. Ao passar o mouse e ao chegar.
@@ -1679,4 +1681,5 @@ button.primary:hover::after { animation: facho .62s ease-out 1; }
 @keyframes surgir { from { opacity: 0; transform: scale(.4) rotate(-20deg); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
   .icone-tema:hover svg, .icone-tema.surgiu { animation: none; }
+  .paletas button { transition: none; }
 }
