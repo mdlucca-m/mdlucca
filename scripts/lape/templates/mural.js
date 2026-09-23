@@ -234,8 +234,8 @@ function tile(spec) {
   if (spec.pe) casa.appendChild(el("div", { class: "pe", html: spec.pe }));
   return casa;
 }
-function quadro(titulo, icone, corpo, nota) {
-  return el("div", { class: "quadro" }, [
+function quadro(titulo, icone, corpo, nota, classeExtra) {
+  return el("div", { class: classeExtra ? "quadro " + classeExtra : "quadro" }, [
     el("h2", {}, [Icons.badge(icone, null, null), el("span", { text: titulo }),
       nota ? el("small", { text: nota }) : null]),
     el("div", { class: "corpo" }, corpo),
@@ -1198,7 +1198,7 @@ function slidePareto() {
   const corpo = el("div", { class: "corpo" }, fig);
 
   return escalonar(el("div", { class: "slide painel-duplo igual" }, [
-    quadro("Pareto: Produção por Linha (80/20)", "subida", corpo),
+    quadro("Pareto: Produção por Linha (80/20)", "subida", corpo, null, "moldura-viva"),
     quadro("Leitura", "subida", frases([
       { icone: "subida", tom: "bom", forte: linhasAte80 + " de " + dados.length + " linha(s) somam 80% dos artigos",
         resto: "linha vermelha marca esse ponto de corte" },
@@ -1225,7 +1225,7 @@ function slideSunburst() {
   const corpo = el("div", { class: "corpo" }, fig);
 
   return escalonar(el("div", { class: "slide painel-duplo igual" }, [
-    quadro("Sunburst: Colaboração internacional", "mapa", corpo),
+    quadro("Sunburst: Colaboração internacional", "mapa", corpo, null, "moldura-viva"),
     quadro("Top 6", "mapa", frases(top_paises.slice(0, 6).map(function (p, i) {
       return { icone: "mapa", tom: ["bom", "ambar", "neutro"][i % 3] || "neutro",
         forte: (i + 1) + ". " + p.nome, resto: p.valor + " artigos" };

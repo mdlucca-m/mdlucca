@@ -48,7 +48,7 @@ function slidePesquisasLinhas3D() {
   const linhas = t.linhas || [];
   if (!linhas.length) return escalonar(el("div", { class: "slide" }, vazio("Nenhuma linha de pesquisa cadastrada.")));
 
-  const container = el("div", { class: "slide slide-pesquisas-3d" });
+  const container = el("div", { class: "slide slide-pesquisas-3d moldura-viva" });
 
   const svg = elSvg("svg", {
     class: "grafo-linhas-3d",
