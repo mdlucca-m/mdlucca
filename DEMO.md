@@ -106,11 +106,14 @@ LAPE_PUBLIC_DASHBOARD=1 python -m lape
 http://127.0.0.1:8000/mural
 ```
 
-**O que você verá:**
-1. **Slide 1-4**: Painéis originais (painel, bancada, dados, tema)
+**O que você verá (10 slides no total):**
+1. **Slides 1-4**: Painéis originais (painel, bancada, dados, tema)
 2. **Slide 5**: 📊 `slideComparacoes` - KPIs do mês vs anterior
 3. **Slide 6**: 📈 `slideSazonalidade` - Picos anuais detectados
 4. **Slide 7**: 🔔 `slideAlertas` - Eventos urgentes
+5. **Slide 8**: 📉 `slidePareto` - Regra 80/20 com linha acumulada
+6. **Slide 9**: 🌍 `slideSunburst` - Hierarquia radial de colaboração internacional
+7. **Slide 10**: 🔺 `slideTernario` - Triangulação 3D (aplicação × intervenção × desfecho)
 
 **Navegação:**
 - `Espaço`: Pausar/Retomar
@@ -118,6 +121,7 @@ http://127.0.0.1:8000/mural
 - `←`: Slide anterior
 - `F`: Tela cheia
 - `?t=25`: Duração de cada slide (segundos)
+- `?slides=agora,prazos,pareto`: Seleciona slides específicos
 
 ### Ao Vivo na TV
 ```
@@ -293,6 +297,59 @@ cache.computar("sazonalidade", lambda: _sazonalidade(db, hoje), ttl=86400)
 > 5. **Alertas** de eventos urgentes
 >
 > Tudo é calculado direto do banco, com cache para não sobrecarregar. Funciona em qualquer navegador, é acessível (suporta alto contraste e tema automático), e está pronto para deixar ligado numa parede da sala."
+
+---
+
+## 📊 Visualizações Avançadas
+
+### ChartsEnhanced — Quatro tipos de gráfico novo
+
+Integradas ao mural e interativas com hover.
+
+#### 1. **Pareto** (Regra 80/20)
+```javascript
+ChartsEnhanced.pareto(dados)
+// Input: [{nome, valor}, ...]
+// Output: Barras + linha acumulada (vermelha) no ponto 80%
+```
+**Uso**: Mostrar onde 80% do impacto vem de 20% das ações (aceites vs publicações).
+
+#### 2. **Sunburst** (Hierarquia radial)
+```javascript
+ChartsEnhanced.sunburst(dados, raio = 200)
+// Input: [{nome, valor}, ...]
+// Output: Pizza radial com percentuais interativos
+```
+**Uso**: Top 6 países de colaboração em formato circular (cada cor = 1 país).
+
+#### 3. **Ternário** (Triangulação 3D)
+```javascript
+ChartsEnhanced.ternario(dados)
+// Input: [{nome, aplicacao, intervencao, desfecho, artigos}, ...]
+// Output: Triângulo com pontos onde:
+//   - Posição = proporção entre 3 dimensões
+//   - Tamanho = número de artigos
+```
+**Uso**: Mostrar 3D de aplicação × intervenção × desfecho (requer variáveis de pesquisa).
+
+#### 4. **Scatter 3D** (Isométrico)
+```javascript
+ChartsEnhanced.scatter3d(dados)
+// Input: [{nome, x, y, z, tamanho}, ...]
+// Output: Projeção isométrica com 3 eixos
+```
+**Uso**: Análise multivariada (quando temos 4+ dimensões).
+
+### Como ativar no mural
+
+```bash
+# Todos os slides (padrão com D.tv)
+LAPE_PUBLIC_DASHBOARD=1 python -m lape
+# Acesse: http://127.0.0.1:8000/mural
+
+# Apenas slides específicos
+http://127.0.0.1:8000/mural?slides=agora,prazos,pareto,sunburst
+```
 
 ---
 
