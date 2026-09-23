@@ -415,8 +415,8 @@ function slideAgora() {
   if (presenca) corpo.push(presenca);
   corpo.push(el("div", { class: "painel-duplo" }, [
     quadro("Publicações por ano", "subida", grafico,
-      recentes.length ? recentes[0].year + "–" + recentes[recentes.length - 1].year : ""),
-    quadro("Situação da produção", "processo", rosca, fmt(arts.length) + " artigos"),
+      recentes.length ? recentes[0].year + "–" + recentes[recentes.length - 1].year : "", "moldura-viva"),
+    quadro("Situação da produção", "processo", rosca, fmt(arts.length) + " artigos", "moldura-viva"),
   ]));
 
   return escalonar(el("div", { class: "slide" }, corpo));
@@ -735,7 +735,7 @@ function slideCitados() {
       tile({ nome: "Artigos citados", valor: citados, icone: "livro", serie: 1,
         pe: "de <b>" + fmt(arts.length) + "</b> no acervo · " + fonte }),
     ])),
-    quadro(area.titulo, area.icone, area.grafico, area.nota),
+    quadro(area.titulo, area.icone, area.grafico, area.nota, "moldura-viva"),
   ]));
 }
 
@@ -949,7 +949,7 @@ function slideTemas() {
   return escalonar(el("div", { class: "slide" }, [
     linha,
     el("div", { class: "painel-duplo" }, [
-      quadro("Onde se publica", "citacao", grafico, revistas.length + (revistas.length === 1 ? " revista" : " revistas")),
+      quadro("Onde se publica", "citacao", grafico, revistas.length + (revistas.length === 1 ? " revista" : " revistas"), "moldura-viva"),
       quadro("O que os indicadores dizem", "achado", frases(ditos.slice(0, 6)), t.periodo.rotulo || ""),
     ]),
   ]));
@@ -1007,7 +1007,7 @@ function slideRitmo() {
   return escalonar(el("div", { class: "slide" }, [
     linha,
     el("div", { class: "painel-duplo" }, [
-      quadro("Mês a mês, com tendência", "subida", grafico, s.meses[0] + " – " + s.meses[s.meses.length - 1]),
+      quadro("Mês a mês, com tendência", "subida", grafico, s.meses[0] + " – " + s.meses[s.meses.length - 1], "moldura-viva"),
       quadro("O que o cálculo diz", "achado", frases(ditos.slice(0, 6)), "regras escritas, não modelo"),
     ]),
   ]));
