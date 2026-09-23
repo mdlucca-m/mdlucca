@@ -303,7 +303,7 @@ def _pessoas_com_ponto(db: Database, agora: datetime | None = None) -> list[dict
 
     saida = []
     pessoas = db.dicts(
-        "SELECT id, name, role FROM members ORDER BY name"
+        "SELECT id, full_name, role FROM members ORDER BY full_name"
     )
     for pessoa in pessoas:
         pid = pessoa["id"]
@@ -319,7 +319,7 @@ def _pessoas_com_ponto(db: Database, agora: datetime | None = None) -> list[dict
 
         saida.append({
             "id": pid,
-            "nome": pessoa["name"],
+            "nome": pessoa["full_name"],
             "vinculo": pessoa["role"],
             "n_artigos": n_artigos,
             "ativo_agora": ativo_agora,
