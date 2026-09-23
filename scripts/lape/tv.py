@@ -296,42 +296,27 @@ def _linhas_pesquisa(db: Database) -> list[dict[str, Any]]:
     return saida
 
 
-def _pessoas_com_ponto(db: Database, agora: datetime | None = None) -> list[dict[str, Any]]:
-    """Pessoas cadastradas com indicador de quem está presente agora.
+def _organograma_para_tv(db: Database) -> dict[str, Any]:
+    """O organograma de verdade (metrics.organograma_publico), mais o ponto.
 
-    "Presente" é quem tem sessão de ponto aberta agora mesmo (ponto.agora),
-    não um horário fixo nem um "visto há N horas" -- o mesmo dado que a
-    tela de ponto do integrante usa para bater entrada e saída.
+    Só quem está no cadastro do LAPE com `is_external = 0` -- nunca coautor
+    externo, nunca rede de colaboração montada por artigo em comum. A
+    hierarquia (quem orienta quem, e as raízes) vem de `advisor_id`/
+    `co_advisor_id`, exatamente como o organograma que a coordenação já usa
+    -- o mural não inventa outra árvore. `organograma_publico` já tira o
+    que é só da coordenação (bolsa, prazo de defesa); aqui só falta somar
+    quem está com o ponto aberto agora.
     """
-    from . import ponto
+    from . import metrics, ponto
 
+    org = metrics.organograma_publico(db)
     presentes = {p["member_id"]: p for p in ponto.agora(db)}
-
-    saida = []
-    pessoas = db.dicts(
-        "SELECT id, full_name, role FROM members ORDER BY full_name"
-    )
-    for pessoa in pessoas:
-        pid = pessoa["id"]
-        n_artigos = int(db.scalar(
-            "SELECT COUNT(DISTINCT a.id) FROM articles a"
-            " JOIN article_authors aa ON aa.article_id = a.id"
-            " WHERE aa.member_id = ?", (pid,)
-        ) or 0)
-        presenca = presentes.get(pid)
-
-        saida.append({
-            "id": pid,
-            "nome": pessoa["full_name"],
-            "vinculo": pessoa["role"],
-            "n_artigos": n_artigos,
-            "ativo_agora": presenca is not None,
-            "ha_horas": presenca["ha_horas"] if presenca else None,
-            "atividade": (presenca or {}).get("atividade"),
-            "projeto": (presenca or {}).get("projeto"),
-            "artigo": (presenca or {}).get("artigo"),
-        })
-    return saida
+    for pessoa in org["people"]:
+        presenca = presentes.get(pessoa["id"])
+        pessoa["ativo_agora"] = presenca is not None
+        pessoa["ha_horas"] = presenca["ha_horas"] if presenca else None
+        pessoa["atividade"] = (presenca or {}).get("atividade")
+    return org
 
 
 def _citacoes_bases_dados(db: Database) -> dict[str, Any]:
@@ -378,7 +363,7 @@ def para_a_tv(db: Database, hoje: date | None = None) -> dict[str, Any]:
             "alertas": cache.computar(f"alertas_{hoje.isoformat()}", lambda: _alertas(db, hoje), ttl=600),
             "health": _health_rotina(db),
             "linhas": cache.computar("linhas_pesquisa", lambda: _linhas_pesquisa(db), ttl=300),
-            "pessoas": cache.computar("pessoas_com_ponto", lambda: _pessoas_com_ponto(db), ttl=120),
+            "organograma": cache.computar("organograma_tv", lambda: _organograma_para_tv(db), ttl=120),
             "citacoes": _citacoes_bases_dados(db),
             "gerado_em": datetime.now().isoformat(timespec="seconds"),
         }
