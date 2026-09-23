@@ -464,6 +464,92 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
   .tile, .quadro, .progresso, .fita .trem, .triagem path { animation: none !important; transition: none !important; }
   .saindo { animation: none !important; opacity: 0; }
 }
+
+/* ==========================================================================
+   Novas Visualizações Analíticas
+   ========================================================================== */
+
+/* Árvore de Decisões */
+.arvore-decisoes { display: flex; flex-direction: column; gap: clamp(8px, 1.2vh, 16px);
+  flex: 1; min-height: 0; justify-content: space-evenly; }
+.galho { display: flex; align-items: stretch; gap: clamp(8px, 1vw, 14px); }
+.nodo { flex: 1; display: flex; align-items: center; gap: clamp(12px, 1.2vw, 18px);
+  padding: clamp(10px, 1.3vh, 16px) clamp(12px, 1.1vw, 18px);
+  border-radius: var(--radius); border: 2px solid var(--border);
+  background: var(--grad-card), var(--surface);
+  position: relative; overflow: hidden;
+  border-left-color: var(--bom);
+  border-left-width: 5px;
+}
+.nodo[data-status="ambar"] { border-left-color: var(--ambar); }
+.nodo[data-status="alerta"] { border-left-color: var(--alerta); }
+.nodo .dados { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.nodo .dados strong { font-size: clamp(12px, 1vw, calc(16px * var(--zoom, 1)));
+  font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nodo .dados span { font-size: clamp(11px, .85vw, calc(13px * var(--zoom, 1)));
+  color: var(--ink-muted); }
+
+/* Sankey / Fluxo */
+.sankey-fluxo { display: flex; align-items: stretch; gap: clamp(8px, 2vw, 20px);
+  flex: 1; min-height: 0; justify-content: space-around; }
+.fase { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.caixa { padding: clamp(12px, 1.5vh, 20px) clamp(14px, 1.2vw, 20px);
+  border-radius: var(--radius); border: 2px solid var(--accent-strong);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent) 15%, var(--surface)),
+    color-mix(in srgb, var(--accent) 8%, var(--surface)));
+  text-align: center; min-height: 0; display: flex; flex-direction: column;
+  justify-content: center; gap: 6px; flex: 1; }
+.caixa .titulo { font-size: clamp(11px, .9vw, calc(14px * var(--zoom, 1)));
+  font-weight: 600; color: var(--ink-2); }
+.caixa .numero { font-size: clamp(20px, 2.2vw, calc(36px * var(--zoom, 1)));
+  font-weight: 700; color: var(--accent-strong); font-variant-numeric: tabular-nums; }
+
+/* Radar Modular */
+.radar-modular { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: clamp(10px, 1.4vw, 18px); flex: 1; min-height: 0; }
+.modulo { padding: clamp(14px, 1.6vh, 22px) clamp(12px, 1.2vw, 18px);
+  border-radius: var(--radius); border: 1px solid var(--border);
+  background: var(--grad-card), var(--surface);
+  text-align: center; display: flex; flex-direction: column;
+  gap: clamp(8px, 1.2vh, 14px); min-height: 0; justify-content: center; }
+.modulo[data-tipo="alerta"] { border-color: color-mix(in srgb, var(--alerta) 50%, transparent);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--alerta) 12%, var(--surface)),
+    color-mix(in srgb, var(--alerta) 6%, var(--surface))); }
+.modulo[data-tipo="team"] { border-color: color-mix(in srgb, var(--series-5) 50%, transparent);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--series-5) 12%, var(--surface)),
+    color-mix(in srgb, var(--series-5) 6%, var(--surface))); }
+.modulo .valor { font-size: clamp(32px, 4vw, calc(56px * var(--zoom, 1)));
+  font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.modulo .descricao { font-size: clamp(10px, .8vw, calc(12px * var(--zoom, 1)));
+  color: var(--ink-2); line-height: 1.3; }
+
+/* Heatmap Timeline */
+.heatmap-timeline { flex: 1; min-height: 0; display: flex; flex-direction: column;
+  justify-content: center; gap: clamp(10px, 1.4vh, 18px); }
+.linha-temporal { display: grid; grid-template-columns: repeat(12, 1fr);
+  gap: clamp(4px, .6vw, 8px); padding: clamp(10px, 1.2vh, 16px);
+  border-radius: var(--radius); background: color-mix(in srgb, var(--surface) 50%, transparent);
+}
+.celula { padding: clamp(10px, 1.2vh, 16px) clamp(6px, .7vw, 10px);
+  border-radius: var(--radius-sm); text-align: center;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--series-4) calc(var(--intensidade) * 0.4), var(--surface));
+  transition: all .3s ease; }
+.celula[data-status="quente"] { background: linear-gradient(135deg,
+  color-mix(in srgb, var(--bom) 60%, var(--surface)),
+  color-mix(in srgb, var(--bom) 30%, var(--surface))); }
+.celula[data-status="morno"] { background: linear-gradient(135deg,
+  color-mix(in srgb, var(--ambar) 50%, var(--surface)),
+  color-mix(in srgb, var(--ambar) 20%, var(--surface))); }
+.celula[data-status="frio"] { background: color-mix(in srgb, var(--surface-raised) 80%, transparent); }
+.celula .mes { font-size: clamp(10px, .78vw, calc(12px * var(--zoom, 1)));
+  font-weight: 600; text-transform: uppercase; color: var(--ink-2); }
+.celula .num { font-size: clamp(16px, 1.8vw, calc(24px * var(--zoom, 1)));
+  font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
+
 </style>
 </head>
 <body>

@@ -1216,6 +1216,154 @@ function slideTernario() {
   ]));
 }
 
+function slideArvoreDecisoes() {
+  const t = tv();
+  if (!t) return escalonar(el("div", { class: "slide" }, vazio("Dados não disponíveis.")));
+
+  const linhas = (D.linhas || []).slice(0, 8);
+  const raiz = el("div", { class: "arvore-decisoes" }, linhas.map(function(linha) {
+    const artigos = linha.artigos || 0;
+    const aceitos = linha.aceitos || 0;
+    const taxa = artigos > 0 ? Math.round(aceitos * 100 / artigos) : 0;
+    const largura = Math.min(100, Math.max(20, artigos * 3));
+    const cor = taxa >= 80 ? "bom" : (taxa >= 60 ? "ambar" : "alerta");
+
+    return el("div", { class: "galho" }, [
+      el("div", { class: "nodo", style: "--taxa:" + taxa + "%", "data-status": cor }, [
+        Icons.badge("linhas", null, 24),
+        el("div", { class: "dados" }, [
+          el("strong", { text: linha.titulo }),
+          el("span", { text: artigos + " artigos" }),
+          el("span", { text: taxa + "% publicados" }),
+        ]),
+      ]),
+    ]);
+  }));
+
+  return escalonar(el("div", { class: "slide" }, [
+    quadro("Árvore de Pesquisa", "linhas", raiz, "produtividade por linha (ramificações crescem com volume)"),
+  ]));
+}
+
+function slideSankey() {
+  const t = tv();
+  if (!t) return escalonar(el("div", { class: "slide" }, vazio("Dados não disponíveis.")));
+
+  const linhas = D.linhas || [];
+  const status = { em_producao: 0, submetido: 0, aceito: 0, publicado: 0 };
+  (D.artigos || []).forEach(function(a) {
+    if (status.hasOwnProperty(a.status)) status[a.status]++;
+  });
+
+  const fluxo = el("div", { class: "sankey-fluxo" }, [
+    el("div", { class: "fase inicio" }, [
+      el("div", { class: "caixa", style: "--valor:" + (status.em_producao + status.submetido) }, [
+        el("div", { class: "titulo", text: "Em Produção/Estudo" }),
+        el("div", { class: "numero", text: (status.em_producao + status.submetido) + " artigos" }),
+      ]),
+    ]),
+    el("div", { class: "fase meio" }, [
+      el("div", { class: "caixa", style: "--valor:" + status.submetido }, [
+        el("div", { class: "titulo", text: "Submetidos" }),
+        el("div", { class: "numero", text: status.submetido + " aguardando" }),
+      ]),
+    ]),
+    el("div", { class: "fase fim" }, [
+      el("div", { class: "caixa", style: "--valor:" + status.publicado }, [
+        el("div", { class: "titulo", text: "Publicados" }),
+        el("div", { class: "numero", text: status.publicado + " no ar" }),
+      ]),
+    ]),
+  ]);
+
+  return escalonar(el("div", { class: "slide" }, [
+    quadro("Fluxo de Publicação", "processo", fluxo, "do conceito ao artigo publicado"),
+  ]));
+}
+
+function slideRadarModular() {
+  const t = tv();
+  if (!t) return escalonar(el("div", { class: "slide" }, vazio("Dados não disponíveis.")));
+
+  const hoje = new Date();
+  const ano_atual = hoje.getFullYear();
+  const mes_atual = hoje.getMonth() + 1;
+
+  const publicados_ano = (D.artigos || []).filter(function(a) {
+    return a.year_published === ano_atual && a.status === "publicado";
+  }).length;
+
+  const em_producao = (D.artigos || []).filter(function(a) {
+    return a.status === "em_producao";
+  }).length;
+
+  const equipe = (D.membros || []).filter(function(m) { return !m.is_external; }).length;
+  const coautores = (D.membros || []).filter(function(m) { return m.is_external; }).length;
+
+  const modulos = el("div", { class: "radar-modular" }, [
+    el("div", { class: "modulo", "data-tipo": "kpi" }, [
+      el("div", { class: "icone-grande" }, Icons.badge("producao", null, 48)),
+      el("div", { class: "valor", text: publicados_ano }),
+      el("div", { class: "descricao", text: "Publicados em " + ano_atual }),
+    ]),
+    el("div", { class: "modulo", "data-tipo": "alerta" }, [
+      el("div", { class: "icone-grande" }, Icons.badge("relogio", null, 48)),
+      el("div", { class: "valor", text: em_producao }),
+      el("div", { class: "descricao", text: "Em produção agora" }),
+    ]),
+    el("div", { class: "modulo", "data-tipo": "team" }, [
+      el("div", { class: "icone-grande" }, Icons.badge("pessoas", null, 48)),
+      el("div", { class: "valor", text: equipe }),
+      el("div", { class: "descricao", text: "Pesquisadores LAPE" }),
+    ]),
+    el("div", { class: "modulo", "data-tipo": "team" }, [
+      el("div", { class: "icone-grande" }, Icons.badge("pessoas", null, 48)),
+      el("div", { class: "valor", text: coautores }),
+      el("div", { class: "descricao", text: "Coautores externos" }),
+    ]),
+  ]);
+
+  return escalonar(el("div", { class: "slide" }, [
+    quadro("Indicadores Principais", "painel", modulos, "4 métricas centrais do laboratório"),
+  ]));
+}
+
+function slideHeatmapTimeline() {
+  const t = tv();
+  if (!t) return escalonar(el("div", { class: "slide" }, vazio("Dados não disponíveis.")));
+
+  const hoje = new Date();
+  const ano_atual = hoje.getFullYear();
+  const meses_ext = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+
+  const atividade_por_mes = Array(12).fill(0);
+  (D.artigos || []).forEach(function(a) {
+    if (a.year_published === ano_atual && a.published_on) {
+      const mes = new Date(a.published_on).getMonth();
+      atividade_por_mes[mes]++;
+    }
+  });
+
+  const max_atividade = Math.max.apply(null, atividade_por_mes) || 1;
+
+  const timeline = el("div", { class: "heatmap-timeline" }, [
+    el("div", { class: "linha-temporal" }, meses_ext.map(function(mes, idx) {
+      const valor = atividade_por_mes[idx];
+      const intensidade = Math.round(valor * 100 / max_atividade);
+      const status = valor === 0 ? "vazio" : (intensidade >= 80 ? "quente" : (intensidade >= 50 ? "morno" : "frio"));
+
+      return el("div", { class: "celula", "data-status": status, style: "--intensidade:" + intensidade + "%" }, [
+        el("div", { class: "mes", text: mes }),
+        el("div", { class: "num", text: valor || "—" }),
+      ]);
+    })),
+  ]);
+
+  return escalonar(el("div", { class: "slide" }, [
+    quadro("Atividade Temporal", "calendario", timeline, "artigos publicados por mês (intensidade visual)"),
+  ]));
+}
+
 function slideAcervos() {
   const t = tv();
   if (!t) return escalonar(el("div", { class: "slide" }, vazio("Os acervos ainda não chegaram.")));
@@ -1313,6 +1461,14 @@ const SLIDES = [
     apresenta: "Hierarquia radial mostrando os 6 países principais com maior número de artigos colaborativos." },
   { id: "ternario", titulo: "Triangulação", icone: "experimento", montar: slideTernario, tv: true,
     apresenta: "Aplicação × Intervenção × Desfecho: análise tridimensional dos estudos do laboratório." },
+  { id: "arvore", titulo: "Árvore de Pesquisa", icone: "linhas", montar: slideArvoreDecisoes, tv: true,
+    apresenta: "Ramificações crescentes: cada linha de pesquisa como um galho, com produtividade e taxa de publicação." },
+  { id: "sankey", titulo: "Fluxo de Publicação", icone: "processo", montar: slideSankey, tv: true,
+    apresenta: "Do conceito ao artigo: fluxo visual de quantos artigos estão em cada fase (produção, submissão, publicado)." },
+  { id: "radar", titulo: "Indicadores Principais", icone: "painel", montar: slideRadarModular, tv: true,
+    apresenta: "4 métricas centrais em grande escala: artigos publicados este ano, em produção, equipe LAPE e coautores." },
+  { id: "heatmap", titulo: "Atividade Temporal", icone: "calendario", montar: slideHeatmapTimeline, tv: true,
+    apresenta: "Mapa de calor dos 12 meses: meses mais quentes significam mais artigos publicados naquele período." },
 ];
 
 /* As paletas de fundo, as mesmas do ao vivo. A escolha é lida de
