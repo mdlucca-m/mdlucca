@@ -1152,24 +1152,31 @@ function slideSazonalidade() {
 
 function slidePareto() {
   const t = tv();
-  if (!t || !t.comparacoes) return escalonar(el("div", { class: "slide" }, vazio("Análise Pareto ainda não disponível.")));
+  const linhas = (t && t.linhas || []).filter(function (l) { return (l.artigos || 0) > 0; });
+  if (linhas.length < 3) return escalonar(el("div", { class: "slide" }, vazio("Poucas linhas com artigos para uma leitura 80/20.")));
 
-  const comp = t.comparacoes;
-  const dados = [
-    { nome: "Aceites", valor: comp.aceites.agora || 1 },
-    { nome: "Publicações", valor: comp.publicacoes.agora || 1 },
-  ];
+  const dados = linhas
+    .map(function (l) { return { nome: l.nome, valor: l.artigos }; })
+    .sort(function (a, b) { return b.valor - a.valor; });
+
+  const total = dados.reduce(function (s, d) { return s + d.valor; }, 0);
+  let acumulado = 0, linhasAte80 = 0;
+  for (let i = 0; i < dados.length; i++) {
+    acumulado += dados[i].valor;
+    if (acumulado / total <= 0.8 || linhasAte80 === 0) linhasAte80 = i + 1;
+    if (acumulado / total > 0.8) break;
+  }
 
   const fig = ChartsEnhanced.pareto(dados);
   const corpo = el("div", { class: "corpo" }, fig);
 
   return escalonar(el("div", { class: "slide painel-duplo igual" }, [
-    quadro("Pareto: Impacto (80/20)", "subida", corpo),
+    quadro("Pareto: Produção por Linha (80/20)", "subida", corpo),
     quadro("Leitura", "subida", frases([
-      { icone: "subida", tom: "bom", forte: "Linha vermelha indica o ponto 80/20",
-        resto: "onde 80% do impacto vem de 20% das ações" },
-      { icone: "publicacao", tom: "neutro", forte: "Foque nos itens de maior valor",
-        resto: "para otimizar o tempo do laboratório" },
+      { icone: "subida", tom: "bom", forte: linhasAte80 + " de " + dados.length + " linha(s) somam 80% dos artigos",
+        resto: "linha vermelha marca esse ponto de corte" },
+      { icone: "publicacao", tom: "neutro", forte: dados[0].nome,
+        resto: dados[0].valor + " artigo(s) — a linha mais produtiva" },
     ])),
   ]));
 }
@@ -1218,21 +1225,19 @@ function slideTernario() {
 
 function slideArvoreDecisoes() {
   const t = tv();
-  if (!t) return escalonar(el("div", { class: "slide" }, vazio("Dados não disponíveis.")));
+  if (!t || !(t.linhas || []).length) return escalonar(el("div", { class: "slide" }, vazio("Linhas de pesquisa ainda não carregadas.")));
 
-  const linhas = (D.linhas || []).slice(0, 8);
+  const linhas = t.linhas.slice(0, 8);
   const raiz = el("div", { class: "arvore-decisoes" }, linhas.map(function(linha) {
     const artigos = linha.artigos || 0;
-    const aceitos = linha.aceitos || 0;
-    const taxa = artigos > 0 ? Math.round(aceitos * 100 / artigos) : 0;
-    const largura = Math.min(100, Math.max(20, artigos * 3));
+    const taxa = Math.round((linha.taxa_publicacao || 0) * 100);
     const cor = taxa >= 80 ? "bom" : (taxa >= 60 ? "ambar" : "alerta");
 
     return el("div", { class: "galho" }, [
       el("div", { class: "nodo", style: "--taxa:" + taxa + "%", "data-status": cor }, [
         Icons.badge("linhas", null, 24),
         el("div", { class: "dados" }, [
-          el("strong", { text: linha.titulo }),
+          el("strong", { text: linha.nome }),
           el("span", { text: artigos + " artigos" }),
           el("span", { text: taxa + "% publicados" }),
         ]),
@@ -1249,9 +1254,8 @@ function slideSankey() {
   const t = tv();
   if (!t) return escalonar(el("div", { class: "slide" }, vazio("Dados não disponíveis.")));
 
-  const linhas = D.linhas || [];
   const status = { em_producao: 0, submetido: 0, aceito: 0, publicado: 0 };
-  (D.artigos || []).forEach(function(a) {
+  artigos().forEach(function(a) {
     if (status.hasOwnProperty(a.status)) status[a.status]++;
   });
 
@@ -1289,16 +1293,16 @@ function slideRadarModular() {
   const ano_atual = hoje.getFullYear();
   const mes_atual = hoje.getMonth() + 1;
 
-  const publicados_ano = (D.artigos || []).filter(function(a) {
+  const publicados_ano = artigos().filter(function(a) {
     return a.year_published === ano_atual && a.status === "publicado";
   }).length;
 
-  const em_producao = (D.artigos || []).filter(function(a) {
+  const em_producao = artigos().filter(function(a) {
     return a.status === "em_producao";
   }).length;
 
-  const equipe = (D.membros || []).filter(function(m) { return !m.is_external; }).length;
-  const coautores = (D.membros || []).filter(function(m) { return m.is_external; }).length;
+  const equipe = pessoas().filter(function(m) { return !m.is_external; }).length;
+  const coautores = pessoas().filter(function(m) { return m.is_external; }).length;
 
   const modulos = el("div", { class: "radar-modular" }, [
     el("div", { class: "modulo", "data-tipo": "kpi" }, [
@@ -1337,7 +1341,7 @@ function slideHeatmapTimeline() {
   const meses_ext = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 
   const atividade_por_mes = Array(12).fill(0);
-  (D.artigos || []).forEach(function(a) {
+  artigos().forEach(function(a) {
     if (a.year_published === ano_atual && a.published_on) {
       const mes = new Date(a.published_on).getMonth();
       atividade_por_mes[mes]++;
@@ -1457,8 +1461,6 @@ const SLIDES = [
     apresenta: "Regra 80/20: onde o maior impacto vem de menos esforço. Linha vermelha marca o ponto crítico." },
   { id: "sunburst", titulo: "Colaboração global", icone: "mapa", montar: slideSunburst, tv: true,
     apresenta: "Hierarquia radial mostrando os 6 países principais com maior número de artigos colaborativos." },
-  { id: "ternario", titulo: "Triangulação", icone: "experimento", montar: slideTernario, tv: true,
-    apresenta: "Aplicação × Intervenção × Desfecho: análise tridimensional dos estudos do laboratório." },
   { id: "arvore", titulo: "Árvore de Pesquisa", icone: "linhas", montar: slideArvoreDecisoes, tv: true,
     apresenta: "Ramificações crescentes: cada linha de pesquisa como um galho, com produtividade e taxa de publicação." },
   { id: "sankey", titulo: "Fluxo de Publicação", icone: "processo", montar: slideSankey, tv: true,

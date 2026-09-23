@@ -432,16 +432,20 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
    ========================================================================== */
 
 /* Árvore de Decisões */
-.arvore-decisoes { display: flex; flex-direction: column; gap: clamp(8px, 1.2vh, 16px);
-  flex: 1; min-height: 0; justify-content: space-evenly; }
-.galho { display: flex; align-items: stretch; gap: clamp(8px, 1vw, 14px); }
-.nodo { flex: 1; display: flex; align-items: center; gap: clamp(12px, 1.2vw, 18px);
-  padding: clamp(10px, 1.3vh, 16px) clamp(12px, 1.1vw, 18px);
+.arvore-decisoes { display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: clamp(6px, 1vh, 12px) clamp(10px, 1.2vw, 18px);
+  flex: 1; min-height: 0; align-content: center; }
+.galho { display: flex; align-items: stretch; min-height: 0; }
+.nodo { flex: 1; min-height: 0; display: flex; align-items: center; gap: clamp(10px, 1vw, 16px);
+  padding: clamp(8px, 1.1vh, 14px) clamp(10px, 1vw, 16px);
   border-radius: var(--radius); border: 2px solid var(--border);
   background: var(--grad-card), var(--surface);
   position: relative; overflow: hidden;
   border-left-color: var(--bom);
   border-left-width: 5px;
+}
+@media (max-width: 900px) {
+  .arvore-decisoes { grid-template-columns: 1fr; }
 }
 .nodo[data-status="ambar"] { border-left-color: var(--ambar); }
 .nodo[data-status="alerta"] { border-left-color: var(--alerta); }
