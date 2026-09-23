@@ -1722,57 +1722,11 @@ function relogio() {
     DIAS_EXT[agora.getDay()] + ", " + agora.getDate() + " de " + MESES_EXT[agora.getMonth()];
 }
 
-/* ------------------------------------------------------- tempo real (SSE) */
-let fonte = null;
-let pedidoPendente = null;
-function abrirStream() {
-  if (!window.EventSource) return;
-  try {
-    fonte = new EventSource("/api/stream");
-  } catch (erro) { return; }
-  fonte.addEventListener("pronto", function () { marcarVivo(true); });
-  fonte.addEventListener("mudanca", function () {
-    /* várias mudanças seguidas geram uma recarga só */
-    clearTimeout(pedidoPendente);
-    pedidoPendente = setTimeout(rebuscar, 900);
-  });
-  fonte.onerror = function () { marcarVivo(false); };
-}
-function marcarVivo(ligado, piscar) {
-  const selo = document.getElementById("seloVivo");
-  selo.hidden = !ligado;
-  selo.classList.toggle("vivo", ligado);
-  if (piscar) {
-    selo.classList.remove("piscou");
-    void selo.offsetWidth;
-    selo.classList.add("piscou");
-    document.getElementById("seloTexto").textContent = "atualizado agora";
-    setTimeout(function () {
-      document.getElementById("seloTexto").textContent = "ao vivo";
-    }, 6000);
-  }
-}
-function rebuscar() {
-  const pega = function (caminho) {
-    return fetch(caminho, { credentials: "same-origin" })
-      .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error(r.status)); });
-  };
-  /* a TV é a segunda busca, e pode falhar sozinha: o mural fica com a
-     última TV boa em vez de perder o painel inteiro */
-  Promise.all([pega("/api/metrics"), pega("/api/tv").catch(function () { return D.tv || null; })])
-    .then(function (par) {
-      const novo = par[0];
-      novo.tv = par[1];
-      D = novo;
-      const idAtual = ROTEIRO[atual] && ROTEIRO[atual].id;
-      ROTEIRO.splice.apply(ROTEIRO, [0, ROTEIRO.length].concat(ciclo()));
-      const onde = ROTEIRO.findIndex(function (s) { return s.id === idAtual; });
-      atual = onde >= 0 ? onde : 0;
-      desenhar(atual, "quieto");
-      marcarVivo(true, true);
-    })
-    .catch(function () { /* sem rede: a tela segue com o último dado bom */ });
-}
+/* Sem atualização automática por propósito: os dados só mudam quando a
+   página é recarregada (F5) por quem está de frente para o computador
+   ligado na TV -- ninguém mais tem esse acesso, então o mural nunca
+   troca o que está mostrando sozinho, mesmo que o banco mude enquanto
+   ele gira as telas. */
 
 /* ---------------------------------------------------------------- arranque */
 function comecar() {
@@ -1812,6 +1766,5 @@ function comecar() {
   }
   desenharControles();
   desenhar(0);
-  abrirStream();
 }
 comecar();
