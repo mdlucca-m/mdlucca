@@ -222,6 +222,111 @@ def inflexoes(tendencia: list[float], rotulos: list[str] | None = None,
     return achadas
 
 
+def intervalo_da_tendencia(tendencia: list[float], dp_ruido: float,
+                           periodo: int = PERIODO, z: float = 1.96) -> dict[str, list[float]]:
+    """A faixa de 95% em volta da media movel: +- z * dp_ruido / raiz(n da janela).
+
+    A janela encolhe nas pontas, e a faixa alarga junto: nos extremos, com
+    um ponto so, ela e o proprio desvio do ruido -- e e assim que se le
+    que a ponta da tendencia e a parte menos firme da curva.
+    """
+    n = len(tendencia)
+    meio = periodo // 2
+    alto, baixo = [], []
+    for i in range(n):
+        if i < meio or i > n - 1 - meio:
+            largura = 2 * min(i, n - 1 - i) + 1
+        else:
+            largura = periodo
+        erro = z * dp_ruido / math.sqrt(max(1, largura))
+        alto.append(round(tendencia[i] + erro, 4))
+        # publicacao nao e negativa: a faixa para no chao
+        baixo.append(round(max(0.0, tendencia[i] - erro), 4))
+    return {"alto": alto, "baixo": baixo}
+
+
+def regressao(valores: list[float], z: float = 1.96) -> dict[str, Any]:
+    """A reta de minimos quadrados: a DERIVA da serie, com o intervalo de
+    confianca da reta e da inclinacao.
+
+    Deriva e o que a serie faz em media, mes apos mes, descontado o ruido:
+    +0,03 publicacoes por mes por mes e uma producao que cresce devagar;
+    zero e uma producao estavel. O r2 diz quanto da variacao a reta explica.
+    """
+    n = len(valores)
+    if n < 3:
+        return {"a": None, "b": None, "r2": None, "linha": [], "alto": [], "baixo": [],
+                "deriva_mes": None, "deriva_ano": None, "ic_deriva": None, "erro_padrao": None}
+    xs = list(range(n))
+    xm = (n - 1) / 2.0
+    ym = sum(valores) / n
+    sxx = sum((x - xm) ** 2 for x in xs)
+    sxy = sum((x - xm) * (v - ym) for x, v in zip(xs, valores))
+    b = sxy / sxx if sxx else 0.0
+    a = ym - b * xm
+    linha = [a + b * x for x in xs]
+    ss_res = sum((v - f) ** 2 for v, f in zip(valores, linha))
+    ss_tot = sum((v - ym) ** 2 for v in valores)
+    r2 = 1.0 - ss_res / ss_tot if ss_tot else 1.0
+    s2 = ss_res / (n - 2)
+    erro = math.sqrt(s2)
+    alto = [round(f + z * erro * math.sqrt(1.0 / n + (x - xm) ** 2 / sxx), 4) for x, f in zip(xs, linha)]
+    baixo = [round(f - z * erro * math.sqrt(1.0 / n + (x - xm) ** 2 / sxx), 4) for x, f in zip(xs, linha)]
+    erro_b = math.sqrt(s2 / sxx) if sxx else 0.0
+    return {"a": round(a, 4), "b": round(b, 5), "r2": round(r2, 4),
+            "linha": [round(f, 4) for f in linha], "alto": alto, "baixo": baixo,
+            "deriva_mes": round(b, 4), "deriva_ano": round(12 * b, 3),
+            "ic_deriva": [round(b - z * erro_b, 4), round(b + z * erro_b, 4)],
+            "erro_padrao": round(erro, 4)}
+
+
+def limites_de_controle(valores: list[float], k: float = 2.0) -> dict[str, Any]:
+    """Media e media +- k desvios: a faixa em que um mes comum cai.
+
+    E a carta de controle: um mes fora da faixa e um mes que merece
+    pergunta -- um numero especial da revista, uma tese que rendeu tres
+    artigos --, e nao um mes que a tendencia explica.
+    """
+    if not valores:
+        return {"media": None, "alto": None, "baixo": None, "fora": []}
+    media = sum(valores) / len(valores)
+    dp = _desvio(valores)
+    alto, baixo = media + k * dp, max(0.0, media - k * dp)
+    fora = [i for i, v in enumerate(valores) if v > alto or v < baixo]
+    return {"media": round(media, 4), "alto": round(alto, 4), "baixo": round(baixo, 4),
+            "dp": round(dp, 4), "fora": fora}
+
+
+def projetar(tendencia: list[float], deriva: float | None, dp_ruido: float,
+             n: int = 6, z: float = 1.96) -> dict[str, Any]:
+    """Os proximos `n` meses pela deriva, a partir da ponta da tendencia,
+    com a faixa que alarga com a distancia: raiz(k) vezes o desvio.
+
+    E projecao, e a tela a desenha tracejada: o que ainda nao aconteceu
+    nao se desenha com a tinta do que aconteceu.
+    """
+    if not tendencia or deriva is None:
+        return {"valores": [], "alto": [], "baixo": []}
+    base = tendencia[-1]
+    valores, alto, baixo = [base], [base], [base]
+    for k in range(1, n + 1):
+        v = max(0.0, base + deriva * k)
+        erro = z * dp_ruido * math.sqrt(k) / math.sqrt(PERIODO)
+        valores.append(round(v, 4)); alto.append(round(v + erro, 4)); baixo.append(round(max(0.0, v - erro), 4))
+    return {"valores": valores, "alto": alto, "baixo": baixo}
+
+
+def _meses_adiante(ultimo: str, n: int) -> list[str]:
+    ano, mes = int(ultimo[:4]), int(ultimo[5:7])
+    saida = []
+    for _ in range(n):
+        mes += 1
+        if mes == 13:
+            mes, ano = 1, ano + 1
+        saida.append(f"{ano:04d}-{mes:02d}")
+    return saida
+
+
 def _logistica(K: float, r: float, t0: float, t: float) -> float:
     x = -r * (t - t0)
     if x > 60:
@@ -265,8 +370,12 @@ def limite(acum: list[float]) -> dict[str, Any]:
         return {"K": None, "r2": round(r2, 4), "r2_reta": round(r2_reta, 4),
                 "porque": "o acumulado ainda cresce como uma reta: não há teto à vista"}
     ajuste = [round(_logistica(K, r, t0, t), 3) for t in ts]
+    # a faixa do ajuste: o desvio dos residuos, para cada lado
+    dp = math.sqrt(sse / max(1, n - 3))
     return {"K": round(K, 1), "r": r, "t0": t0, "r2": round(r2, 4), "r2_reta": round(r2_reta, 4),
             "atingido": round(100.0 * acum[-1] / K, 1), "ajuste": ajuste,
+            "alto": [round(v + 1.96 * dp, 3) for v in ajuste],
+            "baixo": [round(max(0.0, v - 1.96 * dp), 3) for v in ajuste],
             "porque": "ajuste logístico ao acumulado, por busca em grade; o teto é o K da curva"}
 
 
@@ -285,6 +394,15 @@ def analisar(db: Database, hoje: date | None = None,
     dec = decompor(v, rot)
     infl = inflexoes(dec["tendencia"], rot)
     lim = limite(acum)
+    tendencia_ic = intervalo_da_tendencia(dec["tendencia"], dec["dp_ruido"])
+    reg = regressao(v)
+    controle = limites_de_controle(v)
+    d1_suave = media_movel_centrada(d1, 3)
+    dp_d1 = _desvio([a - b for a, b in zip(d1, d1_suave)])
+    derivada_ic = {"alto": [round(x + 1.96 * dp_d1 / math.sqrt(3), 4) for x in d1_suave],
+                   "baixo": [round(x - 1.96 * dp_d1 / math.sqrt(3), 4) for x in d1_suave]}
+    proj = projetar(dec["tendencia"], reg["deriva_mes"], dec["dp_ruido"])
+    proj_rotulos = [rot[-1]] + _meses_adiante(rot[-1], len(proj["valores"]) - 1) if proj["valores"] else []
     ultimos = v[-PERIODO:] if len(v) >= PERIODO else v
     anteriores = v[-2 * PERIODO:-PERIODO] if len(v) >= 2 * PERIODO else []
     ritmo = sum(ultimos) / len(ultimos) if ultimos else 0.0
@@ -308,6 +426,14 @@ def analisar(db: Database, hoje: date | None = None,
                         f"({lim['atingido']:.0f}% já atingido, R² {lim['r2']:.2f}).")
     else:
         leituras.append("Sem limite à vista: " + lim.get("porque", "") + ".")
+    if reg["deriva_mes"] is not None:
+        sinal = "sobe" if reg["deriva_mes"] > 0 else ("desce" if reg["deriva_mes"] < 0 else "não muda")
+        leituras.append(f"Deriva: a produção {sinal} {abs(reg['deriva_ano']):.2f} publicação(ões)/mês por ano "
+                        f"(IC 95% da inclinação {reg['ic_deriva'][0]:+.3f} a {reg['ic_deriva'][1]:+.3f} por mês; "
+                        f"R² {reg['r2']:.2f}).")
+    if controle["fora"]:
+        leituras.append(f"{len(controle['fora'])} mês(es) fora dos limites de controle (média ± 2 desvios): "
+                        + ", ".join(rot[i] for i in controle["fora"][-4:]) + ".")
     leituras.append(f"Área sob o acumulado: {integ['area']:.0f} artigo-mês na janela "
                     f"— quanto de acervo ficou de pé ao longo dela.")
     return {
@@ -318,6 +444,11 @@ def analisar(db: Database, hoje: date | None = None,
         "perfil_sazonal": dec["perfil_sazonal"], "sinal_ruido": dec["sinal_ruido"],
         "dp_sinal": dec["dp_sinal"], "dp_ruido": dec["dp_ruido"],
         "inflexoes": infl, "limite": lim,
+        "tendencia_ic": tendencia_ic, "regressao": reg, "controle": controle,
+        "derivada_suave": d1_suave, "derivada_ic": derivada_ic,
+        "projecao": {"labels": proj_rotulos,
+                     "meses": [f"{NOMES[int(m[5:7]) - 1]}/{m[2:4]}" for m in proj_rotulos],
+                     "valores": proj["valores"], "alto": proj["alto"], "baixo": proj["baixo"]},
         "ritmo": round(ritmo, 3), "ritmo_antes": None if ritmo_antes is None else round(ritmo_antes, 3),
         "soma": int(sum(v)), "leituras": leituras,
     }

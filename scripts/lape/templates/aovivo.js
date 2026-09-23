@@ -55,7 +55,10 @@ const EXPLICA = {
     "Taxa de aceite conta só as decisões tomadas no período: aceite, rejeição e recusa de mesa.",
     "Colaboração internacional é artigo com ao menos um autor fora do Brasil — pelo cadastro ou pela afiliação que veio da base.",
     "O radar compara as quatro linhas mais produtivas em cinco eixos, todos em porcentagem dos artigos da linha."],
-  sinais: ["A derivada é a diferença central mês a mês: quanto a produção acelera ou freia.",
+  sinais: ["A faixa em volta da tendência é o intervalo de confiança de 95%: onde a tendência de verdade provavelmente está.",
+    "As linhas de controle são média e média + 2 desvios: um mês acima delas merece pergunta.",
+    "A deriva é a reta de mínimos quadrados: quanto a produção muda por mês, com o intervalo de confiança da inclinação.",
+    "A derivada é a diferença central mês a mês: quanto a produção acelera ou freia.",
     "A integral é a área sob o acumulado — artigo-mês: quanto de acervo ficou de pé ao longo da janela.",
     "A tendência é uma média móvel centrada de doze meses; a estação é o que sobra por mês do calendário; o ruído é o resto.",
     "Inflexão é onde a tendência troca de curvatura. O limite é o teto de uma logística ajustada ao acumulado — quando há um."],
@@ -166,7 +169,8 @@ function contar(alvo, valor) {
 /* ------------------------------------------------------- peças de vidro */
 function glass(filhos, opts) {
   opts = opts || {};
-  const n = el("section", { class: "glass" + (opts.class ? " " + opts.class : ""),
+  const n = el(opts.tag || "section", { class: "glass" + (opts.class ? " " + opts.class : ""),
+    href: opts.href || null,
     style: "--i:" + (opts.i || 0) + (opts.style ? ";" + opts.style : "") }, filhos);
   /* o clique faz o cartão surgir de novo: cresce e brilha por um instante.
      Um clique num botão ou num link dentro dele é do botão, não do cartão. */
@@ -197,18 +201,32 @@ function cabeca(icon, titulo, sub) {
   ]);
 }
 
+/* Um KPI é um botão de navegação quando tem para onde ir: `href` leva a
+   outra tela (o painel, o panorama); `ir` é uma função que muda esta
+   (a aba do mapa, a análise do cálculo). O cartão inteiro é o botão, e a
+   seta no pé diz para onde. */
 function kpiNeon(o) {
   const valor = el("div", { class: "valor" });
+  const navega = !!(o.href || o.ir);
   const n = glass([
     el("div", { class: "blob", style: "--tom:" + (o.tom || NEON.blue) }),
     el("div", { class: "rotulo", style: "--tom:" + (o.tom || NEON.blue) }, [o.icon ? icone(o.icon) : null, document.createTextNode(o.rotulo)]),
     valor,
     o.extra || null,
-    el("div", { class: "pe" }, [o.pe || el("span"), o.chip || null]),
-  ], { i: o.i || 0, class: "kpi-neon" });
+    el("div", { class: "pe" }, [o.pe || el("span"), o.chip || null,
+      navega ? el("span", { class: "ir", style: "--tom:" + (o.tom || NEON.blue), text: (o.ir_rotulo || "abrir") + " ▸" }) : null]),
+  ], { i: o.i || 0, class: "kpi-neon" + (navega ? " navegavel" : ""), tag: navega ? "a" : "section",
+    href: o.href || (o.ir ? "#" : null) });
+  if (o.ir) n.addEventListener("click", function (ev) { ev.preventDefault(); o.ir(); });
+  if (navega) n.setAttribute("title", "abrir: " + (o.ir_rotulo || o.rotulo));
   if (typeof o.valor === "number") contar(valor, o.valor);
   else { valor.textContent = o.valor; if (String(o.valor).length > 6) valor.classList.add("texto"); }
   return n;
+}
+
+/* muda de página aqui dentro, sem recarregar */
+function abrirAba(aba) {
+  ST.aba = aba; ST.explicadas = 0; location.hash = aba; window.scrollTo(0, 0); desenhar();
 }
 
 /* barras horizontais com trilho, degradê e brilho -- animadas na chegada */
@@ -376,9 +394,10 @@ function cartaoKpi(k, i) {
   }
   const faisca = el("span", { class: "spark" });
   faisca.appendChild(C.sparkline(k.faisca, { color: tom, accent: tom }));
+  const destino = { publicacoes: "/#publicacoes", submissoes: "/#submetidos", aceites: "/#aceites", citacoes: "/#citacoes" }[k.code];
   return kpiNeon({ rotulo: k.rotulo, valor: k.valor, tom: tom, i: i,
     icon: { publicacoes: "livro", submissoes: "submissao", aceites: "aceite", citacoes: "citacao" }[k.code],
-    pe: pe, extra: faisca });
+    pe: pe, extra: faisca, href: destino, ir_rotulo: "ver no painel" });
 }
 
 function figuraDaEvolucao(ev, altura) {
@@ -520,15 +539,15 @@ function desenharTriagens(palco) {
       ? chip(t.kappa.kappa >= 0.8 ? NEON.green : (t.kappa.kappa >= 0.6 ? NEON.yellow : NEON.orange), t.kappa.leitura)
       : null;
     palco.appendChild(el("div", { class: "grade kpis" }, [
-      kpiNeon({ rotulo: "Identificados nas bases", valor: f.identificados, tom: NEON.blue, i: base, icon: "explorar",
+      kpiNeon({ href: "/triagem", ir_rotulo: "triagem", rotulo: "Identificados nas bases", valor: f.identificados, tom: NEON.blue, i: base, icon: "explorar",
         pe: el("span", { text: f.registros + " registro(s) importados" }) }),
-      kpiNeon({ rotulo: "Repetições removidas", valor: f.duplicados, tom: NEON.magenta, i: base + 1, icon: "qualidade",
+      kpiNeon({ href: "/triagem", ir_rotulo: "triagem", rotulo: "Repetições removidas", valor: f.duplicados, tom: NEON.magenta, i: base + 1, icon: "qualidade",
         pe: el("span", { text: "o fluxograma cobra este número" }) }),
-      kpiNeon({ rotulo: "Em triagem", valor: f.triados, tom: NEON.cyan, i: base + 2, icon: "submissao",
+      kpiNeon({ href: "/triagem", ir_rotulo: "triagem", rotulo: "Em triagem", valor: f.triados, tom: NEON.cyan, i: base + 2, icon: "submissao",
         pe: el("span", { text: f.pendentes + " ainda sem decisão" }) }),
-      kpiNeon({ rotulo: "Incluídos", valor: f.incluidos, tom: NEON.green, i: base + 3, icon: "aceite",
+      kpiNeon({ href: "/triagem", ir_rotulo: "triagem", rotulo: "Incluídos", valor: f.incluidos, tom: NEON.green, i: base + 3, icon: "aceite",
         pe: el("span", { text: f.texto_completo + " em texto completo" }) }),
-      kpiNeon({ rotulo: "Kappa da triagem", valor: t.kappa && t.kappa.kappa !== null ? String(t.kappa.kappa).replace(".", ",") : "—",
+      kpiNeon({ href: "/triagem", ir_rotulo: "triagem", rotulo: "Kappa da triagem", valor: t.kappa && t.kappa.kappa !== null ? String(t.kappa.kappa).replace(".", ",") : "—",
         tom: NEON.yellow, i: base + 4, icon: "achado",
         pe: el("span", { text: t.kappa ? "entre " + t.kappa.entre.join(" e ") + ", n = " + t.kappa.n : "precisa de duas pessoas triando" }),
         chip: kappaChip }),
@@ -718,6 +737,156 @@ function desenharDoze(palco) {
 const TOM_NEON = { cyan: NEON.cyan, green: NEON.green, yellow: NEON.yellow, purple: NEON.purple,
   orange: NEON.orange, magenta: NEON.magenta, blue: NEON.blue, red: NEON.red };
 
+/* Para onde cada KPI temático leva: a tela que explica o número. */
+const DESTINO_DO_KPI = {
+  tempo: { href: "/#tempos", rotulo: "tempos do ciclo" },
+  aceite: { href: "/#submissoes", rotulo: "submissões e recusas" },
+  acesso_aberto: { href: "/#publicacoes", rotulo: "publicações" },
+  internacional: { aba: "mundo", rotulo: "mapa-múndi" },
+  tipo: { busca: true, rotulo: "explorar" },
+  orientandos: { href: "/#metas", rotulo: "objetivos do ano" },
+  revistas: { href: "/#publicacoes", rotulo: "publicações" },
+  paises: { aba: "mundo", rotulo: "mapa-múndi" },
+};
+
+function destinoDoKpi(k) {
+  const d = DESTINO_DO_KPI[k.code];
+  if (!d) return {};
+  if (d.aba) return { ir: function () { abrirAba(d.aba); }, ir_rotulo: d.rotulo };
+  if (d.busca) return { href: "/?q=" + encodeURIComponent(String(k.valor || "")) + "#explorar", ir_rotulo: d.rotulo };
+  return { href: d.href, ir_rotulo: d.rotulo };
+}
+
+/* O radar da casa é uma figura de 380px para uma coluna de tabela. Aqui
+   ele é o cartão inteiro: polígonos preenchidos com brilho, anéis com a
+   porcentagem escrita, o valor em cada ponta ao passar o mouse, e a
+   legenda que isola uma linha ao clique. */
+const NS_SVG = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs, kids) {
+  const n = document.createElementNS(NS_SVG, tag);
+  Object.keys(attrs || {}).forEach(function (k) { if (attrs[k] !== null && attrs[k] !== undefined) n.setAttribute(k, attrs[k]); });
+  (kids || []).forEach(function (k) { if (k) n.appendChild(k); });
+  return n;
+}
+function svgTexto(attrs, texto) { const t = svgEl("text", attrs); t.textContent = texto; return t; }
+
+function radarNeon(axes, series, opts) {
+  opts = opts || {};
+  const W = 640, H = 500, cx = W / 2, cy = H / 2 + 8, R = Math.min(W, H) / 2 - 74;
+  /* a escala vai até o degrau (25, 50, 75, 100) que cobre o maior valor:
+     quatro linhas com 30% ficariam num pontinho no centro de um radar de 100 */
+  const maior = Math.max(1, ...series.map(function (sr) { return Math.max.apply(null, sr.values); }));
+  const max = opts.max || ([25, 50, 75, 100].find(function (d) { return d >= maior; }) || 100);
+  const ang = function (i) { return -Math.PI / 2 + 2 * Math.PI * i / axes.length; };
+  const ponto = function (i, v) { const r = R * Math.max(0, Math.min(max, v)) / max; return [cx + r * Math.cos(ang(i)), cy + r * Math.sin(ang(i))]; };
+  const svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, class: "radar-neon", role: "img", "aria-label": opts.caption || "radar" });
+  svg.style.width = "100%"; svg.style.height = "auto";
+  const defs = svgEl("defs");
+  series.forEach(function (sr, si) {
+    const g = svgEl("radialGradient", { id: "rad-" + si, cx: "50%", cy: "50%", r: "70%" });
+    g.appendChild(svgEl("stop", { offset: "0%", "stop-color": sr.color, "stop-opacity": ".55" }));
+    g.appendChild(svgEl("stop", { offset: "100%", "stop-color": sr.color, "stop-opacity": ".08" }));
+    defs.appendChild(g);
+  });
+  svg.appendChild(defs);
+  /* anéis com a porcentagem escrita */
+  [1, 2, 3, 4].map(function (k) { return max * k / 4; }).forEach(function (p) {
+    const d = axes.map(function (_, i) { const q = ponto(i, p); return (i ? "L" : "M") + q[0].toFixed(1) + "," + q[1].toFixed(1); }).join("") + "Z";
+    svg.appendChild(svgEl("path", { d: d, fill: p === max ? "rgba(255,255,255,.02)" : "none", stroke: "rgba(255,255,255," + (p === max ? ".22" : ".1") + ")", "stroke-width": p === max ? 1.4 : 1, "stroke-dasharray": p === max ? null : "3 4" }));
+    svg.appendChild(svgTexto({ x: cx + 6, y: cy - R * p / max + 12, class: "anel", "font-size": 11, fill: "rgba(244,247,255,.5)" }, Math.round(p) + "%"));
+  });
+  /* eixos e rótulos */
+  axes.forEach(function (a, i) {
+    const fim = ponto(i, max);
+    svg.appendChild(svgEl("line", { x1: cx, y1: cy, x2: fim[0], y2: fim[1], stroke: "rgba(255,255,255,.14)", "stroke-width": 1 }));
+    const rot = ponto(i, max * 1.16);
+    const c = Math.cos(ang(i));
+    svg.appendChild(svgTexto({ x: rot[0], y: rot[1] + 5, "text-anchor": Math.abs(c) < 0.2 ? "middle" : (c > 0 ? "start" : "end"),
+      "font-size": 14, "font-weight": 700, fill: "rgba(244,247,255,.92)" }, a));
+  });
+  /* os polígonos, do maior para o menor, para nenhum esconder o outro */
+  const grupos = [];
+  series.forEach(function (sr, si) {
+    const pts = sr.values.map(function (v, i) { return ponto(i, v); });
+    const d = pts.map(function (q, i) { return (i ? "L" : "M") + q[0].toFixed(1) + "," + q[1].toFixed(1); }).join("") + "Z";
+    const g = svgEl("g", { class: "serie", "data-serie": si });
+    g.appendChild(svgEl("path", { d: d, fill: "url(#rad-" + si + ")", stroke: sr.color, "stroke-width": 2.6, "stroke-linejoin": "round", class: "mark", style: "filter:drop-shadow(0 0 8px " + sr.color + ")" }));
+    pts.forEach(function (q, i) {
+      const dot = svgEl("circle", { cx: q[0], cy: q[1], r: 5.5, fill: sr.color, stroke: "var(--navy-deep)", "stroke-width": 2 });
+      const rotulo = svgTexto({ x: q[0], y: q[1] - 11, "text-anchor": "middle", "font-size": 12, "font-weight": 800, fill: sr.color, class: "valor-ponta" }, Math.round(sr.values[i]) + "%");
+      const t = svgEl("title"); t.textContent = sr.label + " · " + axes[i] + ": " + sr.values[i] + "%";
+      dot.appendChild(t);
+      g.appendChild(rotulo); g.appendChild(dot);
+    });
+    grupos.push(g);
+    svg.appendChild(g);
+  });
+  const caixa = el("div", { class: "radar-caixa" }, [svg]);
+  /* legenda que isola: clique numa linha e só ela fica acesa */
+  let aceso = null;
+  const legenda = el("div", { class: "legenda-radar" }, series.map(function (sr, si) {
+    const chipEl = el("button", { type: "button", class: "chip solto", style: "--tom:" + sr.color }, [
+      sr.icone && sr.icone !== "linha" ? Icons.tema(sr.label, { icone: sr.icone, tam: 22, tom: sr.color }) : el("i"),
+      document.createTextNode(sr.label)]);
+    chipEl.addEventListener("click", function () {
+      aceso = aceso === si ? null : si;
+      grupos.forEach(function (g, gi) { g.classList.toggle("apagado", aceso !== null && gi !== aceso); });
+      legenda.querySelectorAll(".chip").forEach(function (c, ci) { c.classList.toggle("apagado", aceso !== null && ci !== aceso); });
+    });
+    return chipEl;
+  }));
+  caixa.appendChild(legenda);
+  return caixa;
+}
+
+/* O haltere: de um período para o outro, com a variação escrita e colorida.
+   Verde subiu, vermelho desceu, cinza ficou. A bolinha do "antes" é vazada
+   e a do "depois" é cheia: o olho vai para o agora. */
+function haltereNeon(items, opts) {
+  opts = opts || {};
+  const ordenados = items.slice().sort(function (a, b) { return (b.to - b.from) - (a.to - a.from); });
+  const linhaH = 44, ML = 210, MR = 80, W = 600, MT = 28, MB = 32;
+  const H = MT + MB + ordenados.length * linhaH;
+  const max = Math.max(1, ...ordenados.map(function (i) { return Math.max(i.from, i.to); }));
+  const X = function (v) { return ML + (W - ML - MR) * v / max; };
+  const svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, class: "haltere-neon", role: "img", "aria-label": opts.caption || "antes e depois" });
+  svg.style.width = "100%"; svg.style.height = "auto";
+  const passo = max <= 5 ? 1 : (max <= 12 ? 2 : (max <= 30 ? 5 : 10));
+  for (let t = 0; t <= max; t += passo) {
+    svg.appendChild(svgEl("line", { x1: X(t), x2: X(t), y1: MT - 6, y2: H - MB + 4, stroke: "rgba(255,255,255,.08)" }));
+    svg.appendChild(svgTexto({ x: X(t), y: H - MB + 20, "text-anchor": "middle", "font-size": 11, fill: "rgba(244,247,255,.5)" }, String(t)));
+  }
+  ordenados.forEach(function (it, i) {
+    const y = MT + i * linhaH + linhaH / 2;
+    const delta = it.to - it.from;
+    const tom = delta > 0 ? NEON.green : (delta < 0 ? NEON.red : "rgba(244,247,255,.45)");
+    const g = svgEl("g", { class: "linha-haltere", style: "--i:" + i });
+    g.appendChild(svgTexto({ x: ML - 14, y: y + 5, "text-anchor": "end", "font-size": 13, "font-weight": 600, fill: "rgba(244,247,255,.9)" }, cortar(it.label, 26)));
+    const grad = svgEl("linearGradient", { id: "hal-" + i, x1: "0", x2: "1", y1: "0", y2: "0" });
+    grad.appendChild(svgEl("stop", { offset: "0%", "stop-color": "rgba(244,247,255,.35)" }));
+    grad.appendChild(svgEl("stop", { offset: "100%", "stop-color": tom }));
+    svg.appendChild(svgEl("defs", {}, [grad]));
+    if (it.from !== it.to) {
+      g.appendChild(svgEl("line", { x1: X(Math.min(it.from, it.to)), x2: X(Math.max(it.from, it.to)), y1: y, y2: y, stroke: "url(#hal-" + i + ")", "stroke-width": 8, "stroke-linecap": "round", class: "mark", style: "filter:drop-shadow(0 0 6px " + tom + ")" }));
+    }
+    g.appendChild(svgEl("circle", { cx: X(it.from), cy: y, r: 8, fill: "var(--navy-deep)", stroke: "rgba(244,247,255,.6)", "stroke-width": 2.2 }));
+    g.appendChild(svgEl("circle", { cx: X(it.to), cy: y, r: 9, fill: tom, stroke: "var(--navy-deep)", "stroke-width": 2, class: "mark", style: "filter:drop-shadow(0 0 8px " + tom + ")" }));
+    g.appendChild(svgTexto({ x: X(it.from), y: y - 14, "text-anchor": "middle", "font-size": 11, fill: "rgba(244,247,255,.55)" }, String(it.from)));
+    g.appendChild(svgTexto({ x: X(it.to), y: y - 14, "text-anchor": "middle", "font-size": 12, "font-weight": 800, fill: tom }, String(it.to)));
+    g.appendChild(svgTexto({ x: W - MR + 14, y: y + 5, "font-size": 13, "font-weight": 800, fill: tom }, (delta > 0 ? "▲ +" : (delta < 0 ? "▼ " : "= ")) + delta));
+    const t = svgEl("title"); t.textContent = it.label + ": " + it.from + " → " + it.to;
+    g.appendChild(t);
+    svg.appendChild(g);
+  });
+  const legenda = el("div", { class: "legenda-haltere" }, [
+    el("span", {}, [el("i", { class: "vazia" }), document.createTextNode(opts.antes || "antes")]),
+    el("span", {}, [el("i", { class: "cheia" }), document.createTextNode(opts.depois || "depois")]),
+    el("span", {}, [el("i", { style: "background:" + NEON.green }), document.createTextNode("subiu")]),
+    el("span", {}, [el("i", { style: "background:" + NEON.red }), document.createTextNode("desceu")]),
+  ]);
+  return el("div", { class: "haltere-caixa" }, [svg, legenda]);
+}
+
 function desenharTemas(palco) {
   const T = D.temas;
   const per = D.periodo;
@@ -728,9 +897,9 @@ function desenharTemas(palco) {
     const tom = TOM_NEON[k.tom] || NEON.blue;
     const valor = k.valor === null || k.valor === undefined ? "—"
       : (typeof k.valor === "number" ? k.valor : String(k.valor));
-    kpis.appendChild(kpiNeon({ rotulo: k.rotulo, valor: valor, tom: tom, i: i, icon: k.icon,
+    kpis.appendChild(kpiNeon(Object.assign({ rotulo: k.rotulo, valor: valor, tom: tom, i: i, icon: k.icon,
       extra: k.unidade ? el("span", { class: "unidade", text: k.unidade }) : null,
-      pe: el("span", { text: k.pe || "" }) }));
+      pe: el("span", { text: k.pe || "" }) }, destinoDoKpi(k))));
   });
   palco.appendChild(kpis);
 
@@ -738,8 +907,8 @@ function desenharTemas(palco) {
   um.appendChild(glass([
     cabecalho("Radar das linhas", "as quatro mais produtivas, em % dos artigos de cada uma"),
     T.radar.series.length
-      ? C.radar({ axes: T.radar.axes, height: 360, caption: "radar por linha",
-        series: T.radar.series.map(function (s, i) { return { label: s.label, values: s.values, color: NEON_SEQ[i % NEON_SEQ.length] }; }) })
+      ? radarNeon(T.radar.axes, T.radar.series.map(function (s, i) { return { label: s.label, values: s.values, icone: s.icone, color: NEON_SEQ[i % NEON_SEQ.length] }; }),
+        { caption: "radar por linha" })
       : el("div", { class: "vazio", text: "sem artigos ligados a linhas" }),
   ], { i: 8 }));
   um.appendChild(glass([
@@ -747,7 +916,8 @@ function desenharTemas(palco) {
       ? "publicados por linha, " + rotuloDoPeriodo(per.anterior[0], per.anterior[1]) + " → " + rotuloDoPeriodo(per.de, per.ate)
       : "sem período anterior para comparar"),
     T.haltere.length
-      ? C.dumbbell({ items: T.haltere, caption: "antes e depois por linha", labelWidth: 230 })
+      ? haltereNeon(T.haltere, { caption: "antes e depois por linha",
+        antes: per.anterior ? rotuloDoPeriodo(per.anterior[0], per.anterior[1]) : "antes", depois: rotuloDoPeriodo(per.de, per.ate) })
       : el("div", { class: "vazio", text: "nada publicado nos dois períodos" }),
   ], { i: 9 }));
   palco.appendChild(um);
@@ -797,6 +967,7 @@ const ANALISES = [
   ["decomposicao", "Sinal e ruído", "rede", "Tendência + estação + ruído. A estação é o que sobra, em média, em cada mês do calendário; o ruído é o que nenhuma das duas explica. A razão sinal/ruído diz quanto a curva é mais tendência do que acaso."],
   ["inflexao", "Inflexões", "alvo", "Onde a tendência troca de curvatura: passa a acelerar ou a desacelerar. É a segunda derivada da tendência trocando de sinal — da série crua ela trocaria todo mês."],
   ["limite", "Limite", "tempo", "O teto de uma logística ajustada ao acumulado, por busca em grade — quando o ajuste explica mais do que uma reta. Se não explica, o acumulado ainda cresce em linha e não há teto à vista."],
+  ["deriva", "Deriva e projeção", "foguete", "A reta de mínimos quadrados sobre a curva mensal: a deriva é quanto a produção muda, em média, mês após mês, com o intervalo de confiança da inclinação. A projeção segue a deriva a partir da ponta da tendência, tracejada, com a faixa que alarga com a distância."],
 ];
 let relogioAnalise = null;
 
@@ -846,48 +1017,97 @@ function rodar(fig) {
 function figuraDaAnalise(code) {
   const S = D.sinais;
   const meses = S.meses;
-  const linha = function (label, values, color) { return { label: label, values: values, color: color }; };
+  const linha = function (label, values, color, extra) { return Object.assign({ label: label, values: values, color: color }, extra || {}); };
+  const faixa = function (ic) { return ic && ic.alto ? { band: ic } : {}; };
+  const controle = S.controle && S.controle.media !== null ? [
+    { valor: S.controle.media, rotulo: "média " + String(S.controle.media).replace(".", ","), cor: NEON.yellow, dash: "2 4" },
+    { valor: S.controle.alto, rotulo: "limite de controle (+2σ)", cor: NEON.red },
+  ] : [];
+  /* toda inflexão ganha a marca; só as três últimas ganham o texto --
+     catorze rótulos em cima uns dos outros não se leem */
+  const marcasDeInflexao = function (serie) {
+    const todas = S.inflexoes || [];
+    return todas.map(function (x, k) {
+      const acelera = x.sentido.indexOf("acelerar") >= 0;
+      return { serie: serie, i: x.i, label: k >= todas.length - 3 ? (acelera ? "▲ acelera" : "▼ desacelera") : "", tone: acelera ? "good" : "critical" };
+    });
+  };
   switch (code) {
     case "curva":
-      return [C.lines({ labels: meses, height: 320, caption: "publicações por mês e tendência",
-        series: [linha("publicados/mês", S.valores, NEON.cyan), linha("tendência (12 meses)", S.tendencia, NEON.orange)] })];
+      return [C.lines({ labels: meses, height: 340, caption: "publicações por mês, tendência com IC 95% e limites de controle",
+        limites: controle, marks: marcasDeInflexao(1),
+        series: [linha("publicados/mês", S.valores, NEON.cyan, { area: true, width: 2 }),
+          linha("tendência (12 meses) · faixa IC 95%", S.tendencia, NEON.orange, faixa(S.tendencia_ic))] })];
     case "acumulado":
-      return [C.area({ labels: meses, height: 320, caption: "acumulado",
-        series: [linha("acervo publicado", S.acumulado, NEON.blue)] })];
+      return [C.lines({ labels: meses, height: 340, caption: "acumulado, com o ajuste e o teto",
+        max: S.limite && S.limite.K ? S.limite.K * 1.06 : undefined,   /* o teto precisa caber no eixo */
+        limites: S.limite && S.limite.K ? [{ valor: S.limite.K, rotulo: "teto K = " + C.fmt(S.limite.K), cor: NEON.red }] : [],
+        series: [linha("acervo publicado", S.acumulado, NEON.blue, { area: true })].concat(
+          S.limite && S.limite.K ? [linha("ajuste logístico · faixa ± 1,96 σ", S.limite.ajuste, NEON.green, { band: { alto: S.limite.alto, baixo: S.limite.baixo }, dash: "6 5" })] : []) })];
     case "derivada":
-      return [C.lines({ labels: meses, height: 320, caption: "derivada",
-        series: [linha("derivada (pub/mês por mês)", S.derivada, NEON.green), linha("segunda derivada", S.segunda_derivada, NEON.magenta)] })];
+      return [
+        C.lines({ labels: meses, height: 300, caption: "derivada, suavizada com IC 95%",
+          limites: [{ valor: 0, rotulo: "zero: nem acelera nem freia", cor: "rgba(244,247,255,.55)", dash: "2 4" }],
+          series: [linha("derivada (pub/mês por mês)", S.derivada, NEON.green, { area: true, width: 1.6 }),
+            linha("derivada suavizada (3 meses) · IC 95%", S.derivada_suave, NEON.yellow, faixa(S.derivada_ic))] }),
+        C.lines({ labels: meses, height: 200, caption: "segunda derivada",
+          limites: [{ valor: 0, rotulo: "", cor: "rgba(244,247,255,.45)", dash: "2 4" }],
+          series: [linha("segunda derivada", S.segunda_derivada, NEON.magenta, { area: true })] }),
+      ];
     case "integral":
       return [
-        C.area({ labels: meses, height: 260, caption: "área sob o acumulado",
-          series: [linha("acumulado (a área é o que fica embaixo)", S.acumulado, NEON.purple)] }),
+        C.lines({ labels: meses, height: 280, caption: "área sob o acumulado (a sombra é a integral)",
+          series: [linha("acumulado", S.acumulado, NEON.purple, { area: true })] }),
         C.lines({ labels: meses, height: 220, caption: "área acumulada",
-          series: [linha("área acumulada (artigo-mês)", S.integral.acumulada, NEON.yellow)] }),
+          limites: [{ valor: S.integral.area, rotulo: "área total " + C.fmt(Math.round(S.integral.area)) + " artigo-mês", cor: NEON.yellow }],
+          series: [linha("área acumulada (artigo-mês)", S.integral.acumulada, NEON.yellow, { area: true })] }),
       ];
     case "decomposicao":
       return [
-        C.lines({ labels: meses, height: 240, caption: "observado e tendência",
-          series: [linha("observado", S.valores, NEON.cyan), linha("tendência", S.tendencia, NEON.orange)] }),
+        C.lines({ labels: meses, height: 260, caption: "observado, tendência e a faixa do ruído",
+          limites: controle,
+          series: [linha("observado", S.valores, NEON.cyan, { area: true, width: 1.6 }),
+            linha("tendência · IC 95%", S.tendencia, NEON.orange, faixa(S.tendencia_ic))] }),
         C.columns({ labels: ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"],
           values: S.perfil_sazonal, name: "estação (desvio médio do mês)", height: 200, caption: "estação" }),
-        C.columns({ labels: meses, values: S.ruido, name: "ruído", height: 200, caption: "ruído" }),
+        C.lines({ labels: meses, height: 200, caption: "ruído, com ± 2 desvios",
+          limites: [{ valor: 2 * S.dp_ruido, rotulo: "+2σ", cor: NEON.red }, { valor: -2 * S.dp_ruido, rotulo: "−2σ", cor: NEON.red }, { valor: 0, rotulo: "", cor: "rgba(244,247,255,.45)", dash: "2 4" }],
+          series: [linha("ruído", S.ruido, NEON.magenta, { area: true, width: 1.4 })] }),
       ];
     case "inflexao": {
       const seg = derivar(derivar(S.tendencia));
       return [
-        C.lines({ labels: meses, height: 260, caption: "tendência",
-          series: [linha("tendência", S.tendencia, NEON.orange)] }),
+        C.lines({ labels: meses, height: 280, caption: "tendência com IC 95% e as inflexões marcadas",
+          marks: marcasDeInflexao(0),
+          series: [linha("tendência", S.tendencia, NEON.orange, Object.assign({ area: true }, faixa(S.tendencia_ic)))] }),
         C.lines({ labels: meses, height: 200, caption: "curvatura da tendência",
-          series: [linha("segunda derivada da tendência", seg.map(function (x) { return Math.round(x * 1000) / 1000; }), NEON.magenta)] }),
+          limites: [{ valor: 0, rotulo: "troca de sinal = inflexão", cor: "rgba(244,247,255,.55)", dash: "2 4" }],
+          series: [linha("segunda derivada da tendência", seg.map(function (x) { return Math.round(x * 1000) / 1000; }), NEON.magenta, { area: true })] }),
       ];
     }
     case "limite": {
-      const series = [linha("acumulado", S.acumulado, NEON.blue)];
+      const series = [linha("acumulado", S.acumulado, NEON.blue, { area: true })];
+      const limites = [];
       if (S.limite && S.limite.K) {
-        series.push(linha("ajuste logístico", S.limite.ajuste, NEON.green));
-        series.push(linha("teto (K = " + C.fmt(S.limite.K) + ")", S.acumulado.map(function () { return S.limite.K; }), NEON.red));
+        series.push(linha("ajuste logístico · faixa ± 1,96 σ", S.limite.ajuste, NEON.green, { band: { alto: S.limite.alto, baixo: S.limite.baixo }, dash: "6 5" }));
+        limites.push({ valor: S.limite.K, rotulo: "teto K = " + C.fmt(S.limite.K) + " (" + String(S.limite.atingido).replace(".", ",") + "% atingido)", cor: NEON.red });
       }
-      return [C.lines({ labels: meses, height: 320, caption: "limite", series: series })];
+      return [C.lines({ labels: meses, height: 340, caption: "limite", series: series, limites: limites,
+        max: S.limite && S.limite.K ? S.limite.K * 1.06 : undefined })];
+    }
+    case "deriva": {
+      const R = S.regressao || {};
+      const P = S.projecao || {};
+      const figs = [C.lines({ labels: meses, height: 300, caption: "a reta de mínimos quadrados com IC 95%",
+        limites: controle,
+        series: [linha("publicados/mês", S.valores, NEON.cyan, { area: true, width: 1.6 }),
+          linha("deriva: " + (R.b !== null && R.b !== undefined ? (R.b >= 0 ? "+" : "") + String(R.deriva_mes).replace(".", ",") + " por mês" : "—"), R.linha || [], NEON.yellow, { band: R.alto ? { alto: R.alto, baixo: R.baixo } : undefined, width: 3 })] })];
+      if (P.valores && P.valores.length > 1) {
+        figs.push(C.lines({ labels: P.meses, height: 240, caption: "projeção pela deriva (tracejada): próximos " + (P.valores.length - 1) + " meses",
+          limites: S.controle && S.controle.media !== null ? [{ valor: S.controle.media, rotulo: "média histórica", cor: NEON.yellow, dash: "2 4" }] : [],
+          series: [linha("projeção · faixa IC 95%", P.valores, NEON.magenta, { band: { alto: P.alto, baixo: P.baixo }, dash: "6 5" })] }));
+      }
+      return figs;
     }
     default:
       return [el("div", { class: "vazio", text: "análise desconhecida" })];
@@ -916,6 +1136,14 @@ function leituraDaAnalise(code) {
     case "limite": return S.limite && S.limite.K
       ? "Teto de " + C.fmt(S.limite.K) + " artigos, " + pt(S.limite.atingido, 0) + "% atingido (R² " + pt(S.limite.r2) + " contra " + pt(S.limite.r2_reta) + " da reta)."
       : "Sem limite à vista: " + (S.limite ? S.limite.porque : "") + ".";
+    case "deriva": {
+      const R = S.regressao || {};
+      if (R.b === null || R.b === undefined) return "Poucos pontos para uma reta.";
+      const P = S.projecao || {};
+      return "Deriva de " + (R.deriva_mes >= 0 ? "+" : "") + pt(R.deriva_mes, 3) + " pub/mês por mês (" + (R.deriva_ano >= 0 ? "+" : "") + pt(R.deriva_ano) + " por ano; IC 95% da inclinação "
+        + pt(R.ic_deriva[0], 3) + " a " + pt(R.ic_deriva[1], 3) + "; R² " + pt(R.r2) + ")"
+        + (P.valores && P.valores.length > 1 ? " · em " + (P.valores.length - 1) + " meses a tendência aponta " + pt(P.valores[P.valores.length - 1]) + " pub/mês (faixa " + pt(P.baixo[P.baixo.length - 1]) + " a " + pt(P.alto[P.alto.length - 1]) + ")." : ".");
+    }
     default: return "";
   }
 }
@@ -927,16 +1155,21 @@ function desenharSinais(palco) {
 
   const kpis = el("div", { class: "grade kpis" }, [
     kpiNeon({ rotulo: "Ritmo (12 meses)", valor: S.ritmo, tom: NEON.cyan, i: 0, icon: "subida",
+      ir: function () { ST.analise = "curva"; desenhar(); }, ir_rotulo: "curva",
       extra: el("span", { class: "unidade", text: "publicações por mês" }),
       pe: el("span", { text: S.ritmo_antes !== null ? "antes: " + String(S.ritmo_antes).replace(".", ",") : "sem 12 meses anteriores" }) }),
     kpiNeon({ rotulo: "Sinal / ruído", valor: S.sinal_ruido === null ? "—" : String(S.sinal_ruido).replace(".", ","), tom: NEON.orange, i: 1, icon: "rede",
+      ir: function () { ST.analise = "decomposicao"; desenhar(); }, ir_rotulo: "sinal e ruído",
       pe: el("span", { text: S.sinal_ruido === null ? "sem ruído mensurável" : (S.sinal_ruido >= 1 ? "mais sinal do que ruído" : "mais ruído do que sinal") }) }),
     kpiNeon({ rotulo: "Inflexões", valor: S.inflexoes.length, tom: NEON.magenta, i: 2, icon: "alvo",
+      ir: function () { ST.analise = "inflexao"; desenhar(); }, ir_rotulo: "inflexões",
       pe: el("span", { text: S.inflexoes.length ? "última em " + S.inflexoes[S.inflexoes.length - 1].rotulo : "a tendência não trocou de curvatura" }) }),
     kpiNeon({ rotulo: "Limite à vista", valor: S.limite && S.limite.K ? S.limite.K : "—", tom: NEON.green, i: 3, icon: "tempo",
+      ir: function () { ST.analise = "limite"; desenhar(); }, ir_rotulo: "limite",
       extra: S.limite && S.limite.K ? el("span", { class: "unidade", text: String(S.limite.atingido).replace(".", ",") + "% atingido" }) : null,
       pe: el("span", { text: S.limite && S.limite.K ? "teto do ajuste logístico" : (S.limite ? S.limite.porque : "") }) }),
     kpiNeon({ rotulo: "Área (integral)", valor: Math.round(S.integral.area), tom: NEON.purple, i: 4, icon: "espaco",
+      ir: function () { ST.analise = "integral"; desenhar(); }, ir_rotulo: "integral",
       extra: el("span", { class: "unidade", text: "artigo-mês" }), pe: el("span", { text: "sob o acumulado, na janela" }) }),
   ]);
   palco.appendChild(kpis);

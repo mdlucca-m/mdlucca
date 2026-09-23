@@ -336,8 +336,40 @@ body.apresentando main.palco { padding-bottom: 150px; }
 .nuvem .tema:hover { border-color: var(--tom, var(--neon-cyan)); box-shadow: 0 0 16px -4px var(--tom, var(--neon-cyan)); }
 .nuvem .tema .icone-tema { --tam: 26px; border-radius: 8px; }
 
+/* ---- temas: radar e haltere em néon ---- */
+.radar-caixa, .haltere-caixa { display: flex; flex-direction: column; gap: 10px; }
+.radar-neon { display: block; }
+.radar-neon .serie { transition: opacity .3s; }
+.radar-neon .serie.apagado { opacity: .12; }
+.radar-neon .valor-ponta { opacity: 0; transition: opacity .2s; paint-order: stroke; stroke: var(--navy-deep); stroke-width: 3px; }
+.radar-neon .serie:hover .valor-ponta, .radar-neon .serie:not(.apagado):only-child .valor-ponta { opacity: 1; }
+.radar-neon:hover .serie:not(.apagado) .valor-ponta { opacity: 1; }
+.legenda-radar { display: flex; flex-wrap: wrap; gap: 8px; }
+.legenda-radar { justify-content: center; }
+.legenda-radar .chip { cursor: pointer; text-transform: none; letter-spacing: 0; font-weight: 600; padding: 3px 10px 3px 4px; gap: 8px; box-shadow: none;
+  width: auto; display: inline-flex; font-size: 12px; }
+.radar-caixa .radar-neon { max-width: 560px; margin: 0 auto; }
+.haltere-caixa .haltere-neon { max-width: 640px; }
+.legenda-radar .chip .icone-tema { --tam: 22px; border-radius: 7px; }
+.legenda-radar .chip.apagado { opacity: .35; }
+.haltere-neon .linha-haltere { animation: chegar .4s ease-out both; animation-delay: calc(var(--i, 0) * 60ms); }
+.legenda-haltere { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--ink-2); }
+.legenda-haltere span { display: inline-flex; align-items: center; gap: 6px; }
+.legenda-haltere i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.legenda-haltere i.vazia { border: 2px solid rgba(244,247,255,.6); background: var(--navy-deep); }
+.legenda-haltere i.cheia { background: rgba(244,247,255,.85); }
+
 /* ---- temas: a unidade embaixo do número ---- */
 .kpi-neon .unidade { display: block; font-size: 11.5px; color: var(--ink-muted); margin-top: -4px; }
+/* o KPI que é botão: o cartão inteiro leva a algum lugar, e a seta diz onde */
+a.glass.kpi-neon { text-decoration: none; color: inherit; display: flex; }
+.kpi-neon.navegavel { cursor: pointer; }
+.kpi-neon.navegavel:hover { transform: translateY(-3px); }
+.kpi-neon.navegavel:hover::before { background: linear-gradient(135deg, color-mix(in srgb, var(--tom, var(--neon-cyan)) 80%, transparent), rgba(255,255,255,.08) 50%, var(--neon-magenta)); }
+.kpi-neon .ir { margin-left: auto; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--tom, var(--neon-cyan)); white-space: nowrap; opacity: .85; transition: opacity .2s, transform .2s; }
+.kpi-neon.navegavel:hover .ir { opacity: 1; transform: translateX(3px); }
+.kpi-neon.navegavel:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 2px; }
 /* um valor que é texto ("Estudo transversal") não cabe no corpo do número */
 .kpi-neon .valor.texto { font-size: clamp(17px, 1.6vw, 21px); line-height: 1.2; overflow-wrap: anywhere; }
 
@@ -408,7 +440,7 @@ rect.mark.cresce { transform-box: fill-box; transform-origin: bottom; animation:
 }
 @media (prefers-reduced-motion: reduce) {
   .glass, .funil li { animation: none; } .hbars .barra { transition: none; } .pulso.batendo i { animation: none; }
-  .apresentacao::before, .apresentacao .explica li, .resultado, .nuvem .tema, .paises li, rect.mark.cresce { animation: none; }
+  .apresentacao::before, .apresentacao .explica li, .resultado, .nuvem .tema, .paises li, rect.mark.cresce, .haltere-neon .linha-haltere { animation: none; }
 }
 @media print { nav.lado, header.topo { display: none; } .casca { display: block; } }
 </style>

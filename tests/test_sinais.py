@@ -97,6 +97,49 @@ class TestOCalculoDiscreto(unittest.TestCase):
     def test_poucos_pontos_nao_ajustam_curva(self):
         self.assertIsNone(sinais.limite([1, 2, 3])["K"])
 
+    def test_a_regressao_de_uma_reta_e_exata(self):
+        r = sinais.regressao([1.0 + 0.5 * i for i in range(20)])
+        self.assertAlmostEqual(r["b"], 0.5, places=4)
+        self.assertAlmostEqual(r["a"], 1.0, places=4)
+        self.assertAlmostEqual(r["r2"], 1.0, places=4)
+        self.assertAlmostEqual(r["deriva_ano"], 6.0, places=3)
+        # sem ruído a faixa colapsa na reta
+        self.assertAlmostEqual(r["alto"][3], r["linha"][3], places=3)
+        self.assertEqual(sinais.regressao([1, 2])["b"], None)
+
+    def test_a_faixa_da_reta_alarga_nas_pontas(self):
+        v = [float((i * 7) % 5) for i in range(30)]
+        r = sinais.regressao(v)
+        meio = len(v) // 2
+        self.assertGreater(r["alto"][0] - r["baixo"][0], r["alto"][meio] - r["baixo"][meio])
+        self.assertLess(r["ic_deriva"][0], r["b"])
+        self.assertGreater(r["ic_deriva"][1], r["b"])
+
+    def test_os_limites_de_controle_apanham_o_mes_fora_da_curva(self):
+        v = [1.0] * 23 + [9.0]
+        c = sinais.limites_de_controle(v)
+        self.assertEqual(c["fora"], [23])
+        self.assertGreaterEqual(c["baixo"], 0.0)
+        self.assertEqual(sinais.limites_de_controle([])["media"], None)
+
+    def test_a_faixa_da_tendencia_nao_desce_do_chao_e_alarga_nas_pontas(self):
+        t = [1.0] * 30
+        ic = sinais.intervalo_da_tendencia(t, dp_ruido=2.0)
+        self.assertTrue(all(b >= 0 for b in ic["baixo"]))
+        self.assertGreater(ic["alto"][0] - ic["baixo"][0], ic["alto"][15] - ic["baixo"][15])
+        self.assertEqual(len(ic["alto"]), 30)
+
+    def test_a_projecao_segue_a_deriva_e_alarga_com_a_distancia(self):
+        p = sinais.projetar([1.0, 1.2, 1.4], deriva=0.1, dp_ruido=0.5, n=6)
+        self.assertEqual(len(p["valores"]), 7)
+        self.assertAlmostEqual(p["valores"][0], 1.4)
+        self.assertAlmostEqual(p["valores"][6], 2.0, places=3)
+        self.assertGreater(p["alto"][6] - p["baixo"][6], p["alto"][1] - p["baixo"][1])
+        self.assertTrue(all(b >= 0 for b in p["baixo"]))
+        self.assertEqual(sinais.projetar([], None, 0.5)["valores"], [])
+        # a projecao nao vai abaixo de zero
+        self.assertEqual(sinais.projetar([0.2], deriva=-1.0, dp_ruido=0.0, n=2)["valores"], [0.2, 0.0, 0.0])
+
 
 class BaseComProducao(unittest.TestCase):
     def setUp(self):
@@ -136,6 +179,7 @@ class TestASerieMensal(BaseComProducao):
         a = sinais.analisar(self.db, HOJE)
         for chave in ("labels", "meses", "valores", "acumulado", "derivada", "segunda_derivada", "integral",
                       "tendencia", "sazonal", "ruido", "perfil_sazonal", "sinal_ruido", "inflexoes", "limite",
+                      "tendencia_ic", "regressao", "controle", "derivada_suave", "derivada_ic", "projecao",
                       "ritmo", "soma", "leituras"):
             with self.subTest(chave=chave):
                 self.assertIn(chave, a)
@@ -143,6 +187,11 @@ class TestASerieMensal(BaseComProducao):
         self.assertEqual(len(a["perfil_sazonal"]), 12)
         self.assertEqual(a["meses"][-1], "set/26")
         self.assertTrue(a["leituras"])
+        self.assertEqual(len(a["tendencia_ic"]["alto"]), len(a["valores"]))
+        self.assertEqual(a["projecao"]["labels"][0], "2026-09")
+        self.assertEqual(a["projecao"]["labels"][-1], "2027-03")
+        self.assertEqual(len(a["projecao"]["meses"]), 7)
+        self.assertTrue(any("Deriva" in l for l in a["leituras"]))
 
 
 class TestOsTemasEOMundo(BaseComProducao):
@@ -314,6 +363,29 @@ class TestATelaDasPaginasNovas(unittest.TestCase):
         self.assertIn("AUTO_ANALISE_SEGUNDOS", self.js)
         self.assertIn('text: "Rodar ▶"', self.js)
 
+    def test_os_graficos_do_calculo_sao_analiticos(self):
+        """Sombra (área), faixa de confiança, limites de controle, marcas de
+        inflexão, deriva e projeção tracejada."""
+        trecho = self.js[self.js.index("function figuraDaAnalise(code) {"):self.js.index("function leituraDaAnalise(code) {")]
+        self.assertIn("band: ic", trecho)                  # faixa de confiança
+        self.assertIn("limites: controle", trecho)         # média e +2σ
+        self.assertIn("marks: marcasDeInflexao", trecho)   # inflexões marcadas
+        self.assertIn("area: true", trecho)                # sombra
+        self.assertIn('case "deriva":', trecho)
+        self.assertIn('dash: "6 5"', trecho)               # projeção tracejada
+        self.assertIn("S.projecao", trecho)
+        self.assertIn('["deriva", "Deriva e projeção", "foguete"', self.js)
+
+    def test_o_radar_e_o_haltere_sao_da_casa(self):
+        self.assertIn("function radarNeon(", self.js)
+        self.assertIn("function haltereNeon(", self.js)
+        self.assertNotIn("C.radar(", self.js)
+        self.assertNotIn("C.dumbbell(", self.js)
+        # a escala do radar vai até o degrau que cobre o maior valor
+        self.assertIn("[25, 50, 75, 100].find(", self.js)
+        self.assertIn(".radar-neon .serie.apagado", self.html)
+        self.assertIn(".legenda-haltere", self.html)
+
     def test_a_caixa_de_apresentacao_explica_mais_e_pausa_no_ponteiro(self):
         self.assertIn("const EXPLICA = {", self.js)
         self.assertIn('class: "mais"', self.js)
@@ -331,6 +403,27 @@ class TestATelaDasPaginasNovas(unittest.TestCase):
         for aba in abas:
             with self.subTest(aba=aba):
                 self.assertIn(f"  {aba}: [", trecho)
+
+    def test_os_kpis_sao_botoes_de_navegacao(self):
+        """Cada número leva à tela que o explica: o cartão inteiro é o botão."""
+        import re
+        self.assertIn('tag: navega ? "a" : "section"', self.js)
+        self.assertIn(".kpi-neon.navegavel", self.html)
+        # todo KPI temático tem destino declarado
+        trecho = self.js[self.js.index("const DESTINO_DO_KPI = {"):]
+        trecho = trecho[:trecho.index("};")]
+        fonte_py = (ROOT / "scripts" / "lape" / "aovivo.py").read_text(encoding="utf-8")
+        temas = fonte_py[fonte_py.index("    kpis = [\n        {\"code\": \"tempo\""):]
+        temas = temas[:temas.index("    ]\n")]
+        for code in re.findall(r'\{"code": "([a-z_]+)"', temas):
+            with self.subTest(kpi=code):
+                self.assertIn(f"  {code}: {{", trecho)
+        # os quatro do painel e os cinco do cálculo também
+        self.assertIn('{ publicacoes: "/#publicacoes", submissoes: "/#submetidos", aceites: "/#aceites", citacoes: "/#citacoes" }', self.js)
+        for analise in ("curva", "decomposicao", "inflexao", "limite", "integral"):
+            with self.subTest(analise=analise):
+                self.assertIn(f'ir: function () {{ ST.analise = "{analise}"; desenhar(); }}', self.js)
+        self.assertIn('href: "/triagem", ir_rotulo: "triagem"', self.js)
 
     def test_o_buscador_do_painel_pergunta_ao_servidor_e_le_o_endereco(self):
         self.assertIn('fetch("/api/buscar?q="', self.painel_js)
