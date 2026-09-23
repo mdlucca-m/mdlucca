@@ -2977,6 +2977,12 @@ class Handler(BaseHTTPRequestHandler):
         if "__TRIAGEM_JS__" in html:
             html = html.replace("__TRIAGEM_JS__",
                                 (TEMPLATES / "triagem.js").read_text(encoding="utf-8"))
+        if "__SLIDES_AVANCADOS_JS__" in html:
+            html = html.replace("__SLIDES_AVANCADOS_JS__",
+                                (TEMPLATES / "slides-avancados-3d.js").read_text(encoding="utf-8"))
+        if "__SLIDES_AVANCADOS_CSS__" in html:
+            html = html.replace("__SLIDES_AVANCADOS_CSS__",
+                                (TEMPLATES / "slides-avancados-3d.css").read_text(encoding="utf-8"))
         html = html.replace("</body>", _marca_de_versao() + "\n</body>", 1)
         self._send(200, html, "text/html")
 

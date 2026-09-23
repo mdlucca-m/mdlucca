@@ -1469,6 +1469,15 @@ const SLIDES = [
     apresenta: "4 métricas centrais em grande escala: artigos publicados este ano, em produção, equipe LAPE e coautores." },
   { id: "heatmap", titulo: "Atividade Temporal", icone: "calendario", montar: slideHeatmapTimeline, tv: true,
     apresenta: "Mapa de calor dos 12 meses: meses mais quentes significam mais artigos publicados naquele período." },
+  /* Slides 3D avançados com gráficos interativos e animações */
+  { id: "linhas-3d", titulo: "Linhas de Pesquisa 3D", icone: "linhas", montar: slidePesquisasLinhas3D, tv: true,
+    apresenta: "Árvore radial 3D mostrando cada linha de pesquisa com volume de artigos, taxa de publicação e colaborações." },
+  { id: "organograma", titulo: "Organograma da Equipe", icone: "pessoas", montar: slideOrganograma3D, tv: true,
+    apresenta: "Hierarquia visual com indicador de 'ponto' em tempo real: quem está presente agora, ausente, ou online." },
+  { id: "framework", titulo: "Framework de Pesquisa", icone: "processo", montar: slideFrameworkN8n, tv: true,
+    apresenta: "Fluxo estilo n8n: ideia → protocolo → coleta → análise → artigo → submissão → publicado, com artigos fluindo." },
+  { id: "kpis-analytics", titulo: "KPIs Analíticos 4K", icone: "painel", montar: slideKPIsAnalyticos, tv: true,
+    apresenta: "4 métricas centrais em grande escala: taxa de aceite, dias até publicação, citações/artigo, produtividade equipe." },
 ];
 
 /* As paletas de fundo, as mesmas do ao vivo. A escolha é lida de

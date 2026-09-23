@@ -266,6 +266,66 @@ def _health_rotina(db: Database) -> dict[str, Any]:
         }
 
 
+def _linhas_pesquisa(db: Database) -> list[dict[str, Any]]:
+    """Linhas de pesquisa com número de artigos e taxa de publicação."""
+    saida = []
+    linhas = db.dicts(
+        "SELECT id, name FROM research_lines WHERE active ORDER BY name"
+    )
+    for linha in linhas:
+        lid = linha["id"]
+        total_artigos = int(db.scalar(
+            "SELECT COUNT(DISTINCT a.id) FROM articles a"
+            " JOIN article_research_line arl ON arl.article_id = a.id"
+            " WHERE arl.research_line_id = ?", (lid,)
+        ) or 0)
+        publicados = int(db.scalar(
+            "SELECT COUNT(DISTINCT a.id) FROM articles a"
+            " JOIN article_research_line arl ON arl.article_id = a.id"
+            " WHERE arl.research_line_id = ? AND a.status = 'publicado'", (lid,)
+        ) or 0)
+        taxa = publicados / total_artigos if total_artigos > 0 else 0
+        saida.append({
+            "id": lid,
+            "nome": linha["name"],
+            "artigos": total_artigos,
+            "taxa_publicacao": taxa,
+        })
+    return saida
+
+
+def _pessoas_com_ponto(db: Database, agora: datetime | None = None) -> list[dict[str, Any]]:
+    """Pessoas cadastradas com indicador de quem está presente agora."""
+    agora = agora or datetime.now()
+    janela_horas = 8  # Considerar "ativo_agora" quem marcou ponto nos últimos 8h
+
+    saida = []
+    pessoas = db.dicts(
+        "SELECT id, name, role FROM members ORDER BY name"
+    )
+    for pessoa in pessoas:
+        pid = pessoa["id"]
+        n_artigos = int(db.scalar(
+            "SELECT COUNT(DISTINCT a.id) FROM articles a"
+            " JOIN article_authors aa ON aa.article_id = a.id"
+            " WHERE aa.member_id = ?", (pid,)
+        ) or 0)
+        # Verificar último ponto/check-in se houver tabela de "attendance" ou "ponto"
+        # Por enquanto, usar um campo booleano ou timestamp simulado
+        ativo_agora = False  # TODO: implementar lógica de check-in
+        ultimo_acesso = "—"  # TODO: buscar do banco se existir
+
+        saida.append({
+            "id": pid,
+            "nome": pessoa["name"],
+            "vinculo": pessoa["role"],
+            "n_artigos": n_artigos,
+            "ativo_agora": ativo_agora,
+            "ultimo_acesso": ultimo_acesso,
+        })
+    return saida
+
+
 def para_a_tv(db: Database, hoje: date | None = None) -> dict[str, Any]:
     """Tudo o que as telas da parede acrescentam, numa chamada só, com cache."""
     from . import rotina
@@ -298,6 +358,8 @@ def para_a_tv(db: Database, hoje: date | None = None) -> dict[str, Any]:
             "sazonalidade": cache.computar("sazonalidade", lambda: _sazonalidade(db, hoje), ttl=86400),
             "alertas": cache.computar(f"alertas_{hoje.isoformat()}", lambda: _alertas(db, hoje), ttl=600),
             "health": _health_rotina(db),
+            "linhas": cache.computar("linhas_pesquisa", lambda: _linhas_pesquisa(db), ttl=300),
+            "pessoas": cache.computar("pessoas_com_ponto", lambda: _pessoas_com_ponto(db), ttl=120),
             "gerado_em": datetime.now().isoformat(timespec="seconds"),
         }
 
