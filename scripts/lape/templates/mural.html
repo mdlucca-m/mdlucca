@@ -490,22 +490,6 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
 .nodo .dados span { font-size: clamp(11px, .85vw, calc(13px * var(--zoom, 1)));
   color: var(--ink-muted); }
 
-/* Sankey / Fluxo */
-.sankey-fluxo { display: flex; align-items: stretch; gap: clamp(8px, 2vw, 20px);
-  flex: 1; min-height: 0; justify-content: space-around; }
-.fase { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
-.caixa { padding: clamp(12px, 1.5vh, 20px) clamp(14px, 1.2vw, 20px);
-  border-radius: var(--radius); border: 2px solid var(--accent-strong);
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--accent) 15%, var(--surface)),
-    color-mix(in srgb, var(--accent) 8%, var(--surface)));
-  text-align: center; min-height: 0; display: flex; flex-direction: column;
-  justify-content: center; gap: 6px; flex: 1; }
-.caixa .titulo { font-size: clamp(11px, .9vw, calc(14px * var(--zoom, 1)));
-  font-weight: 600; color: var(--ink-2); }
-.caixa .numero { font-size: clamp(20px, 2.2vw, calc(36px * var(--zoom, 1)));
-  font-weight: 700; color: var(--accent-strong); font-variant-numeric: tabular-nums; }
-
 /* Radar Modular */
 .radar-modular { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: clamp(10px, 1.4vw, 18px); flex: 1; min-height: 0; }

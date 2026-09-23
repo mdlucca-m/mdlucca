@@ -1281,34 +1281,44 @@ function slideSankey() {
   const t = tv();
   if (!t) return escalonar(el("div", { class: "slide" }, vazio("Dados não disponíveis.")));
 
-  const status = { em_producao: 0, submetido: 0, aceito: 0, publicado: 0 };
-  artigos().forEach(function(a) {
-    if (status.hasOwnProperty(a.status)) status[a.status]++;
+  /* As mesmas 5 fases do Framework de Pesquisa -- aqui como funil real
+     (Charts.funnel, com dica ao passar o mouse e "% da etapa anterior"),
+     em vez das 3 caixas antigas que nem chegavam a mostrar "aceito" e
+     contavam "submetido" duas vezes (uma dentro de "em produção", outra
+     sozinha). */
+  const FASES = [
+    { id: "em_producao", label: "Em Produção" },
+    { id: "submetido", label: "Submetido" },
+    { id: "em_revisao", label: "Em Revisão" },
+    { id: "aceito", label: "Aceito" },
+    { id: "publicado", label: "Publicado" },
+  ];
+  const contagem = {};
+  FASES.forEach(function (f) { contagem[f.id] = 0; });
+  let rejeitados = 0;
+  artigos().forEach(function (a) {
+    if (contagem.hasOwnProperty(a.status)) contagem[a.status]++;
+    else if (a.status === "rejeitado" || a.status === "arquivado") rejeitados++;
   });
 
-  const fluxo = el("div", { class: "sankey-fluxo" }, [
-    el("div", { class: "fase inicio" }, [
-      el("div", { class: "caixa", style: "--valor:" + (status.em_producao + status.submetido) }, [
-        el("div", { class: "titulo", text: "Em Produção/Estudo" }),
-        el("div", { class: "numero", text: (status.em_producao + status.submetido) + " artigos" }),
-      ]),
-    ]),
-    el("div", { class: "fase meio" }, [
-      el("div", { class: "caixa", style: "--valor:" + status.submetido }, [
-        el("div", { class: "titulo", text: "Submetidos" }),
-        el("div", { class: "numero", text: status.submetido + " aguardando" }),
-      ]),
-    ]),
-    el("div", { class: "fase fim" }, [
-      el("div", { class: "caixa", style: "--valor:" + status.publicado }, [
-        el("div", { class: "titulo", text: "Publicados" }),
-        el("div", { class: "numero", text: status.publicado + " no ar" }),
-      ]),
-    ]),
-  ]);
+  const total = FASES.reduce(function (s, f) { return s + contagem[f.id]; }, 0);
+  if (!total) return escalonar(el("div", { class: "slide" }, vazio("Nenhum artigo cadastrado ainda.")));
 
-  return escalonar(el("div", { class: "slide" }, [
-    quadro("Fluxo de Publicação", "processo", fluxo, "do conceito ao artigo publicado"),
+  const etapas = FASES.map(function (f) { return { label: f.label, value: contagem[f.id] }; });
+  const grafico = C.funnel({ steps: etapas, unit: "artigos", height: 440, rowH: 78 });
+  const corpo = el("div", { class: "corpo" }, grafico);
+
+  const notas = [
+    { icone: "processo", forte: total + " artigo(s) no fluxo", resto: "da escrita à publicação" },
+  ];
+  if (rejeitados > 0) {
+    notas.push({ icone: "aviso", tom: "alerta", forte: rejeitados + " rejeitado(s) ou arquivado(s)",
+      resto: "fora do fluxo principal" });
+  }
+
+  return escalonar(el("div", { class: "slide painel-duplo igual" }, [
+    quadro("Fluxo de Publicação", "processo", corpo, "do conceito ao artigo publicado", "moldura-viva"),
+    quadro("Leitura", "processo", frases(notas)),
   ]));
 }
 
@@ -1491,7 +1501,7 @@ const SLIDES = [
   { id: "arvore", titulo: "Árvore de Pesquisa", icone: "linhas", montar: slideArvoreDecisoes, tv: true,
     apresenta: "Ramificações crescentes: cada linha de pesquisa como um galho, com produtividade e taxa de publicação." },
   { id: "sankey", titulo: "Fluxo de Publicação", icone: "processo", montar: slideSankey, tv: true,
-    apresenta: "Do conceito ao artigo: fluxo visual de quantos artigos estão em cada fase (produção, submissão, publicado)." },
+    apresenta: "Funil da escrita à publicação: quantos artigos estão em cada uma das cinco fases, e que fração passa de uma para a próxima." },
   { id: "radar", titulo: "Indicadores Principais", icone: "painel", montar: slideRadarModular, tv: true,
     apresenta: "4 métricas centrais em grande escala: artigos publicados este ano, em produção, equipe LAPE e coautores." },
   { id: "heatmap", titulo: "Atividade Temporal", icone: "calendario", montar: slideHeatmapTimeline, tv: true,
