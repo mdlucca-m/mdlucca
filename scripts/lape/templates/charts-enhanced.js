@@ -7,6 +7,13 @@
 const ChartsEnhanced = (function () {
   const NS = "http://www.w3.org/2000/svg";
 
+  /* As mesmas 8 cores categóricas do resto do mural (theme.css), em vez de
+     cores cruas geradas por hsl() -- senão esses 4 gráficos destoam do
+     tema escolhido (claro/escuro/paleta) e do resto das telas. */
+  const SERIES = ["--series-1", "--series-2", "--series-3", "--series-4",
+    "--series-5", "--series-6", "--series-7", "--series-8"];
+  function corSerie(i) { return `var(${SERIES[i % SERIES.length]})`; }
+
   /* ======================== Gráfico Ternário ======================== */
   function ternario(dados) {
     /**
@@ -40,7 +47,7 @@ const ChartsEnhanced = (function () {
     const triangle = document.createElementNS(NS, "polygon");
     triangle.setAttribute("points", pontos.map(p => p.join(",")).join(" "));
     triangle.setAttribute("fill", "none");
-    triangle.setAttribute("stroke", "#ccc");
+    triangle.setAttribute("stroke", "var(--border-strong)");
     triangle.setAttribute("stroke-width", "2");
     svg.appendChild(triangle);
 
@@ -58,7 +65,7 @@ const ChartsEnhanced = (function () {
       text.setAttribute("y", pos[1]);
       text.setAttribute("text-anchor", "middle");
       text.setAttribute("font-weight", "bold");
-      text.setAttribute("fill", "#333");
+      text.setAttribute("fill", "var(--ink)");
       text.textContent = labels[i];
       svg.appendChild(text);
     });
@@ -81,9 +88,9 @@ const ChartsEnhanced = (function () {
       circle.setAttribute("cx", x);
       circle.setAttribute("cy", y);
       circle.setAttribute("r", r);
-      circle.setAttribute("fill", `hsl(${i * 360 / dados.length}, 70%, 50%)`);
+      circle.setAttribute("fill", corSerie(i));
       circle.setAttribute("opacity", "0.7");
-      circle.setAttribute("stroke", "#fff");
+      circle.setAttribute("stroke", "var(--surface)");
       circle.setAttribute("stroke-width", "2");
 
       circle.addEventListener("mouseenter", () => {
@@ -150,7 +157,7 @@ const ChartsEnhanced = (function () {
       rect.setAttribute("y", y);
       rect.setAttribute("width", scaleX - 4);
       rect.setAttribute("height", barH);
-      rect.setAttribute("fill", `hsl(${i * 30}, 70%, 60%)`);
+      rect.setAttribute("fill", corSerie(i));
       rect.setAttribute("opacity", "0.8");
       barsGroup.appendChild(rect);
 
@@ -163,7 +170,7 @@ const ChartsEnhanced = (function () {
         line.setAttribute("y1", 0);
         line.setAttribute("x2", x);
         line.setAttribute("y2", chartH);
-        line.setAttribute("stroke", "red");
+        line.setAttribute("stroke", "var(--warning)");
         line.setAttribute("stroke-width", "2");
         line.setAttribute("stroke-dasharray", "5,5");
         barsGroup.appendChild(line);
@@ -183,7 +190,7 @@ const ChartsEnhanced = (function () {
     });
     line.setAttribute("points", points.join(" "));
     line.setAttribute("fill", "none");
-    line.setAttribute("stroke", "#d32f2f");
+    line.setAttribute("stroke", "var(--ink-2)");
     line.setAttribute("stroke-width", "3");
     barsGroup.appendChild(line);
 
@@ -223,8 +230,8 @@ const ChartsEnhanced = (function () {
 
       const path = document.createElementNS(NS, "path");
       path.setAttribute("d", arcPath);
-      path.setAttribute("fill", `hsl(${i * 360 / dados.length}, 70%, 60%)`);
-      path.setAttribute("stroke", "white");
+      path.setAttribute("fill", corSerie(i));
+      path.setAttribute("stroke", "var(--surface)");
       path.setAttribute("stroke-width", "2");
       path.setAttribute("opacity", "0.8");
 
@@ -300,7 +307,7 @@ const ChartsEnhanced = (function () {
       line.setAttribute("y1", axis.y);
       line.setAttribute("x2", axis.x + axis.dx);
       line.setAttribute("y2", axis.y + axis.dy);
-      line.setAttribute("stroke", "#999");
+      line.setAttribute("stroke", "var(--border-strong)");
       line.setAttribute("stroke-width", "1");
       svg.appendChild(line);
 
@@ -309,6 +316,7 @@ const ChartsEnhanced = (function () {
       text.setAttribute("y", axis.y + axis.dy + 5);
       text.setAttribute("font-size", "12");
       text.setAttribute("font-weight", "bold");
+      text.setAttribute("fill", "var(--ink)");
       text.textContent = axis.label;
       svg.appendChild(text);
     });
@@ -339,9 +347,9 @@ const ChartsEnhanced = (function () {
       circle.setAttribute("cx", x);
       circle.setAttribute("cy", y);
       circle.setAttribute("r", r);
-      circle.setAttribute("fill", `hsl(${i * 360 / dados.length}, 70%, 60%)`);
+      circle.setAttribute("fill", corSerie(i));
       circle.setAttribute("opacity", "0.7");
-      circle.setAttribute("stroke", "white");
+      circle.setAttribute("stroke", "var(--surface)");
       circle.setAttribute("stroke-width", "2");
 
       const title = document.createElementNS(NS, "title");

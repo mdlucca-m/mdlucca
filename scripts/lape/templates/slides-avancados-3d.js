@@ -17,6 +17,29 @@ function porHoras(horas) {
   return h + "h" + (m ? String(m).padStart(2, "0") : "");
 }
 
+/* el() (de Charts.el) cria elementos com document.createElement -- serve
+   para HTML, mas não para SVG: sem o namespace certo, <circle>/<path>/
+   <text> viram elementos HTML desconhecidos, sem geometria nenhuma (o
+   navegador ignora cx/cy/r/d e faz o texto fluir em linha, um atrás do
+   outro). Foi exatamente isso que quebrava o grafo de linhas de
+   pesquisa: os rótulos apareciam todos amontoados numa linha só, e os
+   nós/conexões não apareciam de jeito nenhum. */
+const SVG_NS = "http://www.w3.org/2000/svg";
+function elSvg(tag, attrs, kids) {
+  const node = document.createElementNS(SVG_NS, tag);
+  for (const k in (attrs || {})) {
+    const v = attrs[k];
+    if (v === null || v === undefined || v === false) continue;
+    node.setAttribute(k, v);
+  }
+  (Array.isArray(kids) ? kids : (kids === undefined || kids === null ? [] : [kids]))
+    .forEach(function (kid) {
+      if (kid === null || kid === undefined || kid === false) return;
+      node.appendChild(typeof kid === "object" ? kid : document.createTextNode(String(kid)));
+    });
+  return node;
+}
+
 /* ==================== LINHAS DE PESQUISA 3D ==================== */
 function slidePesquisasLinhas3D() {
   const t = tv();
@@ -25,19 +48,33 @@ function slidePesquisasLinhas3D() {
   const linhas = t.linhas || [];
   if (!linhas.length) return escalonar(el("div", { class: "slide" }, vazio("Nenhuma linha de pesquisa cadastrada.")));
 
-  const container = el("div", {
-    class: "slide slide-pesquisas-3d",
-    style: "--linhas-count:" + linhas.length,
-  });
+  const container = el("div", { class: "slide slide-pesquisas-3d" });
 
-  const svg = el("svg", {
+  const svg = elSvg("svg", {
     class: "grafo-linhas-3d",
     viewBox: "0 0 1200 800",
     style: "width:100%;height:100%;position:relative;",
   });
 
+  /* Um único filtro de glow, compartilhado por todos os nós -- antes cada
+     nó apontava para "glow-linha-{idx}", mas só o filtro do idx 0 era de
+     fato criado; todo nó com idx >= 1 referenciava um id inexistente. */
+  const glowId = "glow-linha-pesquisa";
+  const defs = elSvg("defs");
+  const filtroGlow = elSvg("filter", { id: glowId, x: "-50%", y: "-50%", width: "200%", height: "200%" });
+  filtroGlow.appendChild(elSvg("feGaussianBlur", { "in": "SourceGraphic", stdDeviation: "4" }));
+  defs.appendChild(filtroGlow);
+  svg.appendChild(defs);
+
   const centerX = 600, centerY = 400;
-  const radius = 200;
+  /* O raio cresce com o número de linhas cadastradas -- fixo em 200px,
+     o espaçamento angular entre nós encolhia conforme mais linhas de
+     pesquisa eram criadas, até os rótulos se sobreporem. Limitado a
+     300 para não estourar o viewBox (o centro está a 400px da borda). */
+  const radius = Math.min(300, Math.max(160, 26 * linhas.length));
+  /* Fonte do rótulo também encolhe com muitos nós, para caber no espaço
+     angular menor entre eles. */
+  const fontLabel = linhas.length > 12 ? 9 : linhas.length > 8 ? 10 : 11;
 
   linhas.forEach((linha, idx) => {
     const angle = (idx / linhas.length) * Math.PI * 2;
@@ -47,10 +84,10 @@ function slidePesquisasLinhas3D() {
     const taxa_pub = linha.taxa_publicacao || 0;
 
     const nodeRadius = Math.max(20, Math.min(60, 20 + (n_artigos / 5)));
-    const strokeColor = taxa_pub > 0.8 ? "#10b981" : taxa_pub > 0.5 ? "#f59e0b" : "#ef4444";
+    const strokeColor = taxa_pub > 0.8 ? "var(--good)" : taxa_pub > 0.5 ? "var(--warning)" : "var(--critical)";
 
     /* Linha do centro até o nó (Bezier com animação) */
-    const line = el("path", {
+    const line = elSvg("path", {
       d: `M ${centerX} ${centerY} Q ${(centerX + x) / 2} ${(centerY + y) / 2} ${x} ${y}`,
       class: "conexao-linha-pesquisa",
       style: `--index:${idx};--total:${linhas.length};`,
@@ -63,18 +100,8 @@ function slidePesquisasLinhas3D() {
     });
     svg.appendChild(line);
 
-    /* Glow filter */
-    const glowId = `glow-linha-${idx}`;
-    if (idx === 0) {
-      const defs = el("defs");
-      const filter = el("filter", { id: glowId, x: "-50%", y: "-50%", width: "200%", height: "200%" });
-      filter.appendChild(el("feGaussianBlur", { "in": "SourceGraphic", stdDeviation: "4" }));
-      defs.appendChild(filter);
-      svg.insertBefore(defs, svg.firstChild);
-    }
-
     /* Nó central (círculo com glow) */
-    const circle = el("circle", {
+    const circle = elSvg("circle", {
       cx: x,
       cy: y,
       r: nodeRadius,
@@ -95,13 +122,13 @@ function slidePesquisasLinhas3D() {
     svg.appendChild(circle);
 
     /* Label do nó */
-    const label = el("text", {
+    const label = elSvg("text", {
       x: x,
       y: y + nodeRadius + 25,
       class: "label-linha-pesquisa",
       "text-anchor": "middle",
       fill: "currentColor",
-      "font-size": "11px",
+      "font-size": fontLabel + "px",
       "font-weight": "600",
       style: `--index:${idx};`,
     });
@@ -109,7 +136,7 @@ function slidePesquisasLinhas3D() {
     svg.appendChild(label);
 
     /* Badge com número de artigos */
-    const badge = el("text", {
+    const badge = elSvg("text", {
       x: x + nodeRadius + 5,
       y: y - nodeRadius - 5,
       class: "badge-artigos",
@@ -123,7 +150,7 @@ function slidePesquisasLinhas3D() {
   });
 
   /* Centro: nó principal girando */
-  const centerCircle = el("circle", {
+  const centerCircle = elSvg("circle", {
     cx: centerX,
     cy: centerY,
     r: "40",
@@ -131,16 +158,14 @@ function slidePesquisasLinhas3D() {
     fill: "url(#gradCentro)",
     "filter": "drop-shadow(0 0 12px currentColor)",
   });
-  const defs = svg.querySelector("defs") || el("defs");
-  if (!svg.contains(defs)) svg.insertBefore(defs, svg.firstChild);
-  const gradCentro = el("radialGradient", { id: "gradCentro" });
-  gradCentro.appendChild(el("stop", { offset: "0%", "stop-color": "var(--accent)" }));
-  gradCentro.appendChild(el("stop", { offset: "100%", "stop-color": "var(--accent-strong)" }));
+  const gradCentro = elSvg("radialGradient", { id: "gradCentro" });
+  gradCentro.appendChild(elSvg("stop", { offset: "0%", "stop-color": "var(--accent)" }));
+  gradCentro.appendChild(elSvg("stop", { offset: "100%", "stop-color": "var(--accent-strong)" }));
   defs.appendChild(gradCentro);
   svg.appendChild(centerCircle);
 
   /* Rótulo central */
-  const centrLabel = el("text", {
+  const centrLabel = elSvg("text", {
     x: centerX,
     y: centerY,
     class: "label-centro",
