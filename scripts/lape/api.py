@@ -2965,6 +2965,9 @@ class Handler(BaseHTTPRequestHandler):
         if "__CHARTS_JS__" in html:
             html = html.replace("__CHARTS_JS__",
                                 (TEMPLATES / "charts.js").read_text(encoding="utf-8"))
+        if "__CHARTS_ENHANCED_JS__" in html:
+            html = html.replace("__CHARTS_ENHANCED_JS__",
+                                (TEMPLATES / "charts-enhanced.js").read_text(encoding="utf-8"))
         if "__PANORAMA_JS__" in html:
             html = html.replace("__PANORAMA_JS__",
                                 (TEMPLATES / "panorama.js").read_text(encoding="utf-8"))

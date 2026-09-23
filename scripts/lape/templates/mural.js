@@ -1150,6 +1150,72 @@ function slideSazonalidade() {
   ]));
 }
 
+function slidePareto() {
+  const t = tv();
+  if (!t || !t.comparacoes) return escalonar(el("div", { class: "slide" }, vazio("Análise Pareto ainda não disponível.")));
+
+  const comp = t.comparacoes;
+  const dados = [
+    { nome: "Aceites", valor: comp.aceites.agora || 1 },
+    { nome: "Publicações", valor: comp.publicacoes.agora || 1 },
+  ];
+
+  const fig = ChartsEnhanced.pareto(dados);
+  const corpo = el("div", { class: "corpo" }, fig);
+
+  return escalonar(el("div", { class: "slide painel-duplo igual" }, [
+    quadro("Pareto: Impacto (80/20)", "subida", corpo),
+    quadro("Leitura", "subida", frases([
+      { icone: "subida", tom: "bom", forte: "Linha vermelha indica o ponto 80/20",
+        resto: "onde 80% do impacto vem de 20% das ações" },
+      { icone: "publicacao", tom: "neutro", forte: "Foque nos itens de maior valor",
+        resto: "para otimizar o tempo do laboratório" },
+    ])),
+  ]));
+}
+
+function slideSunburst() {
+  const t = tv();
+  if (!t || !t.mundo) return escalonar(el("div", { class: "slide" }, vazio("Sunburst ainda não disponível.")));
+
+  const mundo = t.mundo;
+  const top_paises = (mundo.paises || []).slice(0, 6).map(function (p) {
+    return { nome: p.pais, valor: parseInt(p.n) || 1 };
+  });
+
+  if (!top_paises.length) {
+    return escalonar(el("div", { class: "slide" }, vazio("Sem dados de países.")));
+  }
+
+  const fig = ChartsEnhanced.sunburst(top_paises, 150);
+  const corpo = el("div", { class: "corpo" }, fig);
+
+  return escalonar(el("div", { class: "slide painel-duplo igual" }, [
+    quadro("Sunburst: Colaboração internacional", "mapa", corpo),
+    quadro("Top 6", "mapa", frases(top_paises.slice(0, 6).map(function (p, i) {
+      return { icone: "mapa", tom: ["bom", "ambar", "neutro"][i % 3] || "neutro",
+        forte: (i + 1) + ". " + p.nome, resto: p.valor + " artigos" };
+    }))),
+  ]));
+}
+
+function slideTernario() {
+  const t = tv();
+  if (!t) return escalonar(el("div", { class: "slide" }, vazio("Triangulação ainda não disponível.")));
+
+  const dados = (window.triangulacao_data || []).slice(0, 10);
+  if (!dados.length) {
+    return escalonar(el("div", { class: "slide" }, vazio("Sem dados de triangulação (variáveis de pesquisa não configuradas).")));
+  }
+
+  const fig = ChartsEnhanced.ternario(dados);
+  const corpo = el("div", { class: "corpo" }, fig);
+
+  return escalonar(el("div", { class: "slide" }, [
+    quadro("Triangulação: Aplicação × Intervenção × Desfecho", "experimento", corpo, "análise de 3 dimensões"),
+  ]));
+}
+
 function slideAcervos() {
   const t = tv();
   if (!t) return escalonar(el("div", { class: "slide" }, vazio("Os acervos ainda não chegaram.")));
@@ -1241,6 +1307,12 @@ const SLIDES = [
     apresenta: "Aceites recentes, revistas em processo, e dias desde a última submissão." },
   { id: "sazonalidade", titulo: "Padrões anuais", icone: "calendario", montar: slideSazonalidade, tv: true,
     apresenta: "Sazonalidade detectada: meses de pico para publicações e aceites." },
+  { id: "pareto", titulo: "Análise Pareto", icone: "subida", montar: slidePareto, tv: true,
+    apresenta: "Regra 80/20: onde o maior impacto vem de menos esforço. Linha vermelha marca o ponto crítico." },
+  { id: "sunburst", titulo: "Colaboração global", icone: "mapa", montar: slideSunburst, tv: true,
+    apresenta: "Hierarquia radial mostrando os 6 países principais com maior número de artigos colaborativos." },
+  { id: "ternario", titulo: "Triangulação", icone: "experimento", montar: slideTernario, tv: true,
+    apresenta: "Aplicação × Intervenção × Desfecho: análise tridimensional dos estudos do laboratório." },
 ];
 
 /* As paletas de fundo, as mesmas do ao vivo. A escolha é lida de
