@@ -11,18 +11,22 @@ chamada só, o que as duas telas acrescentam ao que já mostravam:
 - os acervos abertos, com tamanho, segmentos e a última rodada;
 - a rotina automática: cada passo, quando rodou e quando volta;
 - as notícias: últimos publicados, últimos aceites, últimas submissões
-  e os próximos compromissos.
+  e os próximos compromissos;
+- as citações: dados de impacto sincronizados de OpenAlex, Scopus e WOS.
 
 Tudo é calculado do banco a cada pedido. Nada aqui é texto de modelo de
 linguagem: o que não pode ser refeito a partir dos dados não entra.
 """
 from __future__ import annotations
 
+import logging
 from datetime import date, datetime, timedelta
 from typing import Any
 
 from . import aovivo, sinais, cache
 from .db import Database
+
+logger = logging.getLogger(__name__)
 
 NOTICIAS = 6          # itens por grupo nas notícias
 PAISES_NA_TV = 10     # países no ranking da parede
@@ -324,6 +328,17 @@ def _pessoas_com_ponto(db: Database, agora: datetime | None = None) -> list[dict
     return saida
 
 
+def _citacoes_bases_dados(db: Database) -> dict[str, Any]:
+    """Sincroniza e retorna dados de citações de bases externas (OpenAlex, Scopus, WOS)."""
+    try:
+        from . import bases_dados
+        sync = bases_dados.SincronizadorCitacoes(db)
+        return cache.computar("dashboard_citacoes_tv", lambda: sync.dashboard_citacoes(), ttl=604800)
+    except Exception as e:
+        logger.exception(f"Erro ao sincronizar citações: {e}")
+        return {"linhas": [], "resumo": {"total_artigos": 0, "total_citacoes": 0, "media_citacoes": 0}}
+
+
 def para_a_tv(db: Database, hoje: date | None = None) -> dict[str, Any]:
     """Tudo o que as telas da parede acrescentam, numa chamada só, com cache."""
     from . import rotina
@@ -358,6 +373,7 @@ def para_a_tv(db: Database, hoje: date | None = None) -> dict[str, Any]:
             "health": _health_rotina(db),
             "linhas": cache.computar("linhas_pesquisa", lambda: _linhas_pesquisa(db), ttl=300),
             "pessoas": cache.computar("pessoas_com_ponto", lambda: _pessoas_com_ponto(db), ttl=120),
+            "citacoes": _citacoes_bases_dados(db),
             "gerado_em": datetime.now().isoformat(timespec="seconds"),
         }
 

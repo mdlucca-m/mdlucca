@@ -2983,6 +2983,12 @@ class Handler(BaseHTTPRequestHandler):
         if "__SLIDES_AVANCADOS_CSS__" in html:
             html = html.replace("__SLIDES_AVANCADOS_CSS__",
                                 (TEMPLATES / "slides-avancados-3d.css").read_text(encoding="utf-8"))
+        if "__AOVIVO_BASES_JS__" in html:
+            html = html.replace("__AOVIVO_BASES_JS__",
+                                (TEMPLATES / "aovivo-bases.js").read_text(encoding="utf-8"))
+        if "__AOVIVO_BASES_CSS__" in html:
+            html = html.replace("__AOVIVO_BASES_CSS__",
+                                (TEMPLATES / "aovivo-bases.css").read_text(encoding="utf-8"))
         html = html.replace("</body>", _marca_de_versao() + "\n</body>", 1)
         self._send(200, html, "text/html")
 
