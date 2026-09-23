@@ -158,7 +158,7 @@ def _publicados(db: Database, ctx: dict[str, Any]) -> dict[str, Any]:
     artigos = db.dicts(
         "SELECT internal_code, title, journal FROM articles"
         " WHERE status = 'publicado' AND year_published = ?"
-        " ORDER BY title", (ano,))
+        " ORDER BY COALESCE(published_on, '9999-12-31') DESC, title", (ano,))
     if not artigos:
         resposta = f"Nenhum artigo publicado registrado em {ano}."
     else:
@@ -180,7 +180,7 @@ def _por_situacao(db: Database, ctx: dict[str, Any]) -> dict[str, Any]:
         return _acervo(db, ctx)
     artigos = db.dicts(
         "SELECT internal_code, title, journal, lead_name FROM articles"
-        " WHERE status = ? ORDER BY title", (situacao,))
+        " WHERE status = ? ORDER BY COALESCE(published_on, accepted_on, '9999-12-31') DESC, title", (situacao,))
     rotulo = SITUACAO_ROTULO.get(situacao, situacao)
     return {
         "resposta": (f"{len(artigos)} artigo(s) {rotulo}."

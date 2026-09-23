@@ -1,0 +1,293 @@
+/* Estilos para bases de dados de citações em tempo real.
+
+   Usa as mesmas variáveis do tema (theme.css) em vez de cor fixa: o mural
+   troca de paleta e de tema claro/escuro em tempo real, e um branco fixo
+   aqui viraria um retângulo aceso no meio da parede escura. */
+
+.bases-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0.5rem 0.25rem;
+}
+
+.bases-timestamp {
+  display: inline-block;
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Resumo de métricas */
+.bases-resumo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.metric-card {
+  padding: 1.25rem 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  border-left: 4px solid var(--accent-strong);
+  box-shadow: var(--glow);
+}
+
+.metric-card.metric-total { border-left-color: var(--series-3); }
+.metric-card.metric-media { border-left-color: var(--series-4); }
+.metric-card.metric-fonte { border-left-color: var(--series-7); }
+
+.metric-label {
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
+}
+
+.metric-value {
+  font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 0.4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-meta {
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+.metric-fonte-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.fonte-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  background: var(--accent-wash);
+  color: var(--accent);
+  border: 1px solid var(--border);
+}
+
+.fonte-badge.openalex { color: var(--series-3); }
+.fonte-badge.scopus   { color: var(--series-1); }
+.fonte-badge.wos      { color: var(--series-4); }
+
+/* Grid de linhas de pesquisa */
+.bases-linhas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.1rem;
+}
+
+.linha-card {
+  padding: 1.1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  border-top: 3px solid var(--accent-strong);
+}
+
+.linha-card.success { border-top-color: var(--series-3); }
+.linha-card.warning  { border-top-color: var(--series-4); }
+.linha-card.info     { border-top-color: var(--series-1); }
+
+.linha-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  gap: 0.75rem;
+}
+
+.linha-header h3 {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+  flex: 1;
+}
+
+.linha-cobertura {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  background: var(--surface-raised);
+  color: var(--ink-2);
+  border: 1px solid var(--border);
+  border-radius: 2rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.linha-metricas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
+}
+
+.metrica-pequena {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.6rem;
+  background: var(--surface-raised);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.metrica-pequena .label {
+  font-size: 0.6rem;
+  color: var(--ink-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.metrica-pequena .valor {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.progresso-bar {
+  height: 6px;
+  background: var(--surface-raised);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progresso-fill {
+  height: 100%;
+  background: var(--accent-strong);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* Top Artigos */
+.top-artigos {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+}
+
+.top-artigos h3 {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 1rem 0;
+}
+
+.artigos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.artigo-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.75rem;
+  background: var(--surface-raised);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid transparent;
+}
+
+.artigo-item.rank-1 { border-left-color: var(--series-4); }
+.artigo-item.rank-2 { border-left-color: var(--ink-muted); }
+.artigo-item.rank-3 { border-left-color: var(--series-2); }
+
+.rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.9rem;
+  height: 1.9rem;
+  background: var(--accent-solid);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.artigo-item.rank-1 .rank { background: var(--series-4); }
+
+.artigo-info { flex: 1; }
+
+.artigo-titulo {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.4;
+  margin-bottom: 0.4rem;
+}
+
+.artigo-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+}
+
+.artigo-meta span {
+  background: var(--surface-hover);
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.artigo-citacoes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  height: 2.75rem;
+  background: var(--accent-solid);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.vazio {
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+  padding: 0.5rem 0;
+}
+
+/* 4K: mais respiro, tipografia maior — a parede é lida de longe */
+@media (min-width: 2400px) {
+  .bases-resumo { gap: 2rem; }
+  .metric-card { padding: 1.75rem 2rem; }
+  .metric-value { font-size: clamp(2.2rem, 2.4vw, 3.2rem); }
+  .bases-linhas { gap: 1.5rem; }
+  .linha-header h3 { font-size: 1.3rem; }
+}
+
+@media (max-width: 768px) {
+  .bases-resumo { grid-template-columns: 1fr; }
+  .bases-linhas { grid-template-columns: 1fr; }
+  .linha-metricas { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progresso-fill { transition: none; }
+}

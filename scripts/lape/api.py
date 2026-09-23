@@ -2414,10 +2414,16 @@ def route_aovivo(ctx: "Context") -> Any:
 
 
 def route_tv(ctx: "Context") -> Any:
-    """O que a parede acrescenta ao painel: temas, ritmo, mundo, acervos, rotina, noticias."""
+    """O que a parede acrescenta ao painel: temas, ritmo, mundo, acervos, rotina, noticias.
+
+    Sem checagem de login aqui dentro de proposito: o roteador ja decide
+    (ROUTES, minimo "leitura") e ja libera com LAPE_PUBLIC_DASHBOARD=1 --
+    exatamente o caso do mural ligado sozinho numa TV, sem ninguem para
+    logar. Uma segunda checagem aqui, cega a essa liberacao, derrubava a
+    TV de volta pra tela de entrar mesmo com o painel publico ligado.
+    """
     from . import tv
 
-    auth.require(ctx.user, "leitura")
     return tv.para_a_tv(ctx.db)
 
 
@@ -2965,6 +2971,9 @@ class Handler(BaseHTTPRequestHandler):
         if "__CHARTS_JS__" in html:
             html = html.replace("__CHARTS_JS__",
                                 (TEMPLATES / "charts.js").read_text(encoding="utf-8"))
+        if "__CHARTS_ENHANCED_JS__" in html:
+            html = html.replace("__CHARTS_ENHANCED_JS__",
+                                (TEMPLATES / "charts-enhanced.js").read_text(encoding="utf-8"))
         if "__PANORAMA_JS__" in html:
             html = html.replace("__PANORAMA_JS__",
                                 (TEMPLATES / "panorama.js").read_text(encoding="utf-8"))
@@ -2974,6 +2983,18 @@ class Handler(BaseHTTPRequestHandler):
         if "__TRIAGEM_JS__" in html:
             html = html.replace("__TRIAGEM_JS__",
                                 (TEMPLATES / "triagem.js").read_text(encoding="utf-8"))
+        if "__SLIDES_AVANCADOS_JS__" in html:
+            html = html.replace("__SLIDES_AVANCADOS_JS__",
+                                (TEMPLATES / "slides-avancados-3d.js").read_text(encoding="utf-8"))
+        if "__SLIDES_AVANCADOS_CSS__" in html:
+            html = html.replace("__SLIDES_AVANCADOS_CSS__",
+                                (TEMPLATES / "slides-avancados-3d.css").read_text(encoding="utf-8"))
+        if "__AOVIVO_BASES_JS__" in html:
+            html = html.replace("__AOVIVO_BASES_JS__",
+                                (TEMPLATES / "aovivo-bases.js").read_text(encoding="utf-8"))
+        if "__AOVIVO_BASES_CSS__" in html:
+            html = html.replace("__AOVIVO_BASES_CSS__",
+                                (TEMPLATES / "aovivo-bases.css").read_text(encoding="utf-8"))
         html = html.replace("</body>", _marca_de_versao() + "\n</body>", 1)
         self._send(200, html, "text/html")
 

@@ -281,10 +281,14 @@ def create_account(db: Database, full_name: str, login: str, password: str | Non
     # aparece primeiro como autor de um artigo nasce coautor, e sem esta
     # linha continuaria coautor depois de entrar no sistema com senha
     # propria -- fora da contagem da equipe e fora do organograma.
+    # MAS: respeitar a classificacao explicita via vinculo.marcar().
     if not extra.get("is_external"):
-        db.execute("UPDATE members SET is_external = 0 WHERE id = ?", (member_id,))
-        db.execute("UPDATE article_authors SET is_external = 0 WHERE member_id = ?",
-                   (member_id,))
+        current_is_external = db.scalar(
+            "SELECT is_external FROM members WHERE id = ?", (member_id,))
+        if current_is_external != 1:
+            db.execute("UPDATE members SET is_external = 0 WHERE id = ?", (member_id,))
+            db.execute("UPDATE article_authors SET is_external = 0 WHERE member_id = ?",
+                       (member_id,))
     guardado = db.scalar("SELECT full_name FROM members WHERE id = ?", (member_id,))
     if _nome_mais_completo(guardado, full_name):
         db.execute("UPDATE members SET full_name = ?, updated_at = datetime('now')"

@@ -18,9 +18,14 @@ JS_TEMPLATE = TEMPLATE_DIR / "dashboard.js"
 MURAL_HTML = TEMPLATE_DIR / "mural.html"
 MURAL_JS = TEMPLATE_DIR / "mural.js"
 CHARTS_TEMPLATE = TEMPLATE_DIR / "charts.js"
+CHARTS_ENHANCED_TEMPLATE = TEMPLATE_DIR / "charts-enhanced.js"
 ICONS_TEMPLATE = TEMPLATE_DIR / "icons.js"
 BANDEIRAS_TEMPLATE = TEMPLATE_DIR / "bandeiras.js"
 THEME_TEMPLATE = TEMPLATE_DIR / "theme.css"
+SLIDES_AVANCADOS_CSS = TEMPLATE_DIR / "slides-avancados-3d.css"
+SLIDES_AVANCADOS_JS = TEMPLATE_DIR / "slides-avancados-3d.js"
+AOVIVO_BASES_CSS = TEMPLATE_DIR / "aovivo-bases.css"
+AOVIVO_BASES_JS = TEMPLATE_DIR / "aovivo-bases.js"
 
 
 def load_basemap(geo_dir: Path = config.GEO_DIR) -> list[list[list[float]]]:
@@ -103,7 +108,27 @@ def render_mural(payload: dict[str, Any]) -> str:
     html = html.replace("__BANDEIRAS_JS__", BANDEIRAS_TEMPLATE.read_text(encoding="utf-8"))
     html = html.replace("__LOGO__", marca.marcador())
     html = html.replace("__CHARTS_JS__", CHARTS_TEMPLATE.read_text(encoding="utf-8"))
+    if "__CHARTS_ENHANCED_JS__" in html:
+        html = html.replace("__CHARTS_ENHANCED_JS__",
+                            CHARTS_ENHANCED_TEMPLATE.read_text(encoding="utf-8"))
     html = html.replace("__SCRIPT__", MURAL_JS.read_text(encoding="utf-8"))
+
+    # Injetar slides avançados 3D
+    if "__SLIDES_AVANCADOS_JS__" in html:
+        html = html.replace("__SLIDES_AVANCADOS_JS__",
+                            SLIDES_AVANCADOS_JS.read_text(encoding="utf-8"))
+    if "__SLIDES_AVANCADOS_CSS__" in html:
+        html = html.replace("__SLIDES_AVANCADOS_CSS__",
+                            SLIDES_AVANCADOS_CSS.read_text(encoding="utf-8"))
+
+    # Injetar componentes de bases de dados de citações
+    if "__AOVIVO_BASES_JS__" in html:
+        html = html.replace("__AOVIVO_BASES_JS__",
+                            AOVIVO_BASES_JS.read_text(encoding="utf-8"))
+    if "__AOVIVO_BASES_CSS__" in html:
+        html = html.replace("__AOVIVO_BASES_CSS__",
+                            AOVIVO_BASES_CSS.read_text(encoding="utf-8"))
+
     return html.replace("__DATA__", to_json(payload))
 
 

@@ -139,6 +139,26 @@ body { background: var(--surface-sunken); }
   grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); }
 .painel-duplo.igual { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .painel-duplo > .quadro { min-height: 0; }
+
+/* Quem bateu ponto agora -- flex-none: nunca cresce à custa do gráfico e
+   da rosca abaixo, e some por completo (ver faixaPresenca() no mural.js)
+   quando não há ninguém, em vez de mostrar "0 no laboratório" o dia todo. */
+.faixa-presenca { flex: none; display: flex; align-items: center; gap: clamp(10px, 1.4vw, 20px);
+  flex-wrap: wrap; padding: clamp(8px, 1vh, 12px) clamp(12px, 1.1vw, 18px);
+  border-radius: var(--radius); border: 1px solid color-mix(in srgb, var(--bom) 35%, var(--border));
+  background: color-mix(in srgb, var(--bom) 7%, var(--surface)); }
+.faixa-presenca-titulo { display: flex; align-items: center; gap: 8px;
+  font-size: clamp(11px, .9vw, 13px); font-weight: 700; color: var(--bom); white-space: nowrap; }
+.ponto-vivo { width: 9px; height: 9px; border-radius: 50%; background: var(--bom);
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--bom) 70%, transparent);
+  animation: pontoVivoPulso 1.6s ease-in-out infinite; }
+@keyframes pontoVivoPulso { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+.faixa-presenca-lista { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip-presenca { display: inline-flex; align-items: center; gap: 6px;
+  font-size: clamp(10.5px, .85vw, 12.5px); color: var(--ink-2);
+  background: var(--surface-raised); border: 1px solid var(--border);
+  border-radius: 999px; padding: 4px 10px 4px 8px; }
+.chip-ponto { width: 6px; height: 6px; border-radius: 50%; background: var(--bom); flex: none; }
 .quadro { position: relative; border-radius: var(--radius); border: 1px solid var(--border);
   background: var(--grad-card), var(--surface); box-shadow: var(--shadow);
   padding: clamp(12px, 1.4vh, 20px) clamp(14px, 1.2vw, 22px); display: flex;
@@ -193,32 +213,6 @@ body { background: var(--surface-sunken); }
   letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .pauta .quando small { display: block; font-size: clamp(9.5px, .68vw, calc(11.5px * var(--zoom, 1)));
   text-transform: uppercase; letter-spacing: .07em; color: var(--ink-2); }
-/* A faixa de cotacao, logo abaixo do topo: sigla, valor e variacao
-   correndo, no formato de painel de bolsa.
-
-   Numero em fonte tabular para a virgula nao dancar enquanto passa. A cor
-   da variacao vem do JavaScript por classe -- e "neutro" existe porque
-   subir nao e bom para todo indicador, e pintar de verde faria a tela
-   julgar por conta propria (ver `cotacoes()` no mural.js). */
-.cotacao { overflow: hidden; position: relative; margin: 0 clamp(18px, 2.4vw, 40px);
-  height: calc(30px * var(--zoom, 1)); border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent); }
-.cotacao .trilha { position: absolute; display: flex; gap: clamp(22px, 2vw, 40px);
-  white-space: nowrap; align-items: center; height: 100%;
-  animation: corre 58s linear infinite; }
-.cotacao .cot { display: inline-flex; align-items: baseline; gap: 7px;
-  font-size: clamp(11.5px, .82vw, calc(14px * var(--zoom, 1)));
-  font-variant-numeric: tabular-nums; }
-.cotacao .cot .sigla { font-style: normal; font-weight: 700; letter-spacing: .06em;
-  color: var(--ink-2); font-size: .86em; }
-.cotacao .cot b { color: var(--ink); font-weight: 700; }
-.cotacao .cot .var { font-weight: 650; }
-.cotacao .cot .var.bom { color: var(--good); }
-.cotacao .cot .var.ruim { color: var(--critical); }
-.cotacao .cot .var.neutro { color: var(--ink-2); }
-.cotacao .cot .var.sem { color: var(--ink-muted); }
-
 /* A hora, na mesma etiqueta do dia: "quando" e uma informacao so, e
    partir dia/mes de um lado e hora do outro obriga quem le a juntar os
    dois com o olho. Em numero tabular, sem caixa alta -- "14:00" nao e
@@ -357,17 +351,6 @@ body { background: var(--surface-sunken); }
   height: calc(9px * var(--zoom, 1)); padding: 0; border-radius: 50%; border: none;
   background: color-mix(in srgb, var(--ink) 22%, transparent); box-shadow: none; }
 .pontos button.on { width: calc(26px * var(--zoom, 1)); border-radius: 999px; background: var(--accent-strong); }
-.fita { flex: 1; min-width: 0; overflow: hidden; position: relative;
-  /* altura acompanha o texto: em 26px fixos a faixa cortava a linha
-     ampliada no 4K, e a noticia aparecia sem a metade de baixo. */
-  height: calc(26px * var(--zoom, 1));
-  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
-.fita .trem { position: absolute; display: flex; gap: 34px; white-space: nowrap;
-  align-items: center; animation: corre 44s linear infinite; }
-.fita .trem span { display: inline-flex; align-items: center; gap: 8px;
-  font-size: clamp(11.5px, .84vw, calc(14px * var(--zoom, 1))); color: var(--ink-2); }
-.fita .trem span b { color: var(--ink); font-weight: 650; }
-@keyframes corre { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .controles { display: flex; gap: 6px; opacity: 0; transition: opacity .25s; }
 .mural.mexeu .controles { opacity: 1; }
 .controles button { width: 38px; height: 38px; padding: 0; display: grid; place-items: center;
@@ -389,7 +372,7 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora, .fita .trem, .cotacao .trilha { animation: none; }
+  .aurora { animation: none; }
   .trilho i { width: var(--pct, 0%); }
   svg.plot.revela, svg.plot.surge { animation: none; clip-path: none; }
 }
@@ -446,8 +429,119 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
 @media (max-width: 780px) {
   .painel-duplo, .painel-duplo.igual { grid-template-columns: minmax(0, 1fr); }
   .mtopo .titulo h1 { font-size: 17px; }
-  .fita, .cotacao { display: none; }
 }
+
+/* Acessibilidade: modo alto contraste */
+@media (prefers-contrast: more) {
+  :root { --accent-strong: #00d9ff; --border: #888; }
+  .tile, .quadro { border-color: var(--border) !important; border-width: 2px; }
+  .tile .n { font-weight: 900; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000; }
+  .seguir { border: 2px solid currentColor; }
+  .pontos button { border: 2px solid var(--border); }
+  .pontos button.on { border-color: var(--accent); background: var(--accent); }
+}
+
+/* Modo de visão reduzida de movimento */
+@media (prefers-reduced-motion: reduce) {
+  .tile, .quadro, .progresso, .triagem path { animation: none !important; transition: none !important; }
+  .saindo { animation: none !important; opacity: 0; }
+}
+
+/* ==========================================================================
+   Novas Visualizações Analíticas
+   ========================================================================== */
+
+/* Árvore de Decisões */
+.arvore-decisoes { display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: clamp(6px, 1vh, 12px) clamp(10px, 1.2vw, 18px);
+  flex: 1; min-height: 0; align-content: center; }
+.galho { display: flex; align-items: stretch; min-height: 0; }
+.nodo { flex: 1; min-height: 0; display: flex; align-items: center; gap: clamp(10px, 1vw, 16px);
+  padding: clamp(8px, 1.1vh, 14px) clamp(10px, 1vw, 16px);
+  border-radius: var(--radius); border: 2px solid var(--border);
+  background: var(--grad-card), var(--surface);
+  position: relative; overflow: hidden;
+  border-left-color: var(--bom);
+  border-left-width: 5px;
+}
+@media (max-width: 900px) {
+  .arvore-decisoes { grid-template-columns: 1fr; }
+}
+.nodo[data-status="ambar"] { border-left-color: var(--ambar); }
+.nodo[data-status="alerta"] { border-left-color: var(--alerta); }
+.nodo .dados { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.nodo .dados strong { font-size: clamp(12px, 1vw, calc(16px * var(--zoom, 1)));
+  font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nodo .dados span { font-size: clamp(11px, .85vw, calc(13px * var(--zoom, 1)));
+  color: var(--ink-muted); }
+
+/* Sankey / Fluxo */
+.sankey-fluxo { display: flex; align-items: stretch; gap: clamp(8px, 2vw, 20px);
+  flex: 1; min-height: 0; justify-content: space-around; }
+.fase { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.caixa { padding: clamp(12px, 1.5vh, 20px) clamp(14px, 1.2vw, 20px);
+  border-radius: var(--radius); border: 2px solid var(--accent-strong);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent) 15%, var(--surface)),
+    color-mix(in srgb, var(--accent) 8%, var(--surface)));
+  text-align: center; min-height: 0; display: flex; flex-direction: column;
+  justify-content: center; gap: 6px; flex: 1; }
+.caixa .titulo { font-size: clamp(11px, .9vw, calc(14px * var(--zoom, 1)));
+  font-weight: 600; color: var(--ink-2); }
+.caixa .numero { font-size: clamp(20px, 2.2vw, calc(36px * var(--zoom, 1)));
+  font-weight: 700; color: var(--accent-strong); font-variant-numeric: tabular-nums; }
+
+/* Radar Modular */
+.radar-modular { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: clamp(10px, 1.4vw, 18px); flex: 1; min-height: 0; }
+.modulo { padding: clamp(14px, 1.6vh, 22px) clamp(12px, 1.2vw, 18px);
+  border-radius: var(--radius); border: 1px solid var(--border);
+  background: var(--grad-card), var(--surface);
+  text-align: center; display: flex; flex-direction: column;
+  gap: clamp(8px, 1.2vh, 14px); min-height: 0; justify-content: center; }
+.modulo[data-tipo="alerta"] { border-color: color-mix(in srgb, var(--alerta) 50%, transparent);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--alerta) 12%, var(--surface)),
+    color-mix(in srgb, var(--alerta) 6%, var(--surface))); }
+.modulo[data-tipo="team"] { border-color: color-mix(in srgb, var(--series-5) 50%, transparent);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--series-5) 12%, var(--surface)),
+    color-mix(in srgb, var(--series-5) 6%, var(--surface))); }
+.modulo .valor { font-size: clamp(32px, 4vw, calc(56px * var(--zoom, 1)));
+  font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.modulo .descricao { font-size: clamp(10px, .8vw, calc(12px * var(--zoom, 1)));
+  color: var(--ink-2); line-height: 1.3; }
+
+/* Heatmap Timeline */
+.heatmap-timeline { flex: 1; min-height: 0; display: flex; flex-direction: column;
+  justify-content: center; gap: clamp(10px, 1.4vh, 18px); }
+.linha-temporal { display: grid; grid-template-columns: repeat(12, 1fr);
+  gap: clamp(4px, .6vw, 8px); padding: clamp(10px, 1.2vh, 16px);
+  border-radius: var(--radius); background: color-mix(in srgb, var(--surface) 50%, transparent);
+}
+.celula { padding: clamp(10px, 1.2vh, 16px) clamp(6px, .7vw, 10px);
+  border-radius: var(--radius-sm); text-align: center;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--series-4) calc(var(--intensidade) * 0.4), var(--surface));
+  transition: all .3s ease; }
+.celula[data-status="quente"] { background: linear-gradient(135deg,
+  color-mix(in srgb, var(--bom) 60%, var(--surface)),
+  color-mix(in srgb, var(--bom) 30%, var(--surface))); }
+.celula[data-status="morno"] { background: linear-gradient(135deg,
+  color-mix(in srgb, var(--ambar) 50%, var(--surface)),
+  color-mix(in srgb, var(--ambar) 20%, var(--surface))); }
+.celula[data-status="frio"] { background: color-mix(in srgb, var(--surface-raised) 80%, transparent); }
+.celula .mes { font-size: clamp(10px, .78vw, calc(12px * var(--zoom, 1)));
+  font-weight: 600; text-transform: uppercase; color: var(--ink-2); }
+.celula .num { font-size: clamp(16px, 1.8vw, calc(24px * var(--zoom, 1)));
+  font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
+
+/* Slides avançados 3D com gráficos e animações */
+__SLIDES_AVANCADOS_CSS__
+
+/* Bases de dados de citações em tempo real */
+__AOVIVO_BASES_CSS__
+
 </style>
 </head>
 <body>
@@ -478,7 +572,6 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
         <div class="relogio"><b id="hora">--:--</b><small id="data"></small></div>
       </div>
     </header>
-    <div class="cotacao" aria-hidden="true" hidden><div class="trilha" id="cotacao"></div></div>
   </div>
 
   <div class="palco" id="palco" aria-live="polite"></div>
@@ -486,7 +579,6 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
   <footer class="mrodape">
     <div class="pontos" id="pontos" role="tablist" aria-label="Telas do mural"></div>
     <div class="paletas no-print" id="paletas" role="group" aria-label="Paleta de fundo"></div>
-    <div class="fita" aria-hidden="true"><div class="trem" id="fita"></div></div>
     <div class="controles no-print" id="controles"></div>
   </footer>
 </div>
@@ -497,7 +589,16 @@ __ICONS_JS__
 __BANDEIRAS_JS__
 </script>
 <script>
+__CHARTS_ENHANCED_JS__
+</script>
+<script>
 __CHARTS_JS__
+</script>
+<script>
+__SLIDES_AVANCADOS_JS__
+</script>
+<script>
+__AOVIVO_BASES_JS__
 </script>
 <script>
 __SCRIPT__

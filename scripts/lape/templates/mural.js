@@ -410,14 +410,41 @@ function slideAgora() {
     ? C.donut({ items: situacao, unit: "artigos", caption: "situação" })
     : vazio("Sem artigos cadastrados.");
 
-  return escalonar(el("div", { class: "slide" }, [
-    kpis,
-    el("div", { class: "painel-duplo" }, [
-      quadro("Publicações por ano", "subida", grafico,
-        recentes.length ? recentes[0].year + "–" + recentes[recentes.length - 1].year : ""),
-      quadro("Situação da produção", "processo", rosca, fmt(arts.length) + " artigos"),
-    ]),
+  const corpo = [kpis];
+  const presenca = faixaPresenca();
+  if (presenca) corpo.push(presenca);
+  corpo.push(el("div", { class: "painel-duplo" }, [
+    quadro("Publicações por ano", "subida", grafico,
+      recentes.length ? recentes[0].year + "–" + recentes[recentes.length - 1].year : ""),
+    quadro("Situação da produção", "processo", rosca, fmt(arts.length) + " artigos"),
   ]));
+
+  return escalonar(el("div", { class: "slide" }, corpo));
+}
+
+/* Quem bateu ponto e ainda não bateu saída -- o mesmo dado que a tela de
+   ponto do integrante usa. Sem gente presente, a faixa nem aparece: um
+   quadro "0 no laboratório" o dia inteiro vira ruído, não informação. */
+function faixaPresenca() {
+  const t = tv();
+  const presentes = ((t && t.pessoas) || []).filter(function (p) { return p.ativo_agora; });
+  if (!presentes.length) return null;
+
+  return el("div", { class: "faixa-presenca" }, [
+    el("div", { class: "faixa-presenca-titulo" }, [
+      el("span", { class: "ponto-vivo" }),
+      el("span", { text: presentes.length + " no LAPE agora" }),
+    ]),
+    el("div", { class: "faixa-presenca-lista" }, presentes.map(function (p) {
+      const desde = p.ha_horas !== null && p.ha_horas !== undefined
+        ? " · há " + porHoras(p.ha_horas) : "";
+      return el("span", { class: "chip-presenca",
+        title: (p.atividade || p.projeto || p.artigo || "presente") + desde }, [
+        el("span", { class: "chip-ponto" }),
+        el("span", { text: p.nome }),
+      ]);
+    })),
+  ]);
 }
 
 function slidePrazos() {
@@ -1039,6 +1066,335 @@ function slideMundo() {
 }
 
 const ROTULO_DO_PASSO = { producao: "Produção nas bases", citacoes: "Citações", acervos: "Acervos" };
+
+function slideComparacoes() {
+  const t = tv();
+  if (!t || !t.comparacoes) return escalonar(el("div", { class: "slide" }, vazio("Comparações ainda não calculadas.")));
+  const comp = t.comparacoes;
+  const mes_atual = ["—", "jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"][comp.mes_atual] || "—";
+
+  function deltaStatus(n) {
+    if (n === 0) return "neutro";
+    if (n > 0) return "bom";
+    return "alerta";
+  }
+
+  const linha = el("div", { class: "linha-kpi" }, [
+    tile({ nome: "Publicações " + mes_atual, valor: comp.publicacoes.agora, icone: "publicacao", serie: 2,
+      pastilha: deltaStatus(comp.publicacoes.delta), pe: "mês atual" }),
+    tile({ nome: "Δ vs. mês anterior", valor: (comp.publicacoes.delta >= 0 ? "+" : "") + comp.publicacoes.delta,
+      icone: comp.publicacoes.delta > 0 ? "subida" : "descida", serie: 3,
+      pastilha: deltaStatus(comp.publicacoes.delta), pe: "variação percentual" }),
+    tile({ nome: "Aceites " + mes_atual, valor: comp.aceites.agora, icone: "aceito", serie: 4,
+      pastilha: deltaStatus(comp.aceites.delta), pe: "manuscritos aceitos" }),
+    tile({ nome: "Taxa de aceite anual", valor: comp.taxa_aceite_anual + "%", icone: "porcentagem", serie: 7,
+      pastilha: comp.taxa_aceite_anual > 50 ? "bom" : "ambar", pe: "aprovação total do ano" }),
+  ]);
+
+  const fatos = [
+    { icone: "publicacao", tom: "bom", forte: "Publicações em " + mes_atual + ":",
+      resto: comp.publicacoes.agora + (comp.publicacoes.delta !== 0 ? " (" + (comp.publicacoes.delta > 0 ? "+" : "") + comp.publicacoes.delta + ")" : "") },
+    { icone: "aceito", tom: "bom", forte: "Aceites em " + mes_atual + ":",
+      resto: comp.aceites.agora + (comp.aceites.delta !== 0 ? " (" + (comp.aceites.delta > 0 ? "+" : "") + comp.aceites.delta + ")" : "") },
+    { icone: "porcentagem", tom: "neutro", forte: "Taxa de aceite anual:",
+      resto: comp.taxa_aceite_anual + "% · " + (comp.taxa_aceite_anual > 50 ? "acima da meta" : "abaixo da meta") },
+  ];
+
+  return escalonar(el("div", { class: "slide" }, [
+    linha,
+    quadro("Métricas do mês", "subida", frases(fatos), "comparação com período anterior"),
+  ]));
+}
+
+function slideAlertas() {
+  const t = tv();
+  if (!t || !t.alertas) return escalonar(el("div", { class: "slide" }, vazio("Alertas ainda não calculados.")));
+  const ale = t.alertas;
+
+  const linha = el("div", { class: "linha-kpi" }, [
+    tile({ nome: "Aceites últimos 7d", valor: ale.aceites_ultimos_7d, icone: "aceito", serie: 2, pastilha: "bom",
+      pe: "manuscritos aceitos recentemente" }),
+    tile({ nome: "Publicações recentes", valor: ale.pubs_recentes, icone: "publicacao", serie: 3, pastilha: "bom",
+      pe: "saídos este ano" }),
+    tile({ nome: "Revistas em processo", valor: ale.revistas_em_processo.length, icone: "revista", serie: 4, pastilha: "ambar",
+      pe: "periódicos com múltiplos artigos" }),
+    tile({ nome: "Dias sem submissão", valor: ale.dias_sem_submissao !== null ? ale.dias_sem_submissao : "—",
+      icone: "relogio", serie: 7, pastilha: ale.dias_sem_submissao && ale.dias_sem_submissao > 7 ? "alerta" : "neutro",
+      pe: "última tentativa de publicação" }),
+  ]);
+
+  const fatos = [];
+  if (ale.aceites_ultimos_7d > 0) {
+    fatos.push({ icone: "aceito", tom: "bom", forte: ale.aceites_ultimos_7d + " aceite" + (ale.aceites_ultimos_7d > 1 ? "s" : "") + " nos últimos 7 dias",
+      resto: "Bom momento! Já foram para o prelo." });
+  }
+  if (ale.revistas_em_processo.length > 0) {
+    fatos.push({ icone: "revista", tom: "neutro", forte: "Revistas em processo:",
+      resto: ale.revistas_em_processo.slice(0, 3).join(", ") + (ale.revistas_em_processo.length > 3 ? " e mais" : "") });
+  }
+  if (ale.dias_sem_submissao && ale.dias_sem_submissao > 14) {
+    fatos.push({ icone: "alerta", tom: "alerta", forte: "Sem submissões há " + ale.dias_sem_submissao + " dias",
+      resto: "Considerar novos artigos para revisão e envio." });
+  }
+
+  return escalonar(el("div", { class: "slide" }, [
+    linha,
+    quadro("Eventos recentes", "alerta", fatos.length ? frases(fatos) : vazio("Nenhum alerta urgente."), "monitoramento contínuo"),
+  ]));
+}
+
+function slideSazonalidade() {
+  const t = tv();
+  if (!t || !t.sazonalidade) return escalonar(el("div", { class: "slide" }, vazio("Sazonalidade ainda não calculada.")));
+  const saz = t.sazonalidade;
+
+  const linha = el("div", { class: "linha-kpi" }, [
+    tile({ nome: "Mês de pico (pub)", valor: saz.picos_publicacao[0] ? saz.picos_publicacao[0].mes : "—",
+      icone: "calendario", serie: 2, pastilha: "bom", pe: "mais publicações" }),
+    tile({ nome: "N publicações", valor: saz.picos_publicacao[0] ? saz.picos_publicacao[0].n : 0,
+      icone: "publicacao", serie: 3, pastilha: "bom", pe: "no melhor mês" }),
+    tile({ nome: "Mês de pico (aceite)", valor: saz.picos_aceite[0] ? saz.picos_aceite[0].mes : "—",
+      icone: "aceito", serie: 4, pastilha: "ambar", pe: "mais aceitos" }),
+    tile({ nome: "N aceites", valor: saz.picos_aceite[0] ? saz.picos_aceite[0].n : 0,
+      icone: "aceito", serie: 7, pastilha: "ambar", pe: "no melhor mês" }),
+  ]);
+
+  const fatos = [];
+  if (saz.picos_publicacao.length > 0) {
+    const picos = saz.picos_publicacao.slice(0, 3).map(function (p) { return p.mes + " (" + p.n + ")"; }).join(", ");
+    fatos.push({ icone: "calendario", tom: "bom", forte: "Sazonalidade de publicações:",
+      resto: "picos em " + picos });
+  }
+  if (saz.picos_aceite.length > 0) {
+    const picos = saz.picos_aceite.slice(0, 3).map(function (p) { return p.mes + " (" + p.n + ")"; }).join(", ");
+    fatos.push({ icone: "aceito", tom: "neutro", forte: "Sazonalidade de aceites:",
+      resto: "picos em " + picos });
+  }
+
+  return escalonar(el("div", { class: "slide" }, [
+    linha,
+    quadro("Padrões anuais", "calendario", fatos.length ? frases(fatos) : vazio("Nenhum padrão detectado."), "tendências por mês"),
+  ]));
+}
+
+function slidePareto() {
+  const t = tv();
+  const linhas = (t && t.linhas || []).filter(function (l) { return (l.artigos || 0) > 0; });
+  if (linhas.length < 3) return escalonar(el("div", { class: "slide" }, vazio("Poucas linhas com artigos para uma leitura 80/20.")));
+
+  const dados = linhas
+    .map(function (l) { return { nome: l.nome, valor: l.artigos }; })
+    .sort(function (a, b) { return b.valor - a.valor; });
+
+  const total = dados.reduce(function (s, d) { return s + d.valor; }, 0);
+  let acumulado = 0, linhasAte80 = 0;
+  for (let i = 0; i < dados.length; i++) {
+    acumulado += dados[i].valor;
+    if (acumulado / total <= 0.8 || linhasAte80 === 0) linhasAte80 = i + 1;
+    if (acumulado / total > 0.8) break;
+  }
+
+  const fig = ChartsEnhanced.pareto(dados);
+  const corpo = el("div", { class: "corpo" }, fig);
+
+  return escalonar(el("div", { class: "slide painel-duplo igual" }, [
+    quadro("Pareto: Produção por Linha (80/20)", "subida", corpo),
+    quadro("Leitura", "subida", frases([
+      { icone: "subida", tom: "bom", forte: linhasAte80 + " de " + dados.length + " linha(s) somam 80% dos artigos",
+        resto: "linha vermelha marca esse ponto de corte" },
+      { icone: "publicacao", tom: "neutro", forte: dados[0].nome,
+        resto: dados[0].valor + " artigo(s) — a linha mais produtiva" },
+    ])),
+  ]));
+}
+
+function slideSunburst() {
+  const t = tv();
+  if (!t || !t.mundo) return escalonar(el("div", { class: "slide" }, vazio("Sunburst ainda não disponível.")));
+
+  const mundo = t.mundo;
+  const top_paises = (mundo.paises || []).slice(0, 6).map(function (p) {
+    return { nome: p.pais, valor: parseInt(p.n) || 1 };
+  });
+
+  if (!top_paises.length) {
+    return escalonar(el("div", { class: "slide" }, vazio("Sem dados de países.")));
+  }
+
+  const fig = ChartsEnhanced.sunburst(top_paises, 150);
+  const corpo = el("div", { class: "corpo" }, fig);
+
+  return escalonar(el("div", { class: "slide painel-duplo igual" }, [
+    quadro("Sunburst: Colaboração internacional", "mapa", corpo),
+    quadro("Top 6", "mapa", frases(top_paises.slice(0, 6).map(function (p, i) {
+      return { icone: "mapa", tom: ["bom", "ambar", "neutro"][i % 3] || "neutro",
+        forte: (i + 1) + ". " + p.nome, resto: p.valor + " artigos" };
+    }))),
+  ]));
+}
+
+function slideTernario() {
+  const t = tv();
+  if (!t) return escalonar(el("div", { class: "slide" }, vazio("Triangulação ainda não disponível.")));
+
+  const dados = (window.triangulacao_data || []).slice(0, 10);
+  if (!dados.length) {
+    return escalonar(el("div", { class: "slide" }, vazio("Sem dados de triangulação (variáveis de pesquisa não configuradas).")));
+  }
+
+  const fig = ChartsEnhanced.ternario(dados);
+  const corpo = el("div", { class: "corpo" }, fig);
+
+  return escalonar(el("div", { class: "slide" }, [
+    quadro("Triangulação: Aplicação × Intervenção × Desfecho", "experimento", corpo, "análise de 3 dimensões"),
+  ]));
+}
+
+function slideArvoreDecisoes() {
+  const t = tv();
+  if (!t || !(t.linhas || []).length) return escalonar(el("div", { class: "slide" }, vazio("Linhas de pesquisa ainda não carregadas.")));
+
+  const linhas = t.linhas.slice(0, 8);
+  const raiz = el("div", { class: "arvore-decisoes" }, linhas.map(function(linha) {
+    const artigos = linha.artigos || 0;
+    const taxa = Math.round((linha.taxa_publicacao || 0) * 100);
+    const cor = taxa >= 80 ? "bom" : (taxa >= 60 ? "ambar" : "alerta");
+
+    return el("div", { class: "galho" }, [
+      el("div", { class: "nodo", style: "--taxa:" + taxa + "%", "data-status": cor }, [
+        Icons.badge("linhas", null, 24),
+        el("div", { class: "dados" }, [
+          el("strong", { text: linha.nome }),
+          el("span", { text: artigos + " artigos" }),
+          el("span", { text: taxa + "% publicados" }),
+        ]),
+      ]),
+    ]);
+  }));
+
+  return escalonar(el("div", { class: "slide" }, [
+    quadro("Árvore de Pesquisa", "linhas", raiz, "produtividade por linha (ramificações crescem com volume)"),
+  ]));
+}
+
+function slideSankey() {
+  const t = tv();
+  if (!t) return escalonar(el("div", { class: "slide" }, vazio("Dados não disponíveis.")));
+
+  const status = { em_producao: 0, submetido: 0, aceito: 0, publicado: 0 };
+  artigos().forEach(function(a) {
+    if (status.hasOwnProperty(a.status)) status[a.status]++;
+  });
+
+  const fluxo = el("div", { class: "sankey-fluxo" }, [
+    el("div", { class: "fase inicio" }, [
+      el("div", { class: "caixa", style: "--valor:" + (status.em_producao + status.submetido) }, [
+        el("div", { class: "titulo", text: "Em Produção/Estudo" }),
+        el("div", { class: "numero", text: (status.em_producao + status.submetido) + " artigos" }),
+      ]),
+    ]),
+    el("div", { class: "fase meio" }, [
+      el("div", { class: "caixa", style: "--valor:" + status.submetido }, [
+        el("div", { class: "titulo", text: "Submetidos" }),
+        el("div", { class: "numero", text: status.submetido + " aguardando" }),
+      ]),
+    ]),
+    el("div", { class: "fase fim" }, [
+      el("div", { class: "caixa", style: "--valor:" + status.publicado }, [
+        el("div", { class: "titulo", text: "Publicados" }),
+        el("div", { class: "numero", text: status.publicado + " no ar" }),
+      ]),
+    ]),
+  ]);
+
+  return escalonar(el("div", { class: "slide" }, [
+    quadro("Fluxo de Publicação", "processo", fluxo, "do conceito ao artigo publicado"),
+  ]));
+}
+
+function slideRadarModular() {
+  const t = tv();
+  if (!t) return escalonar(el("div", { class: "slide" }, vazio("Dados não disponíveis.")));
+
+  const hoje = new Date();
+  const ano_atual = hoje.getFullYear();
+  const mes_atual = hoje.getMonth() + 1;
+
+  const publicados_ano = artigos().filter(function(a) {
+    return a.year_published === ano_atual && a.status === "publicado";
+  }).length;
+
+  const em_producao = artigos().filter(function(a) {
+    return a.status === "em_producao";
+  }).length;
+
+  const equipe = pessoas().filter(function(m) { return !m.is_external; }).length;
+  const coautores = pessoas().filter(function(m) { return m.is_external; }).length;
+
+  const modulos = el("div", { class: "radar-modular" }, [
+    el("div", { class: "modulo", "data-tipo": "kpi" }, [
+      el("div", { class: "icone-grande" }, Icons.badge("producao", null, 48)),
+      el("div", { class: "valor", text: publicados_ano }),
+      el("div", { class: "descricao", text: "Publicados em " + ano_atual }),
+    ]),
+    el("div", { class: "modulo", "data-tipo": "alerta" }, [
+      el("div", { class: "icone-grande" }, Icons.badge("relogio", null, 48)),
+      el("div", { class: "valor", text: em_producao }),
+      el("div", { class: "descricao", text: "Em produção agora" }),
+    ]),
+    el("div", { class: "modulo", "data-tipo": "team" }, [
+      el("div", { class: "icone-grande" }, Icons.badge("pessoas", null, 48)),
+      el("div", { class: "valor", text: equipe }),
+      el("div", { class: "descricao", text: "Pesquisadores LAPE" }),
+    ]),
+    el("div", { class: "modulo", "data-tipo": "team" }, [
+      el("div", { class: "icone-grande" }, Icons.badge("pessoas", null, 48)),
+      el("div", { class: "valor", text: coautores }),
+      el("div", { class: "descricao", text: "Coautores externos" }),
+    ]),
+  ]);
+
+  return escalonar(el("div", { class: "slide" }, [
+    quadro("Indicadores Principais", "painel", modulos, "4 métricas centrais do laboratório"),
+  ]));
+}
+
+function slideHeatmapTimeline() {
+  const t = tv();
+  if (!t) return escalonar(el("div", { class: "slide" }, vazio("Dados não disponíveis.")));
+
+  const hoje = new Date();
+  const ano_atual = hoje.getFullYear();
+  const meses_ext = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+
+  const atividade_por_mes = Array(12).fill(0);
+  artigos().forEach(function(a) {
+    if (a.year_published === ano_atual && a.published_on) {
+      const mes = new Date(a.published_on).getMonth();
+      atividade_por_mes[mes]++;
+    }
+  });
+
+  const max_atividade = Math.max.apply(null, atividade_por_mes) || 1;
+
+  const timeline = el("div", { class: "heatmap-timeline" }, [
+    el("div", { class: "linha-temporal" }, meses_ext.map(function(mes, idx) {
+      const valor = atividade_por_mes[idx];
+      const intensidade = Math.round(valor * 100 / max_atividade);
+      const status = valor === 0 ? "vazio" : (intensidade >= 80 ? "quente" : (intensidade >= 50 ? "morno" : "frio"));
+
+      return el("div", { class: "celula", "data-status": status, style: "--intensidade:" + intensidade + "%" }, [
+        el("div", { class: "mes", text: mes }),
+        el("div", { class: "num", text: valor || "—" }),
+      ]);
+    })),
+  ]);
+
+  return escalonar(el("div", { class: "slide" }, [
+    quadro("Atividade Temporal", "calendario", timeline, "artigos publicados por mês (intensidade visual)"),
+  ]));
+}
+
 function slideAcervos() {
   const t = tv();
   if (!t) return escalonar(el("div", { class: "slide" }, vazio("Os acervos ainda não chegaram.")));
@@ -1124,6 +1480,33 @@ const SLIDES = [
     apresenta: "Os países que assinam com o laboratório e as instituições parceiras, por número de artigos." },
   { id: "acervos", titulo: "Acervos e rotina", icone: "livro", montar: slideAcervos, tv: true,
     apresenta: "As bibliotecas temáticas: quantos registros, em quantos segmentos, e a rotina que as atualiza sozinha." },
+  { id: "alertas", titulo: "Alertas e eventos", icone: "alerta", montar: slideAlertas, tv: true,
+    apresenta: "Aceites recentes, revistas em processo, e dias desde a última submissão." },
+  { id: "sazonalidade", titulo: "Padrões anuais", icone: "calendario", montar: slideSazonalidade, tv: true,
+    apresenta: "Sazonalidade detectada: meses de pico para publicações e aceites." },
+  { id: "pareto", titulo: "Análise Pareto", icone: "subida", montar: slidePareto, tv: true,
+    apresenta: "Regra 80/20: onde o maior impacto vem de menos esforço. Linha vermelha marca o ponto crítico." },
+  { id: "sunburst", titulo: "Colaboração global", icone: "mapa", montar: slideSunburst, tv: true,
+    apresenta: "Hierarquia radial mostrando os 6 países principais com maior número de artigos colaborativos." },
+  { id: "arvore", titulo: "Árvore de Pesquisa", icone: "linhas", montar: slideArvoreDecisoes, tv: true,
+    apresenta: "Ramificações crescentes: cada linha de pesquisa como um galho, com produtividade e taxa de publicação." },
+  { id: "sankey", titulo: "Fluxo de Publicação", icone: "processo", montar: slideSankey, tv: true,
+    apresenta: "Do conceito ao artigo: fluxo visual de quantos artigos estão em cada fase (produção, submissão, publicado)." },
+  { id: "radar", titulo: "Indicadores Principais", icone: "painel", montar: slideRadarModular, tv: true,
+    apresenta: "4 métricas centrais em grande escala: artigos publicados este ano, em produção, equipe LAPE e coautores." },
+  { id: "heatmap", titulo: "Atividade Temporal", icone: "calendario", montar: slideHeatmapTimeline, tv: true,
+    apresenta: "Mapa de calor dos 12 meses: meses mais quentes significam mais artigos publicados naquele período." },
+  /* Slides 3D avançados com gráficos interativos e animações */
+  { id: "linhas-3d", titulo: "Linhas de Pesquisa 3D", icone: "linhas", montar: slidePesquisasLinhas3D, tv: true,
+    apresenta: "Árvore radial 3D mostrando cada linha de pesquisa com volume de artigos, taxa de publicação e colaborações." },
+  { id: "organograma", titulo: "Organograma da Equipe", icone: "pessoas", montar: slideOrganograma3D, tv: true,
+    apresenta: "Hierarquia visual com indicador de 'ponto' em tempo real: quem está presente agora, ausente, ou online." },
+  { id: "framework", titulo: "Framework de Pesquisa", icone: "processo", montar: slideFrameworkN8n, tv: true,
+    apresenta: "Fluxo estilo n8n: em produção → submetido → em revisão → aceito → publicado, com o gargalo real destacado." },
+  { id: "kpis-analytics", titulo: "KPIs Analíticos 4K", icone: "painel", montar: slideKPIsAnalyticos, tv: true,
+    apresenta: "4 métricas centrais em grande escala: taxa de aceite, dias até publicação, citações/artigo, produtividade equipe." },
+  { id: "citacoes-bases", titulo: "Citações em Tempo Real", icone: "citacao", montar: slideCitacoesBases, tv: true,
+    apresenta: "Citações sincronizadas com OpenAlex (e Scopus/Web of Science quando configuradas): total, média por linha de pesquisa e os artigos mais citados." },
 ];
 
 /* As paletas de fundo, as mesmas do ao vivo. A escolha é lida de
@@ -1336,177 +1719,6 @@ function relogio() {
     DIAS_EXT[agora.getDay()] + ", " + agora.getDate() + " de " + MESES_EXT[agora.getMonth()];
 }
 
-/* ------------------------------------------------------- faixa de cotação */
-/* Os indicadores do laboratório correndo no topo, no formato de painel de
-   bolsa: sigla, valor e variação.
-
-   TRES DECISOES QUE NAO SAO ESTETICAS.
-
-   1. VARIACAO SO COM DUAS MEDICOES. O `history` do payload traz
-      `delta_30d`, que e `null` enquanto o lakehouse tiver rodado uma vez
-      so -- e ele chega `null` mesmo. Um "▲ 0" ali diria a parede inteira
-      que nada mudou, quando a verdade e que nada foi medido duas vezes.
-      Sem variacao, a cotacao aparece so com o valor.
-
-   2. A BASE DA COMPARACAO VAI ESCRITA. "30 d" e medido; "vs 2025" e
-      contado. Uma seta sem base e uma seta sobre o que a pessoa imaginar.
-
-   3. SUBIR NAO E BOM PARA TODO INDICADOR, e por isso `bom` existe por
-      cotacao. Publicacao, citacao e indice h subindo e bom, e ai a cor de
-      estado e legitima -- e o verde e o vermelho de um painel de bolsa.
-      "Em escrita" e "em avaliacao" subindo pode ser produtividade ou
-      gargalo: o laboratorio nao declarou qual, e pintar de verde faria a
-      tela julgar por conta propria. Esses ficam em tinta neutra, com a
-      seta dizendo so a direcao. */
-function cotacoes() {
-  const o = D.overview || {};
-  const h = (D.history && D.history.series) || {};
-  const arts = artigos();
-  const ano = new Date().getFullYear();
-  const noAno = arts.filter(function (a) {
-    return a.status === "publicado" && Number(a.year_published) === ano; }).length;
-  const anterior = arts.filter(function (a) {
-    return a.status === "publicado" && Number(a.year_published) === ano - 1; }).length;
-
-  /* `delta_30d` ausente e diferente de zero, e o `??` nao serve aqui: um
-     zero medido e informacao ("nao mudou em 30 dias"), e um nulo nao. */
-  const medido = function (metrica) {
-    const s = h[metrica];
-    return s && s.delta_30d !== null && s.delta_30d !== undefined
-      ? s.delta_30d : null;
-  };
-  const cit = Math.max(o.scopus_total || 0, o.wos_total || 0, o.openalex_total || 0);
-
-  const lista = [
-    { sigla: "ACERVO", valor: o.n_published, delta: medido("publicados"),
-      base: "30 d", bom: "sobe" },
-    { sigla: ano, valor: noAno,
-      delta: anterior || noAno ? noAno - anterior : null,
-      base: "vs " + (ano - 1), bom: "sobe" },
-    { sigla: "CIT", valor: cit, delta: medido("citacoes"),
-      base: "30 d", bom: "sobe" },
-    /* sem julgamento: pode ser produtividade ou gargalo */
-    { sigla: "ESCRITA", valor: o.n_in_progress, delta: medido("em_producao"),
-      base: "30 d", bom: null },
-    { sigla: "AVAL", valor: o.n_submitted, delta: medido("submetidos"),
-      base: "30 d", bom: null },
-    { sigla: "H", valor: o.best_h_index, delta: medido("indice_h_maximo"),
-      base: "30 d", bom: "sobe" },
-    { sigla: "EQUIPE", valor: o.n_members, delta: medido("integrantes"),
-      base: "30 d", bom: "sobe" },
-  ];
-  /* Os da TV: sem segunda medicao, e sem seta -- a faixa diz "—". */
-  const t = D.tv;
-  if (t) {
-    lista.push({ sigla: "PAISES", valor: t.mundo && t.mundo.n_paises, delta: null, base: "", bom: "sobe" });
-    lista.push({ sigla: "BIBLIO", valor: (t.acervos || []).reduce(function (a, b) {
-      return a + (b.total || 0); }, 0), delta: null, base: "", bom: "sobe" });
-  }
-  /* Indicador que o laboratorio ainda nao tem nao vira "0" na parede: sai
-     da faixa. Zero de indice h nao e zero -- e ninguem ter declarado. */
-  return lista.filter(function (x) {
-    return x.valor !== null && x.valor !== undefined && x.valor !== 0;
-  });
-}
-
-function desenharCotacao() {
-  const casa = document.getElementById("cotacao");
-  if (!casa) return;
-  casa.textContent = "";
-  const itens = cotacoes();
-  const faixa = casa.parentElement;
-  if (!itens.length) { if (faixa) faixa.hidden = true; return; }
-  if (faixa) faixa.hidden = false;
-
-  const bloco = function () {
-    return itens.map(function (x) {
-      const partes = [
-        el("i", { class: "sigla", text: String(x.sigla) }),
-        el("b", { text: fmt(x.valor) }),
-      ];
-      if (x.delta !== null && x.delta !== undefined) {
-        const sobe = x.delta > 0, desce = x.delta < 0;
-        /* Cor de estado so onde a direcao tem sentido declarado. */
-        const tom = !x.bom ? "neutro"
-          : ((sobe && x.bom === "sobe") || (desce && x.bom === "desce")) ? "bom"
-          : (x.delta === 0 ? "neutro" : "ruim");
-        partes.push(el("span", { class: "var " + tom,
-          text: (sobe ? "▲ " : desce ? "▼ " : "= ")
-            + fmt(Math.abs(x.delta)) + " " + x.base }));
-      } else {
-        /* Sem segunda medicao, e a faixa diz isso em vez de calar. */
-        partes.push(el("span", { class: "var sem", text: "—" }));
-      }
-      return el("span", { class: "cot" }, partes);
-    });
-  };
-  bloco().forEach(function (n) { casa.appendChild(n); });
-  bloco().forEach(function (n) { casa.appendChild(n); });
-}
-
-/* ------------------------------------------------------------------ fita */
-/* Duas cópias da mesma sequência, e a animação anda -50%: o laço fecha sem
-   emenda visível. */
-function desenharFita() {
-  const casa = document.getElementById("fita");
-  casa.textContent = "";
-  const itens = [];
-  eventos().forEach(function (e) {
-    const d = diasAte(e.start_at);
-    if (d !== null && d >= 0 && d <= 90) {
-      itens.push({ icone: "calendario", forte: e.title, resto: porExtenso(d) });
-    }
-  });
-  prazos().slice(0, 8).forEach(function (p) {
-    itens.push({ icone: p.icone, forte: cortar(p.titulo, 60),
-      resto: p.dias === null ? p.espera + " dias de espera" : porExtenso(p.dias) });
-  });
-  noticiasDaTv().forEach(function (n) { itens.push(n); });
-  if (!itens.length) {
-    itens.push({ icone: "painel", forte: "LAPE", resto: "sem compromissos registrados" });
-  }
-  /* com as notícias da TV a fita é mais longa, e corre mais tempo por
-     volta: a velocidade é a mesma, senão o texto vira borrão */
-  const cabem = D.tv ? 22 : 12;
-  const bloco = function () {
-    return itens.slice(0, cabem).map(function (x) {
-      return el("span", {}, [Icons.get(x.icone, 15), el("b", { text: x.forte }),
-        document.createTextNode(" · " + x.resto)]);
-    });
-  };
-  bloco().forEach(function (n) { casa.appendChild(n); });
-  bloco().forEach(function (n) { casa.appendChild(n); });
-  casa.style.animationDuration = Math.round(44 * Math.min(itens.length, cabem) / 12) + "s";
-}
-
-/* As notícias que só a TV tem: últimos publicados, aceites, submissões e
-   a rotina. Cada item diz o que aconteceu e quando -- "Publicado" sem
-   data seria uma manchete velha passando por nova. */
-function noticiasDaTv() {
-  const t = tv();
-  if (!t) return [];
-  const n = t.noticias || {};
-  const itens = [];
-  (n.publicados || []).slice(0, 4).forEach(function (a) {
-    itens.push({ icone: "producao", forte: "Publicado: " + cortar(a.titulo, 64),
-      resto: [a.revista, a.data ? dataCurta(a.data) : (a.ano ? String(a.ano) : "")].filter(Boolean).join(" · ") || "sem data" });
-  });
-  (n.aceitos || []).slice(0, 3).forEach(function (a) {
-    itens.push({ icone: "aceite", forte: "Aceito: " + cortar(a.titulo, 64),
-      resto: [a.revista, a.data ? haQuanto(diasAte(a.data)) : ""].filter(Boolean).join(" · ") || "sem data" });
-  });
-  (n.submetidos || []).slice(0, 3).forEach(function (a) {
-    itens.push({ icone: "submissao", forte: "Submetido: " + cortar(a.titulo, 64),
-      resto: [a.revista, a.data ? haQuanto(diasAte(a.data)) : ""].filter(Boolean).join(" · ") || "sem data" });
-  });
-  ((t.rotina && t.rotina.passos) || []).forEach(function (p) {
-    if (!p.ultima_boa) return;
-    itens.push({ icone: "processo", forte: "Rotina · " + (ROTULO_DO_PASSO[p.passo] || p.rotulo),
-      resto: "rodou " + haQuanto(diasAte(p.ultima_boa)) + (p.proxima ? " · volta " + porExtenso(diasAte(p.proxima)) : "") });
-  });
-  return itens;
-}
-
 /* ------------------------------------------------------- tempo real (SSE) */
 let fonte = null;
 let pedidoPendente = null;
@@ -1553,8 +1765,6 @@ function rebuscar() {
       ROTEIRO.splice.apply(ROTEIRO, [0, ROTEIRO.length].concat(ciclo()));
       const onde = ROTEIRO.findIndex(function (s) { return s.id === idAtual; });
       atual = onde >= 0 ? onde : 0;
-      desenharFita();
-      desenharCotacao();
       desenhar(atual, "quieto");
       marcarVivo(true, true);
     })
@@ -1597,8 +1807,6 @@ function comecar() {
     seguir.appendChild(Icons.get("proximo", 15));
     seguir.onclick = function () { avancar(1); };
   }
-  desenharFita();
-  desenharCotacao();
   desenharControles();
   desenhar(0);
   abrirStream();
