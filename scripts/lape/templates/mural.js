@@ -410,14 +410,41 @@ function slideAgora() {
     ? C.donut({ items: situacao, unit: "artigos", caption: "situação" })
     : vazio("Sem artigos cadastrados.");
 
-  return escalonar(el("div", { class: "slide" }, [
-    kpis,
-    el("div", { class: "painel-duplo" }, [
-      quadro("Publicações por ano", "subida", grafico,
-        recentes.length ? recentes[0].year + "–" + recentes[recentes.length - 1].year : ""),
-      quadro("Situação da produção", "processo", rosca, fmt(arts.length) + " artigos"),
-    ]),
+  const corpo = [kpis];
+  const presenca = faixaPresenca();
+  if (presenca) corpo.push(presenca);
+  corpo.push(el("div", { class: "painel-duplo" }, [
+    quadro("Publicações por ano", "subida", grafico,
+      recentes.length ? recentes[0].year + "–" + recentes[recentes.length - 1].year : ""),
+    quadro("Situação da produção", "processo", rosca, fmt(arts.length) + " artigos"),
   ]));
+
+  return escalonar(el("div", { class: "slide" }, corpo));
+}
+
+/* Quem bateu ponto e ainda não bateu saída -- o mesmo dado que a tela de
+   ponto do integrante usa. Sem gente presente, a faixa nem aparece: um
+   quadro "0 no laboratório" o dia inteiro vira ruído, não informação. */
+function faixaPresenca() {
+  const t = tv();
+  const presentes = ((t && t.pessoas) || []).filter(function (p) { return p.ativo_agora; });
+  if (!presentes.length) return null;
+
+  return el("div", { class: "faixa-presenca" }, [
+    el("div", { class: "faixa-presenca-titulo" }, [
+      el("span", { class: "ponto-vivo" }),
+      el("span", { text: presentes.length + " no LAPE agora" }),
+    ]),
+    el("div", { class: "faixa-presenca-lista" }, presentes.map(function (p) {
+      const desde = p.ha_horas !== null && p.ha_horas !== undefined
+        ? " · há " + porHoras(p.ha_horas) : "";
+      return el("span", { class: "chip-presenca",
+        title: (p.atividade || p.projeto || p.artigo || "presente") + desde }, [
+        el("span", { class: "chip-ponto" }),
+        el("span", { text: p.nome }),
+      ]);
+    })),
+  ]);
 }
 
 function slidePrazos() {
@@ -1475,7 +1502,7 @@ const SLIDES = [
   { id: "organograma", titulo: "Organograma da Equipe", icone: "pessoas", montar: slideOrganograma3D, tv: true,
     apresenta: "Hierarquia visual com indicador de 'ponto' em tempo real: quem está presente agora, ausente, ou online." },
   { id: "framework", titulo: "Framework de Pesquisa", icone: "processo", montar: slideFrameworkN8n, tv: true,
-    apresenta: "Fluxo estilo n8n: ideia → protocolo → coleta → análise → artigo → submissão → publicado, com artigos fluindo." },
+    apresenta: "Fluxo estilo n8n: em produção → submetido → em revisão → aceito → publicado, com o gargalo real destacado." },
   { id: "kpis-analytics", titulo: "KPIs Analíticos 4K", icone: "painel", montar: slideKPIsAnalyticos, tv: true,
     apresenta: "4 métricas centrais em grande escala: taxa de aceite, dias até publicação, citações/artigo, produtividade equipe." },
   { id: "citacoes-bases", titulo: "Citações em Tempo Real", icone: "citacao", montar: slideCitacoesBases, tv: true,

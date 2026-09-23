@@ -297,9 +297,15 @@ def _linhas_pesquisa(db: Database) -> list[dict[str, Any]]:
 
 
 def _pessoas_com_ponto(db: Database, agora: datetime | None = None) -> list[dict[str, Any]]:
-    """Pessoas cadastradas com indicador de quem está presente agora."""
-    agora = agora or datetime.now()
-    janela_horas = 8  # Considerar "ativo_agora" quem marcou ponto nos últimos 8h
+    """Pessoas cadastradas com indicador de quem está presente agora.
+
+    "Presente" é quem tem sessão de ponto aberta agora mesmo (ponto.agora),
+    não um horário fixo nem um "visto há N horas" -- o mesmo dado que a
+    tela de ponto do integrante usa para bater entrada e saída.
+    """
+    from . import ponto
+
+    presentes = {p["member_id"]: p for p in ponto.agora(db)}
 
     saida = []
     pessoas = db.dicts(
@@ -312,18 +318,18 @@ def _pessoas_com_ponto(db: Database, agora: datetime | None = None) -> list[dict
             " JOIN article_authors aa ON aa.article_id = a.id"
             " WHERE aa.member_id = ?", (pid,)
         ) or 0)
-        # Verificar último ponto/check-in se houver tabela de "attendance" ou "ponto"
-        # Por enquanto, usar um campo booleano ou timestamp simulado
-        ativo_agora = False  # TODO: implementar lógica de check-in
-        ultimo_acesso = "—"  # TODO: buscar do banco se existir
+        presenca = presentes.get(pid)
 
         saida.append({
             "id": pid,
             "nome": pessoa["full_name"],
             "vinculo": pessoa["role"],
             "n_artigos": n_artigos,
-            "ativo_agora": ativo_agora,
-            "ultimo_acesso": ultimo_acesso,
+            "ativo_agora": presenca is not None,
+            "ha_horas": presenca["ha_horas"] if presenca else None,
+            "atividade": (presenca or {}).get("atividade"),
+            "projeto": (presenca or {}).get("projeto"),
+            "artigo": (presenca or {}).get("artigo"),
         })
     return saida
 

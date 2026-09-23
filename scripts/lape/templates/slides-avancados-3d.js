@@ -5,6 +5,18 @@
    =================================================================== */
 "use strict";
 
+/* Duração de uma sessão de ponto aberta, em horas fracionárias (vem de
+   ponto.agora() no servidor) -- "há 45min" para quem acabou de bater
+   entrada, "há 2h30" para quem já está há um tempo. */
+function porHoras(horas) {
+  if (horas === null || horas === undefined || !isFinite(horas)) return "pouco tempo";
+  const totalMin = Math.round(horas * 60);
+  if (totalMin < 1) return "menos de 1 min";
+  if (totalMin < 60) return totalMin + " min";
+  const h = Math.floor(totalMin / 60), m = totalMin % 60;
+  return h + "h" + (m ? String(m).padStart(2, "0") : "");
+}
+
 /* ==================== LINHAS DE PESQUISA 3D ==================== */
 function slidePesquisasLinhas3D() {
   const t = tv();
@@ -195,13 +207,29 @@ function slideOrganograma3D() {
     voluntario: "Voluntário(a)",
     colaborador: "Colaborador(a) externo",
   };
+  /* Ícone e tom temáticos por vínculo -- a mesma paleta de Icons.badge(),
+     agora também pintando o contorno do grupo (ver CSS .grupo-vinculo[data-vinculo]). */
+  const VINCULOS_ICONE = {
+    coordenacao: ["trofeu", "ambar"],
+    professor: ["livro", "violeta"],
+    pos_doutorado: ["achado", "magenta"],
+    doutorando: ["tese", "azul"],
+    mestrando: ["tese", "verde"],
+    bolsista_ic: ["experimento", "laranja"],
+    voluntario: ["pessoas", "bom"],
+    colaborador: ["instituicao", "alerta"],
+  };
 
   VINCULOS_ORDEM.forEach(vinculo => {
     const grupo = vinculos[vinculo];
     if (!grupo || !grupo.length) return;
 
-    const grupoEl = el("div", { class: "grupo-vinculo", "data-vinculo": vinculo });
-    const titulo = el("div", { class: "titulo-grupo" }, VINCULOS_NOME_MAP[vinculo] || vinculo);
+    const [icone, tom] = VINCULOS_ICONE[vinculo] || ["pessoas", "azul"];
+    const grupoEl = el("div", { class: "grupo-vinculo", "data-vinculo": vinculo, "data-tom": tom });
+    const titulo = el("div", { class: "titulo-grupo" }, [
+      Icons.badge(icone, tom, 20),
+      el("span", { text: VINCULOS_NOME_MAP[vinculo] || vinculo }),
+    ]);
     grupoEl.appendChild(titulo);
 
     const pessoasContainer = el("div", { class: "pessoas-container" });
@@ -220,13 +248,21 @@ function slideOrganograma3D() {
       const nome = el("div", { class: "nome-pessoa", text: cortar(p.nome, 25) });
       cartao.appendChild(nome);
 
+      /* Há quanto tempo bateu o ponto, só para quem está presente agora */
+      if (p.ativo_agora && p.ha_horas !== null && p.ha_horas !== undefined) {
+        cartao.appendChild(el("div", { class: "desde-pessoa", text: "há " + porHoras(p.ha_horas) }));
+      }
+
       /* Número de artigos */
       const nArtigos = p.n_artigos || 0;
       const badge = el("div", { class: "badge-artigos", text: nArtigos });
       cartao.appendChild(badge);
 
       /* Tooltip ao hover */
-      cartao.title = `${p.nome}\n${VINCULOS_NOME_MAP[vinculo]}\n${nArtigos} artigos\nÚltimo acesso: ${p.ultimo_acesso || 'nunca'}`;
+      const linhaPonto = p.ativo_agora
+        ? "presente há " + porHoras(p.ha_horas) + (p.atividade ? " -- " + p.atividade : "") + (p.projeto ? " -- " + p.projeto : "") + (p.artigo ? " -- " + p.artigo : "")
+        : "ausente agora";
+      cartao.title = `${p.nome}\n${VINCULOS_NOME_MAP[vinculo]}\n${nArtigos} artigos\n${linhaPonto}`;
 
       pessoasContainer.appendChild(cartao);
     });
@@ -253,148 +289,87 @@ function slideOrganograma3D() {
   return escalonar(container);
 }
 
-/* ==================== FRAMEWORK N8N (WORKFLOW) ==================== */
+/* ==================== FRAMEWORK DE PESQUISA (PIPELINE REAL) ==================== */
+/* As fases batem exato com os status do banco (config.ARTICLE_STATUS) --
+   nunca um estágio inventado que o sistema não consegue contar de verdade.
+   Rejeitado/arquivado são desfechos, não um próximo passo: entram à parte,
+   nunca escondidos, nunca forçados dentro do fluxo principal. */
 function slideFrameworkN8n() {
   const t = tv();
   if (!t) return escalonar(el("div", { class: "slide" }, vazio("Dados do framework não disponíveis.")));
 
-  const container = el("div", { class: "slide slide-framework-n8n" });
-
-  /* Definir as fases do workflow */
-  const fases = [
-    { id: "idea", label: "Ideia", icone: "bulb", cor: "#8b5cf6" },
-    { id: "protocolo", label: "Protocolo", icone: "documento", cor: "#3b82f6" },
-    { id: "coleta", label: "Coleta", icone: "dados", cor: "#06b6d4" },
-    { id: "analise", label: "Análise", icone: "grafico", cor: "#14b8a6" },
-    { id: "artigo", label: "Artigo", icone: "livro", cor: "#84cc16" },
-    { id: "submissao", label: "Submissão", icone: "envio", cor: "#f59e0b" },
-    { id: "publicacao", label: "Publicado", icone: "estrela", cor: "#10b981" },
+  const FASES = [
+    { id: "em_producao", label: "Em Produção", icone: "producao", tom: "azul" },
+    { id: "submetido", label: "Submetido", icone: "submissao", tom: "violeta" },
+    { id: "em_revisao", label: "Em Revisão", icone: "processo", tom: "ambar" },
+    { id: "aceito", label: "Aceito", icone: "aceite", tom: "bom" },
+    { id: "publicado", label: "Publicado", icone: "livro", tom: "verde" },
   ];
 
-  /* Simular contagem de artigos por fase (virá do backend) */
-  const contagem = {
-    idea: 8,
-    protocolo: 15,
-    coleta: 5,
-    analise: 12,
-    artigo: 7,
-    submissao: 3,
-    publicacao: 127,
-  };
-
-  const svg = el("svg", {
-    class: "workflow-n8n",
-    viewBox: "0 0 1400 600",
-    style: "width:100%;height:100%;",
+  const contagem = {};
+  FASES.forEach(f => { contagem[f.id] = 0; });
+  let rejeitados = 0;
+  artigos().forEach(function (a) {
+    if (contagem.hasOwnProperty(a.status)) contagem[a.status]++;
+    else if (a.status === "rejeitado" || a.status === "arquivado") rejeitados++;
   });
 
-  const boxWidth = 140, boxHeight = 100, spacing = 180, startX = 50, startY = 150;
+  const total = Object.values(contagem).reduce((a, b) => a + b, 0);
+  if (!total && !rejeitados) {
+    return escalonar(el("div", { class: "slide" }, vazio("Nenhum artigo cadastrado ainda.")));
+  }
 
-  fases.forEach((fase, idx) => {
-    const x = startX + idx * spacing;
-    const y = startY;
+  /* Gargalo real: a etapa anterior à publicação com mais artigos parados. */
+  const antesDePublicar = FASES.slice(0, -1);
+  const gargalo = antesDePublicar.reduce((pior, f) =>
+    contagem[f.id] > (contagem[pior.id] || 0) ? f : pior, antesDePublicar[0]);
+
+  const container = el("div", { class: "slide slide-framework-n8n" });
+  const pipeline = el("div", { class: "framework-pipeline" });
+
+  FASES.forEach((fase, idx) => {
     const count = contagem[fase.id] || 0;
+    const ehGargalo = fase.id === gargalo.id && count > 0;
 
-    /* Caixa do nó */
-    const box = el("rect", {
-      x: x,
-      y: y,
-      width: boxWidth,
-      height: boxHeight,
-      class: "node-n8n",
-      style: `--index:${idx};--cor:${fase.cor};`,
-      fill: fase.cor,
-      opacity: "0.15",
-      stroke: fase.cor,
-      "stroke-width": "2",
-      rx: "8",
-    });
-    svg.appendChild(box);
+    const card = el("div", {
+      class: "etapa-framework" + (ehGargalo ? " gargalo" : ""),
+      "data-tom": fase.tom,
+      style: `--index:${idx};`,
+    }, [
+      Icons.badge(fase.icone, fase.tom, 30),
+      el("div", { class: "etapa-numero", text: String(count) }),
+      el("div", { class: "etapa-rotulo", text: fase.label }),
+      ehGargalo ? el("div", { class: "etapa-flag", text: "gargalo" }) : null,
+    ]);
+    pipeline.appendChild(card);
 
-    /* Icone (simulado com texto) */
-    const icon = el("text", {
-      x: x + boxWidth / 2,
-      y: y + 25,
-      class: "icon-node",
-      "text-anchor": "middle",
-      "font-size": "20px",
-      fill: fase.cor,
-    });
-    icon.textContent = "📌";
-    svg.appendChild(icon);
-
-    /* Label */
-    const label = el("text", {
-      x: x + boxWidth / 2,
-      y: y + 60,
-      class: "label-node",
-      "text-anchor": "middle",
-      "font-size": "12px",
-      "font-weight": "600",
-      fill: "currentColor",
-    });
-    label.textContent = fase.label;
-    svg.appendChild(label);
-
-    /* Contagem */
-    const contBadge = el("text", {
-      x: x + boxWidth / 2,
-      y: y + 85,
-      class: "count-badge",
-      "text-anchor": "middle",
-      "font-size": "14px",
-      "font-weight": "700",
-      fill: fase.cor,
-    });
-    contBadge.textContent = count;
-    svg.appendChild(contBadge);
-
-    /* Conexão para próximo nó (se não é último) */
-    if (idx < fases.length - 1) {
-      const connX1 = x + boxWidth;
-      const connX2 = x + spacing;
-      const connY = y + boxHeight / 2;
-
-      /* Seta Bezier animada */
-      const path = el("path", {
-        d: `M ${connX1} ${connY} Q ${(connX1 + connX2) / 2} ${connY} ${connX2} ${connY}`,
-        class: "arrow-conexao",
-        style: `--index:${idx};`,
-        stroke: "url(#gradSeta)",
-        "stroke-width": "2.5",
-        fill: "none",
-        "marker-end": "url(#arrowhead)",
-        "stroke-dasharray": "100",
-        "stroke-dashoffset": "100",
-      });
-      svg.appendChild(path);
+    if (idx < FASES.length - 1) {
+      pipeline.appendChild(el("div", { class: "conector-framework", style: `--index:${idx};` }, [
+        el("span", { class: "seta-conector" }),
+        el("span", { class: "particula-conector" }),
+      ]));
     }
   });
 
-  /* Definir gradientes e arrowhead */
-  const defs = el("defs");
-  const gradSeta = el("linearGradient", { id: "gradSeta", x1: "0%", y1: "0%", x2: "100%", y2: "0%" });
-  gradSeta.appendChild(el("stop", { offset: "0%", "stop-color": "var(--accent)" }));
-  gradSeta.appendChild(el("stop", { offset: "100%", "stop-color": "var(--accent-strong)" }));
-  defs.appendChild(gradSeta);
+  container.appendChild(pipeline);
 
-  const arrowhead = el("marker", { id: "arrowhead", markerWidth: "10", markerHeight: "10", refX: "9", refY: "3", orient: "auto" });
-  arrowhead.appendChild(el("polygon", { points: "0 0, 10 3, 0 6", fill: "var(--accent-strong)" }));
-  defs.appendChild(arrowhead);
-
-  svg.insertBefore(defs, svg.firstChild);
-
-  container.appendChild(svg);
+  if (rejeitados > 0) {
+    container.appendChild(el("div", { class: "framework-desfecho" }, [
+      Icons.badge("aviso", "alerta", 18),
+      el("span", { text: rejeitados + " manuscrito(s) rejeitado(s)/arquivado(s) -- fora do fluxo principal" }),
+    ]));
+  }
 
   /* Resumo textual */
   const resumo = el("div", { class: "resumo-workflow" }, [
     el("div", { class: "resumo-item" }, [
       el("span", { class: "resumo-label", text: "Total em fluxo:" }),
-      el("span", { class: "resumo-valor", text: String(Object.values(contagem).reduce((a, b) => a + b, 0)) }),
+      el("span", { class: "resumo-valor", text: String(total) }),
     ]),
     el("div", { class: "resumo-item" }, [
       el("span", { class: "resumo-label", text: "Gargalo:" }),
-      el("span", { class: "resumo-valor", text: "Protocolo (15)" }),
+      el("span", { class: "resumo-valor",
+        text: gargalo && contagem[gargalo.id] > 0 ? gargalo.label + " (" + contagem[gargalo.id] + ")" : "nenhum" }),
     ]),
   ]);
   container.appendChild(resumo);

@@ -139,6 +139,26 @@ body { background: var(--surface-sunken); }
   grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); }
 .painel-duplo.igual { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .painel-duplo > .quadro { min-height: 0; }
+
+/* Quem bateu ponto agora -- flex-none: nunca cresce à custa do gráfico e
+   da rosca abaixo, e some por completo (ver faixaPresenca() no mural.js)
+   quando não há ninguém, em vez de mostrar "0 no laboratório" o dia todo. */
+.faixa-presenca { flex: none; display: flex; align-items: center; gap: clamp(10px, 1.4vw, 20px);
+  flex-wrap: wrap; padding: clamp(8px, 1vh, 12px) clamp(12px, 1.1vw, 18px);
+  border-radius: var(--radius); border: 1px solid color-mix(in srgb, var(--bom) 35%, var(--border));
+  background: color-mix(in srgb, var(--bom) 7%, var(--surface)); }
+.faixa-presenca-titulo { display: flex; align-items: center; gap: 8px;
+  font-size: clamp(11px, .9vw, 13px); font-weight: 700; color: var(--bom); white-space: nowrap; }
+.ponto-vivo { width: 9px; height: 9px; border-radius: 50%; background: var(--bom);
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--bom) 70%, transparent);
+  animation: pontoVivoPulso 1.6s ease-in-out infinite; }
+@keyframes pontoVivoPulso { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+.faixa-presenca-lista { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip-presenca { display: inline-flex; align-items: center; gap: 6px;
+  font-size: clamp(10.5px, .85vw, 12.5px); color: var(--ink-2);
+  background: var(--surface-raised); border: 1px solid var(--border);
+  border-radius: 999px; padding: 4px 10px 4px 8px; }
+.chip-ponto { width: 6px; height: 6px; border-radius: 50%; background: var(--bom); flex: none; }
 .quadro { position: relative; border-radius: var(--radius); border: 1px solid var(--border);
   background: var(--grad-card), var(--surface); box-shadow: var(--shadow);
   padding: clamp(12px, 1.4vh, 20px) clamp(14px, 1.2vw, 22px); display: flex;
