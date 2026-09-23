@@ -178,37 +178,16 @@ function slidePesquisasLinhas3D() {
 /* ==================== ORGANOGRAMA COM INDICADOR DE PONTO ==================== */
 function slideOrganograma3D() {
   const t = tv();
-  if (!t) return escalonar(el("div", { class: "slide" }, vazio("Dados de organograma não disponíveis.")));
-
-  const pessoas = t.pessoas || [];
-  if (!pessoas.length) return escalonar(el("div", { class: "slide" }, vazio("Nenhuma pessoa cadastrada.")));
+  const org = t && t.organograma;
+  if (!org || !(org.people || []).length) {
+    return escalonar(el("div", { class: "slide" }, vazio("Nenhuma pessoa do LAPE cadastrada.")));
+  }
 
   const container = el("div", { class: "slide slide-organograma-3d" });
 
-  /* Agrupar por vínculo */
-  const vinculos = {};
-  pessoas.forEach(p => {
-    const v = p.vinculo || "sem_vinculo";
-    if (!vinculos[v]) vinculos[v] = [];
-    vinculos[v].push(p);
-  });
-
-  /* Hierarquia visual */
-  const hierarchy = el("div", { class: "hierarchy-tree" });
-
-  const VINCULOS_ORDEM = ["coordenacao", "professor", "pos_doutorado", "doutorando", "mestrando", "bolsista_ic", "voluntario", "colaborador"];
-  const VINCULOS_NOME_MAP = {
-    coordenacao: "Coordenação",
-    professor: "Professores",
-    pos_doutorado: "Pós-doutorado",
-    doutorando: "Doutorando(a)",
-    mestrando: "Mestrando(a)",
-    bolsista_ic: "Bolsista de IC",
-    voluntario: "Voluntário(a)",
-    colaborador: "Colaborador(a) externo",
-  };
-  /* Ícone e tom temáticos por vínculo -- a mesma paleta de Icons.badge(),
-     agora também pintando o contorno do grupo (ver CSS .grupo-vinculo[data-vinculo]). */
+  /* Ícone e tom temáticos por vínculo -- os 11 códigos que a coordenação usa
+     (ver mapping.VINCULOS), mais o que não tem vínculo declarado. A mesma
+     paleta de Icons.badge() pinta também o contorno do cartão. */
   const VINCULOS_ICONE = {
     coordenacao: ["trofeu", "ambar"],
     professor: ["livro", "violeta"],
@@ -216,75 +195,101 @@ function slideOrganograma3D() {
     doutorando: ["tese", "azul"],
     mestrando: ["tese", "verde"],
     bolsista_ic: ["experimento", "laranja"],
+    bolsista_extensao: ["projeto", "laranja"],
     voluntario: ["pessoas", "bom"],
+    graduando: ["linha", "azul"],
+    tecnico: ["qualidade", "verde"],
     colaborador: ["instituicao", "alerta"],
+    sem_vinculo: ["pessoas", "azul"],
   };
 
-  VINCULOS_ORDEM.forEach(vinculo => {
-    const grupo = vinculos[vinculo];
-    if (!grupo || !grupo.length) return;
-
-    const [icone, tom] = VINCULOS_ICONE[vinculo] || ["pessoas", "azul"];
-    const grupoEl = el("div", { class: "grupo-vinculo", "data-vinculo": vinculo, "data-tom": tom });
-    const titulo = el("div", { class: "titulo-grupo" }, [
-      Icons.badge(icone, tom, 20),
-      el("span", { text: VINCULOS_NOME_MAP[vinculo] || vinculo }),
-    ]);
-    grupoEl.appendChild(titulo);
-
-    const pessoasContainer = el("div", { class: "pessoas-container" });
-    grupo.forEach(p => {
-      const ativo = p.ativo_agora ? "ativo" : "inativo";
-      const cartao = el("div", { class: `cartao-pessoa ${ativo}`, "data-id": p.id });
-
-      /* Bolinha de status (ponto) */
-      const statusBolinha = el("div", { class: `status-bolinha ${ativo}` });
-      if (p.ativo_agora) {
-        statusBolinha.classList.add("pulsante");
-      }
-      cartao.appendChild(statusBolinha);
-
-      /* Nome e vínculo */
-      const nome = el("div", { class: "nome-pessoa", text: cortar(p.nome, 25) });
-      cartao.appendChild(nome);
-
-      /* Há quanto tempo bateu o ponto, só para quem está presente agora */
-      if (p.ativo_agora && p.ha_horas !== null && p.ha_horas !== undefined) {
-        cartao.appendChild(el("div", { class: "desde-pessoa", text: "há " + porHoras(p.ha_horas) }));
-      }
-
-      /* Número de artigos */
-      const nArtigos = p.n_artigos || 0;
-      const badge = el("div", { class: "badge-artigos", text: nArtigos });
-      cartao.appendChild(badge);
-
-      /* Tooltip ao hover */
-      const linhaPonto = p.ativo_agora
-        ? "presente há " + porHoras(p.ha_horas) + (p.atividade ? " -- " + p.atividade : "") + (p.projeto ? " -- " + p.projeto : "") + (p.artigo ? " -- " + p.artigo : "")
-        : "ausente agora";
-      cartao.title = `${p.nome}\n${VINCULOS_NOME_MAP[vinculo]}\n${nArtigos} artigos\n${linhaPonto}`;
-
-      pessoasContainer.appendChild(cartao);
-    });
-
-    grupoEl.appendChild(pessoasContainer);
-    hierarchy.appendChild(grupoEl);
+  const porId = {};
+  (org.people || []).forEach(function (p) { porId[p.id] = p; });
+  const filhosDe = {};
+  (org.edges || []).forEach(function (e) {
+    if (!porId[e.from] || !porId[e.to]) return;
+    (filhosDe[e.from] = filhosDe[e.from] || []).push({ to: e.to, kind: e.kind });
   });
 
-  container.appendChild(hierarchy);
+  function cartaoPessoa(p) {
+    const [icone, tom] = VINCULOS_ICONE[p.role || "sem_vinculo"] || VINCULOS_ICONE.sem_vinculo;
+    const ativo = p.ativo_agora ? "ativo" : "inativo";
+    const cartao = el("div", { class: `cartao-pessoa ${ativo}`, "data-tom": tom, "data-id": p.id });
+
+    cartao.appendChild(Icons.badge(icone, tom, 22));
+
+    const statusBolinha = el("div", { class: `status-bolinha ${ativo}` });
+    if (p.ativo_agora) statusBolinha.classList.add("pulsante");
+    cartao.appendChild(statusBolinha);
+
+    cartao.appendChild(el("div", { class: "nome-pessoa", text: cortar(p.full_name, 25) }));
+    cartao.appendChild(el("div", { class: "vinculo-pessoa", text: p.role_label }));
+
+    if (p.ativo_agora && p.ha_horas !== null && p.ha_horas !== undefined) {
+      cartao.appendChild(el("div", { class: "desde-pessoa", text: "há " + porHoras(p.ha_horas) }));
+    }
+
+    const nArtigos = p.n_articles || 0;
+    cartao.appendChild(el("div", { class: "badge-artigos", text: nArtigos }));
+    if (p.orientandos) {
+      cartao.appendChild(el("div", { class: "badge-orientandos", title: p.orientandos + " orientando(s)" },
+        [el("span", { text: "↳ " + p.orientandos })]));
+    }
+
+    const linhaPonto = p.ativo_agora
+      ? "presente há " + porHoras(p.ha_horas) + (p.atividade ? " -- " + p.atividade : "")
+      : "ausente agora";
+    cartao.title = `${p.full_name}\n${p.role_label}\n${nArtigos} artigo(s)\n${linhaPonto}`;
+    return cartao;
+  }
+
+  /* Árvore de verdade: raiz(es) do organograma da coordenação, descendo por
+     orientação/coorientação -- nunca coautoria. Quem não tem ninguém abaixo
+     vira folha; quem tem, ganha um ramo com conector visual (ver CSS
+     .ramo-organograma). */
+  function noArvore(id, profundidade) {
+    const pessoa = porId[id];
+    if (!pessoa) return null;
+    const filhos = (filhosDe[id] || []);
+    const no = el("div", { class: "no-organograma" }, [cartaoPessoa(pessoa)]);
+    if (filhos.length && profundidade < 3) {
+      const galhos = el("div", { class: "ramo-organograma" },
+        filhos.map(function (f) { return noArvore(f.to, profundidade + 1); }).filter(Boolean));
+      no.appendChild(galhos);
+    }
+    return no;
+  }
+
+  const raizes = (org.roots || []).map(function (id) { return noArvore(id, 0); }).filter(Boolean);
+  const arvore = el("div", { class: "arvore-organograma" }, raizes);
+  container.appendChild(arvore);
+
+  /* Quem não tem vínculo declarado nem aparece como raiz nem como galho
+     (perfil sem role e sem orientador) ainda tem de aparecer em algum
+     lugar -- um organograma que descarta gente por falta de campo mente
+     por omissão. */
+  const naArvore = new Set();
+  function marcar(id) {
+    naArvore.add(id);
+    (filhosDe[id] || []).forEach(function (f) { marcar(f.to); });
+  }
+  (org.roots || []).forEach(marcar);
+  const avulsos = (org.people || []).filter(function (p) { return !naArvore.has(p.id); });
+  if (avulsos.length) {
+    container.appendChild(el("div", { class: "avulsos-organograma" }, [
+      el("div", { class: "titulo-grupo" }, [
+        Icons.badge("pessoas", "azul", 18),
+        el("span", { text: "Sem orientador declarado" }),
+      ]),
+      el("div", { class: "pessoas-container" }, avulsos.map(cartaoPessoa)),
+    ]));
+  }
 
   /* Legenda de status */
-  const legenda = el("div", { class: "legenda-ponto" }, [
-    el("div", { class: "item-legenda" }, [
-      el("div", { class: "bolinha verde" }),
-      el("span", { text: "Presente agora" }),
-    ]),
-    el("div", { class: "item-legenda" }, [
-      el("div", { class: "bolinha cinza" }),
-      el("span", { text: "Ausente" }),
-    ]),
-  ]);
-  container.appendChild(legenda);
+  container.appendChild(el("div", { class: "legenda-ponto" }, [
+    el("div", { class: "item-legenda" }, [el("div", { class: "bolinha verde" }), el("span", { text: "Presente agora" })]),
+    el("div", { class: "item-legenda" }, [el("div", { class: "bolinha cinza" }), el("span", { text: "Ausente" })]),
+  ]));
 
   return escalonar(container);
 }
@@ -390,8 +395,9 @@ function slideKPIsAnalyticos() {
   const aceite = porCodigo.aceite;
   const tempo = porCodigo.tempo;
   const citRes = (t.citacoes && t.citacoes.resumo) || {};
+  const equipeLape = (t.organograma && t.organograma.people) || [];
   const totalArtigosLinhas = (t.linhas || []).reduce(function (s, l) { return s + (l.artigos || 0); }, 0);
-  const produtividade = (t.pessoas && t.pessoas.length) ? totalArtigosLinhas / t.pessoas.length : null;
+  const produtividade = equipeLape.length ? totalArtigosLinhas / equipeLape.length : null;
   const comp = t.comparacoes || {};
 
   const kpis = [
@@ -406,7 +412,7 @@ function slideKPIsAnalyticos() {
       nota: citRes.total_artigos ? citRes.total_artigos + " artigo(s) com dados de citação" : "sincronização com as bases ainda pendente" },
     { id: "produtividade", titulo: "Produtividade Equipe", cor: "#f59e0b", icone: "👥",
       valor: produtividade, unidade: " art/pes",
-      nota: (t.pessoas ? t.pessoas.length : 0) + " pessoa(s) cadastrada(s)" },
+      nota: equipeLape.length + " pessoa(s) do LAPE cadastrada(s)" },
   ];
 
   const container = el("div", { class: "slide slide-kpis-analytics-4k" });

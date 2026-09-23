@@ -427,7 +427,8 @@ function slideAgora() {
    quadro "0 no laboratório" o dia inteiro vira ruído, não informação. */
 function faixaPresenca() {
   const t = tv();
-  const presentes = ((t && t.pessoas) || []).filter(function (p) { return p.ativo_agora; });
+  const pessoas = (t && t.organograma && t.organograma.people) || [];
+  const presentes = pessoas.filter(function (p) { return p.ativo_agora; });
   if (!presentes.length) return null;
 
   return el("div", { class: "faixa-presenca" }, [
@@ -438,10 +439,9 @@ function faixaPresenca() {
     el("div", { class: "faixa-presenca-lista" }, presentes.map(function (p) {
       const desde = p.ha_horas !== null && p.ha_horas !== undefined
         ? " · há " + porHoras(p.ha_horas) : "";
-      return el("span", { class: "chip-presenca",
-        title: (p.atividade || p.projeto || p.artigo || "presente") + desde }, [
+      return el("span", { class: "chip-presenca", title: (p.atividade || "presente") + desde }, [
         el("span", { class: "chip-ponto" }),
-        el("span", { text: p.nome }),
+        el("span", { text: p.full_name }),
       ]);
     })),
   ]);
