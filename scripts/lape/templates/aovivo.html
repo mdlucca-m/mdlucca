@@ -263,7 +263,8 @@ h2.secao .icone-tema { vertical-align: middle; margin-right: 8px; }
    deslocamento -- foi assim que a caixa saiu pela borda direita. */
 .apresentacao { position: fixed; left: 0; right: 0; bottom: 18px; margin-inline: auto; z-index: 30;
   width: min(920px, calc(100vw - 32px)); display: grid; grid-template-columns: minmax(0, 1fr) auto;
-  gap: 14px; align-items: center; padding: 16px 18px 16px 20px; border-radius: 20px;
+  grid-template-areas: "texto passos" "fatos fatos";
+  gap: 10px 14px; align-items: center; padding: 16px 18px 16px 20px; border-radius: 20px;
   background: rgba(8,15,38,.88); backdrop-filter: blur(22px); border: 1px solid transparent;
   box-shadow: var(--shadow-lg), 0 0 48px -8px var(--neon-magenta), 0 0 60px -20px var(--neon-cyan);
   animation: chegar .4s ease-out both; }
@@ -306,6 +307,56 @@ h2.secao .icone-tema { vertical-align: middle; margin-right: 8px; }
 .apresentacao .barra { position: absolute; left: 18px; right: 18px; bottom: 6px; height: 2px; background: rgba(255,255,255,.1); border-radius: 2px; overflow: hidden; }
 .apresentacao .barra i { display: block; height: 100%; width: 0; background: var(--grad-accent); }
 body.apresentando main.palco { padding-bottom: 150px; }
+/* os fatos ao vivo dentro da caixa: rótulo em cima, número embaixo, cada
+   um no seu tom, entrando um atrás do outro */
+.apresentacao .texto { grid-area: texto; }
+.apresentacao .passos { grid-area: passos; }
+.apresentacao .fatos { grid-area: fatos; display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 2px; }
+.apresentacao .fato { display: inline-flex; flex-direction: column; gap: 1px; padding: 6px 11px; border-radius: 11px;
+  background: color-mix(in srgb, var(--tom) 14%, transparent); border: 1px solid color-mix(in srgb, var(--tom) 45%, transparent);
+  box-shadow: 0 0 14px -6px var(--tom); animation: chegar .35s ease-out both; animation-delay: calc(80ms + var(--i, 0) * 60ms); }
+.apresentacao .fato small { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-muted); white-space: nowrap; }
+.apresentacao .fato b { font-family: var(--display); font-size: 15px; color: #fff; white-space: nowrap;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--tom) 70%, transparent); }
+/* ---- modo TV: sem menu nem cabeçalho, com a faixa em cima ---- */
+body.tv .casca { grid-template-columns: minmax(0, 1fr); }
+body.tv nav.lado, body.tv header.topo { display: none; }
+body.tv main.palco { max-width: none; padding-top: 74px; }
+body.tv.apresentando main.palco { padding-bottom: 190px; }
+/* na TV a caixa é larga e baixa: texto, fatos e passos lado a lado */
+body.tv .apresentacao { width: calc(100vw - 32px); grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) auto;
+  grid-template-areas: "texto fatos passos"; padding: 12px 18px 14px 20px; }
+body.tv .apresentacao .fatos { justify-content: flex-end; }
+body.tv .apresentacao .texto p { font-size: 12.5px; }
+body.tv .apresentacao .passos { flex-direction: column; align-items: flex-end; gap: 4px; }
+body.tv .apresentacao .passos button { padding: 5px 9px; font-size: 11px; }
+@media (max-width: 1100px) { body.tv .apresentacao { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "texto passos" "fatos fatos"; } }
+body.tv.quieto { cursor: none; }
+body.tv.quieto .apresentacao .passos { opacity: .35; }
+.faixa-tv { position: fixed; top: 0; left: 0; right: 0; z-index: 25; display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center; gap: 18px; padding: 8px 18px; background: rgba(8,15,38,.86); backdrop-filter: blur(18px);
+  border-bottom: 1px solid color-mix(in srgb, var(--neon-cyan) 30%, transparent);
+  box-shadow: 0 8px 30px -14px var(--neon-magenta); }
+.faixa-tv .marca-tv { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.faixa-tv .marca-tv svg.icon { color: var(--neon-cyan); font-size: 22px; }
+.faixa-tv .marca-tv b { display: block; font-family: var(--display); font-size: 14px; line-height: 1.1;
+  background: linear-gradient(90deg, #fff, var(--neon-cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.faixa-tv .marca-tv small { display: block; color: var(--ink-muted); font-size: 10.5px; }
+.faixa-tv .noticias { min-width: 0; overflow: hidden; position: relative; height: 30px;
+  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
+.faixa-tv .noticias .trem { position: absolute; top: 0; height: 100%; display: flex; align-items: center; gap: 36px; white-space: nowrap;
+  animation: corre-tv 60s linear infinite; }
+.faixa-tv .noticias .trem span { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
+.faixa-tv .noticias .trem span svg.icon { color: var(--neon-yellow); font-size: 15px; }
+.faixa-tv .noticias .trem span b { color: #fff; font-weight: 650; }
+@keyframes corre-tv { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.faixa-tv .relogio-tv { text-align: right; white-space: nowrap; }
+.faixa-tv .relogio-tv .hora { display: block; font-family: var(--display); font-size: 22px; line-height: 1; letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums; color: #fff; text-shadow: 0 0 14px color-mix(in srgb, var(--neon-cyan) 60%, transparent); }
+.faixa-tv .relogio-tv .dia { display: block; color: var(--ink-2); font-size: 11px; margin-top: 2px; }
+.faixa-tv .relogio-tv .proxima { display: block; color: var(--ink-muted); font-size: 10.5px; }
+@media (prefers-reduced-motion: reduce) { .faixa-tv .noticias .trem { animation: none; } .apresentacao .fato { animation: none; } }
+
 @media (max-width: 680px) { .apresentacao { grid-template-columns: minmax(0, 1fr); } }
 
 /* ---- o buscador no topo e a página de busca ---- */

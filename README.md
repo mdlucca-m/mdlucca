@@ -90,10 +90,14 @@ declarou vínculo e quem não apontou orientador.
 
 ### O modo mural
 
-`/mural` é a tela para deixar ligada na sala. Ela troca sozinha entre seis
-assuntos — o retrato de agora, prazos e pendências, os próximos compromissos,
-a produção por área, o que está em andamento e os destaques —, redesenha no
-instante em que alguém cadastra alguma coisa e não pede nenhum clique.
+`/mural` é a tela para deixar ligada na sala. Ela troca sozinha entre dez
+assuntos — o retrato de agora, a bancada, citações e produção por área, os
+próximos compromissos, prazos e pendências, a equipe, e as quatro telas da
+TV: temas e indicadores, ritmo da produção (tendência, faixa de confiança e
+projeção), os países que assinam e os acervos com a rotina automática —,
+redesenha no instante em que alguém cadastra alguma coisa e não pede nenhum
+clique. A fita embaixo corre com os últimos publicados, aceites, submissões
+e a rotina; a cotação em cima ganha PAISES e BIBLIO.
 
 | Ajuste | Como |
 |---|---|
@@ -104,6 +108,16 @@ instante em que alguém cadastra alguma coisa e não pede nenhum clique.
 | Tela cheia | tecla `F` |
 
 O botão **Modo mural**, no topo do painel, abre a mesma tela numa aba nova.
+
+### O Ao vivo na TV
+
+`/aovivo?tv=1` é o painel ao vivo para deixar passando na televisão: entra
+já apresentando e no automático, sem menu nem cabeçalho, com a faixa do
+relógio e das notícias em cima, os fatos de cada página (lidos do banco) na
+caixa de baixo, e a página rolando devagar para o que fica abaixo da dobra
+também passar. Cada página fica o tempo que precisa: Sinais e cálculo roda
+as oito análises, o globo pousa nos países. `Esc` volta ao painel normal.
+As telas novas da parede saem de `GET /api/tv`.
 
 ### Quem pode o quê
 

@@ -219,7 +219,15 @@ function tile(spec) {
     el("span", { class: "nome", text: spec.nome }),
   ]);
   const numero = el("div", { class: "n", text: "0" });
-  numero.dataset.alvo = String(spec.valor === null || spec.valor === undefined ? 0 : spec.valor);
+  if (typeof spec.valor === "string") {
+    /* texto ("Estudo transversal", "há 3 dias"): entra como está, sem contar */
+    numero.textContent = spec.valor;
+    numero.classList.add("texto");
+  } else {
+    numero.dataset.alvo = String(spec.valor === null || spec.valor === undefined ? 0 : spec.valor);
+    if (spec.decimais) numero.dataset.decimais = String(spec.decimais);
+    if (spec.prefixo) numero.dataset.prefixo = spec.prefixo;
+  }
   if (spec.sufixo) numero.dataset.sufixo = spec.sufixo;
   casa.appendChild(topo);
   casa.appendChild(numero);
@@ -840,6 +848,248 @@ function slideDestaques() {
   ]));
 }
 
+/* ==========================================================================
+   As telas da TV — o que a parede acrescenta ao painel
+   Vêm de /api/tv (`D.tv`): os indicadores temáticos do ano, o ritmo mensal
+   com tendência e projeção, os países que assinam, os acervos com a rotina
+   que os atualiza. Sem `D.tv` (o mural exportado em arquivo, ou a rota que
+   falhou), essas telas saem do ciclo em vez de aparecer vazias: a parede
+   não anuncia o que não tem.
+   ========================================================================== */
+function tv() { return D.tv || null; }
+
+/* O KPI temático vira um azulejo da parede: número com a unidade embaixo,
+   e a frase que diz de onde saiu. Valor em texto ("Estudo transversal")
+   entra como texto -- o azulejo não anima o que não é número. */
+const TOM_DO_KPI = { tempo: "cyan", aceite: "green", acesso_aberto: "yellow", internacional: "purple",
+  tipo: "orange", orientandos: "magenta", revistas: "blue", paises: "cyan" };
+const PASTILHA_DO_TOM = { cyan: "azul", green: "bom", yellow: "ambar", purple: "violeta",
+  orange: "laranja", magenta: "magenta", blue: "azul" };
+const SERIE_DO_TOM = { cyan: 1, green: 3, yellow: 4, purple: 7, orange: 2, magenta: 5, blue: 1 };
+function azulejoDoKpi(k) {
+  const tom = TOM_DO_KPI[k.code] || "blue";
+  const numero = typeof k.valor === "number";
+  return tile({
+    nome: k.rotulo, icone: k.icon || "achado", serie: SERIE_DO_TOM[tom], pastilha: PASTILHA_DO_TOM[tom],
+    valor: numero ? k.valor : (k.valor === null || k.valor === undefined ? "—" : String(k.valor)),
+    decimais: numero && Math.round(k.valor) !== k.valor ? 1 : 0,
+    sufixo: numero && k.unidade === "%" ? "%" : "",
+    pe: (numero && k.unidade && k.unidade !== "%" ? "<b>" + k.unidade + "</b> · " : "") + cortar(k.pe || "", 70),
+  });
+}
+
+/* Uma lista de frases lida de longe: ícone, negrito e o resto. */
+function frases(itens, icone) {
+  return el("ul", { class: "frases" }, itens.map(function (t) {
+    const texto = typeof t === "string" ? { forte: "", resto: t } : t;
+    return el("li", {}, [Icons.badge(texto.icone || icone || "achado", texto.tom || null, null),
+      el("span", {}, [texto.forte ? el("b", { text: texto.forte + " " }) : null,
+        document.createTextNode(texto.resto || "")])]);
+  }));
+}
+
+function slideTemas() {
+  const t = tv();
+  if (!t) return escalonar(el("div", { class: "slide" }, vazio("Os indicadores temáticos ainda não chegaram.")));
+  const kpis = {};
+  (t.temas.kpis || []).forEach(function (k) { kpis[k.code] = k; });
+  const ordem = ["tempo", "aceite", "acesso_aberto", "internacional", "revistas", "paises"];
+  const linha = el("div", { class: "linha-kpi" }, ordem.filter(function (c) { return kpis[c]; })
+    .map(function (c) { return azulejoDoKpi(kpis[c]); }));
+
+  const revistas = (t.temas.revistas || []).filter(function (r) { return r.value > 0; });
+  const grafico = revistas.length
+    ? C.bars({ items: revistas.map(function (r) { return { label: cortar(r.label, 44), value: r.value }; }),
+      unit: "artigos", caption: "revistas em que mais se publica", labelWidth: 250, rowH: 40 })
+    : vazio("Nenhum artigo publicado com revista informada.");
+
+  const ditos = [];
+  if (kpis.tipo && kpis.tipo.valor && kpis.tipo.valor !== "—") {
+    ditos.push({ icone: "experimento", forte: "Desenho mais frequente:", resto: kpis.tipo.valor + " — " + (kpis.tipo.pe || "") });
+  }
+  if (kpis.orientandos) {
+    ditos.push({ icone: "orientacao", forte: fmt(kpis.orientandos.valor) + " orientando(s) publicando",
+      resto: "em " + (t.periodo.ate || "") + " — " + (kpis.orientandos.pe || "") });
+  }
+  ["tempo", "aceite", "acesso_aberto", "internacional"].forEach(function (c) {
+    const k = kpis[c];
+    if (!k) return;
+    const valor = k.valor === null || k.valor === undefined ? "sem dado"
+      : (k.unidade === "%" ? String(k.valor).replace(".", ",") + "%" : fmt(k.valor) + " " + (k.unidade || ""));
+    ditos.push({ icone: k.icon || "achado", forte: k.rotulo + ":", resto: valor + " — " + (k.pe || "") });
+  });
+
+  return escalonar(el("div", { class: "slide" }, [
+    linha,
+    el("div", { class: "painel-duplo" }, [
+      quadro("Onde se publica", "citacao", grafico, revistas.length + (revistas.length === 1 ? " revista" : " revistas")),
+      quadro("O que os indicadores dizem", "achado", frases(ditos.slice(0, 6)), t.periodo.rotulo || ""),
+    ]),
+  ]));
+}
+
+function slideRitmo() {
+  const t = tv();
+  const s = t && t.sinais;
+  if (!s || !s.labels || !s.labels.length) {
+    return escalonar(el("div", { class: "slide" }, vazio("Sem curva mensal ainda: ela nasce com a data de publicação dos artigos.")));
+  }
+  const proj = s.projecao || { valores: [], alto: [], baixo: [], meses: [] };
+  const soma = function (v) { return (v || []).reduce(function (a, b) { return a + (Number(b) || 0); }, 0); };
+  const seisMeses = Math.round(soma(proj.valores));
+  const deriva = s.deriva_ano === null || s.deriva_ano === undefined ? null : Number(s.deriva_ano);
+  const ritmo = Number(s.ritmo) || 0;
+  const pe = function (texto) { return texto; };
+
+  const linha = el("div", { class: "linha-kpi" }, [
+    tile({ nome: "Ritmo", valor: ritmo, decimais: 2, icone: "subida", serie: 1,
+      pe: "publicações por mês" + (s.ritmo_antes !== null && s.ritmo_antes !== undefined
+        ? " · antes <b>" + String(Number(s.ritmo_antes).toFixed(2)).replace(".", ",") + "</b>" : "") }),
+    tile({ nome: "Deriva por ano", valor: deriva === null ? "—" : Math.abs(deriva), decimais: 2,
+      prefixo: deriva === null ? "" : (deriva > 0 ? "+" : deriva < 0 ? "−" : ""),
+      icone: deriva !== null && deriva < 0 ? "aviso" : "alvo", serie: deriva !== null && deriva < 0 ? 4 : 3,
+      pastilha: deriva !== null && deriva < 0 ? "ambar" : "bom",
+      pe: deriva === null ? "sem meses suficientes" : "publicações/mês a " + (deriva < 0 ? "menos" : "mais") + " a cada ano (R² " + String(Number(s.r2 || 0).toFixed(2)).replace(".", ",") + ")" }),
+    tile({ nome: "Próximos 6 meses", valor: seisMeses, icone: "prazo", serie: 7, pastilha: "violeta",
+      pe: proj.valores && proj.valores.length ? "entre <b>" + Math.round(soma(proj.baixo)) + "</b> e <b>" + Math.round(soma(proj.alto)) + "</b>, pela deriva" : "sem projeção" }),
+    tile({ nome: "Acumulado", valor: Math.round(Number(s.acumulado) || 0), icone: "producao", serie: 6, pastilha: "bom",
+      pe: "artigos com mês na janela de cinco anos" + (s.limite_k ? " · teto à vista <b>" + Math.round(s.limite_k) + "</b>" : "") }),
+  ]);
+
+  const grafico = C.lines({
+    labels: s.meses, height: 420, fill: true, caption: "publicações por mês, com a tendência e o intervalo de confiança",
+    series: [
+      { label: "Publicações", values: s.valores, area: true },
+      { label: "Tendência", values: s.tendencia, width: 3,
+        band: s.tendencia_alto && s.tendencia_alto.length ? { alto: s.tendencia_alto, baixo: s.tendencia_baixo } : null },
+    ],
+  });
+
+  const ditos = (s.leituras || []).map(function (l) { return { icone: "achado", resto: l }; });
+  /* a inflexão só entra se as leituras não a disseram -- a mesma frase
+     duas vezes na parede é a tela gaguejando */
+  if (s.inflexao && !ditos.some(function (d) { return /inflex/i.test(d.resto); })) {
+    ditos.push({ icone: "subida", tom: s.inflexao.sentido && s.inflexao.sentido.indexOf("acelerar") >= 0 ? "bom" : "alerta",
+      forte: "Última inflexão em " + s.inflexao.rotulo + ":", resto: "a tendência " + s.inflexao.sentido + "." });
+  }
+  if (proj.meses && proj.meses.length) {
+    ditos.push({ icone: "prazo", forte: "Projeção:", resto: proj.meses.map(function (m, i) {
+      return m + " " + String(Number(proj.valores[i]).toFixed(1)).replace(".", ","); }).join(" · ") });
+  }
+
+  return escalonar(el("div", { class: "slide" }, [
+    linha,
+    el("div", { class: "painel-duplo" }, [
+      quadro("Mês a mês, com tendência", "subida", grafico, s.meses[0] + " – " + s.meses[s.meses.length - 1]),
+      quadro("O que o cálculo diz", "achado", frases(ditos.slice(0, 6)), "regras escritas, não modelo"),
+    ]),
+  ]));
+}
+
+/* O ranking dos países: bandeira, nome, barra e número. É a lista do globo
+   do ao vivo, parada -- na parede ninguém espera o globo pousar. */
+function rankingDePaises(paises) {
+  const max = Math.max(1, ...paises.map(function (p) { return Number(p.n) || 0; }));
+  return el("ul", { class: "ranking" }, paises.map(function (p, i) {
+    const li = el("li", { style: "--w:" + Math.round(100 * (Number(p.n) || 0) / max) + "%;--i:" + i }, [
+      el("span", { class: "bandeira" }, [
+        typeof Bandeiras !== "undefined" && p.iso ? Bandeiras.get(p.iso, p.pais) : Icons.get("mapa", 18)]),
+      el("span", { class: "nome", text: p.pais }),
+      el("span", { class: "trilho" }, [el("i")]),
+      el("b", { text: fmt(p.n) }),
+    ]);
+    return li;
+  }));
+}
+
+function slideMundo() {
+  const t = tv();
+  const m = t && t.mundo;
+  if (!m) return escalonar(el("div", { class: "slide" }, vazio("O mapa dos países ainda não chegou.")));
+  const paises = m.paises || [];
+  const linha = el("div", { class: "linha-kpi" }, [
+    tile({ nome: "Países que assinam", valor: m.n_paises || 0, icone: "mapa", serie: 1, pe: "com ao menos um autor" }),
+    tile({ nome: "Fora do Brasil", valor: m.n_fora_do_brasil || 0, icone: "espaco", serie: 7, pastilha: "violeta",
+      pe: "colaboração internacional" }),
+    tile({ nome: "Artigos com país", valor: m.artigos_com_pais || 0, icone: "producao", serie: 3, pastilha: "bom",
+      pe: "autor com afiliação cadastrada" }),
+    tile({ nome: "Instituições", valor: m.instituicoes || 0, icone: "instituicao", serie: 4, pastilha: "ambar",
+      pe: "com endereço no mapa" }),
+  ]);
+  const ranking = paises.length ? rankingDePaises(paises)
+    : vazio("Nenhum país cadastrado nos autores ainda.");
+  const instituicoes = [];
+  paises.forEach(function (p) {
+    (p.instituicoes || []).forEach(function (nome) {
+      if (instituicoes.length < 8 && !instituicoes.some(function (x) { return x.resto === nome; })) {
+        instituicoes.push({ icone: "instituicao", forte: p.pais + " ·", resto: nome });
+      }
+    });
+  });
+  return escalonar(el("div", { class: "slide" }, [
+    linha,
+    el("div", { class: "painel-duplo igual" }, [
+      quadro("Países que assinam com o LAPE", "mapa", ranking,
+        "sede: " + ((m.sede && m.sede.nome) || "UDESC / CEFID")),
+      quadro("Instituições parceiras", "instituicao",
+        instituicoes.length ? frases(instituicoes) : vazio("Nenhuma instituição cadastrada nos autores."),
+        m.instituicoes ? fmt(m.instituicoes) + " no mapa" : ""),
+    ]),
+  ]));
+}
+
+const ROTULO_DO_PASSO = { producao: "Produção nas bases", citacoes: "Citações", acervos: "Acervos" };
+function slideAcervos() {
+  const t = tv();
+  if (!t) return escalonar(el("div", { class: "slide" }, vazio("Os acervos ainda não chegaram.")));
+  const acervos = t.acervos || [];
+  const registros = acervos.reduce(function (a, b) { return a + (b.total || 0); }, 0);
+  const segmentos = acervos.reduce(function (a, b) { return a + (b.segmentos || 0); }, 0);
+  const rodados = acervos.filter(function (a) { return a.rodada_em; });
+  const ultima = rodados.length ? rodados.map(function (a) { return a.rodada_em; }).sort().pop() : null;
+  const linha = el("div", { class: "linha-kpi" }, [
+    tile({ nome: "Acervos", valor: acervos.length, icone: "livro", serie: 1, pe: "bibliotecas temáticas abertas" }),
+    tile({ nome: "Registros", valor: registros, icone: "producao", serie: 3, pastilha: "bom", pe: "artigos lidos das bases" }),
+    tile({ nome: "Segmentos", valor: segmentos, icone: "linhas", serie: 4, pastilha: "ambar", pe: "recortes de leitura" }),
+    tile({ nome: "Última rodada", valor: ultima ? haQuanto(diasAte(ultima)) : "—", icone: "relogio", serie: 7, pastilha: "violeta",
+      pe: ultima ? dataCurta(ultima) : "nenhuma busca rodou ainda" }),
+  ]);
+  const CABEM = 8;
+  const tabela = acervos.length ? el("table", { class: "placar" }, [
+    el("thead", {}, el("tr", {}, [el("th", { text: "Acervo" }), el("th", { text: "Registros" }),
+      el("th", { text: "Segmentos" }), el("th", { text: "Bases" })])),
+    el("tbody", {}, acervos.slice(0, CABEM).map(function (a) {
+      return el("tr", {}, [
+        el("td", {}, el("div", { class: "quem" }, [Icons.badge("livro", null, 22), el("span", { text: cortar(a.title, 40) })])),
+        el("td", { text: fmt(a.total) }), el("td", { text: fmt(a.segmentos) }),
+        el("td", { text: a.bases ? a.bases_ok + " de " + a.bases + " ok" : "—" }),
+      ]);
+    })),
+  ]) : vazio("Nenhum acervo instalado.");
+
+  const r = t.rotina || {};
+  const passos = (r.passos || []).map(function (p) {
+    const tom = p.status === "erro" ? "critico" : (p.vencido ? "alerta" : (p.ultima_boa ? "bom" : "azul"));
+    const quando = p.ultima_boa ? "rodou " + haQuanto(diasAte(p.ultima_boa))
+      + (p.trouxe !== null && p.trouxe !== undefined ? " e trouxe " + fmt(p.trouxe) : "") : "ainda não rodou";
+    const proxima = p.proxima ? " · volta " + porExtenso(diasAte(p.proxima)) : "";
+    return { icone: "processo", tom: tom, forte: (ROTULO_DO_PASSO[p.passo] || p.rotulo || p.passo) + ":",
+      resto: quando + " · a cada " + p.intervalo_h + " h" + proxima + (p.status === "erro" && p.mensagem ? " · " + cortar(p.mensagem, 60) : "") };
+  });
+  passos.unshift({ icone: r.ligada ? "tocar" : "pausa", tom: r.ligada ? "bom" : "alerta",
+    forte: r.ligada ? "Rotina ligada:" : "Rotina desligada:",
+    resto: r.ligada ? "produção e citações a cada dia, acervos a cada semana, sem ninguém apertar botão."
+      : "os passos só rodam quando alguém pede na área do integrante." });
+
+  return escalonar(el("div", { class: "slide" }, [
+    linha,
+    el("div", { class: "painel-duplo igual" }, [
+      quadro("Cada acervo", "livro", tabela, acervos.length > CABEM ? "e mais " + (acervos.length - CABEM) : ""),
+      quadro("Rotina automática", "processo", frases(passos), r.ligada ? "ligada" : "desligada"),
+    ]),
+  ]));
+}
+
 /* A ordem é a de quem passa na frente da tela: primeiro o retrato de agora,
    depois o que está na mão de alguém (em produção, submetido), depois o que
    já rendeu -- citações e a produção por área, na mesma tela --, depois o
@@ -865,6 +1115,15 @@ const SLIDES = [
     apresenta: "Datas de defesa, fim de projeto e de bolsa, e manuscritos parados há muito tempo com a revista." },
   { id: "destaques", titulo: "Nossa equipe", icone: "pessoas", montar: slideDestaques,
     apresenta: "Quem faz o laboratório: nome, vínculo e a linha em que cada pessoa trabalha." },
+  /* As quatro da TV: só entram no ciclo quando `D.tv` chegou. */
+  { id: "temas", titulo: "Temas e indicadores", icone: "achado", montar: slideTemas, tv: true,
+    apresenta: "O que os quatro números não contam: quanto tempo leva publicar, quanto é aceito, quanto é aberto, com quem se publica e onde." },
+  { id: "ritmo", titulo: "Ritmo da produção", icone: "subida", montar: slideRitmo, tv: true,
+    apresenta: "A curva mensal lida com cálculo: o ritmo, a deriva por ano, a tendência com a faixa de confiança e o que os próximos seis meses devem trazer." },
+  { id: "mundo", titulo: "Pelo mundo", icone: "mapa", montar: slideMundo, tv: true,
+    apresenta: "Os países que assinam com o laboratório e as instituições parceiras, por número de artigos." },
+  { id: "acervos", titulo: "Acervos e rotina", icone: "livro", montar: slideAcervos, tv: true,
+    apresenta: "As bibliotecas temáticas: quantos registros, em quantos segmentos, e a rotina que as atualiza sozinha." },
 ];
 
 /* As paletas de fundo, as mesmas do ao vivo. A escolha é lida de
@@ -900,15 +1159,16 @@ function aplicarPaleta(code) {
 
 /* ?slides=agora,prazos escolhe quais telas entram no ciclo */
 function ciclo() {
+  const disponiveis = SLIDES.filter(function (s) { return !s.tv || D.tv; });
   const pedido = (PARAMS.get("slides") || "").split(",").map(function (s) { return s.trim(); })
     .filter(Boolean);
-  if (!pedido.length) return SLIDES;
+  if (!pedido.length) return disponiveis;
   const escolhidos = pedido.map(function (id) {
-    return SLIDES.find(function (s) { return s.id === id; });
+    return disponiveis.find(function (s) { return s.id === id; });
   }).filter(Boolean);
-  return escolhidos.length ? escolhidos : SLIDES;
+  return escolhidos.length ? escolhidos : disponiveis;
 }
-const ROTEIRO = ciclo();
+const ROTEIRO = ciclo();   /* o ciclo de partida; `refazerRoteiro` o troca quando a TV chega */
 
 /* ==========================================================================
    Motor: quem troca a tela
@@ -968,15 +1228,22 @@ function marcarPontos(indice) {
 function animarNumeros(escopo) {
   const lento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   escopo.querySelectorAll(".tile .n").forEach(function (node) {
+    if (node.dataset.alvo === undefined) return;   /* azulejo de texto */
     const alvo = Number(node.dataset.alvo) || 0;
     const sufixo = node.dataset.sufixo || "";
-    if (lento || alvo === 0) { node.textContent = fmt(alvo) + sufixo; return; }
+    const prefixo = node.dataset.prefixo || "";
+    const decimais = Number(node.dataset.decimais) || 0;
+    /* com decimais o número é escrito como no país: vírgula, não ponto */
+    const escreve = function (v) {
+      return prefixo + (decimais ? v.toFixed(decimais).replace(".", ",") : fmt(Math.round(v))) + sufixo;
+    };
+    if (lento || alvo === 0) { node.textContent = escreve(alvo); return; }
     const duracao = 900;
     const partida = performance.now();
     (function passo(agora) {
       const t = Math.min(1, (agora - partida) / duracao);
       const suave = 1 - Math.pow(1 - t, 3);
-      node.textContent = fmt(Math.round(alvo * suave)) + sufixo;
+      node.textContent = escreve(alvo * suave);
       if (t < 1) requestAnimationFrame(passo);
     })(partida);
   });
@@ -1128,6 +1395,13 @@ function cotacoes() {
     { sigla: "EQUIPE", valor: o.n_members, delta: medido("integrantes"),
       base: "30 d", bom: "sobe" },
   ];
+  /* Os da TV: sem segunda medicao, e sem seta -- a faixa diz "—". */
+  const t = D.tv;
+  if (t) {
+    lista.push({ sigla: "PAISES", valor: t.mundo && t.mundo.n_paises, delta: null, base: "", bom: "sobe" });
+    lista.push({ sigla: "BIBLIO", valor: (t.acervos || []).reduce(function (a, b) {
+      return a + (b.total || 0); }, 0), delta: null, base: "", bom: "sobe" });
+  }
   /* Indicador que o laboratorio ainda nao tem nao vira "0" na parede: sai
      da faixa. Zero de indice h nao e zero -- e ninguem ter declarado. */
   return lista.filter(function (x) {
@@ -1187,17 +1461,50 @@ function desenharFita() {
     itens.push({ icone: p.icone, forte: cortar(p.titulo, 60),
       resto: p.dias === null ? p.espera + " dias de espera" : porExtenso(p.dias) });
   });
+  noticiasDaTv().forEach(function (n) { itens.push(n); });
   if (!itens.length) {
     itens.push({ icone: "painel", forte: "LAPE", resto: "sem compromissos registrados" });
   }
+  /* com as notícias da TV a fita é mais longa, e corre mais tempo por
+     volta: a velocidade é a mesma, senão o texto vira borrão */
+  const cabem = D.tv ? 22 : 12;
   const bloco = function () {
-    return itens.slice(0, 12).map(function (x) {
+    return itens.slice(0, cabem).map(function (x) {
       return el("span", {}, [Icons.get(x.icone, 15), el("b", { text: x.forte }),
         document.createTextNode(" · " + x.resto)]);
     });
   };
   bloco().forEach(function (n) { casa.appendChild(n); });
   bloco().forEach(function (n) { casa.appendChild(n); });
+  casa.style.animationDuration = Math.round(44 * Math.min(itens.length, cabem) / 12) + "s";
+}
+
+/* As notícias que só a TV tem: últimos publicados, aceites, submissões e
+   a rotina. Cada item diz o que aconteceu e quando -- "Publicado" sem
+   data seria uma manchete velha passando por nova. */
+function noticiasDaTv() {
+  const t = tv();
+  if (!t) return [];
+  const n = t.noticias || {};
+  const itens = [];
+  (n.publicados || []).slice(0, 4).forEach(function (a) {
+    itens.push({ icone: "producao", forte: "Publicado: " + cortar(a.titulo, 64),
+      resto: [a.revista, a.data ? dataCurta(a.data) : (a.ano ? String(a.ano) : "")].filter(Boolean).join(" · ") || "sem data" });
+  });
+  (n.aceitos || []).slice(0, 3).forEach(function (a) {
+    itens.push({ icone: "aceite", forte: "Aceito: " + cortar(a.titulo, 64),
+      resto: [a.revista, a.data ? haQuanto(diasAte(a.data)) : ""].filter(Boolean).join(" · ") || "sem data" });
+  });
+  (n.submetidos || []).slice(0, 3).forEach(function (a) {
+    itens.push({ icone: "submissao", forte: "Submetido: " + cortar(a.titulo, 64),
+      resto: [a.revista, a.data ? haQuanto(diasAte(a.data)) : ""].filter(Boolean).join(" · ") || "sem data" });
+  });
+  ((t.rotina && t.rotina.passos) || []).forEach(function (p) {
+    if (!p.ultima_boa) return;
+    itens.push({ icone: "processo", forte: "Rotina · " + (ROTULO_DO_PASSO[p.passo] || p.rotulo),
+      resto: "rodou " + haQuanto(diasAte(p.ultima_boa)) + (p.proxima ? " · volta " + porExtenso(diasAte(p.proxima)) : "") });
+  });
+  return itens;
 }
 
 /* ------------------------------------------------------- tempo real (SSE) */
@@ -1231,10 +1538,21 @@ function marcarVivo(ligado, piscar) {
   }
 }
 function rebuscar() {
-  fetch("/api/metrics", { credentials: "same-origin" })
-    .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error(r.status)); })
-    .then(function (novo) {
+  const pega = function (caminho) {
+    return fetch(caminho, { credentials: "same-origin" })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error(r.status)); });
+  };
+  /* a TV é a segunda busca, e pode falhar sozinha: o mural fica com a
+     última TV boa em vez de perder o painel inteiro */
+  Promise.all([pega("/api/metrics"), pega("/api/tv").catch(function () { return D.tv || null; })])
+    .then(function (par) {
+      const novo = par[0];
+      novo.tv = par[1];
       D = novo;
+      const idAtual = ROTEIRO[atual] && ROTEIRO[atual].id;
+      ROTEIRO.splice.apply(ROTEIRO, [0, ROTEIRO.length].concat(ciclo()));
+      const onde = ROTEIRO.findIndex(function (s) { return s.id === idAtual; });
+      atual = onde >= 0 ? onde : 0;
       desenharFita();
       desenharCotacao();
       desenhar(atual, "quieto");

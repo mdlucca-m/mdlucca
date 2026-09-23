@@ -18,7 +18,7 @@ const el = C.el;
 
 const D = { pronto: false };
 const ST = { periodo: "ano", aba: "painel", menuAberto: false, apresentando: false, auto: false,
-  busca: "", analise: "curva", autoAnalise: false, explicadas: 0, pausada: false };
+  busca: "", analise: "curva", autoAnalise: false, explicadas: 0, pausada: false, tv: false };
 
 /* As paletas de fundo. A escolha vai para `lape-paleta` no navegador, que
    é o mesmo lugar que o mural lê: quem escolhe aqui escolhe lá. */
@@ -1672,6 +1672,172 @@ function desenhar() {
   else desenharPainel(palco);
   palco.appendChild(el("div", { class: "aviso-rodape", text: D.aviso + " Gerado em " + data(D.gerado_em) + "." }));
   desenharApresentacao();
+  desenharFaixaTv();
+}
+
+/* ------------------------------------------------------------ modo TV */
+/* `/aovivo?tv=1` é a tela que fica passando na televisão: entra já
+   apresentando e no automático, sem menu nem cabeçalho, com o relógio,
+   as notícias correndo e os fatos de cada página na caixa. Cada página
+   fica o tempo que precisa -- o cálculo roda as suas análises, o globo
+   pousa nos países -- e o ciclo recomeça sozinho. */
+const SEGUNDOS_DA_ABA = { sinais: 60, mundo: 45, busca: 15, caminho: 20 };
+function segundosDa(aba) { return (ST.tv && SEGUNDOS_DA_ABA[aba]) || AUTO_SEGUNDOS; }
+
+/* Os fatos ao vivo de cada página: números lidos do banco, na caixa de
+   apresentação, para quem só vê a TV de passagem. Não é texto de modelo:
+   cada fato é um campo do payload com o seu rótulo. */
+function fatoDe(rotulo, valor, tom, unidade) {
+  if (valor === null || valor === undefined || valor === "") return null;
+  const texto = typeof valor === "number" ? C.fmt(valor) : String(valor);
+  return { rotulo: rotulo, valor: texto + (unidade ? " " + unidade : ""), tom: tom || NEON.cyan };
+}
+function fatosDaAba(aba) {
+  const fatos = [];
+  const push = function (f) { if (f) fatos.push(f); };
+  if (aba === "painel") {
+    (D.kpis || []).forEach(function (k) {
+      const tom = { publicacoes: NEON.blue, submissoes: NEON.cyan, aceites: NEON.green, citacoes: NEON.purple }[k.code];
+      push(fatoDe(k.rotulo, k.valor, tom, k.pct !== null && k.pct !== undefined ? "(" + pct(k.pct) + ")" : ""));
+    });
+    const lider = ((D.por_linha || {}).items || [])[0];
+    if (lider) push(fatoDe("Linha que mais publica", cortar(lider.label, 34), NEON.orange, "(" + C.fmt(lider.value) + ")"));
+  } else if (aba === "temas") {
+    ((D.temas || {}).kpis || []).forEach(function (k) {
+      if (k.valor === null || k.valor === undefined) return;
+      const v = k.unidade === "%" ? String(k.valor).replace(".", ",") + "%" : k.valor;
+      push(fatoDe(k.rotulo, v, NEON[k.tom] || NEON.cyan, k.unidade && k.unidade !== "%" ? k.unidade.split(" ")[0] : ""));
+    });
+  } else if (aba === "sinais") {
+    const s = D.sinais || {};
+    const reg = s.regressao || {}, proj = s.projecao || {}, lim = s.limite || {};
+    push(fatoDe("Ritmo", s.ritmo !== undefined && s.ritmo !== null ? String(Number(s.ritmo).toFixed(2)).replace(".", ",") : null, NEON.cyan, "pub./mês"));
+    if (reg.deriva_ano !== null && reg.deriva_ano !== undefined) {
+      push(fatoDe("Deriva", (reg.deriva_ano > 0 ? "+" : "") + String(Number(reg.deriva_ano).toFixed(2)).replace(".", ","), reg.deriva_ano < 0 ? NEON.red : NEON.green, "/mês por ano"));
+    }
+    if (proj.valores && proj.valores.length) {
+      push(fatoDe("Próximos 6 meses", Math.round(proj.valores.reduce(function (a, b) { return a + b; }, 0)), NEON.purple, "artigos"));
+    }
+    push(fatoDe("Na janela", s.soma, NEON.blue, "artigos"));
+    if (s.sinal_ruido !== null && s.sinal_ruido !== undefined) push(fatoDe("Sinal/ruído", String(Number(s.sinal_ruido).toFixed(2)).replace(".", ","), NEON.yellow));
+    if (lim.K) push(fatoDe("Teto à vista", Math.round(lim.K), NEON.orange, "artigos"));
+    const inf = (s.inflexoes || []).slice(-1)[0];
+    if (inf) push(fatoDe("Última inflexão", inf.rotulo, NEON.magenta));
+  } else if (aba === "mundo") {
+    const m = D.mundo || {};
+    const paises = (m.paises || []).slice().sort(function (a, b) { return b.n - a.n; });
+    push(fatoDe("Países", paises.length + (m.sem_coordenada || []).length, NEON.cyan));
+    push(fatoDe("Artigos com país", m.artigos_com_pais, NEON.green));
+    push(fatoDe("Instituições no mapa", (m.instituicoes || []).length, NEON.yellow));
+    paises.slice(0, 3).forEach(function (p) { push(fatoDe(p.pais, p.n, NEON.blue, "artigos")); });
+  } else if (aba === "busca") {
+    push(fatoDe("Linhas", ((D.por_linha || {}).items || []).length, NEON.cyan));
+    push(fatoDe("Acervos", (D.acervos || []).length, NEON.yellow));
+    push(fatoDe("Segmentos", (D.acervos || []).reduce(function (a, b) { return a + ((b.segmentos || []).length); }, 0), NEON.green));
+    push(fatoDe("Artigos", ((D.kpis || []).find(function (k) { return k.code === "publicacoes"; }) || {}).valor, NEON.blue, "publicados"));
+  } else if (aba === "acervos") {
+    const ac = D.acervos || [];
+    push(fatoDe("Acervos", ac.length, NEON.cyan));
+    push(fatoDe("Registros", ac.reduce(function (a, b) { return a + (b.total || 0); }, 0), NEON.green));
+    push(fatoDe("Segmentos", ac.reduce(function (a, b) { return a + ((b.segmentos || []).length); }, 0), NEON.yellow));
+    const maior = ac.slice().sort(function (a, b) { return (b.total || 0) - (a.total || 0); })[0];
+    if (maior) push(fatoDe("Maior acervo", cortar(maior.title, 34), NEON.orange, "(" + C.fmt(maior.total || 0) + ")"));
+  } else if (aba === "triagens") {
+    const tr = D.triagens || [];
+    push(fatoDe("Revisões", tr.length, NEON.cyan));
+    const soma = function (campo) { return tr.reduce(function (a, r) { return a + ((r.fluxo || {})[campo] || 0); }, 0); };
+    push(fatoDe("Identificados", soma("identificados"), NEON.blue));
+    push(fatoDe("Triados", soma("triados"), NEON.green));
+    push(fatoDe("Pendentes", soma("pendentes"), NEON.yellow));
+    push(fatoDe("Incluídos", soma("incluidos"), NEON.purple));
+  } else if (aba === "bases") {
+    const bs = D.bases || [];
+    const conta = function (estado) { return bs.filter(function (b) { return b.estado === estado; }).length; };
+    push(fatoDe("Bases", bs.length, NEON.cyan));
+    push(fatoDe("Rodando", conta("ok"), NEON.green));
+    push(fatoDe("Com erro", conta("erro"), NEON.red));
+    push(fatoDe("Estratégia pronta", conta("pronta"), NEON.yellow));
+    push(fatoDe("Nunca rodou", conta("nunca rodou"), NEON.orange));
+  } else if (aba === "caminho") {
+    (D.caminho || []).forEach(function (e, i) { push(fatoDe(e.rotulo, e.valor, TOM_DA_ETAPA[i % TOM_DA_ETAPA.length])); });
+  } else if (aba === "doze") {
+    push(fatoDe("Gráficos", (D.doze || []).length, NEON.cyan));
+    push(fatoDe("Período", (D.periodo || {}).rotulo, NEON.blue));
+    push(fatoDe("Linhas", ((D.por_linha || {}).items || []).length, NEON.green));
+  }
+  return fatos.slice(0, 7);
+}
+
+/* A fileira de fatos: rótulo em cima, número em baixo, cada um com o seu
+   tom -- e entram um atrás do outro. */
+function fileiraDeFatos(aba) {
+  const fatos = fatosDaAba(aba);
+  if (!fatos.length) return null;
+  return el("div", { class: "fatos" }, fatos.map(function (f, i) {
+    return el("span", { class: "fato", style: "--tom:" + f.tom + ";--i:" + i }, [
+      el("small", { text: f.rotulo }), el("b", { text: f.valor })]);
+  }));
+}
+
+/* As notícias que correm na TV: últimos publicados, aceites, submissões
+   e os próximos compromissos -- cada uma com a sua data. */
+const ICONE_DO_EVENTO = { reuniao: "reuniao", congresso: "anuncio", seminario: "apresentacao", coleta: "experimento",
+  curso: "livro", palestra: "anuncio", workshop: "livro", defesa: "tese", defesa_tese: "tese", qualificacao: "tese",
+  banca: "tese", extensao: "pessoas", visita_tecnica: "instituicao", visita: "instituicao" };
+function noticiasDaTv() {
+  const n = D.noticias || {};
+  const itens = [];
+  (n.publicados || []).slice(0, 4).forEach(function (a) {
+    itens.push({ icone: "livro", forte: "Publicado: " + cortar(a.titulo, 70),
+      resto: [a.revista, a.data ? data(a.data) : (a.ano ? String(a.ano) : "")].filter(Boolean).join(" · ") });
+  });
+  (n.aceitos || []).slice(0, 3).forEach(function (a) {
+    itens.push({ icone: "aceite", forte: "Aceito: " + cortar(a.titulo, 70), resto: [a.revista, a.data ? data(a.data) : ""].filter(Boolean).join(" · ") });
+  });
+  (n.submetidos || []).slice(0, 3).forEach(function (a) {
+    itens.push({ icone: "submissao", forte: "Submetido: " + cortar(a.titulo, 70), resto: [a.revista, a.data ? data(a.data) : ""].filter(Boolean).join(" · ") });
+  });
+  (n.eventos || []).slice(0, 5).forEach(function (e) {
+    itens.push({ icone: ICONE_DO_EVENTO[e.tipo] || "calendario", forte: e.titulo,
+      resto: [e.quando ? data(e.quando) : "", e.local].filter(Boolean).join(" · ") });
+  });
+  return itens;
+}
+
+let relogioTv = null;
+function desenharFaixaTv() {
+  let faixa = document.getElementById("faixaTv");
+  clearInterval(relogioTv); relogioTv = null;
+  if (!ST.tv) { if (faixa) faixa.remove(); return; }
+  if (!faixa) { faixa = el("div", { class: "faixa-tv", id: "faixaTv", role: "region", "aria-label": "Faixa da TV" }); document.body.appendChild(faixa); }
+  faixa.innerHTML = "";
+  const indice = ABAS.findIndex(function (a) { return a[0] === ST.aba; });
+  const proxima = ABAS[(indice + 1) % ABAS.length];
+  const hora = el("b", { class: "hora" });
+  const dia = el("small", { class: "dia" });
+  const bate = function () {
+    const agora = new Date();
+    hora.textContent = String(agora.getHours()).padStart(2, "0") + ":" + String(agora.getMinutes()).padStart(2, "0");
+    const DIAS = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
+    dia.textContent = DIAS[agora.getDay()] + ", " + agora.getDate() + " de " + C.MESES[agora.getMonth()].toLowerCase();
+  };
+  bate();
+  relogioTv = setInterval(bate, 15000);
+  faixa.appendChild(el("div", { class: "marca-tv" }, [icone("painel"), el("span", {}, [
+    el("b", { text: "LAPE ao vivo" }), el("small", { text: "UDESC / CEFID" })])]));
+  const noticias = noticiasDaTv();
+  const trem = el("div", { class: "trem" });
+  const bloco = function () {
+    return noticias.map(function (x) {
+      return el("span", {}, [icone(x.icone), el("b", { text: x.forte }), document.createTextNode(x.resto ? " · " + x.resto : "")]);
+    });
+  };
+  if (noticias.length) { bloco().forEach(function (n) { trem.appendChild(n); }); bloco().forEach(function (n) { trem.appendChild(n); }); }
+  else trem.appendChild(el("span", {}, [icone("painel"), el("b", { text: "LAPE" }), document.createTextNode(" · sem notícias registradas")]));
+  trem.style.animationDuration = Math.max(30, Math.round(noticias.length * 5)) + "s";
+  faixa.appendChild(el("div", { class: "noticias" }, [trem]));
+  faixa.appendChild(el("div", { class: "relogio-tv" }, [hora, dia,
+    el("small", { class: "proxima", text: "a seguir: " + proxima[1] + (D.gerado_em ? " · dados de " + data(D.gerado_em).slice(-5) : "") })]));
 }
 
 /* ------------------------------------------------------ apresentação */
@@ -1683,6 +1849,7 @@ function desenharApresentacao() {
   let caixa = document.getElementById("apresentacao");
   clearInterval(relogioAuto); relogioAuto = null;
   document.body.classList.toggle("apresentando", ST.apresentando);
+  document.body.classList.toggle("tv", ST.tv);
   if (!ST.apresentando) { if (caixa) caixa.remove(); return; }
   if (!caixa) { caixa = el("div", { class: "apresentacao", id: "apresentacao", role: "region", "aria-label": "Apresentação" }); document.body.appendChild(caixa); }
   caixa.innerHTML = "";
@@ -1706,6 +1873,10 @@ function desenharApresentacao() {
     ST.explicadas = ST.explicadas >= mais.length ? 0 : ST.explicadas + 1; desenharApresentacao();
   });
   caixa.appendChild(bloco);
+  /* os fatos ao vivo da página: os números, lidos do banco, na caixa --
+     embaixo do texto no projetor, ao lado dele na TV */
+  const fatos = D.pronto ? fileiraDeFatos(ST.aba) : null;
+  if (fatos) caixa.appendChild(fatos);
   const pontos = el("span", { class: "pontos" }, ABAS.map(function (a, i) {
     return el("i", { class: i === indice ? "on" : "", title: a[1], onclick: function () { irPara(i); } }); }));
   caixa.appendChild(el("div", { class: "passos" }, [
@@ -1713,7 +1884,7 @@ function desenharApresentacao() {
     botaoMais,
     el("button", { type: "button", text: "◀ Anterior", onclick: function () { irPara(indice - 1); } }),
     el("button", { type: "button", class: "seguir", text: "Seguir ▶", onclick: function () { irPara(indice + 1); } }),
-    el("button", { type: "button", class: ST.auto ? "on" : "", text: ST.auto ? "Auto: ligado" : "Auto (" + AUTO_SEGUNDOS + " s)",
+    el("button", { type: "button", class: ST.auto ? "on" : "", text: ST.auto ? "Auto: ligado" : "Auto (" + segundosDa(ST.aba) + " s)",
       onclick: function () { ST.auto = !ST.auto; desenharApresentacao(); } }),
   ]));
   const barra = el("div", { class: "barra" }, [el("i")]);
@@ -1728,17 +1899,31 @@ function desenharApresentacao() {
       const agora = performance.now();
       if (!ST.pausada) decorrido += agora - ultimo;
       ultimo = agora;
-      const k = Math.min(1, decorrido / (AUTO_SEGUNDOS * 1000));
+      const k = Math.min(1, decorrido / (segundosDa(ST.aba) * 1000));
       barra.firstChild.style.width = (k * 100).toFixed(1) + "%";
+      if (ST.tv) passearPelaPagina(k);
       if (k >= 1) irPara(indice + 1);
     }, 200);
   }
+}
+
+/* Na TV ninguém rola a página: ela rola sozinha. Fica no alto no primeiro
+   quarto do tempo, desce devagar até o fim no meio, e fica embaixo no
+   último décimo -- o que está abaixo da dobra também passa pela tela. */
+function passearPelaPagina(k) {
+  const alcance = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  if (!alcance) return;
+  const t = Math.min(1, Math.max(0, (k - 0.25) / 0.65));
+  const suave = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  window.scrollTo(0, Math.round(alcance * suave));
 }
 
 function irPara(indice) {
   const n = ABAS.length;
   ST.aba = ABAS[((indice % n) + n) % n][0];
   ST.explicadas = 0;
+  /* na TV, a página do cálculo passa sozinha de análise em análise */
+  if (ST.tv) { ST.autoAnalise = true; ST.analise = ANALISES[0][0]; }
   location.hash = ST.aba;
   window.scrollTo(0, 0);
   desenhar();
@@ -1749,7 +1934,7 @@ document.addEventListener("keydown", function (ev) {
   const indice = ABAS.findIndex(function (a) { return a[0] === ST.aba; });
   if (ev.key === "ArrowRight" || ev.key === " ") { ev.preventDefault(); irPara(indice + 1); }
   else if (ev.key === "ArrowLeft") irPara(indice - 1);
-  else if (ev.key === "Escape") { ST.apresentando = false; ST.auto = false; desenhar(); }
+  else if (ev.key === "Escape") { ST.apresentando = false; ST.auto = false; ST.tv = false; desenhar(); }
 });
 
 /* ------------------------------------------------------------ paleta */
@@ -1811,8 +1996,21 @@ function marcarPulso(texto, ligado) {
   }
   const aba = location.hash.replace("#", "").split("?")[0];
   if (ABAS.some(function (a) { return a[0] === aba; })) ST.aba = aba;
-  const q = new URLSearchParams(location.search).get("q");
+  const params = new URLSearchParams(location.search);
+  const q = params.get("q");
   if (q) { ST.busca = q; ST.aba = "busca"; }
+  /* ?tv=1: a tela da televisão -- apresentando, no automático, e o
+     cursor some quando ninguém mexe */
+  if (["1", "sim", "true"].indexOf(String(params.get("tv") || "").toLowerCase()) >= 0) {
+    ST.tv = true; ST.apresentando = true; ST.auto = true; ST.autoAnalise = ST.aba === "sinais";
+    let sumico = null;
+    document.addEventListener("mousemove", function () {
+      document.body.classList.remove("quieto");
+      clearTimeout(sumico);
+      sumico = setTimeout(function () { document.body.classList.add("quieto"); }, 3000);
+    });
+    sumico = setTimeout(function () { document.body.classList.add("quieto"); }, 3000);
+  }
   desenhar();
   carregar();
   ligarAoVivo();

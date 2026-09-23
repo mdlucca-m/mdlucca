@@ -1192,6 +1192,13 @@ def buscar(db: Database, q: str, quem: int | None = None, perfil: str = "leitura
     return saida
 
 
+def _noticias(db: Database, hoje: date) -> dict[str, Any]:
+    """As últimas notícias, para a faixa que corre no modo TV."""
+    from . import tv
+
+    return tv.noticias(db, hoje)
+
+
 def montar(db: Database, periodo_code: str | None = None,
            hoje: date | None = None, quem: int | None = None,
            perfil: str = "leitura") -> dict[str, Any]:
@@ -1216,6 +1223,7 @@ def montar(db: Database, periodo_code: str | None = None,
         "temas": temas(db, per, hoje),
         "mundo": mundo(db),
         "sinais": sinais.analisar(db, hoje),
+        "noticias": _noticias(db, hoje),
         "aviso": ("As leituras são calculadas a partir do banco, e cada uma diz a regra "
                   "de onde saiu. Não há modelo de linguagem aqui: o que não pode ser "
                   "refeito a partir dos dados não entra."),

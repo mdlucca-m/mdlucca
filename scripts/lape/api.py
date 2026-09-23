@@ -2413,6 +2413,14 @@ def route_aovivo(ctx: "Context") -> Any:
                          perfil=(ctx.user or {}).get("user_role", "leitura"))
 
 
+def route_tv(ctx: "Context") -> Any:
+    """O que a parede acrescenta ao painel: temas, ritmo, mundo, acervos, rotina, noticias."""
+    from . import tv
+
+    auth.require(ctx.user, "leitura")
+    return tv.para_a_tv(ctx.db)
+
+
 def route_rotina(ctx: "Context") -> Any:
     """A rotina automatica: cada passo, quando rodou, o que trouxe, quando volta."""
     from . import rotina
@@ -2568,6 +2576,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/citacoes/atualizar/?$", route_citacoes_atualizar, "coordenacao"),
     ("GET", r"^/api/panorama/?$", route_panorama, "leitura"),
     ("GET", r"^/api/aovivo/?$", route_aovivo, "leitura"),
+    ("GET", r"^/api/tv/?$", route_tv, "leitura"),
     ("GET", r"^/api/buscar/?$", route_buscar, "leitura"),
     ("GET", r"^/api/rotina/?$", route_rotina, "leitura"),
     ("POST", r"^/api/rotina/rodar/?$", route_rotina_rodar, "coordenacao"),
@@ -2877,6 +2886,16 @@ class Handler(BaseHTTPRequestHandler):
                 (user or {}).get("user_role", "leitura"), 0) >= auth.ROLE_RANK["coordenacao"]
             payload = metrics.build_payload(db, com_dados_da_coordenacao=da_coordenacao)
             payload["session"] = {"live": True, "user": user}
+            if mural:
+                # As telas que a parede acrescenta (temas, ritmo, mundo,
+                # acervos, rotina, noticias). Se falharem, o mural sobe
+                # sem elas -- uma tela a menos e melhor que uma TV em 500.
+                try:
+                    from . import tv
+                    payload["tv"] = tv.para_a_tv(db)
+                except Exception:
+                    traceback.print_exc()
+                    payload["tv"] = None
             html = report.render_mural(payload) if mural else report.render_html(payload)
         except Exception as exc:
             traceback.print_exc()
