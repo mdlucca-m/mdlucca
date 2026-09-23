@@ -1690,177 +1690,6 @@ function relogio() {
     DIAS_EXT[agora.getDay()] + ", " + agora.getDate() + " de " + MESES_EXT[agora.getMonth()];
 }
 
-/* ------------------------------------------------------- faixa de cotação */
-/* Os indicadores do laboratório correndo no topo, no formato de painel de
-   bolsa: sigla, valor e variação.
-
-   TRES DECISOES QUE NAO SAO ESTETICAS.
-
-   1. VARIACAO SO COM DUAS MEDICOES. O `history` do payload traz
-      `delta_30d`, que e `null` enquanto o lakehouse tiver rodado uma vez
-      so -- e ele chega `null` mesmo. Um "▲ 0" ali diria a parede inteira
-      que nada mudou, quando a verdade e que nada foi medido duas vezes.
-      Sem variacao, a cotacao aparece so com o valor.
-
-   2. A BASE DA COMPARACAO VAI ESCRITA. "30 d" e medido; "vs 2025" e
-      contado. Uma seta sem base e uma seta sobre o que a pessoa imaginar.
-
-   3. SUBIR NAO E BOM PARA TODO INDICADOR, e por isso `bom` existe por
-      cotacao. Publicacao, citacao e indice h subindo e bom, e ai a cor de
-      estado e legitima -- e o verde e o vermelho de um painel de bolsa.
-      "Em escrita" e "em avaliacao" subindo pode ser produtividade ou
-      gargalo: o laboratorio nao declarou qual, e pintar de verde faria a
-      tela julgar por conta propria. Esses ficam em tinta neutra, com a
-      seta dizendo so a direcao. */
-function cotacoes() {
-  const o = D.overview || {};
-  const h = (D.history && D.history.series) || {};
-  const arts = artigos();
-  const ano = new Date().getFullYear();
-  const noAno = arts.filter(function (a) {
-    return a.status === "publicado" && Number(a.year_published) === ano; }).length;
-  const anterior = arts.filter(function (a) {
-    return a.status === "publicado" && Number(a.year_published) === ano - 1; }).length;
-
-  /* `delta_30d` ausente e diferente de zero, e o `??` nao serve aqui: um
-     zero medido e informacao ("nao mudou em 30 dias"), e um nulo nao. */
-  const medido = function (metrica) {
-    const s = h[metrica];
-    return s && s.delta_30d !== null && s.delta_30d !== undefined
-      ? s.delta_30d : null;
-  };
-  const cit = Math.max(o.scopus_total || 0, o.wos_total || 0, o.openalex_total || 0);
-
-  const lista = [
-    { sigla: "ACERVO", valor: o.n_published, delta: medido("publicados"),
-      base: "30 d", bom: "sobe" },
-    { sigla: ano, valor: noAno,
-      delta: anterior || noAno ? noAno - anterior : null,
-      base: "vs " + (ano - 1), bom: "sobe" },
-    { sigla: "CIT", valor: cit, delta: medido("citacoes"),
-      base: "30 d", bom: "sobe" },
-    /* sem julgamento: pode ser produtividade ou gargalo */
-    { sigla: "ESCRITA", valor: o.n_in_progress, delta: medido("em_producao"),
-      base: "30 d", bom: null },
-    { sigla: "AVAL", valor: o.n_submitted, delta: medido("submetidos"),
-      base: "30 d", bom: null },
-    { sigla: "H", valor: o.best_h_index, delta: medido("indice_h_maximo"),
-      base: "30 d", bom: "sobe" },
-    { sigla: "EQUIPE", valor: o.n_members, delta: medido("integrantes"),
-      base: "30 d", bom: "sobe" },
-  ];
-  /* Os da TV: sem segunda medicao, e sem seta -- a faixa diz "—". */
-  const t = D.tv;
-  if (t) {
-    lista.push({ sigla: "PAISES", valor: t.mundo && t.mundo.n_paises, delta: null, base: "", bom: "sobe" });
-    lista.push({ sigla: "BIBLIO", valor: (t.acervos || []).reduce(function (a, b) {
-      return a + (b.total || 0); }, 0), delta: null, base: "", bom: "sobe" });
-  }
-  /* Indicador que o laboratorio ainda nao tem nao vira "0" na parede: sai
-     da faixa. Zero de indice h nao e zero -- e ninguem ter declarado. */
-  return lista.filter(function (x) {
-    return x.valor !== null && x.valor !== undefined && x.valor !== 0;
-  });
-}
-
-function desenharCotacao() {
-  const casa = document.getElementById("cotacao");
-  if (!casa) return;
-  casa.textContent = "";
-  const itens = cotacoes();
-  const faixa = casa.parentElement;
-  if (!itens.length) { if (faixa) faixa.hidden = true; return; }
-  if (faixa) faixa.hidden = false;
-
-  const bloco = function () {
-    return itens.map(function (x) {
-      const partes = [
-        el("i", { class: "sigla", text: String(x.sigla) }),
-        el("b", { text: fmt(x.valor) }),
-      ];
-      if (x.delta !== null && x.delta !== undefined) {
-        const sobe = x.delta > 0, desce = x.delta < 0;
-        /* Cor de estado so onde a direcao tem sentido declarado. */
-        const tom = !x.bom ? "neutro"
-          : ((sobe && x.bom === "sobe") || (desce && x.bom === "desce")) ? "bom"
-          : (x.delta === 0 ? "neutro" : "ruim");
-        partes.push(el("span", { class: "var " + tom,
-          text: (sobe ? "▲ " : desce ? "▼ " : "= ")
-            + fmt(Math.abs(x.delta)) + " " + x.base }));
-      } else {
-        /* Sem segunda medicao, e a faixa diz isso em vez de calar. */
-        partes.push(el("span", { class: "var sem", text: "—" }));
-      }
-      return el("span", { class: "cot" }, partes);
-    });
-  };
-  bloco().forEach(function (n) { casa.appendChild(n); });
-  bloco().forEach(function (n) { casa.appendChild(n); });
-}
-
-/* ------------------------------------------------------------------ fita */
-/* Duas cópias da mesma sequência, e a animação anda -50%: o laço fecha sem
-   emenda visível. */
-function desenharFita() {
-  const casa = document.getElementById("fita");
-  casa.textContent = "";
-  const itens = [];
-  eventos().forEach(function (e) {
-    const d = diasAte(e.start_at);
-    if (d !== null && d >= 0 && d <= 90) {
-      itens.push({ icone: "calendario", forte: e.title, resto: porExtenso(d) });
-    }
-  });
-  prazos().slice(0, 8).forEach(function (p) {
-    itens.push({ icone: p.icone, forte: cortar(p.titulo, 60),
-      resto: p.dias === null ? p.espera + " dias de espera" : porExtenso(p.dias) });
-  });
-  noticiasDaTv().forEach(function (n) { itens.push(n); });
-  if (!itens.length) {
-    itens.push({ icone: "painel", forte: "LAPE", resto: "sem compromissos registrados" });
-  }
-  /* com as notícias da TV a fita é mais longa, e corre mais tempo por
-     volta: a velocidade é a mesma, senão o texto vira borrão */
-  const cabem = D.tv ? 22 : 12;
-  const bloco = function () {
-    return itens.slice(0, cabem).map(function (x) {
-      return el("span", {}, [Icons.get(x.icone, 15), el("b", { text: x.forte }),
-        document.createTextNode(" · " + x.resto)]);
-    });
-  };
-  bloco().forEach(function (n) { casa.appendChild(n); });
-  bloco().forEach(function (n) { casa.appendChild(n); });
-  casa.style.animationDuration = Math.round(44 * Math.min(itens.length, cabem) / 12) + "s";
-}
-
-/* As notícias que só a TV tem: últimos publicados, aceites, submissões e
-   a rotina. Cada item diz o que aconteceu e quando -- "Publicado" sem
-   data seria uma manchete velha passando por nova. */
-function noticiasDaTv() {
-  const t = tv();
-  if (!t) return [];
-  const n = t.noticias || {};
-  const itens = [];
-  (n.publicados || []).slice(0, 4).forEach(function (a) {
-    itens.push({ icone: "producao", forte: "Publicado: " + cortar(a.titulo, 64),
-      resto: [a.revista, a.data ? dataCurta(a.data) : (a.ano ? String(a.ano) : "")].filter(Boolean).join(" · ") || "sem data" });
-  });
-  (n.aceitos || []).slice(0, 3).forEach(function (a) {
-    itens.push({ icone: "aceite", forte: "Aceito: " + cortar(a.titulo, 64),
-      resto: [a.revista, a.data ? haQuanto(diasAte(a.data)) : ""].filter(Boolean).join(" · ") || "sem data" });
-  });
-  (n.submetidos || []).slice(0, 3).forEach(function (a) {
-    itens.push({ icone: "submissao", forte: "Submetido: " + cortar(a.titulo, 64),
-      resto: [a.revista, a.data ? haQuanto(diasAte(a.data)) : ""].filter(Boolean).join(" · ") || "sem data" });
-  });
-  ((t.rotina && t.rotina.passos) || []).forEach(function (p) {
-    if (!p.ultima_boa) return;
-    itens.push({ icone: "processo", forte: "Rotina · " + (ROTULO_DO_PASSO[p.passo] || p.rotulo),
-      resto: "rodou " + haQuanto(diasAte(p.ultima_boa)) + (p.proxima ? " · volta " + porExtenso(diasAte(p.proxima)) : "") });
-  });
-  return itens;
-}
-
 /* ------------------------------------------------------- tempo real (SSE) */
 let fonte = null;
 let pedidoPendente = null;
@@ -1907,8 +1736,6 @@ function rebuscar() {
       ROTEIRO.splice.apply(ROTEIRO, [0, ROTEIRO.length].concat(ciclo()));
       const onde = ROTEIRO.findIndex(function (s) { return s.id === idAtual; });
       atual = onde >= 0 ? onde : 0;
-      desenharFita();
-      desenharCotacao();
       desenhar(atual, "quieto");
       marcarVivo(true, true);
     })
@@ -1951,8 +1778,6 @@ function comecar() {
     seguir.appendChild(Icons.get("proximo", 15));
     seguir.onclick = function () { avancar(1); };
   }
-  desenharFita();
-  desenharCotacao();
   desenharControles();
   desenhar(0);
   abrirStream();

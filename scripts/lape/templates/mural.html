@@ -193,32 +193,6 @@ body { background: var(--surface-sunken); }
   letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .pauta .quando small { display: block; font-size: clamp(9.5px, .68vw, calc(11.5px * var(--zoom, 1)));
   text-transform: uppercase; letter-spacing: .07em; color: var(--ink-2); }
-/* A faixa de cotacao, logo abaixo do topo: sigla, valor e variacao
-   correndo, no formato de painel de bolsa.
-
-   Numero em fonte tabular para a virgula nao dancar enquanto passa. A cor
-   da variacao vem do JavaScript por classe -- e "neutro" existe porque
-   subir nao e bom para todo indicador, e pintar de verde faria a tela
-   julgar por conta propria (ver `cotacoes()` no mural.js). */
-.cotacao { overflow: hidden; position: relative; margin: 0 clamp(18px, 2.4vw, 40px);
-  height: calc(30px * var(--zoom, 1)); border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent); }
-.cotacao .trilha { position: absolute; display: flex; gap: clamp(22px, 2vw, 40px);
-  white-space: nowrap; align-items: center; height: 100%;
-  animation: corre 58s linear infinite; }
-.cotacao .cot { display: inline-flex; align-items: baseline; gap: 7px;
-  font-size: clamp(11.5px, .82vw, calc(14px * var(--zoom, 1)));
-  font-variant-numeric: tabular-nums; }
-.cotacao .cot .sigla { font-style: normal; font-weight: 700; letter-spacing: .06em;
-  color: var(--ink-2); font-size: .86em; }
-.cotacao .cot b { color: var(--ink); font-weight: 700; }
-.cotacao .cot .var { font-weight: 650; }
-.cotacao .cot .var.bom { color: var(--good); }
-.cotacao .cot .var.ruim { color: var(--critical); }
-.cotacao .cot .var.neutro { color: var(--ink-2); }
-.cotacao .cot .var.sem { color: var(--ink-muted); }
-
 /* A hora, na mesma etiqueta do dia: "quando" e uma informacao so, e
    partir dia/mes de um lado e hora do outro obriga quem le a juntar os
    dois com o olho. Em numero tabular, sem caixa alta -- "14:00" nao e
@@ -357,17 +331,6 @@ body { background: var(--surface-sunken); }
   height: calc(9px * var(--zoom, 1)); padding: 0; border-radius: 50%; border: none;
   background: color-mix(in srgb, var(--ink) 22%, transparent); box-shadow: none; }
 .pontos button.on { width: calc(26px * var(--zoom, 1)); border-radius: 999px; background: var(--accent-strong); }
-.fita { flex: 1; min-width: 0; overflow: hidden; position: relative;
-  /* altura acompanha o texto: em 26px fixos a faixa cortava a linha
-     ampliada no 4K, e a noticia aparecia sem a metade de baixo. */
-  height: calc(26px * var(--zoom, 1));
-  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
-.fita .trem { position: absolute; display: flex; gap: 34px; white-space: nowrap;
-  align-items: center; animation: corre 44s linear infinite; }
-.fita .trem span { display: inline-flex; align-items: center; gap: 8px;
-  font-size: clamp(11.5px, .84vw, calc(14px * var(--zoom, 1))); color: var(--ink-2); }
-.fita .trem span b { color: var(--ink); font-weight: 650; }
-@keyframes corre { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .controles { display: flex; gap: 6px; opacity: 0; transition: opacity .25s; }
 .mural.mexeu .controles { opacity: 1; }
 .controles button { width: 38px; height: 38px; padding: 0; display: grid; place-items: center;
@@ -389,7 +352,7 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .aurora, .fita .trem, .cotacao .trilha { animation: none; }
+  .aurora { animation: none; }
   .trilho i { width: var(--pct, 0%); }
   svg.plot.revela, svg.plot.surge { animation: none; clip-path: none; }
 }
@@ -446,7 +409,6 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
 @media (max-width: 780px) {
   .painel-duplo, .painel-duplo.igual { grid-template-columns: minmax(0, 1fr); }
   .mtopo .titulo h1 { font-size: 17px; }
-  .fita, .cotacao { display: none; }
 }
 
 /* Acessibilidade: modo alto contraste */
@@ -461,7 +423,7 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
 
 /* Modo de visão reduzida de movimento */
 @media (prefers-reduced-motion: reduce) {
-  .tile, .quadro, .progresso, .fita .trem, .triagem path { animation: none !important; transition: none !important; }
+  .tile, .quadro, .progresso, .triagem path { animation: none !important; transition: none !important; }
   .saindo { animation: none !important; opacity: 0; }
 }
 
@@ -586,7 +548,6 @@ __AOVIVO_BASES_CSS__
         <div class="relogio"><b id="hora">--:--</b><small id="data"></small></div>
       </div>
     </header>
-    <div class="cotacao" aria-hidden="true" hidden><div class="trilha" id="cotacao"></div></div>
   </div>
 
   <div class="palco" id="palco" aria-live="polite"></div>
@@ -594,7 +555,6 @@ __AOVIVO_BASES_CSS__
   <footer class="mrodape">
     <div class="pontos" id="pontos" role="tablist" aria-label="Telas do mural"></div>
     <div class="paletas no-print" id="paletas" role="group" aria-label="Paleta de fundo"></div>
-    <div class="fita" aria-hidden="true"><div class="trem" id="fita"></div></div>
     <div class="controles no-print" id="controles"></div>
   </footer>
 </div>

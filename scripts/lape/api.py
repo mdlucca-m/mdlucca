@@ -2414,10 +2414,16 @@ def route_aovivo(ctx: "Context") -> Any:
 
 
 def route_tv(ctx: "Context") -> Any:
-    """O que a parede acrescenta ao painel: temas, ritmo, mundo, acervos, rotina, noticias."""
+    """O que a parede acrescenta ao painel: temas, ritmo, mundo, acervos, rotina, noticias.
+
+    Sem checagem de login aqui dentro de proposito: o roteador ja decide
+    (ROUTES, minimo "leitura") e ja libera com LAPE_PUBLIC_DASHBOARD=1 --
+    exatamente o caso do mural ligado sozinho numa TV, sem ninguem para
+    logar. Uma segunda checagem aqui, cega a essa liberacao, derrubava a
+    TV de volta pra tela de entrar mesmo com o painel publico ligado.
+    """
     from . import tv
 
-    auth.require(ctx.user, "leitura")
     return tv.para_a_tv(ctx.db)
 
 
