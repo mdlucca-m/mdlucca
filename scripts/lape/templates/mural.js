@@ -1449,8 +1449,6 @@ const SLIDES = [
     apresenta: "Os países que assinam com o laboratório e as instituições parceiras, por número de artigos." },
   { id: "acervos", titulo: "Acervos e rotina", icone: "livro", montar: slideAcervos, tv: true,
     apresenta: "As bibliotecas temáticas: quantos registros, em quantos segmentos, e a rotina que as atualiza sozinha." },
-  { id: "comparacoes", titulo: "Comparações e deltas", icone: "subida", montar: slideComparacoes, tv: true,
-    apresenta: "Este mês vs. mês anterior: variação em publicações, aceites, e taxa de aceite anual." },
   { id: "alertas", titulo: "Alertas e eventos", icone: "alerta", montar: slideAlertas, tv: true,
     apresenta: "Aceites recentes, revistas em processo, e dias desde a última submissão." },
   { id: "sazonalidade", titulo: "Padrões anuais", icone: "calendario", montar: slideSazonalidade, tv: true,
