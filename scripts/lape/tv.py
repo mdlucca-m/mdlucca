@@ -18,10 +18,10 @@ linguagem: o que não pode ser refeito a partir dos dados não entra.
 """
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Any
 
-from . import aovivo, sinais
+from . import aovivo, sinais, cache
 from .db import Database
 
 NOTICIAS = 6          # itens por grupo nas notícias
@@ -135,31 +135,177 @@ def _sinais_para_a_tv(s: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _comparacoes(db: Database, hoje: date) -> dict[str, Any]:
+    """Compara métricas com período anterior (mês, trimestre, ano)."""
+    mes_atual = int(hoje.strftime("%m"))
+    ano_atual = hoje.year
+    dia_mes = hoje.day
+
+    mes_anterior = mes_atual - 1 if mes_atual > 1 else 12
+    ano_anterior_mes = ano_atual if mes_atual > 1 else ano_atual - 1
+
+    # Publicações este mês vs. mês anterior
+    pub_agora = int(db.scalar(
+        "SELECT COUNT(*) FROM articles WHERE status = 'publicado' "
+        "AND strftime('%Y-%m', COALESCE(published_on, year_published || '-01-01')) = ?",
+        (f"{ano_atual:04d}-{mes_atual:02d}",)) or 0)
+    pub_antes = int(db.scalar(
+        "SELECT COUNT(*) FROM articles WHERE status = 'publicado' "
+        "AND strftime('%Y-%m', COALESCE(published_on, year_published || '-01-01')) = ?",
+        (f"{ano_anterior_mes:04d}-{mes_anterior:02d}",)) or 0)
+
+    # Aceites este mês vs. mês anterior
+    aceites_agora = int(db.scalar(
+        "SELECT COUNT(*) FROM articles WHERE status = 'aceito' "
+        "AND strftime('%Y-%m', COALESCE(accepted_on, '0000-00-00')) = ?",
+        (f"{ano_atual:04d}-{mes_atual:02d}",)) or 0)
+    aceites_antes = int(db.scalar(
+        "SELECT COUNT(*) FROM articles WHERE status = 'aceito' "
+        "AND strftime('%Y-%m', COALESCE(accepted_on, '0000-00-00')) = ?",
+        (f"{ano_anterior_mes:04d}-{mes_anterior:02d}",)) or 0)
+
+    # Taxa de aceite anual (aceitos / submetidos totais)
+    aceitos_ano = int(db.scalar(
+        "SELECT COUNT(DISTINCT article_id) FROM submissions "
+        "WHERE strftime('%Y', submitted_on) = ?",
+        (f"{ano_atual:04d}",)) or 0)
+    submetidos_ano = int(db.scalar(
+        "SELECT COUNT(DISTINCT article_id) FROM submissions "
+        "WHERE strftime('%Y', submitted_on) = ? AND article_id IN "
+        "(SELECT id FROM articles WHERE status IN ('aceito', 'publicado'))",
+        (f"{ano_atual:04d}",)) or 0)
+    taxa_aceite = round(100 * submetidos_ano / max(aceitos_ano, 1), 1) if aceitos_ano > 0 else 0
+
+    return {
+        "mes_atual": mes_atual,
+        "publicacoes": {"agora": pub_agora, "antes": pub_antes, "delta": pub_agora - pub_antes},
+        "aceites": {"agora": aceites_agora, "antes": aceites_antes, "delta": aceites_agora - aceites_antes},
+        "taxa_aceite_anual": taxa_aceite,
+    }
+
+
+def _sazonalidade(db: Database, hoje: date) -> dict[str, Any]:
+    """Analisa padrões de produção por mês (sazonalidade)."""
+    meses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+    publicacoes_por_mes: dict[int, int] = {}
+    aceites_por_mes: dict[int, int] = {}
+
+    for mes in range(1, 13):
+        pub = int(db.scalar(
+            "SELECT COUNT(*) FROM articles WHERE status = 'publicado' "
+            "AND strftime('%m', COALESCE(published_on, year_published || '-01-01')) = ?",
+            (f"{mes:02d}",)) or 0)
+        aceite = int(db.scalar(
+            "SELECT COUNT(*) FROM articles WHERE status = 'aceito' "
+            "AND strftime('%m', COALESCE(accepted_on, '0000-00-00')) = ?",
+            (f"{mes:02d}",)) or 0)
+        publicacoes_por_mes[mes] = pub
+        aceites_por_mes[mes] = aceite
+
+    picos_pub = sorted(publicacoes_por_mes.items(), key=lambda x: -x[1])[:3]
+    picos_aceites = sorted(aceites_por_mes.items(), key=lambda x: -x[1])[:3]
+
+    return {
+        "picos_publicacao": [{"mes": meses[m - 1], "n": n} for m, n in picos_pub],
+        "picos_aceite": [{"mes": meses[m - 1], "n": n} for m, n in picos_aceites],
+    }
+
+
+def _alertas(db: Database, hoje: date) -> dict[str, Any]:
+    """Identifica eventos urgentes: aceites recentes, publicações, revistas ativas."""
+    # Aceites nos últimos 7 dias
+    aceites_recentes = int(db.scalar(
+        "SELECT COUNT(*) FROM articles WHERE status = 'aceito' "
+        "AND accepted_on >= date(?, '-7 days')",
+        (hoje.isoformat(),)) or 0)
+
+    # Publicações nos últimos 7 dias
+    pubs_recentes = int(db.scalar(
+        "SELECT COUNT(*) FROM articles WHERE status = 'publicado' "
+        "AND (published_on IS NOT NULL OR year_published >= ?)",
+        (hoje.year,)) or 0)
+
+    # Revistas com mais de 1 artigo em processo
+    revistas_ativas = db.scalars(
+        "SELECT journal FROM articles WHERE status IN ('submetido', 'em_revisao') "
+        "GROUP BY journal HAVING COUNT(*) > 1 LIMIT 5")
+
+    # Dias desde última submissão
+    ultima_submissao = db.scalar(
+        "SELECT MAX(submitted_on) FROM submissions")
+    dias_sem_submissao = (hoje - date.fromisoformat(ultima_submissao.split("T")[0])).days if ultima_submissao else None
+
+    return {
+        "aceites_ultimos_7d": aceites_recentes,
+        "pubs_recentes": pubs_recentes,
+        "revistas_em_processo": revistas_ativas or [],
+        "dias_sem_submissao": dias_sem_submissao,
+    }
+
+
+def _health_rotina(db: Database) -> dict[str, Any]:
+    """Verifica saúde da rotina automática: último ciclo, próximo, erros."""
+    from . import rotina
+
+    sit = rotina.situacao(db)
+    proximos = sit.get("proximos", [])
+
+    # Conta erros na última rodada de cada tarefa
+    erros_por_tarefa = {}
+    for tarefa in sit.get("tarefas", []):
+        codigo = tarefa.get("codigo", "")
+        ultima = tarefa.get("ultima_rodada", "")
+        if ultima:
+            n_erros = int(db.scalar(
+                "SELECT COUNT(*) FROM log_tarefas WHERE tarefa_codigo = ? AND criado_em >= ? AND sucesso = 0",
+                (codigo, ultima)) or 0)
+            erros_por_tarefa[codigo] = n_erros
+
+    # Tempo total para completar o ciclo
+    tempo_ciclo = db.scalar(
+        "SELECT (SELECT MAX(criado_em) FROM log_tarefas) - (SELECT MIN(criado_em) FROM log_tarefas LIMIT 1)")
+
+    return {
+        "tarefas_ok": sum(1 for t in sit.get("tarefas", []) if not t.get("erro")),
+        "tarefas_total": len(sit.get("tarefas", [])),
+        "erros": erros_por_tarefa,
+        "proximos_em_horas": len(proximos),
+    }
+
+
 def para_a_tv(db: Database, hoje: date | None = None) -> dict[str, Any]:
-    """Tudo o que as telas da parede acrescentam, numa chamada só."""
+    """Tudo o que as telas da parede acrescentam, numa chamada só, com cache."""
     from . import rotina
 
     hoje = hoje or date.today()
-    per = aovivo.periodo(db, "ano", hoje)
-    t = aovivo.temas(db, per, hoje)
-    m = aovivo.mundo(db)
-    paises = sorted(m["paises"], key=lambda p: (-int(p["n"]), p["pais"]))
-    fora_do_brasil = [p for p in paises if (p.get("iso") or "").upper() != "BR"
-                      and p["pais"].strip().lower() != "brasil"]
-    return {
-        "periodo": {"code": per["code"], "rotulo": per["rotulo"], "de": per["de"], "ate": per["ate"]},
-        "temas": {"kpis": t["kpis"], "revistas": t["treemap"][:8]},
-        "mundo": {
-            "sede": m["sede"],
-            "paises": paises[:PAISES_NA_TV],
-            "n_paises": len(paises) + len(m.get("sem_coordenada") or []),
-            "n_fora_do_brasil": len(fora_do_brasil) + len(m.get("sem_coordenada") or []),
-            "artigos_com_pais": m["artigos_com_pais"],
-            "instituicoes": len(m["instituicoes"]),
-        },
-        "sinais": _sinais_para_a_tv(sinais.analisar(db, hoje)),
-        "acervos": _acervos(db),
-        "rotina": rotina.situacao(db),
-        "noticias": noticias(db, hoje),
-        "gerado_em": datetime.now().isoformat(timespec="seconds"),
-    }
+
+    def _agregar():
+        per = aovivo.periodo(db, "ano", hoje)
+        t = aovivo.temas(db, per, hoje)
+        m = aovivo.mundo(db)
+        paises = sorted(m["paises"], key=lambda p: (-int(p["n"]), p["pais"]))
+        fora_do_brasil = [p for p in paises if (p.get("iso") or "").upper() != "BR"
+                          and p["pais"].strip().lower() != "brasil"]
+        return {
+            "periodo": {"code": per["code"], "rotulo": per["rotulo"], "de": per["de"], "ate": per["ate"]},
+            "temas": {"kpis": t["kpis"], "revistas": t["treemap"][:8]},
+            "mundo": {
+                "sede": m["sede"],
+                "paises": paises[:PAISES_NA_TV],
+                "n_paises": len(paises) + len(m.get("sem_coordenada") or []),
+                "n_fora_do_brasil": len(fora_do_brasil) + len(m.get("sem_coordenada") or []),
+                "artigos_com_pais": m["artigos_com_pais"],
+                "instituicoes": len(m["instituicoes"]),
+            },
+            "sinais": _sinais_para_a_tv(sinais.analisar(db, hoje)),
+            "acervos": cache.computar(f"acervos_{hoje.isoformat()}", lambda: _acervos(db), ttl=300),
+            "rotina": rotina.situacao(db),
+            "noticias": cache.computar(f"noticias_{hoje.isoformat()}", lambda: noticias(db, hoje), ttl=120),
+            "comparacoes": cache.computar(f"comp_{hoje.isoformat()}", lambda: _comparacoes(db, hoje), ttl=3600),
+            "sazonalidade": cache.computar("sazonalidade", lambda: _sazonalidade(db, hoje), ttl=86400),
+            "alertas": cache.computar(f"alertas_{hoje.isoformat()}", lambda: _alertas(db, hoje), ttl=600),
+            "health": _health_rotina(db),
+            "gerado_em": datetime.now().isoformat(timespec="seconds"),
+        }
+
+    return cache.computar(f"tv_completo_{hoje.isoformat()}", _agregar, ttl=60)

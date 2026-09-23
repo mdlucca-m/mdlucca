@@ -1947,6 +1947,22 @@ function trocarPaleta(code) {
   desenhar();
 }
 
+function temaDinamico() {
+  const hora = new Date().getHours();
+  /* noite: 20h-6h → tema escuro; dia: 6h-20h → detectar preferência do sistema */
+  if (hora >= 20 || hora < 6) {
+    document.documentElement.setAttribute("data-theme", "dark");
+  } else {
+    const prefere = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", prefere);
+  }
+}
+function ativarTemaDinamico() {
+  temaDinamico();
+  /* reajusta a cada hora */
+  setInterval(temaDinamico, 3600000);
+}
+
 async function carregar() {
   const rolagem = window.scrollY;
   try {
@@ -1993,6 +2009,9 @@ function marcarPulso(texto, ligado) {
   try { guardada = localStorage.getItem("lape-paleta"); } catch (e) { /* janela privada */ }
   if (guardada && PALETAS.some(function (p) { return p[0] === guardada; })) {
     document.documentElement.setAttribute("data-paleta", guardada);
+  } else {
+    /* tema dinâmico: detecta hora e preferência do sistema */
+    ativarTemaDinamico();
   }
   const aba = location.hash.replace("#", "").split("?")[0];
   if (ABAS.some(function (a) { return a[0] === aba; })) ST.aba = aba;
@@ -2010,6 +2029,10 @@ function marcarPulso(texto, ligado) {
       sumico = setTimeout(function () { document.body.classList.add("quieto"); }, 3000);
     });
     sumico = setTimeout(function () { document.body.classList.add("quieto"); }, 3000);
+  }
+  /* suporte a alto contraste para acessibilidade */
+  if (window.matchMedia("(prefers-contrast: more)").matches) {
+    document.documentElement.setAttribute("data-contrast", "high");
   }
   desenhar();
   carregar();

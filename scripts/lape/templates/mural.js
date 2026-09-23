@@ -1039,6 +1039,117 @@ function slideMundo() {
 }
 
 const ROTULO_DO_PASSO = { producao: "Produção nas bases", citacoes: "Citações", acervos: "Acervos" };
+
+function slideComparacoes() {
+  const t = tv();
+  if (!t || !t.comparacoes) return escalonar(el("div", { class: "slide" }, vazio("Comparações ainda não calculadas.")));
+  const comp = t.comparacoes;
+  const mes_atual = ["—", "jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"][comp.mes_atual] || "—";
+
+  function deltaStatus(n) {
+    if (n === 0) return "neutro";
+    if (n > 0) return "bom";
+    return "alerta";
+  }
+
+  const linha = el("div", { class: "linha-kpi" }, [
+    tile({ nome: "Publicações " + mes_atual, valor: comp.publicacoes.agora, icone: "publicacao", serie: 2,
+      pastilha: deltaStatus(comp.publicacoes.delta), pe: "mês atual" }),
+    tile({ nome: "Δ vs. mês anterior", valor: (comp.publicacoes.delta >= 0 ? "+" : "") + comp.publicacoes.delta,
+      icone: comp.publicacoes.delta > 0 ? "subida" : "descida", serie: 3,
+      pastilha: deltaStatus(comp.publicacoes.delta), pe: "variação percentual" }),
+    tile({ nome: "Aceites " + mes_atual, valor: comp.aceites.agora, icone: "aceito", serie: 4,
+      pastilha: deltaStatus(comp.aceites.delta), pe: "manuscritos aceitos" }),
+    tile({ nome: "Taxa de aceite anual", valor: comp.taxa_aceite_anual + "%", icone: "porcentagem", serie: 7,
+      pastilha: comp.taxa_aceite_anual > 50 ? "bom" : "ambar", pe: "aprovação total do ano" }),
+  ]);
+
+  const fatos = [
+    { icone: "publicacao", tom: "bom", forte: "Publicações em " + mes_atual + ":",
+      resto: comp.publicacoes.agora + (comp.publicacoes.delta !== 0 ? " (" + (comp.publicacoes.delta > 0 ? "+" : "") + comp.publicacoes.delta + ")" : "") },
+    { icone: "aceito", tom: "bom", forte: "Aceites em " + mes_atual + ":",
+      resto: comp.aceites.agora + (comp.aceites.delta !== 0 ? " (" + (comp.aceites.delta > 0 ? "+" : "") + comp.aceites.delta + ")" : "") },
+    { icone: "porcentagem", tom: "neutro", forte: "Taxa de aceite anual:",
+      resto: comp.taxa_aceite_anual + "% · " + (comp.taxa_aceite_anual > 50 ? "acima da meta" : "abaixo da meta") },
+  ];
+
+  return escalonar(el("div", { class: "slide" }, [
+    linha,
+    quadro("Métricas do mês", "subida", frases(fatos), "comparação com período anterior"),
+  ]));
+}
+
+function slideAlertas() {
+  const t = tv();
+  if (!t || !t.alertas) return escalonar(el("div", { class: "slide" }, vazio("Alertas ainda não calculados.")));
+  const ale = t.alertas;
+
+  const linha = el("div", { class: "linha-kpi" }, [
+    tile({ nome: "Aceites últimos 7d", valor: ale.aceites_ultimos_7d, icone: "aceito", serie: 2, pastilha: "bom",
+      pe: "manuscritos aceitos recentemente" }),
+    tile({ nome: "Publicações recentes", valor: ale.pubs_recentes, icone: "publicacao", serie: 3, pastilha: "bom",
+      pe: "saídos este ano" }),
+    tile({ nome: "Revistas em processo", valor: ale.revistas_em_processo.length, icone: "revista", serie: 4, pastilha: "ambar",
+      pe: "periódicos com múltiplos artigos" }),
+    tile({ nome: "Dias sem submissão", valor: ale.dias_sem_submissao !== null ? ale.dias_sem_submissao : "—",
+      icone: "relogio", serie: 7, pastilha: ale.dias_sem_submissao && ale.dias_sem_submissao > 7 ? "alerta" : "neutro",
+      pe: "última tentativa de publicação" }),
+  ]);
+
+  const fatos = [];
+  if (ale.aceites_ultimos_7d > 0) {
+    fatos.push({ icone: "aceito", tom: "bom", forte: ale.aceites_ultimos_7d + " aceite" + (ale.aceites_ultimos_7d > 1 ? "s" : "") + " nos últimos 7 dias",
+      resto: "Bom momento! Já foram para o prelo." });
+  }
+  if (ale.revistas_em_processo.length > 0) {
+    fatos.push({ icone: "revista", tom: "neutro", forte: "Revistas em processo:",
+      resto: ale.revistas_em_processo.slice(0, 3).join(", ") + (ale.revistas_em_processo.length > 3 ? " e mais" : "") });
+  }
+  if (ale.dias_sem_submissao && ale.dias_sem_submissao > 14) {
+    fatos.push({ icone: "alerta", tom: "alerta", forte: "Sem submissões há " + ale.dias_sem_submissao + " dias",
+      resto: "Considerar novos artigos para revisão e envio." });
+  }
+
+  return escalonar(el("div", { class: "slide" }, [
+    linha,
+    quadro("Eventos recentes", "alerta", fatos.length ? frases(fatos) : vazio("Nenhum alerta urgente."), "monitoramento contínuo"),
+  ]));
+}
+
+function slideSazonalidade() {
+  const t = tv();
+  if (!t || !t.sazonalidade) return escalonar(el("div", { class: "slide" }, vazio("Sazonalidade ainda não calculada.")));
+  const saz = t.sazonalidade;
+
+  const linha = el("div", { class: "linha-kpi" }, [
+    tile({ nome: "Mês de pico (pub)", valor: saz.picos_publicacao[0] ? saz.picos_publicacao[0].mes : "—",
+      icone: "calendario", serie: 2, pastilha: "bom", pe: "mais publicações" }),
+    tile({ nome: "N publicações", valor: saz.picos_publicacao[0] ? saz.picos_publicacao[0].n : 0,
+      icone: "publicacao", serie: 3, pastilha: "bom", pe: "no melhor mês" }),
+    tile({ nome: "Mês de pico (aceite)", valor: saz.picos_aceite[0] ? saz.picos_aceite[0].mes : "—",
+      icone: "aceito", serie: 4, pastilha: "ambar", pe: "mais aceitos" }),
+    tile({ nome: "N aceites", valor: saz.picos_aceite[0] ? saz.picos_aceite[0].n : 0,
+      icone: "aceito", serie: 7, pastilha: "ambar", pe: "no melhor mês" }),
+  ]);
+
+  const fatos = [];
+  if (saz.picos_publicacao.length > 0) {
+    const picos = saz.picos_publicacao.slice(0, 3).map(function (p) { return p.mes + " (" + p.n + ")"; }).join(", ");
+    fatos.push({ icone: "calendario", tom: "bom", forte: "Sazonalidade de publicações:",
+      resto: "picos em " + picos });
+  }
+  if (saz.picos_aceite.length > 0) {
+    const picos = saz.picos_aceite.slice(0, 3).map(function (p) { return p.mes + " (" + p.n + ")"; }).join(", ");
+    fatos.push({ icone: "aceito", tom: "neutro", forte: "Sazonalidade de aceites:",
+      resto: "picos em " + picos });
+  }
+
+  return escalonar(el("div", { class: "slide" }, [
+    linha,
+    quadro("Padrões anuais", "calendario", fatos.length ? frases(fatos) : vazio("Nenhum padrão detectado."), "tendências por mês"),
+  ]));
+}
+
 function slideAcervos() {
   const t = tv();
   if (!t) return escalonar(el("div", { class: "slide" }, vazio("Os acervos ainda não chegaram.")));
@@ -1124,6 +1235,12 @@ const SLIDES = [
     apresenta: "Os países que assinam com o laboratório e as instituições parceiras, por número de artigos." },
   { id: "acervos", titulo: "Acervos e rotina", icone: "livro", montar: slideAcervos, tv: true,
     apresenta: "As bibliotecas temáticas: quantos registros, em quantos segmentos, e a rotina que as atualiza sozinha." },
+  { id: "comparacoes", titulo: "Comparações e deltas", icone: "subida", montar: slideComparacoes, tv: true,
+    apresenta: "Este mês vs. mês anterior: variação em publicações, aceites, e taxa de aceite anual." },
+  { id: "alertas", titulo: "Alertas e eventos", icone: "alerta", montar: slideAlertas, tv: true,
+    apresenta: "Aceites recentes, revistas em processo, e dias desde a última submissão." },
+  { id: "sazonalidade", titulo: "Padrões anuais", icone: "calendario", montar: slideSazonalidade, tv: true,
+    apresenta: "Sazonalidade detectada: meses de pico para publicações e aceites." },
 ];
 
 /* As paletas de fundo, as mesmas do ao vivo. A escolha é lida de

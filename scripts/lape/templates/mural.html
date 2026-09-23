@@ -448,6 +448,22 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
   .mtopo .titulo h1 { font-size: 17px; }
   .fita, .cotacao { display: none; }
 }
+
+/* Acessibilidade: modo alto contraste */
+@media (prefers-contrast: more) {
+  :root { --accent-strong: #00d9ff; --border: #888; }
+  .tile, .quadro { border-color: var(--border) !important; border-width: 2px; }
+  .tile .n { font-weight: 900; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000; }
+  .seguir { border: 2px solid currentColor; }
+  .pontos button { border: 2px solid var(--border); }
+  .pontos button.on { border-color: var(--accent); background: var(--accent); }
+}
+
+/* Modo de visão reduzida de movimento */
+@media (prefers-reduced-motion: reduce) {
+  .tile, .quadro, .progresso, .fita .trem, .triagem path { animation: none !important; transition: none !important; }
+  .saindo { animation: none !important; opacity: 0; }
+}
 </style>
 </head>
 <body>

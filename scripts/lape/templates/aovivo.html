@@ -493,6 +493,22 @@ rect.mark.cresce { transform-box: fill-box; transform-origin: bottom; animation:
   .glass, .funil li { animation: none; } .hbars .barra { transition: none; } .pulso.batendo i { animation: none; }
   .apresentacao::before, .apresentacao .explica li, .resultado, .nuvem .tema, .paises li, rect.mark.cresce, .haltere-neon .linha-haltere { animation: none; }
 }
+
+/* Acessibilidade: modo alto contraste */
+@media (prefers-contrast: more) {
+  :root { --neon-orange: #FF8C00; --neon-cyan: #00D9FF; --neon-magenta: #FF00FF; }
+  button, a { border: 2px solid currentColor !important; font-weight: 600; }
+  .tile, .quadro, .glass, .resultado { border: 2px solid var(--border) !important; }
+  input, select, textarea { border: 2px solid var(--border) !important; }
+  h1, h2, h3 { font-weight: 900; letter-spacing: 0.05em; }
+  .faixa-tv { border-bottom: 3px solid var(--border) !important; }
+}
+
+@media (prefers-color-scheme: dark) and (prefers-contrast: more) {
+  :root { --ink: #fff; --border: #00d9ff; }
+  a { color: #00ff00; text-decoration: underline; }
+}
+
 @media print { nav.lado, header.topo { display: none; } .casca { display: block; } }
 </style>
 </head>
