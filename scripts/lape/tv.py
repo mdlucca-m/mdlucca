@@ -226,9 +226,9 @@ def _alertas(db: Database, hoje: date) -> dict[str, Any]:
         (hoje.year,)) or 0)
 
     # Revistas com mais de 1 artigo em processo
-    revistas_ativas = db.scalars(
+    revistas_ativas = [r["journal"] for r in db.query(
         "SELECT journal FROM articles WHERE status IN ('submetido', 'em_revisao') "
-        "GROUP BY journal HAVING COUNT(*) > 1 LIMIT 5")
+        "GROUP BY journal HAVING COUNT(*) > 1 LIMIT 5")]
 
     # Dias desde última submissão
     ultima_submissao = db.scalar(
@@ -245,32 +245,25 @@ def _alertas(db: Database, hoje: date) -> dict[str, Any]:
 
 def _health_rotina(db: Database) -> dict[str, Any]:
     """Verifica saúde da rotina automática: último ciclo, próximo, erros."""
-    from . import rotina
-
-    sit = rotina.situacao(db)
-    proximos = sit.get("proximos", [])
-
-    # Conta erros na última rodada de cada tarefa
-    erros_por_tarefa = {}
-    for tarefa in sit.get("tarefas", []):
-        codigo = tarefa.get("codigo", "")
-        ultima = tarefa.get("ultima_rodada", "")
-        if ultima:
-            n_erros = int(db.scalar(
-                "SELECT COUNT(*) FROM log_tarefas WHERE tarefa_codigo = ? AND criado_em >= ? AND sucesso = 0",
-                (codigo, ultima)) or 0)
-            erros_por_tarefa[codigo] = n_erros
-
-    # Tempo total para completar o ciclo
-    tempo_ciclo = db.scalar(
-        "SELECT (SELECT MAX(criado_em) FROM log_tarefas) - (SELECT MIN(criado_em) FROM log_tarefas LIMIT 1)")
-
-    return {
-        "tarefas_ok": sum(1 for t in sit.get("tarefas", []) if not t.get("erro")),
-        "tarefas_total": len(sit.get("tarefas", [])),
-        "erros": erros_por_tarefa,
-        "proximos_em_horas": len(proximos),
-    }
+    try:
+        from . import rotina
+        sit = rotina.situacao(db)
+        proximos = sit.get("proximos", [])
+        tarefas = sit.get("tarefas", [])
+        return {
+            "tarefas_ok": sum(1 for t in tarefas if not t.get("erro")),
+            "tarefas_total": len(tarefas),
+            "ligada": sit.get("ligada", False),
+            "proximos_em_horas": len(proximos),
+        }
+    except Exception:
+        # Banco ainda não tem tabelas de rotina, retorna defaults
+        return {
+            "tarefas_ok": 0,
+            "tarefas_total": 0,
+            "ligada": False,
+            "proximos_em_horas": 0,
+        }
 
 
 def para_a_tv(db: Database, hoje: date | None = None) -> dict[str, Any]:
