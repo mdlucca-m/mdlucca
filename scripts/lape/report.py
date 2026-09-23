@@ -104,6 +104,12 @@ def render_mural(payload: dict[str, Any]) -> str:
     html = html.replace("__LOGO__", marca.marcador())
     html = html.replace("__CHARTS_JS__", CHARTS_TEMPLATE.read_text(encoding="utf-8"))
     html = html.replace("__SCRIPT__", MURAL_JS.read_text(encoding="utf-8"))
+    if "__SLIDES_AVANCADOS_JS__" in html:
+        html = html.replace("__SLIDES_AVANCADOS_JS__",
+                            (TEMPLATES / "slides-avancados-3d.js").read_text(encoding="utf-8"))
+    if "__SLIDES_AVANCADOS_CSS__" in html:
+        html = html.replace("__SLIDES_AVANCADOS_CSS__",
+                            (TEMPLATES / "slides-avancados-3d.css").read_text(encoding="utf-8"))
     return html.replace("__DATA__", to_json(payload))
 
 

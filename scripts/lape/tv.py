@@ -275,14 +275,12 @@ def _linhas_pesquisa(db: Database) -> list[dict[str, Any]]:
     for linha in linhas:
         lid = linha["id"]
         total_artigos = int(db.scalar(
-            "SELECT COUNT(DISTINCT a.id) FROM articles a"
-            " JOIN article_research_line arl ON arl.article_id = a.id"
-            " WHERE arl.research_line_id = ?", (lid,)
+            "SELECT COUNT(*) FROM articles a"
+            " WHERE a.research_line_id = ?", (lid,)
         ) or 0)
         publicados = int(db.scalar(
-            "SELECT COUNT(DISTINCT a.id) FROM articles a"
-            " JOIN article_research_line arl ON arl.article_id = a.id"
-            " WHERE arl.research_line_id = ? AND a.status = 'publicado'", (lid,)
+            "SELECT COUNT(*) FROM articles a"
+            " WHERE a.research_line_id = ? AND a.status = 'publicado'", (lid,)
         ) or 0)
         taxa = publicados / total_artigos if total_artigos > 0 else 0
         saida.append({
