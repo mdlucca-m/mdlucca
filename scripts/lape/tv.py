@@ -353,6 +353,10 @@ def para_a_tv(db: Database, hoje: date | None = None) -> dict[str, Any]:
                 "n_fora_do_brasil": len(fora_do_brasil) + len(m.get("sem_coordenada") or []),
                 "artigos_com_pais": m["artigos_com_pais"],
                 "instituicoes": len(m["instituicoes"]),
+                # Todo país com artigo, não só o top 10 do ranking -- o
+                # mapa-múndi colore pelo nome, e um país de fora do
+                # ranking apareceria "sem dado" mesmo tendo produção.
+                "mapa_paises": {p["pais"]: p["n"] for p in paises},
             },
             "sinais": _sinais_para_a_tv(sinais.analisar(db, hoje)),
             "acervos": cache.computar(f"acervos_{hoje.isoformat()}", lambda: _acervos(db), ttl=300),

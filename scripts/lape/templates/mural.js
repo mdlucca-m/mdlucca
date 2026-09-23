@@ -17,6 +17,21 @@
 const C = Charts;
 let D = JSON.parse(document.getElementById("payload").textContent);
 
+/* O contorno dos países pro mapa-múndi: geografia, não dado do
+   laboratório, então é buscado uma vez só e fora do payload -- são 70KB
+   que nunca mudam e que só a tela "Pelo mundo" precisa, e o navegador
+   já guarda em cache (o mesmo arquivo que /panorama e /aovivo usam). Não
+   é "atualização automática de dado": é o mesmo tipo de carga que o CSS
+   e os ícones, só que sob demanda. */
+let mundoGeo = null;
+fetch("/api/geo/mundo.json", { credentials: "same-origin" })
+  .then(function (r) { return r.ok ? r.json() : null; })
+  .then(function (dados) {
+    mundoGeo = (dados && dados.paises) || null;
+    if (mundoGeo && ROTEIRO[atual] && ROTEIRO[atual].id === "mundo") desenhar(atual, "quieto");
+  })
+  .catch(function () { /* sem mapa: a tela "Pelo mundo" segue só com o ranking */ });
+
 const PARAMS = new URLSearchParams(location.search);
 const SEGUNDOS = Math.max(5, Math.min(120, Number(PARAMS.get("t")) || 15));
 const AREA = (PARAMS.get("area") || "").trim();   /* recorta o mural numa linha */
@@ -1043,8 +1058,18 @@ function slideMundo() {
     tile({ nome: "Instituições", valor: m.instituicoes || 0, icone: "instituicao", serie: 4, pastilha: "ambar",
       pe: "com endereço no mapa" }),
   ]);
-  const ranking = paises.length ? rankingDePaises(paises)
-    : vazio("Nenhum país cadastrado nos autores ainda.");
+  /* Com o contorno dos países já carregado, o mapa-múndi de verdade
+     substitui a lista -- e usa todo país com produção (m.mapa_paises),
+     não só o top 10 que cabe na lista, senão um país de fora do ranking
+     apareceria "sem dado" no mapa mesmo tendo artigo. Sem o contorno
+     ainda (primeira troca de tela, antes do fetch responder), a lista
+     seve de retrato imediato -- ninguém fica olhando pra tela vazia
+     esperando 70KB de rede. */
+  const ranking = mundoGeo
+    ? el("div", { class: "corpo" }, C.mapaMundi({
+        world: mundoGeo, values: m.mapa_paises || {}, unit: "artigos",
+        caption: "produção por país", emptyMessage: "Nenhum país registrado ainda." }))
+    : (paises.length ? rankingDePaises(paises) : vazio("Nenhum país cadastrado nos autores ainda."));
   const instituicoes = [];
   paises.forEach(function (p) {
     (p.instituicoes || []).forEach(function (nome) {
@@ -1057,7 +1082,7 @@ function slideMundo() {
     linha,
     el("div", { class: "painel-duplo igual" }, [
       quadro("Países que assinam com o LAPE", "mapa", ranking,
-        "sede: " + ((m.sede && m.sede.nome) || "UDESC / CEFID")),
+        "sede: " + ((m.sede && m.sede.nome) || "UDESC / CEFID"), "moldura-viva"),
       quadro("Instituições parceiras", "instituicao",
         instituicoes.length ? frases(instituicoes) : vazio("Nenhuma instituição cadastrada nos autores."),
         m.instituicoes ? fmt(m.instituicoes) + " no mapa" : ""),
