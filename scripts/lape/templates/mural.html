@@ -339,13 +339,29 @@ body { background: var(--surface-sunken); }
 .pontos { display: flex; gap: 7px; align-items: center; }
 .pontos button { width: calc(9px * var(--zoom, 1));
   height: calc(9px * var(--zoom, 1)); padding: 0; border-radius: 50%; border: none;
-  background: color-mix(in srgb, var(--ink) 22%, transparent); box-shadow: none; }
+  background: color-mix(in srgb, var(--ink) 22%, transparent); box-shadow: none; cursor: pointer;
+  transition: width .35s cubic-bezier(.34, 1.56, .64, 1), background .18s ease, transform .15s ease; }
+.pontos button:hover { background: color-mix(in srgb, var(--ink) 48%, transparent); transform: scale(1.3); }
+.pontos button:active { transform: scale(.85); }
 .pontos button.on { width: calc(26px * var(--zoom, 1)); border-radius: 999px; background: var(--accent-strong); }
-.controles { display: flex; gap: 6px; opacity: 0; transition: opacity .25s; }
-.mural.mexeu .controles { opacity: 1; }
+.pontos button.on:hover { transform: none; }
+.controles { display: flex; gap: 6px; opacity: 0; transform: translateY(4px);
+  transition: opacity .25s, transform .25s; }
+.mural.mexeu .controles { opacity: 1; transform: translateY(0); }
 .controles button { width: 38px; height: 38px; padding: 0; display: grid; place-items: center;
-  border-radius: 50%; font-size: 16px; }
-.controles button svg.icon { font-size: 17px; }
+  border-radius: 50%; font-size: 16px; cursor: pointer;
+  transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), background .2s ease, box-shadow .2s ease; }
+.controles button:hover { transform: translateY(-2px) scale(1.1);
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  box-shadow: 0 6px 16px -5px color-mix(in srgb, var(--accent) 60%, transparent); }
+.controles button:active { transform: scale(.9); }
+.controles button svg.icon { font-size: 17px;
+  animation: iconePop .32s cubic-bezier(.34, 1.56, .64, 1) both; }
+@keyframes iconePop {
+  0% { transform: scale(.4); opacity: 0; }
+  65% { transform: scale(1.18); opacity: 1; }
+  100% { transform: scale(1); }
+}
 
 /* o gráfico se desenha: corte lateral que abre da esquerda para a direita.
    Círculo não aceita corte lateral sem ficar torto — rosca e radar surgem
@@ -365,6 +381,9 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
   .aurora { animation: none; }
   .trilho i { width: var(--pct, 0%); }
   svg.plot.revela, svg.plot.surge { animation: none; clip-path: none; }
+  .controles button svg.icon { animation: none; }
+  .pontos button, .controles button, .seguir, .seguir svg.icon, .paletas button,
+  .controles, .paletas { transition: none; }
 }
 /* ==========================================================================
    O mural no visual do Observatório: com `data-paleta` no <html>, os
@@ -411,10 +430,16 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
   box-shadow: 0 0 22px -6px var(--neon-magenta); }
 .seguir { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px;
   border: none; font-weight: 700; font-size: clamp(12px, .9vw, calc(14px * var(--zoom, 1))); color: #fff;
-  background: var(--grad-accent); box-shadow: 0 0 18px -4px var(--accent-strong); }
-.seguir svg.icon { font-size: 15px; }
-.mrodape .paletas { margin-right: 6px; opacity: 0; transition: opacity .25s; }
-.mural.mexeu .paletas { opacity: 1; }
+  background: var(--grad-accent); box-shadow: 0 0 18px -4px var(--accent-strong); cursor: pointer;
+  transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), box-shadow .2s ease; }
+.seguir:hover { transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 24px -5px var(--accent-strong); }
+.seguir:active { transform: scale(.95); }
+.seguir svg.icon { font-size: 15px; transition: transform .3s cubic-bezier(.34, 1.56, .64, 1); }
+.seguir:hover svg.icon { transform: translateX(3px); }
+.mrodape .paletas { margin-right: 6px; opacity: 0; transform: translateY(4px);
+  transition: opacity .25s, transform .25s; }
+.mural.mexeu .paletas { opacity: 1; transform: translateY(0); }
 
 @media (max-width: 780px) {
   .painel-duplo, .painel-duplo.igual { grid-template-columns: minmax(0, 1fr); }
