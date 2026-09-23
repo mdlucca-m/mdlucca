@@ -407,115 +407,178 @@ function slideKPIsAnalyticos() {
   const t = tv();
   if (!t) return escalonar(el("div", { class: "slide" }, vazio("Dados analíticos não disponíveis.")));
 
-  const container = el("div", { class: "slide slide-kpis-analytics-4k" });
+  /* Tudo aqui vem do banco, pelo payload da TV -- nada de série simulada.
+     Sem número real, o cartão mostra "—" em vez de inventar tendência. */
+  const kpisTemas = (t.temas && t.temas.kpis) || [];
+  const porCodigo = {};
+  kpisTemas.forEach(function (k) { porCodigo[k.code] = k; });
+  const aceite = porCodigo.aceite;
+  const tempo = porCodigo.tempo;
+  const citRes = (t.citacoes && t.citacoes.resumo) || {};
+  const totalArtigosLinhas = (t.linhas || []).reduce(function (s, l) { return s + (l.artigos || 0); }, 0);
+  const produtividade = (t.pessoas && t.pessoas.length) ? totalArtigosLinhas / t.pessoas.length : null;
+  const comp = t.comparacoes || {};
 
-  /* Simular dados analíticos (virão do backend) */
   const kpis = [
-    {
-      id: "aceite",
-      titulo: "Taxa de Aceite",
-      valor: 68,
-      unidade: "%",
-      icone: "✓",
-      serie: [45, 52, 48, 65, 71, 68],
-      tendencia: "up",
-      cor: "#10b981",
-    },
-    {
-      id: "dias",
-      titulo: "Dias até Publicação",
-      valor: 187,
-      unidade: "dias",
-      icone: "⏱",
-      serie: [245, 210, 198, 185, 190, 187],
-      tendencia: "down",
-      cor: "#3b82f6",
-    },
-    {
-      id: "citacoes",
-      titulo: "Citações/Artigo",
-      valor: 12,
-      unidade: "cit",
-      icone: "📊",
-      serie: [8, 9, 10, 11, 11.5, 12],
-      tendencia: "up",
-      cor: "#8b5cf6",
-    },
-    {
-      id: "produtividade",
-      titulo: "Produtividade Equipe",
-      valor: 3.2,
-      unidade: "art/pes",
-      icone: "👥",
-      serie: [2.1, 2.4, 2.7, 2.9, 3.1, 3.2],
-      tendencia: "up",
-      cor: "#f59e0b",
-    },
+    { id: "aceite", titulo: "Taxa de Aceite", cor: "#10b981", icone: "✓",
+      valor: aceite && aceite.valor !== null && aceite.valor !== undefined ? aceite.valor : null, unidade: "%",
+      delta: comp.aceites ? comp.aceites.delta : null, deltaRotulo: "aceites vs. mês anterior" },
+    { id: "dias", titulo: "Dias até Publicação", cor: "#3b82f6", icone: "⏱",
+      valor: tempo && tempo.valor !== null && tempo.valor !== undefined ? tempo.valor : null, unidade: " dias",
+      nota: tempo ? tempo.pe : null },
+    { id: "citacoes", titulo: "Citações/Artigo", cor: "#8b5cf6", icone: "📊",
+      valor: citRes.total_artigos ? citRes.media_citacoes : null, unidade: "",
+      nota: citRes.total_artigos ? citRes.total_artigos + " artigo(s) com dados de citação" : "sincronização com as bases ainda pendente" },
+    { id: "produtividade", titulo: "Produtividade Equipe", cor: "#f59e0b", icone: "👥",
+      valor: produtividade, unidade: " art/pes",
+      nota: (t.pessoas ? t.pessoas.length : 0) + " pessoa(s) cadastrada(s)" },
   ];
 
+  const container = el("div", { class: "slide slide-kpis-analytics-4k" });
   const grid = el("div", { class: "grid-kpis-4k" });
 
-  kpis.forEach(kpi => {
-    const card = el("div", { class: "card-kpi-4k", "data-kpi": kpi.id, style: `--cor-kpi:${kpi.cor};` });
+  kpis.forEach(function (kpi) {
+    const card = el("div", { class: "card-kpi-4k", "data-kpi": kpi.id, style: "--cor-kpi:" + kpi.cor + ";" });
 
-    /* Header com ícone */
-    const header = el("div", { class: "header-kpi" }, [
+    card.appendChild(el("div", { class: "header-kpi" }, [
       el("span", { class: "icone-kpi", text: kpi.icone }),
       el("span", { class: "titulo-kpi", text: kpi.titulo }),
-    ]);
-    card.appendChild(header);
+    ]));
 
-    /* Valor grande (CountUp animation) */
+    const temValor = kpi.valor !== null && kpi.valor !== undefined && isFinite(kpi.valor);
     const valueContainer = el("div", { class: "value-container-kpi" });
-    const value = el("span", { class: "valor-kpi", "data-valor": kpi.valor, "data-unidade": kpi.unidade });
-    value.textContent = "0" + kpi.unidade;
+    const value = el("span", { class: "valor-kpi",
+      "data-valor": temValor ? String(kpi.valor) : "", "data-unidade": kpi.unidade,
+      text: temValor ? "0" + kpi.unidade : "—" });
     valueContainer.appendChild(value);
     card.appendChild(valueContainer);
 
-    /* Mini sparkline (gráfico de série) */
-    const sparkSvg = el("svg", { class: "sparkline-kpi", viewBox: "0 0 120 40" });
-    const points = kpi.serie.map((v, i) => {
-      const minVal = Math.min(...kpi.serie);
-      const maxVal = Math.max(...kpi.serie);
-      const range = maxVal - minVal || 1;
-      const x = (i / (kpi.serie.length - 1)) * 110 + 5;
-      const y = 40 - ((v - minVal) / range) * 30 - 5;
-      return `${x},${y}`;
-    }).join(" ");
-    const polyline = el("polyline", { points, class: "sparkline-line", fill: "none", stroke: kpi.cor, "stroke-width": "2" });
-    sparkSvg.appendChild(polyline);
-    card.appendChild(sparkSvg);
-
-    /* Indicador de tendência */
-    const tendencia = el("div", { class: "tendencia-kpi", "data-tendencia": kpi.tendencia });
-    tendencia.textContent = kpi.tendencia === "up" ? "↑ +5%" : "↓ -3%";
-    card.appendChild(tendencia);
+    if (kpi.delta !== null && kpi.delta !== undefined && kpi.delta !== 0) {
+      card.appendChild(el("div", { class: "tendencia-kpi", "data-tendencia": kpi.delta > 0 ? "up" : "down",
+        text: (kpi.delta > 0 ? "↑ +" : "↓ ") + kpi.delta + " " + (kpi.deltaRotulo || "") }));
+    } else if (kpi.nota) {
+      card.appendChild(el("div", { class: "tendencia-kpi", "data-tendencia": "flat", text: kpi.nota }));
+    }
 
     grid.appendChild(card);
 
-    /* Disparar CountUp animation quando card entra na tela */
-    setTimeout(() => {
-      value.style.animation = `countup-kpi 1s ease-out`;
-      value.addEventListener("animationstart", () => {
-        let current = 0;
+    if (temValor) {
+      setTimeout(function () {
         const target = kpi.valor;
-        const duration = 1000;
+        const duration = 900;
         const startTime = performance.now();
-
-        const animate = (currentTime) => {
+        (function animate(currentTime) {
           const elapsed = currentTime - startTime;
           const progress = Math.min(elapsed / duration, 1);
-          current = Math.round(progress * target * 10) / 10;
-          value.textContent = current + kpi.unidade;
+          const current = Math.round(progress * target * 10) / 10;
+          value.textContent = C.fmt(current) + kpi.unidade;
           if (progress < 1) requestAnimationFrame(animate);
-        };
-        requestAnimationFrame(animate);
-      });
-    }, 100);
+        })(startTime);
+      }, 100);
+    }
   });
 
   container.appendChild(grid);
 
+  return escalonar(container);
+}
+
+/* ==================== CITAÇÕES E BASES DE DADOS ==================== */
+function slideCitacoesBases() {
+  const t = tv();
+  const cit = t && t.citacoes;
+  if (!cit || !cit.resumo) {
+    return escalonar(el("div", { class: "slide" }, vazio("Citações ainda não sincronizadas com as bases externas.")));
+  }
+
+  const resumo = cit.resumo;
+  const linhas = (cit.linhas || []).slice().sort(function (a, b) {
+    return (b.media_citacoes || 0) - (a.media_citacoes || 0);
+  });
+
+  const container = el("div", { class: "slide slide-citacoes-bases" });
+  const wrapper = el("div", { class: "bases-wrapper" });
+
+  if (cit.gerado_em) {
+    wrapper.appendChild(el("span", { class: "bases-timestamp",
+      text: "sincronizado " + new Date(cit.gerado_em).toLocaleString("pt-BR") }));
+  }
+
+  wrapper.appendChild(el("div", { class: "bases-resumo" }, [
+    el("div", { class: "metric-card metric-total" }, [
+      el("div", { class: "metric-label", text: "Total de citações" }),
+      el("div", { class: "metric-value", text: C.fmt(resumo.total_citacoes) }),
+      el("div", { class: "metric-meta", text: C.fmt(resumo.total_artigos) + " artigo(s) com dados" }),
+    ]),
+    el("div", { class: "metric-card metric-media" }, [
+      el("div", { class: "metric-label", text: "Média por artigo" }),
+      el("div", { class: "metric-value", text: C.fmt(resumo.media_citacoes) }),
+      el("div", { class: "metric-meta", text: C.fmt(resumo.linhas_ativas) + " linha(s) de pesquisa" }),
+    ]),
+    el("div", { class: "metric-card metric-fonte" }, [
+      el("div", { class: "metric-label", text: "Fonte" }),
+      el("div", { class: "metric-fonte-list" }, [
+        el("span", { class: "fonte-badge openalex", text: "OpenAlex" }),
+      ]),
+    ]),
+  ]));
+
+  if (!resumo.total_artigos) {
+    wrapper.appendChild(vazio("Nenhum artigo encontrado ainda nas bases externas — a sincronização roda por DOI e título."));
+  }
+
+  if (linhas.length) {
+    const grid = el("div", { class: "bases-linhas" });
+    linhas.forEach(function (linha) {
+      const cobertura = linha.total_artigos ? Math.round(100 * (linha.artigos_com_dados || 0) / linha.total_artigos) : 0;
+      const tom = linha.media_citacoes > 5 ? "success" : linha.media_citacoes > 2 ? "warning" : "info";
+      grid.appendChild(el("div", { class: "linha-card " + tom }, [
+        el("div", { class: "linha-header" }, [
+          el("h3", { text: linha.nome }),
+          el("span", { class: "linha-cobertura", text: cobertura + "% coberto" }),
+        ]),
+        el("div", { class: "linha-metricas" }, [
+          el("div", { class: "metrica-pequena" }, [el("span", { class: "label", text: "Artigos" }), el("span", { class: "valor", text: C.fmt(linha.total_artigos) })]),
+          el("div", { class: "metrica-pequena" }, [el("span", { class: "label", text: "Citações" }), el("span", { class: "valor", text: C.fmt(linha.total_citacoes) })]),
+          el("div", { class: "metrica-pequena" }, [el("span", { class: "label", text: "Média" }), el("span", { class: "valor", text: C.fmt(linha.media_citacoes) })]),
+        ]),
+        el("div", { class: "linha-progresso" }, [
+          el("div", { class: "progresso-bar" }, [el("div", { class: "progresso-fill", style: "width:" + cobertura + "%" })]),
+        ]),
+      ]));
+    });
+    wrapper.appendChild(grid);
+  }
+
+  const artigos = [];
+  linhas.forEach(function (l) {
+    (l.artigos || []).forEach(function (a) { artigos.push(Object.assign({}, a, { linha: l.nome })); });
+  });
+  artigos.sort(function (a, b) { return (b.citacoes || 0) - (a.citacoes || 0); });
+  const top = artigos.slice(0, 5);
+
+  if (top.length) {
+    const topBox = el("div", { class: "top-artigos" }, [el("h3", { text: "Mais citados" })]);
+    const lista = el("div", { class: "artigos-lista" });
+    top.forEach(function (a, i) {
+      lista.appendChild(el("div", { class: "artigo-item rank-" + (i + 1) }, [
+        el("span", { class: "rank", text: "#" + (i + 1) }),
+        el("div", { class: "artigo-info" }, [
+          el("div", { class: "artigo-titulo", text: a.titulo || "Sem título" }),
+          el("div", { class: "artigo-meta" }, [
+            el("span", { text: a.linha }),
+            a.revista ? el("span", { text: a.revista }) : null,
+            el("span", { text: String(a.ano_publicacao || "—") }),
+          ]),
+        ]),
+        el("div", { class: "artigo-citacoes", text: C.fmt(a.citacoes || 0) }),
+      ]));
+    });
+    topBox.appendChild(lista);
+    wrapper.appendChild(topBox);
+  }
+
+  container.appendChild(wrapper);
   return escalonar(container);
 }
 
@@ -525,4 +588,5 @@ if (typeof window !== "undefined") {
   window.slideOrganograma3D = slideOrganograma3D;
   window.slideFrameworkN8n = slideFrameworkN8n;
   window.slideKPIsAnalyticos = slideKPIsAnalyticos;
+  window.slideCitacoesBases = slideCitacoesBases;
 }

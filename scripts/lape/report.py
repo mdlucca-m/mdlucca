@@ -18,6 +18,7 @@ JS_TEMPLATE = TEMPLATE_DIR / "dashboard.js"
 MURAL_HTML = TEMPLATE_DIR / "mural.html"
 MURAL_JS = TEMPLATE_DIR / "mural.js"
 CHARTS_TEMPLATE = TEMPLATE_DIR / "charts.js"
+CHARTS_ENHANCED_TEMPLATE = TEMPLATE_DIR / "charts-enhanced.js"
 ICONS_TEMPLATE = TEMPLATE_DIR / "icons.js"
 BANDEIRAS_TEMPLATE = TEMPLATE_DIR / "bandeiras.js"
 THEME_TEMPLATE = TEMPLATE_DIR / "theme.css"
@@ -107,6 +108,9 @@ def render_mural(payload: dict[str, Any]) -> str:
     html = html.replace("__BANDEIRAS_JS__", BANDEIRAS_TEMPLATE.read_text(encoding="utf-8"))
     html = html.replace("__LOGO__", marca.marcador())
     html = html.replace("__CHARTS_JS__", CHARTS_TEMPLATE.read_text(encoding="utf-8"))
+    if "__CHARTS_ENHANCED_JS__" in html:
+        html = html.replace("__CHARTS_ENHANCED_JS__",
+                            CHARTS_ENHANCED_TEMPLATE.read_text(encoding="utf-8"))
     html = html.replace("__SCRIPT__", MURAL_JS.read_text(encoding="utf-8"))
 
     # Injetar slides avançados 3D

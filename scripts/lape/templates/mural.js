@@ -1476,6 +1476,8 @@ const SLIDES = [
     apresenta: "Fluxo estilo n8n: ideia → protocolo → coleta → análise → artigo → submissão → publicado, com artigos fluindo." },
   { id: "kpis-analytics", titulo: "KPIs Analíticos 4K", icone: "painel", montar: slideKPIsAnalyticos, tv: true,
     apresenta: "4 métricas centrais em grande escala: taxa de aceite, dias até publicação, citações/artigo, produtividade equipe." },
+  { id: "citacoes-bases", titulo: "Citações em Tempo Real", icone: "citacao", montar: slideCitacoesBases, tv: true,
+    apresenta: "Citações sincronizadas com OpenAlex (e Scopus/Web of Science quando configuradas): total, média por linha de pesquisa e os artigos mais citados." },
 ];
 
 /* As paletas de fundo, as mesmas do ao vivo. A escolha é lida de
