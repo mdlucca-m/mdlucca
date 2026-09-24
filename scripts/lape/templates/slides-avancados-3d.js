@@ -258,8 +258,16 @@ function slideOrganograma3D(baldeIndex) {
 
   const porId = {};
   (org.people || []).forEach(function (p) { porId[p.id] = p; });
+  /* A aresta "coordenacao" (metrics.organograma) e sintetica: quando so
+     sobra um chefe solto no topo, o backend pendura TODAS as outras
+     raizes nele so pra desenhar uma arvore so, sem que isso signifique
+     orientacao de verdade. Seguir essa aresta aqui faria o balde da
+     coordenacao engolir todo mundo sem orientador -- exatamente o
+     amontoado que vazava a tela. So orientacao/coorientacao de verdade
+     formam galho; quem nao tem orientador vira raiz do proprio balde. */
   const filhosDe = {};
   (org.edges || []).forEach(function (e) {
+    if (e.kind !== "orientacao" && e.kind !== "coorientacao") return;
     if (!porId[e.from] || !porId[e.to]) return;
     (filhosDe[e.from] = filhosDe[e.from] || []).push({ to: e.to, kind: e.kind });
   });
