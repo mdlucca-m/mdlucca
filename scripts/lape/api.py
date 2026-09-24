@@ -66,6 +66,21 @@ CSP = ("default-src 'self'; "
        "form-action 'self'; "
        "base-uri 'none'; "
        "frame-ancestors 'none'")
+# Só para /analytics: página deliberadamente à parte do design system do
+# LAPE, em Tailwind + Chart.js -- pedido assim, para não se misturar com o
+# resto. Os dois vêm de CDN, então essa página (e só ela) precisa de uma
+# CSP que abra esses dois domínios; as outras continuam com a CSP estrita
+# de cima, que não confia em servidor nenhum de fora.
+CSP_ANALYTICS = ("default-src 'self'; "
+                 "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com"
+                 " https://cdn.jsdelivr.net; "
+                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                 "img-src 'self' data:; "
+                 "font-src 'self' data: https://fonts.gstatic.com; "
+                 "connect-src 'self'; "
+                 "form-action 'self'; "
+                 "base-uri 'none'; "
+                 "frame-ancestors 'none'")
 SECURITY_HEADERS = [
     ("X-Content-Type-Options", "nosniff"),
     ("Referrer-Policy", "same-origin"),
@@ -1215,6 +1230,116 @@ def route_vinculo_marcar(ctx: "Context") -> Any:
     auth.log(ctx.db, user["id"], user.get("login"), "vinculo_alterado", "members",
              detail=f"{resultado['quem']} -> {resultado['categoria']}")
     return resultado
+
+
+def route_analytics_avancado(ctx: "Context") -> Any:
+    """Os dados da página de analytics avançado -- só o que ela usa.
+
+    Tudo calculado agora, do banco: nenhum número fixo no meio do
+    caminho. `citacoes` de um artigo é o maior entre WoS, Scopus e
+    OpenAlex -- a mesma regra do /panorama --, e não a soma dos três,
+    que contaria a mesma citação em cada base que a indexa.
+    """
+    from datetime import date
+
+    from . import metas as _metas
+
+    auth.require(ctx.user, "leitura")
+    db = ctx.db
+    ano = date.today().year
+
+    artigos = db.dicts(
+        "SELECT id, internal_code, title, status, year_published, published_on,"
+        "       journal, doi, research_line_id, research_line, wos_citations,"
+        "       scopus_citations, openalex_citations, authors"
+        "  FROM v_articles_full")
+    for a in artigos:
+        a["citacoes"] = max(a.pop("wos_citations") or 0, a.pop("scopus_citations") or 0,
+                            a.pop("openalex_citations") or 0)
+        a["ano"] = a["year_published"] or (
+            int(str(a["published_on"])[:4]) if a["published_on"] else None)
+
+    por_status: dict[str, int] = {}
+    for a in artigos:
+        por_status[a["status"]] = por_status.get(a["status"], 0) + 1
+
+    publicados = [a for a in artigos if a["status"] == "publicado"]
+    publicados_no_ano = [a for a in publicados if a["ano"] == ano]
+    citacoes_total = sum(a["citacoes"] for a in artigos)
+    citacoes_por_artigo = round(citacoes_total / len(publicados), 1) if publicados else None
+
+    meta_publicacoes = None
+    for item in _metas.progresso(db, ano).get("itens", []):
+        if item.get("codigo") == "publicacoes":
+            meta_publicacoes = item
+            break
+
+    pessoas_lape = int(db.scalar(
+        "SELECT COUNT(*) FROM members WHERE COALESCE(is_external, 0) = 0"
+        "   AND COALESCE(active, 1) = 1") or 0)
+    pessoas_coautores = int(db.scalar("SELECT COUNT(*) FROM members WHERE is_external = 1") or 0)
+    artigos_por_membro_lape = db.dicts(
+        "SELECT aa.member_id, COUNT(DISTINCT aa.article_id) AS n"
+        "  FROM article_authors aa JOIN members m ON m.id = aa.member_id"
+        " WHERE COALESCE(m.is_external, 0) = 0 AND COALESCE(m.active, 1) = 1"
+        " GROUP BY aa.member_id")
+    eficiencia = (round(sum(r["n"] for r in artigos_por_membro_lape) / pessoas_lape, 1)
+                 if pessoas_lape else None)
+
+    # Historico: publicados no ano e citacoes acumuladas ATE aquele ano --
+    # so dos artigos que ja tinham ano quando o dado foi lido, nao uma
+    # projecao.
+    anos_com_dado = [a["ano"] for a in publicados if a["ano"]]
+    inicio = min(anos_com_dado) if anos_com_dado else ano - 5
+    inicio = min(inicio, ano - 5)
+    historico = []
+    acumulado = 0
+    for y in range(inicio, ano + 1):
+        do_ano = [a for a in publicados if a["ano"] == y]
+        acumulado += sum(a["citacoes"] for a in do_ano)
+        historico.append({"ano": y, "publicados": len(do_ano), "citacoes_acumuladas": acumulado})
+
+    top_citados = sorted(publicados, key=lambda a: a["citacoes"], reverse=True)[:5]
+
+    linhas = db.dicts("SELECT id, name FROM research_lines ORDER BY name")
+    integrantes = db.dicts(
+        "SELECT id, full_name FROM members WHERE COALESCE(is_external, 0) = 0"
+        "   AND COALESCE(active, 1) = 1 ORDER BY full_name")
+    membros_por_artigo: dict[int, list[int]] = {}
+    for row in db.dicts("SELECT article_id, member_id FROM article_authors"):
+        membros_por_artigo.setdefault(row["article_id"], []).append(row["member_id"])
+    for a in artigos:
+        a["integrantes_ids"] = membros_por_artigo.get(a["id"], [])
+
+    return {
+        "gerado_em": datetime.now().isoformat(timespec="seconds"),
+        "ano": ano,
+        "kpis": {
+            "artigos_total": len(artigos),
+            "por_status": por_status,
+            "publicados_no_ano": len(publicados_no_ano),
+            "meta_publicacoes_no_ano": meta_publicacoes,
+            "citacoes_total": citacoes_total,
+            "citacoes_por_artigo": citacoes_por_artigo,
+            "pessoas_total": pessoas_lape + pessoas_coautores,
+            "pessoas_lape": pessoas_lape,
+            "pessoas_coautores": pessoas_coautores,
+            "eficiencia_artigos_por_integrante": eficiencia,
+        },
+        "historico": historico,
+        "top_citados": [
+            {"id": a["id"], "titulo": a["title"], "ano": a["ano"], "citacoes": a["citacoes"],
+             "periodico": a["journal"], "doi": a["doi"], "autores": a["authors"]}
+            for a in top_citados],
+        "linhas": linhas,
+        "integrantes": integrantes,
+        "artigos": [
+            {"id": a["id"], "codigo": a["internal_code"], "titulo": a["title"],
+             "status": a["status"], "ano": a["ano"], "linha_id": a["research_line_id"],
+             "linha": a["research_line"], "citacoes": a["citacoes"], "autores": a["authors"],
+             "integrantes_ids": a["integrantes_ids"]}
+            for a in artigos],
+    }
 
 
 def route_metas(ctx: "Context") -> Any:
@@ -2581,6 +2706,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/equipe/vinculo/?$", route_vinculo_marcar, "coordenacao"),
     ("POST", r"^/api/equipe/vinculo/lote/?$", route_vinculo_lote, "coordenacao"),
     ("GET", r"^/api/metas/?$", route_metas, "integrante"),
+    ("GET", r"^/api/analytics/?$", route_analytics_avancado, "leitura"),
     ("POST", r"^/api/metas/?$", route_metas_declarar, "coordenacao"),
     ("GET", r"^/api/equipe/indice-h/?$", route_indice_h, "coordenacao"),
     ("POST", r"^/api/equipe/indice-h/?$", route_indice_h_declarar, "coordenacao"),
@@ -2678,7 +2804,7 @@ class Handler(BaseHTTPRequestHandler):
     # -- utilidades --
     def _send(self, status: int, payload: Any, content_type: str = "application/json",
               extra_headers: list[tuple[str, str]] | None = None,
-              cacheavel: bool = False) -> None:
+              cacheavel: bool = False, csp: str | None = None) -> None:
         # Serializa o que ainda nao e texto. A regra antes era "o tipo do
         # conteudo e application/json", e por isso um JSON ja pronto em
         # disco -- o contorno do mundo -- so podia ser enviado mentindo o
@@ -2702,7 +2828,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "public, max-age=86400" if cacheavel
                          else "no-store, must-revalidate")
         for nome, valor in SECURITY_HEADERS:
-            self.send_header(nome, valor)
+            self.send_header(nome, valor if nome != "Content-Security-Policy" or not csp else csp)
         for key, value in (extra_headers or []):
             self.send_header(key, value)
         self.end_headers()
@@ -2815,6 +2941,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._serve_page("triagem.html")
         if method == "GET" and path in ("/panorama", "/analitico"):
             return self._serve_page("panorama.html")
+        if method == "GET" and path in ("/analytics", "/avancado"):
+            return self._serve_page("analytics.html")
         if method == "GET" and path in ("/aovivo", "/ao-vivo", "/vivo"):
             return self._serve_page("aovivo.html")
         if method == "GET" and path.startswith("/convite"):
@@ -3008,7 +3136,7 @@ class Handler(BaseHTTPRequestHandler):
             html = html.replace("__AOVIVO_BASES_CSS__",
                                 (TEMPLATES / "aovivo-bases.css").read_text(encoding="utf-8"))
         html = html.replace("</body>", _marca_de_versao() + "\n</body>", 1)
-        self._send(200, html, "text/html")
+        self._send(200, html, "text/html", csp=CSP_ANALYTICS if name == "analytics.html" else None)
 
     def _serve_mundo(self) -> None:
         """O contorno dos paises, para o mapa da producao.
