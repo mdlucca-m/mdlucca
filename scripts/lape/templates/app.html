@@ -173,6 +173,56 @@ table.matriz td.celula{text-align:center;font-variant-numeric:tabular-nums}
   nav.side .group{width:100%;margin:6px 8px 2px}
   nav.side button{width:auto}
 }
+
+/* ---- caminho do artigo: funil temático, hierárquico ----
+   Não é um funil de verdade -- cada etapa conta uma coisa diferente
+   (referência, registro triado, artigo), sem porcentagem entre elas
+   (ver o aviso no fim da lista). A largura decrescente é só a
+   metáfora visual de um processo que afunila. */
+.caminho-funil{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;
+  align-items:center;gap:0;max-width:820px;margin-inline:auto}
+.etapa-item{display:flex;flex-direction:column;align-items:center;width:100%}
+.card.etapa{width:calc(100% - var(--i,0) * 6%);margin-inline:auto;display:flex;
+  flex-direction:column;gap:10px;position:relative;
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--tom) 30%,transparent),
+    0 14px 28px -18px color-mix(in srgb,var(--tom) 55%,transparent);
+  animation:etapa-surge .5s cubic-bezier(.16,.84,.3,1) both;
+  animation-delay:calc(var(--i,0) * .09s)}
+@keyframes etapa-surge{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+.etapa-topo{display:flex;align-items:center;gap:14px}
+.etapa-titulo h3{margin:0 0 3px;font-size:15px}
+.etapa-meio{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.etapa-meio .num-grande{font-size:28px;font-weight:800;line-height:1;
+  font-variant-numeric:tabular-nums;color:var(--tom)}
+.etapa-baixo{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.etapa-saiba{flex:1 1 auto;min-width:200px}
+.etapa-saiba summary{cursor:pointer;font-size:12.5px;font-weight:650;color:var(--tom);list-style:none}
+.etapa-saiba summary::-webkit-details-marker{display:none}
+.etapa-saiba summary::after{content:" ▾"}
+.etapa-saiba[open] summary::after{content:" ▴"}
+.etapa-saiba ul{list-style:none;margin:8px 0 0;padding:10px 12px;border-radius:10px;
+  border-left:3px solid var(--tom);background:color-mix(in srgb,var(--tom) 9%,var(--surface));
+  display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--ink-2);line-height:1.45}
+@media not (prefers-reduced-motion: reduce){
+  .etapa-saiba[open] ul{animation:caminho-abre .3s ease both}
+}
+@keyframes caminho-abre{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.etapa-conector{width:3px;height:22px;margin:2px 0;position:relative;overflow:hidden;
+  background:color-mix(in srgb,var(--tom) 35%,transparent)}
+.etapa-conector::after{content:"";position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);
+  border:6px solid transparent;border-top-color:var(--tom2)}
+.etapa-conector::before{content:"";position:absolute;left:0;top:-26px;width:100%;height:26px;
+  background:linear-gradient(color-mix(in srgb,var(--tom2) 95%,transparent),transparent);
+  animation:etapa-flui 1.4s linear infinite}
+@keyframes etapa-flui{from{transform:translateY(-26px)}to{transform:translateY(48px)}}
+@media (prefers-reduced-motion: reduce){
+  .card.etapa{animation:none}
+  .etapa-conector::before{animation:none}
+}
+@media (max-width:860px){
+  .card.etapa{width:100%}
+  .etapa-baixo{flex-direction:column;align-items:stretch}
+}
 </style>
 </head>
 <body>
@@ -1127,6 +1177,101 @@ VIEWS.projetos = crudView({
         text: rotuloDe(PROJETO_ROTULO, r.status)}); }},
   ],
 });
+
+/* ==================================================================== */
+/* Caminho do artigo — o mesmo funil hierárquico do /aovivo#caminho,     */
+/* aqui no app do dia a dia. Seis etapas reais (/api/caminho, que só     */
+/* devolve aovivo.caminho() sem montar o painel ao vivo inteiro). Não é  */
+/* um funil de verdade: cada etapa conta uma coisa diferente —           */
+/* referência, registro triado, artigo — por isso não há porcentagem     */
+/* entre elas; a largura decrescente é só a metáfora do processo.        */
+/* ==================================================================== */
+const ICONE_CAMINHO = {biblioteca: "livro", triagem: "qualidade", producao: "producao",
+  submissao: "submissao", aceite: "aceite", publicacao: "foguete"};
+const TOM_CAMINHO = ["azul", "laranja", "verde", "ambar", "magenta", "violeta"];
+const COR_CAMINHO = ["var(--series-1)", "var(--series-2)", "var(--series-3)",
+  "var(--series-4)", "var(--series-5)", "var(--series-7)"];
+/* "Saiba mais" por etapa: prática consagrada de escrita e publicação
+   científica, texto fixo daqui — não é dado do LAPE (que já está no
+   valor e no "No LAPE:" de cada cartão). */
+const SAIBA_MAIS_CAMINHO = {
+  biblioteca: [
+    "Estratégia de busca replicável: termos, bases e datas registrados antes de começar a ler.",
+    "Referência sem leitura ainda não é acervo — é fila. O que entra bem aqui sai mais fácil na triagem.",
+  ],
+  triagem: [
+    "PRISMA desde o primeiro filtro: cada exclusão com o motivo, não só o número.",
+    "Dois avaliadores às cegas, e o kappa entre eles — concordância baixa pede critério mais claro, não mais gente decidindo sozinha.",
+  ],
+  producao: [
+    "IMRaD — Introdução, Métodos, Resultados e Discussão — ainda é o que a maioria das revistas espera; fugir dele pede justificativa, não hábito.",
+    "Resultado é o que os dados mostram; discussão é o que eles significam. Misturar os dois é a revisão mais comum que um manuscrito recebe.",
+  ],
+  submissao: [
+    "Carta ao editor não repete o resumo: diz por que aquela revista, para aquele leitor, agora.",
+    "Resposta ao revisor ponto a ponto, sem deixar nenhum comentário sem resposta — mesmo os que discordam.",
+  ],
+  aceite: [
+    "Aceite não é publicação: entre os dois ainda cabem prova, DOI e, às vezes, meses de fila editorial.",
+    "É o obstáculo mais alto já passado — mas o artigo só fica pronto pra ser lido e citado depois de publicado.",
+  ],
+  publicacao: [
+    "Checar o DOI e o acesso aberto assim que sai: metadado errado nasce fácil e demora a ser corrigido.",
+    "Citação passa a contar fora do controle de quem escreveu — o que ainda dá pra fazer é deixar o artigo fácil de achar e citar certo.",
+  ],
+};
+
+VIEWS.caminho = {
+  label: "Caminho do artigo", group: "Produção",
+  async render(){
+    const dados = await api("/api/caminho");
+    const etapas = dados.etapas || [];
+    VIEW.innerHTML = "";
+    VIEW.appendChild(tituloDaTela("caminho", "Caminho do artigo"));
+    VIEW.appendChild(h("p", {class: "view",
+      text: "Seis etapas, da pesquisa bibliográfica à publicação: o que há em cada uma agora, e a tela do LAPE que a faz."}));
+
+    const lista = h("ol", {class: "caminho-funil"});
+    etapas.forEach(function (e, i){
+      const tom = COR_CAMINHO[i % COR_CAMINHO.length];
+      const proximoTom = COR_CAMINHO[(i + 1) % COR_CAMINHO.length];
+      const dicas = SAIBA_MAIS_CAMINHO[e.code] || [];
+
+      const saiba = dicas.length ? h("details", {class: "etapa-saiba"}, [
+        h("summary", {text: "Saiba mais"}),
+        h("ul", {}, dicas.map(function (t){ return h("li", {text: t}); })),
+      ]) : null;
+
+      const card = h("div", {class: "card etapa", style: "--tom:" + tom + ";--i:" + i}, [
+        h("div", {class: "etapa-topo"}, [
+          Icons.badge(ICONE_CAMINHO[e.code] || "achado", TOM_CAMINHO[i % TOM_CAMINHO.length], 22),
+          h("div", {class: "etapa-titulo"}, [
+            h("h3", {text: e.rotulo}),
+            h("div", {class: "hint", text: "No LAPE: " + e.faz}),
+          ]),
+        ]),
+        h("div", {class: "etapa-meio"}, [
+          h("span", {class: "num-grande", text: C.fmt(e.valor)}),
+          h("small", {text: e.unidade + (e.detalhe !== undefined
+            ? " · " + C.fmt(e.detalhe) + " " + e.detalhe_rotulo : "")}),
+        ]),
+        h("div", {class: "etapa-baixo"}, [
+          saiba,
+          h("a", {href: e.href}, [h("button", {class: "ghost", type: "button", text: e.ferramenta + " →"})]),
+        ]),
+      ]);
+      const item = h("li", {class: "etapa-item"}, [card]);
+      if (i < etapas.length - 1){
+        item.appendChild(h("div", {class: "etapa-conector", style: "--tom:" + tom + ";--tom2:" + proximoTom}));
+      }
+      lista.appendChild(item);
+    });
+    VIEW.appendChild(lista);
+    VIEW.appendChild(h("p", {class: "hint sec", text:
+      "Cada etapa conta uma coisa diferente — referência, registro triado, artigo — e por isso não há "
+      + "porcentagem entre elas: a forma de funil aqui é só a metáfora do processo, não conta nenhuma."}));
+  },
+};
 
 VIEWS.linhas = crudView({
   id: "linhas", entity: "research-lines", label: "Linhas de pesquisa", group: "Laboratório",
@@ -2391,6 +2536,7 @@ async function preencherLista(destino){
 const ICONE = {
   ponto: "relogio",
   perfil: "pessoas", artigos: "producao", submissoes: "submissao", projetos: "projeto",
+  caminho: "processo",
   linhas: "linhas", biblioteca: "livro", eventos: "calendario", ana: "explorar",
   senha: "qualidade", admin: "dados",
 };
@@ -3597,7 +3743,7 @@ function tituloDaTela(id, texto){
 /* A ordem do menu e explicita, e uma tela que nao esteja aqui simplesmente
    nao aparece -- registrar em VIEWS nao basta. Custou uma tela invisivel
    para descobrir isso. */
-const ORDER = ["ponto", "perfil", "artigos", "submissoes", "projetos", "ana",
+const ORDER = ["ponto", "perfil", "artigos", "submissoes", "projetos", "caminho", "ana",
                "linhas", "biblioteca", "eventos", "senha", "admin"];
 
 function buildMenu(){

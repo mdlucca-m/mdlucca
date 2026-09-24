@@ -2413,6 +2413,17 @@ def route_aovivo(ctx: "Context") -> Any:
                          perfil=(ctx.user or {}).get("user_role", "leitura"))
 
 
+def route_caminho(ctx: "Context") -> Any:
+    """As seis etapas do artigo -- o mesmo dado do /aovivo#caminho, sem
+    montar o painel ao vivo inteiro (que route_aovivo calcula por junto)
+    so pra ler seis numeros.
+    """
+    from . import aovivo
+
+    auth.require(ctx.user, "leitura")
+    return {"etapas": aovivo.caminho(ctx.db)}
+
+
 def route_tv(ctx: "Context") -> Any:
     """O que a parede acrescenta ao painel: temas, ritmo, mundo, acervos, rotina, noticias.
 
@@ -2582,6 +2593,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/citacoes/atualizar/?$", route_citacoes_atualizar, "coordenacao"),
     ("GET", r"^/api/panorama/?$", route_panorama, "leitura"),
     ("GET", r"^/api/aovivo/?$", route_aovivo, "leitura"),
+    ("GET", r"^/api/caminho/?$", route_caminho, "leitura"),
     ("GET", r"^/api/tv/?$", route_tv, "leitura"),
     ("GET", r"^/api/buscar/?$", route_buscar, "leitura"),
     ("GET", r"^/api/rotina/?$", route_rotina, "leitura"),
