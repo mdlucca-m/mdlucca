@@ -155,6 +155,21 @@ class TestAnalyticsEstatistica(BaseComProducaoEstatistica):
         # 21 (docente) + 10 (docente2) + 2 + 1 + 3 + 1 (discentes) = 38
         self.assertEqual(sum(r["n"] for r in status), 38)
 
+    def test_serie_por_ano_bate_com_o_resumo(self):
+        """A tela do Panorama desenha a curva a partir desta série -- o
+        resumo (média/mediana) sozinho não dá o ano a ano."""
+        _, corpo = self.chamar("/api/analytics/estatistica", self.entrar("loiane@udesc.br"))
+        serie = corpo["descritiva"]["serie_publicacoes_por_ano"]
+        self.assertEqual([r["ano"] for r in serie], [2020, 2021, 2022, 2023, 2024])
+        self.assertEqual([r["publicados"] for r in serie], [2, 3, 4, 5, 24])
+
+    def test_distribuicao_de_citacoes_tem_um_grupo_por_ano(self):
+        _, corpo = self.chamar("/api/analytics/estatistica", self.entrar("loiane@udesc.br"))
+        distrib = corpo["descritiva"]["distribuicao_citacoes_por_ano"]
+        self.assertEqual([r["ano"] for r in distrib], [2020, 2021, 2022, 2023, 2024])
+        # mesmo total de artigos publicados, só que agrupado por ano
+        self.assertEqual(sum(len(r["citacoes"]) for r in distrib), 38)
+
     def test_tendencia_de_publicacoes_e_positiva_e_significativa(self):
         """Os anos foram montados subindo de propósito (2,3,4,5,7) -- a
         regressão tem que achar essa tendência real."""
