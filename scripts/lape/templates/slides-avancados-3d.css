@@ -240,6 +240,16 @@
   gap: clamp(16px, 2.4vw, 36px);
   flex-wrap: wrap;
   padding: clamp(8px, 1.5vh, 20px) 0;
+  width: 100%;
+}
+/* Uma raiz cujo galho virou seções (ver .grupos-vinculo-organograma)
+   precisa da largura toda para a grade dos cartões respirar -- sem
+   isto, o nó encolhia para caber só no cartão da coordenação, e a
+   grade de baixo ficava espremida numa coluna só, com meia tela vazia
+   ao lado. Raiz com galho pequeno (linha de conectores) continua
+   ocupando só o que precisa, centralizada pelo flex do pai. */
+.arvore-organograma > .no-organograma:has(> .grupos-vinculo-organograma) {
+  width: 100%;
 }
 .no-organograma {
   display: flex;
@@ -248,6 +258,8 @@
 }
 .ramo-organograma {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: clamp(10px, 1.6vw, 24px);
   padding-top: clamp(16px, 2vh, 26px);
   position: relative;
@@ -278,6 +290,17 @@
   border: 1px dashed var(--border-strong);
 }
 
+.titulo-secao-avulsos {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: clamp(11px, 1vw, 14px);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  letter-spacing: 0.5px;
+}
+
 .titulo-grupo {
   display: flex;
   align-items: center;
@@ -291,9 +314,50 @@
 
 .pessoas-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
   gap: clamp(8px, 1vw, 14px);
 }
+
+/* Galho grande da árvore, virado seção por vínculo -- doze orientandos
+   numa fileira só saía da tela; em grupo, cada tema respira e cabe. */
+.grupos-vinculo-organograma {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 1.4vh, 18px);
+  width: 100%;
+  margin-top: clamp(10px, 1.4vh, 16px);
+}
+.grupo-vinculo-organograma {
+  --cor: var(--accent);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 1vh, 12px);
+  padding: clamp(10px, 1.3vh, 16px) clamp(12px, 1.4vw, 18px);
+  border-radius: var(--radius);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--cor) 8%, var(--surface-raised)), color-mix(in srgb, var(--surface) 92%, transparent));
+  border: 1px solid color-mix(in srgb, var(--cor) 30%, var(--border));
+  border-left: 3px solid var(--cor);
+  box-shadow: -6px 0 18px -10px color-mix(in srgb, var(--cor) 60%, transparent);
+  animation: entraGrupoVinculo .5s cubic-bezier(.22,1,.36,1) backwards;
+}
+.grupo-vinculo-organograma:nth-child(1) { animation-delay: .02s; }
+.grupo-vinculo-organograma:nth-child(2) { animation-delay: .08s; }
+.grupo-vinculo-organograma:nth-child(3) { animation-delay: .14s; }
+.grupo-vinculo-organograma:nth-child(n+4) { animation-delay: .2s; }
+@keyframes entraGrupoVinculo {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.grupo-vinculo-organograma[data-tom="azul"]     { --cor: var(--series-1); }
+.grupo-vinculo-organograma[data-tom="laranja"]  { --cor: var(--series-2); }
+.grupo-vinculo-organograma[data-tom="verde"]    { --cor: var(--series-3); }
+.grupo-vinculo-organograma[data-tom="ambar"]    { --cor: var(--series-4); }
+.grupo-vinculo-organograma[data-tom="magenta"]  { --cor: var(--series-5); }
+.grupo-vinculo-organograma[data-tom="violeta"]  { --cor: var(--series-7); }
+.grupo-vinculo-organograma[data-tom="bom"]      { --cor: var(--good); }
+.grupo-vinculo-organograma[data-tom="alerta"]   { --cor: var(--warning); }
+.grupo-vinculo-organograma .titulo-grupo { color: var(--cor); font-size: clamp(12px, 1.05vw, 15px); }
+.grupo-vinculo-organograma .titulo-grupo span { text-shadow: 0 0 12px color-mix(in srgb, var(--cor) 45%, transparent); }
 
 .cartao-pessoa {
   --cor: var(--accent);
@@ -301,9 +365,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(6px, 0.8vh, 10px);
-  width: clamp(96px, 9.5vw, 148px);
-  padding: clamp(10px, 1.2vh, 16px);
+  gap: clamp(7px, 0.9vh, 11px);
+  width: clamp(112px, 10.5vw, 168px);
+  padding: clamp(12px, 1.4vh, 18px);
   border-radius: var(--radius-sm);
   background: linear-gradient(160deg, color-mix(in srgb, var(--cor) 10%, var(--surface)), color-mix(in srgb, var(--surface) 88%, transparent));
   border: 1px solid color-mix(in srgb, var(--cor) 40%, var(--border));
@@ -405,15 +469,15 @@
 }
 
 .nome-pessoa {
-  font-size: clamp(10px, 0.85vw, 13px);
-  font-weight: 600;
+  font-size: clamp(13px, 1.15vw, 17px);
+  font-weight: 700;
   text-align: center;
   color: var(--ink);
   line-height: 1.2;
 }
 
 .vinculo-pessoa {
-  font-size: clamp(8.5px, 0.68vw, 10.5px);
+  font-size: clamp(9.5px, 0.78vw, 12px);
   color: var(--cor);
   font-weight: 650;
   text-transform: uppercase;
