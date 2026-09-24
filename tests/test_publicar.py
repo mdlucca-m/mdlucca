@@ -91,9 +91,11 @@ class TestPidVazio(unittest.TestCase):
     """
 
     def test_o_powershell_confere_o_numero_antes_de_matar(self):
+        # Parar-Tudo delega a cada processo para Parar-Processo -- e la,
+        # nao mais aqui, que mora a conferencia do numero antes de matar.
         texto = PS1.read_text(encoding="utf-8")
-        trecho = texto.split("function Parar-Tudo", 1)[1].split("\n}", 1)[0]
-        self.assertIn("-match", trecho, "Parar-Tudo mata sem conferir se ha numero")
+        trecho = texto.split("function Parar-Processo", 1)[1].split("\n}", 1)[0]
+        self.assertIn("-match", trecho, "Parar-Processo mata sem conferir se ha numero")
         self.assertIn("Stop-Process", trecho)
 
     def test_o_bash_confere_o_numero_antes_de_matar(self):
