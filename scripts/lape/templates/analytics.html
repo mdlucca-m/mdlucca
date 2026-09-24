@@ -4,16 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LAPE — Analytics avançado</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Tailwind e Chart.js empacotados aqui dentro (build proprio, so as
+     classes que esta pagina usa) -- nao de CDN. Rede de instituicao
+     costuma bloquear dominio externo por politica, e essa foi
+     exatamente a falha que apareceu ao testar: cdn.tailwindcss.com e
+     cdn.jsdelivr.net negados. Empacotado, a pagina abre sem depender
+     de nenhuma rede alheia -- e de brinde fica mais rapida. -->
+<style>__ANALYTICS_TAILWIND_CSS__</style>
+<script>__ANALYTICS_CHART_JS__</script>
 <style>
   :root{
     --blue:#2a78d6; --orange:#eb6834; --green:#1baf7a;
     --blue-wash:#eaf2fc; --orange-wash:#fdece4; --green-wash:#e7f8f1;
   }
-  *{font-family:'Inter',system-ui,sans-serif}
+  *{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Inter,Arial,sans-serif}
   body{background:#f6f8fb}
   ::-webkit-scrollbar{height:8px;width:8px}
   ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px}
@@ -28,7 +32,6 @@
   table thead th{position:sticky;top:0;background:#fff;z-index:1}
   tbody tr:hover{background:#f8fafc}
   .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:700}
-  /* reserva, caso o Tailwind da CDN nao carregue */
   .hidden{display:none}
   .tab-btn{background:#fff;border-color:#e6eaf0;color:#64748b}
   .tab-btn:hover{border-color:#cbd5e1;color:#0f172a}
@@ -390,9 +393,10 @@ async function iniciar(){
   document.getElementById("rodape-total").textContent =
     DADOS.kpis.artigos_total + " artigos e " + DADOS.kpis.pessoas_total + " pessoas";
   montarKpis(DADOS);
-  // Os gráficos dependem do Chart.js, que vem de CDN -- um bloqueador de
-  // anúncio ou uma rede sem esse domínio liberado não pode derrubar o
-  // resto da página (KPIs, tabela, filtros), que não depende dele.
+  // Chart.js está empacotado na própria página, então isto quase nunca
+  // deveria disparar -- mas se disparar (um build futuro que tire o
+  // pacote, por exemplo), o resto da página (KPIs, tabela, filtros)
+  // continua de pé em vez de travar tudo.
   if (typeof Chart === "undefined"){
     ["chart-historico", "chart-funil", "chart-equipe"].forEach(function(id){
       const c = document.getElementById(id);

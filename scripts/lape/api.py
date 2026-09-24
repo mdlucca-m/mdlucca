@@ -66,21 +66,6 @@ CSP = ("default-src 'self'; "
        "form-action 'self'; "
        "base-uri 'none'; "
        "frame-ancestors 'none'")
-# Só para /analytics: página deliberadamente à parte do design system do
-# LAPE, em Tailwind + Chart.js -- pedido assim, para não se misturar com o
-# resto. Os dois vêm de CDN, então essa página (e só ela) precisa de uma
-# CSP que abra esses dois domínios; as outras continuam com a CSP estrita
-# de cima, que não confia em servidor nenhum de fora.
-CSP_ANALYTICS = ("default-src 'self'; "
-                 "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com"
-                 " https://cdn.jsdelivr.net; "
-                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-                 "img-src 'self' data:; "
-                 "font-src 'self' data: https://fonts.gstatic.com; "
-                 "connect-src 'self'; "
-                 "form-action 'self'; "
-                 "base-uri 'none'; "
-                 "frame-ancestors 'none'")
 SECURITY_HEADERS = [
     ("X-Content-Type-Options", "nosniff"),
     ("Referrer-Policy", "same-origin"),
@@ -2855,7 +2840,7 @@ class Handler(BaseHTTPRequestHandler):
     # -- utilidades --
     def _send(self, status: int, payload: Any, content_type: str = "application/json",
               extra_headers: list[tuple[str, str]] | None = None,
-              cacheavel: bool = False, csp: str | None = None) -> None:
+              cacheavel: bool = False) -> None:
         # Serializa o que ainda nao e texto. A regra antes era "o tipo do
         # conteudo e application/json", e por isso um JSON ja pronto em
         # disco -- o contorno do mundo -- so podia ser enviado mentindo o
@@ -2879,7 +2864,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "public, max-age=86400" if cacheavel
                          else "no-store, must-revalidate")
         for nome, valor in SECURITY_HEADERS:
-            self.send_header(nome, valor if nome != "Content-Security-Policy" or not csp else csp)
+            self.send_header(nome, valor)
         for key, value in (extra_headers or []):
             self.send_header(key, value)
         self.end_headers()
@@ -3168,6 +3153,12 @@ class Handler(BaseHTTPRequestHandler):
         if "__PANORAMA_JS__" in html:
             html = html.replace("__PANORAMA_JS__",
                                 (TEMPLATES / "panorama.js").read_text(encoding="utf-8"))
+        if "__ANALYTICS_TAILWIND_CSS__" in html:
+            html = html.replace("__ANALYTICS_TAILWIND_CSS__",
+                                (TEMPLATES / "analytics-tailwind.css").read_text(encoding="utf-8"))
+        if "__ANALYTICS_CHART_JS__" in html:
+            html = html.replace("__ANALYTICS_CHART_JS__",
+                                (TEMPLATES / "analytics-chart.js").read_text(encoding="utf-8"))
         if "__AOVIVO_JS__" in html:
             html = html.replace("__AOVIVO_JS__",
                                 (TEMPLATES / "aovivo.js").read_text(encoding="utf-8"))
@@ -3187,7 +3178,7 @@ class Handler(BaseHTTPRequestHandler):
             html = html.replace("__AOVIVO_BASES_CSS__",
                                 (TEMPLATES / "aovivo-bases.css").read_text(encoding="utf-8"))
         html = html.replace("</body>", _marca_de_versao() + "\n</body>", 1)
-        self._send(200, html, "text/html", csp=CSP_ANALYTICS if name == "analytics.html" else None)
+        self._send(200, html, "text/html")
 
     def _serve_mundo(self) -> None:
         """O contorno dos paises, para o mapa da producao.
