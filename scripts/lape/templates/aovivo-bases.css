@@ -11,6 +11,27 @@
   padding: 0.5rem 0.25rem;
 }
 
+/* O quadro do gráfico de impacto (C.bars) fica dentro de .bases-wrapper,
+   uma coluna de fluxo normal -- não dentro de .painel-duplo, que é onde
+   o CSS do mural (.quadro .corpo { flex:1 }, svg.plot { height:100% })
+   pressupõe uma altura definida vindo de cima para baixo. Sem essa
+   altura, `flex:1` (que é `flex-basis:0%`) faz .corpo colapsar para
+   0px -- foi exatamente isso que aconteceu: o quadro aparecia só com o
+   título, sem gráfico nenhum embaixo. Aqui o gráfico volta a ter altura
+   PRÓPRIA, do seu viewBox (a razão W:H que `bars()` já calcula pelo
+   número de linhas), como qualquer imagem normal. */
+.quadro.grafico-fluxo .corpo,
+.quadro.grafico-fluxo .plotbox,
+.quadro.grafico-fluxo figure.chart {
+  flex: none;
+  height: auto;
+}
+.quadro.grafico-fluxo svg.plot {
+  flex: none;
+  width: 100%;
+  height: auto;
+}
+
 .bases-timestamp {
   display: inline-block;
   font-size: 0.8rem;

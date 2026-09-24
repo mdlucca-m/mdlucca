@@ -49,7 +49,9 @@
   transition: all 0.3s ease;
   transform-origin: center;
   filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.3));
-  animation: aparecer-nodo 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation:
+    aparecer-nodo 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    pulsar-nodo var(--pulso-duracao, 2.6s) ease-in-out calc(var(--index) * 0.15s + 0.6s) infinite;
   animation-delay: calc(var(--index) * 0.15s);
   opacity: 0;
   color: var(--cor);
@@ -66,9 +68,26 @@
   }
 }
 
+/* Pulsação leve e contínua -- quem lidera em artigos pulsa mais rápido
+   (--pulso-duracao vem de cada nó, calculado a partir da atividade
+   relativa). Nunca some (opacity mínima 0.7): um pulso que passa por
+   zero lê como "piscando", que é aviso de erro noutro lugar do sistema,
+   não é o que se quer dizer aqui. */
 .grafo-linhas-3d .nodo-linha-pesquisa:hover {
   opacity: 1;
   filter: drop-shadow(0 0 16px rgba(0, 0, 0, 0.5));
+}
+
+@keyframes pulsar-nodo {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
+/* Partículas correndo do centro até cada nó, ao longo da mesma curva
+   Bezier da conexão -- <animateMotion> segue o `path` sozinho, sem
+   precisar recalcular x/y quadro a quadro em JS. */
+.grafo-linhas-3d .particula-fluxo {
+  opacity: 0.85;
 }
 
 /* Centro girando 3D */
@@ -216,6 +235,11 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .moldura-viva { animation: none; }
+  /* animateMotion é SVG/SMIL, não CSS -- a media query não pausa ele
+     sozinha; esconder o elemento é o jeito de honrar o pedido de menos
+     movimento sem reescrever a animação num mecanismo diferente. */
+  .particula-fluxo { display: none; }
+  .grafo-linhas-3d .nodo-linha-pesquisa { animation: aparecer-nodo 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 }
 
 /* ==================== ORGANOGRAMA 3D ==================== */
