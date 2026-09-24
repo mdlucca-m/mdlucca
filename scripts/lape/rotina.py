@@ -11,12 +11,21 @@ programa. O que HA e a mesma producao nas bases publicas -- PubMed e
 OpenAlex --, com DOI conferido, afiliacao e citacoes. E o que esta rotina
 traz, para as pessoas declaradas em `ingest_autor.PESQUISADORES`.
 
-Tres passos, cada um com o seu intervalo, e cada um registrado em
+Cinco passos, cada um com o seu intervalo, e cada um registrado em
 `ingest_log` com `source = 'rotina'`:
 
   producao   traz os artigos novos das bases         (a cada dia)
   citacoes   atualiza o numero de citacoes por DOI   (a cada dia)
   acervos    roda as buscas de todos os acervos      (a cada semana)
+  descobrir  procura producao nova na OpenAlex        (a cada dia)
+             e so PROPOE -- fica em "Achados do rastreador" ate a
+             coordenacao aceitar ou descartar; nada entra sozinho
+  perfis     atualiza o indice h publico de quem      (a cada semana)
+             nao tem numero conferido a mao
+
+Fora daqui fica "Rodar curador": ele recarrega planilha e recalcula o que
+ja esta gravado, nao busca nada de fora -- entao nao tem "vencido" e
+continua botao.
 
 O intervalo de cada passo e contado a partir da ULTIMA RODADA QUE DEU
 CERTO, gravada no banco -- e nao da subida do servidor. Um computador
@@ -44,7 +53,12 @@ PASSOS: tuple[tuple[str, str, float], ...] = (
     ("producao", "Produção nova das bases públicas", 24.0),
     ("citacoes", "Citações por DOI", 24.0),
     ("acervos", "Buscas dos acervos", 24.0 * 7),
+    ("descobrir", "Descobertas (OpenAlex, para revisão)", 24.0),
+    ("perfis", "Índice h dos perfis (OpenAlex)", 24.0 * 7),
 )
+# "Rodar curador" fica de fora de propósito: ele recarrega planilha e
+# recalcula o banco a partir do que já está gravado -- não busca nada de
+# fora, então não há "vencido" para ele. Continua um botão.
 ROTULOS = {code: rotulo for code, rotulo, _ in PASSOS}
 INTERVALO_H = {code: horas for code, _, horas in PASSOS}
 
@@ -146,8 +160,38 @@ def _passo_acervos(db: Database) -> tuple[int, str]:
     return novos, f"{novos} novo(s) em {len(codes)} acervo(s)" + ("; " + "; ".join(erros) if erros else "")
 
 
+def _passo_descobrir(db: Database) -> tuple[int, str]:
+    """Procura producao nova na OpenAlex e so PROPOE -- nada entra em
+    `articles` sozinho. Quem promove e a coordenacao, em "Achados do
+    rastreador"; a rotina so evita que ninguem lembre de apertar o botao.
+    """
+    from .agents import tracker
+
+    r = tracker.discover(db, verbose=False)
+    mensagem = f"{r['new']} descoberta(s) de {r['authors']} pesquisador(es) consultados"
+    if r.get("errors"):
+        mensagem += f"; {len(r['errors'])} erro(s)"
+    return r["new"], mensagem
+
+
+def _passo_perfis(db: Database) -> tuple[int, str]:
+    """Indice h publico (OpenAlex) de quem nao tem numero conferido a mao.
+
+    So preenche lacuna: `profiles()` ja nunca sobrescreve o que a
+    coordenacao declarou (ver `indice_h.declarar`).
+    """
+    from .agents import tracker
+
+    r = tracker.profiles(db, verbose=False)
+    mensagem = f"{r['updated']} indice(s) h atualizado(s)"
+    if r.get("errors"):
+        mensagem += f"; {len(r['errors'])} erro(s)"
+    return r["updated"], mensagem
+
+
 FAZ: dict[str, Callable[[Database], tuple[int, str]]] = {
     "producao": _passo_producao, "citacoes": _passo_citacoes, "acervos": _passo_acervos,
+    "descobrir": _passo_descobrir, "perfis": _passo_perfis,
 }
 
 
