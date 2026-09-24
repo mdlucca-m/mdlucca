@@ -200,11 +200,13 @@ const ChartsEnhanced = (function () {
   }
 
   /* ======================== Sunburst ======================== */
+  /* Anel oco (não mais uma pizza cheia) com o total real no centro,
+     rótulo de porcentagem só nas fatias grandes o bastante pra não se
+     sobrepor (era o "1% / 1%" ilegível de antes), e o nome das
+     instituições reais de cada país na dica do mouse -- sem inventar
+     proporção nenhuma entre elas, porque o dado que existe é só o
+     nome, não a contagem por instituição. */
   function sunburst(dados, raio = 200) {
-    /**
-     * Visualização radial hierárquica
-     * Ideal para compositon em múltiplos níveis
-     */
     if (!dados || dados.length === 0) return null;
 
     const w = 500, h = 500;
@@ -214,64 +216,102 @@ const ChartsEnhanced = (function () {
     svg.setAttribute("class", "chart sunburst");
 
     const cx = w / 2, cy = h / 2;
-    const total = dados.reduce((s, d) => s + (d.valor || 0), 0);
+    const raioInterno = raio * 0.55;
+    const total = dados.reduce((s, d) => s + (d.valor || 0), 0) || 1;
 
-    let angle = 0;
+    const grupo = document.createElementNS(NS, "g");
+    svg.appendChild(grupo);
+
+    /* começa no topo (meio-dia do relógio) e anda em sentido horário --
+       é a leitura que a maioria já treinou em qualquer pizza/donut */
+    let angle = -Math.PI / 2;
     dados.forEach((d, i) => {
-      const slice = (d.valor / total) * Math.PI * 2;
+      const fatia = (d.valor / total) * Math.PI * 2;
+      const meio = angle + fatia / 2;
+      const largeArc = fatia > Math.PI ? 1 : 0;
+      const cor = corSerie(i);
 
-      // Arco externo
-      const x1 = cx + raio * Math.cos(angle);
-      const y1 = cy + raio * Math.sin(angle);
-      const x2 = cx + raio * Math.cos(angle + slice);
-      const y2 = cy + raio * Math.sin(angle + slice);
+      const xOut1 = cx + raio * Math.cos(angle), yOut1 = cy + raio * Math.sin(angle);
+      const xOut2 = cx + raio * Math.cos(angle + fatia), yOut2 = cy + raio * Math.sin(angle + fatia);
+      const xIn1 = cx + raioInterno * Math.cos(angle + fatia), yIn1 = cy + raioInterno * Math.sin(angle + fatia);
+      const xIn2 = cx + raioInterno * Math.cos(angle), yIn2 = cy + raioInterno * Math.sin(angle);
 
-      const arcPath = `M ${cx} ${cy} L ${x1} ${y1} A ${raio} ${raio} 0 ${slice > Math.PI ? 1 : 0} 1 ${x2} ${y2} Z`;
+      const caminho = `M ${xOut1} ${yOut1} A ${raio} ${raio} 0 ${largeArc} 1 ${xOut2} ${yOut2} `
+        + `L ${xIn1} ${yIn1} A ${raioInterno} ${raioInterno} 0 ${largeArc} 0 ${xIn2} ${yIn2} Z`;
 
       const path = document.createElementNS(NS, "path");
-      path.setAttribute("d", arcPath);
-      path.setAttribute("fill", corSerie(i));
+      path.setAttribute("d", caminho);
+      path.setAttribute("fill", cor);
       path.setAttribute("stroke", "var(--surface)");
       path.setAttribute("stroke-width", "2");
-      path.setAttribute("opacity", "0.8");
+      path.setAttribute("class", "fatia-sunburst");
+      path.setAttribute("data-nome", d.nome || "");
+      path.style.setProperty("--i", i);
+      path.style.setProperty("--dx", (Math.cos(meio) * 7).toFixed(2));
+      path.style.setProperty("--dy", (Math.sin(meio) * 7).toFixed(2));
+      path.style.setProperty("--cor", cor);
 
-      path.addEventListener("mouseenter", () => {
-        path.setAttribute("opacity", "1");
-        path.setAttribute("stroke-width", "3");
-      });
-      path.addEventListener("mouseleave", () => {
-        path.setAttribute("opacity", "0.8");
-        path.setAttribute("stroke-width", "2");
-      });
-
+      const pct = Math.round((d.valor / total) * 100);
+      const instituicoes = (d.instituicoes || []).filter(Boolean);
+      const dica = instituicoes.length
+        ? `\nInstituições: ${instituicoes.slice(0, 3).join(", ")}${instituicoes.length > 3 ? "…" : ""}`
+        : "";
       const title = document.createElementNS(NS, "title");
-      title.textContent = `${d.nome || "Item"}: ${d.valor || 0} (${Math.round((d.valor / total) * 100)}%)`;
+      title.textContent = `${d.nome || "Item"}: ${d.valor || 0} artigo(s) (${pct}%)${dica}`;
       path.appendChild(title);
 
-      svg.appendChild(path);
+      path.addEventListener("mouseenter", () => destacarFatiaSunburst(svg, d.nome, true));
+      path.addEventListener("mouseleave", () => destacarFatiaSunburst(svg, d.nome, false));
 
-      // Label
-      const labelAngle = angle + slice / 2;
-      const labelR = raio * 0.7;
-      const lx = cx + labelR * Math.cos(labelAngle);
-      const ly = cy + labelR * Math.sin(labelAngle);
+      grupo.appendChild(path);
 
-      const text = document.createElementNS(NS, "text");
-      text.setAttribute("x", lx);
-      text.setAttribute("y", ly);
-      text.setAttribute("text-anchor", "middle");
-      text.setAttribute("dy", "0.3em");
-      text.setAttribute("font-size", "12");
-      text.setAttribute("fill", "white");
-      text.setAttribute("font-weight", "bold");
-      text.textContent = `${Math.round((d.valor / total) * 100)}%`;
-      svg.appendChild(text);
+      /* rótulo só nas fatias com espaço de sobra -- abaixo de 6% dois
+         rótulos vizinhos colidiam e viravam "1%1%" ilegível */
+      if (pct >= 6) {
+        const labelR = (raio + raioInterno) / 2;
+        const text = document.createElementNS(NS, "text");
+        text.setAttribute("x", cx + labelR * Math.cos(meio));
+        text.setAttribute("y", cy + labelR * Math.sin(meio));
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("dy", "0.32em");
+        text.setAttribute("font-size", "13");
+        text.setAttribute("fill", "white");
+        text.setAttribute("font-weight", "700");
+        text.setAttribute("class", "rotulo-sunburst");
+        text.style.setProperty("--i", i);
+        text.textContent = `${pct}%`;
+        grupo.appendChild(text);
+      }
 
-      angle += slice;
+      angle += fatia;
     });
+
+    const centroNum = document.createElementNS(NS, "text");
+    centroNum.setAttribute("x", cx); centroNum.setAttribute("y", cy - 6);
+    centroNum.setAttribute("text-anchor", "middle");
+    centroNum.setAttribute("class", "sunburst-centro-num");
+    centroNum.textContent = String(total);
+    svg.appendChild(centroNum);
+    const centroRotulo = document.createElementNS(NS, "text");
+    centroRotulo.setAttribute("x", cx); centroRotulo.setAttribute("y", cy + 17);
+    centroRotulo.setAttribute("text-anchor", "middle");
+    centroRotulo.setAttribute("class", "sunburst-centro-rot");
+    centroRotulo.textContent = "artigos";
+    svg.appendChild(centroRotulo);
 
     fig.appendChild(svg);
     return fig;
+  }
+
+  /* Realce cruzado: usado pelo hover interno da fatia, e também de fora
+     (o mural liga isso ao passar o mouse na lista "Top 6", pra ligar a
+     lista ao desenho). */
+  function destacarFatiaSunburst(svg, nome, ligado) {
+    svg.querySelectorAll(".fatia-sunburst").forEach(function (p) {
+      const ehEsta = p.getAttribute("data-nome") === nome;
+      p.classList.toggle("ativa", ehEsta && ligado);
+      p.classList.toggle("apagada", !ehEsta && ligado);
+    });
   }
 
   /* ======================== Scatter 3D (projeção isométrica) ======================== */
@@ -368,5 +408,6 @@ const ChartsEnhanced = (function () {
     pareto,
     sunburst,
     scatter3d,
+    destacarFatiaSunburst,
   };
 })();

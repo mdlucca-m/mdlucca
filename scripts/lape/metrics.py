@@ -918,6 +918,8 @@ def build_payload(db: Database, window: int = config.WINDOW_YEARS,
     quem monta o mural nao precisa pedir para ficar seguro -- precisa
     pedir para deixar de estar. Ver `sem_dados_da_coordenacao`.
     """
+    from . import aovivo
+
     pubs = publications_by_year(db, window)
     subs = submission_metrics(db)
     network = collaboration_network(db)
@@ -953,6 +955,7 @@ def build_payload(db: Database, window: int = config.WINDOW_YEARS,
         "temporal": temporal_grid(db, window),
         "quality": data_quality(db),
         "history": measured_history(db),
+        "caminho": aovivo.caminho(db),
         "catalog": _catalog(),
         "discoveries": db.dicts(
             "SELECT id, source, title, authors, journal, year, citations, doi, url, status, found_at"

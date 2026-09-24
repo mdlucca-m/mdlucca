@@ -566,6 +566,26 @@ td small { display: block; color: var(--ink-2); font-size: 11.5px; margin-top: 2
    ========================================================================== */
 figure.chart { margin: 0; }
 figure.chart figcaption { font-size: 12px; color: var(--ink-2); margin-bottom: 10px; }
+/* Sunburst (anel oco): entrada em leque, realce ao passar o mouse ou ao
+   ligar pela lista de fora, e o total sempre real no centro. */
+.fatia-sunburst { opacity: .88; cursor: pointer; transform: translate(0, 0);
+  transition: opacity .2s ease, transform .25s cubic-bezier(.34, 1.56, .64, 1), filter .2s ease;
+  animation: fatia-sunburst-entra .5s cubic-bezier(.16, .84, .3, 1) both;
+  animation-delay: calc(var(--i, 0) * .08s); }
+.fatia-sunburst:hover, .fatia-sunburst.ativa {
+  opacity: 1; filter: drop-shadow(0 0 10px var(--cor));
+  transform: translate(calc(var(--dx, 0) * 1px), calc(var(--dy, 0) * 1px)); }
+.fatia-sunburst.apagada { opacity: .25; }
+@keyframes fatia-sunburst-entra { from { opacity: 0; transform: scale(.7); } to { opacity: .88; transform: scale(1); } }
+.rotulo-sunburst { pointer-events: none; animation: fatia-sunburst-entra .5s ease both;
+  animation-delay: calc(var(--i, 0) * .08s + .15s); }
+.sunburst-centro-num { font-family: var(--display); font-size: 34px; font-weight: 800;
+  fill: var(--ink); font-variant-numeric: tabular-nums; }
+.sunburst-centro-rot { font-size: 11.5px; fill: var(--ink-muted); text-transform: uppercase; letter-spacing: .05em; }
+@media (prefers-reduced-motion: reduce) {
+  .fatia-sunburst, .rotulo-sunburst { animation: none; }
+  .fatia-sunburst:hover, .fatia-sunburst.ativa { transform: none; }
+}
 svg.plot { display: block; width: 100%; height: auto; overflow: visible; }
 /* formas redondas crescem em círculo: sem teto, viram um disco gigante no cartão */
 svg.plot.round { max-width: 380px; margin-inline: auto; }

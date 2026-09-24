@@ -7484,7 +7484,7 @@ const SECTIONS = [
     views: ["pesquisadores", "organograma", "formacao", "equipe", "rede", "linhas",
       "projetos", "sustenta"] },
   { id: "processo", label: "Processo", icon: "processo",
-    views: ["tempos", "submissoes", "aceites", "fomento"] },
+    views: ["tempos", "submissoes", "aceites", "fomento", "caminho"] },
   { id: "espaco", label: "Espaço-tempo", icon: "espaco",
     views: ["calendario", "temporal", "espacial"] },
   { id: "dados", label: "Dados", icon: "dados",
@@ -7514,7 +7514,7 @@ const VIEW_ICON = {
   importar_bancada: "baixar", fomento: "financiamento", poder: "alvo",
   confiabilidade: "qualidade",
   correlacoes: "rede", ano_bancada: "calendario", relatorios: "livro", exportar: "baixar",
-  bancada_admin: "processo",
+  bancada_admin: "processo", caminho: "processo",
 };
 /* Telas que não respondem a filtro nenhum. A barra some nelas: seletor de
    ano, de linha e de integrante em cima de uma página que não muda com
@@ -7599,6 +7599,99 @@ document.addEventListener("keydown", function (ev) {
     render();
   }
 });
+
+/* ==================================================================== */
+/* Caminho do artigo — o mesmo funil hierárquico do /aovivo#caminho e do */
+/* /app#caminho, aqui no painel principal. D.caminho já vem embutido no  */
+/* payload (metrics.build_payload), então funciona também no export     */
+/* estático, sem depender de servidor ao vivo. Não é um funil de        */
+/* verdade: cada etapa conta uma coisa diferente -- referência, registro */
+/* triado, artigo -- por isso não há porcentagem entre elas.            */
+/* ==================================================================== */
+const ICONE_CAMINHO = {biblioteca: "livro", triagem: "qualidade", producao: "producao",
+  submissao: "submissao", aceite: "aceite", publicacao: "foguete"};
+const TOM_CAMINHO = ["azul", "laranja", "verde", "ambar", "magenta", "violeta"];
+const COR_CAMINHO = ["var(--series-1)", "var(--series-2)", "var(--series-3)",
+  "var(--series-4)", "var(--series-5)", "var(--series-7)"];
+/* "Saiba mais" por etapa: prática consagrada de escrita e publicação
+   científica, texto fixo daqui — não é dado do LAPE (que já está no
+   valor e no "No LAPE:" de cada cartão). */
+const SAIBA_MAIS_CAMINHO = {
+  biblioteca: [
+    "Estratégia de busca replicável: termos, bases e datas registrados antes de começar a ler.",
+    "Referência sem leitura ainda não é acervo — é fila. O que entra bem aqui sai mais fácil na triagem.",
+  ],
+  triagem: [
+    "PRISMA desde o primeiro filtro: cada exclusão com o motivo, não só o número.",
+    "Dois avaliadores às cegas, e o kappa entre eles — concordância baixa pede critério mais claro, não mais gente decidindo sozinha.",
+  ],
+  producao: [
+    "IMRaD — Introdução, Métodos, Resultados e Discussão — ainda é o que a maioria das revistas espera; fugir dele pede justificativa, não hábito.",
+    "Resultado é o que os dados mostram; discussão é o que eles significam. Misturar os dois é a revisão mais comum que um manuscrito recebe.",
+  ],
+  submissao: [
+    "Carta ao editor não repete o resumo: diz por que aquela revista, para aquele leitor, agora.",
+    "Resposta ao revisor ponto a ponto, sem deixar nenhum comentário sem resposta — mesmo os que discordam.",
+  ],
+  aceite: [
+    "Aceite não é publicação: entre os dois ainda cabem prova, DOI e, às vezes, meses de fila editorial.",
+    "É o obstáculo mais alto já passado — mas o artigo só fica pronto pra ser lido e citado depois de publicado.",
+  ],
+  publicacao: [
+    "Checar o DOI e o acesso aberto assim que sai: metadado errado nasce fácil e demora a ser corrigido.",
+    "Citação passa a contar fora do controle de quem escreveu — o que ainda dá pra fazer é deixar o artigo fácil de achar e citar certo.",
+  ],
+};
+
+view("caminho", "Caminho do artigo", "Processo",
+  "Seis etapas, da pesquisa bibliográfica à publicação: o que há em cada uma agora, e a tela do LAPE que a faz.",
+  function (host) {
+    const etapas = D.caminho || [];
+    if (!etapas.length) {
+      host.appendChild(el("div", { class: "empty", text: "Dados do caminho ainda não disponíveis." }));
+      return;
+    }
+
+    const lista = el("ol", { class: "caminho-funil" });
+    etapas.forEach(function (e, i) {
+      const tom = COR_CAMINHO[i % COR_CAMINHO.length];
+      const proximoTom = COR_CAMINHO[(i + 1) % COR_CAMINHO.length];
+      const dicas = SAIBA_MAIS_CAMINHO[e.code] || [];
+
+      const saiba = dicas.length ? el("details", { class: "etapa-saiba" }, [
+        el("summary", { text: "Saiba mais" }),
+        el("ul", {}, dicas.map(function (t) { return el("li", { text: t }); })),
+      ]) : null;
+
+      const cartaoEtapa = el("div", { class: "card etapa", style: "--tom:" + tom + ";--i:" + i }, [
+        el("div", { class: "etapa-topo" }, [
+          Icons.badge(ICONE_CAMINHO[e.code] || "achado", TOM_CAMINHO[i % TOM_CAMINHO.length], 22),
+          el("div", { class: "etapa-titulo" }, [
+            el("h3", { text: e.rotulo }),
+            el("div", { class: "hint", text: "No LAPE: " + e.faz }),
+          ]),
+        ]),
+        el("div", { class: "etapa-meio" }, [
+          el("span", { class: "num-grande", text: C.fmt(e.valor) }),
+          el("small", { text: e.unidade + (e.detalhe !== undefined
+            ? " · " + C.fmt(e.detalhe) + " " + e.detalhe_rotulo : "") }),
+        ]),
+        el("div", { class: "etapa-baixo" }, [
+          saiba,
+          el("a", { href: e.href }, [el("button", { type: "button", text: e.ferramenta + " →" })]),
+        ]),
+      ]);
+      const item = el("li", { class: "etapa-item" }, [cartaoEtapa]);
+      if (i < etapas.length - 1) {
+        item.appendChild(el("div", { class: "etapa-conector", style: "--tom:" + tom + ";--tom2:" + proximoTom }));
+      }
+      lista.appendChild(item);
+    });
+    host.appendChild(lista);
+    host.appendChild(el("p", { class: "hint", style: "margin-top:14px", text:
+      "Cada etapa conta uma coisa diferente — referência, registro triado, artigo — e por isso não há "
+      + "porcentagem entre elas: a forma de funil aqui é só a metáfora do processo, não conta nenhuma." }));
+  });
 
 function buildNav() {
   const nav = document.getElementById("nav");

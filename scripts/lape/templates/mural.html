@@ -260,6 +260,33 @@ body { background: var(--surface-sunken); }
 .ranking b { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--ink); min-width: 2.2ch; text-align: right; }
 @keyframes revela-barra { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @media (prefers-reduced-motion: reduce) { .ranking .trilho i { animation: none; } }
+/* O "Top 6" do sunburst: cada linha usa a MESMA cor da fatia do país no
+   anel ao lado (contorno + número), pra ligar lista e desenho pelo
+   olho -- e acende os dois juntos ao passar o mouse em qualquer um. */
+.top-paises { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column;
+  gap: clamp(6px, 1vh, 12px); min-height: 0; overflow: hidden; }
+.top-pais { display: flex; align-items: center; gap: clamp(9px, .8vw, 14px);
+  padding: clamp(7px, 1vh, 12px) clamp(10px, .9vw, 14px); border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--cor) 35%, var(--border));
+  border-left: 3px solid var(--cor);
+  background: color-mix(in srgb, var(--cor) 7%, var(--surface-raised));
+  transition: background .2s ease, transform .18s ease, box-shadow .2s ease;
+  animation: chegar-top-pais .4s ease-out both; animation-delay: calc(var(--i, 0) * 60ms); }
+.top-pais:hover { transform: translateX(3px);
+  background: color-mix(in srgb, var(--cor) 16%, var(--surface-raised));
+  box-shadow: 0 0 18px -6px var(--cor); }
+@keyframes chegar-top-pais { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+.top-pais-num { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 11.5px; font-weight: 800; color: var(--surface); background: var(--cor); }
+.top-pais-bandeira { flex: none; width: clamp(26px, 2vw, 36px); height: clamp(18px, 1.5vw, 26px); display: grid;
+  place-items: center; border-radius: 5px; overflow: hidden; background: var(--surface-raised);
+  box-shadow: inset 0 0 0 1px var(--border); }
+.top-pais-bandeira svg { width: 100%; height: 100%; display: block; }
+.top-pais-nome { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.top-pais-nome b { color: var(--ink); font-size: clamp(12.5px, 1vw, calc(16px * var(--zoom, 1))); font-weight: 700; }
+.top-pais-nome small { color: var(--ink-2); font-size: clamp(10.5px, .8vw, 13px); overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .top-pais { animation: none; } .top-pais:hover { transform: none; } }
 
 .placar { width: 100%; table-layout: fixed; border-collapse: collapse;
   font-size: clamp(11.5px, .86vw, calc(14.5px * var(--zoom, 1))); }
