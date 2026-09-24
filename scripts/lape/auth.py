@@ -285,7 +285,11 @@ def create_account(db: Database, full_name: str, login: str, password: str | Non
     if not extra.get("is_external"):
         current_is_external = db.scalar(
             "SELECT is_external FROM members WHERE id = ?", (member_id,))
-        if current_is_external != 1:
+        # A condicao era o contrario disto (`!= 1`), o que so regravava
+        # quem JA estava com is_external = 0 -- um no-op -- e pulava
+        # exatamente quem precisava ser promovido (is_external = 1).
+        # Coautor externo nunca virava integrante ao criar a propria conta.
+        if current_is_external == 1:
             db.execute("UPDATE members SET is_external = 0 WHERE id = ?", (member_id,))
             db.execute("UPDATE article_authors SET is_external = 0 WHERE member_id = ?",
                        (member_id,))
