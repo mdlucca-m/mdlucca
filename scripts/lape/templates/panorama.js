@@ -18,6 +18,11 @@ const ST = { aba: "visao", variavel: null, busca: "", ordem: "ano", desc: true,
                 traz os códigos das variáveis da folha da árvore de decisão. */
              pessoa: null, recorteVar: null };
 
+/* Sentinela do filtro de linha em Extração: um valor de research_line
+   nunca é uma string vazia (o "Todas as linhas" já usa ""), então esta
+   marca "só quem está SEM linha" sem colidir com nome de linha nenhum. */
+const SEM_LINHA = "\u0000sem-linha";
+
 async function api(caminho, metodo, corpo) {
   const r = await fetch(caminho, {
     method: metodo || "GET",
@@ -2403,7 +2408,9 @@ function artigosFiltrados(soMulti) {
     lista = lista.filter(function (a) {
       return (a.variaveis || []).some(function (v) { return v.code === ST.variavel; }); });
   }
-  if (ST.linha) {
+  if (ST.linha === SEM_LINHA) {
+    lista = lista.filter(function (a) { return !a.research_line; });
+  } else if (ST.linha) {
     lista = lista.filter(function (a) { return a.research_line === ST.linha; });
   }
   /* O recorte por país vem dos ids que o mapa mandou, e não da busca em
@@ -2464,7 +2471,8 @@ function verExtracao(palco) {
   busca.oninput = function () { ST.busca = busca.value; redesenharTabelas(); };
   const linha = el("select", {}, [el("option", { value: "", text: "Todas as linhas" })]
     .concat((D.linhas || []).map(function (l) {
-      return el("option", { value: l.name, text: l.name }); })));
+      return el("option", { value: l.name, text: l.name }); }))
+    .concat([el("option", { value: SEM_LINHA, text: "Sem linha declarada" })]));
   linha.value = ST.linha;
   linha.onchange = function () { ST.linha = linha.value; redesenharTabelas(); };
 
@@ -2945,17 +2953,36 @@ function verFunil(palco) {
 let ESTATISTICA = null;
 let PONTO_ESTATISTICA = null; // null = ainda não tentou; false = tentou, sem acesso; objeto = dados
 
-function cartaoDeFrequencia(icone, titulo, linhas) {
+/* `tipo: "donut"` para poucas categorias que competem por fatia do todo
+   (situação da produção); `"bars"` (padrão) para listas mais compridas,
+   onde uma rosca de doze fatias vira confete. `aoSelecionar(categoria)`
+   é opcional -- só a Linha de pesquisa o usa, para levar até os artigos
+   daquela categoria em Extração. */
+function cartaoDeFrequencia(icone, titulo, linhas, opts) {
   linhas = linhas || [];
+  opts = opts || {};
   if (!linhas.length) {
     return cartao(icone, titulo, null, el("p", { class: "hint", text: "Sem dado ainda." }));
   }
-  return cartao(icone, titulo, null, C.bars({
-    items: linhas.map(function (r) { return { label: r.categoria, value: r.n }; }),
-    mono: true, unit: "artigo(s)",
-    table: { cols: ["Categoria", "N", "%"],
-             rows: linhas.map(function (r) { return [r.categoria, r.n, r.percentual + "%"]; }) },
-  }));
+  function clique(categoria) {
+    return opts.aoSelecionar ? function () { opts.aoSelecionar(categoria); } : undefined;
+  }
+  const grafico = opts.tipo === "donut"
+    ? C.donut({
+        items: linhas.map(function (r, i) {
+          return { label: r.categoria, value: r.n, color: C.token("--series-" + (i % 8 + 1)),
+                   onSelect: clique(r.categoria) }; }),
+        unit: "artigo(s)",
+      })
+    : C.bars({
+        items: linhas.map(function (r) {
+          return { label: r.categoria, value: r.n, onSelect: clique(r.categoria) }; }),
+        mono: true, unit: "artigo(s)",
+        table: { cols: ["Categoria", "N", "%"],
+                 rows: linhas.map(function (r) { return [r.categoria, r.n, r.percentual + "%"]; }) },
+      });
+  return cartao(icone, titulo, opts.aoSelecionar ? "Clique numa categoria para ver os artigos." : null,
+    grafico);
 }
 
 /* O mesmo par "número com base" do Raio-X (.medida), mas para um teste:
@@ -3032,30 +3059,65 @@ function verEstatistica(palco) {
   ]));
 
   palco.appendChild(el("div", { class: "grade g3", style: "margin-top:14px" }, [
-    cartaoDeFrequencia("processo", "Situação da produção", desc.status_da_producao),
-    cartaoDeFrequencia("tematico", "Linha de pesquisa (publicados)", desc.linha_de_pesquisa),
+    cartaoDeFrequencia("processo", "Situação da produção", desc.status_da_producao,
+      { tipo: "donut" }),
+    cartaoDeFrequencia("tematico", "Linha de pesquisa (publicados)", desc.linha_de_pesquisa,
+      { aoSelecionar: function (categoria) {
+          ST.linha = categoria === "não informado" ? SEM_LINHA : categoria;
+          ST.aba = "extracao";
+          desenhar();
+        } }),
     cartaoDeFrequencia("pessoas", "Vínculo da equipe", desc.vinculo_da_equipe),
   ]));
+
+  /* ---- distribuição de citações por ano: a caixa mostra o espalhamento
+     que a média sozinha esconde -- um ano "parelho" e um ano "puxado por
+     um artigo só" podem chegar na mesma média e são coisas diferentes. */
+  const distrib = desc.distribuicao_citacoes_por_ano || [];
+  if (distrib.length) {
+    palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
+      "barras", "Distribuição de citações por ano",
+      "Cada ponto é um artigo. A caixa é o intervalo interquartil; o traço "
+      + "no meio, a mediana. Ano sem caixa teve artigos demais parecidos "
+      + "para separar em quartis, ou de menos.",
+      C.distribution({
+        groups: distrib.map(function (r) {
+          return { label: String(r.ano), values: r.citacoes }; }),
+        unit: "citações",
+      }))));
+  }
 
   const tend = inf.tendencia_publicacoes_por_ano || {};
   const serieAnos = desc.serie_publicacoes_por_ano || [];
   const temTendencia = tend.p !== null && tend.p !== undefined;
-  palco.appendChild(el("div", { style: "margin-top:14px" },
-    cartao("linhas", "Tendência de publicações ao longo dos anos",
-      temTendencia
+  const valoresAnos = serieAnos.map(function (r) { return r.publicados; });
+  /* Vira e mexe = onde a produção mudou de direção -- o mesmo achado que
+     "Curvas e derivadas" chama de ponto de inflexão, aqui sobre a série
+     bruta (não suavizada: com um ponto por ano, suavizar apagaria os
+     únicos dados que existem). */
+  const viradas = serieAnos.length >= 3
+    ? C.marcosDaCurva(serieAnos.map(function (r) { return String(r.ano); }),
+        [{ label: "Publicados", values: valoresAnos }])
+    : { marks: [], notas: [] };
+  const cardTendencia = cartao("linhas", "Tendência de publicações ao longo dos anos",
+      (temTendencia
         ? "Regressão linear: " + String(tend.inclinacao).replace(".", ",")
           + " publicação(ões)/ano, " + (tend.p < 0.05 ? "estatisticamente significativa"
             : "não significativa") + " (p = " + String(tend.p).replace(".", ",")
           + ", n = " + tend.n + " ano(s))."
-        : (tend.aviso || "Sem dado suficiente para ajustar uma reta."),
+        : (tend.aviso || "Sem dado suficiente para ajustar uma reta."))
+      + (viradas.notas.length ? " " + viradas.notas.join(" ") : ""),
       serieAnos.length
         ? C.lines({
             labels: serieAnos.map(function (r) { return String(r.ano); }),
-            series: [{ name: "Publicados",
-                       values: serieAnos.map(function (r) { return r.publicados; }) }],
+            series: [{ label: "Publicados", values: valoresAnos, area: true }],
+            marks: viradas.marks,
             height: 220,
           })
-        : el("p", { class: "hint", text: "Sem série de anos ainda." }))));
+        : el("p", { class: "hint", text: "Sem série de anos ainda." }));
+  const blocoTendencia = el("div", { style: "margin-top:14px" }, cardTendencia);
+  palco.appendChild(blocoTendencia);
+  animarTracado(blocoTendencia);
 
   if (PONTO_ESTATISTICA === null) {
     api("/api/ponto/analytics").then(function (dados) {

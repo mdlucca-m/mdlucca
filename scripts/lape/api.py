@@ -1366,6 +1366,17 @@ def route_analytics_estatistica(ctx: "Context") -> Any:
         "   AND COALESCE(active, 1) = 1")
     from .mapping import ROLE_LABEL
 
+    # A distribuicao por ano (nao so a media) e o que mostra que dois anos
+    # com a mesma media de citacoes podem ser bem diferentes -- um com um
+    # artigo puxando tudo para cima, outro parelho. Ordenado por ano para
+    # a tela desenhar linha a linha sem reordenar nada.
+    citacoes_por_ano: dict[int, list[int]] = {}
+    for a in publicados:
+        if a["ano"]:
+            citacoes_por_ano.setdefault(a["ano"], []).append(a["citacoes"])
+    distribuicao_citacoes_por_ano = [
+        {"ano": y, "citacoes": citacoes_por_ano[y]} for y in sorted(citacoes_por_ano)]
+
     return {
         "gerado_em": datetime.now().isoformat(timespec="seconds"),
         "descritiva": {
@@ -1384,6 +1395,7 @@ def route_analytics_estatistica(ctx: "Context") -> Any:
             "vinculo_da_equipe": est.frequencia(
                 [ROLE_LABEL.get(v["role"] or "", "Sem vínculo declarado")
                  for v in vinculos]),
+            "distribuicao_citacoes_por_ano": distribuicao_citacoes_por_ano,
         },
         "inferencial": {
             "tendencia_publicacoes_por_ano": est.regressao_linear(
