@@ -2476,8 +2476,44 @@ function verExtracao(palco) {
   linha.value = ST.linha;
   linha.onchange = function () { ST.linha = linha.value; redesenharTabelas(); };
 
+  /* Ordenar por um clique no cabeçalho já existe (qualquer coluna) --
+     mas cabeçalho de tabela não parece botão, e "por ano" e "por
+     ordem alfabética" foram justamente os dois pedidos por nome. Estes
+     dois atalhos fazem a mesma coisa que clicar em "Ano" ou "Artigo" no
+     cabeçalho, só que visíveis e óbvios de clicar. */
+  /* redesenharTabelas() só refaz o miolo (#tabelas) -- o cabeçalho da
+     coluna mora lá dentro e por isso se atualiza sozinho a cada clique,
+     mas estes botões moram no tab-topo, fora desse miolo. Sem atualizar
+     os dois aqui, clicar em "Alfabética" reordenava a tabela direitinho
+     e "Por ano" continuava azul, como se nada tivesse mudado. */
+  const botoesOrdem = {};
+  const opcoesOrdem = [["ano", "Por ano", "calendario"], ["title", "Alfabética (A-Z)", "linha"]];
+  function atualizarBotoesOrdem() {
+    opcoesOrdem.forEach(function (par) {
+      const btn = botoesOrdem[par[0]];
+      const ativo = ST.ordem === par[0];
+      btn.classList.toggle("on", ativo);
+      btn.setAttribute("aria-pressed", String(ativo));
+      btn.querySelector("span").textContent = par[1] + (ativo ? (ST.desc ? " ▼" : " ▲") : "");
+    });
+  }
+  const ordenar = el("div", { class: "atalhos" }, opcoesOrdem.map(function (par) {
+    const btn = el("button", {
+      type: "button", class: "ghost",
+      onclick: function () {
+        if (ST.ordem === par[0]) ST.desc = !ST.desc;
+        else { ST.ordem = par[0]; ST.desc = true; }
+        atualizarBotoesOrdem();
+        redesenharTabelas();
+      },
+    }, [Icons.get(par[2], 12), el("span", { text: par[1] })]);
+    botoesOrdem[par[0]] = btn;
+    return btn;
+  }));
+  atualizarBotoesOrdem();
+
   palco.appendChild(el("div", { class: "tab-topo" }, [
-    busca, linha,
+    busca, linha, ordenar,
     /* O recorte que veio do mapa precisa aparecer AQUI: sem a pastilha, a
        tabela mostra 4 de 138 artigos e nada explica o desaparecimento dos
        outros 134 -- quem chegou pelo mapa sabe por quê, quem voltou a esta
@@ -2556,11 +2592,41 @@ const SITUACAO = { em_producao: "Em escrita", submetido: "Submetido",
   em_revisao: "Em revisão", aceito: "Aceito", publicado: "Publicado",
   rejeitado: "Rejeitado", arquivado: "Arquivado" };
 
+/* Segmentar só faz sentido quando a ordenação em uso TEM grupo natural:
+   por ano, cada linha divisória é um ano; por título, a letra inicial.
+   Nas outras colunas (variáveis, situação, tentativas...) não há grupo
+   nenhum que ajude a achar algo -- a tabela continua uma lista só. */
+function chaveDoSegmento(a) {
+  if (ST.ordem === "ano") return a.ano ? String(a.ano) : "Sem ano";
+  if (ST.ordem === "title") {
+    const letra = (a.title || "").trim().charAt(0).toUpperCase();
+    return /[A-ZÀ-ÖØ-Þ]/.test(letra) ? letra : "#";
+  }
+  return null;
+}
+
 function tabelaDeArtigos(lista) {
-  const corpo = el("tbody", {}, lista.map(function (a) {
+  const contagem = {};
+  lista.forEach(function (a) {
+    const k = chaveDoSegmento(a);
+    if (k !== null) contagem[k] = (contagem[k] || 0) + 1;
+  });
+
+  const linhas = [];
+  let segmentoAtual;
+  lista.forEach(function (a) {
+    const k = chaveDoSegmento(a);
+    if (k !== null && k !== segmentoAtual) {
+      segmentoAtual = k;
+      linhas.push(el("tr", { class: "segmento" }, el("td", { colspan: String(COLUNAS.length) }, [
+        el("b", { text: k }),
+        el("span", { class: "hint", text: " · " + contagem[k]
+          + (contagem[k] === 1 ? " artigo" : " artigos") }),
+      ])));
+    }
     const destinos = destinosDoArtigo(a);
     const doTitulo = destinoDoTitulo(destinos);
-    return el("tr", {}, COLUNAS.map(function (col) {
+    linhas.push(el("tr", {}, COLUNAS.map(function (col) {
       if (col.k === "title") {
         return el("td", {}, [
           doTitulo
@@ -2592,8 +2658,9 @@ function tabelaDeArtigos(lista) {
       const valor = a[col.k];
       return el("td", { class: col.num ? "num" : null,
         text: valor === null || valor === undefined || valor === "" ? "—" : String(valor) });
-    }));
-  }));
+    })));
+  });
+  const corpo = el("tbody", {}, linhas);
 
   return el("div", { class: "rolagem" }, el("table", { class: "dados" }, [
     el("thead", {}, el("tr", {}, COLUNAS.map(function (col) {
