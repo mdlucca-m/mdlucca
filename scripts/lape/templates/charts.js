@@ -1148,9 +1148,28 @@ const Charts = (function () {
     const rowH = 54, W = spec.width || 760, ML = spec.labelWidth || 180, MR = 26;
     const H = groups.length * rowH + 34;
     const iw = W - ML - MR;
-    const peak = Math.max.apply(null, groups.reduce(function (a, g) { return a.concat(g.values); }, [0]));
-    const scale = niceTicks(peak, 4);
-    const X = function (v) { return ML + iw * v / scale.max; };
+
+    /* O teto do eixo vem da cerca de Tukey (Q3 + 1,5×IQR) sobre TODOS os
+       pontos juntos -- nunca do máximo bruto. Um artigo com 449 citações
+       ao lado de outros com menos de 65 é dado real, mas deixá-lo esticar
+       o eixo comum espremia a caixa de todo mundo contra a margem
+       esquerda, inclusive a dele: com uma linha só de altura, a "caixa"
+       de 2007 nem chegava a ter 1px de largura. O que passa da cerca
+       continua aparecendo -- só não decide mais a escala; vira uma seta
+       na borda com o valor de verdade escrito ao lado. */
+    const todos = groups.reduce(function (a, g) { return a.concat(g.values); }, [])
+      .slice().sort(function (a, b) { return a - b; });
+    const qGlobal = function (p) {
+      const pos = (todos.length - 1) * p;
+      const low = Math.floor(pos), high = Math.min(low + 1, todos.length - 1);
+      return todos[low] + (todos[high] - todos[low]) * (pos - low);
+    };
+    const q1Global = qGlobal(0.25), q3Global = qGlobal(0.75);
+    const cercaAlta = q3Global + 1.5 * (q3Global - q1Global);
+    const maximoBruto = todos[todos.length - 1];
+    const teto = Math.min(cercaAlta, maximoBruto);
+    const scale = niceTicks(Math.max(teto, 1e-9), 4);
+    const X = function (v) { return ML + iw * Math.min(v, scale.max) / scale.max; };
     const svg = svgRoot(W, H, spec.caption || "distribuição");
 
     scale.ticks.forEach(function (t) {
@@ -1167,32 +1186,51 @@ const Charts = (function () {
       };
       const y = i * rowH + 22, color = group.color || serie(i);
       const q1 = q(0.25), med = q(0.5), q3 = q(0.75);
+      const dentro = sorted.filter(function (v) { return v <= scale.max; });
+      const fora = sorted.filter(function (v) { return v > scale.max; });
       svg.appendChild(txt(s("text", { class: "lab", x: ML - 12, y: y + 4, "text-anchor": "end" }), group.label));
-      /* bigodes */
-      svg.appendChild(s("line", {
-        x1: X(sorted[0]), x2: X(sorted[sorted.length - 1]), y1: y, y2: y,
-        stroke: token("--axis"), "stroke-width": 1.5, "stroke-linecap": "round",
-      }));
-      /* caixa interquartil */
-      svg.appendChild(s("rect", {
-        class: "mark", x: X(q1), y: y - 9, width: Math.max(2, X(q3) - X(q1)), height: 18,
-        rx: 4, fill: color, "fill-opacity": 0.28, stroke: color, "stroke-width": 1.5,
-      }));
-      /* mediana */
-      svg.appendChild(s("line", { x1: X(med), x2: X(med), y1: y - 11, y2: y + 11, stroke: color, "stroke-width": 2.5 }));
-      /* pontos individuais, discretos */
-      sorted.forEach(function (v) {
-        svg.appendChild(s("circle", { cx: X(v), cy: y + 17, r: 2.5, fill: color, "fill-opacity": 0.5 }));
+      if (dentro.length) {
+        /* bigodes -- só até onde o eixo cortado ainda mostra */
+        svg.appendChild(s("line", {
+          x1: X(dentro[0]), x2: X(dentro[dentro.length - 1]), y1: y, y2: y,
+          stroke: token("--axis"), "stroke-width": 1.5, "stroke-linecap": "round",
+        }));
+        /* caixa interquartil -- clipada pelo mesmo X() que corta o resto */
+        svg.appendChild(s("rect", {
+          class: "mark", x: X(q1), y: y - 9, width: Math.max(2, X(q3) - X(q1)), height: 18,
+          rx: 4, fill: color, "fill-opacity": 0.28, stroke: color, "stroke-width": 1.5,
+        }));
+        /* mediana */
+        svg.appendChild(s("line", { x1: X(med), x2: X(med), y1: y - 11, y2: y + 11, stroke: color, "stroke-width": 2.5 }));
+        /* pontos individuais, discretos */
+        dentro.forEach(function (v) {
+          svg.appendChild(s("circle", { cx: X(v), cy: y + 17, r: 2.5, fill: color, "fill-opacity": 0.5 }));
+        });
+      }
+      /* fora da cerca: uma seta na borda direita, nunca escondido -- o
+         valor de verdade é o texto acima da linha, não a posição. */
+      fora.forEach(function (v, k) {
+        const x = X(scale.max) - 1, yy = y + 17 + (k - (fora.length - 1) / 2) * 9;
+        svg.appendChild(s("path", {
+          d: "M" + x + "," + (yy - 4) + " L" + (x + 7) + "," + yy + " L" + x + "," + (yy + 4) + " Z",
+          fill: color,
+        }));
       });
       const hit = s("rect", { class: "hit", x: ML, y: y - 20, width: iw, height: rowH - 6 });
-      hoverable(hit, group.label, [
+      const linhas = [
         { value: fmt(med), name: "mediana", color: color },
         { value: fmt(q1) + " – " + fmt(q3), name: "intervalo interquartil" },
         { value: fmt(sorted[0]) + " – " + fmt(sorted[sorted.length - 1]), name: "mín – máx" },
         { value: sorted.length, name: "observações" },
-      ], group.onSelect);
+      ];
+      if (fora.length) {
+        linhas.push({ value: fora.map(fmt).join(", "),
+          name: "acima de " + fmt(scale.max) + " -- fora da escala do gráfico" });
+      }
+      hoverable(hit, group.label, linhas, group.onSelect);
       svg.appendChild(hit);
-      svg.appendChild(txt(s("text", { class: "val", x: X(med), y: y - 15, "text-anchor": "middle" }), fmt(med)));
+      svg.appendChild(txt(s("text", { class: "val", x: X(med), y: y - 15, "text-anchor": "middle" }),
+        fmt(med) + (fora.length ? "  (" + fora.map(fmt).join(", ") + " →)" : "")));
     });
     return figure(spec, svg);
   }
