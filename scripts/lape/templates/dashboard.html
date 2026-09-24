@@ -362,6 +362,56 @@ footer { border-top: 1px solid var(--border); padding-top: 18px; margin-top: 30p
   #themeToggle, #toTop { display: none; }
   .layout { grid-template-columns: 1fr; }
 }
+
+/* ---- caminho do artigo: funil temático, hierárquico ----
+   Não é um funil de verdade -- cada etapa conta uma coisa diferente
+   (referência, registro triado, artigo), sem porcentagem entre elas
+   (ver o aviso no fim da lista). A largura decrescente é só a
+   metáfora visual de um processo que afunila. */
+.caminho-funil{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;
+  align-items:center;gap:0;max-width:820px;margin-inline:auto}
+.etapa-item{display:flex;flex-direction:column;align-items:center;width:100%}
+.card.etapa{width:calc(100% - var(--i,0) * 6%);margin-inline:auto;display:flex;
+  flex-direction:column;gap:10px;position:relative;
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--tom) 30%,transparent),
+    0 14px 28px -18px color-mix(in srgb,var(--tom) 55%,transparent);
+  animation:etapa-surge .5s cubic-bezier(.16,.84,.3,1) both;
+  animation-delay:calc(var(--i,0) * .09s)}
+@keyframes etapa-surge{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+.etapa-topo{display:flex;align-items:center;gap:14px}
+.etapa-titulo h3{margin:0 0 3px;font-size:15px}
+.etapa-meio{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.etapa-meio .num-grande{font-size:28px;font-weight:800;line-height:1;
+  font-variant-numeric:tabular-nums;color:var(--tom)}
+.etapa-baixo{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.etapa-saiba{flex:1 1 auto;min-width:200px}
+.etapa-saiba summary{cursor:pointer;font-size:12.5px;font-weight:650;color:var(--tom);list-style:none}
+.etapa-saiba summary::-webkit-details-marker{display:none}
+.etapa-saiba summary::after{content:" ▾"}
+.etapa-saiba[open] summary::after{content:" ▴"}
+.etapa-saiba ul{list-style:none;margin:8px 0 0;padding:10px 12px;border-radius:10px;
+  border-left:3px solid var(--tom);background:color-mix(in srgb,var(--tom) 9%,var(--surface));
+  display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--ink-2);line-height:1.45}
+@media not (prefers-reduced-motion: reduce){
+  .etapa-saiba[open] ul{animation:caminho-abre .3s ease both}
+}
+@keyframes caminho-abre{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.etapa-conector{width:3px;height:22px;margin:2px 0;position:relative;overflow:hidden;
+  background:color-mix(in srgb,var(--tom) 35%,transparent)}
+.etapa-conector::after{content:"";position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);
+  border:6px solid transparent;border-top-color:var(--tom2)}
+.etapa-conector::before{content:"";position:absolute;left:0;top:-26px;width:100%;height:26px;
+  background:linear-gradient(color-mix(in srgb,var(--tom2) 95%,transparent),transparent);
+  animation:etapa-flui 1.4s linear infinite}
+@keyframes etapa-flui{from{transform:translateY(-26px)}to{transform:translateY(48px)}}
+@media (prefers-reduced-motion: reduce){
+  .card.etapa{animation:none}
+  .etapa-conector::before{animation:none}
+}
+@media (max-width:860px){
+  .card.etapa{width:100%}
+  .etapa-baixo{flex-direction:column;align-items:stretch}
+}
 </style>
 </head>
 <body>
