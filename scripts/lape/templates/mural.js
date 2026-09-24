@@ -1233,13 +1233,18 @@ function slidePareto() {
   ]));
 }
 
+/* A mesma paleta de série que ChartsEnhanced.corSerie() usa por dentro
+   do sunburst -- repetida aqui só para colorir a lista "Top 6" com a
+   MESMA cor da fatia correspondente, sem expor a função interna. */
+function corSerieMural(i) { return "var(--series-" + ((i % 8) + 1) + ")"; }
+
 function slideSunburst() {
   const t = tv();
   if (!t || !t.mundo) return escalonar(el("div", { class: "slide" }, vazio("Sunburst ainda não disponível.")));
 
   const mundo = t.mundo;
   const top_paises = (mundo.paises || []).slice(0, 6).map(function (p) {
-    return { nome: p.pais, valor: parseInt(p.n) || 1 };
+    return { nome: p.pais, valor: parseInt(p.n) || 1, iso: p.iso, instituicoes: p.instituicoes || [] };
   });
 
   if (!top_paises.length) {
@@ -1248,13 +1253,33 @@ function slideSunburst() {
 
   const fig = ChartsEnhanced.sunburst(top_paises, 150);
   const corpo = el("div", { class: "corpo" }, fig);
+  const svgSunburst = fig && fig.querySelector ? fig.querySelector("svg.sunburst") : null;
+
+  /* a lista "Top 6" e o anel se respondem: passar o mouse (ou tocar, no
+     caso de tela sensível) numa linha acende a fatia do mesmo país, na
+     mesma cor -- e vice-versa, já que o hover da própria fatia já
+     existia dentro de ChartsEnhanced.sunburst(). */
+  const linhasTop6 = top_paises.map(function (p, i) {
+    const cor = corSerieMural(i);
+    const linha = el("li", { class: "top-pais", style: "--cor:" + cor + ";--i:" + i,
+      onmouseenter: function () { if (svgSunburst) ChartsEnhanced.destacarFatiaSunburst(svgSunburst, p.nome, true); },
+      onmouseleave: function () { if (svgSunburst) ChartsEnhanced.destacarFatiaSunburst(svgSunburst, p.nome, false); },
+    }, [
+      el("span", { class: "top-pais-num", text: String(i + 1) }),
+      el("span", { class: "top-pais-bandeira" },
+        [typeof Bandeiras !== "undefined" && p.iso ? Bandeiras.get(p.iso, p.nome) : Icons.get("mapa", 18)]),
+      el("span", { class: "top-pais-nome" }, [
+        el("b", { text: p.nome }),
+        el("small", { text: p.valor + (p.valor === 1 ? " artigo" : " artigos")
+          + (p.instituicoes.length ? " · " + cortar(p.instituicoes.join(", "), 46) : "") }),
+      ]),
+    ]);
+    return linha;
+  });
 
   return escalonar(el("div", { class: "slide painel-duplo igual" }, [
     quadro("Sunburst: Colaboração internacional", "mapa", corpo, null, "moldura-viva"),
-    quadro("Top 6", "mapa", frases(top_paises.slice(0, 6).map(function (p, i) {
-      return { icone: "mapa", tom: ["bom", "ambar", "neutro"][i % 3] || "neutro",
-        forte: (i + 1) + ". " + p.nome, resto: p.valor + " artigos" };
-    }))),
+    quadro("Top 6", "mapa", el("ul", { class: "top-paises" }, linhasTop6)),
   ]));
 }
 
