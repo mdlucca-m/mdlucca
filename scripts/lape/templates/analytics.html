@@ -28,6 +28,11 @@
   table thead th{position:sticky;top:0;background:#fff;z-index:1}
   tbody tr:hover{background:#f8fafc}
   .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:700}
+  /* reserva, caso o Tailwind da CDN nao carregue */
+  .hidden{display:none}
+  .tab-btn{background:#fff;border-color:#e6eaf0;color:#64748b}
+  .tab-btn:hover{border-color:#cbd5e1;color:#0f172a}
+  .tab-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
   .skeleton{background:linear-gradient(90deg,#eef1f6 25%,#e4e9f0 37%,#eef1f6 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite}
   @keyframes shimmer{0%{background-position:100% 50%}100%{background-position:0 50%}}
 </style>
@@ -45,6 +50,13 @@
     <div id="gerado-em" class="text-xs text-slate-400 font-medium"></div>
   </header>
 
+  <!-- seletor de visão -->
+  <div class="flex gap-2 mb-6">
+    <button id="tab-producao" class="tab-btn text-sm font-bold px-4 py-2 rounded-lg border transition">Produção científica</button>
+    <button id="tab-tempo" class="tab-btn text-sm font-bold px-4 py-2 rounded-lg border transition">Gestão de tempo</button>
+  </div>
+
+  <div id="view-producao">
   <!-- filtros -->
   <div class="card p-4 mb-6 flex flex-wrap items-center gap-3">
     <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M6 12h12M10 20h4"/></svg>
@@ -112,6 +124,32 @@
       </table>
     </div>
   </div>
+
+  </div><!-- /view-producao -->
+
+  <div id="view-tempo" class="hidden">
+    <div class="card p-4 mb-6">
+      <p class="text-sm text-slate-500">Esforço (horas registradas no ponto) ao lado do resultado (artigos em produção ou avaliação) — <b>tempo de banco não é produção</b>, é só o esforço; a tela mostra os dois lado a lado e não inventa uma fórmula que junte os dois num número só. Quem quiser o próprio check-in em tempo real encontra em <a href="/app#ponto" class="font-semibold" style="color:var(--blue)">Meu ponto</a>.</p>
+    </div>
+    <div id="tempo-bloqueado" class="hidden card p-8 text-center">
+      <p class="text-sm font-semibold text-slate-500">Esta visão é exclusiva da coordenação — mostra hora de pessoa nomeada ao lado da produção dela.</p>
+    </div>
+    <div id="tempo-conteudo" class="hidden">
+      <div id="tempo-kpis" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6"></div>
+      <div class="grid lg:grid-cols-2 gap-4 mb-6">
+        <div class="card p-5 fade-in">
+          <h3 class="text-sm font-bold mb-1">Esforço × Resultado</h3>
+          <p class="text-xs text-slate-400 mb-3">Cada ponto é um integrante: horas registradas no ponto (eixo X) e artigos em produção/avaliação com autoria dele(a) (eixo Y), nos últimos 30 dias</p>
+          <div class="h-80"><canvas id="chart-dispersao"></canvas></div>
+        </div>
+        <div class="card p-5 fade-in">
+          <h3 class="text-sm font-bold mb-1">Tempo por atividade anotada</h3>
+          <p class="text-xs text-slate-400 mb-3">Soma de horas por anotação de atividade, nos últimos 30 dias — texto livre digitado por cada pessoa ao bater o ponto</p>
+          <div class="h-80"><canvas id="chart-atividade"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /view-tempo -->
 
   <p class="text-center text-xs text-slate-400 mt-8 mb-4">Página independente do LAPE — dados reais de <span id="rodape-total"></span>. Nenhum número aqui é estimado.</p>
 </div>
@@ -373,6 +411,88 @@ async function iniciar(){
   aplicarFiltros();
 }
 iniciar();
+
+/* ---------------- Gestão de tempo ---------------- */
+let TEMPO_CARREGADO = false;
+
+function ativarAba(nome){
+  const producao = nome === "producao";
+  document.getElementById("view-producao").classList.toggle("hidden", !producao);
+  document.getElementById("view-tempo").classList.toggle("hidden", producao);
+  document.getElementById("tab-producao").classList.toggle("active", producao);
+  document.getElementById("tab-tempo").classList.toggle("active", !producao);
+  if (!producao && !TEMPO_CARREGADO) carregarTempo();
+}
+document.getElementById("tab-producao").addEventListener("click", function(){ ativarAba("producao"); });
+document.getElementById("tab-tempo").addEventListener("click", function(){ ativarAba("tempo"); });
+ativarAba("producao");
+
+async function carregarTempo(){
+  TEMPO_CARREGADO = true;
+  let d;
+  try {
+    d = await api("/api/ponto/analytics");
+  } catch (e){
+    document.getElementById("tempo-bloqueado").classList.remove("hidden");
+    document.getElementById("tempo-bloqueado").querySelector("p").textContent =
+      e.message.indexOf("perfil") !== -1 || e.message.indexOf("coordenação") !== -1
+        ? "Esta visão é exclusiva da coordenação — mostra hora de pessoa nomeada ao lado da produção dela."
+        : "Não deu para carregar: " + e.message;
+    return;
+  }
+  document.getElementById("tempo-conteudo").classList.remove("hidden");
+
+  const disp = d.dispersao.filter(function(p){ return p.horas > 0 || p.artigos_ativos > 0; });
+  const totalHoras = disp.reduce(function(s, p){ return s + p.horas; }, 0);
+  const comRegistro = d.dispersao.filter(function(p){ return p.horas > 0; }).length;
+  document.getElementById("tempo-kpis").innerHTML = [
+    kpiCard({ label: "Horas registradas (30 dias)", valor: numero(Math.round(totalHoras)), cor: CORES.azul }),
+    kpiCard({ label: "Pessoas com registro", valor: numero(comRegistro), cor: "#0f172a",
+      sub: "de " + d.dispersao.length + " integrante(s) do LAPE" }),
+    kpiCard({ label: "Média por pessoa", valor: comRegistro ? Math.round(totalHoras / comRegistro) + "h" : "—", cor: CORES.laranja }),
+    kpiCard({ label: "Atividades distintas anotadas", valor: numero(d.por_atividade.length), cor: CORES.verde }),
+  ].join("");
+
+  if (typeof Chart === "undefined") return;
+  try {
+    new Chart(document.getElementById("chart-dispersao"), {
+      type: "scatter",
+      data: { datasets: [{ label: "Integrantes", data: disp.map(function(p){ return { x: p.horas, y: p.artigos_ativos, quem: p.quem }; }),
+        backgroundColor: CORES.azul + "aa", borderColor: CORES.azul, borderWidth: 1.5,
+        pointRadius: 7, pointHoverRadius: 9 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false },
+          tooltip: { callbacks: { label: function(ctx){
+            return ctx.raw.quem + ": " + ctx.raw.x + "h, " + ctx.raw.y + " artigo(s) ativo(s)"; } } } },
+        scales: {
+          x: { title: { display: true, text: "Horas no ponto (30 dias)", font: { size: 11 } }, grid: { color: "#f1f5f9" } },
+          y: { title: { display: true, text: "Artigos em produção/avaliação", font: { size: 11 } }, beginAtZero: true,
+               ticks: { precision: 0 }, grid: { color: "#f1f5f9" } },
+        },
+      },
+    });
+  } catch (e){ console.error(e); }
+
+  try {
+    const paleta = [CORES.azul, CORES.laranja, CORES.verde, "#8b5cf6", "#0ea5e9", "#f59e0b", "#ec4899", "#64748b", "#94a3b8"];
+    new Chart(document.getElementById("chart-atividade"), {
+      type: "bar",
+      data: {
+        labels: ["Horas"],
+        datasets: d.por_atividade.map(function(a, i){
+          return { label: a.atividade, data: [a.horas], backgroundColor: paleta[i % paleta.length], borderRadius: 4 };
+        }),
+      },
+      options: {
+        indexAxis: "y", responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 8, font: { size: 10.5 } } } },
+        scales: { x: { stacked: true, title: { display: true, text: "horas", font: { size: 11 } }, grid: { color: "#f1f5f9" } },
+                  y: { stacked: true, grid: { display: false } } },
+      },
+    });
+  } catch (e){ console.error(e); }
+}
 </script>
 </body>
 </html>

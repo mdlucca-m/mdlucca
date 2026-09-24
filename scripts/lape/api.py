@@ -2248,6 +2248,56 @@ def route_ponto_equipe(ctx: "Context") -> Any:
     }
 
 
+def route_ponto_analytics(ctx: "Context") -> Any:
+    """Esforco (horas) ao lado do resultado (producao), pessoa a pessoa,
+    e o tempo somado por atividade anotada -- para a aba "Gestao de
+    tempo" do analytics avancado.
+
+    Hora de pessoa nomeada ao lado da producao dela e dado sensivel de
+    equipe -- por isso so a coordenacao, a mesma trava de /api/ponto/equipe.
+    Nao e produtividade: e so o esforco ao lado do resultado, para quem
+    olha tirar a propria conclusao -- a tela mostra os dois e nao inventa
+    uma formula que junte os dois num numero so.
+    """
+    from datetime import date, timedelta
+
+    auth.require(ctx.user, "coordenacao")
+    db = ctx.db
+    dias = to_int((ctx.query.get("dias") or ["30"])[0]) or 30
+
+    horas = ponto.por_pessoa(db, dias=dias)
+    ativos = {r["member_id"]: r["n"] for r in db.dicts(
+        "SELECT aa.member_id, COUNT(DISTINCT aa.article_id) AS n"
+        "  FROM article_authors aa JOIN articles a ON a.id = aa.article_id"
+        " WHERE a.status IN ('em_producao', 'submetido')"
+        " GROUP BY aa.member_id")}
+    dispersao = [{"quem": p["quem"], "horas": p["horas"],
+                  "artigos_ativos": ativos.get(p["member_id"], 0)} for p in horas]
+
+    inicio = (date.today() - timedelta(days=dias - 1)).isoformat()
+    linhas = db.dicts(
+        "SELECT atividade, entrada, saida FROM ponto WHERE entrada >= ?", (inicio,))
+    por_atividade: dict[str, float] = {}
+    for linha in linhas:
+        h = ponto.duracao_horas(linha["entrada"], linha["saida"])
+        if not h:
+            continue
+        rotulo = clean_text(linha["atividade"]) or "sem anotação"
+        por_atividade[rotulo] = por_atividade.get(rotulo, 0) + h
+    # As oito maiores, de verdade -- o resto some numa faixa "outras" para
+    # a legenda nao virar uma lista de trinta anotacoes de meia hora.
+    ordenadas = sorted(por_atividade.items(), key=lambda kv: -kv[1])
+    principais, resto = ordenadas[:8], ordenadas[8:]
+    if resto:
+        principais.append(("outras", sum(v for _, v in resto)))
+
+    return {
+        "dias": dias,
+        "dispersao": dispersao,
+        "por_atividade": [{"atividade": a, "horas": round(h, 1)} for a, h in principais],
+    }
+
+
 def route_producao(ctx: "Context") -> Any:
     """Quem esta na lista para trazer das bases, e o que ja veio de la."""
     auth.require(ctx.user, "leitura")
@@ -2658,6 +2708,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/ponto/presente/?$", route_ponto_presente, "integrante"),
     ("POST", r"^/api/ponto/anotar/?$", route_ponto_anotar, "integrante"),
     ("GET", r"^/api/ponto/equipe/?$", route_ponto_equipe, "coordenacao"),
+    ("GET", r"^/api/ponto/analytics/?$", route_ponto_analytics, "coordenacao"),
     ("GET", r"^/api/producao/?$", route_producao, "leitura"),
     ("POST", r"^/api/producao/importar/?$", route_producao_importar, "coordenacao"),
     ("POST", r"^/api/equipe/professores/?$", route_professores, "coordenacao"),
