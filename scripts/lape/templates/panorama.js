@@ -142,6 +142,7 @@ const ABAS = [
   { id: "triangulo", rotulo: "Triangulação", icone: "hierarquia", grupo: "Análise" },
   { id: "rede", rotulo: "Rede temática", icone: "rede", grupo: "Análise" },
   { id: "mapa", rotulo: "Mapa da produção", icone: "mapa", grupo: "Análise" },
+  { id: "estatistica", rotulo: "Estatística", icone: "balanca", grupo: "Análise" },
   { id: "sintese", rotulo: "Síntese", icone: "aceite", grupo: "Leitura" },
   { id: "lacunas", rotulo: "Lacunas e insights", icone: "explorar", grupo: "Leitura" },
   { id: "extracao", rotulo: "Extração", icone: "dados", grupo: "Leitura" },
@@ -2932,6 +2933,152 @@ function verFunil(palco) {
 }
 
 /* ==================================================================== */
+/* Estatística — descritiva de todo mundo, inferencial da coordenação   */
+/*                                                                      */
+/* Duas rotas, a mesma fronteira que /api/ponto/analytics já traçava:   */
+/* o que é público na equipe (publicações, citações, status, linha de   */
+/* pesquisa, vínculo) vem de /api/analytics/estatistica, leitura para   */
+/* todo mundo. O cruzamento hora×produção por pessoa é sensível demais  */
+/* para leitura comum e continua só na coordenação — tentado à parte,   */
+/* e escondido em silêncio (não em erro) para quem não pode vê-lo.      */
+/* ==================================================================== */
+let ESTATISTICA = null;
+let PONTO_ESTATISTICA = null; // null = ainda não tentou; false = tentou, sem acesso; objeto = dados
+
+function cartaoDeFrequencia(icone, titulo, linhas) {
+  linhas = linhas || [];
+  if (!linhas.length) {
+    return cartao(icone, titulo, null, el("p", { class: "hint", text: "Sem dado ainda." }));
+  }
+  return cartao(icone, titulo, null, C.bars({
+    items: linhas.map(function (r) { return { label: r.categoria, value: r.n }; }),
+    mono: true, unit: "artigo(s)",
+    table: { cols: ["Categoria", "N", "%"],
+             rows: linhas.map(function (r) { return [r.categoria, r.n, r.percentual + "%"]; }) },
+  }));
+}
+
+/* O mesmo par "número com base" do Raio-X (.medida), mas para um teste:
+   a leitura em português primeiro, o p depois. Sem resultado (p ausente
+   — nunca `p < 0.05` direto, que em JS trata null como 0 e mentiria
+   "significativo" num caso indefinido) vira aviso, não gráfico vazio. */
+function cartaoDeTeste(icone, titulo, dado) {
+  dado = dado || {};
+  const temResultado = dado.p !== null && dado.p !== undefined;
+  if (!temResultado) {
+    return cartao(icone, titulo, null, el("div", { class: "sem-base" }, [
+      el("b", { text: "Não deu para calcular." }),
+      el("p", { class: "hint", style: "margin-top:6px",
+        text: dado.aviso || "Dado insuficiente." }),
+    ]));
+  }
+  const sig = dado.p < 0.05;
+  const base = dado.n1 !== undefined ? dado.n1 + " e " + dado.n2 + " pessoa(s)"
+    : Array.isArray(dado.n) ? dado.n.join(" e ") : "n = " + dado.n;
+  return cartao(icone, titulo, null, el("div", { class: "medida" }, [
+    el("div", { class: "valor" }, [
+      el("b", { text: "p = " + String(dado.p).replace(".", ",") }),
+      el("small", { text: sig ? "significativo (5%)" : "não significativo (5%)" }),
+    ]),
+    el("p", { class: "hint", text: (dado.r !== undefined && dado.r !== null
+      ? "r = " + String(dado.r).replace(".", ",") + " · " : "") + base }),
+    dado.aviso ? el("p", { class: "base", text: dado.aviso }) : null,
+  ]));
+}
+
+function verEstatistica(palco) {
+  palco.appendChild(cabeca("balanca", "Estatística",
+    "Descritiva — resume o que já aconteceu — e inferencial — testa se um "
+    + "padrão observado é forte o bastante para não ser só acaso — sobre a "
+    + "produção real do laboratório. Amostra pequena, cautela grande: com "
+    + "poucos artigos e poucas pessoas, o mesmo teste que seria conclusivo "
+    + "numa base de milhares aqui só aponta uma direção, por isso todo "
+    + "resultado vem com o n ao lado."));
+
+  if (!ESTATISTICA) {
+    palco.appendChild(el("p", { class: "hint", text: "Calculando…" }));
+    api("/api/analytics/estatistica").then(function (dados) {
+      ESTATISTICA = dados;
+      if (ST.aba === "estatistica") desenhar();
+    }).catch(function (erro) {
+      ESTATISTICA = { erro: erro.message };
+      if (ST.aba === "estatistica") desenhar();
+    });
+    return;
+  }
+  if (ESTATISTICA.erro) {
+    palco.appendChild(nota("<b>Não deu para calcular.</b> " + ESTATISTICA.erro));
+    return;
+  }
+
+  const desc = ESTATISTICA.descritiva || {};
+  const inf = ESTATISTICA.inferencial || {};
+  const cit = desc.citacoes_por_artigo_publicado || {};
+  const pub = desc.publicacoes_por_ano || {};
+  const ic = desc.ic95_citacoes_por_artigo || {};
+
+  palco.appendChild(el("div", { class: "grade g4" }, [
+    indicador("Citações por artigo (média)",
+      cit.media !== undefined ? String(cit.media).replace(".", ",") : "—",
+      "n = " + (cit.n || 0), "citacao"),
+    indicador("Mediana de citações", cit.mediana !== undefined
+      ? String(cit.mediana).replace(".", ",") : "—", null, "citacao"),
+    indicador("Publicações por ano (média)",
+      pub.media !== undefined ? String(pub.media).replace(".", ",") : "—",
+      "n = " + (pub.n || 0) + " ano(s)", "producao"),
+    indicador("IC95% de citações/artigo",
+      ic.ic95 ? ic.ic95.map(function (v) { return String(v).replace(".", ","); }).join(" – ") : "—",
+      ic.aviso || null, "balanca"),
+  ]));
+
+  palco.appendChild(el("div", { class: "grade g3", style: "margin-top:14px" }, [
+    cartaoDeFrequencia("processo", "Situação da produção", desc.status_da_producao),
+    cartaoDeFrequencia("tematico", "Linha de pesquisa (publicados)", desc.linha_de_pesquisa),
+    cartaoDeFrequencia("pessoas", "Vínculo da equipe", desc.vinculo_da_equipe),
+  ]));
+
+  const tend = inf.tendencia_publicacoes_por_ano || {};
+  const serieAnos = desc.serie_publicacoes_por_ano || [];
+  const temTendencia = tend.p !== null && tend.p !== undefined;
+  palco.appendChild(el("div", { style: "margin-top:14px" },
+    cartao("linhas", "Tendência de publicações ao longo dos anos",
+      temTendencia
+        ? "Regressão linear: " + String(tend.inclinacao).replace(".", ",")
+          + " publicação(ões)/ano, " + (tend.p < 0.05 ? "estatisticamente significativa"
+            : "não significativa") + " (p = " + String(tend.p).replace(".", ",")
+          + ", n = " + tend.n + " ano(s))."
+        : (tend.aviso || "Sem dado suficiente para ajustar uma reta."),
+      serieAnos.length
+        ? C.lines({
+            labels: serieAnos.map(function (r) { return String(r.ano); }),
+            series: [{ name: "Publicados",
+                       values: serieAnos.map(function (r) { return r.publicados; }) }],
+            height: 220,
+          })
+        : el("p", { class: "hint", text: "Sem série de anos ainda." }))));
+
+  if (PONTO_ESTATISTICA === null) {
+    api("/api/ponto/analytics").then(function (dados) {
+      PONTO_ESTATISTICA = dados;
+      if (ST.aba === "estatistica") desenhar();
+    }).catch(function () {
+      PONTO_ESTATISTICA = false;
+      if (ST.aba === "estatistica") desenhar();
+    });
+    return;
+  }
+  if (!PONTO_ESTATISTICA) return; // sem acesso: a seção some em silêncio
+
+  const infPonto = PONTO_ESTATISTICA.inferencial || {};
+  palco.appendChild(el("h2", { style: "margin:26px 0 10px;font-size:17px",
+    text: "Cruzando esforço e produção (coordenação)" }));
+  palco.appendChild(el("div", { class: "grade g2" }, [
+    cartaoDeTeste("balanca", "Esforço (ponto) × produção", infPonto.correlacao_horas_producao),
+    cartaoDeTeste("pessoas", "Docentes × discentes", infPonto.docentes_vs_discentes),
+  ]));
+}
+
+/* ==================================================================== */
 /* Equipe e ponto — a leitura da coordenação                            */
 /*                                                                      */
 /* Hora registrada não é produtividade, e este painel não finge que é:  */
@@ -3069,7 +3216,7 @@ function desenhar() {
   ({ visao: verVisao, laboratorio: verLaboratorio, variaveis: verVariaveis,
      curvas: verCurvas, rede: verRede, mapa: verMapa, sintese: verSintese,
      lacunas: verLacunas, extracao: verExtracao, funil: verFunil,
-     triangulo: verTriangulo, projetos: verProjetos,
+     triangulo: verTriangulo, projetos: verProjetos, estatistica: verEstatistica,
      equipe: verEquipe }[ST.aba] || verVisao)(palco);
 }
 

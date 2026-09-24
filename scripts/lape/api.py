@@ -1371,6 +1371,9 @@ def route_analytics_estatistica(ctx: "Context") -> Any:
         "descritiva": {
             "publicacoes_por_ano": est.resumo_descritivo(
                 [r["publicados"] for r in serie_anos]) if serie_anos else {"n": 0},
+            # A tela precisa do ano a ano para desenhar a curva -- o resumo
+            # acima (media, mediana, quartis) nao chega para isso sozinho.
+            "serie_publicacoes_por_ano": serie_anos,
             "citacoes_por_artigo_publicado": est.resumo_descritivo(
                 [a["citacoes"] for a in publicados]),
             "ic95_citacoes_por_artigo": est.intervalo_confianca_media(
