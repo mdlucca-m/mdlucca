@@ -114,21 +114,24 @@ function Aviso { param($t) Write-Host "! $t" -ForegroundColor Yellow }
 # ocupada e a proxima tentativa falharia sem explicacao.
 function Erro  { param($t) Write-Host "! $t" -ForegroundColor Red; Parar-Tudo; exit 1 }
 
-function Parar-Tudo {
-  foreach ($nome in @("api", "tunel")) {
-    $arquivo = Join-Path $Exec "$nome.pid"
-    if (-not (Test-Path $arquivo)) { continue }
-    # Um .pid vazio existe sempre que uma subida anterior morreu antes de o
-    # processo nascer. `Stop-Process -Id $null` e erro terminante, e com
-    # ErrorActionPreference = Stop derrubava o script inteiro na largada --
-    # deixando a pessoa sem servico e sem entender por que.
-    $pidAlvo = Get-Content $arquivo -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ("$pidAlvo".Trim() -match '^\d+$') {
-      Stop-Process -Id ([int]"$pidAlvo".Trim()) -Force -ErrorAction SilentlyContinue
-      Verde "Encerrado: $nome"
-    }
-    Remove-Item $arquivo -ErrorAction SilentlyContinue
+function Parar-Processo {
+  param([string]$Nome)
+  $arquivo = Join-Path $Exec "$Nome.pid"
+  if (-not (Test-Path $arquivo)) { return }
+  # Um .pid vazio existe sempre que uma subida anterior morreu antes de o
+  # processo nascer. `Stop-Process -Id $null` e erro terminante, e com
+  # ErrorActionPreference = Stop derrubava o script inteiro na largada --
+  # deixando a pessoa sem servico e sem entender por que.
+  $pidAlvo = Get-Content $arquivo -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ("$pidAlvo".Trim() -match '^\d+$') {
+    Stop-Process -Id ([int]"$pidAlvo".Trim()) -Force -ErrorAction SilentlyContinue
+    Verde "Encerrado: $Nome"
   }
+  Remove-Item $arquivo -ErrorAction SilentlyContinue
+}
+
+function Parar-Tudo {
+  foreach ($nome in @("api", "tunel")) { Parar-Processo $nome }
   # endereco de servico parado nao e endereco: apagar evita mandar a alguem
   # um link que ninguem esta atendendo
   Remove-Item $arqEnd -ErrorAction SilentlyContinue
@@ -519,58 +522,124 @@ if ($contas.Trim() -eq "0") {
 }
 
 # -------------------------------------------------------------------- 4. servico
-Parar-Tudo
-Azul "Subindo o servico..."
 # O cookie so vale sob https (o tunel), e o endereco real do visitante vem do
 # cabecalho que o cloudflared preenche.
 $env:LAPE_BEHIND_HTTPS = "1"
 $env:LAPE_TRUST_PROXY  = "1"
-$api = Start-Process -FilePath $Python `
-  -ArgumentList "scripts\lape_agent.py", "api", "--host", "127.0.0.1", "--port", "$Porta" `
-  -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
-  -RedirectStandardOutput (Join-Path $Exec "api.log") `
-  -RedirectStandardError  (Join-Path $Exec "api.err")
-if (-not $api) { Erro "Nao consegui iniciar o servico." }
-$api.Id | Out-File (Join-Path $Exec "api.pid") -Encoding ascii
 
-# Perguntar so "a porta responde?" nao serve. Se um processo antigo ainda
-# estiver segurando a porta, o novo morre ao tentar abri-la -- e a
-# conferencia passa, porque quem respondeu foi o velho. O tunel sobe
-# apontando para o servico errado, e quem atualizou o sistema recarrega a
-# pagina e ve tudo igual, sem nenhuma mensagem de erro em lugar nenhum.
-$ok = $false
-foreach ($i in 1..40) {
-  if ($api.HasExited) { break }
+function Testar-Saude {
+  param($Processo, [int]$PortaAlvo, [string]$ArquivoErro, [int]$Tentativas = 40)
+  $ok = $false
+  foreach ($i in 1..$Tentativas) {
+    if ($Processo.HasExited) { break }
+    try {
+      Invoke-RestMethod -Uri "http://127.0.0.1:$PortaAlvo/api/health" -TimeoutSec 2 | Out-Null
+      $ok = $true; break
+    } catch { Start-Sleep -Milliseconds 500 }
+  }
+  if ($Processo.HasExited) {
+    Get-Content $ArquivoErro -Tail 20 -ErrorAction SilentlyContinue
+    return "morreu"
+  }
+  if (-not $ok) {
+    Get-Content $ArquivoErro -Tail 20 -ErrorAction SilentlyContinue
+    return "nao-respondeu"
+  }
+  return "ok"
+}
+
+# Quem ja esta no ar? Ver so o .pid nao basta -- ele pode sobrar de uma queda
+# anterior. E preciso que o processo exista E responda.
+$antigoPid = $null
+if (Test-Path (Join-Path $Exec "api.pid")) {
+  $lido = Get-Content (Join-Path $Exec "api.pid") -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ("$lido".Trim() -match '^\d+$') { $antigoPid = [int]"$lido".Trim() }
+}
+$antigoVivo = $false
+if ($antigoPid -and (Get-Process -Id $antigoPid -ErrorAction SilentlyContinue)) {
   try {
     Invoke-RestMethod -Uri "http://127.0.0.1:$Porta/api/health" -TimeoutSec 2 | Out-Null
-    $ok = $true; break
-  } catch { Start-Sleep -Milliseconds 500 }
-}
-if ($api.HasExited) {
-  Get-Content (Join-Path $Exec "api.err") -Tail 20 -ErrorAction SilentlyContinue
-  Write-Host ""
-  # quem esta com a porta? o nome do processo e a pasta de onde ele subiu
-  # sao a resposta que a pessoa precisa para agir
-  try {
-    $dono = (Get-NetTCPConnection -LocalPort $Porta -State Listen -ErrorAction Stop |
-             Select-Object -First 1).OwningProcess
-    if ($dono) {
-      $quem = Get-CimInstance Win32_Process -Filter "ProcessId = $dono" -ErrorAction SilentlyContinue
-      Aviso "A porta $Porta ja esta ocupada pelo processo ${dono}:"
-      if ($quem) { Write-Host "    $($quem.CommandLine)" }
-      Write-Host ""
-      Aviso "Provavelmente e um LAPE antigo, de outra pasta. Encerre-o com:"
-      Write-Host "    Stop-Process -Id $dono -Force"
-      Aviso "ou suba este numa porta livre:  .\deploy\publicar.ps1 -Porta 8010"
-    }
+    $antigoVivo = $true
   } catch { }
-  Erro "O servico morreu ao subir."
 }
-if (-not $ok) {
-  Get-Content (Join-Path $Exec "api.err") -Tail 20 -ErrorAction SilentlyContinue
-  Erro "O servico subiu mas nao respondeu. Log acima."
+
+if (-not $antigoVivo) {
+  # Nada bom rodando para preservar (primeira subida, ou o servico ja
+  # estava fora do ar) -- sobe direto na porta real, como sempre foi.
+  Parar-Processo "api"
+  Azul "Subindo o servico..."
+  $api = Start-Process -FilePath $Python `
+    -ArgumentList "scripts\lape_agent.py", "api", "--host", "127.0.0.1", "--port", "$Porta" `
+    -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
+    -RedirectStandardOutput (Join-Path $Exec "api.log") `
+    -RedirectStandardError  (Join-Path $Exec "api.err")
+  if (-not $api) { Erro "Nao consegui iniciar o servico." }
+  $api.Id | Out-File (Join-Path $Exec "api.pid") -Encoding ascii
+  $resultado = Testar-Saude $api $Porta (Join-Path $Exec "api.err")
+  if ($resultado -eq "morreu") {
+    Write-Host ""
+    # quem esta com a porta? o nome do processo e a pasta de onde ele subiu
+    # sao a resposta que a pessoa precisa para agir
+    try {
+      $dono = (Get-NetTCPConnection -LocalPort $Porta -State Listen -ErrorAction Stop |
+               Select-Object -First 1).OwningProcess
+      if ($dono) {
+        $quem = Get-CimInstance Win32_Process -Filter "ProcessId = $dono" -ErrorAction SilentlyContinue
+        Aviso "A porta $Porta ja esta ocupada pelo processo ${dono}:"
+        if ($quem) { Write-Host "    $($quem.CommandLine)" }
+        Write-Host ""
+        Aviso "Provavelmente e um LAPE antigo, de outra pasta. Encerre-o com:"
+        Write-Host "    Stop-Process -Id $dono -Force"
+        Aviso "ou suba este numa porta livre:  .\deploy\publicar.ps1 -Porta 8010"
+      }
+    } catch { }
+    Erro "O servico morreu ao subir."
+  }
+  if ($resultado -eq "nao-respondeu") { Erro "O servico subiu mas nao respondeu. Log acima." }
+  Verde "Servico no ar em 127.0.0.1:$Porta"
+} else {
+  # Ja tem gente sendo atendida pelo servico atual. So derruba esse depois
+  # de provar, numa porta separada, que o codigo novo sobe e responde --
+  # assim uma atualizacao com bug fica so um aviso, nunca um site fora do
+  # ar. O tunel aponta pra $Porta o tempo todo e nem precisa saber disto.
+  Azul "Testando a versao nova antes de trocar (o servico atual continua no ar)..."
+  $portaCandidata = $Porta + 1
+  while ($true) {
+    $ocupada = Get-NetTCPConnection -LocalPort $portaCandidata -State Listen -ErrorAction SilentlyContinue
+    if (-not $ocupada) { break }
+    $portaCandidata++
+  }
+  $logCandidato = Join-Path $Exec "api.candidato.log"
+  $erroCandidato = Join-Path $Exec "api.candidato.err"
+  $candidato = Start-Process -FilePath $Python `
+    -ArgumentList "scripts\lape_agent.py", "api", "--host", "127.0.0.1", "--port", "$portaCandidata" `
+    -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
+    -RedirectStandardOutput $logCandidato -RedirectStandardError $erroCandidato
+
+  $resultado = if ($candidato) { Testar-Saude $candidato $portaCandidata $erroCandidato } else { "morreu" }
+  if ($candidato -and -not $candidato.HasExited) { Stop-Process -Id $candidato.Id -Force -ErrorAction SilentlyContinue }
+  Remove-Item $logCandidato, $erroCandidato -ErrorAction SilentlyContinue
+
+  if ($resultado -ne "ok") {
+    Write-Host ""
+    Aviso "A versao nova nao subiu limpa -- o servico ATUAL continua no ar, sem interrupcao."
+    Aviso "Log do teste acima. Corrija e rode de novo quando quiser tentar outra vez."
+    exit 1
+  }
+  Verde "Versao nova aprovada. Trocando agora (interrupcao de poucos segundos)..."
+
+  Parar-Processo "api"
+  $api = Start-Process -FilePath $Python `
+    -ArgumentList "scripts\lape_agent.py", "api", "--host", "127.0.0.1", "--port", "$Porta" `
+    -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
+    -RedirectStandardOutput (Join-Path $Exec "api.log") `
+    -RedirectStandardError  (Join-Path $Exec "api.err")
+  if (-not $api) { Erro "Nao consegui iniciar o servico." }
+  $api.Id | Out-File (Join-Path $Exec "api.pid") -Encoding ascii
+  $resultado = Testar-Saude $api $Porta (Join-Path $Exec "api.err")
+  if ($resultado -ne "ok") { Erro "O servico ja tinha passado no teste, mas nao subiu na porta real. Log acima." }
+  Verde "Servico no ar em 127.0.0.1:$Porta"
 }
-Verde "Servico no ar em 127.0.0.1:$Porta"
 
 # --------------------------------------------------------------------- 5. tunel
 # Tres modos, um so resultado: $Link. Do lado de ca nada muda -- o servico
