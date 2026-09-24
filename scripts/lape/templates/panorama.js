@@ -2487,22 +2487,33 @@ function verExtracao(palco) {
      os dois aqui, clicar em "Alfabética" reordenava a tabela direitinho
      e "Por ano" continuava azul, como se nada tivesse mudado. */
   const botoesOrdem = {};
-  const opcoesOrdem = [["ano", "Por ano", "calendario"], ["title", "Alfabética (A-Z)", "linha"]];
+  /* Cada atalho PROMETE um sentido só no próprio nome -- "Por ano" é do
+     mais atual pro mais antigo (ano desc), "Alfabética (A-Z)" é A→Z
+     (título asc). Um clique aqui sempre entrega exatamente esse sentido,
+     nunca alterna: alternar era o que fazia "Por ano" virar do mais
+     antigo pro mais atual quando a tabela já estava (por padrão) ordenada
+     por ano -- o clique "ligava" o que já parecia ligado, e invertia sem
+     avisar. Quem quiser o sentido contrário ainda clica no cabeçalho da
+     coluna, que continua alternando como sempre alternou. */
+  const opcoesOrdem = [
+    ["ano", "Por ano", "calendario", true],
+    ["title", "Alfabética (A-Z)", "linha", false],
+  ];
   function atualizarBotoesOrdem() {
     opcoesOrdem.forEach(function (par) {
       const btn = botoesOrdem[par[0]];
-      const ativo = ST.ordem === par[0];
+      const ativo = ST.ordem === par[0] && ST.desc === par[3];
       btn.classList.toggle("on", ativo);
       btn.setAttribute("aria-pressed", String(ativo));
-      btn.querySelector("span").textContent = par[1] + (ativo ? (ST.desc ? " ▼" : " ▲") : "");
+      btn.querySelector("span").textContent = par[1] + (ativo ? (par[3] ? " ▼" : " ▲") : "");
     });
   }
   const ordenar = el("div", { class: "atalhos" }, opcoesOrdem.map(function (par) {
     const btn = el("button", {
       type: "button", class: "ghost",
       onclick: function () {
-        if (ST.ordem === par[0]) ST.desc = !ST.desc;
-        else { ST.ordem = par[0]; ST.desc = true; }
+        ST.ordem = par[0];
+        ST.desc = par[3];
         atualizarBotoesOrdem();
         redesenharTabelas();
       },
