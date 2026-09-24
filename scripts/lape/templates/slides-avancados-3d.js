@@ -75,6 +75,11 @@ function slidePesquisasLinhas3D() {
   /* Fonte do rótulo também encolhe com muitos nós, para caber no espaço
      angular menor entre eles. */
   const fontLabel = linhas.length > 12 ? 9 : linhas.length > 8 ? 10 : 11;
+  /* A atividade de cada linha é relativa às outras -- sem isso, "quem
+     lidera" nunca aparece: com uma linha só, ela sempre pareceria "no
+     máximo". As partículas e o ritmo do pulso vêm desta razão. */
+  const maiorArtigos = Math.max(1, ...linhas.map((l) => l.artigos || 0));
+  const particulas = [];
 
   linhas.forEach((linha, idx) => {
     const angle = (idx / linhas.length) * Math.PI * 2;
@@ -82,13 +87,15 @@ function slidePesquisasLinhas3D() {
     const y = centerY + radius * Math.sin(angle);
     const n_artigos = linha.artigos || 0;
     const taxa_pub = linha.taxa_publicacao || 0;
+    const atividade = n_artigos / maiorArtigos;
 
     const nodeRadius = Math.max(20, Math.min(60, 20 + (n_artigos / 5)));
     const strokeColor = taxa_pub > 0.8 ? "var(--good)" : taxa_pub > 0.5 ? "var(--warning)" : "var(--critical)";
 
     /* Linha do centro até o nó (Bezier com animação) */
+    const caminho = `M ${centerX} ${centerY} Q ${(centerX + x) / 2} ${(centerY + y) / 2} ${x} ${y}`;
     const line = elSvg("path", {
-      d: `M ${centerX} ${centerY} Q ${(centerX + x) / 2} ${(centerY + y) / 2} ${x} ${y}`,
+      d: caminho,
       class: "conexao-linha-pesquisa",
       style: `--index:${idx};--total:${linhas.length};`,
       stroke: strokeColor,
@@ -100,13 +107,35 @@ function slidePesquisasLinhas3D() {
     });
     svg.appendChild(line);
 
+    /* Partículas correndo do centro até o nó: mais partículas, e mais
+       rápidas, para quem lidera em artigos -- o fluxo mostra pra onde a
+       produção está indo, não só quem já chegou lá. `begin` escalonado
+       espaça as partículas de uma mesma linha ao longo do trajeto, em
+       vez de nascerem todas grudadas. */
+    const qtdParticulas = 1 + Math.round(atividade * 2);
+    const duracao = 3.2 - atividade * 1.8;
+    for (let p = 0; p < qtdParticulas; p++) {
+      const particula = elSvg("circle", {
+        r: "3.5", class: "particula-fluxo", fill: strokeColor,
+        filter: `url(#${glowId})`,
+      });
+      const motion = elSvg("animateMotion", {
+        path: caminho, dur: duracao.toFixed(2) + "s",
+        begin: (p * (duracao / qtdParticulas)).toFixed(2) + "s",
+        repeatCount: "indefinite", rotate: "auto",
+      });
+      particula.appendChild(motion);
+      particulas.push(particula);
+    }
+
     /* Nó central (círculo com glow) */
     const circle = elSvg("circle", {
       cx: x,
       cy: y,
       r: nodeRadius,
       class: "nodo-linha-pesquisa",
-      style: `--index:${idx};--radius:${nodeRadius};--cor:${strokeColor};`,
+      style: `--index:${idx};--radius:${nodeRadius};--cor:${strokeColor};`
+        + `--pulso-duracao:${(2.6 - atividade * 1).toFixed(2)}s;`,
       fill: "currentColor",
       filter: `url(#${glowId})`,
       opacity: "0.8",
@@ -148,6 +177,10 @@ function slidePesquisasLinhas3D() {
     badge.textContent = n_artigos;
     svg.appendChild(badge);
   });
+
+  /* As partículas entram por cima de todas as linhas e nós -- por
+     último no documento, para não ficarem escondidas atrás deles. */
+  particulas.forEach((p) => svg.appendChild(p));
 
   /* Centro: nó principal girando */
   const centerCircle = elSvg("circle", {
@@ -578,6 +611,23 @@ function slideCitacoesBases() {
 
   if (!resumo.total_artigos) {
     wrapper.appendChild(vazio("Nenhum artigo encontrado ainda nas bases externas — a sincronização roda por DOI e título."));
+  }
+
+  /* "Métricas de Impacto": o total de citações por linha, num gráfico de
+     barras horizontais de verdade (C.bars) -- os cartões de progresso
+     logo abaixo mostram COBERTURA (% de artigo com dado nas bases), que
+     é outra pergunta. Impacto é este número, do maior para o menor. */
+  const comCitacoes = linhas.filter(function (l) { return l.total_citacoes > 0; });
+  if (comCitacoes.length) {
+    const graficoImpacto = C.bars({
+      items: comCitacoes.map(function (l) {
+        const tom = l.media_citacoes > 5 ? "good" : l.media_citacoes > 2 ? "warning" : "critical";
+        return { label: cortar(l.nome, 38), value: l.total_citacoes, color: "var(--" + tom + ")" };
+      }),
+      unit: "citações", labelWidth: 220, rowH: 34,
+    });
+    wrapper.appendChild(quadro("Métricas de impacto", "citacao", graficoImpacto,
+      "citações totais por linha de pesquisa", "moldura-viva grafico-fluxo"));
   }
 
   if (linhas.length) {

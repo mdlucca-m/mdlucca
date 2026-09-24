@@ -77,8 +77,25 @@ body { background: var(--surface-sunken); }
 .selo[hidden] { display: none; }   /* inline-flex venceria o [hidden] do HTML */
 
 /* --------------------------------------------------------------- palco */
+/* Contra burn-in: esta tela fica ligada o dia inteiro, e o mesmo desenho
+   parado no mesmo pixel por horas marca fisicamente telas mais antigas
+   (OLED e plasma, mas painéis LCD baratos também sofrem com imagem
+   residual). O deslocamento é pequeno demais para notar olhando -- 22
+   minutos por volta completa -- mas basta para passear o conteúdo por
+   uma faixa de poucos pixels ao longo do dia, sem fixar em lugar nenhum. */
 .palco { position: relative; min-height: 0; padding: 4px clamp(18px, 2.4vw, 40px) 4px;
-  display: grid; }
+  display: grid; animation: deriva-pixels 1320s linear infinite; }
+@keyframes deriva-pixels {
+  0%   { transform: translate(0px, 0px); filter: hue-rotate(0deg); }
+  20%  { transform: translate(2px, -1px); filter: hue-rotate(1.2deg); }
+  40%  { transform: translate(-1px, 2px); filter: hue-rotate(-1deg); }
+  60%  { transform: translate(1.5px, 1px); filter: hue-rotate(.6deg); }
+  80%  { transform: translate(-2px, -1.5px); filter: hue-rotate(-.8deg); }
+  100% { transform: translate(0px, 0px); filter: hue-rotate(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .palco { animation: none; }
+}
 .slide { min-height: 0; display: flex; flex-direction: column; gap: clamp(10px, 1.2vh, 18px);
   animation: entra .58s cubic-bezier(.16, .84, .3, 1) both; }
 /* a fila de KPIs tem a altura que tem; o resto ocupa o que sobra da tela,
