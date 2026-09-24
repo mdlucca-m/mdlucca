@@ -29,7 +29,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from lape import coleta  # noqa: E402
+from lape import coleta, estatistica as est  # noqa: E402
 
 # Tabela publicada de t bicaudal a 95%, que e o que esta em qualquer
 # apendice de livro de estatistica.
@@ -244,6 +244,91 @@ class TestOTamanhoDeEfeitoComIntervalo(unittest.TestCase):
         muito = coleta.efeito([8, 7, 9, 8] * 8, [5, 4, 6, 5] * 8)
         largura = lambda e: e["ic_d"]["ate"] - e["ic_d"]["de"]  # noqa: E731
         self.assertLess(largura(muito), largura(pouco) / 2)
+
+
+class TestDescritivaDaProducao(unittest.TestCase):
+    """Resumo, frequência e IC da média para produção do laboratório
+    (artigos, citações) -- não é dado de instrumento, e por isso mora
+    fora de `coleta`. As três distribuições continuam as mesmas, só
+    reaproveitadas (`t_critico`), nunca recalculadas de novo."""
+
+    def test_resumo_vazio(self):
+        self.assertEqual(est.resumo_descritivo([]), {"n": 0})
+
+    def test_resumo_ignora_none(self):
+        r = est.resumo_descritivo([1, None, 2, 3, None])
+        self.assertEqual(r["n"], 3)
+        self.assertEqual(r["media"], 2.0)
+
+    def test_resumo_completo_tem_quartis_com_quatro_ou_mais(self):
+        r = est.resumo_descritivo([1, 2, 3, 4, 5, 6, 7, 8])
+        self.assertEqual(r["n"], 8)
+        self.assertEqual(r["media"], 4.5)
+        self.assertIn("q1", r)
+        self.assertIn("iqr", r)
+
+    def test_um_valor_so_nao_tem_desvio_nem_quartil(self):
+        r = est.resumo_descritivo([5])
+        self.assertNotIn("desvio_padrao", r)
+        self.assertNotIn("q1", r)
+
+    def test_frequencia_conta_e_percentua(self):
+        tabela = est.frequencia(["publicado", "publicado", "em_producao"])
+        self.assertEqual(tabela[0]["categoria"], "publicado")
+        self.assertEqual(tabela[0]["n"], 2)
+        self.assertAlmostEqual(tabela[0]["percentual"], 66.7, delta=0.1)
+
+    def test_frequencia_trata_none_como_categoria_propria(self):
+        nomes = [t["categoria"] for t in est.frequencia(["a", None])]
+        self.assertIn("não informado", nomes)
+
+    def test_ic95_media_usa_o_mesmo_t_critico_do_modulo(self):
+        dados = [10, 12, 11, 13, 9, 10, 12]
+        r = est.intervalo_confianca_media(dados)
+        erro_padrao = r["desvio_padrao"] / len(dados) ** 0.5
+        margem_esperada = coleta.t_critico(len(dados) - 1, 0.95) * erro_padrao
+        self.assertAlmostEqual(r["ic95"][1] - r["media"], margem_esperada, places=3)
+
+    def test_ic95_poucos_pontos_avisa_em_vez_de_quebrar(self):
+        self.assertIn("aviso", est.intervalo_confianca_media([5]))
+
+
+class TestRegressaoLinear(unittest.TestCase):
+    """A única pergunta de inferência que faz sentido sobre uma série
+    anual de publicações -- e a única coisa que faltava neste módulo
+    depois de `correlacao` (grupo × grupo) e os testes de hipótese."""
+
+    def test_tendencia_real_com_ruido_e_significativa(self):
+        r = est.regressao_linear([2020, 2021, 2022, 2023, 2024, 2025, 2026],
+                                 [10, 19, 31, 39, 52, 58, 71])
+        self.assertGreater(r["inclinacao"], 0)
+        self.assertLess(r["p"], 0.05)
+
+    def test_sem_tendencia_nao_e_significativo(self):
+        r = est.regressao_linear([2020, 2021, 2022, 2023, 2024, 2025],
+                                 [10, 9, 11, 10, 9, 11])
+        self.assertGreaterEqual(r["p"], 0.05)
+
+    def test_ajuste_perfeito_avisa_em_vez_de_dividir_por_zero(self):
+        """Resíduo zero = erro padrão indefinido -- o teste de
+        significância não dá para calcular, e o aviso é a resposta
+        certa, não um p inventado."""
+        r = est.regressao_linear([2020, 2021, 2022, 2023, 2024], [10, 20, 30, 40, 50])
+        self.assertAlmostEqual(r["r2"], 1.0, places=6)
+        self.assertIn("aviso", r)
+
+    def test_poucos_pontos_avisa(self):
+        self.assertIn("aviso", est.regressao_linear([1, 2], [1, 2]))
+
+    def test_x_constante_avisa_em_vez_de_dividir_por_zero(self):
+        self.assertIn("aviso", est.regressao_linear([2020, 2020, 2020], [1, 2, 3]))
+
+    def test_p_bate_com_p_bicaudal_t_do_modulo(self):
+        """A significância da inclinação não pode vir de conta própria
+        -- tem que ser a mesma t de Student que o resto do módulo usa."""
+        r = est.regressao_linear([1, 2, 3, 4, 5, 6], [2, 3, 5, 4, 6, 5])
+        esperado = est.p_bicaudal_t(r["t"], r["gl"])
+        self.assertAlmostEqual(r["p"], round(esperado, 4), places=4)
 
 
 if __name__ == "__main__":

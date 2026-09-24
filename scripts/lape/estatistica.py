@@ -1135,3 +1135,121 @@ def aceleracao(tempos: Sequence[Any], valores: Sequence[Any],
         saida["geral"] = round(
             (trechos[-1]["taxa"] - trechos[0]["taxa"]) / intervalo * por, 4)
     return saida
+
+
+# ----------------------------------------------------------------------
+# Descritiva da produção do laboratório
+#
+# As funções de teste acima servem a `coleta` -- respostas de instrumento,
+# medida antes/depois. Estas servem à produção (artigos, citações, ponto):
+# resumir o que já é público antes de qualquer pergunta de inferência, e
+# a única pergunta de inferência que um laboratório PEQUENO faz de verdade
+# sobre a própria produção -- "isto está subindo, descendo ou parado?" --
+# que é regressão, não teste de grupo. `correlacao` e `mann_whitney`, lá
+# em cima, já servem o resto (esforço × resultado, docentes × discentes).
+# ----------------------------------------------------------------------
+def resumo_descritivo(dados: Sequence[float | None]) -> dict[str, Any]:
+    """n, média, mediana, desvio-padrão, mínimo, máximo e quartis."""
+    limpos = [float(d) for d in dados if d is not None]
+    n = len(limpos)
+    if n == 0:
+        return {"n": 0}
+    ordenado = sorted(limpos)
+    resultado: dict[str, Any] = {
+        "n": n,
+        "media": round(statistics.fmean(limpos), 3),
+        "mediana": round(statistics.median(limpos), 3),
+        "minimo": round(ordenado[0], 3),
+        "maximo": round(ordenado[-1], 3),
+    }
+    if n > 1:
+        resultado["desvio_padrao"] = round(statistics.stdev(limpos), 3)
+    if n >= 4:
+        q1, _, q3 = statistics.quantiles(limpos, n=4, method="inclusive")
+        resultado["q1"] = round(q1, 3)
+        resultado["q3"] = round(q3, 3)
+        resultado["iqr"] = round(q3 - q1, 3)
+    return resultado
+
+
+def frequencia(categorias: Sequence[str | None]) -> list[dict[str, Any]]:
+    """Tabela de frequência: contagem e percentual por categoria, da
+    mais para a menos comum."""
+    total = len(categorias)
+    contagem: dict[str, int] = {}
+    for c in categorias:
+        chave = c or "não informado"
+        contagem[chave] = contagem.get(chave, 0) + 1
+    linhas = [{"categoria": k, "n": v,
+               "percentual": round(v / total * 100, 1) if total else 0.0}
+              for k, v in contagem.items()]
+    return sorted(linhas, key=lambda r: (-r["n"], r["categoria"]))
+
+
+def intervalo_confianca_media(dados: Sequence[float | None],
+                              conf: float = 0.95) -> dict[str, Any]:
+    """IC da média pela distribuição t -- reusa `t_critico`, não uma
+    normal: a amostra de um laboratório pequeno é pequena."""
+    limpos = [float(d) for d in dados if d is not None]
+    n = len(limpos)
+    if n < 2:
+        return {"n": n, "aviso": "menos de 2 valores — não dá para estimar intervalo"}
+    m = statistics.fmean(limpos)
+    dp = statistics.stdev(limpos)
+    erro_padrao = dp / math.sqrt(n)
+    margem = t_critico(n - 1, conf) * erro_padrao
+    return {"n": n, "media": round(m, 3), "desvio_padrao": round(dp, 3),
+            "erro_padrao": round(erro_padrao, 3),
+            "ic95": [round(m - margem, 3), round(m + margem, 3)]}
+
+
+def regressao_linear(x: Sequence[float], y: Sequence[float]) -> dict[str, Any]:
+    """y = intercepto + inclinação·x, com teste de significância da
+    inclinação (H0: inclinação = 0) pela mesma t de Student que serve o
+    resto do módulo, e o IC95% dela.
+
+    A única pergunta de inferência que faz sentido sobre uma série anual
+    de publicações: há tendência, ou é oscilação normal? Comparar grupo
+    com grupo (`correlacao`, `mann_whitney`) não responde isso -- aqui o
+    eixo x é o tempo.
+    """
+    pares = [(a, b) for a, b in zip(x, y) if a is not None and b is not None]
+    n = len(pares)
+    if n < 3:
+        return {"n": n, "aviso": "menos de 3 pontos — não dá para ajustar reta"}
+    xs = [p[0] for p in pares]
+    ys = [p[1] for p in pares]
+    media_x, media_y = statistics.fmean(xs), statistics.fmean(ys)
+    sxx = sum((v - media_x) ** 2 for v in xs)
+    if sxx == 0:
+        return {"n": n, "aviso": "x não varia — não dá para ajustar reta"}
+    sxy = sum((xs[i] - media_x) * (ys[i] - media_y) for i in range(n))
+    inclinacao = sxy / sxx
+    intercepto = media_y - inclinacao * media_x
+    residuos = [ys[i] - (intercepto + inclinacao * xs[i]) for i in range(n)]
+    soma_quad_residuos = sum(e * e for e in residuos)
+    soma_quad_total = sum((v - media_y) ** 2 for v in ys)
+    r2 = 1 - soma_quad_residuos / soma_quad_total if soma_quad_total else None
+    resultado: dict[str, Any] = {
+        "n": n, "inclinacao": round(inclinacao, 4), "intercepto": round(intercepto, 4),
+        "r2": round(r2, 4) if r2 is not None else None,
+    }
+    gl = n - 2
+    if gl <= 0 or sxx == 0:
+        resultado["aviso"] = "amostra pequena demais para teste de significância"
+        return resultado
+    variancia_residual = soma_quad_residuos / gl
+    erro_padrao_inclinacao = math.sqrt(variancia_residual / sxx)
+    if erro_padrao_inclinacao == 0:
+        resultado["aviso"] = "ajuste perfeito — sem resíduo para estimar erro padrão"
+        return resultado
+    t = inclinacao / erro_padrao_inclinacao
+    p = p_bicaudal_t(t, gl)
+    margem = t_critico(gl) * erro_padrao_inclinacao
+    resultado.update({
+        "gl": gl, "erro_padrao_inclinacao": round(erro_padrao_inclinacao, 4),
+        "t": round(t, 3), "p": round(p, 4) if p is not None else None,
+        "significativo_5pct": (p is not None and p < 0.05),
+        "ic95_inclinacao": [round(inclinacao - margem, 4), round(inclinacao + margem, 4)],
+    })
+    return resultado
