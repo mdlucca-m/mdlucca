@@ -611,14 +611,38 @@ if (-not $antigoVivo) {
   }
   $logCandidato = Join-Path $Exec "api.candidato.log"
   $erroCandidato = Join-Path $Exec "api.candidato.err"
+
+  # O candidato NUNCA abre o banco de verdade. Subir a API roda rotinas de
+  # largada com efeito real -- entre elas, fechar_na_volta() encerra pontos
+  # abertos sem sinal de vida ha mais de 20 minutos. Isso e certo quando o
+  # servico realmente caiu, mas o candidato e so um teste: o servico ATUAL
+  # continua no ar, ninguem saiu do laboratorio, e fechar o ponto de quem
+  # so nao tem a aba aberta seria um efeito colateral de um teste, nao uma
+  # consequencia de queda nenhuma. Por isso o candidato testa numa COPIA
+  # do banco -- prova que o codigo sobe e responde sem escrever uma linha
+  # sequer no banco que o laboratorio usa de verdade.
+  $bancoReal = Join-Path $Raiz "data\db.sqlite"
+  $bancoCandidato = Join-Path $Exec "db.candidato.sqlite"
+  # O banco roda em modo WAL: parte do dado mais recente pode estar so no
+  # "-wal", ainda nao levado para o arquivo principal. Copiar so o
+  # ".sqlite" arriscaria um candidato testando uma foto do banco
+  # desatualizada; copiar os tres junto e o que garante uma foto igual ao
+  # que a API real esta lendo agora.
+  Copy-Item $bancoReal $bancoCandidato -Force
+  foreach ($sufixo in @("-wal", "-shm")) {
+    $origem = "$bancoReal$sufixo"
+    if (Test-Path $origem) { Copy-Item $origem "$bancoCandidato$sufixo" -Force }
+  }
+
   $candidato = Start-Process -FilePath $Python `
-    -ArgumentList "scripts\lape_agent.py", "api", "--host", "127.0.0.1", "--port", "$portaCandidata" `
+    -ArgumentList "scripts\lape_agent.py", "--db", $bancoCandidato, "api", "--host", "127.0.0.1", "--port", "$portaCandidata" `
     -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
     -RedirectStandardOutput $logCandidato -RedirectStandardError $erroCandidato
 
   $resultado = if ($candidato) { Testar-Saude $candidato $portaCandidata $erroCandidato } else { "morreu" }
   if ($candidato -and -not $candidato.HasExited) { Stop-Process -Id $candidato.Id -Force -ErrorAction SilentlyContinue }
   Remove-Item $logCandidato, $erroCandidato -ErrorAction SilentlyContinue
+  Remove-Item $bancoCandidato, "$bancoCandidato-wal", "$bancoCandidato-shm" -ErrorAction SilentlyContinue
 
   if ($resultado -ne "ok") {
     Write-Host ""
