@@ -295,6 +295,80 @@ class TestAQuedaDeEnergia(BasePonto):
         self.assertEqual(ponto.fechar_na_volta(self.db), [])
 
 
+class TestReinicioRapidoDaAtualizacao(BasePonto):
+    """Uma atualizacao publicada nao pode fechar o ponto de quem so nao
+    esta OLHANDO pra aba agora mesmo.
+
+    O sinal de vida de cada pessoa (visto_em) so bate com a aba do ponto
+    em primeiro plano -- de proposito, pra uma janela minimizada a noite
+    inteira nao contar como trabalho. Isso deixa o visto_em "velho" o
+    tempo todo pra quem so esta trabalhando noutra janela, que e a maior
+    parte do expediente pra maior parte das pessoas. Sem uma forma de
+    distinguir "o servidor ficou fora do ar so uns segundos" de "o
+    servidor ficou fora do ar de verdade", toda atualizacao (`git pull` +
+    reiniciar) fechava o ponto de quem estivesse so sem a aba em foco.
+    """
+
+    def aberta_com_sinal(self, entrada, visto, member_id=None):
+        self.db.execute(
+            "INSERT INTO ponto (member_id, entrada, visto_em, atividade)"
+            " VALUES (?, ?, ?, 'escrevendo')",
+            (member_id or self.eu, entrada, visto))
+        self.db.conn.commit()
+
+    def test_banco_que_nunca_rodou_nao_e_reinicio_rapido(self):
+        # nao ha reinicio nenhum para ser "rapido" na primeira subida
+        self.assertFalse(ponto.reinicio_foi_rapido(self.db))
+
+    def test_logo_apos_marcar_vivo_e_reinicio_rapido(self):
+        ponto.marcar_servidor_vivo(self.db)
+        self.assertTrue(ponto.reinicio_foi_rapido(self.db))
+
+    def test_depois_do_limite_deixa_de_ser_reinicio_rapido(self):
+        ponto.marcar_servidor_vivo(self.db)
+        antigo = (datetime.now()
+                  - timedelta(minutes=ponto.REINICIO_RAPIDO_MINUTOS + 1)).strftime(ponto.FORMATO)
+        self.db.execute("UPDATE estado_sistema SET valor = ?"
+                        " WHERE chave = 'servidor_visto_em'", (antigo,))
+        self.db.conn.commit()
+        self.assertFalse(ponto.reinicio_foi_rapido(self.db))
+
+    def test_reinicio_rapido_preserva_sessao_com_visto_em_velho(self):
+        """O caso de verdade: aba aberta, sem foco ha 45 minutos, e uma
+        atualizacao publicada troca o processo em poucos segundos."""
+        entrada = (datetime.now() - timedelta(hours=3)).strftime(ponto.FORMATO)
+        visto = (datetime.now() - timedelta(minutes=45)).strftime(ponto.FORMATO)
+        self.aberta_com_sinal(entrada, visto)
+        ponto.marcar_servidor_vivo(self.db)  # o servidor respondeu ha pouco
+        self.assertTrue(ponto.reinicio_foi_rapido(self.db))
+        # e assim que serve() decide: so fecha quando NAO foi reinicio rapido
+        if not ponto.reinicio_foi_rapido(self.db):
+            ponto.fechar_na_volta(self.db)
+        self.assertIsNotNone(ponto.aberto(self.db, self.eu))
+
+    def test_queda_de_verdade_continua_fechando_mesmo_com_o_pulso(self):
+        """O pulso nao pode proteger uma queda de verdade -- so o reinicio
+        rapido. Servidor sem responder ha duas horas e queda, nao troca."""
+        entrada = (datetime.now() - timedelta(hours=5)).strftime(ponto.FORMATO)
+        visto = (datetime.now() - timedelta(hours=2)).strftime(ponto.FORMATO)
+        self.aberta_com_sinal(entrada, visto)
+        antigo = (datetime.now() - timedelta(hours=2)).strftime(ponto.FORMATO)
+        self.db.execute(
+            "INSERT INTO estado_sistema (chave, valor) VALUES ('servidor_visto_em', ?)",
+            (antigo,))
+        self.db.conn.commit()
+        self.assertFalse(ponto.reinicio_foi_rapido(self.db))
+        if not ponto.reinicio_foi_rapido(self.db):
+            ponto.fechar_na_volta(self.db)
+        self.assertIsNone(ponto.aberto(self.db, self.eu))
+
+    def test_a_subida_confere_reinicio_rapido_antes_de_fechar(self):
+        fonte = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
+        trecho = fonte[fonte.index("ponto.reinicio_foi_rapido(db)"):]
+        self.assertIn("ponto.fechar_na_volta(db)", trecho[:1200])
+        self.assertIn("ponto.marcar_servidor_vivo(db)", trecho[:1200])
+
+
 class TestAPortaDoSinalDeVida(unittest.TestCase):
 
     def test_a_rota_existe_para_o_integrante(self):

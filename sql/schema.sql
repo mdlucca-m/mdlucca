@@ -842,6 +842,22 @@ CREATE TABLE IF NOT EXISTS ponto (
 CREATE INDEX IF NOT EXISTS ix_ponto_membro ON ponto(member_id, entrada);
 CREATE INDEX IF NOT EXISTS ix_ponto_aberto ON ponto(saida) WHERE saida IS NULL;
 
+-- Chave-valor pequeno para estado operacional do servidor -- nada de dado
+-- do laboratorio aqui. Hoje guarda so uma chave (servidor_visto_em, ver
+-- ponto.py) para o servidor distinguir "acabei de reiniciar depois de uma
+-- atualizacao" (poucos segundos fora do ar) de "fiquei fora do ar de
+-- verdade" (queda de energia, maquina desligada) -- sem essa distincao,
+-- toda atualizacao publicada fechava o ponto de quem estivesse com a aba
+-- do ponto aberta mas sem foco (o sinal de vida so bate com a aba em
+-- primeiro plano, de proposito, para nao contar janela minimizada a noite
+-- inteira como trabalho -- mas isso deixava o `visto_em` "velho" mesmo com
+-- a pessoa trabalhando, e um reinicio de poucos segundos via aquilo como
+-- "sumiu ha muito tempo").
+CREATE TABLE IF NOT EXISTS estado_sistema (
+  chave TEXT PRIMARY KEY,
+  valor TEXT
+);
+
 -- De que paises saiu cada artigo. Vem da afiliacao de quem assina, que e
 -- quem carrega pais -- o artigo nao carrega. Um artigo pode ter varios:
 -- Brasil e Noruega juntos foi produzido nos dois, e conta para os dois.

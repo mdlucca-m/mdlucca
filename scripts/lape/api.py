@@ -3611,6 +3611,37 @@ def _caracteristicas_csv(tabela: dict) -> str:
     return "\ufeff" + saida.getvalue()
 
 
+PULSO_SERVIDOR_INTERVALO_S = 60
+
+
+def _agendar_pulso_servidor(db_path: Path) -> threading.Event:
+    """Mantem `estado_sistema.servidor_visto_em` fresco enquanto o
+    servico roda -- e nao so na subida.
+
+    Sem isto, um servico que ficasse de pe HORAS so gravaria "vivo" uma
+    vez, logo no inicio; um travamento tarde da noite pareceria, para o
+    proximo reinicio, um "reinicio rapido" de segundos atras (porque o
+    unico registro seria de horas antes), e `ponto.fechar_na_volta()`
+    deixaria de rodar bem na hora em que mais precisa -- uma queda de
+    verdade.
+    """
+    parar = threading.Event()
+
+    def rodar() -> None:
+        while not parar.wait(PULSO_SERVIDOR_INTERVALO_S):
+            try:
+                db = Database(db_path)
+                try:
+                    ponto.marcar_servidor_vivo(db)
+                finally:
+                    db.close()
+            except Exception as exc:                      # nunca derruba o servico
+                print(f"  ! pulso do servidor falhou: {type(exc).__name__}: {exc}")
+
+    threading.Thread(target=rodar, name="lape-pulso-servidor", daemon=True).start()
+    return parar
+
+
 BACKUP_INTERVALO_S = int(os.environ.get("LAPE_BACKUP_CHECAGEM_S", "300"))
 
 
@@ -3704,14 +3735,26 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
         # servico caiu, ninguem estava batendo ponto nesse intervalo, e
         # esperar as doze horas do limite deixaria a sessao somando tempo
         # que nao houve.
-        for fechada in ponto.fechar_na_volta(db):
-            if fechada["sem_sinal"]:
-                print(f"  ! ponto de {fechada['quem']} aberto em"
-                      f" {fechada['entrada']} fechado sem horas: nao houve"
-                      f" nenhum sinal de vida para estimar")
-            else:
-                print(f"  ponto de {fechada['quem']} fechado em"
-                      f" {fechada['saida']} ({fechada['horas']} h estimada(s))")
+        #
+        # Mas uma atualizacao publicada tambem passa por aqui -- e o sinal
+        # de vida de cada pessoa so bate com a aba do ponto em primeiro
+        # plano, entao o visto_em de quem so nao esta OLHANDO pra aba agora
+        # mesmo (a maior parte do expediente, pra maior parte das pessoas)
+        # fica "velho" o tempo todo. Sem checar SE o servidor respondeu ha
+        # pouco (reinicio_foi_rapido), uma troca de poucos segundos fechava
+        # o ponto de quem estivesse so trabalhando noutra aba.
+        if ponto.reinicio_foi_rapido(db):
+            print("  ponto: reinicio rapido (atualizacao) -- sessoes abertas preservadas")
+        else:
+            for fechada in ponto.fechar_na_volta(db):
+                if fechada["sem_sinal"]:
+                    print(f"  ! ponto de {fechada['quem']} aberto em"
+                          f" {fechada['entrada']} fechado sem horas: nao houve"
+                          f" nenhum sinal de vida para estimar")
+                else:
+                    print(f"  ponto de {fechada['quem']} fechado em"
+                          f" {fechada['saida']} ({fechada['horas']} h estimada(s))")
+        ponto.marcar_servidor_vivo(db)
         preparo = _autor.garantir_professores(db, criar=False)
         for feita in preparo.get("fusoes") or ():
             print(f"  ficha \u201c{feita['sumiu']}\u201d juntada em"
@@ -3795,6 +3838,7 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
         print("\n  ! Nenhum usuário cadastrado. Crie o primeiro administrador:")
         print("      python3 scripts/lape_agent.py usuarios --criar 'Nome' email@udesc.br --perfil admin")
 
+    parar_pulso = _agendar_pulso_servidor(Path(db_path))
     parar_backup = _agendar_backup(Path(db_path))
     # A rotina que traz a producao nova das bases, as citacoes e os acervos
     # sem ninguem apertar botao. Ver `rotina.py`: cada passo tem o seu
@@ -3809,6 +3853,7 @@ def serve(host: str = "127.0.0.1", port: int = 8000, db_path: Path = config.DB_P
     except KeyboardInterrupt:
         print("\nservidor encerrado")
     finally:
+        parar_pulso.set()
         parar_backup.set()
         parar_rotina.set()
         server.server_close()

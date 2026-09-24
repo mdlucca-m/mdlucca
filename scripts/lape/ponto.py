@@ -159,6 +159,50 @@ def fechar_na_volta(db: Database, silencio_minutos: int = SILENCIO_MINUTOS) -> l
     return fechadas
 
 
+# ----------------------------------------------------------------------
+# Reinicio rapido vs queda de verdade
+# ----------------------------------------------------------------------
+# O sinal de vida de cada pessoa (visto_em, acima) so bate com a aba do
+# ponto em PRIMEIRO PLANO -- de proposito, para uma janela minimizada a
+# noite inteira nao contar como trabalho. Consequencia: o visto_em de
+# quem so nao esta OLHANDO para a aba agora mesmo -- a maior parte do
+# expediente, para a maior parte das pessoas -- fica "velho" o tempo
+# todo. Sem esta distincao aqui, `fechar_na_volta()` fechava o ponto de
+# quem estivesse com a aba aberta mas sem foco a cada atualizacao
+# publicada (uma troca de poucos segundos), tratando isso como se o
+# laboratorio inteiro tivesse ficado fora do ar.
+REINICIO_RAPIDO_MINUTOS = 3
+
+
+def marcar_servidor_vivo(db: Database) -> None:
+    """Registra que o servidor respondeu agora.
+
+    Chamado na subida e de tempos em tempos enquanto o servico roda, para
+    o PROXIMO reinicio conseguir perguntar "a ultima vez que alguem
+    respondeu foi ha pouco, ou faz tempo?" -- e so essa pergunta, feita
+    ANTES de olhar o visto_em de cada pessoa, distingue as duas causas.
+    """
+    db.execute(
+        "INSERT INTO estado_sistema (chave, valor) VALUES ('servidor_visto_em', ?)"
+        " ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor", (_agora(),))
+    db.conn.commit()
+
+
+def reinicio_foi_rapido(db: Database, limite_minutos: int = REINICIO_RAPIDO_MINUTOS) -> bool:
+    """True quando o servidor respondeu ha pouco -- sinal de que esta
+    subida e so a troca de uma atualizacao publicada, nao uma queda de
+    verdade (falta de luz, maquina desligada, travamento).
+
+    Banco novo (nunca rodou) devolve False: nao ha reinicio nenhum para
+    ser "rapido" na primeira subida, e nada esta aberto para fechar.
+    """
+    visto = _ler(db.scalar(
+        "SELECT valor FROM estado_sistema WHERE chave = 'servidor_visto_em'"))
+    if visto is None:
+        return False
+    return (datetime.now() - visto) < timedelta(minutes=limite_minutos)
+
+
 def aberto(db: Database, member_id: int) -> dict[str, Any] | None:
     """A sessao em aberto desta pessoa, se houver."""
     fechar_esquecidos(db)
