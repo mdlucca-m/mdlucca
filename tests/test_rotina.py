@@ -34,13 +34,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from lape import api, auth, ingest_autor, ingest_citations, linhas, mapping, rotina  # noqa: E402
+from lape.agents import tracker  # noqa: E402
 from lape.db import Database  # noqa: E402
 
 TEMPLATES = ROOT / "scripts" / "lape" / "templates"
 
 
 def _sem_rede(caso: unittest.TestCase, novos: int = 2, falhar: str | None = None):
-    """Os três passos sem sair para a rede, com o que cada um devolveria."""
+    """Os cinco passos sem sair para a rede, com o que cada um devolveria."""
     def trazer_todos(db, desde=None):
         if falhar == "producao":
             return {"pessoas": [{"quem": "Alexandro Andrade", "erro": "rede caiu"}], "variaveis": 0}
@@ -57,8 +58,20 @@ def _sem_rede(caso: unittest.TestCase, novos: int = 2, falhar: str | None = None
             raise ConnectionError("pubmed fora do ar")
         return {"novos": 1, "achados": 3}
 
+    def discover(db, since_year=None, limit_per_author=60, verbose=True):
+        if falhar == "descobrir":
+            raise ConnectionError("openalex fora do ar")
+        return {"authors": 2, "seen": 3, "new": novos, "errors": []}
+
+    def profiles(db, verbose=True):
+        if falhar == "perfis":
+            raise ConnectionError("openalex fora do ar")
+        return {"updated": novos, "errors": []}
+
     for alvo, nome, falso in ((ingest_autor, "trazer_todos", trazer_todos),
-                              (ingest_citations, "update_citations", update_citations)):
+                              (ingest_citations, "update_citations", update_citations),
+                              (tracker, "discover", discover),
+                              (tracker, "profiles", profiles)):
         p = mock.patch.object(alvo, nome, falso)
         p.start()
         caso.addCleanup(p.stop)
@@ -87,18 +100,20 @@ class BaseDaRotina(unittest.TestCase):
 class TestOsPassosVencem(BaseDaRotina):
 
     def test_nunca_rodou_vence_tudo(self):
-        self.assertEqual(rotina.vencidos(self.db), ["producao", "citacoes", "acervos"])
+        self.assertEqual(rotina.vencidos(self.db),
+                         ["producao", "citacoes", "acervos", "descobrir", "perfis"])
 
     def test_depois_de_rodar_nada_vence_ate_o_intervalo(self):
         _sem_rede(self)
         feitos = rotina.rodar_vencidos(self.db)
-        self.assertEqual([f["status"] for f in feitos], ["ok", "ok", "ok"])
+        self.assertEqual([f["status"] for f in feitos], ["ok", "ok", "ok", "ok", "ok"])
         self.assertEqual(rotina.vencidos(self.db), [])
-        # um dia e um minuto depois, os diarios vencem e o semanal nao
+        # um dia e um minuto depois, os diarios vencem e os semanais nao
         depois = datetime.now() + timedelta(hours=24, minutes=1)
-        self.assertEqual(rotina.vencidos(self.db, depois), ["producao", "citacoes"])
+        self.assertEqual(rotina.vencidos(self.db, depois), ["producao", "citacoes", "descobrir"])
         semana = datetime.now() + timedelta(days=7, minutes=1)
-        self.assertEqual(rotina.vencidos(self.db, semana), ["producao", "citacoes", "acervos"])
+        self.assertEqual(rotina.vencidos(self.db, semana),
+                         ["producao", "citacoes", "acervos", "descobrir", "perfis"])
 
     def test_o_intervalo_conta_da_ultima_rodada_boa_e_nao_da_subida(self):
         """Um computador que reinicia todo dia não pode reimportar tudo a
@@ -139,7 +154,7 @@ class TestCadaPassoGravaOQueFez(BaseDaRotina):
     def test_o_passo_que_falha_vira_registro_e_nao_derruba_os_outros(self):
         _sem_rede(self, falhar="citacoes")
         feitos = rotina.rodar_vencidos(self.db)
-        self.assertEqual([f["status"] for f in feitos], ["ok", "erro", "ok"])
+        self.assertEqual([f["status"] for f in feitos], ["ok", "erro", "ok", "ok", "ok"])
         erro = next(r for r in self.registros() if r["target"] == "citacoes")
         self.assertEqual(erro["status"], "erro")
         self.assertIn("openalex fora do ar", erro["message"])
@@ -257,7 +272,8 @@ class TestARotinaPelaRede(unittest.TestCase):
     def test_quem_le_ve_a_situacao(self):
         status, corpo = self.pedir(self.entrar("mest@udesc.br"), "/api/rotina")
         self.assertEqual(status, 200)
-        self.assertEqual([p["passo"] for p in corpo["passos"]], ["producao", "citacoes", "acervos"])
+        self.assertEqual([p["passo"] for p in corpo["passos"]],
+                         ["producao", "citacoes", "acervos", "descobrir", "perfis"])
 
     def test_so_a_coordenacao_manda_rodar(self):
         status, _ = self.pedir(self.entrar("mest@udesc.br"), "/api/rotina/rodar", {})

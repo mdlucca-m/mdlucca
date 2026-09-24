@@ -236,12 +236,16 @@ function slideOrganograma3D() {
     (filhosDe[e.from] = filhosDe[e.from] || []).push({ to: e.to, kind: e.kind });
   });
 
+  // A mesma ordem de VINCULOS_ICONE, nomeada: e a ordem em que os grupos
+  // aparecem quando um galho vira secao tematica em vez de fileira.
+  const ORDEM_VINCULO = Object.keys(VINCULOS_ICONE);
+
   function cartaoPessoa(p) {
     const [icone, tom] = VINCULOS_ICONE[p.role || "sem_vinculo"] || VINCULOS_ICONE.sem_vinculo;
     const ativo = p.ativo_agora ? "ativo" : "inativo";
     const cartao = el("div", { class: `cartao-pessoa ${ativo}`, "data-tom": tom, "data-id": p.id });
 
-    cartao.appendChild(Icons.badge(icone, tom, 22));
+    cartao.appendChild(Icons.badge(icone, tom, 30));
 
     const statusBolinha = el("div", { class: `status-bolinha ${ativo}` });
     if (p.ativo_agora) statusBolinha.classList.add("pulsante");
@@ -268,21 +272,64 @@ function slideOrganograma3D() {
     return cartao;
   }
 
-  /* Árvore de verdade: raiz(es) do organograma da coordenação, descendo por
-     orientação/coorientação -- nunca coautoria. Quem não tem ninguém abaixo
-     vira folha; quem tem, ganha um ramo com conector visual (ver CSS
-     .ramo-organograma). */
+  /* Um galho pequeno continua árvore, com o conector visual clássico (ver
+     CSS .ramo-organograma) -- é o que deixa visível QUEM orienta QUEM.
+     Um galho grande (a coordenação com doze orientandos, por exemplo) vira
+     seções por vínculo -- doutorando, mestrando, bolsista... -- porque
+     doze cartões numa fileira só é exatamente o que saía da tela: em vez
+     de cortar ou empurrar pra rolagem horizontal, agrupa por tema, que é
+     como a própria equipe se entende. Cinco é o limite: menos que isso, a
+     linha de conexão ainda cabe; mais, quebra em grupo. Quem tem
+     orientando próprio dentro de um grupo (a coorientação de mestrando
+     com bolsista) continua a árvore dali, então a coorientação não
+     desaparece dentro do agrupamento. */
+  const LIMITE_FILEIRA = 5;
+
   function noArvore(id, profundidade) {
     const pessoa = porId[id];
     if (!pessoa) return null;
-    const filhos = (filhosDe[id] || []);
+    const filhos = (filhosDe[id] || []).map(function (f) { return porId[f.to]; }).filter(Boolean);
     const no = el("div", { class: "no-organograma" }, [cartaoPessoa(pessoa)]);
-    if (filhos.length && profundidade < 3) {
+    if (!filhos.length || profundidade >= 3) return no;
+    if (filhos.length > LIMITE_FILEIRA) {
+      no.appendChild(agruparPorVinculo(filhos, profundidade));
+    } else {
       const galhos = el("div", { class: "ramo-organograma" },
-        filhos.map(function (f) { return noArvore(f.to, profundidade + 1); }).filter(Boolean));
+        filhos.map(function (p) { return noArvore(p.id, profundidade + 1); }).filter(Boolean));
       no.appendChild(galhos);
     }
     return no;
+  }
+
+  /* As pessoas de um galho grande (ou os avulsos), em seções por vínculo
+     -- cada uma com ícone, tom e legenda temática, no mesmo formato que
+     "Sem orientador declarado" já usava. */
+  function agruparPorVinculo(pessoas, profundidade) {
+    const porRole = {};
+    pessoas.forEach(function (p) {
+      const r = p.role || "sem_vinculo";
+      (porRole[r] = porRole[r] || []).push(p);
+    });
+    const grupos = ORDEM_VINCULO.filter(function (r) { return (porRole[r] || []).length; })
+      .map(function (r) {
+        const [icone, tom] = VINCULOS_ICONE[r] || VINCULOS_ICONE.sem_vinculo;
+        const gente = porRole[r];
+        return el("div", { class: "grupo-vinculo-organograma", "data-tom": tom }, [
+          el("div", { class: "titulo-grupo" }, [
+            Icons.badge(icone, tom, 20),
+            el("span", { text: (gente[0].role_label || r) + " (" + gente.length + ")" }),
+          ]),
+          el("div", { class: "pessoas-container" }, gente.map(function (p) {
+            // continua a arvore se a pessoa do grupo tambem orienta alguem
+            // (coorientacao), em vez de esconder o galho dela por estar
+            // dentro de um agrupamento
+            return (filhosDe[p.id] || []).length && profundidade + 1 < 3
+              ? noArvore(p.id, profundidade + 1)
+              : el("div", { class: "no-organograma" }, [cartaoPessoa(p)]);
+          })),
+        ]);
+      });
+    return el("div", { class: "grupos-vinculo-organograma" }, grupos);
   }
 
   const raizes = (org.roots || []).map(function (id) { return noArvore(id, 0); }).filter(Boolean);
@@ -302,11 +349,11 @@ function slideOrganograma3D() {
   const avulsos = (org.people || []).filter(function (p) { return !naArvore.has(p.id); });
   if (avulsos.length) {
     container.appendChild(el("div", { class: "avulsos-organograma" }, [
-      el("div", { class: "titulo-grupo" }, [
+      el("div", { class: "titulo-secao-avulsos" }, [
         Icons.badge("pessoas", "azul", 18),
         el("span", { text: "Sem orientador declarado" }),
       ]),
-      el("div", { class: "pessoas-container" }, avulsos.map(cartaoPessoa)),
+      agruparPorVinculo(avulsos, 3),
     ]));
   }
 

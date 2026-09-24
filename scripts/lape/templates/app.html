@@ -137,6 +137,47 @@ button.sair-ponto:hover{border-color:var(--ink-2);background:var(--surface-hover
 table.matriz th{font-weight:650;font-size:12px}
 table.matriz td.celula{text-align:center;font-variant-numeric:tabular-nums}
 
+/* ---- auditoria de identidade: fichas repetidas, divididas e vinculo ---- */
+.identidade-painel{border-color:color-mix(in srgb,var(--accent-strong) 20%,var(--border))}
+.identidade-cabecalho{display:flex;align-items:center;gap:9px;margin-bottom:2px}
+.identidade-cabecalho svg.icon{color:var(--accent)}
+.identidade-cabecalho h2{font-size:16.5px;margin:0}
+.identidade-sub{border-top:1px solid var(--border);padding-top:18px;margin-top:18px}
+.identidade-sub:first-of-type{border-top:none;padding-top:0;margin-top:14px}
+.identidade-sub-titulo{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.identidade-sub-titulo svg.icon{color:var(--ink-2);font-size:15px}
+.identidade-sub-titulo h4{font-size:13px;margin:0}
+.identidade-sub-titulo .contagem{margin-left:auto;font-size:11px;font-weight:700;
+  color:var(--ink-2);background:var(--surface-raised);border:1px solid var(--border);
+  border-radius:999px;padding:2px 9px}
+.identidade-sub-titulo .contagem.tem{color:var(--warning);
+  border-color:color-mix(in srgb,var(--warning) 45%,var(--border))}
+/* Avatar de iniciais: a mesma pessoa tem sempre a mesma cor nas duas telas
+   (aqui e no par de fusão), pela mesma regra de hash do nome -- nao muda
+   a cada renderizacao nem depende de que outras fichas apareceram junto. */
+.pessoa-avatar{display:inline-flex;align-items:center;justify-content:center;
+  width:34px;height:34px;border-radius:50%;flex:none;font-size:12.5px;font-weight:750;
+  color:var(--cor);background:color-mix(in srgb,var(--cor) 16%,var(--surface));
+  border:1px solid color-mix(in srgb,var(--cor) 38%,var(--border))}
+.pessoa-avatar.pequeno{width:26px;height:26px;font-size:10.5px}
+.par-identidade{display:flex;align-items:center;gap:14px;padding:14px 16px;
+  margin-bottom:10px;flex-wrap:wrap}
+.par-identidade .quem{display:flex;align-items:center;gap:10px;min-width:0}
+.par-identidade .quem b{font-size:13.5px;display:block;line-height:1.3}
+.par-identidade .quem small{display:block;color:var(--ink-2);font-size:11.5px;margin-top:1px}
+.par-seta{display:flex;flex-direction:column;align-items:center;gap:2px;flex:none;
+  color:var(--ink-muted)}
+.par-seta svg.icon{font-size:16px}
+.par-seta small{font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;
+  white-space:nowrap}
+.par-identidade .miolo{flex:1 1 auto;min-width:220px}
+.par-identidade .acao{flex:none;display:flex;flex-direction:column;align-items:flex-end;
+  gap:6px}
+.pessoa-linha{display:flex;align-items:center;gap:10px;padding:11px 14px;margin-bottom:8px}
+.pessoa-linha .miolo{flex:1 1 auto;min-width:0}
+.pessoa-linha .miolo b{font-size:13.5px}
+.pessoa-linha .miolo small{display:block;color:var(--ink-2);font-size:11.5px;margin-top:2px}
+
 /* ---- globo ---- */
 .globo-palco{display:flex;justify-content:center}
 .globo-palco svg{max-width:min(100%,480px);height:auto}
@@ -699,6 +740,21 @@ function kpi(label, value){
     h("div", {class: "label", text: label}),
     h("div", {class: "value", text: value === null || value === undefined ? "—" : value}),
   ]);
+}
+
+/* Avatar de iniciais para uma pessoa: mesma cor sempre para o mesmo nome
+   (hash do texto, e não a ordem de chegada), para que a ficha "Andrade"
+   apareça com a mesma cor no par de fusão e na lista de vínculo. */
+function avatarPessoa(nome, pequeno){
+  const texto = (nome || "?").trim();
+  const partes = texto.split(/\s+/).filter(Boolean);
+  const iniciais = ((partes[0] || "?")[0] + (partes.length > 1 ? partes[partes.length - 1][0] : ""))
+    .toUpperCase();
+  let hash = 0;
+  for (let i = 0; i < texto.length; i++) hash = (hash * 31 + texto.charCodeAt(i)) >>> 0;
+  const cor = "var(--series-" + ((hash % 8) + 1) + ")";
+  return h("span", {class: "pessoa-avatar" + (pequeno ? " pequeno" : ""),
+    style: "--cor:" + cor, text: iniciais});
 }
 
 function crudView(config){
@@ -1759,32 +1815,33 @@ VIEWS.admin = {
     VIEW.appendChild(rotBox);
     await desenharRotina(rotBox);
 
-    /* Fichas repetidas da mesma pessoa. A planilha lista os autores em
-       formato livre: num artigo saiu "Alexandro", em dezoito, "Andrade",
-       e viraram duas fichas -- a chave de autor é montada sobre o
-       sobrenome, e "alexandro" não encontra "andrade_a" de jeito nenhum.
-       O sistema PROPÕE e a coordenação confirma, uma de cada vez: um
-       laboratório de vinte pessoas tem dois Henriques com facilidade, e
-       juntar dois por engano apaga justamente a informação de qual artigo
-       era de quem. */
-    const dupBox = h("div", {class: "card sec"});
-    VIEW.appendChild(dupBox);
+    /* As três telas de identidade moravam em cards soltos, cada uma com o
+       próprio título solto no meio da rolagem — dava para não perceber que
+       são a mesma auditoria vista de três ângulos: ficha repetida (duas
+       fichas, uma pessoa), ficha dividida (uma ficha, duas pessoas — os
+       três Vieiras) e vínculo (quem é do LAPE e quem só assinou junto).
+       Agora moram num card só, com cabeçalho comum. */
+    const identBox = h("div", {class: "card sec identidade-painel"});
+    identBox.appendChild(h("div", {class: "identidade-cabecalho"}, [
+      Icons.get("espelho", 20), h("h2", {text: "Auditoria de identidade"}),
+    ]));
+    identBox.appendChild(h("p", {class: "hint", style: "margin:2px 0 4px",
+      text: "As três formas de uma ficha estar errada: repetida (a mesma pessoa em "
+          + "duas fichas), dividida (duas pessoas numa ficha só) e mal classificada "
+          + "(coautor de fora contado como equipe, ou o contrário). O sistema "
+          + "propõe com a evidência ao lado — quem confirma é sempre a coordenação."}));
+    VIEW.appendChild(identBox);
+
+    const dupBox = h("div", {class: "identidade-sub"});
+    identBox.appendChild(dupBox);
     await desenharDuplicatas(dupBox);
 
-    /* O contrário da ficha repetida: UMA ficha com DUAS pessoas. Aconteceu
-       com três alunos de sobrenome Vieira -- quem se cadastrava caía na
-       ficha do outro e o ponto saía com o nome errado. Aqui o acesso vai
-       para uma ficha nova, com o nome certo; os artigos ficam. */
-    const sepBox = h("div", {class: "card sec"});
-    VIEW.appendChild(sepBox);
+    const sepBox = h("div", {class: "identidade-sub"});
+    identBox.appendChild(sepBox);
     await desenharSepararConta(sepBox);
 
-    /* Quem é do laboratório e quem assinou um artigo com o laboratório.
-       Eram a mesma coisa para o sistema: qualquer nome na lista de autores
-       virava ficha de integrante, e o painel contava como equipe o
-       orientador de fora e o coautor de outra universidade. */
-    const vincBox = h("div", {class: "card sec"});
-    VIEW.appendChild(vincBox);
+    const vincBox = h("div", {class: "identidade-sub"});
+    identBox.appendChild(vincBox);
     await desenharVinculo(vincBox);
 
     /* Artigo sem linha declarada some de toda leitura que a coordenação
@@ -1937,7 +1994,9 @@ async function desenharRotina(box){
 
 async function desenharSepararConta(caixa){
   caixa.textContent = "";
-  caixa.appendChild(h("h3", {text: "Uma ficha com duas pessoas"}));
+  caixa.appendChild(h("div", {class: "identidade-sub-titulo"}, [
+    Icons.get("balanca", 15), h("h4", {text: "Ficha dividida — uma ficha com duas pessoas"}),
+  ]));
   caixa.appendChild(h("p", {class: "hint", style: "margin:4px 0 12px",
     text: "Quando alguém entrou e o nome que aparece é o de outra pessoa (aconteceu com "
         + "os Vieiras), o acesso caiu na ficha errada. Escolha o login, escreva o nome certo, "
@@ -1949,6 +2008,13 @@ async function desenharSepararConta(caixa){
   if (!contas.length){ caixa.appendChild(h("p", {class: "hint", text: "Ninguém tem acesso ainda."})); return; }
   const sel = h("select", {}, contas.map(function (c){
     return h("option", {value: c.login, text: (c.full_name || "?") + " — " + c.login}); }));
+  let avatar = avatarPessoa((contas[0] || {}).full_name, true);
+  const porNome = new Map(contas.map(function (c){ return [c.login, c.full_name]; }));
+  sel.addEventListener("change", function (){
+    const novo = avatarPessoa(porNome.get(sel.value), true);
+    avatar.replaceWith(novo);
+    avatar = novo;
+  });
   const nome = h("input", {type: "text", placeholder: "Nome certo da pessoa", style: "min-width:16rem"});
   const botao = h("button", {class: "primary", text: "Separar", onclick: async function (){
     if (!nome.value.trim()){ toast("Escreva o nome certo", "erro"); return; }
@@ -1962,12 +2028,15 @@ async function desenharSepararConta(caixa){
     } catch (e){ toast(e.message, "erro"); } finally { botao.disabled = false; }
   }});
   caixa.appendChild(h("div", {class: "actions", style: "display:flex;gap:8px;flex-wrap:wrap;align-items:center"},
-    [sel, nome, botao]));
+    [avatar, sel, Icons.get("proximo", 14), nome, botao]));
 }
 
 async function desenharDuplicatas(caixa){
   caixa.textContent = "";
-  caixa.appendChild(h("h3", {text: "Fichas repetidas"}));
+  const titulo = h("div", {class: "identidade-sub-titulo"}, [
+    Icons.get("espelho", 15), h("h4", {text: "Fichas repetidas — a mesma pessoa em duas fichas"}),
+  ]);
+  caixa.appendChild(titulo);
   let dados;
   try {
     dados = await api("/api/equipe/duplicatas");
@@ -1976,6 +2045,8 @@ async function desenharDuplicatas(caixa){
     return;
   }
   const lista = dados.candidatos || [];
+  titulo.appendChild(h("span", {class: "contagem" + (lista.length ? " tem" : ""),
+    text: lista.length ? lista.length + " par(es)" : "em dia"}));
   if (!lista.length){
     caixa.appendChild(h("p", {class: "hint",
       text: "Nenhuma ficha parece repetida. A busca procura sempre a mesma forma: "
@@ -1989,7 +2060,7 @@ async function desenharDuplicatas(caixa){
         + "por engano apaga de qual delas era cada artigo."}));
 
   lista.forEach(function (c){
-    const estado = h("p", {class: "hint", style: "margin:6px 0 0", text: c.porque});
+    const estado = h("p", {class: "hint", style: "margin:2px 0 0", text: c.porque});
     const botao = h("button", {class: "primary",
       text: "Juntar em “" + c.manter.nome + "”",
       onclick: async function (){
@@ -2014,12 +2085,16 @@ async function desenharDuplicatas(caixa){
           toast(e.message, "erro");
         } finally { botao.disabled = false; }
       }});
-    caixa.appendChild(h("div", {class: "sec"}, [
-      h("p", {style: "margin:0", html:
-        "<b>" + c.sumir.nome + "</b> (" + c.sumir.artigos + " artigo(s)) parece ser "
-        + "<b>" + c.manter.nome + "</b> (" + c.manter.artigos + " artigo(s))"}),
-      estado,
-      h("div", {class: "actions", style: "margin-top:10px"}, [botao]),
+    caixa.appendChild(h("div", {class: "card par-identidade"}, [
+      h("div", {class: "quem"}, [avatarPessoa(c.sumir.nome), h("div", {}, [
+        h("b", {text: c.sumir.nome}), h("small", {text: c.sumir.artigos + " artigo(s)"}),
+      ])]),
+      h("div", {class: "par-seta"}, [Icons.get("proximo", 16), h("small", {text: "parece ser"})]),
+      h("div", {class: "quem"}, [avatarPessoa(c.manter.nome), h("div", {}, [
+        h("b", {text: c.manter.nome}), h("small", {text: c.manter.artigos + " artigo(s)"}),
+      ])]),
+      h("div", {class: "miolo"}, [estado]),
+      h("div", {class: "acao"}, [botao]),
     ]));
   });
 }
@@ -2137,7 +2212,10 @@ async function desenharLinhasPorTitulo(caixa){
 
 async function desenharVinculo(caixa){
   caixa.textContent = "";
-  caixa.appendChild(h("h3", {text: "Pesquisadores do LAPE e coautores"}));
+  const titulo = h("div", {class: "identidade-sub-titulo"}, [
+    Icons.get("etiqueta", 15), h("h4", {text: "Vínculo — pesquisadores do LAPE e coautores"}),
+  ]);
+  caixa.appendChild(titulo);
   let dados;
   try {
     dados = await api("/api/equipe/vinculo");
@@ -2146,6 +2224,9 @@ async function desenharVinculo(caixa){
     return;
   }
   const c = dados.contagem || {};
+  const pendentes = (c.a_confirmar || 0) + (c.soltas || 0);
+  titulo.appendChild(h("span", {class: "contagem" + (pendentes ? " tem" : ""),
+    text: pendentes ? pendentes + " pendente(s)" : "em dia"}));
   caixa.appendChild(h("div", {class: "grid g4 sec"}, [
     kpi("Pesquisadores do LAPE", c.pesquisadores),
     kpi("Coautores", c.coautores),
@@ -2276,16 +2357,19 @@ async function desenharVinculo(caixa){
       }});
       return botao;
     };
-    caixa.appendChild(h("div", {class: "sec"}, [
-      h("p", {style: "margin:0", html:
-        "<b>" + p.full_name + "</b> — " + p.n_artigos + " artigo(s), nenhum outro vínculo"}),
-      estado,
+    caixa.appendChild(h("div", {class: "card pessoa-linha"}, [
+      avatarPessoa(p.full_name),
+      h("div", {class: "miolo"}, [
+        h("b", {text: p.full_name}),
+        h("small", {text: p.n_artigos + " artigo(s), nenhum outro vínculo"}),
+        estado,
+      ]),
       /* Os dois botões lado a lado, e não um só. Um botão "marcar como
          coautor" sozinho faria a tela parecer ter uma resposta certa; a
          ficha vazia da professora tem exatamente esta cara, e confirmá-la
          como integrante é uma decisão tão válida quanto a outra -- e tira
          a pessoa da lista, que é o que encerra a revisão. */
-      h("div", {class: "actions", style: "margin-top:10px"}, [
+      h("div", {class: "actions", style: "margin:0;flex:none"}, [
         acao(true, "É coautor", "primary"),
         acao(false, "É do LAPE", ""),
       ]),

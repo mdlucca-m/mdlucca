@@ -243,6 +243,21 @@ MEMBER_PROFILE_FIELDS = ("short_name", "lattes_id", "orcid", "email", "role", "d
                          "phone", "bio", "photo_url", "openalex_id", "scopus_author_id",
                          "thesis_title", "topics", "scholarship")
 
+# De onde vem cada coluna, para `_atualizar` saber se um valor vazio foi a
+# tela apagando o campo ou uma coluna que nem veio no pedido. A mesma regra
+# que "Editar artigo" ja usa -- ver `ORIGEM_DO_CAMPO` e `gravar_registro`.
+ORIGEM_DO_MEMBRO: dict[str, str] = {
+    "short_name": "short_name", "lattes_id": "lattes_id", "orcid": "orcid",
+    "email": "email", "role": "role", "degree": "degree", "phone": "phone",
+    "bio": "bio", "photo_url": "photo_url", "openalex_id": "openalex_id",
+    "scopus_author_id": "scopus_author_id", "research_line_id": "research_line",
+    "institution_id": "institution", "advisor_id": "advisor", "co_advisor_id": "co_advisor",
+    "thesis_title": "thesis_title", "thesis_kind": "thesis_kind",
+    "thesis_status": "thesis_status", "thesis_due_on": "thesis_due_on",
+    "topics": "topics", "scholarship": "scholarship",
+    "scholarship_until": "scholarship_until",
+}
+
 # Papel dentro do projeto, deduzido do vinculo com o laboratorio. Serve so
 # de ponto de partida: a coordenacao pode corrigir depois, e a correcao nao
 # e desfeita, porque a ligacao automatica nunca sobrescreve o que ja existe.
@@ -337,16 +352,42 @@ def ingest_members(db: Database, rows: list[dict]) -> int:
     for row in rows:
         name = clean_text(row.get("full_name"))
         existing_id = to_int(row.get("id"))
-        if existing_id and not name:
-            # edicao do proprio cadastro pela area do integrante
-            db.update_row("members", existing_id, {
+        if existing_id:
+            # Edicao do proprio cadastro pela area do integrante: SEMPRE por id,
+            # nunca por nome. "Meu perfil" manda full_name em toda gravacao (e
+            # campo obrigatorio do formulario), entao esperar `not name` aqui
+            # nunca disparava -- a gravacao caia no ramo de baixo, que resolve
+            # por name_key. Bastava a pessoa digitar o nome com uma grafia
+            # levemente diferente da que ja estava gravada (um acento, um nome
+            # do meio a mais) para `db.member_id()` nao achar a ficha e criar
+            # uma SEGUNDA, silenciosamente -- a mesma pessoa com duas fichas e
+            # dois logins.
+            #
+            # `gravar_registro`, e nao `db.update_row`: o update generico trata
+            # None como "nao mexa", e `clean_text("")` tambem vira None -- entao
+            # limpar um campo na tela (Formacao, ID Lattes, bio...) nunca
+            # gravava a limpeza, e quem apagou jurava que a tela nao salvava.
+            # `gravar_registro`/`_atualizar` distinguem "a coluna nem veio no
+            # pedido" (nao mexe) de "veio vazia" (apaga) -- a mesma regra que
+            # "Editar artigo" ja usa.
+            dados = {
                 **{field: clean_text(row.get(field)) for field in MEMBER_PROFILE_FIELDS},
                 "role": map_value(row.get("role"), ROLE_MAP) or clean_text(row.get("role")),
                 "research_line_id": db.research_line_id(row.get("research_line")),
                 "institution_id": db.institution_id(row.get("institution")),
                 **_campos_de_formacao(db, row),
-            })
+            }
+            if name:
+                dados["full_name"] = name
+            gravar_registro(db, "members", dados, ("name_key",),
+                            {**row, "registro_id": existing_id}, origem=ORIGEM_DO_MEMBRO)
             db.conn.commit()
+            if "aliases" in row:
+                for alias in split_authors(row.get("aliases")):
+                    duplicate = db.member_id(alias, create=False)
+                    if duplicate and duplicate != existing_id:
+                        db.merge_members(duplicate, existing_id)
+                db.set_aliases(existing_id, row.get("aliases"))
             ligar_ao_orientador(db, existing_id)
             written += 1
             continue
@@ -558,7 +599,8 @@ SEMPRE_NA_EDICAO = ("title", "title_key", "status", "status_locked", "year_publi
 
 
 ROTULO_DA_TABELA = {"articles": "artigo", "projects": "projeto",
-                    "research_lines": "linha de pesquisa", "events": "atividade"}
+                    "research_lines": "linha de pesquisa", "events": "atividade",
+                    "members": "integrante"}
 
 
 def _alvo_da_edicao(db: Database, tabela: str, row: dict) -> int | None:

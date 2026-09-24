@@ -1217,6 +1217,116 @@ def route_vinculo_marcar(ctx: "Context") -> Any:
     return resultado
 
 
+def route_analytics_avancado(ctx: "Context") -> Any:
+    """Os dados da página de analytics avançado -- só o que ela usa.
+
+    Tudo calculado agora, do banco: nenhum número fixo no meio do
+    caminho. `citacoes` de um artigo é o maior entre WoS, Scopus e
+    OpenAlex -- a mesma regra do /panorama --, e não a soma dos três,
+    que contaria a mesma citação em cada base que a indexa.
+    """
+    from datetime import date
+
+    from . import metas as _metas
+
+    auth.require(ctx.user, "leitura")
+    db = ctx.db
+    ano = date.today().year
+
+    artigos = db.dicts(
+        "SELECT id, internal_code, title, status, year_published, published_on,"
+        "       journal, doi, research_line_id, research_line, wos_citations,"
+        "       scopus_citations, openalex_citations, authors"
+        "  FROM v_articles_full")
+    for a in artigos:
+        a["citacoes"] = max(a.pop("wos_citations") or 0, a.pop("scopus_citations") or 0,
+                            a.pop("openalex_citations") or 0)
+        a["ano"] = a["year_published"] or (
+            int(str(a["published_on"])[:4]) if a["published_on"] else None)
+
+    por_status: dict[str, int] = {}
+    for a in artigos:
+        por_status[a["status"]] = por_status.get(a["status"], 0) + 1
+
+    publicados = [a for a in artigos if a["status"] == "publicado"]
+    publicados_no_ano = [a for a in publicados if a["ano"] == ano]
+    citacoes_total = sum(a["citacoes"] for a in artigos)
+    citacoes_por_artigo = round(citacoes_total / len(publicados), 1) if publicados else None
+
+    meta_publicacoes = None
+    for item in _metas.progresso(db, ano).get("itens", []):
+        if item.get("codigo") == "publicacoes":
+            meta_publicacoes = item
+            break
+
+    pessoas_lape = int(db.scalar(
+        "SELECT COUNT(*) FROM members WHERE COALESCE(is_external, 0) = 0"
+        "   AND COALESCE(active, 1) = 1") or 0)
+    pessoas_coautores = int(db.scalar("SELECT COUNT(*) FROM members WHERE is_external = 1") or 0)
+    artigos_por_membro_lape = db.dicts(
+        "SELECT aa.member_id, COUNT(DISTINCT aa.article_id) AS n"
+        "  FROM article_authors aa JOIN members m ON m.id = aa.member_id"
+        " WHERE COALESCE(m.is_external, 0) = 0 AND COALESCE(m.active, 1) = 1"
+        " GROUP BY aa.member_id")
+    eficiencia = (round(sum(r["n"] for r in artigos_por_membro_lape) / pessoas_lape, 1)
+                 if pessoas_lape else None)
+
+    # Historico: publicados no ano e citacoes acumuladas ATE aquele ano --
+    # so dos artigos que ja tinham ano quando o dado foi lido, nao uma
+    # projecao.
+    anos_com_dado = [a["ano"] for a in publicados if a["ano"]]
+    inicio = min(anos_com_dado) if anos_com_dado else ano - 5
+    inicio = min(inicio, ano - 5)
+    historico = []
+    acumulado = 0
+    for y in range(inicio, ano + 1):
+        do_ano = [a for a in publicados if a["ano"] == y]
+        acumulado += sum(a["citacoes"] for a in do_ano)
+        historico.append({"ano": y, "publicados": len(do_ano), "citacoes_acumuladas": acumulado})
+
+    top_citados = sorted(publicados, key=lambda a: a["citacoes"], reverse=True)[:5]
+
+    linhas = db.dicts("SELECT id, name FROM research_lines ORDER BY name")
+    integrantes = db.dicts(
+        "SELECT id, full_name FROM members WHERE COALESCE(is_external, 0) = 0"
+        "   AND COALESCE(active, 1) = 1 ORDER BY full_name")
+    membros_por_artigo: dict[int, list[int]] = {}
+    for row in db.dicts("SELECT article_id, member_id FROM article_authors"):
+        membros_por_artigo.setdefault(row["article_id"], []).append(row["member_id"])
+    for a in artigos:
+        a["integrantes_ids"] = membros_por_artigo.get(a["id"], [])
+
+    return {
+        "gerado_em": datetime.now().isoformat(timespec="seconds"),
+        "ano": ano,
+        "kpis": {
+            "artigos_total": len(artigos),
+            "por_status": por_status,
+            "publicados_no_ano": len(publicados_no_ano),
+            "meta_publicacoes_no_ano": meta_publicacoes,
+            "citacoes_total": citacoes_total,
+            "citacoes_por_artigo": citacoes_por_artigo,
+            "pessoas_total": pessoas_lape + pessoas_coautores,
+            "pessoas_lape": pessoas_lape,
+            "pessoas_coautores": pessoas_coautores,
+            "eficiencia_artigos_por_integrante": eficiencia,
+        },
+        "historico": historico,
+        "top_citados": [
+            {"id": a["id"], "titulo": a["title"], "ano": a["ano"], "citacoes": a["citacoes"],
+             "periodico": a["journal"], "doi": a["doi"], "autores": a["authors"]}
+            for a in top_citados],
+        "linhas": linhas,
+        "integrantes": integrantes,
+        "artigos": [
+            {"id": a["id"], "codigo": a["internal_code"], "titulo": a["title"],
+             "status": a["status"], "ano": a["ano"], "linha_id": a["research_line_id"],
+             "linha": a["research_line"], "citacoes": a["citacoes"], "autores": a["authors"],
+             "integrantes_ids": a["integrantes_ids"]}
+            for a in artigos],
+    }
+
+
 def route_metas(ctx: "Context") -> Any:
     """Metas do ano, progresso, ritmo e projecao."""
     auth.require(ctx.user, "integrante")
@@ -2123,6 +2233,56 @@ def route_ponto_equipe(ctx: "Context") -> Any:
     }
 
 
+def route_ponto_analytics(ctx: "Context") -> Any:
+    """Esforco (horas) ao lado do resultado (producao), pessoa a pessoa,
+    e o tempo somado por atividade anotada -- para a aba "Gestao de
+    tempo" do analytics avancado.
+
+    Hora de pessoa nomeada ao lado da producao dela e dado sensivel de
+    equipe -- por isso so a coordenacao, a mesma trava de /api/ponto/equipe.
+    Nao e produtividade: e so o esforco ao lado do resultado, para quem
+    olha tirar a propria conclusao -- a tela mostra os dois e nao inventa
+    uma formula que junte os dois num numero so.
+    """
+    from datetime import date, timedelta
+
+    auth.require(ctx.user, "coordenacao")
+    db = ctx.db
+    dias = to_int((ctx.query.get("dias") or ["30"])[0]) or 30
+
+    horas = ponto.por_pessoa(db, dias=dias)
+    ativos = {r["member_id"]: r["n"] for r in db.dicts(
+        "SELECT aa.member_id, COUNT(DISTINCT aa.article_id) AS n"
+        "  FROM article_authors aa JOIN articles a ON a.id = aa.article_id"
+        " WHERE a.status IN ('em_producao', 'submetido')"
+        " GROUP BY aa.member_id")}
+    dispersao = [{"quem": p["quem"], "horas": p["horas"],
+                  "artigos_ativos": ativos.get(p["member_id"], 0)} for p in horas]
+
+    inicio = (date.today() - timedelta(days=dias - 1)).isoformat()
+    linhas = db.dicts(
+        "SELECT atividade, entrada, saida FROM ponto WHERE entrada >= ?", (inicio,))
+    por_atividade: dict[str, float] = {}
+    for linha in linhas:
+        h = ponto.duracao_horas(linha["entrada"], linha["saida"])
+        if not h:
+            continue
+        rotulo = clean_text(linha["atividade"]) or "sem anotação"
+        por_atividade[rotulo] = por_atividade.get(rotulo, 0) + h
+    # As oito maiores, de verdade -- o resto some numa faixa "outras" para
+    # a legenda nao virar uma lista de trinta anotacoes de meia hora.
+    ordenadas = sorted(por_atividade.items(), key=lambda kv: -kv[1])
+    principais, resto = ordenadas[:8], ordenadas[8:]
+    if resto:
+        principais.append(("outras", sum(v for _, v in resto)))
+
+    return {
+        "dias": dias,
+        "dispersao": dispersao,
+        "por_atividade": [{"atividade": a, "horas": round(h, 1)} for a, h in principais],
+    }
+
+
 def route_producao(ctx: "Context") -> Any:
     """Quem esta na lista para trazer das bases, e o que ja veio de la."""
     auth.require(ctx.user, "leitura")
@@ -2533,6 +2693,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/ponto/presente/?$", route_ponto_presente, "integrante"),
     ("POST", r"^/api/ponto/anotar/?$", route_ponto_anotar, "integrante"),
     ("GET", r"^/api/ponto/equipe/?$", route_ponto_equipe, "coordenacao"),
+    ("GET", r"^/api/ponto/analytics/?$", route_ponto_analytics, "coordenacao"),
     ("GET", r"^/api/producao/?$", route_producao, "leitura"),
     ("POST", r"^/api/producao/importar/?$", route_producao_importar, "coordenacao"),
     ("POST", r"^/api/equipe/professores/?$", route_professores, "coordenacao"),
@@ -2581,6 +2742,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/equipe/vinculo/?$", route_vinculo_marcar, "coordenacao"),
     ("POST", r"^/api/equipe/vinculo/lote/?$", route_vinculo_lote, "coordenacao"),
     ("GET", r"^/api/metas/?$", route_metas, "integrante"),
+    ("GET", r"^/api/analytics/?$", route_analytics_avancado, "leitura"),
     ("POST", r"^/api/metas/?$", route_metas_declarar, "coordenacao"),
     ("GET", r"^/api/equipe/indice-h/?$", route_indice_h, "coordenacao"),
     ("POST", r"^/api/equipe/indice-h/?$", route_indice_h_declarar, "coordenacao"),
@@ -2815,6 +2977,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._serve_page("triagem.html")
         if method == "GET" and path in ("/panorama", "/analitico"):
             return self._serve_page("panorama.html")
+        if method == "GET" and path in ("/analytics", "/avancado"):
+            return self._serve_page("analytics.html")
         if method == "GET" and path in ("/aovivo", "/ao-vivo", "/vivo"):
             return self._serve_page("aovivo.html")
         if method == "GET" and path.startswith("/convite"):
@@ -2989,6 +3153,12 @@ class Handler(BaseHTTPRequestHandler):
         if "__PANORAMA_JS__" in html:
             html = html.replace("__PANORAMA_JS__",
                                 (TEMPLATES / "panorama.js").read_text(encoding="utf-8"))
+        if "__ANALYTICS_TAILWIND_CSS__" in html:
+            html = html.replace("__ANALYTICS_TAILWIND_CSS__",
+                                (TEMPLATES / "analytics-tailwind.css").read_text(encoding="utf-8"))
+        if "__ANALYTICS_CHART_JS__" in html:
+            html = html.replace("__ANALYTICS_CHART_JS__",
+                                (TEMPLATES / "analytics-chart.js").read_text(encoding="utf-8"))
         if "__AOVIVO_JS__" in html:
             html = html.replace("__AOVIVO_JS__",
                                 (TEMPLATES / "aovivo.js").read_text(encoding="utf-8"))

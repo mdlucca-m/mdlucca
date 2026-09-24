@@ -639,6 +639,50 @@ TEMAS_AUTODETERMINACAO: tuple[tuple[str, tuple[str, ...]], ...] = (
       "relative autonomy index")),
 )
 
+# O terceiro acervo do handebol: desempenho, e nao o que move quem joga.
+# Analise de jogo, exigencia fisica e tecnico-tatica -- o vocabulario dos
+# outros dois (motivacao, autodeterminacao) fica de fora de proposito, do
+# mesmo jeito que "performance" sozinho la ficaria de fora daqui.
+DESEMPENHO_HANDEBOL_TERMOS = (
+    "performance", "sport performance", "match performance", "match analysis",
+    "game analysis", "notational analysis", "time-motion analysis",
+    "technical performance", "tactical performance", "technical-tactical",
+    "physical performance", "physical fitness", "match demands",
+    "external load", "internal load", "training load", "throwing velocity",
+    "throwing speed", "change of direction", "repeated sprint",
+    "talent identification", "talent development",
+)
+
+# EM PORTUGUES E ESPANHOL, para a BVS -- e so para ela.
+DESEMPENHO_HANDEBOL_REGIONAIS = (
+    "desempenho", "desempenho esportivo", "rendimiento", "rendimiento deportivo",
+    "análise de jogo", "analisis de juego", "carga de treino", "carga de entrenamiento",
+    "velocidade de arremesso", "velocidad de lanzamiento",
+)
+
+# Os temas em que o acervo se divide. AO CONTRARIO dos outros acervos desta
+# lista, estes nao vem com contagem medida ao lado -- nao rodei a busca de
+# verdade contra a PubMed para escrever um numero aqui. Sao uma proposta,
+# pelo vocabulario que a literatura de desempenho no handebol usa; a
+# primeira atualizacao do acervo mostra o tamanho real de cada um, e um
+# segmento que voltar vazio deve ser revisto ou fundido a outro pela
+# coordenacao -- nao apagado sem olhar, porque pode so precisar de mais
+# termo.
+TEMAS_DESEMPENHO_HANDEBOL: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Análise de jogo e desempenho técnico-tático",
+     ("match analysis", "game analysis", "notational analysis", "time-motion analysis",
+      "technical performance", "tactical performance", "technical-tactical")),
+    ("Exigência física e carga de treino",
+     ("physical performance", "physical fitness", "match demands", "external load",
+      "internal load", "training load", "throwing velocity", "throwing speed",
+      "change of direction", "repeated sprint")),
+    ("Formação e identificação de talentos",
+     ("talent identification", "talent development", "youth", "young players",
+      "junior", "cadet", "relative age effect")),
+    ("Lesão e retorno ao jogo",
+     ("injury", "injuries", "return to play", "return to sport", "musculoskeletal")),
+)
+
 # ======================================================================
 # Os acervos que faltavam: um por linha de pesquisa
 # ======================================================================
@@ -1115,6 +1159,37 @@ BIBLIOTECAS: tuple[dict[str, Any], ...] = (
         # para esporte em geral. Medido junto com o acervo maior.
         "mesh": (),
         "segmentos": TEMAS_AUTODETERMINACAO,
+        "manuais": BASES_MANUAIS,
+    },
+    {
+        "code": "desempenho_handebol",
+        "title": "Desempenho esportivo no handebol",
+        "linha": "psicologia_do_esporte",
+        "eixo": "tema",
+        "descricao":
+            "O terceiro recorte do handebol, ao lado de motivação e autodeterminação: "
+            "aqui o construto é o desempenho em si -- análise de jogo, exigência física "
+            "e técnico-tática, e o que treinador e preparação física medem em quadra "
+            "-- e não o que move quem joga. Compartilha a população (handebol) com os "
+            "outros dois acervos e não se sobrepõe a eles: não entra vocabulário de "
+            "motivação, autodeterminação ou necessidades psicológicas aqui, do mesmo "
+            "jeito que motivação não entra em desempenho lá. Também não é o mesmo "
+            "recorte de \"Ansiedade competitiva no esporte\", que segmenta POR "
+            "MODALIDADE e mede o efeito da ansiedade sobre o desempenho -- aqui o "
+            "desempenho é o assunto, não o desfecho de outra coisa.\n\n"
+            "Contagem ainda não medida: a estratégia está pronta, mas o número real "
+            "-- geral e por tema -- só aparece no acervo depois da primeira "
+            "atualização, e é ele que vale. Os quatro temas abaixo são uma proposta "
+            "pelo vocabulário da área, não uma medição; um que voltar vazio precisa "
+            "de mais termo ou de fundir com outro, e quem decide isso é a "
+            "coordenação, olhando o resultado real.",
+        "construto": DESEMPENHO_HANDEBOL_TERMOS,
+        "populacao": HANDEBOL_TERMOS,
+        "regionais": DESEMPENHO_HANDEBOL_REGIONAIS,
+        # Mesma razao dos outros dois acervos de handebol: "Handball"[MeSH
+        # Terms] devolve zero na PubMed, o descritor nao existe.
+        "mesh": (),
+        "segmentos": TEMAS_DESEMPENHO_HANDEBOL,
         "manuais": BASES_MANUAIS,
     },
     {

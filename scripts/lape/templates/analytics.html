@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LAPE — Analytics avançado</title>
+<!-- Tailwind e Chart.js empacotados aqui dentro (build proprio, so as
+     classes que esta pagina usa) -- nao de CDN. Rede de instituicao
+     costuma bloquear dominio externo por politica, e essa foi
+     exatamente a falha que apareceu ao testar: cdn.tailwindcss.com e
+     cdn.jsdelivr.net negados. Empacotado, a pagina abre sem depender
+     de nenhuma rede alheia -- e de brinde fica mais rapida. -->
+<style>__ANALYTICS_TAILWIND_CSS__</style>
+<script>__ANALYTICS_CHART_JS__</script>
+<style>
+  :root{
+    --blue:#2a78d6; --orange:#eb6834; --green:#1baf7a;
+    --blue-wash:#eaf2fc; --orange-wash:#fdece4; --green-wash:#e7f8f1;
+  }
+  *{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Inter,Arial,sans-serif}
+  body{background:#f6f8fb}
+  ::-webkit-scrollbar{height:8px;width:8px}
+  ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px}
+  .card{background:#fff;border:1px solid #e6eaf0;border-radius:16px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+  .kpi-num{font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .chip{transition:all .15s ease}
+  .chip.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .progress-track{background:#eef1f6;border-radius:99px;overflow:hidden}
+  .progress-fill{background:linear-gradient(90deg,var(--blue),var(--green));border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+  .fade-in{animation:fadeIn .4s ease both}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  table thead th{position:sticky;top:0;background:#fff;z-index:1}
+  tbody tr:hover{background:#f8fafc}
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:700}
+  .hidden{display:none}
+  .tab-btn{background:#fff;border-color:#e6eaf0;color:#64748b}
+  .tab-btn:hover{border-color:#cbd5e1;color:#0f172a}
+  .tab-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+  .skeleton{background:linear-gradient(90deg,#eef1f6 25%,#e4e9f0 37%,#eef1f6 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite}
+  @keyframes shimmer{0%{background-position:100% 50%}100%{background-position:0 50%}}
+</style>
+</head>
+<body class="text-slate-800">
+<div id="app" class="max-w-[1400px] mx-auto px-4 sm:px-6 py-6">
+
+  <!-- cabeçalho -->
+  <header class="flex flex-wrap items-center justify-between gap-3 mb-6">
+    <div>
+      <a href="/" class="text-xs font-semibold text-slate-400 hover:text-[var(--blue)] transition">← Voltar ao painel</a>
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1">Analytics avançado</h1>
+      <p class="text-sm text-slate-500 mt-0.5">Produção, citações, equipe e desempenho do laboratório — calculado do banco, agora.</p>
+    </div>
+    <div id="gerado-em" class="text-xs text-slate-400 font-medium"></div>
+  </header>
+
+  <!-- seletor de visão -->
+  <div class="flex gap-2 mb-6">
+    <button id="tab-producao" class="tab-btn text-sm font-bold px-4 py-2 rounded-lg border transition">Produção científica</button>
+    <button id="tab-tempo" class="tab-btn text-sm font-bold px-4 py-2 rounded-lg border transition">Gestão de tempo</button>
+  </div>
+
+  <div id="view-producao">
+  <!-- filtros -->
+  <div class="card p-4 mb-6 flex flex-wrap items-center gap-3">
+    <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M6 12h12M10 20h4"/></svg>
+    <select id="f-ano" class="text-sm font-medium border border-slate-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--blue)]/30"><option value="">Todos os anos</option></select>
+    <select id="f-linha" class="text-sm font-medium border border-slate-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--blue)]/30"><option value="">Todas as linhas</option></select>
+    <select id="f-situacao" class="text-sm font-medium border border-slate-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--blue)]/30"><option value="">Todas as situações</option></select>
+    <select id="f-integrante" class="text-sm font-medium border border-slate-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--blue)]/30"><option value="">Todos os integrantes</option></select>
+    <div class="relative flex-1 min-w-[200px]">
+      <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.34-4.34M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
+      <input id="f-busca" type="text" placeholder="Buscar por título ou palavra-chave…" class="w-full text-sm border border-slate-200 rounded-lg pl-9 pr-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[var(--blue)]/30">
+    </div>
+    <button id="f-limpar" class="text-xs font-semibold text-slate-400 hover:text-[var(--blue)] transition">Limpar filtros</button>
+    <span id="f-contagem" class="text-xs font-semibold text-slate-400 ml-auto"></span>
+  </div>
+
+  <!-- KPIs -->
+  <div id="kpis" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6"></div>
+
+  <!-- gráficos -->
+  <div class="grid lg:grid-cols-3 gap-4 mb-6">
+    <div class="card p-5 lg:col-span-2 fade-in">
+      <h3 class="text-sm font-bold mb-1">Produção anual × citações acumuladas</h3>
+      <p class="text-xs text-slate-400 mb-3">Barras: artigos publicados no ano · Linha: citações acumuladas (maior valor entre WoS/Scopus/OpenAlex por artigo)</p>
+      <div class="h-72"><canvas id="chart-historico"></canvas></div>
+    </div>
+    <div class="card p-5 fade-in">
+      <h3 class="text-sm font-bold mb-1">Funil de produção</h3>
+      <p class="text-xs text-slate-400 mb-3">Situação de todos os artigos do banco</p>
+      <div class="h-72"><canvas id="chart-funil"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-3 gap-4 mb-6">
+    <div class="card p-5 fade-in">
+      <h3 class="text-sm font-bold mb-1">Composição da equipe</h3>
+      <p class="text-xs text-slate-400 mb-3" id="equipe-legenda"></p>
+      <div class="h-56"><canvas id="chart-equipe"></canvas></div>
+    </div>
+    <div class="card p-5 lg:col-span-2 fade-in">
+      <div class="flex items-center justify-between mb-1">
+        <h3 class="text-sm font-bold">Top 5 artigos mais citados</h3>
+      </div>
+      <p class="text-xs text-slate-400 mb-3">Entre os artigos publicados, pelo maior número de citações registrado</p>
+      <div id="top5" class="divide-y divide-slate-100"></div>
+    </div>
+  </div>
+
+  <!-- tabela de artigos -->
+  <div class="card p-5 fade-in">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-sm font-bold">Artigos <span id="tabela-contagem" class="text-slate-400 font-medium"></span></h3>
+    </div>
+    <div class="overflow-auto max-h-[520px] rounded-lg border border-slate-100">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-xs text-slate-400 uppercase tracking-wide border-b border-slate-100">
+            <th class="py-2.5 px-3 cursor-pointer select-none" data-sort="titulo">Título</th>
+            <th class="py-2.5 px-3 cursor-pointer select-none" data-sort="ano">Ano</th>
+            <th class="py-2.5 px-3">Linha</th>
+            <th class="py-2.5 px-3">Situação</th>
+            <th class="py-2.5 px-3 text-right cursor-pointer select-none" data-sort="citacoes">Citações</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-corpo"></tbody>
+      </table>
+    </div>
+  </div>
+
+  </div><!-- /view-producao -->
+
+  <div id="view-tempo" class="hidden">
+    <div class="card p-4 mb-6">
+      <p class="text-sm text-slate-500">Esforço (horas registradas no ponto) ao lado do resultado (artigos em produção ou avaliação) — <b>tempo de banco não é produção</b>, é só o esforço; a tela mostra os dois lado a lado e não inventa uma fórmula que junte os dois num número só. Quem quiser o próprio check-in em tempo real encontra em <a href="/app#ponto" class="font-semibold" style="color:var(--blue)">Meu ponto</a>.</p>
+    </div>
+    <div id="tempo-bloqueado" class="hidden card p-8 text-center">
+      <p class="text-sm font-semibold text-slate-500">Esta visão é exclusiva da coordenação — mostra hora de pessoa nomeada ao lado da produção dela.</p>
+    </div>
+    <div id="tempo-conteudo" class="hidden">
+      <div id="tempo-kpis" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6"></div>
+      <div class="grid lg:grid-cols-2 gap-4 mb-6">
+        <div class="card p-5 fade-in">
+          <h3 class="text-sm font-bold mb-1">Esforço × Resultado</h3>
+          <p class="text-xs text-slate-400 mb-3">Cada ponto é um integrante: horas registradas no ponto (eixo X) e artigos em produção/avaliação com autoria dele(a) (eixo Y), nos últimos 30 dias</p>
+          <div class="h-80"><canvas id="chart-dispersao"></canvas></div>
+        </div>
+        <div class="card p-5 fade-in">
+          <h3 class="text-sm font-bold mb-1">Tempo por atividade anotada</h3>
+          <p class="text-xs text-slate-400 mb-3">Soma de horas por anotação de atividade, nos últimos 30 dias — texto livre digitado por cada pessoa ao bater o ponto</p>
+          <div class="h-80"><canvas id="chart-atividade"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /view-tempo -->
+
+  <p class="text-center text-xs text-slate-400 mt-8 mb-4">Página independente do LAPE — dados reais de <span id="rodape-total"></span>. Nenhum número aqui é estimado.</p>
+</div>
+
+<script>
+const CORES = { azul: "#2a78d6", laranja: "#eb6834", verde: "#1baf7a",
+                azulClaro: "#eaf2fc", laranjaClaro: "#fdece4", verdeClaro: "#e7f8f1" };
+
+const ROTULO_STATUS = {
+  publicado: "Publicado", em_producao: "Em produção", submetido: "Submetido",
+  aceito: "Aceito", rejeitado: "Rejeitado", arquivado: "Arquivado",
+};
+const COR_STATUS = {
+  publicado: CORES.verde, em_producao: CORES.azul, submetido: CORES.laranja,
+  aceito: "#0ea5e9", rejeitado: "#ef4444", arquivado: "#94a3b8",
+};
+
+let DADOS = null;
+let FILTRADOS = [];
+let ORDEM = { campo: "ano", dir: -1 };
+
+async function api(path){
+  const r = await fetch(path, { credentials: "same-origin" });
+  if (r.status === 401){ location.href = "/entrar?next=/analytics"; throw new Error("entre"); }
+  if (!r.ok){ throw new Error((await r.json().catch(function(){ return {}; })).error || ("erro " + r.status)); }
+  return r.json();
+}
+
+function numero(n){ return (n === null || n === undefined) ? "—" : n.toLocaleString("pt-BR"); }
+
+function kpiCard(opts){
+  return `<div class="card p-5 fade-in">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-bold text-slate-400 uppercase tracking-wide">${opts.label}</span>
+      ${opts.badge || ""}
+    </div>
+    <div class="kpi-num text-3xl font-extrabold" style="color:${opts.cor || '#0f172a'}">${opts.valor}</div>
+    ${opts.sub ? `<div class="text-xs text-slate-400 mt-1">${opts.sub}</div>` : ""}
+    ${opts.extra || ""}
+  </div>`;
+}
+
+function montarKpis(d){
+  const k = d.kpis;
+  const meta = k.meta_publicacoes_no_ano;
+  const metaValor = meta && meta.meta ? meta.meta : null;
+  const pct = metaValor ? Math.min(100, Math.round(100 * k.publicados_no_ano / metaValor)) : null;
+
+  const cards = [
+    kpiCard({ label: "Artigos totais", valor: numero(k.artigos_total), cor: "#0f172a",
+      sub: Object.entries(k.por_status).map(function(e){ return (ROTULO_STATUS[e[0]]||e[0]) + ": " + e[1]; }).join(" · ") }),
+    kpiCard({ label: "Publicados em " + d.ano, valor: numero(k.publicados_no_ano), cor: CORES.verde,
+      sub: metaValor ? (k.publicados_no_ano + " de " + metaValor + " na meta do ano") : "meta do ano não declarada",
+      extra: metaValor ? `<div class="progress-track h-2 mt-2.5"><div class="progress-fill h-2" style="width:${pct}%"></div></div>
+        <div class="text-[11px] text-slate-400 mt-1 font-semibold">${pct}% da meta</div>` : "" }),
+    kpiCard({ label: "Citações totais", valor: numero(k.citacoes_total), cor: CORES.azul,
+      sub: k.citacoes_por_artigo !== null ? (String(k.citacoes_por_artigo).replace(".", ",") + " citações por artigo publicado, em média") : "sem artigo publicado ainda" }),
+    kpiCard({ label: "Pessoas", valor: numero(k.pessoas_total), cor: CORES.laranja,
+      sub: k.pessoas_lape + " do LAPE · " + k.pessoas_coautores + " coautores externos" }),
+    kpiCard({ label: "Eficiência de publicação", valor: k.eficiencia_artigos_por_integrante === null ? "—" : String(k.eficiencia_artigos_por_integrante).replace(".", ","), cor: "#0f172a",
+      sub: "artigos em média por integrante do LAPE (autoria em qualquer situação)" }),
+  ];
+  document.getElementById("kpis").innerHTML = cards.join("");
+}
+
+function montarGraficoHistorico(historico){
+  const ctx = document.getElementById("chart-historico");
+  new Chart(ctx, {
+    data: {
+      labels: historico.map(function(h){ return h.ano; }),
+      datasets: [
+        { type: "bar", label: "Publicados no ano", data: historico.map(function(h){ return h.publicados; }),
+          backgroundColor: CORES.azul, borderRadius: 6, order: 2, yAxisID: "y" },
+        { type: "line", label: "Citações acumuladas", data: historico.map(function(h){ return h.citacoes_acumuladas; }),
+          borderColor: CORES.laranja, backgroundColor: CORES.laranja, tension: .35, order: 1,
+          pointRadius: 4, pointBackgroundColor: "#fff", pointBorderColor: CORES.laranja, pointBorderWidth: 2,
+          yAxisID: "y1" },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: { legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 8, font: { size: 11 } } } },
+      scales: {
+        y: { position: "left", beginAtZero: true, title: { display: true, text: "artigos/ano", font: { size: 10 } },
+             grid: { color: "#f1f5f9" } },
+        y1: { position: "right", beginAtZero: true, title: { display: true, text: "citações acumuladas", font: { size: 10 } },
+              grid: { display: false } },
+      },
+    },
+  });
+}
+
+function montarGraficoFunil(porStatus){
+  const ordem = ["publicado", "aceito", "em_producao", "submetido", "rejeitado", "arquivado"]
+    .filter(function(s){ return porStatus[s]; });
+  const ctx = document.getElementById("chart-funil");
+  new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ordem.map(function(s){ return ROTULO_STATUS[s] || s; }),
+      datasets: [{ data: ordem.map(function(s){ return porStatus[s]; }),
+        backgroundColor: ordem.map(function(s){ return COR_STATUS[s] || "#cbd5e1"; }),
+        borderWidth: 3, borderColor: "#fff" }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: "62%",
+      plugins: { legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 8, font: { size: 11 } } } },
+    },
+  });
+}
+
+function montarGraficoEquipe(k){
+  document.getElementById("equipe-legenda").textContent =
+    k.pessoas_lape + " integrante(s) do LAPE e " + k.pessoas_coautores + " coautor(es) externo(s), de " + k.pessoas_total + " pessoas ao todo.";
+  const ctx = document.getElementById("chart-equipe");
+  new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Integrantes do LAPE", "Coautores externos"],
+      datasets: [{ data: [k.pessoas_lape, k.pessoas_coautores],
+        backgroundColor: [CORES.azul, CORES.laranja], borderWidth: 3, borderColor: "#fff" }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: "68%",
+      plugins: { legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 8, font: { size: 11 } } } },
+    },
+  });
+}
+
+function montarTop5(lista){
+  if (!lista.length){
+    document.getElementById("top5").innerHTML = '<p class="text-sm text-slate-400 py-6 text-center">Nenhum artigo publicado ainda.</p>';
+    return;
+  }
+  document.getElementById("top5").innerHTML = lista.map(function(a, i){
+    return `<div class="flex items-center gap-3 py-2.5">
+      <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-extrabold text-white flex-none"
+           style="background:${i === 0 ? CORES.laranja : '#cbd5e1'}">${i + 1}</div>
+      <div class="min-w-0 flex-1">
+        <div class="text-sm font-semibold truncate">${escapeHtml(a.titulo)}</div>
+        <div class="text-xs text-slate-400 truncate">${escapeHtml(a.periodico || "—")} · ${a.ano || "—"}</div>
+      </div>
+      <div class="text-sm font-extrabold flex-none" style="color:${CORES.azul}">${numero(a.citacoes)}</div>
+    </div>`;
+  }).join("");
+}
+
+function escapeHtml(s){
+  const d = document.createElement("div"); d.textContent = s == null ? "" : String(s); return d.innerHTML;
+}
+
+function montarFiltros(d){
+  const anos = Array.from(new Set(d.artigos.map(function(a){ return a.ano; }).filter(Boolean))).sort(function(a,b){ return b - a; });
+  document.getElementById("f-ano").innerHTML = '<option value="">Todos os anos</option>' +
+    anos.map(function(a){ return `<option value="${a}">${a}</option>`; }).join("");
+  document.getElementById("f-linha").innerHTML = '<option value="">Todas as linhas</option>' +
+    d.linhas.map(function(l){ return `<option value="${l.id}">${escapeHtml(l.name)}</option>`; }).join("");
+  const situacoes = Array.from(new Set(d.artigos.map(function(a){ return a.status; })));
+  document.getElementById("f-situacao").innerHTML = '<option value="">Todas as situações</option>' +
+    situacoes.map(function(s){ return `<option value="${s}">${ROTULO_STATUS[s] || s}</option>`; }).join("");
+  document.getElementById("f-integrante").innerHTML = '<option value="">Todos os integrantes</option>' +
+    d.integrantes.map(function(p){ return `<option value="${p.id}">${escapeHtml(p.full_name)}</option>`; }).join("");
+}
+
+function aplicarFiltros(){
+  const ano = document.getElementById("f-ano").value;
+  const linha = document.getElementById("f-linha").value;
+  const situacao = document.getElementById("f-situacao").value;
+  const integrante = document.getElementById("f-integrante").value;
+  const busca = document.getElementById("f-busca").value.trim().toLowerCase();
+
+  FILTRADOS = DADOS.artigos.filter(function(a){
+    if (ano && String(a.ano) !== ano) return false;
+    if (linha && String(a.linha_id) !== linha) return false;
+    if (situacao && a.status !== situacao) return false;
+    if (integrante && a.integrantes_ids.indexOf(Number(integrante)) === -1) return false;
+    if (busca && !((a.titulo || "").toLowerCase().indexOf(busca) !== -1
+                    || (a.autores || "").toLowerCase().indexOf(busca) !== -1
+                    || (a.linha || "").toLowerCase().indexOf(busca) !== -1)) return false;
+    return true;
+  });
+  document.getElementById("f-contagem").textContent =
+    FILTRADOS.length + " de " + DADOS.artigos.length + " artigo(s)";
+  renderTabela();
+}
+
+function renderTabela(){
+  const campo = ORDEM.campo, dir = ORDEM.dir;
+  const lista = FILTRADOS.slice().sort(function(a, b){
+    let va = a[campo], vb = b[campo];
+    if (va == null) va = campo === "citacoes" || campo === "ano" ? -Infinity : "";
+    if (vb == null) vb = campo === "citacoes" || campo === "ano" ? -Infinity : "";
+    if (typeof va === "string") return dir * va.localeCompare(vb);
+    return dir * (va - vb);
+  });
+  document.getElementById("tabela-contagem").textContent = "(" + lista.length + ")";
+  document.getElementById("tabela-corpo").innerHTML = lista.slice(0, 300).map(function(a){
+    return `<tr class="border-b border-slate-50 last:border-0">
+      <td class="py-2 px-3 font-medium max-w-[420px] truncate" title="${escapeHtml(a.titulo)}">${escapeHtml(a.titulo)}</td>
+      <td class="py-2 px-3 text-slate-500">${a.ano || "—"}</td>
+      <td class="py-2 px-3 text-slate-500">${escapeHtml(a.linha || "—")}</td>
+      <td class="py-2 px-3"><span class="badge" style="background:${(COR_STATUS[a.status]||'#cbd5e1')}22;color:${COR_STATUS[a.status]||'#64748b'}">${ROTULO_STATUS[a.status] || a.status}</span></td>
+      <td class="py-2 px-3 text-right font-semibold">${numero(a.citacoes)}</td>
+    </tr>`;
+  }).join("") || '<tr><td colspan="5" class="py-8 text-center text-slate-400 text-sm">Nenhum artigo com estes filtros.</td></tr>';
+}
+
+document.querySelectorAll("th[data-sort]").forEach(function(th){
+  th.addEventListener("click", function(){
+    const campo = th.dataset.sort;
+    ORDEM.dir = (ORDEM.campo === campo) ? -ORDEM.dir : -1;
+    ORDEM.campo = campo;
+    renderTabela();
+  });
+});
+
+["f-ano", "f-linha", "f-situacao", "f-integrante"].forEach(function(id){
+  document.getElementById(id).addEventListener("change", aplicarFiltros);
+});
+document.getElementById("f-busca").addEventListener("input", aplicarFiltros);
+document.getElementById("f-limpar").addEventListener("click", function(){
+  ["f-ano", "f-linha", "f-situacao", "f-integrante"].forEach(function(id){ document.getElementById(id).value = ""; });
+  document.getElementById("f-busca").value = "";
+  aplicarFiltros();
+});
+
+async function iniciar(){
+  try {
+    DADOS = await api("/api/analytics");
+  } catch (e){
+    document.getElementById("app").innerHTML =
+      `<div class="card p-8 text-center mt-20"><p class="text-red-500 font-semibold">Não deu para carregar: ${escapeHtml(e.message)}</p></div>`;
+    return;
+  }
+  document.getElementById("gerado-em").textContent =
+    "Atualizado em " + String(DADOS.gerado_em).replace("T", " ").slice(0, 16);
+  document.getElementById("rodape-total").textContent =
+    DADOS.kpis.artigos_total + " artigos e " + DADOS.kpis.pessoas_total + " pessoas";
+  montarKpis(DADOS);
+  // Chart.js está empacotado na própria página, então isto quase nunca
+  // deveria disparar -- mas se disparar (um build futuro que tire o
+  // pacote, por exemplo), o resto da página (KPIs, tabela, filtros)
+  // continua de pé em vez de travar tudo.
+  if (typeof Chart === "undefined"){
+    ["chart-historico", "chart-funil", "chart-equipe"].forEach(function(id){
+      const c = document.getElementById(id);
+      c.replaceWith(Object.assign(document.createElement("p"), {
+        className: "text-xs text-slate-400 text-center py-10",
+        textContent: "Gráfico indisponível: a biblioteca Chart.js não carregou (CDN bloqueado nesta rede).",
+      }));
+    });
+  } else {
+    try { montarGraficoHistorico(DADOS.historico); } catch (e){ console.error(e); }
+    try { montarGraficoFunil(DADOS.kpis.por_status); } catch (e){ console.error(e); }
+    try { montarGraficoEquipe(DADOS.kpis); } catch (e){ console.error(e); }
+  }
+  montarTop5(DADOS.top_citados);
+  montarFiltros(DADOS);
+  aplicarFiltros();
+}
+iniciar();
+
+/* ---------------- Gestão de tempo ---------------- */
+let TEMPO_CARREGADO = false;
+
+function ativarAba(nome){
+  const producao = nome === "producao";
+  document.getElementById("view-producao").classList.toggle("hidden", !producao);
+  document.getElementById("view-tempo").classList.toggle("hidden", producao);
+  document.getElementById("tab-producao").classList.toggle("active", producao);
+  document.getElementById("tab-tempo").classList.toggle("active", !producao);
+  if (!producao && !TEMPO_CARREGADO) carregarTempo();
+}
+document.getElementById("tab-producao").addEventListener("click", function(){ ativarAba("producao"); });
+document.getElementById("tab-tempo").addEventListener("click", function(){ ativarAba("tempo"); });
+ativarAba("producao");
+
+async function carregarTempo(){
+  TEMPO_CARREGADO = true;
+  let d;
+  try {
+    d = await api("/api/ponto/analytics");
+  } catch (e){
+    document.getElementById("tempo-bloqueado").classList.remove("hidden");
+    document.getElementById("tempo-bloqueado").querySelector("p").textContent =
+      e.message.indexOf("perfil") !== -1 || e.message.indexOf("coordenação") !== -1
+        ? "Esta visão é exclusiva da coordenação — mostra hora de pessoa nomeada ao lado da produção dela."
+        : "Não deu para carregar: " + e.message;
+    return;
+  }
+  document.getElementById("tempo-conteudo").classList.remove("hidden");
+
+  const disp = d.dispersao.filter(function(p){ return p.horas > 0 || p.artigos_ativos > 0; });
+  const totalHoras = disp.reduce(function(s, p){ return s + p.horas; }, 0);
+  const comRegistro = d.dispersao.filter(function(p){ return p.horas > 0; }).length;
+  document.getElementById("tempo-kpis").innerHTML = [
+    kpiCard({ label: "Horas registradas (30 dias)", valor: numero(Math.round(totalHoras)), cor: CORES.azul }),
+    kpiCard({ label: "Pessoas com registro", valor: numero(comRegistro), cor: "#0f172a",
+      sub: "de " + d.dispersao.length + " integrante(s) do LAPE" }),
+    kpiCard({ label: "Média por pessoa", valor: comRegistro ? Math.round(totalHoras / comRegistro) + "h" : "—", cor: CORES.laranja }),
+    kpiCard({ label: "Atividades distintas anotadas", valor: numero(d.por_atividade.length), cor: CORES.verde }),
+  ].join("");
+
+  if (typeof Chart === "undefined") return;
+  try {
+    new Chart(document.getElementById("chart-dispersao"), {
+      type: "scatter",
+      data: { datasets: [{ label: "Integrantes", data: disp.map(function(p){ return { x: p.horas, y: p.artigos_ativos, quem: p.quem }; }),
+        backgroundColor: CORES.azul + "aa", borderColor: CORES.azul, borderWidth: 1.5,
+        pointRadius: 7, pointHoverRadius: 9 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false },
+          tooltip: { callbacks: { label: function(ctx){
+            return ctx.raw.quem + ": " + ctx.raw.x + "h, " + ctx.raw.y + " artigo(s) ativo(s)"; } } } },
+        scales: {
+          x: { title: { display: true, text: "Horas no ponto (30 dias)", font: { size: 11 } }, grid: { color: "#f1f5f9" } },
+          y: { title: { display: true, text: "Artigos em produção/avaliação", font: { size: 11 } }, beginAtZero: true,
+               ticks: { precision: 0 }, grid: { color: "#f1f5f9" } },
+        },
+      },
+    });
+  } catch (e){ console.error(e); }
+
+  try {
+    const paleta = [CORES.azul, CORES.laranja, CORES.verde, "#8b5cf6", "#0ea5e9", "#f59e0b", "#ec4899", "#64748b", "#94a3b8"];
+    new Chart(document.getElementById("chart-atividade"), {
+      type: "bar",
+      data: {
+        labels: ["Horas"],
+        datasets: d.por_atividade.map(function(a, i){
+          return { label: a.atividade, data: [a.horas], backgroundColor: paleta[i % paleta.length], borderRadius: 4 };
+        }),
+      },
+      options: {
+        indexAxis: "y", responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 8, font: { size: 10.5 } } } },
+        scales: { x: { stacked: true, title: { display: true, text: "horas", font: { size: 11 } }, grid: { color: "#f1f5f9" } },
+                  y: { stacked: true, grid: { display: false } } },
+      },
+    });
+  } catch (e){ console.error(e); }
+}
+</script>
+</body>
+</html>

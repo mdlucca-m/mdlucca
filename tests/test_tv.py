@@ -139,9 +139,10 @@ class TestOQueATvJunta(BaseDaTv):
         for chave in ("n_paises", "n_fora_do_brasil", "artigos_com_pais", "instituicoes"):
             self.assertIn(chave, m)
 
-    def test_a_rotina_e_a_situacao_dos_tres_passos(self):
+    def test_a_rotina_e_a_situacao_dos_cinco_passos(self):
         r = tv.para_a_tv(self.db, HOJE)["rotina"]
-        self.assertEqual([p["passo"] for p in r["passos"]], ["producao", "citacoes", "acervos"])
+        self.assertEqual([p["passo"] for p in r["passos"]],
+                         ["producao", "citacoes", "acervos", "descobrir", "perfis"])
         self.assertIn("ligada", r)
 
 
