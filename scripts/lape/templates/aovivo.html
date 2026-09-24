@@ -188,20 +188,67 @@ h2.secao { font-size: 17px; margin: 26px 0 12px; }
 .leituras li p { margin: 0; font-size: 13.5px; line-height: 1.45; color: rgba(244,247,255,.92); }
 .leituras li small { display: block; color: var(--ink-muted); font-size: 11px; margin-top: 3px; }
 
-/* ---- o caminho do artigo (funil colorido do modelo) ---- */
-.caminho { display: grid; gap: 10px; max-width: 1100px; }
-.etapa { display: grid; grid-template-columns: 44px minmax(0, 1.2fr) minmax(0, 1.6fr) auto; gap: 16px; align-items: center;
-  padding: 14px 18px; border-radius: 16px; }
-.etapa .num { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-weight: 800;
-  color: var(--navy-deep); background: var(--tom); font-family: var(--display); font-size: 15px; box-shadow: 0 0 22px -4px var(--tom); }
-.etapa .valor { font-family: var(--display); font-size: 30px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; text-shadow: 0 0 16px color-mix(in srgb, var(--tom) 50%, transparent); }
-.etapa .valor small { display: block; font-family: inherit; font-size: 12px; font-weight: 500; color: var(--ink-2); margin-top: 4px; }
-.etapa h4 { margin: 0 0 3px; font-size: 14.5px; }
-.etapa .faz { color: var(--ink-2); font-size: 12.5px; }
-.etapa a button { white-space: nowrap; background: var(--surface); border: 1px solid var(--border); color: var(--ink); box-shadow: none; }
-.etapa a button:hover { border-color: var(--tom); box-shadow: 0 0 16px -4px var(--tom); }
-.etapa:nth-child(2) { margin-right: 4%; } .etapa:nth-child(3) { margin-right: 8%; }
-.etapa:nth-child(4) { margin-right: 12%; } .etapa:nth-child(5) { margin-right: 16%; } .etapa:nth-child(6) { margin-right: 20%; }
+/* ---- o caminho do artigo (funil temático, hierárquico) ----
+   Não é um funil de verdade -- cada etapa conta uma coisa diferente
+   (referência, registro triado, artigo), sem porcentagem entre elas (ver
+   o aviso-rodape). A forma de funil aqui é só a metáfora visual de um
+   processo que afunila: a largura de cada degrau vem do --i que já
+   chega pelo glass(), não de conta nenhuma sobre o valor. */
+.caminho-funil { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column;
+  align-items: center; gap: 0; max-width: 900px; margin-inline: auto; }
+.etapa-item { display: flex; flex-direction: column; align-items: center; width: 100%; }
+.etapa { width: calc(100% - var(--i, 0) * 6%); margin-inline: auto; padding: 16px 22px 18px;
+  border-radius: 18px; display: flex; flex-direction: column; gap: 10px; position: relative;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--tom) 30%, transparent),
+    0 16px 32px -18px color-mix(in srgb, var(--tom) 65%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, .04);
+  animation: etapa-surge .6s cubic-bezier(.16, .84, .3, 1) both;
+  animation-delay: calc(var(--i, 0) * .1s); }
+@keyframes etapa-surge {
+  from { opacity: 0; transform: translateY(18px) scale(.94); }
+  to   { opacity: 1; transform: none; }
+}
+.etapa-topo { display: flex; align-items: center; gap: 14px; }
+.etapa .num { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; flex: none;
+  color: var(--navy-deep); background: var(--tom);
+  box-shadow: 0 0 26px -4px var(--tom), inset 0 0 0 1px rgba(255, 255, 255, .25); }
+.etapa-titulo h4 { margin: 0 0 3px; font-size: 15.5px; }
+.etapa-titulo .faz { color: var(--ink-2); font-size: 12.5px; }
+.etapa-meio { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.etapa-meio .valor { font-family: var(--display); font-size: 32px; font-weight: 800; line-height: 1;
+  font-variant-numeric: tabular-nums; color: var(--tom);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--tom) 55%, transparent); }
+.etapa-meio small { color: var(--ink-2); font-size: 12.5px; }
+.etapa-baixo { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.etapa-saiba { background: transparent; border: 1px solid color-mix(in srgb, var(--tom) 45%, transparent);
+  color: var(--tom); box-shadow: none; font-size: 12px; padding: 6px 12px; }
+.etapa-saiba:hover { background: color-mix(in srgb, var(--tom) 16%, transparent); box-shadow: 0 0 14px -4px var(--tom); }
+.etapa-ir button { white-space: nowrap; background: var(--surface); border: 1px solid var(--border); color: var(--ink); box-shadow: none; }
+.etapa-ir button:hover { border-color: var(--tom); box-shadow: 0 0 16px -4px var(--tom); }
+/* a caixa de texto temática: fechada por padrão, some em altura zero em
+   vez de display:none -- é assim que dá pra animar a entrada */
+.etapa-explica { max-height: 0; opacity: 0; overflow: hidden;
+  transition: max-height .38s cubic-bezier(.16, .84, .3, 1), opacity .3s ease, margin-top .38s ease; }
+.etapa.aberta .etapa-explica { max-height: 260px; opacity: 1; margin-top: 2px; }
+.etapa-explica ul { list-style: none; margin: 0; padding: 12px 14px; border-radius: 12px;
+  border-left: 3px solid var(--tom); background: color-mix(in srgb, var(--tom) 10%, var(--surface));
+  display: flex; flex-direction: column; gap: 7px; }
+.etapa-explica li { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; color: var(--ink-2); line-height: 1.45; }
+.etapa-explica li svg.icon { color: var(--tom); flex: none; margin-top: 2px; }
+/* o conector: a seta que liga uma etapa à próxima, com o fluxo animado
+   descendo -- o "efeito especial" pedido, mas só nisto: a seta, não o
+   dado. */
+.etapa-conector { width: 3px; height: 26px; margin: 2px 0; position: relative; overflow: hidden;
+  background: color-mix(in srgb, var(--tom) 35%, transparent); }
+.etapa-conector::after { content: ""; position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%);
+  border: 6px solid transparent; border-top-color: var(--tom2); }
+.etapa-conector::before { content: ""; position: absolute; left: 0; top: -30px; width: 100%; height: 30px;
+  background: linear-gradient(color-mix(in srgb, var(--tom2) 95%, transparent), transparent);
+  animation: etapa-flui 1.4s linear infinite; }
+@keyframes etapa-flui {
+  from { transform: translateY(-30px); }
+  to   { transform: translateY(56px); }
+}
 
 /* ---- os doze olhares ---- */
 .doze { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
@@ -485,13 +532,15 @@ rect.mark.cresce { transform-box: fill-box; transform-origin: bottom; animation:
   nav.lado.aberto { transform: none; box-shadow: var(--shadow-lg); }
   header.topo .menu { display: inline-flex; }
   .doze { grid-template-columns: minmax(0, 1fr); }
-  .etapa { grid-template-columns: 36px minmax(0, 1fr); margin-right: 0 !important; }
-  .etapa .faz-col, .etapa a { grid-column: 2; }
+  .etapa { width: 100%; }
+  .etapa-baixo { flex-direction: column; align-items: stretch; }
+  .etapa-ir button { width: 100%; }
   .hbars li { grid-template-columns: minmax(0, 7rem) 1fr auto; }
 }
 @media (prefers-reduced-motion: reduce) {
   .glass, .funil li { animation: none; } .hbars .barra { transition: none; } .pulso.batendo i { animation: none; }
   .apresentacao::before, .apresentacao .explica li, .resultado, .nuvem .tema, .paises li, rect.mark.cresce, .haltere-neon .linha-haltere { animation: none; }
+  .etapa { animation: none; } .etapa-conector::before { animation: none; } .etapa-explica { transition: none; }
 }
 
 /* Acessibilidade: modo alto contraste */

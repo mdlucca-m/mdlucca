@@ -644,26 +644,99 @@ function desenharBases(palco) {
 }
 
 /* ----------------------------------------------------------- caminho */
+/* Um ícone por etapa -- puramente decorativo, não vem do servidor. */
+const ICONE_ETAPA = { biblioteca: "livro", triagem: "qualidade", producao: "producao",
+  submissao: "submissao", aceite: "aceite", publicacao: "foguete" };
+
+/* "Saiba mais" por etapa: prática consagrada de escrita e publicação
+   científica, texto fixo daqui -- não é dado do LAPE (que já está no
+   valor e no "No LAPE:" de cada cartão), é o contexto de quem está
+   aprendendo o caminho. */
+const SAIBA_MAIS_ETAPA = {
+  biblioteca: [
+    "Estratégia de busca replicável: termos, bases e datas registrados antes de começar a ler.",
+    "Referência sem leitura ainda não é acervo — é fila. O que entra bem aqui sai mais fácil na triagem.",
+  ],
+  triagem: [
+    "PRISMA desde o primeiro filtro: cada exclusão com o motivo, não só o número.",
+    "Dois avaliadores às cegas, e o kappa entre eles — concordância baixa pede critério mais claro, não mais gente decidindo sozinha.",
+  ],
+  producao: [
+    "IMRaD — Introdução, Métodos, Resultados e Discussão — ainda é o que a maioria das revistas espera; fugir dele pede justificativa, não hábito.",
+    "Resultado é o que os dados mostram; discussão é o que eles significam. Misturar os dois é a revisão mais comum que um manuscrito recebe.",
+  ],
+  submissao: [
+    "Carta ao editor não repete o resumo: diz por que aquela revista, para aquele leitor, agora.",
+    "Resposta ao revisor ponto a ponto, sem deixar nenhum comentário sem resposta — mesmo os que discordam.",
+  ],
+  aceite: [
+    "Aceite não é publicação: entre os dois ainda cabem prova, DOI e, às vezes, meses de fila editorial.",
+    "É o obstáculo mais alto já passado — mas o artigo só fica pronto pra ser lido e citado depois de publicado.",
+  ],
+  publicacao: [
+    "Checar o DOI e o acesso aberto assim que sai: metadado errado nasce fácil e demora a ser corrigido.",
+    "Citação passa a contar fora do controle de quem escreveu — o que ainda dá pra fazer é deixar o artigo fácil de achar e citar certo.",
+  ],
+};
+
 function desenharCaminho(palco) {
   palco.appendChild(cabeca("producao", "O caminho do artigo",
     "seis etapas, o que há em cada uma agora, e a tela do LAPE que a faz"));
-  const lista = el("div", { class: "caminho" });
+  const lista = el("ol", { class: "caminho caminho-funil" });
   D.caminho.forEach(function (e, i) {
-    const a = el("a", { href: e.href });
-    a.appendChild(el("button", { type: "button", text: e.ferramenta + " →" }));
-    lista.appendChild(glass([
-      el("div", { class: "num", text: String(i + 1) }),
-      el("div", {}, [el("h4", { text: e.rotulo }),
-        el("div", { class: "valor" }, [document.createTextNode(C.fmt(e.valor)),
-          el("small", { text: e.unidade + (e.detalhe !== undefined ? " · " + C.fmt(e.detalhe) + " " + e.detalhe_rotulo : "") })])]),
-      el("div", { class: "faz-col" }, [el("div", { class: "faz", text: "No LAPE: " + e.faz })]),
-      a,
-    ], { i: i, class: "etapa", style: "--tom:" + TOM_DA_ETAPA[i] }));
+    const tom = TOM_DA_ETAPA[i];
+    const proximoTom = TOM_DA_ETAPA[i + 1] || tom;
+
+    const valorNo = el("span", { class: "valor" });
+    contar(valorNo, e.valor);
+
+    const a = el("a", { href: e.href, class: "etapa-ir" },
+      [el("button", { type: "button", text: e.ferramenta + " →" })]);
+
+    const dicas = SAIBA_MAIS_ETAPA[e.code] || [];
+    const painelExplica = el("div", { class: "etapa-explica" }, [
+      el("ul", {}, dicas.map(function (t) {
+        return el("li", {}, [icone("achado", 14), el("span", { text: t })]);
+      })),
+    ]);
+    const botaoSaiba = dicas.length ? el("button", {
+      type: "button", class: "etapa-saiba", "aria-expanded": "false", text: "Saiba mais ▾",
+      onclick: function (ev) {
+        const card = ev.target.closest(".etapa");
+        const abrindo = !card.classList.contains("aberta");
+        card.classList.toggle("aberta", abrindo);
+        ev.target.setAttribute("aria-expanded", String(abrindo));
+        ev.target.textContent = abrindo ? "Saiba menos ▴" : "Saiba mais ▾";
+      },
+    }) : null;
+
+    const card = glass([
+      el("div", { class: "etapa-topo" }, [
+        el("div", { class: "num" }, [icone(ICONE_ETAPA[e.code] || "achado", 20)]),
+        el("div", { class: "etapa-titulo" }, [
+          el("h4", { text: e.rotulo }),
+          el("div", { class: "faz", text: "No LAPE: " + e.faz }),
+        ]),
+      ]),
+      el("div", { class: "etapa-meio" }, [
+        valorNo,
+        el("small", { text: e.unidade + (e.detalhe !== undefined ? " · " + C.fmt(e.detalhe) + " " + e.detalhe_rotulo : "") }),
+      ]),
+      el("div", { class: "etapa-baixo" }, [botaoSaiba, a]),
+      painelExplica,
+    ], { i: i, class: "etapa", style: "--tom:" + tom + ";--tom2:" + proximoTom });
+
+    const item = el("li", { class: "etapa-item" }, [card]);
+    if (i < D.caminho.length - 1) {
+      item.appendChild(el("div", { class: "etapa-conector", style: "--tom:" + tom + ";--tom2:" + proximoTom }));
+    }
+    lista.appendChild(item);
   });
   palco.appendChild(lista);
   palco.appendChild(el("div", { class: "aviso-rodape",
     text: "Cada etapa conta uma coisa diferente — referência, registro triado, artigo — e por isso "
-      + "não há porcentagem entre elas. O funil de verdade, com a mesma unidade em todos os degraus, "
+      + "não há porcentagem entre elas: a forma de funil aqui é só a metáfora do processo, não conta "
+      + "nenhuma. O funil de verdade, com a mesma unidade em todos os degraus, "
       + "está em Doze olhares e em Triagens." }));
 }
 
