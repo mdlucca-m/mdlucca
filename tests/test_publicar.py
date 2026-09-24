@@ -99,6 +99,34 @@ class TestPidVazio(unittest.TestCase):
         self.assertIn("Stop-Process", trecho)
 
 
+class TestEsperaAPortaLiberar(unittest.TestCase):
+    """Matar o processo antigo e subir o novo na mesma porta, sem folga,
+    e uma corrida: o Windows pode levar um instante para soltar a porta
+    que o processo morto escutava, o bind do processo novo falha, ele
+    morre na largada, e `Testar-Saude` ve isso no primeiro check -- sem
+    nenhuma nova tentativa, porque o processo ja nao existe mais para
+    tentar de novo. O caso de verdade: a troca (que ja tinha passado no
+    teste do candidato) derrubou o servico E o tunel numa atualizacao
+    onde nada estava de fato errado com o codigo -- so faltou a folga.
+    """
+
+    def test_a_funcao_de_espera_existe(self):
+        texto = PS1.read_text(encoding="utf-8")
+        self.assertIn("function Esperar-Porta-Livre", texto)
+
+    def test_as_duas_trocas_esperam_a_porta_antes_de_subir(self):
+        # As duas vezes em que o script mata o processo antigo e sobe um
+        # novo na porta real (a subida direta, e a troca depois do
+        # candidato aprovado) precisam da folga -- so uma das duas nao
+        # bastava, porque a segunda foi justamente a que quebrou.
+        texto = PS1.read_text(encoding="utf-8")
+        self.assertEqual(texto.count('Parar-Processo "api"'), 2)
+        for pedaco in texto.split('Parar-Processo "api"')[1:]:
+            trecho = pedaco[:200]
+            self.assertIn("Esperar-Porta-Livre", trecho,
+                           "Parar-Processo \"api\" sem Esperar-Porta-Livre logo depois")
+
+
 class TestCandidatoNaoTocaOBancoReal(unittest.TestCase):
     """O teste da versao nova nunca pode escrever no banco de verdade.
 

@@ -527,6 +527,23 @@ if ($contas.Trim() -eq "0") {
 $env:LAPE_BEHIND_HTTPS = "1"
 $env:LAPE_TRUST_PROXY  = "1"
 
+function Esperar-Porta-Livre {
+  # `Stop-Process -Force` mata o processo, mas o Windows pode levar um
+  # instante para soltar a porta que ele escutava -- Start-Process pro
+  # processo novo, chamado logo em seguida, e' rapido demais pra essa
+  # folga: o bind falha, o processo novo morre na largada, e Testar-Saude
+  # ve HasExited=true no primeiro check, sem nenhuma tentativa de novo.
+  # Foi isso que derrubou o servico (e o tunel, por tabela) numa troca
+  # onde o candidato ja tinha passado no teste. Aqui se espera a porta
+  # ficar livre de verdade antes de tentar subir nela.
+  param([int]$PortaAlvo, [int]$TentativasMax = 20)
+  foreach ($i in 1..$TentativasMax) {
+    $ocupada = Get-NetTCPConnection -LocalPort $PortaAlvo -State Listen -ErrorAction SilentlyContinue
+    if (-not $ocupada) { return }
+    Start-Sleep -Milliseconds 250
+  }
+}
+
 function Testar-Saude {
   param($Processo, [int]$PortaAlvo, [string]$ArquivoErro, [int]$Tentativas = 40)
   $ok = $false
@@ -567,6 +584,7 @@ if (-not $antigoVivo) {
   # Nada bom rodando para preservar (primeira subida, ou o servico ja
   # estava fora do ar) -- sobe direto na porta real, como sempre foi.
   Parar-Processo "api"
+  Esperar-Porta-Livre $Porta
   Azul "Subindo o servico..."
   $api = Start-Process -FilePath $Python `
     -ArgumentList "scripts\lape_agent.py", "api", "--host", "127.0.0.1", "--port", "$Porta" `
@@ -653,6 +671,7 @@ if (-not $antigoVivo) {
   Verde "Versao nova aprovada. Trocando agora (interrupcao de poucos segundos)..."
 
   Parar-Processo "api"
+  Esperar-Porta-Livre $Porta
   $api = Start-Process -FilePath $Python `
     -ArgumentList "scripts\lape_agent.py", "api", "--host", "127.0.0.1", "--port", "$Porta" `
     -WorkingDirectory $Raiz -PassThru -WindowStyle Hidden `
