@@ -98,6 +98,44 @@ class TestPidVazio(unittest.TestCase):
         self.assertIn("-match", trecho, "Parar-Processo mata sem conferir se ha numero")
         self.assertIn("Stop-Process", trecho)
 
+
+class TestCandidatoNaoTocaOBancoReal(unittest.TestCase):
+    """O teste da versao nova nunca pode escrever no banco de verdade.
+
+    Subir a API roda rotinas de largada com efeito real -- entre elas,
+    `ponto.fechar_na_volta()` encerra sessoes de ponto sem sinal de vida
+    ha mais de 20 minutos. Isso e certo quando o servico realmente caiu,
+    mas o candidato e so um teste numa porta separada: o servico ATUAL
+    continua no ar e ninguem saiu do laboratorio. A primeira versao deste
+    teste apontava o candidato direto para `data\\db.sqlite`, e a subida
+    dele sozinha ja fechava o ponto de quem so nao tinha a aba aberta --
+    um efeito colateral de teste, nao consequencia de queda nenhuma.
+    """
+
+    def trecho(self):
+        texto = PS1.read_text(encoding="utf-8")
+        return texto.split('Azul "Testando a versao nova', 1)[1].split(
+            'Verde "Versao nova aprovada', 1)[0]
+
+    def test_o_candidato_sobe_com_db_apontado_para_uma_copia(self):
+        trecho = self.trecho()
+        self.assertIn("$bancoCandidato", trecho)
+        self.assertIn('"--db", $bancoCandidato', trecho,
+                       "candidato nao aponta explicitamente para a copia do banco")
+        self.assertNotIn('"scripts\\lape_agent.py", "api"', trecho,
+                          "candidato subindo sem --db cairia no banco real por padrao")
+
+    def test_a_copia_leva_o_wal_e_o_shm_junto(self):
+        # Banco roda em modo WAL: o dado mais recente pode estar so no
+        # "-wal". Copiar so o ".sqlite" arriscaria testar uma foto velha.
+        trecho = self.trecho()
+        self.assertIn("-wal", trecho)
+        self.assertIn("-shm", trecho)
+
+    def test_a_copia_e_apagada_depois_do_teste(self):
+        trecho = self.trecho()
+        self.assertIn("Remove-Item $bancoCandidato", trecho)
+
     def test_o_bash_confere_o_numero_antes_de_matar(self):
         texto = SH.read_text(encoding="utf-8")
         trecho = texto.split("parar() {", 1)[1].split("\n}", 1)[0]
