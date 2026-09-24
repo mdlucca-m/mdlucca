@@ -138,6 +138,7 @@ def route_index(ctx: "Context") -> Any:
             "GET  /api/bibliotecas/<code>/grupos  ?segmento= agrupa o acervo por tema",
             "GET  /api/ao-ligar              (coordenação) sobe sozinho ao ligar o PC?",
             "POST /api/ao-ligar              (coordenação) {ligar: true|false}",
+            "POST /api/sistema/atualizar     (coordenação) puxa o código novo e troca o serviço",
             "GET  /api/lake/lineage          (coordenação) de onde veio cada carga",
             "GET  /api/stream                 eventos em tempo real (SSE)",
             "POST /api/invites                (coordenação) gera link de convite",
@@ -2474,6 +2475,30 @@ def route_aoligar_definir(ctx: "Context") -> Any:
     return saida
 
 
+def route_atualizar_sistema(ctx: "Context") -> Any:
+    """Puxa o código novo e troca o serviço, pelo botão -- sem abrir o CMD.
+
+    Chama o MESMO publicar.ps1 do .bat e solta o processo: quem clicou
+    não fica esperando, porque o worker que atende este pedido e o
+    processo que o proprio script vai derrubar quando promover a versao
+    nova. So a coordenacao pode disparar -- reinicia o servico para todo
+    mundo, a mesma trava de /api/ao-ligar.
+    """
+    from . import atualizar, hooks
+
+    user = auth.require(ctx.user, "coordenacao")
+    saida = atualizar.disparar()
+    if not saida.get("ok"):
+        # 409 e nao 500: o pedido esta certo, e foi a MAQUINA que recusou
+        # (nao e Windows, ou a pasta do deploy sumiu).
+        raise ApiError(409, saida.get("recado") or "não consegui iniciar a atualização")
+    hooks.emit(ctx.db, "sistema.atualizar", entity="maquina", detail="iniciado",
+               actor=user.get("full_name"))
+    auth.log(ctx.db, user["id"], user.get("login"), "atualizar", "maquina",
+             None, "iniciado")
+    return saida
+
+
 def route_ana(ctx: "Context") -> Any:
     """A Ana responde -- com o perfil de quem pergunta, e nao com o dela.
 
@@ -2687,6 +2712,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/ana/?$", route_ana, "leitura"),
     ("GET", r"^/api/ao-ligar/?$", route_aoligar, "coordenacao"),
     ("POST", r"^/api/ao-ligar/?$", route_aoligar_definir, "coordenacao"),
+    ("POST", r"^/api/sistema/atualizar/?$", route_atualizar_sistema, "coordenacao"),
     ("GET", r"^/api/ponto/?$", route_ponto, "integrante"),
     ("POST", r"^/api/ponto/entrar/?$", route_ponto_entrar, "integrante"),
     ("POST", r"^/api/ponto/sair/?$", route_ponto_sair, "integrante"),
