@@ -57,6 +57,7 @@
   <div class="flex gap-2 mb-6">
     <button id="tab-producao" class="tab-btn text-sm font-bold px-4 py-2 rounded-lg border transition">Produção científica</button>
     <button id="tab-tempo" class="tab-btn text-sm font-bold px-4 py-2 rounded-lg border transition">Gestão de tempo</button>
+    <button id="tab-estatistica" class="tab-btn text-sm font-bold px-4 py-2 rounded-lg border transition">Estatística</button>
   </div>
 
   <div id="view-producao">
@@ -153,6 +154,36 @@
       </div>
     </div>
   </div><!-- /view-tempo -->
+
+  <div id="view-estatistica" class="hidden">
+    <div class="card p-4 mb-6">
+      <p class="text-sm text-slate-500">Estatística descritiva (resume o que já aconteceu) e inferencial (testa se um padrão observado é forte o bastante para não ser só acaso) sobre a produção de verdade do laboratório. <b>Amostra pequena, cautela grande</b>: com poucos artigos e poucas pessoas, o mesmo teste que seria conclusivo numa base de milhares aqui só aponta uma direção — por isso todo resultado vem com o <code>n</code> ao lado.</p>
+    </div>
+
+    <h2 class="text-sm font-extrabold uppercase tracking-wide text-slate-400 mb-3">Descritiva</h2>
+    <div id="est-descritiva-resumo" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6"></div>
+    <div class="grid lg:grid-cols-3 gap-4 mb-8">
+      <div class="card p-5 fade-in">
+        <h3 class="text-sm font-bold mb-3">Situação da produção</h3>
+        <div id="est-freq-status" class="flex flex-col gap-2"></div>
+      </div>
+      <div class="card p-5 fade-in">
+        <h3 class="text-sm font-bold mb-3">Linha de pesquisa (publicados)</h3>
+        <div id="est-freq-linha" class="flex flex-col gap-2"></div>
+      </div>
+      <div class="card p-5 fade-in">
+        <h3 class="text-sm font-bold mb-3">Vínculo da equipe</h3>
+        <div id="est-freq-vinculo" class="flex flex-col gap-2"></div>
+      </div>
+    </div>
+
+    <h2 class="text-sm font-extrabold uppercase tracking-wide text-slate-400 mb-3">Inferencial</h2>
+    <div id="est-inferencial" class="grid lg:grid-cols-2 gap-4 mb-4"></div>
+    <div id="est-inferencial-coordenacao" class="hidden grid lg:grid-cols-2 gap-4 mb-6"></div>
+    <div id="est-coordenacao-bloqueada" class="hidden card p-6 text-center mb-6">
+      <p class="text-sm font-semibold text-slate-500">Cruzar horas de ponto com produção por pessoa é exclusivo da coordenação — os dois testes desta seção (esforço × produção, docentes × discentes) usam essa mesma tela.</p>
+    </div>
+  </div><!-- /view-estatistica -->
 
   <p class="text-center text-xs text-slate-400 mt-8 mb-4">Página independente do LAPE — dados reais de <span id="rodape-total"></span>. Nenhum número aqui é estimado.</p>
 </div>
@@ -418,17 +449,19 @@ iniciar();
 
 /* ---------------- Gestão de tempo ---------------- */
 let TEMPO_CARREGADO = false;
+let ESTATISTICA_CARREGADA = false;
 
 function ativarAba(nome){
-  const producao = nome === "producao";
-  document.getElementById("view-producao").classList.toggle("hidden", !producao);
-  document.getElementById("view-tempo").classList.toggle("hidden", producao);
-  document.getElementById("tab-producao").classList.toggle("active", producao);
-  document.getElementById("tab-tempo").classList.toggle("active", !producao);
-  if (!producao && !TEMPO_CARREGADO) carregarTempo();
+  ["producao", "tempo", "estatistica"].forEach(function(n){
+    document.getElementById("view-" + n).classList.toggle("hidden", n !== nome);
+    document.getElementById("tab-" + n).classList.toggle("active", n === nome);
+  });
+  if (nome === "tempo" && !TEMPO_CARREGADO) carregarTempo();
+  if (nome === "estatistica" && !ESTATISTICA_CARREGADA) carregarEstatistica();
 }
 document.getElementById("tab-producao").addEventListener("click", function(){ ativarAba("producao"); });
 document.getElementById("tab-tempo").addEventListener("click", function(){ ativarAba("tempo"); });
+document.getElementById("tab-estatistica").addEventListener("click", function(){ ativarAba("estatistica"); });
 ativarAba("producao");
 
 async function carregarTempo(){
@@ -496,6 +529,139 @@ async function carregarTempo(){
       },
     });
   } catch (e){ console.error(e); }
+}
+
+/* ---------------- Estatística ---------------- */
+function barraFrequencia(linhas){
+  if (!linhas.length) return '<p class="text-xs text-slate-400">Sem dado ainda.</p>';
+  const maior = Math.max.apply(null, linhas.map(function(l){ return l.n; }));
+  return linhas.map(function(l){
+    const largura = maior ? Math.round(l.n / maior * 100) : 0;
+    return `<div>
+      <div class="flex items-center justify-between text-xs mb-1">
+        <span class="font-semibold text-slate-600">${l.categoria}</span>
+        <span class="text-slate-400 font-medium">${l.n} · ${l.percentual}%</span>
+      </div>
+      <div class="progress-track h-2"><div class="progress-fill h-2" style="width:${largura}%"></div></div>
+    </div>`;
+  }).join("");
+}
+
+/* Um resultado de teste em linguagem simples, sempre com o n ao lado --
+   um p-valor sozinho engana tanto quanto um p-valor errado.
+
+   `p` nulo/ausente é a única forma confiável de saber que o cálculo não
+   deu (nunca comparar null < 0.05 direto: em JS isso vira 0 < 0.05 e
+   mente que deu significativo). "aviso" sozinho não basta pra decidir
+   isso -- o módulo usa aviso também pra avisar de amostra pequena COM
+   resultado válido ao lado (ex.: Mann-Whitney "aproximação é grosseira"
+   com u/z/p calculados), e nesse caso o card mostra os dois. */
+function cardTeste(opts){
+  const dado = opts.dado;
+  const temResultado = dado && dado.p !== null && dado.p !== undefined;
+  if (!temResultado){
+    return `<div class="card p-5 fade-in">
+      <h3 class="text-sm font-bold mb-1">${opts.titulo}</h3>
+      <p class="text-xs text-slate-400">${(dado && dado.aviso) || "Não deu para calcular com estes dados."}</p>
+    </div>`;
+  }
+  const sig = dado.p < 0.05;
+  const badge = sig
+    ? `<span class="badge" style="background:${CORES.verdeClaro};color:${CORES.verde}">p = ${dado.p} · significativo (5%)</span>`
+    : `<span class="badge" style="background:#f1f5f9;color:#64748b">p = ${dado.p} · não significativo (5%)</span>`;
+  return `<div class="card p-5 fade-in">
+    <div class="flex items-start justify-between gap-2 mb-1">
+      <h3 class="text-sm font-bold">${opts.titulo}</h3>
+      ${badge}
+    </div>
+    <p class="text-xs text-slate-500 mb-3">${opts.pergunta}</p>
+    <div class="flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-500 mb-2">${opts.estatisticas}</div>
+    <p class="text-sm font-semibold ${sig ? 'text-slate-800' : 'text-slate-500'}">${opts.interpretacao}</p>
+    ${dado.aviso ? `<p class="text-xs font-medium mt-2" style="color:#b45309">${dado.aviso}</p>` : ""}
+  </div>`;
+}
+
+async function carregarEstatistica(){
+  ESTATISTICA_CARREGADA = true;
+  let d;
+  try {
+    d = await api("/api/analytics/estatistica");
+  } catch (e){
+    document.getElementById("est-descritiva-resumo").innerHTML =
+      `<p class="text-xs text-slate-400 col-span-full">Não deu para carregar: ${e.message}</p>`;
+    return;
+  }
+
+  const desc = d.descritiva;
+  document.getElementById("est-descritiva-resumo").innerHTML = [
+    kpiCard({ label: "Citações por artigo publicado", valor: desc.citacoes_por_artigo_publicado.media !== undefined ? desc.citacoes_por_artigo_publicado.media : "—",
+      cor: CORES.azul, sub: "n = " + desc.citacoes_por_artigo_publicado.n + (desc.citacoes_por_artigo_publicado.desvio_padrao !== undefined ? " · dp = " + desc.citacoes_por_artigo_publicado.desvio_padrao : "") }),
+    kpiCard({ label: "Mediana de citações", valor: desc.citacoes_por_artigo_publicado.mediana !== undefined ? desc.citacoes_por_artigo_publicado.mediana : "—", cor: "#0f172a",
+      sub: desc.citacoes_por_artigo_publicado.q1 !== undefined ? "IIQ " + desc.citacoes_por_artigo_publicado.q1 + "–" + desc.citacoes_por_artigo_publicado.q3 : "" }),
+    kpiCard({ label: "Publicações por ano (média)", valor: desc.publicacoes_por_ano.media !== undefined ? desc.publicacoes_por_ano.media : "—", cor: CORES.laranja,
+      sub: "n = " + desc.publicacoes_por_ano.n + " ano(s)" }),
+    kpiCard({ label: "IC95% de citações/artigo", valor: desc.ic95_citacoes_por_artigo.ic95 ? desc.ic95_citacoes_por_artigo.ic95[0] + "–" + desc.ic95_citacoes_por_artigo.ic95[1] : "—",
+      cor: CORES.verde, sub: desc.ic95_citacoes_por_artigo.aviso || "intervalo de confiança da média" }),
+  ].join("");
+
+  document.getElementById("est-freq-status").innerHTML = barraFrequencia(desc.status_da_producao);
+  document.getElementById("est-freq-linha").innerHTML = barraFrequencia(desc.linha_de_pesquisa);
+  document.getElementById("est-freq-vinculo").innerHTML = barraFrequencia(desc.vinculo_da_equipe);
+
+  const tend = d.inferencial.tendencia_publicacoes_por_ano;
+  const tendSig = tend.p !== null && tend.p !== undefined && tend.p < 0.05;
+  const interpretacaoTendencia = (tend.p === null || tend.p === undefined) ? "" :
+    (tendSig
+      ? `Há evidência de tendência ${tend.inclinacao > 0 ? "crescente" : "decrescente"} nas publicações por ano.`
+      : "Não há evidência estatística suficiente de tendência — a série pode estar estável ou a amostra de anos é pequena demais para separar tendência de oscilação normal.");
+  document.getElementById("est-inferencial").innerHTML = cardTeste({
+    titulo: "Tendência de publicações ao longo dos anos",
+    pergunta: "Regressão linear: nº de publicações por ano em função do ano (H₀: a inclinação da reta é zero, ou seja, não há tendência).",
+    dado: tend,
+    estatisticas: `<span>n = ${tend.n} ano(s)</span><span>inclinação = ${tend.inclinacao} artigo(s)/ano</span><span>R² = ${tend.r2}</span><span>t = ${tend.t}</span>`,
+    interpretacao: interpretacaoTendencia,
+  });
+
+  // A parte que cruza hora de pessoa nomeada com produção só existe pra
+  // coordenação -- mesma trava de /api/ponto/analytics, reaproveitada
+  // aqui em vez de reinventada.
+  let pontoDados;
+  try {
+    pontoDados = await api("/api/ponto/analytics");
+  } catch (e){
+    document.getElementById("est-coordenacao-bloqueada").classList.remove("hidden");
+    return;
+  }
+  const inf = pontoDados.inferencial;
+  const corr = inf.correlacao_horas_producao;
+  const corrSig = corr.p !== null && corr.p !== undefined && corr.p < 0.05;
+  const interpretacaoCorr = (corr.p === null || corr.p === undefined) ? "" :
+    (corrSig
+      ? `Quem registra mais horas no ponto tende a ter ${corr.r > 0 ? "mais" : "menos"} artigos publicados (correlação ${corr.r > 0 ? "positiva" : "negativa"}).`
+      : "Não há evidência estatística suficiente de relação entre horas registradas e produção — o que não prova que não exista, só que esta amostra não basta para afirmar.");
+  const grupos = inf.docentes_vs_discentes;
+  const gruposSig = grupos.p !== null && grupos.p !== undefined && grupos.p < 0.05;
+  const interpretacaoGrupos = (grupos.p === null || grupos.p === undefined) ? "" :
+    (gruposSig
+      ? `Docentes e discentes têm produção mediana diferente (${grupos.mediana_grupo1} vs. ${grupos.mediana_grupo2} artigos).`
+      : "Não há evidência estatística suficiente de diferença entre docentes e discentes nesta amostra.");
+  document.getElementById("est-inferencial-coordenacao").classList.remove("hidden");
+  document.getElementById("est-inferencial-coordenacao").innerHTML = [
+    cardTeste({
+      titulo: "Esforço (ponto) × produção",
+      pergunta: "Correlação de Spearman entre horas registradas no ponto (30 dias) e nº total de artigos com autoria (H₀: não há correlação).",
+      dado: corr,
+      estatisticas: `<span>n = ${corr.n} pessoa(s)</span><span>ρ = ${corr.r}</span>`,
+      interpretacao: interpretacaoCorr,
+    }),
+    cardTeste({
+      titulo: "Docentes × discentes",
+      pergunta: "Teste de Mann-Whitney: nº de artigos por pessoa, comparando quem orienta (coordenação/professor) com quem é orientado(a) (H₀: mesma distribuição).",
+      dado: grupos,
+      estatisticas: `<span>n₁ = ${grupos.n1} docente(s)</span><span>n₂ = ${grupos.n2} discente(s)</span><span>U = ${grupos.u}</span>`,
+      interpretacao: interpretacaoGrupos,
+    }),
+  ].join("");
 }
 </script>
 </body>

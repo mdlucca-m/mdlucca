@@ -1328,6 +1328,67 @@ def route_analytics_avancado(ctx: "Context") -> Any:
     }
 
 
+def route_analytics_estatistica(ctx: "Context") -> Any:
+    """Estatística descritiva e inferencial sobre a produção real do LAPE.
+
+    Só o que é público na equipe: publicações, citações, status, linha
+    de pesquisa e vínculo. A parte que cruza hora de ponto com nome
+    continua só na coordenação, em /api/ponto/analytics -- a mesma trava
+    de sempre, e não duplicada aqui.
+    """
+    from . import estatistica as est
+
+    auth.require(ctx.user, "leitura")
+    db = ctx.db
+
+    artigos = db.dicts(
+        "SELECT status, year_published, published_on, research_line,"
+        "       wos_citations, scopus_citations, openalex_citations"
+        "  FROM v_articles_full")
+    for a in artigos:
+        a["citacoes"] = max(a.pop("wos_citations") or 0, a.pop("scopus_citations") or 0,
+                            a.pop("openalex_citations") or 0)
+        a["ano"] = a["year_published"] or (
+            int(str(a["published_on"])[:4]) if a["published_on"] else None)
+
+    publicados = [a for a in artigos if a["status"] == "publicado"]
+    anos_com_dado = sorted({a["ano"] for a in publicados if a["ano"]})
+
+    por_ano: dict[int, int] = {}
+    for a in publicados:
+        por_ano[a["ano"]] = por_ano.get(a["ano"], 0) + 1
+    serie_anos = [{"ano": y, "publicados": por_ano.get(y, 0)}
+                  for y in range(min(anos_com_dado), max(anos_com_dado) + 1)] \
+        if anos_com_dado else []
+
+    vinculos = db.dicts(
+        "SELECT role FROM members WHERE COALESCE(is_external, 0) = 0"
+        "   AND COALESCE(active, 1) = 1")
+    from .mapping import ROLE_LABEL
+
+    return {
+        "gerado_em": datetime.now().isoformat(timespec="seconds"),
+        "descritiva": {
+            "publicacoes_por_ano": est.resumo_descritivo(
+                [r["publicados"] for r in serie_anos]) if serie_anos else {"n": 0},
+            "citacoes_por_artigo_publicado": est.resumo_descritivo(
+                [a["citacoes"] for a in publicados]),
+            "ic95_citacoes_por_artigo": est.intervalo_confianca_media(
+                [a["citacoes"] for a in publicados]),
+            "status_da_producao": est.frequencia([a["status"] for a in artigos]),
+            "linha_de_pesquisa": est.frequencia(
+                [a["research_line"] for a in publicados]),
+            "vinculo_da_equipe": est.frequencia(
+                [ROLE_LABEL.get(v["role"] or "", "Sem vínculo declarado")
+                 for v in vinculos]),
+        },
+        "inferencial": {
+            "tendencia_publicacoes_por_ano": est.regressao_linear(
+                [r["ano"] for r in serie_anos], [r["publicados"] for r in serie_anos]),
+        },
+    }
+
+
 def route_metas(ctx: "Context") -> Any:
     """Metas do ano, progresso, ritmo e projecao."""
     auth.require(ctx.user, "integrante")
@@ -2257,8 +2318,40 @@ def route_ponto_analytics(ctx: "Context") -> Any:
         "  FROM article_authors aa JOIN articles a ON a.id = aa.article_id"
         " WHERE a.status IN ('em_producao', 'submetido')"
         " GROUP BY aa.member_id")}
+    total_artigos = {r["member_id"]: r["n"] for r in db.dicts(
+        "SELECT member_id, COUNT(DISTINCT article_id) AS n"
+        "  FROM article_authors GROUP BY member_id")}
     dispersao = [{"quem": p["quem"], "horas": p["horas"],
                   "artigos_ativos": ativos.get(p["member_id"], 0)} for p in horas]
+
+    # Inferencial: esforco (ponto) correlaciona com resultado (producao
+    # total, nao so o que esta em andamento agora)? E docentes produzem
+    # diferente de discentes? As duas perguntas so fazem sentido aqui,
+    # coordenacao adentro -- cruzam hora de pessoa nomeada com producao.
+    import statistics
+
+    from . import estatistica as est
+    from .mapping import ORIENTADOS
+
+    horas_lista = [p["horas"] for p in horas]
+    producao_lista = [total_artigos.get(p["member_id"], 0) for p in horas]
+    docentes = [total_artigos.get(p["member_id"], 0) for p in horas
+                if p["vinculo"] not in ORIENTADOS]
+    discentes = [total_artigos.get(p["member_id"], 0) for p in horas
+                 if p["vinculo"] in ORIENTADOS]
+
+    grupos = est.mann_whitney(docentes, discentes)
+    if "n" in grupos:
+        # mann_whitney() devolve n como [n1, n2] e não conta mediana --
+        # a tela quer os dois grupos lado a lado, então entram aqui. O
+        # "n" da função ainda pode vir com um aviso de amostra pequena
+        # (grosseira) mesmo tendo calculado -- por isso o teste é pela
+        # CHAVE, não pelo aviso estar vazio.
+        grupos["n1"], grupos["n2"] = len(docentes), len(discentes)
+        if docentes:
+            grupos["mediana_grupo1"] = round(statistics.median(docentes), 3)
+        if discentes:
+            grupos["mediana_grupo2"] = round(statistics.median(discentes), 3)
 
     inicio = (date.today() - timedelta(days=dias - 1)).isoformat()
     linhas = db.dicts(
@@ -2281,6 +2374,11 @@ def route_ponto_analytics(ctx: "Context") -> Any:
         "dias": dias,
         "dispersao": dispersao,
         "por_atividade": [{"atividade": a, "horas": round(h, 1)} for a, h in principais],
+        "inferencial": {
+            "correlacao_horas_producao": est.correlacao(
+                horas_lista, producao_lista, metodo="spearman"),
+            "docentes_vs_discentes": grupos,
+        },
     }
 
 
@@ -2769,6 +2867,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/equipe/vinculo/lote/?$", route_vinculo_lote, "coordenacao"),
     ("GET", r"^/api/metas/?$", route_metas, "integrante"),
     ("GET", r"^/api/analytics/?$", route_analytics_avancado, "leitura"),
+    ("GET", r"^/api/analytics/estatistica/?$", route_analytics_estatistica, "leitura"),
     ("POST", r"^/api/metas/?$", route_metas_declarar, "coordenacao"),
     ("GET", r"^/api/equipe/indice-h/?$", route_indice_h, "coordenacao"),
     ("POST", r"^/api/equipe/indice-h/?$", route_indice_h_declarar, "coordenacao"),
