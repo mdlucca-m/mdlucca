@@ -401,15 +401,18 @@ function slideAgora() {
     })
     : vazio("Sem histórico de publicação ainda.");
 
-  /* Funil líquido: três estágios reais do pipeline -- em escrita, com o
-     periódico (submetido + em avaliação + aceito, que é onde o artigo
-     está na mão de fora), e publicados, que enche o tanque em relação ao
-     acervo inteiro (não em relação ao topo do funil -- ver funilLiquido). */
-  const comPeriodico = (recorte.n_submitted || 0) + (recorte.n_accepted || 0);
-  const funil = recorte.n_in_progress || comPeriodico || recorte.n_published
+  /* Funil líquido: as mesmas 4 etapas dos cartões acima (Em produção, Em
+     avaliação, Aceitos, Publicados) -- achado ao vivo: agrupar "em
+     avaliação" e "aceitos" numa etapa só ("com o periódico") escondia a
+     informação que os próprios cartões já mostram separada, e dava a
+     impressão de que o funil "perdeu" dado. Publicados enche o tanque em
+     relação ao acervo inteiro (não em relação ao topo do funil -- ver
+     funilLiquido). */
+  const funil = recorte.n_in_progress || recorte.n_submitted || recorte.n_accepted || recorte.n_published
     ? ChartsEnhanced.funilLiquido([
-      { nome: "Em escrita", valor: recorte.n_in_progress, cor: "var(--series-3)" },
-      { nome: "Com o periódico", valor: comPeriodico, cor: "var(--series-4)" },
+      { nome: "Em produção", valor: recorte.n_in_progress, cor: "var(--series-3)" },
+      { nome: "Em avaliação", valor: recorte.n_submitted, cor: "var(--series-4)" },
+      { nome: "Aceitos", valor: recorte.n_accepted, cor: "var(--series-2)" },
       { nome: "Publicados", valor: recorte.n_published, total: arts.length, cor: "var(--good)" },
     ])
     : vazio("Sem artigos cadastrados.");

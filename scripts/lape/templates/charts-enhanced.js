@@ -454,30 +454,52 @@ const ChartsEnhanced = (function () {
     const raios = dados.map(d => Math.sqrt(Math.max(0, d.tamanho || 1)));
     const maiorRaio = Math.max(...raios, 1);
 
-    // Plota pontos
-    dados.forEach((d, i) => {
+    // Posições primeiro, desenho depois -- em duas passadas (achado ao
+    // vivo: com uma esfera e o rótulo dela desenhados juntos, dado por
+    // dado, a esfera SEGUINTE (maior, ou só mais tarde na lista) pintava
+    // por cima do rótulo anterior sempre que as duas caíam perto no
+    // isométrico -- comum quando duas linhas têm números parecidos.
+    // Todas as esferas vão primeiro; os rótulos, por cima de todas elas,
+    // depois -- nenhum nome fica escondido atrás de uma bola.
+    const pontos = dados.map((d, i) => {
       const nx = (d.x || 0) / maxX;
       const ny = (d.y || 0) / maxY;
       const nz = (d.z || 0) / maxZ;
-
       // Isométrica
       const px = nx * scale * 0.866 - ny * scale * 0.866;
       const py = nx * scale * 0.5 + ny * scale * 0.5 - nz * scale;
+      return { d, x: cx + px, y: cy + py, r: 6 + (raios[i] / maiorRaio) * 16, cor: d.cor || corSerie(i) };
+    });
 
-      const x = cx + px;
-      const y = cy + py;
-      const r = 6 + (raios[i] / maiorRaio) * 16;
-      const cor = d.cor || corSerie(i);
+    // Duas linhas com o mesmo número de publicados/citações/produção caem
+    // exatamente no mesmo ponto isométrico -- sem isto, uma esfera some
+    // debaixo da outra, indistinguível. Quem colide é afastado num leque
+    // pequeno ao redor do ponto original.
+    pontos.forEach((p, i) => {
+      let colisoes = 0;
+      for (let j = 0; j < i; j++) {
+        const q = pontos[j];
+        if (Math.hypot(q.x - p.x, q.y - p.y) < (p.r + q.r) * 0.55) colisoes++;
+      }
+      if (colisoes) {
+        const angulo = colisoes * 2.4;
+        const raioLeque = (p.r + 8) * 0.9;
+        p.x += Math.cos(angulo) * raioLeque;
+        p.y += Math.sin(angulo) * raioLeque;
+      }
+    });
 
+    pontos.forEach(p => {
+      const d = p.d;
       const grupo = document.createElementNS(NS, "g");
       grupo.setAttribute("class", "esfera-3d" + (d.destaque ? " esfera-pisca-ciano" : ""));
-      grupo.style.setProperty("--cor-esfera", d.destaque ? "var(--accent-strong)" : cor);
+      grupo.style.setProperty("--cor-esfera", d.destaque ? "var(--accent-strong)" : p.cor);
 
       const circle = document.createElementNS(NS, "circle");
-      circle.setAttribute("cx", x);
-      circle.setAttribute("cy", y);
-      circle.setAttribute("r", r);
-      circle.setAttribute("fill", d.destaque ? "var(--accent-strong)" : cor);
+      circle.setAttribute("cx", p.x);
+      circle.setAttribute("cy", p.y);
+      circle.setAttribute("r", p.r);
+      circle.setAttribute("fill", d.destaque ? "var(--accent-strong)" : p.cor);
       circle.setAttribute("opacity", "0.85");
       circle.setAttribute("stroke", "var(--surface)");
       circle.setAttribute("stroke-width", "2");
@@ -487,18 +509,36 @@ const ChartsEnhanced = (function () {
         + (d.destaque ? " · poucos publicados, produção real em andamento" : "");
       circle.appendChild(title);
       grupo.appendChild(circle);
+      svg.appendChild(grupo);
+    });
+
+    // Rótulos por cima de todas as esferas, e afastados uns dos outros:
+    // a posição padrão é abaixo do ponto, mas se isso colidir com um
+    // rótulo já colocado (mesmo problema das esferas coincidentes), desce
+    // em passos até abrir espaço em vez de escrever um nome sobre o outro.
+    const caixasRotulo = [];
+    pontos.forEach(p => {
+      const d = p.d;
+      const nome = d.nome ? (String(d.nome).length > 20 ? String(d.nome).slice(0, 19) + "…" : d.nome) : "";
+      if (!nome) return;
+      const largura = Math.max(34, nome.length * 6.4);
+      let y = p.y + p.r + 13;
+      for (let tentativa = 0; tentativa < 10; tentativa++) {
+        const caixa = { x0: p.x - largura / 2, x1: p.x + largura / 2, y0: y - 9, y1: y + 5 };
+        const bate = caixasRotulo.some(c => caixa.x0 < c.x1 && caixa.x1 > c.x0 && caixa.y0 < c.y1 && caixa.y1 > c.y0);
+        if (!bate) { caixasRotulo.push(caixa); break; }
+        y += 14;
+      }
 
       const rotulo = document.createElementNS(NS, "text");
-      rotulo.setAttribute("x", x);
-      rotulo.setAttribute("y", y + r + 13);
+      rotulo.setAttribute("x", p.x);
+      rotulo.setAttribute("y", y);
       rotulo.setAttribute("text-anchor", "middle");
       rotulo.setAttribute("font-size", "10.5");
       rotulo.setAttribute("font-weight", "600");
       rotulo.setAttribute("fill", "var(--ink-2)");
-      rotulo.textContent = d.nome ? (String(d.nome).length > 20 ? String(d.nome).slice(0, 19) + "…" : d.nome) : "";
-      grupo.appendChild(rotulo);
-
-      svg.appendChild(grupo);
+      rotulo.textContent = nome;
+      svg.appendChild(rotulo);
     });
 
     fig.appendChild(svg);
@@ -579,22 +619,38 @@ const ChartsEnhanced = (function () {
     return fig;
   }
 
-  /* Funil líquido: sem depender de nenhuma lib de gráfico -- dois
-     trapézios (em escrita -> com o periódico) desaguando num tanque com
-     recorte (clipPath) e uma onda animada em CSS por dentro. `estagios`
-     é sempre [entrada, meio, tanque], `tanque.total` é o total do acervo
-     (não o topo do funil) contra o qual o nível é calculado. */
+  /* Funil líquido: sem depender de nenhuma lib de gráfico -- N trapézios
+     (as etapas reais do pipeline, quantas forem) desaguando num tanque com
+     recorte (clipPath) e uma onda animada em CSS por dentro. `estagios` é
+     [etapa1, etapa2, ..., tanque] (2 ou mais); só o último vira tanque, os
+     anteriores viram trapézios em sequência. `tanque.total` é o total do
+     acervo (não o topo do funil) contra o qual o nível é calculado.
+
+     A altura de cada trapézio é a mesma fração da zona do funil -- achado
+     ao vivo: com posições fixas (uma etapa em 220→244, 24px de altura) uma
+     etapa no meio virava uma tira ilegível sempre que houvesse mais de 2
+     etapas antes do tanque. Dividir a zona do funil por `N` etapas garante
+     que cada uma tenha espaço para número + rótulo, não importa quantas. */
   function funilLiquido(estagios) {
-    if (!estagios || estagios.length < 3) return null;
-    const [e1, e2, e3] = estagios;
-    const maiorFunil = Math.max(1, e1.valor || 0, e2.valor || 0);
+    if (!estagios || estagios.length < 2) return null;
+    const etapas = estagios.slice(0, -1);
+    const e3 = estagios[estagios.length - 1];
+    const maiorFunil = Math.max(1, ...etapas.map(function (e) { return e.valor || 0; }));
     const fracaoLargura = (v) => 0.3 + 0.7 * Math.sqrt(Math.max(0, v || 0) / maiorFunil);
     const w = 420, h = 560, largMax = 320, cx = w / 2;
-    const yTopo = 26, yMeio = 220, yTanque0 = 244, yTanque1 = 520;
-
-    const w1topo = largMax * fracaoLargura(e1.valor);
-    const wMeio = largMax * fracaoLargura(e2.valor);
+    const margemTopo = 26, margemBase = 40;
     const wBocaTanque = Math.max(70, largMax * 0.36);
+
+    const alturaUtil = h - margemTopo - margemBase;
+    const alturaTanque = Math.max(220, alturaUtil * 0.5);
+    const alturaFunil = alturaUtil - alturaTanque;
+    const alturaEtapa = alturaFunil / etapas.length;
+    const yTanque0 = margemTopo + alturaFunil, yTanque1 = yTanque0 + alturaTanque;
+
+    // larguras nas N+1 fronteiras: do topo da 1a etapa até a boca do
+    // tanque, cada etapa intermediária pesada pelo próprio valor.
+    const larguras = etapas.map(function (e) { return largMax * fracaoLargura(e.valor); });
+    larguras.push(wBocaTanque);
 
     const fig = document.createElement("figure");
     fig.setAttribute("class", "chart");
@@ -635,10 +691,11 @@ const ChartsEnhanced = (function () {
       return g;
     }
 
-    svg.appendChild(trapezio(yTopo, yMeio, w1topo, wMeio, e1.cor, e1.nome, e1.valor));
-    svg.appendChild(trapezio(yMeio, yTanque0, wMeio, wBocaTanque, e2.cor, e2.nome, e2.valor));
-    svg.appendChild(rotuloEtapa(yTopo, yMeio, e1.nome, e1.valor));
-    svg.appendChild(rotuloEtapa(yMeio, yTanque0, e2.nome, e2.valor));
+    etapas.forEach(function (etapa, i) {
+      const yTop = margemTopo + i * alturaEtapa, yBot = margemTopo + (i + 1) * alturaEtapa;
+      svg.appendChild(trapezio(yTop, yBot, larguras[i], larguras[i + 1], etapa.cor, etapa.nome, etapa.valor));
+      svg.appendChild(rotuloEtapa(yTop, yBot, etapa.nome, etapa.valor));
+    });
 
     // Tanque -- contorno e recorte para a onda nunca vazar por fora dele
     const tankX = cx - wBocaTanque / 2, tankW = wBocaTanque;

@@ -1172,7 +1172,7 @@ class TestFunilLiquidoDaProducao(unittest.TestCase):
                   + "\n}")
         return _roda(script)
 
-    def test_menos_de_tres_estagios_nao_desenha_nada(self):
+    def test_menos_de_dois_estagios_nao_desenha_nada(self):
         self.assertIsNone(self._funil([{"nome": "A", "valor": 1}]))
 
     def test_figura_e_svg_levam_as_classes_que_o_css_do_quadro_espera(self):
@@ -1209,7 +1209,7 @@ class TestFunilLiquidoDaProducao(unittest.TestCase):
         primeiro_m = re.match(r"M ([\-\d.]+) ([\-\d.]+)", resultado["ondaD"])
         self.assertIsNotNone(primeiro_m)
         y_onda = float(primeiro_m.group(2))
-        y_tanque0, y_tanque1 = 244, 520
+        y_tanque0, y_tanque1 = 273, 520
         fracao_esperada_pelo_total = 48 / 160
         fracao_esperada_pelo_topo = 48 / 64
         y_pelo_total = y_tanque1 - fracao_esperada_pelo_total * (y_tanque1 - y_tanque0)
@@ -1225,6 +1225,24 @@ class TestFunilLiquidoDaProducao(unittest.TestCase):
         resultado = self._funil(estagios)
         self.assertIn("0", resultado["textos"])
         self.assertIn("de", resultado["ondaTitulo"])
+
+    def test_quatro_estagios_mostra_aceitos_como_etapa_propria(self):
+        # Achado ao vivo (feedback do Mateus): juntar "em avaliação" e
+        # "aceitos" numa etapa só ("com o periódico") escondia informação
+        # que os cartões acima do funil já mostram separada -- e com
+        # posições fixas de altura, uma 3a etapa no meio (Aceitos) caía
+        # numa tira de 24px, texto ilegível. Agora cada etapa recebe a
+        # mesma fração da altura do funil, não importa quantas houver.
+        estagios = [{"nome": "Em produção", "valor": 16, "cor": "x"},
+                    {"nome": "Em avaliação", "valor": 3, "cor": "x"},
+                    {"nome": "Aceitos", "valor": 2, "cor": "x"},
+                    {"nome": "Publicados", "valor": 112, "total": 133, "cor": "x"}]
+        resultado = self._funil(estagios)
+        self.assertIn("Aceitos", resultado["textos"])
+        self.assertIn("2", resultado["textos"])
+        self.assertIn("16", resultado["textos"])
+        self.assertIn("3", resultado["textos"])
+        self.assertIn("112", resultado["textos"])
 
 
 class TestLinhaMaisPresente(unittest.TestCase):
