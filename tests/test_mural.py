@@ -1263,3 +1263,117 @@ class TestLinhaMaisPresente(unittest.TestCase):
         # sozinha não é "força de trabalho" de linha nenhuma.
         presentes = [{"full_name": "A", "research_line": "Dor crônica"}]
         self.assertEqual(self._rodar(presentes), {"nome": "Dor crônica", "n": 1})
+
+
+class TestTemPotencialAlto(unittest.TestCase):
+    """`temPotencialAlto` -- o sinal por trás da esfera piscando em ciano
+    na dispersão 3D de "Citações e produção por área": sempre calculado
+    (publicados <= 1 e produção > 0), nunca uma lista de nomes escolhida
+    a dedo."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.fonte = _recorta("temPotencialAlto")
+
+    def _rodar(self, linha):
+        return _no_node(self.fonte, f"temPotencialAlto({json.dumps(linha)})")
+
+    def test_poucos_publicados_e_producao_em_andamento_e_destaque(self):
+        self.assertTrue(self._rodar({"publicados": 0, "producao": 3}))
+        self.assertTrue(self._rodar({"publicados": 1, "producao": 1}))
+
+    def test_ja_publicou_bastante_nao_e_destaque_mesmo_com_producao(self):
+        self.assertFalse(self._rodar({"publicados": 5, "producao": 3}))
+
+    def test_pouco_publicado_mas_sem_producao_nao_e_destaque(self):
+        # A linha parada não é "observem essa linha" -- é só uma linha
+        # pequena, sem sinal nenhum de que algo está para sair dela.
+        self.assertFalse(self._rodar({"publicados": 0, "producao": 0}))
+
+    def test_campos_ausentes_nao_quebram(self):
+        self.assertFalse(self._rodar({}))
+
+
+class TestDispersao3DDeImpactoPorLinha(unittest.TestCase):
+    """`ChartsEnhanced.scatter3d` -- reaproveitado pela primeira vez (já
+    existia no arquivo, sem nenhum chamador) para a lâmina "Citações e
+    produção por área", no lugar das faixas horizontais empilhadas."""
+
+    DOM_SHIM = """
+    class NoFalso {
+      constructor(tag) {
+        this.tag = tag; this.attrs = {}; this.kids = []; this._text = "";
+        this.style = { _props: {}, setProperty(k, v) { this._props[k] = v; } };
+        this.classList = { toggle() {} };
+      }
+      setAttribute(k, v) { this.attrs[k] = String(v); }
+      appendChild(kid) { this.kids.push(kid); return kid; }
+      set textContent(v) { this._text = String(v); }
+      get textContent() { return this._text; }
+    }
+    global.document = {
+      createElementNS: (ns, tag) => new NoFalso(tag),
+      createElement: (tag) => new NoFalso(tag),
+    };
+    global.fmt = function (v) { return String(v); };
+    function todos(no, tag, saida) {
+      saida = saida || [];
+      if (no.tag === tag) saida.push(no);
+      no.kids.forEach((k) => todos(k, tag, saida));
+      return saida;
+    }
+    """
+
+    def _grafico(self, dados, opts=None):
+        texto = (TEMPLATES / "charts-enhanced.js").read_text(encoding="utf-8")
+        inicio = texto.index("const ChartsEnhanced")
+        fim = texto.index("\n})();", inicio) + len("\n})();")
+        chart_src = texto[inicio:fim]
+        script = (self.DOM_SHIM + "\n" + chart_src
+                  + f"\nconst fig = ChartsEnhanced.scatter3d({json.dumps(dados)}, {json.dumps(opts or {})});"
+                  + "\nif (fig === null) { process.stdout.write(JSON.stringify(null)); }"
+                  + "\nelse {"
+                  + "\nconst circulos = todos(fig, 'circle');"
+                  + "\nconst textos = todos(fig, 'text').map(function (t) { return t.textContent; });"
+                  + "\nconst grupos = fig.kids[0].kids.filter(function (k) { return k.tag === 'g'; });"
+                  + "\nprocess.stdout.write(JSON.stringify({"
+                  + "  figClasse: fig.attrs.class, svgClasse: fig.kids[0].attrs.class,"
+                  + "  nCirculos: circulos.length, textos: textos,"
+                  + "  classesGrupo: grupos.map(function (g) { return g.attrs.class; }) }));"
+                  + "\n}")
+        return _roda(script)
+
+    def test_sem_dados_nao_desenha_nada(self):
+        self.assertIsNone(self._grafico([]))
+
+    def test_figura_e_svg_levam_as_classes_que_o_css_do_quadro_espera(self):
+        dados = [{"nome": "Dor crônica", "x": 12, "y": 30, "z": 2, "tamanho": 15}]
+        resultado = self._grafico(dados)
+        self.assertEqual(resultado["figClasse"], "chart")
+        self.assertEqual(resultado["svgClasse"], "plot scatter3d")
+
+    def test_nomes_dos_eixos_de_verdade_aparecem_no_grafico(self):
+        dados = [{"nome": "Dor crônica", "x": 12, "y": 30, "z": 2, "tamanho": 15}]
+        resultado = self._grafico(dados, {"eixos": {"x": "Publicados", "y": "Citações", "z": "Em produção"}})
+        self.assertIn("Publicados", resultado["textos"])
+        self.assertIn("Citações", resultado["textos"])
+        self.assertIn("Em produção", resultado["textos"])
+
+    def test_uma_esfera_por_ponto_e_o_nome_aparece_como_rotulo(self):
+        dados = [
+            {"nome": "Dor crônica", "x": 12, "y": 30, "z": 2, "tamanho": 15},
+            {"nome": "Fibromialgia", "x": 8, "y": 10, "z": 4, "tamanho": 9},
+        ]
+        resultado = self._grafico(dados)
+        self.assertEqual(resultado["nCirculos"], 2)
+        self.assertIn("Dor crônica", resultado["textos"])
+        self.assertIn("Fibromialgia", resultado["textos"])
+
+    def test_destaque_pisca_em_ciano_quem_nao_e_destaque_nao_pisca(self):
+        dados = [
+            {"nome": "Câncer", "x": 0, "y": 0, "z": 2, "tamanho": 2, "destaque": True},
+            {"nome": "Dor crônica", "x": 12, "y": 30, "z": 2, "tamanho": 15, "destaque": False},
+        ]
+        resultado = self._grafico(dados)
+        self.assertTrue(any("esfera-pisca-ciano" in (c or "") for c in resultado["classesGrupo"]))
+        self.assertFalse(all("esfera-pisca-ciano" in (c or "") for c in resultado["classesGrupo"]))
