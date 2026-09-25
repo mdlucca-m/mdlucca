@@ -1053,3 +1053,70 @@ class TestQuemTemOrientadorNoOrganograma(unittest.TestCase):
         pessoas = [{"id": 1}, {"id": 2}]
         edges = [{"from": 1, "to": 2, "kind": "colaboracao"}]
         self.assertEqual(self._rodar(pessoas, edges), [])
+
+
+class TestParetoTemLinhaDeCorteERotulos(unittest.TestCase):
+    """`ChartsEnhanced.pareto` -- achado ao vivo: a lâmina "Análise Pareto"
+    prometia (no texto ao lado) uma "linha vermelha" marcando o corte de
+    80%, e o gráfico nunca desenhava nenhuma linha -- o `pct === 80` exato
+    quase nunca bate com contagens inteiras reais. As barras também não
+    tinham rótulo nenhum: impossível saber qual linha de pesquisa era
+    qual sem adivinhar pela cor."""
+
+    DOM_SHIM = """
+    class NoFalso {
+      constructor(tag) { this.tag = tag; this.attrs = {}; this.kids = []; this._text = ""; }
+      setAttribute(k, v) { this.attrs[k] = String(v); }
+      appendChild(kid) { this.kids.push(kid); return kid; }
+      set textContent(v) { this._text = String(v); }
+      get textContent() { return this._text; }
+    }
+    global.document = {
+      createElementNS: (ns, tag) => new NoFalso(tag),
+      createElement: (tag) => new NoFalso(tag),
+    };
+    function achar(no, tag, filtro) {
+      if (no.tag === tag && (!filtro || filtro(no))) return no;
+      for (const k of no.kids) { const r = achar(k, tag, filtro); if (r) return r; }
+      return null;
+    }
+    function todos(no, tag, saida) {
+      saida = saida || [];
+      if (no.tag === tag) saida.push(no);
+      no.kids.forEach((k) => todos(k, tag, saida));
+      return saida;
+    }
+    """
+
+    def _grafico(self, dados):
+        texto = (TEMPLATES / "charts-enhanced.js").read_text(encoding="utf-8")
+        inicio = texto.index("const ChartsEnhanced")
+        fim = texto.index("\n})();", inicio) + len("\n})();")
+        chart_src = texto[inicio:fim]
+        script = (self.DOM_SHIM + "\n" + chart_src
+                  + f"\nconst fig = ChartsEnhanced.pareto({json.dumps(dados)});"
+                  + "\nconst linhaCorte = todos(fig, 'line').find(function (l) {"
+                  + "  return l.attrs.stroke === 'var(--critical)'; });"
+                  + "\nconst rotulos = todos(fig, 'text').filter(function (t) {"
+                  + "  return t.attrs.transform && t.attrs.transform.indexOf('rotate') !== -1; })"
+                  + "  .map(function (t) { return t.textContent; });"
+                  + "\nprocess.stdout.write(JSON.stringify({"
+                  + "  temLinhaDeCorte: !!linhaCorte, rotulos: rotulos }));")
+        return _roda(script)
+
+    def test_a_linha_de_corte_aparece_mesmo_quando_80_por_cento_exato_nunca_bate(self):
+        # 45, 34, 33, 26, 22 -- acumulado: 25%,45%,64%,79%,92%: o "===80"
+        # exato nunca acontece (79% pula direto para 92%)
+        dados = [{"nome": "A", "valor": 45}, {"nome": "B", "valor": 34}, {"nome": "C", "valor": 33},
+                 {"nome": "D", "valor": 26}, {"nome": "E", "valor": 22}]
+        resultado = self._grafico(dados)
+        self.assertTrue(resultado["temLinhaDeCorte"],
+                        "a lâmina promete 'linha vermelha' e o gráfico não desenhou nenhuma")
+
+    def test_cada_barra_tem_o_nome_da_linha_como_rotulo(self):
+        dados = [{"nome": "Psicologia do exercício e saúde mental", "valor": 45},
+                 {"nome": "Treinamento psicológico", "valor": 34},
+                 {"nome": "Dor crônica", "valor": 33}]
+        resultado = self._grafico(dados)
+        self.assertEqual(len(resultado["rotulos"]), 3)
+        self.assertTrue(any("Psicologia" in r for r in resultado["rotulos"]))
