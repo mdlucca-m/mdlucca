@@ -2737,6 +2737,103 @@ def route_tv(ctx: "Context") -> Any:
     return tv.para_a_tv(ctx.db)
 
 
+def route_mural_chegadas(ctx: "Context") -> Any:
+    """Quem acabou de bater entrada, para o mural acender um cartão de
+    boas-vindas -- só novidade desde o `desde_id` que o painel já viu.
+
+    Sem `desde_id` na chamada: devolve só o ponteiro atual (o maior id de
+    ponto agora), sem nenhuma chegada -- assim, quando o mural liga, ele
+    NÃO reproduz entradas antigas como se fossem novas, só estabelece o
+    marco zero. Só a partir da próxima chamada, com esse id de volta, é
+    que chegadas de verdade aparecem.
+
+    Mesma lógica de acesso de /api/tv: sem checagem de login aqui dentro
+    de propósito (ver route_tv) -- LAPE_PUBLIC_DASHBOARD=1 é o caso do
+    mural sozinho numa TV, sem ninguém para logar.
+    """
+    maior_id = ctx.db.scalar("SELECT COALESCE(MAX(id), 0) FROM ponto")
+    bruto = (ctx.query.get("desde_id") or [None])[0]
+    if bruto is None:
+        return {"chegadas": [], "ultimo_id": maior_id}
+
+    desde_id = to_int(bruto) or 0
+    linhas = ctx.db.dicts(
+        "SELECT p.id, p.entrada, m.id AS member_id, m.full_name, m.photo_url"
+        "  FROM ponto p JOIN members m ON m.id = p.member_id"
+        " WHERE p.id > ?"
+        " ORDER BY p.id ASC LIMIT 5", (desde_id,))
+    return {"chegadas": [_chegada_com_producao(ctx.db, linha) for linha in linhas],
+            "ultimo_id": maior_id}
+
+
+def _chegada_com_producao(db: "Database", linha: dict) -> dict:
+    """Os artigos em produção de quem chegou -- no máximo dois, para o
+    cartão não virar uma lista inteira na tela."""
+    artigos = db.dicts(
+        "SELECT a.title, a.started_on, a.research_line_id, rl.name AS linha"
+        "  FROM articles a"
+        "  JOIN article_authors aa ON aa.article_id = a.id"
+        "  LEFT JOIN research_lines rl ON rl.id = a.research_line_id"
+        " WHERE aa.member_id = ? AND a.status = 'em_producao'"
+        " ORDER BY a.started_on", (linha["member_id"],))
+    return {
+        "id": linha["id"],
+        "entrada": linha["entrada"],
+        "nome": linha["full_name"],
+        "foto": linha["photo_url"],
+        "artigos": [{
+            "titulo": a["title"],
+            "linha": a["linha"],
+            "progresso": _progresso_estimado(db, a),
+        } for a in artigos[:2]],
+    }
+
+
+def _somente_data(texto: Any):
+    try:
+        return datetime.strptime(str(texto)[:10], "%Y-%m-%d").date()
+    except (TypeError, ValueError):
+        return None
+
+
+def _mediana_dias_escrita(db: "Database", research_line_id: Any) -> float:
+    """Quanto essa LINHA costuma levar do início até a primeira submissão
+    (ou, faltando essa data, até a publicação) -- sem histórico
+    suficiente na linha, 180 dias como referência neutra, nem otimista
+    nem pessimista demais."""
+    if not research_line_id:
+        return 180.0
+    linhas = db.dicts(
+        "SELECT started_on, COALESCE(first_submission_on, published_on) AS fim"
+        "  FROM articles"
+        " WHERE research_line_id = ? AND started_on IS NOT NULL"
+        "   AND COALESCE(first_submission_on, published_on) IS NOT NULL", (research_line_id,))
+    dias = []
+    for linha in linhas:
+        inicio, fim = _somente_data(linha["started_on"]), _somente_data(linha["fim"])
+        if inicio and fim and (fim - inicio).days > 0:
+            dias.append((fim - inicio).days)
+    dias.sort()
+    if not dias:
+        return 180.0
+    meio = len(dias) // 2
+    return float(dias[meio] if len(dias) % 2 else (dias[meio - 1] + dias[meio]) / 2)
+
+
+def _progresso_estimado(db: "Database", artigo: dict) -> int:
+    """Estimativa honesta -- dias desde o início sobre a mediana histórica
+    da própria linha -- não um número inventado. Nunca 100%: o artigo
+    continua em produção, a barra não promete o que não sabe; nunca 0%
+    também, para não parecer que acabou de nascer quando já tem semanas."""
+    inicio = _somente_data(artigo.get("started_on"))
+    if inicio is None:
+        return 5
+    dias_passados = (datetime.now().date() - inicio).days
+    mediana = _mediana_dias_escrita(db, artigo.get("research_line_id"))
+    pct = round(100 * max(0, dias_passados) / mediana)
+    return max(5, min(95, pct))
+
+
 def route_rotina(ctx: "Context") -> Any:
     """A rotina automatica: cada passo, quando rodou, o que trouxe, quando volta."""
     from . import rotina
@@ -2898,6 +2995,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/aovivo/?$", route_aovivo, "leitura"),
     ("GET", r"^/api/caminho/?$", route_caminho, "leitura"),
     ("GET", r"^/api/tv/?$", route_tv, "leitura"),
+    ("GET", r"^/api/mural/chegadas/?$", route_mural_chegadas, "leitura"),
     ("GET", r"^/api/buscar/?$", route_buscar, "leitura"),
     ("GET", r"^/api/rotina/?$", route_rotina, "leitura"),
     ("POST", r"^/api/rotina/rodar/?$", route_rotina_rodar, "coordenacao"),

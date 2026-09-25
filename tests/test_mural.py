@@ -861,3 +861,96 @@ class TestOQueAParedeSempreMostra(unittest.TestCase):
         self.assertIn("anos.slice(-JANELA)", self.js)
         self.assertEqual(self.js.count("JANELA"), 2,
                          "a janela ganhou outro dono: confira se os dois cortam igual")
+
+
+class TestChegadaAoVivo(unittest.TestCase):
+    """O cartão holográfico e o odômetro das citações: `/api/mural/chegadas`
+    e as contas de progresso que alimentam esse cartão (route_mural_chegadas,
+    _mediana_dias_escrita, _progresso_estimado em api.py)."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.db = Database(Path(self.tmp.name) / "chegadas.sqlite")
+        self.db.migrate()
+
+    def tearDown(self):
+        self.db.close()
+        self.tmp.cleanup()
+
+    def _linha_pesquisa(self, nome="Linha de teste"):
+        self.db.execute(
+            "INSERT INTO research_lines (code, name) VALUES (?, ?)", (nome[:8], nome))
+        self.db.conn.commit()
+        return self.db.scalar("SELECT id FROM research_lines WHERE name = ?", (nome,))
+
+    _contador_artigos = 0
+
+    def _artigo(self, research_line_id, started_on, fim=None, status="em_producao"):
+        TestChegadaAoVivo._contador_artigos += 1
+        titulo = f"artigo {TestChegadaAoVivo._contador_artigos} {started_on} {fim}"
+        self.db.execute(
+            "INSERT INTO articles (title, title_key, status, research_line_id,"
+            " started_on, first_submission_on) VALUES (?, ?, ?, ?, ?, ?)",
+            (titulo, titulo.lower(), status, research_line_id, started_on, fim))
+        self.db.conn.commit()
+        return self.db.scalar("SELECT id FROM articles WHERE title_key = ?", (titulo.lower(),))
+
+    def test_sem_data_de_inicio_nao_quebra_e_devolve_o_minimo(self):
+        self.assertEqual(api._progresso_estimado(self.db, {"started_on": None}), 5)
+
+    def test_sem_historico_na_linha_usa_180_dias_como_referencia(self):
+        self.assertEqual(api._mediana_dias_escrita(self.db, None), 180.0)
+        self.assertEqual(api._mediana_dias_escrita(self.db, 999999), 180.0)
+
+    def test_mediana_e_a_do_meio_entre_os_artigos_concluidos_da_linha(self):
+        linha = self._linha_pesquisa()
+        # 30, 60 e 90 dias -- mediana e' 60, e o em_producao (sem "fim") nao entra na conta
+        self._artigo(linha, "2024-01-01", "2024-01-31")
+        self._artigo(linha, "2024-01-01", "2024-03-01")
+        self._artigo(linha, "2024-01-01", "2024-04-01")
+        self._artigo(linha, "2024-06-01", None)
+        self.assertAlmostEqual(api._mediana_dias_escrita(self.db, linha), 60, delta=2)
+
+    def test_progresso_nunca_passa_de_95_nem_fica_abaixo_de_5(self):
+        linha = self._linha_pesquisa("Linha rapida")
+        self._artigo(linha, "2024-01-01", "2024-01-11")  # mediana de 10 dias
+        # comecado ha muitos anos: sem o teto, passaria de 100%
+        antigo = {"started_on": "2015-01-01", "research_line_id": linha}
+        self.assertEqual(api._progresso_estimado(self.db, antigo), 95)
+        # comecado agora mesmo: sem o piso, seria 0%
+        from datetime import datetime
+        hoje = datetime.now().strftime("%Y-%m-%d")
+        recente = {"started_on": hoje, "research_line_id": linha}
+        self.assertEqual(api._progresso_estimado(self.db, recente), 5)
+
+    def test_chegada_traz_no_maximo_dois_artigos_em_producao(self):
+        membro_id = self.db.member_id("Fulana de Tal")
+        linha = self._linha_pesquisa("Linha da Fulana")
+        for i in range(3):
+            artigo_id = self._artigo(linha, "2024-01-01", None)
+            self.db.execute(
+                "INSERT INTO article_authors (article_id, member_id, author_name, author_order)"
+                " VALUES (?, ?, ?, 1)", (artigo_id, membro_id, "Fulana de Tal"))
+        self.db.conn.commit()
+
+        chegada = api._chegada_com_producao(self.db, {
+            "id": 1, "entrada": "2026-01-01 08:00:00",
+            "member_id": membro_id, "full_name": "Fulana de Tal", "photo_url": None,
+        })
+        self.assertEqual(chegada["nome"], "Fulana de Tal")
+        self.assertEqual(len(chegada["artigos"]), 2)
+
+    def test_desde_id_ausente_so_estabelece_o_marco_zero(self):
+        membro_id = self.db.member_id("Beltrano Silva")
+        self.db.execute("INSERT INTO ponto (member_id, entrada) VALUES (?, ?)",
+                        (membro_id, "2026-01-01 08:00:00"))
+        self.db.conn.commit()
+
+        class ContextoFalso:
+            db = self.db
+            query = {}
+            user = {}
+
+        resultado = api.route_mural_chegadas(ContextoFalso())
+        self.assertEqual(resultado["chegadas"], [])
+        self.assertGreaterEqual(resultado["ultimo_id"], 1)

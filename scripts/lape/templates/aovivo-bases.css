@@ -47,6 +47,8 @@
 }
 
 .metric-card {
+  position: relative;
+  overflow: hidden;
   padding: 1.25rem 1.5rem;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -58,6 +60,53 @@
 .metric-card.metric-total { border-left-color: var(--series-3); }
 .metric-card.metric-media { border-left-color: var(--series-4); }
 .metric-card.metric-fonte { border-left-color: var(--series-7); }
+
+/* Feixe de luz correndo pelo perímetro do cartão, sem parar -- a mesma
+   técnica do glow-de-borda do painel 4K (conic-gradient mascarado só no
+   anel, nunca no miolo), aqui usando os tokens de tema (--accent-strong)
+   em vez de cor fixa, para acompanhar a paleta escolhida no mural. */
+.metric-card::before {
+  content: "";
+  position: absolute; inset: 0; border-radius: inherit; padding: 1.5px;
+  background: conic-gradient(from 0deg, transparent 0%, var(--accent-strong) 6%, transparent 18%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: girar-feixe-metrica 4.5s linear infinite;
+  pointer-events: none;
+}
+@keyframes girar-feixe-metrica { to { transform: rotate(360deg); } }
+
+/* Odômetro: quando o número sobe entre uma checagem e outra (ver
+   `atualizarValoresAoVivo` em mural.js), um glitch RGB rápido marca a
+   mudança -- sem ficar piscando fora desse instante. */
+.metric-value.glitch { animation: glitch-metrica .5s steps(2, end) 1; }
+@keyframes glitch-metrica {
+  0%   { text-shadow: 2px 0 var(--series-5), -2px 0 var(--series-6); transform: translateX(0); }
+  30%  { text-shadow: -3px 0 var(--series-5), 3px 0 var(--series-6); transform: translateX(1px); }
+  60%  { text-shadow: 3px 0 var(--series-5), -3px 0 var(--series-6); transform: translateX(-1px); }
+  100% { text-shadow: none; transform: translateX(0); }
+}
+
+/* Explosão discreta de partículas no instante em que o número sobe --
+   nunca no primeiro carregamento (só numa subida DE VERDADE, comparada
+   com a leitura anterior), e some sozinha em menos de um segundo. */
+.particulas-kpi { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.particula-kpi {
+  position: absolute; width: 4px; height: 4px; border-radius: 50%;
+  background: var(--accent-strong); box-shadow: 0 0 6px 1px var(--accent-strong);
+  left: var(--px, 50%); top: var(--py, 30%);
+  animation: explodir-particula-kpi .9s ease-out forwards;
+}
+@keyframes explodir-particula-kpi {
+  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx, 0), var(--dy, -24px)) scale(.3); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .metric-card::before { animation: none; }
+  .metric-value.glitch { animation: none; }
+  .particula-kpi { display: none; }
+}
 
 .metric-label {
   font-size: 0.8rem;

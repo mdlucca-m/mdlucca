@@ -665,12 +665,12 @@ function slideCitacoesBases() {
   wrapper.appendChild(el("div", { class: "bases-resumo" }, [
     el("div", { class: "metric-card metric-total" }, [
       el("div", { class: "metric-label", text: "Total de citações" }),
-      el("div", { class: "metric-value", text: C.fmt(resumo.total_citacoes) }),
+      el("div", { class: "metric-value", "data-metrica": "total_citacoes", text: C.fmt(resumo.total_citacoes) }),
       el("div", { class: "metric-meta", text: C.fmt(resumo.total_artigos) + " artigo(s) com dados" }),
     ]),
     el("div", { class: "metric-card metric-media" }, [
       el("div", { class: "metric-label", text: "Média por artigo" }),
-      el("div", { class: "metric-value", text: C.fmt(resumo.media_citacoes) }),
+      el("div", { class: "metric-value", "data-metrica": "media_citacoes", text: C.fmt(resumo.media_citacoes) }),
       el("div", { class: "metric-meta", text: C.fmt(resumo.linhas_ativas) + " linha(s) de pesquisa" }),
     ]),
     el("div", { class: "metric-card metric-fonte" }, [
