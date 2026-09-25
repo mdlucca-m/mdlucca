@@ -146,6 +146,38 @@ class TestOQueATvJunta(BaseDaTv):
         self.assertIn("ligada", r)
 
 
+class TestLinhasDePesquisaParaOMural(BaseDaTv):
+    """`_linhas_pesquisa` alimenta a lâmina "Linhas de Pesquisa 3D" do
+    mural -- publicados e citações são as duas informações que a lâmina
+    passou a mostrar por linha (antes só tinha total de artigos e taxa)."""
+
+    def _linha(self, code, name):
+        self.db.execute(
+            "INSERT INTO research_lines (code, name, active) VALUES (?, ?, 1)", (code, name))
+        self.db.conn.commit()
+        return self.db.scalar("SELECT id FROM research_lines WHERE code = ?", (code,))
+
+    def test_traz_publicados_e_citacoes_por_linha(self):
+        lid = self._linha("linha-teste", "Linha de Teste")
+        _artigo(self.db, "Artigo publicado com citações", research_line_id=lid,
+                status="publicado", openalex_citations=12)
+        _artigo(self.db, "Artigo ainda em produção", research_line_id=lid,
+                status="em_producao", openalex_citations=0)
+        linha = next(l for l in tv._linhas_pesquisa(self.db) if l["id"] == lid)
+        self.assertEqual(linha["artigos"], 2)
+        self.assertEqual(linha["publicados"], 1)
+        self.assertEqual(linha["citacoes"], 12)
+        self.assertAlmostEqual(linha["taxa_publicacao"], 0.5)
+
+    def test_linha_sem_nenhum_artigo_vem_zerada_nao_ausente(self):
+        lid = self._linha("linha-vazia", "Linha Vazia")
+        linha = next(l for l in tv._linhas_pesquisa(self.db) if l["id"] == lid)
+        self.assertEqual(linha["artigos"], 0)
+        self.assertEqual(linha["publicados"], 0)
+        self.assertEqual(linha["citacoes"], 0)
+        self.assertEqual(linha["taxa_publicacao"], 0)
+
+
 class TestAsNoticias(BaseDaTv):
 
     def test_publicados_do_mais_novo_para_o_mais_velho_e_o_sem_data_pelo_ano(self):

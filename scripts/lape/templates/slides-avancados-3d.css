@@ -190,6 +190,16 @@
   filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.3));
 }
 
+/* Citações totais da linha, sob o nome -- só existe quando > 0 (ver o
+   porquê no JS), então entra suave, sem disputar atenção com o nome. */
+.grafo-linhas-3d .label-citacoes-linha {
+  animation: fadeIn 0.8s ease forwards;
+  animation-delay: calc(var(--index) * 0.12s + 0.2s);
+  opacity: 0;
+  fill: var(--accent-strong);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Label do centro */
 .grafo-linhas-3d .label-centro {
   animation: glow-pulse 2s ease-in-out infinite;
@@ -206,6 +216,19 @@
     opacity: 1;
   }
 }
+
+/* Linhas sem produção ainda: uma frase compacta, não um nó vazio no
+   grafo -- mesma receita visual de `.linhas-sem-citacao` (aovivo-bases.css). */
+.linhas-pesquisa-vazias {
+  font-size: clamp(10px, 0.85vw, 13px);
+  color: var(--ink-muted);
+  padding: 0.5rem 0.9rem;
+  margin: 0.4rem 1rem 0;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  line-height: 1.5;
+}
+.linhas-pesquisa-vazias b { color: var(--ink-2); font-weight: 650; }
 
 /* Info das linhas */
 .info-linhas-3d {
