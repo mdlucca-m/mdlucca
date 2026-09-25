@@ -377,52 +377,34 @@ const ChartsEnhanced = (function () {
   }
 
   /* ======================== Scatter 3D (projeção isométrica) ======================== */
-  function scatter3d(dados) {
+  /* `opts.eixos` nomeia os três eixos de verdade (nunca "X"/"Y"/"Z" -- quem
+     olha de longe não decora qual é qual). Cada ponto em `dados` pode
+     trazer `destaque: true` para a esfera piscar -- o chamador decide o
+     critério (aqui nunca é escolhido a dedo, sempre calculado). Todas as
+     esferas ganham um brilho (drop-shadow na cor da própria série), e cada
+     uma leva o nome embaixo: numa TV ninguém passa o mouse para ler o
+     `title`. */
+  function scatter3d(dados, opts) {
     /**
      * Dispersão em 3D projetada isometricamente
      * x, y, z como variáveis numéricas
      * tamanho proporcional a uma quarta variável
      */
     if (!dados || dados.length === 0) return null;
+    const o = opts || {};
+    const eixos = o.eixos || { x: "X", y: "Y", z: "Z" };
 
-    const w = 600, h = 600;
+    const w = 600, h = 640;
     const fig = document.createElement("figure");
     fig.setAttribute("class", "chart");
     const svg = document.createElementNS(NS, "svg");
     svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
     svg.setAttribute("class", "plot scatter3d");
 
-    const margin = 60;
+    const margin = 70;
     const scale = (w - 2 * margin) / 3;
 
-    const cx = w / 2, cy = h / 2;
-
-    // Desenha eixos isométricos
-    const axes = [
-      { x: cx, y: cy, dx: scale * 0.866, dy: -scale * 0.5, label: "X" },
-      { x: cx, y: cy, dx: -scale * 0.866, dy: -scale * 0.5, label: "Y" },
-      { x: cx, y: cy, dx: 0, dy: scale, label: "Z" },
-    ];
-
-    axes.forEach(axis => {
-      const line = document.createElementNS(NS, "line");
-      line.setAttribute("x1", axis.x);
-      line.setAttribute("y1", axis.y);
-      line.setAttribute("x2", axis.x + axis.dx);
-      line.setAttribute("y2", axis.y + axis.dy);
-      line.setAttribute("stroke", "var(--border-strong)");
-      line.setAttribute("stroke-width", "1");
-      svg.appendChild(line);
-
-      const text = document.createElementNS(NS, "text");
-      text.setAttribute("x", axis.x + axis.dx + 10);
-      text.setAttribute("y", axis.y + axis.dy + 5);
-      text.setAttribute("font-size", "12");
-      text.setAttribute("font-weight", "bold");
-      text.setAttribute("fill", "var(--ink)");
-      text.textContent = axis.label;
-      svg.appendChild(text);
-    });
+    const cx = w / 2, cy = h / 2 - 20;
 
     // Normaliza dados
     const xs = dados.map(d => d.x || 0);
@@ -431,6 +413,46 @@ const ChartsEnhanced = (function () {
     const maxX = Math.max(...xs) || 1;
     const maxY = Math.max(...ys) || 1;
     const maxZ = Math.max(...zs) || 1;
+
+    // Desenha eixos isométricos, com o nome de verdade e o teto do eixo
+    const axes = [
+      { dx: scale * 0.866, dy: -scale * 0.5, label: eixos.x, teto: maxX },
+      { dx: -scale * 0.866, dy: -scale * 0.5, label: eixos.y, teto: maxY },
+      { dx: 0, dy: scale, label: eixos.z, teto: maxZ },
+    ];
+
+    axes.forEach(axis => {
+      const line = document.createElementNS(NS, "line");
+      line.setAttribute("x1", cx);
+      line.setAttribute("y1", cy);
+      line.setAttribute("x2", cx + axis.dx);
+      line.setAttribute("y2", cy + axis.dy);
+      line.setAttribute("stroke", "var(--border-strong)");
+      line.setAttribute("stroke-width", "1");
+      svg.appendChild(line);
+
+      const text = document.createElementNS(NS, "text");
+      text.setAttribute("x", cx + axis.dx * 1.12);
+      text.setAttribute("y", cy + axis.dy * 1.12);
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("font-size", "13");
+      text.setAttribute("font-weight", "700");
+      text.setAttribute("fill", "var(--ink)");
+      text.textContent = axis.label;
+      svg.appendChild(text);
+
+      const teto = document.createElementNS(NS, "text");
+      teto.setAttribute("x", cx + axis.dx * 1.12);
+      teto.setAttribute("y", cy + axis.dy * 1.12 + 15);
+      teto.setAttribute("text-anchor", "middle");
+      teto.setAttribute("font-size", "10");
+      teto.setAttribute("fill", "var(--ink-muted)");
+      teto.textContent = "até " + fmt(axis.teto);
+      svg.appendChild(teto);
+    });
+
+    const raios = dados.map(d => Math.sqrt(Math.max(0, d.tamanho || 1)));
+    const maiorRaio = Math.max(...raios, 1);
 
     // Plota pontos
     dados.forEach((d, i) => {
@@ -444,22 +466,39 @@ const ChartsEnhanced = (function () {
 
       const x = cx + px;
       const y = cy + py;
-      const r = Math.sqrt(d.tamanho || 1) * 3;
+      const r = 6 + (raios[i] / maiorRaio) * 16;
+      const cor = d.cor || corSerie(i);
+
+      const grupo = document.createElementNS(NS, "g");
+      grupo.setAttribute("class", "esfera-3d" + (d.destaque ? " esfera-pisca-ciano" : ""));
+      grupo.style.setProperty("--cor-esfera", d.destaque ? "var(--accent-strong)" : cor);
 
       const circle = document.createElementNS(NS, "circle");
       circle.setAttribute("cx", x);
       circle.setAttribute("cy", y);
       circle.setAttribute("r", r);
-      circle.setAttribute("fill", corSerie(i));
-      circle.setAttribute("opacity", "0.7");
+      circle.setAttribute("fill", d.destaque ? "var(--accent-strong)" : cor);
+      circle.setAttribute("opacity", "0.85");
       circle.setAttribute("stroke", "var(--surface)");
       circle.setAttribute("stroke-width", "2");
 
       const title = document.createElementNS(NS, "title");
-      title.textContent = `${d.nome || "Item"}: (${d.x}, ${d.y}, ${d.z})`;
+      title.textContent = `${d.nome || "Item"}: ${eixos.x} ${fmt(d.x)} · ${eixos.y} ${fmt(d.y)} · ${eixos.z} ${fmt(d.z)}`
+        + (d.destaque ? " · poucos publicados, produção real em andamento" : "");
       circle.appendChild(title);
+      grupo.appendChild(circle);
 
-      svg.appendChild(circle);
+      const rotulo = document.createElementNS(NS, "text");
+      rotulo.setAttribute("x", x);
+      rotulo.setAttribute("y", y + r + 13);
+      rotulo.setAttribute("text-anchor", "middle");
+      rotulo.setAttribute("font-size", "10.5");
+      rotulo.setAttribute("font-weight", "600");
+      rotulo.setAttribute("fill", "var(--ink-2)");
+      rotulo.textContent = d.nome ? (String(d.nome).length > 20 ? String(d.nome).slice(0, 19) + "…" : d.nome) : "";
+      grupo.appendChild(rotulo);
+
+      svg.appendChild(grupo);
     });
 
     fig.appendChild(svg);

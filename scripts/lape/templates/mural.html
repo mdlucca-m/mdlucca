@@ -200,6 +200,17 @@ body { background: var(--surface-sunken); }
 .onda-liquida { animation: moverOndaLiquida 2.6s linear infinite; }
 @keyframes moverOndaLiquida { from { transform: translateX(0); } to { transform: translateX(calc(var(--onda-passo, 20px) * -2)); } }
 @media (prefers-reduced-motion: reduce) { .onda-liquida { animation: none; } }
+/* Esfera do gráfico de dispersão 3D: brilho fixo na cor da própria série
+   (nunca cor nova -- lida de `--cor-esfera`, posta pelo JS), e piscar em
+   ciano só quando a linha de pesquisa é destaque real (poucos artigos
+   publicados, produção em andamento). */
+.esfera-3d circle { filter: drop-shadow(0 0 6px var(--cor-esfera)); }
+.esfera-pisca-ciano circle { animation: piscaEsferaCiano 1.7s ease-in-out infinite; }
+@keyframes piscaEsferaCiano {
+  0%, 100% { filter: drop-shadow(0 0 6px var(--cor-esfera)); opacity: .85; }
+  50% { filter: drop-shadow(0 0 16px var(--cor-esfera)); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .esfera-pisca-ciano circle { animation: none; } }
 
 /* lista de prazos e de agenda: uma linha alta, legível de longe */
 /* a lista se abre até a altura do quadro: numa TV, seis linhas espremidas no

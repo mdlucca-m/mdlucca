@@ -675,6 +675,9 @@ function graficoDasAreas() {
         return a.status === "submetido" || a.status === "em_revisao"; }).length,
       producao: meus.filter(function (a) { return a.status === "em_producao"; }).length,
       total: meus.length,
+      /* "Melhor fonte por artigo", a mesma regra da tela inteira -- nunca
+         soma WoS+Scopus (contaria a citação em dobro). */
+      citacoes: meus.reduce(function (soma, a) { return soma + citacoes(a); }, 0),
       ativa: l.active !== 0,
     };
   }).filter(function (x) {
@@ -697,15 +700,57 @@ function graficoDasAreas() {
   const semDado = porLinha.filter(function (x) { return x.total === 0; });
 
   return {
-    titulo: "Publicados, em avaliação e em produção", icone: "barras",
+    titulo: "Publicados, citações e produção por linha", icone: "barras",
     nota: fmt(arts.length) + " artigos",
-    grafico: comDado.length ? faixasPorLinha(comDado, semDado)
+    grafico: comDado.length ? matrizImpactoPorLinha(comDado, semDado)
       : vazio(porLinha.length
         ? "As linhas de pesquisa estão cadastradas, e nenhum dos "
           + fmt(arts.length) + " artigos está ligado a uma delas. A linha se "
           + "escolhe na ficha do artigo, no painel."
         : "Nenhuma linha de pesquisa cadastrada."),
   };
+}
+
+/* "Alto potencial, baixo volume" -- e é sempre CALCULADO, nunca uma lista
+   de nomes fixa: publicados <= 1 (a linha ainda não emplacou, ou emplacou
+   uma vez só) E producao > 0 (tem gente escrevendo ali agora). É o sinal
+   real de "observem essa linha", não um palpite. */
+function temPotencialAlto(linha) {
+  return (linha.publicados || 0) <= 1 && (linha.producao || 0) > 0;
+}
+
+/* Dispersão 3D isométrica no lugar das faixas horizontais: eixo X é o
+   volume publicado, eixo Y é o impacto real (citações pela melhor fonte,
+   nunca somando bases), e eixo Z é a carga de trabalho atual (manuscritos
+   em produção agora). O tamanho da esfera segue o total do acervo daquela
+   linha. */
+function matrizImpactoPorLinha(porLinha, semDado) {
+  const dados = porLinha.map(function (x) {
+    return {
+      nome: x.nome, x: x.publicados, y: x.citacoes, z: x.producao,
+      tamanho: x.total, destaque: temPotencialAlto(x),
+    };
+  });
+  const grafico = ChartsEnhanced.scatter3d(dados, {
+    eixos: { x: "Publicados", y: "Citações", z: "Em produção" },
+  });
+  const destaques = dados.filter(function (d) { return d.destaque; });
+  const filhos = [grafico];
+  if (destaques.length) {
+    filhos.push(el("p", { class: "linhas-pesquisa-vazias" }, [
+      el("span", { class: "ponto-vivo" }),
+      el("b", { text: " Piscando em ciano: " }),
+      el("span", { text: destaques.map(function (d) { return d.nome; }).join(" · ")
+        + " -- poucos artigos publicados, produção real em andamento" }),
+    ]));
+  }
+  if (semDado && semDado.length) {
+    filhos.push(el("p", { class: "linhas-pesquisa-vazias" }, [
+      el("b", { text: semDado.length + " linha(s) sem artigo ainda: " }),
+      el("span", { text: semDado.map(function (x) { return x.nome; }).join(" · ") }),
+    ]));
+  }
+  return el("div", { class: "faixas-caixa" }, filhos);
 }
 
 /* Faixas horizontais, uma por linha, com o nome inteiro e o ícone da
