@@ -44,10 +44,6 @@ const MESES_EXT = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "
   "agosto", "setembro", "outubro", "novembro", "dezembro"];
 const DIAS_EXT = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira",
   "sexta-feira", "sábado"];
-const STATUS_ROTULO = {
-  em_producao: "Em produção", submetido: "Submetido", em_revisao: "Em avaliação",
-  aceito: "Aceito", publicado: "Publicado", rejeitado: "Rejeitado", arquivado: "Arquivado",
-};
 const TIPO_EVENTO = {
   reuniao: "Reunião", congresso: "Congresso", defesa: "Defesa", qualificacao: "Qualificação",
   coleta: "Coleta de dados", curso: "Curso", palestra: "Palestra", visita: "Visita",
@@ -420,10 +416,21 @@ function slideAgora() {
     })
     : vazio("Sem histórico de publicação ainda.");
 
-  const situacao = contar(arts, function (a) { return STATUS_ROTULO[a.status] || a.status; });
-  const rosca = situacao.length
-    ? C.donut({ items: situacao, unit: "artigos", caption: "situação" })
+  /* Funil líquido: três estágios reais do pipeline -- em escrita, com o
+     periódico (submetido + em avaliação + aceito, que é onde o artigo
+     está na mão de fora), e publicados, que enche o tanque em relação ao
+     acervo inteiro (não em relação ao topo do funil -- ver funilLiquido). */
+  const comPeriodico = (recorte.n_submitted || 0) + (recorte.n_accepted || 0);
+  const funil = recorte.n_in_progress || comPeriodico || recorte.n_published
+    ? ChartsEnhanced.funilLiquido([
+      { nome: "Em escrita", valor: recorte.n_in_progress, cor: "var(--series-3)" },
+      { nome: "Com o periódico", valor: comPeriodico, cor: "var(--series-4)" },
+      { nome: "Publicados", valor: recorte.n_published, total: arts.length, cor: "var(--good)" },
+    ])
     : vazio("Sem artigos cadastrados.");
+  const desfechos = arts.filter(function (a) {
+    return a.status === "rejeitado" || a.status === "arquivado";
+  }).length;
 
   const corpo = [kpis];
   const presenca = faixaPresenca();
@@ -431,10 +438,27 @@ function slideAgora() {
   corpo.push(el("div", { class: "painel-duplo" }, [
     quadro("Publicações por ano", "subida", grafico,
       recentes.length ? recentes[0].year + "–" + recentes[recentes.length - 1].year : "", "moldura-viva"),
-    quadro("Situação da produção", "processo", rosca, fmt(arts.length) + " artigos", "moldura-viva"),
+    quadro("Funil da produção", "processo", funil,
+      desfechos ? fmt(desfechos) + " rejeitado(s)/arquivado(s) não entram no funil" : "", "moldura-viva"),
   ]));
 
   return escalonar(el("div", { class: "slide" }, corpo));
+}
+
+/* Qual linha de pesquisa mais aparece entre quem está presente agora --
+   um sinal real (não inventado): é só contar `research_line` de quem
+   bateu ponto, o mesmo campo que o organograma já usa. */
+function linhaMaisPresente(presentes) {
+  const contagem = new Map();
+  presentes.forEach(function (p) {
+    const nome = p.research_line || "sem linha declarada";
+    contagem.set(nome, (contagem.get(nome) || 0) + 1);
+  });
+  let nome = null, n = 0;
+  contagem.forEach(function (valor, chave) {
+    if (valor > n) { nome = chave; n = valor; }
+  });
+  return { nome: nome, n: n };
 }
 
 /* Quem bateu ponto e ainda não bateu saída -- o mesmo dado que a tela de
@@ -446,6 +470,16 @@ function faixaPresenca() {
   const presentes = pessoas.filter(function (p) { return p.ativo_agora; });
   if (!presentes.length) return null;
 
+  const destaque = linhaMaisPresente(presentes);
+  const leitura = destaque.n >= 2 ? el("div", { class: "faixa-presenca-leitura" }, [
+    el("span", {
+      html: "Força de trabalho agora: <b>" + destaque.n + " de " + presentes.length
+        + "</b> presente" + (presentes.length === 1 ? "" : "s") + " "
+        + (destaque.n === presentes.length ? "é" : "são")
+        + " da linha <b>" + destaque.nome + "</b>",
+    }),
+  ]) : null;
+
   return el("div", { class: "faixa-presenca" }, [
     el("div", { class: "faixa-presenca-titulo" }, [
       el("span", { class: "ponto-vivo" }),
@@ -454,11 +488,12 @@ function faixaPresenca() {
     el("div", { class: "faixa-presenca-lista" }, presentes.map(function (p) {
       const desde = p.ha_horas !== null && p.ha_horas !== undefined
         ? " · há " + porHoras(p.ha_horas) : "";
-      return el("span", { class: "chip-presenca", title: (p.atividade || "presente") + desde }, [
+      return el("span", { class: "chip-presenca pulso-neon-azul", title: (p.atividade || "presente") + desde }, [
         el("span", { class: "chip-ponto" }),
         el("span", { text: p.full_name }),
       ]);
     })),
+    leitura,
   ]);
 }
 

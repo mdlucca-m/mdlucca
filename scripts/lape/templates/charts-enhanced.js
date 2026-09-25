@@ -25,6 +25,7 @@ const ChartsEnhanced = (function () {
     const w = 600, h = 520;
     const margin = 60;
     const fig = document.createElement("figure");
+    fig.setAttribute("class", "chart");
 
     // Altura do triângulo equilátero
     const triH = h - 2 * margin;
@@ -32,7 +33,7 @@ const ChartsEnhanced = (function () {
 
     const svg = document.createElementNS(NS, "svg");
     svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-    svg.setAttribute("class", "chart ternario");
+    svg.setAttribute("class", "plot ternario");
 
     // Desenha triângulo base
     const cx = w / 2;
@@ -128,6 +129,7 @@ const ChartsEnhanced = (function () {
        adivinhar pela cor. */
     const margin = { top: 40, right: 40, bottom: 110, left: 60 };
     const fig = document.createElement("figure");
+    fig.setAttribute("class", "chart");
 
     // Ordena por valor decrescente
     const sorted = [...dados].sort((a, b) => (b.valor || 0) - (a.valor || 0));
@@ -135,7 +137,7 @@ const ChartsEnhanced = (function () {
 
     const svg = document.createElementNS(NS, "svg");
     svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-    svg.setAttribute("class", "chart pareto");
+    svg.setAttribute("class", "plot pareto");
 
     const chartW = w - margin.left - margin.right;
     const chartH = h - margin.top - margin.bottom;
@@ -270,9 +272,10 @@ const ChartsEnhanced = (function () {
 
     const w = 500, h = 500;
     const fig = document.createElement("figure");
+    fig.setAttribute("class", "chart");
     const svg = document.createElementNS(NS, "svg");
     svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-    svg.setAttribute("class", "chart sunburst");
+    svg.setAttribute("class", "plot sunburst");
 
     const cx = w / 2, cy = h / 2;
     const raioInterno = raio * 0.55;
@@ -384,9 +387,10 @@ const ChartsEnhanced = (function () {
 
     const w = 600, h = 600;
     const fig = document.createElement("figure");
+    fig.setAttribute("class", "chart");
     const svg = document.createElementNS(NS, "svg");
     svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-    svg.setAttribute("class", "chart scatter3d");
+    svg.setAttribute("class", "plot scatter3d");
 
     const margin = 60;
     const scale = (w - 2 * margin) / 3;
@@ -462,11 +466,145 @@ const ChartsEnhanced = (function () {
     return fig;
   }
 
+  /* Funil líquido: sem depender de nenhuma lib de gráfico -- dois
+     trapézios (em escrita -> com o periódico) desaguando num tanque com
+     recorte (clipPath) e uma onda animada em CSS por dentro. `estagios`
+     é sempre [entrada, meio, tanque], `tanque.total` é o total do acervo
+     (não o topo do funil) contra o qual o nível é calculado. */
+  function funilLiquido(estagios) {
+    if (!estagios || estagios.length < 3) return null;
+    const [e1, e2, e3] = estagios;
+    const maiorFunil = Math.max(1, e1.valor || 0, e2.valor || 0);
+    const fracaoLargura = (v) => 0.3 + 0.7 * Math.sqrt(Math.max(0, v || 0) / maiorFunil);
+    const w = 420, h = 560, largMax = 320, cx = w / 2;
+    const yTopo = 26, yMeio = 220, yTanque0 = 244, yTanque1 = 520;
+
+    const w1topo = largMax * fracaoLargura(e1.valor);
+    const wMeio = largMax * fracaoLargura(e2.valor);
+    const wBocaTanque = Math.max(70, largMax * 0.36);
+
+    const fig = document.createElement("figure");
+    fig.setAttribute("class", "chart");
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+    svg.setAttribute("class", "plot funil-liquido");
+
+    function trapezio(yTop, yBot, wTop, wBot, cor, nome, valor) {
+      const pontos = [[cx - wTop / 2, yTop], [cx + wTop / 2, yTop],
+        [cx + wBot / 2, yBot], [cx - wBot / 2, yBot]]
+        .map(function (p) { return p.join(","); }).join(" ");
+      const poly = document.createElementNS(NS, "polygon");
+      poly.setAttribute("points", pontos);
+      poly.setAttribute("fill", cor);
+      poly.setAttribute("opacity", "0.85");
+      const dica = document.createElementNS(NS, "title");
+      dica.textContent = `${nome}: ${fmt(valor)} artigo(s)`;
+      poly.appendChild(dica);
+      return poly;
+    }
+
+    function rotuloEtapa(yTop, yBot, nome, valor) {
+      const g = document.createElementNS(NS, "g");
+      const yMeioEtapa = (yTop + yBot) / 2;
+      const numero = document.createElementNS(NS, "text");
+      numero.setAttribute("x", cx); numero.setAttribute("y", yMeioEtapa - 6);
+      numero.setAttribute("text-anchor", "middle");
+      numero.setAttribute("font-size", "17"); numero.setAttribute("font-weight", "800");
+      numero.setAttribute("fill", "#fff");
+      numero.textContent = fmt(valor);
+      g.appendChild(numero);
+      const rotulo = document.createElementNS(NS, "text");
+      rotulo.setAttribute("x", cx); rotulo.setAttribute("y", yMeioEtapa + 15);
+      rotulo.setAttribute("text-anchor", "middle");
+      rotulo.setAttribute("font-size", "12"); rotulo.setAttribute("fill", "rgba(255,255,255,.88)");
+      rotulo.textContent = nome;
+      g.appendChild(rotulo);
+      return g;
+    }
+
+    svg.appendChild(trapezio(yTopo, yMeio, w1topo, wMeio, e1.cor, e1.nome, e1.valor));
+    svg.appendChild(trapezio(yMeio, yTanque0, wMeio, wBocaTanque, e2.cor, e2.nome, e2.valor));
+    svg.appendChild(rotuloEtapa(yTopo, yMeio, e1.nome, e1.valor));
+    svg.appendChild(rotuloEtapa(yMeio, yTanque0, e2.nome, e2.valor));
+
+    // Tanque -- contorno e recorte para a onda nunca vazar por fora dele
+    const tankX = cx - wBocaTanque / 2, tankW = wBocaTanque;
+    const tankId = "tanque-" + Math.random().toString(36).slice(2, 9);
+    const clip = document.createElementNS(NS, "clipPath");
+    clip.setAttribute("id", tankId);
+    const clipRect = document.createElementNS(NS, "rect");
+    clipRect.setAttribute("x", tankX); clipRect.setAttribute("y", yTanque0);
+    clipRect.setAttribute("width", tankW); clipRect.setAttribute("height", yTanque1 - yTanque0);
+    clipRect.setAttribute("rx", "8");
+    clip.appendChild(clipRect);
+    svg.appendChild(clip);
+
+    const contorno = document.createElementNS(NS, "rect");
+    contorno.setAttribute("x", tankX); contorno.setAttribute("y", yTanque0);
+    contorno.setAttribute("width", tankW); contorno.setAttribute("height", yTanque1 - yTanque0);
+    contorno.setAttribute("rx", "8");
+    contorno.setAttribute("fill", "rgba(255,255,255,.04)");
+    contorno.setAttribute("stroke", "rgba(255,255,255,.25)");
+    svg.appendChild(contorno);
+
+    // Nível do líquido: fração do TOTAL do acervo (e3.total), não do topo
+    // do funil -- "publicados" se acumula ao longo de anos, e comparar
+    // com a safra atual de "em escrita" faria o tanque passar de 100%
+    // cheio, uma leitura sem sentido.
+    const fracaoNivel = Math.max(0.05, Math.min(1,
+      (e3.valor || 0) / Math.max(1, e3.total || maiorFunil)));
+    const nivelY = yTanque1 - fracaoNivel * (yTanque1 - yTanque0);
+
+    const ondaGrupo = document.createElementNS(NS, "g");
+    ondaGrupo.setAttribute("clip-path", `url(#${tankId})`);
+    const larguraOnda = tankW * 2;
+    const passoOnda = larguraOnda / 4;
+    const amplitude = 5;
+    let d = `M ${tankX - larguraOnda / 2} ${nivelY}`;
+    for (let i = 0; i <= 8; i++) {
+      const x = tankX - larguraOnda / 2 + i * passoOnda;
+      const y = nivelY + (i % 2 === 0 ? -amplitude : amplitude);
+      d += ` Q ${x - passoOnda / 2} ${y} ${x} ${nivelY}`;
+    }
+    d += ` V ${yTanque1 + 6} H ${tankX - larguraOnda / 2} Z`;
+    const ondaPath = document.createElementNS(NS, "path");
+    ondaPath.setAttribute("d", d);
+    ondaPath.setAttribute("fill", e3.cor);
+    ondaPath.setAttribute("opacity", "0.88");
+    ondaPath.setAttribute("class", "onda-liquida");
+    ondaPath.style.setProperty("--onda-passo", passoOnda + "px");
+    const dicaOnda = document.createElementNS(NS, "title");
+    dicaOnda.textContent = `${e3.nome}: ${fmt(e3.valor)} de ${fmt(e3.total || maiorFunil)} artigo(s)`;
+    ondaPath.appendChild(dicaOnda);
+    ondaGrupo.appendChild(ondaPath);
+    svg.appendChild(ondaGrupo);
+
+    const valorTanque = document.createElementNS(NS, "text");
+    valorTanque.setAttribute("x", cx); valorTanque.setAttribute("y", (yTanque0 + yTanque1) / 2 - 4);
+    valorTanque.setAttribute("text-anchor", "middle");
+    valorTanque.setAttribute("font-size", "38"); valorTanque.setAttribute("font-weight", "800");
+    valorTanque.setAttribute("fill", "#fff");
+    valorTanque.setAttribute("style", "text-shadow:0 1px 3px rgba(0,0,0,.4)");
+    valorTanque.textContent = fmt(e3.valor);
+    svg.appendChild(valorTanque);
+
+    const rotuloTanque = document.createElementNS(NS, "text");
+    rotuloTanque.setAttribute("x", cx); rotuloTanque.setAttribute("y", (yTanque0 + yTanque1) / 2 + 22);
+    rotuloTanque.setAttribute("text-anchor", "middle");
+    rotuloTanque.setAttribute("font-size", "13"); rotuloTanque.setAttribute("fill", "rgba(255,255,255,.92)");
+    rotuloTanque.textContent = e3.nome;
+    svg.appendChild(rotuloTanque);
+
+    fig.appendChild(svg);
+    return fig;
+  }
+
   return {
     ternario,
     pareto,
     sunburst,
     scatter3d,
+    funilLiquido,
     destacarFatiaSunburst,
   };
 })();
