@@ -1789,11 +1789,143 @@ function relogio() {
     DIAS_EXT[agora.getDay()] + ", " + agora.getDate() + " de " + MESES_EXT[agora.getMonth()];
 }
 
-/* Sem atualização automática por propósito: os dados só mudam quando a
-   página é recarregada (F5) por quem está de frente para o computador
-   ligado na TV -- ninguém mais tem esse acesso, então o mural nunca
-   troca o que está mostrando sozinho, mesmo que o banco mude enquanto
-   ele gira as telas. */
+/* O ROTEIRO (quais telas existem, em que ordem) continua fixo até o F5
+   -- isso não mudou. Duas coisas pontuais, sim, passaram a se buscar
+   sozinhas, por pedido explícito: quem acabou de bater ponto (o cartão
+   de chegada) e a contagem de citações em tempo real (o odômetro nos
+   cartões de "Citações em Tempo Real"). As duas seguem o mesmo ciclo,
+   de propósito, para não virar dois mecanismos de "atualização
+   automática" onde só devia haver um -- ver `cicloAoVivo`. */
+
+/* ------------------------------------------------------- chegada ao vivo */
+let ultimoChegadaId = null;
+
+function iniciaisDoNome(nome) {
+  const partes = String(nome || "").trim().split(/\s+/).filter(Boolean);
+  if (!partes.length) return "?";
+  return (partes[0][0] + (partes.length > 1 ? partes[partes.length - 1][0] : "")).toUpperCase();
+}
+
+/* Cartão holográfico: entra, mostra quem chegou e a produção em
+   andamento dela, e sai sozinho -- não precisa de ninguém pra fechar,
+   é um painel de TV sem gente na frente na maior parte do tempo. */
+function mostrarCartaoChegada(chegada) {
+  const avatar = el("div", { class: "holo-avatar" });
+  if (chegada.foto) {
+    const img = el("img", { src: chegada.foto, alt: chegada.nome });
+    img.addEventListener("error", function () {
+      img.remove();
+      avatar.textContent = iniciaisDoNome(chegada.nome);
+    });
+    avatar.appendChild(img);
+  } else {
+    avatar.textContent = iniciaisDoNome(chegada.nome);
+  }
+
+  const corpo = el("div", { class: "holo-corpo" }, [
+    el("div", { class: "holo-selo", text: "chegou ao laboratório" }),
+    el("div", { class: "holo-nome", text: chegada.nome }),
+  ]);
+  const artigos = chegada.artigos || [];
+  if (artigos.length) {
+    artigos.forEach(function (a) {
+      const preenchimento = el("div", { class: "holo-preenchimento", style: "width:0%" });
+      corpo.appendChild(el("div", { class: "holo-artigo" }, [
+        el("div", { class: "holo-artigo-titulo",
+          text: cortar(a.titulo, 44) + (a.linha ? " · " + a.linha : "") }),
+        el("div", { class: "holo-barra" }, preenchimento),
+        el("span", { class: "holo-progresso", text: a.progresso + "% estimado" }),
+      ]));
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () { preenchimento.style.width = a.progresso + "%"; });
+      });
+    });
+  } else {
+    corpo.appendChild(el("div", { class: "holo-sem-artigo", text: "sem artigo em produção no momento" }));
+  }
+
+  const card = el("div", { class: "card-holo" }, [avatar, corpo]);
+  document.body.appendChild(card);
+  requestAnimationFrame(function () { card.classList.add("entra"); });
+  setTimeout(function () {
+    card.classList.add("sai");
+    setTimeout(function () { card.remove(); }, 700);
+  }, 9000);
+}
+
+async function verificarChegadas() {
+  try {
+    const url = "/api/mural/chegadas" + (ultimoChegadaId === null ? "" : "?desde_id=" + ultimoChegadaId);
+    const resposta = await fetch(url, { credentials: "same-origin" });
+    if (!resposta.ok) return;
+    const dados = await resposta.json();
+    ultimoChegadaId = dados.ultimo_id;
+    (dados.chegadas || []).forEach(function (chegada, i) {
+      setTimeout(function () { mostrarCartaoChegada(chegada); }, i * 1300);
+    });
+  } catch (e) { /* painel de TV não trava por uma checagem que falhou */ }
+}
+
+/* --------------------------------------------------- odômetro das citações */
+function contarAte(node, deValor, paraValor, decimais) {
+  const duracao = 700;
+  const partida = performance.now();
+  (function passo(agora) {
+    const t = Math.min(1, (agora - partida) / duracao);
+    const suave = 1 - Math.pow(1 - t, 3);
+    const atual = deValor + (paraValor - deValor) * suave;
+    node.textContent = decimais ? atual.toFixed(decimais).replace(".", ",") : fmt(Math.round(atual));
+    if (t < 1) requestAnimationFrame(passo);
+  })(partida);
+}
+
+function explodirParticulas(card) {
+  const casa = el("div", { class: "particulas-kpi" });
+  for (let p = 0; p < 8; p++) {
+    const ang = Math.random() * Math.PI * 2, dist = 18 + Math.random() * 26;
+    casa.appendChild(el("span", { class: "particula-kpi", style:
+      "--dx:" + (dist * Math.cos(ang)).toFixed(0) + "px;--dy:" + (dist * Math.sin(ang)).toFixed(0) + "px;"
+      + "--px:" + (30 + Math.random() * 40).toFixed(0) + "%;--py:" + (20 + Math.random() * 40).toFixed(0) + "%" }));
+  }
+  card.appendChild(casa);
+  setTimeout(function () { casa.remove(); }, 1000);
+}
+
+/* Só mexe em quem estiver de fato montado na tela agora (a lâmina de
+   citações, quando é ela que está em cena) -- as outras telas nem têm
+   `[data-metrica]` no DOM, então o forEach abaixo não acha nada e não
+   faz nada, sem precisar perguntar "qual slide está aberto". */
+async function atualizarValoresAoVivo() {
+  try {
+    const resposta = await fetch("/api/tv", { credentials: "same-origin" });
+    if (!resposta.ok) return;
+    D.tv = await resposta.json();
+    const resumo = D.tv && D.tv.citacoes && D.tv.citacoes.resumo;
+    if (!resumo) return;
+    document.querySelectorAll("[data-metrica]").forEach(function (node) {
+      const chave = node.dataset.metrica;
+      if (!(chave in resumo)) return;
+      const novo = resumo[chave];
+      const decimais = chave === "media_citacoes" ? 1 : 0;
+      const tinhaValor = node.dataset.valorAtual !== undefined;
+      const anterior = tinhaValor ? Number(node.dataset.valorAtual) : novo;
+      node.dataset.valorAtual = String(novo);
+      if (!tinhaValor || novo === anterior) return;
+      if (novo > anterior) {
+        const card = node.closest(".metric-card");
+        node.classList.remove("glitch"); void node.offsetWidth; node.classList.add("glitch");
+        setTimeout(function () { node.classList.remove("glitch"); }, 520);
+        if (card) explodirParticulas(card);
+      }
+      contarAte(node, anterior, novo, decimais);
+    });
+  } catch (e) { /* idem: rede instável não pode incomodar quem só está olhando a TV */ }
+}
+
+function cicloAoVivo() {
+  verificarChegadas();
+  atualizarValoresAoVivo();
+}
 
 /* ---------------------------------------------------------------- arranque */
 function comecar() {
@@ -1823,6 +1955,8 @@ function comecar() {
 
   relogio();
   setInterval(relogio, 15000);
+  cicloAoVivo();
+  setInterval(cicloAoVivo, 12000);
   aplicarPaleta(paletaEscolhida());
   const seguir = document.getElementById("seguir");
   if (seguir) {
