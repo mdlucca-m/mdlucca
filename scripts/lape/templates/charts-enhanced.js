@@ -121,8 +121,12 @@ const ChartsEnhanced = (function () {
      */
     if (!dados || dados.length === 0) return null;
 
-    const w = 800, h = 400;
-    const margin = { top: 40, right: 40, bottom: 40, left: 60 };
+    const w = 800, h = 440;
+    /* `bottom` maior: sobra espaço para o nome de cada linha, girado sob
+       o eixo -- antes o gráfico não tinha rótulo NENHUM embaixo das
+       barras, então não dava pra saber qual barra era qual linha sem
+       adivinhar pela cor. */
+    const margin = { top: 40, right: 40, bottom: 110, left: 60 };
     const fig = document.createElement("figure");
 
     // Ordena por valor decrescente
@@ -145,12 +149,27 @@ const ChartsEnhanced = (function () {
     const barsGroup = document.createElementNS(NS, "g");
     barsGroup.setAttribute("transform", `translate(${margin.left},${margin.top})`);
 
-    let acumulado = 0;
+    /* Primeiro índice em que o acumulado CRUZA 80% -- um "=== 80" exato
+       quase nunca acontece com contagens inteiras (112 de 160 é 70%; a
+       próxima linha já pula para 86%, 80 nunca aparece no meio), e a
+       "linha vermelha" que o texto ao lado promete nunca era desenhada.
+       Cruzar o limiar, em vez de acertar o número exato, é a leitura
+       correta da regra 80/20. */
+    let acumulado = 0, corteIdx = -1;
+    for (let i = 0; i < sorted.length; i++) {
+      acumulado += sorted[i].valor || 0;
+      if (corteIdx === -1 && acumulado / total >= 0.8) corteIdx = i;
+    }
+
+    acumulado = 0;
     sorted.forEach((d, i) => {
       const val = d.valor || 0;
       const barH = val * scaleY;
       const x = i * scaleX;
       const y = chartH - barH;
+      const nome = d.nome || "Item";
+      acumulado += val;
+      const pctAqui = Math.round((acumulado / total) * 100);
 
       const rect = document.createElementNS(NS, "rect");
       rect.setAttribute("x", x + 2);
@@ -159,21 +178,61 @@ const ChartsEnhanced = (function () {
       rect.setAttribute("height", barH);
       rect.setAttribute("fill", corSerie(i));
       rect.setAttribute("opacity", "0.8");
+      const dica = document.createElementNS(NS, "title");
+      dica.textContent = `${nome}: ${val} artigo(s) — ${pctAqui}% acumulado`;
+      rect.appendChild(dica);
       barsGroup.appendChild(rect);
 
-      acumulado += val;
-      const pct = Math.round((acumulado / total) * 100);
-      if (pct === 80) {
-        // Marca a linha 80/20
+      // valor em cima da barra -- sem isso, só dava pra estimar a
+      // contagem pela régua do eixo Y, a olho, a três metros de distância
+      const valorTxt = document.createElementNS(NS, "text");
+      valorTxt.setAttribute("x", x + scaleX / 2);
+      valorTxt.setAttribute("y", Math.max(14, y - 8));
+      valorTxt.setAttribute("text-anchor", "middle");
+      valorTxt.setAttribute("font-size", "15");
+      valorTxt.setAttribute("font-weight", "700");
+      valorTxt.setAttribute("fill", "var(--ink)");
+      valorTxt.textContent = val;
+      barsGroup.appendChild(valorTxt);
+
+      // nome da linha, girado sob o eixo -- truncado só como ÚLTIMO
+      // recurso (a dica do mouse sempre tem o nome inteiro)
+      const rotuloTxt = nome.length > 26 ? nome.slice(0, 25) + "…" : nome;
+      const rotulo = document.createElementNS(NS, "text");
+      rotulo.setAttribute("x", x + scaleX / 2);
+      rotulo.setAttribute("y", chartH + 16);
+      rotulo.setAttribute("text-anchor", "end");
+      rotulo.setAttribute("font-size", "12");
+      rotulo.setAttribute("fill", "var(--ink-2)");
+      rotulo.setAttribute("transform", `rotate(-40 ${x + scaleX / 2} ${chartH + 16})`);
+      rotulo.textContent = rotuloTxt;
+      const dicaRotulo = document.createElementNS(NS, "title");
+      dicaRotulo.textContent = nome;
+      rotulo.appendChild(dicaRotulo);
+      barsGroup.appendChild(rotulo);
+
+      if (i === corteIdx) {
+        // Marca a linha 80/20, na fronteira direita da barra que cruzou
+        const lineX = x + scaleX;
         const line = document.createElementNS(NS, "line");
-        line.setAttribute("x1", x);
-        line.setAttribute("y1", 0);
-        line.setAttribute("x2", x);
+        line.setAttribute("x1", lineX);
+        line.setAttribute("y1", -12);
+        line.setAttribute("x2", lineX);
         line.setAttribute("y2", chartH);
-        line.setAttribute("stroke", "var(--warning)");
+        line.setAttribute("stroke", "var(--critical)");
         line.setAttribute("stroke-width", "2");
         line.setAttribute("stroke-dasharray", "5,5");
         barsGroup.appendChild(line);
+
+        const marca = document.createElementNS(NS, "text");
+        marca.setAttribute("x", lineX);
+        marca.setAttribute("y", -16);
+        marca.setAttribute("text-anchor", "middle");
+        marca.setAttribute("font-size", "12");
+        marca.setAttribute("font-weight", "700");
+        marca.setAttribute("fill", "var(--critical)");
+        marca.textContent = "80%";
+        barsGroup.appendChild(marca);
       }
     });
 
