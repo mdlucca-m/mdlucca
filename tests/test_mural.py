@@ -998,3 +998,44 @@ class TestQuebraDeNomeDaLinha3D(unittest.TestCase):
         self.assertIn("…", linha2)
         # mesmo cortada, a linha 1 e o comeco real do nome -- sem pular parte dele
         self.assertTrue(nome.startswith(linha1))
+
+
+class TestQuemTemOrientadorNoOrganograma(unittest.TestCase):
+    """`temOrientadorVisivel` -- decide quem NUNCA pode ser raiz solta no
+    organograma do mural. Bug real: sem essa checagem, uma pessoa cuja
+    orientadora aparece mais adiante na lista virava raiz por conta
+    própria E também galho da orientadora, duplicada na tela (achado ao
+    vivo: "Camila Deodoro Vasques" repetida, uma vez como raiz e outra
+    como orientanda de "Marina Rossetto Cardoso")."""
+
+    def _rodar(self, pessoas, edges):
+        fonte = _recorta_3d("temOrientadorVisivel")
+        return _no_node(fonte, f"[...temOrientadorVisivel({json.dumps(pessoas)}, {json.dumps(edges)})]")
+
+    def test_quem_tem_orientador_entra_no_conjunto(self):
+        pessoas = [{"id": 1}, {"id": 5}]
+        edges = [{"from": 1, "to": 5, "kind": "orientacao"}]
+        self.assertEqual(self._rodar(pessoas, edges), [5])
+
+    def test_quem_nao_tem_orientador_nenhum_fica_de_fora(self):
+        pessoas = [{"id": 1}, {"id": 2}]
+        edges = []
+        self.assertEqual(self._rodar(pessoas, edges), [])
+
+    def test_aresta_de_coorientacao_tambem_conta(self):
+        pessoas = [{"id": 1}, {"id": 9}]
+        edges = [{"from": 1, "to": 9, "kind": "coorientacao"}]
+        self.assertEqual(self._rodar(pessoas, edges), [9])
+
+    def test_aresta_para_fora_do_organograma_publico_nao_conta(self):
+        # o "orientador" nem está na lista de pessoas (ex.: coordenacao
+        # sintetica do backend) -- a aresta nao pode fabricar um pai que
+        # a tela nao vai desenhar em lugar nenhum
+        pessoas = [{"id": 5}]
+        edges = [{"from": 99, "to": 5, "kind": "orientacao"}]
+        self.assertEqual(self._rodar(pessoas, edges), [])
+
+    def test_outros_tipos_de_aresta_nao_contam(self):
+        pessoas = [{"id": 1}, {"id": 2}]
+        edges = [{"from": 1, "to": 2, "kind": "colaboracao"}]
+        self.assertEqual(self._rodar(pessoas, edges), [])

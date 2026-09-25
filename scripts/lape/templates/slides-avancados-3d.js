@@ -437,6 +437,29 @@ function baldeDoRole(role) {
   return BALDES_ORGANOGRAMA.length - 1;
 }
 
+/* Quem TEM orientador/coorientador (uma aresta chegando, de alguém que
+   também está na lista) nunca pode ser tratado como raiz solta -- só
+   aparece como galho de quem a orienta. Sem isto, uma pessoa cuja
+   orientadora está mais adiante em `pessoas` (a lista não vem ordenada
+   por hierarquia) virava raiz por conta própria E, quando a orientadora
+   enfim era processada, sua subárvore desenhava essa mesma pessoa DE NOVO
+   como galho -- o mesmo cartão duplicado na tela, com toda a subárvore
+   dela junto. Pego ao vivo com Playwright, não em teste: "Camila Deodoro
+   Vasques" aparecia como raiz solta E como galho de "Marina Rossetto
+   Cardoso", sua orientadora de verdade -- e os orientandos de Camila
+   vinham triplicados atrás dela. */
+function temOrientadorVisivel(pessoas, edges) {
+  const porId = {};
+  (pessoas || []).forEach(function (p) { porId[p.id] = p; });
+  const resultado = new Set();
+  (edges || []).forEach(function (e) {
+    if (e.kind !== "orientacao" && e.kind !== "coorientacao") return;
+    if (!porId[e.from] || !porId[e.to]) return;
+    resultado.add(e.to);
+  });
+  return resultado;
+}
+
 function slideOrganograma3D(baldeIndex) {
   const t = tv();
   const org = t && t.organograma;
@@ -512,6 +535,8 @@ function slideOrganograma3D(baldeIndex) {
     return no;
   }
 
+  const temOrientador = temOrientadorVisivel(org.people, org.edges);
+
   /* Cada pessoa mora no balde de quem a alcança primeiro -- o dela mesma,
      se o vínculo dela é deste balde, ou o de um ancestral já mostrado num
      balde anterior. Por isso é preciso saber quem os baldes ANTERIORES já
@@ -529,15 +554,14 @@ function slideOrganograma3D(baldeIndex) {
   for (let i = 0; i < baldeIndex; i++) {
     candidatosDoBalde(i).forEach(function (p) { marcarMostrado(p.id); });
   }
-  const locais = candidatosDoBalde(baldeIndex).filter(function (p) { return !mostrados.has(p.id); });
+  const locais = candidatosDoBalde(baldeIndex).filter(function (p) {
+    return !mostrados.has(p.id) && !temOrientador.has(p.id);
+  });
 
   if (!locais.length) {
     return escalonar(el("div", { class: "slide" }, vazio("Ninguém neste grupo ainda.")));
   }
 
-  /* Dentro do MESMO balde, quem já virou galho de uma raiz anterior não
-     pode reaparecer como raiz solta -- por isso marca a descendência de
-     cada raiz assim que ela é montada, antes de decidir a próxima. */
   const raizes = [];
   locais.forEach(function (p) {
     if (mostrados.has(p.id)) return;
