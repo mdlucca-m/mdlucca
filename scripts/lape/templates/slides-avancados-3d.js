@@ -650,8 +650,11 @@ function slideCitacoesBases() {
   }
 
   const resumo = cit.resumo;
+  /* Por IMPACTO total, não média -- média favorece uma linha de um
+     artigo só com sorte de citação, acima de uma linha com trinta
+     artigos e resultado consistente. Total é a pergunta certa aqui. */
   const linhas = (cit.linhas || []).slice().sort(function (a, b) {
-    return (b.media_citacoes || 0) - (a.media_citacoes || 0);
+    return (b.total_citacoes || 0) - (a.total_citacoes || 0);
   });
 
   const container = el("div", { class: "slide slide-citacoes-bases" });
@@ -696,15 +699,19 @@ function slideCitacoesBases() {
         const tom = l.media_citacoes > 5 ? "good" : l.media_citacoes > 2 ? "warning" : "critical";
         return { label: cortar(l.nome, 38), value: l.total_citacoes, color: "var(--" + tom + ")" };
       }),
-      unit: "citações", labelWidth: 220, rowH: 34,
+      unit: "citações", labelWidth: 220, rowH: 26,
     });
     wrapper.appendChild(quadro("Métricas de impacto", "citacao", graficoImpacto,
       "citações totais por linha de pesquisa", "moldura-viva grafico-fluxo"));
   }
 
-  if (linhas.length) {
+  /* Só ganham cartão as linhas com citação de verdade -- uma linha em
+     0 não tem nada a mostrar além de zeros repetidos, e treze cartões
+     (a maioria vazia) é o que fazia esta tela cortar embaixo da TV.
+     As sem dado ainda entram numa linha de texto só, não somem. */
+  if (comCitacoes.length) {
     const grid = el("div", { class: "bases-linhas" });
-    linhas.forEach(function (linha) {
+    comCitacoes.forEach(function (linha) {
       const cobertura = linha.total_artigos ? Math.round(100 * (linha.artigos_com_dados || 0) / linha.total_artigos) : 0;
       const tom = linha.media_citacoes > 5 ? "success" : linha.media_citacoes > 2 ? "warning" : "info";
       grid.appendChild(el("div", { class: "linha-card " + tom }, [
@@ -725,12 +732,23 @@ function slideCitacoesBases() {
     wrapper.appendChild(grid);
   }
 
+  const semCitacoes = linhas.filter(function (l) { return !(l.total_citacoes > 0); });
+  if (semCitacoes.length) {
+    wrapper.appendChild(el("p", { class: "linhas-sem-citacao" }, [
+      el("b", { text: semCitacoes.length + " linha(s) sem citação sincronizada ainda: " }),
+      el("span", { text: semCitacoes.map(function (l) { return l.nome; }).join(" · ") }),
+    ]));
+  }
+
   const artigos = [];
   linhas.forEach(function (l) {
     (l.artigos || []).forEach(function (a) { artigos.push(Object.assign({}, a, { linha: l.nome })); });
   });
   artigos.sort(function (a, b) { return (b.citacoes || 0) - (a.citacoes || 0); });
-  const top = artigos.slice(0, 5);
+  /* Dois, não cinco: com o resumo, o gráfico de impacto e os cartões de
+     linha já ocupando a tela, mais que isso cortava o último item
+     embaixo -- a TV não tem scroll para completar o que passou da borda. */
+  const top = artigos.slice(0, 2);
 
   if (top.length) {
     const topBox = el("div", { class: "top-artigos" }, [el("h3", { text: "Mais citados" })]);
