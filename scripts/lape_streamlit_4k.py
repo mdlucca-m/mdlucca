@@ -32,6 +32,15 @@ de um número digitado à mão):
     Esta distinção importa: quem decide quanto o laboratório QUER
     publicar é a coordenação, nunca o painel -- o painel só projeta o que
     o ritmo atual, se mantido, deve render.
+  - Diagnóstico + intervenção (4 passos): diagnóstico frio do banco,
+    correlação com a presença COLETIVA da semana (agregada do laboratório
+    inteiro, via tabela `ponto` -- nunca por pesquisador), tendência a 6
+    meses contra a média histórica real do laboratório, e uma técnica de
+    psicologia esportiva (metas SMART, regulação de ansiedade, biofeedback)
+    cujo gatilho bate com o padrão encontrado. É apoio para a conversa da
+    próxima reunião de coordenação, não um diagnóstico individual --
+    cruzar ponto de pessoa específica com "aplique esta técnica nela"
+    seria vigilância de desempenho, não IA Central.
 """
 from __future__ import annotations
 
@@ -282,7 +291,7 @@ def obter_engine(caminho_db: str):
 @st.cache_resource(show_spinner=False)
 def obter_tabelas(_engine):
     md = MetaData()
-    md.reflect(bind=_engine, only=["articles", "research_lines", "submissions", "goals"])
+    md.reflect(bind=_engine, only=["articles", "research_lines", "submissions", "goals", "ponto"])
     return md.tables
 
 
@@ -322,6 +331,30 @@ def carregar_submissoes(caminho_db: str) -> pd.DataFrame:
     df["submitted_on"] = pd.to_datetime(df["submitted_on"], errors="coerce", format="mixed")
     df["decision_on"] = pd.to_datetime(df["decision_on"], errors="coerce", format="mixed")
     return df
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def carregar_ponto(caminho_db: str) -> pd.DataFrame:
+    """Sessões de ponto do LABORATÓRIO INTEIRO, sem member_id na saída --
+    de propósito. O que este painel faz com isto é uma leitura AGREGADA de
+    presença coletiva (ver `calcular_correlacao_presenca`), nunca por
+    pessoa: cruzar hora de ponto individual com "o coordenador deve aplicar
+    esta técnica psicológica nesta pessoa" é vigilância de desempenho, não
+    IA Central -- por isso a consulta nem carrega `member_id`."""
+    engine = obter_engine(caminho_db)
+    t = obter_tabelas(engine)
+    ponto = t["ponto"]
+    consulta = select(ponto.c.entrada, ponto.c.saida, ponto.c.visto_em)
+    df = pd.read_sql(consulta, engine)
+    df["entrada"] = pd.to_datetime(df["entrada"], errors="coerce", format="mixed")
+    fim = pd.to_datetime(df["saida"], errors="coerce", format="mixed")
+    fim = fim.fillna(pd.to_datetime(df["visto_em"], errors="coerce", format="mixed"))
+    df["horas"] = (fim - df["entrada"]).dt.total_seconds() / 3600
+    # sessao aberta sem nenhum sinal de vida ainda, ou dado corrompido
+    df = df[df["entrada"].notna() & df["horas"].notna() & (df["horas"] > 0)]
+    # teto de sanidade -- uma sessao mal fechada de dias nao vira "presenca"
+    df["horas"] = df["horas"].clip(upper=16)
+    return df[["entrada", "horas"]]
 
 
 @st.cache_data(ttl=60, show_spinner=False)
@@ -457,6 +490,131 @@ def projetar_ritmo(artigos: pd.DataFrame, meta_ano: pd.DataFrame, ano: int) -> d
         "ritmo_mensal": round(ritmo_mensal, 2),
         "projecao_fim_de_ano": projecao_fim_de_ano,
         "meta_declarada": alvo_declarado,
+    }
+
+
+def calcular_correlacao_presenca(ponto: pd.DataFrame) -> dict:
+    """Presença COLETIVA do laboratório na semana atual, contra a média das
+    últimas semanas -- nunca por pessoa (ver o porquê em `carregar_ponto`).
+    Sem pelo menos 2 semanas anteriores fechadas para comparar, não há
+    baseline: retorna `variacao_pct=None` em vez de inventar uma linha de
+    base a partir de quase nada."""
+    if not len(ponto):
+        return {"horas_semana_atual": 0.0, "horas_media_semanal": None, "variacao_pct": None, "semanas_com_dado": 0}
+
+    semana = ponto["entrada"].dt.isocalendar()
+    ponto = ponto.assign(ano_iso=semana["year"], semana_iso=semana["week"])
+    agora = pd.Timestamp.now().isocalendar()
+
+    por_semana = ponto.groupby(["ano_iso", "semana_iso"])["horas"].sum()
+    chave_atual = (agora.year, agora.week)
+    horas_semana_atual = float(por_semana.get(chave_atual, 0.0))
+
+    anteriores = por_semana.drop(index=chave_atual, errors="ignore").tail(8)
+    if len(anteriores) < 2:
+        return {"horas_semana_atual": round(horas_semana_atual, 1), "horas_media_semanal": None,
+                "variacao_pct": None, "semanas_com_dado": len(anteriores)}
+
+    media = float(anteriores.mean())
+    variacao_pct = ((horas_semana_atual - media) / media * 100) if media > 0 else None
+    return {
+        "horas_semana_atual": round(horas_semana_atual, 1),
+        "horas_media_semanal": round(media, 1),
+        "variacao_pct": round(variacao_pct, 1) if variacao_pct is not None else None,
+        "semanas_com_dado": len(anteriores),
+    }
+
+
+# Técnicas de psicologia esportiva -- ancoradas na literatura da área, cada
+# uma associada ao padrão de dado que a torna pertinente. Isto é apoio à
+# decisão para a REUNIÃO de coordenação (um ponto de partida para discutir
+# com a equipe), nunca um diagnóstico clínico nem um veredito automático.
+_TECNICAS_INTERVENCAO = {
+    "metas_smart": {
+        "titulo": "Definição de metas SMART",
+        "descricao": ("Presença em queda e ritmo abaixo do necessário juntos costumam indicar "
+                       "falta de clareza de objetivo, não falta de esforço. Vale pautar metas "
+                       "específicas e com prazo por artigo em produção na próxima reunião."),
+    },
+    "regulacao_ansiedade": {
+        "titulo": "Regulação de ansiedade (respiração/exposição gradual à escrita)",
+        "descricao": ("Presença mantida ou em alta com ritmo de publicação abaixo da média "
+                       "histórica sugere esforço que não está virando entrega -- um padrão "
+                       "comum de bloqueio de escrita ou perfeccionismo, não de desengajamento."),
+    },
+    "biofeedback_espera": {
+        "titulo": "Biofeedback / manejo da frustração com a espera editorial",
+        "descricao": ("A espera mediana na revisão já está no território crítico -- frustração "
+                       "com um processo fora do controle do laboratório pode estar drenando o "
+                       "ritmo em outras frentes. Técnicas de regulação fisiológica ajudam a "
+                       "equipe a seguir produzindo enquanto espera, em vez de travar."),
+    },
+    "reforco_positivo": {
+        "titulo": "Reforço positivo -- manter o que está funcionando",
+        "descricao": ("Nenhum dos sinais acompanhados aponta alerta no momento. Vale nomear "
+                       "isso explicitamente na reunião: reconhecer o que está indo bem sustenta "
+                       "o padrão, tanto quanto corrigir o que não está."),
+    },
+}
+
+
+def gerar_diagnostico_intervencao(kpis: dict, projecao: dict, presenca: dict,
+                                   artigos: pd.DataFrame, ano_atual: int) -> dict:
+    """Ana, protocolo de 4 passos: monta o raciocínio completo (para quem
+    quiser abrir e ver cada etapa) e resume no final numa técnica só, para
+    o cartão simplificado do painel.
+
+    Passo 1 -- diagnóstico frio: publicados vs. em andamento, direto do banco.
+    Passo 2 -- correlação coletiva: presença da semana (agregada, nunca por
+               pessoa -- ver `calcular_correlacao_presenca`) contra o ritmo.
+    Passo 3 -- tendência: projeção para 6 meses a partir do ritmo atual,
+               contra a média histórica ANUAL de fato calculada dos anos
+               anteriores do próprio laboratório (não um número fixo).
+    Passo 4 -- intervenção: a técnica de `_TECNICAS_INTERVENCAO` cujo
+               gatilho bate com o padrão encontrado nos passos 1-3.
+    """
+    publicados_total = int((artigos["status"] == "publicado").sum())
+    em_andamento_total = int(len(artigos) - publicados_total)
+
+    anos_anteriores = artigos[
+        (artigos["status"] == "publicado") & (artigos["year_published"].notna())
+        & (artigos["year_published"] < ano_atual)
+    ]
+    media_historica_anual = None
+    if len(anos_anteriores):
+        por_ano = anos_anteriores.groupby("year_published").size()
+        if len(por_ano) >= 2:
+            media_historica_anual = float(por_ano.mean())
+
+    projecao_6_meses = round(projecao["ritmo_mensal"] * 6, 1)
+    esperado_historico_6_meses = round(media_historica_anual / 2, 1) if media_historica_anual else None
+
+    variacao = presenca["variacao_pct"]
+    ritmo_abaixo_da_media = (
+        media_historica_anual is not None and projecao["ritmo_mensal"] * 12 < media_historica_anual
+    )
+    espera_critica = kpis["espera_mediana_meses"] is not None and kpis["espera_mediana_meses"] >= LATENCIA_CRITICA_MESES
+
+    if variacao is not None and variacao <= -10 and ritmo_abaixo_da_media:
+        chave_tecnica = "metas_smart"
+    elif variacao is not None and variacao >= 0 and ritmo_abaixo_da_media:
+        chave_tecnica = "regulacao_ansiedade"
+    elif espera_critica:
+        chave_tecnica = "biofeedback_espera"
+    else:
+        chave_tecnica = "reforco_positivo"
+
+    return {
+        "passo1_diagnostico": {"publicados": publicados_total, "em_andamento": em_andamento_total},
+        "passo2_correlacao": presenca,
+        "passo3_tendencia": {
+            "ritmo_mensal_atual": projecao["ritmo_mensal"],
+            "projecao_6_meses": projecao_6_meses,
+            "media_historica_anual": round(media_historica_anual, 1) if media_historica_anual else None,
+            "esperado_historico_6_meses": esperado_historico_6_meses,
+        },
+        "passo4_tecnica": chave_tecnica,
+        "tecnica": _TECNICAS_INTERVENCAO[chave_tecnica],
     }
 
 
@@ -797,6 +955,45 @@ def titulo_secao(texto: str, com_pulso: bool = False):
     st.markdown(f'<div class="secao-titulo">{pulso} {texto}</div>', unsafe_allow_html=True)
 
 
+def _renderizar_diagnostico_intervencao(diagnostico: dict):
+    """Cartão do painel + os 4 passos do raciocínio, para quem quiser abrir
+    e conferir de onde veio a sugestão -- nunca só o veredito final."""
+    p1, p2, p3, p4 = (diagnostico["passo1_diagnostico"], diagnostico["passo2_correlacao"],
+                       diagnostico["passo3_tendencia"], diagnostico["tecnica"])
+
+    if p2["variacao_pct"] is not None:
+        sinal = "+" if p2["variacao_pct"] >= 0 else ""
+        presenca_txt = (f'{sinal}{p2["variacao_pct"]:.0f}% de presença coletiva esta semana '
+                         f'vs. a média das últimas {p2["semanas_com_dado"]} semanas')
+    else:
+        presenca_txt = "ainda sem semanas anteriores suficientes para comparar a presença coletiva"
+
+    tendencia_txt = f'ritmo atual projeta {p3["projecao_6_meses"]:.1f} artigo(s) em 6 meses'
+    if p3["media_historica_anual"] is not None:
+        tendencia_txt += f' (média histórica do laboratório: {p3["esperado_historico_6_meses"]:.1f} no mesmo período)'
+
+    st.markdown(f"""
+        <div class="sugestao-card" style="border-color: rgba(0,246,255,0.4);">
+          <b>{p4['titulo']}</b><br>
+          {p4['descricao']}
+        </div>
+    """, unsafe_allow_html=True)
+
+    with st.expander("ver o raciocínio dos 4 passos"):
+        st.markdown(f"""
+            <ol style="margin:0; padding-left:1.2rem; color:var(--texto-2); line-height:1.7;">
+              <li><b>Diagnóstico:</b> {p1['publicados']} publicado(s), {p1['em_andamento']} em andamento no banco.</li>
+              <li><b>Correlação coletiva:</b> {presenca_txt}.</li>
+              <li><b>Tendência:</b> {tendencia_txt}.</li>
+              <li><b>Intervenção sugerida:</b> {p4['titulo']}.</li>
+            </ol>
+            <p style="color:var(--texto-2); font-size:0.82rem; margin-top:.6rem;">
+              Leitura sempre AGREGADA do laboratório inteiro, nunca por pesquisador --
+              é apoio para a conversa da coordenação, não um diagnóstico individual.
+            </p>
+        """, unsafe_allow_html=True)
+
+
 # ==========================================================================
 # Layout
 # ==========================================================================
@@ -827,6 +1024,7 @@ def main():
 
     artigos = carregar_artigos(str(DB_PATH))
     submissoes = carregar_submissoes(str(DB_PATH))
+    ponto = carregar_ponto(str(DB_PATH))
     ano_atual = datetime.now().year
     meta_ano = carregar_meta_do_ano(str(DB_PATH), ano_atual)
 
@@ -834,6 +1032,8 @@ def main():
     alertas = gerar_alertas_latencia(kpis["pendentes"], LATENCIA_CRITICA_MESES)
     sugestao = sugerir_mudanca_metodologica(artigos, submissoes)
     projecao = projetar_ritmo(artigos, meta_ano, ano_atual)
+    presenca = calcular_correlacao_presenca(ponto)
+    diagnostico = gerar_diagnostico_intervencao(kpis, projecao, presenca, artigos, ano_atual)
 
     # ---------------- KPIs ----------------
     titulo_secao("Indicadores em tempo real", com_pulso=True)
@@ -907,6 +1107,10 @@ def main():
         sub = (f'meta declarada: {projecao["meta_declarada"]}'
                if projecao["meta_declarada"] is not None else "sem meta declarada pela coordenação")
         cartao_kpi("Projeção para o fim do ano", str(projecao["projecao_fim_de_ano"]), sub=sub, chave="projecao")
+
+    # ---------------- Diagnóstico + intervenção (visão coletiva) ----------------
+    titulo_secao("Diagnóstico da IA Central — visão coletiva do laboratório")
+    _renderizar_diagnostico_intervencao(diagnostico)
 
     # ---------------- Gráficos ----------------
     titulo_secao("Linhas de pesquisa — volume × impacto × tempo")

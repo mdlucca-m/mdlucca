@@ -152,6 +152,94 @@ class TestSugestaoMetodologica(unittest.TestCase):
         self.assertEqual(sugestao["linhas_mais_aceitas"][0][0], "Linha consolidada")
 
 
+def ponto(entrada, horas):
+    return {"entrada": pd.Timestamp(entrada), "horas": horas}
+
+
+class TestCorrelacaoDePresenca(unittest.TestCase):
+    def test_sem_nenhum_ponto_nao_quebra(self):
+        presenca = painel.calcular_correlacao_presenca(pd.DataFrame(columns=["entrada", "horas"]))
+        self.assertEqual(presenca["horas_semana_atual"], 0.0)
+        self.assertIsNone(presenca["variacao_pct"])
+
+    def test_menos_de_duas_semanas_anteriores_nao_inventa_baseline(self):
+        hoje = pd.Timestamp.now()
+        df = pd.DataFrame([ponto(hoje, 4.0), ponto(hoje - pd.Timedelta(weeks=1), 5.0)])
+        presenca = painel.calcular_correlacao_presenca(df)
+        self.assertIsNone(presenca["variacao_pct"])
+
+    def test_variacao_e_a_diferenca_percentual_contra_a_media_das_semanas_anteriores(self):
+        hoje = pd.Timestamp.now()
+        linhas = [ponto(hoje, 20.0)]  # semana atual: 20h
+        for i in range(1, 4):  # 3 semanas anteriores, 10h cada -- media 10h
+            linhas.append(ponto(hoje - pd.Timedelta(weeks=i), 10.0))
+        presenca = painel.calcular_correlacao_presenca(pd.DataFrame(linhas))
+        self.assertAlmostEqual(presenca["variacao_pct"], 100.0, delta=1.0)
+
+
+class TestDiagnosticoIntervencao(unittest.TestCase):
+    """A leitura tem de ser sempre AGREGADA -- nunca aponta pessoa nenhuma,
+    só o padrão coletivo -- e a técnica sugerida tem de bater com o
+    gatilho descrito no próprio código (ver `_TECNICAS_INTERVENCAO`)."""
+
+    def _base(self, ano):
+        kpis = {"espera_mediana_meses": None}
+        projecao = {"ritmo_mensal": 0.5}
+        return kpis, projecao
+
+    def test_sem_nenhum_sinal_de_alerta_sugere_reforco_positivo(self):
+        kpis, projecao = self._base(AGORA.year)
+        projecao["ritmo_mensal"] = 5.0  # bem acima da media historica
+        presenca = {"horas_semana_atual": 10, "horas_media_semanal": 10, "variacao_pct": 0, "semanas_com_dado": 4}
+        artigos = pd.DataFrame([
+            artigo("publicado", ano=AGORA.year - 1),
+            artigo("publicado", ano=AGORA.year - 2),
+        ])
+        d = painel.gerar_diagnostico_intervencao(kpis, projecao, presenca, artigos, AGORA.year)
+        self.assertEqual(d["passo4_tecnica"], "reforco_positivo")
+
+    def test_presenca_em_queda_com_ritmo_baixo_sugere_metas_smart(self):
+        kpis, projecao = self._base(AGORA.year)
+        projecao["ritmo_mensal"] = 0.1  # bem abaixo da media historica
+        presenca = {"horas_semana_atual": 5, "horas_media_semanal": 20, "variacao_pct": -50.0, "semanas_com_dado": 4}
+        artigos = pd.DataFrame([
+            artigo("publicado", ano=AGORA.year - 1),
+            artigo("publicado", ano=AGORA.year - 1),
+            artigo("publicado", ano=AGORA.year - 2),
+        ])
+        d = painel.gerar_diagnostico_intervencao(kpis, projecao, presenca, artigos, AGORA.year)
+        self.assertEqual(d["passo4_tecnica"], "metas_smart")
+
+    def test_presenca_normal_com_ritmo_baixo_sugere_regulacao_de_ansiedade(self):
+        kpis, projecao = self._base(AGORA.year)
+        projecao["ritmo_mensal"] = 0.1
+        presenca = {"horas_semana_atual": 20, "horas_media_semanal": 19, "variacao_pct": 5.0, "semanas_com_dado": 4}
+        artigos = pd.DataFrame([
+            artigo("publicado", ano=AGORA.year - 1),
+            artigo("publicado", ano=AGORA.year - 1),
+            artigo("publicado", ano=AGORA.year - 2),
+        ])
+        d = painel.gerar_diagnostico_intervencao(kpis, projecao, presenca, artigos, AGORA.year)
+        self.assertEqual(d["passo4_tecnica"], "regulacao_ansiedade")
+
+    def test_espera_critica_sugere_biofeedback_mesmo_sem_dado_de_presenca(self):
+        kpis, projecao = self._base(AGORA.year)
+        kpis["espera_mediana_meses"] = 8.0  # acima de LATENCIA_CRITICA_MESES
+        presenca = {"horas_semana_atual": 0, "horas_media_semanal": None, "variacao_pct": None, "semanas_com_dado": 0}
+        artigos = pd.DataFrame([artigo("em_producao")])
+        d = painel.gerar_diagnostico_intervencao(kpis, projecao, presenca, artigos, AGORA.year)
+        self.assertEqual(d["passo4_tecnica"], "biofeedback_espera")
+
+    def test_diagnostico_nunca_carrega_identificacao_de_pessoa(self):
+        kpis, projecao = self._base(AGORA.year)
+        presenca = {"horas_semana_atual": 10, "horas_media_semanal": 10, "variacao_pct": 0, "semanas_com_dado": 4}
+        artigos = pd.DataFrame([artigo("publicado", ano=AGORA.year - 1)])
+        d = painel.gerar_diagnostico_intervencao(kpis, projecao, presenca, artigos, AGORA.year)
+        achatado = str(d)
+        for campo_de_pessoa in ("member_id", "full_name", "researcher"):
+            self.assertNotIn(campo_de_pessoa, achatado)
+
+
 class TestProjecaoDeRitmo(unittest.TestCase):
     def test_sem_meta_declarada_vem_none(self):
         artigos = pd.DataFrame([artigo("publicado", ano=AGORA.year)])
