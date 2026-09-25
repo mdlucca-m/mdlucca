@@ -322,6 +322,22 @@
   overflow-y: auto;
 }
 
+/* A lâmina "Organograma — Metodológico" funde os três baldes (Coordenação
+   e Docentes / Pós-graduação / Bolsistas e Demais) numa tela só; cada
+   balde vira uma seção com título, para continuar dando pra separar os
+   grupos de longe mesmo sem a tela própria de cada um. */
+.organograma-secao + .organograma-secao {
+  border-top: 1px solid var(--border);
+  padding-top: clamp(10px, 1.5vh, 18px);
+}
+.organograma-secao-titulo {
+  margin: 0 0 clamp(4px, .8vh, 10px);
+  font-size: clamp(12px, 1vw, calc(16px * var(--zoom, 1)));
+  font-weight: 700;
+  color: var(--ink-2);
+  text-align: center;
+}
+
 /* Árvore de verdade: raiz(es) no topo, filhos conectados por orientação
    real (advisor_id/co_advisor_id), nunca por agrupamento solto. O conector
    é o truque clássico de duas hastes (::before em cada nó, ::after ligando

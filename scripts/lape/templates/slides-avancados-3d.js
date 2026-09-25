@@ -580,6 +580,119 @@ function slideOrganograma3D(baldeIndex) {
   return escalonar(container);
 }
 
+/* Os três baldes (Coordenação e Docentes / Pós-graduação / Bolsistas e
+   Demais) numa lâmina só, para o ciclo enxuto da parede -- em vez de três
+   telas separadas. Reaproveita a mesma árvore e o mesmo `mostrados`
+   (compartilhado entre os três baldes NUM SÓ laço, sem precisar
+   "reencenar" quem os baldes anteriores já mostraram): cada pessoa segue
+   morando no balde do primeiro vínculo que bate com ela, ou de um
+   ancestral já mostrado, exatamente como em `slideOrganograma3D`. O
+   `.slide-organograma-3d` já tem `overflow-y: auto` (a única lâmina do
+   mural com essa válvula de escape) -- com os três baldes juntos, uma
+   equipe grande rola em vez de cortar nas pontas. */
+function slideOrganogramaMetodologico() {
+  const t = tv();
+  const org = t && t.organograma;
+  if (!org || !(org.people || []).length) {
+    return escalonar(el("div", { class: "slide" }, vazio("Nenhuma pessoa do LAPE cadastrada.")));
+  }
+
+  const container = el("div", { class: "slide slide-organograma-3d" });
+
+  const porId = {};
+  (org.people || []).forEach(function (p) { porId[p.id] = p; });
+  const filhosDe = {};
+  (org.edges || []).forEach(function (e) {
+    if (e.kind !== "orientacao" && e.kind !== "coorientacao") return;
+    if (!porId[e.from] || !porId[e.to]) return;
+    (filhosDe[e.from] = filhosDe[e.from] || []).push({ to: e.to, kind: e.kind });
+  });
+
+  function cartaoPessoa(p) {
+    const [icone, tom] = VINCULOS_ICONE[p.role || "sem_vinculo"] || VINCULOS_ICONE.sem_vinculo;
+    const ativo = p.ativo_agora ? "ativo" : "inativo";
+    const cartao = el("div", { class: `cartao-pessoa ${ativo}`, "data-tom": tom, "data-id": p.id });
+    cartao.appendChild(Icons.badge(icone, tom, 30));
+    const statusBolinha = el("div", { class: `status-bolinha ${ativo}` });
+    if (p.ativo_agora) statusBolinha.classList.add("pulsante");
+    cartao.appendChild(statusBolinha);
+    cartao.appendChild(el("div", { class: "nome-pessoa", text: cortar(p.full_name, 25) }));
+    cartao.appendChild(el("div", { class: "vinculo-pessoa", text: p.role_label }));
+    if (p.ativo_agora && p.ha_horas !== null && p.ha_horas !== undefined) {
+      cartao.appendChild(el("div", { class: "desde-pessoa", text: "há " + porHoras(p.ha_horas) }));
+    }
+    const nArtigos = p.n_articles || 0;
+    cartao.appendChild(el("div", { class: "badge-artigos", text: nArtigos }));
+    if (p.orientandos) {
+      cartao.appendChild(el("div", { class: "badge-orientandos", title: p.orientandos + " orientando(s)" },
+        [el("span", { text: "↳ " + p.orientandos })]));
+    }
+    const linhaPonto = p.ativo_agora
+      ? "presente há " + porHoras(p.ha_horas) + (p.atividade ? " -- " + p.atividade : "")
+      : "ausente agora";
+    cartao.title = `${p.full_name}\n${p.role_label}\n${nArtigos} artigo(s)\n${linhaPonto}`;
+    return cartao;
+  }
+
+  function noArvore(id, profundidade) {
+    const pessoa = porId[id];
+    if (!pessoa) return null;
+    const filhos = (filhosDe[id] || []).map(function (f) { return porId[f.to]; }).filter(Boolean);
+    const no = el("div", { class: "no-organograma" }, [cartaoPessoa(pessoa)]);
+    if (!filhos.length || profundidade >= 3) return no;
+    const galhos = el("div", { class: "ramo-organograma" },
+      filhos.map(function (p) { return noArvore(p.id, profundidade + 1); }).filter(Boolean));
+    no.appendChild(galhos);
+    return no;
+  }
+
+  const temOrientador = temOrientadorVisivel(org.people, org.edges);
+  function candidatosDoBalde(indice) {
+    return (org.people || []).filter(function (p) { return baldeDoRole(p.role) === indice; });
+  }
+
+  /* UM SÓ `mostrados`, atravessando os três baldes em ordem -- é o que
+     substitui o "replay" que cada slide separada fazia sozinha. */
+  const mostrados = new Set();
+  function marcarMostrado(id) {
+    if (mostrados.has(id)) return;
+    mostrados.add(id);
+    (filhosDe[id] || []).forEach(function (f) { marcarMostrado(f.to); });
+  }
+
+  const secoes = [];
+  BALDES_ORGANOGRAMA.forEach(function (balde, indice) {
+    const locais = candidatosDoBalde(indice).filter(function (p) {
+      return !mostrados.has(p.id) && !temOrientador.has(p.id);
+    });
+    const raizes = [];
+    locais.forEach(function (p) {
+      if (mostrados.has(p.id)) return;
+      const no = noArvore(p.id, 0);
+      if (no) raizes.push(no);
+      marcarMostrado(p.id);
+    });
+    if (raizes.length) {
+      secoes.push(el("div", { class: "organograma-secao" }, [
+        el("h3", { class: "organograma-secao-titulo", text: balde.titulo }),
+        el("div", { class: "arvore-organograma" }, raizes),
+      ]));
+    }
+  });
+
+  if (!secoes.length) {
+    return escalonar(el("div", { class: "slide" }, vazio("Ninguém no organograma ainda.")));
+  }
+  secoes.forEach(function (secao) { container.appendChild(secao); });
+
+  container.appendChild(el("div", { class: "legenda-ponto" }, [
+    el("div", { class: "item-legenda" }, [el("div", { class: "bolinha verde" }), el("span", { text: "Presente agora" })]),
+    el("div", { class: "item-legenda" }, [el("div", { class: "bolinha cinza" }), el("span", { text: "Ausente" })]),
+  ]));
+
+  return escalonar(container);
+}
+
 /* ==================== FRAMEWORK DE PESQUISA (PIPELINE REAL) ==================== */
 /* As fases batem exato com os status do banco (config.ARTICLE_STATUS) --
    nunca um estágio inventado que o sistema não consegue contar de verdade.
