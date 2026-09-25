@@ -62,7 +62,7 @@ function slidePesquisasLinhas3D() {
   const glowId = "glow-linha-pesquisa";
   const defs = elSvg("defs");
   const filtroGlow = elSvg("filter", { id: glowId, x: "-50%", y: "-50%", width: "200%", height: "200%" });
-  filtroGlow.appendChild(elSvg("feGaussianBlur", { "in": "SourceGraphic", stdDeviation: "4" }));
+  filtroGlow.appendChild(elSvg("feGaussianBlur", { "in": "SourceGraphic", stdDeviation: "5" }));
   defs.appendChild(filtroGlow);
   svg.appendChild(defs);
 
@@ -79,6 +79,21 @@ function slidePesquisasLinhas3D() {
      lidera" nunca aparece: com uma linha só, ela sempre pareceria "no
      máximo". As partículas e o ritmo do pulso vêm desta razão. */
   const maiorArtigos = Math.max(1, ...linhas.map((l) => l.artigos || 0));
+
+  /* Trilha pontilhada só decorativa, no raio dos nós -- dá a leitura de
+     "órbita" mesmo no instante em que a rotação está parada (print,
+     captura de tela, prefers-reduced-motion). */
+  svg.appendChild(elSvg("circle", {
+    cx: centerX, cy: centerY, r: radius, class: "trilha-orbita",
+    fill: "none", "stroke-dasharray": "2 10",
+  }));
+
+  /* Todo o anel (raios + nós) gira em torno do centro -- antes só o hub
+     central tinha `rotacao-3d`; o resto do grafo ficava parado. Cada nó
+     mora dentro de um `<g>` próprio que gira na direção oposta, à mesma
+     velocidade, em torno do seu PRÓPRIO ponto (não do centro) -- assim a
+     posição orbita, mas o rótulo/ícone/badges continuam de pé, legíveis. */
+  const anel = elSvg("g", { class: "anel-orbita" });
   const particulas = [];
 
   linhas.forEach((linha, idx) => {
@@ -90,7 +105,15 @@ function slidePesquisasLinhas3D() {
     const atividade = n_artigos / maiorArtigos;
 
     const nodeRadius = Math.max(20, Math.min(60, 20 + (n_artigos / 5)));
-    const strokeColor = taxa_pub > 0.8 ? "var(--good)" : taxa_pub > 0.5 ? "var(--warning)" : "var(--critical)";
+    /* Cor por IDENTIDADE da linha (categórica, uma por linha, igual ao
+       resto do mural -- ver .cartao-pessoa/.etapa-framework), não mais
+       por taxa de publicação: com só 3 cores por faixa, linhas
+       diferentes na mesma faixa ficavam indistinguíveis no grafo. A taxa
+       de publicação continua visível, mas como número (badgeTaxa
+       abaixo), sua própria informação. */
+    const corLinha = `var(--series-${(idx % 8) + 1})`;
+    const corTaxa = taxa_pub > 0.8 ? "var(--good)" : taxa_pub > 0.5 ? "var(--warning)" : "var(--critical)";
+    const nomeIcone = (typeof Icons !== "undefined" && Icons.tematico) ? Icons.tematico(linha.nome) : null;
 
     /* Linha do centro até o nó (Bezier com animação) */
     const caminho = `M ${centerX} ${centerY} Q ${(centerX + x) / 2} ${(centerY + y) / 2} ${x} ${y}`;
@@ -98,14 +121,14 @@ function slidePesquisasLinhas3D() {
       d: caminho,
       class: "conexao-linha-pesquisa",
       style: `--index:${idx};--total:${linhas.length};`,
-      stroke: strokeColor,
+      stroke: corLinha,
       "stroke-width": "2",
       fill: "none",
       "stroke-dasharray": "400",
       "stroke-dashoffset": "400",
       "vector-effect": "non-scaling-stroke",
     });
-    svg.appendChild(line);
+    anel.appendChild(line);
 
     /* Partículas correndo do centro até o nó: mais partículas, e mais
        rápidas, para quem lidera em artigos -- o fluxo mostra pra onde a
@@ -116,7 +139,7 @@ function slidePesquisasLinhas3D() {
     const duracao = 3.2 - atividade * 1.8;
     for (let p = 0; p < qtdParticulas; p++) {
       const particula = elSvg("circle", {
-        r: "3.5", class: "particula-fluxo", fill: strokeColor,
+        r: "3.5", class: "particula-fluxo", fill: corLinha,
         filter: `url(#${glowId})`,
       });
       const motion = elSvg("animateMotion", {
@@ -128,27 +151,52 @@ function slidePesquisasLinhas3D() {
       particulas.push(particula);
     }
 
+    /* Grupo do nó: gira ao contrário do anel, em torno do seu próprio
+       centro (x,y), para orbitar sem virar de cabeça pra baixo. */
+    const grupoNo = elSvg("g", {
+      class: "grupo-no-orbita",
+      style: `--index:${idx};transform-origin:${x.toFixed(1)}px ${y.toFixed(1)}px;`,
+    });
+
+    const titulo = elSvg("title");
+    titulo.textContent = `${linha.nome} — ${n_artigos} artigo${n_artigos === 1 ? "" : "s"}, `
+      + `${Math.round(taxa_pub * 100)}% de taxa de publicação`;
+    grupoNo.appendChild(titulo);
+
     /* Nó central (círculo com glow) */
     const circle = elSvg("circle", {
       cx: x,
       cy: y,
       r: nodeRadius,
       class: "nodo-linha-pesquisa",
-      style: `--index:${idx};--radius:${nodeRadius};--cor:${strokeColor};`
+      style: `--index:${idx};--radius:${nodeRadius};--cor:${corLinha};`
         + `--pulso-duracao:${(2.6 - atividade * 1).toFixed(2)}s;`,
       fill: "currentColor",
       filter: `url(#${glowId})`,
-      opacity: "0.8",
+      opacity: "0.85",
     });
     circle.addEventListener("mouseenter", function () {
       this.style.opacity = "1";
       this.style.r = nodeRadius + 10;
     });
     circle.addEventListener("mouseleave", function () {
-      this.style.opacity = "0.8";
+      this.style.opacity = "0.85";
       this.style.r = nodeRadius;
     });
-    svg.appendChild(circle);
+    grupoNo.appendChild(circle);
+
+    /* Ícone temático da área, centrado dentro do nó -- em branco, para
+       destacar sobre a cor própria da linha. */
+    if (nomeIcone && typeof Icons !== "undefined" && Icons.get) {
+      const iconSize = Math.max(16, Math.min(30, nodeRadius * 0.75));
+      const icone = Icons.get(nomeIcone, iconSize);
+      icone.setAttribute("x", (x - iconSize / 2).toFixed(1));
+      icone.setAttribute("y", (y - iconSize / 2).toFixed(1));
+      icone.style.color = "#fff";
+      icone.style.pointerEvents = "none";
+      icone.setAttribute("filter", "drop-shadow(0 1px 2px rgba(0,0,0,.45))");
+      grupoNo.appendChild(icone);
+    }
 
     /* Label do nó */
     const label = elSvg("text", {
@@ -162,27 +210,47 @@ function slidePesquisasLinhas3D() {
       style: `--index:${idx};`,
     });
     label.textContent = cortar(linha.nome, 20);
-    svg.appendChild(label);
+    grupoNo.appendChild(label);
 
-    /* Badge com número de artigos */
+    /* Badge com número de artigos (identidade da linha) */
     const badge = elSvg("text", {
       x: x + nodeRadius + 5,
       y: y - nodeRadius - 5,
       class: "badge-artigos",
-      fill: strokeColor,
+      fill: corLinha,
       "font-size": "13px",
       "font-weight": "700",
       "dominant-baseline": "middle",
     });
     badge.textContent = n_artigos;
-    svg.appendChild(badge);
+    grupoNo.appendChild(badge);
+
+    /* Badge com a taxa de publicação, do outro lado -- antes essa
+       informação só existia implícita na cor do nó; agora é um número
+       lido direto, com sua própria cor de status (bom/alerta/crítico). */
+    const badgeTaxa = elSvg("text", {
+      x: x - nodeRadius - 5,
+      y: y - nodeRadius - 5,
+      class: "badge-taxa",
+      fill: corTaxa,
+      "font-size": "11px",
+      "font-weight": "700",
+      "text-anchor": "end",
+      "dominant-baseline": "middle",
+    });
+    badgeTaxa.textContent = Math.round(taxa_pub * 100) + "%";
+    grupoNo.appendChild(badgeTaxa);
+
+    anel.appendChild(grupoNo);
   });
 
   /* As partículas entram por cima de todas as linhas e nós -- por
      último no documento, para não ficarem escondidas atrás deles. */
-  particulas.forEach((p) => svg.appendChild(p));
+  particulas.forEach((p) => anel.appendChild(p));
+  svg.appendChild(anel);
 
-  /* Centro: nó principal girando */
+  /* Centro: nó principal girando (fica de fora do anel -- já gira por
+     conta própria, e sua etiqueta "LAPE" precisa continuar de pé). */
   const centerCircle = elSvg("circle", {
     cx: centerX,
     cy: centerY,
@@ -225,6 +293,10 @@ function slidePesquisasLinhas3D() {
     el("div", { class: "info-item" }, [
       el("span", { class: "info-label", text: "Taxa média:" }),
       el("span", { class: "info-value", text: fmt(linhas.reduce((a, b) => a + (b.taxa_publicacao || 0), 0) / Math.max(1, linhas.length) * 100) + "%" }),
+    ]),
+    el("div", { class: "info-item" }, [
+      el("span", { class: "info-label", text: "Linha líder:" }),
+      el("span", { class: "info-value", text: cortar(linhas.reduce((a, b) => (b.artigos || 0) > (a.artigos || 0) ? b : a, linhas[0]).nome, 26) }),
     ]),
   ]);
 
