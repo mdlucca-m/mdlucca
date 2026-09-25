@@ -211,6 +211,30 @@ body { background: var(--surface-sunken); }
   50% { filter: drop-shadow(0 0 16px var(--cor-esfera)); opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .esfera-pisca-ciano circle { animation: none; } }
+/* Painel de insights ("O que os indicadores dizem"): gauge da taxa de
+   aceite em cima, alerta e projeção do ano como texto abaixo -- crítico
+   pulsa em vermelho de verdade (`--critical`, a mesma rampa do tema),
+   nunca uma cor nova só para "parecer alarme". */
+.insights-painel { display: flex; flex-direction: column; gap: 10px; min-height: 0; flex: 1; }
+.insights-gauge { display: flex; justify-content: center; }
+.insights-gauge svg { max-width: 260px; }
+.insights-alerta { font-size: clamp(11px, .85vw, calc(13.5px * var(--zoom, 1)));
+  color: var(--critical); background: color-mix(in srgb, var(--critical) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--critical) 40%, transparent);
+  border-radius: var(--radius-sm); padding: 6px 10px; animation: alertaPulsa 1.8s ease-in-out infinite; }
+@keyframes alertaPulsa {
+  0%, 100% { background: color-mix(in srgb, var(--critical) 10%, transparent); }
+  50% { background: color-mix(in srgb, var(--critical) 22%, transparent); }
+}
+.insights-predicao { font-size: clamp(11px, .85vw, calc(13.5px * var(--zoom, 1))); color: var(--ink-2); }
+.insights-predicao b { color: var(--accent-strong); }
+@media (prefers-reduced-motion: reduce) { .insights-alerta { animation: none; } }
+.gauge-critico .gauge-arco-valor { animation: pulsaArcoCritico 1.6s ease-in-out infinite; }
+@keyframes pulsaArcoCritico {
+  0%, 100% { filter: drop-shadow(0 0 4px var(--critical)); }
+  50% { filter: drop-shadow(0 0 14px var(--critical)); }
+}
+@media (prefers-reduced-motion: reduce) { .gauge-critico .gauge-arco-valor { animation: none; } }
 
 /* lista de prazos e de agenda: uma linha alta, legível de longe */
 /* a lista se abre até a altura do quadro: numa TV, seis linhas espremidas no

@@ -505,6 +505,80 @@ const ChartsEnhanced = (function () {
     return fig;
   }
 
+  /* Gauge de diagnóstico: arco de meia-lua, sem lib nenhuma -- o truque é
+     `pathLength="100"` nos dois arcos (trilho e valor), que normaliza o
+     comprimento para 100 unidades não importa o raio; o arco de valor
+     usa `stroke-dasharray="v 100"` para preencher exatamente v%.
+     `opts.critico` liga o pulso vermelho -- decidido pelo CHAMADOR, com
+     um número real (ex.: 0% de aceite com decisões de verdade no
+     período), nunca aqui dentro. */
+  function gaugeDiagnostico(valor, opts) {
+    const o = opts || {};
+    const w = 320, h = 220, cx = w / 2, cy = 175, raio = 118;
+    const fig = document.createElement("figure");
+    fig.setAttribute("class", "chart");
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+    svg.setAttribute("class", "plot gauge-diagnostico" + (o.critico ? " gauge-critico" : ""));
+
+    function arco(raioArco) {
+      // meia-lua de 180° a 0°, sempre da esquerda para a direita
+      const x0 = cx - raioArco, x1 = cx + raioArco;
+      const p = document.createElementNS(NS, "path");
+      p.setAttribute("d", `M ${x0} ${cy} A ${raioArco} ${raioArco} 0 0 1 ${x1} ${cy}`);
+      p.setAttribute("fill", "none");
+      p.setAttribute("pathLength", "100");
+      return p;
+    }
+
+    const trilho = arco(raio);
+    trilho.setAttribute("stroke", "var(--border)");
+    trilho.setAttribute("stroke-width", "22");
+    trilho.setAttribute("stroke-linecap", "round");
+    svg.appendChild(trilho);
+
+    const temValor = valor !== null && valor !== undefined && isFinite(valor);
+    if (temValor) {
+      const v = Math.max(0, Math.min(100, valor));
+      const cor = o.critico ? "var(--critical)" : v >= 50 ? "var(--good)" : "var(--warning)";
+      const arcoValor = arco(raio);
+      arcoValor.setAttribute("stroke", cor);
+      arcoValor.setAttribute("stroke-width", "22");
+      arcoValor.setAttribute("stroke-linecap", "round");
+      arcoValor.setAttribute("stroke-dasharray", `${v} ${100 - v}`);
+      arcoValor.setAttribute("class", "gauge-arco-valor");
+      svg.appendChild(arcoValor);
+    }
+
+    const numero = document.createElementNS(NS, "text");
+    numero.setAttribute("x", cx); numero.setAttribute("y", cy - 18);
+    numero.setAttribute("text-anchor", "middle");
+    numero.setAttribute("font-size", "40"); numero.setAttribute("font-weight", "800");
+    numero.setAttribute("fill", o.critico ? "var(--critical)" : "var(--ink)");
+    numero.textContent = temValor ? fmt(valor) + "%" : "sem dado";
+    svg.appendChild(numero);
+
+    if (o.rotulo) {
+      const rotulo = document.createElementNS(NS, "text");
+      rotulo.setAttribute("x", cx); rotulo.setAttribute("y", cy + 10);
+      rotulo.setAttribute("text-anchor", "middle");
+      rotulo.setAttribute("font-size", "13"); rotulo.setAttribute("fill", "var(--ink-2)");
+      rotulo.textContent = o.rotulo;
+      svg.appendChild(rotulo);
+    }
+    if (o.nota) {
+      const nota = document.createElementNS(NS, "text");
+      nota.setAttribute("x", cx); nota.setAttribute("y", cy + 34);
+      nota.setAttribute("text-anchor", "middle");
+      nota.setAttribute("font-size", "11"); nota.setAttribute("fill", "var(--ink-muted)");
+      nota.textContent = o.nota;
+      svg.appendChild(nota);
+    }
+
+    fig.appendChild(svg);
+    return fig;
+  }
+
   /* Funil líquido: sem depender de nenhuma lib de gráfico -- dois
      trapézios (em escrita -> com o periódico) desaguando num tanque com
      recorte (clipPath) e uma onda animada em CSS por dentro. `estagios`
@@ -644,6 +718,7 @@ const ChartsEnhanced = (function () {
     sunburst,
     scatter3d,
     funilLiquido,
+    gaugeDiagnostico,
     destacarFatiaSunburst,
   };
 })();

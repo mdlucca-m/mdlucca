@@ -402,7 +402,7 @@ def _citacoes_bases_dados(db: Database) -> dict[str, Any]:
 
 def para_a_tv(db: Database, hoje: date | None = None) -> dict[str, Any]:
     """Tudo o que as telas da parede acrescentam, numa chamada só, com cache."""
-    from . import rotina
+    from . import metas, rotina
 
     hoje = hoje or date.today()
 
@@ -439,7 +439,21 @@ def para_a_tv(db: Database, hoje: date | None = None) -> dict[str, Any]:
             "linhas": cache.computar("linhas_pesquisa", lambda: _linhas_pesquisa(db), ttl=300),
             "organograma": cache.computar("organograma_tv", lambda: _organograma_para_tv(db), ttl=120),
             "citacoes": _citacoes_bases_dados(db),
+            "meta_publicacoes": _meta_publicacoes(db, metas, hoje),
             "gerado_em": datetime.now().isoformat(timespec="seconds"),
         }
 
     return cache.computar(f"tv_completo_{hoje.isoformat()}", _agregar, ttl=60)
+
+
+def _meta_publicacoes(db: Database, metas_mod: Any, hoje: date) -> dict[str, Any] | None:
+    """Só o indicador "publicacoes" de `metas.progresso` -- o que a lâmina
+    de indicadores precisa para uma frase honesta sobre o ano, nunca um
+    "vai bater a meta" inventado. Sem meta declarada, `meta` vem None e
+    `veredito` já diz "sem meta declarada" -- a tela mostra isso, e não
+    finge que existe uma meta."""
+    progresso = metas_mod.progresso(db, hoje.year, hoje)
+    for item in progresso["indicadores"]:
+        if item["codigo"] == "publicacoes":
+            return item
+    return None

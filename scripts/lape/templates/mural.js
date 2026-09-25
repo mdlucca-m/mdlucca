@@ -1066,9 +1066,70 @@ function slideTemas() {
     linha,
     el("div", { class: "painel-duplo" }, [
       quadro("Onde se publica", "citacao", grafico, revistas.length + (revistas.length === 1 ? " revista" : " revistas"), "moldura-viva"),
-      quadro("O que os indicadores dizem", "achado", frases(ditos.slice(0, 6)), t.periodo.rotulo || ""),
+      quadro("Insights", "achado", painelInsights(t, kpis, ditos), t.periodo.rotulo || "", "moldura-viva"),
     ]),
   ]));
+}
+
+/* A frase da projeção de fim de ano, sempre a partir do `meta.veredito`
+   real (metas.py, back-end) -- nunca um "vai bater a meta" calculado
+   aqui na tela. Sem meta declarada, a frase ainda diz a projeção (uma
+   faixa, nunca um número só): dado real mesmo sem alvo para comparar. */
+function fraseMetaPublicacoes(meta) {
+  if (!meta) return null;
+  const proj = meta.projecao || {};
+  const faixa = proj.de !== undefined && proj.ate !== undefined
+    ? "entre " + fmt(proj.de) + " e " + fmt(proj.ate) : null;
+  switch (meta.veredito) {
+    case "alcançada":
+      return "meta de " + fmt(meta.meta) + " publicações já alcançada (" + fmt(meta.realizado) + " até agora).";
+    case "não alcançada":
+      return "meta de " + fmt(meta.meta) + " publicações não alcançada neste ano (" + fmt(meta.realizado) + " ao todo).";
+    case "no ritmo atual, alcança":
+      return "no ritmo atual, a meta de " + fmt(meta.meta) + " publicações deve ser alcançada até dezembro"
+        + (faixa ? " (projeção " + faixa + ")" : "") + ".";
+    case "no ritmo atual, não alcança":
+      return "no ritmo atual, a meta de " + fmt(meta.meta) + " publicações NÃO deve ser alcançada até dezembro"
+        + (faixa ? " (projeção " + faixa + ")" : "") + ".";
+    case "depende do fim do ano":
+      return "a meta de " + fmt(meta.meta) + " publicações está em aberto"
+        + (faixa ? " -- a projeção (" + faixa + ") cruza o alvo" : "") + ": depende do fim do ano.";
+    default:
+      return "sem meta anual declarada" + (faixa ? " -- no ritmo atual, a projeção honesta é " + faixa
+        + " publicações até dezembro" : "") + ".";
+  }
+}
+
+/* Painel de insights: o diagnóstico visual (gauge da taxa de aceite,
+   crítico só quando o número real é 0% com decisão de verdade no
+   período -- nunca decorativo) mais a projeção honesta de fim de ano, e
+   o resto dos indicadores como leitura de apoio. Reaproveita `frases()`,
+   o mesmo componente de texto já usado no resto do mural. */
+function painelInsights(t, kpis, ditos) {
+  const aceite = kpis.aceite;
+  const valor = aceite ? aceite.valor : null;
+  const critico = !!(aceite && aceite.valor === 0 && aceite.n_decididas > 0);
+  const gauge = ChartsEnhanced.gaugeDiagnostico(valor, {
+    rotulo: "Taxa de aceite", nota: aceite ? aceite.pe : "", critico: critico,
+  });
+
+  const filhos = [el("div", { class: "insights-gauge" }, [gauge])];
+  if (critico) {
+    filhos.push(el("p", { class: "insights-alerta" }, [
+      el("b", { text: "⚠️ Taxa de aceite em 0%: " }),
+      el("span", { text: fmt(aceite.n_decididas) + " decisão(ões) no período, nenhuma aceita." }),
+    ]));
+  }
+  const predicao = fraseMetaPublicacoes(t.meta_publicacoes);
+  if (predicao) {
+    filhos.push(el("p", { class: "insights-predicao" }, [
+      el("span", { class: "ponto-vivo" }),
+      el("b", { text: " Publicações no ano: " }),
+      el("span", { text: predicao }),
+    ]));
+  }
+  if (ditos.length) filhos.push(frases(ditos.slice(0, 3)));
+  return el("div", { class: "insights-painel" }, filhos);
 }
 
 function slideRitmo() {

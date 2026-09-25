@@ -952,7 +952,7 @@ def temas(db: Database, per: dict[str, Any], hoje: date) -> dict[str, Any]:
          "valor": None if not dias else round(_mediana(dias)), "unidade": "dias (mediana)",
          "pe": f"{len(dias)} artigo(s) com as duas datas" if dias else "nenhum artigo com data de início e de publicação"},
         {"code": "aceite", "rotulo": "Taxa de aceite", "icon": "aceite", "tom": "green",
-         "valor": pct(aceites, n_decididas), "unidade": "%",
+         "valor": pct(aceites, n_decididas), "unidade": "%", "n_decididas": n_decididas,
          "pe": f"{aceites} aceite(s) em {n_decididas} decisão(ões)" if n_decididas else "nenhuma decisão de revista no período"},
         {"code": "acesso_aberto", "rotulo": "Acesso aberto", "icon": "livro", "tom": "yellow",
          "valor": pct(abertos, n_pub), "unidade": "%",

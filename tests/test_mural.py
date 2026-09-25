@@ -1377,3 +1377,114 @@ class TestDispersao3DDeImpactoPorLinha(unittest.TestCase):
         resultado = self._grafico(dados)
         self.assertTrue(any("esfera-pisca-ciano" in (c or "") for c in resultado["classesGrupo"]))
         self.assertFalse(all("esfera-pisca-ciano" in (c or "") for c in resultado["classesGrupo"]))
+
+
+class TestFraseMetaPublicacoes(unittest.TestCase):
+    """`fraseMetaPublicacoes` -- a projeção de fim de ano do painel de
+    insights. A frase segue sempre o `veredito` que vem pronto do
+    back-end (metas.py): a tela nunca decide sozinha se "vai bater a
+    meta", só traduz o veredito calculado lá em texto."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.fonte = "global.fmt = function (v) { return String(v); };\n" + _recorta("fraseMetaPublicacoes")
+
+    def _rodar(self, meta):
+        return _no_node(self.fonte, f"fraseMetaPublicacoes({json.dumps(meta)})")
+
+    def test_sem_meta_nenhuma_nao_quebra(self):
+        self.assertIsNone(self._rodar(None))
+
+    def test_sem_meta_declarada_ainda_mostra_a_projecao_em_faixa(self):
+        meta = {"veredito": "sem meta declarada", "meta": None, "realizado": 12,
+                "projecao": {"de": 14, "ate": 24, "central": 19}}
+        frase = self._rodar(meta)
+        self.assertIn("sem meta anual declarada", frase)
+        self.assertIn("entre 14 e 24", frase)
+        # nunca um numero so, sempre a faixa -- mesma regra do metas.py
+        self.assertNotIn("19", frase)
+
+    def test_meta_ja_alcancada(self):
+        meta = {"veredito": "alcançada", "meta": 20, "realizado": 22, "projecao": {}}
+        frase = self._rodar(meta)
+        self.assertIn("já alcançada", frase)
+        self.assertIn("22", frase)
+
+    def test_no_ritmo_atual_alcanca(self):
+        meta = {"veredito": "no ritmo atual, alcança", "meta": 15, "realizado": 10,
+                "projecao": {"de": 16, "ate": 22}}
+        frase = self._rodar(meta)
+        self.assertIn("deve ser alcançada", frase)
+        self.assertIn("entre 16 e 22", frase)
+
+    def test_no_ritmo_atual_nao_alcanca_e_bem_explicito(self):
+        meta = {"veredito": "no ritmo atual, não alcança", "meta": 40, "realizado": 10,
+                "projecao": {"de": 16, "ate": 22}}
+        frase = self._rodar(meta)
+        self.assertIn("NÃO deve ser alcançada", frase)
+
+
+class TestGaugeDeDiagnostico(unittest.TestCase):
+    """`ChartsEnhanced.gaugeDiagnostico` -- o mostrador da taxa de aceite
+    no painel de insights. Crítico é decidido por quem chama (nunca
+    aqui dentro), e só troca a classe/cor -- a tela real nunca inventa
+    um alarme por conta própria."""
+
+    DOM_SHIM = """
+    class NoFalso {
+      constructor(tag) { this.tag = tag; this.attrs = {}; this.kids = []; this._text = ""; }
+      setAttribute(k, v) { this.attrs[k] = String(v); }
+      appendChild(kid) { this.kids.push(kid); return kid; }
+      set textContent(v) { this._text = String(v); }
+      get textContent() { return this._text; }
+    }
+    global.document = {
+      createElementNS: (ns, tag) => new NoFalso(tag),
+      createElement: (tag) => new NoFalso(tag),
+    };
+    global.fmt = function (v) { return String(v); };
+    function todos(no, tag, saida) {
+      saida = saida || [];
+      if (no.tag === tag) saida.push(no);
+      no.kids.forEach((k) => todos(k, tag, saida));
+      return saida;
+    }
+    """
+
+    def _gauge(self, valor, opts=None):
+        texto = (TEMPLATES / "charts-enhanced.js").read_text(encoding="utf-8")
+        inicio = texto.index("const ChartsEnhanced")
+        fim = texto.index("\n})();", inicio) + len("\n})();")
+        chart_src = texto[inicio:fim]
+        valor_js = "null" if valor is None else json.dumps(valor)
+        script = (self.DOM_SHIM + "\n" + chart_src
+                  + f"\nconst fig = ChartsEnhanced.gaugeDiagnostico({valor_js}, {json.dumps(opts or {})});"
+                  + "\nconst svg = fig.kids[0];"
+                  + "\nconst arcoValor = todos(fig, 'path').find(function (p) {"
+                  + "  return p.attrs.class === 'gauge-arco-valor'; });"
+                  + "\nprocess.stdout.write(JSON.stringify({"
+                  + "  svgClasse: svg.attrs.class,"
+                  + "  temArcoValor: !!arcoValor,"
+                  + "  dashArray: arcoValor ? arcoValor.attrs['stroke-dasharray'] : null,"
+                  + "  textos: todos(fig, 'text').map(function (t) { return t.textContent; }) }));")
+        return _roda(script)
+
+    def test_svg_leva_a_classe_critico_so_quando_pedido(self):
+        normal = self._gauge(45, {"rotulo": "Taxa de aceite"})
+        self.assertNotIn("gauge-critico", normal["svgClasse"])
+        critico = self._gauge(0, {"rotulo": "Taxa de aceite", "critico": True})
+        self.assertIn("gauge-critico", critico["svgClasse"])
+
+    def test_sem_dado_nao_desenha_arco_de_valor(self):
+        resultado = self._gauge(None, {"rotulo": "Taxa de aceite"})
+        self.assertFalse(resultado["temArcoValor"])
+        self.assertIn("sem dado", resultado["textos"])
+
+    def test_arco_de_valor_preenche_a_fracao_certa(self):
+        resultado = self._gauge(30, {"rotulo": "Taxa de aceite"})
+        self.assertEqual(resultado["dashArray"], "30 70")
+
+    def test_numero_e_rotulo_aparecem(self):
+        resultado = self._gauge(62, {"rotulo": "Taxa de aceite"})
+        self.assertIn("62%", resultado["textos"])
+        self.assertIn("Taxa de aceite", resultado["textos"])
