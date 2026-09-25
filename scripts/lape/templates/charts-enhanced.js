@@ -677,6 +677,40 @@ const ChartsEnhanced = (function () {
       return poly;
     }
 
+    // Efeito de anel 3D (pedido: mesmo visual de referência, com camadas
+    // empilhadas) -- sem imagem nem gradiente novo, só a elipse do "aro"
+    // de cada etapa (a mesma cor da etapa, então a costura com o trapézio
+    // embaixo é invisível) mais um brilho vertical translúcido por cima,
+    // que é o que faz o trapézio chapado parecer um cilindro.
+    function aroEtapa(y, largura, cor) {
+      const g = document.createElementNS(NS, "g");
+      const ry = Math.max(6, Math.min(16, largura * 0.09));
+      const base = document.createElementNS(NS, "ellipse");
+      base.setAttribute("cx", cx); base.setAttribute("cy", y);
+      base.setAttribute("rx", largura / 2); base.setAttribute("ry", ry);
+      base.setAttribute("fill", cor);
+      g.appendChild(base);
+      const brilho = document.createElementNS(NS, "ellipse");
+      brilho.setAttribute("cx", cx); brilho.setAttribute("cy", y - ry * 0.28);
+      brilho.setAttribute("rx", largura * 0.34); brilho.setAttribute("ry", ry * 0.42);
+      brilho.setAttribute("fill", "#fff");
+      brilho.setAttribute("opacity", "0.28");
+      g.appendChild(brilho);
+      return g;
+    }
+
+    function brilhoVertical(yTop, yBot, wTop, wBot) {
+      const xTop = cx - wTop * 0.22, xBot = cx - wBot * 0.22;
+      const largo = Math.max(wTop, wBot) * 0.16;
+      const faixa = document.createElementNS(NS, "polygon");
+      faixa.setAttribute("points",
+        `${xTop - largo / 2},${yTop} ${xTop + largo / 2},${yTop} `
+        + `${xBot + largo / 2},${yBot} ${xBot - largo / 2},${yBot}`);
+      faixa.setAttribute("fill", "#fff");
+      faixa.setAttribute("opacity", "0.10");
+      return faixa;
+    }
+
     function rotuloEtapa(yTop, yBot, nome, valor) {
       const g = document.createElementNS(NS, "g");
       const yMeioEtapa = (yTop + yBot) / 2;
@@ -699,6 +733,8 @@ const ChartsEnhanced = (function () {
     etapas.forEach(function (etapa, i) {
       const yTop = margemTopo + i * alturaEtapa, yBot = margemTopo + (i + 1) * alturaEtapa;
       svg.appendChild(trapezio(yTop, yBot, larguras[i], larguras[i + 1], etapa.cor, etapa.nome, etapa.valor));
+      svg.appendChild(brilhoVertical(yTop, yBot, larguras[i], larguras[i + 1]));
+      svg.appendChild(aroEtapa(yTop, larguras[i], etapa.cor));
       svg.appendChild(rotuloEtapa(yTop, yBot, etapa.nome, etapa.valor));
     });
 
@@ -753,6 +789,11 @@ const ChartsEnhanced = (function () {
     ondaPath.appendChild(dicaOnda);
     ondaGrupo.appendChild(ondaPath);
     svg.appendChild(ondaGrupo);
+
+    // O aro entre a última etapa e o tanque -- mesma receita dos aros do
+    // funil, na cor do tanque, por cima da onda: a boca do tanque não
+    // fica reta e seca, e a costura com o funil de cima some.
+    svg.appendChild(aroEtapa(yTanque0, wBocaTanque, e3.cor));
 
     const valorTanque = document.createElementNS(NS, "text");
     valorTanque.setAttribute("x", cx); valorTanque.setAttribute("y", (yTanque0 + yTanque1) / 2 - 4);
