@@ -449,6 +449,19 @@ button:disabled:active { transform: none; }
 .card > * { position: relative; }
 .card > h3 { font-size: 13.5px; font-weight: 700; }
 .card > .hint { font-size: 12px; color: var(--ink-2); margin-top: 3px; }
+
+/* Boas-vindas de primeiro acesso -- mesma base do .card, com um acento
+   quente (--good) para se diferenciar das telas de formulário comuns. */
+.boas-vindas {
+  border-color: color-mix(in srgb, var(--good) 35%, var(--border));
+  margin-bottom: 14px;
+}
+.boas-vindas > h3 {
+  font-size: 16px; display: flex; align-items: center; gap: 9px;
+  color: var(--ink);
+}
+.boas-vindas > h3 svg.icon { color: var(--good); flex-shrink: 0; }
+.boas-vindas > p { margin-top: 8px; color: var(--ink-2); line-height: 1.55; font-size: 13px; }
 .hint { font-size: 12px; color: var(--ink-2); }
 .grid { display: grid; gap: 13px; }
 .g2 { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
