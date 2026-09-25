@@ -139,16 +139,17 @@ POTENCIA = {
     "meta_assunto": "Velocidade de movimento com carga baixa, sem salto e sem sprint",
     "titulo": "Potência — dia de jogo",
     "titulo_verso": "Como usar esta ficha",
-    "protocolo": "Carga baixa &nbsp;&middot;&nbsp; subida explosiva "
-                 "&nbsp;&middot;&nbsp; só academia, sem salto",
+    "protocolo": "Carga baixa &nbsp;&middot;&nbsp; intenção máxima "
+                 "&nbsp;&middot;&nbsp; volume mínimo",
     "rotulo_carga": "CARGA",
     "abertura":
         "<b>Hoje tem jogo. Isto não é um treino — é uma ativação.</b> Ninguém fica "
         "mais forte em algumas horas; o que dá para fazer é chegar à quadra hoje à "
-        "noite com o sistema nervoso <b>já ligado</b>. Sem salto e sem corrida, a "
-        "velocidade vem da <b>subida</b>: subir o mais rápido que der, descer devagar. "
-        "<b>Saia com vontade de fazer mais</b> — quem sai cansado transformou a "
-        "ativação em treino, e isso cobra no jogo.",
+        "noite com o sistema nervoso <b>já ligado</b>. Seis exercícios, três séries "
+        "cada, carga leve: em todos eles a <b>subida é a mais rápida que você "
+        "conseguir</b> e a descida é controlada. <b>Saia com vontade de fazer "
+        "mais</b> — quem sai cansado transformou a ativação em treino, e isso "
+        "cobra no jogo.",
     "aquecimento_titulo": "Aquecimento — mais longo que a parte principal",
     "aquecimento_nota": "Num dia de jogo o aquecimento <b>é</b> a maior parte do "
                         "trabalho. Sem pressa nenhuma aqui.",
@@ -158,35 +159,30 @@ POTENCIA = {
         ["Bicicleta ou esteira, ritmo leve", "5 min", "até suar, sem cansar"],
         ["Agachamento só com o peso do corpo, subida rápida", "2 \u00d7 8",
          "do fraco ao forte"],
-        ["Padrão da barra com bastão ou barra vazia", "2 \u00d7 5", "lembrar o gesto"],
+        ["Arranco e clean com a barra vazia", "2 \u00d7 3", "antes de pôr peso"],
     ],
     "exercicios": [
-        ("Puxada alta com barra (snatch pull)",
-         "tríplice extensão rápida — sem saltar",
-         "3 \u00d7 3", "2 min", "50%"),
-        ("Agachamento explosivo (Smith ou livre)",
-         "desce devagar, SOBE o mais rápido que der",
-         "3 \u00d7 3", "2 min", "30%"),
-        ("Leg press explosivo", "empurra rápido, volta devagar, sem bater a pilha",
-         "3 \u00d7 4", "2 min", "40%"),
-        ("Elevação de calcanhares explosiva",
-         "o último impulso do salto — desce em 3 s",
-         "3 \u00d7 6", "90 s", "30%"),
+        ("Arranco (snatch)", "o mais técnico e o mais neural — vem primeiro, sempre",
+         "3 \u00d7 2", "3 min", "60%"),
+        ("Clean", "tríplice extensão com recepção — carga que ainda sai limpa",
+         "3 \u00d7 2", "3 min", "60%"),
+        ("Agachamento com salto", "salto no lugar com barra — acima de 1,0 m/s",
+         "3 \u00d7 3", "2 min", "25%"),
+        ("Agachamento isométrico", "empurra a trava com TUDO por 4 s — ver o verso",
+         "3 \u00d7 4 s", "2 min", "máx."),
         ("Supino explosivo", "empurrar rápido — o braço do ataque acorda",
          "3 \u00d7 3", "2 min", "40%"),
-        ("Remada na polia baixa", "puxa rápido, solta devagar",
-         "3 \u00d7 4", "90 s", "40%"),
-        ("Desenvolvimento com halteres", "velocidade acima da cabeça",
-         "3 \u00d7 3", "90 s", "40%"),
+        ("Puxada fechada", "puxa rápido, solta devagar",
+         "3 \u00d7 4", "90 s", "50%"),
     ],
     "nota_tabela":
-        "Anote a carga de cada exercício. Se em alguma série a subida saiu lenta, "
+        "Anote a carga de cada exercício. Se em alguma série a barra saiu lenta, "
         "<b>pare o exercício ali</b> e marque um <b>X</b> — num dia de jogo, série "
         "lenta não é para ser insistida.",
     "caixa_duracao":
-        "<b>35 a 40 minutos, e pelo menos 6 horas antes do apito.</b> Faltando "
-        "menos de 3 horas para o jogo, faça só o aquecimento e os dois primeiros "
-        "exercícios, e pare por aí.",
+        "<b>30 a 35 minutos, e pelo menos 6 horas antes do apito.</b> Faltando "
+        "menos de 3 horas para o jogo, faça só o aquecimento e o agachamento com "
+        "salto, e pare por aí.",
     "verso": [
         ("caixa", "<b>A pergunta que decide tudo hoje: você saiu da sala com "
                   "vontade de fazer mais?</b> Se sim, a ativação foi certa. Se saiu "
@@ -197,43 +193,50 @@ POTENCIA = {
         ("espaco", 12),
         ("h", "As regras de hoje"),
         ("passos", [
-            "<b>Sobe rápido, desce devagar.</b> É a regra que substitui o salto. A "
-            "subida tem de ser a mais rápida que você conseguir; a descida, "
-            "controlada em cerca de 3 segundos. Descer solto não treina nada e "
-            "castiga a articulação.",
+            "<b>Sobe rápido, desce devagar.</b> Vale para todos: a subida é a mais "
+            "rápida que você conseguir, a descida é controlada. Descer solto não "
+            "treina nada e castiga a articulação.",
             "<b>Intenção máxima, carga baixa.</b> A carga é leve de propósito — ela "
             "existe para você poder ser rápido, não para pesar. Sem 1RM lançado, a "
             "carga certa é a mais pesada com que a subida ainda sai <b>visivelmente "
             "explosiva</b>; quando ela parece só \u201cforte\u201d, está pesado demais.",
-            "<b>Não trave a articulação no fim.</b> Em máquina, terminar o "
-            "movimento estalando joelho ou cotovelo é o único jeito de se machucar "
-            "num treino leve. Pare um pouco antes da extensão completa.",
+            "<b>Não trave a articulação no fim.</b> No supino e na puxada, terminar "
+            "o movimento estalando o cotovelo é o único jeito de se machucar num "
+            "treino leve. Pare um pouco antes da extensão completa.",
             "<b>Pausa inteira, sempre.</b> É ela que garante que a série seguinte "
             "saia tão rápida quanto a primeira. Encurtar a pausa hoje transforma "
             "ativação em cansaço.",
             "<b>Dormiu mal, acordou com dor ou com o corpo estranho?</b> Faça só o "
-            "aquecimento e os dois primeiros, e avise a comissão. Isso não é "
-            "frescura: é informação que muda a escalação.",
+            "aquecimento e o agachamento com salto, e avise a comissão — pule o "
+            "arranco e o clean, que são os que exigem técnica. Isso não é frescura: "
+            "é informação que muda a escalação.",
         ]),
         ("espaco", 10),
-        ("h", "O que saiu desta ficha, e por quê"),
+        ("h", "Os dois exercícios que precisam de explicação"),
         ("notas", [
-            ("Saltos e acelerações", "Saíram porque não há onde fazer. É uma perda "
-             "real e vale dizer com todas as letras: <b>o salto é o gesto mais "
-             "parecido com o jogo</b>, e nenhuma máquina reproduz a devolução "
-             "elástica do tendão. O que a academia consegue dar é a <b>intenção</b> "
-             "— subida máxima com carga leve —, e é isso que esta ficha explora. "
-             "Quando houver quadra livre antes do jogo, três séries de três saltos "
-             "verticais valem mais que metade desta folha."),
-            ("Drop jump", "Sairia de qualquer forma hoje, mesmo com espaço. A queda "
-             "do caixote é carga excêntrica alta, e é a excêntrica que deixa fadiga "
-             "residual e dor no dia seguinte — o contrário do que se quer em dia de "
-             "jogo."),
-            ("Arranco e clean completos", "Viraram <b>puxada alta</b>. A extensão "
-             "rápida de tornozelo, joelho e quadril, que é o que interessa, está "
-             "toda na puxada. O que sai é a recepção embaixo da barra: a parte "
-             "técnica, a que mais cansa e a única que pode dar errado. Em dia de "
-             "jogo não se arrisca técnica."),
+            ("Agachamento isométrico", "É <b>isometria curta e máxima</b>, não "
+             "permanência: barra travada na altura em que o joelho fica a uns 110 "
+             "graus, e você empurra com <b>tudo</b> por 4 segundos, como se fosse "
+             "arrancá-la do lugar. Três vezes, e acabou. Permanência longa — ficar "
+             "30 segundos segurando — é outro treino, cansa e não tem lugar num dia "
+             "de jogo. Se a sala não tiver trava, faça o agachamento parando 2 "
+             "segundos no fundo e subindo o mais rápido que der."),
+            ("Arranco e clean", "Carga leve o bastante para a <b>recepção sair "
+             "limpa</b>. Se você precisa se contorcer para receber a barra, está "
+             "pesado — e técnica errada repetida com velocidade é como se aprende a "
+             "errar rápido. Duas repetições por série é de propósito: a terceira já "
+             "costuma sair pior, e hoje não há nada a ganhar com repetição feia. "
+             "Sem 1RM lançado, comece com a barra vazia e suba só enquanto o "
+             "movimento continuar bonito."),
+        ]),
+        ("espaco", 8),
+        ("h", "O que continua fora, e por quê"),
+        ("notas", [
+            ("Caixote e sprint", "Não há onde fazer, e em dia de jogo o caixote "
+             "sairia de qualquer forma: a queda é carga excêntrica alta, e é a "
+             "excêntrica que deixa fadiga residual e dor no dia seguinte. O "
+             "agachamento com salto cobre a parte que interessa hoje, que é a "
+             "extensão rápida — e cobre sem a aterrissagem."),
         ]),
         ("espaco", 8),
         ("caixa", "<b>Depois do jogo, mande a PSE do JOGO também</b> — não só a "
