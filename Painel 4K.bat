@@ -64,6 +64,17 @@ if errorlevel 1 (
   echo.
 )
 
+rem O Streamlit pergunta um e-mail na PRIMEIRA vez que roda em qualquer
+rem pasta, e fica PARADO na janela esperando resposta -- sem ninguem
+rem para digitar algo ali, o duplo clique "nao faz nada" (a janela abre,
+rem trava calada, o navegador nunca chega a abrir). Gravar a credencial
+rem vazia de antemao pula essa pergunta para sempre, em qualquer pasta.
+if not exist "%USERPROFILE%\.streamlit" mkdir "%USERPROFILE%\.streamlit" >nul 2>nul
+if not exist "%USERPROFILE%\.streamlit\credentials.toml" (
+  echo [general] > "%USERPROFILE%\.streamlit\credentials.toml"
+  echo email = "" >> "%USERPROFILE%\.streamlit\credentials.toml"
+)
+
 echo   abrindo o painel -- o navegador abre sozinho em instantes...
 echo.
 echo   ------------------------------------------------------------------
@@ -73,6 +84,6 @@ echo   Para desligar: feche esta janela, ou aperte Ctrl+C aqui.
 echo   ------------------------------------------------------------------
 echo.
 
-%PY% -m streamlit run scripts\lape_streamlit_4k.py
+%PY% -m streamlit run scripts\lape_streamlit_4k.py --browser.gatherUsageStats false
 
 pause
