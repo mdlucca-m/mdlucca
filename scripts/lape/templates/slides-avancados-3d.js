@@ -634,9 +634,19 @@ function slideOrganogramaMetodologico() {
     return cartao;
   }
 
+  /* UM SÓ `mostrados`, atravessando os três baldes em ordem -- é o que
+     substitui o "replay" que cada slide separada fazia sozinha. Marcado
+     NA HORA em que o nó é desenhado (não só depois da árvore pronta):
+     coorientação bota duas arestas chegando na mesma pessoa, então duas
+     raízes do MESMO balde podem disputar o mesmo galho -- sem marcar
+     durante a descida, a segunda raiz desenhava o galho de novo, e a
+     pessoa aparecia duplicada na mesma seção. */
+  const mostrados = new Set();
+
   function noArvore(id, profundidade) {
     const pessoa = porId[id];
-    if (!pessoa) return null;
+    if (!pessoa || mostrados.has(id)) return null;
+    mostrados.add(id);
     const filhos = (filhosDe[id] || []).map(function (f) { return porId[f.to]; }).filter(Boolean);
     const no = el("div", { class: "no-organograma" }, [cartaoPessoa(pessoa)]);
     if (!filhos.length || profundidade >= 3) return no;
@@ -651,15 +661,6 @@ function slideOrganogramaMetodologico() {
     return (org.people || []).filter(function (p) { return baldeDoRole(p.role) === indice; });
   }
 
-  /* UM SÓ `mostrados`, atravessando os três baldes em ordem -- é o que
-     substitui o "replay" que cada slide separada fazia sozinha. */
-  const mostrados = new Set();
-  function marcarMostrado(id) {
-    if (mostrados.has(id)) return;
-    mostrados.add(id);
-    (filhosDe[id] || []).forEach(function (f) { marcarMostrado(f.to); });
-  }
-
   const secoes = [];
   BALDES_ORGANOGRAMA.forEach(function (balde, indice) {
     const locais = candidatosDoBalde(indice).filter(function (p) {
@@ -667,10 +668,8 @@ function slideOrganogramaMetodologico() {
     });
     const raizes = [];
     locais.forEach(function (p) {
-      if (mostrados.has(p.id)) return;
       const no = noArvore(p.id, 0);
       if (no) raizes.push(no);
-      marcarMostrado(p.id);
     });
     if (raizes.length) {
       secoes.push(el("div", { class: "organograma-secao" }, [
