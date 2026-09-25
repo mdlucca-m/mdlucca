@@ -1227,9 +1227,17 @@ function slideMundo() {
   /* O globo só precisa de sede + país com latitude/longitude -- os dois já
      chegam no primeiro payload, sem esperar os 70KB do contorno do
      mapa-múndi (que a lâmina antiga esperava). Sem coordenada nenhuma
-     ainda, cai pro ranking parado de sempre. */
+     ainda, cai pro ranking parado de sempre.
+
+     O próprio país da sede fica de fora dos arcos: "arco de voo saindo
+     de Florianópolis até Florianópolis" não é parceria internacional,
+     é o quartel general -- o KPI "Fora do Brasil" já existe bem por
+     isso. O Top 6 ao lado continua mostrando todo mundo, sede incluída,
+     porque ali a pergunta é outra ("quem mais assina", não "quem é de
+     fora"). */
   const comCoordenada = paises.filter(function (p) {
-    return p.latitude !== undefined && p.latitude !== null && p.longitude !== undefined && p.longitude !== null;
+    return p.latitude !== undefined && p.latitude !== null && p.longitude !== undefined && p.longitude !== null
+      && (!m.sede || p.pais !== m.sede.pais);
   });
   const globo = (m.sede && comCoordenada.length)
     ? ChartsEnhanced.globoNeon(m.sede, comCoordenada)
