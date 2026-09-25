@@ -317,6 +317,23 @@ class Database:
         cache = self._cache.setdefault("institutions", {})
         if key in cache:
             return cache[key]
+        # Sem cidade (o caso comum de ingestão de MEMBROS, que só traz o
+        # nome da instituição -- a cidade mora na aba "Instituições"), o
+        # conflito (name, city) NUNCA bate com a instituição já cadastrada
+        # com cidade de verdade: `upsert` cria uma SEGUNDA linha, sem
+        # país nenhum informado, e a coluna assume o DEFAULT 'Brasil' do
+        # schema. Uma instituição estrangeira ("Universitat de Barcelona",
+        # "University of Birmingham"...) virava brasileira na tela --
+        # achado ao vivo, na lâmina "Pelo mundo" do mural. Por isso, faltando
+        # cidade, procura por NOME primeiro; só cria do zero quando
+        # ninguém com esse nome existe ainda.
+        if city_v is None:
+            achado = self.scalar(
+                "SELECT id FROM institutions WHERE lower(name) = lower(?) ORDER BY id LIMIT 1",
+                (label,))
+            if achado is not None:
+                cache[key] = achado
+                return achado
         data = {"name": label, "city": city_v}
         data.update({k: v for k, v in extra.items() if v is not None})
         inst_id = self.upsert("institutions", data, conflict=("name", "city"))
