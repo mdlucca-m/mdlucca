@@ -512,10 +512,13 @@ const ChartsEnhanced = (function () {
       svg.appendChild(grupo);
     });
 
-    // Rótulos por cima de todas as esferas, e afastados uns dos outros:
-    // a posição padrão é abaixo do ponto, mas se isso colidir com um
-    // rótulo já colocado (mesmo problema das esferas coincidentes), desce
-    // em passos até abrir espaço em vez de escrever um nome sobre o outro.
+    // Rótulos por cima de todas as esferas, sem pisar em NENHUMA delas
+    // (não só na própria) e afastados uns dos outros: a posição padrão é
+    // abaixo do ponto, mas se isso colidir com uma esfera vizinha ou com
+    // um rótulo já colocado (mesmo problema das esferas coincidentes),
+    // desce em passos até abrir espaço -- achado ao vivo: checar só
+    // contra outros RÓTULOS deixava passar um rótulo pousando em cima da
+    // esfera vizinha, só não da própria.
     const caixasRotulo = [];
     pontos.forEach(p => {
       const d = p.d;
@@ -523,10 +526,12 @@ const ChartsEnhanced = (function () {
       if (!nome) return;
       const largura = Math.max(34, nome.length * 6.4);
       let y = p.y + p.r + 13;
-      for (let tentativa = 0; tentativa < 10; tentativa++) {
+      for (let tentativa = 0; tentativa < 14; tentativa++) {
         const caixa = { x0: p.x - largura / 2, x1: p.x + largura / 2, y0: y - 9, y1: y + 5 };
-        const bate = caixasRotulo.some(c => caixa.x0 < c.x1 && caixa.x1 > c.x0 && caixa.y0 < c.y1 && caixa.y1 > c.y0);
-        if (!bate) { caixasRotulo.push(caixa); break; }
+        const bateRotulo = caixasRotulo.some(c => caixa.x0 < c.x1 && caixa.x1 > c.x0 && caixa.y0 < c.y1 && caixa.y1 > c.y0);
+        const bateEsfera = pontos.some(q => q !== p
+          && caixa.x0 < q.x + q.r && caixa.x1 > q.x - q.r && caixa.y0 < q.y + q.r && caixa.y1 > q.y - q.r);
+        if (!bateRotulo && !bateEsfera) { caixasRotulo.push(caixa); break; }
         y += 14;
       }
 

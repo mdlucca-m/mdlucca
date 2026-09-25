@@ -1357,7 +1357,11 @@ class TestDispersao3DDeImpactoPorLinha(unittest.TestCase):
                   + "\nprocess.stdout.write(JSON.stringify({"
                   + "  figClasse: fig.attrs.class, svgClasse: fig.kids[0].attrs.class,"
                   + "  nCirculos: circulos.length, textos: textos,"
-                  + "  classesGrupo: grupos.map(function (g) { return g.attrs.class; }) }));"
+                  + "  classesGrupo: grupos.map(function (g) { return g.attrs.class; }),"
+                  + "  circulosXYR: circulos.map(function (c) {"
+                  + "    return [Number(c.attrs.cx), Number(c.attrs.cy), Number(c.attrs.r)]; }),"
+                  + "  rotulosXY: todos(fig, 'text').map(function (t) {"
+                  + "    return [t.textContent, Number(t.attrs.x), Number(t.attrs.y)]; }) }));"
                   + "\n}")
         return _roda(script)
 
@@ -1386,6 +1390,31 @@ class TestDispersao3DDeImpactoPorLinha(unittest.TestCase):
         self.assertEqual(resultado["nCirculos"], 2)
         self.assertIn("Dor crônica", resultado["textos"])
         self.assertIn("Fibromialgia", resultado["textos"])
+
+    def test_rotulo_nunca_pousa_em_cima_de_esfera_vizinha(self):
+        # Achado ao vivo (verificação com Playwright, feedback do
+        # Mateus): duas linhas de pesquisa com números parecidos caem
+        # perto uma da outra no isométrico -- o afastamento de rótulos já
+        # existia, mas só olhava para OUTROS RÓTULOS, nunca para as
+        # esferas. O rótulo de uma ficava livre de outros textos e mesmo
+        # assim pousava em cima da esfera vizinha (o nome escrito sobre o
+        # disco colorido, ilegível). Aqui três linhas ficam bem próximas
+        # de propósito, para reproduzir o cacho.
+        dados = [
+            {"nome": "Dor crônica", "x": 5, "y": 6, "z": 3, "tamanho": 14},
+            {"nome": "Fibromialgia e dor difusa", "x": 5, "y": 5, "z": 3, "tamanho": 11},
+            {"nome": "Sono e recuperação", "x": 4, "y": 6, "z": 2, "tamanho": 9},
+            {"nome": "Psicologia do exercício", "x": 20, "y": 35, "z": 8, "tamanho": 18},
+        ]
+        resultado = self._grafico(dados)
+        circulos = resultado["circulosXYR"]
+        for nome, x, y in resultado["rotulosXY"]:
+            if nome not in [d["nome"] for d in dados]:
+                continue  # rótulo dos eixos, não de um ponto
+            for cx, cy, r in circulos:
+                dentro = ((x - cx) ** 2 + (y - cy) ** 2) ** 0.5 < r
+                self.assertFalse(dentro,
+                    f"rótulo '{nome}' em ({x},{y}) cai dentro de uma esfera em ({cx},{cy},r={r})")
 
     def test_destaque_pisca_em_ciano_quem_nao_e_destaque_nao_pisca(self):
         dados = [
