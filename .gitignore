@@ -1,5 +1,13 @@
-# Banco: o arquivo principal e versionado (guarda o estado das revisoes),
-# mas backups e arquivos temporarios do SQLite nao.
+# Banco: NUNCA versionado. Rastrear data/db.sqlite foi um erro grave --
+# a maquina de producao roda `git pull --ff-only` a cada login (Tarefa
+# Agendada) e a cada `publicar.ps1`, e um arquivo rastreado e SUBSTITUIDO
+# pelo conteudo do commit a cada pull. Isso significava que TODO pull
+# revertia o banco de producao para a foto congelada do ultimo commit que
+# tocou o arquivo -- descoberto ao vivo quando 21 artigos cadastrados
+# depois desse commit sumiram (152 -> 131) num pull comum. O estado real
+# do banco vive so na maquina, e a seguranca dele e o backup automatico
+# (`data/backups/`), nunca o git.
+data/db.sqlite
 data/db.sqlite.bak_*
 # copias de seguranca: ficam na maquina, nunca no repositorio
 data/backups/
