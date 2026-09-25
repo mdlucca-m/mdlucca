@@ -320,14 +320,74 @@ def _organograma_para_tv(db: Database) -> dict[str, Any]:
 
 
 def _citacoes_bases_dados(db: Database) -> dict[str, Any]:
-    """Sincroniza e retorna dados de citações de bases externas (OpenAlex, Scopus, WOS)."""
-    try:
-        from . import bases_dados
-        sync = bases_dados.SincronizadorCitacoes(db)
-        return cache.computar("dashboard_citacoes_tv", lambda: sync.dashboard_citacoes(), ttl=604800)
-    except Exception as e:
-        logger.exception(f"Erro ao sincronizar citações: {e}")
-        return {"linhas": [], "resumo": {"total_artigos": 0, "total_citacoes": 0, "media_citacoes": 0}}
+    """Citações por linha de pesquisa, direto de `articles.openalex_citations`
+    -- a coluna que a rotina automática já mantém sincronizada com a
+    OpenAlex (ver rotina.py). Antes esta função chamava a OpenAlex de
+    novo, artigo por artigo, TODA VEZ que a tela era montada (via
+    `bases_dados.SincronizadorCitacoes`) -- centenas de chamadas de rede
+    síncronas dentro de um pedido de página, e um erro de digitação
+    (`db.dict` em vez de `db.dicts`) que fazia toda chamada falhar
+    silenciosamente, deixando a tela sempre em zero. Ler a coluna já
+    sincronizada é mais rápido, mais confiável, e é exatamente o mesmo
+    dado -- só sem buscar de novo o que a rotina já trouxe.
+    """
+    linhas_db = db.dicts(
+        "SELECT rl.id, rl.name AS nome,"
+        "       COUNT(a.id) AS total_artigos,"
+        "       COALESCE(SUM(a.openalex_citations), 0) AS total_citacoes,"
+        "       SUM(CASE WHEN COALESCE(a.openalex_citations, 0) > 0 THEN 1 ELSE 0 END) AS artigos_com_dados"
+        "  FROM research_lines rl"
+        "  LEFT JOIN articles a ON a.research_line_id = rl.id"
+        " WHERE rl.active"
+        " GROUP BY rl.id, rl.name"
+        " ORDER BY rl.name")
+
+    # Os mais citados de cada linha, para a lista "Mais citados" da tela --
+    # antes vinha do mesmo lugar que nunca funcionava (ver acima); aqui é
+    # só ler o que a rotina já sincronizou, maior citação primeiro.
+    artigos_db = db.dicts(
+        "SELECT a.research_line_id, a.title AS titulo, a.journal AS revista,"
+        "       a.year_published AS ano_publicacao, a.openalex_citations AS citacoes"
+        "  FROM articles a"
+        " WHERE COALESCE(a.openalex_citations, 0) > 0"
+        " ORDER BY a.openalex_citations DESC"
+        " LIMIT 40")
+    artigos_por_linha: dict[int, list[dict[str, Any]]] = {}
+    for artigo in artigos_db:
+        artigos_por_linha.setdefault(artigo["research_line_id"], []).append({
+            "titulo": artigo["titulo"], "revista": artigo["revista"],
+            "ano_publicacao": artigo["ano_publicacao"], "citacoes": artigo["citacoes"],
+        })
+
+    linhas = []
+    total_citacoes_lab = 0
+    total_artigos_lab = 0
+    artigos_com_dados_lab = 0
+    for linha in linhas_db:
+        total_citacoes = linha["total_citacoes"] or 0
+        total_artigos = linha["total_artigos"] or 0
+        artigos_com_dados = linha["artigos_com_dados"] or 0
+        media = round(total_citacoes / artigos_com_dados, 2) if artigos_com_dados else 0
+        linhas.append({
+            "id": linha["id"], "nome": linha["nome"],
+            "total_artigos": total_artigos, "total_citacoes": total_citacoes,
+            "media_citacoes": media, "artigos_com_dados": artigos_com_dados,
+            "artigos": artigos_por_linha.get(linha["id"], [])[:5],
+        })
+        total_citacoes_lab += total_citacoes
+        total_artigos_lab += total_artigos
+        artigos_com_dados_lab += artigos_com_dados
+
+    return {
+        "gerado_em": datetime.now().isoformat(timespec="seconds"),
+        "linhas": linhas,
+        "resumo": {
+            "total_artigos": total_artigos_lab,
+            "total_citacoes": total_citacoes_lab,
+            "media_citacoes": round(total_citacoes_lab / artigos_com_dados_lab, 2) if artigos_com_dados_lab else 0,
+            "linhas_ativas": len(linhas),
+        },
+    }
 
 
 def para_a_tv(db: Database, hoje: date | None = None) -> dict[str, Any]:

@@ -197,12 +197,13 @@ class SincronizadorCitacoes:
 
     def atualizar_artigo(self, article_id: int, force: bool = False) -> dict[str, Any] | None:
         """Atualiza dados de citação para um artigo específico."""
-        artigo = self.db.dict(
+        linhas = self.db.dicts(
             "SELECT id, doi, title FROM articles WHERE id = ?",
             (article_id,)
         )
-        if not artigo:
+        if not linhas:
             return None
+        artigo = linhas[0]
 
         cache_key = f"citacoes_artigo_{article_id}"
         if not force:
