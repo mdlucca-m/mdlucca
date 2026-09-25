@@ -1488,3 +1488,123 @@ class TestGaugeDeDiagnostico(unittest.TestCase):
         resultado = self._gauge(62, {"rotulo": "Taxa de aceite"})
         self.assertIn("62%", resultado["textos"])
         self.assertIn("Taxa de aceite", resultado["textos"])
+
+
+class TestGloboNeonDoPeloMundo(unittest.TestCase):
+    """`ChartsEnhanced.globoNeon` -- quarto item da lista de upgrades
+    visuais: as duas telas de internacionalização viram uma só, com um
+    globo (projeção ortográfica de verdade, a mesma matemática do globo
+    do ao vivo) e arcos de voo saindo da sede, sem depender de nada
+    novo (a "girada" é CSS puro, ver mural.html)."""
+
+    DOM_SHIM = """
+    class NoFalso {
+      constructor(tag) {
+        this.tag = tag; this.attrs = {}; this.kids = []; this._text = "";
+        this.style = { _props: {}, setProperty(k, v) { this._props[k] = v; } };
+      }
+      setAttribute(k, v) { this.attrs[k] = String(v); }
+      appendChild(kid) { this.kids.push(kid); return kid; }
+      set textContent(v) { this._text = String(v); }
+      get textContent() { return this._text; }
+    }
+    global.document = {
+      createElementNS: (ns, tag) => new NoFalso(tag),
+      createElement: (tag) => new NoFalso(tag),
+    };
+    global.fmt = function (v) { return String(v); };
+    function todos(no, tag, saida) {
+      saida = saida || [];
+      if (no.tag === tag) saida.push(no);
+      no.kids.forEach((k) => todos(k, tag, saida));
+      return saida;
+    }
+    """
+
+    def _globo(self, sede, paises):
+        texto = (TEMPLATES / "charts-enhanced.js").read_text(encoding="utf-8")
+        inicio = texto.index("const ChartsEnhanced")
+        fim = texto.index("\n})();", inicio) + len("\n})();")
+        chart_src = texto[inicio:fim]
+        script = (self.DOM_SHIM + "\n" + chart_src
+                  + f"\nconst fig = ChartsEnhanced.globoNeon({json.dumps(sede)}, {json.dumps(paises)});"
+                  + "\nif (fig === null) { process.stdout.write(JSON.stringify(null)); }"
+                  + "\nelse {"
+                  + "\nconst arcos = todos(fig, 'path').filter(function (p) { return p.attrs.class === 'globo-neon-arco'; });"
+                  + "\nconst pontos = todos(fig, 'circle').filter(function (c) { return c.attrs.class === 'globo-neon-pais'; });"
+                  + "\nprocess.stdout.write(JSON.stringify({"
+                  + "  figClasse: fig.attrs.class, svgClasse: fig.kids[0].attrs.class,"
+                  + "  nArcos: arcos.length, nPontos: pontos.length,"
+                  + "  larguras: arcos.map(function (a) { return a.attrs['stroke-width']; }),"
+                  + "  titulos: todos(fig, 'title').map(function (t) { return t.textContent; }) }));"
+                  + "\n}")
+        return _roda(script)
+
+    def test_sem_pais_nenhum_nao_desenha_nada(self):
+        self.assertIsNone(self._globo({"nome": "UDESC", "latitude": -27.6, "longitude": -48.5}, []))
+
+    def test_figura_e_svg_levam_as_classes_que_o_css_do_quadro_espera(self):
+        sede = {"nome": "UDESC", "latitude": -27.6, "longitude": -48.5}
+        paises = [{"pais": "Itália", "iso": "IT", "n": 29, "latitude": 41.9, "longitude": 12.5}]
+        resultado = self._globo(sede, paises)
+        self.assertEqual(resultado["figClasse"], "chart")
+        self.assertEqual(resultado["svgClasse"], "plot globo-neon")
+
+    def test_um_arco_e_um_ponto_por_pais(self):
+        sede = {"nome": "UDESC", "latitude": -27.6, "longitude": -48.5}
+        paises = [
+            {"pais": "Itália", "iso": "IT", "n": 29, "latitude": 41.9, "longitude": 12.5},
+            {"pais": "Canadá", "iso": "CA", "n": 2, "latitude": 56.1, "longitude": -106.3},
+        ]
+        resultado = self._globo(sede, paises)
+        self.assertEqual(resultado["nArcos"], 2)
+        self.assertEqual(resultado["nPontos"], 2)
+
+    def test_espessura_do_arco_e_proporcional_ao_volume_de_artigos(self):
+        # O pedido original: "a linha para a Itália com mais artigos deve
+        # ser um feixe mais grosso que a de um país com poucos artigos".
+        sede = {"nome": "UDESC", "latitude": -27.6, "longitude": -48.5}
+        paises = [
+            {"pais": "Itália", "iso": "IT", "n": 29, "latitude": 41.9, "longitude": 12.5},
+            {"pais": "Canadá", "iso": "CA", "n": 2, "latitude": 56.1, "longitude": -106.3},
+        ]
+        resultado = self._globo(sede, paises)
+        larguras = [float(x) for x in resultado["larguras"]]
+        self.assertGreater(larguras[0], larguras[1])
+
+    def test_pais_sem_coordenada_e_ignorado_sem_quebrar(self):
+        sede = {"nome": "UDESC", "latitude": -27.6, "longitude": -48.5}
+        paises = [
+            {"pais": "Itália", "iso": "IT", "n": 29, "latitude": 41.9, "longitude": 12.5},
+            {"pais": "Sem coordenada", "iso": None, "n": 3, "latitude": None, "longitude": None},
+        ]
+        resultado = self._globo(sede, paises)
+        self.assertEqual(resultado["nArcos"], 1)
+        self.assertEqual(resultado["nPontos"], 1)
+
+
+class TestFeedEmCascata(unittest.TestCase):
+    """`feedCascata` -- o Top 6 em estilo log de servidor, ao lado do
+    globo em "Pelo mundo"."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.fonte = _recorta("feedCascata")
+
+    def _rodar(self, paises):
+        return _no_node(
+            'global.el = (tag, attrs, kids) => ({ tag, attrs, kids });\n'
+            'global.fmt = (v) => String(v);\n'
+            'global.Icons = { get: () => null };\n'
+            + self.fonte,
+            f"feedCascata({json.dumps(paises)})")
+
+    def test_corta_no_top_6_mesmo_com_mais_paises(self):
+        paises = [{"pais": f"País {i}", "n": 10 - i} for i in range(10)]
+        resultado = self._rodar(paises)
+        self.assertEqual(len(resultado["kids"]), 6)
+
+    def test_com_menos_de_6_paises_mostra_todos(self):
+        paises = [{"pais": "Itália", "n": 29}, {"pais": "Canadá", "n": 2}]
+        resultado = self._rodar(paises)
+        self.assertEqual(len(resultado["kids"]), 2)

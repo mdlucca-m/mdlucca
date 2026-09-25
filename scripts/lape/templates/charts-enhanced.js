@@ -712,6 +712,114 @@ const ChartsEnhanced = (function () {
     return fig;
   }
 
+  /* Globo neon: projeção ortográfica de verdade (mesma matemática do globo
+     do ao vivo, `Globo.prototype.projetar` em aovivo.js), centrada na
+     sede -- mas parada, sem laço de animação em JS. A "girada" vem de
+     CSS 3D puro (perspective + rotateY no grupo inteiro): sem
+     requestAnimationFrame, sem canvas, sem depender de nada novo. O ao
+     vivo tem o globo que voa até cada país e espera pousar -- na parede
+     ninguém espera isso (ver `rankingDePaises`), então aqui é só rotação
+     ambiente contínua, sem parar em lugar nenhum.
+
+     `sede` é {nome, latitude, longitude}; `paises` é a lista real
+     (pais, iso, n, latitude, longitude), já ordenada por quem chama. A
+     espessura e o brilho do arco de cada país são proporcionais a `n`. */
+  function globoNeon(sede, paises, opts) {
+    if (!sede || !paises || !paises.length) return null;
+    const o = opts || {};
+    const w = 440, h = 440, cx = w / 2, cy = h / 2, R = 190;
+    const fig = document.createElement("figure");
+    fig.setAttribute("class", "chart");
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+    svg.setAttribute("class", "plot globo-neon");
+
+    const lon0 = sede.longitude || 0, lat0 = Math.max(-45, Math.min(45, sede.latitude || 0));
+    function projetar(lon, lat) {
+      const rad = Math.PI / 180;
+      const dl = (lon - lon0) * rad, la = lat * rad, la0 = lat0 * rad;
+      return {
+        x: cx + R * Math.cos(la) * Math.sin(dl),
+        y: cy - R * (Math.cos(la0) * Math.sin(la) - Math.sin(la0) * Math.cos(la) * Math.cos(dl)),
+      };
+    }
+
+    // Grupo que gira em CSS (transform-style: preserve-3d no wrapper via CSS)
+    const grupo = document.createElementNS(NS, "g");
+    grupo.setAttribute("class", "globo-neon-esfera");
+
+    const oceano = document.createElementNS(NS, "circle");
+    oceano.setAttribute("cx", cx); oceano.setAttribute("cy", cy); oceano.setAttribute("r", R);
+    oceano.setAttribute("class", "globo-neon-oceano");
+    grupo.appendChild(oceano);
+
+    // Meridianos/paralelos, só pra dar leitura de esfera -- mesmo raciocínio
+    // visual do ao vivo, em poucas linhas fixas (sem recalcular por quadro).
+    [-120, -60, 0, 60, 120].forEach(function (lon) {
+      const pontos = [];
+      for (let lat = -80; lat <= 80; lat += 10) pontos.push(projetar(lon, lat));
+      const d = "M " + pontos.map(function (p) { return p.x + " " + p.y; }).join(" L ");
+      const linha = document.createElementNS(NS, "path");
+      linha.setAttribute("d", d); linha.setAttribute("class", "globo-neon-grade");
+      grupo.appendChild(linha);
+    });
+
+    const maior = Math.max(1, ...paises.map(function (p) { return Number(p.n) || 0; }));
+    const centroSede = projetar(lon0, lat0);
+
+    paises.forEach(function (p, i) {
+      if (p.latitude === undefined || p.latitude === null || p.longitude === undefined || p.longitude === null) return;
+      const alvo = projetar(p.longitude, p.latitude);
+      const n = Number(p.n) || 0;
+      const forca = n / maior;
+
+      // Arco de voo: bezier quadrático curvando "para fora" do centro da
+      // esfera, com o ponto de controle puxado na direção perpendicular
+      // ao segmento -- o mesmo truque visual de rota aérea em mapas.
+      const mx = (centroSede.x + alvo.x) / 2, my = (centroSede.y + alvo.y) / 2;
+      const dx = alvo.x - centroSede.x, dy = alvo.y - centroSede.y;
+      const dist = Math.max(1, Math.hypot(dx, dy));
+      const curva = Math.min(60, dist * 0.35);
+      const cxArco = mx - (dy / dist) * curva, cyArco = my + (dx / dist) * curva;
+      const arco = document.createElementNS(NS, "path");
+      arco.setAttribute("d", `M ${centroSede.x} ${centroSede.y} Q ${cxArco} ${cyArco} ${alvo.x} ${alvo.y}`);
+      arco.setAttribute("fill", "none");
+      arco.setAttribute("stroke", "var(--accent-strong)");
+      arco.setAttribute("stroke-width", String(0.6 + forca * 3.2));
+      arco.setAttribute("opacity", String(0.35 + forca * 0.55));
+      arco.setAttribute("class", "globo-neon-arco");
+      arco.style.setProperty("--atraso-arco", (i * 120) + "ms");
+      const dicaArco = document.createElementNS(NS, "title");
+      dicaArco.textContent = `${sede.nome || "Sede"} → ${p.pais}: ${fmt(n)} artigo(s)`;
+      arco.appendChild(dicaArco);
+      grupo.appendChild(arco);
+
+      const ponto = document.createElementNS(NS, "circle");
+      ponto.setAttribute("cx", alvo.x); ponto.setAttribute("cy", alvo.y);
+      ponto.setAttribute("r", String(3 + forca * 5));
+      ponto.setAttribute("class", "globo-neon-pais");
+      ponto.style.setProperty("--cor-esfera", "var(--accent-strong)");
+      const dicaPonto = document.createElementNS(NS, "title");
+      dicaPonto.textContent = p.pais + ": " + fmt(n) + " artigo(s)"
+        + ((p.instituicoes || []).length ? " · " + p.instituicoes.slice(0, 3).join(", ") : "");
+      ponto.appendChild(dicaPonto);
+      grupo.appendChild(ponto);
+    });
+
+    const marcoSede = document.createElementNS(NS, "circle");
+    marcoSede.setAttribute("cx", centroSede.x); marcoSede.setAttribute("cy", centroSede.y);
+    marcoSede.setAttribute("r", "6");
+    marcoSede.setAttribute("class", "globo-neon-sede");
+    const dicaSede = document.createElementNS(NS, "title");
+    dicaSede.textContent = sede.nome || "Sede";
+    marcoSede.appendChild(dicaSede);
+    grupo.appendChild(marcoSede);
+
+    svg.appendChild(grupo);
+    fig.appendChild(svg);
+    return fig;
+  }
+
   return {
     ternario,
     pareto,
@@ -719,6 +827,7 @@ const ChartsEnhanced = (function () {
     scatter3d,
     funilLiquido,
     gaugeDiagnostico,
+    globoNeon,
     destacarFatiaSunburst,
   };
 })();
