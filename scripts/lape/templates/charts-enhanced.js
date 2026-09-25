@@ -377,52 +377,34 @@ const ChartsEnhanced = (function () {
   }
 
   /* ======================== Scatter 3D (projeção isométrica) ======================== */
-  function scatter3d(dados) {
+  /* `opts.eixos` nomeia os três eixos de verdade (nunca "X"/"Y"/"Z" -- quem
+     olha de longe não decora qual é qual). Cada ponto em `dados` pode
+     trazer `destaque: true` para a esfera piscar -- o chamador decide o
+     critério (aqui nunca é escolhido a dedo, sempre calculado). Todas as
+     esferas ganham um brilho (drop-shadow na cor da própria série), e cada
+     uma leva o nome embaixo: numa TV ninguém passa o mouse para ler o
+     `title`. */
+  function scatter3d(dados, opts) {
     /**
      * Dispersão em 3D projetada isometricamente
      * x, y, z como variáveis numéricas
      * tamanho proporcional a uma quarta variável
      */
     if (!dados || dados.length === 0) return null;
+    const o = opts || {};
+    const eixos = o.eixos || { x: "X", y: "Y", z: "Z" };
 
-    const w = 600, h = 600;
+    const w = 600, h = 640;
     const fig = document.createElement("figure");
     fig.setAttribute("class", "chart");
     const svg = document.createElementNS(NS, "svg");
     svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
     svg.setAttribute("class", "plot scatter3d");
 
-    const margin = 60;
+    const margin = 70;
     const scale = (w - 2 * margin) / 3;
 
-    const cx = w / 2, cy = h / 2;
-
-    // Desenha eixos isométricos
-    const axes = [
-      { x: cx, y: cy, dx: scale * 0.866, dy: -scale * 0.5, label: "X" },
-      { x: cx, y: cy, dx: -scale * 0.866, dy: -scale * 0.5, label: "Y" },
-      { x: cx, y: cy, dx: 0, dy: scale, label: "Z" },
-    ];
-
-    axes.forEach(axis => {
-      const line = document.createElementNS(NS, "line");
-      line.setAttribute("x1", axis.x);
-      line.setAttribute("y1", axis.y);
-      line.setAttribute("x2", axis.x + axis.dx);
-      line.setAttribute("y2", axis.y + axis.dy);
-      line.setAttribute("stroke", "var(--border-strong)");
-      line.setAttribute("stroke-width", "1");
-      svg.appendChild(line);
-
-      const text = document.createElementNS(NS, "text");
-      text.setAttribute("x", axis.x + axis.dx + 10);
-      text.setAttribute("y", axis.y + axis.dy + 5);
-      text.setAttribute("font-size", "12");
-      text.setAttribute("font-weight", "bold");
-      text.setAttribute("fill", "var(--ink)");
-      text.textContent = axis.label;
-      svg.appendChild(text);
-    });
+    const cx = w / 2, cy = h / 2 - 20;
 
     // Normaliza dados
     const xs = dados.map(d => d.x || 0);
@@ -431,6 +413,46 @@ const ChartsEnhanced = (function () {
     const maxX = Math.max(...xs) || 1;
     const maxY = Math.max(...ys) || 1;
     const maxZ = Math.max(...zs) || 1;
+
+    // Desenha eixos isométricos, com o nome de verdade e o teto do eixo
+    const axes = [
+      { dx: scale * 0.866, dy: -scale * 0.5, label: eixos.x, teto: maxX },
+      { dx: -scale * 0.866, dy: -scale * 0.5, label: eixos.y, teto: maxY },
+      { dx: 0, dy: scale, label: eixos.z, teto: maxZ },
+    ];
+
+    axes.forEach(axis => {
+      const line = document.createElementNS(NS, "line");
+      line.setAttribute("x1", cx);
+      line.setAttribute("y1", cy);
+      line.setAttribute("x2", cx + axis.dx);
+      line.setAttribute("y2", cy + axis.dy);
+      line.setAttribute("stroke", "var(--border-strong)");
+      line.setAttribute("stroke-width", "1");
+      svg.appendChild(line);
+
+      const text = document.createElementNS(NS, "text");
+      text.setAttribute("x", cx + axis.dx * 1.12);
+      text.setAttribute("y", cy + axis.dy * 1.12);
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("font-size", "13");
+      text.setAttribute("font-weight", "700");
+      text.setAttribute("fill", "var(--ink)");
+      text.textContent = axis.label;
+      svg.appendChild(text);
+
+      const teto = document.createElementNS(NS, "text");
+      teto.setAttribute("x", cx + axis.dx * 1.12);
+      teto.setAttribute("y", cy + axis.dy * 1.12 + 15);
+      teto.setAttribute("text-anchor", "middle");
+      teto.setAttribute("font-size", "10");
+      teto.setAttribute("fill", "var(--ink-muted)");
+      teto.textContent = "até " + fmt(axis.teto);
+      svg.appendChild(teto);
+    });
+
+    const raios = dados.map(d => Math.sqrt(Math.max(0, d.tamanho || 1)));
+    const maiorRaio = Math.max(...raios, 1);
 
     // Plota pontos
     dados.forEach((d, i) => {
@@ -444,23 +466,114 @@ const ChartsEnhanced = (function () {
 
       const x = cx + px;
       const y = cy + py;
-      const r = Math.sqrt(d.tamanho || 1) * 3;
+      const r = 6 + (raios[i] / maiorRaio) * 16;
+      const cor = d.cor || corSerie(i);
+
+      const grupo = document.createElementNS(NS, "g");
+      grupo.setAttribute("class", "esfera-3d" + (d.destaque ? " esfera-pisca-ciano" : ""));
+      grupo.style.setProperty("--cor-esfera", d.destaque ? "var(--accent-strong)" : cor);
 
       const circle = document.createElementNS(NS, "circle");
       circle.setAttribute("cx", x);
       circle.setAttribute("cy", y);
       circle.setAttribute("r", r);
-      circle.setAttribute("fill", corSerie(i));
-      circle.setAttribute("opacity", "0.7");
+      circle.setAttribute("fill", d.destaque ? "var(--accent-strong)" : cor);
+      circle.setAttribute("opacity", "0.85");
       circle.setAttribute("stroke", "var(--surface)");
       circle.setAttribute("stroke-width", "2");
 
       const title = document.createElementNS(NS, "title");
-      title.textContent = `${d.nome || "Item"}: (${d.x}, ${d.y}, ${d.z})`;
+      title.textContent = `${d.nome || "Item"}: ${eixos.x} ${fmt(d.x)} · ${eixos.y} ${fmt(d.y)} · ${eixos.z} ${fmt(d.z)}`
+        + (d.destaque ? " · poucos publicados, produção real em andamento" : "");
       circle.appendChild(title);
+      grupo.appendChild(circle);
 
-      svg.appendChild(circle);
+      const rotulo = document.createElementNS(NS, "text");
+      rotulo.setAttribute("x", x);
+      rotulo.setAttribute("y", y + r + 13);
+      rotulo.setAttribute("text-anchor", "middle");
+      rotulo.setAttribute("font-size", "10.5");
+      rotulo.setAttribute("font-weight", "600");
+      rotulo.setAttribute("fill", "var(--ink-2)");
+      rotulo.textContent = d.nome ? (String(d.nome).length > 20 ? String(d.nome).slice(0, 19) + "…" : d.nome) : "";
+      grupo.appendChild(rotulo);
+
+      svg.appendChild(grupo);
     });
+
+    fig.appendChild(svg);
+    return fig;
+  }
+
+  /* Gauge de diagnóstico: arco de meia-lua, sem lib nenhuma -- o truque é
+     `pathLength="100"` nos dois arcos (trilho e valor), que normaliza o
+     comprimento para 100 unidades não importa o raio; o arco de valor
+     usa `stroke-dasharray="v 100"` para preencher exatamente v%.
+     `opts.critico` liga o pulso vermelho -- decidido pelo CHAMADOR, com
+     um número real (ex.: 0% de aceite com decisões de verdade no
+     período), nunca aqui dentro. */
+  function gaugeDiagnostico(valor, opts) {
+    const o = opts || {};
+    const w = 320, h = 220, cx = w / 2, cy = 175, raio = 118;
+    const fig = document.createElement("figure");
+    fig.setAttribute("class", "chart");
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+    svg.setAttribute("class", "plot gauge-diagnostico" + (o.critico ? " gauge-critico" : ""));
+
+    function arco(raioArco) {
+      // meia-lua de 180° a 0°, sempre da esquerda para a direita
+      const x0 = cx - raioArco, x1 = cx + raioArco;
+      const p = document.createElementNS(NS, "path");
+      p.setAttribute("d", `M ${x0} ${cy} A ${raioArco} ${raioArco} 0 0 1 ${x1} ${cy}`);
+      p.setAttribute("fill", "none");
+      p.setAttribute("pathLength", "100");
+      return p;
+    }
+
+    const trilho = arco(raio);
+    trilho.setAttribute("stroke", "var(--border)");
+    trilho.setAttribute("stroke-width", "22");
+    trilho.setAttribute("stroke-linecap", "round");
+    svg.appendChild(trilho);
+
+    const temValor = valor !== null && valor !== undefined && isFinite(valor);
+    if (temValor) {
+      const v = Math.max(0, Math.min(100, valor));
+      const cor = o.critico ? "var(--critical)" : v >= 50 ? "var(--good)" : "var(--warning)";
+      const arcoValor = arco(raio);
+      arcoValor.setAttribute("stroke", cor);
+      arcoValor.setAttribute("stroke-width", "22");
+      arcoValor.setAttribute("stroke-linecap", "round");
+      arcoValor.setAttribute("stroke-dasharray", `${v} ${100 - v}`);
+      arcoValor.setAttribute("class", "gauge-arco-valor");
+      svg.appendChild(arcoValor);
+    }
+
+    const numero = document.createElementNS(NS, "text");
+    numero.setAttribute("x", cx); numero.setAttribute("y", cy - 18);
+    numero.setAttribute("text-anchor", "middle");
+    numero.setAttribute("font-size", "40"); numero.setAttribute("font-weight", "800");
+    numero.setAttribute("fill", o.critico ? "var(--critical)" : "var(--ink)");
+    numero.textContent = temValor ? fmt(valor) + "%" : "sem dado";
+    svg.appendChild(numero);
+
+    if (o.rotulo) {
+      const rotulo = document.createElementNS(NS, "text");
+      rotulo.setAttribute("x", cx); rotulo.setAttribute("y", cy + 10);
+      rotulo.setAttribute("text-anchor", "middle");
+      rotulo.setAttribute("font-size", "13"); rotulo.setAttribute("fill", "var(--ink-2)");
+      rotulo.textContent = o.rotulo;
+      svg.appendChild(rotulo);
+    }
+    if (o.nota) {
+      const nota = document.createElementNS(NS, "text");
+      nota.setAttribute("x", cx); nota.setAttribute("y", cy + 34);
+      nota.setAttribute("text-anchor", "middle");
+      nota.setAttribute("font-size", "11"); nota.setAttribute("fill", "var(--ink-muted)");
+      nota.textContent = o.nota;
+      svg.appendChild(nota);
+    }
 
     fig.appendChild(svg);
     return fig;
@@ -599,12 +712,122 @@ const ChartsEnhanced = (function () {
     return fig;
   }
 
+  /* Globo neon: projeção ortográfica de verdade (mesma matemática do globo
+     do ao vivo, `Globo.prototype.projetar` em aovivo.js), centrada na
+     sede -- mas parada, sem laço de animação em JS. A "girada" vem de
+     CSS 3D puro (perspective + rotateY no grupo inteiro): sem
+     requestAnimationFrame, sem canvas, sem depender de nada novo. O ao
+     vivo tem o globo que voa até cada país e espera pousar -- na parede
+     ninguém espera isso (ver `rankingDePaises`), então aqui é só rotação
+     ambiente contínua, sem parar em lugar nenhum.
+
+     `sede` é {nome, latitude, longitude}; `paises` é a lista real
+     (pais, iso, n, latitude, longitude), já ordenada por quem chama. A
+     espessura e o brilho do arco de cada país são proporcionais a `n`. */
+  function globoNeon(sede, paises, opts) {
+    if (!sede || !paises || !paises.length) return null;
+    const o = opts || {};
+    const w = 440, h = 440, cx = w / 2, cy = h / 2, R = 190;
+    const fig = document.createElement("figure");
+    fig.setAttribute("class", "chart");
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+    svg.setAttribute("class", "plot globo-neon");
+
+    const lon0 = sede.longitude || 0, lat0 = Math.max(-45, Math.min(45, sede.latitude || 0));
+    function projetar(lon, lat) {
+      const rad = Math.PI / 180;
+      const dl = (lon - lon0) * rad, la = lat * rad, la0 = lat0 * rad;
+      return {
+        x: cx + R * Math.cos(la) * Math.sin(dl),
+        y: cy - R * (Math.cos(la0) * Math.sin(la) - Math.sin(la0) * Math.cos(la) * Math.cos(dl)),
+      };
+    }
+
+    // Grupo que gira em CSS (transform-style: preserve-3d no wrapper via CSS)
+    const grupo = document.createElementNS(NS, "g");
+    grupo.setAttribute("class", "globo-neon-esfera");
+
+    const oceano = document.createElementNS(NS, "circle");
+    oceano.setAttribute("cx", cx); oceano.setAttribute("cy", cy); oceano.setAttribute("r", R);
+    oceano.setAttribute("class", "globo-neon-oceano");
+    grupo.appendChild(oceano);
+
+    // Meridianos/paralelos, só pra dar leitura de esfera -- mesmo raciocínio
+    // visual do ao vivo, em poucas linhas fixas (sem recalcular por quadro).
+    [-120, -60, 0, 60, 120].forEach(function (lon) {
+      const pontos = [];
+      for (let lat = -80; lat <= 80; lat += 10) pontos.push(projetar(lon, lat));
+      const d = "M " + pontos.map(function (p) { return p.x + " " + p.y; }).join(" L ");
+      const linha = document.createElementNS(NS, "path");
+      linha.setAttribute("d", d); linha.setAttribute("class", "globo-neon-grade");
+      grupo.appendChild(linha);
+    });
+
+    const maior = Math.max(1, ...paises.map(function (p) { return Number(p.n) || 0; }));
+    const centroSede = projetar(lon0, lat0);
+
+    paises.forEach(function (p, i) {
+      if (p.latitude === undefined || p.latitude === null || p.longitude === undefined || p.longitude === null) return;
+      const alvo = projetar(p.longitude, p.latitude);
+      const n = Number(p.n) || 0;
+      const forca = n / maior;
+
+      // Arco de voo: bezier quadrático curvando "para fora" do centro da
+      // esfera, com o ponto de controle puxado na direção perpendicular
+      // ao segmento -- o mesmo truque visual de rota aérea em mapas.
+      const mx = (centroSede.x + alvo.x) / 2, my = (centroSede.y + alvo.y) / 2;
+      const dx = alvo.x - centroSede.x, dy = alvo.y - centroSede.y;
+      const dist = Math.max(1, Math.hypot(dx, dy));
+      const curva = Math.min(60, dist * 0.35);
+      const cxArco = mx - (dy / dist) * curva, cyArco = my + (dx / dist) * curva;
+      const arco = document.createElementNS(NS, "path");
+      arco.setAttribute("d", `M ${centroSede.x} ${centroSede.y} Q ${cxArco} ${cyArco} ${alvo.x} ${alvo.y}`);
+      arco.setAttribute("fill", "none");
+      arco.setAttribute("stroke", "var(--accent-strong)");
+      arco.setAttribute("stroke-width", String(0.6 + forca * 3.2));
+      arco.setAttribute("opacity", String(0.35 + forca * 0.55));
+      arco.setAttribute("class", "globo-neon-arco");
+      arco.style.setProperty("--atraso-arco", (i * 120) + "ms");
+      const dicaArco = document.createElementNS(NS, "title");
+      dicaArco.textContent = `${sede.nome || "Sede"} → ${p.pais}: ${fmt(n)} artigo(s)`;
+      arco.appendChild(dicaArco);
+      grupo.appendChild(arco);
+
+      const ponto = document.createElementNS(NS, "circle");
+      ponto.setAttribute("cx", alvo.x); ponto.setAttribute("cy", alvo.y);
+      ponto.setAttribute("r", String(3 + forca * 5));
+      ponto.setAttribute("class", "globo-neon-pais");
+      ponto.style.setProperty("--cor-esfera", "var(--accent-strong)");
+      const dicaPonto = document.createElementNS(NS, "title");
+      dicaPonto.textContent = p.pais + ": " + fmt(n) + " artigo(s)"
+        + ((p.instituicoes || []).length ? " · " + p.instituicoes.slice(0, 3).join(", ") : "");
+      ponto.appendChild(dicaPonto);
+      grupo.appendChild(ponto);
+    });
+
+    const marcoSede = document.createElementNS(NS, "circle");
+    marcoSede.setAttribute("cx", centroSede.x); marcoSede.setAttribute("cy", centroSede.y);
+    marcoSede.setAttribute("r", "6");
+    marcoSede.setAttribute("class", "globo-neon-sede");
+    const dicaSede = document.createElementNS(NS, "title");
+    dicaSede.textContent = sede.nome || "Sede";
+    marcoSede.appendChild(dicaSede);
+    grupo.appendChild(marcoSede);
+
+    svg.appendChild(grupo);
+    fig.appendChild(svg);
+    return fig;
+  }
+
   return {
     ternario,
     pareto,
     sunburst,
     scatter3d,
     funilLiquido,
+    gaugeDiagnostico,
+    globoNeon,
     destacarFatiaSunburst,
   };
 })();

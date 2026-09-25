@@ -40,6 +40,18 @@ function elSvg(tag, attrs, kids) {
   return node;
 }
 
+/* Distância de um planeta ao centro: mais impacto (artigos + citações,
+   os dois eixos que a própria lâmina já mostra em cada nó), órbita mais
+   fechada -- o mesmo raciocínio "gravitacional" que já fazia o nó em si
+   crescer com `n_artigos`, aqui aplicado à distância também, reforçando
+   a mesma leitura em vez de competir com ela. Fora como função pura,
+   testável sem montar o SVG inteiro. */
+function raioOrbitaLinha(linha, maiorImpacto, raioMin, raioMax) {
+  const impacto = (linha.artigos || 0) + (linha.citacoes || 0);
+  const fracao = Math.max(0, Math.min(1, impacto / Math.max(1, maiorImpacto)));
+  return raioMin + (raioMax - raioMin) * (1 - fracao);
+}
+
 /* ==================== LINHAS DE PESQUISA 3D ==================== */
 /* Nome da linha em até 2 linhas, quebrado por PALAVRA (nunca cortado no
    meio) -- "Psicologia do exercício e saúde mental" virando "Psicologia
@@ -108,11 +120,23 @@ function slidePesquisasLinhas3D() {
   svg.appendChild(defs);
 
   const centerX = 600, centerY = 400;
-  /* O raio cresce com o número de linhas cadastradas -- fixo em 200px,
-     o espaçamento angular entre nós encolhia conforme mais linhas de
-     pesquisa eram criadas, até os rótulos se sobreporem. Limitado a
+  /* O raio MÁXIMO cresce com o número de linhas cadastradas -- fixo em
+     200px, o espaçamento angular entre nós encolhia conforme mais linhas
+     de pesquisa eram criadas, até os rótulos se sobreporem. Limitado a
      300 para não estourar o viewBox (o centro está a 400px da borda). */
-  const radius = Math.min(300, Math.max(160, 26 * linhas.length));
+  const raioMax = Math.min(300, Math.max(160, 26 * linhas.length));
+  /* A distância de cada planeta ao centro é o que faltava para bater com
+     o pedido original ("planetas orbitando em distâncias controladas
+     pelo volume de impacto"): antes só o ÂNGULO variava, todo nó no
+     mesmo raio fixo. Impacto = artigos + citações -- os dois eixos que a
+     tela já mostra em cada nó (badge de artigos, sub-rótulo de citações),
+     então a órbita não inventa um critério novo, só desenha o que os
+     números já diziam. Mais impacto, órbita mais fechada: o mesmo
+     raciocínio "gravitacional" que já fazia o nó em si crescer com
+     `n_artigos` -- aqui os dois reforçam a mesma leitura (quem lidera é
+     maior E mais central), em vez de competir. */
+  const raioMin = raioMax * 0.45;
+  const maiorImpacto = Math.max(1, ...linhas.map((l) => (l.artigos || 0) + (l.citacoes || 0)));
   /* Fonte do rótulo também encolhe com muitos nós, para caber no espaço
      angular menor entre eles -- e cresce quando sobram poucos nós (o caso
      mais comum agora que os de produção zero saem do grafo), porque
@@ -124,13 +148,20 @@ function slidePesquisasLinhas3D() {
      máximo". As partículas e o ritmo do pulso vêm desta razão. */
   const maiorArtigos = Math.max(1, ...linhas.map((l) => l.artigos || 0));
 
-  /* Trilha pontilhada só decorativa, no raio dos nós -- dá a leitura de
-     "órbita" mesmo no instante em que a rotação está parada (print,
-     captura de tela, prefers-reduced-motion). */
-  svg.appendChild(elSvg("circle", {
-    cx: centerX, cy: centerY, r: radius, class: "trilha-orbita",
-    fill: "none", "stroke-dasharray": "2 10",
-  }));
+  /* Uma trilha pontilhada por raio distinto -- não um raio só: com órbita
+     variável, cada anel de verdade merece sua própria faixa, senão a
+     "leitura de órbita" (mesmo parada) mentiria mostrando um raio que
+     nenhum planeta usa. */
+  const raiosUsados = new Set();
+  linhas.forEach((linha) => {
+    const raio = Math.round(raioOrbitaLinha(linha, maiorImpacto, raioMin, raioMax));
+    if (raiosUsados.has(raio)) return;
+    raiosUsados.add(raio);
+    svg.appendChild(elSvg("circle", {
+      cx: centerX, cy: centerY, r: raio, class: "trilha-orbita",
+      fill: "none", "stroke-dasharray": "2 10",
+    }));
+  });
 
   /* Todo o anel (raios + nós) gira em torno do centro -- antes só o hub
      central tinha `rotacao-3d`; o resto do grafo ficava parado. Cada nó
@@ -142,8 +173,9 @@ function slidePesquisasLinhas3D() {
 
   linhas.forEach((linha, idx) => {
     const angle = (idx / linhas.length) * Math.PI * 2;
-    const x = centerX + radius * Math.cos(angle);
-    const y = centerY + radius * Math.sin(angle);
+    const radiusDoNo = raioOrbitaLinha(linha, maiorImpacto, raioMin, raioMax);
+    const x = centerX + radiusDoNo * Math.cos(angle);
+    const y = centerY + radiusDoNo * Math.sin(angle);
     const n_artigos = linha.artigos || 0;
     const taxa_pub = linha.taxa_publicacao || 0;
     const atividade = n_artigos / maiorArtigos;
@@ -195,15 +227,22 @@ function slidePesquisasLinhas3D() {
       particulas.push(particula);
     }
 
+    const publicados = linha.publicados || 0;
+    const citacoes = linha.citacoes || 0;
+
     /* Grupo do nó: gira ao contrário do anel, em torno do seu próprio
-       centro (x,y), para orbitar sem virar de cabeça pra baixo. */
+       centro (x,y), para orbitar sem virar de cabeça pra baixo.
+       `data-linha`/`data-citacoes-atual`/`data-x`/`data-y` são o gancho
+       para `atualizarConstelacaoAoVivo` (mural.js) comparar, a cada
+       nova busca de /api/tv, se a citação daquela linha subiu -- e
+       disparar a micro-explosão nesse ponto exato, sem recalcular nada
+       aqui de novo. */
     const grupoNo = elSvg("g", {
       class: "grupo-no-orbita",
       style: `--index:${idx};transform-origin:${x.toFixed(1)}px ${y.toFixed(1)}px;`,
+      "data-linha": linha.nome, "data-citacoes-atual": String(citacoes),
+      "data-x": x.toFixed(1), "data-y": y.toFixed(1), "data-cor": corLinha,
     });
-
-    const publicados = linha.publicados || 0;
-    const citacoes = linha.citacoes || 0;
     const titulo = elSvg("title");
     titulo.textContent = `${linha.nome} — ${n_artigos} artigo${n_artigos === 1 ? "" : "s"}, `
       + `${publicados} publicado${publicados === 1 ? "" : "s"} (${Math.round(taxa_pub * 100)}%), `

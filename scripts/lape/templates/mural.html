@@ -200,6 +200,82 @@ body { background: var(--surface-sunken); }
 .onda-liquida { animation: moverOndaLiquida 2.6s linear infinite; }
 @keyframes moverOndaLiquida { from { transform: translateX(0); } to { transform: translateX(calc(var(--onda-passo, 20px) * -2)); } }
 @media (prefers-reduced-motion: reduce) { .onda-liquida { animation: none; } }
+/* Esfera do gráfico de dispersão 3D: brilho fixo na cor da própria série
+   (nunca cor nova -- lida de `--cor-esfera`, posta pelo JS), e piscar em
+   ciano só quando a linha de pesquisa é destaque real (poucos artigos
+   publicados, produção em andamento). */
+.esfera-3d circle { filter: drop-shadow(0 0 6px var(--cor-esfera)); }
+.esfera-pisca-ciano circle { animation: piscaEsferaCiano 1.7s ease-in-out infinite; }
+@keyframes piscaEsferaCiano {
+  0%, 100% { filter: drop-shadow(0 0 6px var(--cor-esfera)); opacity: .85; }
+  50% { filter: drop-shadow(0 0 16px var(--cor-esfera)); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .esfera-pisca-ciano circle { animation: none; } }
+/* Painel de insights ("O que os indicadores dizem"): gauge da taxa de
+   aceite em cima, alerta e projeção do ano como texto abaixo -- crítico
+   pulsa em vermelho de verdade (`--critical`, a mesma rampa do tema),
+   nunca uma cor nova só para "parecer alarme". */
+.insights-painel { display: flex; flex-direction: column; gap: 10px; min-height: 0; flex: 1; }
+.insights-gauge { display: flex; justify-content: center; }
+.insights-gauge svg { max-width: 260px; }
+.insights-alerta { font-size: clamp(11px, .85vw, calc(13.5px * var(--zoom, 1)));
+  color: var(--critical); background: color-mix(in srgb, var(--critical) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--critical) 40%, transparent);
+  border-radius: var(--radius-sm); padding: 6px 10px; animation: alertaPulsa 1.8s ease-in-out infinite; }
+@keyframes alertaPulsa {
+  0%, 100% { background: color-mix(in srgb, var(--critical) 10%, transparent); }
+  50% { background: color-mix(in srgb, var(--critical) 22%, transparent); }
+}
+.insights-predicao { font-size: clamp(11px, .85vw, calc(13.5px * var(--zoom, 1))); color: var(--ink-2); }
+.insights-predicao b { color: var(--accent-strong); }
+@media (prefers-reduced-motion: reduce) { .insights-alerta { animation: none; } }
+.gauge-critico .gauge-arco-valor { animation: pulsaArcoCritico 1.6s ease-in-out infinite; }
+@keyframes pulsaArcoCritico {
+  0%, 100% { filter: drop-shadow(0 0 4px var(--critical)); }
+  50% { filter: drop-shadow(0 0 14px var(--critical)); }
+}
+@media (prefers-reduced-motion: reduce) { .gauge-critico .gauge-arco-valor { animation: none; } }
+/* Globo neon: a "girada" é só CSS 3D (perspective no quadro, rotateY no
+   grupo) -- sem canvas, sem laço de animação em JS. `svg.globo-neon`
+   precisa do `perspective` no PAI para o rotateY do filho ganhar
+   profundidade de verdade, senão gira achatado. */
+.quadro:has(svg.globo-neon) .corpo { perspective: 1100px; }
+svg.globo-neon { overflow: visible; }
+.globo-neon-esfera { transform-style: preserve-3d; transform-origin: 50% 50%;
+  animation: girarGloboNeon 34s linear infinite; }
+@keyframes girarGloboNeon { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+.globo-neon-oceano { fill: color-mix(in srgb, var(--accent-strong) 16%, var(--surface-sunken, var(--surface)));
+  stroke: var(--border-strong); stroke-width: 1.5;
+  filter: drop-shadow(0 0 22px color-mix(in srgb, var(--accent-strong) 45%, transparent)); }
+.globo-neon-grade { fill: none; stroke: var(--border); stroke-width: 1; opacity: .5; }
+.globo-neon-arco { stroke-linecap: round; filter: drop-shadow(0 0 3px var(--accent-strong));
+  animation: fluxoArcoNeon 2.4s ease-in-out infinite; animation-delay: var(--atraso-arco, 0ms); }
+@keyframes fluxoArcoNeon { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
+.globo-neon-pais { fill: var(--accent-strong); stroke: var(--surface); stroke-width: 1.5;
+  filter: drop-shadow(0 0 6px var(--cor-esfera)); }
+.globo-neon-sede { fill: var(--good); stroke: var(--surface); stroke-width: 2;
+  filter: drop-shadow(0 0 8px var(--good)); animation: pontoVivoPulso 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .globo-neon-esfera { animation: none; }
+  .globo-neon-arco { animation: none; opacity: .75; }
+  .globo-neon-sede { animation: none; }
+}
+/* Feed em cascata do Top 6 -- estilo log de servidor: cada linha entra
+   com atraso crescente (`--i`), fonte monoespaçada, sem depender de
+   nada novo além do que o resto do mural já usa. */
+.feed-cascata { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column;
+  gap: 6px; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+.feed-cascata li { display: flex; align-items: center; gap: 10px;
+  padding: 6px 10px; border-radius: var(--radius-sm); background: var(--surface-raised);
+  border: 1px solid var(--border); border-left: 3px solid var(--accent-strong);
+  font-size: clamp(11px, .85vw, calc(13.5px * var(--zoom, 1)));
+  opacity: 0; animation: entraFeedCascata .5s ease-out forwards;
+  animation-delay: calc(var(--i, 0) * 160ms); }
+.feed-cascata .feed-indice { color: var(--accent-strong); font-weight: 700; min-width: 2ch; }
+.feed-cascata .feed-pais { flex: 1; color: var(--ink); font-weight: 600; }
+.feed-cascata .feed-n { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+@keyframes entraFeedCascata { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) { .feed-cascata li { animation: none; opacity: 1; } }
 
 /* lista de prazos e de agenda: uma linha alta, legível de longe */
 /* a lista se abre até a altura do quadro: numa TV, seis linhas espremidas no

@@ -17,21 +17,6 @@
 const C = Charts;
 let D = JSON.parse(document.getElementById("payload").textContent);
 
-/* O contorno dos países pro mapa-múndi: geografia, não dado do
-   laboratório, então é buscado uma vez só e fora do payload -- são 70KB
-   que nunca mudam e que só a tela "Pelo mundo" precisa, e o navegador
-   já guarda em cache (o mesmo arquivo que /panorama e /aovivo usam). Não
-   é "atualização automática de dado": é o mesmo tipo de carga que o CSS
-   e os ícones, só que sob demanda. */
-let mundoGeo = null;
-fetch("/api/geo/mundo.json", { credentials: "same-origin" })
-  .then(function (r) { return r.ok ? r.json() : null; })
-  .then(function (dados) {
-    mundoGeo = (dados && dados.paises) || null;
-    if (mundoGeo && ROTEIRO[atual] && ROTEIRO[atual].id === "mundo") desenhar(atual, "quieto");
-  })
-  .catch(function () { /* sem mapa: a tela "Pelo mundo" segue só com o ranking */ });
-
 const PARAMS = new URLSearchParams(location.search);
 const SEGUNDOS = Math.max(5, Math.min(120, Number(PARAMS.get("t")) || 15));
 const AREA = (PARAMS.get("area") || "").trim();   /* recorta o mural numa linha */
@@ -675,6 +660,9 @@ function graficoDasAreas() {
         return a.status === "submetido" || a.status === "em_revisao"; }).length,
       producao: meus.filter(function (a) { return a.status === "em_producao"; }).length,
       total: meus.length,
+      /* "Melhor fonte por artigo", a mesma regra da tela inteira -- nunca
+         soma WoS+Scopus (contaria a citação em dobro). */
+      citacoes: meus.reduce(function (soma, a) { return soma + citacoes(a); }, 0),
       ativa: l.active !== 0,
     };
   }).filter(function (x) {
@@ -697,15 +685,57 @@ function graficoDasAreas() {
   const semDado = porLinha.filter(function (x) { return x.total === 0; });
 
   return {
-    titulo: "Publicados, em avaliação e em produção", icone: "barras",
+    titulo: "Publicados, citações e produção por linha", icone: "barras",
     nota: fmt(arts.length) + " artigos",
-    grafico: comDado.length ? faixasPorLinha(comDado, semDado)
+    grafico: comDado.length ? matrizImpactoPorLinha(comDado, semDado)
       : vazio(porLinha.length
         ? "As linhas de pesquisa estão cadastradas, e nenhum dos "
           + fmt(arts.length) + " artigos está ligado a uma delas. A linha se "
           + "escolhe na ficha do artigo, no painel."
         : "Nenhuma linha de pesquisa cadastrada."),
   };
+}
+
+/* "Alto potencial, baixo volume" -- e é sempre CALCULADO, nunca uma lista
+   de nomes fixa: publicados <= 1 (a linha ainda não emplacou, ou emplacou
+   uma vez só) E producao > 0 (tem gente escrevendo ali agora). É o sinal
+   real de "observem essa linha", não um palpite. */
+function temPotencialAlto(linha) {
+  return (linha.publicados || 0) <= 1 && (linha.producao || 0) > 0;
+}
+
+/* Dispersão 3D isométrica no lugar das faixas horizontais: eixo X é o
+   volume publicado, eixo Y é o impacto real (citações pela melhor fonte,
+   nunca somando bases), e eixo Z é a carga de trabalho atual (manuscritos
+   em produção agora). O tamanho da esfera segue o total do acervo daquela
+   linha. */
+function matrizImpactoPorLinha(porLinha, semDado) {
+  const dados = porLinha.map(function (x) {
+    return {
+      nome: x.nome, x: x.publicados, y: x.citacoes, z: x.producao,
+      tamanho: x.total, destaque: temPotencialAlto(x),
+    };
+  });
+  const grafico = ChartsEnhanced.scatter3d(dados, {
+    eixos: { x: "Publicados", y: "Citações", z: "Em produção" },
+  });
+  const destaques = dados.filter(function (d) { return d.destaque; });
+  const filhos = [grafico];
+  if (destaques.length) {
+    filhos.push(el("p", { class: "linhas-pesquisa-vazias" }, [
+      el("span", { class: "ponto-vivo" }),
+      el("b", { text: " Piscando em ciano: " }),
+      el("span", { text: destaques.map(function (d) { return d.nome; }).join(" · ")
+        + " -- poucos artigos publicados, produção real em andamento" }),
+    ]));
+  }
+  if (semDado && semDado.length) {
+    filhos.push(el("p", { class: "linhas-pesquisa-vazias" }, [
+      el("b", { text: semDado.length + " linha(s) sem artigo ainda: " }),
+      el("span", { text: semDado.map(function (x) { return x.nome; }).join(" · ") }),
+    ]));
+  }
+  return el("div", { class: "faixas-caixa" }, filhos);
 }
 
 /* Faixas horizontais, uma por linha, com o nome inteiro e o ícone da
@@ -1021,9 +1051,70 @@ function slideTemas() {
     linha,
     el("div", { class: "painel-duplo" }, [
       quadro("Onde se publica", "citacao", grafico, revistas.length + (revistas.length === 1 ? " revista" : " revistas"), "moldura-viva"),
-      quadro("O que os indicadores dizem", "achado", frases(ditos.slice(0, 6)), t.periodo.rotulo || ""),
+      quadro("Insights", "achado", painelInsights(t, kpis, ditos), t.periodo.rotulo || "", "moldura-viva"),
     ]),
   ]));
+}
+
+/* A frase da projeção de fim de ano, sempre a partir do `meta.veredito`
+   real (metas.py, back-end) -- nunca um "vai bater a meta" calculado
+   aqui na tela. Sem meta declarada, a frase ainda diz a projeção (uma
+   faixa, nunca um número só): dado real mesmo sem alvo para comparar. */
+function fraseMetaPublicacoes(meta) {
+  if (!meta) return null;
+  const proj = meta.projecao || {};
+  const faixa = proj.de !== undefined && proj.ate !== undefined
+    ? "entre " + fmt(proj.de) + " e " + fmt(proj.ate) : null;
+  switch (meta.veredito) {
+    case "alcançada":
+      return "meta de " + fmt(meta.meta) + " publicações já alcançada (" + fmt(meta.realizado) + " até agora).";
+    case "não alcançada":
+      return "meta de " + fmt(meta.meta) + " publicações não alcançada neste ano (" + fmt(meta.realizado) + " ao todo).";
+    case "no ritmo atual, alcança":
+      return "no ritmo atual, a meta de " + fmt(meta.meta) + " publicações deve ser alcançada até dezembro"
+        + (faixa ? " (projeção " + faixa + ")" : "") + ".";
+    case "no ritmo atual, não alcança":
+      return "no ritmo atual, a meta de " + fmt(meta.meta) + " publicações NÃO deve ser alcançada até dezembro"
+        + (faixa ? " (projeção " + faixa + ")" : "") + ".";
+    case "depende do fim do ano":
+      return "a meta de " + fmt(meta.meta) + " publicações está em aberto"
+        + (faixa ? " -- a projeção (" + faixa + ") cruza o alvo" : "") + ": depende do fim do ano.";
+    default:
+      return "sem meta anual declarada" + (faixa ? " -- no ritmo atual, a projeção honesta é " + faixa
+        + " publicações até dezembro" : "") + ".";
+  }
+}
+
+/* Painel de insights: o diagnóstico visual (gauge da taxa de aceite,
+   crítico só quando o número real é 0% com decisão de verdade no
+   período -- nunca decorativo) mais a projeção honesta de fim de ano, e
+   o resto dos indicadores como leitura de apoio. Reaproveita `frases()`,
+   o mesmo componente de texto já usado no resto do mural. */
+function painelInsights(t, kpis, ditos) {
+  const aceite = kpis.aceite;
+  const valor = aceite ? aceite.valor : null;
+  const critico = !!(aceite && aceite.valor === 0 && aceite.n_decididas > 0);
+  const gauge = ChartsEnhanced.gaugeDiagnostico(valor, {
+    rotulo: "Taxa de aceite", nota: aceite ? aceite.pe : "", critico: critico,
+  });
+
+  const filhos = [el("div", { class: "insights-gauge" }, [gauge])];
+  if (critico) {
+    filhos.push(el("p", { class: "insights-alerta" }, [
+      el("b", { text: "⚠️ Taxa de aceite em 0%: " }),
+      el("span", { text: fmt(aceite.n_decididas) + " decisão(ões) no período, nenhuma aceita." }),
+    ]));
+  }
+  const predicao = fraseMetaPublicacoes(t.meta_publicacoes);
+  if (predicao) {
+    filhos.push(el("p", { class: "insights-predicao" }, [
+      el("span", { class: "ponto-vivo" }),
+      el("b", { text: " Publicações no ano: " }),
+      el("span", { text: predicao }),
+    ]));
+  }
+  if (ditos.length) filhos.push(frases(ditos.slice(0, 3)));
+  return el("div", { class: "insights-painel" }, filhos);
 }
 
 function slideRitmo() {
@@ -1100,6 +1191,25 @@ function rankingDePaises(paises) {
   }));
 }
 
+/* O feed em cascata: os 6 países que mais assinam, num visual de log de
+   servidor -- cada linha entra com um atraso maior que a de cima
+   (`--i`), puro CSS, sem laço de animação em JS. Os nomes de instituição
+   que a versão antiga listava à parte agora moram no `title` de cada
+   ponto do globo -- ninguém passa o mouse numa TV, mas o dado continua
+   no DOM para quem abrir num monitor. */
+function feedCascata(paises) {
+  const top = paises.slice(0, 6);
+  return el("ul", { class: "feed-cascata" }, top.map(function (p, i) {
+    return el("li", { style: "--i:" + i }, [
+      el("span", { class: "feed-indice", text: "#" + (i + 1) }),
+      el("span", { class: "bandeira" }, [
+        typeof Bandeiras !== "undefined" && p.iso ? Bandeiras.get(p.iso, p.pais) : Icons.get("mapa", 16)]),
+      el("span", { class: "feed-pais", text: p.pais }),
+      el("span", { class: "feed-n", text: fmt(p.n) + " artigo(s)" }),
+    ]);
+  }));
+}
+
 function slideMundo() {
   const t = tv();
   const m = t && t.mundo;
@@ -1114,34 +1224,34 @@ function slideMundo() {
     tile({ nome: "Instituições", valor: m.instituicoes || 0, icone: "instituicao", serie: 4, pastilha: "ambar",
       pe: "com endereço no mapa" }),
   ]);
-  /* Com o contorno dos países já carregado, o mapa-múndi de verdade
-     substitui a lista -- e usa todo país com produção (m.mapa_paises),
-     não só o top 10 que cabe na lista, senão um país de fora do ranking
-     apareceria "sem dado" no mapa mesmo tendo artigo. Sem o contorno
-     ainda (primeira troca de tela, antes do fetch responder), a lista
-     seve de retrato imediato -- ninguém fica olhando pra tela vazia
-     esperando 70KB de rede. */
-  const ranking = mundoGeo
-    ? el("div", { class: "corpo" }, C.mapaMundi({
-        world: mundoGeo, values: m.mapa_paises || {}, unit: "artigos",
-        caption: "produção por país", emptyMessage: "Nenhum país registrado ainda." }))
-    : (paises.length ? rankingDePaises(paises) : vazio("Nenhum país cadastrado nos autores ainda."));
-  const instituicoes = [];
-  paises.forEach(function (p) {
-    (p.instituicoes || []).forEach(function (nome) {
-      if (instituicoes.length < 8 && !instituicoes.some(function (x) { return x.resto === nome; })) {
-        instituicoes.push({ icone: "instituicao", forte: p.pais + " ·", resto: nome });
-      }
-    });
+  /* O globo só precisa de sede + país com latitude/longitude -- os dois já
+     chegam no primeiro payload, sem esperar os 70KB do contorno do
+     mapa-múndi (que a lâmina antiga esperava). Sem coordenada nenhuma
+     ainda, cai pro ranking parado de sempre.
+
+     O próprio país da sede fica de fora dos arcos: "arco de voo saindo
+     de Florianópolis até Florianópolis" não é parceria internacional,
+     é o quartel general -- o KPI "Fora do Brasil" já existe bem por
+     isso. O Top 6 ao lado continua mostrando todo mundo, sede incluída,
+     porque ali a pergunta é outra ("quem mais assina", não "quem é de
+     fora"). */
+  const comCoordenada = paises.filter(function (p) {
+    return p.latitude !== undefined && p.latitude !== null && p.longitude !== undefined && p.longitude !== null
+      && (!m.sede || p.pais !== m.sede.pais);
   });
+  const globo = (m.sede && comCoordenada.length)
+    ? ChartsEnhanced.globoNeon(m.sede, comCoordenada)
+    : null;
+  const painelGlobo = globo ? el("div", { class: "corpo" }, [globo])
+    : (paises.length ? rankingDePaises(paises) : vazio("Nenhum país cadastrado nos autores ainda."));
   return escalonar(el("div", { class: "slide" }, [
     linha,
     el("div", { class: "painel-duplo igual" }, [
-      quadro("Países que assinam com o LAPE", "mapa", ranking,
+      quadro("Pelo mundo", "mapa", painelGlobo,
         "sede: " + ((m.sede && m.sede.nome) || "UDESC / CEFID"), "moldura-viva"),
-      quadro("Instituições parceiras", "instituicao",
-        instituicoes.length ? frases(instituicoes) : vazio("Nenhuma instituição cadastrada nos autores."),
-        m.instituicoes ? fmt(m.instituicoes) + " no mapa" : ""),
+      quadro("Top 6 — quem mais assina", "instituicao",
+        paises.length ? feedCascata(paises) : vazio("Nenhum país cadastrado nos autores ainda."),
+        m.instituicoes ? fmt(m.instituicoes) + " instituição(ões) no mapa" : ""),
     ]),
   ]));
 }
@@ -1958,6 +2068,61 @@ function explodirParticulas(card) {
   setTimeout(function () { casa.remove(); }, 1000);
 }
 
+/* Mesma ideia de `explodirParticulas`, em SVG: aquela é um `<div>` HTML
+   solto no meio da página, e um `<div>` dentro de `<svg>` não desenha
+   nada (o próprio topo deste arquivo já avisa: sem o namespace certo,
+   elemento SVG vira HTML desconhecido, sem geometria). Aqui os "cacos"
+   são `<circle>` de verdade, filhos do próprio grupo do nó, na cor da
+   linha -- para a micro-explosão sair exatamente do planeta certo. */
+function explodirParticulasSvg(grupoNo, x, y, cor) {
+  for (let p = 0; p < 10; p++) {
+    const ang = Math.random() * Math.PI * 2, dist = 20 + Math.random() * 30;
+    const caco = document.createElementNS(
+      "http://www.w3.org/2000/svg", "circle");
+    caco.setAttribute("cx", x); caco.setAttribute("cy", y);
+    caco.setAttribute("r", "2.5");
+    caco.setAttribute("fill", cor);
+    caco.setAttribute("class", "caco-explosao-linha");
+    // `currentColor` no filter CSS lê `color`, não `fill` -- os dois
+    // precisam da mesma cor pro brilho bater com o caco de verdade.
+    caco.style.color = cor;
+    caco.style.setProperty("--dx", (dist * Math.cos(ang)).toFixed(0) + "px");
+    caco.style.setProperty("--dy", (dist * Math.sin(ang)).toFixed(0) + "px");
+    grupoNo.appendChild(caco);
+    setTimeout(function () { caco.remove(); }, 1000);
+  }
+}
+
+/* O n8n (ou a rotina automática) não empurra nada para o navegador -- o
+   mural só sabe reler /api/tv, como toda tela viva aqui (ver o topo do
+   arquivo: "quem redesenha é o servidor... o mural rebusca"). Em vez de
+   uma explosão disparada NA HORA que a citação chega (que pediria um
+   canal que este mural não tem), a constelação celebra na hora que
+   PERCEBE a subida, no próximo `cicloAoVivo` -- mesmo efeito visual,
+   mesmo raciocínio de `atualizarValoresAoVivo`, só que por linha de
+   pesquisa em vez de por métrica agregada. Só mexe em quem está de fato
+   montado (`.grupo-no-orbita[data-linha]` só existe quando a lâmina
+   "Linhas de Pesquisa 3D" está em cena). */
+function atualizarConstelacaoAoVivo() {
+  const nos = document.querySelectorAll(".grupo-no-orbita[data-linha]");
+  if (!nos.length) return;
+  const porNome = {};
+  ((D.tv && D.tv.linhas) || []).forEach(function (l) { porNome[l.nome] = l; });
+  nos.forEach(function (no) {
+    const linha = porNome[no.dataset.linha];
+    if (!linha) return;
+    const novo = linha.citacoes || 0;
+    const anterior = Number(no.dataset.citacoesAtual) || 0;
+    no.dataset.citacoesAtual = String(novo);
+    if (novo <= anterior) return;
+    const x = Number(no.dataset.x), y = Number(no.dataset.y);
+    no.classList.remove("no-comemorando"); void no.getBBox();
+    no.classList.add("no-comemorando");
+    setTimeout(function () { no.classList.remove("no-comemorando"); }, 900);
+    explodirParticulasSvg(no, x, y, no.dataset.cor || "var(--accent-strong)");
+  });
+}
+
 /* Só mexe em quem estiver de fato montado na tela agora (a lâmina de
    citações, quando é ela que está em cena) -- as outras telas nem têm
    `[data-metrica]` no DOM, então o forEach abaixo não acha nada e não
@@ -1967,6 +2132,7 @@ async function atualizarValoresAoVivo() {
     const resposta = await fetch("/api/tv", { credentials: "same-origin" });
     if (!resposta.ok) return;
     D.tv = await resposta.json();
+    atualizarConstelacaoAoVivo();
     const resumo = D.tv && D.tv.citacoes && D.tv.citacoes.resumo;
     if (!resumo) return;
     document.querySelectorAll("[data-metrica]").forEach(function (node) {

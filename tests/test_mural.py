@@ -1263,3 +1263,389 @@ class TestLinhaMaisPresente(unittest.TestCase):
         # sozinha não é "força de trabalho" de linha nenhuma.
         presentes = [{"full_name": "A", "research_line": "Dor crônica"}]
         self.assertEqual(self._rodar(presentes), {"nome": "Dor crônica", "n": 1})
+
+
+class TestTemPotencialAlto(unittest.TestCase):
+    """`temPotencialAlto` -- o sinal por trás da esfera piscando em ciano
+    na dispersão 3D de "Citações e produção por área": sempre calculado
+    (publicados <= 1 e produção > 0), nunca uma lista de nomes escolhida
+    a dedo."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.fonte = _recorta("temPotencialAlto")
+
+    def _rodar(self, linha):
+        return _no_node(self.fonte, f"temPotencialAlto({json.dumps(linha)})")
+
+    def test_poucos_publicados_e_producao_em_andamento_e_destaque(self):
+        self.assertTrue(self._rodar({"publicados": 0, "producao": 3}))
+        self.assertTrue(self._rodar({"publicados": 1, "producao": 1}))
+
+    def test_ja_publicou_bastante_nao_e_destaque_mesmo_com_producao(self):
+        self.assertFalse(self._rodar({"publicados": 5, "producao": 3}))
+
+    def test_pouco_publicado_mas_sem_producao_nao_e_destaque(self):
+        # A linha parada não é "observem essa linha" -- é só uma linha
+        # pequena, sem sinal nenhum de que algo está para sair dela.
+        self.assertFalse(self._rodar({"publicados": 0, "producao": 0}))
+
+    def test_campos_ausentes_nao_quebram(self):
+        self.assertFalse(self._rodar({}))
+
+
+class TestDispersao3DDeImpactoPorLinha(unittest.TestCase):
+    """`ChartsEnhanced.scatter3d` -- reaproveitado pela primeira vez (já
+    existia no arquivo, sem nenhum chamador) para a lâmina "Citações e
+    produção por área", no lugar das faixas horizontais empilhadas."""
+
+    DOM_SHIM = """
+    class NoFalso {
+      constructor(tag) {
+        this.tag = tag; this.attrs = {}; this.kids = []; this._text = "";
+        this.style = { _props: {}, setProperty(k, v) { this._props[k] = v; } };
+        this.classList = { toggle() {} };
+      }
+      setAttribute(k, v) { this.attrs[k] = String(v); }
+      appendChild(kid) { this.kids.push(kid); return kid; }
+      set textContent(v) { this._text = String(v); }
+      get textContent() { return this._text; }
+    }
+    global.document = {
+      createElementNS: (ns, tag) => new NoFalso(tag),
+      createElement: (tag) => new NoFalso(tag),
+    };
+    global.fmt = function (v) { return String(v); };
+    function todos(no, tag, saida) {
+      saida = saida || [];
+      if (no.tag === tag) saida.push(no);
+      no.kids.forEach((k) => todos(k, tag, saida));
+      return saida;
+    }
+    """
+
+    def _grafico(self, dados, opts=None):
+        texto = (TEMPLATES / "charts-enhanced.js").read_text(encoding="utf-8")
+        inicio = texto.index("const ChartsEnhanced")
+        fim = texto.index("\n})();", inicio) + len("\n})();")
+        chart_src = texto[inicio:fim]
+        script = (self.DOM_SHIM + "\n" + chart_src
+                  + f"\nconst fig = ChartsEnhanced.scatter3d({json.dumps(dados)}, {json.dumps(opts or {})});"
+                  + "\nif (fig === null) { process.stdout.write(JSON.stringify(null)); }"
+                  + "\nelse {"
+                  + "\nconst circulos = todos(fig, 'circle');"
+                  + "\nconst textos = todos(fig, 'text').map(function (t) { return t.textContent; });"
+                  + "\nconst grupos = fig.kids[0].kids.filter(function (k) { return k.tag === 'g'; });"
+                  + "\nprocess.stdout.write(JSON.stringify({"
+                  + "  figClasse: fig.attrs.class, svgClasse: fig.kids[0].attrs.class,"
+                  + "  nCirculos: circulos.length, textos: textos,"
+                  + "  classesGrupo: grupos.map(function (g) { return g.attrs.class; }) }));"
+                  + "\n}")
+        return _roda(script)
+
+    def test_sem_dados_nao_desenha_nada(self):
+        self.assertIsNone(self._grafico([]))
+
+    def test_figura_e_svg_levam_as_classes_que_o_css_do_quadro_espera(self):
+        dados = [{"nome": "Dor crônica", "x": 12, "y": 30, "z": 2, "tamanho": 15}]
+        resultado = self._grafico(dados)
+        self.assertEqual(resultado["figClasse"], "chart")
+        self.assertEqual(resultado["svgClasse"], "plot scatter3d")
+
+    def test_nomes_dos_eixos_de_verdade_aparecem_no_grafico(self):
+        dados = [{"nome": "Dor crônica", "x": 12, "y": 30, "z": 2, "tamanho": 15}]
+        resultado = self._grafico(dados, {"eixos": {"x": "Publicados", "y": "Citações", "z": "Em produção"}})
+        self.assertIn("Publicados", resultado["textos"])
+        self.assertIn("Citações", resultado["textos"])
+        self.assertIn("Em produção", resultado["textos"])
+
+    def test_uma_esfera_por_ponto_e_o_nome_aparece_como_rotulo(self):
+        dados = [
+            {"nome": "Dor crônica", "x": 12, "y": 30, "z": 2, "tamanho": 15},
+            {"nome": "Fibromialgia", "x": 8, "y": 10, "z": 4, "tamanho": 9},
+        ]
+        resultado = self._grafico(dados)
+        self.assertEqual(resultado["nCirculos"], 2)
+        self.assertIn("Dor crônica", resultado["textos"])
+        self.assertIn("Fibromialgia", resultado["textos"])
+
+    def test_destaque_pisca_em_ciano_quem_nao_e_destaque_nao_pisca(self):
+        dados = [
+            {"nome": "Câncer", "x": 0, "y": 0, "z": 2, "tamanho": 2, "destaque": True},
+            {"nome": "Dor crônica", "x": 12, "y": 30, "z": 2, "tamanho": 15, "destaque": False},
+        ]
+        resultado = self._grafico(dados)
+        self.assertTrue(any("esfera-pisca-ciano" in (c or "") for c in resultado["classesGrupo"]))
+        self.assertFalse(all("esfera-pisca-ciano" in (c or "") for c in resultado["classesGrupo"]))
+
+
+class TestFraseMetaPublicacoes(unittest.TestCase):
+    """`fraseMetaPublicacoes` -- a projeção de fim de ano do painel de
+    insights. A frase segue sempre o `veredito` que vem pronto do
+    back-end (metas.py): a tela nunca decide sozinha se "vai bater a
+    meta", só traduz o veredito calculado lá em texto."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.fonte = "global.fmt = function (v) { return String(v); };\n" + _recorta("fraseMetaPublicacoes")
+
+    def _rodar(self, meta):
+        return _no_node(self.fonte, f"fraseMetaPublicacoes({json.dumps(meta)})")
+
+    def test_sem_meta_nenhuma_nao_quebra(self):
+        self.assertIsNone(self._rodar(None))
+
+    def test_sem_meta_declarada_ainda_mostra_a_projecao_em_faixa(self):
+        meta = {"veredito": "sem meta declarada", "meta": None, "realizado": 12,
+                "projecao": {"de": 14, "ate": 24, "central": 19}}
+        frase = self._rodar(meta)
+        self.assertIn("sem meta anual declarada", frase)
+        self.assertIn("entre 14 e 24", frase)
+        # nunca um numero so, sempre a faixa -- mesma regra do metas.py
+        self.assertNotIn("19", frase)
+
+    def test_meta_ja_alcancada(self):
+        meta = {"veredito": "alcançada", "meta": 20, "realizado": 22, "projecao": {}}
+        frase = self._rodar(meta)
+        self.assertIn("já alcançada", frase)
+        self.assertIn("22", frase)
+
+    def test_no_ritmo_atual_alcanca(self):
+        meta = {"veredito": "no ritmo atual, alcança", "meta": 15, "realizado": 10,
+                "projecao": {"de": 16, "ate": 22}}
+        frase = self._rodar(meta)
+        self.assertIn("deve ser alcançada", frase)
+        self.assertIn("entre 16 e 22", frase)
+
+    def test_no_ritmo_atual_nao_alcanca_e_bem_explicito(self):
+        meta = {"veredito": "no ritmo atual, não alcança", "meta": 40, "realizado": 10,
+                "projecao": {"de": 16, "ate": 22}}
+        frase = self._rodar(meta)
+        self.assertIn("NÃO deve ser alcançada", frase)
+
+
+class TestGaugeDeDiagnostico(unittest.TestCase):
+    """`ChartsEnhanced.gaugeDiagnostico` -- o mostrador da taxa de aceite
+    no painel de insights. Crítico é decidido por quem chama (nunca
+    aqui dentro), e só troca a classe/cor -- a tela real nunca inventa
+    um alarme por conta própria."""
+
+    DOM_SHIM = """
+    class NoFalso {
+      constructor(tag) { this.tag = tag; this.attrs = {}; this.kids = []; this._text = ""; }
+      setAttribute(k, v) { this.attrs[k] = String(v); }
+      appendChild(kid) { this.kids.push(kid); return kid; }
+      set textContent(v) { this._text = String(v); }
+      get textContent() { return this._text; }
+    }
+    global.document = {
+      createElementNS: (ns, tag) => new NoFalso(tag),
+      createElement: (tag) => new NoFalso(tag),
+    };
+    global.fmt = function (v) { return String(v); };
+    function todos(no, tag, saida) {
+      saida = saida || [];
+      if (no.tag === tag) saida.push(no);
+      no.kids.forEach((k) => todos(k, tag, saida));
+      return saida;
+    }
+    """
+
+    def _gauge(self, valor, opts=None):
+        texto = (TEMPLATES / "charts-enhanced.js").read_text(encoding="utf-8")
+        inicio = texto.index("const ChartsEnhanced")
+        fim = texto.index("\n})();", inicio) + len("\n})();")
+        chart_src = texto[inicio:fim]
+        valor_js = "null" if valor is None else json.dumps(valor)
+        script = (self.DOM_SHIM + "\n" + chart_src
+                  + f"\nconst fig = ChartsEnhanced.gaugeDiagnostico({valor_js}, {json.dumps(opts or {})});"
+                  + "\nconst svg = fig.kids[0];"
+                  + "\nconst arcoValor = todos(fig, 'path').find(function (p) {"
+                  + "  return p.attrs.class === 'gauge-arco-valor'; });"
+                  + "\nprocess.stdout.write(JSON.stringify({"
+                  + "  svgClasse: svg.attrs.class,"
+                  + "  temArcoValor: !!arcoValor,"
+                  + "  dashArray: arcoValor ? arcoValor.attrs['stroke-dasharray'] : null,"
+                  + "  textos: todos(fig, 'text').map(function (t) { return t.textContent; }) }));")
+        return _roda(script)
+
+    def test_svg_leva_a_classe_critico_so_quando_pedido(self):
+        normal = self._gauge(45, {"rotulo": "Taxa de aceite"})
+        self.assertNotIn("gauge-critico", normal["svgClasse"])
+        critico = self._gauge(0, {"rotulo": "Taxa de aceite", "critico": True})
+        self.assertIn("gauge-critico", critico["svgClasse"])
+
+    def test_sem_dado_nao_desenha_arco_de_valor(self):
+        resultado = self._gauge(None, {"rotulo": "Taxa de aceite"})
+        self.assertFalse(resultado["temArcoValor"])
+        self.assertIn("sem dado", resultado["textos"])
+
+    def test_arco_de_valor_preenche_a_fracao_certa(self):
+        resultado = self._gauge(30, {"rotulo": "Taxa de aceite"})
+        self.assertEqual(resultado["dashArray"], "30 70")
+
+    def test_numero_e_rotulo_aparecem(self):
+        resultado = self._gauge(62, {"rotulo": "Taxa de aceite"})
+        self.assertIn("62%", resultado["textos"])
+        self.assertIn("Taxa de aceite", resultado["textos"])
+
+
+class TestGloboNeonDoPeloMundo(unittest.TestCase):
+    """`ChartsEnhanced.globoNeon` -- quarto item da lista de upgrades
+    visuais: as duas telas de internacionalização viram uma só, com um
+    globo (projeção ortográfica de verdade, a mesma matemática do globo
+    do ao vivo) e arcos de voo saindo da sede, sem depender de nada
+    novo (a "girada" é CSS puro, ver mural.html)."""
+
+    DOM_SHIM = """
+    class NoFalso {
+      constructor(tag) {
+        this.tag = tag; this.attrs = {}; this.kids = []; this._text = "";
+        this.style = { _props: {}, setProperty(k, v) { this._props[k] = v; } };
+      }
+      setAttribute(k, v) { this.attrs[k] = String(v); }
+      appendChild(kid) { this.kids.push(kid); return kid; }
+      set textContent(v) { this._text = String(v); }
+      get textContent() { return this._text; }
+    }
+    global.document = {
+      createElementNS: (ns, tag) => new NoFalso(tag),
+      createElement: (tag) => new NoFalso(tag),
+    };
+    global.fmt = function (v) { return String(v); };
+    function todos(no, tag, saida) {
+      saida = saida || [];
+      if (no.tag === tag) saida.push(no);
+      no.kids.forEach((k) => todos(k, tag, saida));
+      return saida;
+    }
+    """
+
+    def _globo(self, sede, paises):
+        texto = (TEMPLATES / "charts-enhanced.js").read_text(encoding="utf-8")
+        inicio = texto.index("const ChartsEnhanced")
+        fim = texto.index("\n})();", inicio) + len("\n})();")
+        chart_src = texto[inicio:fim]
+        script = (self.DOM_SHIM + "\n" + chart_src
+                  + f"\nconst fig = ChartsEnhanced.globoNeon({json.dumps(sede)}, {json.dumps(paises)});"
+                  + "\nif (fig === null) { process.stdout.write(JSON.stringify(null)); }"
+                  + "\nelse {"
+                  + "\nconst arcos = todos(fig, 'path').filter(function (p) { return p.attrs.class === 'globo-neon-arco'; });"
+                  + "\nconst pontos = todos(fig, 'circle').filter(function (c) { return c.attrs.class === 'globo-neon-pais'; });"
+                  + "\nprocess.stdout.write(JSON.stringify({"
+                  + "  figClasse: fig.attrs.class, svgClasse: fig.kids[0].attrs.class,"
+                  + "  nArcos: arcos.length, nPontos: pontos.length,"
+                  + "  larguras: arcos.map(function (a) { return a.attrs['stroke-width']; }),"
+                  + "  titulos: todos(fig, 'title').map(function (t) { return t.textContent; }) }));"
+                  + "\n}")
+        return _roda(script)
+
+    def test_sem_pais_nenhum_nao_desenha_nada(self):
+        self.assertIsNone(self._globo({"nome": "UDESC", "latitude": -27.6, "longitude": -48.5}, []))
+
+    def test_figura_e_svg_levam_as_classes_que_o_css_do_quadro_espera(self):
+        sede = {"nome": "UDESC", "latitude": -27.6, "longitude": -48.5}
+        paises = [{"pais": "Itália", "iso": "IT", "n": 29, "latitude": 41.9, "longitude": 12.5}]
+        resultado = self._globo(sede, paises)
+        self.assertEqual(resultado["figClasse"], "chart")
+        self.assertEqual(resultado["svgClasse"], "plot globo-neon")
+
+    def test_um_arco_e_um_ponto_por_pais(self):
+        sede = {"nome": "UDESC", "latitude": -27.6, "longitude": -48.5}
+        paises = [
+            {"pais": "Itália", "iso": "IT", "n": 29, "latitude": 41.9, "longitude": 12.5},
+            {"pais": "Canadá", "iso": "CA", "n": 2, "latitude": 56.1, "longitude": -106.3},
+        ]
+        resultado = self._globo(sede, paises)
+        self.assertEqual(resultado["nArcos"], 2)
+        self.assertEqual(resultado["nPontos"], 2)
+
+    def test_espessura_do_arco_e_proporcional_ao_volume_de_artigos(self):
+        # O pedido original: "a linha para a Itália com mais artigos deve
+        # ser um feixe mais grosso que a de um país com poucos artigos".
+        sede = {"nome": "UDESC", "latitude": -27.6, "longitude": -48.5}
+        paises = [
+            {"pais": "Itália", "iso": "IT", "n": 29, "latitude": 41.9, "longitude": 12.5},
+            {"pais": "Canadá", "iso": "CA", "n": 2, "latitude": 56.1, "longitude": -106.3},
+        ]
+        resultado = self._globo(sede, paises)
+        larguras = [float(x) for x in resultado["larguras"]]
+        self.assertGreater(larguras[0], larguras[1])
+
+    def test_pais_sem_coordenada_e_ignorado_sem_quebrar(self):
+        sede = {"nome": "UDESC", "latitude": -27.6, "longitude": -48.5}
+        paises = [
+            {"pais": "Itália", "iso": "IT", "n": 29, "latitude": 41.9, "longitude": 12.5},
+            {"pais": "Sem coordenada", "iso": None, "n": 3, "latitude": None, "longitude": None},
+        ]
+        resultado = self._globo(sede, paises)
+        self.assertEqual(resultado["nArcos"], 1)
+        self.assertEqual(resultado["nPontos"], 1)
+
+
+class TestFeedEmCascata(unittest.TestCase):
+    """`feedCascata` -- o Top 6 em estilo log de servidor, ao lado do
+    globo em "Pelo mundo"."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.fonte = _recorta("feedCascata")
+
+    def _rodar(self, paises):
+        return _no_node(
+            'global.el = (tag, attrs, kids) => ({ tag, attrs, kids });\n'
+            'global.fmt = (v) => String(v);\n'
+            'global.Icons = { get: () => null };\n'
+            + self.fonte,
+            f"feedCascata({json.dumps(paises)})")
+
+    def test_corta_no_top_6_mesmo_com_mais_paises(self):
+        paises = [{"pais": f"País {i}", "n": 10 - i} for i in range(10)]
+        resultado = self._rodar(paises)
+        self.assertEqual(len(resultado["kids"]), 6)
+
+    def test_com_menos_de_6_paises_mostra_todos(self):
+        paises = [{"pais": "Itália", "n": 29}, {"pais": "Canadá", "n": 2}]
+        resultado = self._rodar(paises)
+        self.assertEqual(len(resultado["kids"]), 2)
+
+
+class TestRaioOrbitaLinha(unittest.TestCase):
+    """`raioOrbitaLinha` -- quinto e último item da lista de upgrades
+    visuais: a distância de cada planeta ao centro, controlada pelo
+    impacto real (artigos + citações), não mais um raio fixo igual para
+    todo mundo."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.fonte = _recorta_3d("raioOrbitaLinha")
+
+    def _rodar(self, linha, maior_impacto, raio_min, raio_max):
+        return _no_node(self.fonte,
+            f"raioOrbitaLinha({json.dumps(linha)}, {maior_impacto}, {raio_min}, {raio_max})")
+
+    def test_quem_lidera_em_impacto_orbita_mais_perto_do_centro(self):
+        lider = {"artigos": 45, "citacoes": 120}
+        pequena = {"artigos": 2, "citacoes": 0}
+        maior_impacto = 45 + 120
+        raio_lider = self._rodar(lider, maior_impacto, 100, 300)
+        raio_pequena = self._rodar(pequena, maior_impacto, 100, 300)
+        self.assertLess(raio_lider, raio_pequena)
+
+    def test_o_lider_de_verdade_fica_no_raio_minimo(self):
+        lider = {"artigos": 45, "citacoes": 120}
+        raio = self._rodar(lider, 45 + 120, 100, 300)
+        self.assertAlmostEqual(raio, 100, delta=0.01)
+
+    def test_impacto_zero_fica_no_raio_maximo(self):
+        vazia = {"artigos": 0, "citacoes": 0}
+        raio = self._rodar(vazia, 165, 100, 300)
+        self.assertAlmostEqual(raio, 300, delta=0.01)
+
+    def test_nunca_sai_da_faixa_mesmo_com_impacto_maior_que_o_maior_impacto(self):
+        # maiorImpacto vem de Math.max(...linhas) no chamador -- não pode
+        # estourar aqui, mas a função não confia cegamente no chamador.
+        estranha = {"artigos": 999, "citacoes": 999}
+        raio = self._rodar(estranha, 10, 100, 300)
+        self.assertGreaterEqual(raio, 100)
+        self.assertLessEqual(raio, 300)
