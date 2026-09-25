@@ -104,6 +104,46 @@ class TestBaterPonto(BasePonto):
         self.assertIsNone(aberto["saida"])
 
 
+class TestSaudacaoDeEntrada(BasePonto):
+    """A mensagem de "bom trabalho" ao bater entrada -- muda com a hora,
+    chama pela primeiro nome quando ha nome, e nao trava sem ele."""
+
+    def test_entrar_devolve_uma_saudacao_nao_vazia(self):
+        resultado = ponto.entrar(self.db, self.eu, "leitura")
+        self.assertTrue(resultado["saudacao"])
+
+    def test_sem_nome_a_saudacao_nao_tem_vocativo(self):
+        mensagem = ponto.saudacao_entrada(None)
+        self.assertNotIn(",", mensagem)
+
+    def test_com_nome_a_saudacao_chama_pelo_primeiro_nome(self):
+        mensagem = ponto.saudacao_entrada("Fulana de Tal")
+        self.assertIn("Fulana", mensagem)
+        self.assertNotIn("de Tal", mensagem)
+
+    def test_de_manha_a_saudacao_diz_bom_dia(self):
+        manha = datetime(2026, 1, 5, 8, 0)
+        mensagem = ponto.saudacao_entrada("Ana", agora=manha)
+        self.assertTrue(mensagem.startswith("Bom dia"))
+
+    def test_a_tarde_a_saudacao_diz_boa_tarde(self):
+        tarde = datetime(2026, 1, 5, 14, 0)
+        mensagem = ponto.saudacao_entrada("Ana", agora=tarde)
+        self.assertTrue(mensagem.startswith("Boa tarde"))
+
+    def test_a_noite_a_saudacao_diz_boa_noite(self):
+        noite = datetime(2026, 1, 5, 21, 0)
+        mensagem = ponto.saudacao_entrada("Ana", agora=noite)
+        self.assertTrue(mensagem.startswith("Boa noite"))
+
+    def test_entrar_leva_a_saudacao_ate_o_endpoint(self):
+        # a rota passa o nome de quem esta logado -- e' o que faz a
+        # mensagem soar pessoal, nao um carimbo generico
+        fonte = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
+        trecho = fonte[fonte.index("def route_ponto_entrar"):]
+        self.assertIn("nome=(ctx.user or {}).get(\"full_name\")", trecho[:400])
+
+
 class TestCheckOutEsquecido(BasePonto):
     """A falha clássica de todo ponto, e a única que estraga o número."""
 

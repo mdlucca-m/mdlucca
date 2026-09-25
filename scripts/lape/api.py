@@ -2253,7 +2253,8 @@ def route_ponto_entrar(ctx: "Context") -> Any:
     corpo = ctx.body or {}
     resultado = ponto.entrar(ctx.db, _eu(ctx), corpo.get("atividade"),
                              to_int(corpo.get("project_id")),
-                             to_int(corpo.get("article_id")))
+                             to_int(corpo.get("article_id")),
+                             nome=(ctx.user or {}).get("full_name"))
     _avisar_ponto(ctx, "ponto.entrada", corpo.get("atividade"))
     return resultado
 

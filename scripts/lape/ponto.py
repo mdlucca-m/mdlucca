@@ -19,6 +19,7 @@ feito mente com cara de numero:
 """
 from __future__ import annotations
 
+import random
 from datetime import date, datetime, timedelta
 from typing import Any
 
@@ -221,7 +222,8 @@ def aberto(db: Database, member_id: int) -> dict[str, Any] | None:
 
 
 def entrar(db: Database, member_id: int, atividade: Any = None,
-           project_id: Any = None, article_id: Any = None) -> dict[str, Any]:
+           project_id: Any = None, article_id: Any = None,
+           nome: Any = None) -> dict[str, Any]:
     """Marca a entrada. Bater duas vezes fecha a anterior, nao duplica."""
     anterior = aberto(db, member_id)
     if anterior:
@@ -232,7 +234,37 @@ def entrar(db: Database, member_id: int, atividade: Any = None,
         (member_id, _agora(), clean_text(atividade), project_id, article_id)).lastrowid
     db.conn.commit()
     return {"id": ponto_id, "entrada": _agora(),
-            "fechou_anterior": bool(anterior)}
+            "fechou_anterior": bool(anterior),
+            "saudacao": saudacao_entrada(nome)}
+
+
+# Uma frase por bater-entrada, sorteada dentro da faixa da hora -- para nao
+# virar um carimbo sempre igual pra quem bate ponto todo santo dia. O
+# vocativo (primeiro nome) so entra quando ha nome pra chamar.
+_SAUDACOES_MANHA = [
+    "Bom dia{v}! Que seu dia de estudos e trabalho seja produtivo.",
+    "Bom dia{v}! Começando bem -- bom trabalho hoje.",
+    "Bom dia{v}! Foco e uma boa produção pela frente.",
+]
+_SAUDACOES_TARDE = [
+    "Boa tarde{v}! Siga com foco no que falta do dia -- bom trabalho.",
+    "Boa tarde{v}! Bom trabalho no restante da tarde.",
+    "Boa tarde{v}! Mais um turno produtivo pela frente.",
+]
+_SAUDACOES_NOITE = [
+    "Boa noite{v}! Obrigado pelo empenho -- bom trabalho.",
+    "Boa noite{v}! Seu esforço faz diferença no laboratório.",
+    "Boa noite{v}! Bom trabalho, e não esqueça de descansar.",
+]
+
+
+def saudacao_entrada(nome: Any = None, agora: datetime | None = None) -> str:
+    """Mensagem de boas-vindas ao bater entrada -- varia com a hora do dia
+    e, quando ha nome, chama a pessoa pelo primeiro nome."""
+    hora = (agora or datetime.now()).hour
+    opcoes = _SAUDACOES_MANHA if hora < 12 else _SAUDACOES_TARDE if hora < 18 else _SAUDACOES_NOITE
+    primeiro = str(nome or "").strip().split()[0] if str(nome or "").strip() else ""
+    return random.choice(opcoes).format(v=(f", {primeiro}" if primeiro else ""))
 
 
 def sair(db: Database, member_id: int, observacao: Any = None) -> dict[str, Any]:

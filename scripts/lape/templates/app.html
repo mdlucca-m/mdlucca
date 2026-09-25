@@ -361,11 +361,11 @@ async function avisarServidorVelho(){
   document.body.insertBefore(faixa, document.body.firstChild);
 }
 let toastTimer = null;
-function toast(message, kind){
+function toast(message, kind, duracaoMs){
   TOAST.textContent = message;
   TOAST.className = "toast on" + (kind === "erro" ? " erro" : "");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function (){ TOAST.className = "toast"; }, 4200);
+  toastTimer = setTimeout(function (){ TOAST.className = "toast"; }, duracaoMs || 4200);
 }
 function dt(iso){
   if (!iso) return "—";
@@ -1573,6 +1573,24 @@ VIEWS.senha = {
   async render(){
     VIEW.innerHTML = "";
     VIEW.appendChild(tituloDaTela("senha", "Trocar senha"));
+    /* must_change_password so e verdadeiro quando a coordenacao acabou
+       de criar a conta (ou de resetar a senha) -- na pratica, o unico
+       sinal de "primeiro acesso" que o sistema guarda hoje. E o momento
+       certo para as boas-vindas: antes da pessoa escolher a senha dela
+       e seguir para o resto do painel. */
+    if (ME.must_change_password){
+      const primeiro = String(ME.full_name || "").trim().split(" ")[0];
+      const boasVindas = h("div", {class: "card boas-vindas"});
+      const titulo = h("h3", {}, [Icons.get("pessoas", 20)]);
+      titulo.appendChild(h("span", {text: "Seja muito bem-vindo" + (primeiro ? ", " + primeiro : "") + "!"}));
+      boasVindas.appendChild(titulo);
+      boasVindas.appendChild(h("p", {text:
+        "É uma alegria ter você com a gente no LAPE. Aqui você acompanha os artigos, "
+        + "projetos e metas do laboratório, e registra seu ponto a cada sessão de estudo "
+        + "ou trabalho. Qualquer dúvida, é só chamar alguém da coordenação ou da equipe — "
+        + "estamos juntos nessa. Para começar, escolha uma senha só sua."}));
+      VIEW.appendChild(boasVindas);
+    }
     VIEW.appendChild(h("p", {class: "view", text: ME.must_change_password
       ? "Sua senha foi definida pela coordenação. Escolha uma nova antes de continuar."
       : "Use pelo menos 8 caracteres."}));
@@ -3788,8 +3806,8 @@ VIEWS.ponto = {
           toast(saiu.fechou ? "Saída marcada — " + horasTexto(saiu.horas) + " nesta sessão."
                             : saiu.porque);
         } else {
-          await api("/api/ponto/entrar", "POST", {atividade: oque.value});
-          toast("Entrada marcada. Bom trabalho.");
+          const entrou = await api("/api/ponto/entrar", "POST", {atividade: oque.value});
+          toast(entrou.saudacao || "Entrada marcada. Bom trabalho.", null, 6500);
         }
         await show("ponto");
       } catch (e){ toast(e.message, "erro"); botao.disabled = false; }
