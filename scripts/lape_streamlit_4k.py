@@ -483,6 +483,14 @@ def montar_dispersao_3d(artigos: pd.DataFrame) -> go.Figure:
               "#7b4ff7", "#ff5a5f", "#4ade80"]
     cores = [paleta[i % len(paleta)] for i in range(len(por_linha))]
 
+    # Amplitude de pulsação por esfera, proporcional ao IMPACTO da linha
+    # (citações) -- não ao volume (que já governa o tamanho). Fica no
+    # customdata, não no marker.size: o JS de animação (ver
+    # `renderizar_grafico_3d_animado`) lê isto para saber o quanto cada
+    # esfera deve "respirar" em tempo real, sem o servidor recalcular nada.
+    maior_citacao = max(1, int(por_linha["citacoes_totais"].max()))
+    impacto_norm = (por_linha["citacoes_totais"] / maior_citacao).tolist()
+
     fig = go.Figure(data=[go.Scatter3d(
         x=por_linha["artigos_publicados"],
         y=por_linha["citacoes_totais"],
@@ -497,6 +505,7 @@ def montar_dispersao_3d(artigos: pd.DataFrame) -> go.Figure:
             opacity=0.88,
             line=dict(color="rgba(255,255,255,0.55)", width=1),
         ),
+        customdata=impacto_norm,
         hovertemplate=(
             "<b>%{text}</b><br>"
             "Artigos publicados: %{x}<br>"
@@ -555,6 +564,40 @@ def _malha_frustum(z0: float, z1: float, r0: float, r1: float, n: int = 64):
     return xs, ys, zs, np.array(i), np.array(j), np.array(k)
 
 
+def _particulas_do_funil(estagios: list[dict]) -> go.Scatter3d:
+    """Partículas de luz fluindo por dentro de cada estágio do funil.
+
+    Não são um evento "este artigo mudou de status agora" -- o Painel 4K
+    recarrega a página inteira a cada `REFRESH_MS` (sem canal permanente
+    com o servidor), então não há como saber, no navegador, o instante
+    exato de uma mudança real no banco. O que dá pra fazer com honestidade
+    aqui é uma densidade de partículas PROPORCIONAL ao volume real de cada
+    estágio (mais partículas onde há mais artigos), caindo em looping
+    contínuo -- uma leitura visual do RITMO de produção, não um replay
+    evento a evento.
+    """
+    rng = np.random.default_rng(7)
+    maior = max(1, max(e["n"] for e in estagios))
+    xs, ys, zs, cores, meta = [], [], [], [], []
+    for e in estagios:
+        qtd = int(np.clip(round(2 + 8 * e["n"] / maior), 2, 10))
+        for _ in range(qtd):
+            ang = rng.uniform(0, 2 * np.pi)
+            r = rng.uniform(0.25, 0.85) * e["raio"]
+            xs.append(r * np.cos(ang))
+            ys.append(r * np.sin(ang))
+            zs.append(rng.uniform(e["z1"], e["z0"]))
+            cores.append(e["cor"])
+            meta.append((e["z0"], e["z1"], float(rng.uniform(0, 1))))
+    return go.Scatter3d(
+        x=xs, y=ys, z=zs, mode="markers",
+        marker=dict(size=4, color=cores, opacity=0.9,
+                    line=dict(color="rgba(255,255,255,0.6)", width=0.5)),
+        customdata=meta,
+        hoverinfo="skip", showlegend=False, name="fluxo",
+    )
+
+
 def montar_funil_cilindrico(contagens: dict[str, int]) -> go.Figure:
     etapas = [("Em Escrita", contagens.get("em_escrita", 0), "#00f6ff"),
               ("Submetidos", contagens.get("submetidos", 0), "#3987e5"),
@@ -570,6 +613,7 @@ def montar_funil_cilindrico(contagens: dict[str, int]) -> go.Figure:
     fig = go.Figure()
     altura_etapa = 2.6
     z_atual = 0.0
+    estagios_geo = []
     for idx, (nome, n, cor) in enumerate(etapas):
         r_topo = raio(etapas[idx - 1][1]) if idx > 0 else raio(n)
         r_base = raio(n)
@@ -597,7 +641,11 @@ def montar_funil_cilindrico(contagens: dict[str, int]) -> go.Figure:
             text=[f"<b>{nome}</b><br>{n}"], textfont=dict(color=cor, size=15),
             hoverinfo="skip", showlegend=False,
         ))
+        estagios_geo.append({"nome": nome, "cor": cor, "z0": z0, "z1": z1,
+                              "raio": max(r_topo, r_base), "n": n})
         z_atual = z1
+
+    fig.add_trace(_particulas_do_funil(estagios_geo))
 
     fig.update_layout(
         template="plotly_dark",
@@ -614,6 +662,100 @@ def montar_funil_cilindrico(contagens: dict[str, int]) -> go.Figure:
         showlegend=False,
     )
     return fig
+
+
+# ==========================================================================
+# Animação 3D client-side (órbita + pulsação + fluxo de partículas)
+# ==========================================================================
+def renderizar_grafico_3d_animado(fig: go.Figure, div_id: str, modo: str, altura: int = 520):
+    """Publica a figura como HTML autocontido -- Plotly.js embutido no
+    próprio HTML (`include_plotlyjs=True`, lido do pacote Python instalado
+    localmente), não carregado de um CDN. Essencial aqui: esta tela roda
+    numa TV de parede que pode estar numa rede de laboratório sem internet
+    confiável, e não pode ficar em branco por causa disso.
+
+    Por cima da figura estática, injeta uma animação contínua em
+    JavaScript puro (órbita de câmera + pulsação de esferas para a
+    dispersão 3D, ou fluxo de partículas para o funil) que roda inteiramente
+    no navegador via `Plotly.restyle`/`Plotly.relayout` -- sem round-trip
+    com o servidor a cada quadro. "Tempo real" aqui é isso: a MOLDURA
+    (câmera, brilho, partículas) se move sozinha; o DADO por trás dela só
+    atualiza quando a página inteira recarrega, a cada `REFRESH_MS`.
+    """
+    import plotly.io as pio
+
+    corpo = pio.to_html(fig, include_plotlyjs=True, full_html=False,
+                         div_id=div_id, config={"displayModeBar": False})
+
+    if modo == "dispersao":
+        script_animacao = """
+          var base = paraArray(gd.data[0].marker.size);
+          var impactoBruto = paraArray(gd.data[0].customdata);
+          var impacto = impactoBruto.length ? impactoBruto : base.map(function () { return 0.4; });
+          var t0 = Date.now();
+          setInterval(function () {
+            var t = (Date.now() - t0) / 1000;
+            var novo = base.map(function (s, i) {
+              var amp = impacto[i] || 0.25;
+              return Math.max(6, s + s * 0.32 * amp * (0.5 + 0.5 * Math.sin(t * 1.7 + i * 1.3)));
+            });
+            var angulo = 1.6 + t * 0.06;
+            Plotly.restyle(gd, {'marker.size': [novo]}, [0]);
+            Plotly.relayout(gd, {'scene.camera.eye': {x: 1.9 * Math.cos(angulo), y: 1.9 * Math.sin(angulo), z: 1.0}});
+          }, 90);
+        """
+    else:
+        script_animacao = """
+          var idx = gd.data.length - 1;
+          var trace = gd.data[idx];
+          var z0s = trace.customdata.map(function (cd) { return cd[0]; });
+          var z1s = trace.customdata.map(function (cd) { return cd[1]; });
+          var fases = trace.customdata.map(function (cd) { return cd[2]; });
+          var t0 = Date.now();
+          setInterval(function () {
+            var t = (Date.now() - t0) / 1000;
+            var novoZ = z0s.map(function (z0, i) {
+              var z1 = z1s[i], fase = fases[i];
+              var progresso = (t * 0.35 + fase) % 1;
+              return z0 - progresso * (z0 - z1);
+            });
+            Plotly.restyle(gd, {z: [novoZ]}, [idx]);
+          }, 90);
+        """
+
+    script = f"""
+    <script>
+    (function () {{
+      // marker.size (e outros campos vindos de um array numpy) chegam do
+      // Plotly.py mais recente como {{dtype, bdata, _inputArray}} em vez de
+      // um array JS puro -- .slice()/.map() direto nisso falha calado.
+      // Esta função normaliza qualquer um dos formatos para array simples.
+      function paraArray(v) {{
+        if (Array.isArray(v)) return v.slice();
+        if (v && Array.isArray(v._inputArray)) return v._inputArray.slice();
+        if (v && v.bdata && v.dtype) {{
+          var bin = atob(v.bdata);
+          var bytes = new Uint8Array(bin.length);
+          for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          var Ctor = {{f8: Float64Array, f4: Float32Array, i4: Int32Array,
+                       i2: Int16Array, i1: Int8Array, u4: Uint32Array,
+                       u2: Uint16Array, u1: Uint8Array}}[v.dtype] || Float64Array;
+          return Array.from(new Ctor(bytes.buffer));
+        }}
+        return [];
+      }}
+
+      function aguardar(tentativas) {{
+        var gd = document.getElementById('{div_id}');
+        if (gd && gd.data) {{ {script_animacao} return; }}
+        if (tentativas <= 0) return;
+        setTimeout(function () {{ aguardar(tentativas - 1); }}, 150);
+      }}
+      aguardar(40);
+    }})();
+    </script>
+    """
+    st.components.v1.html(corpo + script, height=altura + 10, scrolling=False)
 
 
 # ==========================================================================
@@ -768,7 +910,12 @@ def main():
 
     # ---------------- Gráficos ----------------
     titulo_secao("Linhas de pesquisa — volume × impacto × tempo")
-    st.plotly_chart(montar_dispersao_3d(artigos), use_container_width=True, config={"displayModeBar": False})
+    st.markdown(
+        '<div class="kpi-sub" style="margin:-.3rem 0 .5rem;">'
+        'esferas maiores = mais artigos · pulsação = citações (impacto) · a câmera orbita sozinha</div>',
+        unsafe_allow_html=True,
+    )
+    renderizar_grafico_3d_animado(montar_dispersao_3d(artigos), "grafico-dispersao-3d", "dispersao")
 
     titulo_secao("Funil de produção acadêmica")
     # Cada estágio é sempre um SUBCONJUNTO do anterior ("chegou pelo menos
@@ -784,7 +931,12 @@ def main():
         "submetidos": int((~artigos["status"].isin(NAO_SUBMETIDO)).sum()),
         "publicados": int((artigos["status"] == "publicado").sum()),
     }
-    st.plotly_chart(montar_funil_cilindrico(contagens), use_container_width=True, config={"displayModeBar": False})
+    st.markdown(
+        '<div class="kpi-sub" style="margin:-.3rem 0 .5rem;">'
+        'partículas mais densas = estágio com mais artigos agora (o dado atualiza a cada recarga da tela)</div>',
+        unsafe_allow_html=True,
+    )
+    renderizar_grafico_3d_animado(montar_funil_cilindrico(contagens), "grafico-funil-3d", "funil")
 
     # recarrega sozinho -- painel de TV, ninguém vai tocar
     st.components.v1.html(
