@@ -176,7 +176,8 @@ body { background: var(--surface-sunken); }
     0 0 14px 3px color-mix(in srgb, var(--accent-strong) 65%, transparent); }
 }
 @media (prefers-reduced-motion: reduce) { .pulso-neon-azul { animation: none; } }
-.faixa-presenca-leitura { flex: none; width: 100%; font-size: clamp(10.5px, .85vw, 12.5px);
+.faixa-presenca-leitura { flex: none; width: 100%;
+  font-size: clamp(10.5px, .85vw, calc(12.5px * var(--zoom, 1)));
   color: var(--ink-2); padding-top: 2px; }
 .faixa-presenca-leitura b { color: var(--accent-strong); font-weight: 700; }
 .quadro { position: relative; border-radius: var(--radius); border: 1px solid var(--border);

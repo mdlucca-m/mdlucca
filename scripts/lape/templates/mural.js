@@ -471,12 +471,12 @@ function faixaPresenca() {
   if (!presentes.length) return null;
 
   const destaque = linhaMaisPresente(presentes);
+  /* O verbo concorda com "destaque.n presente(s)", o sujeito da frase --
+     e como só entra aqui com destaque.n >= 2, é sempre plural ("são"). */
   const leitura = destaque.n >= 2 ? el("div", { class: "faixa-presenca-leitura" }, [
     el("span", {
       html: "Força de trabalho agora: <b>" + destaque.n + " de " + presentes.length
-        + "</b> presente" + (presentes.length === 1 ? "" : "s") + " "
-        + (destaque.n === presentes.length ? "é" : "são")
-        + " da linha <b>" + destaque.nome + "</b>",
+        + "</b> presentes são da linha <b>" + destaque.nome + "</b>",
     }),
   ]) : null;
 
