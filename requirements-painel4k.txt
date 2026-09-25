@@ -1,0 +1,11 @@
+# Dependências do painel 4K (scripts/lape_streamlit_4k.py) -- um app
+# Streamlit separado, opcional, que só lê o banco de produção. Não entra
+# em requirements.txt porque o sistema principal não precisa de nenhuma
+# delas: só quem for rodar este painel de TV instala isto.
+#
+#     pip install -r requirements-painel4k.txt
+#     streamlit run scripts/lape_streamlit_4k.py -- --db /caminho/db.sqlite
+streamlit>=1.40
+sqlalchemy>=2.0
+plotly>=5.24
+pandas>=2.0
