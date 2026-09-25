@@ -801,12 +801,26 @@ class TestCitacoesNaParede(unittest.TestCase):
         """
         corpo = self.js[self.js.index("function graficoDasAreas"):
                         self.js.index("function slideCitados")]
-        self.assertIn("comArtigo", corpo)
-        self.assertIn("porLinha.length && comArtigo", corpo)
+        self.assertIn("comDado.length", corpo)
         self.assertIn("nenhum dos", corpo)
-        # a frase nao pode afirmar QUANTAS linhas existem: `porLinha` ja veio
-        # cortado em oito, e o laboratorio cadastrou onze
-        self.assertNotIn('"As " + porLinha.length', corpo)
+
+    def test_nenhuma_linha_ativa_some_por_causa_de_um_teto_arbitrario(self):
+        """A lamina prometia "cada linha ATIVA aparece", e o codigo tinha
+        um `.slice(0, 8)` que a contradizia: acima de 8 linhas ativas, as
+        excedentes sumiam da parede sem aviso nenhum. `graficoDasAreas`
+        nao pode mais cortar a lista -- so separa quem tem artigo (vira
+        barra) de quem nao tem (vira nota, nunca desaparece)."""
+        corpo = self.js[self.js.index("const porLinha ="):
+                        self.js.index("function slideCitados")]
+        self.assertNotIn(".slice(0, 8)", corpo)
+        self.assertIn("comDado", corpo)
+        self.assertIn("semDado", corpo)
+
+    def test_linha_sem_artigo_vira_nota_nao_barra_vazia(self):
+        corpo = self.js[self.js.index("function faixasPorLinha"):
+                        self.js.index("function slideCitados")]
+        self.assertIn("linhas-pesquisa-vazias", corpo)
+        self.assertIn("sem artigo ainda", corpo)
 
     def test_a_producao_por_area_mora_nesta_tela(self):
         """Era uma tela so dela, tres telas adiante; virou o grafico daqui."""

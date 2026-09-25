@@ -648,21 +648,23 @@ function graficoDasAreas() {
        desaparece porque a linha saiu da lista de opções. Encerrada e
        vazia é só uma fileira de zeros ocupando a tela. */
     return x.ativa || x.total > 0;
-  }).sort(function (a, b) { return b.total - a.total; }).slice(0, 8);
+  }).sort(function (a, b) { return b.total - a.total; });
 
-  /* Ter linha cadastrada e ter artigo LIGADO a uma linha são coisas
-     diferentes, e a parede precisa distinguir as duas. Com as linhas
-     declaradas e nenhum artigo apontando para elas, o gráfico saía: um
-     quadro do tamanho da parede, com os nomes das oito linhas no eixo e
-     nenhuma barra em cima. Quem olha não lê "ninguém classificou os
-     artigos ainda" -- lê "este laboratório não produziu nada", que é o
-     contrário do que o dado diz. */
-  const comArtigo = porLinha.some(function (x) { return x.total > 0; });
+  /* Sem cap de 8 aqui: um laboratório com mais de 8 linhas ativas via as
+     últimas somem da parede sem aviso nenhum -- "cada linha ATIVA
+     aparece", como este mesmo comentário sempre disse, e o código não
+     cumpria. As com artigo entram como barra; as sem nenhum ainda (zero
+     não é "não existe") entram numa frase compacta abaixo, mesma receita
+     já usada nas lâminas de citações e de linhas de pesquisa 3D -- uma
+     fileira de zeros lado a lado com barras de verdade só dilui a
+     atenção, sem apagar a linha da tela. */
+  const comDado = porLinha.filter(function (x) { return x.total > 0; });
+  const semDado = porLinha.filter(function (x) { return x.total === 0; });
 
   return {
     titulo: "Publicados, em avaliação e em produção", icone: "barras",
     nota: fmt(arts.length) + " artigos",
-    grafico: (porLinha.length && comArtigo) ? faixasPorLinha(porLinha)
+    grafico: comDado.length ? faixasPorLinha(comDado, semDado)
       : vazio(porLinha.length
         ? "As linhas de pesquisa estão cadastradas, e nenhum dos "
           + fmt(arts.length) + " artigos está ligado a uma delas. A linha se "
@@ -675,10 +677,15 @@ function graficoDasAreas() {
    linha. Era um gráfico de colunas: com duas linhas povoadas e seis
    vazias saíam duas colunas magras num quadro do tamanho da parede, e os
    nomes cortados em "Fibromialgia e doença…". Na horizontal o nome cabe,
-   cada linha ATIVA aparece -- com zero, que é informação --, e as três
-   situações se empilham na mesma faixa, na ordem em que o artigo anda:
-   em produção, em avaliação, publicado. */
-function faixasPorLinha(porLinha) {
+   e as três situações se empilham na mesma faixa, na ordem em que o
+   artigo anda: em produção, em avaliação, publicado.
+
+   `porLinha` só traz quem já TEM artigo -- uma faixa de zero ao lado de
+   barras de verdade não ajuda a ler, só dilui a atenção (mesmo raciocínio
+   da lâmina de citações). `semDado`, quando existe, vira uma frase
+   compacta abaixo da lista: a linha continua na tela, só não compete
+   pelo mesmo espaço visual de quem já produz. */
+function faixasPorLinha(porLinha, semDado) {
   const teto = Math.max(1, ...porLinha.map(function (x) { return x.total; }));
   const partes = [
     ["producao", "Em produção", "--series-3"],
@@ -701,7 +708,14 @@ function faixasPorLinha(porLinha) {
   const legenda = el("div", { class: "legenda-faixas" }, partes.map(function (p) {
     return el("span", {}, [el("i", { style: "background:var(" + p[2] + ")" }), document.createTextNode(p[1])]);
   }));
-  return el("div", { class: "faixas-caixa" }, [lista, legenda]);
+  const filhos = [lista, legenda];
+  if (semDado && semDado.length) {
+    filhos.push(el("p", { class: "linhas-pesquisa-vazias" }, [
+      el("b", { text: semDado.length + " linha(s) sem artigo ainda: " }),
+      el("span", { text: semDado.map(function (x) { return x.nome; }).join(" · ") }),
+    ]));
+  }
+  return el("div", { class: "faixas-caixa" }, filhos);
 }
 
 /* Citações e produção por área na mesma tela.
@@ -857,7 +871,14 @@ function slideDestaques() {
         + (nomes.length > CABEM ? " +" + (nomes.length - CABEM) : "");
       return el("tr", {}, [
         el("td", {}, el("div", { class: "quem" }, [
-          Icons.badge("linhas", null, 22), el("span", { text: cortar(x.nome, 34) })])),
+          /* Sem cortar em 34: a coluna já reserva 52% da tabela
+             (`.placar td:first-child`) -- de sobra para o nome inteiro de
+             qualquer linha do LAPE. Um corte fixo em caractere, séparado
+             da largura real da coluna, é o mesmo defeito já achado (e
+             corrigido) na lâmina "Linhas de Pesquisa 3D": cortava mesmo
+             sobrando espaço. O `title` cobre o caso raro de um nome tão
+             comprido que a própria CSS (nowrap + ellipsis) precise agir. */
+          Icons.badge("linhas", null, 22), el("span", { text: x.nome, title: x.nome })])),
         el("td", { text: mostra }),
       ]);
     })),

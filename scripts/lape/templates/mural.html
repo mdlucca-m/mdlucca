@@ -339,11 +339,18 @@ body { background: var(--surface-sunken); }
 .quadro .corpo:has(.placar) { justify-content: flex-start; }
 
 /* as faixas por linha de pesquisa */
-.faixas-caixa { display: flex; flex-direction: column; min-height: 0; flex: 1; justify-content: center; gap: 10px; }
+.faixas-caixa { display: flex; flex-direction: column; min-height: 0; flex: 1; gap: 10px; }
 /* `--c` é a cor de cada parte, posta no elemento pelo mural.js; o padrão aqui
    é para a folha nunca ter um token sem definição */
+/* `flex:1` + `space-evenly`, e não `gap` fixo + `justify-content:center` no
+   pai (`.faixas-caixa`): com poucas linhas de dado (a maioria dos casos,
+   agora que quem tem zero artigo saiu para a nota embaixo -- ver
+   `faixasPorLinha`), centrar o bloco inteiro deixava uma faixa enorme e
+   vazia em cima E embaixo dele, num quadro do tamanho da parede. Esticando
+   a LISTA para preencher a altura, cada linha ganha mais respiro de verdade
+   -- o mesmo raciocínio que já valia para `.pauta`. */
 .faixas { --c: var(--series-1); list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column;
-  gap: clamp(6px, 1vh, 14px); }
+  flex: 1; min-height: 0; justify-content: space-evenly; gap: clamp(6px, 1vh, 14px); }
 .faixas li { display: grid; grid-template-columns: minmax(0, 34%) minmax(0, 1fr) auto; align-items: center;
   gap: clamp(10px, 1vw, 18px); animation: sobe .5s cubic-bezier(.16, .84, .3, 1) both;
   animation-delay: calc(var(--i, 0) * 70ms + 120ms); }
