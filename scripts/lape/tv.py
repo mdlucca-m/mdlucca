@@ -271,7 +271,11 @@ def _health_rotina(db: Database) -> dict[str, Any]:
 
 
 def _linhas_pesquisa(db: Database) -> list[dict[str, Any]]:
-    """Linhas de pesquisa com número de artigos e taxa de publicação."""
+    """Linhas de pesquisa com número de artigos, taxa de publicação e
+    citações -- citações lidas de `articles.openalex_citations`, a mesma
+    coluna que a rotina automática mantém sincronizada e que
+    `_citacoes_bases_dados` usa (ver o comentário lá sobre por que não
+    busca na OpenAlex de novo aqui)."""
     saida = []
     linhas = db.dicts(
         "SELECT id, name FROM research_lines WHERE active ORDER BY name"
@@ -286,11 +290,17 @@ def _linhas_pesquisa(db: Database) -> list[dict[str, Any]]:
             "SELECT COUNT(*) FROM articles a"
             " WHERE a.research_line_id = ? AND a.status = 'publicado'", (lid,)
         ) or 0)
+        citacoes = int(db.scalar(
+            "SELECT COALESCE(SUM(a.openalex_citations), 0) FROM articles a"
+            " WHERE a.research_line_id = ?", (lid,)
+        ) or 0)
         taxa = publicados / total_artigos if total_artigos > 0 else 0
         saida.append({
             "id": lid,
             "nome": linha["name"],
             "artigos": total_artigos,
+            "publicados": publicados,
+            "citacoes": citacoes,
             "taxa_publicacao": taxa,
         })
     return saida

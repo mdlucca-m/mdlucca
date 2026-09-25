@@ -41,12 +41,53 @@ function elSvg(tag, attrs, kids) {
 }
 
 /* ==================== LINHAS DE PESQUISA 3D ==================== */
+/* Nome da linha em até 2 linhas, quebrado por PALAVRA (nunca cortado no
+   meio) -- "Psicologia do exercício e saúde mental" virando "Psicologia
+   do exerc…" na parede era exatamente o "pouca informação" que o
+   laboratório reclamou: o dado mais básico do nó (seu próprio nome) nem
+   dava para ler. Uma palavra sozinha maior que o limite ainda usa `cortar`
+   como último recurso, para não estourar o nó. */
+function quebrarEmDuasLinhas(texto, maxPorLinha) {
+  const nome = String(texto || "").trim();
+  if (nome.length <= maxPorLinha) return [nome, ""];
+  const palavras = nome.split(" ");
+  // Quebra pela PALAVRA mais perto do meio do texto (a que mais equilibra
+  // o tamanho das duas linhas) -- não "enche a linha 1 até o limite e o
+  // resto vai para a linha 2": um corte guloso deixava a linha 2 com o
+  // restante inteiro, que às vezes estourava o MESMO limite do outro
+  // lado e caía no `cortar` de qualquer jeito (voltando ao problema
+  // original: nome cortado no meio, com "…").
+  let melhorIdx = 1, melhorDelta = Infinity;
+  for (let i = 1; i < palavras.length; i++) {
+    const delta = Math.abs(palavras.slice(0, i).join(" ").length - palavras.slice(i).join(" ").length);
+    if (delta < melhorDelta) { melhorDelta = delta; melhorIdx = i; }
+  }
+  const linha1 = palavras.slice(0, melhorIdx).join(" ");
+  let linha2 = palavras.slice(melhorIdx).join(" ");
+  // Só corta em último caso -- um nome tão comprido que nem um split
+  // equilibrado cabe em linhas razoáveis (raríssimo, mas não pode
+  // quebrar a lâmina se acontecer).
+  const capMax = Math.round(maxPorLinha * 1.6);
+  if (linha2.length > capMax) linha2 = cortar(linha2, capMax);
+  return [linha1, linha2];
+}
+
 function slidePesquisasLinhas3D() {
   const t = tv();
   if (!t) return escalonar(el("div", { class: "slide" }, vazio("Linhas de pesquisa ainda não carregadas.")));
 
-  const linhas = t.linhas || [];
-  if (!linhas.length) return escalonar(el("div", { class: "slide" }, vazio("Nenhuma linha de pesquisa cadastrada.")));
+  const todasLinhas = t.linhas || [];
+  if (!todasLinhas.length) return escalonar(el("div", { class: "slide" }, vazio("Nenhuma linha de pesquisa cadastrada.")));
+
+  /* O grafo mostra só quem TEM produção -- metade das linhas cadastradas
+     costuma estar em 0 artigo ainda, e um nó do mesmo tamanho/cor para
+     "0 artigos" e para "45 artigos" era exatamente o "gráfico pobre e
+     desorganizado" apontado: a atenção se diluía entre nós que não
+     diziam nada. As linhas sem produção continuam listadas (nunca
+     escondidas), só não competem por espaço no grafo -- mesmo raciocínio
+     já usado na lâmina de citações (ver `slideCitacoesBases`). */
+  const linhas = todasLinhas.filter((l) => (l.artigos || 0) > 0);
+  const semProducao = todasLinhas.filter((l) => !((l.artigos || 0) > 0));
 
   const container = el("div", { class: "slide slide-pesquisas-3d moldura-viva" });
 
@@ -73,8 +114,11 @@ function slidePesquisasLinhas3D() {
      300 para não estourar o viewBox (o centro está a 400px da borda). */
   const radius = Math.min(300, Math.max(160, 26 * linhas.length));
   /* Fonte do rótulo também encolhe com muitos nós, para caber no espaço
-     angular menor entre eles. */
-  const fontLabel = linhas.length > 12 ? 9 : linhas.length > 8 ? 10 : 11;
+     angular menor entre eles -- e cresce quando sobram poucos nós (o caso
+     mais comum agora que os de produção zero saem do grafo), porque
+     "de longe" pequeno é sempre pequeno demais. */
+  const fontLabel = linhas.length > 12 ? 9 : linhas.length > 8 ? 10 : linhas.length > 5 ? 12 : 13;
+  const maxCharsLabel = linhas.length > 8 ? 14 : linhas.length > 5 ? 18 : 22;
   /* A atividade de cada linha é relativa às outras -- sem isso, "quem
      lidera" nunca aparece: com uma linha só, ela sempre pareceria "no
      máximo". As partículas e o ritmo do pulso vêm desta razão. */
@@ -158,9 +202,12 @@ function slidePesquisasLinhas3D() {
       style: `--index:${idx};transform-origin:${x.toFixed(1)}px ${y.toFixed(1)}px;`,
     });
 
+    const publicados = linha.publicados || 0;
+    const citacoes = linha.citacoes || 0;
     const titulo = elSvg("title");
     titulo.textContent = `${linha.nome} — ${n_artigos} artigo${n_artigos === 1 ? "" : "s"}, `
-      + `${Math.round(taxa_pub * 100)}% de taxa de publicação`;
+      + `${publicados} publicado${publicados === 1 ? "" : "s"} (${Math.round(taxa_pub * 100)}%), `
+      + `${citacoes} citaç${citacoes === 1 ? "ão" : "ões"}`;
     grupoNo.appendChild(titulo);
 
     /* Nó central (círculo com glow) */
@@ -198,10 +245,13 @@ function slidePesquisasLinhas3D() {
       grupoNo.appendChild(icone);
     }
 
-    /* Label do nó */
+    /* Label do nó, em até 2 linhas -- nunca mais "Psicologia do exerc…" */
+    const [nomeLinha1, nomeLinha2] = quebrarEmDuasLinhas(linha.nome, maxCharsLabel);
+    const alturaLinha = fontLabel + 3;
+    const yLabel = y + nodeRadius + 22;
     const label = elSvg("text", {
       x: x,
-      y: y + nodeRadius + 25,
+      y: yLabel,
       class: "label-linha-pesquisa",
       "text-anchor": "middle",
       fill: "currentColor",
@@ -209,8 +259,27 @@ function slidePesquisasLinhas3D() {
       "font-weight": "600",
       style: `--index:${idx};`,
     });
-    label.textContent = cortar(linha.nome, 20);
+    label.appendChild(elSvg("tspan", { x: x, dy: "0" }, nomeLinha1));
+    if (nomeLinha2) label.appendChild(elSvg("tspan", { x: x, dy: alturaLinha + "px" }, nomeLinha2));
     grupoNo.appendChild(label);
+
+    /* Citações totais da linha, uma informação nova sob o nome -- só
+       aparece quando há alguma (mesma lógica de "não decorar com zero"
+       da lâmina de citações: um "0 citações" embaixo de toda linha só
+       teria virado ruído visual, não informação). */
+    if (citacoes > 0) {
+      const linhasDeTexto = nomeLinha2 ? 2 : 1;
+      const subLabel = elSvg("text", {
+        x: x,
+        y: yLabel + linhasDeTexto * alturaLinha + 2,
+        class: "label-citacoes-linha",
+        "text-anchor": "middle",
+        "font-size": Math.max(8, fontLabel - 2) + "px",
+        "font-weight": "600",
+      });
+      subLabel.textContent = fmt(citacoes) + (citacoes === 1 ? " citação" : " citações");
+      grupoNo.appendChild(subLabel);
+    }
 
     /* Badge com número de artigos (identidade da linha) */
     const badge = elSvg("text", {
@@ -281,22 +350,38 @@ function slidePesquisasLinhas3D() {
 
   container.appendChild(svg);
 
+  /* Linhas sem produção ainda: uma frase, não um nó vazio no grafo -- a
+     mesma resolução usada na lâmina de citações (ver `slideCitacoesBases`)
+     para o mesmo problema: metade das linhas sem nenhum dado ainda não
+     pode consumir a mesma atenção visual das que já produzem. */
+  if (semProducao.length) {
+    container.appendChild(el("p", { class: "linhas-pesquisa-vazias" }, [
+      el("b", { text: semProducao.length + " linha(s) sem produção registrada ainda: " }),
+      el("span", { text: semProducao.map((l) => l.nome).join(" · ") }),
+    ]));
+  }
+
+  const totalCitacoes = todasLinhas.reduce((a, b) => a + (b.citacoes || 0), 0);
   const info = el("div", { class: "info-linhas-3d" }, [
     el("div", { class: "info-item" }, [
       el("span", { class: "info-label", text: "Linhas ativas:" }),
-      el("span", { class: "info-value", text: String(linhas.length) }),
+      el("span", { class: "info-value", text: String(todasLinhas.length) }),
     ]),
     el("div", { class: "info-item" }, [
       el("span", { class: "info-label", text: "Total de artigos:" }),
-      el("span", { class: "info-value", text: String(linhas.reduce((a, b) => a + (b.artigos || 0), 0)) }),
+      el("span", { class: "info-value", text: String(todasLinhas.reduce((a, b) => a + (b.artigos || 0), 0)) }),
     ]),
     el("div", { class: "info-item" }, [
       el("span", { class: "info-label", text: "Taxa média:" }),
-      el("span", { class: "info-value", text: fmt(linhas.reduce((a, b) => a + (b.taxa_publicacao || 0), 0) / Math.max(1, linhas.length) * 100) + "%" }),
+      el("span", { class: "info-value", text: fmt(todasLinhas.reduce((a, b) => a + (b.taxa_publicacao || 0), 0) / Math.max(1, todasLinhas.length) * 100) + "%" }),
+    ]),
+    el("div", { class: "info-item" }, [
+      el("span", { class: "info-label", text: "Citações totais:" }),
+      el("span", { class: "info-value", text: fmt(totalCitacoes) }),
     ]),
     el("div", { class: "info-item" }, [
       el("span", { class: "info-label", text: "Linha líder:" }),
-      el("span", { class: "info-value", text: cortar(linhas.reduce((a, b) => (b.artigos || 0) > (a.artigos || 0) ? b : a, linhas[0]).nome, 26) }),
+      el("span", { class: "info-value", text: cortar(todasLinhas.reduce((a, b) => (b.artigos || 0) > (a.artigos || 0) ? b : a, todasLinhas[0]).nome, 26) }),
     ]),
   ]);
 

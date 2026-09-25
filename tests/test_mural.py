@@ -76,6 +76,15 @@ def _no_node(fonte: str, expressao: str):
                  + expressao + "));\n")
 
 
+def _recorta_3d(nome: str) -> str:
+    """Mesma ideia de `_recorta`, para slides-avancados-3d.js (a lamina
+    "Linhas de Pesquisa 3D" mora la, nao em mural.js)."""
+    texto = (TEMPLATES / "slides-avancados-3d.js").read_text(encoding="utf-8")
+    inicio = texto.index(f"function {nome}(")
+    fim = texto.index("\n}\n", inicio) + 3
+    return texto[inicio:fim]
+
+
 class _SemRedirecionar(urllib.request.HTTPRedirectHandler):
     """Entrega o 302 em vez de segui-lo."""
 
@@ -954,3 +963,38 @@ class TestChegadaAoVivo(unittest.TestCase):
         resultado = api.route_mural_chegadas(ContextoFalso())
         self.assertEqual(resultado["chegadas"], [])
         self.assertGreaterEqual(resultado["ultimo_id"], 1)
+
+
+class TestQuebraDeNomeDaLinha3D(unittest.TestCase):
+    """`quebrarEmDuasLinhas`, da lâmina "Linhas de Pesquisa 3D": rótulo em
+    até 2 linhas, sem cortar o nome no meio nem embaralhar a ordem das
+    palavras -- o bug real que motivou este teste trocava "Psicologia do
+    exercício e saúde mental" por "Psicologia do e saúde" / "exercício
+    mental", com "e" pulando na frente de "exercício"."""
+
+    CORTAR_JS = ('function cortar(t, n) { const s = String(t || ""); '
+                 'return s.length > n ? s.slice(0, n - 1) + "…" : s; }')
+
+    def _quebrar(self, nome, maximo):
+        fonte = self.CORTAR_JS + "\n" + _recorta_3d("quebrarEmDuasLinhas")
+        return _no_node(fonte, f"quebrarEmDuasLinhas({json.dumps(nome)}, {maximo})")
+
+    def test_nome_curto_nao_quebra(self):
+        self.assertEqual(self._quebrar("Câncer", 22), ["Câncer", ""])
+
+    def test_a_ordem_das_palavras_nunca_embaralha(self):
+        nome = "Psicologia do exercício e saúde mental"
+        linha1, linha2 = self._quebrar(nome, 22)
+        # reconstruir linha1+linha2 tem de devolver as palavras na MESMA
+        # ordem do nome original -- o bug real deixava "e" pular na frente
+        # de "exercício" ao voltar para a linha 1 depois de já ter
+        # transbordado para a linha 2.
+        self.assertEqual((linha1 + " " + linha2).strip(), nome)
+
+    def test_so_corta_em_ultimo_caso_quando_o_nome_e_bem_comprido(self):
+        nome = ("Investigação longitudinal multicêntrica sobre biomarcadores "
+                "inflamatórios crônicos associados ao treinamento físico intenso")
+        linha1, linha2 = self._quebrar(nome, 22)
+        self.assertIn("…", linha2)
+        # mesmo cortada, a linha 1 e o comeco real do nome -- sem pular parte dele
+        self.assertTrue(nome.startswith(linha1))
