@@ -90,6 +90,40 @@
   opacity: 0.85;
 }
 
+/* Trilha pontilhada no raio dos nós -- só decorativa, lê como "faixa de
+   órbita" mesmo parada (captura de tela, prefers-reduced-motion). */
+.grafo-linhas-3d .trilha-orbita {
+  stroke: var(--border-strong);
+  opacity: 0.3;
+}
+
+/* O anel inteiro (raios + nós) gira devagar em torno do centro -- antes
+   só o hub central (.centro-rotacao-3d) girava, o resto do grafo ficava
+   parado. 90s é lento o bastante pra não distrair de longe, rápido o
+   bastante pra se notar "vivo" num painel que fica ligado o dia todo. */
+.grafo-linhas-3d .anel-orbita {
+  transform-origin: 600px 400px;
+  animation: orbita-anel 90s linear infinite;
+}
+
+@keyframes orbita-anel {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Cada nó gira na direção oposta, na mesma velocidade, em torno do seu
+   PRÓPRIO centro (transform-origin dinâmico, calculado em JS por nó) --
+   a soma das duas rotações cancela a orientação: a posição orbita, mas
+   rótulo/ícone/badges continuam de pé. */
+.grafo-linhas-3d .grupo-no-orbita {
+  animation: contra-orbita 90s linear infinite;
+}
+
+@keyframes contra-orbita {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
 /* Centro girando 3D */
 .grafo-linhas-3d .centro-rotacao-3d {
   cursor: pointer;
@@ -143,6 +177,17 @@
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/* Badge com a taxa de publicação, do outro lado do nó -- mesma entrada
+   que o badge de artigos, com um pequeno atraso a mais para não nascerem
+   os dois juntos. */
+.grafo-linhas-3d .badge-taxa {
+  animation: pop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  animation-delay: calc(var(--index) * 0.15s + 0.65s);
+  opacity: 0;
+  font-variant-numeric: tabular-nums;
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.3));
 }
 
 /* Label do centro */
