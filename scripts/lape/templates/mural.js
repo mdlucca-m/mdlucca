@@ -44,10 +44,6 @@ const MESES_EXT = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "
   "agosto", "setembro", "outubro", "novembro", "dezembro"];
 const DIAS_EXT = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira",
   "sexta-feira", "sábado"];
-const STATUS_ROTULO = {
-  em_producao: "Em produção", submetido: "Submetido", em_revisao: "Em avaliação",
-  aceito: "Aceito", publicado: "Publicado", rejeitado: "Rejeitado", arquivado: "Arquivado",
-};
 const TIPO_EVENTO = {
   reuniao: "Reunião", congresso: "Congresso", defesa: "Defesa", qualificacao: "Qualificação",
   coleta: "Coleta de dados", curso: "Curso", palestra: "Palestra", visita: "Visita",
@@ -420,10 +416,21 @@ function slideAgora() {
     })
     : vazio("Sem histórico de publicação ainda.");
 
-  const situacao = contar(arts, function (a) { return STATUS_ROTULO[a.status] || a.status; });
-  const rosca = situacao.length
-    ? C.donut({ items: situacao, unit: "artigos", caption: "situação" })
+  /* Funil líquido: três estágios reais do pipeline -- em escrita, com o
+     periódico (submetido + em avaliação + aceito, que é onde o artigo
+     está na mão de fora), e publicados, que enche o tanque em relação ao
+     acervo inteiro (não em relação ao topo do funil -- ver funilLiquido). */
+  const comPeriodico = (recorte.n_submitted || 0) + (recorte.n_accepted || 0);
+  const funil = recorte.n_in_progress || comPeriodico || recorte.n_published
+    ? ChartsEnhanced.funilLiquido([
+      { nome: "Em escrita", valor: recorte.n_in_progress, cor: "var(--series-3)" },
+      { nome: "Com o periódico", valor: comPeriodico, cor: "var(--series-4)" },
+      { nome: "Publicados", valor: recorte.n_published, total: arts.length, cor: "var(--good)" },
+    ])
     : vazio("Sem artigos cadastrados.");
+  const desfechos = arts.filter(function (a) {
+    return a.status === "rejeitado" || a.status === "arquivado";
+  }).length;
 
   const corpo = [kpis];
   const presenca = faixaPresenca();
@@ -431,10 +438,27 @@ function slideAgora() {
   corpo.push(el("div", { class: "painel-duplo" }, [
     quadro("Publicações por ano", "subida", grafico,
       recentes.length ? recentes[0].year + "–" + recentes[recentes.length - 1].year : "", "moldura-viva"),
-    quadro("Situação da produção", "processo", rosca, fmt(arts.length) + " artigos", "moldura-viva"),
+    quadro("Funil da produção", "processo", funil,
+      desfechos ? fmt(desfechos) + " rejeitado(s)/arquivado(s) não entram no funil" : "", "moldura-viva"),
   ]));
 
   return escalonar(el("div", { class: "slide" }, corpo));
+}
+
+/* Qual linha de pesquisa mais aparece entre quem está presente agora --
+   um sinal real (não inventado): é só contar `research_line` de quem
+   bateu ponto, o mesmo campo que o organograma já usa. */
+function linhaMaisPresente(presentes) {
+  const contagem = new Map();
+  presentes.forEach(function (p) {
+    const nome = p.research_line || "sem linha declarada";
+    contagem.set(nome, (contagem.get(nome) || 0) + 1);
+  });
+  let nome = null, n = 0;
+  contagem.forEach(function (valor, chave) {
+    if (valor > n) { nome = chave; n = valor; }
+  });
+  return { nome: nome, n: n };
 }
 
 /* Quem bateu ponto e ainda não bateu saída -- o mesmo dado que a tela de
@@ -446,6 +470,16 @@ function faixaPresenca() {
   const presentes = pessoas.filter(function (p) { return p.ativo_agora; });
   if (!presentes.length) return null;
 
+  const destaque = linhaMaisPresente(presentes);
+  /* O verbo concorda com "destaque.n presente(s)", o sujeito da frase --
+     e como só entra aqui com destaque.n >= 2, é sempre plural ("são"). */
+  const leitura = destaque.n >= 2 ? el("div", { class: "faixa-presenca-leitura" }, [
+    el("span", {
+      html: "Força de trabalho agora: <b>" + destaque.n + " de " + presentes.length
+        + "</b> presentes são da linha <b>" + destaque.nome + "</b>",
+    }),
+  ]) : null;
+
   return el("div", { class: "faixa-presenca" }, [
     el("div", { class: "faixa-presenca-titulo" }, [
       el("span", { class: "ponto-vivo" }),
@@ -454,11 +488,12 @@ function faixaPresenca() {
     el("div", { class: "faixa-presenca-lista" }, presentes.map(function (p) {
       const desde = p.ha_horas !== null && p.ha_horas !== undefined
         ? " · há " + porHoras(p.ha_horas) : "";
-      return el("span", { class: "chip-presenca", title: (p.atividade || "presente") + desde }, [
+      return el("span", { class: "chip-presenca pulso-neon-azul", title: (p.atividade || "presente") + desde }, [
         el("span", { class: "chip-ponto" }),
         el("span", { text: p.full_name }),
       ]);
     })),
+    leitura,
   ]);
 }
 
@@ -1539,6 +1574,12 @@ function slideAcervos() {
 /* `apresenta` é a frase que fica embaixo do título enquanto a tela está
    na parede: diz o que se está vendo, para quem chegou agora. É texto
    de apresentação, e não leitura dos dados. */
+/* `emRotacao: false` tira a tela do ciclo automático (o que entra sem
+   ninguém pedir) sem apagar o código: quem quiser ver aquela tela de
+   novo -- para testar, ou porque o ciclo enxuto muda de novo -- chega
+   nela por `?slides=id`, que `ciclo()` sempre respeita. Ficaram fora
+   do ciclo enxuto de segunda-feira as telas que não estão na lista
+   fechada da coordenação; nenhuma foi apagada. */
 const SLIDES = [
   { id: "agora", titulo: "Agora no laboratório", icone: "painel", montar: slideAgora,
     apresenta: "Os números de hoje: publicados, em produção, em avaliação, aceitos, citações e a equipe — e a produção ano a ano." },
@@ -1548,52 +1589,52 @@ const SLIDES = [
     apresenta: "Quanto o acervo é citado em cada base, e como a produção se reparte pelas linhas de pesquisa." },
   { id: "agenda", titulo: "O que vem a seguir", icone: "calendario", montar: slideAgenda,
     apresenta: "Defesas, reuniões, cursos e visitas nos próximos dias, na ordem em que acontecem." },
-  { id: "prazos", titulo: "Prazos e pendências", icone: "prazo", montar: slidePrazos,
+  { id: "prazos", titulo: "Prazos e pendências", icone: "prazo", montar: slidePrazos, emRotacao: false,
     apresenta: "Datas de defesa, fim de projeto e de bolsa, e manuscritos parados há muito tempo com a revista." },
-  { id: "destaques", titulo: "Nossa equipe", icone: "pessoas", montar: slideDestaques,
+  { id: "destaques", titulo: "Nossa equipe", icone: "pessoas", montar: slideDestaques, emRotacao: false,
     apresenta: "Quem faz o laboratório: nome, vínculo e a linha em que cada pessoa trabalha." },
   /* As quatro da TV: só entram no ciclo quando `D.tv` chegou. */
   { id: "temas", titulo: "Temas e indicadores", icone: "achado", montar: slideTemas, tv: true,
     apresenta: "O que os quatro números não contam: quanto tempo leva publicar, quanto é aceito, quanto é aberto, com quem se publica e onde." },
-  { id: "ritmo", titulo: "Ritmo da produção", icone: "subida", montar: slideRitmo, tv: true,
+  { id: "ritmo", titulo: "Ritmo da produção", icone: "subida", montar: slideRitmo, tv: true, emRotacao: false,
     apresenta: "A curva mensal lida com cálculo: o ritmo, a deriva por ano, a tendência com a faixa de confiança e o que os próximos seis meses devem trazer." },
-  { id: "mundo", titulo: "Pelo mundo", icone: "mapa", montar: slideMundo, tv: true,
+  { id: "mundo", titulo: "Pelo mundo", icone: "mapa", montar: slideMundo, tv: true, emRotacao: false,
     apresenta: "Os países que assinam com o laboratório e as instituições parceiras, por número de artigos." },
-  { id: "acervos", titulo: "Acervos e rotina", icone: "livro", montar: slideAcervos, tv: true,
+  { id: "acervos", titulo: "Acervos e rotina", icone: "livro", montar: slideAcervos, tv: true, emRotacao: false,
     apresenta: "As bibliotecas temáticas: quantos registros, em quantos segmentos, e a rotina que as atualiza sozinha." },
-  { id: "alertas", titulo: "Alertas e eventos", icone: "alerta", montar: slideAlertas, tv: true,
+  { id: "alertas", titulo: "Alertas e eventos", icone: "alerta", montar: slideAlertas, tv: true, emRotacao: false,
     apresenta: "Aceites recentes, revistas em processo, e dias desde a última submissão." },
-  { id: "sazonalidade", titulo: "Padrões anuais", icone: "calendario", montar: slideSazonalidade, tv: true,
+  { id: "sazonalidade", titulo: "Padrões anuais", icone: "calendario", montar: slideSazonalidade, tv: true, emRotacao: false,
     apresenta: "Sazonalidade detectada: meses de pico para publicações e aceites." },
-  { id: "pareto", titulo: "Análise Pareto", icone: "subida", montar: slidePareto, tv: true,
+  { id: "pareto", titulo: "Análise Pareto", icone: "subida", montar: slidePareto, tv: true, emRotacao: false,
     apresenta: "Regra 80/20: onde o maior impacto vem de menos esforço. Linha vermelha marca o ponto crítico." },
-  { id: "sunburst", titulo: "Colaboração global", icone: "mapa", montar: slideSunburst, tv: true,
+  { id: "sunburst", titulo: "Colaboração global", icone: "mapa", montar: slideSunburst, tv: true, emRotacao: false,
     apresenta: "Hierarquia radial mostrando os 6 países principais com maior número de artigos colaborativos." },
-  { id: "arvore", titulo: "Árvore de Pesquisa", icone: "linhas", montar: slideArvoreDecisoes, tv: true,
+  { id: "arvore", titulo: "Árvore de Pesquisa", icone: "linhas", montar: slideArvoreDecisoes, tv: true, emRotacao: false,
     apresenta: "Ramificações crescentes: cada linha de pesquisa como um galho, com produtividade e taxa de publicação." },
-  { id: "sankey", titulo: "Fluxo de Publicação", icone: "processo", montar: slideSankey, tv: true,
+  { id: "sankey", titulo: "Fluxo de Publicação", icone: "processo", montar: slideSankey, tv: true, emRotacao: false,
     apresenta: "Funil da escrita à publicação: quantos artigos estão em cada uma das cinco fases, e que fração passa de uma para a próxima." },
-  { id: "radar", titulo: "Indicadores Principais", icone: "painel", montar: slideRadarModular, tv: true,
+  { id: "radar", titulo: "Indicadores Principais", icone: "painel", montar: slideRadarModular, tv: true, emRotacao: false,
     apresenta: "4 métricas centrais em grande escala: artigos publicados este ano, em produção, equipe LAPE e coautores." },
-  { id: "heatmap", titulo: "Atividade Temporal", icone: "calendario", montar: slideHeatmapTimeline, tv: true,
+  { id: "heatmap", titulo: "Atividade Temporal", icone: "calendario", montar: slideHeatmapTimeline, tv: true, emRotacao: false,
     apresenta: "Mapa de calor dos 12 meses: meses mais quentes significam mais artigos publicados naquele período." },
   /* Slides 3D avançados com gráficos interativos e animações */
-  { id: "linhas-3d", titulo: "Linhas de Pesquisa 3D", icone: "linhas", montar: slidePesquisasLinhas3D, tv: true,
+  { id: "linhas-3d", titulo: "Linhas de Pesquisa 3D", icone: "linhas", montar: slidePesquisasLinhas3D, tv: true, emRotacao: false,
     apresenta: "Árvore radial 3D mostrando cada linha de pesquisa com volume de artigos, taxa de publicação e colaborações." },
-  { id: "organograma-docentes", titulo: "Organograma — Coordenação e Docentes", icone: "pessoas",
-    montar: function () { return slideOrganograma3D(0); }, tv: true,
-    apresenta: "Hierarquia visual com indicador de 'ponto' em tempo real: quem está presente agora, ausente, ou online." },
-  { id: "organograma-pos", titulo: "Organograma — Pós-graduação", icone: "pessoas",
-    montar: function () { return slideOrganograma3D(1); }, tv: true,
-    apresenta: "Doutorandos e mestrandos, e quem cada um coorienta." },
-  { id: "organograma-bolsistas", titulo: "Organograma — Bolsistas e Demais", icone: "pessoas",
-    montar: function () { return slideOrganograma3D(2); }, tv: true,
-    apresenta: "Bolsistas, voluntários, graduandos e quem ainda não tem vínculo declarado." },
+  /* Substitui as três telas separadas (Coordenação e Docentes / Pós-
+     graduação / Bolsistas e Demais): mesma árvore, mesma regra de "cada
+     pessoa mora num balde só", agora numa lâmina com três seções. As três
+     telas antigas (`organograma-docentes`, `-pos`, `-bolsistas`) saíram
+     da lista -- `slideOrganograma3D` continua no arquivo, então ainda dá
+     para ver cada balde sozinho manualmente, se precisar. */
+  { id: "organograma-metodologico", titulo: "Organograma — Metodológico", icone: "pessoas",
+    montar: slideOrganogramaMetodologico, tv: true,
+    apresenta: "Hierarquia visual dos três grupos (coordenação e docentes, pós-graduação, bolsistas e demais), com indicador de 'ponto' em tempo real." },
   { id: "framework", titulo: "Framework de Pesquisa", icone: "processo", montar: slideFrameworkN8n, tv: true,
     apresenta: "Fluxo estilo n8n: em produção → submetido → em revisão → aceito → publicado, com o gargalo real destacado." },
   { id: "kpis-analytics", titulo: "KPIs Analíticos 4K", icone: "painel", montar: slideKPIsAnalyticos, tv: true,
     apresenta: "4 métricas centrais em grande escala: taxa de aceite, dias até publicação, citações/artigo, produtividade equipe." },
-  { id: "citacoes-bases", titulo: "Citações em Tempo Real", icone: "citacao", montar: slideCitacoesBases, tv: true,
+  { id: "citacoes-bases", titulo: "Citações em Tempo Real", icone: "citacao", montar: slideCitacoesBases, tv: true, emRotacao: false,
     apresenta: "Citações sincronizadas com OpenAlex (e Scopus/Web of Science quando configuradas): total, média por linha de pesquisa e os artigos mais citados." },
 ];
 
@@ -1628,14 +1669,19 @@ function aplicarPaleta(code) {
   });
 }
 
-/* ?slides=agora,prazos escolhe quais telas entram no ciclo */
+/* ?slides=agora,prazos escolhe quais telas entram no ciclo -- e funciona
+   mesmo para uma tela com `emRotacao: false`: o parâmetro é escolha
+   explícita de quem está mexendo na URL, não o ciclo automático. Sem o
+   parâmetro, `disponiveis` já exclui essas telas -- é o ciclo enxuto que
+   roda sozinho na parede. */
 function ciclo() {
-  const disponiveis = SLIDES.filter(function (s) { return !s.tv || D.tv; });
+  const visiveis = SLIDES.filter(function (s) { return !s.tv || D.tv; });
+  const disponiveis = visiveis.filter(function (s) { return s.emRotacao !== false; });
   const pedido = (PARAMS.get("slides") || "").split(",").map(function (s) { return s.trim(); })
     .filter(Boolean);
   if (!pedido.length) return disponiveis;
   const escolhidos = pedido.map(function (id) {
-    return disponiveis.find(function (s) { return s.id === id; });
+    return visiveis.find(function (s) { return s.id === id; });
   }).filter(Boolean);
   return escolhidos.length ? escolhidos : disponiveis;
 }

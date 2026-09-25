@@ -1120,3 +1120,146 @@ class TestParetoTemLinhaDeCorteERotulos(unittest.TestCase):
         resultado = self._grafico(dados)
         self.assertEqual(len(resultado["rotulos"]), 3)
         self.assertTrue(any("Psicologia" in r for r in resultado["rotulos"]))
+
+
+class TestFunilLiquidoDaProducao(unittest.TestCase):
+    """`ChartsEnhanced.funilLiquido` -- substitui a rosca de "Agora no
+    laboratório" por um funil líquido (sem nova dependência: só SVG +
+    CSS). Cobre o bug achado ao vivo (figura/svg sem a classe que o CSS
+    do `.quadro` espera, o que vazava o topo do funil por cima do
+    cabeçalho do cartão) e a regra de negócio do nível do tanque."""
+
+    DOM_SHIM = """
+    class NoFalso {
+      constructor(tag) {
+        this.tag = tag; this.attrs = {}; this.kids = []; this._text = "";
+        this.style = { setProperty: () => {} };
+      }
+      setAttribute(k, v) { this.attrs[k] = String(v); }
+      appendChild(kid) { this.kids.push(kid); return kid; }
+      set textContent(v) { this._text = String(v); }
+      get textContent() { return this._text; }
+    }
+    global.document = {
+      createElementNS: (ns, tag) => new NoFalso(tag),
+      createElement: (tag) => new NoFalso(tag),
+    };
+    global.fmt = function (v) { return String(v); };
+    function todos(no, tag, saida) {
+      saida = saida || [];
+      if (no.tag === tag) saida.push(no);
+      no.kids.forEach((k) => todos(k, tag, saida));
+      return saida;
+    }
+    """
+
+    def _funil(self, estagios):
+        texto = (TEMPLATES / "charts-enhanced.js").read_text(encoding="utf-8")
+        inicio = texto.index("const ChartsEnhanced")
+        fim = texto.index("\n})();", inicio) + len("\n})();")
+        chart_src = texto[inicio:fim]
+        script = (self.DOM_SHIM + "\n" + chart_src
+                  + f"\nconst fig = ChartsEnhanced.funilLiquido({json.dumps(estagios)});"
+                  + "\nif (fig === null) { process.stdout.write(JSON.stringify(null)); }"
+                  + "\nelse {"
+                  + "\nconst svg = fig.kids[0];"
+                  + "\nconst onda = todos(fig, 'path').find(function (p) {"
+                  + "  return p.attrs.class === 'onda-liquida'; });"
+                  + "\nprocess.stdout.write(JSON.stringify({"
+                  + "  figClasse: fig.attrs.class, svgClasse: svg.attrs.class,"
+                  + "  textos: todos(fig, 'text').map(function (t) { return t.textContent; }),"
+                  + "  ondaD: onda.attrs.d, ondaTitulo: onda.kids[0].textContent }));"
+                  + "\n}")
+        return _roda(script)
+
+    def test_menos_de_tres_estagios_nao_desenha_nada(self):
+        self.assertIsNone(self._funil([{"nome": "A", "valor": 1}]))
+
+    def test_figura_e_svg_levam_as_classes_que_o_css_do_quadro_espera(self):
+        # Achado ao vivo: a figura nunca tinha class="chart" e o svg tinha
+        # class="chart X" em vez de "plot X" -- as regras `.quadro
+        # figure.chart` / `.quadro svg.plot` nunca valiam, e o topo do
+        # funil vazava por cima do cabeçalho do cartão.
+        estagios = [{"nome": "Em escrita", "valor": 64, "cor": "var(--series-3)"},
+                    {"nome": "Com o periódico", "valor": 21, "cor": "var(--series-4)"},
+                    {"nome": "Publicados", "valor": 48, "total": 160, "cor": "var(--good)"}]
+        resultado = self._funil(estagios)
+        self.assertEqual(resultado["figClasse"], "chart")
+        self.assertEqual(resultado["svgClasse"], "plot funil-liquido")
+
+    def test_os_tres_valores_aparecem_no_grafico(self):
+        estagios = [{"nome": "Em escrita", "valor": 64, "cor": "var(--series-3)"},
+                    {"nome": "Com o periódico", "valor": 21, "cor": "var(--series-4)"},
+                    {"nome": "Publicados", "valor": 48, "total": 160, "cor": "var(--good)"}]
+        resultado = self._funil(estagios)
+        self.assertIn("64", resultado["textos"])
+        self.assertIn("21", resultado["textos"])
+        self.assertIn("48", resultado["textos"])
+
+    def test_nivel_do_tanque_e_fracao_do_total_do_acervo_nao_do_topo_do_funil(self):
+        # "Publicados" acumula ao longo de anos -- comparar com a safra
+        # atual de "em escrita" faria o tanque passar de 100% cheio, uma
+        # leitura sem sentido. O nível certo é publicados / total do
+        # acervo (aqui 48/160 = 30%), não publicados / topo do funil
+        # (48/64 = 75%, que encheria o tanque quase todo).
+        estagios = [{"nome": "Em escrita", "valor": 64, "cor": "x"},
+                    {"nome": "Com o periódico", "valor": 21, "cor": "x"},
+                    {"nome": "Publicados", "valor": 48, "total": 160, "cor": "x"}]
+        resultado = self._funil(estagios)
+        primeiro_m = re.match(r"M ([\-\d.]+) ([\-\d.]+)", resultado["ondaD"])
+        self.assertIsNotNone(primeiro_m)
+        y_onda = float(primeiro_m.group(2))
+        y_tanque0, y_tanque1 = 244, 520
+        fracao_esperada_pelo_total = 48 / 160
+        fracao_esperada_pelo_topo = 48 / 64
+        y_pelo_total = y_tanque1 - fracao_esperada_pelo_total * (y_tanque1 - y_tanque0)
+        y_pelo_topo = y_tanque1 - fracao_esperada_pelo_topo * (y_tanque1 - y_tanque0)
+        self.assertAlmostEqual(y_onda, y_pelo_total, delta=1.0)
+        self.assertGreater(abs(y_onda - y_pelo_topo), 20,
+                            "o nível não pode estar calculado contra o topo do funil")
+
+    def test_tanque_nunca_fica_totalmente_vazio(self):
+        estagios = [{"nome": "Em escrita", "valor": 10, "cor": "x"},
+                    {"nome": "Com o periódico", "valor": 5, "cor": "x"},
+                    {"nome": "Publicados", "valor": 0, "total": 160, "cor": "x"}]
+        resultado = self._funil(estagios)
+        self.assertIn("0", resultado["textos"])
+        self.assertIn("de", resultado["ondaTitulo"])
+
+
+class TestLinhaMaisPresente(unittest.TestCase):
+    """`linhaMaisPresente` -- o sinal real (não inventado) por trás da
+    frase preditiva "Força de trabalho agora": qual linha de pesquisa
+    mais aparece entre quem bateu ponto agora, contando o mesmo campo
+    `research_line` que o organograma já usa."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.fonte = _recorta("linhaMaisPresente")
+
+    def _rodar(self, presentes):
+        return _no_node(self.fonte, f"linhaMaisPresente({json.dumps(presentes)})")
+
+    def test_sem_ninguem_presente_nao_ha_destaque(self):
+        self.assertEqual(self._rodar([]), {"nome": None, "n": 0})
+
+    def test_a_linha_com_mais_gente_presente_vence(self):
+        presentes = [
+            {"full_name": "A", "research_line": "Dor crônica"},
+            {"full_name": "B", "research_line": "Dor crônica"},
+            {"full_name": "C", "research_line": "Fibromialgia"},
+        ]
+        self.assertEqual(self._rodar(presentes), {"nome": "Dor crônica", "n": 2})
+
+    def test_gente_sem_linha_declarada_agrupa_junto(self):
+        presentes = [
+            {"full_name": "A", "research_line": None},
+            {"full_name": "B", "research_line": None},
+        ]
+        self.assertEqual(self._rodar(presentes), {"nome": "sem linha declarada", "n": 2})
+
+    def test_uma_pessoa_so_nao_gera_destaque_de_linha(self):
+        # A tela só mostra a leitura quando destaque.n >= 2 -- uma pessoa
+        # sozinha não é "força de trabalho" de linha nenhuma.
+        presentes = [{"full_name": "A", "research_line": "Dor crônica"}]
+        self.assertEqual(self._rodar(presentes), {"nome": "Dor crônica", "n": 1})
