@@ -1608,3 +1608,44 @@ class TestFeedEmCascata(unittest.TestCase):
         paises = [{"pais": "Itália", "n": 29}, {"pais": "Canadá", "n": 2}]
         resultado = self._rodar(paises)
         self.assertEqual(len(resultado["kids"]), 2)
+
+
+class TestRaioOrbitaLinha(unittest.TestCase):
+    """`raioOrbitaLinha` -- quinto e último item da lista de upgrades
+    visuais: a distância de cada planeta ao centro, controlada pelo
+    impacto real (artigos + citações), não mais um raio fixo igual para
+    todo mundo."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.fonte = _recorta_3d("raioOrbitaLinha")
+
+    def _rodar(self, linha, maior_impacto, raio_min, raio_max):
+        return _no_node(self.fonte,
+            f"raioOrbitaLinha({json.dumps(linha)}, {maior_impacto}, {raio_min}, {raio_max})")
+
+    def test_quem_lidera_em_impacto_orbita_mais_perto_do_centro(self):
+        lider = {"artigos": 45, "citacoes": 120}
+        pequena = {"artigos": 2, "citacoes": 0}
+        maior_impacto = 45 + 120
+        raio_lider = self._rodar(lider, maior_impacto, 100, 300)
+        raio_pequena = self._rodar(pequena, maior_impacto, 100, 300)
+        self.assertLess(raio_lider, raio_pequena)
+
+    def test_o_lider_de_verdade_fica_no_raio_minimo(self):
+        lider = {"artigos": 45, "citacoes": 120}
+        raio = self._rodar(lider, 45 + 120, 100, 300)
+        self.assertAlmostEqual(raio, 100, delta=0.01)
+
+    def test_impacto_zero_fica_no_raio_maximo(self):
+        vazia = {"artigos": 0, "citacoes": 0}
+        raio = self._rodar(vazia, 165, 100, 300)
+        self.assertAlmostEqual(raio, 300, delta=0.01)
+
+    def test_nunca_sai_da_faixa_mesmo_com_impacto_maior_que_o_maior_impacto(self):
+        # maiorImpacto vem de Math.max(...linhas) no chamador -- não pode
+        # estourar aqui, mas a função não confia cegamente no chamador.
+        estranha = {"artigos": 999, "citacoes": 999}
+        raio = self._rodar(estranha, 10, 100, 300)
+        self.assertGreaterEqual(raio, 100)
+        self.assertLessEqual(raio, 300)

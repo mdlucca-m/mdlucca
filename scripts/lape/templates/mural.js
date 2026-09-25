@@ -2068,6 +2068,61 @@ function explodirParticulas(card) {
   setTimeout(function () { casa.remove(); }, 1000);
 }
 
+/* Mesma ideia de `explodirParticulas`, em SVG: aquela é um `<div>` HTML
+   solto no meio da página, e um `<div>` dentro de `<svg>` não desenha
+   nada (o próprio topo deste arquivo já avisa: sem o namespace certo,
+   elemento SVG vira HTML desconhecido, sem geometria). Aqui os "cacos"
+   são `<circle>` de verdade, filhos do próprio grupo do nó, na cor da
+   linha -- para a micro-explosão sair exatamente do planeta certo. */
+function explodirParticulasSvg(grupoNo, x, y, cor) {
+  for (let p = 0; p < 10; p++) {
+    const ang = Math.random() * Math.PI * 2, dist = 20 + Math.random() * 30;
+    const caco = document.createElementNS(
+      "http://www.w3.org/2000/svg", "circle");
+    caco.setAttribute("cx", x); caco.setAttribute("cy", y);
+    caco.setAttribute("r", "2.5");
+    caco.setAttribute("fill", cor);
+    caco.setAttribute("class", "caco-explosao-linha");
+    // `currentColor` no filter CSS lê `color`, não `fill` -- os dois
+    // precisam da mesma cor pro brilho bater com o caco de verdade.
+    caco.style.color = cor;
+    caco.style.setProperty("--dx", (dist * Math.cos(ang)).toFixed(0) + "px");
+    caco.style.setProperty("--dy", (dist * Math.sin(ang)).toFixed(0) + "px");
+    grupoNo.appendChild(caco);
+    setTimeout(function () { caco.remove(); }, 1000);
+  }
+}
+
+/* O n8n (ou a rotina automática) não empurra nada para o navegador -- o
+   mural só sabe reler /api/tv, como toda tela viva aqui (ver o topo do
+   arquivo: "quem redesenha é o servidor... o mural rebusca"). Em vez de
+   uma explosão disparada NA HORA que a citação chega (que pediria um
+   canal que este mural não tem), a constelação celebra na hora que
+   PERCEBE a subida, no próximo `cicloAoVivo` -- mesmo efeito visual,
+   mesmo raciocínio de `atualizarValoresAoVivo`, só que por linha de
+   pesquisa em vez de por métrica agregada. Só mexe em quem está de fato
+   montado (`.grupo-no-orbita[data-linha]` só existe quando a lâmina
+   "Linhas de Pesquisa 3D" está em cena). */
+function atualizarConstelacaoAoVivo() {
+  const nos = document.querySelectorAll(".grupo-no-orbita[data-linha]");
+  if (!nos.length) return;
+  const porNome = {};
+  ((D.tv && D.tv.linhas) || []).forEach(function (l) { porNome[l.nome] = l; });
+  nos.forEach(function (no) {
+    const linha = porNome[no.dataset.linha];
+    if (!linha) return;
+    const novo = linha.citacoes || 0;
+    const anterior = Number(no.dataset.citacoesAtual) || 0;
+    no.dataset.citacoesAtual = String(novo);
+    if (novo <= anterior) return;
+    const x = Number(no.dataset.x), y = Number(no.dataset.y);
+    no.classList.remove("no-comemorando"); void no.getBBox();
+    no.classList.add("no-comemorando");
+    setTimeout(function () { no.classList.remove("no-comemorando"); }, 900);
+    explodirParticulasSvg(no, x, y, no.dataset.cor || "var(--accent-strong)");
+  });
+}
+
 /* Só mexe em quem estiver de fato montado na tela agora (a lâmina de
    citações, quando é ela que está em cena) -- as outras telas nem têm
    `[data-metrica]` no DOM, então o forEach abaixo não acha nada e não
@@ -2077,6 +2132,7 @@ async function atualizarValoresAoVivo() {
     const resposta = await fetch("/api/tv", { credentials: "same-origin" });
     if (!resposta.ok) return;
     D.tv = await resposta.json();
+    atualizarConstelacaoAoVivo();
     const resumo = D.tv && D.tv.citacoes && D.tv.citacoes.resumo;
     if (!resumo) return;
     document.querySelectorAll("[data-metrica]").forEach(function (node) {
