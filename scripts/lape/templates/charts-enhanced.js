@@ -489,6 +489,11 @@ const ChartsEnhanced = (function () {
     svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
     svg.setAttribute("class", "plot funil-liquido");
 
+    /* Era um trapézio com anel 3D (elipse de "aro" + brilho vertical
+       translúcido, para parecer um cilindro empilhado) -- achado ao vivo
+       (referência que o Mateus mandou de um funil de verdade): a faixa
+       chapada, sólida, sem relevo, é o que se lê rápido numa parede. O
+       efeito 3D saiu; o trapézio agora é só a própria cor da etapa. */
     function trapezio(yTop, yBot, wTop, wBot, cor, nome, valor) {
       const pontos = [[cx - wTop / 2, yTop], [cx + wTop / 2, yTop],
         [cx + wBot / 2, yBot], [cx - wBot / 2, yBot]]
@@ -496,45 +501,10 @@ const ChartsEnhanced = (function () {
       const poly = document.createElementNS(NS, "polygon");
       poly.setAttribute("points", pontos);
       poly.setAttribute("fill", cor);
-      poly.setAttribute("opacity", "0.85");
       const dica = document.createElementNS(NS, "title");
       dica.textContent = `${nome}: ${fmt(valor)} artigo(s)`;
       poly.appendChild(dica);
       return poly;
-    }
-
-    // Efeito de anel 3D (pedido: mesmo visual de referência, com camadas
-    // empilhadas) -- sem imagem nem gradiente novo, só a elipse do "aro"
-    // de cada etapa (a mesma cor da etapa, então a costura com o trapézio
-    // embaixo é invisível) mais um brilho vertical translúcido por cima,
-    // que é o que faz o trapézio chapado parecer um cilindro.
-    function aroEtapa(y, largura, cor) {
-      const g = document.createElementNS(NS, "g");
-      const ry = Math.max(6, Math.min(16, largura * 0.09));
-      const base = document.createElementNS(NS, "ellipse");
-      base.setAttribute("cx", cx); base.setAttribute("cy", y);
-      base.setAttribute("rx", largura / 2); base.setAttribute("ry", ry);
-      base.setAttribute("fill", cor);
-      g.appendChild(base);
-      const brilho = document.createElementNS(NS, "ellipse");
-      brilho.setAttribute("cx", cx); brilho.setAttribute("cy", y - ry * 0.28);
-      brilho.setAttribute("rx", largura * 0.34); brilho.setAttribute("ry", ry * 0.42);
-      brilho.setAttribute("fill", "#fff");
-      brilho.setAttribute("opacity", "0.28");
-      g.appendChild(brilho);
-      return g;
-    }
-
-    function brilhoVertical(yTop, yBot, wTop, wBot) {
-      const xTop = cx - wTop * 0.22, xBot = cx - wBot * 0.22;
-      const largo = Math.max(wTop, wBot) * 0.16;
-      const faixa = document.createElementNS(NS, "polygon");
-      faixa.setAttribute("points",
-        `${xTop - largo / 2},${yTop} ${xTop + largo / 2},${yTop} `
-        + `${xBot + largo / 2},${yBot} ${xBot - largo / 2},${yBot}`);
-      faixa.setAttribute("fill", "#fff");
-      faixa.setAttribute("opacity", "0.10");
-      return faixa;
     }
 
     function rotuloEtapa(yTop, yBot, nome, valor) {
@@ -558,9 +528,13 @@ const ChartsEnhanced = (function () {
 
     etapas.forEach(function (etapa, i) {
       const yTop = margemTopo + i * alturaEtapa, yBot = margemTopo + (i + 1) * alturaEtapa;
-      svg.appendChild(trapezio(yTop, yBot, larguras[i], larguras[i + 1], etapa.cor, etapa.nome, etapa.valor));
-      svg.appendChild(brilhoVertical(yTop, yBot, larguras[i], larguras[i + 1]));
-      svg.appendChild(aroEtapa(yTop, larguras[i], etapa.cor));
+      const faixa = trapezio(yTop, yBot, larguras[i], larguras[i + 1], etapa.cor, etapa.nome, etapa.valor);
+      // Um traço fino na cor do fundo separa uma faixa da seguinte -- a
+      // mesma leitura de "bandas distintas" da referência, sem precisar
+      // de relevo nenhum para diferenciá-las.
+      faixa.setAttribute("stroke", "var(--surface)");
+      faixa.setAttribute("stroke-width", "3");
+      svg.appendChild(faixa);
       svg.appendChild(rotuloEtapa(yTop, yBot, etapa.nome, etapa.valor));
     });
 
@@ -615,11 +589,6 @@ const ChartsEnhanced = (function () {
     ondaPath.appendChild(dicaOnda);
     ondaGrupo.appendChild(ondaPath);
     svg.appendChild(ondaGrupo);
-
-    // O aro entre a última etapa e o tanque -- mesma receita dos aros do
-    // funil, na cor do tanque, por cima da onda: a boca do tanque não
-    // fica reta e seca, e a costura com o funil de cima some.
-    svg.appendChild(aroEtapa(yTanque0, wBocaTanque, e3.cor));
 
     const valorTanque = document.createElementNS(NS, "text");
     valorTanque.setAttribute("x", cx); valorTanque.setAttribute("y", (yTanque0 + yTanque1) / 2 - 4);

@@ -1338,6 +1338,17 @@ class TestFunilLiquidoDaProducao(unittest.TestCase):
         self.assertIn("0", resultado["textos"])
         self.assertIn("de", resultado["ondaTitulo"])
 
+    def test_faixas_sao_chapadas_sem_efeito_3d(self):
+        """Achado ao vivo (referência que o Mateus mandou de um funil de
+        verdade): a faixa lida de longe é a chapada, sólida -- o "anel
+        3D" (elipse de aro + brilho vertical, para simular um cilindro
+        empilhado) saiu, e as faixas ganham um traço fino na cor do fundo
+        entre uma e outra, para se lerem como bandas distintas."""
+        texto = (TEMPLATES / "charts-enhanced.js").read_text(encoding="utf-8")
+        for sumiu in ("aroEtapa", "brilhoVertical"):
+            with self.subTest(sumiu=sumiu):
+                self.assertNotIn(sumiu, texto)
+
     def test_quatro_estagios_mostra_aceitos_como_etapa_propria(self):
         # Achado ao vivo (feedback do Mateus): juntar "em avaliação" e
         # "aceitos" numa etapa só ("com o periódico") escondia informação
