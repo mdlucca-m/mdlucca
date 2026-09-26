@@ -492,6 +492,13 @@ __BANDEIRAS_JS__
 </script>
 <script>
 __CHARTS_JS__
+/* ChartsEnhanced (abaixo) espera um `fmt` global, do mesmo jeito que o
+   mural já provia -- sem ele, todo número que o gauge desenha quebra
+   com "fmt is not defined". */
+function fmt(v) { return C.fmt(v); }
+</script>
+<script>
+__CHARTS_ENHANCED_JS__
 </script>
 <div class="casca">
   <nav class="lado" id="nav"></nav>

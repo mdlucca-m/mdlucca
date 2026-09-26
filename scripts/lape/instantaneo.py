@@ -138,6 +138,10 @@ def montar(db: Database, quando: datetime | None = None) -> str:
     miolo = miolo.replace("__BASE_CSS__", _ler("theme.css"))
     miolo = miolo.replace("__ICONS_JS__", _ler("icons.js"))
     miolo = miolo.replace("__CHARTS_JS__", _ler("charts.js"))
+    # Mesmo marcador que faltou para __BANDEIRAS_JS__ (comentário abaixo):
+    # o Painel de pessoas usa `ChartsEnhanced.gaugeDiagnostico`, e sem esta
+    # troca a página abriria com `__CHARTS_ENHANCED_JS__ is not defined`.
+    miolo = miolo.replace("__CHARTS_ENHANCED_JS__", _ler("charts-enhanced.js"))
     # Este marcador ficou de fora quando as bandeiras entraram, e a pagina
     # abria com `__BANDEIRAS_JS__ is not defined` no console -- o mapa nao
     # desenhava, e mais nada depois dele tambem nao. Ninguem via o erro

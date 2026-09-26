@@ -52,11 +52,16 @@ class TestOQueVaiDentro(BaseInstantaneo):
     def test_o_estilo_os_icones_e_os_graficos_vao_juntos(self):
         # nada pode depender de um arquivo ao lado: é uma página só
         for marcador in ("__BASE_CSS__", "__ICONS_JS__", "__CHARTS_JS__",
-                         "__PANORAMA_JS__"):
+                         "__CHARTS_ENHANCED_JS__", "__PANORAMA_JS__"):
             with self.subTest(marcador=marcador):
                 self.assertNotIn(marcador, self.pagina)
         self.assertIn("const Charts", self.pagina)
         self.assertIn("const ABAS", self.pagina)
+        # Mesma lição de __BANDEIRAS_JS__ (comentário em instantaneo.py):
+        # um marcador novo no panorama.html que a lista de troca daqui não
+        # acompanha vira "__X__ is not defined" no console do arquivo
+        # solto -- o Painel de pessoas usa ChartsEnhanced.gaugeDiagnostico.
+        self.assertIn("const ChartsEnhanced", self.pagina)
 
     def test_os_dados_ja_estao_na_pagina(self):
         self.assertIn("window.__LAPE__", self.pagina)

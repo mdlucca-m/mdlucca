@@ -306,10 +306,25 @@ class TestPaginaDoPanorama(BasePanorama):
 
     def test_a_pagina_monta_inteira(self):
         html = self.pagina()
-        for marcador in ("__BASE_CSS__", "__ICONS_JS__", "__CHARTS_JS__", "__PANORAMA_JS__"):
+        for marcador in ("__BASE_CSS__", "__ICONS_JS__", "__CHARTS_JS__",
+                         "__CHARTS_ENHANCED_JS__", "__PANORAMA_JS__"):
             self.assertNotIn(marcador, html, f"marcador não substituído: {marcador}")
         self.assertIn("const Charts", html)
         self.assertIn("const ABAS", html)
+
+    def test_chartsenhanced_e_fmt_estao_disponiveis_para_o_painel_de_pessoas(self):
+        """Achado ao vivo: o Painel de pessoas usa `ChartsEnhanced.gaugeDiagnostico`
+        (o velocímetro padrão), mas o Panorama só carregava `charts.js` -- a
+        aba quebrava com "ChartsEnhanced is not defined" assim que alguém da
+        coordenação/admin abria. `fmt`, que `ChartsEnhanced` espera como
+        global, tem o mesmo risco (é como o mural já resolvia isso)."""
+        html = self.pagina()
+        self.assertIn("const ChartsEnhanced", html)
+        self.assertIn("function fmt(v) { return C.fmt(v); }", html)
+        # ChartsEnhanced precisa estar pronto ANTES do código do painel que
+        # o chama, senão a referência global ainda não existe no momento
+        # em que a aba tenta desenhar
+        self.assertLess(html.index("const ChartsEnhanced"), html.index("const ABAS"))
 
     def test_a_pagina_diz_qual_versao_esta_no_ar(self):
         # sem isso "atualizou?" só se responde abrindo um terminal, e
