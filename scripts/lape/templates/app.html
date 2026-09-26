@@ -83,6 +83,14 @@ p.view{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
 .quem-agora b{font-size:13.5px}
 .quem-agora small{display:block;color:var(--ink-2);font-size:12px}
 .hint.aviso{color:var(--warning)}
+/* Consistência: uma fileira de 30 quadrados, um por dia -- a leitura é
+   "regular ou espalhado", não o valor exato de cada dia (que já está na
+   curva de linha logo abaixo). Sem overflow: numa tela estreita a
+   fileira quebra em linhas, nunca sai raspando a lateral. */
+.consistencia-fileira{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.consistencia-dia{width:16px;height:16px;border-radius:4px;
+  background:var(--surface-raised);border:1px solid var(--border)}
+.consistencia-dia.vazio{background:var(--surface-raised)}
 /* Sair não é erro: o botão se distingue pela borda, não pela cor de alerta.
    Vermelho aqui ensinaria a associar "fim do expediente" a problema. */
 button.sair-ponto{border-color:var(--ink-muted);font-weight:700}
@@ -2725,6 +2733,13 @@ const ICONE = {
 /* horas ficam de um lado, o que saiu de trabalho do outro, e a         */
 /* diferença entre as duas é justamente o que há para conversar.        */
 /* ==================================================================== */
+/* Le uma variavel de tema ja resolvida (nao "var(--x)" cru): mesma
+   convencao do charts.js, para as cores passadas aos gaugesdo ponto
+   ficarem identicas as que os graficos usam sozinhos. */
+function token(nome){
+  return getComputedStyle(document.documentElement).getPropertyValue(nome).trim();
+}
+
 function horasTexto(h){
   if (h === null || h === undefined) return "—";
   if (h < 1 / 60) return "poucos segundos";
@@ -3827,27 +3842,82 @@ VIEWS.ponto = {
     painel.appendChild(linha);
     VIEW.appendChild(painel);
 
-    /* ---- três velocímetros: hoje, semana, mês ---- */
+    /* ---- três velocímetros: hoje, semana, mês -- e o acelerômetro ao lado ---- */
     /* A escala de cada um é a meta do período, não o máximo histórico: o
-       ponteiro tem de dizer "quanto do dia" e não "quanto do recorde". */
+       ponteiro tem de dizer "quanto do dia" e não "quanto do recorde". A
+       cor do ponteiro segue o ritmo (abaixo de metade da meta chama
+       atenção; perto ou acima dela é verde) -- nunca a cor de "bom/ruim"
+       fixa, porque o mesmo número de horas pode estar dentro ou fora do
+       esperado dependendo de quanto falta do período. */
     const metas = {dia: 8, semana: 40, mes: 160};
     VIEW.appendChild(h("div", {class: "grid g3 sec"},
       [["dia", "Hoje"], ["semana", "Esta semana"], ["mes", "Este mês"]].map(function (par){
         const bloco = r[par[0]];
+        const meta = metas[par[0]];
+        const parte = meta ? bloco.horas / meta : 0;
+        const corRitmo = parte >= 0.9 ? token("--good")
+          : parte >= 0.5 ? token("--accent-strong") : token("--warning");
         const cartao = h("div", {class: "card"}, [
           h("h3", {}, [Icons.get("relogio", 16), h("span", {text: par[1]})]),
         ]);
         cartao.appendChild(C.gauge({
-          value: bloco.horas, max: metas[par[0]],
-          display: horasTexto(bloco.horas), unit: "de " + metas[par[0]] + "h",
+          value: bloco.horas, max: meta, color: corRitmo,
+          bands: [{to: meta * 0.5, color: token("--warning")},
+                  {to: meta * 0.9, color: token("--accent-strong")},
+                  {to: meta, color: token("--good")}],
+          display: horasTexto(bloco.horas), unit: "de " + meta + "h",
         }));
-        cartao.appendChild(h("div", {class: "hint", text: variacaoTexto(bloco.variacao)}));
+        if (bloco.sessoes)
+          cartao.appendChild(h("div", {class: "hint", text:
+            bloco.sessoes + " sessão(ões) · média de " + horasTexto(bloco.horas / bloco.sessoes)
+            + " cada"}));
+        /* O acelerômetro só existe quando há período anterior comparável --
+           "aumento infinito" contra uma base vazia não é informação (ver
+           ponto.py, resumo()). Sem base, a frase de sempre continua. */
+        if (bloco.variacao === null || bloco.variacao === undefined) {
+          cartao.appendChild(h("div", {class: "hint", text: variacaoTexto(bloco.variacao)}));
+        } else {
+          cartao.appendChild(C.acelerometro({
+            value: bloco.variacao, limite: 100, unit: "% vs. período anterior",
+            display: (bloco.variacao > 0 ? "+" : "") + bloco.variacao.toFixed(0) + "%",
+            caption: "variação",
+          }));
+        }
         if (bloco.esquecidas)
           cartao.appendChild(h("div", {class: "hint aviso", text:
             bloco.esquecidas + " entrada(s) sem saída, fechadas pelo sistema — "
             + "não entraram na conta."}));
         return cartao;
       })));
+
+    /* ---- consistência: os últimos 30 dias, um quadrado por dia ---- */
+    /* Hora total já está na curva de baixo; o que essa fileira acrescenta
+       é a REGULARIDADE -- 20h espalhadas em 4 dias bons lê muito diferente
+       de 20h em 15 dias curtos, e a curva de linha (feita para o valor)
+       não mostra essa diferença tão rápido quanto uma fileira de blocos. */
+    (function (){
+      const dias = d.serie;
+      const comRegistro = dias.filter(function (x){ return x.horas > 0; }).length;
+      const cartao = h("div", {class: "card sec"}, [
+        h("h3", {}, [Icons.get("linhas", 16), h("span", {text: "Consistência"})]),
+        h("p", {class: "hint", text:
+          "Trabalhou em " + comRegistro + " dos últimos " + dias.length + " dias."}),
+      ]);
+      const maiorDia = Math.max(1, ...dias.map(function (x){ return x.horas; }));
+      const fileira = h("div", {class: "consistencia-fileira"});
+      dias.forEach(function (x){
+        const intensidade = x.horas / maiorDia;
+        const quad = h("div", {class: "consistencia-dia" + (x.horas > 0 ? "" : " vazio"),
+          title: x.dia + " — " + horasTexto(x.horas)});
+        if (x.horas > 0) {
+          quad.style.background = token("--good");
+          quad.style.opacity = (0.35 + 0.65 * intensidade).toFixed(2);
+        }
+        fileira.appendChild(quad);
+      });
+      cartao.appendChild(fileira);
+      VIEW.appendChild(cartao);
+    })();
 
     /* ---- sessões sem nenhum sinal de vida: só quem estava lá sabe ---- */
     /* O sistema se recusa a inventar hora pra essas (ver ponto.py,
