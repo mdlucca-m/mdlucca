@@ -3849,6 +3849,47 @@ VIEWS.ponto = {
         return cartao;
       })));
 
+    /* ---- sessões sem nenhum sinal de vida: só quem estava lá sabe ---- */
+    /* O sistema se recusa a inventar hora pra essas (ver ponto.py,
+       `informar_saida`) -- mas a PRÓPRIA PESSOA sabe até que horas ficou,
+       e é isso que este cartão pergunta, uma sessão de cada vez. */
+    if (d.pendentes_sem_sinal && d.pendentes_sem_sinal.length){
+      const cartaoPendentes = h("div", {class: "card sec"}, [
+        h("h3", {}, [Icons.get("relogio", 16),
+          h("span", {text: "Você esqueceu de bater saída"})]),
+        h("p", {class: "hint aviso", text:
+          "Essas sessões fecharam sem nenhum sinal de que você continuava aqui, "
+          + "então não entraram nas horas. Se lembrar até que horas ficou, escreve "
+          + "abaixo — vira sua palavra, não um chute do sistema."}),
+      ]);
+      d.pendentes_sem_sinal.forEach(function (p){
+        const dia = String(p.entrada).slice(0, 10);
+        const horaEntrada = String(p.entrada).slice(11, 16);
+        const horaInput = h("input", {type: "text", placeholder: "HH:MM",
+          style: "width:80px"});
+        const confirmar = h("button", {class: "ghost"}, [h("span", {text: "Confirmar"})]);
+        confirmar.onclick = async function (){
+          const hhmm = horaInput.value.trim();
+          if (!/^\d{1,2}:\d{2}$/.test(hhmm)){
+            toast("Escreve a hora como HH:MM", "erro"); return;
+          }
+          const [hh, mm] = hhmm.split(":");
+          confirmar.disabled = true;
+          try {
+            const r = await api("/api/ponto/informar-saida", "POST",
+              {ponto_id: p.id, saida: dia + " " + hh.padStart(2, "0") + ":" + mm + ":00"});
+            if (r.informou) { toast("Registrado: " + horasTexto(r.horas) + "."); await show("ponto"); }
+            else { toast(r.porque, "erro"); confirmar.disabled = false; }
+          } catch (e){ toast(e.message, "erro"); confirmar.disabled = false; }
+        };
+        cartaoPendentes.appendChild(h("div", {class: "acao-ponto"}, [
+          h("span", {text: dia + " · entrou às " + horaEntrada + " — até que horas ficou?"}),
+          horaInput, confirmar,
+        ]));
+      });
+      VIEW.appendChild(cartaoPendentes);
+    }
+
     /* ---- a curva dos dias ---- */
     VIEW.appendChild(h("div", {class: "card sec"}, [
       h("h3", {}, [Icons.get("linhas", 16), h("span", {text: "Últimos 30 dias"})]),

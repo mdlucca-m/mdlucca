@@ -335,6 +335,70 @@ class TestAQuedaDeEnergia(BasePonto):
         self.assertEqual(ponto.fechar_na_volta(self.db), [])
 
 
+class TestInformarSaidaDaSessaoSemSinal(BasePonto):
+    """A lacuna que `fechar_esquecidos`/`fechar_na_volta` se recusam a
+    inventar (sem visto_em, so a entrada e conhecida) tem um jeito de
+    fechar: a PROPRIA PESSOA diz até que horas ficou. É a mesma regra de
+    nunca inventar hora -- só que agora quem preenche o dado é quem
+    estava lá, não o sistema adivinhando."""
+
+    def test_pendentes_sem_sinal_lista_so_quem_nao_tem_estimativa(self):
+        hoje = date.today().isoformat()
+        self.esquecida(hoje, "08:00", "08:00")            # sem visto_em
+        self.db.execute(
+            "INSERT INTO ponto (member_id, entrada, saida, visto_em,"
+            "                   fechado_sozinho) VALUES (?, ?, ?, ?, 1)",
+            (self.eu, f"{hoje} 13:00:00", f"{hoje} 18:00:00", f"{hoje} 18:00:00"))
+        self.db.conn.commit()
+        pendentes = ponto.pendentes_sem_sinal(self.db, self.eu)
+        self.assertEqual(len(pendentes), 1)
+
+    def test_informar_saida_preenche_e_passa_a_contar(self):
+        ontem = (date.today() - timedelta(days=1)).isoformat()
+        self.esquecida(ontem, "13:00", "13:00")
+        ponto_id = self.db.scalar("SELECT id FROM ponto")
+        resultado = ponto.informar_saida(self.db, self.eu, ponto_id, f"{ontem} 18:00:00")
+        self.assertTrue(resultado["informou"])
+        self.assertEqual(resultado["horas"], 5.0)
+        linha = ponto.historico(self.db, self.eu)[0]
+        self.assertTrue(linha["conta"])
+        self.assertTrue(linha["estimado"])
+        self.assertIn("saída informada", linha["observacao"])
+
+    def test_nao_deixa_informar_sessao_de_outra_pessoa(self):
+        hoje = date.today().isoformat()
+        self.esquecida(hoje, "13:00", "13:00", member_id=self.outra)
+        ponto_id = self.db.scalar("SELECT id FROM ponto")
+        resultado = ponto.informar_saida(self.db, self.eu, ponto_id, f"{hoje} 18:00:00")
+        self.assertFalse(resultado["informou"])
+
+    def test_nao_reabre_sessao_que_ja_tem_estimativa_do_sistema(self):
+        hoje = date.today().isoformat()
+        self.db.execute(
+            "INSERT INTO ponto (member_id, entrada, saida, visto_em,"
+            "                   fechado_sozinho) VALUES (?, ?, ?, ?, 1)",
+            (self.eu, f"{hoje} 13:00:00", f"{hoje} 18:00:00", f"{hoje} 18:00:00"))
+        self.db.conn.commit()
+        ponto_id = self.db.scalar("SELECT id FROM ponto")
+        resultado = ponto.informar_saida(self.db, self.eu, ponto_id, f"{hoje} 20:00:00")
+        self.assertFalse(resultado["informou"])
+
+    def test_nao_aceita_horario_no_futuro(self):
+        hoje = date.today().isoformat()
+        self.esquecida(hoje, "13:00", "13:00")
+        ponto_id = self.db.scalar("SELECT id FROM ponto")
+        futuro = (datetime.now() + timedelta(days=1)).strftime(ponto.FORMATO)
+        resultado = ponto.informar_saida(self.db, self.eu, ponto_id, futuro)
+        self.assertFalse(resultado["informou"])
+
+    def test_nao_aceita_sessao_absurdamente_longa(self):
+        hoje = (date.today() - timedelta(days=1)).isoformat()
+        self.esquecida(hoje, "08:00", "08:00")
+        ponto_id = self.db.scalar("SELECT id FROM ponto")
+        resultado = ponto.informar_saida(self.db, self.eu, ponto_id, f"{hoje} 23:59:59")
+        self.assertFalse(resultado["informou"])
+
+
 class TestReinicioRapidoDaAtualizacao(BasePonto):
     """Uma atualizacao publicada nao pode fechar o ponto de quem so nao
     esta OLHANDO pra aba agora mesmo.
@@ -601,6 +665,30 @@ class TestRotasDoPonto(unittest.TestCase):
         self.assertEqual(dados["resumo"]["aberto"]["atividade"], "leitura")
         self.assertTrue(dados["sou_eu"])
         self.assertEqual(self.chamar("/api/ponto/sair", self.bento, "POST")[0], 200)
+
+    def test_pendentes_sem_sinal_aparecem_e_somem_apos_informar(self):
+        db = Database(self.db_path)
+        member_id = db.scalar("SELECT id FROM members WHERE full_name = 'Bento Lima'")
+        ontem = (date.today() - timedelta(days=1)).isoformat()
+        db.execute(
+            "INSERT INTO ponto (member_id, entrada, saida, fechado_sozinho)"
+            " VALUES (?, ?, ?, 1)", (member_id, f"{ontem} 13:00:00", f"{ontem} 13:00:00"))
+        db.conn.commit()
+        ponto_id = db.scalar("SELECT id FROM ponto WHERE member_id = ?", (member_id,))
+        db.close()
+
+        _, antes = self.chamar("/api/ponto", self.bento)
+        self.assertEqual(len(antes["pendentes_sem_sinal"]), 1)
+
+        status, resultado = self.chamar(
+            "/api/ponto/informar-saida", self.bento, "POST",
+            {"ponto_id": ponto_id, "saida": f"{ontem} 18:00:00"})
+        self.assertEqual(status, 200)
+        self.assertTrue(resultado["informou"])
+        self.assertEqual(resultado["horas"], 5.0)
+
+        _, depois = self.chamar("/api/ponto", self.bento)
+        self.assertEqual(depois["pendentes_sem_sinal"], [])
 
     def test_ninguem_le_o_ponto_de_outra_pessoa(self):
         # a rotina de cada um é dela; ver a dos outros é coisa de coordenação

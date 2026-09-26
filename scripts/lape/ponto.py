@@ -290,6 +290,56 @@ def sair(db: Database, member_id: int, observacao: Any = None) -> dict[str, Any]
     return {"fechou": True, "horas": round(horas, 2), "saida": agora}
 
 
+def pendentes_sem_sinal(db: Database, member_id: int) -> list[dict[str, Any]]:
+    """Sessoes desta pessoa fechadas pelo sistema SEM nenhum sinal de vida --
+    as unicas que de verdade valem zero hora, porque nao ha como estimar
+    quanto tempo houve trabalho (ver `_linha`, campo `estimado`). Sao a
+    lista que a tela mostra como "voce esqueceu de bater saida aqui" --
+    quem esteve lá é quem sabe até que horas ficou, não o sistema.
+    """
+    linhas = db.dicts(
+        "SELECT id, entrada FROM ponto"
+        " WHERE member_id = ? AND fechado_sozinho = 1 AND visto_em IS NULL"
+        " ORDER BY entrada DESC", (member_id,))
+    return linhas
+
+
+def informar_saida(db: Database, member_id: int, ponto_id: int,
+                   saida_informada: Any) -> dict[str, Any]:
+    """A propria pessoa diz até que horas ficou numa sessão sem sinal nenhum.
+
+    Diferente de `fechar_na_volta` (que estima pelo ÚLTIMO SINAL, dado do
+    sistema) e diferente de inventar (que este módulo recusa a fazer
+    sozinho): aqui quem preenche a lacuna é quem estava lá. Por isso só
+    vale para sessão SEM visto_em -- uma que já tem estimativa do sistema
+    não é reaberta para a pessoa escrever por cima.
+    """
+    linhas = db.dicts(
+        "SELECT id, entrada, member_id, visto_em FROM ponto WHERE id = ?", (ponto_id,))
+    if not linhas or linhas[0]["member_id"] != member_id:
+        return {"informou": False, "porque": "sessão não encontrada"}
+    linha = linhas[0]
+    if linha["visto_em"] is not None:
+        return {"informou": False,
+                "porque": "esta sessão já tem uma estimativa do sistema"}
+    saida_txt = str(saida_informada)[:19]
+    horas = duracao_horas(linha["entrada"], saida_txt)
+    if horas is None:
+        return {"informou": False, "porque": "horário inválido"}
+    if _ler(saida_txt) > datetime.now():
+        return {"informou": False, "porque": "esse horário ainda não aconteceu"}
+    if horas > LIMITE_HORAS:
+        return {"informou": False,
+                "porque": f"mais de {LIMITE_HORAS}h numa sessão só -- confira o horário"}
+    nota = f"saída informada pela própria pessoa em {_agora()} (sessão sem sinal de vida)"
+    db.execute(
+        "UPDATE ponto SET saida = ?, visto_em = ?,"
+        " observacao = TRIM(COALESCE(observacao || ' -- ', '') || ?) WHERE id = ?",
+        (saida_txt, saida_txt, nota, ponto_id))
+    db.conn.commit()
+    return {"informou": True, "horas": round(horas, 2), "saida": saida_txt}
+
+
 def anotar(db: Database, member_id: int, atividade: Any) -> dict[str, Any]:
     """Troca o que a pessoa esta fazendo, sem fechar a sessao."""
     linhas = db.dicts(

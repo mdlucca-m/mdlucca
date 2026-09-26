@@ -2246,6 +2246,9 @@ def route_ponto(ctx: "Context") -> Any:
         "historico": ponto.historico(ctx.db, alvo),
         "producao": ponto.producao_no_periodo(ctx.db, alvo, dias=dias),
         "agora": ponto.agora(ctx.db),
+        # So faz sentido perguntar pra propria pessoa -- ninguem sabe até
+        # que horas OUTRA pessoa ficou.
+        "pendentes_sem_sinal": ponto.pendentes_sem_sinal(ctx.db, alvo) if alvo == eu else [],
     }
 
 
@@ -2279,6 +2282,20 @@ def route_ponto_presente(ctx: "Context") -> Any:
     atual = ponto.aberto(ctx.db, eu)
     return {"aberto": bool(atual),
             "ha_horas": round(atual["ha_horas"], 2) if atual and atual.get("ha_horas") else None}
+
+
+def route_ponto_informar_saida(ctx: "Context") -> Any:
+    """A propria pessoa preenche até que horas ficou numa sessão sem
+    nenhum sinal de vida -- a lacuna que o sistema se recusa a inventar
+    sozinho (ver `ponto.informar_saida`)."""
+    corpo = ctx.body or {}
+    ponto_id = to_int(corpo.get("ponto_id"))
+    if not ponto_id:
+        return {"informou": False, "porque": "ponto_id ausente"}
+    resultado = ponto.informar_saida(ctx.db, _eu(ctx), ponto_id, corpo.get("saida"))
+    if resultado.get("informou"):
+        _avisar_ponto(ctx, "ponto.saida_informada", f"{resultado['horas']} h")
+    return resultado
 
 
 def route_ponto_anotar(ctx: "Context") -> Any:
@@ -2929,6 +2946,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/ponto/sair/?$", route_ponto_sair, "integrante"),
     ("POST", r"^/api/ponto/presente/?$", route_ponto_presente, "integrante"),
     ("POST", r"^/api/ponto/anotar/?$", route_ponto_anotar, "integrante"),
+    ("POST", r"^/api/ponto/informar-saida/?$", route_ponto_informar_saida, "integrante"),
     ("GET", r"^/api/ponto/equipe/?$", route_ponto_equipe, "coordenacao"),
     ("GET", r"^/api/ponto/analytics/?$", route_ponto_analytics, "coordenacao"),
     ("GET", r"^/api/producao/?$", route_producao, "leitura"),
