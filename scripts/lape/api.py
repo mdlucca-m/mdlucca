@@ -2238,6 +2238,7 @@ def route_ponto(ctx: "Context") -> Any:
     # coordenacao batendo ponto por quem nao esta.
     if alvo == eu:
         ponto.marcar_presenca(ctx.db, eu)
+    meta_semanal = ponto.meta_semanal_horas(ctx.db, alvo)
     return {
         "de": alvo,
         "sou_eu": alvo == eu,
@@ -2249,6 +2250,12 @@ def route_ponto(ctx: "Context") -> Any:
         # So faz sentido perguntar pra propria pessoa -- ninguem sabe até
         # que horas OUTRA pessoa ficou.
         "pendentes_sem_sinal": ponto.pendentes_sem_sinal(ctx.db, alvo) if alvo == eu else [],
+        # Carga obrigatoria de bolsa (20h/semana): so existe para quem o
+        # cargo exige (bolsista sempre; mestrando/doutorando so com bolsa
+        # registrada). None para quem nao tem carga fixa -- a tela nao
+        # desenha banco de horas nenhum nesse caso.
+        "banco_de_horas": ponto.banco_de_horas(ctx.db, alvo, meta_semanal)
+                          if meta_semanal else None,
     }
 
 

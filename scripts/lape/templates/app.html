@@ -91,6 +91,20 @@ p.view{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
 .consistencia-dia{width:16px;height:16px;border-radius:4px;
   background:var(--surface-raised);border:1px solid var(--border)}
 .consistencia-dia.vazio{background:var(--surface-raised)}
+/* Banco de horas: saldo em destaque, e uma fileira de colunas divergentes
+   (crédito sobe, déficit desce) alinhadas numa linha de base central --
+   a mesma ideia do acelerômetro, só que semana a semana em vez de um
+   ponteiro só. */
+.banco-saldo{margin-top:8px;font-size:14px}
+.banco-fileira{display:flex;align-items:stretch;gap:5px;height:84px;
+  margin-top:6px;padding:0 2px}
+.banco-coluna{flex:1;height:100%;position:relative}
+.banco-coluna::before{content:"";position:absolute;top:50%;left:0;right:0;
+  height:1px;background:var(--border)}
+.banco-barra{width:14px;border-radius:3px;position:absolute;left:50%;
+  transform:translateX(-50%);z-index:1}
+.banco-barra.credito{bottom:50%;background:var(--good)}
+.banco-barra.deficit{top:50%;background:var(--critical)}
 /* Sair não é erro: o botão se distingue pela borda, não pela cor de alerta.
    Vermelho aqui ensinaria a associar "fim do expediente" a problema. */
 button.sair-ponto{border-color:var(--ink-muted);font-weight:700}
@@ -3923,6 +3937,59 @@ VIEWS.ponto = {
       cartao.appendChild(fileira);
       VIEW.appendChild(cartao);
     })();
+
+    /* ---- banco de horas: carga obrigatória de quem tem bolsa ---- */
+    /* Só existe quando o cargo exige (bolsista sempre; mestrando/
+       doutorando só com bolsa registrada -- ver ponto.meta_semanal_horas).
+       Sem meta, este cartão nem aparece: gente sem obrigação de hora
+       não precisa ver um contador de deficit que não é dela. */
+    if (d.banco_de_horas) {
+      const b = d.banco_de_horas;
+      const sa = b.semana_atual;
+      const cartaoBanco = h("div", {class: "card sec"}, [
+        h("h3", {}, [Icons.get("relogio", 16), h("span", {text: "Banco de horas (carga de bolsa)"})]),
+      ]);
+      /* A frase que o coordenador pediu, ao pé da letra: "fez 8, faltam
+         12 para as 20 da semana" -- direto, sem precisar interpretar
+         gráfico nenhum antes de saber se está em dia. */
+      cartaoBanco.appendChild(h("p", {class: "hint", text:
+        "Esta semana: " + horasTexto(sa.horas) + " de " + b.meta_semanal + "h obrigatórias — "
+        + (sa.faltam > 0
+            ? "faltam " + horasTexto(sa.faltam) + " para cumprir."
+            : "meta da semana cumprida" + (sa.excedente > 0
+                ? " (" + horasTexto(sa.excedente) + " além dela)." : "."))}));
+      cartaoBanco.appendChild(C.gauge({
+        value: sa.horas, max: b.meta_semanal,
+        color: sa.faltam > 0 ? token("--warning") : token("--good"),
+        display: sa.horas > 0 ? horasTexto(sa.horas) : "0h", unit: "de " + b.meta_semanal + "h",
+      }));
+      const saldoCor = b.saldo_acumulado >= 0 ? token("--good") : token("--critical");
+      const saldoLinha = h("div", {class: "banco-saldo"}, [
+        h("span", {text: "Saldo acumulado (semanas fechadas): "}),
+        h("b", {text: (b.saldo_acumulado > 0 ? "+" : "") + horasTexto(Math.abs(b.saldo_acumulado))
+              + (b.saldo_acumulado < 0 ? " a menos" : b.saldo_acumulado > 0 ? " a mais" : "")}),
+      ]);
+      saldoLinha.querySelector("b").style.color = saldoCor;
+      cartaoBanco.appendChild(saldoLinha);
+      if (b.semanas.length) {
+        const maiorDelta = Math.max(1, ...b.semanas.map(function (s){ return Math.abs(s.delta); }));
+        const fileiraSemanas = h("div", {class: "banco-fileira"});
+        b.semanas.forEach(function (s){
+          const alturaPx = Math.round(4 + 36 * (Math.abs(s.delta) / maiorDelta));
+          const coluna = h("div", {class: "banco-coluna",
+            title: s.inicio + " a " + s.fim + ": " + horasTexto(s.horas) + " ("
+              + (s.delta >= 0 ? "+" : "") + s.delta.toFixed(1) + "h vs. meta)"});
+          const barra = h("div", {class: "banco-barra " + (s.delta >= 0 ? "credito" : "deficit")});
+          barra.style.height = alturaPx + "px";
+          coluna.appendChild(barra);
+          fileiraSemanas.appendChild(coluna);
+        });
+        cartaoBanco.appendChild(h("p", {class: "hint", text: "Últimas " + b.semanas.length
+          + " semana(s) fechada(s) -- acima da linha é excedente, abaixo é déficit."}));
+        cartaoBanco.appendChild(fileiraSemanas);
+      }
+      VIEW.appendChild(cartaoBanco);
+    }
 
     /* ---- sessões sem nenhum sinal de vida: só quem estava lá sabe ---- */
     /* O sistema se recusa a inventar hora pra essas (ver ponto.py,

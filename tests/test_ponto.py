@@ -606,6 +606,100 @@ class TestHoraNaoEProducao(BasePonto):
         self.assertNotIn("horas", producao)
 
 
+class TestMetaSemanalEBancoDeHoras(BasePonto):
+    """Bolsista de IC/extensão cumpre 20h semanais sempre; mestrando e
+    doutorando só têm essa obrigação quando têm bolsa registrada (mesmo
+    sinal que a coordenação já usa -- ver vinculo.py). O banco de horas
+    soma semana fechada contra semana fechada; a semana em andamento
+    nunca vira déficit definitivo."""
+
+    def membro(self, nome, role, scholarship=None):
+        return self.db.member_id(nome, role=role, scholarship=scholarship)
+
+    def test_bolsista_de_ic_sempre_tem_meta(self):
+        m = self.membro("Bolsista Um", "bolsista_ic")
+        self.assertEqual(ponto.meta_semanal_horas(self.db, m), 20.0)
+
+    def test_bolsista_de_extensao_sempre_tem_meta(self):
+        m = self.membro("Bolsista Dois", "bolsista_extensao")
+        self.assertEqual(ponto.meta_semanal_horas(self.db, m), 20.0)
+
+    def test_mestrando_com_bolsa_tem_meta(self):
+        m = self.membro("Mestranda Bolsista", "mestrando", scholarship="CAPES")
+        self.assertEqual(ponto.meta_semanal_horas(self.db, m), 20.0)
+
+    def test_mestrando_sem_bolsa_nao_tem_meta(self):
+        m = self.membro("Mestranda Sem Bolsa", "mestrando")
+        self.assertIsNone(ponto.meta_semanal_horas(self.db, m))
+
+    def test_doutorando_com_bolsa_tem_meta(self):
+        m = self.membro("Doutorando Bolsista", "doutorando", scholarship="CNPq")
+        self.assertEqual(ponto.meta_semanal_horas(self.db, m), 20.0)
+
+    def test_professor_nunca_tem_meta_mesmo_com_bolsa_preenchida(self):
+        # campo preenchido por engano nao pode inventar obrigacao que o
+        # cargo nao tem
+        m = self.membro("Professor X", "professor", scholarship="algo")
+        self.assertIsNone(ponto.meta_semanal_horas(self.db, m))
+
+    def test_voluntario_nao_tem_meta(self):
+        m = self.membro("Voluntaria Y", "voluntario")
+        self.assertIsNone(ponto.meta_semanal_horas(self.db, m))
+
+    def test_semana_em_andamento_mostra_quanto_falta(self):
+        segunda = date(2026, 9, 21)   # uma segunda-feira de verdade
+        self.assertEqual(segunda.weekday(), 0)
+        self.sessao(segunda.isoformat(), "08:00", "16:00")   # 8h nesta segunda
+        banco = ponto.banco_de_horas(self.db, self.eu, 20.0, semanas=1, hoje=segunda)
+        self.assertEqual(banco["semana_atual"]["horas"], 8.0)
+        self.assertEqual(banco["semana_atual"]["faltam"], 12.0)
+        self.assertEqual(banco["semana_atual"]["excedente"], 0.0)
+
+    def test_semana_em_andamento_nao_entra_no_saldo_acumulado(self):
+        segunda = date(2026, 9, 21)
+        self.sessao(segunda.isoformat(), "08:00", "10:00")   # só 2h, na semana em andamento
+        banco = ponto.banco_de_horas(self.db, self.eu, 20.0, semanas=1, hoje=segunda)
+        # a unica semana FECHADA que aparece e a ANTERIOR a hoje -- nunca a
+        # que contem hoje, mesmo com sessao registrada nela
+        self.assertEqual(len(banco["semanas"]), 1)
+        self.assertNotEqual(banco["semanas"][0]["inicio"], segunda.isoformat())
+        self.assertLess(banco["semanas"][0]["fim"], segunda.isoformat())
+        self.assertEqual(banco["semanas"][0]["horas"], 0.0)
+
+    def test_semana_fechada_com_excedente_soma_positivo_no_saldo(self):
+        hoje = date(2026, 9, 28)     # segunda seguinte -- a de 21/09 ja fechou
+        semana_passada = date(2026, 9, 21)
+        for dia_offset in range(5):     # seg a sex, 6h por dia = 30h (meta 20h)
+            dia = semana_passada + timedelta(days=dia_offset)
+            self.sessao(dia.isoformat(), "08:00", "14:00")
+        banco = ponto.banco_de_horas(self.db, self.eu, 20.0, semanas=1, hoje=hoje)
+        self.assertEqual(len(banco["semanas"]), 1)
+        self.assertEqual(banco["semanas"][0]["horas"], 30.0)
+        self.assertEqual(banco["semanas"][0]["delta"], 10.0)
+        self.assertEqual(banco["saldo_acumulado"], 10.0)
+
+    def test_semana_fechada_com_deficit_soma_negativo_no_saldo(self):
+        hoje = date(2026, 9, 28)
+        semana_passada = date(2026, 9, 21)
+        self.sessao(semana_passada.isoformat(), "08:00", "13:00")   # só 5h de 20h
+        banco = ponto.banco_de_horas(self.db, self.eu, 20.0, semanas=1, hoje=hoje)
+        self.assertEqual(banco["semanas"][0]["delta"], -15.0)
+        self.assertEqual(banco["saldo_acumulado"], -15.0)
+
+    def test_saldo_acumula_ao_longo_de_varias_semanas(self):
+        hoje = date(2026, 10, 5)        # segunda; as duas semanas anteriores ja fecharam
+        semana1 = date(2026, 9, 21)     # semana com excedente: 5 dias x 6h = 30h (meta 20h, +10)
+        for dia_offset in range(5):
+            self.sessao((semana1 + timedelta(days=dia_offset)).isoformat(), "08:00", "14:00")
+        self.sessao(date(2026, 9, 28).isoformat(), "08:00", "13:00")  # deficit: so 5h (-15)
+        banco = ponto.banco_de_horas(self.db, self.eu, 20.0, semanas=2, hoje=hoje)
+        self.assertEqual(len(banco["semanas"]), 2)
+        self.assertEqual(banco["semanas"][0]["delta"], 10.0)
+        self.assertEqual(banco["semanas"][1]["delta"], -15.0)
+        self.assertEqual(banco["saldo_acumulado"], -5.0)      # +10 - 15
+        self.assertEqual(banco["semanas"][-1]["saldo_acumulado"], -5.0)
+
+
 class TestRotasDoPonto(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -689,6 +783,19 @@ class TestRotasDoPonto(unittest.TestCase):
 
         _, depois = self.chamar("/api/ponto", self.bento)
         self.assertEqual(depois["pendentes_sem_sinal"], [])
+
+    def test_banco_de_horas_so_aparece_para_quem_tem_carga_obrigatoria(self):
+        db = Database(self.db_path)
+        db.execute("UPDATE members SET role = 'bolsista_ic' WHERE full_name = 'Bento Lima'")
+        db.conn.commit()
+        db.close()
+
+        _, do_bento = self.chamar("/api/ponto", self.bento)
+        self.assertIsNotNone(do_bento["banco_de_horas"])
+        self.assertEqual(do_bento["banco_de_horas"]["meta_semanal"], 20.0)
+
+        _, da_ana = self.chamar("/api/ponto", self.ana)
+        self.assertIsNone(da_ana["banco_de_horas"])
 
     def test_ninguem_le_o_ponto_de_outra_pessoa(self):
         # a rotina de cada um é dela; ver a dos outros é coisa de coordenação

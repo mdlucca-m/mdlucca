@@ -527,6 +527,71 @@ def por_pessoa(db: Database, dias: int = 30,
     return saida
 
 
+# ----------------------------------------------------------------------
+# Meta semanal obrigatoria e banco de horas -- quem tem bolsa
+# ----------------------------------------------------------------------
+# Bolsista de IC ou de extensao cumpre a carga sempre; mestrando e
+# doutorando so tem essa obrigacao quando, ALEM do vinculo, tem bolsa
+# registrada (mesmo sinal que a coordenacao ja usa para achar quem
+# recebe bolsa -- ver vinculo.py). Professor, tecnico, voluntario,
+# graduando e colaborador nao tem carga fixa nenhuma aqui.
+HORAS_SEMANAIS_BOLSA = 20.0
+_CARGOS_BOLSA_SEMPRE = ("bolsista_ic", "bolsista_extensao")
+_CARGOS_BOLSA_SE_TEM_BOLSA = ("mestrando", "doutorando")
+
+
+def meta_semanal_horas(db: Database, member_id: int) -> float | None:
+    """Quantas horas por semana esta pessoa e obrigada a cumprir, ou None
+    se o cargo dela nao exige carga fixa (ou exige so com bolsa, e ela
+    nao tem uma registrada)."""
+    linhas = db.dicts("SELECT role, scholarship FROM members WHERE id = ?", (member_id,))
+    if not linhas:
+        return None
+    role = linhas[0].get("role")
+    tem_bolsa = bool((linhas[0].get("scholarship") or "").strip())
+    if role in _CARGOS_BOLSA_SEMPRE:
+        return HORAS_SEMANAIS_BOLSA
+    if role in _CARGOS_BOLSA_SE_TEM_BOLSA and tem_bolsa:
+        return HORAS_SEMANAIS_BOLSA
+    return None
+
+
+def banco_de_horas(db: Database, member_id: int, meta_semanal: float,
+                   semanas: int = 12, hoje: date | None = None) -> dict[str, Any]:
+    """Semana a semana (segunda a domingo) contra a meta obrigatoria, com
+    saldo acumulado -- e a semana EM ANDAMENTO à parte, porque uma semana
+    que ainda não fechou não pode virar déficit definitivo no banco: ainda
+    dá tempo de cumprir o que falta.
+    """
+    fechar_esquecidos(db)
+    hoje = hoje or date.today()
+    inicio_atual = hoje - timedelta(days=hoje.weekday())
+    semanas_fechadas: list[dict[str, Any]] = []
+    saldo = 0.0
+    for i in range(semanas, 0, -1):
+        fim = inicio_atual - timedelta(days=7 * (i - 1))
+        ini = fim - timedelta(days=7)
+        horas = _somar(db, member_id, _dia_txt(ini), _dia_txt(fim))["horas"]
+        delta = round(horas - meta_semanal, 2)
+        saldo = round(saldo + delta, 2)
+        semanas_fechadas.append({
+            "inicio": ini.isoformat(), "fim": (fim - timedelta(days=1)).isoformat(),
+            "horas": horas, "delta": delta, "saldo_acumulado": saldo,
+        })
+    atual = _somar(db, member_id, _dia_txt(inicio_atual), _dia_txt(hoje + timedelta(days=1)))
+    return {
+        "meta_semanal": meta_semanal,
+        "semanas": semanas_fechadas,
+        "saldo_acumulado": saldo,
+        "semana_atual": {
+            "inicio": inicio_atual.isoformat(),
+            "horas": atual["horas"],
+            "faltam": round(max(0.0, meta_semanal - atual["horas"]), 2),
+            "excedente": round(max(0.0, atual["horas"] - meta_semanal), 2),
+        },
+    }
+
+
 def producao_no_periodo(db: Database, member_id: int | None = None,
                         dias: int = 30, hoje: date | None = None) -> dict[str, int]:
     """O que saiu de trabalho no mesmo periodo -- para nao ler hora sozinha.
