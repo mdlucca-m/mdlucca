@@ -649,6 +649,54 @@ function cartaoPessoa(p, profundidade) {
   return cartao;
 }
 
+/* A árvore de verdade, vertical com uma coluna por ramo -- pedido
+   explícito (referência de organograma com colunas). A raiz fica em
+   cima; cada filho DIRETO da raiz vira o topo da própria coluna, lado a
+   lado com as dos irmãos (fan-out horizontal, o conector clássico de
+   sempre). A partir da SEGUNDA geração, os descendentes não ramificam
+   de novo -- empilham retos na mesma coluna do próprio ramo.
+
+   Achado ao vivo, motivo da mudança: o fan-out horizontal se repetindo
+   a cada geração (uma coluna de colunas de colunas) é exatamente o que
+   quebrava com dado real -- muitos netos por ramo, cada um com o
+   próprio conector de irmãos, e a fileira de cima quebrando linha sem
+   ninguém prever. Empilhar reto depois da raiz nunca quebra linha,
+   nunca precisa medir posição: é só uma lista vertical dentro da
+   própria coluna. Compartilhada pelas duas lâminas
+   (`slideOrganograma3D` e `slideOrganogramaMetodologico`), que antes
+   reescreviam a mesma função lado a lado.
+
+   `mostrados`, quando passado, evita desenhar a mesma pessoa duas vezes
+   quando duas raízes do mesmo laço a alcançam (coorientação) -- ver
+   `slideOrganogramaMetodologico`. */
+function noArvore(id, profundidade, porId, filhosDe, mostrados) {
+  const pessoa = porId[id];
+  if (!pessoa || (mostrados && mostrados.has(id))) return null;
+  if (mostrados) mostrados.add(id);
+  const filhos = (filhosDe[id] || []).map(function (f) { return porId[f.to]; }).filter(Boolean);
+  const no = el("div", { class: "no-organograma" }, [cartaoPessoa(pessoa, profundidade)]);
+  if (!filhos.length || profundidade >= 3) return no;
+  if (profundidade === 0) {
+    const colunas = el("div", { class: "ramo-organograma" },
+      filhos.map(function (p) { return noArvore(p.id, profundidade + 1, porId, filhosDe, mostrados); }).filter(Boolean));
+    no.appendChild(colunas);
+  } else {
+    const pilha = el("div", { class: "coluna-descendentes" },
+      filhos.flatMap(function (p) { return descendentesEmPilha(p.id, profundidade + 1, porId, filhosDe, mostrados); }));
+    if (pilha.children.length) no.appendChild(pilha);
+  }
+  return no;
+}
+
+function descendentesEmPilha(id, profundidade, porId, filhosDe, mostrados) {
+  const pessoa = porId[id];
+  if (!pessoa || profundidade >= 4 || (mostrados && mostrados.has(id))) return [];
+  if (mostrados) mostrados.add(id);
+  const filhos = (filhosDe[id] || []).map(function (f) { return porId[f.to]; }).filter(Boolean);
+  const netos = filhos.flatMap(function (p) { return descendentesEmPilha(p.id, profundidade + 1, porId, filhosDe, mostrados); });
+  return [cartaoPessoa(pessoa, profundidade)].concat(netos);
+}
+
 function slideOrganograma3D(baldeIndex) {
   const t = tv();
   const org = t && t.organograma;
@@ -673,24 +721,6 @@ function slideOrganograma3D(baldeIndex) {
     if (!porId[e.from] || !porId[e.to]) return;
     (filhosDe[e.from] = filhosDe[e.from] || []).push({ to: e.to, kind: e.kind });
   });
-
-  /* A árvore de verdade, sempre horizontal: raiz em cima, filhos numa
-     fileira embaixo, ligados pelo conector clássico (CSS
-     .ramo-organograma). Com o organograma agora separado em baldes por
-     vínculo, cada slide só recebe as raízes DAQUELE balde -- a fileira de
-     órfãos que vazava a tela não existe mais porque a coordenação, os
-     professores e o resto não competem pelo mesmo slide. */
-  function noArvore(id, profundidade) {
-    const pessoa = porId[id];
-    if (!pessoa) return null;
-    const filhos = (filhosDe[id] || []).map(function (f) { return porId[f.to]; }).filter(Boolean);
-    const no = el("div", { class: "no-organograma" }, [cartaoPessoa(pessoa, profundidade)]);
-    if (!filhos.length || profundidade >= 3) return no;
-    const galhos = el("div", { class: "ramo-organograma" },
-      filhos.map(function (p) { return noArvore(p.id, profundidade + 1); }).filter(Boolean));
-    no.appendChild(galhos);
-    return no;
-  }
 
   const temOrientador = temOrientadorVisivel(org.people, org.edges);
 
@@ -722,7 +752,7 @@ function slideOrganograma3D(baldeIndex) {
   const raizes = [];
   locais.forEach(function (p) {
     if (mostrados.has(p.id)) return;
-    const no = noArvore(p.id, 0);
+    const no = noArvore(p.id, 0, porId, filhosDe);
     if (no) raizes.push(no);
     marcarMostrado(p.id);
   });
@@ -774,19 +804,6 @@ function slideOrganogramaMetodologico() {
      pessoa aparecia duplicada na mesma seção. */
   const mostrados = new Set();
 
-  function noArvore(id, profundidade) {
-    const pessoa = porId[id];
-    if (!pessoa || mostrados.has(id)) return null;
-    mostrados.add(id);
-    const filhos = (filhosDe[id] || []).map(function (f) { return porId[f.to]; }).filter(Boolean);
-    const no = el("div", { class: "no-organograma" }, [cartaoPessoa(pessoa, profundidade)]);
-    if (!filhos.length || profundidade >= 3) return no;
-    const galhos = el("div", { class: "ramo-organograma" },
-      filhos.map(function (p) { return noArvore(p.id, profundidade + 1); }).filter(Boolean));
-    no.appendChild(galhos);
-    return no;
-  }
-
   const temOrientador = temOrientadorVisivel(org.people, org.edges);
   function candidatosDoBalde(indice) {
     return (org.people || []).filter(function (p) { return baldeDoRole(p.role) === indice; });
@@ -799,7 +816,7 @@ function slideOrganogramaMetodologico() {
     });
     const raizes = [];
     locais.forEach(function (p) {
-      const no = noArvore(p.id, 0);
+      const no = noArvore(p.id, 0, porId, filhosDe, mostrados);
       if (no) raizes.push(no);
     });
     if (raizes.length) {

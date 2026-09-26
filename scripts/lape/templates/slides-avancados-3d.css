@@ -450,6 +450,26 @@
 .ramo-organograma > .no-organograma:first-child:not(:only-child)::after { left: 50%; }
 .ramo-organograma > .no-organograma:last-child:not(:only-child)::after { right: 50%; }
 
+/* A partir da 2a geração, a coluna do próprio ramo -- reta, empilhada,
+   sem ramificar de novo (ver comentário em `noArvore`, mural.js). Um
+   traço vertical único desce por trás de toda a pilha; cada cartão
+   sobra em cima dele com um respiro que dá a sensação de elo entre um e
+   o seguinte, sem precisar calcular onde cada conector individual
+   começa e termina. */
+.coluna-descendentes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(18px, 2.4vh, 30px);
+  padding-top: clamp(16px, 2vh, 26px);
+  position: relative;
+}
+.coluna-descendentes::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 0; border-left: 2px dashed var(--border-strong); z-index: 0;
+}
+.coluna-descendentes .cartao-pessoa { position: relative; z-index: 1; }
+
 /* O cartão era cantos de HUD + halo pulsante + entrada saltitante --
    competindo com a própria informação que devia carregar (achado ao
    vivo, print do Mateus: "não dá para ver nada direito"). Referências

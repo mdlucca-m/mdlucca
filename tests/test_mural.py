@@ -1090,6 +1090,55 @@ class TestCartaoDaPessoaNaArvore(unittest.TestCase):
         self.assertIn("border-left", trecho)
 
 
+class TestArvoreViraColunasPorRamo(unittest.TestCase):
+    """`noArvore`/`descendentesEmPilha` -- pedido explícito (referência de
+    organograma vertical com uma coluna por ramo): o filho DIRETO da
+    raiz vira o topo da própria coluna (fan-out horizontal, como antes);
+    a partir da 2a geração, os descendentes empilham retos na mesma
+    coluna, sem ramificar de novo -- achado ao vivo, o fan-out se
+    repetindo a cada geração era o que quebrava linha com dado real."""
+
+    def setUp(self):
+        self.js = (TEMPLATES / "slides-avancados-3d.js").read_text(encoding="utf-8")
+        self.css = (TEMPLATES / "slides-avancados-3d.css").read_text(encoding="utf-8")
+
+    def test_uma_so_funcao_compartilhada_pelas_duas_laminas(self):
+        """Mesma lição do cartão: as duas lâminas reescreviam a mesma
+        árvore lado a lado antes desta mudança."""
+        self.assertEqual(self.js.count("function noArvore("), 1)
+        self.assertEqual(self.js.count("function descendentesEmPilha("), 1)
+
+    def test_so_a_raiz_ramifica_horizontal(self):
+        corpo = self.js[self.js.index("function noArvore("):
+                        self.js.index("function descendentesEmPilha(")]
+        self.assertIn('profundidade === 0', corpo)
+        self.assertIn("ramo-organograma", corpo)
+        self.assertIn("coluna-descendentes", corpo)
+
+    def test_descendentes_empilham_sem_ramificar_de_novo(self):
+        """A função que constrói a 2a geração em diante nunca cria outro
+        `.ramo-organograma` -- só concatena cartões numa lista reta."""
+        corpo = self.js[self.js.index("function descendentesEmPilha("):
+                        self.js.index("function slideOrganograma3D(")]
+        self.assertNotIn("ramo-organograma", corpo)
+
+    def test_mostrados_evita_duplicar_pessoa_em_dois_ramos(self):
+        """Coorientação bota duas arestas chegando na mesma pessoa -- sem
+        marcar durante a descida (na raiz E na pilha), ela apareceria
+        desenhada duas vezes."""
+        for funcao in ("function noArvore(", "function descendentesEmPilha("):
+            corpo = self.js[self.js.index(funcao):]
+            corpo = corpo[:corpo.index("\n}\n") + 3]
+            with self.subTest(funcao=funcao):
+                self.assertIn("mostrados.has(id)", corpo)
+                self.assertIn("mostrados.add(id)", corpo)
+
+    def test_coluna_tem_um_traco_vertical_tracejado(self):
+        trecho = self.css[self.css.index(".coluna-descendentes::before"):]
+        trecho = trecho[:trecho.index("}") + 1]
+        self.assertIn("dashed", trecho)
+
+
 class TestFrameworkViraHexagono(unittest.TestCase):
     """`slideFrameworkN8n` -- pedido explícito do Mateus (referência de
     hexágono giratório de 6 pétalas): o pipeline linear de círculos
