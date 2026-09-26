@@ -562,15 +562,30 @@ def banco_de_horas(db: Database, member_id: int, meta_semanal: float,
     saldo acumulado -- e a semana EM ANDAMENTO à parte, porque uma semana
     que ainda não fechou não pode virar déficit definitivo no banco: ainda
     dá tempo de cumprir o que falta.
+
+    Nunca volta antes do PRIMEIRO ponto que esta pessoa já bateu. Achado
+    ao vivo: com a janela fixa de `semanas`, um bolsista recém-cadastrado
+    via cada semana anterior ao próprio primeiro registro contar como
+    déficit total (ninguém bateu ponto porque a obrigação nem existia
+    ainda) -- um saldo de "-200h" no primeiro dia. Mesma ideia de "não
+    inventar hora" do resto do módulo, aplicada ao outro lado da conta:
+    sem nenhum dado, não é déficit, é ausência de dado.
     """
     fechar_esquecidos(db)
     hoje = hoje or date.today()
     inicio_atual = hoje - timedelta(days=hoje.weekday())
+    primeiro = _ler(db.scalar(
+        "SELECT MIN(entrada) FROM ponto WHERE member_id = ?", (member_id,)))
+    primeira_semana = (primeiro.date() - timedelta(days=primeiro.date().weekday())
+                       if primeiro else inicio_atual)
+
     semanas_fechadas: list[dict[str, Any]] = []
     saldo = 0.0
     for i in range(semanas, 0, -1):
         fim = inicio_atual - timedelta(days=7 * (i - 1))
         ini = fim - timedelta(days=7)
+        if ini < primeira_semana:
+            continue
         horas = _somar(db, member_id, _dia_txt(ini), _dia_txt(fim))["horas"]
         delta = round(horas - meta_semanal, 2)
         saldo = round(saldo + delta, 2)

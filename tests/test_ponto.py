@@ -659,12 +659,27 @@ class TestMetaSemanalEBancoDeHoras(BasePonto):
         segunda = date(2026, 9, 21)
         self.sessao(segunda.isoformat(), "08:00", "10:00")   # só 2h, na semana em andamento
         banco = ponto.banco_de_horas(self.db, self.eu, 20.0, semanas=1, hoje=segunda)
-        # a unica semana FECHADA que aparece e a ANTERIOR a hoje -- nunca a
-        # que contem hoje, mesmo com sessao registrada nela
+        # a semana anterior a hoje precede o primeiro ponto desta pessoa (que
+        # é justamente nesta segunda) -- nao pode virar deficit fantasma, e a
+        # semana que contem hoje tambem nunca entra fechada no saldo
+        self.assertEqual(banco["semanas"], [])
+        self.assertEqual(banco["saldo_acumulado"], 0.0)
+
+    def test_banco_nunca_inventa_deficit_antes_do_primeiro_ponto(self):
+        # achado ao vivo: com uma janela longa (ex.: semanas=12) e historico
+        # de ponto recente/esparso, cada semana anterior ao primeiro registro
+        # da pessoa contava como -20h (deficit total), inflando o saldo para
+        # algo como -200h no primeiro dia de uso do sistema. Nenhuma dessas
+        # semanas pode aparecer: sem ponto nenhum, nao e deficit, e ausencia
+        # de dado.
+        hoje = date(2026, 10, 5)          # segunda; a de 28/09 ja fechou
+        primeira_segunda = date(2026, 9, 28)
+        self.sessao(primeira_segunda.isoformat(), "08:00", "13:00")   # so 5h de 20h (-15)
+        banco = ponto.banco_de_horas(self.db, self.eu, 20.0, semanas=12, hoje=hoje)
         self.assertEqual(len(banco["semanas"]), 1)
-        self.assertNotEqual(banco["semanas"][0]["inicio"], segunda.isoformat())
-        self.assertLess(banco["semanas"][0]["fim"], segunda.isoformat())
-        self.assertEqual(banco["semanas"][0]["horas"], 0.0)
+        self.assertEqual(banco["semanas"][0]["inicio"], primeira_segunda.isoformat())
+        self.assertEqual(banco["semanas"][0]["delta"], -15.0)
+        self.assertEqual(banco["saldo_acumulado"], -15.0)
 
     def test_semana_fechada_com_excedente_soma_positivo_no_saldo(self):
         hoje = date(2026, 9, 28)     # segunda seguinte -- a de 21/09 ja fechou
