@@ -3865,7 +3865,12 @@ VIEWS.ponto = {
           bands: [{to: meta * 0.5, color: token("--warning")},
                   {to: meta * 0.9, color: token("--accent-strong")},
                   {to: meta, color: token("--good")}],
-          display: horasTexto(bloco.horas), unit: "de " + meta + "h",
+          /* horasTexto(0) devolve "poucos segundos" -- certo para a
+             DURAÇÃO de uma sessão curta, errado para "nenhuma hora ainda"
+             no centro do medidor (achado ao vivo: estourava a largura
+             do cartão). Aqui o valor é sempre uma SOMA do período. */
+          display: bloco.horas > 0 ? horasTexto(bloco.horas) : "0h",
+          unit: "de " + meta + "h",
         }));
         if (bloco.sessoes)
           cartao.appendChild(h("div", {class: "hint", text:
