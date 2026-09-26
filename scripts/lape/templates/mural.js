@@ -389,16 +389,16 @@ function slideAgora() {
      pergunta que se faz dela é "quantos naquele ano", não "qual o
      desenho da curva". Com uma série só, o número vai escrito em cima
      de cada barra -- quem olha do corredor lê o valor sem precisar
-     seguir a linha até o eixo. */
+     seguir a linha até o eixo.
+
+     Isométrica (cubo com linha de chamada), pedido explícito depois da
+     referência -- ver ChartsEnhanced.colunasIsometricas: a altura da
+     face da frente continua sendo o dado de verdade, o "cubo" é só
+     acabamento por cima dela. */
   const grafico = recentes.length
-    ? C.columns({
-      labels: recentes.map(function (r) { return String(r.year); }),
-      series: [{ label: "Publicações", values: recentes.map(function (r) { return r.n_articles; }) }],
-      /* `fill`: o cartao do mural tem altura propria, e o grafico desenha
-         COM ela em vez de desenhar em 460 e encolher para caber. A altura
-         aqui e so o que vale se a caixa nao tiver altura nenhuma. */
-      fill: true, height: 460, caption: "publicações por ano",
-    })
+    ? ChartsEnhanced.colunasIsometricas(
+        recentes.map(function (r) { return { rotulo: String(r.year), valor: r.n_articles }; }),
+        { unidade: "publicação(ões)" })
     : vazio("Sem histórico de publicação ainda.");
 
   /* Funil líquido: as mesmas 4 etapas dos cartões acima (Em produção, Em

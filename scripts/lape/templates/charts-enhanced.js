@@ -794,6 +794,99 @@ const ChartsEnhanced = (function () {
     return fig;
   }
 
+  /* ======================== Colunas isométricas ======================== */
+  /* Pedido explícito, depois da referência de barras em "cubo" com linha
+     de chamada para o número -- item que reabriu a decisão de manter as
+     barras chapadas (ver `.plot .mark.cresce` em theme.css). Um cuidado
+     continua valendo, e é o mesmo de sempre: quem CARREGA o dado é a
+     ALTURA da face da frente, exatamente como numa coluna chapada -- a
+     face de cima e a lateral são acabamento por cima da mesma coluna, não
+     uma projeção em perspectiva (foi perspectiva de verdade que fez o
+     disperso 3D sair do mural, ver funilLiquido acima). */
+  function colunasIsometricas(dados, opts) {
+    const o = opts || {};
+    const itens = (dados || []).filter(function (d) {
+      return d && d.valor !== null && d.valor !== undefined; });
+    if (!itens.length) return null;
+    const w = 640, h = 460, ML = 34, MR = 34, MT = 56, MB = 46, prof = 16;
+    const fig = document.createElement("figure");
+    fig.setAttribute("class", "chart");
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+    svg.setAttribute("class", "plot colunas-isometricas");
+
+    const maior = Math.max(1, ...itens.map(function (d) { return Number(d.valor) || 0; }));
+    const areaW = w - ML - MR - prof, areaH = h - MT - MB - prof;
+    const banda = areaW / itens.length;
+    const barW = Math.min(64, banda * 0.56);
+    const cor = o.cor || corSerie(0);
+
+    itens.forEach(function (d, i) {
+      const valor = Number(d.valor) || 0;
+      const altura = Math.max(2, areaH * valor / maior);
+      const x0 = ML + banda * i + (banda - barW) / 2;
+      const y1 = MT + areaH, y0 = y1 - altura;
+
+      const g = document.createElementNS(NS, "g");
+      g.setAttribute("class", "cubo-coluna");
+
+      const topo = document.createElementNS(NS, "polygon");
+      topo.setAttribute("points", `${x0},${y0} ${x0 + barW},${y0} `
+        + `${x0 + barW + prof},${y0 - prof} ${x0 + prof},${y0 - prof}`);
+      topo.setAttribute("fill", `color-mix(in srgb, ${cor} 82%, white)`);
+
+      const lado = document.createElementNS(NS, "polygon");
+      lado.setAttribute("points", `${x0 + barW},${y0} ${x0 + barW + prof},${y0 - prof} `
+        + `${x0 + barW + prof},${y1 - prof} ${x0 + barW},${y1}`);
+      lado.setAttribute("fill", `color-mix(in srgb, ${cor} 58%, black)`);
+
+      const frente = document.createElementNS(NS, "rect");
+      frente.setAttribute("x", x0); frente.setAttribute("y", y0);
+      frente.setAttribute("width", barW); frente.setAttribute("height", altura);
+      frente.setAttribute("fill", cor);
+
+      [topo, lado, frente].forEach(function (face) {
+        face.setAttribute("stroke", "var(--surface)");
+        face.setAttribute("stroke-width", "1.5");
+        face.setAttribute("stroke-linejoin", "round");
+        g.appendChild(face);
+      });
+
+      const dica = document.createElementNS(NS, "title");
+      dica.textContent = `${d.rotulo}: ${fmt(valor)}${o.unidade ? " " + o.unidade : ""}`;
+      g.appendChild(dica);
+      svg.appendChild(g);
+
+      // linha de chamada + número, sempre saindo do meio do topo do cubo
+      // -- mesmo efeito da referência, sem inventar posição por cor/rank
+      const cxTopo = x0 + barW / 2 + prof / 2, cyTopo = y0 - prof / 2;
+      const cyRotulo = Math.max(MT - 8, cyTopo - 26);
+      const chamada = document.createElementNS(NS, "line");
+      chamada.setAttribute("x1", cxTopo); chamada.setAttribute("y1", cyTopo);
+      chamada.setAttribute("x2", cxTopo); chamada.setAttribute("y2", cyRotulo + 6);
+      chamada.setAttribute("stroke", "var(--ink-muted)"); chamada.setAttribute("stroke-width", "1.5");
+      svg.appendChild(chamada);
+
+      const numero = document.createElementNS(NS, "text");
+      numero.setAttribute("x", cxTopo); numero.setAttribute("y", cyRotulo);
+      numero.setAttribute("text-anchor", "middle");
+      numero.setAttribute("font-size", "17"); numero.setAttribute("font-weight", "800");
+      numero.setAttribute("fill", "var(--ink)");
+      numero.textContent = fmt(valor);
+      svg.appendChild(numero);
+
+      const eixo = document.createElementNS(NS, "text");
+      eixo.setAttribute("x", x0 + barW / 2 + prof / 2); eixo.setAttribute("y", h - MB + prof + 20);
+      eixo.setAttribute("text-anchor", "middle");
+      eixo.setAttribute("font-size", "13"); eixo.setAttribute("fill", "var(--ink-2)");
+      eixo.textContent = d.rotulo;
+      svg.appendChild(eixo);
+    });
+
+    fig.appendChild(svg);
+    return fig;
+  }
+
   return {
     ternario,
     pareto,
@@ -801,6 +894,7 @@ const ChartsEnhanced = (function () {
     funilLiquido,
     gaugeDiagnostico,
     globoNeon,
+    colunasIsometricas,
     destacarFatiaSunburst,
   };
 })();

@@ -892,17 +892,19 @@ class TestOQueAParedeSempreMostra(unittest.TestCase):
             with self.subTest(tela=tela):
                 self.assertIn('id: "' + tela + '"', roteiro)
 
-    def test_o_grafico_do_ano_e_de_barras_com_o_numero_escrito(self):
+    def test_o_grafico_do_ano_e_de_colunas_isometricas_com_o_numero_escrito(self):
         """A parede e lida de longe e de passagem.
 
         A pergunta que se faz dela e "quantos naquele ano", nao "qual o
         desenho da curva" -- e uma area obriga quem olha a seguir a linha
-        ate o eixo para responder. Com barras de uma serie so, o numero
-        vai escrito em cima de cada uma.
+        ate o eixo para responder. As colunas isometricas (pedido
+        explicito depois da referencia de barras em "cubo") continuam
+        escrevendo o numero em cima de cada uma -- ver
+        ChartsEnhanced.colunasIsometricas.
         """
         corpo = self.js[self.js.index("function slideAgora"):
                         self.js.index("function slidePrazos")]
-        self.assertIn("C.columns", corpo)
+        self.assertIn("ChartsEnhanced.colunasIsometricas", corpo)
         self.assertNotIn("C.area", corpo)
 
     def test_a_janela_de_cinco_anos_e_uma_so(self):
@@ -1511,6 +1513,91 @@ class TestFunilLiquidoDaProducao(unittest.TestCase):
         self.assertIn("16", resultado["textos"])
         self.assertIn("3", resultado["textos"])
         self.assertIn("112", resultado["textos"])
+
+
+class TestColunasIsometricas(unittest.TestCase):
+    """`ChartsEnhanced.colunasIsometricas` -- as colunas do gráfico
+    "Publicações por ano" viraram cubo com linha de chamada, pedido
+    explícito depois da referência (imagem de barras isométricas com
+    callout). O cuidado que não muda: a ALTURA da face da frente
+    carrega o dado de verdade -- o resto é acabamento, nunca perspectiva
+    de verdade (ver a nota do funilLiquido sobre o disperso 3D que saiu
+    do mural)."""
+
+    DOM_SHIM = """
+    class NoFalso {
+      constructor(tag) {
+        this.tag = tag; this.attrs = {}; this.kids = []; this._text = "";
+        this.style = { setProperty: () => {} };
+      }
+      setAttribute(k, v) { this.attrs[k] = String(v); }
+      appendChild(kid) { this.kids.push(kid); return kid; }
+      set textContent(v) { this._text = String(v); }
+      get textContent() { return this._text; }
+    }
+    global.document = {
+      createElementNS: (ns, tag) => new NoFalso(tag),
+      createElement: (tag) => new NoFalso(tag),
+    };
+    global.fmt = function (v) { return String(v); };
+    function todos(no, tag, saida) {
+      saida = saida || [];
+      if (no.tag === tag) saida.push(no);
+      no.kids.forEach((k) => todos(k, tag, saida));
+      return saida;
+    }
+    """
+
+    def _grafico(self, dados, opts=None):
+        texto = (TEMPLATES / "charts-enhanced.js").read_text(encoding="utf-8")
+        inicio = texto.index("const ChartsEnhanced")
+        fim = texto.index("\n})();", inicio) + len("\n})();")
+        chart_src = texto[inicio:fim]
+        script = (self.DOM_SHIM + "\n" + chart_src
+                  + f"\nconst fig = ChartsEnhanced.colunasIsometricas({json.dumps(dados)}, "
+                  + f"{json.dumps(opts or {})});"
+                  + "\nif (fig === null) { process.stdout.write(JSON.stringify(null)); }"
+                  + "\nelse {"
+                  + "\nconst svg = fig.kids[0];"
+                  + "\nconst grupos = todos(fig, 'g').filter(function (g) {"
+                  + "  return g.attrs.class === 'cubo-coluna'; });"
+                  + "\nconst frentes = grupos.map(function (g) {"
+                  + "  return g.kids.find(function (k) { return k.tag === 'rect'; }); });"
+                  + "\nprocess.stdout.write(JSON.stringify({"
+                  + "  svgClasse: svg.attrs.class,"
+                  + "  nCubos: grupos.length,"
+                  + "  nFaces: grupos[0] ? grupos[0].kids.filter(function (k) {"
+                  + "    return k.tag === 'rect' || k.tag === 'polygon'; }).length : 0,"
+                  + "  alturasFrente: frentes.map(function (r) { return Number(r.attrs.height); }),"
+                  + "  textos: todos(fig, 'text').map(function (t) { return t.textContent; }) }));"
+                  + "\n}")
+        return _roda(script)
+
+    def test_sem_dado_nao_desenha_nada(self):
+        self.assertIsNone(self._grafico([]))
+
+    def test_um_cubo_por_item_com_tres_faces(self):
+        dados = [{"rotulo": "2023", "valor": 12}, {"rotulo": "2024", "valor": 16}]
+        resultado = self._grafico(dados)
+        self.assertEqual(resultado["nCubos"], 2)
+        self.assertEqual(resultado["nFaces"], 3)  # topo, lado, frente
+
+    def test_a_altura_da_face_da_frente_segue_o_valor_de_verdade(self):
+        # o maior valor deve resultar na maior altura de FRENTE -- e' essa
+        # face, nao o cubo inteiro, que carrega o dado
+        dados = [{"rotulo": "2023", "valor": 10}, {"rotulo": "2024", "valor": 40}]
+        resultado = self._grafico(dados)
+        self.assertGreater(resultado["alturasFrente"][1], resultado["alturasFrente"][0])
+
+    def test_rotulo_e_valor_aparecem(self):
+        dados = [{"rotulo": "2024", "valor": 16}]
+        resultado = self._grafico(dados, {"unidade": "publicação(ões)"})
+        self.assertIn("2024", resultado["textos"])
+        self.assertIn("16", resultado["textos"])
+
+    def test_svg_leva_a_classe_que_o_css_do_quadro_espera(self):
+        resultado = self._grafico([{"rotulo": "2024", "valor": 16}])
+        self.assertEqual(resultado["svgClasse"], "plot colunas-isometricas")
 
 
 class TestLinhaMaisPresente(unittest.TestCase):
