@@ -725,10 +725,27 @@ function slideOrganogramaMetodologico() {
 }
 
 /* ==================== FRAMEWORK DE PESQUISA (PIPELINE REAL) ==================== */
+/* O mesmo mapa tom -> variável de cor que `.etapa-framework[data-tom=...]`
+   usa no CSS -- aqui só para o conector poder ler a cor de verdade da
+   etapa de cada lado dele (a variável precisa ir no `style` inline
+   porque cada conector fica ENTRE duas etapas, sem herdar `--cor` de
+   nenhuma delas sozinho). */
+const TOM_VAR = {
+  azul: "--series-1", laranja: "--series-2", verde: "--series-3", ambar: "--series-4",
+  magenta: "--series-5", violeta: "--series-7", bom: "--good", alerta: "--warning",
+};
+
 /* As fases batem exato com os status do banco (config.ARTICLE_STATUS) --
    nunca um estágio inventado que o sistema não consegue contar de verdade.
    Rejeitado/arquivado são desfechos, não um próximo passo: entram à parte,
-   nunca escondidos, nunca forçados dentro do fluxo principal. */
+   nunca escondidos, nunca forçados dentro do fluxo principal.
+
+   Referências que o Mateus mandou (fluxos numerados em círculo, ligados
+   por uma faixa/trilha única) concordam com o organograma num ponto:
+   círculo simples > cartão retangular com brilho varrendo sem parar. O
+   cartão retangular saiu; a etapa agora é um círculo com o número dentro
+   e o rótulo embaixo, e o conector virou uma faixa grossa colorida (a
+   trilha) em vez de uma linha fina com seta e partícula andando. */
 function slideFrameworkN8n() {
   const t = tv();
   if (!t) return escalonar(el("div", { class: "slide" }, vazio("Dados do framework não disponíveis.")));
@@ -768,21 +785,21 @@ function slideFrameworkN8n() {
 
     const card = el("div", {
       class: "etapa-framework" + (ehGargalo ? " gargalo" : ""),
-      "data-tom": fase.tom,
       style: `--index:${idx};`,
     }, [
-      Icons.badge(fase.icone, fase.tom, 30),
-      el("div", { class: "etapa-numero", text: String(count) }),
+      el("div", { class: "etapa-circulo", "data-tom": fase.tom }, [
+        Icons.badge(fase.icone, fase.tom, 22),
+        el("div", { class: "etapa-numero", text: String(count) }),
+      ]),
       el("div", { class: "etapa-rotulo", text: fase.label }),
       ehGargalo ? el("div", { class: "etapa-flag", text: "gargalo" }) : null,
     ]);
     pipeline.appendChild(card);
 
     if (idx < FASES.length - 1) {
-      pipeline.appendChild(el("div", { class: "conector-framework", style: `--index:${idx};` }, [
-        el("span", { class: "seta-conector" }),
-        el("span", { class: "particula-conector" }),
-      ]));
+      const seguinte = FASES[idx + 1];
+      pipeline.appendChild(el("div", { class: "conector-framework", style:
+        `--index:${idx};--de:var(${TOM_VAR[fase.tom]});--ate:var(${TOM_VAR[seguinte.tom]})` }));
     }
   });
 

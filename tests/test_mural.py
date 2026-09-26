@@ -1090,6 +1090,42 @@ class TestCartaoDaPessoaNaArvore(unittest.TestCase):
         self.assertIn("border-left", trecho)
 
 
+class TestEtapaDoFrameworkViraCirculo(unittest.TestCase):
+    """`slideFrameworkN8n` -- mesmo achado do organograma, mesma correção:
+    o cartão retangular com brilho "escaneando" sem parar, canto de HUD e
+    número entrando com bounce virou um círculo simples, ligado ao
+    próximo por uma faixa sólida (não uma linha fina com seta e
+    partícula animada)."""
+
+    def setUp(self):
+        self.js = (TEMPLATES / "slides-avancados-3d.js").read_text(encoding="utf-8")
+        self.css = (TEMPLATES / "slides-avancados-3d.css").read_text(encoding="utf-8")
+
+    def test_a_etapa_e_um_circulo(self):
+        corpo = self.js[self.js.index("function slideFrameworkN8n("):
+                        self.js.index("function slideKPIsAnalyticos(")]
+        self.assertIn("etapa-circulo", corpo)
+
+    def test_a_faixa_liga_a_cor_de_uma_etapa_a_outra(self):
+        corpo = self.js[self.js.index("function slideFrameworkN8n("):
+                        self.js.index("function slideKPIsAnalyticos(")]
+        self.assertIn("--de:", corpo)
+        self.assertIn("--ate:", corpo)
+        self.assertIn("TOM_VAR", corpo)
+
+    def test_efeitos_antigos_sairam(self):
+        for sumiu in ("varreduraFramework", "countBounce", "particula-conector",
+                      "seta-conector", "fluxoArtigos"):
+            with self.subTest(sumiu=sumiu):
+                self.assertNotIn(sumiu, self.js)
+                self.assertNotIn(sumiu, self.css)
+
+    def test_gargalo_pulsa_uma_vez_so_nao_empilhado_com_outros_efeitos(self):
+        corpo = self.css[self.css.index(".etapa-framework.gargalo"):
+                        self.css.index(".etapa-flag")]
+        self.assertEqual(corpo.count("animation:"), 1)
+
+
 class TestQuemTemOrientadorNoOrganograma(unittest.TestCase):
     """`temOrientadorVisivel` -- decide quem NUNCA pode ser raiz solta no
     organograma do mural. Bug real: sem essa checagem, uma pessoa cuja
