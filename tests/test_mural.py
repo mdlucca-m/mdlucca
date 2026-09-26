@@ -1049,6 +1049,47 @@ class TestQuebraDeNomeDaLinha3D(unittest.TestCase):
         self.assertTrue(nome.startswith(linha1))
 
 
+class TestCartaoDaPessoaNaArvore(unittest.TestCase):
+    """`cartaoPessoa` -- achado ao vivo (print do Mateus): o cartão da
+    árvore competia com a própria informação (cantos de HUD, halo
+    pulsante, entrada saltitante) e a cor vinha do vínculo em vez do
+    nível da árvore, então a mesma geração saía com cores soltas em vez
+    de marcar visualmente "isto é uma hierarquia"."""
+
+    def setUp(self):
+        self.js = (TEMPLATES / "slides-avancados-3d.js").read_text(encoding="utf-8")
+        self.css = (TEMPLATES / "slides-avancados-3d.css").read_text(encoding="utf-8")
+
+    def test_uma_so_funcao_compartilhada_pelas_duas_laminas(self):
+        """Antes cada lâmina (`slideOrganograma3D` e
+        `slideOrganogramaMetodologico`) reescrevia o mesmo cartão do lado
+        da outra -- uma mudança de estilo precisava ser feita duas vezes,
+        e as duas já tinham divergido uma vez (achado ao vivo)."""
+        self.assertEqual(self.js.count("function cartaoPessoa("), 1)
+
+    def test_a_cor_vem_do_nivel_nao_do_vinculo(self):
+        corpo = self.js[self.js.index("function cartaoPessoa("):
+                        self.js.index("function slideOrganograma3D(")]
+        self.assertIn("NIVEL_COR", corpo)
+        self.assertIn("profundidade", corpo)
+        # o icone continua vindo do vinculo -- só a cor mudou de fonte
+        self.assertIn("VINCULOS_ICONE", corpo)
+
+    def test_cantos_de_hud_e_halo_pulsante_sairam_do_css(self):
+        for sumiu in ("popIn", "respiroPresenca", "cartao-pessoa::before", "cartao-pessoa::after"):
+            with self.subTest(sumiu=sumiu):
+                self.assertNotIn(sumiu, self.css)
+
+    def test_ramos_raiz_ganham_separador_visivel(self):
+        """"Separar melhor": um ramo de raiz (uma pessoa sem orientador, e
+        toda a árvore que sai dela) não pode se misturar visualmente com
+        o ramo vizinho."""
+        self.assertIn(".arvore-organograma > .no-organograma:not(:first-child)", self.css)
+        trecho = self.css[self.css.index(".arvore-organograma > .no-organograma:not(:first-child)"):]
+        trecho = trecho[:trecho.index("}") + 1]
+        self.assertIn("border-left", trecho)
+
+
 class TestQuemTemOrientadorNoOrganograma(unittest.TestCase):
     """`temOrientadorVisivel` -- decide quem NUNCA pode ser raiz solta no
     organograma do mural. Bug real: sem essa checagem, uma pessoa cuja

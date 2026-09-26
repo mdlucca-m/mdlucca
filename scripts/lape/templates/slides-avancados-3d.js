@@ -499,6 +499,57 @@ function temOrientadorVisivel(pessoas, edges) {
   return resultado;
 }
 
+/* Antes a cor do cartão vinha do VÍNCULO (professor violeta, bolsista
+   laranja...) -- e cada geração da árvore saía com um mosaico de cores
+   soltas, sem nada dizendo "isto é uma hierarquia". Referências que o
+   Mateus mandou (prints de organogramas de verdade) concordam num ponto:
+   a cor marca o NÍVEL da árvore -- raiz, depois cada geração abaixo --
+   e é isso que faz a hierarquia se ler de longe, antes mesmo de ler um
+   nome. O ícone continua vindo do vínculo (`VINCULOS_ICONE`); só a cor
+   do cartão passou a vir da profundidade. */
+const NIVEL_COR = ["violeta", "laranja", "bom", "azul"];
+
+/* O cartão de uma pessoa na árvore -- compartilhado pelas duas lâminas
+   (`slideOrganograma3D` e `slideOrganogramaMetodologico`) que antes
+   reescreviam a mesma função lado a lado. Achado ao vivo: o desenho
+   anterior (cantos de HUD, halo pulsante, entrada saltitante) competia
+   com a informação em vez de organizá-la -- "não dá para ver nada
+   direito" era, em boa parte, isso. O cartão agora é só borda, ícone,
+   nome e vínculo -- a cor de nível já diz "onde" a pessoa está na
+   árvore, sem precisar de brilho. */
+function cartaoPessoa(p, profundidade) {
+  const [icone] = VINCULOS_ICONE[p.role || "sem_vinculo"] || VINCULOS_ICONE.sem_vinculo;
+  const tom = NIVEL_COR[(profundidade || 0) % NIVEL_COR.length];
+  const ativo = p.ativo_agora ? "ativo" : "inativo";
+  const cartao = el("div", { class: `cartao-pessoa ${ativo}`, "data-tom": tom, "data-id": p.id });
+
+  cartao.appendChild(Icons.badge(icone, tom, 30));
+
+  const statusBolinha = el("div", { class: `status-bolinha ${ativo}` });
+  if (p.ativo_agora) statusBolinha.classList.add("pulsante");
+  cartao.appendChild(statusBolinha);
+
+  cartao.appendChild(el("div", { class: "nome-pessoa", text: cortar(p.full_name, 25) }));
+  cartao.appendChild(el("div", { class: "vinculo-pessoa", text: p.role_label }));
+
+  if (p.ativo_agora && p.ha_horas !== null && p.ha_horas !== undefined) {
+    cartao.appendChild(el("div", { class: "desde-pessoa", text: "há " + porHoras(p.ha_horas) }));
+  }
+
+  const nArtigos = p.n_articles || 0;
+  cartao.appendChild(el("div", { class: "badge-artigos", text: nArtigos }));
+  if (p.orientandos) {
+    cartao.appendChild(el("div", { class: "badge-orientandos", title: p.orientandos + " orientando(s)" },
+      [el("span", { text: "↳ " + p.orientandos })]));
+  }
+
+  const linhaPonto = p.ativo_agora
+    ? "presente há " + porHoras(p.ha_horas) + (p.atividade ? " -- " + p.atividade : "")
+    : "ausente agora";
+  cartao.title = `${p.full_name}\n${p.role_label}\n${nArtigos} artigo(s)\n${linhaPonto}`;
+  return cartao;
+}
+
 function slideOrganograma3D(baldeIndex) {
   const t = tv();
   const org = t && t.organograma;
@@ -524,38 +575,6 @@ function slideOrganograma3D(baldeIndex) {
     (filhosDe[e.from] = filhosDe[e.from] || []).push({ to: e.to, kind: e.kind });
   });
 
-  function cartaoPessoa(p) {
-    const [icone, tom] = VINCULOS_ICONE[p.role || "sem_vinculo"] || VINCULOS_ICONE.sem_vinculo;
-    const ativo = p.ativo_agora ? "ativo" : "inativo";
-    const cartao = el("div", { class: `cartao-pessoa ${ativo}`, "data-tom": tom, "data-id": p.id });
-
-    cartao.appendChild(Icons.badge(icone, tom, 30));
-
-    const statusBolinha = el("div", { class: `status-bolinha ${ativo}` });
-    if (p.ativo_agora) statusBolinha.classList.add("pulsante");
-    cartao.appendChild(statusBolinha);
-
-    cartao.appendChild(el("div", { class: "nome-pessoa", text: cortar(p.full_name, 25) }));
-    cartao.appendChild(el("div", { class: "vinculo-pessoa", text: p.role_label }));
-
-    if (p.ativo_agora && p.ha_horas !== null && p.ha_horas !== undefined) {
-      cartao.appendChild(el("div", { class: "desde-pessoa", text: "há " + porHoras(p.ha_horas) }));
-    }
-
-    const nArtigos = p.n_articles || 0;
-    cartao.appendChild(el("div", { class: "badge-artigos", text: nArtigos }));
-    if (p.orientandos) {
-      cartao.appendChild(el("div", { class: "badge-orientandos", title: p.orientandos + " orientando(s)" },
-        [el("span", { text: "↳ " + p.orientandos })]));
-    }
-
-    const linhaPonto = p.ativo_agora
-      ? "presente há " + porHoras(p.ha_horas) + (p.atividade ? " -- " + p.atividade : "")
-      : "ausente agora";
-    cartao.title = `${p.full_name}\n${p.role_label}\n${nArtigos} artigo(s)\n${linhaPonto}`;
-    return cartao;
-  }
-
   /* A árvore de verdade, sempre horizontal: raiz em cima, filhos numa
      fileira embaixo, ligados pelo conector clássico (CSS
      .ramo-organograma). Com o organograma agora separado em baldes por
@@ -566,7 +585,7 @@ function slideOrganograma3D(baldeIndex) {
     const pessoa = porId[id];
     if (!pessoa) return null;
     const filhos = (filhosDe[id] || []).map(function (f) { return porId[f.to]; }).filter(Boolean);
-    const no = el("div", { class: "no-organograma" }, [cartaoPessoa(pessoa)]);
+    const no = el("div", { class: "no-organograma" }, [cartaoPessoa(pessoa, profundidade)]);
     if (!filhos.length || profundidade >= 3) return no;
     const galhos = el("div", { class: "ramo-organograma" },
       filhos.map(function (p) { return noArvore(p.id, profundidade + 1); }).filter(Boolean));
@@ -647,32 +666,6 @@ function slideOrganogramaMetodologico() {
     (filhosDe[e.from] = filhosDe[e.from] || []).push({ to: e.to, kind: e.kind });
   });
 
-  function cartaoPessoa(p) {
-    const [icone, tom] = VINCULOS_ICONE[p.role || "sem_vinculo"] || VINCULOS_ICONE.sem_vinculo;
-    const ativo = p.ativo_agora ? "ativo" : "inativo";
-    const cartao = el("div", { class: `cartao-pessoa ${ativo}`, "data-tom": tom, "data-id": p.id });
-    cartao.appendChild(Icons.badge(icone, tom, 30));
-    const statusBolinha = el("div", { class: `status-bolinha ${ativo}` });
-    if (p.ativo_agora) statusBolinha.classList.add("pulsante");
-    cartao.appendChild(statusBolinha);
-    cartao.appendChild(el("div", { class: "nome-pessoa", text: cortar(p.full_name, 25) }));
-    cartao.appendChild(el("div", { class: "vinculo-pessoa", text: p.role_label }));
-    if (p.ativo_agora && p.ha_horas !== null && p.ha_horas !== undefined) {
-      cartao.appendChild(el("div", { class: "desde-pessoa", text: "há " + porHoras(p.ha_horas) }));
-    }
-    const nArtigos = p.n_articles || 0;
-    cartao.appendChild(el("div", { class: "badge-artigos", text: nArtigos }));
-    if (p.orientandos) {
-      cartao.appendChild(el("div", { class: "badge-orientandos", title: p.orientandos + " orientando(s)" },
-        [el("span", { text: "↳ " + p.orientandos })]));
-    }
-    const linhaPonto = p.ativo_agora
-      ? "presente há " + porHoras(p.ha_horas) + (p.atividade ? " -- " + p.atividade : "")
-      : "ausente agora";
-    cartao.title = `${p.full_name}\n${p.role_label}\n${nArtigos} artigo(s)\n${linhaPonto}`;
-    return cartao;
-  }
-
   /* UM SÓ `mostrados`, atravessando os três baldes em ordem -- é o que
      substitui o "replay" que cada slide separada fazia sozinha. Marcado
      NA HORA em que o nó é desenhado (não só depois da árvore pronta):
@@ -687,7 +680,7 @@ function slideOrganogramaMetodologico() {
     if (!pessoa || mostrados.has(id)) return null;
     mostrados.add(id);
     const filhos = (filhosDe[id] || []).map(function (f) { return porId[f.to]; }).filter(Boolean);
-    const no = el("div", { class: "no-organograma" }, [cartaoPessoa(pessoa)]);
+    const no = el("div", { class: "no-organograma" }, [cartaoPessoa(pessoa, profundidade)]);
     if (!filhos.length || profundidade >= 3) return no;
     const galhos = el("div", { class: "ramo-organograma" },
       filhos.map(function (p) { return noArvore(p.id, profundidade + 1); }).filter(Boolean));
