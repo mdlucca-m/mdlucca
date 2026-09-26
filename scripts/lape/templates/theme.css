@@ -732,6 +732,16 @@ svg.plot.tree .tick { font-size: 11px; }
   animation-delay: calc(min(var(--passo, 0), 9) * 45ms);
   transform-origin: center;
 }
+/* Chapada, mas com acabamento: um contorno escuro fino separa a barra
+   do fundo mesmo quando a cor dela é próxima da do fundo, e uma sombra
+   suave e curta dá o "chão" que a barra pisa -- sem a perspectiva 3D
+   que distorce a altura percebida (o motivo de manter chapado, ver
+   `.cartao-pessoa`/`.fatia-hexagono`/o funil). */
+.plot .mark.cresce {
+  stroke: color-mix(in srgb, black 20%, transparent);
+  stroke-width: 1;
+  filter: drop-shadow(0 3px 3px color-mix(in srgb, black 28%, transparent));
+}
 @keyframes entra {
   from { opacity: 0; transform: scale(.94); }
   to   { opacity: 1; transform: scale(1); }

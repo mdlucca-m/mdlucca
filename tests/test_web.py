@@ -1285,6 +1285,27 @@ class TestTokensDoTema(unittest.TestCase):
         self.assertIn('class: "tick"', charts)
         self.assertIn('class: "val"', charts)
 
+    def test_barra_chapada_tem_contorno_e_sombra_mas_nao_e_3d(self):
+        """Pedido: manter os gráficos de barra chapados (sem a perspectiva
+        3D que distorce a altura percebida -- a mesma lição de hoje com o
+        organograma/framework/funil), mas com contorno e sombra suave em
+        vez de um preenchimento liso sem acabamento nenhum.
+
+        Escopado só a `.mark.cresce` (barra/coluna) -- nunca `.mark`
+        sozinho, que também é ponto de linha, célula de mapa de calor,
+        anel de donut etc.; essas marcas não pedem sombra de barra.
+        """
+        css = (self.TEMPLATES / "theme.css").read_text(encoding="utf-8")
+        self.assertIn(".plot .mark.cresce {", css)
+        bloco = css[css.index(".plot .mark.cresce {"):]
+        bloco = bloco[:bloco.index("}") + 1]
+        self.assertIn("stroke", bloco)
+        self.assertIn("drop-shadow", bloco)
+        # nada de transform 3D/perspective -- só contorno e sombra
+        self.assertNotIn("perspective", bloco)
+        self.assertNotIn("rotateX", bloco)
+        self.assertNotIn("rotateY", bloco)
+
     def test_o_radar_e_o_globo_nao_perdem_o_esqueleto(self):
         """A teia do radar nao e grade: e onde fica cada variavel.
 
